@@ -28,6 +28,7 @@ libgnunet_plugin_dhtu_ip_la_LDFLAGS = \
 libgnunet_plugin_dhtu_gnunet_la_SOURCES = \
   plugin_dhtu_gnunet.c
 libgnunet_plugin_dhtu_gnunet_la_LIBADD = \
+  $(top_builddir)/src/core/libgnunetcore.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(XLIBS) \
   $(LTLIBINTL)

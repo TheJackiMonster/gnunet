@@ -26,6 +26,7 @@
  */
 #include "platform.h"
 #include "gnunet_dhtu_plugin.h"
+#include "gnunet_core_service.h"
 
 /**
  * Handle for a private key used by this underlay.
@@ -134,6 +135,12 @@ struct Plugin
    * Callbacks into the DHT.
    */
   struct GNUNET_DHTU_PluginEnvironment *env;
+
+  /**
+   * Handle to the CORE service.
+   */
+  struct GNUNET_CORE_Handle *core;
+  
 };
 
 
@@ -290,6 +297,60 @@ ip_send (void *cls,
 }
 
 
+
+/**
+ * Method called whenever a given peer connects.
+ *
+ * @param cls closure
+ * @param peer peer identity this notification is about
+ * @return closure associated with @a peer. given to mq callbacks and
+ *         #GNUNET_CORE_DisconnectEventHandler
+ */
+static void *
+core_connect_cb (void *cls,
+                 const struct GNUNET_PeerIdentity *peer,
+                 struct GNUNET_MQ_Handle *mq)
+{
+  return NULL;
+}
+
+
+/**
+ * Method called whenever a peer disconnects.
+ *
+ * @param cls closure
+ * @param peer peer identity this notification is about
+ * @param peer_cls closure associated with peer. given in
+ *        #GNUNET_CORE_ConnectEventHandler
+ */
+static void
+core_disconnect_cb (void *cls,
+                    const struct GNUNET_PeerIdentity *peer,
+                    void *peer_cls)
+{
+}
+
+
+/**
+ * Function called after #GNUNET_CORE_connect has succeeded (or failed
+ * for good).  Note that the private key of the peer is intentionally
+ * not exposed here; if you need it, your process should try to read
+ * the private key file directly (which should work if you are
+ * authorized...).  Implementations of this function must not call
+ * #GNUNET_CORE_disconnect (other than by scheduling a new task to
+ * do this later).
+ *
+ * @param cls closure
+ * @param my_identity ID of this peer, NULL if we failed
+ */
+static void
+core_init_cb (void *cls,
+              const struct GNUNET_PeerIdentity *my_identity)
+{
+  struct Plugin *plugin = cls;
+}
+
+
 /**
  * Entry point for the plugin.
  *
@@ -302,6 +363,9 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
   struct GNUNET_DHTU_PluginEnvironment *env = cls;
   struct GNUNET_DHTU_PluginFunctions *api;
   struct Plugin *plugin;
+  struct GNUNET_MQ_MessageHandler handlers[] = {
+    GNUNET_MQ_handler_end ()
+  };
 
   plugin = GNUNET_new (struct Plugin);
   plugin->env = env;
@@ -313,6 +377,12 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
   api->hold = &ip_hold;
   api->drop = &ip_drop;
   api->send = &ip_send;
+  plugin->core = GNUNET_CORE_connect (env->cfg,
+                                      plugin,
+                                      &core_init_cb,
+                                      &core_connect_cb,
+                                      &core_disconnect_cb,
+                                      handlers);
   return api;
 }
 
@@ -329,6 +399,7 @@ libgnunet_plugin_dhtu_gnunet_done (void *cls)
   struct GNUNET_DHTU_PluginFunctions *api = cls;
   struct Plugin *plugin = api->cls;
 
+  GNUNET_CORE_disconnect (plugin->core);
   GNUNET_free (plugin);
   GNUNET_free (api);
   return NULL;

@@ -331,9 +331,10 @@ typedef int (*GNUNET_MQ_MessageValidationCallback) (
  * @param msg the message to send
  * @param impl_state state of the implementation
  */
-typedef void (*GNUNET_MQ_SendImpl) (struct GNUNET_MQ_Handle *mq,
-                                    const struct GNUNET_MessageHeader *msg,
-                                    void *impl_state);
+typedef void
+(*GNUNET_MQ_SendImpl) (struct GNUNET_MQ_Handle *mq,
+                       const struct GNUNET_MessageHeader *msg,
+                       void *impl_state);
 
 
 /**
@@ -345,8 +346,9 @@ typedef void (*GNUNET_MQ_SendImpl) (struct GNUNET_MQ_Handle *mq,
  * @param mq the message queue to destroy
  * @param impl_state state of the implementation
  */
-typedef void (*GNUNET_MQ_DestroyImpl) (struct GNUNET_MQ_Handle *mq,
-                                       void *impl_state);
+typedef void
+(*GNUNET_MQ_DestroyImpl) (struct GNUNET_MQ_Handle *mq,
+                          void *impl_state);
 
 
 /**
@@ -355,8 +357,9 @@ typedef void (*GNUNET_MQ_DestroyImpl) (struct GNUNET_MQ_Handle *mq,
  * @param mq message queue
  * @param impl_state state specific to the implementation
  */
-typedef void (*GNUNET_MQ_CancelImpl) (struct GNUNET_MQ_Handle *mq,
-                                      void *impl_state);
+typedef void
+(*GNUNET_MQ_CancelImpl) (struct GNUNET_MQ_Handle *mq,
+                         void *impl_state);
 
 
 /**
@@ -368,7 +371,9 @@ typedef void (*GNUNET_MQ_CancelImpl) (struct GNUNET_MQ_Handle *mq,
  * @param cls closure
  * @param error error code
  */
-typedef void (*GNUNET_MQ_ErrorHandler) (void *cls, enum GNUNET_MQ_Error error);
+typedef void
+(*GNUNET_MQ_ErrorHandler) (void *cls,
+                           enum GNUNET_MQ_Error error);
 
 
 /**
