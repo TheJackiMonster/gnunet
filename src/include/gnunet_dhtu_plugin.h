@@ -75,42 +75,18 @@ struct GNUNET_DHTU_PublicKey
 
   /* followed by size-2 bytes of the actual public key */
 };
-  
+
 
 /**
  * Hash used by the DHT for keys and peers.
  */
 struct GNUNET_DHTU_Hash
 {
-  
+
   /**
    * For now, use a 512 bit hash. (To be discussed).
-   */ 
+   */
   struct GNUNET_HashCode hc;
-};
-
-
-/**
- * @brief header of what an DHTU signature signs
- *        this must be followed by "size - 8" bytes of
- *        the actual signed data
- */
-struct GNUNET_DHTU_SignaturePurpose
-{
-  /**
-   * How many bytes does this signature sign?
-   * (including this purpose header); in network
-   * byte order (!).
-   */
-  uint32_t size GNUNET_PACKED;
-
-  /**
-   * What does this signature vouch for?  This
-   * must contain a GNUNET_SIGNATURE_PURPOSE_XXX
-   * constant (from gnunet_signatures.h).  In
-   * network byte order!
-   */
-  uint32_t purpose GNUNET_PACKED;
 };
 
 
@@ -131,7 +107,7 @@ struct GNUNET_DHTU_PluginEnvironment
    */
   void *cls;
 
-  /** 
+  /**
    * Function to call with new addresses of this peer.
    *
    * @param cls the closure
@@ -151,7 +127,7 @@ struct GNUNET_DHTU_PluginEnvironment
                     struct GNUNET_DHTU_Source *source,
                     void **ctx);
 
-  /** 
+  /**
    * Function to call with expired addresses of this peer.
    *
    * @param[in] ctx storage space used by the DHT in association with this address
@@ -160,7 +136,7 @@ struct GNUNET_DHTU_PluginEnvironment
   (*address_del_cb)(void *ctx);
 
   /**
-   * We have a new estimate on the size of the underlay. 
+   * We have a new estimate on the size of the underlay.
    *
    * @param cls closure
    * @param timestamp time when the estimate was received from the server (or created by the server)
@@ -172,7 +148,7 @@ struct GNUNET_DHTU_PluginEnvironment
                      struct GNUNET_TIME_Absolute timestamp,
                      double logestimate,
                      double std_dev);
-  
+
   /**
    * Function to call when we connect to a peer and can henceforth transmit to
    * that peer.
@@ -208,7 +184,7 @@ struct GNUNET_DHTU_PluginEnvironment
    * @param cls the closure
    * @param origin where the message originated from
    * @param[in,out] tctx ctx of target address where we received the message from
-   * @param[in,out] sctx ctx of our own source address at which we received the message 
+   * @param[in,out] sctx ctx of our own source address at which we received the message
    * @param message the message we received @param message_size number of
    * bytes in @a message
    */
@@ -244,7 +220,7 @@ struct GNUNET_DHTU_PluginFunctions
   ssize_t
   (*sign)(void *cls,
           const struct GNUNET_DHTU_PrivateKey *pk,
-          const struct GNUNET_DHTU_SignaturePurpose *purpose,
+          const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
           void **sig);
 
   /**
@@ -262,7 +238,7 @@ struct GNUNET_DHTU_PluginFunctions
   enum GNUNET_GenericReturnValue
   (*verify)(void *cls,
             const struct GNUNET_DHTU_PublicKey *pk,
-            const struct GNUNET_DHTU_SignaturePurpose *purpose,
+            const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
             const void *sig,
             size_t sig_size);
 
@@ -281,7 +257,7 @@ struct GNUNET_DHTU_PluginFunctions
    * Request underlay to keep the connection to @a target alive if possible.
    * Hold may be called multiple times to express a strong preference to
    * keep a connection, say because a @a target is in multiple tables.
-   * 
+   *
    * @param cls closure
    * @param target connection to keep alive
    */
@@ -291,13 +267,13 @@ struct GNUNET_DHTU_PluginFunctions
 
   /**
    * Do no long request underlay to keep the connection alive.
-   * 
+   *
    * @param cls closure
    * @param target connection to keep alive
    */
   void
   (*drop)(struct GNUNET_DHTU_PreferenceHandle *ph);
-  
+
   /**
    * Send message to some other participant over the network.  Note that
    * sending is not guaranteeing that the other peer actually received the
@@ -310,7 +286,7 @@ struct GNUNET_DHTU_PluginFunctions
    * @param msg_size number of bytes in @a msg
    * @param finished_cb function called once transmission is done
    *        (not called if @a target disconnects, then only the
-   *         disconnect_cb is called). 
+   *         disconnect_cb is called).
    * @param finished_cb_cls closure for @a finished_cb
    */
   void
@@ -320,7 +296,7 @@ struct GNUNET_DHTU_PluginFunctions
            size_t msg_size,
            GNUNET_SCHEDULER_TaskCallback finished_cb,
            void *finished_cb_cls);
- 
+
 };
 
 

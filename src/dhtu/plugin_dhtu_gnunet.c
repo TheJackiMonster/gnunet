@@ -21,11 +21,43 @@
 /**
  * @author Christian Grothoff
  *
- * @file plugin_dhtu_ip.c
+ * @file plugin_dhtu_gnunet.c
  * @brief plain IP based DHT network underlay
  */
 #include "platform.h"
-#incluce "gnunet_dhtu_plugin.h"
+#include "gnunet_dhtu_plugin.h"
+
+/**
+ * Handle for a private key used by this underlay.
+ */
+struct GNUNET_DHTU_PrivateKey
+{
+  /**
+   * GNUnet uses eddsa for peers.
+   */
+  struct GNUNET_CRYPTO_EddsaPrivateKey eddsa_priv;
+
+};
+
+
+/**
+ * Handle for a public key used by this underlay.
+ */
+struct PublicKey
+{
+
+  /**
+   * Header.
+   */
+  struct GNUNET_DHTU_PublicKey header;
+
+  /**
+   * GNUnet uses eddsa for peers.
+   */
+  struct GNUNET_CRYPTO_EddsaPublicKey eddsa_pub;
+
+};
+
 
 /**
  * Opaque handle that the underlay offers for our address to be used when
@@ -47,7 +79,7 @@ struct GNUNET_DHTU_Source
  */
 struct GNUNET_DHTU_Target
 {
-  
+
   /**
    * Application context for this target.
    */
@@ -94,20 +126,11 @@ struct GNUNET_DHTU_PreferenceHandle
 
 
 /**
- * Opaque handle for a private key used by this underlay.
- */
-struct GNUNET_DHTU_PrivateKey
-{
-  /* we are IP, we do not do crypto */
-};
-
-
-/**
  * Closure for all plugin functions.
  */
 struct Plugin
 {
-  /** 
+  /**
    * Callbacks into the DHT.
    */
   struct GNUNET_DHTU_PluginEnvironment *env;
@@ -126,10 +149,17 @@ struct Plugin
 static ssize_t
 ip_sign (void *cls,
          const struct GNUNET_DHTU_PrivateKey *pk,
-         const struct GNUNET_DHTU_SignaturePurpose *purpose,
+         const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
          void **sig)
 {
-  return 0;
+  struct GNUNET_CRYPTO_EddsaSignature *es;
+
+  es = GNUNET_new (struct GNUNET_CRYPTO_EddsaSignature);
+  GNUNET_CRYPTO_eddsa_sign_ (&pk->eddsa_priv,
+                             purpose,
+                             es);
+  *sig = es;
+  return sizeof (*es);
 }
 
 
@@ -148,11 +178,31 @@ ip_sign (void *cls,
 static enum GNUNET_GenericReturnValue
 ip_verify (void *cls,
            const struct GNUNET_DHTU_PublicKey *pk,
-           const struct GNUNET_DHTU_SignaturePurpose *purpose,
+           const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
            const void *sig,
            size_t sig_size)
 {
-  return GNUNET_NO;
+  const struct GNUNET_CRYPTO_EddsaSignature *es = sig;
+  const struct PublicKey *pub;
+
+  GNUNET_assert (sizeof (struct PublicKey) ==
+                 ntohs (pk->size));
+  pub = (const struct PublicKey *) pk;
+  if (sizeof (*es) != sig_size)
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
+  if (GNUNET_OK !=
+      GNUNET_CRYPTO_eddsa_verify_ (ntohl (purpose->purpose),
+                                   purpose,
+                                   es,
+                                   &pub->eddsa_pub))
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
 }
 
 
@@ -174,7 +224,7 @@ ip_try_connect (void *cls,
  * Request underlay to keep the connection to @a target alive if possible.
  * Hold may be called multiple times to express a strong preference to
  * keep a connection, say because a @a target is in multiple tables.
- * 
+ *
  * @param cls closure
  * @param target connection to keep alive
  */
@@ -196,7 +246,7 @@ ip_hold (void *cls,
 
 /**
  * Do no long request underlay to keep the connection alive.
- * 
+ *
  * @param cls closure
  * @param target connection to keep alive
  */
@@ -204,7 +254,7 @@ static void
 ip_drop (struct GNUNET_DHTU_PreferenceHandle *ph)
 {
   struct GNUNET_DHTU_Target *target = ph->target;
-  
+
   GNUNET_CONTAINER_DLL_remove (target->ph_head,
                                target->ph_tail,
                                ph);
@@ -225,7 +275,7 @@ ip_drop (struct GNUNET_DHTU_PreferenceHandle *ph)
  * @param msg_size number of bytes in @a msg
  * @param finished_cb function called once transmission is done
  *        (not called if @a target disconnects, then only the
- *         disconnect_cb is called). 
+ *         disconnect_cb is called).
  * @param finished_cb_cls closure for @a finished_cb
  */
 static void
