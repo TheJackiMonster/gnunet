@@ -6,6 +6,8 @@ if USE_COVERAGE
   XLIB = -lgcov
 endif
 
+libexecdir= $(pkglibdir)/libexec/
+
 pkgcfgdir= $(pkgdatadir)/config.d/
 
 dist_pkgcfg_DATA = \
