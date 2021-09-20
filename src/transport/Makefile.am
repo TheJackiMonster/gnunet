@@ -413,7 +413,7 @@ libgnunet_test_transport_plugin_cmd_udp_backchannel_la_LIBADD = \
   $(top_builddir)/src/arm/libgnunetarm.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(LTLIBINTL)
-libgnunet_test_transport_plugin_cmd_simple_send_la_LDFLAGS = \
+libgnunet_test_transport_plugin_cmd_udp_backchannel_la_LDFLAGS = \
   $(GN_PLUGIN_LDFLAGS)
 
 libgnunet_test_transport_plugin_cmd_simple_send_la_SOURCES = \
