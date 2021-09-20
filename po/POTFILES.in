@@ -424,6 +424,7 @@ src/testing/list-keys.c
 src/testing/testing.c
 src/testing/testing_api_cmd_batch.c
 src/testing/testing_api_cmd_block_until_all_peers_started.c
+src/testing/testing_api_cmd_block_until_external_trigger.c
 src/testing/testing_api_cmd_hello_world.c
 src/testing/testing_api_cmd_hello_world_birth.c
 src/testing/testing_api_cmd_local_test_finished.c
@@ -496,10 +497,12 @@ src/transport/transport_api_address_to_string.c
 src/transport/transport_api_blacklist.c
 src/transport/transport_api_cmd_connecting_peers.c
 src/transport/transport_api_cmd_connecting_peers_v2.c
+src/transport/transport_api_cmd_connecting_peers_v3.c
 src/transport/transport_api_cmd_send_simple.c
 src/transport/transport_api_cmd_send_simple_v2.c
 src/transport/transport_api_cmd_start_peer.c
 src/transport/transport_api_cmd_start_peer_v2.c
+src/transport/transport_api_cmd_start_peer_v3.c
 src/transport/transport_api_cmd_stop_peer.c
 src/transport/transport_api_core.c
 src/transport/transport_api_hello_get.c

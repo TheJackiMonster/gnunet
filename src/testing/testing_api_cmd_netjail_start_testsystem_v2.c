@@ -62,7 +62,7 @@ struct HelperMessage
 struct NetJailState
 {
   /**
-   * The complete topology infomation.
+   * The complete topology information.
    */
   struct GNUNET_TESTING_NetjailTopology *topology;
 
@@ -422,8 +422,8 @@ start_helper (struct NetJailState *ns, struct
   struct GNUNET_TESTING_NetjailNamespace *namespace;
 
 
-  if (0 == m)
-    script_num = n - 1;
+  if (0 == n)
+    script_num = m - 1;
   else
     script_num = n - 1 + (n - 1) * ns->local_m + m + ns->known;
   pid = getpid ();
@@ -455,8 +455,8 @@ start_helper (struct NetJailState *ns, struct
 
   tbc = GNUNET_new (struct TestingSystemCount);
   tbc->ns = ns;
-  if (0 == m)
-    tbc->count = n;
+  if (0 == n)
+    tbc->count = m;
   else
     tbc->count = (n - 1) * ns->local_m + m + ns->known;
 
@@ -491,7 +491,7 @@ start_helper (struct NetJailState *ns, struct
 
   hkey = GNUNET_new (struct GNUNET_ShortHashCode);
 
-  plugin = ns->plugin_name;
+  plugin = topology->plugin;
 
   if (0 == m)
   {
@@ -505,7 +505,8 @@ start_helper (struct NetJailState *ns, struct
     {
       node = GNUNET_CONTAINER_multishortmap_get (topology->map_globals,
                                                  hkey);
-      plugin = node->plugin;
+      if (NULL != node->plugin)
+        plugin = node->plugin;
     }
 
   }
@@ -529,7 +530,8 @@ start_helper (struct NetJailState *ns, struct
       {
         node = GNUNET_CONTAINER_multishortmap_get (namespace->nodes,
                                                    hkey);
-        plugin = node->plugin;
+        if (NULL != node->plugin)
+          plugin = node->plugin;
       }
     }
 

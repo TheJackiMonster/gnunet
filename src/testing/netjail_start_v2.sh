@@ -58,4 +58,17 @@ for N in $(seq $GLOBAL_N); do
 	for M in $(seq $LOCAL_M); do
 		netjail_node_add_default ${NODES[$N,$M]} $ROUTER_ADDR
 	done
+
+    # TODO Topology configuration must be enhanced to configure forwarding to more than one subnet node via different ports.
+    
+    if [ "1" == "${R_TCP[$N]}" ]
+    then
+        ip netns exec ${ROUTERS[$N]} iptables -t nat -A PREROUTING -p tcp -d $GLOBAL_GROUP.$N --dport 60002 -j DNAT --to $LOCAL_GROUP.1
+        ip netns exec ${ROUTERS[$N]} iptables -A FORWARD -d $LOCAL_GROUP.1  -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
+    fi
+    if [ "1" == "${R_UDP[$N]}" ]
+    then
+        ip netns exec ${ROUTERS[$N]} iptables -t nat -A PREROUTING -p udp -d $GLOBAL_GROUP.$N --dport 60002 -j DNAT --to $LOCAL_GROUP.1
+        ip netns exec ${ROUTERS[$N]} iptables -A FORWARD -d $LOCAL_GROUP.1  -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
+    fi
 done

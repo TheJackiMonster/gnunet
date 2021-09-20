@@ -63,6 +63,88 @@ struct GNUNET_TESTING_NetjailRouter
   unsigned int udp_port;
 };
 
+/**
+ * Enum for the different types of nodes.
+ */
+enum GNUNET_TESTING_NODE_TYPE
+{
+  /**
+   * Node in a subnet.
+   */
+  GNUNET_TESTING_SUBNET_NODE,
+
+  /**
+   * Global known node.
+   */
+  GNUNET_TESTING_GLOBAL_NODE
+};
+
+struct GNUNET_TESTING_ADDRESS_PREFIX
+{
+  /**
+   * Pointer to the previous prefix in the DLL.
+   */
+  struct GNUNET_TESTING_ADDRESS_PREFIX *prev;
+
+  /**
+   * Pointer to the next prefix in the DLL.
+   */
+  struct GNUNET_TESTING_ADDRESS_PREFIX *next;
+
+  /**
+   * The address prefix.
+   */
+  char *address_prefix;
+};
+
+struct GNUNET_TESTING_NetjailNode;
+
+/**
+ * Connection to another node.
+ */
+struct GNUNET_TESTING_NodeConnection
+{
+  /**
+   * Pointer to the previous connection in the DLL.
+   */
+  struct GNUNET_TESTING_NodeConnection *prev;
+
+  /**
+   * Pointer to the next connection in the DLL.
+   */
+  struct GNUNET_TESTING_NodeConnection *next;
+
+  /**
+   * The number of the subnet of the node this connection points to. This is 0,
+   * if the node is a global known node.
+   */
+  unsigned int namespace_n;
+
+  /**
+   * The number of the node this connection points to.
+   */
+  unsigned int node_n;
+
+  /**
+   * The type of the node this connection points to.
+   */
+  enum GNUNET_TESTING_NODE_TYPE node_type;
+
+  /**
+   * The node which establish the connection
+   */
+  struct GNUNET_TESTING_NetjailNode *node;
+
+  /**
+   * Head of the DLL with the address prefixes for the protocolls this node is reachable.
+   */
+  struct GNUNET_TESTING_ADDRESS_PREFIX *address_prefixes_head;
+
+  /**
+   * Tail of the DLL with the address prefixes for the protocolls this node is reachable.
+   */
+  struct GNUNET_TESTING_ADDRESS_PREFIX *address_prefixes_tail;
+};
 
 /**
  * Node in the netjail topology.
@@ -88,6 +170,16 @@ struct GNUNET_TESTING_NetjailNode
    * The number of this node in the namespace.
    */
   unsigned int node_n;
+
+  /**
+   * Head of the DLL with the connections which shall be established to other nodes.
+   */
+  struct GNUNET_TESTING_NodeConnection *node_connections_head;
+
+  /**
+   * Tail of the DLL with the connections which shall be established to other nodes.
+   */
+  struct GNUNET_TESTING_NodeConnection *node_connections_tail;
 };
 
 

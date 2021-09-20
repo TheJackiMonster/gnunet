@@ -83,36 +83,7 @@ static void
 handle_test (void *cls,
              const struct GNUNET_TRANSPORT_TESTING_TestMessage *message)
 {
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "message received\n");
   message_received = GNUNET_YES;
-}
-
-
-/**
- * Function called to check a message of type GNUNET_TRANSPORT_TESTING_SIMPLE_MTYPE2
- * being received.
- *
- */
-static int
-check_test2 (void *cls,
-             const struct GNUNET_TRANSPORT_TESTING_TestMessage *message)
-{
-  return GNUNET_OK;
-}
-
-
-/**
- * Function called to handle a message of type GNUNET_TRANSPORT_TESTING_SIMPLE_MTYPE2
- * being received.
- *
- */
-static void
-handle_test2 (void *cls,
-              const struct GNUNET_TRANSPORT_TESTING_TestMessage *message)
-{
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "message received\n");
 }
 
 
@@ -124,9 +95,6 @@ static void
 all_peers_started ()
 {
   are_all_peers_started = GNUNET_YES;
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "setting are_all_peers_started: %d\n",
-       are_all_peers_started);
 }
 
 
@@ -174,10 +142,6 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
   struct GNUNET_MQ_MessageHandler handlers[] = {
     GNUNET_MQ_hd_var_size (test,
                            GNUNET_TRANSPORT_TESTING_SIMPLE_MTYPE,
-                           struct GNUNET_TRANSPORT_TESTING_TestMessage,
-                           NULL),
-    GNUNET_MQ_hd_var_size (test2,
-                           GNUNET_TRANSPORT_TESTING_SIMPLE_MTYPE2,
                            struct GNUNET_TRANSPORT_TESTING_TestMessage,
                            NULL),
     GNUNET_MQ_handler_end ()

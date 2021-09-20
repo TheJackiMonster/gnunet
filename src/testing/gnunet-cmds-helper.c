@@ -57,6 +57,8 @@ testing_api_cmd_block_until_all_peers_started.c */
 
 #define NODE_BASE_IP "192.168.15."
 
+#define KNOWN_BASE_IP "92.68.151."
+
 #define ROUTER_BASE_IP "92.68.150."
 
 /**
@@ -343,6 +345,7 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
   size_t msg_length;
   char *router_ip;
   char *node_ip;
+  unsigned int namespace_n;
 
   msize = ntohs (message->size);
   if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_INIT == ntohs (message->type))
@@ -378,8 +381,24 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
     strcpy (router_ip, ROUTER_BASE_IP);
     strcat (router_ip, plugin->n);
 
-    node_ip = GNUNET_malloc (strlen (NODE_BASE_IP) + strlen (plugin->m) + 1);
-    strcat (node_ip, NODE_BASE_IP);
+    sscanf (plugin->n, "%u", &namespace_n);
+
+    if (0 == namespace_n)
+    {
+      LOG (GNUNET_ERROR_TYPE_ERROR,
+           "known node n: %s\n",
+           plugin->n);
+      node_ip = GNUNET_malloc (strlen (KNOWN_BASE_IP) + strlen (plugin->m) + 1);
+      strcat (node_ip, KNOWN_BASE_IP);
+    }
+    else
+    {
+      LOG (GNUNET_ERROR_TYPE_ERROR,
+           "subnet node n: %s\n",
+           plugin->n);
+      node_ip = GNUNET_malloc (strlen (NODE_BASE_IP) + strlen (plugin->m) + 1);
+      strcat (node_ip, NODE_BASE_IP);
+    }
     strcat (node_ip, plugin->m);
 
     plugin->api->start_testcase (&write_message, router_ip, node_ip, plugin->m,

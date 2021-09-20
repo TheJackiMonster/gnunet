@@ -211,6 +211,14 @@ GNUNET_TRANSPORT_cmd_start_peer_v2 (const char *label,
                                     const char *cfgname);
 
 struct GNUNET_TESTING_Command
+GNUNET_TRANSPORT_cmd_start_peer_v3 (const char *label,
+                                    const char *system_label,
+                                    uint32_t no,
+                                    char *node_ip,
+                                    struct GNUNET_MQ_MessageHandler *handlers,
+                                    const char *cfgname);
+
+struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_start_peer (const char *label,
                                  const char *system_label,
                                  char *m,
@@ -235,6 +243,14 @@ GNUNET_TRANSPORT_cmd_connect_peers_v2 (const char *label,
                                        const char *start_peer_label,
                                        const char *create_label,
                                        uint32_t num);
+
+struct GNUNET_TESTING_Command
+GNUNET_TRANSPORT_cmd_connect_peers_v3 (const char *label,
+                                       const char *start_peer_label,
+                                       const char *create_label,
+                                       uint32_t num,
+                                       struct GNUNET_TESTING_NetjailTopology *
+                                       topology);
 
 struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_send_simple (const char *label,
@@ -281,6 +297,16 @@ GNUNET_TRANSPORT_get_trait_connected_peers_map_v2 (const struct
                                                    *
                                                    *
                                                    connected_peers_map);
+
+int
+GNUNET_TRANSPORT_get_trait_connected_peers_map_v3 (const struct
+                                                   GNUNET_TESTING_Command
+                                                   *cmd,
+                                                   struct
+                                                   GNUNET_CONTAINER_MultiShortmap
+                                                   *
+                                                   *
+                                                   connected_peers_map);
 int
 GNUNET_TRANSPORT_get_trait_hello_size (const struct
                                        GNUNET_TESTING_Command
@@ -303,6 +329,13 @@ GNUNET_TRANSPORT_get_trait_application_handle (const struct
 
 int
 GNUNET_TRANSPORT_get_trait_application_handle_v2 (const struct
+                                                  GNUNET_TESTING_Command *cmd,
+                                                  struct
+                                                  GNUNET_TRANSPORT_ApplicationHandle
+                                                  **ah);
+
+int
+GNUNET_TRANSPORT_get_trait_application_handle_v3 (const struct
                                                   GNUNET_TESTING_Command *cmd,
                                                   struct
                                                   GNUNET_TRANSPORT_ApplicationHandle

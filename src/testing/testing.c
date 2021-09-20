@@ -1789,7 +1789,7 @@ get_first_value (char *line)
   token = strtok_r (copy, ":", &rest);
   token = strtok_r (NULL, ":", &rest);
   sscanf (token, "%u", &ret);
-  free (copy);
+  GNUNET_free (copy);
   return ret;
 }
 
@@ -1809,7 +1809,7 @@ get_key (char *line)
   token = strtok_r (copy, ":", &rest);
   ret = malloc (2);
   memcpy (ret, token, 2);
-  free (copy);
+  GNUNET_free (copy);
   return ret;
 }
 
@@ -1828,13 +1828,13 @@ get_first_string_value (char *line)
   memcpy (copy, line, slen);
   token = strtok_r (copy, ":", &rest);
   token = strtok_r (NULL, ":", &rest);
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
+  LOG (GNUNET_ERROR_TYPE_ERROR,
        "first token %s\n",
        token);
   slen_token = strlen (token);
   ret = malloc (slen_token + 1);
   memcpy (ret, token, slen_token + 1);
-  free (copy);
+  GNUNET_free (copy);
   return ret;
 }
 
@@ -1855,7 +1855,7 @@ get_second_value (char *line)
   token = strtok_r (NULL, ":", &rest);
   token = strtok_r (NULL, ":", &rest);
   sscanf (token, "%u", &ret);
-  free (copy);
+  GNUNET_free (copy);
   return ret;
 }
 
@@ -1883,8 +1883,126 @@ get_value (char *key, char *line)
   slen_token = strlen (token2);
   ret = malloc (slen_token + 1);
   memcpy (ret, token2, slen_token + 1);
-  free (copy);
+  GNUNET_free (copy);
   return ret;
+}
+
+
+static struct GNUNET_TESTING_NodeConnection *
+get_connect_value (char *line, struct GNUNET_TESTING_NetjailNode *node)
+{
+  struct GNUNET_TESTING_NodeConnection *node_connection;
+  char *copy;
+  size_t slen;
+  char *token;
+  char *token2;
+  unsigned int node_n;
+  unsigned int namespace_n;
+  char *rest = NULL;
+  char *rest2 = NULL;
+  struct GNUNET_TESTING_ADDRESS_PREFIX *prefix;
+
+  node_connection = GNUNET_new (struct GNUNET_TESTING_NodeConnection);
+  node_connection->node = node;
+
+  slen = strlen (line) + 1;
+  copy = malloc (slen);
+  memcpy (copy, line, slen);
+  token = strtok_r (copy, ":", &rest);
+  if (0 == strcmp ("{K", token))
+  {
+    node_connection->node_type = GNUNET_TESTING_GLOBAL_NODE;
+    token = strtok_r (NULL, ":", &rest);
+    sscanf (token, "%u", &node_n);
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "node_n %u\n",
+         node_n);
+    node_connection->node_n = node_n;
+    node_connection->namespace_n = 0;
+  }
+  else if (0 == strcmp ("{P", token))
+  {
+    node_connection->node_type = GNUNET_TESTING_SUBNET_NODE;
+    token = strtok_r (NULL, ":", &rest);
+    sscanf (token, "%u", &node_n);
+    node_connection->node_n = node_n;
+    token = strtok_r (NULL, ":", &rest);
+    sscanf (token, "%u", &namespace_n);
+    node_connection->namespace_n = namespace_n;
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "node_n %u namespace_n %u\n",
+         node_n,
+         namespace_n);
+  }
+  while (NULL != (token = strtok_r (NULL, ":", &rest)))
+  {
+    prefix = GNUNET_new (struct GNUNET_TESTING_ADDRESS_PREFIX);
+    token2 = strtok_r (token, "}", &rest2);
+    if (NULL != token2)
+    {
+      slen = strlen (token2) + 1;
+      prefix->address_prefix = malloc (slen);
+      memcpy (prefix->address_prefix, token2, slen);
+    }
+    else
+    {
+      slen = strlen (token) + 1;
+      prefix->address_prefix = malloc (slen);
+      memcpy (prefix->address_prefix, token, slen);
+    }
+
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "address_prefix %s\n",
+         prefix->address_prefix);
+
+    GNUNET_CONTAINER_DLL_insert (node_connection->address_prefixes_head,
+                                 node_connection->address_prefixes_tail,
+                                 prefix);
+  }
+
+  GNUNET_free (copy);
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "address_prefix %s\n",
+       prefix->address_prefix);
+
+  return node_connection;
+}
+
+
+static void
+node_connections (char *line, struct GNUNET_TESTING_NetjailNode *node)
+{
+  char *value, *value2;
+  char *temp;
+  char *copy;
+  size_t slen;
+  char *rest = NULL;
+  char *rest2 = NULL;
+  struct GNUNET_TESTING_NodeConnection *node_connection;
+
+
+  temp = strstr (line, "connect");
+  if (NULL != temp)
+  {
+    slen = strlen (temp) + 1;
+    copy = malloc (slen);
+    memcpy (copy, temp, slen);
+    strtok_r (copy, ":", &rest);
+    value = strtok_r (rest, "|", &rest2);
+
+    while (NULL != value)
+    {
+      node_connection = get_connect_value (value, node);
+      GNUNET_CONTAINER_DLL_insert (node->node_connections_head,
+                                   node->node_connections_tail,
+                                   node_connection);
+      value2 = strstr (value, "}}");
+      if (NULL != value2)
+        break;
+      value = strtok_r (NULL, "|", &rest2);
+
+    }
+  }
 }
 
 
@@ -1912,6 +2030,7 @@ GNUNET_TESTING_get_topo_from_file (const char *filename)
   struct GNUNET_TESTING_NetjailNamespace *namespace;
   struct GNUNET_ShortHashCode *hkey;
   struct GNUNET_HashCode hc;
+
   topo->map_namespaces =
     GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
   topo->map_globals =
@@ -1942,7 +2061,7 @@ GNUNET_TESTING_get_topo_from_file (const char *filename)
     return NULL;
   }
 
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
+  LOG (GNUNET_ERROR_TYPE_ERROR,
        "data: %s\n",
        data);
 
@@ -1951,46 +2070,46 @@ GNUNET_TESTING_get_topo_from_file (const char *filename)
   while (NULL != token)
   {
     key = get_key (token);
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
+    LOG (GNUNET_ERROR_TYPE_ERROR,
          "In the loop with token: %s beginning with %s\n",
          token,
          key);
     if (0 == strcmp (key, "M"))
     {
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
+      LOG (GNUNET_ERROR_TYPE_ERROR,
            "Get first Value for M.\n");
       out = get_first_value (token);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
+      LOG (GNUNET_ERROR_TYPE_ERROR,
            "M: %u\n",
            out);
       topo->nodes_m = out;
     }
     else if (0 == strcmp (key, "N"))
     {
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
+      LOG (GNUNET_ERROR_TYPE_ERROR,
            "Get first Value for N.\n");
       out = get_first_value (token);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
+      LOG (GNUNET_ERROR_TYPE_ERROR,
            "N: %u\n",
            out);
       topo->namespaces_n = out;
     }
     else if (0 == strcmp (key, "X"))
     {
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
+      LOG (GNUNET_ERROR_TYPE_ERROR,
            "Get first Value for X.\n");
       out = get_first_value (token);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
+      LOG (GNUNET_ERROR_TYPE_ERROR,
            "X: %u\n",
            out);
       topo->nodes_x = out;
     }
     else if (0 == strcmp (key, "T"))
     {
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
+      LOG (GNUNET_ERROR_TYPE_ERROR,
            "Get first string value for T.\n");
       value = get_first_string_value (token);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
+      LOG (GNUNET_ERROR_TYPE_ERROR,
            "value: %s\n",
            value);
       topo->plugin = value;
@@ -2000,10 +2119,10 @@ GNUNET_TESTING_get_topo_from_file (const char *filename)
       hkey = GNUNET_new (struct GNUNET_ShortHashCode);
       node = GNUNET_new (struct GNUNET_TESTING_NetjailNode);
 
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
+      LOG (GNUNET_ERROR_TYPE_ERROR,
            "Get first Value for K.\n");
       out = get_first_value (token);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
+      LOG (GNUNET_ERROR_TYPE_ERROR,
            "K: %u\n",
            out);
       node->node_n = out;
@@ -2012,20 +2131,24 @@ GNUNET_TESTING_get_topo_from_file (const char *filename)
               &hc,
               sizeof (*hkey));
       node->is_global = GNUNET_YES;
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Get value for key value on K.\n");
-      value = get_value ("plugin", token);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "value: %s\n",
-           value);
-      if (0 == GNUNET_CONTAINER_multishortmap_contains (topo->map_globals,
-                                                        hkey))
+
+      if (GNUNET_YES == GNUNET_CONTAINER_multishortmap_contains (
+            topo->map_globals,
+            hkey))
         GNUNET_break (0);
       else
         GNUNET_CONTAINER_multishortmap_put (topo->map_globals,
                                             hkey,
                                             node,
                                             GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
+      LOG (GNUNET_ERROR_TYPE_ERROR,
+           "Get value for key value on K.\n");
+      value = get_value ("plugin", token);
+      LOG (GNUNET_ERROR_TYPE_ERROR,
+           "value: %s\n",
+           value);
+      node->plugin = value;
+      node_connections (token, node);
     }
     else if (0 == strcmp (key, "R"))
     {
@@ -2033,10 +2156,10 @@ GNUNET_TESTING_get_topo_from_file (const char *filename)
       router = GNUNET_new (struct GNUNET_TESTING_NetjailRouter);
       node = GNUNET_new (struct GNUNET_TESTING_NetjailNode);
 
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
+      LOG (GNUNET_ERROR_TYPE_ERROR,
            "Get first Value for R.\n");
       out = get_first_value (token);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
+      LOG (GNUNET_ERROR_TYPE_ERROR,
            "R: %u\n",
            out);
       node->node_n = out;
@@ -2044,27 +2167,28 @@ GNUNET_TESTING_get_topo_from_file (const char *filename)
       memcpy (hkey,
               &hc,
               sizeof (*hkey));
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
+      LOG (GNUNET_ERROR_TYPE_ERROR,
            "Get value for key tcp_port on R.\n");
       value = get_value ("tcp_port", token);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
+      LOG (GNUNET_ERROR_TYPE_ERROR,
            "tcp_port: %s\n",
            value);
       ret = sscanf (value, "%u", &(router->tcp_port));
 
-      GNUNET_break (0 == ret || 1 < router->tcp_port);
+      GNUNET_break (0 != ret && 1 >= router->tcp_port);
 
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
+      LOG (GNUNET_ERROR_TYPE_ERROR,
            "Get value for key udp_port on R.\n");
       value = get_value ("udp_port", token);
       ret = sscanf (value, "%u", &(router->udp_port));
-      GNUNET_break (0 == ret || 1 < router->udp_port);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
+      GNUNET_break (0 != ret && 1 >= router->udp_port);
+      LOG (GNUNET_ERROR_TYPE_ERROR,
            "udp_port: %s\n",
            value);
 
-      if (0 == GNUNET_CONTAINER_multishortmap_contains (topo->map_namespaces,
-                                                        hkey))
+      if (GNUNET_YES == GNUNET_CONTAINER_multishortmap_contains (
+            topo->map_namespaces,
+            hkey))
       {
         namespace = GNUNET_CONTAINER_multishortmap_get (topo->map_namespaces,
                                                         hkey);
@@ -2073,6 +2197,7 @@ GNUNET_TESTING_get_topo_from_file (const char *filename)
       {
         namespace = GNUNET_new (struct GNUNET_TESTING_NetjailNamespace);
         namespace->namespace_n = out;
+        namespace->nodes = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
         GNUNET_CONTAINER_multishortmap_put (topo->map_namespaces,
                                             hkey,
                                             namespace,
@@ -2086,10 +2211,10 @@ GNUNET_TESTING_get_topo_from_file (const char *filename)
       hkey = GNUNET_new (struct GNUNET_ShortHashCode);
       node = GNUNET_new (struct GNUNET_TESTING_NetjailNode);
 
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
+      LOG (GNUNET_ERROR_TYPE_ERROR,
            "Get first Value for P.\n");
       out = get_first_value (token);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
+      LOG (GNUNET_ERROR_TYPE_ERROR,
            "P: %u\n",
            out);
       GNUNET_CRYPTO_hash (&out, sizeof(out), &hc);
@@ -2097,14 +2222,9 @@ GNUNET_TESTING_get_topo_from_file (const char *filename)
               &hc,
               sizeof (*hkey));
 
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Get value for key plugin on P.\n");
-      value = get_value ("plugin", token);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "plugin: %s\n",
-           value);
-      if (0 == GNUNET_CONTAINER_multishortmap_contains (topo->map_namespaces,
-                                                        hkey))
+      if (GNUNET_YES == GNUNET_CONTAINER_multishortmap_contains (
+            topo->map_namespaces,
+            hkey))
       {
         namespace = GNUNET_CONTAINER_multishortmap_get (topo->map_namespaces,
                                                         hkey);
@@ -2112,24 +2232,26 @@ GNUNET_TESTING_get_topo_from_file (const char *filename)
       else
       {
         namespace = GNUNET_new (struct GNUNET_TESTING_NetjailNamespace);
+        namespace->nodes = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
         namespace->namespace_n = out;
         GNUNET_CONTAINER_multishortmap_put (topo->map_namespaces,
                                             hkey,
                                             namespace,
                                             GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
       }
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
+      LOG (GNUNET_ERROR_TYPE_ERROR,
            "Get second Value for P.\n");
       out = get_second_value (token);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
+      LOG (GNUNET_ERROR_TYPE_ERROR,
            "P: %u\n",
            out);
       GNUNET_CRYPTO_hash (&out, sizeof(out), &hc);
       memcpy (hkey,
               &hc,
               sizeof (*hkey));
-      if (0 == GNUNET_CONTAINER_multishortmap_contains (namespace->nodes,
-                                                        hkey))
+      if (GNUNET_YES == GNUNET_CONTAINER_multishortmap_contains (
+            namespace->nodes,
+            hkey))
       {
         GNUNET_break (0);
       }
@@ -2140,10 +2262,17 @@ GNUNET_TESTING_get_topo_from_file (const char *filename)
                                             hkey,
                                             node,
                                             GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
+        LOG (GNUNET_ERROR_TYPE_ERROR,
+             "Get value for key plugin on P.\n");
+        value = get_value ("plugin", token);
+        LOG (GNUNET_ERROR_TYPE_ERROR,
+             "plugin: %s\n",
+             value);
         node->plugin = value;
         node->node_n = out;
         node->namespace_n = namespace->namespace_n;
       }
+      node_connections (token, node);
     }
     token = strtok_r (NULL, "\n", &rest);
   }
