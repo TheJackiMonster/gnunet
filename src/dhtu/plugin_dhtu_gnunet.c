@@ -40,6 +40,7 @@ struct GNUNET_DHTU_PrivateKey
 
 };
 
+GNUNET_NETWORK_STRUCT_BEGIN
 
 /**
  * Handle for a public key used by this underlay.
@@ -55,10 +56,12 @@ struct PublicKey
   /**
    * GNUnet uses eddsa for peers.
    */
-  struct GNUNET_CRYPTO_EddsaPublicKey eddsa_pub;
+  struct GNUNET_PeerIdentity peer_pub;
 
 };
 
+
+GNUNET_NETWORK_STRUCT_END
 
 /**
  * Opaque handle that the underlay offers for our address to be used when
@@ -85,6 +88,22 @@ struct GNUNET_DHTU_Target
    * Application context for this target.
    */
   void *app_ctx;
+
+  /**
+   * CORE MQ to send messages to this peer.
+   */
+  struct GNUNET_MQ_Handle *mq;
+
+  /**
+   * Public key of the peer.
+   */
+  struct PublicKey pk;
+  
+  /**
+   * Hash of the @a pk to identify position of the peer
+   * in the DHT.
+   */
+  struct GNUNET_DHTU_Hash peer_id;
 
   /**
    * Head of preferences expressed for this target.
@@ -204,7 +223,7 @@ ip_verify (void *cls,
       GNUNET_CRYPTO_eddsa_verify_ (ntohl (purpose->purpose),
                                    purpose,
                                    es,
-                                   &pub->eddsa_pub))
+                                   &pub->peer_pub.public_key))
   {
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
@@ -311,7 +330,22 @@ core_connect_cb (void *cls,
                  const struct GNUNET_PeerIdentity *peer,
                  struct GNUNET_MQ_Handle *mq)
 {
-  return NULL;
+  struct Plugin *plugin = cls;
+  struct GNUNET_DHTU_Target *target;
+
+  target = GNUNET_new (struct GNUNET_DHTU_Target);
+  target->mq = mq;
+  target->pk.header.size = htons (sizeof (struct PublicKey));
+  target->pk.peer_pub = *peer;
+  GNUNET_CRYPTO_hash (peer,
+                      sizeof (struct GNUNET_PeerIdentity),
+                      &target->peer_id.hc);
+  plugin->env->connect_cb (plugin->env->cls,
+                           &target->pk.header,
+                           &target->peer_id,
+                           target,
+                           &target->app_ctx);
+  return target;
 }
 
 
