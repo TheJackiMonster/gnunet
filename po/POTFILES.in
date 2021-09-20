@@ -443,7 +443,6 @@ src/testing/testing_api_loop.c
 src/testing/testing_api_trait_cmd.c
 src/testing/testing_api_trait_process.c
 src/testing/testing_api_traits.c
-src/testing/testing_json_vnet.c
 src/topology/friends.c
 src/topology/gnunet-daemon-topology.c
 src/transport/gnunet-communicator-tcp.c

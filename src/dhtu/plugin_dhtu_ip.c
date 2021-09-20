@@ -240,7 +240,7 @@ struct Plugin
 static ssize_t
 ip_sign (void *cls,
          const struct GNUNET_DHTU_PrivateKey *pk,
-         const struct GNUNET_DHTU_SignaturePurpose *purpose,
+         const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
          void **sig)
 {
   return 0;
@@ -262,7 +262,7 @@ ip_sign (void *cls,
 static enum GNUNET_GenericReturnValue
 ip_verify (void *cls,
            const struct GNUNET_DHTU_PublicKey *pk,
-           const struct GNUNET_DHTU_SignaturePurpose *purpose,
+           const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
            const void *sig,
            size_t sig_size)
 {

@@ -21,11 +21,44 @@
 /**
  * @author Christian Grothoff
  *
- * @file plugin_dhtu_ip.c
+ * @file plugin_dhtu_gnunet.c
  * @brief plain IP based DHT network underlay
  */
 #include "platform.h"
-#incluce "gnunet_dhtu_plugin.h"
+#include "gnunet_dhtu_plugin.h"
+#include "gnunet_core_service.h"
+
+/**
+ * Handle for a private key used by this underlay.
+ */
+struct GNUNET_DHTU_PrivateKey
+{
+  /**
+   * GNUnet uses eddsa for peers.
+   */
+  struct GNUNET_CRYPTO_EddsaPrivateKey eddsa_priv;
+
+};
+
+
+/**
+ * Handle for a public key used by this underlay.
+ */
+struct PublicKey
+{
+
+  /**
+   * Header.
+   */
+  struct GNUNET_DHTU_PublicKey header;
+
+  /**
+   * GNUnet uses eddsa for peers.
+   */
+  struct GNUNET_CRYPTO_EddsaPublicKey eddsa_pub;
+
+};
+
 
 /**
  * Opaque handle that the underlay offers for our address to be used when
@@ -47,7 +80,7 @@ struct GNUNET_DHTU_Source
  */
 struct GNUNET_DHTU_Target
 {
-  
+
   /**
    * Application context for this target.
    */
@@ -94,23 +127,20 @@ struct GNUNET_DHTU_PreferenceHandle
 
 
 /**
- * Opaque handle for a private key used by this underlay.
- */
-struct GNUNET_DHTU_PrivateKey
-{
-  /* we are IP, we do not do crypto */
-};
-
-
-/**
  * Closure for all plugin functions.
  */
 struct Plugin
 {
-  /** 
+  /**
    * Callbacks into the DHT.
    */
   struct GNUNET_DHTU_PluginEnvironment *env;
+
+  /**
+   * Handle to the CORE service.
+   */
+  struct GNUNET_CORE_Handle *core;
+  
 };
 
 
@@ -126,10 +156,17 @@ struct Plugin
 static ssize_t
 ip_sign (void *cls,
          const struct GNUNET_DHTU_PrivateKey *pk,
-         const struct GNUNET_DHTU_SignaturePurpose *purpose,
+         const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
          void **sig)
 {
-  return 0;
+  struct GNUNET_CRYPTO_EddsaSignature *es;
+
+  es = GNUNET_new (struct GNUNET_CRYPTO_EddsaSignature);
+  GNUNET_CRYPTO_eddsa_sign_ (&pk->eddsa_priv,
+                             purpose,
+                             es);
+  *sig = es;
+  return sizeof (*es);
 }
 
 
@@ -148,11 +185,31 @@ ip_sign (void *cls,
 static enum GNUNET_GenericReturnValue
 ip_verify (void *cls,
            const struct GNUNET_DHTU_PublicKey *pk,
-           const struct GNUNET_DHTU_SignaturePurpose *purpose,
+           const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
            const void *sig,
            size_t sig_size)
 {
-  return GNUNET_NO;
+  const struct GNUNET_CRYPTO_EddsaSignature *es = sig;
+  const struct PublicKey *pub;
+
+  GNUNET_assert (sizeof (struct PublicKey) ==
+                 ntohs (pk->size));
+  pub = (const struct PublicKey *) pk;
+  if (sizeof (*es) != sig_size)
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
+  if (GNUNET_OK !=
+      GNUNET_CRYPTO_eddsa_verify_ (ntohl (purpose->purpose),
+                                   purpose,
+                                   es,
+                                   &pub->eddsa_pub))
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
 }
 
 
@@ -174,7 +231,7 @@ ip_try_connect (void *cls,
  * Request underlay to keep the connection to @a target alive if possible.
  * Hold may be called multiple times to express a strong preference to
  * keep a connection, say because a @a target is in multiple tables.
- * 
+ *
  * @param cls closure
  * @param target connection to keep alive
  */
@@ -196,7 +253,7 @@ ip_hold (void *cls,
 
 /**
  * Do no long request underlay to keep the connection alive.
- * 
+ *
  * @param cls closure
  * @param target connection to keep alive
  */
@@ -204,7 +261,7 @@ static void
 ip_drop (struct GNUNET_DHTU_PreferenceHandle *ph)
 {
   struct GNUNET_DHTU_Target *target = ph->target;
-  
+
   GNUNET_CONTAINER_DLL_remove (target->ph_head,
                                target->ph_tail,
                                ph);
@@ -225,7 +282,7 @@ ip_drop (struct GNUNET_DHTU_PreferenceHandle *ph)
  * @param msg_size number of bytes in @a msg
  * @param finished_cb function called once transmission is done
  *        (not called if @a target disconnects, then only the
- *         disconnect_cb is called). 
+ *         disconnect_cb is called).
  * @param finished_cb_cls closure for @a finished_cb
  */
 static void
@@ -237,6 +294,60 @@ ip_send (void *cls,
          void *finished_cb_cls)
 {
   GNUNET_break (0);
+}
+
+
+
+/**
+ * Method called whenever a given peer connects.
+ *
+ * @param cls closure
+ * @param peer peer identity this notification is about
+ * @return closure associated with @a peer. given to mq callbacks and
+ *         #GNUNET_CORE_DisconnectEventHandler
+ */
+static void *
+core_connect_cb (void *cls,
+                 const struct GNUNET_PeerIdentity *peer,
+                 struct GNUNET_MQ_Handle *mq)
+{
+  return NULL;
+}
+
+
+/**
+ * Method called whenever a peer disconnects.
+ *
+ * @param cls closure
+ * @param peer peer identity this notification is about
+ * @param peer_cls closure associated with peer. given in
+ *        #GNUNET_CORE_ConnectEventHandler
+ */
+static void
+core_disconnect_cb (void *cls,
+                    const struct GNUNET_PeerIdentity *peer,
+                    void *peer_cls)
+{
+}
+
+
+/**
+ * Function called after #GNUNET_CORE_connect has succeeded (or failed
+ * for good).  Note that the private key of the peer is intentionally
+ * not exposed here; if you need it, your process should try to read
+ * the private key file directly (which should work if you are
+ * authorized...).  Implementations of this function must not call
+ * #GNUNET_CORE_disconnect (other than by scheduling a new task to
+ * do this later).
+ *
+ * @param cls closure
+ * @param my_identity ID of this peer, NULL if we failed
+ */
+static void
+core_init_cb (void *cls,
+              const struct GNUNET_PeerIdentity *my_identity)
+{
+  struct Plugin *plugin = cls;
 }
 
 
@@ -252,6 +363,9 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
   struct GNUNET_DHTU_PluginEnvironment *env = cls;
   struct GNUNET_DHTU_PluginFunctions *api;
   struct Plugin *plugin;
+  struct GNUNET_MQ_MessageHandler handlers[] = {
+    GNUNET_MQ_handler_end ()
+  };
 
   plugin = GNUNET_new (struct Plugin);
   plugin->env = env;
@@ -263,6 +377,12 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
   api->hold = &ip_hold;
   api->drop = &ip_drop;
   api->send = &ip_send;
+  plugin->core = GNUNET_CORE_connect (env->cfg,
+                                      plugin,
+                                      &core_init_cb,
+                                      &core_connect_cb,
+                                      &core_disconnect_cb,
+                                      handlers);
   return api;
 }
 
@@ -279,6 +399,7 @@ libgnunet_plugin_dhtu_gnunet_done (void *cls)
   struct GNUNET_DHTU_PluginFunctions *api = cls;
   struct Plugin *plugin = api->cls;
 
+  GNUNET_CORE_disconnect (plugin->core);
   GNUNET_free (plugin);
   GNUNET_free (api);
   return NULL;

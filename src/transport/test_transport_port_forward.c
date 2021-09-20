@@ -21,7 +21,7 @@
 /**
  * @file transport/test_transport_port_forward.c
  * @brief Test case executing a script which sends a test UDP message from a nated peer
- *        to a gloabl known peer. There is a tcp port forwarding in place towards the
+ *        to a global known peer. There is a tcp port forwarding in place towards the
  *        natted peer to test the backchannel functionality of the TNG service.
  * @author t3sserakt
  */

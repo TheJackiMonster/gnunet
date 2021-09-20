@@ -53,6 +53,7 @@ EXTRA_DIST = \
  conf/gnunet/gnunet-user.conf \
  conf/nss/nssswitch.conf \
  conf/wireshark/wireshark.lua \
+ gnunet.m4 \
  $(PACKAGES_FILES) \
  $(INITD_FILES) \
  Makefile.inc \
@@ -77,3 +78,6 @@ test_gnunet_prefix_LDADD = \
   $(LTLIBICONV) \
   $(GN_LIBINTL) \
   $(LIBLTDL) -lunistring $(XLIB)
+
+aclocaldir = $(datadir)/aclocal
+aclocal_DATA = gnunet.m4

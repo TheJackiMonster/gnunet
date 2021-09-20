@@ -115,7 +115,8 @@ struct GNUNET_TRANSPORT_AddressToStringContext;
  *        if #GNUNET_NO: address was invalid (or not supported)
  *        if #GNUNET_SYSERR: communication error (IPC error)
  */
-typedef void (*GNUNET_TRANSPORT_AddressToStringCallback) (void *cls,
+typedef void
+(*GNUNET_TRANSPORT_AddressToStringCallback) (void *cls,
                                                           const char *address,
                                                           int res);
 
@@ -326,7 +327,8 @@ struct GNUNET_TRANSPORT_PeerMonitoringContext;
  * @param state current state this peer is in
  * @param state_timeout timeout for the current state of the peer
  */
-typedef void (*GNUNET_TRANSPORT_PeerIterateCallback) (
+typedef void
+(*GNUNET_TRANSPORT_PeerIterateCallback) (
   void *cls,
   const struct GNUNET_PeerIdentity *peer,
   const struct GNUNET_HELLO_Address *address,
@@ -394,7 +396,8 @@ struct GNUNET_TRANSPORT_Blacklist;
  * @param pid peer to approve or disapproave
  * @return #GNUNET_OK if the connection is allowed, #GNUNET_SYSERR if not
  */
-typedef int (*GNUNET_TRANSPORT_BlacklistCallback) (
+typedef int
+(*GNUNET_TRANSPORT_BlacklistCallback) (
   void *cls,
   const struct GNUNET_PeerIdentity *pid);
 
@@ -541,7 +544,8 @@ struct GNUNET_TRANSPORT_SessionInfo
  *        NULL with @a session being non-NULL if the monitor
  *        was being cancelled while sessions were active
  */
-typedef void (*GNUNET_TRANSPORT_SessionMonitorCallback) (
+typedef void
+(*GNUNET_TRANSPORT_SessionMonitorCallback) (
   void *cls,
   struct GNUNET_TRANSPORT_PluginSession *session,
   void **session_ctx,
@@ -593,7 +597,8 @@ struct GNUNET_TRANSPORT_CoreHandle;
  * @param mq message queue to use to transmit to @a peer
  * @return closure to use in MQ handlers
  */
-typedef void *(*GNUNET_TRANSPORT_NotifyConnect) (
+typedef void *
+(*GNUNET_TRANSPORT_NotifyConnect) (
   void *cls,
   const struct GNUNET_PeerIdentity *peer,
   struct GNUNET_MQ_Handle *mq);
@@ -610,7 +615,8 @@ typedef void *(*GNUNET_TRANSPORT_NotifyConnect) (
  * @param handlers_cls closure of the handlers, was returned from the
  *                    connect notification callback
  */
-typedef void (*GNUNET_TRANSPORT_NotifyDisconnect) (
+typedef void
+(*GNUNET_TRANSPORT_NotifyDisconnect) (
   void *cls,
   const struct GNUNET_PeerIdentity *peer,
   void *handler_cls);
@@ -632,7 +638,8 @@ typedef void (*GNUNET_TRANSPORT_NotifyDisconnect) (
  * @param handlers_cls closure of the handlers, was returned from the
  *                    connect notification callback
  */
-typedef void (*GNUNET_TRANSPORT_NotifyExcessBandwidth) (
+typedef void
+(*GNUNET_TRANSPORT_NotifyExcessBandwidth) (
   void *cls,
   const struct GNUNET_PeerIdentity *neighbour,
   void *handlers_cls);

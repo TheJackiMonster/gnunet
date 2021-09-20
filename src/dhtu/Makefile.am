@@ -11,6 +11,7 @@ if USE_COVERAGE
 endif
 
 plugin_LTLIBRARIES = \
+  libgnunet_plugin_dhtu_gnunet.la \
   libgnunet_plugin_dhtu_ip.la
 
 libgnunet_plugin_dhtu_ip_la_SOURCES = \
@@ -22,3 +23,14 @@ libgnunet_plugin_dhtu_ip_la_LIBADD = \
 libgnunet_plugin_dhtu_ip_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
 
+
+
+libgnunet_plugin_dhtu_gnunet_la_SOURCES = \
+  plugin_dhtu_gnunet.c
+libgnunet_plugin_dhtu_gnunet_la_LIBADD = \
+  $(top_builddir)/src/core/libgnunetcore.la \
+  $(top_builddir)/src/util/libgnunetutil.la \
+  $(XLIBS) \
+  $(LTLIBINTL)
+libgnunet_plugin_dhtu_gnunet_la_LDFLAGS = \
+ $(GN_PLUGIN_LDFLAGS)

@@ -268,9 +268,10 @@ GNUNET_HELLO_add_address (const struct GNUNET_HELLO_Address *address,
  * @return number of bytes written or 0, #GNUNET_SYSERR to signal the
  *         end of the iteration.
  */
-typedef ssize_t (*GNUNET_HELLO_GenerateAddressListCallback) (void *cls,
-                                                             size_t max,
-                                                             void *buf);
+typedef ssize_t
+(*GNUNET_HELLO_GenerateAddressListCallback) (void *cls,
+                                             size_t max,
+                                             void *buf);
 
 
 /**

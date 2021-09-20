@@ -36,6 +36,25 @@ static char *backend_check;
 
 
 /**
+ * If printing the value of CFLAGS has been requested.
+ */
+static int cflags;
+
+
+/**
+ * If printing the value of LIBS has been requested.
+ */
+static int libs;
+
+
+/**
+ * If printing the value of PREFIX has been requested.
+ */
+static int prefix;
+
+
+/**
+ * Print each option in a given section.
  * Main task to run to perform operations typical for
  * gnunet-config as per the configuration settings
  * given in @a cls.
@@ -54,6 +73,28 @@ run (void *cls,
 {
   struct GNUNET_CONFIGURATION_ConfigSettings *cs = cls;
 
+  if (1 == cflags || 1 == libs || 1 == prefix)
+  {
+    char *prefixdir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_PREFIX);
+    char *libdir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_LIBDIR);
+
+    if (1 == cflags)
+    {
+      fprintf (stdout, "-I%sinclude\n", prefixdir);
+    }
+    if (1 == libs)
+    {
+      fprintf (stdout, "-L%s -lgnunetutil\n", libdir);
+    }
+    if (1 == prefix)
+    {
+      fprintf (stdout, "%s\n", prefixdir);
+    }
+    cs->global_ret = 0;
+    GNUNET_free (prefixdir);
+    GNUNET_free (libdir);
+    return;
+  }
   if (NULL != backend_check)
   {
     char *name;
@@ -97,6 +138,24 @@ main (int argc,
         gettext_noop (
           "test if the current installation supports the specified BACKEND"),
         &backend_check)),
+    GNUNET_GETOPT_option_flag (
+      'C',
+      "cflags",
+      gettext_noop (
+        "Provide an appropriate value for CFLAGS to applications building on top of GNUnet"),
+      &cflags),
+    GNUNET_GETOPT_option_flag (
+      'j',
+      "libs",
+      gettext_noop (
+        "Provide an appropriate value for LIBS to applications building on top of GNUnet"),
+      &libs),
+    GNUNET_GETOPT_option_flag (
+      'p',
+      "prefix",
+      gettext_noop (
+        "Provide the path under which GNUnet was installed"),
+      &prefix),
     GNUNET_CONFIGURATION_CONFIG_OPTIONS (&cs),
     GNUNET_GETOPT_OPTION_END
   };

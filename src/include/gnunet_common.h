@@ -151,10 +151,10 @@ enum GNUNET_GenericReturnValue
  */
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-#if defined(__linux__)
-#define BYTE_SWAP_16(x) __bswap_16 (x)
-#define BYTE_SWAP_32(x) __bswap_32 (x)
-#define BYTE_SWAP_64(x) __bswap_64 (x)
+#ifdef HAVE_BYTESWAP_H
+#define BYTE_SWAP_16(x) bswap_16 (x)
+#define BYTE_SWAP_32(x) bswap_32 (x)
+#define BYTE_SWAP_64(x) bswap_64 (x)
 #else
 #define BYTE_SWAP_16(x) ((((x) & 0x00ff) << 8) | (((x) & 0xff00) >> 8))
 
