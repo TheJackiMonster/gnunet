@@ -27,6 +27,8 @@
 #include "platform.h"
 #include "gnunet_dhtu_plugin.h"
 #include "gnunet_core_service.h"
+#include "gnunet_nse_service.h"
+
 
 /**
  * Handle for a private key used by this underlay.
@@ -74,6 +76,17 @@ struct GNUNET_DHTU_Source
    * Application context for this source.
    */
   void *app_ctx;
+  
+  /**
+   * Hash position of this peer in the DHT.
+   */
+  struct GNUNET_DHTU_Hash my_id;
+
+  /**
+   * Private key of this peer.
+   */
+  struct GNUNET_DHTU_PrivateKey pk;
+
 };
 
 
@@ -89,6 +102,11 @@ struct GNUNET_DHTU_Target
    */
   void *app_ctx;
 
+  /**
+   * Our plugin with its environment.
+   */
+  struct Plugin *plugin;
+  
   /**
    * CORE MQ to send messages to this peer.
    */
@@ -159,6 +177,17 @@ struct Plugin
    * Handle to the CORE service.
    */
   struct GNUNET_CORE_Handle *core;
+
+  /**
+   * Our "source" address. Traditional CORE API does not tell us which source
+   * it is, so they are all identical.
+   */
+  struct GNUNET_DHTU_Source src;
+  
+  /**
+   * Handle to the NSE service.
+   */
+  struct GNUNET_NSE_Handle *nse;
   
 };
 
@@ -242,6 +271,9 @@ static void
 ip_try_connect (void *cls,
                 const char *address)
 {
+  struct Plugin *plugin = cls;
+
+  // FIXME: ask ATS/TRANSPORT to 'connect'
   GNUNET_break (0);
 }
 
@@ -258,6 +290,7 @@ static struct GNUNET_DHTU_PreferenceHandle *
 ip_hold (void *cls,
          struct GNUNET_DHTU_Target *target)
 {
+  struct Plugin *plugin = cls;
   struct GNUNET_DHTU_PreferenceHandle *ph;
 
   ph = GNUNET_new (struct GNUNET_DHTU_PreferenceHandle);
@@ -266,6 +299,7 @@ ip_hold (void *cls,
                                target->ph_tail,
                                ph);
   target->ph_count++;
+  // FIXME: update ATS about 'hold'
   return ph;
 }
 
@@ -286,6 +320,7 @@ ip_drop (struct GNUNET_DHTU_PreferenceHandle *ph)
                                ph);
   target->ph_count--;
   GNUNET_free (ph);
+  // FIXME: update ATS about 'drop'
 }
 
 
@@ -312,7 +347,20 @@ ip_send (void *cls,
          GNUNET_SCHEDULER_TaskCallback finished_cb,
          void *finished_cb_cls)
 {
-  GNUNET_break (0);
+  struct GNUNET_MQ_Envelope *env;
+  struct GNUNET_MessageHeader *cmsg;
+
+  env = GNUNET_MQ_msg_extra (cmsg,
+                             msg_size,
+                             GNUNET_MESSAGE_TYPE_DHT_CORE);
+  GNUNET_MQ_notify_sent (env,
+                         finished_cb,
+                         finished_cb_cls);
+  memcpy (&cmsg[1],
+          msg,
+          msg_size);
+  GNUNET_MQ_send (target->mq,
+                  env);
 }
 
 
@@ -334,6 +382,7 @@ core_connect_cb (void *cls,
   struct GNUNET_DHTU_Target *target;
 
   target = GNUNET_new (struct GNUNET_DHTU_Target);
+  target->plugin = plugin;
   target->mq = mq;
   target->pk.header.size = htons (sizeof (struct PublicKey));
   target->pk.peer_pub = *peer;
@@ -362,6 +411,11 @@ core_disconnect_cb (void *cls,
                     const struct GNUNET_PeerIdentity *peer,
                     void *peer_cls)
 {
+  struct Plugin *plugin = cls;
+  struct GNUNET_DHTU_Target *target = peer_cls;
+
+  plugin->env->disconnect_cb (target->app_ctx);
+  GNUNET_free (target);
 }
 
 
@@ -382,6 +436,79 @@ core_init_cb (void *cls,
               const struct GNUNET_PeerIdentity *my_identity)
 {
   struct Plugin *plugin = cls;
+  char *addr = NULL;
+
+  // FIXME: initialize src.my_id and src.pk and addr!
+  // (note: with legacy CORE, we only have one addr)
+  plugin->env->address_add_cb (plugin->env->cls,
+                               &plugin->src.my_id,
+                               &plugin->src.pk,
+                               addr,
+                               &plugin->src,
+                               &plugin->src.app_ctx);
+  GNUNET_free (addr);
+}
+
+
+/**
+ * Anything goes, always return #GNUNET_OK.
+ *
+ * @param cls unused
+ * @param msg message to check
+ * @return #GNUNET_OK if all is fine
+ */
+static int
+check_core_message (void *cls,
+                    const struct GNUNET_MessageHeader *msg)
+{
+  (void) cls;
+  (void) msg;
+  return GNUNET_OK;
+}
+
+
+/**
+ * Handle message from CORE for the DHT. Passes it to the
+ * DHT logic.
+ *
+ * @param cls a `struct GNUNET_DHTU_Target` of the sender
+ * @param msg the message we received
+ */
+static void
+handle_core_message (void *cls,
+                     const struct GNUNET_MessageHeader *msg)
+{
+  struct GNUNET_DHTU_Target *origin = cls;
+  struct Plugin *plugin = origin->plugin;
+
+  plugin->env->receive_cb (plugin->env->cls,
+                           &origin->app_ctx,
+                           &plugin->src.app_ctx,
+                           &msg[1],
+                           ntohs (msg->size) - sizeof (*msg));
+}
+
+
+/**
+ * Callback to call when network size estimate is updated.
+ *
+ * @param cls closure
+ * @param timestamp time when the estimate was received from the server (or created by the server)
+ * @param logestimate the log(Base 2) value of the current network size estimate
+ * @param std_dev standard deviation for the estimate
+ */
+static void
+nse_cb (void *cls,
+        struct GNUNET_TIME_Absolute timestamp,
+        double logestimate,
+        double std_dev)
+{
+  struct Plugin *plugin = cls;
+
+  plugin->env->network_size_cb (plugin->env->cls,
+                                timestamp,
+                                logestimate,
+                                std_dev);
 }
 
 
@@ -398,6 +525,10 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
   struct GNUNET_DHTU_PluginFunctions *api;
   struct Plugin *plugin;
   struct GNUNET_MQ_MessageHandler handlers[] = {
+    GNUNET_MQ_hd_var_size (core_message,
+                           GNUNET_MESSAGE_TYPE_DHT_CORE,
+                           struct GNUNET_MessageHeader,
+                           NULL),
     GNUNET_MQ_handler_end ()
   };
 
@@ -417,6 +548,9 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
                                       &core_connect_cb,
                                       &core_disconnect_cb,
                                       handlers);
+  plugin->nse = GNUNET_NSE_connect (env->cfg,
+                                    &nse_cb,
+                                    plugin);
   return api;
 }
 
@@ -433,6 +567,7 @@ libgnunet_plugin_dhtu_gnunet_done (void *cls)
   struct GNUNET_DHTU_PluginFunctions *api = cls;
   struct Plugin *plugin = api->cls;
 
+  GNUNET_NSE_disconnect (plugin->nse);
   GNUNET_CORE_disconnect (plugin->core);
   GNUNET_free (plugin);
   GNUNET_free (api);
