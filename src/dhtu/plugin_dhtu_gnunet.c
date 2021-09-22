@@ -26,6 +26,7 @@
  */
 #include "platform.h"
 #include "gnunet_dhtu_plugin.h"
+#include "gnunet_ats_service.h"
 #include "gnunet_core_service.h"
 #include "gnunet_nse_service.h"
 
@@ -134,6 +135,11 @@ struct GNUNET_DHTU_Target
   struct GNUNET_DHTU_PreferenceHandle *ph_tail;
 
   /**
+   * ATS preference handle for this peer, or NULL.
+   */
+  struct GNUNET_ATS_ConnectivitySuggestHandle *csh;
+
+  /**
    * Preference counter, length of the @a ph_head DLL.
    */
   unsigned int ph_count;
@@ -178,6 +184,11 @@ struct Plugin
    */
   struct GNUNET_CORE_Handle *core;
 
+  /**
+   * Handle to ATS service.
+   */
+  struct GNUNET_ATS_ConnectivityHandle *ats;
+  
   /**
    * Our "source" address. Traditional CORE API does not tell us which source
    * it is, so they are all identical.
@@ -274,6 +285,7 @@ ip_try_connect (void *cls,
   struct Plugin *plugin = cls;
 
   // FIXME: ask ATS/TRANSPORT to 'connect'
+  // => needs HELLO!
   GNUNET_break (0);
 }
 
@@ -299,7 +311,12 @@ ip_hold (void *cls,
                                target->ph_tail,
                                ph);
   target->ph_count++;
-  // FIXME: update ATS about 'hold'
+  if (NULL != target->csh)
+    GNUNET_ATS_connectivity_suggest_cancel (target->csh);
+  target->csh
+    = GNUNET_ATS_connectivity_suggest (plugin->ats,
+                                       &target->pk.peer_pub,
+                                       target->ph_count);
   return ph;
 }
 
@@ -314,13 +331,22 @@ static void
 ip_drop (struct GNUNET_DHTU_PreferenceHandle *ph)
 {
   struct GNUNET_DHTU_Target *target = ph->target;
-
+  struct Plugin *plugin = target->plugin;
+  
   GNUNET_CONTAINER_DLL_remove (target->ph_head,
                                target->ph_tail,
                                ph);
   target->ph_count--;
   GNUNET_free (ph);
-  // FIXME: update ATS about 'drop'
+  if (NULL != target->csh)
+    GNUNET_ATS_connectivity_suggest_cancel (target->csh);
+  if (0 == target->ph_count)
+    target->csh = NULL;
+  else
+    target->csh
+      = GNUNET_ATS_connectivity_suggest (plugin->ats,
+                                         &target->pk.peer_pub,
+                                         target->ph_count);
 }
 
 
@@ -415,6 +441,8 @@ core_disconnect_cb (void *cls,
   struct GNUNET_DHTU_Target *target = peer_cls;
 
   plugin->env->disconnect_cb (target->app_ctx);
+  if (NULL != target->csh)
+    GNUNET_ATS_connectivity_suggest_cancel (target->csh);
   GNUNET_free (target);
 }
 
@@ -436,10 +464,20 @@ core_init_cb (void *cls,
               const struct GNUNET_PeerIdentity *my_identity)
 {
   struct Plugin *plugin = cls;
-  char *addr = NULL;
+  char *addr;
+  char *pid;
 
-  // FIXME: initialize src.my_id and src.pk and addr!
-  // (note: with legacy CORE, we only have one addr)
+  // FIXME: to later ask ATS/TRANSPORT to 'connect' we need a HELLO,
+  // not merely a vanilla PID...
+  pid = GNUNET_STRINGS_data_to_string_alloc (my_identity,
+                                             sizeof (struct GNUNET_PeerIdentity));
+  GNUNET_asprintf (&addr,
+                   "gnunet-core-v15://%s/",
+                   pid);
+  GNUNET_free (pid);
+  GNUNET_CRYPTO_hash (my_identity,
+                      sizeof (struct GNUNET_PeerIdentity),
+                      &plugin->src.my_id.hc);
   plugin->env->address_add_cb (plugin->env->cls,
                                &plugin->src.my_id,
                                &plugin->src.pk,
@@ -513,6 +551,30 @@ nse_cb (void *cls,
 
 
 /**
+ * Exit point from the plugin.
+ *
+ * @param cls closure (our `struct Plugin`)
+ * @return NULL
+ */
+void *
+libgnunet_plugin_dhtu_gnunet_done (void *cls)
+{
+  struct GNUNET_DHTU_PluginFunctions *api = cls;
+  struct Plugin *plugin = api->cls;
+
+  if (NULL != plugin->nse)
+    GNUNET_NSE_disconnect (plugin->nse);
+  if (NULL != plugin->core)
+    GNUNET_CORE_disconnect (plugin->core);
+  if (NULL != plugin->ats)
+    GNUNET_ATS_connectivity_done (plugin->ats);
+  GNUNET_free (plugin);
+  GNUNET_free (api);
+  return NULL;
+}
+
+
+/**
  * Entry point for the plugin.
  *
  * @param cls closure (the `struct GNUNET_DHTU_PluginEnvironment`)
@@ -531,9 +593,18 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
                            NULL),
     GNUNET_MQ_handler_end ()
   };
-
+  struct GNUNET_CRYPTO_EddsaPrivateKey *pk;
+  
+  pk = GNUNET_CRYPTO_eddsa_key_create_from_configuration (env->cfg);
+  if (NULL == pk)
+  {
+    GNUNET_break (0);
+    return NULL;
+  }
   plugin = GNUNET_new (struct Plugin);
   plugin->env = env;
+  plugin->src.pk.eddsa_priv = *pk;
+  GNUNET_free (pk);
   api = GNUNET_new (struct GNUNET_DHTU_PluginFunctions);
   api->cls = plugin;
   api->sign = &ip_sign;
@@ -542,6 +613,7 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
   api->hold = &ip_hold;
   api->drop = &ip_drop;
   api->send = &ip_send;
+  plugin->ats = GNUNET_ATS_connectivity_init (env->cfg);
   plugin->core = GNUNET_CORE_connect (env->cfg,
                                       plugin,
                                       &core_init_cb,
@@ -551,25 +623,15 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
   plugin->nse = GNUNET_NSE_connect (env->cfg,
                                     &nse_cb,
                                     plugin);
+  if ( (NULL == plugin->ats) ||
+       (NULL == plugin->core) ||
+       (NULL == plugin->nse) )
+  {
+    GNUNET_break (0);
+    libgnunet_plugin_dhtu_gnunet_done (plugin);
+    return NULL;
+  }
   return api;
 }
 
 
-/**
- * Exit point from the plugin.
- *
- * @param cls closure (our `struct Plugin`)
- * @return NULL
- */
-void *
-libgnunet_plugin_dhtu_gnunet_done (void *cls)
-{
-  struct GNUNET_DHTU_PluginFunctions *api = cls;
-  struct Plugin *plugin = api->cls;
-
-  GNUNET_NSE_disconnect (plugin->nse);
-  GNUNET_CORE_disconnect (plugin->core);
-  GNUNET_free (plugin);
-  GNUNET_free (api);
-  return NULL;
-}
