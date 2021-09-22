@@ -117,8 +117,8 @@ struct GNUNET_TRANSPORT_AddressToStringContext;
  */
 typedef void
 (*GNUNET_TRANSPORT_AddressToStringCallback) (void *cls,
-                                                          const char *address,
-                                                          int res);
+                                             const char *address,
+                                             int res);
 
 
 /**

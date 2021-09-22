@@ -305,7 +305,8 @@ enum GNUNET_MQ_PriorityPreferences
  * @param cls closure
  * @param msg the received message
  */
-typedef void (*GNUNET_MQ_MessageCallback) (
+typedef void
+(*GNUNET_MQ_MessageCallback) (
   void *cls,
   const struct GNUNET_MessageHeader *msg);
 
@@ -318,7 +319,8 @@ typedef void (*GNUNET_MQ_MessageCallback) (
  * @return #GNUNET_OK if the message is well-formed,
  *         #GNUNET_SYSERR if not
  */
-typedef int (*GNUNET_MQ_MessageValidationCallback) (
+typedef int
+(*GNUNET_MQ_MessageValidationCallback) (
   void *cls,
   const struct GNUNET_MessageHeader *msg);
 
@@ -826,7 +828,8 @@ GNUNET_MQ_get_length (struct GNUNET_MQ_Handle *mq);
  * @param ev the envelope with the message to send.
  */
 void
-GNUNET_MQ_send (struct GNUNET_MQ_Handle *mq, struct GNUNET_MQ_Envelope *ev);
+GNUNET_MQ_send (struct GNUNET_MQ_Handle *mq,
+                struct GNUNET_MQ_Envelope *ev);
 
 
 /**
@@ -859,7 +862,8 @@ GNUNET_MQ_send_cancel (struct GNUNET_MQ_Envelope *ev);
  * @param assoc_data to associate
  */
 uint32_t
-GNUNET_MQ_assoc_add (struct GNUNET_MQ_Handle *mq, void *assoc_data);
+GNUNET_MQ_assoc_add (struct GNUNET_MQ_Handle *mq,
+                     void *assoc_data);
 
 
 /**
@@ -870,7 +874,8 @@ GNUNET_MQ_assoc_add (struct GNUNET_MQ_Handle *mq, void *assoc_data);
  * @return the associated data
  */
 void *
-GNUNET_MQ_assoc_get (struct GNUNET_MQ_Handle *mq, uint32_t request_id);
+GNUNET_MQ_assoc_get (struct GNUNET_MQ_Handle *mq,
+                     uint32_t request_id);
 
 
 /**
@@ -881,7 +886,8 @@ GNUNET_MQ_assoc_get (struct GNUNET_MQ_Handle *mq, uint32_t request_id);
  * @return the associated data
  */
 void *
-GNUNET_MQ_assoc_remove (struct GNUNET_MQ_Handle *mq, uint32_t request_id);
+GNUNET_MQ_assoc_remove (struct GNUNET_MQ_Handle *mq,
+                        uint32_t request_id);
 
 
 /**
