@@ -30,6 +30,9 @@ libgnunet_plugin_dhtu_gnunet_la_SOURCES = \
 libgnunet_plugin_dhtu_gnunet_la_LIBADD = \
   $(top_builddir)/src/ats/libgnunetats.la \
   $(top_builddir)/src/core/libgnunetcore.la \
+  $(top_builddir)/src/peerinfo/libgnunetpeerinfo.la \
+  $(top_builddir)/src/transport/libgnunettransport.la \
+  $(top_builddir)/src/hello/libgnunethello.la \
   $(top_builddir)/src/nse/libgnunetnse.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(XLIBS) \
