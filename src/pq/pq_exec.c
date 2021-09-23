@@ -72,7 +72,7 @@ GNUNET_PQ_make_try_execute (const char *sql)
  * @return #GNUNET_OK on success (modulo statements where errors can be ignored)
  *         #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_PQ_exec_statements (struct GNUNET_PQ_Context *db,
                            const struct GNUNET_PQ_ExecuteStatement *es)
 {

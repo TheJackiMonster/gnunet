@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet
-   Copyright (C) 2017, 2019, 2020 GNUnet e.V.
+   Copyright (C) 2017, 2019, 2020, 2021 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -70,6 +70,21 @@ GNUNET_PQ_connect (const char *config_str,
                    const struct GNUNET_PQ_ExecuteStatement *es,
                    const struct GNUNET_PQ_PreparedStatement *ps)
 {
+  return GNUNET_PQ_connect2 (config_str,
+                             load_path,
+                             es,
+                             ps,
+                             GNUNET_PQ_FLAG_NONE);
+}
+
+
+struct GNUNET_PQ_Context *
+GNUNET_PQ_connect2 (const char *config_str,
+                    const char *load_path,
+                    const struct GNUNET_PQ_ExecuteStatement *es,
+                    const struct GNUNET_PQ_PreparedStatement *ps,
+                    enum GNUNET_PQ_Options flags)
+{
   struct GNUNET_PQ_Context *db;
   unsigned int elen = 0;
   unsigned int plen = 0;
@@ -82,6 +97,7 @@ GNUNET_PQ_connect (const char *config_str,
       plen++;
 
   db = GNUNET_new (struct GNUNET_PQ_Context);
+  db->flags = flags;
   db->config_str = GNUNET_strdup (config_str);
   if (NULL != load_path)
     db->load_path = GNUNET_strdup (load_path);
@@ -200,68 +216,72 @@ GNUNET_PQ_run_sql (struct GNUNET_PQ_Context *db,
               load_path);
   for (unsigned int i = 1; i<10000; i++)
   {
+    char patch_name[slen];
+    char buf[slen];
     enum GNUNET_DB_QueryStatus qs;
-    {
-      char buf[slen];
 
-      /* First, check patch actually exists */
-      GNUNET_snprintf (buf,
-                       sizeof (buf),
-                       "%s%04u.sql",
-                       load_path,
-                       i);
-      if (GNUNET_YES !=
-          GNUNET_DISK_file_test (buf))
-        return GNUNET_OK;   /* We are done */
-    }
+    /* First, check patch actually exists */
+    GNUNET_snprintf (buf,
+                     sizeof (buf),
+                     "%s%04u.sql",
+                     load_path,
+                     i);
+    if (GNUNET_YES !=
+        GNUNET_DISK_file_test (buf))
+      return GNUNET_OK;     /* We are done */
 
     /* Second, check with DB versioning schema if this patch was already applied,
        if so, skip it. */
+    GNUNET_snprintf (patch_name,
+                     sizeof (patch_name),
+                     "%s%04u",
+                     load_path_suffix,
+                     i);
     {
-      char patch_name[slen];
+      char *applied_by;
+      struct GNUNET_PQ_QueryParam params[] = {
+        GNUNET_PQ_query_param_string (patch_name),
+        GNUNET_PQ_query_param_end
+      };
+      struct GNUNET_PQ_ResultSpec rs[] = {
+        GNUNET_PQ_result_spec_string ("applied_by",
+                                      &applied_by),
+        GNUNET_PQ_result_spec_end
+      };
 
-      GNUNET_snprintf (patch_name,
-                       sizeof (patch_name),
-                       "%s%04u",
-                       load_path_suffix,
-                       i);
+      qs = GNUNET_PQ_eval_prepared_singleton_select (db,
+                                                     "gnunet_pq_check_patch",
+                                                     params,
+                                                     rs);
+      if (GNUNET_DB_STATUS_SUCCESS_ONE_RESULT == qs)
       {
-        char *applied_by;
-        struct GNUNET_PQ_QueryParam params[] = {
-          GNUNET_PQ_query_param_string (patch_name),
-          GNUNET_PQ_query_param_end
-        };
-        struct GNUNET_PQ_ResultSpec rs[] = {
-          GNUNET_PQ_result_spec_string ("applied_by",
-                                        &applied_by),
-          GNUNET_PQ_result_spec_end
-        };
-
-        qs = GNUNET_PQ_eval_prepared_singleton_select (db,
-                                                       "gnunet_pq_check_patch",
-                                                       params,
-                                                       rs);
-        if (GNUNET_DB_STATUS_SUCCESS_ONE_RESULT == qs)
-        {
-          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                      "Database version %s already applied by %s, skipping\n",
-                      patch_name,
-                      applied_by);
-          GNUNET_PQ_cleanup_result (rs);
-        }
-        if (GNUNET_DB_STATUS_HARD_ERROR == qs)
-        {
-          GNUNET_break (0);
-          return GNUNET_SYSERR;
-        }
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "Database version %s already applied by %s, skipping\n",
+                    patch_name,
+                    applied_by);
+        GNUNET_PQ_cleanup_result (rs);
+      }
+      if (GNUNET_DB_STATUS_HARD_ERROR == qs)
+      {
+        GNUNET_break (0);
+        return GNUNET_SYSERR;
       }
     }
     if (GNUNET_DB_STATUS_SUCCESS_ONE_RESULT == qs)
       continue; /* patch already applied, skip it */
 
-    /* patch not yet applied, run it! */
+    if (0 != (GNUNET_PQ_FLAG_CHECK_CURRENT & db->flags))
     {
-      int ret;
+      /* We are only checking, found unapplied patch, bad! */
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Database outdated, patch %s missing. Aborting!\n",
+                  patch_name);
+      return GNUNET_SYSERR;
+    }
+    else
+    {
+      /* patch not yet applied, run it! */
+      enum GNUNET_GenericReturnValue ret;
 
       ret = apply_patch (db,
                          load_path,
@@ -334,9 +354,17 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
                      NULL);
     if (PGRES_COMMAND_OK != PQresultStatus (res))
     {
-      int ret;
+      enum GNUNET_GenericReturnValue ret;
 
       PQclear (res);
+      if (0 != (db->flags & GNUNET_PQ_FLAG_DROP))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                    "Failed to prepare statement to check patch level. Likely versioning schema does not exist yet. Not attempting drop!\n");
+        PQfinish (db->conn);
+        db->conn = NULL;
+        return;
+      }
       GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                   "Failed to prepare statement to check patch level. Likely versioning schema does not exist yet, loading patch level 0000!\n");
       ret = apply_patch (db,
@@ -424,6 +452,23 @@ GNUNET_PQ_connect_with_cfg (const struct GNUNET_CONFIGURATION_Handle *cfg,
                             const struct GNUNET_PQ_ExecuteStatement *es,
                             const struct GNUNET_PQ_PreparedStatement *ps)
 {
+  return GNUNET_PQ_connect_with_cfg2 (cfg,
+                                      section,
+                                      load_path_suffix,
+                                      es,
+                                      ps,
+                                      GNUNET_PQ_FLAG_NONE);
+}
+
+
+struct GNUNET_PQ_Context *
+GNUNET_PQ_connect_with_cfg2 (const struct GNUNET_CONFIGURATION_Handle *cfg,
+                             const char *section,
+                             const char *load_path_suffix,
+                             const struct GNUNET_PQ_ExecuteStatement *es,
+                             const struct GNUNET_PQ_PreparedStatement *ps,
+                             enum GNUNET_PQ_Options flags)
+{
   struct GNUNET_PQ_Context *db;
   char *conninfo;
   char *load_path;
@@ -447,10 +492,11 @@ GNUNET_PQ_connect_with_cfg (const struct GNUNET_CONFIGURATION_Handle *cfg,
                      "%s%s",
                      sp,
                      load_path_suffix);
-  db = GNUNET_PQ_connect (conninfo == NULL ? "" : conninfo,
-                          load_path,
-                          es,
-                          ps);
+  db = GNUNET_PQ_connect2 (conninfo == NULL ? "" : conninfo,
+                           load_path,
+                           es,
+                           ps,
+                           flags);
   GNUNET_free (load_path);
   GNUNET_free (sp);
   GNUNET_free (conninfo);
