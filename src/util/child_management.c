@@ -91,15 +91,10 @@ maint_child_death (void *cls)
 
   (void) cls;
   sig_task = NULL;
-
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "Received SIGCHLD.\n");
-
   /* drain pipe */
   pr = GNUNET_DISK_pipe_handle (sigpipe,
                                 GNUNET_DISK_PIPE_END_READ);
   GNUNET_assert (! GNUNET_DISK_handle_invalid (pr));
-
   (void) GNUNET_DISK_file_read (pr,
                                 buf,
                                 sizeof(buf));
@@ -159,9 +154,8 @@ sighandler_child_death (void)
 }
 
 
-// void __attribute__ ((constructor))
 static void
-child_management_start ()
+child_management_start (void)
 {
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Trying to start child management.\n");
@@ -170,19 +164,24 @@ child_management_start ()
   sigpipe = GNUNET_DISK_pipe (GNUNET_DISK_PF_NONE);
   GNUNET_assert (sigpipe != NULL);
   shc_chld =
-    GNUNET_SIGNAL_handler_install (GNUNET_SIGCHLD, &sighandler_child_death);
+    GNUNET_SIGNAL_handler_install (GNUNET_SIGCHLD,
+                                   &sighandler_child_death);
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Child management started.\n");
 }
 
+
 /**
  * Clean up.
  */
-// void __attribute__ ((destructor))
 static void
-child_management_done ()
+child_management_done (void)
 {
-  GNUNET_assert (NULL == sig_task);
+  if (NULL != sig_task)
+  {
+    GNUNET_SCHEDULER_cancel (sig_task);
+    sig_task = NULL;
+  }
   GNUNET_SIGNAL_handler_uninstall (shc_chld);
   shc_chld = NULL;
   GNUNET_DISK_pipe_close (sigpipe);
@@ -191,15 +190,13 @@ child_management_done ()
               "Child management stopped.\n");
 }
 
+
 struct GNUNET_ChildWaitHandle *
 GNUNET_wait_child (struct GNUNET_OS_Process *proc,
                    GNUNET_ChildCompletedCallback cb,
                    void *cb_cls)
 {
   struct GNUNET_ChildWaitHandle *cwh;
-
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "Adding child!\n");
 
   child_management_start ();
   cwh = GNUNET_new (struct GNUNET_ChildWaitHandle);
@@ -221,23 +218,15 @@ GNUNET_wait_child (struct GNUNET_OS_Process *proc,
   return cwh;
 }
 
+
 void
 GNUNET_wait_child_cancel (struct GNUNET_ChildWaitHandle *cwh)
 {
-  if ((NULL != cwh_head))
-  {
-    GNUNET_CONTAINER_DLL_remove (cwh_head,
-                                 cwh_tail,
-                                 cwh);
-  }
-  if (NULL == cwh_head)
-  {
-    child_management_done ();
-  }
-  if (NULL != sig_task)
-  {
-    GNUNET_SCHEDULER_cancel (sig_task);
-    sig_task = NULL;
-  }
+  GNUNET_CONTAINER_DLL_remove (cwh_head,
+                               cwh_tail,
+                               cwh);
   GNUNET_free (cwh);
+  if (NULL != cwh_head)
+    return;
+  child_management_done ();
 }
