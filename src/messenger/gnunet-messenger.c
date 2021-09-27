@@ -42,8 +42,11 @@ struct GNUNET_MESSENGER_Handle *messenger;
  * @param[in] flags Flags of message
  */
 void
-on_message (void *cls, struct GNUNET_MESSENGER_Room *room, const struct GNUNET_MESSENGER_Contact *sender,
-            const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash,
+on_message (void *cls,
+            struct GNUNET_MESSENGER_Room *room,
+            const struct GNUNET_MESSENGER_Contact *sender,
+            const struct GNUNET_MESSENGER_Message *message,
+            const struct GNUNET_HashCode *hash,
             enum GNUNET_MESSENGER_MessageFlags flags)
 {
   const char *sender_name = GNUNET_MESSENGER_contact_get_name (sender);
@@ -124,7 +127,8 @@ listen_stdio (void *cls);
 #define MAX_BUFFER_SIZE 60000
 
 static int
-iterate_send_private_message (void *cls, struct GNUNET_MESSENGER_Room *room,
+iterate_send_private_message (void *cls,
+                              struct GNUNET_MESSENGER_Room *room,
                               const struct GNUNET_MESSENGER_Contact *contact)
 {
   struct GNUNET_MESSENGER_Message *message = cls;
@@ -226,7 +230,8 @@ struct GNUNET_SCHEDULER_Task *shutdown_task;
  * @param[in/out] handle Handle of messenger service
  */
 static void
-on_identity (void *cls, struct GNUNET_MESSENGER_Handle *handle)
+on_identity (void *cls,
+             struct GNUNET_MESSENGER_Handle *handle)
 {
   struct GNUNET_HashCode key;
   memset (&key, 0, sizeof(key));
@@ -292,7 +297,10 @@ on_identity (void *cls, struct GNUNET_MESSENGER_Handle *handle)
  * @param[in] cfg configuration
  */
 static void
-run (void *cls, char *const*args, const char *cfgfile, const struct GNUNET_CONFIGURATION_Handle *cfg)
+run (void *cls,
+     char *const*args,
+     const char *cfgfile,
+     const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
   messenger = GNUNET_MESSENGER_connect (cfg, ego_name, &on_identity, NULL, &on_message, NULL);
 
@@ -307,7 +315,8 @@ run (void *cls, char *const*args, const char *cfgfile, const struct GNUNET_CONFI
  * @return #EXIT_SUCCESS ok, #EXIT_FAILURE on error
  */
 int
-main (int argc, char **argv)
+main (int argc,
+      char **argv)
 {
   const char *description = "Open and connect to rooms using the MESSENGER to chat.";
 

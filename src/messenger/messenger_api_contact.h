@@ -71,7 +71,8 @@ get_contact_name (const struct GNUNET_MESSENGER_Contact *contact);
  * @param[in] name Name
  */
 void
-set_contact_name (struct GNUNET_MESSENGER_Contact *contact, const char *name);
+set_contact_name (struct GNUNET_MESSENGER_Contact *contact,
+                  const char *name);
 
 /**
  * Returns the public key of a given <i>contact</i>.
@@ -108,7 +109,8 @@ decrease_contact_rc (struct GNUNET_MESSENGER_Contact *contact);
  * @param[out] hash Member context
  */
 void
-get_context_from_member (const struct GNUNET_HashCode *key, const struct GNUNET_ShortHashCode *id,
+get_context_from_member (const struct GNUNET_HashCode *key,
+                         const struct GNUNET_ShortHashCode *id,
                          struct GNUNET_HashCode *context);
 
 #endif //GNUNET_MESSENGER_API_CONTACT_H

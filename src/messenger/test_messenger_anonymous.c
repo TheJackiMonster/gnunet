@@ -96,7 +96,8 @@ end_operation (void *cls)
  * @param handle Handle of messenger service
  */
 static void
-on_identity (void *cls, struct GNUNET_MESSENGER_Handle *handle)
+on_identity (void *cls,
+             struct GNUNET_MESSENGER_Handle *handle)
 {
   if (op_task)
   {
@@ -144,7 +145,9 @@ on_identity (void *cls, struct GNUNET_MESSENGER_Handle *handle)
  * @param peer Peer for testing
  */
 static void
-run (void *cls, const struct GNUNET_CONFIGURATION_Handle *cfg, struct GNUNET_TESTING_Peer *peer)
+run (void *cls,
+     const struct GNUNET_CONFIGURATION_Handle *cfg,
+     struct GNUNET_TESTING_Peer *peer)
 {
   die_task = GNUNET_SCHEDULER_add_delayed (TOTAL_TIMEOUT, &end_badly, NULL);
 
@@ -160,7 +163,8 @@ run (void *cls, const struct GNUNET_CONFIGURATION_Handle *cfg, struct GNUNET_TES
  * @return 0 ok, 1 on error
  */
 int
-main (int argc, char **argv)
+main (int argc,
+      char **argv)
 {
   if (0 != GNUNET_TESTING_peer_run ("test-messenger", "test_messenger_api.conf", &run, NULL))
     return 1;

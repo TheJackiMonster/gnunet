@@ -55,7 +55,8 @@ clear_list_handles (struct GNUNET_MESSENGER_ListHandles *handles)
 }
 
 void
-add_list_handle (struct GNUNET_MESSENGER_ListHandles *handles, struct GNUNET_MESSENGER_SrvHandle *handle)
+add_list_handle (struct GNUNET_MESSENGER_ListHandles *handles,
+                 struct GNUNET_MESSENGER_SrvHandle *handle)
 {
   GNUNET_assert((handles) && (handle));
 
@@ -67,7 +68,8 @@ add_list_handle (struct GNUNET_MESSENGER_ListHandles *handles, struct GNUNET_MES
 }
 
 int
-remove_list_handle (struct GNUNET_MESSENGER_ListHandles *handles, struct GNUNET_MESSENGER_SrvHandle *handle)
+remove_list_handle (struct GNUNET_MESSENGER_ListHandles *handles,
+                    struct GNUNET_MESSENGER_SrvHandle *handle)
 {
   GNUNET_assert((handles) && (handle));
 
@@ -87,7 +89,8 @@ remove_list_handle (struct GNUNET_MESSENGER_ListHandles *handles, struct GNUNET_
 }
 
 struct GNUNET_MESSENGER_SrvHandle*
-find_list_handle_by_member (const struct GNUNET_MESSENGER_ListHandles *handles, const struct GNUNET_HashCode *key)
+find_list_handle_by_member (const struct GNUNET_MESSENGER_ListHandles *handles,
+                            const struct GNUNET_HashCode *key)
 {
   GNUNET_assert((handles) && (key));
 

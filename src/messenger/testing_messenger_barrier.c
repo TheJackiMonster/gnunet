@@ -61,7 +61,8 @@ GNUNET_init_barrier (unsigned int requirement,
 }
 
 static void
-exit_status (struct GNUNET_BarrierHandle *barrier, int status);
+exit_status (struct GNUNET_BarrierHandle *barrier,
+             int status);
 
 static void
 cancel_barrier (void *cls)
@@ -96,7 +97,8 @@ struct GNUNET_BarrierWaitHandle
 };
 
 static void
-exit_status (struct GNUNET_BarrierHandle *barrier, int status)
+exit_status (struct GNUNET_BarrierHandle *barrier,
+             int status)
 {
   struct GNUNET_BarrierWaitHandle *waiting = barrier->head;
   while (waiting)

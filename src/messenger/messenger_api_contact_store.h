@@ -68,7 +68,8 @@ clear_contact_store (struct GNUNET_MESSENGER_ContactStore *store);
  * @param[in] key_hash Hash of public key
  */
 struct GNUNET_MESSENGER_Contact*
-get_store_contact_raw (struct GNUNET_MESSENGER_ContactStore *store, const struct GNUNET_HashCode *context,
+get_store_contact_raw (struct GNUNET_MESSENGER_ContactStore *store,
+                       const struct GNUNET_HashCode *context,
                        const struct GNUNET_HashCode *key_hash);
 
 /**
@@ -87,7 +88,8 @@ get_store_contact_raw (struct GNUNET_MESSENGER_ContactStore *store, const struct
  * @param[in] pubkey Public key of EGO
  */
 struct GNUNET_MESSENGER_Contact*
-get_store_contact (struct GNUNET_MESSENGER_ContactStore *store, const struct GNUNET_HashCode *context,
+get_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
+                   const struct GNUNET_HashCode *context,
                    const struct GNUNET_IDENTITY_PublicKey *pubkey);
 
 /**
@@ -103,8 +105,10 @@ get_store_contact (struct GNUNET_MESSENGER_ContactStore *store, const struct GNU
  * @param[in] pubkey Public key of EGO
  */
 void
-update_store_contact (struct GNUNET_MESSENGER_ContactStore *store, struct GNUNET_MESSENGER_Contact* contact,
-                      const struct GNUNET_HashCode *context, const struct GNUNET_HashCode *next_context,
+update_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
+                      struct GNUNET_MESSENGER_Contact* contact,
+                      const struct GNUNET_HashCode *context,
+                      const struct GNUNET_HashCode *next_context,
                       const struct GNUNET_IDENTITY_PublicKey *pubkey);
 
 /**
@@ -116,7 +120,8 @@ update_store_contact (struct GNUNET_MESSENGER_ContactStore *store, struct GNUNET
  * @param[in] context Member context
  */
 void
-remove_store_contact (struct GNUNET_MESSENGER_ContactStore *store, struct GNUNET_MESSENGER_Contact* contact,
+remove_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
+                      struct GNUNET_MESSENGER_Contact* contact,
                       const struct GNUNET_HashCode *context);
 
 #endif //GNUNET_MESSENGER_API_CONTACT_STORE_H

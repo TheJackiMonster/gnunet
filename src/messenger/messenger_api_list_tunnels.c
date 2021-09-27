@@ -53,14 +53,16 @@ clear_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels)
 }
 
 static int
-compare_list_tunnels (void *cls, struct GNUNET_MESSENGER_ListTunnel *element0,
+compare_list_tunnels (void *cls,
+                      struct GNUNET_MESSENGER_ListTunnel *element0,
                       struct GNUNET_MESSENGER_ListTunnel *element1)
 {
   return ((int) element0->peer) - ((int) element1->peer);
 }
 
 void
-add_to_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const struct GNUNET_PeerIdentity *peer)
+add_to_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
+                     const struct GNUNET_PeerIdentity *peer)
 {
   GNUNET_assert((tunnels) && (peer));
 
@@ -73,7 +75,9 @@ add_to_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const struct 
 }
 
 struct GNUNET_MESSENGER_ListTunnel*
-find_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const struct GNUNET_PeerIdentity *peer, size_t *index)
+find_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
+                   const struct GNUNET_PeerIdentity *peer,
+                   size_t *index)
 {
   GNUNET_assert((tunnels) && (peer));
 
@@ -98,7 +102,8 @@ find_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const struct GN
 }
 
 int
-contains_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const struct GNUNET_PeerIdentity *peer)
+contains_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
+                       const struct GNUNET_PeerIdentity *peer)
 {
   GNUNET_assert((tunnels) && (peer));
 
@@ -106,7 +111,8 @@ contains_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const struc
 }
 
 struct GNUNET_MESSENGER_ListTunnel*
-remove_from_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, struct GNUNET_MESSENGER_ListTunnel *element)
+remove_from_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
+                          struct GNUNET_MESSENGER_ListTunnel *element)
 {
   GNUNET_assert((tunnels) && (element));
 
@@ -120,7 +126,8 @@ remove_from_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, struct G
 }
 
 void
-load_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const char *path)
+load_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
+                   const char *path)
 {
   GNUNET_assert((tunnels) && (path));
 
@@ -154,7 +161,8 @@ load_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const char *pat
 }
 
 void
-save_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const char *path)
+save_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
+                   const char *path)
 {
   GNUNET_assert((tunnels) && (path));
 

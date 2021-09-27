@@ -225,7 +225,8 @@ verify_member_session_as_sender (const struct GNUNET_MESSENGER_MemberSession *se
  */
 int
 check_member_session_history (const struct GNUNET_MESSENGER_MemberSession *session,
-                              const struct GNUNET_HashCode *hash, int ownership);
+                              const struct GNUNET_HashCode *hash,
+                              int ownership);
 
 /**
  * Adds a given <i>message</i> to the history of a <i>session</i> using the messages
@@ -262,7 +263,8 @@ clear_member_session_history (struct GNUNET_MESSENGER_MemberSession *session,
  * @param[in] directory Path to a directory
  */
 void
-load_member_session (struct GNUNET_MESSENGER_Member *member, const char *directory);
+load_member_session (struct GNUNET_MESSENGER_Member *member,
+                     const char *directory);
 
 /**
  * Loads the connection from one <i>session</i> to another through the
@@ -273,7 +275,8 @@ load_member_session (struct GNUNET_MESSENGER_Member *member, const char *directo
  * @param[in] directory Path to a directory
  */
 void
-load_member_session_next (struct GNUNET_MESSENGER_MemberSession *session, const char *directory);
+load_member_session_next (struct GNUNET_MESSENGER_MemberSession *session,
+                          const char *directory);
 
 /**
  * Saves data from a member <i>session</i> into a <i>directory</i> which can be
@@ -283,6 +286,7 @@ load_member_session_next (struct GNUNET_MESSENGER_MemberSession *session, const 
  * @param[in] directory Path to a directory
  */
 void
-save_member_session (struct GNUNET_MESSENGER_MemberSession *session, const char *directory);
+save_member_session (struct GNUNET_MESSENGER_MemberSession *session,
+                     const char *directory);
 
 #endif //GNUNET_SERVICE_MESSENGER_MEMBER_SESSION_H

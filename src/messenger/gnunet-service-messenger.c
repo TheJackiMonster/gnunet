@@ -39,14 +39,16 @@ struct GNUNET_MESSENGER_Client
 struct GNUNET_MESSENGER_Service *messenger;
 
 static int
-check_create (void *cls, const struct GNUNET_MESSENGER_CreateMessage *msg)
+check_create (void *cls,
+              const struct GNUNET_MESSENGER_CreateMessage *msg)
 {
   GNUNET_MQ_check_zero_termination(msg);
   return GNUNET_OK;
 }
 
 static void
-handle_create (void *cls, const struct GNUNET_MESSENGER_CreateMessage *msg)
+handle_create (void *cls,
+               const struct GNUNET_MESSENGER_CreateMessage *msg)
 {
   struct GNUNET_MESSENGER_Client *msg_client = cls;
 
@@ -60,7 +62,8 @@ handle_create (void *cls, const struct GNUNET_MESSENGER_CreateMessage *msg)
 }
 
 static void
-handle_update (void *cls, const struct GNUNET_MESSENGER_UpdateMessage *msg)
+handle_update (void *cls,
+               const struct GNUNET_MESSENGER_UpdateMessage *msg)
 {
   struct GNUNET_MESSENGER_Client *msg_client = cls;
 
@@ -70,7 +73,8 @@ handle_update (void *cls, const struct GNUNET_MESSENGER_UpdateMessage *msg)
 }
 
 static void
-handle_destroy (void *cls, const struct GNUNET_MESSENGER_DestroyMessage *msg)
+handle_destroy (void *cls,
+                const struct GNUNET_MESSENGER_DestroyMessage *msg)
 {
   struct GNUNET_MESSENGER_Client *msg_client = cls;
 
@@ -78,14 +82,16 @@ handle_destroy (void *cls, const struct GNUNET_MESSENGER_DestroyMessage *msg)
 }
 
 static int
-check_set_name (void *cls, const struct GNUNET_MESSENGER_NameMessage *msg)
+check_set_name (void *cls,
+                const struct GNUNET_MESSENGER_NameMessage *msg)
 {
   GNUNET_MQ_check_zero_termination(msg);
   return GNUNET_OK;
 }
 
 static void
-handle_set_name (void *cls, const struct GNUNET_MESSENGER_NameMessage *msg)
+handle_set_name (void *cls,
+                 const struct GNUNET_MESSENGER_NameMessage *msg)
 {
   struct GNUNET_MESSENGER_Client *msg_client = cls;
 
@@ -99,7 +105,8 @@ handle_set_name (void *cls, const struct GNUNET_MESSENGER_NameMessage *msg)
 }
 
 static void
-handle_room_open (void *cls, const struct GNUNET_MESSENGER_RoomMessage *msg)
+handle_room_open (void *cls,
+                  const struct GNUNET_MESSENGER_RoomMessage *msg)
 {
   struct GNUNET_MESSENGER_Client *msg_client = cls;
 
@@ -125,7 +132,8 @@ handle_room_open (void *cls, const struct GNUNET_MESSENGER_RoomMessage *msg)
 }
 
 static void
-handle_room_entry (void *cls, const struct GNUNET_MESSENGER_RoomMessage *msg)
+handle_room_entry (void *cls,
+                   const struct GNUNET_MESSENGER_RoomMessage *msg)
 {
   struct GNUNET_MESSENGER_Client *msg_client = cls;
 
@@ -153,7 +161,8 @@ handle_room_entry (void *cls, const struct GNUNET_MESSENGER_RoomMessage *msg)
 }
 
 static void
-handle_room_close (void *cls, const struct GNUNET_MESSENGER_RoomMessage *msg)
+handle_room_close (void *cls,
+                   const struct GNUNET_MESSENGER_RoomMessage *msg)
 {
   struct GNUNET_MESSENGER_Client *msg_client = cls;
 
@@ -179,7 +188,8 @@ handle_room_close (void *cls, const struct GNUNET_MESSENGER_RoomMessage *msg)
 }
 
 static int
-check_send_message (void *cls, const struct GNUNET_MESSENGER_SendMessage *msg)
+check_send_message (void *cls,
+                    const struct GNUNET_MESSENGER_SendMessage *msg)
 {
   const uint16_t full_length = ntohs (msg->header.size);
 
@@ -224,7 +234,8 @@ check_for_message:
 }
 
 static void
-handle_send_message (void *cls, const struct GNUNET_MESSENGER_SendMessage *msg)
+handle_send_message (void *cls,
+                     const struct GNUNET_MESSENGER_SendMessage *msg)
 {
   struct GNUNET_MESSENGER_Client *msg_client = cls;
 
@@ -271,7 +282,8 @@ end_handling:
 }
 
 static void
-callback_found_message (void *cls, struct GNUNET_MESSENGER_SrvRoom *room,
+callback_found_message (void *cls,
+                        struct GNUNET_MESSENGER_SrvRoom *room,
                         const struct GNUNET_MESSENGER_Message *message,
                         const struct GNUNET_HashCode *hash)
 {
@@ -300,7 +312,8 @@ callback_found_message (void *cls, struct GNUNET_MESSENGER_SrvRoom *room,
 }
 
 static void
-handle_get_message (void *cls, const struct GNUNET_MESSENGER_GetMessage *msg)
+handle_get_message (void *cls,
+                    const struct GNUNET_MESSENGER_GetMessage *msg)
 {
   struct GNUNET_MESSENGER_Client *msg_client = cls;
 
@@ -341,7 +354,9 @@ end_handling:
 }
 
 static void*
-callback_client_connect (void *cls, struct GNUNET_SERVICE_Client *client, struct GNUNET_MQ_Handle *mq)
+callback_client_connect (void *cls,
+                         struct GNUNET_SERVICE_Client *client,
+                         struct GNUNET_MQ_Handle *mq)
 {
   struct GNUNET_MESSENGER_Client *msg_client = GNUNET_new(struct GNUNET_MESSENGER_Client);
 
@@ -352,7 +367,9 @@ callback_client_connect (void *cls, struct GNUNET_SERVICE_Client *client, struct
 }
 
 static void
-callback_client_disconnect (void *cls, struct GNUNET_SERVICE_Client *client, void *internal_cls)
+callback_client_disconnect (void *cls,
+                            struct GNUNET_SERVICE_Client *client,
+                            void *internal_cls)
 {
   struct GNUNET_MESSENGER_Client *msg_client = internal_cls;
 
@@ -369,7 +386,9 @@ callback_client_disconnect (void *cls, struct GNUNET_SERVICE_Client *client, voi
  * @param[in/out] service the initialized service
  */
 static void
-run (void *cls, const struct GNUNET_CONFIGURATION_Handle *config, struct GNUNET_SERVICE_Handle *service)
+run (void *cls,
+     const struct GNUNET_CONFIGURATION_Handle *config,
+     struct GNUNET_SERVICE_Handle *service)
 {
   messenger = create_service (config, service);
 

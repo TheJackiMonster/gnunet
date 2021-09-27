@@ -107,7 +107,9 @@ get_message_size (const struct GNUNET_MESSENGER_Message *message,
  * @param[in] encode_signature Flag to include signature
  */
 void
-encode_message (const struct GNUNET_MESSENGER_Message *message, uint16_t length, char *buffer,
+encode_message (const struct GNUNET_MESSENGER_Message *message,
+                uint16_t length,
+                char *buffer,
                 int include_signature);
 
 /**
@@ -125,8 +127,11 @@ encode_message (const struct GNUNET_MESSENGER_Message *message, uint16_t length,
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
 int
-decode_message (struct GNUNET_MESSENGER_Message *message, uint16_t length, const char *buffer,
-                int include_signature, uint16_t *padding);
+decode_message (struct GNUNET_MESSENGER_Message *message,
+                uint16_t length,
+                const char *buffer,
+                int include_signature,
+                uint16_t *padding);
 
 /**
  * Calculates a <i>hash</i> of a given <i>buffer</i> with a <i>length</i> in bytes
@@ -138,7 +143,9 @@ decode_message (struct GNUNET_MESSENGER_Message *message, uint16_t length, const
  * @param[out] hash Hash
  */
 void
-hash_message (const struct GNUNET_MESSENGER_Message *message, uint16_t length, const char *buffer,
+hash_message (const struct GNUNET_MESSENGER_Message *message,
+              uint16_t length,
+              const char *buffer,
               struct GNUNET_HashCode *hash);
 
 /**
@@ -152,8 +159,11 @@ hash_message (const struct GNUNET_MESSENGER_Message *message, uint16_t length, c
  * @param[in] ego EGO
  */
 void
-sign_message (struct GNUNET_MESSENGER_Message *message, uint16_t length, char *buffer,
-              const struct GNUNET_HashCode *hash, const struct GNUNET_MESSENGER_Ego *ego);
+sign_message (struct GNUNET_MESSENGER_Message *message,
+              uint16_t length,
+              char *buffer,
+              const struct GNUNET_HashCode *hash,
+              const struct GNUNET_MESSENGER_Ego *ego);
 
 /**
  * Verifies the signature of a given <i>message</i> and its <i>hash</i> with a specific
@@ -166,7 +176,8 @@ sign_message (struct GNUNET_MESSENGER_Message *message, uint16_t length, char *b
  * @return #GNUNET_OK on success, otherwise #GNUNET_SYSERR
  */
 int
-verify_message (const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash,
+verify_message (const struct GNUNET_MESSENGER_Message *message,
+                const struct GNUNET_HashCode *hash,
                 const struct GNUNET_IDENTITY_PublicKey *key);
 
 /**
@@ -179,7 +190,8 @@ verify_message (const struct GNUNET_MESSENGER_Message *message, const struct GNU
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
 int
-encrypt_message (struct GNUNET_MESSENGER_Message *message, const struct GNUNET_IDENTITY_PublicKey *key);
+encrypt_message (struct GNUNET_MESSENGER_Message *message,
+                 const struct GNUNET_IDENTITY_PublicKey *key);
 
 /**
  * Decrypts a private <i>message</i> using a given private <i>key</i> and replaces its body
@@ -191,7 +203,8 @@ encrypt_message (struct GNUNET_MESSENGER_Message *message, const struct GNUNET_I
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
 int
-decrypt_message (struct GNUNET_MESSENGER_Message *message, const struct GNUNET_IDENTITY_PrivateKey *key);
+decrypt_message (struct GNUNET_MESSENGER_Message *message,
+                 const struct GNUNET_IDENTITY_PrivateKey *key);
 
 #define GNUNET_MESSENGER_PACK_MODE_ENVELOPE 0x1
 #define GNUNET_MESSENGER_PACK_MODE_UNKNOWN 0x0
@@ -209,8 +222,10 @@ decrypt_message (struct GNUNET_MESSENGER_Message *message, const struct GNUNET_I
  * @return Envelope or NULL
  */
 struct GNUNET_MQ_Envelope*
-pack_message (struct GNUNET_MESSENGER_Message *message, struct GNUNET_HashCode *hash,
-              const struct GNUNET_MESSENGER_Ego *ego, int mode);
+pack_message (struct GNUNET_MESSENGER_Message *message,
+              struct GNUNET_HashCode *hash,
+              const struct GNUNET_MESSENGER_Ego *ego,
+              int mode);
 
 /**
  * Returns if a specific kind of message should be sent by a client. The function returns

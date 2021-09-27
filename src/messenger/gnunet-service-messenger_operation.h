@@ -86,7 +86,8 @@ destroy_operation (struct GNUNET_MESSENGER_Operation *op);
  * @param[in] path Path of a configuration file
  */
 struct GNUNET_MESSENGER_Operation*
-load_operation (struct GNUNET_MESSENGER_OperationStore *store, const char *path);
+load_operation (struct GNUNET_MESSENGER_OperationStore *store,
+                const char *path);
 
 /**
  * Saves data from an <i>operation</i> into a configuration file at a
@@ -97,7 +98,8 @@ load_operation (struct GNUNET_MESSENGER_OperationStore *store, const char *path)
  * @param[in] path Path of a configuration file
  */
 void
-save_operation (const struct GNUNET_MESSENGER_Operation *op, const char *path);
+save_operation (const struct GNUNET_MESSENGER_Operation *op,
+                const char *path);
 
 /**
  * Starts an inactive operation with a given <i>delay</i> in a

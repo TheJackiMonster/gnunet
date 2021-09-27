@@ -30,15 +30,19 @@
 #include "gnunet-service-messenger_operation.h"
 
 void
-send_message_join (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvHandle *handle,
-                   const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
+send_message_join (struct GNUNET_MESSENGER_SrvRoom *room,
+                   struct GNUNET_MESSENGER_SrvHandle *handle,
+                   const struct GNUNET_MESSENGER_Message *message,
+                   const struct GNUNET_HashCode *hash)
 {
   check_room_peer_status(room, NULL);
 }
 
 void
-send_message_peer (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvHandle *handle,
-                   const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
+send_message_peer (struct GNUNET_MESSENGER_SrvRoom *room,
+                   struct GNUNET_MESSENGER_SrvHandle *handle,
+                   const struct GNUNET_MESSENGER_Message *message,
+                   const struct GNUNET_HashCode *hash)
 {
   if (!room->peer_message)
     room->peer_message = GNUNET_new(struct GNUNET_HashCode);
@@ -47,15 +51,19 @@ send_message_peer (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGE
 }
 
 void
-send_message_id (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvHandle *handle,
-                 const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
+send_message_id (struct GNUNET_MESSENGER_SrvRoom *room,
+                 struct GNUNET_MESSENGER_SrvHandle *handle,
+                 const struct GNUNET_MESSENGER_Message *message,
+                 const struct GNUNET_HashCode *hash)
 {
   change_handle_member_id (handle, get_room_key(room), &(message->body.id.id));
 }
 
 void
-send_message_request (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvHandle *handle,
-                      const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
+send_message_request (struct GNUNET_MESSENGER_SrvRoom *room,
+                      struct GNUNET_MESSENGER_SrvHandle *handle,
+                      const struct GNUNET_MESSENGER_Message *message,
+                      const struct GNUNET_HashCode *hash)
 {
   struct GNUNET_MESSENGER_OperationStore *operation_store = get_room_operation_store(room);
 

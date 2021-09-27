@@ -58,7 +58,8 @@ static void
 callback_operation (void *cls);
 
 struct GNUNET_MESSENGER_Operation*
-load_operation (struct GNUNET_MESSENGER_OperationStore *store, const char *path)
+load_operation (struct GNUNET_MESSENGER_OperationStore *store,
+                const char *path)
 {
   GNUNET_assert((store) && (path));
 
@@ -118,7 +119,8 @@ destroy_config:
 }
 
 void
-save_operation (const struct GNUNET_MESSENGER_Operation *op, const char *path)
+save_operation (const struct GNUNET_MESSENGER_Operation *op,
+                const char *path)
 {
   GNUNET_assert((path) && (op));
 

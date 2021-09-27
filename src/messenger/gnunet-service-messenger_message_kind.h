@@ -146,7 +146,8 @@ create_message_request (const struct GNUNET_HashCode *hash);
  * @return New message
  */
 struct GNUNET_MESSENGER_Message*
-create_message_invite (const struct GNUNET_PeerIdentity *door, const struct GNUNET_HashCode *key);
+create_message_invite (const struct GNUNET_PeerIdentity *door,
+                       const struct GNUNET_HashCode *key);
 
 /**
  * Creates and allocates a new <i>text message containing a string representing text.
@@ -167,6 +168,7 @@ create_message_text (const char *text);
  * @return New message
  */
 struct GNUNET_MESSENGER_Message*
-create_message_delete (const struct GNUNET_HashCode *hash, const struct GNUNET_TIME_Relative delay);
+create_message_delete (const struct GNUNET_HashCode *hash,
+                       const struct GNUNET_TIME_Relative delay);
 
 #endif //GNUNET_SERVICE_MESSENGER_MESSAGE_KIND_H

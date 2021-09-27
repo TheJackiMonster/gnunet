@@ -71,8 +71,11 @@ struct GNUNET_MESSENGER_Handle
  * @return New handle
  */
 struct GNUNET_MESSENGER_Handle*
-create_handle (const struct GNUNET_CONFIGURATION_Handle *cfg, GNUNET_MESSENGER_IdentityCallback identity_callback,
-               void *identity_cls, GNUNET_MESSENGER_MessageCallback msg_callback, void *msg_cls);
+create_handle (const struct GNUNET_CONFIGURATION_Handle *cfg,
+               GNUNET_MESSENGER_IdentityCallback identity_callback,
+               void *identity_cls,
+               GNUNET_MESSENGER_MessageCallback msg_callback,
+               void *msg_cls);
 
 /**
  * Destroys a <i>handle</i> and frees its memory fully from the client API.
@@ -89,7 +92,8 @@ destroy_handle (struct GNUNET_MESSENGER_Handle *handle);
  * @param[in] name New name
  */
 void
-set_handle_name (struct GNUNET_MESSENGER_Handle *handle, const char *name);
+set_handle_name (struct GNUNET_MESSENGER_Handle *handle,
+                 const char *name);
 
 /**
  * Returns the current name of a given <i>handle</i> or NULL if no valid name was assigned yet.
@@ -107,7 +111,8 @@ get_handle_name (const struct GNUNET_MESSENGER_Handle *handle);
  * @param[in] pubkey Public key
  */
 void
-set_handle_key (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_IDENTITY_PublicKey *pubkey);
+set_handle_key (struct GNUNET_MESSENGER_Handle *handle,
+                const struct GNUNET_IDENTITY_PublicKey *pubkey);
 
 /**
  * Returns the public key of a given <i>handle</i>.
@@ -136,7 +141,8 @@ get_handle_contact_store (struct GNUNET_MESSENGER_Handle *handle);
  * @return Contact
  */
 struct GNUNET_MESSENGER_Contact*
-get_handle_contact (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_HashCode *key);
+get_handle_contact (struct GNUNET_MESSENGER_Handle *handle,
+                    const struct GNUNET_HashCode *key);
 
 /**
  * Marks a room known to a <i>handle</i> identified by a given <i>key</i> as open.
@@ -145,7 +151,8 @@ get_handle_contact (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_
  * @param[in] key Key of room
  */
 void
-open_handle_room (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_HashCode *key);
+open_handle_room (struct GNUNET_MESSENGER_Handle *handle,
+                  const struct GNUNET_HashCode *key);
 
 /**
  * Adds a tunnel for a room known to a <i>handle</i> identified by a given <i>key</i> to a
@@ -156,7 +163,8 @@ open_handle_room (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_Ha
  * @param[in] key Key of room
  */
 void
-entry_handle_room_at (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_PeerIdentity *door,
+entry_handle_room_at (struct GNUNET_MESSENGER_Handle *handle,
+                      const struct GNUNET_PeerIdentity *door,
                       const struct GNUNET_HashCode *key);
 
 /**
@@ -166,6 +174,7 @@ entry_handle_room_at (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNE
  * @param[in] key Key of room
  */
 void
-close_handle_room (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_HashCode *key);
+close_handle_room (struct GNUNET_MESSENGER_Handle *handle,
+                   const struct GNUNET_HashCode *key);
 
 #endif //GNUNET_MESSENGER_API_HANDLE_H

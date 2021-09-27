@@ -45,7 +45,8 @@ delayed_disconnect_channel (struct GNUNET_CADET_Channel *channel)
 }
 
 int
-generate_free_member_id (struct GNUNET_ShortHashCode *id, const struct GNUNET_CONTAINER_MultiShortmap *members)
+generate_free_member_id (struct GNUNET_ShortHashCode *id,
+                         const struct GNUNET_CONTAINER_MultiShortmap *members)
 {
   GNUNET_assert(id);
 
@@ -84,7 +85,8 @@ get_anonymous_public_key ()
 }
 
 void
-convert_messenger_key_to_port(const struct GNUNET_HashCode *key, struct GNUNET_HashCode *port)
+convert_messenger_key_to_port(const struct GNUNET_HashCode *key,
+                              struct GNUNET_HashCode *port)
 {
   static uint32_t version_value = 0;
   static struct GNUNET_HashCode version;

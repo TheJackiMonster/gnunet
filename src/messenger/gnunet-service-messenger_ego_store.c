@@ -28,7 +28,10 @@
 #include "gnunet-service-messenger_handle.h"
 
 static void
-callback_update_ego (void *cls, struct GNUNET_IDENTITY_Ego *ego, void **ctx, const char *identifier)
+callback_update_ego (void *cls,
+                     struct GNUNET_IDENTITY_Ego *ego,
+                     void **ctx,
+                     const char *identifier)
 {
   if ((!ego) || (!identifier))
     return;
@@ -41,7 +44,8 @@ callback_update_ego (void *cls, struct GNUNET_IDENTITY_Ego *ego, void **ctx, con
 }
 
 void
-init_ego_store(struct GNUNET_MESSENGER_EgoStore *store, const struct GNUNET_CONFIGURATION_Handle *config)
+init_ego_store(struct GNUNET_MESSENGER_EgoStore *store,
+               const struct GNUNET_CONFIGURATION_Handle *config)
 {
   GNUNET_assert ((store) && (config));
 
@@ -58,7 +62,9 @@ init_ego_store(struct GNUNET_MESSENGER_EgoStore *store, const struct GNUNET_CONF
 
 
 static int
-iterate_destroy_egos (void *cls, const struct GNUNET_HashCode *key, void *value)
+iterate_destroy_egos (void *cls,
+                      const struct GNUNET_HashCode *key,
+                      void *value)
 {
   struct GNUNET_MESSENGER_Ego *ego = value;
   GNUNET_free(ego);
@@ -112,7 +118,9 @@ clear_ego_store(struct GNUNET_MESSENGER_EgoStore *store)
 }
 
 static void
-callback_ego_create (void *cls, const struct GNUNET_IDENTITY_PrivateKey *key, const char *emsg)
+callback_ego_create (void *cls,
+                     const struct GNUNET_IDENTITY_PrivateKey *key,
+                     const char *emsg)
 {
   struct GNUNET_MESSENGER_EgoOperation *element = cls;
   struct GNUNET_MESSENGER_EgoStore *store = element->store;
@@ -139,7 +147,8 @@ callback_ego_create (void *cls, const struct GNUNET_IDENTITY_PrivateKey *key, co
 }
 
 void
-create_store_ego (struct GNUNET_MESSENGER_EgoStore *store, const char *identifier,
+create_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
+                  const char *identifier,
                   void *handle)
 {
   GNUNET_assert ((store) && (identifier));
@@ -158,7 +167,8 @@ create_store_ego (struct GNUNET_MESSENGER_EgoStore *store, const char *identifie
 }
 
 static void
-callback_ego_lookup (void *cls, struct GNUNET_IDENTITY_Ego *ego)
+callback_ego_lookup (void *cls,
+                     struct GNUNET_IDENTITY_Ego *ego)
 {
   struct GNUNET_MESSENGER_EgoLookup *element = cls;
   struct GNUNET_MESSENGER_EgoStore *store = element->store;
@@ -183,8 +193,10 @@ callback_ego_lookup (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 }
 
 void
-lookup_store_ego(struct GNUNET_MESSENGER_EgoStore *store, const char *identifier,
-                 GNUNET_MESSENGER_EgoLookupCallback lookup, void *cls)
+lookup_store_ego(struct GNUNET_MESSENGER_EgoStore *store,
+                 const char *identifier,
+                 GNUNET_MESSENGER_EgoLookupCallback lookup,
+                 void *cls)
 {
   GNUNET_assert (store);
 
@@ -219,7 +231,8 @@ lookup_store_ego(struct GNUNET_MESSENGER_EgoStore *store, const char *identifier
 }
 
 struct GNUNET_MESSENGER_Ego*
-update_store_ego(struct GNUNET_MESSENGER_EgoStore *store, const char *identifier,
+update_store_ego(struct GNUNET_MESSENGER_EgoStore *store,
+                 const char *identifier,
                  const struct GNUNET_IDENTITY_PrivateKey *key)
 {
   GNUNET_assert ((store) && (identifier) && (key));
@@ -244,7 +257,8 @@ update_store_ego(struct GNUNET_MESSENGER_EgoStore *store, const char *identifier
 }
 
 static void
-callback_ego_rename (void *cls, const char *emsg)
+callback_ego_rename (void *cls,
+                     const char *emsg)
 {
   struct GNUNET_MESSENGER_EgoOperation *element = cls;
   struct GNUNET_MESSENGER_EgoStore *store = element->store;
@@ -277,7 +291,8 @@ callback_ego_rename (void *cls, const char *emsg)
 }
 
 void
-rename_store_ego (struct GNUNET_MESSENGER_EgoStore *store, const char *old_identifier,
+rename_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
+                  const char *old_identifier,
                   const char *new_identifier)
 {
   GNUNET_assert ((store) && (old_identifier) && (new_identifier));

@@ -38,7 +38,9 @@ init_contact_store (struct GNUNET_MESSENGER_ContactStore *store)
 }
 
 static int
-iterate_destroy_contacts (void *cls, const struct GNUNET_HashCode *key, void *value)
+iterate_destroy_contacts (void *cls,
+                          const struct GNUNET_HashCode *key,
+                          void *value)
 {
   struct GNUNET_MESSENGER_Contact *contact = value;
   destroy_contact (contact);
@@ -58,7 +60,8 @@ clear_contact_store (struct GNUNET_MESSENGER_ContactStore *store)
 }
 
 static struct GNUNET_CONTAINER_MultiHashMap*
-select_store_contact_map (struct GNUNET_MESSENGER_ContactStore *store, const struct GNUNET_HashCode *context,
+select_store_contact_map (struct GNUNET_MESSENGER_ContactStore *store,
+                          const struct GNUNET_HashCode *context,
                           struct GNUNET_HashCode *hash)
 {
   const struct GNUNET_IDENTITY_PublicKey *anonymous = get_anonymous_public_key ();
@@ -76,7 +79,8 @@ select_store_contact_map (struct GNUNET_MESSENGER_ContactStore *store, const str
 }
 
 struct GNUNET_MESSENGER_Contact*
-get_store_contact_raw (struct GNUNET_MESSENGER_ContactStore *store, const struct GNUNET_HashCode *context,
+get_store_contact_raw (struct GNUNET_MESSENGER_ContactStore *store,
+                       const struct GNUNET_HashCode *context,
                        const struct GNUNET_HashCode *key_hash)
 {
   GNUNET_assert ((store) && (store->contacts) && (context) && (key_hash));
@@ -92,7 +96,8 @@ get_store_contact_raw (struct GNUNET_MESSENGER_ContactStore *store, const struct
 }
 
 struct GNUNET_MESSENGER_Contact*
-get_store_contact (struct GNUNET_MESSENGER_ContactStore *store, const struct GNUNET_HashCode *context,
+get_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
+                   const struct GNUNET_HashCode *context,
                    const struct GNUNET_IDENTITY_PublicKey *pubkey)
 {
   GNUNET_assert ((store) && (store->contacts) && (context) && (pubkey));
@@ -130,8 +135,10 @@ get_store_contact (struct GNUNET_MESSENGER_ContactStore *store, const struct GNU
 }
 
 void
-update_store_contact (struct GNUNET_MESSENGER_ContactStore *store, struct GNUNET_MESSENGER_Contact* contact,
-                      const struct GNUNET_HashCode *context, const struct GNUNET_HashCode *next_context,
+update_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
+                      struct GNUNET_MESSENGER_Contact* contact,
+                      const struct GNUNET_HashCode *context,
+                      const struct GNUNET_HashCode *next_context,
                       const struct GNUNET_IDENTITY_PublicKey *pubkey)
 {
   GNUNET_assert ((store) && (store->contacts) && (contact) && (pubkey));
@@ -163,7 +170,8 @@ update_store_contact (struct GNUNET_MESSENGER_ContactStore *store, struct GNUNET
 }
 
 void
-remove_store_contact (struct GNUNET_MESSENGER_ContactStore *store, struct GNUNET_MESSENGER_Contact* contact,
+remove_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
+                      struct GNUNET_MESSENGER_Contact* contact,
                       const struct GNUNET_HashCode *context)
 {
   GNUNET_assert ((store) && (store->contacts) && (contact));

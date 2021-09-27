@@ -28,8 +28,10 @@
 #include "gnunet-service-messenger_operation.h"
 
 static void
-forward_about_members (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvTunnel *tunnel,
-                       struct GNUNET_MESSENGER_MemberSession *session, struct GNUNET_CONTAINER_MultiHashMap *map)
+forward_about_members (struct GNUNET_MESSENGER_SrvRoom *room,
+                       struct GNUNET_MESSENGER_SrvTunnel *tunnel,
+                       struct GNUNET_MESSENGER_MemberSession *session,
+                       struct GNUNET_CONTAINER_MultiHashMap *map)
 {
   if (session->prev)
     forward_about_members (room, tunnel, session->prev, map);
@@ -54,8 +56,9 @@ forward_about_members (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESS
 }
 
 static int
-iterate_forward_members (void *cls, const struct GNUNET_IDENTITY_PublicKey *public_key,
-                              struct GNUNET_MESSENGER_MemberSession *session)
+iterate_forward_members (void *cls,
+                         const struct GNUNET_IDENTITY_PublicKey *public_key,
+                         struct GNUNET_MESSENGER_MemberSession *session)
 {
   struct GNUNET_MESSENGER_SrvTunnel *tunnel = cls;
 
@@ -71,8 +74,10 @@ iterate_forward_members (void *cls, const struct GNUNET_IDENTITY_PublicKey *publ
 }
 
 int
-recv_message_info (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvTunnel *tunnel,
-                   const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
+recv_message_info (struct GNUNET_MESSENGER_SrvRoom *room,
+                   struct GNUNET_MESSENGER_SrvTunnel *tunnel,
+                   const struct GNUNET_MESSENGER_Message *message,
+                   const struct GNUNET_HashCode *hash)
 {
   const uint32_t version = get_tunnel_messenger_version(tunnel);
 
@@ -108,8 +113,10 @@ recv_message_info (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGE
 }
 
 int
-recv_message_peer (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvTunnel *tunnel,
-                   const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
+recv_message_peer (struct GNUNET_MESSENGER_SrvRoom *room,
+                   struct GNUNET_MESSENGER_SrvTunnel *tunnel,
+                   const struct GNUNET_MESSENGER_Message *message,
+                   const struct GNUNET_HashCode *hash)
 {
   struct GNUNET_PeerIdentity peer;
   GNUNET_PEER_resolve (tunnel->peer, &peer);
@@ -126,7 +133,8 @@ recv_message_peer (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGE
 }
 
 static void
-callback_found_message (void *cls, struct GNUNET_MESSENGER_SrvRoom *room,
+callback_found_message (void *cls,
+                        struct GNUNET_MESSENGER_SrvRoom *room,
                         const struct GNUNET_MESSENGER_Message *message,
                         const struct GNUNET_HashCode *hash)
 {
@@ -152,8 +160,10 @@ callback_found_message (void *cls, struct GNUNET_MESSENGER_SrvRoom *room,
  * It will only be forwarded if it can't be answered!
  */
 int
-recv_message_request (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvTunnel *tunnel,
-                      const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
+recv_message_request (struct GNUNET_MESSENGER_SrvRoom *room,
+                      struct GNUNET_MESSENGER_SrvTunnel *tunnel,
+                      const struct GNUNET_MESSENGER_Message *message,
+                      const struct GNUNET_HashCode *hash)
 {
   struct GNUNET_MESSENGER_MemberStore *member_store = get_room_member_store(room);
   struct GNUNET_MESSENGER_Member *member = get_store_member_of(member_store, message);

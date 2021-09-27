@@ -67,7 +67,8 @@ clear_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels);
  * @param[in] peer Peer identity of tunnel
  */
 void
-add_to_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const struct GNUNET_PeerIdentity *peer);
+add_to_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
+                     const struct GNUNET_PeerIdentity *peer);
 
 /**
  * Searches linearly through the list of tunnels peer identities for matching a
@@ -85,7 +86,9 @@ add_to_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const struct 
  * @return Element in the list with matching peer identity
  */
 struct GNUNET_MESSENGER_ListTunnel*
-find_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const struct GNUNET_PeerIdentity *peer, size_t *index);
+find_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
+                   const struct GNUNET_PeerIdentity *peer,
+                   size_t *index);
 
 /**
  * Tests linearly if the list of tunnels peer identities contains a specific
@@ -96,7 +99,8 @@ find_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const struct GN
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
 int
-contains_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const struct GNUNET_PeerIdentity *peer);
+contains_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
+                       const struct GNUNET_PeerIdentity *peer);
 
 /**
  * Removes a specific <i>element</i> from the list of tunnels peer identities and returns
@@ -107,7 +111,8 @@ contains_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const struc
  * @return Next element in the list
  */
 struct GNUNET_MESSENGER_ListTunnel*
-remove_from_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, struct GNUNET_MESSENGER_ListTunnel *element);
+remove_from_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
+                          struct GNUNET_MESSENGER_ListTunnel *element);
 
 /**
  * Loads the list of tunnels peer identities from a file under a given <i>path</i>.
@@ -116,7 +121,8 @@ remove_from_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, struct G
  * @param[in] path Path of file
  */
 void
-load_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const char *path);
+load_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
+                   const char *path);
 
 /**
  * Saves the list of tunnels peer identities to a file under a given <i>path</i>.
@@ -125,6 +131,7 @@ load_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const char *pat
  * @param[in] path Path of file
  */
 void
-save_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels, const char *path);
+save_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
+                   const char *path);
 
 #endif //GNUNET_MESSENGER_API_LIST_TUNNELS_H

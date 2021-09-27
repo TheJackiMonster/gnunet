@@ -81,7 +81,8 @@ clear_message_store (struct GNUNET_MESSENGER_MessageStore *store);
  * @param[in] directory Path to a directory
  */
 void
-load_message_store (struct GNUNET_MESSENGER_MessageStore *store, const char *directory);
+load_message_store (struct GNUNET_MESSENGER_MessageStore *store,
+                    const char *directory);
 
 /**
  * Saves messages from a message <i>store</i> into a <i>directory</i>.
@@ -90,7 +91,8 @@ load_message_store (struct GNUNET_MESSENGER_MessageStore *store, const char *dir
  * @param[in] directory Path to a directory
  */
 void
-save_message_store (struct GNUNET_MESSENGER_MessageStore *store, const char *directory);
+save_message_store (struct GNUNET_MESSENGER_MessageStore *store,
+                    const char *directory);
 
 /**
  * Checks if a message matching a given <i>hash</i> is stored in a message <i>store</i>.
@@ -103,7 +105,8 @@ save_message_store (struct GNUNET_MESSENGER_MessageStore *store, const char *dir
  * @return #GNUNET_YES on match, otherwise #GNUNET_NO
  */
 int
-contains_store_message (const struct GNUNET_MESSENGER_MessageStore *store, const struct GNUNET_HashCode *hash);
+contains_store_message (const struct GNUNET_MESSENGER_MessageStore *store,
+                        const struct GNUNET_HashCode *hash);
 
 /**
  * Returns the message from a message <i>store</i> matching a given <i>hash</i>. If no matching
@@ -117,7 +120,8 @@ contains_store_message (const struct GNUNET_MESSENGER_MessageStore *store, const
  * @return Message or NULL
  */
 const struct GNUNET_MESSENGER_Message*
-get_store_message (struct GNUNET_MESSENGER_MessageStore *store, const struct GNUNET_HashCode *hash);
+get_store_message (struct GNUNET_MESSENGER_MessageStore *store,
+                   const struct GNUNET_HashCode *hash);
 
 /**
  * Returns the message link from a message <i>store</i> matching a given <i>hash</i>. If the
@@ -133,7 +137,8 @@ get_store_message (struct GNUNET_MESSENGER_MessageStore *store, const struct GNU
  * @return Message link or NULL
  */
 const struct GNUNET_MESSENGER_MessageLink*
-get_store_message_link (struct GNUNET_MESSENGER_MessageStore *store, const struct GNUNET_HashCode *hash,
+get_store_message_link (struct GNUNET_MESSENGER_MessageStore *store,
+                        const struct GNUNET_HashCode *hash,
                         int deleted_only);
 
 /**
@@ -145,7 +150,8 @@ get_store_message_link (struct GNUNET_MESSENGER_MessageStore *store, const struc
  * @return #GNUNET_OK on success, otherwise #GNUNET_NO
  */
 int
-put_store_message (struct GNUNET_MESSENGER_MessageStore *store, const struct GNUNET_HashCode *hash,
+put_store_message (struct GNUNET_MESSENGER_MessageStore *store,
+                   const struct GNUNET_HashCode *hash,
                    struct GNUNET_MESSENGER_Message *message);
 
 /**
@@ -157,6 +163,7 @@ put_store_message (struct GNUNET_MESSENGER_MessageStore *store, const struct GNU
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on failure
  */
 int
-delete_store_message (struct GNUNET_MESSENGER_MessageStore *store, const struct GNUNET_HashCode *hash);
+delete_store_message (struct GNUNET_MESSENGER_MessageStore *store,
+                      const struct GNUNET_HashCode *hash);
 
 #endif //GNUNET_SERVICE_MESSENGER_MESSAGE_STORE_H

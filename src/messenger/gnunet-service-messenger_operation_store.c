@@ -29,7 +29,8 @@
 #include "gnunet-service-messenger_room.h"
 
 void
-init_operation_store (struct GNUNET_MESSENGER_OperationStore *store, struct GNUNET_MESSENGER_SrvRoom *room)
+init_operation_store (struct GNUNET_MESSENGER_OperationStore *store,
+                      struct GNUNET_MESSENGER_SrvRoom *room)
 {
   GNUNET_assert((store) && (room));
 
@@ -38,7 +39,9 @@ init_operation_store (struct GNUNET_MESSENGER_OperationStore *store, struct GNUN
 }
 
 static int
-iterate_destroy_operations (void *cls, const struct GNUNET_HashCode *key, void *value)
+iterate_destroy_operations (void *cls,
+                            const struct GNUNET_HashCode *key,
+                            void *value)
 {
   struct GNUNET_MESSENGER_Operation *op = value;
 
@@ -57,7 +60,8 @@ clear_operation_store (struct GNUNET_MESSENGER_OperationStore *store)
 }
 
 static int
-callback_scan_for_operations (void *cls, const char *filename)
+callback_scan_for_operations (void *cls,
+                              const char *filename)
 {
   struct GNUNET_MESSENGER_OperationStore *store = cls;
 
@@ -94,7 +98,9 @@ load_operation_store (struct GNUNET_MESSENGER_OperationStore *store,
 }
 
 static int
-iterate_save_operations (void *cls, const struct GNUNET_HashCode *key, void *value)
+iterate_save_operations (void *cls,
+                         const struct GNUNET_HashCode *key,
+                         void *value)
 {
   const char *save_dir = cls;
 
@@ -192,10 +198,12 @@ cancel_store_operation (struct GNUNET_MESSENGER_OperationStore *store,
 }
 
 extern void
-callback_room_deletion (struct GNUNET_MESSENGER_SrvRoom *room, const struct GNUNET_HashCode *hash);
+callback_room_deletion (struct GNUNET_MESSENGER_SrvRoom *room,
+                        const struct GNUNET_HashCode *hash);
 
 extern void
-callback_room_merge (struct GNUNET_MESSENGER_SrvRoom *room, const struct GNUNET_HashCode *hash);
+callback_room_merge (struct GNUNET_MESSENGER_SrvRoom *room,
+                     const struct GNUNET_HashCode *hash);
 
 void
 callback_store_operation (struct GNUNET_MESSENGER_OperationStore *store,

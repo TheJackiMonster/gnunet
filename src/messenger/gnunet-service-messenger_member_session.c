@@ -158,7 +158,9 @@ completion:
 }
 
 static int
-iterate_copy_history (void *cls, const struct GNUNET_HashCode *key, void *value)
+iterate_copy_history (void *cls,
+                      const struct GNUNET_HashCode *key,
+                      void *value)
 {
   struct GNUNET_MESSENGER_MemberSession *next = cls;
 
@@ -460,7 +462,8 @@ struct GNUNET_MESSENGER_MemberSessionHistoryEntry
 };
 
 static void
-load_member_session_history (struct GNUNET_MESSENGER_MemberSession *session, const char *path)
+load_member_session_history (struct GNUNET_MESSENGER_MemberSession *session,
+                             const char *path)
 {
   GNUNET_assert((session) && (path));
 
@@ -502,7 +505,8 @@ load_member_session_history (struct GNUNET_MESSENGER_MemberSession *session, con
 }
 
 void
-load_member_session (struct GNUNET_MESSENGER_Member *member, const char *directory)
+load_member_session (struct GNUNET_MESSENGER_Member *member,
+                     const char *directory)
 {
   GNUNET_assert ((member) && (directory));
 
@@ -571,7 +575,8 @@ free_config:
 }
 
 static struct GNUNET_MESSENGER_MemberSession*
-get_cycle_safe_next_session (struct GNUNET_MESSENGER_MemberSession *session, struct GNUNET_MESSENGER_MemberSession *next)
+get_cycle_safe_next_session (struct GNUNET_MESSENGER_MemberSession *session,
+                             struct GNUNET_MESSENGER_MemberSession *next)
 {
   if (!next)
     return NULL;
@@ -589,7 +594,8 @@ get_cycle_safe_next_session (struct GNUNET_MESSENGER_MemberSession *session, str
 }
 
 void
-load_member_session_next (struct GNUNET_MESSENGER_MemberSession *session, const char *directory)
+load_member_session_next (struct GNUNET_MESSENGER_MemberSession *session,
+                          const char *directory)
 {
   GNUNET_assert ((session) && (directory));
 
@@ -640,7 +646,9 @@ free_config:
 }
 
 static int
-iterate_save_member_session_history_hentries (void *cls, const struct GNUNET_HashCode *key, void *value)
+iterate_save_member_session_history_hentries (void *cls,
+                                              const struct GNUNET_HashCode *key,
+                                              void *value)
 {
   struct GNUNET_DISK_FileHandle *handle = cls;
   unsigned char ownership = value? GNUNET_YES : GNUNET_NO;
@@ -652,7 +660,8 @@ iterate_save_member_session_history_hentries (void *cls, const struct GNUNET_Has
 }
 
 static void
-save_member_session_history (struct GNUNET_MESSENGER_MemberSession *session, const char *path)
+save_member_session_history (struct GNUNET_MESSENGER_MemberSession *session,
+                             const char *path)
 {
   GNUNET_assert((session) && (path));
 
@@ -678,7 +687,8 @@ save_member_session_history (struct GNUNET_MESSENGER_MemberSession *session, con
 }
 
 void
-save_member_session (struct GNUNET_MESSENGER_MemberSession *session, const char *directory)
+save_member_session (struct GNUNET_MESSENGER_MemberSession *session,
+                     const char *directory)
 {
   GNUNET_assert ((session) && (directory));
 

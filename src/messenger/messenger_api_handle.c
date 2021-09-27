@@ -28,8 +28,11 @@
 #include "messenger_api_util.h"
 
 struct GNUNET_MESSENGER_Handle*
-create_handle (const struct GNUNET_CONFIGURATION_Handle *cfg, GNUNET_MESSENGER_IdentityCallback identity_callback,
-               void *identity_cls, GNUNET_MESSENGER_MessageCallback msg_callback, void *msg_cls)
+create_handle (const struct GNUNET_CONFIGURATION_Handle *cfg,
+               GNUNET_MESSENGER_IdentityCallback identity_callback,
+               void *identity_cls,
+               GNUNET_MESSENGER_MessageCallback msg_callback,
+               void *msg_cls)
 {
   GNUNET_assert(cfg);
 
@@ -58,7 +61,9 @@ create_handle (const struct GNUNET_CONFIGURATION_Handle *cfg, GNUNET_MESSENGER_I
 }
 
 static int
-iterate_destroy_room (void *cls, const struct GNUNET_HashCode *key, void *value)
+iterate_destroy_room (void *cls,
+                      const struct GNUNET_HashCode *key,
+                      void *value)
 {
   struct GNUNET_MESSENGER_Room *room = value;
 
@@ -97,7 +102,8 @@ destroy_handle (struct GNUNET_MESSENGER_Handle *handle)
 }
 
 void
-set_handle_name (struct GNUNET_MESSENGER_Handle *handle, const char *name)
+set_handle_name (struct GNUNET_MESSENGER_Handle *handle,
+                 const char *name)
 {
   GNUNET_assert(handle);
 
@@ -116,7 +122,8 @@ get_handle_name (const struct GNUNET_MESSENGER_Handle *handle)
 }
 
 void
-set_handle_key (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_IDENTITY_PublicKey *pubkey)
+set_handle_key (struct GNUNET_MESSENGER_Handle *handle,
+                const struct GNUNET_IDENTITY_PublicKey *pubkey)
 {
   GNUNET_assert(handle);
 
@@ -146,7 +153,8 @@ get_handle_contact_store (struct GNUNET_MESSENGER_Handle *handle)
 }
 
 struct GNUNET_MESSENGER_Contact*
-get_handle_contact (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_HashCode *key)
+get_handle_contact (struct GNUNET_MESSENGER_Handle *handle,
+                    const struct GNUNET_HashCode *key)
 {
   GNUNET_assert((handle) && (key));
 
@@ -162,7 +170,8 @@ get_handle_contact (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_
 }
 
 void
-open_handle_room (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_HashCode *key)
+open_handle_room (struct GNUNET_MESSENGER_Handle *handle,
+                  const struct GNUNET_HashCode *key)
 {
   GNUNET_assert((handle) && (key));
 
@@ -173,7 +182,8 @@ open_handle_room (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_Ha
 }
 
 void
-entry_handle_room_at (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_PeerIdentity *door,
+entry_handle_room_at (struct GNUNET_MESSENGER_Handle *handle,
+                      const struct GNUNET_PeerIdentity *door,
                       const struct GNUNET_HashCode *key)
 {
   GNUNET_assert((handle) && (door) && (key));
@@ -185,7 +195,8 @@ entry_handle_room_at (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNE
 }
 
 void
-close_handle_room (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_HashCode *key)
+close_handle_room (struct GNUNET_MESSENGER_Handle *handle,
+                   const struct GNUNET_HashCode *key)
 {
   GNUNET_assert((handle) && (key));
 

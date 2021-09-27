@@ -48,7 +48,9 @@ count_of_tunnels (const struct GNUNET_MESSENGER_ListTunnels *tunnels);
  * @return #GNUNET_YES or #GNUNET_NO based on topologic requirement
  */
 int
-should_connect_tunnel_to (size_t count, size_t src, size_t dst);
+should_connect_tunnel_to (size_t count,
+                          size_t src,
+                          size_t dst);
 
 /**
  * Returns #GNUNET_YES or #GNUNET_NO to determine if the peers of index <i>src</i> and
@@ -61,6 +63,8 @@ should_connect_tunnel_to (size_t count, size_t src, size_t dst);
  * @return #GNUNET_YES or #GNUNET_NO based on topologic requirement
  */
 int
-required_connection_between (size_t count, size_t src, size_t dst);
+required_connection_between (size_t count,
+                             size_t src,
+                             size_t dst);
 
 #endif //GNUNET_SERVICE_MESSENGER_BASEMENT_H
