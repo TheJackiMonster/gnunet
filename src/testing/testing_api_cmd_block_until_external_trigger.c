@@ -56,7 +56,7 @@ block_until_all_peers_started_traits (void *cls,
                                       const char *trait,
                                       unsigned int index)
 {
-  return GNUNET_OK;
+  return GNUNET_NO;
 }
 
 
@@ -65,8 +65,7 @@ block_until_all_peers_started_traits (void *cls,
  *
  */
 static void
-block_until_all_peers_started_cleanup (void *cls,
-                                       const struct GNUNET_TESTING_Command *cmd)
+block_until_all_peers_started_cleanup (void *cls)
 {
   struct BlockState *bs = cls;
 
@@ -80,7 +79,6 @@ block_until_all_peers_started_cleanup (void *cls,
  */
 static void
 block_until_all_peers_started_run (void *cls,
-                                   const struct GNUNET_TESTING_Command *cmd,
                                    struct GNUNET_TESTING_Interpreter *is)
 {
   LOG (GNUNET_ERROR_TYPE_DEBUG,

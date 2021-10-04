@@ -40,14 +40,14 @@ struct HelloWorldBirthState
 * @param cmd current CMD being cleaned up.
 */
 static void
-hello_world_birth_cleanup (void *cls,
-                           const struct GNUNET_TESTING_Command *cmd)
+hello_world_birth_cleanup (void *cls)
 {
   struct HelloWorldBirthState *hbs = cls;
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Finished birth of %s\n",
               hbs->what_am_i);
 }
+
 
 /**
 *
@@ -82,6 +82,7 @@ hello_world_birth_traits (void *cls,
                                    index);
 }
 
+
 /**
 * Run the "hello world" CMD.
 *
@@ -91,14 +92,13 @@ hello_world_birth_traits (void *cls,
 */
 static void
 hello_world_birth_run (void *cls,
-                       const struct GNUNET_TESTING_Command *cmd,
                        struct GNUNET_TESTING_Interpreter *is)
 {
   struct HelloWorldBirthState *hbs = cls;
   struct GNUNET_TIME_Relative relative;
 
   relative = GNUNET_TIME_absolute_get_difference (*hbs->date,
-                                                 GNUNET_TIME_absolute_get ());
+                                                  GNUNET_TIME_absolute_get ());
 
   if (0 == relative.rel_value_us % 10)
   {
@@ -113,6 +113,7 @@ hello_world_birth_run (void *cls,
     hbs->what_am_i = "boy!";
   }
 }
+
 
 /**
  * Offer data from trait
@@ -130,6 +131,7 @@ GNUNET_TESTING_get_trait_what_am_i (const struct GNUNET_TESTING_Command *cmd,
                       "what_am_i",
                       (unsigned int) 0);
 }
+
 
 /**
  * Create command.

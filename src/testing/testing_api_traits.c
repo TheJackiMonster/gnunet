@@ -55,7 +55,7 @@ GNUNET_TESTING_trait_end ()
  * @param index index number of the object to extract.
  * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_TESTING_get_trait (const struct GNUNET_TESTING_Trait *traits,
                           const void **ret,
                           const char *trait,

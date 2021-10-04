@@ -41,7 +41,7 @@
  * @param[out] _cmd where to write the wire details.
  * @return #GNUNET_OK on success.
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_TESTING_get_trait_cmd (const struct GNUNET_TESTING_Command *cmd,
                               unsigned int index,
                               struct GNUNET_TESTING_Command **_cmd)

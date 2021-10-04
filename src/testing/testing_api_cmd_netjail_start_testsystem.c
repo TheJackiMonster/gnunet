@@ -194,11 +194,9 @@ struct TestingSystemCount
 * Code to clean up resource this cmd used.
 *
 * @param cls closure
-* @param cmd current CMD being cleaned up.
 */
 static void
-netjail_exec_cleanup (void *cls,
-                      const struct GNUNET_TESTING_Command *cmd)
+netjail_exec_cleanup (void *cls)
 {
   struct NetJailState *ns = cls;
   struct HelperMessage *message_pos;
@@ -480,7 +478,6 @@ start_helper (struct NetJailState *ns, struct
 */
 static void
 netjail_exec_run (void *cls,
-                  const struct GNUNET_TESTING_Command *cmd,
                   struct GNUNET_TESTING_Interpreter *is)
 {
   char str_m[12];

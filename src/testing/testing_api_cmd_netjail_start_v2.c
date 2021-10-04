@@ -19,7 +19,7 @@
  */
 
 /**
- * @file testing/testing_api_cmd_hello_world.c
+ * @file testing/testing_api_cmd_netjail_start_v2.c
  * @brief Command to start the netjail script.
  * @author t3sserakt
  */
@@ -59,8 +59,7 @@ struct NetJailState
  *
  */
 static void
-netjail_start_cleanup (void *cls,
-                       const struct GNUNET_TESTING_Command *cmd)
+netjail_start_cleanup (void *cls)
 {
   struct NetJailState *ns = cls;
 
@@ -90,13 +89,13 @@ netjail_start_cleanup (void *cls,
  * Trait function of this cmd does nothing.
  *
  */
-static int
+static enum GNUNET_GenericReturnValue
 netjail_start_traits (void *cls,
                       const void **ret,
                       const char *trait,
                       unsigned int index)
 {
-  return GNUNET_OK;
+  return GNUNET_NO;
 }
 
 
@@ -127,17 +126,14 @@ child_completed_callback (void *cls,
 }
 
 
-
 /**
 * The run method starts the script which setup the network namespaces.
 *
 * @param cls closure.
-* @param cmd CMD being run.
 * @param is interpreter state.
 */
 static void
 netjail_start_run (void *cls,
-                   const struct GNUNET_TESTING_Command *cmd,
                    struct GNUNET_TESTING_Interpreter *is)
 {
   struct NetJailState *ns = cls;
@@ -157,7 +153,7 @@ netjail_start_run (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "No SUID for %s!\n",
                 NETJAIL_START_SCRIPT);
-    GNUNET_TESTING_interpreter_fail ();
+    GNUNET_TESTING_interpreter_fail (is);
     return;
   }
   if (GNUNET_SYSERR == helper_check)
@@ -165,7 +161,7 @@ netjail_start_run (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "%s not found!\n",
                 NETJAIL_START_SCRIPT);
-    GNUNET_TESTING_interpreter_fail ();
+    GNUNET_TESTING_interpreter_fail (is);
     return;
   }
 
@@ -180,7 +176,7 @@ netjail_start_run (void *cls,
       pid,
       NULL
     };
-    
+
     ns->start_proc
       = GNUNET_OS_start_process_vap (GNUNET_OS_INHERIT_STD_ERR,
                                      NULL,
@@ -198,7 +194,7 @@ netjail_start_run (void *cls,
 
 /**
  * This function checks the flag NetJailState
- * 
+ *
  * FIXME: fix comment!
  * #finished, if this cmd finished.
  *

@@ -41,6 +41,21 @@ libgnunet_plugin_dhtu_gnunet_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
 
 
+lib_LTLIBRARIES = \
+  libgnunettestingdhtu.la
+
+libgnunettestingdhtu_la_SOURCES = \
+  testing_dhtu_cmd_send.c
+libgnunettestingdhtu_la_LIBADD = \
+ $(top_builddir)/src/testing/libgnunettesting.la \
+ $(top_builddir)/src/util/libgnunetutil.la \
+ $(LTLIBINTL)
+libgnunettestingdhtu_la_LDFLAGS = \
+ $(GN_LIB_LDFLAGS) \
+ -version-info 0:0:0
+
+
+
 test_dhtu_ip_SOURCES = \
  test_dhtu_ip.c
 test_dhtu_ip_LDADD = \

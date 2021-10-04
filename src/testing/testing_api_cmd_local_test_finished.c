@@ -19,7 +19,7 @@
  */
 
 /**
- * @file testing_api_cmd_block_until_all_peers_started.c
+ * @file testing_api_cmd_local_test_finished.c
  * @brief cmd to block the interpreter loop until all peers started.
  * @author t3sserakt
  */
@@ -58,13 +58,13 @@ struct LocalFinishedState
  * Trait function of this cmd does nothing.
  *
  */
-static int
+static enum GNUNET_GenericReturnValue
 local_test_finished_traits (void *cls,
                             const void **ret,
                             const char *trait,
                             unsigned int index)
 {
-  return GNUNET_OK;
+  return GNUNET_NO;
 }
 
 
@@ -73,8 +73,7 @@ local_test_finished_traits (void *cls,
  *
  */
 static void
-local_test_finished_cleanup (void *cls,
-                             const struct GNUNET_TESTING_Command *cmd)
+local_test_finished_cleanup (void *cls)
 {
   struct LocalFinishedState *lfs = cls;
 
@@ -89,11 +88,9 @@ local_test_finished_cleanup (void *cls,
  */
 static void
 local_test_finished_run (void *cls,
-                         const struct GNUNET_TESTING_Command *cmd,
                          struct GNUNET_TESTING_Interpreter *is)
 {
   struct LocalFinishedState *lfs = cls;
-
   struct GNUNET_CMDS_LOCAL_FINISHED *reply;
   size_t msg_length;
 
@@ -102,15 +99,18 @@ local_test_finished_run (void *cls,
   reply->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_FINISHED);
   reply->header.size = htons ((uint16_t) msg_length);
   lfs->reply = reply;
-  lfs->write_message ((struct GNUNET_MessageHeader *) reply, msg_length);
+  lfs->write_message ((struct GNUNET_MessageHeader *) reply,
+                      msg_length);
 }
 
 
 /**
- * This finish function will stop the local loop without shutting down the scheduler, because we do not call the continuation, which is the interpreter_next method.
+ * This finish function will stop the local loop without shutting down the
+ * scheduler, because we do not call the continuation, which is the
+ * interpreter_next method.
  *
  */
-static int
+static enum GNUNET_GenericReturnValue
 local_test_finished_finish (void *cls,
                             GNUNET_SCHEDULER_TaskCallback cont,
                             void *cont_cls)
@@ -129,23 +129,24 @@ local_test_finished_finish (void *cls,
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_local_test_finished (const char *label,
-                                        TESTING_CMD_HELPER_write_cb
-                                        write_message)
+GNUNET_TESTING_cmd_local_test_finished (
+  const char *label,
+  TESTING_CMD_HELPER_write_cb write_message)
 {
   struct LocalFinishedState *lfs;
 
   lfs = GNUNET_new (struct LocalFinishedState);
   lfs->write_message = write_message;
+  {
+    struct GNUNET_TESTING_Command cmd = {
+      .cls = lfs,
+      .label = label,
+      .run = &local_test_finished_run,
+      .finish = &local_test_finished_finish,
+      .cleanup = &local_test_finished_cleanup,
+      .traits = &local_test_finished_traits
+    };
 
-  struct GNUNET_TESTING_Command cmd = {
-    .cls = lfs,
-    .label = label,
-    .run = &local_test_finished_run,
-    .finish = &local_test_finished_finish,
-    .cleanup = &local_test_finished_cleanup,
-    .traits = &local_test_finished_traits
-  };
-
-  return cmd;
+    return cmd;
+  }
 }

@@ -55,10 +55,8 @@ struct StopHelperState
 * @param cmd current CMD being cleaned up.
 */
 static void
-stop_testing_system_cleanup (void *cls,
-                             const struct GNUNET_TESTING_Command *cmd)
+stop_testing_system_cleanup (void *cls)
 {
-
 }
 
 
@@ -66,13 +64,13 @@ stop_testing_system_cleanup (void *cls,
  * Trait function of this cmd does nothing.
  *
  */
-static int
+static enum GNUNET_GenericReturnValue
 stop_testing_system_traits (void *cls,
                             const void **ret,
                             const char *trait,
                             unsigned int index)
 {
-  return GNUNET_OK;
+  return GNUNET_NO;
 }
 
 
@@ -80,12 +78,10 @@ stop_testing_system_traits (void *cls,
 * This function stops the helper process for each node.
 *
 * @param cls closure.
-* @param cmd CMD being run.
 * @param is interpreter state.
 */
 static void
 stop_testing_system_run (void *cls,
-                         const struct GNUNET_TESTING_Command *cmd,
                          struct GNUNET_TESTING_Interpreter *is)
 {
   struct StopHelperState *shs = cls;
@@ -93,6 +89,7 @@ stop_testing_system_run (void *cls,
   const struct GNUNET_TESTING_Command *start_helper_cmd;
 
   start_helper_cmd = GNUNET_TESTING_interpreter_lookup_command (
+    is,
     shs->helper_start_label);
   GNUNET_TESTING_get_trait_helper_handles (start_helper_cmd,
                                            &helper);
@@ -121,8 +118,7 @@ struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_stop_testing_system (const char *label,
                                         const char *helper_start_label,
                                         char *local_m,
-                                        char *global_n
-                                        )
+                                        char *global_n)
 {
   struct StopHelperState *shs;
 
@@ -130,14 +126,15 @@ GNUNET_TESTING_cmd_stop_testing_system (const char *label,
   shs->helper_start_label = helper_start_label;
   shs->local_m = local_m;
   shs->global_n = global_n;
+  {
+    struct GNUNET_TESTING_Command cmd = {
+      .cls = shs,
+      .label = label,
+      .run = &stop_testing_system_run,
+      .cleanup = &stop_testing_system_cleanup,
+      .traits = &stop_testing_system_traits
+    };
 
-  struct GNUNET_TESTING_Command cmd = {
-    .cls = shs,
-    .label = label,
-    .run = &stop_testing_system_run,
-    .cleanup = &stop_testing_system_cleanup,
-    .traits = &stop_testing_system_traits
-  };
-
-  return cmd;
+    return cmd;
+  }
 }

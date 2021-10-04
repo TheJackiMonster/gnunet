@@ -279,15 +279,16 @@ struct GNUNET_TESTING_Command
    * the asynchronous activity to terminate.
    *
    * @param cls closure
-   * @param cmd command being run
-   * @param i interpreter state
+   * @param is interpreter state
    */
   void
   (*run)(void *cls,
-         const struct GNUNET_TESTING_Command *cmd,
-         struct GNUNET_TESTING_Interpreter *i);
+         struct GNUNET_TESTING_Interpreter *is);
 
   /**
+   * FIXME: logic is basically always the same!
+   * => Refactor API to avoid duplication!
+   *
    * Wait for any asynchronous execution of @e run to conclude,
    * then call finish_cont. Finish may only be called once per command.
    *
@@ -297,27 +298,24 @@ struct GNUNET_TESTING_Command
    * @param cls closure
    * @param cont function to call upon completion, can be NULL
    * @param cont_cls closure for @a cont
+   * @return
+   *    #GNUNET_NO if the command is still running and @a cont will be called later
+   *    #GNUNET_OK if the command completed successfully and @a cont was called
+   *    #GNUNET_SYSERR if the operation @a cont was NOT called
    */
-  int
+  enum GNUNET_GenericReturnValue
   (*finish)(void *cls,
             GNUNET_SCHEDULER_TaskCallback cont,
             void *cont_cls);
-
-  /**
-   * Task for running the finish function.
-   */
-  struct GNUNET_SCHEDULER_Task *finish_task;
 
   /**
    * Clean up after the command.  Run during forced termination
    * (CTRL-C) or test failure or test success.
    *
    * @param cls closure
-   * @param cmd command being cleaned up
    */
   void
-  (*cleanup)(void *cls,
-             const struct GNUNET_TESTING_Command *cmd);
+  (*cleanup)(void *cls);
 
   /**
    * Extract information from a command that is useful for other
@@ -327,9 +325,10 @@ struct GNUNET_TESTING_Command
    * @param[out] ret result (could be anything)
    * @param trait name of the trait
    * @param index index number of the object to extract.
-   * @return #GNUNET_OK on success
+   * @return #GNUNET_OK on success,
+   *         #GNUNET_NO if no trait was found
    */
-  int
+  enum GNUNET_GenericReturnValue
   (*traits)(void *cls,
             const void **ret,
             const char *trait,
@@ -383,40 +382,15 @@ struct GNUNET_TESTING_Command
 
 
 /**
- * Struct to use for command-specific context information closure of a command waiting
- * for another command.
- */
-struct SyncState
-{
-  /**
-   * Closure for all commands with command-specific context information.
-   */
-  void *cls;
-
-  /**
-   * The asynchronous command the synchronous command of this closure waits for.
-   */
-  const struct GNUNET_TESTING_Command *async_cmd;
-
-  /**
-   * Task for running the finish method of the asynchronous task the command is waiting for.
-   */
-  struct GNUNET_SCHEDULER_Task *finish_task;
-
-  /**
-   * When did the execution of this commands finish function start?
-   */
-  struct GNUNET_TIME_Absolute start_finish_time;
-};
-
-/**
  * Lookup command by label.
  *
+ * @param is interpreter to lookup command in
  * @param label label of the command to lookup.
  * @return the command, if it is found, or NULL.
  */
 const struct GNUNET_TESTING_Command *
 GNUNET_TESTING_interpreter_lookup_command (
+  struct GNUNET_TESTING_Interpreter *is,
   const char *label);
 
 
@@ -437,7 +411,7 @@ GNUNET_TESTING_interpreter_get_current_label (
  * @param is interpreter state.
  */
 void
-GNUNET_TESTING_interpreter_fail ();
+GNUNET_TESTING_interpreter_fail (struct GNUNET_TESTING_Interpreter *is);
 
 
 /**
@@ -455,8 +429,8 @@ GNUNET_TESTING_cmd_end (void);
  * @param cmd command to make synchronous.
  * @return a finish-command.
  */
-const struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_make_unblocking (const struct GNUNET_TESTING_Command cmd);
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_make_unblocking (struct GNUNET_TESTING_Command cmd);
 
 
 /**
@@ -492,19 +466,10 @@ GNUNET_TESTING_cmd_rewind_ip (const char *label,
 
 
 /**
- * Wait until we receive SIGCHLD signal.  Then obtain the process trait of the
- * current command, wait on the the zombie and continue with the next command.
- *
- * @param is interpreter state.
- */
-// void
-// GNUNET_TESTING_wait_for_sigchld (struct GNUNET_TESTING_Interpreter *is);
-// => replace with child_management.c
-
-
-/**
- * Start scheduling loop with signal handlers and run the
- * test suite with the @a commands.
+ * Run the testsuite.  Note, CMDs are copied into
+ * the interpreter state because they are _usually_
+ * defined into the "run" method that returns after
+ * having scheduled the test interpreter.
  *
  * @param cfg_name name of configuration file to use
  * @param commands the list of command to execute
@@ -513,10 +478,26 @@ GNUNET_TESTING_cmd_rewind_ip (const char *label,
  *         non-GNUNET_OK codes are #GNUNET_SYSERR most of the
  *         times.
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_TESTING_run (const char *cfg_filename,
                     struct GNUNET_TESTING_Command *commands,
                     struct GNUNET_TIME_Relative timeout);
+
+
+/**
+ * Start a GNUnet scheduler event loop and
+ * run the testsuite.  Return 0 upon success.
+ * Expected to be called directly from main().
+ *
+ * @param cfg_name name of configuration file to use
+ * @param commands the list of command to execute
+ * @param timeout how long to wait for each command to execute
+ * @return EXIT_SUCCESS on success, EXIT_FAILURE on failure
+ */
+int
+GNUNET_TESTING_main (const char *cfg_filename,
+                     struct GNUNET_TESTING_Command *commands,
+                     struct GNUNET_TIME_Relative timeout);
 
 
 /**
@@ -1191,4 +1172,5 @@ struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_local_test_finished (const char *label,
                                         TESTING_CMD_HELPER_write_cb
                                         write_message);
+
 #endif

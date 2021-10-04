@@ -53,13 +53,13 @@ struct SendPeerReadyState
  * Trait function of this cmd does nothing.
  *
  */
-static int
+static enum GNUNET_GenericReturnValue
 send_peer_ready_traits (void *cls,
                         const void **ret,
                         const char *trait,
                         unsigned int index)
 {
-  return GNUNET_OK;
+  return GNUNET_NO;
 }
 
 
@@ -68,8 +68,7 @@ send_peer_ready_traits (void *cls,
  *
  */
 static void
-send_peer_ready_cleanup (void *cls,
-                         const struct GNUNET_TESTING_Command *cmd)
+send_peer_ready_cleanup (void *cls)
 {
   struct SendPeerReadyState *sprs = cls;
 
@@ -84,7 +83,6 @@ send_peer_ready_cleanup (void *cls,
  */
 static void
 send_peer_ready_run (void *cls,
-                     const struct GNUNET_TESTING_Command *cmd,
                      struct GNUNET_TESTING_Interpreter *is)
 {
   struct SendPeerReadyState *sprs = cls;
@@ -115,14 +113,15 @@ GNUNET_TESTING_cmd_send_peer_ready (const char *label,
 
   sprs = GNUNET_new (struct SendPeerReadyState);
   sprs->write_message = write_message;
+  {
+    struct GNUNET_TESTING_Command cmd = {
+      .cls = sprs,
+      .label = label,
+      .run = &send_peer_ready_run,
+      .cleanup = &send_peer_ready_cleanup,
+      .traits = &send_peer_ready_traits
+    };
 
-  struct GNUNET_TESTING_Command cmd = {
-    .cls = sprs,
-    .label = label,
-    .run = &send_peer_ready_run,
-    .cleanup = &send_peer_ready_cleanup,
-    .traits = &send_peer_ready_traits
-  };
-
-  return cmd;
+    return cmd;
+  }
 }

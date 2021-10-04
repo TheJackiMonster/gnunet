@@ -49,8 +49,10 @@ struct NetJailState
    */
   struct GNUNET_OS_Process *start_proc;
 
-  // Flag indication if the script finished.
-  unsigned int finished;
+  /**
+   * Flag indication if the script finished.
+   */
+  enum GNUNET_GenericReturnValue finished;
 };
 
 
@@ -59,8 +61,7 @@ struct NetJailState
  *
  */
 static void
-netjail_start_cleanup (void *cls,
-                       const struct GNUNET_TESTING_Command *cmd)
+netjail_start_cleanup (void *cls)
 {
   struct NetJailState *ns = cls;
 
@@ -90,13 +91,13 @@ netjail_start_cleanup (void *cls,
  * Trait function of this cmd does nothing.
  *
  */
-static int
+static enum GNUNET_GenericReturnValue
 netjail_start_traits (void *cls,
                       const void **ret,
                       const char *trait,
                       unsigned int index)
 {
-  return GNUNET_OK;
+  return GNUNET_NO;
 }
 
 
@@ -126,17 +127,14 @@ child_completed_callback (void *cls,
 }
 
 
-
 /**
 * The run method starts the script which setup the network namespaces.
 *
 * @param cls closure.
-* @param cmd CMD being run.
 * @param is interpreter state.
 */
 static void
 netjail_start_run (void *cls,
-                   const struct GNUNET_TESTING_Command *cmd,
                    struct GNUNET_TESTING_Interpreter *is)
 {
   struct NetJailState *ns = cls;
@@ -154,14 +152,14 @@ netjail_start_run (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "No SUID for %s!\n",
                 NETJAIL_START_SCRIPT);
-    GNUNET_TESTING_interpreter_fail ();
+    GNUNET_TESTING_interpreter_fail (is);
   }
   else if (GNUNET_NO == helper_check)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "%s not found!\n",
                 NETJAIL_START_SCRIPT);
-    GNUNET_TESTING_interpreter_fail ();
+    GNUNET_TESTING_interpreter_fail (is);
   }
 
   ns->start_proc = GNUNET_OS_start_process_vap (GNUNET_OS_INHERIT_STD_ERR,
@@ -182,7 +180,7 @@ netjail_start_run (void *cls,
  * This function checks the flag NetJailState#finished, if this cmd finished.
  *
  */
-static int
+static enum GNUNET_GenericReturnValue
 netjail_start_finish (void *cls,
                       GNUNET_SCHEDULER_TaskCallback cont,
                       void *cont_cls)
@@ -195,6 +193,7 @@ netjail_start_finish (void *cls,
   }
   return ns->finished;
 }
+
 
 /**
  * Create command.
@@ -214,16 +213,16 @@ GNUNET_TESTING_cmd_netjail_start (const char *label,
   ns = GNUNET_new (struct NetJailState);
   ns->local_m = local_m;
   ns->global_n = global_n;
-  ns->finished = GNUNET_NO;
+  {
+    struct GNUNET_TESTING_Command cmd = {
+      .cls = ns,
+      .label = label,
+      .run = &netjail_start_run,
+      .finish = &netjail_start_finish,
+      .cleanup = &netjail_start_cleanup,
+      .traits = &netjail_start_traits
+    };
 
-  struct GNUNET_TESTING_Command cmd = {
-    .cls = ns,
-    .label = label,
-    .run = &netjail_start_run,
-    .finish = &netjail_start_finish,
-    .cleanup = &netjail_start_cleanup,
-    .traits = &netjail_start_traits
-  };
-
-  return cmd;
+    return cmd;
+  }
 }

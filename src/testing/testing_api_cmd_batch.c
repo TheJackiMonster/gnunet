@@ -39,6 +39,11 @@ struct BatchState
   struct GNUNET_TESTING_Command *batch;
 
   /**
+   * Our label.
+   */
+  const char *label;
+
+  /**
    * Internal command pointer.
    */
   unsigned int batch_ip;
@@ -49,12 +54,10 @@ struct BatchState
  * Run the command.
  *
  * @param cls closure.
- * @param cmd the command being executed.
  * @param is the interpreter state.
  */
 static void
 batch_run (void *cls,
-           const struct GNUNET_TESTING_Command *cmd,
            struct GNUNET_TESTING_Interpreter *is)
 {
   struct BatchState *bs = cls;
@@ -69,7 +72,7 @@ batch_run (void *cls,
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "Exiting from batch: %s\n",
-                cmd->label);
+                bs->label);
     return;
   }
   bs->batch[bs->batch_ip].start_time
@@ -77,7 +80,6 @@ batch_run (void *cls,
       = GNUNET_TIME_absolute_get ();
   bs->batch[bs->batch_ip].num_tries = 1;
   bs->batch[bs->batch_ip].run (bs->batch[bs->batch_ip].cls,
-                               &bs->batch[bs->batch_ip],
                                is);
 }
 
@@ -87,20 +89,16 @@ batch_run (void *cls,
  * cancel a pending operation thereof.
  *
  * @param cls closure.
- * @param cmd the command which is being cleaned up.
  */
 static void
-batch_cleanup (void *cls,
-               const struct GNUNET_TESTING_Command *cmd)
+batch_cleanup (void *cls)
 {
   struct BatchState *bs = cls;
 
-  (void) cmd;
   for (unsigned int i = 0;
        NULL != bs->batch[i].label;
        i++)
-    bs->batch[i].cleanup (bs->batch[i].cls,
-                          &bs->batch[i]);
+    bs->batch[i].cleanup (bs->batch[i].cls);
   GNUNET_free (bs->batch);
   GNUNET_free (bs);
 }
@@ -115,7 +113,7 @@ batch_cleanup (void *cls,
  * @param index index number of the object to offer.
  * @return #GNUNET_OK on success.
  */
-static int
+static enum GNUNET_GenericReturnValue
 batch_traits (void *cls,
               const void **ret,
               const char *trait,
@@ -162,7 +160,7 @@ GNUNET_TESTING_cmd_batch (const char *label,
   unsigned int i;
 
   bs = GNUNET_new (struct BatchState);
-
+  bs->label = label;
   /* Get number of commands.  */
   for (i = 0; NULL != batch[i].label; i++)
     /* noop */

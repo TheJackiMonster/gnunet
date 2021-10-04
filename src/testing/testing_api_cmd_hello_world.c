@@ -32,50 +32,51 @@ struct HelloWorldState
   const char *birthLabel;
 };
 
+
 /**
-*
-*
-* @param cls closure
-* @param cmd current CMD being cleaned up.
-*/
+ *
+ *
+ * @param cls closure
+ */
 static void
-hello_world_cleanup (void *cls,
-                     const struct GNUNET_TESTING_Command *cmd)
+hello_world_cleanup (void *cls)
 {
   struct HelloWorldState *hs = cls;
+
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Cleaning up message %s\n",
               hs->message);
+  GNUNET_free (hs);
 }
 
+
 /**
-*
-*
-* @param cls closure.
-* @param[out] ret result
-* @param trait name of the trait.
-* @param index index number of the object to offer.
-* @return #GNUNET_OK on success.
-*/
-static int
+ *
+ *
+ * @param cls closure.
+ * @param[out] ret result
+ * @param trait name of the trait.
+ * @param index index number of the object to offer.
+ * @return #GNUNET_OK on success.
+ */
+static enum GNUNET_GenericReturnValue
 hello_world_traits (void *cls,
                     const void **ret,
                     const char *trait,
                     unsigned int index)
 {
-  return GNUNET_OK;
+  return GNUNET_NO;
 }
+
 
 /**
 * Run the "hello world" CMD.
 *
 * @param cls closure.
-* @param cmd CMD being run.
 * @param is interpreter state.
 */
 static void
 hello_world_run (void *cls,
-                 const struct GNUNET_TESTING_Command *cmd,
                  struct GNUNET_TESTING_Interpreter *is)
 {
   struct HelloWorldState *hs = cls;
@@ -84,12 +85,15 @@ hello_world_run (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "%s\n",
               hs->message);
-  birth_cmd = GNUNET_TESTING_interpreter_lookup_command (hs->birthLabel);
-  GNUNET_TESTING_get_trait_what_am_i (birth_cmd, &hs->message);
+  birth_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
+                                                         hs->birthLabel);
+  GNUNET_TESTING_get_trait_what_am_i (birth_cmd,
+                                      &hs->message);
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Now I am a %s\n",
               hs->message);
 }
+
 
 /**
  * Create command.
@@ -108,14 +112,15 @@ GNUNET_TESTING_cmd_hello_world (const char *label,
   hs = GNUNET_new (struct HelloWorldState);
   hs->message = "Hello World, I was nobody!";
   hs->birthLabel = birthLabel;
+  {
+    struct GNUNET_TESTING_Command cmd = {
+      .cls = hs,
+      .label = label,
+      .run = &hello_world_run,
+      .cleanup = &hello_world_cleanup,
+      .traits = &hello_world_traits
+    };
 
-  struct GNUNET_TESTING_Command cmd = {
-    .cls = hs,
-    .label = label,
-    .run = &hello_world_run,
-    .cleanup = &hello_world_cleanup,
-    .traits = &hello_world_traits
-  };
-
-  return cmd;
+    return cmd;
+  }
 }

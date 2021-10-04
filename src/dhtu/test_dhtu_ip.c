@@ -32,20 +32,9 @@
 #define CONFIG_FILE "test_dhtu_ip.conf"
 
 
-/**
- * Return value of the test.
- *
- */
-static int rv;
-
-
-/**
- * Main function to run the test cases.
- *
- * @param cls not used.
- */
-static void
-run (void *cls)
+int
+main (int argc,
+      char *const *argv)
 {
   struct GNUNET_TESTING_Command commands[] = {
     GNUNET_TESTING_cmd_netjail_start_v2 ("netjail-start",
@@ -55,23 +44,7 @@ run (void *cls)
     GNUNET_TESTING_cmd_end ()
   };
 
-  (void) cls;
-  if (GNUNET_OK !=
-      GNUNET_TESTING_run (NULL, /* config file */
-                          commands,
-                          TIMEOUT))
-  {
-    GNUNET_break (0);
-    rv = EXIT_FAILURE;
-  }
-}
-
-
-int
-main (int argc,
-      char *const *argv)
-{
-  GNUNET_SCHEDULER_run (&run,
-                        NULL);
-  return rv;
+  return GNUNET_TESTING_main (NULL,
+                              commands,
+                              TIMEOUT);
 }
