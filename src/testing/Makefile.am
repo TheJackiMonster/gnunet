@@ -42,10 +42,10 @@ libgnunet_test_testing_plugin_testcmd_la_LIBADD = \
 libgnunet_test_testing_plugin_testcmd_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
 
-#  testing_api_cmd_finish.c 
 
 libgnunettesting_la_SOURCES = \
   testing_api_cmd_end.c \
+  testing_api_cmd_finish.c \
   testing_api_cmd_local_test_finished.c \
   testing_api_cmd_send_peer_ready.c \
   testing_api_cmd_block_until_all_peers_started.c \
