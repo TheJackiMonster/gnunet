@@ -41,7 +41,7 @@ AC_DEFUN([AM_PATH_GNUNET],
                      [gnunet_PATH="$prefix/bin${PATH_SEPARATOR}$prefix/usr/bin"])
                AC_PATH_PROG([GNUNET_CONFIG],[gnunet-config],[no],[$gnunet_PATH])
                AS_UNSET([gnunet_PATH])],
-              [GNUNET_CONFIG="pkg-config gnunetutil"])])
+              [GNUNET_CONFIG="gnunet-config"])])
  AC_MSG_CHECKING([if GNUnet version is >= $min_gnunet_version])
  gnunet_result=no
  AS_IF([test "x$GNUNET_CONFIG" != "xno" && test -n "$GNUNET_CONFIG"],
