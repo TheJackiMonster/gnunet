@@ -42,9 +42,11 @@ libgnunet_test_testing_plugin_testcmd_la_LIBADD = \
 libgnunet_test_testing_plugin_testcmd_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
 
+#  testing_api_cmd_finish.c 
+
 libgnunettesting_la_SOURCES = \
+  testing_api_cmd_end.c \
   testing_api_cmd_local_test_finished.c \
-  testing_api_cmd_finish.c \
   testing_api_cmd_send_peer_ready.c \
   testing_api_cmd_block_until_all_peers_started.c \
   testing_api_cmd_block_until_external_trigger.c \
@@ -56,7 +58,7 @@ libgnunettesting_la_SOURCES = \
   testing_api_cmd_netjail_stop_testsystem_v2.c \
   testing_api_cmd_netjail_stop.c \
   testing_api_cmd_netjail_stop_v2.c \
-  testing.c testing.h \
+  testing.c \
   testing_api_cmd_system_create.c \
   testing_api_cmd_system_destroy.c \
   testing_api_cmd_batch.c \

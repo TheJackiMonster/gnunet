@@ -24,25 +24,64 @@
  * @author Christian Grothoff (GNU Taler testing)
  * @author Marcello Stanisci (GNU Taler testing)
  * @author t3sserakt
- *
- * FIXME:
- * - interpreter failure is NOT returned properly yet!
- * - abuse of shutdown logic for interpreter termination
- *   => API design flaw to be fixed!
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
 #include "testing.h"
 
-
 /**
- * Lookup command by label.
- *
- * @param is interpreter to lookup command in
- * @param label label to look for
- * @return NULL if command was not found
+ * Global state of the interpreter, used by a command
+ * to access information about other commands.
  */
+struct GNUNET_TESTING_Interpreter
+{
+
+  /**
+   * Function to call with the test result.
+   */
+  GNUNET_TESTING_ResultCallback rc;
+
+  /**
+   * Closure for @e rc.
+   */
+  void *rc_cls;
+  
+  /**
+   * Commands the interpreter will run.
+   */
+  struct GNUNET_TESTING_Command *commands;
+
+  /**
+   * Interpreter task (if one is scheduled).
+   */
+  struct GNUNET_SCHEDULER_Task *task;
+
+  /**
+   * Final task that returns the result.
+   */
+  struct GNUNET_SCHEDULER_Task *final_task;
+
+  /**
+   * Task run on timeout.
+   */
+  struct GNUNET_SCHEDULER_Task *timeout_task;
+
+  /**
+   * Instruction pointer.  Tells #interpreter_run() which instruction to run
+   * next.  Need (signed) int because it gets -1 when rewinding the
+   * interpreter to the first CMD.
+   */
+  int ip;
+
+  /**
+   * Result of the testcases, #GNUNET_OK on success
+   */
+  enum GNUNET_GenericReturnValue result;
+
+};
+
+
 const struct GNUNET_TESTING_Command *
 GNUNET_TESTING_interpreter_lookup_command (
   struct GNUNET_TESTING_Interpreter *is,
@@ -65,7 +104,7 @@ GNUNET_TESTING_interpreter_lookup_command (
                        label)) )
       return cmd;
 
-    if (GNUNET_TESTING_cmd_is_batch (cmd))
+    if (GNUNET_TESTING_cmd_is_batch_ (cmd))
     {
 #define BATCH_INDEX 1
       struct GNUNET_TESTING_Command *batch;
@@ -73,7 +112,7 @@ GNUNET_TESTING_interpreter_lookup_command (
       struct GNUNET_TESTING_Command *icmd;
       const struct GNUNET_TESTING_Command *match;
 
-      current = GNUNET_TESTING_cmd_batch_get_current (cmd);
+      current = GNUNET_TESTING_cmd_batch_get_current_ (cmd);
       GNUNET_assert (GNUNET_OK ==
                      GNUNET_TESTING_get_trait_cmd (cmd,
                                                    BATCH_INDEX,
@@ -96,10 +135,58 @@ GNUNET_TESTING_interpreter_lookup_command (
     }
   }
   GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "Command not found: %s\n",
+              "Command `%s' not found\n",
               label);
   return NULL;
+}
 
+
+/**
+ * Finish the test run, return the final result.
+ *
+ * @param cls the `struct GNUNET_TESTING_Interpreter`
+ */
+static void
+finish_test (void *cls)
+{
+  struct GNUNET_TESTING_Interpreter *is = cls;
+  struct GNUNET_TESTING_Command *cmd;
+  const char *label;
+
+  is->final_task = NULL;
+  label = is->commands[is->ip].label;
+  if (NULL == label)
+    label = "END";
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Interpreter finishes at `%s' with status %d\n",
+              label,
+              is->result);
+  for (unsigned int j = 0;
+       NULL != (cmd = &is->commands[j])->label;
+       j++)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Cleaning up cmd %s\n",
+                cmd->label);
+    cmd->cleanup (cmd->cls);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Cleaned up cmd %s\n",
+                cmd->label);
+  }
+  if (NULL != is->task)
+  {
+    GNUNET_SCHEDULER_cancel (is->task);
+    is->task = NULL;
+  }
+  if (NULL != is->timeout_task)
+  {
+    GNUNET_SCHEDULER_cancel (is->timeout_task);
+    is->timeout_task = NULL;
+  }
+  GNUNET_free (is->commands);
+  is->rc (is->rc_cls,
+          is->result);
+  GNUNET_free (is);
 }
 
 
@@ -125,15 +212,10 @@ interpreter_next (void *cls)
 
   if (GNUNET_SYSERR == is->result)
     return; /* ignore, we already failed! */
-  if (GNUNET_TESTING_cmd_is_batch (cmd))
-  {
-    GNUNET_TESTING_cmd_batch_next (is);
-  }
-  else
-  {
-    cmd->finish_time = GNUNET_TIME_absolute_get ();
+  cmd->finish_time = GNUNET_TIME_absolute_get ();
+  if ( (! GNUNET_TESTING_cmd_is_batch_ (cmd)) ||
+       (! GNUNET_TESTING_cmd_batch_next_ (cmd->cls)) )
     is->ip++;
-  }
   if (0 == (ipc % 1000))
   {
     if (0 != ipc)
@@ -150,26 +232,24 @@ interpreter_next (void *cls)
 }
 
 
-/**
- * Current command failed, clean up and fail the test case.
- *
- * @param is interpreter of the test
- */
 void
 GNUNET_TESTING_interpreter_fail (struct GNUNET_TESTING_Interpreter *is)
 {
   struct GNUNET_TESTING_Command *cmd = &is->commands[is->ip];
 
   if (GNUNET_SYSERR == is->result)
+  {
+    GNUNET_break (0);
     return; /* ignore, we already failed! */
+  }
   if (NULL != cmd)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Failed at command `%s'\n",
                 cmd->label);
-    while (GNUNET_TESTING_cmd_is_batch (cmd))
+    while (GNUNET_TESTING_cmd_is_batch_ (cmd))
     {
-      cmd = GNUNET_TESTING_cmd_batch_get_current (cmd);
+      cmd = GNUNET_TESTING_cmd_batch_get_current_ (cmd);
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Failed in batch at command `%s'\n",
                   cmd->label);
@@ -181,29 +261,12 @@ GNUNET_TESTING_interpreter_fail (struct GNUNET_TESTING_Interpreter *is)
                 "Failed with CMD being NULL!\n");
   }
   is->result = GNUNET_SYSERR;
-  GNUNET_SCHEDULER_shutdown ();
+  GNUNET_assert (NULL == is->final_task);
+  is->final_task = GNUNET_SCHEDULER_add_now (&finish_test,
+                                             is);
 }
 
 
-/**
- * Create command array terminator.
- *
- * @return a end-command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_end (void)
-{
-  static struct GNUNET_TESTING_Command cmd = {
-    .label = NULL
-  };
-
-  return cmd;
-}
-
-
-/**
- * Obtain current label.
- */
 const char *
 GNUNET_TESTING_interpreter_get_current_label (
   struct GNUNET_TESTING_Interpreter *is)
@@ -234,12 +297,9 @@ interpreter_run (void *cls)
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  if (NULL != cmd)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Running command `%s'\n",
-                cmd->label);
-  }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Running command `%s'\n",
+              cmd->label);
   cmd->start_time
     = cmd->last_req_time
       = GNUNET_TIME_absolute_get ();
@@ -261,57 +321,6 @@ interpreter_run (void *cls)
 
 
 /**
- * Function run when the test terminates (good or bad).
- * Cleans up our state.
- *
- * @param cls the interpreter state.
- */
-static void
-do_shutdown (void *cls)
-{
-  struct GNUNET_TESTING_Interpreter *is = cls;
-  struct GNUNET_TESTING_Command *cmd;
-  const char *label;
-
-  label = is->commands[is->ip].label;
-  if (NULL == label)
-    label = "END";
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              "Executing shutdown at `%s'\n",
-              label);
-  for (unsigned int j = 0;
-       NULL != (cmd = &is->commands[j])->label;
-       j++)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Cleaning up cmd %s\n",
-                cmd->label);
-    cmd->cleanup (cmd->cls);
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Cleaned up cmd %s\n",
-                cmd->label);
-  }
-  if (NULL != is->finish_task)
-  {
-    GNUNET_SCHEDULER_cancel (is->finish_task);
-    is->finish_task = NULL;
-  }
-  if (NULL != is->task)
-  {
-    GNUNET_SCHEDULER_cancel (is->task);
-    is->task = NULL;
-  }
-  if (NULL != is->timeout_task)
-  {
-    GNUNET_SCHEDULER_cancel (is->timeout_task);
-    is->timeout_task = NULL;
-  }
-  GNUNET_free (is->commands);
-  GNUNET_free (is);
-}
-
-
-/**
  * Function run when the test terminates (good or bad) with timeout.
  *
  * @param cls the interpreter state
@@ -323,20 +332,24 @@ do_timeout (void *cls)
 
   is->timeout_task = NULL;
   GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "Terminating test due to timeout\n");
-  GNUNET_SCHEDULER_shutdown ();
+              "Terminating test due to global timeout\n");
+  is->result = GNUNET_SYSERR;
+  finish_test (is);
 }
 
 
-enum GNUNET_GenericReturnValue
-GNUNET_TESTING_run (const char *cfg_filename,
-                    struct GNUNET_TESTING_Command *commands,
-                    struct GNUNET_TIME_Relative timeout)
+void
+GNUNET_TESTING_run (struct GNUNET_TESTING_Command *commands,
+                    struct GNUNET_TIME_Relative timeout,
+                    GNUNET_TESTING_ResultCallback rc,
+                    void *rc_cls)
 {
   struct GNUNET_TESTING_Interpreter *is;
   unsigned int i;
 
   is = GNUNET_new (struct GNUNET_TESTING_Interpreter);
+  is->rc = rc;
+  is->rc_cls = rc_cls;
   /* get the number of commands */
   for (i = 0; NULL != commands[i].label; i++)
     ;
@@ -349,11 +362,8 @@ GNUNET_TESTING_run (const char *cfg_filename,
     = GNUNET_SCHEDULER_add_delayed (timeout,
                                     &do_timeout,
                                     is);
-  GNUNET_SCHEDULER_add_shutdown (&do_shutdown,
-                                 is);
   is->task = GNUNET_SCHEDULER_add_now (&interpreter_run,
                                        is);
-  return GNUNET_OK;
 }
 
 
@@ -362,11 +372,43 @@ GNUNET_TESTING_run (const char *cfg_filename,
  */
 struct MainParams
 {
-  const char *cfg_filename;
+
+  /**
+   * NULL-label terminated array of commands.
+   */
   struct GNUNET_TESTING_Command *commands;
+
+  /**
+   * Global timeout for the test.
+   */ 
   struct GNUNET_TIME_Relative timeout;
+
+  /**
+   * Set to #EXIT_FAILURE on error.
+   */ 
   int rv;
 };
+
+
+/**
+ * Function called with the final result of the test.
+ *
+ * @param cls the `struct MainParams`
+ * @param rv #GNUNET_OK if the test passed
+ */
+static void
+handle_result (void *cls,
+               enum GNUNET_GenericReturnValue rv)
+{
+  struct MainParams *mp = cls;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Test exits with status %d\n",
+              rv);
+  if (GNUNET_OK != rv)
+    mp->rv = EXIT_FAILURE;
+  GNUNET_SCHEDULER_shutdown ();
+}
 
 
 /**
@@ -379,24 +421,18 @@ loop_run (void *cls)
 {
   struct MainParams *mp = cls;
 
-  if (GNUNET_OK !=
-      GNUNET_TESTING_run (mp->cfg_filename,
-                          mp->commands,
-                          mp->timeout))
-  {
-    GNUNET_break (0);
-    mp->rv = EXIT_FAILURE;
-  }
+  GNUNET_TESTING_run (mp->commands,
+                      mp->timeout,
+                      &handle_result,
+                      mp);
 }
 
 
 int
-GNUNET_TESTING_main (const char *cfg_filename,
-                     struct GNUNET_TESTING_Command *commands,
+GNUNET_TESTING_main (struct GNUNET_TESTING_Command *commands,
                      struct GNUNET_TIME_Relative timeout)
 {
   struct MainParams mp = {
-    .cfg_filename = cfg_filename,
     .commands = commands,
     .timeout = timeout,
     .rv = EXIT_SUCCESS

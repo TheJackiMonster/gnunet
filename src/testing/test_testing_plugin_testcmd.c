@@ -17,11 +17,12 @@
 
      SPDX-License-Identifier: AGPL3.0-or-later
  */
-
 /**
  * @file testbed/plugin_testcmd.c
  * @brief a plugin to provide the API for running test cases.
  * @author t3sserakt
+ *
+ * // FIXME: too verbose, no logic to return final status, will segv!
  */
 #include "platform.h"
 #include "gnunet_testing_ng_lib.h"
@@ -33,7 +34,10 @@
  */
 #define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
 
+
+// FIXME: bad global!
 unsigned int are_all_peers_started;
+
 
 static void
 all_peers_started ()
@@ -44,8 +48,10 @@ all_peers_started ()
        are_all_peers_started);
 }
 
+
 static void
-start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
+start_testcase (TESTING_CMD_HELPER_write_cb write_message,
+                char *router_ip,
                 char *node_ip,
                 char *n,
                 char *m,
@@ -70,9 +76,10 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
                                             write_message)
   };
 
-  GNUNET_TESTING_run (NULL,
-                      commands,
-                      GNUNET_TIME_UNIT_FOREVER_REL);
+  GNUNET_TESTING_run (commands,
+                      GNUNET_TIME_UNIT_FOREVER_REL,
+                      NULL, /* FIXME: pass continuation! */
+                      NULL);
   LOG (GNUNET_ERROR_TYPE_ERROR,
        "We got here 7!\n");
 
@@ -113,4 +120,4 @@ libgnunet_plugin_testcmd_done (void *cls)
 }
 
 
-/* end of plugin_testcmd.c */
+

@@ -21,54 +21,54 @@
 /**
  * @author t3sserakt
  */
-
+#ifndef TESTING_H
+#define TESTING_H
 #include "gnunet_util_lib.h"
 
+
 /**
- * Global state of the interpreter, used by a command
- * to access information about other commands.
+ * Advance internal pointer to next command.
+ *
+ * @param cls batch internal state
+ * @return true if we could advance, false if the batch
+ *         has completed and cannot advance anymore
  */
-// SUGGESTION: consider making this struct opaque (only known inside of libgnunettesting,
-// say main loop and a few select commands, like next/fail/batch); + helper
-// function to access 'cfg'?
-struct GNUNET_TESTING_Interpreter
-{
+bool
+GNUNET_TESTING_cmd_batch_next_ (void *cls);
 
-  /**
-   * Commands the interpreter will run.
-   */
-  struct GNUNET_TESTING_Command *commands;
 
-  /**
-   * Interpreter task (if one is scheduled).
-   */
-  struct GNUNET_SCHEDULER_Task *task;
+/**
+ * Test if this command is a batch command.
+ *
+ * @return false if not, true if it is a batch command
+ */
+bool
+GNUNET_TESTING_cmd_is_batch_ (const struct GNUNET_TESTING_Command *cmd);
 
-  /**
-   * Finish task of a blocking call to a commands finish method.
-   */
-  struct GNUNET_SCHEDULER_Task *finish_task;
 
-  /**
-   * Our configuration.
-   */
-  const struct GNUNET_CONFIGURATION_Handle *cfg;
+/**
+ * Obtain what command the batch is at.
+ *
+ * @return cmd current batch command
+ */
+struct GNUNET_TESTING_Command *
+GNUNET_TESTING_cmd_batch_get_current_ (const struct GNUNET_TESTING_Command *cmd);
 
-  /**
-   * Task run on timeout.
-   */
-  struct GNUNET_SCHEDULER_Task *timeout_task;
 
-  /**
-   * Instruction pointer.  Tells #interpreter_run() which instruction to run
-   * next.  Need (signed) int because it gets -1 when rewinding the
-   * interpreter to the first CMD.
-   */
-  int ip;
+/**
+ * Set what command the batch should be at.  Needed for
+ * loops. We may want to change this to take a label
+ * and/or expose it in the public API in the future.
+ * Not used for now.
+ *
+ * @param cmd current batch command
+ * @param new_ip where to move the IP
+ */
+void
+GNUNET_TESTING_cmd_batch_set_current_ (const struct GNUNET_TESTING_Command *cmd,
+                                       unsigned int new_ip);
 
-  /**
-   * Result of the testcases, #GNUNET_OK on success
-   */
-  int result;
 
-};
+
+
+#endif
