@@ -54,14 +54,14 @@ struct StopPeerState
  */
 static void
 stop_peer_run (void *cls,
-               const struct GNUNET_TESTING_Command *cmd,
                struct GNUNET_TESTING_Interpreter *is)
 {
   struct StopPeerState *stop_ps = cls;
   struct StartPeerState *sps;
   const struct GNUNET_TESTING_Command *start_cmd;
 
-  start_cmd = GNUNET_TESTING_interpreter_lookup_command (stop_ps->start_label);
+  start_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
+                                                         stop_ps->start_label);
   GNUNET_TRANSPORT_get_trait_state (start_cmd,
                                     &sps);
 
@@ -112,8 +112,7 @@ stop_peer_run (void *cls,
  *
  */
 static void
-stop_peer_cleanup (void *cls,
-                   const struct GNUNET_TESTING_Command *cmd)
+stop_peer_cleanup (void *cls)
 {
   struct StopPeerState *sps = cls;
 
@@ -150,14 +149,14 @@ GNUNET_TRANSPORT_cmd_stop_peer (const char *label,
 
   sps = GNUNET_new (struct StopPeerState);
   sps->start_label = start_label;
-
-  struct GNUNET_TESTING_Command cmd = {
-    .cls = sps,
-    .label = label,
-    .run = &stop_peer_run,
-    .cleanup = &stop_peer_cleanup,
-    .traits = &stop_peer_traits
-  };
-
-  return cmd;
+  {
+    struct GNUNET_TESTING_Command cmd = {
+      .cls = sps,
+      .label = label,
+      .run = &stop_peer_run,
+      .cleanup = &stop_peer_cleanup,
+      .traits = &stop_peer_traits
+    };
+    return cmd;
+  }
 }

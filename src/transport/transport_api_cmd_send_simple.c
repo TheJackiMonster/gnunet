@@ -80,8 +80,7 @@ send_simple_traits (void *cls,
  *
  */
 static void
-send_simple_cleanup (void *cls,
-                     const struct GNUNET_TESTING_Command *cmd)
+send_simple_cleanup (void *cls)
 {
   struct SendSimpleState *sss = cls;
 
@@ -95,7 +94,6 @@ send_simple_cleanup (void *cls,
  */
 static void
 send_simple_run (void *cls,
-                 const struct GNUNET_TESTING_Command *cmd,
                  struct GNUNET_TESTING_Interpreter *is)
 {
   struct SendSimpleState *sss = cls;
@@ -108,7 +106,8 @@ send_simple_run (void *cls,
   struct GNUNET_HashCode hc;
   int node_number;
 
-  peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (sss->start_peer_label);
+  peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
+                                                         sss->start_peer_label);
   GNUNET_TRANSPORT_get_trait_connected_peers_map (peer1_cmd,
                                                   &connected_peers_map);
 
@@ -159,14 +158,15 @@ GNUNET_TRANSPORT_cmd_send_simple (const char *label,
   sss->n = n;
   sss->num = num;
   sss->start_peer_label = start_peer_label;
+  {
+    struct GNUNET_TESTING_Command cmd = {
+      .cls = sss,
+      .label = label,
+      .run = &send_simple_run,
+      .cleanup = &send_simple_cleanup,
+      .traits = &send_simple_traits
+    };
 
-  struct GNUNET_TESTING_Command cmd = {
-    .cls = sss,
-    .label = label,
-    .run = &send_simple_run,
-    .cleanup = &send_simple_cleanup,
-    .traits = &send_simple_traits
-  };
-
-  return cmd;
+    return cmd;
+  }
 }

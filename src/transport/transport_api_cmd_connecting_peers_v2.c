@@ -64,6 +64,8 @@ struct ConnectPeersState
    *
    */
   struct GNUNET_PeerIdentity *id;
+
+  struct GNUNET_TESTING_Interpreter *is;
 };
 
 
@@ -73,7 +75,6 @@ struct ConnectPeersState
  */
 static void
 connect_peers_run (void *cls,
-                   const struct GNUNET_TESTING_Command *cmd,
                    struct GNUNET_TESTING_Interpreter *is)
 {
   struct ConnectPeersState *cps = cls;
@@ -91,11 +92,14 @@ connect_peers_run (void *cls,
   struct GNUNET_PeerIdentity *other = GNUNET_new (struct GNUNET_PeerIdentity);
   uint32_t num;
 
-  peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->start_peer_label);
+  cps->is = is;
+  peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
+                                                         cps->start_peer_label);
   GNUNET_TRANSPORT_get_trait_application_handle_v2 (peer1_cmd,
                                                     &ah);
 
-  system_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->create_label);
+  system_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
+                                                          cps->create_label);
   GNUNET_TESTING_get_trait_test_system (system_cmd,
                                         &tl_system);
 
@@ -155,7 +159,8 @@ connect_peers_finish (void *cls,
   struct GNUNET_HashCode hc;
   int node_number;
 
-  peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->start_peer_label);
+  peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->is,
+                                                         cps->start_peer_label);
   GNUNET_TRANSPORT_get_trait_connected_peers_map_v2 (peer1_cmd,
                                                      &connected_peers_map);
 
@@ -198,8 +203,7 @@ connect_peers_traits (void *cls,
  *
  */
 static void
-connect_peers_cleanup (void *cls,
-                       const struct GNUNET_TESTING_Command *cmd)
+connect_peers_cleanup (void *cls)
 {
   struct ConnectPeersState *cps = cls;
 
@@ -228,15 +232,16 @@ GNUNET_TRANSPORT_cmd_connect_peers_v2 (const char *label,
   cps->num = num;
   cps->create_label = create_label;
 
+  {
+    struct GNUNET_TESTING_Command cmd = {
+      .cls = cps,
+      .label = label,
+      .run = &connect_peers_run,
+      .finish = &connect_peers_finish,
+      .cleanup = &connect_peers_cleanup,
+      .traits = &connect_peers_traits
+    };
 
-  struct GNUNET_TESTING_Command cmd = {
-    .cls = cps,
-    .label = label,
-    .run = &connect_peers_run,
-    .finish = &connect_peers_finish,
-    .cleanup = &connect_peers_cleanup,
-    .traits = &connect_peers_traits
-  };
-
-  return cmd;
+    return cmd;
+  }
 }

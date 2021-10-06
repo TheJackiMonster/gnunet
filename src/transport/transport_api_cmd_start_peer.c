@@ -177,7 +177,6 @@ notify_connect (void *cls,
  */
 static void
 start_peer_run (void *cls,
-                const struct GNUNET_TESTING_Command *cmd,
                 struct GNUNET_TESTING_Interpreter *is)
 {
   struct StartPeerState *sps = cls;
@@ -195,7 +194,7 @@ start_peer_run (void *cls,
     LOG (GNUNET_ERROR_TYPE_ERROR,
          "File not found: `%s'\n",
          sps->cfgname);
-    GNUNET_TESTING_interpreter_fail ();
+    GNUNET_TESTING_interpreter_fail (is);
     return;
   }
 
@@ -232,7 +231,8 @@ start_peer_run (void *cls,
                                          "UNIXPATH",
                                          communicator_unix_path);
 
-  system_cmd = GNUNET_TESTING_interpreter_lookup_command (sps->system_label);
+  system_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
+                                                          sps->system_label);
   GNUNET_TESTING_get_trait_test_system (system_cmd,
                                         &tl_system);
 
@@ -246,7 +246,7 @@ start_peer_run (void *cls,
          "Testing library failed to create unique configuration based on `%s'\n",
          sps->cfgname);
     GNUNET_CONFIGURATION_destroy (sps->cfg);
-    GNUNET_TESTING_interpreter_fail ();
+    GNUNET_TESTING_interpreter_fail (is);
     return;
   }
 
@@ -262,7 +262,7 @@ start_peer_run (void *cls,
          sps->cfgname,
          emsg);
     GNUNET_free (emsg);
-    GNUNET_TESTING_interpreter_fail ();
+    GNUNET_TESTING_interpreter_fail (is);
     return;
   }
 
@@ -272,7 +272,7 @@ start_peer_run (void *cls,
          "Testing library failed to create unique configuration based on `%s'\n",
          sps->cfgname);
     GNUNET_free (emsg);
-    GNUNET_TESTING_interpreter_fail ();
+    GNUNET_TESTING_interpreter_fail (is);
     return;
   }
 
@@ -291,7 +291,7 @@ start_peer_run (void *cls,
          "Testing library failed to obtain peer identity for peer %u\n",
          sps->no);
     GNUNET_free (emsg);
-    GNUNET_TESTING_interpreter_fail ();
+    GNUNET_TESTING_interpreter_fail (is);
     return;
   }
   LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -312,7 +312,7 @@ start_peer_run (void *cls,
          sps->cfgname,
          emsg);
     GNUNET_free (emsg);
-    GNUNET_TESTING_interpreter_fail ();
+    GNUNET_TESTING_interpreter_fail (is);
     return;
   }
 
@@ -324,7 +324,7 @@ start_peer_run (void *cls,
          sps->cfgname,
          emsg);
     GNUNET_free (emsg);
-    GNUNET_TESTING_interpreter_fail ();
+    GNUNET_TESTING_interpreter_fail (is);
     return;
   }
 
@@ -336,7 +336,7 @@ start_peer_run (void *cls,
          sps->cfgname,
          emsg);
     GNUNET_free (emsg);
-    GNUNET_TESTING_interpreter_fail ();
+    GNUNET_TESTING_interpreter_fail (is);
     return;
   }
   sps->rh_task = GNUNET_SCHEDULER_add_now (retrieve_hello, sps);
@@ -348,8 +348,7 @@ start_peer_run (void *cls,
  *
  */
 static void
-start_peer_cleanup (void *cls,
-                    const struct GNUNET_TESTING_Command *cmd)
+start_peer_cleanup (void *cls)
 {
   struct StartPeerState *sps = cls;
 

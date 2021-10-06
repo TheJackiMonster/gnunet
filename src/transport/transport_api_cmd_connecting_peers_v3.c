@@ -94,6 +94,8 @@ struct ConnectPeersState
    */
   struct GNUNET_TESTING_NodeConnection *node_connections_head;
 
+  struct GNUNET_TESTING_Interpreter *is;
+
   /**
    * Number of connections.
    */
@@ -264,6 +266,7 @@ calculate_num (struct GNUNET_TESTING_NodeConnection *node_connection,
   return num;
 }
 
+
 static char *
 get_address (struct GNUNET_TESTING_NodeConnection *connection,
              char *prefix)
@@ -323,7 +326,6 @@ get_address (struct GNUNET_TESTING_NodeConnection *connection,
  */
 static void
 connect_peers_run (void *cls,
-                   const struct GNUNET_TESTING_Command *cmd,
                    struct GNUNET_TESTING_Interpreter *is)
 {
   struct ConnectPeersState *cps = cls;
@@ -341,11 +343,14 @@ connect_peers_run (void *cls,
   struct GNUNET_TESTING_ADDRESS_PREFIX *pos_prefix;
   unsigned int con_num = 0;
 
-  peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->start_peer_label);
+  cps->is = is;
+  peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
+                                                         cps->start_peer_label);
   GNUNET_TRANSPORT_get_trait_application_handle_v2 (peer1_cmd,
                                                     &ah);
 
-  system_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->create_label);
+  system_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
+                                                          cps->create_label);
   GNUNET_TESTING_get_trait_test_system (system_cmd,
                                         &tl_system);
 
@@ -410,7 +415,8 @@ connect_peers_finish (void *cls,
   struct GNUNET_TESTING_NodeConnection *pos_connection;
   unsigned int num;
 
-  peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->start_peer_label);
+  peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->is,
+                                                         cps->start_peer_label);
   GNUNET_TRANSPORT_get_trait_connected_peers_map_v2 (peer1_cmd,
                                                      &connected_peers_map);
 
@@ -428,7 +434,6 @@ connect_peers_finish (void *cls,
           key))
       con_num++;
   }
-
 
 
   if (cps->con_num == con_num)
@@ -461,8 +466,7 @@ connect_peers_traits (void *cls,
  *
  */
 static void
-connect_peers_cleanup (void *cls,
-                       const struct GNUNET_TESTING_Command *cmd)
+connect_peers_cleanup (void *cls)
 {
   struct ConnectPeersState *cps = cls;
 

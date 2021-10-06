@@ -192,9 +192,10 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
                                             write_message)
   };
 
-  GNUNET_TESTING_run (NULL,
-                      commands,
-                      GNUNET_TIME_UNIT_FOREVER_REL);
+  GNUNET_TESTING_run (commands,
+                      GNUNET_TIME_UNIT_FOREVER_REL,
+                      NULL, /* FIMXE: will crash */
+                      NULL);
 
 }
 

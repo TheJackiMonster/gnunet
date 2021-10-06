@@ -62,6 +62,8 @@ struct ConnectPeersState
    *
    */
   struct GNUNET_PeerIdentity *id;
+
+  struct GNUNET_TESTING_Interpreter *is;
 };
 
 
@@ -71,7 +73,6 @@ struct ConnectPeersState
  */
 static void
 connect_peers_run (void *cls,
-                   const struct GNUNET_TESTING_Command *cmd,
                    struct GNUNET_TESTING_Interpreter *is)
 {
   struct ConnectPeersState *cps = cls;
@@ -96,7 +97,9 @@ connect_peers_run (void *cls,
   struct GNUNET_PeerIdentity *other = GNUNET_new (struct GNUNET_PeerIdentity);
   uint32_t num;
 
-  peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->start_peer_label);
+  cps->is = is;
+  peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
+                                                         cps->start_peer_label);
   GNUNET_TRANSPORT_get_trait_application_handle (peer1_cmd,
                                                  &ah);
 
@@ -106,7 +109,8 @@ connect_peers_run (void *cls,
   GNUNET_TRANSPORT_get_trait_peer_id (peer1_cmd,
                                       &id);
 
-  system_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->create_label);
+  system_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
+                                                          cps->create_label);
   GNUNET_TESTING_get_trait_test_system (system_cmd,
                                         &tl_system);
 
@@ -114,8 +118,6 @@ connect_peers_run (void *cls,
     num = 1;
   else
     num = 2;
-
-
 
 
   // if (strstr (hello, "60002") != NULL)
@@ -194,7 +196,8 @@ connect_peers_finish (void *cls,
   struct GNUNET_HashCode hc;
   int node_number;
 
-  peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->start_peer_label);
+  peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->is,
+                                                         cps->start_peer_label);
   GNUNET_TRANSPORT_get_trait_connected_peers_map (peer1_cmd,
                                                   &connected_peers_map);
 
@@ -237,8 +240,7 @@ connect_peers_traits (void *cls,
  *
  */
 static void
-connect_peers_cleanup (void *cls,
-                       const struct GNUNET_TESTING_Command *cmd)
+connect_peers_cleanup (void *cls)
 {
   struct ConnectPeersState *cps = cls;
 
