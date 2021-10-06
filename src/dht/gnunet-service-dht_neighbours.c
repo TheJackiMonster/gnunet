@@ -844,6 +844,10 @@ get_forward_count (uint32_t hop_count,
   uint32_t forward_count;
   float target_value;
 
+  if (0 == target_replication)
+    target_replication = 1; /* 0 is verboten */
+  if (target_replication > MAXIMUM_REPLICATION_LEVEL)
+    target_replication = MAXIMUM_REPLICATION_LEVEL;
   if (hop_count > GDS_NSE_get () * 4.0)
   {
     /* forcefully terminate */
@@ -864,6 +868,8 @@ get_forward_count (uint32_t hop_count,
     1 + (target_replication - 1.0) / (GDS_NSE_get ()
                                       + ((float) (target_replication - 1.0)
                                          * hop_count));
+
+
   /* Set forward count to floor of target_value */
   forward_count = (uint32_t) target_value;
   /* Subtract forward_count (floor) from target_value (yields value between 0 and 1) */
@@ -872,7 +878,8 @@ get_forward_count (uint32_t hop_count,
     GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK, UINT32_MAX);
   if (random_value < (target_value * UINT32_MAX))
     forward_count++;
-  return forward_count;
+  return GNUNET_MIN (forward_count,
+                     MAXIMUM_REPLICATION_LEVEL);
 }
 
 
