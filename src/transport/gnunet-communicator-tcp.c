@@ -1119,6 +1119,10 @@ pass_plaintext_to_core (struct Queue *queue,
   const struct GNUNET_MessageHeader *hdr = plaintext;
   int ret;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "pass message from %s to core\n",
+              GNUNET_i2s (&queue->target));
+
   if (ntohs (hdr->size) != plaintext_len)
   {
     /* NOTE: If we ever allow multiple CORE messages in one
@@ -1132,6 +1136,8 @@ pass_plaintext_to_core (struct Queue *queue,
                                                ADDRESS_VALIDITY_PERIOD,
                                                &core_read_finished_cb,
                                                queue);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "passed to core\n");
   if (GNUNET_OK == ret)
     queue->backpressure++;
   GNUNET_break (GNUNET_NO != ret);  /* backpressure not working!? */
@@ -1795,7 +1801,7 @@ try_handle_plaintext (struct Queue *queue)
     queue->qh = GNUNET_TRANSPORT_communicator_mq_add (ch,
                                                       &queue->target,
                                                       foreign_addr,
-                                                      UINT32_MAX, /* no MTU */
+                                                      UINT16_MAX, /* no MTU */
                                                       GNUNET_TRANSPORT_QUEUE_LENGTH_UNLIMITED,
                                                       0, /* Priority */
                                                       queue->nt,
@@ -2444,7 +2450,7 @@ boot_queue (struct Queue *queue)
  * Generate and transmit our ephemeral key and the signature for
  * the initial KX with the other peer.  Must be called first, before
  * any other bytes are ever written to the output buffer.  Note that
- * our cipher must already be initialized when calling this function.
+ * our cipher must already be initialized when calling thi function.
  * Helper function for #start_initial_kx_out().
  *
  * @param queue queue to do KX for
@@ -2725,6 +2731,9 @@ proto_read_kx (void *cls)
   queue->listen_sock = pq->listen_sock;
   queue->sock = pq->sock;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "created queue with target %s\n",
+              GNUNET_i2s (&queue->target));
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "start kx proto\n");
@@ -2984,6 +2993,9 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
   queue->sock = sock;
   queue->cs = GNUNET_TRANSPORT_CS_OUTBOUND;
   boot_queue (queue);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "booted queue with target %s\n",
+              GNUNET_i2s (&queue->target));
   // queue->mq_awaits_continue = GNUNET_YES;
   queue->read_task =
     GNUNET_SCHEDULER_add_read_net (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT,
@@ -3645,6 +3657,10 @@ main (int argc, char *const *argv)
     GNUNET_GETOPT_OPTION_END
   };
   int ret;
+
+  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
+                           "transport",
+                           "Starting tcp communicator\n");
 
   if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
     return 2;

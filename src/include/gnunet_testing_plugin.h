@@ -48,8 +48,14 @@ typedef void
                                         char *m,
                                         char *local_m);
 
+
 typedef void
 (*GNUNET_TESTING_PLUGIN_ALL_PEERS_STARTED) ();
+
+
+typedef void
+(*GNUNET_TESTING_PLUGIN_ALL_LOCAL_TESTS_PREPARED) ();
+
 
 struct GNUNET_TESTING_PluginFunctions
 {
@@ -61,6 +67,8 @@ struct GNUNET_TESTING_PluginFunctions
   GNUNET_TESTING_PLUGIN_StartTestCase start_testcase;
 
   GNUNET_TESTING_PLUGIN_ALL_PEERS_STARTED all_peers_started;
+
+  GNUNET_TESTING_PLUGIN_ALL_LOCAL_TESTS_PREPARED all_local_tests_prepared;
 };
 
 #if 0                           /* keep Emacsens' auto-indent happy */

@@ -1494,7 +1494,27 @@ add_acks (struct SharedSecret *ss, int acks_to_add)
 
   GNUNET_assert (NULL != ss);
   GNUNET_assert (NULL != receiver);
-  GNUNET_assert (NULL != receiver->d_qh);
+
+  if (NULL == receiver->d_qh)
+  {
+    receiver->d_qh =
+      GNUNET_TRANSPORT_communicator_mq_add (ch,
+                                            &receiver->target,
+                                            receiver->foreign_addr,
+                                            receiver->d_mtu,
+                                            acks_to_add,
+                                            1, /* Priority */
+                                            receiver->nt,
+                                            GNUNET_TRANSPORT_CS_OUTBOUND,
+                                            receiver->d_mq);
+  }
+  else
+  {
+    GNUNET_TRANSPORT_communicator_mq_update (ch,
+                                             receiver->d_qh,
+                                             acks_to_add,
+                                             1);
+  }
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Tell transport we have %u more acks!\n",
@@ -1502,10 +1522,7 @@ add_acks (struct SharedSecret *ss, int acks_to_add)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "%u kce for rekeying.\n",
               receiver->number_rekeying_kce);
-  GNUNET_TRANSPORT_communicator_mq_update (ch,
-                                           receiver->d_qh,
-                                           acks_to_add,
-                                           1);
+
   // Until here for alternativ 1
 
   /* move ss to head to avoid discarding it anytime soon! */
@@ -1744,7 +1761,7 @@ kce_generate_cb (void *cls)
   if (((GNUNET_NO == ss->sender->rekeying) && (ss->sender->acks_available <
                                                KCN_TARGET) ) ||
       ((ss->sender->ss_rekey == ss) && (GNUNET_YES == ss->sender->rekeying) &&
-       (ss->sender->acks_available < 128)))
+       (ss->sender->acks_available < KCN_TARGET)))
   {
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1754,18 +1771,22 @@ kce_generate_cb (void *cls)
     for (int i = 0; i < GENERATE_AT_ONCE; i++)
       kce_generate (ss, ++ss->sequence_allowed);
 
-    ss->sender->kce_task = GNUNET_SCHEDULER_add_delayed (
-      WORKING_QUEUE_INTERVALL,
-      kce_generate_cb,
-      ss);
+    if (KCN_TARGET > ss->sender->acks_available)
+    {
+      ss->sender->kce_task = GNUNET_SCHEDULER_add_delayed (
+        WORKING_QUEUE_INTERVALL,
+        kce_generate_cb,
+        ss);
+    }
+    else
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "We have enough keys.\n");
+      ss_finished = ss;
+      ss->sender->kce_task_finished = GNUNET_YES;
+    }
   }
-  else
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "We have enough keys.\n");
-    ss_finished = ss;
-    ss->sender->kce_task_finished = GNUNET_YES;
-  }
+
 
 
 }
@@ -1850,7 +1871,17 @@ consider_ss_ack (struct SharedSecret *ss, int initial)
       kce_generate (ss, ++ss->sequence_allowed);
       }*/
 
-  if (((NULL != kce_task) && kce_task_finished) || (GNUNET_NO == initial))
+  if (NULL != kce_task)
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "kce_task is not NULL\n");
+  if (kce_task_finished)
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "kce_task_finished: GNUNET_YES\n");
+  if (initial)
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "initial: GNUNET_YES\n");
+
+  if ( kce_task_finished || (GNUNET_NO == initial))
   {
     struct UDPAck ack;
     struct SharedSecret *ss_tell;
@@ -1877,8 +1908,7 @@ consider_ss_ack (struct SharedSecret *ss, int initial)
     if (GNUNET_NO != initial)
     {
       destroy_all_secrets (ss, GNUNET_YES);
-      kce_task = NULL;
-      kce_task_finished = GNUNET_NO;
+      ss->sender->kce_task_finished = GNUNET_NO;
     }
   }
   else if ((NULL == kce_task) && ((KCN_THRESHOLD >
@@ -2678,8 +2708,10 @@ mq_send_kx (struct GNUNET_MQ_Handle *mq,
                                           receiver->address_len))
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "send");
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Sending KX to %s\n", GNUNET_a2s (receiver->address,
-                                                receiver->address_len));
+              "Sending KX with payload size %u to %s\n",
+              msize,
+              GNUNET_a2s (receiver->address,
+                          receiver->address_len));
   GNUNET_MQ_impl_send_continue (mq);
 }
 
@@ -2940,7 +2972,8 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
                                             receiver->address_len))
       GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "send");
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Sending UDPBox %u acks left\n",
+                "Sending UDPBox with payload size %u, %u acks left\n",
+                msize,
                 receiver->acks_available);
     GNUNET_MQ_impl_send_continue (mq);
     receiver->acks_available--;
@@ -3135,17 +3168,6 @@ setup_receiver_mq (struct ReceiverAddress *receiver)
                                           receiver->nt,
                                           GNUNET_TRANSPORT_CS_OUTBOUND,
                                           receiver->kx_mq);
-  receiver->d_qh =
-    GNUNET_TRANSPORT_communicator_mq_add (ch,
-                                          &receiver->target,
-                                          receiver->foreign_addr,
-                                          receiver->d_mtu,
-                                          0, /* Initialize with 0 acks */
-                                          1, /* Priority */
-                                          receiver->nt,
-                                          GNUNET_TRANSPORT_CS_OUTBOUND,
-                                          receiver->d_mq);
-
 }
 
 
@@ -3755,9 +3777,11 @@ run (void *cls,
   GNUNET_free (bindto);
   in = (struct sockaddr *) &in_sto;
   in_len = sto_len;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Bound to `%s'\n",
-              GNUNET_a2s ((const struct sockaddr *) &in_sto, sto_len));
+  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
+                           "transport",
+                           "Bound to `%s'\n",
+                           GNUNET_a2s ((const struct sockaddr *) &in_sto,
+                                       sto_len));
   switch (in->sa_family)
   {
   case AF_INET:
@@ -3853,6 +3877,9 @@ main (int argc, char *const *argv)
   };
   int ret;
 
+  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
+                           "transport",
+                           "Starting udp communicator\n");
   if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
     return 2;
 

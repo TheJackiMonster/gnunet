@@ -79,17 +79,17 @@ enum GNUNET_TESTING_NODE_TYPE
   GNUNET_TESTING_GLOBAL_NODE
 };
 
-struct GNUNET_TESTING_ADDRESS_PREFIX
+struct GNUNET_TESTING_AddressPrefix
 {
   /**
    * Pointer to the previous prefix in the DLL.
    */
-  struct GNUNET_TESTING_ADDRESS_PREFIX *prev;
+  struct GNUNET_TESTING_AddressPrefix *prev;
 
   /**
    * Pointer to the next prefix in the DLL.
    */
-  struct GNUNET_TESTING_ADDRESS_PREFIX *next;
+  struct GNUNET_TESTING_AddressPrefix *next;
 
   /**
    * The address prefix.
@@ -138,12 +138,12 @@ struct GNUNET_TESTING_NodeConnection
   /**
    * Head of the DLL with the address prefixes for the protocolls this node is reachable.
    */
-  struct GNUNET_TESTING_ADDRESS_PREFIX *address_prefixes_head;
+  struct GNUNET_TESTING_AddressPrefix *address_prefixes_head;
 
   /**
    * Tail of the DLL with the address prefixes for the protocolls this node is reachable.
    */
-  struct GNUNET_TESTING_ADDRESS_PREFIX *address_prefixes_tail;
+  struct GNUNET_TESTING_AddressPrefix *address_prefixes_tail;
 };
 
 /**
@@ -379,6 +379,11 @@ struct GNUNET_TESTING_Command
    */
   bool asynchronous_finish;
 
+  /**
+   * Shall the scheduler shutdown, when end cmd is reach?
+   */
+  bool shutdown_on_end;
+
 };
 
 
@@ -447,6 +452,15 @@ GNUNET_TESTING_interpreter_fail ();
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_end (void);
+
+
+/**
+ * Create command array terminator without shutdown.
+ *
+ * @return a end-command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_end_without_shutdown (void);
 
 
 /**
@@ -658,6 +672,55 @@ struct GNUNET_TESTING_Timer
  */
 struct GNUNET_TESTING_NetjailTopology *
 GNUNET_TESTING_get_topo_from_file (const char *filename);
+
+
+/**
+ * Get the connections to other nodes for a specific node.
+ *
+ * @param num The specific node we want the connections for.
+ * @param topology The topology we get the connections from.
+ * @return The connections of the node.
+ */
+struct GNUNET_TESTING_NodeConnection *
+GNUNET_TESTING_get_connections (unsigned int num, struct
+                                GNUNET_TESTING_NetjailTopology *topology);
+
+
+/**
+ * Get the address for a specific communicator from a connection.
+ *
+ * @param connection The connection we like to have the address from.
+ * @param prefix The communicator protocol prefix.
+ * @return The address of the communicator.
+ */
+char *
+GNUNET_TESTING_get_address (struct GNUNET_TESTING_NodeConnection *connection,
+                            char *prefix);
+
+
+/**
+ * Calculate the unique id identifying a node from a given connction.
+ *
+ * @param node_connection The connection we calculate the id from.
+ * @param topology The topology we get all needed information from.
+ * @return The unique id of the node from the connection.
+ */
+unsigned int
+GNUNET_TESTING_calculate_num (struct
+                              GNUNET_TESTING_NodeConnection *node_connection,
+                              struct GNUNET_TESTING_NetjailTopology *topology);
+
+
+/**
+ * Retrieve the public key from the test system with the unique node id.
+ *
+ * @param num The unique node id.
+ * @param tl_system The test system.
+ * @return The peer identity wrapping the public key.
+ */
+struct GNUNET_PeerIdentity *
+GNUNET_TESTING_get_pub_key (unsigned int num, struct
+                            GNUNET_TESTING_System *tl_system);
 
 
 /**
@@ -1183,12 +1246,36 @@ GNUNET_TESTING_cmd_block_until_external_trigger (const char *label,
                                                  unsigned int *
                                                  stop_blocking);
 
+
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_send_peer_ready (const char *label,
                                     TESTING_CMD_HELPER_write_cb write_message);
 
+
+/**
+ * Create command.
+ *
+ * @param label name for command.
+ * @param write_message Callback to write messages to the master loop.
+ * @return command.
+ */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_local_test_finished (const char *label,
                                         TESTING_CMD_HELPER_write_cb
                                         write_message);
+
+/**
+ * Create command.
+ *
+ * @param label name for command.
+ * @param write_message Callback to write messages to the master loop.
+ * @param all_local_tests_prepared Flag which will be set from outside.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_local_test_prepared (const char *label,
+                                        TESTING_CMD_HELPER_write_cb
+                                        write_message,
+                                        unsigned int *
+                                        all_local_tests_prepared);
 #endif

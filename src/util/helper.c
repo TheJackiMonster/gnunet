@@ -407,6 +407,8 @@ start_helper (struct GNUNET_HELPER_Handle *h)
   if ((h->helper_in == NULL) || (h->helper_out == NULL))
   {
     /* out of file descriptors? try again later... */
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "out of file descriptors? try again later\n");
     stop_helper (h, GNUNET_NO);
     h->restart_task = GNUNET_SCHEDULER_add_delayed (
       GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,
@@ -434,6 +436,8 @@ start_helper (struct GNUNET_HELPER_Handle *h)
   if (NULL == h->helper_proc)
   {
     /* failed to start process? try again later... */
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "failed to start process? try again later\n");
     stop_helper (h, GNUNET_NO);
     h->restart_task = GNUNET_SCHEDULER_add_delayed (
       GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,

@@ -85,6 +85,23 @@ struct GNUNET_CMDS_LOCAL_FINISHED
   struct GNUNET_MessageHeader header;
 };
 
+struct GNUNET_CMDS_LOCAL_TEST_PREPARED
+{
+  /**
+   * Type is GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_TEST_PREPARED
+   */
+  struct GNUNET_MessageHeader header;
+};
+
+struct GNUNET_CMDS_ALL_LOCAL_TESTS_PREPARED
+{
+  /**
+   * Type is GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_LOCAL_TESTS_PREPARED
+   */
+  struct GNUNET_MessageHeader header;
+};
+
 GNUNET_NETWORK_STRUCT_END
+
 #endif
 /* end of testing_cmds.h */

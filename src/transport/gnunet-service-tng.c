@@ -1736,6 +1736,11 @@ struct Queue
   const char *address;
 
   /**
+   * Is this queue of unlimited length.
+   */
+  unsigned int unlimited_length;
+
+  /**
    * Task scheduled for the time when this queue can (likely) transmit the
    * next message.
    */
@@ -1785,6 +1790,11 @@ struct Queue
    * Length of the DLL starting at @e queue_head.
    */
   unsigned int queue_length;
+
+  /**
+   * Capacity of the queue.
+   */
+  uint64_t q_capacity;
 
   /**
    * Queue priority
@@ -3446,6 +3456,35 @@ transmit_on_queue (void *cls);
 
 
 /**
+ * Check if the communicator has another queue with higher prio ready for sending.
+ */
+static unsigned int
+check_for_queue_with_higher_prio (struct Queue *queue, struct Queue *queue_head)
+{
+  for (struct Queue *s = queue_head; NULL != s;
+       s = s->next_client)
+  {
+    if (s->tc->details.communicator.address_prefix !=
+        queue->tc->details.communicator.address_prefix)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "queue address %s qid %u compare with queue: address %s qid %u\n",
+                  queue->address,
+                  queue->qid,
+                  s->address,
+                  s->qid);
+      if ((s->priority > queue->priority) && (0 < s->q_capacity) &&
+          (QUEUE_LENGTH_LIMIT > s->queue_length) )
+        return GNUNET_YES;
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Lower prio\n");
+    }
+  }
+  return GNUNET_NO;
+}
+
+
+/**
  * Called whenever something changed that might effect when we
  * try to do the next transmission on @a queue using #transmit_on_queue().
  *
@@ -3456,6 +3495,11 @@ static void
 schedule_transmit_on_queue (struct Queue *queue,
                             enum GNUNET_SCHEDULER_Priority p)
 {
+  if (check_for_queue_with_higher_prio (queue,
+                                        queue->tc->details.communicator.
+                                        queue_head))
+    return;
+
   if (queue->tc->details.communicator.total_queue_length >=
       COMMUNICATOR_TOTAL_QUEUE_LIMIT)
   {
@@ -3475,6 +3519,19 @@ schedule_transmit_on_queue (struct Queue *queue,
                 "Transmission throttled due to communicator queue length limit\n");
     GNUNET_STATISTICS_update (GST_stats,
                               "# Transmission throttled due to queue queue limit",
+                              1,
+                              GNUNET_NO);
+    queue->idle = GNUNET_NO;
+    return;
+  }
+  if (0 == queue->q_capacity)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Transmission throttled due to communicator message queue qid %u has capacity %lu.\n",
+                queue->qid,
+                queue->q_capacity);
+    GNUNET_STATISTICS_update (GST_stats,
+                              "# Transmission throttled due to message queue capacity",
                               1,
                               GNUNET_NO);
     queue->idle = GNUNET_NO;
@@ -3582,8 +3639,9 @@ free_queue (struct Queue *queue)
                                 tc->details.communicator.queue_head,
                                 tc->details.communicator.queue_tail,
                                 queue);
-  maxxed = (COMMUNICATOR_TOTAL_QUEUE_LIMIT >=
-            tc->details.communicator.total_queue_length);
+  maxxed = (COMMUNICATOR_TOTAL_QUEUE_LIMIT <=
+            tc->details.communicator.
+            total_queue_length);
   while (NULL != (qe = queue->queue_head))
   {
     GNUNET_CONTAINER_DLL_remove (queue->queue_head, queue->queue_tail, qe);
@@ -3597,7 +3655,7 @@ free_queue (struct Queue *queue)
     GNUNET_free (qe);
   }
   GNUNET_assert (0 == queue->queue_length);
-  if ((maxxed) && (COMMUNICATOR_TOTAL_QUEUE_LIMIT <
+  if ((maxxed) && (COMMUNICATOR_TOTAL_QUEUE_LIMIT >
                    tc->details.communicator.total_queue_length))
   {
     /* Communicator dropped below threshold, resume all _other_ queues */
@@ -4223,17 +4281,35 @@ queue_send_msg (struct Queue *queue,
     if (NULL != pm)
     {
       qe->pm = pm;
-      GNUNET_assert (NULL == pm->qe);
+      // TODO Why do we have a retransmission. When we know, make decision if we still want this.
+      // GNUNET_assert (NULL == pm->qe);
+      /*if (NULL != pm->qe)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "Retransmitting message <%llu> remove pm from qe with MID: %llu \n",
+                    pm->logging_uuid,
+                    (unsigned long long) pm->qe->mid);
+        pm->qe->pm = NULL;
+        }*/
       pm->qe = qe;
     }
     GNUNET_CONTAINER_DLL_insert (queue->queue_head, queue->queue_tail, qe);
     GNUNET_assert (CT_COMMUNICATOR == queue->tc->type);
     queue->queue_length++;
     queue->tc->details.communicator.total_queue_length++;
+    if (GNUNET_NO == queue->unlimited_length)
+      queue->q_capacity--;
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Queue %s with qid %u has capacity %lu\n",
+                queue->address,
+                queue->qid,
+                queue->q_capacity);
     if (COMMUNICATOR_TOTAL_QUEUE_LIMIT ==
         queue->tc->details.communicator.total_queue_length)
       queue->idle = GNUNET_NO;
     if (QUEUE_LENGTH_LIMIT == queue->queue_length)
+      queue->idle = GNUNET_NO;
+    if (0 == queue->q_capacity)
       queue->idle = GNUNET_NO;
     GNUNET_MQ_send (queue->tc->mq, env);
   }
@@ -4672,8 +4748,16 @@ route_control_message_without_fc (const struct GNUNET_PeerIdentity *target,
   struct GNUNET_TIME_Relative rtt1;
   struct GNUNET_TIME_Relative rtt2;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Trying to route message of type %u to %s without fc\n",
+              ntohs (hdr->type),
+              GNUNET_i2s (target));
+
+  // TODO Do this elsewhere. vl should be given as parameter to method.
   vl = lookup_virtual_link (target);
   GNUNET_assert (NULL != vl);
+  if (NULL == vl)
+    return GNUNET_TIME_UNIT_FOREVER_REL;
   n = vl->n;
   dv = (0 != (options & RMO_DV_ALLOWED)) ? vl->dv : NULL;
   if (0 == (options & RMO_UNCONFIRMED_ALLOWED))
@@ -4718,6 +4802,10 @@ route_control_message_without_fc (const struct GNUNET_PeerIdentity *target,
   rtt2 = GNUNET_TIME_UNIT_FOREVER_REL;
   if (NULL != n)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Try to route message of type %u to %s without fc via neighbour\n",
+                ntohs (hdr->type),
+                GNUNET_i2s (target));
     rtt1 = route_via_neighbour (n, hdr, options);
   }
   if (NULL != dv)
@@ -4889,7 +4977,9 @@ check_vl_transmission (struct VirtualLink *vl)
         schedule_transmit_on_queue (queue, GNUNET_SCHEDULER_PRIORITY_DEFAULT);
       else
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                    "Queue busy or invalid\n");
+                    "Neighbour Queue QID: %u (%u) busy or invalid\n",
+                    queue->qid,
+                    queue->idle);
     }
   }
   /* Notify queues via DV that we are interested */
@@ -4910,6 +5000,11 @@ check_vl_transmission (struct VirtualLink *vl)
             (queue->validated_until.abs_value_us > now.abs_value_us))
           schedule_transmit_on_queue (queue,
                                       GNUNET_SCHEDULER_PRIORITY_BACKGROUND);
+        else
+          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                      "DV Queue QID: %u (%u) busy or invalid\n",
+                      queue->qid,
+                      queue->idle);
     }
   }
 }
@@ -4996,8 +5091,9 @@ handle_communicator_backchannel (
     (const struct GNUNET_MessageHeader *) &cb[1];
   uint16_t isize = ntohs (inbox->size);
   const char *is = ((const char *) &cb[1]) + isize;
+  size_t slen = strlen (is) + 1;
   char
-    mbuf[isize
+    mbuf[slen + isize
          + sizeof(struct
                   TransportBackchannelEncapsulationMessage)] GNUNET_ALIGN;
   struct TransportBackchannelEncapsulationMessage *be =
@@ -5006,9 +5102,10 @@ handle_communicator_backchannel (
   /* 0-termination of 'is' was checked already in
    #check_communicator_backchannel() */
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Preparing backchannel transmission to %s:%s of type %u\n",
+              "Preparing backchannel transmission to %s:%s of type %u and size %u\n",
               GNUNET_i2s (&cb->pid),
               is,
+              ntohs (inbox->type),
               ntohs (inbox->size));
   /* encapsulate and encrypt message */
   be->header.type =
@@ -5264,6 +5361,11 @@ handle_raw_message (void *cls, const struct GNUNET_MessageHeader *mh)
   uint16_t size = ntohs (mh->size);
   int have_core;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Handling message of type %u with %u bytes\n",
+              (unsigned int) ntohs (mh->type),
+              (unsigned int) ntohs (mh->size));
+
   if ((size > UINT16_MAX - sizeof(struct InboundMessage)) ||
       (size < sizeof(struct GNUNET_MessageHeader)))
   {
@@ -5290,6 +5392,10 @@ handle_raw_message (void *cls, const struct GNUNET_MessageHeader *mh)
                               1,
                               GNUNET_NO);
 
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "CORE messages of type %u with %u bytes dropped (virtual link still down)\n",
+                (unsigned int) ntohs (mh->type),
+                (unsigned int) ntohs (mh->size));
     finish_cmc_handling (cmc);
     return;
   }
@@ -5299,7 +5405,10 @@ handle_raw_message (void *cls, const struct GNUNET_MessageHeader *mh)
                               "# CORE messages dropped (FC arithmetic overflow)",
                               1,
                               GNUNET_NO);
-
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "CORE messages of type %u with %u bytes dropped (FC arithmetic overflow)\n",
+                (unsigned int) ntohs (mh->type),
+                (unsigned int) ntohs (mh->size));
     finish_cmc_handling (cmc);
     return;
   }
@@ -5309,6 +5418,10 @@ handle_raw_message (void *cls, const struct GNUNET_MessageHeader *mh)
                               "# CORE messages dropped (FC window overflow)",
                               1,
                               GNUNET_NO);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "CORE messages of type %u with %u bytes dropped (FC window overflow)\n",
+                (unsigned int) ntohs (mh->type),
+                (unsigned int) ntohs (mh->size));
     finish_cmc_handling (cmc);
     return;
   }
@@ -5345,6 +5458,10 @@ handle_raw_message (void *cls, const struct GNUNET_MessageHeader *mh)
        perspective of the other peer! */
     vl->incoming_fc_window_size_used += size;
     /* TODO-M1 */
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Dropped message of type %u with %u bytes to CORE: no CORE client connected!",
+                (unsigned int) ntohs (mh->type),
+                (unsigned int) ntohs (mh->size));
     finish_cmc_handling (cmc);
     return;
   }
@@ -6074,6 +6191,15 @@ handle_backchannel_encapsulation (
     (const struct GNUNET_MessageHeader *) &be[1];
   uint16_t isize = ntohs (inbox->size);
   const char *target_communicator = ((const char *) inbox) + isize;
+  char *sender;
+  char *self;
+
+  GNUNET_asprintf (&sender,
+                   "%s",
+                   GNUNET_i2s (&cmc->im.sender));
+  GNUNET_asprintf (&self,
+                   "%s",
+                   GNUNET_i2s (&GST_my_identity));
 
   /* Find client providing this communicator */
   for (tc = clients_head; NULL != tc; tc = tc->next)
@@ -6095,8 +6221,9 @@ handle_backchannel_encapsulation (
   }
   /* Finally, deliver backchannel message to communicator */
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Delivering backchannel message from %s of type %u to %s\n",
-              GNUNET_i2s (&cmc->im.sender),
+              "Delivering backchannel message from %s to %s of type %u to %s\n",
+              sender,
+              self,
               ntohs (inbox->type),
               target_communicator);
   env = GNUNET_MQ_msg_extra (
@@ -8407,14 +8534,15 @@ fragment_message (struct Queue *queue,
   struct PendingMessage *ff;
   uint16_t mtu;
 
-  mtu = (0 == queue->mtu)
+  mtu = (UINT16_MAX == queue->mtu)
         ? UINT16_MAX - sizeof(struct GNUNET_TRANSPORT_SendMessageTo)
         : queue->mtu;
   set_pending_message_uuid (pm);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Fragmenting message %llu <%llu> to %s for MTU %u\n",
+              "Fragmenting message %llu <%llu> with size %u to %s for MTU %u\n",
               (unsigned long long) pm->msg_uuid.uuid,
               pm->logging_uuid,
+              pm->bytes_msg,
               GNUNET_i2s (&pm->vl->target),
               (unsigned int) mtu);
   pa = prepare_pending_acknowledgement (queue, dvh, pm);
@@ -8700,7 +8828,7 @@ select_best_pending_from_link (struct PendingMessageScoreContext *sc,
                                               GNUNET_TRANSPORT_SendMessageTo))
         ||
         (NULL != pos->head_frag /* fragments already exist, should
-                                     respect that even if MTU is 0 for
+                                     respect that even if MTU is UINT16_MAX for
                                      this queue */))
     {
       frag = GNUNET_YES;
@@ -9069,12 +9197,17 @@ handle_send_message_ack (void *cls,
          qep = qep->next)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "QueueEntry MID: %llu, Ack MID: %llu\n",
+                  "QueueEntry MID: %llu on queue QID: %llu, Ack MID: %llu\n",
                   (unsigned long long) qep->mid,
+                  (unsigned long long) queue->qid,
                   (unsigned long long) sma->mid);
       if (qep->mid != sma->mid)
         continue;
       qe = qep;
+      if ((NULL != qe->pm)&&(qe->pm->qe != qe))
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "For pending message %llu we had retransmissions.\n",
+                    qe->pm->logging_uuid);
       break;
     }
   }
@@ -9125,12 +9258,26 @@ handle_send_message_ack (void *cls,
                               GNUNET_NO);
     schedule_transmit_on_queue (qe->queue, GNUNET_SCHEDULER_PRIORITY_DEFAULT);
   }
+  else if (1 == qe->queue->q_capacity)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Transmission rescheduled due to communicator message queue with qid %u has capacity %lu.\n",
+                qe->queue->qid,
+                qe->queue->q_capacity);
+    /* message queue has capacity; only resume this one queue */
+    /* queue dropped below threshold; only resume this one queue */
+    GNUNET_STATISTICS_update (GST_stats,
+                              "# Transmission throttled due to message queue capacity",
+                              -1,
+                              GNUNET_NO);
+    schedule_transmit_on_queue (qe->queue, GNUNET_SCHEDULER_PRIORITY_DEFAULT);
+  }
 
   if (NULL != (pm = qe->pm))
   {
     struct VirtualLink *vl;
 
-    GNUNET_assert (qe == pm->qe);
+    // GNUNET_assert (qe == pm->qe);
     pm->qe = NULL;
     /* If waiting for this communicator may have blocked transmission
        of pm on other queues for this neighbour, force schedule
@@ -9671,16 +9818,20 @@ handle_add_queue_message (void *cls,
     addr_len = ntohs (aqm->header.size) - sizeof(*aqm);
     addr = (const char *) &aqm[1];
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "New queue %s to %s available with QID %llu\n",
+                "New queue %s to %s available with QID %llu and q_len %lu \n",
                 addr,
                 GNUNET_i2s (&aqm->receiver),
-                (unsigned long long) aqm->qid);
+                (unsigned long long) aqm->qid,
+                GNUNET_ntohll (aqm->q_len));
     queue = GNUNET_malloc (sizeof(struct Queue) + addr_len);
     queue->tc = tc;
     queue->address = (const char *) &queue[1];
     queue->pd.aged_rtt = GNUNET_TIME_UNIT_FOREVER_REL;
     queue->qid = aqm->qid;
     queue->neighbour = neighbour;
+    if (GNUNET_TRANSPORT_QUEUE_LENGTH_UNLIMITED == GNUNET_ntohll (aqm->q_len))
+      queue->unlimited_length = GNUNET_YES;
+    queue->q_capacity = GNUNET_ntohll (aqm->q_len);
     memcpy (&queue[1], addr, addr_len);
     /* notify monitors about new queue */
     {
@@ -9752,10 +9903,14 @@ handle_update_queue_message (void *cls,
   target_queue->mtu = ntohl (msg->mtu);
   target_queue->cs = msg->cs;
   target_queue->priority = ntohl (msg->priority);
-  /* The update message indicates how many _additional_
-   * messages the queue should be able to handle
+  /* The update message indicates how many messages
+   * the queue should be able to handle.
    */
-  target_queue->queue_length += GNUNET_ntohll (msg->q_len);
+  if (GNUNET_TRANSPORT_QUEUE_LENGTH_UNLIMITED == GNUNET_ntohll (msg->q_len))
+    target_queue->unlimited_length = GNUNET_YES;
+  else
+    target_queue->unlimited_length = GNUNET_NO;
+  target_queue->q_capacity = GNUNET_ntohll (msg->q_len);
   GNUNET_SERVICE_client_continue (tc->client);
 }
 
@@ -10179,8 +10334,18 @@ static void
 shutdown_task (void *cls)
 {
   in_shutdown = GNUNET_YES;
+
   if (NULL == clients_head)
-    do_shutdown (cls);
+  {
+    for (struct TransportClient *tc = clients_head; NULL != tc; tc = tc->next)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "client still connected: %u\n",
+                  tc->type);
+    }
+  }
+  do_shutdown (cls);
+
 }
 
 

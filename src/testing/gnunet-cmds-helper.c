@@ -418,7 +418,17 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
   else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_PEERS_STARTED == ntohs (
              message->type))
   {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "all peers started\n");
     plugin->api->all_peers_started ();
+    return GNUNET_OK;
+  }
+  else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_LOCAL_TESTS_PREPARED == ntohs (
+             message->type))
+  {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "all local tests prepared\n");
+    plugin->api->all_local_tests_prepared ();
     return GNUNET_OK;
   }
   else

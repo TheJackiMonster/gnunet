@@ -163,12 +163,14 @@ libgnunettransporttesting2_la_SOURCES = \
   transport_api_cmd_connecting_peers.c \
   transport_api_cmd_connecting_peers_v2.c \
   transport_api_cmd_connecting_peers_v3.c \
+  transport_api_cmd_backchannel_check.c \
   transport_api_cmd_start_peer.c \
   transport_api_cmd_start_peer_v2.c \
   transport_api_cmd_start_peer_v3.c \
   transport_api_cmd_stop_peer.c \
   transport_api_cmd_send_simple.c \
   transport_api_cmd_send_simple_v2.c \
+  transport_api_cmd_send_simple_v3.c \
   transport-testing2.c transport-testing2.h \
   transport-testing-cmds.h \
   transport-testing-filenames2.c \

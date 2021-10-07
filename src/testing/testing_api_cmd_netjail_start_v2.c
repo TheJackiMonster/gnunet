@@ -75,7 +75,7 @@ netjail_start_cleanup (void *cls,
   {
     GNUNET_assert (0 ==
                    GNUNET_OS_process_kill (ns->start_proc,
-                                           SIGKILL));
+                                           SIGTERM));
     GNUNET_assert (GNUNET_OK ==
                    GNUNET_OS_process_wait (ns->start_proc));
     GNUNET_OS_process_destroy (ns->start_proc);

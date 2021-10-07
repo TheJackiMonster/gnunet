@@ -91,7 +91,7 @@ connect_peers_run (void *cls,
   char *hello;
   // size_t *hello_size;
   enum GNUNET_NetworkType nt = 0;
-  char *peer_id;
+  // char *peer_id;
   struct GNUNET_PeerIdentity *id;
   struct GNUNET_PeerIdentity *other = GNUNET_new (struct GNUNET_PeerIdentity);
   uint32_t num;
@@ -122,12 +122,12 @@ connect_peers_run (void *cls,
   if (2 == num)
   {
     addr = "tcp-192.168.15.2:60002";
-    peer_id = "F2F3X9G1YNCTXKK7A4J6M4ZM4BBSKC9DEXZVHCWQ475M0C7PNWCG";
+    // peer_id = "F2F3X9G1YNCTXKK7A4J6M4ZM4BBSKC9DEXZVHCWQ475M0C7PNWCG";
   }
   else
   {
     addr = "tcp-192.168.15.1:60002";
-    peer_id = "4TTC9WBSVP9RJT6DVEZ7E0TDW7TQXC11NR1EMR2F8ARS87WZ2730";
+    // peer_id = "4TTC9WBSVP9RJT6DVEZ7E0TDW7TQXC11NR1EMR2F8ARS87WZ2730";
   }
 
   priv_key = GNUNET_TESTING_hostkey_get (tl_system,
@@ -137,16 +137,16 @@ connect_peers_run (void *cls,
   GNUNET_CRYPTO_eddsa_key_get_public (priv_key,
                                       pub_key);
 
-  GNUNET_CRYPTO_eddsa_public_key_from_string (peer_id,
+  /*GNUNET_CRYPTO_eddsa_public_key_from_string (peer_id,
                                               strlen (peer_id),
-                                              &peer->public_key);
+                                              &peer->public_key);*/
 
   peer->public_key = *pub_key;
 
   LOG (GNUNET_ERROR_TYPE_ERROR,
-       "\nnum: %u\n peer_id: %s\n pub_key %s\n",
+       "num: %u id: %s pub_key %s\n",
        num,
-       peer_id,
+       GNUNET_i2s_full (id),
        GNUNET_CRYPTO_eddsa_public_key_to_string (pub_key));
 
   cps->id = peer;

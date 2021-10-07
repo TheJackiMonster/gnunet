@@ -408,6 +408,22 @@ GNUNET_TESTING_cmd_end (void)
 {
   static struct GNUNET_TESTING_Command cmd;
   cmd.label = NULL;
+  cmd.shutdown_on_end = GNUNET_YES;
+
+  return cmd;
+}
+
+/**
+ * Create command array terminator without shutdown.
+ *
+ * @return a end-command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_end_without_shutdown (void)
+{
+  static struct GNUNET_TESTING_Command cmd;
+  cmd.label = NULL;
+  cmd.shutdown_on_end = GNUNET_NO;
 
   return cmd;
 }
@@ -447,7 +463,8 @@ interpreter_run (void *cls)
                 "Running command END %p\n",
                 is);
     is->result = GNUNET_OK;
-    GNUNET_SCHEDULER_shutdown ();
+    if (GNUNET_YES == cmd->shutdown_on_end)
+      GNUNET_SCHEDULER_shutdown ();
     return;
   }
   else if (NULL != cmd)

@@ -58,6 +58,12 @@ char *cfgname;
 unsigned int are_all_peers_started;
 
 /**
+ * Flag indicating if all local tests are prepared to finish.
+ *
+ */
+unsigned int are_all_local_tests_prepared;
+
+/**
  * Flag indicating a received message.
  */
 unsigned int message_received;
@@ -85,6 +91,8 @@ static void
 handle_test (void *cls,
              const struct GNUNET_TRANSPORT_TESTING_TestMessage *message)
 {
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Message received.\n");
   message_received = GNUNET_YES;
 }
 
@@ -100,6 +108,16 @@ all_peers_started ()
   LOG (GNUNET_ERROR_TYPE_ERROR,
        "setting are_all_peers_started: %d\n",
        are_all_peers_started);
+}
+
+
+/**
+ * Callback to set the flag indicating all peers are prepared to finish. Will be called via the plugin api.
+ */
+static void
+all_local_tests_prepared ()
+{
+  are_all_local_tests_prepared = GNUNET_YES;
 }
 
 
@@ -179,17 +197,23 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
                                            "system-create",
                                            num,
                                            topology),
-    GNUNET_TRANSPORT_cmd_send_simple_v2 ("send-simple",
-                                         "start-peer",
-                                         num),
-    GNUNET_TESTING_cmd_block_until_external_trigger ("block-receive",
-                                                     &message_received),
+    GNUNET_TRANSPORT_cmd_backchannel_check ("backchannel-check",
+                                            "start-peer",
+                                            "system-create",
+                                            num,
+                                            m_int,
+                                            n_int,
+                                            topology),
+    GNUNET_TESTING_cmd_local_test_prepared ("local-test-prepared",
+                                            write_message,
+                                            &are_all_local_tests_prepared),
     GNUNET_TRANSPORT_cmd_stop_peer ("stop-peer",
                                     "start-peer"),
     GNUNET_TESTING_cmd_system_destroy ("system-destroy",
                                        "system-create"),
     GNUNET_TESTING_cmd_local_test_finished ("local-test-finished",
-                                            write_message)
+                                            write_message),
+    GNUNET_TESTING_cmd_end_without_shutdown ()
   };
 
   GNUNET_TESTING_run (NULL,
@@ -217,6 +241,7 @@ libgnunet_test_transport_plugin_cmd_udp_backchannel_init (void *cls)
   api = GNUNET_new (struct GNUNET_TESTING_PluginFunctions);
   api->start_testcase = &start_testcase;
   api->all_peers_started = &all_peers_started;
+  api->all_local_tests_prepared = all_local_tests_prepared;
   return api;
 }
 

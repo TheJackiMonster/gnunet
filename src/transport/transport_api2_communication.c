@@ -904,6 +904,10 @@ GNUNET_TRANSPORT_communicator_receive (
   struct GNUNET_TRANSPORT_IncomingMessage *im;
   uint16_t msize;
 
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "communicator receive\n");
+
   if (NULL == ch->mq)
     return GNUNET_SYSERR;
   if ((NULL == cb) && (GNUNET_MQ_get_length (ch->mq) >= ch->max_queue_length))
@@ -985,6 +989,9 @@ GNUNET_TRANSPORT_communicator_mq_add (
   struct GNUNET_MQ_Handle *mq)
 {
   struct GNUNET_TRANSPORT_QueueHandle *qh;
+
+  // Do not notify the service if there is no intial capacity.
+  GNUNET_assert (0 < q_len);
 
   qh = GNUNET_new (struct GNUNET_TRANSPORT_QueueHandle);
   qh->ch = ch;
@@ -1106,7 +1113,7 @@ GNUNET_TRANSPORT_communicator_address_remove (
  */
 void
 GNUNET_TRANSPORT_communicator_address_remove_all (
-                                              struct GNUNET_TRANSPORT_CommunicatorHandle *ch)
+  struct GNUNET_TRANSPORT_CommunicatorHandle *ch)
 {
   for (struct GNUNET_TRANSPORT_AddressIdentifier *ai = ch->ai_head; NULL != ai;
        ai = ai->next)

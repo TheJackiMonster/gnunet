@@ -228,9 +228,11 @@ GNUNET_TRANSPORT_cmd_start_peer (const char *label,
                                  struct GNUNET_MQ_MessageHandler *handlers,
                                  const char *cfgname);
 
+
 struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_stop_peer (const char *label,
                                 const char *start_label);
+
 
 struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_connect_peers (const char *label,
@@ -238,12 +240,24 @@ GNUNET_TRANSPORT_cmd_connect_peers (const char *label,
                                     const char *create_label,
                                     uint32_t num);
 
+
 struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_connect_peers_v2 (const char *label,
                                        const char *start_peer_label,
                                        const char *create_label,
                                        uint32_t num);
 
+
+/**
+ * Create command.
+ *
+ * @param label name for command.
+ * @param start_peer_label Label of the cmd to start a peer.
+ * @param create_label Label of the cmd to create the testing system.
+ * @param num Number globally identifying the node.
+ * @param The topology for the test setup.
+ * @return command.
+ */
 struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_connect_peers_v3 (const char *label,
                                        const char *start_peer_label,
@@ -252,12 +266,29 @@ GNUNET_TRANSPORT_cmd_connect_peers_v3 (const char *label,
                                        struct GNUNET_TESTING_NetjailTopology *
                                        topology);
 
+
+/**
+ * Create command.
+ *
+ * @param label name for command.
+ * @param start_peer_label Label of the cmd to start a peer.
+ * @param create_label Label of the cmd to create the testing system.
+ * @param num Number globally identifying the node.
+ * @param node_n The number of the node in a network namespace.
+ * @param namespace_n The number of the network namespace.
+ * @param The topology for the test setup.
+ * @return command.
+ */
 struct GNUNET_TESTING_Command
-GNUNET_TRANSPORT_cmd_send_simple (const char *label,
-                                  char *m,
-                                  char *n,
-                                  uint32_t num,
-                                  const char *start_peer_label);
+GNUNET_TRANSPORT_cmd_backchannel_check (const char *label,
+                                        const char *start_peer_label,
+                                        const char *create_label,
+                                        uint32_t num,
+                                        unsigned int node_n,
+                                        unsigned int namespace_n,
+                                        struct GNUNET_TESTING_NetjailTopology *
+                                        topology);
+
 
 /**
  * Create command.
@@ -270,9 +301,44 @@ GNUNET_TRANSPORT_cmd_send_simple (const char *label,
  * @return command.
  */
 struct GNUNET_TESTING_Command
+GNUNET_TRANSPORT_cmd_send_simple (const char *label,
+                                  char *m,
+                                  char *n,
+                                  uint32_t num,
+                                  const char *start_peer_label);
+
+/**
+ * Create command.
+ *
+ * @param label name for command.
+ * @param start_peer_label Label of the cmd to start a peer.
+ * @param num Number globally identifying the node.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_send_simple_v2 (const char *label,
                                      const char *start_peer_label,
                                      uint32_t num);
+
+
+/**
+ * Create command.
+ *
+ * @param label name for command.
+ * @param start_peer_label Label of the cmd to start a peer.
+ * @param start_peer_label Label of the cmd which started the test system.
+ * @param num Number globally identifying the node.
+ * @param The topology for the test setup.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TRANSPORT_cmd_send_simple_v3 (const char *label,
+                                     const char *start_peer_label,
+                                     const char *create_label,
+                                     uint32_t num,
+                                     struct GNUNET_TESTING_NetjailTopology *
+                                     topology);
+
 
 int
 GNUNET_TRANSPORT_get_trait_peer_id (const struct

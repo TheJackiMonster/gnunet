@@ -36,22 +36,6 @@
  */
 #define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
 
-#define CONNECT_ADDRESS_TEMPLATE_TCP "tcp-192.168.15.%u:60002"
-
-#define CONNECT_ADDRESS_TEMPLATE_UDP "udp-192.168.15.%u:60002"
-
-#define ROUTER_CONNECT_ADDRESS_TEMPLATE_TCP "tcp-92.68.150.%u:60002"
-
-#define ROUTER_CONNECT_ADDRESS_TEMPLATE_UDP "udp-92.68.150.%u:60002"
-
-#define GLOBAL_CONNECT_ADDRESS_TEMPLATE_TCP "tcp-92.68.151.%u:60002"
-
-#define GLOBAL_CONNECT_ADDRESS_TEMPLATE_UDP "udp-92.68.151.%u:60002"
-
-#define PREFIX_TCP "tcp"
-
-#define PREFIX_UDP "udp"
-
 /**
  * Struct to store information needed in callbacks.
  *
@@ -101,222 +85,6 @@ struct ConnectPeersState
 };
 
 
-static struct GNUNET_PeerIdentity *
-get_pub_key (unsigned int num, struct GNUNET_TESTING_System *tl_system)
-{
-  struct GNUNET_PeerIdentity *peer = GNUNET_new (struct GNUNET_PeerIdentity);
-  struct GNUNET_CRYPTO_EddsaPublicKey *pub_key = GNUNET_new (struct
-                                                             GNUNET_CRYPTO_EddsaPublicKey);
-  struct GNUNET_CRYPTO_EddsaPrivateKey *priv_key = GNUNET_new (struct
-                                                               GNUNET_CRYPTO_EddsaPrivateKey);
-
-  priv_key = GNUNET_TESTING_hostkey_get (tl_system,
-                                         num,
-                                         peer);
-
-  GNUNET_CRYPTO_eddsa_key_get_public (priv_key,
-                                      pub_key);
-  peer->public_key = *pub_key;
-  return peer;
-}
-
-
-static int
-log_nodes (void *cls, const struct GNUNET_ShortHashCode *id, void *value)
-{
-  struct GNUNET_TESTING_NetjailNode *node = value;
-  struct GNUNET_TESTING_NodeConnection *pos_connection;
-  struct GNUNET_TESTING_ADDRESS_PREFIX *pos_prefix;
-
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "plugin: %s space: %u node: %u global: %u\n",
-       node->plugin,
-       node->namespace_n,
-       node->node_n,
-       node->is_global);
-
-  for (pos_connection = node->node_connections_head; NULL != pos_connection;
-       pos_connection = pos_connection->next)
-  {
-
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "namespace_n: %u node_n: %u node_type: %u\n",
-         pos_connection->namespace_n,
-         pos_connection->node_n,
-         pos_connection->node_type);
-
-    for (pos_prefix = pos_connection->address_prefixes_head; NULL != pos_prefix;
-         pos_prefix =
-           pos_prefix->next)
-    {
-      LOG (GNUNET_ERROR_TYPE_ERROR,
-           "prefix: %s\n",
-           pos_prefix->address_prefix);
-    }
-  }
-  return GNUNET_YES;
-}
-
-
-static int
-log_namespaces (void *cls, const struct GNUNET_ShortHashCode *id, void *value)
-{
-  struct GNUNET_TESTING_NetjailNamespace *namespace = value;
-  struct GNUNET_TESTING_NetjailRouter *router = namespace->router;
-
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "router_tcp: %u router_udp: %u spaces: %u\n",
-       router->tcp_port,
-       router->udp_port,
-       namespace->namespace_n);
-  GNUNET_CONTAINER_multishortmap_iterate (namespace->nodes, &log_nodes, NULL);
-  return GNUNET_YES;
-}
-
-
-static int
-log_topo (struct GNUNET_TESTING_NetjailTopology *topology)
-{
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "plugin: %s spaces: %u nodes: %u known: %u\n",
-       topology->plugin,
-       topology->namespaces_n,
-       topology->nodes_m,
-       topology->nodes_x);
-
-  GNUNET_CONTAINER_multishortmap_iterate (topology->map_namespaces,
-                                          log_namespaces, NULL);
-  GNUNET_CONTAINER_multishortmap_iterate (topology->map_globals, &log_nodes,
-                                          NULL);
-  return GNUNET_YES;
-}
-
-
-static struct GNUNET_TESTING_NodeConnection *
-get_connections (unsigned int num, struct
-                 GNUNET_TESTING_NetjailTopology *topology)
-{
-  struct GNUNET_TESTING_NetjailNode *node;
-  struct GNUNET_ShortHashCode *hkey;
-  struct GNUNET_HashCode hc;
-  struct GNUNET_TESTING_NetjailNamespace *namespace;
-  unsigned int namespace_n, node_m;
-
-  log_topo (topology);
-
-  hkey = GNUNET_new (struct GNUNET_ShortHashCode);
-  if (topology->nodes_x >= num)
-  {
-
-    GNUNET_CRYPTO_hash (&num, sizeof(num), &hc);
-    memcpy (hkey,
-            &hc,
-            sizeof (*hkey));
-    node = GNUNET_CONTAINER_multishortmap_get (topology->map_globals,
-                                               hkey);
-  }
-  else
-  {
-    namespace_n = (unsigned int) floor ((num - topology->nodes_x)
-                                        / topology->nodes_m);
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "num: %u nodes_x: %u nodes_m: %u namespace_n: %u\n",
-         num,
-         topology->nodes_x,
-         topology->nodes_m,
-         namespace_n);
-    hkey = GNUNET_new (struct GNUNET_ShortHashCode);
-    GNUNET_CRYPTO_hash (&namespace_n, sizeof(namespace_n), &hc);
-    memcpy (hkey,
-            &hc,
-            sizeof (*hkey));
-    namespace = GNUNET_CONTAINER_multishortmap_get (topology->map_namespaces,
-                                                    hkey);
-    node_m = num - topology->nodes_x - topology->nodes_m * (namespace_n - 1);
-    hkey = GNUNET_new (struct GNUNET_ShortHashCode);
-    GNUNET_CRYPTO_hash (&node_m, sizeof(node_m), &hc);
-    memcpy (hkey,
-            &hc,
-            sizeof (*hkey));
-    node = GNUNET_CONTAINER_multishortmap_get (namespace->nodes,
-                                               hkey);
-  }
-
-
-  return node->node_connections_head;
-}
-
-
-static unsigned int
-calculate_num (struct GNUNET_TESTING_NodeConnection *node_connection,
-               struct GNUNET_TESTING_NetjailTopology *topology)
-{
-  unsigned int n, m, num;
-
-  n = node_connection->namespace_n;
-  m = node_connection->node_n;
-
-  if (0 == n)
-    num = m;
-  else
-    num = (n - 1) * topology->nodes_m + m + topology->nodes_x;
-
-  return num;
-}
-
-static char *
-get_address (struct GNUNET_TESTING_NodeConnection *connection,
-             char *prefix)
-{
-  struct GNUNET_TESTING_NetjailNode *node;
-  char *addr;
-
-  node = connection->node;
-  if (connection->namespace_n == node->namespace_n)
-  {
-    if (0 == strcmp (PREFIX_TCP, prefix))
-    {
-
-      GNUNET_asprintf (&addr,
-                       CONNECT_ADDRESS_TEMPLATE_TCP,
-                       connection->node_n);
-    }
-    else if (0 == strcmp (PREFIX_UDP, prefix))
-    {
-      GNUNET_asprintf (&addr,
-                       CONNECT_ADDRESS_TEMPLATE_UDP,
-                       connection->node_n);
-    }
-    else
-    {
-      GNUNET_break (0);
-    }
-  }
-  else
-  {
-    if (0 == strcmp (PREFIX_TCP, prefix))
-    {
-
-      GNUNET_asprintf (&addr,
-                       ROUTER_CONNECT_ADDRESS_TEMPLATE_TCP,
-                       connection->namespace_n);
-    }
-    else if (0 == strcmp (PREFIX_UDP, prefix))
-    {
-      GNUNET_asprintf (&addr,
-                       ROUTER_CONNECT_ADDRESS_TEMPLATE_UDP,
-                       connection->namespace_n);
-    }
-    else
-    {
-      GNUNET_break (0);
-    }
-  }
-
-  return addr;
-}
-
-
 /**
  * The run method of this cmd will connect to peers.
  *
@@ -338,7 +106,7 @@ connect_peers_run (void *cls,
   enum GNUNET_NetworkType nt = 0;
   uint32_t num;
   struct GNUNET_TESTING_NodeConnection *pos_connection;
-  struct GNUNET_TESTING_ADDRESS_PREFIX *pos_prefix;
+  struct GNUNET_TESTING_AddressPrefix *pos_prefix;
   unsigned int con_num = 0;
 
   peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (cps->start_peer_label);
@@ -351,13 +119,14 @@ connect_peers_run (void *cls,
 
   cps->tl_system = tl_system;
 
-  cps->node_connections_head = get_connections (cps->num, cps->topology);
+  cps->node_connections_head = GNUNET_TESTING_get_connections (cps->num,
+                                                               cps->topology);
 
   for (pos_connection = cps->node_connections_head; NULL != pos_connection;
        pos_connection = pos_connection->next)
   {
     con_num++;
-    num = calculate_num (pos_connection, cps->topology);
+    num = GNUNET_TESTING_calculate_num (pos_connection, cps->topology);
     for (pos_prefix = pos_connection->address_prefixes_head; NULL != pos_prefix;
          pos_prefix =
            pos_prefix->next)
@@ -367,9 +136,10 @@ connect_peers_run (void *cls,
            "prefix: %s\n",
            pos_prefix->address_prefix);
 
-      addr = get_address (pos_connection, pos_prefix->address_prefix);
+      addr = GNUNET_TESTING_get_address (pos_connection,
+                                         pos_prefix->address_prefix);
 
-      peer = get_pub_key (num, tl_system);
+      peer = GNUNET_TESTING_get_pub_key (num, tl_system);
 
       LOG (GNUNET_ERROR_TYPE_ERROR,
            "num: %u pub_key %s addr: %s\n",
@@ -417,8 +187,8 @@ connect_peers_finish (void *cls,
   for (pos_connection = cps->node_connections_head; NULL != pos_connection;
        pos_connection = pos_connection->next)
   {
-    num = calculate_num (pos_connection, cps->topology);
-    peer = get_pub_key (num, cps->tl_system);
+    num = GNUNET_TESTING_calculate_num (pos_connection, cps->topology);
+    peer = GNUNET_TESTING_get_pub_key (num, cps->tl_system);
     GNUNET_CRYPTO_hash (&(peer->public_key), sizeof(peer->public_key), &hc);
     memcpy (key,
             &hc,
@@ -476,6 +246,9 @@ connect_peers_cleanup (void *cls,
  *
  * @param label name for command.
  * @param start_peer_label Label of the cmd to start a peer.
+ * @param create_label Label of the cmd to create the testing system.
+ * @param num Number globally identifying the node.
+ * @param The topology for the test setup.
  * @return command.
  */
 struct GNUNET_TESTING_Command

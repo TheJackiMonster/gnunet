@@ -19,7 +19,7 @@
  */
 
 /**
- * @file testing_api_cmd_block_until_all_peers_started.c
+ * @file testing_api_cmd_local_test_prepared.c
  * @brief cmd to block the interpreter loop until all peers started.
  * @author t3sserakt
  */
@@ -38,7 +38,7 @@
  * Struct to hold information for callbacks.
  *
  */
-struct LocalFinishedState
+struct LocalPreparedState
 {
   /**
    * Callback to write messages to the master loop.
@@ -50,7 +50,12 @@ struct LocalFinishedState
    * The message send back to the master loop.
    *
    */
-  struct GNUNET_CMDS_LOCAL_FINISHED *reply;
+  struct GNUNET_CMDS_LOCAL_TEST_PREPARED *reply;
+
+  /**
+   * Flag indicating if all local tests finished.
+   */
+  unsigned int *all_local_tests_prepared;
 };
 
 
@@ -59,7 +64,7 @@ struct LocalFinishedState
  *
  */
 static int
-local_test_finished_traits (void *cls,
+local_test_prepared_traits (void *cls,
                             const void **ret,
                             const char *trait,
                             unsigned int index)
@@ -73,10 +78,10 @@ local_test_finished_traits (void *cls,
  *
  */
 static void
-local_test_finished_cleanup (void *cls,
+local_test_prepared_cleanup (void *cls,
                              const struct GNUNET_TESTING_Command *cmd)
 {
-  struct LocalFinishedState *lfs = cls;
+  struct LocalPreparedState *lfs = cls;
 
   GNUNET_free (lfs->reply);
   GNUNET_free (lfs);
@@ -84,22 +89,23 @@ local_test_finished_cleanup (void *cls,
 
 
 /**
- * This function sends a GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_FINISHED message to the master loop.
+ * This function sends a GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_TESTS_PREPARED message to the master loop.
  *
  */
 static void
-local_test_finished_run (void *cls,
+local_test_prepared_run (void *cls,
                          const struct GNUNET_TESTING_Command *cmd,
                          struct GNUNET_TESTING_Interpreter *is)
 {
-  struct LocalFinishedState *lfs = cls;
+  struct LocalPreparedState *lfs = cls;
 
-  struct GNUNET_CMDS_LOCAL_FINISHED *reply;
+  struct GNUNET_CMDS_LOCAL_TEST_PREPARED *reply;
   size_t msg_length;
 
-  msg_length = sizeof(struct GNUNET_CMDS_LOCAL_FINISHED);
-  reply = GNUNET_new (struct GNUNET_CMDS_LOCAL_FINISHED);
-  reply->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_FINISHED);
+  msg_length = sizeof(struct GNUNET_CMDS_LOCAL_TEST_PREPARED);
+  reply = GNUNET_new (struct GNUNET_CMDS_LOCAL_TEST_PREPARED);
+  reply->header.type = htons (
+    GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_TEST_PREPARED);
   reply->header.size = htons ((uint16_t) msg_length);
   lfs->reply = reply;
   lfs->write_message ((struct GNUNET_MessageHeader *) reply, msg_length);
@@ -111,13 +117,20 @@ local_test_finished_run (void *cls,
  *
  */
 static int
-local_test_finished_finish (void *cls,
+local_test_prepared_finish (void *cls,
                             GNUNET_SCHEDULER_TaskCallback cont,
                             void *cont_cls)
 {
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "Stopping local loop\n");
-  return GNUNET_YES;
+  struct LocalPreparedState *lfs = cls;
+  unsigned int *ret = lfs->all_local_tests_prepared;
+
+  if (GNUNET_YES == *ret)
+  {
+    cont (cont_cls);
+  }
+
+  return *ret;
+
 }
 
 
@@ -126,25 +139,29 @@ local_test_finished_finish (void *cls,
  *
  * @param label name for command.
  * @param write_message Callback to write messages to the master loop.
+ * @param all_local_tests_prepared Flag which will be set from outside.
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_local_test_finished (const char *label,
+GNUNET_TESTING_cmd_local_test_prepared (const char *label,
                                         TESTING_CMD_HELPER_write_cb
-                                        write_message)
+                                        write_message,
+                                        unsigned int *
+                                        all_local_tests_prepared)
 {
-  struct LocalFinishedState *lfs;
+  struct LocalPreparedState *lfs;
 
-  lfs = GNUNET_new (struct LocalFinishedState);
+  lfs = GNUNET_new (struct LocalPreparedState);
   lfs->write_message = write_message;
+  lfs->all_local_tests_prepared = all_local_tests_prepared;
 
   struct GNUNET_TESTING_Command cmd = {
     .cls = lfs,
     .label = label,
-    .run = &local_test_finished_run,
-    .finish = &local_test_finished_finish,
-    .cleanup = &local_test_finished_cleanup,
-    .traits = &local_test_finished_traits
+    .run = &local_test_prepared_run,
+    .finish = &local_test_prepared_finish,
+    .cleanup = &local_test_prepared_cleanup,
+    .traits = &local_test_prepared_traits
   };
 
   return cmd;

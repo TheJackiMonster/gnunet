@@ -185,7 +185,8 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
     GNUNET_TESTING_cmd_system_destroy ("system-destroy",
                                        "system-create"),
     GNUNET_TESTING_cmd_local_test_finished ("local-test-finished",
-                                            write_message)
+                                            write_message),
+    GNUNET_TESTING_cmd_end_without_shutdown ()
   };
 
   GNUNET_TESTING_run (NULL,
