@@ -35,6 +35,11 @@
  */
 struct NetJailState
 {
+  /**
+   * Context for our asynchronous completion.
+   */
+  struct GNUNET_TESTING_AsyncContext ac;
+
   // Child Wait handle
   struct GNUNET_ChildWaitHandle *cwh;
 
@@ -67,7 +72,6 @@ netjail_start_cleanup (void *cls)
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "netjail_start_cleanup!\n");
-
   if (NULL != ns->cwh)
   {
     GNUNET_wait_child_cancel (ns->cwh);
@@ -88,20 +92,6 @@ netjail_start_cleanup (void *cls)
 
 
 /**
- * Trait function of this cmd does nothing.
- *
- */
-static enum GNUNET_GenericReturnValue
-netjail_start_traits (void *cls,
-                      const void **ret,
-                      const char *trait,
-                      unsigned int index)
-{
-  return GNUNET_NO;
-}
-
-
-/**
  * Callback which will be called if the setup script finished.
  *
  */
@@ -112,18 +102,18 @@ child_completed_callback (void *cls,
 {
   struct NetJailState *ns = cls;
 
+  GNUNET_OS_process_destroy (ns->start_proc);
+  ns->start_proc = NULL;
   if (0 == exit_code)
   {
-    ns->finished = GNUNET_YES;
+    GNUNET_TESTING_async_finish (&ns->ac);
   }
   else
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Child completed with an error!\n");
-    ns->finished = GNUNET_SYSERR;
+    GNUNET_TESTING_async_fail (&ns->ac);
   }
-  GNUNET_OS_process_destroy (ns->start_proc);
-  ns->start_proc = NULL;
 }
 
 
@@ -138,10 +128,12 @@ netjail_start_run (void *cls,
                    struct GNUNET_TESTING_Interpreter *is)
 {
   struct NetJailState *ns = cls;
-  char *const script_argv[] = {NETJAIL_START_SCRIPT,
-                               ns->local_m,
-                               ns->global_n,
-                               NULL};
+  char *const script_argv[] = {
+    NETJAIL_START_SCRIPT,
+    ns->local_m,
+    ns->global_n,
+    NULL
+  };
   unsigned int helper_check = GNUNET_OS_check_helper_binary (
     NETJAIL_START_SCRIPT,
     GNUNET_YES,
@@ -177,25 +169,6 @@ netjail_start_run (void *cls,
 
 
 /**
- * This function checks the flag NetJailState#finished, if this cmd finished.
- *
- */
-static enum GNUNET_GenericReturnValue
-netjail_start_finish (void *cls,
-                      GNUNET_SCHEDULER_TaskCallback cont,
-                      void *cont_cls)
-{
-  struct NetJailState *ns = cls;
-
-  if (ns->finished)
-  {
-    cont (cont_cls);
-  }
-  return ns->finished;
-}
-
-
-/**
  * Create command.
  *
  * @param label name for command.
@@ -218,9 +191,8 @@ GNUNET_TESTING_cmd_netjail_start (const char *label,
       .cls = ns,
       .label = label,
       .run = &netjail_start_run,
-      .finish = &netjail_start_finish,
-      .cleanup = &netjail_start_cleanup,
-      .traits = &netjail_start_traits
+      .ac = &ns->ac,
+      .cleanup = &netjail_start_cleanup
     };
 
     return cmd;

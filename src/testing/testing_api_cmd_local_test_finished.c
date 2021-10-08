@@ -40,6 +40,7 @@
  */
 struct LocalFinishedState
 {
+
   /**
    * Callback to write messages to the master loop.
    *
@@ -52,20 +53,6 @@ struct LocalFinishedState
    */
   struct GNUNET_CMDS_LOCAL_FINISHED *reply;
 };
-
-
-/**
- * Trait function of this cmd does nothing.
- *
- */
-static enum GNUNET_GenericReturnValue
-local_test_finished_traits (void *cls,
-                            const void **ret,
-                            const char *trait,
-                            unsigned int index)
-{
-  return GNUNET_NO;
-}
 
 
 /**
@@ -105,23 +92,6 @@ local_test_finished_run (void *cls,
 
 
 /**
- * This finish function will stop the local loop without shutting down the
- * scheduler, because we do not call the continuation, which is the
- * interpreter_next method.
- *
- */
-static enum GNUNET_GenericReturnValue
-local_test_finished_finish (void *cls,
-                            GNUNET_SCHEDULER_TaskCallback cont,
-                            void *cont_cls)
-{
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Stopping local loop\n");
-  return GNUNET_YES;
-}
-
-
-/**
  * Create command.
  *
  * @param label name for command.
@@ -142,9 +112,7 @@ GNUNET_TESTING_cmd_local_test_finished (
       .cls = lfs,
       .label = label,
       .run = &local_test_finished_run,
-      .finish = &local_test_finished_finish,
       .cleanup = &local_test_finished_cleanup,
-      .traits = &local_test_finished_traits
     };
 
     return cmd;

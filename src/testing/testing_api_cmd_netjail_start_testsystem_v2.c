@@ -62,6 +62,11 @@ struct HelperMessage
 struct NetJailState
 {
   /**
+   * Context for our asynchronous completion.
+   */
+  struct GNUNET_TESTING_AsyncContext ac;
+
+  /**
    * The complete topology information.
    */
   struct GNUNET_TESTING_NetjailTopology *topology;
@@ -637,6 +642,7 @@ send_all_peers_started (unsigned int i, unsigned int j, struct NetJailState *ns)
  * 3. Did all peers finished the test case. In this case interpreter_next will be called.
  *
  */
+// FIXME: must change completely!
 static int
 netjail_start_finish (void *cls,
                       GNUNET_SCHEDULER_TaskCallback cont,
@@ -708,7 +714,7 @@ GNUNET_TESTING_cmd_netjail_start_testing_system_v2 (const char *label,
     .cls = ns,
     .label = label,
     .run = &netjail_exec_run,
-    .finish = &netjail_start_finish,
+    .ac = &ns->ac,
     .cleanup = &netjail_exec_cleanup,
     .traits = &netjail_exec_traits
   };

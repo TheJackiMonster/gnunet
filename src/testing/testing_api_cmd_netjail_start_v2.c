@@ -35,6 +35,11 @@
  */
 struct NetJailState
 {
+  /**
+   * Context for our asynchronous completion.
+   */
+  struct GNUNET_TESTING_AsyncContext ac;
+
   // Child Wait handle
   struct GNUNET_ChildWaitHandle *cwh;
 
@@ -86,20 +91,6 @@ netjail_start_cleanup (void *cls)
 
 
 /**
- * Trait function of this cmd does nothing.
- *
- */
-static enum GNUNET_GenericReturnValue
-netjail_start_traits (void *cls,
-                      const void **ret,
-                      const char *trait,
-                      unsigned int index)
-{
-  return GNUNET_NO;
-}
-
-
-/**
  * Callback which will be called if the setup script finished.
  *
  */
@@ -110,19 +101,19 @@ child_completed_callback (void *cls,
 {
   struct NetJailState *ns = cls;
 
+  GNUNET_OS_process_destroy (ns->start_proc);
+  ns->start_proc = NULL;
   if (0 == exit_code)
   {
-    ns->finished = GNUNET_YES;
+    GNUNET_TESTING_async_finish (&ns->ac);
   }
   else
   {
     // FIXME: log status code
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Child completed with an error!\n");
-    ns->finished = GNUNET_SYSERR;
+    GNUNET_TESTING_async_fail (&ns->ac);
   }
-  GNUNET_OS_process_destroy (ns->start_proc);
-  ns->start_proc = NULL;
 }
 
 
@@ -193,29 +184,6 @@ netjail_start_run (void *cls,
 
 
 /**
- * This function checks the flag NetJailState
- *
- * FIXME: fix comment!
- * #finished, if this cmd finished.
- *
- */
-static enum GNUNET_GenericReturnValue
-netjail_start_finish (void *cls,
-                      GNUNET_SCHEDULER_TaskCallback cont,
-                      void *cont_cls)
-{
-  struct NetJailState *ns = cls;
-
-  if (GNUNET_NO != ns->finished)
-  {
-    cont (cont_cls);
-  }
-  // FIXME: cont should be called later in the else case!
-  return ns->finished;
-}
-
-
-/**
  * Create command.
  *
  * @param label name for command.
@@ -235,9 +203,8 @@ GNUNET_TESTING_cmd_netjail_start_v2 (const char *label,
       .cls = ns,
       .label = label,
       .run = &netjail_start_run,
-      .finish = &netjail_start_finish,
-      .cleanup = &netjail_start_cleanup,
-      .traits = &netjail_start_traits
+      .ac = &ns->ac,
+      .cleanup = &netjail_start_cleanup
     };
 
     return cmd;

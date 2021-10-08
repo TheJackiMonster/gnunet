@@ -597,7 +597,6 @@ GNUNET_TRANSPORT_cmd_start_peer_v2 (const char *label,
     .cls = sps,
     .label = label,
     .run = &start_peer_run,
-    .finish = &start_peer_finish,
     .cleanup = &start_peer_cleanup,
     .traits = &start_peer_traits
   };

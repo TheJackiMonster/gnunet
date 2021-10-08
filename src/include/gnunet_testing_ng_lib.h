@@ -82,7 +82,7 @@ enum GNUNET_TESTING_NODE_TYPE
 };
 
 
- // FIXME: this does not belong here!
+// FIXME: this does not belong here!
 struct GNUNET_TESTING_ADDRESS_PREFIX
 {
   /**
@@ -261,6 +261,36 @@ struct GNUNET_TESTING_NetjailTopology
 struct GNUNET_TESTING_Interpreter;
 
 /**
+ * State each asynchronous command must have in its closure.
+ */
+struct GNUNET_TESTING_AsyncContext
+{
+
+  /**
+   * Interpreter we are part of.
+   */
+  struct GNUNET_TESTING_Interpreter *is;
+
+  /**
+   * Function to call when done.
+   */
+  GNUNET_SCHEDULER_TaskCallback cont;
+
+  /**
+   * Closure for @e cont.
+   */
+  void *cont_cls;
+
+  /**
+   * Indication if the command finished (#GNUNET_OK).
+   * #GNUNET_NO if it is still running,
+   * #GNUNET_SYSERR if it failed.
+   */
+  enum GNUNET_GenericReturnValue finished;
+};
+
+
+/**
  * A command to be run by the interpreter.
  */
 struct GNUNET_TESTING_Command
@@ -296,27 +326,14 @@ struct GNUNET_TESTING_Command
          struct GNUNET_TESTING_Interpreter *is);
 
   /**
-   * FIXME: logic is basically always the same!
-   * => Refactor API to avoid duplication!
+   * Pointer to the asynchronous context in the command's
+   * closure. Used by the
+   * #GNUNET_TESTING_async_finish() and
+   * #GNUNET_TESTING_async_fail() functions.
    *
-   * Wait for any asynchronous execution of @e run to conclude,
-   * then call finish_cont. Finish may only be called once per command.
-   *
-   * This member may be NULL if this command is a synchronous command,
-   * and also should be set to NULL once the command has finished.
-   *
-   * @param cls closure
-   * @param cont function to call upon completion, can be NULL
-   * @param cont_cls closure for @a cont
-   * @return
-   *    #GNUNET_NO if the command is still running and @a cont will be called later
-   *    #GNUNET_OK if the command completed successfully and @a cont was called
-   *    #GNUNET_SYSERR if the operation @a cont was NOT called
+   * Must be NULL if a command is synchronous.
    */
-  enum GNUNET_GenericReturnValue
-  (*finish)(void *cls,
-            GNUNET_SCHEDULER_TaskCallback cont,
-            void *cont_cls);
+  struct GNUNET_TESTING_AsyncContext *ac;
 
   /**
    * Clean up after the command.  Run during forced termination
@@ -328,11 +345,8 @@ struct GNUNET_TESTING_Command
   (*cleanup)(void *cls);
 
   /**
-   * FIXME: logic is often the same!
-   * => Think about refactoring API to reduce duplication!
-   *
    * Extract information from a command that is useful for other
-   * commands.
+   * commands. Can be NULL if a command has no traits.
    *
    * @param cls closure
    * @param[out] ret result (could be anything)
@@ -425,6 +439,24 @@ GNUNET_TESTING_interpreter_get_current_label (
  */
 void
 GNUNET_TESTING_interpreter_fail (struct GNUNET_TESTING_Interpreter *is);
+
+
+/**
+ * The asynchronous command of @a ac has failed.
+ *
+ * @param ac command-specific context
+ */
+void
+GNUNET_TESTING_async_fail (struct GNUNET_TESTING_AsyncContext *ac);
+
+
+/**
+ * The asynchronous command of @a ac has finished.
+ *
+ * @param ac command-specific context
+ */
+void
+GNUNET_TESTING_async_finish (struct GNUNET_TESTING_AsyncContext *ac);
 
 
 /**
@@ -1114,7 +1146,6 @@ struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_stop_testing_system_v2 (const char *label,
                                            const char *helper_start_label,
                                            const char *topology_config);
-
 
 
 // FIXME: document!

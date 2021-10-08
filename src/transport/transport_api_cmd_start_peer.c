@@ -51,6 +51,7 @@ hello_iter_cb (void *cb_cls,
                const char *emsg)
 {
   struct StartPeerState *sps = cb_cls;
+
   if (NULL == record)
   {
     sps->pic = NULL;
@@ -86,26 +87,6 @@ retrieve_hello (void *cls)
                                        hello_iter_cb,
                                        sps);
 
-}
-
-
-/**
- * This function checks StartPeerState#finished, which is set when the hello was retrieved.
- *
- */
-static int
-start_peer_finish (void *cls,
-                   GNUNET_SCHEDULER_TaskCallback cont,
-                   void *cont_cls)
-{
-  struct StartPeerState *sps = cls;
-
-  if (GNUNET_YES == sps->finished)
-  {
-    cont (cont_cls);
-  }
-
-  return sps->finished;
 }
 
 
@@ -597,14 +578,15 @@ GNUNET_TRANSPORT_cmd_start_peer (const char *label,
                    i * sizeof(struct GNUNET_MQ_MessageHandler));
   }
 
-  struct GNUNET_TESTING_Command cmd = {
-    .cls = sps,
-    .label = label,
-    .run = &start_peer_run,
-    .finish = &start_peer_finish,
-    .cleanup = &start_peer_cleanup,
-    .traits = &start_peer_traits
-  };
+  {
+    struct GNUNET_TESTING_Command cmd = {
+      .cls = sps,
+      .label = label,
+      .run = &start_peer_run,
+      .cleanup = &start_peer_cleanup,
+      .traits = &start_peer_traits
+    };
 
-  return cmd;
+    return cmd;
+  }
 }

@@ -34,16 +34,10 @@ struct SendState
 {
 
   /**
-   * Function to call when done.
+   * Mandatory context for async commands.
    */
-  GNUNET_SCHEDULER_TaskCallback cont;
+  struct GNUNET_TESTING_AsyncContext ac;
 
-  /**
-   * Closure for @e cont.
-   */
-  void *cont_cls;
-
-  enum GNUNET_GenericReturnValue finished;
 };
 
 
@@ -98,56 +92,10 @@ send_run (void *cls,
   GNUNET_TESTING_get_trait_XXX (other_cmd,
                                 &data);
 #endif
-  ss->finished = GNUNET_OK;
+  GNUNET_TESTING_async_finish (&ss->ac);
 }
 
 
-/**
- * This function checks the flag NetJailState#finished, if this cmd finished.
- *
- * @param cls a `struct SendState`
- * @param cont function to call upon completion, can be NULL
- * @param cont_cls closure for @a cont
- * @return
- *    #GNUNET_NO if the command is still running and @a cont will be called later
- *    #GNUNET_OK if the command completed successfully and @a cont was called
- *    #GNUNET_SYSERR if the operation @a cont was NOT called
- */
-static enum GNUNET_GenericReturnValue
-send_finish (void *cls,
-             GNUNET_SCHEDULER_TaskCallback cont,
-             void *cont_cls)
-{
-  struct SendState *ss = cls;
-
-  switch (ss->finished)
-  {
-  case GNUNET_OK:
-    cont (cont_cls);
-    break;
-  case GNUNET_SYSERR:
-    GNUNET_break (0);
-    break;
-  case GNUNET_NO:
-    if (NULL != ss->cont)
-    {
-      GNUNET_break (0);
-      return GNUNET_SYSERR;
-    }
-    ss->cont = cont;
-    ss->cont_cls = cont_cls;
-    break;
-  }
-  return ss->finished;
-}
-
-
-/**
- * Create 'send' command.
- *
- * @param label name for command.
- * @return command.
- */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_DHTU_cmd_send (const char *label)
 {
@@ -160,7 +108,7 @@ GNUNET_TESTING_DHTU_cmd_send (const char *label)
       .cls = ss,
       .label = label,
       .run = &send_run,
-      .finish = &send_finish,
+      .ac = &ss->ac,
       .cleanup = &send_cleanup,
       .traits = &send_traits
     };

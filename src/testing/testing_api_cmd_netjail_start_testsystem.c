@@ -62,6 +62,11 @@ struct HelperMessage
 struct NetJailState
 {
   /**
+   * Context for our asynchronous completion.
+   */
+  struct GNUNET_TESTING_AsyncContext ac;
+
+  /**
    * Pointer to the return value of the test.
    *
    */
@@ -399,14 +404,16 @@ start_helper (struct NetJailState *ns, struct
   struct GNUNET_HELPER_Handle *helper;
   struct GNUNET_CMDS_HelperInit *msg;
   struct TestingSystemCount *tbc;
-  char *const script_argv[] = {NETJAIL_EXEC_SCRIPT,
-                               m_char,
-                               n_char,
-                               GNUNET_OS_get_libexec_binary_path (
-                                 HELPER_CMDS_BINARY),
-                               ns->global_n,
-                               ns->local_m,
-                               NULL};
+  char *const script_argv[] = {
+    NETJAIL_EXEC_SCRIPT,
+    m_char,
+    n_char,
+    GNUNET_OS_get_libexec_binary_path (
+      HELPER_CMDS_BINARY),
+    ns->global_n,
+    ns->local_m,
+    NULL
+  };
   unsigned int m = atoi (m_char);
   unsigned int n = atoi (n_char);
   unsigned int helper_check = GNUNET_OS_check_helper_binary (
@@ -436,8 +443,9 @@ start_helper (struct NetJailState *ns, struct
                 NETJAIL_EXEC_SCRIPT);
     *ns->rv = 1;
   }
-
-  GNUNET_array_append (ns->helper, ns->n_helper, GNUNET_HELPER_start (
+  GNUNET_array_append (ns->helper,
+                       ns->n_helper,
+                       GNUNET_HELPER_start (
                          GNUNET_YES,
                          NETJAIL_EXEC_SCRIPT,
                          script_argv,
@@ -508,6 +516,7 @@ netjail_exec_run (void *cls,
  *    In this case a GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_PEERS_STARTED is send to all peers.
  * 3. Did all peers finished the test case. In this case interpreter_next will be called.
  *
+ * => FIXME: must change _completely_.
  */
 static int
 netjail_start_finish (void *cls,
@@ -598,7 +607,7 @@ GNUNET_TESTING_cmd_netjail_start_testing_system (const char *label,
     .cls = ns,
     .label = label,
     .run = &netjail_exec_run,
-    .finish = &netjail_start_finish,
+    .ac = &ns->ac,
     .cleanup = &netjail_exec_cleanup,
     .traits = &netjail_exec_traits
   };

@@ -39,6 +39,11 @@ struct GNUNET_ChildWaitHandle *cwh;
  */
 struct NetJailState
 {
+  /**
+   * Context for our asynchronous completion.
+   */
+  struct GNUNET_TESTING_AsyncContext ac;
+
   // Number of local nodes in each namespace.
   char *local_m;
 
@@ -50,8 +55,6 @@ struct NetJailState
    */
   struct GNUNET_OS_Process *stop_proc;
 
-  // Flag indication if the script finished.
-  unsigned int finished;
 };
 
 
@@ -108,16 +111,17 @@ child_completed_callback (void *cls,
   struct NetJailState *ns = cls;
 
   cwh = NULL;
+  GNUNET_OS_process_destroy (ns->stop_proc);
+  ns->stop_proc = NULL;
   if (0 == exit_code)
   {
-    ns->finished = GNUNET_YES;
+    GNUNET_TESTING_async_finish (&ns->ac);
   }
   else
   {
-    ns->finished = GNUNET_SYSERR;
+    // FIXME: log exit code!
+    GNUNET_TESTING_async_fail (&ns->ac);
   }
-  GNUNET_OS_process_destroy (ns->stop_proc);
-  ns->stop_proc = NULL;
 }
 
 
@@ -174,33 +178,6 @@ netjail_stop_run (void *cls,
 }
 
 
-/**
- * This function checks the flag NetJailState#finished, if this cmd finished.
- *
- */
-static enum GNUNET_GenericReturnValue
-netjail_stop_finish (void *cls,
-                     GNUNET_SCHEDULER_TaskCallback cont,
-                     void *cont_cls)
-{
-  struct NetJailState *ns = cls;
-
-  if (ns->finished)
-  {
-    cont (cont_cls);
-  }
-  return ns->finished;
-}
-
-
-/**
- * Create command.
- *
- * @param label name for command.
- * @param local_m Number of local nodes in each namespace.
- * @param global_n The number of namespaces.
- * @return command.
- */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_netjail_stop (const char *label,
                                  char *local_m,
@@ -216,7 +193,7 @@ GNUNET_TESTING_cmd_netjail_stop (const char *label,
       .cls = ns,
       .label = label,
       .run = &netjail_stop_run,
-      .finish = &netjail_stop_finish,
+      .ac = &ns->ac,
       .cleanup = &netjail_stop_cleanup,
       .traits = &netjail_stop_traits
     };

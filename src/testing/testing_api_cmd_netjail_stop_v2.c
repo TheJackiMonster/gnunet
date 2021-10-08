@@ -40,6 +40,11 @@ static struct GNUNET_ChildWaitHandle *cwh;
 struct NetJailState
 {
   /**
+   * Context for our asynchronous completion.
+   */
+  struct GNUNET_TESTING_AsyncContext ac;
+
+  /**
    * Configuration file for the test topology.
    */
   char *topology_config;
@@ -49,8 +54,6 @@ struct NetJailState
    */
   struct GNUNET_OS_Process *stop_proc;
 
-  // Flag indication if the script finished.
-  enum GNUNET_GenericReturnValue finished;
 };
 
 
@@ -82,20 +85,6 @@ netjail_stop_cleanup (void *cls)
 
 
 /**
- * Trait function of this cmd does nothing.
- *
- */
-static enum GNUNET_GenericReturnValue
-netjail_stop_traits (void *cls,
-                     const void **ret,
-                     const char *trait,
-                     unsigned int index)
-{
-  return GNUNET_NO;
-}
-
-
-/**
  * Callback which will be called if the setup script finished.
  *
  */
@@ -106,17 +95,17 @@ child_completed_callback (void *cls,
 {
   struct NetJailState *ns = cls;
 
-  cwh = NULL;
+  cwh = NULL; // WTF? globals!?!?!
+  GNUNET_OS_process_destroy (ns->stop_proc);
+  ns->stop_proc = NULL;
   if (0 == exit_code)
   {
-    ns->finished = GNUNET_YES;
+    GNUNET_TESTING_async_finish (&ns->ac);
   }
   else
   {
-    ns->finished = GNUNET_SYSERR;
+    GNUNET_TESTING_async_fail (&ns->ac);
   }
-  GNUNET_OS_process_destroy (ns->stop_proc);
-  ns->stop_proc = NULL;
 }
 
 
@@ -132,6 +121,7 @@ netjail_stop_run (void *cls,
 {
   struct NetJailState *ns = cls;
   char *pid;
+
   GNUNET_asprintf (&pid,
                    "%u",
                    getpid ());
@@ -170,36 +160,9 @@ netjail_stop_run (void *cls,
                            &child_completed_callback,
                            ns);
   GNUNET_break (NULL != cwh);
-
 }
 
 
-/**
- * This function checks the flag NetJailState#finished, if this cmd finished.
- *
- */
-static enum GNUNET_GenericReturnValue
-netjail_stop_finish (void *cls,
-                     GNUNET_SCHEDULER_TaskCallback cont,
-                     void *cont_cls)
-{
-  struct NetJailState *ns = cls;
-
-  if (ns->finished)
-  {
-    cont (cont_cls);
-  }
-  return ns->finished;
-}
-
-
-/**
- * Create command.
- *
- * @param label name for command.
- * @param topology_config Configuration file for the test topology.
- * @return command.
- */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_netjail_stop_v2 (const char *label,
                                     char *topology_config)
@@ -213,9 +176,8 @@ GNUNET_TESTING_cmd_netjail_stop_v2 (const char *label,
       .cls = ns,
       .label = label,
       .run = &netjail_stop_run,
-      .finish = &netjail_stop_finish,
-      .cleanup = &netjail_stop_cleanup,
-      .traits = &netjail_stop_traits
+      .ac = &ns->ac,
+      .cleanup = &netjail_stop_cleanup
     };
 
     return cmd;

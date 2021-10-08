@@ -47,20 +47,6 @@ struct BlockState
 
 
 /**
- * Trait function of this cmd does nothing.
- *
- */
-static int
-block_until_all_peers_started_traits (void *cls,
-                                      const void **ret,
-                                      const char *trait,
-                                      unsigned int index)
-{
-  return GNUNET_OK;
-}
-
-
-/**
  * The cleanup function of this cmd frees resources the cmd allocated.
  *
  */
@@ -87,27 +73,6 @@ block_until_all_peers_started_run (void *cls,
 
 
 /**
- * Function to check if BlockState#all_peers_started is GNUNET_YES. In that case interpreter_next will be called.
- *
- */
-static int
-block_until_all_peers_started_finish (void *cls,
-                                      GNUNET_SCHEDULER_TaskCallback cont,
-                                      void *cont_cls)
-{
-  struct BlockState *bs = cls;
-  unsigned int *ret = bs->all_peers_started;
-
-  if (GNUNET_YES == *ret)
-  {
-    cont (cont_cls);
-  }
-
-  return *ret;
-}
-
-
-/**
  * Create command.
  *
  * @param label name for command.
@@ -123,15 +88,14 @@ GNUNET_TESTING_cmd_block_until_all_peers_started (const char *label,
 
   bs = GNUNET_new (struct BlockState);
   bs->all_peers_started = all_peers_started;
+  {
+    struct GNUNET_TESTING_Command cmd = {
+      .cls = bs,
+      .label = label,
+      .run = &block_until_all_peers_started_run,
+      .cleanup = &block_until_all_peers_started_cleanup
+    };
 
-  struct GNUNET_TESTING_Command cmd = {
-    .cls = bs,
-    .label = label,
-    .run = &block_until_all_peers_started_run,
-    .finish = &block_until_all_peers_started_finish,
-    .cleanup = &block_until_all_peers_started_cleanup,
-    .traits = &block_until_all_peers_started_traits
-  };
-
-  return cmd;
+    return cmd;
+  }
 }

@@ -46,7 +46,7 @@ struct GNUNET_TESTING_Interpreter
    * Closure for @e rc.
    */
   void *rc_cls;
-  
+
   /**
    * Commands the interpreter will run.
    */
@@ -294,7 +294,7 @@ interpreter_run (void *cls)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Running command END\n");
     is->result = GNUNET_OK;
-    GNUNET_SCHEDULER_shutdown ();
+    finish_test (is);
     return;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -304,17 +304,19 @@ interpreter_run (void *cls)
     = cmd->last_req_time
       = GNUNET_TIME_absolute_get ();
   cmd->num_tries = 1;
+  if (NULL != cmd->ac)
+  {
+    cmd->ac->is = is;
+    cmd->ac->cont = &interpreter_next;
+    cmd->ac->cont_cls = is;
+    cmd->ac->finished = GNUNET_NO;
+  }
   cmd->run (cmd->cls,
             is);
-  if ( (NULL != cmd->finish) &&
-       (! cmd->asynchronous_finish) )
+  if ( (cmd->asynchronous_finish) &&
+       (NULL != cmd->ac->cont) )
   {
-    cmd->finish (cmd->cls,
-                 &interpreter_next,
-                 is);
-  }
-  else
-  {
+    cmd->ac->cont = NULL;
     interpreter_next (is);
   }
 }
@@ -380,12 +382,12 @@ struct MainParams
 
   /**
    * Global timeout for the test.
-   */ 
+   */
   struct GNUNET_TIME_Relative timeout;
 
   /**
    * Set to #EXIT_FAILURE on error.
-   */ 
+   */
   int rv;
 };
 
@@ -441,6 +443,33 @@ GNUNET_TESTING_main (struct GNUNET_TESTING_Command *commands,
   GNUNET_SCHEDULER_run (&loop_run,
                         &mp);
   return mp.rv;
+}
+
+
+void
+GNUNET_TESTING_async_fail (struct GNUNET_TESTING_AsyncContext *ac)
+{
+  GNUNET_assert (GNUNET_NO == ac->finished);
+  ac->finished = GNUNET_SYSERR;
+  GNUNET_TESTING_interpreter_fail (ac->is);
+  if (NULL != ac->cont)
+  {
+    ac->cont (ac->cont_cls);
+    ac->cont = NULL;
+  }
+}
+
+
+void
+GNUNET_TESTING_async_finish (struct GNUNET_TESTING_AsyncContext *ac)
+{
+  GNUNET_assert (GNUNET_NO == ac->finished);
+  ac->finished = GNUNET_OK;
+  if (NULL != ac->cont)
+  {
+    ac->cont (ac->cont_cls);
+    ac->cont = NULL;
+  }
 }
 
 

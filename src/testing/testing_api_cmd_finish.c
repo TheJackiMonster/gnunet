@@ -48,34 +48,23 @@ struct FinishState
   struct GNUNET_SCHEDULER_Task *finish_task;
 
   /**
-   * Interpreter we are part of.
-   */
-  struct GNUNET_TESTING_Interpreter *is;
-
-  /**
    * Function to call when done.
    */
-  GNUNET_SCHEDULER_TaskCallback cont;
-
-  /**
-   * Closure for @e cont.
-   */
-  void *cont_cls;
+  struct GNUNET_TESTING_AsyncContext ac;
 
   /**
    * How long to wait until finish fails hard?
    */
   struct GNUNET_TIME_Relative timeout;
 
-  /**
-   * Set to #GNUNET_OK if the @a async_label command finished on time
-   */
-  enum GNUNET_GenericReturnValue finished;
-
 };
 
 
 /**
+ * Function called when the command we are waiting on
+ * is finished. Hence we are finished, too.
+ *
+ * @param cls a `struct FinishState` being notified
  */
 static void
 done_finish (void *cls)
@@ -84,15 +73,15 @@ done_finish (void *cls)
 
   GNUNET_SCHEDULER_cancel (finish_state->finish_task);
   finish_state->finish_task = NULL;
-  finish_state->finished = GNUNET_YES;
-  if (NULL != finish_state->cont)
-  {
-    finish_state->cont (finish_state->cont_cls);
-  }
+  GNUNET_TESTING_async_finish (&finish_state->ac);
 }
 
 
 /**
+ * Function triggered if the command we are waiting
+ * for did not complete on time.
+ *
+ * @param cls our `struct FinishState`
  */
 static void
 timeout_finish (void *cls)
@@ -103,8 +92,7 @@ timeout_finish (void *cls)
   GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
               "Timeout waiting for command `%s' to finish\n",
               finish_state->async_label);
-  finish_state->finished = GNUNET_SYSERR;
-  GNUNET_TESTING_interpreter_fail (finish_state->is);
+  GNUNET_TESTING_async_fail (&finish_state->ac);
 }
 
 
@@ -114,13 +102,13 @@ timeout_finish (void *cls)
  *
  */
 static void
-run_finish_on_ref (void *cls,
-                   struct GNUNET_TESTING_Interpreter *is)
+run_finish (void *cls,
+            struct GNUNET_TESTING_Interpreter *is)
 {
   struct FinishState *finish_state = cls;
   const struct GNUNET_TESTING_Command *async_cmd;
+  struct GNUNET_TESTING_AsyncContext *aac;
 
-  finish_state->is = is;
   async_cmd
     = GNUNET_TESTING_interpreter_lookup_command (is,
                                                  finish_state->async_label);
@@ -132,7 +120,7 @@ run_finish_on_ref (void *cls,
     GNUNET_TESTING_interpreter_fail (is);
     return;
   }
-  if ( (NULL == async_cmd->finish) ||
+  if ( (NULL == (aac = async_cmd->ac)) ||
        (! async_cmd->asynchronous_finish) )
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -141,71 +129,40 @@ run_finish_on_ref (void *cls,
     GNUNET_TESTING_interpreter_fail (is);
     return;
   }
+  if (GNUNET_NO != aac->finished)
+  {
+    /* Command is already finished, so are we! */
+    GNUNET_TESTING_async_finish (&finish_state->ac);
+    return;
+  }
   finish_state->finish_task
     = GNUNET_SCHEDULER_add_delayed (finish_state->timeout,
                                     &timeout_finish,
                                     finish_state);
-  async_cmd->finish (async_cmd->cls,
-                     &done_finish,
-                     finish_state);
+  aac->cont = &done_finish;
+  aac->cont_cls = finish_state;
 }
 
 
 /**
- * Wait for any asynchronous execution of @e run to conclude,
- * then call finish_cont. Finish may only be called once per command.
+ * Cleanup state of a finish command.
  *
- * This member may be NULL if this command is a synchronous command,
- * and also should be set to NULL once the command has finished.
- *
- * @param cls closure
- * @param cont function to call upon completion, can be NULL
- * @param cont_cls closure for @a cont
- * @return
- *    #GNUNET_NO if the command is still running and @a cont will be called later
- *    #GNUNET_OK if the command completed successfully and @a cont was called
- *    #GNUNET_SYSERR if the operation @a cont was NOT called
+ * @param cls a `struct FinishState` to clean up
  */
-static enum GNUNET_GenericReturnValue
-finish_finish_on_ref (void *cls,
-                      GNUNET_SCHEDULER_TaskCallback cont,
-                      void *cont_cls)
+static void
+cleanup_finish (void *cls)
 {
   struct FinishState *finish_state = cls;
 
-  switch (finish_state->finished)
+  if (NULL != finish_state->finish_task)
   {
-  case GNUNET_OK:
-    cont (cont_cls);
-    break;
-  case GNUNET_SYSERR:
-    GNUNET_break (0);
-    break;
-  case GNUNET_NO:
-    if (NULL != finish_state->cont)
-    {
-      GNUNET_break (0);
-      return GNUNET_SYSERR;
-    }
-    finish_state->cont = cont;
-    finish_state->cont_cls = cont_cls;
-    break;
+    GNUNET_SCHEDULER_cancel (finish_state->finish_task);
+    finish_state->finish_task = NULL;
   }
-  return finish_state->finished;
+  GNUNET_free (finish_state);
 }
 
 
-/**
- * Create (synchronous) command that waits for another command to finish.
- * If @a cmd_ref did not finish after @a timeout, this command will fail
- * the test case.
- *
- * @param finish_label label for this command
- * @param cmd_ref reference to a previous command which we should
- *        wait for (call `finish()` on)
- * @param timeout how long to wait at most for @a cmd_ref to finish
- * @return a finish-command.
- */
 const struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_finish (const char *finish_label,
                            const char *cmd_ref,
@@ -220,8 +177,9 @@ GNUNET_TESTING_cmd_finish (const char *finish_label,
     struct GNUNET_TESTING_Command cmd = {
       .cls = finish_state,
       .label = finish_label,
-      .run = &run_finish_on_ref,
-      .finish = &finish_finish_on_ref
+      .run = &run_finish,
+      .ac = &finish_state->ac,
+      .cleanup = &cleanup_finish
     };
 
     return cmd;
@@ -234,7 +192,7 @@ GNUNET_TESTING_cmd_make_unblocking (struct GNUNET_TESTING_Command cmd)
 {
   /* do not permit this function to be used on
      a finish command! */
-  GNUNET_assert (cmd.run != &run_finish_on_ref);
+  GNUNET_assert (cmd.run != &run_finish);
   cmd.asynchronous_finish = true;
   return cmd;
 }

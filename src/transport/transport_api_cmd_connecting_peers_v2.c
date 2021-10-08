@@ -44,6 +44,11 @@
  */
 struct ConnectPeersState
 {
+  /**
+   * Context for our asynchronous completion.
+   */
+  struct GNUNET_TESTING_AsyncContext ac;
+
   // Label of the cmd which started the test system.
   const char *create_label;
 
@@ -185,20 +190,6 @@ connect_peers_finish (void *cls,
 
 
 /**
- * Trait function of this cmd does nothing.
- *
- */
-static int
-connect_peers_traits (void *cls,
-                      const void **ret,
-                      const char *trait,
-                      unsigned int index)
-{
-  return GNUNET_OK;
-}
-
-
-/**
  * The cleanup function of this cmd frees resources the cmd allocated.
  *
  */
@@ -237,9 +228,8 @@ GNUNET_TRANSPORT_cmd_connect_peers_v2 (const char *label,
       .cls = cps,
       .label = label,
       .run = &connect_peers_run,
-      .finish = &connect_peers_finish,
-      .cleanup = &connect_peers_cleanup,
-      .traits = &connect_peers_traits
+      .ac = &cps->ac,
+      .cleanup = &connect_peers_cleanup
     };
 
     return cmd;
