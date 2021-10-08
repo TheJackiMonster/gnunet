@@ -53,11 +53,6 @@ struct NetJailState
    * The process id of the start script.
    */
   struct GNUNET_OS_Process *start_proc;
-
-  /**
-   * Flag indication if the script finished.
-   */
-  enum GNUNET_GenericReturnValue finished;
 };
 
 
@@ -110,6 +105,7 @@ child_completed_callback (void *cls,
   }
   else
   {
+    // FIXME: log status code
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Child completed with an error!\n");
     GNUNET_TESTING_async_fail (&ns->ac);

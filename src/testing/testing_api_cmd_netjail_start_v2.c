@@ -53,9 +53,6 @@ struct NetJailState
    */
   struct GNUNET_OS_Process *start_proc;
 
-  // Flag indication if the script finished.
-  // FIXME: document 3 values
-  enum GNUNET_GenericReturnValue finished;
 };
 
 
