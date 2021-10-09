@@ -21,7 +21,7 @@
 #
 AC_PREREQ([2.69])
 # Checks for programs.
-AC_INIT([gnunet],m4_esyscmd([contrib/get_version.sh | tr -d '\n']),[bug-gnunet@gnu.org])
+AC_INIT([gnunet],m4_esyscmd([contrib/get_version.sh]),[bug-gnunet@gnu.org])
 AC_CONFIG_AUX_DIR([build-aux])
 
 # check for legacy option that is no longer supported (#5627) and fail hard

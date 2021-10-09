@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION=$(git describe --tags | tr -d '\n')
+VERSION=$(git describe --tags)
 VERSION=${VERSION:1:${#VERSION}}
 echo $VERSION > .version
-echo  $VERSION
+echo  -n $VERSION
