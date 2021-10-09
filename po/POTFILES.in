@@ -110,6 +110,7 @@ src/dht/gnunet_dht_profiler.c
 src/dht/plugin_block_dht.c
 src/dhtu/plugin_dhtu_gnunet.c
 src/dhtu/plugin_dhtu_ip.c
+src/dhtu/testing_dhtu_cmd_send.c
 src/dns/dns_api.c
 src/dns/gnunet-dns-monitor.c
 src/dns/gnunet-dns-redirector.c
@@ -425,6 +426,8 @@ src/testing/testing.c
 src/testing/testing_api_cmd_batch.c
 src/testing/testing_api_cmd_block_until_all_peers_started.c
 src/testing/testing_api_cmd_block_until_external_trigger.c
+src/testing/testing_api_cmd_end.c
+src/testing/testing_api_cmd_finish.c
 src/testing/testing_api_cmd_hello_world.c
 src/testing/testing_api_cmd_hello_world_birth.c
 src/testing/testing_api_cmd_local_test_finished.c
