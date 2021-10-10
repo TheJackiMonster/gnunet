@@ -58,7 +58,7 @@ libgnunettesting_la_SOURCES = \
   testing_api_cmd_netjail_stop_testsystem_v2.c \
   testing_api_cmd_netjail_stop.c \
   testing_api_cmd_netjail_stop_v2.c \
-  testing.c \
+  testing.c testing.h \
   testing_api_cmd_system_create.c \
   testing_api_cmd_system_destroy.c \
   testing_api_cmd_batch.c \
