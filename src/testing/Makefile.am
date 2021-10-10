@@ -97,7 +97,6 @@ list_keys_LDADD = \
 
 
 check_PROGRAMS = \
- test_testing_topology \
  test_testing_api_cmd_netjail \
  test_testing_hello_world \
  test_testing_portreservation \
@@ -109,7 +108,6 @@ check_PROGRAMS = \
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
 TESTS = \
- test_testing_topology \
  test_testing_api_cmd_netjail \
  test_testing_hello_world \
  test_testing_portreservation \
@@ -118,11 +116,11 @@ TESTS = \
  test_testing_servicestartup
 endif
 
-test_testing_topology_SOURCES = \
- test_testing_topology.c
-test_testing_topology_LDADD = \
- libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la
+#test_testing_topology_SOURCES = \
+# test_testing_topology.c
+#test_testing_topology_LDADD = \
+# libgnunettesting.la \
+# $(top_builddir)/src/util/libgnunetutil.la
 
 test_testing_api_cmd_netjail_SOURCES = \
  test_testing_api_cmd_netjail.c
