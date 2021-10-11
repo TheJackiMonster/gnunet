@@ -1440,8 +1440,7 @@ AC_SUBST(MYSQL_LDFLAGS)
 AC_SUBST(MYSQL_CPPFLAGS)
 
 # additional version check for mysql
-AC_ARG_ENABLE(mysql-version-check, [  --disable-mysql-version-check  do not check MySQL version],, enable_mysql_version_check=yes)
-AS_IF([test "$mysql" = "true" -a "x$enable_mysql_version_check" = "xyes"],
+AS_IF([test "$mysql" = "true"],
  [
   AC_MSG_CHECKING(mysql version)
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
