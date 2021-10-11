@@ -52,7 +52,6 @@ gnunet_datastore_LDADD = \
 
 if HAVE_MYSQL
  MYSQL_PLUGIN = libgnunet_plugin_datastore_mysql.la
-if HAVE_TESTING
 if HAVE_BENCHMARKS
   MYSQL_BENCHMARKS = \
    perf_datastore_api_mysql \
@@ -64,10 +63,8 @@ endif
   test_plugin_datastore_mysql \
   $(MYSQL_BENCHMARKS)
 endif
-endif
 if HAVE_SQLITE
  SQLITE_PLUGIN = libgnunet_plugin_datastore_sqlite.la
-if HAVE_TESTING
 if HAVE_BENCHMARKS
   SQLITE_BENCHMARKS = \
    perf_datastore_api_sqlite \
@@ -79,10 +76,8 @@ endif
   test_plugin_datastore_sqlite \
   $(SQLITE_BENCHMARKS)
 endif
-endif
 if HAVE_POSTGRESQL
  POSTGRES_PLUGIN = libgnunet_plugin_datastore_postgres.la
-if HAVE_TESTING
 if HAVE_BENCHMARKS
   POSTGRES_BENCHMARKS = \
    perf_datastore_api_postgres \
@@ -93,7 +88,6 @@ endif
   test_datastore_api_management_postgres \
   test_plugin_datastore_postgres \
   $(POSTGRES_BENCHMARKS)
-endif
 endif
 
 plugin_LTLIBRARIES = \

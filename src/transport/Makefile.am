@@ -128,11 +128,9 @@ noinst_PROGRAMS = \
  $(WLAN_BIN_SENDER) \
  $(WLAN_BIN_RECEIVER)
 
-if HAVE_TESTING
 TESTING_LIBS = \
   libgnunettransporttesting.la \
   libgnunettransporttesting2.la
-endif
 
 lib_LTLIBRARIES = \
   libgnunettransport.la \
@@ -594,7 +592,6 @@ libgnunet_plugin_transport_https_server_la_LDFLAGS = \
 libgnunet_plugin_transport_https_server_la_CFLAGS = \
  $(MHD_CFLAGS) $(AM_CFLAGS) -DBUILD_HTTPS
 
-if HAVE_TESTING
 check_PROGRAMS = \
  test_transport_simple_send \
  test_transport_simple_send_v2 \
@@ -681,7 +678,6 @@ check_PROGRAMS += \
   test_communicator_rekey-udp \
   test_communicator_backchannel-udp \
   test_communicator_bidirect-tcp
-endif
 endif
 
 if ENABLE_TEST_RUN

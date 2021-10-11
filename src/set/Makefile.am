@@ -14,13 +14,11 @@ if USE_COVERAGE
   AM_CFLAGS = -fprofile-arcs -ftest-coverage
 endif
 
-if HAVE_TESTING
 bin_PROGRAMS = \
  gnunet-set-profiler
 
 noinst_PROGRAMS = \
  gnunet-set-ibf-profiler
-endif
 
 libexec_PROGRAMS = \
  gnunet-service-set
@@ -69,13 +67,11 @@ libgnunetset_la_LIBADD = \
 libgnunetset_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)
 
-if HAVE_TESTING
 check_PROGRAMS = \
  test_set_api \
  test_set_union_result_symmetric \
  test_set_intersection_result_full \
  test_set_union_copy
-endif
 
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;

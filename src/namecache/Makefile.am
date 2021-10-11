@@ -17,30 +17,22 @@ endif
 
 if HAVE_EXPERIMENTAL
 FLAT_PLUGIN = libgnunet_plugin_namecache_flat.la
-if HAVE_TESTING
 FLAT_TESTS = test_plugin_namecache_flat
-endif
 endif
 
 if HAVE_SQLITE
 SQLITE_PLUGIN = libgnunet_plugin_namecache_sqlite.la
-if HAVE_TESTING
 SQLITE_TESTS = test_plugin_namecache_sqlite
-endif
 endif
 
 if HAVE_POSTGRESQL
 POSTGRES_PLUGIN = libgnunet_plugin_namecache_postgres.la
-if HAVE_TESTING
 POSTGRES_TESTS = test_plugin_namecache_postgres
-endif
 endif
 
 # testcases do not even build yet; thus: experimental!
-if HAVE_TESTING
 TESTING_TESTS = \
  test_namecache_api_cache_block
-endif
 
 if HAVE_SQLITE
 check_PROGRAMS = \

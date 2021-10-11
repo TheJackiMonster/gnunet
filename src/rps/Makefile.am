@@ -45,10 +45,8 @@ libgnunetrps_la_CFLAGS = $(AM_CFLAGS)
 libexec_PROGRAMS = \
  gnunet-service-rps
 
-if HAVE_TESTING
 noinst_PROGRAMS = \
  gnunet-rps-profiler
-endif
 
 
 gnunet_service_rps_SOURCES = \
@@ -74,7 +72,6 @@ gnunet_service_rps_LDADD = \
   $(GN_LIBINTL)
 
 
-if HAVE_TESTING
 check_PROGRAMS = \
  test_service_rps_view \
  test_service_rps_custommap \
@@ -90,7 +87,6 @@ check_PROGRAMS += \
  test_rps_malicious_1 \
  test_rps_malicious_2 \
  test_rps_malicious_3
-endif
 endif
 
 rps_test_src = \

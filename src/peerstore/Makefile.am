@@ -63,9 +63,7 @@ endif
 
 if HAVE_SQLITE
 SQLITE_PLUGIN = libgnunet_plugin_peerstore_sqlite.la
-if HAVE_TESTING
 SQLITE_TESTS = test_plugin_peerstore_sqlite
-endif
 libgnunet_plugin_peerstore_sqlite_la_SOURCES = \
   plugin_peerstore_sqlite.c
 libgnunet_plugin_peerstore_sqlite_la_LIBADD = \

@@ -145,10 +145,8 @@ libgnunetutil_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS) \
   -version-info 14:0:0
 
-if HAVE_TESTING
-  GNUNET_ECC = gnunet-ecc
-  GNUNET_SCRYPT = gnunet-scrypt
-endif
+GNUNET_ECC = gnunet-ecc
+GNUNET_SCRYPT = gnunet-scrypt
 
 lib_LTLIBRARIES = libgnunetutil.la
 

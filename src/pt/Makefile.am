@@ -28,8 +28,6 @@ gnunet_daemon_pt_LDADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
-if HAVE_TESTING
-
 if HAVE_LIBGNURL
 LIB_GNURL=@LIBGNURL@
 CPP_GNURL=@LIBGNURL_CPPFLAGS@
@@ -54,8 +52,6 @@ if LINUX
  test_gns_vpn
 endif
 endif
-endif
-
 endif
 
 check_PROGRAMS = $(VPN_TEST)

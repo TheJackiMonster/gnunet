@@ -51,7 +51,6 @@ libgnunetsecretsharing_la_LIBADD = \
 libgnunetsecretsharing_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)
 
-if HAVE_TESTING
 bin_PROGRAMS = \
  gnunet-secretsharing-profiler
 
@@ -61,7 +60,6 @@ check_PROGRAMS = \
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
 TESTS = $(check_PROGRAMS)
-endif
 endif
 
 test_secretsharing_api_SOURCES = \

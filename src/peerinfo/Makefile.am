@@ -48,14 +48,12 @@ if HAVE_BENCHMARKS
  perf_peerinfo_api
 endif
 
-if HAVE_TESTING
 check_PROGRAMS = \
  test_peerinfo_shipped_hellos \
  test_peerinfo_api \
  test_peerinfo_api_friend_only \
  test_peerinfo_api_notify_friend_only \
  $(PEERINFO_BENCHMARKS)
-endif
 
 
 if ENABLE_TEST_RUN

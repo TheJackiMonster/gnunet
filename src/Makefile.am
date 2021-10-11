@@ -1,9 +1,7 @@
 # This Makefile.am is in the public domain
 
-if HAVE_TESTING
- TESTING = testing
- TESTBED = testbed-logger testbed
-endif
+TESTING = testing
+TESTBED = testbed-logger testbed
 
 if HAVE_EXPERIMENTAL
  EXP_DIR = \
