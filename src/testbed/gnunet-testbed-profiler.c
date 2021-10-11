@@ -227,11 +227,9 @@ test_run (void *cls,
     abort_task = NULL;
     return;
   }
-#if (! ENABLE_SUPERMUC)
   fprintf (stdout, "Testbed running, waiting for keystroke to shut down\n");
   fflush (stdout);
   (void) getc (stdin);
-#endif
   fprintf (stdout, "Shutting down. Please wait\n");
   fflush (stdout);
   GNUNET_SCHEDULER_shutdown ();
@@ -297,14 +295,12 @@ main (int argc, char *const *argv)
                                  "keystroke but continues to run until a termination "
                                  "signal is received"),
                                &noninteractive),
-#if ! ENABLE_SUPERMUC
     GNUNET_GETOPT_option_string ('H',
                                  "hosts",
                                  "FILENAME",
                                  gettext_noop (
                                    "name of the file with the login information for the testbed"),
                                  &hosts_file),
-#endif
     GNUNET_GETOPT_OPTION_END
   };
   const char *binaryHelp = "gnunet-testbed-profiler [OPTIONS]";

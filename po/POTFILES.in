@@ -406,7 +406,6 @@ src/testbed/gnunet-service-testbed_oc.c
 src/testbed/gnunet-service-testbed_peers.c
 src/testbed/gnunet-testbed-profiler.c
 src/testbed/gnunet_mpi_test.c
-src/testbed/gnunet_testbed_mpi_spawn.c
 src/testbed/testbed_api.c
 src/testbed/testbed_api_barriers.c
 src/testbed/testbed_api_hosts.c
