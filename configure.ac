@@ -1725,15 +1725,6 @@ AS_IF([test "x$enable_benchmark" = "xyes"],
 AM_CONDITIONAL([ENABLE_BENCHMARK], [test "x$enable_benchmark" = "xyes"])
 
 
-# should expensive tests be run?
-AC_MSG_CHECKING(whether to run expensive tests)
-AC_ARG_ENABLE([expensivetests],
-   [AS_HELP_STRING([--enable-expensivetests], [enable running expensive testcases])],
-   [enable_expensive=${enableval}],
-   [enable_expensive=no])
-AC_MSG_RESULT($enable_expensive)
-AM_CONDITIONAL([HAVE_EXPENSIVE_TESTS], [test "x$enable_expensive" = "xyes"])
-
 # should ports be open for Java services?
 AC_MSG_CHECKING(whether to enable ports for gnunet-java)
 AC_ARG_ENABLE([javaports],
