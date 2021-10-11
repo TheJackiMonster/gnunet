@@ -453,6 +453,7 @@ interpreter_run (void *cls)
   struct FinishTaskClosure *ftc;
   struct GNUNET_TESTING_Interpreter *is = cls;
   struct GNUNET_TESTING_Command *cmd = &is->commands[is->ip];
+  bool shutdown_on_end = cmd->shutdown_on_end;
 
   is->task = NULL;
 
@@ -460,11 +461,16 @@ interpreter_run (void *cls)
   {
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Running command END %p\n",
-                is);
+                "Running command END %p %u\n",
+                is,
+                shutdown_on_end);
     is->result = GNUNET_OK;
-    if (GNUNET_YES == cmd->shutdown_on_end)
+    if (GNUNET_YES == shutdown_on_end)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Running command END with shutdown\n");
       GNUNET_SCHEDULER_shutdown ();
+    }
     return;
   }
   else if (NULL != cmd)
@@ -596,13 +602,30 @@ GNUNET_TESTING_run (const char *cfg_filename,
   }
   /* get the number of commands */
   for (i = 0; NULL != commands[i].label; i++)
-    ;
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "on end %u\n",
+                commands[i].shutdown_on_end);
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "on end %u\n",
+              commands[i].shutdown_on_end);
+  // ;
   is->commands = GNUNET_new_array (i + 1,
                                    struct GNUNET_TESTING_Command);
   memcpy (is->commands,
           commands,
-          sizeof (struct GNUNET_TESTING_Command) * i);
+          sizeof (struct GNUNET_TESTING_Command) * (i + 1));
 
+  for (i = 0; NULL != is->commands[i].label; i++)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "on end %u\n",
+                is->commands[i].shutdown_on_end);
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "on end %u\n",
+              is->commands[i].shutdown_on_end);
   is->timeout_task = GNUNET_SCHEDULER_add_delayed
                        (timeout,
                        &do_timeout,

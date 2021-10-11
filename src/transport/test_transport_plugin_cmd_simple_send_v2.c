@@ -85,6 +85,8 @@ static void
 handle_test (void *cls,
              const struct GNUNET_TRANSPORT_TESTING_TestMessage *message)
 {
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Message received\n");
   message_received = GNUNET_YES;
 }
 
@@ -203,7 +205,7 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
  * @return the exported block API
  */
 void *
-libgnunet_test_transport_plugin_cmd_simple_send_init (void *cls)
+libgnunet_test_transport_plugin_cmd_simple_send_v2_init (void *cls)
 {
   struct GNUNET_TESTING_PluginFunctions *api;
 
@@ -221,7 +223,7 @@ libgnunet_test_transport_plugin_cmd_simple_send_init (void *cls)
  * @return NULL
  */
 void *
-libgnunet_test_transport_plugin_cmd_simple_send_done (void *cls)
+libgnunet_test_transport_plugin_cmd_simple_send_v2_done (void *cls)
 {
   struct GNUNET_TESTING_PluginFunctions *api = cls;
 

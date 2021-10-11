@@ -195,12 +195,6 @@ read_from_log (void *cls)
                strcmp (
                  "Delivering backchannel message from 4TTC to F7B5 of type 1460 to udp",
                  cs->search_string[i]));
-          if (NULL != strstr (line,
-                              cs->search_string[i]))
-          {
-            LOG (GNUNET_ERROR_TYPE_DEBUG,
-                 "gaga\n");
-          }
           cs->finished = GNUNET_YES;
           fclose (cs->stream);
           return;

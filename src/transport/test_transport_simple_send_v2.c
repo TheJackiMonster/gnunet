@@ -47,6 +47,12 @@ static unsigned int rv = 0;
 static void
 run (void *cls)
 {
+  struct GNUNET_TESTING_Command cmd = GNUNET_TESTING_cmd_end ();
+
+  if (GNUNET_YES == cmd.shutdown_on_end)
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "gaga %p\n",
+                cmd);
   struct GNUNET_TESTING_Command commands[] = {
     GNUNET_TESTING_cmd_netjail_start_v2 ("netjail-start",
                                          TOPOLOGY_CONFIG),
@@ -58,7 +64,7 @@ run (void *cls)
                                                TOPOLOGY_CONFIG),
     GNUNET_TESTING_cmd_netjail_stop_v2 ("netjail-stop",
                                         TOPOLOGY_CONFIG),
-    GNUNET_TESTING_cmd_end ()
+    cmd
   };
 
   GNUNET_TESTING_run (NULL,

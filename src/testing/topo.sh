@@ -20,8 +20,7 @@ extract_attributes()
 	number=$(echo $line|cut -d \| -f 1| cut -c 2-|cut -d : -f 2 )
 	echo $number
     fi
-	
-    
+
     nf=$(echo $line|awk -F: '{print NF}')
     for ((i=2;i<=$nf;i++))
     do
@@ -67,6 +66,11 @@ while read line; do
     then
 	GLOBAL_N=$(cut -d : -f 2 <<< $line)
 	echo $GLOBAL_N
+    for ((i=1;i<=$GLOBAL_N;i++))
+    do
+        R_TCP[$i]=0
+        R_UDP[$i]=0
+    done    
     elif [ "$key" = "X" ]
     then
 	KNOWN=$(cut -d : -f 2 <<< $line)
