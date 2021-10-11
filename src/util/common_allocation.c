@@ -42,13 +42,6 @@
 #define INT_MAX 0x7FFFFFFF
 #endif
 
-#if 0
-#define W32_MEM_LIMIT 200000000
-#endif
-
-#ifdef W32_MEM_LIMIT
-static LONG mem_used = 0;
-#endif
 
 /**
  * Allocate memory. Checks the return value, aborts if no more
@@ -184,11 +177,6 @@ GNUNET_xmemdup_ (const void *buf,
   /* As a security precaution, we generally do not allow very large
    * allocations here */
   GNUNET_assert_at (size <= GNUNET_MAX_MALLOC_CHECKED, filename, linenumber);
-#ifdef W32_MEM_LIMIT
-  size += sizeof(size_t);
-  if (mem_used + size > W32_MEM_LIMIT)
-    return NULL;
-#endif
   GNUNET_assert_at (size < INT_MAX, filename, linenumber);
   ret = malloc (size);
   if (ret == NULL)
@@ -196,11 +184,6 @@ GNUNET_xmemdup_ (const void *buf,
     LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR, "malloc");
     GNUNET_assert (0);
   }
-#ifdef W32_MEM_LIMIT
-  *((size_t *) ret) = size;
-  ret = &((size_t *) ret)[1];
-  mem_used += size;
-#endif
   GNUNET_memcpy (ret, buf, size);
   return ret;
 }
@@ -222,22 +205,11 @@ GNUNET_xmalloc_unchecked_ (size_t size, const char *filename, int linenumber)
 
   (void) filename;
   (void) linenumber;
-#ifdef W32_MEM_LIMIT
-  size += sizeof(size_t);
-  if (mem_used + size > W32_MEM_LIMIT)
-    return NULL;
-#endif
 
   result = malloc (size);
   if (NULL == result)
     return NULL;
   memset (result, 0, size);
-
-#ifdef W32_MEM_LIMIT
-  *((size_t *) result) = size;
-  result = &((size_t *) result)[1];
-  mem_used += size;
-#endif
 
   return result;
 }
@@ -260,11 +232,6 @@ GNUNET_xrealloc_ (void *ptr, size_t n, const char *filename, int linenumber)
   (void) filename;
   (void) linenumber;
 
-#ifdef W32_MEM_LIMIT
-  n += sizeof(size_t);
-  ptr = &((size_t *) ptr)[-1];
-  mem_used = mem_used - *((size_t *) ptr) + n;
-#endif
 #if defined(M_SIZE)
 #if ENABLE_POISONING
   {
@@ -295,9 +262,6 @@ GNUNET_xrealloc_ (void *ptr, size_t n, const char *filename, int linenumber)
     LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR, "realloc");
     GNUNET_assert (0);
   }
-#ifdef W32_MEM_LIMIT
-  ptr = &((size_t *) ptr)[1];
-#endif
   return ptr;
 }
 
@@ -333,10 +297,6 @@ GNUNET_xfree_ (void *ptr,
 {
   if (NULL == ptr)
     return;
-#ifdef W32_MEM_LIMIT
-  ptr = &((size_t *) ptr)[-1];
-  mem_used -= *((size_t *) ptr);
-#endif
 #if defined(M_SIZE)
 #if ENABLE_POISONING
   {
