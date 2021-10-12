@@ -184,19 +184,7 @@ EXTRA_DIST = \
   conf/gnunet/no_forcestart.conf \
   conf/colorit/colorit.conf \
   conf/nss/nssswitch.conf \
-  testbed_infiniband_results/6000_connections_20000_peers.txt \
-  testbed_infiniband_results/6000_connections_10000_peers_20_poc.txt \
-  testbed_infiniband_results/6000_connections_10000_peers_30_poc.txt \
-  testbed_infiniband_results/6000_connections_40000_peers.txt \
-  testbed_infiniband_results/6000_connections_60000_peers_5_poc.txt \
-  testbed_infiniband_results/30000_connections_90000_peers_30_poc.txt \
-  testbed_infiniband_results/6000_connections_80000_peers_20_poc.txt \
-  testbed_infiniband_results/6000_connections_80000_peers_5_poc.txt \
-  testbed_infiniband_results/6000_connections_10000_peers_100_poc.txt \
-  testbed_infiniband_results/6000_connections_60000_peers.txt \
   testbed_configs/testbed_cluster.conf \
-  testbed_configs/testbed_infiniband.conf \
-  testbed_configs/regex_profiler_infiniband.conf \
   testbed_configs/testbed_supermuc.conf \
   guix.README \
   web/log.php \
@@ -209,7 +197,6 @@ EXTRA_DIST = \
   docker/Dockerfile \
   docker/README.md \
   docker/gnunet.conf \
-  nse/experiments/infiniband.conf \
   benchmark/collect.awk \
   gnunet_infrastructure/handbook_pull.sh \
   guix.scm \
