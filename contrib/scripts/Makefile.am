@@ -42,7 +42,6 @@ EXTRA_DIST = \
   changelog_delta.sh \
   debug \
   build_cscope.sh \
-  testbed_cleanup.sh \
   lint/lint-man.sh \
   lint/lint-python.sh \
   revisionary.sh \
