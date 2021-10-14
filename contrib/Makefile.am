@@ -6,12 +6,16 @@ SUBDIRS = scripts hellos services
 include Makefile.inc
 
 dist_pkgdata_DATA = \
-  gns/gns-form.xslt \
-  gns/gns-bcd.html \
   gns/def.tex \
-  gns/bootstrap.min.css \
-  gns/gns-form-fields.xml \
+  gns/gns-bcd.html \
   gns/gns-bcd.tex \
+  gns/gns-bcd-forbidden.html \
+  gns/gns-bcd-internal-error.html \
+  gns/gns-bcd-invalid-key.html \
+  gns/gns-bcd-not-found.html \
+  gns/gns-bcd-png.tex \
+  gns/gns-bcd-simple.html \
+  gns/gns-bcd-simple.tex \
   fcfsd/fcfsd-index.html \
   fcfsd/fcfsd-forbidden.html \
   fcfsd/fcfsd-notfound.html \

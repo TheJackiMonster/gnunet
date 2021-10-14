@@ -15,6 +15,7 @@
 \InterLabelColumn=3.5mm
 \InterLabelRow=3.0mm
 \numberoflabels=10
+\LabelGridtrue
 
 \renewcommand{\rmdefault}{phv}
 \renewcommand{\seriesdefault}{m}
@@ -129,47 +130,27 @@
     [every node/.style={rectangle,fill=white,minimum height=7pt,inner sep=0pt},
       medium text/.style={text width=37.5mm},
       slight text/.style={text width=30mm},
-      important text/.style={text width=40mm},
+      important text/.style={text width=41mm},
       font=\tiny]
-    \begin{scope}[xshift=64.25mm]
-      \node[medium text] (organization) at (0,-21mm) {\org};
-      \ifthenelse{\equal{\department}{}}{}{
-        \node[medium text] (department) at (0,-23.5mm) {\department};
-      }
-      \ifthenelse{\equal{\subdepartment}{}}{}{
-        \node[medium text] (subdepartment) at (0,-26.5mm) {\subdepartment};
-      }
-      \ifthenelse{\equal{\phone}{}}{}{
-        \node[medium text] (tel label) at (0,-30mm) {Tel};
-        \node[slight text] (tel number) at (0.75mm,-30mm) {\phone};
-      }
-      \ifthenelse{\equal{\fax}{}}{}{
-        \node[medium text] (fax label) at (0,-32.5mm) {Fax};
-        \node[slight text] (fax number) at (0.75mm,-32.5mm) {\fax};
-      }
-      \node[medium text] (e-mail address) at (0,-35.5mm) {\email};
-      \node[medium text] (homepage address) at (0,-38mm) {\homepage};
-      \ifthenelse{\equal{\gpglineone}{}}{}{
-        \node[medium text] (gpg label) at (0,-41mm) {GPG Fingerprint};
-        \node[medium text] (gpg line one) at (0,-43.5mm) {\gpglineone};
-        \node[medium text] (gpg line two) at (0,-46mm) {\gpglinetwo};
-      }
-    \end{scope}
-    \node[scale=0.127] (logo) at (70mm, -10.5mm) {\logo};
-    \node (qrcode) at (20mm,-17mm) {
-      \qrcode[height=20mm,level=Q]{gnunet://gns/\gns}
-    };
-    \begin{scope}[xshift=24.25mm,yshift=-12mm]
-      \node[important text] (name prefix) at (0,-21mm) {
+    \begin{scope}[xshift=10mm]
+      \node[important text] (prefix) at (0, 4mm) {
         \ifthenelse{\equal{\prefix}{}}{}{\tiny \prefix}
       };
-      \node[important text] (name) at (0,-24mm) {
-        \fontsize{8pt}{8pt}\selectfont
+      \node[important text] (name) at (0,0mm) {
+        \fontsize{9pt}{9pt}\selectfont
         \textbf{\name}\ifthenelse{\equal{\suffix}{}}{}{, \tiny \suffix}
       };
-      \ifthenelse{\equal{\jobtitle}{}}{}{
-        \node[important text] (job title) at (0,-29mm) {\jobtitle};
-      }
+      \node[important text] (jobtitle) at (0, -4mm) {\jobtitle};
+    \end{scope}
+    \begin{scope}[xshift=8.5mm,yshift=-1.23mm]
+      \node[medium text] (mail) at (0, -10mm) {\email};
+      \node[medium text] (homepage) at (0, -13.25mm) {\homepage};
+    \end{scope}
+    \begin{scope}[xshift=53.5mm]
+      \node (qrcode) at (0,-9mm) {
+        \qrcode[height=24.2mm,level=Q]{gnunet://gns/\gns}
+      };
+      \node[scale=0.16] (logo) at (0,13mm) {\logo};
     \end{scope}
   \end{tikzpicture}
 }

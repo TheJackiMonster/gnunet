@@ -205,6 +205,15 @@ do_shutdown (void *cls)
   {
     GNUNET_IDENTITY_disconnect (identity);
   }
+
+  if (NULL != httpd_task)
+  {
+    GNUNET_SCHEDULER_cancel (httpd_task);
+  }
+  if (NULL != httpd)
+  {
+    MHD_stop_daemon (httpd);
+  }
 }
 
 
@@ -985,7 +994,7 @@ identity_cb (void *cls,
  *
  * @param name name of the file to open
  * @param basedir directory where the file is located
- * @return #GNUNET_SYSERR on error
+ * @return NULL on error
  */
 static struct StaticPage *
 open_static_page (const char *name, const char *basedir)

@@ -1,0 +1,10 @@
+\documentclass[convert={ghostscript}]{standalone}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{qrcode}
+
+\input{def.tex}
+
+\begin{document}
+\qrcode[height=13cm,level=Q]{gnunet://gns/\gns}
+\end{document}
