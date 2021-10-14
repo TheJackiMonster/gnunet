@@ -36,18 +36,6 @@
 struct SendSimpleState
 {
   /**
-   * The number of the local node of the actual network namespace.
-   *
-   */
-  char *m;
-
-  /**
-   * The number of the actual namespace.
-   *
-   */
-  char *n;
-
-  /**
    * Number globally identifying the node.
    *
    */
@@ -146,16 +134,12 @@ send_simple_run (void *cls,
  */
 struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_send_simple (const char *label,
-                                  char *m,
-                                  char *n,
-                                  uint32_t num,
-                                  const char *start_peer_label)
+                                  const char *start_peer_label,
+                                  uint32_t num)
 {
   struct SendSimpleState *sss;
 
   sss = GNUNET_new (struct SendSimpleState);
-  sss->m = m;
-  sss->n = n;
   sss->num = num;
   sss->start_peer_label = start_peer_label;
   {

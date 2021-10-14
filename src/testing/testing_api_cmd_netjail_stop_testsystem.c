@@ -42,9 +42,15 @@ struct StopHelperState
    */
   struct GNUNET_HELPER_Handle **helper;
 
-  char *local_m;
+  unsigned int local_m;
 
-  char *global_n;
+  unsigned int global_n;
+
+  /**
+   * Number of global known nodes.
+   *
+   */
+  unsigned int known;
 };
 
 
@@ -57,6 +63,7 @@ struct StopHelperState
 static void
 stop_testing_system_cleanup (void *cls)
 {
+
 }
 
 
@@ -64,13 +71,13 @@ stop_testing_system_cleanup (void *cls)
  * Trait function of this cmd does nothing.
  *
  */
-static enum GNUNET_GenericReturnValue
+static int
 stop_testing_system_traits (void *cls,
                             const void **ret,
                             const char *trait,
                             unsigned int index)
 {
-  return GNUNET_NO;
+  return GNUNET_OK;
 }
 
 
@@ -88,17 +95,30 @@ stop_testing_system_run (void *cls,
   struct GNUNET_HELPER_Handle **helper;
   const struct GNUNET_TESTING_Command *start_helper_cmd;
 
-  start_helper_cmd = GNUNET_TESTING_interpreter_lookup_command (
-    is,
-    shs->helper_start_label);
+  start_helper_cmd = GNUNET_TESTING_interpreter_lookup_command (NULL,
+                                                                shs->
+                                                                helper_start_label);
   GNUNET_TESTING_get_trait_helper_handles (start_helper_cmd,
                                            &helper);
 
-  for (int i = 1; i <= atoi (shs->global_n); i++)
+  for (int i = 1; i <= shs->known; i++)
   {
-    for (int j = 1; j <= atoi (shs->local_m); j++)
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "i: %u\n",
+                i);
+    GNUNET_HELPER_stop (helper[i - 1],
+                        GNUNET_YES);
+  }
+
+  for (int i = 1; i <= shs->global_n; i++)
+  {
+    for (int j = 1; j <= shs->local_m; j++)
     {
-      GNUNET_HELPER_stop (helper[(i - 1) * atoi (shs->local_m) + j - 1],
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "i: %u j: %u\n",
+                  i,
+                  j);
+      GNUNET_HELPER_stop (helper[(i - 1) * shs->local_m + j + shs->known - 1],
                           GNUNET_YES);
     }
   }
@@ -107,34 +127,35 @@ stop_testing_system_run (void *cls,
 
 /**
  * Create command.
- * @param helper_start_label label of the cmd to start the test system.
+ *
  * @param label name for command.
- * @param .
- * @param local_m Number of nodes in a network namespace. //TODO make this a unsigned int
- * @param global_n Number of network namespaces. //TODO make this a unsigned int
+ * @param helper_start_label label of the cmd to start the test system.
+ * @param topology_config Configuration file for the test topology.
  * @return command.
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_stop_testing_system (const char *label,
                                         const char *helper_start_label,
-                                        char *local_m,
-                                        char *global_n)
+                                        const char *topology_config)
 {
   struct StopHelperState *shs;
 
+  struct GNUNET_TESTING_NetjailTopology *topology =
+    GNUNET_TESTING_get_topo_from_file (topology_config);
+
   shs = GNUNET_new (struct StopHelperState);
   shs->helper_start_label = helper_start_label;
-  shs->local_m = local_m;
-  shs->global_n = global_n;
-  {
-    struct GNUNET_TESTING_Command cmd = {
-      .cls = shs,
-      .label = label,
-      .run = &stop_testing_system_run,
-      .cleanup = &stop_testing_system_cleanup,
-      .traits = &stop_testing_system_traits
-    };
+  shs->local_m = topology->nodes_m;
+  shs->global_n = topology->namespaces_n;
+  shs->known = topology->nodes_x;
 
-    return cmd;
-  }
+  struct GNUNET_TESTING_Command cmd = {
+    .cls = shs,
+    .label = label,
+    .run = &stop_testing_system_run,
+    .cleanup = &stop_testing_system_cleanup,
+    .traits = &stop_testing_system_traits
+  };
+
+  return cmd;
 }

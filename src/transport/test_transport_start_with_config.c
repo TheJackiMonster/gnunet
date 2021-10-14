@@ -20,7 +20,7 @@
 
 /**
  * @file transport/test_transport_start_with_config.c
- * @brief Test case executing a script which sends a test message between two peers.
+ * @brief Generic program to start testcases in an configurable topology.
  * @author t3sserakt
  */
 #include "platform.h"
@@ -29,57 +29,32 @@
 
 #define TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 120)
 
-/**
-  * Return value of the test.
-  *
-  */
-static unsigned int rv = 0;
-
-static char *topology_config;
-
-/**
- * Main function to run the test cases.
- *
- * @param cls not used.
- *
- */
-static void
-run (void *cls)
-{
-  struct GNUNET_TESTING_Command commands[] = {
-    GNUNET_TESTING_cmd_netjail_start_v2 ("netjail-start",
-                                         topology_config),
-    GNUNET_TESTING_cmd_netjail_start_testing_system_v2 ("netjail-start-testbed",
-                                                        topology_config,
-                                                        &rv),
-    GNUNET_TESTING_cmd_stop_testing_system_v2 ("stop-testbed",
-                                               "netjail-start-testbed",
-                                               topology_config),
-    GNUNET_TESTING_cmd_netjail_stop_v2 ("netjail-stop",
-                                        topology_config),
-    GNUNET_TESTING_cmd_end ()
-  };
-
-  GNUNET_TESTING_run (NULL,
-                      commands,
-                      TIMEOUT);
-}
-
 
 int
 main (int argc,
       char *const *argv)
 {
+  char *topology_config;
+
   GNUNET_log_setup ("test-netjail",
                     "DEBUG",
                     NULL);
 
   topology_config = argv[1];
 
-  GNUNET_SCHEDULER_run (&run,
-                        NULL);
+  struct GNUNET_TESTING_Command commands[] = {
+    GNUNET_TESTING_cmd_netjail_start ("netjail-start",
+                                      topology_config),
+    GNUNET_TESTING_cmd_netjail_start_testing_system ("netjail-start-testbed",
+                                                     topology_config),
+    GNUNET_TESTING_cmd_stop_testing_system ("stop-testbed",
+                                            "netjail-start-testbed",
+                                            topology_config),
+    GNUNET_TESTING_cmd_netjail_stop ("netjail-stop",
+                                     topology_config),
+    GNUNET_TESTING_cmd_end ()
+  };
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Test finished!\n");
-  return rv;
+  return GNUNET_TESTING_main (commands,
+                              TIMEOUT);
 }

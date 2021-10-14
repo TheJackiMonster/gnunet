@@ -51,13 +51,9 @@ libgnunettesting_la_SOURCES = \
   testing_api_cmd_block_until_all_peers_started.c \
   testing_api_cmd_block_until_external_trigger.c \
   testing_api_cmd_netjail_start.c \
-  testing_api_cmd_netjail_start_v2.c \
   testing_api_cmd_netjail_start_testsystem.c \
-  testing_api_cmd_netjail_start_testsystem_v2.c \
   testing_api_cmd_netjail_stop_testsystem.c \
-  testing_api_cmd_netjail_stop_testsystem_v2.c \
   testing_api_cmd_netjail_stop.c \
-  testing_api_cmd_netjail_stop_v2.c \
   testing.c testing.h \
   testing_api_cmd_system_create.c \
   testing_api_cmd_system_destroy.c \

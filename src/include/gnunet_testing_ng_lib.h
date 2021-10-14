@@ -1054,40 +1054,12 @@ GNUNET_TESTING_cmd_system_destroy (const char *label,
  * Create command.
  *
  * @param label name for command.
- * @param local_m Number of local nodes in each namespace.
- * @param global_n The number of namespaces.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_start (const char *label,
-                                  char *local_m,
-                                  char *global_n);
-
-/**
- * Create command.
- *
- * @param label name for command.
  * @param topology_config Configuration file for the test topology.
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_start_v2 (const char *label,
-                                     char *topology_config);
-
-
-/**
- * Create command.
- *
- * @param label name for command.
- * @param binaryname to exec.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_start_testing_system (const char *label,
-                                                 char *local_m,
-                                                 char *global_n,
-                                                 char *plugin_name,
-                                                 unsigned int *rv);
+GNUNET_TESTING_cmd_netjail_start (const char *label,
+                                  char *topology_config);
 
 
 /**
@@ -1099,22 +1071,20 @@ GNUNET_TESTING_cmd_netjail_start_testing_system (const char *label,
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_start_testing_system_v2 (const char *label,
-                                                    const char *topology_config,
-                                                    unsigned int *rv);
+GNUNET_TESTING_cmd_netjail_start_testing_system (const char *label,
+                                                 const char *topology_config);
 
 
 /**
  * Create command.
  *
  * @param label name for command.
- * @param binaryname to stop.
+ * @param topology_config Configuration file for the test topology.
  * @return command.
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_netjail_stop (const char *label,
-                                 char *local_m,
-                                 char *global_n);
+                                 char *topology_config);
 
 
 /**
@@ -1124,35 +1094,32 @@ GNUNET_TESTING_cmd_netjail_stop (const char *label,
  * @param topology_config Configuration file for the test topology.
  * @return command.
  */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_stop_v2 (const char *label,
-                                    char *topology_config);
-
-
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_stop_testing_system (const char *label,
                                         const char *helper_start_label,
-                                        char *local_m,
-                                        char *global_n);
+                                        const char *topology_config);
+
 
 /**
- * Create command.
+ * Create a GNUNET_CMDS_LOCAL_FINISHED message.
  *
- * @param label name for command.
- * @param topology_config Configuration file for the test topology.
- * @return command.
+ * @param rv The result of the local test as GNUNET_GenericReturnValue.
+ * @return The GNUNET_CMDS_LOCAL_FINISHED message.
+*/
+struct GNUNET_MessageHeader *
+GNUNET_TESTING_send_local_test_finished_msg (enum GNUNET_GenericReturnValue rv);
+
+
+/**
+ * Function to get the trait with the async context.
+ *
+ * @param[out] ac GNUNET_TESTING_AsyncContext.
+ * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
  */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_stop_testing_system_v2 (const char *label,
-                                           const char *helper_start_label,
-                                           const char *topology_config);
-
-
-// FIXME: document!
-enum GNUNET_GenericReturnValue
-GNUNET_TESTING_get_trait_helper_handles (const struct
-                                         GNUNET_TESTING_Command *cmd,
-                                         struct GNUNET_HELPER_Handle ***helper);
+int
+GNUNET_TESTING_get_trait_async_context (
+  const struct GNUNET_TESTING_Command *cmd,
+  struct GNUNET_TESTING_AsyncContext **ac);
 
 
 /**
@@ -1163,7 +1130,7 @@ GNUNET_TESTING_get_trait_helper_handles (const struct
  * @return #GNUNET_OK on success.
  */
 enum GNUNET_GenericReturnValue
-GNUNET_TESTING_get_trait_helper_handles_v2 (
+GNUNET_TESTING_get_trait_helper_handles (
   const struct GNUNET_TESTING_Command *cmd,
   struct GNUNET_HELPER_Handle ***helper);
 
@@ -1176,8 +1143,7 @@ GNUNET_TESTING_cmd_block_until_all_peers_started (
 
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_block_until_external_trigger (
-  const char *label,
-  unsigned int *stop_blocking);
+  const char *label);
 
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_send_peer_ready (const char *label,

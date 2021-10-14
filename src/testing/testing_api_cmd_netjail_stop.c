@@ -31,7 +31,7 @@
 #define NETJAIL_STOP_SCRIPT "./../testing/netjail_stop.sh"
 
 // Child Wait handle
-struct GNUNET_ChildWaitHandle *cwh;
+static struct GNUNET_ChildWaitHandle *cwh;
 
 /**
  * Struct to hold information for callbacks.
@@ -44,11 +44,10 @@ struct NetJailState
    */
   struct GNUNET_TESTING_AsyncContext ac;
 
-  // Number of local nodes in each namespace.
-  char *local_m;
-
-  // The number of namespaces.
-  char *global_n;
+  /**
+   * Configuration file for the test topology.
+   */
+  char *topology_config;
 
   /**
    * The process id of the start script.
@@ -86,20 +85,6 @@ netjail_stop_cleanup (void *cls)
 
 
 /**
- * Trait function of this cmd does nothing.
- *
- */
-static enum GNUNET_GenericReturnValue
-netjail_stop_traits (void *cls,
-                     const void **ret,
-                     const char *trait,
-                     unsigned int index)
-{
-  return GNUNET_NO;
-}
-
-
-/**
  * Callback which will be called if the setup script finished.
  *
  */
@@ -110,7 +95,7 @@ child_completed_callback (void *cls,
 {
   struct NetJailState *ns = cls;
 
-  cwh = NULL;
+  cwh = NULL; // WTF? globals!?!?!
   GNUNET_OS_process_destroy (ns->stop_proc);
   ns->stop_proc = NULL;
   if (0 == exit_code)
@@ -119,7 +104,6 @@ child_completed_callback (void *cls,
   }
   else
   {
-    // FIXME: log exit code!
     GNUNET_TESTING_async_fail (&ns->ac);
   }
 }
@@ -129,7 +113,6 @@ child_completed_callback (void *cls,
 * The run method starts the script which deletes the network namespaces.
 *
 * @param cls closure.
-* @param cmd CMD being run.
 * @param is interpreter state.
 */
 static void
@@ -137,12 +120,15 @@ netjail_stop_run (void *cls,
                   struct GNUNET_TESTING_Interpreter *is)
 {
   struct NetJailState *ns = cls;
-  char *const script_argv[] = {
-    NETJAIL_STOP_SCRIPT,
-    ns->local_m,
-    ns->global_n,
-    NULL
-  };
+  char *pid;
+
+  GNUNET_asprintf (&pid,
+                   "%u",
+                   getpid ());
+  char *const script_argv[] = {NETJAIL_STOP_SCRIPT,
+                               ns->topology_config,
+                               pid,
+                               NULL};
   unsigned int helper_check = GNUNET_OS_check_helper_binary (
     NETJAIL_STOP_SCRIPT,
     GNUNET_YES,
@@ -174,28 +160,24 @@ netjail_stop_run (void *cls,
                            &child_completed_callback,
                            ns);
   GNUNET_break (NULL != cwh);
-
 }
 
 
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_netjail_stop (const char *label,
-                                 char *local_m,
-                                 char *global_n)
+                                 char *topology_config)
 {
   struct NetJailState *ns;
 
   ns = GNUNET_new (struct NetJailState);
-  ns->local_m = local_m;
-  ns->global_n = global_n;
+  ns->topology_config = topology_config;
   {
     struct GNUNET_TESTING_Command cmd = {
       .cls = ns,
       .label = label,
       .run = &netjail_stop_run,
       .ac = &ns->ac,
-      .cleanup = &netjail_stop_cleanup,
-      .traits = &netjail_stop_traits
+      .cleanup = &netjail_stop_cleanup
     };
 
     return cmd;

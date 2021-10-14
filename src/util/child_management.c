@@ -19,7 +19,7 @@
  */
 
 /**
- * @file testing/child_management.c
+ * @file util/child_management.c
  * @brief Handling of child processes in GNUnet.
  * @author Christian Grothoff (ANASTASIS)
  * @author Dominik Meister (ANASTASIS)
@@ -153,7 +153,9 @@ sighandler_child_death (void)
   errno = old_errno; /* restore errno */
 }
 
-
+/**
+ * Initializing the signal pipe for child handling.
+ */
 static void
 child_management_start (void)
 {
@@ -191,6 +193,14 @@ child_management_done (void)
 }
 
 
+/**
+ * Adding a child process to be monitored by the child management.
+ *
+ * @param proc The child process to be monitored.
+ * @param cp The callback to be called, when the child process completed.
+ * @param cb_cls The closure for the callback.
+ * @return An handle for the the child being monitored.
+ */
 struct GNUNET_ChildWaitHandle *
 GNUNET_wait_child (struct GNUNET_OS_Process *proc,
                    GNUNET_ChildCompletedCallback cb,
@@ -219,6 +229,11 @@ GNUNET_wait_child (struct GNUNET_OS_Process *proc,
 }
 
 
+/**
+ * Removing child handle.
+ *
+ * @param cwh The handle to be removed.
+ */
 void
 GNUNET_wait_child_cancel (struct GNUNET_ChildWaitHandle *cwh)
 {

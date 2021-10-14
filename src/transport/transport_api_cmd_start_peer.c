@@ -51,7 +51,6 @@ hello_iter_cb (void *cb_cls,
                const char *emsg)
 {
   struct StartPeerState *sps = cb_cls;
-
   if (NULL == record)
   {
     sps->pic = NULL;
@@ -66,7 +65,7 @@ hello_iter_cb (void *cb_cls,
 
   GNUNET_PEERSTORE_iterate_cancel (sps->pic);
   sps->pic = NULL;
-  sps->finished = GNUNET_YES;
+  GNUNET_TESTING_async_finish (&sps->ac);
 }
 
 
@@ -122,7 +121,7 @@ notify_connect (void *cls,
   struct StartPeerState *sps = cls;
   struct GNUNET_ShortHashCode *key = GNUNET_new (struct GNUNET_ShortHashCode);
   struct GNUNET_HashCode hc;
-  int node_number;
+  struct GNUNET_CRYPTO_EddsaPublicKey public_key = peer->public_key;
 
   void *ret = NULL;
 
@@ -133,9 +132,7 @@ notify_connect (void *cls,
        sps->no,
        GNUNET_i2s (&sps->id));
 
-  // TODO we need to store with a key identifying the netns node in the future. For now we have only one connecting node.
-  node_number = 1;
-  GNUNET_CRYPTO_hash (&node_number, sizeof(node_number), &hc);
+  GNUNET_CRYPTO_hash (&public_key, sizeof(public_key), &hc);
 
 
   memcpy (key,
@@ -147,6 +144,11 @@ notify_connect (void *cls,
                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
 
   GNUNET_free (key);
+
+  sps->notify_connect (cls,
+                       peer,
+                       mq);
+
   // TODO what does the handler function need?
   return ret;
 }
@@ -167,7 +169,8 @@ start_peer_run (void *cls,
   struct GNUNET_TESTING_System *tl_system;
   char *home;
   char *transport_unix_path;
-  char *communicator_unix_path;
+  char *tcp_communicator_unix_path;
+  char *udp_communicator_unix_path;
   char *bindto;
 
   if (GNUNET_NO == GNUNET_DISK_file_test (sps->cfgname))
@@ -192,7 +195,11 @@ start_peer_run (void *cls,
                    "$GNUNET_RUNTIME_DIR/tng-p%u.sock",
                    sps->no);
 
-  GNUNET_asprintf (&communicator_unix_path,
+  GNUNET_asprintf (&tcp_communicator_unix_path,
+                   "$GNUNET_RUNTIME_DIR/tcp-comm-p%u.sock",
+                   sps->no);
+
+  GNUNET_asprintf (&udp_communicator_unix_path,
                    "$GNUNET_RUNTIME_DIR/tcp-comm-p%u.sock",
                    sps->no);
 
@@ -200,6 +207,9 @@ start_peer_run (void *cls,
                    "%s:60002",
                    sps->node_ip);
 
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "node_ip %s\n",
+       bindto);
 
   GNUNET_CONFIGURATION_set_value_string (sps->cfg, "PATHS", "GNUNET_TEST_HOME",
                                          home);
@@ -208,9 +218,15 @@ start_peer_run (void *cls,
   GNUNET_CONFIGURATION_set_value_string (sps->cfg, "communicator-tcp",
                                          "BINDTO",
                                          bindto);
+  GNUNET_CONFIGURATION_set_value_string (sps->cfg, "communicator-udp",
+                                         "BINDTO",
+                                         bindto);
   GNUNET_CONFIGURATION_set_value_string (sps->cfg, "communicator-tcp",
                                          "UNIXPATH",
-                                         communicator_unix_path);
+                                         tcp_communicator_unix_path);
+  GNUNET_CONFIGURATION_set_value_string (sps->cfg, "communicator-udp",
+                                         "UNIXPATH",
+                                         udp_communicator_unix_path);
 
   system_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                           sps->system_label);
@@ -417,10 +433,9 @@ start_peer_traits (void *cls,
  *
  */
 int
-GNUNET_TRANSPORT_get_trait_state (const struct
-                                  GNUNET_TESTING_Command
-                                  *cmd,
-                                  struct StartPeerState **sps)
+GNUNET_TRANSPORT_get_trait_state (
+  const struct GNUNET_TESTING_Command *cmd,
+  struct StartPeerState **sps)
 {
   return cmd->traits (cmd->cls,
                       (const void **) sps,
@@ -481,7 +496,8 @@ GNUNET_TRANSPORT_get_trait_connected_peers_map (const struct
                                                 GNUNET_TESTING_Command
                                                 *cmd,
                                                 struct
-                                                GNUNET_CONTAINER_MultiShortmap *
+                                                GNUNET_CONTAINER_MultiShortmap
+                                                *
                                                 *
                                                 connected_peers_map)
 {
@@ -545,12 +561,11 @@ GNUNET_TRANSPORT_get_trait_peer_id (const struct
 struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_start_peer (const char *label,
                                  const char *system_label,
-                                 char *m,
-                                 char *n,
-                                 char *local_m,
+                                 uint32_t no,
                                  char *node_ip,
                                  struct GNUNET_MQ_MessageHandler *handlers,
-                                 const char *cfgname)
+                                 const char *cfgname,
+                                 GNUNET_TRANSPORT_NotifyConnect notify_connect)
 {
   struct StartPeerState *sps;
   struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map =
@@ -558,14 +573,12 @@ GNUNET_TRANSPORT_cmd_start_peer (const char *label,
   unsigned int i;
 
   sps = GNUNET_new (struct StartPeerState);
-  sps->m = m;
-  sps->n = n;
-  sps->local_m = local_m;
-  sps->no = (atoi (n) - 1) * atoi (sps->local_m) + atoi (m);
+  sps->no = no;
   sps->system_label = system_label;
   sps->connected_peers_map = connected_peers_map;
   sps->cfgname = cfgname;
   sps->node_ip = node_ip;
+  sps->notify_connect = notify_connect;
 
   if (NULL != handlers)
   {
@@ -578,15 +591,14 @@ GNUNET_TRANSPORT_cmd_start_peer (const char *label,
                    i * sizeof(struct GNUNET_MQ_MessageHandler));
   }
 
-  {
-    struct GNUNET_TESTING_Command cmd = {
-      .cls = sps,
-      .label = label,
-      .run = &start_peer_run,
-      .cleanup = &start_peer_cleanup,
-      .traits = &start_peer_traits
-    };
+  struct GNUNET_TESTING_Command cmd = {
+    .cls = sps,
+    .label = label,
+    .run = &start_peer_run,
+    .ac = &sps->ac,
+    .cleanup = &start_peer_cleanup,
+    .traits = &start_peer_traits
+  };
 
-    return cmd;
-  }
+  return cmd;
 }

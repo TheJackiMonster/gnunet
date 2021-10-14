@@ -39,6 +39,11 @@
 struct BlockState
 {
   /**
+   * Context for our asynchronous completion.
+   */
+  struct GNUNET_TESTING_AsyncContext ac;
+
+  /**
    * Flag to indicate if all peers have started.
    *
    */
@@ -93,6 +98,7 @@ GNUNET_TESTING_cmd_block_until_all_peers_started (const char *label,
       .cls = bs,
       .label = label,
       .run = &block_until_all_peers_started_run,
+      .ac = &bs->ac,
       .cleanup = &block_until_all_peers_started_cleanup
     };
 

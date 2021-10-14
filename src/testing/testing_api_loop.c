@@ -313,8 +313,12 @@ interpreter_run (void *cls)
   }
   cmd->run (cmd->cls,
             is);
-  if ( (cmd->asynchronous_finish) &&
-       (NULL != cmd->ac->cont) )
+  if (NULL == cmd->ac)
+  {
+    interpreter_next (is);
+  }
+  else if ( (cmd->asynchronous_finish) &&
+            (NULL != cmd->ac->cont) )
   {
     cmd->ac->cont = NULL;
     interpreter_next (is);
