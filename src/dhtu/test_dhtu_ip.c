@@ -19,9 +19,9 @@
  */
 
 /**
- * @file transport/test_transport_start_with_config.c
- * @brief Generic program to start testcases in an configurable topology.
- * @author t3sserakt
+ * @file dhtu/test_dhtu_ip.c
+ * @brief Test case for the DHTU implementation for IP
+ * @author Christian Grothoff
  */
 #include "platform.h"
 #include "gnunet_testing_ng_lib.h"
@@ -29,32 +29,22 @@
 
 #define TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 120)
 
+#define CONFIG_FILE "test_dhtu_ip.conf"
+
 
 int
 main (int argc,
       char *const *argv)
 {
-  char *topology_config;
-
-  GNUNET_log_setup ("test-netjail",
-                    "DEBUG",
-                    NULL);
-
-  topology_config = argv[1];
-
   struct GNUNET_TESTING_Command commands[] = {
     GNUNET_TESTING_cmd_netjail_start ("netjail-start",
-                                      topology_config),
-    GNUNET_TESTING_cmd_netjail_start_testing_system ("netjail-start-testbed",
-                                                     topology_config),
-    GNUNET_TESTING_cmd_stop_testing_system ("stop-testbed",
-                                            "netjail-start-testbed",
-                                            topology_config),
+                                      CONFIG_FILE),
     GNUNET_TESTING_cmd_netjail_stop ("netjail-stop",
-                                     topology_config),
+                                     CONFIG_FILE),
     GNUNET_TESTING_cmd_end ()
   };
 
-  return GNUNET_TESTING_main (commands,
+  return GNUNET_TESTING_main (NULL,
+                              commands,
                               TIMEOUT);
 }

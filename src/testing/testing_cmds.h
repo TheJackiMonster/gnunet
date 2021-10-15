@@ -83,6 +83,8 @@ struct GNUNET_CMDS_LOCAL_FINISHED
    * Type is GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_FINISHED
    */
   struct GNUNET_MessageHeader header;
+
+  enum GNUNET_GenericReturnValue result;
 };
 
 struct GNUNET_CMDS_LOCAL_TEST_PREPARED

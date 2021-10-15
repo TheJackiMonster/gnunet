@@ -470,7 +470,8 @@ GNUNET_PQ_result_spec_absolute_time_nbo (const char *name,
  * @return array entry for the result specification to use
  */
 struct GNUNET_PQ_ResultSpec
-GNUNET_PQ_result_spec_uint16 (const char *name, uint16_t *u16);
+GNUNET_PQ_result_spec_uint16 (const char *name,
+                              uint16_t *u16);
 
 
 /**
@@ -481,7 +482,8 @@ GNUNET_PQ_result_spec_uint16 (const char *name, uint16_t *u16);
  * @return array entry for the result specification to use
  */
 struct GNUNET_PQ_ResultSpec
-GNUNET_PQ_result_spec_uint32 (const char *name, uint32_t *u32);
+GNUNET_PQ_result_spec_uint32 (const char *name,
+                              uint32_t *u32);
 
 
 /**
@@ -492,7 +494,8 @@ GNUNET_PQ_result_spec_uint32 (const char *name, uint32_t *u32);
  * @return array entry for the result specification to use
  */
 struct GNUNET_PQ_ResultSpec
-GNUNET_PQ_result_spec_uint64 (const char *name, uint64_t *u64);
+GNUNET_PQ_result_spec_uint64 (const char *name,
+                              uint64_t *u64);
 
 
 /* ************************* pq.c functions ************************ */
@@ -641,11 +644,11 @@ GNUNET_PQ_eval_prepared_multi_select (struct GNUNET_PQ_Context *db,
  *         codes to `enum GNUNET_DB_QueryStatus`.
  */
 enum GNUNET_DB_QueryStatus
-GNUNET_PQ_eval_prepared_singleton_select (struct GNUNET_PQ_Context *db,
-                                          const char *statement_name,
-                                          const struct
-                                          GNUNET_PQ_QueryParam *params,
-                                          struct GNUNET_PQ_ResultSpec *rs);
+GNUNET_PQ_eval_prepared_singleton_select (
+  struct GNUNET_PQ_Context *db,
+  const char *statement_name,
+  const struct GNUNET_PQ_QueryParam *params,
+  struct GNUNET_PQ_ResultSpec *rs);
 
 
 /* ******************** pq_prepare.c functions ************** */
@@ -772,12 +775,35 @@ GNUNET_PQ_make_try_execute (const char *sql);
  * @return #GNUNET_OK on success (modulo statements where errors can be ignored)
  *         #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_PQ_exec_statements (struct GNUNET_PQ_Context *db,
                            const struct GNUNET_PQ_ExecuteStatement *es);
 
 
 /* ******************** pq_connect.c functions ************** */
+
+
+/**
+ * Flags to control PQ operation.
+ */
+enum GNUNET_PQ_Options
+{
+  /**
+   * Traditional default. Do nothing special.
+   */
+  GNUNET_PQ_FLAG_NONE = 0,
+
+  /**
+   * Dropping database. Do not attempt to initialize
+   * versioning schema if not present.
+   */
+  GNUNET_PQ_FLAG_DROP = 1,
+
+  /**
+   * Check database version is current.  Fail to connect if it is not.
+   */
+  GNUNET_PQ_FLAG_CHECK_CURRENT = 2
+};
 
 
 /**
@@ -810,6 +836,37 @@ GNUNET_PQ_connect (const char *config_str,
 
 
 /**
+ * Create a connection to the Postgres database using @a config_str for the
+ * configuration.  Initialize logging via GNUnet's log routines and disable
+ * Postgres's logger.  Also ensures that the statements in @a load_path and @a
+ * es are executed whenever we (re)connect to the database, and that the
+ * prepared statements in @a ps are "ready".  If statements in @es fail that
+ * were created with #GNUNET_PQ_make_execute(), then the entire operation
+ * fails.
+ *
+ * In @a load_path, a list of "$XXXX.sql" files is expected where $XXXX
+ * must be a sequence of contiguous integer values starting at 0000.
+ * These files are then loaded in sequence using "psql $config_str" before
+ * running statements from @e es.  The directory is inspected again on
+ * reconnect.
+ *
+ * @param config_str configuration to use
+ * @param load_path path to directory with SQL transactions to run, can be NULL
+ * @param es #GNUNET_PQ_PREPARED_STATEMENT_END-terminated
+ *            array of statements to execute upon EACH connection, can be NULL
+ * @param ps array of prepared statements to prepare, can be NULL
+ * @param flags connection flags
+ * @return NULL on error
+ */
+struct GNUNET_PQ_Context *
+GNUNET_PQ_connect2 (const char *config_str,
+                    const char *load_path,
+                    const struct GNUNET_PQ_ExecuteStatement *es,
+                    const struct GNUNET_PQ_PreparedStatement *ps,
+                    enum GNUNET_PQ_Options flags);
+
+
+/**
  * Connect to a postgres database using the configuration
  * option "CONFIG" in @a section.  Also ensures that the
  * statements in @a es are executed whenever we (re)connect to the
@@ -832,6 +889,33 @@ GNUNET_PQ_connect_with_cfg (const struct GNUNET_CONFIGURATION_Handle *cfg,
                             const char *load_path_suffix,
                             const struct GNUNET_PQ_ExecuteStatement *es,
                             const struct GNUNET_PQ_PreparedStatement *ps);
+
+
+/**
+ * Connect to a postgres database using the configuration
+ * option "CONFIG" in @a section.  Also ensures that the
+ * statements in @a es are executed whenever we (re)connect to the
+ * database, and that the prepared statements in @a ps are "ready".
+ *
+ * The caller does not have to ensure that @a es and @a ps remain allocated
+ * and initialized in memory until #GNUNET_PQ_disconnect() is called, as a copy will be made.
+ *
+ * @param cfg configuration
+ * @param section configuration section to use to get Postgres configuration options
+ * @param load_path_suffix suffix to append to the SQL_DIR in the configuration
+ * @param es #GNUNET_PQ_PREPARED_STATEMENT_END-terminated
+ *            array of statements to execute upon EACH connection, can be NULL
+ * @param ps array of prepared statements to prepare, can be NULL
+ * @param flags connection flags
+ * @return the postgres handle, NULL on error
+ */
+struct GNUNET_PQ_Context *
+GNUNET_PQ_connect_with_cfg2 (const struct GNUNET_CONFIGURATION_Handle *cfg,
+                             const char *section,
+                             const char *load_path_suffix,
+                             const struct GNUNET_PQ_ExecuteStatement *es,
+                             const struct GNUNET_PQ_PreparedStatement *ps,
+                             enum GNUNET_PQ_Options flags);
 
 
 /**

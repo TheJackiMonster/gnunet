@@ -35,7 +35,8 @@ struct GNUNET_MESSENGER_Ego;
 struct GNUNET_MESSENGER_EgoStore;
 
 typedef void
-(*GNUNET_MESSENGER_EgoLookupCallback) (void *cls, const char *identifier,
+(*GNUNET_MESSENGER_EgoLookupCallback) (void *cls,
+                                       const char *identifier,
                                        const struct GNUNET_MESSENGER_Ego *ego);
 
 struct GNUNET_MESSENGER_EgoLookup
@@ -87,7 +88,8 @@ struct GNUNET_MESSENGER_EgoStore
  * @param[in] config Configuration handle
  */
 void
-init_ego_store (struct GNUNET_MESSENGER_EgoStore *store, const struct GNUNET_CONFIGURATION_Handle *config);
+init_ego_store (struct GNUNET_MESSENGER_EgoStore *store,
+                const struct GNUNET_CONFIGURATION_Handle *config);
 
 /**
  * Clears an EGO-store, wipes its content and deallocates its memory.
@@ -107,7 +109,8 @@ clear_ego_store (struct GNUNET_MESSENGER_EgoStore *store);
  * @param[in/out] handle Handle or NULL
  */
 void
-create_store_ego (struct GNUNET_MESSENGER_EgoStore *store, const char *identifier,
+create_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
+                  const char *identifier,
                   void *handle);
 
 /**
@@ -120,8 +123,10 @@ create_store_ego (struct GNUNET_MESSENGER_EgoStore *store, const char *identifie
  * @param[in] cls Closure
  */
 void
-lookup_store_ego (struct GNUNET_MESSENGER_EgoStore *store, const char *identifier,
-                  GNUNET_MESSENGER_EgoLookupCallback lookup, void *cls);
+lookup_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
+                  const char *identifier,
+                  GNUNET_MESSENGER_EgoLookupCallback lookup,
+                  void *cls);
 
 /**
  * Updates the registration of an EGO to a <i>store</i> under
@@ -133,7 +138,8 @@ lookup_store_ego (struct GNUNET_MESSENGER_EgoStore *store, const char *identifie
  * @return Updated EGO
  */
 struct GNUNET_MESSENGER_Ego*
-update_store_ego (struct GNUNET_MESSENGER_EgoStore *store, const char *identifier,
+update_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
+                  const char *identifier,
                   const struct GNUNET_IDENTITY_PrivateKey *key);
 
 /**
@@ -146,7 +152,8 @@ update_store_ego (struct GNUNET_MESSENGER_EgoStore *store, const char *identifie
  * @param[in] new_identifier New identifier string
  */
 void
-rename_store_ego (struct GNUNET_MESSENGER_EgoStore *store, const char *old_identifier,
+rename_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
+                  const char *old_identifier,
                   const char *new_identifier);
 
 #endif //GNUNET_SERVICE_MESSENGER_EGO_STORE_H

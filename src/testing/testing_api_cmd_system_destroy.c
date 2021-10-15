@@ -46,17 +46,18 @@ struct TestSystemState
  */
 static void
 system_destroy_run (void *cls,
-                    const struct GNUNET_TESTING_Command *cmd,
                     struct GNUNET_TESTING_Interpreter *is)
 {
   struct TestSystemState *tss = cls;
   const struct GNUNET_TESTING_Command *system_cmd;
   struct GNUNET_TESTING_System *tl_system;
 
-  system_cmd = GNUNET_TESTING_interpreter_lookup_command (tss->create_label);
+  system_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
+                                                          tss->create_label);
   GNUNET_TESTING_get_trait_test_system (system_cmd,
                                         &tl_system);
-  GNUNET_TESTING_system_destroy (tl_system, GNUNET_YES);
+  GNUNET_TESTING_system_destroy (tl_system,
+                                 GNUNET_YES);
 }
 
 
@@ -65,8 +66,7 @@ system_destroy_run (void *cls,
  *
  */
 static void
-system_destroy_cleanup (void *cls,
-                        const struct GNUNET_TESTING_Command *cmd)
+system_destroy_cleanup (void *cls)
 {
   struct TestSystemState *tss = cls;
 
@@ -78,7 +78,7 @@ system_destroy_cleanup (void *cls,
  * Trait function of this cmd does nothing.
  *
  */
-static int
+static enum GNUNET_GenericReturnValue
 system_destroy_traits (void *cls,
                        const void **ret,
                        const char *trait,
@@ -103,14 +103,15 @@ GNUNET_TESTING_cmd_system_destroy (const char *label,
 
   tss = GNUNET_new (struct TestSystemState);
   tss->create_label = create_label;
+  {
+    struct GNUNET_TESTING_Command cmd = {
+      .cls = tss,
+      .label = label,
+      .run = &system_destroy_run,
+      .cleanup = &system_destroy_cleanup,
+      .traits = &system_destroy_traits
+    };
 
-  struct GNUNET_TESTING_Command cmd = {
-    .cls = tss,
-    .label = label,
-    .run = &system_destroy_run,
-    .cleanup = &system_destroy_cleanup,
-    .traits = &system_destroy_traits
-  };
-
-  return cmd;
+    return cmd;
+  }
 }

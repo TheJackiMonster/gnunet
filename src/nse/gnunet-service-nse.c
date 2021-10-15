@@ -390,7 +390,7 @@ setup_estimate_message (struct GNUNET_NSE_ClientMessage *em)
   if (variance >= 0)
     std_dev = sqrt (variance);
   else
-    std_dev = variance; /* must be infinity due to estimate_count == 0 */
+    std_dev = variance; /* return NaN (due to estimate_count == 0 causing 0.0/0.0) */
   current_std_dev = std_dev;
   current_size_estimate = mean;
 

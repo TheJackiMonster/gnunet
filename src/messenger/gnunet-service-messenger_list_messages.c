@@ -52,7 +52,8 @@ clear_list_messages (struct GNUNET_MESSENGER_ListMessages *messages)
 }
 
 void
-add_to_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const struct GNUNET_HashCode *hash)
+add_to_list_messages (struct GNUNET_MESSENGER_ListMessages *messages,
+                      const struct GNUNET_HashCode *hash)
 {
   GNUNET_assert((messages) && (hash));
 
@@ -64,7 +65,8 @@ add_to_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const stru
 }
 
 void
-copy_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const struct GNUNET_MESSENGER_ListMessages *origin)
+copy_list_messages (struct GNUNET_MESSENGER_ListMessages *messages,
+                    const struct GNUNET_MESSENGER_ListMessages *origin)
 {
   GNUNET_assert((messages) && (origin));
 
@@ -75,7 +77,8 @@ copy_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const struct
 }
 
 void
-remove_from_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const struct GNUNET_HashCode *hash)
+remove_from_list_messages (struct GNUNET_MESSENGER_ListMessages *messages,
+                           const struct GNUNET_HashCode *hash)
 {
   GNUNET_assert((messages) && (hash));
 
@@ -91,7 +94,8 @@ remove_from_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const
 }
 
 void
-load_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const char *path)
+load_list_messages (struct GNUNET_MESSENGER_ListMessages *messages,
+                    const char *path)
 {
   GNUNET_assert((messages) && (path));
 
@@ -125,7 +129,8 @@ load_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const char *
 }
 
 void
-save_list_messages (const struct GNUNET_MESSENGER_ListMessages *messages, const char *path)
+save_list_messages (const struct GNUNET_MESSENGER_ListMessages *messages,
+                    const char *path)
 {
   GNUNET_assert((messages) && (path));
 

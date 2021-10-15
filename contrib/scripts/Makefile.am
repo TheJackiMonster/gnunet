@@ -3,38 +3,57 @@ AM_CPPFLAGS = -I$(top_srcdir)/src/include -I$(top_builddir)/src/include
 
 SUBDIRS = gnunet-logread
 
-noinst_SCRIPTS = \
- terminate.py \
- pydiffer.py \
- removetrailingwhitespace.py \
- gnunet_pyexpect.py \
- gnunet_janitor.py \
- gnunet-chk.py \
- $(awkSCRIPTS)
-
 # FIXME: read into AWK_SCRIPTS autotools builtin.
 if HAVE_AWK
 awkSCRIPTS = \
- check-texinfo.awk
+  check-texinfo.awk
 else
 awkSCRIPTS =
 endif
 
+noinst_SCRIPTS = \
+  terminate.py \
+  pydiffer.py \
+  removetrailingwhitespace.py \
+  gnunet_pyexpect.py \
+  gnunet_janitor.py \
+  gnunet-chk.py \
+  $(awkSCRIPTS)
+
 bin_SCRIPTS = \
- gnunet-bugreport \
- gnunet-suidfix
+  gnunet-bugreport \
+  gnunet-suidfix
 
 EXTRA_DIST = \
- coverage.sh \
- terminate.py.in \
- gnunet_pyexpect.py.in \
- gnunet_janitor.py.in \
- gnunet-chk.py.in \
- $(SCRIPTS) \
- removetrailingwhitespace.py.in \
- pydiffer.py.in \
- gnunet-suidfix \
- check-texinfo.awk.in
+  coverage.sh \
+  terminate.py.in \
+  gnunet_pyexpect.py.in \
+  gnunet_janitor.py.in \
+  gnunet-chk.py.in \
+  removetrailingwhitespace.py.in \
+  pydiffer.py.in \
+  check-texinfo.awk.in \
+  build-install-gnunet-debian10.sh \
+  process_log.sh \
+  generate-monkey-db.sh \
+  find_typedefs.py \
+  pydmesg \
+  visualize_stats.sh \
+  changelog_delta.sh \
+  debug \
+  build_cscope.sh \
+  lint/lint-man.sh \
+  lint/lint-python.sh \
+  revisionary.sh \
+  netjail/netjail_core.sh \
+  netjail/netjail_setup_internet.sh \
+  regression.sh \
+  doc/texinfo-hacks.el \
+  afferify \
+  zonewalk-to-types.sh \
+  gdb-iterate-dll.py \
+  $(SCRIPTS)
+
 
 CLEANFILES = \
   $(noinst_SCRIPTS)

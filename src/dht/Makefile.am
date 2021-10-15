@@ -52,10 +52,8 @@ bin_PROGRAMS = \
  gnunet-dht-get \
  gnunet-dht-put
 
-if HAVE_TESTING
 noinst_PROGRAMS = \
  gnunet-dht-profiler
-endif
 
 gnunet_service_dht_SOURCES = \
  gnunet-service-dht.c gnunet-service-dht.h \
@@ -117,9 +115,7 @@ gnunet_dht_profiler_LDADD = \
 gnunet_dht_profiler_LDFLAGS = \
   $(GN_LIBINTL)
 
-if HAVE_TESTING
 noinst_LIBRARIES = libgnunetdhttest.a
-endif
 
 libgnunetdhttest_a_SOURCES = \
   dht_test_lib.c dht_test_lib.h
@@ -128,7 +124,6 @@ libgnunetdhttest_a_LIBADD = \
  $(top_builddir)/src/testbed/libgnunettestbed.la \
  libgnunetdht.la
 
-if HAVE_TESTING
 check_PROGRAMS = \
  test_dht_api \
  test_dht_twopeer \
@@ -136,7 +131,6 @@ check_PROGRAMS = \
  test_dht_line \
  test_dht_2dtorus \
  test_dht_monitor
-endif
 
 if HAVE_EXPERIMENTAL
 # These tests still do not work as testbed does

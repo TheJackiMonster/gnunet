@@ -73,6 +73,11 @@ struct GNUNET_PQ_Context
    * File descriptor wrapper for @e event_task.
    */
   struct GNUNET_NETWORK_Handle *rfd;
+
+  /**
+   * Flags controlling the connection.
+   */
+  enum GNUNET_PQ_Options flags;
 };
 
 

@@ -68,7 +68,8 @@ clear_list_messages (struct GNUNET_MESSENGER_ListMessages *messages);
  * @param[in] hash Hash of message
  */
 void
-add_to_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const struct GNUNET_HashCode *hash);
+add_to_list_messages (struct GNUNET_MESSENGER_ListMessages *messages,
+                      const struct GNUNET_HashCode *hash);
 
 /**
  * Copies all message hashes from an <i>origin</i> to another list.
@@ -77,7 +78,8 @@ add_to_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const stru
  * @param[in] origin Source list of hashes
  */
 void
-copy_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const struct GNUNET_MESSENGER_ListMessages *origin);
+copy_list_messages (struct GNUNET_MESSENGER_ListMessages *messages,
+                    const struct GNUNET_MESSENGER_ListMessages *origin);
 
 /**
  * Removes the first entry with a matching <i>hash</i> from the list.
@@ -86,7 +88,8 @@ copy_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const struct
  * @param[in] hash Hash of message
  */
 void
-remove_from_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const struct GNUNET_HashCode *hash);
+remove_from_list_messages (struct GNUNET_MESSENGER_ListMessages *messages,
+                           const struct GNUNET_HashCode *hash);
 
 /**
  * Loads the list of message hashes from a file under a given <i>path</i>.
@@ -95,7 +98,8 @@ remove_from_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const
  * @param[in] path Path of file
  */
 void
-load_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const char *path);
+load_list_messages (struct GNUNET_MESSENGER_ListMessages *messages,
+                    const char *path);
 
 /**
  * Saves the list of message hashes to a file under a given <i>path</i>.
@@ -104,6 +108,7 @@ load_list_messages (struct GNUNET_MESSENGER_ListMessages *messages, const char *
  * @param[in] path Path of file
  */
 void
-save_list_messages (const struct GNUNET_MESSENGER_ListMessages *messages, const char *path);
+save_list_messages (const struct GNUNET_MESSENGER_ListMessages *messages,
+                    const char *path);
 
 #endif //GNUNET_SERVICE_MESSENGER_LIST_MESSAGES_H

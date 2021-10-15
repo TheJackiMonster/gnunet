@@ -54,10 +54,8 @@ gnunet_core_LDADD = \
 gnunet_core_LDFLAGS = \
   $(GN_LIBINTL)
 
-if HAVE_TESTING
-  TESTING_TESTS = \
-    test_core_api_send_to_self
-endif
+TESTING_TESTS = \
+  test_core_api_send_to_self
 
 check_PROGRAMS = \
  test_core_api_start_only \

@@ -16,7 +16,6 @@ if USE_COVERAGE
 endif
 
 HEAP_PLUGIN = libgnunet_plugin_namestore_flat.la
-if HAVE_TESTING
 HEAP_TESTS = test_plugin_namestore_flat \
  test_namestore_api_store_flat \
  test_namestore_api_store_update_flat \
@@ -35,11 +34,9 @@ HEAP_TESTS = test_plugin_namestore_flat \
  test_namestore_api_monitoring_existing_flat \
  test_namestore_api_zone_to_name_flat \
  perf_namestore_api_zone_iteration_flat
-endif
 
 if HAVE_SQLITE
 SQLITE_PLUGIN = libgnunet_plugin_namestore_sqlite.la
-if HAVE_TESTING
 SQLITE_TESTS = test_plugin_namestore_sqlite \
  test_namestore_api_store_sqlite \
  test_namestore_api_store_update_sqlite \
@@ -59,11 +56,9 @@ SQLITE_TESTS = test_plugin_namestore_sqlite \
  test_namestore_api_zone_to_name_sqlite \
  perf_namestore_api_zone_iteration_sqlite
 endif
-endif
 
 if HAVE_POSTGRESQL
 POSTGRES_PLUGIN = libgnunet_plugin_namestore_postgres.la
-if HAVE_TESTING
 POSTGRES_TESTS = test_plugin_namestore_postgres \
  test_namestore_api_store_postgres \
  test_namestore_api_store_update_postgres \
@@ -82,7 +77,6 @@ POSTGRES_TESTS = test_plugin_namestore_postgres \
  test_namestore_api_monitoring_existing_postgres \
  test_namestore_api_zone_to_name_postgres \
  perf_namestore_api_zone_iteration_postgres
-endif
 endif
 
 if HAVE_SQLITE

@@ -46,8 +46,10 @@
  * @return #GNUNET_NO to not forward the message
  */
 int
-recv_message_info (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvTunnel *tunnel,
-                   const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash);
+recv_message_info (struct GNUNET_MESSENGER_SrvRoom *room,
+                   struct GNUNET_MESSENGER_SrvTunnel *tunnel,
+                   const struct GNUNET_MESSENGER_Message *message,
+                   const struct GNUNET_HashCode *hash);
 
 /**
  * Handles a received peer message to link it to its origin tunnel if the peer identity matches.
@@ -60,8 +62,10 @@ recv_message_info (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGE
  * @return #GNUNET_YES to forward the message
  */
 int
-recv_message_peer (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvTunnel *tunnel,
-                   const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash);
+recv_message_peer (struct GNUNET_MESSENGER_SrvRoom *room,
+                   struct GNUNET_MESSENGER_SrvTunnel *tunnel,
+                   const struct GNUNET_MESSENGER_Message *message,
+                   const struct GNUNET_HashCode *hash);
 
 /**
  * Handles a received request message by checking for the requested message and forwarding it back
@@ -75,7 +79,9 @@ recv_message_peer (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGE
  * @return #GNUNET_YES or #GNUNET_NO depending on required forwarding
  */
 int
-recv_message_request (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvTunnel *tunnel,
-                      const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash);
+recv_message_request (struct GNUNET_MESSENGER_SrvRoom *room,
+                      struct GNUNET_MESSENGER_SrvTunnel *tunnel,
+                      const struct GNUNET_MESSENGER_Message *message,
+                      const struct GNUNET_HashCode *hash);
 
 #endif //GNUNET_SERVICE_MESSENGER_MESSAGE_RECV_H

@@ -56,7 +56,8 @@ typedef int (*GNUNET_MESSENGER_MemberIteratorCallback) (
  * @param room Room
  */
 void
-init_member_store (struct GNUNET_MESSENGER_MemberStore *store, struct GNUNET_MESSENGER_SrvRoom *room);
+init_member_store (struct GNUNET_MESSENGER_MemberStore *store,
+                   struct GNUNET_MESSENGER_SrvRoom *room);
 
 /**
  * Clears a member <i>store</i>, wipes its content and deallocates its memory.
@@ -91,7 +92,8 @@ get_member_store_key (const struct GNUNET_MESSENGER_MemberStore *store);
  * @param[in] directory Path to a directory
  */
 void
-load_member_store (struct GNUNET_MESSENGER_MemberStore *store, const char *directory);
+load_member_store (struct GNUNET_MESSENGER_MemberStore *store,
+                   const char *directory);
 
 /**
  * Saves members from a member <i>store</i> into a directory.
@@ -100,7 +102,8 @@ load_member_store (struct GNUNET_MESSENGER_MemberStore *store, const char *direc
  * @param[in] directory Path to a directory
  */
 void
-save_member_store (struct GNUNET_MESSENGER_MemberStore *store, const char *directory);
+save_member_store (struct GNUNET_MESSENGER_MemberStore *store,
+                   const char *directory);
 
 /**
  * Returns the member in a <i>store</i> identified by a given <i>id</i>. If the <i>store</i>
@@ -111,7 +114,8 @@ save_member_store (struct GNUNET_MESSENGER_MemberStore *store, const char *direc
  * @return Member or NULL
  */
 struct GNUNET_MESSENGER_Member*
-get_store_member (const struct GNUNET_MESSENGER_MemberStore *store, const struct GNUNET_ShortHashCode *id);
+get_store_member (const struct GNUNET_MESSENGER_MemberStore *store,
+                  const struct GNUNET_ShortHashCode *id);
 
 /**
  * Returns the member of a <i>store</i> using a sender id of a given <i>message</i>.
@@ -122,7 +126,8 @@ get_store_member (const struct GNUNET_MESSENGER_MemberStore *store, const struct
  * @return Member or NULL
  */
 struct GNUNET_MESSENGER_Member*
-get_store_member_of (struct GNUNET_MESSENGER_MemberStore *store, const struct GNUNET_MESSENGER_Message *message);
+get_store_member_of (struct GNUNET_MESSENGER_MemberStore *store,
+                     const struct GNUNET_MESSENGER_Message *message);
 
 /**
  * Adds a member to a <i>store</i> under a specific <i>id</i> and returns it on success.
@@ -132,7 +137,8 @@ get_store_member_of (struct GNUNET_MESSENGER_MemberStore *store, const struct GN
  * @return Member or NULL
  */
 struct GNUNET_MESSENGER_Member*
-add_store_member (struct GNUNET_MESSENGER_MemberStore *store, const struct GNUNET_ShortHashCode *id);
+add_store_member (struct GNUNET_MESSENGER_MemberStore *store,
+                  const struct GNUNET_ShortHashCode *id);
 
 /**
  * Iterate through all member sessions currently connected to the members of the given
@@ -145,7 +151,8 @@ add_store_member (struct GNUNET_MESSENGER_MemberStore *store, const struct GNUNE
  * @return Amount of members iterated through
  */
 int
-iterate_store_members (struct GNUNET_MESSENGER_MemberStore *store, GNUNET_MESSENGER_MemberIteratorCallback it,
+iterate_store_members (struct GNUNET_MESSENGER_MemberStore *store,
+                       GNUNET_MESSENGER_MemberIteratorCallback it,
                        void* cls);
 
 #endif //GNUNET_SERVICE_MESSENGER_MEMBER_STORE_H

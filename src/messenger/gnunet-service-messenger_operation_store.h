@@ -48,7 +48,8 @@ struct GNUNET_MESSENGER_OperationStore
  * @param[in/out] room Room
  */
 void
-init_operation_store (struct GNUNET_MESSENGER_OperationStore *store, struct GNUNET_MESSENGER_SrvRoom *room);
+init_operation_store (struct GNUNET_MESSENGER_OperationStore *store,
+                      struct GNUNET_MESSENGER_SrvRoom *room);
 
 /**
  * Clears an operation <i>store</i>, stops all operations and deallocates its memory.

@@ -69,7 +69,8 @@ clear_list_handles (struct GNUNET_MESSENGER_ListHandles *handles);
  * @param[in/out] handle Handle
  */
 void
-add_list_handle (struct GNUNET_MESSENGER_ListHandles *handles, struct GNUNET_MESSENGER_SrvHandle *handle);
+add_list_handle (struct GNUNET_MESSENGER_ListHandles *handles,
+                 struct GNUNET_MESSENGER_SrvHandle *handle);
 
 /**
  * Removes the first entry matching with a specific <i>handle</i> from the list of
@@ -80,7 +81,8 @@ add_list_handle (struct GNUNET_MESSENGER_ListHandles *handles, struct GNUNET_MES
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
 int
-remove_list_handle (struct GNUNET_MESSENGER_ListHandles *handles, struct GNUNET_MESSENGER_SrvHandle *handle);
+remove_list_handle (struct GNUNET_MESSENGER_ListHandles *handles,
+                    struct GNUNET_MESSENGER_SrvHandle *handle);
 
 /**
  * Searches linearly through the list of <i>handles</i> for members of a specific room
@@ -93,6 +95,7 @@ remove_list_handle (struct GNUNET_MESSENGER_ListHandles *handles, struct GNUNET_
  * @return First handle which is a current member
  */
 struct GNUNET_MESSENGER_SrvHandle*
-find_list_handle_by_member (const struct GNUNET_MESSENGER_ListHandles *handles, const struct GNUNET_HashCode *key);
+find_list_handle_by_member (const struct GNUNET_MESSENGER_ListHandles *handles,
+                            const struct GNUNET_HashCode *key);
 
 #endif //GNUNET_SERVICE_MESSENGER_LIST_HANDLES_H

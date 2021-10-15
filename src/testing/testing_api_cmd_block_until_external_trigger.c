@@ -39,25 +39,15 @@
 struct BlockState
 {
   /**
-   * Flag to indicate if all peers have started.
-   *
+   * Context for our asynchronous completion.
    */
-  unsigned int *stop_blocking;
+  struct GNUNET_TESTING_AsyncContext ac;
+
+  /**
+   * The label of this command.
+   */
+  const char *label;
 };
-
-
-/**
- * Trait function of this cmd does nothing.
- *
- */
-static int
-block_until_all_peers_started_traits (void *cls,
-                                      const void **ret,
-                                      const char *trait,
-                                      unsigned int index)
-{
-  return GNUNET_OK;
-}
 
 
 /**
@@ -65,12 +55,52 @@ block_until_all_peers_started_traits (void *cls,
  *
  */
 static void
-block_until_all_peers_started_cleanup (void *cls,
-                                       const struct GNUNET_TESTING_Command *cmd)
+block_until_all_peers_started_cleanup (void *cls)
 {
   struct BlockState *bs = cls;
 
   GNUNET_free (bs);
+}
+
+static int
+block_until_external_trigger_traits (void *cls,
+                                     const void **ret,
+                                     const char *trait,
+                                     unsigned int index)
+{
+  struct BlockState *bs = cls;
+  struct GNUNET_TESTING_AsyncContext *ac = &bs->ac;
+  struct GNUNET_TESTING_Trait traits[] = {
+    {
+      .index = 0,
+      .trait_name = "async_context",
+      .ptr = (const void *) ac,
+    },
+    GNUNET_TESTING_trait_end ()
+  };
+
+  return GNUNET_TESTING_get_trait (traits,
+                                   ret,
+                                   trait,
+                                   index);
+}
+
+
+/**
+ * Function to get the trait with the async context.
+ *
+ * @param[out] ac GNUNET_TESTING_AsyncContext.
+ * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
+ */
+int
+GNUNET_TESTING_get_trait_async_context (
+  const struct GNUNET_TESTING_Command *cmd,
+  struct GNUNET_TESTING_AsyncContext **ac)
+{
+  return cmd->traits (cmd->cls,
+                      (const void **) ac,
+                      "async_context",
+                      (unsigned int) 0);
 }
 
 
@@ -80,32 +110,13 @@ block_until_all_peers_started_cleanup (void *cls,
  */
 static void
 block_until_all_peers_started_run (void *cls,
-                                   const struct GNUNET_TESTING_Command *cmd,
                                    struct GNUNET_TESTING_Interpreter *is)
 {
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "block_until_all_peers_started_run!\n");
-}
-
-
-/**
- * Function to check if BlockState#all_peers_started is GNUNET_YES. In that case interpreter_next will be called.
- *
- */
-static int
-block_until_all_peers_started_finish (void *cls,
-                                      GNUNET_SCHEDULER_TaskCallback cont,
-                                      void *cont_cls)
-{
   struct BlockState *bs = cls;
-  unsigned int *ret = bs->stop_blocking;
 
-  if (GNUNET_YES == *ret)
-  {
-    cont (cont_cls);
-  }
-
-  return *ret;
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "block %s running!\n",
+       bs->label);
 }
 
 
@@ -117,23 +128,22 @@ block_until_all_peers_started_finish (void *cls,
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_block_until_external_trigger (const char *label,
-                                                 unsigned int *
-                                                 stop_blocking)
+GNUNET_TESTING_cmd_block_until_external_trigger (const char *label)
 {
   struct BlockState *bs;
 
   bs = GNUNET_new (struct BlockState);
-  bs->stop_blocking = stop_blocking;
+  bs->label = label;
+  {
+    struct GNUNET_TESTING_Command cmd = {
+      .cls = bs,
+      .label = label,
+      .run = &block_until_all_peers_started_run,
+      .ac = &bs->ac,
+      .cleanup = &block_until_all_peers_started_cleanup,
+      .traits = block_until_external_trigger_traits
+    };
 
-  struct GNUNET_TESTING_Command cmd = {
-    .cls = bs,
-    .label = label,
-    .run = &block_until_all_peers_started_run,
-    .finish = &block_until_all_peers_started_finish,
-    .cleanup = &block_until_all_peers_started_cleanup,
-    .traits = &block_until_all_peers_started_traits
-  };
-
-  return cmd;
+    return cmd;
+  }
 }

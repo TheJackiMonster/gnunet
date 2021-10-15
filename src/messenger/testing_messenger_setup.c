@@ -204,7 +204,9 @@ end_error_cb (void *cls)
 }
 
 static void
-barrier2_wait_cb (void *cls, struct GNUNET_BarrierWaitHandle *waiting, int status)
+barrier2_wait_cb (void *cls,
+                  struct GNUNET_BarrierWaitHandle *waiting,
+                  int status)
 {
   struct test_peer *peer = cls;
 
@@ -215,7 +217,9 @@ barrier2_wait_cb (void *cls, struct GNUNET_BarrierWaitHandle *waiting, int statu
 }
 
 static void
-barrier_wait_cb (void *cls, struct GNUNET_BarrierWaitHandle *waiting, int status)
+barrier_wait_cb (void *cls,
+                 struct GNUNET_BarrierWaitHandle *waiting,
+                 int status)
 {
   struct test_peer *peer = cls;
 
@@ -259,8 +263,11 @@ barrier_wait_cb (void *cls, struct GNUNET_BarrierWaitHandle *waiting, int status
  * @param flags Flags of message
  */
 static void
-on_message (void *cls, struct GNUNET_MESSENGER_Room *room, const struct GNUNET_MESSENGER_Contact *sender,
-            const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash,
+on_message (void *cls,
+            struct GNUNET_MESSENGER_Room *room,
+            const struct GNUNET_MESSENGER_Contact *sender,
+            const struct GNUNET_MESSENGER_Message *message,
+            const struct GNUNET_HashCode *hash,
             enum GNUNET_MESSENGER_MessageFlags flags)
 {
   struct test_peer *peer = cls;
@@ -340,7 +347,9 @@ second_stage (void *cls)
 }
 
 static void
-on_peer (void *cb_cls, struct GNUNET_TESTBED_Operation *op, const struct GNUNET_TESTBED_PeerInformation *pinfo,
+on_peer (void *cb_cls,
+         struct GNUNET_TESTBED_Operation *op,
+         const struct GNUNET_TESTBED_PeerInformation *pinfo,
          const char *emsg)
 {
   struct test_peer *peer = cb_cls;
@@ -396,7 +405,8 @@ on_peer (void *cb_cls, struct GNUNET_TESTBED_Operation *op, const struct GNUNET_
  * @param event Information about the event
  */
 static void
-run (void *cls, const struct GNUNET_TESTBED_EventInformation *event)
+run (void *cls,
+     const struct GNUNET_TESTBED_EventInformation *event)
 {
   struct test_properties *properties = cls;
 
@@ -420,7 +430,9 @@ run (void *cls, const struct GNUNET_TESTBED_EventInformation *event)
 }
 
 static void
-barrier2_cb (void *cls, struct GNUNET_BarrierHandle *barrier, int status)
+barrier2_cb (void *cls,
+             struct GNUNET_BarrierHandle *barrier,
+             int status)
 {
   struct test_properties *properties = cls;
 
@@ -449,7 +461,9 @@ barrier2_cb (void *cls, struct GNUNET_BarrierHandle *barrier, int status)
 }
 
 static void
-barrier_cb (void *cls, struct GNUNET_BarrierHandle *barrier, int status)
+barrier_cb (void *cls,
+            struct GNUNET_BarrierHandle *barrier,
+            int status)
 {
   struct test_properties *properties = cls;
 
@@ -485,8 +499,12 @@ barrier_cb (void *cls, struct GNUNET_BarrierHandle *barrier, int status)
 }
 
 static void
-init (void *cls, struct GNUNET_TESTBED_RunHandle *h, unsigned int num_peers, struct GNUNET_TESTBED_Peer **peers,
-      unsigned int links_succeeded, unsigned int links_failed)
+init (void *cls,
+      struct GNUNET_TESTBED_RunHandle *h,
+      unsigned int num_peers,
+      struct GNUNET_TESTBED_Peer **peers,
+      unsigned int links_succeeded,
+      unsigned int links_failed)
 {
   struct test_properties *properties = cls;
 
@@ -500,7 +518,8 @@ init (void *cls, struct GNUNET_TESTBED_RunHandle *h, unsigned int num_peers, str
 }
 
 int
-GNUNET_run_messenger_setup (const char* test_name, const struct test_configuration *cfg)
+GNUNET_run_messenger_setup (const char* test_name,
+                            const struct test_configuration *cfg)
 {
   struct test_properties properties;
   memset(&properties, 0, sizeof(properties));

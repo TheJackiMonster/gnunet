@@ -39,6 +39,11 @@ struct BatchState
   struct GNUNET_TESTING_Command *batch;
 
   /**
+   * Our label.
+   */
+  const char *label;
+
+  /**
    * Internal command pointer.
    */
   unsigned int batch_ip;
@@ -49,12 +54,10 @@ struct BatchState
  * Run the command.
  *
  * @param cls closure.
- * @param cmd the command being executed.
  * @param is the interpreter state.
  */
 static void
 batch_run (void *cls,
-           const struct GNUNET_TESTING_Command *cmd,
            struct GNUNET_TESTING_Interpreter *is)
 {
   struct BatchState *bs = cls;
@@ -69,7 +72,7 @@ batch_run (void *cls,
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "Exiting from batch: %s\n",
-                cmd->label);
+                bs->label);
     return;
   }
   bs->batch[bs->batch_ip].start_time
@@ -77,7 +80,6 @@ batch_run (void *cls,
       = GNUNET_TIME_absolute_get ();
   bs->batch[bs->batch_ip].num_tries = 1;
   bs->batch[bs->batch_ip].run (bs->batch[bs->batch_ip].cls,
-                               &bs->batch[bs->batch_ip],
                                is);
 }
 
@@ -87,20 +89,16 @@ batch_run (void *cls,
  * cancel a pending operation thereof.
  *
  * @param cls closure.
- * @param cmd the command which is being cleaned up.
  */
 static void
-batch_cleanup (void *cls,
-               const struct GNUNET_TESTING_Command *cmd)
+batch_cleanup (void *cls)
 {
   struct BatchState *bs = cls;
 
-  (void) cmd;
   for (unsigned int i = 0;
        NULL != bs->batch[i].label;
        i++)
-    bs->batch[i].cleanup (bs->batch[i].cls,
-                          &bs->batch[i]);
+    bs->batch[i].cleanup (bs->batch[i].cls);
   GNUNET_free (bs->batch);
   GNUNET_free (bs);
 }
@@ -115,22 +113,21 @@ batch_cleanup (void *cls,
  * @param index index number of the object to offer.
  * @return #GNUNET_OK on success.
  */
-static int
+static enum GNUNET_GenericReturnValue
 batch_traits (void *cls,
               const void **ret,
               const char *trait,
               unsigned int index)
 {
+  struct BatchState *bs = cls;
+  // FIXME: these constants should be more global!
 #define CURRENT_CMD_INDEX 0
 #define BATCH_INDEX 1
-
-  struct BatchState *bs = cls;
-
   struct GNUNET_TESTING_Trait traits[] = {
-    GNUNET_TESTING_make_trait_cmd
-      (CURRENT_CMD_INDEX, &bs->batch[bs->batch_ip]),
-    GNUNET_TESTING_make_trait_cmd
-      (BATCH_INDEX, bs->batch),
+    GNUNET_TESTING_make_trait_cmd (CURRENT_CMD_INDEX,
+                                   &bs->batch[bs->batch_ip]),
+    GNUNET_TESTING_make_trait_cmd (BATCH_INDEX,
+                                   bs->batch),
     GNUNET_TESTING_trait_end ()
   };
 
@@ -162,7 +159,7 @@ GNUNET_TESTING_cmd_batch (const char *label,
   unsigned int i;
 
   bs = GNUNET_new (struct BatchState);
-
+  bs->label = label;
   /* Get number of commands.  */
   for (i = 0; NULL != batch[i].label; i++)
     /* noop */
@@ -187,68 +184,45 @@ GNUNET_TESTING_cmd_batch (const char *label,
 }
 
 
-/**
- * Advance internal pointer to next command.
- *
- * @param is interpreter state.
- */
-void
-GNUNET_TESTING_cmd_batch_next (struct GNUNET_TESTING_Interpreter *is)
+bool
+GNUNET_TESTING_cmd_batch_next_ (void *cls)
 {
-  struct BatchState *bs = is->commands[is->ip].cls;
+  struct BatchState *bs = cls;
 
   if (NULL == bs->batch[bs->batch_ip].label)
-  {
-    is->commands[is->ip].finish_time = GNUNET_TIME_absolute_get ();
-    is->ip++;
-    return;
-  }
-  bs->batch[bs->batch_ip].finish_time = GNUNET_TIME_absolute_get ();
+    return false;
+  bs->batch[bs->batch_ip].finish_time
+    = GNUNET_TIME_absolute_get ();
   bs->batch_ip++;
+  return true;
 }
 
 
-/**
- * Test if this command is a batch command.
- *
- * @return false if not, true if it is a batch command
- */
-int
-GNUNET_TESTING_cmd_is_batch (const struct GNUNET_TESTING_Command *cmd)
+bool
+GNUNET_TESTING_cmd_is_batch_ (const struct GNUNET_TESTING_Command *cmd)
 {
   return cmd->run == &batch_run;
 }
 
 
-/**
- * Obtain what command the batch is at.
- *
- * @return cmd current batch command
- */
 struct GNUNET_TESTING_Command *
-GNUNET_TESTING_cmd_batch_get_current (const struct GNUNET_TESTING_Command *cmd)
+GNUNET_TESTING_cmd_batch_get_current_ (const struct GNUNET_TESTING_Command *cmd)
 {
   struct BatchState *bs = cmd->cls;
 
-  GNUNET_assert (cmd->run == &batch_run);
+  GNUNET_assert (GNUNET_TESTING_cmd_is_batch_ (cmd));
   return &bs->batch[bs->batch_ip];
 }
 
 
-/**
- * Set what command the batch should be at.
- *
- * @param cmd current batch command
- * @param new_ip where to move the IP
- */
 void
-GNUNET_TESTING_cmd_batch_set_current (const struct GNUNET_TESTING_Command *cmd,
-                                      unsigned int new_ip)
+GNUNET_TESTING_cmd_batch_set_current_ (const struct GNUNET_TESTING_Command *cmd,
+                                       unsigned int new_ip)
 {
   struct BatchState *bs = cmd->cls;
 
   /* sanity checks */
-  GNUNET_assert (cmd->run == &batch_run);
+  GNUNET_assert (GNUNET_TESTING_cmd_is_batch_ (cmd));
   for (unsigned int i = 0; i < new_ip; i++)
     GNUNET_assert (NULL != bs->batch[i].label);
   /* actual logic */

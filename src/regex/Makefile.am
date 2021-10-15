@@ -102,11 +102,9 @@ libgnunetregextest_a_LIBADD = \
  $(top_builddir)/src/util/libgnunetutil.la \
  libgnunetregex_internal.a
 
-if HAVE_TESTING
 noinst_PROGRAMS = $(noinst_mysql_progs) \
   perf-regex \
   gnunet-regex-profiler
-endif
 
 perf_regex_SOURCES = \
   perf-regex.c

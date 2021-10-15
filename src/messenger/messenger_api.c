@@ -70,14 +70,16 @@ GNUNET_MESSENGER_name_of_kind (enum GNUNET_MESSENGER_MessageKind kind)
 }
 
 static int
-check_get_name (void *cls, const struct GNUNET_MESSENGER_NameMessage *msg)
+check_get_name (void *cls,
+                const struct GNUNET_MESSENGER_NameMessage *msg)
 {
   GNUNET_MQ_check_zero_termination(msg);
   return GNUNET_OK;
 }
 
 static void
-handle_get_name (void *cls, const struct GNUNET_MESSENGER_NameMessage *msg)
+handle_get_name (void *cls,
+                 const struct GNUNET_MESSENGER_NameMessage *msg)
 {
   struct GNUNET_MESSENGER_Handle *handle = cls;
 
@@ -89,7 +91,8 @@ handle_get_name (void *cls, const struct GNUNET_MESSENGER_NameMessage *msg)
 }
 
 static int
-check_get_key (void *cls, const struct GNUNET_MESSENGER_KeyMessage *msg)
+check_get_key (void *cls,
+               const struct GNUNET_MESSENGER_KeyMessage *msg)
 {
   const uint16_t full_length = ntohs (msg->header.size);
 
@@ -107,7 +110,8 @@ check_get_key (void *cls, const struct GNUNET_MESSENGER_KeyMessage *msg)
 }
 
 static void
-handle_get_key (void *cls, const struct GNUNET_MESSENGER_KeyMessage *msg)
+handle_get_key (void *cls,
+                const struct GNUNET_MESSENGER_KeyMessage *msg)
 {
   struct GNUNET_MESSENGER_Handle *handle = cls;
 
@@ -129,7 +133,8 @@ handle_get_key (void *cls, const struct GNUNET_MESSENGER_KeyMessage *msg)
 }
 
 static void
-handle_member_id (void *cls, const struct GNUNET_MESSENGER_MemberMessage *msg)
+handle_member_id (void *cls,
+                  const struct GNUNET_MESSENGER_MemberMessage *msg)
 {
   struct GNUNET_MESSENGER_Handle *handle = cls;
 
@@ -150,7 +155,8 @@ handle_member_id (void *cls, const struct GNUNET_MESSENGER_MemberMessage *msg)
 }
 
 static void
-handle_room_open (void *cls, const struct GNUNET_MESSENGER_RoomMessage *msg)
+handle_room_open (void *cls,
+                  const struct GNUNET_MESSENGER_RoomMessage *msg)
 {
   struct GNUNET_MESSENGER_Handle *handle = cls;
 
@@ -162,7 +168,8 @@ handle_room_open (void *cls, const struct GNUNET_MESSENGER_RoomMessage *msg)
 }
 
 static void
-handle_room_entry (void *cls, const struct GNUNET_MESSENGER_RoomMessage *msg)
+handle_room_entry (void *cls,
+                   const struct GNUNET_MESSENGER_RoomMessage *msg)
 {
   struct GNUNET_MESSENGER_Handle *handle = cls;
 
@@ -175,7 +182,8 @@ handle_room_entry (void *cls, const struct GNUNET_MESSENGER_RoomMessage *msg)
 }
 
 static void
-handle_room_close (void *cls, const struct GNUNET_MESSENGER_RoomMessage *msg)
+handle_room_close (void *cls,
+                   const struct GNUNET_MESSENGER_RoomMessage *msg)
 {
   struct GNUNET_MESSENGER_Handle *handle = cls;
 
@@ -187,7 +195,8 @@ handle_room_close (void *cls, const struct GNUNET_MESSENGER_RoomMessage *msg)
 }
 
 static int
-check_recv_message (void *cls, const struct GNUNET_MESSENGER_RecvMessage *msg)
+check_recv_message (void *cls,
+                    const struct GNUNET_MESSENGER_RecvMessage *msg)
 {
   const uint16_t full_length = ntohs (msg->header.size);
 
@@ -209,7 +218,8 @@ check_recv_message (void *cls, const struct GNUNET_MESSENGER_RecvMessage *msg)
 }
 
 static void
-handle_recv_message (void *cls, const struct GNUNET_MESSENGER_RecvMessage *msg)
+handle_recv_message (void *cls,
+                     const struct GNUNET_MESSENGER_RecvMessage *msg)
 {
   struct GNUNET_MESSENGER_Handle *handle = cls;
 
@@ -255,7 +265,8 @@ static void
 reconnect (struct GNUNET_MESSENGER_Handle *handle);
 
 static void
-send_open_room (struct GNUNET_MESSENGER_Handle *handle, struct GNUNET_MESSENGER_Room *room)
+send_open_room (struct GNUNET_MESSENGER_Handle *handle,
+                struct GNUNET_MESSENGER_Room *room)
 {
   struct GNUNET_MESSENGER_RoomMessage *msg;
   struct GNUNET_MQ_Envelope *env;
@@ -266,7 +277,8 @@ send_open_room (struct GNUNET_MESSENGER_Handle *handle, struct GNUNET_MESSENGER_
 }
 
 static void
-send_enter_room (struct GNUNET_MESSENGER_Handle *handle, struct GNUNET_MESSENGER_Room *room,
+send_enter_room (struct GNUNET_MESSENGER_Handle *handle,
+                 struct GNUNET_MESSENGER_Room *room,
                  const struct GNUNET_PeerIdentity *door)
 {
   struct GNUNET_MESSENGER_RoomMessage *msg;
@@ -279,7 +291,8 @@ send_enter_room (struct GNUNET_MESSENGER_Handle *handle, struct GNUNET_MESSENGER
 }
 
 static void
-send_close_room (struct GNUNET_MESSENGER_Handle *handle, struct GNUNET_MESSENGER_Room *room)
+send_close_room (struct GNUNET_MESSENGER_Handle *handle,
+                 struct GNUNET_MESSENGER_Room *room)
 {
   struct GNUNET_MESSENGER_RoomMessage *msg;
   struct GNUNET_MQ_Envelope *env;
@@ -290,7 +303,9 @@ send_close_room (struct GNUNET_MESSENGER_Handle *handle, struct GNUNET_MESSENGER
 }
 
 static int
-iterate_reset_room (void *cls, const struct GNUNET_HashCode *key, void *value)
+iterate_reset_room (void *cls,
+                    const struct GNUNET_HashCode *key,
+                    void *value)
 {
   struct GNUNET_MESSENGER_Handle *handle = cls;
   struct GNUNET_MESSENGER_Room *room = value;
@@ -329,7 +344,9 @@ callback_reconnect (void *cls)
 }
 
 static int
-iterate_close_room (void *cls, const struct GNUNET_HashCode *key, void *value)
+iterate_close_room (void *cls,
+                    const struct GNUNET_HashCode *key,
+                    void *value)
 {
   struct GNUNET_MESSENGER_Handle *handle = cls;
   struct GNUNET_MESSENGER_Room *room = value;
@@ -340,7 +357,8 @@ iterate_close_room (void *cls, const struct GNUNET_HashCode *key, void *value)
 }
 
 static void
-callback_mq_error (void *cls, enum GNUNET_MQ_Error error)
+callback_mq_error (void *cls,
+                   enum GNUNET_MQ_Error error)
 {
   struct GNUNET_MESSENGER_Handle *handle = cls;
 
@@ -402,9 +420,12 @@ reconnect (struct GNUNET_MESSENGER_Handle *handle)
 }
 
 struct GNUNET_MESSENGER_Handle*
-GNUNET_MESSENGER_connect (const struct GNUNET_CONFIGURATION_Handle *cfg, const char *name,
-                          GNUNET_MESSENGER_IdentityCallback identity_callback, void *identity_cls,
-                          GNUNET_MESSENGER_MessageCallback msg_callback, void *msg_cls)
+GNUNET_MESSENGER_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
+                          const char *name,
+                          GNUNET_MESSENGER_IdentityCallback identity_callback,
+                          void *identity_cls,
+                          GNUNET_MESSENGER_MessageCallback msg_callback,
+                          void *msg_cls)
 {
   struct GNUNET_MESSENGER_Handle *handle = create_handle (cfg, identity_callback, identity_cls, msg_callback, msg_cls);
 
@@ -475,7 +496,8 @@ GNUNET_MESSENGER_get_name (const struct GNUNET_MESSENGER_Handle *handle)
 }
 
 int
-GNUNET_MESSENGER_set_name (struct GNUNET_MESSENGER_Handle *handle, const char *name)
+GNUNET_MESSENGER_set_name (struct GNUNET_MESSENGER_Handle *handle,
+                           const char *name)
 {
   if (!handle)
     return GNUNET_SYSERR;
@@ -517,7 +539,8 @@ GNUNET_MESSENGER_get_key (const struct GNUNET_MESSENGER_Handle *handle)
 }
 
 struct GNUNET_MESSENGER_Room*
-GNUNET_MESSENGER_open_room (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_HashCode *key)
+GNUNET_MESSENGER_open_room (struct GNUNET_MESSENGER_Handle *handle,
+                            const struct GNUNET_HashCode *key)
 {
   if ((!handle) || (!key))
     return NULL;
@@ -541,7 +564,8 @@ GNUNET_MESSENGER_open_room (struct GNUNET_MESSENGER_Handle *handle, const struct
 }
 
 struct GNUNET_MESSENGER_Room*
-GNUNET_MESSENGER_enter_room (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_PeerIdentity *door,
+GNUNET_MESSENGER_enter_room (struct GNUNET_MESSENGER_Handle *handle,
+                             const struct GNUNET_PeerIdentity *door,
                              const struct GNUNET_HashCode *key)
 {
   if ((!handle) || (!door) || (!key))
@@ -583,7 +607,9 @@ struct GNUNET_MESSENGER_RoomFind
 };
 
 static int
-iterate_find_room (void* cls, const struct GNUNET_HashCode *key, void *value)
+iterate_find_room (void* cls,
+                   const struct GNUNET_HashCode *key,
+                   void *value)
 {
   struct GNUNET_MESSENGER_RoomFind *find = cls;
   struct GNUNET_MESSENGER_Room *room = value;
@@ -602,8 +628,10 @@ iterate_find_room (void* cls, const struct GNUNET_HashCode *key, void *value)
 }
 
 int
-GNUNET_MESSENGER_find_rooms (const struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_MESSENGER_Contact *contact,
-                             GNUNET_MESSENGER_MemberCallback callback, void *cls)
+GNUNET_MESSENGER_find_rooms (const struct GNUNET_MESSENGER_Handle *handle,
+                             const struct GNUNET_MESSENGER_Contact *contact,
+                             GNUNET_MESSENGER_MemberCallback callback,
+                             void *cls)
 {
   if (!handle)
     return GNUNET_SYSERR;
@@ -628,7 +656,8 @@ GNUNET_MESSENGER_room_get_key (const struct GNUNET_MESSENGER_Room *room)
 }
 
 const struct GNUNET_MESSENGER_Contact*
-GNUNET_MESSENGER_get_sender (const struct GNUNET_MESSENGER_Room *room, const struct GNUNET_HashCode *hash)
+GNUNET_MESSENGER_get_sender (const struct GNUNET_MESSENGER_Room *room,
+                             const struct GNUNET_HashCode *hash)
 {
   if ((!room) || (!hash))
     return NULL;
@@ -655,7 +684,8 @@ GNUNET_MESSENGER_contact_get_key (const struct GNUNET_MESSENGER_Contact *contact
 }
 
 void
-GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room, const struct GNUNET_MESSENGER_Message *message,
+GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room,
+                               const struct GNUNET_MESSENGER_Message *message,
                                const struct GNUNET_MESSENGER_Contact *contact)
 {
   if ((!room) || (!message))
@@ -723,7 +753,8 @@ GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room, const struct 
 }
 
 const struct GNUNET_MESSENGER_Message*
-GNUNET_MESSENGER_get_message (const struct GNUNET_MESSENGER_Room *room, const struct GNUNET_HashCode *hash)
+GNUNET_MESSENGER_get_message (const struct GNUNET_MESSENGER_Room *room,
+                              const struct GNUNET_HashCode *hash)
 {
   if ((!room) || (!hash))
     return NULL;
@@ -745,7 +776,8 @@ GNUNET_MESSENGER_get_message (const struct GNUNET_MESSENGER_Room *room, const st
 }
 
 int
-GNUNET_MESSENGER_iterate_members (struct GNUNET_MESSENGER_Room *room, GNUNET_MESSENGER_MemberCallback callback,
+GNUNET_MESSENGER_iterate_members (struct GNUNET_MESSENGER_Room *room,
+                                  GNUNET_MESSENGER_MemberCallback callback,
                                   void *cls)
 {
   if (!room)

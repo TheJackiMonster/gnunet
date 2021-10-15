@@ -1265,16 +1265,6 @@ GNUNET_TESTBED_run (const char *host_filename,
   GNUNET_assert (num_peers > 0);
   rc = GNUNET_new (struct GNUNET_TESTBED_RunHandle);
   rc->cfg = GNUNET_CONFIGURATION_dup (cfg);
-#if ENABLE_SUPERMUC
-  rc->num_hosts = GNUNET_TESTBED_hosts_load_from_loadleveler (rc->cfg,
-                                                              &rc->hosts);
-  if (0 == rc->num_hosts)
-  {
-    LOG (GNUNET_ERROR_TYPE_WARNING,
-         _ ("No hosts loaded from LoadLeveler. Need at least one host\n"));
-    goto error_cleanup;
-  }
-#else
   if (NULL != host_filename)
   {
     rc->num_hosts =
@@ -1289,7 +1279,6 @@ GNUNET_TESTBED_run (const char *host_filename,
   }
   else
     rc->h = GNUNET_TESTBED_host_create (NULL, NULL, rc->cfg, 0);
-#endif
   rc->num_peers = num_peers;
   rc->event_mask = event_mask;
   rc->cc = cc;

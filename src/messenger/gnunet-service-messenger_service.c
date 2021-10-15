@@ -41,7 +41,8 @@ callback_shutdown_service (void *cls)
 }
 
 struct GNUNET_MESSENGER_Service*
-create_service (const struct GNUNET_CONFIGURATION_Handle *config, struct GNUNET_SERVICE_Handle *service_handle)
+create_service (const struct GNUNET_CONFIGURATION_Handle *config,
+                struct GNUNET_SERVICE_Handle *service_handle)
 {
   GNUNET_assert((config) && (service_handle));
 
@@ -88,7 +89,9 @@ create_service (const struct GNUNET_CONFIGURATION_Handle *config, struct GNUNET_
 }
 
 static int
-iterate_destroy_rooms (void *cls, const struct GNUNET_HashCode *key, void *value)
+iterate_destroy_rooms (void *cls,
+                       const struct GNUNET_HashCode *key,
+                       void *value)
 {
   struct GNUNET_MESSENGER_SrvRoom *room = value;
   destroy_room (room);
@@ -151,7 +154,8 @@ get_service_contact_store (struct GNUNET_MESSENGER_Service *service)
 }
 
 struct GNUNET_MESSENGER_SrvHandle*
-add_service_handle (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MQ_Handle *mq)
+add_service_handle (struct GNUNET_MESSENGER_Service *service,
+                    struct GNUNET_MQ_Handle *mq)
 {
   GNUNET_assert((service) && (mq));
 
@@ -166,7 +170,8 @@ add_service_handle (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MQ_H
 }
 
 void
-remove_service_handle (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESSENGER_SrvHandle *handle)
+remove_service_handle (struct GNUNET_MESSENGER_Service *service,
+                       struct GNUNET_MESSENGER_SrvHandle *handle)
 {
   GNUNET_assert((service) && (handle));
 
@@ -178,7 +183,8 @@ remove_service_handle (struct GNUNET_MESSENGER_Service *service, struct GNUNET_M
 }
 
 int
-get_service_peer_identity (const struct GNUNET_MESSENGER_Service *service, struct GNUNET_PeerIdentity *peer)
+get_service_peer_identity (const struct GNUNET_MESSENGER_Service *service,
+                           struct GNUNET_PeerIdentity *peer)
 {
   GNUNET_assert((service) && (peer));
 
@@ -186,7 +192,8 @@ get_service_peer_identity (const struct GNUNET_MESSENGER_Service *service, struc
 }
 
 struct GNUNET_MESSENGER_SrvRoom*
-get_service_room (const struct GNUNET_MESSENGER_Service *service, const struct GNUNET_HashCode *key)
+get_service_room (const struct GNUNET_MESSENGER_Service *service,
+                  const struct GNUNET_HashCode *key)
 {
   GNUNET_assert((service) && (key));
 
@@ -194,7 +201,8 @@ get_service_room (const struct GNUNET_MESSENGER_Service *service, const struct G
 }
 
 int
-open_service_room (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESSENGER_SrvHandle *handle,
+open_service_room (struct GNUNET_MESSENGER_Service *service,
+                   struct GNUNET_MESSENGER_SrvHandle *handle,
                    const struct GNUNET_HashCode *key)
 {
   GNUNET_assert((service) && (handle) && (key));
@@ -217,8 +225,10 @@ open_service_room (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESSE
 }
 
 int
-entry_service_room (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESSENGER_SrvHandle *handle,
-                    const struct GNUNET_PeerIdentity *door, const struct GNUNET_HashCode *key)
+entry_service_room (struct GNUNET_MESSENGER_Service *service,
+                    struct GNUNET_MESSENGER_SrvHandle *handle,
+                    const struct GNUNET_PeerIdentity *door,
+                    const struct GNUNET_HashCode *key)
 {
   GNUNET_assert((service) && (handle) && (door) && (key));
 
@@ -250,7 +260,8 @@ entry_service_room (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESS
 }
 
 int
-close_service_room (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESSENGER_SrvHandle *handle,
+close_service_room (struct GNUNET_MESSENGER_Service *service,
+                    struct GNUNET_MESSENGER_SrvHandle *handle,
                     const struct GNUNET_HashCode *key)
 {
   GNUNET_assert((service) && (handle) && (key));
@@ -290,9 +301,11 @@ close_service_room (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESS
 }
 
 void
-handle_service_message (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESSENGER_SrvRoom *room,
+handle_service_message (struct GNUNET_MESSENGER_Service *service,
+                        struct GNUNET_MESSENGER_SrvRoom *room,
                         const struct GNUNET_MESSENGER_MemberSession *session,
-                        const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
+                        const struct GNUNET_MESSENGER_Message *message,
+                        const struct GNUNET_HashCode *hash)
 {
   GNUNET_assert((service) && (room) && (session) && (message) && (hash));
 

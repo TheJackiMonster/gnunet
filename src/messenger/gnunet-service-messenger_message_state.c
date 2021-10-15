@@ -65,8 +65,10 @@ get_message_state_merge_hash (const struct GNUNET_MESSENGER_MessageState *state)
 }
 
 void
-update_message_state (struct GNUNET_MESSENGER_MessageState *state, int requested,
-                      const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash)
+update_message_state (struct GNUNET_MESSENGER_MessageState *state,
+                      int requested,
+                      const struct GNUNET_MESSENGER_Message *message,
+                      const struct GNUNET_HashCode *hash)
 {
   GNUNET_assert((state) && (message) && (hash));
 
@@ -83,7 +85,8 @@ update_message_state (struct GNUNET_MESSENGER_MessageState *state, int requested
 }
 
 void
-load_message_state (struct GNUNET_MESSENGER_MessageState *state, const char *path)
+load_message_state (struct GNUNET_MESSENGER_MessageState *state,
+                    const char *path)
 {
   GNUNET_assert((state) && (path));
 
@@ -95,7 +98,8 @@ load_message_state (struct GNUNET_MESSENGER_MessageState *state, const char *pat
 }
 
 void
-save_message_state (const struct GNUNET_MESSENGER_MessageState *state, const char *path)
+save_message_state (const struct GNUNET_MESSENGER_MessageState *state,
+                    const char *path)
 {
   GNUNET_assert((state) && (path));
 

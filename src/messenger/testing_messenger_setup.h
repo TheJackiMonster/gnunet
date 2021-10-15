@@ -34,6 +34,7 @@ struct test_configuration
 };
 
 int
-GNUNET_run_messenger_setup (const char* test_name, const struct test_configuration *cfg);
+GNUNET_run_messenger_setup (const char* test_name,
+                            const struct test_configuration *cfg);
 
 #endif /* GNUNET_TESTING_MESSENGER_SETUP_H_ */

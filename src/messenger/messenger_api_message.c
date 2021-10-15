@@ -103,7 +103,8 @@ copy_message (const struct GNUNET_MESSENGER_Message *message)
 }
 
 static void
-destroy_message_body (enum GNUNET_MESSENGER_MessageKind kind, struct GNUNET_MESSENGER_MessageBody *body)
+destroy_message_body (enum GNUNET_MESSENGER_MessageKind kind,
+                      struct GNUNET_MESSENGER_MessageBody *body)
 {
   switch (kind)
   {
@@ -150,7 +151,8 @@ is_message_session_bound (const struct GNUNET_MESSENGER_Message *message)
 }
 
 static void
-fold_short_message (const struct GNUNET_MESSENGER_Message *message, struct GNUNET_MESSENGER_ShortMessage *shortened)
+fold_short_message (const struct GNUNET_MESSENGER_Message *message,
+                    struct GNUNET_MESSENGER_ShortMessage *shortened)
 {
   shortened->kind = message->header.kind;
 
@@ -158,7 +160,8 @@ fold_short_message (const struct GNUNET_MESSENGER_Message *message, struct GNUNE
 }
 
 static void
-unfold_short_message (struct GNUNET_MESSENGER_ShortMessage *shortened, struct GNUNET_MESSENGER_Message *message)
+unfold_short_message (struct GNUNET_MESSENGER_ShortMessage *shortened,
+                      struct GNUNET_MESSENGER_Message *message)
 {
   destroy_message_body (message->header.kind, &(message->body));
 
@@ -231,7 +234,8 @@ get_message_kind_size (enum GNUNET_MESSENGER_MessageKind kind)
 }
 
 static uint16_t
-get_message_body_size (enum GNUNET_MESSENGER_MessageKind kind, const struct GNUNET_MESSENGER_MessageBody *body)
+get_message_body_size (enum GNUNET_MESSENGER_MessageKind kind,
+                       const struct GNUNET_MESSENGER_MessageBody *body)
 {
   uint16_t length = 0;
 
@@ -283,7 +287,8 @@ get_message_size (const struct GNUNET_MESSENGER_Message *message,
 }
 
 static uint16_t
-get_short_message_size (const struct GNUNET_MESSENGER_ShortMessage *message, int include_body)
+get_short_message_size (const struct GNUNET_MESSENGER_ShortMessage *message,
+                        int include_body)
 {
   const uint16_t minimum_size = sizeof(struct GNUNET_HashCode) + sizeof(kind_t);
 
@@ -370,8 +375,11 @@ calc_padded_length (uint16_t length)
 } while (0)
 
 static void
-encode_message_body (enum GNUNET_MESSENGER_MessageKind kind, const struct GNUNET_MESSENGER_MessageBody *body,
-                     uint16_t length, char *buffer, uint16_t offset)
+encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
+                     const struct GNUNET_MESSENGER_MessageBody *body,
+                     uint16_t length,
+                     char *buffer,
+                     uint16_t offset)
 {
   uint32_t version;
   switch (kind)
@@ -445,7 +453,9 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind, const struct GNUNET
 }
 
 void
-encode_message (const struct GNUNET_MESSENGER_Message *message, uint16_t length, char *buffer,
+encode_message (const struct GNUNET_MESSENGER_Message *message,
+                uint16_t length,
+                char *buffer,
                 int include_signature)
 {
   GNUNET_assert((message) && (buffer));
@@ -466,7 +476,9 @@ encode_message (const struct GNUNET_MESSENGER_Message *message, uint16_t length,
 }
 
 static void
-encode_short_message (const struct GNUNET_MESSENGER_ShortMessage *message, uint16_t length, char *buffer)
+encode_short_message (const struct GNUNET_MESSENGER_ShortMessage *message,
+                      uint16_t length,
+                      char *buffer)
 {
   struct GNUNET_HashCode hash;
   uint16_t offset = sizeof(hash);
@@ -512,8 +524,11 @@ encode_short_message (const struct GNUNET_MESSENGER_ShortMessage *message, uint1
 } while (0)
 
 static uint16_t
-decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind, struct GNUNET_MESSENGER_MessageBody *body,
-                     uint16_t length, const char *buffer, uint16_t offset)
+decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
+                     struct GNUNET_MESSENGER_MessageBody *body,
+                     uint16_t length,
+                     const char *buffer,
+                     uint16_t offset)
 {
   uint16_t padding = 0;
 
@@ -593,8 +608,11 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind, struct GNUNET_MESS
 }
 
 int
-decode_message (struct GNUNET_MESSENGER_Message *message, uint16_t length, const char *buffer,
-                int include_signature, uint16_t *padding)
+decode_message (struct GNUNET_MESSENGER_Message *message,
+                uint16_t length,
+                const char *buffer,
+                int include_signature,
+                uint16_t *padding)
 {
   GNUNET_assert((message) && (buffer) && (length >= get_message_kind_size(GNUNET_MESSENGER_KIND_UNKNOWN)));
 
@@ -638,7 +656,9 @@ decode_message (struct GNUNET_MESSENGER_Message *message, uint16_t length, const
 }
 
 static int
-decode_short_message (struct GNUNET_MESSENGER_ShortMessage *message, uint16_t length, const char *buffer)
+decode_short_message (struct GNUNET_MESSENGER_ShortMessage *message,
+                      uint16_t length,
+                      const char *buffer)
 {
   struct GNUNET_HashCode expected, hash;
   uint16_t offset = sizeof(hash);
@@ -675,7 +695,9 @@ decode_short_message (struct GNUNET_MESSENGER_ShortMessage *message, uint16_t le
 }
 
 void
-hash_message (const struct GNUNET_MESSENGER_Message *message, uint16_t length, const char *buffer,
+hash_message (const struct GNUNET_MESSENGER_Message *message,
+              uint16_t length,
+              const char *buffer,
               struct GNUNET_HashCode *hash)
 {
   GNUNET_assert((message) && (buffer) && (hash));
@@ -688,8 +710,11 @@ hash_message (const struct GNUNET_MESSENGER_Message *message, uint16_t length, c
 }
 
 void
-sign_message (struct GNUNET_MESSENGER_Message *message, uint16_t length, char *buffer,
-              const struct GNUNET_HashCode *hash, const struct GNUNET_MESSENGER_Ego *ego)
+sign_message (struct GNUNET_MESSENGER_Message *message,
+              uint16_t length,
+              char *buffer,
+              const struct GNUNET_HashCode *hash,
+              const struct GNUNET_MESSENGER_Ego *ego)
 {
   GNUNET_assert((message) && (buffer) && (hash) && (ego));
 
@@ -706,7 +731,8 @@ sign_message (struct GNUNET_MESSENGER_Message *message, uint16_t length, char *b
 }
 
 int
-verify_message (const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash,
+verify_message (const struct GNUNET_MESSENGER_Message *message,
+                const struct GNUNET_HashCode *hash,
                 const struct GNUNET_IDENTITY_PublicKey *key)
 {
   GNUNET_assert((message) && (hash) && (key));
@@ -726,7 +752,8 @@ verify_message (const struct GNUNET_MESSENGER_Message *message, const struct GNU
 }
 
 int
-encrypt_message (struct GNUNET_MESSENGER_Message *message, const struct GNUNET_IDENTITY_PublicKey *key)
+encrypt_message (struct GNUNET_MESSENGER_Message *message,
+                 const struct GNUNET_IDENTITY_PublicKey *key)
 {
   GNUNET_assert((message) && (key));
 
@@ -760,7 +787,8 @@ encrypt_message (struct GNUNET_MESSENGER_Message *message, const struct GNUNET_I
 }
 
 int
-decrypt_message (struct GNUNET_MESSENGER_Message *message, const struct GNUNET_IDENTITY_PrivateKey *key)
+decrypt_message (struct GNUNET_MESSENGER_Message *message,
+                 const struct GNUNET_IDENTITY_PrivateKey *key)
 {
   GNUNET_assert((message) && (key));
 
@@ -788,8 +816,10 @@ decrypt_message (struct GNUNET_MESSENGER_Message *message, const struct GNUNET_I
 }
 
 struct GNUNET_MQ_Envelope*
-pack_message (struct GNUNET_MESSENGER_Message *message, struct GNUNET_HashCode *hash,
-              const struct GNUNET_MESSENGER_Ego *ego, int mode)
+pack_message (struct GNUNET_MESSENGER_Message *message,
+              struct GNUNET_HashCode *hash,
+              const struct GNUNET_MESSENGER_Ego *ego,
+              int mode)
 {
   GNUNET_assert(message);
 

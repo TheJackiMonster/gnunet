@@ -78,12 +78,9 @@ if LINUX
 endif
 
 
-if HAVE_TESTING
  noinst_LTLIBRARIES = libgnunetcadettest.la $(noinst_LIB_EXP)
 # noinst_PROGRAMS = gnunet-cadet-profiler
-endif
 
-if HAVE_TESTING
 check_PROGRAMS = \
   test_cadet_local_mq \
   test_cadet_2_forward \
@@ -106,7 +103,6 @@ check_PROGRAMS = \
   test_cadet_5_speed_reliable_backwards \
   test_cadet_5_speed_backwards \
   test_cadet_5_reopen
-endif
 
 
 #gnunet_cadet_profiler_SOURCES = \

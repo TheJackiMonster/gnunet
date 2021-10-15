@@ -21,7 +21,7 @@
 #
 AC_PREREQ([2.69])
 # Checks for programs.
-AC_INIT([gnunet],[0.15.4-alpha.0],[bug-gnunet@gnu.org])
+AC_INIT([gnunet],m4_esyscmd([contrib/get_version.sh]),[bug-gnunet@gnu.org])
 AC_CONFIG_AUX_DIR([build-aux])
 
 # check for legacy option that is no longer supported (#5627) and fail hard
@@ -35,7 +35,7 @@ AC_ARG_WITH(nssdir,
 
 AC_CANONICAL_TARGET
 AC_CANONICAL_HOST
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([1.9 tar-ustar])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])], [AM_DEFAULT_VERBOSITY=1 AC_SUBST(AM_DEFAULT_VERBOSITY)])
 AC_CONFIG_HEADERS([gnunet_config.h])
 AH_TOP([#define _GNU_SOURCE  1])
@@ -1440,8 +1440,7 @@ AC_SUBST(MYSQL_LDFLAGS)
 AC_SUBST(MYSQL_CPPFLAGS)
 
 # additional version check for mysql
-AC_ARG_ENABLE(mysql-version-check, [  --disable-mysql-version-check  do not check MySQL version],, enable_mysql_version_check=yes)
-AS_IF([test "$mysql" = "true" -a "x$enable_mysql_version_check" = "xyes"],
+AS_IF([test "$mysql" = "true"],
  [
   AC_MSG_CHECKING(mysql version)
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
@@ -1686,20 +1685,6 @@ AC_DEFINE_UNQUOTED([HAVE_GNUTLS_DANE], $gnutls_dane, [We have GnuTLS with DANE s
 
 
 
-# Test if we are building for superMUC
-AC_MSG_CHECKING(if GNUnet is being configured to run on the SuperMUC)
-AC_ARG_ENABLE([supermuc],
-    [AS_HELP_STRING([--enable-supermuc],
-       [build GNUnet with support to run on the SuperMUC (default is NO)])],
-    [AS_IF([test "x$enable_supermuc" = "xno"],
-      [supermuc=0],
-      [supermuc=1])],
-    [supermuc=0
-     enable_supermuc=no])
-AC_MSG_RESULT($enable_SUPERMUC)
-AM_CONDITIONAL([ENABLE_SUPERMUC], [test "x$supermuc" = "x1"])
-AC_DEFINE_UNQUOTED([ENABLE_SUPERMUC], [$supermuc], [Build with support for SuperMUC])
-
 # Check if NSE has to send timestamp information to testbed logger for
 # generating histogram of messages received
 AC_MSG_CHECKING(if NSE has to send timestamp information to testbed logger)
@@ -1739,15 +1724,6 @@ AS_IF([test "x$enable_benchmark" = "xyes"],
 AM_CONDITIONAL([ENABLE_BENCHMARK], [test "x$enable_benchmark" = "xyes"])
 
 
-# should expensive tests be run?
-AC_MSG_CHECKING(whether to run expensive tests)
-AC_ARG_ENABLE([expensivetests],
-   [AS_HELP_STRING([--enable-expensivetests], [enable running expensive testcases])],
-   [enable_expensive=${enableval}],
-   [enable_expensive=no])
-AC_MSG_RESULT($enable_expensive)
-AM_CONDITIONAL([HAVE_EXPENSIVE_TESTS], [test "x$enable_expensive" = "xyes"])
-
 # should ports be open for Java services?
 AC_MSG_CHECKING(whether to enable ports for gnunet-java)
 AC_ARG_ENABLE([javaports],
@@ -1768,15 +1744,6 @@ AC_ARG_ENABLE([benchmarks],
    [enable_benchmarks=no])
 AC_MSG_RESULT($enable_benchmarks)
 AM_CONDITIONAL([HAVE_BENCHMARKS], [test "x$enable_benchmarks" = "xyes"])
-
-# should gnunet-testing be compiled
-AC_MSG_CHECKING(whether to compile gnunet-testing)
-AC_ARG_ENABLE([testing],
-   [AS_HELP_STRING([--disable-testing], [do not build gnunet-testing])],
-   [enable_testing=${enableval}],
-   [enable_testing=yes])
-AC_MSG_RESULT($enable_testing)
-AM_CONDITIONAL([HAVE_TESTING], [test "x$enable_testing" = "xyes"])
 
 # should experimental code be compiled (code that may not yet compile)?
 AC_MSG_CHECKING(whether to compile experimental code)

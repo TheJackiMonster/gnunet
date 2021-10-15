@@ -44,8 +44,10 @@
  * @param[in] hash Hash of the message
  */
 void
-send_message_join (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvHandle *handle,
-                   const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash);
+send_message_join (struct GNUNET_MESSENGER_SrvRoom *room,
+                   struct GNUNET_MESSENGER_SrvHandle *handle,
+                   const struct GNUNET_MESSENGER_Message *message,
+                   const struct GNUNET_HashCode *hash);
 
 /**
  * Handles a sent peer message to update the rooms peer message of this service.
@@ -57,8 +59,10 @@ send_message_join (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGE
  * @param[in] hash Hash of the message
  */
 void
-send_message_peer (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvHandle *handle,
-                   const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash);
+send_message_peer (struct GNUNET_MESSENGER_SrvRoom *room,
+                   struct GNUNET_MESSENGER_SrvHandle *handle,
+                   const struct GNUNET_MESSENGER_Message *message,
+                   const struct GNUNET_HashCode *hash);
 
 /**
  * Handles a sent id message to update the handles member id in the room.
@@ -70,8 +74,10 @@ send_message_peer (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGE
  * @param[in] hash Hash of the message
  */
 void
-send_message_id (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvHandle *handle,
-                 const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash);
+send_message_id (struct GNUNET_MESSENGER_SrvRoom *room,
+                 struct GNUNET_MESSENGER_SrvHandle *handle,
+                 const struct GNUNET_MESSENGER_Message *message,
+                 const struct GNUNET_HashCode *hash);
 
 /**
  * Handles a sent request message to trigger the request operation for this service.
@@ -83,7 +89,9 @@ send_message_id (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_
  * @param[in] hash Hash of the message
  */
 void
-send_message_request (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_SrvHandle *handle,
-                      const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash);
+send_message_request (struct GNUNET_MESSENGER_SrvRoom *room,
+                      struct GNUNET_MESSENGER_SrvHandle *handle,
+                      const struct GNUNET_MESSENGER_Message *message,
+                      const struct GNUNET_HashCode *hash);
 
 #endif //GNUNET_SERVICE_MESSENGER_MESSAGE_SEND_H

@@ -28,7 +28,8 @@
 #include "gnunet-service-messenger_member_session.h"
 
 struct GNUNET_MESSENGER_Member*
-create_member (struct GNUNET_MESSENGER_MemberStore *store, const struct GNUNET_ShortHashCode *id)
+create_member (struct GNUNET_MESSENGER_MemberStore *store,
+               const struct GNUNET_ShortHashCode *id)
 {
   GNUNET_assert (store);
 
@@ -50,7 +51,9 @@ create_member (struct GNUNET_MESSENGER_MemberStore *store, const struct GNUNET_S
 }
 
 static int
-iterate_destroy_session (void *cls, const struct GNUNET_HashCode *key, void *value)
+iterate_destroy_session (void *cls,
+                         const struct GNUNET_HashCode *key,
+                         void *value)
 {
   struct GNUNET_MESSENGER_MemberSession *session = value;
   destroy_member_session(session);
@@ -77,7 +80,8 @@ get_member_id (const struct GNUNET_MESSENGER_Member *member)
 }
 
 static int
-callback_scan_for_sessions (void *cls, const char *filename)
+callback_scan_for_sessions (void *cls,
+                            const char *filename)
 {
   struct GNUNET_MESSENGER_Member *member = cls;
 
@@ -95,7 +99,8 @@ callback_scan_for_sessions (void *cls, const char *filename)
 }
 
 void
-load_member (struct GNUNET_MESSENGER_MemberStore *store, const char *directory)
+load_member (struct GNUNET_MESSENGER_MemberStore *store,
+             const char *directory)
 {
   GNUNET_assert ((store) && (directory));
 
@@ -139,7 +144,9 @@ free_config:
 }
 
 static int
-iterate_load_next_session (void *cls, const struct GNUNET_HashCode *key, void *value)
+iterate_load_next_session (void *cls,
+                           const struct GNUNET_HashCode *key,
+                           void *value)
 {
   const char* sessions_directory = cls;
 
@@ -156,7 +163,8 @@ iterate_load_next_session (void *cls, const struct GNUNET_HashCode *key, void *v
 }
 
 void
-load_member_next_sessions (const struct GNUNET_MESSENGER_Member *member, const char *directory)
+load_member_next_sessions (const struct GNUNET_MESSENGER_Member *member,
+                           const char *directory)
 {
   GNUNET_assert ((member) && (directory));
 
@@ -169,7 +177,9 @@ load_member_next_sessions (const struct GNUNET_MESSENGER_Member *member, const c
 }
 
 static int
-iterate_save_session (void *cls, const struct GNUNET_HashCode *key, void *value)
+iterate_save_session (void *cls,
+                      const struct GNUNET_HashCode *key,
+                      void *value)
 {
   const char* sessions_directory = cls;
 
@@ -187,7 +197,8 @@ iterate_save_session (void *cls, const struct GNUNET_HashCode *key, void *value)
 }
 
 void
-save_member (struct GNUNET_MESSENGER_Member *member, const char *directory)
+save_member (struct GNUNET_MESSENGER_Member *member,
+             const char *directory)
 {
   GNUNET_assert ((member) && (directory));
 
@@ -221,7 +232,8 @@ save_member (struct GNUNET_MESSENGER_Member *member, const char *directory)
 }
 
 static void
-sync_session_contact_from_next (struct GNUNET_MESSENGER_MemberSession *session, struct GNUNET_MESSENGER_MemberSession *next)
+sync_session_contact_from_next (struct GNUNET_MESSENGER_MemberSession *session,
+                                struct GNUNET_MESSENGER_MemberSession *next)
 {
   GNUNET_assert((session) && (next));
 
@@ -235,7 +247,9 @@ sync_session_contact_from_next (struct GNUNET_MESSENGER_MemberSession *session, 
 }
 
 static int
-iterate_sync_session_contact (void *cls, const struct GNUNET_HashCode *key, void *value)
+iterate_sync_session_contact (void *cls,
+                              const struct GNUNET_HashCode *key,
+                              void *value)
 {
   struct GNUNET_MESSENGER_MemberSession *session = value;
 
@@ -254,7 +268,8 @@ sync_member_contacts (struct GNUNET_MESSENGER_Member *member)
 }
 
 struct GNUNET_MESSENGER_MemberSession*
-get_member_session (const struct GNUNET_MESSENGER_Member *member, const struct GNUNET_IDENTITY_PublicKey *public_key)
+get_member_session (const struct GNUNET_MESSENGER_Member *member,
+                    const struct GNUNET_IDENTITY_PublicKey *public_key)
 {
   GNUNET_assert ((member) && (public_key));
 
@@ -272,7 +287,9 @@ struct GNUNET_MESSENGER_ClosureSearchSession {
 };
 
 static int
-iterate_search_session (void *cls, const struct GNUNET_HashCode *key, void *value)
+iterate_search_session (void *cls,
+                        const struct GNUNET_HashCode *key,
+                        void *value)
 {
   struct GNUNET_MESSENGER_ClosureSearchSession* search = cls;
   struct GNUNET_MESSENGER_MemberSession *session = value;
@@ -285,7 +302,8 @@ iterate_search_session (void *cls, const struct GNUNET_HashCode *key, void *valu
 }
 
 static struct GNUNET_MESSENGER_MemberSession*
-try_member_session (struct GNUNET_MESSENGER_Member *member, const struct GNUNET_IDENTITY_PublicKey *public_key)
+try_member_session (struct GNUNET_MESSENGER_Member *member,
+                    const struct GNUNET_IDENTITY_PublicKey *public_key)
 {
   struct GNUNET_MESSENGER_MemberSession* session = get_member_session(member, public_key);
 
@@ -301,7 +319,8 @@ try_member_session (struct GNUNET_MESSENGER_Member *member, const struct GNUNET_
 }
 
 struct GNUNET_MESSENGER_MemberSession*
-get_member_session_of (struct GNUNET_MESSENGER_Member *member, const struct GNUNET_MESSENGER_Message *message,
+get_member_session_of (struct GNUNET_MESSENGER_Member *member,
+                       const struct GNUNET_MESSENGER_Message *message,
                        const struct GNUNET_HashCode *hash)
 {
   GNUNET_assert ((member) && (message) && (hash) &&
@@ -324,7 +343,8 @@ get_member_session_of (struct GNUNET_MESSENGER_Member *member, const struct GNUN
 }
 
 void
-add_member_session (struct GNUNET_MESSENGER_Member *member, struct GNUNET_MESSENGER_MemberSession *session)
+add_member_session (struct GNUNET_MESSENGER_Member *member,
+                    struct GNUNET_MESSENGER_MemberSession *session)
 {
   if (!session)
     return;
@@ -344,7 +364,8 @@ add_member_session (struct GNUNET_MESSENGER_Member *member, struct GNUNET_MESSEN
 }
 
 void
-remove_member_session (struct GNUNET_MESSENGER_Member *member, struct GNUNET_MESSENGER_MemberSession *session)
+remove_member_session (struct GNUNET_MESSENGER_Member *member,
+                       struct GNUNET_MESSENGER_MemberSession *session)
 {
   GNUNET_assert ((member) && (session) && (session->member == member));
 
@@ -364,7 +385,9 @@ struct GNUNET_MESSENGER_ClosureIterateSessions {
 };
 
 static int
-iterate_member_sessions_it (void *cls, const struct GNUNET_HashCode *key, void *value)
+iterate_member_sessions_it (void *cls,
+                            const struct GNUNET_HashCode *key,
+                            void *value)
 {
   struct GNUNET_MESSENGER_ClosureIterateSessions *iterate = cls;
   struct GNUNET_MESSENGER_MemberSession *session = value;
@@ -373,7 +396,9 @@ iterate_member_sessions_it (void *cls, const struct GNUNET_HashCode *key, void *
 }
 
 int
-iterate_member_sessions (struct GNUNET_MESSENGER_Member *member, GNUNET_MESSENGER_MemberIteratorCallback it, void *cls)
+iterate_member_sessions (struct GNUNET_MESSENGER_Member *member,
+                         GNUNET_MESSENGER_MemberIteratorCallback it,
+                         void *cls)
 {
   GNUNET_assert ((member) && (member->sessions) && (it));
 

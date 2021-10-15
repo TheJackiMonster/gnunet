@@ -9470,9 +9470,6 @@ your hosts file).
 @strong{Configuration}
 
 Moreover, an appropriate configuration file is needed.
-Generally you can refer to the
-@file{contrib/regex_profiler_infiniband.conf} file in the sourcecode
-of GNUnet for an example configuration.
 In the following paragraph the important details are highlighted.
 
 Announcing of the regular expressions is done by the

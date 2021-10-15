@@ -68,7 +68,8 @@ struct GNUNET_MESSENGER_Service
  * @return New service
  */
 struct GNUNET_MESSENGER_Service*
-create_service (const struct GNUNET_CONFIGURATION_Handle *config, struct GNUNET_SERVICE_Handle *service_handle);
+create_service (const struct GNUNET_CONFIGURATION_Handle *config,
+                struct GNUNET_SERVICE_Handle *service_handle);
 
 /**
  * Destroys a <i>service</i> and frees its memory fully.
@@ -104,7 +105,8 @@ get_service_contact_store (struct GNUNET_MESSENGER_Service *service);
  * @return New handle
  */
 struct GNUNET_MESSENGER_SrvHandle*
-add_service_handle (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MQ_Handle *mq);
+add_service_handle (struct GNUNET_MESSENGER_Service *service,
+                    struct GNUNET_MQ_Handle *mq);
 
 /**
  * Removes a <i>handle</i> from a <i>service</i> and destroys it.
@@ -113,7 +115,8 @@ add_service_handle (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MQ_H
  * @param[in/out] handle Handle
  */
 void
-remove_service_handle (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESSENGER_SrvHandle *handle);
+remove_service_handle (struct GNUNET_MESSENGER_Service *service,
+                       struct GNUNET_MESSENGER_SrvHandle *handle);
 
 /**
  * Tries to write the peer identity of the peer running a <i>service</i> on to the <i>peer</i>
@@ -124,7 +127,8 @@ remove_service_handle (struct GNUNET_MESSENGER_Service *service, struct GNUNET_M
  * @return #GNUNET_OK on success, otherwise #GNUNET_SYSERR
  */
 int
-get_service_peer_identity (const struct GNUNET_MESSENGER_Service *service, struct GNUNET_PeerIdentity *peer);
+get_service_peer_identity (const struct GNUNET_MESSENGER_Service *service,
+                           struct GNUNET_PeerIdentity *peer);
 
 /**
  * Returns the room identified by a given <i>key</i> for a <i>service</i>. If the service doesn't know any room
@@ -135,7 +139,8 @@ get_service_peer_identity (const struct GNUNET_MESSENGER_Service *service, struc
  * @return Room or NULL
  */
 struct GNUNET_MESSENGER_SrvRoom*
-get_service_room (const struct GNUNET_MESSENGER_Service *service, const struct GNUNET_HashCode *key);
+get_service_room (const struct GNUNET_MESSENGER_Service *service,
+                  const struct GNUNET_HashCode *key);
 
 /**
  * Tries to open a room using a given <i>key</i> for a <i>service</i> by a specific <i>handle</i>. The room will be
@@ -147,7 +152,8 @@ get_service_room (const struct GNUNET_MESSENGER_Service *service, const struct G
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
 int
-open_service_room (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESSENGER_SrvHandle *handle,
+open_service_room (struct GNUNET_MESSENGER_Service *service,
+                   struct GNUNET_MESSENGER_SrvHandle *handle,
                    const struct GNUNET_HashCode *key);
 
 /**
@@ -164,8 +170,10 @@ open_service_room (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESSE
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
 int
-entry_service_room (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESSENGER_SrvHandle *handle,
-                    const struct GNUNET_PeerIdentity *door, const struct GNUNET_HashCode *key);
+entry_service_room (struct GNUNET_MESSENGER_Service *service,
+                    struct GNUNET_MESSENGER_SrvHandle *handle,
+                    const struct GNUNET_PeerIdentity *door,
+                    const struct GNUNET_HashCode *key);
 
 /**
  * Tries to close a room using a given <i>key</i> for a <i>service</i> by a specific <i>handle</i>. The room will
@@ -180,7 +188,8 @@ entry_service_room (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESS
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
 int
-close_service_room (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESSENGER_SrvHandle *handle,
+close_service_room (struct GNUNET_MESSENGER_Service *service,
+                    struct GNUNET_MESSENGER_SrvHandle *handle,
                     const struct GNUNET_HashCode *key);
 
 /**
@@ -194,8 +203,10 @@ close_service_room (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESS
  * @param[in] hash Hash of message
  */
 void
-handle_service_message (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MESSENGER_SrvRoom *room,
+handle_service_message (struct GNUNET_MESSENGER_Service *service,
+                        struct GNUNET_MESSENGER_SrvRoom *room,
                         const struct GNUNET_MESSENGER_MemberSession *session,
-                        const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash);
+                        const struct GNUNET_MESSENGER_Message *message,
+                        const struct GNUNET_HashCode *hash);
 
 #endif //GNUNET_SERVICE_MESSENGER_SERVICE_H

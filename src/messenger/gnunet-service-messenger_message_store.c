@@ -42,7 +42,9 @@ init_message_store (struct GNUNET_MESSENGER_MessageStore *store)
 }
 
 static int
-iterate_destroy_entries (void *cls, const struct GNUNET_HashCode *key, void *value)
+iterate_destroy_entries (void *cls,
+                         const struct GNUNET_HashCode *key,
+                         void *value)
 {
   struct GNUNET_MESSENGER_MessageEntry *entry = value;
 
@@ -52,7 +54,9 @@ iterate_destroy_entries (void *cls, const struct GNUNET_HashCode *key, void *val
 }
 
 static int
-iterate_destroy_messages (void *cls, const struct GNUNET_HashCode *key, void *value)
+iterate_destroy_messages (void *cls,
+                          const struct GNUNET_HashCode *key,
+                          void *value)
 {
   struct GNUNET_MESSENGER_Message *message = value;
 
@@ -62,7 +66,9 @@ iterate_destroy_messages (void *cls, const struct GNUNET_HashCode *key, void *va
 }
 
 static int
-iterate_destroy_links (void *cls, const struct GNUNET_HashCode *key, void *value)
+iterate_destroy_links (void *cls,
+                       const struct GNUNET_HashCode *key,
+                       void *value)
 {
   struct GNUNET_HashCode *previous = value;
 
@@ -99,7 +105,8 @@ struct GNUNET_MESSENGER_MessageEntryStorage
 };
 
 static void
-load_message_store_entries (struct GNUNET_MESSENGER_MessageStore *store, const char *filename)
+load_message_store_entries (struct GNUNET_MESSENGER_MessageStore *store,
+                            const char *filename)
 {
   enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ);
 
@@ -146,7 +153,8 @@ struct GNUNET_MESSENGER_MessageLinkStorage
 };
 
 static void
-load_message_store_links (struct GNUNET_MESSENGER_MessageStore *store, const char *filename)
+load_message_store_links (struct GNUNET_MESSENGER_MessageStore *store,
+                          const char *filename)
 {
   enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ);
 
@@ -187,7 +195,8 @@ load_message_store_links (struct GNUNET_MESSENGER_MessageStore *store, const cha
 }
 
 void
-load_message_store (struct GNUNET_MESSENGER_MessageStore *store, const char *directory)
+load_message_store (struct GNUNET_MESSENGER_MessageStore *store,
+                    const char *directory)
 {
   GNUNET_assert((store) && (directory));
 
@@ -232,7 +241,9 @@ struct GNUNET_MESSENGER_ClosureMessageSave
 };
 
 static int
-iterate_save_entries (void *cls, const struct GNUNET_HashCode *key, void *value)
+iterate_save_entries (void *cls,
+                      const struct GNUNET_HashCode *key,
+                      void *value)
 {
   struct GNUNET_MESSENGER_ClosureMessageSave *save = cls;
   struct GNUNET_MESSENGER_MessageEntry *entry = value;
@@ -248,7 +259,9 @@ iterate_save_entries (void *cls, const struct GNUNET_HashCode *key, void *value)
 }
 
 static int
-iterate_save_messages (void *cls, const struct GNUNET_HashCode *key, void *value)
+iterate_save_messages (void *cls,
+                       const struct GNUNET_HashCode *key,
+                       void *value)
 {
   struct GNUNET_MESSENGER_ClosureMessageSave *save = cls;
 
@@ -279,7 +292,9 @@ iterate_save_messages (void *cls, const struct GNUNET_HashCode *key, void *value
 }
 
 static int
-iterate_save_links (void *cls, const struct GNUNET_HashCode *key, void *value)
+iterate_save_links (void *cls,
+                    const struct GNUNET_HashCode *key,
+                    void *value)
 {
   struct GNUNET_MESSENGER_ClosureMessageSave *save = cls;
   struct GNUNET_MESSENGER_MessageLink *link = value;
@@ -295,7 +310,8 @@ iterate_save_links (void *cls, const struct GNUNET_HashCode *key, void *value)
 }
 
 void
-save_message_store (struct GNUNET_MESSENGER_MessageStore *store, const char *directory)
+save_message_store (struct GNUNET_MESSENGER_MessageStore *store,
+                    const char *directory)
 {
   GNUNET_assert((store) && (directory));
 
@@ -372,7 +388,8 @@ close_entries:
 }
 
 int
-contains_store_message (const struct GNUNET_MESSENGER_MessageStore *store, const struct GNUNET_HashCode *hash)
+contains_store_message (const struct GNUNET_MESSENGER_MessageStore *store,
+                        const struct GNUNET_HashCode *hash)
 {
   GNUNET_assert((store) && (hash));
 
@@ -383,7 +400,8 @@ contains_store_message (const struct GNUNET_MESSENGER_MessageStore *store, const
 }
 
 const struct GNUNET_MESSENGER_Message*
-get_store_message (struct GNUNET_MESSENGER_MessageStore *store, const struct GNUNET_HashCode *hash)
+get_store_message (struct GNUNET_MESSENGER_MessageStore *store,
+                   const struct GNUNET_HashCode *hash)
 {
   GNUNET_assert((store) && (hash));
 
@@ -444,7 +462,8 @@ free_buffer:
 }
 
 const struct GNUNET_MESSENGER_MessageLink*
-get_store_message_link (struct GNUNET_MESSENGER_MessageStore *store, const struct GNUNET_HashCode *hash,
+get_store_message_link (struct GNUNET_MESSENGER_MessageStore *store,
+                        const struct GNUNET_HashCode *hash,
                         int deleted_only)
 {
   if (deleted_only)
@@ -473,7 +492,8 @@ get_link:
 }
 
 int
-put_store_message (struct GNUNET_MESSENGER_MessageStore *store, const struct GNUNET_HashCode *hash,
+put_store_message (struct GNUNET_MESSENGER_MessageStore *store,
+                   const struct GNUNET_HashCode *hash,
                    struct GNUNET_MESSENGER_Message *message)
 {
   GNUNET_assert((store) && (hash) && (message));
@@ -483,7 +503,8 @@ put_store_message (struct GNUNET_MESSENGER_MessageStore *store, const struct GNU
 }
 
 static void
-add_link (struct GNUNET_MESSENGER_MessageStore *store, const struct GNUNET_HashCode *hash,
+add_link (struct GNUNET_MESSENGER_MessageStore *store,
+          const struct GNUNET_HashCode *hash,
           const struct GNUNET_MESSENGER_Message *message)
 {
   struct GNUNET_MESSENGER_MessageLink *link = GNUNET_new(struct GNUNET_MESSENGER_MessageLink);
@@ -503,7 +524,8 @@ add_link (struct GNUNET_MESSENGER_MessageStore *store, const struct GNUNET_HashC
 }
 
 int
-delete_store_message (struct GNUNET_MESSENGER_MessageStore *store, const struct GNUNET_HashCode *hash)
+delete_store_message (struct GNUNET_MESSENGER_MessageStore *store,
+                      const struct GNUNET_HashCode *hash)
 {
   GNUNET_assert((store) && (hash));
 

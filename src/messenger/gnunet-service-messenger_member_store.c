@@ -30,7 +30,8 @@
 #include "gnunet-service-messenger_room.h"
 
 void
-init_member_store (struct GNUNET_MESSENGER_MemberStore *store, struct GNUNET_MESSENGER_SrvRoom *room)
+init_member_store (struct GNUNET_MESSENGER_MemberStore *store,
+                   struct GNUNET_MESSENGER_SrvRoom *room)
 {
   GNUNET_assert ((store) && (room));
 
@@ -39,7 +40,9 @@ init_member_store (struct GNUNET_MESSENGER_MemberStore *store, struct GNUNET_MES
 }
 
 static int
-iterate_destroy_members (void *cls, const struct GNUNET_ShortHashCode *key, void *value)
+iterate_destroy_members (void *cls,
+                         const struct GNUNET_ShortHashCode *key,
+                         void *value)
 {
   struct GNUNET_MESSENGER_Member *member = value;
   destroy_member(member);
@@ -75,7 +78,8 @@ get_member_store_key (const struct GNUNET_MESSENGER_MemberStore *store)
 }
 
 static int
-callback_scan_for_members (void *cls, const char *filename)
+callback_scan_for_members (void *cls,
+                           const char *filename)
 {
   struct GNUNET_MESSENGER_MemberStore *store = cls;
 
@@ -94,7 +98,9 @@ callback_scan_for_members (void *cls, const char *filename)
 }
 
 static int
-iterate_load_next_member_sessions (void *cls, const struct GNUNET_ShortHashCode *id, void *value)
+iterate_load_next_member_sessions (void *cls,
+                                   const struct GNUNET_ShortHashCode *id,
+                                   void *value)
 {
   const char *sync_dir = cls;
 
@@ -114,7 +120,9 @@ iterate_load_next_member_sessions (void *cls, const struct GNUNET_ShortHashCode 
 }
 
 static int
-iterate_sync_member_contacts (void *cls, const struct GNUNET_ShortHashCode *id, void *value)
+iterate_sync_member_contacts (void *cls,
+                              const struct GNUNET_ShortHashCode *id,
+                              void *value)
 {
   struct GNUNET_MESSENGER_Member *member = value;
 
@@ -126,7 +134,8 @@ iterate_sync_member_contacts (void *cls, const struct GNUNET_ShortHashCode *id, 
 }
 
 void
-load_member_store (struct GNUNET_MESSENGER_MemberStore *store, const char *directory)
+load_member_store (struct GNUNET_MESSENGER_MemberStore *store,
+                   const char *directory)
 {
   GNUNET_assert ((store) && (directory));
 
@@ -143,7 +152,9 @@ load_member_store (struct GNUNET_MESSENGER_MemberStore *store, const char *direc
 }
 
 static int
-iterate_save_members (void *cls, const struct GNUNET_ShortHashCode *id, void *value)
+iterate_save_members (void *cls,
+                      const struct GNUNET_ShortHashCode *id,
+                      void *value)
 {
   const char *save_dir = cls;
 
@@ -164,7 +175,8 @@ iterate_save_members (void *cls, const struct GNUNET_ShortHashCode *id, void *va
 }
 
 void
-save_member_store (struct GNUNET_MESSENGER_MemberStore *store, const char *directory)
+save_member_store (struct GNUNET_MESSENGER_MemberStore *store,
+                   const char *directory)
 {
   GNUNET_assert ((store) && (directory));
 
@@ -179,7 +191,8 @@ save_member_store (struct GNUNET_MESSENGER_MemberStore *store, const char *direc
 }
 
 struct GNUNET_MESSENGER_Member*
-get_store_member (const struct GNUNET_MESSENGER_MemberStore *store, const struct GNUNET_ShortHashCode *id)
+get_store_member (const struct GNUNET_MESSENGER_MemberStore *store,
+                  const struct GNUNET_ShortHashCode *id)
 {
   GNUNET_assert ((store) && (store->members) && (id));
 
@@ -187,7 +200,8 @@ get_store_member (const struct GNUNET_MESSENGER_MemberStore *store, const struct
 }
 
 struct GNUNET_MESSENGER_Member*
-get_store_member_of (struct GNUNET_MESSENGER_MemberStore *store, const struct GNUNET_MESSENGER_Message *message)
+get_store_member_of (struct GNUNET_MESSENGER_MemberStore *store,
+                     const struct GNUNET_MESSENGER_Message *message)
 {
   if ((GNUNET_MESSENGER_KIND_INFO == message->header.kind) ||
       (GNUNET_MESSENGER_KIND_JOIN == message->header.kind))
@@ -197,7 +211,8 @@ get_store_member_of (struct GNUNET_MESSENGER_MemberStore *store, const struct GN
 }
 
 struct GNUNET_MESSENGER_Member*
-add_store_member (struct GNUNET_MESSENGER_MemberStore *store, const struct GNUNET_ShortHashCode *id)
+add_store_member (struct GNUNET_MESSENGER_MemberStore *store,
+                  const struct GNUNET_ShortHashCode *id)
 {
   GNUNET_assert ((store) && (store->members));
 
@@ -227,7 +242,9 @@ struct GNUNET_MESSENGER_ClosureIterateMembers {
 };
 
 static int
-iterate_store_members_it (void *cls, const struct GNUNET_ShortHashCode *key, void *value)
+iterate_store_members_it (void *cls,
+                          const struct GNUNET_ShortHashCode *key,
+                          void *value)
 {
   struct GNUNET_MESSENGER_ClosureIterateMembers *iterate = cls;
   struct GNUNET_MESSENGER_Member *member = value;
@@ -236,7 +253,8 @@ iterate_store_members_it (void *cls, const struct GNUNET_ShortHashCode *key, voi
 }
 
 int
-iterate_store_members (struct GNUNET_MESSENGER_MemberStore *store, GNUNET_MESSENGER_MemberIteratorCallback it,
+iterate_store_members (struct GNUNET_MESSENGER_MemberStore *store,
+                       GNUNET_MESSENGER_MemberIteratorCallback it,
                        void* cls)
 {
   GNUNET_assert ((store) && (store->members) && (it));

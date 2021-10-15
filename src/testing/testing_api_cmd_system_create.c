@@ -46,7 +46,6 @@ struct TestSystemState
  */
 static void
 system_create_run (void *cls,
-                   const struct GNUNET_TESTING_Command *cmd,
                    struct GNUNET_TESTING_Interpreter *is)
 {
   struct TestSystemState *tss = cls;
@@ -115,8 +114,7 @@ GNUNET_TESTING_get_trait_test_system (const struct
  *
  */
 static void
-system_create_cleanup (void *cls,
-                       const struct GNUNET_TESTING_Command *cmd)
+system_create_cleanup (void *cls)
 {
   struct TestSystemState *tss = cls;
 

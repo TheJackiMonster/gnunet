@@ -55,7 +55,8 @@ struct GNUNET_MESSENGER_SrvTunnel
  * @return New tunnel
  */
 struct GNUNET_MESSENGER_SrvTunnel*
-create_tunnel (struct GNUNET_MESSENGER_SrvRoom *room, const struct GNUNET_PeerIdentity *door);
+create_tunnel (struct GNUNET_MESSENGER_SrvRoom *room,
+               const struct GNUNET_PeerIdentity *door);
 
 /**
  * Destroys a <i>tunnel</i> and frees its memory fully.
@@ -73,7 +74,8 @@ destroy_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel);
  * @param[in/out] channel CADET channel
  */
 void
-bind_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel, struct GNUNET_CADET_Channel *channel);
+bind_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
+             struct GNUNET_CADET_Channel *channel);
 
 /**
  * Tries to connect a <i>tunnel</i> by creating a new CADET channel and binding it.
@@ -112,7 +114,8 @@ is_tunnel_connected (const struct GNUNET_MESSENGER_SrvTunnel *tunnel);
  * @param[in] hash Hash of message
  */
 void
-send_tunnel_envelope (struct GNUNET_MESSENGER_SrvTunnel *tunnel, struct GNUNET_MQ_Envelope *env,
+send_tunnel_envelope (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
+                      struct GNUNET_MQ_Envelope *env,
                       const struct GNUNET_HashCode *hash);
 
 /**
@@ -126,7 +129,9 @@ send_tunnel_envelope (struct GNUNET_MESSENGER_SrvTunnel *tunnel, struct GNUNET_M
  * @return #GNUNET_YES on success, GNUNET_NO otherwise
  */
 int
-send_tunnel_message (struct GNUNET_MESSENGER_SrvTunnel *tunnel, void *handle, struct GNUNET_MESSENGER_Message *message);
+send_tunnel_message (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
+                     void *handle,
+                     struct GNUNET_MESSENGER_Message *message);
 
 /**
  * Forwards a given <i>message</i> with a known <i>hash</i> through a <i>tunnel</i>.
@@ -136,7 +141,8 @@ send_tunnel_message (struct GNUNET_MESSENGER_SrvTunnel *tunnel, void *handle, st
  * @param[in] hash Hash of message
  */
 void
-forward_tunnel_message (struct GNUNET_MESSENGER_SrvTunnel *tunnel, const struct GNUNET_MESSENGER_Message *message,
+forward_tunnel_message (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
+                        const struct GNUNET_MESSENGER_Message *message,
                         const struct GNUNET_HashCode *hash);
 
 /**
@@ -158,7 +164,8 @@ get_tunnel_peer_message (const struct GNUNET_MESSENGER_SrvTunnel *tunnel);
  * @param[out] peer Peer identity
  */
 void
-get_tunnel_peer_identity (const struct GNUNET_MESSENGER_SrvTunnel *tunnel, struct GNUNET_PeerIdentity *peer);
+get_tunnel_peer_identity (const struct GNUNET_MESSENGER_SrvTunnel *tunnel,
+                          struct GNUNET_PeerIdentity *peer);
 
 /**
  * Returns the current messenger version the peer connected via a given <i>tunnel</i>
@@ -181,6 +188,7 @@ get_tunnel_messenger_version (const struct GNUNET_MESSENGER_SrvTunnel *tunnel);
  * @param[in] version Version of messenger
  */
 int
-update_tunnel_messenger_version (struct GNUNET_MESSENGER_SrvTunnel *tunnel, uint32_t version);
+update_tunnel_messenger_version (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
+                                 uint32_t version);
 
 #endif //GNUNET_SERVICE_MESSENGER_TUNNEL_H

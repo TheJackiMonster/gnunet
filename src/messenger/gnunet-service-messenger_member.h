@@ -52,7 +52,8 @@ struct GNUNET_MESSENGER_Member
  * @return New member or NULL
  */
 struct GNUNET_MESSENGER_Member*
-create_member (struct GNUNET_MESSENGER_MemberStore *store, const struct GNUNET_ShortHashCode *id);
+create_member (struct GNUNET_MESSENGER_MemberStore *store,
+               const struct GNUNET_ShortHashCode *id);
 
 /**
  * Destroys a member and frees its memory fully.
@@ -80,7 +81,8 @@ get_member_id (const struct GNUNET_MESSENGER_Member *member);
  * @param[in] directory Path to a directory
  */
 void
-load_member (struct GNUNET_MESSENGER_MemberStore *store, const char *directory);
+load_member (struct GNUNET_MESSENGER_MemberStore *store,
+             const char *directory);
 
 /**
  * Loads data about next sessions from a <i>directory</i> into an empty loaded
@@ -90,7 +92,8 @@ load_member (struct GNUNET_MESSENGER_MemberStore *store, const char *directory);
  * @param[in] directory Path to a directory
  */
 void
-load_member_next_sessions (const struct GNUNET_MESSENGER_Member *member, const char *directory);
+load_member_next_sessions (const struct GNUNET_MESSENGER_Member *member,
+                           const char *directory);
 
 /**
  * Saves data from a <i>member</i> into a directory which
@@ -100,7 +103,8 @@ load_member_next_sessions (const struct GNUNET_MESSENGER_Member *member, const c
  * @param[in] directory Path to a directory
  */
 void
-save_member (struct GNUNET_MESSENGER_Member *member, const char *directory);
+save_member (struct GNUNET_MESSENGER_Member *member,
+             const char *directory);
 
 /**
  * Synchronizes contacts between all sessions from a given <i>member</i>
@@ -120,7 +124,8 @@ sync_member_contacts (struct GNUNET_MESSENGER_Member *member);
  * @return Member session
  */
 struct GNUNET_MESSENGER_MemberSession*
-get_member_session (const struct GNUNET_MESSENGER_Member *member, const struct GNUNET_IDENTITY_PublicKey *public_key);
+get_member_session (const struct GNUNET_MESSENGER_Member *member,
+                    const struct GNUNET_IDENTITY_PublicKey *public_key);
 
 /**
  * Returns the member session of a <i>member</i> using a public key which can verify
@@ -133,7 +138,8 @@ get_member_session (const struct GNUNET_MESSENGER_Member *member, const struct G
  * @return Member session
  */
 struct GNUNET_MESSENGER_MemberSession*
-get_member_session_of (struct GNUNET_MESSENGER_Member *member, const struct GNUNET_MESSENGER_Message *message,
+get_member_session_of (struct GNUNET_MESSENGER_Member *member,
+                       const struct GNUNET_MESSENGER_Message *message,
                        const struct GNUNET_HashCode *hash);
 
 /**
@@ -143,7 +149,8 @@ get_member_session_of (struct GNUNET_MESSENGER_Member *member, const struct GNUN
  * @param[in/out] session Member session
  */
 void
-add_member_session (struct GNUNET_MESSENGER_Member *member, struct GNUNET_MESSENGER_MemberSession *session);
+add_member_session (struct GNUNET_MESSENGER_Member *member,
+                    struct GNUNET_MESSENGER_MemberSession *session);
 
 /**
  * Removes a given member <i>session</i> from its <i>member</i>.
@@ -152,7 +159,8 @@ add_member_session (struct GNUNET_MESSENGER_Member *member, struct GNUNET_MESSEN
  * @param[in/out] session Member session
  */
 void
-remove_member_session (struct GNUNET_MESSENGER_Member *member, struct GNUNET_MESSENGER_MemberSession *session);
+remove_member_session (struct GNUNET_MESSENGER_Member *member,
+                       struct GNUNET_MESSENGER_MemberSession *session);
 
 /**
  * Iterate through all member sessions currently connected to a given <i>member</i>
@@ -165,6 +173,8 @@ remove_member_session (struct GNUNET_MESSENGER_Member *member, struct GNUNET_MES
  * @return Amount of sessions iterated through
  */
 int
-iterate_member_sessions (struct GNUNET_MESSENGER_Member *member, GNUNET_MESSENGER_MemberIteratorCallback it, void* cls);
+iterate_member_sessions (struct GNUNET_MESSENGER_Member *member,
+                         GNUNET_MESSENGER_MemberIteratorCallback it,
+                         void* cls);
 
 #endif //GNUNET_SERVICE_MESSENGER_MEMBER_H

@@ -45,8 +45,10 @@
  * @param[in] hash Hash of the message
  */
 void
-handle_message_join (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_MemberSession *session,
-                     const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash);
+handle_message_join (struct GNUNET_MESSENGER_SrvRoom *room,
+                     struct GNUNET_MESSENGER_MemberSession *session,
+                     const struct GNUNET_MESSENGER_Message *message,
+                     const struct GNUNET_HashCode *hash);
 
 /**
  * Handles a received or sent leave message to make changes of current member information.
@@ -58,8 +60,10 @@ handle_message_join (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSEN
  * @param[in] hash Hash of the message
  */
 void
-handle_message_leave (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_MemberSession *session,
-                      const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash);
+handle_message_leave (struct GNUNET_MESSENGER_SrvRoom *room,
+                      struct GNUNET_MESSENGER_MemberSession *session,
+                      const struct GNUNET_MESSENGER_Message *message,
+                      const struct GNUNET_HashCode *hash);
 
 /**
  * Handles a received or sent name message to rename a current member.
@@ -71,8 +75,10 @@ handle_message_leave (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSE
  * @param[in] hash Hash of the message
  */
 void
-handle_message_name (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_MemberSession *session,
-                     const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash);
+handle_message_name (struct GNUNET_MESSENGER_SrvRoom *room,
+                     struct GNUNET_MESSENGER_MemberSession *session,
+                     const struct GNUNET_MESSENGER_Message *message,
+                     const struct GNUNET_HashCode *hash);
 
 /**
  * Handles a received or sent key message to change the key of a member and rearrange the contacts accordingly.
@@ -84,8 +90,10 @@ handle_message_name (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSEN
  * @param[in] hash Hash of the message
  */
 void
-handle_message_key (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_MemberSession *session,
-                    const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash);
+handle_message_key (struct GNUNET_MESSENGER_SrvRoom *room,
+                    struct GNUNET_MESSENGER_MemberSession *session,
+                    const struct GNUNET_MESSENGER_Message *message,
+                    const struct GNUNET_HashCode *hash);
 
 /**
  * Handles a received or sent peer message to make changes of the basement in the room.
@@ -97,8 +105,10 @@ handle_message_key (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENG
  * @param[in] hash Hash of the message
  */
 void
-handle_message_peer (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_MemberSession *session,
-                     const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash);
+handle_message_peer (struct GNUNET_MESSENGER_SrvRoom *room,
+                     struct GNUNET_MESSENGER_MemberSession *session,
+                     const struct GNUNET_MESSENGER_Message *message,
+                     const struct GNUNET_HashCode *hash);
 
 /**
  * Handles a received or sent id message to change a members id.
@@ -110,8 +120,10 @@ handle_message_peer (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSEN
  * @param[in] hash Hash of the message
  */
 void
-handle_message_id (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_MemberSession *session,
-                   const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash);
+handle_message_id (struct GNUNET_MESSENGER_SrvRoom *room,
+                   struct GNUNET_MESSENGER_MemberSession *session,
+                   const struct GNUNET_MESSENGER_Message *message,
+                   const struct GNUNET_HashCode *hash);
 
 /**
  * Handles a received or sent miss message to drop a peer from the basement in the room.
@@ -123,8 +135,10 @@ handle_message_id (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGE
  * @param[in] hash Hash of the message
  */
 void
-handle_message_miss (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_MemberSession *session,
-                     const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash);
+handle_message_miss (struct GNUNET_MESSENGER_SrvRoom *room,
+                     struct GNUNET_MESSENGER_MemberSession *session,
+                     const struct GNUNET_MESSENGER_Message *message,
+                     const struct GNUNET_HashCode *hash);
 
 /**
  * Handles a received or sent delete message to delete a specific message from the store.
@@ -136,7 +150,9 @@ handle_message_miss (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSEN
  * @param[in] hash Hash of the message
  */
 void
-handle_message_delete (struct GNUNET_MESSENGER_SrvRoom *room, struct GNUNET_MESSENGER_MemberSession *session,
-                       const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash);
+handle_message_delete (struct GNUNET_MESSENGER_SrvRoom *room,
+                       struct GNUNET_MESSENGER_MemberSession *session,
+                       const struct GNUNET_MESSENGER_Message *message,
+                       const struct GNUNET_HashCode *hash);
 
 #endif //GNUNET_SERVICE_MESSENGER_MESSAGE_HANDLE_H

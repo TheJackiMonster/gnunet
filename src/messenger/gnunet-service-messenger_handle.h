@@ -60,7 +60,8 @@ struct GNUNET_MESSENGER_SrvHandle
  * @return New handle
  */
 struct GNUNET_MESSENGER_SrvHandle*
-create_handle (struct GNUNET_MESSENGER_Service *service, struct GNUNET_MQ_Handle *mq);
+create_handle (struct GNUNET_MESSENGER_Service *service,
+               struct GNUNET_MQ_Handle *mq);
 
 /**
  * Destroys a handle and frees its memory fully.
@@ -79,7 +80,9 @@ destroy_handle (struct GNUNET_MESSENGER_SrvHandle *handle);
  * @param[out] dir Path to store data
  */
 void
-get_handle_data_subdir (const struct GNUNET_MESSENGER_SrvHandle *handle, const char *name, char **dir);
+get_handle_data_subdir (const struct GNUNET_MESSENGER_SrvHandle *handle,
+                        const char *name,
+                        char **dir);
 
 /**
  * Returns the member id of a given <i>handle</i> in a specific <i>room</i>.
@@ -91,7 +94,8 @@ get_handle_data_subdir (const struct GNUNET_MESSENGER_SrvHandle *handle, const c
  * @return Member id or NULL
  */
 const struct GNUNET_ShortHashCode*
-get_handle_member_id (const struct GNUNET_MESSENGER_SrvHandle *handle, const struct GNUNET_HashCode *key);
+get_handle_member_id (const struct GNUNET_MESSENGER_SrvHandle *handle,
+                      const struct GNUNET_HashCode *key);
 
 /**
  * Changes the member id of a given <i>handle</i> in a specific <i>room</i> to match a <i>unique_id</i>
@@ -105,7 +109,8 @@ get_handle_member_id (const struct GNUNET_MESSENGER_SrvHandle *handle, const str
  * @return GNUNET_OK on success, otherwise GNUNET_SYSERR
  */
 int
-change_handle_member_id (struct GNUNET_MESSENGER_SrvHandle *handle, const struct GNUNET_HashCode *key,
+change_handle_member_id (struct GNUNET_MESSENGER_SrvHandle *handle,
+                         const struct GNUNET_HashCode *key,
                          const struct GNUNET_ShortHashCode *unique_id);
 
 /**
@@ -115,7 +120,8 @@ change_handle_member_id (struct GNUNET_MESSENGER_SrvHandle *handle, const struct
  * @param[in] ego EGO key pair
  */
 void
-set_handle_ego (struct GNUNET_MESSENGER_SrvHandle *handle, const struct GNUNET_MESSENGER_Ego *ego);
+set_handle_ego (struct GNUNET_MESSENGER_SrvHandle *handle,
+                const struct GNUNET_MESSENGER_Ego *ego);
 
 /**
  * Returns the EGO used by a given <i>handle</i>.
@@ -133,7 +139,8 @@ get_handle_ego (const struct GNUNET_MESSENGER_SrvHandle *handle);
  * @param[in] name Name (optionally: valid EGO name)
  */
 void
-setup_handle_name (struct GNUNET_MESSENGER_SrvHandle *handle, const char *name);
+setup_handle_name (struct GNUNET_MESSENGER_SrvHandle *handle,
+                   const char *name);
 
 /**
  * Tries to change the key pair of an EGO of a <i>handle</i> under the same name and informs all rooms
@@ -154,7 +161,8 @@ update_handle (struct GNUNET_MESSENGER_SrvHandle *handle);
  * @param[in] name New name
  */
 void
-set_handle_name (struct GNUNET_MESSENGER_SrvHandle *handle, const char *name);
+set_handle_name (struct GNUNET_MESSENGER_SrvHandle *handle,
+                 const char *name);
 
 /**
  * Makes a given <i>handle</i> a member of the room using a specific <i>key</i> and opens the
@@ -165,7 +173,8 @@ set_handle_name (struct GNUNET_MESSENGER_SrvHandle *handle, const char *name);
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
 int
-open_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle, const struct GNUNET_HashCode *key);
+open_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
+                  const struct GNUNET_HashCode *key);
 
 /**
  * Makes a given <i>handle</i> a member of the room using a specific <i>key</i> and enters the room
@@ -177,7 +186,8 @@ open_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle, const struct GNUNET
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
 int
-entry_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle, const struct GNUNET_PeerIdentity *door,
+entry_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
+                   const struct GNUNET_PeerIdentity *door,
                    const struct GNUNET_HashCode *key);
 
 /**
@@ -189,7 +199,8 @@ entry_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle, const struct GNUNE
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
 int
-close_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle, const struct GNUNET_HashCode *key);
+close_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
+                   const struct GNUNET_HashCode *key);
 
 /**
  * Sends a <i>message</i> from a given <i>handle</i> to the room using a specific <i>key</i>.
@@ -200,7 +211,8 @@ close_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle, const struct GNUNE
  * @return #GNUNET_YES on success, #GNUNET_NO or #GNUNET_SYSERR otherwise.
  */
 int
-send_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle, const struct GNUNET_HashCode *key,
+send_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
+                     const struct GNUNET_HashCode *key,
                      const struct GNUNET_MESSENGER_Message *message);
 
 /**
@@ -213,9 +225,11 @@ send_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle, const struct GNU
  * @param[in] hash Hash of message
  */
 void
-notify_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle, const struct GNUNET_HashCode *key,
+notify_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
+                       const struct GNUNET_HashCode *key,
                        const struct GNUNET_MESSENGER_MemberSession *session,
-                       const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash);
+                       const struct GNUNET_MESSENGER_Message *message,
+                       const struct GNUNET_HashCode *hash);
 
 /**
  * Loads member ids and other potential configuration from a given <i>handle</i> which

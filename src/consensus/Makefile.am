@@ -89,7 +89,6 @@ libgnunet_plugin_block_consensus_la_LDFLAGS = \
 
 
 
-if HAVE_TESTING
 bin_PROGRAMS = \
  gnunet-consensus-profiler
 
@@ -99,7 +98,6 @@ check_PROGRAMS = \
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
 TESTS = $(check_PROGRAMS)
-endif
 endif
 
 test_consensus_api_SOURCES = \

@@ -19,7 +19,7 @@
  */
 
 /**
- * @file testing/testing_api_cmd_hello_world.c
+ * @file testing/testing_api_cmd_netjail_start.c
  * @brief Command to start the netjail script.
  * @author t3sserakt
  */
@@ -35,22 +35,24 @@
  */
 struct NetJailState
 {
+  /**
+   * Context for our asynchronous completion.
+   */
+  struct GNUNET_TESTING_AsyncContext ac;
+
   // Child Wait handle
   struct GNUNET_ChildWaitHandle *cwh;
-
-  // Number of local nodes in each namespace.
-  char *local_m;
-
-  // The number of namespaces.
-  char *global_n;
 
   /**
    * The process id of the start script.
    */
   struct GNUNET_OS_Process *start_proc;
 
-  // Flag indication if the script finished.
-  unsigned int finished;
+  /**
+   * Configuration file for the test topology.
+   */
+  char *topology_config;
+
 };
 
 
@@ -59,8 +61,7 @@ struct NetJailState
  *
  */
 static void
-netjail_start_cleanup (void *cls,
-                       const struct GNUNET_TESTING_Command *cmd)
+netjail_start_cleanup (void *cls)
 {
   struct NetJailState *ns = cls;
 
@@ -87,20 +88,6 @@ netjail_start_cleanup (void *cls,
 
 
 /**
- * Trait function of this cmd does nothing.
- *
- */
-static int
-netjail_start_traits (void *cls,
-                      const void **ret,
-                      const char *trait,
-                      unsigned int index)
-{
-  return GNUNET_OK;
-}
-
-
-/**
  * Callback which will be called if the setup script finished.
  *
  */
@@ -111,40 +98,40 @@ child_completed_callback (void *cls,
 {
   struct NetJailState *ns = cls;
 
+  GNUNET_OS_process_destroy (ns->start_proc);
+  ns->start_proc = NULL;
   if (0 == exit_code)
   {
-    ns->finished = GNUNET_YES;
+    GNUNET_TESTING_async_finish (&ns->ac);
   }
   else
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Child completed with an error!\n");
-    ns->finished = GNUNET_SYSERR;
+                "Child failed with error %lu!\n",
+                exit_code);
+    GNUNET_TESTING_async_fail (&ns->ac);
   }
-  GNUNET_OS_process_destroy (ns->start_proc);
-  ns->start_proc = NULL;
 }
-
 
 
 /**
 * The run method starts the script which setup the network namespaces.
 *
 * @param cls closure.
-* @param cmd CMD being run.
 * @param is interpreter state.
 */
 static void
 netjail_start_run (void *cls,
-                   const struct GNUNET_TESTING_Command *cmd,
                    struct GNUNET_TESTING_Interpreter *is)
 {
   struct NetJailState *ns = cls;
-  char *const script_argv[] = {NETJAIL_START_SCRIPT,
-                               ns->local_m,
-                               ns->global_n,
-                               NULL};
-  unsigned int helper_check = GNUNET_OS_check_helper_binary (
+  char pid[15];
+  enum GNUNET_GenericReturnValue helper_check;
+
+  // FIXME: NETJAIL_START_SCRIPT like this is bad,
+  // use location from share/gnunet/ of installed
+  // binary in case libgnunettesting is used as a lib!
+  helper_check = GNUNET_OS_check_helper_binary (
     NETJAIL_START_SCRIPT,
     GNUNET_YES,
     NULL);
@@ -154,23 +141,38 @@ netjail_start_run (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "No SUID for %s!\n",
                 NETJAIL_START_SCRIPT);
-    GNUNET_TESTING_interpreter_fail ();
+    GNUNET_TESTING_interpreter_fail (is);
+    return;
   }
-  else if (GNUNET_NO == helper_check)
+  if (GNUNET_SYSERR == helper_check)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "%s not found!\n",
                 NETJAIL_START_SCRIPT);
-    GNUNET_TESTING_interpreter_fail ();
+    GNUNET_TESTING_interpreter_fail (is);
+    return;
   }
 
-  ns->start_proc = GNUNET_OS_start_process_vap (GNUNET_OS_INHERIT_STD_ERR,
-                                                NULL,
-                                                NULL,
-                                                NULL,
-                                                NETJAIL_START_SCRIPT,
-                                                script_argv);
+  GNUNET_snprintf (pid,
+                   sizeof (pid),
+                   "%u",
+                   getpid ());
+  {
+    char *const script_argv[] = {
+      NETJAIL_START_SCRIPT,
+      ns->topology_config,
+      pid,
+      NULL
+    };
 
+    ns->start_proc
+      = GNUNET_OS_start_process_vap (GNUNET_OS_INHERIT_STD_ERR,
+                                     NULL,
+                                     NULL,
+                                     NULL,
+                                     NETJAIL_START_SCRIPT,
+                                     script_argv);
+  }
   ns->cwh = GNUNET_wait_child (ns->start_proc,
                                &child_completed_callback,
                                ns);
@@ -179,51 +181,29 @@ netjail_start_run (void *cls,
 
 
 /**
- * This function checks the flag NetJailState#finished, if this cmd finished.
- *
- */
-static int
-netjail_start_finish (void *cls,
-                      GNUNET_SCHEDULER_TaskCallback cont,
-                      void *cont_cls)
-{
-  struct NetJailState *ns = cls;
-
-  if (ns->finished)
-  {
-    cont (cont_cls);
-  }
-  return ns->finished;
-}
-
-/**
  * Create command.
  *
  * @param label name for command.
- * @param local_m Number of local nodes in each namespace.
- * @param global_n The number of namespaces.
+ * @param topology_config Configuration file for the test topology.
  * @return command.
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_netjail_start (const char *label,
-                                  char *local_m,
-                                  char *global_n)
+                                  char *topology_config)
 {
   struct NetJailState *ns;
 
   ns = GNUNET_new (struct NetJailState);
-  ns->local_m = local_m;
-  ns->global_n = global_n;
-  ns->finished = GNUNET_NO;
+  ns->topology_config = topology_config;
+  {
+    struct GNUNET_TESTING_Command cmd = {
+      .cls = ns,
+      .label = label,
+      .run = &netjail_start_run,
+      .ac = &ns->ac,
+      .cleanup = &netjail_start_cleanup
+    };
 
-  struct GNUNET_TESTING_Command cmd = {
-    .cls = ns,
-    .label = label,
-    .run = &netjail_start_run,
-    .finish = &netjail_start_finish,
-    .cleanup = &netjail_start_cleanup,
-    .traits = &netjail_start_traits
-  };
-
-  return cmd;
+    return cmd;
+  }
 }

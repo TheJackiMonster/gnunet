@@ -85,7 +85,6 @@ libgnunet_plugin_datacache_template_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
 
 
-if HAVE_TESTING
 if HAVE_SQLITE
 if HAVE_BENCHMARKS
  SQLITE_BENCHMARKS = \
@@ -95,7 +94,6 @@ SQLITE_TESTS = \
  test_datacache_sqlite \
  test_datacache_quota_sqlite \
  $(SQLITE_BENCHMARKS)
-endif
 
 if HAVE_BENCHMARKS
  HEAP_BENCHMARKS = \

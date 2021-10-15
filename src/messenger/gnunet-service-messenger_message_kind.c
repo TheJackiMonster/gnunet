@@ -190,7 +190,8 @@ create_message_request (const struct GNUNET_HashCode *hash)
 }
 
 struct GNUNET_MESSENGER_Message*
-create_message_invite (const struct GNUNET_PeerIdentity *door, const struct GNUNET_HashCode *key)
+create_message_invite (const struct GNUNET_PeerIdentity *door,
+                       const struct GNUNET_HashCode *key)
 {
   if ((!door) || (!key))
     return NULL;
@@ -222,7 +223,8 @@ create_message_text (const char *text)
 }
 
 struct GNUNET_MESSENGER_Message*
-create_message_delete (const struct GNUNET_HashCode *hash, const struct GNUNET_TIME_Relative delay)
+create_message_delete (const struct GNUNET_HashCode *hash,
+                       const struct GNUNET_TIME_Relative delay)
 {
   if (!hash)
     return NULL;

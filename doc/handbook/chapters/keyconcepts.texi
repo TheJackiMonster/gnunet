@@ -290,10 +290,10 @@ An Encoding for Censorship-Resistant Sharing.
 
 Peer identities are used to identify peers in the network and are unique
 for each peer. The identity for a peer is simply its public key, which is
-generated along with a private key the peer is started for the first time.
-While the identity is binary data, it is often expressed as ASCII string.
-For example, the following is a peer identity as you might see it in
-various places:
+generated along with a private key when the peer is started for the first
+time. While the identity is binary data, it is often expressed as an ASCII
+string. For example, the following is a peer identity as you might see it
+in various places:
 
 @example
 UAT1S6PMPITLBKSJ2DGV341JI6KF7B66AC4JVCN9811NNEGQLUN0

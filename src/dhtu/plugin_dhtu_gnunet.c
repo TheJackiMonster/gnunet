@@ -28,6 +28,9 @@
 #include "gnunet_dhtu_plugin.h"
 #include "gnunet_ats_service.h"
 #include "gnunet_core_service.h"
+#include "gnunet_transport_service.h"
+#include "gnunet_hello_lib.h"
+#include "gnunet_peerinfo_service.h"
 #include "gnunet_nse_service.h"
 
 
@@ -66,6 +69,35 @@ struct PublicKey
 
 GNUNET_NETWORK_STRUCT_END
 
+
+/**
+ * Handle for a HELLO we're offering the transport.
+ */
+struct HelloHandle
+{
+  /**
+   * Kept in a DLL.
+   */
+  struct HelloHandle *next;
+
+  /**
+   * Kept in a DLL.
+   */
+  struct HelloHandle *prev;
+
+  /**
+   * Our plugin.
+   */
+  struct Plugin *plugin;
+
+  /**
+   * Offer handle.
+   */
+  struct GNUNET_TRANSPORT_OfferHelloHandle *ohh;
+
+};
+
+
 /**
  * Opaque handle that the underlay offers for our address to be used when
  * sending messages to another peer.
@@ -77,7 +109,7 @@ struct GNUNET_DHTU_Source
    * Application context for this source.
    */
   void *app_ctx;
-  
+
   /**
    * Hash position of this peer in the DHT.
    */
@@ -107,7 +139,7 @@ struct GNUNET_DHTU_Target
    * Our plugin with its environment.
    */
   struct Plugin *plugin;
-  
+
   /**
    * CORE MQ to send messages to this peer.
    */
@@ -117,7 +149,7 @@ struct GNUNET_DHTU_Target
    * Public key of the peer.
    */
   struct PublicKey pk;
-  
+
   /**
    * Hash of the @a pk to identify position of the peer
    * in the DHT.
@@ -145,6 +177,7 @@ struct GNUNET_DHTU_Target
   unsigned int ph_count;
 
 };
+
 
 /**
  * Opaque handle expressing a preference of the DHT to
@@ -174,6 +207,18 @@ struct GNUNET_DHTU_PreferenceHandle
  */
 struct Plugin
 {
+
+  /**
+   * Our "source" address. Traditional CORE API does not tell us which source
+   * it is, so they are all identical.
+   */
+  struct GNUNET_DHTU_Source src;
+
+  /**
+   * My identity.
+   */
+  struct GNUNET_PeerIdentity my_identity;
+
   /**
    * Callbacks into the DHT.
    */
@@ -188,18 +233,26 @@ struct Plugin
    * Handle to ATS service.
    */
   struct GNUNET_ATS_ConnectivityHandle *ats;
-  
-  /**
-   * Our "source" address. Traditional CORE API does not tell us which source
-   * it is, so they are all identical.
-   */
-  struct GNUNET_DHTU_Source src;
-  
+
   /**
    * Handle to the NSE service.
    */
   struct GNUNET_NSE_Handle *nse;
-  
+
+  /**
+   * Watching for our address to change.
+   */
+  struct GNUNET_PEERINFO_NotifyContext *nc;
+
+  /**
+   * Hellos we are offering to transport.
+   */
+  struct HelloHandle *hh_head;
+
+  /**
+   * Hellos we are offering to transport.
+   */
+  struct HelloHandle *hh_tail;
 };
 
 
@@ -273,6 +326,27 @@ ip_verify (void *cls,
 
 
 /**
+ * Function called once a hello offer is completed.
+ *
+ * @param cls a `struct HelloHandle`
+ */
+static void
+hello_offered_cb (void *cls)
+{
+  struct HelloHandle *hh = cls;
+  struct Plugin *plugin = hh->plugin;
+
+  GNUNET_CONTAINER_DLL_remove (plugin->hh_head,
+                               plugin->hh_tail,
+                               hh);
+  GNUNET_free (hh);
+}
+
+
+#include "../peerinfo-tool/gnunet-peerinfo_plugins.c"
+
+
+/**
  * Request creation of a session with a peer at the given @a address.
  *
  * @param cls closure (internal context for the plugin)
@@ -283,10 +357,30 @@ ip_try_connect (void *cls,
                 const char *address)
 {
   struct Plugin *plugin = cls;
+  struct GNUNET_HELLO_Message *hello = NULL;
+  struct HelloHandle *hh;
+  struct GNUNET_CRYPTO_EddsaPublicKey pubkey;
 
-  // FIXME: ask ATS/TRANSPORT to 'connect'
-  // => needs HELLO!
-  GNUNET_break (0);
+  if (GNUNET_OK !=
+      GNUNET_HELLO_parse_uri (address,
+                              &pubkey,
+                              &hello,
+                              &GPI_plugins_find))
+  {
+    GNUNET_break (0);
+    return;
+  }
+
+  hh = GNUNET_new (struct HelloHandle);
+  hh->plugin = plugin;
+  GNUNET_CONTAINER_DLL_insert (plugin->hh_head,
+                               plugin->hh_tail,
+                               hh);
+  hh->ohh = GNUNET_TRANSPORT_offer_hello (plugin->env->cfg,
+                                          &hello->header,
+                                          &hello_offered_cb,
+                                          hh);
+  GNUNET_free (hello);
 }
 
 
@@ -332,7 +426,7 @@ ip_drop (struct GNUNET_DHTU_PreferenceHandle *ph)
 {
   struct GNUNET_DHTU_Target *target = ph->target;
   struct Plugin *plugin = target->plugin;
-  
+
   GNUNET_CONTAINER_DLL_remove (target->ph_head,
                                target->ph_tail,
                                ph);
@@ -388,7 +482,6 @@ ip_send (void *cls,
   GNUNET_MQ_send (target->mq,
                   env);
 }
-
 
 
 /**
@@ -448,6 +541,52 @@ core_disconnect_cb (void *cls,
 
 
 /**
+ * Find the @a hello for our identity and then pass
+ * it to the DHT as a URL.  Note that we only
+ * add addresses, never remove them, due to limitations
+ * of the current peerinfo/core/transport APIs.
+ * This will change with TNG.
+ *
+ * @param cls a `struct Plugin`
+ * @param peer id of the peer, NULL for last call
+ * @param hello hello message for the peer (can be NULL)
+ * @param error message
+ */
+static void
+peerinfo_cb (void *cls,
+             const struct GNUNET_PeerIdentity *peer,
+             const struct GNUNET_HELLO_Message *hello,
+             const char *err_msg)
+{
+  struct Plugin *plugin = cls;
+  char *addr;
+
+  if (NULL == hello)
+    return;
+  if (NULL == peer)
+    return;
+  if (0 !=
+      GNUNET_memcmp (peer,
+                     &plugin->my_identity))
+    return;
+  addr = GNUNET_HELLO_compose_uri (hello,
+                                   &GPI_plugins_find);
+  if (NULL == addr)
+    return;
+  GNUNET_CRYPTO_hash (&plugin->my_identity,
+                      sizeof (struct GNUNET_PeerIdentity),
+                      &plugin->src.my_id.hc);
+  plugin->env->address_add_cb (plugin->env->cls,
+                               &plugin->src.my_id,
+                               &plugin->src.pk,
+                               addr,
+                               &plugin->src,
+                               &plugin->src.app_ctx);
+  GNUNET_free (addr);
+}
+
+
+/**
  * Function called after #GNUNET_CORE_connect has succeeded (or failed
  * for good).  Note that the private key of the peer is intentionally
  * not exposed here; if you need it, your process should try to read
@@ -464,27 +603,12 @@ core_init_cb (void *cls,
               const struct GNUNET_PeerIdentity *my_identity)
 {
   struct Plugin *plugin = cls;
-  char *addr;
-  char *pid;
 
-  // FIXME: to later ask ATS/TRANSPORT to 'connect' we need a HELLO,
-  // not merely a vanilla PID...
-  pid = GNUNET_STRINGS_data_to_string_alloc (my_identity,
-                                             sizeof (struct GNUNET_PeerIdentity));
-  GNUNET_asprintf (&addr,
-                   "gnunet-core-v15://%s/",
-                   pid);
-  GNUNET_free (pid);
-  GNUNET_CRYPTO_hash (my_identity,
-                      sizeof (struct GNUNET_PeerIdentity),
-                      &plugin->src.my_id.hc);
-  plugin->env->address_add_cb (plugin->env->cls,
-                               &plugin->src.my_id,
-                               &plugin->src.pk,
-                               addr,
-                               &plugin->src,
-                               &plugin->src.app_ctx);
-  GNUNET_free (addr);
+  plugin->my_identity = *my_identity;
+  plugin->nc = GNUNET_PEERINFO_notify (plugin->env->cfg,
+                                       GNUNET_NO,
+                                       &peerinfo_cb,
+                                       plugin);
 }
 
 
@@ -561,13 +685,25 @@ libgnunet_plugin_dhtu_gnunet_done (void *cls)
 {
   struct GNUNET_DHTU_PluginFunctions *api = cls;
   struct Plugin *plugin = api->cls;
+  struct HelloHandle *hh;
 
+  while (NULL != (hh = plugin->hh_head))
+  {
+    GNUNET_CONTAINER_DLL_remove (plugin->hh_head,
+                                 plugin->hh_tail,
+                                 hh);
+    GNUNET_TRANSPORT_offer_hello_cancel (hh->ohh);
+    GNUNET_free (hh);
+  }
   if (NULL != plugin->nse)
     GNUNET_NSE_disconnect (plugin->nse);
   if (NULL != plugin->core)
     GNUNET_CORE_disconnect (plugin->core);
   if (NULL != plugin->ats)
     GNUNET_ATS_connectivity_done (plugin->ats);
+  if (NULL != plugin->nc)
+    GNUNET_PEERINFO_notify_cancel (plugin->nc);
+  GPI_plugins_unload ();
   GNUNET_free (plugin);
   GNUNET_free (api);
   return NULL;
@@ -594,7 +730,7 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
     GNUNET_MQ_handler_end ()
   };
   struct GNUNET_CRYPTO_EddsaPrivateKey *pk;
-  
+
   pk = GNUNET_CRYPTO_eddsa_key_create_from_configuration (env->cfg);
   if (NULL == pk)
   {
@@ -631,7 +767,6 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
     libgnunet_plugin_dhtu_gnunet_done (plugin);
     return NULL;
   }
+  GPI_plugins_load (env->cfg);
   return api;
 }
-
-

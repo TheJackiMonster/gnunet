@@ -34,6 +34,7 @@
 #include "gnunet_arm_service.h"
 #include "gnunet_testing_lib.h"
 #include "gnunet_testing_ng_lib.h"
+#include "testing_cmds.h"
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "testing-api", __VA_ARGS__)
 
@@ -2255,6 +2256,31 @@ GNUNET_TESTING_get_address (struct GNUNET_TESTING_NodeConnection *connection,
   }
 
   return addr;
+}
+
+
+/**
+ * Create a GNUNET_CMDS_LOCAL_FINISHED message.
+ *
+ * @param rv The result of the local test as GNUNET_GenericReturnValue.
+ * @return The GNUNET_CMDS_LOCAL_FINISHED message.
+*/
+struct GNUNET_MessageHeader *
+GNUNET_TESTING_send_local_test_finished_msg (enum GNUNET_GenericReturnValue rv)
+{
+  struct GNUNET_CMDS_LOCAL_FINISHED *reply;
+  size_t msg_length;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Local test exits with status %d\n",
+              rv);
+  msg_length = sizeof(struct GNUNET_CMDS_LOCAL_FINISHED);
+  reply = GNUNET_new (struct GNUNET_CMDS_LOCAL_FINISHED);
+  reply->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_FINISHED);
+  reply->header.size = htons ((uint16_t) msg_length);
+  reply->result = htons (rv);
+
+  return (struct GNUNET_MessageHeader *) reply;
 }
 
 

@@ -49,6 +49,7 @@
 
 /**
  * Router of a network namespace.
+ * // FIXME: this does not belong here!
  */
 struct GNUNET_TESTING_NetjailRouter
 {
@@ -63,8 +64,10 @@ struct GNUNET_TESTING_NetjailRouter
   unsigned int udp_port;
 };
 
+
 /**
  * Enum for the different types of nodes.
+ * // FIXME: this does not belong here!
  */
 enum GNUNET_TESTING_NODE_TYPE
 {
@@ -79,6 +82,8 @@ enum GNUNET_TESTING_NODE_TYPE
   GNUNET_TESTING_GLOBAL_NODE
 };
 
+
+// FIXME: this does not belong here!
 struct GNUNET_TESTING_AddressPrefix
 {
   /**
@@ -97,10 +102,13 @@ struct GNUNET_TESTING_AddressPrefix
   char *address_prefix;
 };
 
+
+// FIXME: this does not belong here!
 struct GNUNET_TESTING_NetjailNode;
 
 /**
  * Connection to another node.
+ * // FIXME: this does not belong here!
  */
 struct GNUNET_TESTING_NodeConnection
 {
@@ -148,6 +156,7 @@ struct GNUNET_TESTING_NodeConnection
 
 /**
  * Node in the netjail topology.
+ * // FIXME: this does not belong here!
  */
 struct GNUNET_TESTING_NetjailNode
 {
@@ -185,6 +194,7 @@ struct GNUNET_TESTING_NetjailNode
 
 /**
  * Namespace in a topology.
+ * // FIXME: this does not belong here!
  */
 struct GNUNET_TESTING_NetjailNamespace
 {
@@ -206,6 +216,7 @@ struct GNUNET_TESTING_NetjailNamespace
 
 /**
  * Toplogy of our netjail setup.
+ * // FIXME: this does not belong here!
  */
 struct GNUNET_TESTING_NetjailTopology
 {
@@ -251,6 +262,36 @@ struct GNUNET_TESTING_NetjailTopology
 struct GNUNET_TESTING_Interpreter;
 
 /**
+ * State each asynchronous command must have in its closure.
+ */
+struct GNUNET_TESTING_AsyncContext
+{
+
+  /**
+   * Interpreter we are part of.
+   */
+  struct GNUNET_TESTING_Interpreter *is;
+
+  /**
+   * Function to call when done.
+   */
+  GNUNET_SCHEDULER_TaskCallback cont;
+
+  /**
+   * Closure for @e cont.
+   */
+  void *cont_cls;
+
+  /**
+   * Indication if the command finished (#GNUNET_OK).
+   * #GNUNET_NO if it is still running,
+   * #GNUNET_SYSERR if it failed.
+   */
+  enum GNUNET_GenericReturnValue finished;
+};
+
+
+/**
  * A command to be run by the interpreter.
  */
 struct GNUNET_TESTING_Command
@@ -279,57 +320,43 @@ struct GNUNET_TESTING_Command
    * the asynchronous activity to terminate.
    *
    * @param cls closure
-   * @param cmd command being run
-   * @param i interpreter state
+   * @param is interpreter state
    */
   void
   (*run)(void *cls,
-         const struct GNUNET_TESTING_Command *cmd,
-         struct GNUNET_TESTING_Interpreter *i);
+         struct GNUNET_TESTING_Interpreter *is);
 
   /**
-   * Wait for any asynchronous execution of @e run to conclude,
-   * then call finish_cont. Finish may only be called once per command.
+   * Pointer to the asynchronous context in the command's
+   * closure. Used by the
+   * #GNUNET_TESTING_async_finish() and
+   * #GNUNET_TESTING_async_fail() functions.
    *
-   * This member may be NULL if this command is a synchronous command,
-   * and also should be set to NULL once the command has finished.
-   *
-   * @param cls closure
-   * @param cont function to call upon completion, can be NULL
-   * @param cont_cls closure for @a cont
+   * Must be NULL if a command is synchronous.
    */
-  int
-  (*finish)(void *cls,
-            GNUNET_SCHEDULER_TaskCallback cont,
-            void *cont_cls);
-
-  /**
-   * Task for running the finish function.
-   */
-  struct GNUNET_SCHEDULER_Task *finish_task;
+  struct GNUNET_TESTING_AsyncContext *ac;
 
   /**
    * Clean up after the command.  Run during forced termination
    * (CTRL-C) or test failure or test success.
    *
    * @param cls closure
-   * @param cmd command being cleaned up
    */
   void
-  (*cleanup)(void *cls,
-             const struct GNUNET_TESTING_Command *cmd);
+  (*cleanup)(void *cls);
 
   /**
    * Extract information from a command that is useful for other
-   * commands.
+   * commands. Can be NULL if a command has no traits.
    *
    * @param cls closure
    * @param[out] ret result (could be anything)
    * @param trait name of the trait
    * @param index index number of the object to extract.
-   * @return #GNUNET_OK on success
+   * @return #GNUNET_OK on success,
+   *         #GNUNET_NO if no trait was found
    */
-  int
+  enum GNUNET_GenericReturnValue
   (*traits)(void *cls,
             const void **ret,
             const char *trait,
@@ -357,19 +384,19 @@ struct GNUNET_TESTING_Command
   struct GNUNET_TIME_Absolute last_req_time;
 
   /**
-   * How often did we try to execute this command? (In case it is a request
-   * that is repated.)  Note that a command must have some built-in retry
-   * mechanism for this value to be useful.
-   */
-  unsigned int num_tries;
-
-  /**
    * In case @e asynchronous_finish is true, how long should we wait for this
    * command to complete? If @e finish did not complete after this amount of
    * time, the interpreter will fail.  Should be set generously to ensure
    * tests do not fail on slow systems.
    */
   struct GNUNET_TIME_Relative default_timeout;
+
+  /**
+   * How often did we try to execute this command? (In case it is a request
+   * that is repated.)  Note that a command must have some built-in retry
+   * mechanism for this value to be useful.
+   */
+  unsigned int num_tries;
 
   /**
    * If "true", the interpreter should not immediately call
@@ -379,49 +406,19 @@ struct GNUNET_TESTING_Command
    */
   bool asynchronous_finish;
 
-  /**
-   * Shall the scheduler shutdown, when end cmd is reach?
-   */
-  bool shutdown_on_end;
-
 };
 
-
-/**
- * Struct to use for command-specific context information closure of a command waiting
- * for another command.
- */
-struct SyncState
-{
-  /**
-   * Closure for all commands with command-specific context information.
-   */
-  void *cls;
-
-  /**
-   * The asynchronous command the synchronous command of this closure waits for.
-   */
-  const struct GNUNET_TESTING_Command *async_cmd;
-
-  /**
-   * Task for running the finish method of the asynchronous task the command is waiting for.
-   */
-  struct GNUNET_SCHEDULER_Task *finish_task;
-
-  /**
-   * When did the execution of this commands finish function start?
-   */
-  struct GNUNET_TIME_Absolute start_finish_time;
-};
 
 /**
  * Lookup command by label.
  *
+ * @param is interpreter to lookup command in
  * @param label label of the command to lookup.
  * @return the command, if it is found, or NULL.
  */
 const struct GNUNET_TESTING_Command *
 GNUNET_TESTING_interpreter_lookup_command (
+  struct GNUNET_TESTING_Interpreter *is,
   const char *label);
 
 
@@ -442,7 +439,25 @@ GNUNET_TESTING_interpreter_get_current_label (
  * @param is interpreter state.
  */
 void
-GNUNET_TESTING_interpreter_fail ();
+GNUNET_TESTING_interpreter_fail (struct GNUNET_TESTING_Interpreter *is);
+
+
+/**
+ * The asynchronous command of @a ac has failed.
+ *
+ * @param ac command-specific context
+ */
+void
+GNUNET_TESTING_async_fail (struct GNUNET_TESTING_AsyncContext *ac);
+
+
+/**
+ * The asynchronous command of @a ac has finished.
+ *
+ * @param ac command-specific context
+ */
+void
+GNUNET_TESTING_async_finish (struct GNUNET_TESTING_AsyncContext *ac);
 
 
 /**
@@ -455,22 +470,13 @@ GNUNET_TESTING_cmd_end (void);
 
 
 /**
- * Create command array terminator without shutdown.
- *
- * @return a end-command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_end_without_shutdown (void);
-
-
-/**
  * Turn asynchronous command into non blocking command by setting asynchronous_finish to true.
  *
  * @param cmd command to make synchronous.
  * @return a finish-command.
  */
-const struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_make_unblocking (const struct GNUNET_TESTING_Command cmd);
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_make_unblocking (struct GNUNET_TESTING_Command cmd);
 
 
 /**
@@ -506,31 +512,46 @@ GNUNET_TESTING_cmd_rewind_ip (const char *label,
 
 
 /**
- * Wait until we receive SIGCHLD signal.  Then obtain the process trait of the
- * current command, wait on the the zombie and continue with the next command.
+ * Function called with the final result of the test.
  *
- * @param is interpreter state.
+ * @param cls closure
+ * @param rv #GNUNET_OK if the test passed
  */
-// void
-// GNUNET_TESTING_wait_for_sigchld (struct GNUNET_TESTING_Interpreter *is);
-// => replace with child_management.c
+typedef void
+(*GNUNET_TESTING_ResultCallback)(void *cls,
+                                 enum GNUNET_GenericReturnValue rv);
 
 
 /**
- * Start scheduling loop with signal handlers and run the
- * test suite with the @a commands.
+ * Run the testsuite.  Note, CMDs are copied into
+ * the interpreter state because they are _usually_
+ * defined into the "run" method that returns after
+ * having scheduled the test interpreter.
  *
- * @param cfg_name name of configuration file to use
  * @param commands the list of command to execute
  * @param timeout how long to wait for each command to execute
- * @return #GNUNET_OK if all is okay, != #GNUNET_OK otherwise.
- *         non-GNUNET_OK codes are #GNUNET_SYSERR most of the
- *         times.
+ * @param rc function to call with the final result
+ * @param rc_cls closure for @a rc
+ */
+void
+GNUNET_TESTING_run (struct GNUNET_TESTING_Command *commands,
+                    struct GNUNET_TIME_Relative timeout,
+                    GNUNET_TESTING_ResultCallback rc,
+                    void *rc_cls);
+
+
+/**
+ * Start a GNUnet scheduler event loop and
+ * run the testsuite.  Return 0 upon success.
+ * Expected to be called directly from main().
+ *
+ * @param commands the list of command to execute
+ * @param timeout how long to wait for each command to execute
+ * @return EXIT_SUCCESS on success, EXIT_FAILURE on failure
  */
 int
-GNUNET_TESTING_run (const char *cfg_filename,
-                    struct GNUNET_TESTING_Command *commands,
-                    struct GNUNET_TIME_Relative timeout);
+GNUNET_TESTING_main (struct GNUNET_TESTING_Command *commands,
+                     struct GNUNET_TIME_Relative timeout);
 
 
 /**
@@ -538,6 +559,8 @@ GNUNET_TESTING_run (const char *cfg_filename,
  *
  * @param prog program's name to look into
  * @param marker chunk to find in @a prog
+ * // FIXME: this does not belong here! => libgnunetutil, maybe?
+ * // FIXME: return bool? document return value!
  */
 int
 GNUNET_TESTING_has_in_name (const char *prog,
@@ -551,7 +574,7 @@ GNUNET_TESTING_has_in_name (const char *prog,
  *
  * @param label command label.
  * @param process_label label of a command that has a process trait
- * @param process_index index of the process trait at @a process_label
+ * @param process_index index of the process trait at @a process_label // FIXME: enum? needed?
  * @param signal signal to send to @a process.
  * @return the command.
  */
@@ -590,49 +613,8 @@ GNUNET_TESTING_cmd_batch (const char *label,
 
 
 /**
- * Test if this command is a batch command.
- *
- * @return false if not, true if it is a batch command
- */
-// TODO: figure out if this needs to be exposed in the public API.
-int
-GNUNET_TESTING_cmd_is_batch (const struct GNUNET_TESTING_Command *cmd);
-
-
-/**
- * Advance internal pointer to next command.
- *
- * @param is interpreter state.
- */
-// TODO: figure out if this needs to be exposed in the public API.
-void
-GNUNET_TESTING_cmd_batch_next (struct GNUNET_TESTING_Interpreter *is);
-
-
-/**
- * Obtain what command the batch is at.
- *
- * @return cmd current batch command
- */
-// TODO: figure out if this needs to be exposed in the public API.
-struct GNUNET_TESTING_Command *
-GNUNET_TESTING_cmd_batch_get_current (const struct GNUNET_TESTING_Command *cmd);
-
-
-/**
- * Set what command the batch should be at.
- *
- * @param cmd current batch command
- * @param new_ip where to move the IP
- */
-// TODO: figure out if this needs to be exposed in the public API.
-void
-GNUNET_TESTING_cmd_batch_set_current (const struct GNUNET_TESTING_Command *cmd,
-                                      unsigned int new_ip);
-
-
-/**
  * Performance counter.
+ * // FIXME: this might not belong here!
  */
 struct GNUNET_TESTING_Timer
 {
@@ -777,7 +759,7 @@ GNUNET_TESTING_trait_end (void);
  * @param index index number of the trait to extract.
  * @return #GNUNET_OK when the trait is found.
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_TESTING_get_trait (const struct GNUNET_TESTING_Trait *traits,
                           const void **ret,
                           const char *trait,
@@ -791,12 +773,12 @@ GNUNET_TESTING_get_trait (const struct GNUNET_TESTING_Trait *traits,
  *
  * @param cmd command to extract trait from.
  * @param index which process to pick if @a cmd
- *        has multiple on offer.
+ *        has multiple on offer. -- FIXME: remove?
  * @param[out] processp set to the address of the pointer to the
  *        process.
  * @return #GNUNET_OK on success.
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_TESTING_get_trait_process (const struct GNUNET_TESTING_Command *cmd,
                                   unsigned int index,
                                   struct GNUNET_OS_Process ***processp);
@@ -806,7 +788,7 @@ GNUNET_TESTING_get_trait_process (const struct GNUNET_TESTING_Command *cmd,
  * Offer location where a command stores a pointer to a process.
  *
  * @param index offered location index number, in case there are
- *        multiple on offer.
+ *        multiple on offer. // FIXME: remove?
  * @param processp process location to offer.
  * @return the trait.
  */
@@ -818,7 +800,7 @@ GNUNET_TESTING_make_trait_process (unsigned int index,
 /**
  * Offer number trait, 32-bit version.
  *
- * @param index the number's index number.
+ * @param index the number's index number. // FIXME: introduce enum?
  * @param n number to offer.
  */
 struct GNUNET_TESTING_Trait
@@ -830,11 +812,11 @@ GNUNET_TESTING_make_trait_uint32 (unsigned int index,
  * Obtain a "number" value from @a cmd, 32-bit version.
  *
  * @param cmd command to extract the number from.
- * @param index the number's index number.
+ * @param index the number's index number. // FIXME: introduce enum?
  * @param[out] n set to the number coming from @a cmd.
  * @return #GNUNET_OK on success.
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_TESTING_get_trait_uint32 (const struct GNUNET_TESTING_Command *cmd,
                                  unsigned int index,
                                  const uint32_t **n);
@@ -843,7 +825,7 @@ GNUNET_TESTING_get_trait_uint32 (const struct GNUNET_TESTING_Command *cmd,
 /**
  * Offer number trait, 64-bit version.
  *
- * @param index the number's index number.
+ * @param index the number's index number. // FIXME: introduce enum?
  * @param n number to offer.
  */
 struct GNUNET_TESTING_Trait
@@ -855,11 +837,11 @@ GNUNET_TESTING_make_trait_uint64 (unsigned int index,
  * Obtain a "number" value from @a cmd, 64-bit version.
  *
  * @param cmd command to extract the number from.
- * @param index the number's index number.
+ * @param index the number's index number. // FIXME: introduce enum?
  * @param[out] n set to the number coming from @a cmd.
  * @return #GNUNET_OK on success.
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_TESTING_get_trait_uint64 (const struct GNUNET_TESTING_Command *cmd,
                                  unsigned int index,
                                  const uint64_t **n);
@@ -868,7 +850,7 @@ GNUNET_TESTING_get_trait_uint64 (const struct GNUNET_TESTING_Command *cmd,
 /**
  * Offer number trait, 64-bit signed version.
  *
- * @param index the number's index number.
+ * @param index the number's index number. // FIXME: introduce enum?
  * @param n number to offer.
  */
 struct GNUNET_TESTING_Trait
@@ -880,11 +862,11 @@ GNUNET_TESTING_make_trait_int64 (unsigned int index,
  * Obtain a "number" value from @a cmd, 64-bit signed version.
  *
  * @param cmd command to extract the number from.
- * @param index the number's index number.
+ * @param index the number's index number. // FIXME: introduce enum?
  * @param[out] n set to the number coming from @a cmd.
  * @return #GNUNET_OK on success.
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_TESTING_get_trait_int64 (const struct GNUNET_TESTING_Command *cmd,
                                 unsigned int index,
                                 const int64_t **n);
@@ -894,7 +876,7 @@ GNUNET_TESTING_get_trait_int64 (const struct GNUNET_TESTING_Command *cmd,
  * Offer a number.
  *
  * @param index the number's index number.
- * @param n the number to offer.
+ * @param n the number to offer. // FIXME: introduce enum?
  * @return #GNUNET_OK on success.
  */
 struct GNUNET_TESTING_Trait
@@ -906,11 +888,11 @@ GNUNET_TESTING_make_trait_uint (unsigned int index,
  * Obtain a number from @a cmd.
  *
  * @param cmd command to extract the number from.
- * @param index the number's index number.
+ * @param index the number's index number. // FIXME: introduce enum?
  * @param[out] n set to the number coming from @a cmd.
  * @return #GNUNET_OK on success.
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_TESTING_get_trait_uint (const struct GNUNET_TESTING_Command *cmd,
                                unsigned int index,
                                const unsigned int **n);
@@ -920,12 +902,12 @@ GNUNET_TESTING_get_trait_uint (const struct GNUNET_TESTING_Command *cmd,
  *
  * @param cmd command to extract the subject from.
  * @param index index number associated with the transfer
- *        subject to offer.
+ *        subject to offer. // FIXME: introduce enum?
  * @param[out] s where to write the offered
  *        string.
  * @return #GNUNET_OK on success.
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_TESTING_get_trait_string (
   const struct GNUNET_TESTING_Command *cmd,
   unsigned int index,
@@ -936,7 +918,7 @@ GNUNET_TESTING_get_trait_string (
  * Offer string subject.
  *
  * @param index index number associated with the transfer
- *        subject being offered.
+ *        subject being offered. // FIXME: introduce enum?
  * @param s string to offer.
  * @return the trait.
  */
@@ -950,9 +932,8 @@ GNUNET_TESTING_make_trait_string (unsigned int index,
  * @param index always zero.  Commands offering this
  *        kind of traits do not need this index.  For
  *        example, a "meta" CMD returns always the
- *        CMD currently being executed.
+ *        CMD currently being executed. FIXME: remove!
  * @param cmd wire details to offer.
- *
  * @return the trait.
  */
 struct GNUNET_TESTING_Trait
@@ -967,11 +948,11 @@ GNUNET_TESTING_make_trait_cmd (unsigned int index,
  * @param index always zero.  Commands offering this
  *        kind of traits do not need this index.  For
  *        example, a "meta" CMD returns always the
- *        CMD currently being executed.
+ *        CMD currently being executed. FIXME: remove!
  * @param[out] _cmd where to write the wire details.
  * @return #GNUNET_OK on success.
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_TESTING_get_trait_cmd (const struct GNUNET_TESTING_Command *cmd,
                               unsigned int index,
                               struct GNUNET_TESTING_Command **_cmd);
@@ -982,11 +963,11 @@ GNUNET_TESTING_get_trait_cmd (const struct GNUNET_TESTING_Command *cmd,
  *
  * @param cmd command to extract the uuid from.
  * @param index which amount to pick if @a cmd has multiple
- *        on offer
+ *        on offer   // FIXME: introduce enum?
  * @param[out] uuid where to write the uuid.
  * @return #GNUNET_OK on success.
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_TESTING_get_trait_uuid (const struct GNUNET_TESTING_Command *cmd,
                                unsigned int index,
                                struct GNUNET_Uuid **uuid);
@@ -996,9 +977,8 @@ GNUNET_TESTING_get_trait_uuid (const struct GNUNET_TESTING_Command *cmd,
  * Offer a uuid in a trait.
  *
  * @param index which uuid to offer, in case there are
- *        multiple available.
+ *        multiple available.  // FIXME: introduce enum?
  * @param uuid the uuid to offer.
- *
  * @return the trait.
  */
 struct GNUNET_TESTING_Trait
@@ -1011,11 +991,11 @@ GNUNET_TESTING_make_trait_uuid (unsigned int index,
  *
  * @param cmd command to extract trait from
  * @param index which time stamp to pick if
- *        @a cmd has multiple on offer.
+ *        @a cmd has multiple on offer // FIXME: introduce enum?
  * @param[out] time set to the wanted WTID.
  * @return #GNUNET_OK on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_TESTING_get_trait_absolute_time (
   const struct GNUNET_TESTING_Command *cmd,
   unsigned int index,
@@ -1062,6 +1042,9 @@ struct GNUNET_TESTING_Trait
 GNUNET_TESTING_make_trait_relative_time (
   unsigned int index,
   const struct GNUNET_TIME_Relative *time);
+
+
+// FIXME: move these commands into a separate libgnunetestingnetjail lib or so!
 
 
 /**
@@ -1121,40 +1104,12 @@ GNUNET_TESTING_cmd_system_destroy (const char *label,
  * Create command.
  *
  * @param label name for command.
- * @param local_m Number of local nodes in each namespace.
- * @param global_n The number of namespaces.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_start (const char *label,
-                                  char *local_m,
-                                  char *global_n);
-
-/**
- * Create command.
- *
- * @param label name for command.
  * @param topology_config Configuration file for the test topology.
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_start_v2 (const char *label,
-                                     char *topology_config);
-
-
-/**
- * Create command.
- *
- * @param label name for command.
- * @param binaryname to exec.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_start_testing_system (const char *label,
-                                                 char *local_m,
-                                                 char *global_n,
-                                                 char *plugin_name,
-                                                 unsigned int *rv);
+GNUNET_TESTING_cmd_netjail_start (const char *label,
+                                  char *topology_config);
 
 
 /**
@@ -1166,22 +1121,20 @@ GNUNET_TESTING_cmd_netjail_start_testing_system (const char *label,
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_start_testing_system_v2 (const char *label,
-                                                    const char *topology_config,
-                                                    unsigned int *rv);
+GNUNET_TESTING_cmd_netjail_start_testing_system (const char *label,
+                                                 const char *topology_config);
 
 
 /**
  * Create command.
  *
  * @param label name for command.
- * @param binaryname to stop.
+ * @param topology_config Configuration file for the test topology.
  * @return command.
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_netjail_stop (const char *label,
-                                 char *local_m,
-                                 char *global_n);
+                                 char *topology_config);
 
 
 /**
@@ -1191,34 +1144,32 @@ GNUNET_TESTING_cmd_netjail_stop (const char *label,
  * @param topology_config Configuration file for the test topology.
  * @return command.
  */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_stop_v2 (const char *label,
-                                    char *topology_config);
-
-
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_stop_testing_system (const char *label,
                                         const char *helper_start_label,
-                                        char *local_m,
-                                        char *global_n);
+                                        const char *topology_config);
+
 
 /**
- * Create command.
+ * Create a GNUNET_CMDS_LOCAL_FINISHED message.
  *
- * @param label name for command.
- * @param topology_config Configuration file for the test topology.
- * @return command.
+ * @param rv The result of the local test as GNUNET_GenericReturnValue.
+ * @return The GNUNET_CMDS_LOCAL_FINISHED message.
+*/
+struct GNUNET_MessageHeader *
+GNUNET_TESTING_send_local_test_finished_msg (enum GNUNET_GenericReturnValue rv);
+
+
+/**
+ * Function to get the trait with the async context.
+ *
+ * @param[out] ac GNUNET_TESTING_AsyncContext.
+ * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
  */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_stop_testing_system_v2 (const char *label,
-                                           const char *helper_start_label,
-                                           const char *topology_config);
-
-
 int
-GNUNET_TESTING_get_trait_helper_handles (const struct
-                                         GNUNET_TESTING_Command *cmd,
-                                         struct GNUNET_HELPER_Handle ***helper);
+GNUNET_TESTING_get_trait_async_context (
+  const struct GNUNET_TESTING_Command *cmd,
+  struct GNUNET_TESTING_AsyncContext **ac);
 
 
 /**
@@ -1228,24 +1179,21 @@ GNUNET_TESTING_get_trait_helper_handles (const struct
  * @param pt pointer to message.
  * @return #GNUNET_OK on success.
  */
-int
-GNUNET_TESTING_get_trait_helper_handles_v2 (const struct
-                                            GNUNET_TESTING_Command *cmd,
-                                            struct GNUNET_HELPER_Handle ***
-                                            helper);
+enum GNUNET_GenericReturnValue
+GNUNET_TESTING_get_trait_helper_handles (
+  const struct GNUNET_TESTING_Command *cmd,
+  struct GNUNET_HELPER_Handle ***helper);
 
 
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_block_until_all_peers_started (const char *label,
-                                                  unsigned int *
-                                                  all_peers_started);
+GNUNET_TESTING_cmd_block_until_all_peers_started (
+  const char *label,
+  unsigned int *all_peers_started);
 
 
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_block_until_external_trigger (const char *label,
-                                                 unsigned int *
-                                                 stop_blocking);
-
+GNUNET_TESTING_cmd_block_until_external_trigger (
+  const char *label);
 
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_send_peer_ready (const char *label,
@@ -1260,9 +1208,9 @@ GNUNET_TESTING_cmd_send_peer_ready (const char *label,
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_local_test_finished (const char *label,
-                                        TESTING_CMD_HELPER_write_cb
-                                        write_message);
+GNUNET_TESTING_cmd_local_test_finished (
+  const char *label,
+  TESTING_CMD_HELPER_write_cb write_message);
 
 /**
  * Create command.

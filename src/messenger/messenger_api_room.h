@@ -64,7 +64,8 @@ struct GNUNET_MESSENGER_Room
  * @return New room
  */
 struct GNUNET_MESSENGER_Room*
-create_room (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_HashCode *key);
+create_room (struct GNUNET_MESSENGER_Handle *handle,
+             const struct GNUNET_HashCode *key);
 
 /**
  * Destroys a room and frees its memory fully from the client API.
@@ -83,7 +84,8 @@ destroy_room (struct GNUNET_MESSENGER_Room *room);
  * @return Message or NULL
  */
 const struct GNUNET_MESSENGER_Message*
-get_room_message (const struct GNUNET_MESSENGER_Room *room, const struct GNUNET_HashCode *hash);
+get_room_message (const struct GNUNET_MESSENGER_Room *room,
+                  const struct GNUNET_HashCode *hash);
 
 /**
  * Returns a messages sender locally stored from a map for a given <i>hash</i> in a <i>room</i>. If no
@@ -94,7 +96,8 @@ get_room_message (const struct GNUNET_MESSENGER_Room *room, const struct GNUNET_
  * @return Contact of sender or NULL
  */
 struct GNUNET_MESSENGER_Contact*
-get_room_sender (const struct GNUNET_MESSENGER_Room *room, const struct GNUNET_HashCode *hash);
+get_room_sender (const struct GNUNET_MESSENGER_Room *room,
+                 const struct GNUNET_HashCode *hash);
 
 /**
  * Handles a <i>message</i> with a given <i>hash</i> in a <i>room</i> for the client API to update
@@ -110,8 +113,10 @@ get_room_sender (const struct GNUNET_MESSENGER_Room *room, const struct GNUNET_H
  * @return Contact of sender
  */
 struct GNUNET_MESSENGER_Contact*
-handle_room_message (struct GNUNET_MESSENGER_Room *room, struct GNUNET_MESSENGER_Contact *sender,
-                     const struct GNUNET_MESSENGER_Message *message, const struct GNUNET_HashCode *hash);
+handle_room_message (struct GNUNET_MESSENGER_Room *room,
+                     struct GNUNET_MESSENGER_Contact *sender,
+                     const struct GNUNET_MESSENGER_Message *message,
+                     const struct GNUNET_HashCode *hash);
 
 /**
  * Iterates through all members of a given <i>room</i> to forward each of them to a selected
@@ -123,7 +128,8 @@ handle_room_message (struct GNUNET_MESSENGER_Room *room, struct GNUNET_MESSENGER
  * @return Amount of members iterated
  */
 int
-iterate_room_members (struct GNUNET_MESSENGER_Room *room, GNUNET_MESSENGER_MemberCallback callback,
+iterate_room_members (struct GNUNET_MESSENGER_Room *room,
+                      GNUNET_MESSENGER_MemberCallback callback,
                       void* cls);
 
 /**
@@ -135,6 +141,7 @@ iterate_room_members (struct GNUNET_MESSENGER_Room *room, GNUNET_MESSENGER_Membe
  * @return #GNUNET_YES if found, otherwise #GNUNET_NO
  */
 int
-find_room_member (const struct GNUNET_MESSENGER_Room *room, const struct GNUNET_MESSENGER_Contact *contact);
+find_room_member (const struct GNUNET_MESSENGER_Room *room,
+                  const struct GNUNET_MESSENGER_Contact *contact);
 
 #endif //GNUNET_MESSENGER_API_ROOM_H

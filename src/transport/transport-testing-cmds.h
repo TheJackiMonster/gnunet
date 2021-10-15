@@ -29,92 +29,71 @@
 #include "gnunet_testing_lib.h"
 
 
-struct StartPeerState_v2
+/**
+ * Struct to store information needed in callbacks.
+ *
+ */
+struct ConnectPeersState
 {
   /**
-   * The ip of a node.
+   * Context for our asynchronous completion.
    */
-  char *node_ip;
+  struct GNUNET_TESTING_AsyncContext ac;
+
+  GNUNET_TRANSPORT_NotifyConnect notify_connect;
 
   /**
-   * Receive callback
+   * The testing system of this node.
    */
-  struct GNUNET_MQ_MessageHandler *handlers;
-
-  const char *cfgname;
-
-  /**
-   * Peer's configuration
-   */
-  struct GNUNET_CONFIGURATION_Handle *cfg;
-
-  struct GNUNET_TESTING_Peer *peer;
-
-  /**
-   * Peer identity
-   */
-  struct GNUNET_PeerIdentity id;
-
-  /**
-   * Peer's transport service handle
-   */
-  struct GNUNET_TRANSPORT_CoreHandle *th;
-
-  /**
-   * Application handle
-   */
-  struct GNUNET_TRANSPORT_ApplicationHandle *ah;
-
-  /**
-   * Peer's PEERSTORE Handle
-   */
-  struct GNUNET_PEERSTORE_Handle *ph;
-
-  /**
-   * Hello get task
-   */
-  struct GNUNET_SCHEDULER_Task *rh_task;
-
-  /**
-   * Peer's transport get hello handle to retrieve peer's HELLO message
-   */
-  struct GNUNET_PEERSTORE_IterateContext *pic;
-
-  /**
-   * Hello
-   */
-  char *hello;
-
-  /**
-   * Hello size
-   */
-  size_t hello_size;
-
-  char *m;
-
-  char *n;
-
-  char *local_m;
-
-  unsigned int finished;
-
-  const char *system_label;
-
-  /**
-   * An unique number to identify the peer
-   */
-  unsigned int no;
-
-  struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map;
-
   struct GNUNET_TESTING_System *tl_system;
 
-};
+  // Label of the cmd which started the test system.
+  const char *create_label;
 
+  /**
+   * Number globally identifying the node.
+   *
+   */
+  uint32_t num;
+
+  /**
+   * Label of the cmd to start a peer.
+   *
+   */
+  const char *start_peer_label;
+
+  /**
+   * The peer identity of this peer.
+   *
+   */
+  struct GNUNET_PeerIdentity *id;
+
+  /**
+   * The topology of the test setup.
+   */
+  struct GNUNET_TESTING_NetjailTopology *topology;
+
+  /**
+   * Connections to other peers.
+   */
+  struct GNUNET_TESTING_NodeConnection *node_connections_head;
+
+  struct GNUNET_TESTING_Interpreter *is;
+
+  /**
+   * Number of connections.
+   */
+  unsigned int con_num;
+};
 
 struct StartPeerState
 {
   /**
+   * Context for our asynchronous completion.
+   */
+  struct GNUNET_TESTING_AsyncContext ac;
+
+  /**
    * The ip of a node.
    */
   char *node_ip;
@@ -179,8 +158,6 @@ struct StartPeerState
 
   char *local_m;
 
-  unsigned int finished;
-
   const char *system_label;
 
   /**
@@ -192,7 +169,22 @@ struct StartPeerState
 
   struct GNUNET_TESTING_System *tl_system;
 
+  GNUNET_TRANSPORT_NotifyConnect notify_connect;
+
 };
+
+
+/**
+ * Function to get the trait with the struct ConnectPeersState.
+ *
+ * @param[out] sps struct ConnectPeersState.
+ * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
+ *
+ */
+int
+GNUNET_TESTING_get_trait_connect_peer_state (
+  const struct GNUNET_TESTING_Command *cmd,
+  struct ConnectPeersState **cps);
 
 
 int
@@ -203,30 +195,13 @@ GNUNET_TRANSPORT_get_trait_state (const struct
 
 
 struct GNUNET_TESTING_Command
-GNUNET_TRANSPORT_cmd_start_peer_v2 (const char *label,
-                                    const char *system_label,
-                                    uint32_t no,
-                                    char *node_ip,
-                                    struct GNUNET_MQ_MessageHandler *handlers,
-                                    const char *cfgname);
-
-struct GNUNET_TESTING_Command
-GNUNET_TRANSPORT_cmd_start_peer_v3 (const char *label,
-                                    const char *system_label,
-                                    uint32_t no,
-                                    char *node_ip,
-                                    struct GNUNET_MQ_MessageHandler *handlers,
-                                    const char *cfgname);
-
-struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_start_peer (const char *label,
                                  const char *system_label,
-                                 char *m,
-                                 char *n,
-                                 char *local_m,
+                                 uint32_t no,
                                  char *node_ip,
                                  struct GNUNET_MQ_MessageHandler *handlers,
-                                 const char *cfgname);
+                                 const char *cfgname,
+                                 GNUNET_TRANSPORT_NotifyConnect notify_connect);
 
 
 struct GNUNET_TESTING_Command
@@ -238,56 +213,9 @@ struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_connect_peers (const char *label,
                                     const char *start_peer_label,
                                     const char *create_label,
-                                    uint32_t num);
-
-
-struct GNUNET_TESTING_Command
-GNUNET_TRANSPORT_cmd_connect_peers_v2 (const char *label,
-                                       const char *start_peer_label,
-                                       const char *create_label,
-                                       uint32_t num);
-
-
-/**
- * Create command.
- *
- * @param label name for command.
- * @param start_peer_label Label of the cmd to start a peer.
- * @param create_label Label of the cmd to create the testing system.
- * @param num Number globally identifying the node.
- * @param The topology for the test setup.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TRANSPORT_cmd_connect_peers_v3 (const char *label,
-                                       const char *start_peer_label,
-                                       const char *create_label,
-                                       uint32_t num,
-                                       struct GNUNET_TESTING_NetjailTopology *
-                                       topology);
-
-
-/**
- * Create command.
- *
- * @param label name for command.
- * @param start_peer_label Label of the cmd to start a peer.
- * @param create_label Label of the cmd to create the testing system.
- * @param num Number globally identifying the node.
- * @param node_n The number of the node in a network namespace.
- * @param namespace_n The number of the network namespace.
- * @param The topology for the test setup.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TRANSPORT_cmd_backchannel_check (const char *label,
-                                        const char *start_peer_label,
-                                        const char *create_label,
-                                        uint32_t num,
-                                        unsigned int node_n,
-                                        unsigned int namespace_n,
-                                        struct GNUNET_TESTING_NetjailTopology *
-                                        topology);
+                                    uint32_t num,
+                                    struct GNUNET_TESTING_NetjailTopology *
+                                    topology);
 
 
 /**
@@ -302,42 +230,11 @@ GNUNET_TRANSPORT_cmd_backchannel_check (const char *label,
  */
 struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_send_simple (const char *label,
-                                  char *m,
-                                  char *n,
-                                  uint32_t num,
-                                  const char *start_peer_label);
-
-/**
- * Create command.
- *
- * @param label name for command.
- * @param start_peer_label Label of the cmd to start a peer.
- * @param num Number globally identifying the node.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TRANSPORT_cmd_send_simple_v2 (const char *label,
-                                     const char *start_peer_label,
-                                     uint32_t num);
+                                  const char *start_peer_label,
+                                  uint32_t num);
 
 
-/**
- * Create command.
- *
- * @param label name for command.
- * @param start_peer_label Label of the cmd to start a peer.
- * @param start_peer_label Label of the cmd which started the test system.
- * @param num Number globally identifying the node.
- * @param The topology for the test setup.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TRANSPORT_cmd_send_simple_v3 (const char *label,
-                                     const char *start_peer_label,
-                                     const char *create_label,
-                                     uint32_t num,
-                                     struct GNUNET_TESTING_NetjailTopology *
-                                     topology);
+
 
 
 int
@@ -345,34 +242,16 @@ GNUNET_TRANSPORT_get_trait_peer_id (const struct
                                     GNUNET_TESTING_Command *cmd,
                                     struct GNUNET_PeerIdentity **id);
 
+
 int
 GNUNET_TRANSPORT_get_trait_connected_peers_map (const struct
                                                 GNUNET_TESTING_Command
                                                 *cmd,
                                                 struct
-                                                GNUNET_CONTAINER_MultiShortmap *
+                                                GNUNET_CONTAINER_MultiShortmap
+                                                *
                                                 *
                                                 connected_peers_map);
-
-int
-GNUNET_TRANSPORT_get_trait_connected_peers_map_v2 (const struct
-                                                   GNUNET_TESTING_Command
-                                                   *cmd,
-                                                   struct
-                                                   GNUNET_CONTAINER_MultiShortmap
-                                                   *
-                                                   *
-                                                   connected_peers_map);
-
-int
-GNUNET_TRANSPORT_get_trait_connected_peers_map_v3 (const struct
-                                                   GNUNET_TESTING_Command
-                                                   *cmd,
-                                                   struct
-                                                   GNUNET_CONTAINER_MultiShortmap
-                                                   *
-                                                   *
-                                                   connected_peers_map);
 int
 GNUNET_TRANSPORT_get_trait_hello_size (const struct
                                        GNUNET_TESTING_Command
@@ -392,20 +271,6 @@ GNUNET_TRANSPORT_get_trait_application_handle (const struct
                                                struct
                                                GNUNET_TRANSPORT_ApplicationHandle
                                                **ah);
-
-int
-GNUNET_TRANSPORT_get_trait_application_handle_v2 (const struct
-                                                  GNUNET_TESTING_Command *cmd,
-                                                  struct
-                                                  GNUNET_TRANSPORT_ApplicationHandle
-                                                  **ah);
-
-int
-GNUNET_TRANSPORT_get_trait_application_handle_v3 (const struct
-                                                  GNUNET_TESTING_Command *cmd,
-                                                  struct
-                                                  GNUNET_TRANSPORT_ApplicationHandle
-                                                  **ah);
 
 #endif
 /* end of transport_testing.h */

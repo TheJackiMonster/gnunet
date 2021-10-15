@@ -33,7 +33,8 @@
  * @return 0 ok, 1 on error
  */
 int
-main (int argc, char **argv)
+main (int argc,
+      char **argv)
 {
   unsigned int doors  [] = {    2,    1 };
   unsigned int stages [] = { 0x21, 0x21 };

@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020 GNUnet e.V.
+   Copyright (C) 2020--2021 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -527,7 +527,8 @@ enum GNUNET_MESSENGER_MessageFlags
  * @param[in/out] handle Messenger handle
  */
 typedef void
-(*GNUNET_MESSENGER_IdentityCallback) (void *cls, struct GNUNET_MESSENGER_Handle *handle);
+(*GNUNET_MESSENGER_IdentityCallback) (void *cls,
+                                      struct GNUNET_MESSENGER_Handle *handle);
 
 /**
  * Method called whenever a message is sent or received from a <i>room</i>.
@@ -543,7 +544,8 @@ typedef void
  * @param[in] flags Flags of the message
  */
 typedef void
-(*GNUNET_MESSENGER_MessageCallback) (void *cls, struct GNUNET_MESSENGER_Room *room,
+(*GNUNET_MESSENGER_MessageCallback) (void *cls,
+                                     struct GNUNET_MESSENGER_Room *room,
                                      const struct GNUNET_MESSENGER_Contact *sender,
                                      const struct GNUNET_MESSENGER_Message *message,
                                      const struct GNUNET_HashCode *hash,
@@ -558,7 +560,8 @@ typedef void
  * @param[in] contact Contact handle
  */
 typedef int
-(*GNUNET_MESSENGER_MemberCallback) (void* cls, struct GNUNET_MESSENGER_Room *room,
+(*GNUNET_MESSENGER_MemberCallback) (void* cls,
+                                    struct GNUNET_MESSENGER_Room *room,
                                     const struct GNUNET_MESSENGER_Contact *contact);
 
 /**
@@ -574,9 +577,12 @@ typedef int
  * @return Messenger handle to use, NULL on error
  */
 struct GNUNET_MESSENGER_Handle*
-GNUNET_MESSENGER_connect (const struct GNUNET_CONFIGURATION_Handle *cfg, const char *name,
-                          GNUNET_MESSENGER_IdentityCallback identity_callback, void *identity_cls,
-                          GNUNET_MESSENGER_MessageCallback msg_callback, void *msg_cls);
+GNUNET_MESSENGER_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
+                          const char *name,
+                          GNUNET_MESSENGER_IdentityCallback identity_callback,
+                          void *identity_cls,
+                          GNUNET_MESSENGER_MessageCallback msg_callback,
+                          void *msg_cls);
 
 /**
  * Update a handle of the messenger to use a different ego key and replace the old one with a newly generated one. All
@@ -619,7 +625,8 @@ GNUNET_MESSENGER_get_name (const struct GNUNET_MESSENGER_Handle *handle);
  * @return #GNUNET_YES on success, #GNUNET_NO on failure and #GNUNET_SYSERR if <i>handle</i> is NULL
  */
 int
-GNUNET_MESSENGER_set_name (struct GNUNET_MESSENGER_Handle *handle, const char *name);
+GNUNET_MESSENGER_set_name (struct GNUNET_MESSENGER_Handle *handle,
+                           const char *name);
 
 /**
  * Get the public key used by the messenger or NULL if the anonymous key was used.
@@ -647,7 +654,8 @@ GNUNET_MESSENGER_get_key (const struct GNUNET_MESSENGER_Handle *handle);
  * @return Room handle, NULL on error
  */
 struct GNUNET_MESSENGER_Room*
-GNUNET_MESSENGER_open_room (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_HashCode *key);
+GNUNET_MESSENGER_open_room (struct GNUNET_MESSENGER_Handle *handle,
+                            const struct GNUNET_HashCode *key);
 
 /**
  * Enter a room to send and receive messages through a <b>door</b> opened using #GNUNET_MESSENGER_open_room.
@@ -668,7 +676,8 @@ GNUNET_MESSENGER_open_room (struct GNUNET_MESSENGER_Handle *handle, const struct
  * @return Room handle, NULL on error
  */
 struct GNUNET_MESSENGER_Room*
-GNUNET_MESSENGER_enter_room (struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_PeerIdentity *door,
+GNUNET_MESSENGER_enter_room (struct GNUNET_MESSENGER_Handle *handle,
+                             const struct GNUNET_PeerIdentity *door,
                              const struct GNUNET_HashCode *key);
 
 /**
@@ -695,8 +704,10 @@ GNUNET_MESSENGER_close_room (struct GNUNET_MESSENGER_Room *room);
  * @return Amount of rooms iterated
  */
 int
-GNUNET_MESSENGER_find_rooms (const struct GNUNET_MESSENGER_Handle *handle, const struct GNUNET_MESSENGER_Contact *contact,
-                             GNUNET_MESSENGER_MemberCallback callback, void *cls);
+GNUNET_MESSENGER_find_rooms (const struct GNUNET_MESSENGER_Handle *handle,
+                             const struct GNUNET_MESSENGER_Contact *contact,
+                             GNUNET_MESSENGER_MemberCallback callback,
+                             void *cls);
 
 /**
  * Get the key of a given <i>room</i>.
@@ -717,7 +728,8 @@ GNUNET_MESSENGER_room_get_key (const struct GNUNET_MESSENGER_Room *room);
  * @return Contact handle, NULL otherwise
  */
 const struct GNUNET_MESSENGER_Contact*
-GNUNET_MESSENGER_get_sender (const struct GNUNET_MESSENGER_Room *room, const struct GNUNET_HashCode *hash);
+GNUNET_MESSENGER_get_sender (const struct GNUNET_MESSENGER_Room *room,
+                             const struct GNUNET_HashCode *hash);
 
 /**
  * Get the name used by the <i>contact</i>.
@@ -756,7 +768,8 @@ GNUNET_MESSENGER_contact_get_key (const struct GNUNET_MESSENGER_Contact *contact
  * @param[in] contact Contact or NULL
  */
 void
-GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room, const struct GNUNET_MESSENGER_Message *message,
+GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room,
+                               const struct GNUNET_MESSENGER_Message *message,
                                const struct GNUNET_MESSENGER_Contact* contact);
 
 /**
@@ -767,7 +780,8 @@ GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room, const struct 
  * @return Message struct or NULL if no message with that hash is known
  */
 const struct GNUNET_MESSENGER_Message*
-GNUNET_MESSENGER_get_message (const struct GNUNET_MESSENGER_Room *room, const struct GNUNET_HashCode *hash);
+GNUNET_MESSENGER_get_message (const struct GNUNET_MESSENGER_Room *room,
+                              const struct GNUNET_HashCode *hash);
 
 /**
  * Iterates through all members of a given <i>room</i> and calls a selected <i>callback</i>
@@ -780,7 +794,8 @@ GNUNET_MESSENGER_get_message (const struct GNUNET_MESSENGER_Room *room, const st
  * @return Amount of members iterated
  */
 int
-GNUNET_MESSENGER_iterate_members (struct GNUNET_MESSENGER_Room *room, GNUNET_MESSENGER_MemberCallback callback,
+GNUNET_MESSENGER_iterate_members (struct GNUNET_MESSENGER_Room *room,
+                                  GNUNET_MESSENGER_MemberCallback callback,
                                   void* cls);
 
 #if 0 /* keep Emacsens' auto-indent happy */

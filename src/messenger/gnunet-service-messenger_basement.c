@@ -40,7 +40,9 @@ count_of_tunnels (const struct GNUNET_MESSENGER_ListTunnels *tunnels)
 }
 
 int
-should_connect_tunnel_to (size_t count, size_t src, size_t dst)
+should_connect_tunnel_to (size_t count,
+                          size_t src,
+                          size_t dst)
 {
   if ((src + 1) % count == dst % count)
     return GNUNET_YES;
@@ -49,7 +51,9 @@ should_connect_tunnel_to (size_t count, size_t src, size_t dst)
 }
 
 int
-required_connection_between (size_t count, size_t src, size_t dst)
+required_connection_between (size_t count,
+                             size_t src,
+                             size_t dst)
 {
   if (GNUNET_YES == should_connect_tunnel_to (count, src, dst))
     return GNUNET_YES;

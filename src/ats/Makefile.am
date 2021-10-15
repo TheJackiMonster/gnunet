@@ -65,11 +65,9 @@ gnunet_service_ats_LDADD = \
   libgnunetats.la \
   $(GN_LIBINTL)
 
-if HAVE_TESTING
 TESTING_TESTS = \
  test_ats_api_proportional \
  test_ats_reservation_api_proportional
-endif
 
 check_PROGRAMS = \
  $(TESTING_TESTS)

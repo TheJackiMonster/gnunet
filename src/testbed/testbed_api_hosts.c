@@ -568,41 +568,6 @@ simple_resolve (const char *host)
 
 
 /**
- * Loads the set of host allocated by the LoadLeveler Job Scheduler.  This
- * function is only available when compiled with support for LoadLeveler and is
- * used for running on the SuperMUC
- *
- * @param cfg the configuration to use as a template while starting a controller
- *          on any of the loaded hosts.  Operation queue sizes specific to a host
- *          are also read from this configuration handle
- * @param hosts set to the hosts found in the file; caller must free this if
- *          number of hosts returned is greater than 0
- * @return number of hosts returned in 'hosts', 0 on error
- */
-unsigned int
-GNUNET_TESTBED_hosts_load_from_loadleveler (
-  const struct GNUNET_CONFIGURATION_Handle *cfg,
-  struct GNUNET_TESTBED_Host ***hosts)
-{
-#if ! ENABLE_SUPERMUC
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       _ ("The function %s is only available when compiled with (--with-ll)\n"),
-       __func__);
-  GNUNET_assert (0);
-#else
-  const char *hostfile;
-
-  if (NULL == (hostfile = getenv ("MP_SAVEHOSTFILE")))
-  {
-    GNUNET_break (0);
-    return 0;
-  }
-  return GNUNET_TESTBED_hosts_load_from_file (hostfile, cfg, hosts);
-#endif
-}
-
-
-/**
  * Destroy a host handle.  Must only be called once everything
  * running on that host has been stopped.
  *

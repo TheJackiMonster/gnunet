@@ -51,7 +51,8 @@ delayed_disconnect_channel (struct GNUNET_CADET_Channel *channel);
  * @return #GNUNET_YES on success, #GNUNET_NO on failure
  */
 int
-generate_free_member_id (struct GNUNET_ShortHashCode *id, const struct GNUNET_CONTAINER_MultiShortmap *members);
+generate_free_member_id (struct GNUNET_ShortHashCode *id,
+                         const struct GNUNET_CONTAINER_MultiShortmap *members);
 
 /**
  * Returns the public identity key of #GNUNET_IDENTITY_ego_get_anonymous() without
@@ -73,6 +74,7 @@ get_anonymous_public_key ();
  * @param[out] port CADET service port
  */
 void
-convert_messenger_key_to_port(const struct GNUNET_HashCode *key, struct GNUNET_HashCode *port);
+convert_messenger_key_to_port(const struct GNUNET_HashCode *key,
+                              struct GNUNET_HashCode *port);
 
 #endif //GNUNET_SERVICE_MESSENGER_UTIL_H

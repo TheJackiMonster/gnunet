@@ -128,11 +128,9 @@ noinst_PROGRAMS = \
  $(WLAN_BIN_SENDER) \
  $(WLAN_BIN_RECEIVER)
 
-if HAVE_TESTING
 TESTING_LIBS = \
   libgnunettransporttesting.la \
   libgnunettransporttesting2.la
-endif
 
 lib_LTLIBRARIES = \
   libgnunettransport.la \
@@ -161,16 +159,10 @@ libgnunettransporttesting_la_LDFLAGS = \
 
 libgnunettransporttesting2_la_SOURCES = \
   transport_api_cmd_connecting_peers.c \
-  transport_api_cmd_connecting_peers_v2.c \
-  transport_api_cmd_connecting_peers_v3.c \
   transport_api_cmd_backchannel_check.c \
   transport_api_cmd_start_peer.c \
-  transport_api_cmd_start_peer_v2.c \
-  transport_api_cmd_start_peer_v3.c \
   transport_api_cmd_stop_peer.c \
   transport_api_cmd_send_simple.c \
-  transport_api_cmd_send_simple_v2.c \
-  transport_api_cmd_send_simple_v3.c \
   transport-testing2.c transport-testing2.h \
   transport-testing-cmds.h \
   transport-testing-filenames2.c \
@@ -398,7 +390,6 @@ plugin_LTLIBRARIES = \
   $(WLAN_PLUGIN_LA) \
   $(BT_PLUGIN_LA) \
   libgnunet_test_transport_plugin_cmd_simple_send.la \
-  libgnunet_test_transport_plugin_cmd_simple_send_v2.la \
   libgnunet_test_transport_plugin_cmd_udp_backchannel.la
 
 libgnunet_test_transport_plugin_cmd_udp_backchannel_la_SOURCES = \
@@ -433,23 +424,6 @@ libgnunet_test_transport_plugin_cmd_simple_send_la_LIBADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(LTLIBINTL)
 libgnunet_test_transport_plugin_cmd_simple_send_la_LDFLAGS = \
-  $(GN_PLUGIN_LDFLAGS)
-
-libgnunet_test_transport_plugin_cmd_simple_send_v2_la_SOURCES = \
- test_transport_plugin_cmd_simple_send_v2.c
-libgnunet_test_transport_plugin_cmd_simple_send_v2_la_LIBADD = \
-  libgnunettransporttesting2.la \
-  libgnunettransportapplication.la \
-  libgnunettransportcore.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/hello/libgnunethello.la \
-  $(top_builddir)/src/ats/libgnunetats.la \
-  $(top_builddir)/src/arm/libgnunetarm.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
-  $(LTLIBINTL)
-libgnunet_test_transport_plugin_cmd_simple_send_v2_la_LDFLAGS = \
   $(GN_PLUGIN_LDFLAGS)
 
 if HAVE_EXPERIMENTAL
@@ -596,10 +570,7 @@ libgnunet_plugin_transport_https_server_la_LDFLAGS = \
 libgnunet_plugin_transport_https_server_la_CFLAGS = \
  $(MHD_CFLAGS) $(AM_CFLAGS) -DBUILD_HTTPS
 
-if HAVE_TESTING
 check_PROGRAMS = \
- test_transport_simple_send \
- test_transport_simple_send_v2 \
  test_transport_start_with_config \
  test_transport_address_switch_tcp \
  test_transport_testing_startstop \
@@ -684,7 +655,6 @@ check_PROGRAMS += \
   test_communicator_backchannel-udp \
   test_communicator_bidirect-tcp
 endif
-endif
 
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
@@ -749,8 +719,6 @@ test_transport_api_slow_ats
 endif
 if HAVE_EXPERIMENTAL
 TESTS += \
-  test_transport_simple_send \
-  test_transport_simple_send_v2 \
   test_transport_start_with_config \
   test_transport_address_switch_udp \
   test_plugin_udp \
@@ -771,32 +739,11 @@ endif
 
 check_SCRIPTS= \
   test_transport_simple_send.sh \
-  test_transport_simple_send_v2.sh \
   test_transport_udp_backchannel.sh
 
 test_transport_start_with_config_SOURCES = \
  test_transport_start_with_config.c
 test_transport_start_with_config_LDADD = \
- $(top_builddir)/src/testing/libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la \
- $(top_builddir)/src/testbed/libgnunettestbed.la \
- $(top_builddir)/src/hello/libgnunethello.la \
- libgnunettransportcore.la \
- libgnunettransporttesting2.la
-
-test_transport_simple_send_SOURCES = \
- test_transport_simple_send.c
-test_transport_simple_send_LDADD = \
- $(top_builddir)/src/testing/libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la \
- $(top_builddir)/src/testbed/libgnunettestbed.la \
- $(top_builddir)/src/hello/libgnunethello.la \
- libgnunettransportcore.la \
- libgnunettransporttesting2.la
-
-test_transport_simple_send_v2_SOURCES = \
- test_transport_simple_send_v2.c
-test_transport_simple_send_v2_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
  $(top_builddir)/src/util/libgnunetutil.la \
  $(top_builddir)/src/testbed/libgnunettestbed.la \
