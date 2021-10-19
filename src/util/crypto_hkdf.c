@@ -116,7 +116,8 @@ getPRK (gcry_md_hd_t mac, const void *xts, size_t xts_len, const void *skm,
 
   if (xts_len == 0)
   {
-    char zero_salt[dlen] = { 0 };
+    char zero_salt[dlen];
+    memset (zero_salt, 0, dlen);
     ret = doHMAC (mac, zero_salt, dlen, skm, skm_len);
   }
   else
