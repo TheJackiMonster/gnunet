@@ -310,9 +310,15 @@ GNUNET_CRYPTO_rsa_public_key_encode (
   struct GNUNET_CRYPTO_RsaPublicKeyHeaderP hdr;
   int ret;
 
-  ret = key_from_sexp (ne, key->sexp, "public-key", "ne");
+  ret = key_from_sexp (ne,
+                       key->sexp,
+                       "public-key",
+                       "ne");
   if (0 != ret)
-    ret = key_from_sexp (ne, key->sexp, "rsa", "ne");
+    ret = key_from_sexp (ne,
+                         key->sexp,
+                         "rsa",
+                         "ne");
   if (0 != ret)
   {
     GNUNET_break (0);
@@ -333,16 +339,25 @@ GNUNET_CRYPTO_rsa_public_key_encode (
        (n_size > UINT16_MAX) )
   {
     GNUNET_break (0);
-    *buffer = NULL;
+    if (NULL != buffer)
+      *buffer = NULL;
     gcry_mpi_release (ne[0]);
     gcry_mpi_release (ne[1]);
     return 0;
   }
   buf_size = n_size + e_size + sizeof (hdr);
+  if (NULL == buffer)
+  {
+    gcry_mpi_release (ne[0]);
+    gcry_mpi_release (ne[1]);
+    return buf_size;
+  }
   buf = GNUNET_malloc (buf_size);
   hdr.modulus_length = htons ((uint16_t) n_size);
   hdr.public_exponent_length = htons ((uint16_t) e_size);
-  memcpy (buf, &hdr, sizeof (hdr));
+  memcpy (buf,
+          &hdr,
+          sizeof (hdr));
   GNUNET_assert (0 ==
                  gcry_mpi_print (GCRYMPI_FMT_USG,
                                  (unsigned char *) &buf[sizeof (hdr)],
