@@ -1046,6 +1046,23 @@ GNUNET_TESTING_make_trait_relative_time (
 
 // FIXME: move these commands into a separate libgnunetestingnetjail lib or so!
 
+/**
+ * Struct to hold information for callbacks.
+ *
+ */
+struct LocalPreparedState
+{
+  /**
+   * Context for our asynchronous completion.
+   */
+  struct GNUNET_TESTING_AsyncContext ac;
+
+  /**
+   * Callback to write messages to the master loop.
+   *
+   */
+  TESTING_CMD_HELPER_write_cb write_message;
+};
 
 /**
  * Create command.
@@ -1223,7 +1240,18 @@ GNUNET_TESTING_cmd_local_test_finished (
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_local_test_prepared (const char *label,
                                         TESTING_CMD_HELPER_write_cb
-                                        write_message,
-                                        unsigned int *
-                                        all_local_tests_prepared);
+                                        write_message);
+
+/**
+ * Function to get the trait with the struct LocalPreparedState.
+ *
+ * @param[out] lfs struct LocalPreparedState.
+ * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
+ *
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_TESTING_get_trait_local_prepared_state (
+  const struct GNUNET_TESTING_Command *cmd,
+  struct LocalPreparedState **lfs);
+
 #endif

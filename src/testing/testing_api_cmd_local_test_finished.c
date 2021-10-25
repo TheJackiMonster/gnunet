@@ -64,7 +64,6 @@ local_test_finished_cleanup (void *cls)
 {
   struct LocalFinishedState *lfs = cls;
 
-  GNUNET_free (lfs->reply);
   GNUNET_free (lfs);
 }
 

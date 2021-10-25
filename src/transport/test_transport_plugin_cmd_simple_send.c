@@ -37,6 +37,7 @@
 
 #define BASE_DIR "testdir"
 
+#define TOPOLOGY_CONFIG "test_transport_simple_send_topo.conf"
 
 struct TestState
 {
@@ -154,8 +155,8 @@ notify_connect (void *cls,
 {
   struct ConnectPeersState *cps;
 
-  GNUNET_TESTING_get_trait_connect_peer_state (&connect_peers,
-                                               &cps);
+  GNUNET_TRANSPORT_get_trait_connect_peer_state (&connect_peers,
+                                                 &cps);
   void *ret = NULL;
 
   cps->notify_connect (cps,
@@ -203,7 +204,7 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
                                                       "start-peer",
                                                       "system-create",
                                                       num,
-                                                      NULL);
+                                                      topology);
 
 
 
@@ -257,7 +258,8 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
     GNUNET_TRANSPORT_cmd_stop_peer ("stop-peer",
                                     "start-peer"),
     GNUNET_TESTING_cmd_system_destroy ("system-destroy",
-                                       "system-create")
+                                       "system-create"),
+    GNUNET_TESTING_cmd_end ()
   };
 
   GNUNET_TESTING_run (commands,

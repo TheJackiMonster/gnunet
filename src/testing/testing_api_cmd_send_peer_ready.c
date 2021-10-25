@@ -72,7 +72,6 @@ send_peer_ready_cleanup (void *cls)
 {
   struct SendPeerReadyState *sprs = cls;
 
-  GNUNET_free (sprs->reply);
   GNUNET_free (sprs);
 }
 

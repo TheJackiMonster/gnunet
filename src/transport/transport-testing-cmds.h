@@ -182,7 +182,7 @@ struct StartPeerState
  *
  */
 int
-GNUNET_TESTING_get_trait_connect_peer_state (
+GNUNET_TRANSPORT_get_trait_connect_peer_state (
   const struct GNUNET_TESTING_Command *cmd,
   struct ConnectPeersState **cps);
 
@@ -232,6 +232,29 @@ struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_send_simple (const char *label,
                                   const char *start_peer_label,
                                   uint32_t num);
+
+
+/**
+ * Create command.
+ *
+ * @param label name for command.
+ * @param start_peer_label Label of the cmd to start a peer.
+ * @param create_label Label of the cmd to create the testing system.
+ * @param num Number globally identifying the node.
+ * @param node_n The number of the node in a network namespace.
+ * @param namespace_n The number of the network namespace.
+ * @param The topology for the test setup.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TRANSPORT_cmd_backchannel_check (const char *label,
+                                        const char *start_peer_label,
+                                        const char *create_label,
+                                        uint32_t num,
+                                        unsigned int node_n,
+                                        unsigned int namespace_n,
+                                        struct GNUNET_TESTING_NetjailTopology *
+                                        topology);
 
 
 

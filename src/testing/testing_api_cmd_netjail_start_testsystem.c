@@ -30,6 +30,11 @@
 #define NETJAIL_EXEC_SCRIPT "./../testing/netjail_exec.sh"
 
 /**
+ * Generic logging shortcut
+ */
+#define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
+
+/**
  * Struct to store messages send/received by the helper into a DLL
  *
  */
@@ -121,13 +126,13 @@ struct NetJailState
   /**
    * The send handle for the helper
    */
-  struct GNUNET_HELPER_SendHandle **shandle;
+  // struct GNUNET_HELPER_SendHandle **shandle;
 
   /**
    * Size of the array NetJailState#shandle.
    *
    */
-  unsigned int n_shandle;
+  // unsigned int n_shandle;
 
   /**
    * The messages send to the helper.
@@ -156,7 +161,13 @@ struct NetJailState
    * Number of local tests finished.
    *
    */
-  unsigned int number_of_local_test_finished;
+  unsigned int number_of_local_tests_finished;
+
+  /**
+   * Number of local tests prepared to finish.
+   *
+   */
+  unsigned int number_of_local_tests_prepared;
 
   /**
    * Name of the test case plugin the helper will load.
@@ -192,6 +203,17 @@ struct TestingSystemCount
    * Kept in a DLL.
    */
   struct TestingSystemCount *prev;
+
+  /**
+   * The send handle for the helper
+   */
+  struct GNUNET_HELPER_SendHandle *shandle;// **shandle;
+
+  /**
+   * Size of the array NetJailState#shandle.
+   *
+   */
+  // unsigned int n_shandle;
 
   /**
    * The number of the test environment.
@@ -306,47 +328,85 @@ clear_msg (void *cls, int result)
   struct TestingSystemCount *tbc = cls;
   struct NetJailState *ns = tbc->ns;
 
-  GNUNET_assert (NULL != ns->shandle[tbc->count - 1]);
-  ns->shandle[tbc->count - 1] = NULL;
+  GNUNET_assert (NULL != tbc->shandle);// [tbc->count - 1]);
+  tbc->shandle = NULL;// [tbc->count - 1] = NULL;
   GNUNET_free (ns->msg[tbc->count - 1]);
   ns->msg[tbc->count - 1] = NULL;
 }
 
 
 static void
-send_all_peers_started (unsigned int i, unsigned int j, struct NetJailState *ns)
+send_message_to_locals (
+  unsigned int i,
+  unsigned int j,
+  struct NetJailState *ns,
+  struct GNUNET_MessageHeader *header
+  )
 {
-  unsigned int total_number = ns->local_m * ns->global_n + ns->known;
-  struct GNUNET_CMDS_ALL_PEERS_STARTED *reply;
-  size_t msg_length;
+  // unsigned int total_number = ns->local_m * ns->global_n + ns->known;
   struct GNUNET_HELPER_Handle *helper;
   struct TestingSystemCount *tbc;
 
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "send message of type %u to locals\n",
+       header->type);
   tbc = GNUNET_new (struct TestingSystemCount);
   tbc->ns = ns;
   // TODO This needs to be more generic. As we send more messages back and forth, we can not grow the arrays again and again, because this is to error prone.
   if (0 == i)
-    tbc->count = j + total_number;
+    tbc->count = j; // + total_number;
   else
-    tbc->count = (i - 1) * ns->local_m + j + total_number + ns->known;
+    tbc->count = (i - 1) * ns->local_m + j + ns->known; // + total_number ;
 
-  helper = ns->helper[tbc->count - 1 - total_number];
+  helper = ns->helper[tbc->count - 1];// - total_number];
+
+  GNUNET_array_append (ns->msg, ns->n_msg, header);
+
+  struct GNUNET_HELPER_SendHandle *sh = GNUNET_HELPER_send (
+    helper,
+    header,
+    GNUNET_NO,
+    &clear_msg,
+    tbc);
+
+  tbc->shandle = sh;
+  // GNUNET_array_append (tbc->shandle, tbc->n_shandle, sh);
+}
+
+
+static void
+send_all_local_tests_prepared (unsigned int i, unsigned int j, struct
+                               NetJailState *ns)
+{
+  struct GNUNET_CMDS_ALL_LOCAL_TESTS_PREPARED *reply;
+  size_t msg_length;
+
+
+  msg_length = sizeof(struct GNUNET_CMDS_ALL_LOCAL_TESTS_PREPARED);
+  reply = GNUNET_new (struct GNUNET_CMDS_ALL_LOCAL_TESTS_PREPARED);
+  reply->header.type = htons (
+    GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_LOCAL_TESTS_PREPARED);
+  reply->header.size = htons ((uint16_t) msg_length);
+
+  send_message_to_locals (i, j, ns, &reply->header);
+}
+
+
+static void
+send_all_peers_started (unsigned int i, unsigned int j, struct NetJailState *ns)
+{
+
+  struct GNUNET_CMDS_ALL_PEERS_STARTED *reply;
+  size_t msg_length;
+
+
   msg_length = sizeof(struct GNUNET_CMDS_ALL_PEERS_STARTED);
   reply = GNUNET_new (struct GNUNET_CMDS_ALL_PEERS_STARTED);
   reply->header.type = htons (
     GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_PEERS_STARTED);
   reply->header.size = htons ((uint16_t) msg_length);
 
-  GNUNET_array_append (ns->msg, ns->n_msg, &reply->header);
-
-  struct GNUNET_HELPER_SendHandle *sh = GNUNET_HELPER_send (
-    helper,
-    &reply->header,
-    GNUNET_NO,
-    &clear_msg,
-    tbc);
-
-  GNUNET_array_append (ns->shandle, ns->n_shandle, sh);
+  send_message_to_locals (i, j, ns, &reply->header);
 }
 
 
@@ -365,10 +425,21 @@ send_all_peers_started (unsigned int i, unsigned int j, struct NetJailState *ns)
 static int
 helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
 {
-  struct TestingSystemCount *tbc = cls;
-  struct NetJailState *ns = tbc->ns;
+  // struct TestingSystemCount *tbc = cls;
+  struct NetJailState *ns = cls;// tbc->ns;
   struct HelperMessage *hp_msg;
   unsigned int total_number = ns->local_m * ns->global_n + ns->known;
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "total %u sysstarted %u peersstarted %u prep %u finished %u %u %u %u\n",
+       total_number,
+       ns->number_of_testsystems_started,
+       ns->number_of_peers_started,
+       ns->number_of_local_tests_prepared,
+       ns->number_of_local_tests_finished,
+       ns->local_m,
+       ns->global_n,
+       ns->known);
 
   if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_REPLY == ntohs (message->type))
   {
@@ -395,11 +466,31 @@ helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
       ns->number_of_peers_started = 0;
     }
   }
+  else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_TEST_PREPARED == ntohs (
+             message->type))
+  {
+    ns->number_of_local_tests_prepared++;
+    if (ns->number_of_local_tests_prepared == total_number)
+    {
+      for (int i = 1; i <= ns->known; i++)
+      {
+        send_all_local_tests_prepared (0,i, ns);
+      }
+
+      for (int i = 1; i <= ns->global_n; i++)
+      {
+        for (int j = 1; j <= ns->local_m; j++)
+        {
+          send_all_local_tests_prepared (i,j, ns);
+        }
+      }
+    }
+  }
   else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_FINISHED == ntohs (
              message->type))
   {
-    ns->number_of_local_test_finished++;
-    if (ns->number_of_local_test_finished == total_number)
+    ns->number_of_local_tests_finished++;
+    if (ns->number_of_local_tests_finished == total_number)
     {
       GNUNET_TESTING_async_finish (&ns->ac);
     }
@@ -477,8 +568,13 @@ start_helper (struct NetJailState *ns, struct
   struct GNUNET_HELPER_Handle *helper;
   struct GNUNET_CMDS_HelperInit *msg;
   struct TestingSystemCount *tbc;
-  char *m_char, *n_char, *global_n_char, *local_m_char, *known_char, *node_id,
-       *plugin;
+  char *m_char;
+  char *n_char;
+  char *global_n_char;
+  char *local_m_char;
+  char *known_char;
+  char *node_id;
+  char *plugin;
   pid_t pid;
   unsigned int script_num;
   struct GNUNET_ShortHashCode *hkey;
@@ -486,6 +582,7 @@ start_helper (struct NetJailState *ns, struct
   struct GNUNET_TESTING_NetjailTopology *topology = ns->topology;
   struct GNUNET_TESTING_NetjailNode *node;
   struct GNUNET_TESTING_NetjailNamespace *namespace;
+  unsigned int *rv = ns->rv;
 
 
   if (0 == n)
@@ -526,7 +623,8 @@ start_helper (struct NetJailState *ns, struct
   else
     tbc->count = (n - 1) * ns->local_m + m + ns->known;
 
-  GNUNET_CONTAINER_DLL_insert (ns->tbcs_head, ns->tbcs_tail,
+  GNUNET_CONTAINER_DLL_insert (ns->tbcs_head,
+                               ns->tbcs_tail,
                                tbc);
 
 
@@ -535,15 +633,25 @@ start_helper (struct NetJailState *ns, struct
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "No SUID for %s!\n",
                 NETJAIL_EXEC_SCRIPT);
-    GNUNET_TESTING_interpreter_fail (ns->ac.is);
+    *rv = 1;
   }
   else if (GNUNET_NO == helper_check)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "%s not found!\n",
                 NETJAIL_EXEC_SCRIPT);
-    GNUNET_TESTING_interpreter_fail (ns->ac.is);
+    *rv = 1;
   }
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "sysstarted %u peersstarted %u prep %u finished %u %u %u %u\n",
+       ns->number_of_testsystems_started,
+       ns->number_of_peers_started,
+       ns->number_of_local_tests_prepared,
+       ns->number_of_local_tests_finished,
+       ns->local_m,
+       ns->global_n,
+       ns->known);
 
   GNUNET_array_append (ns->helper, ns->n_helper, GNUNET_HELPER_start (
                          GNUNET_YES,
@@ -551,7 +659,7 @@ start_helper (struct NetJailState *ns, struct
                          script_argv,
                          &helper_mst,
                          &exp_cb,
-                         tbc));
+                         ns));
 
   helper = ns->helper[tbc->count - 1];
 
@@ -608,19 +716,20 @@ start_helper (struct NetJailState *ns, struct
 
   GNUNET_array_append (ns->msg, ns->n_msg, &msg->header);
 
-  GNUNET_array_append (ns->shandle, ns->n_shandle, GNUNET_HELPER_send (
-                         helper,
-                         &msg->header,
-                         GNUNET_NO,
-                         &clear_msg,
-                         tbc));
+  // GNUNET_array_append (tbc->shandle, tbc->n_shandle,
+  tbc->shandle = GNUNET_HELPER_send (
+    helper,
+    &msg->header,
+    GNUNET_NO,
+    &clear_msg,
+    tbc);                     // );
 
-  if (NULL == ns->shandle[tbc->count - 1])
+  if (NULL == tbc->shandle)// [tbc->count - 1])
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Send handle is NULL!\n");
     GNUNET_free (msg);
-    GNUNET_TESTING_interpreter_fail (ns->ac.is);
+    *rv = 1;
   }
 }
 

@@ -51,6 +51,11 @@
 struct CheckState
 {
   /**
+   * Context for our asynchronous completion.
+   */
+  struct GNUNET_TESTING_AsyncContext ac;
+
+  /**
    * The number of the node in a network namespace.
    */
   unsigned int node_n;
@@ -119,11 +124,6 @@ struct CheckState
    * Stream to read log file lines.
    */
   FILE *stream;
-
-  /**
-   * Did we get all bachchannel messages.
-   */
-  enum GNUNET_GenericReturnValue finished;
 };
 
 /**
@@ -195,7 +195,7 @@ read_from_log (void *cls)
                strcmp (
                  "Delivering backchannel message from 4TTC to F7B5 of type 1460 to udp",
                  cs->search_string[i]));
-          cs->finished = GNUNET_YES;
+          GNUNET_TESTING_async_finish (&cs->ac);
           fclose (cs->stream);
           return;
         }
@@ -396,7 +396,6 @@ add_search_string (struct CheckState *cs, const struct
  */
 static void
 backchannel_check_run (void *cls,
-                       const struct GNUNET_TESTING_Command *cmd,
                        struct GNUNET_TESTING_Interpreter *is)
 {
   struct CheckState *cs = cls;
@@ -418,12 +417,13 @@ backchannel_check_run (void *cls,
   const struct GNUNET_TESTING_NetjailNode *node;
   const struct GNUNET_TESTING_NetjailNamespace *namespace;
 
-  peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (
-    cs->start_peer_label);
-  GNUNET_TRANSPORT_get_trait_application_handle_v2 (peer1_cmd,
-                                                    &ah);
+  peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
+                                                         cs->start_peer_label);
+  GNUNET_TRANSPORT_get_trait_application_handle (peer1_cmd,
+                                                 &ah);
 
-  system_cmd = GNUNET_TESTING_interpreter_lookup_command (cs->create_label);
+  system_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
+                                                          cs->create_label);
   GNUNET_TESTING_get_trait_test_system (system_cmd,
                                         &tl_system);
 
@@ -524,28 +524,8 @@ backchannel_check_run (void *cls,
                                 cs);
   }
   else
-    cs->finished = GNUNET_YES;
+    GNUNET_TESTING_async_finish (&cs->ac);
 
-}
-
-
-/**
- * The finish function of this cmd will check if the peers we are trying to
- * connect to are in the connected peers map of the start peer cmd for this peer.
- *
- */
-static int
-backchannel_check_finish (void *cls,
-                          GNUNET_SCHEDULER_TaskCallback cont,
-                          void *cont_cls)
-{
-  struct CheckState *cs = cls;
-
-  if (cs->finished)
-  {
-    cont (cont_cls);
-  }
-  return cs->finished;
 }
 
 
@@ -568,8 +548,7 @@ backchannel_check_traits (void *cls,
  *
  */
 static void
-backchannel_check_cleanup (void *cls,
-                           const struct GNUNET_TESTING_Command *cmd)
+backchannel_check_cleanup (void *cls)
 {
   struct ConnectPeersState *cs = cls;
 
@@ -613,7 +592,7 @@ GNUNET_TRANSPORT_cmd_backchannel_check (const char *label,
     .cls = cs,
     .label = label,
     .run = &backchannel_check_run,
-    .finish = &backchannel_check_finish,
+    .ac = &cs->ac,
     .cleanup = &backchannel_check_cleanup,
     .traits = &backchannel_check_traits
   };

@@ -35,41 +35,47 @@
 
 
 /**
- * Struct to hold information for callbacks.
+ * This function prepares an array with traits.
  *
  */
-struct LocalPreparedState
-{
-  /**
-   * Callback to write messages to the master loop.
-   *
-   */
-  TESTING_CMD_HELPER_write_cb write_message;
-
-  /**
-   * The message send back to the master loop.
-   *
-   */
-  struct GNUNET_CMDS_LOCAL_TEST_PREPARED *reply;
-
-  /**
-   * Flag indicating if all local tests finished.
-   */
-  unsigned int *all_local_tests_prepared;
-};
-
-
-/**
- * Trait function of this cmd does nothing.
- *
- */
-static int
+enum GNUNET_GenericReturnValue
 local_test_prepared_traits (void *cls,
                             const void **ret,
                             const char *trait,
                             unsigned int index)
 {
-  return GNUNET_OK;
+  struct LocalPreparedState *lfs = cls;
+  struct GNUNET_TESTING_Trait traits[] = {
+    {
+      .index = 0,
+      .trait_name = "state",
+      .ptr = (const void *) lfs,
+    },
+    GNUNET_TESTING_trait_end ()
+  };
+  return GNUNET_TESTING_get_trait (traits,
+                                   ret,
+                                   trait,
+                                   index);
+}
+
+
+/**
+ * Function to get the trait with the struct LocalPreparedState.
+ *
+ * @param[out] lfs struct LocalPreparedState.
+ * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
+ *
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_TESTING_get_trait_local_prepared_state (
+  const struct GNUNET_TESTING_Command *cmd,
+  struct LocalPreparedState **lfs)
+{
+  return cmd->traits (cmd->cls,
+                      (const void **) lfs,
+                      "state",
+                      (unsigned int) 0);
 }
 
 
@@ -78,12 +84,10 @@ local_test_prepared_traits (void *cls,
  *
  */
 static void
-local_test_prepared_cleanup (void *cls,
-                             const struct GNUNET_TESTING_Command *cmd)
+local_test_prepared_cleanup (void *cls)
 {
   struct LocalPreparedState *lfs = cls;
 
-  GNUNET_free (lfs->reply);
   GNUNET_free (lfs);
 }
 
@@ -94,7 +98,6 @@ local_test_prepared_cleanup (void *cls,
  */
 static void
 local_test_prepared_run (void *cls,
-                         const struct GNUNET_TESTING_Command *cmd,
                          struct GNUNET_TESTING_Interpreter *is)
 {
   struct LocalPreparedState *lfs = cls;
@@ -107,30 +110,7 @@ local_test_prepared_run (void *cls,
   reply->header.type = htons (
     GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_TEST_PREPARED);
   reply->header.size = htons ((uint16_t) msg_length);
-  lfs->reply = reply;
   lfs->write_message ((struct GNUNET_MessageHeader *) reply, msg_length);
-}
-
-
-/**
- * This finish function will stop the local loop without shutting down the scheduler, because we do not call the continuation, which is the interpreter_next method.
- *
- */
-static int
-local_test_prepared_finish (void *cls,
-                            GNUNET_SCHEDULER_TaskCallback cont,
-                            void *cont_cls)
-{
-  struct LocalPreparedState *lfs = cls;
-  unsigned int *ret = lfs->all_local_tests_prepared;
-
-  if (GNUNET_YES == *ret)
-  {
-    cont (cont_cls);
-  }
-
-  return *ret;
-
 }
 
 
@@ -145,21 +125,18 @@ local_test_prepared_finish (void *cls,
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_local_test_prepared (const char *label,
                                         TESTING_CMD_HELPER_write_cb
-                                        write_message,
-                                        unsigned int *
-                                        all_local_tests_prepared)
+                                        write_message)
 {
   struct LocalPreparedState *lfs;
 
   lfs = GNUNET_new (struct LocalPreparedState);
   lfs->write_message = write_message;
-  lfs->all_local_tests_prepared = all_local_tests_prepared;
 
   struct GNUNET_TESTING_Command cmd = {
     .cls = lfs,
     .label = label,
     .run = &local_test_prepared_run,
-    .finish = &local_test_prepared_finish,
+    .ac = &lfs->ac,
     .cleanup = &local_test_prepared_cleanup,
     .traits = &local_test_prepared_traits
   };
