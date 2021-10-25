@@ -1,6 +1,6 @@
 etc/gnunet.conf
 usr/bin/
-usr/lib/gnunet/libexec/gnunet-cmds-helper
+usr/lib/*/gnunet/libexec/gnunet-cmds-helper
 usr/lib/*/gnunet/
 usr/lib/*/*.so.*
 usr/share/man/
