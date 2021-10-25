@@ -847,11 +847,8 @@ GNUNET_JSON_spec_rsa_public_key (const char *name,
   struct GNUNET_JSON_Specification ret = {
     .parser = &parse_rsa_public_key,
     .cleaner = &clean_rsa_public_key,
-    .cls = NULL,
     .field = name,
-    .ptr = pk,
-    .ptr_size = 0,
-    .size_ptr = NULL
+    .ptr = pk
   };
 
   *pk = NULL;
