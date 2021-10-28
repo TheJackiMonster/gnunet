@@ -1798,7 +1798,7 @@ get_first_value (char *line)
   memcpy (copy, line, slen);
   token = strtok_r (copy, ":", &rest);
   token = strtok_r (NULL, ":", &rest);
-  sscanf (token, "%u", &ret);
+  GNUNET_assert (1 == sscanf (token, "%u", &ret));
   GNUNET_free (copy);
   return ret;
 }
@@ -1864,7 +1864,7 @@ get_second_value (char *line)
   token = strtok_r (copy, ":", &rest);
   token = strtok_r (NULL, ":", &rest);
   token = strtok_r (NULL, ":", &rest);
-  sscanf (token, "%u", &ret);
+  GNUNET_assert (1 == sscanf (token, "%u", &ret));
   GNUNET_free (copy);
   return ret;
 }
@@ -1923,7 +1923,7 @@ get_connect_value (char *line, struct GNUNET_TESTING_NetjailNode *node)
   {
     node_connection->node_type = GNUNET_TESTING_GLOBAL_NODE;
     token = strtok_r (NULL, ":", &rest);
-    sscanf (token, "%u", &node_n);
+    GNUNET_assert (1 == sscanf (token, "%u", &node_n));
     LOG (GNUNET_ERROR_TYPE_ERROR,
          "node_n %u\n",
          node_n);
@@ -1934,15 +1934,17 @@ get_connect_value (char *line, struct GNUNET_TESTING_NetjailNode *node)
   {
     node_connection->node_type = GNUNET_TESTING_SUBNET_NODE;
     token = strtok_r (NULL, ":", &rest);
-    sscanf (token, "%u", &node_n);
-    node_connection->node_n = node_n;
-    token = strtok_r (NULL, ":", &rest);
     sscanf (token, "%u", &namespace_n);
     node_connection->namespace_n = namespace_n;
+    token = strtok_r (NULL, ":", &rest);
+    sscanf (token, "%u", &node_n);
+    node_connection->node_n = node_n;
     LOG (GNUNET_ERROR_TYPE_ERROR,
-         "node_n %u namespace_n %u\n",
+         "node_n %u namespace_n %u node->node_n %u node->namespace_n %u\n",
          node_n,
-         namespace_n);
+         namespace_n,
+         node->node_n,
+         node->namespace_n);
   }
   while (NULL != (token = strtok_r (NULL, ":", &rest)))
   {
@@ -1994,13 +1996,16 @@ node_connections (char *line, struct GNUNET_TESTING_NetjailNode *node)
   if (NULL != temp)
   {
     slen = strlen (temp) + 1;
-    copy = malloc (slen);
+    copy = GNUNET_malloc (slen);
     memcpy (copy, temp, slen);
     strtok_r (copy, ":", &rest);
     value = strtok_r (rest, "|", &rest2);
 
     while (NULL != value)
     {
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
+           "node_connections value %s\n",
+           value);
       node_connection = get_connect_value (value, node);
       GNUNET_CONTAINER_DLL_insert (node->node_connections_head,
                                    node->node_connections_tail,
@@ -2011,6 +2016,7 @@ node_connections (char *line, struct GNUNET_TESTING_NetjailNode *node)
       value = strtok_r (NULL, "|", &rest2);
 
     }
+    GNUNET_free (copy);
   }
 }
 
@@ -2056,13 +2062,7 @@ static int
 log_namespaces (void *cls, const struct GNUNET_ShortHashCode *id, void *value)
 {
   struct GNUNET_TESTING_NetjailNamespace *namespace = value;
-  struct GNUNET_TESTING_NetjailRouter *router = namespace->router;
 
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "router_tcp: %u router_udp: %u spaces: %u\n",
-       router->tcp_port,
-       router->udp_port,
-       namespace->namespace_n);
   GNUNET_CONTAINER_multishortmap_iterate (namespace->nodes, &log_nodes, NULL);
   return GNUNET_YES;
 }
@@ -2103,9 +2103,15 @@ GNUNET_TESTING_get_connections (unsigned int num, struct
   struct GNUNET_TESTING_NetjailNamespace *namespace;
   unsigned int namespace_n, node_m;
 
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "gaga 1\n");
   log_topo (topology);
-
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "gaga 2\n");
   hkey = GNUNET_new (struct GNUNET_ShortHashCode);
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "num: %u \n",
+       num);
   if (topology->nodes_x >= num)
   {
 
@@ -2118,10 +2124,10 @@ GNUNET_TESTING_get_connections (unsigned int num, struct
   }
   else
   {
-    namespace_n = (unsigned int) floor ((num - topology->nodes_x)
-                                        / topology->nodes_m);
+    namespace_n = (unsigned int) ceil ((double) (num - topology->nodes_x)
+                                       / topology->nodes_m);
     LOG (GNUNET_ERROR_TYPE_ERROR,
-         "num: %u nodes_x: %u nodes_m: %u namespace_n: %u\n",
+         "ceil num: %u nodes_x: %u nodes_m: %u namespace_n: %u\n",
          num,
          topology->nodes_x,
          topology->nodes_m,
@@ -2143,7 +2149,7 @@ GNUNET_TESTING_get_connections (unsigned int num, struct
                                                hkey);
   }
 
-
+  GNUNET_free (hkey);
   return node->node_connections_head;
 }
 
@@ -2172,9 +2178,73 @@ GNUNET_TESTING_get_pub_key (unsigned int num, struct
   GNUNET_CRYPTO_eddsa_key_get_public (priv_key,
                                       pub_key);
   peer->public_key = *pub_key;
+  GNUNET_free (priv_key);
+  GNUNET_free (pub_key);
   return peer;
 }
 
+
+int
+free_nodes_cb (void *cls,
+               const struct GNUNET_ShortHashCode *key,
+               void *value)
+{
+  (void) cls;
+  struct GNUNET_TESTING_NetjailNode *node = value;
+  struct GNUNET_TESTING_NodeConnection *pos_connection;
+  struct GNUNET_TESTING_NodeConnection *tmp_connection;
+  struct GNUNET_TESTING_AddressPrefix *pos_prefix;
+  struct GNUNET_TESTING_AddressPrefix *tmp_prefix;
+
+  pos_connection = node->node_connections_head;
+
+  while (NULL != pos_connection->next)
+  {
+    pos_prefix = pos_connection->address_prefixes_head;
+    while (NULL != pos_prefix->next)
+    {
+      tmp_prefix = pos_prefix->next;
+      GNUNET_free (pos_prefix);
+      pos_prefix = tmp_prefix;
+    }
+    tmp_connection = pos_connection->next;
+    GNUNET_free (pos_connection);
+    pos_connection = tmp_connection;
+  }
+  return GNUNET_OK;
+}
+
+
+int
+free_namespaces_cb (void *cls,
+                    const struct GNUNET_ShortHashCode *key,
+                    void *value)
+{
+  (void) cls;
+  struct GNUNET_TESTING_NetjailNamespace *namespace = value;
+
+  GNUNET_free (namespace->router);
+  GNUNET_CONTAINER_multishortmap_iterate (namespace->nodes, free_nodes_cb,
+                                          NULL);
+  return GNUNET_OK;
+
+}
+
+
+/**
+ * Deallocate memory of the struct GNUNET_TESTING_NetjailTopology.
+ *
+ * @param topology The GNUNET_TESTING_NetjailTopology to be deallocated.
+ */
+void
+GNUNET_TESTING_free_topology (struct GNUNET_TESTING_NetjailTopology *topology)
+{
+  GNUNET_CONTAINER_multishortmap_iterate (topology->map_namespaces,
+                                          free_namespaces_cb, NULL);
+  GNUNET_CONTAINER_multishortmap_iterate (topology->map_globals, free_nodes_cb,
+                                          NULL);
+  GNUNET_free (topology);
+}
 
 /**
  * Calculate the unique id identifying a node from a given connction.
@@ -2252,7 +2322,7 @@ GNUNET_TESTING_get_address (struct GNUNET_TESTING_NodeConnection *connection,
   }
   else
   {
-    GNUNET_break (0);
+    GNUNET_assert (0);
   }
 
   return addr;
@@ -2296,23 +2366,18 @@ GNUNET_TESTING_get_topo_from_file (const char *filename)
   uint64_t fs;
   char *data;
   char *token;
-  char *key;
+  char *key = NULL;
   unsigned int out;
   char *rest = NULL;
   char *value;
+  char *value2;
   int ret;
-  struct GNUNET_TESTING_NetjailTopology *topo = GNUNET_new (struct
-                                                            GNUNET_TESTING_NetjailTopology);
+  struct GNUNET_TESTING_NetjailTopology *topo;
   struct GNUNET_TESTING_NetjailNode *node;
   struct GNUNET_TESTING_NetjailRouter *router;
   struct GNUNET_TESTING_NetjailNamespace *namespace;
   struct GNUNET_ShortHashCode *hkey;
   struct GNUNET_HashCode hc;
-
-  topo->map_namespaces =
-    GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
-  topo->map_globals =
-    GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
 
   if (GNUNET_YES != GNUNET_DISK_file_test (filename))
   {
@@ -2339,14 +2404,22 @@ GNUNET_TESTING_get_topo_from_file (const char *filename)
     return NULL;
   }
 
-  LOG (GNUNET_ERROR_TYPE_ERROR,
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
        "data: %s\n",
        data);
 
+  data[fs] = '\0';
   token = strtok_r (data, "\n", &rest);
+  topo = GNUNET_new (struct GNUNET_TESTING_NetjailTopology);
+  topo->map_namespaces =
+    GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
+  topo->map_globals =
+    GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
 
   while (NULL != token)
   {
+    if (NULL != key)
+      free (key);
     key = get_key (token);
     LOG (GNUNET_ERROR_TYPE_ERROR,
          "In the loop with token: %s beginning with %s\n",
@@ -2457,12 +2530,12 @@ GNUNET_TESTING_get_topo_from_file (const char *filename)
 
       LOG (GNUNET_ERROR_TYPE_ERROR,
            "Get value for key udp_port on R.\n");
-      value = get_value ("udp_port", token);
-      ret = sscanf (value, "%u", &(router->udp_port));
+      value2 = get_value ("udp_port", token);
+      ret = sscanf (value2, "%u", &(router->udp_port));
       GNUNET_break (0 != ret && 1 >= router->udp_port);
       LOG (GNUNET_ERROR_TYPE_ERROR,
            "udp_port: %s\n",
-           value);
+           value2);
 
       if (GNUNET_YES == GNUNET_CONTAINER_multishortmap_contains (
             topo->map_namespaces,
@@ -2554,6 +2627,7 @@ GNUNET_TESTING_get_topo_from_file (const char *filename)
     }
     token = strtok_r (NULL, "\n", &rest);
   }
+  GNUNET_free (data);
 
   return topo;
 }

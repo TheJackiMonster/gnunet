@@ -2119,10 +2119,9 @@ tcp_address_to_sockaddr_port_only (const char *bindto, unsigned int *port)
  * @param bindto String we extract the address part from.
  * @return The extracted address string.
  */
-static char *
-extract_address (const char *bindto)
+static void
+extract_address (const char *bindto, char **addr)
 {
-
   char *start;
   char *token;
   char *cp;
@@ -2147,6 +2146,7 @@ extract_address (const char *bindto)
   {
     start++;   /* skip over '['*/
     cp[strlen (cp) - 1] = '\0';  /* eat ']'*/
+    *addr = GNUNET_strdup (start);
   }
   else
   {
@@ -2154,23 +2154,20 @@ extract_address (const char *bindto)
     if (strlen (bindto) == strlen (token))
     {
       token = strtok_r (cp, ":", &rest);
+      *addr = strdup (token);
     }
     else
     {
       token++;
       res = GNUNET_strdup (token);
-      GNUNET_free (cp);
-      return res;
+      *addr = GNUNET_strdup (res);
     }
   }
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "extract address 3\n");
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "extract address with start %s\n",
-              start);
-
-  return GNUNET_strdup (start);
+              "tcp address: %s\n",
+              *addr);
+  GNUNET_free (cp);
 }
 
 
@@ -2241,6 +2238,7 @@ extract_port (const char *addr_and_port)
       GNUNET_free (cp);
       return 0;
     }
+    GNUNET_free (cp);
   }
   else
   {
@@ -2249,7 +2247,6 @@ extract_port (const char *addr_and_port)
     /* interpret missing port as 0, aka pick any free one */
     port = 0;
   }
-
 
   return port;
 }
@@ -2269,10 +2266,11 @@ tcp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
   unsigned int port;
   struct sockaddr_in v4;
   struct sockaddr_in6 v6;
-  char *start;
+  char *start = GNUNET_malloc (sizeof(bindto));
 
   // cp = GNUNET_strdup (bindto);
-  start = extract_address (bindto);
+  start = GNUNET_malloc (sizeof(bindto));
+  extract_address (bindto, &start);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "start %s\n",
@@ -3604,7 +3602,8 @@ run (void *cls,
     return;
   }
 
-  start = extract_address (bindto);
+  start = GNUNET_malloc (sizeof(bindto));
+  extract_address (bindto, &start);
 
   if (1 == inet_pton (AF_INET, start, &v4.sin_addr))
   {

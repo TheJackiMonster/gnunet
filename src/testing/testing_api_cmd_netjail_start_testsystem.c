@@ -67,6 +67,12 @@ struct HelperMessage
 struct NetJailState
 {
   /**
+   * Global state of the interpreter, used by a command
+   * to access information about other commands.
+   */
+  struct GNUNET_TESTING_Interpreter *is;
+
+  /**
    * Context for our asynchronous completion.
    */
   struct GNUNET_TESTING_AsyncContext ac;
@@ -75,12 +81,6 @@ struct NetJailState
    * The complete topology information.
    */
   struct GNUNET_TESTING_NetjailTopology *topology;
-
-  /**
-   * Pointer to the return value of the test.
-   *
-   */
-  unsigned int *rv;
 
   /**
    * Head of the DLL which stores messages received by the helper.
@@ -254,6 +254,7 @@ netjail_exec_cleanup (void *cls)
                                  tbc_pos);
     GNUNET_free (tbc_pos);
   }
+  GNUNET_TESTING_free_topology (ns->topology);
   GNUNET_free (ns);
 }
 
@@ -429,18 +430,63 @@ helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
   struct NetJailState *ns = cls;// tbc->ns;
   struct HelperMessage *hp_msg;
   unsigned int total_number = ns->local_m * ns->global_n + ns->known;
+  // uint16_t message_type = ntohs (message->type);
 
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "total %u sysstarted %u peersstarted %u prep %u finished %u %u %u %u\n",
-       total_number,
-       ns->number_of_testsystems_started,
-       ns->number_of_peers_started,
-       ns->number_of_local_tests_prepared,
-       ns->number_of_local_tests_finished,
-       ns->local_m,
-       ns->global_n,
-       ns->known);
+  /*switch (message_type)
+  {
+  case GNUNET_MESSAGE_TYPE_CMDS_HELPER_REPLY:
+    ns->number_of_testsystems_started++;
+    break;
+  case GNUNET_MESSAGE_TYPE_CMDS_HELPER_PEER_STARTED:
+    ns->number_of_peers_started++;
+    if (ns->number_of_peers_started == total_number)
+    {
+      for (int i = 1; i <= ns->known; i++)
+      {
+        send_all_peers_started (0,i, ns);
+      }
+      for (int i = 1; i <= ns->global_n; i++)
+      {
+        for (int j = 1; j <= ns->local_m; j++)
+        {
+          send_all_peers_started (i,j, ns);
+        }
+      }
+      ns->number_of_peers_started = 0;
+    }
+    break;
+  case GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_TEST_PREPARED:
+    ns->number_of_local_tests_prepared++;
+    if (ns->number_of_local_tests_prepared == total_number)
+    {
+      for (int i = 1; i <= ns->known; i++)
+      {
+        send_all_local_tests_prepared (0,i, ns);
+      }
 
+      for (int i = 1; i <= ns->global_n; i++)
+      {
+        for (int j = 1; j <= ns->local_m; j++)
+        {
+          send_all_local_tests_prepared (i,j, ns);
+        }
+      }
+    }
+    break;
+  case GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_FINISHED:
+    ns->number_of_local_tests_finished++;
+    if (ns->number_of_local_tests_finished == total_number)
+    {
+      GNUNET_TESTING_async_finish (&ns->ac);
+    }
+    break;
+  default:
+    hp_msg = GNUNET_new (struct HelperMessage);
+    hp_msg->bytes_msg = message->size;
+    memcpy (&hp_msg[1], message, message->size);
+    GNUNET_CONTAINER_DLL_insert (ns->hp_messages_head, ns->hp_messages_tail,
+                                 hp_msg);
+                                 }*/
   if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_REPLY == ntohs (message->type))
   {
     ns->number_of_testsystems_started++;
@@ -505,7 +551,16 @@ helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
   }
 
 
-
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "total %u sysstarted %u peersstarted %u prep %u finished %u %u %u %u\n",
+       total_number,
+       ns->number_of_testsystems_started,
+       ns->number_of_peers_started,
+       ns->number_of_local_tests_prepared,
+       ns->number_of_local_tests_finished,
+       ns->local_m,
+       ns->global_n,
+       ns->known);
 
 
 
@@ -524,7 +579,7 @@ exp_cb (void *cls)
   struct TestingSystemCount *tbc = cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Called exp_cb.\n");
-  GNUNET_TESTING_interpreter_fail (tbc->ns->ac.is);
+  GNUNET_TESTING_async_fail (&(tbc->ns->ac));
 }
 
 
@@ -560,8 +615,7 @@ create_helper_init_msg_ (const char *plugin_name)
  *
  */
 static void
-start_helper (struct NetJailState *ns, struct
-              GNUNET_CONFIGURATION_Handle *config,
+start_helper (struct NetJailState *ns,
               unsigned int m,
               unsigned int n)
 {
@@ -582,7 +636,6 @@ start_helper (struct NetJailState *ns, struct
   struct GNUNET_TESTING_NetjailTopology *topology = ns->topology;
   struct GNUNET_TESTING_NetjailNode *node;
   struct GNUNET_TESTING_NetjailNamespace *namespace;
-  unsigned int *rv = ns->rv;
 
 
   if (0 == n)
@@ -633,14 +686,14 @@ start_helper (struct NetJailState *ns, struct
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "No SUID for %s!\n",
                 NETJAIL_EXEC_SCRIPT);
-    *rv = 1;
+    GNUNET_TESTING_interpreter_fail (ns->is);
   }
   else if (GNUNET_NO == helper_check)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "%s not found!\n",
                 NETJAIL_EXEC_SCRIPT);
-    *rv = 1;
+    GNUNET_TESTING_interpreter_fail (ns->is);
   }
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -729,8 +782,9 @@ start_helper (struct NetJailState *ns, struct
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Send handle is NULL!\n");
     GNUNET_free (msg);
-    *rv = 1;
+    GNUNET_TESTING_interpreter_fail (ns->is);
   }
+  GNUNET_free (hkey);
 }
 
 
@@ -746,12 +800,11 @@ netjail_exec_run (void *cls,
                   struct GNUNET_TESTING_Interpreter *is)
 {
   struct NetJailState *ns = cls;
-  struct GNUNET_CONFIGURATION_Handle *config =
-    GNUNET_CONFIGURATION_create ();
 
+  ns->is = is;
   for (int i = 1; i <= ns->known; i++)
   {
-    start_helper (ns, config,
+    start_helper (ns,
                   i,
                   0);
   }
@@ -760,7 +813,7 @@ netjail_exec_run (void *cls,
   {
     for (int j = 1; j <= ns->local_m; j++)
     {
-      start_helper (ns, config,
+      start_helper (ns,
                     j,
                     i);
     }

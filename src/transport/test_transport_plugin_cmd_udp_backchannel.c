@@ -58,11 +58,17 @@ struct TestState
    *
    */
   char *cfgname;
+
+  /**
+   * The complete topology information.
+   */
+  struct GNUNET_TESTING_NetjailTopology *topology;
 };
 
 static struct GNUNET_TESTING_Command block_send;
 
 static struct GNUNET_TESTING_Command connect_peers;
+
 static struct GNUNET_TESTING_Command local_prepared;
 
 
@@ -110,7 +116,8 @@ all_peers_started ()
 
   GNUNET_TESTING_get_trait_async_context (&block_send,
                                           &ac);
-  if ((NULL == ac) || (NULL == ac->cont))
+  GNUNET_assert  (NULL != ac);
+  if ((NULL == ac->cont))
     GNUNET_TESTING_async_fail (ac);
   else
     GNUNET_TESTING_async_finish (ac);
@@ -142,6 +149,7 @@ handle_result (void *cls,
 
   GNUNET_free (ts->testdir);
   GNUNET_free (ts->cfgname);
+  GNUNET_TESTING_free_topology (ts->topology);
   GNUNET_free (ts);
 }
 
@@ -174,10 +182,11 @@ static void
 all_local_tests_prepared ()
 {
   struct LocalPreparedState *lfs;
+
   GNUNET_TESTING_get_trait_local_prepared_state (&local_prepared,
                                                  &lfs);
-
-  if ((NULL == &lfs->ac) || (NULL == lfs->ac.cont))
+  GNUNET_assert (NULL != &lfs->ac);
+  if (NULL == lfs->ac.cont)
     GNUNET_TESTING_async_fail (&lfs->ac);
   else
     GNUNET_TESTING_async_finish (&lfs->ac);
@@ -209,6 +218,8 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
 
   struct GNUNET_TESTING_NetjailTopology *topology =
     GNUNET_TESTING_get_topo_from_file (TOPOLOGY_CONFIG);
+
+  ts->topology = topology;
 
   sscanf (m, "%u", &m_int);
   sscanf (n, "%u", &n_int);

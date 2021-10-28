@@ -63,12 +63,6 @@ struct ConnectPeersState
   const char *start_peer_label;
 
   /**
-   * The peer identity of this peer.
-   *
-   */
-  struct GNUNET_PeerIdentity *id;
-
-  /**
    * The topology of the test setup.
    */
   struct GNUNET_TESTING_NetjailTopology *topology;
@@ -222,16 +216,19 @@ GNUNET_TRANSPORT_cmd_connect_peers (const char *label,
  * Create command.
  *
  * @param label name for command.
- * @param m The number of the local node of the actual network namespace.
- * @param n The number of the actual namespace.
- * @param num Number globally identifying the node.
  * @param start_peer_label Label of the cmd to start a peer.
+ * @param start_peer_label Label of the cmd which started the test system.
+ * @param num Number globally identifying the node.
+ * @param The topology for the test setup.
  * @return command.
  */
 struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_send_simple (const char *label,
                                   const char *start_peer_label,
-                                  uint32_t num);
+                                  const char *create_label,
+                                  uint32_t num,
+                                  struct GNUNET_TESTING_NetjailTopology *
+                                  topology);
 
 
 /**

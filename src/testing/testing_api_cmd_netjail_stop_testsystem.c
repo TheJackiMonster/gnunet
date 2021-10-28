@@ -35,6 +35,11 @@
 struct StopHelperState
 {
 
+  /**
+   * The complete topology information.
+   */
+  struct GNUNET_TESTING_NetjailTopology *topology;
+
   const char *helper_start_label;
 
   /**
@@ -63,21 +68,10 @@ struct StopHelperState
 static void
 stop_testing_system_cleanup (void *cls)
 {
+  struct StopHelperState *shs = cls;
 
-}
-
-
-/**
- * Trait function of this cmd does nothing.
- *
- */
-static int
-stop_testing_system_traits (void *cls,
-                            const void **ret,
-                            const char *trait,
-                            unsigned int index)
-{
-  return GNUNET_OK;
+  GNUNET_TESTING_free_topology (shs->topology);
+  GNUNET_free (shs);
 }
 
 
@@ -148,13 +142,13 @@ GNUNET_TESTING_cmd_stop_testing_system (const char *label,
   shs->local_m = topology->nodes_m;
   shs->global_n = topology->namespaces_n;
   shs->known = topology->nodes_x;
+  shs->topology = topology;
 
   struct GNUNET_TESTING_Command cmd = {
     .cls = shs,
     .label = label,
     .run = &stop_testing_system_run,
     .cleanup = &stop_testing_system_cleanup,
-    .traits = &stop_testing_system_traits
   };
 
   return cmd;

@@ -72,6 +72,10 @@ connect_peers_run (void *cls,
 
   cps->tl_system = tl_system;
 
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "cps->num: %u \n",
+       cps->num);
+
   cps->node_connections_head = GNUNET_TESTING_get_connections (cps->num,
                                                                cps->topology);
 
@@ -84,28 +88,15 @@ connect_peers_run (void *cls,
          pos_prefix =
            pos_prefix->next)
     {
-
-      LOG (GNUNET_ERROR_TYPE_ERROR,
-           "prefix: %s\n",
-           pos_prefix->address_prefix);
-
       addr = GNUNET_TESTING_get_address (pos_connection,
                                          pos_prefix->address_prefix);
-
       peer = GNUNET_TESTING_get_pub_key (num, tl_system);
-
-      LOG (GNUNET_ERROR_TYPE_ERROR,
-           "num: %u pub_key %s addr: %s\n",
-           num,
-           GNUNET_CRYPTO_eddsa_public_key_to_string (&(peer->public_key)),
-           addr);
-
-      cps->id = peer;
-
       GNUNET_TRANSPORT_application_validate (ah,
                                              peer,
                                              nt,
                                              addr);
+      GNUNET_free (peer);
+      GNUNET_free (addr);
     }
   }
   cps->con_num = con_num;
@@ -136,6 +127,7 @@ notify_connect (void *cls,
     if (0 == GNUNET_memcmp (peer,
                             peer_connection))
       con_num++;
+    GNUNET_free (peer_connection);
   }
 
 
@@ -156,7 +148,6 @@ connect_peers_cleanup (void *cls)
 {
   struct ConnectPeersState *cps = cls;
 
-  GNUNET_free (cps->id);
   GNUNET_free (cps);
 }
 

@@ -681,6 +681,15 @@ GNUNET_TESTING_get_address (struct GNUNET_TESTING_NodeConnection *connection,
 
 
 /**
+ * Deallocate memory of the struct GNUNET_TESTING_NetjailTopology.
+ *
+ * @param topology The GNUNET_TESTING_NetjailTopology to be deallocated.
+ */
+void
+GNUNET_TESTING_free_topology (struct GNUNET_TESTING_NetjailTopology *topology);
+
+
+/**
  * Calculate the unique id identifying a node from a given connction.
  *
  * @param node_connection The connection we calculate the id from.

@@ -235,6 +235,10 @@ start_peer_run (void *cls,
 
   sps->tl_system = tl_system;
 
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "Creating testing library with key number %u\n",
+       sps->no);
+
   if (GNUNET_SYSERR ==
       GNUNET_TESTING_configuration_create (tl_system,
                                            sps->cfg))
@@ -255,9 +259,10 @@ start_peer_run (void *cls,
   if (NULL == sps->peer)
   {
     LOG (GNUNET_ERROR_TYPE_ERROR,
-         "Testing library failed to create unique configuration based on `%s': `%s'\n",
+         "Testing library failed to create unique configuration based on `%s': `%s' with key number %u\n",
          sps->cfgname,
-         emsg);
+         emsg,
+         sps->no);
     GNUNET_free (emsg);
     GNUNET_TESTING_interpreter_fail (is);
     return;
@@ -337,6 +342,11 @@ start_peer_run (void *cls,
     return;
   }
   sps->rh_task = GNUNET_SCHEDULER_add_now (retrieve_hello, sps);
+  GNUNET_free (home);
+  GNUNET_free (transport_unix_path);
+  GNUNET_free (tcp_communicator_unix_path);
+  GNUNET_free (udp_communicator_unix_path);
+  GNUNET_free (bindto);
 }
 
 
