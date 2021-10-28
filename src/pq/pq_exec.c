@@ -86,6 +86,11 @@ GNUNET_PQ_exec_statements (struct GNUNET_PQ_Context *db,
                 db);
     result = PQexec (db->conn,
                      es[i].sql);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Running statement `%s' on %p finished (%d)\n",
+                es[i].sql,
+                db,
+                PGRES_COMMAND_OK == PQresultStatus (result));
     if ((GNUNET_NO == es[i].ignore_errors) &&
         (PGRES_COMMAND_OK != PQresultStatus (result)))
     {
