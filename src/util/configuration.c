@@ -2383,31 +2383,34 @@ GNUNET_CONFIGURATION_default (void)
   char *cfgname = NULL;
   struct GNUNET_CONFIGURATION_Handle *cfg;
 
-  /* FIXME:  Why are we doing this?  Needs some commentary! */
+  /* Makes sure function implicitly looking at the installation directory (for
+     example GNUNET_CONFIGURATION_load further down) use GNUnet's environment
+     instead of the caller's.  It's done at the start to make sure as many
+     functions as possible are directed to the proper paths. */
   GNUNET_OS_init (dpd);
 
   cfg = GNUNET_CONFIGURATION_create ();
 
   /* First, try user configuration. */
   if (NULL != xdg)
-    GNUNET_asprintf (&cfgname, "%s/%s", xdg, pd->config_file);
+    GNUNET_asprintf (&cfgname, "%s/%s", xdg, dpd->config_file);
   else
-    cfgname = GNUNET_strdup (pd->user_config_file);
+    cfgname = GNUNET_strdup (dpd->user_config_file);
 
   /* If user config doesn't exist, try in
      /etc/<projdir>/<cfgfile> and /etc/<cfgfile> */
   if (GNUNET_OK != GNUNET_DISK_file_test (cfgname))
   {
     GNUNET_free (cfgname);
-    GNUNET_asprintf (&cfgname, "/etc/%s", pd->config_file);
+    GNUNET_asprintf (&cfgname, "/etc/%s", dpd->config_file);
   }
   if (GNUNET_OK != GNUNET_DISK_file_test (cfgname))
   {
     GNUNET_free (cfgname);
     GNUNET_asprintf (&cfgname,
                      "/etc/%s/%s",
-                     pd->project_dirname,
-                     pd->config_file);
+                     dpd->project_dirname,
+                     dpd->config_file);
   }
   if (GNUNET_OK != GNUNET_DISK_file_test (cfgname))
   {
