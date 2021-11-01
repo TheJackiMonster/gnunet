@@ -1260,7 +1260,7 @@ GNUNET_CRYPTO_ecdsa_public_key_from_string (
  * @param priv where to store the private key
  * @return #GNUNET_OK on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_private_key_from_string (
   const char *enc,
   size_t enclen,
@@ -1318,7 +1318,7 @@ GNUNET_CRYPTO_ecdsa_key_from_file (const char *filename,
  * @return #GNUNET_OK on success, #GNUNET_NO if @a do_create was set but
  *         we found an existing file, #GNUNET_SYSERR on failure
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_key_from_file (const char *filename,
                                    int do_create,
                                    struct GNUNET_CRYPTO_EddsaPrivateKey *pkey);
@@ -1794,7 +1794,7 @@ GNUNET_CRYPTO_ecdsa_sign_ (
  * @param pub public key of the signer
  * @returns #GNUNET_OK if ok, #GNUNET_SYSERR if invalid
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_verify_ (
   uint32_t purpose,
   const struct GNUNET_CRYPTO_EccSignaturePurpose *validate,
@@ -1847,7 +1847,7 @@ GNUNET_CRYPTO_eddsa_verify_ (
  * @param pub public key of the signer
  * @returns #GNUNET_OK if ok, #GNUNET_SYSERR if invalid
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_ecdsa_verify_ (
   uint32_t purpose,
   const struct GNUNET_CRYPTO_EccSignaturePurpose *validate,
@@ -2257,7 +2257,8 @@ GNUNET_CRYPTO_rsa_public_key_encode (
  * @return NULL on error
  */
 struct GNUNET_CRYPTO_RsaPublicKey *
-GNUNET_CRYPTO_rsa_public_key_decode (const char *buf, size_t len);
+GNUNET_CRYPTO_rsa_public_key_decode (const char *buf,
+                                     size_t len);
 
 
 /**
@@ -2289,9 +2290,9 @@ GNUNET_CRYPTO_rsa_signature_cmp (const struct GNUNET_CRYPTO_RsaSignature *s1,
  * @return 0 if the two are equal
  */
 int
-GNUNET_CRYPTO_rsa_private_key_cmp (const struct GNUNET_CRYPTO_RsaPrivateKey *p1,
-                                   const struct
-                                   GNUNET_CRYPTO_RsaPrivateKey *p2);
+GNUNET_CRYPTO_rsa_private_key_cmp (
+  const struct GNUNET_CRYPTO_RsaPrivateKey *p1,
+  const struct GNUNET_CRYPTO_RsaPrivateKey *p2);
 
 
 /**
