@@ -754,25 +754,9 @@ GNUNET_OS_get_suid_binary_path (const struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
-/**
- * Check whether an executable exists and possibly if the suid bit is
- * set on the file.  Attempts to find the file using the current PATH
- * environment variable as a search path.
- *
- * @param binary the name of the file to check.
- *        W32: must not have an .exe suffix.
- * @param check_suid input true if the binary should be checked for SUID (*nix)
- *        W32: checks if the program has sufficient privileges by executing this
- *             binary with the -d flag. -d omits a programs main loop and only
- *             executes all privileged operations in an binary.
- * @param params parameters used for w32 privilege checking (can be NULL for != w32 )
- * @return #GNUNET_YES if the file is SUID (*nix) or can be executed with current privileges (W32),
- *         #GNUNET_NO if not SUID (but binary exists),
- *         #GNUNET_SYSERR on error (no such binary or not executable)
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_OS_check_helper_binary (const char *binary,
-                               int check_suid,
+                               bool check_suid,
                                const char *params)
 {
   struct stat statbuf;
