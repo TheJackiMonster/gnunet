@@ -239,6 +239,9 @@ gnunet_qr_LDADD = \
   libgnunetutil.la \
   $(GN_LIBINTL)
 gnunet_qr_LDFLAGS= -lzbar
+if HAVE_PNG
+gnunet_qr_LDFLAGS += -lpng
+endif
 
 plugin_LTLIBRARIES = \
   libgnunet_plugin_utiltest.la

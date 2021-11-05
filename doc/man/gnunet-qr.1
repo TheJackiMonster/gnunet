@@ -31,6 +31,7 @@
 .Nm
 .Op Fl c Ar FILENAME | Fl -config= Ns Ar FILENAME
 .Op Fl d Ar DEVICE | Fl -device= Ns Ar DEVICE
+.Op Fl f Ar FILENAME | Fl -file= Ns Ar FILENAME
 .Op Fl h | -help
 .Op Fl s | -silent
 .Op Fl v | -verbose
@@ -44,6 +45,10 @@ Use the configuration file
 .It Fl d Ar DEVICE | Fl -device= Ns Ar DEVICE
 Use device
 .Ar DEVICE .
+.It Fl f Ar FILENAME | Fl -file= Ns Ar FILENAME
+Read a QR code from the PNG-encoded file
+.Ar FILENAME .
+Available only if GNUnet is built with libpng support.
 .It Fl h | -help
 Print short help on options.
 .It Fl s | -silent

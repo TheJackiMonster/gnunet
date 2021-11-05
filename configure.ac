@@ -781,6 +781,37 @@ AS_IF([test "x$zbar" = x1],
       [AC_DEFINE([HAVE_ZBAR],[1],[Have zbar library])],
       [AC_DEFINE([HAVE_ZBAR],[0],[Lacking zbar library])])
 
+# check for libpng library
+# this check is for an optional feature of gnunet-qr.
+# the PNG format was chosen mostly arbitrary: while it's true that more modern
+# formats exists that can be used in stead of PNG, it's also true that it's
+# easier for systems to ship with libpng than others; also, a black-or-white
+# picture of squares is one of the cases where PNG shines the most.
+png=0
+AS_IF([test "x$zbar" = "x1"],
+  [AC_MSG_CHECKING(for libpng)
+   AC_ARG_WITH(png,
+     [  --with-png=PREFIX (base of libpng installation)],
+     [AC_MSG_RESULT([$with_png])
+      AS_CASE([$with_png],
+        [no],[],
+        [yes],[CHECK_LIBHEADER(PNG, png, png_create_read_struct, png.h, png=1,,)],
+        [
+          LDFLAGS="-L$with_png/lib $LDFLAGS"
+          CPPFLAGS="-I$with_png/include $CPPFLAGS"
+          AC_CHECK_HEADERS(png.h,
+            AC_CHECK_LIB([png], [png_create_read_struct],
+              EXT_LIB_PATH="-L$with_png/lib $EXT_LIB_PATH"
+              png=1))
+        ])
+     ],
+     [AC_MSG_RESULT([--with-png not specified])
+      CHECK_LIBHEADER(PNG, png, png_create_read_struct, png.h, png=1,,)])
+  AM_CONDITIONAL(HAVE_PNG, [test "$png" = 1])
+  AS_IF([test "x$png" = "x1"],
+        [AC_DEFINE([HAVE_PNG],[1],[Have png library])],
+        [AC_DEFINE([HAVE_PNG],[0],[Lacking png library])])])
+
 # check for libpabc library
 pabc=0
 AC_MSG_CHECKING(for libpabc)
@@ -2090,6 +2121,10 @@ AS_IF([test "$extractor" != 1],
 AS_IF([test "x$zbar" = "x1"],
       [libzbar_msg="yes"],
       [libzbar_msg="no (gnunet-qr will not be built)"])
+# -- libpng
+AS_IF([test "x$png" = "x1"],
+      [libpng_msg="yes"],
+      [libpng_msg="no (gnunet-qr will not scan images)"])
 # -- libgnurl
 AS_IF([test "$gnurl" = "0"],
       [AS_IF([test "x$curl" = "xfalse"],
@@ -2186,6 +2221,7 @@ ifconfig:                       ${ifconfig_msg}
 upnpc:                          ${upnpc_msg}
 gnutls:                         ${gnutls_msg}
 libzbar:                        ${libzbar_msg}
+libpng:                         ${libpng_msg}
 java:                           ${java_msg}
 libidn:                         ${libidn1_msg}${libidn2_msg}
 libopus:                        ${libopus_msg}

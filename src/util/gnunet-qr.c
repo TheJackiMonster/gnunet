@@ -24,302 +24,500 @@
  * @author Christian Grothoff (error handling)
  */
 #include <stdio.h>
-#include <zbar.h>
 #include <stdbool.h>
+#include <signal.h>
+#include <zbar.h>
+
 #include "platform.h"
 #include "gnunet_util_lib.h"
 
-#define LOG(fmt, ...)  \
-  if (verbose) \
-  printf (fmt, ## __VA_ARGS__)
+#if HAVE_PNG
+#include <png.h>
+#endif
 
 /**
- * Video device to capture from. Sane default for GNU/Linux systems.
+ * Global exit code.
+ * Set to non-zero if an error occurs after the scheduler has started.
  */
-static char *device;
+static int exit_code = 0;
 
 /**
- * --verbose option
+ * Video device to capture from.
+ * Used by default if PNG support is disabled or no PNG file is specified.
+ * Defaults to /dev/video0.
  */
-static unsigned int verbose;
+static char *device = NULL;
 
+#if HAVE_PNG
 /**
- * --silent option
+ * Name of the file to read from.
+ * If the file is not a PNG-encoded image of a QR code, an error will be
+ * thrown.
  */
-static int silent = false;
+static char *pngfilename = NULL;
+#endif
 
 /**
- * Handler exit code
+ * Requested verbosity.
  */
-static long unsigned int exit_code = 0;
+static unsigned int verbosity = 0;
 
 /**
- * Helper process we started.
+ * Child process handle.
  */
-static struct GNUNET_OS_Process *p;
+struct GNUNET_OS_Process *childproc = NULL;
 
 /**
- * Child signal handler.
+ * Child process handle for waiting.
  */
-static struct GNUNET_SIGNAL_Context *shc_chld;
+static struct GNUNET_ChildWaitHandle *waitchildproc = NULL;
 
 /**
- * Pipe used to communicate child death via signal.
+ * Macro to handle verbosity when printing messages.
  */
-static struct GNUNET_DISK_PipeHandle *sigpipe;
+#define LOG(fmt, ...)                                           \
+  do                                                            \
+  {                                                             \
+    if (0 < verbosity)                                          \
+    {                                                           \
+      GNUNET_log (GNUNET_ERROR_TYPE_INFO, fmt, ##__VA_ARGS__);  \
+      if (verbosity > 1)                                        \
+      {                                                         \
+        fprintf (stdout, fmt, ##__VA_ARGS__);                   \
+      }                                                         \
+    }                                                           \
+  }                                                             \
+  while (0)
 
 /**
- * Process ID of this process at the time we installed the various
- * signal handlers.
- */
-static pid_t my_pid;
-
-/**
- * Task triggered whenever we receive a SIGCHLD (child
- * process died) or when user presses CTRL-C.
- *
- * @param cls closure, NULL
+ * Executed when program is terminating.
  */
 static void
-maint_child_death (void *cls)
+shutdown_program (void *cls)
 {
-  enum GNUNET_OS_ProcessStatusType type;
-
-  if ((GNUNET_OK != GNUNET_OS_process_status (p, &type, &exit_code)) ||
-      (type != GNUNET_OS_PROCESS_EXITED))
-    GNUNET_break (0 == GNUNET_OS_process_kill (p, GNUNET_TERM_SIG));
-  GNUNET_SIGNAL_handler_uninstall (shc_chld);
-  shc_chld = NULL;
-  if (NULL != sigpipe)
+  if (NULL != waitchildproc)
   {
-    GNUNET_DISK_pipe_close (sigpipe);
-    sigpipe = NULL;
+    GNUNET_wait_child_cancel (waitchildproc);
   }
-  GNUNET_OS_process_destroy (p);
+  if (NULL != childproc)
+  {
+    /* A bit brutal, but this process is terminating so we're out of time */
+    GNUNET_OS_process_kill (childproc, SIGKILL);
+  }
 }
 
-
 /**
- * Signal handler called for signals that causes us to wait for the child process.
- */
-static void
-sighandler_chld ()
-{
-  static char c;
-  int old_errno = errno;        /* backup errno */
-
-  if (getpid () != my_pid)
-    _exit (1);                   /* we have fork'ed since the signal handler was created,
-                                  * ignore the signal, see https://gnunet.org/vfork discussion */
-  GNUNET_DISK_file_write (GNUNET_DISK_pipe_handle
-                            (sigpipe, GNUNET_DISK_PIPE_END_WRITE),
-                          &c, sizeof(c));
-  errno = old_errno;
-}
-
-
-/**
- * Dispatch URIs to the appropriate GNUnet helper process
+ * Callback executed when the child process terminates.
  *
  * @param cls closure
- * @param uri uri to dispatch
- * @param cfgfile name of the configuration file used (for saving, can be NULL!)
- * @param cfg configuration
+ * @param type status of the child process
+ * @param code the exit code of the child process
  */
 static void
-gnunet_uri (void *cls,
+wait_child (void *cls,
+            enum GNUNET_OS_ProcessStatusType type,
+            long unsigned int code)
+{
+  GNUNET_OS_process_destroy (childproc);
+  childproc = NULL;
+  waitchildproc = NULL;
+
+  char *uri = cls;
+
+  if (0 != exit_code)
+  {
+    fprintf (stdout, _("Failed to add URI %s\n"), uri);
+  }
+  else
+  {
+    fprintf (stdout, _("Added URI %s\n"), uri);
+  }
+
+  GNUNET_free (uri);
+
+  GNUNET_SCHEDULER_shutdown ();
+}
+
+/**
+ * Dispatch URIs to the appropriate GNUnet helper process.
+ *
+ * @param cls closure
+ * @param uri URI to dispatch
+ * @param cfgfile name of the configuration file in use
+ * @param cfg the configuration in use
+ */
+static void
+handle_uri (void *cls,
             const char *uri,
             const char *cfgfile,
             const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
-  const char *orig_uri;
-  const char *slash;
-  char *subsystem;
-  char *program;
-  struct GNUNET_SCHEDULER_Task *rt;
+  const char *cursor = uri;
 
-  orig_uri = uri;
   if (0 != strncasecmp ("gnunet://", uri, strlen ("gnunet://")))
   {
     fprintf (stderr,
-             _ ("Invalid URI: does not start with `%s'\n"),
-             "gnunet://");
+             _("Invalid URI: does not start with `gnunet://'\n"));
+    exit_code = 1;
     return;
   }
-  uri += strlen ("gnunet://");
-  if (NULL == (slash = strchr (uri, '/')))
+
+  cursor += strlen ("gnunet://");
+
+  const char *slash = strchr (cursor, '/');
+  if (NULL == slash)
   {
-    fprintf (stderr, _ ("Invalid URI: fails to specify subsystem\n"));
+    fprintf (stderr, _("Invalid URI: fails to specify a subsystem\n"));
+    exit_code = 1;
     return;
   }
-  subsystem = GNUNET_strndup (uri, slash - uri);
+
+  char *subsystem = GNUNET_strndup (cursor, slash - cursor);
+  char *program = NULL;
+
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_string (cfg, "uri", subsystem, &program))
   {
-    fprintf (stderr, _ ("No handler known for subsystem `%s'\n"), subsystem);
+    fprintf (stderr, _("No known handler for subsystem `%s'\n"), subsystem);
     GNUNET_free (subsystem);
+    exit_code = 1;
     return;
   }
+
   GNUNET_free (subsystem);
-  sigpipe = GNUNET_DISK_pipe (GNUNET_DISK_PF_NONE);
-  GNUNET_assert (NULL != sigpipe);
-  rt = GNUNET_SCHEDULER_add_read_file (
-    GNUNET_TIME_UNIT_FOREVER_REL,
-    GNUNET_DISK_pipe_handle (sigpipe, GNUNET_DISK_PIPE_END_READ),
-    &maint_child_death,
-    NULL);
-  my_pid = getpid ();
-  shc_chld = GNUNET_SIGNAL_handler_install (SIGCHLD,
-                                            &sighandler_chld);
 
+  char **childargv = NULL;
+  unsigned int childargc = 0;
+
+  for (const char *token=strtok (program, " ");
+       NULL!=token;
+       token=strtok(NULL, " "))
   {
-    char **argv = NULL;
-    unsigned int argc = 0;
-    char *u = GNUNET_strdup (program);
-
-    for (const char *tok = strtok (u, " ");
-         NULL != tok;
-         tok = strtok (NULL, " "))
-      GNUNET_array_append (argv,
-                           argc,
-                           GNUNET_strdup (tok));
-    GNUNET_array_append (argv,
-                         argc,
-                         GNUNET_strdup (orig_uri));
-    GNUNET_array_append (argv,
-                         argc,
-                         NULL);
-    p = GNUNET_OS_start_process_vap (GNUNET_OS_INHERIT_STD_ALL,
-                                     NULL,
-                                     NULL,
-                                     NULL,
-                                     argv[0],
-                                     argv);
-    for (unsigned int i = 0; i<argc - 1; i++)
-      GNUNET_free (argv[i]);
-    GNUNET_array_grow (argv,
-                       argc,
-                       0);
-    GNUNET_free (u);
+    GNUNET_array_append (childargv, childargc, GNUNET_strdup (token));
   }
-  if (NULL == p)
-    GNUNET_SCHEDULER_cancel (rt);
-  GNUNET_free (program);
+  GNUNET_array_append (childargv, childargc, GNUNET_strdup (uri));
+  GNUNET_array_append (childargv, childargc, NULL);
+
+  childproc = GNUNET_OS_start_process_vap (GNUNET_OS_INHERIT_STD_ALL,
+                                           NULL,
+                                           NULL,
+                                           NULL,
+                                           childargv[0],
+                                           childargv);
+  for (size_t i=0; i<childargc-1; ++i)
+  {
+    GNUNET_free (childargv[i]);
+  }
+
+  GNUNET_array_grow (childargv, childargc, 0);
+
+  if (NULL == childproc)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                _("Unable to start child process `%s'\n"),
+                program);
+    GNUNET_free (program);
+    exit_code = 1;
+    return;
+  }
+
+  waitchildproc = GNUNET_wait_child (childproc, &wait_child, (void *)uri);
 }
 
-
 /**
- * Obtain QR code 'symbol' from @a proc.
+ * Obtain a QR code symbol from @a proc.
  *
- * @param proc zbar processor to use
+ * @param proc the zbar processor to use
  * @return NULL on error
  */
 static const zbar_symbol_t *
 get_symbol (zbar_processor_t *proc)
 {
-  const zbar_symbol_set_t *symbols;
-  int rc;
-  int n;
-
   if (0 != zbar_processor_parse_config (proc, "enable"))
   {
     GNUNET_break (0);
     return NULL;
   }
 
-  /* initialize the Processor */
-  if (NULL == device)
-    device = GNUNET_strdup ("/dev/video0");
-  if (0 != (rc = zbar_processor_init (proc, device, 1)))
+  int r = zbar_processor_init (proc, device, 1);
+  if (0 != r)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Failed to open device `%s': %d\n",
+                _("Failed to open device: `%s': %d\n"),
                 device,
-                rc);
+                r);
     return NULL;
   }
 
-  /* enable the preview window */
-  if ((0 != (rc = zbar_processor_set_visible (proc, 1))) ||
-      (0 != (rc = zbar_processor_set_active (proc, 1))))
+  r = zbar_processor_set_visible (proc, 1);
+  r += zbar_processor_set_active (proc, 1);
+  if (0 != r)
   {
     GNUNET_break (0);
     return NULL;
   }
 
-  /* read at least one barcode (or until window closed) */
-  LOG ("Capturing\n");
-  n = zbar_process_one (proc, -1);
+  LOG (_("Capturing...\n"));
 
-  /* hide the preview window */
-  (void) zbar_processor_set_active (proc, 0);
-  (void) zbar_processor_set_visible (proc, 0);
+  int n = zbar_process_one (proc, -1);
+
+  zbar_processor_set_active (proc, 0);
+  zbar_processor_set_visible (proc, 0);
+
   if (-1 == n)
-    return NULL; /* likely user closed the window */
-  LOG ("Got %i images\n", n);
-  /* extract results */
-  symbols = zbar_processor_get_results (proc);
+  {
+    LOG (_("No captured images\n"));
+    return NULL;
+  }
+
+  LOG(_("Got %d images\n"), n);
+
+  const zbar_symbol_set_t *symbols = zbar_processor_get_results (proc);
   if (NULL == symbols)
   {
     GNUNET_break (0);
     return NULL;
   }
+
   return zbar_symbol_set_first_symbol (symbols);
 }
 
-
 /**
- * Run zbar QR code parser.
+ * Run the zbar QR code parser.
  *
- * @return NULL on error, otherwise the URI that we found
+ * @return NULL on error
  */
 static char *
-run_zbar ()
+run_zbar (void)
 {
-  zbar_processor_t *proc;
-  const char *data;
-  char *ret;
-  const zbar_symbol_t *symbol;
-
-  /* configure the Processor */
-  proc = zbar_processor_create (1);
+  zbar_processor_t *proc = zbar_processor_create (1);
   if (NULL == proc)
   {
     GNUNET_break (0);
     return NULL;
   }
 
-  symbol = get_symbol (proc);
+  if (NULL == device)
+  {
+    device = GNUNET_strdup ("/dev/video0");
+  }
+
+  const zbar_symbol_t *symbol = get_symbol (proc);
   if (NULL == symbol)
   {
     zbar_processor_destroy (proc);
     return NULL;
   }
-  data = zbar_symbol_get_data (symbol);
+
+  const char *data = zbar_symbol_get_data (symbol);
   if (NULL == data)
   {
     GNUNET_break (0);
     zbar_processor_destroy (proc);
     return NULL;
   }
-  LOG ("Found %s \"%s\"\n",
+
+  LOG (_("Found %s: \"%s\"\n"),
        zbar_get_symbol_name (zbar_symbol_get_type (symbol)),
        data);
-  ret = GNUNET_strdup (data);
-  /* clean up */
+
+  char *copy = GNUNET_strdup (data);
+
   zbar_processor_destroy (proc);
   GNUNET_free (device);
-  return ret;
+
+  return copy;
 }
 
+#if HAVE_PNG
+/**
+ * Decode the PNG-encoded file to a raw byte buffer.
+ *
+ * @param width[out] where to store the image width
+ * @param height[out] where to store the image height
+ */
+static char *
+png_parse (uint32_t *width, uint32_t *height)
+{
+  if (NULL == width || NULL == height)
+  {
+    return NULL;
+  }
+
+  FILE *pngfile = fopen (pngfilename, "rb");
+  if (NULL == pngfile)
+  {
+    return NULL;
+  }
+
+  unsigned char header[8];
+  if (8 != fread (header, 1, 8, pngfile))
+  {
+    fclose (pngfile);
+    return NULL;
+  }
+
+  if (png_sig_cmp (header, 0, 8))
+  {
+    fclose (pngfile);
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                _("%s is not a PNG file\n"),
+                pngfilename);
+    fprintf (stderr, _("%s is not a PNG file\n"), pngfilename);
+    return NULL;
+  }
+
+  /* libpng's default error handling might or might not conflict with GNUnet's
+     scheduler and event loop. Beware of strange interactions. */
+  png_structp png = png_create_read_struct (PNG_LIBPNG_VER_STRING,
+                                            NULL,
+                                            NULL,
+                                            NULL);
+  if (NULL == png)
+  {
+    GNUNET_break (0);
+    fclose (pngfile);
+    return NULL;
+  }
+
+  png_infop pnginfo = png_create_info_struct (png);
+  if (NULL == pnginfo)
+  {
+    GNUNET_break (0);
+    png_destroy_read_struct (&png, NULL, NULL);
+    fclose (pngfile);
+    return NULL;
+  }
+
+  if (setjmp (png_jmpbuf (png)))
+  {
+    GNUNET_break (0);
+    png_destroy_read_struct (&png, &pnginfo, NULL);
+    fclose (pngfile);
+    return NULL;
+  }
+
+  png_init_io (png, pngfile);
+  png_set_sig_bytes (png, 8);
+
+  png_read_info (png, pnginfo);
+
+  png_byte pngcolor = png_get_color_type (png, pnginfo);
+  png_byte pngdepth = png_get_bit_depth (png, pnginfo);
+
+  /* Normalize picture --- based on a zbar example */
+  if (0 != (pngcolor & PNG_COLOR_TYPE_PALETTE))
+  {
+    png_set_palette_to_rgb (png);
+  }
+
+  if (pngcolor == PNG_COLOR_TYPE_GRAY && pngdepth < 8)
+  {
+    png_set_expand_gray_1_2_4_to_8 (png);
+  }
+
+  if (16 == pngdepth)
+  {
+    png_set_strip_16 (png);
+  }
+
+  if (0 != (pngcolor & PNG_COLOR_MASK_ALPHA))
+  {
+    png_set_strip_alpha (png);
+  }
+
+  if (0 != (pngcolor & PNG_COLOR_MASK_COLOR))
+  {
+    png_set_rgb_to_gray_fixed (png, 1, -1, -1);
+  }
+
+  png_uint_32 pngwidth = png_get_image_width (png, pnginfo);
+  png_uint_32 pngheight = png_get_image_height (png, pnginfo);
+
+  char *buffer = GNUNET_new_array (pngwidth * pngheight, char);
+  png_bytepp rows = GNUNET_new_array (pngheight, png_bytep);
+
+  for (png_uint_32 i=0; i<pngheight; ++i)
+  {
+    rows[i] = (unsigned char *)buffer + (pngwidth * i);
+  }
+
+  png_read_image (png, rows);
+
+  GNUNET_free (rows);
+  fclose (pngfile);
+
+  *width = pngwidth;
+  *height = pngheight;
+
+  return buffer;
+}
 
 /**
- * Main function that will be run by the scheduler.
+ * Parse a PNG-encoded file for a QR code.
+ *
+ * @return NULL on error
+ */
+static char *
+run_png_reader (void)
+{
+  uint32_t width = 0;
+  uint32_t height = 0;
+  char *buffer = png_parse (&width, &height);
+  if (NULL == buffer)
+  {
+    return NULL;
+  }
+
+  zbar_image_scanner_t *scanner = zbar_image_scanner_create ();
+  zbar_image_scanner_set_config (scanner,0, ZBAR_CFG_ENABLE, 1);
+
+  zbar_image_t *zimage = zbar_image_create ();
+  zbar_image_set_format (zimage, zbar_fourcc ('Y', '8', '0', '0'));
+  zbar_image_set_size (zimage, width, height);
+  zbar_image_set_data (zimage, buffer, width * height, &zbar_image_free_data);
+
+  int n = zbar_scan_image (scanner, zimage);
+
+  if (-1 == n)
+  {
+    LOG (_("No captured images\n"));
+    return NULL;
+  }
+
+  LOG(_("Got %d images\n"), n);
+
+  const zbar_symbol_t *symbol = zbar_image_first_symbol (zimage);
+
+  const char *data = zbar_symbol_get_data (symbol);
+  if (NULL == data)
+  {
+    GNUNET_break (0);
+    zbar_image_destroy (zimage);
+    zbar_image_scanner_destroy (scanner);
+    return NULL;
+  }
+
+  LOG (_("Found %s: \"%s\"\n"),
+       zbar_get_symbol_name (zbar_symbol_get_type (symbol)),
+       data);
+
+  char *copy = GNUNET_strdup (data);
+
+  zbar_image_destroy (zimage);
+  zbar_image_scanner_destroy (scanner);
+
+  return copy;
+}
+#endif
+
+/**
+ * Main function executed by the scheduler.
  *
  * @param cls closure
- * @param args remaining command-line arguments
- * @param cfgfile name of the configuration file used (for saving, can be NULL!)
- * @param cfg configuration
+ * @param args remaining command line arguments
+ * @param cfgfile name of the configuration file being used
+ * @param cfg the used configuration
  */
 static void
 run (void *cls,
@@ -327,51 +525,72 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
-  char *data;
+  char *data = NULL;
 
-  data = run_zbar ();
-  if (NULL == data)
-    return;
-  gnunet_uri (cls, data, cfgfile, cfg);
-  if (exit_code != 0)
+  GNUNET_SCHEDULER_add_shutdown (&shutdown_program, NULL);
+
+#if HAVE_PNG
+  if (NULL != pngfilename)
   {
-    printf ("Failed to add URI %s\n", data);
+    data = run_png_reader ();
   }
   else
+#endif
   {
-    printf ("Added URI %s\n", data);
+    data = run_zbar ();
   }
-  GNUNET_free (data);
-};
 
+  if (NULL == data)
+  {
+    LOG (_("No data found\n"));
+    exit_code = 1;
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
+
+  handle_uri (cls, data, cfgfile, cfg);
+
+  if (0 != exit_code)
+  {
+    fprintf (stdout, _("Failed to add URI %s\n"), data);
+    GNUNET_free (data);
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
+
+  LOG (_("Dispatching the URI\n"));
+}
 
 int
 main (int argc, char *const *argv)
 {
-  int ret;
   struct GNUNET_GETOPT_CommandLineOption options[] = {
     GNUNET_GETOPT_option_string (
       'd',
       "device",
       "DEVICE",
-      gettext_noop ("use video-device DEVICE (default: /dev/video0"),
+      gettext_noop ("use the video device DEVICE (defaults to /dev/video0)"),
       &device),
-    GNUNET_GETOPT_option_verbose (&verbose),
-    GNUNET_GETOPT_option_flag ('s',
-                               "silent",
-                               gettext_noop ("do not show preview windows"),
-                               &silent),
-    GNUNET_GETOPT_OPTION_END
+#if HAVE_PNG
+    GNUNET_GETOPT_option_string (
+      'f',
+      "file",
+      "FILE",
+      gettext_noop ("read from the PNG-encoded file FILE"),
+      &pngfilename),
+#endif
+    GNUNET_GETOPT_option_verbose (&verbosity),
+    GNUNET_GETOPT_OPTION_END,
   };
 
-  ret = GNUNET_PROGRAM_run (
-    argc,
-    argv,
-    "gnunet-qr",
-    gettext_noop (
-      "Scan a QR code using a video device and import the uri read"),
-    options,
-    &run,
-    NULL);
+  enum GNUNET_GenericReturnValue ret =
+    GNUNET_PROGRAM_run (argc,
+                        argv,
+                        "gnunet-qr",
+                        gettext_noop ("Scan a QR code and import the URI read"),
+                        options,
+                        &run,
+                        NULL);
+
   return ((GNUNET_OK == ret) && (0 == exit_code)) ? 0 : 1;
 }
