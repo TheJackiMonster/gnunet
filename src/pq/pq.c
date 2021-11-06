@@ -168,6 +168,9 @@ GNUNET_PQ_extract_result (PGresult *result,
                   spec->fname);
       goto cleanup;
     case GNUNET_SYSERR:
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Failed to extract field `%s'\n",
+                  spec->fname);
       GNUNET_break (0);
       goto cleanup;
     }
