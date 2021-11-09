@@ -26,6 +26,7 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_netjail_lib.h"
 #include "gnunet_peerstore_service.h"
 #include "gnunet_transport_core_service.h"
 #include "gnunet_transport_application_service.h"
@@ -172,6 +173,7 @@ start_peer_run (void *cls,
   char *tcp_communicator_unix_path;
   char *udp_communicator_unix_path;
   char *bindto;
+  char *bindto_udp;
 
   if (GNUNET_NO == GNUNET_DISK_file_test (sps->cfgname))
   {
@@ -206,6 +208,9 @@ start_peer_run (void *cls,
   GNUNET_asprintf (&bindto,
                    "%s:60002",
                    sps->node_ip);
+
+  GNUNET_asprintf (&bindto_udp,
+                   "2086");
 
   LOG (GNUNET_ERROR_TYPE_ERROR,
        "node_ip %s\n",

@@ -657,6 +657,16 @@ GNUNET_TESTING_get_topo_from_file (const char *filename);
 
 
 /**
+ * Parse the topology data.
+ *
+ * @param data The topology data.
+ * @return The GNUNET_TESTING_NetjailTopology
+ */
+struct GNUNET_TESTING_NetjailTopology *
+GNUNET_TESTING_get_topo_from_string (char *data);
+
+
+/**
  * Get the connections to other nodes for a specific node.
  *
  * @param num The specific node we want the connections for.
@@ -1073,28 +1083,6 @@ struct LocalPreparedState
   TESTING_CMD_HELPER_write_cb write_message;
 };
 
-/**
- * Create command.
- *
- * @param label name for command.
- * @param now when the command was started.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_hello_world_birth (const char *label,
-                                      struct GNUNET_TIME_Absolute *now);
-
-/**
- * Create command.
- *
- * @param label name for command.
- * @param message initial message.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_hello_world (const char *label,
-                                const char *birthLabel,
-                                char *message);
 
 /**
  * Offer data from trait
@@ -1135,20 +1123,25 @@ GNUNET_TESTING_cmd_system_destroy (const char *label,
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_netjail_start (const char *label,
-                                  char *topology_config);
+                                  char *topology_config,
+                                  unsigned int *read_file);
 
 
 /**
  * Create command.
  *
  * @param label Name for the command.
- * @param topology_config Configuration file for the test topology.
- * @param rv Pointer to the return value of the test.
+ * @param topology The complete topology information.
+ * @param read_file Flag indicating if the the name of the topology file is send to the helper, or a string with the topology data.
+ * @param topology_data If read_file is GNUNET_NO, topology_data holds the string with the topology.
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_start_testing_system (const char *label,
-                                                 const char *topology_config);
+GNUNET_TESTING_cmd_netjail_start_testing_system (
+  const char *label,
+  struct GNUNET_TESTING_NetjailTopology *topology,
+  unsigned int *read_file,
+  char *topology_data);
 
 
 /**
@@ -1160,20 +1153,23 @@ GNUNET_TESTING_cmd_netjail_start_testing_system (const char *label,
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_netjail_stop (const char *label,
-                                 char *topology_config);
+                                 char *topology_config,
+                                 unsigned int *read_file);
 
 
 /**
  * Create command.
  *
  * @param label name for command.
- * @param topology_config Configuration file for the test topology.
+ * @param helper_start_label label of the cmd to start the test system.
+ * @param topology The complete topology information.
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_stop_testing_system (const char *label,
-                                        const char *helper_start_label,
-                                        const char *topology_config);
+GNUNET_TESTING_cmd_stop_testing_system (
+  const char *label,
+  const char *helper_start_label,
+  struct GNUNET_TESTING_NetjailTopology *topology);
 
 
 /**

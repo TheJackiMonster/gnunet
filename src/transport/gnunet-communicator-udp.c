@@ -2262,6 +2262,7 @@ static void
 sock_read (void *cls)
 {
   struct sockaddr_storage sa;
+  struct sockaddr_in *addr_verify;
   socklen_t salen = sizeof(sa);
   char buf[UINT16_MAX];
   ssize_t rcvd;
@@ -2341,12 +2342,22 @@ sock_read (void *cls)
   {
     const struct UDPBroadcast *ub;
     struct UdpBroadcastSignature uhs;
+    struct GNUNET_PeerIdentity sender;
 
+    addr_verify = GNUNET_memdup (&sa, salen);
+    addr_verify->sin_port = 0;
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "received UDPBroadcast from %s\n",
+                GNUNET_a2s ((const struct sockaddr *) addr_verify, salen));
     ub = (const struct UDPBroadcast *) buf;
     uhs.purpose.purpose = htonl (GNUNET_SIGNATURE_COMMUNICATOR_UDP_BROADCAST);
     uhs.purpose.size = htonl (sizeof(uhs));
     uhs.sender = ub->sender;
-    GNUNET_CRYPTO_hash (&sa, salen, &uhs.h_address);
+    sender = ub->sender;
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "checking UDPBroadcastSignature for %s\n",
+                GNUNET_i2s (&sender));
+    GNUNET_CRYPTO_hash ((struct sockaddr *) addr_verify, salen, &uhs.h_address);
     if (GNUNET_OK ==
         GNUNET_CRYPTO_eddsa_verify (GNUNET_SIGNATURE_COMMUNICATOR_UDP_BROADCAST,
                                     &uhs,
@@ -2362,10 +2373,23 @@ sock_read (void *cls)
       /* use our own mechanism to determine network type */
       nt =
         GNUNET_NT_scanner_get_type (is, (const struct sockaddr *) &sa, salen);
-      GNUNET_TRANSPORT_application_validate (ah, &ub->sender, nt, addr_s);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "validating address %s received from UDPBroadcast\n",
+                  GNUNET_i2s (&sender));
+      GNUNET_TRANSPORT_application_validate (ah, &sender, nt, addr_s);
       GNUNET_free (addr_s);
       return;
     }
+    else
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "VerifyingPeer %s is verifying UDPBroadcast\n",
+                  GNUNET_i2s (&my_identity));
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Verifying UDPBroadcast from %s failed\n",
+                  GNUNET_i2s (&ub->sender));
+    }
+    GNUNET_free (addr_verify);
     /* continue with KX, mostly for statistics... */
   }
 
@@ -3477,7 +3501,7 @@ ifc_broadcast (void *cls)
   delay.rel_value_us =
     GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_WEAK, delay.rel_value_us);
   bi->broadcast_task =
-    GNUNET_SCHEDULER_add_delayed (INTERFACE_SCAN_FREQUENCY, &ifc_broadcast, bi);
+    GNUNET_SCHEDULER_add_delayed (delay, &ifc_broadcast, bi);
 
   switch (bi->sa->sa_family)
   {
@@ -3494,6 +3518,12 @@ ifc_broadcast (void *cls)
                                             sizeof(int)))
         GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
                              "setsockopt");
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "creating UDPBroadcast from %s\n",
+                  GNUNET_i2s (&(bi->bcm.sender)));
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "sending UDPBroadcast to add %s\n",
+                  GNUNET_a2s (bi->ba, bi->salen));
       sent = GNUNET_NETWORK_socket_sendto (udp_sock,
                                            &bi->bcm,
                                            sizeof(bi->bcm),
@@ -3521,6 +3551,8 @@ ifc_broadcast (void *cls)
       dst.sin6_addr = bi->mcreq.ipv6mr_multiaddr;
       dst.sin6_scope_id = ((struct sockaddr_in6 *) bi->ba)->sin6_scope_id;
 
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "sending UDPBroadcast\n");
       sent = GNUNET_NETWORK_socket_sendto (udp_sock,
                                            &bi->bcm,
                                            sizeof(bi->bcm),
@@ -3608,6 +3640,9 @@ iface_proc (void *cls,
   ubs.purpose.purpose = htonl (GNUNET_SIGNATURE_COMMUNICATOR_UDP_BROADCAST);
   ubs.purpose.size = htonl (sizeof(ubs));
   ubs.sender = my_identity;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "creating UDPBroadcastSignature for %s\n",
+              GNUNET_a2s (addr, addrlen));
   GNUNET_CRYPTO_hash (addr, addrlen, &ubs.h_address);
   GNUNET_CRYPTO_eddsa_sign (my_private_key,
                             &ubs,

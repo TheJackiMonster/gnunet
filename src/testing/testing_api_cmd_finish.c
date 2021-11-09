@@ -25,6 +25,8 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_netjail_lib.h"
+
 
 /**
  * Struct to use for command-specific context information closure of a command waiting

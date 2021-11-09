@@ -26,6 +26,7 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_netjail_lib.h"
 #include "gnunet_transport_application_service.h"
 #include "gnunet_hello_lib.h"
 #include "gnunet_transport_service.h"
@@ -91,6 +92,10 @@ connect_peers_run (void *cls,
       addr = GNUNET_TESTING_get_address (pos_connection,
                                          pos_prefix->address_prefix);
       peer = GNUNET_TESTING_get_pub_key (num, tl_system);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "validating peer number %u with identity %s\n",
+                  num,
+                  GNUNET_i2s (peer));
       GNUNET_TRANSPORT_application_validate (ah,
                                              peer,
                                              nt,

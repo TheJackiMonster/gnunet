@@ -25,6 +25,7 @@
  */
 #include "platform.h"
 #include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_netjail_lib.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_transport_application_service.h"
 #include "transport-testing2.h"
@@ -207,7 +208,9 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
                 char *node_ip,
                 char *m,
                 char *n,
-                char *local_m)
+                char *local_m,
+                char *topology_data,
+                unsigned int *read_file)
 {
 
   unsigned int n_int;
@@ -216,8 +219,12 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
   unsigned int num;
   struct TestState *ts = GNUNET_new (struct TestState);
 
-  struct GNUNET_TESTING_NetjailTopology *topology =
-    GNUNET_TESTING_get_topo_from_file (TOPOLOGY_CONFIG);
+  struct GNUNET_TESTING_NetjailTopology *topology;
+
+  if (GNUNET_YES == *read_file)
+    topology = GNUNET_TESTING_get_topo_from_file (topology_data);
+  else
+    topology = GNUNET_TESTING_get_topo_from_string (topology_data);
 
   ts->topology = topology;
 

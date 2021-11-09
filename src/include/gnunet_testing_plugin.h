@@ -46,7 +46,9 @@ typedef void
                                         char *node_ip,
                                         char *n,
                                         char *m,
-                                        char *local_m);
+                                        char *local_m,
+                                        char *topology_data,
+                                        unsigned int *read_file);
 
 
 typedef void

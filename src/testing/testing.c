@@ -33,7 +33,7 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_arm_service.h"
 #include "gnunet_testing_lib.h"
-#include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_netjail_lib.h"
 #include "testing_cmds.h"
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "testing-api", __VA_ARGS__)
@@ -2102,6 +2102,7 @@ GNUNET_TESTING_get_connections (unsigned int num, struct
   struct GNUNET_HashCode hc;
   struct GNUNET_TESTING_NetjailNamespace *namespace;
   unsigned int namespace_n, node_m;
+  struct GNUNET_TESTING_NodeConnection *node_connections = NULL;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "gaga 1\n");
@@ -2121,6 +2122,7 @@ GNUNET_TESTING_get_connections (unsigned int num, struct
             sizeof (*hkey));
     node = GNUNET_CONTAINER_multishortmap_get (topology->map_globals,
                                                hkey);
+    node_connections = node->node_connections_head;
   }
   else
   {
@@ -2147,10 +2149,11 @@ GNUNET_TESTING_get_connections (unsigned int num, struct
             sizeof (*hkey));
     node = GNUNET_CONTAINER_multishortmap_get (namespace->nodes,
                                                hkey);
+    node_connections = node->node_connections_head;
   }
 
   GNUNET_free (hkey);
-  return node->node_connections_head;
+  return node_connections;
 }
 
 
@@ -2355,16 +2358,14 @@ GNUNET_TESTING_send_local_test_finished_msg (enum GNUNET_GenericReturnValue rv)
 
 
 /**
- * Getting the topology from file.
+ * Parse the topology data.
  *
- * @param filename The name of the topology file.
+ * @param data The topology data.
  * @return The GNUNET_TESTING_NetjailTopology
  */
 struct GNUNET_TESTING_NetjailTopology *
-GNUNET_TESTING_get_topo_from_file (const char *filename)
+GNUNET_TESTING_get_topo_from_string (char *data)
 {
-  uint64_t fs;
-  char *data;
   char *token;
   char *key = NULL;
   unsigned int out;
@@ -2379,36 +2380,9 @@ GNUNET_TESTING_get_topo_from_file (const char *filename)
   struct GNUNET_ShortHashCode *hkey;
   struct GNUNET_HashCode hc;
 
-  if (GNUNET_YES != GNUNET_DISK_file_test (filename))
-  {
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         _ ("Topology file %s not found\n"),
-         filename);
-    return NULL;
-  }
-  if (GNUNET_OK !=
-      GNUNET_DISK_file_size (filename, &fs, GNUNET_YES, GNUNET_YES))
-  {
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         _ ("Topology file %s has no data\n"),
-         filename);
-    return NULL;
-  }
-  data = GNUNET_malloc (fs);
-  if (fs != GNUNET_DISK_fn_read (filename, data, fs))
-  {
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         _ ("Topology file %s cannot be read\n"),
-         filename);
-    GNUNET_free (data);
-    return NULL;
-  }
-
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "data: %s\n",
+       "data %s\n",
        data);
-
-  data[fs] = '\0';
   token = strtok_r (data, "\n", &rest);
   topo = GNUNET_new (struct GNUNET_TESTING_NetjailTopology);
   topo->map_namespaces =
@@ -2626,7 +2600,62 @@ GNUNET_TESTING_get_topo_from_file (const char *filename)
       node_connections (token, node);
     }
     token = strtok_r (NULL, "\n", &rest);
+    if (NULL != token)
+      LOG (GNUNET_ERROR_TYPE_ERROR,
+           "Next token %s\n",
+           token);
   }
+
+  return topo;
+}
+
+
+/**
+ * Getting the topology from file.
+ *
+ * @param filename The name of the topology file.
+ * @return The GNUNET_TESTING_NetjailTopology
+ */
+struct GNUNET_TESTING_NetjailTopology *
+GNUNET_TESTING_get_topo_from_file (const char *filename)
+{
+  uint64_t fs;
+  char *data;
+  struct GNUNET_TESTING_NetjailTopology *topo;
+
+  if (GNUNET_YES != GNUNET_DISK_file_test (filename))
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         _ ("Topology file %s not found\n"),
+         filename);
+    return NULL;
+  }
+  if (GNUNET_OK !=
+      GNUNET_DISK_file_size (filename, &fs, GNUNET_YES, GNUNET_YES))
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         _ ("Topology file %s has no data\n"),
+         filename);
+    return NULL;
+  }
+  data = GNUNET_malloc (fs);
+  if (fs != GNUNET_DISK_fn_read (filename, data, fs))
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         _ ("Topology file %s cannot be read\n"),
+         filename);
+    GNUNET_free (data);
+    return NULL;
+  }
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "data: %s\n",
+       data);
+
+  data[fs] = '\0';
+
+  topo = GNUNET_TESTING_get_topo_from_string (data);
+
   GNUNET_free (data);
 
   return topo;

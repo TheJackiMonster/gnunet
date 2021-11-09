@@ -27,6 +27,7 @@
 #include "gnunet_common.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_netjail_lib.h"
 #include "gnunet_transport_application_service.h"
 #include "gnunet_hello_lib.h"
 #include "gnunet_transport_service.h"

@@ -25,9 +25,10 @@
  */
 #include "platform.h"
 #include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_netjail_lib.h"
 #include "testing_cmds.h"
 
-#define NETJAIL_EXEC_SCRIPT "./../testing/netjail_exec.sh"
+#define NETJAIL_EXEC_SCRIPT "netjail_exec.sh"
 
 /**
  * Generic logging shortcut
@@ -83,18 +84,6 @@ struct NetJailState
   struct GNUNET_TESTING_NetjailTopology *topology;
 
   /**
-   * Head of the DLL which stores messages received by the helper.
-   *
-   */
-  struct HelperMessage *hp_messages_head;
-
-  /**
-   * Tail of the DLL which stores messages received by the helper.
-   *
-   */
-  struct HelperMessage *hp_messages_tail;
-
-  /**
    * Array with handles of helper processes.
    */
   struct GNUNET_HELPER_Handle **helper;
@@ -123,27 +112,6 @@ struct NetJailState
    */
   unsigned int known;
 
-  /**
-   * The send handle for the helper
-   */
-  // struct GNUNET_HELPER_SendHandle **shandle;
-
-  /**
-   * Size of the array NetJailState#shandle.
-   *
-   */
-  // unsigned int n_shandle;
-
-  /**
-   * The messages send to the helper.
-   */
-  struct GNUNET_MessageHeader **msg;
-
-  /**
-   * Size of the array NetJailState#msg.
-   *
-   */
-  unsigned int n_msg;
 
   /**
    * Number of test environments started.
@@ -176,16 +144,14 @@ struct NetJailState
   char *plugin_name;
 
   /**
-   * HEAD of the DLL containing TestingSystemCount.
-   *
+   * Shall we read the topology from file, or from a string.
    */
-  struct TestingSystemCount *tbcs_head;
+  unsigned int *read_file;
 
   /**
-   * TAIL of the DLL containing TestingSystemCount.
-   *
+   * String with topology data or name of topology file.
    */
-  struct TestingSystemCount *tbcs_tail;
+  char *topology_data;
 };
 
 /**
@@ -207,13 +173,7 @@ struct TestingSystemCount
   /**
    * The send handle for the helper
    */
-  struct GNUNET_HELPER_SendHandle *shandle;// **shandle;
-
-  /**
-   * Size of the array NetJailState#shandle.
-   *
-   */
-  // unsigned int n_shandle;
+  struct GNUNET_HELPER_SendHandle *shandle;
 
   /**
    * The number of the test environment.
@@ -226,6 +186,11 @@ struct TestingSystemCount
    *
    */
   struct NetJailState *ns;
+
+  /**
+   * The messages send to the helper.
+   */
+  struct GNUNET_MessageHeader *msg;
 };
 
 /**
@@ -237,24 +202,7 @@ static void
 netjail_exec_cleanup (void *cls)
 {
   struct NetJailState *ns = cls;
-  struct HelperMessage *message_pos;
-  struct  TestingSystemCount *tbc_pos;
 
-  while (NULL != (message_pos = ns->hp_messages_head))
-  {
-    GNUNET_CONTAINER_DLL_remove (ns->hp_messages_head,
-                                 ns->hp_messages_tail,
-                                 message_pos);
-    GNUNET_free (message_pos);
-  }
-  while (NULL != (tbc_pos = ns->tbcs_head))
-  {
-    GNUNET_CONTAINER_DLL_remove (ns->tbcs_head,
-                                 ns->tbcs_tail,
-                                 tbc_pos);
-    GNUNET_free (tbc_pos);
-  }
-  GNUNET_TESTING_free_topology (ns->topology);
   GNUNET_free (ns);
 }
 
@@ -271,7 +219,6 @@ netjail_exec_traits (void *cls,
 {
   struct NetJailState *ns = cls;
   struct GNUNET_HELPER_Handle **helper = ns->helper;
-  struct HelperMessage *hp_messages_head = ns->hp_messages_head;
 
 
   struct GNUNET_TESTING_Trait traits[] = {
@@ -279,11 +226,6 @@ netjail_exec_traits (void *cls,
       .index = 0,
       .trait_name = "helper_handles",
       .ptr = (const void *) helper,
-    },
-    {
-      .index = 1,
-      .trait_name = "hp_msgs_head",
-      .ptr = (const void *) hp_messages_head,
     },
     GNUNET_TESTING_trait_end ()
   };
@@ -327,12 +269,12 @@ static void
 clear_msg (void *cls, int result)
 {
   struct TestingSystemCount *tbc = cls;
-  struct NetJailState *ns = tbc->ns;
 
-  GNUNET_assert (NULL != tbc->shandle);// [tbc->count - 1]);
-  tbc->shandle = NULL;// [tbc->count - 1] = NULL;
-  GNUNET_free (ns->msg[tbc->count - 1]);
-  ns->msg[tbc->count - 1] = NULL;
+  GNUNET_assert (NULL != tbc->shandle);
+  GNUNET_free (tbc->shandle);
+  tbc->shandle = NULL;
+  GNUNET_free (tbc->msg);
+  tbc->msg = NULL;
 }
 
 
@@ -361,7 +303,7 @@ send_message_to_locals (
 
   helper = ns->helper[tbc->count - 1];// - total_number];
 
-  GNUNET_array_append (ns->msg, ns->n_msg, header);
+
 
   struct GNUNET_HELPER_SendHandle *sh = GNUNET_HELPER_send (
     helper,
@@ -427,7 +369,7 @@ static int
 helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
 {
   // struct TestingSystemCount *tbc = cls;
-  struct NetJailState *ns = cls;// tbc->ns;
+  struct NetJailState *ns = cls;
   struct HelperMessage *hp_msg;
   unsigned int total_number = ns->local_m * ns->global_n + ns->known;
   // uint16_t message_type = ntohs (message->type);
@@ -543,11 +485,8 @@ helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
   }
   else
   {
-    hp_msg = GNUNET_new (struct HelperMessage);
-    hp_msg->bytes_msg = message->size;
-    memcpy (&hp_msg[1], message, message->size);
-    GNUNET_CONTAINER_DLL_insert (ns->hp_messages_head, ns->hp_messages_tail,
-                                 hp_msg);
+    // We received a message we can not handle.
+    GNUNET_assert (0);
   }
 
 
@@ -629,6 +568,7 @@ start_helper (struct NetJailState *ns,
   char *known_char;
   char *node_id;
   char *plugin;
+  char *read_file;
   pid_t pid;
   unsigned int script_num;
   struct GNUNET_ShortHashCode *hkey;
@@ -636,6 +576,9 @@ start_helper (struct NetJailState *ns,
   struct GNUNET_TESTING_NetjailTopology *topology = ns->topology;
   struct GNUNET_TESTING_NetjailNode *node;
   struct GNUNET_TESTING_NetjailNamespace *namespace;
+  char *data_dir;
+  char *script_name;
+  char *topology_data;
 
 
   if (0 == n)
@@ -652,47 +595,31 @@ start_helper (struct NetJailState *ns,
   GNUNET_asprintf (&node_id, "%06x-%08x\n",
                    pid,
                    script_num);
+  // GNUNET_asprintf (&topology_data, "'%s'", ns->topology_data);
+  GNUNET_asprintf (&read_file, "%u", *(ns->read_file));
 
-
-  char *const script_argv[] = {NETJAIL_EXEC_SCRIPT,
-                               m_char,
-                               n_char,
-                               GNUNET_OS_get_libexec_binary_path (
-                                 HELPER_CMDS_BINARY),
-                               global_n_char,
-                               local_m_char,
-                               node_id,
-                               NULL};
-
+  data_dir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_DATADIR);
+  GNUNET_asprintf (&script_name, "%s%s", data_dir, NETJAIL_EXEC_SCRIPT);
   unsigned int helper_check = GNUNET_OS_check_helper_binary (
-    NETJAIL_EXEC_SCRIPT,
+    script_name,
     GNUNET_YES,
     NULL);
 
   tbc = GNUNET_new (struct TestingSystemCount);
   tbc->ns = ns;
-  if (0 == n)
-    tbc->count = m;
-  else
-    tbc->count = (n - 1) * ns->local_m + m + ns->known;
-
-  GNUNET_CONTAINER_DLL_insert (ns->tbcs_head,
-                               ns->tbcs_tail,
-                               tbc);
-
 
   if (GNUNET_NO == helper_check)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "No SUID for %s!\n",
-                NETJAIL_EXEC_SCRIPT);
+                script_name);
     GNUNET_TESTING_interpreter_fail (ns->is);
   }
   else if (GNUNET_NO == helper_check)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "%s not found!\n",
-                NETJAIL_EXEC_SCRIPT);
+                script_name);
     GNUNET_TESTING_interpreter_fail (ns->is);
   }
 
@@ -705,17 +632,29 @@ start_helper (struct NetJailState *ns,
        ns->local_m,
        ns->global_n,
        ns->known);
+  {
+    char *const script_argv[] = {script_name,
+                                 m_char,
+                                 n_char,
+                                 GNUNET_OS_get_libexec_binary_path (
+                                   HELPER_CMDS_BINARY),
+                                 global_n_char,
+                                 local_m_char,
+                                 node_id,
+                                 read_file,
+                                 ns->topology_data,
+                                 NULL};
+    helper = GNUNET_HELPER_start (
+      GNUNET_YES,
+      script_name,
+      script_argv,
+      &helper_mst,
+      &exp_cb,
+      ns);
+    GNUNET_array_append (ns->helper, ns->n_helper, helper);
+  }
 
-  GNUNET_array_append (ns->helper, ns->n_helper, GNUNET_HELPER_start (
-                         GNUNET_YES,
-                         NETJAIL_EXEC_SCRIPT,
-                         script_argv,
-                         &helper_mst,
-                         &exp_cb,
-                         ns));
-
-  helper = ns->helper[tbc->count - 1];
-
+  tbc->count = ns->n_helper;
   hkey = GNUNET_new (struct GNUNET_ShortHashCode);
 
   plugin = topology->plugin;
@@ -766,8 +705,6 @@ start_helper (struct NetJailState *ns,
   }
 
   msg = create_helper_init_msg_ (plugin);
-
-  GNUNET_array_append (ns->msg, ns->n_msg, &msg->header);
 
   // GNUNET_array_append (tbc->shandle, tbc->n_shandle,
   tbc->shandle = GNUNET_HELPER_send (
@@ -825,17 +762,19 @@ netjail_exec_run (void *cls,
  * Create command.
  *
  * @param label Name for the command.
- * @param topology_config Configuration file for the test topology.
+ * @param topology The complete topology information.
+ * @param read_file Flag indicating if the the name of the topology file is send to the helper, or a string with the topology data.
+ * @param topology_data If read_file is GNUNET_NO, topology_data holds the string with the topology.
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_start_testing_system (const char *label,
-                                                 const char *topology_config)
+GNUNET_TESTING_cmd_netjail_start_testing_system (
+  const char *label,
+  struct GNUNET_TESTING_NetjailTopology *topology,
+  unsigned int *read_file,
+  char *topology_data)
 {
   struct NetJailState *ns;
-
-  struct GNUNET_TESTING_NetjailTopology *topology =
-    GNUNET_TESTING_get_topo_from_file (topology_config);
 
   ns = GNUNET_new (struct NetJailState);
   ns->local_m = topology->nodes_m;
@@ -843,6 +782,8 @@ GNUNET_TESTING_cmd_netjail_start_testing_system (const char *label,
   ns->known = topology->nodes_x;
   ns->plugin_name = topology->plugin;
   ns->topology = topology;
+  ns->read_file = read_file;
+  ns->topology_data = topology_data;
 
   struct GNUNET_TESTING_Command cmd = {
     .cls = ns,

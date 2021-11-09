@@ -25,6 +25,7 @@
  */
 #include "platform.h"
 #include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_netjail_lib.h"
 #include "gnunet_util_lib.h"
 
 #define TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 120)
@@ -34,27 +35,86 @@ int
 main (int argc,
       char *const *argv)
 {
-  char *topology_config;
+  char *topology_data;
+  char *topology_data_script;
+  struct GNUNET_TESTING_NetjailTopology *topology;
+  unsigned int read_file = GNUNET_YES;
+  int ret;
+  char *rest = NULL;
+  char *token;
+  size_t single_line_len;
+  size_t data_len;
 
   GNUNET_log_setup ("test-netjail",
                     "DEBUG",
                     NULL);
 
-  topology_config = argv[1];
+  if (0 == strcmp ("-s", argv[1]))
+  {
+    data_len = strlen (argv[2]);
+    topology_data = GNUNET_malloc (data_len);
+    topology_data_script = GNUNET_malloc (data_len);
+    token = strtok_r (argv[2], "\n", &rest);
+    while (NULL != token)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "token1 %s\n",
+                  token);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "token2 %s\n",
+                  token);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "topology_data %s\n",
+                  topology_data);
+      strcat (topology_data_script, token);
+      strcat (topology_data_script, " ");
+      strcat (topology_data, token);
+      strcat (topology_data, "\n");
+      token = strtok_r (NULL, "\n", &rest);
+    }
+    single_line_len = strlen (topology_data);
+    topology_data_script [single_line_len - 1] = '\0';
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "read from string\n");
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "topology_data %s\n",
+                topology_data);
+    read_file = GNUNET_NO;
+    topology = GNUNET_TESTING_get_topo_from_string (topology_data);
+  }
+  else
+  {
+    topology_data = argv[1];
+    topology_data_script = argv[1];
+    topology = GNUNET_TESTING_get_topo_from_file (topology_data);
+  }
 
   struct GNUNET_TESTING_Command commands[] = {
     GNUNET_TESTING_cmd_netjail_start ("netjail-start",
-                                      topology_config),
+                                      topology_data_script,
+                                      &read_file),
     GNUNET_TESTING_cmd_netjail_start_testing_system ("netjail-start-testbed",
-                                                     topology_config),
+                                                     topology,
+                                                     &read_file,
+                                                     topology_data_script),
     GNUNET_TESTING_cmd_stop_testing_system ("stop-testbed",
                                             "netjail-start-testbed",
-                                            topology_config),
+                                            topology),
     GNUNET_TESTING_cmd_netjail_stop ("netjail-stop",
-                                     topology_config),
+                                     topology_data_script,
+                                     &read_file),
     GNUNET_TESTING_cmd_end ()
   };
 
-  return GNUNET_TESTING_main (commands,
-                              TIMEOUT);
+  ret = GNUNET_TESTING_main (commands,
+                             TIMEOUT);
+
+  if (0 == strcmp ("-s", argv[1]))
+  {
+    GNUNET_free (topology_data_script);
+    GNUNET_free (topology_data);
+  }
+  GNUNET_TESTING_free_topology (topology);
+
+  return ret;
 }

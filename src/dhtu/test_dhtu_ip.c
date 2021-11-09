@@ -24,7 +24,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
-#include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_netjail_lib.h"
 #include "gnunet_util_lib.h"
 
 #define TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 120)

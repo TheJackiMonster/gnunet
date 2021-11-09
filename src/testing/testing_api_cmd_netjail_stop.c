@@ -26,12 +26,10 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_netjail_lib.h"
 
 
-#define NETJAIL_STOP_SCRIPT "./../testing/netjail_stop.sh"
-
-// Child Wait handle
-static struct GNUNET_ChildWaitHandle *cwh;
+#define NETJAIL_STOP_SCRIPT "netjail_stop.sh"
 
 /**
  * Struct to hold information for callbacks.
@@ -44,6 +42,9 @@ struct NetJailState
    */
   struct GNUNET_TESTING_AsyncContext ac;
 
+  // Child Wait handle
+  struct GNUNET_ChildWaitHandle *cwh;
+
   /**
    * Configuration file for the test topology.
    */
@@ -53,6 +54,11 @@ struct NetJailState
    * The process id of the start script.
    */
   struct GNUNET_OS_Process *stop_proc;
+
+  /**
+   * Shall we read the topology from file, or from a string.
+   */
+  unsigned int *read_file;
 
 };
 
@@ -66,10 +72,10 @@ netjail_stop_cleanup (void *cls)
 {
   struct NetJailState *ns = cls;
 
-  if (NULL != cwh)
+  if (NULL != ns->cwh)
   {
-    GNUNET_wait_child_cancel (cwh);
-    cwh = NULL;
+    GNUNET_wait_child_cancel (ns->cwh);
+    ns->cwh = NULL;
   }
   if (NULL != ns->stop_proc)
   {
@@ -95,7 +101,7 @@ child_completed_callback (void *cls,
 {
   struct NetJailState *ns = cls;
 
-  cwh = NULL; // WTF? globals!?!?!
+  ns->cwh = NULL;
   GNUNET_OS_process_destroy (ns->stop_proc);
   ns->stop_proc = NULL;
   if (0 == exit_code)
@@ -121,16 +127,16 @@ netjail_stop_run (void *cls,
 {
   struct NetJailState *ns = cls;
   char *pid;
+  char *data_dir;
+  char *script_name;
+  char *read_file;
 
-  GNUNET_asprintf (&pid,
-                   "%u",
-                   getpid ());
-  char *const script_argv[] = {NETJAIL_STOP_SCRIPT,
-                               ns->topology_config,
-                               pid,
-                               NULL};
+
+  data_dir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_DATADIR);
+  GNUNET_asprintf (&script_name, "%s%s", data_dir, NETJAIL_STOP_SCRIPT);
+  GNUNET_asprintf (&read_file, "%u", *(ns->read_file));
   unsigned int helper_check = GNUNET_OS_check_helper_binary (
-    NETJAIL_STOP_SCRIPT,
+    script_name,
     GNUNET_YES,
     NULL);
 
@@ -138,39 +144,50 @@ netjail_stop_run (void *cls,
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "No SUID for %s!\n",
-                NETJAIL_STOP_SCRIPT);
+                script_name);
     GNUNET_TESTING_interpreter_fail (is);
   }
   else if (GNUNET_NO == helper_check)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "%s not found!\n",
-                NETJAIL_STOP_SCRIPT);
+                script_name);
     GNUNET_TESTING_interpreter_fail (is);
   }
 
-  ns->stop_proc = GNUNET_OS_start_process_vap (GNUNET_OS_INHERIT_STD_ERR,
-                                               NULL,
-                                               NULL,
-                                               NULL,
-                                               NETJAIL_STOP_SCRIPT,
-                                               script_argv);
-
-  cwh = GNUNET_wait_child (ns->stop_proc,
-                           &child_completed_callback,
-                           ns);
-  GNUNET_break (NULL != cwh);
+  GNUNET_asprintf (&pid,
+                   "%u",
+                   getpid ());
+  {
+    char *const script_argv[] = {script_name,
+                                 ns->topology_config,
+                                 pid,
+                                 read_file,
+                                 NULL};
+    ns->stop_proc = GNUNET_OS_start_process_vap (GNUNET_OS_INHERIT_STD_ERR,
+                                                 NULL,
+                                                 NULL,
+                                                 NULL,
+                                                 script_name,
+                                                 script_argv);
+  }
+  ns->cwh = GNUNET_wait_child (ns->stop_proc,
+                               &child_completed_callback,
+                               ns);
+  GNUNET_break (NULL != ns->cwh);
 }
 
 
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_netjail_stop (const char *label,
-                                 char *topology_config)
+                                 char *topology_config,
+                                 unsigned int *read_file)
 {
   struct NetJailState *ns;
 
   ns = GNUNET_new (struct NetJailState);
   ns->topology_config = topology_config;
+  ns->read_file = read_file;
   {
     struct GNUNET_TESTING_Command cmd = {
       .cls = ns,

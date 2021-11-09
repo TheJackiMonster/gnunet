@@ -738,7 +738,9 @@ endif
 endif
 
 check_SCRIPTS= \
+  test_transport_simple_send_string.sh \
   test_transport_simple_send.sh \
+  test_transport_simple_send_broadcast.sh \
   test_transport_udp_backchannel.sh
 
 test_transport_start_with_config_SOURCES = \

@@ -24,6 +24,10 @@ dist_pkgdata_DATA = \
   branding/logo/gnunet-logo-big.png \
   branding/logo/gnunet-logo.pdf \
   testing_hostkeys.ecc \
+  netjail/netjail_core.sh \
+  netjail/netjail_start.sh \
+  netjail/netjail_stop.sh \
+  netjail/topo.sh \
   $(BUILDCOMMON_SHLIB_FILES)
 
 INITD_FILES = \
@@ -239,5 +243,12 @@ test_gnunet_prefix_LDADD = \
 aclocaldir = $(datadir)/aclocal
 aclocal_DATA = \
   gnunet.m4
+
+install-data-hook:
+	chmod o+x $(pkgdatadir)/netjail_core.sh
+	chmod o+x $(pkgdatadir)/netjail_start.sh
+	chmod o+x $(pkgdatadir)/netjail_stop.sh
+	chmod o+x $(pkgdatadir)/netjail_exec.sh
+	chmod o+x $(pkgdatadir)/topo.sh
 
 ## EOF

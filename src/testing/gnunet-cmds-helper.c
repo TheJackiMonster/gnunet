@@ -142,6 +142,16 @@ struct NodeIdentifier
    *
    */
   char *local_m;
+
+  /**
+   * Shall we read the topology from file, or from a string.
+   */
+  unsigned int *read_file;
+
+  /**
+   * String with topology data or name of topology file.
+   */
+  char *topology_data;
 };
 
 /**
@@ -402,7 +412,8 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
     strcat (node_ip, plugin->m);
 
     plugin->api->start_testcase (&write_message, router_ip, node_ip, plugin->m,
-                                 plugin->n, plugin->local_m);
+                                 plugin->n, plugin->local_m, ni->topology_data,
+                                 ni->read_file);
 
     GNUNET_free (binary);
 
@@ -559,6 +570,10 @@ main (int argc, char **argv)
   struct GNUNET_GETOPT_CommandLineOption options[] =
   { GNUNET_GETOPT_OPTION_END };
   int ret;
+  int i;
+  size_t topology_data_length = 0;
+  unsigned int read_file;
+  char cr[1] = "\n";
 
   GNUNET_log_setup ("gnunet-cmds-helper",
                     "DEBUG",
@@ -568,6 +583,30 @@ main (int argc, char **argv)
   ni->local_m = argv[2];
   ni->m = argv[3];
   ni->n = argv[4];
+
+  sscanf (argv[5], "%u", &read_file);
+
+  if (1 == read_file)
+    ni->topology_data = argv[6];
+  else
+  {
+    for (i = 6; i<argc; i++)
+      topology_data_length += strlen (argv[i]) + 1;
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "topo data length %lu\n",
+         topology_data_length);
+    ni->topology_data = GNUNET_malloc (topology_data_length);
+    for (i = 6; i<argc; i++)
+    {
+      strcat (ni->topology_data, argv[i]);
+      strcat (ni->topology_data, cr);
+    }
+  }
+  ni->read_file = &read_file;
+  ni->topology_data[topology_data_length - 1] = '\0';
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "topo data %s\n",
+       ni->topology_data);
 
   status = GNUNET_OK;
   if (NULL ==

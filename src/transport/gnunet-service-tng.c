@@ -4738,15 +4738,17 @@ send_dv_to_neighbour (void *cls,
  * @return expected RTT for transmission, #GNUNET_TIME_UNIT_FOREVER_REL if sending failed
  */
 static struct GNUNET_TIME_Relative
-route_control_message_without_fc (const struct GNUNET_PeerIdentity *target,
+route_control_message_without_fc (struct VirtualLink *vl,
+// route_control_message_without_fc (const struct GNUNET_PeerIdentity *target,
                                   const struct GNUNET_MessageHeader *hdr,
                                   enum RouteMessageOptions options)
 {
-  struct VirtualLink *vl;
+  // struct VirtualLink *vl;
   struct Neighbour *n;
   struct DistanceVector *dv;
   struct GNUNET_TIME_Relative rtt1;
   struct GNUNET_TIME_Relative rtt2;
+  const struct GNUNET_PeerIdentity *target = &vl->target;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Trying to route message of type %u to %s without fc\n",
@@ -4754,7 +4756,7 @@ route_control_message_without_fc (const struct GNUNET_PeerIdentity *target,
               GNUNET_i2s (target));
 
   // TODO Do this elsewhere. vl should be given as parameter to method.
-  vl = lookup_virtual_link (target);
+  // vl = lookup_virtual_link (target);
   GNUNET_assert (NULL != vl);
   if (NULL == vl)
     return GNUNET_TIME_UNIT_FOREVER_REL;
@@ -4892,7 +4894,7 @@ consider_sending_fc (void *cls)
   fc.outbound_sent = GNUNET_htonll (vl->outbound_fc_window_size_used);
   fc.outbound_window_size = GNUNET_htonll (vl->outbound_fc_window_size);
   fc.sender_time = GNUNET_TIME_absolute_hton (monotime);
-  rtt = route_control_message_without_fc (&vl->target, &fc.header, RMO_NONE);
+  rtt = route_control_message_without_fc (vl, &fc.header, RMO_NONE);
   if (GNUNET_TIME_UNIT_FOREVER_REL.rel_value_us == rtt.rel_value_us)
   {
     rtt = GNUNET_TIME_UNIT_SECONDS;
@@ -5086,6 +5088,8 @@ handle_communicator_backchannel (
   void *cls,
   const struct GNUNET_TRANSPORT_CommunicatorBackchannel *cb)
 {
+  struct Neighbour *n;
+  struct VirtualLink *vl;
   struct TransportClient *tc = cls;
   const struct GNUNET_MessageHeader *inbox =
     (const struct GNUNET_MessageHeader *) &cb[1];
@@ -5116,7 +5120,22 @@ handle_communicator_backchannel (
                 + isize],
           is,
           strlen (is) + 1);
-  route_control_message_without_fc (&cb->pid, &be->header, RMO_DV_ALLOWED);
+  // route_control_message_without_fc (&cb->pid, &be->header, RMO_DV_ALLOWED);
+  vl = lookup_virtual_link (&cb->pid);
+  if (NULL != vl)
+  {
+    route_control_message_without_fc (vl, &be->header, RMO_DV_ALLOWED);
+  }
+  else
+  {
+    /* Use route via neighbour */
+    n = lookup_neighbour (&cb->pid);
+    if (NULL != n)
+      route_via_neighbour (
+        n,
+        &be->header,
+        RMO_NONE);
+  }
   GNUNET_SERVICE_client_continue (tc->client);
 }
 
@@ -5540,6 +5559,8 @@ destroy_ack_cummulator (void *cls)
 static void
 transmit_cummulative_ack_cb (void *cls)
 {
+  struct Neighbour *n;
+  struct VirtualLink *vl;
   struct AcknowledgementCummulator *ac = cls;
   char buf[sizeof(struct TransportReliabilityAckMessage)
            + ac->ack_counter
@@ -5566,7 +5587,28 @@ transmit_cummulative_ack_cb (void *cls)
     ap[i].ack_delay = GNUNET_TIME_relative_hton (
       GNUNET_TIME_absolute_get_duration (ac->ack_uuids[i].receive_time));
   }
-  route_control_message_without_fc (&ac->target, &ack->header, RMO_DV_ALLOWED);
+  /*route_control_message_without_fc (
+    &ac->target,
+    &ack->header,
+    RMO_DV_ALLOWED);*/
+  vl = lookup_virtual_link (&ac->target);
+  if (NULL != vl)
+  {
+    route_control_message_without_fc (
+      vl,
+      &ack->header,
+      RMO_DV_ALLOWED);
+  }
+  else
+  {
+    /* Use route via neighbour */
+    n = lookup_neighbour (&ac->target);
+    if (NULL != n)
+      route_via_neighbour (
+        n,
+        &ack->header,
+        RMO_NONE);
+  }
   ac->num_acks = 0;
   ac->task = GNUNET_SCHEDULER_add_delayed (ACK_CUMMULATOR_TIMEOUT,
                                            &destroy_ack_cummulator,
@@ -6558,6 +6600,8 @@ forward_dv_learn (const struct GNUNET_PeerIdentity *next_hop,
                   const struct DVPathEntryP *hops,
                   struct GNUNET_TIME_Absolute in_time)
 {
+  struct Neighbour *n;
+  struct VirtualLink *vl;
   struct DVPathEntryP *dhops;
   char buf[sizeof(struct TransportDVLearnMessage)
            + (nhops + 1) * sizeof(struct DVPathEntryP)] GNUNET_ALIGN;
@@ -6598,9 +6642,26 @@ forward_dv_learn (const struct GNUNET_PeerIdentity *next_hop,
                               &dhp,
                               &dhops[nhops].hop_sig);
   }
-  route_control_message_without_fc (next_hop,
+  /*route_control_message_without_fc (next_hop,
                                     &fwd->header,
-                                    RMO_UNCONFIRMED_ALLOWED);
+                                    RMO_UNCONFIRMED_ALLOWED);*/
+  vl = lookup_virtual_link (next_hop);
+  if (NULL != vl)
+  {
+    route_control_message_without_fc (vl,
+                                      &fwd->header,
+                                      RMO_UNCONFIRMED_ALLOWED);
+  }
+  else
+  {
+    /* Use route via neighbour */
+    n = lookup_neighbour (next_hop);
+    if (NULL != n)
+      route_via_neighbour (
+        n,
+        &fwd->header,
+        RMO_UNCONFIRMED_ALLOWED);
+  }
 }
 
 
@@ -7937,7 +7998,8 @@ handle_validation_challenge (
   vl = lookup_virtual_link (&sender);
   if (NULL != vl)
   {
-    route_control_message_without_fc (&cmc->im.sender,
+    // route_control_message_without_fc (&cmc->im.sender,
+    route_control_message_without_fc (vl,
                                       &tvr.header,
                                       RMO_ANYTHING_GOES | RMO_REDUNDANT);
   }

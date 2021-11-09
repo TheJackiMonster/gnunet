@@ -118,6 +118,7 @@ gnunetinclude_HEADERS = \
   gnunet_testing_lib.h \
   gnunet_testing_plugin.h \
   gnunet_testing_ng_lib.h \
+  gnunet_testing_netjail_lib.h \
   gnunet_time_lib.h \
   gnunet_transport_service.h \
   gnunet_transport_application_service.h \

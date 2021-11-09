@@ -26,8 +26,11 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_netjail_lib.h"
 
-#define NETJAIL_START_SCRIPT "./../testing/netjail_start.sh"
+#define NETJAIL_START_SCRIPT "netjail_start.sh"
+
+#define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
 
 /**
  * Struct to hold information for callbacks.
@@ -53,6 +56,10 @@ struct NetJailState
    */
   char *topology_config;
 
+  /**
+   * Shall we read the topology from file, or from a string.
+   */
+  unsigned int *read_file;
 };
 
 
@@ -70,11 +77,15 @@ netjail_start_cleanup (void *cls)
 
   if (NULL != ns->cwh)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Cancel child\n");
     GNUNET_wait_child_cancel (ns->cwh);
     ns->cwh = NULL;
   }
   if (NULL != ns->start_proc)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Kill process\n");
     GNUNET_assert (0 ==
                    GNUNET_OS_process_kill (ns->start_proc,
                                            SIGKILL));
@@ -100,6 +111,7 @@ child_completed_callback (void *cls,
 
   GNUNET_OS_process_destroy (ns->start_proc);
   ns->start_proc = NULL;
+  ns->cwh = NULL;
   if (0 == exit_code)
   {
     GNUNET_TESTING_async_finish (&ns->ac);
@@ -127,20 +139,28 @@ netjail_start_run (void *cls,
   struct NetJailState *ns = cls;
   char pid[15];
   enum GNUNET_GenericReturnValue helper_check;
+  char *data_dir;
+  char *script_name;
+  char *read_file;
 
-  // FIXME: NETJAIL_START_SCRIPT like this is bad,
-  // use location from share/gnunet/ of installed
-  // binary in case libgnunettesting is used as a lib!
+  data_dir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_DATADIR);
+  GNUNET_asprintf (&script_name, "%s%s", data_dir, NETJAIL_START_SCRIPT);
+  GNUNET_asprintf (&read_file, "%u", *(ns->read_file));
+
   helper_check = GNUNET_OS_check_helper_binary (
-    NETJAIL_START_SCRIPT,
+    script_name,
     GNUNET_YES,
     NULL);
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "script_name %s\n",
+       script_name);
 
   if (GNUNET_NO == helper_check)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "No SUID for %s!\n",
-                NETJAIL_START_SCRIPT);
+                script_name);
     GNUNET_TESTING_interpreter_fail (is);
     return;
   }
@@ -148,7 +168,7 @@ netjail_start_run (void *cls,
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "%s not found!\n",
-                NETJAIL_START_SCRIPT);
+                script_name);
     GNUNET_TESTING_interpreter_fail (is);
     return;
   }
@@ -159,9 +179,10 @@ netjail_start_run (void *cls,
                    getpid ());
   {
     char *const script_argv[] = {
-      NETJAIL_START_SCRIPT,
+      script_name,
       ns->topology_config,
       pid,
+      read_file,
       NULL
     };
 
@@ -170,7 +191,7 @@ netjail_start_run (void *cls,
                                      NULL,
                                      NULL,
                                      NULL,
-                                     NETJAIL_START_SCRIPT,
+                                     script_name,
                                      script_argv);
   }
   ns->cwh = GNUNET_wait_child (ns->start_proc,
@@ -189,12 +210,14 @@ netjail_start_run (void *cls,
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_netjail_start (const char *label,
-                                  char *topology_config)
+                                  char *topology_config,
+                                  unsigned int *read_file)
 {
   struct NetJailState *ns;
 
   ns = GNUNET_new (struct NetJailState);
   ns->topology_config = topology_config;
+  ns->read_file = read_file;
   {
     struct GNUNET_TESTING_Command cmd = {
       .cls = ns,

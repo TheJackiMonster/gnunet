@@ -25,6 +25,7 @@
  */
 #include "platform.h"
 #include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_netjail_lib.h"
 #include "testing_cmds.h"
 
 
@@ -70,7 +71,6 @@ stop_testing_system_cleanup (void *cls)
 {
   struct StopHelperState *shs = cls;
 
-  GNUNET_TESTING_free_topology (shs->topology);
   GNUNET_free (shs);
 }
 
@@ -124,18 +124,16 @@ stop_testing_system_run (void *cls,
  *
  * @param label name for command.
  * @param helper_start_label label of the cmd to start the test system.
- * @param topology_config Configuration file for the test topology.
+ * @param topology The complete topology information.
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_stop_testing_system (const char *label,
-                                        const char *helper_start_label,
-                                        const char *topology_config)
+GNUNET_TESTING_cmd_stop_testing_system (
+  const char *label,
+  const char *helper_start_label,
+  struct GNUNET_TESTING_NetjailTopology *topology)
 {
   struct StopHelperState *shs;
-
-  struct GNUNET_TESTING_NetjailTopology *topology =
-    GNUNET_TESTING_get_topo_from_file (topology_config);
 
   shs = GNUNET_new (struct StopHelperState);
   shs->helper_start_label = helper_start_label;

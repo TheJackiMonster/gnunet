@@ -26,6 +26,7 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_netjail_lib.h"
 #include "gnunet_peerstore_service.h"
 #include "gnunet_transport_core_service.h"
 #include "gnunet_transport_application_service.h"
