@@ -370,11 +370,10 @@ helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
 {
   // struct TestingSystemCount *tbc = cls;
   struct NetJailState *ns = cls;
-  struct HelperMessage *hp_msg;
   unsigned int total_number = ns->local_m * ns->global_n + ns->known;
-  // uint16_t message_type = ntohs (message->type);
+  uint16_t message_type = ntohs (message->type);
 
-  /*switch (message_type)
+  switch (message_type)
   {
   case GNUNET_MESSAGE_TYPE_CMDS_HELPER_REPLY:
     ns->number_of_testsystems_started++;
@@ -423,13 +422,10 @@ helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
     }
     break;
   default:
-    hp_msg = GNUNET_new (struct HelperMessage);
-    hp_msg->bytes_msg = message->size;
-    memcpy (&hp_msg[1], message, message->size);
-    GNUNET_CONTAINER_DLL_insert (ns->hp_messages_head, ns->hp_messages_tail,
-                                 hp_msg);
-                                 }*/
-  if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_REPLY == ntohs (message->type))
+    // We received a message we can not handle.
+    GNUNET_assert (0);
+  }
+  /*if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_REPLY == ntohs (message->type))
   {
     ns->number_of_testsystems_started++;
   }
@@ -487,7 +483,7 @@ helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
   {
     // We received a message we can not handle.
     GNUNET_assert (0);
-  }
+    }*/
 
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -578,7 +574,6 @@ start_helper (struct NetJailState *ns,
   struct GNUNET_TESTING_NetjailNamespace *namespace;
   char *data_dir;
   char *script_name;
-  char *topology_data;
 
 
   if (0 == n)
