@@ -95,6 +95,11 @@ GNUNET_PQ_exec_prepared (struct GNUNET_PQ_Context *db,
                           param_lengths,
                           param_formats,
                           1);
+    GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG,
+                     "pq",
+                     "Execution of prepared SQL statement `%s' finished (%d)\n",
+                     name,
+                     PGRES_COMMAND_OK == PQresultStatus (res));
     if ( (PGRES_COMMAND_OK != PQresultStatus (res)) &&
          (CONNECTION_OK != (status = PQstatus (db->conn))) )
     {
@@ -163,6 +168,9 @@ GNUNET_PQ_extract_result (PGresult *result,
                   spec->fname);
       goto cleanup;
     case GNUNET_SYSERR:
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Failed to extract field `%s'\n",
+                  spec->fname);
       GNUNET_break (0);
       goto cleanup;
     }

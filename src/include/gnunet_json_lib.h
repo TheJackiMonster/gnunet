@@ -107,9 +107,9 @@ struct GNUNET_JSON_Specification
   size_t *size_ptr;
 
   /**
-   * Set to #GNUNET_YES if this component is optional.
+   * Set to true if this component is optional.
    */
-  int is_optional;
+  bool is_optional;
 };
 
 

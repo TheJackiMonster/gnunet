@@ -103,11 +103,30 @@ getPRK (gcry_md_hd_t mac, const void *xts, size_t xts_len, const void *skm,
         size_t skm_len, void *prk)
 {
   const void *ret;
+  size_t dlen;
 
-  ret = doHMAC (mac, xts, xts_len, skm, skm_len);
+  dlen = gcry_md_get_algo_dlen (gcry_md_get_algo (mac));
+
+  /* sanity check to bound stack allocation */
+  GNUNET_assert (dlen <= 512);
+
+  /* From RFC 5869:
+   * salt - optional salt value (a non-secret random value);
+   * if not provided, it is set to a string of HashLen zeros. */
+
+  if (xts_len == 0)
+  {
+    char zero_salt[dlen];
+    memset (zero_salt, 0, dlen);
+    ret = doHMAC (mac, zero_salt, dlen, skm, skm_len);
+  }
+  else
+  {
+    ret = doHMAC (mac, xts, xts_len, skm, skm_len);
+  }
   if (ret == NULL)
     return GNUNET_SYSERR;
-  GNUNET_memcpy (prk, ret, gcry_md_get_algo_dlen (gcry_md_get_algo (mac)));
+  GNUNET_memcpy (prk, ret, dlen);
 
   return GNUNET_YES;
 }

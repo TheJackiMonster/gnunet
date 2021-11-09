@@ -77,7 +77,7 @@ GNUNET_JSON_spec_mark_optional (struct GNUNET_JSON_Specification spec)
 {
   struct GNUNET_JSON_Specification ret = spec;
 
-  ret.is_optional = GNUNET_YES;
+  ret.is_optional = true;
   return ret;
 }
 

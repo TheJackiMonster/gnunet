@@ -672,9 +672,9 @@ GNUNET_OS_install_parent_control_handler (void *cls);
  *         #GNUNET_NO if not SUID (but binary exists),
  *         #GNUNET_SYSERR on error (no such binary or not executable)
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_OS_check_helper_binary (const char *binary,
-                               int check_suid,
+                               bool check_suid,
                                const char *params);
 
 

@@ -127,10 +127,13 @@ GNUNET_PQ_result_spec_variable_size (const char *name,
                                      void **dst,
                                      size_t *sptr)
 {
-  struct GNUNET_PQ_ResultSpec res =
-  { &extract_varsize_blob,
-    &clean_varsize_blob, NULL,
-    (void *) (dst), 0, name, sptr };
+  struct GNUNET_PQ_ResultSpec res = {
+    .conv = &extract_varsize_blob,
+    .cleaner = &clean_varsize_blob,
+    .dst = (void *) (dst),
+    .fname = name,
+    .result_size = sptr
+  };
 
   return res;
 }
@@ -207,10 +210,12 @@ GNUNET_PQ_result_spec_fixed_size (const char *name,
                                   void *dst,
                                   size_t dst_size)
 {
-  struct GNUNET_PQ_ResultSpec res =
-  { &extract_fixed_blob,
-    NULL, NULL,
-    (dst), dst_size, name, NULL };
+  struct GNUNET_PQ_ResultSpec res = {
+    .conv = &extract_fixed_blob,
+    .dst = (dst),
+    .dst_size = dst_size,
+    .fname = name
+  };
 
   return res;
 }
@@ -301,11 +306,12 @@ struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_rsa_public_key (const char *name,
                                       struct GNUNET_CRYPTO_RsaPublicKey **rsa)
 {
-  struct GNUNET_PQ_ResultSpec res =
-  { &extract_rsa_public_key,
-    &clean_rsa_public_key,
-    NULL,
-    (void *) rsa, 0, name, NULL };
+  struct GNUNET_PQ_ResultSpec res = {
+    .conv = &extract_rsa_public_key,
+    .cleaner = &clean_rsa_public_key,
+    .dst = (void *) rsa,
+    .fname = name
+  };
 
   return res;
 }
@@ -395,11 +401,12 @@ struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_rsa_signature (const char *name,
                                      struct GNUNET_CRYPTO_RsaSignature **sig)
 {
-  struct GNUNET_PQ_ResultSpec res =
-  { &extract_rsa_signature,
-    &clean_rsa_signature,
-    NULL,
-    (void *) sig, 0, (name), NULL };
+  struct GNUNET_PQ_ResultSpec res = {
+    .conv = &extract_rsa_signature,
+    .cleaner = &clean_rsa_signature,
+    .dst = (void *) sig,
+    .fname = name
+  };
 
   return res;
 }
