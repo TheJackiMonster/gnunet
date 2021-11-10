@@ -1,3 +1,4 @@
+###########################################################################
 # LIBGNURL_CHECK_CONFIG ([DEFAULT-ACTION], [MINIMUM-VERSION],
 #                       [ACTION-IF-YES], [ACTION-IF-NO])
 # ----------------------------------------------------------
@@ -146,34 +147,36 @@ AC_DEFUN([LIBGNURL_CHECK_CONFIG],
            _libgnurl_save_libs=$LIBS
            LIBS="$LIBGNURL $LIBS"
 
-           AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <curl/curl.h>],[
+           AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <curl/curl.h>]],[[
 /* Try and use a few common options to force a failure if we are
    missing symbols or can't link. */
 int x;
 curl_easy_setopt(NULL,CURLOPT_URL,NULL);
 x=CURL_ERROR_SIZE;
 x=CURLOPT_WRITEFUNCTION;
-x=CURLOPT_FILE;
+x=CURLOPT_WRITEDATA;
 x=CURLOPT_ERRORBUFFER;
 x=CURLOPT_STDERR;
 x=CURLOPT_VERBOSE;
-])],libgnurl_cv_lib_gnurl_usable=yes,libgnurl_cv_lib_gnurl_usable=no)
+if (x) {;}
+]])],libgnurl_cv_lib_gnurl_usable=yes,libgnurl_cv_lib_gnurl_usable=no)
 
 # BEGIN Changes from original libcurl.m4:
-# Give it a 2nd shot using 'gnurl/curl.h'
-           AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <gnurl/curl.h>],[
+# Give it a second shot using 'gnurl/curl.h'
+           AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <gnurl/curl.h>]],[[
 /* Try and use a few common options to force a failure if we are
    missing symbols or can't link. */
 int x;
 curl_easy_setopt(NULL,CURLOPT_URL,NULL);
 x=CURL_ERROR_SIZE;
 x=CURLOPT_WRITEFUNCTION;
-x=CURLOPT_FILE;
+x=CURLOPT_WRITEDATA;
 x=CURLOPT_ERRORBUFFER;
 x=CURLOPT_STDERR;
 x=CURLOPT_VERBOSE;
-])],libgnurl_cv_lib_gnurl_usable=yes)
-# END Changes from original libcurl.m4:
+if (x) {;}
+]])],libgnurl_cv_lib_gnurl_usable=yes,libgnurl_cv_lib_gnurl_usable=no)
+# END Changes from original libcurl.m4
 
            CPPFLAGS=$_libgnurl_save_cppflags
            LIBS=$_libgnurl_save_libs
@@ -183,7 +186,7 @@ x=CURLOPT_VERBOSE;
 
         if test $libgnurl_cv_lib_gnurl_usable = yes ; then
 
-           # Does gnurl_free() exist in this version of libgnurl?
+           # Does curl_free() exist in this version of libgnurl?
            # If not, fake it with free()
 
            _libgnurl_save_cppflags=$CPPFLAGS
