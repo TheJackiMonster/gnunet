@@ -1152,7 +1152,7 @@ AC_FUNC_FORK
 AC_FUNC_CHOWN
 AC_CHECK_FUNCS([atoll stat64 strnlen mremap getrlimit setrlimit sysconf
                 initgroups strndup gethostbyname2 getpeerucred getpeereid
-                setresuid getifaddrs freeifaddrs getresgid mallinfo malloc_size
+                setresuid getifaddrs freeifaddrs getresgid mallinfo2 malloc_size
                 malloc_usable_size getrusage random srandom stat statfs statvfs
                 wait4 timegm])
 

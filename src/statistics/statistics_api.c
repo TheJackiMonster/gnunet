@@ -270,11 +270,11 @@ update_memory_statistics (struct GNUNET_STATISTICS_Handle *h)
 
   if (GNUNET_NO != h->do_destroy)
     return;
-#if HAVE_MALLINFO
+#if HAVE_MALLINFO2
   {
-    struct mallinfo mi;
+    struct mallinfo2 mi;
 
-    mi = mallinfo ();
+    mi = mallinfo2 ();
     current_heap_size = mi.uordblks + mi.fordblks;
   }
 #endif
