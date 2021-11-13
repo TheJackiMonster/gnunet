@@ -75,13 +75,7 @@ struct GNUNET_NETWORK_Handle
 };
 
 
-/**
- * Test if the given protocol family is supported by this system.
- *
- * @param pf protocol family to test (PF_INET, PF_INET6, PF_UNIX)
- * @return #GNUNET_OK if the PF is supported
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_NETWORK_test_pf (int pf)
 {
   static int cache_v4 = -1;
@@ -145,15 +139,6 @@ GNUNET_NETWORK_test_pf (int pf)
 }
 
 
-/**
- * Given a unixpath that is too long (larger than UNIX_PATH_MAX),
- * shorten it to an acceptable length while keeping it unique
- * and making sure it remains a valid filename (if possible).
- *
- * @param unixpath long path, will be freed (or same pointer returned
- *        with moved 0-termination).
- * @return shortened unixpath, NULL on error
- */
 char *
 GNUNET_NETWORK_shorten_unixpath (char *unixpath)
 {
@@ -189,15 +174,6 @@ GNUNET_NETWORK_shorten_unixpath (char *unixpath)
 }
 
 
-/**
- * If services crash, they can leave a unix domain socket file on the
- * disk. This needs to be manually removed, because otherwise both
- * bind() and connect() for the respective address will fail.  In this
- * function, we test if such a left-over file exists, and if so,
- * remove it (unless there is a listening service at the address).
- *
- * @param un unix domain socket address to check
- */
 void
 GNUNET_NETWORK_unix_precheck (const struct sockaddr_un *un)
 {
@@ -244,14 +220,7 @@ GNUNET_NETWORK_unix_precheck (const struct sockaddr_un *un)
 #endif
 
 
-/**
- * Set if a socket should use blocking or non-blocking IO.
- *
- * @param fd socket
- * @param doBlock blocking mode
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_NETWORK_socket_set_blocking (struct GNUNET_NETWORK_Handle *fd,
                                     int doBlock)
 {
@@ -418,14 +387,6 @@ initialize_network_handle (struct GNUNET_NETWORK_Handle *h,
 }
 
 
-/**
- * accept a new connection on a socket
- *
- * @param desc bound socket
- * @param address address of the connecting peer, may be NULL
- * @param address_len length of @a address
- * @return client socket
- */
 struct GNUNET_NETWORK_Handle *
 GNUNET_NETWORK_socket_accept (const struct GNUNET_NETWORK_Handle *desc,
                               struct sockaddr *address,
@@ -473,15 +434,7 @@ GNUNET_NETWORK_socket_accept (const struct GNUNET_NETWORK_Handle *desc,
 }
 
 
-/**
- * Bind a socket to a particular address.
- *
- * @param desc socket to bind
- * @param address address to be bound
- * @param address_len length of @a address
- * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_NETWORK_socket_bind (struct GNUNET_NETWORK_Handle *desc,
                             const struct sockaddr *address,
                             socklen_t address_len)
@@ -550,13 +503,7 @@ GNUNET_NETWORK_socket_bind (struct GNUNET_NETWORK_Handle *desc,
 }
 
 
-/**
- * Close a socket
- *
- * @param desc socket
- * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_NETWORK_socket_close (struct GNUNET_NETWORK_Handle *desc)
 {
   int ret;
