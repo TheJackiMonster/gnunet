@@ -75,6 +75,27 @@ struct GNUNET_MESSENGER_Room;
  */
 struct GNUNET_MESSENGER_Contact;
 
+GNUNET_NETWORK_STRUCT_BEGIN
+
+/**
+ * A room entry record specifies which peer is hosting a given room and
+ * may also specify the key to enter it.
+ */
+struct GNUNET_MESSENGER_RoomEntryRecord
+{
+  /**
+   * The peer identity of an open door to a room.
+   */
+  struct GNUNET_PeerIdentity door;
+
+  /**
+   * The hash identifying the port of the room.
+   */
+  struct GNUNET_HashCode key;
+};
+
+GNUNET_NETWORK_STRUCT_END
+
 /**
  * Enum for the different supported kinds of messages
  */

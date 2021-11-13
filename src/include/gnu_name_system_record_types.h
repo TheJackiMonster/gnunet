@@ -127,6 +127,16 @@ extern "C" {
  */
 #define GNUNET_GNSRECORD_TYPE_EDKEY 65556
 
+/**
+ * Encoding for Robust Immutable Storage (ERIS) binary read capability
+ */
+#define GNUNET_GNSRECORD_TYPE_ERIS_READ_CAPABILITY 65557
+
+/**
+ * Record type to share an entry of a messenger room
+ */
+#define GNUNET_GNSRECORD_TYPE_MESSENGER_ROOM_ENTRY 65558
+
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {
