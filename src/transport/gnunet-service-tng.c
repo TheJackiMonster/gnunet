@@ -5574,12 +5574,12 @@ transmit_cummulative_ack_cb (void *cls)
               "Sending ACK with %u components to %s\n",
               ac->ack_counter,
               GNUNET_i2s (&ac->target));
-  GNUNET_assert (0 < ac->ack_counter);
+  GNUNET_assert (0 <= ac->ack_counter);
   ack->header.type = htons (GNUNET_MESSAGE_TYPE_TRANSPORT_RELIABILITY_ACK);
   ack->header.size =
     htons (sizeof(*ack)
            + ac->ack_counter * sizeof(struct TransportCummulativeAckPayloadP));
-  ack->ack_counter = htonl (ac->ack_counter++);
+  ack->ack_counter = htonl (ac->ack_counter += ac->num_acks);
   ap = (struct TransportCummulativeAckPayloadP *) &ack[1];
   for (unsigned int i = 0; i < ac->ack_counter; i++)
   {

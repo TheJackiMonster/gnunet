@@ -165,6 +165,10 @@ struct StartPeerState
 
   GNUNET_TRANSPORT_NotifyConnect notify_connect;
 
+  /**
+   * Flag indicating, if udp broadcast should be switched on.
+   */
+  unsigned int broadcast;
 };
 
 
@@ -188,6 +192,20 @@ GNUNET_TRANSPORT_get_trait_state (const struct
                                   struct StartPeerState **sps);
 
 
+/**
+ * Create command.
+ *
+ * @param label name for command.
+ * @param system_label Label of the cmd to setup a test environment.
+ * @param m The number of the local node of the actual network namespace.
+ * @param n The number of the actual namespace.
+ * @param local_m Number of local nodes in each namespace.
+ * @param handlers Handler for messages received by this peer.
+ * @param cfgname Configuration file name for this peer.
+ * @param notify_connect Method which will be called, when a peer connects.
+ * @param broadcast Flag indicating, if broadcast should be switched on.
+ * @return command.
+ */
 struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_start_peer (const char *label,
                                  const char *system_label,
@@ -195,7 +213,8 @@ GNUNET_TRANSPORT_cmd_start_peer (const char *label,
                                  char *node_ip,
                                  struct GNUNET_MQ_MessageHandler *handlers,
                                  const char *cfgname,
-                                 GNUNET_TRANSPORT_NotifyConnect notify_connect);
+                                 GNUNET_TRANSPORT_NotifyConnect notify_connect,
+                                 unsigned int broadcast);
 
 
 struct GNUNET_TESTING_Command

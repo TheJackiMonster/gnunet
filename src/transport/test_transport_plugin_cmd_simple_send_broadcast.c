@@ -19,7 +19,7 @@
  */
 
 /**
- * @file testbed/plugin_cmd_simple_send.c
+ * @file testbed/plugin_cmd_simple_send_broadcast.c
  * @brief a plugin to provide the API for running test cases.
  * @author t3sserakt
  */
@@ -38,7 +38,7 @@
 
 #define BASE_DIR "testdir"
 
-#define TOPOLOGY_CONFIG "test_transport_udp_backchannel_topo.conf"
+#define TOPOLOGY_CONFIG "test_transport_simple_send_topo.conf"
 
 struct TestState
 {
@@ -68,6 +68,8 @@ struct TestState
 
 static struct GNUNET_TESTING_Command block_send;
 
+static struct GNUNET_TESTING_Command block_receive;
+
 static struct GNUNET_TESTING_Command connect_peers;
 
 static struct GNUNET_TESTING_Command local_prepared;
@@ -95,14 +97,15 @@ static void
 handle_test (void *cls,
              const struct GNUNET_TRANSPORT_TESTING_TestMessage *message)
 {
-  // struct GNUNET_TESTING_AsyncContext *ac;
+  struct GNUNET_TESTING_AsyncContext *ac;
 
-  /*GNUNET_TESTING_get_trait_async_context (&block_receive,
+  GNUNET_TESTING_get_trait_async_context (&block_receive,
                                           &ac);
-  if ((NULL == ac) || (NULL == ac->cont))
+  GNUNET_assert  (NULL != ac);
+  if (NULL == ac->cont)
     GNUNET_TESTING_async_fail (ac);
   else
-    GNUNET_TESTING_async_finish (ac);*/
+    GNUNET_TESTING_async_finish (ac);
 }
 
 
@@ -118,7 +121,7 @@ all_peers_started ()
   GNUNET_TESTING_get_trait_async_context (&block_send,
                                           &ac);
   GNUNET_assert  (NULL != ac);
-  if ((NULL == ac->cont))
+  if (NULL == ac->cont)
     GNUNET_TESTING_async_fail (ac);
   else
     GNUNET_TESTING_async_finish (ac);
@@ -126,11 +129,11 @@ all_peers_started ()
 
 
 /**
-* Function called with the final result of the test.
-*
-* @param cls the `struct MainParams`
-* @param rv #GNUNET_OK if the test passed
-*/
+ * Function called with the final result of the test.
+ *
+ * @param cls the `struct MainParams`
+ * @param rv #GNUNET_OK if the test passed
+ */
 static void
 handle_result (void *cls,
                enum GNUNET_GenericReturnValue rv)
@@ -147,7 +150,8 @@ handle_result (void *cls,
               "message prepared\n");
   ts->write_message (reply,
                      ntohs (reply->size));
-
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "message send\n");
   GNUNET_free (ts->testdir);
   GNUNET_free (ts->cfgname);
   GNUNET_TESTING_free_topology (ts->topology);
@@ -164,17 +168,24 @@ notify_connect (void *cls,
                 const struct GNUNET_PeerIdentity *peer,
                 struct GNUNET_MQ_Handle *mq)
 {
-  struct ConnectPeersState *cps;
+  struct GNUNET_TESTING_AsyncContext *ac;
 
-  GNUNET_TRANSPORT_get_trait_connect_peer_state (&connect_peers,
-                                                 &cps);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "notify_connect\n");
+
+  GNUNET_TESTING_get_trait_async_context (&connect_peers,
+                                                 &ac);
   void *ret = NULL;
 
-  cps->notify_connect (cps,
-                       peer,
-                       mq);
+  GNUNET_assert  (NULL != ac);
+  if (NULL == ac->cont)
+    GNUNET_TESTING_async_fail (ac);
+  else
+    GNUNET_TESTING_async_finish (ac);
+  
   return ret;
 }
+
 
 /**
  * Callback to set the flag indicating all peers are prepared to finish. Will be called via the plugin api.
@@ -192,6 +203,7 @@ all_local_tests_prepared ()
   else
     GNUNET_TESTING_async_finish (&lfs->ac);
 }
+
 
 /**
  * Function to start a local test case.
@@ -218,11 +230,14 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
   unsigned int local_m_int;
   unsigned int num;
   struct TestState *ts = GNUNET_new (struct TestState);
-
   struct GNUNET_TESTING_NetjailTopology *topology;
 
   if (GNUNET_YES == *read_file)
+  {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "read from file\n");
     topology = GNUNET_TESTING_get_topo_from_file (topology_data);
+  }
   else
     topology = GNUNET_TESTING_get_topo_from_string (topology_data);
 
@@ -232,21 +247,19 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
   sscanf (n, "%u", &n_int);
   sscanf (local_m, "%u", &local_m_int);
 
-
   if (0 == n_int)
     num = m_int;
   else
     num = (n_int - 1) * local_m_int + m_int + topology->nodes_x;
 
   block_send = GNUNET_TESTING_cmd_block_until_external_trigger ("block");
-  connect_peers = GNUNET_TRANSPORT_cmd_connect_peers ("connect-peers",
-                                                      "start-peer",
-                                                      "system-create",
-                                                      num,
-                                                      topology);
+  block_receive = GNUNET_TESTING_cmd_block_until_external_trigger (
+    "block-receive");
+  connect_peers = GNUNET_TESTING_cmd_block_until_external_trigger ("connect-peers");
   local_prepared = GNUNET_TESTING_cmd_local_test_prepared (
     "local-test-prepared",
     write_message);
+
 
   GNUNET_asprintf (&ts->cfgname,
                    "test_transport_api2_tcp_node1.conf");
@@ -269,7 +282,7 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
     GNUNET_MQ_hd_var_size (test,
                            GNUNET_TRANSPORT_TESTING_SIMPLE_MTYPE,
                            struct GNUNET_TRANSPORT_TESTING_TestMessage,
-                           NULL),
+                           ts),
     GNUNET_MQ_handler_end ()
   };
 
@@ -283,18 +296,17 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
                                      handlers,
                                      ts->cfgname,
                                      notify_connect,
-                                     GNUNET_NO),
+                                     GNUNET_YES),
     GNUNET_TESTING_cmd_send_peer_ready ("send-peer-ready",
                                         write_message),
     block_send,
     connect_peers,
-    GNUNET_TRANSPORT_cmd_backchannel_check ("backchannel-check",
-                                            "start-peer",
-                                            "system-create",
-                                            num,
-                                            m_int,
-                                            n_int,
-                                            topology),
+    GNUNET_TRANSPORT_cmd_send_simple ("send-simple",
+                                      "start-peer",
+                                      "system-create",
+                                      num,
+                                      topology),
+    block_receive,
     local_prepared,
     GNUNET_TRANSPORT_cmd_stop_peer ("stop-peer",
                                     "start-peer"),
@@ -320,11 +332,11 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
  * @return the exported block API
  */
 void *
-libgnunet_test_transport_plugin_cmd_udp_backchannel_init (void *cls)
+libgnunet_test_transport_plugin_cmd_simple_send_broadcast_init (void *cls)
 {
   struct GNUNET_TESTING_PluginFunctions *api;
 
-  GNUNET_log_setup ("udp-backchannel",
+  GNUNET_log_setup ("simple-send",
                     "DEBUG",
                     NULL);
 
@@ -343,7 +355,7 @@ libgnunet_test_transport_plugin_cmd_udp_backchannel_init (void *cls)
  * @return NULL
  */
 void *
-libgnunet_test_transport_plugin_cmd_udp_backchannel_done (void *cls)
+libgnunet_test_transport_plugin_cmd_simple_send_broadcast_done (void *cls)
 {
   struct GNUNET_TESTING_PluginFunctions *api = cls;
 
@@ -352,4 +364,4 @@ libgnunet_test_transport_plugin_cmd_udp_backchannel_done (void *cls)
 }
 
 
-/* end of plugin_cmd_simple_send.c */
+/* end of plugin_cmd_simple_send_broadcast.c */

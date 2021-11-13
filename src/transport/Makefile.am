@@ -390,6 +390,7 @@ plugin_LTLIBRARIES = \
   $(WLAN_PLUGIN_LA) \
   $(BT_PLUGIN_LA) \
   libgnunet_test_transport_plugin_cmd_simple_send.la \
+  libgnunet_test_transport_plugin_cmd_simple_send_broadcast.la \
   libgnunet_test_transport_plugin_cmd_udp_backchannel.la
 
 libgnunet_test_transport_plugin_cmd_udp_backchannel_la_SOURCES = \
@@ -424,6 +425,23 @@ libgnunet_test_transport_plugin_cmd_simple_send_la_LIBADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(LTLIBINTL)
 libgnunet_test_transport_plugin_cmd_simple_send_la_LDFLAGS = \
+  $(GN_PLUGIN_LDFLAGS)
+
+libgnunet_test_transport_plugin_cmd_simple_send_broadcast_la_SOURCES = \
+ test_transport_plugin_cmd_simple_send_broadcast.c
+libgnunet_test_transport_plugin_cmd_simple_send_broadcast_la_LIBADD = \
+  libgnunettransporttesting2.la \
+  libgnunettransportapplication.la \
+  libgnunettransportcore.la \
+  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/hello/libgnunethello.la \
+  $(top_builddir)/src/ats/libgnunetats.la \
+  $(top_builddir)/src/arm/libgnunetarm.la \
+  $(top_builddir)/src/util/libgnunetutil.la \
+  $(LTLIBINTL)
+libgnunet_test_transport_plugin_cmd_simple_send_broadcast_la_LDFLAGS = \
   $(GN_PLUGIN_LDFLAGS)
 
 if HAVE_EXPERIMENTAL

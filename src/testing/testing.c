@@ -2122,13 +2122,14 @@ GNUNET_TESTING_get_connections (unsigned int num, struct
             sizeof (*hkey));
     node = GNUNET_CONTAINER_multishortmap_get (topology->map_globals,
                                                hkey);
-    node_connections = node->node_connections_head;
+    if (NULL != node)
+      node_connections = node->node_connections_head;
   }
   else
   {
     namespace_n = (unsigned int) ceil ((double) (num - topology->nodes_x)
                                        / topology->nodes_m);
-    LOG (GNUNET_ERROR_TYPE_ERROR,
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
          "ceil num: %u nodes_x: %u nodes_m: %u namespace_n: %u\n",
          num,
          topology->nodes_x,
@@ -2141,6 +2142,8 @@ GNUNET_TESTING_get_connections (unsigned int num, struct
             sizeof (*hkey));
     namespace = GNUNET_CONTAINER_multishortmap_get (topology->map_namespaces,
                                                     hkey);
+    if (NULL == namespace)
+      return NULL;
     node_m = num - topology->nodes_x - topology->nodes_m * (namespace_n - 1);
     hkey = GNUNET_new (struct GNUNET_ShortHashCode);
     GNUNET_CRYPTO_hash (&node_m, sizeof(node_m), &hc);
@@ -2149,7 +2152,8 @@ GNUNET_TESTING_get_connections (unsigned int num, struct
             sizeof (*hkey));
     node = GNUNET_CONTAINER_multishortmap_get (namespace->nodes,
                                                hkey);
-    node_connections = node->node_connections_head;
+    if (NULL != node)
+      node_connections = node->node_connections_head;
   }
 
   GNUNET_free (hkey);

@@ -244,7 +244,8 @@ mq_error_handler (void *cls, enum GNUNET_MQ_Error error)
   struct GNUNET_TRANSPORT_CoreHandle *h = cls;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Error receiving from transport service, disconnecting temporarily.\n");
+       "Error %u received from transport service, disconnecting temporarily.\n",
+       error);
   disconnect_and_schedule_reconnect (h);
 }
 
@@ -522,6 +523,8 @@ check_recv (void *cls, const struct InboundMessage *im)
   const struct GNUNET_MessageHeader *imm;
   uint16_t size;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "check_recv\n");
   size = ntohs (im->header.size) - sizeof(*im);
   if (size < sizeof(struct GNUNET_MessageHeader))
   {

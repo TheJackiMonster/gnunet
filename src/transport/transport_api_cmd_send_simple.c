@@ -31,6 +31,11 @@
 #include "transport-testing-cmds.h"
 
 /**
+ * Generic logging shortcut
+ */
+#define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
+
+/**
  * Struct to hold information for callbacks.
  *
  */
@@ -74,6 +79,32 @@ send_simple_cleanup (void *cls)
 }
 
 
+static int
+send_simple_cb  (void *cls,
+                 const struct GNUNET_ShortHashCode *key,
+                 void *value)
+{
+  struct SendSimpleState *sss = cls;
+  struct GNUNET_MQ_Handle *mq = value;
+  struct GNUNET_MQ_Envelope *env;
+  struct GNUNET_TRANSPORT_TESTING_TestMessage *test;
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Sending simple test message\n");
+
+  env = GNUNET_MQ_msg_extra (test,
+                             1000 - sizeof(*test),
+                             GNUNET_TRANSPORT_TESTING_SIMPLE_MTYPE);
+  test->num = htonl (sss->num);
+  memset (&test[1],
+          sss->num,
+          1000 - sizeof(*test));
+  GNUNET_MQ_send (mq,
+                  env);
+  return GNUNET_OK;
+}
+
+
 /**
  * The run method of this cmd will send a simple message to the connected peers.
  *
@@ -83,12 +114,9 @@ send_simple_run (void *cls,
                  struct GNUNET_TESTING_Interpreter *is)
 {
   struct SendSimpleState *sss = cls;
-  struct GNUNET_MQ_Envelope *env;
-  struct GNUNET_TRANSPORT_TESTING_TestMessage *test;
-  struct GNUNET_MQ_Handle *mq;
   struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map;
   const struct GNUNET_TESTING_Command *peer1_cmd;
-  struct GNUNET_ShortHashCode *key = GNUNET_new (struct GNUNET_ShortHashCode);
+  // struct GNUNET_ShortHashCode *key = GNUNET_new (struct GNUNET_ShortHashCode);
   struct GNUNET_HashCode hc;
   struct GNUNET_TESTING_NodeConnection *node_connections_head;
   struct GNUNET_PeerIdentity *peer;
@@ -111,7 +139,9 @@ send_simple_run (void *cls,
   node_connections_head = GNUNET_TESTING_get_connections (sss->num,
                                                           sss->topology);
 
-  for (int i = 0; i < 1; i++)
+  GNUNET_CONTAINER_multishortmap_iterate (connected_peers_map, send_simple_cb,
+                                          sss);
+  /*for (int i = 0; i < 1; i++)
   {
     for (pos_connection = node_connections_head; NULL != pos_connection;
          pos_connection = pos_connection->next)
@@ -136,9 +166,9 @@ send_simple_run (void *cls,
       GNUNET_MQ_send (mq,
                       env);
     }
-  }
+    }*/
 
-  GNUNET_free (key);
+  // GNUNET_free (key);
 
 }
 

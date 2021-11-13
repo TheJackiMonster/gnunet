@@ -126,12 +126,13 @@ notify_connect (void *cls,
 
   void *ret = NULL;
 
-
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Peer %s connected to peer %u (`%s')\n",
-       GNUNET_i2s (peer),
-       sps->no,
+       "This Peer %s \n",
        GNUNET_i2s (&sps->id));
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Peer %s connected to peer number %u\n",
+       GNUNET_i2s (peer),
+       sps->no);
 
   GNUNET_CRYPTO_hash (&public_key, sizeof(public_key), &hc);
 
@@ -216,6 +217,11 @@ start_peer_run (void *cls,
        "node_ip %s\n",
        bindto);
 
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "bind_udp %s\n",
+       GNUNET_YES == sps->broadcast ?
+       bindto_udp : bindto);
+
   GNUNET_CONFIGURATION_set_value_string (sps->cfg, "PATHS", "GNUNET_TEST_HOME",
                                          home);
   GNUNET_CONFIGURATION_set_value_string (sps->cfg, "transport", "UNIXPATH",
@@ -225,7 +231,8 @@ start_peer_run (void *cls,
                                          bindto);
   GNUNET_CONFIGURATION_set_value_string (sps->cfg, "communicator-udp",
                                          "BINDTO",
-                                         bindto);
+                                         GNUNET_YES == sps->broadcast ?
+                                         bindto_udp : bindto);
   GNUNET_CONFIGURATION_set_value_string (sps->cfg, "communicator-tcp",
                                          "UNIXPATH",
                                          tcp_communicator_unix_path);
@@ -571,6 +578,8 @@ GNUNET_TRANSPORT_get_trait_peer_id (const struct
  * @param local_m Number of local nodes in each namespace.
  * @param handlers Handler for messages received by this peer.
  * @param cfgname Configuration file name for this peer.
+ * @param notify_connect Method which will be called, when a peer connects.
+ * @param broadcast Flag indicating, if broadcast should be switched on.
  * @return command.
  */
 struct GNUNET_TESTING_Command
@@ -580,7 +589,8 @@ GNUNET_TRANSPORT_cmd_start_peer (const char *label,
                                  char *node_ip,
                                  struct GNUNET_MQ_MessageHandler *handlers,
                                  const char *cfgname,
-                                 GNUNET_TRANSPORT_NotifyConnect notify_connect)
+                                 GNUNET_TRANSPORT_NotifyConnect notify_connect,
+                                 unsigned int broadcast)
 {
   struct StartPeerState *sps;
   struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map =
@@ -594,6 +604,7 @@ GNUNET_TRANSPORT_cmd_start_peer (const char *label,
   sps->cfgname = cfgname;
   sps->node_ip = node_ip;
   sps->notify_connect = notify_connect;
+  sps->broadcast = broadcast;
 
   if (NULL != handlers)
   {

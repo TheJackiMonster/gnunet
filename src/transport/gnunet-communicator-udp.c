@@ -2354,6 +2354,13 @@ sock_read (void *cls)
     uhs.purpose.size = htonl (sizeof(uhs));
     uhs.sender = ub->sender;
     sender = ub->sender;
+    if (0 == memcmp (&sender, &my_identity, sizeof (struct
+                                                    GNUNET_PeerIdentity)))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Received our own broadcast\n");
+      return;
+    }
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "checking UDPBroadcastSignature for %s\n",
                 GNUNET_i2s (&sender));
