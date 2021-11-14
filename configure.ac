@@ -265,6 +265,10 @@ AS_IF([test -x "$AWK_BINARY"],
       [AC_DEFINE([HAVE_AWK], [1], [Define to 1 if awk is available])],
       [AC_DEFINE([HAVE_AWK], [0], [Define to 1 if awk is available])])
 
+# check for pdflatex to build gnunet-bcd
+AC_CHECK_PROG([PDFLATEX_BINARY], [pdflatex], [true], [false])
+AM_CONDITIONAL([HAVE_PDFLATEX], [$PDFLATEX_BINARY])
+
 AC_ARG_WITH([gnunet-logread],
             [AS_HELP_STRING([--with-gnunet-logread], [Install gnunet-logread])],
             [logread=yes],
@@ -1601,6 +1605,11 @@ AS_IF([test "x$gnutls" = "x0"],
       AC_MSG_WARN([GnuTLS lacks DANE support; validation using it will not be possible])],
      [gnutls_msg="yes (with DANE support)"])])
 
+# pdflatex
+AS_IF([test "x$PDFLATEX_BINARY" = "xfalse"],
+  [latex_msg="no"],
+  [latex_msg="yes"])
+
 # database backends
 features_msg=""
 
@@ -1651,6 +1660,8 @@ iptables:                       ${iptables_msg}
 ifconfig:                       ${ifconfig_msg}
 UPnPc:                          ${upnpc_msg}
 GnuTLS:                         ${gnutls_msg}
+
+LaTeX:                          ${latex_msg}
 
 libextractor:                   ${libextractor_msg}
 libzbar:                        ${libzbar_msg}
