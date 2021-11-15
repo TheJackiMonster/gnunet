@@ -176,6 +176,9 @@ handle_tunnel_message (void *cls, const struct GNUNET_MessageHeader *header)
 {
   struct GNUNET_MESSENGER_SrvTunnel *tunnel = cls;
 
+  if (!tunnel)
+    return;
+
   const uint16_t length = ntohs (header->size) - sizeof(*header);
   const char *buffer = (const char*) &header[1];
 
@@ -189,9 +192,6 @@ handle_tunnel_message (void *cls, const struct GNUNET_MessageHeader *header)
 
   GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Got message of kind: %s!\n",
              GNUNET_MESSENGER_name_of_kind(message.header.kind));
-
-  if (!tunnel)
-    return;
 
   const int new_message = update_room_message (
       tunnel->room, copy_message (&message), &hash
@@ -226,6 +226,8 @@ handle_tunnel_message (void *cls, const struct GNUNET_MessageHeader *header)
   }
 
 receive_done:
+  cleanup_message(&message);
+
   GNUNET_CADET_receive_done (tunnel->channel);
 }
 

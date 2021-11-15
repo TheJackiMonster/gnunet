@@ -214,6 +214,7 @@ check_recv_message (void *cls,
   if (GNUNET_YES != decode_message (&message, length, buffer, GNUNET_YES, NULL))
     return GNUNET_NO;
 
+  cleanup_message(&message);
   return GNUNET_OK;
 }
 
@@ -259,6 +260,8 @@ handle_recv_message (void *cls,
   }
   else
     GNUNET_log(GNUNET_ERROR_TYPE_ERROR, "Room not found\n");
+
+  cleanup_message(&message);
 }
 
 static void

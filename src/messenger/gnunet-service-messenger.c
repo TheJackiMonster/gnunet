@@ -227,10 +227,10 @@ check_for_message:
   if (GNUNET_YES != decode_message (&message, msg_length, msg_buffer, GNUNET_NO, NULL))
     return GNUNET_NO;
 
-  if (GNUNET_YES != filter_message_sending(&message))
-    return GNUNET_NO;
+  const int allowed = filter_message_sending(&message);
 
-  return GNUNET_OK;
+  cleanup_message(&message);
+  return GNUNET_YES == allowed? GNUNET_OK : GNUNET_NO;
 }
 
 static void
@@ -278,6 +278,8 @@ handle_send_message (void *cls,
                GNUNET_MESSENGER_name_of_kind (message.header.kind), GNUNET_h2s (key));
 
 end_handling:
+  cleanup_message(&message);
+
   GNUNET_SERVICE_client_continue (msg_client->client);
 }
 
