@@ -368,7 +368,8 @@ download_cb (char *bufptr,
     db->eno = ENOMEM;
     return 0;   /* signals an error to curl */
   }
-  db->buf = GNUNET_realloc (db->buf, db->buf_size + msize);
+  db->buf = GNUNET_realloc (db->buf,
+                            db->buf_size + msize);
   buf = db->buf + db->buf_size;
   GNUNET_memcpy (buf, bufptr, msize);
   db->buf_size += msize;
@@ -421,7 +422,8 @@ setup_job_headers (struct GNUNET_CURL_Context *ctx,
           &scope.scope_id,
           sizeof(struct GNUNET_AsyncScopeId));
       GNUNET_assert (NULL != aid_header);
-      GNUNET_assert (NULL != curl_slist_append (all_headers, aid_header));
+      GNUNET_assert (NULL != curl_slist_append (all_headers,
+                                                aid_header));
       GNUNET_free (aid_header);
     }
   }
@@ -455,12 +457,25 @@ setup_job (CURL *eh,
   job = GNUNET_new (struct GNUNET_CURL_Job);
   job->job_headers = all_headers;
 
-  if ((CURLE_OK != curl_easy_setopt (eh, CURLOPT_PRIVATE, job)) ||
-      (CURLE_OK !=
-       curl_easy_setopt (eh, CURLOPT_WRITEFUNCTION, &download_cb)) ||
-      (CURLE_OK != curl_easy_setopt (eh, CURLOPT_WRITEDATA, &job->db)) ||
-      (CURLE_OK != curl_easy_setopt (eh, CURLOPT_SHARE, ctx->share)) ||
-      (CURLM_OK != curl_multi_add_handle (ctx->multi, eh)))
+  if ( (CURLE_OK !=
+        curl_easy_setopt (eh,
+                          CURLOPT_PRIVATE,
+                          job)) ||
+       (CURLE_OK !=
+        curl_easy_setopt (eh,
+                          CURLOPT_WRITEFUNCTION,
+                          &download_cb)) ||
+       (CURLE_OK !=
+        curl_easy_setopt (eh,
+                          CURLOPT_WRITEDATA,
+                          &job->db)) ||
+       (CURLE_OK !=
+        curl_easy_setopt (eh,
+                          CURLOPT_SHARE,
+                          ctx->share)) ||
+       (CURLM_OK !=
+        curl_multi_add_handle (ctx->multi,
+                               eh)) )
   {
     GNUNET_break (0);
     GNUNET_free (job);
@@ -683,9 +698,12 @@ GNUNET_CURL_job_cancel (struct GNUNET_CURL_Job *job)
 {
   struct GNUNET_CURL_Context *ctx = job->ctx;
 
-  GNUNET_CONTAINER_DLL_remove (ctx->jobs_head, ctx->jobs_tail, job);
+  GNUNET_CONTAINER_DLL_remove (ctx->jobs_head,
+                               ctx->jobs_tail,
+                               job);
   GNUNET_break (CURLM_OK ==
-                curl_multi_remove_handle (ctx->multi, job->easy_handle));
+                curl_multi_remove_handle (ctx->multi,
+                                          job->easy_handle));
   curl_easy_cleanup (job->easy_handle);
   GNUNET_free (job->db.buf);
   curl_slist_free_all (job->job_headers);
@@ -831,7 +849,8 @@ enum GNUNET_GenericReturnValue
 GNUNET_CURL_append_header (struct GNUNET_CURL_Context *ctx,
                            const char *header)
 {
-  ctx->common_headers = curl_slist_append (ctx->common_headers, header);
+  ctx->common_headers = curl_slist_append (ctx->common_headers,
+                                           header);
   if (NULL == ctx->common_headers)
     return GNUNET_SYSERR;
 
@@ -854,40 +873,46 @@ do_benchmark (CURLMsg *cmsg)
   uint64_t bytes_sent = 0;
   uint64_t bytes_received = 0;
 
-  GNUNET_break (CURLE_OK == curl_easy_getinfo (cmsg->easy_handle,
-                                               CURLINFO_TOTAL_TIME,
-                                               &total_as_double));
+  GNUNET_break (CURLE_OK ==
+                curl_easy_getinfo (cmsg->easy_handle,
+                                   CURLINFO_TOTAL_TIME,
+                                   &total_as_double));
   total.rel_value_us = total_as_double * 1000 * 1000;
 
-  GNUNET_break (CURLE_OK == curl_easy_getinfo (cmsg->easy_handle,
-                                               CURLINFO_EFFECTIVE_URL,
-                                               &url));
+  GNUNET_break (CURLE_OK ==
+                curl_easy_getinfo (cmsg->easy_handle,
+                                   CURLINFO_EFFECTIVE_URL,
+                                   &url));
 
   /* HEADER_SIZE + SIZE_DOWNLOAD_T is hopefully the total
      number of bytes received, not clear from curl docs. */
 
-  GNUNET_break (CURLE_OK == curl_easy_getinfo (cmsg->easy_handle,
-                                               CURLINFO_HEADER_SIZE,
-                                               &size_long));
+  GNUNET_break (CURLE_OK ==
+                curl_easy_getinfo (cmsg->easy_handle,
+                                   CURLINFO_HEADER_SIZE,
+                                   &size_long));
   bytes_received += size_long;
 
-  GNUNET_break (CURLE_OK == curl_easy_getinfo (cmsg->easy_handle,
-                                               CURLINFO_SIZE_DOWNLOAD_T,
-                                               &size_curl));
+  GNUNET_break (CURLE_OK ==
+                curl_easy_getinfo (cmsg->easy_handle,
+                                   CURLINFO_SIZE_DOWNLOAD_T,
+                                   &size_curl));
   bytes_received += size_curl;
 
   /* REQUEST_SIZE + SIZE_UPLOAD_T is hopefully the total number of bytes
      sent, again docs are not completely clear. */
 
-  GNUNET_break (CURLE_OK == curl_easy_getinfo (cmsg->easy_handle,
-                                               CURLINFO_REQUEST_SIZE,
-                                               &size_long));
+  GNUNET_break (CURLE_OK ==
+                curl_easy_getinfo (cmsg->easy_handle,
+                                   CURLINFO_REQUEST_SIZE,
+                                   &size_long));
   bytes_sent += size_long;
 
   /* We obtain this value to check an invariant, but never use it otherwise. */
-  GNUNET_break (CURLE_OK == curl_easy_getinfo (cmsg->easy_handle,
-                                               CURLINFO_SIZE_UPLOAD_T,
-                                               &size_curl));
+  GNUNET_break (CURLE_OK ==
+                curl_easy_getinfo (cmsg->easy_handle,
+                                   CURLINFO_SIZE_UPLOAD_T,
+                                   &size_curl));
 
   /* CURLINFO_SIZE_UPLOAD_T <= CURLINFO_REQUEST_SIZE should
      be an invariant.
@@ -900,8 +925,10 @@ do_benchmark (CURLMsg *cmsg)
 
   urd = get_url_benchmark_data (url, (unsigned int) response_code);
   urd->count++;
-  urd->time = GNUNET_TIME_relative_add (urd->time, total);
-  urd->time_max = GNUNET_TIME_relative_max (total, urd->time_max);
+  urd->time = GNUNET_TIME_relative_add (urd->time,
+                                        total);
+  urd->time_max = GNUNET_TIME_relative_max (total,
+                                            urd->time_max);
   urd->bytes_sent += bytes_sent;
   urd->bytes_received += bytes_received;
 }
@@ -929,7 +956,8 @@ GNUNET_CURL_perform2 (struct GNUNET_CURL_Context *ctx,
 
   (void) curl_multi_perform (ctx->multi,
                              &n_running);
-  while (NULL != (cmsg = curl_multi_info_read (ctx->multi, &n_completed)))
+  while (NULL != (cmsg = curl_multi_info_read (ctx->multi,
+                                               &n_completed)))
   {
     struct GNUNET_CURL_Job *job;
     long response_code;
@@ -937,9 +965,10 @@ GNUNET_CURL_perform2 (struct GNUNET_CURL_Context *ctx,
 
     /* Only documented return value is CURLMSG_DONE */
     GNUNET_break (CURLMSG_DONE == cmsg->msg);
-    GNUNET_assert (CURLE_OK == curl_easy_getinfo (cmsg->easy_handle,
-                                                  CURLINFO_PRIVATE,
-                                                  (char **) &job));
+    GNUNET_assert (CURLE_OK ==
+                   curl_easy_getinfo (cmsg->easy_handle,
+                                      CURLINFO_PRIVATE,
+                                      (char **) &job));
     GNUNET_assert (job->ctx == ctx);
     response_code = 0;
     if (NULL != job->jcc_raw)
@@ -1027,14 +1056,17 @@ GNUNET_CURL_get_select_info (struct GNUNET_CURL_Context *ctx,
   int m;
 
   m = -1;
-  GNUNET_assert (CURLM_OK == curl_multi_fdset (ctx->multi,
-                                               read_fd_set,
-                                               write_fd_set,
-                                               except_fd_set,
-                                               &m));
+  GNUNET_assert (CURLM_OK ==
+                 curl_multi_fdset (ctx->multi,
+                                   read_fd_set,
+                                   write_fd_set,
+                                   except_fd_set,
+                                   &m));
   to = *timeout;
   *max_fd = GNUNET_MAX (m, *max_fd);
-  GNUNET_assert (CURLM_OK == curl_multi_timeout (ctx->multi, &to));
+  GNUNET_assert (CURLM_OK ==
+                 curl_multi_timeout (ctx->multi,
+                                     &to));
 
   /* Only if what we got back from curl is smaller than what we
      already had (-1 == infinity!), then update timeout */
@@ -1079,7 +1111,9 @@ GNUNET_CURL_constructor__ (void)
 
   if (CURLE_OK != (ret = curl_global_init (CURL_GLOBAL_DEFAULT)))
   {
-    CURL_STRERROR (GNUNET_ERROR_TYPE_ERROR, "curl_global_init", ret);
+    CURL_STRERROR (GNUNET_ERROR_TYPE_ERROR,
+                   "curl_global_init",
+                   ret);
     curl_fail = 1;
   }
 }
