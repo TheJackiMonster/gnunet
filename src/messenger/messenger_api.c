@@ -214,6 +214,7 @@ check_recv_message (void *cls,
   if (GNUNET_YES != decode_message (&message, length, buffer, GNUNET_YES, NULL))
     return GNUNET_NO;
 
+  cleanup_message(&message);
   return GNUNET_OK;
 }
 
@@ -254,11 +255,15 @@ handle_recv_message (void *cls,
 
     handle_room_message (room, contact, &message, hash);
 
+    const struct GNUNET_MESSENGER_Message *stored_message = get_room_message(room, hash);
+
     if (handle->msg_callback)
-      handle->msg_callback (handle->msg_cls, room, contact, &message, hash, flags);
+      handle->msg_callback (handle->msg_cls, room, contact, stored_message, hash, flags);
   }
   else
     GNUNET_log(GNUNET_ERROR_TYPE_ERROR, "Room not found\n");
+
+  cleanup_message(&message);
 }
 
 static void

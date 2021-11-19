@@ -1,5 +1,6 @@
 [messenger]
 START_ON_DEMAND = YES
+RUN_PER_USER = YES
 PORT = 2097
 HOSTNAME = localhost
 BINARY = gnunet-service-messenger

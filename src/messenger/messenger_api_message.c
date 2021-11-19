@@ -126,6 +126,14 @@ destroy_message_body (enum GNUNET_MESSENGER_MessageKind kind,
 }
 
 void
+cleanup_message (struct GNUNET_MESSENGER_Message *message)
+{
+  GNUNET_assert(message);
+
+  destroy_message_body (message->header.kind, &(message->body));
+}
+
+void
 destroy_message (struct GNUNET_MESSENGER_Message *message)
 {
   GNUNET_assert(message);

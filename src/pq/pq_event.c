@@ -420,6 +420,7 @@ GNUNET_PQ_event_listen (struct GNUNET_PQ_Context *db,
                         void *cb_cls)
 {
   struct GNUNET_DB_EventHandler *eh;
+  bool sub;
 
   eh = GNUNET_new (struct GNUNET_DB_EventHandler);
   eh->db = db;
@@ -427,6 +428,9 @@ GNUNET_PQ_event_listen (struct GNUNET_PQ_Context *db,
             &eh->sh);
   eh->cb = cb;
   eh->cb_cls = cb_cls;
+  sub = (NULL ==
+         GNUNET_CONTAINER_multishortmap_get (db->channel_map,
+                                             &eh->sh));
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_CONTAINER_multishortmap_put (db->channel_map,
                                                      &eh->sh,
@@ -439,9 +443,10 @@ GNUNET_PQ_event_listen (struct GNUNET_PQ_Context *db,
     scheduler_fd_cb (db,
                      PQsocket (db->conn));
   }
-  manage_subscribe (db,
-                    "LISTEN X",
-                    eh);
+  if (sub)
+    manage_subscribe (db,
+                      "LISTEN X",
+                      eh);
   eh->timeout_task = GNUNET_SCHEDULER_add_delayed (timeout,
                                                    &event_timeout,
                                                    eh);
@@ -458,9 +463,12 @@ GNUNET_PQ_event_listen_cancel (struct GNUNET_DB_EventHandler *eh)
                  GNUNET_CONTAINER_multishortmap_remove (db->channel_map,
                                                         &eh->sh,
                                                         eh));
-  manage_subscribe (db,
-                    "UNLISTEN X",
-                    eh);
+  if (NULL ==
+      GNUNET_CONTAINER_multishortmap_get (db->channel_map,
+                                          &eh->sh))
+    manage_subscribe (db,
+                      "UNLISTEN X",
+                      eh);
   if (0 == GNUNET_CONTAINER_multishortmap_size (db->channel_map))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,

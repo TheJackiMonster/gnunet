@@ -78,7 +78,7 @@ struct GNUNET_NETWORK_FDSet
  * @param pf protocol family to test (PF_INET, PF_INET6, PF_UNIX)
  * @return #GNUNET_OK if the PF is supported
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_NETWORK_test_pf (int pf);
 
 
@@ -154,7 +154,7 @@ GNUNET_NETWORK_socket_set_blocking (struct GNUNET_NETWORK_Handle *fd,
  * @param address_len length of @a address
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_NETWORK_socket_bind (struct GNUNET_NETWORK_Handle *desc,
                             const struct sockaddr *address,
                             socklen_t address_len);
@@ -165,7 +165,7 @@ GNUNET_NETWORK_socket_bind (struct GNUNET_NETWORK_Handle *desc,
  * @param desc socket to close
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_NETWORK_socket_close (struct GNUNET_NETWORK_Handle *desc);
 
 
@@ -186,7 +186,7 @@ GNUNET_NETWORK_socket_free_memory_only_ (struct GNUNET_NETWORK_Handle *desc);
  * @param address_len of @a address
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_NETWORK_socket_connect (const struct GNUNET_NETWORK_Handle *desc,
                                const struct sockaddr *address,
                                socklen_t address_len);
@@ -202,7 +202,7 @@ GNUNET_NETWORK_socket_connect (const struct GNUNET_NETWORK_Handle *desc,
  * @param optlen length of optval
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_NETWORK_socket_getsockopt (const struct GNUNET_NETWORK_Handle *desc,
                                   int level,
                                   int optname,
@@ -217,7 +217,7 @@ GNUNET_NETWORK_socket_getsockopt (const struct GNUNET_NETWORK_Handle *desc,
  * @param backlog length of the listen queue
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_NETWORK_socket_listen (const struct GNUNET_NETWORK_Handle *desc,
                               int backlog);
 
@@ -339,7 +339,7 @@ GNUNET_NETWORK_socket_setsockopt (struct GNUNET_NETWORK_Handle *fd,
  * @param how type of shutdown
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_NETWORK_socket_shutdown (struct GNUNET_NETWORK_Handle *desc,
                                 int how);
 
@@ -353,7 +353,7 @@ GNUNET_NETWORK_socket_shutdown (struct GNUNET_NETWORK_Handle *desc,
  * @param desc socket
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_NETWORK_socket_disable_corking (struct GNUNET_NETWORK_Handle *desc);
 
 

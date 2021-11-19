@@ -10,6 +10,19 @@ pkgcfgdir= $(pkgdatadir)/config.d/
 
 libexecdir= $(pkglibdir)/libexec/
 
+plugin_LTLIBRARIES = \
+  libgnunet_plugin_gnsrecord_messenger.la
+
+
+libgnunet_plugin_gnsrecord_messenger_la_SOURCES = \
+  plugin_gnsrecord_messenger.c
+libgnunet_plugin_gnsrecord_messenger_la_LIBADD = \
+  $(top_builddir)/src/util/libgnunetutil.la \
+  $(LTLIBINTL)
+libgnunet_plugin_gnsrecord_messenger_la_LDFLAGS = \
+ $(GN_PLUGIN_LDFLAGS)
+
+
 pkgcfg_DATA = \
   messenger.conf
 

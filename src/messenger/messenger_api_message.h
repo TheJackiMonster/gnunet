@@ -62,6 +62,14 @@ struct GNUNET_MESSENGER_Message*
 copy_message (const struct GNUNET_MESSENGER_Message *message);
 
 /**
+ * Frees the messages body memory.
+ *
+ * @param[in/out] message Message
+ */
+void
+cleanup_message (struct GNUNET_MESSENGER_Message *message);
+
+/**
  * Destroys a message and frees its memory fully.
  *
  * @param[in/out] message Message

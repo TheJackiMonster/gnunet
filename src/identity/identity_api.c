@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2013, 2016 GNUnet e.V.
+     Copyright (C) 2013, 2016, 2021 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -1020,7 +1020,9 @@ GNUNET_IDENTITY_write_key_to_buffer (const struct
     return -1;
   if (length < 0)
     return -2;
-  GNUNET_memcpy (buffer, key, length);
+  GNUNET_memcpy (buffer, &(key->type), sizeof (key->type));
+  GNUNET_memcpy (buffer + sizeof (key->type), &(key->ecdsa_key), length
+                 - sizeof (key->type));
   return length;
 }
 
