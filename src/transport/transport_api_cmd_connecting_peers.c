@@ -113,17 +113,20 @@ connect_peers_run (void *cls,
  *
  */
 static void *
-notify_connect (void *cls,
-                const struct GNUNET_PeerIdentity *peer,
-                struct GNUNET_MQ_Handle *mq)
+notify_connect (struct GNUNET_TESTING_Interpreter *is,
+                const struct GNUNET_PeerIdentity *peer)
 {
-  struct ConnectPeersState *cps = cls;
+  const struct GNUNET_TESTING_Command *cmd;
+  struct ConnectPeersState *cps;
   struct GNUNET_PeerIdentity *peer_connection;
   unsigned int con_num = 0;
   struct GNUNET_TESTING_NodeConnection *pos_connection;
   unsigned int num;
   void *ret = NULL;
 
+  cmd = GNUNET_TESTING_interpreter_lookup_command (is,
+                                                   "connect-peers");
+  cps = cmd->cls;
   for (pos_connection = cps->node_connections_head; NULL != pos_connection;
        pos_connection = pos_connection->next)
   {
@@ -217,7 +220,7 @@ GNUNET_TRANSPORT_cmd_connect_peers (const char *label,
   cps->num = num;
   cps->create_label = create_label;
   cps->topology = topology;
-  cps->notify_connect = &notify_connect;
+  cps->notify_connect = notify_connect;
 
   {
     struct GNUNET_TESTING_Command cmd = {

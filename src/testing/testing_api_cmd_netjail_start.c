@@ -193,11 +193,15 @@ netjail_start_run (void *cls,
                                      NULL,
                                      script_name,
                                      script_argv);
+
   }
   ns->cwh = GNUNET_wait_child (ns->start_proc,
                                &child_completed_callback,
                                ns);
   GNUNET_break (NULL != ns->cwh);
+  GNUNET_free (read_file);
+  GNUNET_free (script_name);
+  GNUNET_free (data_dir);
 }
 
 

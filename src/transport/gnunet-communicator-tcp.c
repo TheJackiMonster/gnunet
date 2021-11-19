@@ -3264,7 +3264,7 @@ init_socket (struct sockaddr *addr,
     return GNUNET_SYSERR;
   }
 
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "address %s\n",
               GNUNET_a2s (addr, in_len));
 
@@ -3403,15 +3403,17 @@ nat_register ()
   socklen_t *saddr_lens;
   int i;
   struct Addresses *pos;
+  size_t len;
 
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "starting nat register!\n");
 
+  len = 0;
   i = 0;
-  saddrs = GNUNET_malloc ((addrs_lens + 1) * sizeof(struct sockaddr *));
+  saddrs = GNUNET_malloc ((addrs_lens) * sizeof(struct sockaddr *));
 
-  saddr_lens = GNUNET_malloc ((addrs_lens + 1) * sizeof(socklen_t));
+  saddr_lens = GNUNET_malloc ((addrs_lens) * sizeof(socklen_t));
 
   for (pos = addrs_head; NULL != pos; pos = pos->next)
   {
@@ -3421,12 +3423,19 @@ nat_register ()
                 GNUNET_a2s (addrs_head->addr, addrs_head->addr_len));
 
     saddr_lens[i] = addrs_head->addr_len;
+    len += saddr_lens[i];
     saddrs[i] = GNUNET_memdup (addrs_head->addr, saddr_lens[i]);
 
     i++;
 
   }
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "registering addresses %lu %lu %lu %lu\n",
+              (addrs_lens) * sizeof(struct sockaddr *),
+              (addrs_lens) * sizeof(socklen_t),
+              len,
+              sizeof(COMMUNICATOR_CONFIG_SECTION));
   nat = GNUNET_NAT_register (cfg,
                              COMMUNICATOR_CONFIG_SECTION,
                              IPPROTO_TCP,
@@ -3437,7 +3446,7 @@ nat_register ()
                              NULL /* FIXME: support reversal: #5529 */,
                              NULL /* closure */);
 
-  i = 0;
+  // i = 0;
 
   for (i = addrs_lens - 1; i >= 0; i--)
     GNUNET_free (saddrs[i]);

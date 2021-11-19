@@ -33,23 +33,6 @@
  */
 #define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
 
-/**
- * Struct with information for callbacks.
- *
- */
-struct BlockState
-{
-  /**
-   * Context for our asynchronous completion.
-   */
-  struct GNUNET_TESTING_AsyncContext ac;
-
-  /**
-   * The label of this command.
-   */
-  const char *label;
-};
-
 
 /**
  * The cleanup function of this cmd frees resources the cmd allocated.
@@ -77,6 +60,11 @@ block_until_external_trigger_traits (void *cls,
       .trait_name = "async_context",
       .ptr = (const void *) ac,
     },
+    {
+      .index = 1,
+      .trait_name = "block_state",
+      .ptr = (const void *) bs,
+    },
     GNUNET_TESTING_trait_end ()
   };
 
@@ -88,9 +76,27 @@ block_until_external_trigger_traits (void *cls,
 
 
 /**
+ * Function to get the trait with the internal command state BlockState.
+ *
+ * * @param[out] ac struct BlockState.
+* @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
+ */
+int
+GNUNET_TESTING_get_trait_block_state (
+  const struct GNUNET_TESTING_Command *cmd,
+  struct BlockState **bs)
+{
+  return cmd->traits (cmd->cls,
+                      (const void **) bs,
+                      "block_state",
+                      (unsigned int) 1);
+}
+
+
+/**
  * Function to get the trait with the async context.
  *
- * @param[out] ac GNUNET_TESTING_AsyncContext.
+ * @param[out] ac struct GNUNET_TESTING_AsyncContext.
  * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
  */
 int
@@ -114,10 +120,20 @@ block_until_all_peers_started_run (void *cls,
                                    struct GNUNET_TESTING_Interpreter *is)
 {
   struct BlockState *bs = cls;
+  struct GNUNET_TESTING_Command *cmd =
+    GNUNET_TESTING_interpreter_get_current_command (is);
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "block %s running!\n",
-       bs->label);
+       "block %s running %u!\n",
+       bs->label,
+       bs->asynchronous_finish);
+  if (GNUNET_YES == bs->asynchronous_finish)
+  {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "block %s running asynchronous!\n",
+         bs->label);
+    cmd->asynchronous_finish = bs->asynchronous_finish;
+  }
 }
 
 
@@ -126,15 +142,18 @@ block_until_all_peers_started_run (void *cls,
  *
  * @param label name for command.
  * @param all_peers_started Flag which will be set from outside.
+ * @param asynchronous_finish If GNUNET_YES this command will not block. Can be NULL.
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_block_until_external_trigger (const char *label)
+GNUNET_TESTING_cmd_block_until_external_trigger (
+  const char *label)
 {
   struct BlockState *bs;
 
   bs = GNUNET_new (struct BlockState);
   bs->label = label;
+  bs->asynchronous_finish = GNUNET_NO;
   {
     struct GNUNET_TESTING_Command cmd = {
       .cls = bs,

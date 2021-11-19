@@ -147,9 +147,8 @@ notify_connect (void *cls,
 
   GNUNET_free (key);
 
-  sps->notify_connect (cls,
-                       peer,
-                       mq);
+  sps->notify_connect (sps->ac.is,
+                       peer);
 
   // TODO what does the handler function need?
   return ret;
@@ -213,11 +212,11 @@ start_peer_run (void *cls,
   GNUNET_asprintf (&bindto_udp,
                    "2086");
 
-  LOG (GNUNET_ERROR_TYPE_ERROR,
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
        "node_ip %s\n",
        bindto);
 
-  LOG (GNUNET_ERROR_TYPE_ERROR,
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
        "bind_udp %s\n",
        GNUNET_YES == sps->broadcast ?
        bindto_udp : bindto);
@@ -247,7 +246,7 @@ start_peer_run (void *cls,
 
   sps->tl_system = tl_system;
 
-  LOG (GNUNET_ERROR_TYPE_ERROR,
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Creating testing library with key number %u\n",
        sps->no);
 
@@ -255,7 +254,7 @@ start_peer_run (void *cls,
       GNUNET_TESTING_configuration_create (tl_system,
                                            sps->cfg))
   {
-    LOG (GNUNET_ERROR_TYPE_ERROR,
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Testing library failed to create unique configuration based on `%s'\n",
          sps->cfgname);
     GNUNET_CONFIGURATION_destroy (sps->cfg);
@@ -359,6 +358,7 @@ start_peer_run (void *cls,
   GNUNET_free (tcp_communicator_unix_path);
   GNUNET_free (udp_communicator_unix_path);
   GNUNET_free (bindto);
+  GNUNET_free (bindto_udp);
 }
 
 
@@ -589,7 +589,8 @@ GNUNET_TRANSPORT_cmd_start_peer (const char *label,
                                  char *node_ip,
                                  struct GNUNET_MQ_MessageHandler *handlers,
                                  const char *cfgname,
-                                 GNUNET_TRANSPORT_NotifyConnect notify_connect,
+                                 GNUNET_TRANSPORT_notify_connect_cb
+                                 notify_connect,
                                  unsigned int broadcast)
 {
   struct StartPeerState *sps;

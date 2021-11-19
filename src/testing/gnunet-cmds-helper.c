@@ -415,14 +415,16 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
                                  plugin->n, plugin->local_m, ni->topology_data,
                                  ni->read_file);
 
-    GNUNET_free (binary);
-
     msg_length = sizeof(struct GNUNET_CMDS_HelperReply);
     reply = GNUNET_new (struct GNUNET_CMDS_HelperReply);
     reply->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_REPLY);
     reply->header.size = htons ((uint16_t) msg_length);
 
     write_message ((struct GNUNET_MessageHeader *) reply, msg_length);
+
+    GNUNET_free (binary);
+    GNUNET_free (router_ip);
+    GNUNET_free (plugin_name);
 
     return GNUNET_OK;
   }

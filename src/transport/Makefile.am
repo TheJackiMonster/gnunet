@@ -123,6 +123,7 @@ endif
 
 
 noinst_PROGRAMS = \
+ test_transport_start_with_config \
  gnunet-transport-profiler \
  gnunet-communicator-udp \
  $(WLAN_BIN_SENDER) \
@@ -589,7 +590,6 @@ libgnunet_plugin_transport_https_server_la_CFLAGS = \
  $(MHD_CFLAGS) $(AM_CFLAGS) -DBUILD_HTTPS
 
 check_PROGRAMS = \
- test_transport_start_with_config \
  test_transport_address_switch_tcp \
  test_transport_testing_startstop \
  test_transport_testing_restart \
@@ -766,7 +766,6 @@ test_transport_start_with_config_SOURCES = \
 test_transport_start_with_config_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
  $(top_builddir)/src/util/libgnunetutil.la \
- $(top_builddir)/src/testbed/libgnunettestbed.la \
  $(top_builddir)/src/hello/libgnunethello.la \
  libgnunettransportcore.la \
  libgnunettransporttesting2.la
