@@ -1906,6 +1906,7 @@ src/dht/Makefile
 src/dht/dht.conf
 src/dhtu/Makefile
 src/dns/Makefile
+src/did/Makefile
 src/dns/dns.conf
 src/exit/Makefile
 src/fragmentation/Makefile
