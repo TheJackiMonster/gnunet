@@ -219,14 +219,14 @@ send_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
  * Notifies the handle that a new message was received or sent.
  *
  * @param[in/out] handle Handle
- * @param[in] key Key of room
+ * @param[in] room Room of the message
  * @param[in] session Member session
  * @param[in] message Message
  * @param[in] hash Hash of message
  */
 void
 notify_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
-                       const struct GNUNET_HashCode *key,
+                       struct GNUNET_MESSENGER_SrvRoom *room,
                        const struct GNUNET_MESSENGER_MemberSession *session,
                        const struct GNUNET_MESSENGER_Message *message,
                        const struct GNUNET_HashCode *hash);

@@ -313,7 +313,7 @@ handle_service_message (struct GNUNET_MESSENGER_Service *service,
 
   while (element)
   {
-    notify_handle_message (element->handle, get_room_key(room), session, message, hash);
+    notify_handle_message (element->handle, room, session, message, hash);
     element = element->next;
   }
 }

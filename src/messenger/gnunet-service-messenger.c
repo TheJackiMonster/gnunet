@@ -310,7 +310,7 @@ callback_found_message (void *cls,
   struct GNUNET_MESSENGER_MemberSession *session = get_member_session_of(member, message, hash);
 
   if (session)
-    notify_handle_message (msg_client->handle, get_room_key(room), session, message, hash);
+    notify_handle_message (msg_client->handle, room, session, message, hash);
 }
 
 static void
