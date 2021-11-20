@@ -10,7 +10,7 @@ AC_DEFUN([AS_AUTOTOOLS_ALTERNATE],
 [
   dnl allow for different autoconf version
   AC_ARG_WITH(autoconf,
-    AC_HELP_STRING([--with-autoconf],
+    AS_HELP_STRING([--with-autoconf],
                    [use a different autoconf for regeneration of Makefiles]),
     [
       unset AUTOCONF
@@ -20,7 +20,7 @@ AC_DEFUN([AS_AUTOTOOLS_ALTERNATE],
 
   dnl allow for different autoheader version
   AC_ARG_WITH(autoheader,
-    AC_HELP_STRING([--with-autoheader],
+    AS_HELP_STRING([--with-autoheader],
                    [use a different autoheader for regeneration of Makefiles]),
     [
       unset AUTOHEADER
@@ -30,7 +30,7 @@ AC_DEFUN([AS_AUTOTOOLS_ALTERNATE],
 
   dnl allow for different automake version
   AC_ARG_WITH(automake,
-    AC_HELP_STRING([--with-automake],
+    AS_HELP_STRING([--with-automake],
                    [use a different automake for regeneration of Makefiles]),
     [
       unset AUTOMAKE
@@ -40,7 +40,7 @@ AC_DEFUN([AS_AUTOTOOLS_ALTERNATE],
 
   dnl allow for different aclocal version
   AC_ARG_WITH(aclocal,
-    AC_HELP_STRING([--with-aclocal],
+    AS_HELP_STRING([--with-aclocal],
                    [use a different aclocal for regeneration of Makefiles]),
     [
       unset ACLOCAL
