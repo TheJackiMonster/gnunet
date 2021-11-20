@@ -102,7 +102,7 @@ CC_CHECK_CFLAG_APPEND([tautological-constant-out-of-range-compare])
 # Use Linux interface name unless the OS has a different preference
 DEFAULT_INTERFACE="\"eth0\""
 
-funcstocheck="getnameinfo gethostname gethostbyname gethostbyaddr getaddrinfo getaddrinfo_a"
+AC_CHECK_FUNCS(getnameinfo gethostname gethostbyname gethostbyaddr getaddrinfo getaddrinfo_a)
 
 # Srcdir in a form that native compiler understands (i.e. DOS path on W32)
 native_srcdir=$srcdir
@@ -1576,7 +1576,7 @@ AC_FUNC_VPRINTF
 AC_HEADER_SYS_WAIT
 AC_TYPE_OFF_T
 AC_TYPE_UID_T
-AC_CHECK_FUNCS(atoll stat64 strnlen mremap getrlimit setrlimit sysconf initgroups strndup gethostbyname2 getpeerucred getpeereid setresuid $funcstocheck getifaddrs freeifaddrs getresgid mallinfo malloc_size malloc_usable_size getrusage random srandom stat statfs statvfs wait4 timegm)
+AC_CHECK_FUNCS(atoll stat64 strnlen mremap getrlimit setrlimit sysconf initgroups strndup gethostbyname2 getpeerucred getpeereid setresuid getifaddrs freeifaddrs getresgid mallinfo malloc_size malloc_usable_size getrusage random srandom stat statfs statvfs wait4 timegm)
 
 # restore LIBS
 LIBS=$SAVE_LIBS
