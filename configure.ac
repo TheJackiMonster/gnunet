@@ -2217,7 +2217,7 @@ AS_IF([test x$MSG_USER_SETUP != xfalse],
   AS_IF([test x$HAVE_GNUNET_USER != 0],
     [AC_MSG_NOTICE([To do this on this system, run:
 # adduser USERNAME gnunet
-   for each of your users, replacing \"USERNAME\" with the respective login name. Users may have to login again for the changes to take effect.
+   for each of your users, replacing "USERNAME" with the respective login name. Users may have to login again for the changes to take effect.
 ])])])
 
 AC_MSG_NOTICE([For detailed setup instructions, type 'info gnunet' after the installation or visit https://docs.gnunet.org/])
