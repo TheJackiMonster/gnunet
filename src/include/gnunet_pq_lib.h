@@ -385,7 +385,9 @@ GNUNET_PQ_result_spec_variable_size (const char *name,
  * @return array entry for the result specification to use
  */
 struct GNUNET_PQ_ResultSpec
-GNUNET_PQ_result_spec_fixed_size (const char *name, void *dst, size_t dst_size);
+GNUNET_PQ_result_spec_fixed_size (const char *name,
+                                  void *dst,
+                                  size_t dst_size);
 
 
 /**
@@ -407,7 +409,8 @@ GNUNET_PQ_result_spec_fixed_size (const char *name, void *dst, size_t dst_size);
  * @return array entry for the result specification to use
  */
 struct GNUNET_PQ_ResultSpec
-GNUNET_PQ_result_spec_string (const char *name, char **dst);
+GNUNET_PQ_result_spec_string (const char *name,
+                              char **dst);
 
 
 /**
@@ -718,7 +721,7 @@ GNUNET_PQ_make_prepare (const char *name,
  * @return #GNUNET_OK on success,
  *         #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_PQ_prepare_statements (struct GNUNET_PQ_Context *db,
                               const struct GNUNET_PQ_PreparedStatement *ps);
 
