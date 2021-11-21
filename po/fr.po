@@ -1,14 +1,14 @@
 # Traduction française de gnunet
 # Copyright (C) 2004 Christian Grothoff
 # This file is distributed under the same license as the gnunet package.
-# Stéphane  Aulery <lkppo@free.fr>, 2015.
+# Stéphane Aulery <lkppo@free.fr>, 2015, 2021.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
 "POT-Creation-Date: 2014-04-08 11:11+0200\n"
-"PO-Revision-Date: 2021-11-20 22:32+0100\n"
+"PO-Revision-Date: 2021-11-21 00:53+0100\n"
 "Last-Translator: Stéphane  Aulery <lkppo@free.fr>\n"
 "Language-Team: French <traduc@traduc.org>\n"
 "Language: fr\n"
