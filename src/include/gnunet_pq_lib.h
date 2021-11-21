@@ -335,7 +335,15 @@ struct GNUNET_PQ_ResultSpec
  */
 #define GNUNET_PQ_result_spec_end         \
   {                                       \
-    NULL, NULL, NULL, NULL, 0, NULL, NULL \
+    .conv = NULL,                         \
+    .cleaner = NULL,                      \
+    .cls = NULL,                          \
+    .dst = NULL,                          \
+    .dst_size = 0,                        \
+    .fname = NULL,                        \
+    .result_size = NULL,                  \
+    .is_nullable = false,                 \
+    .is_null = NULL                       \
   }
 
 
