@@ -1212,8 +1212,10 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
     char sname[64];
     struct GNUNET_IDENTITY_PublicKey pkey;
 
-    GNUNET_STRINGS_utf8_tolower (uri, uri);
-    if ((2 != (sscanf (uri, "gnunet://gns/%52s/%63s", sh, sname))) ||
+    memset(sh, 0, 105);
+    memset(sname, 0, 64);
+
+    if ((2 != (sscanf (uri, "gnunet://gns/%58s/%63s", sh, sname))) ||
         (GNUNET_OK !=
          GNUNET_IDENTITY_public_key_from_string (sh, &pkey)))
     {
