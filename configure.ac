@@ -367,7 +367,7 @@ AC_CHECK_PROGS([CHECKBASHISMS_BINARY], [checkbashisms checkbashisms.pl], [false]
 AM_CONDITIONAL([HAVE_CHECKBASHISMS], [test "x$CHECKBASHISMS_BINARY" != "xfalse"])
 
 # uncrustify
-AC_CHECK_PROGS([UNCRUSTIFY_BINARY], [uncrustify], [true])
+AC_CHECK_PROG([UNCRUSTIFY_BINARY], [uncrustify], [true], [false])
 AM_CONDITIONAL([HAVE_UNCRUSTIFY_BINARY], [$UNCRUSTIFY_BINARY])
 
 # yapf
