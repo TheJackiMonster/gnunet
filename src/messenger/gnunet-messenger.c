@@ -170,6 +170,7 @@ read_stdio (void *cls)
   struct GNUNET_MESSENGER_Room *room = cls;
 
   struct GNUNET_MESSENGER_Message message;
+  memset(&message, 0, sizeof(message));
   message.header.kind = GNUNET_MESSENGER_KIND_TEXT;
   message.body.text.text = buffer;
 
@@ -277,6 +278,7 @@ on_identity (void *cls,
   else
   {
     struct GNUNET_MESSENGER_Message message;
+    memset(&message, 0, sizeof(message));
     message.header.kind = GNUNET_MESSENGER_KIND_NAME;
     message.body.name.name = GNUNET_strdup(name);
 
