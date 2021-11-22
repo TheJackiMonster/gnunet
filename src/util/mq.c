@@ -273,7 +273,7 @@ GNUNET_MQ_handle_message (const struct GNUNET_MQ_MessageHandler *handlers,
       break;
     }
   }
-  done:
+done:
   if (GNUNET_NO == handled)
   {
     LOG (GNUNET_ERROR_TYPE_INFO,
@@ -670,7 +670,9 @@ GNUNET_MQ_msg_copy (const struct GNUNET_MessageHeader *hdr)
 
   mqm = GNUNET_malloc (sizeof(*mqm) + size);
   mqm->mh = (struct GNUNET_MessageHeader *) &mqm[1];
-  GNUNET_memcpy (mqm->mh, hdr, size);
+  GNUNET_memcpy (mqm->mh,
+                 hdr,
+                 size);
   return mqm;
 }
 

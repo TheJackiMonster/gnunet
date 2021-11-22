@@ -311,7 +311,8 @@ handle_address_change_notification (
  * @param error details about the error
  */
 static void
-mq_error_handler (void *cls, enum GNUNET_MQ_Error error)
+mq_error_handler (void *cls,
+                  enum GNUNET_MQ_Error error)
 {
   struct GNUNET_NAT_Handle *nh = cls;
 
@@ -328,29 +329,36 @@ static void
 do_connect (void *cls)
 {
   struct GNUNET_NAT_Handle *nh = cls;
-  struct GNUNET_MQ_MessageHandler handlers[] =
-  { GNUNET_MQ_hd_var_size (connection_reversal_request,
-                           GNUNET_MESSAGE_TYPE_NAT_CONNECTION_REVERSAL_REQUESTED,
-                           struct
-                           GNUNET_NAT_ConnectionReversalRequestedMessage,
-                           nh),
-    GNUNET_MQ_hd_var_size (address_change_notification,
-                           GNUNET_MESSAGE_TYPE_NAT_ADDRESS_CHANGE,
-                           struct GNUNET_NAT_AddressChangeNotificationMessage,
-                           nh),
-    GNUNET_MQ_handler_end () };
+  struct GNUNET_MQ_MessageHandler handlers[] = {
+    GNUNET_MQ_hd_var_size (
+      connection_reversal_request,
+      GNUNET_MESSAGE_TYPE_NAT_CONNECTION_REVERSAL_REQUESTED,
+      struct GNUNET_NAT_ConnectionReversalRequestedMessage,
+      nh),
+    GNUNET_MQ_hd_var_size (
+      address_change_notification,
+      GNUNET_MESSAGE_TYPE_NAT_ADDRESS_CHANGE,
+      struct GNUNET_NAT_AddressChangeNotificationMessage,
+      nh),
+    GNUNET_MQ_handler_end ()
+  };
   struct GNUNET_MQ_Envelope *env;
 
   nh->reconnect_task = NULL;
   nh->mq =
-    GNUNET_CLIENT_connect (nh->cfg, "nat", handlers, &mq_error_handler, nh);
+    GNUNET_CLIENT_connect (nh->cfg,
+                           "nat",
+                           handlers,
+                           &mq_error_handler,
+                           nh);
   if (NULL == nh->mq)
   {
     reconnect (nh);
     return;
   }
   env = GNUNET_MQ_msg_copy (nh->reg);
-  GNUNET_MQ_send (nh->mq, env);
+  GNUNET_MQ_send (nh->mq,
+                  env);
 }
 
 
@@ -396,8 +404,9 @@ GNUNET_NAT_register (const struct GNUNET_CONFIGURATION_Handle *cfg,
     len += addrlens[i];
   str_len = strlen (config_section) + 1;
   len += str_len;
-  if ((len > GNUNET_MAX_MESSAGE_SIZE - sizeof(*rm)) ||
-      (num_addrs > UINT16_MAX))
+  if ( (len > GNUNET_MAX_MESSAGE_SIZE - sizeof(*rm)) ||
+       (num_addrs > UINT16_MAX) ||
+       (str_len > UINT16_MAX) )
   {
     GNUNET_break (0);
     return NULL;
@@ -475,7 +484,7 @@ GNUNET_NAT_register (const struct GNUNET_CONFIGURATION_Handle *cfg,
  * @return #GNUNET_YES if @a data is a STUN packet,
  *         #GNUNET_NO if the packet is invalid (not a stun packet)
  */
-static int
+static enum GNUNET_GenericReturnValue
 test_stun_packet (const void *data, size_t len)
 {
   const struct stun_header *hdr;

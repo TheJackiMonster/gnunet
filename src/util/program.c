@@ -89,9 +89,13 @@ program_main (void *cls)
   struct CommandContext *cc = cls;
 
   GNUNET_SPEEDUP_start_ (cc->cfg);
-  GNUNET_SCHEDULER_add_shutdown (&shutdown_task, NULL);
+  GNUNET_SCHEDULER_add_shutdown (&shutdown_task,
+                                 NULL);
   GNUNET_RESOLVER_connect (cc->cfg);
-  cc->task (cc->task_cls, cc->args, cc->cfgfile, cc->cfg);
+  cc->task (cc->task_cls,
+            cc->args,
+            cc->cfgfile,
+            cc->cfg);
 }
 
 
@@ -103,7 +107,8 @@ program_main (void *cls)
  * @param a2 second command line option
  */
 static int
-cmd_sorter (const void *a1, const void *a2)
+cmd_sorter (const void *a1,
+            const void *a2)
 {
   const struct GNUNET_GETOPT_CommandLineOption *c1 = a1;
   const struct GNUNET_GETOPT_CommandLineOption *c2 = a2;
