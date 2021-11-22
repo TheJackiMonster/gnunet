@@ -427,7 +427,7 @@ get_store_message (struct GNUNET_MESSENGER_MessageStore *store,
     return NULL;
 
   if ((GNUNET_DISK_file_read (store->storage_messages, buffer, entry->length) != entry->length) ||
-      (entry->length < get_message_kind_size(GNUNET_MESSENGER_KIND_UNKNOWN)))
+      (entry->length < get_message_kind_size(GNUNET_MESSENGER_KIND_UNKNOWN, GNUNET_YES)))
     goto free_buffer;
 
   message = create_message (GNUNET_MESSENGER_KIND_UNKNOWN);
