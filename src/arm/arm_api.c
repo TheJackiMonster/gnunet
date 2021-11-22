@@ -907,6 +907,7 @@ notify_starting (void *cls)
     op->result_cont (op->cont_cls,
                      GNUNET_ARM_REQUEST_SENT_OK,
                      op->starting_ret);
+  GNUNET_DISK_file_close(op->rfd);
   GNUNET_free (op);
 }
 
