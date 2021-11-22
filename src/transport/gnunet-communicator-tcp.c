@@ -3400,13 +3400,11 @@ init_socket (struct sockaddr *addr,
 static void
 nat_register ()
 {
-
   struct sockaddr **saddrs;
   socklen_t *saddr_lens;
   int i;
   struct Addresses *pos;
   size_t len;
-
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "starting nat register!\n");
@@ -3414,9 +3412,7 @@ nat_register ()
   len = 0;
   i = 0;
   saddrs = GNUNET_malloc ((addrs_lens) * sizeof(struct sockaddr *));
-
   saddr_lens = GNUNET_malloc ((addrs_lens) * sizeof(socklen_t));
-
   for (pos = addrs_head; NULL != pos; pos = pos->next)
   {
 
