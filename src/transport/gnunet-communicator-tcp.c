@@ -2010,7 +2010,8 @@ queue_read (void *cls)
  * @return The struct sockaddr *.
  */
 static struct sockaddr *
-tcp_address_to_sockaddr_numeric_v6 (socklen_t *sock_len, struct sockaddr_in6 v6,
+tcp_address_to_sockaddr_numeric_v6 (socklen_t *sock_len,
+                                    struct sockaddr_in6 v6,
                                     unsigned int port)
 {
   struct sockaddr *in;
@@ -2037,7 +2038,8 @@ tcp_address_to_sockaddr_numeric_v6 (socklen_t *sock_len, struct sockaddr_in6 v6,
  * @return The struct sockaddr *.
  */
 static struct sockaddr *
-tcp_address_to_sockaddr_numeric_v4 (socklen_t *sock_len, struct sockaddr_in v4,
+tcp_address_to_sockaddr_numeric_v4 (socklen_t *sock_len,
+                                    struct sockaddr_in v4,
                                     unsigned int port)
 {
   struct sockaddr *in;
@@ -2268,12 +2270,10 @@ tcp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
   unsigned int port;
   struct sockaddr_in v4;
   struct sockaddr_in6 v6;
-  char *start = GNUNET_malloc (sizeof(bindto));
+  char *start;
 
-  // cp = GNUNET_strdup (bindto);
-  start = GNUNET_malloc (sizeof(bindto));
-  extract_address (bindto, &start);
-
+  start = extract_address (bindto);
+  // FIXME: check NULL == start
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "start %s\n",
               start);
