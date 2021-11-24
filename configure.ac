@@ -265,9 +265,11 @@ AS_IF([test -x "$AWK_BINARY"],
       [AC_DEFINE([HAVE_AWK], [1], [Define to 1 if awk is available])],
       [AC_DEFINE([HAVE_AWK], [0], [Define to 1 if awk is available])])
 
-# check for pdflatex to build gnunet-bcd
-AC_CHECK_PROG([PDFLATEX_BINARY], [pdflatex], [true], [false])
-AM_CONDITIONAL([HAVE_PDFLATEX], [$PDFLATEX_BINARY])
+# check for some LaTeX packages used by gnunet-bcd
+CHECK_LATEX_PACKAGE([TikZ], [tikz])
+CHECK_LATEX_PACKAGE([QR Code], [qrcode])
+CHECK_LATEX_PACKAGE([Labels], [labels])
+AM_CONDITIONAL([HAVE_PDFLATEX], [test "x$PDFLATEX_BINARY" != "xno"])
 
 AC_ARG_WITH([gnunet-logread],
             [AS_HELP_STRING([--with-gnunet-logread], [Install gnunet-logread])],
