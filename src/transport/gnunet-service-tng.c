@@ -5563,7 +5563,7 @@ transmit_cummulative_ack_cb (void *cls)
   struct VirtualLink *vl;
   struct AcknowledgementCummulator *ac = cls;
   char buf[sizeof(struct TransportReliabilityAckMessage)
-           + ac->ack_counter
+           + ac->ack_counter + ac->num_acks
            * sizeof(struct TransportCummulativeAckPayloadP)] GNUNET_ALIGN;
   struct TransportReliabilityAckMessage *ack =
     (struct TransportReliabilityAckMessage *) buf;
