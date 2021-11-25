@@ -80,7 +80,9 @@ bin_PROGRAMS = \
 noinst_PROGRAMS = \
   gnunet-gns-benchmark
 
+if HAVE_PDFLATEX
 bin_PROGRAMS += gnunet-bcd
+endif
 
 REST_PLUGIN = libgnunet_plugin_rest_gns.la
 

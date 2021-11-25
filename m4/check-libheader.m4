@@ -11,30 +11,19 @@ dnl HEADER-NAME         - header file name as in AC_CHECK_HEADER
 dnl ACTION-IF-FOUND     - when feature is found then execute given action
 dnl ACTION-IF-NOT-FOUND - when feature is not found then execute given action
 dnl EXTRA-LDFLAGS       - extra linker flags (-L or -l)
-dnl EXTRA-CPPFLAGS      - extra C preprocessor flags, i.e. -I/usr/X11R6/include
+dnl EXTRA-CPPFLAGS      - extra C preprocessor flags, e.g. -I/usr/X11R6/include
 dnl
-dnl Based on GST_CHECK_LIBHEADER from gstreamer plugins 0.3.1.
 dnl
 AC_DEFUN([CHECK_LIBHEADER],
-[
-  AC_CHECK_LIB([$2], [$3], HAVE_[$1]=yes, HAVE_[$1]=no, [$7])
-  check_libheader_feature_name=translit([$1], A-Z, a-z)
+[m4_if([$7], ,:,[LDFLAGS="$7 $LDFLAGS"])
+ m4_if([$8], ,:,[CPPFLAGS="$8 $CPPFLAGS"])
 
-  if test "x$HAVE_[$1]" = "xyes"; then
-    check_libheader_save_CPPFLAGS=$CPPFLAGS
-    CPPFLAGS="[$8] $CPPFLAGS"
-    AC_CHECK_HEADER([$4], :, HAVE_[$1]=no)
-    CPPFLAGS=$check_libheader_save_CPPFLAGS
-  fi
-
-  if test "x$HAVE_[$1]" = "xyes"; then
-    ifelse([$5], , :, [$5])
-    AC_MSG_NOTICE($check_libheader_feature_name was found)
-  else
-    ifelse([$6], , :, [$6])
-    AC_MSG_WARN($check_libheader_feature_name not found)
-  fi
-  AC_SUBST(HAVE_[$1])
-]
-)
-
+ AC_CHECK_HEADERS([$4],
+   [AC_CHECK_LIB([$2], [$3],
+      [eval "HAVE_]AS_TR_SH([$1])[=yes"]
+       m4_if([$5], ,:,[$5]),
+      [eval "HAVE_]AS_TR_SH([$1])[=no"]
+       m4_if([$6], ,:,[$6]))],
+   [eval "HAVE_]AS_TR_SH([$1])[=no"]
+    m4_if([$6], ,:,[$6]))
+])dnl

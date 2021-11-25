@@ -31,7 +31,7 @@
 #include "gnunet_resolver_service.h"
 #include "speedup.h"
 
-#if HAVE_MALLINFO
+#if HAVE_MALLINFO2
 #include <malloc.h>
 #include "gauger.h"
 #endif
@@ -2140,7 +2140,7 @@ shutdown:
       LOG_STRERROR (GNUNET_ERROR_TYPE_WARNING, "write");
     GNUNET_break (0 == close (sh.ready_confirm_fd));
   }
-#if HAVE_MALLINFO
+#if HAVE_MALLINFO2
   {
     char *counter;
 
@@ -2152,9 +2152,9 @@ shutdown:
                                                              "GAUGER_HEAP",
                                                              &counter)))
     {
-      struct mallinfo mi;
+      struct mallinfo2 mi;
 
-      mi = mallinfo ();
+      mi = mallinfo2 ();
       GAUGER (service_name, counter, mi.usmblks, "blocks");
       GNUNET_free (counter);
     }
