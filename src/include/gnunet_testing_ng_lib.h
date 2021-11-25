@@ -47,212 +47,6 @@
   } while (0)
 
 
-/**
- * Router of a network namespace.
- * // FIXME: this does not belong here!
- */
-struct GNUNET_TESTING_NetjailRouter
-{
-  /**
-   * Will tcp be forwarded?
-   */
-  unsigned int tcp_port;
-
-  /**
-   * Will udp be forwarded?
-   */
-  unsigned int udp_port;
-};
-
-
-/**
- * Enum for the different types of nodes.
- * // FIXME: this does not belong here!
- */
-enum GNUNET_TESTING_NODE_TYPE
-{
-  /**
-   * Node in a subnet.
-   */
-  GNUNET_TESTING_SUBNET_NODE,
-
-  /**
-   * Global known node.
-   */
-  GNUNET_TESTING_GLOBAL_NODE
-};
-
-
-// FIXME: this does not belong here!
-struct GNUNET_TESTING_AddressPrefix
-{
-  /**
-   * Pointer to the previous prefix in the DLL.
-   */
-  struct GNUNET_TESTING_AddressPrefix *prev;
-
-  /**
-   * Pointer to the next prefix in the DLL.
-   */
-  struct GNUNET_TESTING_AddressPrefix *next;
-
-  /**
-   * The address prefix.
-   */
-  char *address_prefix;
-};
-
-
-// FIXME: this does not belong here!
-struct GNUNET_TESTING_NetjailNode;
-
-/**
- * Connection to another node.
- * // FIXME: this does not belong here!
- */
-struct GNUNET_TESTING_NodeConnection
-{
-  /**
-   * Pointer to the previous connection in the DLL.
-   */
-  struct GNUNET_TESTING_NodeConnection *prev;
-
-  /**
-   * Pointer to the next connection in the DLL.
-   */
-  struct GNUNET_TESTING_NodeConnection *next;
-
-  /**
-   * The number of the subnet of the node this connection points to. This is 0,
-   * if the node is a global known node.
-   */
-  unsigned int namespace_n;
-
-  /**
-   * The number of the node this connection points to.
-   */
-  unsigned int node_n;
-
-  /**
-   * The type of the node this connection points to.
-   */
-  enum GNUNET_TESTING_NODE_TYPE node_type;
-
-  /**
-   * The node which establish the connection
-   */
-  struct GNUNET_TESTING_NetjailNode *node;
-
-  /**
-   * Head of the DLL with the address prefixes for the protocolls this node is reachable.
-   */
-  struct GNUNET_TESTING_AddressPrefix *address_prefixes_head;
-
-  /**
-   * Tail of the DLL with the address prefixes for the protocolls this node is reachable.
-   */
-  struct GNUNET_TESTING_AddressPrefix *address_prefixes_tail;
-};
-
-/**
- * Node in the netjail topology.
- * // FIXME: this does not belong here!
- */
-struct GNUNET_TESTING_NetjailNode
-{
-  /**
-   * Plugin for the test case to be run on this node.
-   */
-  char *plugin;
-
-  /**
-   * Flag indicating if this node is a global known node.
-   */
-  unsigned int is_global;
-
-  /**
-   * The number of the namespace this node is running in.
-   */
-  unsigned int namespace_n;
-
-  /**
-   * The number of this node in the namespace.
-   */
-  unsigned int node_n;
-
-  /**
-   * Head of the DLL with the connections which shall be established to other nodes.
-   */
-  struct GNUNET_TESTING_NodeConnection *node_connections_head;
-
-  /**
-   * Tail of the DLL with the connections which shall be established to other nodes.
-   */
-  struct GNUNET_TESTING_NodeConnection *node_connections_tail;
-};
-
-
-/**
- * Namespace in a topology.
- * // FIXME: this does not belong here!
- */
-struct GNUNET_TESTING_NetjailNamespace
-{
-  /**
-   * The number of the namespace.
-   */
-  unsigned int namespace_n;
-
-  /**
-   * Router of the namespace.
-   */
-  struct GNUNET_TESTING_NetjailRouter *router;
-
-  /**
-   * Hash map containing the nodes in this namespace.
-   */
-  struct GNUNET_CONTAINER_MultiShortmap *nodes;
-};
-
-/**
- * Toplogy of our netjail setup.
- * // FIXME: this does not belong here!
- */
-struct GNUNET_TESTING_NetjailTopology
-{
-
-  /**
-   * Default plugin for the test case to be run on nodes.
-   */
-  char *plugin;
-
-  /**
-   * Number of namespaces.
-   */
-  unsigned int namespaces_n;
-
-  /**
-   * Number of nodes per namespace.
-   */
-  unsigned int nodes_m;
-
-  /**
-   * Number of global known nodes per namespace.
-   */
-  unsigned int nodes_x;
-
-  /**
-   * Hash map containing the namespaces (for natted nodes) of the topology.
-   */
-  struct GNUNET_CONTAINER_MultiShortmap *map_namespaces;
-
-  /**
-   * Hash map containing the global known nodes which are not natted.
-   */
-  struct GNUNET_CONTAINER_MultiShortmap *map_globals;
-};
-
-
 /* ******************* Generic interpreter logic ************ */
 
 /**
@@ -284,7 +78,7 @@ struct GNUNET_TESTING_AsyncContext
 
   /**
    * Indication if the command finished (#GNUNET_OK).
-   * #GNUNET_NO if it is still running,
+   * #GNUNET_NO if it did not finish,
    * #GNUNET_SYSERR if it failed.
    */
   enum GNUNET_GenericReturnValue finished;
@@ -407,6 +201,20 @@ struct GNUNET_TESTING_Command
   bool asynchronous_finish;
 
 };
+
+
+/**
+ * Lookup command by label.
+ * Only future commands are looked up.
+ *
+ * @param is interpreter to lookup command in
+ * @param label label of the command to lookup.
+ * @return the command, if it is found, or NULL.
+ */
+const struct GNUNET_TESTING_Command *
+GNUNET_TESTING_interpreter_lookup_future_command (
+  struct GNUNET_TESTING_Interpreter *is,
+  const char *label);
 
 
 /**
@@ -568,6 +376,39 @@ GNUNET_TESTING_has_in_name (const char *prog,
 
 
 /* ************** Specific interpreter commands ************ */
+
+
+/**
+ * Returns the actual running command.
+ *
+ * @param is Global state of the interpreter, used by a command
+ *        to access information about other commands.
+ * @return The actual running command.
+ */
+struct GNUNET_TESTING_Command *
+GNUNET_TESTING_interpreter_get_current_command (
+  struct GNUNET_TESTING_Interpreter *is);
+
+
+/**
+ * Check if the command is running.
+ *
+ * @param cmd The command to check.
+ * @return GNUNET_NO if the command is not running, GNUNET_YES if it is running.
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_TESTING_running (const struct GNUNET_TESTING_Command *command);
+
+
+/**
+ * Check if a command is finished.
+ *
+ * @param cmd The command to check.
+ * @return GNUNET_NO if the command is not finished, GNUNET_YES if it is finished.
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_TESTING_finished (struct GNUNET_TESTING_Command *command);
+
 
 /**
  * Create a "signal" CMD.
@@ -1061,202 +902,5 @@ struct GNUNET_TESTING_Trait
 GNUNET_TESTING_make_trait_relative_time (
   unsigned int index,
   const struct GNUNET_TIME_Relative *time);
-
-
-// FIXME: move these commands into a separate libgnunetestingnetjail lib or so!
-
-/**
- * Struct to hold information for callbacks.
- *
- */
-struct LocalPreparedState
-{
-  /**
-   * Context for our asynchronous completion.
-   */
-  struct GNUNET_TESTING_AsyncContext ac;
-
-  /**
-   * Callback to write messages to the master loop.
-   *
-   */
-  TESTING_CMD_HELPER_write_cb write_message;
-};
-
-
-/**
- * Offer data from trait
- *
- * @param cmd command to extract the url from.
- * @param pt which url is to be picked, in case
- *        multiple are offered.
- * @param[out] url where to write the url.
- * @return #GNUNET_OK on success.
- */
-int
-GNUNET_TESTING_get_trait_what_am_i (const struct GNUNET_TESTING_Command *cmd,
-                                    char **what_am_i);
-
-
-int
-GNUNET_TESTING_get_trait_test_system (const struct
-                                      GNUNET_TESTING_Command *cmd,
-                                      struct GNUNET_TESTING_System **test_system);
-
-
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_system_create (const char *label,
-                                  const char *testdir);
-
-
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_system_destroy (const char *label,
-                                   const char *create_label);
-
-
-/**
- * Create command.
- *
- * @param label name for command.
- * @param topology_config Configuration file for the test topology.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_start (const char *label,
-                                  char *topology_config,
-                                  unsigned int *read_file);
-
-
-/**
- * Create command.
- *
- * @param label Name for the command.
- * @param topology The complete topology information.
- * @param read_file Flag indicating if the the name of the topology file is send to the helper, or a string with the topology data.
- * @param topology_data If read_file is GNUNET_NO, topology_data holds the string with the topology.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_start_testing_system (
-  const char *label,
-  struct GNUNET_TESTING_NetjailTopology *topology,
-  unsigned int *read_file,
-  char *topology_data);
-
-
-/**
- * Create command.
- *
- * @param label name for command.
- * @param topology_config Configuration file for the test topology.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_stop (const char *label,
-                                 char *topology_config,
-                                 unsigned int *read_file);
-
-
-/**
- * Create command.
- *
- * @param label name for command.
- * @param helper_start_label label of the cmd to start the test system.
- * @param topology The complete topology information.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_stop_testing_system (
-  const char *label,
-  const char *helper_start_label,
-  struct GNUNET_TESTING_NetjailTopology *topology);
-
-
-/**
- * Create a GNUNET_CMDS_LOCAL_FINISHED message.
- *
- * @param rv The result of the local test as GNUNET_GenericReturnValue.
- * @return The GNUNET_CMDS_LOCAL_FINISHED message.
-*/
-struct GNUNET_MessageHeader *
-GNUNET_TESTING_send_local_test_finished_msg (enum GNUNET_GenericReturnValue rv);
-
-
-/**
- * Function to get the trait with the async context.
- *
- * @param[out] ac GNUNET_TESTING_AsyncContext.
- * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
- */
-int
-GNUNET_TESTING_get_trait_async_context (
-  const struct GNUNET_TESTING_Command *cmd,
-  struct GNUNET_TESTING_AsyncContext **ac);
-
-
-/**
- * Offer handles to testing cmd helper from trait
- *
- * @param cmd command to extract the message from.
- * @param pt pointer to message.
- * @return #GNUNET_OK on success.
- */
-enum GNUNET_GenericReturnValue
-GNUNET_TESTING_get_trait_helper_handles (
-  const struct GNUNET_TESTING_Command *cmd,
-  struct GNUNET_HELPER_Handle ***helper);
-
-
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_block_until_all_peers_started (
-  const char *label,
-  unsigned int *all_peers_started);
-
-
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_block_until_external_trigger (
-  const char *label);
-
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_send_peer_ready (const char *label,
-                                    TESTING_CMD_HELPER_write_cb write_message);
-
-
-/**
- * Create command.
- *
- * @param label name for command.
- * @param write_message Callback to write messages to the master loop.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_local_test_finished (
-  const char *label,
-  TESTING_CMD_HELPER_write_cb write_message);
-
-/**
- * Create command.
- *
- * @param label name for command.
- * @param write_message Callback to write messages to the master loop.
- * @param all_local_tests_prepared Flag which will be set from outside.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_local_test_prepared (const char *label,
-                                        TESTING_CMD_HELPER_write_cb
-                                        write_message);
-
-/**
- * Function to get the trait with the struct LocalPreparedState.
- *
- * @param[out] lfs struct LocalPreparedState.
- * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
- *
- */
-enum GNUNET_GenericReturnValue
-GNUNET_TESTING_get_trait_local_prepared_state (
-  const struct GNUNET_TESTING_Command *cmd,
-  struct LocalPreparedState **lfs);
 
 #endif

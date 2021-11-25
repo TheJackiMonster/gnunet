@@ -212,7 +212,9 @@ join_room (struct GNUNET_MESSENGER_SrvRoom *room,
   GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Joining room: %s (%s)\n", GNUNET_h2s (get_room_key (room)),
              GNUNET_sh2s (get_member_id(member)));
 
-  if (GNUNET_OK != change_handle_member_id (handle, get_room_key(room), get_member_id(member)))
+  const struct GNUNET_ShortHashCode *member_id = get_member_id(member);
+
+  if (GNUNET_OK != change_handle_member_id (handle, get_room_key(room), member_id))
     return GNUNET_NO;
 
   struct GNUNET_MESSENGER_Message *message = create_message_join (get_handle_ego (handle));
@@ -224,6 +226,7 @@ join_room (struct GNUNET_MESSENGER_SrvRoom *room,
     return GNUNET_NO;
   }
 
+  GNUNET_memcpy(&(message->header.sender_id), member_id, sizeof(*member_id));
   return send_room_message (room, handle, message);
 }
 
@@ -262,7 +265,7 @@ notify_about_members (struct GNUNET_MESSENGER_MemberNotify *notify,
     const struct GNUNET_MESSENGER_Message *message = get_store_message(message_store, &(element->hash));
 
     if (message)
-      notify_handle_message (notify->handle, get_room_key(notify->room), session, message, &(element->hash));
+      notify_handle_message (notify->handle, notify->room, session, message, &(element->hash));
   }
 }
 
@@ -359,12 +362,7 @@ open_room (struct GNUNET_MESSENGER_SrvRoom *room,
   const struct GNUNET_ShortHashCode *member_id = get_handle_member_id (handle, get_room_key(room));
 
   struct GNUNET_MESSENGER_MemberStore *member_store = get_room_member_store(room);
-  struct GNUNET_MESSENGER_Member *member = get_store_member(member_store, member_id);
-
-  if (member)
-    goto exit_open_room;
-
-  member = add_store_member(member_store, member_id);
+  struct GNUNET_MESSENGER_Member *member = add_store_member(member_store, member_id);
 
   if ((GNUNET_NO == join_room (room, handle, member)) && (room->port))
   {
@@ -376,8 +374,9 @@ open_room (struct GNUNET_MESSENGER_SrvRoom *room,
     return GNUNET_NO;
   }
 
-exit_open_room:
-  return (room->port ? send_room_message (room, handle, create_message_peer (room->service)) : GNUNET_NO);
+  struct GNUNET_MESSENGER_Message *peer_msg = create_message_peer (room->service);
+  GNUNET_memcpy(&(peer_msg->header.sender_id), member_id, sizeof(*member_id));
+  return (room->port ? send_room_message (room, handle, peer_msg) : GNUNET_NO);
 }
 
 int

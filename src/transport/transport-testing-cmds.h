@@ -29,6 +29,10 @@
 #include "gnunet_testing_lib.h"
 
 
+typedef void *
+(*GNUNET_TRANSPORT_notify_connect_cb) (struct GNUNET_TESTING_Interpreter *is,
+                                       const struct GNUNET_PeerIdentity *peer);
+
 /**
  * Struct to store information needed in callbacks.
  *
@@ -40,7 +44,7 @@ struct ConnectPeersState
    */
   struct GNUNET_TESTING_AsyncContext ac;
 
-  GNUNET_TRANSPORT_NotifyConnect notify_connect;
+  GNUNET_TRANSPORT_notify_connect_cb notify_connect;
 
   /**
    * The testing system of this node.
@@ -163,7 +167,7 @@ struct StartPeerState
 
   struct GNUNET_TESTING_System *tl_system;
 
-  GNUNET_TRANSPORT_NotifyConnect notify_connect;
+  GNUNET_TRANSPORT_notify_connect_cb notify_connect;
 
   /**
    * Flag indicating, if udp broadcast should be switched on.
@@ -213,7 +217,8 @@ GNUNET_TRANSPORT_cmd_start_peer (const char *label,
                                  char *node_ip,
                                  struct GNUNET_MQ_MessageHandler *handlers,
                                  const char *cfgname,
-                                 GNUNET_TRANSPORT_NotifyConnect notify_connect,
+                                 GNUNET_TRANSPORT_notify_connect_cb
+                                 notify_connect,
                                  unsigned int broadcast);
 
 

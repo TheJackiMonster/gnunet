@@ -24,8 +24,8 @@
  * @author Marcello Stanisci
  * @author t3sserakt
  */
-#ifndef GNUNET_TESTING_NG_LIB_H
-#define GNUNET_TESTING_NG_LIB_H
+#ifndef GNUNET_TESTING_NETJAIL_LIB_H
+#define GNUNET_TESTING_NETJAIL_LIB_H
 
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_plugin.h"
@@ -301,6 +301,28 @@ GNUNET_TESTING_calculate_num (struct
 
 
 /**
+ * Struct with information for callbacks.
+ *
+ */
+struct BlockState
+{
+  /**
+   * Context for our asynchronous completion.
+   */
+  struct GNUNET_TESTING_AsyncContext ac;
+
+  /**
+   * The label of this command.
+   */
+  const char *label;
+
+  /**
+   * If this command will block.
+   */
+  unsigned int asynchronous_finish;
+};
+
+/**
  * Struct to hold information for callbacks.
  *
  */
@@ -309,7 +331,7 @@ struct LocalPreparedState
   /**
    * Context for our asynchronous completion.
    */
-  struct GNUNET_TESTING_AsyncContext *ac;
+  struct GNUNET_TESTING_AsyncContext ac;
 
   /**
    * Callback to write messages to the master loop.
@@ -319,11 +341,28 @@ struct LocalPreparedState
 };
 
 
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_system_destroy (const char *label,
+                                   const char *create_label);
+
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_system_create (const char *label,
+                                  const char *testdir);
+
+
+int
+GNUNET_TESTING_get_trait_test_system (const struct
+                                      GNUNET_TESTING_Command *cmd,
+                                      struct GNUNET_TESTING_System **test_system);
+
+
 /**
  * Create command.
  *
  * @param label name for command.
  * @param topology_config Configuration file for the test topology.
+ * @param read_file Flag indicating if the the name of the topology file is send to the helper, or a string with the topology data.
  * @return command.
  */
 struct GNUNET_TESTING_Command
@@ -335,27 +374,32 @@ GNUNET_TESTING_cmd_netjail_start (const char *label,
 /**
  * Create command.
  *
- * @param label Name for the command.
- * @param topology The complete topology information.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_start_testing_system (
-  const char *label,
-  struct GNUNET_TESTING_NetjailTopology *topology);
-
-
-/**
- * Create command.
- *
  * @param label name for command.
  * @param topology_config Configuration file for the test topology.
+ * @param read_file Flag indicating if the the name of the topology file is send to the helper, or a string with the topology data.
  * @return command.
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_netjail_stop (const char *label,
                                  char *topology_config,
                                  unsigned int *read_file);
+
+
+/**
+ * Create command.
+ *
+ * @param label Name for the command.
+ * @param topology The complete topology information.
+ * @param read_file Flag indicating if the the name of the topology file is send to the helper, or a string with the topology data.
+ * @param topology_data If read_file is GNUNET_NO, topology_data holds the string with the topology.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_netjail_start_testing_system (
+  const char *label,
+  struct GNUNET_TESTING_NetjailTopology *topology,
+  unsigned int *read_file,
+  char *topology_data);
 
 
 /**
@@ -414,9 +458,18 @@ GNUNET_TESTING_cmd_block_until_all_peers_started (
   unsigned int *all_peers_started);
 
 
+/**
+ * Create command.
+ *
+ * @param label name for command.
+ * @param all_peers_started Flag which will be set from outside.
+ * @param asynchronous_finish If GNUNET_YES this command will not block.
+ * @return command.
+ */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_block_until_external_trigger (
   const char *label);
+
 
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_send_peer_ready (const char *label,
@@ -459,5 +512,17 @@ enum GNUNET_GenericReturnValue
 GNUNET_TESTING_get_trait_local_prepared_state (
   const struct GNUNET_TESTING_Command *cmd,
   struct LocalPreparedState **lfs);
+
+
+/**
+ * Function to get the trait with the internal command state BlockState.
+ *
+ * * @param[out] ac struct BlockState.
+* @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
+ */
+int
+GNUNET_TESTING_get_trait_block_state (
+  const struct GNUNET_TESTING_Command *cmd,
+  struct BlockState **bs);
 
 #endif

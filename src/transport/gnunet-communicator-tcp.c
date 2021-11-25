@@ -2010,7 +2010,8 @@ queue_read (void *cls)
  * @return The struct sockaddr *.
  */
 static struct sockaddr *
-tcp_address_to_sockaddr_numeric_v6 (socklen_t *sock_len, struct sockaddr_in6 v6,
+tcp_address_to_sockaddr_numeric_v6 (socklen_t *sock_len,
+                                    struct sockaddr_in6 v6,
                                     unsigned int port)
 {
   struct sockaddr *in;
@@ -2037,7 +2038,8 @@ tcp_address_to_sockaddr_numeric_v6 (socklen_t *sock_len, struct sockaddr_in6 v6,
  * @return The struct sockaddr *.
  */
 static struct sockaddr *
-tcp_address_to_sockaddr_numeric_v4 (socklen_t *sock_len, struct sockaddr_in v4,
+tcp_address_to_sockaddr_numeric_v4 (socklen_t *sock_len,
+                                    struct sockaddr_in v4,
                                     unsigned int port)
 {
   struct sockaddr *in;
@@ -2119,9 +2121,10 @@ tcp_address_to_sockaddr_port_only (const char *bindto, unsigned int *port)
  * @param bindto String we extract the address part from.
  * @return The extracted address string.
  */
-static void
-extract_address (const char *bindto, char **addr)
+static char *
+extract_address (const char *bindto)
 {
+  char *addr;
   char *start;
   char *token;
   char *cp;
@@ -2146,7 +2149,7 @@ extract_address (const char *bindto, char **addr)
   {
     start++;   /* skip over '['*/
     cp[strlen (cp) - 1] = '\0';  /* eat ']'*/
-    *addr = GNUNET_strdup (start);
+    addr = GNUNET_strdup (start);
   }
   else
   {
@@ -2154,20 +2157,21 @@ extract_address (const char *bindto, char **addr)
     if (strlen (bindto) == strlen (token))
     {
       token = strtok_r (cp, ":", &rest);
-      *addr = strdup (token);
+      addr = GNUNET_strdup (token);
     }
     else
     {
       token++;
       res = GNUNET_strdup (token);
-      *addr = GNUNET_strdup (res);
+      addr = GNUNET_strdup (res);
     }
   }
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "tcp address: %s\n",
-              *addr);
+              addr);
   GNUNET_free (cp);
+  return addr;
 }
 
 
@@ -2266,12 +2270,10 @@ tcp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
   unsigned int port;
   struct sockaddr_in v4;
   struct sockaddr_in6 v6;
-  char *start = GNUNET_malloc (sizeof(bindto));
+  char *start;
 
-  // cp = GNUNET_strdup (bindto);
-  start = GNUNET_malloc (sizeof(bindto));
-  extract_address (bindto, &start);
-
+  start = extract_address (bindto);
+  // FIXME: check NULL == start
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "start %s\n",
               start);
@@ -3264,7 +3266,7 @@ init_socket (struct sockaddr *addr,
     return GNUNET_SYSERR;
   }
 
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "address %s\n",
               GNUNET_a2s (addr, in_len));
 
@@ -3398,35 +3400,35 @@ init_socket (struct sockaddr *addr,
 static void
 nat_register ()
 {
-
   struct sockaddr **saddrs;
   socklen_t *saddr_lens;
   int i;
-  struct Addresses *pos;
-
+  size_t len;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "starting nat register!\n");
-
+  len = 0;
   i = 0;
-  saddrs = GNUNET_malloc ((addrs_lens + 1) * sizeof(struct sockaddr *));
-
-  saddr_lens = GNUNET_malloc ((addrs_lens + 1) * sizeof(socklen_t));
-
-  for (pos = addrs_head; NULL != pos; pos = pos->next)
+  saddrs = GNUNET_malloc ((addrs_lens) * sizeof(struct sockaddr *));
+  saddr_lens = GNUNET_malloc ((addrs_lens) * sizeof(socklen_t));
+  for (struct Addresses *pos = addrs_head; NULL != pos; pos = pos->next)
   {
-
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "registering address %s\n",
                 GNUNET_a2s (addrs_head->addr, addrs_head->addr_len));
 
     saddr_lens[i] = addrs_head->addr_len;
+    len += saddr_lens[i];
     saddrs[i] = GNUNET_memdup (addrs_head->addr, saddr_lens[i]);
-
     i++;
-
   }
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "registering addresses %lu %lu %lu %lu\n",
+              (addrs_lens) * sizeof(struct sockaddr *),
+              (addrs_lens) * sizeof(socklen_t),
+              len,
+              sizeof(COMMUNICATOR_CONFIG_SECTION));
   nat = GNUNET_NAT_register (cfg,
                              COMMUNICATOR_CONFIG_SECTION,
                              IPPROTO_TCP,
@@ -3436,9 +3438,6 @@ nat_register ()
                              &nat_address_cb,
                              NULL /* FIXME: support reversal: #5529 */,
                              NULL /* closure */);
-
-  i = 0;
-
   for (i = addrs_lens - 1; i >= 0; i--)
     GNUNET_free (saddrs[i]);
   GNUNET_free (saddrs);
@@ -3471,7 +3470,7 @@ init_socket_resolv (void *cls,
   struct sockaddr *in;
 
   (void) cls;
-  if (NULL  != addr)
+  if (NULL != addr)
   {
     if (AF_INET == addr->sa_family)
     {
@@ -3505,7 +3504,6 @@ init_socket_resolv (void *cls,
       return;
     }
     nat_register ();
-
   }
 }
 
@@ -3577,34 +3575,27 @@ run (void *cls,
   if (1 == sscanf (bindto, "%u%1s", &bind_port, dummy))
   {
     po = tcp_address_to_sockaddr_port_only (bindto, &bind_port);
-
     addr_len_ipv4 = po->addr_len_ipv4;
-
-
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "address po %s\n",
                 GNUNET_a2s (po->addr_ipv4, addr_len_ipv4));
-
     if (NULL != po->addr_ipv4)
     {
       init_socket (po->addr_ipv4, addr_len_ipv4);
     }
-
     if (NULL != po->addr_ipv6)
     {
       addr_len_ipv6 = po->addr_len_ipv6;
       init_socket (po->addr_ipv6, addr_len_ipv6);
     }
-
     GNUNET_free (po);
     nat_register ();
     GNUNET_free (bindto);
     return;
   }
 
-  start = GNUNET_malloc (sizeof(bindto));
-  extract_address (bindto, &start);
-
+  start = extract_address (bindto);
+  // FIXME: check for NULL == start...
   if (1 == inet_pton (AF_INET, start, &v4.sin_addr))
   {
     bind_port = extract_port (bindto);
@@ -3628,10 +3619,9 @@ run (void *cls,
     return;
   }
 
-
   bind_port = extract_port (bindto);
-
-  resolve_request_handle = GNUNET_RESOLVER_ip_get (strtok_r (bindto, ":",
+  resolve_request_handle = GNUNET_RESOLVER_ip_get (strtok_r (bindto,
+                                                             ":",
                                                              &rest),
                                                    AF_UNSPEC,
                                                    GNUNET_TIME_UNIT_MINUTES,
@@ -3660,17 +3650,19 @@ main (int argc, char *const *argv)
   GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
                            "transport",
                            "Starting tcp communicator\n");
-
-  if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
+  if (GNUNET_OK !=
+      GNUNET_STRINGS_get_utf8_args (argc, argv,
+                                    &argc, &argv))
     return 2;
 
-  ret = (GNUNET_OK == GNUNET_PROGRAM_run (argc,
-                                          argv,
-                                          "gnunet-communicator-tcp",
-                                          _ ("GNUnet TCP communicator"),
-                                          options,
-                                          &run,
-                                          NULL))
+  ret = (GNUNET_OK ==
+         GNUNET_PROGRAM_run (argc,
+                             argv,
+                             "gnunet-communicator-tcp",
+                             _ ("GNUnet TCP communicator"),
+                             options,
+                             &run,
+                             NULL))
         ? 0
         : 1;
   GNUNET_free_nz ((void *) argv);

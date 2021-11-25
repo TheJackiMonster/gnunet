@@ -221,7 +221,7 @@ check_for_message:
 
   struct GNUNET_MESSENGER_Message message;
 
-  if (length < get_message_kind_size(GNUNET_MESSENGER_KIND_UNKNOWN))
+  if (length < get_message_kind_size(GNUNET_MESSENGER_KIND_UNKNOWN, GNUNET_NO))
     return GNUNET_NO;
 
   if (GNUNET_YES != decode_message (&message, msg_length, msg_buffer, GNUNET_NO, NULL))
@@ -310,7 +310,7 @@ callback_found_message (void *cls,
   struct GNUNET_MESSENGER_MemberSession *session = get_member_session_of(member, message, hash);
 
   if (session)
-    notify_handle_message (msg_client->handle, get_room_key(room), session, message, hash);
+    notify_handle_message (msg_client->handle, room, session, message, hash);
 }
 
 static void

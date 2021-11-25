@@ -58,7 +58,7 @@ GNUNET_PQ_make_prepare (const char *name,
  * @return #GNUNET_OK on success,
  *         #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_PQ_prepare_statements (struct GNUNET_PQ_Context *db,
                               const struct GNUNET_PQ_PreparedStatement *ps)
 {

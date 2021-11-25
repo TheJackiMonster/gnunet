@@ -122,7 +122,7 @@ check_tunnel_message (void *cls,
 
   struct GNUNET_MESSENGER_Message message;
 
-  if (length < get_message_kind_size(GNUNET_MESSENGER_KIND_UNKNOWN))
+  if (length < get_message_kind_size(GNUNET_MESSENGER_KIND_UNKNOWN, GNUNET_YES))
   {
     GNUNET_log(GNUNET_ERROR_TYPE_WARNING, "Tunnel error: Message too short! (%d)\n", length);
     return GNUNET_SYSERR;

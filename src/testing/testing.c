@@ -1838,7 +1838,7 @@ get_first_string_value (char *line)
   memcpy (copy, line, slen);
   token = strtok_r (copy, ":", &rest);
   token = strtok_r (NULL, ":", &rest);
-  LOG (GNUNET_ERROR_TYPE_ERROR,
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
        "first token %s\n",
        token);
   slen_token = strlen (token);
@@ -1924,7 +1924,7 @@ get_connect_value (char *line, struct GNUNET_TESTING_NetjailNode *node)
     node_connection->node_type = GNUNET_TESTING_GLOBAL_NODE;
     token = strtok_r (NULL, ":", &rest);
     GNUNET_assert (1 == sscanf (token, "%u", &node_n));
-    LOG (GNUNET_ERROR_TYPE_ERROR,
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
          "node_n %u\n",
          node_n);
     node_connection->node_n = node_n;
@@ -1939,7 +1939,7 @@ get_connect_value (char *line, struct GNUNET_TESTING_NetjailNode *node)
     token = strtok_r (NULL, ":", &rest);
     sscanf (token, "%u", &node_n);
     node_connection->node_n = node_n;
-    LOG (GNUNET_ERROR_TYPE_ERROR,
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
          "node_n %u namespace_n %u node->node_n %u node->namespace_n %u\n",
          node_n,
          namespace_n,
@@ -1963,14 +1963,14 @@ get_connect_value (char *line, struct GNUNET_TESTING_NetjailNode *node)
       memcpy (prefix->address_prefix, token, slen);
     }
 
-    LOG (GNUNET_ERROR_TYPE_ERROR,
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
          "address_prefix %s\n",
          prefix->address_prefix);
 
     GNUNET_CONTAINER_DLL_insert (node_connection->address_prefixes_head,
                                  node_connection->address_prefixes_tail,
                                  prefix);
-    LOG (GNUNET_ERROR_TYPE_ERROR,
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
          "address_prefix %s\n",
          prefix->address_prefix);
   }
@@ -2028,7 +2028,7 @@ log_nodes (void *cls, const struct GNUNET_ShortHashCode *id, void *value)
   struct GNUNET_TESTING_NodeConnection *pos_connection;
   struct GNUNET_TESTING_AddressPrefix *pos_prefix;
 
-  LOG (GNUNET_ERROR_TYPE_ERROR,
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
        "plugin: %s space: %u node: %u global: %u\n",
        node->plugin,
        node->namespace_n,
@@ -2039,7 +2039,7 @@ log_nodes (void *cls, const struct GNUNET_ShortHashCode *id, void *value)
        pos_connection = pos_connection->next)
   {
 
-    LOG (GNUNET_ERROR_TYPE_ERROR,
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
          "namespace_n: %u node_n: %u node_type: %u\n",
          pos_connection->namespace_n,
          pos_connection->node_n,
@@ -2049,7 +2049,7 @@ log_nodes (void *cls, const struct GNUNET_ShortHashCode *id, void *value)
          pos_prefix =
            pos_prefix->next)
     {
-      LOG (GNUNET_ERROR_TYPE_ERROR,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "prefix: %s\n",
            pos_prefix->address_prefix);
     }
@@ -2071,7 +2071,7 @@ log_namespaces (void *cls, const struct GNUNET_ShortHashCode *id, void *value)
 static int
 log_topo (struct GNUNET_TESTING_NetjailTopology *topology)
 {
-  LOG (GNUNET_ERROR_TYPE_ERROR,
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
        "plugin: %s spaces: %u nodes: %u known: %u\n",
        topology->plugin,
        topology->namespaces_n,
@@ -2218,6 +2218,8 @@ free_nodes_cb (void *cls,
     GNUNET_free (pos_connection);
     pos_connection = tmp_connection;
   }
+  GNUNET_free (node->plugin);
+  GNUNET_free (node);
   return GNUNET_OK;
 }
 
@@ -2248,8 +2250,11 @@ GNUNET_TESTING_free_topology (struct GNUNET_TESTING_NetjailTopology *topology)
 {
   GNUNET_CONTAINER_multishortmap_iterate (topology->map_namespaces,
                                           free_namespaces_cb, NULL);
+  GNUNET_CONTAINER_multishortmap_destroy (topology->map_namespaces);
   GNUNET_CONTAINER_multishortmap_iterate (topology->map_globals, free_nodes_cb,
                                           NULL);
+  GNUNET_CONTAINER_multishortmap_destroy (topology->map_globals);
+  GNUNET_free (topology->plugin);
   GNUNET_free (topology);
 }
 
@@ -2294,7 +2299,7 @@ GNUNET_TESTING_get_address (struct GNUNET_TESTING_NodeConnection *connection,
   char *addr;
   char *template;
 
-  LOG (GNUNET_ERROR_TYPE_ERROR,
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
        "node_n: %u\n",
        connection->node_n);
 
@@ -2374,7 +2379,7 @@ GNUNET_TESTING_get_topo_from_string (char *data)
   char *key = NULL;
   unsigned int out;
   char *rest = NULL;
-  char *value;
+  char *value = NULL;
   char *value2;
   int ret;
   struct GNUNET_TESTING_NetjailTopology *topo;
@@ -2384,9 +2389,6 @@ GNUNET_TESTING_get_topo_from_string (char *data)
   struct GNUNET_ShortHashCode *hkey;
   struct GNUNET_HashCode hc;
 
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "data %s\n",
-       data);
   token = strtok_r (data, "\n", &rest);
   topo = GNUNET_new (struct GNUNET_TESTING_NetjailTopology);
   topo->map_namespaces =
@@ -2399,46 +2401,46 @@ GNUNET_TESTING_get_topo_from_string (char *data)
     if (NULL != key)
       free (key);
     key = get_key (token);
-    LOG (GNUNET_ERROR_TYPE_ERROR,
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
          "In the loop with token: %s beginning with %s\n",
          token,
          key);
     if (0 == strcmp (key, "M"))
     {
-      LOG (GNUNET_ERROR_TYPE_ERROR,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Get first Value for M.\n");
       out = get_first_value (token);
-      LOG (GNUNET_ERROR_TYPE_ERROR,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "M: %u\n",
            out);
       topo->nodes_m = out;
     }
     else if (0 == strcmp (key, "N"))
     {
-      LOG (GNUNET_ERROR_TYPE_ERROR,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Get first Value for N.\n");
       out = get_first_value (token);
-      LOG (GNUNET_ERROR_TYPE_ERROR,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "N: %u\n",
            out);
       topo->namespaces_n = out;
     }
     else if (0 == strcmp (key, "X"))
     {
-      LOG (GNUNET_ERROR_TYPE_ERROR,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Get first Value for X.\n");
       out = get_first_value (token);
-      LOG (GNUNET_ERROR_TYPE_ERROR,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "X: %u\n",
            out);
       topo->nodes_x = out;
     }
     else if (0 == strcmp (key, "T"))
     {
-      LOG (GNUNET_ERROR_TYPE_ERROR,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Get first string value for T.\n");
       value = get_first_string_value (token);
-      LOG (GNUNET_ERROR_TYPE_ERROR,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "value: %s\n",
            value);
       topo->plugin = value;
@@ -2448,10 +2450,10 @@ GNUNET_TESTING_get_topo_from_string (char *data)
       hkey = GNUNET_new (struct GNUNET_ShortHashCode);
       node = GNUNET_new (struct GNUNET_TESTING_NetjailNode);
 
-      LOG (GNUNET_ERROR_TYPE_ERROR,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Get first Value for K.\n");
       out = get_first_value (token);
-      LOG (GNUNET_ERROR_TYPE_ERROR,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "K: %u\n",
            out);
       node->node_n = out;
@@ -2470,10 +2472,10 @@ GNUNET_TESTING_get_topo_from_string (char *data)
                                             hkey,
                                             node,
                                             GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
-      LOG (GNUNET_ERROR_TYPE_ERROR,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Get value for key value on K.\n");
       value = get_value ("plugin", token);
-      LOG (GNUNET_ERROR_TYPE_ERROR,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "value: %s\n",
            value);
       node->plugin = value;
@@ -2485,10 +2487,10 @@ GNUNET_TESTING_get_topo_from_string (char *data)
       router = GNUNET_new (struct GNUNET_TESTING_NetjailRouter);
       node = GNUNET_new (struct GNUNET_TESTING_NetjailNode);
 
-      LOG (GNUNET_ERROR_TYPE_ERROR,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Get first Value for R.\n");
       out = get_first_value (token);
-      LOG (GNUNET_ERROR_TYPE_ERROR,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "R: %u\n",
            out);
       node->node_n = out;
@@ -2496,22 +2498,22 @@ GNUNET_TESTING_get_topo_from_string (char *data)
       memcpy (hkey,
               &hc,
               sizeof (*hkey));
-      LOG (GNUNET_ERROR_TYPE_ERROR,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Get value for key tcp_port on R.\n");
       value = get_value ("tcp_port", token);
-      LOG (GNUNET_ERROR_TYPE_ERROR,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "tcp_port: %s\n",
            value);
       ret = sscanf (value, "%u", &(router->tcp_port));
 
       GNUNET_break (0 != ret && 1 >= router->tcp_port);
 
-      LOG (GNUNET_ERROR_TYPE_ERROR,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Get value for key udp_port on R.\n");
       value2 = get_value ("udp_port", token);
       ret = sscanf (value2, "%u", &(router->udp_port));
       GNUNET_break (0 != ret && 1 >= router->udp_port);
-      LOG (GNUNET_ERROR_TYPE_ERROR,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "udp_port: %s\n",
            value2);
 
@@ -2540,10 +2542,10 @@ GNUNET_TESTING_get_topo_from_string (char *data)
       hkey = GNUNET_new (struct GNUNET_ShortHashCode);
       node = GNUNET_new (struct GNUNET_TESTING_NetjailNode);
 
-      LOG (GNUNET_ERROR_TYPE_ERROR,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Get first Value for P.\n");
       out = get_first_value (token);
-      LOG (GNUNET_ERROR_TYPE_ERROR,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "P: %u\n",
            out);
       GNUNET_CRYPTO_hash (&out, sizeof(out), &hc);
@@ -2568,10 +2570,10 @@ GNUNET_TESTING_get_topo_from_string (char *data)
                                             namespace,
                                             GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
       }
-      LOG (GNUNET_ERROR_TYPE_ERROR,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Get second Value for P.\n");
       out = get_second_value (token);
-      LOG (GNUNET_ERROR_TYPE_ERROR,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "P: %u\n",
            out);
       GNUNET_CRYPTO_hash (&out, sizeof(out), &hc);
@@ -2591,10 +2593,10 @@ GNUNET_TESTING_get_topo_from_string (char *data)
                                             hkey,
                                             node,
                                             GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
-        LOG (GNUNET_ERROR_TYPE_ERROR,
+        LOG (GNUNET_ERROR_TYPE_DEBUG,
              "Get value for key plugin on P.\n");
         value = get_value ("plugin", token);
-        LOG (GNUNET_ERROR_TYPE_ERROR,
+        LOG (GNUNET_ERROR_TYPE_DEBUG,
              "plugin: %s\n",
              value);
         node->plugin = value;
@@ -2605,10 +2607,14 @@ GNUNET_TESTING_get_topo_from_string (char *data)
     }
     token = strtok_r (NULL, "\n", &rest);
     if (NULL != token)
-      LOG (GNUNET_ERROR_TYPE_ERROR,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Next token %s\n",
            token);
   }
+  if (NULL != key)
+    GNUNET_free (key);
+  /*if (NULL != value)
+    GNUNET_free (value);*/
 
   return topo;
 }
@@ -2642,7 +2648,7 @@ GNUNET_TESTING_get_topo_from_file (const char *filename)
          filename);
     return NULL;
   }
-  data = GNUNET_malloc (fs);
+  data = GNUNET_malloc (fs + 1);
   if (fs != GNUNET_DISK_fn_read (filename, data, fs))
   {
     LOG (GNUNET_ERROR_TYPE_ERROR,
@@ -2653,9 +2659,8 @@ GNUNET_TESTING_get_topo_from_file (const char *filename)
   }
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "data: %s\n",
-       data);
-
+       "file lenght %lu\n",
+       fs);
   data[fs] = '\0';
 
   topo = GNUNET_TESTING_get_topo_from_string (data);

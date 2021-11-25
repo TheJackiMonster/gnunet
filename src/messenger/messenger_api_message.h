@@ -90,21 +90,23 @@ is_message_session_bound (const struct GNUNET_MESSENGER_Message *message);
  * Returns the minimal size in bytes to encode a message of a specific <i>kind</i>.
  *
  * @param[in] kind Kind of message
+ * @param[in] include_header Flag to include header
  * @return Minimal size to encode
  */
 uint16_t
-get_message_kind_size (enum GNUNET_MESSENGER_MessageKind kind);
+get_message_kind_size (enum GNUNET_MESSENGER_MessageKind kind,
+                       int include_header);
 
 /**
  * Returns the exact size in bytes to encode a given <i>message</i>.
  *
  * @param[in] message Message
- * @param[in] encode_signature Flag to include signature
+ * @param[in] include_header Flag to include header
  * @return Size to encode
  */
 uint16_t
 get_message_size (const struct GNUNET_MESSENGER_Message *message,
-                  int include_signature);
+                  int include_header);
 
 /**
  * Encodes a given <i>message</i> into a <i>buffer</i> of a maximal <i>length</i> in bytes.
@@ -112,13 +114,13 @@ get_message_size (const struct GNUNET_MESSENGER_Message *message,
  * @param[in] message Message
  * @param[in] length Maximal length to encode
  * @param[out] buffer Buffer
- * @param[in] encode_signature Flag to include signature
+ * @param[in] include_header Flag to include header
  */
 void
 encode_message (const struct GNUNET_MESSENGER_Message *message,
                 uint16_t length,
                 char *buffer,
-                int include_signature);
+                int include_header);
 
 /**
  * Decodes a <i>message</i> from a given <i>buffer</i> of a maximal <i>length</i> in bytes.
@@ -131,6 +133,7 @@ encode_message (const struct GNUNET_MESSENGER_Message *message,
  * @param[out] message Message
  * @param[in] length Maximal length to decode
  * @param[in] buffer Buffer
+ * @param[in] include_header Flag to include header
  * @param[out] padding Padding
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
@@ -138,7 +141,7 @@ int
 decode_message (struct GNUNET_MESSENGER_Message *message,
                 uint16_t length,
                 const char *buffer,
-                int include_signature,
+                int include_header,
                 uint16_t *padding);
 
 /**

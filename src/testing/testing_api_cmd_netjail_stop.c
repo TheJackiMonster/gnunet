@@ -87,6 +87,7 @@ netjail_stop_cleanup (void *cls)
     GNUNET_OS_process_destroy (ns->stop_proc);
     ns->stop_proc = NULL;
   }
+  GNUNET_free (ns);
 }
 
 

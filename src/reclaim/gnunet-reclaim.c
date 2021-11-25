@@ -521,7 +521,7 @@ iter_cb (void *cls,
   char *id;
   const char *attr_type;
 
-  if ((NULL != attr_name) && (NULL != claim))
+  if ((NULL != attr_name) && (NULL == claim))
   {
     if (0 == strcasecmp (attr_name, attr->name))
     {
@@ -530,6 +530,7 @@ iter_cb (void *cls,
                                             attr->type,
                                             attr->data,
                                             attr->data_size);
+      claim->id = attr->id;
     }
   }
   else if (issue_attrs)
@@ -830,7 +831,7 @@ main (int argc, char *const argv[])
     GNUNET_GETOPT_option_string ('a',
                                  "add",
                                  "NAME",
-                                 gettext_noop ("Add an attribute NAME"),
+                                 gettext_noop ("Add or update an attribute NAME"),
                                  &attr_name),
     GNUNET_GETOPT_option_string ('d',
                                  "delete",

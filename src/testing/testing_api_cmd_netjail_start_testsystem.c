@@ -271,8 +271,8 @@ clear_msg (void *cls, int result)
   struct TestingSystemCount *tbc = cls;
 
   GNUNET_assert (NULL != tbc->shandle);
-  GNUNET_free (tbc->shandle);
-  tbc->shandle = NULL;
+  /*GNUNET_free (tbc->shandle);
+    tbc->shandle = NULL;*/
   GNUNET_free (tbc->msg);
   tbc->msg = NULL;
 }

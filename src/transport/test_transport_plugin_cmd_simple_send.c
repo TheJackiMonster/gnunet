@@ -164,19 +164,20 @@ handle_result (void *cls,
  *
  */
 static void *
-notify_connect (void *cls,
-                const struct GNUNET_PeerIdentity *peer,
-                struct GNUNET_MQ_Handle *mq)
+notify_connect (struct GNUNET_TESTING_Interpreter *is,
+                const struct GNUNET_PeerIdentity *peer)
 {
   struct ConnectPeersState *cps;
+  const struct GNUNET_TESTING_Command *cmd;
 
-  GNUNET_TRANSPORT_get_trait_connect_peer_state (&connect_peers,
+  cmd = GNUNET_TESTING_interpreter_lookup_command (is,
+                                                   "connect-peers");
+  GNUNET_TRANSPORT_get_trait_connect_peer_state (cmd,
                                                  &cps);
   void *ret = NULL;
 
-  cps->notify_connect (cps,
-                       peer,
-                       mq);
+  cps->notify_connect (is,
+                       peer);
   return ret;
 }
 
@@ -246,7 +247,8 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
   else
     num = (n_int - 1) * local_m_int + m_int + topology->nodes_x;
 
-  block_send = GNUNET_TESTING_cmd_block_until_external_trigger ("block");
+  block_send = GNUNET_TESTING_cmd_block_until_external_trigger (
+    "block");
   block_receive = GNUNET_TESTING_cmd_block_until_external_trigger (
     "block-receive");
   connect_peers = GNUNET_TRANSPORT_cmd_connect_peers ("connect-peers",
@@ -262,11 +264,11 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
   GNUNET_asprintf (&ts->cfgname,
                    "test_transport_api2_tcp_node1.conf");
 
-  LOG (GNUNET_ERROR_TYPE_ERROR,
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
        "plugin cfgname: %s\n",
        ts->cfgname);
 
-  LOG (GNUNET_ERROR_TYPE_ERROR,
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
        "node ip: %s\n",
        node_ip);
 

@@ -11,4 +11,5 @@ N=$2
 
 NODE=$6
 
+#netjail_node_exec_without_fds_and_sudo $NODE valgrind --leak-check=full --track-origins=yes --trace-children=yes $3 $4 $5 $1 $2 $7 $8
 netjail_node_exec_without_fds_and_sudo $NODE $3 $4 $5 $1 $2 $7 $8

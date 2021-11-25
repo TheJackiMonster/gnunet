@@ -229,13 +229,18 @@ get_message_body_kind_size (enum GNUNET_MESSENGER_MessageKind kind)
 typedef uint32_t kind_t;
 
 uint16_t
-get_message_kind_size (enum GNUNET_MESSENGER_MessageKind kind)
+get_message_kind_size (enum GNUNET_MESSENGER_MessageKind kind,
+                       int include_header)
 {
   uint16_t length = 0;
 
-  length += member_size(struct GNUNET_MESSENGER_Message, header.timestamp);
-  length += member_size(struct GNUNET_MESSENGER_Message, header.sender_id);
-  length += member_size(struct GNUNET_MESSENGER_Message, header.previous);
+  if (GNUNET_YES == include_header)
+  {
+    length += member_size(struct GNUNET_MESSENGER_Message, header.timestamp);
+    length += member_size(struct GNUNET_MESSENGER_Message, header.sender_id);
+    length += member_size(struct GNUNET_MESSENGER_Message, header.previous);
+  }
+
   length += sizeof(kind_t);
 
   return length + get_message_body_kind_size (kind);
@@ -279,16 +284,16 @@ get_message_body_size (enum GNUNET_MESSENGER_MessageKind kind,
 
 uint16_t
 get_message_size (const struct GNUNET_MESSENGER_Message *message,
-                  int include_signature)
+                  int include_header)
 {
   GNUNET_assert(message);
 
   uint16_t length = 0;
 
-  if (GNUNET_YES == include_signature)
+  if (GNUNET_YES == include_header)
     length += GNUNET_IDENTITY_signature_get_length(&(message->header.signature));
 
-  length += get_message_kind_size (message->header.kind);
+  length += get_message_kind_size (message->header.kind, include_header);
   length += get_message_body_size (message->header.kind, &(message->body));
 
   return length;
@@ -314,7 +319,7 @@ calc_usual_padding ()
   uint16_t kind_size;
 
   for (int i = 0; i <= GNUNET_MESSENGER_KIND_MAX; i++) {
-    kind_size = get_message_kind_size ((enum GNUNET_MESSENGER_MessageKind) i);
+    kind_size = get_message_kind_size ((enum GNUNET_MESSENGER_MessageKind) i, GNUNET_YES);
 
     if (kind_size > padding)
       padding = kind_size;
@@ -464,20 +469,24 @@ void
 encode_message (const struct GNUNET_MESSENGER_Message *message,
                 uint16_t length,
                 char *buffer,
-                int include_signature)
+                int include_header)
 {
   GNUNET_assert((message) && (buffer));
 
   uint16_t offset = 0;
 
-  if (GNUNET_YES == include_signature)
+  if (GNUNET_YES == include_header)
     encode_step_signature(buffer, offset, &(message->header.signature), length);
 
   const kind_t kind = GNUNET_htobe32((kind_t) message->header.kind);
 
-  encode_step(buffer, offset, &(message->header.timestamp));
-  encode_step(buffer, offset, &(message->header.sender_id));
-  encode_step(buffer, offset, &(message->header.previous));
+  if (GNUNET_YES == include_header)
+  {
+    encode_step(buffer, offset, &(message->header.timestamp));
+    encode_step(buffer, offset, &(message->header.sender_id));
+    encode_step(buffer, offset, &(message->header.previous));
+  }
+
   encode_step(buffer, offset, &kind);
 
   encode_message_body (message->header.kind, &(message->body), length, buffer, offset);
@@ -619,14 +628,18 @@ int
 decode_message (struct GNUNET_MESSENGER_Message *message,
                 uint16_t length,
                 const char *buffer,
-                int include_signature,
+                int include_header,
                 uint16_t *padding)
 {
-  GNUNET_assert((message) && (buffer) && (length >= get_message_kind_size(GNUNET_MESSENGER_KIND_UNKNOWN)));
+  GNUNET_assert(
+      (message) &&
+      (buffer) &&
+      (length >= get_message_kind_size(GNUNET_MESSENGER_KIND_UNKNOWN, include_header))
+  );
 
   uint16_t offset = 0;
 
-  if (GNUNET_YES == include_signature)
+  if (GNUNET_YES == include_header)
   {
     ssize_t result = GNUNET_IDENTITY_read_signature_from_buffer(
         &(message->header.signature), buffer, length - offset
@@ -640,19 +653,23 @@ decode_message (struct GNUNET_MESSENGER_Message *message,
 
   const uint16_t count = length - offset;
 
-  if (count < get_message_kind_size (GNUNET_MESSENGER_KIND_UNKNOWN))
+  if (count < get_message_kind_size (GNUNET_MESSENGER_KIND_UNKNOWN, include_header))
     return GNUNET_NO;
 
   kind_t kind;
 
-  decode_step(buffer, offset, &(message->header.timestamp));
-  decode_step(buffer, offset, &(message->header.sender_id));
-  decode_step(buffer, offset, &(message->header.previous));
+  if (GNUNET_YES == include_header)
+  {
+    decode_step(buffer, offset, &(message->header.timestamp));
+    decode_step(buffer, offset, &(message->header.sender_id));
+    decode_step(buffer, offset, &(message->header.previous));
+  }
+
   decode_step(buffer, offset, &kind);
 
   message->header.kind = (enum GNUNET_MESSENGER_MessageKind) GNUNET_be32toh(kind);
 
-  if (count < get_message_kind_size (message->header.kind))
+  if (count < get_message_kind_size (message->header.kind, include_header))
     return GNUNET_NO;
 
   const uint16_t result = decode_message_body (&(message->header.kind), &(message->body), length, buffer, offset);

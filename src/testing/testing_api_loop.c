@@ -53,6 +53,11 @@ struct GNUNET_TESTING_Interpreter
   struct GNUNET_TESTING_Command *commands;
 
   /**
+   * Number of GNUNET_TESTING_Command in commands.
+   */
+  unsigned int cmds_n;
+
+  /**
    * Interpreter task (if one is scheduled).
    */
   struct GNUNET_SCHEDULER_Task *task;
@@ -83,21 +88,32 @@ struct GNUNET_TESTING_Interpreter
 
 
 const struct GNUNET_TESTING_Command *
-GNUNET_TESTING_interpreter_lookup_command (
-  struct GNUNET_TESTING_Interpreter *is,
-  const char *label)
+get_command (struct GNUNET_TESTING_Interpreter *is,
+             const char *label,
+             unsigned int future)
 {
+  int start_i = GNUNET_NO == future ? is->ip : is->cmds_n - 1;
+  int end_i = GNUNET_NO == future ? 0 : is->ip + 1;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "start_i: %u end_i: %u\n",
+              start_i,
+              end_i);
   if (NULL == label)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Attempt to lookup command for empty label\n");
     return NULL;
   }
-  /* Search backwards as we most likely reference recent commands */
-  for (int i = is->ip; i >= 0; i--)
+
+  for (int i = start_i; i >= end_i; i--)
   {
     const struct GNUNET_TESTING_Command *cmd = &is->commands[i];
 
+    if (NULL != cmd->label)
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "label to compare %s\n",
+                  cmd->label);
     /* Give precedence to top-level commands.  */
     if ( (NULL != cmd->label) &&
          (0 == strcmp (cmd->label,
@@ -138,6 +154,40 @@ GNUNET_TESTING_interpreter_lookup_command (
               "Command `%s' not found\n",
               label);
   return NULL;
+}
+
+
+/**
+ * Lookup command by label.
+ * Only future commands are looked up.
+ *
+ * @param is interpreter to lookup command in
+ * @param label label of the command to lookup.
+ * @return the command, if it is found, or NULL.
+ */
+const struct GNUNET_TESTING_Command *
+GNUNET_TESTING_interpreter_lookup_future_command (
+  struct GNUNET_TESTING_Interpreter *is,
+  const char *label)
+{
+  return get_command (is, label, GNUNET_YES);
+}
+
+
+/**
+ * Lookup command by label.
+ * Only commands from current command to commands in the past are looked up.
+ *
+ * @param is interpreter to lookup command in
+ * @param label label of the command to lookup.
+ * @return the command, if it is found, or NULL.
+ */
+const struct GNUNET_TESTING_Command *
+GNUNET_TESTING_interpreter_lookup_command (
+  struct GNUNET_TESTING_Interpreter *is,
+  const char *label)
+{
+  return get_command (is, label, GNUNET_NO);
 }
 
 
@@ -267,6 +317,20 @@ GNUNET_TESTING_interpreter_fail (struct GNUNET_TESTING_Interpreter *is)
 }
 
 
+/**
+ * Returns the actual running command.
+ *
+ * @param is Global state of the interpreter, used by a command
+ *        to access information about other commands.
+ * @return The actual running command.
+ */
+struct GNUNET_TESTING_Command *
+GNUNET_TESTING_interpreter_get_current_command (
+  struct GNUNET_TESTING_Interpreter *is)
+{
+  return &is->commands[is->ip];
+}
+
 const char *
 GNUNET_TESTING_interpreter_get_current_label (
   struct GNUNET_TESTING_Interpreter *is)
@@ -300,9 +364,17 @@ interpreter_run (void *cls)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Running command `%s'\n",
               cmd->label);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "start time of %p expected 0 is `%lu'\n",
+              cmd,
+              cmd->start_time.abs_value_us);
   cmd->start_time
     = cmd->last_req_time
       = GNUNET_TIME_absolute_get ();
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "start time of %p expected something is `%lu'\n",
+              cmd,
+              cmd->start_time.abs_value_us);
   cmd->num_tries = 1;
   if (NULL != cmd->ac)
   {
@@ -344,6 +416,37 @@ do_timeout (void *cls)
 }
 
 
+/**
+ * Check if the command is running.
+ *
+ * @param cmd The command to check.
+ * @return GNUNET_NO if the command is not running, GNUNET_YES if it is running.
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_TESTING_running (const struct GNUNET_TESTING_Command *command)
+{
+  return 0 != command->start_time.abs_value_us && 0 ==
+         command->finish_time.abs_value_us;
+}
+
+
+/**
+ * Check if a command is finished.
+ *
+ * @param cmd The command to check.
+ * @return GNUNET_NO if the command is not finished, GNUNET_YES if it is finished.
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_TESTING_finished (struct GNUNET_TESTING_Command *command)
+{
+  struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
+  struct GNUNET_TIME_Relative diff = GNUNET_TIME_absolute_get_difference (
+    command->finish_time,
+    now);
+  return 0 < diff.rel_value_us;
+}
+
+
 void
 GNUNET_TESTING_run (struct GNUNET_TESTING_Command *commands,
                     struct GNUNET_TIME_Relative timeout,
@@ -359,7 +462,8 @@ GNUNET_TESTING_run (struct GNUNET_TESTING_Command *commands,
   /* get the number of commands */
   for (i = 0; NULL != commands[i].label; i++)
     ;
-  is->commands = GNUNET_new_array (i + 1,
+  is->cmds_n = i + 1;
+  is->commands = GNUNET_new_array (is->cmds_n,
                                    struct GNUNET_TESTING_Command);
   memcpy (is->commands,
           commands,

@@ -98,7 +98,7 @@ destroy_handle (struct GNUNET_MESSENGER_Handle *handle)
 
   clear_contact_store(get_handle_contact_store(handle));
 
-  GNUNET_free(handle->name);
+  GNUNET_free(handle);
 }
 
 void

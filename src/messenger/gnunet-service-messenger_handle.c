@@ -501,14 +501,14 @@ get_next_member_session_contect(const struct GNUNET_MESSENGER_MemberSession *ses
 
 static const struct GNUNET_MESSENGER_MemberSession*
 get_handle_member_session (struct GNUNET_MESSENGER_SrvHandle *handle,
+                           struct GNUNET_MESSENGER_SrvRoom *room,
                            const struct GNUNET_HashCode *key)
 {
-  GNUNET_assert((handle) && (key) && (handle->service));
+  GNUNET_assert((handle) && (room) && (key) && (handle->service));
 
   const struct GNUNET_ShortHashCode *id = get_handle_member_id(handle, key);
-  struct GNUNET_MESSENGER_SrvRoom *room = get_service_room(handle->service, key);
 
-  if ((!id) || (!room))
+  if (!id)
     return NULL;
 
   struct GNUNET_MESSENGER_MemberStore *store = get_room_member_store(room);
@@ -524,12 +524,14 @@ get_handle_member_session (struct GNUNET_MESSENGER_SrvHandle *handle,
 
 void
 notify_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
-                       const struct GNUNET_HashCode *key,
+                       struct GNUNET_MESSENGER_SrvRoom *room,
                        const struct GNUNET_MESSENGER_MemberSession *session,
                        const struct GNUNET_MESSENGER_Message *message,
                        const struct GNUNET_HashCode *hash)
 {
-  GNUNET_assert((handle) && (key) && (session) && (message) && (hash));
+  GNUNET_assert((handle) && (room) && (session) && (message) && (hash));
+
+  const struct GNUNET_HashCode *key = get_room_key(room);
 
   if ((!handle->mq) || (!get_handle_member_id (handle, key)))
   {
@@ -575,7 +577,7 @@ notify_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
 
   msg->flags = (uint32_t) GNUNET_MESSENGER_FLAG_NONE;
 
-  if (get_handle_member_session(handle, key) == session)
+  if (get_handle_member_session(handle, room, key) == session)
     msg->flags |= (uint32_t) GNUNET_MESSENGER_FLAG_SENT;
 
   if (private_message)
