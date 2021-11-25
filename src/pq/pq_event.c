@@ -194,9 +194,15 @@ event_do_poll (struct GNUNET_PQ_Context *db)
               "PG poll job active\n");
   if (1 !=
       PQconsumeInput (db->conn))
+  {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Failed to read from Postgres: %s\n",
                 PQerrorMessage (db->conn));
+    if (CONNECTION_BAD != PQstatus (db->conn))
+      return;
+    GNUNET_PQ_reconnect (db);
+    return;
+  }
   while (NULL != (n = PQnotifies (db->conn)))
   {
     struct GNUNET_ShortHashCode sh;
@@ -263,10 +269,20 @@ do_scheduler_notify (void *cls)
   struct GNUNET_PQ_Context *db = cls;
 
   db->event_task = NULL;
-  GNUNET_assert (NULL != db->rfd);
+  if (NULL == db->rfd)
+    GNUNET_PQ_reconnect (db);
   event_do_poll (db);
+  if (NULL != db->event_task)
+    return;
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Resubscribing\n");
+  if (NULL == db->rfd)
+  {
+    db->event_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
+                                                   &do_scheduler_notify,
+                                                   db);
+    return;
+  }
   db->event_task
     = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
                                      db->rfd,
@@ -329,6 +345,8 @@ manage_subscribe (struct GNUNET_PQ_Context *db,
   char *end;
   PGresult *result;
 
+  if (NULL == db->conn)
+    return;
   end = stpcpy (sql,
                 cmd);
   end = sh_to_channel (&eh->sh,
