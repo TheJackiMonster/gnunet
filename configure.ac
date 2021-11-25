@@ -994,7 +994,7 @@ AS_IF([test "x$mysql" = "xtrue"],
      [mysql=false])
    AS_IF([test "x$mysql" = "xfalse"],
      [AC_MSG_RESULT([< 4.1])
-      AC_MSG_ERROR([mysql version >= 4.1 required])])
+      AC_MSG_RESULT([mysql version >= 4.1 required. Will not use MySQL])])
    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
      [[#include <mysql/mysql_version.h>]],
      [[#if (MYSQL_VERSION_ID < 80000)
@@ -1098,13 +1098,7 @@ AC_CHECK_HEADERS([fcntl.h math.h errno.h ctype.h limits.h stdarg.h signal.h loca
   [AC_MSG_ERROR([Compiling GNUnet requires standard UNIX header files])])
 
 # Check for headers required only on some systems or which are optional
-AC_CHECK_HEADERS([stdatomic.h malloc.h malloc/malloc.h malloc/malloc_np.h
-                  langinfo.h sys/param.h sys/mount.h sys/statvfs.h sys/select.h
-                  sockLib.h sys/mman.h sys/msg.h sys/vfs.h arpa/inet.h
-                  libintl.h netdb.h netinet/in.h sys/ioctl.h sys/socket.h
-                  sys/time.h sys/sysinfo.h sys/file.h sys/resource.h
-                  ifaddrs.h mach/mach.h sys/timeb.h argz.h ucred.h
-                  sys/ucred.h endian.h sys/endian.h execinfo.h byteswap.h])
+AC_CHECK_HEADERS([stdatomic.h malloc.h malloc/malloc.h malloc/malloc_np.h langinfo.h sys/param.h sys/mount.h sys/statvfs.h sys/select.h sockLib.h sys/mman.h sys/msg.h sys/vfs.h arpa/inet.h libintl.h netdb.h netinet/in.h sys/ioctl.h sys/socket.h sys/time.h sys/sysinfo.h sys/file.h sys/resource.h ifaddrs.h mach/mach.h sys/timeb.h argz.h ucred.h sys/ucred.h endian.h sys/endian.h execinfo.h byteswap.h])
 
 # Required for FreeBSD's netinet/in_systm.h and netinet/ip.h
 AS_IF([test "x$build_target" = "xfreebsd"],
@@ -1156,11 +1150,7 @@ AC_TYPE_UID_T
 # check for library functions
 AC_FUNC_FORK
 AC_FUNC_CHOWN
-AC_CHECK_FUNCS([atoll stat64 strnlen mremap getrlimit setrlimit sysconf
-                initgroups strndup gethostbyname2 getpeerucred getpeereid
-                setresuid getifaddrs freeifaddrs getresgid mallinfo2 malloc_size
-                malloc_usable_size getrusage random srandom stat statfs statvfs
-                wait4 timegm])
+AC_CHECK_FUNCS([atoll stat64 strnlen mremap getrlimit setrlimit sysconf initgroups strndup gethostbyname2 getpeerucred getpeereid setresuid getifaddrs freeifaddrs getresgid mallinfo2 malloc_size malloc_usable_size getrusage random srandom stat statfs statvfs wait4 timegm])
 
 GN_INTLINCL=""
 GN_LIBINTL="$LTLIBINTL"

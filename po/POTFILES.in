@@ -230,6 +230,7 @@ src/messenger/messenger_api_list_tunnels.c
 src/messenger/messenger_api_message.c
 src/messenger/messenger_api_room.c
 src/messenger/messenger_api_util.c
+src/messenger/plugin_gnsrecord_messenger.c
 src/messenger/testing_messenger_barrier.c
 src/messenger/testing_messenger_setup.c
 src/my/my.c
