@@ -2216,6 +2216,15 @@ GNUNET_CRYPTO_rsa_public_key_hash (const struct GNUNET_CRYPTO_RsaPublicKey *key,
 
 
 /**
+ * Check if @a key is well-formed.
+ *
+ * @return true if @a key is well-formed.
+ */
+bool
+GNUNET_CRYPTO_rsa_public_key_check (
+  const struct GNUNET_CRYPTO_RsaPublicKey *key);
+
+/**
  * Obtain the length of the RSA key in bits.
  *
  * @param key the public key to introspect

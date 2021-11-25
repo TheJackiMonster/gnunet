@@ -296,6 +296,30 @@ struct GNUNET_CRYPTO_RsaPublicKeyHeaderP
 GNUNET_NETWORK_STRUCT_END
 
 
+bool
+GNUNET_CRYPTO_rsa_public_key_check (
+  const struct GNUNET_CRYPTO_RsaPublicKey *key)
+{
+  gcry_mpi_t ne[2];
+  int ret;
+
+  ret = key_from_sexp (ne,
+                       key->sexp,
+                       "public-key",
+                       "ne");
+  if (0 != ret)
+    ret = key_from_sexp (ne,
+                         key->sexp,
+                         "rsa",
+                         "ne");
+  if (0 != ret)
+    return false;
+  gcry_mpi_release (ne[0]);
+  gcry_mpi_release (ne[1]);
+  return true;
+}
+
+
 size_t
 GNUNET_CRYPTO_rsa_public_key_encode (
   const struct GNUNET_CRYPTO_RsaPublicKey *key,
