@@ -2056,7 +2056,8 @@ GNUNET_SCHEDULER_do_work (struct GNUNET_SCHEDULER_Handle *sh)
        *
        * It might also mean we are busy-waiting because of a programming
        * error in the external event loop.
-       */LOG (GNUNET_ERROR_TYPE_DEBUG,
+       */
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "GNUNET_SCHEDULER_do_work did not find any ready "
            "tasks and timeout has not been reached yet.\n");
     }

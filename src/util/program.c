@@ -153,13 +153,14 @@ GNUNET_PROGRAM_run2 (int argc,
   long long clock_offset;
   struct GNUNET_CONFIGURATION_Handle *cfg;
   const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
-  struct GNUNET_GETOPT_CommandLineOption defoptions[] = {
+  const struct GNUNET_GETOPT_CommandLineOption defoptions[] = {
     GNUNET_GETOPT_option_cfgfile (&cc.cfgfile),
     GNUNET_GETOPT_option_help (binaryHelp),
     GNUNET_GETOPT_option_loglevel (&loglev),
     GNUNET_GETOPT_option_logfile (&logfile),
     GNUNET_GETOPT_option_version (pd->version)
   };
+  unsigned int deflen = sizeof(defoptions) / sizeof(defoptions[0]);
   struct GNUNET_GETOPT_CommandLineOption *allopts;
   const char *gargs;
   char *lpfx;
@@ -176,9 +177,13 @@ GNUNET_PROGRAM_run2 (int argc,
     gargv = NULL;
     gargc = 0;
     for (int i = 0; i < argc; i++)
-      GNUNET_array_append (gargv, gargc, GNUNET_strdup (argv[i]));
+      GNUNET_array_append (gargv,
+                           gargc,
+                           GNUNET_strdup (argv[i]));
     cargs = GNUNET_strdup (gargs);
-    for (char *tok = strtok (cargs, " "); NULL != tok; tok = strtok (NULL, " "))
+    for (char *tok = strtok (cargs, " ");
+         NULL != tok;
+         tok = strtok (NULL, " "))
       GNUNET_array_append (gargv, gargc, GNUNET_strdup (tok));
     GNUNET_free (cargs);
     GNUNET_array_append (gargv, gargc, NULL);
@@ -209,15 +214,40 @@ GNUNET_PROGRAM_run2 (int argc,
   cnt = 0;
   while (NULL != options[cnt].name)
     cnt++;
-  allopts =
-    GNUNET_malloc ((cnt + 1) * sizeof(struct GNUNET_GETOPT_CommandLineOption)
-                   + sizeof(defoptions));
-  GNUNET_memcpy (allopts, defoptions, sizeof(defoptions));
-  GNUNET_memcpy (&allopts[sizeof(defoptions)
-                          / sizeof(struct GNUNET_GETOPT_CommandLineOption)],
+  allopts = GNUNET_new_array (cnt + deflen + 1,
+                              struct GNUNET_GETOPT_CommandLineOption);
+  GNUNET_memcpy (allopts,
                  options,
-                 (cnt + 1) * sizeof(struct GNUNET_GETOPT_CommandLineOption));
-  cnt += sizeof(defoptions) / sizeof(struct GNUNET_GETOPT_CommandLineOption);
+                 cnt * sizeof(struct GNUNET_GETOPT_CommandLineOption));
+  {
+    unsigned int xtra = 0;
+
+    for (unsigned int i = 0;
+         i<sizeof (defoptions) / sizeof(struct GNUNET_GETOPT_CommandLineOption);
+         i++)
+    {
+      bool found = false;
+
+      for (unsigned int j = 0; j<cnt; j++)
+      {
+        found |= ( (options[j].shortName == defoptions[i].shortName) &&
+                   (0 != options[j].shortName) );
+        found |= ( (NULL != options[j].name) &&
+                   (NULL != defoptions[i].name) &&
+                   (0 == strcmp (options[j].name,
+                                 defoptions[i].name)) );
+        if (found)
+          break;
+      }
+      if (found)
+        continue;
+      GNUNET_memcpy (&allopts[cnt + xtra],
+                     &defoptions[i],
+                     sizeof (struct GNUNET_GETOPT_CommandLineOption));
+      xtra++;
+    }
+    cnt += xtra;
+  }
   qsort (allopts,
          cnt,
          sizeof(struct GNUNET_GETOPT_CommandLineOption),
