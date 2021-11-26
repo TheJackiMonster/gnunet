@@ -829,7 +829,7 @@ CHECK_WITH_LIB([extractor],
                [extractor.h],
                [HAVE_LIBEXTRACTOR])
 AS_IF([test "x$extractor" = "x0"],
-      [AC_MSG_ERROR([GNUnet requires libextractor])])
+      [AC_MSG_RESULT([GNU libextractor not found, some features disabled])])
 
 # check for libltdl
 CHECK_WITH_LIB([ltdl], [lt_dlopenext], [ltdl.h], [HAVE_LTDL])
