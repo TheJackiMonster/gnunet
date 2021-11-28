@@ -36,7 +36,7 @@ perf_malloc ()
   for (size_t i = 1; i < 1024 * 1024; i += 1024)
   {
     ret += i;
-    GNUNET_free (GNUNET_malloc (i));
+    GNUNET_free_nz (GNUNET_malloc (i));
   }
   return ret;
 }
