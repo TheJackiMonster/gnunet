@@ -250,10 +250,10 @@ aclocal_DATA = \
   gnunet.m4
 
 install-data-hook:
-	chmod o+x $(pkgdatadir)/netjail_core.sh
-	chmod o+x $(pkgdatadir)/netjail_start.sh
-	chmod o+x $(pkgdatadir)/netjail_stop.sh
-	chmod o+x $(pkgdatadir)/netjail_exec.sh
-	chmod o+x $(pkgdatadir)/topo.sh
+	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_core.sh'
+	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_start.sh'
+	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_stop.sh'
+	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_exec.sh'
+	chmod o+x '$(DESTDIR)$(pkgdatadir)/topo.sh'
 
 ## EOF
