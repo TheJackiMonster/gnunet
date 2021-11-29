@@ -392,6 +392,7 @@ plugin_LTLIBRARIES = \
   $(BT_PLUGIN_LA) \
   libgnunet_test_transport_plugin_cmd_simple_send.la \
   libgnunet_test_transport_plugin_cmd_simple_send_broadcast.la \
+  libgnunet_test_transport_plugin_cmd_simple_send_dv.la \
   libgnunet_test_transport_plugin_cmd_udp_backchannel.la
 
 libgnunet_test_transport_plugin_cmd_udp_backchannel_la_SOURCES = \
@@ -443,6 +444,23 @@ libgnunet_test_transport_plugin_cmd_simple_send_broadcast_la_LIBADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(LTLIBINTL)
 libgnunet_test_transport_plugin_cmd_simple_send_broadcast_la_LDFLAGS = \
+  $(GN_PLUGIN_LDFLAGS)
+
+libgnunet_test_transport_plugin_cmd_simple_send_dv_la_SOURCES = \
+ test_transport_plugin_cmd_simple_send_dv.c
+libgnunet_test_transport_plugin_cmd_simple_send_dv_la_LIBADD = \
+  libgnunettransporttesting2.la \
+  libgnunettransportapplication.la \
+  libgnunettransportcore.la \
+  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/hello/libgnunethello.la \
+  $(top_builddir)/src/ats/libgnunetats.la \
+  $(top_builddir)/src/arm/libgnunetarm.la \
+  $(top_builddir)/src/util/libgnunetutil.la \
+  $(LTLIBINTL)
+libgnunet_test_transport_plugin_cmd_simple_send_dv_la_LDFLAGS = \
   $(GN_PLUGIN_LDFLAGS)
 
 if HAVE_EXPERIMENTAL
@@ -737,7 +755,6 @@ test_transport_api_slow_ats
 endif
 if HAVE_EXPERIMENTAL
 TESTS += \
-  test_transport_start_with_config \
   test_transport_address_switch_udp \
   test_plugin_udp \
   test_transport_api_udp \
@@ -759,7 +776,8 @@ check_SCRIPTS= \
   test_transport_simple_send_string.sh \
   test_transport_simple_send.sh \
   test_transport_simple_send_broadcast.sh \
-  test_transport_udp_backchannel.sh
+  test_transport_udp_backchannel.sh \
+  test_transport_simple_send_dv.sh
 
 test_transport_start_with_config_SOURCES = \
  test_transport_start_with_config.c
@@ -1501,6 +1519,7 @@ test_transport_api_slow_ats_LDADD = \
 
 
 EXTRA_DIST = \
+$(check_SCRIPTS) \
 gnunet-transport-certificate-creation.in \
 communicator-unix.conf \
 test_plugin_hostkey \
