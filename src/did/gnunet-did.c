@@ -67,15 +67,17 @@ static void add_did_document();
 static void get_pkey_from_attr_did();
 static void print_did_document();
 static void remove_did_document();
+static void remove_did_ego_lookup_callback();
+static void remove_did_callback();
 
 // TODO
 // static void get_did_for_ego();
-// static void generate_did_document();
 // static void replace_did_document(); - use remove_did_document and add_did_document
-// A method to manipulate did document
 
 // Add a data DID Document type
 
+// Should the module only store and retrieve a DID document or also generate and cofigure it?
+// static void generate_did_document();
 
 static void cleanup();
 
@@ -115,7 +117,7 @@ run (void *cls,
     add_did_document();
   } else if (NULL != attr_did && 1 == attr_get){
     resolve_did_document();
-  } else if (NULL != attr_did && 1 == attr_remove) {
+  } else if (NULL != attr_ego && 1 == attr_remove) {
     remove_did_document();
   } else {
     // No Argument found
@@ -206,7 +208,6 @@ print_did_document(
   const struct GNUNET_GNSRECORD_Data *rd)
 {
   // TODO: Remove "store.sock" at the end of print
-  int i;
   if (rd_count != 1)
   {
     printf("An ego should only have one DID Document");
@@ -224,30 +225,42 @@ print_did_document(
 static void 
 remove_did_document()
 {
-  // Use private key for now
-  // TODO: Use did->pkey->ego->skey or ego->skey to remove did document
-  struct GNUNET_IDENTITY_PublicKey pkey;
-  get_pkey_from_attr_did(&pkey);
+  printf("remove_did_document: called\n");
+  // TODO: Use ego->skey to remove did document
+  printf("attr_ego: %s\n", attr_ego);
 
-  const struct GNUNET_IDENTITY_PrivateKey skey; // get the skey based on the pkey in DID
-  const struct GNUNET_GNSRECORD_Data rd; // should be the empty array
+  GNUNET_IDENTITY_ego_lookup(c,
+                            attr_ego,
+                            &remove_did_ego_lookup_callback,
+                            NULL);
 
-  //GNUNET_NAMESTORE_records_store (namestore_handle,
-  //                                *pkey,
-  //                                "didd",
-  //                                0,
-  //                                *rd,
-  //                                &remove_did_callback,
-  //                                NULL);
-
+  // TODO: Use did->pkey->ego->skey to remove did document
+  // struct GNUNET_IDENTITY_PublicKey pkey;
+  // get_pkey_from_attr_did(&pkey);
+  printf("remove_did_document: done\n");
 }
 
-static void
-get_ego_from_attr_ego(struct GNUNET_IDENTITY_Ego * ego)
-{
-  // Use string to get EGO 
-  // GNUNET_IDENTITY_ego_lookup -> GNUNET_IDENTITY_EgoCallback -> ...
-  // Think about how to pass parameter - Functional programming
+static void 
+remove_did_ego_lookup_callback(void *cls, struct GNUNET_IDENTITY_Ego * ego){
+  printf("remove_did_ego_lookup_callback: called\n");
+  const struct GNUNET_IDENTITY_PrivateKey * skey = GNUNET_IDENTITY_ego_get_private_key(ego);
+  const int emp[0];
+  struct GNUNET_GNSRECORD_Data rd = {
+    .data = &emp, 
+    .expiration_time = 0, 
+    .data_size = 0, 
+    .record_type = 0, 
+    .flags = GNUNET_GNSRECORD_RF_NONE
+  };
+
+  GNUNET_NAMESTORE_records_store (namestore_handle,
+                                  skey,
+                                  "didd",
+                                  0,
+                                  &rd,
+                                  &remove_did_callback,
+                                  NULL);
+  printf("remove_did_ego_lookup_callback: done\n");
 }
 
 static void
