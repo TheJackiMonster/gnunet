@@ -112,6 +112,8 @@ load_member (struct GNUNET_MESSENGER_MemberStore *store,
   if (GNUNET_YES != GNUNET_DISK_file_test (config_file))
     goto free_config;
 
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Load member configuration: %s\n", config_file);
+
   struct GNUNET_CONFIGURATION_Handle *cfg = GNUNET_CONFIGURATION_create ();
 
   if (GNUNET_OK == GNUNET_CONFIGURATION_parse (cfg, config_file))
@@ -204,6 +206,8 @@ save_member (struct GNUNET_MESSENGER_Member *member,
 
   char *config_file;
   GNUNET_asprintf (&config_file, "%s%s", directory, "member.cfg");
+
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Save member configuration: %s\n", config_file);
 
   struct GNUNET_CONFIGURATION_Handle *cfg = GNUNET_CONFIGURATION_create ();
 

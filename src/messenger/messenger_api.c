@@ -261,7 +261,7 @@ handle_recv_message (void *cls,
       handle->msg_callback (handle->msg_cls, room, contact, stored_message, hash, flags);
   }
   else
-    GNUNET_log(GNUNET_ERROR_TYPE_ERROR, "Room not found\n");
+    GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Unknown room for this client: %s\n", GNUNET_h2s (key));
 
   cleanup_message(&message);
 }

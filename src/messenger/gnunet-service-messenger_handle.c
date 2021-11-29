@@ -598,6 +598,11 @@ callback_scan_for_rooms (void *cls,
 {
   struct GNUNET_MESSENGER_SrvHandle *handle = cls;
 
+  if ((strlen(filename) <= 4) || (0 != strcmp(filename + strlen(filename) - 4, ".cfg")))
+    return GNUNET_OK;
+
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Load room configuration of handle: %s\n", filename);
+
   struct GNUNET_CONFIGURATION_Handle *cfg = GNUNET_CONFIGURATION_create ();
 
   if ((GNUNET_YES == GNUNET_DISK_file_test (filename)) && (GNUNET_OK == GNUNET_CONFIGURATION_parse (cfg, filename)))
@@ -649,8 +654,9 @@ iterate_save_rooms (void *cls,
 
   char *filename;
   GNUNET_asprintf (&filename, "%s%s%c%s.cfg", id_dir, "rooms", DIR_SEPARATOR, GNUNET_h2s (key));
-
   GNUNET_free(id_dir);
+
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Save room configuration of handle: %s\n", filename);
 
   struct GNUNET_CONFIGURATION_Handle *cfg = GNUNET_CONFIGURATION_create ();
 

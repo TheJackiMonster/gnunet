@@ -65,23 +65,20 @@ callback_scan_for_operations (void *cls,
 {
   struct GNUNET_MESSENGER_OperationStore *store = cls;
 
-  if (GNUNET_YES == GNUNET_DISK_file_test (filename))
+  if (GNUNET_YES != GNUNET_DISK_file_test (filename))
+    return GNUNET_OK;
+
+  if ((strlen(filename) <= 4) || (0 != strcmp(filename + strlen(filename) - 4, ".cfg")))
+    return GNUNET_OK;
+
+  struct GNUNET_MESSENGER_Operation *op = load_operation(store, filename);
+
+  if ((op) && (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put(
+      store->operations,
+      &(op->hash), op,
+      GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST)))
   {
-    char *path;
-
-    GNUNET_asprintf (&path, "%s%c", filename, DIR_SEPARATOR);
-
-    struct GNUNET_MESSENGER_Operation *op = load_operation(store, path);
-
-    if ((op) && (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put(
-        store->operations,
-        &(op->hash), op,
-        GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST)))
-    {
-      destroy_operation(op);
-    }
-
-    GNUNET_free(path);
+    destroy_operation(op);
   }
 
   return GNUNET_OK;
@@ -93,8 +90,13 @@ load_operation_store (struct GNUNET_MESSENGER_OperationStore *store,
 {
   GNUNET_assert ((store) && (directory));
 
-  if (GNUNET_OK == GNUNET_DISK_directory_test (directory, GNUNET_YES))
-    GNUNET_DISK_directory_scan (directory, callback_scan_for_operations, store);
+  char* load_dir;
+  GNUNET_asprintf (&load_dir, "%s%s%c", directory, "operations", DIR_SEPARATOR);
+
+  if (GNUNET_OK == GNUNET_DISK_directory_test (load_dir, GNUNET_YES))
+    GNUNET_DISK_directory_scan (load_dir, callback_scan_for_operations, store);
+
+  GNUNET_free(load_dir);
 }
 
 static int

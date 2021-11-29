@@ -104,6 +104,12 @@ struct GNUNET_MESSENGER_MessageEntryStorage
   struct GNUNET_MESSENGER_MessageEntry entry;
 };
 
+#define load_message_store_attribute_failed(file, attribute) \
+  sizeof(attribute) != GNUNET_DISK_file_read(file, &(attribute), sizeof(attribute))
+
+#define save_message_store_attribute_failed(file, attribute) \
+  sizeof(attribute) != GNUNET_DISK_file_write(file, &(attribute), sizeof(attribute))
+
 static void
 load_message_store_entries (struct GNUNET_MESSENGER_MessageStore *store,
                             const char *filename)
@@ -118,30 +124,33 @@ load_message_store_entries (struct GNUNET_MESSENGER_MessageStore *store,
   struct GNUNET_MESSENGER_MessageEntryStorage storage;
   struct GNUNET_MESSENGER_MessageEntry *entry;
 
+  memset(&storage, 0, sizeof(storage));
+
   do
   {
+    entry = NULL;
+
+    if ((load_message_store_attribute_failed(entries, storage.hash)) ||
+        (load_message_store_attribute_failed(entries, storage.entry.offset)) ||
+        (load_message_store_attribute_failed(entries, storage.entry.length)))
+      break;
+
     entry = GNUNET_new(struct GNUNET_MESSENGER_MessageEntry);
 
-    if (GNUNET_DISK_file_read (entries, &storage, sizeof(storage)) == sizeof(storage))
-    {
-      GNUNET_memcpy(entry, &(storage.entry), sizeof(*entry));
+    GNUNET_memcpy(entry, &(storage.entry), sizeof(*entry));
 
-      if ((GNUNET_YES == GNUNET_CONTAINER_multihashmap_contains (store->entries, &(storage.hash))) ||
-          (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (store->entries, &(storage.hash), entry,
-                                                           GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST)))
-      {
-        store->rewrite_entries = GNUNET_YES;
-        GNUNET_free(entry);
-      }
-    }
-    else
+    if ((GNUNET_YES == GNUNET_CONTAINER_multihashmap_contains (store->entries, &(storage.hash))) ||
+        (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (store->entries, &(storage.hash), entry,
+                                                         GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST)))
     {
-      GNUNET_free(entry);
-
-      entry = NULL;
+      store->rewrite_entries = GNUNET_YES;
+      break;
     }
   }
   while (entry);
+
+  if (entry)
+    GNUNET_free(entry);
 
   GNUNET_DISK_file_close (entries);
 }
@@ -164,17 +173,19 @@ load_message_store_links (struct GNUNET_MESSENGER_MessageStore *store,
     return;
 
   struct GNUNET_MESSENGER_MessageLinkStorage storage;
-  struct GNUNET_MESSENGER_MessageLink *link = NULL;
+  struct GNUNET_MESSENGER_MessageLink *link;
 
   memset(&storage, 0, sizeof(storage));
 
   do
   {
-    if ((sizeof(storage.hash) != GNUNET_DISK_file_read (entries, &(storage.hash), sizeof(storage.hash))) ||
-        (sizeof(storage.link.multiple) != GNUNET_DISK_file_read (entries, &(storage.link.multiple), sizeof(storage.link.multiple))) ||
-        (sizeof(storage.link.first) != GNUNET_DISK_file_read (entries, &(storage.link.first), sizeof(storage.link.first))) ||
+    link = NULL;
+
+    if ((load_message_store_attribute_failed(entries, storage.hash)) ||
+        (load_message_store_attribute_failed(entries, storage.link.multiple)) ||
+        (load_message_store_attribute_failed(entries, storage.link.first)) ||
         ((GNUNET_YES == storage.link.multiple) &&
-         (sizeof(storage.link.second) != GNUNET_DISK_file_read (entries, &(storage.link.second), sizeof(storage.link.second)))))
+         (load_message_store_attribute_failed(entries, storage.link.second))))
       break;
 
     link = GNUNET_new(struct GNUNET_MESSENGER_MessageLink);
@@ -250,10 +261,9 @@ iterate_save_entries (void *cls,
 
   struct GNUNET_MESSENGER_MessageEntryStorage storage;
 
-  GNUNET_memcpy(&(storage.hash), key, sizeof(storage.hash));
-  GNUNET_memcpy(&(storage.entry), entry, sizeof(*entry));
-
-  GNUNET_DISK_file_write (save->storage, &storage, sizeof(storage));
+  GNUNET_DISK_file_write (save->storage, key, sizeof(*key));
+  GNUNET_DISK_file_write (save->storage, &(entry->offset), sizeof(entry->offset));
+  GNUNET_DISK_file_write (save->storage, &(entry->length), sizeof(entry->length));
 
   return GNUNET_YES;
 }
@@ -276,8 +286,10 @@ iterate_save_messages (void *cls,
   storage.entry.length = get_message_size (message, GNUNET_YES);
   storage.entry.offset = GNUNET_DISK_file_seek (save->store->storage_messages, 0, GNUNET_DISK_SEEK_END);
 
-  if ((GNUNET_SYSERR == storage.entry.offset) || (sizeof(storage)
-      != GNUNET_DISK_file_write (save->storage, &storage, sizeof(storage))))
+  if ((GNUNET_SYSERR == storage.entry.offset) ||
+      (save_message_store_attribute_failed(save->storage, storage.hash)) ||
+      (save_message_store_attribute_failed(save->storage, storage.entry.offset)) ||
+      (save_message_store_attribute_failed(save->storage, storage.entry.length)))
     return GNUNET_YES;
 
   char *buffer = GNUNET_malloc(storage.entry.length);
@@ -287,7 +299,6 @@ iterate_save_messages (void *cls,
   GNUNET_DISK_file_write (save->store->storage_messages, buffer, storage.entry.length);
 
   GNUNET_free(buffer);
-
   return GNUNET_YES;
 }
 

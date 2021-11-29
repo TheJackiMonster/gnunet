@@ -63,6 +63,8 @@ load_operation (struct GNUNET_MESSENGER_OperationStore *store,
 {
   GNUNET_assert((store) && (path));
 
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Load operation configuration: %s\n", path);
+
   struct GNUNET_CONFIGURATION_Handle *cfg = GNUNET_CONFIGURATION_create ();
   struct GNUNET_MESSENGER_Operation* op = NULL;
 
@@ -123,6 +125,8 @@ save_operation (const struct GNUNET_MESSENGER_Operation *op,
                 const char *path)
 {
   GNUNET_assert((path) && (op));
+
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Save operation configuration: %s\n", path);
 
   struct GNUNET_CONFIGURATION_Handle *cfg = GNUNET_CONFIGURATION_create ();
 
