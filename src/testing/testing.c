@@ -2312,9 +2312,13 @@ GNUNET_TESTING_get_address (struct GNUNET_TESTING_NodeConnection *connection,
   {
     template = KNOWN_CONNECT_ADDRESS_TEMPLATE;
   }
-  else
+  else if (1 == connection->node_n)
   {
     template = ROUTER_CONNECT_ADDRESS_TEMPLATE;
+  }
+  else
+  {
+    return NULL;
   }
 
   if (0 == strcmp (PREFIX_TCP, prefix))

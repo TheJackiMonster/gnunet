@@ -82,6 +82,21 @@ struct ConnectPeersState
    * Number of connections.
    */
   unsigned int con_num;
+
+  /**
+   * Number of additional connects this cmd will wait for not triggered by this cmd.
+   */
+  unsigned int additional_connects;
+
+  /**
+ * Number of connections we already have a notification for.
+ */
+  unsigned int con_num_notified;
+
+  /**
+   * Number of additional connects this cmd will wait for not triggered by this cmd we already have a notification for.
+   */
+  unsigned int additional_connects_notified;
 };
 
 struct StartPeerState
@@ -227,13 +242,25 @@ GNUNET_TRANSPORT_cmd_stop_peer (const char *label,
                                 const char *start_label);
 
 
+/**
+ * Create command
+ *
+ * @param label name for command
+ * @param start_peer_label Label of the cmd to start a peer.
+ * @param create_peer_label Label of the cmd which started the test system.
+ * @param num Number globally identifying the node.
+ * @param The topology for the test setup.
+ * @param additional_connects Number of additional connects this cmd will wait for not triggered by this cmd.
+ * @return command.
+ */
 struct GNUNET_TESTING_Command
-GNUNET_TRANSPORT_cmd_connect_peers (const char *label,
-                                    const char *start_peer_label,
-                                    const char *create_label,
-                                    uint32_t num,
-                                    struct GNUNET_TESTING_NetjailTopology *
-                                    topology);
+GNUNET_TRANSPORT_cmd_connect_peers (
+  const char *label,
+  const char *start_peer_label,
+  const char *create_label,
+  uint32_t num,
+  struct GNUNET_TESTING_NetjailTopology *topology,
+  unsigned int additional_connects);
 
 
 /**
@@ -241,7 +268,7 @@ GNUNET_TRANSPORT_cmd_connect_peers (const char *label,
  *
  * @param label name for command.
  * @param start_peer_label Label of the cmd to start a peer.
- * @param start_peer_label Label of the cmd which started the test system.
+ * @param create_peer_label Label of the cmd which started the test system.
  * @param num Number globally identifying the node.
  * @param The topology for the test setup.
  * @return command.

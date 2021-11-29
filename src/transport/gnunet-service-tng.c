@@ -5381,7 +5381,7 @@ handle_raw_message (void *cls, const struct GNUNET_MessageHeader *mh)
   int have_core;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Handling message of type %u with %u bytes\n",
+              "Handling raw message of type %u with %u bytes\n",
               (unsigned int) ntohs (mh->type),
               (unsigned int) ntohs (mh->size));
 
@@ -6633,11 +6633,10 @@ forward_dv_learn (const struct GNUNET_PeerIdentity *next_hop,
     struct DvHopPS dhp = {
       .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TRANSPORT_DV_HOP),
       .purpose.size = htonl (sizeof(dhp)),
-      .pred = dhops[nhops - 1].hop,
+      .pred = (0 == nhops) ? msg->initiator : dhops[nhops - 1].hop,
       .succ = *next_hop,
       .challenge = msg->challenge
     };
-
     GNUNET_CRYPTO_eddsa_sign (GST_my_private_key,
                               &dhp,
                               &dhops[nhops].hop_sig);
@@ -6940,7 +6939,14 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
   struct GNUNET_TIME_Absolute in_time;
   struct Neighbour *n;
 
-  nhops = ntohs (dvl->bidirectional);  /* 0 = sender is initiator */
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "handle dv learn message from %s\n",
+              GNUNET_i2s (&dvl->initiator));
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "handle dv learn message sender %s\n",
+              GNUNET_i2s (&cmc->im.sender));
+
+  nhops = ntohs (dvl->num_hops);  /* 0 = sender is initiator */
   bi_history = ntohs (dvl->bidirectional);
   hops = (const struct DVPathEntryP *) &dvl[1];
   if (0 == nhops)
@@ -6955,6 +6961,9 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
   }
   else
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "handle dv learn message last hop %s\n",
+                GNUNET_i2s (&hops[nhops - 1].hop));
     /* sanity check */
     if (0 != GNUNET_memcmp (&hops[nhops - 1].hop, &cmc->im.sender))
     {
@@ -6970,6 +6979,10 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
             cc); // FIXME: add bi-directional flag to cc?
   in_time = GNUNET_TIME_absolute_get ();
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "2 handle dv learn message from %s\n",
+              GNUNET_i2s (&dvl->initiator));
+
   /* continue communicator here, everything else can happen asynchronous! */
   finish_cmc_handling (cmc);
 
@@ -6980,6 +6993,9 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
         (GNUNET_TIME_absolute_ntoh (dvl->monotonic_time).abs_value_us <
          n->last_dv_learn_monotime.abs_value_us))
     {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "DV learn from %s discarded due to time travel",
+                  GNUNET_i2s (&dvl->initiator));
       GNUNET_STATISTICS_update (GST_stats,
                                 "# DV learn discarded due to time travel",
                                 1,
@@ -6991,6 +7007,9 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
                                                       &dvl->challenge,
                                                       &dvl->init_sig))
     {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "DV learn signature from %s invalid",
+                  GNUNET_i2s (&dvl->initiator));
       GNUNET_break_op (0);
       return;
     }
@@ -7012,6 +7031,9 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
                                 n);
     }
   }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "3 handle dv learn message from %s\n",
+              GNUNET_i2s (&dvl->initiator));
   /* OPTIMIZE-FIXME: asynchronously (!) verify signatures!,
      If signature verification load too high, implement random drop strategy */
   for (unsigned int i = 0; i < nhops; i++)
@@ -7030,11 +7052,29 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
                                     &hops[i].hop_sig,
                                     &hops[i].hop.public_key))
     {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "DV learn from %s signature of hop %u invalid\n",
+                  GNUNET_i2s (&dvl->initiator),
+                  i);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "signature of hop %s invalid\n",
+                  GNUNET_i2s (&hops[i].hop));
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "pred %s\n",
+                  GNUNET_i2s (&dhp.pred));
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "succ %s\n",
+                  GNUNET_i2s (&dhp.succ));
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "hash %s\n",
+                  GNUNET_sh2s (&dhp.challenge.value));
       GNUNET_break_op (0);
       return;
     }
   }
-
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "4 handle dv learn message from %s\n",
+              GNUNET_i2s (&dvl->initiator));
   if (GNUNET_EXTRA_LOGGING > 0)
   {
     char *path;
@@ -7059,7 +7099,9 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
                 GNUNET_i2s (&GST_my_identity));
     GNUNET_free (path);
   }
-
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "5 handle dv learn message from %s\n",
+              GNUNET_i2s (&dvl->initiator));
   do_fwd = GNUNET_YES;
   if (0 == GNUNET_memcmp (&GST_my_identity, &dvl->initiator))
   {
@@ -7104,6 +7146,9 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
     do_fwd = GNUNET_NO;
     return;
   }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "6 handle dv learn message from %s\n",
+              GNUNET_i2s (&dvl->initiator));
   if (bi_hop)
   {
     /* last hop was bi-directional, we could learn something here! */
@@ -7160,13 +7205,18 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
       }
     }
   }
-
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "7 handle dv learn message from %s\n",
+              GNUNET_i2s (&dvl->initiator));
   if (MAX_DV_HOPS_ALLOWED == nhops)
   {
     /* At limit, we're out of here! */
     return;
   }
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "8 handle dv learn message from %s\n",
+              GNUNET_i2s (&dvl->initiator));
   /* Forward to initiator, if path non-trivial and possible */
   bi_history = (bi_history << 1) | (bi_hop ? 1 : 0);
   did_initiator = GNUNET_NO;
@@ -7220,6 +7270,9 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
                                            &dv_neighbour_transmission,
                                            &nsc);
   }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "9 handle dv learn message from %s\n",
+              GNUNET_i2s (&dvl->initiator));
 }
 
 

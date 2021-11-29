@@ -2556,11 +2556,17 @@ handshake_monotime_cb (void *cls,
 
   handshake_monotonic_time = &queue->handshake_monotonic_time;
   pid = &queue->target;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "tcp handshake with us %s\n",
+              GNUNET_i2s (&my_identity));
   if (NULL == record)
   {
     queue->handshake_monotime_get = NULL;
     return;
   }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "tcp handshake from peer %s\n",
+              GNUNET_i2s (pid));
   if (sizeof(*mtbe) != record->value_size)
   {
     GNUNET_break (0);
@@ -2610,6 +2616,7 @@ decrypt_and_check_tc (struct Queue *queue,
                       char *ibuf)
 {
   struct TcpHandshakeSignature ths;
+  enum GNUNET_GenericReturnValue ret;
 
   GNUNET_assert (
     0 ==
@@ -2625,18 +2632,20 @@ decrypt_and_check_tc (struct Queue *queue,
   memcpy (&ths.ephemeral, ibuf, sizeof(struct GNUNET_CRYPTO_EcdhePublicKey));
   ths.monotonic_time = tc->monotonic_time;
   ths.challenge = tc->challenge;
-  queue->handshake_monotime_get =
-    GNUNET_PEERSTORE_iterate (peerstore,
-                              "transport_tcp_communicator",
-                              &queue->target,
-                              GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE,
-                              &handshake_monotime_cb,
-                              queue);
-  return GNUNET_CRYPTO_eddsa_verify (
+  ret = GNUNET_CRYPTO_eddsa_verify (
     GNUNET_SIGNATURE_COMMUNICATOR_TCP_HANDSHAKE,
     &ths,
     &tc->sender_sig,
     &tc->sender.public_key);
+  if (GNUNET_YES == ret)
+    queue->handshake_monotime_get =
+      GNUNET_PEERSTORE_iterate (peerstore,
+                                "transport_tcp_communicator",
+                                &queue->target,
+                                GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE,
+                                &handshake_monotime_cb,
+                                queue);
+  return ret;
 }
 
 

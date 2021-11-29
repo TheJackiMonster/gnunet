@@ -192,6 +192,28 @@ GNUNET_TESTING_interpreter_lookup_command (
 
 
 /**
+ * Lookup command by label.
+ * All commands, first into the past, then into the furture are looked up.
+ *
+ * @param is interpreter to lookup command in
+ * @param label label of the command to lookup.
+ * @return the command, if it is found, or NULL.
+ */
+const struct GNUNET_TESTING_Command *
+GNUNET_TESTING_interpreter_lookup_command_all (
+  struct GNUNET_TESTING_Interpreter *is,
+  const char *label)
+{
+  const struct GNUNET_TESTING_Command *cmd;
+
+  cmd = get_command (is, label, GNUNET_NO);
+  if (NULL == cmd)
+    cmd = get_command (is, label, GNUNET_YES);
+  return cmd;
+}
+
+
+/**
  * Finish the test run, return the final result.
  *
  * @param cls the `struct GNUNET_TESTING_Interpreter`

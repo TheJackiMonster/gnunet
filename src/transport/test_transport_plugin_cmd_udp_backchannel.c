@@ -242,7 +242,8 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
                                                       "start-peer",
                                                       "system-create",
                                                       num,
-                                                      topology);
+                                                      topology,
+                                                      0);
   local_prepared = GNUNET_TESTING_cmd_local_test_prepared (
     "local-test-prepared",
     write_message);

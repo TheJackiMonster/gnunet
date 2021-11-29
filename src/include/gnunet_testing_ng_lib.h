@@ -231,6 +231,20 @@ GNUNET_TESTING_interpreter_lookup_command (
 
 
 /**
+ * Lookup command by label.
+ * All commands, first into the past, then into the furture are looked up.
+ *
+ * @param is interpreter to lookup command in
+ * @param label label of the command to lookup.
+ * @return the command, if it is found, or NULL.
+ */
+const struct GNUNET_TESTING_Command *
+GNUNET_TESTING_interpreter_lookup_command_all (
+  struct GNUNET_TESTING_Interpreter *is,
+  const char *label);
+
+
+/**
  * Obtain label of the command being now run.
  *
  * @param is interpreter state.

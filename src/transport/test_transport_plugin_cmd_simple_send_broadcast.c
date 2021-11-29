@@ -117,6 +117,8 @@ all_peers_started ()
 {
   struct GNUNET_TESTING_AsyncContext *ac;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Received message\n");
   GNUNET_TESTING_get_trait_async_context (&block_send,
                                           &ac);
   GNUNET_assert  (NULL != ac);
