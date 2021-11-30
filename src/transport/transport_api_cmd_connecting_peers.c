@@ -130,7 +130,7 @@ notify_connect (struct GNUNET_TESTING_Interpreter *is,
   cmd = GNUNET_TESTING_interpreter_lookup_command_all (is,
                                                        "connect-peers");
   cps = cmd->cls;
-  con_num = cps->con_num;
+  con_num = cps->con_num_notified;
   for (pos_connection = cps->node_connections_head; NULL != pos_connection;
        pos_connection = pos_connection->next)
   {
