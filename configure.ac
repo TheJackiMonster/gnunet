@@ -549,7 +549,7 @@ AC_ARG_ENABLE([logging],
             AC_DEFINE([GNUNET_CULL_LOGGING], [1],
                       [Define to 1 to cull all logging calls])],
            [verbose],
-           [extra_loging=GNUNET_YES],
+           [extra_logging=GNUNET_YES],
            [veryverbose], [extra_logging=\(GNUNET_YES+1\)],
            [extra_logging=GNUNET_NO])])
 AC_DEFINE_UNQUOTED([GNUNET_EXTRA_LOGGING], [$extra_logging],
