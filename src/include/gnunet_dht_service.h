@@ -82,8 +82,9 @@ enum GNUNET_DHT_RouteOption
   GNUNET_DHT_RO_NONE = 0,
 
   /**
-   * Each peer along the way should look at 'enc' (otherwise
-   * only the k-peers closest to the key should look at it).
+   * Each peer along the way should process the request (otherwise
+   * only peers locally closest to the key when the random walk
+   * is over should look at it).
    */
   GNUNET_DHT_RO_DEMULTIPLEX_EVERYWHERE = 1,
 
