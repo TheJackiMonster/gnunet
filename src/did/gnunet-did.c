@@ -60,14 +60,14 @@ static char *attr_ego;
 
 static struct GNUNET_GNS_Handle *gns_handle;
 static struct GNUNET_NAMESTORE_Handle *namestore_handle;
-static struct GNUNET_CONFIGURATRION_Handle *c;
+static struct GNUNET_CONFIGURATRION_Handle *my_cfg;
 
 static void resolve_did_document();
 static void add_did_document();
 static void get_pkey_from_attr_did();
 static void print_did_document();
 static void remove_did_document();
-static void remove_did_ego_lookup_callback();
+static void remove_did_ego_lookup_cb();
 static void remove_did_callback();
 
 // TODO
@@ -89,6 +89,7 @@ run (void *cls,
 {
   gns_handle = GNUNET_GNS_connect(c);
   namestore_handle = GNUNET_NAMESTORE_connect(c);
+  my_cfg = c;
 
   // check if GNS_handle could connect
   if(gns_handle == NULL){
@@ -115,9 +116,9 @@ run (void *cls,
 
   if (NULL != attr_add) {
     add_did_document();
-  } else if (NULL != attr_did && 1 == attr_get){
+  } else if (1 == attr_get){
     resolve_did_document();
-  } else if (NULL != attr_ego && 1 == attr_remove) {
+  } else if (1 == attr_remove) {
     remove_did_document();
   } else {
     // No Argument found
@@ -147,12 +148,12 @@ main (int argc, char *const argv[])
                               &attr_get),
     GNUNET_GETOPT_option_string ('d',
                                  "did",
-                                 "VALUE",
+                                 "DID",
                                  gettext_noop ("The DID to work with"),
                                  &attr_did),
     GNUNET_GETOPT_option_string ('e',
                                  "ego",
-                                 "VALUE",
+                                 "EGO",
                                  gettext_noop ("The EGO to work with"),
                                  &attr_ego),
     GNUNET_GETOPT_OPTION_END
@@ -179,6 +180,10 @@ add_did_document(){
 static void
 resolve_did_document()
 {
+  if (attr_did == NULL){
+    printf("Set DID option to resolve DID\n");
+  }
+
   struct GNUNET_IDENTITY_PublicKey pkey;
   get_pkey_from_attr_did(&pkey);
 
@@ -225,24 +230,36 @@ print_did_document(
 static void 
 remove_did_document()
 {
-  printf("remove_did_document: called\n");
-  // TODO: Use ego->skey to remove did document
-  printf("attr_ego: %s\n", attr_ego);
-
-  GNUNET_IDENTITY_ego_lookup(c,
-                            attr_ego,
-                            &remove_did_ego_lookup_callback,
-                            NULL);
-
-  // TODO: Use did->pkey->ego->skey to remove did document
-  // struct GNUNET_IDENTITY_PublicKey pkey;
-  // get_pkey_from_attr_did(&pkey);
-  printf("remove_did_document: done\n");
+  if(attr_did == NULL && attr_ego == NULL){
+    printf("Remove requieres an ego or did option\n");
+    GNUNET_SCHEDULER_add_now(cleanup, NULL);
+    ret = 1;
+    return;
+  } else if(attr_did != NULL && attr_ego != NULL){
+    printf("Only set one of the EGO or DID options\n");
+    GNUNET_SCHEDULER_add_now(cleanup, NULL);
+    ret = 1;
+    return;
+  } else if (attr_ego != NULL){
+    GNUNET_IDENTITY_ego_lookup(my_cfg,
+                              attr_ego,
+                              &remove_did_ego_lookup_cb,
+                              NULL);
+  } else if (attr_did != NULL){
+    // TODO: Use did->pkey->ego->skey to remove did document
+    // struct GNUNET_IDENTITY_PublicKey pkey;
+    // get_pkey_from_attr_did(&pkey);
+    printf("Remove by DID not supported\n");
+    GNUNET_SCHEDULER_add_now(cleanup, NULL);
+    ret = 1;
+    return;
+  } else {
+    printf("Something during the remove went wrong. Make sure you set the options correct\n");
+  }
 }
 
 static void 
-remove_did_ego_lookup_callback(void *cls, struct GNUNET_IDENTITY_Ego * ego){
-  printf("remove_did_ego_lookup_callback: called\n");
+remove_did_ego_lookup_cb(void *cls, struct GNUNET_IDENTITY_Ego * ego){
   const struct GNUNET_IDENTITY_PrivateKey * skey = GNUNET_IDENTITY_ego_get_private_key(ego);
   const int emp[0];
   struct GNUNET_GNSRECORD_Data rd = {
@@ -260,11 +277,11 @@ remove_did_ego_lookup_callback(void *cls, struct GNUNET_IDENTITY_Ego * ego){
                                   &rd,
                                   &remove_did_callback,
                                   NULL);
-  printf("remove_did_ego_lookup_callback: done\n");
 }
 
 static void
 remove_did_callback(){
+  // Test if record was removed from Namestore
   printf("DID Document has been removed\n");
   GNUNET_SCHEDULER_add_now(cleanup, NULL);
   ret = 0;
