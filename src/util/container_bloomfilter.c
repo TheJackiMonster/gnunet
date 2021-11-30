@@ -380,39 +380,33 @@ iterateBits (const struct GNUNET_CONTAINER_BloomFilter *bf,
              void *arg,
              const struct GNUNET_HashCode *key)
 {
-  struct GNUNET_HashCode tmp[2];
+  struct GNUNET_HashCode tmp = *key;
   int bitCount;
-  unsigned int round;
   unsigned int slot = 0;
 
   bitCount = bf->addressesPerElement;
-  tmp[0] = *key;
-  round = 0;
   GNUNET_assert (bf->bitArraySize > 0);
   GNUNET_assert (bf->bitArraySize * 8LL > bf->bitArraySize);
   while (bitCount > 0)
   {
-    while (slot < (sizeof(struct GNUNET_HashCode) / sizeof(uint32_t)))
+    while ( (0 != bitCount) &&
+            (slot < (sizeof(struct GNUNET_HashCode) / sizeof(uint32_t))) )
     {
       if (GNUNET_YES !=
           callback (arg,
                     bf,
-                    ntohl ((((uint32_t *) &tmp[round & 1])[slot]))
+                    ntohl ((((uint32_t *) &tmp)[slot]))
                     % ((bf->bitArraySize * 8LL))))
         return;
       slot++;
       bitCount--;
-      if (bitCount == 0)
-        break;
     }
-    if (bitCount > 0)
-    {
-      GNUNET_CRYPTO_hash (&tmp[round & 1],
-                          sizeof(struct GNUNET_HashCode),
-                          &tmp[(round + 1) & 1]);
-      round++;
-      slot = 0;
-    }
+    if (0 == bitCount)
+      break;
+    GNUNET_CRYPTO_hash (&tmp,
+                        sizeof(tmp),
+                        &tmp);
+    slot = 0;
   }
 }
 
