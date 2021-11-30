@@ -106,12 +106,22 @@ GNUNET_PQ_prepare_statements (struct GNUNET_PQ_Context *db,
     {
       GNUNET_log_from (GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
                        "pq",
-                       _ ("PQprepare (`%s' as `%s') failed with error: %s\n"),
+                       "PQprepare (`%s' as `%s') failed with error: %s\n",
                        ps[i].sql,
                        ps[i].name,
                        PQerrorMessage (db->conn));
       PQclear (ret);
-      return GNUNET_SYSERR;
+      ret = PQdescribePrepared (db->conn,
+                                ps[i].name);
+      if (PGRES_COMMAND_OK != PQresultStatus (ret))
+      {
+        PQclear (ret);
+        return GNUNET_SYSERR;
+      }
+      GNUNET_log_from (GNUNET_ERROR_TYPE_ERROR,
+                       "pq",
+                       "Statement `%s' already known. Ignoring the issue in the hope that you are using connection pooling...\n",
+                       ps[i].name);
     }
     PQclear (ret);
   }
