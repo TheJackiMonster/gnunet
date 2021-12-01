@@ -96,15 +96,15 @@ static void
 handle_test (void *cls,
              const struct GNUNET_TRANSPORT_TESTING_TestMessage *message)
 {
-  struct GNUNET_TESTING_AsyncContext *ac;
+  const struct GNUNET_TESTING_AsyncContext *ac;
 
   GNUNET_TESTING_get_trait_async_context (&block_receive,
                                           &ac);
   GNUNET_assert  (NULL != ac);
-  if (NULL == ac->cont)
-    GNUNET_TESTING_async_fail (ac);
-  else
-    GNUNET_TESTING_async_finish (ac);
+  if ((GNUNET_NO == ac->finished) && (NULL == ac->cont))
+    GNUNET_TESTING_async_fail ((struct GNUNET_TESTING_AsyncContext *) ac);
+  else if (GNUNET_NO == ac->finished)
+    GNUNET_TESTING_async_finish ((struct GNUNET_TESTING_AsyncContext *) ac);
 }
 
 
@@ -115,7 +115,7 @@ handle_test (void *cls,
 static void
 all_peers_started ()
 {
-  struct GNUNET_TESTING_AsyncContext *ac;
+  const struct GNUNET_TESTING_AsyncContext *ac;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received message\n");
@@ -123,9 +123,9 @@ all_peers_started ()
                                           &ac);
   GNUNET_assert  (NULL != ac);
   if (NULL == ac->cont)
-    GNUNET_TESTING_async_fail (ac);
+    GNUNET_TESTING_async_fail ((struct GNUNET_TESTING_AsyncContext *) ac);
   else
-    GNUNET_TESTING_async_finish (ac);
+    GNUNET_TESTING_async_finish ((struct GNUNET_TESTING_AsyncContext *) ac);
 }
 
 
@@ -168,7 +168,7 @@ static void *
 notify_connect (struct GNUNET_TESTING_Interpreter *is,
                 const struct GNUNET_PeerIdentity *peer)
 {
-  struct GNUNET_TESTING_AsyncContext *ac;
+  const struct GNUNET_TESTING_AsyncContext *ac;
   void *ret = NULL;
   const struct GNUNET_TESTING_Command *cmd;
   struct BlockState *bs;
@@ -186,9 +186,9 @@ notify_connect (struct GNUNET_TESTING_Interpreter *is,
                 "notify_connect running\n");
     GNUNET_assert  (NULL != ac);
     if (NULL == ac->cont)
-      GNUNET_TESTING_async_fail (ac);
+      GNUNET_TESTING_async_fail ((struct GNUNET_TESTING_AsyncContext *) ac);
     else
-      GNUNET_TESTING_async_finish (ac);
+      GNUNET_TESTING_async_finish ((struct GNUNET_TESTING_AsyncContext *) ac);
   }
   else
   {
@@ -198,7 +198,9 @@ notify_connect (struct GNUNET_TESTING_Interpreter *is,
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "block state %s\n",
          cmd->label);
-    GNUNET_TESTING_get_trait_block_state (cmd,&bs);
+    GNUNET_TESTING_get_trait_block_state (
+      cmd,
+      (const struct BlockState  **) &bs);
 
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "block state %u\n",
@@ -219,15 +221,16 @@ notify_connect (struct GNUNET_TESTING_Interpreter *is,
 static void
 all_local_tests_prepared ()
 {
-  struct LocalPreparedState *lfs;
+  const struct LocalPreparedState *lfs;
 
   GNUNET_TESTING_get_trait_local_prepared_state (&local_prepared,
                                                  &lfs);
   GNUNET_assert (NULL != &lfs->ac);
   if (NULL == lfs->ac.cont)
-    GNUNET_TESTING_async_fail (&lfs->ac);
+    GNUNET_TESTING_async_fail ((struct GNUNET_TESTING_AsyncContext *) &lfs->ac);
   else
-    GNUNET_TESTING_async_finish (&lfs->ac);
+    GNUNET_TESTING_async_finish ((struct
+                                  GNUNET_TESTING_AsyncContext *) &lfs->ac);
 }
 
 

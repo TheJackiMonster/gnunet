@@ -49,7 +49,7 @@ struct ConnectPeersState
   /**
    * The testing system of this node.
    */
-  struct GNUNET_TESTING_System *tl_system;
+  const struct GNUNET_TESTING_System *tl_system;
 
   // Label of the cmd which started the test system.
   const char *create_label;
@@ -180,7 +180,7 @@ struct StartPeerState
 
   struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map;
 
-  struct GNUNET_TESTING_System *tl_system;
+  const struct GNUNET_TESTING_System *tl_system;
 
   GNUNET_TRANSPORT_notify_connect_cb notify_connect;
 
@@ -189,26 +189,6 @@ struct StartPeerState
    */
   unsigned int broadcast;
 };
-
-
-/**
- * Function to get the trait with the struct ConnectPeersState.
- *
- * @param[out] sps struct ConnectPeersState.
- * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
- *
- */
-int
-GNUNET_TRANSPORT_get_trait_connect_peer_state (
-  const struct GNUNET_TESTING_Command *cmd,
-  struct ConnectPeersState **cps);
-
-
-int
-GNUNET_TRANSPORT_get_trait_state (const struct
-                                  GNUNET_TESTING_Command
-                                  *cmd,
-                                  struct StartPeerState **sps);
 
 
 /**
@@ -305,43 +285,62 @@ GNUNET_TRANSPORT_cmd_backchannel_check (const char *label,
                                         topology);
 
 
+/**
+ * Create headers for a trait with name @a name for
+ * statically allocated data of type @a type.
+ */
+#define GNUNET_TRANSPORT_MAKE_DECL_SIMPLE_TRAIT(name,type)   \
+  enum GNUNET_GenericReturnValue                          \
+    GNUNET_TRANSPORT_get_trait_ ## name (                    \
+    const struct GNUNET_TESTING_Command *cmd,              \
+    type **ret);                                          \
+  struct GNUNET_TESTING_Trait                              \
+    GNUNET_TRANSPORT_make_trait_ ## name (                   \
+    type * value);
 
 
+/**
+ * Create C implementation for a trait with name @a name for statically
+ * allocated data of type @a type.
+ */
+#define GNUNET_TRANSPORT_MAKE_IMPL_SIMPLE_TRAIT(name,type)  \
+  enum GNUNET_GenericReturnValue                         \
+    GNUNET_TRANSPORT_get_trait_ ## name (                   \
+    const struct GNUNET_TESTING_Command *cmd,             \
+    type **ret)                                          \
+  {                                                      \
+    if (NULL == cmd->traits) return GNUNET_SYSERR;       \
+    return cmd->traits (cmd->cls,                        \
+                        (const void **) ret,             \
+                        GNUNET_S (name),                  \
+                        0);                              \
+  }                                                      \
+  struct GNUNET_TESTING_Trait                             \
+    GNUNET_TRANSPORT_make_trait_ ## name (                  \
+    type * value)                                        \
+  {                                                      \
+    struct GNUNET_TESTING_Trait ret = {                   \
+      .trait_name = GNUNET_S (name),                      \
+      .ptr = (const void *) value                        \
+    };                                                   \
+    return ret;                                          \
+  }
 
-int
-GNUNET_TRANSPORT_get_trait_peer_id (const struct
-                                    GNUNET_TESTING_Command *cmd,
-                                    struct GNUNET_PeerIdentity **id);
 
+/**
+ * Call #op on all simple traits.
+ */
+#define GNUNET_TRANSPORT_SIMPLE_TRAITS(op) \
+  op (peer_id, const struct GNUNET_PeerIdentity) \
+  op (connected_peers_map, const struct GNUNET_CONTAINER_MultiShortmap) \
+  op (hello_size, const size_t) \
+  op (hello, const char) \
+  op (application_handle, const struct GNUNET_TRANSPORT_ApplicationHandle) \
+  op (connect_peer_state, const struct ConnectPeersState) \
+  op (state, const struct StartPeerState)
 
-int
-GNUNET_TRANSPORT_get_trait_connected_peers_map (const struct
-                                                GNUNET_TESTING_Command
-                                                *cmd,
-                                                struct
-                                                GNUNET_CONTAINER_MultiShortmap
-                                                *
-                                                *
-                                                connected_peers_map);
-int
-GNUNET_TRANSPORT_get_trait_hello_size (const struct
-                                       GNUNET_TESTING_Command
-                                       *cmd,
-                                       size_t **hello_size);
+GNUNET_TRANSPORT_SIMPLE_TRAITS (GNUNET_TRANSPORT_MAKE_DECL_SIMPLE_TRAIT)
 
-int
-GNUNET_TRANSPORT_get_trait_hello (const struct
-                                  GNUNET_TESTING_Command
-                                  *cmd,
-                                  char **hello);
-
-
-int
-GNUNET_TRANSPORT_get_trait_application_handle (const struct
-                                               GNUNET_TESTING_Command *cmd,
-                                               struct
-                                               GNUNET_TRANSPORT_ApplicationHandle
-                                               **ah);
 
 #endif
 /* end of transport_testing.h */

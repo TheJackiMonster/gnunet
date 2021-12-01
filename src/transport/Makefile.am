@@ -159,6 +159,7 @@ libgnunettransporttesting_la_LDFLAGS = \
  $(GN_LIB_LDFLAGS)
 
 libgnunettransporttesting2_la_SOURCES = \
+  transport_api_traits.c \
   transport_api_cmd_connecting_peers.c \
   transport_api_cmd_backchannel_check.c \
   transport_api_cmd_start_peer.c \

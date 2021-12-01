@@ -114,7 +114,7 @@ send_simple_run (void *cls,
                  struct GNUNET_TESTING_Interpreter *is)
 {
   struct SendSimpleState *sss = cls;
-  struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map;
+  const struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map;
   const struct GNUNET_TESTING_Command *peer1_cmd;
   // struct GNUNET_ShortHashCode *key = GNUNET_new (struct GNUNET_ShortHashCode);
   struct GNUNET_HashCode hc;
@@ -124,7 +124,7 @@ send_simple_run (void *cls,
   uint32_t num;
   struct GNUNET_TESTING_NodeConnection *pos_connection;
   const struct GNUNET_TESTING_Command *system_cmd;
-  struct GNUNET_TESTING_System *tl_system;
+  const struct GNUNET_TESTING_System *tl_system;
 
   peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                          sss->start_peer_label);
@@ -139,8 +139,10 @@ send_simple_run (void *cls,
   node_connections_head = GNUNET_TESTING_get_connections (sss->num,
                                                           sss->topology);
 
-  GNUNET_CONTAINER_multishortmap_iterate (connected_peers_map, send_simple_cb,
-                                          sss);
+  GNUNET_CONTAINER_multishortmap_iterate (
+    (struct GNUNET_CONTAINER_MultiShortmap *)
+    connected_peers_map, send_simple_cb,
+    sss);
   /*for (int i = 0; i < 1; i++)
   {
     for (pos_connection = node_connections_head; NULL != pos_connection;

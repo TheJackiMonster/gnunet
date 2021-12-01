@@ -47,36 +47,13 @@ local_test_prepared_traits (void *cls,
 {
   struct LocalPreparedState *lfs = cls;
   struct GNUNET_TESTING_Trait traits[] = {
-    {
-      .index = 0,
-      .trait_name = "state",
-      .ptr = (const void *) lfs,
-    },
+    GNUNET_TESTING_make_trait_local_prepared_state ((const void *) lfs),
     GNUNET_TESTING_trait_end ()
   };
   return GNUNET_TESTING_get_trait (traits,
                                    ret,
                                    trait,
                                    index);
-}
-
-
-/**
- * Function to get the trait with the struct LocalPreparedState.
- *
- * @param[out] lfs struct LocalPreparedState.
- * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
- *
- */
-enum GNUNET_GenericReturnValue
-GNUNET_TESTING_get_trait_local_prepared_state (
-  const struct GNUNET_TESTING_Command *cmd,
-  struct LocalPreparedState **lfs)
-{
-  return cmd->traits (cmd->cls,
-                      (const void **) lfs,
-                      "state",
-                      (unsigned int) 0);
 }
 
 

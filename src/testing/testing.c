@@ -2169,8 +2169,8 @@ GNUNET_TESTING_get_connections (unsigned int num, struct
  * @return The peer identity wrapping the public key.
  */
 struct GNUNET_PeerIdentity *
-GNUNET_TESTING_get_pub_key (unsigned int num, struct
-                            GNUNET_TESTING_System *tl_system)
+GNUNET_TESTING_get_pub_key (unsigned int num,
+                            const struct GNUNET_TESTING_System *tl_system)
 {
   struct GNUNET_PeerIdentity *peer = GNUNET_new (struct GNUNET_PeerIdentity);
   struct GNUNET_CRYPTO_EddsaPublicKey *pub_key = GNUNET_new (struct

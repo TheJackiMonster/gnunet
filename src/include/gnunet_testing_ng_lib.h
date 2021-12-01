@@ -31,6 +31,14 @@
 #include "gnunet_testing_plugin.h"
 #include "gnunet_testing_lib.h"
 
+/**
+ * Stringify operator.
+ *
+ * @param a some expression to stringify. Must NOT be a macro.
+ * @return same expression as a constant string.
+ */
+#define GNUNET_S(a) #a
+
 
 /* ********************* Helper functions ********************* */
 
@@ -195,7 +203,7 @@ struct GNUNET_TESTING_Command
   /**
    * If "true", the interpreter should not immediately call
    * @e finish, even if @e finish is non-NULL.  Otherwise,
-   * #TALER_TESTING_cmd_finish() must be used
+   * #GNUNET_TESTING_cmd_finish() must be used
    * to ensure that a command actually completed.
    */
   bool asynchronous_finish;
@@ -575,8 +583,8 @@ GNUNET_TESTING_calculate_num (struct
  * @return The peer identity wrapping the public key.
  */
 struct GNUNET_PeerIdentity *
-GNUNET_TESTING_get_pub_key (unsigned int num, struct
-                            GNUNET_TESTING_System *tl_system);
+GNUNET_TESTING_get_pub_key (unsigned int num,
+                            const struct GNUNET_TESTING_System *tl_system);
 
 
 /**
@@ -642,279 +650,120 @@ GNUNET_TESTING_get_trait (const struct GNUNET_TESTING_Trait *traits,
 
 /* ****** Specific traits supported by this component ******* */
 
-/**
- * Obtain location where a command stores a pointer to a process.
- *
- * @param cmd command to extract trait from.
- * @param index which process to pick if @a cmd
- *        has multiple on offer. -- FIXME: remove?
- * @param[out] processp set to the address of the pointer to the
- *        process.
- * @return #GNUNET_OK on success.
- */
-enum GNUNET_GenericReturnValue
-GNUNET_TESTING_get_trait_process (const struct GNUNET_TESTING_Command *cmd,
-                                  unsigned int index,
-                                  struct GNUNET_OS_Process ***processp);
-
 
 /**
- * Offer location where a command stores a pointer to a process.
- *
- * @param index offered location index number, in case there are
- *        multiple on offer. // FIXME: remove?
- * @param processp process location to offer.
- * @return the trait.
+ * Create headers for a trait with name @a name for
+ * statically allocated data of type @a type.
  */
-struct GNUNET_TESTING_Trait
-GNUNET_TESTING_make_trait_process (unsigned int index,
-                                   struct GNUNET_OS_Process **processp);
+#define GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT(name,type)   \
+  enum GNUNET_GenericReturnValue                          \
+    GNUNET_TESTING_get_trait_ ## name (                    \
+    const struct GNUNET_TESTING_Command *cmd,              \
+    type **ret);                                          \
+  struct GNUNET_TESTING_Trait                              \
+    GNUNET_TESTING_make_trait_ ## name (                   \
+    type * value);
 
 
 /**
- * Offer number trait, 32-bit version.
- *
- * @param index the number's index number. // FIXME: introduce enum?
- * @param n number to offer.
+ * Create C implementation for a trait with name @a name for statically
+ * allocated data of type @a type.
  */
-struct GNUNET_TESTING_Trait
-GNUNET_TESTING_make_trait_uint32 (unsigned int index,
-                                  const uint32_t *n);
+#define GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT(name,type)  \
+  enum GNUNET_GenericReturnValue                         \
+    GNUNET_TESTING_get_trait_ ## name (                   \
+    const struct GNUNET_TESTING_Command *cmd,             \
+    type **ret)                                          \
+  {                                                      \
+    if (NULL == cmd->traits) return GNUNET_SYSERR;       \
+    return cmd->traits (cmd->cls,                        \
+                        (const void **) ret,             \
+                        GNUNET_S (name),                  \
+                        0);                              \
+  }                                                      \
+  struct GNUNET_TESTING_Trait                             \
+    GNUNET_TESTING_make_trait_ ## name (                  \
+    type * value)                                        \
+  {                                                      \
+    struct GNUNET_TESTING_Trait ret = {                   \
+      .trait_name = GNUNET_S (name),                      \
+      .ptr = (const void *) value                        \
+    };                                                   \
+    return ret;                                          \
+  }
 
 
 /**
- * Obtain a "number" value from @a cmd, 32-bit version.
- *
- * @param cmd command to extract the number from.
- * @param index the number's index number. // FIXME: introduce enum?
- * @param[out] n set to the number coming from @a cmd.
- * @return #GNUNET_OK on success.
+ * Create headers for a trait with name @a name for
+ * statically allocated data of type @a type.
  */
-enum GNUNET_GenericReturnValue
-GNUNET_TESTING_get_trait_uint32 (const struct GNUNET_TESTING_Command *cmd,
-                                 unsigned int index,
-                                 const uint32_t **n);
+#define GNUNET_TESTING_MAKE_DECL_INDEXED_TRAIT(name,type)  \
+  enum GNUNET_GenericReturnValue                          \
+    GNUNET_TESTING_get_trait_ ## name (                    \
+    const struct GNUNET_TESTING_Command *cmd,              \
+    unsigned int index,                                   \
+    type **ret);                                          \
+  struct GNUNET_TESTING_Trait                              \
+    GNUNET_TESTING_make_trait_ ## name (                   \
+    unsigned int index,                                   \
+    type * value);
 
 
 /**
- * Offer number trait, 64-bit version.
- *
- * @param index the number's index number. // FIXME: introduce enum?
- * @param n number to offer.
+ * Create C implementation for a trait with name @a name for statically
+ * allocated data of type @a type.
  */
-struct GNUNET_TESTING_Trait
-GNUNET_TESTING_make_trait_uint64 (unsigned int index,
-                                  const uint64_t *n);
+#define GNUNET_TESTING_MAKE_IMPL_INDEXED_TRAIT(name,type) \
+  enum GNUNET_GenericReturnValue                         \
+    GNUNET_TESTING_get_trait_ ## name (                   \
+    const struct GNUNET_TESTING_Command *cmd,             \
+    unsigned int index,                                  \
+    type **ret)                                          \
+  {                                                      \
+    if (NULL == cmd->traits) return GNUNET_SYSERR;       \
+    return cmd->traits (cmd->cls,                        \
+                        (const void **) ret,             \
+                        GNUNET_S (name),                  \
+                        index);                          \
+  }                                                      \
+  struct GNUNET_TESTING_Trait                             \
+    GNUNET_TESTING_make_trait_ ## name (                  \
+    unsigned int index,                                  \
+    type * value)                                        \
+  {                                                      \
+    struct GNUNET_TESTING_Trait ret = {                   \
+      .index = index,                                    \
+      .trait_name = GNUNET_S (name),                      \
+      .ptr = (const void *) value                        \
+    };                                                   \
+    return ret;                                          \
+  }
 
 
 /**
- * Obtain a "number" value from @a cmd, 64-bit version.
- *
- * @param cmd command to extract the number from.
- * @param index the number's index number. // FIXME: introduce enum?
- * @param[out] n set to the number coming from @a cmd.
- * @return #GNUNET_OK on success.
+ * Call #op on all simple traits.
  */
-enum GNUNET_GenericReturnValue
-GNUNET_TESTING_get_trait_uint64 (const struct GNUNET_TESTING_Command *cmd,
-                                 unsigned int index,
-                                 const uint64_t **n);
+#define GNUNET_TESTING_SIMPLE_TRAITS(op) \
+  op (process, struct GNUNET_OS_Process *)
 
 
 /**
- * Offer number trait, 64-bit signed version.
- *
- * @param index the number's index number. // FIXME: introduce enum?
- * @param n number to offer.
+ * Call #op on all indexed traits.
  */
-struct GNUNET_TESTING_Trait
-GNUNET_TESTING_make_trait_int64 (unsigned int index,
-                                 const int64_t *n);
+#define GNUNET_TESTING_INDEXED_TRAITS(op)                         \
+  op (uint32, const uint32_t) \
+  op (uint64, const uint64_t) \
+  op (int64, const int64_t) \
+  op (uint, const unsigned int) \
+  op (string, const char) \
+  op (cmd, const struct GNUNET_TESTING_Command) \
+  op (uuid, const struct GNUNET_Uuid) \
+  op (time, const struct GNUNET_TIME_Absolute) \
+  op (absolute_time, const struct GNUNET_TIME_Absolute) \
+  op (relative_time, const struct GNUNET_TIME_Relative)
 
+GNUNET_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT)
 
-/**
- * Obtain a "number" value from @a cmd, 64-bit signed version.
- *
- * @param cmd command to extract the number from.
- * @param index the number's index number. // FIXME: introduce enum?
- * @param[out] n set to the number coming from @a cmd.
- * @return #GNUNET_OK on success.
- */
-enum GNUNET_GenericReturnValue
-GNUNET_TESTING_get_trait_int64 (const struct GNUNET_TESTING_Command *cmd,
-                                unsigned int index,
-                                const int64_t **n);
-
-
-/**
- * Offer a number.
- *
- * @param index the number's index number.
- * @param n the number to offer. // FIXME: introduce enum?
- * @return #GNUNET_OK on success.
- */
-struct GNUNET_TESTING_Trait
-GNUNET_TESTING_make_trait_uint (unsigned int index,
-                                const unsigned int *i);
-
-
-/**
- * Obtain a number from @a cmd.
- *
- * @param cmd command to extract the number from.
- * @param index the number's index number. // FIXME: introduce enum?
- * @param[out] n set to the number coming from @a cmd.
- * @return #GNUNET_OK on success.
- */
-enum GNUNET_GenericReturnValue
-GNUNET_TESTING_get_trait_uint (const struct GNUNET_TESTING_Command *cmd,
-                               unsigned int index,
-                               const unsigned int **n);
-
-/**
- * Obtain a string from @a cmd.
- *
- * @param cmd command to extract the subject from.
- * @param index index number associated with the transfer
- *        subject to offer. // FIXME: introduce enum?
- * @param[out] s where to write the offered
- *        string.
- * @return #GNUNET_OK on success.
- */
-enum GNUNET_GenericReturnValue
-GNUNET_TESTING_get_trait_string (
-  const struct GNUNET_TESTING_Command *cmd,
-  unsigned int index,
-  const char **s);
-
-
-/**
- * Offer string subject.
- *
- * @param index index number associated with the transfer
- *        subject being offered. // FIXME: introduce enum?
- * @param s string to offer.
- * @return the trait.
- */
-struct GNUNET_TESTING_Trait
-GNUNET_TESTING_make_trait_string (unsigned int index,
-                                  const char *s);
-
-/**
- * Offer a command in a trait.
- *
- * @param index always zero.  Commands offering this
- *        kind of traits do not need this index.  For
- *        example, a "meta" CMD returns always the
- *        CMD currently being executed. FIXME: remove!
- * @param cmd wire details to offer.
- * @return the trait.
- */
-struct GNUNET_TESTING_Trait
-GNUNET_TESTING_make_trait_cmd (unsigned int index,
-                               const struct GNUNET_TESTING_Command *cmd);
-
-
-/**
- * Obtain a command from @a cmd.
- *
- * @param cmd command to extract the command from.
- * @param index always zero.  Commands offering this
- *        kind of traits do not need this index.  For
- *        example, a "meta" CMD returns always the
- *        CMD currently being executed. FIXME: remove!
- * @param[out] _cmd where to write the wire details.
- * @return #GNUNET_OK on success.
- */
-enum GNUNET_GenericReturnValue
-GNUNET_TESTING_get_trait_cmd (const struct GNUNET_TESTING_Command *cmd,
-                              unsigned int index,
-                              struct GNUNET_TESTING_Command **_cmd);
-
-
-/**
- * Obtain a uuid from @a cmd.
- *
- * @param cmd command to extract the uuid from.
- * @param index which amount to pick if @a cmd has multiple
- *        on offer   // FIXME: introduce enum?
- * @param[out] uuid where to write the uuid.
- * @return #GNUNET_OK on success.
- */
-enum GNUNET_GenericReturnValue
-GNUNET_TESTING_get_trait_uuid (const struct GNUNET_TESTING_Command *cmd,
-                               unsigned int index,
-                               struct GNUNET_Uuid **uuid);
-
-
-/**
- * Offer a uuid in a trait.
- *
- * @param index which uuid to offer, in case there are
- *        multiple available.  // FIXME: introduce enum?
- * @param uuid the uuid to offer.
- * @return the trait.
- */
-struct GNUNET_TESTING_Trait
-GNUNET_TESTING_make_trait_uuid (unsigned int index,
-                                const struct GNUNET_Uuid *uuid);
-
-
-/**
- * Obtain a absolute time from @a cmd.
- *
- * @param cmd command to extract trait from
- * @param index which time stamp to pick if
- *        @a cmd has multiple on offer // FIXME: introduce enum?
- * @param[out] time set to the wanted WTID.
- * @return #GNUNET_OK on success
- */
-enum GNUNET_GenericReturnValue
-GNUNET_TESTING_get_trait_absolute_time (
-  const struct GNUNET_TESTING_Command *cmd,
-  unsigned int index,
-  const struct GNUNET_TIME_Absolute **time);
-
-
-/**
- * Offer a absolute time.
- *
- * @param index associate the object with this index
- * @param time which object should be returned
- * @return the trait.
- */
-struct GNUNET_TESTING_Trait
-GNUNET_TESTING_make_trait_absolute_time (
-  unsigned int index,
-  const struct GNUNET_TIME_Absolute *time);
-
-
-/**
- * Obtain a relative time from @a cmd.
- *
- * @param cmd command to extract trait from
- * @param index which time to pick if
- *        @a cmd has multiple on offer.
- * @param[out] time set to the wanted WTID.
- * @return #GNUNET_OK on success
- */
-int
-GNUNET_TESTING_get_trait_relative_time (
-  const struct GNUNET_TESTING_Command *cmd,
-  unsigned int index,
-  const struct GNUNET_TIME_Relative **time);
-
-
-/**
- * Offer a relative time.
- *
- * @param index associate the object with this index
- * @param time which object should be returned
- * @return the trait.
- */
-struct GNUNET_TESTING_Trait
-GNUNET_TESTING_make_trait_relative_time (
-  unsigned int index,
-  const struct GNUNET_TIME_Relative *time);
+GNUNET_TESTING_INDEXED_TRAITS (GNUNET_TESTING_MAKE_DECL_INDEXED_TRAIT)
 
 #endif

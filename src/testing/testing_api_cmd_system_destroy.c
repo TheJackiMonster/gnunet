@@ -51,13 +51,13 @@ system_destroy_run (void *cls,
 {
   struct TestSystemState *tss = cls;
   const struct GNUNET_TESTING_Command *system_cmd;
-  struct GNUNET_TESTING_System *tl_system;
+  const struct GNUNET_TESTING_System *tl_system;
 
   system_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                           tss->create_label);
   GNUNET_TESTING_get_trait_test_system (system_cmd,
                                         &tl_system);
-  GNUNET_TESTING_system_destroy (tl_system,
+  GNUNET_TESTING_system_destroy ((struct GNUNET_TESTING_System *) tl_system,
                                  GNUNET_YES);
 }
 

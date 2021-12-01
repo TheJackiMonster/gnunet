@@ -69,7 +69,7 @@ struct CheckState
   /**
    * The testing system of this node.
    */
-  struct GNUNET_TESTING_System *tl_system;
+  const struct GNUNET_TESTING_System *tl_system;
 
   // Label of the cmd which started the test system.
   const char *create_label;
@@ -404,9 +404,9 @@ backchannel_check_run (void *cls,
   // char *part_one = "Delivering backchannel message from ";
   // char *part_two = " of type 1460 to udp";
   const struct GNUNET_TESTING_Command *system_cmd;
-  struct GNUNET_TESTING_System *tl_system;
+  const struct GNUNET_TESTING_System *tl_system;
   const struct GNUNET_TESTING_Command *peer1_cmd;
-  struct GNUNET_TRANSPORT_ApplicationHandle *ah;
+  const struct GNUNET_TRANSPORT_ApplicationHandle *ah;
   // struct GNUNET_PeerIdentity *peer;
   // uint32_t num;
   // struct GNUNET_TESTING_NodeConnection *pos_connection;

@@ -351,12 +351,6 @@ GNUNET_TESTING_cmd_system_create (const char *label,
                                   const char *testdir);
 
 
-int
-GNUNET_TESTING_get_trait_test_system (const struct
-                                      GNUNET_TESTING_Command *cmd,
-                                      struct GNUNET_TESTING_System **test_system);
-
-
 /**
  * Create command.
  *
@@ -427,29 +421,7 @@ struct GNUNET_MessageHeader *
 GNUNET_TESTING_send_local_test_finished_msg (enum GNUNET_GenericReturnValue rv);
 
 
-/**
- * Function to get the trait with the async context.
- *
- * @param[out] ac GNUNET_TESTING_AsyncContext.
- * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
- */
-int
-GNUNET_TESTING_get_trait_async_context (
-  const struct GNUNET_TESTING_Command *cmd,
-  struct GNUNET_TESTING_AsyncContext **ac);
 
-
-/**
- * Offer handles to testing cmd helper from trait
- *
- * @param cmd command to extract the message from.
- * @param pt pointer to message.
- * @return #GNUNET_OK on success.
- */
-enum GNUNET_GenericReturnValue
-GNUNET_TESTING_get_trait_helper_handles (
-  const struct GNUNET_TESTING_Command *cmd,
-  struct GNUNET_HELPER_Handle ***helper);
 
 
 struct GNUNET_TESTING_Command
@@ -501,28 +473,20 @@ GNUNET_TESTING_cmd_local_test_prepared (const char *label,
                                         TESTING_CMD_HELPER_write_cb
                                         write_message);
 
-/**
- * Function to get the trait with the struct LocalPreparedState.
- *
- * @param[out] lfs struct LocalPreparedState.
- * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
- *
- */
-enum GNUNET_GenericReturnValue
-GNUNET_TESTING_get_trait_local_prepared_state (
-  const struct GNUNET_TESTING_Command *cmd,
-  struct LocalPreparedState **lfs);
+
+/* ***** Netjail trait support ***** */
 
 
 /**
- * Function to get the trait with the internal command state BlockState.
- *
- * * @param[out] ac struct BlockState.
-* @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
+ * Call #op on all simple traits.
  */
-int
-GNUNET_TESTING_get_trait_block_state (
-  const struct GNUNET_TESTING_Command *cmd,
-  struct BlockState **bs);
+#define GNUNET_TESTING_SIMPLE_NETJAIL_TRAITS(op) \
+  op (test_system, const struct GNUNET_TESTING_System) \
+  op (async_context, const struct GNUNET_TESTING_AsyncContext) \
+  op (helper_handles, const void *) \
+  op (local_prepared_state, const struct LocalPreparedState) \
+  op (block_state, const struct BlockState)
+
+GNUNET_TESTING_SIMPLE_NETJAIL_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT)
 
 #endif

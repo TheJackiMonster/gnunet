@@ -167,7 +167,7 @@ start_peer_run (void *cls,
   char *emsg = NULL;
   struct GNUNET_PeerIdentity dummy;
   const struct GNUNET_TESTING_Command *system_cmd;
-  struct GNUNET_TESTING_System *tl_system;
+  const struct GNUNET_TESTING_System *tl_system;
   char *home;
   char *transport_unix_path;
   char *tcp_communicator_unix_path;
@@ -251,7 +251,8 @@ start_peer_run (void *cls,
        sps->no);
 
   if (GNUNET_SYSERR ==
-      GNUNET_TESTING_configuration_create (tl_system,
+      GNUNET_TESTING_configuration_create ((struct
+                                            GNUNET_TESTING_System *) tl_system,
                                            sps->cfg))
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -262,7 +263,9 @@ start_peer_run (void *cls,
     return;
   }
 
-  sps->peer = GNUNET_TESTING_peer_configure (sps->tl_system,
+  sps->peer = GNUNET_TESTING_peer_configure ((struct
+                                              GNUNET_TESTING_System *) sps->
+                                             tl_system,
                                              sps->cfg,
                                              sps->no,
                                              NULL,
@@ -407,36 +410,14 @@ start_peer_traits (void *cls,
 
 
   struct GNUNET_TESTING_Trait traits[] = {
-    {
-      .index = 0,
-      .trait_name = "application_handle",
-      .ptr = (const void *) ah,
-    },
-    {
-      .index = 1,
-      .trait_name = "peer_id",
-      .ptr = (const void *) id,
-    },
-    {
-      .index = 2,
-      .trait_name = "connected_peers_map",
-      .ptr = (const void *) connected_peers_map,
-    },
-    {
-      .index = 3,
-      .trait_name = "hello",
-      .ptr = (const void *) hello,
-    },
-    {
-      .index = 4,
-      .trait_name = "hello_size",
-      .ptr = (const void *) hello_size,
-    },
-    {
-      .index = 5,
-      .trait_name = "state",
-      .ptr = (const void *) sps,
-    },
+    GNUNET_TRANSPORT_make_trait_application_handle ((const void *) ah),
+    GNUNET_TRANSPORT_make_trait_peer_id ((const void *) id),
+    GNUNET_TRANSPORT_make_trait_connected_peers_map ((const
+                                                      void *)
+                                                     connected_peers_map),
+    GNUNET_TRANSPORT_make_trait_hello ((const void *) hello),
+    GNUNET_TRANSPORT_make_trait_hello_size ((const void *) hello_size),
+    GNUNET_TRANSPORT_make_trait_state ((const void *) sps),
     GNUNET_TESTING_trait_end ()
   };
 
@@ -444,127 +425,6 @@ start_peer_traits (void *cls,
                                    ret,
                                    trait,
                                    index);
-}
-
-
-/**
- * Function to get the trait with the struct StartPeerState.
- *
- * @param[out] sps struct StartPeerState.
- * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
- *
- */
-int
-GNUNET_TRANSPORT_get_trait_state (
-  const struct GNUNET_TESTING_Command *cmd,
-  struct StartPeerState **sps)
-{
-  return cmd->traits (cmd->cls,
-                      (const void **) sps,
-                      "state",
-                      (unsigned int) 5);
-}
-
-
-/**
- * Function to get the trait with the size of the hello.
- *
- * @param[out] hello_size size of hello.
- * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
- *
- */
-int
-GNUNET_TRANSPORT_get_trait_hello_size (const struct
-                                       GNUNET_TESTING_Command
-                                       *cmd,
-                                       size_t **hello_size)
-{
-  return cmd->traits (cmd->cls,
-                      (const void **) hello_size,
-                      "hello_size",
-                      (unsigned int) 4);
-}
-
-
-/**
- * Function to get the trait with the hello.
- *
- * @param[out] hello The hello for the peer.
- * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
- *
- */
-int
-GNUNET_TRANSPORT_get_trait_hello (const struct
-                                  GNUNET_TESTING_Command
-                                  *cmd,
-                                  char **hello)
-{
-  return cmd->traits (cmd->cls,
-                      (const void **) hello,
-                      "hello",
-                      (unsigned int) 3);
-}
-
-
-/**
- * Function to get the trait with the map of connected peers.
- *
- * @param[out] connected_peers_map The map with connected peers.
- * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
- *
- */
-int
-GNUNET_TRANSPORT_get_trait_connected_peers_map (const struct
-                                                GNUNET_TESTING_Command
-                                                *cmd,
-                                                struct
-                                                GNUNET_CONTAINER_MultiShortmap
-                                                *
-                                                *
-                                                connected_peers_map)
-{
-  return cmd->traits (cmd->cls,
-                      (const void **) connected_peers_map,
-                      "connected_peers_map",
-                      (unsigned int) 2);
-}
-
-
-/**
- * Function to get the trait with the transport application handle.
- *
- * @param[out] ah The application handle.
- * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
- */
-int
-GNUNET_TRANSPORT_get_trait_application_handle (const struct
-                                               GNUNET_TESTING_Command *cmd,
-                                               struct
-                                               GNUNET_TRANSPORT_ApplicationHandle
-                                               **ah)
-{
-  return cmd->traits (cmd->cls,
-                      (const void **) ah,
-                      "application_handle",
-                      (unsigned int) 0);
-}
-
-
-/**
- * Function to get the trait with the peer id.
- *
- * @param[out] id The peer id.
- * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
- */
-int
-GNUNET_TRANSPORT_get_trait_peer_id (const struct
-                                    GNUNET_TESTING_Command *cmd,
-                                    struct GNUNET_PeerIdentity **id)
-{
-  return cmd->traits (cmd->cls,
-                      (const void **) id,
-                      "peer_id",
-                      (unsigned int) 1);
 }
 
 

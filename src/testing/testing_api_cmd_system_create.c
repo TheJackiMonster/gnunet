@@ -77,11 +77,7 @@ system_create_traits (void *cls,
   struct GNUNET_TESTING_System *test_system = tss->test_system;
 
   struct GNUNET_TESTING_Trait traits[] = {
-    {
-      .index = 0,
-      .trait_name = "test_system",
-      .ptr = (const void *) test_system,
-    },
+    GNUNET_TESTING_make_trait_test_system ((const void *) test_system),
     GNUNET_TESTING_trait_end ()
   };
 
@@ -89,24 +85,6 @@ system_create_traits (void *cls,
                                    ret,
                                    trait,
                                    index);
-}
-
-
-/**
- * Function to get the trait with struct GNUNET_TESTING_System
- *
- * @param[out] test_system The struct GNUNET_TESTING_System.
- * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
- */
-int
-GNUNET_TESTING_get_trait_test_system (const struct
-                                      GNUNET_TESTING_Command *cmd,
-                                      struct GNUNET_TESTING_System **test_system)
-{
-  return cmd->traits (cmd->cls,
-                      (const void **) test_system,
-                      "test_system",
-                      (unsigned int) 0);
 }
 
 

@@ -44,8 +44,6 @@ libgnunettesting_la_SOURCES = \
   testing_api_cmd_system_destroy.c \
   testing_api_cmd_batch.c \
   testing_api_loop.c \
-  testing_api_trait_cmd.c \
-  testing_api_trait_process.c \
   testing_api_traits.c
 libgnunettesting_la_LIBADD = \
  $(top_builddir)/src/arm/libgnunetarm.la \

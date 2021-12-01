@@ -27,7 +27,14 @@
  */
 #include "platform.h"
 #include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_netjail_lib.h"
 
+
+GNUNET_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT)
+
+GNUNET_TESTING_INDEXED_TRAITS (GNUNET_TESTING_MAKE_IMPL_INDEXED_TRAIT)
+
+GNUNET_TESTING_SIMPLE_NETJAIL_TRAITS (GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT)
 
 /**
  * End a trait array.  Usually, commands offer several traits,

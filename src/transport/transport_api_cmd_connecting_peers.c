@@ -47,11 +47,11 @@ connect_peers_run (void *cls,
 {
   struct ConnectPeersState *cps = cls;
   const struct GNUNET_TESTING_Command *system_cmd;
-  struct GNUNET_TESTING_System *tl_system;
+  const struct GNUNET_TESTING_System *tl_system;
 
 
   const struct GNUNET_TESTING_Command *peer1_cmd;
-  struct GNUNET_TRANSPORT_ApplicationHandle *ah;
+  const struct GNUNET_TRANSPORT_ApplicationHandle *ah;
   struct GNUNET_PeerIdentity *peer;
   char *addr;
   enum GNUNET_NetworkType nt = 0;
@@ -98,7 +98,9 @@ connect_peers_run (void *cls,
                     "validating peer number %u with identity %s\n",
                     num,
                     GNUNET_i2s (peer));
-        GNUNET_TRANSPORT_application_validate (ah,
+        GNUNET_TRANSPORT_application_validate ((struct
+                                                GNUNET_TRANSPORT_ApplicationHandle
+                                                *) ah,
                                                peer,
                                                nt,
                                                addr);
@@ -176,38 +178,15 @@ connect_peers_traits (void *cls,
                       const char *trait,
                       unsigned int index)
 {
-  struct StartPeerState *cps = cls;
+  struct ConnectPeersState *cps = cls;
   struct GNUNET_TESTING_Trait traits[] = {
-    {
-      .index = 0,
-      .trait_name = "state",
-      .ptr = (const void *) cps,
-    },
+    GNUNET_TRANSPORT_make_trait_connect_peer_state ((const void *) cps),
     GNUNET_TESTING_trait_end ()
   };
   return GNUNET_TESTING_get_trait (traits,
                                    ret,
                                    trait,
                                    index);
-}
-
-
-/**
- * Function to get the trait with the struct ConnectPeersState.
- *
- * @param[out] sps struct ConnectPeersState.
- * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
- *
- */
-enum GNUNET_GenericReturnValue
-GNUNET_TRANSPORT_get_trait_connect_peer_state (
-  const struct GNUNET_TESTING_Command *cmd,
-  struct ConnectPeersState **cps)
-{
-  return cmd->traits (cmd->cls,
-                      (const void **) cps,
-                      "state",
-                      (unsigned int) 0);
 }
 
 

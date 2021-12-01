@@ -86,7 +86,7 @@ stop_testing_system_run (void *cls,
                          struct GNUNET_TESTING_Interpreter *is)
 {
   struct StopHelperState *shs = cls;
-  struct GNUNET_HELPER_Handle **helper;
+  const struct GNUNET_HELPER_Handle **helper;
   const struct GNUNET_TESTING_Command *start_helper_cmd;
 
   start_helper_cmd = GNUNET_TESTING_interpreter_lookup_command (is,

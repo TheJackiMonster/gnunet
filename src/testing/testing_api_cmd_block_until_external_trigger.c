@@ -55,16 +55,8 @@ block_until_external_trigger_traits (void *cls,
   struct BlockState *bs = cls;
   struct GNUNET_TESTING_AsyncContext *ac = &bs->ac;
   struct GNUNET_TESTING_Trait traits[] = {
-    {
-      .index = 0,
-      .trait_name = "async_context",
-      .ptr = (const void *) ac,
-    },
-    {
-      .index = 1,
-      .trait_name = "block_state",
-      .ptr = (const void *) bs,
-    },
+    GNUNET_TESTING_make_trait_async_context ((const void *) ac),
+    GNUNET_TESTING_make_trait_block_state ((const void *) bs),
     GNUNET_TESTING_trait_end ()
   };
 
@@ -72,42 +64,6 @@ block_until_external_trigger_traits (void *cls,
                                    ret,
                                    trait,
                                    index);
-}
-
-
-/**
- * Function to get the trait with the internal command state BlockState.
- *
- * * @param[out] ac struct BlockState.
-* @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
- */
-int
-GNUNET_TESTING_get_trait_block_state (
-  const struct GNUNET_TESTING_Command *cmd,
-  struct BlockState **bs)
-{
-  return cmd->traits (cmd->cls,
-                      (const void **) bs,
-                      "block_state",
-                      (unsigned int) 1);
-}
-
-
-/**
- * Function to get the trait with the async context.
- *
- * @param[out] ac struct GNUNET_TESTING_AsyncContext.
- * @return #GNUNET_OK if no error occurred, #GNUNET_SYSERR otherwise.
- */
-int
-GNUNET_TESTING_get_trait_async_context (
-  const struct GNUNET_TESTING_Command *cmd,
-  struct GNUNET_TESTING_AsyncContext **ac)
-{
-  return cmd->traits (cmd->cls,
-                      (const void **) ac,
-                      "async_context",
-                      (unsigned int) 0);
 }
 
 

@@ -86,7 +86,7 @@ struct NetJailState
   /**
    * Array with handles of helper processes.
    */
-  struct GNUNET_HELPER_Handle **helper;
+  const struct GNUNET_HELPER_Handle **helper;
 
   /**
    * Size of the array NetJailState#helper.
@@ -211,22 +211,18 @@ netjail_exec_cleanup (void *cls)
  * This function prepares an array with traits.
  *
  */
-static int
+static enum GNUNET_GenericReturnValue
 netjail_exec_traits (void *cls,
                      const void **ret,
                      const char *trait,
                      unsigned int index)
 {
   struct NetJailState *ns = cls;
-  struct GNUNET_HELPER_Handle **helper = ns->helper;
+  const struct GNUNET_HELPER_Handle **helper = ns->helper;
 
 
   struct GNUNET_TESTING_Trait traits[] = {
-    {
-      .index = 0,
-      .trait_name = "helper_handles",
-      .ptr = (const void *) helper,
-    },
+    GNUNET_TESTING_make_trait_helper_handles ((const void **) helper),
     GNUNET_TESTING_trait_end ()
   };
 
@@ -234,26 +230,6 @@ netjail_exec_traits (void *cls,
                                    ret,
                                    trait,
                                    index);
-}
-
-
-/**
- * Offer handles to testing cmd helper from trait
- *
- * @param cmd command to extract the message from.
- * @param pt pointer to message.
- * @return #GNUNET_OK on success.
- */
-int
-GNUNET_TESTING_get_trait_helper_handles (const struct
-                                         GNUNET_TESTING_Command *cmd,
-                                         struct GNUNET_HELPER_Handle ***
-                                         helper)
-{
-  return cmd->traits (cmd->cls,
-                      (const void **) helper,
-                      "helper_handles",
-                      (unsigned int) 0);
 }
 
 
@@ -287,7 +263,7 @@ send_message_to_locals (
   )
 {
   // unsigned int total_number = ns->local_m * ns->global_n + ns->known;
-  struct GNUNET_HELPER_Handle *helper;
+  const struct GNUNET_HELPER_Handle *helper;
   struct TestingSystemCount *tbc;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,

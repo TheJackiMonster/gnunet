@@ -58,7 +58,7 @@ stop_peer_run (void *cls,
                struct GNUNET_TESTING_Interpreter *is)
 {
   struct StopPeerState *stop_ps = cls;
-  struct StartPeerState *sps;
+  const struct StartPeerState *sps;
   const struct GNUNET_TESTING_Command *start_cmd;
 
   start_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
@@ -69,24 +69,20 @@ stop_peer_run (void *cls,
   if (NULL != sps->pic)
   {
     GNUNET_PEERSTORE_iterate_cancel (sps->pic);
-    sps->pic = NULL;
   }
   if (NULL != sps->th)
   {
     GNUNET_TRANSPORT_core_disconnect (sps->th);
-    sps->th = NULL;
   }
   if (NULL != sps->ah)
   {
     GNUNET_TRANSPORT_application_done (sps->ah);
-    sps->ah = NULL;
   }
   if (NULL != sps->ph)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Disconnecting from PEERSTORE service\n");
     GNUNET_PEERSTORE_disconnect (sps->ph, GNUNET_NO);
-    sps->ph = NULL;
   }
   if (NULL != sps->peer)
   {
@@ -99,12 +95,9 @@ stop_peer_run (void *cls,
            GNUNET_i2s (&sps->id));
     }
     GNUNET_TESTING_peer_destroy (sps->peer);
-    sps->peer = NULL;
   }
   if (NULL != sps->rh_task)
     GNUNET_SCHEDULER_cancel (sps->rh_task);
-  sps->rh_task = NULL;
-
 }
 
 
