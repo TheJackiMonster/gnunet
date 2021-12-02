@@ -17,5 +17,7 @@ gnunet_did_LDADD = \
 	$(top_builddir)/src/util/libgnunetutil.la \
 	$(top_builddir)/src/gns/libgnunetgns.la \
 	$(top_builddir)/src/identity/libgnunetidentity.la \
-	$(top_builddir)/src/namestore/libgnunetnamestore.la
+	$(top_builddir)/src/namestore/libgnunetnamestore.la \
+  	-ljansson
+
 
