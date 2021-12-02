@@ -222,7 +222,7 @@ netjail_exec_traits (void *cls,
 
 
   struct GNUNET_TESTING_Trait traits[] = {
-    GNUNET_TESTING_make_trait_helper_handles ((const void **) helper),
+    GNUNET_TESTING_make_trait_helper_handles (helper),
     GNUNET_TESTING_trait_end ()
   };
 
@@ -262,7 +262,6 @@ send_message_to_locals (
   struct GNUNET_MessageHeader *header
   )
 {
-  // unsigned int total_number = ns->local_m * ns->global_n + ns->known;
   const struct GNUNET_HELPER_Handle *helper;
   struct TestingSystemCount *tbc;
 
@@ -282,7 +281,7 @@ send_message_to_locals (
 
 
   struct GNUNET_HELPER_SendHandle *sh = GNUNET_HELPER_send (
-    helper,
+    (struct GNUNET_HELPER_Handle *) helper,
     header,
     GNUNET_NO,
     &clear_msg,

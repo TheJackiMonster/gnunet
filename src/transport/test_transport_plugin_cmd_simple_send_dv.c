@@ -96,7 +96,7 @@ static void
 handle_test (void *cls,
              const struct GNUNET_TRANSPORT_TESTING_TestMessage *message)
 {
-  struct GNUNET_TESTING_AsyncContext *ac;
+  const struct GNUNET_TESTING_AsyncContext *ac;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received test message\n");
@@ -104,9 +104,9 @@ handle_test (void *cls,
                                           &ac);
   GNUNET_assert  (NULL != ac);
   if (NULL == ac->cont)
-    GNUNET_TESTING_async_fail (ac);
+    GNUNET_TESTING_async_fail ((struct GNUNET_TESTING_AsyncContext *) ac);
   else
-    GNUNET_TESTING_async_finish (ac);
+    GNUNET_TESTING_async_finish ((struct GNUNET_TESTING_AsyncContext *) ac);
 }
 
 
@@ -117,7 +117,7 @@ handle_test (void *cls,
 static void
 all_peers_started ()
 {
-  struct GNUNET_TESTING_AsyncContext *ac;
+  const struct GNUNET_TESTING_AsyncContext *ac;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received message\n");
@@ -125,9 +125,9 @@ all_peers_started ()
                                           &ac);
   GNUNET_assert  (NULL != ac);
   if (NULL == ac->cont)
-    GNUNET_TESTING_async_fail (ac);
+    GNUNET_TESTING_async_fail ((struct GNUNET_TESTING_AsyncContext *) ac);
   else
-    GNUNET_TESTING_async_finish (ac);
+    GNUNET_TESTING_async_finish ((struct GNUNET_TESTING_AsyncContext *) ac);
 }
 
 
@@ -170,7 +170,7 @@ static void *
 notify_connect (struct GNUNET_TESTING_Interpreter *is,
                 const struct GNUNET_PeerIdentity *peer)
 {
-  struct ConnectPeersState *cps;
+  const struct ConnectPeersState *cps;
   const struct GNUNET_TESTING_Command *cmd;
   void *ret = NULL;
 
@@ -178,12 +178,12 @@ notify_connect (struct GNUNET_TESTING_Interpreter *is,
               "notify_connect peer %s\n",
               GNUNET_i2s (peer));
   cmd = GNUNET_TESTING_interpreter_lookup_command_all (is,
-                                                   "connect-peers");
+                                                       "connect-peers");
   GNUNET_TRANSPORT_get_trait_connect_peer_state (cmd,
                                                  &cps);
   cps->notify_connect (is,
                        peer);
-  
+
   return ret;
 }
 
@@ -194,15 +194,16 @@ notify_connect (struct GNUNET_TESTING_Interpreter *is,
 static void
 all_local_tests_prepared ()
 {
-  struct LocalPreparedState *lfs;
+  const struct LocalPreparedState *lfs;
 
   GNUNET_TESTING_get_trait_local_prepared_state (&local_prepared,
                                                  &lfs);
   GNUNET_assert (NULL != &lfs->ac);
   if (NULL == lfs->ac.cont)
-    GNUNET_TESTING_async_fail (&lfs->ac);
+    GNUNET_TESTING_async_fail ((struct GNUNET_TESTING_AsyncContext *) &lfs->ac);
   else
-    GNUNET_TESTING_async_finish (&lfs->ac);
+    GNUNET_TESTING_async_finish ((struct
+                                  GNUNET_TESTING_AsyncContext *) &lfs->ac);
 }
 
 

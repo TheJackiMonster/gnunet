@@ -483,7 +483,7 @@ GNUNET_TESTING_cmd_local_test_prepared (const char *label,
 #define GNUNET_TESTING_SIMPLE_NETJAIL_TRAITS(op) \
   op (test_system, const struct GNUNET_TESTING_System) \
   op (async_context, const struct GNUNET_TESTING_AsyncContext) \
-  op (helper_handles, const void *) \
+  op (helper_handles, const struct GNUNET_HELPER_Handle *) \
   op (local_prepared_state, const struct LocalPreparedState) \
   op (block_state, const struct BlockState)
 

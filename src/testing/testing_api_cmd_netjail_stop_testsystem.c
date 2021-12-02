@@ -100,8 +100,9 @@ stop_testing_system_run (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "i: %u\n",
                 i);
-    GNUNET_HELPER_stop (helper[i - 1],
-                        GNUNET_YES);
+    GNUNET_HELPER_stop (
+      (struct GNUNET_HELPER_Handle *) helper[i - 1],
+      GNUNET_YES);
   }
 
   for (int i = 1; i <= shs->global_n; i++)
@@ -112,7 +113,11 @@ stop_testing_system_run (void *cls,
                   "i: %u j: %u\n",
                   i,
                   j);
-      GNUNET_HELPER_stop (helper[(i - 1) * shs->local_m + j + shs->known - 1],
+      GNUNET_HELPER_stop ((struct GNUNET_HELPER_Handle *) helper[(i - 1)
+                                                                 * shs->local_m
+                                                                 + j
+                                                                 + shs->known
+                                                                 - 1],
                           GNUNET_YES);
     }
   }

@@ -123,9 +123,9 @@ get_command (struct GNUNET_TESTING_Interpreter *is,
     if (GNUNET_TESTING_cmd_is_batch_ (cmd))
     {
 #define BATCH_INDEX 1
-      struct GNUNET_TESTING_Command *batch;
+      const struct GNUNET_TESTING_Command *batch;
       struct GNUNET_TESTING_Command *current;
-      struct GNUNET_TESTING_Command *icmd;
+      const struct GNUNET_TESTING_Command *icmd;
       const struct GNUNET_TESTING_Command *match;
 
       current = GNUNET_TESTING_cmd_batch_get_current_ (cmd);
