@@ -21,3 +21,13 @@ gnunet_did_LDADD = \
   	-ljansson
 
 
+check_PROGRAMS = \
+  test_w3c_ed25519_2020
+
+test_w3c_ed25519_2020_SOURCES = \
+  test_w3c_ed25519_2020.c
+test_w3c_ed25519_2020_LDADD = \
+  $(top_builddir)/src/util/libgnunetutil.la
+
+
+
