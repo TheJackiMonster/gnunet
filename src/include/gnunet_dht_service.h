@@ -100,14 +100,10 @@ enum GNUNET_DHT_RouteOption
   GNUNET_DHT_RO_FIND_PEER = 4,
 
   /**
-   * Possible message option for query key randomization.
-   */
-  GNUNET_DHT_RO_BART = 8,
-
-  /**
-   * Flag given to monitors if this was the last hop for a GET/PUT.
-   */
-  GNUNET_DHT_RO_LAST_HOP = 16
+    * Flag given to monitors if this was the last hop for a GET/PUT.
+    * This is only used for internal processing.
+    */
+  GNUNET_DHT_RO_LAST_HOP = 65535
 };
 
 
