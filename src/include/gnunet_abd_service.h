@@ -103,7 +103,7 @@ struct GNUNET_ABD_DelegationRecordSet
   /**
    * Public key of the subject this attribute was delegated to
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey subject_key;
+  struct GNUNET_IDENTITY_PublicKey subject_key;
 
   /**
    * Length of attribute, may be 0
@@ -123,7 +123,7 @@ struct GNUNET_ABD_DelegationSet
   /**
    * Public key of the subject this attribute was delegated to
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey subject_key;
+  struct GNUNET_IDENTITY_PublicKey subject_key;
 
   uint32_t subject_attribute_len;
 
@@ -143,12 +143,12 @@ struct GNUNET_ABD_Delegation
   /**
    * The issuer of the delegation
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey issuer_key;
+  struct GNUNET_IDENTITY_PublicKey issuer_key;
 
   /**
    * Public key of the subject this attribute was delegated to
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey subject_key;
+  struct GNUNET_IDENTITY_PublicKey subject_key;
 
   /**
    * Length of the attribute
@@ -181,17 +181,17 @@ struct GNUNET_ABD_Delegate
   /**
    * The issuer of the credential
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey issuer_key;
+  struct GNUNET_IDENTITY_PublicKey issuer_key;
 
   /**
    * Public key of the subject this credential was issued to
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey subject_key;
+  struct GNUNET_IDENTITY_PublicKey subject_key;
 
   /**
    * Signature of this credential
    */
-  struct GNUNET_CRYPTO_EcdsaSignature signature;
+  struct GNUNET_IDENTITY_Signature signature;
 
   /**
    * Expiration of this credential
@@ -318,9 +318,9 @@ typedef void (*GNUNET_ABD_RemoveDelegateResultProcessor) (void *cls,
  */
 struct GNUNET_ABD_Request*
   GNUNET_ABD_verify (struct GNUNET_ABD_Handle *handle,
-                     const struct GNUNET_CRYPTO_EcdsaPublicKey *issuer_key,
+                     const struct GNUNET_IDENTITY_PublicKey *issuer_key,
                      const char *issuer_attribute,
-                     const struct GNUNET_CRYPTO_EcdsaPublicKey *subject_key,
+                     const struct GNUNET_IDENTITY_PublicKey *subject_key,
                      uint32_t delegate_count,
                      const struct GNUNET_ABD_Delegate *delegates,
                      enum GNUNET_ABD_AlgoDirectionFlags direction,
@@ -331,9 +331,9 @@ struct GNUNET_ABD_Request*
 
 struct GNUNET_ABD_Request*
   GNUNET_ABD_collect (struct GNUNET_ABD_Handle *handle,
-                      const struct GNUNET_CRYPTO_EcdsaPublicKey *issuer_key,
+                      const struct GNUNET_IDENTITY_PublicKey *issuer_key,
                       const char *issuer_attribute,
-                      const struct GNUNET_CRYPTO_EcdsaPrivateKey *subject_key,
+                      const struct GNUNET_IDENTITY_PrivateKey *subject_key,
                       enum GNUNET_ABD_AlgoDirectionFlags direction,
                       GNUNET_ABD_CredentialResultProcessor proc,
                       void *proc_cls,
@@ -356,7 +356,7 @@ struct GNUNET_ABD_Request *
 GNUNET_ABD_add_delegation (struct GNUNET_ABD_Handle *handle,
                            struct GNUNET_IDENTITY_Ego *issuer,
                            const char *attribute,
-                           struct GNUNET_CRYPTO_EcdsaPublicKey *subject,
+                           struct GNUNET_IDENTITY_PublicKey *subject,
                            const char *delegated_attribute,
                            GNUNET_ABD_DelegateResultProcessor proc,
                            void *proc_cls);
@@ -389,8 +389,8 @@ GNUNET_ABD_remove_delegation (struct GNUNET_ABD_Handle *handle,
  * @return handle to the queued request
  */
 struct GNUNET_ABD_Delegate*
-GNUNET_ABD_delegate_issue (const struct GNUNET_CRYPTO_EcdsaPrivateKey *issuer,
-                           struct GNUNET_CRYPTO_EcdsaPublicKey *subject,
+GNUNET_ABD_delegate_issue (const struct GNUNET_IDENTITY_PrivateKey *issuer,
+                           struct GNUNET_IDENTITY_PublicKey *subject,
                            const char *iss_attr,
                            const char *sub_attr,
                            struct GNUNET_TIME_Absolute *expiration);

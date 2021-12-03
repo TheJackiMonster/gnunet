@@ -75,7 +75,9 @@ libgnunetabd_la_SOURCES = \
  delegate_misc.c \
  delegate_misc.h
 libgnunetabd_la_LIBADD = \
- $(top_builddir)/src/util/libgnunetutil.la $(XLIB)
+ $(top_builddir)/src/util/libgnunetutil.la \
+ $(top_builddir)/src/identity/libgnunetidentity.la \
+ $(XLIB)
 libgnunetabd_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)
 

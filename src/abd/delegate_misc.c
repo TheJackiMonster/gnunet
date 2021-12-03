@@ -42,10 +42,10 @@ GNUNET_ABD_delegate_to_string (
   char *issuer_pkey;
   char *signature;
 
-  subject_pkey = GNUNET_CRYPTO_ecdsa_public_key_to_string (&cred->subject_key);
-  issuer_pkey = GNUNET_CRYPTO_ecdsa_public_key_to_string (&cred->issuer_key);
+  subject_pkey = GNUNET_IDENTITY_public_key_to_string (&cred->subject_key);
+  issuer_pkey = GNUNET_IDENTITY_public_key_to_string (&cred->issuer_key);
   GNUNET_STRINGS_base64_encode ((char *) &cred->signature,
-                                sizeof (struct GNUNET_CRYPTO_EcdsaSignature),
+                                sizeof (struct GNUNET_IDENTITY_Signature),
                                 &signature);
   if (0 == cred->subject_attribute_len)
   {
@@ -80,7 +80,7 @@ struct GNUNET_ABD_Delegate *
 GNUNET_ABD_delegate_from_string (const char *s)
 {
   struct GNUNET_ABD_Delegate *dele;
-  size_t enclen = (sizeof (struct GNUNET_CRYPTO_EcdsaPublicKey)) * 8;
+  size_t enclen = (sizeof (struct GNUNET_IDENTITY_PublicKey)) * 8;
   if (enclen % 5 > 0)
     enclen += 5 - enclen % 5;
   enclen /= 5; /* 260/5 = 52 */
@@ -91,12 +91,12 @@ GNUNET_ABD_delegate_from_string (const char *s)
   char sub_attr[253 + 1] = "";
   char signature[256]; // TODO max payload size
 
-  struct GNUNET_CRYPTO_EcdsaSignature *sig;
+  struct GNUNET_IDENTITY_Signature *sig;
   struct GNUNET_TIME_Absolute etime_abs;
 
   // If it's A.a <- B.b...
   if (6 != sscanf (s,
-                   "%52s.%253s -> %52s.%253s | %s | %" SCNu64,
+                   "%58s.%253s -> %58s.%253s | %s | %" SCNu64,
                    issuer_pkey,
                    iss_attr,
                    subject_pkey,
@@ -106,7 +106,7 @@ GNUNET_ABD_delegate_from_string (const char *s)
   {
     // Try if it's A.a <- B
     if (5 != sscanf (s,
-                     "%52s.%253s -> %52s | %s | %" SCNu64,
+                     "%58s.%253s -> %58s | %s | %" SCNu64,
                      issuer_pkey,
                      iss_attr,
                      subject_pkey,
@@ -143,13 +143,11 @@ GNUNET_ABD_delegate_from_string (const char *s)
   }
   tmp_str[attr_len - 1] = '\0';
 
-  GNUNET_CRYPTO_ecdsa_public_key_from_string (subject_pkey,
-                                              strlen (subject_pkey),
+  GNUNET_IDENTITY_public_key_from_string (subject_pkey,
                                               &dele->subject_key);
-  GNUNET_CRYPTO_ecdsa_public_key_from_string (issuer_pkey,
-                                              strlen (issuer_pkey),
+  GNUNET_IDENTITY_public_key_from_string (issuer_pkey,
                                               &dele->issuer_key);
-  GNUNET_assert (sizeof (struct GNUNET_CRYPTO_EcdsaSignature) ==
+  GNUNET_assert (sizeof (struct GNUNET_IDENTITY_Signature) ==
                  GNUNET_STRINGS_base64_decode (signature,
                                                strlen (signature),
                                                (void **) &sig));
@@ -187,8 +185,8 @@ GNUNET_ABD_delegate_from_string (const char *s)
 
 struct GNUNET_ABD_Delegate *
 GNUNET_ABD_delegate_issue (
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *issuer,
-  struct GNUNET_CRYPTO_EcdsaPublicKey *subject,
+  const struct GNUNET_IDENTITY_PrivateKey *issuer,
+  struct GNUNET_IDENTITY_PublicKey *subject,
   const char *iss_attr,
   const char *sub_attr,
   struct GNUNET_TIME_Absolute *expiration)
@@ -223,9 +221,9 @@ GNUNET_ABD_delegate_issue (
 
   del = GNUNET_malloc (size);
   del->purpose.size =
-    htonl (size - sizeof (struct GNUNET_CRYPTO_EcdsaSignature));
+    htonl (size - sizeof (struct GNUNET_IDENTITY_Signature));
   del->purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DELEGATE);
-  GNUNET_CRYPTO_ecdsa_key_get_public (issuer, &del->issuer_key);
+  GNUNET_IDENTITY_key_get_public (issuer, &del->issuer_key);
   del->subject_key = *subject;
   del->expiration = GNUNET_htonll (expiration->abs_value_us);
   del->issuer_attribute_len = htonl (strlen (iss_attr) + 1);
@@ -240,12 +238,12 @@ GNUNET_ABD_delegate_issue (
 
   GNUNET_memcpy (&del[1], tmp_str, attr_len);
 
-  GNUNET_CRYPTO_ecdsa_sign (issuer, del, &del->signature);
+  GNUNET_IDENTITY_sign_ (issuer, &del->purpose, &del->signature);
 
   dele = GNUNET_malloc (sizeof (struct GNUNET_ABD_Delegate) + attr_len);
   dele->signature = del->signature;
   dele->expiration = *expiration;
-  GNUNET_CRYPTO_ecdsa_key_get_public (issuer, &dele->issuer_key);
+  GNUNET_IDENTITY_key_get_public (issuer, &dele->issuer_key);
 
   dele->subject_key = *subject;
 

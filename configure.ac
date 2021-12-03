@@ -1436,6 +1436,7 @@ src/vpn/vpn.conf
 src/zonemaster/Makefile
 src/zonemaster/zonemaster.conf
 src/rest/Makefile
+src/abd/Makefile
 src/abe/Makefile
 src/reclaim/Makefile
 src/messenger/Makefile

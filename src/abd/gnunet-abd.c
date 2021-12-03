@@ -43,7 +43,7 @@ static struct GNUNET_NAMESTORE_Handle *ns;
 /**
  * Private key for the our zone.
  */
-static struct GNUNET_CRYPTO_EcdsaPrivateKey zone_pkey;
+static struct GNUNET_IDENTITY_PrivateKey zone_pkey;
 
 /**
  * EgoLookup
@@ -98,12 +98,12 @@ static char *expiration;
 /**
  * Subject key
  */
-struct GNUNET_CRYPTO_EcdsaPublicKey subject_pkey;
+struct GNUNET_IDENTITY_PublicKey subject_pkey;
 
 /**
  * Issuer key
  */
-struct GNUNET_CRYPTO_EcdsaPublicKey issuer_pkey;
+struct GNUNET_IDENTITY_PublicKey issuer_pkey;
 
 
 /**
@@ -206,11 +206,6 @@ static uint64_t etime;
 static int etime_is_rel = GNUNET_SYSERR;
 
 /**
- * Fixed size of the public/private keys
- */
-static const int key_length = 52;
-
-/**
  * Record label for storing delegations
  */
 static char *record_label;
@@ -282,9 +277,9 @@ handle_intermediate_result (void *cls,
 
   printf ("%s Intermediate result: %s.%s <- %s.%s\n",
           prefix,
-          GNUNET_CRYPTO_ecdsa_public_key_to_string (&dd->issuer_key),
+          GNUNET_IDENTITY_public_key_to_string (&dd->issuer_key),
           dd->issuer_attribute,
-          GNUNET_CRYPTO_ecdsa_public_key_to_string (&dd->subject_key),
+          GNUNET_IDENTITY_public_key_to_string (&dd->subject_key),
           dd->subject_attribute);
 }
 
@@ -337,8 +332,8 @@ handle_verify_result (void *cls,
     printf ("Delegation Chain:\n");
     for (i = 0; i < d_count; i++)
     {
-      iss_key = GNUNET_CRYPTO_ecdsa_public_key_to_string (&dc[i].issuer_key);
-      sub_key = GNUNET_CRYPTO_ecdsa_public_key_to_string (&dc[i].subject_key);
+      iss_key = GNUNET_IDENTITY_public_key_to_string (&dc[i].issuer_key);
+      sub_key = GNUNET_IDENTITY_public_key_to_string (&dc[i].subject_key);
 
       if (0 != dc[i].subject_attribute_len)
       {
@@ -363,8 +358,8 @@ handle_verify_result (void *cls,
     printf ("\nDelegate(s):\n");
     for (i = 0; i < c_count; i++)
     {
-      iss_key = GNUNET_CRYPTO_ecdsa_public_key_to_string (&dele[i].issuer_key);
-      sub_key = GNUNET_CRYPTO_ecdsa_public_key_to_string (&dele[i].subject_key);
+      iss_key = GNUNET_IDENTITY_public_key_to_string (&dele[i].issuer_key);
+      sub_key = GNUNET_IDENTITY_public_key_to_string (&dele[i].subject_key);
       printf ("%s.%s <- %s\n", iss_key, dele[i].issuer_attribute, sub_key);
       GNUNET_free (iss_key);
       GNUNET_free (sub_key);
@@ -386,7 +381,7 @@ handle_verify_result (void *cls,
 static void
 identity_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 {
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *privkey;
+  const struct GNUNET_IDENTITY_PrivateKey *privkey;
 
   el = NULL;
   if (NULL == ego)
@@ -405,8 +400,7 @@ identity_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   {
 
     if (GNUNET_OK !=
-        GNUNET_CRYPTO_ecdsa_public_key_from_string (issuer_key,
-                                                    strlen (issuer_key),
+        GNUNET_IDENTITY_public_key_from_string (issuer_key,
                                                     &issuer_pkey))
     {
       fprintf (stderr,
@@ -507,7 +501,7 @@ add_continuation (void *cls, int32_t success, const char *emsg)
 
 static void
 get_existing_record (void *cls,
-                     const struct GNUNET_CRYPTO_EcdsaPrivateKey *zone_key,
+                     const struct GNUNET_IDENTITY_PrivateKey *zone_key,
                      const char *rec_name,
                      unsigned int rd_count,
                      const struct GNUNET_GNSRECORD_Data *rd)
@@ -573,13 +567,13 @@ store_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 
     // Get import subject public key string
     char *subject_pubkey_str =
-      GNUNET_CRYPTO_ecdsa_public_key_to_string (&cred->subject_key);
+      GNUNET_IDENTITY_public_key_to_string (&cred->subject_key);
 
     // Get zone public key string
-    struct GNUNET_CRYPTO_EcdsaPublicKey zone_pubkey;
+    struct GNUNET_IDENTITY_PublicKey zone_pubkey;
     GNUNET_IDENTITY_ego_get_public_key (ego, &zone_pubkey);
     char *zone_pubkey_str =
-      GNUNET_CRYPTO_ecdsa_public_key_to_string (&zone_pubkey);
+      GNUNET_IDENTITY_public_key_to_string (&zone_pubkey);
 
     // Check if the subject key in the signed import matches the zone's key it is issued to
     if (strcmp (zone_pubkey_str, subject_pubkey_str) != 0)
@@ -655,7 +649,7 @@ store_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 static void
 sign_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 {
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *privkey;
+  const struct GNUNET_IDENTITY_PrivateKey *privkey;
   struct GNUNET_ABD_Delegate *dele;
   struct GNUNET_TIME_Absolute etime_abs;
   char *res;
@@ -686,16 +680,7 @@ sign_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 
   // Subject Public Key
   token = strtok (subject, " ");
-  if (key_length == strlen (token))
-  {
-    subject_pubkey_str = token;
-  }
-  else
-  {
-    fprintf (stderr, "Key error, wrong length: %ld!\n", strlen (token));
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
+  subject_pubkey_str = token;
   // Subject Attribute(s)
   token = strtok (NULL, " ");
   if (NULL != token)
@@ -707,8 +692,7 @@ sign_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   privkey = GNUNET_IDENTITY_ego_get_private_key (ego);
 
   if (GNUNET_OK !=
-      GNUNET_CRYPTO_ecdsa_public_key_from_string (subject_pubkey_str,
-                                                  strlen (subject_pubkey_str),
+      GNUNET_IDENTITY_public_key_from_string (subject_pubkey_str,
                                                   &subject_pkey))
   {
     fprintf (stderr,
@@ -873,8 +857,7 @@ run (void *cls,
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  if (GNUNET_OK != GNUNET_CRYPTO_ecdsa_public_key_from_string (subject,
-                                                               strlen (subject),
+  if (GNUNET_OK != GNUNET_IDENTITY_public_key_from_string (subject,
                                                                &subject_pkey))
   {
     fprintf (stderr,
@@ -893,8 +876,7 @@ run (void *cls,
       return;
     }
     if (GNUNET_OK !=
-        GNUNET_CRYPTO_ecdsa_public_key_from_string (issuer_key,
-                                                    strlen (issuer_key),
+        GNUNET_IDENTITY_public_key_from_string (issuer_key,
                                                     &issuer_pkey))
     {
       fprintf (stderr,

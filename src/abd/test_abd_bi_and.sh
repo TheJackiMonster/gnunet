@@ -55,16 +55,16 @@ gnunet-namestore -D -z b
 gnunet-abd --createIssuerSide --ego=g --attribute="g" --subject="$HKEY h" --ttl=5m -c test_abd_lookup.conf
 gnunet-namestore -D -z b
 
-SIGNED=`$DO_TIMEOUT gnunet-abd --signSubjectSide --ego=c --attribute="c" --subject="$DKEY d" --ttl="2019-12-12 10:00:00"`
+SIGNED=`$DO_TIMEOUT gnunet-abd --signSubjectSide --ego=c --attribute="c" --subject="$DKEY d" --ttl="2049-12-12 10:00:00"`
 gnunet-abd --createSubjectSide --ego=d --import="$SIGNED"
 gnunet-namestore -D -z d
-SIGNED=`$DO_TIMEOUT gnunet-abd --signSubjectSide --ego=d --attribute="d" --subject="$EKEY e" --ttl="2019-12-12 10:00:00"`
+SIGNED=`$DO_TIMEOUT gnunet-abd --signSubjectSide --ego=d --attribute="d" --subject="$EKEY e" --ttl="2049-12-12 10:00:00"`
 gnunet-abd --createSubjectSide --ego=e --import="$SIGNED"
 gnunet-namestore -D -z e
-SIGNED=`$DO_TIMEOUT gnunet-abd --signSubjectSide --ego=e --attribute="e" --subject="$FKEY" --ttl="2019-12-12 10:00:00"`
+SIGNED=`$DO_TIMEOUT gnunet-abd --signSubjectSide --ego=e --attribute="e" --subject="$FKEY" --ttl="2049-12-12 10:00:00"`
 gnunet-abd --createSubjectSide --ego=f --import="$SIGNED" --private
 gnunet-namestore -D -z f
-SIGNED=`$DO_TIMEOUT gnunet-abd --signSubjectSide --ego=h --attribute="h" --subject="$FKEY" --ttl="2019-12-12 10:00:00"`
+SIGNED=`$DO_TIMEOUT gnunet-abd --signSubjectSide --ego=h --attribute="h" --subject="$FKEY" --ttl="2049-12-12 10:00:00"`
 gnunet-abd --createSubjectSide --ego=f --import="$SIGNED" --private
 gnunet-namestore -D -z h
 

@@ -77,7 +77,7 @@ abd_value_to_string (void *cls,
       for (i = 0; i < ntohl (sets.set_count); i++)
       {
         subject_pkey =
-          GNUNET_CRYPTO_ecdsa_public_key_to_string (&set[i].subject_key);
+          GNUNET_IDENTITY_public_key_to_string (&set[i].subject_key);
 
         if (0 == set[i].subject_attribute_len)
         {
@@ -158,7 +158,7 @@ abd_string_to_value (void *cls,
     {
       struct GNUNET_ABD_DelegationRecord *sets;
       char attr_str[253 + 1];
-      char subject_pkey[52 + 1];
+      char subject_pkey[58 + 1];
       char *token;
       char *tmp_str;
       int matches = 0;
@@ -207,8 +207,7 @@ abd_string_to_value (void *cls,
         matches = sscanf (token, "%s %s", subject_pkey, attr_str);
 
         // sets the public key for the set entry
-        GNUNET_CRYPTO_ecdsa_public_key_from_string (subject_pkey,
-                                                    strlen (subject_pkey),
+        GNUNET_IDENTITY_public_key_from_string (subject_pkey,
                                                     &set[i].subject_key);
 
         // If not just key, also set subject attribute (Not A.a <- B but A.a <- B.b)

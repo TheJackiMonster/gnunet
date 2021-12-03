@@ -5,8 +5,8 @@ TESTBED = testbed-logger testbed
 
 if HAVE_EXPERIMENTAL
  EXP_DIR = \
-  rps
-  #abd FTBFS
+  rps \
+  abd
 if HAVE_ABE
  EXP_DIR += \
   abe

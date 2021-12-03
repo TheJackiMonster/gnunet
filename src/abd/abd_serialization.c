@@ -199,7 +199,7 @@ GNUNET_ABD_delegates_serialize (
     c_rec.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DELEGATE);
     c_rec.purpose.size =
       htonl ((sizeof (struct DelegateEntry) + cd[i].issuer_attribute_len)
-             - sizeof (struct GNUNET_CRYPTO_EcdsaSignature));
+             - sizeof (struct GNUNET_IDENTITY_Signature));
     c_rec.expiration = GNUNET_htonll (cd[i].expiration.abs_value_us);
     if (off + sizeof (c_rec) > dest_size)
       return -1;
@@ -445,13 +445,13 @@ GNUNET_ABD_delegate_serialize (struct GNUNET_ABD_Delegate *dele,
   }
   cdata->purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DELEGATE);
   cdata->purpose.size =
-    htonl (size - sizeof (struct GNUNET_CRYPTO_EcdsaSignature));
+    htonl (size - sizeof (struct GNUNET_IDENTITY_Signature));
 
   GNUNET_memcpy (&cdata[1], tmp_str, attr_len);
 
   if (GNUNET_OK !=
-      GNUNET_CRYPTO_ecdsa_verify (GNUNET_SIGNATURE_PURPOSE_DELEGATE,
-                                  cdata,
+      GNUNET_IDENTITY_signature_verify_ (GNUNET_SIGNATURE_PURPOSE_DELEGATE,
+                                  &cdata->purpose,
                                   &cdata->signature,
                                   &cdata->issuer_key))
   {
@@ -473,8 +473,8 @@ GNUNET_ABD_delegate_deserialize (const char *data, size_t data_size)
     return NULL;
   cdata = (struct DelegateEntry *) data;
   if (GNUNET_OK !=
-      GNUNET_CRYPTO_ecdsa_verify (GNUNET_SIGNATURE_PURPOSE_DELEGATE,
-                                  cdata,
+      GNUNET_IDENTITY_signature_verify_ (GNUNET_SIGNATURE_PURPOSE_DELEGATE,
+                                  &cdata->purpose,
                                   &cdata->signature,
                                   &cdata->issuer_key))
   {

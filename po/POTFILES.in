@@ -437,8 +437,6 @@ src/testing/testing_api_cmd_send_peer_ready.c
 src/testing/testing_api_cmd_system_create.c
 src/testing/testing_api_cmd_system_destroy.c
 src/testing/testing_api_loop.c
-src/testing/testing_api_trait_cmd.c
-src/testing/testing_api_trait_process.c
 src/testing/testing_api_traits.c
 src/topology/friends.c
 src/topology/gnunet-daemon-topology.c
@@ -502,6 +500,7 @@ src/transport/transport_api_manipulation.c
 src/transport/transport_api_monitor_peers.c
 src/transport/transport_api_monitor_plugins.c
 src/transport/transport_api_offer_hello.c
+src/transport/transport_api_traits.c
 src/util/bandwidth.c
 src/util/benchmark.c
 src/util/bio.c

@@ -42,12 +42,12 @@ struct CollectMessage
   /**
    * Subject public key
    */
-  struct GNUNET_CRYPTO_EcdsaPrivateKey subject_key;
+  struct GNUNET_IDENTITY_PrivateKey subject_key;
 
   /**
    * Trust anchor
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey issuer_key;
+  struct GNUNET_IDENTITY_PublicKey issuer_key;
 
   /**
    * Length of the issuer attribute
@@ -81,12 +81,12 @@ struct VerifyMessage
   /**
    * Subject public key
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey subject_key;
+  struct GNUNET_IDENTITY_PublicKey subject_key;
 
   /**
    * Trust anchor
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey issuer_key;
+  struct GNUNET_IDENTITY_PublicKey issuer_key;
 
   /**
    * Number of delegates
@@ -170,7 +170,7 @@ struct DelegationRecordData
   /**
    * Subject key
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey subject_key;
+  struct GNUNET_IDENTITY_PublicKey subject_key;
 
   /**
    * Subject attributes
@@ -184,12 +184,12 @@ struct ChainEntry
   /**
    * Issuer key
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey issuer_key;
+  struct GNUNET_IDENTITY_PublicKey issuer_key;
 
   /**
    * Subject key
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey subject_key;
+  struct GNUNET_IDENTITY_PublicKey subject_key;
 
   /**
    * Issuer attributes
@@ -209,7 +209,7 @@ struct CredentialEntry
   /**
    * The signature for this credential by the issuer
    */
-  struct GNUNET_CRYPTO_EcdsaSignature signature;
+  struct GNUNET_IDENTITY_Signature signature;
 
   /**
    * Signature meta
@@ -219,12 +219,12 @@ struct CredentialEntry
   /**
    * Public key of the issuer
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey issuer_key;
+  struct GNUNET_IDENTITY_PublicKey issuer_key;
 
   /**
    * Public key of the subject this credential was issued to
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey subject_key;
+  struct GNUNET_IDENTITY_PublicKey subject_key;
 
   /**
    * Expiration time of this credential
@@ -243,6 +243,10 @@ struct CredentialEntry
 
 struct DelegateEntry
 {
+  /**
+   * The signature for this credential by the issuer
+   */
+  struct GNUNET_IDENTITY_Signature signature;
 
   /**
    * Signature meta
@@ -250,19 +254,14 @@ struct DelegateEntry
   struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
 
   /**
-   * The signature for this credential by the issuer
-   */
-  struct GNUNET_CRYPTO_EcdsaSignature signature;
-
-  /**
    * Public key of the issuer
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey issuer_key;
+  struct GNUNET_IDENTITY_PublicKey issuer_key;
 
   /**
    * Public key of the subject this credential was issued to
    */
-  struct GNUNET_CRYPTO_EcdsaPublicKey subject_key;
+  struct GNUNET_IDENTITY_PublicKey subject_key;
 
   /**
    * Expiration time of this credential
