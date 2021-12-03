@@ -27,6 +27,7 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_gns_service.h"
+#include "gnunet_gnsrecord_lib.h"
 #include "jansson.h"
 
 /**
@@ -37,17 +38,22 @@ static int ret;
 /**
  * Attribute Add
  */
-static char *attr_add;
+static int attr_add;
 
 /**
  * Attribute remove
  */
-static int *attr_remove;
+static int attr_remove;
 
 /**
  *  Attibute get
  */
-static int *attr_get;
+static int attr_get;
+
+/**
+ * Attribute create
+ */
+static int attr_create;
 
 /**
  * Attribute did
@@ -59,14 +65,10 @@ static char *attr_did;
  */
 static char *attr_ego;
 
-/**
- * Attribute create
- */
-static char *attr_create;
 
 static struct GNUNET_GNS_Handle *gns_handle;
 static struct GNUNET_NAMESTORE_Handle *namestore_handle;
-static struct GNUNET_CONFIGURATRION_Handle *my_cfg;
+const static struct GNUNET_CONFIGURATRION_Handle * my_cfg;
 
 // TODO
 // static void get_did_for_ego();
@@ -131,7 +133,7 @@ print_did_document(
 		return;
 	}
 
-	printf("%s\n", rd[0].data);
+	printf("%s\n", (char *) rd[0].data);
 
 	GNUNET_SCHEDULER_add_now(cleanup, NULL);
 	ret = 0;
@@ -234,6 +236,7 @@ remove_did_document()
  * @brief Create ad did store DID in Namestore cb 
  * 
  */
+static void
 create_did_store_cb(void *cls, int32_t success, const char *emsg){
   free(cls);
 
@@ -252,15 +255,16 @@ create_did_store_cb(void *cls, int32_t success, const char *emsg){
 static void 
 create_did_ego_lockup_cb(void *cls, struct GNUNET_IDENTITY_Ego * ego)
 {
-	const struct GNUNET_IDENTITY_PublicKey pkey; // Get Public key
+	struct GNUNET_IDENTITY_PublicKey pkey; // Get Public key
   GNUNET_IDENTITY_ego_get_public_key(ego, &pkey);
+  //
 
   //const ssize_t pkey_len = GNUNET_IDENTITY_key_get_length(&pkey); // Get length of public key
   const char * pkey_str = GNUNET_IDENTITY_public_key_to_string(&pkey); // Convert public key to string
-  const char did_str[71]; // 58 + 12 + 1= 71
-  const char pkey_multibase_str[60]; // 58 + 1 + 1 = 60
-  sprintf(&did_str, "did:reclaim:%s", pkey_str); // Convert the public key to a DID str
-  sprintf(&pkey_multibase_str, "V%s", pkey_str); // Convert the public key to MultiBase data format
+  char did_str[71]; // 58 + 12 + 1= 71
+  char pkey_multibase_str[60]; // 58 + 1 + 1 = 60
+  sprintf(did_str, "did:reclaim:%s", pkey_str); // Convert the public key to a DID str
+  sprintf(pkey_multibase_str, "V%s", pkey_str); // Convert the public key to MultiBase data format
 
   // Create DID Document 
   json_t * did_json = json_string(did_str);
@@ -287,8 +291,8 @@ create_did_ego_lockup_cb(void *cls, struct GNUNET_IDENTITY_Ego * ego)
   json_object_set(didd, "authentication", auth_json);
 
   // Encode DID Document as JSON string
-  const size_t didd_str_size = json_dumpb(didd, NULL, 0, JSON_INDENT(2));
-  if(didd_str_size == 0)
+  void * didd_str = (void *) json_dumps(didd, JSON_INDENT(2));
+  if(didd_str == NULL)
   {
     printf("DID Document could not be encoded");
     GNUNET_SCHEDULER_add_now(&cleanup, NULL);
@@ -296,27 +300,23 @@ create_did_ego_lockup_cb(void *cls, struct GNUNET_IDENTITY_Ego * ego)
     return;
   }
 
-  char * didd_str = malloc(didd_str_size);
-  json_dumpb(didd, didd_str, didd_str_size, JSON_INDENT(2));
-
   // Print DID Docuement to stdout
-  printf("%s\n", didd_str);
+  printf("%s\n", (char *) didd_str);
 
   // Save DID Document to GNS
 	const struct GNUNET_IDENTITY_PrivateKey * skey = GNUNET_IDENTITY_ego_get_private_key(ego);
-  const struct GNUNET_GNSRECORD_Data * record_data = {
+  const struct GNUNET_GNSRECORD_Data record_data = {
     didd_str,
-    86400000000, // =1d TODO: Set to user preference
-    didd_str_size, 
+    (uint64_t) 86400000000, // =1d TODO: Set to user preference
+    strlen(didd_str), 
     GNUNET_GNSRECORD_typename_to_number("TXT"),
     0
   };
-  const unsigned int didd_str_count;
   GNUNET_NAMESTORE_records_store( namestore_handle,
                                   skey,
                                   "didd",
                                   1,
-                                  record_data,
+                                  &record_data,
                                   &create_did_store_cb,
                                   didd_str);
 }
@@ -381,7 +381,7 @@ run (void *cls,
 		return;
 	}
 
-	if (NULL != attr_add) {
+	if (1 == attr_add) {
 		add_did_document();
 	} else if (1 == attr_get) {
 		resolve_did_document();
@@ -406,6 +406,10 @@ main (int argc, char *const argv[])
 		                           "create",
 		                           gettext_noop ("Create a DID Document and display its DID"),
 		                           &attr_create),
+		GNUNET_GETOPT_option_flag ('a',
+		                           "add",
+		                           gettext_noop ("Add a DID Document and display its DID"),
+		                           &attr_add),
 		GNUNET_GETOPT_option_flag ('g',
 		                           "get",
 		                           gettext_noop ("Get the DID Document associated with the given DID"),
