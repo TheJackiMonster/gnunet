@@ -115,29 +115,29 @@ struct PeerPutMessage
   struct GNUNET_MessageHeader header;
 
   /**
-   * Processing options
-   */
-  uint32_t options GNUNET_PACKED;
-
-  /**
    * Content type.
    */
   uint32_t type GNUNET_PACKED;
 
   /**
+   * Processing options
+   */
+  uint16_t options GNUNET_PACKED;
+
+  /**
    * Hop count
    */
-  uint32_t hop_count GNUNET_PACKED;
+  uint16_t hop_count GNUNET_PACKED;
 
   /**
    * Replication level for this message
    */
-  uint32_t desired_replication_level GNUNET_PACKED;
+  uint16_t desired_replication_level GNUNET_PACKED;
 
   /**
    * Length of the PUT path that follows (if tracked).
    */
-  uint32_t put_path_length GNUNET_PACKED;
+  uint16_t put_path_length GNUNET_PACKED;
 
   /**
    * When does the content expire?
@@ -176,14 +176,19 @@ struct PeerResultMessage
   uint32_t type GNUNET_PACKED;
 
   /**
+   * Reserved.
+   */
+  uint32_t reserved GNUNET_PACKED;
+
+  /**
    * Length of the PUT path that follows (if tracked).
    */
-  uint32_t put_path_length GNUNET_PACKED;
+  uint16_t put_path_length GNUNET_PACKED;
 
   /**
    * Length of the GET path that follows (if tracked).
    */
-  uint32_t get_path_length GNUNET_PACKED;
+  uint16_t get_path_length GNUNET_PACKED;
 
   /**
    * When does the content expire?
@@ -214,34 +219,29 @@ struct PeerGetMessage
   struct GNUNET_MessageHeader header;
 
   /**
-   * Processing options
-   */
-  uint32_t options GNUNET_PACKED;
-
-  /**
    * Desired content type.
    */
   uint32_t type GNUNET_PACKED;
 
   /**
+   * Processing options
+   */
+  uint16_t options GNUNET_PACKED;
+
+  /**
    * Hop count
    */
-  uint32_t hop_count GNUNET_PACKED;
+  uint16_t hop_count GNUNET_PACKED;
 
   /**
    * Desired replication level for this request.
    */
-  uint32_t desired_replication_level GNUNET_PACKED;
+  uint16_t desired_replication_level GNUNET_PACKED;
 
   /**
    * Size of the extended query.
    */
-  uint32_t xquery_size;
-
-  /**
-   * Bloomfilter mutator.
-   */
-  uint32_t bf_mutator;
+  uint16_t xquery_size;
 
   /**
    * Bloomfilter (for peer identities) to stop circular routes
@@ -252,6 +252,11 @@ struct PeerGetMessage
    * The key we are looking for.
    */
   struct GNUNET_HashCode key;
+
+  /**
+   * Bloomfilter mutator.
+   */
+  uint32_t bf_mutator;
 
   /* xquery */
 
