@@ -27,6 +27,7 @@
 
 #include "platform.h"
 #include "gnunet_crypto_lib.h"
+#include "gnunet_strings_lib.h"
 
 static char test_privkey[32] = {
   0x9b, 0x93, 0x7b, 0x81, 0x32, 0x2d, 0x81, 0x6c,
@@ -35,30 +36,34 @@ static char test_privkey[32] = {
   0x36, 0x30, 0xf9, 0x3a, 0x29, 0x52, 0x70, 0x17
 };
 
-static char *targetPrivateKeyMultibase = "zrv3kJcnBP1RpYmvNZ9jcYpKBZg41iSobWxSg3ix2U7Cp59kjwQFCT4SZTgLSL3HP8iGMdJs3nedjqYgNn6ZJmsmjRm";
-
-static char *targetPublicKeyMultibase = "z6Mkf5rGMoatrSj1f4CyvuHBeXJELe9RPdzo2PKGNCKVtZxP";
+static char *targetPublicKeyMultibase = "u7QEJX5oaWV3edV2CeGhkrQPfpaT71ogyVmNk4rZeE8yeRA";
 
 int
 main ()
 {
   struct GNUNET_CRYPTO_EddsaPrivateKey privkey;
   struct GNUNET_CRYPTO_EddsaPublicKey pubkey;
-  char *privateKeyMultibase;
-  char *publicKeyMultibase;
 
   memcpy (&privkey, test_privkey, sizeof (privkey));
   GNUNET_CRYPTO_eddsa_key_get_public (&privkey, &pubkey);
 
+  //This is how to convert out pubkeys to W3c Ed25519-2020 multibase (base64url no padding)
+  char *b64;
+  char pkx[34];
+  pkx[0] = 0xed;
+  pkx[1] = 0x01;
+  memcpy (pkx+2, &pubkey, sizeof (pubkey));
+  GNUNET_STRINGS_base64url_encode (pkx,
+                                   sizeof (pkx),
+                                   &b64);
+  printf ("u%s\n%s\n", b64, targetPublicKeyMultibase);
   // FIXME convert pubkey to target
-  publicKeyMultibase = "FIXME";
-  GNUNET_assert (0 == strcmp (targetPublicKeyMultibase,
-                              publicKeyMultibase));
+  char *res;
+  GNUNET_asprintf (&res, "u%s", b64);
+  GNUNET_assert (0 == strcmp (res,
+                              targetPublicKeyMultibase));
 
-  // FIXME
-  privateKeyMultibase = "FIXME";
-  GNUNET_assert (0 == strcmp (targetPrivateKeyMultibase,
-                              privateKeyMultibase));
-
+  GNUNET_free (b64);
+  GNUNET_free (res);
   return 0;
 }

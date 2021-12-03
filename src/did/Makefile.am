@@ -29,5 +29,8 @@ test_w3c_ed25519_2020_SOURCES = \
 test_w3c_ed25519_2020_LDADD = \
   $(top_builddir)/src/util/libgnunetutil.la
 
+if ENABLE_TEST_RUN
+TESTS = $(check_PROGRAMS)
+endif
 
 
