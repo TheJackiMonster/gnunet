@@ -203,44 +203,6 @@ struct ChainEntry
 };
 
 
-struct CredentialEntry
-{
-
-  /**
-   * The signature for this credential by the issuer
-   */
-  struct GNUNET_IDENTITY_Signature signature;
-
-  /**
-   * Signature meta
-   */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
-
-  /**
-   * Public key of the issuer
-   */
-  struct GNUNET_IDENTITY_PublicKey issuer_key;
-
-  /**
-   * Public key of the subject this credential was issued to
-   */
-  struct GNUNET_IDENTITY_PublicKey subject_key;
-
-  /**
-   * Expiration time of this credential
-   */
-  uint64_t expiration GNUNET_PACKED;
-
-  /**
-   * Issuer attribute length
-   */
-  uint32_t issuer_attribute_len;
-
-  /**
-   * Followed by the attribute string
-   */
-};
-
 struct DelegateEntry
 {
   /**
