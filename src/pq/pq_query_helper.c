@@ -61,7 +61,7 @@ qconv_null (void *cls,
     return -1;
   param_values[0] = NULL;
   param_lengths[0] = 0;
-  param_formats[0] = 1; 
+  param_formats[0] = 1;
   return 0;
 }
 
@@ -134,6 +134,17 @@ GNUNET_PQ_query_param_string (const char *ptr)
 }
 
 
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_bool (bool b)
+{
+  static uint8_t bt = 1;
+  static uint8_t bf = 0;
+
+  return GNUNET_PQ_query_param_fixed_size (b ? &bt : &bf,
+                                           sizeof (uint8_t));
+}
+
+
 /**
  * Function called to convert input argument into SQL parameters.
  *
@@ -180,8 +191,9 @@ qconv_uint16 (void *cls,
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_uint16 (const uint16_t *x)
 {
-  struct GNUNET_PQ_QueryParam res =
-  { &qconv_uint16, NULL, x, sizeof(*x), 1 };
+  struct GNUNET_PQ_QueryParam res = {
+    &qconv_uint16, NULL, x, sizeof(*x), 1
+  };
 
   return res;
 }
@@ -233,8 +245,9 @@ qconv_uint32 (void *cls,
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_uint32 (const uint32_t *x)
 {
-  struct GNUNET_PQ_QueryParam res =
-  { &qconv_uint32, NULL, x, sizeof(*x), 1 };
+  struct GNUNET_PQ_QueryParam res = {
+    &qconv_uint32, NULL, x, sizeof(*x), 1
+  };
 
   return res;
 }
@@ -286,8 +299,9 @@ qconv_uint64 (void *cls,
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_uint64 (const uint64_t *x)
 {
-  struct GNUNET_PQ_QueryParam res =
-  { &qconv_uint64, NULL, x, sizeof(*x), 1 };
+  struct GNUNET_PQ_QueryParam res = {
+    &qconv_uint64, NULL, x, sizeof(*x), 1
+  };
 
   return res;
 }
@@ -339,8 +353,9 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_rsa_public_key (const struct
                                       GNUNET_CRYPTO_RsaPublicKey *x)
 {
-  struct GNUNET_PQ_QueryParam res =
-  { &qconv_rsa_public_key, NULL, (x), 0, 1 };
+  struct GNUNET_PQ_QueryParam res = {
+    &qconv_rsa_public_key, NULL, (x), 0, 1
+  };
 
   return res;
 }
@@ -391,8 +406,9 @@ qconv_rsa_signature (void *cls,
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_rsa_signature (const struct GNUNET_CRYPTO_RsaSignature *x)
 {
-  struct GNUNET_PQ_QueryParam res =
-  { &qconv_rsa_signature, NULL, (x), 0, 1 };
+  struct GNUNET_PQ_QueryParam res = {
+    &qconv_rsa_signature, NULL, (x), 0, 1
+  };
 
   return res;
 }
@@ -446,8 +462,9 @@ qconv_rel_time (void *cls,
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_relative_time (const struct GNUNET_TIME_Relative *x)
 {
-  struct GNUNET_PQ_QueryParam res =
-  { &qconv_rel_time, NULL, x, sizeof(*x), 1 };
+  struct GNUNET_PQ_QueryParam res = {
+    &qconv_rel_time, NULL, x, sizeof(*x), 1
+  };
 
   return res;
 }
@@ -510,8 +527,8 @@ GNUNET_PQ_query_param_absolute_time (const struct GNUNET_TIME_Absolute *x)
 
 
 struct GNUNET_PQ_QueryParam
-GNUNET_PQ_query_param_absolute_time_nbo (const struct
-                                         GNUNET_TIME_AbsoluteNBO *x)
+GNUNET_PQ_query_param_absolute_time_nbo (
+  const struct GNUNET_TIME_AbsoluteNBO *x)
 {
   return GNUNET_PQ_query_param_auto_from_type (&x->abs_value_us__);
 }

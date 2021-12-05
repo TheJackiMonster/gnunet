@@ -496,11 +496,82 @@ struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_string (const char *name,
                               char **dst)
 {
-  struct GNUNET_PQ_ResultSpec res =
-  { &extract_string,
-    &clean_string,
-    NULL,
-    (void *) dst, 0, (name), NULL };
+  struct GNUNET_PQ_ResultSpec res = {
+    .conv = &extract_string,
+    .cleaner = &clean_string,
+    .dst = (void *) dst,
+    .fname = (name)
+  };
+
+  return res;
+}
+
+
+/**
+ * Extract data from a Postgres database @a result at row @a row.
+ *
+ * @param cls closure
+ * @param result where to extract data from
+ * @param int row to extract data from
+ * @param fname name (or prefix) of the fields to extract from
+ * @param[in,out] dst_size where to store size of result, may be NULL
+ * @param[out] dst where to store the result
+ * @return
+ *   #GNUNET_YES if all results could be extracted
+ *   #GNUNET_SYSERR if a result was invalid (non-existing field or NULL)
+ */
+static enum GNUNET_GenericReturnValue
+extract_bool (void *cls,
+              PGresult *result,
+              int row,
+              const char *fname,
+              size_t *dst_size,
+              void *dst)
+{
+  bool *b = dst;
+  const uint8_t *res;
+  int fnum;
+  size_t len;
+
+  (void) cls;
+  fnum = PQfnumber (result,
+                    fname);
+  if (fnum < 0)
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  if (PQgetisnull (result,
+                   row,
+                   fnum))
+    return GNUNET_NO;
+  /* if a field is null, continue but
+   * remember that we now return a different result */
+  len = PQgetlength (result,
+                     row,
+                     fnum);
+  if (sizeof (uint8_t) != len)
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  res = (const uint8_t *) PQgetvalue (result,
+                                      row,
+                                      fnum);
+  *b = (0 != *res);
+  return GNUNET_OK;
+}
+
+
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_bool (const char *name,
+                            bool *dst)
+{
+  struct GNUNET_PQ_ResultSpec res = {
+    .conv = &extract_bool,
+    .dst = (void *) dst,
+    .fname = name
+  };
 
   return res;
 }
@@ -573,13 +644,10 @@ GNUNET_PQ_result_spec_relative_time (const char *name,
                                      struct GNUNET_TIME_Relative *rt)
 {
   struct GNUNET_PQ_ResultSpec res = {
-    &extract_rel_time,
-    NULL,
-    NULL,
-    (void *) rt,
-    sizeof(*rt),
-    name,
-    NULL
+    .conv = &extract_rel_time,
+    .dst = (void *) rt,
+    .dst_size = sizeof(*rt),
+    .fname = name
   };
 
   return res;
@@ -652,11 +720,12 @@ struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_absolute_time (const char *name,
                                      struct GNUNET_TIME_Absolute *at)
 {
-  struct GNUNET_PQ_ResultSpec res =
-  { &extract_abs_time,
-    NULL,
-    NULL,
-    (void *) at, sizeof(*at), (name), NULL };
+  struct GNUNET_PQ_ResultSpec res = {
+    .conv = &extract_abs_time,
+    .dst = (void *) at,
+    .dst_size = sizeof(*at),
+    .fname = name
+  };
 
   return res;
 }
@@ -667,7 +736,8 @@ GNUNET_PQ_result_spec_absolute_time_nbo (const char *name,
                                          struct GNUNET_TIME_AbsoluteNBO *at)
 {
   struct GNUNET_PQ_ResultSpec res =
-    GNUNET_PQ_result_spec_auto_from_type (name, &at->abs_value_us__);
+    GNUNET_PQ_result_spec_auto_from_type (name,
+                                          &at->abs_value_us__);
 
   return res;
 }
@@ -736,11 +806,12 @@ struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_uint16 (const char *name,
                               uint16_t *u16)
 {
-  struct GNUNET_PQ_ResultSpec res =
-  { &extract_uint16,
-    NULL,
-    NULL,
-    (void *) u16, sizeof(*u16), (name), NULL };
+  struct GNUNET_PQ_ResultSpec res = {
+    .conv = &extract_uint16,
+    .dst = (void *) u16,
+    .dst_size = sizeof(*u16),
+    .fname = name
+  };
 
   return res;
 }
@@ -810,13 +881,10 @@ GNUNET_PQ_result_spec_uint32 (const char *name,
                               uint32_t *u32)
 {
   struct GNUNET_PQ_ResultSpec res = {
-    &extract_uint32,
-    NULL,
-    NULL,
-    (void *) u32,
-    sizeof(*u32),
-    (name),
-    NULL
+    .conv = &extract_uint32,
+    .dst = (void *) u32,
+    .dst_size = sizeof(*u32),
+    .fname = name
   };
 
   return res;
@@ -891,13 +959,10 @@ GNUNET_PQ_result_spec_uint64 (const char *name,
                               uint64_t *u64)
 {
   struct GNUNET_PQ_ResultSpec res = {
-    &extract_uint64,
-    NULL,
-    NULL,
-    (void *) u64,
-    sizeof(*u64),
-    (name),
-    NULL
+    .conv = &extract_uint64,
+    .dst = (void *) u64,
+    .dst_size = sizeof(*u64),
+    .fname = name
   };
 
   return res;

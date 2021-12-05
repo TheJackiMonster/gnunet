@@ -133,6 +133,16 @@ GNUNET_PQ_query_param_string (const char *ptr);
 
 
 /**
+ * Pass a boolean into a query.
+ *
+ * @param b boolean bit to pass
+ * @return query parameter to use
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_bool (bool b);
+
+
+/**
  * Generate fixed-size query parameter with size determined
  * by variable type.
  *
@@ -411,6 +421,18 @@ GNUNET_PQ_result_spec_fixed_size (const char *name,
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_string (const char *name,
                               char **dst);
+
+
+/**
+ * boolean expected.
+ *
+ * @param name name of the field in the table
+ * @param[out] dst where to store the result
+ * @return array entry for the result specification to use
+ */
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_bool (const char *name,
+                            bool *dst);
 
 
 /**
