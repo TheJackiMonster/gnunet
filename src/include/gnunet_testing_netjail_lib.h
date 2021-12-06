@@ -421,7 +421,22 @@ struct GNUNET_MessageHeader *
 GNUNET_TESTING_send_local_test_finished_msg (enum GNUNET_GenericReturnValue rv);
 
 
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_barrier_create (
+  const char *label);
 
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_barrier_reached (
+  const char *label,
+  const char *barrier_label);
+
+
+// Wait for barrier to be reached by all, implies reached!
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_barrier_await (
+  const char *label,
+  const char *barrier_label);
 
 
 struct GNUNET_TESTING_Command
