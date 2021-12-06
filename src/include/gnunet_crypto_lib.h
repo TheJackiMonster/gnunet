@@ -392,6 +392,127 @@ struct GNUNET_CRYPTO_PaillierCiphertext
 };
 
 
+/**
+ * Curve25519 Scalar
+ */
+struct GNUNET_CRYPTO_Cs25519Scalar
+{
+  /**
+   * 32 byte scalar
+   */
+  unsigned char d[crypto_core_ed25519_SCALARBYTES];
+};
+
+
+/**
+ * Curve25519 point
+ */
+struct GNUNET_CRYPTO_Cs25519Point
+{
+  /**
+   * This is a point on the Curve25519.
+   * The x coordinate can be restored using the y coordinate
+   */
+  unsigned char y[crypto_core_ed25519_BYTES];
+};
+
+
+/**
+ * The private information of an Schnorr key pair.
+ */
+struct GNUNET_CRYPTO_CsPrivateKey
+{
+  struct GNUNET_CRYPTO_Cs25519Scalar scalar;
+};
+
+
+/**
+ * The public information of an Schnorr key pair.
+ */
+struct GNUNET_CRYPTO_CsPublicKey
+{
+  struct GNUNET_CRYPTO_Cs25519Point point;
+};
+
+
+/**
+ * Secret used for blinding (alpha and beta).
+ */
+struct GNUNET_CRYPTO_CsBlindingSecret
+{
+  struct GNUNET_CRYPTO_Cs25519Scalar alpha;
+  struct GNUNET_CRYPTO_Cs25519Scalar beta;
+};
+
+
+/**
+ * the private r used in the signature
+ */
+struct GNUNET_CRYPTO_CsRSecret
+{
+  struct GNUNET_CRYPTO_Cs25519Scalar scalar;
+};
+
+
+/**
+ * the public R (derived from r) used in c
+ */
+struct GNUNET_CRYPTO_CsRPublic
+{
+  struct GNUNET_CRYPTO_Cs25519Point point;
+};
+
+
+/**
+ * Schnorr c to be signed
+ */
+struct GNUNET_CRYPTO_CsC
+{
+  struct GNUNET_CRYPTO_Cs25519Scalar scalar;
+};
+
+
+/**
+ * s in the signature
+ */
+struct GNUNET_CRYPTO_CsS
+{
+  struct GNUNET_CRYPTO_Cs25519Scalar scalar;
+};
+
+
+/**
+ * blinded s in the signature
+ */
+struct GNUNET_CRYPTO_CsBlindS
+{
+  struct GNUNET_CRYPTO_Cs25519Scalar scalar;
+};
+
+
+/**
+ * CS Signtature containing scalar s and point R
+ */
+struct GNUNET_CRYPTO_CsSignature
+{
+  /**
+   * Schnorr signatures are composed of a scalar s and a curve point
+   */
+  struct GNUNET_CRYPTO_CsS s_scalar;
+  struct GNUNET_CRYPTO_CsRPublic r_point;
+};
+
+
+/**
+ * Nonce
+ */
+struct GNUNET_CRYPTO_CsNonce
+{
+  /*a nonce*/
+  unsigned char nonce[256 / 8];
+};
+
+
 /* **************** Functions and Macros ************* */
 
 /**
@@ -2434,6 +2555,155 @@ enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_rsa_verify (const struct GNUNET_HashCode *hash,
                           const struct GNUNET_CRYPTO_RsaSignature *sig,
                           const struct GNUNET_CRYPTO_RsaPublicKey *public_key);
+
+
+/**
+ * Create a new random private key.
+ *
+ * @param[out] priv where to write the fresh private key
+ */
+void
+GNUNET_CRYPTO_cs_private_key_generate (struct GNUNET_CRYPTO_CsPrivateKey *priv);
+
+
+/**
+ * Extract the public key of the given private key.
+ *
+ * @param priv the private key
+ * @param[out] pub where to write the public key
+ */
+void
+GNUNET_CRYPTO_cs_private_key_get_public (const struct
+                                         GNUNET_CRYPTO_CsPrivateKey *priv,
+                                         struct GNUNET_CRYPTO_CsPublicKey *pub);
+
+
+/**
+ * Derive a new secret r pair r0 and r1.
+ * In original papers r is generated randomly
+ * To provide abort-idempotency, r needs to be derived but still needs to be UNPREDICTABLE
+ * To ensure unpredictability a new nonce should be used when a new r needs to be derived.
+ * Uses HKDF internally.
+ * Comment: Can be done in one HKDF shot and split output.
+ *
+ * @param nonce is a random nonce
+ * @param lts is a long-term-secret in form of a private key
+ * @param[out] r array containing derived secrets r0 and r1
+ */
+void
+GNUNET_CRYPTO_cs_r_derive (const struct GNUNET_CRYPTO_CsNonce *nonce,
+                           const struct GNUNET_CRYPTO_CsPrivateKey *lts,
+                           struct GNUNET_CRYPTO_CsRSecret r[2]);
+
+
+/**
+ * Extract the public R of the given secret r.
+ *
+ * @param r_priv the private key
+ * @param[out] r_pub where to write the public key
+ */
+void
+GNUNET_CRYPTO_cs_r_get_public (const struct GNUNET_CRYPTO_CsRSecret *r_priv,
+                               struct GNUNET_CRYPTO_CsRPublic *r_pub);
+
+
+/**
+ * Derives new random blinding factors.
+ * In original papers blinding factors are generated randomly
+ * To provide abort-idempotency, blinding factors need to be derived but still need to be UNPREDICTABLE
+ * To ensure unpredictability a new nonce has to be used.
+ * Uses HKDF internally
+ *
+ * @param secret is secret to derive blinding factors
+ * @param secret_len secret length
+ * @param[out] bs array containing the two derived blinding secrets
+ */
+void
+GNUNET_CRYPTO_cs_blinding_secrets_derive (const void *secret,
+                                          size_t secret_len,
+                                          struct GNUNET_CRYPTO_CsBlindingSecret
+                                          bs[2]);
+
+
+/**
+ * Calculate two blinded c's
+ * Comment: One would be insecure due to Wagner's algorithm solving ROS
+ *
+ * @param bs array of the two blinding factor structs each containing alpha and beta
+ * @param r_pub array of the two signer's nonce R
+ * @param pub the public key of the signer
+ * @param msg the message to blind in preparation for signing
+ * @param msg_len length of message msg
+ * @param[out] blinded_c array of the two blinded c's
+ * @param[out] blinded_r_pub array of the two blinded R
+ */
+void
+GNUNET_CRYPTO_cs_calc_blinded_c (const struct GNUNET_CRYPTO_CsBlindingSecret
+                                 bs[2],
+                                 const struct GNUNET_CRYPTO_CsRPublic r_pub[2],
+                                 const struct GNUNET_CRYPTO_CsPublicKey *pub,
+                                 const void *msg,
+                                 size_t msg_len,
+                                 struct GNUNET_CRYPTO_CsC blinded_c[2],
+                                 struct GNUNET_CRYPTO_CsRPublic
+                                 blinded_r_pub[2]);
+
+
+/**
+ * Sign a blinded c
+ * This function derives b from a nonce and a longterm secret
+ * In original papers b is generated randomly
+ * To provide abort-idempotency, b needs to be derived but still need to be UNPREDICTABLE.
+ * To ensure unpredictability a new nonce has to be used for every signature
+ * HKDF is used internally for derivation
+ * r0 and r1 can be derived prior by using GNUNET_CRYPTO_cs_r_derive
+ *
+ * @param priv private key to use for the signing and as LTS in HKDF
+ * @param r array of the two secret nonce from the signer
+ * @param c array of the two blinded c to sign c_b
+ * @param nonce is a random nonce
+ * @param[out] blinded_signature_scalar where to write the signature
+ * @return 0 or 1 for b (see Clause Blind Signature Scheme)
+ */
+unsigned int
+GNUNET_CRYPTO_cs_sign_derive (const struct GNUNET_CRYPTO_CsPrivateKey *priv,
+                              const struct GNUNET_CRYPTO_CsRSecret r[2],
+                              const struct GNUNET_CRYPTO_CsC c[2],
+                              const struct GNUNET_CRYPTO_CsNonce *nonce,
+                              struct GNUNET_CRYPTO_CsBlindS *
+                              blinded_signature_scalar
+                              );
+
+
+/**
+ * Unblind a blind-signed signature using a c that was blinded
+ *
+ * @param blinded_signature_scalar the signature made on the blinded c
+ * @param bs the blinding factors used in the blinding
+ * @param[out] signature_scalar where to write the unblinded signature
+ */
+void
+GNUNET_CRYPTO_cs_unblind (const struct
+                          GNUNET_CRYPTO_CsBlindS *blinded_signature_scalar,
+                          const struct GNUNET_CRYPTO_CsBlindingSecret *bs,
+                          struct GNUNET_CRYPTO_CsS *signature_scalar);
+
+
+/**
+ * Verify whether the given message corresponds to the given signature and the
+ * signature is valid with respect to the given public key.
+ *
+ * @param sig signature that is being validated
+ * @param pub public key of the signer
+ * @param msg is the message that should be signed by @a sig  (message is used to calculate c)
+ * @param msg_len is the message length
+ * @returns #GNUNET_YES on success, #GNUNET_SYSERR if signature invalid
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_cs_verify (const struct GNUNET_CRYPTO_CsSignature *sig,
+                         const struct GNUNET_CRYPTO_CsPublicKey *pub,
+                         const void *msg,
+                         size_t msg_len);
 
 
 #if 0 /* keep Emacsens' auto-indent happy */

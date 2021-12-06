@@ -61,6 +61,7 @@ libgnunetutil_la_SOURCES = \
   container_multihashmap32.c \
   crypto_symmetric.c \
   crypto_crc.c \
+  crypto_cs.c \
   crypto_ecc.c \
   crypto_ecc_gnsrecord.c \
   $(DLOG) \
