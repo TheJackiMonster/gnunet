@@ -3259,7 +3259,10 @@ client_connect_cb (void *cls,
   tc->client = client;
   tc->mq = mq;
   GNUNET_CONTAINER_DLL_insert (clients_head, clients_tail, tc);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Client %p connected\n", tc);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Client %p of type %u connected\n",
+              tc,
+              tc->type);
   return tc;
 }
 
@@ -5071,6 +5074,7 @@ handle_client_send (void *cls, const struct OutboundMessage *obm)
                                 vl->pending_msg_tail,
                                 pm);
   check_vl_transmission (vl);
+  GNUNET_SERVICE_client_continue (tc->client);
 }
 
 
@@ -10370,6 +10374,8 @@ do_shutdown (void *cls)
 {
   struct LearnLaunchEntry *lle;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "shutdown logic\n");
   (void) cls;
   GNUNET_CONTAINER_multipeermap_iterate (neighbours,
                                          &free_neighbour_cb, NULL);
@@ -10450,7 +10456,9 @@ shutdown_task (void *cls)
 {
   in_shutdown = GNUNET_YES;
 
-  if (NULL == clients_head)
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Shutdown task executed\n");
+  if (NULL != clients_head)
   {
     for (struct TransportClient *tc = clients_head; NULL != tc; tc = tc->next)
     {
@@ -10459,7 +10467,8 @@ shutdown_task (void *cls)
                   tc->type);
     }
   }
-  do_shutdown (cls);
+  else
+    do_shutdown (cls);
 
 }
 

@@ -186,11 +186,6 @@ static struct GNUNET_OS_Process *cmd_binary_process;*/
 struct Plugin *plugin;
 
 /**
- * Handle to the testing system
- */
-static struct GNUNET_TESTING_System *test_system;
-
-/**
  * Our message stream tokenizer
  */
 struct GNUNET_MessageStreamTokenizer *tokenizer;
@@ -262,12 +257,6 @@ shutdown_task (void *cls)
     (void) GNUNET_DISK_file_close (stdout_fd);
   GNUNET_MST_destroy (tokenizer);
   tokenizer = NULL;
-
-  if (NULL != test_system)
-  {
-    GNUNET_TESTING_system_destroy (test_system, GNUNET_YES);
-    test_system = NULL;
-  }
 }
 
 

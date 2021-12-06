@@ -30,6 +30,8 @@
 
 #define NETJAIL_EXEC_SCRIPT "netjail_exec.sh"
 
+#define TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 10)
+
 /**
  * Generic logging shortcut
  */
@@ -152,6 +154,16 @@ struct NetJailState
    * String with topology data or name of topology file.
    */
   char *topology_data;
+
+  /**
+   * Time after this cmd has to finish.
+   */
+  struct GNUNET_TIME_Relative timeout;
+
+  /**
+   * Timeout task.
+   */
+  struct GNUNET_SCHEDULER_Task *timeout_task;
 };
 
 /**
@@ -393,6 +405,7 @@ helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
     ns->number_of_local_tests_finished++;
     if (ns->number_of_local_tests_finished == total_number)
     {
+      GNUNET_SCHEDULER_cancel (ns->timeout_task);
       GNUNET_TESTING_async_finish (&ns->ac);
     }
     break;
@@ -489,6 +502,7 @@ exp_cb (void *cls)
   struct TestingSystemCount *tbc = cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Called exp_cb.\n");
+  GNUNET_SCHEDULER_cancel (tbc->ns->timeout_task);
   GNUNET_TESTING_async_fail (&(tbc->ns->ac));
 }
 
@@ -696,6 +710,25 @@ start_helper (struct NetJailState *ns,
 
 
 /**
+ * Function run when the cmd terminates (good or bad) with timeout.
+ *
+ * @param cls the interpreter state
+ */
+static void
+do_timeout (void *cls)
+{
+  struct NetJailState *ns = cls;
+  struct GNUNET_TESTING_Command *cmd;
+
+  ns->timeout_task = NULL;
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+              "Terminating cmd due to global timeout\n");
+  cmd = GNUNET_TESTING_interpreter_get_current_command (ns->is);
+  GNUNET_TESTING_async_finish (cmd->ac);
+}
+
+
+/**
 * This function starts a helper process for each node.
 *
 * @param cls closure.
@@ -725,6 +758,13 @@ netjail_exec_run (void *cls,
                     i);
     }
   }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Adding timeout %s\n",
+              GNUNET_STRINGS_relative_time_to_string (ns->timeout, GNUNET_NO));
+  ns->timeout_task
+    = GNUNET_SCHEDULER_add_delayed (ns->timeout,
+                                    &do_timeout,
+                                    ns);
 }
 
 
@@ -735,6 +775,7 @@ netjail_exec_run (void *cls,
  * @param topology The complete topology information.
  * @param read_file Flag indicating if the the name of the topology file is send to the helper, or a string with the topology data.
  * @param topology_data If read_file is GNUNET_NO, topology_data holds the string with the topology.
+ * @param timeout Before this timeout is reached this cmd MUST finish.
  * @return command.
  */
 struct GNUNET_TESTING_Command
@@ -742,7 +783,8 @@ GNUNET_TESTING_cmd_netjail_start_testing_system (
   const char *label,
   struct GNUNET_TESTING_NetjailTopology *topology,
   unsigned int *read_file,
-  char *topology_data)
+  char *topology_data,
+  struct GNUNET_TIME_Relative timeout)
 {
   struct NetJailState *ns;
 
@@ -754,6 +796,7 @@ GNUNET_TESTING_cmd_netjail_start_testing_system (
   ns->topology = topology;
   ns->read_file = read_file;
   ns->topology_data = topology_data;
+  ns->timeout = GNUNET_TIME_relative_subtract (timeout, TIMEOUT);
 
   struct GNUNET_TESTING_Command cmd = {
     .cls = ns,

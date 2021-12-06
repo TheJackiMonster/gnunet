@@ -29,7 +29,7 @@
 #include "transport-testing-cmds.h"
 #include "gnunet_util_lib.h"
 
-#define TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 120)
+#define TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 300)
 
 
 int
@@ -97,7 +97,8 @@ main (int argc,
     GNUNET_TESTING_cmd_netjail_start_testing_system ("netjail-start-testbed",
                                                      topology,
                                                      &read_file,
-                                                     topology_data_script),
+                                                     topology_data_script,
+                                                     TIMEOUT),
     GNUNET_TESTING_cmd_stop_testing_system ("stop-testbed",
                                             "netjail-start-testbed",
                                             topology),

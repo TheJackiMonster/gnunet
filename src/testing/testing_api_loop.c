@@ -122,21 +122,19 @@ get_command (struct GNUNET_TESTING_Interpreter *is,
 
     if (GNUNET_TESTING_cmd_is_batch_ (cmd))
     {
-#define BATCH_INDEX 1
-      const struct GNUNET_TESTING_Command *batch;
+      struct GNUNET_TESTING_Command **batch;
       struct GNUNET_TESTING_Command *current;
       const struct GNUNET_TESTING_Command *icmd;
       const struct GNUNET_TESTING_Command *match;
 
       current = GNUNET_TESTING_cmd_batch_get_current_ (cmd);
       GNUNET_assert (GNUNET_OK ==
-                     GNUNET_TESTING_get_trait_cmd (cmd,
-                                                   BATCH_INDEX,
-                                                   &batch));
+                     GNUNET_TESTING_get_trait_batch_cmds (cmd,
+                                                          &batch));
       /* We must do the loop forward, but we can find the last match */
       match = NULL;
       for (unsigned int j = 0;
-           NULL != (icmd = &batch[j])->label;
+           NULL != (icmd = &(*batch)[j])->label;
            j++)
       {
         if (current == icmd)
@@ -383,7 +381,7 @@ interpreter_run (void *cls)
     finish_test (is);
     return;
   }
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Running command `%s'\n",
               cmd->label);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,

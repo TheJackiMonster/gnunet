@@ -386,6 +386,7 @@ GNUNET_TESTING_cmd_netjail_stop (const char *label,
  * @param topology The complete topology information.
  * @param read_file Flag indicating if the the name of the topology file is send to the helper, or a string with the topology data.
  * @param topology_data If read_file is GNUNET_NO, topology_data holds the string with the topology.
+ * @param timeout Before this timeout is reached this cmd MUST finish.
  * @return command.
  */
 struct GNUNET_TESTING_Command
@@ -393,7 +394,8 @@ GNUNET_TESTING_cmd_netjail_start_testing_system (
   const char *label,
   struct GNUNET_TESTING_NetjailTopology *topology,
   unsigned int *read_file,
-  char *topology_data);
+  char *topology_data,
+  struct GNUNET_TIME_Relative timeout);
 
 
 /**

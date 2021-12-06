@@ -510,72 +510,6 @@ struct GNUNET_TESTING_Timer
 
 
 /**
- * Getting the topology from file.
- *
- * @param filename The name of the topology file.
- * @return The GNUNET_TESTING_NetjailTopology
- */
-struct GNUNET_TESTING_NetjailTopology *
-GNUNET_TESTING_get_topo_from_file (const char *filename);
-
-
-/**
- * Parse the topology data.
- *
- * @param data The topology data.
- * @return The GNUNET_TESTING_NetjailTopology
- */
-struct GNUNET_TESTING_NetjailTopology *
-GNUNET_TESTING_get_topo_from_string (char *data);
-
-
-/**
- * Get the connections to other nodes for a specific node.
- *
- * @param num The specific node we want the connections for.
- * @param topology The topology we get the connections from.
- * @return The connections of the node.
- */
-struct GNUNET_TESTING_NodeConnection *
-GNUNET_TESTING_get_connections (unsigned int num, struct
-                                GNUNET_TESTING_NetjailTopology *topology);
-
-
-/**
- * Get the address for a specific communicator from a connection.
- *
- * @param connection The connection we like to have the address from.
- * @param prefix The communicator protocol prefix.
- * @return The address of the communicator.
- */
-char *
-GNUNET_TESTING_get_address (struct GNUNET_TESTING_NodeConnection *connection,
-                            char *prefix);
-
-
-/**
- * Deallocate memory of the struct GNUNET_TESTING_NetjailTopology.
- *
- * @param topology The GNUNET_TESTING_NetjailTopology to be deallocated.
- */
-void
-GNUNET_TESTING_free_topology (struct GNUNET_TESTING_NetjailTopology *topology);
-
-
-/**
- * Calculate the unique id identifying a node from a given connction.
- *
- * @param node_connection The connection we calculate the id from.
- * @param topology The topology we get all needed information from.
- * @return The unique id of the node from the connection.
- */
-unsigned int
-GNUNET_TESTING_calculate_num (struct
-                              GNUNET_TESTING_NodeConnection *node_connection,
-                              struct GNUNET_TESTING_NetjailTopology *topology);
-
-
-/**
  * Retrieve the public key from the test system with the unique node id.
  *
  * @param num The unique node id.
@@ -744,6 +678,7 @@ GNUNET_TESTING_get_trait (const struct GNUNET_TESTING_Trait *traits,
  * Call #op on all simple traits.
  */
 #define GNUNET_TESTING_SIMPLE_TRAITS(op) \
+  op (batch_cmds, struct GNUNET_TESTING_Command *) \
   op (process, struct GNUNET_OS_Process *)
 
 
