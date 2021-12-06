@@ -206,7 +206,7 @@ read_from_log (void *cls)
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "read_from_log end\n");
   fclose (cs->stream);
-  GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_MILLISECONDS,
+  GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_MINUTES,
                                 &read_from_log,
                                 cs);
   /*if (NULL == fgets (line, MAX_LINE_LENGTH, cs->stream))
