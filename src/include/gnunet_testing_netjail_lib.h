@@ -427,6 +427,11 @@ GNUNET_TESTING_cmd_barrier_create (
 
 
 struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_barrier_setup_finished (
+  const char *label);
+
+
+struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_barrier_reached (
   const char *label,
   const char *barrier_label);
