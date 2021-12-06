@@ -670,7 +670,8 @@ warn_no_client_continue (void *cls)
  * @return #GNUNET_OK on success, #GNUNET_SYSERR if the client was dropped
  */
 static int
-service_client_mst_cb (void *cls, const struct GNUNET_MessageHeader *message)
+service_client_mst_cb (void *cls,
+                       const struct GNUNET_MessageHeader *message)
 {
   struct GNUNET_SERVICE_Client *client = cls;
 
@@ -703,10 +704,13 @@ static void
 service_client_recv (void *cls)
 {
   struct GNUNET_SERVICE_Client *client = cls;
-  int ret;
+  enum GNUNET_GenericReturnValue ret;
 
   client->recv_task = NULL;
-  ret = GNUNET_MST_read (client->mst, client->sock, GNUNET_NO, GNUNET_YES);
+  ret = GNUNET_MST_read (client->mst,
+                         client->sock,
+                         GNUNET_NO,
+                         GNUNET_YES);
   if (GNUNET_SYSERR == ret)
   {
     /* client closed connection (or IO error) */
