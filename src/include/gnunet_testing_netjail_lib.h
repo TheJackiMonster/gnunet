@@ -431,15 +431,11 @@ GNUNET_TESTING_cmd_barrier_setup_finished (
   const char *label);
 
 
+// Wait for barrier to be reached by all;
+// async version implies reached but does not
+// wait on other peers to reach it.
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_barrier_reached (
-  const char *label,
-  const char *barrier_label);
-
-
-// Wait for barrier to be reached by all, implies reached!
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_barrier_await (
   const char *label,
   const char *barrier_label);
 
