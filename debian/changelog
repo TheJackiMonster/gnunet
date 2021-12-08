@@ -1,3 +1,9 @@
+gnunet (0.15.3-1) unstable; urgency=low
+
+  * Packaging latest code with bugfixes in libgnunetpq (and others) from upstream.
+
+ -- Christian Grothoff <grothoff@gnu.org>  Wed, 08 Dec 2021 21:14:18 +0200
+
 gnunet (0.15.3) unstable; urgency=low
 
   * New upstream release, bumping version.
