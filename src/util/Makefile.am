@@ -61,6 +61,7 @@ libgnunetutil_la_SOURCES = \
   container_multihashmap32.c \
   crypto_symmetric.c \
   crypto_crc.c \
+  crypto_cs.c \
   crypto_ecc.c \
   crypto_ecc_gnsrecord.c \
   $(DLOG) \
@@ -253,6 +254,7 @@ libgnunet_plugin_utiltest_la_LDFLAGS = \
 
 if HAVE_BENCHMARKS
  BENCHMARKS = \
+  perf_crypto_cs \
   perf_crypto_hash \
   perf_crypto_rsa \
   perf_crypto_paillier \
@@ -289,6 +291,7 @@ check_PROGRAMS = \
  test_container_heap \
  test_crypto_symmetric \
  test_crypto_crc \
+ test_crypto_cs \
  test_crypto_ecdsa \
  test_crypto_eddsa \
  test_crypto_ecdhe \
@@ -449,6 +452,12 @@ test_crypto_crc_SOURCES = \
 test_crypto_crc_LDADD = \
  libgnunetutil.la
 
+test_crypto_cs_SOURCES = \
+ test_crypto_cs.c
+test_crypto_cs_LDADD = \
+ libgnunetutil.la \
+ -lsodium
+
 test_crypto_ecdsa_SOURCES = \
  test_crypto_ecdsa.c
 test_crypto_ecdsa_LDADD = \
@@ -602,6 +611,11 @@ test_speedup_LDADD = \
 test_uri_SOURCES = \
  test_uri.c
 test_uri_LDADD = \
+ libgnunetutil.la
+
+perf_crypto_cs_SOURCES = \
+ perf_crypto_cs.c
+perf_crypto_cs_LDADD = \
  libgnunetutil.la
 
 perf_crypto_hash_SOURCES = \
