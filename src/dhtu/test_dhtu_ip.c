@@ -37,14 +37,9 @@ main (int argc,
       char *const *argv)
 {
   struct GNUNET_TESTING_Command commands[] = {
-    GNUNET_TESTING_cmd_netjail_start ("netjail-start",
-                                      CONFIG_FILE),
-    GNUNET_TESTING_cmd_netjail_stop ("netjail-stop",
-                                     CONFIG_FILE),
     GNUNET_TESTING_cmd_end ()
   };
 
-  return GNUNET_TESTING_main (NULL,
-                              commands,
+  return GNUNET_TESTING_main (commands,
                               TIMEOUT);
 }

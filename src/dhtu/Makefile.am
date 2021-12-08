@@ -55,6 +55,18 @@ libgnunettestingdhtu_la_LDFLAGS = \
  $(GN_LIB_LDFLAGS) \
  -version-info 0:0:0
 
+
+
+test_dhtu_ip_SOURCES = \
+ test_dhtu_ip.c
+test_dhtu_ip_LDADD = \
+ $(top_builddir)/src/testing/libgnunettesting.la \
+ $(top_builddir)/src/arm/libgnunetarm.la \
+ $(top_builddir)/src/util/libgnunetutil.la
+
+check_PROGRAMS = \
+ test_dhtu_ip
+
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
 TESTS = \
