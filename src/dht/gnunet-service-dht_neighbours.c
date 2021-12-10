@@ -963,8 +963,6 @@ GDS_am_closest_peer (const struct GNUNET_HashCode *key,
                                                    key);
     if (other_bits > bits)
       return GNUNET_NO;
-    if (other_bits == bits)     /* We match the same number of bits */
-      return GNUNET_YES;
     pos = pos->next;
   }
   /* No peers closer, we are the closest! */
@@ -1924,6 +1922,7 @@ handle_find_peer (const struct GNUNET_PeerIdentity *sender,
   }
 
   /* then, also consider sending a random HELLO from the closest bucket */
+  /* FIXME: How can this be true? Shouldnt we just do find_bucket() ? */
   if (0 == memcmp (&my_identity_hash,
                    key,
                    sizeof(struct GNUNET_HashCode)))
