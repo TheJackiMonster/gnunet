@@ -50,6 +50,7 @@ extern "C" {
 #endif
 #endif
 
+#include <stdbool.h>
 #include <sodium.h>
 
 /**
