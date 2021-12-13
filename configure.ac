@@ -1232,9 +1232,11 @@ AC_SUBST([JAVAPORT])
 AC_ARG_ENABLE([experimental],
   [AS_HELP_STRING([--enable-experimental],
                   [enable experimental code paths (default is no)])],
-  [enable_experimental="${enableval}"]
-  [enable_experimental="no"])
-AM_CONDITIONAL([HAVE_EXPERIMENTAL], [test "x$enable_experimental" = "xyes"])
+  [AS_IF([test "x$enableval" = "xno"],
+         [enable_experimental=0],
+         [enable_experimental=1])],
+  [enable_experimental=0])
+AM_CONDITIONAL([HAVE_EXPERIMENTAL], [test "x$enable_experimental" = "x1"])
 
 # check if malicious code should be compiled (for testing)
 AC_ARG_ENABLE([malicious],
@@ -1489,13 +1491,13 @@ AS_IF([test "x$enable_java_ports" = "xyes"],
   [java_msg="no"])
 
 # experimental code is enabled
-AS_IF([test "x$enable_experimental" = "xyes"],
+AS_IF([test "x$enable_experimental" = "x1"],
   [experimental_msg="yes"],
   [experimental_msg="no"])
 
 # experimental code for transport is enabled
 transport_msg="tcp udp unix http"
-AS_IF([test "x$build_target" = "xlinux" && test "x$enable_experimental" = "xyes"],
+AS_IF([test "x$build_target" = "xlinux" && test "x$enable_experimental" = "x1"],
   [transport_msg="tcp udp unix http wlan"])
 
 # libidn version

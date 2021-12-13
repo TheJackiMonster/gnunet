@@ -523,6 +523,7 @@ src/util/container_multishortmap.c
 src/util/container_multiuuidmap.c
 src/util/crypto_abe.c
 src/util/crypto_crc.c
+src/util/crypto_cs.c
 src/util/crypto_ecc.c
 src/util/crypto_ecc_dlog.c
 src/util/crypto_ecc_gnsrecord.c
