@@ -51,6 +51,7 @@ libgnunet_plugin_gnsrecord_abd_la_SOURCES = \
 libgnunet_plugin_gnsrecord_abd_la_LIBADD = \
 	libgnunetabd.la \
   $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   $(LTLIBINTL)
 libgnunet_plugin_gnsrecord_abd_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
@@ -64,6 +65,7 @@ gnunet_service_abd_LDADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
 	$(top_builddir)/src/gns/libgnunetgns.la \
 	$(top_builddir)/src/namestore/libgnunetnamestore.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(GN_LIBINTL)
 
