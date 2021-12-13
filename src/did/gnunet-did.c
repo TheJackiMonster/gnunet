@@ -56,38 +56,98 @@ static int attr_get;
 static int attr_create;
 
 /**
+ * Attribute show
+ */
+static int attr_show;
+
+/**
  * Attribute did
  */
 static char *attr_did;
 
 /**
- * Attribute did
+ * Attribute ego
  */
 static char *attr_ego;
 
+/**
+ * Attribute name
+ */
+static char *attr_name;
 
-static struct GNUNET_GNS_Handle *gns_handle;
-static struct GNUNET_NAMESTORE_Handle *namestore_handle;
-const static struct GNUNET_CONFIGURATRION_Handle * my_cfg;
+static struct GNUNET_GNS_Handle * gns_handle;
+static struct GNUNET_NAMESTORE_Handle * namestore_handle;
+static struct GNUNET_IDENTITY_Handle * identity_handle;
+const static struct GNUNET_CONFIGURATION_Handle * my_cfg;
 
 // TODO
-// static void get_did_for_ego();
 // static void replace_did_document(); - use remove_did_document and add_did_document
+// eddsa only
+// welche properties? 
+// cleans?
 
 // Add a data DID Document type
-
-// Should the module only store and retrieve a DID document or also generate and cofigure it?
-// static void generate_did_document();
 
 /**
  * @brief Disconnect and shutdown
  * @param cls closure
  */
 static void
-cleanup(void * cls){
+cleanup(void * cls)
+{
 	GNUNET_GNS_disconnect(gns_handle);
 	GNUNET_NAMESTORE_disconnect(namestore_handle);
+	GNUNET_IDENTITY_disconnect(identity_handle);
 	GNUNET_SCHEDULER_shutdown();
+}
+
+/**
+ * @brief Callback for ego loockup of get_did_for_ego()
+ * 
+ * @param cls closure
+ * @param ego the returned ego
+ */
+static void
+get_did_for_ego_lookup_cb(void *cls, struct GNUNET_IDENTITY_Ego * ego)
+{
+  if(ego == NULL) {
+    printf("EGO not found\n");
+    GNUNET_SCHEDULER_add_now(&cleanup, NULL);
+    ret = 1;
+    return;
+  }
+
+  struct GNUNET_IDENTITY_PublicKey pkey; // Get Public key
+  GNUNET_IDENTITY_ego_get_public_key(ego, &pkey);
+
+  const char * pkey_str = GNUNET_IDENTITY_public_key_to_string(&pkey); // Convert public key to string
+  char did_str[71]; // 58 + 12 + 1= 71
+  sprintf(did_str, "did:reclaim:%s", pkey_str); // Convert the public key to a DID str
+
+  printf("%s\n", did_str);
+  GNUNET_SCHEDULER_add_now(&cleanup, NULL);
+  ret = 0;
+  return;
+}
+
+/**
+ * @brief Get the DID for a given EGO
+ * 
+ */
+static void
+get_did_for_ego()
+{
+  if(attr_ego != NULL){
+		GNUNET_IDENTITY_ego_lookup(my_cfg,
+		                           attr_ego,
+		                           &get_did_for_ego_lookup_cb,
+		                           NULL);
+  } else {
+    printf("Set the EGO argument to get the DID for a given EGO\n");
+    GNUNET_SCHEDULER_add_now(&cleanup, NULL);
+    ret = 1;
+    return;
+  }
 }
 
 
@@ -125,10 +185,12 @@ print_did_document(
 	uint32_t rd_count,
 	const struct GNUNET_GNSRECORD_Data *rd)
 {
+	printf("Going to print did\n");
 	// TODO: Remove "store.sock" at the end of print
 	if (rd_count != 1)
 	{
 		printf("An ego should only have one DID Document");
+		GNUNET_SCHEDULER_add_now(cleanup, NULL);
 		ret = 1;
 		return;
 	}
@@ -148,12 +210,16 @@ resolve_did_document()
 {
 	if (attr_did == NULL) {
 		printf("Set DID option to resolve DID\n");
+		GNUNET_SCHEDULER_add_now(cleanup, NULL);
+		ret = 1;
+		return;
 	}
 
 	struct GNUNET_IDENTITY_PublicKey pkey;
 	get_pkey_from_attr_did(&pkey);
 
 	// TODO: Check the type of returned records
+	printf("Start GNS lockup\n");
 	GNUNET_GNS_lookup(gns_handle, "didd", &pkey, GNUNET_DNSPARSER_TYPE_TXT, GNUNET_GNS_LO_DEFAULT, &print_did_document, NULL);
 }
 
@@ -203,13 +269,8 @@ remove_did_ego_lookup_cb(void *cls, struct GNUNET_IDENTITY_Ego * ego){
 static void
 remove_did_document()
 {
-	if(attr_did == NULL && attr_ego == NULL) {
-		printf("Remove requieres an ego or did option\n");
-		GNUNET_SCHEDULER_add_now(cleanup, NULL);
-		ret = 1;
-		return;
-	} else if(attr_did != NULL && attr_ego != NULL) {
-		printf("Only set one of the EGO or DID options\n");
+	if(attr_ego == NULL) {
+		printf("Remove requieres an ego option\n");
 		GNUNET_SCHEDULER_add_now(cleanup, NULL);
 		ret = 1;
 		return;
@@ -218,48 +279,24 @@ remove_did_document()
 		                           attr_ego,
 		                           &remove_did_ego_lookup_cb,
 		                           NULL);
-	} else if (attr_did != NULL) {
-		// TODO: Use did->pkey->ego->skey to remove did document
-		// struct GNUNET_IDENTITY_PublicKey pkey;
-		// get_pkey_from_attr_did(&pkey);
-		printf("Remove by DID not supported\n");
+	} else {
+		printf("Something during the remove went wrong. Make sure you set the options correct\n");
 		GNUNET_SCHEDULER_add_now(&cleanup, NULL);
 		ret = 1;
 		return;
-	} else {
-		printf("Something during the remove went wrong. Make sure you set the options correct\n");
 	}
 }
 
 
 /**
- * @brief Create ad did store DID in Namestore cb 
+ * @brief Create a did generate did object
  * 
+ * @param pkey 
+ * @return void* Return pointer to the DID Document
  */
-static void
-create_did_store_cb(void *cls, int32_t success, const char *emsg){
-  free(cls);
-
-  printf("DID Document has been stored to namestore");
-  GNUNET_SCHEDULER_add_now(&cleanup, NULL);
-  ret = 0;
-  return;
-}
-
-/**
- * @brief Create a did ego lockup cb
- * 
- * @param cls 
- * @param ego 
- */
-static void 
-create_did_ego_lockup_cb(void *cls, struct GNUNET_IDENTITY_Ego * ego)
+char *
+create_did_generate(struct GNUNET_IDENTITY_PublicKey pkey)
 {
-	struct GNUNET_IDENTITY_PublicKey pkey; // Get Public key
-  GNUNET_IDENTITY_ego_get_public_key(ego, &pkey);
-  //
-
-  //const ssize_t pkey_len = GNUNET_IDENTITY_key_get_length(&pkey); // Get length of public key
   const char * pkey_str = GNUNET_IDENTITY_public_key_to_string(&pkey); // Convert public key to string
   char did_str[71]; // 58 + 12 + 1= 71
   char pkey_multibase_str[60]; // 58 + 1 + 1 = 60
@@ -291,7 +328,7 @@ create_did_ego_lockup_cb(void *cls, struct GNUNET_IDENTITY_Ego * ego)
   json_object_set(didd, "authentication", auth_json);
 
   // Encode DID Document as JSON string
-  void * didd_str = (void *) json_dumps(didd, JSON_INDENT(2));
+  char * didd_str = json_dumps(didd, JSON_INDENT(2));
   if(didd_str == NULL)
   {
     printf("DID Document could not be encoded");
@@ -300,40 +337,139 @@ create_did_ego_lockup_cb(void *cls, struct GNUNET_IDENTITY_Ego * ego)
     return;
   }
 
-  // Print DID Docuement to stdout
-  printf("%s\n", (char *) didd_str);
+	// TODO: FREEEEEE
 
-  // Save DID Document to GNS
+	return didd_str;
+}
+
+/**
+ * @brief Create a DID. Store DID in Namestore cb 
+ * 
+ */
+static void
+create_did_store_cb(void *cls, int32_t success, const char *emsg){
+  printf("DID Document has been stored to namestore\n");
+  GNUNET_SCHEDULER_add_now(&cleanup, NULL);
+  ret = 0;
+  return;
+}
+
+/**
+ * @brief Create a did. Store DID in Namestore 
+ * 
+ * @param didd_str String endoced DID Docuement 
+ * @param ego Identity whos DID Document is stored
+ */
+static void
+create_did_store(char * didd_str, struct GNUNET_IDENTITY_Ego * ego)
+{
 	const struct GNUNET_IDENTITY_PrivateKey * skey = GNUNET_IDENTITY_ego_get_private_key(ego);
   const struct GNUNET_GNSRECORD_Data record_data = {
-    didd_str,
+    (void *) didd_str,
     (uint64_t) 86400000000, // =1d TODO: Set to user preference
     strlen(didd_str), 
     GNUNET_GNSRECORD_typename_to_number("TXT"),
     0
   };
+
   GNUNET_NAMESTORE_records_store( namestore_handle,
                                   skey,
                                   "didd",
                                   1,
                                   &record_data,
                                   &create_did_store_cb,
-                                  didd_str);
+                                  NULL);
 }
 
 /**
- * @brief Create a did document object
+ * @brief Create a did ego lockup cb
+ * 
+ * @param cls 
+ * @param ego 
  */
+static void 
+create_did_ego_lockup_cb(void *cls, struct GNUNET_IDENTITY_Ego * ego)
+{
+  if(ego == NULL) 
+  {
+    printf("EGO not found\n");
+    GNUNET_SCHEDULER_add_now(&cleanup, NULL);
+    ret = 1;
+    return;
+  }
+
+  struct GNUNET_IDENTITY_PublicKey pkey; // Get Public key
+  GNUNET_IDENTITY_ego_get_public_key(ego, &pkey);
+
+	printf("DEBUG: Key type: %d\n", pkey.type);
+
+	// check if the key is of right type (EDDSA)
+	// What does "Defined by the GNS zone type value in NBO" mean?
+	//if (pkey.type != GNUNET_IDENTITY_TYPE_EDDSA) {
+	if (false) 
+	{
+		printf("The EGO has to have an EDDSA key pair\n");
+		GNUNET_SCHEDULER_add_now(&cleanup, NULL);
+		ret = 1;
+		return;
+	}
+
+	// TODO: Check if a an option with a DID Docuement was supplied
+
+	// Generate DID Docuement from public key
+	char * didd_str = create_did_generate(pkey);
+
+  // Print DID Docuement to stdout
+  printf("%s\n", didd_str);
+
+	// Store the DID Docuement
+	create_did_store(didd_str, ego);
+
+  // Save DID Document String to GNS
+  free(didd_str);
+}
+
+/**
+ * @brief Create a did document - Create a new identity first
+ */
+static void 
+create_did_document_ego_create_cb(void *cls,
+  								  const struct GNUNET_IDENTITY_PrivateKey *pk,
+  								  const char *emsg)
+{
+	if (emsg != NULL){
+		printf("Something went wrong during the creation of a new identity\n");
+		printf("%s\n", emsg);
+    GNUNET_SCHEDULER_add_now(&cleanup, NULL);
+    ret = 1;
+    return;
+	}
+
+	const char * ego_name = (char *) cls;
+
+	GNUNET_IDENTITY_ego_lookup(my_cfg,
+	                           ego_name,
+	                           &create_did_ego_lockup_cb,
+	                           NULL);
+}
+
 static void 
 create_did_document()
 {
-  if(attr_ego != NULL){
+  if(attr_name != NULL){
+		GNUNET_IDENTITY_create(identity_handle,
+													 attr_name,
+													 NULL,
+													 GNUNET_IDENTITY_TYPE_EDDSA,
+													 &create_did_document_ego_create_cb,
+													 (void *) attr_name);
+	} else if (attr_ego != NULL) {
 		GNUNET_IDENTITY_ego_lookup(my_cfg,
 		                           attr_ego,
 		                           &create_did_ego_lockup_cb,
 		                           NULL);
   } else {
-    printf("Set the EGO argument to create a new DID Document\n");
+    printf("Set the NAME or the EGO argument to create a new DID(-Document)\n");
     GNUNET_SCHEDULER_add_now(&cleanup, NULL);
     ret = 1;
     return;
@@ -341,7 +477,7 @@ create_did_document()
 }
 
 
-static void
+static void 
 add_did_document()
 {
 	printf("Do nothing\n");
@@ -356,6 +492,7 @@ run (void *cls,
 {
 	gns_handle = GNUNET_GNS_connect(c);
 	namestore_handle = GNUNET_NAMESTORE_connect(c);
+	identity_handle = GNUNET_IDENTITY_connect(c, NULL, NULL);
 	my_cfg = c;
 
 	// check if GNS_handle could connect
@@ -370,10 +507,13 @@ run (void *cls,
 		return;
 	}
 
-	// check for more than one argument given
-	//if (NULL != attr_did && NULL != attr_delete ||
-	//    NULL != attr_did && NULL != attr_add ||
-	//    NULL != attr_delete && NULL != attr_add)
+	// check if IDENTITY_handle could connect
+	if(identity_handle == NULL) {
+		ret = 1;
+		return;
+	}
+
+	// TODO: Check for more than one argument given
 	if(false)
 	{
 		ret = 1;
@@ -389,6 +529,8 @@ run (void *cls,
 		remove_did_document();
 	} else if (1 == attr_create) {
     create_did_document();
+	} else if (1 == attr_show) {
+    get_did_for_ego();
   } else {
 		// No Argument found
 		printf("No correct argument combination found. Use gnunet-did -h for help");
@@ -414,6 +556,10 @@ main (int argc, char *const argv[])
 		                           "get",
 		                           gettext_noop ("Get the DID Document associated with the given DID"),
 		                           &attr_get),
+		GNUNET_GETOPT_option_flag ('s',
+		                           "show",
+		                           gettext_noop ("Show the DID for a given ego"),
+		                           &attr_show),
 		GNUNET_GETOPT_option_flag ('r',
 		                           "remove",
 		                           gettext_noop ("Remove the DID Document with DID from GNUNET"),
@@ -428,6 +574,11 @@ main (int argc, char *const argv[])
 		                             "EGO",
 		                             gettext_noop ("The EGO to work with"),
 		                             &attr_ego),
+		GNUNET_GETOPT_option_string ('n',
+		                             "name",
+		                             "NAME",
+		                             gettext_noop ("The name of the created EGO"),
+		                             &attr_name),
 		GNUNET_GETOPT_OPTION_END
 	};
 
