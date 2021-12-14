@@ -38,7 +38,7 @@
  * @param value not used (NULL)
  * @return #GNUNET_NO (do not continue, not an error)
  */
-static int
+static enum GNUNET_GenericReturnValue
 print_version (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
                void *scls,
                const char *option,
@@ -53,12 +53,6 @@ print_version (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
 }
 
 
-/**
- * Define the option to print the version of
- * the application (-v option)
- *
- * @param version string with the version number
- */
 struct GNUNET_GETOPT_CommandLineOption
 GNUNET_GETOPT_option_version (const char *version)
 {
@@ -90,7 +84,7 @@ GNUNET_GETOPT_option_version (const char *version)
  * @param value not used (NULL)
  * @return #GNUNET_NO (do not continue, not an error)
  */
-static int
+static enum GNUNET_GenericReturnValue
 format_help (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
              void *scls,
              const char *option,
@@ -192,12 +186,6 @@ OUTER:
 }
 
 
-/**
- * Defining the option to print the command line
- * help text (-h option).
- *
- * @param about string with brief description of the application
- */
 struct GNUNET_GETOPT_CommandLineOption
 GNUNET_GETOPT_option_help (const char *about)
 {
@@ -229,7 +217,7 @@ GNUNET_GETOPT_option_help (const char *about)
  * @param value not used (NULL)
  * @return #GNUNET_OK
  */
-static int
+static enum GNUNET_GenericReturnValue
 increment_value (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
                  void *scls,
                  const char *option,
@@ -245,15 +233,6 @@ increment_value (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
 }
 
 
-/**
- * Increment @a val each time the option flag is given by one.
- *
- * @param shortName short name of the option
- * @param name long name of the option
- * @param argumentHelp help text for the option argument
- * @param description long help text for the option
- * @param[out] val increment by 1 each time the option is present
- */
 struct GNUNET_GETOPT_CommandLineOption
 GNUNET_GETOPT_option_increment_uint (char shortName,
                                      const char *name,
@@ -272,12 +251,6 @@ GNUNET_GETOPT_option_increment_uint (char shortName,
 }
 
 
-/**
- * Define the '-V' verbosity option.  Using the option more
- * than once increments @a level each time.
- *
- * @param[out] level set to the verbosity level
- */
 struct GNUNET_GETOPT_CommandLineOption
 GNUNET_GETOPT_option_verbose (unsigned int *level)
 {
@@ -308,7 +281,7 @@ GNUNET_GETOPT_option_verbose (unsigned int *level)
  * @param value not used (NULL)
  * @return #GNUNET_OK
  */
-static int
+static enum GNUNET_GenericReturnValue
 set_one (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
          void *scls,
          const char *option,
@@ -324,16 +297,6 @@ set_one (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
 }
 
 
-/**
- * Allow user to specify a flag (which internally means setting
- * an integer to 1/#GNUNET_YES/#GNUNET_OK.
- *
- * @param shortName short name of the option
- * @param name long name of the option
- * @param argumentHelp help text for the option argument
- * @param description long help text for the option
- * @param[out] val set to 1 if the option is present
- */
 struct GNUNET_GETOPT_CommandLineOption
 GNUNET_GETOPT_option_flag (char shortName,
                            const char *name,
@@ -366,7 +329,7 @@ GNUNET_GETOPT_option_flag (char shortName,
  * @param value actual value of the option (a string)
  * @return #GNUNET_OK
  */
-static int
+static enum GNUNET_GenericReturnValue
 set_string (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
             void *scls,
             const char *option,
@@ -383,15 +346,6 @@ set_string (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
 }
 
 
-/**
- * Allow user to specify a string.
- *
- * @param shortName short name of the option
- * @param name long name of the option
- * @param argumentHelp help text for the option argument
- * @param description long help text for the option
- * @param[out] str set to the string
- */
 struct GNUNET_GETOPT_CommandLineOption
 GNUNET_GETOPT_option_string (char shortName,
                              const char *name,
@@ -413,12 +367,6 @@ GNUNET_GETOPT_option_string (char shortName,
 }
 
 
-/**
- * Define the '-L' log level option.  Note that we do not check
- * that the log level is valid here.
- *
- * @param[out] level set to the log level
- */
 struct GNUNET_GETOPT_CommandLineOption
 GNUNET_GETOPT_option_loglevel (char **level)
 {
@@ -447,7 +395,7 @@ GNUNET_GETOPT_option_loglevel (char **level)
  * @param value actual value of the option (a string)
  * @return #GNUNET_OK
  */
-static int
+static enum GNUNET_GenericReturnValue
 set_filename (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
               void *scls,
               const char *option,
@@ -464,15 +412,6 @@ set_filename (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
 }
 
 
-/**
- * Allow user to specify a filename (automatically path expanded).
- *
- * @param shortName short name of the option
- * @param name long name of the option
- * @param argumentHelp help text for the option argument
- * @param description long help text for the option
- * @param[out] str set to the string
- */
 struct GNUNET_GETOPT_CommandLineOption
 GNUNET_GETOPT_option_filename (char shortName,
                                const char *name,
@@ -494,11 +433,6 @@ GNUNET_GETOPT_option_filename (char shortName,
 }
 
 
-/**
- * Allow user to specify log file name (-l option)
- *
- * @param[out] logfn set to the name of the logfile
- */
 struct GNUNET_GETOPT_CommandLineOption
 GNUNET_GETOPT_option_logfile (char **logfn)
 {
@@ -517,11 +451,6 @@ GNUNET_GETOPT_option_logfile (char **logfn)
 }
 
 
-/**
- * Allow user to specify configuration file name (-c option)
- *
- * @param[out] fn set to the name of the configuration file
- */
 struct GNUNET_GETOPT_CommandLineOption
 GNUNET_GETOPT_option_cfgfile (char **fn)
 {
@@ -552,7 +481,7 @@ GNUNET_GETOPT_option_cfgfile (char **fn)
  * @param value actual value of the option as a string.
  * @return #GNUNET_OK if parsing the value worked
  */
-static int
+static enum GNUNET_GenericReturnValue
 set_ulong (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
            void *scls,
            const char *option,
@@ -573,15 +502,6 @@ set_ulong (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
 }
 
 
-/**
- * Allow user to specify an `unsigned long long`
- *
- * @param shortName short name of the option
- * @param name long name of the option
- * @param argumentHelp help text for the option argument
- * @param description long help text for the option
- * @param[out] val set to the value specified at the command line
- */
 struct GNUNET_GETOPT_CommandLineOption
 GNUNET_GETOPT_option_ulong (char shortName,
                             const char *name,
@@ -616,7 +536,7 @@ GNUNET_GETOPT_option_ulong (char shortName,
  * @param value actual value of the option as a string.
  * @return #GNUNET_OK if parsing the value worked
  */
-static int
+static enum GNUNET_GenericReturnValue
 set_timetravel_time (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
                      void *scls,
                      const char *option,
@@ -664,15 +584,6 @@ set_timetravel_time (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
 }
 
 
-/**
- * Allow user to specify a `long long` with an offset to add to the current
- * system time to construct the time seen by the application. Used for
- * debugging / testing.
- *
- * @param shortName short name of the option
- * @param name long name of the option
- * @param[out] val set to the time specified at the command line
- */
 struct GNUNET_GETOPT_CommandLineOption
 GNUNET_GETOPT_option_timetravel (char shortName,
                                  const char *name)
@@ -684,8 +595,7 @@ GNUNET_GETOPT_option_timetravel (char shortName,
     .description = _ (
       "modify system time by given offset (for debugging/testing only)"),
     .require_argument = 1,
-    .processor =
-      &set_timetravel_time
+    .processor = &set_timetravel_time
   };
 
   return clo;
@@ -705,7 +615,7 @@ GNUNET_GETOPT_option_timetravel (char shortName,
  * @param value actual value of the option as a string.
  * @return #GNUNET_OK if parsing the value worked
  */
-static int
+static enum GNUNET_GenericReturnValue
 set_relative_time (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
                    void *scls,
                    const char *option,
@@ -725,16 +635,6 @@ set_relative_time (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
 }
 
 
-/**
- * Allow user to specify a `struct GNUNET_TIME_Relative`
- * (using human-readable "fancy" time).
- *
- * @param shortName short name of the option
- * @param name long name of the option
- * @param argumentHelp help text for the option argument
- * @param description long help text for the option
- * @param[out] val set to the time specified at the command line
- */
 struct GNUNET_GETOPT_CommandLineOption
 GNUNET_GETOPT_option_relative_time (char shortName,
                                     const char *name,
@@ -748,8 +648,7 @@ GNUNET_GETOPT_option_relative_time (char shortName,
     .argumentHelp = argumentHelp,
     .description = description,
     .require_argument = 1,
-    .processor =
-      &set_relative_time,
+    .processor = &set_relative_time,
     .scls = (void *) val
   };
 
@@ -770,7 +669,7 @@ GNUNET_GETOPT_option_relative_time (char shortName,
  * @param value actual value of the option as a string.
  * @return #GNUNET_OK if parsing the value worked
  */
-static int
+static enum GNUNET_GenericReturnValue
 set_absolute_time (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
                    void *scls,
                    const char *option,
@@ -790,16 +689,6 @@ set_absolute_time (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
 }
 
 
-/**
- * Allow user to specify a `struct GNUNET_TIME_Absolute`
- * (using human-readable "fancy" time).
- *
- * @param shortName short name of the option
- * @param name long name of the option
- * @param argumentHelp help text for the option argument
- * @param description long help text for the option
- * @param[out] val set to the time specified at the command line
- */
 struct GNUNET_GETOPT_CommandLineOption
 GNUNET_GETOPT_option_absolute_time (char shortName,
                                     const char *name,
@@ -813,8 +702,71 @@ GNUNET_GETOPT_option_absolute_time (char shortName,
     .argumentHelp = argumentHelp,
     .description = description,
     .require_argument = 1,
-    .processor =
-      &set_absolute_time,
+    .processor = &set_absolute_time,
+    .scls = (void *) val
+  };
+
+  return clo;
+}
+
+
+/**
+ * Set an option of type 'struct GNUNET_TIME_Timestamp' from the command line.
+ * A pointer to this function should be passed as part of the
+ * 'struct GNUNET_GETOPT_CommandLineOption' array to initialize options
+ * of this type.  It should be followed by a pointer to a value of
+ * type 'struct GNUNET_TIME_Absolute'.
+ *
+ * @param ctx command line processing context
+ * @param scls additional closure (will point to the `struct GNUNET_TIME_Absolute`)
+ * @param option name of the option
+ * @param value actual value of the option as a string.
+ * @return #GNUNET_OK if parsing the value worked
+ */
+static enum GNUNET_GenericReturnValue
+set_timestamp (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
+               void *scls,
+               const char *option,
+               const char *value)
+{
+  struct GNUNET_TIME_Timestamp *t = scls;
+  struct GNUNET_TIME_Absolute abs;
+
+  (void) ctx;
+  if (GNUNET_OK !=
+      GNUNET_STRINGS_fancy_time_to_absolute (value,
+                                             &abs))
+  {
+    fprintf (stderr,
+             _ ("You must pass a timestamp to the `%s' option.\n"),
+             option);
+    return GNUNET_SYSERR;
+  }
+  if (0 != abs.abs_value_us % GNUNET_TIME_UNIT_SECONDS.rel_value_us)
+  {
+    fprintf (stderr,
+             _ ("The maximum precision allowed for timestamps is seconds.\n"));
+    return GNUNET_SYSERR;
+  }
+  t->abs_time = abs;
+  return GNUNET_OK;
+}
+
+
+struct GNUNET_GETOPT_CommandLineOption
+GNUNET_GETOPT_option_timestamp (char shortName,
+                                const char *name,
+                                const char *argumentHelp,
+                                const char *description,
+                                struct GNUNET_TIME_Timestamp *val)
+{
+  struct GNUNET_GETOPT_CommandLineOption clo = {
+    .shortName = shortName,
+    .name = name,
+    .argumentHelp = argumentHelp,
+    .description = description,
+    .require_argument = 1,
+    .processor = &set_timestamp,
     .scls = (void *) val
   };
 
@@ -835,7 +787,7 @@ GNUNET_GETOPT_option_absolute_time (char shortName,
  * @param value actual value of the option as a string.
  * @return #GNUNET_OK if parsing the value worked
  */
-static int
+static enum GNUNET_GenericReturnValue
 set_uint (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
           void *scls,
           const char *option,
@@ -864,15 +816,6 @@ set_uint (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
 }
 
 
-/**
- * Allow user to specify an unsigned integer.
- *
- * @param shortName short name of the option
- * @param name long name of the option
- * @param argumentHelp help text for the option argument
- * @param description long help text for the option
- * @param[out] val set to the value specified at the command line
- */
 struct GNUNET_GETOPT_CommandLineOption
 GNUNET_GETOPT_option_uint (char shortName,
                            const char *name,
@@ -907,7 +850,7 @@ GNUNET_GETOPT_option_uint (char shortName,
  * @param value actual value of the option as a string.
  * @return #GNUNET_OK if parsing the value worked
  */
-static int
+static enum GNUNET_GenericReturnValue
 set_uint16 (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
             void *scls,
             const char *option,
@@ -938,15 +881,6 @@ set_uint16 (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
 }
 
 
-/**
- * Allow user to specify an uint16_t.
- *
- * @param shortName short name of the option
- * @param name long name of the option
- * @param argumentHelp help text for the option argument
- * @param description long help text for the option
- * @param[out] val set to the value specified at the command line
- */
 struct GNUNET_GETOPT_CommandLineOption
 GNUNET_GETOPT_option_uint16 (char shortName,
                              const char *name,
@@ -998,7 +932,7 @@ struct Base32Context
  * @param value actual value of the option as a string.
  * @return #GNUNET_OK if parsing the value worked
  */
-static int
+static enum GNUNET_GenericReturnValue
 set_base32 (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
             void *scls,
             const char *option,
@@ -1036,17 +970,6 @@ free_bc (void *cls)
 }
 
 
-/**
- * Allow user to specify a binary value using Crockford
- * Base32 encoding.
- *
- * @param shortName short name of the option
- * @param name long name of the option
- * @param argumentHelp help text for the option argument
- * @param description long help text for the option
- * @param[out] val binary value decoded from Crockford Base32-encoded argument
- * @param val_size size of @a val in bytes
- */
 struct GNUNET_GETOPT_CommandLineOption
 GNUNET_GETOPT_option_base32_fixed_size (char shortName,
                                         const char *name,
@@ -1073,12 +996,6 @@ GNUNET_GETOPT_option_base32_fixed_size (char shortName,
 }
 
 
-/**
- * Make the given option mandatory.
- *
- * @param opt option to modify
- * @return @a opt with the mandatory flag set.
- */
 struct GNUNET_GETOPT_CommandLineOption
 GNUNET_GETOPT_option_mandatory (struct GNUNET_GETOPT_CommandLineOption opt)
 {
@@ -1087,12 +1004,6 @@ GNUNET_GETOPT_option_mandatory (struct GNUNET_GETOPT_CommandLineOption opt)
 }
 
 
-/**
- * Make the given option mutually exclusive with other options.
- *
- * @param opt option to modify
- * @return @a opt with the exclusive flag set.
- */
 struct GNUNET_GETOPT_CommandLineOption
 GNUNET_GETOPT_option_exclusive (struct GNUNET_GETOPT_CommandLineOption opt)
 {

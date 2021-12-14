@@ -54,6 +54,17 @@ struct GNUNET_TIME_Absolute
 };
 
 /**
+ * Rounded time for timestamps used by GNUnet, in seconds.
+ */
+struct GNUNET_TIME_Timestamp
+{
+  /**
+   * The actual value. Must be round number in seconds.
+   */
+  struct GNUNET_TIME_Absolute abs_time;
+};
+
+/**
  * Time for relative time used by GNUnet, in microseconds.
  * Always positive, so we can only refer to future time.
  */
@@ -89,17 +100,34 @@ struct GNUNET_TIME_AbsoluteNBO
    */
   uint64_t abs_value_us__ GNUNET_PACKED;
 };
+
+/**
+ * Time for timestamps used by GNUnet, in seconds and in network byte order.
+ */
+struct GNUNET_TIME_TimestampNBO
+{
+  /**
+   * The actual value. Must be round number in seconds.
+   */
+  struct GNUNET_TIME_AbsoluteNBO abs_time_nbo;
+};
+
 GNUNET_NETWORK_STRUCT_END
 
 /**
  * Relative time zero.
  */
-#define GNUNET_TIME_UNIT_ZERO     GNUNET_TIME_relative_get_zero_ ()
+#define GNUNET_TIME_UNIT_ZERO ((struct GNUNET_TIME_Relative){0})
 
 /**
  * Absolute time zero.
  */
-#define GNUNET_TIME_UNIT_ZERO_ABS GNUNET_TIME_absolute_get_zero_ ()
+#define GNUNET_TIME_UNIT_ZERO_ABS ((struct GNUNET_TIME_Absolute){0})
+
+/**
+ * Timestamp of zero.
+ */
+#define GNUNET_TIME_UNIT_ZERO_TS ((struct GNUNET_TIME_Timestamp){{0}})
 
 /**
  * One microsecond, our basic time unit.
@@ -154,13 +182,22 @@ GNUNET_NETWORK_STRUCT_END
  * Constant used to specify "forever".  This constant
  * will be treated specially in all time operations.
  */
-#define GNUNET_TIME_UNIT_FOREVER_REL GNUNET_TIME_relative_get_forever_ ()
+#define GNUNET_TIME_UNIT_FOREVER_REL \
+  ((struct GNUNET_TIME_Relative){UINT64_MAX})
 
 /**
  * Constant used to specify "forever".  This constant
  * will be treated specially in all time operations.
  */
-#define GNUNET_TIME_UNIT_FOREVER_ABS GNUNET_TIME_absolute_get_forever_ ()
+#define GNUNET_TIME_UNIT_FOREVER_ABS \
+  ((struct GNUNET_TIME_Absolute){UINT64_MAX})
+
+/**
+ * Constant used to specify "forever".  This constant
+ * will be treated specially in all time operations.
+ */
+#define GNUNET_TIME_UNIT_FOREVER_TS \
+  ((struct GNUNET_TIME_Timestamp){{UINT64_MAX}})
 
 
 /**
@@ -183,6 +220,47 @@ GNUNET_NETWORK_STRUCT_END
 
 
 /**
+ * Convert @a ts to human-readable timestamp.
+ * Note that the returned value will be overwritten if this function
+ * is called again.
+ *
+ * @param ts the timestamp to convert
+ * @return statically allocated string, will change on the next call
+ */
+const char *
+GNUNET_TIME_timestamp2s (struct GNUNET_TIME_Timestamp ts);
+
+
+/**
+ * @ingroup time
+ * Like `asctime`, except for GNUnet time.  Converts a GNUnet internal
+ * absolute time (which is in UTC) to a string in local time.
+ * Note that the returned value will be overwritten if this function
+ * is called again.
+ *
+ * @param t the absolute time to convert
+ * @return timestamp in human-readable form in local time
+ */
+const char *
+GNUNET_TIME_absolute2s (struct GNUNET_TIME_Absolute ts);
+
+
+/**
+ * @ingroup time
+ * Give relative time in human-readable fancy format.
+ * This is one of the very few calls in the entire API that is
+ * NOT reentrant!
+ *
+ * @param delta time in milli seconds
+ * @param do_round are we allowed to round a bit?
+ * @return string in human-readable form
+ */
+const char *
+GNUNET_TIME_relative2s (struct GNUNET_TIME_Relative delta,
+                        bool do_round);
+
+
+/**
  * Randomized exponential back-off, starting at 1 ms
  * and going up by a factor of 2+r, where 0 <= r <= 0.5, up
  * to a maximum of the given threshold.
@@ -192,8 +270,8 @@ GNUNET_NETWORK_STRUCT_END
  * @return the next backoff time
  */
 struct GNUNET_TIME_Relative
-GNUNET_TIME_randomized_backoff (struct GNUNET_TIME_Relative rt, struct
-                                GNUNET_TIME_Relative threshold);
+GNUNET_TIME_randomized_backoff (struct GNUNET_TIME_Relative rt,
+                                struct GNUNET_TIME_Relative threshold);
 
 
 /**
@@ -290,27 +368,69 @@ GNUNET_TIME_relative_to_absolute (struct GNUNET_TIME_Relative rel);
 
 
 /**
- * Round a time value so that it is suitable for transmission
- * via JSON encodings.
+ * Convert relative time to a timestamp in the
+ * future.
  *
- * @param at time to round
- * @return #GNUNET_OK if time was already rounded, #GNUNET_NO if
- *         it was just now rounded
+ * @param rel relative time to convert
+ * @return timestamp that is "rel" in the future, or FOREVER if rel==FOREVER (or if we would overflow)
  */
-int
-GNUNET_TIME_round_abs (struct GNUNET_TIME_Absolute *at);
+struct GNUNET_TIME_Timestamp
+GNUNET_TIME_relative_to_timestamp (struct GNUNET_TIME_Relative rel);
 
 
 /**
- * Round a time value so that it is suitable for transmission
- * via JSON encodings.
+ * Round an absolute time to a timestamp.
  *
- * @param rt time to round
- * @return #GNUNET_OK if time was already rounded, #GNUNET_NO if
- *         it was just now rounded
+ * @param at time to round
+ * @return the result
  */
-int
-GNUNET_TIME_round_rel (struct GNUNET_TIME_Relative *rt);
+struct GNUNET_TIME_Timestamp
+GNUNET_TIME_absolute_to_timestamp (struct GNUNET_TIME_Absolute at);
+
+
+/**
+ * Get timestamp representing the current time.
+ *
+ * @return current time, rounded down to seconds
+ */
+struct GNUNET_TIME_Timestamp
+GNUNET_TIME_timestamp_get (void);
+
+
+/**
+ * Compare two absolute times.
+ *
+ * @param t1 first time
+ * @param op compare operator
+ * @param t2 second time
+ * @return true if @a t1 @a op @a t2
+ */
+#define GNUNET_TIME_absolute_cmp(t1,op,t2) \
+  (((void) (1 op 2), (t1).abs_value_us op (t2).abs_value_us))
+
+
+/**
+ * Compare two timestamps
+ *
+ * @param t1 first timestamp
+ * @param op compare operator
+ * @param t2 second timestamp
+ * @return true if @a t1 @a op @a t2
+ */
+#define GNUNET_TIME_timestamp_cmp(t1,op,t2) \
+  GNUNET_TIME_absolute_cmp ((t1).abs_time,op,(t2).abs_time)
+
+
+/**
+ * Compare two relative times.
+ *
+ * @param t1 first time
+ * @param op compare operator
+ * @param t2 second time
+ * @return true if @a t1 @a op @a t2
+ */
+#define GNUNET_TIME_relative_cmp(t1,op,t2) \
+  ((void) (1 op 2), (t1).rel_value_us op (t2).rel_value_us)
 
 
 /**
@@ -359,6 +479,30 @@ GNUNET_TIME_absolute_min (struct GNUNET_TIME_Absolute t1,
 struct GNUNET_TIME_Absolute
 GNUNET_TIME_absolute_max (struct GNUNET_TIME_Absolute t1,
                           struct GNUNET_TIME_Absolute t2);
+
+
+/**
+ * Return the maximum of two timestamps.
+ *
+ * @param t1 first timestamp
+ * @param t2 other timestamp
+ * @return timestamp that is smaller
+ */
+struct GNUNET_TIME_Timestamp
+GNUNET_TIME_timestamp_max (struct GNUNET_TIME_Timestamp t1,
+                           struct GNUNET_TIME_Timestamp t2);
+
+
+/**
+ * Return the minimum of two timestamps.
+ *
+ * @param t1 first timestamp
+ * @param t2 other timestamp
+ * @return timestamp that is smaller
+ */
+struct GNUNET_TIME_Timestamp
+GNUNET_TIME_timestamp_min (struct GNUNET_TIME_Timestamp t1,
+                           struct GNUNET_TIME_Timestamp t2);
 
 
 /**
@@ -530,6 +674,16 @@ GNUNET_TIME_absolute_hton (struct GNUNET_TIME_Absolute a);
 
 
 /**
+ * Convert timestamp to network byte order.
+ *
+ * @param t time to convert
+ * @return converted time value
+ */
+struct GNUNET_TIME_TimestampNBO
+GNUNET_TIME_timestamp_hton (struct GNUNET_TIME_Timestamp t);
+
+
+/**
  * Convert milliseconds after the UNIX epoch to absolute time.
  *
  * @param ms_after_epoch millisecond timestamp to convert
@@ -555,6 +709,15 @@ GNUNET_TIME_absolute_is_never (struct GNUNET_TIME_Absolute abs);
  */
 bool
 GNUNET_TIME_absolute_is_past (struct GNUNET_TIME_Absolute abs);
+
+
+/**
+ * Test if @a abs is truly zero.
+ *
+ * @return true if it is.
+ */
+bool
+GNUNET_TIME_absolute_is_zero (struct GNUNET_TIME_Absolute abs);
 
 
 /**
@@ -595,6 +758,15 @@ GNUNET_TIME_absolute_from_s (uint64_t s_after_epoch);
 
 
 /**
+ * Convert seconds after the UNIX epoch to timestamp.
+ *
+ * @param s_after_epoch seconds after epoch to convert
+ * @return converted time value
+ */struct GNUNET_TIME_Timestamp
+GNUNET_TIME_timestamp_from_s (uint64_t s_after_epoch);
+
+
+/**
  * Convert absolute time from network byte order.
  *
  * @param a time to convert
@@ -602,6 +774,16 @@ GNUNET_TIME_absolute_from_s (uint64_t s_after_epoch);
  */
 struct GNUNET_TIME_Absolute
 GNUNET_TIME_absolute_ntoh (struct GNUNET_TIME_AbsoluteNBO a);
+
+
+/**
+ * Convert timestamp from network byte order.
+ *
+ * @param tn time to convert
+ * @return converted time value
+ */
+struct GNUNET_TIME_Timestamp
+GNUNET_TIME_timestamp_ntoh (struct GNUNET_TIME_TimestampNBO tn);
 
 
 /**

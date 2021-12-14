@@ -40,7 +40,7 @@
  *            so immediately suitable for passing to `sqlite3_bind`-functions.
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
  */
-typedef int
+typedef enum GNUNET_GenericReturnValue
 (*GNUNET_SQ_QueryConverter)(void *cls,
                             const void *data,
                             size_t data_len,
@@ -156,8 +156,8 @@ GNUNET_SQ_query_param_absolute_time (const struct GNUNET_TIME_Absolute *x);
  * @param x pointer to the query parameter to pass
  */
 struct GNUNET_SQ_QueryParam
-GNUNET_SQ_query_param_absolute_time_nbo (const struct
-                                         GNUNET_TIME_AbsoluteNBO *x);
+GNUNET_SQ_query_param_absolute_time_nbo (
+  const struct GNUNET_TIME_AbsoluteNBO *x);
 
 
 /**
@@ -222,7 +222,7 @@ GNUNET_SQ_reset (sqlite3 *dbh,
  *   #GNUNET_YES if all results could be extracted
  *   #GNUNET_SYSERR if a result was invalid (non-existing field or NULL)
  */
-typedef int
+typedef enum GNUNET_GenericReturnValue
 (*GNUNET_SQ_ResultConverter)(void *cls,
                              sqlite3_stmt *result,
                              unsigned int column,
@@ -436,7 +436,7 @@ GNUNET_SQ_result_spec_uint64 (uint64_t *u64);
  *   #GNUNET_OK if all results could be extracted
  *   #GNUNET_SYSERR if a result was invalid (non-existing field)
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_SQ_extract_result (sqlite3_stmt *result,
                           struct GNUNET_SQ_ResultSpec *rs);
 

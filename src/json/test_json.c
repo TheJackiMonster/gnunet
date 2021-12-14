@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet
-   (C) 2015, 2016 GNUnet e.V.
+   (C) 2015, 2016, 2021 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -34,33 +34,45 @@
  * @return 0 on success
  */
 static int
-test_abs_time ()
+test_timestamp (void)
 {
   json_t *j;
   struct GNUNET_TIME_Absolute a1;
-  struct GNUNET_TIME_Absolute a2;
-  struct GNUNET_JSON_Specification s1[] = { GNUNET_JSON_spec_absolute_time (
-                                              NULL,
-                                              &a2),
-                                            GNUNET_JSON_spec_end () };
-  struct GNUNET_JSON_Specification s2[] = { GNUNET_JSON_spec_absolute_time (
-                                              NULL,
-                                              &a2),
-                                            GNUNET_JSON_spec_end () };
+  struct GNUNET_TIME_Timestamp t1;
+  struct GNUNET_TIME_Timestamp t2;
+  struct GNUNET_JSON_Specification s1[] = {
+    GNUNET_JSON_spec_timestamp (NULL,
+                                &t2),
+    GNUNET_JSON_spec_end ()
+  };
+  struct GNUNET_JSON_Specification s2[] = {
+    GNUNET_JSON_spec_timestamp (NULL,
+                                &t2),
+    GNUNET_JSON_spec_end ()
+  };
 
   a1 = GNUNET_TIME_absolute_get ();
-  GNUNET_TIME_round_abs (&a1);
-  j = GNUNET_JSON_from_time_abs (a1);
+  GNUNET_TIME_absolute_to_timestamp (a1,
+                                     &t1);
+  j = GNUNET_JSON_from_timestamp (t1);
   GNUNET_assert (NULL != j);
-  GNUNET_assert (GNUNET_OK == GNUNET_JSON_parse (j, s1, NULL, NULL));
-  GNUNET_assert (a1.abs_value_us == a2.abs_value_us);
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_JSON_parse (j,
+                                    s1,
+                                    NULL,
+                                    NULL));
+  GNUNET_assert (GNUNET_TIME_timestamp_cmp (t1, ==, t2));
   json_decref (j);
 
   a1 = GNUNET_TIME_UNIT_FOREVER_ABS;
-  j = GNUNET_JSON_from_time_abs (a1);
+  j = GNUNET_JSON_from_timestamp (t1);
   GNUNET_assert (NULL != j);
-  GNUNET_assert (GNUNET_OK == GNUNET_JSON_parse (j, s2, NULL, NULL));
-  GNUNET_assert (a1.abs_value_us == a2.abs_value_us);
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_JSON_parse (j,
+                                    s2,
+                                    NULL,
+                                    NULL));
+  GNUNET_assert (GNUNET_TIME_timestamp_cmp (t1, ==, t2));
   json_decref (j);
   return 0;
 }
@@ -72,19 +84,21 @@ test_abs_time ()
  * @return 0 on success
  */
 static int
-test_rel_time ()
+test_rel_time (void)
 {
   json_t *j;
   struct GNUNET_TIME_Relative r1;
   struct GNUNET_TIME_Relative r2;
-  struct GNUNET_JSON_Specification s1[] = { GNUNET_JSON_spec_relative_time (
-                                              NULL,
-                                              &r2),
-                                            GNUNET_JSON_spec_end () };
-  struct GNUNET_JSON_Specification s2[] = { GNUNET_JSON_spec_relative_time (
-                                              NULL,
-                                              &r2),
-                                            GNUNET_JSON_spec_end () };
+  struct GNUNET_JSON_Specification s1[] = {
+    GNUNET_JSON_spec_relative_time (NULL,
+                                    &r2),
+    GNUNET_JSON_spec_end ()
+  };
+  struct GNUNET_JSON_Specification s2[] = {
+    GNUNET_JSON_spec_relative_time (NULL,
+                                    &r2),
+    GNUNET_JSON_spec_end ()
+  };
 
   r1 = GNUNET_TIME_UNIT_SECONDS;
   j = GNUNET_JSON_from_time_rel (r1);
@@ -211,7 +225,7 @@ int
 main (int argc, const char *const argv[])
 {
   GNUNET_log_setup ("test-json", "WARNING", NULL);
-  if (0 != test_abs_time ())
+  if (0 != test_timestamp ())
     return 1;
   if (0 != test_rel_time ())
     return 1;

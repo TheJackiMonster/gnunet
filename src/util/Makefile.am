@@ -144,7 +144,7 @@ libgnunetutil_la_LIBADD = \
 
 libgnunetutil_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS) \
-  -version-info 14:0:0
+  -version-info 15:0:0
 
 GNUNET_ECC = gnunet-ecc
 GNUNET_SCRYPT = gnunet-scrypt

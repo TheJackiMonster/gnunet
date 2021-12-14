@@ -201,14 +201,6 @@ struct GNUNET_CURL_Context
 };
 
 
-/**
- * Force use of the provided username and password
- * for client authentication for all operations performed
- * with @a ctx.
- *
- * @param ctx context to set authentication data for
- * @param userpass string with "$USERNAME:$PASSWORD"
- */
 void
 GNUNET_CURL_set_userpass (struct GNUNET_CURL_Context *ctx,
                           const char *userpass)
@@ -219,21 +211,6 @@ GNUNET_CURL_set_userpass (struct GNUNET_CURL_Context *ctx,
 }
 
 
-/**
- * Force use of the provided TLS client certificate
- * for client authentication for all operations performed
- * with @a ctx.
- *
- * Note that if the provided information is incorrect,
- * the earliest operation that could fail is
- * #GNUNET_CURL_job_add() or #GNUNET_CURL_job_add2()!
- *
- * @param ctx context to set authentication data for
- * @param certtype type of the certificate
- * @param certfile file with the certificate
- * @param keyfile file with the private key
- * @param keypass passphrase to decrypt @a keyfile (or NULL)
- */
 void
 GNUNET_CURL_set_tlscert (struct GNUNET_CURL_Context *ctx,
                          const char *certtype,
@@ -256,14 +233,6 @@ GNUNET_CURL_set_tlscert (struct GNUNET_CURL_Context *ctx,
 }
 
 
-/**
- * Initialise this library.  This function should be called before using any of
- * the following functions.
- *
- * @param cb function to call when rescheduling is required
- * @param cb_cls closure for @a cb
- * @return library context
- */
 struct GNUNET_CURL_Context *
 GNUNET_CURL_init (GNUNET_CURL_RescheduleCallback cb,
                   void *cb_cls)
@@ -299,12 +268,6 @@ GNUNET_CURL_init (GNUNET_CURL_RescheduleCallback cb,
 }
 
 
-/**
- * Enable sending the async scope ID as a header.
- *
- * @param ctx the context to enable this for
- * @param header_name name of the header to send.
- */
 void
 GNUNET_CURL_enable_async_scope_header (struct GNUNET_CURL_Context *ctx,
                                        const char *header_name)
@@ -313,15 +276,6 @@ GNUNET_CURL_enable_async_scope_header (struct GNUNET_CURL_Context *ctx,
 }
 
 
-/**
- * Return #GNUNET_YES if given a valid scope ID and
- * #GNUNET_NO otherwise.  See #setup_job_headers,
- * logic related to
- * #GNUNET_CURL_enable_async_scope_header() for the
- * code that generates such a @a scope_id.
- *
- * @returns #GNUNET_YES iff given a valid scope ID
- */
 int
 GNUNET_CURL_is_valid_scope_id (const char *scope_id)
 {
@@ -447,7 +401,9 @@ setup_job (CURL *eh,
   struct GNUNET_CURL_Job *job;
 
   if (CURLE_OK !=
-      curl_easy_setopt (eh, CURLOPT_HTTPHEADER, all_headers))
+      curl_easy_setopt (eh,
+                        CURLOPT_HTTPHEADER,
+                        all_headers))
   {
     GNUNET_break (0);
     curl_slist_free_all (all_headers);
@@ -491,12 +447,6 @@ setup_job (CURL *eh,
 }
 
 
-/**
- * Add @a extra_headers to the HTTP headers for @a job.
- *
- * @param[in,out] job the job to modify
- * @param extra_headers headers to append
- */
 void
 GNUNET_CURL_extend_headers (struct GNUNET_CURL_Job *job,
                             const struct curl_slist *extra_headers)
@@ -515,21 +465,6 @@ GNUNET_CURL_extend_headers (struct GNUNET_CURL_Job *job,
 }
 
 
-/**
- * Schedule a CURL request to be executed and call the given @a jcc
- * upon its completion.  Note that the context will make use of the
- * CURLOPT_PRIVATE facility of the CURL @a eh.  Used to download
- * resources that are NOT in JSON.  The raw body will be returned.
- *
- * @param ctx context to execute the job in
- * @param eh curl easy handle for the request, will
- *           be executed AND cleaned up
- * @param job_headers extra headers to add for this request
- * @param max_reply_size largest acceptable response body
- * @param jcc callback to invoke upon completion
- * @param jcc_cls closure for @a jcc
- * @return NULL on error (in this case, @eh is still released!)
- */
 struct GNUNET_CURL_Job *
 GNUNET_CURL_job_add_raw (struct GNUNET_CURL_Context *ctx,
                          CURL *eh,
@@ -554,25 +489,6 @@ GNUNET_CURL_job_add_raw (struct GNUNET_CURL_Context *ctx,
 }
 
 
-/**
- * Schedule a CURL request to be executed and call the given @a jcc
- * upon its completion.  Note that the context will make use of the
- * CURLOPT_PRIVATE facility of the CURL @a eh.
- *
- * This function modifies the CURL handle to add the
- * "Content-Type: application/json" header if @a add_json is set.
- *
- * @param ctx context to execute the job in
- * @param eh curl easy handle for the request, will be executed AND
- *           cleaned up.  NOTE: the handle should _never_ have gotten
- *           any headers list, as that would then be overridden by
- *           @a jcc.  Therefore, always pass custom headers as the
- *           @a job_headers parameter.
- * @param job_headers extra headers to add for this request
- * @param jcc callback to invoke upon completion
- * @param jcc_cls closure for @a jcc
- * @return NULL on error (in this case, @eh is still released!)
- */
 struct GNUNET_CURL_Job *
 GNUNET_CURL_job_add2 (struct GNUNET_CURL_Context *ctx,
                       CURL *eh,
@@ -624,21 +540,6 @@ GNUNET_CURL_job_add2 (struct GNUNET_CURL_Context *ctx,
 }
 
 
-/**
- * Schedule a CURL request to be executed and call the given @a jcc
- * upon its completion.  Note that the context will make use of the
- * CURLOPT_PRIVATE facility of the CURL @a eh.
- *
- * This function modifies the CURL handle to add the
- * "Content-Type: application/json" header.
- *
- * @param ctx context to execute the job in
- * @param eh curl easy handle for the request, will
- *           be executed AND cleaned up
- * @param jcc callback to invoke upon completion
- * @param jcc_cls closure for @a jcc
- * @return NULL on error (in this case, @eh is still released!)
- */
 struct GNUNET_CURL_Job *
 GNUNET_CURL_job_add_with_ct_json (struct GNUNET_CURL_Context *ctx,
                                   CURL *eh,
@@ -661,18 +562,6 @@ GNUNET_CURL_job_add_with_ct_json (struct GNUNET_CURL_Context *ctx,
 }
 
 
-/**
- * Schedule a CURL request to be executed and call the given @a jcc
- * upon its completion.  Note that the context will make use of the
- * CURLOPT_PRIVATE facility of the CURL @a eh.
- *
- * @param ctx context to execute the job in
- * @param eh curl easy handle for the request, will
- *           be executed AND cleaned up
- * @param jcc callback to invoke upon completion
- * @param jcc_cls closure for @a jcc
- * @return NULL on error (in this case, @eh is still released!)
- */
 struct GNUNET_CURL_Job *
 GNUNET_CURL_job_add (struct GNUNET_CURL_Context *ctx,
                      CURL *eh,
@@ -687,12 +576,6 @@ GNUNET_CURL_job_add (struct GNUNET_CURL_Context *ctx,
 }
 
 
-/**
- * Cancel a job.  Must only be called before the job completion
- * callback is called for the respective job.
- *
- * @param job job to cancel
- */
 void
 GNUNET_CURL_job_cancel (struct GNUNET_CURL_Job *job)
 {
@@ -746,24 +629,6 @@ is_json (const char *ct)
 }
 
 
-/**
- * Obtain information about the final result about the
- * HTTP download. If the download was successful, parses
- * the JSON in the @a db and returns it. Also returns
- * the HTTP @a response_code.  If the download failed,
- * the return value is NULL.  The response code is set
- * in any case, on download errors to zero.
- *
- * Calling this function also cleans up @a db.
- *
- * @param db download buffer
- * @param eh CURL handle (to get the response code)
- * @param[out] response_code set to the HTTP response code
- *             (or zero if we aborted the download, for example
- *              because the response was too big, or if
- *              the JSON we received was malformed).
- * @return NULL if downloading a JSON reply failed.
- */
 void *
 GNUNET_CURL_download_get_result_ (struct GNUNET_CURL_DownloadBuffer *db,
                                   CURL *eh,
@@ -838,13 +703,6 @@ GNUNET_CURL_download_get_result_ (struct GNUNET_CURL_DownloadBuffer *db,
 }
 
 
-/**
- * Add custom request header.
- *
- * @param ctx cURL context.
- * @param header header string; will be given to the context AS IS.
- * @return #GNUNET_OK if no errors occurred, #GNUNET_SYSERR otherwise.
- */
 enum GNUNET_GenericReturnValue
 GNUNET_CURL_append_header (struct GNUNET_CURL_Context *ctx,
                            const char *header)
@@ -858,14 +716,6 @@ GNUNET_CURL_append_header (struct GNUNET_CURL_Context *ctx,
 }
 
 
-/**
- * Run the main event loop for the HTTP interaction.
- *
- * @param ctx the library context
- * @param rp parses the raw response returned from
- *        the Web server.
- * @param rc cleans/frees the response
- */
 void
 GNUNET_CURL_perform2 (struct GNUNET_CURL_Context *ctx,
                       GNUNET_CURL_RawParser rp,
@@ -920,11 +770,6 @@ GNUNET_CURL_perform2 (struct GNUNET_CURL_Context *ctx,
 }
 
 
-/**
- * Run the main event loop for the HTTP interaction.
- *
- * @param ctx the library context
- */
 void
 GNUNET_CURL_perform (struct GNUNET_CURL_Context *ctx)
 {
@@ -934,34 +779,6 @@ GNUNET_CURL_perform (struct GNUNET_CURL_Context *ctx)
 }
 
 
-/**
- * Obtain the information for a select() call to wait until
- * #GNUNET_CURL_perform() is ready again.  Note that calling
- * any other GNUNET_CURL-API may also imply that the library
- * is again ready for #GNUNET_CURL_perform().
- *
- * Basically, a client should use this API to prepare for select(),
- * then block on select(), then call #GNUNET_CURL_perform() and then
- * start again until the work with the context is done.
- *
- * This function will NOT zero out the sets and assumes that @a max_fd
- * and @a timeout are already set to minimal applicable values.  It is
- * safe to give this API FD-sets and @a max_fd and @a timeout that are
- * already initialized to some other descriptors that need to go into
- * the select() call.
- *
- * @param ctx context to get the event loop information for
- * @param read_fd_set will be set for any pending read operations
- * @param write_fd_set will be set for any pending write operations
- * @param except_fd_set is here because curl_multi_fdset() has this argument
- * @param max_fd set to the highest FD included in any set;
- *        if the existing sets have no FDs in it, the initial
- *        value should be "-1". (Note that `max_fd + 1` will need
- *        to be passed to select().)
- * @param timeout set to the timeout in milliseconds (!); -1 means
- *        no timeout (NULL, blocking forever is OK), 0 means to
- *        proceed immediately with #GNUNET_CURL_perform().
- */
 void
 GNUNET_CURL_get_select_info (struct GNUNET_CURL_Context *ctx,
                              fd_set *read_fd_set,
@@ -995,13 +812,6 @@ GNUNET_CURL_get_select_info (struct GNUNET_CURL_Context *ctx,
 }
 
 
-/**
- * Cleanup library initialisation resources.  This function should be called
- * after using this library to cleanup the resources occupied during library's
- * initialisation.
- *
- * @param ctx the library context
- */
 void
 GNUNET_CURL_fini (struct GNUNET_CURL_Context *ctx)
 {

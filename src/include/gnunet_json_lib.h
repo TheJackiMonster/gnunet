@@ -304,25 +304,25 @@ GNUNET_JSON_spec_boolean (const char *name,
 /* ************ GNUnet-specific parser specifications ******************* */
 
 /**
- * Absolute time.
+ * Timestamp.
  *
  * @param name name of the JSON field
  * @param[out] at where to store the absolute time found under @a name
  */
 struct GNUNET_JSON_Specification
-GNUNET_JSON_spec_absolute_time (const char *name,
-                                struct GNUNET_TIME_Absolute *at);
+GNUNET_JSON_spec_timestamp (const char *name,
+                            struct GNUNET_TIME_Timestamp *t);
 
 
 /**
- * Absolute time in network byte order.
+ * Timestamp in network byte order.
  *
  * @param name name of the JSON field
- * @param[out] at where to store the absolute time found under @a name
+ * @param[out] tn where to store the absolute time found under @a name
  */
 struct GNUNET_JSON_Specification
-GNUNET_JSON_spec_absolute_time_nbo (const char *name,
-                                    struct GNUNET_TIME_AbsoluteNBO *at);
+GNUNET_JSON_spec_timestamp_nbo (const char *name,
+                                struct GNUNET_TIME_TimestampNBO *tn);
 
 
 /**
@@ -385,23 +385,23 @@ GNUNET_JSON_from_data (const void *data, size_t size);
 
 
 /**
- * Convert absolute timestamp to a json string.
+ * Convert timestamp to a json string.
  *
  * @param stamp the time stamp
  * @return a json string with the timestamp in @a stamp
  */
 json_t *
-GNUNET_JSON_from_time_abs (struct GNUNET_TIME_Absolute stamp);
+GNUNET_JSON_from_timestamp (struct GNUNET_TIME_Timestamp stamp);
 
 
 /**
- * Convert absolute timestamp to a json string.
+ * Convert timestamp to a json string.
  *
  * @param stamp the time stamp
  * @return a json string with the timestamp in @a stamp
  */
 json_t *
-GNUNET_JSON_from_time_abs_nbo (struct GNUNET_TIME_AbsoluteNBO stamp);
+GNUNET_JSON_from_timestamp_nbo (struct GNUNET_TIME_TimestampNBO stamp);
 
 
 /**
@@ -747,30 +747,30 @@ GNUNET_JSON_pack_data_varsize (const char *name,
 
 /**
  * Generate packer instruction for a JSON field of type
- * absolute time.
+ * timestamp.
  *
  * @param name name of the field to add to the object
- * @param at absolute time to pack, a value of 0 is only
+ * @param at timestamp pack, a value of 0 is only
  *        allowed with #GNUNET_JSON_pack_allow_null()!
  * @return json pack specification
  */
 struct GNUNET_JSON_PackSpec
-GNUNET_JSON_pack_time_abs (const char *name,
-                           struct GNUNET_TIME_Absolute at);
+GNUNET_JSON_pack_timestamp (const char *name,
+                            struct GNUNET_TIME_Timestamp at);
 
 
 /**
  * Generate packer instruction for a JSON field of type
- * absolute time in network byte order.
+ * timestamp in network byte order.
  *
  * @param name name of the field to add to the object
- * @param at absolute time to pack, a value of 0 is only
+ * @param at timestamp to pack, a value of 0 is only
  *        allowed with #GNUNET_JSON_pack_allow_null()!
  * @return json pack specification
  */
 struct GNUNET_JSON_PackSpec
-GNUNET_JSON_pack_time_abs_nbo (const char *name,
-                               struct GNUNET_TIME_AbsoluteNBO at);
+GNUNET_JSON_pack_timestamp_nbo (const char *name,
+                                struct GNUNET_TIME_TimestampNBO at);
 
 
 /**
