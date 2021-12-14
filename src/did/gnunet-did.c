@@ -231,7 +231,7 @@ resolve_did_document()
 typedef void
 (*remove_did_document_callback) (void * cls);
 
-struct remove_did_document_cont_cls {
+struct event {
 	remove_did_document_callback cont;
 	void * cls;
 };
@@ -240,7 +240,7 @@ struct remove_did_document_cont_cls {
  * @brief Callback after the DID has been removed
  */
 static void
-remove_did_cb(void * cls){
+remove_did_cb(void * arg){
 	// Test if record was removed from Namestore
 	printf("DID Document has been removed\n");
 	GNUNET_SCHEDULER_add_now(cleanup, NULL);
@@ -266,8 +266,7 @@ remove_did_ego_lookup_cb(void * cls, struct GNUNET_IDENTITY_Ego * ego){
 	//	.flags = GNUNET_GNSRECORD_RF_NONE
 	//};
 
-	struct remove_did_document_cont_cls * blob = (struct remove_did_document_cont_cls *) cls;
-	printf("2: %d\n", * ((int *) (blob->cls)));
+	printf("2: %d\n", * (int *) cls);
 
 	//GNUNET_NAMESTORE_records_store (namestore_handle,
 	//                                skey,
@@ -291,13 +290,23 @@ remove_did_document(remove_did_document_callback cont, void * cls)
 		ret = 1;
 		return;
 	} else {
-		struct remove_did_document_cont_cls blob = {cont, cls};
-		printf("1: %d\n", * (int *) blob.cls);
+		//struct remove_did_document_cont_cls * blob = malloc(sizeof(* blob));
+		//blob->cont = (remove_did_document_callback *) malloc(sizeof(*cont));
+		//memcpy(blob->cont, cont, sizeof(*cont));
+
+		struct event * blob = malloc(sizeof(struct event));
+		//blob->cont = malloc(sizeof(remove_did_document_callback));
+		blob->cls = malloc(sizeof(*cls));
+
+		//memcpy(blob->cont, cont, sizeof(*cont));
+		memcpy(blob->cls, cls, sizeof(*cls));
+
+		printf("1: %d\n", * (int *) blob->cls);
 
 		GNUNET_IDENTITY_ego_lookup(my_cfg,
 		                           attr_ego,
 		                           &remove_did_ego_lookup_cb,
-		                           (void *) &blob);
+		                           blob);
 	} 
 }
 
