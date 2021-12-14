@@ -3,7 +3,9 @@ AM_CPPFLAGS = -I$(top_srcdir)/src/include
 
 EXTRA_DIST = \
   test_abd_defaults.conf \
-  test_abd_lookup.conf
+  test_abd_lookup.conf \
+  $(check_SCRIPTS) \
+  $(pkgdata_DATA)
 
 
 if USE_COVERAGE

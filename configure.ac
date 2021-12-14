@@ -1439,6 +1439,7 @@ src/zonemaster/Makefile
 src/zonemaster/zonemaster.conf
 src/rest/Makefile
 src/abd/Makefile
+src/abd/abd.conf
 src/abe/Makefile
 src/reclaim/Makefile
 src/messenger/Makefile
