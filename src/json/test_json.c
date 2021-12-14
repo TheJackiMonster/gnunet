@@ -52,8 +52,7 @@ test_timestamp (void)
   };
 
   a1 = GNUNET_TIME_absolute_get ();
-  GNUNET_TIME_absolute_to_timestamp (a1,
-                                     &t1);
+  t1 = GNUNET_TIME_absolute_to_timestamp (a1);
   j = GNUNET_JSON_from_timestamp (t1);
   GNUNET_assert (NULL != j);
   GNUNET_assert (GNUNET_OK ==
