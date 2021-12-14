@@ -406,7 +406,7 @@ GNUNET_TIME_timestamp_get (void);
  * @return true if @a t1 @a op @a t2
  */
 #define GNUNET_TIME_absolute_cmp(t1,op,t2) \
-  (((void) (1 op 2), (t1).abs_value_us op (t2).abs_value_us))
+  ((void) (1 op 2), (t1).abs_value_us op (t2).abs_value_us)
 
 
 /**
