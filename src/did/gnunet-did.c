@@ -88,8 +88,8 @@ const static struct GNUNET_CONFIGURATION_Handle * my_cfg;
 // TODO
 // static void replace_did_document(); - use remove_did_document and add_did_document
 // eddsa only
-// welche properties? 
-
+// Set the duration for the didd record 
+// safe delete the didd record - look for other with same sub
 // Add a data DID Document type
 
 /**
@@ -114,6 +114,10 @@ cleanup(void * cls)
 static void
 get_did_for_ego_lookup_cb(void *cls, struct GNUNET_IDENTITY_Ego * ego)
 {
+  struct GNUNET_IDENTITY_PublicKey pkey; // Get Public key
+	const char * pkey_str;
+  char did_str[71]; // 58 + 12 + 1= 71
+
   if(ego == NULL) {
     printf("EGO not found\n");
     GNUNET_SCHEDULER_add_now(&cleanup, NULL);
@@ -121,11 +125,9 @@ get_did_for_ego_lookup_cb(void *cls, struct GNUNET_IDENTITY_Ego * ego)
     return;
   }
 
-  struct GNUNET_IDENTITY_PublicKey pkey; // Get Public key
   GNUNET_IDENTITY_ego_get_public_key(ego, &pkey);
 
-  const char * pkey_str = GNUNET_IDENTITY_public_key_to_string(&pkey); // Convert public key to string
-  char did_str[71]; // 58 + 12 + 1= 71
+  pkey_str = GNUNET_IDENTITY_public_key_to_string(&pkey); // Convert public key to string
   sprintf(did_str, "did:reclaim:%s", pkey_str); // Convert the public key to a DID str
 
   printf("%s\n", did_str);
@@ -212,6 +214,8 @@ print_did_document(
 static void
 resolve_did_document()
 {
+	struct GNUNET_IDENTITY_PublicKey pkey;
+
 	if (attr_did == NULL) {
 		printf("Set DID option to resolve DID\n");
 		GNUNET_SCHEDULER_add_now(cleanup, NULL);
@@ -219,7 +223,6 @@ resolve_did_document()
 		return;
 	}
 
-	struct GNUNET_IDENTITY_PublicKey pkey;
 	get_pkey_from_attr_did(&pkey);
 
 	// TODO: Check the type of returned records
@@ -237,15 +240,43 @@ struct event {
 };
 
 /**
- * @brief Callback after the DID has been removed
+ * @brief Implements the GNUNET_NAMESTORE_ContinuationWithStatus
+ * Calls the callback function and cls in the event struct 
+ * 
+ * @param cls closure containing the event struct 
+ * @param success
+ * @param emgs 
  */
 static void
-remove_did_cb(void * arg){
-	// Test if record was removed from Namestore
-	printf("DID Document has been removed\n");
-	GNUNET_SCHEDULER_add_now(cleanup, NULL);
-	ret = 0;
-	return;
+remove_did_document_namestore_cb(void * cls, int32_t success, const char *emgs){
+	struct event * blob;
+
+	if(success == GNUNET_YES){
+		printf("DID Document has been removed\n");
+
+		blob = (struct event *) cls;
+
+		if(blob->cont != NULL)
+		{
+			blob->cont(blob->cls);
+			free(blob);
+		} else {
+			free(blob);
+			GNUNET_SCHEDULER_add_now(cleanup, NULL);
+			ret = 0;
+			return;
+		}
+	} else {
+		printf("Something went wrong when deleting the DID Document\n");
+
+		if(emgs != NULL) {
+			printf("%s\n", emgs);
+		}
+
+		GNUNET_SCHEDULER_add_now(cleanup, NULL);
+		ret = 0;
+		return;
+	}
 }
 
 /**
@@ -255,28 +286,25 @@ remove_did_cb(void * arg){
  * @param ego the ego returned by the identity service 
  */
 static void
-remove_did_ego_lookup_cb(void * cls, struct GNUNET_IDENTITY_Ego * ego){
-	//const struct GNUNET_IDENTITY_PrivateKey * skey = GNUNET_IDENTITY_ego_get_private_key(ego);
-	//const int emp[0];
-	//struct GNUNET_GNSRECORD_Data rd = {
-	//	.data = &emp,
-	//	.expiration_time = 0,
-	//	.data_size = 0,
-	//	.record_type = 0,
-	//	.flags = GNUNET_GNSRECORD_RF_NONE
-	//};
+remove_did_document_ego_lookup_cb(void * cls, struct GNUNET_IDENTITY_Ego * ego){
+	const struct GNUNET_IDENTITY_PrivateKey * skey = GNUNET_IDENTITY_ego_get_private_key(ego);
+	const int emp[0];
+	struct GNUNET_GNSRECORD_Data rd = {
+		.data = &emp,
+		.expiration_time = 0,
+		.data_size = 0,
+		.record_type = 0,
+		.flags = GNUNET_GNSRECORD_RF_NONE
+	};
 
-	printf("2: %d\n", * (int *) cls);
-
-	//GNUNET_NAMESTORE_records_store (namestore_handle,
-	//                                skey,
-	//                                "didd",
-	//                                0,
-	//                                &rd,
-	//                                &remove_did_cb,
-	//                                NULL);
+	GNUNET_NAMESTORE_records_store (namestore_handle,
+	                                skey,
+	                                "didd",
+	                                0,
+	                                &rd,
+	                                &remove_did_document_namestore_cb,
+	                                cls);
 }
-
 
 /**
  * @brief Remove a DID Document
@@ -284,29 +312,22 @@ remove_did_ego_lookup_cb(void * cls, struct GNUNET_IDENTITY_Ego * ego){
 static void
 remove_did_document(remove_did_document_callback cont, void * cls)
 {
+	struct event * blob;
+
 	if(attr_ego == NULL) {
 		printf("Remove requieres an ego option\n");
 		GNUNET_SCHEDULER_add_now(cleanup, NULL);
 		ret = 1;
 		return;
 	} else {
-		//struct remove_did_document_cont_cls * blob = malloc(sizeof(* blob));
-		//blob->cont = (remove_did_document_callback *) malloc(sizeof(*cont));
-		//memcpy(blob->cont, cont, sizeof(*cont));
-
-		struct event * blob = malloc(sizeof(struct event));
-		//blob->cont = malloc(sizeof(remove_did_document_callback));
-		blob->cls = malloc(sizeof(*cls));
-
-		//memcpy(blob->cont, cont, sizeof(*cont));
-		memcpy(blob->cls, cls, sizeof(*cls));
-
-		printf("1: %d\n", * (int *) blob->cls);
+		blob = malloc(sizeof(* blob));
+		blob->cont = cont;
+		blob->cls = cls;
 
 		GNUNET_IDENTITY_ego_lookup(my_cfg,
 		                           attr_ego,
-		                           &remove_did_ego_lookup_cb,
-		                           blob);
+		                           &remove_did_document_ego_lookup_cb,
+		                           (void *) blob);
 	} 
 }
 
@@ -320,38 +341,51 @@ remove_did_document(remove_did_document_callback cont, void * cls)
 char *
 create_did_generate(struct GNUNET_IDENTITY_PublicKey pkey)
 {
-  const char * pkey_str = GNUNET_IDENTITY_public_key_to_string(&pkey); // Convert public key to string
+  char * pkey_str; // Convert public key to string
   char did_str[71]; // 58 + 12 + 1= 71
+  char * didd_str;
   char pkey_multibase_str[60]; // 58 + 1 + 1 = 60
+
+  json_t * did_json;
+  json_t * pkey_multibase_json;
+  json_t * context_1_json;
+  json_t * context_2_json;
+  json_t * auth_type_json;
+  json_t * context_json;
+  json_t * auth_json;
+  json_t * auth_1_json;
+  json_t * didd;
+
+  pkey_str = GNUNET_IDENTITY_public_key_to_string(&pkey); // Convert public key to string
   sprintf(did_str, "did:reclaim:%s", pkey_str); // Convert the public key to a DID str
   sprintf(pkey_multibase_str, "V%s", pkey_str); // Convert the public key to MultiBase data format
 
   // Create DID Document 
-  json_t * did_json = json_string(did_str);
-  json_t * pkey_multibase_json = json_string(pkey_multibase_str);
-  json_t * context_1_json = json_string("https://www.w3.org/ns/did/v1");
-  json_t * context_2_json = json_string("https://w3id.org/security/suites/ed25519-2020/v1");
-  json_t * auth_type_json = json_string("Ed25519VerificationKey2020");
+  did_json = json_string(did_str);
+  pkey_multibase_json = json_string(pkey_multibase_str);
+  context_1_json = json_string("https://www.w3.org/ns/did/v1");
+  context_2_json = json_string("https://w3id.org/security/suites/ed25519-2020/v1");
+  auth_type_json = json_string("Ed25519VerificationKey2020");
 
-  json_t * context_json = json_array();
+  context_json = json_array();
   json_array_append(context_json, context_1_json);
   json_array_append(context_json, context_2_json);
 
-  json_t * auth_json = json_array();
-  json_t * auth_1_json = json_object();
+  auth_json = json_array();
+  auth_1_json = json_object();
   json_object_set(auth_1_json, "id", did_json);
   json_object_set(auth_1_json, "type", auth_type_json);
   json_object_set(auth_1_json, "controller", did_json);
   json_object_set(auth_1_json, "publicKeyMultiBase", pkey_multibase_json);
   json_array_append(auth_json, auth_1_json);
 
-  json_t * didd = json_object();
+  didd = json_object();
   json_object_set(didd, "@context", context_json);
   json_object_set(didd, "id", did_json);
   json_object_set(didd, "authentication", auth_json);
 
   // Encode DID Document as JSON string
-  char * didd_str = json_dumps(didd, JSON_INDENT(2));
+  didd_str = json_dumps(didd, JSON_INDENT(2));
   if(didd_str == NULL)
   {
     printf("DID Document could not be encoded");
@@ -420,6 +454,9 @@ create_did_store(char * didd_str, struct GNUNET_IDENTITY_Ego * ego)
 static void 
 create_did_ego_lockup_cb(void *cls, struct GNUNET_IDENTITY_Ego * ego)
 {
+  struct GNUNET_IDENTITY_PublicKey pkey;
+	char * didd_str;
+
   if(ego == NULL) 
   {
     printf("EGO not found\n");
@@ -428,7 +465,6 @@ create_did_ego_lockup_cb(void *cls, struct GNUNET_IDENTITY_Ego * ego)
     return;
   }
 
-  struct GNUNET_IDENTITY_PublicKey pkey; // Get Public key
   GNUNET_IDENTITY_ego_get_public_key(ego, &pkey);
 
 	printf("DEBUG: Key type: %d\n", pkey.type);
@@ -444,8 +480,6 @@ create_did_ego_lockup_cb(void *cls, struct GNUNET_IDENTITY_Ego * ego)
 		ret = 1;
 		return;
 	}
-
-	char * didd_str;
 
 	if(attr_didd != NULL)
 	{
@@ -475,6 +509,8 @@ create_did_document_ego_create_cb(void *cls,
   								  const struct GNUNET_IDENTITY_PrivateKey *pk,
   								  const char *emsg)
 {
+	const char * ego_name;
+
 	if (emsg != NULL){
 		printf("Something went wrong during the creation of a new identity\n");
 		printf("%s\n", emsg);
@@ -483,7 +519,7 @@ create_did_document_ego_create_cb(void *cls,
     return;
 	}
 
-	const char * ego_name = (char *) cls;
+	ego_name = (char *) cls;
 
 	GNUNET_IDENTITY_ego_lookup(my_cfg,
 	                           ego_name,
@@ -514,26 +550,49 @@ create_did_document()
   }
 }
 
+
+/**
+ * @brief Replace a DID Docuemnt. Callback function after ego lockup
+ * 
+ * @param cls 
+ * @param ego 
+ */
 static void 
-hello_world(void * arg)
+replace_did_document_ego_lookup_cb(void *cls, struct GNUNET_IDENTITY_Ego * ego)
 {
-	printf("arg: %d\n", * (int *) arg);
-	printf("Hello World!\n");
-  GNUNET_SCHEDULER_add_now(&cleanup, NULL);
-  ret = 1;
-  return;
+	create_did_store(attr_didd, ego);
 }
 
+/**
+ * @brief Replace a DID Document. Callback functiona after remove
+ * 
+ * @param cls 
+ */
+static void 
+replace_did_document_remove_cb(void * cls)
+{
+	GNUNET_IDENTITY_ego_lookup(my_cfg,
+	                           attr_ego,
+	                           &replace_did_document_ego_lookup_cb,
+	                           NULL);
+}
+
+/**
+ * @brief Replace a DID Docuemnt 
+ * 
+ */
 static void 
 replace_did_document()
 {
-	// Do remove
-	// Change remove to use coustome cb
-	// use create_did_store
-
-	int var = 42;
-
-	remove_did_document(&hello_world, (void *) &var);
+	if (attr_didd != NULL)
+	{
+		remove_did_document(&replace_did_document_remove_cb, NULL);
+	} else {
+		printf("Set the DID Document argument to repalce the DID Document\n");
+  	GNUNET_SCHEDULER_add_now(&cleanup, NULL);
+  	ret = 1;
+  	return;
+	}
 }
 
 
@@ -571,7 +630,7 @@ run (void *cls,
 	} else if (1 == attr_get) {
 		resolve_did_document();
 	} else if (1 == attr_remove) {
-		remove_did_document(&remove_did_cb, NULL);
+		remove_did_document(NULL, NULL);
 	} else if (1 == attr_create) {
     create_did_document();
 	} else if (1 == attr_show) {
