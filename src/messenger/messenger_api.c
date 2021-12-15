@@ -253,7 +253,7 @@ handle_recv_message (void *cls,
         store, context, sender
     );
 
-    handle_room_message (room, contact, &message, hash);
+    contact = handle_room_message (room, contact, &message, hash);
 
     const struct GNUNET_MESSENGER_Message *stored_message = get_room_message(room, hash);
 
