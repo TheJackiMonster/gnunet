@@ -216,12 +216,16 @@ testCreateFromFile (void)
   struct GNUNET_CRYPTO_EddsaPublicKey p1;
   struct GNUNET_CRYPTO_EddsaPublicKey p2;
 
-  GNUNET_assert (0 <=
+  /* do_create == GNUNET_YES and non-existing file MUST return GNUNET_YES */
+  GNUNET_assert (0 == unlink (KEYFILE) || ENOENT == errno);
+  GNUNET_assert (GNUNET_YES ==
                  GNUNET_CRYPTO_eddsa_key_from_file (KEYFILE,
                                                     GNUNET_YES,
                                                     &key));
   GNUNET_CRYPTO_eddsa_key_get_public (&key,
                                       &p1);
+
+  /* do_create == GNUNET_YES and _existing_ file MUST return GNUNET_NO */
   GNUNET_assert (GNUNET_NO ==
                  GNUNET_CRYPTO_eddsa_key_from_file (KEYFILE,
                                                     GNUNET_YES,
@@ -231,16 +235,13 @@ testCreateFromFile (void)
   GNUNET_assert (0 ==
                  GNUNET_memcmp (&p1,
                                 &p2));
+
+  /* do_create == GNUNET_NO and non-existing file MUST return GNUNET_SYSERR */
   GNUNET_assert (0 == unlink (KEYFILE));
-  GNUNET_assert (GNUNET_OK ==
+  GNUNET_assert (GNUNET_SYSERR ==
                  GNUNET_CRYPTO_eddsa_key_from_file (KEYFILE,
                                                     GNUNET_NO,
                                                     &key));
-  GNUNET_CRYPTO_eddsa_key_get_public (&key,
-                                      &p2);
-  GNUNET_assert (0 !=
-                 GNUNET_memcmp (&p1,
-                                &p2));
   return GNUNET_OK;
 }
 
@@ -299,7 +300,6 @@ main (int argc, char *argv[])
     failure_count++;
   if (GNUNET_OK != testCreateFromFile ())
     failure_count++;
-  GNUNET_assert (0 == unlink (KEYFILE));
   perf_keygen ();
 
   if (0 != failure_count)
