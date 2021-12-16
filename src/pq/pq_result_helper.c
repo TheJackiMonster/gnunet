@@ -857,12 +857,12 @@ extract_timestamp_nbo (void *cls,
   struct GNUNET_TIME_Timestamp t;
   enum GNUNET_GenericReturnValue r;
 
-  r = extract_timestamp (&t,
+  r = extract_timestamp (NULL,
                          result,
                          row,
                          fname,
                          dst_size,
-                         dst);
+                         &t);
   if (GNUNET_OK != r)
     return r;
   *udst = GNUNET_TIME_timestamp_hton (t);

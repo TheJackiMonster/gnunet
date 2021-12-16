@@ -554,62 +554,10 @@ GNUNET_PQ_query_param_absolute_time_nbo (
 }
 
 
-/**
- * Function called to convert input argument into SQL parameters.
- *
- * @param cls closure
- * @param data pointer to input argument
- * @param data_len number of bytes in @a data (if applicable)
- * @param[out] param_values SQL data to set
- * @param[out] param_lengths SQL length data to set
- * @param[out] param_formats SQL format data to set
- * @param param_length number of entries available in the @a param_values, @a param_lengths and @a param_formats arrays
- * @param[out] scratch buffer for dynamic allocations (to be done via #GNUNET_malloc()
- * @param scratch_length number of entries left in @a scratch
- * @return -1 on error, number of offsets used in @a scratch otherwise
- */
-static int
-qconv_timestamp (void *cls,
-                 const void *data,
-                 size_t data_len,
-                 void *param_values[],
-                 int param_lengths[],
-                 int param_formats[],
-                 unsigned int param_length,
-                 void *scratch[],
-                 unsigned int scratch_length)
-{
-  const struct GNUNET_TIME_Timestamp *u = data;
-  struct GNUNET_TIME_Absolute abs;
-  uint64_t *u_nbo;
-
-  GNUNET_break (NULL == cls);
-  if (1 != param_length)
-    return -1;
-  abs = u->abs_time;
-  if (abs.abs_value_us > INT64_MAX)
-    abs.abs_value_us = INT64_MAX;
-  u_nbo = GNUNET_new (uint64_t);
-  scratch[0] = u_nbo;
-  *u_nbo = GNUNET_htonll (abs.abs_value_us);
-  param_values[0] = (void *) u_nbo;
-  param_lengths[0] = sizeof(uint64_t);
-  param_formats[0] = 1;
-  return 1;
-}
-
-
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_timestamp (const struct GNUNET_TIME_Timestamp *x)
 {
-  struct GNUNET_PQ_QueryParam res = {
-    .conv = &qconv_timestamp,
-    .data = x,
-    .size = sizeof(*x),
-    .num_params = 1
-  };
-
-  return res;
+  return GNUNET_PQ_query_param_absolute_time (&x->abs_time);
 }
 
 
