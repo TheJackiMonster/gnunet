@@ -71,6 +71,16 @@ static int quiet;
 static int type_eddsa;
 
 /**
+ * -W option
+ */
+static char *write_msg;
+
+/**
+ * -R option
+ */
+static char *read_msg;
+
+/**
  * -C option
  */
 static char *create_ego;
@@ -84,6 +94,11 @@ static char *delete_ego;
  * -P option
  */
 static char *privkey_ego;
+
+/**
+ * -k option
+ */
+static char *pubkey_msg;
 
 /**
  * -s option.
@@ -164,6 +179,8 @@ test_finished (void)
        (NULL == delete_op) &&
        (NULL == set_op) &&
        (NULL == set_subsystem) &&
+       (NULL == write_msg) &&
+       (NULL == read_msg) &&
        (! list) &&
        (! monitor))
   {
@@ -260,6 +277,135 @@ set_done (void *cls, const char *emsg)
 
 
 /**
+ * Encrypt a message given with -W, encrypted using public key of
+ * an identity given with -k.
+ */
+static void
+write_encrypted_message (void)
+{
+  struct GNUNET_IDENTITY_PublicKey recipient;
+  if (GNUNET_IDENTITY_public_key_from_string (pubkey_msg, &recipient) !=
+      GNUNET_SYSERR)
+  {
+    struct GNUNET_CRYPTO_EcdhePublicKey message_key;
+    size_t msg_len = strlen (write_msg);
+    ssize_t res = GNUNET_IDENTITY_encrypt (write_msg,
+                                           msg_len,
+                                           &recipient,
+                                           &message_key,
+                                           write_msg);
+    if (-1 != res)
+    {
+      char *keystr;
+      char *serialized_msg;
+      keystr = GNUNET_STRINGS_data_to_string_alloc (&message_key,
+                                                    sizeof(struct
+                                                           GNUNET_CRYPTO_EcdhePublicKey));
+      serialized_msg = GNUNET_STRINGS_data_to_string_alloc (write_msg,
+                                                            msg_len);
+      fprintf (stdout,
+               "%s.%s\n",
+               keystr, serialized_msg);
+      GNUNET_free (keystr);
+      GNUNET_free (serialized_msg);
+    }
+    else
+    {
+      fprintf (stderr, "Error during encryption.\n");
+      global_ret = 1;
+    }
+  }
+  else
+  {
+    fprintf (stderr, "Invalid recipient public key.\n");
+    global_ret = 1;
+  }
+}
+
+
+/**
+ * Decrypt a message given with -R, encrypted using public key of @c ego
+ * and ephemeral key given with -k.
+ *
+ * @param ego ego whose private key is used for decryption
+ */
+static void
+read_encrypted_message (struct GNUNET_IDENTITY_Ego *ego)
+{
+  // message contains ECDHE key and ciphertext divided by ".", so split up first
+  char delim[2] = ".";
+  char *key_msg = strtok (read_msg, delim);
+  char *cipher;
+  if (NULL == key_msg)
+  {
+    fprintf (stderr, "Invalid message format.\n");
+    global_ret = 1;
+    return;
+  }
+  cipher = strtok (NULL, delim);
+  if (NULL == cipher)
+  {
+    fprintf (stderr, "Invalid message format, text missing.\n");
+    global_ret = 1;
+    return;
+  }
+
+  if (NULL != strtok (NULL, delim))
+  {
+    fprintf (stderr,
+             "Invalid message format, expecting only key and cipher components.\n");
+    global_ret = 1;
+    return;
+  }
+
+  struct GNUNET_CRYPTO_EcdhePublicKey message_key;
+  if (GNUNET_OK == GNUNET_STRINGS_string_to_data (key_msg, strlen (
+                                                    key_msg),
+                                                  &message_key,
+                                                  sizeof(message_key)))
+  {
+    char *deserialized_msg;
+    size_t msg_len;
+    if (GNUNET_OK == GNUNET_STRINGS_string_to_data_alloc (cipher, strlen (
+                                                            cipher),
+                                                          (void **) &
+                                                          deserialized_msg,
+                                                          &msg_len))
+    {
+      ssize_t res = GNUNET_IDENTITY_decrypt (deserialized_msg,
+                                             msg_len,
+                                             GNUNET_IDENTITY_ego_get_private_key (
+                                               ego),
+                                             &message_key,
+                                             deserialized_msg);
+      if (-1 != res)
+      {
+        fprintf (stdout,
+                 "%s\n",
+                 deserialized_msg);
+      }
+      else
+      {
+        fprintf (stderr, "Failed to decrypt message.\n");
+        global_ret = 1;
+      }
+      GNUNET_free (deserialized_msg);
+    }
+    else
+    {
+      fprintf (stderr, "Invalid message format.\n");
+      global_ret = 1;
+    }
+  }
+  else
+  {
+    fprintf (stderr, "Invalid message ephemeral key.\n");
+    global_ret = 1;
+  }
+}
+
+
+/**
  * If listing is enabled, prints information about the egos.
  *
  * This function is initially called for all egos and then again
@@ -330,13 +476,25 @@ print_ego (void *cls,
     GNUNET_free (set_ego);
     set_ego = NULL;
   }
+  if ( (NULL == ego) &&
+       (NULL != set_ego) &&
+       (NULL != read_msg) )
+  {
+    fprintf (stderr,
+             "Ego `%s' is not known, cannot decrypt message.\n",
+             set_ego);
+    GNUNET_free (read_msg);
+    read_msg = NULL;
+    GNUNET_free (set_ego);
+    set_ego = NULL;
+  }
   if ((NULL == ego) && (! monitor))
   {
     list = 0;
     test_finished ();
     return;
   }
-  if (! (list | monitor))
+  if (! (list | monitor) && (NULL == read_msg))
     return;
   if ( (NULL == ego) ||
        (NULL == identifier) )
@@ -349,7 +507,14 @@ print_ego (void *cls,
   s = GNUNET_IDENTITY_public_key_to_string (&pk);
   privs = GNUNET_IDENTITY_private_key_to_string (
     GNUNET_IDENTITY_ego_get_private_key (ego));
-  if ((monitor) || (NULL != identifier))
+  if ((NULL != read_msg) && (NULL != set_ego))
+  {
+    // due to the check above, set_ego and the identifier are equal
+    read_encrypted_message (ego);
+    GNUNET_free (read_msg);
+    read_msg = NULL;
+  }
+  else if ((monitor) || (NULL != identifier))
   {
     if (quiet)
     {
@@ -397,6 +562,19 @@ run (void *cls,
     fprintf (stderr, "Option -s requires option -e to be specified as well.\n");
     return;
   }
+
+  if ((NULL != read_msg) && (NULL == set_ego))
+  {
+    fprintf (stderr,
+             "Option -R requires options -e to be specified as well.\n");
+    return;
+  }
+
+  if ((NULL != write_msg) && (NULL == pubkey_msg))
+  {
+    fprintf (stderr, "Option -W requires option -k to be specified as well.\n");
+    return;
+  }
   sh = GNUNET_IDENTITY_connect (cfg,
                                 (monitor | list) ||
                                 (NULL != set_ego) ||
@@ -404,6 +582,13 @@ run (void *cls,
                                 ? &print_ego
                                 : NULL,
                                 NULL);
+  if (NULL != write_msg)
+  {
+    write_encrypted_message ();
+    GNUNET_free (write_msg);
+    write_msg = NULL;
+  }
+  // read message is handled in ego callback (print_ego)
   if (NULL != delete_ego)
     delete_op =
       GNUNET_IDENTITY_delete (sh,
@@ -471,6 +656,18 @@ main (int argc, char *const *argv)
                                  gettext_noop (
                                    "set the private key for the identity to PRIVATE_KEY (use together with -C)"),
                                  &privkey_ego),
+    GNUNET_GETOPT_option_string ('R',
+                                 "read",
+                                 "MESSAGE",
+                                 gettext_noop (
+                                   "Read and decrypt message encrypted for the given ego (use together with -e EGO)"),
+                                 &read_msg),
+    GNUNET_GETOPT_option_string ('W',
+                                 "write",
+                                 "MESSAGE",
+                                 gettext_noop (
+                                   "Encrypt and write message for recipient identity PULBIC_KEY, (use together with -k RECIPIENT_PUBLIC_KEY)"),
+                                 &write_msg),
     GNUNET_GETOPT_option_flag ('X',
                                "eddsa",
                                gettext_noop (
@@ -489,8 +686,14 @@ main (int argc, char *const *argv)
       "ego",
       "NAME",
       gettext_noop (
-        "set default identity to NAME for a subsystem SUBSYSTEM (use together with -s) or restrict results to NAME (use together with -d)"),
+        "set default identity to NAME for a subsystem SUBSYSTEM (use together with -s), restrict results to NAME (use together with -d) or read and decrypt a message for NAME (use together with -R)"),
       &set_ego),
+    GNUNET_GETOPT_option_string ('k',
+                                 "key",
+                                 "PUBLIC_KEY",
+                                 gettext_noop (
+                                   "The public key of the recipient (with -W)"),
+                                 &pubkey_msg),
     GNUNET_GETOPT_option_flag ('m',
                                "monitor",
                                gettext_noop ("run in monitor mode egos"),
