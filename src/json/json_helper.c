@@ -789,7 +789,7 @@ parse_rel_time (void *cls,
   if (json_is_integer (json_d_ms))
   {
     tval = json_integer_value (json_d_ms);
-    rel->rel_value_us = GNUNET_TIME_relative_multiply (
+    *rel = GNUNET_TIME_relative_multiply (
       GNUNET_TIME_UNIT_MILLISECONDS,
       tval);
     return GNUNET_OK;
