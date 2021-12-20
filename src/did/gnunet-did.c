@@ -18,7 +18,8 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 
-// TODO: Public Key in DID Docuement - pkey_multibase_json
+// TODO: Own GNS type
+// TODO: Save delete and move DIDD to root - look for other with same sub
 // TODO: uncrustify
 // TODO: Unit Tests
 
@@ -95,12 +96,6 @@ static struct GNUNET_GNS_Handle * gns_handle;
 static struct GNUNET_NAMESTORE_Handle * namestore_handle;
 static struct GNUNET_IDENTITY_Handle * identity_handle;
 const static struct GNUNET_CONFIGURATION_Handle * my_cfg;
-
-// TODO
-// eddsa only
-// safe delete the didd record - look for other with same sub
-// Add a data DID Document type
-// Set Record flag when storing did
 
 /**
  * @brief Disconnect and shutdown
@@ -349,47 +344,84 @@ char *
 create_did_generate(struct GNUNET_IDENTITY_PublicKey pkey)
 {
   char * pkey_str; // Convert public key to string
-  char did_str[71]; // 58 + 12 + 1= 71
+  char did_str[71]; // 58 + 12 + 1 = 71
   char * didd_str;
-  char pkey_multibase_str[60]; // 58 + 1 + 1 = 60
+	char verify_id_str[77]; // did_str len + "#key-1" = 71 + 6 = 77
+  char * pkey_multibase_str;
 
+	char * b64;
+	char pkx[34];
+	pkx[0] = 0xed;
+	pkx[1] = 0x01;
+	memcpy(pkx+2, &(pkey.eddsa_key), sizeof(pkey.eddsa_key));
+	GNUNET_STRINGS_base64_encode(pkx, sizeof(pkx), &b64);
+
+	GNUNET_asprintf(&pkey_multibase_str, "u%s", b64);
+
+  json_t * didd;
   json_t * did_json;
   json_t * pkey_multibase_json;
+  json_t * context_json;
   json_t * context_1_json;
   json_t * context_2_json;
-  json_t * auth_type_json;
-  json_t * context_json;
-  json_t * auth_json;
-  json_t * auth_1_json;
-  json_t * didd;
+  json_t * verify_json;
+  json_t * verify_1_json;
+  json_t * verify_1_type_json;
+  json_t * verify_1_id_json;
+	json_t * verify_relative_ref_json;
+	json_t * auth_json;
+	json_t * assert_json;
 
   pkey_str = GNUNET_IDENTITY_public_key_to_string(&pkey); // Convert public key to string
   sprintf(did_str, "did:reclaim:%s", pkey_str); // Convert the public key to a DID str
-  sprintf(pkey_multibase_str, "V%s", pkey_str); // Convert the public key to MultiBase data format
+  sprintf(verify_id_str, "did:reclaim:%s#key-1", pkey_str); // Convert the public key to a DID str
 
-  // Create DID Document 
+  // sprintf(pkey_multibase_str, "V%s", pkey_str); // Convert the public key to MultiBase data format
+
+	// Create Json Strings
   did_json = json_string(did_str);
   pkey_multibase_json = json_string(pkey_multibase_str);
+
   context_1_json = json_string("https://www.w3.org/ns/did/v1");
   context_2_json = json_string("https://w3id.org/security/suites/ed25519-2020/v1");
-  auth_type_json = json_string("Ed25519VerificationKey2020");
+	verify_1_id_json = json_string(verify_id_str);
+  verify_1_type_json = json_string("Ed25519VerificationKey2020");
 
+	// Add a relative DID URL to reference a verifiation method
+	// https://www.w3.org/TR/did-core/#relative-did-urls` 
+	verify_relative_ref_json = json_string("#key-1");  
+
+  // Create DID Document 
+  didd = json_object();
+
+	// Add context
   context_json = json_array();
   json_array_append(context_json, context_1_json);
   json_array_append(context_json, context_2_json);
-
-  auth_json = json_array();
-  auth_1_json = json_object();
-  json_object_set(auth_1_json, "id", did_json);
-  json_object_set(auth_1_json, "type", auth_type_json);
-  json_object_set(auth_1_json, "controller", did_json);
-  json_object_set(auth_1_json, "publicKeyMultiBase", pkey_multibase_json);
-  json_array_append(auth_json, auth_1_json);
-
-  didd = json_object();
   json_object_set(didd, "@context", context_json);
+
+	// Add id
   json_object_set(didd, "id", did_json);
+
+	// Add verification method
+  verify_json = json_array();
+  verify_1_json = json_object();
+  json_object_set(verify_1_json, "id", verify_1_id_json);
+  json_object_set(verify_1_json, "type", verify_1_type_json);
+  json_object_set(verify_1_json, "controller", did_json);
+  json_object_set(verify_1_json, "publicKeyMultiBase", pkey_multibase_json);
+  json_array_append(verify_json, verify_1_json);
+  json_object_set(didd, "verificationMethod", verify_json);
+
+	// Add authentication method
+	auth_json = json_array();
+	json_array_append(auth_json, verify_relative_ref_json);
   json_object_set(didd, "authentication", auth_json);
+
+	// Add assertion method to issue a Verifiable Credential
+	assert_json = json_array();
+	json_array_append(assert_json, verify_relative_ref_json);
+	json_object_set(didd, "assertionMethod", assert_json);
 
   // Encode DID Document as JSON string
   didd_str = json_dumps(didd, JSON_INDENT(2));
@@ -400,15 +432,24 @@ create_did_generate(struct GNUNET_IDENTITY_PublicKey pkey)
     ret = 1;
     return NULL;
   }
+	
+	// TODO: MORE FREEEEEEEE
+	free(pkey_multibase_str);
+	free(b64);
 
+	free(didd);
 	free(did_json);
 	free(pkey_multibase_json);
+	free(context_json);
 	free(context_1_json);
 	free(context_2_json);
-	free(auth_type_json);
+	free(verify_json);
+	free(verify_1_json);
+	free(verify_1_type_json);
+	free(verify_1_id_json);
 	free(auth_json);
-	free(auth_1_json);
-	free(didd);
+	free(assert_json);
+	free(verify_relative_ref_json);
 
 	return didd_str;
 }
