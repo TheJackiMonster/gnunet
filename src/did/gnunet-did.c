@@ -18,9 +18,7 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 
-// TODO: Public Key in DID Docuement
-// TODO: Correct Key type
-// TODO: valid time when setting DID Docuement - replace - create
+// TODO: Public Key in DID Docuement - pkey_multibase_json
 // TODO: uncrustify
 // TODO: Unit Tests
 
@@ -488,10 +486,7 @@ create_did_ego_lockup_cb(void *cls, struct GNUNET_IDENTITY_Ego * ego)
 
   GNUNET_IDENTITY_ego_get_public_key(ego, &pkey);
 
-	printf("DEBUG: Key type: %ld\n", (unsigned long) pkey.type);
-
-	// if (false)
-	if (pkey.type != GNUNET_GNSRECORD_TYPE_EDKEY)
+	if (ntohl(pkey.type) != GNUNET_GNSRECORD_TYPE_EDKEY)
 	{
 		printf("The EGO has to have an EDDSA key pair\n");
 		GNUNET_SCHEDULER_add_now(&cleanup, NULL);
