@@ -488,13 +488,10 @@ create_did_ego_lockup_cb(void *cls, struct GNUNET_IDENTITY_Ego * ego)
 
   GNUNET_IDENTITY_ego_get_public_key(ego, &pkey);
 
-	printf("DEBUG: Key type: %d\n", pkey.type);
+	printf("DEBUG: Key type: %ld\n", (unsigned long) pkey.type);
 
-	// check if the key is of right type (EDDSA)
-
-	// What does "Defined by the GNS zone type value in NBO" mean?
-	//if (pkey.type != GNUNET_IDENTITY_TYPE_EDDSA) {
-	if (false) 
+	// if (false)
+	if (pkey.type != GNUNET_GNSRECORD_TYPE_EDKEY)
 	{
 		printf("The EGO has to have an EDDSA key pair\n");
 		GNUNET_SCHEDULER_add_now(&cleanup, NULL);
@@ -555,14 +552,14 @@ create_did_document_ego_create_cb(void *cls,
 static void 
 create_did_document()
 {
-	if(attr_name != NULL || attr_expire != NULL){
+	if(attr_name != NULL && attr_expire != NULL){
 		GNUNET_IDENTITY_create(identity_handle,
 													 attr_name,
 													 NULL,
 													 GNUNET_IDENTITY_TYPE_EDDSA,
 													 &create_did_document_ego_create_cb,
 													 (void *) attr_name);
-	} else if (attr_ego != NULL || attr_expire != NULL) {
+	} else if (attr_ego != NULL && attr_expire != NULL) {
 		GNUNET_IDENTITY_ego_lookup(my_cfg,
 		                           attr_ego,
 		                           &create_did_ego_lockup_cb,
