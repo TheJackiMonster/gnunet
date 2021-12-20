@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2012-2015 GNUnet e.V.
+   Copyright (C) 2012-2021 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -17,6 +17,14 @@
 
      SPDX-License-Identifier: AGPL3.0-or-later
  */
+
+// TODO: Public Key in DID Docuement
+// TODO: Correct Key type
+// TODO: valid time when setting DID Docuement - replace - create
+// TODO: uncrustify
+// TODO: Unit Tests
+
+
 /**
  * @author Tristan Schwieren
  * @file src/did/gnunet-did.c
@@ -80,17 +88,21 @@ static char *attr_ego;
  */
 static char *attr_name;
 
+/**
+ * Attribute expire
+ */
+static char *attr_expire;
+
 static struct GNUNET_GNS_Handle * gns_handle;
 static struct GNUNET_NAMESTORE_Handle * namestore_handle;
 static struct GNUNET_IDENTITY_Handle * identity_handle;
 const static struct GNUNET_CONFIGURATION_Handle * my_cfg;
 
 // TODO
-// static void replace_did_document(); - use remove_did_document and add_did_document
 // eddsa only
-// Set the duration for the didd record 
 // safe delete the didd record - look for other with same sub
 // Add a data DID Document type
+// Set Record flag when storing did
 
 /**
  * @brief Disconnect and shutdown
@@ -191,8 +203,6 @@ print_did_document(
 	uint32_t rd_count,
 	const struct GNUNET_GNSRECORD_Data *rd)
 {
-	printf("Going to print did\n");
-	// TODO: Remove "store.sock" at the end of print
 	if (rd_count != 1)
 	{
 		printf("An ego should only have one DID Document");
@@ -226,7 +236,6 @@ resolve_did_document()
 	get_pkey_from_attr_did(&pkey);
 
 	// TODO: Check the type of returned records
-	printf("Start GNS lockup\n");
 	GNUNET_GNS_lookup(gns_handle, "didd", &pkey, GNUNET_DNSPARSER_TYPE_TXT, GNUNET_GNS_LO_DEFAULT, &print_did_document, NULL);
 }
 
@@ -427,22 +436,34 @@ create_did_store_cb(void *cls, int32_t success, const char *emsg){
 static void
 create_did_store(char * didd_str, struct GNUNET_IDENTITY_Ego * ego)
 {
-	const struct GNUNET_IDENTITY_PrivateKey * skey = GNUNET_IDENTITY_ego_get_private_key(ego);
-  const struct GNUNET_GNSRECORD_Data record_data = {
-    (void *) didd_str,
-    (uint64_t) 86400000000, // =1d TODO: Set to user preference
-    strlen(didd_str), 
-    GNUNET_GNSRECORD_typename_to_number("TXT"),
-    0
-  };
 
-  GNUNET_NAMESTORE_records_store( namestore_handle,
-                                  skey,
-                                  "didd",
-                                  1,
-                                  &record_data,
-                                  &create_did_store_cb,
-                                  NULL);
+	struct GNUNET_TIME_Relative expire_time;
+  struct GNUNET_GNSRECORD_Data record_data;
+	const struct GNUNET_IDENTITY_PrivateKey * skey;
+
+	if(GNUNET_STRINGS_fancy_time_to_relative(attr_expire, &expire_time) != GNUNET_OK)
+	{
+		record_data.data = (void *) didd_str;
+		record_data.expiration_time = expire_time.rel_value_us;
+		record_data.data_size = strlen(didd_str);
+		record_data.record_type = GNUNET_GNSRECORD_typename_to_number("TXT"),
+		record_data.flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
+
+		skey = GNUNET_IDENTITY_ego_get_private_key(ego);
+
+  	GNUNET_NAMESTORE_records_store( namestore_handle,
+  	                                skey,
+  	                                "didd",
+  	                                1,
+  	                                &record_data,
+  	                                &create_did_store_cb,
+  	                                NULL);
+	} else {
+		printf("Failed to read given expiration time\n");
+  	GNUNET_SCHEDULER_add_now(&cleanup, NULL);
+  	ret = 1;
+  	return;
+	}
 }
 
 /**
@@ -527,23 +548,27 @@ create_did_document_ego_create_cb(void *cls,
 	                           NULL);
 }
 
+/**
+ * @brief Create a did document
+ * 
+ */
 static void 
 create_did_document()
 {
-  if(attr_name != NULL){
+	if(attr_name != NULL || attr_expire != NULL){
 		GNUNET_IDENTITY_create(identity_handle,
 													 attr_name,
 													 NULL,
 													 GNUNET_IDENTITY_TYPE_EDDSA,
 													 &create_did_document_ego_create_cb,
 													 (void *) attr_name);
-	} else if (attr_ego != NULL) {
+	} else if (attr_ego != NULL || attr_expire != NULL) {
 		GNUNET_IDENTITY_ego_lookup(my_cfg,
 		                           attr_ego,
 		                           &create_did_ego_lockup_cb,
 		                           NULL);
   } else {
-    printf("Set the NAME or the EGO argument to create a new DID(-Document)\n");
+    printf("Set the NAME or the EGO and the Expiration-time argument to create a new DID(-Document)\n");
     GNUNET_SCHEDULER_add_now(&cleanup, NULL);
     ret = 1;
     return;
@@ -584,11 +609,11 @@ replace_did_document_remove_cb(void * cls)
 static void 
 replace_did_document()
 {
-	if (attr_didd != NULL)
+	if (attr_didd != NULL || attr_expire != NULL)
 	{
 		remove_did_document(&replace_did_document_remove_cb, NULL);
 	} else {
-		printf("Set the DID Document argument to repalce the DID Document\n");
+		printf("Set the DID Document and expiration time argument to repalce the DID Document\n");
   	GNUNET_SCHEDULER_add_now(&cleanup, NULL);
   	ret = 1;
   	return;
@@ -688,6 +713,11 @@ main (int argc, char *const argv[])
 		                             "NAME",
 		                             gettext_noop ("The name of the created EGO"),
 		                             &attr_name),
+		GNUNET_GETOPT_option_string ('t',
+		                             "expiration-time",
+		                             "TIME",
+		                             gettext_noop ("The time until the DID Document is going to expire (e.g. 5d)"),
+		                             &attr_expire),
 		GNUNET_GETOPT_OPTION_END
 	};
 
