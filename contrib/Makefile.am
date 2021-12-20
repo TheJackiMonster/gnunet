@@ -32,8 +32,7 @@ dist_pkgdata_DATA = \
   netjail/netjail_exec.sh \
   netjail/netjail_start.sh \
   netjail/netjail_stop.sh \
-  netjail/topo.sh \
-  $(BUILDCOMMON_SHLIB_FILES)
+  netjail/topo.sh
 
 INITD_FILES = \
   services/systemd/gnunet-user.service \
@@ -221,8 +220,7 @@ EXTRA_DIST = \
   patches/lrn-indent.diff \
   test_gnunet_prefix.c \
   $(PACKAGES_FILES) \
-  $(INITD_FILES) \
-  $(BUILD_COMMON_FILES)
+  $(INITD_FILES)
 
 check_PROGRAMS = \
   test_gnunet_prefix

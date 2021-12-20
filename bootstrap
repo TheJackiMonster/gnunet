@@ -40,8 +40,8 @@ check_uncrustify()
 {
     if existence uncrustify; then
         echo "Installing uncrustify hook and configuration"
-        ln -fs contrib/build-common/conf/uncrustify.cfg uncrustify.cfg 2> /dev/null
-        ln -fs contrib/build-common/conf/uncrustify_precommit .git/hooks/pre-commit 2> /dev/null
+        ln -fs contrib/conf/uncrustify.cfg uncrustify.cfg 2> /dev/null
+        ln -fs contrib/conf/uncrustify_precommit .git/hooks/pre-commit 2> /dev/null
     else
         echo "Uncrustify not detected, hook not installed."
         echo "Please install uncrustify if you plan on doing development"
@@ -65,7 +65,7 @@ check_yapf()
        existence yapf3.9 || \
        existence yapf4.0; then
         echo "Installing yapf symlink"
-        ln -fs contrib/build-common/conf/.style.yapf .style.yapf 2> /dev/null
+        ln -fs contrib/conf/.style.yapf .style.yapf 2> /dev/null
     else
         echo "yapf not detected, please install yapf if you plan on contributing python code"
     fi
@@ -103,16 +103,10 @@ submodules()
     fi
 }
 
-init_buildcommon_include()
-{
-    cp contrib/build-common/Makefile.inc contrib/Makefile.inc || exit 1
-}
-
 main()
 {
     cleanup
     submodules
-    init_buildcommon_include
     check_uncrustify
     check_yapf
     check_libtool

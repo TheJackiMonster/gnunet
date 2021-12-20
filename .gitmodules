@@ -1,3 +1,0 @@
-[submodule "contrib/build-common"]
-	path = contrib/build-common
-	url = https://git.taler.net/build-common.git
