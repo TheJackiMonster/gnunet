@@ -147,8 +147,8 @@ GNUNET_CRYPTO_cs_r_get_public (const struct GNUNET_CRYPTO_CsRSecret *r_priv,
  * @param[out] bs array containing the two derived blinding secrets
  */
 void
-GNUNET_CRYPTO_cs_blinding_secrets_derive (const void *secret,
-                                          size_t secret_len,
+GNUNET_CRYPTO_cs_blinding_secrets_derive (const struct
+                                          GNUNET_CRYPTO_CsNonce *blind_seed,
                                           struct GNUNET_CRYPTO_CsBlindingSecret
                                           bs[2])
 {
@@ -161,8 +161,8 @@ GNUNET_CRYPTO_cs_blinding_secrets_derive (const void *secret,
                                      GCRY_MD_SHA256,
                                      "alphabeta",
                                      strlen ("alphabeta"),
-                                     secret,
-                                     secret_len,
+                                     blind_seed,
+                                     sizeof(*blind_seed),
                                      NULL,
                                      0));
   map_to_scalar_subgroup (&bs[0].alpha);

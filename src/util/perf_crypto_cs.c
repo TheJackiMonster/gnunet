@@ -103,8 +103,6 @@ eval ()
   for (i = 0; i < ITER; i++)
   {
     GNUNET_CRYPTO_cs_blinding_secrets_derive (&nonce,
-                                              sizeof(struct
-                                                     GNUNET_CRYPTO_CsNonce),
                                               bs);
   }
   printf ("10x derive blinding secrets took %s\n",
@@ -167,9 +165,9 @@ eval ()
   for (i = 0; i < ITER; i++)
   {
     GNUNET_CRYPTO_cs_verify (&sig,
-                                   &pub,
-                                   message,
-                                   message_len);
+                             &pub,
+                             message,
+                             message_len);
   }
   printf ("10x verifying signatures took %s\n",
           GNUNET_STRINGS_relative_time_to_string (
