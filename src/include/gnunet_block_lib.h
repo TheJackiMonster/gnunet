@@ -243,7 +243,7 @@ enum GNUNET_BLOCK_ReplyEvaluationResult
   /**
    * Specified block type not supported by any plugin.
    */
-  GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED = -1
+  GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED = -1,
   
   /**
    * Block does not match query (invalid result)

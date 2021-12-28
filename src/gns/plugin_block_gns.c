@@ -271,14 +271,6 @@ block_plugin_gns_check_block (void *cls,
     GNUNET_break_op (0);
     return GNUNET_NO;
   }
-  GNUNET_GNSRECORD_query_from_block (block,
-                                     &h);
-  if (0 != GNUNET_memcmp (&h,
-                          query))
-  {
-    GNUNET_break_op (0);
-    return GNUNET_NO;
-  }
   if (GNUNET_OK !=
       GNUNET_GNSRECORD_block_verify (block))
   {
