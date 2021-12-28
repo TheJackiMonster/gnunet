@@ -255,8 +255,7 @@ block_plugin_gns_check_block (void *cls,
                               const void *block,
                               size_t block_size)
 {
-  const struct GNUNET_GNSRECORD_Block *block;
-  struct GNUNET_HashCode h;
+  const struct GNUNET_GNSRECORD_Block *gblock;
   
   if (type != GNUNET_BLOCK_TYPE_GNS_NAMERECORD)
     return GNUNET_SYSERR;
@@ -265,14 +264,14 @@ block_plugin_gns_check_block (void *cls,
     GNUNET_break_op (0);
     return GNUNET_NO;
   }
-  block = reply_block;
-  if (GNUNET_GNSRECORD_block_get_size (block) > block_size)
+  gblock = block;
+  if (GNUNET_GNSRECORD_block_get_size (gblock) > block_size)
   {
     GNUNET_break_op (0);
     return GNUNET_NO;
   }
   if (GNUNET_OK !=
-      GNUNET_GNSRECORD_block_verify (block))
+      GNUNET_GNSRECORD_block_verify (gblock))
   {
     GNUNET_break_op (0);
     return GNUNET_NO;
@@ -316,7 +315,7 @@ block_plugin_gns_check_reply (void *cls,
   if (reply_block_size < sizeof(struct GNUNET_GNSRECORD_Block))
   {
     GNUNET_break_op (0);
-    return GNUNET_BLOCK_REPLY_RESULT_INVALID;
+    return GNUNET_BLOCK_REPLY_INVALID;
   }
   block = reply_block;
   if (GNUNET_GNSRECORD_block_get_size (block) > reply_block_size)
@@ -328,7 +327,7 @@ block_plugin_gns_check_reply (void *cls,
                       reply_block_size,
                       &chash);
   if (GNUNET_YES ==
-      GNUNET_BLOCK_GROUP_bf_test_and_set (bg,
+      GNUNET_BLOCK_GROUP_bf_test_and_set (group,
                                           &chash))
     return GNUNET_BLOCK_REPLY_OK_DUPLICATE;
   return GNUNET_BLOCK_REPLY_OK_MORE;

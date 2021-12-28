@@ -321,13 +321,13 @@ block_plugin_fs_check_block (void *cls,
     {
       const struct UBlock *ub;
       
-      if (reply_block_size < sizeof(struct UBlock))
+      if (block_size < sizeof(struct UBlock))
       {
         GNUNET_break_op (0);
         return GNUNET_NO;
       }
-      ub = reply_block;
-      if (reply_block_size !=
+      ub = block;
+      if (block_size !=
           ntohl (ub->purpose.size) +
           sizeof (struct GNUNET_CRYPTO_EcdsaSignature))
       {
@@ -390,7 +390,7 @@ block_plugin_fs_check_reply (void *cls,
                           reply_block_size,
                           &chash);
       if (GNUNET_YES ==
-          GNUNET_BLOCK_GROUP_bf_test_and_set (bg,
+          GNUNET_BLOCK_GROUP_bf_test_and_set (group,
                                               &chash))
         return GNUNET_BLOCK_REPLY_OK_DUPLICATE;
       return GNUNET_BLOCK_REPLY_OK_MORE;
