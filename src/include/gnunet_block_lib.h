@@ -221,6 +221,44 @@ enum GNUNET_BLOCK_EvaluationResult
 
 
 /**
+ * Possible ways for how a block may relate to a query.
+ */
+enum GNUNET_BLOCK_ReplyEvaluationResult
+{
+  /**
+   * Valid result, but suppressed because it is a duplicate.
+   */
+  GNUNET_BLOCK_REPLY_OK_DUPLICATE = 0,
+
+  /**
+   * Valid result, and there may be more.
+   */
+  GNUNET_BLOCK_REPLY_OK_MORE = 1,
+
+  /**
+   * Last possible valid result.
+   */
+  GNUNET_BLOCK_REPLY_OK_LAST = 2,
+
+  /**
+   * Specified block type not supported by any plugin.
+   */
+  GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED = -1
+  
+  /**
+   * Block does not match query (invalid result)
+   */
+  GNUNET_BLOCK_REPLY_INVALID = -2,
+
+  /**
+   * Block does not match xquery (valid result, not relevant for the request)
+   */
+  GNUNET_BLOCK_REPLY_IRRELEVANT = -3,
+
+};
+
+
+/**
  * Handle to an initialized block library.
  */
 struct GNUNET_BLOCK_Context;
