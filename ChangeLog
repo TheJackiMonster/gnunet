@@ -1,11 +1,227 @@
-Wed, 1 Sep 2021 10:28:09 +0200 (d51000320)
-add fix for GNUnet directory permissions by madmurphy - Christian Grothoff
+Tue, 21 Dec 2021 15:27:27 +0100 (ff714cca7)
+changed derive_secrets API - Gian Demarmels
 
-Mon, 30 Aug 2021 09:35:40 +0200 (9eb417e72)
-exec' - Christian Grothoff
+Mon, 20 Dec 2021 10:59:42 +0100 (ed65e2cac)
+BUILD: Kill build-common - Martin Schanzenbach
+
+Mon, 20 Dec 2021 10:23:14 +0100 (511058f7e)
+DOCUMENTATION: Fix link to tutorial - Martin Schanzenbach
+
+Thu, 16 Dec 2021 17:48:38 +0100 (4ec4cc9bd)
+fix GNUNET_PQ_result_spec_timestamp_nbo - Christian Grothoff
+
+Thu, 16 Dec 2021 12:51:02 +0100 (a062e1241)
+tolerate old style values (for now) - Christian Grothoff
+
+Wed, 15 Dec 2021 13:18:24 +0100 (8faf7660d)
+enable v10 backwards compatibility - Christian Grothoff
+
+Tue, 14 Dec 2021 15:59:07 +0100 (99779b455)
+introducing GNUNET_TIME_Timestamp - Christian Grothoff
+
+Mon, 6 Dec 2021 22:44:14 +0100 (67b56e366)
+add crypto_cs testing and benchmark - Lucien Heuzeveldt
+
+Mon, 6 Dec 2021 22:13:35 +0100 (2bcdfc2f9)
+add crypto_cs implementation - Lucien Heuzeveldt
+
+Mon, 6 Dec 2021 14:20:25 +0100 (1816cee64)
+fixed timeout for netjail tests, removed duplicated function declaration from header, using GNUNET_TESTING_get_trait_batch_cmds in loop, fixed tng service shutdown logic, added missing GNUNET_SERVICE_client_continue, changed default log level for udp backchannel test to debug - t3sserakt
+
+Mon, 6 Dec 2021 10:14:03 +0100 (7a7f3d5e0)
+propose barrier API - Christian Grothoff
+
+Mon, 6 Dec 2021 10:05:04 +0100 (41f26e067)
+propose barrier API - Christian Grothoff
+
+Mon, 6 Dec 2021 10:04:34 +0100 (a388fd600)
+propose barrier API - Christian Grothoff
+
+Sun, 5 Dec 2021 11:58:45 +0100 (2266d4614)
+add bool type to libgnunetpq - Christian Grothoff
+
+Fri, 3 Dec 2021 22:27:46 +0100 (f236a1f38)
+ABD: Fix build - Martin Schanzenbach
+
+Fri, 3 Dec 2021 18:22:15 +0100 (0d7bbcd3a)
+DHT: Update wire formats. - Martin Schanzenbach
+
+Fri, 3 Dec 2021 18:14:38 +0100 (a0b8084ca)
+DHT: Remove unused processing option - Martin Schanzenbach
+
+Tue, 30 Nov 2021 16:14:35 +0100 (f80d6d695)
+ignore prepared statement failures if statement is already known to enable connection pooling - Christian Grothoff
+
+Fri, 26 Nov 2021 13:11:47 +0100 (9792ef1c3)
+make LE optional - Christian Grothoff
+
+Fri, 26 Nov 2021 07:03:17 -0500 (c384f7784)
+No longer require libextractor at configure time - Thien-Thi Nguyen
+
+Fri, 26 Nov 2021 09:17:35 +0100 (b1bb98f8b)
+make sudo non-interactive - Christian Grothoff
+
+Thu, 25 Nov 2021 23:50:13 +0100 (04166afcb)
+fix configure.ac issues with autoconf 2.69 - Christian Grothoff
+
+Thu, 25 Nov 2021 23:38:58 +0100 (2a52d39a2)
+help fixing #7105 - Christian Grothoff
+
+Thu, 25 Nov 2021 14:38:48 +0100 (63854ee52)
+add pk invariant check - Christian Grothoff
+
+Thu, 25 Nov 2021 14:03:04 +0100 (b9644ee30)
+fix event loop subscriptions on DB reconnect - Christian Grothoff
+
+Tue, 23 Nov 2021 12:31:18 +0100 (5cb62b557)
+RECLAIM: Fix bug that multiple attributes with the same name are added in CLI - Martin Schanzenbach
+
+Sun, 21 Nov 2021 16:14:29 +0100 (3dbb45893)
+Fix gnunet-namestore's URI import - Alessio Vanni
+
+Sun, 21 Nov 2021 17:25:50 +0100 (71d0c6696)
+update FR translation - Christian Grothoff
+
+Thu, 11 Nov 2021 00:56:30 +0100 (20ffa0aa5)
+Update configure.ac and a few macros used by it - Alessio Vanni
+
+Fri, 5 Nov 2021 22:52:53 +0100 (d744d49e1)
+Allow gnunet-qr to read codes from PNG pictures - Alessio Vanni
+
+Sun, 21 Nov 2021 17:25:50 +0100 (71d0c6696)
+update FR translation - Christian Grothoff
+
+Thu, 14 Oct 2021 21:22:40 +0200 (48ccb35c9)
+Improve gnunet-bcd and update logo used in generated cards - Alessio Vanni
+
+Sat, 20 Nov 2021 23:22:19 +0100 (1dcc14eca)
+update fr.po - Christian Grothoff
+
+Sat, 20 Nov 2021 02:27:34 -0500 (9f0a9deef)
+Convert AC_HELP_STRING to AS_HELP_STRING - Thien-Thi Nguyen
+
+Sat, 20 Nov 2021 01:41:02 -0500 (0390da9dd)
+Convert indirect ‘AC_CHECK_FUNCS’ call to direct one - Thien-Thi Nguyen
+
+Sat, 20 Nov 2021 01:31:24 -0500 (b04f9f7a7)
+Remove unnecessary double-quotes escaping - Thien-Thi Nguyen
+
+Sat, 20 Nov 2021 01:24:05 -0500 (73550ea6e)
+Remove m4-quoting from AC_CHECK_FUNCS arg - Thien-Thi Nguyen
+
+Wed, 17 Nov 2021 08:38:55 +0100 (c5a7ce5d2)
+subscribes are not reference counted by postgres, only subscribe/unsubscribe once per connection - Christian Grothoff
+
+Thu, 28 Oct 2021 13:32:17 +0200 (6a642f8f6)
+add logging for DB perf analysis - Christian Grothoff
+
+Mon, 25 Oct 2021 14:49:05 +0200 (1609d627e)
+changes to reflect the changes in testing_api_loop.c - t3sserakt
+
+Mon, 25 Oct 2021 11:23:26 +0200 (196b6bc57)
+debian: fix path again - Florian Dold
+
+Mon, 25 Oct 2021 10:40:33 +0200 (61dd07223)
+debian: fix libexec path - Florian Dold
+
+Tue, 19 Oct 2021 13:59:42 +0200 (789268e1b)
+kdf: zero out salt correctly - Florian Dold
+
+Mon, 11 Oct 2021 17:08:46 +0200 (d190d2383)
+fixed unset port forwarding variable bug in netjail script, fixed end cmd without shutdown bug, smaller fixes - t3sserakt
+
+Tue, 19 Oct 2021 13:55:28 +0200 (2e2abc61d)
+make KDF conform to RFC 5869 - Florian Dold
+
+Thu, 14 Oct 2021 16:39:24 +0200 (d64ac2698)
+removed versioned artefacts with v2 and v3. changes to reflect the changes in testing_api_loop.c - t3sserakt
+
+Tue, 12 Oct 2021 10:04:50 +0200 (8ac2a05b3)
+BUILD: Kill infiniband - Martin Schanzenbach
+
+Tue, 12 Oct 2021 08:34:21 +0200 (786210216)
+BUILD: Attempt fix longer file names in make dist - Martin Schanzenbach
+
+Mon, 11 Oct 2021 23:56:12 +0200 (113cd7e3d)
+BUILD: Remove --disable-mysql-version-check. #7033 - Martin Schanzenbach
+
+Mon, 11 Oct 2021 23:43:04 +0200 (4e7e81f4d)
+BUILD: Remove --disable-testing. Issue #7033 - Martin Schanzenbach
+
+Mon, 11 Oct 2021 23:28:17 +0200 (65554324a)
+BUILD: Remove W32 ifdef - Martin Schanzenbach
+
+Mon, 11 Oct 2021 23:01:22 +0200 (41e8c1e21)
+BUILD: Remove EXPENSIVE_TESTS (unused). Issue #7033 - Martin Schanzenbach
+
+Mon, 11 Oct 2021 17:08:46 +0200 (d190d2383)
+fixed unset port forwarding variable bug in netjail script, fixed end cmd without shutdown bug, smaller fixes - t3sserakt
+
+Mon, 11 Oct 2021 16:30:12 +0200 (62ca5edd0)
+BUILD: Remove SuperMUC code. Issue #7033 - Martin Schanzenbach
+
+Sat, 9 Oct 2021 14:20:18 +0200 (ae41c8bcd)
+BUILD: Add version from git tags - Martin Schanzenbach
+
+Wed, 6 Oct 2021 18:53:37 +0200 (6ef071b8c)
+fix #7029 - Christian Grothoff
+
+Mon, 4 Oct 2021 21:07:21 +0000 (e173017ed)
+Fix some typos in the handbook - Christian Grothoff
+
+Mon, 4 Oct 2021 22:30:21 +0200 (961685fab)
+add missing finish cmd - Christian Grothoff
+
+Thu, 23 Sep 2021 22:52:44 +0200 (1aa0d5f34)
+PQ: implementing #7014: support testing database version is current - Christian Grothoff
+
+Wed, 22 Sep 2021 20:32:39 +0200 (369f0a0e8)
+The differences between the contrib subdirectory in the git repository and the contrib subdirectory generated by make dist have grown really big. Please find attached another patch for updating the content of: - Christian Grothoff
+
+Wed, 22 Sep 2021 11:39:25 +0200 (81d925587)
+NSE: return NaN (see #7021) - Christian Grothoff
+
+Wed, 22 Sep 2021 11:35:46 +0200 (7bf37b7ea)
+NSE: return INF, not NaN (fixes #7021) - Christian Grothoff
+
+Thu, 16 Sep 2021 22:51:28 +0200 (fc9ca33bc)
+fix typos spotted by madmurphy - Christian Grothoff
+
+Fri, 10 Sep 2021 16:38:35 +0200 (46e07ed8e)
+Include "gettext.h" even when "platform.h" is unavailable - Alessio Vanni
+
+Sun, 5 Sep 2021 22:21:40 +0200 (3da9cbd62)
+BUILD: Remove FRAMEWORK_BUILD define - Martin Schanzenbach
+
+Sun, 5 Sep 2021 18:27:53 +0200 (f9f3cbe9f)
+make backend-check a gnunet-only gnunet-config option - Christian Grothoff
+
+Sun, 5 Sep 2021 16:58:55 +0200 (b4e034d9a)
+refactor gnunet-config to make preload hacks obsolete - Christian Grothoff
+
+Fri, 3 Sep 2021 18:21:28 +0200 (00c03c7bb)
+HANDBOOK: Add pointers to CI - Martin Schanzenbach
+
+Tue, 31 Aug 2021 16:09:03 +0200 (25d8a8a26)
+Flip the value of GNUNET_EXTRA_LOGGING given when it's undefined - Alessio Vanni
+
+Tue, 31 Aug 2021 15:54:43 +0200 (382fc8faa)
+gnunet.m4: add flag to disable debug messages - Alessio Vanni
+
+Tue, 27 Jul 2021 16:27:14 +0200 (649d10b27)
+Autoconf macro to detect GNUnet installations - Alessio Vanni
+
+Sat, 24 Jul 2021 16:15:10 +0200 (9bdfda437)
+gnunet-config manpage: Document the new flags - Alessio Vanni
+
+Fri, 23 Jul 2021 18:20:33 +0200 (fd1bcccb9)
+UTIL: Allow gnunet-config to output build config informations - Alessio Vanni
+
+Wed, 1 Sep 2021 10:28:09 +0200 (d51000320)
+UTIL: add fix for GNUnet directory permissions by madmurphy - Christian Grothoff
 
 Sat, 28 Aug 2021 21:50:06 +0200 (2994fa434)
-improve error message and inherit stderr as suggested by Florian - Christian Grothoff
+UTIL: improve error message and inherit stderr as suggested by Florian - Christian Grothoff
 
 Sat, 28 Aug 2021 18:42:53 +0200 (c6528ac77)
 debian: systemd installation - Florian Dold
