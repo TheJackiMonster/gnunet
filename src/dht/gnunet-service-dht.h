@@ -65,7 +65,8 @@ extern struct GNUNET_MessageHeader *GDS_my_hello;
  * client(s).
  *
  * @param expiration when will the reply expire
- * @param key the query this reply is for
+ * @param key the key of the query that triggered the reply
+ * @param query_hash the query hash of the response
  * @param get_path_length number of peers in @a get_path
  * @param get_path path the reply took on get
  * @param put_path_length number of peers in @a put_path
@@ -77,6 +78,7 @@ extern struct GNUNET_MessageHeader *GDS_my_hello;
 void
 GDS_CLIENTS_handle_reply (struct GNUNET_TIME_Absolute expiration,
                           const struct GNUNET_HashCode *key,
+                          const struct GNUNET_HashCode *query_hash,
                           unsigned int get_path_length,
                           const struct GNUNET_PeerIdentity *get_path,
                           unsigned int put_path_length,

@@ -339,7 +339,7 @@ GNUNET_BLOCK_group_create (struct GNUNET_BLOCK_Context *ctx,
  * @return #GNUNET_OK on success, #GNUNET_NO if serialization is not
  *         supported, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BLOCK_group_serialize (struct GNUNET_BLOCK_Group *bg,
                               uint32_t *nonce,
                               void **raw_data,
@@ -424,11 +424,11 @@ GNUNET_BLOCK_check_reply (struct GNUNET_BLOCK_Context *ctx,
  *   #GNUNET_SYSERR if @a type is not supported
  */
 enum GNUNET_GenericReturnValue
-GNUNET_BLOCK_check_request (struct GNUNET_BLOCK_Context *ctx,
-                            enum GNUNET_BLOCK_Type type,
-                            const struct GNUNET_HashCode *query,
-                            const void *xquery,
-                            size_t xquery_size);
+GNUNET_BLOCK_check_query (struct GNUNET_BLOCK_Context *ctx,
+                          enum GNUNET_BLOCK_Type type,
+                          const struct GNUNET_HashCode *query,
+                          const void *xquery,
+                          size_t xquery_size);
 
 
 /**

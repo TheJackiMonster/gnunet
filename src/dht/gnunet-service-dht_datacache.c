@@ -158,7 +158,7 @@ struct GetRequestContext
  * @return #GNUNET_OK to continue iteration, anything else
  * to stop iteration.
  */
-static int
+static enum GNUNET_GenericReturnValue
 datacache_get_iterator (void *cls,
                         const struct GNUNET_HashCode *key,
                         size_t data_size,
@@ -170,7 +170,7 @@ datacache_get_iterator (void *cls,
 {
   static char non_null;
   struct GetRequestContext *ctx = cls;
-  enum GNUNET_BLOCK_EvaluationResult eval;
+  enum GNUNET_BLOCK_ReplyEvaluationResult eval;
 
   if (0 == GNUNET_TIME_absolute_get_remaining (exp).rel_value_us)
   {
@@ -182,15 +182,14 @@ datacache_get_iterator (void *cls,
     data = &non_null; /* point anywhere, but not to NULL */
 
   eval
-    = GNUNET_BLOCK_evaluate (GDS_block_context,
-                             type,
-                             ctx->bg,
-                             GNUNET_BLOCK_EO_LOCAL_SKIP_CRYPTO,
-                             key,
-                             ctx->xquery,
-                             ctx->xquery_size,
-                             data,
-                             data_size);
+    = GNUNET_BLOCK_check_reply (GDS_block_context,
+                                type,
+                                ctx->bg,
+                                key,
+                                ctx->xquery,
+                                ctx->xquery_size,
+                                data,
+                                data_size);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Found reply for query %s in datacache, evaluation result is %d\n",
        GNUNET_h2s (key),
@@ -198,12 +197,13 @@ datacache_get_iterator (void *cls,
   ctx->eval = eval;
   switch (eval)
   {
-  case GNUNET_BLOCK_EVALUATION_OK_MORE:
-  case GNUNET_BLOCK_EVALUATION_OK_LAST:
-    /* forward to local clients */
+  case GNUNET_BLOCK_REPLY_OK_MORE:
+  case GNUNET_BLOCK_REPLY_OK_LAST:
+  case GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED:
+    /* forward to initiator */
     GNUNET_STATISTICS_update (GDS_stats,
-                              gettext_noop
-                                ("# Good RESULTS found in datacache"), 1,
+                              "# Good RESULTS found in datacache",
+                              1,
                               GNUNET_NO);
     ctx->gc (ctx->gc_cls,
              type,
@@ -213,51 +213,27 @@ datacache_get_iterator (void *cls,
              0, NULL,
              data, data_size);
     break;
-
-  case GNUNET_BLOCK_EVALUATION_OK_DUPLICATE:
+  case GNUNET_BLOCK_REPLY_OK_DUPLICATE:
     GNUNET_STATISTICS_update (GDS_stats,
-                              gettext_noop (
-                                "# Duplicate RESULTS found in datacache"),
+                              "# Duplicate RESULTS found in datacache",
                               1,
                               GNUNET_NO);
     break;
-
-  case GNUNET_BLOCK_EVALUATION_RESULT_INVALID:
+  case GNUNET_BLOCK_REPLY_INVALID:
+    /* maybe it expired? */
     GNUNET_STATISTICS_update (GDS_stats,
-                              gettext_noop (
-                                "# Invalid RESULTS found in datacache"),
+                              "# Invalid RESULTS found in datacache",
                               1,
                               GNUNET_NO);
     break;
-
-  case GNUNET_BLOCK_EVALUATION_RESULT_IRRELEVANT:
+  case GNUNET_BLOCK_REPLY_IRRELEVANT:
     GNUNET_STATISTICS_update (GDS_stats,
-                              gettext_noop (
-                                "# Irrelevant RESULTS found in datacache"),
+                              "# Irrelevant RESULTS found in datacache",
                               1,
                               GNUNET_NO);
-    break;
-
-  case GNUNET_BLOCK_EVALUATION_REQUEST_VALID:
-    GNUNET_break (0);
-    break;
-
-  case GNUNET_BLOCK_EVALUATION_REQUEST_INVALID:
-    GNUNET_break_op (0);
-    return GNUNET_SYSERR;
-
-  case GNUNET_BLOCK_EVALUATION_TYPE_NOT_SUPPORTED:
-    GNUNET_STATISTICS_update (GDS_stats,
-                              gettext_noop (
-                                "# Unsupported RESULTS found in datacache"),
-                              1,
-                              GNUNET_NO);
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                _ ("Unsupported block type (%u) in local response!\n"),
-                type);
     break;
   }
-  return (eval == GNUNET_BLOCK_EVALUATION_OK_LAST) ? GNUNET_NO : GNUNET_OK;
+  return (eval == GNUNET_BLOCK_REPLY_OK_LAST) ? GNUNET_NO : GNUNET_OK;
 }
 
 

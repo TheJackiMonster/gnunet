@@ -125,6 +125,8 @@ struct ClientQueryRecord
 
   /**
    * Any message options for this request
+   *
+   * FIXME: why uint32_t instead of enum?
    */
   uint32_t msg_options;
 
@@ -493,6 +495,7 @@ handle_dht_local_put (void *cls,
        GNUNET_h2s (&dht_msg->key));
   GDS_CLIENTS_handle_reply (GNUNET_TIME_absolute_ntoh (dht_msg->expiration),
                             &dht_msg->key,
+                            &dht_msg->key,
                             0,
                             NULL,
                             0,
@@ -584,6 +587,7 @@ handle_local_result (void *cls,
   // FIXME: this needs some clean up: inline the function,
   // possibly avoid even looking up the client!
   GDS_CLIENTS_handle_reply (expiration_time,
+                            key,
                             key,
                             0, NULL,
                             put_path_length, put_path,
@@ -967,6 +971,11 @@ struct ForwardReplyContext
   const struct GNUNET_PeerIdentity *put_path;
 
   /**
+   * Hash under which the payload is stored.
+   */
+  const struct GNUNET_HashCode *query_hash;
+
+  /**
    * Embedded payload.
    */
   const void *data;
@@ -1004,7 +1013,7 @@ struct ForwardReplyContext
  * @return #GNUNET_YES (we should continue to iterate),
  *         if the result is mal-formed, #GNUNET_NO
  */
-static int
+static enum GNUNET_GenericReturnValue
 forward_reply (void *cls,
                const struct GNUNET_HashCode *key,
                void *value)
@@ -1013,14 +1022,14 @@ forward_reply (void *cls,
   struct ClientQueryRecord *record = value;
   struct GNUNET_MQ_Envelope *env;
   struct GNUNET_DHT_ClientResultMessage *reply;
-  enum GNUNET_BLOCK_EvaluationResult eval;
-  int do_free;
+  enum GNUNET_BLOCK_ReplyEvaluationResult eval;
+  bool do_free;
   struct GNUNET_HashCode ch;
   struct GNUNET_PeerIdentity *paths;
 
   LOG_TRAFFIC (GNUNET_ERROR_TYPE_DEBUG,
                "CLIENT-RESULT %s\n",
-               GNUNET_h2s_full (key));
+               GNUNET_h2s_full (frc->query_hash));
   if ((record->type != GNUNET_BLOCK_TYPE_ANY) &&
       (record->type != frc->type))
   {
@@ -1028,13 +1037,24 @@ forward_reply (void *cls,
          "Record type mismatch, not passing request for key %s to local client\n",
          GNUNET_h2s (key));
     GNUNET_STATISTICS_update (GDS_stats,
-                              gettext_noop
-                              (
-                                "# Key match, type mismatches in REPLY to CLIENT"),
-                              1, GNUNET_NO);
+                              "# Key match, type mismatches in REPLY to CLIENT",
+                              1,
+                              GNUNET_NO);
     return GNUNET_YES;          /* type mismatch */
   }
-  GNUNET_CRYPTO_hash (frc->data, frc->data_size, &ch);
+  if ( (0 == (record->msg_options & GNUNET_DHT_RO_FIND_PEER)) &&
+       (0 != GNUNET_memcmp (key,
+                            frc->query_hash)) )
+  {
+    GNUNET_STATISTICS_update (GDS_stats,
+                              "# Inexact key match, but exact match required",
+                              1,
+                              GNUNET_NO);
+    return GNUNET_YES;          /* type mismatch */
+  }
+  GNUNET_CRYPTO_hash (frc->data,
+                      frc->data_size,
+                      &ch);
   for (unsigned int i = 0; i < record->seen_replies_count; i++)
     if (0 == memcmp (&record->seen_replies[i],
                      &ch,
@@ -1051,63 +1071,45 @@ forward_reply (void *cls,
       return GNUNET_YES;        /* duplicate */
     }
   eval
-    = GNUNET_BLOCK_evaluate (GDS_block_context,
-                             record->type,
-                             NULL,
-                             GNUNET_BLOCK_EO_NONE,
-                             key,
-                             record->xquery,
-                             record->xquery_size,
-                             frc->data,
-                             frc->data_size);
+    = GNUNET_BLOCK_check_reply (GDS_block_context,
+                                record->type,
+                                NULL,
+                                key,
+                                record->xquery,
+                                record->xquery_size,
+                                frc->data,
+                                frc->data_size);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Evaluation result is %d for key %s for local client's query\n",
        (int) eval,
        GNUNET_h2s (key));
   switch (eval)
   {
-  case GNUNET_BLOCK_EVALUATION_OK_LAST:
-    do_free = GNUNET_YES;
+  case GNUNET_BLOCK_REPLY_OK_LAST:
+    do_free = true;
     break;
-
-  case GNUNET_BLOCK_EVALUATION_OK_MORE:
+  case GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED:
+  case GNUNET_BLOCK_REPLY_OK_MORE:
     GNUNET_array_append (record->seen_replies,
                          record->seen_replies_count,
                          ch);
-    do_free = GNUNET_NO;
+    do_free = false;
     break;
-
-  case GNUNET_BLOCK_EVALUATION_OK_DUPLICATE:
+  case GNUNET_BLOCK_REPLY_OK_DUPLICATE:
     /* should be impossible to encounter here */
     GNUNET_break (0);
     return GNUNET_YES;
-
-  case GNUNET_BLOCK_EVALUATION_RESULT_INVALID:
+  case GNUNET_BLOCK_REPLY_INVALID:
     GNUNET_break_op (0);
     return GNUNET_NO;
-
-  case GNUNET_BLOCK_EVALUATION_REQUEST_VALID:
-    GNUNET_break (0);
-    return GNUNET_NO;
-
-  case GNUNET_BLOCK_EVALUATION_REQUEST_INVALID:
-    GNUNET_break (0);
-    return GNUNET_NO;
-
-  case GNUNET_BLOCK_EVALUATION_RESULT_IRRELEVANT:
+  case GNUNET_BLOCK_REPLY_IRRELEVANT:
     return GNUNET_YES;
-
-  case GNUNET_BLOCK_EVALUATION_TYPE_NOT_SUPPORTED:
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                _ ("Unsupported block type (%u) in request!\n"), record->type);
-    return GNUNET_NO;
-
   default:
     GNUNET_break (0);
     return GNUNET_NO;
   }
   GNUNET_STATISTICS_update (GDS_stats,
-                            gettext_noop ("# RESULTS queued for clients"),
+                            "# RESULTS queued for clients",
                             1,
                             GNUNET_NO);
   env = GNUNET_MQ_msg_extra (reply,
@@ -1149,7 +1151,8 @@ forward_reply (void *cls,
  * client(s).
  *
  * @param expiration when will the reply expire
- * @param key the query this reply is for
+ * @param key the key of the query that triggered the reply
+ * @param query_hash the query hash of the response
  * @param get_path_length number of peers in @a get_path
  * @param get_path path the reply took on get
  * @param put_path_length number of peers in @a put_path
@@ -1161,6 +1164,7 @@ forward_reply (void *cls,
 void
 GDS_CLIENTS_handle_reply (struct GNUNET_TIME_Absolute expiration,
                           const struct GNUNET_HashCode *key,
+                          const struct GNUNET_HashCode *query_hash,
                           unsigned int get_path_length,
                           const struct GNUNET_PeerIdentity *get_path,
                           unsigned int put_path_length,
@@ -1173,27 +1177,15 @@ GDS_CLIENTS_handle_reply (struct GNUNET_TIME_Absolute expiration,
   size_t msize;
 
   msize = sizeof(struct GNUNET_DHT_ClientResultMessage) + data_size
-          + (get_path_length + put_path_length) * sizeof(struct
-                                                         GNUNET_PeerIdentity);
+          + (get_path_length + put_path_length)
+          * sizeof(struct GNUNET_PeerIdentity);
   if (msize >= GNUNET_MAX_MESSAGE_SIZE)
   {
     GNUNET_break (0);
     return;
   }
-  if (NULL == GNUNET_CONTAINER_multihashmap_get (forward_map,
-                                                 key))
-  {
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "No matching client for reply for key %s\n",
-         GNUNET_h2s (key));
-    GNUNET_STATISTICS_update (GDS_stats,
-                              gettext_noop (
-                                "# REPLIES ignored for CLIENTS (no match)"),
-                              1,
-                              GNUNET_NO);
-    return;                     /* no matching request, fast exit! */
-  }
   frc.expiration = expiration;
+  frc.query_hash = query_hash;
   frc.get_path = get_path;
   frc.put_path = put_path;
   frc.data = data;
@@ -1204,10 +1196,20 @@ GDS_CLIENTS_handle_reply (struct GNUNET_TIME_Absolute expiration,
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Forwarding reply for key %s to client\n",
        GNUNET_h2s (key));
-  GNUNET_CONTAINER_multihashmap_get_multiple (forward_map,
-                                              key,
-                                              &forward_reply,
-                                              &frc);
+  if (0 ==
+      GNUNET_CONTAINER_multihashmap_get_multiple (forward_map,
+                                                  key,
+                                                  &forward_reply,
+                                                  &frc))
+  {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "No matching client for reply for key %s\n",
+         GNUNET_h2s (key));
+    GNUNET_STATISTICS_update (GDS_stats,
+                              "# REPLIES ignored for CLIENTS (no match)",
+                              1,
+                              GNUNET_NO);
+  }
 }
 
 
@@ -1285,20 +1287,6 @@ GDS_CLIENTS_process_get (uint32_t options,
 }
 
 
-/**
- * Check if some client is monitoring GET RESP messages and notify
- * them in that case.
- *
- * @param type The type of data in the result.
- * @param get_path Peers on GET path (or NULL if not recorded).
- * @param get_path_length number of entries in get_path.
- * @param put_path peers on the PUT path (or NULL if not recorded).
- * @param put_path_length number of entries in get_path.
- * @param exp Expiration time of the data.
- * @param key Key of the data.
- * @param data Pointer to the result data.
- * @param size Number of bytes in @a data.
- */
 void
 GDS_CLIENTS_process_get_resp (enum GNUNET_BLOCK_Type type,
                               const struct GNUNET_PeerIdentity *get_path,

@@ -62,11 +62,6 @@ struct RecentRequest
   struct GNUNET_BLOCK_Group *bg;
 
   /**
-   * Type of the requested block.
-   */
-  enum GNUNET_BLOCK_Type type;
-
-  /**
    * extended query (see gnunet_block_lib.h).  Allocated at the
    * end of this struct.
    */
@@ -76,6 +71,11 @@ struct RecentRequest
    * Number of bytes in xquery.
    */
   size_t xquery_size;
+
+  /**
+   * Type of the requested block.
+   */
+  enum GNUNET_BLOCK_Type type;
 
   /**
    * Request options.
@@ -148,17 +148,16 @@ struct ProcessContext
  * @param cls the `struct ProcessContext` with the result
  * @param key the query
  * @param value the `struct RecentRequest` with the request
- * @return #GNUNET_OK (continue to iterate),
- *         #GNUNET_SYSERR if the result is malformed or type unsupported
+ * @return #GNUNET_OK (continue to iterate)
  */
-static int
+static enum GNUNET_GenericReturnValue
 process (void *cls,
          const struct GNUNET_HashCode *key,
          void *value)
 {
   struct ProcessContext *pc = cls;
   struct RecentRequest *rr = value;
-  enum GNUNET_BLOCK_EvaluationResult eval;
+  enum GNUNET_BLOCK_ReplyEvaluationResult eval;
   unsigned int gpl;
   unsigned int ppl;
   struct GNUNET_HashCode hc;
@@ -178,8 +177,11 @@ process (void *cls,
     gpl = 0;
     ppl = 0;
   }
-  if ((0 != (rr->options & GNUNET_DHT_RO_FIND_PEER)) &&
-      (pc->type == GNUNET_BLOCK_TYPE_DHT_HELLO))
+  /* FIXME-SCHANZEN: should we modify FIND_PEER to
+     be a generic approximate search and not check
+     for the DHT_HELLO type here? */
+  if ( (0 != (rr->options & GNUNET_DHT_RO_FIND_PEER)) &&
+       (pc->type == GNUNET_BLOCK_TYPE_DHT_HELLO) )
   {
     /* key may not match HELLO, which is OK since
      * the search is approximate.  Still, the evaluation
@@ -197,15 +199,14 @@ process (void *cls,
     eval_key = key;
   }
   eval
-    = GNUNET_BLOCK_evaluate (GDS_block_context,
-                             pc->type,
-                             rr->bg,
-                             GNUNET_BLOCK_EO_NONE,
-                             eval_key,
-                             rr->xquery,
-                             rr->xquery_size,
-                             pc->data,
-                             pc->data_size);
+    = GNUNET_BLOCK_check_reply (GDS_block_context,
+                                pc->type,
+                                rr->bg,
+                                eval_key,
+                                rr->xquery,
+                                rr->xquery_size,
+                                pc->data,
+                                pc->data_size);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Result for %s of type %d was evaluated as %d\n",
               GNUNET_h2s (key),
@@ -213,12 +214,13 @@ process (void *cls,
               eval);
   switch (eval)
   {
-  case GNUNET_BLOCK_EVALUATION_OK_MORE:
-  case GNUNET_BLOCK_EVALUATION_OK_LAST:
+  case GNUNET_BLOCK_REPLY_OK_MORE:
+  case GNUNET_BLOCK_REPLY_OK_LAST:
+  case GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED:
     GNUNET_STATISTICS_update (GDS_stats,
-                              gettext_noop
-                                ("# Good REPLIES matched against routing table"),
-                              1, GNUNET_NO);
+                              "# Good REPLIES matched against routing table",
+                              1,
+                              GNUNET_NO);
     GDS_NEIGHBOURS_handle_reply (&rr->peer,
                                  pc->type,
                                  pc->expiration_time,
@@ -228,50 +230,28 @@ process (void *cls,
                                  pc->data,
                                  pc->data_size);
     break;
-
-  case GNUNET_BLOCK_EVALUATION_OK_DUPLICATE:
+  case GNUNET_BLOCK_REPLY_OK_DUPLICATE:
     GNUNET_STATISTICS_update (GDS_stats,
-                              gettext_noop
-                              (
-                                "# Duplicate REPLIES matched against routing table"),
-                              1, GNUNET_NO);
+                              "# Duplicate REPLIES matched against routing table",
+                              1,
+                              GNUNET_NO);
     return GNUNET_OK;
-
-  case GNUNET_BLOCK_EVALUATION_RESULT_INVALID:
-    GNUNET_STATISTICS_update (GDS_stats,
-                              gettext_noop
-                              (
-                                "# Invalid REPLIES matched against routing table"),
-                              1, GNUNET_NO);
-    return GNUNET_SYSERR;
-
-  case GNUNET_BLOCK_EVALUATION_RESULT_IRRELEVANT:
-    GNUNET_STATISTICS_update (GDS_stats,
-                              gettext_noop
-                              (
-                                "# Irrelevant REPLIES matched against routing table"),
-                              1, GNUNET_NO);
-    return GNUNET_OK;
-
-  case GNUNET_BLOCK_EVALUATION_REQUEST_VALID:
+  case GNUNET_BLOCK_REPLY_INVALID:
     GNUNET_break (0);
-    return GNUNET_OK;
-
-  case GNUNET_BLOCK_EVALUATION_REQUEST_INVALID:
-    GNUNET_break (0);
-    return GNUNET_OK;
-
-  case GNUNET_BLOCK_EVALUATION_TYPE_NOT_SUPPORTED:
     GNUNET_STATISTICS_update (GDS_stats,
-                              gettext_noop
-                              (
-                                "# Unsupported REPLIES matched against routing table"),
-                              1, GNUNET_NO);
-    return GNUNET_SYSERR;
-
+                              "# Invalid REPLIES matched against routing table",
+                              1,
+                              GNUNET_NO);
+    return GNUNET_OK;
+  case GNUNET_BLOCK_REPLY_IRRELEVANT:
+    GNUNET_STATISTICS_update (GDS_stats,
+                              "# Irrelevant REPLIES matched against routing table",
+                              1,
+                              GNUNET_NO);
+    return GNUNET_OK;
   default:
     GNUNET_break (0);
-    return GNUNET_SYSERR;
+    return GNUNET_OK;
   }
   return GNUNET_OK;
 }
@@ -281,7 +261,7 @@ process (void *cls,
  * Handle a reply (route to origin).  Only forwards the reply back to
  * other peers waiting for it.  Does not do local caching or
  * forwarding to local clients.  Essentially calls
- * GDS_NEIGHBOURS_handle_reply for all peers that sent us a matching
+ * GDS_NEIGHBOURS_handle_reply() for all peers that sent us a matching
  * request recently.
  *
  * @param type type of the block
@@ -315,16 +295,6 @@ GDS_ROUTING_process (enum GNUNET_BLOCK_Type type,
   pc.get_path = get_path;
   pc.data = data;
   pc.data_size = data_size;
-  if (NULL == data)
-  {
-    /* Some apps might have an 'empty' reply as a valid reply; however,
-       'process' will call GNUNET_BLOCK_evaluate' which treats a 'NULL'
-       reply as request-validation (but we need response-validation).
-       So we set 'data' to a 0-byte non-NULL value just to be sure */
-    GNUNET_break (0 == data_size);
-    pc.data_size = 0;
-    pc.data = "";   /* something not null */
-  }
   GNUNET_CONTAINER_multihashmap_get_multiple (recent_map,
                                               key,
                                               &process,
@@ -338,13 +308,13 @@ GDS_ROUTING_process (enum GNUNET_BLOCK_Type type,
  * in the heap and hashmap.
  */
 static void
-expire_oldest_entry ()
+expire_oldest_entry (void)
 {
   struct RecentRequest *recent_req;
 
   GNUNET_STATISTICS_update (GDS_stats,
-                            gettext_noop
-                              ("# Entries removed from routing table"), 1,
+                            "# Entries removed from routing table",
+                            1,
                             GNUNET_NO);
   recent_req = GNUNET_CONTAINER_heap_peek (recent_heap);
   GNUNET_assert (recent_req != NULL);
@@ -362,13 +332,13 @@ expire_oldest_entry ()
  * Try to combine multiple recent requests for the same value
  * (if they come from the same peer).
  *
- * @param cls the new 'struct RecentRequest' (to discard upon successful combination)
+ * @param cls the new `struct RecentRequest` (to discard upon successful combination)
  * @param key the query
  * @param value the existing 'struct RecentRequest' (to update upon successful combination)
  * @return #GNUNET_OK (continue to iterate),
  *         #GNUNET_SYSERR if the request was successfully combined
  */
-static int
+static enum GNUNET_GenericReturnValue
 try_combine_recent (void *cls,
                     const struct GNUNET_HashCode *key,
                     void *value)
@@ -419,7 +389,7 @@ GDS_ROUTING_add (const struct GNUNET_PeerIdentity *sender,
   while (GNUNET_CONTAINER_heap_get_size (recent_heap) >= DHT_MAX_RECENT)
     expire_oldest_entry ();
   GNUNET_STATISTICS_update (GDS_stats,
-                            gettext_noop ("# Entries added to routing table"),
+                            "# Entries added to routing table",
                             1,
                             GNUNET_NO);
   recent_req = GNUNET_malloc (sizeof(struct RecentRequest) + xquery_size);
