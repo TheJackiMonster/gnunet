@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2010, 2017 GNUnet e.V.
+     Copyright (C) 2010, 2017, 2021 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -70,13 +70,6 @@ struct GNUNET_BLOCK_Context
 };
 
 
-/**
- * Mingle hash with the mingle_number to produce different bits.
- *
- * @param in original hash code
- * @param mingle_number number for hash permutation
- * @param hc where to store the result.
- */
 void
 GNUNET_BLOCK_mingle_hash (const struct GNUNET_HashCode *in,
                           uint32_t mingle_number,
@@ -121,12 +114,6 @@ add_plugin (void *cls,
 }
 
 
-/**
- * Create a block context.  Loads the block plugins.
- *
- * @param cfg configuration to use
- * @return NULL on error
- */
 struct GNUNET_BLOCK_Context *
 GNUNET_BLOCK_context_create (const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
@@ -143,11 +130,6 @@ GNUNET_BLOCK_context_create (const struct GNUNET_CONFIGURATION_Handle *cfg)
 }
 
 
-/**
- * Destroy the block context.
- *
- * @param ctx context to destroy
- */
 void
 GNUNET_BLOCK_context_destroy (struct GNUNET_BLOCK_Context *ctx)
 {
@@ -167,17 +149,7 @@ GNUNET_BLOCK_context_destroy (struct GNUNET_BLOCK_Context *ctx)
 }
 
 
-/**
- * Serialize state of a block group.
- *
- * @param bg group to serialize
- * @param[out] nonce set to the nonce of the @a bg
- * @param[out] raw_data set to the serialized state
- * @param[out] raw_data_size set to the number of bytes in @a raw_data
- * @return #GNUNET_OK on success, #GNUNET_NO if serialization is not
- *         supported, #GNUNET_SYSERR on error
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BLOCK_group_serialize (struct GNUNET_BLOCK_Group *bg,
                               uint32_t *nonce,
                               void **raw_data,
@@ -197,11 +169,6 @@ GNUNET_BLOCK_group_serialize (struct GNUNET_BLOCK_Group *bg,
 }
 
 
-/**
- * Destroy resources used by a block group.
- *
- * @param bg group to destroy, NULL is allowed
- */
 void
 GNUNET_BLOCK_group_destroy (struct GNUNET_BLOCK_Group *bg)
 {
@@ -211,23 +178,11 @@ GNUNET_BLOCK_group_destroy (struct GNUNET_BLOCK_Group *bg)
 }
 
 
-/**
- * Try merging two block groups.  Afterwards, @a bg1 should remain
- * valid and contain the rules from both @a bg1 and @bg2, and
- * @a bg2 should be destroyed (as part of this call).  The latter
- * should happen even if merging is not supported.
- *
- * @param[in,out] bg1 first group to merge, is updated
- * @param bg2 second group to merge, is destroyed
- * @return #GNUNET_OK on success,
- *         #GNUNET_NO if merge failed due to different nonce
- *         #GNUNET_SYSERR if merging is not supported
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BLOCK_group_merge (struct GNUNET_BLOCK_Group *bg1,
                           struct GNUNET_BLOCK_Group *bg2)
 {
-  int ret;
+  enum GNUNET_GenericReturnValue ret;
 
   if (NULL == bg2)
     return GNUNET_OK;
@@ -257,35 +212,18 @@ static struct GNUNET_BLOCK_PluginFunctions *
 find_plugin (struct GNUNET_BLOCK_Context *ctx,
              enum GNUNET_BLOCK_Type type)
 {
-  struct Plugin *plugin;
-  unsigned int j;
-
   for (unsigned i = 0; i < ctx->num_plugins; i++)
   {
-    plugin = ctx->plugins[i];
-    j = 0;
-    while (0 != (plugin->api->types[j]))
-    {
+    struct Plugin *plugin = ctx->plugins[i];
+
+    for (unsigned int j = 0; 0 != plugin->api->types[j]; j++)
       if (type == plugin->api->types[j])
         return plugin->api;
-      j++;
-    }
   }
   return NULL;
 }
 
 
-/**
- * Create a new block group.
- *
- * @param ctx block context in which the block group is created
- * @param type type of the block for which we are creating the group
- * @param nonce random value used to seed the group creation
- * @param raw_data optional serialized prior state of the group, NULL if unavailable/fresh
- * @param raw_data_size number of bytes in @a raw_data, 0 if unavailable/fresh
- * @return block group handle, NULL if block groups are not supported
- *         by this @a type of block (this is not an error)
- */
 struct GNUNET_BLOCK_Group *
 GNUNET_BLOCK_group_create (struct GNUNET_BLOCK_Context *ctx,
                            enum GNUNET_BLOCK_Type type,
@@ -317,24 +255,6 @@ GNUNET_BLOCK_group_create (struct GNUNET_BLOCK_Context *ctx,
 }
 
 
-/**
- * Function called to validate a reply or a request.  For
- * request evaluation, simply pass "NULL" for the reply_block.
- * Note that it is assumed that the reply has already been
- * matched to the key (and signatures checked) as it would
- * be done with the "get_key" function.
- *
- * @param ctx block contxt
- * @param type block type
- * @param block block group to use
- * @param eo control flags
- * @param query original query (hash)
- * @param xquery extended query data (can be NULL, depending on type)
- * @param xquery_size number of bytes in @a xquery
- * @param reply_block response to validate
- * @param reply_block_size number of bytes in @a reply_block
- * @return characterization of result
- */
 enum GNUNET_BLOCK_EvaluationResult
 GNUNET_BLOCK_evaluate (struct GNUNET_BLOCK_Context *ctx,
                        enum GNUNET_BLOCK_Type type,
@@ -364,18 +284,7 @@ GNUNET_BLOCK_evaluate (struct GNUNET_BLOCK_Context *ctx,
 }
 
 
-/**
- * Function called to obtain the key for a block.
- *
- * @param ctx block context
- * @param type block type
- * @param block block to get the key for
- * @param block_size number of bytes in @a block
- * @param key set to the key (query) for the given block
- * @return #GNUNET_OK on success, #GNUNET_SYSERR if type not supported
- *         (or if extracting a key from a block of this type does not work)
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BLOCK_get_key (struct GNUNET_BLOCK_Context *ctx,
                       enum GNUNET_BLOCK_Type type,
                       const void *block,
@@ -385,8 +294,8 @@ GNUNET_BLOCK_get_key (struct GNUNET_BLOCK_Context *ctx,
   struct GNUNET_BLOCK_PluginFunctions *plugin = find_plugin (ctx,
                                                              type);
 
-  if (plugin == NULL)
-    return GNUNET_BLOCK_EVALUATION_TYPE_NOT_SUPPORTED;
+  if (NULL == plugin)
+    return GNUNET_SYSERR;
   return plugin->get_key (plugin->cls,
                           type,
                           block,
@@ -395,18 +304,73 @@ GNUNET_BLOCK_get_key (struct GNUNET_BLOCK_Context *ctx,
 }
 
 
-/**
- * Update block group to filter out the given results.  Note that the
- * use of a hash for seen results implies that the caller magically
- * knows how the specific block engine hashes for filtering
- * duplicates, so this API may not always apply.
- *
- * @param bf_mutator mutation value to use
- * @param seen_results results already seen
- * @param seen_results_count number of entries in @a seen_results
- * @return #GNUNET_SYSERR if not supported, #GNUNET_OK on success
- */
-int
+enum GNUNET_GenericReturnValue
+GNUNET_BLOCK_check_query (struct GNUNET_BLOCK_Context *ctx,
+                          enum GNUNET_BLOCK_Type type,
+                          const struct GNUNET_HashCode *query,
+                          const void *xquery,
+                          size_t xquery_size)
+{
+  struct GNUNET_BLOCK_PluginFunctions *plugin = find_plugin (ctx,
+                                                             type);
+
+  if (NULL == plugin)
+    return GNUNET_SYSERR;
+  return plugin->check_query (plugin->cls,
+                              type,
+                              query,
+                              xquery,
+                              xquery_size);
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_BLOCK_check_block (struct GNUNET_BLOCK_Context *ctx,
+                          enum GNUNET_BLOCK_Type type,
+                          const struct GNUNET_HashCode *query,
+                          const void *block,
+                          size_t block_size)
+{
+  struct GNUNET_BLOCK_PluginFunctions *plugin = find_plugin (ctx,
+                                                             type);
+
+  if (NULL == plugin)
+    return GNUNET_SYSERR;
+  return plugin->check_block (plugin->cls,
+                              type,
+                              query,
+                              block,
+                              block_size);
+}
+
+
+enum GNUNET_BLOCK_ReplyEvaluationResult
+GNUNET_BLOCK_check_reply (struct GNUNET_BLOCK_Context *ctx,
+                          enum GNUNET_BLOCK_Type type,
+                          struct GNUNET_BLOCK_Group *group,
+                          const struct GNUNET_HashCode *query,
+                          const void *xquery,
+                          size_t xquery_size,
+                          const void *reply_block,
+                          size_t reply_block_size)
+{
+  struct GNUNET_BLOCK_PluginFunctions *plugin = find_plugin (ctx,
+                                                             type);
+
+  if (NULL == plugin)
+    return GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED;
+  return plugin->check_reply (plugin->cls,
+                              type,
+                              group,
+                              query,
+                              xquery,
+                              xquery_size,
+                              reply_block,
+                              reply_block_size);
+}
+
+
+enum GNUNET_GenericReturnValue
 GNUNET_BLOCK_group_set_seen (struct GNUNET_BLOCK_Group *bg,
                              const struct GNUNET_HashCode *seen_results,
                              unsigned int seen_results_count)

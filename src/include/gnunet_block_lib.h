@@ -43,6 +43,8 @@ extern "C"
 
 /**
  * Blocks in the datastore and the datacache must have a unique type.
+ *
+ * TODO: move to GANA!
  */
 enum GNUNET_BLOCK_Type
 {
@@ -155,6 +157,7 @@ enum GNUNET_BLOCK_Type
 
 /**
  * Flags that can be set to control the evaluation.
+ * @deprecated
  */
 enum GNUNET_BLOCK_EvaluationOptions
 {
@@ -173,6 +176,7 @@ enum GNUNET_BLOCK_EvaluationOptions
 
 /**
  * Possible ways for how a block may relate to a query.
+ * @deprecated
  */
 enum GNUNET_BLOCK_EvaluationResult
 {
@@ -244,7 +248,7 @@ enum GNUNET_BLOCK_ReplyEvaluationResult
    * Specified block type not supported by any plugin.
    */
   GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED = -1,
-  
+
   /**
    * Block does not match query (invalid result)
    */
@@ -368,6 +372,7 @@ GNUNET_BLOCK_group_destroy (struct GNUNET_BLOCK_Group *bg);
  * @param reply_block response to validate
  * @param reply_block_size number of bytes in @a reply_block
  * @return characterization of result
+ * @deprecated
  */
 enum GNUNET_BLOCK_EvaluationResult
 GNUNET_BLOCK_evaluate (struct GNUNET_BLOCK_Context *ctx,
@@ -380,9 +385,6 @@ GNUNET_BLOCK_evaluate (struct GNUNET_BLOCK_Context *ctx,
                        const void *reply_block,
                        size_t reply_block_size);
 
-/**
- * WORK IN PROGRESS LSD0004
- */
 
 /**
  * Function called to validate a reply.
@@ -400,15 +402,14 @@ GNUNET_BLOCK_evaluate (struct GNUNET_BLOCK_Context *ctx,
  * @return characterization of result
  */
 enum GNUNET_BLOCK_ReplyEvaluationResult
-GNUNET_BLOCK_evaluate_reply (struct GNUNET_BLOCK_Context *ctx,
-                             enum GNUNET_BLOCK_Type type,
-                             struct GNUNET_BLOCK_Group *group,
-                             const struct GNUNET_HashCode *query,
-                             const void *xquery,
-                             size_t xquery_size,
-                             const void *reply_block,
-                             size_t reply_block_size);
-
+GNUNET_BLOCK_check_reply (struct GNUNET_BLOCK_Context *ctx,
+                          enum GNUNET_BLOCK_Type type,
+                          struct GNUNET_BLOCK_Group *group,
+                          const struct GNUNET_HashCode *query,
+                          const void *xquery,
+                          size_t xquery_size,
+                          const void *reply_block,
+                          size_t reply_block_size);
 
 
 /**
@@ -423,11 +424,11 @@ GNUNET_BLOCK_evaluate_reply (struct GNUNET_BLOCK_Context *ctx,
  *   #GNUNET_SYSERR if @a type is not supported
  */
 enum GNUNET_GenericReturnValue
-GNUNET_BLOCK_evaluate_request (struct GNUNET_BLOCK_Context *ctx,
-                               enum GNUNET_BLOCK_Type type,
-                               const struct GNUNET_HashCode *query,
-                               const void *xquery,
-                               size_t xquery_size);
+GNUNET_BLOCK_check_request (struct GNUNET_BLOCK_Context *ctx,
+                            enum GNUNET_BLOCK_Type type,
+                            const struct GNUNET_HashCode *query,
+                            const void *xquery,
+                            size_t xquery_size);
 
 
 /**
@@ -441,39 +442,13 @@ GNUNET_BLOCK_evaluate_request (struct GNUNET_BLOCK_Context *ctx,
  * @return #GNUNET_OK if the block is fine, #GNUNET_NO if not,
  *   #GNUNET_SYSERR if @a type is not supported
  */
-enum GNUNET_BLOCK_RequestEvaluationResult
-GNUNET_BLOCK_evaluate_block (struct GNUNET_BLOCK_Context *ctx,
-                             enum GNUNET_BLOCK_Type type,
-                             const struct GNUNET_HashCode *query,
-                             const void *block,
-                             size_t block_size);
-
-
-/**
- * Function called to obtain the key for a block.
- *
- * @param ctx block context
- * @param type block type
- * @param key the key to validate @a block against.
- * @param block block to validate @a key against.
- * @param block_size number of bytes in @a block
- * @return #GNUNET_YES if key is valid,
- *         #GNUNET_NO if the key is invalid for this block,
- *         #GNUNET_SYSERR if type not supported
- *         (or if extracting a key from a block of this type does not work)
- */
 enum GNUNET_GenericReturnValue
-GNUNET_BLOCK_validate_key (struct GNUNET_BLOCK_Context *ctx,
-                           enum GNUNET_BLOCK_Type type,
-                           const struct GNUNET_HashCode *key,
-                           const void *block,
-                           size_t block_size);
+GNUNET_BLOCK_check_block (struct GNUNET_BLOCK_Context *ctx,
+                          enum GNUNET_BLOCK_Type type,
+                          const struct GNUNET_HashCode *query,
+                          const void *block,
+                          size_t block_size);
 
-
-
-/**
- * END LSD0004
- */
 
 /**
  * Function called to obtain the key for a block.
