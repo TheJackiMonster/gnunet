@@ -184,16 +184,17 @@ struct GSF_PendingRequestData
  * @param data_len number of bytes in @a data
  */
 typedef void
-(*GSF_PendingRequestReplyHandler) (void *cls,
-                                   enum GNUNET_BLOCK_EvaluationResult eval,
-                                   struct GSF_PendingRequest *pr,
-                                   uint32_t reply_anonymity_level,
-                                   struct GNUNET_TIME_Absolute expiration,
-                                   struct GNUNET_TIME_Absolute
-                                   last_transmission,
-                                   enum GNUNET_BLOCK_Type type,
-                                   const void *data,
-                                   size_t data_len);
+(*GSF_PendingRequestReplyHandler) (
+  void *cls,
+  enum GNUNET_BLOCK_ReplyEvaluationResult eval,
+  struct GSF_PendingRequest *pr,
+  uint32_t reply_anonymity_level,
+  struct GNUNET_TIME_Absolute expiration,
+  struct GNUNET_TIME_Absolute
+  last_transmission,
+  enum GNUNET_BLOCK_Type type,
+  const void *data,
+  size_t data_len);
 
 
 /**
@@ -374,9 +375,10 @@ GSF_cadet_lookup_ (struct GSF_PendingRequest *pr);
  * @param result final datastore lookup result
  */
 typedef void
-(*GSF_LocalLookupContinuation) (void *cls,
-                                struct GSF_PendingRequest *pr,
-                                enum GNUNET_BLOCK_EvaluationResult result);
+(*GSF_LocalLookupContinuation) (
+  void *cls,
+  struct GSF_PendingRequest *pr,
+  enum GNUNET_BLOCK_ReplyEvaluationResult result);
 
 
 /**

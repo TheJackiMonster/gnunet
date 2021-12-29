@@ -395,7 +395,7 @@ client_request_destroy (void *cls)
  */
 static void
 client_response_handler (void *cls,
-                         enum GNUNET_BLOCK_EvaluationResult eval,
+                         enum GNUNET_BLOCK_ReplyEvaluationResult eval,
                          struct GSF_PendingRequest *pr,
                          uint32_t reply_anonymity_level,
                          struct GNUNET_TIME_Absolute expiration,
@@ -447,7 +447,7 @@ client_response_handler (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Queued reply to query `%s' for local client\n",
               GNUNET_h2s (&prd->query));
-  if (GNUNET_BLOCK_EVALUATION_OK_LAST != eval)
+  if (GNUNET_BLOCK_REPLY_OK_LAST != eval)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Evaluation %d - keeping query alive\n",
@@ -668,9 +668,9 @@ consider_request_for_forwarding (void *cls,
 void
 GSF_consider_forwarding (void *cls,
                          struct GSF_PendingRequest *pr,
-                         enum GNUNET_BLOCK_EvaluationResult result)
+                         enum GNUNET_BLOCK_ReplyEvaluationResult result)
 {
-  if (GNUNET_BLOCK_EVALUATION_OK_LAST == result)
+  if (GNUNET_BLOCK_REPLY_OK_LAST == result)
     return;                     /* we're done... */
   if (GNUNET_YES !=
       GSF_pending_request_test_active_ (pr))
@@ -737,13 +737,13 @@ check_p2p_get (void *cls,
 static void
 start_p2p_processing (void *cls,
                       struct GSF_PendingRequest *pr,
-                      enum GNUNET_BLOCK_EvaluationResult result)
+                      enum GNUNET_BLOCK_ReplyEvaluationResult result)
 {
   struct GSF_LocalClient *lc = cls;
   struct GSF_PendingRequestData *prd;
 
   GNUNET_SERVICE_client_continue (lc->client);
-  if (GNUNET_BLOCK_EVALUATION_OK_LAST == result)
+  if (GNUNET_BLOCK_REPLY_OK_LAST == result)
     return;                     /* we're done, 'pr' was already destroyed... */
   prd = GSF_pending_request_get_data_ (pr);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,

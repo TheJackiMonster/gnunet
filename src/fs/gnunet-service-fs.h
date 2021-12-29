@@ -280,7 +280,7 @@ extern unsigned int GSF_datastore_queue_size;
 void
 GSF_consider_forwarding (void *cls,
                          struct GSF_PendingRequest *pr,
-                         enum GNUNET_BLOCK_EvaluationResult result);
+                         enum GNUNET_BLOCK_ReplyEvaluationResult result);
 
 
 /**

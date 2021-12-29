@@ -1859,18 +1859,17 @@ handle_find_peer (const struct GNUNET_PeerIdentity *sender,
   /* first, check about our own HELLO */
   if (NULL != GDS_my_hello)
   {
-    hello_size = GNUNET_HELLO_size ((const struct
-                                     GNUNET_HELLO_Message *) GDS_my_hello);
+    hello_size = GNUNET_HELLO_size (
+      (const struct GNUNET_HELLO_Message *) GDS_my_hello);
     GNUNET_break (hello_size >= sizeof(struct GNUNET_MessageHeader));
-    if (GNUNET_BLOCK_EVALUATION_OK_MORE ==
-        GNUNET_BLOCK_evaluate (GDS_block_context,
-                               GNUNET_BLOCK_TYPE_DHT_HELLO,
-                               bg,
-                               GNUNET_BLOCK_EO_LOCAL_SKIP_CRYPTO,
-                               &my_identity_hash,
-                               NULL, 0,
-                               GDS_my_hello,
-                               hello_size))
+    if (GNUNET_BLOCK_REPLY_OK_MORE ==
+        GNUNET_BLOCK_check_reply (GDS_block_context,
+                                  GNUNET_BLOCK_TYPE_DHT_HELLO,
+                                  bg,
+                                  &my_identity_hash,
+                                  NULL, 0,
+                                  GDS_my_hello,
+                                  hello_size))
     {
       GDS_NEIGHBOURS_handle_reply (sender,
                                    GNUNET_BLOCK_TYPE_DHT_HELLO,
@@ -1933,16 +1932,16 @@ handle_find_peer (const struct GNUNET_PeerIdentity *sender,
       peer = bucket->head;
     hello = GDS_HELLO_get (peer->id);
   }
+  /* FIXME: this logic is strange. extra ';', maybe, but then why a while-loop at all? */
   while ((NULL == hello) ||
-         (GNUNET_BLOCK_EVALUATION_OK_MORE !=
-          GNUNET_BLOCK_evaluate (GDS_block_context,
-                                 GNUNET_BLOCK_TYPE_DHT_HELLO,
-                                 bg,
-                                 GNUNET_BLOCK_EO_LOCAL_SKIP_CRYPTO,
-                                 &peer->phash,
-                                 NULL, 0,
-                                 hello,
-                                 (hello_size = GNUNET_HELLO_size (hello)))));
+         (GNUNET_BLOCK_REPLY_OK_MORE !=
+          GNUNET_BLOCK_check_reply (GDS_block_context,
+                                    GNUNET_BLOCK_TYPE_DHT_HELLO,
+                                    bg,
+                                    &peer->phash,
+                                    NULL, 0,
+                                    hello,
+                                    (hello_size = GNUNET_HELLO_size (hello)))));
   GDS_NEIGHBOURS_handle_reply (sender,
                                GNUNET_BLOCK_TYPE_DHT_HELLO,
                                GNUNET_TIME_relative_to_absolute
