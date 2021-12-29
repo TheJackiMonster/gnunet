@@ -135,6 +135,80 @@ block_plugin_template_evaluate (void *cls,
 
 
 /**
+ * Function called to validate a query.
+ *
+ * @param cls closure
+ * @param ctx block context
+ * @param type block type
+ * @param query original query (hash)
+ * @param xquery extrended query data (can be NULL, depending on type)
+ * @param xquery_size number of bytes in @a xquery
+ * @return #GNUNET_OK if the query is fine, #GNUNET_NO if not
+ */
+static enum GNUNET_GenericReturnValue
+block_plugin_template_check_query (void *cls,
+                                    enum GNUNET_BLOCK_Type type,
+                                    const struct GNUNET_HashCode *query,
+                                    const void *xquery,
+                                    size_t xquery_size)
+{
+  return GNUNET_OK;
+}
+
+
+/**
+ * Function called to validate a block for storage.
+ *
+ * @param cls closure
+ * @param type block type
+ * @param query key for the block (hash), must match exactly
+ * @param block block data to validate
+ * @param block_size number of bytes in @a block
+ * @return #GNUNET_OK if the block is fine, #GNUNET_NO if not
+ */
+static enum GNUNET_GenericReturnValue
+block_plugin_template_check_block (void *cls,
+                                    enum GNUNET_BLOCK_Type type,
+                                    const struct GNUNET_HashCode *query,
+                                    const void *block,
+                                    size_t block_size)
+{
+  return GNUNET_OK;
+}
+
+
+/**
+ * Function called to validate a reply to a request.  Note that it is assumed
+ * that the reply has already been matched to the key (and signatures checked)
+ * as it would be done with the GetKeyFunction and the
+ * BlockEvaluationFunction.
+ *
+ * @param cls closure
+ * @param type block type
+ * @param group which block group to use for evaluation
+ * @param query original query (hash)
+ * @param xquery extrended query data (can be NULL, depending on type)
+ * @param xquery_size number of bytes in @a xquery
+ * @param reply_block response to validate
+ * @param reply_block_size number of bytes in @a reply_block
+ * @return characterization of result
+ */
+static enum GNUNET_BLOCK_ReplyEvaluationResult
+block_plugin_template_check_reply (
+                                        void *cls,
+                                        enum GNUNET_BLOCK_Type type,
+                                    struct GNUNET_BLOCK_Group *group,
+                                    const struct GNUNET_HashCode *query,
+                                    const void *xquery,
+                                    size_t xquery_size,
+                                    const void *reply_block,
+                                    size_t reply_block_size)
+{
+  return GNUNET_BLOCK_REPLY_OK_MORE;
+}
+
+
+/**
  * Function called to obtain the key for a block.
  *
  * @param cls closure
@@ -145,7 +219,7 @@ block_plugin_template_evaluate (void *cls,
  * @return #GNUNET_OK on success, #GNUNET_SYSERR if type not supported
  *         (or if extracting a key from a block of this type does not work)
  */
-static int
+static enum GNUNET_GenericReturnValue
 block_plugin_template_get_key (void *cls,
                                enum GNUNET_BLOCK_Type type,
                                const void *block,
@@ -164,8 +238,8 @@ block_plugin_template_get_key (void *cls,
 void *
 libgnunet_plugin_block_template_init (void *cls)
 {
-  static enum GNUNET_BLOCK_Type types[] = {
-    /* FIXME: insert supported block types here */
+  static const enum GNUNET_BLOCK_Type types[] = {
+    /* NOTE: insert supported block types here */
     GNUNET_BLOCK_TYPE_ANY       /* end of list */
   };
   struct GNUNET_BLOCK_PluginFunctions *api;
@@ -173,6 +247,9 @@ libgnunet_plugin_block_template_init (void *cls)
   api = GNUNET_new (struct GNUNET_BLOCK_PluginFunctions);
   api->evaluate = &block_plugin_template_evaluate;
   api->get_key = &block_plugin_template_get_key;
+  api->check_query = &block_plugin_template_check_query;
+  api->check_block = &block_plugin_template_check_block;
+  api->check_reply = &block_plugin_template_check_reply;
   api->create_group = &block_plugin_template_create_group;
   api->types = types;
   return api;

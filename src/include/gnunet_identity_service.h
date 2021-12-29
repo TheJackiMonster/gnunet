@@ -82,6 +82,8 @@ struct GNUNET_IDENTITY_Handle;
  */
 struct GNUNET_IDENTITY_Ego;
 
+// FIXME: these types are NOT packed,
+// NOT 64-bit aligned, but used in messages!!??
 
 /**
  * A private key for an identity as per LSD0001.

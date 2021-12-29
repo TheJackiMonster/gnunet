@@ -159,6 +159,145 @@ block_plugin_dht_evaluate (void *cls,
 
 
 /**
+ * Function called to validate a query.
+ *
+ * @param cls closure
+ * @param ctx block context
+ * @param type block type
+ * @param query original query (hash)
+ * @param xquery extrended query data (can be NULL, depending on type)
+ * @param xquery_size number of bytes in @a xquery
+ * @return #GNUNET_OK if the query is fine, #GNUNET_NO if not
+ */
+static enum GNUNET_GenericReturnValue
+block_plugin_dht_check_query (void *cls,
+                                    enum GNUNET_BLOCK_Type type,
+                                    const struct GNUNET_HashCode *query,
+                                    const void *xquery,
+                                    size_t xquery_size)
+{
+  if (type != GNUNET_BLOCK_TYPE_DHT_HELLO)
+    return GNUNET_SYSERR;
+  if (0 != xquery_size)
+  {
+    GNUNET_break_op (0);
+    return GNUNET_NO;
+  }
+  return GNUNET_OK;
+}
+
+
+/**
+ * Function called to validate a block for storage.
+ *
+ * @param cls closure
+ * @param type block type
+ * @param query key for the block (hash), must match exactly
+ * @param block block data to validate
+ * @param block_size number of bytes in @a block
+ * @return #GNUNET_OK if the block is fine, #GNUNET_NO if not
+ */
+static enum GNUNET_GenericReturnValue
+block_plugin_dht_check_block (void *cls,
+                                    enum GNUNET_BLOCK_Type type,
+                                    const struct GNUNET_HashCode *query,
+                                    const void *block,
+                                    size_t block_size)
+{
+  const struct GNUNET_HELLO_Message *hello;
+  struct GNUNET_PeerIdentity pid;
+  const struct GNUNET_MessageHeader *msg;
+
+  if (type != GNUNET_BLOCK_TYPE_DHT_HELLO)
+    return GNUNET_SYSERR;
+  if (block_size < sizeof(struct GNUNET_MessageHeader))
+  {
+    GNUNET_break_op (0);
+    return GNUNET_NO;
+  }
+  msg = block;
+  if (block_size != ntohs (msg->size))
+  {
+    GNUNET_break_op (0);
+    return GNUNET_NO;
+  }
+  hello = block;
+  if (GNUNET_OK !=
+      GNUNET_HELLO_get_id (hello,
+                           &pid))
+  {
+    GNUNET_break_op (0);
+    return GNUNET_NO;
+  }
+  return GNUNET_OK;
+}
+
+
+/**
+ * Function called to validate a reply to a request.  Note that it is assumed
+ * that the reply has already been matched to the key (and signatures checked)
+ * as it would be done with the GetKeyFunction and the
+ * BlockEvaluationFunction.
+ *
+ * @param cls closure
+ * @param type block type
+ * @param group which block group to use for evaluation
+ * @param query original query (hash)
+ * @param xquery extrended query data (can be NULL, depending on type)
+ * @param xquery_size number of bytes in @a xquery
+ * @param reply_block response to validate
+ * @param reply_block_size number of bytes in @a reply_block
+ * @return characterization of result
+ */
+static enum GNUNET_BLOCK_ReplyEvaluationResult
+block_plugin_dht_check_reply (
+                                        void *cls,
+                                        enum GNUNET_BLOCK_Type type,
+                                    struct GNUNET_BLOCK_Group *group,
+                                    const struct GNUNET_HashCode *query,
+                                    const void *xquery,
+                                    size_t xquery_size,
+                                    const void *reply_block,
+                                    size_t reply_block_size)
+{
+  const struct GNUNET_HELLO_Message *hello;
+  struct GNUNET_PeerIdentity pid;
+  const struct GNUNET_MessageHeader *msg;
+  struct GNUNET_HashCode phash;
+
+  if (type != GNUNET_BLOCK_TYPE_DHT_HELLO)
+    return GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED;
+  if (reply_block_size < sizeof(struct GNUNET_MessageHeader))
+  {
+    GNUNET_break_op (0);
+    return GNUNET_BLOCK_REPLY_INVALID;
+  }
+  msg = reply_block;
+  if (reply_block_size != ntohs (msg->size))
+  {
+    GNUNET_break_op (0);
+    return GNUNET_BLOCK_REPLY_INVALID;
+  }
+  hello = reply_block;
+  if (GNUNET_OK !=
+      GNUNET_HELLO_get_id (hello,
+                           &pid))
+  {
+    GNUNET_break_op (0);
+    return GNUNET_BLOCK_REPLY_INVALID;
+  }
+  GNUNET_CRYPTO_hash (&pid,
+                      sizeof(pid),
+                      &phash);
+  if (GNUNET_YES ==
+      GNUNET_BLOCK_GROUP_bf_test_and_set (group,
+                                          &phash))
+    return GNUNET_BLOCK_REPLY_OK_DUPLICATE;
+  return GNUNET_BLOCK_REPLY_OK_MORE;
+}
+
+
+/**
  * Function called to obtain the key for a block.
  *
  * @param cls closure
@@ -169,7 +308,7 @@ block_plugin_dht_evaluate (void *cls,
  * @return #GNUNET_OK on success, #GNUNET_SYSERR if type not supported
  *         (or if extracting a key from a block of this type does not work)
  */
-static int
+static enum GNUNET_GenericReturnValue
 block_plugin_dht_get_key (void *cls,
                           enum GNUNET_BLOCK_Type type,
                           const void *block,
@@ -229,6 +368,9 @@ libgnunet_plugin_block_dht_init (void *cls)
   api = GNUNET_new (struct GNUNET_BLOCK_PluginFunctions);
   api->evaluate = &block_plugin_dht_evaluate;
   api->get_key = &block_plugin_dht_get_key;
+  api->check_query = &block_plugin_dht_check_query;
+  api->check_block = &block_plugin_dht_check_block;
+  api->check_reply = &block_plugin_dht_check_reply;
   api->create_group = &block_plugin_dht_create_group;
   api->types = types;
   return api;

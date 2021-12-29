@@ -979,10 +979,8 @@ GNUNET_IDENTITY_key_get_length (const struct GNUNET_IDENTITY_PublicKey *key)
   {
   case GNUNET_IDENTITY_TYPE_ECDSA:
     return sizeof (key->type) + sizeof (key->ecdsa_key);
-    break;
   case GNUNET_IDENTITY_TYPE_EDDSA:
     return sizeof (key->type) + sizeof (key->eddsa_key);
-    break;
   default:
     GNUNET_break (0);
   }
@@ -992,19 +990,22 @@ GNUNET_IDENTITY_key_get_length (const struct GNUNET_IDENTITY_PublicKey *key)
 
 ssize_t
 GNUNET_IDENTITY_read_key_from_buffer (struct GNUNET_IDENTITY_PublicKey *key,
-                                      const void*buffer,
+                                      const void *buffer,
                                       size_t len)
 {
   if (len < sizeof (key->type))
     return -1;
-  GNUNET_memcpy (&(key->type), buffer, sizeof (key->type));
-  const ssize_t length = GNUNET_IDENTITY_key_get_length (key);
+  GNUNET_memcpy (&key->type,
+                 buffer,
+                 sizeof (key->type));
+  ssize_t length = GNUNET_IDENTITY_key_get_length (key);
   if (len < length)
     return -1;
   if (length < 0)
     return -2;
-  GNUNET_memcpy (&(key->ecdsa_key), buffer + sizeof (key->type), length
-                 - sizeof (key->type));
+  GNUNET_memcpy (&key->ecdsa_key,
+                 buffer + sizeof (key->type),
+                 length - sizeof (key->type));
   return length;
 }
 
