@@ -544,6 +544,10 @@ static void
 store_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 {
   const struct GNUNET_CONFIGURATION_Handle *cfg = cls;
+  struct GNUNET_ABD_Delegate *cred;
+  struct GNUNET_IDENTITY_PublicKey zone_pubkey;
+  char *subject_pubkey_str;
+  char *zone_pubkey_str;
 
   el = NULL;
 
@@ -562,17 +566,23 @@ store_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   if (GNUNET_GNSRECORD_TYPE_DELEGATE == type)
   {
     // Parse import
-    struct GNUNET_ABD_Delegate *cred;
     cred = GNUNET_ABD_delegate_from_string (import);
 
+    if (NULL == cred)
+    {
+      fprintf (stderr,
+               "%s is not a valid credential\n", import);
+      GNUNET_SCHEDULER_shutdown();
+      return;
+    }
+
     // Get import subject public key string
-    char *subject_pubkey_str =
+    subject_pubkey_str =
       GNUNET_IDENTITY_public_key_to_string (&cred->subject_key);
 
     // Get zone public key string
-    struct GNUNET_IDENTITY_PublicKey zone_pubkey;
     GNUNET_IDENTITY_ego_get_public_key (ego, &zone_pubkey);
-    char *zone_pubkey_str =
+    zone_pubkey_str =
       GNUNET_IDENTITY_public_key_to_string (&zone_pubkey);
 
     // Check if the subject key in the signed import matches the zone's key it is issued to
@@ -580,6 +590,7 @@ store_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
     {
       fprintf (stderr,
                "Import signed delegate does not match this ego's public key.\n");
+      GNUNET_free (cred);
       GNUNET_SCHEDULER_shutdown ();
       return;
     }
@@ -691,6 +702,13 @@ sign_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   // work on keys
   privkey = GNUNET_IDENTITY_ego_get_private_key (ego);
 
+  if (NULL == subject_pubkey_str)
+  {
+    fprintf (stderr,
+             "Subject pubkey not given\n");
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
   if (GNUNET_OK !=
       GNUNET_IDENTITY_public_key_from_string (subject_pubkey_str,
                                                   &subject_pkey))

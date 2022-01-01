@@ -143,10 +143,20 @@ GNUNET_ABD_delegate_from_string (const char *s)
   }
   tmp_str[attr_len - 1] = '\0';
 
-  GNUNET_IDENTITY_public_key_from_string (subject_pkey,
-                                              &dele->subject_key);
-  GNUNET_IDENTITY_public_key_from_string (issuer_pkey,
-                                              &dele->issuer_key);
+  if (GNUNET_SYSERR ==
+      GNUNET_IDENTITY_public_key_from_string (subject_pkey,
+                                              &dele->subject_key))
+  {
+    GNUNET_free (dele);
+    return NULL;
+  }
+  if (GNUNET_SYSERR ==
+      GNUNET_IDENTITY_public_key_from_string (issuer_pkey,
+                                              &dele->issuer_key))
+  {
+    GNUNET_free (dele);
+    return NULL;
+  }
   GNUNET_assert (sizeof (struct GNUNET_IDENTITY_Signature) ==
                  GNUNET_STRINGS_base64_decode (signature,
                                                strlen (signature),
