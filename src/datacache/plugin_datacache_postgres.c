@@ -67,7 +67,8 @@ static int
 init_connection (struct Plugin *plugin)
 {
   struct GNUNET_PQ_ExecuteStatement es[] = {
-    GNUNET_PQ_make_try_execute ("CREATE TEMPORARY SEQUENCE IF NOT EXISTS gn011dc_oid_seq"),
+    GNUNET_PQ_make_try_execute (
+      "CREATE TEMPORARY SEQUENCE IF NOT EXISTS gn011dc_oid_seq"),
     GNUNET_PQ_make_execute ("CREATE TEMPORARY TABLE IF NOT EXISTS gn011dc ("
                             "  oid OID NOT NULL DEFAULT nextval('gn011dc_oid_seq'),"
                             "  type INTEGER NOT NULL,"
@@ -107,11 +108,6 @@ init_connection (struct Plugin *plugin)
                             "SELECT length(value) AS len,oid,key FROM gn011dc"
                             " ORDER BY prox ASC, discard_time ASC LIMIT 1",
                             0),
-    GNUNET_PQ_make_prepare ("get_random",
-                            "SELECT discard_time,type,value,path,key FROM gn011dc"
-                            " WHERE discard_time >= $1"
-                            " ORDER BY key ASC LIMIT 1 OFFSET $2",
-                            2),
     GNUNET_PQ_make_prepare ("get_closest",
                             "SELECT discard_time,type,value,path,key FROM gn011dc "
                             "WHERE key>=$1 AND discard_time >= $2 ORDER BY key ASC LIMIT $3",
@@ -410,96 +406,6 @@ postgres_plugin_del (void *cls)
 
 
 /**
- * Obtain a random key-value pair from the datacache.
- *
- * @param cls closure (our `struct Plugin`)
- * @param iter maybe NULL (to just count)
- * @param iter_cls closure for @a iter
- * @return the number of results found, zero (datacache empty) or one
- */
-static unsigned int
-postgres_plugin_get_random (void *cls,
-                            GNUNET_DATACACHE_Iterator iter,
-                            void *iter_cls)
-{
-  struct Plugin *plugin = cls;
-  uint32_t off;
-  struct GNUNET_TIME_Absolute now = { 0 };
-  struct GNUNET_TIME_Absolute expiration_time;
-  size_t data_size;
-  void *data;
-  size_t path_len;
-  struct GNUNET_PeerIdentity *path;
-  struct GNUNET_HashCode key;
-  uint32_t type;
-  enum GNUNET_DB_QueryStatus res;
-  struct GNUNET_PQ_QueryParam params[] = {
-    GNUNET_PQ_query_param_absolute_time (&now),
-    GNUNET_PQ_query_param_uint32 (&off),
-    GNUNET_PQ_query_param_end
-  };
-  struct GNUNET_PQ_ResultSpec rs[] = {
-    GNUNET_PQ_result_spec_absolute_time ("discard_time",
-                                         &expiration_time),
-    GNUNET_PQ_result_spec_uint32 ("type",
-                                  &type),
-    GNUNET_PQ_result_spec_variable_size ("value",
-                                         &data,
-                                         &data_size),
-    GNUNET_PQ_result_spec_variable_size ("path",
-                                         (void **) &path,
-                                         &path_len),
-    GNUNET_PQ_result_spec_auto_from_type ("key",
-                                          &key),
-    GNUNET_PQ_result_spec_end
-  };
-
-  if (0 == plugin->num_items)
-    return 0;
-  if (NULL == iter)
-    return 1;
-  now = GNUNET_TIME_absolute_get ();
-  off = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_NONCE,
-                                  plugin->num_items);
-  res = GNUNET_PQ_eval_prepared_singleton_select (plugin->dbh,
-                                                  "get_random",
-                                                  params,
-                                                  rs);
-  if (0 > res)
-  {
-    GNUNET_break (0);
-    return 0;
-  }
-  if (GNUNET_DB_STATUS_SUCCESS_NO_RESULTS == res)
-  {
-    GNUNET_break (0);
-    return 0;
-  }
-  if (0 != (path_len % sizeof(struct GNUNET_PeerIdentity)))
-  {
-    GNUNET_break (0);
-    path_len = 0;
-  }
-  path_len %= sizeof(struct GNUNET_PeerIdentity);
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Found random value with key %s of size %u bytes and type %u in database\n",
-       GNUNET_h2s (&key),
-       (unsigned int) data_size,
-       (unsigned int) type);
-  (void) iter (iter_cls,
-               &key,
-               data_size,
-               data,
-               (enum GNUNET_BLOCK_Type) type,
-               expiration_time,
-               path_len,
-               path);
-  GNUNET_PQ_cleanup_result (rs);
-  return 1;
-}
-
-
-/**
  * Closure for #extract_result_cb.
  */
 struct ExtractResultContext
@@ -681,7 +587,6 @@ libgnunet_plugin_datacache_postgres_init (void *cls)
   api->get = &postgres_plugin_get;
   api->put = &postgres_plugin_put;
   api->del = &postgres_plugin_del;
-  api->get_random = &postgres_plugin_get_random;
   api->get_closest = &postgres_plugin_get_closest;
   LOG (GNUNET_ERROR_TYPE_INFO,
        "Postgres datacache running\n");

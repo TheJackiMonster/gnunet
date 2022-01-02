@@ -402,33 +402,6 @@ heap_plugin_del (void *cls)
 
 
 /**
- * Return a random value from the datastore.
- *
- * @param cls closure (our `struct Plugin`)
- * @param iter maybe NULL (to just count)
- * @param iter_cls closure for @a iter
- * @return the number of results found
- */
-static unsigned int
-heap_plugin_get_random (void *cls,
-                        GNUNET_DATACACHE_Iterator iter,
-                        void *iter_cls)
-{
-  struct Plugin *plugin = cls;
-  struct GetContext get_ctx;
-
-  get_ctx.type = GNUNET_BLOCK_TYPE_ANY;
-  get_ctx.iter = iter;
-  get_ctx.iter_cls = iter_cls;
-  get_ctx.cnt = 0;
-  GNUNET_CONTAINER_multihashmap_get_random (plugin->map,
-                                            &get_cb,
-                                            &get_ctx);
-  return get_ctx.cnt;
-}
-
-
-/**
  * Closure for #find_closest().
  */
 struct GetClosestContext
@@ -548,7 +521,6 @@ libgnunet_plugin_datacache_heap_init (void *cls)
   api->get = &heap_plugin_get;
   api->put = &heap_plugin_put;
   api->del = &heap_plugin_del;
-  api->get_random = &heap_plugin_get_random;
   api->get_closest = &heap_plugin_get_closest;
   LOG (GNUNET_ERROR_TYPE_INFO,
        _ ("Heap datacache running\n"));

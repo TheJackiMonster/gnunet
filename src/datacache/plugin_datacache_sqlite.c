@@ -92,11 +92,6 @@ struct Plugin
   sqlite3_stmt *del_stmt;
 
   /**
-   * Prepared statement for #sqlite_plugin_get_random.
-   */
-  sqlite3_stmt *get_random_stmt;
-
-  /**
    * Prepared statement for #sqlite_plugin_get_closest.
    */
   sqlite3_stmt *get_closest_stmt;
@@ -452,85 +447,6 @@ sqlite_plugin_del (void *cls)
 
 
 /**
- * Obtain a random key-value pair from the datacache.
- *
- * @param cls closure (our `struct Plugin`)
- * @param iter maybe NULL (to just count)
- * @param iter_cls closure for @a iter
- * @return the number of results found, zero (datacache empty) or one
- */
-static unsigned int
-sqlite_plugin_get_random (void *cls,
-                          GNUNET_DATACACHE_Iterator iter,
-                          void *iter_cls)
-{
-  struct Plugin *plugin = cls;
-  struct GNUNET_TIME_Absolute exp;
-  size_t size;
-  void *dat;
-  uint32_t off = 0;
-  size_t psize;
-  uint32_t type;
-  struct GNUNET_PeerIdentity *path;
-  struct GNUNET_HashCode key;
-  struct GNUNET_SQ_QueryParam params[] = { GNUNET_SQ_query_param_uint32 (&off),
-                                           GNUNET_SQ_query_param_end };
-  struct GNUNET_SQ_ResultSpec rs[] =
-  { GNUNET_SQ_result_spec_variable_size (&dat, &size),
-    GNUNET_SQ_result_spec_absolute_time (&exp),
-    GNUNET_SQ_result_spec_variable_size ((void **) &path, &psize),
-    GNUNET_SQ_result_spec_auto_from_type (&key),
-    GNUNET_SQ_result_spec_uint32 (&type),
-    GNUNET_SQ_result_spec_end };
-
-  if (0 == plugin->num_items)
-    return 0;
-  if (NULL == iter)
-    return 1;
-  off =
-    GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_NONCE, plugin->num_items);
-  if (GNUNET_OK != GNUNET_SQ_bind (plugin->get_random_stmt, params))
-  {
-    return 0;
-  }
-  if (SQLITE_ROW != sqlite3_step (plugin->get_random_stmt))
-  {
-    GNUNET_break (0);
-    GNUNET_SQ_reset (plugin->dbh, plugin->get_random_stmt);
-    return 0;
-  }
-  if (GNUNET_OK != GNUNET_SQ_extract_result (plugin->get_random_stmt, rs))
-  {
-    GNUNET_break (0);
-    GNUNET_SQ_reset (plugin->dbh, plugin->get_random_stmt);
-    return 0;
-  }
-  if (0 != psize % sizeof(struct GNUNET_PeerIdentity))
-  {
-    GNUNET_break (0);
-    psize = 0;
-    path = NULL;
-  }
-  psize /= sizeof(struct GNUNET_PeerIdentity);
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Found %u-byte result with key %s when processing GET-RANDOM\n",
-       (unsigned int) size,
-       GNUNET_h2s (&key));
-  (void) iter (iter_cls,
-               &key,
-               size,
-               dat,
-               (enum GNUNET_BLOCK_Type) type,
-               exp,
-               psize,
-               path);
-  GNUNET_SQ_cleanup_result (rs);
-  GNUNET_SQ_reset (plugin->dbh, plugin->get_random_stmt);
-  return 1;
-}
-
-
-/**
  * Iterate over the results that are "close" to a particular key in
  * the datacache.  "close" is defined as numerically larger than @a
  * key (when interpreted as a circular address space), with small
@@ -714,10 +630,6 @@ libgnunet_plugin_datacache_sqlite_init (void *cls)
       (SQLITE_OK != sq_prepare (plugin->dbh,
                                 "DELETE FROM ds091 WHERE _ROWID_=?",
                                 &plugin->del_stmt)) ||
-      (SQLITE_OK != sq_prepare (plugin->dbh,
-                                "SELECT value,expire,path,key,type FROM ds091 "
-                                "ORDER BY key LIMIT 1 OFFSET ?",
-                                &plugin->get_random_stmt)) ||
       (SQLITE_OK !=
        sq_prepare (plugin->dbh,
                    "SELECT value,expire,path,type,key FROM ds091 "
@@ -737,7 +649,6 @@ libgnunet_plugin_datacache_sqlite_init (void *cls)
   api->get = &sqlite_plugin_get;
   api->put = &sqlite_plugin_put;
   api->del = &sqlite_plugin_del;
-  api->get_random = &sqlite_plugin_get_random;
   api->get_closest = &sqlite_plugin_get_closest;
   LOG (GNUNET_ERROR_TYPE_INFO, "Sqlite datacache running\n");
   return api;
@@ -772,7 +683,6 @@ libgnunet_plugin_datacache_sqlite_done (void *cls)
   sqlite3_finalize (plugin->del_select_stmt);
   sqlite3_finalize (plugin->del_expired_stmt);
   sqlite3_finalize (plugin->del_stmt);
-  sqlite3_finalize (plugin->get_random_stmt);
   sqlite3_finalize (plugin->get_closest_stmt);
   result = sqlite3_close (plugin->dbh);
 #if SQLITE_VERSION_NUMBER >= 3007000

@@ -146,20 +146,6 @@ GNUNET_DATACACHE_get (struct GNUNET_DATACACHE_Handle *h,
 
 
 /**
- * Obtain a random element from the datacache.
- *
- * @param h handle to the datacache
- * @param iter maybe NULL (to just count)
- * @param iter_cls closure for @a iter
- * @return the number of results found (zero or 1)
- */
-unsigned int
-GNUNET_DATACACHE_get_random (struct GNUNET_DATACACHE_Handle *h,
-                             GNUNET_DATACACHE_Iterator iter,
-                             void *iter_cls);
-
-
-/**
  * Iterate over the results that are "close" to a particular key in
  * the datacache.  "close" is defined as numerically larger than @a
  * key (when interpreted as a circular address space), with small

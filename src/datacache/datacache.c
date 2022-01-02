@@ -101,7 +101,9 @@ struct GNUNET_DATACACHE_Handle
  * @param size number of bytes that were made available
  */
 static void
-env_delete_notify (void *cls, const struct GNUNET_HashCode *key, size_t size)
+env_delete_notify (void *cls,
+                   const struct GNUNET_HashCode *key,
+                   size_t size)
 {
   struct GNUNET_DATACACHE_Handle *h = cls;
 
@@ -122,13 +124,6 @@ env_delete_notify (void *cls, const struct GNUNET_HashCode *key, size_t size)
 }
 
 
-/**
- * Create a data cache.
- *
- * @param cfg configuration to use
- * @param section section in the configuration that contains our options
- * @return handle to use to access the service
- */
 struct GNUNET_DATACACHE_Handle *
 GNUNET_DATACACHE_create (const struct GNUNET_CONFIGURATION_Handle *cfg,
                          const char *section)
@@ -193,9 +188,9 @@ GNUNET_DATACACHE_create (const struct GNUNET_CONFIGURATION_Handle *cfg,
   ret->lib_name = libname;
   /* Load the plugin within GNUnet's default context */
   pd = GNUNET_OS_project_data_get ();
-  GNUNET_OS_init(GNUNET_OS_project_data_default ());
+  GNUNET_OS_init (GNUNET_OS_project_data_default ());
   ret->api = GNUNET_PLUGIN_load (libname, &ret->env);
-  GNUNET_OS_init(pd);
+  GNUNET_OS_init (pd);
   if (NULL == ret->api)
   {
     /* Try to load the plugin within the application's context
@@ -215,11 +210,6 @@ GNUNET_DATACACHE_create (const struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
-/**
- * Destroy a data cache (and free associated resources).
- *
- * @param h handle to the datastore
- */
 void
 GNUNET_DATACACHE_destroy (struct GNUNET_DATACACHE_Handle *h)
 {
@@ -244,21 +234,7 @@ GNUNET_DATACACHE_destroy (struct GNUNET_DATACACHE_Handle *h)
 }
 
 
-/**
- * Store an item in the datastore.
- *
- * @param h handle to the datacache
- * @param key key to store data under
- * @param xor_distance distance of @a key to our PID
- * @param data_size number of bytes in @a data
- * @param data data to store
- * @param type type of the value
- * @param discard_time when to discard the value in any case
- * @param path_info_len number of entries in @a path_info
- * @param path_info a path through the network
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error, #GNUNET_NO if duplicate
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_DATACACHE_put (struct GNUNET_DATACACHE_Handle *h,
                       const struct GNUNET_HashCode *key,
                       uint32_t xor_distance,
@@ -310,17 +286,6 @@ GNUNET_DATACACHE_put (struct GNUNET_DATACACHE_Handle *h,
 }
 
 
-/**
- * Iterate over the results for a particular key
- * in the datacache.
- *
- * @param h handle to the datacache
- * @param key what to look up
- * @param type entries of which type are relevant?
- * @param iter maybe NULL (to just count)
- * @param iter_cls closure for @a iter
- * @return the number of results found
- */
 unsigned int
 GNUNET_DATACACHE_get (struct GNUNET_DATACACHE_Handle *h,
                       const struct GNUNET_HashCode *key,
@@ -352,42 +317,6 @@ GNUNET_DATACACHE_get (struct GNUNET_DATACACHE_Handle *h,
 }
 
 
-/**
- * Obtain a random element from the datacache.
- *
- * @param h handle to the datacache
- * @param iter maybe NULL (to just count)
- * @param iter_cls closure for @a iter
- * @return the number of results found (zero or 1)
- */
-unsigned int
-GNUNET_DATACACHE_get_random (struct GNUNET_DATACACHE_Handle *h,
-                             GNUNET_DATACACHE_Iterator iter,
-                             void *iter_cls)
-{
-  GNUNET_STATISTICS_update (h->stats,
-                            gettext_noop (
-                              "# requests for random value received"),
-                            1,
-                            GNUNET_NO);
-  LOG (GNUNET_ERROR_TYPE_DEBUG, "Processing request for random value\n");
-  return h->api->get_random (h->api->cls, iter, iter_cls);
-}
-
-
-/**
- * Iterate over the results that are "close" to a particular key in
- * the datacache.  "close" is defined as numerically larger than @a
- * key (when interpreted as a circular address space), with small
- * distance.
- *
- * @param h handle to the datacache
- * @param key area of the keyspace to look into
- * @param num_results number of results that should be returned to @a iter
- * @param iter maybe NULL (to just count)
- * @param iter_cls closure for @a iter
- * @return the number of results found
- */
 unsigned int
 GNUNET_DATACACHE_get_closest (struct GNUNET_DATACACHE_Handle *h,
                               const struct GNUNET_HashCode *key,
