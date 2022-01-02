@@ -89,7 +89,7 @@ GDS_CLIENTS_handle_reply (const struct GDS_DATACACHE_BlockData *bd,
  * @param key Key of the requested data.
  */
 void
-GDS_CLIENTS_process_get (uint32_t options,
+GDS_CLIENTS_process_get (enum GNUNET_DHT_RouteOption options,
                          enum GNUNET_BLOCK_Type type,
                          uint32_t hop_count,
                          uint32_t desired_replication_level,
