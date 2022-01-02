@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2002, 2003, 2004, 2006, 2009 GNUnet e.V.
+     Copyright (C) 2002, 2003, 2004, 2006, 2009, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -37,25 +37,29 @@ test (int number)
   struct GNUNET_HashCode h2;
   struct GNUNET_CRYPTO_HashAsciiEncoded enc;
 
-  memset (&h1, number, sizeof(struct GNUNET_HashCode));
-  GNUNET_CRYPTO_hash_to_enc (&h1, &enc);
-  if (GNUNET_OK != GNUNET_CRYPTO_hash_from_string ((char *) &enc, &h2))
+  memset (&h1,
+          number,
+          sizeof(struct GNUNET_HashCode));
+  GNUNET_CRYPTO_hash_to_enc (&h1,
+                             &enc);
+  if (GNUNET_OK !=
+      GNUNET_CRYPTO_hash_from_string ((char *) &enc,
+                                      &h2))
   {
     printf ("enc2hash failed!\n");
     return 1;
   }
-  if (0 != memcmp (&h1, &h2, sizeof(struct GNUNET_HashCode)))
+  if (0 != GNUNET_memcmp (&h1,
+                          &h2))
     return 1;
   return 0;
 }
 
 
 static int
-testEncoding ()
+test_encoding (void)
 {
-  int i;
-
-  for (i = 0; i < 255; i++)
+  for (int i = 0; i < 255; i++)
     if (0 != test (i))
       return 1;
   return 0;
@@ -63,7 +67,7 @@ testEncoding ()
 
 
 static int
-testArithmetic ()
+test_arithmetic (void)
 {
   struct GNUNET_HashCode h1;
   struct GNUNET_HashCode h2;
@@ -72,49 +76,150 @@ testArithmetic ()
   struct GNUNET_CRYPTO_SymmetricSessionKey skey;
   struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
 
-  GNUNET_CRYPTO_hash_create_random (GNUNET_CRYPTO_QUALITY_WEAK, &h1);
-  GNUNET_CRYPTO_hash_create_random (GNUNET_CRYPTO_QUALITY_WEAK, &h2);
-  if (GNUNET_CRYPTO_hash_distance_u32 (&h1, &h2) !=
-      GNUNET_CRYPTO_hash_distance_u32 (&h2, &h1))
+  GNUNET_CRYPTO_hash_create_random (GNUNET_CRYPTO_QUALITY_WEAK,
+                                    &h1);
+  GNUNET_CRYPTO_hash_create_random (GNUNET_CRYPTO_QUALITY_WEAK,
+                                    &h2);
+  if (GNUNET_CRYPTO_hash_distance_u32 (&h1,
+                                       &h2) !=
+      GNUNET_CRYPTO_hash_distance_u32 (&h2,
+                                       &h1))
     return 1;
-  GNUNET_CRYPTO_hash_difference (&h1, &h2, &d);
-  GNUNET_CRYPTO_hash_sum (&h1, &d, &s);
-  if (0 != GNUNET_CRYPTO_hash_cmp (&s, &h2))
+  GNUNET_CRYPTO_hash_difference (&h1,
+                                 &h2,
+                                 &d);
+  GNUNET_CRYPTO_hash_sum (&h1,
+                          &d,
+                          &s);
+  if (0 !=
+      GNUNET_CRYPTO_hash_cmp (&s,
+                              &h2))
     return 1;
-  GNUNET_CRYPTO_hash_xor (&h1, &h2, &d);
-  GNUNET_CRYPTO_hash_xor (&h1, &d, &s);
-  if (0 != GNUNET_CRYPTO_hash_cmp (&s, &h2))
+  GNUNET_CRYPTO_hash_xor (&h1,
+                          &h2,
+                          &d);
+  GNUNET_CRYPTO_hash_xor (&h1,
+                          &d,
+                          &s);
+  if (0 !=
+      GNUNET_CRYPTO_hash_cmp (&s,
+                              &h2))
     return 1;
-  if (0 != GNUNET_CRYPTO_hash_xorcmp (&s, &h2, &h1))
+  if (0 !=
+      GNUNET_CRYPTO_hash_xorcmp (&s,
+                                 &h2,
+                                 &h1))
     return 1;
-  if (-1 != GNUNET_CRYPTO_hash_xorcmp (&h1, &h2, &h1))
+  if (-1 !=
+      GNUNET_CRYPTO_hash_xorcmp (&h1,
+                                 &h2,
+                                 &h1))
     return 1;
-  if (1 != GNUNET_CRYPTO_hash_xorcmp (&h1, &h2, &h2))
+  if (1 !=
+      GNUNET_CRYPTO_hash_xorcmp (&h1,
+                                 &h2,
+                                 &h2))
     return 1;
-  memset (&d, 0x40, sizeof(d));
-  if (0 != GNUNET_CRYPTO_hash_get_bit_rtl (&d, 3))
-    return 1;
-  if (1 != GNUNET_CRYPTO_hash_get_bit_rtl (&d, 6))
-    return 1;
-  memset (&d, 0x02, sizeof(d));
-  if (0 != GNUNET_CRYPTO_hash_get_bit_ltr (&d, 3))
-    return 1;
-  if (1 != GNUNET_CRYPTO_hash_get_bit_ltr (&d, 6))
-    return 1;
-  memset (&d, 0, sizeof(d));
-  GNUNET_CRYPTO_hash_to_aes_key (&d, &skey, &iv);
+  memset (&d,
+          0,
+          sizeof(d));
+  GNUNET_CRYPTO_hash_to_aes_key (&d,
+                                 &skey,
+                                 &iv);
+  memset (&h1,
+          0,
+          sizeof (h1));
+  h1.bits[1] = htonl (0x00200000); /* 32 + 8 + 2 = 42 MSB bits cleared */
+  GNUNET_assert (42 ==
+                 GNUNET_CRYPTO_hash_count_leading_zeros (&h1));
+  GNUNET_assert (512 - 42 - 1 ==
+                 GNUNET_CRYPTO_hash_count_tailing_zeros (&h1));
+  memset (&h1,
+          0,
+          sizeof (h1));
+  memset (&h2,
+          0,
+          sizeof (h2));
+  h1.bits[3] = htonl (0x00800011); /* 3*32 + 8 Bits identical */
+  h2.bits[3] = htonl (0x00000101); /* residual delta: 0x000220.. (+1 bit)*/
+  /* Note: XOR:       0x00800110 */
+  h1.bits[4] = htonl (0x14144141);
+  h2.bits[4] = htonl (0x28288282); /* residual delta: 0x3C3CC3.. */
+  /* Note: XOR:       0x3C3CC3C3 */
+  /* Note: XOR<<1:    0x78798786 */
+  GNUNET_assert (104 ==
+                 GNUNET_CRYPTO_hash_count_leading_zeros (&h1));
+  GNUNET_CRYPTO_hash_xor (&h1,
+                          &h2,
+                          &s);
+  GNUNET_assert (104 ==
+                 GNUNET_CRYPTO_hash_count_leading_zeros (&s));
+  GNUNET_assert (0x0002207879878600LLU ==
+                 GNUNET_CRYPTO_hash_bucket_distance (&s,
+                                                     104));
+
+  memset (&h1,
+          0,
+          sizeof (h1));
+  memset (&h2,
+          0,
+          sizeof (h2));
+  h1.bits[4] = htonl (0x00000001); /* 5*32 - 1 Bits identical */
+  h2.bits[4] = htonl (0x00000000);
+  /* Note: XOR:       0x00000001 */
+  h1.bits[5] = htonl (0x14144141);
+  h2.bits[5] = htonl (0x28288282);
+  /* Note: XOR:       0x3C3CC3C3 */
+  GNUNET_assert (159 ==
+                 GNUNET_CRYPTO_hash_count_leading_zeros (&h1));
+  GNUNET_CRYPTO_hash_xor (&h1,
+                          &h2,
+                          &s);
+  GNUNET_assert (159 ==
+                 GNUNET_CRYPTO_hash_count_leading_zeros (&s));
+  GNUNET_assert (0x3C3CC3C300000000 ==
+                 GNUNET_CRYPTO_hash_bucket_distance (&s,
+                                                     159));
+
+  memset (&h1,
+          0,
+          sizeof (h1));
+  memset (&h2,
+          0,
+          sizeof (h2));
+  h1.bits[14] = htonl (0x00000001); /* 15*32 - 1 Bits identical */
+  h2.bits[14] = htonl (0x00000000);
+  /* Note: XOR:       0x00000001 */
+  h1.bits[15] = htonl (0x14144141);
+  h2.bits[15] = htonl (0x28288282);
+  /* Note: XOR:       0x3C3CC3C3 */
+  GNUNET_assert (479 ==
+                 GNUNET_CRYPTO_hash_count_leading_zeros (&h1));
+  GNUNET_CRYPTO_hash_xor (&h1,
+                          &h2,
+                          &s);
+  GNUNET_assert (479 ==
+                 GNUNET_CRYPTO_hash_count_leading_zeros (&s));
+  GNUNET_assert (0x3C3CC3C300000000 ==
+                 GNUNET_CRYPTO_hash_bucket_distance (&s,
+                                                     479));
+
   return 0;
 }
 
 
 static void
-finished_task (void *cls, const struct GNUNET_HashCode *res)
+finished_task (void *cls,
+               const struct GNUNET_HashCode *res)
 {
   int *ret = cls;
   struct GNUNET_HashCode want;
 
-  GNUNET_CRYPTO_hash (block, sizeof(block), &want);
-  if (0 != memcmp (res, &want, sizeof(want)))
+  GNUNET_CRYPTO_hash (block,
+                      sizeof(block),
+                      &want);
+  if (0 != GNUNET_memcmp (res,
+                          &want))
     *ret = 2;
   else
     *ret = 0;
@@ -126,43 +231,57 @@ file_hasher (void *cls)
 {
   GNUNET_assert (NULL !=
                  GNUNET_CRYPTO_hash_file (GNUNET_SCHEDULER_PRIORITY_DEFAULT,
-                                          FILENAME, 1024, &finished_task, cls));
+                                          FILENAME,
+                                          1024,
+                                          &finished_task,
+                                          cls));
 }
 
 
 static int
-testFileHash ()
+test_file_hash (void)
 {
   int ret;
   FILE *f;
 
-  memset (block, 42, sizeof(block) / 2);
-  memset (&block[sizeof(block) / 2], 43, sizeof(block) / 2);
+  memset (block,
+          42,
+          sizeof(block) / 2);
+  memset (&block[sizeof(block) / 2],
+          43,
+          sizeof(block) / 2);
   GNUNET_assert (NULL != (f = fopen (FILENAME, "w+")));
-  GNUNET_break (sizeof(block) == fwrite (block, 1, sizeof(block), f));
+  GNUNET_break (sizeof(block) ==
+                fwrite (block,
+                        1,
+                        sizeof(block),
+                        f));
   GNUNET_break (0 == fclose (f));
   ret = 1;
-  GNUNET_SCHEDULER_run (&file_hasher, &ret);
+  GNUNET_SCHEDULER_run (&file_hasher,
+                        &ret);
   GNUNET_break (0 == unlink (FILENAME));
   return ret;
 }
 
 
 int
-main (int argc, char *argv[])
+main (int argc,
+      char *argv[])
 {
   int failureCount = 0;
-  int i;
 
-  GNUNET_log_setup ("test-crypto-hash", "WARNING", NULL);
-  for (i = 0; i < 10; i++)
-    failureCount += testEncoding ();
-  failureCount += testArithmetic ();
-  failureCount += testFileHash ();
-  if (failureCount != 0)
+  GNUNET_log_setup ("test-crypto-hash",
+                    "WARNING",
+                    NULL);
+  for (int i = 0; i < 10; i++)
+    failureCount += test_encoding ();
+  failureCount += test_arithmetic ();
+  failureCount += test_file_hash ();
+  if (0 != failureCount)
     return 1;
   return 0;
 }
 
 
-/* end of hashingtest.c */
+/* end of test_crypto_hash.c */

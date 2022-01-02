@@ -430,9 +430,13 @@ static struct GNUNET_ATS_ConnectivityHandle *ats_ch;
 static int
 find_bucket (const struct GNUNET_HashCode *hc)
 {
+  struct GNUNET_HashCode xor;
   unsigned int bits;
 
-  bits = GNUNET_CRYPTO_hash_matching_bits (&my_identity_hash, hc);
+  GNUNET_CRYPTO_hash_xor (hc,
+                          &my_identity_hash,
+                          &xor);
+  bits = GNUNET_CRYPTO_hash_count_leading_zeros (&xor);
   if (bits == MAX_BUCKETS)
   {
     /* How can all bits match? Got my own ID? */
@@ -889,40 +893,6 @@ get_forward_count (uint32_t hop_count,
 
 
 /**
- * Compute the distance between have and target as a 64-bit value.
- * Differences in the lower bits must count stronger than differences
- * in the higher bits.
- *
- * @param target
- * @param have
- * @param bucket up to which offset are @a target and @a have identical and thus those bits should not be considered
- * @return 0 if have==target, otherwise a number
- *           that is larger as the distance between
- *           the two hash codes increases
- */
-static uint64_t
-get_distance (const struct GNUNET_HashCode *target,
-              const struct GNUNET_HashCode *have,
-              unsigned int bucket)
-{
-  uint64_t lsb = 0;
-
-  for (unsigned int i = bucket + 1;
-       (i < sizeof(struct GNUNET_HashCode) * 8) &&
-       (i < bucket + 1 + 64);
-       i++)
-  {
-    if (GNUNET_CRYPTO_hash_get_bit_rtl (target, i) !=
-        GNUNET_CRYPTO_hash_get_bit_rtl (have, i))
-      lsb |= (1LLU << (bucket + 64 - i));      /* first bit set will be 1,
-                                             * last bit set will be 63 -- if
-                                             * i does not reach 512 first... */
-  }
-  return lsb;
-}
-
-
-/**
  * Check whether my identity is closer than any known peers.  If a
  * non-null bloomfilter is given, check if this is the closest peer
  * that hasn't already been routed to.
@@ -936,7 +906,7 @@ enum GNUNET_GenericReturnValue
 GDS_am_closest_peer (const struct GNUNET_HashCode *key,
                      const struct GNUNET_CONTAINER_BloomFilter *bloom)
 {
-  int bits;
+  struct GNUNET_HashCode xor;
   int other_bits;
   int bucket_num;
   struct PeerInfo *pos;
@@ -946,8 +916,6 @@ GDS_am_closest_peer (const struct GNUNET_HashCode *key,
     return GNUNET_YES;
   bucket_num = find_bucket (key);
   GNUNET_assert (bucket_num >= 0);
-  bits = GNUNET_CRYPTO_hash_matching_bits (&my_identity_hash,
-                                           key);
   pos = k_buckets[bucket_num].head;
   while (NULL != pos)
   {
@@ -959,9 +927,11 @@ GDS_am_closest_peer (const struct GNUNET_HashCode *key,
       pos = pos->next;
       continue;                 /* Skip already checked entries */
     }
-    other_bits = GNUNET_CRYPTO_hash_matching_bits (&pos->phash,
-                                                   key);
-    if (other_bits > bits)
+    GNUNET_CRYPTO_hash_xor (&pos->phash,
+                            key,
+                            &xor);
+    other_bits = GNUNET_CRYPTO_hash_count_leading_zeros (&xor);
+    if (other_bits > bucket_num)
       return GNUNET_NO;
     pos = pos->next;
   }
@@ -1013,14 +983,16 @@ select_peer (const struct GNUNET_HashCode *key,
            (count < bucket_size);
            pos = pos->next)
       {
+        struct GNUNET_HashCode xor;
         unsigned int bucket;
         uint64_t dist;
 
-        bucket = GNUNET_CRYPTO_hash_matching_bits (key,
-                                                   &pos->phash);
-        dist = get_distance (key,
-                             &pos->phash,
-                             bucket);
+        GNUNET_CRYPTO_hash_xor (key,
+                                &pos->phash,
+                                &xor);
+        bucket = GNUNET_CRYPTO_hash_count_leading_zeros (&xor);
+        dist = GNUNET_CRYPTO_hash_bucket_distance (&xor,
+                                                   bucket);
         if (bucket < best_bucket)
           continue;
         if (dist > best_in_bucket)
@@ -1691,7 +1663,15 @@ handle_dht_p2p_put (void *cls,
   {
     char *tmp;
     char *pp;
+    struct GNUNET_HashCode mxor;
+    struct GNUNET_HashCode pxor;
 
+    GNUNET_CRYPTO_hash_xor (&my_identity_hash,
+                            &put->key,
+                            &mxor);
+    GNUNET_CRYPTO_hash_xor (&peer->phash,
+                            &put->key,
+                            &pxor);
     pp = GNUNET_STRINGS_pp2s (put_path,
                               putlen);
     tmp = GNUNET_strdup (GNUNET_i2s (&my_identity));
@@ -1701,10 +1681,8 @@ handle_dht_p2p_put (void *cls,
                  GNUNET_i2s (peer->id),
                  tmp,
                  ntohl (put->hop_count),
-                 GNUNET_CRYPTO_hash_matching_bits (&peer->phash,
-                                                   &put->key),
-                 GNUNET_CRYPTO_hash_matching_bits (&my_identity_hash,
-                                                   &put->key),
+                 GNUNET_CRYPTO_hash_count_leading_zeros (&pxor),
+                 GNUNET_CRYPTO_hash_count_leading_zeros (&mxor),
                  pp);
     GNUNET_free (pp);
     GNUNET_free (tmp);
@@ -2070,7 +2048,15 @@ handle_dht_p2p_get (void *cls,
   if (GNUNET_YES == log_route_details_stderr)
   {
     char *tmp;
+    struct GNUNET_HashCode mxor;
+    struct GNUNET_HashCode pxor;
 
+    GNUNET_CRYPTO_hash_xor (&my_identity_hash,
+                            &get->key,
+                            &mxor);
+    GNUNET_CRYPTO_hash_xor (&peer->phash,
+                            &get->key,
+                            &pxor);
     tmp = GNUNET_strdup (GNUNET_i2s (&my_identity));
     LOG_TRAFFIC (GNUNET_ERROR_TYPE_DEBUG,
                  "R5N GET %s: %s->%s (%u, %u=>%u) xq: %.*s\n",
@@ -2078,10 +2064,8 @@ handle_dht_p2p_get (void *cls,
                  GNUNET_i2s (peer->id),
                  tmp,
                  ntohl (get->hop_count),
-                 GNUNET_CRYPTO_hash_matching_bits (&peer->phash,
-                                                   &get->key),
-                 GNUNET_CRYPTO_hash_matching_bits (&my_identity_hash,
-                                                   &get->key),
+                 GNUNET_CRYPTO_hash_count_leading_zeros (&pxor),
+                 GNUNET_CRYPTO_hash_count_leading_zeros (&mxor),
                  ntohl (get->xquery_size),
                  (const char *) xquery);
     GNUNET_free (tmp);

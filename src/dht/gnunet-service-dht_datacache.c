@@ -65,6 +65,7 @@ GDS_DATACACHE_handle_put (struct GNUNET_TIME_Absolute expiration,
                           size_t data_size,
                           const void *data)
 {
+  struct GNUNET_HashCode xor;
   int r;
 
   if (NULL == datacache)
@@ -83,10 +84,12 @@ GDS_DATACACHE_handle_put (struct GNUNET_TIME_Absolute expiration,
                             gettext_noop ("# ITEMS stored in datacache"),
                             1,
                             GNUNET_NO);
+  GNUNET_CRYPTO_hash_xor (key,
+                          &my_identity_hash,
+                          &xor);
   r = GNUNET_DATACACHE_put (datacache,
                             key,
-                            GNUNET_CRYPTO_hash_matching_bits (key,
-                                                              &my_identity_hash),
+                            GNUNET_CRYPTO_hash_count_leading_zeros (&xor),
                             data_size,
                             data,
                             type,

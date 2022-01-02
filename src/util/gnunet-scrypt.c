@@ -78,24 +78,6 @@ shutdown_task (void *cls)
 
 
 /**
- * Count the leading zeroes in hash.
- *
- * @param hash to count leading zeros in
- * @return the number of leading zero bits.
- */
-static unsigned int
-count_leading_zeroes (const struct GNUNET_HashCode *hash)
-{
-  unsigned int hash_count;
-
-  hash_count = 0;
-  while (0 == GNUNET_CRYPTO_hash_get_bit_ltr (hash, hash_count))
-    hash_count++;
-  return hash_count;
-}
-
-
-/**
  * Find our proof of work.
  *
  * @param cls closure (unused)
@@ -131,7 +113,8 @@ find_proof (void *cls)
                             buf,
                             sizeof(buf),
                             &result);
-    if (nse_work_required <= count_leading_zeroes (&result))
+    if (nse_work_required <=
+        GNUNET_CRYPTO_hash_count_leading_zeros (&result))
     {
       proof = counter;
       fprintf (stdout,
