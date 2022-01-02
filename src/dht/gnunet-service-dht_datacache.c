@@ -71,7 +71,7 @@ GDS_DATACACHE_handle_put (struct GNUNET_TIME_Absolute expiration,
   if (NULL == datacache)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                _ ("%s request received, but have no datacache!\n"), "PUT");
+                "PUT request received, but have no datacache!\n");
     return;
   }
   if (data_size >= GNUNET_MAX_MESSAGE_SIZE)
@@ -81,7 +81,7 @@ GDS_DATACACHE_handle_put (struct GNUNET_TIME_Absolute expiration,
   }
   /* Put size is actual data size plus struct overhead plus path length (if any) */
   GNUNET_STATISTICS_update (GDS_stats,
-                            gettext_noop ("# ITEMS stored in datacache"),
+                            "# ITEMS stored in datacache",
                             1,
                             GNUNET_NO);
   GNUNET_CRYPTO_hash_xor (key,

@@ -56,6 +56,12 @@ extern "C"
 
 
 /**
+ * Maximum allowed replication level for all requests.
+ */
+#define GNUNET_DHT_MAXIMUM_REPLICATION_LEVEL 16
+
+
+/**
  * Connection to the DHT service.
  */
 struct GNUNET_DHT_Handle;

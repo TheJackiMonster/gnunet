@@ -138,7 +138,8 @@ GDS_CLIENTS_process_get_resp (enum GNUNET_BLOCK_Type type,
 
 /**
  * Check if some client is monitoring PUT messages and notify
- * them in that case.
+ * them in that case. The @a path should include our own
+ * peer ID (if recorded).
  *
  * @param options Options, for instance RecordRoute, DemultiplexEverywhere.
  * @param type The type of data in the request.

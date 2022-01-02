@@ -70,11 +70,6 @@
 #define FIND_PEER_REPLICATION_LEVEL 4
 
 /**
- * Maximum allowed replication level for all requests.
- */
-#define MAXIMUM_REPLICATION_LEVEL 16
-
-/**
  * Maximum allowed number of pending messages per peer.
  */
 #define MAXIMUM_PENDING_PER_PEER 64
@@ -855,8 +850,8 @@ get_forward_count (uint32_t hop_count,
 
   if (0 == target_replication)
     target_replication = 1; /* 0 is verboten */
-  if (target_replication > MAXIMUM_REPLICATION_LEVEL)
-    target_replication = MAXIMUM_REPLICATION_LEVEL;
+  if (target_replication > GNUNET_DHT_MAXIMUM_REPLICATION_LEVEL)
+    target_replication = GNUNET_DHT_MAXIMUM_REPLICATION_LEVEL;
   if (hop_count > GDS_NSE_get () * 4.0)
   {
     /* forcefully terminate */
@@ -872,7 +867,8 @@ get_forward_count (uint32_t hop_count,
   }
   /* bound by system-wide maximum */
   target_replication =
-    GNUNET_MIN (MAXIMUM_REPLICATION_LEVEL, target_replication);
+    GNUNET_MIN (GNUNET_DHT_MAXIMUM_REPLICATION_LEVEL,
+                target_replication);
   target_value =
     1 + (target_replication - 1.0) / (GDS_NSE_get ()
                                       + ((float) (target_replication - 1.0)
@@ -888,7 +884,7 @@ get_forward_count (uint32_t hop_count,
   if (random_value < (target_value * UINT32_MAX))
     forward_count++;
   return GNUNET_MIN (forward_count,
-                     MAXIMUM_REPLICATION_LEVEL);
+                     GNUNET_DHT_MAXIMUM_REPLICATION_LEVEL);
 }
 
 
@@ -906,36 +902,29 @@ enum GNUNET_GenericReturnValue
 GDS_am_closest_peer (const struct GNUNET_HashCode *key,
                      const struct GNUNET_CONTAINER_BloomFilter *bloom)
 {
-  struct GNUNET_HashCode xor;
-  int other_bits;
   int bucket_num;
-  struct PeerInfo *pos;
 
   if (0 == GNUNET_memcmp (&my_identity_hash,
                           key))
     return GNUNET_YES;
   bucket_num = find_bucket (key);
   GNUNET_assert (bucket_num >= 0);
-  pos = k_buckets[bucket_num].head;
-  while (NULL != pos)
+  for (struct PeerInfo *pos = k_buckets[bucket_num].head;
+       NULL != pos;
+       pos = pos->next)
   {
-    if ((NULL != bloom) &&
-        (GNUNET_YES ==
-         GNUNET_CONTAINER_bloomfilter_test (bloom,
-                                            &pos->phash)))
-    {
-      pos = pos->next;
-      continue;                 /* Skip already checked entries */
-    }
-    GNUNET_CRYPTO_hash_xor (&pos->phash,
-                            key,
-                            &xor);
-    other_bits = GNUNET_CRYPTO_hash_count_leading_zeros (&xor);
-    if (other_bits > bucket_num)
-      return GNUNET_NO;
-    pos = pos->next;
+    if ( (NULL != bloom) &&
+         (GNUNET_YES ==
+          GNUNET_CONTAINER_bloomfilter_test (bloom,
+                                             &pos->phash)) )
+      continue;                 /* Ignore filtered peers */
+    /* All peers in this bucket must be closer than us, as
+       they mismatch with our PID on the pivotal bit. So
+       because an unfiltered peer exists, we are not the
+       closest. */
+    return GNUNET_NO;
   }
-  /* No peers closer, we are the closest! */
+  /* No closer (unfiltered) peers found; we must be the closest! */
   return GNUNET_YES;
 }
 
@@ -1258,8 +1247,7 @@ GDS_NEIGHBOURS_handle_put (enum GNUNET_BLOCK_Type type,
     return GNUNET_NO;
   }
   GNUNET_STATISTICS_update (GDS_stats,
-                            gettext_noop (
-                              "# PUT messages queued for transmission"),
+                            "# PUT messages queued for transmission",
                             target_count,
                             GNUNET_NO);
   skip_count = 0;
