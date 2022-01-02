@@ -52,11 +52,13 @@ static struct GNUNET_NSE_Handle *nse;
  *
  */
 static void
-update_network_size_estimate (void *cls, struct GNUNET_TIME_Absolute timestamp,
-                              double logestimate, double std_dev)
+update_network_size_estimate (void *cls,
+                              struct GNUNET_TIME_Absolute timestamp,
+                              double logestimate,
+                              double std_dev)
 {
   GNUNET_STATISTICS_update (GDS_stats,
-                            gettext_noop ("# Network size estimates received"),
+                            "# Network size estimates received",
                             1, GNUNET_NO);
   /* do not allow estimates < 0.5 */
   log_of_network_size_estimate = GNUNET_MAX (0.5, logestimate);
@@ -83,20 +85,22 @@ GDS_NSE_init ()
 {
   unsigned long long hops;
 
-  if ((GNUNET_YES ==
-       GNUNET_CONFIGURATION_have_value (GDS_cfg,
-                                        "dht",
-                                        "FORCE_NSE")) &&
-      (GNUNET_OK ==
-       GNUNET_CONFIGURATION_get_value_number (GDS_cfg,
-                                              "dht",
-                                              "FORCE_NSE",
-                                              &hops)))
+  if ( (GNUNET_YES ==
+        GNUNET_CONFIGURATION_have_value (GDS_cfg,
+                                         "dht",
+                                         "FORCE_NSE")) &&
+       (GNUNET_OK ==
+        GNUNET_CONFIGURATION_get_value_number (GDS_cfg,
+                                               "dht",
+                                               "FORCE_NSE",
+                                               &hops)) )
   {
     log_of_network_size_estimate = (double) hops;
     return;
   }
-  nse = GNUNET_NSE_connect (GDS_cfg, &update_network_size_estimate, NULL);
+  nse = GNUNET_NSE_connect (GDS_cfg,
+                            &update_network_size_estimate,
+                            NULL);
 }
 
 

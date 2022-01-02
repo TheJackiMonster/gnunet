@@ -54,7 +54,8 @@ GDS_HELLO_get (const struct GNUNET_PeerIdentity *peer)
 {
   if (NULL == peer_to_hello)
     return NULL;
-  return GNUNET_CONTAINER_multipeermap_get (peer_to_hello, peer);
+  return GNUNET_CONTAINER_multipeermap_get (peer_to_hello,
+                                            peer);
 }
 
 
@@ -83,15 +84,20 @@ process_hello (void *cls,
   if (0 == GNUNET_TIME_absolute_get_remaining (ex).rel_value_us)
     return;
   GNUNET_STATISTICS_update (GDS_stats,
-                            gettext_noop ("# HELLOs obtained from peerinfo"), 1,
+                            "# HELLOs obtained from peerinfo",
+                            1,
                             GNUNET_NO);
-  hm = GNUNET_CONTAINER_multipeermap_get (peer_to_hello, peer);
+  hm = GNUNET_CONTAINER_multipeermap_get (peer_to_hello,
+                                          peer);
   GNUNET_free (hm);
   hm = GNUNET_malloc (GNUNET_HELLO_size (hello));
-  GNUNET_memcpy (hm, hello, GNUNET_HELLO_size (hello));
+  GNUNET_memcpy (hm,
+                 hello,
+                 GNUNET_HELLO_size (hello));
   GNUNET_assert (GNUNET_SYSERR !=
                  GNUNET_CONTAINER_multipeermap_put (peer_to_hello,
-                                                    peer, hm,
+                                                    peer,
+                                                    hm,
                                                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_REPLACE));
 }
 
@@ -114,7 +120,7 @@ GDS_HELLO_init ()
 /**
  * Free memory occopied by the HELLO.
  */
-static int
+static enum GNUNET_GenericReturnValue
 free_hello (void *cls,
             const struct GNUNET_PeerIdentity *key,
             void *hello)

@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2009, 2010, 2011, 2015, 2017 GNUnet e.V.
+     Copyright (C) 2009, 2010, 2011, 2015, 2017, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -38,35 +38,18 @@
  */
 #define NUM_CLOSEST 42
 
+
 /**
  * Handle to the datacache service (for inserting/retrieving data)
  */
 static struct GNUNET_DATACACHE_Handle *datacache;
 
 
-/**
- * Handle a datum we've received from another peer.  Cache if
- * possible.
- *
- * @param expiration when will the reply expire
- * @param key the query this reply is for
- * @param put_path_length number of peers in @a put_path
- * @param put_path path the reply took on put
- * @param type type of the reply
- * @param data_size number of bytes in @a data
- * @param data application payload data
- */
 void
-GDS_DATACACHE_handle_put (struct GNUNET_TIME_Absolute expiration,
-                          const struct GNUNET_HashCode *key,
-                          unsigned int put_path_length,
-                          const struct GNUNET_PeerIdentity *put_path,
-                          enum GNUNET_BLOCK_Type type,
-                          size_t data_size,
-                          const void *data)
+GDS_DATACACHE_handle_put (const struct GDS_DATACACHE_BlockData *bd)
 {
   struct GNUNET_HashCode xor;
-  int r;
+  enum GNUNET_GenericReturnValue r;
 
   if (NULL == datacache)
   {
@@ -74,7 +57,7 @@ GDS_DATACACHE_handle_put (struct GNUNET_TIME_Absolute expiration,
                 "PUT request received, but have no datacache!\n");
     return;
   }
-  if (data_size >= GNUNET_MAX_MESSAGE_SIZE)
+  if (bd->data_size >= GNUNET_MAX_MESSAGE_SIZE)
   {
     GNUNET_break (0);
     return;
@@ -84,24 +67,24 @@ GDS_DATACACHE_handle_put (struct GNUNET_TIME_Absolute expiration,
                             "# ITEMS stored in datacache",
                             1,
                             GNUNET_NO);
-  GNUNET_CRYPTO_hash_xor (key,
+  GNUNET_CRYPTO_hash_xor (&bd->key,
                           &my_identity_hash,
                           &xor);
   r = GNUNET_DATACACHE_put (datacache,
-                            key,
+                            &bd->key,
                             GNUNET_CRYPTO_hash_count_leading_zeros (&xor),
-                            data_size,
-                            data,
-                            type,
-                            expiration,
-                            put_path_length,
-                            put_path);
+                            bd->data_size,
+                            bd->data,
+                            bd->type,
+                            bd->expiration_time,
+                            bd->put_path_length,
+                            bd->put_path);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "DATACACHE PUT for key %s [%lu] completed (%d) after %u hops\n",
-       GNUNET_h2s (key),
-       (unsigned long) data_size,
+       GNUNET_h2s (&bd->key),
+       (unsigned long) bd->data_size,
        r,
-       put_path_length);
+       bd->put_path_length);
 }
 
 
@@ -171,30 +154,34 @@ datacache_get_iterator (void *cls,
                         unsigned int put_path_length,
                         const struct GNUNET_PeerIdentity *put_path)
 {
-  static char non_null;
   struct GetRequestContext *ctx = cls;
   enum GNUNET_BLOCK_ReplyEvaluationResult eval;
+  struct GDS_DATACACHE_BlockData bd = {
+    .key = *key,
+    .expiration_time = exp,
+    .put_path = put_path,
+    .data = data,
+    .data_size = data_size,
+    .put_path_length = put_path_length,
+    .type = type
+  };
 
-  if (0 == GNUNET_TIME_absolute_get_remaining (exp).rel_value_us)
+  if (GNUNET_TIME_absolute_is_past (exp))
   {
     GNUNET_break (0);  /* why does datacache return expired values? */
     return GNUNET_OK;   /* skip expired record */
   }
-  if ((NULL == data) &&
-      (0 == data_size))
-    data = &non_null; /* point anywhere, but not to NULL */
-
   eval
     = GNUNET_BLOCK_check_reply (GDS_block_context,
-                                type,
+                                bd.type,
                                 ctx->bg,
-                                key,
+                                &bd.key,
                                 ctx->xquery,
                                 ctx->xquery_size,
-                                data,
-                                data_size);
+                                bd.data,
+                                bd.data_size);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Found reply for query %s in datacache, evaluation result is %d\n",
+       "Evaluated reply for query %s in datacache, result is %d\n",
        GNUNET_h2s (key),
        (int) eval);
   ctx->eval = eval;
@@ -209,12 +196,7 @@ datacache_get_iterator (void *cls,
                               1,
                               GNUNET_NO);
     ctx->gc (ctx->gc_cls,
-             type,
-             exp,
-             key,
-             put_path_length, put_path,
-             0, NULL,
-             data, data_size);
+             &bd);
     break;
   case GNUNET_BLOCK_REPLY_OK_DUPLICATE:
     GNUNET_STATISTICS_update (GDS_stats,
@@ -240,18 +222,6 @@ datacache_get_iterator (void *cls,
 }
 
 
-/**
- * Handle a GET request we've received from another peer.
- *
- * @param key the query
- * @param type requested data type
- * @param xquery extended query
- * @param xquery_size number of bytes in @a xquery
- * @param bg block group to use for reply evaluation
- * @param gc function to call on the results
- * @param gc_cls closure for @a gc
- * @return evaluation result for the local replies
- */
 enum GNUNET_BLOCK_EvaluationResult
 GDS_DATACACHE_handle_get (const struct GNUNET_HashCode *key,
                           enum GNUNET_BLOCK_Type type,
@@ -292,62 +262,6 @@ GDS_DATACACHE_handle_get (const struct GNUNET_HashCode *key,
 
 
 /**
- * Function called with a random element from the datacache.
- * Stores the key in the closure.
- *
- * @param cls a `struct GNUNET_HashCode *`, where to store the @a key
- * @param key key for the content
- * @param data_size number of bytes in @a data
- * @param data content stored
- * @param type type of the content
- * @param exp when will the content expire?
- * @param path_info_len number of entries in @a path_info
- * @param path_info a path through the network
- * @return #GNUNET_OK to continue iterating, #GNUNET_SYSERR to abort
- */
-static int
-datacache_random_iterator (void *cls,
-                           const struct GNUNET_HashCode *key,
-                           size_t data_size,
-                           const char *data,
-                           enum GNUNET_BLOCK_Type type,
-                           struct GNUNET_TIME_Absolute exp,
-                           unsigned int path_info_len,
-                           const struct GNUNET_PeerIdentity *path_info)
-{
-  struct GNUNET_HashCode *dest = cls;
-
-  *dest = *key;
-  return GNUNET_OK; /* should actually not matter which we return */
-}
-
-
-/**
- * Obtain a random key from the datacache.
- * Used by Whanau for load-balancing.
- *
- * @param[out] key where to store the key of a random element,
- *             randomized by PRNG if datacache is empty
- * @return #GNUNET_OK on success, #GNUNET_SYSERR if the datacache is empty
- */
-int
-GDS_DATACACHE_get_random_key (struct GNUNET_HashCode *key)
-{
-  if (0 ==
-      GNUNET_DATACACHE_get_random (datacache,
-                                   &datacache_random_iterator,
-                                   key))
-  {
-    /* randomize key in this case */
-    GNUNET_CRYPTO_hash_create_random (GNUNET_CRYPTO_QUALITY_NONCE,
-                                      key);
-    return GNUNET_SYSERR;
-  }
-  return GNUNET_OK;
-}
-
-
-/**
  * Closure for #datacache_get_successors_iterator().
  */
 struct SuccContext
@@ -355,12 +269,13 @@ struct SuccContext
   /**
    * Function to call on the result
    */
-  GDS_DATACACHE_SuccessorCallback cb;
+  GDS_DATACACHE_GetCallback cb;
 
   /**
    * Closure for @e cb.
    */
   void *cb_cls;
+
 };
 
 
@@ -378,7 +293,7 @@ struct SuccContext
  * @return #GNUNET_OK to continue iteration, anything else
  * to stop iteration.
  */
-static int
+static enum GNUNET_GenericReturnValue
 datacache_get_successors_iterator (void *cls,
                                    const struct GNUNET_HashCode *key,
                                    size_t size,
@@ -389,40 +304,36 @@ datacache_get_successors_iterator (void *cls,
                                    const struct GNUNET_PeerIdentity *put_path)
 {
   const struct SuccContext *sc = cls;
+  struct GDS_DATACACHE_BlockData bd = {
+    .key = *key,
+    .expiration_time = exp,
+    .put_path = put_path,
+    .data = data,
+    .data_size = size,
+    .put_path_length = put_path_length,
+    .type = type
+  };
 
   /* NOTE: The datacache currently does not store the RO from
      the original 'put', so we don't know the 'correct' option
      at this point anymore.  Thus, we conservatively assume
      that recording is desired (for now). */
   sc->cb (sc->cb_cls,
-          GNUNET_DHT_RO_RECORD_ROUTE,
-          key,
-          type,
-          put_path_length, put_path,
-          exp,
-          data,
-          size);
+          &bd);
   return GNUNET_OK;
 }
 
 
-/**
- * Handle a request for data close to a key that we have received from
- * another peer.
- *
- * @param key the location at which the peer is looking for data that is close
- * @param cb function to call with the result
- * @param cb_cls closure for @a cb
- */
 void
 GDS_DATACACHE_get_successors (const struct GNUNET_HashCode *key,
-                              GDS_DATACACHE_SuccessorCallback cb,
+                              GDS_DATACACHE_GetCallback cb,
                               void *cb_cls)
 {
-  struct SuccContext sc;
+  struct SuccContext sc = {
+    .cb = cb,
+    .cb_cls = cb_cls
+  };
 
-  sc.cb = cb;
-  sc.cb_cls = cb_cls;
   (void) GNUNET_DATACACHE_get_closest (datacache,
                                        key,
                                        NUM_CLOSEST,
@@ -431,19 +342,14 @@ GDS_DATACACHE_get_successors (const struct GNUNET_HashCode *key,
 }
 
 
-/**
- * Initialize datacache subsystem.
- */
 void
 GDS_DATACACHE_init ()
 {
-  datacache = GNUNET_DATACACHE_create (GDS_cfg, "dhtcache");
+  datacache = GNUNET_DATACACHE_create (GDS_cfg,
+                                       "dhtcache");
 }
 
 
-/**
- * Shutdown datacache subsystem.
- */
 void
 GDS_DATACACHE_done ()
 {
