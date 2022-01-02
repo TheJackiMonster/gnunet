@@ -146,41 +146,6 @@ GNUNET_CRYPTO_hash_xor (const struct GNUNET_HashCode *a,
 }
 
 
-uint64_t
-GNUNET_CRYPTO_hash_bucket_distance (const struct GNUNET_HashCode *xor,
-                                    unsigned int bucket)
-{
-  const uint64_t *u = (const uint64_t *) xor;
-  unsigned int idx;
-  unsigned int bits;
-  uint64_t rval;
-
-  if (bucket == 8 * sizeof(*xor))
-    return 0;
-  bucket++;
-  idx = bucket / 64;
-  bits = bucket % 64;
-  if (idx >= sizeof (*xor) / sizeof (*u))
-    return 0;
-  if (0 == bits)
-  {
-    /* keeps no bits */
-    rval = 0;
-  }
-  else
-  {
-    /* keeps lowest (64-bits) bits */
-    rval = GNUNET_ntohll (u[idx]) << bits;
-  }
-  if (idx + 1 < sizeof (*xor) / sizeof (*u))
-  {
-    /* discards lowest (bits) bits */
-    rval |= GNUNET_ntohll (u[idx + 1]) >> (64 - bits);
-  }
-  return rval;
-}
-
-
 void
 GNUNET_CRYPTO_hash_to_aes_key (
   const struct GNUNET_HashCode *hc,
@@ -277,18 +242,19 @@ GNUNET_CRYPTO_hash_xorcmp (const struct GNUNET_HashCode *h1,
                            const struct GNUNET_HashCode *h2,
                            const struct GNUNET_HashCode *target)
 {
-  unsigned int d1;
-  unsigned int d2;
+  const unsigned long long *l1 = (const unsigned long long *) h1;
+  const unsigned long long *l2 = (const unsigned long long *) h2;
+  const unsigned long long *t = (const unsigned long long *) target;
 
-  for (ssize_t i = sizeof(struct GNUNET_HashCode) / sizeof(unsigned int) - 1;
-       i >= 0;
-       i--)
+  GNUNET_static_assert (0 == sizeof (*h1) % sizeof (*l1));
+  for (size_t i = 0; i < sizeof(*h1) / sizeof(*l1); i++)
   {
-    d1 = ((unsigned int *) h1)[i] ^ ((unsigned int *) target)[i];
-    d2 = ((unsigned int *) h2)[i] ^ ((unsigned int *) target)[i];
-    if (d1 > d2)
+    unsigned long long x1 = l1[i] ^ t[i];
+    unsigned long long x2 = l2[i] ^ t[i];
+
+    if (x1 > x2)
       return 1;
-    else if (d1 < d2)
+    if (x1 < x2)
       return -1;
   }
   return 0;

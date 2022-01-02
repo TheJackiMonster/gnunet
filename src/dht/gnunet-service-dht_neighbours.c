@@ -944,18 +944,22 @@ GDS_am_closest_peer (const struct GNUNET_HashCode *key,
 
 /**
  * Select a peer from the routing table that would be a good routing
- * destination for sending a message for "key".  The resulting peer
- * must not be in the set of blocked peers.<p>
+ * destination for sending a message for @a key.  The resulting peer
+ * must not be in the set of @a bloom blocked peers.
  *
  * Note that we should not ALWAYS select the closest peer to the
- * target, peers further away from the target should be chosen with
- * exponentially declining probability.
+ * target, we do a "random" peer selection if the number of @a hops
+ * is below the logarithm of the network size estimate.
  *
- * FIXME: double-check that this is fine
- *
+ * In all cases, we only consider at most the first #bucket_size peers of any
+ * #k_buckets. The other peers in the bucket are there because GNUnet doesn't
+ * really allow the DHT to "reject" connections, but we only use the first
+ * #bucket_size, even if more exist. (The idea is to ensure that those
+ * connections are frequently used, and for others to be not used by the DHT,
+ * and thus possibly dropped by transport due to disuse).
  *
  * @param key the key we are selecting a peer to route to
- * @param bloom a bloomfilter containing entries this request has seen already
+ * @param bloom a Bloom filter containing entries this request has seen already
  * @param hops how many hops has this message traversed thus far
  * @return Peer to route to, or NULL on error
  */
@@ -964,141 +968,196 @@ select_peer (const struct GNUNET_HashCode *key,
              const struct GNUNET_CONTAINER_BloomFilter *bloom,
              uint32_t hops)
 {
-  unsigned int bc;
-  unsigned int count;
-  unsigned int selected;
-  struct PeerInfo *pos;
-  struct PeerInfo *chosen;
-
+  if (0 == closest_bucket)
+  {
+    GNUNET_STATISTICS_update (GDS_stats,
+                              "# Peer selection failed",
+                              1,
+                              GNUNET_NO);
+    return NULL; /* we have zero connections */
+  }
   if (hops >= GDS_NSE_get ())
   {
-    /* greedy selection (closest peer that is not in bloomfilter) */
-    unsigned int best_bucket = 0;
-    uint64_t best_in_bucket = UINT64_MAX;
+    /* greedy selection (closest peer that is not in Bloom filter) */
+    struct PeerInfo *chosen = NULL;
+    int best_bucket;
+    int bucket_offset;
 
-    chosen = NULL;
-    for (bc = 0; bc < closest_bucket; bc++)
     {
-      count = 0;
-      for (pos = k_buckets[bc].head;
-           (pos != NULL) &&
-           (count < bucket_size);
+      struct GNUNET_HashCode xor;
+
+      GNUNET_CRYPTO_hash_xor (key,
+                              &my_identity_hash,
+                              &xor);
+      best_bucket = GNUNET_CRYPTO_hash_count_leading_zeros (&xor);
+    }
+    if (best_bucket >= closest_bucket)
+      bucket_offset = closest_bucket - 1;
+    else
+      bucket_offset = best_bucket;
+    while (-1 != bucket_offset)
+    {
+      struct PeerBucket *bucket = &k_buckets[bucket_offset];
+      unsigned int count = 0;
+
+      for (struct PeerInfo *pos = bucket->head;
+           NULL != pos;
            pos = pos->next)
       {
-        struct GNUNET_HashCode xor;
-        unsigned int bucket;
-        uint64_t dist;
-
-        GNUNET_CRYPTO_hash_xor (key,
-                                &pos->phash,
-                                &xor);
-        bucket = GNUNET_CRYPTO_hash_count_leading_zeros (&xor);
-        dist = GNUNET_CRYPTO_hash_bucket_distance (&xor,
-                                                   bucket);
-        if (bucket < best_bucket)
-          continue;
-        if (dist > best_in_bucket)
-          continue;
-        best_bucket = bucket;
-        best_in_bucket = dist;
-        if ( (NULL == bloom) ||
-             (GNUNET_NO ==
-              GNUNET_CONTAINER_bloomfilter_test (bloom,
-                                                 &pos->phash)) )
-        {
-          chosen = pos;
-        }
-        else
+        if (count >= bucket_size)
+          break; /* we only consider first #bucket_size entries per bucket */
+        count++;
+        if (GNUNET_YES ==
+            GNUNET_CONTAINER_bloomfilter_test (bloom,
+                                               &pos->phash))
         {
           GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                       "Excluded peer `%s' due to BF match in greedy routing for %s\n",
                       GNUNET_i2s (pos->id),
                       GNUNET_h2s (key));
-          GNUNET_STATISTICS_update (GDS_stats,
-                                    gettext_noop (
-                                      "# Peers excluded from routing due to Bloomfilter"),
-                                    1,
-                                    GNUNET_NO);
-          chosen = NULL;
+          continue;
+        }
+        if (NULL == chosen)
+        {
+          /* First candidate */
+          chosen = pos;
+        }
+        else
+        {
+          int delta = GNUNET_CRYPTO_hash_xorcmp (&pos->phash,
+                                                 &chosen->phash,
+                                                 key);
+          switch (delta)
+          {
+          case -1: /* pos closer */
+            chosen = pos;
+            break;
+          case 0: /* identical, impossible! */
+            GNUNET_assert (0);
+            break;
+          case 1: /* chosen closer */
+            break;
+          }
         }
         count++;
+      } /* for all (#bucket_size) peers in bucket */
+
+      /* If we chose nothing in first iteration, first go through
+         all (!) deeper buckets (best chance to find a good match),
+         and if we still found nothing, then to shallower buckets
+         (but here terminate on any match, as it can only get worse
+         as we keep going). */
+      if (bucket_offset > best_bucket)
+      {
+        /* Go through more deeper buckets */
+        bucket_offset++;
+        if (bucket_offset == closest_bucket)
+        {
+          /* Can't go any deeper, if nothing selected,
+             go for shallower buckets */
+          if (NULL != chosen)
+            break;
+          bucket_offset = best_bucket - 1;
+        }
       }
-    }
+      else
+      {
+        /* We're either at the 'best_bucket' or already moving
+           on to shallower buckets; any selection means the end. */
+        if (NULL != chosen)
+          break;
+        if (bucket_offset == best_bucket)
+          bucket_offset++; /* go for deeper buckets */
+        else
+          bucket_offset--; /* go for shallower buckets */
+      }
+    } /* for applicable buckets (starting at best match) */
     if (NULL == chosen)
+    {
       GNUNET_STATISTICS_update (GDS_stats,
-                                gettext_noop ("# Peer selection failed"),
+                                "# Peer selection failed",
                                 1,
                                 GNUNET_NO);
-    else
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Selected peer `%s' in greedy routing for %s\n",
-                  GNUNET_i2s (chosen->id),
-                  GNUNET_h2s (key));
+      return NULL;
+    }
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Selected peer `%s' in greedy routing for %s\n",
+                GNUNET_i2s (chosen->id),
+                GNUNET_h2s (key));
     return chosen;
-  }
+  } /* end of 'greedy' peer selection */
 
   /* select "random" peer */
-  /* count number of peers that are available and not filtered */
-  count = 0;
-  for (bc = 0; bc < closest_bucket; bc++)
+  /* count number of peers that are available and not filtered,
+     but limit to at most #bucket_size peers, starting with
+     those 'furthest' from us. */
   {
-    pos = k_buckets[bc].head;
-    while ((NULL != pos) && (count < bucket_size))
+    unsigned int total = 0;
+    unsigned int selected;
+
+    for (unsigned int bc = 0; bc < closest_bucket; bc++)
     {
-      if ((NULL != bloom) &&
-          (GNUNET_YES ==
-           GNUNET_CONTAINER_bloomfilter_test (bloom,
-                                              &pos->phash)))
+      unsigned int count = 0;
+
+      for (struct PeerInfo *pos = k_buckets[bc].head;
+           NULL != pos;
+           pos = pos->next)
       {
-        GNUNET_STATISTICS_update (GDS_stats,
-                                  gettext_noop
-                                  (
-                                    "# Peers excluded from routing due to Bloomfilter"),
-                                  1, GNUNET_NO);
-        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                    "Excluded peer `%s' due to BF match in random routing for %s\n",
-                    GNUNET_i2s (pos->id),
-                    GNUNET_h2s (key));
-        pos = pos->next;
-        continue;               /* Ignore bloomfiltered peers */
-      }
-      count++;
-      pos = pos->next;
-    }
-  }
-  if (0 == count)               /* No peers to select from! */
-  {
-    GNUNET_STATISTICS_update (GDS_stats,
-                              gettext_noop ("# Peer selection failed"), 1,
-                              GNUNET_NO);
-    return NULL;
-  }
-  /* Now actually choose a peer */
-  selected = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK,
-                                       count);
-  count = 0;
-  for (bc = 0; bc < closest_bucket; bc++)
-  {
-    for (pos = k_buckets[bc].head; ((pos != NULL) && (count < bucket_size));
-         pos = pos->next)
+        count++;
+        if (count > bucket_size)
+          break; /* limits search to #bucket_size peers per bucket */
+        if (GNUNET_YES ==
+            GNUNET_CONTAINER_bloomfilter_test (bloom,
+                                               &pos->phash))
+        {
+          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                      "Excluded peer `%s' due to BF match in random routing for %s\n",
+                      GNUNET_i2s (pos->id),
+                      GNUNET_h2s (key));
+          continue;             /* Ignore filtered peers */
+        }
+        total++;
+      } /* for all peers in bucket */
+    } /* for all buckets */
+    if (0 == total)             /* No peers to select from! */
     {
-      if ((bloom != NULL) &&
-          (GNUNET_YES ==
-           GNUNET_CONTAINER_bloomfilter_test (bloom,
-                                              &pos->phash)))
-      {
-        continue;               /* Ignore bloomfiltered peers */
-      }
-      if (0 == selected--)
-      {
-        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                    "Selected peer `%s' in random routing for %s\n",
-                    GNUNET_i2s (pos->id),
-                    GNUNET_h2s (key));
-        return pos;
-      }
+      GNUNET_STATISTICS_update (GDS_stats,
+                                "# Peer selection failed",
+                                1,
+                                GNUNET_NO);
+      return NULL;
     }
-  }
+
+    /* Now actually choose a peer */
+    selected = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK,
+                                         total);
+    for (unsigned int bc = 0; bc < closest_bucket; bc++)
+    {
+      unsigned int count = 0;
+
+      for (struct PeerInfo *pos = k_buckets[bc].head;
+           pos != NULL;
+           pos = pos->next)
+      {
+        count++;
+        if (count > bucket_size)
+          break; /* limits search to #bucket_size peers per bucket */
+
+        if (GNUNET_YES ==
+            GNUNET_CONTAINER_bloomfilter_test (bloom,
+                                               &pos->phash))
+          continue;             /* Ignore bloomfiltered peers */
+        if (0 == selected--)
+        {
+          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                      "Selected peer `%s' in random routing for %s\n",
+                      GNUNET_i2s (pos->id),
+                      GNUNET_h2s (key));
+          return pos;
+        }
+      } /* for peers in bucket */
+    } /* for all buckets */
+  } /* random peer selection scope */
   GNUNET_break (0);
   return NULL;
 }
@@ -1109,13 +1168,13 @@ select_peer (const struct GNUNET_HashCode *key,
  * forwarded to.
  *
  * @param key routing key
- * @param bloom bloom filter excluding peers as targets, all selected
- *        peers will be added to the bloom filter
+ * @param[in,out] bloom Bloom filter excluding peers as targets,
+ *        all selected peers will be added to the Bloom filter
  * @param hop_count number of hops the request has traversed so far
  * @param target_replication desired number of replicas
- * @param targets where to store an array of target peers (to be
- *         free'd by the caller)
- * @return number of peers returned in 'targets'.
+ * @param[out] targets where to store an array of target peers (to be
+ *         free()ed by the caller)
+ * @return number of peers returned in @a targets.
  */
 static unsigned int
 get_target_peers (const struct GNUNET_HashCode *key,
@@ -1124,23 +1183,24 @@ get_target_peers (const struct GNUNET_HashCode *key,
                   uint32_t target_replication,
                   struct PeerInfo ***targets)
 {
-  unsigned int ret;
+  unsigned int target;
   unsigned int off;
   struct PeerInfo **rtargets;
-  struct PeerInfo *nxt;
 
   GNUNET_assert (NULL != bloom);
-  ret = get_forward_count (hop_count,
-                           target_replication);
-  if (0 == ret)
+  target = get_forward_count (hop_count,
+                              target_replication);
+  if (0 == target)
   {
     *targets = NULL;
     return 0;
   }
-  rtargets = GNUNET_new_array (ret,
+  rtargets = GNUNET_new_array (target,
                                struct PeerInfo *);
-  for (off = 0; off < ret; off++)
+  for (off = 0; off < target; off++)
   {
+    struct PeerInfo *nxt;
+
     nxt = select_peer (key,
                        bloom,
                        hop_count);
@@ -1159,7 +1219,7 @@ get_target_peers (const struct GNUNET_HashCode *key,
               GNUNET_CONTAINER_multipeermap_size (all_connected_peers),
               (unsigned int) hop_count,
               GNUNET_h2s (key),
-              ret);
+              target);
   if (0 == off)
   {
     GNUNET_free (rtargets);
@@ -1171,10 +1231,12 @@ get_target_peers (const struct GNUNET_HashCode *key,
               "Forwarding query `%s' to %u peers (goal was %u peers)\n",
               GNUNET_h2s (key),
               off,
-              ret);
+              target);
   return off;
 }
 
+
+// FIXME-CG: REVIEW from here...
 
 enum GNUNET_GenericReturnValue
 GDS_NEIGHBOURS_handle_put (const struct GDS_DATACACHE_BlockData *bd,
@@ -1247,8 +1309,7 @@ GDS_NEIGHBOURS_handle_put (const struct GDS_DATACACHE_BlockData *bd,
     {
       /* skip */
       GNUNET_STATISTICS_update (GDS_stats,
-                                gettext_noop (
-                                  "# P2P messages dropped due to full queue"),
+                                "# P2P messages dropped due to full queue",
                                 1,
                                 GNUNET_NO);
       skip_count++;
@@ -1316,7 +1377,7 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
 
   GNUNET_assert (NULL != peer_bf);
   GNUNET_STATISTICS_update (GDS_stats,
-                            gettext_noop ("# GET requests routed"),
+                            "# GET requests routed",
                             1,
                             GNUNET_NO);
   target_count = get_target_peers (key,
@@ -1359,8 +1420,7 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
     return GNUNET_NO;
   }
   GNUNET_STATISTICS_update (GDS_stats,
-                            gettext_noop (
-                              "# GET messages queued for transmission"),
+                            "# GET messages queued for transmission",
                             target_count,
                             GNUNET_NO);
   /* forward request */
@@ -1372,8 +1432,7 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
     {
       /* skip */
       GNUNET_STATISTICS_update (GDS_stats,
-                                gettext_noop (
-                                  "# P2P messages dropped due to full queue"),
+                                "# P2P messages dropped due to full queue",
                                 1, GNUNET_NO);
       skip_count++;
       continue;
@@ -1581,7 +1640,7 @@ handle_dht_p2p_put (void *cls,
   if (GNUNET_TIME_absolute_is_past (bd.expiration_time))
   {
     GNUNET_STATISTICS_update (GDS_stats,
-                              gettext_noop ("# Expired PUTs discarded"),
+                              "# Expired PUTs discarded",
                               1,
                               GNUNET_NO);
     return;
@@ -1943,11 +2002,11 @@ handle_dht_p2p_get (void *cls,
   options = ntohl (get->options);
   xquery = (const void *) &get[1];
   GNUNET_STATISTICS_update (GDS_stats,
-                            gettext_noop ("# P2P GET requests received"),
+                            "# P2P GET requests received",
                             1,
                             GNUNET_NO);
   GNUNET_STATISTICS_update (GDS_stats,
-                            gettext_noop ("# P2P GET bytes received"),
+                            "# P2P GET bytes received",
                             msize,
                             GNUNET_NO);
   if (GNUNET_YES == log_route_details_stderr)

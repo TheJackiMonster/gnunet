@@ -1058,21 +1058,6 @@ GNUNET_CRYPTO_hash_count_tailing_zeros (const struct GNUNET_HashCode *h);
 
 
 /**
- * Compute the distance between have and target as a 64-bit value.
- * Differences in the lower bits must count stronger than differences
- * in the higher bits.
- *
- * @param xor input hash
- * @param bucket up to which offset we are to ignore @a xor
- * @return the subsequent 64 bits after @a bucket from @a xor, in
- *  host byte order.
- */
-uint64_t
-GNUNET_CRYPTO_hash_bucket_distance (const struct GNUNET_HashCode *xor,
-                                    unsigned int bucket);
-
-
-/**
  * @ingroup hash
  * Convert a hashcode into a key.
  *
