@@ -325,9 +325,9 @@ datacache_get_successors_iterator (void *cls,
 
 
 void
-GDS_DATACACHE_get_successors (const struct GNUNET_HashCode *key,
-                              GDS_DATACACHE_GetCallback cb,
-                              void *cb_cls)
+GDS_DATACACHE_get_closest (const struct GNUNET_HashCode *key,
+                           GDS_DATACACHE_GetCallback cb,
+                           void *cb_cls)
 {
   struct SuccContext sc = {
     .cb = cb,

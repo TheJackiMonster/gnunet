@@ -462,10 +462,9 @@ static enum GNUNET_GenericReturnValue
 check_dht_local_put (void *cls,
                      const struct GNUNET_DHT_ClientPutMessage *dht_msg)
 {
-  uint32_t replication_level;
+  uint32_t replication_level = ntohl (dht_msg->desired_replication_level);
 
   (void) cls;
-  replication_level = ntohl (dht_msg->desired_replication_level);
   if (replication_level > GNUNET_DHT_MAXIMUM_REPLICATION_LEVEL)
   {
     GNUNET_break_op (0);
@@ -1431,6 +1430,9 @@ GDS_CLIENTS_process_put (enum GNUNET_DHT_RouteOption options,
                          &put_action,
                          &put_ctx);
 }
+
+
+/* ********************** Initialization logic ***************** */
 
 
 /**
