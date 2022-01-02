@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2009-2017, 2021 GNUnet e.V.
+     Copyright (C) 2009-2017, 2021, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -25,21 +25,12 @@
  * @author Nathan Evans
  */
 #include "platform.h"
-#include "gnunet_util_lib.h"
-#include "gnunet_block_lib.h"
-#include "gnunet_hello_lib.h"
 #include "gnunet_constants.h"
 #include "gnunet_protocols.h"
-#include "gnunet_nse_service.h"
 #include "gnunet_ats_service.h"
 #include "gnunet_core_service.h"
-#include "gnunet_datacache_lib.h"
-#include "gnunet_transport_service.h"
 #include "gnunet_hello_lib.h"
-#include "gnunet_dht_service.h"
-#include "gnunet_statistics_service.h"
 #include "gnunet-service-dht.h"
-#include "gnunet-service-dht_datacache.h"
 #include "gnunet-service-dht_hello.h"
 #include "gnunet-service-dht_neighbours.h"
 #include "gnunet-service-dht_nse.h"
@@ -55,7 +46,7 @@
 #define SANITY_CHECKS 1
 
 /**
- * How many buckets will we allow total.
+ * How many buckets will we allow in total.
  */
 #define MAX_BUCKETS sizeof(struct GNUNET_HashCode) * 8
 
@@ -76,15 +67,23 @@
 
 /**
  * How long at least to wait before sending another find peer request.
+ * This is basically the frequency at which we will usually send out
+ * requests when we are 'perfectly' connected.
  */
 #define DHT_MINIMUM_FIND_PEER_INTERVAL GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_SECONDS, 30)
+    GNUNET_TIME_UNIT_MINUTES, 2)
 
 /**
- * How long at most to wait before sending another find peer request.
+ * How long to additionally wait on average per #bucket_size to send out the
+ * FIND PEER requests if we did successfully connect (!) to a a new peer and
+ * added it to a bucket (as counted in #newly_found_peers).  This time is
+ * Multiplied by 100 * newly_found_peers / bucket_size to get the new delay
+ * for finding peers (the #DHT_MINIMUM_FIND_PEER_INTERVAL is still added on
+ * top).  Also the range in which we randomize, so the effective value
+ * is half of the number given here.
  */
-#define DHT_MAXIMUM_FIND_PEER_INTERVAL GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_MINUTES, 10)
+#define DHT_AVG_FIND_PEER_INTERVAL GNUNET_TIME_relative_multiply ( \
+    GNUNET_TIME_UNIT_SECONDS, 6)
 
 /**
  * How long at most to wait for transmission of a GET request to another peer?
@@ -504,33 +503,34 @@ static void
 try_connect (const struct GNUNET_PeerIdentity *pid,
              const struct GNUNET_MessageHeader *h)
 {
-  int bucket;
+  int bucket_idx;
   struct GNUNET_HashCode pid_hash;
   struct ConnectInfo *ci;
   uint32_t strength;
+  struct PeerBucket *bucket;
 
   GNUNET_CRYPTO_hash (pid,
                       sizeof(struct GNUNET_PeerIdentity),
                       &pid_hash);
-  bucket = find_bucket (&pid_hash);
-  if (bucket < 0)
-    return; /* self? */
+  bucket_idx = find_bucket (&pid_hash);
+  if (bucket_idx < 0)
+  {
+    GNUNET_break (0);
+    return; /* self!? */
+  }
+  bucket = &k_buckets[bucket_idx];
   ci = GNUNET_CONTAINER_multipeermap_get (all_desired_peers,
                                           pid);
-
-  if (k_buckets[bucket].peers_size < bucket_size)
-    strength = (bucket_size - k_buckets[bucket].peers_size) * bucket;
+  if (bucket->peers_size < bucket_size)
+    strength = (bucket_size - bucket->peers_size) * bucket_idx;
   else
-    strength = bucket; /* minimum value of connectivity */
+    strength = 0;
   if (GNUNET_YES ==
       GNUNET_CONTAINER_multipeermap_contains (all_connected_peers,
                                               pid))
     strength *= 2; /* double for connected peers */
-  else if (k_buckets[bucket].peers_size > bucket_size)
-    strength = 0; /* bucket full, we really do not care about more */
-
-  if ((0 == strength) &&
-      (NULL != ci))
+  if ( (0 == strength) &&
+       (NULL != ci) )
   {
     /* release request */
     GNUNET_assert (GNUNET_YES ==
@@ -548,22 +548,24 @@ try_connect (const struct GNUNET_PeerIdentity *pid,
                                                       ci,
                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
   }
-  if ((NULL != ci->oh) &&
-      (NULL != h))
+  if ( (NULL != ci->oh) &&
+       (NULL != h) )
     GNUNET_TRANSPORT_offer_hello_cancel (ci->oh);
   if (NULL != h)
     ci->oh = GNUNET_TRANSPORT_offer_hello (GDS_cfg,
                                            h,
                                            &offer_hello_done,
                                            ci);
-  if ((NULL != ci->sh) &&
-      (ci->strength != strength))
+  if ( (NULL != ci->sh) &&
+       (ci->strength != strength) )
     GNUNET_ATS_connectivity_suggest_cancel (ci->sh);
   if (ci->strength != strength)
+  {
     ci->sh = GNUNET_ATS_connectivity_suggest (ats_ch,
                                               pid,
                                               strength);
-  ci->strength = strength;
+    ci->strength = strength;
+  }
 }
 
 
@@ -594,9 +596,6 @@ update_desire_strength (void *cls,
 
 /**
  * Update our preferences for connectivity as given to ATS.
- *
- * @param cls the `struct PeerInfo` of the peer
- * @param tc scheduler context.
  */
 static void
 update_connect_preferences (void)
@@ -608,12 +607,12 @@ update_connect_preferences (void)
 
 
 /**
- * Add each of the peers we already know to the bloom filter of
+ * Add each of the peers we already know to the Bloom filter of
  * the request so that we don't get duplicate HELLOs.
  *
  * @param cls the `struct GNUNET_BLOCK_Group`
  * @param key peer identity to add to the bloom filter
- * @param value value the peer information (unused)
+ * @param value the peer information
  * @return #GNUNET_YES (we should continue to iterate)
  */
 static enum GNUNET_GenericReturnValue
@@ -622,18 +621,13 @@ add_known_to_bloom (void *cls,
                     void *value)
 {
   struct GNUNET_BLOCK_Group *bg = cls;
-  struct GNUNET_HashCode key_hash;
+  struct PeerInfo *pi = value;
 
-  (void) cls;
-  (void) value;
-  GNUNET_CRYPTO_hash (key,
-                      sizeof(struct GNUNET_PeerIdentity),
-                      &key_hash);
   GNUNET_BLOCK_group_set_seen (bg,
-                               &key_hash,
+                               &pi->phash,
                                1);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Adding known peer (%s) to bloomfilter for FIND PEER\n",
+              "Adding known peer (%s) to Bloom filter for FIND PEER\n",
               GNUNET_i2s (key));
   return GNUNET_YES;
 }
@@ -644,73 +638,88 @@ add_known_to_bloom (void *cls,
  * so that we can find the closest peers in the network to ourselves
  * and attempt to connect to them.
  *
- * @param cls closure for this task
+ * @param cls closure for this task, NULL
  */
 static void
 send_find_peer_message (void *cls)
 {
-  struct GNUNET_TIME_Relative next_send_time;
-  struct GNUNET_BLOCK_Group *bg;
-  struct GNUNET_CONTAINER_BloomFilter *peer_bf;
-
   (void) cls;
-  find_peer_task = NULL;
-  if (newly_found_peers > bucket_size)
+
+  /* Compute when to do this again (and if we should
+     even send a message right now) */
   {
-    /* If we are finding many peers already, no need to send out our request right now! */
+    struct GNUNET_TIME_Relative next_send_time;
+    bool done_early;
+
+    find_peer_task = NULL;
+    done_early = (newly_found_peers > bucket_size);
+    /* schedule next round, taking longer if we found more peers
+       in the last round. */
+    next_send_time.rel_value_us =
+      DHT_MINIMUM_FIND_PEER_INTERVAL.rel_value_us
+      + GNUNET_CRYPTO_random_u64 (
+        GNUNET_CRYPTO_QUALITY_WEAK,
+        GNUNET_TIME_relative_multiply (
+          DHT_AVG_FIND_PEER_INTERVAL,
+          100 * (1 + newly_found_peers) / bucket_size).rel_value_us);
+    newly_found_peers = 0;
+    GNUNET_assert (NULL == find_peer_task);
     find_peer_task =
-      GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_MINUTES,
+      GNUNET_SCHEDULER_add_delayed (next_send_time,
                                     &send_find_peer_message,
                                     NULL);
-    newly_found_peers = 0;
-    return;
+    if (done_early)
+      return;
   }
-  bg = GNUNET_BLOCK_group_create (GDS_block_context,
-                                  GNUNET_BLOCK_TYPE_DHT_HELLO,
-                                  GNUNET_CRYPTO_random_u32 (
-                                    GNUNET_CRYPTO_QUALITY_WEAK,
-                                    UINT32_MAX),
-                                  NULL,
-                                  0,
-                                  "filter-size",
-                                  DHT_BLOOM_SIZE,
-                                  NULL);
-  GNUNET_CONTAINER_multipeermap_iterate (all_connected_peers,
-                                         &add_known_to_bloom,
-                                         bg);
-  GNUNET_STATISTICS_update (GDS_stats,
-                            "# FIND PEER messages initiated",
-                            1,
-                            GNUNET_NO);
-  peer_bf
-    = GNUNET_CONTAINER_bloomfilter_init (NULL,
-                                         DHT_BLOOM_SIZE,
-                                         GNUNET_CONSTANTS_BLOOMFILTER_K);
-  // FIXME: pass priority!?
-  GDS_NEIGHBOURS_handle_get (GNUNET_BLOCK_TYPE_DHT_HELLO,
-                             GNUNET_DHT_RO_FIND_PEER
-                             | GNUNET_DHT_RO_RECORD_ROUTE,
-                             FIND_PEER_REPLICATION_LEVEL,
-                             0,
-                             &my_identity_hash,
-                             NULL,
-                             0,
-                             bg,
-                             peer_bf);
-  GNUNET_CONTAINER_bloomfilter_free (peer_bf);
-  GNUNET_BLOCK_group_destroy (bg);
-  /* schedule next round */
-  next_send_time.rel_value_us =
-    DHT_MINIMUM_FIND_PEER_INTERVAL.rel_value_us
-    + GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_WEAK,
-                                DHT_MAXIMUM_FIND_PEER_INTERVAL.rel_value_us
-                                / (newly_found_peers + 1));
-  newly_found_peers = 0;
-  GNUNET_assert (NULL == find_peer_task);
-  find_peer_task =
-    GNUNET_SCHEDULER_add_delayed (next_send_time,
-                                  &send_find_peer_message,
-                                  NULL);
+
+  /* actually send 'find peer' request */
+  {
+    struct GNUNET_BLOCK_Group *bg;
+    struct GNUNET_CONTAINER_BloomFilter *peer_bf;
+
+    bg = GNUNET_BLOCK_group_create (GDS_block_context,
+                                    GNUNET_BLOCK_TYPE_DHT_HELLO,
+                                    GNUNET_CRYPTO_random_u32 (
+                                      GNUNET_CRYPTO_QUALITY_WEAK,
+                                      UINT32_MAX),
+                                    NULL,
+                                    0,
+                                    "filter-size",
+                                    DHT_BLOOM_SIZE,
+                                    NULL);
+    GNUNET_CONTAINER_multipeermap_iterate (all_connected_peers,
+                                           &add_known_to_bloom,
+                                           bg);
+    peer_bf
+      = GNUNET_CONTAINER_bloomfilter_init (NULL,
+                                           DHT_BLOOM_SIZE,
+                                           GNUNET_CONSTANTS_BLOOMFILTER_K);
+    if (GNUNET_OK !=
+        GDS_NEIGHBOURS_handle_get (GNUNET_BLOCK_TYPE_DHT_HELLO,
+                                   GNUNET_DHT_RO_FIND_PEER
+                                   | GNUNET_DHT_RO_RECORD_ROUTE,
+                                   FIND_PEER_REPLICATION_LEVEL,
+                                   0, /* hop count */
+                                   &my_identity_hash,
+                                   NULL, 0, /* xquery */
+                                   bg,
+                                   peer_bf))
+    {
+      GNUNET_STATISTICS_update (GDS_stats,
+                                "# Failed to initiate FIND PEER lookup",
+                                1,
+                                GNUNET_NO);
+    }
+    else
+    {
+      GNUNET_STATISTICS_update (GDS_stats,
+                                "# FIND PEER messages initiated",
+                                1,
+                                GNUNET_NO);
+    }
+    GNUNET_CONTAINER_bloomfilter_free (peer_bf);
+    GNUNET_BLOCK_group_destroy (bg);
+  }
 }
 
 
@@ -728,6 +737,7 @@ handle_core_connect (void *cls,
                      struct GNUNET_MQ_Handle *mq)
 {
   struct PeerInfo *pi;
+  struct PeerBucket *bucket;
 
   (void) cls;
   /* Check for connect to self message */
@@ -735,13 +745,13 @@ handle_core_connect (void *cls,
                           peer))
     return NULL;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Connected to %s\n",
+              "Connected to peer %s\n",
               GNUNET_i2s (peer));
-  GNUNET_assert (GNUNET_NO ==
+  GNUNET_assert (NULL ==
                  GNUNET_CONTAINER_multipeermap_get (all_connected_peers,
                                                     peer));
   GNUNET_STATISTICS_update (GDS_stats,
-                            gettext_noop ("# peers connected"),
+                            "# peers connected",
                             1,
                             GNUNET_NO);
   pi = GNUNET_new (struct PeerInfo);
@@ -751,27 +761,27 @@ handle_core_connect (void *cls,
                       sizeof(struct GNUNET_PeerIdentity),
                       &pi->phash);
   pi->peer_bucket = find_bucket (&pi->phash);
-  GNUNET_assert ((pi->peer_bucket >= 0) &&
-                 ((unsigned int) pi->peer_bucket < MAX_BUCKETS));
-  GNUNET_CONTAINER_DLL_insert_tail (k_buckets[pi->peer_bucket].head,
-                                    k_buckets[pi->peer_bucket].tail,
+  GNUNET_assert ( (pi->peer_bucket >= 0) &&
+                  ((unsigned int) pi->peer_bucket < MAX_BUCKETS));
+  bucket = &k_buckets[pi->peer_bucket];
+  GNUNET_CONTAINER_DLL_insert_tail (bucket->head,
+                                    bucket->tail,
                                     pi);
-  k_buckets[pi->peer_bucket].peers_size++;
+  bucket->peers_size++;
   closest_bucket = GNUNET_MAX (closest_bucket,
-                               (unsigned int) pi->peer_bucket);
+                               (unsigned int) pi->peer_bucket + 1);
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_CONTAINER_multipeermap_put (all_connected_peers,
                                                     pi->id,
                                                     pi,
                                                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
-  if ((pi->peer_bucket > 0) &&
-      (k_buckets[pi->peer_bucket].peers_size <= bucket_size))
+  if (bucket->peers_size <= bucket_size)
   {
     update_connect_preferences ();
     newly_found_peers++;
   }
-  if ((1 == GNUNET_CONTAINER_multipeermap_size (all_connected_peers)) &&
-      (GNUNET_YES != disable_try_connect))
+  if ( (1 == GNUNET_CONTAINER_multipeermap_size (all_connected_peers)) &&
+       (GNUNET_YES != disable_try_connect) )
   {
     /* got a first connection, good time to start with FIND PEER requests... */
     GNUNET_assert (NULL == find_peer_task);
@@ -795,38 +805,40 @@ handle_core_disconnect (void *cls,
                         void *internal_cls)
 {
   struct PeerInfo *to_remove = internal_cls;
+  struct PeerBucket *bucket;
 
   (void) cls;
-  /* Check for disconnect from self message */
+  /* Check for disconnect from self message (on shutdown) */
   if (NULL == to_remove)
     return;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Disconnected %s\n",
+              "Disconnected from peer %s\n",
               GNUNET_i2s (peer));
   GNUNET_STATISTICS_update (GDS_stats,
-                            gettext_noop ("# peers connected"),
+                            "# peers connected",
                             -1,
                             GNUNET_NO);
   GNUNET_assert (GNUNET_YES ==
                  GNUNET_CONTAINER_multipeermap_remove (all_connected_peers,
                                                        peer,
                                                        to_remove));
-  if ((0 == GNUNET_CONTAINER_multipeermap_size (all_connected_peers)) &&
-      (GNUNET_YES != disable_try_connect))
+  if ( (0 == GNUNET_CONTAINER_multipeermap_size (all_connected_peers)) &&
+       (GNUNET_YES != disable_try_connect))
   {
     GNUNET_SCHEDULER_cancel (find_peer_task);
     find_peer_task = NULL;
   }
   GNUNET_assert (to_remove->peer_bucket >= 0);
-  GNUNET_CONTAINER_DLL_remove (k_buckets[to_remove->peer_bucket].head,
-                               k_buckets[to_remove->peer_bucket].tail,
+  bucket = &k_buckets[to_remove->peer_bucket];
+  GNUNET_CONTAINER_DLL_remove (bucket->head,
+                               bucket->tail,
                                to_remove);
-  GNUNET_assert (k_buckets[to_remove->peer_bucket].peers_size > 0);
-  k_buckets[to_remove->peer_bucket].peers_size--;
-  while ((closest_bucket > 0) &&
-         (0 == k_buckets[to_remove->peer_bucket].peers_size))
+  GNUNET_assert (bucket->peers_size > 0);
+  bucket->peers_size--;
+  while ( (closest_bucket > 0) &&
+          (0 == k_buckets[closest_bucket - 1].peers_size))
     closest_bucket--;
-  if (k_buckets[to_remove->peer_bucket].peers_size < bucket_size)
+  if (bucket->peers_size < bucket_size)
     update_connect_preferences ();
   GNUNET_free (to_remove);
 }
@@ -856,8 +868,9 @@ get_forward_count (uint32_t hop_count,
   {
     /* forcefully terminate */
     GNUNET_STATISTICS_update (GDS_stats,
-                              gettext_noop ("# requests TTL-dropped"),
-                              1, GNUNET_NO);
+                              "# requests TTL-dropped",
+                              1,
+                              GNUNET_NO);
     return 0;
   }
   if (hop_count > GDS_NSE_get () * 2.0)
@@ -879,8 +892,8 @@ get_forward_count (uint32_t hop_count,
   forward_count = (uint32_t) target_value;
   /* Subtract forward_count (floor) from target_value (yields value between 0 and 1) */
   target_value = target_value - forward_count;
-  random_value =
-    GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK, UINT32_MAX);
+  random_value = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK,
+                                           UINT32_MAX);
   if (random_value < (target_value * UINT32_MAX))
     forward_count++;
   return GNUNET_MIN (forward_count,
@@ -964,7 +977,7 @@ select_peer (const struct GNUNET_HashCode *key,
     uint64_t best_in_bucket = UINT64_MAX;
 
     chosen = NULL;
-    for (bc = 0; bc <= closest_bucket; bc++)
+    for (bc = 0; bc < closest_bucket; bc++)
     {
       count = 0;
       for (pos = k_buckets[bc].head;
@@ -1027,7 +1040,7 @@ select_peer (const struct GNUNET_HashCode *key,
   /* select "random" peer */
   /* count number of peers that are available and not filtered */
   count = 0;
-  for (bc = 0; bc <= closest_bucket; bc++)
+  for (bc = 0; bc < closest_bucket; bc++)
   {
     pos = k_buckets[bc].head;
     while ((NULL != pos) && (count < bucket_size))
@@ -1064,7 +1077,7 @@ select_peer (const struct GNUNET_HashCode *key,
   selected = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK,
                                        count);
   count = 0;
-  for (bc = 0; bc <= closest_bucket; bc++)
+  for (bc = 0; bc < closest_bucket; bc++)
   {
     for (pos = k_buckets[bc].head; ((pos != NULL) && (count < bucket_size));
          pos = pos->next)
@@ -1789,9 +1802,9 @@ handle_find_peer (const struct GNUNET_PeerIdentity *sender,
   if (0 ==
       GNUNET_memcmp (&my_identity_hash,
                      query_hash))
-    bucket_idx = closest_bucket;
+    bucket_idx = closest_bucket - 1;
   else
-    bucket_idx = GNUNET_MIN ((int) closest_bucket,
+    bucket_idx = GNUNET_MIN ((int) closest_bucket - 1,
                              find_bucket (query_hash));
   if (bucket_idx < 0)
     return;
