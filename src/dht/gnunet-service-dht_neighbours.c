@@ -915,27 +915,46 @@ enum GNUNET_GenericReturnValue
 GDS_am_closest_peer (const struct GNUNET_HashCode *key,
                      const struct GNUNET_CONTAINER_BloomFilter *bloom)
 {
-  int bucket_num;
-
   if (0 == GNUNET_memcmp (&my_identity_hash,
                           key))
     return GNUNET_YES;
-  bucket_num = find_bucket (key);
-  GNUNET_assert (bucket_num >= 0);
-  for (struct PeerInfo *pos = k_buckets[bucket_num].head;
-       NULL != pos;
-       pos = pos->next)
+  for (int bucket_num = find_bucket (key);
+       bucket_num < closest_bucket;
+       bucket_num++)
   {
-    if ( (NULL != bloom) &&
-         (GNUNET_YES ==
-          GNUNET_CONTAINER_bloomfilter_test (bloom,
-                                             &pos->phash)) )
-      continue;                 /* Ignore filtered peers */
-    /* All peers in this bucket must be closer than us, as
-       they mismatch with our PID on the pivotal bit. So
-       because an unfiltered peer exists, we are not the
-       closest. */
-    return GNUNET_NO;
+    unsigned int count = 0;
+
+    GNUNET_assert (bucket_num >= 0);
+    for (struct PeerInfo *pos = k_buckets[bucket_num].head;
+         NULL != pos;
+         pos = pos->next)
+    {
+      if (count >= bucket_size)
+        break; /* we only consider first #bucket_size entries per bucket */
+      count++;
+      if ( (NULL != bloom) &&
+           (GNUNET_YES ==
+            GNUNET_CONTAINER_bloomfilter_test (bloom,
+                                               &pos->phash)) )
+        continue;               /* Ignore filtered peers */
+      /* All peers in this bucket must be closer than us, as
+         they mismatch with our PID on the pivotal bit. So
+         because an unfiltered peer exists, we are not the
+         closest. */
+      int delta = GNUNET_CRYPTO_hash_xorcmp (&pos->phash,
+                                             &my_identity_hash,
+                                             key);
+      switch (delta)
+      {
+      case -1: /* pos closer */
+        return GNUNET_NO;
+      case 0: /* identical, impossible! */
+        GNUNET_assert (0);
+        break;
+      case 1: /* I am closer */
+        break;
+      }
+    }
   }
   /* No closer (unfiltered) peers found; we must be the closest! */
   return GNUNET_YES;
@@ -1041,12 +1060,14 @@ select_peer (const struct GNUNET_HashCode *key,
         }
         count++;
       } /* for all (#bucket_size) peers in bucket */
+      if (NULL != chosen)
+        break;
 
-      /* If we chose nothing in first iteration, first go through
-         all (!) deeper buckets (best chance to find a good match),
-         and if we still found nothing, then to shallower buckets
-         (but here terminate on any match, as it can only get worse
-         as we keep going). */
+      /* If we chose nothing in first iteration, first go through deeper
+         buckets (best chance to find a good match), and if we still found
+         nothing, then to shallower buckets.  Terminate on any match in the
+         current bucket, as this search order guarantees that it can only get
+         worse as we keep going. */
       if (bucket_offset > best_bucket)
       {
         /* Go through more deeper buckets */
@@ -1055,17 +1076,13 @@ select_peer (const struct GNUNET_HashCode *key,
         {
           /* Can't go any deeper, if nothing selected,
              go for shallower buckets */
-          if (NULL != chosen)
-            break;
           bucket_offset = best_bucket - 1;
         }
       }
       else
       {
         /* We're either at the 'best_bucket' or already moving
-           on to shallower buckets; any selection means the end. */
-        if (NULL != chosen)
-          break;
+           on to shallower buckets. */
         if (bucket_offset == best_bucket)
           bucket_offset++; /* go for deeper buckets */
         else
