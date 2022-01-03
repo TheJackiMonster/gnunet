@@ -837,8 +837,8 @@ handle_dht_local_get_stop (
   struct RemoveByUniqueIdContext ctx;
 
   GNUNET_STATISTICS_update (GDS_stats,
-                            gettext_noop
-                              ("# GET STOP requests received from clients"), 1,
+                            "# GET STOP requests received from clients",
+                            1,
                             GNUNET_NO);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Received GET STOP request for %s from local client %p\n",

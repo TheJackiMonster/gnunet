@@ -38,6 +38,18 @@
 extern struct GNUNET_HashCode my_identity_hash;
 
 
+struct PeerInfo;
+
+/**
+ * Lookup peer by peer's identity.
+ * 
+ * @param target peer to look up
+ * @return NULL if we are not connected to @a target
+ */
+struct PeerInfo *
+GDS_NEIGHBOURS_lookup_peer (const struct GNUNET_PeerIdentity *target);
+
+
 /**
  * Perform a PUT operation.  Forwards the given request to other
  * peers.   Does not store the data locally.  Does not give the
@@ -94,7 +106,7 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
  * other peers waiting for it.  Does not do local caching or
  * forwarding to local clients.
  *
- * @param target neighbour that should receive the block (if still connected)
+ * @param pi neighbour that should receive the block
  * @param type type of the block
  * @param bd details about the reply
  * @param query_hash query that was used for the request
@@ -102,7 +114,7 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
  * @param get_path peers this reply has traversed so far (if tracked)
  */
 void
-GDS_NEIGHBOURS_handle_reply (const struct GNUNET_PeerIdentity *target,
+GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
                              const struct GDS_DATACACHE_BlockData *bd,
                              const struct GNUNET_HashCode *query_hash,
                              unsigned int get_path_length,

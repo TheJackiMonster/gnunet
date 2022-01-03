@@ -237,7 +237,7 @@ GDS_DATACACHE_handle_get (const struct GNUNET_HashCode *key,
   if (NULL == datacache)
     return GNUNET_BLOCK_EVALUATION_REQUEST_VALID;
   GNUNET_STATISTICS_update (GDS_stats,
-                            gettext_noop ("# GET requests given to datacache"),
+                            "# GET requests given to datacache",
                             1,
                             GNUNET_NO);
   ctx.eval = GNUNET_BLOCK_EVALUATION_REQUEST_VALID;

@@ -179,14 +179,27 @@ process (void *cls,
   case GNUNET_BLOCK_REPLY_OK_MORE:
   case GNUNET_BLOCK_REPLY_OK_LAST:
   case GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED:
-    GNUNET_STATISTICS_update (GDS_stats,
-                              "# Good REPLIES matched against routing table",
-                              1,
-                              GNUNET_NO);
-    GDS_NEIGHBOURS_handle_reply (&rr->peer,
-                                 &bdx,
-                                 query_hash,
-                                 get_path_length, pc->get_path);
+    {
+      struct PeerInfo *pi;
+      
+      GNUNET_STATISTICS_update (GDS_stats,
+                                "# Good REPLIES matched against routing table",
+                                1,
+                                GNUNET_NO);
+      pi = GDS_NEIGHBOURS_lookup_peer (&rr->peer);
+      if (NULL == pi)
+      {
+        /* peer disconnected in the meantime, drop reply */
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "No matching peer for reply for key %s\n",
+                    GNUNET_h2s (query_hash));
+        return GNUNET_OK;
+      }
+      GDS_NEIGHBOURS_handle_reply (pi,
+                                   &bdx,
+                                   query_hash,
+                                   get_path_length, pc->get_path);
+    }
     break;
   case GNUNET_BLOCK_REPLY_OK_DUPLICATE:
     GNUNET_STATISTICS_update (GDS_stats,
