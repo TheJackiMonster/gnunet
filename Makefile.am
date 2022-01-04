@@ -76,3 +76,4 @@ endif
 
 gana:
 	@cd $(top_srcdir)/contrib/gana/gnu-name-system-record-types; make; cp gnu_name_system_record_types.h ../../../src/include/
+	@cd $(top_srcdir)/contrib/gana/gnu-name-system-default-tlds; make; cp tlds.conf ../../../src/gns

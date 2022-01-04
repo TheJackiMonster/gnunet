@@ -24,9 +24,6 @@ INTERCEPT_DNS = NO
 
 # PREFIX = valgrind --leak-check=full --track-origins=yes
 
-# Zones
-.pin = 000G001MF6DVMZZ4Y8XRZQDXM1PB3D3VGEK29ZHXBA57EPSNW1QBPKT8J0
-
 [gns-proxy]
 BINARY = gnunet-gns-proxy
 START_ON_DEMAND = NO
