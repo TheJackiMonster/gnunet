@@ -125,7 +125,8 @@ gana_update()
          make clean
       cd $cwd
     else
-      echo "WARNING: No recutils found! Unable to generate recent GANA headers and configs."
+      echo "ERROR: No recutils found! Unable to generate recent GANA headers and configs."
+      exit 1
     fi
 }
 
