@@ -98,8 +98,34 @@ submodules()
         echo "git not installed, skipping submodule update"
     else
         git submodule update --init || exit 1
-        git submodule update --recursive || exit 1
+        git submodule update --remote --recursive || exit 1
         git submodule sync || exit 1
+    fi
+}
+
+gana_update()
+{
+    if existence recfmt; then
+      cwd=$PWD
+      cd contrib/gana || exit 1
+      # GNS
+      cd gnu-name-system-record-types && \
+         make && \
+         cp gnu_name_system_record_types.h ../../../src/include/ && \
+         make clean
+      cd ../gnu-name-system-default-tlds && \
+         make && \
+         cp tlds.conf ../../../src/gns && \
+         make clean
+
+      # Signatures
+      cd ../gnunet-signatures && \
+         make && \
+         cp gnunet_signatures.h ../../../src/include && \
+         make clean
+      cd $cwd
+    else
+      echo "WARNING: No recutils found! Unable to generate recent GANA headers and configs."
     fi
 }
 
@@ -107,6 +133,7 @@ main()
 {
     cleanup
     submodules
+    gana_update
     check_uncrustify
     check_yapf
     check_libtool
