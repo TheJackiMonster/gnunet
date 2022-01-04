@@ -115,7 +115,7 @@ GNUNET_NETWORK_STRUCT_BEGIN
 struct TcpHandshakeSignature
 {
   /**
-   * Purpose must be #GNUNET_SIGNATURE_COMMUNICATOR_TCP_HANDSHAKE
+   * Purpose must be #GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_HANDSHAKE
    */
   struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
 
@@ -153,7 +153,7 @@ struct TcpHandshakeSignature
 struct TcpHandshakeAckSignature
 {
   /**
-   * Purpose must be #GNUNET_SIGNATURE_COMMUNICATOR_TCP_HANDSHAKE_ACK
+   * Purpose must be #GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_HANDSHAKE_ACK
    */
   struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
 
@@ -190,7 +190,7 @@ struct TCPConfirmation
   struct GNUNET_PeerIdentity sender;
 
   /**
-   * Sender's signature of type #GNUNET_SIGNATURE_COMMUNICATOR_TCP_HANDSHAKE
+   * Sender's signature of type #GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_HANDSHAKE
    */
   struct GNUNET_CRYPTO_EddsaSignature sender_sig;
 
@@ -225,7 +225,7 @@ struct TCPConfirmationAck
   struct GNUNET_PeerIdentity sender;
 
   /**
-   * Sender's signature of type #GNUNET_SIGNATURE_COMMUNICATOR_TCP_HANDSHAKE_ACK
+   * Sender's signature of type #GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_HANDSHAKE_ACK
    */
   struct GNUNET_CRYPTO_EddsaSignature sender_sig;
 
@@ -297,7 +297,7 @@ struct TCPRekey
   struct GNUNET_CRYPTO_EcdhePublicKey ephemeral;
 
   /**
-   * Sender's signature of type #GNUNET_SIGNATURE_COMMUNICATOR_TCP_REKEY
+   * Sender's signature of type #GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_REKEY
    */
   struct GNUNET_CRYPTO_EddsaSignature sender_sig;
 
@@ -315,7 +315,7 @@ struct TCPRekey
 struct TcpRekeySignature
 {
   /**
-   * Purpose must be #GNUNET_SIGNATURE_COMMUNICATOR_TCP_REKEY
+   * Purpose must be #GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_REKEY
    */
   struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
 
@@ -1313,7 +1313,7 @@ do_rekey (struct Queue *queue, const struct TCPRekey *rekey)
 {
   struct TcpRekeySignature thp;
 
-  thp.purpose.purpose = htonl (GNUNET_SIGNATURE_COMMUNICATOR_TCP_REKEY);
+  thp.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_REKEY);
   thp.purpose.size = htonl (sizeof(thp));
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "do_rekey size %u\n",
@@ -1340,7 +1340,7 @@ do_rekey (struct Queue *queue, const struct TCPRekey *rekey)
                 GNUNET_TIME_absolute_ntoh (thp.monotonic_time)));
   GNUNET_assert (ntohl ((&thp)->purpose.size) == sizeof (*(&thp)));
   if (GNUNET_OK !=
-      GNUNET_CRYPTO_eddsa_verify (GNUNET_SIGNATURE_COMMUNICATOR_TCP_REKEY,
+      GNUNET_CRYPTO_eddsa_verify (GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_REKEY,
                                   &thp,
                                   &rekey->sender_sig,
                                   &queue->target.public_key))
@@ -1464,7 +1464,7 @@ send_challenge (struct ChallengeNonceP challenge, struct Queue *queue)
   tca.monotonic_time =
     GNUNET_TIME_absolute_hton (GNUNET_TIME_absolute_get_monotonic (cfg));
   thas.purpose.purpose = htonl (
-    GNUNET_SIGNATURE_COMMUNICATOR_TCP_HANDSHAKE_ACK);
+    GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_HANDSHAKE_ACK);
   thas.purpose.size = htonl (sizeof(thas));
   thas.sender = my_identity;
   thas.receiver = queue->target;
@@ -1527,7 +1527,7 @@ inject_rekey (struct Queue *queue)
   GNUNET_CRYPTO_ecdhe_key_get_public (&queue->ephemeral, &rekey.ephemeral);
   rekey.monotonic_time =
     GNUNET_TIME_absolute_hton (GNUNET_TIME_absolute_get_monotonic (cfg));
-  thp.purpose.purpose = htonl (GNUNET_SIGNATURE_COMMUNICATOR_TCP_REKEY);
+  thp.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_REKEY);
   thp.purpose.size = htonl (sizeof(thp));
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "inject_rekey size %u\n",
@@ -1725,7 +1725,7 @@ try_handle_plaintext (struct Queue *queue)
     }
 
     thas.purpose.purpose = htonl (
-      GNUNET_SIGNATURE_COMMUNICATOR_TCP_HANDSHAKE_ACK);
+      GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_HANDSHAKE_ACK);
     thas.purpose.size = htonl (sizeof(thas));
     thas.sender = tca->sender;
     thas.receiver = my_identity;
@@ -1733,7 +1733,7 @@ try_handle_plaintext (struct Queue *queue)
     thas.challenge = tca->challenge;
 
     if (GNUNET_SYSERR == GNUNET_CRYPTO_eddsa_verify (
-          GNUNET_SIGNATURE_COMMUNICATOR_TCP_HANDSHAKE_ACK,
+          GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_HANDSHAKE_ACK,
           &thas,
           &tca->sender_sig,
           &tca->sender.public_key))
@@ -2472,7 +2472,7 @@ transmit_kx (struct Queue *queue,
   GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
                               &tc.challenge,
                               sizeof(tc.challenge));
-  ths.purpose.purpose = htonl (GNUNET_SIGNATURE_COMMUNICATOR_TCP_HANDSHAKE);
+  ths.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_HANDSHAKE);
   ths.purpose.size = htonl (sizeof(ths));
   ths.sender = my_identity;
   ths.receiver = queue->target;
@@ -2625,7 +2625,7 @@ decrypt_and_check_tc (struct Queue *queue,
                          sizeof(*tc),
                          &ibuf[sizeof(struct GNUNET_CRYPTO_EcdhePublicKey)],
                          sizeof(*tc)));
-  ths.purpose.purpose = htonl (GNUNET_SIGNATURE_COMMUNICATOR_TCP_HANDSHAKE);
+  ths.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_HANDSHAKE);
   ths.purpose.size = htonl (sizeof(ths));
   ths.sender = tc->sender;
   ths.receiver = my_identity;
@@ -2633,7 +2633,7 @@ decrypt_and_check_tc (struct Queue *queue,
   ths.monotonic_time = tc->monotonic_time;
   ths.challenge = tc->challenge;
   ret = GNUNET_CRYPTO_eddsa_verify (
-    GNUNET_SIGNATURE_COMMUNICATOR_TCP_HANDSHAKE,
+    GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_HANDSHAKE,
     &ths,
     &tc->sender_sig,
     &tc->sender.public_key);

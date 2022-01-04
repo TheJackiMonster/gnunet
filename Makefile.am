@@ -81,8 +81,6 @@ gana-gns:
 	@cd $(top_srcdir)/contrib/gana/gnu-name-system-default-tlds; make; cp tlds.conf ../../../src/gns
 
 gana-gnunet-signatures:
-	@cd $(top_srcdir)/contrib/gana/gnunet-signatures; make
-#FIXME: This is broken as we need legacy values?
-# cp gnunet_signatures.h ../../../src/include
+	@cd $(top_srcdir)/contrib/gana/gnunet-signatures; make; cp gnunet_signatures.h ../../../src/include
 
 
