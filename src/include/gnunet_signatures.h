@@ -20,6 +20,17 @@
 #ifndef GNUNET_SIGNATURES_H
 #define GNUNET_SIGNATURES_H
 
+/**
+ * WARNING:
+ * This header is generated!
+ * In order to add a signature purpose, you must register
+ * them in GANA, and then use the header generation script
+ * to create an update of this file. You may then replace this
+ * file with the update.
+ */
+
+
+
 #ifdef __cplusplus
 extern "C" {
 #if 0 /* keep Emacsens' auto-indent happy */
