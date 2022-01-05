@@ -22,20 +22,6 @@ else
   LIBIDN2=
 endif
 
-EXTRA_DIST = \
-  test_gns_defaults.conf \
-  test_gns_lookup.conf \
-  test_gns_proxy.conf \
-  test_gns_simple_lookup.conf \
-  openssl.cnf \
-  gnunet-gns-proxy-setup-ca.in \
-  zonefiles/J7POEUT41A8PBFS7KVVDRF88GBOU4HK8PSU5QKVLVE3R9T91E99G.zkey \
-  zonefiles/OEFL7A4VEF1B40QLEMTG5D8G1CN6EN16QUSG5R2DT71GRJN34LSG.zkey \
-  zonefiles/test_zonekey \
-  $(check_SCRIPTS) \
-  $(pkgdata_DATA) \
-  test_gnunet_gns.sh.in
-
 USE_VPN = $(top_builddir)/src/vpn/libgnunetvpn.la
 
 if USE_COVERAGE
@@ -295,6 +281,19 @@ endif
 check_SCRIPTS += \
   test_plugin_rest_gns.sh
 
+EXTRA_DIST = \
+  test_gns_defaults.conf \
+  test_gns_lookup.conf \
+  test_gns_proxy.conf \
+  test_gns_simple_lookup.conf \
+  openssl.cnf \
+  gnunet-gns-proxy-setup-ca.in \
+  zonefiles/J7POEUT41A8PBFS7KVVDRF88GBOU4HK8PSU5QKVLVE3R9T91E99G.zkey \
+  zonefiles/OEFL7A4VEF1B40QLEMTG5D8G1CN6EN16QUSG5R2DT71GRJN34LSG.zkey \
+  zonefiles/test_zonekey \
+  $(check_SCRIPTS) \
+  $(pkgdata_DATA) \
+  test_gnunet_gns.sh.in
 
 if ENABLE_TEST_RUN
 if HAVE_SQLITE
