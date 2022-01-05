@@ -1,8 +1,6 @@
 # This Makefile.am is in the public domain
 AM_CPPFLAGS = -I$(top_srcdir)/src/include
 
-AM_DISTCHECK_CONFIGURE_FLAGS = --enable-experimental
-
 # only documentation (ALL of the documentation)
 if DOCUMENTATION_ONLY
   SUBDIRS = bin doc
