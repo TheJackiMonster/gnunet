@@ -35,7 +35,8 @@ libexecdir= $(pkglibdir)/libexec/
 plugindir = $(libdir)/gnunet
 
 pkgcfg_DATA = \
-  gns.conf \
+  gns.conf
+dist_pkgcfg_DATA = \
   tlds.conf
 
 lib_LTLIBRARIES = \
