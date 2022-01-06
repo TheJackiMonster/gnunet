@@ -609,6 +609,7 @@ libgnunet_plugin_transport_https_server_la_CFLAGS = \
  $(MHD_CFLAGS) $(AM_CFLAGS) -DBUILD_HTTPS
 
 check_PROGRAMS = \
+test_transport_hmac_calculation \
  test_transport_address_switch_tcp \
  test_transport_testing_startstop \
  test_transport_testing_restart \
@@ -696,6 +697,7 @@ endif
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
 TESTS = \
+ test_transport_hmac_calculation \
  test_transport_address_switch_tcp \
  $(HTTP_SWITCH) \
  $(HTTPS_SWITCH) \
@@ -1362,6 +1364,12 @@ test_transport_api_bluetooth_LDADD = \
  libgnunettransporttesting.la
 endif
 endif
+
+test_transport_hmac_calculation_SOURCES = \
+ test_transport_hmac_calculation.c
+test_transport_hmac_calculation_LDADD = \
+ $(top_builddir)/src/util/libgnunetutil.la \
+ $(LIBGCRYPT_LIBS)
 
 test_transport_address_switch_tcp_SOURCES = \
  test_transport_address_switch.c
