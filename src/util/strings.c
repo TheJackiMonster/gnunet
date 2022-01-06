@@ -201,7 +201,7 @@ struct ConversionTable
  * @param output where to store the result
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-static int
+static enum GNUNET_GenericReturnValue
 convert_with_table (const char *input,
                     const struct ConversionTable *table,
                     unsigned long long *output)
@@ -256,7 +256,7 @@ convert_with_table (const char *input,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_fancy_size_to_bytes (const char *fancy_size,
                                     unsigned long long *size)
 {
@@ -280,7 +280,7 @@ GNUNET_STRINGS_fancy_size_to_bytes (const char *fancy_size,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_fancy_time_to_relative (const char *fancy_time,
                                        struct GNUNET_TIME_Relative *rtime)
 {
@@ -322,7 +322,7 @@ GNUNET_STRINGS_fancy_time_to_relative (const char *fancy_time,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_fancy_time_to_absolute (const char *fancy_time,
                                        struct GNUNET_TIME_Absolute *atime)
 {
@@ -351,6 +351,15 @@ GNUNET_STRINGS_fancy_time_to_absolute (const char *fancy_time,
   t = mktime (&tv);
   atime->abs_value_us = (uint64_t) ((uint64_t) t * 1000LL * 1000LL);
   return GNUNET_OK;
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_STRINGS_fancy_time_to_timestamp (const char *fancy_time,
+                                        struct GNUNET_TIME_Timestamp *atime)
+{
+  return GNUNET_STRINGS_fancy_time_to_absolute (fancy_time,
+                                                &atime->abs_time);
 }
 
 
@@ -607,7 +616,7 @@ GNUNET_STRINGS_absolute_time_to_string (struct GNUNET_TIME_Absolute t)
   time_t tt;
   struct tm *tp;
 
-  if (t.abs_value_us == GNUNET_TIME_UNIT_FOREVER_ABS.abs_value_us)
+  if (GNUNET_TIME_absolute_is_never (t))
     return "end of time";
   tt = t.abs_value_us / 1000LL / 1000LL;
   tp = localtime (&tt);
@@ -616,7 +625,8 @@ GNUNET_STRINGS_absolute_time_to_string (struct GNUNET_TIME_Absolute t)
    * As for msvcrt, use the wide variant, which always returns utf16
    * (otherwise we'd have to detect current codepage or use W32API character
    * set conversion routines to convert to UTF8).
-   */strftime (buf, sizeof(buf), "%a %b %d %H:%M:%S %Y", tp);
+   */
+  strftime (buf, sizeof(buf), "%a %b %d %H:%M:%S %Y", tp);
 
   return buf;
 }

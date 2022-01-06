@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2011 GNUnet e.V.
+     Copyright (C) 2011, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -35,29 +35,19 @@
  * Handle a reply (route to origin).  Only forwards the reply back to
  * other peers waiting for it.  Does not do local caching or
  * forwarding to local clients.  Essentially calls
- * #GDS_NEIGHBOURS_handle_reply() for all peers that sent us a matching
+ * GDS_NEIGHBOURS_handle_reply() for all peers that sent us a matching
  * request recently.
  *
- * @param type type of the block
- * @param expiration_time when does the content expire
- * @param key key for the content
- * @param put_path_length number of entries in @a put_path
- * @param put_path peers the original PUT traversed (if tracked)
+ * @param bd block details
+ * @param query_hash query used in the inquiry
  * @param get_path_length number of entries in @a get_path
  * @param get_path peers this reply has traversed so far (if tracked)
- * @param data payload of the reply
- * @param data_size number of bytes in @a data
  */
 void
-GDS_ROUTING_process (enum GNUNET_BLOCK_Type type,
-                     struct GNUNET_TIME_Absolute expiration_time,
-                     const struct GNUNET_HashCode *key,
-                     unsigned int put_path_length,
-                     const struct GNUNET_PeerIdentity *put_path,
+GDS_ROUTING_process (const struct GDS_DATACACHE_BlockData *bd,
+                     const struct GNUNET_HashCode *query_hash,
                      unsigned int get_path_length,
-                     const struct GNUNET_PeerIdentity *get_path,
-                     const void *data,
-                     size_t data_size);
+                     const struct GNUNET_PeerIdentity *get_path);
 
 
 /**

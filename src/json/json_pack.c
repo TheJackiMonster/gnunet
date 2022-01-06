@@ -245,16 +245,16 @@ GNUNET_JSON_pack_data_varsize (const char *name,
 
 
 struct GNUNET_JSON_PackSpec
-GNUNET_JSON_pack_time_abs (const char *name,
-                           struct GNUNET_TIME_Absolute at)
+GNUNET_JSON_pack_timestamp (const char *name,
+                            struct GNUNET_TIME_Timestamp t)
 {
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name
   };
 
-  if (0 != at.abs_value_us)
+  if (! GNUNET_TIME_absolute_is_zero (t.abs_time))
   {
-    ps.object = GNUNET_JSON_from_time_abs (at);
+    ps.object = GNUNET_JSON_from_timestamp (t);
     GNUNET_assert (NULL != ps.object);
   }
   else
@@ -266,11 +266,11 @@ GNUNET_JSON_pack_time_abs (const char *name,
 
 
 struct GNUNET_JSON_PackSpec
-GNUNET_JSON_pack_time_abs_nbo (const char *name,
-                               struct GNUNET_TIME_AbsoluteNBO at)
+GNUNET_JSON_pack_timestamp_nbo (const char *name,
+                                struct GNUNET_TIME_TimestampNBO at)
 {
-  return GNUNET_JSON_pack_time_abs (name,
-                                    GNUNET_TIME_absolute_ntoh (at));
+  return GNUNET_JSON_pack_timestamp (name,
+                                     GNUNET_TIME_timestamp_ntoh (at));
 }
 
 

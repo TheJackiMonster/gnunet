@@ -48,33 +48,45 @@
 
 dir=$(dirname "$0")
 
-if test -e @PKGDATADIRECTORY@/progname.sh
-then
-    . @PKGDATADIRECTORY@/progname.sh
-else
-    . $dir/../../contrib/build-common/sh/lib.sh/progname.sh
-fi
+progname=${0##*/}
 
-if test -e @PKGDATADIRECTORY@/existence.sh
-then
-    . @PKGDATADIRECTORY@/existence.sh
-else
-    . $dir/../../contrib/build-common/sh/lib.sh/existence.sh
-fi
+existence() {
+  command -v "$1" >/dev/null 2>&1
+}
 
-if test -e @PKGDATADIRECTORY@/msg.sh
-then
-    . @PKGDATADIRECTORY@/msg.sh
-else
-    . $dir/../../contrib/build-common/sh/lib.sh/msg.sh
-fi
+statusmsg()
+{
+    ${runcmd} echo "${tab}$@" | tee -a "${results}"
+}
 
-if test -e @PKGDATADIRECTORY@/version_gnunet.sh
-then
-    . @PKGDATADIRECTORY@/version_gnunet.sh
-else
-    . $dir/../../contrib/build-common/sh/lib.sh/version_gnunet.sh
-fi
+infomsg()
+{
+    if [ x$verbosity = x1 ]; then
+	statusmsg "INFO:${tab}$@"
+    fi
+}
+
+warningmsg()
+{
+    statusmsg "WARNING:${tab}$@"
+}
+
+errormsg()
+{
+    statusmsg "ERROR:${tab}$@"
+}
+
+linemsg()
+{
+    statusmsg "========================================="
+}
+
+
+print_version()
+{
+    GNUNET_ARM_VERSION=`gnunet-arm -v | awk '{print $2 " " $3}'`
+    echo ${progname} $GNUNET_ARM_VERSION
+}
 
 # Whitespace normalization without depending on shell features:
 tab='   '

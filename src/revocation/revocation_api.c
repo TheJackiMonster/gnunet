@@ -53,7 +53,7 @@ struct GNUNET_REVOCATION_Query
 
 /**
  * Helper struct that holds a found pow nonce
- * and the corresponding number of leading zeroes.
+ * and the corresponding number of leading zeros.
  */
 struct BestPow
 {
@@ -389,27 +389,10 @@ GNUNET_REVOCATION_revoke_cancel (struct GNUNET_REVOCATION_Handle *h)
 
 
 /**
- * Count the leading zeroes in hash.
- *
- * @param hash to count leading zeros in
- * @return the number of leading zero bits.
- */
-static unsigned int
-count_leading_zeroes (const struct GNUNET_HashCode *hash)
-{
-  unsigned int hash_count;
-  hash_count = 0;
-  while ((0 == GNUNET_CRYPTO_hash_get_bit_ltr (hash, hash_count)))
-    hash_count++;
-  return hash_count;
-}
-
-
-/**
  * Calculate the average zeros in the pows.
  *
  * @param ph the PowHandle
- * @return the average number of zeroes.
+ * @return the average number of zeros.
  */
 static unsigned int
 calculate_score (const struct GNUNET_REVOCATION_PowCalculationHandle *ph)
@@ -535,7 +518,7 @@ GNUNET_REVOCATION_check_pow (const struct GNUNET_REVOCATION_PowP *pow,
                             buf,
                             sizeof(buf),
                             &result);
-    tmp_score = count_leading_zeroes (&result);
+    tmp_score = GNUNET_CRYPTO_hash_count_leading_zeros (&result);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Score %u with %" PRIu64 " (#%u)\n",
                 tmp_score, pow_val, i);
@@ -732,7 +715,7 @@ GNUNET_REVOCATION_pow_round (struct GNUNET_REVOCATION_PowCalculationHandle *pc)
                           buf,
                           sizeof(buf),
                           &result);
-  zeros = count_leading_zeroes (&result);
+  zeros = GNUNET_CRYPTO_hash_count_leading_zeros (&result);
   for (unsigned int i = 0; i < POW_COUNT; i++)
   {
     if (pc->best[i].bits < zeros)

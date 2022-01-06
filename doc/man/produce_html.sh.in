@@ -1,13 +1,6 @@
 #!/bin/bash
 
-if test -e @PKGDATADIRECTORY@/existence.sh
-then
-    . @PKGDATADIRECTORY@/existence.sh
-else
-    . $dir/../../contrib/build-common/sh/lib.sh/existence.sh
-fi
-
-if existence mandoc;
+if command -v mandoc >/dev/null 2>&1;
 then
     for f in `find . -name \*\.[1-9]`;
     do

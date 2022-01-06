@@ -836,7 +836,7 @@ get_randomized_delay ()
  */
 static void
 handle_p2p_reply (void *cls,
-                  enum GNUNET_BLOCK_EvaluationResult eval,
+                  enum GNUNET_BLOCK_ReplyEvaluationResult eval,
                   struct GSF_PendingRequest *pr,
                   uint32_t reply_anonymity_level,
                   struct GNUNET_TIME_Absolute expiration,
@@ -862,11 +862,11 @@ handle_p2p_reply (void *cls,
     return;
   }
   GNUNET_break (GNUNET_BLOCK_TYPE_ANY != type);
-  if ((prd->type != type) && (GNUNET_BLOCK_TYPE_ANY != prd->type))
+  if ( (prd->type != type) &&
+       (GNUNET_BLOCK_TYPE_ANY != prd->type) )
   {
     GNUNET_STATISTICS_update (GSF_stats,
-                              gettext_noop
-                                ("# replies dropped due to type mismatch"),
+                              "# replies dropped due to type mismatch",
                               1, GNUNET_NO);
     return;
   }
@@ -874,22 +874,22 @@ handle_p2p_reply (void *cls,
               "Transmitting result for query `%s' to peer\n",
               GNUNET_h2s (&prd->query));
   GNUNET_STATISTICS_update (GSF_stats,
-                            gettext_noop ("# replies received for other peers"),
-                            1, GNUNET_NO);
+                            "# replies received for other peers",
+                            1,
+                            GNUNET_NO);
   msize = sizeof(struct PutMessage) + data_len;
   if (msize >= GNUNET_MAX_MESSAGE_SIZE)
   {
     GNUNET_break (0);
     return;
   }
-  if ((UINT32_MAX != reply_anonymity_level) && (reply_anonymity_level > 1))
+  if ( (UINT32_MAX != reply_anonymity_level) &&
+       (reply_anonymity_level > 1) )
   {
     if (reply_anonymity_level - 1 > GSF_cover_content_count)
     {
       GNUNET_STATISTICS_update (GSF_stats,
-                                gettext_noop
-                                (
-                                  "# replies dropped due to insufficient cover traffic"),
+                                "# replies dropped due to insufficient cover traffic",
                                 1, GNUNET_NO);
       return;
     }
@@ -930,14 +930,12 @@ handle_p2p_reply (void *cls,
                         UINT32_MAX,
                         env);
   }
-  if (GNUNET_BLOCK_EVALUATION_OK_LAST != eval)
+  if (GNUNET_BLOCK_REPLY_OK_LAST != eval)
     return;
   if (NULL == peerreq->kill_task)
   {
     GNUNET_STATISTICS_update (GSF_stats,
-                              gettext_noop
-                              (
-                                "# P2P searches destroyed due to ultimate reply"),
+                              "# P2P searches destroyed due to ultimate reply",
                               1,
                               GNUNET_NO);
     peerreq->kill_task =

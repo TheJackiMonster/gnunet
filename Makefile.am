@@ -73,3 +73,14 @@ if HAVE_AWK
 check-texinfo:
 	@cd $(top_srcdir); find . -type f ! -path '*/.*' -name '*.texi' -print0 | xargs -0 ./contrib/scripts/check-texinfo.awk > $(srcdir)/texinfo_lint.log || true
 endif
+
+gana: gana-gns gana-gnunet-signatures
+
+gana-gns:
+	@cd $(top_srcdir)/contrib/gana/gnu-name-system-record-types; make; cp gnu_name_system_record_types.h ../../../src/include/
+	@cd $(top_srcdir)/contrib/gana/gnu-name-system-default-tlds; make; cp tlds.conf ../../../src/gns
+
+gana-gnunet-signatures:
+	@cd $(top_srcdir)/contrib/gana/gnunet-signatures; make; cp gnunet_signatures.h ../../../src/include
+
+

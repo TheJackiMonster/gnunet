@@ -207,8 +207,13 @@ abd_string_to_value (void *cls,
         matches = sscanf (token, "%s %s", subject_pkey, attr_str);
 
         // sets the public key for the set entry
-        GNUNET_IDENTITY_public_key_from_string (subject_pkey,
-                                                    &set[i].subject_key);
+        if (GNUNET_SYSERR ==
+            GNUNET_IDENTITY_public_key_from_string (subject_pkey,
+                                                    &set[i].subject_key))
+        {
+          GNUNET_free (tmp_str);
+          return GNUNET_SYSERR;
+        }
 
         // If not just key, also set subject attribute (Not A.a <- B but A.a <- B.b)
         if (2 == matches)
@@ -252,7 +257,7 @@ abd_string_to_value (void *cls,
       cred = GNUNET_ABD_delegate_from_string (s);
 
       *data_size = GNUNET_ABD_delegate_serialize (cred, (char **) data);
-
+      GNUNET_free (cred);
       return GNUNET_OK;
     }
   default:

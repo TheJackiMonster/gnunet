@@ -40,8 +40,8 @@ check_uncrustify()
 {
     if existence uncrustify; then
         echo "Installing uncrustify hook and configuration"
-        ln -fs contrib/build-common/conf/uncrustify.cfg uncrustify.cfg 2> /dev/null
-        ln -fs contrib/build-common/conf/uncrustify_precommit .git/hooks/pre-commit 2> /dev/null
+        ln -fs contrib/conf/uncrustify.cfg uncrustify.cfg 2> /dev/null
+        ln -fs contrib/conf/uncrustify_precommit .git/hooks/pre-commit 2> /dev/null
     else
         echo "Uncrustify not detected, hook not installed."
         echo "Please install uncrustify if you plan on doing development"
@@ -65,7 +65,7 @@ check_yapf()
        existence yapf3.9 || \
        existence yapf4.0; then
         echo "Installing yapf symlink"
-        ln -fs contrib/build-common/conf/.style.yapf .style.yapf 2> /dev/null
+        ln -fs contrib/conf/.style.yapf .style.yapf 2> /dev/null
     else
         echo "yapf not detected, please install yapf if you plan on contributing python code"
     fi
@@ -98,21 +98,43 @@ submodules()
         echo "git not installed, skipping submodule update"
     else
         git submodule update --init || exit 1
-        git submodule update --recursive || exit 1
+        git submodule update --remote --recursive || exit 1
         git submodule sync || exit 1
     fi
 }
 
-init_buildcommon_include()
+gana_update()
 {
-    cp contrib/build-common/Makefile.inc contrib/Makefile.inc || exit 1
+    if existence recfmt; then
+      cwd=$PWD
+      cd contrib/gana || exit 1
+      # GNS
+      cd gnu-name-system-record-types && \
+         make && \
+         cp gnu_name_system_record_types.h ../../../src/include/ && \
+         make clean
+      cd ../gnu-name-system-default-tlds && \
+         make && \
+         cp tlds.conf ../../../src/gns && \
+         make clean
+
+      # Signatures
+      cd ../gnunet-signatures && \
+         make && \
+         cp gnunet_signatures.h ../../../src/include && \
+         make clean
+      cd $cwd
+    else
+      echo "ERROR: No recutils found! Unable to generate recent GANA headers and configs."
+      exit 1
+    fi
 }
 
 main()
 {
     cleanup
     submodules
-    init_buildcommon_include
+    gana_update
     check_uncrustify
     check_yapf
     check_libtool

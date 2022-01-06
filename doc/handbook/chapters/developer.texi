@@ -96,7 +96,7 @@ introduction, each of the GNUnet subsystems (directories in the
 addition to this documentation, GNUnet developers should be aware of the
 services available on the GNUnet server to them.
 
-New developers can have a look a the @uref{https://docs.gnunet.org/tutorial/gnunet-tutorial.html, GNUnet C tutorial}.
+New developers can have a look a the @uref{https://docs.gnunet.org/tutorial/tutorial.html, GNUnet C tutorial}.
 
 @c ** FIXME: Link to files in source, not online.
 @c ** FIXME: Where is the Java tutorial?

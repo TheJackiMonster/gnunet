@@ -70,7 +70,8 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_null (void)
 {
   struct GNUNET_PQ_QueryParam res = {
-    &qconv_null, NULL, NULL, 0, 1
+    .conv = &qconv_null,
+    .num_params = 1
   };
 
   return res;
@@ -192,7 +193,10 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_uint16 (const uint16_t *x)
 {
   struct GNUNET_PQ_QueryParam res = {
-    &qconv_uint16, NULL, x, sizeof(*x), 1
+    .conv = &qconv_uint16,
+    .data = x,
+    .size = sizeof(*x),
+    .num_params = 1
   };
 
   return res;
@@ -246,7 +250,10 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_uint32 (const uint32_t *x)
 {
   struct GNUNET_PQ_QueryParam res = {
-    &qconv_uint32, NULL, x, sizeof(*x), 1
+    .conv = &qconv_uint32,
+    .data = x,
+    .size = sizeof(*x),
+    .num_params = 1
   };
 
   return res;
@@ -300,7 +307,10 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_uint64 (const uint64_t *x)
 {
   struct GNUNET_PQ_QueryParam res = {
-    &qconv_uint64, NULL, x, sizeof(*x), 1
+    .conv = &qconv_uint64,
+    .data = x,
+    .size = sizeof(*x),
+    .num_params = 1
   };
 
   return res;
@@ -350,11 +360,13 @@ qconv_rsa_public_key (void *cls,
 
 
 struct GNUNET_PQ_QueryParam
-GNUNET_PQ_query_param_rsa_public_key (const struct
-                                      GNUNET_CRYPTO_RsaPublicKey *x)
+GNUNET_PQ_query_param_rsa_public_key (
+  const struct GNUNET_CRYPTO_RsaPublicKey *x)
 {
   struct GNUNET_PQ_QueryParam res = {
-    &qconv_rsa_public_key, NULL, (x), 0, 1
+    .conv = &qconv_rsa_public_key,
+    .data = x,
+    .num_params = 1
   };
 
   return res;
@@ -407,7 +419,9 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_rsa_signature (const struct GNUNET_CRYPTO_RsaSignature *x)
 {
   struct GNUNET_PQ_QueryParam res = {
-    &qconv_rsa_signature, NULL, (x), 0, 1
+    .conv = &qconv_rsa_signature,
+    .data = x,
+    .num_params = 1
   };
 
   return res;
@@ -463,7 +477,10 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_relative_time (const struct GNUNET_TIME_Relative *x)
 {
   struct GNUNET_PQ_QueryParam res = {
-    &qconv_rel_time, NULL, x, sizeof(*x), 1
+    .conv = &qconv_rel_time,
+    .data = x,
+    .size = sizeof(*x),
+    .num_params = 1
   };
 
   return res;
@@ -519,7 +536,10 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_absolute_time (const struct GNUNET_TIME_Absolute *x)
 {
   struct GNUNET_PQ_QueryParam res = {
-    &qconv_abs_time, NULL, x, sizeof(*x), 1
+    .conv = &qconv_abs_time,
+    .data = x,
+    .size = sizeof(*x),
+    .num_params = 1
   };
 
   return res;
@@ -531,6 +551,21 @@ GNUNET_PQ_query_param_absolute_time_nbo (
   const struct GNUNET_TIME_AbsoluteNBO *x)
 {
   return GNUNET_PQ_query_param_auto_from_type (&x->abs_value_us__);
+}
+
+
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_timestamp (const struct GNUNET_TIME_Timestamp *x)
+{
+  return GNUNET_PQ_query_param_absolute_time (&x->abs_time);
+}
+
+
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_timestamp_nbo (
+  const struct GNUNET_TIME_TimestampNBO *x)
+{
+  return GNUNET_PQ_query_param_absolute_time_nbo (&x->abs_time_nbo);
 }
 
 

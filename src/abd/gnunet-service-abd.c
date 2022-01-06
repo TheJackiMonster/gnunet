@@ -512,6 +512,8 @@ send_intermediate_response (struct VerifyRequestHandle *vrh, struct
                                                  size,
                                                  (char *) &rmsg[1]));
   GNUNET_MQ_send (GNUNET_SERVICE_client_get_mq (vrh->client), env);
+
+  GNUNET_free (dd);
 }
 
 
@@ -740,12 +742,13 @@ forward_resolution (void *cls,
                     uint32_t rd_count,
                     const struct GNUNET_GNSRECORD_Data *rd)
 {
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received %d entries.\n", rd_count);
-
   struct VerifyRequestHandle *vrh;
   struct DelegationSetQueueEntry *current_set;
   struct DelegationSetQueueEntry *ds_entry;
   struct DelegationQueueEntry *dq_entry;
+  struct GNUNET_ABD_Delegate *del;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received %d entries.\n", rd_count);
 
   current_set = cls;
   // set handle to NULL (as el = NULL)
@@ -760,8 +763,10 @@ forward_resolution (void *cls,
       continue;
 
     // Start deserialize into Delegate
-    struct GNUNET_ABD_Delegate *del;
     del = GNUNET_ABD_delegate_deserialize (rd[i].data, rd[i].data_size);
+
+    if (NULL == del)
+      continue;
 
     // Start: Create DQ Entry
     dq_entry = GNUNET_new (struct DelegationQueueEntry);
@@ -834,6 +839,7 @@ forward_resolution (void *cls,
                       GNUNET_IDENTITY_public_key_to_string (
                         &del->subject_key),
                       del->subject_attribute);
+          GNUNET_free (del);
           continue;
         }
         else
@@ -910,6 +916,7 @@ forward_resolution (void *cls,
           }
 
           send_lookup_response (vrh);
+          GNUNET_free (del);
           return;
         }
       }
@@ -936,6 +943,7 @@ forward_resolution (void *cls,
             GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                         "Forward: Found match with above!\n");
 
+            GNUNET_free (del);
             // one node on the path still needs solutions: return
             if (GNUNET_NO ==
                 handle_bidirectional_match (ds_entry, del_entry, vrh))
@@ -965,6 +973,7 @@ forward_resolution (void *cls,
                          GNUNET_GNS_LO_DEFAULT,
                          &forward_resolution,
                          ds_entry);
+    GNUNET_free (del);
   }
 
   if (0 == vrh->pending_lookups)
@@ -1586,34 +1595,29 @@ handle_delegate_collection_cb (void *cls,
                                const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct VerifyRequestHandle *vrh = cls;
-  struct GNUNET_ABD_Delegate *del;
   struct DelegateRecordEntry *del_entry;
-  int cred_record_count;
-  cred_record_count = 0;
   vrh->dele_qe = NULL;
 
   for (uint32_t i = 0; i < rd_count; i++)
   {
     if (GNUNET_GNSRECORD_TYPE_DELEGATE != rd[i].record_type)
       continue;
-    cred_record_count++;
-    del = GNUNET_ABD_delegate_deserialize (rd[i].data, rd[i].data_size);
-    if (NULL == del)
+    // only add the entries that are explicitly marked as private
+    // and therefore symbolize the end of a chain
+    if (0 == (rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE))
+      continue;
+    del_entry = GNUNET_new (struct DelegateRecordEntry);
+    del_entry->delegate = GNUNET_ABD_delegate_deserialize (rd[i].data, rd[i].data_size);
+    if (NULL == del_entry->delegate)
     {
+      GNUNET_free (del_entry);
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Invalid delegate found\n");
       continue;
     }
-    // only add the entries that are explicitly marked as private
-    // and therefore symbolize the end of a chain
-    if (rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE)
-    {
-      del_entry = GNUNET_new (struct DelegateRecordEntry);
-      del_entry->delegate = del;
-      GNUNET_CONTAINER_DLL_insert_tail (vrh->del_chain_head,
-                                        vrh->del_chain_tail,
-                                        del_entry);
-      vrh->del_chain_size++;
-    }
+    GNUNET_CONTAINER_DLL_insert_tail (vrh->del_chain_head,
+                                      vrh->del_chain_tail,
+                                      del_entry);
+    vrh->del_chain_size++;
   }
 
   delegate_collection_finished (vrh);

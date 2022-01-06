@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet
-     Copyright (C) 2006, 2009, 2015 GNUnet e.V.
+     Copyright (C) 2006, 2009, 2015, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -115,15 +115,17 @@ struct GNUNET_DATACACHE_PluginFunctions
    * @param path_info a path through the network
    * @return 0 if duplicate, -1 on error, number of bytes used otherwise
    */
-  ssize_t (*put) (void *cls,
-                  const struct GNUNET_HashCode *key,
-                  uint32_t xor_distance,
-                  size_t size,
-                  const char *data,
-                  enum GNUNET_BLOCK_Type type,
-                  struct GNUNET_TIME_Absolute discard_time,
-                  unsigned int path_info_len,
-                  const struct GNUNET_PeerIdentity *path_info);
+  ssize_t
+  (*put) (void *cls,
+          const struct GNUNET_HashCode *key,
+          uint32_t xor_distance,
+          size_t size,
+          const char *data,
+          enum GNUNET_BLOCK_Type type,
+          struct GNUNET_TIME_Absolute discard_time,
+          unsigned int path_info_len,
+          const struct GNUNET_PeerIdentity *path_info);
+
 
   /**
    * Iterate over the results for a particular key
@@ -136,11 +138,13 @@ struct GNUNET_DATACACHE_PluginFunctions
    * @param iter_cls closure for @a iter
    * @return the number of results found
    */
-  unsigned int (*get) (void *cls,
-                       const struct GNUNET_HashCode *key,
-                       enum GNUNET_BLOCK_Type type,
-                       GNUNET_DATACACHE_Iterator iter,
-                       void *iter_cls);
+  unsigned int
+  (*get) (void *cls,
+          const struct GNUNET_HashCode *key,
+          enum GNUNET_BLOCK_Type type,
+          GNUNET_DATACACHE_Iterator iter,
+          void *iter_cls);
+
 
   /**
    * Delete the entry with the lowest expiration value
@@ -149,19 +153,8 @@ struct GNUNET_DATACACHE_PluginFunctions
    * @param cls closure (internal context for the plugin)
    * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
    */
-  int (*del) (void *cls);
-
-  /**
-   * Return a random value from the datastore.
-   *
-   * @param cls closure (internal context for the plugin)
-   * @param iter maybe NULL (to just count)
-   * @param iter_cls closure for @a iter
-   * @return the number of results found (zero or one)
-   */
-  unsigned int (*get_random) (void *cls,
-                              GNUNET_DATACACHE_Iterator iter,
-                              void *iter_cls);
+  enum GNUNET_GenericReturnValue
+  (*del)(void *cls);
 
 
   /**
@@ -177,11 +170,12 @@ struct GNUNET_DATACACHE_PluginFunctions
    * @param iter_cls closure for @a iter
    * @return the number of results found
    */
-  unsigned int (*get_closest) (void *cls,
-                               const struct GNUNET_HashCode *key,
-                               unsigned int num_results,
-                               GNUNET_DATACACHE_Iterator iter,
-                               void *iter_cls);
+  unsigned int
+  (*get_closest) (void *cls,
+                  const struct GNUNET_HashCode *key,
+                  unsigned int num_results,
+                  GNUNET_DATACACHE_Iterator iter,
+                  void *iter_cls);
 };
 
 

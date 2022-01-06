@@ -505,12 +505,18 @@ get_matching_bits (struct GNUNET_TIME_Absolute timestamp,
 {
   struct GNUNET_HashCode timestamp_hash;
   struct GNUNET_HashCode pid_hash;
+  struct GNUNET_HashCode xor;
 
   GNUNET_CRYPTO_hash (&timestamp.abs_value_us,
                       sizeof(timestamp.abs_value_us),
                       &timestamp_hash);
-  GNUNET_CRYPTO_hash (id, sizeof(struct GNUNET_PeerIdentity), &pid_hash);
-  return GNUNET_CRYPTO_hash_matching_bits (&timestamp_hash, &pid_hash);
+  GNUNET_CRYPTO_hash (id,
+                      sizeof(struct GNUNET_PeerIdentity),
+                      &pid_hash);
+  GNUNET_CRYPTO_hash_xor (&pid_hash,
+                          &timestamp_hash,
+                          &xor);
+  return GNUNET_CRYPTO_hash_count_leading_zeros (&xor);
 }
 
 
@@ -774,24 +780,6 @@ update_flood_message (void *cls)
 
 
 /**
- * Count the leading zeroes in hash.
- *
- * @param hash to count leading zeros in
- * @return the number of leading zero bits.
- */
-static unsigned int
-count_leading_zeroes (const struct GNUNET_HashCode *hash)
-{
-  unsigned int hash_count;
-
-  hash_count = 0;
-  while (0 == GNUNET_CRYPTO_hash_get_bit_ltr (hash, hash_count))
-    hash_count++;
-  return hash_count;
-}
-
-
-/**
  * Check whether the given public key and integer are a valid proof of
  * work.
  *
@@ -799,7 +787,7 @@ count_leading_zeroes (const struct GNUNET_HashCode *hash)
  * @param val the integer
  * @return #GNUNET_YES if valid, #GNUNET_NO if not
  */
-static int
+static enum GNUNET_GenericReturnValue
 check_proof_of_work (const struct GNUNET_CRYPTO_EddsaPublicKey *pkey,
                      uint64_t val)
 {
@@ -815,8 +803,10 @@ check_proof_of_work (const struct GNUNET_CRYPTO_EddsaPublicKey *pkey,
                           buf,
                           sizeof(buf),
                           &result);
-  return (count_leading_zeroes (&result) >= nse_work_required) ? GNUNET_YES
-         : GNUNET_NO;
+  return (GNUNET_CRYPTO_hash_count_leading_zeros (&result) >=
+          nse_work_required)
+    ? GNUNET_YES
+    : GNUNET_NO;
 }
 
 
@@ -877,7 +867,8 @@ find_proof (void *cls)
                             buf,
                             sizeof(buf),
                             &result);
-    if (nse_work_required <= count_leading_zeroes (&result))
+    if (nse_work_required <=
+        GNUNET_CRYPTO_hash_count_leading_zeros (&result))
     {
       my_proof = counter;
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,

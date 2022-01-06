@@ -76,7 +76,7 @@ GNUNET_STRINGS_fancy_size_to_bytes (const char *fancy_size,
  * @param rtime set to the relative time
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_fancy_time_to_relative (const char *fancy_time,
                                        struct GNUNET_TIME_Relative *rtime);
 
@@ -91,9 +91,24 @@ GNUNET_STRINGS_fancy_time_to_relative (const char *fancy_time,
  * @param atime set to the absolute time
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_fancy_time_to_absolute (const char *fancy_time,
                                        struct GNUNET_TIME_Absolute *atime);
+
+
+/**
+ * @ingroup time
+ * Convert a given fancy human-readable time to our internal
+ * representation.  The human-readable time is expected to be
+ * in local time, whereas the returned value will be in UTC.
+ *
+ * @param fancy_time human readable string (e.g. %Y-%m-%d %H:%M:%S)
+ * @param atime set to the absolute time
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_STRINGS_fancy_time_to_timestamp (const char *fancy_time,
+                                        struct GNUNET_TIME_Timestamp *atime);
 
 
 /**

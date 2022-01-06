@@ -109,24 +109,6 @@ template_plugin_del (void *cls)
 
 
 /**
- * Return a random value from the datastore.
- *
- * @param cls closure (internal context for the plugin)
- * @param iter maybe NULL (to just count)
- * @param iter_cls closure for @a iter
- * @return the number of results found (zero or one)
- */
-static unsigned int
-template_plugin_get_random (void *cls,
-                            GNUNET_DATACACHE_Iterator iter,
-                            void *iter_cls)
-{
-  GNUNET_break (0);
-  return 0;
-}
-
-
-/**
  * Iterate over the results that are "close" to a particular key in
  * the datacache.  "close" is defined as numerically larger than @a
  * key (when interpreted as a circular address space), with small
@@ -171,7 +153,6 @@ libgnunet_plugin_datacache_template_init (void *cls)
   api->get = &template_plugin_get;
   api->put = &template_plugin_put;
   api->del = &template_plugin_del;
-  api->get_random = &template_plugin_get_random;
   api->get_closest = &template_plugin_get_closest;
   GNUNET_log_from (GNUNET_ERROR_TYPE_INFO,
                    "template",

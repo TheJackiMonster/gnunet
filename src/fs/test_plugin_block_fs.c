@@ -34,36 +34,31 @@ test_fs (struct GNUNET_BLOCK_Context *ctx)
 
   memset (block, 1, sizeof(block));
   if (GNUNET_OK !=
-      GNUNET_BLOCK_get_key (ctx, GNUNET_BLOCK_TYPE_FS_DBLOCK, block,
-                            sizeof(block), &key))
+      GNUNET_BLOCK_get_key (ctx,
+                            GNUNET_BLOCK_TYPE_FS_DBLOCK,
+                            block,
+                            sizeof(block),
+                            &key))
     return 1;
-  if (GNUNET_BLOCK_EVALUATION_OK_LAST !=
-      GNUNET_BLOCK_evaluate (ctx,
-                             GNUNET_BLOCK_TYPE_FS_DBLOCK,
-                             NULL,
-                             GNUNET_BLOCK_EO_NONE,
-                             &key,
-                             NULL, 0,
-                             block, sizeof(block)))
+  if (GNUNET_OK !=
+      GNUNET_BLOCK_check_block (ctx,
+                                GNUNET_BLOCK_TYPE_FS_DBLOCK,
+                                &key,
+                                block,
+                                sizeof(block)))
     return 2;
-  if (GNUNET_BLOCK_EVALUATION_REQUEST_VALID !=
-      GNUNET_BLOCK_evaluate (ctx,
-                             GNUNET_BLOCK_TYPE_FS_DBLOCK,
-                             NULL,
-                             GNUNET_BLOCK_EO_NONE,
-                             &key,
-                             NULL, 0,
-                             NULL, 0))
+  if (GNUNET_OK !=
+      GNUNET_BLOCK_check_query (ctx,
+                                GNUNET_BLOCK_TYPE_FS_DBLOCK,
+                                &key,
+                                NULL, 0))
     return 4;
   GNUNET_log_skip (1, GNUNET_NO);
   if (GNUNET_BLOCK_EVALUATION_REQUEST_INVALID !=
-      GNUNET_BLOCK_evaluate (ctx,
-                             GNUNET_BLOCK_TYPE_FS_DBLOCK,
-                             NULL,
-                             GNUNET_BLOCK_EO_NONE,
-                             &key,
-                             "bogus", 5,
-                             NULL, 0))
+      GNUNET_BLOCK_check_query (ctx,
+                                GNUNET_BLOCK_TYPE_FS_DBLOCK,
+                                &key,
+                                "bogus", 5))
     return 8;
   GNUNET_log_skip (0, GNUNET_YES);
   return 0;

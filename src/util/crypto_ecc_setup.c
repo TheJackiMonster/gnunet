@@ -134,8 +134,10 @@ read_from_file (const char *filename,
  * @param filename name of file to use to store the key
  * @param do_create should a file be created?
  * @param[out] pkey set to the private key from @a filename on success
- * @return #GNUNET_OK on success, #GNUNET_NO if @a do_create was set but
- *         we found an existing file, #GNUNET_SYSERR on failure
+ * @return - #GNUNET_OK on success,
+ *  - #GNUNET_NO if @a do_create was set but we found an existing file,
+ *  - #GNUNET_SYSERR on failure _or_ if the file didn't exist and @a
+ *    do_create was not set
  */
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_key_from_file (const char *filename,
@@ -152,6 +154,11 @@ GNUNET_CRYPTO_eddsa_key_from_file (const char *filename,
     /* file existed, report that we didn't create it... */
     return (do_create) ? GNUNET_NO : GNUNET_OK;
   }
+  else if (! do_create)
+  {
+    return GNUNET_SYSERR;
+  }
+
   GNUNET_CRYPTO_eddsa_key_create (pkey);
   ret = GNUNET_DISK_fn_write (filename,
                               pkey,

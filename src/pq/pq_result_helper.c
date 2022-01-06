@@ -757,6 +757,148 @@ GNUNET_PQ_result_spec_absolute_time_nbo (const char *name,
  *   #GNUNET_SYSERR if a result was invalid (non-existing field or NULL)
  */
 static enum GNUNET_GenericReturnValue
+extract_timestamp (void *cls,
+                   PGresult *result,
+                   int row,
+                   const char *fname,
+                   size_t *dst_size,
+                   void *dst)
+{
+  struct GNUNET_TIME_Timestamp *udst = dst;
+  struct GNUNET_TIME_Absolute abs;
+  const int64_t *res;
+  int fnum;
+
+  (void) cls;
+  fnum = PQfnumber (result,
+                    fname);
+  if (fnum < 0)
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  if (PQgetisnull (result,
+                   row,
+                   fnum))
+    return GNUNET_NO;
+  GNUNET_assert (NULL != dst);
+  if (sizeof(struct GNUNET_TIME_Absolute) != *dst_size)
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  if (sizeof(int64_t) !=
+      PQgetlength (result,
+                   row,
+                   fnum))
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  res = (int64_t *) PQgetvalue (result,
+                                row,
+                                fnum);
+  if (INT64_MAX == GNUNET_ntohll ((uint64_t) *res))
+  {
+    abs = GNUNET_TIME_UNIT_FOREVER_ABS;
+  }
+  else
+  {
+    abs.abs_value_us = GNUNET_ntohll ((uint64_t) *res);
+    if (0 != abs.abs_value_us % GNUNET_TIME_UNIT_SECONDS.rel_value_us)
+    {
+      /* timestamps must be multiple of seconds! */
+      GNUNET_break (0);
+      return GNUNET_SYSERR;
+    }
+  }
+  udst->abs_time = abs;
+  return GNUNET_OK;
+}
+
+
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_timestamp (const char *name,
+                                 struct GNUNET_TIME_Timestamp *at)
+{
+  struct GNUNET_PQ_ResultSpec res = {
+    .conv = &extract_timestamp,
+    .dst = (void *) at,
+    .dst_size = sizeof(*at),
+    .fname = name
+  };
+
+  return res;
+}
+
+
+/**
+ * Extract data from a Postgres database @a result at row @a row.
+ *
+ * @param cls closure
+ * @param result where to extract data from
+ * @param int row to extract data from
+ * @param fname name (or prefix) of the fields to extract from
+ * @param[in,out] dst_size where to store size of result, may be NULL
+ * @param[out] dst where to store the result
+ * @return
+ *   #GNUNET_YES if all results could be extracted
+ *   #GNUNET_SYSERR if a result was invalid (non-existing field or NULL)
+ */
+static enum GNUNET_GenericReturnValue
+extract_timestamp_nbo (void *cls,
+                       PGresult *result,
+                       int row,
+                       const char *fname,
+                       size_t *dst_size,
+                       void *dst)
+{
+  struct GNUNET_TIME_TimestampNBO *udst = dst;
+  struct GNUNET_TIME_Timestamp t;
+  enum GNUNET_GenericReturnValue r;
+
+  r = extract_timestamp (NULL,
+                         result,
+                         row,
+                         fname,
+                         dst_size,
+                         &t);
+  if (GNUNET_OK != r)
+    return r;
+  *udst = GNUNET_TIME_timestamp_hton (t);
+  return r;
+}
+
+
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_timestamp_nbo (const char *name,
+                                     struct GNUNET_TIME_TimestampNBO *at)
+{
+  struct GNUNET_PQ_ResultSpec res = {
+    .conv = &extract_timestamp_nbo,
+    .dst = (void *) at,
+    .dst_size = sizeof(*at),
+    .fname = name
+  };
+
+  return res;
+}
+
+
+/**
+ * Extract data from a Postgres database @a result at row @a row.
+ *
+ * @param cls closure
+ * @param result where to extract data from
+ * @param int row to extract data from
+ * @param fname name (or prefix) of the fields to extract from
+ * @param[in,out] dst_size where to store size of result, may be NULL
+ * @param[out] dst where to store the result
+ * @return
+ *   #GNUNET_YES if all results could be extracted
+ *   #GNUNET_SYSERR if a result was invalid (non-existing field or NULL)
+ */
+static enum GNUNET_GenericReturnValue
 extract_uint16 (void *cls,
                 PGresult *result,
                 int row,

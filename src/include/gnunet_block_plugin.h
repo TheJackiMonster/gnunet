@@ -48,9 +48,9 @@
  * @param seen_results_count number of entries in @a seen_results
  */
 typedef void
-(*GNUNET_BLOCK_GroupMarkSeenFunction)(struct GNUNET_BLOCK_Group *bg,
-                                      const struct
-                                      GNUNET_HashCode *seen_results,
+(*GNUNET_BLOCK_GroupMarkSeenFunction)(
+                                      struct GNUNET_BLOCK_Group *bg,
+                                      const struct GNUNET_HashCode *seen_results,
                                       unsigned int seen_results_count);
 
 
@@ -63,7 +63,7 @@ typedef void
  * @return #GNUNET_OK on success, #GNUNET_NO if the nonces were different and thus
  *         we failed.
  */
-typedef int
+typedef enum GNUNET_GenericReturnValue
 (*GNUNET_BLOCK_GroupMergeFunction)(struct GNUNET_BLOCK_Group *bg1,
                                    const struct GNUNET_BLOCK_Group *bg2);
 
@@ -78,7 +78,7 @@ typedef int
  * @return #GNUNET_OK on success, #GNUNET_NO if serialization is not
  *         supported, #GNUNET_SYSERR on error
  */
-typedef int
+typedef enum GNUNET_GenericReturnValue
 (*GNUNET_BLOCK_GroupSerializeFunction)(struct GNUNET_BLOCK_Group *bg,
                                        uint32_t *nonce,
                                        void **raw_data,
@@ -180,6 +180,7 @@ typedef struct GNUNET_BLOCK_Group *
  * @param reply_block response to validate
  * @param reply_block_size number of bytes in @a reply_block
  * @return characterization of result
+ * @deprecated
  */
 typedef enum GNUNET_BLOCK_EvaluationResult
 (*GNUNET_BLOCK_EvaluationFunction)(void *cls,
@@ -195,19 +196,83 @@ typedef enum GNUNET_BLOCK_EvaluationResult
 
 
 /**
+ * Function called to validate a query.
+ *
+ * @param cls closure
+ * @param ctx block context
+ * @param type block type
+ * @param query original query (hash)
+ * @param xquery extrended query data (can be NULL, depending on type)
+ * @param xquery_size number of bytes in @a xquery
+ * @return #GNUNET_OK if the query is fine, #GNUNET_NO if not
+ */
+typedef enum GNUNET_GenericReturnValue
+(*GNUNET_BLOCK_QueryEvaluationFunction)(void *cls,
+                                        enum GNUNET_BLOCK_Type type,
+                                        const struct GNUNET_HashCode *query,
+                                        const void *xquery,
+                                        size_t xquery_size);
+
+
+/**
+ * Function called to validate a block for storage.
+ *
+ * @param cls closure
+ * @param type block type
+ * @param query key for the block (hash), must match exactly
+ * @param block block data to validate
+ * @param block_size number of bytes in @a block
+ * @return #GNUNET_OK if the block is fine, #GNUNET_NO if not
+ */
+typedef enum GNUNET_GenericReturnValue
+(*GNUNET_BLOCK_BlockEvaluationFunction)(void *cls,
+                                        enum GNUNET_BLOCK_Type type,
+                                        const struct GNUNET_HashCode *query,
+                                        const void *block,
+                                        size_t block_size);
+
+
+/**
+ * Function called to validate a reply to a request.  Note that it is assumed
+ * that the reply has already been matched to the key (and signatures checked)
+ * as it would be done with the GetKeyFunction and the
+ * BlockEvaluationFunction.
+ *
+ * @param cls closure
+ * @param type block type
+ * @param group which block group to use for evaluation
+ * @param query original query (hash)
+ * @param xquery extrended query data (can be NULL, depending on type)
+ * @param xquery_size number of bytes in @a xquery
+ * @param reply_block response to validate
+ * @param reply_block_size number of bytes in @a reply_block
+ * @return characterization of result
+ */
+typedef enum GNUNET_BLOCK_ReplyEvaluationResult
+(*GNUNET_BLOCK_ReplyEvaluationFunction)(void *cls,
+                                        enum GNUNET_BLOCK_Type type,
+                                        struct GNUNET_BLOCK_Group *group,
+                                        const struct GNUNET_HashCode *query,
+                                        const void *xquery,
+                                        size_t xquery_size,
+                                        const void *reply_block,
+                                        size_t reply_block_size);
+
+
+/**
  * Function called to obtain the key for a block.
  *
  * @param cls closure
  * @param type block type
  * @param block block to get the key for
  * @param block_size number of bytes in @a block
- * @param key set to the key (query) for the given block
+ * @param[out] key set to the key (query) for the given block
  * @return #GNUNET_YES on success,
  *         #GNUNET_NO if the block is malformed
  *         #GNUNET_SYSERR if type not supported
  *         (or if extracting a key from a block of this type does not work)
  */
-typedef int
+typedef enum GNUNET_GenericReturnValue
 (*GNUNET_BLOCK_GetKeyFunction) (void *cls,
                                 enum GNUNET_BLOCK_Type type,
                                 const void *block,
@@ -234,6 +299,8 @@ struct GNUNET_BLOCK_PluginFunctions
   /**
    * Main function of a block plugin.  Allows us to check if a
    * block matches a query.
+   *
+   * @param deprecated
    */
   GNUNET_BLOCK_EvaluationFunction evaluate;
 
@@ -247,6 +314,22 @@ struct GNUNET_BLOCK_PluginFunctions
    * context (i.e. to detect duplicates).
    */
   GNUNET_BLOCK_GroupCreateFunction create_group;
+
+  /**
+   * Check that a query is well-formed.
+   */
+  GNUNET_BLOCK_QueryEvaluationFunction check_query;
+
+  /**
+   * Check that a block is well-formed.
+   */
+  GNUNET_BLOCK_BlockEvaluationFunction check_block;
+
+  /**
+   * Check that a reply block matches a query.
+   */
+  GNUNET_BLOCK_ReplyEvaluationFunction check_reply;  
+
 };
 
 #endif

@@ -169,14 +169,16 @@ new_peer_entry (const struct GNUNET_PeerIdentity *peer)
  * @return #GNUNET_YES if the message is verified
  *         #GNUNET_NO if the key/signature don't verify
  */
-static int
+static enum GNUNET_GenericReturnValue
 verify_revoke_message (const struct RevokeMessage *rm)
 {
-  struct GNUNET_REVOCATION_PowP *pow = (struct GNUNET_REVOCATION_PowP *) &rm[1];
-  if (GNUNET_YES != GNUNET_REVOCATION_check_pow (pow,
-                                                 (unsigned
-                                                  int) revocation_work_required,
-                                                 epoch_duration))
+  const struct GNUNET_REVOCATION_PowP *pow
+    = (const struct GNUNET_REVOCATION_PowP *) &rm[1];
+
+  if (GNUNET_YES !=
+      GNUNET_REVOCATION_check_pow (pow,
+                                   (unsigned int) revocation_work_required,
+                                   epoch_duration))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Proof of work invalid!\n");
@@ -263,7 +265,7 @@ handle_query_message (void *cls,
  * @param value our `struct PeerEntry` for the neighbour
  * @return #GNUNET_OK (continue to iterate)
  */
-static int
+static enum GNUNET_GenericReturnValue
 do_flood (void *cls,
           const struct GNUNET_PeerIdentity *target,
           void *value)
@@ -278,10 +280,12 @@ do_flood (void *cls,
                          but we have no direct CORE
                          connection for flooding */
   e = GNUNET_MQ_msg_extra (cp,
-                     htonl (rm->pow_size),
-                     GNUNET_MESSAGE_TYPE_REVOCATION_REVOKE);
+                           htonl (rm->pow_size),
+                           GNUNET_MESSAGE_TYPE_REVOCATION_REVOKE);
   *cp = *rm;
-  memcpy (&cp[1], &rm[1], htonl (rm->pow_size));
+  memcpy (&cp[1],
+          &rm[1],
+          htonl (rm->pow_size));
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Flooding revocation to `%s'\n",
               GNUNET_i2s (target));
@@ -300,17 +304,18 @@ do_flood (void *cls,
  * @return #GNUNET_OK on success, #GNUNET_NO if we encountered an error,
  *         #GNUNET_SYSERR if the message was malformed
  */
-static int
+static enum GNUNET_GenericReturnValue
 publicize_rm (const struct RevokeMessage *rm)
 {
   struct RevokeMessage *cp;
   struct GNUNET_HashCode hc;
   struct GNUNET_SETU_Element e;
   ssize_t pklen;
-  const struct GNUNET_IDENTITY_PublicKey *pk;
+  const struct GNUNET_REVOCATION_PowP *pow
+    = (const struct GNUNET_REVOCATION_PowP *) &rm[1];
+  const struct GNUNET_IDENTITY_PublicKey *pk
+    = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
 
-  struct GNUNET_REVOCATION_PowP *pow = (struct GNUNET_REVOCATION_PowP *) &rm[1];
-  pk = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
   pklen = GNUNET_IDENTITY_key_get_length (pk);
   if (0 > pklen)
   {

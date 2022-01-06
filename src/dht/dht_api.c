@@ -1048,8 +1048,7 @@ GNUNET_DHT_put_cancel (struct GNUNET_DHT_PutHandle *ph)
 
 
 /**
- * Perform an asynchronous GET operation on the DHT identified. See
- * also #GNUNET_BLOCK_evaluate.
+ * Perform an asynchronous GET operation on the DHT identified.
  *
  * @param handle handle to the DHT service
  * @param type expected type of the response object

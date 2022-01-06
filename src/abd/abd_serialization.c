@@ -191,8 +191,8 @@ GNUNET_ABD_delegates_serialize (
   off = 0;
   for (i = 0; i < c_count; i++)
   {
-    // c_rec.subject_attribute_len = htonl ((uint32_t) cd[i].subject_attribute_len);
-    c_rec.issuer_attribute_len = htonl ((uint32_t) cd[i].issuer_attribute_len);
+    c_rec.subject_attribute_len = htonl (cd[i].subject_attribute_len);
+    c_rec.issuer_attribute_len = htonl (cd[i].issuer_attribute_len);
     c_rec.issuer_key = cd[i].issuer_key;
     c_rec.subject_key = cd[i].subject_key;
     c_rec.signature = cd[i].signature;

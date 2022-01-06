@@ -378,6 +378,24 @@ GNUNET_GETOPT_option_absolute_time (char shortName,
 
 
 /**
+ * Allow user to specify a `struct GNUNET_TIME_Timestamp`
+ * (using human-readable "fancy" time).
+ *
+ * @param shortName short name of the option
+ * @param name long name of the option
+ * @param argumentHelp help text for the option argument
+ * @param description long help text for the option
+ * @param[out] val set to the time specified at the command line
+ */
+struct GNUNET_GETOPT_CommandLineOption
+GNUNET_GETOPT_option_timestamp (char shortName,
+                                const char *name,
+                                const char *argumentHelp,
+                                const char *description,
+                                struct GNUNET_TIME_Timestamp *val);
+
+
+/**
  * Increment @a val each time the option flag is given by one.
  *
  * @param shortName short name of the option

@@ -8,12 +8,9 @@
 # but this works for now.
 dir=$(dirname "$0")
 
-if test -e @PKGDATADIRECTORY@/existence.sh
-then
-    . @PKGDATADIRECTORY@/existence.sh
-else
-    . $dir/../../contrib/build-common/sh/lib.sh/existence.sh
-fi
+existence() {
+  command -v "$1" >/dev/null 2>&1
+}
 
 LOCATION=`existence gnunet-config`
 if test -z $LOCATION; then

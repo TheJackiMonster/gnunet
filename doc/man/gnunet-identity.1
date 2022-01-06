@@ -26,7 +26,7 @@
 .Os
 .Sh NAME
 .Nm gnunet-identity
-.Nd create, delete or list egos
+.Nd maintain (create, delete or list) or perform actions with egos
 .Sh SYNOPSIS
 .Nm
 .Op Fl C Ar NAME | Fl -create= Ns Ar NAME
@@ -34,11 +34,14 @@
 .Op Fl d | -display
 .Op Fl e Ar NAME | Fl -ego= Ns Ar NAME
 .Op Fl h | -help
+.Op Fl k Ar PUBLIC_KEY | Fl -key= Ns Ar PUBLIC_KEY
 .Op Fl m | -monitor
 .Op Fl p | -private-keys
 .Op Fl q | -quiet
+.Op Fl R Ar MESSAGE | Fl -read= Ns Ar MESSAGE
 .Op Fl s Ar SUBSYSTEM | Fl -set= Ns Ar SUBSYSTEM
 .Op Fl V | -verbose
+.Op Fl W Ar MESSAGE | Fl -write= Ns Ar MESSAGE
 .Op Fl X | -eddsa
 .Sh DESCRIPTION
 .Nm
@@ -50,6 +53,9 @@ gnunet-identity can be used to list all of the egos that were
 created locally, to create new egos, and to delete
 existing egos (the namespace will continue to exist, but it will
 be impossible to add additional data to it).
+.Pp
+In addition, it is possible to encrypt and decrypt messages (arbitrary strings)
+using a given public key (for encryption) or ego (for decryption).
 .Pp
 Creating a new ego requires using the
 .Fl C
@@ -72,6 +78,11 @@ Perform "set" operation with the respective ego or restrict "display"
 operation to the respective ego.
 .It Fl h | -help
 Print the help page.
+.It Fl k Ar PUBLIC_KEY | Fl -key= Ns Ar PUBLIC_KEY
+The public key to use for a message recipient. Use together with
+.Fl W .
+The recipient can obtain the desired ego's public key using the "display"
+operation.
 .It Fl m | -monitor
 Run in monitor mode, listing all ouf our egos until CTRL-C is pressed.
 Each ego is listed together with a unique pointer value; if
@@ -83,6 +94,12 @@ keys. The second column shows the public key, the third column shows the
 private key.
 .It Fl q | -quiet
 Be quiet, in particular outputs only the public key when listing egos.
+.It Fl R Ar MESSAGE | Fl -read= Ns Ar MESSAGE
+Decrypt (read) a message using the respective ego private key. Use together with
+.Fl e .
+The message consists of an ephemeral key and the ciphertext, separated by a dot.
+Such messages can be created with
+.Fl W .
 .It Fl s Ar SUBSYSTEM | Fl -set= Ns Ar SUBSYSTEM
 Perform "set" operation for the specified
 .Ar SUBSYSTEM
@@ -95,6 +112,13 @@ This will fail if
 does not yet exist.
 .It Fl V | -verbose
 Be verbose, in particular outputs the public key of freshly created egos.
+.It Fl W Ar MESSAGE | Fl -write= Ns Ar MESSAGE
+Encrypt (write) the given message for the identity given with
+.Fl k .
+The output contains an ephemeral message public key and the message separated
+by a dot. The entire line needs to be transferred to the recipient, who can use
+.Fl R
+to decrypt the message.
 .It Fl X | -eddsa
 Use EdDSA instead of ECDSA.
 .El

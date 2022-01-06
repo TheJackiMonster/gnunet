@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet
-     Copyright (C) 2010, 2013 GNUnet e.V.
+     Copyright (C) 2010, 2013, 2021 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -225,7 +225,7 @@ block_plugin_fs_evaluate (void *cls,
  * @return #GNUNET_OK on success, #GNUNET_SYSERR if type not supported
  *         (or if extracting a key from a block of this type does not work)
  */
-static int
+static enum GNUNET_GenericReturnValue
 block_plugin_fs_get_key (void *cls,
                          enum GNUNET_BLOCK_Type type,
                          const void *block,
@@ -238,9 +238,10 @@ block_plugin_fs_get_key (void *cls,
   {
   case GNUNET_BLOCK_TYPE_FS_DBLOCK:
   case GNUNET_BLOCK_TYPE_FS_IBLOCK:
-    GNUNET_CRYPTO_hash (block, block_size, key);
+    GNUNET_CRYPTO_hash (block,
+                        block_size,
+                        key);
     return GNUNET_OK;
-
   case GNUNET_BLOCK_TYPE_FS_UBLOCK:
     if (block_size < sizeof(struct UBlock))
     {
@@ -252,10 +253,150 @@ block_plugin_fs_get_key (void *cls,
                         sizeof(ub->verification_key),
                         key);
     return GNUNET_OK;
-
   default:
     GNUNET_break (0);
     return GNUNET_SYSERR;
+  }
+}
+
+
+/**
+ * Function called to validate a query.
+ *
+ * @param cls closure
+ * @param ctx block context
+ * @param type block type
+ * @param query original query (hash)
+ * @param xquery extrended query data (can be NULL, depending on type)
+ * @param xquery_size number of bytes in @a xquery
+ * @return #GNUNET_OK if the query is fine, #GNUNET_NO if not
+ */
+static enum GNUNET_GenericReturnValue
+block_plugin_fs_check_query (void *cls,
+                             enum GNUNET_BLOCK_Type type,
+                             const struct GNUNET_HashCode *query,
+                             const void *xquery,
+                             size_t xquery_size)
+{
+  switch (type)
+  {
+  case GNUNET_BLOCK_TYPE_FS_DBLOCK:
+  case GNUNET_BLOCK_TYPE_FS_IBLOCK:
+  case GNUNET_BLOCK_TYPE_FS_UBLOCK:
+    if (0 != xquery_size)
+    {
+      GNUNET_break_op (0);
+      return GNUNET_NO;
+    }
+    return GNUNET_OK;
+  default:
+    return GNUNET_SYSERR;
+  }
+}
+
+
+/**
+ * Function called to validate a block for storage.
+ *
+ * @param cls closure
+ * @param type block type
+ * @param query key for the block (hash), must match exactly
+ * @param block block data to validate
+ * @param block_size number of bytes in @a block
+ * @return #GNUNET_OK if the block is fine, #GNUNET_NO if not
+ */
+static enum GNUNET_GenericReturnValue
+block_plugin_fs_check_block (void *cls,
+                             enum GNUNET_BLOCK_Type type,
+                             const struct GNUNET_HashCode *query,
+                             const void *block,
+                             size_t block_size)
+{
+  switch (type)
+  {
+  case GNUNET_BLOCK_TYPE_FS_DBLOCK:
+  case GNUNET_BLOCK_TYPE_FS_IBLOCK:
+    return GNUNET_OK;
+  case GNUNET_BLOCK_TYPE_FS_UBLOCK:
+    {
+      const struct UBlock *ub;
+      
+      if (block_size < sizeof(struct UBlock))
+      {
+        GNUNET_break_op (0);
+        return GNUNET_NO;
+      }
+      ub = block;
+      if (block_size !=
+          ntohl (ub->purpose.size) +
+          sizeof (struct GNUNET_CRYPTO_EcdsaSignature))
+      {
+        GNUNET_break_op (0);
+        return GNUNET_NO;
+      }
+      if (GNUNET_OK !=
+          GNUNET_CRYPTO_ecdsa_verify_ (GNUNET_SIGNATURE_PURPOSE_FS_UBLOCK,
+                                       &ub->purpose,
+                                       &ub->signature,
+                                       &ub->verification_key))
+      {
+        GNUNET_break_op (0);
+        return GNUNET_NO;
+      }
+      return GNUNET_OK;
+    }
+  default:
+    return GNUNET_SYSERR;
+  }
+}
+
+
+/**
+ * Function called to validate a reply to a request.  Note that it is assumed
+ * that the reply has already been matched to the key (and signatures checked)
+ * as it would be done with the GetKeyFunction and the
+ * BlockEvaluationFunction.
+ *
+ * @param cls closure
+ * @param type block type
+ * @param group which block group to use for evaluation
+ * @param query original query (hash)
+ * @param xquery extrended query data (can be NULL, depending on type)
+ * @param xquery_size number of bytes in @a xquery
+ * @param reply_block response to validate
+ * @param reply_block_size number of bytes in @a reply_block
+ * @return characterization of result
+ */
+static enum GNUNET_BLOCK_ReplyEvaluationResult
+block_plugin_fs_check_reply (void *cls,
+                             enum GNUNET_BLOCK_Type type,
+                             struct GNUNET_BLOCK_Group *group,
+                             const struct GNUNET_HashCode *query,
+                             const void *xquery,
+                             size_t xquery_size,
+                             const void *reply_block,
+                             size_t reply_block_size)
+{
+  switch (type)
+  {
+  case GNUNET_BLOCK_TYPE_FS_DBLOCK:
+  case GNUNET_BLOCK_TYPE_FS_IBLOCK:
+    return GNUNET_BLOCK_REPLY_OK_LAST;
+  case GNUNET_BLOCK_TYPE_FS_UBLOCK:
+    {
+      struct GNUNET_HashCode chash;
+
+      GNUNET_CRYPTO_hash (reply_block,
+                          reply_block_size,
+                          &chash);
+      if (GNUNET_YES ==
+          GNUNET_BLOCK_GROUP_bf_test_and_set (group,
+                                              &chash))
+        return GNUNET_BLOCK_REPLY_OK_DUPLICATE;
+      return GNUNET_BLOCK_REPLY_OK_MORE;
+    }
+  default:
+    return GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED;
   }
 }
 
@@ -266,7 +407,7 @@ block_plugin_fs_get_key (void *cls,
 void *
 libgnunet_plugin_block_fs_init (void *cls)
 {
-  static enum GNUNET_BLOCK_Type types[] = {
+  static const enum GNUNET_BLOCK_Type types[] = {
     GNUNET_BLOCK_TYPE_FS_DBLOCK,
     GNUNET_BLOCK_TYPE_FS_IBLOCK,
     GNUNET_BLOCK_TYPE_FS_UBLOCK,
@@ -278,6 +419,9 @@ libgnunet_plugin_block_fs_init (void *cls)
   api->evaluate = &block_plugin_fs_evaluate;
   api->get_key = &block_plugin_fs_get_key;
   api->create_group = &block_plugin_fs_create_group;
+  api->check_query = &block_plugin_fs_check_query;
+  api->check_block = &block_plugin_fs_check_block;
+  api->check_reply = &block_plugin_fs_check_reply;
   api->types = types;
   return api;
 }

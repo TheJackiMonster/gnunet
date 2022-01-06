@@ -329,6 +329,222 @@ block_plugin_regex_evaluate (void *cls,
 
 
 /**
+ * Function called to validate a query.
+ *
+ * @param cls closure
+ * @param ctx block context
+ * @param type block type
+ * @param query original query (hash)
+ * @param xquery extrended query data (can be NULL, depending on type)
+ * @param xquery_size number of bytes in @a xquery
+ * @return #GNUNET_OK if the query is fine, #GNUNET_NO if not
+ */
+static enum GNUNET_GenericReturnValue
+block_plugin_regex_check_query (void *cls,
+                                    enum GNUNET_BLOCK_Type type,
+                                    const struct GNUNET_HashCode *query,
+                                    const void *xquery,
+                                    size_t xquery_size)
+{
+  switch (type)
+  {
+  case GNUNET_BLOCK_TYPE_REGEX:
+    if (0 != xquery_size)
+    {
+      const char *s;
+
+      s = (const char *) xquery;
+      if ('\0' != s[xquery_size - 1])     /* must be valid 0-terminated string */
+      {
+        GNUNET_break_op (0);
+        return GNUNET_NO;
+      }
+    }
+    return GNUNET_OK;
+  case GNUNET_BLOCK_TYPE_REGEX_ACCEPT:
+    if (0 != xquery_size)
+    {
+      GNUNET_break_op (0);
+      return GNUNET_NO;
+    }
+    return GNUNET_OK;
+  default:
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+}
+
+
+/**
+ * Function called to validate a block for storage.
+ *
+ * @param cls closure
+ * @param type block type
+ * @param query key for the block (hash), must match exactly
+ * @param block block data to validate
+ * @param block_size number of bytes in @a block
+ * @return #GNUNET_OK if the block is fine, #GNUNET_NO if not
+ */
+static enum GNUNET_GenericReturnValue
+block_plugin_regex_check_block (void *cls,
+                                    enum GNUNET_BLOCK_Type type,
+                                    const struct GNUNET_HashCode *query,
+                                    const void *block,
+                                    size_t block_size)
+{
+  switch (type)
+  {
+  case GNUNET_BLOCK_TYPE_REGEX:
+    if (GNUNET_SYSERR ==
+        REGEX_BLOCK_check (block,
+                           block_size,
+                           query,
+                           NULL))
+      return GNUNET_NO;
+    return GNUNET_OK;
+  case GNUNET_BLOCK_TYPE_REGEX_ACCEPT:
+    {
+    const struct RegexAcceptBlock *rba;
+    
+    if (sizeof(struct RegexAcceptBlock) != block_size)
+    {
+      GNUNET_break_op (0);
+      return GNUNET_NO;
+    }
+    rba = block;
+    if (ntohl (rba->purpose.size) !=
+        sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
+        + sizeof(struct GNUNET_TIME_AbsoluteNBO)
+        + sizeof(struct GNUNET_HashCode))
+    {
+      GNUNET_break_op (0);
+      return GNUNET_NO;
+    }
+    if (GNUNET_TIME_absolute_is_past (GNUNET_TIME_absolute_ntoh (
+                                                                 rba->expiration_time)))
+    {
+      return GNUNET_NO;
+    }
+    if (GNUNET_OK !=
+        GNUNET_CRYPTO_eddsa_verify_ (GNUNET_SIGNATURE_PURPOSE_REGEX_ACCEPT,
+                                     &rba->purpose,
+                                     &rba->signature,
+                                     &rba->peer.public_key))
+    {
+      GNUNET_break_op (0);
+      return GNUNET_NO;
+    }
+    return GNUNET_OK;
+    }
+  default:
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+}
+
+
+/**
+ * Function called to validate a reply to a request.  Note that it is assumed
+ * that the reply has already been matched to the key (and signatures checked)
+ * as it would be done with the GetKeyFunction and the
+ * BlockEvaluationFunction.
+ *
+ * @param cls closure
+ * @param type block type
+ * @param group which block group to use for evaluation
+ * @param query original query (hash)
+ * @param xquery extrended query data (can be NULL, depending on type)
+ * @param xquery_size number of bytes in @a xquery
+ * @param reply_block response to validate
+ * @param reply_block_size number of bytes in @a reply_block
+ * @return characterization of result
+ */
+static enum GNUNET_BLOCK_ReplyEvaluationResult
+block_plugin_regex_check_reply (
+                                void *cls,
+                                enum GNUNET_BLOCK_Type type,
+                                struct GNUNET_BLOCK_Group *group,
+                                const struct GNUNET_HashCode *query,
+                                const void *xquery,
+                                size_t xquery_size,
+                                const void *reply_block,
+                                size_t reply_block_size)
+{
+  struct GNUNET_HashCode chash;
+
+  switch (type)
+  {
+  case GNUNET_BLOCK_TYPE_REGEX:
+    if (0 != xquery_size)
+    {
+      const char *s;
+      
+      s = (const char *) xquery;
+      if ('\0' != s[xquery_size - 1])   /* must be valid 0-terminated string */
+      {
+        /* Technically, the query is invalid ... */
+        GNUNET_break (0);
+        return GNUNET_BLOCK_REPLY_INVALID;
+      }
+    }
+    switch (REGEX_BLOCK_check (reply_block,
+                               reply_block_size,
+                               query,
+                               xquery))
+    {
+    case GNUNET_SYSERR:
+      GNUNET_break_op (0);
+      return GNUNET_BLOCK_REPLY_INVALID;
+    case GNUNET_NO:
+      /* xquery mismatch, can happen */
+      return GNUNET_BLOCK_REPLY_IRRELEVANT;
+    default:
+      break;
+    }
+    GNUNET_CRYPTO_hash (reply_block,
+                        reply_block_size,
+                        &chash);
+    if (GNUNET_YES ==
+        GNUNET_BLOCK_GROUP_bf_test_and_set (group,
+                                            &chash))
+      return GNUNET_BLOCK_REPLY_OK_DUPLICATE;
+    return GNUNET_BLOCK_REPLY_OK_MORE;
+  case GNUNET_BLOCK_TYPE_REGEX_ACCEPT:
+    {
+    const struct RegexAcceptBlock *rba;
+
+    if (sizeof(struct RegexAcceptBlock) != reply_block_size)
+    {
+      GNUNET_break_op (0);
+      return GNUNET_BLOCK_REPLY_INVALID;
+    }
+    rba = reply_block;
+    if (ntohl (rba->purpose.size) !=
+        sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
+        + sizeof(struct GNUNET_TIME_AbsoluteNBO)
+        + sizeof(struct GNUNET_HashCode))
+    {
+      GNUNET_break_op (0);
+      return GNUNET_BLOCK_REPLY_INVALID;
+    }
+    GNUNET_CRYPTO_hash (reply_block,
+                        reply_block_size,
+                        &chash);
+    if (GNUNET_YES ==
+        GNUNET_BLOCK_GROUP_bf_test_and_set (group,
+                                            &chash))
+      return GNUNET_BLOCK_REPLY_OK_DUPLICATE;
+    return GNUNET_BLOCK_REPLY_OK_MORE;
+    }
+  default:
+    GNUNET_break (0);
+    return GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED;
+  }
+  return GNUNET_BLOCK_REPLY_OK_MORE;
+}
+
+
+/**
  * Function called to obtain the key for a block.
  *
  * @param cls closure
@@ -339,7 +555,7 @@ block_plugin_regex_evaluate (void *cls,
  * @return #GNUNET_OK on success, #GNUNET_SYSERR if type not supported
  *         (or if extracting a key from a block of this type does not work)
  */
-static int
+static enum GNUNET_GenericReturnValue
 block_plugin_regex_get_key (void *cls,
                             enum GNUNET_BLOCK_Type type,
                             const void *block,
@@ -350,14 +566,14 @@ block_plugin_regex_get_key (void *cls,
   {
   case GNUNET_BLOCK_TYPE_REGEX:
     if (GNUNET_OK !=
-        REGEX_BLOCK_get_key (block, block_size,
+        REGEX_BLOCK_get_key (block,
+                             block_size,
                              key))
     {
       GNUNET_break_op (0);
       return GNUNET_NO;
     }
     return GNUNET_OK;
-
   case GNUNET_BLOCK_TYPE_REGEX_ACCEPT:
     if (sizeof(struct RegexAcceptBlock) != block_size)
     {
@@ -366,7 +582,6 @@ block_plugin_regex_get_key (void *cls,
     }
     *key = ((struct RegexAcceptBlock *) block)->key;
     return GNUNET_OK;
-
   default:
     GNUNET_break (0);
     return GNUNET_SYSERR;
@@ -380,7 +595,7 @@ block_plugin_regex_get_key (void *cls,
 void *
 libgnunet_plugin_block_regex_init (void *cls)
 {
-  static enum GNUNET_BLOCK_Type types[] = {
+  static const enum GNUNET_BLOCK_Type types[] = {
     GNUNET_BLOCK_TYPE_REGEX,
     GNUNET_BLOCK_TYPE_REGEX_ACCEPT,
     GNUNET_BLOCK_TYPE_ANY       /* end of list */
@@ -390,6 +605,9 @@ libgnunet_plugin_block_regex_init (void *cls)
   api = GNUNET_new (struct GNUNET_BLOCK_PluginFunctions);
   api->evaluate = &block_plugin_regex_evaluate;
   api->get_key = &block_plugin_regex_get_key;
+  api->check_query = &block_plugin_regex_check_query;
+  api->check_block = &block_plugin_regex_check_block;
+  api->check_reply = &block_plugin_regex_check_reply;
   api->create_group = &block_plugin_regex_create_group;
   api->types = types;
   return api;

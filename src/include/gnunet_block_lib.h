@@ -43,6 +43,8 @@ extern "C"
 
 /**
  * Blocks in the datastore and the datacache must have a unique type.
+ *
+ * TODO: move to GANA!
  */
 enum GNUNET_BLOCK_Type
 {
@@ -155,6 +157,7 @@ enum GNUNET_BLOCK_Type
 
 /**
  * Flags that can be set to control the evaluation.
+ * @deprecated
  */
 enum GNUNET_BLOCK_EvaluationOptions
 {
@@ -173,6 +176,7 @@ enum GNUNET_BLOCK_EvaluationOptions
 
 /**
  * Possible ways for how a block may relate to a query.
+ * @deprecated
  */
 enum GNUNET_BLOCK_EvaluationResult
 {
@@ -217,6 +221,44 @@ enum GNUNET_BLOCK_EvaluationResult
    * Specified block type not supported by this plugin.
    */
   GNUNET_BLOCK_EVALUATION_TYPE_NOT_SUPPORTED = 20
+};
+
+
+/**
+ * Possible ways for how a block may relate to a query.
+ */
+enum GNUNET_BLOCK_ReplyEvaluationResult
+{
+  /**
+   * Valid result, but suppressed because it is a duplicate.
+   */
+  GNUNET_BLOCK_REPLY_OK_DUPLICATE = 0,
+
+  /**
+   * Valid result, and there may be more.
+   */
+  GNUNET_BLOCK_REPLY_OK_MORE = 1,
+
+  /**
+   * Last possible valid result.
+   */
+  GNUNET_BLOCK_REPLY_OK_LAST = 2,
+
+  /**
+   * Specified block type not supported by any plugin.
+   */
+  GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED = -1,
+
+  /**
+   * Block does not match query (invalid result)
+   */
+  GNUNET_BLOCK_REPLY_INVALID = -2,
+
+  /**
+   * Block does not match xquery (valid result, not relevant for the request)
+   */
+  GNUNET_BLOCK_REPLY_IRRELEVANT = -3,
+
 };
 
 
@@ -297,7 +339,7 @@ GNUNET_BLOCK_group_create (struct GNUNET_BLOCK_Context *ctx,
  * @return #GNUNET_OK on success, #GNUNET_NO if serialization is not
  *         supported, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BLOCK_group_serialize (struct GNUNET_BLOCK_Group *bg,
                               uint32_t *nonce,
                               void **raw_data,
@@ -330,6 +372,7 @@ GNUNET_BLOCK_group_destroy (struct GNUNET_BLOCK_Group *bg);
  * @param reply_block response to validate
  * @param reply_block_size number of bytes in @a reply_block
  * @return characterization of result
+ * @deprecated
  */
 enum GNUNET_BLOCK_EvaluationResult
 GNUNET_BLOCK_evaluate (struct GNUNET_BLOCK_Context *ctx,
@@ -341,6 +384,70 @@ GNUNET_BLOCK_evaluate (struct GNUNET_BLOCK_Context *ctx,
                        size_t xquery_size,
                        const void *reply_block,
                        size_t reply_block_size);
+
+
+/**
+ * Function called to validate a reply.
+ * Also checks the query key against the block contents
+ * as it would be done with the #GNUNET_BLOCK_get_key() function.
+ *
+ * @param ctx block contxt
+ * @param type block type
+ * @param group block group to use for evaluation
+ * @param query original query (hash)
+ * @param xquery extrended query data (can be NULL, depending on type)
+ * @param xquery_size number of bytes in @a xquery
+ * @param reply_block response to validate
+ * @param reply_block_size number of bytes in @a reply_block
+ * @return characterization of result
+ */
+enum GNUNET_BLOCK_ReplyEvaluationResult
+GNUNET_BLOCK_check_reply (struct GNUNET_BLOCK_Context *ctx,
+                          enum GNUNET_BLOCK_Type type,
+                          struct GNUNET_BLOCK_Group *group,
+                          const struct GNUNET_HashCode *query,
+                          const void *xquery,
+                          size_t xquery_size,
+                          const void *reply_block,
+                          size_t reply_block_size);
+
+
+/**
+ * Function called to validate a request.
+ *
+ * @param ctx block contxt
+ * @param type block type
+ * @param query original query (hash)
+ * @param xquery extrended query data (can be NULL, depending on type)
+ * @param xquery_size number of bytes in @a xquery
+ * @return #GNUNET_OK if the block is fine, #GNUNET_NO if not,
+ *   #GNUNET_SYSERR if @a type is not supported
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_BLOCK_check_query (struct GNUNET_BLOCK_Context *ctx,
+                          enum GNUNET_BLOCK_Type type,
+                          const struct GNUNET_HashCode *query,
+                          const void *xquery,
+                          size_t xquery_size);
+
+
+/**
+ * Function called to validate a block.
+ *
+ * @param ctx block contxt
+ * @param type block type
+ * @param query query key (hash)
+ * @param block payload to put
+ * @param block_size number of bytes in @a block
+ * @return #GNUNET_OK if the block is fine, #GNUNET_NO if not,
+ *   #GNUNET_SYSERR if @a type is not supported
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_BLOCK_check_block (struct GNUNET_BLOCK_Context *ctx,
+                          enum GNUNET_BLOCK_Type type,
+                          const struct GNUNET_HashCode *query,
+                          const void *block,
+                          size_t block_size);
 
 
 /**
@@ -356,7 +463,7 @@ GNUNET_BLOCK_evaluate (struct GNUNET_BLOCK_Context *ctx,
  *         #GNUNET_SYSERR if type not supported
  *         (or if extracting a key from a block of this type does not work)
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BLOCK_get_key (struct GNUNET_BLOCK_Context *ctx,
                       enum GNUNET_BLOCK_Type type,
                       const void *block,
@@ -375,7 +482,7 @@ GNUNET_BLOCK_get_key (struct GNUNET_BLOCK_Context *ctx,
  * @param seen_results_count number of entries in @a seen_results
  * @return #GNUNET_SYSERR if not supported, #GNUNET_OK on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BLOCK_group_set_seen (struct GNUNET_BLOCK_Group *bg,
                              const struct GNUNET_HashCode *seen_results,
                              unsigned int seen_results_count);
@@ -393,7 +500,7 @@ GNUNET_BLOCK_group_set_seen (struct GNUNET_BLOCK_Group *bg,
  *         #GNUNET_NO if merge failed due to different nonce
  *         #GNUNET_SYSERR if merging is not supported
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BLOCK_group_merge (struct GNUNET_BLOCK_Group *bg1,
                           struct GNUNET_BLOCK_Group *bg2);
 

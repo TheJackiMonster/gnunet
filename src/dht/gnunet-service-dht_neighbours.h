@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2009, 2010, 2011 GNUnet e.V.
+     Copyright (C) 2009, 2010, 2011, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -30,11 +30,24 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_block_lib.h"
 #include "gnunet_dht_service.h"
+#include "gnunet-service-dht_datacache.h"
 
 /**
  * Hash of the identity of this peer.
  */
 extern struct GNUNET_HashCode my_identity_hash;
+
+
+struct PeerInfo;
+
+/**
+ * Lookup peer by peer's identity.
+ * 
+ * @param target peer to look up
+ * @return NULL if we are not connected to @a target
+ */
+struct PeerInfo *
+GDS_NEIGHBOURS_lookup_peer (const struct GNUNET_PeerIdentity *target);
 
 
 /**
@@ -44,30 +57,19 @@ extern struct GNUNET_HashCode my_identity_hash;
  * peer in the network (or if we are the closest peer in the
  * network).
  *
- * @param type type of the block
+ * @param bd data about the block
  * @param options routing options
  * @param desired_replication_level desired replication level
- * @param expiration_time when does the content expire
  * @param hop_count how many hops has this message traversed so far
  * @param bf Bloom filter of peers this PUT has already traversed
- * @param key key for the content
- * @param put_path_length number of entries in put_path
- * @param put_path peers this request has traversed so far (if tracked)
- * @param data payload to store
- * @param data_size number of bytes in data
  * @return #GNUNET_OK if the request was forwarded, #GNUNET_NO if not
  */
-int
-GDS_NEIGHBOURS_handle_put (enum GNUNET_BLOCK_Type type,
+enum GNUNET_GenericReturnValue
+GDS_NEIGHBOURS_handle_put (const struct GDS_DATACACHE_BlockData *bd,
                            enum GNUNET_DHT_RouteOption options,
                            uint32_t desired_replication_level,
-                           struct GNUNET_TIME_Absolute expiration_time,
                            uint32_t hop_count,
-                           struct GNUNET_CONTAINER_BloomFilter *bf,
-                           const struct GNUNET_HashCode *key,
-                           unsigned int put_path_length,
-                           struct GNUNET_PeerIdentity *put_path,
-                           const void *data, size_t data_size);
+                           struct GNUNET_CONTAINER_BloomFilter *bf);
 
 
 /**
@@ -87,7 +89,7 @@ GDS_NEIGHBOURS_handle_put (enum GNUNET_BLOCK_Type type,
  * @param peer_bf filter for peers not to select (again, updated)
  * @return #GNUNET_OK if the request was forwarded, #GNUNET_NO if not
  */
-int
+enum GNUNET_GenericReturnValue
 GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
                            enum GNUNET_DHT_RouteOption options,
                            uint32_t desired_replication_level,
@@ -104,28 +106,19 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
  * other peers waiting for it.  Does not do local caching or
  * forwarding to local clients.
  *
- * @param target neighbour that should receive the block (if still connected)
+ * @param pi neighbour that should receive the block
  * @param type type of the block
- * @param expiration_time when does the content expire
- * @param key key for the content
- * @param put_path_length number of entries in put_path
- * @param put_path peers the original PUT traversed (if tracked)
+ * @param bd details about the reply
+ * @param query_hash query that was used for the request
  * @param get_path_length number of entries in put_path
  * @param get_path peers this reply has traversed so far (if tracked)
- * @param data payload of the reply
- * @param data_size number of bytes in data
  */
 void
-GDS_NEIGHBOURS_handle_reply (const struct GNUNET_PeerIdentity *target,
-                             enum GNUNET_BLOCK_Type type,
-                             struct GNUNET_TIME_Absolute expiration_time,
-                             const struct GNUNET_HashCode *key,
-                             unsigned int put_path_length,
-                             const struct GNUNET_PeerIdentity *put_path,
+GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
+                             const struct GDS_DATACACHE_BlockData *bd,
+                             const struct GNUNET_HashCode *query_hash,
                              unsigned int get_path_length,
-                             const struct GNUNET_PeerIdentity *get_path,
-                             const void *data,
-                             size_t data_size);
+                             const struct GNUNET_PeerIdentity *get_path);
 
 
 /**
@@ -138,7 +131,7 @@ GDS_NEIGHBOURS_handle_reply (const struct GNUNET_PeerIdentity *target,
  * @return #GNUNET_YES if node location is closest,
  *         #GNUNET_NO otherwise.
  */
-int
+enum GNUNET_GenericReturnValue
 GDS_am_closest_peer (const struct GNUNET_HashCode *key,
                      const struct GNUNET_CONTAINER_BloomFilter *bloom);
 
@@ -148,7 +141,7 @@ GDS_am_closest_peer (const struct GNUNET_HashCode *key,
  *
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GDS_NEIGHBOURS_init (void);
 
 

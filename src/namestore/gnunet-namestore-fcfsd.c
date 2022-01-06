@@ -789,7 +789,11 @@ create_response (void *cls,
                               "message", _ ("unable to process submitted data"),
                               NULL);
         rd->body_length = strlen (rd->body);
+#ifdef MHD_HTTP_CONTENT_TOO_LARGE
+        rd->code = MHD_HTTP_CONTENT_TOO_LARGE;
+#else
         rd->code = MHD_HTTP_PAYLOAD_TOO_LARGE;
+#endif
         return MHD_YES;
       case GNUNET_JSON_PR_JSON_INVALID:
         rd->body = make_json ("error", "true",

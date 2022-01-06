@@ -96,7 +96,11 @@ struct GNUNET_PQ_QueryParam
  */
 #define GNUNET_PQ_query_param_end \
   {                               \
-    NULL, NULL, NULL, 0, 0        \
+    .conv = NULL,                 \
+    .conv_cls = NULL,             \
+    .data = NULL,                 \
+    .size = 0,                    \
+    .num_params = 0               \
   }
 
 
@@ -200,6 +204,17 @@ GNUNET_PQ_query_param_absolute_time (const struct GNUNET_TIME_Absolute *x);
 
 
 /**
+ * Generate query parameter for a timestamp.
+ * The database must store a 64-bit integer.
+ *
+ * @param x pointer to the query parameter to pass
+ * @return query parameter to use
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_timestamp (const struct GNUNET_TIME_Timestamp *x);
+
+
+/**
  * Generate query parameter for an absolute time value.
  * The database must store a 64-bit integer.
  *
@@ -209,6 +224,18 @@ GNUNET_PQ_query_param_absolute_time (const struct GNUNET_TIME_Absolute *x);
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_absolute_time_nbo (
   const struct GNUNET_TIME_AbsoluteNBO *x);
+
+
+/**
+ * Generate query parameter for a timestamp in NBO.
+ * The database must store a 64-bit integer.
+ *
+ * @param x pointer to the query parameter to pass
+ * @return query parameter to use
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_timestamp_nbo (
+  const struct GNUNET_TIME_TimestampNBO *t);
 
 
 /**
@@ -472,6 +499,18 @@ GNUNET_PQ_result_spec_absolute_time (const char *name,
 
 
 /**
+ * Timestamp expected.
+ *
+ * @param name name of the field in the table
+ * @param[out] t where to store the result
+ * @return array entry for the result specification to use
+ */
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_timestamp (const char *name,
+                                 struct GNUNET_TIME_Timestamp *t);
+
+
+/**
  * Relative time expected.
  *
  * @param name name of the field in the table
@@ -493,6 +532,18 @@ GNUNET_PQ_result_spec_relative_time (const char *name,
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_absolute_time_nbo (const char *name,
                                          struct GNUNET_TIME_AbsoluteNBO *at);
+
+
+/**
+ * Timestamp expected.
+ *
+ * @param name name of the field in the table
+ * @param[out] tn where to store the result
+ * @return array entry for the result specification to use
+ */
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_timestamp_nbo (const char *name,
+                                     struct GNUNET_TIME_TimestampNBO *tn);
 
 
 /**

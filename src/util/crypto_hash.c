@@ -135,18 +135,22 @@ GNUNET_CRYPTO_hash_xor (const struct GNUNET_HashCode *a,
                         const struct GNUNET_HashCode *b,
                         struct GNUNET_HashCode *result)
 {
-  for (ssize_t i = (sizeof(struct GNUNET_HashCode) / sizeof(unsigned int)) - 1;
-       i >= 0;
-       i--)
-    result->bits[i] = a->bits[i] ^ b->bits[i];
+  const unsigned long long *lla = (const unsigned long long *) a;
+  const unsigned long long *llb = (const unsigned long long *) b;
+  unsigned long long *llr = (unsigned long long *) result;
+
+  GNUNET_static_assert (8 == sizeof (unsigned long long));
+  GNUNET_static_assert (0 == sizeof (*a) % sizeof (unsigned long long));
+  for (int i = sizeof (*result) / sizeof (*llr) - 1; i>=0; i--)
+    llr[i] = lla[i] ^ llb[i];
 }
 
 
 void
-GNUNET_CRYPTO_hash_to_aes_key (const struct GNUNET_HashCode *hc,
-                               struct GNUNET_CRYPTO_SymmetricSessionKey *skey,
-                               struct
-                               GNUNET_CRYPTO_SymmetricInitializationVector *iv)
+GNUNET_CRYPTO_hash_to_aes_key (
+  const struct GNUNET_HashCode *hc,
+  struct GNUNET_CRYPTO_SymmetricSessionKey *skey,
+  struct GNUNET_CRYPTO_SymmetricInitializationVector *iv)
 {
   GNUNET_assert (GNUNET_YES ==
                  GNUNET_CRYPTO_kdf (
@@ -167,33 +171,47 @@ GNUNET_CRYPTO_hash_to_aes_key (const struct GNUNET_HashCode *hc,
 }
 
 
-int
-GNUNET_CRYPTO_hash_get_bit_ltr (const struct GNUNET_HashCode *code,
-                                unsigned int bit)
+unsigned int
+GNUNET_CRYPTO_hash_count_leading_zeros (const struct GNUNET_HashCode *h)
 {
-  GNUNET_assert (bit < 8 * sizeof(struct GNUNET_HashCode));
-  return (((unsigned char *) code)[bit >> 3] & (128 >> (bit & 7))) > 0;
-}
+  const unsigned long long *llp = (const unsigned long long *) h;
+  unsigned int ret = 0;
+  unsigned int i;
 
-
-int
-GNUNET_CRYPTO_hash_get_bit_rtl (const struct GNUNET_HashCode *code,
-                                unsigned int bit)
-{
-  GNUNET_assert (bit < 8 * sizeof(struct GNUNET_HashCode));
-  return (((unsigned char *) code)[bit >> 3] & (1 << (bit & 7))) > 0;
+  GNUNET_static_assert (8 == sizeof (unsigned long long));
+  GNUNET_static_assert (0 == sizeof (*h) % sizeof (unsigned long long));
+  for (i = 0; i<sizeof (*h) / sizeof (*llp); i++)
+  {
+    if (0LLU != llp[i])
+      break;
+    ret += sizeof (*llp) * 8;
+  }
+  if (ret == 8 * sizeof (*h))
+    return ret;
+  ret += __builtin_clzll (GNUNET_ntohll ((uint64_t) llp[i]));
+  return ret;
 }
 
 
 unsigned int
-GNUNET_CRYPTO_hash_matching_bits (const struct GNUNET_HashCode *first,
-                                  const struct GNUNET_HashCode *second)
+GNUNET_CRYPTO_hash_count_tailing_zeros (const struct GNUNET_HashCode *h)
 {
-  for (unsigned int i = 0; i < sizeof(struct GNUNET_HashCode) * 8; i++)
-    if (GNUNET_CRYPTO_hash_get_bit_rtl (first, i) !=
-        GNUNET_CRYPTO_hash_get_bit_rtl (second, i))
-      return i;
-  return sizeof(struct GNUNET_HashCode) * 8;
+  const unsigned long long *llp = (const unsigned long long *) h;
+  unsigned int ret = 0;
+  int i;
+
+  GNUNET_static_assert (8 == sizeof (unsigned long long));
+  GNUNET_static_assert (0 == sizeof (*h) % sizeof (unsigned long long));
+  for (i = sizeof (*h) / sizeof (*llp) - 1; i>=0; i--)
+  {
+    if (0LLU != llp[i])
+      break;
+    ret += sizeof (*llp) * 8;
+  }
+  if (ret == 8 * sizeof (*h))
+    return ret;
+  ret += __builtin_ctzll (GNUNET_ntohll ((uint64_t) llp[i]));
+  return ret;
 }
 
 
@@ -224,18 +242,19 @@ GNUNET_CRYPTO_hash_xorcmp (const struct GNUNET_HashCode *h1,
                            const struct GNUNET_HashCode *h2,
                            const struct GNUNET_HashCode *target)
 {
-  unsigned int d1;
-  unsigned int d2;
+  const unsigned long long *l1 = (const unsigned long long *) h1;
+  const unsigned long long *l2 = (const unsigned long long *) h2;
+  const unsigned long long *t = (const unsigned long long *) target;
 
-  for (ssize_t i = sizeof(struct GNUNET_HashCode) / sizeof(unsigned int) - 1;
-       i >= 0;
-       i--)
+  GNUNET_static_assert (0 == sizeof (*h1) % sizeof (*l1));
+  for (size_t i = 0; i < sizeof(*h1) / sizeof(*l1); i++)
   {
-    d1 = ((unsigned int *) h1)[i] ^ ((unsigned int *) target)[i];
-    d2 = ((unsigned int *) h2)[i] ^ ((unsigned int *) target)[i];
-    if (d1 > d2)
+    unsigned long long x1 = l1[i] ^ t[i];
+    unsigned long long x2 = l2[i] ^ t[i];
+
+    if (x1 > x2)
       return 1;
-    else if (d1 < d2)
+    if (x1 < x2)
       return -1;
   }
   return 0;
@@ -243,25 +262,30 @@ GNUNET_CRYPTO_hash_xorcmp (const struct GNUNET_HashCode *h1,
 
 
 void
-GNUNET_CRYPTO_hmac_derive_key (struct GNUNET_CRYPTO_AuthKey *key,
-                               const struct
-                               GNUNET_CRYPTO_SymmetricSessionKey *rkey,
-                               const void *salt, size_t salt_len, ...)
+GNUNET_CRYPTO_hmac_derive_key (
+  struct GNUNET_CRYPTO_AuthKey *key,
+  const struct GNUNET_CRYPTO_SymmetricSessionKey *rkey,
+  const void *salt, size_t salt_len,
+  ...)
 {
   va_list argp;
 
-  va_start (argp, salt_len);
-  GNUNET_CRYPTO_hmac_derive_key_v (key, rkey, salt, salt_len, argp);
+  va_start (argp,
+            salt_len);
+  GNUNET_CRYPTO_hmac_derive_key_v (key,
+                                   rkey,
+                                   salt, salt_len,
+                                   argp);
   va_end (argp);
 }
 
 
 void
-GNUNET_CRYPTO_hmac_derive_key_v (struct GNUNET_CRYPTO_AuthKey *key,
-                                 const struct
-                                 GNUNET_CRYPTO_SymmetricSessionKey *rkey,
-                                 const void *salt, size_t salt_len,
-                                 va_list argp)
+GNUNET_CRYPTO_hmac_derive_key_v (
+  struct GNUNET_CRYPTO_AuthKey *key,
+  const struct GNUNET_CRYPTO_SymmetricSessionKey *rkey,
+  const void *salt, size_t salt_len,
+  va_list argp)
 {
   GNUNET_CRYPTO_kdf_v (key->key, sizeof(key->key),
                        salt, salt_len,
@@ -283,7 +307,9 @@ GNUNET_CRYPTO_hmac_raw (const void *key, size_t key_len,
   {
     once = 1;
     GNUNET_assert (GPG_ERR_NO_ERROR ==
-                   gcry_md_open (&md, GCRY_MD_SHA512, GCRY_MD_FLAG_HMAC));
+                   gcry_md_open (&md,
+                                 GCRY_MD_SHA512,
+                                 GCRY_MD_FLAG_HMAC));
   }
   else
   {
@@ -323,15 +349,12 @@ GNUNET_CRYPTO_hash_context_start ()
   struct GNUNET_HashContext *hc;
 
   BENCHMARK_START (hash_context_start);
-
   hc = GNUNET_new (struct GNUNET_HashContext);
   GNUNET_assert (0 ==
                  gcry_md_open (&hc->hd,
                                GCRY_MD_SHA512,
                                0));
-
   BENCHMARK_END (hash_context_start);
-
   return hc;
 }
 

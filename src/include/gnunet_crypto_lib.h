@@ -50,6 +50,7 @@ extern "C" {
 #endif
 #endif
 
+#include <stdbool.h>
 #include <sodium.h>
 
 /**
@@ -1037,6 +1038,26 @@ GNUNET_CRYPTO_hash_xor (const struct GNUNET_HashCode *a,
 
 
 /**
+ * Count the number of leading 0 bits in @a h.
+ *
+ * @param h a hash
+ * @return number of leading 0 bits in @a h
+ */
+unsigned int
+GNUNET_CRYPTO_hash_count_leading_zeros (const struct GNUNET_HashCode *h);
+
+
+/**
+ * Count the number of tailing 0 bits in @a h.
+ *
+ * @param h a hash
+ * @return number of tailing 0 bits in @a h
+ */
+unsigned int
+GNUNET_CRYPTO_hash_count_tailing_zeros (const struct GNUNET_HashCode *h);
+
+
+/**
  * @ingroup hash
  * Convert a hashcode into a key.
  *
@@ -1049,49 +1070,6 @@ GNUNET_CRYPTO_hash_to_aes_key (
   const struct GNUNET_HashCode *hc,
   struct GNUNET_CRYPTO_SymmetricSessionKey *skey,
   struct GNUNET_CRYPTO_SymmetricInitializationVector *iv);
-
-
-/**
- * @ingroup hash
- * Obtain a bit from a hashcode.
- *
- * @param code the `struct GNUNET_HashCode` to index bit-wise
- * @param bit index into the hashcode, [0...159] where 0 is the leftmost bit
- *        (bytes in code interpreted big endian)
- * @return Bit \a bit from hashcode \a code, -1 for invalid index
- */
-int
-GNUNET_CRYPTO_hash_get_bit_ltr (const struct GNUNET_HashCode *code,
-                                unsigned int bit);
-
-
-/**
- * Obtain a bit from a hashcode.
- * @param code the GNUNET_CRYPTO_hash to index bit-wise
- * @param bit index into the hashcode, [0...511] where 0 is the rightmost bit
- *        (bytes in code interpreted little endian)
- * @return Bit \a bit from hashcode \a code, -1 for invalid index
- */
-int
-GNUNET_CRYPTO_hash_get_bit_rtl (const struct GNUNET_HashCode *code,
-                                unsigned int bit);
-
-
-/**
- * @ingroup hash
- * Determine how many low order bits match in two
- * `struct GNUNET_HashCodes`.  e.g. - 010011 and 011111 share
- * the first two lowest order bits, and therefore the
- * return value is two (NOT XOR distance, nor how many
- * bits match absolutely!).
- *
- * @param first the first hashcode
- * @param second the hashcode to compare first to
- * @return the number of bits that match
- */
-unsigned int
-GNUNET_CRYPTO_hash_matching_bits (const struct GNUNET_HashCode *first,
-                                  const struct GNUNET_HashCode *second);
 
 
 /**
@@ -2606,7 +2584,6 @@ void
 GNUNET_CRYPTO_cs_r_get_public (const struct GNUNET_CRYPTO_CsRSecret *r_priv,
                                struct GNUNET_CRYPTO_CsRPublic *r_pub);
 
-
 /**
  * Derives new random blinding factors.
  * In original papers blinding factors are generated randomly
@@ -2614,13 +2591,12 @@ GNUNET_CRYPTO_cs_r_get_public (const struct GNUNET_CRYPTO_CsRSecret *r_priv,
  * To ensure unpredictability a new nonce has to be used.
  * Uses HKDF internally
  *
- * @param secret is secret to derive blinding factors
- * @param secret_len secret length
+ * @param blind_seed is the blinding seed to derive blinding factors
  * @param[out] bs array containing the two derived blinding secrets
  */
 void
-GNUNET_CRYPTO_cs_blinding_secrets_derive (const void *secret,
-                                          size_t secret_len,
+GNUNET_CRYPTO_cs_blinding_secrets_derive (const struct
+                                          GNUNET_CRYPTO_CsNonce *blind_seed,
                                           struct GNUNET_CRYPTO_CsBlindingSecret
                                           bs[2]);
 

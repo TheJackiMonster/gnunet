@@ -135,7 +135,7 @@ struct GSF_PendingRequest
   /**
    * Last result from the local datastore lookup evaluation.
    */
-  enum GNUNET_BLOCK_EvaluationResult local_result;
+  enum GNUNET_BLOCK_ReplyEvaluationResult local_result;
 
   /**
    * Identity of the peer that we should use for the 'sender'
@@ -619,7 +619,9 @@ clean_request (void *cls, const struct GNUNET_HashCode *key, void *value)
   if (NULL != (cont = pr->llc_cont))
   {
     pr->llc_cont = NULL;
-    cont (pr->llc_cont_cls, pr, pr->local_result);
+    cont (pr->llc_cont_cls,
+          pr,
+          pr->local_result);
   }
   GSF_plan_notify_request_done_ (pr);
   GNUNET_free (pr->replies_seen);
@@ -689,7 +691,9 @@ GSF_pending_request_cancel_ (struct GSF_PendingRequest *pr, int full_cleanup)
     if (NULL != (cont = pr->llc_cont))
     {
       pr->llc_cont = NULL;
-      cont (pr->llc_cont_cls, pr, pr->local_result);
+      cont (pr->llc_cont_cls,
+            pr,
+            pr->local_result);
     }
     GSF_plan_notify_request_done_ (pr);
     if (NULL != pr->qe)
@@ -778,7 +782,7 @@ struct ProcessReplyClosure
   /**
    * Evaluation result (returned).
    */
-  enum GNUNET_BLOCK_EvaluationResult eval;
+  enum GNUNET_BLOCK_ReplyEvaluationResult eval;
 
   /**
    * Did we find a matching request?
@@ -814,8 +818,10 @@ update_request_performance_data (struct ProcessReplyClosure *prq,
  * @param value value in the hash map (info about the query)
  * @return #GNUNET_YES (we should continue to iterate)
  */
-static int
-process_reply (void *cls, const struct GNUNET_HashCode *key, void *value)
+static enum GNUNET_GenericReturnValue
+process_reply (void *cls,
+               const struct GNUNET_HashCode *key,
+               void *value)
 {
   struct ProcessReplyClosure *prq = cls;
   struct GSF_PendingRequest *pr = value;
@@ -832,22 +838,20 @@ process_reply (void *cls, const struct GNUNET_HashCode *key, void *value)
                             gettext_noop ("# replies received and matched"),
                             1,
                             GNUNET_NO);
-  prq->eval = GNUNET_BLOCK_evaluate (GSF_block_ctx,
-                                     prq->type,
-                                     pr->bg,
-                                     prq->eo,
-                                     key,
-                                     NULL,
-                                     0,
-                                     prq->data,
-                                     prq->size);
+  prq->eval = GNUNET_BLOCK_check_reply (GSF_block_ctx,
+                                        prq->type,
+                                        pr->bg,
+                                        key,
+                                        NULL, 0,
+                                        prq->data,
+                                        prq->size);
   switch (prq->eval)
   {
-  case GNUNET_BLOCK_EVALUATION_OK_MORE:
+  case GNUNET_BLOCK_REPLY_OK_MORE:
     update_request_performance_data (prq, pr);
     break;
 
-  case GNUNET_BLOCK_EVALUATION_OK_LAST:
+  case GNUNET_BLOCK_REPLY_OK_LAST:
     /* short cut: stop processing early, no BF-update, etc. */
     update_request_performance_data (prq, pr);
     GNUNET_LOAD_update (GSF_rt_entry_lifetime,
@@ -859,8 +863,7 @@ process_reply (void *cls, const struct GNUNET_HashCode *key, void *value)
                                                            .pr_head,
                                                            prq->sender,
                                                            &last_transmission))
-      last_transmission.abs_value_us =
-        GNUNET_TIME_UNIT_FOREVER_ABS.abs_value_us;
+      last_transmission = GNUNET_TIME_UNIT_FOREVER_ABS;
     /* pass on to other peers / local clients */
     pr->rh (pr->rh_cls,
             prq->eval,
@@ -872,46 +875,38 @@ process_reply (void *cls, const struct GNUNET_HashCode *key, void *value)
             prq->data,
             prq->size);
     return GNUNET_YES;
-
-  case GNUNET_BLOCK_EVALUATION_OK_DUPLICATE:
+  case GNUNET_BLOCK_REPLY_OK_DUPLICATE:
 #if INSANE_STATISTICS
     GNUNET_STATISTICS_update (GSF_stats,
-                              gettext_noop (
-                                "# duplicate replies discarded (bloomfilter)"),
+                              "# duplicate replies discarded (bloomfilter)",
                               1,
                               GNUNET_NO);
 #endif
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Duplicate response, discarding.\n");
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Duplicate response, discarding.\n");
     return GNUNET_YES;   /* duplicate */
 
-  case GNUNET_BLOCK_EVALUATION_RESULT_IRRELEVANT:
+  case GNUNET_BLOCK_REPLY_IRRELEVANT:
     GNUNET_STATISTICS_update (GSF_stats,
-                              gettext_noop ("# irrelevant replies discarded"),
+                              "# irrelevant replies discarded",
                               1,
                               GNUNET_NO);
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Irrelevant response, ignoring.\n");
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Irrelevant response, ignoring.\n");
     return GNUNET_YES;
-
-  case GNUNET_BLOCK_EVALUATION_RESULT_INVALID:
-    return GNUNET_YES;   /* wrong namespace */
-
-  case GNUNET_BLOCK_EVALUATION_REQUEST_VALID:
-    GNUNET_break (0);
+  case GNUNET_BLOCK_REPLY_INVALID:
     return GNUNET_YES;
-
-  case GNUNET_BLOCK_EVALUATION_REQUEST_INVALID:
-    GNUNET_break (0);
-    return GNUNET_YES;
-
-  case GNUNET_BLOCK_EVALUATION_TYPE_NOT_SUPPORTED:
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                _ ("Unsupported block type %u\n"),
-                prq->type);
+  case GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED:
+    GNUNET_break (0); /* bad installation? */
     return GNUNET_NO;
   }
   /* update bloomfilter */
-  GNUNET_CRYPTO_hash (prq->data, prq->size, &chash);
-  GSF_pending_request_update_ (pr, &chash, 1);
+  GNUNET_CRYPTO_hash (prq->data,
+                      prq->size,
+                      &chash);
+  GSF_pending_request_update_ (pr,
+                               &chash,
+                               1);
   if (NULL == prq->sender)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -936,7 +931,7 @@ process_reply (void *cls, const struct GNUNET_HashCode *key, void *value)
                                                            .pr_head,
                                                            prq->sender,
                                                            &last_transmission))
-    last_transmission.abs_value_us = GNUNET_TIME_UNIT_FOREVER_ABS.abs_value_us;
+    last_transmission = GNUNET_TIME_UNIT_FOREVER_ABS;
   pr->rh (pr->rh_cls,
           prq->eval,
           pr,
@@ -1363,12 +1358,12 @@ call_continuation (struct GSF_PendingRequest *pr)
   pr->llc_cont = NULL;
   if (0 != (GSF_PRO_LOCAL_ONLY & pr->public_data.options))
   {
-    if (GNUNET_BLOCK_EVALUATION_OK_LAST != pr->local_result)
+    if (GNUNET_BLOCK_REPLY_OK_LAST != pr->local_result)
     {
       /* Signal that we are done and that there won't be any
          additional results to allow client to clean up state. */
       pr->rh (pr->rh_cls,
-              GNUNET_BLOCK_EVALUATION_OK_LAST,
+              GNUNET_BLOCK_REPLY_OK_LAST,
               pr,
               UINT32_MAX,
               GNUNET_TIME_UNIT_ZERO_ABS,
@@ -1380,11 +1375,15 @@ call_continuation (struct GSF_PendingRequest *pr)
     /* Finally, call our continuation to signal that we are
        done with local processing of this request; i.e. to
        start reading again from the client. */
-    cont (pr->llc_cont_cls, NULL, GNUNET_BLOCK_EVALUATION_OK_LAST);
+    cont (pr->llc_cont_cls,
+          NULL,
+          GNUNET_BLOCK_REPLY_OK_LAST);
     return;
   }
 
-  cont (pr->llc_cont_cls, pr, pr->local_result);
+  cont (pr->llc_cont_cls,
+        pr,
+        pr->local_result);
 }
 
 
@@ -1635,7 +1634,7 @@ called_from_on_demand:
   prq.eo = GNUNET_BLOCK_EO_LOCAL_SKIP_CRYPTO;
   process_reply (&prq, key, pr);
   pr->local_result = prq.eval;
-  if (GNUNET_BLOCK_EVALUATION_OK_LAST == prq.eval)
+  if (GNUNET_BLOCK_REPLY_OK_LAST == prq.eval)
   {
     GNUNET_STATISTICS_update (
       GSF_stats,
