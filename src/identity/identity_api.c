@@ -954,7 +954,22 @@ GNUNET_IDENTITY_disconnect (struct GNUNET_IDENTITY_Handle *h)
 }
 
 
-ssize_t
+static enum GNUNET_GenericReturnValue
+check_key_type (uint32_t type)
+{
+  switch (type)
+  {
+  case GNUNET_IDENTITY_TYPE_ECDSA:
+  case GNUNET_IDENTITY_TYPE_EDDSA:
+    return GNUNET_OK;
+  default:
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_SYSERR;
+}
+
+
+static ssize_t
 private_key_get_length (const struct GNUNET_IDENTITY_PrivateKey *key)
 {
   switch (ntohl (key->type))
@@ -1085,7 +1100,7 @@ GNUNET_IDENTITY_write_signature_to_buffer (const struct
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_IDENTITY_sign_ (const struct
                        GNUNET_IDENTITY_PrivateKey *priv,
                        const struct
@@ -1111,7 +1126,7 @@ GNUNET_IDENTITY_sign_ (const struct
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_IDENTITY_signature_verify_ (uint32_t purpose,
                                    const struct
                                    GNUNET_CRYPTO_EccSignaturePurpose *validate,
@@ -1233,7 +1248,6 @@ GNUNET_IDENTITY_private_key_to_string (const struct
                                               size);
 }
 
-
 enum GNUNET_GenericReturnValue
 GNUNET_IDENTITY_public_key_from_string (const char *str,
                                         struct GNUNET_IDENTITY_PublicKey *key)
@@ -1245,7 +1259,7 @@ GNUNET_IDENTITY_public_key_from_string (const char *str,
                                        sizeof (*key));
   if (GNUNET_OK != ret)
     return GNUNET_SYSERR;
-  return GNUNET_OK;
+  return check_key_type (ntohl (key->type));
 
 }
 
@@ -1261,7 +1275,7 @@ GNUNET_IDENTITY_private_key_from_string (const char *str,
                                        sizeof (*key));
   if (GNUNET_OK != ret)
     return GNUNET_SYSERR;
-  return GNUNET_OK;
+  return check_key_type (ntohl (key->type));
 }
 
 

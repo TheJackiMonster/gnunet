@@ -560,6 +560,14 @@ store_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
     return;
   }
 
+  if (NULL == ego)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                _("Ego does not exist!\n"));
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
+
   // Key handling
   zone_pkey = *GNUNET_IDENTITY_ego_get_private_key (ego);
 
@@ -611,12 +619,12 @@ store_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
     {
       if (typestring == NULL)
       {
-        fputs ("No value for unknown record type\n", stderr);
+        fputs ("Value for unknown record type not well-formed.\n", stderr);
       }
       else if (subject == NULL)
       {
         fprintf (stderr,
-                 "No value for record type`%s'\n",
+                 "Value for record type `%s' not well-formed.\n",
                  typestring);
       }
       else

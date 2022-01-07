@@ -509,7 +509,7 @@ GNUNET_IDENTITY_write_signature_to_buffer (const struct
  * @param[out] sig where to write the signature
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_IDENTITY_sign_ (const struct
                        GNUNET_IDENTITY_PrivateKey *priv,
                        const struct
@@ -558,7 +558,7 @@ GNUNET_IDENTITY_sign_ (const struct
  * @param pub public key of the signer
  * @returns #GNUNET_OK if ok, #GNUNET_SYSERR if invalid
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_IDENTITY_signature_verify_ (uint32_t purpose,
                                    const struct
                                    GNUNET_CRYPTO_EccSignaturePurpose *validate,
