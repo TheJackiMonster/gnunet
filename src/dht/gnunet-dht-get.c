@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2001, 2002, 2004, 2005, 2006, 2007, 2009 GNUnet e.V.
+     Copyright (C) 2001, 2002, 2004, 2005, 2006, 2007, 2009, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -146,16 +146,17 @@ static void
 get_result_iterator (void *cls,
                      struct GNUNET_TIME_Absolute exp,
                      const struct GNUNET_HashCode *key,
-                     const struct GNUNET_PeerIdentity *get_path,
+                     const struct GNUNET_DHT_PathElement *get_path,
                      unsigned int get_path_length,
-                     const struct GNUNET_PeerIdentity *put_path,
+                     const struct GNUNET_DHT_PathElement *put_path,
                      unsigned int put_path_length,
                      enum GNUNET_BLOCK_Type type,
                      size_t size,
                      const void *data)
 {
   fprintf (stdout,
-           (GNUNET_BLOCK_TYPE_TEST == type) ? _ ("Result %d, type %d:\n%.*s\n")
+           (GNUNET_BLOCK_TYPE_TEST == type)
+           ? _ ("Result %d, type %d:\n%.*s\n")
            : _ ("Result %d, type %d:\n"),
            result_count,
            type,
@@ -163,13 +164,22 @@ get_result_iterator (void *cls,
            (char *) data);
   if (verbose)
   {
-    fprintf (stdout, "  GET path: ");
+    fprintf (stdout,
+             "  GET path: ");
     for (unsigned int i = 0; i < get_path_length; i++)
-      fprintf (stdout, "%s%s", (0 == i) ? "" : "-", GNUNET_i2s (&get_path[i]));
-    fprintf (stdout, "\n  PUT path: ");
+      fprintf (stdout,
+               "%s%s",
+               (0 == i) ? "" : "-",
+               GNUNET_i2s (&get_path[i].pred));
+    fprintf (stdout,
+             "\n  PUT path: ");
     for (unsigned int i = 0; i < put_path_length; i++)
-      fprintf (stdout, "%s%s", (0 == i) ? "" : "-", GNUNET_i2s (&put_path[i]));
-    fprintf (stdout, "\n");
+      fprintf (stdout,
+               "%s%s",
+               (0 == i) ? "" : "-",
+               GNUNET_i2s (&put_path[i].pred));
+    fprintf (stdout,
+             "\n");
   }
   result_count++;
 }
@@ -194,13 +204,17 @@ run (void *cls,
   cfg = c;
   if (NULL == query_key)
   {
-    fprintf (stderr, "%s", _ ("Must provide key for DHT GET!\n"));
+    fprintf (stderr,
+             "%s",
+             _ ("Must provide key for DHT GET!\n"));
     ret = 1;
     return;
   }
   if (NULL == (dht_handle = GNUNET_DHT_connect (cfg, 1)))
   {
-    fprintf (stderr, "%s", _ ("Failed to connect to DHT service!\n"));
+    fprintf (stderr,
+             "%s",
+             _ ("Failed to connect to DHT service!\n"));
     ret = 1;
     return;
   }
@@ -238,39 +252,45 @@ run (void *cls,
 int
 main (int argc, char *const *argv)
 {
-  struct GNUNET_GETOPT_CommandLineOption options[] =
-  { GNUNET_GETOPT_option_string ('k',
-                                 "key",
-                                 "KEY",
-                                 gettext_noop ("the query key"),
-                                 &query_key),
+  struct GNUNET_GETOPT_CommandLineOption options[] = {
+    GNUNET_GETOPT_option_string (
+      'k',
+      "key",
+      "KEY",
+      gettext_noop ("the query key"),
+      &query_key),
     GNUNET_GETOPT_option_uint (
       'r',
       "replication",
       "LEVEL",
       gettext_noop ("how many parallel requests (replicas) to create"),
       &replication),
-    GNUNET_GETOPT_option_uint ('t',
-                               "type",
-                               "TYPE",
-                               gettext_noop ("the type of data to look for"),
-                               &query_type),
+    GNUNET_GETOPT_option_uint (
+      't',
+      "type",
+      "TYPE",
+      gettext_noop ("the type of data to look for"),
+      &query_type),
     GNUNET_GETOPT_option_relative_time (
       'T',
       "timeout",
       "TIMEOUT",
       gettext_noop ("how long to execute this query before giving up?"),
       &timeout_request),
-    GNUNET_GETOPT_option_flag ('x',
-                               "demultiplex",
-                               gettext_noop (
-                                 "use DHT's demultiplex everywhere option"),
-                               &demultixplex_everywhere),
+    GNUNET_GETOPT_option_flag (
+      'x',
+      "demultiplex",
+      gettext_noop (
+        "use DHT's demultiplex everywhere option"),
+      &demultixplex_everywhere),
     GNUNET_GETOPT_option_verbose (&verbose),
-    GNUNET_GETOPT_OPTION_END };
+    GNUNET_GETOPT_OPTION_END
+  };
 
 
-  if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
+  if (GNUNET_OK !=
+      GNUNET_STRINGS_get_utf8_args (argc, argv,
+                                    &argc, &argv))
     return 2;
   return (GNUNET_OK ==
           GNUNET_PROGRAM_run (

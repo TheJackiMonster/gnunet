@@ -468,9 +468,9 @@ extend_path (struct CadetPeerPath *path,
  * @return a path through the network
  */
 void
-GCPP_try_path_from_dht (const struct GNUNET_PeerIdentity *get_path,
+GCPP_try_path_from_dht (const struct GNUNET_DHT_PathElement *get_path,
                         unsigned int get_path_length,
-                        const struct GNUNET_PeerIdentity *put_path,
+                        const struct GNUNET_DHT_PathElement *put_path,
                         unsigned int put_path_length)
 {
   struct CadetPeer *cpath[get_path_length + put_path_length];
@@ -490,8 +490,8 @@ GCPP_try_path_from_dht (const struct GNUNET_PeerIdentity *get_path,
     const struct GNUNET_PeerIdentity *pid;
 
     pid = (off < get_path_length)
-          ? &get_path[get_path_length - off - 1]
-          : &put_path[get_path_length + put_path_length - off - 1];
+          ? &get_path[get_path_length - off - 1].pred
+          : &put_path[get_path_length + put_path_length - off - 1].pred;
     /* Check that I am not in the path */
     if (0 == GNUNET_memcmp (&my_full_id,
                             pid))

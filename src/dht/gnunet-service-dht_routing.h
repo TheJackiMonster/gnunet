@@ -47,7 +47,7 @@ void
 GDS_ROUTING_process (const struct GDS_DATACACHE_BlockData *bd,
                      const struct GNUNET_HashCode *query_hash,
                      unsigned int get_path_length,
-                     const struct GNUNET_PeerIdentity *get_path);
+                     const struct GNUNET_DHT_PathElement *get_path);
 
 
 /**

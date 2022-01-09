@@ -80,7 +80,7 @@ struct Value
   /**
    * Path information.
    */
-  struct GNUNET_PeerIdentity *path_info;
+  struct GNUNET_DHT_PathElement *path_info;
 
   /**
    * Payload (actual payload follows this struct)
@@ -125,7 +125,7 @@ struct PutContext
   /**
    * Path information.
    */
-  const struct GNUNET_PeerIdentity *path_info;
+  const struct GNUNET_DHT_PathElement *path_info;
 
   /**
    * Number of bytes in @e data.
@@ -181,7 +181,8 @@ put_cb (void *cls,
                        put_ctx->path_info_len);
     GNUNET_memcpy (val->path_info,
                    put_ctx->path_info,
-                   put_ctx->path_info_len * sizeof(struct GNUNET_PeerIdentity));
+                   put_ctx->path_info_len * sizeof(struct
+                                                   GNUNET_DHT_PathElement));
     GNUNET_CONTAINER_heap_update_cost (val->hn,
                                        val->discard_time.abs_value_us);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -219,7 +220,7 @@ heap_plugin_put (void *cls,
                  enum GNUNET_BLOCK_Type type,
                  struct GNUNET_TIME_Absolute discard_time,
                  unsigned int path_info_len,
-                 const struct GNUNET_PeerIdentity *path_info)
+                 const struct GNUNET_DHT_PathElement *path_info)
 {
   struct Plugin *plugin = cls;
   struct Value *val;
@@ -255,7 +256,7 @@ heap_plugin_put (void *cls,
                      path_info_len);
   GNUNET_memcpy (val->path_info,
                  path_info,
-                 path_info_len * sizeof(struct GNUNET_PeerIdentity));
+                 path_info_len * sizeof(struct GNUNET_DHT_PathElement));
   (void) GNUNET_CONTAINER_multihashmap_put (plugin->map,
                                             &val->key,
                                             val,

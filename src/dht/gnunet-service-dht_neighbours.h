@@ -42,7 +42,7 @@ struct PeerInfo;
 
 /**
  * Lookup peer by peer's identity.
- * 
+ *
  * @param target peer to look up
  * @return NULL if we are not connected to @a target
  */
@@ -118,7 +118,7 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
                              const struct GDS_DATACACHE_BlockData *bd,
                              const struct GNUNET_HashCode *query_hash,
                              unsigned int get_path_length,
-                             const struct GNUNET_PeerIdentity *get_path);
+                             const struct GNUNET_DHT_PathElement *get_path);
 
 
 /**

@@ -340,10 +340,10 @@ REGEX_INTERNAL_construct_nfa (const char *regex, const size_t len);
  *
  * @return GNUNET_YES to proceed traversal, GNUNET_NO to stop.
  */
-typedef int (*REGEX_INTERNAL_traverse_check) (void *cls,
-                                              struct REGEX_INTERNAL_State *s,
-                                              struct REGEX_INTERNAL_Transition *
-                                              t);
+typedef int
+(*REGEX_INTERNAL_traverse_check) (void *cls,
+                                  struct REGEX_INTERNAL_State *s,
+                                  struct REGEX_INTERNAL_Transition *t);
 
 
 /**
@@ -353,9 +353,10 @@ typedef int (*REGEX_INTERNAL_traverse_check) (void *cls,
  * @param count current count of the state, from 0 to a->state_count -1.
  * @param s state.
  */
-typedef void (*REGEX_INTERNAL_traverse_action) (void *cls,
-                                                const unsigned int count,
-                                                struct REGEX_INTERNAL_State *s);
+typedef void
+(*REGEX_INTERNAL_traverse_action) (void *cls,
+                                   const unsigned int count,
+                                   struct REGEX_INTERNAL_State *s);
 
 
 /**

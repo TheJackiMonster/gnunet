@@ -156,7 +156,7 @@ postgres_plugin_put (void *cls,
                      enum GNUNET_BLOCK_Type type,
                      struct GNUNET_TIME_Absolute discard_time,
                      unsigned int path_info_len,
-                     const struct GNUNET_PeerIdentity *path_info)
+                     const struct GNUNET_DHT_PathElement *path_info)
 {
   struct Plugin *plugin = cls;
   uint32_t type32 = (uint32_t) type;
@@ -168,7 +168,7 @@ postgres_plugin_put (void *cls,
     GNUNET_PQ_query_param_fixed_size (data, data_size),
     GNUNET_PQ_query_param_fixed_size (path_info,
                                       path_info_len * sizeof(struct
-                                                             GNUNET_PeerIdentity)),
+                                                             GNUNET_DHT_PathElement)),
     GNUNET_PQ_query_param_end
   };
   enum GNUNET_DB_QueryStatus ret;
@@ -227,7 +227,7 @@ handle_results (void *cls,
     uint32_t type;
     void *data;
     size_t data_size;
-    struct GNUNET_PeerIdentity *path;
+    struct GNUNET_DHT_PathElement *path;
     size_t path_len;
     struct GNUNET_PQ_ResultSpec rs[] = {
       GNUNET_PQ_result_spec_absolute_time ("discard_time",
@@ -251,12 +251,12 @@ handle_results (void *cls,
       GNUNET_break (0);
       return;
     }
-    if (0 != (path_len % sizeof(struct GNUNET_PeerIdentity)))
+    if (0 != (path_len % sizeof(struct GNUNET_DHT_PathElement)))
     {
       GNUNET_break (0);
       path_len = 0;
     }
-    path_len %= sizeof(struct GNUNET_PeerIdentity);
+    path_len %= sizeof(struct GNUNET_DHT_PathElement);
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Found result of size %u bytes and type %u in database\n",
          (unsigned int) data_size,
@@ -446,7 +446,7 @@ extract_result_cb (void *cls,
     uint32_t type;
     void *data;
     size_t data_size;
-    struct GNUNET_PeerIdentity *path;
+    struct GNUNET_DHT_PathElement *path;
     size_t path_len;
     struct GNUNET_HashCode key;
     struct GNUNET_PQ_ResultSpec rs[] = {
@@ -473,12 +473,12 @@ extract_result_cb (void *cls,
       GNUNET_break (0);
       return;
     }
-    if (0 != (path_len % sizeof(struct GNUNET_PeerIdentity)))
+    if (0 != (path_len % sizeof(struct GNUNET_DHT_PathElement)))
     {
       GNUNET_break (0);
       path_len = 0;
     }
-    path_len %= sizeof(struct GNUNET_PeerIdentity);
+    path_len %= sizeof(struct GNUNET_DHT_PathElement);
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Found result of size %u bytes and type %u in database\n",
          (unsigned int) data_size,

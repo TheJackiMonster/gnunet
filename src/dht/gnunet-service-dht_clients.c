@@ -644,8 +644,8 @@ handle_dht_local_get (void *cls,
                            cqr->type,
                            0, /* hop count */
                            cqr->replication,
-                           1, /* path length */
-                           GDS_NEIGHBOURS_get_id (),
+                           0, /* path length */
+                           NULL,
                            &get->key);
   /* start remote requests */
   if (NULL != retry_task)
@@ -867,7 +867,7 @@ struct ForwardReplyContext
   /**
    * GET path taken.
    */
-  const struct GNUNET_PeerIdentity *get_path;
+  const struct GNUNET_DHT_PathElement *get_path;
 
   /**
    * Number of entries in @e get_path.
@@ -900,7 +900,7 @@ forward_reply (void *cls,
   enum GNUNET_BLOCK_ReplyEvaluationResult eval;
   bool do_free;
   struct GNUNET_HashCode ch;
-  struct GNUNET_PeerIdentity *paths;
+  struct GNUNET_DHT_PathElement *paths;
 
   LOG_TRAFFIC (GNUNET_ERROR_TYPE_DEBUG,
                "CLIENT-RESULT %s\n",
@@ -989,7 +989,7 @@ forward_reply (void *cls,
   env = GNUNET_MQ_msg_extra (reply,
                              frc->bd->data_size
                              + (frc->get_path_length + frc->bd->put_path_length)
-                             * sizeof(struct GNUNET_PeerIdentity),
+                             * sizeof(struct GNUNET_DHT_PathElement),
                              GNUNET_MESSAGE_TYPE_DHT_CLIENT_RESULT);
   reply->type = htonl (frc->bd->type);
   reply->get_path_length = htonl (frc->get_path_length);
@@ -997,13 +997,14 @@ forward_reply (void *cls,
   reply->unique_id = record->unique_id;
   reply->expiration = GNUNET_TIME_absolute_hton (frc->bd->expiration_time);
   reply->key = frc->bd->key;
-  paths = (struct GNUNET_PeerIdentity *) &reply[1];
+  paths = (struct GNUNET_DHT_PathElement *) &reply[1];
   GNUNET_memcpy (paths,
                  frc->bd->put_path,
-                 sizeof(struct GNUNET_PeerIdentity) * frc->bd->put_path_length);
+                 sizeof(struct GNUNET_DHT_PathElement)
+                 * frc->bd->put_path_length);
   GNUNET_memcpy (&paths[frc->bd->put_path_length],
                  frc->get_path,
-                 sizeof(struct GNUNET_PeerIdentity) * frc->get_path_length);
+                 sizeof(struct GNUNET_DHT_PathElement) * frc->get_path_length);
   GNUNET_memcpy (&paths[frc->get_path_length + frc->bd->put_path_length],
                  frc->bd->data,
                  frc->bd->data_size);
@@ -1023,13 +1024,13 @@ void
 GDS_CLIENTS_handle_reply (const struct GDS_DATACACHE_BlockData *bd,
                           const struct GNUNET_HashCode *query_hash,
                           unsigned int get_path_length,
-                          const struct GNUNET_PeerIdentity *get_path)
+                          const struct GNUNET_DHT_PathElement *get_path)
 {
   struct ForwardReplyContext frc;
   size_t msize = sizeof (struct GNUNET_DHT_ClientResultMessage)
                  + bd->data_size
                  + (get_path_length + bd->put_path_length)
-                 * sizeof(struct GNUNET_PeerIdentity);
+                 * sizeof(struct GNUNET_DHT_PathElement);
 
   if (msize >= GNUNET_MAX_MESSAGE_SIZE)
   {
@@ -1203,7 +1204,7 @@ struct GetActionContext
   uint32_t hop_count;
   uint32_t desired_replication_level;
   unsigned int get_path_length;
-  const struct GNUNET_PeerIdentity *get_path;
+  const struct GNUNET_DHT_PathElement *get_path;
   const struct GNUNET_HashCode *key;
 };
 
@@ -1222,10 +1223,10 @@ get_action (void *cls,
   struct GetActionContext *gac = cls;
   struct GNUNET_MQ_Envelope *env;
   struct GNUNET_DHT_MonitorGetMessage *mmsg;
-  struct GNUNET_PeerIdentity *msg_path;
+  struct GNUNET_DHT_PathElement *msg_path;
   size_t msize;
 
-  msize = gac->get_path_length * sizeof(struct GNUNET_PeerIdentity);
+  msize = gac->get_path_length * sizeof(struct GNUNET_DHT_PathElement);
   env = GNUNET_MQ_msg_extra (mmsg,
                              msize,
                              GNUNET_MESSAGE_TYPE_DHT_MONITOR_GET);
@@ -1235,10 +1236,10 @@ get_action (void *cls,
   mmsg->desired_replication_level = htonl (gac->desired_replication_level);
   mmsg->get_path_length = htonl (gac->get_path_length);
   mmsg->key = *gac->key;
-  msg_path = (struct GNUNET_PeerIdentity *) &mmsg[1];
+  msg_path = (struct GNUNET_DHT_PathElement *) &mmsg[1];
   GNUNET_memcpy (msg_path,
                  gac->get_path,
-                 gac->get_path_length * sizeof(struct GNUNET_PeerIdentity));
+                 gac->get_path_length * sizeof(struct GNUNET_DHT_PathElement));
   GNUNET_MQ_send (m->ch->mq,
                   env);
 }
@@ -1262,7 +1263,7 @@ GDS_CLIENTS_process_get (enum GNUNET_DHT_RouteOption options,
                          uint32_t hop_count,
                          uint32_t desired_replication_level,
                          unsigned int path_length,
-                         const struct GNUNET_PeerIdentity *path,
+                         const struct GNUNET_DHT_PathElement *path,
                          const struct GNUNET_HashCode *key)
 {
   struct GetActionContext gac = {
@@ -1288,7 +1289,7 @@ GDS_CLIENTS_process_get (enum GNUNET_DHT_RouteOption options,
 struct ResponseActionContext
 {
   const struct GDS_DATACACHE_BlockData *bd;
-  const struct GNUNET_PeerIdentity *get_path;
+  const struct GNUNET_DHT_PathElement *get_path;
   unsigned int get_path_length;
 };
 
@@ -1309,12 +1310,12 @@ response_action (void *cls,
 
   struct GNUNET_MQ_Envelope *env;
   struct GNUNET_DHT_MonitorGetRespMessage *mmsg;
-  struct GNUNET_PeerIdentity *path;
+  struct GNUNET_DHT_PathElement *path;
   size_t msize;
 
   msize = bd->data_size;
   msize += (resp_ctx->get_path_length + bd->put_path_length)
-           * sizeof(struct GNUNET_PeerIdentity);
+           * sizeof(struct GNUNET_DHT_PathElement);
   env = GNUNET_MQ_msg_extra (mmsg,
                              msize,
                              GNUNET_MESSAGE_TYPE_DHT_MONITOR_GET_RESP);
@@ -1323,14 +1324,14 @@ response_action (void *cls,
   mmsg->get_path_length = htonl (resp_ctx->get_path_length);
   mmsg->expiration_time = GNUNET_TIME_absolute_hton (bd->expiration_time);
   mmsg->key = bd->key;
-  path = (struct GNUNET_PeerIdentity *) &mmsg[1];
+  path = (struct GNUNET_DHT_PathElement *) &mmsg[1];
   GNUNET_memcpy (path,
                  bd->put_path,
-                 bd->put_path_length * sizeof(struct GNUNET_PeerIdentity));
+                 bd->put_path_length * sizeof(struct GNUNET_DHT_PathElement));
   GNUNET_memcpy (path,
                  resp_ctx->get_path,
                  resp_ctx->get_path_length * sizeof(struct
-                                                    GNUNET_PeerIdentity));
+                                                    GNUNET_DHT_PathElement));
   GNUNET_memcpy (&path[resp_ctx->get_path_length],
                  bd->data,
                  bd->data_size);
@@ -1341,7 +1342,7 @@ response_action (void *cls,
 
 void
 GDS_CLIENTS_process_get_resp (const struct GDS_DATACACHE_BlockData *bd,
-                              const struct GNUNET_PeerIdentity *get_path,
+                              const struct GNUNET_DHT_PathElement *get_path,
                               unsigned int get_path_length)
 {
   struct ResponseActionContext rac = {
@@ -1384,12 +1385,12 @@ put_action (void *cls,
   const struct GDS_DATACACHE_BlockData *bd = put_ctx->bd;
   struct GNUNET_MQ_Envelope *env;
   struct GNUNET_DHT_MonitorPutMessage *mmsg;
-  struct GNUNET_PeerIdentity *msg_path;
+  struct GNUNET_DHT_PathElement *msg_path;
   size_t msize;
 
   msize = bd->data_size
           + bd->put_path_length
-          * sizeof(struct GNUNET_PeerIdentity);
+          * sizeof(struct GNUNET_DHT_PathElement);
   env = GNUNET_MQ_msg_extra (mmsg,
                              msize,
                              GNUNET_MESSAGE_TYPE_DHT_MONITOR_PUT);
@@ -1400,10 +1401,10 @@ put_action (void *cls,
   mmsg->put_path_length = htonl (bd->put_path_length);
   mmsg->key = bd->key;
   mmsg->expiration_time = GNUNET_TIME_absolute_hton (bd->expiration_time);
-  msg_path = (struct GNUNET_PeerIdentity *) &mmsg[1];
+  msg_path = (struct GNUNET_DHT_PathElement *) &mmsg[1];
   GNUNET_memcpy (msg_path,
                  bd->put_path,
-                 bd->put_path_length * sizeof(struct GNUNET_PeerIdentity));
+                 bd->put_path_length * sizeof(struct GNUNET_DHT_PathElement));
   GNUNET_memcpy (&msg_path[bd->put_path_length],
                  bd->data,
                  bd->data_size);

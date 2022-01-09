@@ -23,11 +23,7 @@
  * @brief Regex profiler for testing distributed regex use.
  * @author Bartlomiej Polot
  * @author Maximilian Szengel
- *
  */
-
-#include <string.h>
-
 #include "platform.h"
 #include "gnunet_applications.h"
 #include "gnunet_util_lib.h"
@@ -727,9 +723,9 @@ find_string (void *cls);
 static void
 regex_found_handler (void *cls,
                      const struct GNUNET_PeerIdentity *id,
-                     const struct GNUNET_PeerIdentity *get_path,
+                     const struct GNUNET_DHT_PathElement *get_path,
                      unsigned int get_path_length,
-                     const struct GNUNET_PeerIdentity *put_path,
+                     const struct GNUNET_DHT_PathElement *put_path,
                      unsigned int put_path_length)
 {
   struct RegexPeer *peer = cls;
@@ -1558,53 +1554,56 @@ int
 main (int argc, char *const *argv)
 {
   struct GNUNET_GETOPT_CommandLineOption options[] = {
-    GNUNET_GETOPT_option_filename ('o',
-                                   "output-file",
-                                   "FILENAME",
-                                   gettext_noop (
-                                     "name of the file for writing statistics"),
-                                   &data_filename),
-
-    GNUNET_GETOPT_option_relative_time ('t',
-                                        "matching-timeout",
-                                        "TIMEOUT",
-                                        gettext_noop (
-                                          "wait TIMEOUT before ending the experiment"),
-                                        &search_timeout_time),
-
-    GNUNET_GETOPT_option_filename ('p',
-                                   "policy-dir",
-                                   "DIRECTORY",
-                                   gettext_noop ("directory with policy files"),
-                                   &policy_dir),
-
-
-    GNUNET_GETOPT_option_filename ('s',
-                                   "strings-file",
-                                   "FILENAME",
-                                   gettext_noop (
-                                     "name of file with input strings"),
-                                   &strings_file),
-
-    GNUNET_GETOPT_option_filename ('H',
-                                   "hosts-file",
-                                   "FILENAME",
-                                   gettext_noop (
-                                     "name of file with hosts' names"),
-                                   &hosts_file),
+    GNUNET_GETOPT_option_filename (
+      'o',
+      "output-file",
+      "FILENAME",
+      gettext_noop (
+        "name of the file for writing statistics"),
+      &data_filename),
+    GNUNET_GETOPT_option_relative_time (
+      't',
+      "matching-timeout",
+      "TIMEOUT",
+      gettext_noop (
+        "wait TIMEOUT before ending the experiment"),
+      &search_timeout_time),
+    GNUNET_GETOPT_option_filename (
+      'p',
+      "policy-dir",
+      "DIRECTORY",
+      gettext_noop ("directory with policy files"),
+      &policy_dir),
+    GNUNET_GETOPT_option_filename (
+      's',
+      "strings-file",
+      "FILENAME",
+      gettext_noop (
+        "name of file with input strings"),
+      &strings_file),
+    GNUNET_GETOPT_option_filename (
+      'H',
+      "hosts-file",
+      "FILENAME",
+      gettext_noop (
+        "name of file with hosts' names"),
+      &hosts_file),
 
     GNUNET_GETOPT_OPTION_END
   };
   int ret;
 
-  if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
+  if (GNUNET_OK !=
+      GNUNET_STRINGS_get_utf8_args (argc, argv,
+                                    &argc, &argv))
     return 2;
   result = GNUNET_SYSERR;
   ret =
     GNUNET_PROGRAM_run (argc, argv,
                         "gnunet-regex-profiler",
                         _ ("Profiler for regex"),
-                        options, &run, NULL);
+                        options,
+                        &run, NULL);
   if (GNUNET_OK != ret)
     return ret;
   if (GNUNET_OK != result)

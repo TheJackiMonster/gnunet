@@ -384,9 +384,9 @@ regex_next_edge (const struct RegexBlock *block,
 static void
 dht_get_string_accept_handler (void *cls, struct GNUNET_TIME_Absolute exp,
                                const struct GNUNET_HashCode *key,
-                               const struct GNUNET_PeerIdentity *get_path,
+                               const struct GNUNET_DHT_PathElement *get_path,
                                unsigned int get_path_length,
-                               const struct GNUNET_PeerIdentity *put_path,
+                               const struct GNUNET_DHT_PathElement *put_path,
                                unsigned int put_path_length,
                                enum GNUNET_BLOCK_Type type,
                                size_t size, const void *data)
@@ -464,9 +464,9 @@ regex_find_path (const struct GNUNET_HashCode *key,
 static void
 dht_get_string_handler (void *cls, struct GNUNET_TIME_Absolute exp,
                         const struct GNUNET_HashCode *key,
-                        const struct GNUNET_PeerIdentity *get_path,
+                        const struct GNUNET_DHT_PathElement *get_path,
                         unsigned int get_path_length,
-                        const struct GNUNET_PeerIdentity *put_path,
+                        const struct GNUNET_DHT_PathElement *put_path,
                         unsigned int put_path_length,
                         enum GNUNET_BLOCK_Type type,
                         size_t size, const void *data)

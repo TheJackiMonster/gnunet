@@ -109,7 +109,7 @@ struct ProcessContext
   /**
    * Path of the reply.
    */
-  const struct GNUNET_PeerIdentity *get_path;
+  const struct GNUNET_DHT_PathElement *get_path;
 
   /**
    * Number of entries in @e get_path.
@@ -181,7 +181,7 @@ process (void *cls,
   case GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED:
     {
       struct PeerInfo *pi;
-      
+
       GNUNET_STATISTICS_update (GDS_stats,
                                 "# Good REPLIES matched against routing table",
                                 1,
@@ -244,7 +244,7 @@ void
 GDS_ROUTING_process (const struct GDS_DATACACHE_BlockData *bd,
                      const struct GNUNET_HashCode *query_hash,
                      unsigned int get_path_length,
-                     const struct GNUNET_PeerIdentity *get_path)
+                     const struct GNUNET_DHT_PathElement *get_path)
 {
   struct ProcessContext pc = {
     .bd = bd,

@@ -124,7 +124,7 @@ struct GNUNET_DATACACHE_PluginFunctions
           enum GNUNET_BLOCK_Type type,
           struct GNUNET_TIME_Absolute discard_time,
           unsigned int path_info_len,
-          const struct GNUNET_PeerIdentity *path_info);
+          const struct GNUNET_DHT_PathElement *path_info);
 
 
   /**

@@ -221,9 +221,9 @@ REGEX_INTERNAL_announce_cancel (struct REGEX_INTERNAL_Announcement *h);
 typedef void
 (*REGEX_INTERNAL_Found)(void *cls,
                         const struct GNUNET_PeerIdentity *id,
-                        const struct GNUNET_PeerIdentity *get_path,
+                        const struct GNUNET_DHT_PathElement *get_path,
                         unsigned int get_path_length,
-                        const struct GNUNET_PeerIdentity *put_path,
+                        const struct GNUNET_DHT_PathElement *put_path,
                         unsigned int put_path_length);
 
 

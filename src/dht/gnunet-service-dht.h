@@ -73,7 +73,7 @@ void
 GDS_CLIENTS_handle_reply (const struct GDS_DATACACHE_BlockData *bd,
                           const struct GNUNET_HashCode *query_hash,
                           unsigned int get_path_length,
-                          const struct GNUNET_PeerIdentity *get_path);
+                          const struct GNUNET_DHT_PathElement *get_path);
 
 
 /**
@@ -94,7 +94,7 @@ GDS_CLIENTS_process_get (enum GNUNET_DHT_RouteOption options,
                          uint32_t hop_count,
                          uint32_t desired_replication_level,
                          unsigned int path_length,
-                         const struct GNUNET_PeerIdentity *path,
+                         const struct GNUNET_DHT_PathElement *path,
                          const struct GNUNET_HashCode *key);
 
 
@@ -108,7 +108,7 @@ GDS_CLIENTS_process_get (enum GNUNET_DHT_RouteOption options,
  */
 void
 GDS_CLIENTS_process_get_resp (const struct GDS_DATACACHE_BlockData *bd,
-                              const struct GNUNET_PeerIdentity *get_path,
+                              const struct GNUNET_DHT_PathElement *get_path,
                               unsigned int get_path_length);
 
 

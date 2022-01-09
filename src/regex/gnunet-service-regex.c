@@ -196,9 +196,9 @@ handle_announce (void *cls,
 static void
 handle_search_result (void *cls,
                       const struct GNUNET_PeerIdentity *id,
-                      const struct GNUNET_PeerIdentity *get_path,
+                      const struct GNUNET_DHT_PathElement *get_path,
                       unsigned int get_path_length,
-                      const struct GNUNET_PeerIdentity *put_path,
+                      const struct GNUNET_DHT_PathElement *put_path,
                       unsigned int put_path_length)
 {
   struct ClientEntry *ce = cls;
@@ -209,15 +209,15 @@ handle_search_result (void *cls,
 
   if ((get_path_length >= 65536) ||
       (put_path_length >= 65536) ||
-      ( ((get_path_length + put_path_length) * sizeof(struct
-                                                      GNUNET_PeerIdentity))
+      ( ((get_path_length + put_path_length)
+         * sizeof(struct GNUNET_PeerIdentity))
         + sizeof(struct ResultMessage) >= GNUNET_MAX_MESSAGE_SIZE) )
   {
     GNUNET_break (0);
     return;
   }
-  size = (get_path_length + put_path_length) * sizeof(struct
-                                                      GNUNET_PeerIdentity);
+  size = (get_path_length + put_path_length)
+         * sizeof(struct GNUNET_PeerIdentity);
   env = GNUNET_MQ_msg_extra (result,
                              size,
                              GNUNET_MESSAGE_TYPE_REGEX_RESULT);
@@ -225,12 +225,10 @@ handle_search_result (void *cls,
   result->put_path_length = htons ((uint16_t) put_path_length);
   result->id = *id;
   gp = &result->id;
-  GNUNET_memcpy (&gp[1],
-                 get_path,
-                 get_path_length * sizeof(struct GNUNET_PeerIdentity));
-  GNUNET_memcpy (&gp[1 + get_path_length],
-                 put_path,
-                 put_path_length * sizeof(struct GNUNET_PeerIdentity));
+  for (unsigned int i = 0; i<get_path_length; i++)
+    gp[i + 1] = get_path[i].pred;
+  for (unsigned int i = 0; i<put_path_length; i++)
+    gp[i + get_path_length + 1] = put_path[i].pred;
   GNUNET_MQ_send (ce->mq,
                   env);
 }

@@ -46,7 +46,7 @@ checkIt (void *cls,
          enum GNUNET_BLOCK_Type type,
          struct GNUNET_TIME_Absolute exp,
          unsigned int path_len,
-         const struct GNUNET_PeerIdentity *path)
+         const struct GNUNET_DHT_PathElement *path)
 {
   (void) key;
   (void) type;

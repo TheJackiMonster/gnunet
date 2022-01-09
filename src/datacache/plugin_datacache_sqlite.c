@@ -192,7 +192,7 @@ sqlite_plugin_put (void *cls,
                    enum GNUNET_BLOCK_Type type,
                    struct GNUNET_TIME_Absolute discard_time,
                    unsigned int path_info_len,
-                   const struct GNUNET_PeerIdentity *path_info)
+                   const struct GNUNET_DHT_PathElement *path_info)
 {
   struct Plugin *plugin = cls;
   uint32_t type32 = type;
@@ -204,7 +204,7 @@ sqlite_plugin_put (void *cls,
     GNUNET_SQ_query_param_fixed_size (data, size),
     GNUNET_SQ_query_param_fixed_size (path_info,
                                       path_info_len
-                                      * sizeof(struct GNUNET_PeerIdentity)),
+                                      * sizeof(struct GNUNET_DHT_PathElement)),
     GNUNET_SQ_query_param_end };
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -265,7 +265,7 @@ sqlite_plugin_get (void *cls,
   uint32_t off;
   unsigned int total;
   size_t psize;
-  struct GNUNET_PeerIdentity *path;
+  struct GNUNET_DHT_PathElement *path;
   struct GNUNET_SQ_QueryParam params_count[] =
   { GNUNET_SQ_query_param_auto_from_type (key),
     GNUNET_SQ_query_param_uint32 (&type32),
@@ -339,13 +339,13 @@ sqlite_plugin_get (void *cls,
       GNUNET_SQ_reset (plugin->dbh, plugin->get_stmt);
       break;
     }
-    if (0 != psize % sizeof(struct GNUNET_PeerIdentity))
+    if (0 != psize % sizeof(struct GNUNET_DHT_PathElement))
     {
       GNUNET_break (0);
       psize = 0;
       path = NULL;
     }
-    psize /= sizeof(struct GNUNET_PeerIdentity);
+    psize /= sizeof(struct GNUNET_DHT_PathElement);
     cnt++;
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Found %u-byte result when processing GET for key `%s'\n",
@@ -476,7 +476,7 @@ sqlite_plugin_get_closest (void *cls,
   size_t psize;
   uint32_t type;
   struct GNUNET_HashCode hc;
-  struct GNUNET_PeerIdentity *path;
+  struct GNUNET_DHT_PathElement *path;
   struct GNUNET_SQ_QueryParam params[] =
   { GNUNET_SQ_query_param_auto_from_type (key),
     GNUNET_SQ_query_param_absolute_time (&now),
@@ -510,13 +510,13 @@ sqlite_plugin_get_closest (void *cls,
       GNUNET_break (0);
       break;
     }
-    if (0 != psize % sizeof(struct GNUNET_PeerIdentity))
+    if (0 != psize % sizeof(struct GNUNET_DHT_PathElement))
     {
       GNUNET_break (0);
       psize = 0;
       path = NULL;
     }
-    psize /= sizeof(struct GNUNET_PeerIdentity);
+    psize /= sizeof(struct GNUNET_DHT_PathElement);
     cnt++;
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Found %u-byte result at %s when processing GET_CLOSE\n",

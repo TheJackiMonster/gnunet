@@ -457,18 +457,6 @@ GNUNET_STRINGS_urldecode (const char *data,
 
 
 /**
- * Convert a peer path to a human-readable string.
- *
- * @param pids array of PIDs to convert to a string
- * @param num_pids length of the @a pids array
- * @return string representing the array of @a pids
- */
-char *
-GNUNET_STRINGS_pp2s (const struct GNUNET_PeerIdentity *pids,
-                     unsigned int num_pids);
-
-
-/**
  * Parse a path that might be an URI.
  *
  * @param path path to parse. Must be NULL-terminated.

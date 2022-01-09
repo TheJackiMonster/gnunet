@@ -112,16 +112,15 @@ static struct GNUNET_TIME_Relative announce_delay;
 static void
 dht_get_id_handler (void *cls, struct GNUNET_TIME_Absolute exp,
                     const struct GNUNET_HashCode *key,
-                    const struct GNUNET_PeerIdentity *get_path,
+                    const struct GNUNET_DHT_PathElement *get_path,
                     unsigned int get_path_length,
-                    const struct GNUNET_PeerIdentity *put_path,
+                    const struct GNUNET_DHT_PathElement *put_path,
                     unsigned int put_path_length,
                     enum GNUNET_BLOCK_Type type,
                     size_t size,
                     const void *data)
 {
   const struct GNUNET_HELLO_Message *hello = data;
-  struct CadetPeer *peer;
 
   GCPP_try_path_from_dht (get_path,
                           get_path_length,
@@ -131,7 +130,9 @@ dht_get_id_handler (void *cls, struct GNUNET_TIME_Absolute exp,
       (ntohs (hello->header.size) == size) &&
       (size == GNUNET_HELLO_size (hello)))
   {
-    peer = GCP_get (&put_path[0],
+    struct CadetPeer *peer;
+
+    peer = GCP_get (&put_path[0].pred,
                     GNUNET_YES);
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Got HELLO for %s\n",

@@ -39,6 +39,7 @@
 
 #include "gnunet_util_lib.h"
 #include "gnunet_block_lib.h"
+#include "gnunet_dht_service.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -89,15 +90,15 @@ GNUNET_DATACACHE_destroy (struct GNUNET_DATACACHE_Handle *h);
  * @param path_info a path through the network
  * @return #GNUNET_OK to continue iterating, #GNUNET_SYSERR to abort
  */
-typedef int
-(*GNUNET_DATACACHE_Iterator) (void *cls,
-                              const struct GNUNET_HashCode *key,
-                              size_t data_size,
-                              const char *data,
-                              enum GNUNET_BLOCK_Type type,
-                              struct GNUNET_TIME_Absolute exp,
-                              unsigned int path_info_len,
-                              const struct GNUNET_PeerIdentity *path_info);
+typedef enum GNUNET_GenericReturnValue
+(*GNUNET_DATACACHE_Iterator)(void *cls,
+                             const struct GNUNET_HashCode *key,
+                             size_t data_size,
+                             const char *data,
+                             enum GNUNET_BLOCK_Type type,
+                             struct GNUNET_TIME_Absolute exp,
+                             unsigned int path_info_len,
+                             const struct GNUNET_DHT_PathElement *path_info);
 
 
 /**
@@ -114,7 +115,7 @@ typedef int
  * @param path_info a path through the network
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error, #GNUNET_NO if duplicate
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_DATACACHE_put (struct GNUNET_DATACACHE_Handle *h,
                       const struct GNUNET_HashCode *key,
                       uint32_t xor_distance,
@@ -123,7 +124,7 @@ GNUNET_DATACACHE_put (struct GNUNET_DATACACHE_Handle *h,
                       enum GNUNET_BLOCK_Type type,
                       struct GNUNET_TIME_Absolute discard_time,
                       unsigned int path_info_len,
-                      const struct GNUNET_PeerIdentity *path_info);
+                      const struct GNUNET_DHT_PathElement *path_info);
 
 
 /**

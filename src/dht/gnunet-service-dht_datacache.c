@@ -152,7 +152,7 @@ datacache_get_iterator (void *cls,
                         enum GNUNET_BLOCK_Type type,
                         struct GNUNET_TIME_Absolute exp,
                         unsigned int put_path_length,
-                        const struct GNUNET_PeerIdentity *put_path)
+                        const struct GNUNET_DHT_PathElement *put_path)
 {
   struct GetRequestContext *ctx = cls;
   enum GNUNET_BLOCK_ReplyEvaluationResult eval;
@@ -301,7 +301,8 @@ datacache_get_successors_iterator (void *cls,
                                    enum GNUNET_BLOCK_Type type,
                                    struct GNUNET_TIME_Absolute exp,
                                    unsigned int put_path_length,
-                                   const struct GNUNET_PeerIdentity *put_path)
+                                   const struct
+                                   GNUNET_DHT_PathElement *put_path)
 {
   const struct SuccContext *sc = cls;
   struct GDS_DATACACHE_BlockData bd = {

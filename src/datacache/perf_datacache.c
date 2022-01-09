@@ -47,21 +47,27 @@ static const char *plugin_name;
 
 static int
 checkIt (void *cls,
-         const struct GNUNET_HashCode *key, size_t size, const char *data,
+         const struct GNUNET_HashCode *key,
+         size_t size,
+         const char *data,
          enum GNUNET_BLOCK_Type type,
          struct GNUNET_TIME_Absolute exp,
          unsigned int path_len,
-         const struct GNUNET_PeerIdentity *path)
+         const struct GNUNET_DHT_PathElement *path)
 {
-  if ((size == sizeof(struct GNUNET_HashCode)) && (0 == memcmp (data, cls,
-                                                                size)))
+  if ( (size == sizeof(struct GNUNET_HashCode)) &&
+       (0 == memcmp (data,
+                     cls,
+                     size)) )
     found++;
   return GNUNET_OK;
 }
 
 
 static void
-run (void *cls, char *const *args, const char *cfgfile,
+run (void *cls,
+     char *const *args,
+     const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
   struct GNUNET_DATACACHE_Handle *h;

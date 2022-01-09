@@ -260,7 +260,7 @@ struct GNUNET_DHT_Handle
  * @param h DHT handle to reconnect
  * @return #GNUNET_YES on success, #GNUNET_NO on failure.
  */
-static int
+static enum GNUNET_GenericReturnValue
 try_connect (struct GNUNET_DHT_Handle *h);
 
 
@@ -344,7 +344,7 @@ send_get_known_results (struct GNUNET_DHT_GetHandle *gh,
  * @param value the `struct GNUNET_DHT_GetHandle *`
  * @return #GNUNET_YES (always)
  */
-static int
+static enum GNUNET_GenericReturnValue
 add_get_request_to_pending (void *cls,
                             const struct GNUNET_HashCode *key,
                             void *value)
@@ -488,7 +488,7 @@ mq_error_handler (void *cls,
  * @return #GNUNET_OK if everything went fine,
  *         #GNUNET_SYSERR if the message is malformed.
  */
-static int
+static enum GNUNET_GenericReturnValue
 check_monitor_get (void *cls,
                    const struct GNUNET_DHT_MonitorGetMessage *msg)
 {
@@ -496,7 +496,7 @@ check_monitor_get (void *cls,
   uint16_t msize = ntohs (msg->header.size) - sizeof(*msg);
 
   if ((plen > UINT16_MAX) ||
-      (plen * sizeof(struct GNUNET_PeerIdentity) != msize))
+      (plen * sizeof(struct GNUNET_DHT_PathElement) != msize))
   {
     GNUNET_break (0);
     return GNUNET_SYSERR;
@@ -534,7 +534,7 @@ handle_monitor_get (void *cls,
                   ntohl (msg->hop_count),
                   ntohl (msg->desired_replication_level),
                   ntohl (msg->get_path_length),
-                  (struct GNUNET_PeerIdentity *) &msg[1],
+                  (struct GNUNET_DHT_PathElement *) &msg[1],
                   &msg->key);
   }
 }
@@ -548,7 +548,7 @@ handle_monitor_get (void *cls,
  * @return #GNUNET_OK if everything went fine,
  *         #GNUNET_SYSERR if the message is malformed.
  */
-static int
+static enum GNUNET_GenericReturnValue
 check_monitor_get_resp (void *cls,
                         const struct GNUNET_DHT_MonitorGetRespMessage *msg)
 {
@@ -557,7 +557,7 @@ check_monitor_get_resp (void *cls,
   uint32_t putl = ntohl (msg->put_path_length);
 
   if ((getl + putl < getl) ||
-      ((msize / sizeof(struct GNUNET_PeerIdentity)) < getl + putl))
+      ((msize / sizeof(struct GNUNET_DHT_PathElement)) < getl + putl))
   {
     GNUNET_break (0);
     return GNUNET_SYSERR;
@@ -578,12 +578,12 @@ handle_monitor_get_resp (void *cls,
 {
   struct GNUNET_DHT_Handle *handle = cls;
   size_t msize = ntohs (msg->header.size) - sizeof(*msg);
-  const struct GNUNET_PeerIdentity *path;
+  const struct GNUNET_DHT_PathElement *path;
   uint32_t getl = ntohl (msg->get_path_length);
   uint32_t putl = ntohl (msg->put_path_length);
   struct GNUNET_DHT_MonitorHandle *mh;
 
-  path = (const struct GNUNET_PeerIdentity *) &msg[1];
+  path = (const struct GNUNET_DHT_PathElement *) &msg[1];
   for (mh = handle->monitor_head; NULL != mh; mh = mh->next)
   {
     if (NULL == mh->get_resp_cb)
@@ -603,8 +603,8 @@ handle_monitor_get_resp (void *cls,
                        GNUNET_TIME_absolute_ntoh (msg->expiration_time),
                        &msg->key,
                        (const void *) &path[getl + putl],
-                       msize - sizeof(struct GNUNET_PeerIdentity) * (putl
-                                                                     + getl));
+                       msize - sizeof(struct GNUNET_DHT_PathElement) * (putl
+                                                                        + getl));
   }
 }
 
@@ -617,7 +617,7 @@ handle_monitor_get_resp (void *cls,
  * @return #GNUNET_OK if everything went fine,
  *         #GNUNET_SYSERR if the message is malformed.
  */
-static int
+static enum GNUNET_GenericReturnValue
 check_monitor_put (void *cls,
                    const struct GNUNET_DHT_MonitorPutMessage *msg)
 {
@@ -626,7 +626,7 @@ check_monitor_put (void *cls,
 
   msize = ntohs (msg->header.size) - sizeof(*msg);
   putl = ntohl (msg->put_path_length);
-  if ((msize / sizeof(struct GNUNET_PeerIdentity)) < putl)
+  if ((msize / sizeof(struct GNUNET_DHT_PathElement)) < putl)
   {
     GNUNET_break (0);
     return GNUNET_SYSERR;
@@ -648,10 +648,10 @@ handle_monitor_put (void *cls,
   struct GNUNET_DHT_Handle *handle = cls;
   size_t msize = ntohs (msg->header.size) - sizeof(*msg);
   uint32_t putl = ntohl (msg->put_path_length);
-  const struct GNUNET_PeerIdentity *path;
+  const struct GNUNET_DHT_PathElement *path;
   struct GNUNET_DHT_MonitorHandle *mh;
 
-  path = (const struct GNUNET_PeerIdentity *) &msg[1];
+  path = (const struct GNUNET_DHT_PathElement *) &msg[1];
   for (mh = handle->monitor_head; NULL != mh; mh = mh->next)
   {
     if (NULL == mh->put_cb)
@@ -672,7 +672,7 @@ handle_monitor_put (void *cls,
                   GNUNET_TIME_absolute_ntoh (msg->expiration_time),
                   &msg->key,
                   (const void *) &path[putl],
-                  msize - sizeof(struct GNUNET_PeerIdentity) * putl);
+                  msize - sizeof(struct GNUNET_DHT_PathElement) * putl);
   }
 }
 
@@ -685,7 +685,7 @@ handle_monitor_put (void *cls,
  * @return #GNUNET_OK if everything went fine,
  *         #GNUNET_SYSERR if the message is malformed.
  */
-static int
+static enum GNUNET_GenericReturnValue
 check_client_result (void *cls,
                      const struct GNUNET_DHT_ClientResultMessage *msg)
 {
@@ -695,12 +695,12 @@ check_client_result (void *cls,
   size_t meta_length;
 
   meta_length =
-    sizeof(struct GNUNET_PeerIdentity) * (get_path_length + put_path_length);
+    sizeof(struct GNUNET_DHT_PathElement) * (get_path_length + put_path_length);
   if ((msize < meta_length) ||
       (get_path_length >
-       GNUNET_MAX_MESSAGE_SIZE / sizeof(struct GNUNET_PeerIdentity)) ||
+       GNUNET_MAX_MESSAGE_SIZE / sizeof(struct GNUNET_DHT_PathElement)) ||
       (put_path_length >
-       GNUNET_MAX_MESSAGE_SIZE / sizeof(struct GNUNET_PeerIdentity)))
+       GNUNET_MAX_MESSAGE_SIZE / sizeof(struct GNUNET_DHT_PathElement)))
   {
     GNUNET_break (0);
     return GNUNET_SYSERR;
@@ -717,7 +717,7 @@ check_client_result (void *cls,
  * @param value the `struct GNUNET_DHT_GetHandle` of a request matching the same key
  * @return #GNUNET_YES to continue to iterate over all results
  */
-static int
+static enum GNUNET_GenericReturnValue
 process_client_result (void *cls,
                        const struct GNUNET_HashCode *key,
                        void *value)
@@ -727,8 +727,8 @@ process_client_result (void *cls,
   size_t msize = ntohs (crm->header.size) - sizeof(*crm);
   uint32_t put_path_length = ntohl (crm->put_path_length);
   uint32_t get_path_length = ntohl (crm->get_path_length);
-  const struct GNUNET_PeerIdentity *put_path;
-  const struct GNUNET_PeerIdentity *get_path;
+  const struct GNUNET_DHT_PathElement *put_path;
+  const struct GNUNET_DHT_PathElement *get_path;
   struct GNUNET_HashCode hc;
   size_t data_length;
   size_t meta_length;
@@ -746,18 +746,18 @@ process_client_result (void *cls,
   }
   /* FIXME: might want to check that type matches */
   meta_length =
-    sizeof(struct GNUNET_PeerIdentity) * (get_path_length + put_path_length);
+    sizeof(struct GNUNET_DHT_PathElement) * (get_path_length + put_path_length);
   data_length = msize - meta_length;
-  put_path = (const struct GNUNET_PeerIdentity *) &crm[1];
+  put_path = (const struct GNUNET_DHT_PathElement *) &crm[1];
   get_path = &put_path[put_path_length];
   {
     char *pp;
     char *gp;
 
-    gp = GNUNET_STRINGS_pp2s (get_path,
-                              get_path_length);
-    pp = GNUNET_STRINGS_pp2s (put_path,
-                              put_path_length);
+    gp = GNUNET_DHT_pp2s (get_path,
+                          get_path_length);
+    pp = GNUNET_DHT_pp2s (put_path,
+                          put_path_length);
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Giving %u byte reply for %s to application (GP: %s, PP: %s)\n",
          (unsigned int) data_length,
@@ -838,7 +838,7 @@ handle_put_cont (void *cls)
  * @param h DHT handle to reconnect
  * @return #GNUNET_YES on success, #GNUNET_NO on failure.
  */
-static int
+static enum GNUNET_GenericReturnValue
 try_connect (struct GNUNET_DHT_Handle *h)
 {
   struct GNUNET_MQ_MessageHandler handlers[] = {
@@ -878,14 +878,6 @@ try_connect (struct GNUNET_DHT_Handle *h)
 }
 
 
-/**
- * Initialize the connection with the DHT service.
- *
- * @param cfg configuration to use
- * @param ht_len size of the internal hash table to use for
- *               processing multiple GET/FIND requests in parallel
- * @return handle to the DHT service, or NULL on error
- */
 struct GNUNET_DHT_Handle *
 GNUNET_DHT_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
                     unsigned int ht_len)
@@ -909,11 +901,6 @@ GNUNET_DHT_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
-/**
- * Shutdown connection with the DHT service.
- *
- * @param handle handle of the DHT connection to stop
- */
 void
 GNUNET_DHT_disconnect (struct GNUNET_DHT_Handle *handle)
 {
@@ -942,26 +929,6 @@ GNUNET_DHT_disconnect (struct GNUNET_DHT_Handle *handle)
 }
 
 
-/**
- * Perform a PUT operation storing data in the DHT.  FIXME: we should
- * change the protocol to get a confirmation for the PUT from the DHT
- * and call 'cont' only after getting the confirmation; otherwise, the
- * client has no good way of telling if the 'PUT' message actually got
- * to the DHT service!
- *
- * @param handle handle to DHT service
- * @param key the key to store under
- * @param desired_replication_level estimate of how many
- *                nearest peers this request should reach
- * @param options routing options for this message
- * @param type type of the value
- * @param size number of bytes in data; must be less than 64k
- * @param data the data to store
- * @param exp desired expiration time for the value
- * @param cont continuation to call when done (transmitting request to service)
- *        You must not call #GNUNET_DHT_disconnect in this continuation
- * @param cont_cls closure for @a cont
- */
 struct GNUNET_DHT_PutHandle *
 GNUNET_DHT_put (struct GNUNET_DHT_Handle *handle,
                 const struct GNUNET_HashCode *key,
@@ -1020,17 +987,6 @@ GNUNET_DHT_put (struct GNUNET_DHT_Handle *handle,
 }
 
 
-/**
- * Cancels a DHT PUT operation.  Note that the PUT request may still
- * go out over the network (we can't stop that); However, if the PUT
- * has not yet been sent to the service, cancelling the PUT will stop
- * this from happening (but there is no way for the user of this API
- * to tell if that is the case).  The only use for this API is to
- * prevent a later call to 'cont' from #GNUNET_DHT_put (e.g. because
- * the system is shutting down).
- *
- * @param ph put operation to cancel ('cont' will no longer be called)
- */
 void
 GNUNET_DHT_put_cancel (struct GNUNET_DHT_PutHandle *ph)
 {
@@ -1047,21 +1003,6 @@ GNUNET_DHT_put_cancel (struct GNUNET_DHT_PutHandle *ph)
 }
 
 
-/**
- * Perform an asynchronous GET operation on the DHT identified.
- *
- * @param handle handle to the DHT service
- * @param type expected type of the response object
- * @param key the key to look up
- * @param desired_replication_level estimate of how many
-                  nearest peers this request should reach
- * @param options routing options for this message
- * @param xquery extended query data (can be NULL, depending on type)
- * @param xquery_size number of bytes in @a xquery
- * @param iter function to call on each result
- * @param iter_cls closure for @a iter
- * @return handle to stop the async get
- */
 struct GNUNET_DHT_GetHandle *
 GNUNET_DHT_get_start (struct GNUNET_DHT_Handle *handle,
                       enum GNUNET_BLOCK_Type type,
@@ -1111,16 +1052,6 @@ GNUNET_DHT_get_start (struct GNUNET_DHT_Handle *handle,
 }
 
 
-/**
- * Tell the DHT not to return any of the following known results
- * to this client.
- *
- * @param get_handle get operation for which results should be filtered
- * @param num_results number of results to be blocked that are
- *        provided in this call (size of the @a results array)
- * @param results array of hash codes over the 'data' of the results
- *        to be blocked
- */
 void
 GNUNET_DHT_get_filter_known_results (struct GNUNET_DHT_GetHandle *get_handle,
                                      unsigned int num_results,
@@ -1145,11 +1076,6 @@ GNUNET_DHT_get_filter_known_results (struct GNUNET_DHT_GetHandle *get_handle,
 }
 
 
-/**
- * Stop async DHT-get.
- *
- * @param get_handle handle to the GET operation to stop
- */
 void
 GNUNET_DHT_get_stop (struct GNUNET_DHT_GetHandle *get_handle)
 {
@@ -1183,18 +1109,6 @@ GNUNET_DHT_get_stop (struct GNUNET_DHT_GetHandle *get_handle)
 }
 
 
-/**
- * Start monitoring the local DHT service.
- *
- * @param handle Handle to the DHT service.
- * @param type Type of blocks that are of interest.
- * @param key Key of data of interest, NULL for all.
- * @param get_cb Callback to process monitored get messages.
- * @param get_resp_cb Callback to process monitored get response messages.
- * @param put_cb Callback to process monitored put messages.
- * @param cb_cls Closure for callbacks.
- * @return Handle to stop monitoring.
- */
 struct GNUNET_DHT_MonitorHandle *
 GNUNET_DHT_monitor_start (struct GNUNET_DHT_Handle *handle,
                           enum GNUNET_BLOCK_Type type,
@@ -1227,13 +1141,6 @@ GNUNET_DHT_monitor_start (struct GNUNET_DHT_Handle *handle,
 }
 
 
-/**
- * Stop monitoring.
- *
- * @param mh The handle to the monitor request returned by monitor_start.
- *
- * On return get_handle will no longer be valid, caller must not use again!!!
- */
 void
 GNUNET_DHT_monitor_stop (struct GNUNET_DHT_MonitorHandle *mh)
 {
@@ -1259,6 +1166,30 @@ GNUNET_DHT_monitor_stop (struct GNUNET_DHT_MonitorHandle *mh)
                   env);
   GNUNET_free (mh->key);
   GNUNET_free (mh);
+}
+
+
+char *
+GNUNET_DHT_pp2s (const struct GNUNET_DHT_PathElement *path,
+                 unsigned int path_len)
+{
+  char *buf;
+  size_t off;
+  size_t plen = path_len * 5 + 1;
+
+  GNUNET_assert (path_len < UINT32_MAX / 5);
+  off = 0;
+  buf = GNUNET_malloc (plen);
+  for (unsigned int i = 0; i < path_len; i++)
+  {
+    off += GNUNET_snprintf (&buf[off],
+                            plen - off,
+                            "%s%s",
+                            GNUNET_i2s (&path[i].pred),
+                            (i == path_len - 1) ? "" : "-");
+  }
+  return buf;
+
 }
 
 

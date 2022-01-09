@@ -69,29 +69,6 @@ GNUNET_STRINGS_buffer_fill (char *buffer,
 }
 
 
-char *
-GNUNET_STRINGS_pp2s (const struct GNUNET_PeerIdentity *pids,
-                     unsigned int num_pids)
-{
-  char *buf;
-  size_t off;
-  size_t plen = num_pids * 5 + 1;
-
-  GNUNET_assert (num_pids < UINT32_MAX / 5);
-  off = 0;
-  buf = GNUNET_malloc (plen);
-  for (unsigned int i = 0; i < num_pids; i++)
-  {
-    off += GNUNET_snprintf (&buf[off],
-                            plen - off,
-                            "%s%s",
-                            GNUNET_i2s (&pids[i]),
-                            (i == num_pids - 1) ? "" : "-");
-  }
-  return buf;
-}
-
-
 unsigned int
 GNUNET_STRINGS_buffer_tokenize (const char *buffer,
                                 size_t size,

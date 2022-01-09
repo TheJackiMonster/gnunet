@@ -257,7 +257,9 @@ GNUNET_DHT_put_cancel (struct GNUNET_DHT_PutHandle *ph);
  * @param get_path_length number of entries in @a get_path
  * @param put_path peers on the PUT path (or NULL if not recorded)
  *                 [0] = origin, [length - 1] = datastore
- * @param put_path_length number of entries in @a put_path
+ * @param put_path_length number of entries in @a put_path,
+ *        note that the last signature will be all zeros as
+ *        we did not forward and thus did not sign!
  * @param type type of the result
  * @param size number of bytes in @a data
  * @param data pointer to the result data
@@ -266,9 +268,9 @@ typedef void
 (*GNUNET_DHT_GetIterator) (void *cls,
                            struct GNUNET_TIME_Absolute exp,
                            const struct GNUNET_HashCode *key,
-                           const struct GNUNET_PeerIdentity *get_path,
+                           const struct GNUNET_DHT_PathElement *get_path,
                            unsigned int get_path_length,
-                           const struct GNUNET_PeerIdentity *put_path,
+                           const struct GNUNET_DHT_PathElement *put_path,
                            unsigned int put_path_length,
                            enum GNUNET_BLOCK_Type type,
                            size_t size,
@@ -343,6 +345,8 @@ struct GNUNET_DHT_MonitorHandle;
  * @param hop_count Hop count so far.
  * @param path_length number of entries in @a path (or 0 if not recorded).
  * @param path peers on the GET path (or NULL if not recorded).
+ *        note that the last signature will be all zeros as
+ *        we did not forward and thus did not sign!
  * @param desired_replication_level Desired replication level.
  * @param key Key of the requested data.
  */
@@ -353,7 +357,7 @@ typedef void
                             uint32_t hop_count,
                             uint32_t desired_replication_level,
                             unsigned int path_length,
-                            const struct GNUNET_PeerIdentity *path,
+                            const struct GNUNET_DHT_PathElement *path,
                             const struct GNUNET_HashCode *key);
 
 
@@ -363,6 +367,8 @@ typedef void
  * @param cls Closure.
  * @param type The type of data in the result.
  * @param get_path Peers on GET path (or NULL if not recorded).
+ *        note that the last signature will be all zeros as
+ *        we did not forward and thus did not sign!
  * @param get_path_length number of entries in @a get_path.
  * @param put_path peers on the PUT path (or NULL if not recorded).
  * @param put_path_length number of entries in @a get_path.
@@ -374,9 +380,9 @@ typedef void
 typedef void
 (*GNUNET_DHT_MonitorGetRespCB) (void *cls,
                                 enum GNUNET_BLOCK_Type type,
-                                const struct GNUNET_PeerIdentity *get_path,
+                                const struct GNUNET_DHT_PathElement *get_path,
                                 unsigned int get_path_length,
-                                const struct GNUNET_PeerIdentity *put_path,
+                                const struct GNUNET_DHT_PathElement *put_path,
                                 unsigned int put_path_length,
                                 struct GNUNET_TIME_Absolute exp,
                                 const struct GNUNET_HashCode *key,
@@ -393,6 +399,8 @@ typedef void
  * @param hop_count Hop count so far.
  * @param path_length number of entries in @a path (or 0 if not recorded).
  * @param path peers on the PUT path (or NULL if not recorded).
+ *        note that the last signature will be all zeros as
+ *        we did not forward and thus did not sign!
  * @param desired_replication_level Desired replication level.
  * @param exp Expiration time of the data.
  * @param key Key under which data is to be stored.
@@ -406,7 +414,7 @@ typedef void
                             uint32_t hop_count,
                             uint32_t desired_replication_level,
                             unsigned int path_length,
-                            const struct GNUNET_PeerIdentity *path,
+                            const struct GNUNET_DHT_PathElement *path,
                             struct GNUNET_TIME_Absolute exp,
                             const struct GNUNET_HashCode *key,
                             const void *data,
@@ -444,6 +452,18 @@ GNUNET_DHT_monitor_start (struct GNUNET_DHT_Handle *handle,
  */
 void
 GNUNET_DHT_monitor_stop (struct GNUNET_DHT_MonitorHandle *handle);
+
+
+/**
+ * Convert a peer path to a human-readable string.
+ *
+ * @param path array of path elements to convert to a string
+ * @param num_pids length of the @a pids array
+ * @return string representing the array of @a pids
+ */
+char *
+GNUNET_DHT_pp2s (const struct GNUNET_DHT_PathElement *path,
+                 unsigned int path_len);
 
 
 #if 0                           /* keep Emacsens' auto-indent happy */

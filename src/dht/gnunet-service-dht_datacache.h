@@ -50,7 +50,7 @@ struct GDS_DATACACHE_BlockData
   /**
    * PUT path taken by the block, array of peer identities.
    */
-  const struct GNUNET_PeerIdentity *put_path;
+  const struct GNUNET_DHT_PathElement *put_path;
 
   /**
    * Actual block data.

@@ -28,6 +28,7 @@
 #define GNUNET_SERVICE_CADET_PATHS_H
 
 #include "gnunet_util_lib.h"
+#include "gnunet_dht_service.h"
 #include "gnunet-service-cadet.h"
 
 /**
@@ -42,9 +43,9 @@
  * @param put_path_length length of the @a put_path
  */
 void
-GCPP_try_path_from_dht (const struct GNUNET_PeerIdentity *get_path,
+GCPP_try_path_from_dht (const struct GNUNET_DHT_PathElement *get_path,
                         unsigned int get_path_length,
-                        const struct GNUNET_PeerIdentity *put_path,
+                        const struct GNUNET_DHT_PathElement *put_path,
                         unsigned int put_path_length);
 
 
