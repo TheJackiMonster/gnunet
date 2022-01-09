@@ -1797,8 +1797,8 @@ do_rekey (void *cls)
 int
 GSC_KX_init (struct GNUNET_CRYPTO_EddsaPrivateKey *pk)
 {
-  struct GNUNET_MQ_MessageHandler handlers[] =
-  { GNUNET_MQ_hd_fixed_size (ephemeral_key,
+  struct GNUNET_MQ_MessageHandler handlers[] = {
+    GNUNET_MQ_hd_fixed_size (ephemeral_key,
                              GNUNET_MESSAGE_TYPE_CORE_EPHEMERAL_KEY,
                              struct EphemeralKeyMessage,
                              NULL),
@@ -1814,7 +1814,8 @@ GSC_KX_init (struct GNUNET_CRYPTO_EddsaPrivateKey *pk)
                            GNUNET_MESSAGE_TYPE_CORE_ENCRYPTED_MESSAGE,
                            struct EncryptedMessage,
                            NULL),
-    GNUNET_MQ_handler_end () };
+    GNUNET_MQ_handler_end ()
+  };
 
   my_private_key = *pk;
   GNUNET_CRYPTO_eddsa_key_get_public (&my_private_key,

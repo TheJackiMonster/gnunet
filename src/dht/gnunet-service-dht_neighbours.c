@@ -27,6 +27,7 @@
 #include "platform.h"
 #include "gnunet_constants.h"
 #include "gnunet_protocols.h"
+#include "gnunet_signatures.h"
 #include "gnunet_ats_service.h"
 #include "gnunet_core_service.h"
 #include "gnunet_hello_lib.h"
@@ -407,6 +408,38 @@ static struct GNUNET_CORE_Handle *core_api;
  * Handle to ATS connectivity.
  */
 static struct GNUNET_ATS_ConnectivityHandle *ats_ch;
+
+/**
+ * Our private key.
+ */
+static struct GNUNET_CRYPTO_EddsaPrivateKey my_private_key;
+
+
+/**
+ * Sign that we are routing a message from @a pred to @a succ.
+ * (So the route is $PRED->us->$SUCC).
+ *
+ * @param pred predecessor peer ID
+ * @param succ successor peer ID
+ * @param[out] sig where to write the signature
+ *      (of purpose #GNUNET_SIGNATURE_PURPOSE_DHT_HOP)
+ */
+static void
+sign_path (const struct GNUNET_PeerIdentity *pred,
+           const struct GNUNET_PeerIdentity *succ,
+           struct GNUNET_CRYPTO_EddsaSignature *sig)
+{
+  struct GNUNET_DHT_HopSignature hs = {
+    .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DHT_HOP),
+    .purpose.size = htonl (sizeof (hs)),
+    .pred = *pred,
+    .succ = *succ
+  };
+
+  GNUNET_CRYPTO_eddsa_sign (&my_private_key,
+                            &hs,
+                            sig);
+}
 
 
 /**
@@ -1287,7 +1320,7 @@ GDS_NEIGHBOURS_handle_put (const struct GDS_DATACACHE_BlockData *bd,
                 GNUNET_i2s (&my_identity));
     return GNUNET_NO;
   }
-  msize = bd->put_path_length * sizeof(struct GNUNET_PeerIdentity)
+  msize = bd->put_path_length * sizeof(struct GNUNET_DHT_PathElement)
           + bd->data_size;
   if (msize + sizeof(struct PeerPutMessage)
       >= GNUNET_CONSTANTS_MAX_ENCRYPTED_MESSAGE_SIZE)
@@ -1308,7 +1341,7 @@ GDS_NEIGHBOURS_handle_put (const struct GDS_DATACACHE_BlockData *bd,
     struct PeerInfo *target = targets[i];
     struct GNUNET_MQ_Envelope *env;
     struct PeerPutMessage *ppm;
-    struct GNUNET_PeerIdentity *pp;
+    struct GNUNET_DHT_PathElement *pp;
 
     if (GNUNET_MQ_get_length (target->mq) >= MAXIMUM_PENDING_PER_PEER)
     {
@@ -1342,10 +1375,20 @@ GDS_NEIGHBOURS_handle_put (const struct GDS_DATACACHE_BlockData *bd,
                                                               ppm->bloomfilter,
                                                               DHT_BLOOM_SIZE));
     ppm->key = bd->key;
-    pp = (struct GNUNET_PeerIdentity *) &ppm[1];
+    pp = (struct GNUNET_DHT_PathElement *) &ppm[1];
     GNUNET_memcpy (pp,
                    bd->put_path,
-                   sizeof(struct GNUNET_PeerIdentity) * put_path_length);
+                   sizeof (struct GNUNET_DHT_PathElement) * put_path_length);
+    /* 0 == put_path_length means path is not being tracked */
+    if (0 != put_path_length)
+    {
+      /* Note that the signature in 'put_path' was not initialized before,
+         so this is crucial to avoid sending garbage. */
+      sign_path (&pp[put_path_length - 1].pred,
+                 target->id,
+                 &pp[put_path_length - 1].sig);
+    }
+
     GNUNET_memcpy (&pp[put_path_length],
                    bd->data,
                    bd->data_size);
@@ -1553,6 +1596,15 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
   GNUNET_memcpy (&paths[bd->put_path_length],
                  get_path,
                  get_path_length * sizeof(struct GNUNET_DHT_PathElement));
+  /* 0 == get_path_length means path is not being tracked */
+  if (0 != get_path_length)
+  {
+    /* Note that the signature in 'get_path' was not initialized before,
+       so this is crucial to avoid sending garbage. */
+    sign_path (&paths[bd->put_path_length + get_path_length - 1].pred,
+               pi->id,
+               &paths[bd->put_path_length + get_path_length - 1].sig);
+  }
   GNUNET_memcpy (&paths[bd->put_path_length + get_path_length],
                  bd->data,
                  bd->data_size);
@@ -2326,6 +2378,31 @@ GDS_NEIGHBOURS_init ()
     = GNUNET_CONFIGURATION_get_value_yesno (GDS_cfg,
                                             "DHT",
                                             "CACHE_RESULTS");
+  {
+    char *keyfile;
+
+    if (GNUNET_OK !=
+        GNUNET_CONFIGURATION_get_value_filename (GDS_cfg,
+                                                 "PEER",
+                                                 "PRIVATE_KEY",
+                                                 &keyfile))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Core service is lacking HOSTKEY configuration setting.  Exiting.\n");
+      return GNUNET_SYSERR;
+    }
+    if (GNUNET_SYSERR ==
+        GNUNET_CRYPTO_eddsa_key_from_file (keyfile,
+                                           GNUNET_YES,
+                                           &my_private_key))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Failed to setup peer's private key\n");
+      GNUNET_free (keyfile);
+      return GNUNET_SYSERR;
+    }
+    GNUNET_free (keyfile);
+  }
 
   ats_ch = GNUNET_ATS_connectivity_init (GDS_cfg);
   core_api = GNUNET_CORE_connect (GDS_cfg,

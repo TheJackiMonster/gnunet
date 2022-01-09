@@ -271,9 +271,9 @@ GSC_CLIENTS_solicit_request (struct GSC_ClientActiveRequest *car)
       GNUNET_CONTAINER_multipeermap_contains (c->connectmap, &car->target))
   {
     /* connection has gone down since, drop request */
-    GNUNET_assert (0 != memcmp (&car->target,
-                                &GSC_my_identity,
-                                sizeof(struct GNUNET_PeerIdentity)));
+    GNUNET_assert (0 !=
+                   GNUNET_memcmp (&car->target,
+                                  &GSC_my_identity));
     GSC_SESSIONS_dequeue_request (car);
     GSC_CLIENTS_reject_request (car, GNUNET_NO);
     return;
@@ -314,9 +314,8 @@ handle_client_send_request (void *cls, const struct SendMessageRequest *req)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Client asked for transmission to `%s'\n",
               GNUNET_i2s (&req->peer));
-  is_loopback = (0 == memcmp (&req->peer,
-                              &GSC_my_identity,
-                              sizeof(struct GNUNET_PeerIdentity)));
+  is_loopback = (0 == GNUNET_memcmp (&req->peer,
+                                     &GSC_my_identity));
   if ((! is_loopback) &&
       (GNUNET_YES !=
        GNUNET_CONTAINER_multipeermap_contains (c->connectmap, &req->peer)))
@@ -419,9 +418,8 @@ tokenized_cb (void *cls, const struct GNUNET_MessageHeader *message)
                    gettext_noop ("# bytes of messages of type %u received"),
                    (unsigned int) ntohs (message->type));
   GNUNET_STATISTICS_update (GSC_stats, buf, ntohs (message->size), GNUNET_NO);
-  if (0 == memcmp (&car->target,
-                   &GSC_my_identity,
-                   sizeof(struct GNUNET_PeerIdentity)))
+  if (0 == GNUNET_memcmp (&car->target,
+                          &GSC_my_identity))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Delivering message of type %u to myself\n",
