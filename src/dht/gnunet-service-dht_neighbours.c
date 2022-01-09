@@ -436,6 +436,9 @@ sign_path (const struct GNUNET_PeerIdentity *pred,
     .succ = *succ
   };
 
+  /* TODO: we might want to cache signatures by 'hs' in the
+     future as an optimization to reduce the amount of
+     crypto operations we need to do! */
   GNUNET_CRYPTO_eddsa_sign (&my_private_key,
                             &hs,
                             sig);
