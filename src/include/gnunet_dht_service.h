@@ -1,6 +1,6 @@
 /*
       This file is part of GNUnet
-      Copyright (C) 2004-2013, 2016 GNUnet e.V.
+      Copyright (C) 2004-2013, 2016, 2022 GNUnet e.V.
 
       GNUnet is free software: you can redistribute it and/or modify it
       under the terms of the GNU Affero General Public License as published
@@ -112,6 +112,61 @@ enum GNUNET_DHT_RouteOption
   GNUNET_DHT_RO_LAST_HOP = 65535
 };
 
+
+GNUNET_NETWORK_STRUCT_BEGIN
+
+/**
+ * Message signed by a peer when doing path tracking.
+ */
+struct GNUNET_DHT_HopSignature
+{
+  /**
+   * Must be #GNUNET_SIGNATURE_PURPOSE_DHT_HOP.
+   */
+  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+
+  /**
+   * Previous hop the message was received from.  All zeros
+   * if this peer was the initiator.
+   */
+  struct GNUNET_PeerIdentity pred;
+
+  /**
+   * Next hop the message was forwarded to.
+   */
+  struct GNUNET_PeerIdentity succ;
+};
+
+
+/**
+ * A (signed) path tracking a block's flow through the DHT is represented by
+ * an array of path elements, each consisting of a peer on the path and a
+ * signature by which the peer affirms its routing decision.
+ */
+struct GNUNET_DHT_PathElement
+{
+
+  /**
+   * Previous peer on the path (matches "pred" in the signed field).
+   *
+   * The public key used to create the @e sig is in the *next* path element,
+   * or is the sender of the message if this was the last path element.
+   *
+   * The "succ" field can be found in 'pred' if there are two more path
+   * elements in the path, is the sender if there is only one more path
+   * element, or the recipient if this was the last element on the path.
+   */
+  struct GNUNET_PeerIdentity pred;
+
+  /**
+   * Signature affirming the hop of type
+   * #GNUNET_SIGNATURE_PURPOSE_DHT_HOP.
+   */
+  struct GNUNET_CRYPTO_EddsaSignature sig;
+
+};
+
+GNUNET_NETWORK_STRUCT_END
 
 /**
  * Initialize the connection with the DHT service.
