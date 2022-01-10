@@ -162,9 +162,10 @@ GAS_handle_request_address_cancel (struct GNUNET_SERVICE_Client *client,
 void
 GAS_connectivity_remove_client (struct GNUNET_SERVICE_Client *client)
 {
-  GNUNET_CONTAINER_multipeermap_iterate (connection_requests,
-                                         &free_matching_requests,
-                                         client);
+  if (NULL != connection_requests)
+    GNUNET_CONTAINER_multipeermap_iterate (connection_requests,
+                                           &free_matching_requests,
+                                           client);
 }
 
 
