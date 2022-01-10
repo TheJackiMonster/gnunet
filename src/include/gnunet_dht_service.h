@@ -473,12 +473,39 @@ GNUNET_DHT_monitor_stop (struct GNUNET_DHT_MonitorHandle *handle);
  * Convert a peer path to a human-readable string.
  *
  * @param path array of path elements to convert to a string
- * @param num_pids length of the @a pids array
+ * @param path_len length of the @a path array
  * @return string representing the array of @a pids
  */
 char *
 GNUNET_DHT_pp2s (const struct GNUNET_DHT_PathElement *path,
                  unsigned int path_len);
+
+
+/**
+ * Verify signatures on a @a path, in reverse order (starting at
+ * the last element of the path).  Note that the last signature
+ * on the path is never verified as that is the slot where our
+ * peer (@a me) would need to sign.
+ *
+ * @param key key of the data (not necessarily the query hash)
+ * @param data payload (the block)
+ * @param data_size number of bytes in @a data
+ * @param exp_time expiration time of @a data
+ * @param path array of path elements to verify
+ * @param path_len length of the @a path array
+ * @param me our own peer identity (needed to verify the last element)
+ * @return 0 on success, otherwise the index of
+ *         the last path element that succeeded with verification;
+ *         @a path_len -1 if no signature was valid
+ */
+unsigned int
+GNUNET_DHT_verify_path (const struct GNUNET_HashCode *key,
+                        const void *data,
+                        size_t data_size,
+                        struct GNUNET_TIME_Absolute exp_time,
+                        const struct GNUNET_DHT_PathElement *path,
+                        unsigned int path_len,
+                        const struct GNUNET_PeerIdentity *me);
 
 
 #if 0                           /* keep Emacsens' auto-indent happy */

@@ -28,6 +28,7 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_constants.h"
+#include "gnunet_signatures.h"
 #include "gnunet_arm_service.h"
 #include "gnunet_hello_lib.h"
 #include "gnunet_protocols.h"
@@ -1189,7 +1190,43 @@ GNUNET_DHT_pp2s (const struct GNUNET_DHT_PathElement *path,
                             (i == path_len - 1) ? "" : "-");
   }
   return buf;
+}
 
+
+unsigned int
+GNUNET_DHT_verify_path (const struct GNUNET_HashCode *key,
+                        const void *data,
+                        size_t data_size,
+                        struct GNUNET_TIME_Absolute exp_time,
+                        const struct GNUNET_DHT_PathElement *path,
+                        unsigned int path_len,
+                        const struct GNUNET_PeerIdentity *me)
+{
+
+  struct GNUNET_DHT_HopSignature hs = {
+    .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DHT_HOP),
+    .purpose.size = htonl (sizeof (hs)),
+    .expiration_time = GNUNET_TIME_absolute_hton (exp_time),
+    .key = *key,
+  };
+  unsigned int i = path_len - 1;
+
+  GNUNET_CRYPTO_hash (data,
+                      data_size,
+                      &hs.h_data);
+  while (i > 0)
+  {
+    hs.pred = path[i - 1].pred;
+    hs.succ = (path_len == i + 1) ? *me : path[i + 1].pred;
+    if (GNUNET_OK !=
+        GNUNET_CRYPTO_eddsa_verify (GNUNET_SIGNATURE_PURPOSE_DHT_HOP,
+                                    &hs,
+                                    &path[i - 1].sig,
+                                    &path[i].pred.public_key))
+      return i;
+    i--;
+  }
+  return i;
 }
 
 
