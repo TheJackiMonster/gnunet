@@ -128,4 +128,12 @@ GDS_CLIENTS_process_put (enum GNUNET_DHT_RouteOption options,
                          uint32_t hop_count,
                          uint32_t desired_replication_level);
 
+/**
+ * Return the current NSE
+ *
+ * @return the current NSE as a logarithm
+ */
+double
+GDS_NSE_get (void);
+
 #endif

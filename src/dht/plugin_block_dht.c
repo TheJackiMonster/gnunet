@@ -116,45 +116,51 @@ block_plugin_dht_evaluate (void *cls,
                            const void *reply_block,
                            size_t reply_block_size)
 {
-  const struct GNUNET_HELLO_Message *hello;
-  struct GNUNET_PeerIdentity pid;
-  const struct GNUNET_MessageHeader *msg;
-  struct GNUNET_HashCode phash;
+  switch (type)
+  {
+  case GNUNET_BLOCK_TYPE_DHT_HELLO:
+    {
+      const struct GNUNET_HELLO_Message *hello;
+      struct GNUNET_PeerIdentity pid;
+      const struct GNUNET_MessageHeader *msg;
+      struct GNUNET_HashCode phash;
 
-  if (type != GNUNET_BLOCK_TYPE_DHT_HELLO)
+      if (0 != xquery_size)
+      {
+        GNUNET_break_op (0);
+        return GNUNET_BLOCK_EVALUATION_REQUEST_INVALID;
+      }
+      if (NULL == reply_block)
+        return GNUNET_BLOCK_EVALUATION_REQUEST_VALID;
+      if (reply_block_size < sizeof(struct GNUNET_MessageHeader))
+      {
+        GNUNET_break_op (0);
+        return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
+      }
+      msg = reply_block;
+      if (reply_block_size != ntohs (msg->size))
+      {
+        GNUNET_break_op (0);
+        return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
+      }
+      hello = reply_block;
+      if (GNUNET_OK != GNUNET_HELLO_get_id (hello, &pid))
+      {
+        GNUNET_break_op (0);
+        return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
+      }
+      GNUNET_CRYPTO_hash (&pid,
+                          sizeof(pid),
+                          &phash);
+      if (GNUNET_YES ==
+          GNUNET_BLOCK_GROUP_bf_test_and_set (group,
+                                              &phash))
+        return GNUNET_BLOCK_EVALUATION_OK_DUPLICATE;
+      return GNUNET_BLOCK_EVALUATION_OK_MORE;
+    }
+  default:
     return GNUNET_BLOCK_EVALUATION_TYPE_NOT_SUPPORTED;
-  if (0 != xquery_size)
-  {
-    GNUNET_break_op (0);
-    return GNUNET_BLOCK_EVALUATION_REQUEST_INVALID;
   }
-  if (NULL == reply_block)
-    return GNUNET_BLOCK_EVALUATION_REQUEST_VALID;
-  if (reply_block_size < sizeof(struct GNUNET_MessageHeader))
-  {
-    GNUNET_break_op (0);
-    return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
-  }
-  msg = reply_block;
-  if (reply_block_size != ntohs (msg->size))
-  {
-    GNUNET_break_op (0);
-    return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
-  }
-  hello = reply_block;
-  if (GNUNET_OK != GNUNET_HELLO_get_id (hello, &pid))
-  {
-    GNUNET_break_op (0);
-    return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
-  }
-  GNUNET_CRYPTO_hash (&pid,
-                      sizeof(pid),
-                      &phash);
-  if (GNUNET_YES ==
-      GNUNET_BLOCK_GROUP_bf_test_and_set (group,
-                                          &phash))
-    return GNUNET_BLOCK_EVALUATION_OK_DUPLICATE;
-  return GNUNET_BLOCK_EVALUATION_OK_MORE;
 }
 
 
@@ -171,19 +177,23 @@ block_plugin_dht_evaluate (void *cls,
  */
 static enum GNUNET_GenericReturnValue
 block_plugin_dht_check_query (void *cls,
-                                    enum GNUNET_BLOCK_Type type,
-                                    const struct GNUNET_HashCode *query,
-                                    const void *xquery,
-                                    size_t xquery_size)
+                              enum GNUNET_BLOCK_Type type,
+                              const struct GNUNET_HashCode *query,
+                              const void *xquery,
+                              size_t xquery_size)
 {
-  if (type != GNUNET_BLOCK_TYPE_DHT_HELLO)
-    return GNUNET_SYSERR;
-  if (0 != xquery_size)
+  switch (type)
   {
-    GNUNET_break_op (0);
-    return GNUNET_NO;
+  case GNUNET_BLOCK_TYPE_DHT_HELLO:
+    if (0 != xquery_size)
+    {
+      GNUNET_break_op (0);
+      return GNUNET_NO;
+    }
+    return GNUNET_OK;
+  default:
+    return GNUNET_SYSERR;
   }
-  return GNUNET_OK;
 }
 
 
@@ -199,37 +209,43 @@ block_plugin_dht_check_query (void *cls,
  */
 static enum GNUNET_GenericReturnValue
 block_plugin_dht_check_block (void *cls,
-                                    enum GNUNET_BLOCK_Type type,
-                                    const struct GNUNET_HashCode *query,
-                                    const void *block,
-                                    size_t block_size)
+                              enum GNUNET_BLOCK_Type type,
+                              const struct GNUNET_HashCode *query,
+                              const void *block,
+                              size_t block_size)
 {
-  const struct GNUNET_HELLO_Message *hello;
-  struct GNUNET_PeerIdentity pid;
-  const struct GNUNET_MessageHeader *msg;
+  switch (type)
+  {
+  case GNUNET_BLOCK_TYPE_DHT_HELLO:
+    {
+      const struct GNUNET_HELLO_Message *hello;
+      struct GNUNET_PeerIdentity pid;
+      const struct GNUNET_MessageHeader *msg;
 
-  if (type != GNUNET_BLOCK_TYPE_DHT_HELLO)
+      if (block_size < sizeof(struct GNUNET_MessageHeader))
+      {
+        GNUNET_break_op (0);
+        return GNUNET_NO;
+      }
+      msg = block;
+      if (block_size != ntohs (msg->size))
+      {
+        GNUNET_break_op (0);
+        return GNUNET_NO;
+      }
+      hello = block;
+      if (GNUNET_OK !=
+          GNUNET_HELLO_get_id (hello,
+                               &pid))
+      {
+        GNUNET_break_op (0);
+        return GNUNET_NO;
+      }
+      return GNUNET_OK;
+    }
+  default:
     return GNUNET_SYSERR;
-  if (block_size < sizeof(struct GNUNET_MessageHeader))
-  {
-    GNUNET_break_op (0);
-    return GNUNET_NO;
   }
-  msg = block;
-  if (block_size != ntohs (msg->size))
-  {
-    GNUNET_break_op (0);
-    return GNUNET_NO;
-  }
-  hello = block;
-  if (GNUNET_OK !=
-      GNUNET_HELLO_get_id (hello,
-                           &pid))
-  {
-    GNUNET_break_op (0);
-    return GNUNET_NO;
-  }
-  return GNUNET_OK;
 }
 
 
@@ -251,49 +267,55 @@ block_plugin_dht_check_block (void *cls,
  */
 static enum GNUNET_BLOCK_ReplyEvaluationResult
 block_plugin_dht_check_reply (
-                                        void *cls,
-                                        enum GNUNET_BLOCK_Type type,
-                                    struct GNUNET_BLOCK_Group *group,
-                                    const struct GNUNET_HashCode *query,
-                                    const void *xquery,
-                                    size_t xquery_size,
-                                    const void *reply_block,
-                                    size_t reply_block_size)
+  void *cls,
+  enum GNUNET_BLOCK_Type type,
+  struct GNUNET_BLOCK_Group *group,
+  const struct GNUNET_HashCode *query,
+  const void *xquery,
+  size_t xquery_size,
+  const void *reply_block,
+  size_t reply_block_size)
 {
-  const struct GNUNET_HELLO_Message *hello;
-  struct GNUNET_PeerIdentity pid;
-  const struct GNUNET_MessageHeader *msg;
-  struct GNUNET_HashCode phash;
+  switch (type)
+  {
+  case GNUNET_BLOCK_TYPE_DHT_HELLO:
+    {
+      const struct GNUNET_HELLO_Message *hello;
+      struct GNUNET_PeerIdentity pid;
+      const struct GNUNET_MessageHeader *msg;
+      struct GNUNET_HashCode phash;
 
-  if (type != GNUNET_BLOCK_TYPE_DHT_HELLO)
+      if (reply_block_size < sizeof(struct GNUNET_MessageHeader))
+      {
+        GNUNET_break_op (0);
+        return GNUNET_BLOCK_REPLY_INVALID;
+      }
+      msg = reply_block;
+      if (reply_block_size != ntohs (msg->size))
+      {
+        GNUNET_break_op (0);
+        return GNUNET_BLOCK_REPLY_INVALID;
+      }
+      hello = reply_block;
+      if (GNUNET_OK !=
+          GNUNET_HELLO_get_id (hello,
+                               &pid))
+      {
+        GNUNET_break_op (0);
+        return GNUNET_BLOCK_REPLY_INVALID;
+      }
+      GNUNET_CRYPTO_hash (&pid,
+                          sizeof(pid),
+                          &phash);
+      if (GNUNET_YES ==
+          GNUNET_BLOCK_GROUP_bf_test_and_set (group,
+                                              &phash))
+        return GNUNET_BLOCK_REPLY_OK_DUPLICATE;
+      return GNUNET_BLOCK_REPLY_OK_MORE;
+    }
+  default:
     return GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED;
-  if (reply_block_size < sizeof(struct GNUNET_MessageHeader))
-  {
-    GNUNET_break_op (0);
-    return GNUNET_BLOCK_REPLY_INVALID;
   }
-  msg = reply_block;
-  if (reply_block_size != ntohs (msg->size))
-  {
-    GNUNET_break_op (0);
-    return GNUNET_BLOCK_REPLY_INVALID;
-  }
-  hello = reply_block;
-  if (GNUNET_OK !=
-      GNUNET_HELLO_get_id (hello,
-                           &pid))
-  {
-    GNUNET_break_op (0);
-    return GNUNET_BLOCK_REPLY_INVALID;
-  }
-  GNUNET_CRYPTO_hash (&pid,
-                      sizeof(pid),
-                      &phash);
-  if (GNUNET_YES ==
-      GNUNET_BLOCK_GROUP_bf_test_and_set (group,
-                                          &phash))
-    return GNUNET_BLOCK_REPLY_OK_DUPLICATE;
-  return GNUNET_BLOCK_REPLY_OK_MORE;
 }
 
 
@@ -315,41 +337,47 @@ block_plugin_dht_get_key (void *cls,
                           size_t block_size,
                           struct GNUNET_HashCode *key)
 {
-  const struct GNUNET_MessageHeader *msg;
-  const struct GNUNET_HELLO_Message *hello;
-  struct GNUNET_PeerIdentity *pid;
+  switch (type)
+  {
+  case GNUNET_BLOCK_TYPE_DHT_HELLO:
+    {
+      const struct GNUNET_MessageHeader *msg;
+      const struct GNUNET_HELLO_Message *hello;
+      struct GNUNET_PeerIdentity *pid;
 
-  if (type != GNUNET_BLOCK_TYPE_DHT_HELLO)
+      if (block_size < sizeof(struct GNUNET_MessageHeader))
+      {
+        GNUNET_log_from (GNUNET_ERROR_TYPE_ERROR,
+                         "block-dht",
+                         _ ("Block not of type %u\n"),
+                         GNUNET_BLOCK_TYPE_DHT_HELLO);
+        return GNUNET_NO;
+      }
+      msg = block;
+      if (block_size != ntohs (msg->size))
+      {
+        GNUNET_log_from (GNUNET_ERROR_TYPE_ERROR,
+                         "block-dht",
+                         _ ("Size mismatch for block with type %u\n"),
+                         GNUNET_BLOCK_TYPE_DHT_HELLO);
+        return GNUNET_NO;
+      }
+      hello = block;
+      memset (key, 0, sizeof(*key));
+      pid = (struct GNUNET_PeerIdentity *) key;
+      if (GNUNET_OK != GNUNET_HELLO_get_id (hello, pid))
+      {
+        GNUNET_log_from (GNUNET_ERROR_TYPE_ERROR,
+                         "block-dht",
+                         _ ("Block of type %u is malformed\n"),
+                         GNUNET_BLOCK_TYPE_DHT_HELLO);
+        return GNUNET_NO;
+      }
+      return GNUNET_OK;
+    }
+  default:
     return GNUNET_SYSERR;
-  if (block_size < sizeof(struct GNUNET_MessageHeader))
-  {
-    GNUNET_log_from (GNUNET_ERROR_TYPE_ERROR,
-                     "block-dht",
-                     _ ("Block not of type %u\n"),
-                     GNUNET_BLOCK_TYPE_DHT_HELLO);
-    return GNUNET_NO;
   }
-  msg = block;
-  if (block_size != ntohs (msg->size))
-  {
-    GNUNET_log_from (GNUNET_ERROR_TYPE_ERROR,
-                     "block-dht",
-                     _ ("Size mismatch for block with type %u\n"),
-                     GNUNET_BLOCK_TYPE_DHT_HELLO);
-    return GNUNET_NO;
-  }
-  hello = block;
-  memset (key, 0, sizeof(*key));
-  pid = (struct GNUNET_PeerIdentity *) key;
-  if (GNUNET_OK != GNUNET_HELLO_get_id (hello, pid))
-  {
-    GNUNET_log_from (GNUNET_ERROR_TYPE_ERROR,
-                     "block-dht",
-                     _ ("Block of type %u is malformed\n"),
-                     GNUNET_BLOCK_TYPE_DHT_HELLO);
-    return GNUNET_NO;
-  }
-  return GNUNET_OK;
 }
 
 
@@ -361,6 +389,7 @@ libgnunet_plugin_block_dht_init (void *cls)
 {
   static enum GNUNET_BLOCK_Type types[] = {
     GNUNET_BLOCK_TYPE_DHT_HELLO,
+    // FIXME: add GNUNET_BLOCK_TYPE_DHT_URL_HELLO,
     GNUNET_BLOCK_TYPE_ANY       /* end of list */
   };
   struct GNUNET_BLOCK_PluginFunctions *api;

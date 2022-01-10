@@ -119,6 +119,12 @@ enum GNUNET_BLOCK_Type
   GNUNET_BLOCK_TYPE_REVOCATION = 12,
 
   /**
+   * Type of a block that contains a DHT-NG HELLO for a peer (for
+   * DHT and CADET find-peer operations).
+   */
+  GNUNET_BLOCK_TYPE_DHT_URL_HELLO = 13,
+
+  /**
    * Block to store a cadet regex state
    */
   GNUNET_BLOCK_TYPE_REGEX = 22,

@@ -30,6 +30,7 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_block_lib.h"
 #include "gnunet_dht_service.h"
+#include "gnunet_dhtu_plugin.h"
 #include "gnunet-service-dht_datacache.h"
 
 /**
@@ -134,6 +135,51 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
 enum GNUNET_GenericReturnValue
 GDS_am_closest_peer (const struct GNUNET_HashCode *key,
                      const struct GNUNET_CONTAINER_BloomFilter *bloom);
+
+
+/**
+ * Function to call when we connect to a peer and can henceforth transmit to
+ * that peer.
+ *
+ * @param cls the closure
+ * @param target handle to the target,
+ *    pointer will remain valid until @e disconnect_cb is called
+ * @para pid peer identity,
+ *    pointer will remain valid until @e disconnect_cb is called
+ * @param[out] ctx storage space for DHT to use in association with this target
+ */
+void
+GDS_u_connect (void *cls,
+               struct GNUNET_DHTU_Target *target,
+               const struct GNUNET_PeerIdentity *pid,
+               void **ctx);
+
+/**
+ * Function to call when we disconnected from a peer and can henceforth
+ * cannot transmit to that peer anymore.
+ *
+ * @param[in] ctx storage space used by the DHT in association with this target
+ */
+void
+GDS_u_disconnect (void *ctx);
+
+
+/**
+ * Function to call when we receive a message.
+ *
+ * @param cls the closure
+ * @param origin where the message originated from
+ * @param[in,out] tctx ctx of target address where we received the message from
+ * @param[in,out] sctx ctx of our own source address at which we received the message
+ * @param message the message we received @param message_size number of
+ * bytes in @a message
+ */
+void
+GDS_u_receive (void *cls,
+               void **tctx,
+               void **sctx,
+               const void *message,
+               size_t message_size);
 
 
 /**

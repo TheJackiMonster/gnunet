@@ -70,11 +70,6 @@ struct GNUNET_DHTU_Source
 {
 
   /**
-   * Hash of @e pid, position of this peer in the DHT overlay.
-   */
-  struct GNUNET_DHTU_HashKey id;
-
-  /**
    * Application context for this source.
    */
   void *app_ctx;
@@ -123,11 +118,6 @@ struct GNUNET_DHTU_Target
    * Identity of this peer.
    */
   struct GNUNET_PeerIdentity pid;
-
-  /**
-   * Hash of @e pid, position of this peer in the DHT overlay.
-   */
-  struct GNUNET_DHTU_HashKey id;
 
   /**
    * Preference counter, length of the @a ph_head DLL.
@@ -240,10 +230,12 @@ hello_offered_cb (void *cls)
  * Request creation of a session with a peer at the given @a address.
  *
  * @param cls closure (internal context for the plugin)
+ * @param pid target identity of the peer to connect to
  * @param address target address to connect to
  */
 static void
 ip_try_connect (void *cls,
+                struct GNUNET_PeerIdentity *pid,
                 const char *address)
 {
   struct Plugin *plugin = cls;
@@ -251,16 +243,13 @@ ip_try_connect (void *cls,
   struct HelloHandle *hh;
   struct GNUNET_CRYPTO_EddsaPublicKey pubkey;
 
+  (void) pid; /* will be needed with future address URIs */
   if (GNUNET_OK !=
       GNUNET_HELLO_parse_uri (address,
                               &pubkey,
                               &hello,
                               &GPI_plugins_find))
-  {
-    GNUNET_break (0);
     return;
-  }
-
   hh = GNUNET_new (struct HelloHandle);
   hh->plugin = plugin;
   GNUNET_CONTAINER_DLL_insert (plugin->hh_head,
@@ -394,12 +383,9 @@ core_connect_cb (void *cls,
   target->plugin = plugin;
   target->mq = mq;
   target->pid = *peer;
-  GNUNET_CRYPTO_hash (peer,
-                      sizeof (*peer),
-                      &target->id.sha512);
   plugin->env->connect_cb (plugin->env->cls,
                            target,
-                           &target->id,
+                           &target->pid,
                            &target->app_ctx);
   return target;
 }
@@ -461,11 +447,7 @@ peerinfo_cb (void *cls,
                                    &GPI_plugins_find);
   if (NULL == addr)
     return;
-  GNUNET_CRYPTO_hash (peer,
-                      sizeof (*peer),
-                      &plugin->src.id.sha512);
   plugin->env->address_add_cb (plugin->env->cls,
-                               &plugin->src.id,
                                addr,
                                &plugin->src,
                                &plugin->src.app_ctx);
@@ -584,6 +566,10 @@ libgnunet_plugin_dhtu_gnunet_done (void *cls)
   }
   if (NULL != plugin->nse)
     GNUNET_NSE_disconnect (plugin->nse);
+  plugin->env->network_size_cb (plugin->env->cls,
+                                GNUNET_TIME_UNIT_FOREVER_ABS,
+                                0.0,
+                                0.0);
   if (NULL != plugin->core)
     GNUNET_CORE_disconnect (plugin->core);
   if (NULL != plugin->ats)
