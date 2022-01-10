@@ -1441,7 +1441,7 @@ GNUNET_TESTBED_overlay_configure_topology_va (void *op_cls,
     (c->opq_parallel_topology_config_operations, op);
   GNUNET_TESTBED_operation_begin_wait_ (op);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Generated %u connections\n",
+       "Generated topology with %u connections\n",
        tc->link_array_size);
   if (NULL != max_connections)
     *max_connections = tc->link_array_size;

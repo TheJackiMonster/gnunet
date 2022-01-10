@@ -445,10 +445,13 @@ connection_ready (void *cls)
   gh_next = NULL;
   if (NULL != gh->next)
     gh_next = search_waiting (entry, gh->next);
-  GNUNET_CONTAINER_DLL_remove (entry->head_waiting, entry->tail_waiting, gh);
+  GNUNET_CONTAINER_DLL_remove (entry->head_waiting,
+                               entry->tail_waiting,
+                               gh);
   gh->connection_ready_called = 1;
   if (NULL != gh_next)
-    entry->notify_task = GNUNET_SCHEDULER_add_now (&connection_ready, entry);
+    entry->notify_task = GNUNET_SCHEDULER_add_now (&connection_ready,
+                                                   entry);
   if ((NULL != gh->target) && (NULL != gh->connect_notify_cb))
   {
     GNUNET_CONTAINER_DLL_insert_tail (entry->head_notify,
@@ -456,7 +459,9 @@ connection_ready (void *cls)
                                       gh);
     gh->notify_waiting = 1;
   }
-  LOG_DEBUG ("Connection ready for handle type %u\n", gh->service);
+  LOG_DEBUG ("Connection ready to %u for handle type %u\n",
+             (unsigned int) entry->index,
+             gh->service);
   gh->cb (gh->cb_cls,
           entry->handle_core,
           entry->handle_transport,
@@ -625,7 +630,8 @@ core_peer_connect_cb (void *cls,
  * @param my_identity ID of this peer, NULL if we failed
  */
 static void
-core_startup_cb (void *cls, const struct GNUNET_PeerIdentity *my_identity)
+core_startup_cb (void *cls,
+                 const struct GNUNET_PeerIdentity *my_identity)
 {
   struct PooledConnection *entry = cls;
 
@@ -637,6 +643,10 @@ core_startup_cb (void *cls, const struct GNUNET_PeerIdentity *my_identity)
   GNUNET_assert (NULL == entry->peer_identity);
   entry->peer_identity = GNUNET_new (struct GNUNET_PeerIdentity);
   *entry->peer_identity = *my_identity;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Established CORE connection for peer %s (%u)\n",
+              GNUNET_i2s (my_identity),
+              (unsigned int) entry->index);
   if (0 == entry->demand)
     return;
   if (NULL != entry->notify_task)
@@ -857,19 +867,20 @@ GST_connection_pool_get_handle (
     case GST_CONNECTIONPOOL_SERVICE_TRANSPORT:
       handle = entry->handle_transport;
       if (NULL != handle)
-        LOG_DEBUG ("Found TRANSPORT handle for peer %u\n", entry->index);
+        LOG_DEBUG ("Found TRANSPORT handle for peer %u\n",
+                   entry->index);
       break;
-
     case GST_CONNECTIONPOOL_SERVICE_CORE:
       handle = entry->handle_core;
       if (NULL != handle)
-        LOG_DEBUG ("Found CORE handle for peer %u\n", entry->index);
+        LOG_DEBUG ("Found CORE handle for peer %u\n",
+                   entry->index);
       break;
-
     case GST_CONNECTIONPOOL_SERVICE_ATS_CONNECTIVITY:
       handle = entry->handle_ats_connectivity;
       if (NULL != handle)
-        LOG_DEBUG ("Found ATS CONNECTIVITY handle for peer %u\n", entry->index);
+        LOG_DEBUG ("Found ATS CONNECTIVITY handle for peer %u\n",
+                   entry->index);
       break;
     }
   }
@@ -905,7 +916,9 @@ GST_connection_pool_get_handle (
   gh->connect_notify_cb = connect_notify_cb;
   gh->connect_notify_cb_cls = connect_notify_cb_cls;
   gh->service = service;
-  GNUNET_CONTAINER_DLL_insert (entry->head_waiting, entry->tail_waiting, gh);
+  GNUNET_CONTAINER_DLL_insert (entry->head_waiting,
+                               entry->tail_waiting,
+                               gh);
   if (NULL != handle)
   {
     if (NULL == entry->notify_task)

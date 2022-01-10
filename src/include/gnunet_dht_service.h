@@ -482,29 +482,33 @@ GNUNET_DHT_pp2s (const struct GNUNET_DHT_PathElement *path,
 
 
 /**
- * Verify signatures on a @a path, in reverse order (starting at
- * the last element of the path).  Note that the last signature
- * on the path is never verified as that is the slot where our
- * peer (@a me) would need to sign.
+ * Verify signatures on a path consisting of @a put_path and @a get_path in
+ * reverse order (starting at the last element of the @a get_path).  Note that
+ * the last signature on the path is never verified as that is the slot where
+ * our peer (@a me) would need to sign.
  *
  * @param key key of the data (not necessarily the query hash)
  * @param data payload (the block)
  * @param data_size number of bytes in @a data
  * @param exp_time expiration time of @a data
- * @param path array of path elements to verify
- * @param path_len length of the @a path array
+ * @param get_path array of path elements to verify
+ * @param get_path_len length of the @a get_path array
+ * @param put_path array of path elements to verify
+ * @param put_path_len length of the @a put_path array
  * @param me our own peer identity (needed to verify the last element)
  * @return 0 on success, otherwise the index of
  *         the last path element that succeeded with verification;
- *         @a path_len -1 if no signature was valid
+ *         @a get_path_len + @a put_path_len - 1 if no signature was valid
  */
 unsigned int
 GNUNET_DHT_verify_path (const struct GNUNET_HashCode *key,
                         const void *data,
                         size_t data_size,
                         struct GNUNET_TIME_Absolute exp_time,
-                        const struct GNUNET_DHT_PathElement *path,
-                        unsigned int path_len,
+                        const struct GNUNET_DHT_PathElement *put_path,
+                        unsigned int put_path_len,
+                        const struct GNUNET_DHT_PathElement *get_path,
+                        unsigned int get_path_len,
                         const struct GNUNET_PeerIdentity *me);
 
 

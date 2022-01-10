@@ -1308,6 +1308,21 @@ GDS_NEIGHBOURS_handle_put (const struct GDS_DATACACHE_BlockData *bd,
   unsigned int put_path_length = bd->put_path_length;
 
   GNUNET_assert (NULL != bf);
+#if SANITY_CHECKS
+  if (0 !=
+      GNUNET_DHT_verify_path (&bd->key,
+                              bd->data,
+                              bd->data_size,
+                              bd->expiration_time,
+                              bd->put_path,
+                              bd->put_path_length,
+                              NULL, 0, /* get_path */
+                              &my_identity))
+  {
+    GNUNET_break_op (0);
+    put_path_length = 0;
+  }
+#endif
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Adding myself (%s) to PUT bloomfilter for %s\n",
               GNUNET_i2s (&my_identity),
@@ -1564,13 +1579,43 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
   struct PeerResultMessage *prm;
   struct GNUNET_DHT_PathElement *paths;
   size_t msize;
+  unsigned int ppl = bd->put_path_length;
 
-  msize = bd->data_size + (get_path_length + bd->put_path_length)
+#if SANITY_CHECKS
+  if (0 !=
+      GNUNET_DHT_verify_path (&bd->key,
+                              bd->data,
+                              bd->data_size,
+                              bd->expiration_time,
+                              bd->put_path,
+                              bd->put_path_length,
+                              get_path,
+                              get_path_length,
+                              &my_identity))
+  {
+    GNUNET_break_op (0);
+    get_path_length = 0;
+    ppl = 0;
+  }
+#endif
+  msize = bd->data_size + (get_path_length + ppl)
           * sizeof(struct GNUNET_DHT_PathElement);
   if ( (msize + sizeof(struct PeerResultMessage) >= GNUNET_MAX_MESSAGE_SIZE) ||
        (get_path_length >
         GNUNET_MAX_MESSAGE_SIZE / sizeof(struct GNUNET_DHT_PathElement)) ||
-       (bd->put_path_length >
+       (ppl >
+        GNUNET_MAX_MESSAGE_SIZE / sizeof(struct GNUNET_DHT_PathElement)) ||
+       (bd->data_size > GNUNET_MAX_MESSAGE_SIZE))
+  {
+    ppl = 0;
+    get_path_length = 0;
+    msize = bd->data_size + (get_path_length + ppl)
+            * sizeof(struct GNUNET_DHT_PathElement);
+  }
+  if ( (msize + sizeof(struct PeerResultMessage) >= GNUNET_MAX_MESSAGE_SIZE) ||
+       (get_path_length >
+        GNUNET_MAX_MESSAGE_SIZE / sizeof(struct GNUNET_DHT_PathElement)) ||
+       (ppl >
         GNUNET_MAX_MESSAGE_SIZE / sizeof(struct GNUNET_DHT_PathElement)) ||
        (bd->data_size > GNUNET_MAX_MESSAGE_SIZE))
   {
@@ -1602,15 +1647,15 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
                              msize,
                              GNUNET_MESSAGE_TYPE_DHT_P2P_RESULT);
   prm->type = htonl (bd->type);
-  prm->put_path_length = htonl (bd->put_path_length);
+  prm->put_path_length = htonl (ppl);
   prm->get_path_length = htonl (get_path_length);
   prm->expiration_time = GNUNET_TIME_absolute_hton (bd->expiration_time);
   prm->key = *query_hash;
   paths = (struct GNUNET_DHT_PathElement *) &prm[1];
   GNUNET_memcpy (paths,
                  bd->put_path,
-                 bd->put_path_length * sizeof(struct GNUNET_DHT_PathElement));
-  GNUNET_memcpy (&paths[bd->put_path_length],
+                 ppl * sizeof(struct GNUNET_DHT_PathElement));
+  GNUNET_memcpy (&paths[ppl],
                  get_path,
                  get_path_length * sizeof(struct GNUNET_DHT_PathElement));
   /* 0 == get_path_length means path is not being tracked */
@@ -1622,11 +1667,11 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
                bd->data,
                bd->data_size,
                bd->expiration_time,
-               &paths[bd->put_path_length + get_path_length - 1].pred,
+               &paths[ppl + get_path_length - 1].pred,
                pi->id,
-               &paths[bd->put_path_length + get_path_length - 1].sig);
+               &paths[ppl + get_path_length - 1].sig);
   }
-  GNUNET_memcpy (&paths[bd->put_path_length + get_path_length],
+  GNUNET_memcpy (&paths[ppl + get_path_length],
                  bd->data,
                  bd->data_size);
   GNUNET_MQ_send (pi->mq,
@@ -1797,6 +1842,19 @@ handle_dht_p2p_put (void *cls,
         GNUNET_break (0 !=
                       GNUNET_memcmp (&pp[i].pred,
                                      peer->id));
+      }
+      if (0 !=
+          GNUNET_DHT_verify_path (&bd.key,
+                                  bd.data,
+                                  bd.data_size,
+                                  bd.expiration_time,
+                                  bd.put_path,
+                                  putlen,
+                                  NULL, 0, /* get_path */
+                                  &my_identity))
+      {
+        GNUNET_break_op (0);
+        putlen = 0;
       }
 #endif
       GNUNET_memcpy (pp,

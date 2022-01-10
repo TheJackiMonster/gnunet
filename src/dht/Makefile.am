@@ -63,6 +63,7 @@ gnunet_service_dht_SOURCES = \
  gnunet-service-dht_neighbours.c gnunet-service-dht_neighbours.h \
  gnunet-service-dht_routing.c gnunet-service-dht_routing.h
 gnunet_service_dht_LDADD = \
+  libgnunetdht.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/core/libgnunetcore.la \
   $(top_builddir)/src/nse/libgnunetnse.la \

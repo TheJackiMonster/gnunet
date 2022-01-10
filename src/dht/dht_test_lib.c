@@ -138,11 +138,6 @@ dht_connect_cb (void *cls,
 }
 
 
-/**
- * Clean up the testbed.
- *
- * @param ctx handle for the testbed
- */
 void
 GNUNET_DHT_TEST_cleanup (struct GNUNET_DHT_TEST_Context *ctx)
 {
@@ -179,16 +174,6 @@ dht_test_run (void *cls,
 }
 
 
-/**
- * Run a test using the given name, configuration file and number of
- * peers.
- *
- * @param testname name of the test (for logging)
- * @param cfgname name of the configuration file
- * @param num_peers number of peers to start
- * @param tmain main function to run once the testbed is ready
- * @param tmain_cls closure for 'tmain'
- */
 void
 GNUNET_DHT_TEST_run (const char *testname,
                      const char *cfgname,

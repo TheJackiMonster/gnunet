@@ -58,16 +58,36 @@ struct GetOperation
   struct GetOperation *prev;
 
   /**
+   * Operation to fetch @a me.
+   */
+  struct GNUNET_TESTBED_Operation *to;
+
+  /**
    * Handle for the operation.
    */
   struct GNUNET_DHT_GetHandle *get;
+
+  /**
+   * DHT used by this operation.
+   */
+  struct GNUNET_DHT_Handle *dht;
+
+  /**
+   * Key we are looking up.
+   */
+  struct GNUNET_HashCode key;
+
+  /**
+   * At which peer is this operation being performed?
+   */
+  struct GNUNET_PeerIdentity me;
 };
 
 
 /**
  * Result of the test.
  */
-static int ok = 1;
+static int ok;
 
 /**
  * Task to do DHT_puts
@@ -154,7 +174,7 @@ static struct
 
 
 static struct GNUNET_DHT_TEST_Context *
-stop_ops ()
+stop_ops (void)
 {
   struct GetOperation *get_op;
   struct GNUNET_DHT_TEST_Context *ctx = NULL;
@@ -176,7 +196,16 @@ stop_ops ()
   }
   while (NULL != (get_op = get_tail))
   {
-    GNUNET_DHT_get_stop (get_op->get);
+    if (NULL != get_op->to)
+    {
+      GNUNET_TESTBED_operation_done (get_op->to);
+      get_op->to = NULL;
+    }
+    if (NULL != get_op->get)
+    {
+      GNUNET_DHT_get_stop (get_op->get);
+      get_op->get = NULL;
+    }
     GNUNET_CONTAINER_DLL_remove (get_head,
                                  get_tail,
                                  get_op);
@@ -199,7 +228,6 @@ stats_finished (void *cls,
                 const char *emsg)
 {
   struct GNUNET_DHT_TEST_Context *ctx = cls;
-  unsigned int i;
 
   if (NULL != op)
     GNUNET_TESTBED_operation_done (op);
@@ -212,7 +240,7 @@ stats_finished (void *cls,
     GNUNET_DHT_TEST_cleanup (ctx);
     return;
   }
-  for (i = 0; NULL != stats[i].name; i++)
+  for (unsigned int i = 0; NULL != stats[i].name; i++)
     fprintf (stderr,
              "%6s/%60s = %12llu\n",
              stats[i].subsystem,
@@ -234,7 +262,7 @@ stats_finished (void *cls,
  * @param is_persistent #GNUNET_YES if the value is persistent, #GNUNET_NO if not
  * @return #GNUNET_OK to continue, #GNUNET_SYSERR to abort iteration
  */
-static int
+static enum GNUNET_GenericReturnValue
 handle_stats (void *cls,
               const struct GNUNET_TESTBED_Peer *peer,
               const char *subsystem,
@@ -242,9 +270,7 @@ handle_stats (void *cls,
               uint64_t value,
               int is_persistent)
 {
-  unsigned int i;
-
-  for (i = 0; NULL != stats[i].name; i++)
+  for (unsigned int i = 0; NULL != stats[i].name; i++)
     if ((0 == strcasecmp (subsystem,
                           stats[i].subsystem)) &&
         (0 == strcasecmp (name,
@@ -263,7 +289,14 @@ handle_stats (void *cls,
 static void
 shutdown_task (void *cls)
 {
-  (void) stop_ops ();
+  struct GNUNET_DHT_TEST_Context *ctx;
+
+  (void) cls;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Performing shutdown\n");
+  ctx = stop_ops ();
+  if (NULL != ctx)
+    GNUNET_DHT_TEST_cleanup (ctx);
 }
 
 
@@ -276,7 +309,11 @@ shutdown_task (void *cls)
 static void
 timeout_cb (void *cls)
 {
-  timeout_task = NULL;
+  struct GNUNET_DHT_TEST_Context *ctx = cls;
+
+  timeout_task = GNUNET_SCHEDULER_add_delayed (GET_TIMEOUT,
+                                               &timeout_cb,
+                                               ctx);
   GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
               "Timeout\n");
   GNUNET_SCHEDULER_shutdown ();
@@ -314,6 +351,13 @@ dht_get_handler (void *cls,
   struct GNUNET_HashCode want;
   struct GNUNET_DHT_TEST_Context *ctx;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+              "Handling reply with GPL: %u PPL: %u!\n",
+              get_path_len,
+              put_path_len);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "GET HANDLER called on PID %s\n",
+              GNUNET_i2s (&get_op->me));
   if (sizeof(struct GNUNET_HashCode) != size)
   {
     GNUNET_break (0);
@@ -329,26 +373,26 @@ dht_get_handler (void *cls,
     GNUNET_break (0);
     return;
   }
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Get successful\n");
-#if 0
+  if (0 !=
+      GNUNET_DHT_verify_path (key,
+                              data,
+                              size,
+                              exp,
+                              get_path,
+                              get_path_length,
+                              put_path,
+                              put_path_length,
+                              &get_op->me))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Path signature verification failed!\n");
+  }
+  else
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "PATH: (get %u, put %u)\n",
-                get_path_length,
-                put_path_length);
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "  LOCAL\n");
-    for (int i = get_path_length - 1; i >= 0; i--)
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "  %s\n",
-                  GNUNET_i2s (&get_path[i]));
-    for (int i = put_path_length - 1; i >= 0; i--)
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "  %s\n",
-                  GNUNET_i2s (&put_path[i]));
+                "Get successful\n");
+    ok--;
   }
-#endif
   GNUNET_DHT_get_stop (get_op->get);
   GNUNET_CONTAINER_DLL_remove (get_head,
                                get_tail,
@@ -359,7 +403,6 @@ dht_get_handler (void *cls,
   /* all DHT GET operations successful; get stats! */
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "All DHT operations successful. Obtaining stats!\n");
-  ok = 0;
   ctx = stop_ops ();
   GNUNET_assert (NULL != ctx);
   (void) GNUNET_TESTBED_get_statistics (NUM_PEERS,
@@ -386,7 +429,8 @@ do_puts (void *cls)
 
   put_task = NULL;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Putting values into DHT\n");
+              "Putting %u values into DHT\n",
+              NUM_PEERS);
   for (unsigned int i = 0; i < NUM_PEERS; i++)
   {
     GNUNET_CRYPTO_hash (&i,
@@ -414,37 +458,86 @@ do_puts (void *cls)
 
 
 /**
+ * Callback to be called when the requested peer information is available
+ * The peer information in the callback is valid until the operation 'op' is canceled.
+ *
+ * @param cls a `struct GetOperation *`
+ * @param op the operation this callback corresponds to
+ * @param pinfo the result; will be NULL if the operation has failed
+ * @param emsg error message if the operation has failed; will be NULL if the
+ *          operation is successful
+ */
+static void
+pid_cb (void *cls,
+        struct GNUNET_TESTBED_Operation *op,
+        const struct GNUNET_TESTBED_PeerInformation *pinfo,
+        const char *emsg)
+{
+  struct GetOperation *get_op = cls;
+
+  if (NULL != emsg)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Testbed failure: %s\n",
+                emsg);
+    GNUNET_TESTBED_operation_done (get_op->to);
+    get_op->to = NULL;
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Testbed provided PID %s\n",
+              GNUNET_i2s (pinfo->result.id));
+  get_op->me = *pinfo->result.id;
+  GNUNET_TESTBED_operation_done (get_op->to);
+  get_op->to = NULL;
+  get_op->get = GNUNET_DHT_get_start (get_op->dht,
+                                      GNUNET_BLOCK_TYPE_TEST,
+                                      &get_op->key,
+                                      4U,     /* replication level */
+                                      GNUNET_DHT_RO_RECORD_ROUTE
+                                      | GNUNET_DHT_RO_DEMULTIPLEX_EVERYWHERE,
+                                      NULL,        /* xquery */
+                                      0,      /* xquery bits */
+                                      &dht_get_handler,
+                                      get_op);
+}
+
+
+/**
  * Start GET operations.
  */
 static void
 start_get (void *cls)
 {
   struct GNUNET_DHT_Handle **dhts = cls;
-  unsigned int i;
-  unsigned int j;
-  struct GNUNET_HashCode key;
-  struct GetOperation *get_op;
 
   get_task = NULL;
-  for (i = 0; i < NUM_PEERS; i++)
+  for (unsigned int i = 0; i < NUM_PEERS; i++)
   {
-    GNUNET_CRYPTO_hash (&i, sizeof(i), &key);
-    for (j = 0; j < NUM_PEERS; j++)
+    struct GNUNET_HashCode key;
+
+    GNUNET_CRYPTO_hash (&i,
+                        sizeof(i),
+                        &key);
+    for (unsigned int j = 0; j < NUM_PEERS; j++)
     {
+      struct GetOperation *get_op;
+
       get_op = GNUNET_new (struct GetOperation);
+      ok++;
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Starting GET %p\n",
+                  get_op);
+      get_op->key = key;
+      get_op->dht = dhts[j];
+      get_op->to = GNUNET_TESTBED_peer_get_information (my_peers[j],
+                                                        GNUNET_TESTBED_PIT_IDENTITY,
+                                                        &pid_cb,
+                                                        get_op);
       GNUNET_CONTAINER_DLL_insert (get_head,
                                    get_tail,
                                    get_op);
-      get_op->get = GNUNET_DHT_get_start (dhts[j],
-                                          GNUNET_BLOCK_TYPE_TEST,    /* type */
-                                          &key,      /*key to search */
-                                          4U,     /* replication level */
-                                          GNUNET_DHT_RO_RECORD_ROUTE
-                                          | GNUNET_DHT_RO_DEMULTIPLEX_EVERYWHERE,
-                                          NULL,        /* xquery */
-                                          0,      /* xquery bits */
-                                          &dht_get_handler,
-                                          get_op);
     }
   }
 }
@@ -492,6 +585,9 @@ main (int xargc, char *xargv[])
   const char *cfg_filename;
   const char *test_name;
 
+  unsetenv ("XDG_DATA_HOME");
+  unsetenv ("XDG_CONFIG_HOME");
+  unsetenv ("XDG_CACHE_HOME");
   if (NULL != strstr (xargv[0], "test_dht_2dtorus"))
   {
     cfg_filename = "test_dht_2dtorus.conf";

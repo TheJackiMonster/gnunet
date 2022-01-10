@@ -685,15 +685,14 @@ overlay_connect_notify (void *cls,
 
   LOG_DEBUG ("Overlay connect notify\n");
   if (0 ==
-      memcmp (new_peer, &occ->peer_identity,
-              sizeof(struct GNUNET_PeerIdentity)))
+      GNUNET_memcmp (new_peer,
+                     &occ->peer_identity))
     return;
   new_peer_str = GNUNET_strdup (GNUNET_i2s (new_peer));
   other_peer_str = GNUNET_strdup (GNUNET_i2s (&occ->other_peer_identity));
   if (0 !=
-      memcmp (new_peer,
-              &occ->other_peer_identity,
-              sizeof(struct GNUNET_PeerIdentity)))
+      GNUNET_memcmp (new_peer,
+                     &occ->other_peer_identity))
   {
     LOG_DEBUG ("Unexpected peer %s connected when expecting peer %s\n",
                new_peer_str,
@@ -1180,19 +1179,23 @@ occ_cache_get_handle_core_cb (void *cls,
     return;
   }
   occ->emsg = NULL;
+  occ->peer_identity = *my_identity;
   if (NULL !=
       GNUNET_CORE_get_mq (ch,
                           &occ->other_peer_identity))
   {
-    LOG_DEBUG ("0x%llx: Target peer already connected\n",
-               (unsigned long long) occ->op_id);
+    LOG_DEBUG ("0x%llx: Target peer %s already connected\n",
+               (unsigned long long) occ->op_id,
+               GNUNET_i2s (&occ->other_peer_identity));
+    LOG_DEBUG ("0x%llx: Target peer %s connected\n",
+               (unsigned long long) occ->op_id,
+               GNUNET_i2s (&occ->peer_identity));
     GNUNET_SCHEDULER_cancel (occ->timeout_task);
     occ->timeout_task = NULL;
     send_overlay_connect_success_msg (occ);
     occ->cleanup_task = GNUNET_SCHEDULER_add_now (&do_cleanup_occ, occ);
     return;
   }
-  occ->peer_identity = *my_identity;
   LOG_DEBUG ("0x%llx: Acquiring HELLO of peer %s\n",
              (unsigned long long) occ->op_id,
              GNUNET_i2s (&occ->peer_identity));
@@ -1259,12 +1262,11 @@ overlay_connect_get_config (void *cls,
     GST_connection_pool_get_handle (occ->peer->id,
                                     occ->peer->details.local.cfg,
                                     GST_CONNECTIONPOOL_SERVICE_CORE,
-                                    occ_cache_get_handle_core_cb,
+                                    &occ_cache_get_handle_core_cb,
                                     occ,
                                     &occ->other_peer_identity,
                                     &overlay_connect_notify,
                                     occ);
-  return;
 }
 
 
@@ -1540,6 +1542,12 @@ handle_overlay_connect (void *cls,
 
   p1 = ntohl (msg->peer1);
   p2 = ntohl (msg->peer2);
+  if (p1 == p2)
+  {
+    GNUNET_break (0);
+    GNUNET_SERVICE_client_drop (client);
+    return;
+  }
   if (! VALID_PEER_ID (p1))
   {
     GNUNET_break (0);
@@ -1620,12 +1628,10 @@ handle_overlay_connect (void *cls,
                                       &p2_controller_connect_cb,
                                       occ);
     break;
-
   case OCC_TYPE_REMOTE_SLAVE:
     p2_controller_connect_cb (occ,
                               occ->p2ctx.remote.p2c);
     break;
-
   case OCC_TYPE_LOCAL:
     peer2 = GST_peer_list[occ->other_peer_id];
     peer2->reference_cnt++;
@@ -1636,11 +1642,23 @@ handle_overlay_connect (void *cls,
                      "id: %u",
                      (unsigned long long) occ->op_id,
                      occ->peer->id);
+    LOG_DEBUG ("Peer %u has PID %s\n",
+               occ->other_peer_id,
+               GNUNET_i2s (&occ->other_peer_identity));
+    {
+      struct GNUNET_PeerIdentity lpid;
+
+      GNUNET_TESTING_peer_get_identity (peer->details.local.peer,
+                                        &lpid);
+      LOG_DEBUG ("Peer %u has PID %s\n",
+                 p1,
+                 GNUNET_i2s (&lpid));
+    }
     occ->cgh_ch =
       GST_connection_pool_get_handle (occ->peer->id,
                                       occ->peer->details.local.cfg,
                                       GST_CONNECTIONPOOL_SERVICE_CORE,
-                                      occ_cache_get_handle_core_cb, occ,
+                                      &occ_cache_get_handle_core_cb, occ,
                                       &occ->other_peer_identity,
                                       &overlay_connect_notify, occ);
     break;

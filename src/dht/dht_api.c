@@ -1198,31 +1198,51 @@ GNUNET_DHT_verify_path (const struct GNUNET_HashCode *key,
                         const void *data,
                         size_t data_size,
                         struct GNUNET_TIME_Absolute exp_time,
-                        const struct GNUNET_DHT_PathElement *path,
-                        unsigned int path_len,
+                        const struct GNUNET_DHT_PathElement *put_path,
+                        unsigned int put_path_len,
+                        const struct GNUNET_DHT_PathElement *get_path,
+                        unsigned int get_path_len,
                         const struct GNUNET_PeerIdentity *me)
 {
-
   struct GNUNET_DHT_HopSignature hs = {
     .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DHT_HOP),
     .purpose.size = htonl (sizeof (hs)),
     .expiration_time = GNUNET_TIME_absolute_hton (exp_time),
     .key = *key,
   };
-  unsigned int i = path_len - 1;
+  unsigned int i;
 
+  if (0 == get_path_len + put_path_len)
+    return 0;
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Verifying signatures with GPL: %u PPL: %u!\n",
+              get_path_len,
+              put_path_len);
+  i = put_path_len + get_path_len - 1;
   GNUNET_CRYPTO_hash (data,
                       data_size,
                       &hs.h_data);
   while (i > 0)
   {
-    hs.pred = path[i - 1].pred;
-    hs.succ = (path_len == i + 1) ? *me : path[i + 1].pred;
+    hs.pred = (i - 1 >= put_path_len)
+      ? get_path[i - put_path_len - 1].pred
+      : put_path[i - 1].pred;
+    if (i + 1 == get_path_len + put_path_len)
+      hs.succ = *me;
+    else
+      hs.succ = (i + 1 >= put_path_len)
+        ? get_path[i + 1 - put_path_len].pred
+        : put_path[i + 1].pred;
     if (GNUNET_OK !=
-        GNUNET_CRYPTO_eddsa_verify (GNUNET_SIGNATURE_PURPOSE_DHT_HOP,
-                                    &hs,
-                                    &path[i - 1].sig,
-                                    &path[i].pred.public_key))
+        GNUNET_CRYPTO_eddsa_verify (
+          GNUNET_SIGNATURE_PURPOSE_DHT_HOP,
+          &hs,
+          (i - 1 >= put_path_len)
+          ? &get_path[i - put_path_len - 1].sig
+          : &put_path[i - 1].sig,
+          (i >= put_path_len)
+          ? &get_path[i - put_path_len].pred.public_key
+          : &put_path[i].pred.public_key))
       return i;
     i--;
   }
