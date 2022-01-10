@@ -31,6 +31,23 @@
 
 
 /**
+ * Our closure.
+ */
+struct BlockContext
+{
+  /**
+   * Configuration to use.
+   */
+  const struct GNUNET_CONFIGURATION_Handle *cfg;
+
+  /**
+   * Lazily initialized block context.
+   */
+  struct GNUNET_BLOCK_Context *bc;
+};
+
+
+/**
  * Function called to validate a reply or a request.  For
  * request evaluation, simply pass "NULL" for the reply_block.
  *
@@ -58,6 +75,7 @@ block_plugin_consensus_evaluate (void *cls,
                                  const void *reply_block,
                                  size_t reply_block_size)
 {
+  struct BlockContext *bctx = cls;
   const struct ConsensusElement *ce = reply_block;
 
   if (reply_block_size < sizeof(struct ConsensusElement))
@@ -66,7 +84,9 @@ block_plugin_consensus_evaluate (void *cls,
        (0 == ce->payload_type) )
     return GNUNET_BLOCK_EVALUATION_OK_MORE;
 
-  return GNUNET_BLOCK_evaluate (ctx,
+  if (NULL == bctx->bc)
+    bctx->bc = GNUNET_BLOCK_context_create (bctx->cfg);
+  return GNUNET_BLOCK_evaluate (bctx->bc,
                                 type,
                                 group,
                                 eo,
@@ -120,7 +140,7 @@ block_plugin_consensus_check_block (void *cls,
                                     const void *block,
                                     size_t block_size)
 {
-  struct GNUNET_BLOCK_Context *ctx = cls;
+  struct BlockContext *ctx = cls;
   const struct ConsensusElement *ce = block;
 
   if (block_size < sizeof(*ce))
@@ -128,7 +148,9 @@ block_plugin_consensus_check_block (void *cls,
   if ( (0 != ce->marker) ||
        (0 == ce->payload_type) )
     return GNUNET_OK;
-  return GNUNET_BLOCK_check_block (ctx,
+  if (NULL == ctx->bc)
+    ctx->bc = GNUNET_BLOCK_context_create (ctx->cfg);
+  return GNUNET_BLOCK_check_block (ctx->bc,
                                    ntohl (ce->payload_type),
                                    query,
                                    &ce[1],
@@ -163,7 +185,7 @@ block_plugin_consensus_check_reply (
   const void *reply_block,
   size_t reply_block_size)
 {
-  struct GNUNET_BLOCK_Context *ctx = cls;
+  struct BlockContext *ctx = cls;
   const struct ConsensusElement *ce = reply_block;
 
   if (reply_block_size < sizeof(struct ConsensusElement))
@@ -171,7 +193,9 @@ block_plugin_consensus_check_reply (
   if ( (0 != ce->marker) ||
        (0 == ce->payload_type) )
     return GNUNET_BLOCK_REPLY_OK_MORE;
-  return GNUNET_BLOCK_check_reply (ctx,
+  if (NULL == ctx->bc)
+    ctx->bc = GNUNET_BLOCK_context_create (ctx->cfg);
+  return GNUNET_BLOCK_check_reply (ctx->bc,
                                    ntohl (ce->payload_type),
                                    group,
                                    query,
@@ -215,10 +239,13 @@ libgnunet_plugin_block_consensus_init (void *cls)
     GNUNET_BLOCK_TYPE_ANY       /* end of list */
   };
   const struct GNUNET_CONFIGURATION_Handle *cfg = cls;
+  struct BlockContext *ctx;
   struct GNUNET_BLOCK_PluginFunctions *api;
 
+  ctx = GNUNET_new (struct BlockContext);
+  ctx->cfg = cfg;
   api = GNUNET_new (struct GNUNET_BLOCK_PluginFunctions);
-  api->cls = GNUNET_BLOCK_context_create (cfg);
+  api->cls = ctx;
   api->evaluate = &block_plugin_consensus_evaluate;
   api->get_key = &block_plugin_consensus_get_key;
   api->check_query = &block_plugin_consensus_check_query;
@@ -236,9 +263,11 @@ void *
 libgnunet_plugin_block_consensus_done (void *cls)
 {
   struct GNUNET_BLOCK_PluginFunctions *api = cls;
-  struct GNUNET_BLOCK_Context *bc = api->cls;
+  struct BlockContext *ctx = api->cls;
 
-  GNUNET_BLOCK_context_destroy (bc);
+  if (NULL != ctx->bc)
+    GNUNET_BLOCK_context_destroy (ctx->bc);
+  GNUNET_free (ctx);
   GNUNET_free (api);
   return NULL;
 }
