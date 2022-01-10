@@ -389,6 +389,8 @@ GAS_addresses_destroy_all ()
 {
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Destroying all addresses\n");
+  if (NULL == GSA_addresses)
+    return;
   if (0 ==
       GNUNET_CONTAINER_multipeermap_size (GSA_addresses))
     return;
