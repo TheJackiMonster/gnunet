@@ -351,10 +351,6 @@ dht_get_handler (void *cls,
   struct GNUNET_HashCode want;
   struct GNUNET_DHT_TEST_Context *ctx;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "Handling reply with GPL: %u PPL: %u!\n",
-              get_path_len,
-              put_path_len);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "GET HANDLER called on PID %s\n",
               GNUNET_i2s (&get_op->me));
