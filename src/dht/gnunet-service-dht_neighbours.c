@@ -419,26 +419,36 @@ static struct GNUNET_CRYPTO_EddsaPrivateKey my_private_key;
  * Sign that we are routing a message from @a pred to @a succ.
  * (So the route is $PRED->us->$SUCC).
  *
+ * @param key key of the data (not necessarily the query hash)
+ * @param data payload (the block)
+ * @param data_size number of bytes in @a data
+ * @param exp_time expiration time of @a data
  * @param pred predecessor peer ID
  * @param succ successor peer ID
  * @param[out] sig where to write the signature
  *      (of purpose #GNUNET_SIGNATURE_PURPOSE_DHT_HOP)
  */
 static void
-sign_path (const struct GNUNET_PeerIdentity *pred,
+sign_path (const struct GNUNET_HashCode *key,
+           const void *data,
+           size_t data_size,
+           struct GNUNET_TIME_Absolute exp_time,
+           const struct GNUNET_PeerIdentity *pred,
            const struct GNUNET_PeerIdentity *succ,
            struct GNUNET_CRYPTO_EddsaSignature *sig)
 {
   struct GNUNET_DHT_HopSignature hs = {
     .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DHT_HOP),
     .purpose.size = htonl (sizeof (hs)),
+    .expiration_time = GNUNET_TIME_absolute_hton (exp_time),
+    .key = *key,
     .pred = *pred,
     .succ = *succ
   };
 
-  /* TODO: we might want to cache signatures by 'hs' in the
-     future as an optimization to reduce the amount of
-     crypto operations we need to do! */
+  GNUNET_CRYPTO_hash (data,
+                      data_size,
+                      &hs.h_data);
   GNUNET_CRYPTO_eddsa_sign (&my_private_key,
                             &hs,
                             sig);
@@ -1387,7 +1397,11 @@ GDS_NEIGHBOURS_handle_put (const struct GDS_DATACACHE_BlockData *bd,
     {
       /* Note that the signature in 'put_path' was not initialized before,
          so this is crucial to avoid sending garbage. */
-      sign_path (&pp[put_path_length - 1].pred,
+      sign_path (&bd->key,
+                 bd->data,
+                 bd->data_size,
+                 bd->expiration_time,
+                 &pp[put_path_length - 1].pred,
                  target->id,
                  &pp[put_path_length - 1].sig);
     }
@@ -1604,7 +1618,11 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
   {
     /* Note that the signature in 'get_path' was not initialized before,
        so this is crucial to avoid sending garbage. */
-    sign_path (&paths[bd->put_path_length + get_path_length - 1].pred,
+    sign_path (&bd->key,
+               bd->data,
+               bd->data_size,
+               bd->expiration_time,
+               &paths[bd->put_path_length + get_path_length - 1].pred,
                pi->id,
                &paths[bd->put_path_length + get_path_length - 1].sig);
   }

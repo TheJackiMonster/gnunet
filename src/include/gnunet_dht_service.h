@@ -126,6 +126,21 @@ struct GNUNET_DHT_HopSignature
   struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
 
   /**
+   * Expiration time of the block.
+   */
+  struct GNUNET_TIME_AbsoluteNBO expiration_time;
+
+  /**
+   * Key of the block.
+   */
+  struct GNUNET_HashCode key;
+
+  /**
+   * Hash over the payload of the block.
+   */
+  struct GNUNET_HashCode h_data;
+
+  /**
    * Previous hop the message was received from.  All zeros
    * if this peer was the initiator.
    */
