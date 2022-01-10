@@ -57,36 +57,13 @@ struct GNUNET_DHTU_Target;
  */
 struct GNUNET_DHTU_PreferenceHandle;
 
-/**
- * Opaque handle for a private key used by this underlay.
- */
-struct GNUNET_DHTU_PrivateKey;
 
 /**
- * Handle for a public key used by another peer.  Note that
- * the underlay used must be communicated separately.
+ * Key used to identify peer's position in the DHT.
  */
-struct GNUNET_DHTU_PublicKey
+struct GNUNET_DHTU_HashKey
 {
-  /**
-   * How long is the public key, in network byte order.
-   */
-  uint16_t size;
-
-  /* followed by size-2 bytes of the actual public key */
-};
-
-
-/**
- * Hash used by the DHT for keys and peers.
- */
-struct GNUNET_DHTU_Hash
-{
-
-  /**
-   * For now, use a 512 bit hash. (To be discussed).
-   */
-  struct GNUNET_HashCode hc;
+  struct GNUNET_HashCode sha512;
 };
 
 
@@ -111,9 +88,7 @@ struct GNUNET_DHTU_PluginEnvironment
    * Function to call with new addresses of this peer.
    *
    * @param cls the closure
-   * @param my_id hash position of this address in the DHT
-   * @param pk private key of this peer used at @a address,
-   *           pointer will remain valid until @e address_del_cb is called
+   * @param key hash position of this address in the DHT
    * @param address address under which we are likely reachable,
    *           pointer will remain valid until @e address_del_cb is called; to be used for HELLOs. Example: "ip+udp://1.1.1.1:2086/"
    * @param source handle for sending from this address, NULL if we can only receive
@@ -121,8 +96,7 @@ struct GNUNET_DHTU_PluginEnvironment
    */
   void
   (*address_add_cb)(void *cls,
-                    const struct GNUNET_DHTU_Hash *my_id,
-                    const struct GNUNET_DHTU_PrivateKey *pk,
+                    struct GNUNET_DHTU_HashKey *key,
                     const char *address,
                     struct GNUNET_DHTU_Source *source,
                     void **ctx);
@@ -164,9 +138,8 @@ struct GNUNET_DHTU_PluginEnvironment
    */
   void
   (*connect_cb)(void *cls,
-                const struct GNUNET_DHTU_PublicKey *pk,
-                const struct GNUNET_DHTU_Hash *peer_id,
                 struct GNUNET_DHTU_Target *target,
+                struct GNUNET_DHTU_HashKey *key,
                 void **ctx);
 
   /**
@@ -209,41 +182,6 @@ struct GNUNET_DHTU_PluginFunctions
   void *cls;
 
   /**
-   * Use our private key to sign a message.
-   *
-   * @param cls closure
-   * @param pk our private key to sign with
-   * @param purpose what to sign
-   * @param[out] signature, allocated on heap and returned
-   * @return -1 on error, otherwise number of bytes in @a sig
-   */
-  ssize_t
-  (*sign)(void *cls,
-          const struct GNUNET_DHTU_PrivateKey *pk,
-          const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
-          void **sig);
-
-  /**
-   * Verify signature in @a sig over @a purpose.
-   *
-   * @param cls closure
-   * @param pk public key to verify signature of
-   * @param purpose what was being signed
-   * @param sig signature data
-   * @param sig_size number of bytes in @a sig
-   * @return #GNUNET_OK if signature is valid
-   *         #GNUNET_NO if signatures are not supported
-   *         #GNUNET_SYSERR if signature is invalid
-   */
-  enum GNUNET_GenericReturnValue
-  (*verify)(void *cls,
-            const struct GNUNET_DHTU_PublicKey *pk,
-            const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
-            const void *sig,
-            size_t sig_size);
-
-
-  /**
    * Request creation of a session with a peer at the given @a address.
    *
    * @param cls closure (internal context for the plugin)
@@ -252,6 +190,7 @@ struct GNUNET_DHTU_PluginFunctions
   void
   (*try_connect) (void *cls,
                   const char *address);
+
 
   /**
    * Request underlay to keep the connection to @a target alive if possible.

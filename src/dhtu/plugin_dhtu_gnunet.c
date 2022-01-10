@@ -35,42 +35,6 @@
 
 
 /**
- * Handle for a private key used by this underlay.
- */
-struct GNUNET_DHTU_PrivateKey
-{
-  /**
-   * GNUnet uses eddsa for peers.
-   */
-  struct GNUNET_CRYPTO_EddsaPrivateKey eddsa_priv;
-
-};
-
-GNUNET_NETWORK_STRUCT_BEGIN
-
-/**
- * Handle for a public key used by this underlay.
- */
-struct PublicKey
-{
-
-  /**
-   * Header.
-   */
-  struct GNUNET_DHTU_PublicKey header;
-
-  /**
-   * GNUnet uses eddsa for peers.
-   */
-  struct GNUNET_PeerIdentity peer_pub;
-
-};
-
-
-GNUNET_NETWORK_STRUCT_END
-
-
-/**
  * Handle for a HELLO we're offering the transport.
  */
 struct HelloHandle
@@ -106,19 +70,14 @@ struct GNUNET_DHTU_Source
 {
 
   /**
+   * Hash of @e pid, position of this peer in the DHT overlay.
+   */
+  struct GNUNET_DHTU_HashKey id;
+
+  /**
    * Application context for this source.
    */
   void *app_ctx;
-
-  /**
-   * Hash position of this peer in the DHT.
-   */
-  struct GNUNET_DHTU_Hash my_id;
-
-  /**
-   * Private key of this peer.
-   */
-  struct GNUNET_DHTU_PrivateKey pk;
 
 };
 
@@ -146,17 +105,6 @@ struct GNUNET_DHTU_Target
   struct GNUNET_MQ_Handle *mq;
 
   /**
-   * Public key of the peer.
-   */
-  struct PublicKey pk;
-
-  /**
-   * Hash of the @a pk to identify position of the peer
-   * in the DHT.
-   */
-  struct GNUNET_DHTU_Hash peer_id;
-
-  /**
    * Head of preferences expressed for this target.
    */
   struct GNUNET_DHTU_PreferenceHandle *ph_head;
@@ -170,6 +118,16 @@ struct GNUNET_DHTU_Target
    * ATS preference handle for this peer, or NULL.
    */
   struct GNUNET_ATS_ConnectivitySuggestHandle *csh;
+
+  /**
+   * Identity of this peer.
+   */
+  struct GNUNET_PeerIdentity pid;
+
+  /**
+   * Hash of @e pid, position of this peer in the DHT overlay.
+   */
+  struct GNUNET_DHTU_HashKey id;
 
   /**
    * Preference counter, length of the @a ph_head DLL.
@@ -215,11 +173,6 @@ struct Plugin
   struct GNUNET_DHTU_Source src;
 
   /**
-   * My identity.
-   */
-  struct GNUNET_PeerIdentity my_identity;
-
-  /**
    * Callbacks into the DHT.
    */
   struct GNUNET_DHTU_PluginEnvironment *env;
@@ -253,76 +206,13 @@ struct Plugin
    * Hellos we are offering to transport.
    */
   struct HelloHandle *hh_tail;
+
+  /**
+   * Identity of this peer.
+   */
+  struct GNUNET_PeerIdentity my_identity;
+
 };
-
-
-/**
- * Use our private key to sign a message.
- *
- * @param cls closure
- * @param pk our private key to sign with
- * @param purpose what to sign
- * @param[out] signature, allocated on heap and returned
- * @return -1 on error, otherwise number of bytes in @a sig
- */
-static ssize_t
-ip_sign (void *cls,
-         const struct GNUNET_DHTU_PrivateKey *pk,
-         const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
-         void **sig)
-{
-  struct GNUNET_CRYPTO_EddsaSignature *es;
-
-  es = GNUNET_new (struct GNUNET_CRYPTO_EddsaSignature);
-  GNUNET_CRYPTO_eddsa_sign_ (&pk->eddsa_priv,
-                             purpose,
-                             es);
-  *sig = es;
-  return sizeof (*es);
-}
-
-
-/**
- * Verify signature in @a sig over @a purpose.
- *
- * @param cls closure
- * @param pk public key to verify signature of
- * @param purpose what was being signed
- * @param sig signature data
- * @param sig_size number of bytes in @a sig
- * @return #GNUNET_OK if signature is valid
- *         #GNUNET_NO if signatures are not supported
- *         #GNUNET_SYSERR if signature is invalid
- */
-static enum GNUNET_GenericReturnValue
-ip_verify (void *cls,
-           const struct GNUNET_DHTU_PublicKey *pk,
-           const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
-           const void *sig,
-           size_t sig_size)
-{
-  const struct GNUNET_CRYPTO_EddsaSignature *es = sig;
-  const struct PublicKey *pub;
-
-  GNUNET_assert (sizeof (struct PublicKey) ==
-                 ntohs (pk->size));
-  pub = (const struct PublicKey *) pk;
-  if (sizeof (*es) != sig_size)
-  {
-    GNUNET_break_op (0);
-    return GNUNET_SYSERR;
-  }
-  if (GNUNET_OK !=
-      GNUNET_CRYPTO_eddsa_verify_ (ntohl (purpose->purpose),
-                                   purpose,
-                                   es,
-                                   &pub->peer_pub.public_key))
-  {
-    GNUNET_break_op (0);
-    return GNUNET_SYSERR;
-  }
-  return GNUNET_OK;
-}
 
 
 /**
@@ -409,7 +299,7 @@ ip_hold (void *cls,
     GNUNET_ATS_connectivity_suggest_cancel (target->csh);
   target->csh
     = GNUNET_ATS_connectivity_suggest (plugin->ats,
-                                       &target->pk.peer_pub,
+                                       &target->pid,
                                        target->ph_count);
   return ph;
 }
@@ -439,7 +329,7 @@ ip_drop (struct GNUNET_DHTU_PreferenceHandle *ph)
   else
     target->csh
       = GNUNET_ATS_connectivity_suggest (plugin->ats,
-                                         &target->pk.peer_pub,
+                                         &target->pid,
                                          target->ph_count);
 }
 
@@ -503,15 +393,13 @@ core_connect_cb (void *cls,
   target = GNUNET_new (struct GNUNET_DHTU_Target);
   target->plugin = plugin;
   target->mq = mq;
-  target->pk.header.size = htons (sizeof (struct PublicKey));
-  target->pk.peer_pub = *peer;
+  target->pid = *peer;
   GNUNET_CRYPTO_hash (peer,
-                      sizeof (struct GNUNET_PeerIdentity),
-                      &target->peer_id.hc);
+                      sizeof (*peer),
+                      &target->id.sha512);
   plugin->env->connect_cb (plugin->env->cls,
-                           &target->pk.header,
-                           &target->peer_id,
                            target,
+                           &target->id,
                            &target->app_ctx);
   return target;
 }
@@ -573,12 +461,11 @@ peerinfo_cb (void *cls,
                                    &GPI_plugins_find);
   if (NULL == addr)
     return;
-  GNUNET_CRYPTO_hash (&plugin->my_identity,
-                      sizeof (struct GNUNET_PeerIdentity),
-                      &plugin->src.my_id.hc);
+  GNUNET_CRYPTO_hash (peer,
+                      sizeof (*peer),
+                      &plugin->src.id.sha512);
   plugin->env->address_add_cb (plugin->env->cls,
-                               &plugin->src.my_id,
-                               &plugin->src.pk,
+                               &plugin->src.id,
                                addr,
                                &plugin->src,
                                &plugin->src.app_ctx);
@@ -729,22 +616,11 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
                            NULL),
     GNUNET_MQ_handler_end ()
   };
-  struct GNUNET_CRYPTO_EddsaPrivateKey *pk;
 
-  pk = GNUNET_CRYPTO_eddsa_key_create_from_configuration (env->cfg);
-  if (NULL == pk)
-  {
-    GNUNET_break (0);
-    return NULL;
-  }
   plugin = GNUNET_new (struct Plugin);
   plugin->env = env;
-  plugin->src.pk.eddsa_priv = *pk;
-  GNUNET_free (pk);
   api = GNUNET_new (struct GNUNET_DHTU_PluginFunctions);
   api->cls = plugin;
-  api->sign = &ip_sign;
-  api->verify = &ip_verify;
   api->try_connect = &ip_try_connect;
   api->hold = &ip_hold;
   api->drop = &ip_drop;

@@ -56,6 +56,11 @@ struct GNUNET_DHTU_Source
   struct GNUNET_DHTU_Source *prev;
 
   /**
+   * Position of this peer in the DHT.
+   */
+  struct GNUNET_DHTU_HashKey id;
+
+  /**
    * Application context for this source.
    */
   void *app_ctx;
@@ -64,11 +69,6 @@ struct GNUNET_DHTU_Source
    * Address in URL form ("ip+udp://$IP:$PORT")
    */
   char *address;
-
-  /**
-   * Hash of the IP address.
-   */
-  struct GNUNET_DHTU_Hash id;
 
   /**
    * My actual address.
@@ -111,11 +111,6 @@ struct GNUNET_DHTU_Target
   void *app_ctx;
 
   /**
-   * Hash of the IP address.
-   */
-  struct GNUNET_DHTU_Hash id;
-
-  /**
    * Head of preferences expressed for this target.
    */
   struct GNUNET_DHTU_PreferenceHandle *ph_head;
@@ -124,6 +119,11 @@ struct GNUNET_DHTU_Target
    * Tail of preferences expressed for this target.
    */
   struct GNUNET_DHTU_PreferenceHandle *ph_tail;
+
+  /**
+   * Position of this peer in the DHT.
+   */
+  struct GNUNET_DHTU_HashKey id;
 
   /**
    * Target IP address.
@@ -229,48 +229,6 @@ struct Plugin
 
 
 /**
- * Use our private key to sign a message.
- *
- * @param cls closure
- * @param pk our private key to sign with
- * @param purpose what to sign
- * @param[out] signature, allocated on heap and returned
- * @return -1 on error, otherwise number of bytes in @a sig
- */
-static ssize_t
-ip_sign (void *cls,
-         const struct GNUNET_DHTU_PrivateKey *pk,
-         const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
-         void **sig)
-{
-  return 0;
-}
-
-
-/**
- * Verify signature in @a sig over @a purpose.
- *
- * @param cls closure
- * @param pk public key to verify signature of
- * @param purpose what was being signed
- * @param sig signature data
- * @param sig_size number of bytes in @a sig
- * @return #GNUNET_OK if signature is valid
- *         #GNUNET_NO if signatures are not supported
- *         #GNUNET_SYSERR if signature is invalid
- */
-static enum GNUNET_GenericReturnValue
-ip_verify (void *cls,
-           const struct GNUNET_DHTU_PublicKey *pk,
-           const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
-           const void *sig,
-           size_t sig_size)
-{
-  return GNUNET_NO;
-}
-
-
-/**
  * Create a target to which we may send traffic.
  *
  * @param plugin our plugin
@@ -283,7 +241,6 @@ create_target (struct Plugin *plugin,
                const struct sockaddr *addr,
                socklen_t addrlen)
 {
-  static struct GNUNET_DHTU_PublicKey pk;
   struct GNUNET_DHTU_Target *dst;
 
   if (MAX_DESTS >
@@ -316,7 +273,6 @@ create_target (struct Plugin *plugin,
     GNUNET_assert (NULL == dst->ph_head);
     GNUNET_free (dst);
   }
-  pk.size = htons (sizeof (pk));
   dst = GNUNET_new (struct GNUNET_DHTU_Target);
   dst->addrlen = addrlen;
   memcpy (&dst->addr,
@@ -331,7 +287,7 @@ create_target (struct Plugin *plugin,
       GNUNET_assert (sizeof (struct sockaddr_in) == addrlen);
       GNUNET_CRYPTO_hash (&s4->sin_addr,
                           sizeof (struct in_addr),
-                          &dst->id.hc);
+                          &dst->id.sha512);
     }
     break;
   case AF_INET6:
@@ -341,7 +297,7 @@ create_target (struct Plugin *plugin,
       GNUNET_assert (sizeof (struct sockaddr_in6) == addrlen);
       GNUNET_CRYPTO_hash (&s6->sin6_addr,
                           sizeof (struct in6_addr),
-                          &dst->id.hc);
+                          &dst->id.sha512);
     }
     break;
   default:
@@ -353,9 +309,8 @@ create_target (struct Plugin *plugin,
                                plugin->dst_tail,
                                dst);
   plugin->env->connect_cb (plugin->env->cls,
-                           &pk,
-                           &dst->id,
                            dst,
+                           &dst->id,
                            &dst->app_ctx);
   return dst;
 }
@@ -585,7 +540,7 @@ create_source (struct Plugin *plugin,
       GNUNET_assert (sizeof (struct sockaddr_in) == addrlen);
       GNUNET_CRYPTO_hash (&s4->sin_addr,
                           sizeof (struct in_addr),
-                          &src->id.hc);
+                          &src->id.sha512);
       GNUNET_asprintf (&src->address,
                        "ip+udp://%s:%u",
                        inet_ntop (AF_INET,
@@ -603,7 +558,7 @@ create_source (struct Plugin *plugin,
       GNUNET_assert (sizeof (struct sockaddr_in6) == addrlen);
       GNUNET_CRYPTO_hash (&s6->sin6_addr,
                           sizeof (struct in6_addr),
-                          &src->id.hc);
+                          &src->id.sha512);
       GNUNET_asprintf (&src->address,
                        "ip+udp://[%s]:%u",
                        inet_ntop (AF_INET6,
@@ -623,7 +578,6 @@ create_source (struct Plugin *plugin,
                                src);
   plugin->env->address_add_cb (plugin->env->cls,
                                &src->id,
-                               NULL, /* no key */
                                src->address,
                                src,
                                &src->app_ctx);
@@ -1023,8 +977,6 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
                                                 plugin);
   api = GNUNET_new (struct GNUNET_DHTU_PluginFunctions);
   api->cls = plugin;
-  api->sign = &ip_sign;
-  api->verify = &ip_verify;
   api->try_connect = &ip_try_connect;
   api->hold = &ip_hold;
   api->drop = &ip_drop;
