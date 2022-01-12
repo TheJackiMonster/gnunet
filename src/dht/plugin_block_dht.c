@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet
-     Copyright (C) 2010, 2017 GNUnet e.V.
+     Copyright (C) 2010, 2017, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -28,6 +28,7 @@
 #include "platform.h"
 #include "gnunet_constants.h"
 #include "gnunet_hello_lib.h"
+#include "gnunet_hello_uri_lib.h"
 #include "gnunet_block_plugin.h"
 #include "gnunet_block_group_lib.h"
 
@@ -158,6 +159,8 @@ block_plugin_dht_evaluate (void *cls,
         return GNUNET_BLOCK_EVALUATION_OK_DUPLICATE;
       return GNUNET_BLOCK_EVALUATION_OK_MORE;
     }
+  case GNUNET_BLOCK_TYPE_DHT_URL_HELLO:
+    GNUNET_break (0); // legacy API not implemented
   default:
     return GNUNET_BLOCK_EVALUATION_TYPE_NOT_SUPPORTED;
   }
@@ -185,6 +188,13 @@ block_plugin_dht_check_query (void *cls,
   switch (type)
   {
   case GNUNET_BLOCK_TYPE_DHT_HELLO:
+    if (0 != xquery_size)
+    {
+      GNUNET_break_op (0);
+      return GNUNET_NO;
+    }
+    return GNUNET_OK;
+  case GNUNET_BLOCK_TYPE_DHT_URL_HELLO:
     if (0 != xquery_size)
     {
       GNUNET_break_op (0);
@@ -237,6 +247,35 @@ block_plugin_dht_check_block (void *cls,
       if (GNUNET_OK !=
           GNUNET_HELLO_get_id (hello,
                                &pid))
+      {
+        GNUNET_break_op (0);
+        return GNUNET_NO;
+      }
+      return GNUNET_OK;
+    }
+  case GNUNET_BLOCK_TYPE_DHT_URL_HELLO:
+    {
+      struct GNUNET_HELLO_Builder *b;
+      struct GNUNET_PeerIdentity pid;
+      struct GNUNET_HashCode h_pid;
+
+      b = GNUNET_HELLO_builder_from_block (block,
+                                           block_size);
+      if (NULL == b)
+      {
+        GNUNET_break (0);
+        return GNUNET_NO;
+      }
+      GNUNET_HELLO_builder_iterate (b,
+                                    &pid,
+                                    NULL, NULL);
+      GNUNET_CRYPTO_hash (&pid,
+                          sizeof (pid),
+                          &h_pid);
+      GNUNET_HELLO_builder_free (b);
+      if (0 !=
+          GNUNET_memcmp (&h_pid,
+                         query))
       {
         GNUNET_break_op (0);
         return GNUNET_NO;
@@ -313,6 +352,19 @@ block_plugin_dht_check_reply (
         return GNUNET_BLOCK_REPLY_OK_DUPLICATE;
       return GNUNET_BLOCK_REPLY_OK_MORE;
     }
+  case GNUNET_BLOCK_TYPE_DHT_URL_HELLO:
+    {
+      struct GNUNET_HashCode phash;
+
+      GNUNET_CRYPTO_hash (reply_block,
+                          reply_block_size,
+                          &phash);
+      if (GNUNET_YES ==
+          GNUNET_BLOCK_GROUP_bf_test_and_set (group,
+                                              &phash))
+        return GNUNET_BLOCK_REPLY_OK_DUPLICATE;
+      return GNUNET_BLOCK_REPLY_OK_MORE;
+    }
   default:
     return GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED;
   }
@@ -375,6 +427,27 @@ block_plugin_dht_get_key (void *cls,
       }
       return GNUNET_OK;
     }
+  case GNUNET_BLOCK_TYPE_DHT_URL_HELLO:
+    {
+      struct GNUNET_HELLO_Builder *b;
+      struct GNUNET_PeerIdentity pid;
+
+      b = GNUNET_HELLO_builder_from_block (block,
+                                           block_size);
+      if (NULL == b)
+      {
+        GNUNET_break (0);
+        return GNUNET_NO;
+      }
+      GNUNET_HELLO_builder_iterate (b,
+                                    &pid,
+                                    NULL, NULL);
+      GNUNET_CRYPTO_hash (&pid,
+                          sizeof (pid),
+                          key);
+      GNUNET_HELLO_builder_free (b);
+      return GNUNET_OK;
+    }
   default:
     return GNUNET_SYSERR;
   }
@@ -389,7 +462,7 @@ libgnunet_plugin_block_dht_init (void *cls)
 {
   static enum GNUNET_BLOCK_Type types[] = {
     GNUNET_BLOCK_TYPE_DHT_HELLO,
-    // FIXME: add GNUNET_BLOCK_TYPE_DHT_URL_HELLO,
+    GNUNET_BLOCK_TYPE_DHT_URL_HELLO,
     GNUNET_BLOCK_TYPE_ANY       /* end of list */
   };
   struct GNUNET_BLOCK_PluginFunctions *api;
