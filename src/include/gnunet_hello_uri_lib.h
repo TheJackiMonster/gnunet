@@ -78,6 +78,18 @@ GNUNET_HELLO_builder_from_msg (const struct GNUNET_MessageHeader *msg);
 
 
 /**
+ * Parse @a block into builder.
+ *
+ * @param block DHT block to parse
+ * @param block_size number of bytes in @a block
+ * @return builder, NULL on failure
+ */
+struct GNUNET_HELLO_Builder *
+GNUNET_HELLO_builder_from_block (const void *block,
+                                 size_t block_size);
+
+
+/**
  * Parse GNUnet HELLO @a url into builder.
  *
  * @param url URL to parse
@@ -105,6 +117,21 @@ GNUNET_HELLO_builder_to_env (struct GNUNET_HELLO_Builder *builder);
  */
 char *
 GNUNET_HELLO_builder_to_url (struct GNUNET_HELLO_Builder *builder);
+
+
+/**
+ * Generate DHT block from a @a builder
+ *
+ * @param builder the builder to serialize
+ * @param[out] block where to write the block, NULL to only calculate @a block_size
+ * @param[in,out] block_size input is number of bytes available in @a block,
+ *                           output is number of bytes needed in @a block
+ * @return #GNUNET_OK on success, #GNUNET_NO if @a block_size was too small
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_HELLO_builder_to_block (struct GNUNET_HELLO_Builder *builder,
+                               void *block,
+                               size_t *block_size);
 
 
 /**
