@@ -695,6 +695,13 @@ GNUNET_TIME_timestamp_from_s (uint64_t s_after_epoch)
 }
 
 
+uint64_t
+GNUNET_TIME_timestamp_to_s (struct GNUNET_TIME_Timestamp ts)
+{
+  return ts.abs_time.abs_value_us / GNUNET_TIME_UNIT_SECONDS.rel_value_us;
+}
+
+
 struct GNUNET_TIME_Absolute
 GNUNET_TIME_absolute_ntoh (struct GNUNET_TIME_AbsoluteNBO a)
 {

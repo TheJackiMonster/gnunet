@@ -103,26 +103,30 @@ GNUNET_HELLO_builder_from_url (const char *url);
  * Generate HELLO message from a @a builder
  *
  * @param builder builder to serialize
+ * @param priv private key to use to sign the result
  * @return HELLO message matching @a builder
  */
 struct GNUNET_MQ_Envelope *
-GNUNET_HELLO_builder_to_env (struct GNUNET_HELLO_Builder *builder);
+GNUNET_HELLO_builder_to_env (const struct GNUNET_HELLO_Builder *builder,
+                             const struct GNUNET_CRYPTO_EddsaPrivateKey *priv);
 
 
 /**
  * Generate GNUnet HELLO URI from a @a builder
  *
  * @param builder builder to serialize
+ * @param priv private key to use to sign the result
  * @return hello URI
  */
 char *
-GNUNET_HELLO_builder_to_url (struct GNUNET_HELLO_Builder *builder);
-
+GNUNET_HELLO_builder_to_url (const struct GNUNET_HELLO_Builder *builder,
+                             const struct GNUNET_CRYPTO_EddsaPrivateKey *priv);
 
 /**
  * Generate DHT block from a @a builder
  *
  * @param builder the builder to serialize
+ * @param priv private key to use to sign the result
  * @param[out] block where to write the block, NULL to only calculate @a block_size
  * @param[in,out] block_size input is number of bytes available in @a block,
  *                           output is number of bytes needed in @a block
@@ -130,7 +134,8 @@ GNUNET_HELLO_builder_to_url (struct GNUNET_HELLO_Builder *builder);
  *      or if @a block was NULL
  */
 enum GNUNET_GenericReturnValue
-GNUNET_HELLO_builder_to_block (struct GNUNET_HELLO_Builder *builder,
+GNUNET_HELLO_builder_to_block (const struct GNUNET_HELLO_Builder *builder,
+                               const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
                                void *block,
                                size_t *block_size);
 

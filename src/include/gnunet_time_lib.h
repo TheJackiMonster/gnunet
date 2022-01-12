@@ -762,8 +762,19 @@ GNUNET_TIME_absolute_from_s (uint64_t s_after_epoch);
  *
  * @param s_after_epoch seconds after epoch to convert
  * @return converted time value
- */struct GNUNET_TIME_Timestamp
+ */
+struct GNUNET_TIME_Timestamp
 GNUNET_TIME_timestamp_from_s (uint64_t s_after_epoch);
+
+
+/**
+ * Convert timestamp to number of seconds after the UNIX epoch.
+ *
+ * @param ts timestamp to convert
+ * @return converted time value
+ */
+uint64_t
+GNUNET_TIME_timestamp_to_s (struct GNUNET_TIME_Timestamp ts);
 
 
 /**

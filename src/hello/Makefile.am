@@ -25,6 +25,7 @@ noinst_PROGRAMS = \
 
 check_PROGRAMS = \
  test_hello \
+ test_hello-uri \
  test_friend_hello \
  test_hello-ng
 
@@ -42,6 +43,12 @@ test_hello_LDADD = \
 test_hello_ng_SOURCES = \
  test_hello-ng.c
 test_hello_ng_LDADD = \
+ libgnunethello.la \
+ $(top_builddir)/src/util/libgnunetutil.la
+
+test_hello_uri_SOURCES = \
+ test_hello-uri.c
+test_hello_uri_LDADD = \
  libgnunethello.la \
  $(top_builddir)/src/util/libgnunetutil.la
 

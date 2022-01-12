@@ -1813,12 +1813,19 @@ GNUNET_STRINGS_urldecode (const char *data,
   char *wpos = *out;
   size_t resl = 0;
 
-  while ('\0' != *rpos)
+  while ( ('\0' != *rpos) &&
+          (data + len != rpos) )
   {
     unsigned int num;
     switch (*rpos)
     {
     case '%':
+      if (rpos + 3 > data + len)
+      {
+        GNUNET_break_op (0);
+        GNUNET_free (*out);
+        return 0;
+      }
       if (1 != sscanf (rpos + 1, "%2x", &num))
         break;
       *wpos = (char) ((unsigned char) num);
