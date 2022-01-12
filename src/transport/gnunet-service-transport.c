@@ -1628,8 +1628,8 @@ GST_receive_callback (void *cls,
   GST_neighbours_notify_data_recv (address, message);
   switch (type)
   {
-  case GNUNET_MESSAGE_TYPE_HELLO_LEGACY:
-    /* Legacy HELLO message, discard  */
+  case GNUNET_MESSAGE_TYPE_HELLO_URI:
+    /* Future HELLO message, discard  */
     return ret;
 
   case GNUNET_MESSAGE_TYPE_HELLO:

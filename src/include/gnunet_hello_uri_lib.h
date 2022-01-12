@@ -127,6 +127,7 @@ GNUNET_HELLO_builder_to_url (struct GNUNET_HELLO_Builder *builder);
  * @param[in,out] block_size input is number of bytes available in @a block,
  *                           output is number of bytes needed in @a block
  * @return #GNUNET_OK on success, #GNUNET_NO if @a block_size was too small
+ *      or if @a block was NULL
  */
 enum GNUNET_GenericReturnValue
 GNUNET_HELLO_builder_to_block (struct GNUNET_HELLO_Builder *builder,
@@ -139,6 +140,8 @@ GNUNET_HELLO_builder_to_block (struct GNUNET_HELLO_Builder *builder,
  *
  * @param[in,out] builder to update
  * @param address address URI to add
+ * @return #GNUNET_OK on success, #GNUNET_NO if @a address was already
+ *     in @a builder
  */
 enum GNUNET_GenericReturnValue
 GNUNET_HELLO_builder_add_address (struct GNUNET_HELLO_Builder *builder,
@@ -150,6 +153,8 @@ GNUNET_HELLO_builder_add_address (struct GNUNET_HELLO_Builder *builder,
  *
  * @param[in,out] builder to update
  * @param address address URI to remove
+ * @return #GNUNET_OK on success, #GNUNET_NO if @a address was not
+ *     in @a builder
  */
 enum GNUNET_GenericReturnValue
 GNUNET_HELLO_builder_del_address (struct GNUNET_HELLO_Builder *builder,
