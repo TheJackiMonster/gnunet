@@ -204,7 +204,7 @@ main (int argc, char *argv[])
   eval (1024);
   eval (2048);
   eval (3072);
-  /* eval (4096); */
+  eval (4096); 
   return 0;
 }
 
