@@ -44,7 +44,7 @@ check_uris (void *cls,
                    "test://address"))
     *found |= 1;
   else if (0 == strcmp (uri,
-                   "test://more"))
+                        "test://more"))
     *found |= 2;
   else
     *found = (unsigned int) -1;
@@ -170,7 +170,43 @@ main (int argc,
     GNUNET_HELLO_builder_free (b2);
   }
 
-
   GNUNET_HELLO_builder_free (b);
+
+  GNUNET_CRYPTO_mpi_print_unsigned (priv.d,
+                                    sizeof (priv.d),
+                                    GCRYMPI_CONST_ONE);
+  priv.d[0] &= 248;
+  priv.d[31] &= 127;
+  priv.d[31] |= 64;
+  {
+    char *buf;
+
+    buf = GNUNET_STRINGS_data_to_string_alloc (&priv,
+                                               sizeof (priv));
+    fprintf (stderr,
+             "PK: %s\n",
+             buf);
+    GNUNET_free (buf);
+  }
+  GNUNET_CRYPTO_eddsa_key_get_public (&priv,
+                                      &pid.public_key);
+  b = GNUNET_HELLO_builder_new (&pid);
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_HELLO_builder_add_address (b,
+                                                   "a://first"));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_HELLO_builder_add_address (b,
+                                                   "b://second"));
+  {
+    char *url;
+
+    url = GNUNET_HELLO_builder_to_url (b,
+                                       &priv);
+    fprintf (stderr,
+             "TV: %s\n",
+             url);
+    GNUNET_free (url);
+  }
+
   return 0;
 }

@@ -50,7 +50,8 @@ test_hello_uri_SOURCES = \
  test_hello-uri.c
 test_hello_uri_LDADD = \
  libgnunethello.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/util/libgnunetutil.la \
+ -lgcrypt
 
 
 test_friend_hello_SOURCES = \
