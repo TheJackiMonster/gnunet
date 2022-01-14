@@ -43,7 +43,8 @@ plugin_LTLIBRARIES = \
   $(REST_PLUGIN)
 
 bin_PROGRAMS = \
- gnunet-reclaim
+ gnunet-reclaim \
+ gnunet-did
 
 libexec_PROGRAMS = \
  gnunet-service-reclaim
@@ -187,13 +188,30 @@ test_reclaim_attribute_LDADD = \
   libgnunetreclaim.la \
   $(GN_LIBINTL)
 
+gnunet_did_SOURCES = \
+	gnunet-did.c
+gnunet_did_LDADD = \
+	$(top_builddir)/src/util/libgnunetutil.la \
+	$(top_builddir)/src/gns/libgnunetgns.la \
+	$(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+	$(top_builddir)/src/identity/libgnunetidentity.la \
+	$(top_builddir)/src/namestore/libgnunetnamestore.la \
+	-ljansson
+
+
+test_w3c_ed25519_2020_SOURCES = \
+  test_w3c_ed25519_2020.c
+test_w3c_ed25519_2020_LDADD = \
+  $(top_builddir)/src/util/libgnunetutil.la
+
 check_SCRIPTS = \
   test_reclaim_attribute.sh \
   test_reclaim_issue.sh \
   test_reclaim_consume.sh
 
 check_PROGRAMS = \
-  test_reclaim_attribute
+  test_reclaim_attribute \
+  test_w3c_ed25519_2020
 
 if ENABLE_TEST_RUN
  AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
