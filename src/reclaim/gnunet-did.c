@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2012-2021 GNUnet e.V.
+   Copyright (C) 2012-2022 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -39,8 +39,8 @@
 #include "gnunet_gns_service.h"
 #include "gnunet_gnsrecord_lib.h"
 #include "jansson.h"
+#include "did.h"
 
-#define GNUNET_DID_METHOD_RECLAIM_PREFIX "did:reclaim:"
 #define GNUNET_DID_DEFAULT_DID_DOCUMENT_EXPIRATION_TIME "1d"
 
 /**
@@ -146,25 +146,6 @@ cleanup (void *cls)
   GNUNET_SCHEDULER_shutdown ();
 }
 
-char*
-ego_to_did (struct GNUNET_IDENTITY_Ego *ego)
-{
-  struct GNUNET_IDENTITY_PublicKey pkey; // Get Public key
-  char *pkey_str;
-  char *did_str;
-  size_t pkey_len;
-
-  GNUNET_IDENTITY_ego_get_public_key (ego, &pkey);
-
-  pkey_str = GNUNET_IDENTITY_public_key_to_string (&pkey);
-  GNUNET_asprintf (&did_str, "%s%s",
-                   GNUNET_DID_METHOD_RECLAIM_PREFIX,
-                   pkey_str);
-
-  free (pkey_str);
-  return did_str;
-}
-
 /**
  * @brief Callback for ego loockup of get_did_for_ego()
  *
@@ -183,7 +164,7 @@ get_did_for_ego_lookup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
     ret = 1;
     return;
   }
-  did_str = ego_to_did (ego);
+  did_str = DID_ego_to_did (ego);
 
   printf ("%s\n", did_str);
 
@@ -223,16 +204,9 @@ get_did_for_ego ()
 static void
 get_pkey_from_attr_did (struct GNUNET_IDENTITY_PublicKey *pkey)
 {
-  /* FIXME-MSC: I suggest introducing a
-   * #define MAX_DID_LENGTH <something>
-   * here and use it for parsing
-   */
-  char pkey_str[59];
-
-  if ((1 != (sscanf (did, GNUNET_DID_METHOD_RECLAIM_PREFIX"%58s", pkey_str))) ||
-      (GNUNET_OK != GNUNET_IDENTITY_public_key_from_string (pkey_str, pkey)))
+  if (GNUNET_OK != DID_public_key_from_did (did, pkey))
   {
-    fprintf (stderr, _("Invalid DID `%s'\n"), pkey_str);
+    fprintf (stderr, _("Invalid DID `%s'\n"), did);
     GNUNET_SCHEDULER_add_now (cleanup, NULL);
     ret = 1;
     return;
@@ -274,7 +248,7 @@ print_did_document (
     printf ("DID Document is not a TXT record\n");
   }
 
-  GNUNET_SCHEDULER_add_now (cleanup, NULL);
+  GNUNET_SCHEDULER_add_now (&cleanup, NULL);
   ret = 0;
   return;
 }
@@ -354,7 +328,7 @@ remove_did_document_namestore_cb (void *cls, int32_t success, const char *emgs)
       printf ("%s\n", emgs);
     }
 
-    GNUNET_SCHEDULER_add_now (cleanup, NULL);
+    GNUNET_SCHEDULER_add_now (&cleanup, NULL);
     ret = 0;
     return;
   }
@@ -798,7 +772,7 @@ process_dids (void *cls, struct GNUNET_IDENTITY_Ego *ego,
   }
   if (1 == show_all)
   {
-    did_str = ego_to_did (ego);
+    did_str = DID_ego_to_did (ego);
     printf ("%s\n", did_str);
     GNUNET_free (did_str);
     return;
@@ -807,7 +781,7 @@ process_dids (void *cls, struct GNUNET_IDENTITY_Ego *ego,
   {
     if (0 == strncmp (name, egoname, strlen (egoname)))
     {
-      did_str = ego_to_did (ego);
+      did_str = DID_ego_to_did (ego);
       printf ("%s\n", did_str);
       GNUNET_free (did_str);
       return;

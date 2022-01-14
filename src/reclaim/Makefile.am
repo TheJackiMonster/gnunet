@@ -189,7 +189,8 @@ test_reclaim_attribute_LDADD = \
   $(GN_LIBINTL)
 
 gnunet_did_SOURCES = \
-	gnunet-did.c
+	gnunet-did.c \
+  did_misc.c
 gnunet_did_LDADD = \
 	$(top_builddir)/src/util/libgnunetutil.la \
 	$(top_builddir)/src/gns/libgnunetgns.la \

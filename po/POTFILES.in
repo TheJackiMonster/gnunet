@@ -296,6 +296,8 @@ src/pq/pq_prepare.c
 src/pq/pq_query_helper.c
 src/pq/pq_result_helper.c
 src/pt/gnunet-daemon-pt.c
+src/reclaim/did_misc.c
+src/reclaim/gnunet-did.c
 src/reclaim/gnunet-reclaim.c
 src/reclaim/gnunet-service-reclaim.c
 src/reclaim/gnunet-service-reclaim_tickets.c
@@ -312,6 +314,7 @@ src/reclaim/plugin_rest_reclaim.c
 src/reclaim/reclaim_api.c
 src/reclaim/reclaim_attribute.c
 src/reclaim/reclaim_credential.c
+src/reclaim/test.c
 src/regex/gnunet-daemon-regexprofiler.c
 src/regex/gnunet-regex-profiler.c
 src/regex/gnunet-regex-simulation-profiler.c
