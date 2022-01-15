@@ -102,9 +102,7 @@ src/dht/gnunet-dht-put.c
 src/dht/gnunet-service-dht.c
 src/dht/gnunet-service-dht_clients.c
 src/dht/gnunet-service-dht_datacache.c
-src/dht/gnunet-service-dht_hello.c
 src/dht/gnunet-service-dht_neighbours.c
-src/dht/gnunet-service-dht_nse.c
 src/dht/gnunet-service-dht_routing.c
 src/dht/gnunet_dht_profiler.c
 src/dht/plugin_block_dht.c
@@ -186,6 +184,7 @@ src/gnsrecord/plugin_gnsrecord_dns.c
 src/hello/address.c
 src/hello/gnunet-hello.c
 src/hello/hello-ng.c
+src/hello/hello-uri.c
 src/hello/hello.c
 src/hostlist/gnunet-daemon-hostlist.c
 src/hostlist/gnunet-daemon-hostlist_client.c
@@ -587,7 +586,6 @@ src/vpn/gnunet-vpn.c
 src/vpn/vpn_api.c
 src/zonemaster/gnunet-service-zonemaster-monitor.c
 src/zonemaster/gnunet-service-zonemaster.c
-src/zonemaster/zonemaster_misc.c
 src/fs/fs_api.h
 src/include/gnunet_json_lib.h
 src/testbed/testbed_api.h
