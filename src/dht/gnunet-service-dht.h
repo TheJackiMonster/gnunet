@@ -37,7 +37,7 @@
 /**
  * Information we keep per underlay.
  */
-struct Underlay;
+struct GDS_Underlay;
 
 /**
  * Configuration we use.
@@ -107,12 +107,34 @@ GDS_u_try_connect (const struct GNUNET_PeerIdentity *pid,
  * @param finished_cb_cls closure for @a finished_cb
  */
 void
-GDS_u_send (struct Underlay *u,
+GDS_u_send (struct GDS_Underlay *u,
             struct GNUNET_DHTU_Target *target,
             const void *msg,
             size_t msg_size,
             GNUNET_SCHEDULER_TaskCallback finished_cb,
             void *finished_cb_cls);
+
+
+/**
+ * Drop a hold @a ph from underlay @a u.
+ *
+ * @param u the underlay controlling the hold
+ * @param ph the preference handle
+ */
+void
+GDS_u_drop (struct GDS_Underlay *u,
+            struct GNUNET_DHTU_PreferenceHandle *ph);
+
+
+/**
+ * Create a hold on @a target at underlay @a u.
+ *
+ * @param u the underlay controlling the target
+ * @param target the peer to hold the connection to
+ */
+struct GNUNET_DHTU_PreferenceHandle *
+GDS_u_hold (struct GDS_Underlay *u,
+            struct GNUNET_DHTU_Target *target);
 
 
 /**

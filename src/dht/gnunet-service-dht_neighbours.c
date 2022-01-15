@@ -281,12 +281,17 @@ struct Target
   /**
    * Underlay providing this target.
    */
-  struct Underlay *u;
+  struct GDS_Underlay *u;
 
   /**
    * Peer this is a target for.
    */
   struct PeerInfo *pi;
+
+  /**
+   * Handle used to 'hold' the connection to this peer.
+   */
+  struct GNUNET_DHTU_PreferenceHandle *ph;
 
   /**
    * Set to number of messages are waiting for the transmission to finish.
@@ -686,15 +691,48 @@ send_find_peer_message (void *cls)
 }
 
 
+/**
+ * The list of the first #bucket_size peers of @a bucket
+ * changed. We should thus make sure we have called 'hold'
+ * all of the first bucket_size peers!
+ *
+ * @param[in,out] bucket the bucket where the peer set changed
+ */
+static void
+update_hold (struct PeerBucket *bucket)
+{
+  unsigned int off = 0;
+
+  /* find the peer -- we just go over all of them, should
+     be hardly any more expensive than just finding the 'right'
+     one. */
+  for (struct PeerInfo *pos = bucket->head;
+       NULL != pos;
+       pos = pos->next)
+  {
+    if (off > bucket_size)
+      break;   /* We only hold up to #bucket_size peers per bucket */
+    bucket_size++;
+    for (struct Target *tp = pos->t_head;
+         NULL != tp;
+         tp = tp->next)
+      if (NULL == tp->ph)
+        tp->ph = GDS_u_hold (tp->u,
+                             tp->utarget);
+  }
+}
+
+
 void
 GDS_u_connect (void *cls,
                struct GNUNET_DHTU_Target *target,
                const struct GNUNET_PeerIdentity *pid,
                void **ctx)
 {
-  struct Underlay *u = cls;
+  struct GDS_Underlay *u = cls;
   struct PeerInfo *pi;
   struct PeerBucket *bucket;
+  bool do_hold = false;
 
   /* Check for connect to self message */
   if (0 == GNUNET_memcmp (&GDS_my_identity,
@@ -734,7 +772,7 @@ GDS_u_connect (void *cls,
     if (bucket->peers_size <= bucket_size)
     {
       newly_found_peers++;
-      // FIXME: call 'hold'!
+      do_hold = true;
     }
     if ( (1 == GNUNET_CONTAINER_multipeermap_size (all_connected_peers)) &&
          (GNUNET_YES != disable_try_connect) )
@@ -758,6 +796,8 @@ GDS_u_connect (void *cls,
     *ctx = t;
 
   }
+  if (do_hold)
+    update_hold (bucket);
 }
 
 
@@ -767,6 +807,7 @@ GDS_u_disconnect (void *ctx)
   struct Target *t = ctx;
   struct PeerInfo *pi;
   struct PeerBucket *bucket;
+  bool was_held = false;
 
   /* Check for disconnect from self message (on shutdown) */
   if (NULL == t)
@@ -775,6 +816,13 @@ GDS_u_disconnect (void *ctx)
   GNUNET_CONTAINER_DLL_remove (pi->t_head,
                                pi->t_tail,
                                t);
+  if (NULL != t->ph)
+  {
+    GDS_u_drop (t->u,
+                t->ph);
+    t->ph = NULL;
+    was_held = true;
+  }
   if (t->load > 0)
   {
     t->dropped = true;
@@ -810,8 +858,9 @@ GDS_u_disconnect (void *ctx)
                                pi);
   GNUNET_assert (bucket->peers_size > 0);
   bucket->peers_size--;
-  // FIXME: check if this peer was in one of the first 'bucket_size'
-  // peers, and call 'hold' on the next peer if there is any!
+  if ( (was_held) &&
+       (bucket->peers_size >= bucket_size - 1) )
+    update_hold (bucket);
   while ( (closest_bucket > 0) &&
           (0 == k_buckets[closest_bucket - 1].peers_size))
     closest_bucket--;
@@ -2426,7 +2475,7 @@ GDS_u_receive (void *cls,
   };
   const struct GNUNET_MessageHeader *mh = message;
 
-  (void) cls; /* the 'struct Underlay' */
+  (void) cls; /* the 'struct GDS_Underlay' */
   (void) sctx; /* our receiver address */
   if (message_size < sizeof (*mh))
   {

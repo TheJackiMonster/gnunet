@@ -136,7 +136,7 @@ GDS_am_closest_peer (const struct GNUNET_HashCode *key,
  * Function to call when we connect to a peer and can henceforth transmit to
  * that peer.
  *
- * @param cls the closure, must be a `struct Underlay`
+ * @param cls the closure, must be a `struct GDS_Underlay`
  * @param target handle to the target,
  *    pointer will remain valid until @e disconnect_cb is called
  * @para pid peer identity,

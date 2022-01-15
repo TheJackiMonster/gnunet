@@ -46,18 +46,18 @@
 /**
  * Information we keep per underlay.
  */
-struct Underlay
+struct GDS_Underlay
 {
 
   /**
    * Kept in a DLL.
    */
-  struct Underlay *next;
+  struct GDS_Underlay *next;
 
   /**
    * Kept in a DLL.
    */
-  struct Underlay *prev;
+  struct GDS_Underlay *prev;
 
   /**
    * Environment for this underlay.
@@ -109,7 +109,7 @@ struct MyAddress
   /**
    * Underlay of this address.
    */
-  struct Underlay *u;
+  struct GDS_Underlay *u;
 };
 
 
@@ -141,12 +141,12 @@ static struct GNUNET_SCHEDULER_Task *hello_task;
 /**
  * Handles for the DHT underlays.
  */
-static struct Underlay *u_head;
+static struct GDS_Underlay *u_head;
 
 /**
  * Handles for the DHT underlays.
  */
-static struct Underlay *u_tail;
+static struct GDS_Underlay *u_tail;
 
 /**
  * Head of addresses of this peer.
@@ -168,7 +168,7 @@ static double log_of_network_size_estimate;
 /**
  * Callback that is called when network size estimate is updated.
  *
- * @param cls a `struct Underlay`
+ * @param cls a `struct GDS_Underlay`
  * @param timestamp time when the estimate was received from the server (or created by the server)
  * @param logestimate the log(Base 2) value of the current network size estimate
  * @param std_dev standard deviation for the estimate
@@ -180,7 +180,7 @@ update_network_size_estimate (void *cls,
                               double logestimate,
                               double std_dev)
 {
-  struct Underlay *u = cls;
+  struct GDS_Underlay *u = cls;
   double sum = 0.0;
 
   GNUNET_STATISTICS_update (GDS_stats,
@@ -191,7 +191,7 @@ update_network_size_estimate (void *cls,
   u->network_size_estimate = pow (2.0,
                                   GNUNET_MAX (0.5,
                                               logestimate));
-  for (struct Underlay *p; NULL != p; p = p->next)
+  for (struct GDS_Underlay *p; NULL != p; p = p->next)
     sum += p->network_size_estimate;
   if (sum <= 2.0)
     log_of_network_size_estimate = 0.5;
@@ -257,7 +257,7 @@ u_address_add (void *cls,
                struct GNUNET_DHTU_Source *source,
                void **ctx)
 {
-  struct Underlay *u = cls;
+  struct GDS_Underlay *u = cls;
   struct MyAddress *a;
 
   a = GNUNET_new (struct MyAddress);
@@ -305,7 +305,7 @@ void
 GDS_u_try_connect (const struct GNUNET_PeerIdentity *pid,
                    const char *address)
 {
-  for (struct Underlay *u = u_head;
+  for (struct GDS_Underlay *u = u_head;
        NULL != u;
        u = u->next)
     u->dhtu->try_connect (u->dhtu->cls,
@@ -315,7 +315,7 @@ GDS_u_try_connect (const struct GNUNET_PeerIdentity *pid,
 
 
 void
-GDS_u_send (struct Underlay *u,
+GDS_u_send (struct GDS_Underlay *u,
             struct GNUNET_DHTU_Target *target,
             const void *msg,
             size_t msg_size,
@@ -328,6 +328,23 @@ GDS_u_send (struct Underlay *u,
                  msg_size,
                  finished_cb,
                  finished_cb_cls);
+}
+
+
+void
+GDS_u_drop (struct GDS_Underlay *u,
+            struct GNUNET_DHTU_PreferenceHandle *ph)
+{
+  u->dhtu->drop (ph);
+}
+
+
+struct GNUNET_DHTU_PreferenceHandle *
+GDS_u_hold (struct GDS_Underlay *u,
+            struct GNUNET_DHTU_Target *target)
+{
+  return u->dhtu->hold (u->dhtu->cls,
+                        target);
 }
 
 
@@ -370,7 +387,7 @@ static void
 load_underlay (void *cls,
                const char *section)
 {
-  struct Underlay *u;
+  struct GDS_Underlay *u;
   char *libname;
 
   (void) cls;
@@ -384,7 +401,7 @@ load_underlay (void *cls,
                                             "ENABLED"))
     return;
   section += strlen ("dhtu-");
-  u = GNUNET_new (struct Underlay);
+  u = GNUNET_new (struct GDS_Underlay);
   u->env.cls = u;
   u->env.address_add_cb = &u_address_add;
   u->env.address_del_cb = &u_address_del;
