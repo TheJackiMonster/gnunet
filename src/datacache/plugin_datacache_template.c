@@ -116,6 +116,7 @@ template_plugin_del (void *cls)
  *
  * @param cls closure (internal context for the plugin)
  * @param key area of the keyspace to look into
+ * @param type desired block type for the replies
  * @param num_results number of results that should be returned to @a iter
  * @param iter maybe NULL (to just count)
  * @param iter_cls closure for @a iter
@@ -124,6 +125,7 @@ template_plugin_del (void *cls)
 static unsigned int
 template_plugin_get_closest (void *cls,
                              const struct GNUNET_HashCode *key,
+                             enum GNUNET_BLOCK_Type type,
                              unsigned int num_results,
                              GNUNET_DATACACHE_Iterator iter,
                              void *iter_cls)

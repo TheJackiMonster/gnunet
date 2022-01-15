@@ -68,7 +68,7 @@ GDS_DATACACHE_handle_put (const struct GDS_DATACACHE_BlockData *bd)
                             1,
                             GNUNET_NO);
   GNUNET_CRYPTO_hash_xor (&bd->key,
-                          &my_identity_hash,
+                          &GDS_my_identity_hash,
                           &xor);
   r = GNUNET_DATACACHE_put (datacache,
                             &bd->key,
@@ -231,7 +231,15 @@ GDS_DATACACHE_handle_get (const struct GNUNET_HashCode *key,
                           GDS_DATACACHE_GetCallback gc,
                           void *gc_cls)
 {
-  struct GetRequestContext ctx;
+  struct GetRequestContext ctx = {
+    .eval = GNUNET_BLOCK_EVALUATION_REQUEST_VALID,
+    .key = *key,
+    .xquery = xquery,
+    .xquery_size = xquery_size,
+    .bg = bg,
+    .gc = gc,
+    .gc_cls = gc_cls
+  };
   unsigned int r;
 
   if (NULL == datacache)
@@ -240,13 +248,6 @@ GDS_DATACACHE_handle_get (const struct GNUNET_HashCode *key,
                             "# GET requests given to datacache",
                             1,
                             GNUNET_NO);
-  ctx.eval = GNUNET_BLOCK_EVALUATION_REQUEST_VALID;
-  ctx.key = *key;
-  ctx.xquery = xquery;
-  ctx.xquery_size = xquery_size;
-  ctx.bg = bg;
-  ctx.gc = gc;
-  ctx.gc_cls = gc_cls;
   r = GNUNET_DATACACHE_get (datacache,
                             key,
                             type,
@@ -261,85 +262,44 @@ GDS_DATACACHE_handle_get (const struct GNUNET_HashCode *key,
 }
 
 
-/**
- * Closure for #datacache_get_successors_iterator().
- */
-struct SuccContext
-{
-  /**
-   * Function to call on the result
-   */
-  GDS_DATACACHE_GetCallback cb;
-
-  /**
-   * Closure for @e cb.
-   */
-  void *cb_cls;
-
-};
-
-
-/**
- * Iterator for local get request results,
- *
- * @param cls closure with the `struct GNUNET_HashCode *` with the trail ID
- * @param key the key this data is stored under
- * @param size the size of the data identified by key
- * @param data the actual data
- * @param type the type of the data
- * @param exp when does this value expire?
- * @param put_path_length number of peers in @a put_path
- * @param put_path path the reply took on put
- * @return #GNUNET_OK to continue iteration, anything else
- * to stop iteration.
- */
-static enum GNUNET_GenericReturnValue
-datacache_get_successors_iterator (void *cls,
-                                   const struct GNUNET_HashCode *key,
-                                   size_t size,
-                                   const char *data,
-                                   enum GNUNET_BLOCK_Type type,
-                                   struct GNUNET_TIME_Absolute exp,
-                                   unsigned int put_path_length,
-                                   const struct
-                                   GNUNET_DHT_PathElement *put_path)
-{
-  const struct SuccContext *sc = cls;
-  struct GDS_DATACACHE_BlockData bd = {
-    .key = *key,
-    .expiration_time = exp,
-    .put_path = put_path,
-    .data = data,
-    .data_size = size,
-    .put_path_length = put_path_length,
-    .type = type
-  };
-
-  /* NOTE: The datacache currently does not store the RO from
-     the original 'put', so we don't know the 'correct' option
-     at this point anymore.  Thus, we conservatively assume
-     that recording is desired (for now). */
-  sc->cb (sc->cb_cls,
-          &bd);
-  return GNUNET_OK;
-}
-
-
-void
+enum GNUNET_BLOCK_EvaluationResult
 GDS_DATACACHE_get_closest (const struct GNUNET_HashCode *key,
+                           enum GNUNET_BLOCK_Type type,
+                           const void *xquery,
+                           size_t xquery_size,
+                           struct GNUNET_BLOCK_Group *bg,
                            GDS_DATACACHE_GetCallback cb,
                            void *cb_cls)
 {
-  struct SuccContext sc = {
-    .cb = cb,
-    .cb_cls = cb_cls
+  struct GetRequestContext ctx = {
+    .eval = GNUNET_BLOCK_EVALUATION_REQUEST_VALID,
+    .key = *key,
+    .xquery = xquery,
+    .xquery_size = xquery_size,
+    .bg = bg,
+    .gc = cb,
+    .gc_cls = cb_cls
   };
+  unsigned int r;
 
-  (void) GNUNET_DATACACHE_get_closest (datacache,
-                                       key,
-                                       NUM_CLOSEST,
-                                       &datacache_get_successors_iterator,
-                                       &sc);
+  if (NULL == datacache)
+    return GNUNET_BLOCK_EVALUATION_REQUEST_VALID;
+  GNUNET_STATISTICS_update (GDS_stats,
+                            "# GET closest requests given to datacache",
+                            1,
+                            GNUNET_NO);
+  r = GNUNET_DATACACHE_get_closest (datacache,
+                                    key,
+                                    type,
+                                    NUM_CLOSEST,
+                                    &datacache_get_iterator,
+                                    &ctx);
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "DATACACHE approximate GET for key %s completed (%d). %u results found.\n",
+       GNUNET_h2s (key),
+       ctx.eval,
+       r);
+  return ctx.eval;
 }
 
 

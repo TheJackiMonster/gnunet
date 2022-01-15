@@ -101,14 +101,14 @@ enum GNUNET_DHT_RouteOption
   GNUNET_DHT_RO_RECORD_ROUTE = 2,
 
   /**
-   * This is a 'FIND-PEER' request, so approximate results are fine.
+   * Approximate results are fine.
    */
-  GNUNET_DHT_RO_FIND_PEER = 4,
+  GNUNET_DHT_RO_FIND_APPROXIMATE = 4,
 
   /**
-    * Flag given to monitors if this was the last hop for a GET/PUT.
-    * This is only used for internal processing.
-    */
+   * Flag given to monitors if this was the last hop for a GET/PUT.
+   * This is only used for internal processing.
+   */
   GNUNET_DHT_RO_LAST_HOP = 65535
 };
 

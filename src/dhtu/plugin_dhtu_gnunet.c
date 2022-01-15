@@ -235,7 +235,7 @@ hello_offered_cb (void *cls)
  */
 static void
 ip_try_connect (void *cls,
-                struct GNUNET_PeerIdentity *pid,
+                const struct GNUNET_PeerIdentity *pid,
                 const char *address)
 {
   struct Plugin *plugin = cls;
@@ -349,6 +349,17 @@ ip_send (void *cls,
   struct GNUNET_MQ_Envelope *env;
   struct GNUNET_MessageHeader *cmsg;
 
+  if (GNUNET_MQ_get_length (target->mq) >= MAXIMUM_PENDING_PER_PEER)
+  {
+    /* skip */
+#if FIXME_STATS
+    GNUNET_STATISTICS_update (GDS_stats,
+                              "# P2P messages dropped due to full queue",
+                              1,
+                              GNUNET_NO);
+#endif
+    return;
+  }
   env = GNUNET_MQ_msg_extra (cmsg,
                              msg_size,
                              GNUNET_MESSAGE_TYPE_DHT_CORE);

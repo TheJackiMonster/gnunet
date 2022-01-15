@@ -49,6 +49,13 @@ struct GNUNET_HELLO_Builder;
 
 
 /**
+ * For how long are HELLO signatures valid?
+ */
+#define GNUNET_HELLO_ADDRESS_EXPIRATION GNUNET_TIME_relative_multiply ( \
+    GNUNET_TIME_UNIT_DAYS, 2)
+
+
+/**
  * Allocate builder.
  *
  * @param pid peer the builder is for
@@ -100,7 +107,8 @@ GNUNET_HELLO_builder_from_url (const char *url);
 
 
 /**
- * Generate HELLO message from a @a builder
+ * Generate envelope with GNUnet HELLO message (including
+ * peer ID) from a @a builder
  *
  * @param builder builder to serialize
  * @param priv private key to use to sign the result
@@ -109,6 +117,19 @@ GNUNET_HELLO_builder_from_url (const char *url);
 struct GNUNET_MQ_Envelope *
 GNUNET_HELLO_builder_to_env (const struct GNUNET_HELLO_Builder *builder,
                              const struct GNUNET_CRYPTO_EddsaPrivateKey *priv);
+
+
+/**
+ * Generate DHT HELLO message (without peer ID) from a @a builder
+ *
+ * @param builder builder to serialize
+ * @param priv private key to use to sign the result
+ * @return HELLO message matching @a builder
+ */
+struct GNUNET_MessageHeader *
+GNUNET_HELLO_builder_to_dht_hello_msg (
+  const struct GNUNET_HELLO_Builder *builder,
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *priv);
 
 
 /**
@@ -190,6 +211,27 @@ GNUNET_HELLO_builder_iterate (const struct GNUNET_HELLO_Builder *builder,
                               struct GNUNET_PeerIdentity *pid,
                               GNUNET_HELLO_UriCallback uc,
                               void *uc_cls);
+
+
+/**
+ * Convert a DHT @a hello message to a HELLO @a block.
+ *
+ * @param hello the HELLO message
+ * @param pid peer that created the @a hello
+ * @param[out] block set to the HELLO block
+ * @param[out] block_size set to number of bytes in @a block
+ * @param[out] block_expiration set to expiration time of @a block
+ * @return #GNUNET_OK on success,
+ *         #GNUNET_NO if the @a hello is expired (@a block is set!)
+ *         #GNUNET_SYSERR if @a hello is invalid (@a block will be set to NULL)
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_HELLO_dht_msg_to_block (const struct GNUNET_MessageHeader *hello,
+                               const struct GNUNET_PeerIdentity *pid,
+                               void **block,
+                               size_t *block_size,
+                               struct GNUNET_TIME_Absolute *block_expiration);
+
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {

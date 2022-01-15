@@ -40,12 +40,6 @@
 #include "gnunet_protocols.h"
 #include "gnunet_util_lib.h"
 
-/**
- * For how long are HELLO signatures valid?
- */
-#define HELLO_ADDRESS_EXPIRATION GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_DAYS, 2)
-
 
 GNUNET_NETWORK_STRUCT_BEGIN
 
@@ -72,7 +66,7 @@ struct HelloSignaturePurpose
 };
 
 /**
- * Binary block we sign when we sign an address.
+ * Message used when gossiping HELLOs between peers.
  */
 struct HelloUriMessage
 {
@@ -116,6 +110,42 @@ struct BlockHeader
   struct GNUNET_TIME_AbsoluteNBO expiration_time;
 
 };
+
+
+/**
+ * Message used when a DHT provides its HELLO to direct
+ * neighbours.
+ */
+struct DhtHelloMessage
+{
+  /**
+   * Type must be #GNUNET_MESSAGE_TYPE_DHT_P2P_HELLO
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * Reserved. 0.
+   */
+  uint16_t reserved GNUNET_PACKED;
+
+  /**
+   * Number of URLs encoded after the end of the struct, in NBO.
+   */
+  uint16_t url_counter GNUNET_PACKED;
+
+  /**
+   * Signature over the block, of purpose #GNUNET_SIGNATURE_PURPOSE_HELLO.
+   */
+  struct GNUNET_CRYPTO_EddsaSignature sig;
+
+  /**
+   * When does the HELLO expire?
+   */
+  struct GNUNET_TIME_AbsoluteNBO expiration_time;
+
+  /* followed by the serialized addresses of the 'block' */
+};
+
 
 GNUNET_NETWORK_STRUCT_END
 
@@ -521,6 +551,11 @@ GNUNET_HELLO_builder_to_env (const struct GNUNET_HELLO_Builder *builder,
   struct HelloUriMessage *msg;
   size_t blen;
 
+  if (builder->a_length > UINT16_MAX)
+  {
+    GNUNET_break (0);
+    return NULL;
+  }
   blen = 0;
   GNUNET_assert (GNUNET_NO ==
                  GNUNET_HELLO_builder_to_block (builder,
@@ -530,12 +565,57 @@ GNUNET_HELLO_builder_to_env (const struct GNUNET_HELLO_Builder *builder,
   env = GNUNET_MQ_msg_extra (msg,
                              blen,
                              GNUNET_MESSAGE_TYPE_HELLO_URI);
+  msg->url_counter = htonl ((uint16_t) builder->a_length);
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_HELLO_builder_to_block (builder,
                                                 priv,
                                                 &msg[1],
                                                 &blen));
   return env;
+}
+
+
+struct GNUNET_MessageHeader *
+GNUNET_HELLO_builder_to_dht_hello_msg (
+  const struct GNUNET_HELLO_Builder *builder,
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *priv)
+{
+  struct DhtHelloMessage *msg;
+  size_t blen;
+
+  if (builder->a_length > UINT16_MAX)
+  {
+    GNUNET_break (0);
+    return NULL;
+  }
+  blen = 0;
+  GNUNET_assert (GNUNET_NO ==
+                 GNUNET_HELLO_builder_to_block (builder,
+                                                priv,
+                                                NULL,
+                                                &blen));
+  GNUNET_assert (blen < UINT16_MAX);
+  GNUNET_assert (blen >= sizeof (struct BlockHeader));
+  {
+    char buf[blen] GNUNET_ALIGN;
+    const struct BlockHeader *block = (const struct BlockHeader *) buf;
+
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_HELLO_builder_to_block (builder,
+                                                  priv,
+                                                  buf,
+                                                  &blen));
+    msg = GNUNET_malloc (sizeof (*msg) + blen);
+    msg->header.type = htons (GNUNET_MESSAGE_TYPE_DHT_P2P_HELLO);
+    msg->header.size = htons (sizeof (*msg) + blen);
+    memcpy (&msg[1],
+            &block[1],
+            blen - sizeof (*block));
+    msg->sig = block->sig;
+    msg->expiration_time = block->expiration_time;
+  }
+  msg->url_counter = htonl ((uint16_t) builder->a_length);
+  return &msg->header;
 }
 
 
@@ -550,7 +630,7 @@ GNUNET_HELLO_builder_to_url (const struct GNUNET_HELLO_Builder *builder,
   char *sigs;
   const char *sep = "?";
 
-  et = GNUNET_TIME_relative_to_timestamp (HELLO_ADDRESS_EXPIRATION);
+  et = GNUNET_TIME_relative_to_timestamp (GNUNET_HELLO_ADDRESS_EXPIRATION);
   sign_hello (builder,
               et,
               priv,
@@ -629,7 +709,7 @@ GNUNET_HELLO_builder_to_block (const struct GNUNET_HELLO_Builder *builder,
     return GNUNET_NO;
   }
   bh.pid = builder->pid;
-  et = GNUNET_TIME_relative_to_timestamp (HELLO_ADDRESS_EXPIRATION);
+  et = GNUNET_TIME_relative_to_timestamp (GNUNET_HELLO_ADDRESS_EXPIRATION);
   bh.expiration_time = GNUNET_TIME_absolute_hton (et.abs_time);
   sign_hello (builder,
               et,
@@ -741,4 +821,55 @@ GNUNET_HELLO_builder_iterate (const struct GNUNET_HELLO_Builder *builder,
     uc (uc_cls,
         a->uri);
   }
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_HELLO_dht_msg_to_block (const struct GNUNET_MessageHeader *hello,
+                               const struct GNUNET_PeerIdentity *pid,
+                               void **block,
+                               size_t *block_size,
+                               struct GNUNET_TIME_Absolute *block_expiration)
+{
+  const struct DhtHelloMessage *msg
+    = (const struct DhtHelloMessage *) hello;
+  uint16_t len = ntohs (hello->size);
+  struct BlockHeader *bh;
+  struct GNUNET_HELLO_Builder *b;
+  enum GNUNET_GenericReturnValue ret;
+
+  if (GNUNET_MESSAGE_TYPE_DHT_P2P_HELLO != ntohs (hello->type))
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  if (len < sizeof (*msg))
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  len -= sizeof (*msg);
+  *block_size = len + sizeof (*bh);
+  *block = GNUNET_malloc (*block_size);
+  bh = *block;
+  bh->pid = *pid;
+  bh->sig = msg->sig;
+  bh->expiration_time = msg->expiration_time;
+  *block_expiration = GNUNET_TIME_absolute_ntoh (msg->expiration_time);
+  memcpy (&bh[1],
+          &msg[1],
+          len);
+  b = GNUNET_HELLO_builder_from_block (*block,
+                                       *block_size);
+  ret = verify_hello (b,
+                      *block_expiration,
+                      &msg->sig);
+  GNUNET_HELLO_builder_free (b);
+  if (GNUNET_SYSERR == ret)
+  {
+    GNUNET_free (*block);
+    *block_size = 0;
+    return GNUNET_SYSERR;
+  }
+  return ret;
 }

@@ -33,11 +33,6 @@
 #include "gnunet_dhtu_plugin.h"
 #include "gnunet-service-dht_datacache.h"
 
-/**
- * Hash of the identity of this peer.
- */
-extern struct GNUNET_HashCode my_identity_hash;
-
 
 struct PeerInfo;
 
@@ -141,7 +136,7 @@ GDS_am_closest_peer (const struct GNUNET_HashCode *key,
  * Function to call when we connect to a peer and can henceforth transmit to
  * that peer.
  *
- * @param cls the closure
+ * @param cls the closure, must be a `struct Underlay`
  * @param target handle to the target,
  *    pointer will remain valid until @e disconnect_cb is called
  * @para pid peer identity,
@@ -153,6 +148,7 @@ GDS_u_connect (void *cls,
                struct GNUNET_DHTU_Target *target,
                const struct GNUNET_PeerIdentity *pid,
                void **ctx);
+
 
 /**
  * Function to call when we disconnected from a peer and can henceforth
@@ -180,6 +176,15 @@ GDS_u_receive (void *cls,
                void **sctx,
                const void *message,
                size_t message_size);
+
+
+/**
+ * Send @a msg to all peers in our buckets.
+ *
+ * @param msg message to broadcast
+ */
+void
+GDS_NEIGHBOURS_broadcast (const struct GNUNET_MessageHeader *msg);
 
 
 /**

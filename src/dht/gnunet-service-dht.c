@@ -28,13 +28,19 @@
 #include "gnunet_block_lib.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_hello_lib.h"
+#include "gnunet_hello_uri_lib.h"
 #include "gnunet_dht_service.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet-service-dht.h"
 #include "gnunet-service-dht_datacache.h"
-#include "gnunet-service-dht_hello.h"
 #include "gnunet-service-dht_neighbours.h"
 #include "gnunet-service-dht_routing.h"
+
+/**
+ * How often do we broadcast our HELLO to neighbours if
+ * nothing special happens?
+ */
+#define HELLO_FREQUENCY GNUNET_TIME_UNIT_HOURS
 
 
 /**
@@ -110,7 +116,27 @@ struct MyAddress
 /**
  * Our HELLO
  */
-struct GNUNET_MessageHeader *GDS_my_hello;
+struct GNUNET_HELLO_Builder *GDS_my_hello;
+
+/**
+ * Identity of this peer.
+ */
+struct GNUNET_PeerIdentity GDS_my_identity;
+
+/**
+ * Hash of the identity of this peer.
+ */
+struct GNUNET_HashCode GDS_my_identity_hash;
+
+/**
+ * Our private key.
+ */
+struct GNUNET_CRYPTO_EddsaPrivateKey GDS_my_private_key;
+
+/**
+ * Task broadcasting our HELLO.
+ */
+static struct GNUNET_SCHEDULER_Task *hello_task;
 
 /**
  * Handles for the DHT underlays.
@@ -131,11 +157,6 @@ static struct MyAddress *a_head;
  * Tail of addresses of this peer.
  */
 static struct MyAddress *a_tail;
-
-/**
- * Hello address expiration
- */
-struct GNUNET_TIME_Relative hello_expiration;
 
 /**
  * log of the current network size estimate, used as the point where
@@ -195,13 +216,29 @@ GDS_NSE_get (void)
 
 
 /**
- * Update our HELLO with all of our our addresses.
+ * Task run periodically to broadcast our HELLO.
+ *
+ * @param cls NULL
  */
 static void
-update_hello (void)
+broadcast_hello (void *cls)
 {
-  GNUNET_free (GDS_my_hello);
-  // FIXME: build new HELLO properly!
+  struct GNUNET_MessageHeader *hello;
+
+  (void) cls;
+  /* TODO: randomize! */
+  hello_task = GNUNET_SCHEDULER_add_delayed (HELLO_FREQUENCY,
+                                             &broadcast_hello,
+                                             NULL);
+  hello = GNUNET_HELLO_builder_to_dht_hello_msg (GDS_my_hello,
+                                                 &GDS_my_private_key);
+  if (NULL == hello)
+  {
+    GNUNET_break (0);
+    return;
+  }
+  GDS_NEIGHBOURS_broadcast (hello);
+  GNUNET_free (hello);
 }
 
 
@@ -231,7 +268,12 @@ u_address_add (void *cls,
                                a_tail,
                                a);
   *ctx = a;
-  update_hello ();
+  GNUNET_HELLO_builder_add_address (GDS_my_hello,
+                                    address);
+  if (NULL != hello_task)
+    GNUNET_SCHEDULER_cancel (hello_task);
+  hello_task = GNUNET_SCHEDULER_add_now (&broadcast_hello,
+                                         NULL);
 }
 
 
@@ -245,12 +287,47 @@ u_address_del (void *ctx)
 {
   struct MyAddress *a = ctx;
 
+  GNUNET_HELLO_builder_del_address (GDS_my_hello,
+                                    a->url);
   GNUNET_CONTAINER_DLL_remove (a_head,
                                a_tail,
                                a);
   GNUNET_free (a->url);
   GNUNET_free (a);
-  update_hello ();
+  if (NULL != hello_task)
+    GNUNET_SCHEDULER_cancel (hello_task);
+  hello_task = GNUNET_SCHEDULER_add_now (&broadcast_hello,
+                                         NULL);
+}
+
+
+void
+GDS_u_try_connect (const struct GNUNET_PeerIdentity *pid,
+                   const char *address)
+{
+  for (struct Underlay *u = u_head;
+       NULL != u;
+       u = u->next)
+    u->dhtu->try_connect (u->dhtu->cls,
+                          pid,
+                          address);
+}
+
+
+void
+GDS_u_send (struct Underlay *u,
+            struct GNUNET_DHTU_Target *target,
+            const void *msg,
+            size_t msg_size,
+            GNUNET_SCHEDULER_TaskCallback finished_cb,
+            void *finished_cb_cls)
+{
+  u->dhtu->send (u->dhtu->cls,
+                 target,
+                 msg,
+                 msg_size,
+                 finished_cb,
+                 finished_cb_cls);
 }
 
 
@@ -265,7 +342,6 @@ shutdown_task (void *cls)
   GDS_NEIGHBOURS_done ();
   GDS_DATACACHE_done ();
   GDS_ROUTING_done ();
-  GDS_HELLO_done ();
   if (NULL != GDS_block_context)
   {
     GNUNET_BLOCK_context_destroy (GDS_block_context);
@@ -277,7 +353,7 @@ shutdown_task (void *cls)
                                GNUNET_YES);
     GDS_stats = NULL;
   }
-  GNUNET_free (GDS_my_hello);
+  GNUNET_HELLO_builder_free (GDS_my_hello);
   GDS_my_hello = NULL;
   GDS_CLIENTS_stop ();
 }
@@ -348,14 +424,39 @@ run (void *cls,
 {
   GDS_cfg = c;
   GDS_service = service;
-  if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_get_value_time (c,
-                                           "transport",
-                                           "HELLO_EXPIRATION",
-                                           &hello_expiration))
   {
-    hello_expiration = GNUNET_CONSTANTS_HELLO_ADDRESS_EXPIRATION;
+    char *keyfile;
+
+    if (GNUNET_OK !=
+        GNUNET_CONFIGURATION_get_value_filename (GDS_cfg,
+                                                 "PEER",
+                                                 "PRIVATE_KEY",
+                                                 &keyfile))
+    {
+      GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
+                                 "PEER",
+                                 "PRIVATE_KEY");
+      GNUNET_SCHEDULER_shutdown ();
+      return;
+    }
+    if (GNUNET_SYSERR ==
+        GNUNET_CRYPTO_eddsa_key_from_file (keyfile,
+                                           GNUNET_YES,
+                                           &GDS_my_private_key))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Failed to setup peer's private key\n");
+      GNUNET_free (keyfile);
+      GNUNET_SCHEDULER_shutdown ();
+      return;
+    }
+    GNUNET_free (keyfile);
   }
+  GNUNET_CRYPTO_eddsa_key_get_public (&GDS_my_private_key,
+                                      &GDS_my_identity.public_key);
+  GNUNET_CRYPTO_hash (&GDS_my_identity,
+                      sizeof(struct GNUNET_PeerIdentity),
+                      &GDS_my_identity_hash);
   GDS_block_context = GNUNET_BLOCK_context_create (GDS_cfg);
   GDS_stats = GNUNET_STATISTICS_create ("dht",
                                         GDS_cfg);
@@ -364,6 +465,12 @@ run (void *cls,
   GDS_DATACACHE_init ();
   GNUNET_SCHEDULER_add_shutdown (&shutdown_task,
                                  NULL);
+  if (GNUNET_OK !=
+      GDS_NEIGHBOURS_init ())
+  {
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
   GNUNET_CONFIGURATION_iterate_sections (GDS_cfg,
                                          &load_underlay,
                                          NULL);

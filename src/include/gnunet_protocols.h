@@ -660,13 +660,15 @@ extern "C" {
 #define GNUNET_MESSAGE_TYPE_DHT_CLIENT_GET_RESULTS_KNOWN 156
 
 /**
+ * HELLO advertising a neighbours addresses.
+ */
+#define GNUNET_MESSAGE_TYPE_DHT_P2P_HELLO 157
+
+/**
  * DHT wants to use CORE to transmit data.
  */
 #define GNUNET_MESSAGE_TYPE_DHT_CORE 143
 
-/**
- * Further X-VINE DHT messages continued from 880
- */
 
 /*******************************************************************************
  * HOSTLIST message types

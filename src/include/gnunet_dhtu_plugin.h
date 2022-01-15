@@ -129,6 +129,7 @@ struct GNUNET_DHTU_PluginEnvironment
                 const struct GNUNET_PeerIdentity *pid,
                 void **ctx);
 
+
   /**
    * Function to call when we disconnected from a peer and can henceforth
    * cannot transmit to that peer anymore.
@@ -177,7 +178,7 @@ struct GNUNET_DHTU_PluginFunctions
    */
   void
   (*try_connect) (void *cls,
-                  struct GNUNET_PeerIdentity *pid,
+                  const struct GNUNET_PeerIdentity *pid,
                   const char *address);
 
 
@@ -194,7 +195,7 @@ struct GNUNET_DHTU_PluginFunctions
           struct GNUNET_DHTU_Target *target);
 
   /**
-   * Do no long request underlay to keep the connection alive.
+   * Do no longer request underlay to keep the connection alive.
    *
    * @param cls closure
    * @param target connection to keep alive

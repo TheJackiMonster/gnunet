@@ -27,11 +27,17 @@
 #define GNUNET_SERVICE_DHT_H
 
 #include "gnunet-service-dht_datacache.h"
+#include "gnunet-service-dht_neighbours.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_transport_service.h"
 
 
 #define DEBUG_DHT GNUNET_EXTRA_LOGGING
+
+/**
+ * Information we keep per underlay.
+ */
+struct Underlay;
 
 /**
  * Configuration we use.
@@ -54,9 +60,59 @@ extern struct GNUNET_BLOCK_Context *GDS_block_context;
 extern struct GNUNET_STATISTICS_Handle *GDS_stats;
 
 /**
- * Our HELLO
+ * Our HELLO builder.
  */
-extern struct GNUNET_MessageHeader *GDS_my_hello;
+extern struct GNUNET_HELLO_Builder *GDS_my_hello;
+
+/**
+ * Identity of this peer.
+ */
+extern struct GNUNET_PeerIdentity GDS_my_identity;
+
+/**
+ * Hash of the identity of this peer.
+ */
+extern struct GNUNET_HashCode GDS_my_identity_hash;
+
+/**
+ * Our private key.
+ */
+extern struct GNUNET_CRYPTO_EddsaPrivateKey GDS_my_private_key;
+
+
+/**
+ * Ask all underlays to connect to peer @a pid at @a address.
+ *
+ * @param pid identity of the peer we would connect to
+ * @param address an address of @a pid
+ */
+void
+GDS_u_try_connect (const struct GNUNET_PeerIdentity *pid,
+                   const char *address);
+
+
+/**
+ * Send message to some other participant over the network.  Note that
+ * sending is not guaranteeing that the other peer actually received the
+ * message.  For any given @a target, the DHT must wait for the @a
+ * finished_cb to be called before calling send() again.
+ *
+ * @param u underlay to use for transmission
+ * @param target receiver identification
+ * @param msg message
+ * @param msg_size number of bytes in @a msg
+ * @param finished_cb function called once transmission is done
+ *        (not called if @a target disconnects, then only the
+ *         disconnect_cb is called).
+ * @param finished_cb_cls closure for @a finished_cb
+ */
+void
+GDS_u_send (struct Underlay *u,
+            struct GNUNET_DHTU_Target *target,
+            const void *msg,
+            size_t msg_size,
+            GNUNET_SCHEDULER_TaskCallback finished_cb,
+            void *finished_cb_cls);
 
 
 /**

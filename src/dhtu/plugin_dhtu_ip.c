@@ -354,7 +354,7 @@ find_target (struct Plugin *plugin,
  */
 static void
 ip_try_connect (void *cls,
-                struct GNUNET_PeerIdentity *pid,
+                const struct GNUNET_PeerIdentity *pid,
                 const char *address)
 {
   struct Plugin *plugin = cls;
@@ -365,7 +365,6 @@ ip_try_connect (void *cls,
     .ai_flags = AI_NUMERICHOST | AI_NUMERICSERV
   };
   struct addrinfo *result = NULL;
-  char *epid;
 
   if (0 !=
       strncmp (address,
@@ -507,7 +506,6 @@ create_source (struct Plugin *plugin,
                socklen_t addrlen)
 {
   struct GNUNET_DHTU_Source *src;
-  char *pid;
 
   src = GNUNET_new (struct GNUNET_DHTU_Source);
   src->addrlen = addrlen;
@@ -549,7 +547,6 @@ create_source (struct Plugin *plugin,
     break;
   default:
     GNUNET_break (0);
-    GNUNET_free (pid);
     GNUNET_free (src);
     return NULL;
   }

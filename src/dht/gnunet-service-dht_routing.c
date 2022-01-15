@@ -151,7 +151,7 @@ process (void *cls,
     bdx.put_path_length = 0;
     bdx.put_path = NULL;
   }
-  if ( (0 == (rr->options & GNUNET_DHT_RO_FIND_PEER)) &&
+  if ( (0 == (rr->options & GNUNET_DHT_RO_FIND_APPROXIMATE)) &&
        (0 != GNUNET_memcmp (query_hash,
                             &bdx.key)) )
   {

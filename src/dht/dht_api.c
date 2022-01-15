@@ -726,6 +726,7 @@ process_client_result (void *cls,
   const struct GNUNET_DHT_ClientResultMessage *crm = cls;
   struct GNUNET_DHT_GetHandle *get_handle = value;
   size_t msize = ntohs (crm->header.size) - sizeof(*crm);
+  uint16_t type = ntohl (crm->type);
   uint32_t put_path_length = ntohl (crm->put_path_length);
   uint32_t get_path_length = ntohl (crm->get_path_length);
   const struct GNUNET_DHT_PathElement *put_path;
@@ -745,7 +746,13 @@ process_client_result (void *cls,
          (unsigned long long) get_handle->unique_id);
     return GNUNET_YES;
   }
-  /* FIXME: might want to check that type matches */
+  if ( (get_handle->type != GNUNET_BLOCK_TYPE_ANY) &&
+       (get_handle->type != type) )
+  {
+    /* type mismatch */
+    GNUNET_break (0);
+    return GNUNET_YES;
+  }
   meta_length =
     sizeof(struct GNUNET_DHT_PathElement) * (get_path_length + put_path_length);
   data_length = msize - meta_length;
@@ -786,7 +793,7 @@ process_client_result (void *cls,
                     get_path_length,
                     put_path,
                     put_path_length,
-                    ntohl (crm->type),
+                    type,
                     data_length,
                     data);
   return GNUNET_YES;

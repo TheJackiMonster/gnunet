@@ -917,7 +917,7 @@ forward_reply (void *cls,
                               GNUNET_NO);
     return GNUNET_YES;          /* type mismatch */
   }
-  if ( (0 == (record->msg_options & GNUNET_DHT_RO_FIND_PEER)) &&
+  if ( (0 == (record->msg_options & GNUNET_DHT_RO_FIND_APPROXIMATE)) &&
        (0 != GNUNET_memcmp (&frc->bd->key,
                             query_hash)) )
   {
