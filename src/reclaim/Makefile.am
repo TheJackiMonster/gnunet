@@ -150,7 +150,8 @@ libgnunet_plugin_reclaim_attribute_basic_la_LDFLAGS = \
 if HAVE_PABC
 libgnunet_plugin_reclaim_credential_pabc_la_SOURCES = \
   plugin_reclaim_credential_pabc.c \
-  pabc_helper.c
+  pabc_helper.c \
+	pabc_helper.h
 libgnunet_plugin_reclaim_credential_pabc_la_LIBADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
   libgnunetreclaim.la \
@@ -190,7 +191,8 @@ test_reclaim_attribute_LDADD = \
 
 gnunet_did_SOURCES = \
 	gnunet-did.c \
-  did_misc.c
+  did_misc.c \
+	did.h
 gnunet_did_LDADD = \
 	$(top_builddir)/src/util/libgnunetutil.la \
 	$(top_builddir)/src/gns/libgnunetgns.la \
