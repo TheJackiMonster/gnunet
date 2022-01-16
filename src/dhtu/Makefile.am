@@ -10,6 +10,10 @@ if USE_COVERAGE
   XLIBS = -lgcov
 endif
 
+pkgcfg_DATA = \
+  dhtu.conf
+
+
 plugin_LTLIBRARIES = \
   libgnunet_plugin_dhtu_gnunet.la \
   libgnunet_plugin_dhtu_ip.la

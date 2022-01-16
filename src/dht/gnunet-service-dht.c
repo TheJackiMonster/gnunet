@@ -78,6 +78,11 @@ struct GDS_Underlay
    * Name of the underlay (i.e. "gnunet" or "ip").
    */
   char *name;
+
+  /**
+   * Name of the library providing the underlay.
+   */
+  char *libname;
 };
 
 
@@ -191,7 +196,7 @@ update_network_size_estimate (void *cls,
   u->network_size_estimate = pow (2.0,
                                   GNUNET_MAX (0.5,
                                               logestimate));
-  for (struct GDS_Underlay *p; NULL != p; p = p->next)
+  for (struct GDS_Underlay *p = u_head; NULL != p; p = p->next)
     sum += p->network_size_estimate;
   if (sum <= 2.0)
     log_of_network_size_estimate = 0.5;
@@ -356,6 +361,19 @@ GDS_u_hold (struct GDS_Underlay *u,
 static void
 shutdown_task (void *cls)
 {
+  struct GDS_Underlay *u;
+
+  while (NULL != (u = u_head))
+  {
+    GNUNET_PLUGIN_unload (u->libname,
+                          u->dhtu);
+    GNUNET_CONTAINER_DLL_remove (u_head,
+                                 u_tail,
+                                 u);
+    GNUNET_free (u->name);
+    GNUNET_free (u->libname);
+    GNUNET_free (u);
+  }
   GDS_NEIGHBOURS_done ();
   GDS_DATACACHE_done ();
   GDS_ROUTING_done ();
@@ -370,8 +388,11 @@ shutdown_task (void *cls)
                                GNUNET_YES);
     GDS_stats = NULL;
   }
-  GNUNET_HELLO_builder_free (GDS_my_hello);
-  GDS_my_hello = NULL;
+  if (NULL != GDS_my_hello)
+  {
+    GNUNET_HELLO_builder_free (GDS_my_hello);
+    GDS_my_hello = NULL;
+  }
   GDS_CLIENTS_stop ();
 }
 
@@ -403,6 +424,7 @@ load_underlay (void *cls,
   section += strlen ("dhtu-");
   u = GNUNET_new (struct GDS_Underlay);
   u->env.cls = u;
+  u->env.cfg = GDS_cfg;
   u->env.address_add_cb = &u_address_add;
   u->env.address_del_cb = &u_address_del;
   u->env.network_size_cb = &update_network_size_estimate;
@@ -420,6 +442,7 @@ load_underlay (void *cls,
     GNUNET_free (u);
     return;
   }
+  u->libname = libname;
   u->name = GNUNET_strdup (section);
   GNUNET_CONTAINER_DLL_insert (u_head,
                                u_tail,
@@ -471,6 +494,7 @@ run (void *cls,
   }
   GNUNET_CRYPTO_eddsa_key_get_public (&GDS_my_private_key,
                                       &GDS_my_identity.public_key);
+  GDS_my_hello = GNUNET_HELLO_builder_new (&GDS_my_identity);
   GNUNET_CRYPTO_hash (&GDS_my_identity,
                       sizeof(struct GNUNET_PeerIdentity),
                       &GDS_my_identity_hash);

@@ -590,7 +590,7 @@ libgnunet_plugin_dhtu_gnunet_done (void *cls)
  * @return the plugin's API
  */
 void *
-libgnunet_plugin_dhtu_ip_init (void *cls)
+libgnunet_plugin_dhtu_gnunet_init (void *cls)
 {
   struct GNUNET_DHTU_PluginEnvironment *env = cls;
   struct GNUNET_DHTU_PluginFunctions *api;
