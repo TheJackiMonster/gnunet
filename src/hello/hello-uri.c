@@ -813,6 +813,8 @@ GNUNET_HELLO_builder_iterate (const struct GNUNET_HELLO_Builder *builder,
   struct Address *nxt;
 
   *pid = builder->pid;
+  if (NULL == uc)
+    return;
   for (struct Address *a = builder->a_head;
        NULL != a;
        a = nxt)

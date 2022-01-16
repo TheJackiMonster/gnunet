@@ -234,9 +234,9 @@ hello_offered_cb (void *cls)
  * @param address target address to connect to
  */
 static void
-ip_try_connect (void *cls,
-                const struct GNUNET_PeerIdentity *pid,
-                const char *address)
+gnunet_try_connect (void *cls,
+                    const struct GNUNET_PeerIdentity *pid,
+                    const char *address)
 {
   struct Plugin *plugin = cls;
   struct GNUNET_HELLO_Message *hello = NULL;
@@ -272,8 +272,8 @@ ip_try_connect (void *cls,
  * @param target connection to keep alive
  */
 static struct GNUNET_DHTU_PreferenceHandle *
-ip_hold (void *cls,
-         struct GNUNET_DHTU_Target *target)
+gnunet_hold (void *cls,
+             struct GNUNET_DHTU_Target *target)
 {
   struct Plugin *plugin = cls;
   struct GNUNET_DHTU_PreferenceHandle *ph;
@@ -301,7 +301,7 @@ ip_hold (void *cls,
  * @param target connection to keep alive
  */
 static void
-ip_drop (struct GNUNET_DHTU_PreferenceHandle *ph)
+gnunet_drop (struct GNUNET_DHTU_PreferenceHandle *ph)
 {
   struct GNUNET_DHTU_Target *target = ph->target;
   struct Plugin *plugin = target->plugin;
@@ -339,12 +339,12 @@ ip_drop (struct GNUNET_DHTU_PreferenceHandle *ph)
  * @param finished_cb_cls closure for @a finished_cb
  */
 static void
-ip_send (void *cls,
-         struct GNUNET_DHTU_Target *target,
-         const void *msg,
-         size_t msg_size,
-         GNUNET_SCHEDULER_TaskCallback finished_cb,
-         void *finished_cb_cls)
+gnunet_send (void *cls,
+             struct GNUNET_DHTU_Target *target,
+             const void *msg,
+             size_t msg_size,
+             GNUNET_SCHEDULER_TaskCallback finished_cb,
+             void *finished_cb_cls)
 {
   struct GNUNET_MQ_Envelope *env;
   struct GNUNET_MessageHeader *cmsg;
@@ -607,10 +607,10 @@ libgnunet_plugin_dhtu_gnunet_init (void *cls)
   plugin->env = env;
   api = GNUNET_new (struct GNUNET_DHTU_PluginFunctions);
   api->cls = plugin;
-  api->try_connect = &ip_try_connect;
-  api->hold = &ip_hold;
-  api->drop = &ip_drop;
-  api->send = &ip_send;
+  api->try_connect = &gnunet_try_connect;
+  api->hold = &gnunet_hold;
+  api->drop = &gnunet_drop;
+  api->send = &gnunet_send;
   plugin->ats = GNUNET_ATS_connectivity_init (env->cfg);
   plugin->core = GNUNET_CORE_connect (env->cfg,
                                       plugin,

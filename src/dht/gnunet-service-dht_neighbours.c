@@ -1604,6 +1604,7 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
     prm->header.type = htons (GNUNET_MESSAGE_TYPE_DHT_P2P_RESULT);
     prm->header.size = htons (sizeof (buf));
     prm->type = htonl (bd->type);
+    prm->reserved = htonl (0);
     prm->put_path_length = htonl (ppl);
     prm->get_path_length = htonl (get_path_length);
     prm->expiration_time = GNUNET_TIME_absolute_hton (bd->expiration_time);
@@ -1668,14 +1669,15 @@ check_dht_p2p_put (void *cls,
 /**
  * Core handler for p2p put requests.
  *
- * @param cls closure with the `struct PeerInfo` of the sender
+ * @param cls closure with the `struct Target` of the sender
  * @param message message
  */
 static void
 handle_dht_p2p_put (void *cls,
                     const struct PeerPutMessage *put)
 {
-  struct PeerInfo *peer = cls;
+  struct Target *t = cls;
+  struct PeerInfo *peer = t->pi;
   uint16_t msize = ntohs (put->header.size);
   enum GNUNET_DHT_RouteOption options
     = (enum GNUNET_DHT_RouteOption) ntohl (put->options);
@@ -1982,7 +1984,7 @@ handle_local_result (void *cls,
 /**
  * Check validity of p2p get request.
  *
- * @param cls closure with the `struct PeerInfo` of the sender
+ * @param cls closure with the `struct Target` of the sender
  * @param get the message
  * @return #GNUNET_OK if the message is well-formed
  */
@@ -2006,14 +2008,15 @@ check_dht_p2p_get (void *cls,
 /**
  * Core handler for p2p get requests.
  *
- * @param cls closure with the `struct PeerInfo` of the sender
+ * @param cls closure with the `struct Target` of the sender
  * @param get the message
  */
 static void
 handle_dht_p2p_get (void *cls,
                     const struct PeerGetMessage *get)
 {
-  struct PeerInfo *peer = cls;
+  struct Target *t = cls;
+  struct PeerInfo *peer = t->pi;
   uint16_t msize = ntohs (get->header.size);
   uint32_t xquery_size = ntohl (get->xquery_size);
   uint32_t hop_count = ntohl (get->hop_count);
@@ -2295,7 +2298,8 @@ static void
 handle_dht_p2p_result (void *cls,
                        const struct PeerResultMessage *prm)
 {
-  struct PeerInfo *peer = cls;
+  struct Target *t = cls;
+  struct PeerInfo *peer = t->pi;
   uint16_t msize = ntohs (prm->header.size);
   uint32_t get_path_length = ntohl (prm->get_path_length);
   struct GDS_DATACACHE_BlockData bd = {
@@ -2433,7 +2437,8 @@ static void
 handle_dht_p2p_hello (void *cls,
                       const struct GNUNET_MessageHeader *hello)
 {
-  struct PeerInfo *peer = cls;
+  struct Target *t = cls;
+  struct PeerInfo *peer = t->pi;
 
   GNUNET_free (peer->hello);
   peer->hello_size = 0;
@@ -2517,7 +2522,6 @@ GDS_NEIGHBOURS_broadcast (const struct GNUNET_MessageHeader *msg)
       if (count >= bucket_size)
         break;   /* we only consider first #bucket_size entries per bucket */
       count++;
-      GNUNET_break (0);
       do_send (pos,
                msg);
     }
