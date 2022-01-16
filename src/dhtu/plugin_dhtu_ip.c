@@ -225,6 +225,11 @@ struct Plugin
    * How often have we scanned for IPs?
    */
   unsigned int scan_generation;
+
+  /**
+   * Port as a 16-bit value.
+   */
+  uint16_t port16;
 };
 
 
@@ -598,9 +603,37 @@ process_ifcs (void *cls,
       return GNUNET_OK;
     }
   }
-  (void) create_source (plugin,
-                        addr,
-                        addrlen);
+  switch (addr->sa_family)
+  {
+  case AF_INET:
+    {
+      struct sockaddr_in v4;
+
+      GNUNET_assert (sizeof(v4) == addrlen);
+      memcpy (&v4,
+              addr,
+              addrlen);
+      v4.sin_port = htons (plugin->port16);
+      (void) create_source (plugin,
+                            (const struct sockaddr *) &v4,
+                            sizeof (v4));
+      break;
+    }
+  case AF_INET6:
+    {
+      struct sockaddr_in6 v6;
+
+      GNUNET_assert (sizeof(v6) == addrlen);
+      memcpy (&v6,
+              addr,
+              addrlen);
+      v6.sin6_port = htons (plugin->port16);
+      (void) create_source (plugin,
+                            (const struct sockaddr *) &v6,
+                            sizeof (v6));
+      break;
+    }
+  }
   return GNUNET_OK;
 }
 
@@ -854,6 +887,7 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
   plugin = GNUNET_new (struct Plugin);
   plugin->env = env;
   plugin->port = port;
+  plugin->port16 = (uint16_t) nport;
   if (GNUNET_OK !=
       GNUNET_CRYPTO_get_peer_identity (env->cfg,
                                        &plugin->my_id))
@@ -1009,8 +1043,13 @@ libgnunet_plugin_dhtu_ip_done (void *cls)
                                 0.0,
                                 0.0);
   GNUNET_CONTAINER_multihashmap_destroy (plugin->dsts);
+  if (NULL != plugin->read_task)
+  {
+    GNUNET_SCHEDULER_cancel (plugin->read_task);
+    plugin->read_task = NULL;
+  }
   GNUNET_SCHEDULER_cancel (plugin->scan_task);
-  GNUNET_break (0 ==
+  GNUNET_break (GNUNET_OK ==
                 GNUNET_NETWORK_socket_close (plugin->sock));
   GNUNET_free (plugin->port);
   GNUNET_free (plugin);

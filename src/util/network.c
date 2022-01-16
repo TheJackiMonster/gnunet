@@ -350,7 +350,8 @@ initialize_network_handle (struct GNUNET_NETWORK_Handle *h,
 
   if (h->fd >= FD_SETSIZE)
   {
-    GNUNET_break (GNUNET_OK == GNUNET_NETWORK_socket_close (h));
+    GNUNET_break (GNUNET_OK ==
+                  GNUNET_NETWORK_socket_close (h));
     errno = EMFILE;
     return GNUNET_SYSERR;
   }

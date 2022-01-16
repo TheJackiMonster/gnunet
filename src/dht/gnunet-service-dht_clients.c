@@ -1090,6 +1090,7 @@ handle_dht_local_hello_get (void *cls,
   GNUNET_free (url);
   GNUNET_MQ_send (ch->mq,
                   env);
+  GNUNET_SERVICE_client_continue (ch->client);
 }
 
 

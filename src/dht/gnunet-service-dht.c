@@ -382,6 +382,7 @@ shutdown_task (void *cls)
     GNUNET_BLOCK_context_destroy (GDS_block_context);
     GDS_block_context = NULL;
   }
+  GDS_CLIENTS_stop ();
   if (NULL != GDS_stats)
   {
     GNUNET_STATISTICS_destroy (GDS_stats,
@@ -393,7 +394,11 @@ shutdown_task (void *cls)
     GNUNET_HELLO_builder_free (GDS_my_hello);
     GDS_my_hello = NULL;
   }
-  GDS_CLIENTS_stop ();
+  if (NULL != hello_task)
+  {
+    GNUNET_SCHEDULER_cancel (hello_task);
+    hello_task = NULL;
+  }
 }
 
 
