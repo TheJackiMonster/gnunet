@@ -133,6 +133,18 @@ GDS_am_closest_peer (const struct GNUNET_HashCode *key,
 
 
 /**
+ * Callback function used to extract URIs from a builder.
+ * Called when we should consider connecting to a peer.
+ *
+ * @param cls closure pointing to a `struct GNUNET_PeerIdentity *`
+ * @param uri one of the URIs
+ */
+void
+GDS_try_connect (void *cls,
+                 const char *uri);
+
+
+/**
  * Function to call when we connect to a peer and can henceforth transmit to
  * that peer.
  *

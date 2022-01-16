@@ -1060,6 +1060,95 @@ GDS_CLIENTS_handle_reply (const struct GDS_DATACACHE_BlockData *bd,
 }
 
 
+/* **************** HELLO logic ***************** */
+
+/**
+ * Handler for HELLO GET message. Reply to client
+ * with a URL of our HELLO.
+ *
+ * @param cls the client we received this message from
+ * @param msg the actual message received
+ *
+ */
+static void
+handle_dht_local_hello_get (void *cls,
+                            const struct GNUNET_MessageHeader *msg)
+{
+  struct ClientHandle *ch = cls;
+  char *url = GNUNET_HELLO_builder_to_url (GDS_my_hello,
+                                           &GDS_my_private_key);
+  size_t slen = strlen (url) + 1;
+  struct GNUNET_MessageHeader *hdr;
+  struct GNUNET_MQ_Envelope *env;
+
+  env = GNUNET_MQ_msg_extra (hdr,
+                             slen,
+                             GNUNET_MESSAGE_TYPE_DHT_CLIENT_HELLO_URL);
+  memcpy (&hdr[1],
+          url,
+          slen);
+  GNUNET_free (url);
+  GNUNET_MQ_send (ch->mq,
+                  env);
+}
+
+
+/**
+ * Process a client HELLO message received from the service.
+ *
+ * @param cls the client we received this message from
+ * @param hdr HELLO URL message from the service.
+ * @return #GNUNET_OK if @a hdr is well-formed
+ */
+static enum GNUNET_GenericReturnValue
+check_dht_local_hello_offer (void *cls,
+                             const struct GNUNET_MessageHeader *hdr)
+{
+  uint16_t len = ntohs (hdr->size);
+  const char *buf = (const char *) &hdr[1];
+
+  (void) cls;
+  if ('\0' != buf[len - sizeof (*hdr) - 1])
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
+}
+
+
+/**
+ * Handler for HELLO OFFER message.  Try to use the
+ * HELLO to connect to another peer.
+ *
+ * @param cls the client we received this message from
+ * @param msg the actual message received
+ */
+static void
+handle_dht_local_hello_offer (void *cls,
+                              const struct GNUNET_MessageHeader *msg)
+{
+  struct ClientHandle *ch = cls;
+  const char *url = (const char *) &msg[1];
+  struct GNUNET_HELLO_Builder *b;
+  struct GNUNET_PeerIdentity pid;
+
+  b = GNUNET_HELLO_builder_from_url (url);
+  if (NULL == b)
+  {
+    GNUNET_break (0);
+    GNUNET_SERVICE_client_drop (ch->client);
+    return;
+  }
+  GNUNET_SERVICE_client_continue (ch->client);
+  GNUNET_HELLO_builder_iterate (b,
+                                &pid,
+                                &GDS_try_connect,
+                                &pid);
+  GNUNET_HELLO_builder_free (b);
+}
+
+
 /* ************* logic for monitors ************** */
 
 
@@ -1330,8 +1419,8 @@ response_action (void *cls,
                  bd->put_path_length * sizeof(struct GNUNET_DHT_PathElement));
   GNUNET_memcpy (path,
                  resp_ctx->get_path,
-                 resp_ctx->get_path_length * sizeof(struct
-                                                    GNUNET_DHT_PathElement));
+                 resp_ctx->get_path_length
+                 * sizeof(struct GNUNET_DHT_PathElement));
   GNUNET_memcpy (&path[resp_ctx->get_path_length],
                  bd->data,
                  bd->data_size);
@@ -1503,6 +1592,14 @@ GDS_CLIENTS_stop (void)
     GNUNET_MQ_hd_var_size (dht_local_get_result_seen, \
                            GNUNET_MESSAGE_TYPE_DHT_CLIENT_GET_RESULTS_KNOWN, \
                            struct GNUNET_DHT_ClientGetResultSeenMessage, \
+                           NULL), \
+    GNUNET_MQ_hd_fixed_size (dht_local_hello_get,              \
+                             GNUNET_MESSAGE_TYPE_DHT_CLIENT_HELLO_GET, \
+                             struct GNUNET_MessageHeader, \
+                             NULL), \
+    GNUNET_MQ_hd_var_size (dht_local_hello_offer, \
+                           GNUNET_MESSAGE_TYPE_DHT_CLIENT_HELLO_URL, \
+                           struct GNUNET_MessageHeader, \
                            NULL), \
     GNUNET_MQ_handler_end ())
 

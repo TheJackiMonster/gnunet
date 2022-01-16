@@ -665,9 +665,20 @@ extern "C" {
 #define GNUNET_MESSAGE_TYPE_DHT_P2P_HELLO 157
 
 /**
- * DHT wants to use CORE to transmit data.
+ * Encapsulation of DHT messages in CORE service.
  */
-#define GNUNET_MESSAGE_TYPE_DHT_CORE 143
+#define GNUNET_MESSAGE_TYPE_DHT_CORE 158
+
+/**
+ * HELLO URL send between client and service (in
+ * either direction).
+ */
+#define GNUNET_MESSAGE_TYPE_DHT_CLIENT_HELLO_URL 159
+
+/**
+ * Client requests DHT service's HELLO URL.
+ */
+#define GNUNET_MESSAGE_TYPE_DHT_CLIENT_HELLO_GET 161
 
 
 /*******************************************************************************

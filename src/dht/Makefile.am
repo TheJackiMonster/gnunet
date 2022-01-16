@@ -50,7 +50,8 @@ libexec_PROGRAMS = \
 bin_PROGRAMS = \
  gnunet-dht-monitor \
  gnunet-dht-get \
- gnunet-dht-put
+ gnunet-dht-put \
+ gnunet-dht-hello
 
 noinst_PROGRAMS = \
  gnunet-dht-profiler
@@ -80,7 +81,14 @@ gnunet_dht_get_SOURCES = \
  gnunet-dht-get.c
 gnunet_dht_get_LDADD = \
   libgnunetdht.la \
-  $(top_builddir)/src/core/libgnunetcore.la \
+  $(top_builddir)/src/util/libgnunetutil.la
+gnunet_dht_get_LDFLAGS = \
+  $(GN_LIBINTL)
+
+gnunet_dht_hello_SOURCES = \
+ gnunet-dht-hello.c
+gnunet_dht_hello_LDADD = \
+  libgnunetdht.la \
   $(top_builddir)/src/util/libgnunetutil.la
 gnunet_dht_get_LDFLAGS = \
   $(GN_LIBINTL)
@@ -89,7 +97,6 @@ gnunet_dht_put_SOURCES = \
  gnunet-dht-put.c
 gnunet_dht_put_LDADD = \
   libgnunetdht.la \
-  $(top_builddir)/src/core/libgnunetcore.la \
   $(top_builddir)/src/util/libgnunetutil.la
 gnunet_dht_put_LDFLAGS = \
   $(GN_LIBINTL)
@@ -98,7 +105,6 @@ gnunet_dht_monitor_SOURCES = \
  gnunet-dht-monitor.c
 gnunet_dht_monitor_LDADD = \
   libgnunetdht.la \
-  $(top_builddir)/src/core/libgnunetcore.la \
   $(top_builddir)/src/util/libgnunetutil.la
 gnunet_dht_monitor_LDFLAGS = \
   $(GN_LIBINTL)

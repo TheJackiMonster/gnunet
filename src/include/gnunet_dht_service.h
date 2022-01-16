@@ -512,6 +512,63 @@ GNUNET_DHT_verify_path (const struct GNUNET_HashCode *key,
                         const struct GNUNET_PeerIdentity *me);
 
 
+/**
+ * Handle to get a HELLO URL from the DHT for manual bootstrapping.
+ */
+struct GNUNET_DHT_HelloGetHandle;
+
+
+/**
+ * Signature called with the result of a HELLO GET operation.
+ *
+ * @param cls closure
+ * @param hello_url the resulting HELLO URL, NULL on error
+ */
+typedef void
+(*GNUNET_DHT_HelloGetCallback)(void *cls,
+                               const char *hello_url);
+
+
+/**
+ * Obtain HELLO URL of the DHT identified by @a dht_handle.
+ *
+ * @param dht_handle DHT to query
+ * @param cb function to call with the result
+ * @param cb_cls closure for @a cb
+ * @return NULL on failure
+ */
+struct GNUNET_DHT_HelloGetHandle *
+GNUNET_DHT_hello_get (struct GNUNET_DHT_Handle *dht_handle,
+                      GNUNET_DHT_HelloGetCallback cb,
+                      void *cb_cls);
+
+
+/**
+ * Cancel hello get operation.
+ *
+ * @param[in] hgh operation to cancel.
+ */
+void
+GNUNET_DHT_hello_get_cancel (struct GNUNET_DHT_HelloGetHandle *hgh);
+
+
+/**
+ * Offer HELLO URL of the DHT identified by @a dht_handle.
+ * Callback may be invoked once, only way to cancel is to
+ * disconnect @a dht_handle.
+ *
+ * @param dht_handle DHT to query
+ * @param url URL with a HELLO to offer to the DHT
+ * @param cb function called when done
+ * @param cb_cls closure for @a cb
+ */
+void
+GNUNET_DHT_hello_offer (struct GNUNET_DHT_Handle *dht_handle,
+                        const char *url,
+                        GNUNET_SCHEDULER_TaskCallback cb,
+                        void *cb_cls);
+
+
 #if 0                           /* keep Emacsens' auto-indent happy */
 {
 #endif

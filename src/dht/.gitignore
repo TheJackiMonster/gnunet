@@ -10,3 +10,4 @@ test_dht_monitor
 test_dht_multipeer
 test_dht_tools.py
 test_dht_twopeer
+gnunet-dht-hello

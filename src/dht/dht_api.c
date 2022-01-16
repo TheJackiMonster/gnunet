@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2009, 2010, 2011, 2012, 2016, 2018 GNUnet e.V.
+     Copyright (C) 2009-2012, 2016, 2018, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -197,6 +197,40 @@ struct GNUNET_DHT_MonitorHandle
 
 
 /**
+ * Handle to get a HELLO URL from the DHT for manual bootstrapping.
+ */
+struct GNUNET_DHT_HelloGetHandle
+{
+
+  /**
+   * DLL.
+   */
+  struct GNUNET_DHT_HelloGetHandle *next;
+
+  /**
+   * DLL.
+   */
+  struct GNUNET_DHT_HelloGetHandle *prev;
+
+  /**
+   * Function to call with the result.
+   */
+  GNUNET_DHT_HelloGetCallback cb;
+
+  /**
+   * Closure for @a cb.
+   */
+  void *cb_cls;
+
+  /**
+   * Connection to the DHT service.
+   */
+  struct GNUNET_DHT_Handle *dht_handle;
+
+};
+
+
+/**
  * Connection to the DHT service.
  */
 struct GNUNET_DHT_Handle
@@ -230,6 +264,16 @@ struct GNUNET_DHT_Handle
    * Tail of active PUT requests.
    */
   struct GNUNET_DHT_PutHandle *put_tail;
+
+  /**
+   * DLL.
+   */
+  struct GNUNET_DHT_HelloGetHandle *hgh_head;
+
+  /**
+   * DLL.
+   */
+  struct GNUNET_DHT_HelloGetHandle *hgh_tail;
 
   /**
    * Hash map containing the current outstanding unique GET requests
@@ -820,6 +864,53 @@ handle_client_result (void *cls,
 
 
 /**
+ * Process a client HELLO message received from the service.
+ *
+ * @param cls The DHT handle.
+ * @param hdr HELLO URL message from the service.
+ * @return #GNUNET_OK if @a hdr is well-formed
+ */
+static enum GNUNET_GenericReturnValue
+check_client_hello (void *cls,
+                    const struct GNUNET_MessageHeader *hdr)
+{
+  uint16_t len = ntohs (hdr->size);
+  const char *buf = (const char *) &hdr[1];
+
+  (void) cls;
+  if ('\0' != buf[len - sizeof (*hdr) - 1])
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
+}
+
+
+/**
+ * Process a client HELLO message received from the service.
+ *
+ * @param cls The DHT handle.
+ * @param hdr HELLO URL message from the service.
+ */
+static void
+handle_client_hello (void *cls,
+                     const struct GNUNET_MessageHeader *hdr)
+{
+  struct GNUNET_DHT_Handle *handle = cls;
+  const char *url = (const char *) &hdr[1];
+  struct GNUNET_DHT_HelloGetHandle *hgh;
+
+  while (NULL != (hgh = handle->hgh_head))
+  {
+    hgh->cb (hgh->cb_cls,
+             url);
+    GNUNET_DHT_hello_get_cancel (hgh);
+  }
+}
+
+
+/**
  * Process a MQ PUT transmission notification.
  *
  * @param cls The DHT handle.
@@ -865,6 +956,10 @@ try_connect (struct GNUNET_DHT_Handle *h)
     GNUNET_MQ_hd_var_size (client_result,
                            GNUNET_MESSAGE_TYPE_DHT_CLIENT_RESULT,
                            struct GNUNET_DHT_ClientResultMessage,
+                           h),
+    GNUNET_MQ_hd_var_size (client_hello,
+                           GNUNET_MESSAGE_TYPE_DHT_CLIENT_HELLO_URL,
+                           struct GNUNET_MessageHeader,
                            h),
     GNUNET_MQ_handler_end ()
   };
@@ -1254,6 +1349,66 @@ GNUNET_DHT_verify_path (const struct GNUNET_HashCode *key,
     i--;
   }
   return i;
+}
+
+
+struct GNUNET_DHT_HelloGetHandle *
+GNUNET_DHT_hello_get (struct GNUNET_DHT_Handle *dht_handle,
+                      GNUNET_DHT_HelloGetCallback cb,
+                      void *cb_cls)
+{
+  struct GNUNET_DHT_HelloGetHandle *hgh;
+  struct GNUNET_MessageHeader *hdr;
+  struct GNUNET_MQ_Envelope *env;
+
+  hgh = GNUNET_new (struct GNUNET_DHT_HelloGetHandle);
+  hgh->cb = cb;
+  hgh->cb_cls = cb_cls;
+  hgh->dht_handle = dht_handle;
+  GNUNET_CONTAINER_DLL_insert (dht_handle->hgh_head,
+                               dht_handle->hgh_tail,
+                               hgh);
+  env = GNUNET_MQ_msg (hdr,
+                       GNUNET_MESSAGE_TYPE_DHT_CLIENT_HELLO_GET);
+  GNUNET_MQ_send (dht_handle->mq,
+                  env);
+  return hgh;
+}
+
+
+void
+GNUNET_DHT_hello_get_cancel (struct GNUNET_DHT_HelloGetHandle *hgh)
+{
+  struct GNUNET_DHT_Handle *dht_handle = hgh->dht_handle;
+
+  GNUNET_CONTAINER_DLL_remove (dht_handle->hgh_head,
+                               dht_handle->hgh_tail,
+                               hgh);
+  GNUNET_free (hgh);
+}
+
+
+void
+GNUNET_DHT_hello_offer (struct GNUNET_DHT_Handle *dht_handle,
+                        const char *url,
+                        GNUNET_SCHEDULER_TaskCallback cb,
+                        void *cb_cls)
+{
+  struct GNUNET_MessageHeader *hdr;
+  size_t slen = strlen (url) + 1;
+  struct GNUNET_MQ_Envelope *env;
+
+  env = GNUNET_MQ_msg_extra (hdr,
+                             slen,
+                             GNUNET_MESSAGE_TYPE_DHT_CLIENT_HELLO_URL);
+  memcpy (&hdr[1],
+          url,
+          slen);
+  GNUNET_MQ_notify_sent (env,
+                         cb,
+                         cb_cls);
+  GNUNET_MQ_send (dht_handle->mq,
+                  env);
 }
 
 

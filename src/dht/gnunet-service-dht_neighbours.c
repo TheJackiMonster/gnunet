@@ -2246,9 +2246,9 @@ check_dht_p2p_result (void *cls,
  * @param cls closure pointing to a `struct GNUNET_PeerIdentity *`
  * @param uri one of the URIs
  */
-static void
-try_connect (void *cls,
-             const char *uri)
+void
+GDS_try_connect (void *cls,
+                 const char *uri)
 {
   const struct GNUNET_PeerIdentity *pid = cls;
   struct GNUNET_HashCode phash;
@@ -2367,7 +2367,7 @@ handle_dht_p2p_result (void *cls,
     if (GNUNET_YES != disable_try_connect)
       GNUNET_HELLO_builder_iterate (b,
                                     &pid,
-                                    &try_connect,
+                                    &GDS_try_connect,
                                     &pid);
     GNUNET_HELLO_builder_free (b);
   }
