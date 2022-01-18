@@ -427,6 +427,23 @@ GNUNET_STRINGS_from_utf8 (const char *input,
 
 
 void
+GNUNET_STRINGS_utf8_normalize (const char *input,
+                               char *output)
+{
+  uint8_t *tmp;
+  size_t len;
+
+  tmp = u8_normalize (UNINORM_NFC,
+                      (uint8_t *) input,
+                      strlen ((char*) input),
+                      NULL,
+                      &len);
+  GNUNET_memcpy (output, tmp, len);
+  output[len] = '\0';
+  free (tmp);
+}
+
+void
 GNUNET_STRINGS_utf8_tolower (const char *input,
                              char *output)
 {

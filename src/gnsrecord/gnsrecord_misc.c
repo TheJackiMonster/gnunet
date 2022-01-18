@@ -37,11 +37,6 @@
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "gnsrecord", __VA_ARGS__)
 
-/**
- * Convert a UTF-8 string to UTF-8 lowercase
- * @param src source string
- * @return converted result
- */
 char *
 GNUNET_GNSRECORD_string_to_lowercase (const char *src)
 {
@@ -52,6 +47,15 @@ GNUNET_GNSRECORD_string_to_lowercase (const char *src)
   return res;
 }
 
+char *
+GNUNET_GNSRECORD_string_normalize (const char *src)
+{
+  char *res;
+  res = GNUNET_strdup (src);
+  GNUNET_STRINGS_utf8_tolower (src, res);
+  GNUNET_STRINGS_utf8_normalize (src, res);
+  return res;
+}
 
 /**
  * Convert a zone key to a string (for printing debug messages).

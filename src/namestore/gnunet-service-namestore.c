@@ -1366,7 +1366,7 @@ handle_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
               "Received NAMESTORE_RECORD_LOOKUP message for name `%s'\n",
               name_tmp);
 
-  conv_name = GNUNET_GNSRECORD_string_to_lowercase (name_tmp);
+  conv_name = GNUNET_GNSRECORD_string_normalize (name_tmp);
   if (NULL == conv_name)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -1490,7 +1490,7 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
     }
 
     /* Extracting and converting private key */
-    conv_name = GNUNET_GNSRECORD_string_to_lowercase (name_tmp);
+    conv_name = GNUNET_GNSRECORD_string_normalize (name_tmp);
     if (NULL == conv_name)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
