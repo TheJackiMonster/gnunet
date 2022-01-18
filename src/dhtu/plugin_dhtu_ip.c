@@ -809,7 +809,7 @@ read_cb (void *cls)
                 (cmsg->cmsg_level == IPPROTO_IPV6),
                 cmsg->cmsg_type,
                 (cmsg->cmsg_type == IP_PKTINFO),
-                (cmsg->cmsg_type == IPV6_RECVPKTINFO));
+                (cmsg->cmsg_type == IPV6_PKTINFO));
     if ( (cmsg->cmsg_level == IPPROTO_IP) &&
          (cmsg->cmsg_type == IP_PKTINFO) )
     {
@@ -824,7 +824,8 @@ read_cb (void *cls)
         {
           struct sockaddr_in sa = {
             .sin_family = AF_INET,
-            .sin_addr = pi.ipi_addr
+            .sin_addr = pi.ipi_addr,
+            .sin_port = htons (plugin->port16)
           };
 
           src = find_source (plugin,
@@ -837,7 +838,7 @@ read_cb (void *cls)
         GNUNET_break (0);
     }
     if ( (cmsg->cmsg_level == IPPROTO_IPV6) &&
-         (cmsg->cmsg_type == IPV6_RECVPKTINFO) )
+         (cmsg->cmsg_type == IPV6_PKTINFO) )
     {
       if (CMSG_LEN (sizeof (struct in6_pktinfo)) ==
           cmsg->cmsg_len)
@@ -851,6 +852,7 @@ read_cb (void *cls)
           struct sockaddr_in6 sa = {
             .sin6_family = AF_INET6,
             .sin6_addr = pi.ipi6_addr,
+            .sin6_port = htons (plugin->port16),
             .sin6_scope_id = pi.ipi6_ifindex
           };
 
@@ -880,8 +882,8 @@ read_cb (void *cls)
     return;
   }
   plugin->env->receive_cb (plugin->env->cls,
-                           dst->app_ctx,
-                           src->app_ctx,
+                           &dst->app_ctx,
+                           &src->app_ctx,
                            &buf[sizeof(*pid)],
                            ret - sizeof (*pid));
 }

@@ -2428,12 +2428,19 @@ static enum GNUNET_GenericReturnValue
 check_dht_p2p_hello (void *cls,
                      const struct GNUNET_MessageHeader *hello)
 {
-  struct GNUNET_HELLO_Builder *b;
+  struct Target *t = cls;
+  struct PeerInfo *peer = t->pi;
   enum GNUNET_GenericReturnValue ret;
+  size_t hellob_size;
+  void *hellob;
+  struct GNUNET_TIME_Absolute expiration;
 
-  b = GNUNET_HELLO_builder_from_msg (hello);
-  ret = (NULL == b) ? GNUNET_SYSERR : GNUNET_OK;
-  GNUNET_HELLO_builder_free (b);
+  ret = GNUNET_HELLO_dht_msg_to_block (hello,
+                                       &peer->id,
+                                       &hellob,
+                                       &hellob_size,
+                                       &expiration);
+  GNUNET_free (hellob);
   return ret;
 }
 
@@ -2469,30 +2476,37 @@ GDS_u_receive (void *cls,
                const void *message,
                size_t message_size)
 {
-  struct PeerInfo *pi = *tctx;
+  struct Target *t = *tctx;
   struct GNUNET_MQ_MessageHandler core_handlers[] = {
     GNUNET_MQ_hd_var_size (dht_p2p_get,
                            GNUNET_MESSAGE_TYPE_DHT_P2P_GET,
                            struct PeerGetMessage,
-                           pi),
+                           t),
     GNUNET_MQ_hd_var_size (dht_p2p_put,
                            GNUNET_MESSAGE_TYPE_DHT_P2P_PUT,
                            struct PeerPutMessage,
-                           pi),
+                           t),
     GNUNET_MQ_hd_var_size (dht_p2p_result,
                            GNUNET_MESSAGE_TYPE_DHT_P2P_RESULT,
                            struct PeerResultMessage,
-                           pi),
+                           t),
     GNUNET_MQ_hd_var_size (dht_p2p_hello,
                            GNUNET_MESSAGE_TYPE_DHT_P2P_HELLO,
                            struct GNUNET_MessageHeader,
-                           pi),
+                           t),
     GNUNET_MQ_handler_end ()
   };
   const struct GNUNET_MessageHeader *mh = message;
 
   (void) cls; /* the 'struct GDS_Underlay' */
   (void) sctx; /* our receiver address */
+  if (NULL == t)
+  {
+    /* Received message claiming to originate from myself?
+       Ignore! */
+    GNUNET_break_op (0);
+    return;
+  }
   if (message_size < sizeof (*mh))
   {
     GNUNET_break_op (0);
@@ -2506,7 +2520,7 @@ GDS_u_receive (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Handling message of type %u from peer %s\n",
               ntohs (mh->type),
-              GNUNET_i2s (&pi->id));
+              GNUNET_i2s (&t->pi->id));
   if (GNUNET_OK !=
       GNUNET_MQ_handle_message (core_handlers,
                                 mh))

@@ -605,9 +605,13 @@ GNUNET_HELLO_builder_to_dht_hello_msg (
                                                   priv,
                                                   buf,
                                                   &blen));
-    msg = GNUNET_malloc (sizeof (*msg) + blen);
+    msg = GNUNET_malloc (sizeof (*msg)
+                         + blen
+                         - sizeof (*block));
     msg->header.type = htons (GNUNET_MESSAGE_TYPE_DHT_P2P_HELLO);
-    msg->header.size = htons (sizeof (*msg) + blen);
+    msg->header.size = htons (sizeof (*msg)
+                              + blen
+                              - sizeof (*block));
     memcpy (&msg[1],
             &block[1],
             blen - sizeof (*block));
@@ -745,6 +749,9 @@ GNUNET_HELLO_builder_add_address (struct GNUNET_HELLO_Builder *builder,
                            "://")))
   {
     GNUNET_break_op (0);
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Invalid address `%s'\n",
+                address);
     return GNUNET_SYSERR;
   }
   if (e == address)
@@ -847,7 +854,7 @@ GNUNET_HELLO_dht_msg_to_block (const struct GNUNET_MessageHeader *hello,
   }
   if (len < sizeof (*msg))
   {
-    GNUNET_break (0);
+    GNUNET_break_op (0);
     return GNUNET_SYSERR;
   }
   len -= sizeof (*msg);
@@ -863,6 +870,13 @@ GNUNET_HELLO_dht_msg_to_block (const struct GNUNET_MessageHeader *hello,
           len);
   b = GNUNET_HELLO_builder_from_block (*block,
                                        *block_size);
+  if (NULL == b)
+  {
+    GNUNET_break_op (0);
+    GNUNET_free (*block);
+    *block_size = 0;
+    return GNUNET_SYSERR;
+  }
   ret = verify_hello (b,
                       *block_expiration,
                       &msg->sig);
