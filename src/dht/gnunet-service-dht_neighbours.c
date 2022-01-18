@@ -2260,7 +2260,11 @@ GDS_try_connect (void *cls,
 
   if (0 == GNUNET_memcmp (&GDS_my_identity,
                           pid))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Got a HELLO for my own PID, ignoring it\n");
     return; /* that's us! */
+  }
   GNUNET_CRYPTO_hash (pid,
                       sizeof(*pid),
                       &phash);
@@ -2282,6 +2286,13 @@ GDS_try_connect (void *cls,
          alternative address??? */
       return;
     }
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Discovered peer %s at %s suitable for bucket %d (%u/%u), trying to connect\n",
+              GNUNET_i2s (pid),
+              uri,
+              peer_bucket,
+              bucket->peers_size,
+              bucket_size);
   /* new peer that we like! */
   GDS_u_try_connect (pid,
                      uri);
@@ -2492,6 +2503,10 @@ GDS_u_receive (void *cls,
     GNUNET_break_op (0);
     return;
   }
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Handling message of type %u from peer %s\n",
+              ntohs (mh->type),
+              GNUNET_i2s (&pi->id));
   if (GNUNET_OK !=
       GNUNET_MQ_handle_message (core_handlers,
                                 mh))

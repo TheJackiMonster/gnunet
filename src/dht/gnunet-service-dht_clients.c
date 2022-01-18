@@ -562,6 +562,9 @@ handle_local_result (void *cls,
                      const struct GDS_DATACACHE_BlockData *bd)
 {
   /* FIXME: use 'cls' instead of looking up the client? */
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Datacache provided result for query key %s\n",
+              GNUNET_h2s (&bd->key));
   GDS_CLIENTS_handle_reply (bd,
                             &bd->key,
                             0, NULL /* get_path */);
@@ -1081,6 +1084,8 @@ handle_dht_local_hello_get (void *cls,
   struct GNUNET_MessageHeader *hdr;
   struct GNUNET_MQ_Envelope *env;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Handling request from local client for my HELLO\n");
   env = GNUNET_MQ_msg_extra (hdr,
                              slen,
                              GNUNET_MESSAGE_TYPE_DHT_CLIENT_HELLO_URL);
@@ -1134,6 +1139,9 @@ handle_dht_local_hello_offer (void *cls,
   struct GNUNET_HELLO_Builder *b;
   struct GNUNET_PeerIdentity pid;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Local client provided HELLO URL %s\n",
+              url);
   b = GNUNET_HELLO_builder_from_url (url);
   if (NULL == b)
   {

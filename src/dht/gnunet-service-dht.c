@@ -265,6 +265,9 @@ u_address_add (void *cls,
   struct GDS_Underlay *u = cls;
   struct MyAddress *a;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Underlay adds address %s for this peer\n",
+              address);
   a = GNUNET_new (struct MyAddress);
   a->source = source;
   a->url = GNUNET_strdup (address);
@@ -292,6 +295,9 @@ u_address_del (void *ctx)
 {
   struct MyAddress *a = ctx;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Underlay deletes address %s for this peer\n",
+              a->url);
   GNUNET_HELLO_builder_del_address (GDS_my_hello,
                                     a->url);
   GNUNET_CONTAINER_DLL_remove (a_head,
