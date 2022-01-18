@@ -111,6 +111,13 @@ main (int argc, char *argv[])
     GNUNET_break (0);
     return 1;
   }
+  /* Normalization */
+  r = "q\u0307\u0323"; /* Non-canonical order */
+
+  GNUNET_STRINGS_utf8_normalize (r,
+                                 buf);
+  GNUNET_assert (0 == strcmp ("q\u0323\u0307", buf));
+
   b = GNUNET_STRINGS_to_utf8 ("TEST", 4, "ASCII");
   WANT ("TEST", b);
 
