@@ -41,8 +41,9 @@ should be installed with a package manager.
 
 The mandatory libraries and applications are
 @itemize @bullet
-@item autoconf 2.59 or above
-@item automake 1.11.1 or above
+@item autoconf 2.59 or above (when building from git)
+@item automake 1.11.1 or above (when building from git)
+@item recutils 1.0 or above (when building from git)
 @item gettext
 @item glibc (read below, other libcs work)
 @item GnuTLS 3.2.12 or above, recommended to be linked against libunbound
@@ -54,6 +55,7 @@ The mandatory libraries and applications are
 @item libidn2 or libidn
 @item libmicrohttpd 0.9.63 or above
 @item libunistring
+@item libjansson
 @item libgmp
 @item libgnurl or libcurl (libcurl has to be linked to GnuTLS) 7.35.0 or above
 @item Texinfo 5.2 or above (for building the documentation)
@@ -100,7 +102,6 @@ These are the dependencies only required for certain features
 (for attribute-based encryption and the identity provider subsystem)
 @item texi2mdoc (for automatic mdoc generation)
 @item perl5 for some utilities (which are not installed)
-@item libjanson
 @end itemize
 
 About libextractor being optional:

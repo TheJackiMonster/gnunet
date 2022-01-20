@@ -76,6 +76,7 @@ Build tools for compiling GNUnet from source:
 - gcc or clang
 - autoconf           >= 2.69        (building from git)
 - automake           >= 1.11.1      (building from git)
+- recutils           >= 1.0         (building from git)
 - libtool            >= 2.2
 - makeinfo           >= 4.8
 - make[*3]
