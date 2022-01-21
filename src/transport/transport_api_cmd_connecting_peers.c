@@ -61,7 +61,6 @@ connect_peers_run (void *cls,
   struct GNUNET_TESTING_AddressPrefix *pos_prefix;
   unsigned int con_num = 0;
   const enum GNUNET_GenericReturnValue *broadcast;
-  const enum GNUNET_GenericReturnValue *broadcast_pointer;
   char *port;
 
   cps->is = is;
@@ -71,8 +70,6 @@ connect_peers_run (void *cls,
                                                  &ah);
   GNUNET_TRANSPORT_get_trait_broadcast (peer1_cmd,
                                         &broadcast);
-
-  // broadcast = *broadcast_pointer;
 
   system_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                           cps->create_label);
