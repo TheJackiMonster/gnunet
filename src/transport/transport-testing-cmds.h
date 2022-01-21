@@ -187,7 +187,7 @@ struct StartPeerState
   /**
    * Flag indicating, if udp broadcast should be switched on.
    */
-  unsigned int broadcast;
+  enum GNUNET_GenericReturnValue broadcast;
 };
 
 
@@ -337,7 +337,8 @@ GNUNET_TRANSPORT_cmd_backchannel_check (const char *label,
   op (hello, const char) \
   op (application_handle, const struct GNUNET_TRANSPORT_ApplicationHandle) \
   op (connect_peer_state, const struct ConnectPeersState) \
-  op (state, const struct StartPeerState)
+  op (state, const struct StartPeerState) \
+  op (broadcast, const enum GNUNET_GenericReturnValue)
 
 GNUNET_TRANSPORT_SIMPLE_TRAITS (GNUNET_TRANSPORT_MAKE_DECL_SIMPLE_TRAIT)
 

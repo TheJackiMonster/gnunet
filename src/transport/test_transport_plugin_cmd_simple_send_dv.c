@@ -64,6 +64,12 @@ struct TestState
    * The complete topology information.
    */
   struct GNUNET_TESTING_NetjailTopology *topology;
+
+  /**
+   * The number of messages received.
+   */
+  unsigned int number_received;
+
 };
 
 static struct GNUNET_TESTING_Command block_send;
@@ -74,6 +80,8 @@ static struct GNUNET_TESTING_Command connect_peers;
 
 static struct GNUNET_TESTING_Command local_prepared;
 
+static struct GNUNET_TESTING_Command start_peer;
+
 /**
  * Function called to check a message of type GNUNET_TRANSPORT_TESTING_SIMPLE_MTYPE being
  * received.
@@ -83,6 +91,7 @@ static int
 check_test (void *cls,
             const struct GNUNET_TRANSPORT_TESTING_TestMessage *message)
 {
+  GNUNET_assert (NULL != cls);
   return GNUNET_OK;
 }
 
@@ -96,17 +105,52 @@ static void
 handle_test (void *cls,
              const struct GNUNET_TRANSPORT_TESTING_TestMessage *message)
 {
-  const struct GNUNET_TESTING_AsyncContext *ac;
+  struct TestState *ts = cls;
+  const struct GNUNET_TESTING_AsyncContext *ac_block;
+  const struct GNUNET_TESTING_AsyncContext *ac_start;
+  const struct GNUNET_TESTING_Command *cmd;
+  const struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map;
+  unsigned int connected;
+  struct BlockState *bs;
 
+
+
+  GNUNET_TRANSPORT_get_trait_connected_peers_map (&start_peer,
+                                                  &connected_peers_map);
+
+  connected = GNUNET_CONTAINER_multishortmap_size (
+    connected_peers_map);
+
+  ts->number_received++;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Received test message\n");
+              "Received %u test message(s) from %u connected peer(s)\n",
+              ts->number_received,
+              connected);
+
   GNUNET_TESTING_get_trait_async_context (&block_receive,
-                                          &ac);
-  GNUNET_assert  (NULL != ac);
-  if (NULL == ac->cont)
-    GNUNET_TESTING_async_fail ((struct GNUNET_TESTING_AsyncContext *) ac);
-  else
-    GNUNET_TESTING_async_finish ((struct GNUNET_TESTING_AsyncContext *) ac);
+                                          &ac_block);
+
+  if ( connected == ts->number_received)
+  {
+    if (NULL != ac_block->is)
+    {
+      GNUNET_assert  (NULL != ac_block);
+      if (NULL == ac_block->cont)
+        GNUNET_TESTING_async_fail ((struct
+                                    GNUNET_TESTING_AsyncContext *) ac_block);
+      else
+        GNUNET_TESTING_async_finish ((struct
+                                      GNUNET_TESTING_AsyncContext *) ac_block);
+    }
+    else
+    {
+      GNUNET_TESTING_get_trait_block_state (
+        &block_receive,
+        (const struct BlockState  **) &bs);
+      bs->asynchronous_finish = GNUNET_YES;
+    }
+
+  }
 }
 
 
@@ -232,8 +276,17 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
   unsigned int num;
   struct TestState *ts = GNUNET_new (struct TestState);
   struct GNUNET_TESTING_NetjailTopology *topology;
+  struct GNUNET_MQ_MessageHandler handlers[] = {
+    GNUNET_MQ_hd_var_size (test,
+                           GNUNET_TRANSPORT_TESTING_SIMPLE_MTYPE,
+                           struct GNUNET_TRANSPORT_TESTING_TestMessage,
+                           ts),
+    GNUNET_MQ_handler_end ()
+  };
 
-
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "number_received %u\n",
+       ts->number_received);
 
   if (GNUNET_YES == *read_file)
   {
@@ -258,12 +311,13 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
   block_send = GNUNET_TESTING_cmd_block_until_external_trigger ("block");
   block_receive = GNUNET_TESTING_cmd_block_until_external_trigger (
     "block-receive");
-  connect_peers = GNUNET_TRANSPORT_cmd_connect_peers ("connect-peers",
-                                                      "start-peer",
-                                                      "system-create",
-                                                      num,
-                                                      topology,
-                                                      8);
+  connect_peers = GNUNET_TRANSPORT_cmd_connect_peers (
+    "connect-peers",
+    "start-peer",
+    "system-create",
+    num,
+    topology,
+    topology->additional_connects);
   local_prepared = GNUNET_TESTING_cmd_local_test_prepared (
     "local-test-prepared",
     write_message);
@@ -286,25 +340,18 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
                    m,
                    n);
 
-  struct GNUNET_MQ_MessageHandler handlers[] = {
-    GNUNET_MQ_hd_var_size (test,
-                           GNUNET_TRANSPORT_TESTING_SIMPLE_MTYPE,
-                           struct GNUNET_TRANSPORT_TESTING_TestMessage,
-                           ts),
-    GNUNET_MQ_handler_end ()
-  };
-
+  start_peer = GNUNET_TRANSPORT_cmd_start_peer ("start-peer",
+                                                "system-create",
+                                                num,
+                                                node_ip,
+                                                handlers,
+                                                ts->cfgname,
+                                                notify_connect,
+                                                GNUNET_YES);
   struct GNUNET_TESTING_Command commands[] = {
     GNUNET_TESTING_cmd_system_create ("system-create",
                                       ts->testdir),
-    GNUNET_TRANSPORT_cmd_start_peer ("start-peer",
-                                     "system-create",
-                                     num,
-                                     node_ip,
-                                     handlers,
-                                     ts->cfgname,
-                                     notify_connect,
-                                     GNUNET_YES),
+    start_peer,
     GNUNET_TESTING_cmd_send_peer_ready ("send-peer-ready",
                                         write_message),
     block_send,

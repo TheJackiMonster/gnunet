@@ -54,17 +54,25 @@ connect_peers_run (void *cls,
   const struct GNUNET_TRANSPORT_ApplicationHandle *ah;
   struct GNUNET_PeerIdentity *peer;
   char *addr;
+  char *addr_and_port;
   enum GNUNET_NetworkType nt = 0;
   uint32_t num;
   struct GNUNET_TESTING_NodeConnection *pos_connection;
   struct GNUNET_TESTING_AddressPrefix *pos_prefix;
   unsigned int con_num = 0;
+  const enum GNUNET_GenericReturnValue *broadcast;
+  const enum GNUNET_GenericReturnValue *broadcast_pointer;
+  char *port;
 
   cps->is = is;
   peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                          cps->start_peer_label);
   GNUNET_TRANSPORT_get_trait_application_handle (peer1_cmd,
                                                  &ah);
+  GNUNET_TRANSPORT_get_trait_broadcast (peer1_cmd,
+                                        &broadcast);
+
+  // broadcast = *broadcast_pointer;
 
   system_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                           cps->create_label);
@@ -93,19 +101,38 @@ connect_peers_run (void *cls,
                                          pos_prefix->address_prefix);
       if (NULL != addr)
       {
+        if (0 == GNUNET_memcmp (pos_prefix->address_prefix, "udp"))
+          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                      "validating memcmp\n");
+        if (GNUNET_YES == *broadcast)
+          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                      "validating broadcast\n");
+        if ((0 == GNUNET_memcmp (pos_prefix->address_prefix, "udp")) &&
+            (GNUNET_YES == *broadcast) )
+          GNUNET_asprintf (&addr_and_port,
+                           "%s:2086",
+                           addr);
+        else
+          GNUNET_asprintf (&addr_and_port,
+                           "%s:60002",
+                           addr);
         peer = GNUNET_TESTING_get_pub_key (num, tl_system);
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                    "validating peer number %u with identity %s\n",
+                    "validating peer number %u with identity %s and address %s %u %s\n",
                     num,
-                    GNUNET_i2s (peer));
+                    GNUNET_i2s (peer),
+                    addr_and_port,
+                    *broadcast,
+                    pos_prefix->address_prefix);
         GNUNET_TRANSPORT_application_validate ((struct
                                                 GNUNET_TRANSPORT_ApplicationHandle
                                                 *) ah,
                                                peer,
                                                nt,
-                                               addr);
+                                               addr_and_port);
         GNUNET_free (peer);
         GNUNET_free (addr);
+        GNUNET_free (addr_and_port);
       }
     }
   }
@@ -146,6 +173,12 @@ notify_connect (struct GNUNET_TESTING_Interpreter *is,
   if (cps->con_num == con_num)
     cps->additional_connects_notified++;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "con_num: %u add: %u num_notified: %u add_notified: %u\n",
+              cps->con_num,
+              cps->additional_connects,
+              cps->con_num_notified,
+              cps->additional_connects_notified);
   if (cps->con_num + cps->additional_connects == cps->con_num_notified
       + cps->additional_connects_notified)
   {

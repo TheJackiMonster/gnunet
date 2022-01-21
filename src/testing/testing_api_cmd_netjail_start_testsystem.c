@@ -499,11 +499,11 @@ helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
 static void
 exp_cb (void *cls)
 {
-  struct TestingSystemCount *tbc = cls;
+  struct NetJailState *ns = cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Called exp_cb.\n");
-  GNUNET_SCHEDULER_cancel (tbc->ns->timeout_task);
-  GNUNET_TESTING_async_fail (&(tbc->ns->ac));
+  GNUNET_SCHEDULER_cancel (ns->timeout_task);
+  GNUNET_TESTING_async_fail (&(ns->ac));
 }
 
 

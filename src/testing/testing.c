@@ -38,11 +38,11 @@
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "testing-api", __VA_ARGS__)
 
-#define CONNECT_ADDRESS_TEMPLATE "%s-192.168.15.%u:60002"
+#define CONNECT_ADDRESS_TEMPLATE "%s-192.168.15.%u"
 
-#define ROUTER_CONNECT_ADDRESS_TEMPLATE "%s-92.68.150.%u:60002"
+#define ROUTER_CONNECT_ADDRESS_TEMPLATE "%s-92.68.150.%u"
 
-#define KNOWN_CONNECT_ADDRESS_TEMPLATE "%s-92.68.151.%u:60002"
+#define KNOWN_CONNECT_ADDRESS_TEMPLATE "%s-92.68.151.%u"
 
 #define PREFIX_TCP "tcp"
 
@@ -2298,6 +2298,7 @@ GNUNET_TESTING_get_address (struct GNUNET_TESTING_NodeConnection *connection,
   struct GNUNET_TESTING_NetjailNode *node;
   char *addr;
   char *template;
+  unsigned int node_n;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "node_n: %u\n",
@@ -2307,14 +2308,17 @@ GNUNET_TESTING_get_address (struct GNUNET_TESTING_NodeConnection *connection,
   if (connection->namespace_n == node->namespace_n)
   {
     template = CONNECT_ADDRESS_TEMPLATE;
+    node_n = connection->node_n;
   }
   else if (0 == connection->namespace_n)
   {
     template = KNOWN_CONNECT_ADDRESS_TEMPLATE;
+    node_n = connection->node_n;
   }
   else if (1 == connection->node_n)
   {
     template = ROUTER_CONNECT_ADDRESS_TEMPLATE;
+    node_n = connection->namespace_n;
   }
   else
   {
@@ -2327,14 +2331,14 @@ GNUNET_TESTING_get_address (struct GNUNET_TESTING_NodeConnection *connection,
     GNUNET_asprintf (&addr,
                      template,
                      prefix,
-                     connection->node_n);
+                     node_n);
   }
   else if (0 == strcmp (PREFIX_UDP, prefix))
   {
     GNUNET_asprintf (&addr,
                      template,
                      prefix,
-                     connection->node_n);
+                     node_n);
   }
   else
   {
@@ -2438,6 +2442,16 @@ GNUNET_TESTING_get_topo_from_string (char *data)
            "X: %u\n",
            out);
       topo->nodes_x = out;
+    }
+    else if (0 == strcmp (key, "AC"))
+    {
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
+           "Get first Value for AC.\n");
+      out = get_first_value (token);
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
+           "AC: %u\n",
+           out);
+      topo->additional_connects = out;
     }
     else if (0 == strcmp (key, "T"))
     {

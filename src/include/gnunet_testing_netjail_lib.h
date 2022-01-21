@@ -232,6 +232,11 @@ struct GNUNET_TESTING_NetjailTopology
    * Hash map containing the global known nodes which are not natted.
    */
   struct GNUNET_CONTAINER_MultiShortmap *map_globals;
+
+  /**
+   * Additional connects we do expect, beside the connects which are configured in the topology.
+   */
+  unsigned int additional_connects;
 };
 
 /**

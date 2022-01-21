@@ -314,7 +314,6 @@ src/reclaim/plugin_rest_reclaim.c
 src/reclaim/reclaim_api.c
 src/reclaim/reclaim_attribute.c
 src/reclaim/reclaim_credential.c
-src/reclaim/test.c
 src/regex/gnunet-daemon-regexprofiler.c
 src/regex/gnunet-regex-profiler.c
 src/regex/gnunet-regex-simulation-profiler.c

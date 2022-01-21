@@ -11,6 +11,8 @@ filename=$1
 PREFIX=$2
 readfile=$3
 
+BROADCAST=0
+
 if [ $readfile -eq 0 ]
 then
     read_topology_string "$filename"
@@ -25,6 +27,11 @@ LOCAL_GROUP="192.168.15"
 GLOBAL_GROUP="92.68.150"
 KNOWN_GROUP="92.68.151"
 
+if [ $BROADCAST -eq 0  ]; then
+   PORT="60002"
+else
+    PORT="2086"
+fi
 
 echo "Start [local: $LOCAL_GROUP.0/24, global: $GLOBAL_GROUP.0/16]"
 
@@ -75,7 +82,7 @@ for N in $(seq $GLOBAL_N); do
     fi
     if [ "1" == "${R_UDP[$N]}" ]
     then
-        ip netns exec ${ROUTERS[$N]} iptables -t nat -A PREROUTING -p udp -d $GLOBAL_GROUP.$N --dport 60002 -j DNAT --to $LOCAL_GROUP.1
+        ip netns exec ${ROUTERS[$N]} iptables -t nat -A PREROUTING -p udp -d $GLOBAL_GROUP.$N --dport $PORT -j DNAT --to $LOCAL_GROUP.1
         ip netns exec ${ROUTERS[$N]} iptables -A FORWARD -d $LOCAL_GROUP.1  -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
     fi
 done

@@ -742,6 +742,11 @@ struct TransportDVBoxMessage
   struct GNUNET_MessageHeader header;
 
   /**
+   * Flag if the payload is a control message. In NBO.
+   */
+  unsigned int without_fc;
+
+  /**
    * Number of total hops this messages travelled. In NBO.
    * @e origin sets this to zero, to be incremented at
    * each hop.  Peers should limit the @e total_hops value
@@ -1198,6 +1203,65 @@ struct CoreSentContext
 
 
 /**
+ * Information we keep for a message that we are reassembling.
+ */
+struct ReassemblyContext
+{
+  /**
+   * Original message ID for of the message that all the fragments
+   * belong to.
+   */
+  struct MessageUUIDP msg_uuid;
+
+  /**
+   * Which neighbour is this context for?
+   */
+  struct VirtualLink *virtual_link;
+
+  /**
+   * Entry in the reassembly heap (sorted by expiration).
+   */
+  struct GNUNET_CONTAINER_HeapNode *hn;
+
+  /**
+   * Bitfield with @e msg_size bits representing the positions
+   * where we have received fragments.  When we receive a fragment,
+   * we check the bits in @e bitfield before incrementing @e msg_missing.
+   *
+   * Allocated after the reassembled message.
+   */
+  uint8_t *bitfield;
+
+  /**
+   * At what time will we give up reassembly of this message?
+   */
+  struct GNUNET_TIME_Absolute reassembly_timeout;
+
+  /**
+   * Time we received the last fragment.  @e avg_ack_delay must be
+   * incremented by now - @e last_frag multiplied by @e num_acks.
+   */
+  struct GNUNET_TIME_Absolute last_frag;
+
+  /**
+   * How big is the message we are reassembling in total?
+   */
+  uint16_t msg_size;
+
+  /**
+   * How many bytes of the message are still missing?  Defragmentation
+   * is complete when @e msg_missing == 0.
+   */
+  uint16_t msg_missing;
+
+  /* Followed by @e msg_size bytes of the (partially) defragmented original
+   * message */
+
+  /* Followed by @e bitfield data */
+};
+
+
+/**
  * A virtual link is another reachable peer that is known to CORE.  It
  * can be either a `struct Neighbour` with at least one confirmed
  * `struct Queue`, or a `struct DistanceVector` with at least one
@@ -1211,6 +1275,25 @@ struct VirtualLink
    * Identity of the peer at the other end of the link.
    */
   struct GNUNET_PeerIdentity target;
+
+  /**
+   * Map with `struct ReassemblyContext` structs for fragments under
+   * reassembly. May be NULL if we currently have no fragments from
+   * this @e pid (lazy initialization).
+   */
+  struct GNUNET_CONTAINER_MultiHashMap32 *reassembly_map;
+
+  /**
+   * Heap with `struct ReassemblyContext` structs for fragments under
+   * reassembly. May be NULL if we currently have no fragments from
+   * this @e pid (lazy initialization).
+   */
+  struct GNUNET_CONTAINER_Heap *reassembly_heap;
+
+  /**
+   * Task to free old entries from the @e reassembly_heap and @e reassembly_map.
+   */
+  struct GNUNET_SCHEDULER_Task *reassembly_timeout_task;
 
   /**
    * Communicators blocked for receiving on @e target as we are waiting
@@ -1819,63 +1902,7 @@ struct Queue
 };
 
 
-/**
- * Information we keep for a message that we are reassembling.
- */
-struct ReassemblyContext
-{
-  /**
-   * Original message ID for of the message that all the fragments
-   * belong to.
-   */
-  struct MessageUUIDP msg_uuid;
 
-  /**
-   * Which neighbour is this context for?
-   */
-  struct Neighbour *neighbour;
-
-  /**
-   * Entry in the reassembly heap (sorted by expiration).
-   */
-  struct GNUNET_CONTAINER_HeapNode *hn;
-
-  /**
-   * Bitfield with @e msg_size bits representing the positions
-   * where we have received fragments.  When we receive a fragment,
-   * we check the bits in @e bitfield before incrementing @e msg_missing.
-   *
-   * Allocated after the reassembled message.
-   */
-  uint8_t *bitfield;
-
-  /**
-   * At what time will we give up reassembly of this message?
-   */
-  struct GNUNET_TIME_Absolute reassembly_timeout;
-
-  /**
-   * Time we received the last fragment.  @e avg_ack_delay must be
-   * incremented by now - @e last_frag multiplied by @e num_acks.
-   */
-  struct GNUNET_TIME_Absolute last_frag;
-
-  /**
-   * How big is the message we are reassembling in total?
-   */
-  uint16_t msg_size;
-
-  /**
-   * How many bytes of the message are still missing?  Defragmentation
-   * is complete when @e msg_missing == 0.
-   */
-  uint16_t msg_missing;
-
-  /* Followed by @e msg_size bytes of the (partially) defragmented original
-   * message */
-
-  /* Followed by @e bitfield data */
-};
 
 
 /**
@@ -1887,25 +1914,6 @@ struct Neighbour
    * Which peer is this about?
    */
   struct GNUNET_PeerIdentity pid;
-
-  /**
-   * Map with `struct ReassemblyContext` structs for fragments under
-   * reassembly. May be NULL if we currently have no fragments from
-   * this @e pid (lazy initialization).
-   */
-  struct GNUNET_CONTAINER_MultiHashMap32 *reassembly_map;
-
-  /**
-   * Heap with `struct ReassemblyContext` structs for fragments under
-   * reassembly. May be NULL if we currently have no fragments from
-   * this @e pid (lazy initialization).
-   */
-  struct GNUNET_CONTAINER_Heap *reassembly_heap;
-
-  /**
-   * Task to free old entries from the @e reassembly_heap and @e reassembly_map.
-   */
-  struct GNUNET_SCHEDULER_Task *reassembly_timeout_task;
 
   /**
    * Head of MDLL of DV hops that have this neighbour as next hop. Must be
@@ -2941,6 +2949,75 @@ free_pending_message (struct PendingMessage *pm)
 
 
 /**
+ * Free @a rc
+ *
+ * @param rc data structure to free
+ */
+static void
+free_reassembly_context (struct ReassemblyContext *rc)
+{
+  struct VirtualLink *vl = rc->virtual_link;
+
+  GNUNET_assert (rc == GNUNET_CONTAINER_heap_remove_node (rc->hn));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_CONTAINER_multihashmap32_remove (vl->reassembly_map,
+                                                         rc->msg_uuid.uuid,
+                                                         rc));
+  GNUNET_free (rc);
+}
+
+
+/**
+ * Task run to clean up reassembly context of a neighbour that have expired.
+ *
+ * @param cls a `struct Neighbour`
+ */
+static void
+reassembly_cleanup_task (void *cls)
+{
+  struct VirtualLink *vl = cls;
+  struct ReassemblyContext *rc;
+
+  vl->reassembly_timeout_task = NULL;
+  while (NULL != (rc = GNUNET_CONTAINER_heap_peek (vl->reassembly_heap)))
+  {
+    if (0 == GNUNET_TIME_absolute_get_remaining (rc->reassembly_timeout)
+        .rel_value_us)
+    {
+      free_reassembly_context (rc);
+      continue;
+    }
+    GNUNET_assert (NULL == vl->reassembly_timeout_task);
+    vl->reassembly_timeout_task =
+      GNUNET_SCHEDULER_add_at (rc->reassembly_timeout,
+                               &reassembly_cleanup_task,
+                               vl);
+    return;
+  }
+}
+
+
+/**
+ * function called to #free_reassembly_context().
+ *
+ * @param cls NULL
+ * @param key unused
+ * @param value a `struct ReassemblyContext` to free
+ * @return #GNUNET_OK (continue iteration)
+ */
+static int
+free_reassembly_cb (void *cls, uint32_t key, void *value)
+{
+  struct ReassemblyContext *rc = value;
+
+  (void) cls;
+  (void) key;
+  free_reassembly_context (rc);
+  return GNUNET_OK;
+}
+
+
+/**
  * Free virtual link.
  *
  * @param vl link data to free
@@ -2951,6 +3028,21 @@ free_virtual_link (struct VirtualLink *vl)
   struct PendingMessage *pm;
   struct CoreSentContext *csc;
 
+  if (NULL != vl->reassembly_map)
+  {
+    GNUNET_CONTAINER_multihashmap32_iterate (vl->reassembly_map,
+                                             &free_reassembly_cb,
+                                             NULL);
+    GNUNET_CONTAINER_multihashmap32_destroy (vl->reassembly_map);
+    vl->reassembly_map = NULL;
+    GNUNET_CONTAINER_heap_destroy (vl->reassembly_heap);
+    vl->reassembly_heap = NULL;
+  }
+  if (NULL != vl->reassembly_timeout_task)
+  {
+    GNUNET_SCHEDULER_cancel (vl->reassembly_timeout_task);
+    vl->reassembly_timeout_task = NULL;
+  }
   while (NULL != (pm = vl->pending_msg_head))
     free_pending_message (pm);
   GNUNET_assert (GNUNET_YES ==
@@ -3268,75 +3360,6 @@ client_connect_cb (void *cls,
 
 
 /**
- * Free @a rc
- *
- * @param rc data structure to free
- */
-static void
-free_reassembly_context (struct ReassemblyContext *rc)
-{
-  struct Neighbour *n = rc->neighbour;
-
-  GNUNET_assert (rc == GNUNET_CONTAINER_heap_remove_node (rc->hn));
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CONTAINER_multihashmap32_remove (n->reassembly_map,
-                                                         rc->msg_uuid.uuid,
-                                                         rc));
-  GNUNET_free (rc);
-}
-
-
-/**
- * Task run to clean up reassembly context of a neighbour that have expired.
- *
- * @param cls a `struct Neighbour`
- */
-static void
-reassembly_cleanup_task (void *cls)
-{
-  struct Neighbour *n = cls;
-  struct ReassemblyContext *rc;
-
-  n->reassembly_timeout_task = NULL;
-  while (NULL != (rc = GNUNET_CONTAINER_heap_peek (n->reassembly_heap)))
-  {
-    if (0 == GNUNET_TIME_absolute_get_remaining (rc->reassembly_timeout)
-        .rel_value_us)
-    {
-      free_reassembly_context (rc);
-      continue;
-    }
-    GNUNET_assert (NULL == n->reassembly_timeout_task);
-    n->reassembly_timeout_task =
-      GNUNET_SCHEDULER_add_at (rc->reassembly_timeout,
-                               &reassembly_cleanup_task,
-                               n);
-    return;
-  }
-}
-
-
-/**
- * function called to #free_reassembly_context().
- *
- * @param cls NULL
- * @param key unused
- * @param value a `struct ReassemblyContext` to free
- * @return #GNUNET_OK (continue iteration)
- */
-static int
-free_reassembly_cb (void *cls, uint32_t key, void *value)
-{
-  struct ReassemblyContext *rc = value;
-
-  (void) cls;
-  (void) key;
-  free_reassembly_context (rc);
-  return GNUNET_OK;
-}
-
-
-/**
  * Release memory used by @a neighbour.
  *
  * @param neighbour neighbour entry to free
@@ -3354,16 +3377,6 @@ free_neighbour (struct Neighbour *neighbour)
                                                        neighbour));
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Freeing neighbour\n");
-  if (NULL != neighbour->reassembly_map)
-  {
-    GNUNET_CONTAINER_multihashmap32_iterate (neighbour->reassembly_map,
-                                             &free_reassembly_cb,
-                                             NULL);
-    GNUNET_CONTAINER_multihashmap32_destroy (neighbour->reassembly_map);
-    neighbour->reassembly_map = NULL;
-    GNUNET_CONTAINER_heap_destroy (neighbour->reassembly_heap);
-    neighbour->reassembly_heap = NULL;
-  }
   while (NULL != (dvh = neighbour->dv_head))
   {
     struct DistanceVector *dv = dvh->dv;
@@ -3371,11 +3384,6 @@ free_neighbour (struct Neighbour *neighbour)
     free_distance_vector_hop (dvh);
     if (NULL == dv->dv_head)
       free_dv_route (dv);
-  }
-  if (NULL != neighbour->reassembly_timeout_task)
-  {
-    GNUNET_SCHEDULER_cancel (neighbour->reassembly_timeout_task);
-    neighbour->reassembly_timeout_task = NULL;
   }
   if (NULL != neighbour->get)
   {
@@ -4232,9 +4240,10 @@ update_ephemeral (struct DistanceVector *dv)
   GNUNET_CRYPTO_ecdhe_key_create (&dv->private_key);
   GNUNET_CRYPTO_ecdhe_key_get_public (&dv->private_key, &dv->ephemeral_key);
   ec.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TRANSPORT_EPHEMERAL);
-  ec.purpose.size = htonl (sizeof(ec));
   ec.target = dv->target;
   ec.ephemeral_key = dv->ephemeral_key;
+  ec.sender_monotonic_time = GNUNET_TIME_absolute_hton (dv->monotime);
+  ec.purpose.size = htonl (sizeof(ec));
   GNUNET_CRYPTO_eddsa_sign (GST_my_private_key,
                             &ec,
                             &dv->sender_sig);
@@ -4455,7 +4464,8 @@ dv_setup_key_state_from_km (const struct GNUNET_HashCode *km,
                                     km,
                                     sizeof(*km),
                                     iv,
-                                    sizeof(*iv)));
+                                    sizeof(*iv),
+                                    NULL));
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Deriving backchannel key based on KM %s and IV %s\n",
               GNUNET_h2s (km),
@@ -4616,6 +4626,7 @@ typedef void (*DVMessageHandler) (void *cls,
  * @param use function to call with the encapsulated message
  * @param use_cls closure for @a use
  * @param options whether path must be confirmed or not, to be passed to @a use
+ * @param shall this TransportDVBoxMessage be forwarded without flow control.
  * @return expected RTT for transmission, #GNUNET_TIME_UNIT_FOREVER_REL if sending failed
  */
 static struct GNUNET_TIME_Relative
@@ -4625,7 +4636,8 @@ encapsulate_for_dv (struct DistanceVector *dv,
                     const struct GNUNET_MessageHeader *hdr,
                     DVMessageHandler use,
                     void *use_cls,
-                    enum RouteMessageOptions options)
+                    enum RouteMessageOptions options,
+                    enum GNUNET_GenericReturnValue without_fc)
 {
   struct TransportDVBoxMessage box_hdr;
   struct TransportDVBoxPayloadP payload_hdr;
@@ -4633,28 +4645,31 @@ encapsulate_for_dv (struct DistanceVector *dv,
   char enc[sizeof(struct TransportDVBoxPayloadP) + enc_body_size] GNUNET_ALIGN;
   struct TransportDVBoxPayloadP *enc_payload_hdr =
     (struct TransportDVBoxPayloadP *) enc;
-  struct DVKeyState key;
+  struct DVKeyState *key;
   struct GNUNET_TIME_Relative rtt;
 
+  key = GNUNET_new (struct DVKeyState);
   /* Encrypt payload */
   box_hdr.header.type = htons (GNUNET_MESSAGE_TYPE_TRANSPORT_DV_BOX);
   box_hdr.total_hops = htons (0);
+  box_hdr.without_fc = htons (without_fc);
   update_ephemeral (dv);
   box_hdr.ephemeral_key = dv->ephemeral_key;
   payload_hdr.sender_sig = dv->sender_sig;
+
   GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
                               &box_hdr.iv,
                               sizeof(box_hdr.iv));
-  dh_key_derive_eph_pid (&dv->private_key, &dv->target, &box_hdr.iv, &key);
+  dh_key_derive_eph_pid (&dv->private_key, &dv->target, &box_hdr.iv, key);
   payload_hdr.sender = GST_my_identity;
   payload_hdr.monotonic_time = GNUNET_TIME_absolute_hton (dv->monotime);
-  dv_encrypt (&key, &payload_hdr, enc_payload_hdr, sizeof(payload_hdr));
-  dv_encrypt (&key,
+  dv_encrypt (key, &payload_hdr, enc_payload_hdr, sizeof(payload_hdr));
+  dv_encrypt (key,
               hdr,
               &enc[sizeof(struct TransportDVBoxPayloadP)],
               enc_body_size);
-  dv_hmac (&key, &box_hdr.hmac, enc, sizeof(enc));
-  dv_key_clean (&key);
+  dv_hmac (key, &box_hdr.hmac, enc, sizeof(enc));
+  dv_key_clean (key);
   rtt = GNUNET_TIME_UNIT_FOREVER_REL;
   /* For each selected path, take the pre-computed header and body
      and add the path in the middle of the message; then send it. */
@@ -4681,7 +4696,7 @@ encapsulate_for_dv (struct DistanceVector *dv,
       char *path;
 
       path = GNUNET_strdup (GNUNET_i2s (&GST_my_identity));
-      for (unsigned int j = 0; j <= num_hops; j++)
+      for (unsigned int j = 0; j < num_hops; j++)
       {
         char *tmp;
 
@@ -4694,7 +4709,7 @@ encapsulate_for_dv (struct DistanceVector *dv,
                   ntohs (hdr->type),
                   GNUNET_i2s (&dv->target),
                   i + 1,
-                  num_dvhs + 1,
+                  num_dvhs,
                   path);
       GNUNET_free (path);
     }
@@ -4704,6 +4719,7 @@ encapsulate_for_dv (struct DistanceVector *dv,
          dvh->next_hop,
          (const struct GNUNET_MessageHeader *) buf,
          options);
+    GNUNET_free (key);
   }
   return rtt;
 }
@@ -4828,13 +4844,16 @@ route_control_message_without_fc (struct VirtualLink *vl,
                   "Failed to route message, could not determine DV path\n");
       return rtt1;
     }
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "encapsulate_for_dv 1\n");
     rtt2 = encapsulate_for_dv (dv,
                                res,
                                hops,
                                hdr,
                                &send_dv_to_neighbour,
                                NULL,
-                               options & (~RMO_REDUNDANT));
+                               options & (~RMO_REDUNDANT),
+                               GNUNET_YES);
   }
   return GNUNET_TIME_relative_min (rtt1, rtt2);
 }
@@ -4955,7 +4974,8 @@ check_vl_transmission (struct VirtualLink *vl)
         vl->outbound_fc_window_size)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Stalled transmission on VL %s due to flow control: %llu < %llu\n",
+                  "Stalled message %lu transmission on VL %s due to flow control: %llu < %llu\n",
+                  pm->logging_uuid,
                   GNUNET_i2s (&vl->target),
                   (unsigned long long) vl->outbound_fc_window_size,
                   (unsigned long long) (pm->bytes_msg
@@ -4964,6 +4984,14 @@ check_vl_transmission (struct VirtualLink *vl)
       return;     /* We have a message, but flow control says "nope" */
     }
     elig = GNUNET_YES;
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Eligible message %lu of size %llu to %s: %llu/%llu\n",
+                pm->logging_uuid,
+                pm->bytes_msg,
+                GNUNET_i2s (&vl->target),
+                (unsigned long long) vl->outbound_fc_window_size,
+                (unsigned long long) (pm->bytes_msg
+                                      + vl->outbound_fc_window_size_used));
     break;
   }
   if (GNUNET_NO == elig)
@@ -5482,7 +5510,7 @@ handle_raw_message (void *cls, const struct GNUNET_MessageHeader *mh)
     vl->incoming_fc_window_size_used += size;
     /* TODO-M1 */
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Dropped message of type %u with %u bytes to CORE: no CORE client connected!",
+                "Dropped message of type %u with %u bytes to CORE: no CORE client connected!\n",
                 (unsigned int) ntohs (mh->type),
                 (unsigned int) ntohs (mh->size));
     finish_cmc_handling (cmc);
@@ -5567,7 +5595,7 @@ transmit_cummulative_ack_cb (void *cls)
   struct VirtualLink *vl;
   struct AcknowledgementCummulator *ac = cls;
   char buf[sizeof(struct TransportReliabilityAckMessage)
-           + ac->ack_counter + ac->num_acks
+           + ac->num_acks
            * sizeof(struct TransportCummulativeAckPayloadP)] GNUNET_ALIGN;
   struct TransportReliabilityAckMessage *ack =
     (struct TransportReliabilityAckMessage *) buf;
@@ -5576,16 +5604,16 @@ transmit_cummulative_ack_cb (void *cls)
   ac->task = NULL;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Sending ACK with %u components to %s\n",
-              ac->ack_counter,
+              ac->num_acks,
               GNUNET_i2s (&ac->target));
-  GNUNET_assert (0 <= ac->ack_counter);
+  GNUNET_assert (0 < ac->num_acks);
   ack->header.type = htons (GNUNET_MESSAGE_TYPE_TRANSPORT_RELIABILITY_ACK);
   ack->header.size =
     htons (sizeof(*ack)
-           + ac->ack_counter * sizeof(struct TransportCummulativeAckPayloadP));
+           + ac->num_acks * sizeof(struct TransportCummulativeAckPayloadP));
   ack->ack_counter = htonl (ac->ack_counter += ac->num_acks);
   ap = (struct TransportCummulativeAckPayloadP *) &ack[1];
-  for (unsigned int i = 0; i < ac->ack_counter; i++)
+  for (unsigned int i = 0; i < ac->num_acks; i++)
   {
     ap[i].ack_uuid = ac->ack_uuids[i].ack_uuid;
     ap[i].ack_delay = GNUNET_TIME_relative_hton (
@@ -5657,7 +5685,6 @@ cummulative_ack (const struct GNUNET_PeerIdentity *pid,
     if (MAX_CUMMULATIVE_ACKS == ac->num_acks)
     {
       /* must run immediately, ack buffer full! */
-      GNUNET_SCHEDULER_cancel (ac->task);
       transmit_cummulative_ack_cb (ac);
     }
     GNUNET_SCHEDULER_cancel (ac->task);
@@ -5727,7 +5754,7 @@ static void
 handle_fragment_box (void *cls, const struct TransportFragmentBoxMessage *fb)
 {
   struct CommunicatorMessageContext *cmc = cls;
-  struct Neighbour *n;
+  struct VirtualLink *vl;
   struct ReassemblyContext *rc;
   const struct GNUNET_MessageHeader *msg;
   uint16_t msize;
@@ -5737,30 +5764,33 @@ handle_fragment_box (void *cls, const struct TransportFragmentBoxMessage *fb)
   struct GNUNET_TIME_Relative cdelay;
   struct FindByMessageUuidContext fc;
 
-  n = lookup_neighbour (&cmc->im.sender);
-  if (NULL == n)
+  vl = lookup_virtual_link (&cmc->im.sender);
+  if (NULL == vl)
   {
     struct GNUNET_SERVICE_Client *client = cmc->tc->client;
 
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "No virtual link for %s to handle fragment\n",
+                GNUNET_i2s (&cmc->im.sender));
     GNUNET_break (0);
     finish_cmc_handling (cmc);
     GNUNET_SERVICE_client_drop (client);
     return;
   }
-  if (NULL == n->reassembly_map)
+  if (NULL == vl->reassembly_map)
   {
-    n->reassembly_map = GNUNET_CONTAINER_multihashmap32_create (8);
-    n->reassembly_heap =
+    vl->reassembly_map = GNUNET_CONTAINER_multihashmap32_create (8);
+    vl->reassembly_heap =
       GNUNET_CONTAINER_heap_create (GNUNET_CONTAINER_HEAP_ORDER_MIN);
-    n->reassembly_timeout_task =
+    vl->reassembly_timeout_task =
       GNUNET_SCHEDULER_add_delayed (REASSEMBLY_EXPIRATION,
                                     &reassembly_cleanup_task,
-                                    n);
+                                    vl);
   }
   msize = ntohs (fb->msg_size);
   fc.message_uuid = fb->msg_uuid;
   fc.rc = NULL;
-  (void) GNUNET_CONTAINER_multihashmap32_get_multiple (n->reassembly_map,
+  (void) GNUNET_CONTAINER_multihashmap32_get_multiple (vl->reassembly_map,
                                                        fb->msg_uuid.uuid,
                                                        &find_by_message_uuid,
                                                        &fc);
@@ -5769,17 +5799,17 @@ handle_fragment_box (void *cls, const struct TransportFragmentBoxMessage *fb)
     rc = GNUNET_malloc (sizeof(*rc) + msize    /* reassembly payload buffer */
                         + (msize + 7) / 8 * sizeof(uint8_t) /* bitfield */);
     rc->msg_uuid = fb->msg_uuid;
-    rc->neighbour = n;
+    rc->virtual_link = vl;
     rc->msg_size = msize;
     rc->reassembly_timeout =
       GNUNET_TIME_relative_to_absolute (REASSEMBLY_EXPIRATION);
     rc->last_frag = GNUNET_TIME_absolute_get ();
-    rc->hn = GNUNET_CONTAINER_heap_insert (n->reassembly_heap,
+    rc->hn = GNUNET_CONTAINER_heap_insert (vl->reassembly_heap,
                                            rc,
                                            rc->reassembly_timeout.abs_value_us);
     GNUNET_assert (GNUNET_OK ==
                    GNUNET_CONTAINER_multihashmap32_put (
-                     n->reassembly_map,
+                     vl->reassembly_map,
                      rc->msg_uuid.uuid,
                      rc,
                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE));
@@ -6452,12 +6482,12 @@ learn_dv_path (const struct GNUNET_PeerIdentity *path,
   for (struct DistanceVectorHop *pos = dv->dv_head; NULL != pos;
        pos = pos->next_dv)
   {
-    if (pos->distance < path_len - 2)
+    if (pos->distance < path_len - 3)
       shorter_distance++;
-    /* Note that the distances in 'pos' excludes us (path[0]) and
-       the next_hop (path[1]), so we need to subtract two
+    /* Note that the distances in 'pos' excludes us (path[0]),
+       the next_hop (path[1]) and the target so we need to subtract three
        and check next_hop explicitly */
-    if ((pos->distance == path_len - 2) && (pos->next_hop == next_hop))
+    if ((pos->distance == path_len - 3) && (pos->next_hop == next_hop))
     {
       int match = GNUNET_YES;
 
@@ -6521,16 +6551,16 @@ learn_dv_path (const struct GNUNET_PeerIdentity *path,
               "Discovered new DV path to %s\n",
               GNUNET_i2s (&dv->target));
   hop = GNUNET_malloc (sizeof(struct DistanceVectorHop)
-                       + sizeof(struct GNUNET_PeerIdentity) * (path_len - 2));
+                       + sizeof(struct GNUNET_PeerIdentity) * (path_len - 3));
   hop->next_hop = next_hop;
   hop->dv = dv;
   hop->path = (const struct GNUNET_PeerIdentity *) &hop[1];
   memcpy (&hop[1],
           &path[2],
-          sizeof(struct GNUNET_PeerIdentity) * (path_len - 2));
+          sizeof(struct GNUNET_PeerIdentity) * (path_len - 3));
   hop->timeout = GNUNET_TIME_relative_to_absolute (DV_PATH_VALIDITY_TIMEOUT);
   hop->path_valid_until = path_valid_until;
-  hop->distance = path_len - 2;
+  hop->distance = path_len - 3;
   hop->pd.aged_rtt = network_latency;
   GNUNET_CONTAINER_MDLL_insert (dv, dv->dv_head, dv->dv_tail, hop);
   GNUNET_CONTAINER_MDLL_insert (neighbour,
@@ -6630,6 +6660,7 @@ forward_dv_learn (const struct GNUNET_PeerIdentity *next_hop,
   fwd->init_sig = msg->init_sig;
   fwd->initiator = msg->initiator;
   fwd->challenge = msg->challenge;
+  fwd->monotonic_time = msg->monotonic_time;
   dhops = (struct DVPathEntryP *) &fwd[1];
   GNUNET_memcpy (dhops, hops, sizeof(struct DVPathEntryP) * nhops);
   dhops[nhops].hop = GST_my_identity;
@@ -6795,6 +6826,9 @@ dv_neighbour_transmission (void *cls,
 {
   struct NeighbourSelectionContext *nsc = cls;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "transmission %s\n",
+              GNUNET_i2s (pid));
   (void) value;
   if (0 == GNUNET_memcmp (pid, &nsc->dvl->initiator))
     return GNUNET_YES; /* skip initiator */
@@ -7012,7 +7046,7 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
                                                       &dvl->init_sig))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "DV learn signature from %s invalid",
+                  "DV learn signature from %s invalid\n",
                   GNUNET_i2s (&dvl->initiator));
       GNUNET_break_op (0);
       return;
@@ -7141,7 +7175,7 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
                   GNUNET_i2s (&path[i]),
                   GNUNET_STRINGS_relative_time_to_string (ilat, GNUNET_YES));
       learn_dv_path (path,
-                     i,
+                     i + 1,
                      ilat,
                      GNUNET_TIME_relative_to_absolute (
                        ADDRESS_VALIDATION_LIFETIME));
@@ -7177,10 +7211,10 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
 
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Learned inverse path with %u hops to %s\n",
-                  i + 1,
+                  i + 2,
                   GNUNET_i2s (&path[i + 2]));
       iret = learn_dv_path (path,
-                            i + 2,
+                            i + 3,
                             GNUNET_TIME_UNIT_FOREVER_REL,
                             GNUNET_TIME_UNIT_ZERO_ABS);
       if (GNUNET_SYSERR == iret)
@@ -7218,13 +7252,10 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
     return;
   }
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "8 handle dv learn message from %s\n",
-              GNUNET_i2s (&dvl->initiator));
   /* Forward to initiator, if path non-trivial and possible */
   bi_history = (bi_history << 1) | (bi_hop ? 1 : 0);
   did_initiator = GNUNET_NO;
-  if ((1 < nhops) &&
+  if ((1 <= nhops) &&
       (GNUNET_YES ==
        GNUNET_CONTAINER_multipeermap_contains (neighbours, &dvl->initiator)))
   {
@@ -7327,7 +7358,7 @@ check_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
  */
 static void
 forward_dv_box (struct Neighbour *next_hop,
-                const struct TransportDVBoxMessage *hdr,
+                struct TransportDVBoxMessage *hdr,
                 uint16_t total_hops,
                 uint16_t num_hops,
                 const struct GNUNET_PeerIdentity *hops,
@@ -7336,37 +7367,57 @@ forward_dv_box (struct Neighbour *next_hop,
 {
   struct VirtualLink *vl = next_hop->vl;
   struct PendingMessage *pm;
-  size_t msg_size;
+  size_t msg_size = sizeof(struct TransportDVBoxMessage)
+                    + num_hops * sizeof(struct GNUNET_PeerIdentity)
+                    + enc_payload_size;
   char *buf;
+  char msg_buf[msg_size] GNUNET_ALIGN;
   struct GNUNET_PeerIdentity *dhops;
 
-  GNUNET_assert (NULL != vl);
-  msg_size = sizeof(struct TransportDVBoxMessage)
-             + num_hops * sizeof(struct GNUNET_PeerIdentity) + enc_payload_size;
-  pm = GNUNET_malloc (sizeof(struct PendingMessage) + msg_size);
-  pm->pmt = PMT_DV_BOX;
-  pm->vl = vl;
-  pm->timeout = GNUNET_TIME_relative_to_absolute (DV_FORWARD_TIMEOUT);
-  pm->logging_uuid = logging_uuid_gen++;
-  pm->prefs = GNUNET_MQ_PRIO_BACKGROUND;
-  pm->bytes_msg = msg_size;
-  buf = (char *) &pm[1];
-  memcpy (buf, hdr, sizeof(*hdr));
-  dhops =
-    (struct GNUNET_PeerIdentity *) &buf[sizeof(struct TransportDVBoxMessage)];
+  GNUNET_assert (GNUNET_YES == ntohs (hdr->without_fc) || NULL != vl);
+
+  hdr->num_hops = htons (num_hops);
+  hdr->total_hops = htons (total_hops);
+  memcpy (msg_buf, hdr, sizeof(*hdr));
+  dhops = (struct GNUNET_PeerIdentity *) &msg_buf[sizeof(struct
+                                                         TransportDVBoxMessage)];
   memcpy (dhops, hops, num_hops * sizeof(struct GNUNET_PeerIdentity));
   memcpy (&dhops[num_hops], enc_payload, enc_payload_size);
-  GNUNET_CONTAINER_MDLL_insert (vl,
-                                vl->pending_msg_head,
-                                vl->pending_msg_tail,
-                                pm);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Created pending message %llu for DV Box with next hop %s (%u/%u)\n",
-              pm->logging_uuid,
-              GNUNET_i2s (&next_hop->pid),
-              (unsigned int) num_hops,
-              (unsigned int) total_hops);
-  check_vl_transmission (vl);
+
+  if (GNUNET_YES == ntohs (hdr->without_fc))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Forwarding control message in DV Box to next hop %s (%u/%u) \n",
+                GNUNET_i2s (&next_hop->pid),
+                (unsigned int) num_hops,
+                (unsigned int) total_hops);
+    route_via_neighbour (next_hop, (const struct
+                                    GNUNET_MessageHeader *) msg_buf,
+                         RMO_ANYTHING_GOES);
+  }
+  else
+  {
+    pm = GNUNET_malloc (sizeof(struct PendingMessage) + msg_size);
+    pm->pmt = PMT_DV_BOX;
+    pm->vl = vl;
+    pm->timeout = GNUNET_TIME_relative_to_absolute (DV_FORWARD_TIMEOUT);
+    pm->logging_uuid = logging_uuid_gen++;
+    pm->prefs = GNUNET_MQ_PRIO_BACKGROUND;
+    pm->bytes_msg = msg_size;
+    buf = (char *) &pm[1];
+    memcpy (buf, msg_buf, msg_size);
+    GNUNET_CONTAINER_MDLL_insert (vl,
+                                  vl->pending_msg_head,
+                                  vl->pending_msg_tail,
+                                  pm);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Created pending message %llu for DV Box with next hop %s (%u/%u)\n",
+                pm->logging_uuid,
+                GNUNET_i2s (&next_hop->pid),
+                (unsigned int) num_hops,
+                (unsigned int) total_hops);
+    check_vl_transmission (vl);
+  }
 }
 
 
@@ -7579,10 +7630,13 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
   const char *enc_payload = (const char *) &hops[num_hops];
   uint16_t enc_payload_size =
     size - (num_hops * sizeof(struct GNUNET_PeerIdentity));
-  struct DVKeyState key;
+  char enc[enc_payload_size];
+  struct DVKeyState *key;
   struct GNUNET_HashCode hmac;
   const char *hdr;
   size_t hdr_len;
+
+  key = GNUNET_new (struct DVKeyState);
 
   if (GNUNET_EXTRA_LOGGING > 0)
   {
@@ -7624,8 +7678,9 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
                   "Skipping %u/%u hops ahead while routing DV Box\n",
                   i,
                   num_hops);
+
       forward_dv_box (n,
-                      dvb,
+                      (struct TransportDVBoxMessage *) dvb,
                       ntohs (dvb->total_hops) + 1,
                       num_hops - i - 1,    /* number of hops left */
                       &hops[i + 1],    /* remaining hops */
@@ -7657,10 +7712,13 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
                             GNUNET_NO);
   cmc->total_hops = ntohs (dvb->total_hops);
 
-  dh_key_derive_eph_pub (&dvb->ephemeral_key, &dvb->iv, &key);
+  dh_key_derive_eph_pub (&dvb->ephemeral_key, &dvb->iv, key);
   hdr = (const char *) &dvb[1];
-  hdr_len = ntohs (dvb->header.size) - sizeof(*dvb);
-  dv_hmac (&key, &hmac, hdr, hdr_len);
+  hdr_len = ntohs (dvb->header.size) - sizeof(*dvb) - sizeof(struct
+                                                             GNUNET_PeerIdentity)
+            * ntohs (dvb->total_hops);
+
+  dv_hmac (key, &hmac, hdr, hdr_len);
   if (0 != GNUNET_memcmp (&hmac, &dvb->hmac))
   {
     /* HMAC mismatch, discard! */
@@ -7679,9 +7737,9 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
 
     GNUNET_assert (hdr_len >=
                    sizeof(ppay) + sizeof(struct GNUNET_MessageHeader));
-    dv_decrypt (&key, &ppay, hdr, sizeof(ppay));
-    dv_decrypt (&key, &body, &hdr[sizeof(ppay)], hdr_len - sizeof(ppay));
-    dv_key_clean (&key);
+    dv_decrypt (key, &ppay, hdr, sizeof(ppay));
+    dv_decrypt (key, &body, &hdr[sizeof(ppay)], hdr_len - sizeof(ppay));
+    dv_key_clean (key);
     if (ntohs (mh->size) != sizeof(body))
     {
       GNUNET_break_op (0);
@@ -7727,9 +7785,10 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
       struct EphemeralConfirmationPS ec;
 
       ec.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TRANSPORT_EPHEMERAL);
-      ec.purpose.size = htonl (sizeof(ec));
       ec.target = GST_my_identity;
       ec.ephemeral_key = dvb->ephemeral_key;
+      ec.purpose.size =  htonl (sizeof(ec));
+      ec.sender_monotonic_time = ppay.monotonic_time;
       if (
         GNUNET_OK !=
         GNUNET_CRYPTO_eddsa_verify (
@@ -8656,6 +8715,12 @@ fragment_message (struct Queue *queue,
   mtu = (UINT16_MAX == queue->mtu)
         ? UINT16_MAX - sizeof(struct GNUNET_TRANSPORT_SendMessageTo)
         : queue->mtu;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Fragmenting message <%llu> with size %u to %s for MTU %u\n",
+              pm->logging_uuid,
+              pm->bytes_msg,
+              GNUNET_i2s (&pm->vl->target),
+              (unsigned int) mtu);
   set_pending_message_uuid (pm);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Fragmenting message %llu <%llu> with size %u to %s for MTU %u\n",
@@ -8789,7 +8854,8 @@ reliability_box_message (struct Queue *queue,
   bpm->logging_uuid = logging_uuid_gen++;
   bpm->vl = pm->vl;
   bpm->frag_parent = pm;
-  GNUNET_CONTAINER_MDLL_insert (frag, pm->head_frag, pm->tail_frag, bpm);
+  // Why was this needed?
+  // GNUNET_CONTAINER_MDLL_insert (frag, pm->head_frag, pm->tail_frag, bpm);
   bpm->timeout = pm->timeout;
   bpm->pmt = PMT_RELIABILITY_BOX;
   bpm->bytes_msg = pm->bytes_msg + sizeof(rbox);
@@ -8804,6 +8870,30 @@ reliability_box_message (struct Queue *queue,
   memcpy (&msg[sizeof(rbox)], &pm[1], pm->bytes_msg);
   pm->bpm = bpm;
   return bpm;
+}
+
+
+static void
+reorder_root_pm (struct PendingMessage *pm,
+                 struct GNUNET_TIME_Absolute next_attempt)
+{
+  struct VirtualLink *vl = pm->vl;
+  struct PendingMessage *pos;
+
+  /* re-insert sort in neighbour list */
+  GNUNET_CONTAINER_MDLL_remove (vl,
+                                vl->pending_msg_head,
+                                vl->pending_msg_tail,
+                                pm);
+  pos = vl->pending_msg_tail;
+  while ((NULL != pos) &&
+         (next_attempt.abs_value_us > pos->next_attempt.abs_value_us))
+    pos = pos->prev_vl;
+  GNUNET_CONTAINER_MDLL_insert_after (vl,
+                                      vl->pending_msg_head,
+                                      vl->pending_msg_tail,
+                                      pos,
+                                      pm);
 }
 
 
@@ -8829,22 +8919,11 @@ update_pm_next_attempt (struct PendingMessage *pm,
 
   if (NULL == pm->frag_parent)
   {
-    struct PendingMessage *pos;
-
-    /* re-insert sort in neighbour list */
-    GNUNET_CONTAINER_MDLL_remove (vl,
-                                  vl->pending_msg_head,
-                                  vl->pending_msg_tail,
-                                  pm);
-    pos = vl->pending_msg_tail;
-    while ((NULL != pos) &&
-           (next_attempt.abs_value_us > pos->next_attempt.abs_value_us))
-      pos = pos->prev_vl;
-    GNUNET_CONTAINER_MDLL_insert_after (vl,
-                                        vl->pending_msg_head,
-                                        vl->pending_msg_tail,
-                                        pos,
-                                        pm);
+    reorder_root_pm (pm, next_attempt);
+  }
+  else if ((PMT_RELIABILITY_BOX == pm->pmt)||(PMT_DV_BOX == pm->pmt))
+  {
+    reorder_root_pm (pm->frag_parent, next_attempt);
   }
   else
   {
@@ -8862,6 +8941,15 @@ update_pm_next_attempt (struct PendingMessage *pm,
                                         fp->tail_frag,
                                         pos,
                                         pm);
+    if (NULL == pos)
+    {
+      pos = fp;
+      // Get the root pm
+      while (NULL != pos->frag_parent)
+        pos = pos->frag_parent;
+      pos->next_attempt = next_attempt;
+      reorder_root_pm (pos, next_attempt);
+    }
   }
 }
 
@@ -8965,8 +9053,18 @@ select_best_pending_from_link (struct PendingMessageScoreContext *sc,
         (0 == (pos->prefs & GNUNET_MQ_PREF_UNRELIABLE)) &&
         (GNUNET_TRANSPORT_CC_RELIABLE != queue->tc->details.communicator.cc))
     {
-      relb = GNUNET_YES;
       real_overhead += sizeof(struct TransportReliabilityBoxMessage);
+
+      if ((0 != queue->mtu) && (pos->bytes_msg + real_overhead > queue->mtu))
+      {
+        frag = GNUNET_YES;
+        real_overhead = overhead + sizeof(struct TransportFragmentBoxMessage);
+      }
+      else
+      {
+        relb = GNUNET_YES;
+      }
+
     }
 
     /* Finally, compare to existing 'best' in sc to see if this 'pos' pending
@@ -8980,7 +9078,8 @@ select_best_pending_from_link (struct PendingMessageScoreContext *sc,
          given message fits _this_ queue, and do not consider how well other
          queues might suit the message. Taking other queues into consideration
          may further improve the result, but could also be expensive
-         in terms of CPU time.  */long long sc_score = sc->frag * 40 + sc->relb * 20 + sc->real_overhead;
+         in terms of CPU time.  */
+      long long sc_score = sc->frag * 40 + sc->relb * 20 + sc->real_overhead;
       long long pm_score = frag * 40 + relb * 20 + real_overhead;
       long long time_delta =
         (sc->best->next_attempt.abs_value_us - pos->next_attempt.abs_value_us)
@@ -8994,12 +9093,10 @@ select_best_pending_from_link (struct PendingMessageScoreContext *sc,
         time_delta *= 10;     /* increase weight (always, both are low latency) */
       else if ((0 != (pos->prefs & GNUNET_MQ_PREF_LOW_LATENCY)) &&
                (time_delta > 0))
-        time_delta *=
-          10;     /* increase weight, favors 'pos', which is low latency */
+        time_delta *= 10;     /* increase weight, favors 'pos', which is low latency */
       else if ((0 != (sc->best->prefs & GNUNET_MQ_PREF_LOW_LATENCY)) &&
                (time_delta < 0))
-        time_delta *=
-          10;     /* increase weight, favors 'sc->best', which is low latency */
+        time_delta *= 10;     /* increase weight, favors 'sc->best', which is low latency */
       if (0 != queue->mtu)
       {
         /* Grant bonus if we are below MTU, larger bonus the closer we will
@@ -9016,6 +9113,7 @@ select_best_pending_from_link (struct PendingMessageScoreContext *sc,
     sc->dvh = dvh;
     sc->frag = frag;
     sc->relb = relb;
+    sc->real_overhead = real_overhead;
   }
 }
 
@@ -9027,7 +9125,7 @@ select_best_pending_from_link (struct PendingMessageScoreContext *sc,
  *
  * @param cls a `struct PendingMessageScoreContext`
  * @param next_hop next hop of the DV path
- * @param hdr encapsulated message, technically a `struct TransportDFBoxMessage`
+ * @param hdr encapsulated message, technically a `struct TransportDVBoxMessage`
  * @param options options of the original message
  */
 static void
@@ -9045,6 +9143,11 @@ extract_box_cb (void *cls,
   bpm = GNUNET_malloc (sizeof(struct PendingMessage) + bsize);
   bpm->logging_uuid = logging_uuid_gen++;
   bpm->pmt = PMT_DV_BOX;
+  bpm->vl = pm->vl;
+  bpm->timeout = pm->timeout;
+  bpm->bytes_msg = bsize;
+  bpm->frag_parent = pm;
+  set_pending_message_uuid (bpm);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Creating DV Box %llu for original message %llu (next hop is %s)\n",
               bpm->logging_uuid,
@@ -9132,13 +9235,16 @@ transmit_on_queue (void *cls)
       free_pending_message (sc.best->bpm);
       sc.best->bpm = NULL;
     }
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "encapsulate_for_dv 2\n");
     encapsulate_for_dv (sc.dvh->dv,
                         1,
                         &sc.dvh,
                         (const struct GNUNET_MessageHeader *) &sc.best[1],
                         &extract_box_cb,
                         &sc,
-                        RMO_NONE);
+                        RMO_NONE,
+                        GNUNET_NO);
     GNUNET_assert (NULL != sc.best->bpm);
     pm = sc.best->bpm;
   }
@@ -9227,6 +9333,11 @@ transmit_on_queue (void *cls)
        OPTIMIZE: Note that in the future this heuristic should likely
        be improved further (measure RTT stability, consider message
        urgency and size when delaying ACKs, etc.) */
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Waiting %s for ACK\n",
+                GNUNET_STRINGS_relative_time_to_string (
+                  GNUNET_TIME_relative_multiply (
+                    queue->pd.aged_rtt, 4), GNUNET_NO));
     update_pm_next_attempt (pm,
                             GNUNET_TIME_relative_to_absolute (
                               GNUNET_TIME_relative_multiply (queue->pd.aged_rtt,

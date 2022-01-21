@@ -76,6 +76,10 @@ parse_line(){
     then
 	PLUGIN=$(cut -d : -f 2 <<< $line)
 	echo $PLUGIN
+    elif [ "$key" = "B" ]
+    then
+	BROADCAST=$(cut -d : -f 2 <<< $line)
+	echo $BROADCAST
     elif [ "$key" = "K" ]
     then
 	echo know node

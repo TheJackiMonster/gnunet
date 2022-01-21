@@ -124,7 +124,7 @@ notify_connect (void *cls,
   struct GNUNET_HashCode hc;
   struct GNUNET_CRYPTO_EddsaPublicKey public_key = peer->public_key;
 
-  void *ret = NULL;
+  void *ret = sps->handlers;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "This Peer %s \n",
@@ -150,7 +150,6 @@ notify_connect (void *cls,
   sps->notify_connect (sps->ac.is,
                        peer);
 
-  // TODO what does the handler function need?
   return ret;
 }
 
@@ -418,6 +417,7 @@ start_peer_traits (void *cls,
     GNUNET_TRANSPORT_make_trait_hello ((const void *) hello),
     GNUNET_TRANSPORT_make_trait_hello_size ((const void *) hello_size),
     GNUNET_TRANSPORT_make_trait_state ((const void *) sps),
+    GNUNET_TRANSPORT_make_trait_broadcast ((const void *) &sps->broadcast),
     GNUNET_TESTING_trait_end ()
   };
 
