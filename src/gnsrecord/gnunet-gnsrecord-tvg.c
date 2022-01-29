@@ -133,7 +133,7 @@ run_pkey (void)
   print_record (&rd[0]);
 
   rd[1].data = &pkey_data;
-  rd[1].data_size = sizeof (struct GNUNET_CRYPTO_EcdsaPublicKey);
+  rd[1].data_size = sizeof (struct GNUNET_IDENTITY_PublicKey);
   rd[1].expiration_time = exp_abs.abs_value_us;
   rd[1].record_type = GNUNET_GNSRECORD_TYPE_PKEY;
   rd[1].flags = GNUNET_GNSRECORD_RF_PRIVATE;
@@ -235,7 +235,7 @@ run_edkey (void)
   print_record (&rd[0]);
 
   rd[1].data = &pkey_data;
-  rd[1].data_size = sizeof (struct GNUNET_CRYPTO_EddsaPublicKey);
+  rd[1].data_size = sizeof (struct GNUNET_IDENTITY_PublicKey);
   rd[1].expiration_time = exp_abs.abs_value_us;
   rd[1].record_type = GNUNET_GNSRECORD_TYPE_EDKEY;
   rd[1].flags = GNUNET_GNSRECORD_RF_PRIVATE;
