@@ -222,8 +222,8 @@ run_edkey (void)
   GNUNET_IDENTITY_key_get_public (&id_priv,
                                   &id_pub);
   fprintf (stdout,
-           "Zone private key (d, big-endian):\n");
-  print_bytes_ (&id_priv.eddsa_key, sizeof (struct GNUNET_CRYPTO_EddsaPrivateKey), 8, 1);
+           "Zone private key (d):\n");
+  print_bytes (&id_priv.eddsa_key, sizeof (struct GNUNET_CRYPTO_EddsaPrivateKey), 8);
   fprintf (stdout, "\n");
   fprintf (stdout, "Zone identifier (ztype|zkey):\n");
   print_bytes (&id_pub, GNUNET_IDENTITY_key_get_length (&id_pub), 8);
