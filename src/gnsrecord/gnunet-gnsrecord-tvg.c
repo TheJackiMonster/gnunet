@@ -37,9 +37,10 @@
 #define TEST_RRCOUNT 2
 
 static void
-print_bytes (void *buf,
+print_bytes_ (void *buf,
              size_t buf_len,
-             int fold)
+             int fold,
+             int in_be)
 {
   int i;
 
@@ -47,9 +48,20 @@ print_bytes (void *buf,
   {
     if ((0 != i) && (0 != fold) && (i % fold == 0))
       printf ("\n");
-    printf ("%02x", ((unsigned char*) buf)[i]);
+    if (in_be)
+      printf ("%02x", ((unsigned char*) buf)[buf_len - 1 - i]);
+    else
+      printf ("%02x", ((unsigned char*) buf)[i]);
   }
   printf ("\n");
+}
+
+static void
+print_bytes (void *buf,
+             size_t buf_len,
+             int fold)
+{
+  print_bytes_ (buf, buf_len, fold, 0);
 }
 
 
@@ -95,6 +107,7 @@ run_pkey (void)
   size_t data_size;
   char *rdata;
   size_t rdata_size;
+  uint32_t rd_count_nbo;
   char ztld[128];
 
   id_priv.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
@@ -102,10 +115,10 @@ run_pkey (void)
   GNUNET_IDENTITY_key_get_public (&id_priv,
                                   &id_pub);
   fprintf (stdout,
-           "Zone private key (d, little-endian, with ztype prepended):\n");
-  print_bytes (&id_priv, GNUNET_IDENTITY_key_get_length (&id_pub), 8); // FIXME length for privkey?
+           "Zone private key (d, big-endian):\n");
+  print_bytes_ (&id_priv.ecdsa_key, sizeof (struct GNUNET_CRYPTO_EcdsaPrivateKey), 8, 1);
   fprintf (stdout, "\n");
-  fprintf (stdout, "Zone identifier (zid):\n");
+  fprintf (stdout, "Zone identifier (ztype|zkey):\n");
   print_bytes (&id_pub, GNUNET_IDENTITY_key_get_length (&id_pub), 8);
   GNUNET_STRINGS_data_to_string (&id_pub,
                                  GNUNET_IDENTITY_key_get_length (&id_pub),
@@ -143,10 +156,14 @@ run_pkey (void)
   rdata_size = GNUNET_GNSRECORD_records_get_size (2,
                                                   rd);
   rdata = GNUNET_malloc (rdata_size);
+  rd_count_nbo = htonl(2);
+  GNUNET_memcpy (rdata,
+                 &rd_count_nbo,
+                 sizeof (uint32_t));
   GNUNET_GNSRECORD_records_serialize (2,
                                       rd,
                                       rdata_size,
-                                      rdata);
+                                      rdata + sizeof (uint32_t));
   fprintf (stdout, "RDATA:\n");
   print_bytes (rdata, rdata_size, 8);
   fprintf (stdout, "\n");
@@ -197,6 +214,7 @@ run_edkey (void)
   size_t data_size;
   char *rdata;
   size_t rdata_size;
+  uint32_t rd_count_nbo;
   char ztld[128];
 
   id_priv.type = htonl (GNUNET_IDENTITY_TYPE_EDDSA);
@@ -204,10 +222,10 @@ run_edkey (void)
   GNUNET_IDENTITY_key_get_public (&id_priv,
                                   &id_pub);
   fprintf (stdout,
-           "Zone private key (d, little-endian, with ztype prepended):\n");
-  print_bytes (&id_priv, GNUNET_IDENTITY_key_get_length (&id_pub), 8); // FIXME length for privkey?
+           "Zone private key (d, big-endian):\n");
+  print_bytes_ (&id_priv.eddsa_key, sizeof (struct GNUNET_CRYPTO_EddsaPrivateKey), 8, 1);
   fprintf (stdout, "\n");
-  fprintf (stdout, "Zone identifier (zid):\n");
+  fprintf (stdout, "Zone identifier (ztype|zkey):\n");
   print_bytes (&id_pub, GNUNET_IDENTITY_key_get_length (&id_pub), 8);
   GNUNET_STRINGS_data_to_string (&id_pub,
                                  GNUNET_IDENTITY_key_get_length (&id_pub),
@@ -244,11 +262,15 @@ run_edkey (void)
 
   rdata_size = GNUNET_GNSRECORD_records_get_size (2,
                                                   rd);
-  rdata = GNUNET_malloc (rdata_size);
+  rdata = GNUNET_malloc (sizeof (uint32_t) + rdata_size);
+  rd_count_nbo = htonl(2);
+  GNUNET_memcpy (rdata,
+                 &rd_count_nbo,
+                 sizeof (uint32_t));
   GNUNET_GNSRECORD_records_serialize (2,
                                       rd,
                                       rdata_size,
-                                      rdata);
+                                      rdata + sizeof (uint32_t));
   fprintf (stdout, "RDATA:\n");
   print_bytes (rdata, rdata_size, 8);
   fprintf (stdout, "\n");
