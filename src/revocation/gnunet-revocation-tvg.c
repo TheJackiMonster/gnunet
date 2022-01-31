@@ -35,9 +35,10 @@
 #define TEST_DIFFICULTY 5
 
 static void
-print_bytes (void *buf,
+print_bytes_ (void *buf,
              size_t buf_len,
-             int fold)
+             int fold,
+             int in_be)
 {
   int i;
 
@@ -45,10 +46,22 @@ print_bytes (void *buf,
   {
     if ((0 != i) && (0 != fold) && (i % fold == 0))
       printf ("\n");
-    printf ("%02x", ((unsigned char*) buf)[i]);
+    if (in_be)
+      printf ("%02x", ((unsigned char*) buf)[buf_len - 1 - i]);
+    else
+      printf ("%02x", ((unsigned char*) buf)[i]);
   }
   printf ("\n");
 }
+
+static void
+print_bytes (void *buf,
+             size_t buf_len,
+             int fold)
+{
+  print_bytes_ (buf, buf_len, fold, 0);
+}
+
 
 
 /**
@@ -80,8 +93,8 @@ run (void *cls,
                                  GNUNET_IDENTITY_key_get_length (&id_pub),
                                  ztld,
                                  sizeof (ztld));
-  fprintf (stdout, "Zone private key (d, little-endian scalar, with ztype prepended):\n");
-  print_bytes (&id_priv, sizeof(id_priv), 8);
+  fprintf (stdout, "Zone private key (d, big-endian scalar, with ztype prepended):\n");
+  print_bytes_ (&id_priv.ecdsa_key, sizeof(id_priv.ecdsa_key), 8, 1);
   fprintf (stdout, "\n");
   fprintf (stdout, "Zone identifier (zid):\n");
   print_bytes (&id_pub, GNUNET_IDENTITY_key_get_length (&id_pub), 8);
