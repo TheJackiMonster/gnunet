@@ -199,7 +199,7 @@ run_pkey (void)
   fprintf (stdout, "\n");
   fprintf (stdout, "Encryption key (K):\n");
   print_bytes (skey, sizeof (skey), 8);
-
+  fprintf (stdout, "\n");
 
   rrblock = GNUNET_GNSRECORD_block_create (&id_priv,
                                            expire,
