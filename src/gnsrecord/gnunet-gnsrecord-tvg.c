@@ -96,7 +96,12 @@ static void
 run_pkey (void)
 {
   struct GNUNET_GNSRECORD_Data rd[2];
-  struct GNUNET_TIME_Absolute exp_abs = GNUNET_TIME_absolute_get ();
+  struct GNUNET_TIME_Absolute expire;
+  struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
+  struct GNUNET_TIME_Absolute exp1;
+  struct GNUNET_TIME_Absolute exp2;
+  struct GNUNET_TIME_Relative delta1;
+  struct GNUNET_TIME_Relative delta2;
   struct GNUNET_GNSRECORD_Block *rrblock;
   char *bdata;
   struct GNUNET_IDENTITY_PrivateKey id_priv;
@@ -110,13 +115,23 @@ run_pkey (void)
   uint32_t rd_count_nbo;
   char ztld[128];
 
+  /*
+   * Make two different expiration times
+   */
+  delta1 = GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_YEARS,
+                                          420); //420 years
+  delta2 = GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_YEARS,
+                                          777); //777 years
+  exp1 = GNUNET_TIME_absolute_add (now, delta1);
+  exp2 = GNUNET_TIME_absolute_add (now, delta2);
+
   id_priv.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
   GNUNET_CRYPTO_ecdsa_key_create (&id_priv.ecdsa_key);
   GNUNET_IDENTITY_key_get_public (&id_priv,
                                   &id_pub);
   fprintf (stdout,
            "Zone private key (d, big-endian):\n");
-  print_bytes_ (&id_priv.ecdsa_key, sizeof (struct GNUNET_CRYPTO_EcdsaPrivateKey), 8, 1);
+  print_bytes (&id_priv.ecdsa_key, sizeof (struct GNUNET_CRYPTO_EcdsaPrivateKey), 8);
   fprintf (stdout, "\n");
   fprintf (stdout, "Zone identifier (ztype|zkey):\n");
   print_bytes (&id_pub, GNUNET_IDENTITY_key_get_length (&id_pub), 8);
@@ -140,20 +155,20 @@ run_pkey (void)
                    GNUNET_DNSPARSER_TYPE_A, TEST_RECORD_A, &data, &data_size));
   rd[0].data = data;
   rd[0].data_size = data_size;
-  rd[0].expiration_time = exp_abs.abs_value_us;
+  rd[0].expiration_time = exp1.abs_value_us;
   rd[0].record_type = GNUNET_DNSPARSER_TYPE_A;
   fprintf (stdout, "Record #0\n");
   print_record (&rd[0]);
 
   rd[1].data = &pkey_data;
   rd[1].data_size = sizeof (struct GNUNET_IDENTITY_PublicKey);
-  rd[1].expiration_time = exp_abs.abs_value_us;
+  rd[1].expiration_time = exp2.abs_value_us;
   rd[1].record_type = GNUNET_GNSRECORD_TYPE_PKEY;
   rd[1].flags = GNUNET_GNSRECORD_RF_PRIVATE;
   fprintf (stdout, "Record #1\n");
   print_record (&rd[1]);
 
-  rdata_size = GNUNET_GNSRECORD_records_get_size (2,
+  rdata_size = GNUNET_GNSRECORD_records_get_size (TEST_RRCOUNT,
                                                   rd);
   rdata = GNUNET_malloc (rdata_size);
   rd_count_nbo = htonl(2);
@@ -167,8 +182,9 @@ run_pkey (void)
   fprintf (stdout, "RDATA:\n");
   print_bytes (rdata, rdata_size, 8);
   fprintf (stdout, "\n");
+  expire = GNUNET_GNSRECORD_record_get_expiration_time (TEST_RRCOUNT, rd);
   rrblock = GNUNET_GNSRECORD_block_create (&id_priv,
-                                           exp_abs,
+                                           expire,
                                            TEST_RECORD_LABEL,
                                            rd,
                                            TEST_RRCOUNT);
@@ -203,7 +219,12 @@ static void
 run_edkey (void)
 {
   struct GNUNET_GNSRECORD_Data rd[2];
-  struct GNUNET_TIME_Absolute exp_abs = GNUNET_TIME_absolute_get ();
+  struct GNUNET_TIME_Absolute expire;
+  struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
+  struct GNUNET_TIME_Absolute exp1;
+  struct GNUNET_TIME_Absolute exp2;
+  struct GNUNET_TIME_Relative delta1;
+  struct GNUNET_TIME_Relative delta2;
   struct GNUNET_GNSRECORD_Block *rrblock;
   char *bdata;
   struct GNUNET_IDENTITY_PrivateKey id_priv;
@@ -216,6 +237,21 @@ run_edkey (void)
   size_t rdata_size;
   uint32_t rd_count_nbo;
   char ztld[128];
+
+  /*
+   * Make two different expiration times
+   */
+  delta1 = GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_YEARS,
+                                          420); //420 years
+  delta2 = GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_YEARS,
+                                          777); //777 years
+  exp1 = GNUNET_TIME_absolute_add (now, delta1);
+  exp2 = GNUNET_TIME_absolute_add (now, delta2);
+
+  id_priv.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
+  GNUNET_CRYPTO_ecdsa_key_create (&id_priv.ecdsa_key);
+  GNUNET_IDENTITY_key_get_public (&id_priv,
+                                  &id_pub);
 
   id_priv.type = htonl (GNUNET_IDENTITY_TYPE_EDDSA);
   GNUNET_CRYPTO_eddsa_key_create (&id_priv.eddsa_key);
@@ -247,21 +283,23 @@ run_edkey (void)
                    GNUNET_DNSPARSER_TYPE_A, TEST_RECORD_A, &data, &data_size));
   rd[0].data = data;
   rd[0].data_size = data_size;
-  rd[0].expiration_time = exp_abs.abs_value_us;
+  rd[0].expiration_time = exp1.abs_value_us;
   rd[0].record_type = GNUNET_DNSPARSER_TYPE_A;
   fprintf (stdout, "Record #0\n");
   print_record (&rd[0]);
 
   rd[1].data = &pkey_data;
   rd[1].data_size = sizeof (struct GNUNET_IDENTITY_PublicKey);
-  rd[1].expiration_time = exp_abs.abs_value_us;
+  rd[1].expiration_time = exp2.abs_value_us;
   rd[1].record_type = GNUNET_GNSRECORD_TYPE_EDKEY;
   rd[1].flags = GNUNET_GNSRECORD_RF_PRIVATE;
   fprintf (stdout, "Record #1\n");
   print_record (&rd[1]);
 
-  rdata_size = GNUNET_GNSRECORD_records_get_size (2,
+  rdata_size = GNUNET_GNSRECORD_records_get_size (TEST_RRCOUNT,
                                                   rd);
+  expire = GNUNET_GNSRECORD_record_get_expiration_time (TEST_RRCOUNT,
+                                                        rd);
   rdata = GNUNET_malloc (sizeof (uint32_t) + rdata_size);
   rd_count_nbo = htonl(2);
   GNUNET_memcpy (rdata,
@@ -275,7 +313,7 @@ run_edkey (void)
   print_bytes (rdata, rdata_size, 8);
   fprintf (stdout, "\n");
   rrblock = GNUNET_GNSRECORD_block_create (&id_priv,
-                                           exp_abs,
+                                           expire,
                                            TEST_RECORD_LABEL,
                                            rd,
                                            TEST_RRCOUNT);
