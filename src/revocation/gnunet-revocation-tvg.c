@@ -93,7 +93,7 @@ run (void *cls,
                                  GNUNET_IDENTITY_key_get_length (&id_pub),
                                  ztld,
                                  sizeof (ztld));
-  fprintf (stdout, "Zone private key (d, big-endian scalar, with ztype prepended):\n");
+  fprintf (stdout, "Zone private key (d, big-endian scalar):\n");
   print_bytes_ (&id_priv.ecdsa_key, sizeof(id_priv.ecdsa_key), 8, 1);
   fprintf (stdout, "\n");
   fprintf (stdout, "Zone identifier (ztype|zkey):\n");
