@@ -109,6 +109,7 @@ run_pkey (void)
   struct GNUNET_IDENTITY_PublicKey id_pub;
   struct GNUNET_IDENTITY_PrivateKey pkey_data_p;
   struct GNUNET_IDENTITY_PublicKey pkey_data;
+  struct GNUNET_HashCode query;
   void *data;
   size_t data_size;
   char *rdata;
@@ -200,6 +201,12 @@ run_pkey (void)
   fprintf (stdout, "Encryption key (K):\n");
   print_bytes (skey, sizeof (skey), 8);
   fprintf (stdout, "\n");
+  GNUNET_GNSRECORD_query_from_public_key (&id_pub,
+                                          TEST_RECORD_LABEL,
+                                          &query);
+  fprintf (stdout, "Storage key (q):\n");
+  print_bytes (&query, sizeof (query), 8);
+  fprintf (stdout, "\n");
 
   rrblock = GNUNET_GNSRECORD_block_create (&id_priv,
                                            expire,
@@ -249,6 +256,7 @@ run_edkey (void)
   struct GNUNET_IDENTITY_PublicKey id_pub;
   struct GNUNET_IDENTITY_PrivateKey pkey_data_p;
   struct GNUNET_IDENTITY_PublicKey pkey_data;
+  struct GNUNET_HashCode query;
   void *data;
   size_t data_size;
   char *rdata;
@@ -344,6 +352,12 @@ run_edkey (void)
   fprintf (stdout, "\n");
   fprintf (stdout, "Encryption key (K):\n");
   print_bytes (skey, sizeof (skey), 8);
+  fprintf (stdout, "\n");
+  GNUNET_GNSRECORD_query_from_public_key (&id_pub,
+                                          TEST_RECORD_LABEL,
+                                          &query);
+  fprintf (stdout, "Storage key (q):\n");
+  print_bytes (&query, sizeof (query), 8);
   fprintf (stdout, "\n");
 
   rrblock = GNUNET_GNSRECORD_block_create (&id_priv,
