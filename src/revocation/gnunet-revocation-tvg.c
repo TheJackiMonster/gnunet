@@ -96,7 +96,7 @@ run (void *cls,
   fprintf (stdout, "Zone private key (d, big-endian scalar, with ztype prepended):\n");
   print_bytes_ (&id_priv.ecdsa_key, sizeof(id_priv.ecdsa_key), 8, 1);
   fprintf (stdout, "\n");
-  fprintf (stdout, "Zone identifier (zid):\n");
+  fprintf (stdout, "Zone identifier (ztype|zkey):\n");
   print_bytes (&id_pub, GNUNET_IDENTITY_key_get_length (&id_pub), 8);
   fprintf (stdout, "\n");
   fprintf (stdout, "Encoded zone identifier (zkl = zTLD):\n");
