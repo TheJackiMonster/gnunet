@@ -134,8 +134,8 @@ run_pkey (void)
                                   &id_pub);
   fprintf (stdout,
            "Zone private key (d, big-endian):\n");
-  print_bytes (&id_priv.ecdsa_key, sizeof (struct
-                                           GNUNET_CRYPTO_EcdsaPrivateKey), 8);
+  print_bytes_ (&id_priv.ecdsa_key,
+                sizeof (struct GNUNET_CRYPTO_EcdsaPrivateKey), 8, 1);
   fprintf (stdout, "\n");
   fprintf (stdout, "Zone identifier (ztype|zkey):\n");
   print_bytes (&id_pub, GNUNET_IDENTITY_key_get_length (&id_pub), 8);
