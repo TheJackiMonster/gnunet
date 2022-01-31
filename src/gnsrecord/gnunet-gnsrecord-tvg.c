@@ -31,6 +31,7 @@
 #include "gnunet_dnsparser_lib.h"
 #include "gnunet_testing_lib.h"
 #include <inttypes.h>
+#include "gnsrecord_crypto.h"
 
 #define TEST_RECORD_LABEL "test"
 #define TEST_RECORD_A "1.2.3.4"
@@ -38,9 +39,9 @@
 
 static void
 print_bytes_ (void *buf,
-             size_t buf_len,
-             int fold,
-             int in_be)
+              size_t buf_len,
+              int fold,
+              int in_be)
 {
   int i;
 
@@ -114,14 +115,16 @@ run_pkey (void)
   size_t rdata_size;
   uint32_t rd_count_nbo;
   char ztld[128];
+  unsigned char ctr[GNUNET_CRYPTO_AES_KEY_LENGTH / 2];
+  unsigned char skey[GNUNET_CRYPTO_AES_KEY_LENGTH];
 
   /*
    * Make two different expiration times
    */
   delta1 = GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_YEARS,
-                                          420); //420 years
+                                          420); // 420 years
   delta2 = GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_YEARS,
-                                          777); //777 years
+                                          777); // 777 years
   exp1 = GNUNET_TIME_absolute_add (now, delta1);
   exp2 = GNUNET_TIME_absolute_add (now, delta2);
 
@@ -131,7 +134,8 @@ run_pkey (void)
                                   &id_pub);
   fprintf (stdout,
            "Zone private key (d, big-endian):\n");
-  print_bytes (&id_priv.ecdsa_key, sizeof (struct GNUNET_CRYPTO_EcdsaPrivateKey), 8);
+  print_bytes (&id_priv.ecdsa_key, sizeof (struct
+                                           GNUNET_CRYPTO_EcdsaPrivateKey), 8);
   fprintf (stdout, "\n");
   fprintf (stdout, "Zone identifier (ztype|zkey):\n");
   print_bytes (&id_pub, GNUNET_IDENTITY_key_get_length (&id_pub), 8);
@@ -171,7 +175,7 @@ run_pkey (void)
   rdata_size = GNUNET_GNSRECORD_records_get_size (TEST_RRCOUNT,
                                                   rd);
   rdata = GNUNET_malloc (rdata_size);
-  rd_count_nbo = htonl(2);
+  rd_count_nbo = htonl (2);
   GNUNET_memcpy (rdata,
                  &rd_count_nbo,
                  sizeof (uint32_t));
@@ -183,6 +187,20 @@ run_pkey (void)
   print_bytes (rdata, rdata_size, 8);
   fprintf (stdout, "\n");
   expire = GNUNET_GNSRECORD_record_get_expiration_time (TEST_RRCOUNT, rd);
+  GNR_derive_block_aes_key (ctr,
+                            skey,
+                            TEST_RECORD_LABEL,
+                            GNUNET_TIME_absolute_hton (
+                              expire).abs_value_us__,
+                            &id_pub.ecdsa_key);
+
+  fprintf (stdout, "Encryption NONCE|EXPIRATION|BLOCK COUNTER:\n");
+  print_bytes (ctr, sizeof (ctr), 8);
+  fprintf (stdout, "\n");
+  fprintf (stdout, "Encryption key (K):\n");
+  print_bytes (skey, sizeof (skey), 8);
+
+
   rrblock = GNUNET_GNSRECORD_block_create (&id_priv,
                                            expire,
                                            TEST_RECORD_LABEL,
@@ -237,14 +255,16 @@ run_edkey (void)
   size_t rdata_size;
   uint32_t rd_count_nbo;
   char ztld[128];
+  unsigned char nonce[crypto_secretbox_NONCEBYTES];
+  unsigned char skey[crypto_secretbox_KEYBYTES];
 
   /*
    * Make two different expiration times
    */
   delta1 = GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_YEARS,
-                                          420); //420 years
+                                          420); // 420 years
   delta2 = GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_YEARS,
-                                          777); //777 years
+                                          777); // 777 years
   exp1 = GNUNET_TIME_absolute_add (now, delta1);
   exp2 = GNUNET_TIME_absolute_add (now, delta2);
 
@@ -259,7 +279,8 @@ run_edkey (void)
                                   &id_pub);
   fprintf (stdout,
            "Zone private key (d):\n");
-  print_bytes (&id_priv.eddsa_key, sizeof (struct GNUNET_CRYPTO_EddsaPrivateKey), 8);
+  print_bytes (&id_priv.eddsa_key, sizeof (struct
+                                           GNUNET_CRYPTO_EddsaPrivateKey), 8);
   fprintf (stdout, "\n");
   fprintf (stdout, "Zone identifier (ztype|zkey):\n");
   print_bytes (&id_pub, GNUNET_IDENTITY_key_get_length (&id_pub), 8);
@@ -301,7 +322,7 @@ run_edkey (void)
   expire = GNUNET_GNSRECORD_record_get_expiration_time (TEST_RRCOUNT,
                                                         rd);
   rdata = GNUNET_malloc (sizeof (uint32_t) + rdata_size);
-  rd_count_nbo = htonl(2);
+  rd_count_nbo = htonl (2);
   GNUNET_memcpy (rdata,
                  &rd_count_nbo,
                  sizeof (uint32_t));
@@ -312,6 +333,19 @@ run_edkey (void)
   fprintf (stdout, "RDATA:\n");
   print_bytes (rdata, rdata_size, 8);
   fprintf (stdout, "\n");
+  GNR_derive_block_xsalsa_key (nonce,
+                               skey,
+                               TEST_RECORD_LABEL,
+                               GNUNET_TIME_absolute_hton (
+                                 expire).abs_value_us__,
+                               &id_pub.eddsa_key);
+  fprintf (stdout, "Encryption NONCE|EXPIRATION:\n");
+  print_bytes (nonce, sizeof (nonce), 8);
+  fprintf (stdout, "\n");
+  fprintf (stdout, "Encryption key (K):\n");
+  print_bytes (skey, sizeof (skey), 8);
+  fprintf (stdout, "\n");
+
   rrblock = GNUNET_GNSRECORD_block_create (&id_priv,
                                            expire,
                                            TEST_RECORD_LABEL,
@@ -350,8 +384,8 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
-  run_pkey();
-  run_edkey();
+  run_pkey ();
+  run_edkey ();
 }
 
 
