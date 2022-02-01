@@ -459,6 +459,21 @@ GNUNET_IDENTITY_signature_get_length (const struct
 
 
 /**
+ * Get the compacted length of a signature by type.
+ * Compacted means that it returns the minimum number of bytes this
+ * signature is long, as opposed to the union structure inside
+ * #GNUNET_IDENTITY_Signature.
+ * Useful for compact serializations.
+ *
+ * @param sig the signature.
+ * @return -1 on error, else the compacted length of the signature.
+ */
+ssize_t
+GNUNET_IDENTITY_signature_get_raw_length_by_type (const uint32_t type);
+
+
+
+/**
  * Reads a #GNUNET_IDENTITY_Signature from a compact buffer.
  * The buffer has to contain at least the compacted length of
  * a #GNUNET_IDENTITY_Signature in bytes.
@@ -516,6 +531,26 @@ GNUNET_IDENTITY_sign_ (const struct
                        GNUNET_CRYPTO_EccSignaturePurpose *purpose,
                        struct GNUNET_IDENTITY_Signature *sig);
 
+/**
+ * @brief Sign a given block.
+ *
+ * The @a purpose data is the beginning of the data of which the signature is
+ * to be created. The `size` field in @a purpose must correctly indicate the
+ * number of bytes of the data structure, including its header.
+ * The signature payload and length depends on the key type.
+ *
+ * @param priv private key to use for the signing
+ * @param purpose what to sign (size, purpose)
+ * @param[out] sig where to write the signature
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_IDENTITY_sign_raw_ (const struct
+                           GNUNET_IDENTITY_PrivateKey *priv,
+                           const struct
+                           GNUNET_CRYPTO_EccSignaturePurpose *purpose,
+                           unsigned char *sig);
+
 
 /**
  * @brief Sign a given block with #GNUNET_IDENTITY_PrivateKey.
@@ -565,6 +600,30 @@ GNUNET_IDENTITY_signature_verify_ (uint32_t purpose,
                                    const struct GNUNET_IDENTITY_Signature *sig,
                                    const struct
                                    GNUNET_IDENTITY_PublicKey *pub);
+
+/**
+ * @brief Verify a given signature.
+ *
+ * The @a validate data is the beginning of the data of which the signature
+ * is to be verified. The `size` field in @a validate must correctly indicate
+ * the number of bytes of the data structure, including its header.  If @a
+ * purpose does not match the purpose given in @a validate (the latter must be
+ * in big endian), signature verification fails.
+ *
+ * @param purpose what is the purpose that the signature should have?
+ * @param validate block to validate (size, purpose, data)
+ * @param sig signature that is being validated
+ * @param pub public key of the signer
+ * @returns #GNUNET_OK if ok, #GNUNET_SYSERR if invalid
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_IDENTITY_signature_verify_raw_ (uint32_t purpose,
+                                       const struct
+                                       GNUNET_CRYPTO_EccSignaturePurpose *
+                                       validate,
+                                       const unsigned char *sig,
+                                       const struct
+                                       GNUNET_IDENTITY_PublicKey *pub);
 
 
 /**

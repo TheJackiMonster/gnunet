@@ -1063,6 +1063,25 @@ GNUNET_IDENTITY_signature_get_length (const struct
 
 
 ssize_t
+GNUNET_IDENTITY_signature_get_raw_length_by_type (uint32_t type)
+{
+  switch (ntohl (type))
+  {
+  case GNUNET_IDENTITY_TYPE_ECDSA:
+    return sizeof (struct GNUNET_CRYPTO_EcdsaSignature);
+    break;
+  case GNUNET_IDENTITY_TYPE_EDDSA:
+    return sizeof (struct GNUNET_CRYPTO_EddsaSignature);
+    break;
+  default:
+    GNUNET_break (0);
+  }
+  return -1;
+}
+
+
+
+ssize_t
 GNUNET_IDENTITY_read_signature_from_buffer (struct
                                             GNUNET_IDENTITY_Signature *sig,
                                             const void*buffer,
@@ -1098,6 +1117,31 @@ GNUNET_IDENTITY_write_signature_to_buffer (const struct
                  - sizeof (sig->type));
   return length;
 }
+
+enum GNUNET_GenericReturnValue
+GNUNET_IDENTITY_sign_raw_ (const struct
+                           GNUNET_IDENTITY_PrivateKey *priv,
+                           const struct
+                           GNUNET_CRYPTO_EccSignaturePurpose *purpose,
+                           unsigned char *sig)
+{
+  switch (ntohl (priv->type))
+  {
+  case GNUNET_IDENTITY_TYPE_ECDSA:
+    return GNUNET_CRYPTO_ecdsa_sign_ (&(priv->ecdsa_key), purpose,
+                                      (struct GNUNET_CRYPTO_EcdsaSignature*)sig);
+    break;
+  case GNUNET_IDENTITY_TYPE_EDDSA:
+    return GNUNET_CRYPTO_eddsa_sign_ (&(priv->eddsa_key), purpose,
+                                      (struct GNUNET_CRYPTO_EddsaSignature*)sig);
+    break;
+  default:
+    GNUNET_break (0);
+  }
+
+  return GNUNET_SYSERR;
+}
+
 
 
 enum GNUNET_GenericReturnValue
@@ -1153,6 +1197,37 @@ GNUNET_IDENTITY_signature_verify_ (uint32_t purpose,
 
   return GNUNET_SYSERR;
 }
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_IDENTITY_signature_verify_raw_ (uint32_t purpose,
+                                       const struct
+                                       GNUNET_CRYPTO_EccSignaturePurpose *
+                                       validate,
+                                       const unsigned char *sig,
+                                       const struct
+                                       GNUNET_IDENTITY_PublicKey *pub)
+{
+  switch (ntohl (pub->type))
+  {
+  case GNUNET_IDENTITY_TYPE_ECDSA:
+    return GNUNET_CRYPTO_ecdsa_verify_ (purpose, validate,
+                                        (struct GNUNET_CRYPTO_EcdsaSignature*)sig,
+                                        &(pub->ecdsa_key));
+    break;
+  case GNUNET_IDENTITY_TYPE_EDDSA:
+    return GNUNET_CRYPTO_eddsa_verify_ (purpose, validate,
+                                        (struct GNUNET_CRYPTO_EddsaSignature*)sig,
+                                        &(pub->eddsa_key));
+    break;
+  default:
+    GNUNET_break (0);
+  }
+
+  return GNUNET_SYSERR;
+}
+
+
 
 
 ssize_t

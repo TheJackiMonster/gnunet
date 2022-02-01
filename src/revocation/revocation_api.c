@@ -410,7 +410,7 @@ check_signature_identity (const struct GNUNET_REVOCATION_PowP *pow,
                           const struct GNUNET_IDENTITY_PublicKey *key)
 {
   struct GNUNET_REVOCATION_SignaturePurposePS *spurp;
-  struct GNUNET_IDENTITY_Signature *sig;
+  unsigned char *sig;
   const struct GNUNET_IDENTITY_PublicKey *pk;
   size_t ksize;
 
@@ -427,12 +427,12 @@ check_signature_identity (const struct GNUNET_REVOCATION_PowP *pow,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Expected signature payload len: %u\n",
               ntohl (spurp->purpose.size));
-  sig = (struct GNUNET_IDENTITY_Signature *) ((char*) &pow[1] + ksize);
+  sig = ((unsigned char*) &pow[1] + ksize);
   if (GNUNET_OK !=
-      GNUNET_IDENTITY_signature_verify_ (GNUNET_SIGNATURE_PURPOSE_REVOCATION,
-                                         &spurp->purpose,
-                                         sig,
-                                         key))
+      GNUNET_IDENTITY_signature_verify_raw_ (GNUNET_SIGNATURE_PURPOSE_REVOCATION,
+                                             &spurp->purpose,
+                                             sig,
+                                             key))
   {
     return GNUNET_SYSERR;
   }
@@ -588,9 +588,9 @@ sign_pow_identity (const struct GNUNET_IDENTITY_PrivateKey *key,
                                        ((char*) &rp[1]),
                                        ksize);
   sig = ((char*) &pow[1]) + ksize;
-  int result = GNUNET_IDENTITY_sign_ (key,
-                                      &rp->purpose,
-                                      (void*) sig);
+  int result = GNUNET_IDENTITY_sign_raw_ (key,
+                                          &rp->purpose,
+                                          (void*) sig);
   if (result == GNUNET_SYSERR)
     return GNUNET_NO;
   else
@@ -768,7 +768,7 @@ GNUNET_REVOCATION_proof_get_size (const struct GNUNET_REVOCATION_PowP *pow)
   ksize = GNUNET_IDENTITY_key_get_length (pk);
   size += ksize;
   sig = (struct GNUNET_IDENTITY_Signature *) ((char*) &pow[1] + ksize);
-  size += GNUNET_IDENTITY_signature_get_length (sig);
+  size += GNUNET_IDENTITY_signature_get_raw_length_by_type (pk->type);
   return size;
 }
 
