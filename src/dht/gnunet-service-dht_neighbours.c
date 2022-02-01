@@ -1610,12 +1610,26 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
     prm->expiration_time = GNUNET_TIME_absolute_hton (bd->expiration_time);
     prm->key = *query_hash;
     paths = (struct GNUNET_DHT_PathElement *) &prm[1];
-    GNUNET_memcpy (paths,
-                   bd->put_path,
-                   ppl * sizeof(struct GNUNET_DHT_PathElement));
-    GNUNET_memcpy (&paths[ppl],
-                   get_path,
-                   get_path_length * sizeof(struct GNUNET_DHT_PathElement));
+    if (NULL != bd->put_path)
+    {
+      GNUNET_memcpy (paths,
+                     bd->put_path,
+                     ppl * sizeof(struct GNUNET_DHT_PathElement));
+    }
+    else
+    {
+      GNUNET_assert (0 == ppl);
+    }
+    if (NULL != get_path)
+    {
+      GNUNET_memcpy (&paths[ppl],
+                     get_path,
+                     get_path_length * sizeof(struct GNUNET_DHT_PathElement));
+    }
+    else
+    {
+      GNUNET_assert (0 == get_path_length);
+    }
     /* 0 == get_path_length means path is not being tracked */
     if (0 != get_path_length)
     {
