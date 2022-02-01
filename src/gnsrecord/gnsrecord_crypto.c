@@ -159,8 +159,8 @@ GNR_derive_block_xsalsa_key (unsigned char *nonce,
                              uint64_t exp,
                              const struct GNUNET_CRYPTO_EddsaPublicKey *pub)
 {
-  static const char ctx_key[] = "gns-aes-ctx-key";
-  static const char ctx_iv[] = "gns-aes-ctx-iv";
+  static const char ctx_key[] = "gns-xsalsa-ctx-key";
+  static const char ctx_iv[] = "gns-xsalsa-ctx-iv";
 
   GNUNET_CRYPTO_kdf (key, crypto_secretbox_KEYBYTES,
                      ctx_key, strlen (ctx_key),
