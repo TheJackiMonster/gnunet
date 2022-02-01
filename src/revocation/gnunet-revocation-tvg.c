@@ -29,6 +29,7 @@
 #include "gnunet_revocation_service.h"
 #include "gnunet_dnsparser_lib.h"
 #include "gnunet_testing_lib.h"
+#include "revocation.h"
 #include <inttypes.h>
 
 #define TEST_EPOCHS 2
@@ -140,6 +141,15 @@ run (void *cls,
   {
     pow_passes++;
   }
+  struct GNUNET_REVOCATION_SignaturePurposePS *purp;
+  purp = REV_create_signature_message (pow);
+  fprintf (stdout, "Signed message:\n");
+  print_bytes (purp,
+               ntohl (purp->purpose.size),
+               8);
+  printf ("\n");
+  GNUNET_free (purp);
+
   exp = GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_YEARS,
                                        TEST_EPOCHS);
   GNUNET_assert (GNUNET_OK == GNUNET_REVOCATION_check_pow (pow,

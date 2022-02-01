@@ -113,5 +113,13 @@ struct RevocationResponseMessage
 
 GNUNET_NETWORK_STRUCT_END
 
+/**
+ * Create the revocation metadata to sign for a revocation message
+ *
+ * @param pow the PoW to sign
+ * @return the signature purpose
+ */
+struct GNUNET_REVOCATION_SignaturePurposePS *
+REV_create_signature_message (const struct GNUNET_REVOCATION_PowP *pow);
 
 #endif
