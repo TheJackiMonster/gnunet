@@ -185,7 +185,7 @@ run_pkey (void)
                                       rdata_size,
                                       rdata + sizeof (uint32_t));
   fprintf (stdout, "RDATA:\n");
-  print_bytes (rdata, rdata_size, 8);
+  print_bytes (rdata, rdata_size + sizeof (uint32_t), 8);
   fprintf (stdout, "\n");
   expire = GNUNET_GNSRECORD_record_get_expiration_time (TEST_RRCOUNT, rd);
   GNR_derive_block_aes_key (ctr,
@@ -339,7 +339,7 @@ run_edkey (void)
                                       rdata_size,
                                       rdata + sizeof (uint32_t));
   fprintf (stdout, "RDATA:\n");
-  print_bytes (rdata, rdata_size, 8);
+  print_bytes (rdata, rdata_size + sizeof (uint32_t), 8);
   fprintf (stdout, "\n");
   GNR_derive_block_xsalsa_key (nonce,
                                skey,
