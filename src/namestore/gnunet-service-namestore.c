@@ -1545,6 +1545,8 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
           cache_nick (&rp_msg->private_key, &rd[i]);
           have_nick = GNUNET_YES;
         }
+        if (GNUNET_YES == GNUNET_GNSRECORD_is_critical (rd[i].record_type))
+          rd_clean[i].flags |= GNUNET_GNSRECORD_RF_CRITICAL;
       }
       if ((0 == strcmp (GNUNET_GNS_EMPTY_LABEL_AT, conv_name)) &&
           (GNUNET_NO == have_nick))

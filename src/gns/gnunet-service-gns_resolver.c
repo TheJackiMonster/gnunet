@@ -2393,12 +2393,17 @@ handle_gns_resolution_result (void *cls,
                                &rd[0]);
     return;
 
-  default:
+  case GNUNET_GNSRECORD_TYPE_GNS2DNS:
     if (GNUNET_OK ==
         recursive_gns2dns_resolution (rh,
                                       rd_count,
                                       rd))
       return;
+  default:
+    if (GNUNET_YES != GNUNET_GNSRECORD_is_critical (rd[0].record_type))
+      return;
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                _ ("Unable to process critical delegation record\n"));
     break;
   }
 fail:

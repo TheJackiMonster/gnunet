@@ -323,6 +323,7 @@ static struct
                      { "VPN", GNUNET_GNSRECORD_TYPE_VPN },
                      { "GNS2DNS", GNUNET_GNSRECORD_TYPE_GNS2DNS },
                      { "BOX", GNUNET_GNSRECORD_TYPE_BOX },
+                     { "REDIRECT", GNUNET_GNSRECORD_TYPE_REDIRECT },
                      { NULL, UINT32_MAX } };
 
 
@@ -365,6 +366,19 @@ gns_number_to_typename (void *cls, uint32_t type)
 }
 
 
+static enum GNUNET_GenericReturnValue
+gns_is_critical (void *cls, uint32_t type)
+{
+  return ((type == GNUNET_GNSRECORD_TYPE_PKEY) ||
+          (type == GNUNET_GNSRECORD_TYPE_EDKEY) ||
+          (type == GNUNET_GNSRECORD_TYPE_GNS2DNS) ||
+          (type == GNUNET_GNSRECORD_TYPE_REDIRECT) ?
+          GNUNET_YES : GNUNET_NO);
+}
+
+
+
+
 /**
  * Entry point for the plugin.
  *
@@ -381,6 +395,7 @@ libgnunet_plugin_gnsrecord_gns_init (void *cls)
   api->string_to_value = &gns_string_to_value;
   api->typename_to_number = &gns_typename_to_number;
   api->number_to_typename = &gns_number_to_typename;
+  api->is_critical = &gns_is_critical;
   return api;
 }
 

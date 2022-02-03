@@ -562,7 +562,11 @@ convert_records_for_export (const struct GNUNET_GNSRECORD_Data *rd,
         GNUNET_MIN (rd[i].expiration_time,
                     min_relative_record_time.rel_value_us);
     }
-    rd_public[rd_public_count++] = rd[i];
+    rd_public[rd_public_count] = rd[i];
+    /* Make sure critical record types are published as such */
+    if (GNUNET_YES == GNUNET_GNSRECORD_is_critical (rd[i].record_type))
+      rd_public[rd_public_count].flags |= GNUNET_GNSRECORD_RF_CRITICAL;
+    rd_public_count++;
   }
   return rd_public_count;
 }

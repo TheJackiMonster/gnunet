@@ -700,6 +700,15 @@ GNUNET_GNSRECORD_data_from_identity (const struct
 enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_is_zonekey_type (uint32_t type);
 
+/**
+ * Check if this type is a critical record.
+ *
+ * @param type the type to check
+ * @return GNUNET_YES if it is critical.
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_is_critical (uint32_t type);
+
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {

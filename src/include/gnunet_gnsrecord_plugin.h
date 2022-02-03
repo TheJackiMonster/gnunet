@@ -105,6 +105,18 @@ typedef const char *
 (*GNUNET_GNSRECORD_NumberToTypenameFunction) (void *cls,
                                               uint32_t type);
 
+/**
+ * Function called to check for critical records.
+ *
+ * @param cls closure
+ * @param type number of a type to check
+ * @return GNUNET_YES if critical, otherwise GNUNET_NO
+ */
+typedef enum GNUNET_GenericReturnValue
+(*GNUNET_GNSRECORD_IsCriticalFunction) (void *cls,
+                                        uint32_t type);
+
+
 
 /**
  * Each plugin is required to return a pointer to a struct of this
@@ -136,6 +148,11 @@ struct GNUNET_GNSRECORD_PluginFunctions
    * Number to typename.
    */
   GNUNET_GNSRECORD_NumberToTypenameFunction number_to_typename;
+
+  /**
+   * Is critical.
+   */
+  GNUNET_GNSRECORD_IsCriticalFunction is_critical;
 };
 
 /** @} */  /* end of group */
