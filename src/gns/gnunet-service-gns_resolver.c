@@ -1235,16 +1235,16 @@ recursive_dns_resolution (struct GNS_ResolverHandle *rh)
 
 
 /**
- * We encountered a CNAME record during our resolution.
+ * We encountered a REDIRECT record during our resolution.
  * Merge it into our chain.
  *
  * @param rh resolution we are performing
- * @param cname value of the cname record we got for the current
+ * @param rname value of the redirect record we got for the current
  *        authority chain tail
  */
 static void
-handle_gns_cname_result (struct GNS_ResolverHandle *rh,
-                         const char *cname)
+handle_gns_redirect_result (struct GNS_ResolverHandle *rh,
+                         const char *rname)
 {
   size_t nlen;
   char *res;
@@ -1253,14 +1253,14 @@ handle_gns_cname_result (struct GNS_ResolverHandle *rh,
   int af;
   struct GNUNET_IDENTITY_PublicKey zone;
 
-  nlen = strlen (cname);
-  tld = GNS_get_tld (cname);
+  nlen = strlen (rname);
+  tld = GNS_get_tld (rname);
   if (0 == strcmp ("+", tld))
   {
-    /* CNAME resolution continues relative to current domain */
+    /* REDIRECT resolution continues relative to current domain */
     if (0 == rh->name_resolution_pos)
     {
-      res = GNUNET_strndup (cname, nlen - 2);
+      res = GNUNET_strndup (rname, nlen - 2);
       rh->name_resolution_pos = nlen - 2;
     }
     else
@@ -1270,7 +1270,7 @@ handle_gns_cname_result (struct GNS_ResolverHandle *rh,
                        (int) rh->name_resolution_pos,
                        rh->name,
                        (int) (nlen - 2),
-                       cname);
+                       rname);
       rh->name_resolution_pos = strlen (res);
     }
     GNUNET_free (rh->name);
@@ -1291,13 +1291,13 @@ handle_gns_cname_result (struct GNS_ResolverHandle *rh,
   }
   if (GNUNET_OK == GNUNET_GNSRECORD_zkey_to_pkey (tld, &zone))
   {
-    /* CNAME resolution continues relative to current domain */
+    /* REDIRECT resolution continues relative to current domain */
     if (0 == rh->name_resolution_pos)
     {
       GNUNET_asprintf (&res,
                        "%.*s",
-                       (int) (strlen (cname) - (strlen (tld) + 1)),
-                       cname);
+                       (int) (strlen (rname) - (strlen (tld) + 1)),
+                       rname);
     }
     else
     {
@@ -1305,8 +1305,8 @@ handle_gns_cname_result (struct GNS_ResolverHandle *rh,
                        "%.*s.%.*s",
                        (int) rh->name_resolution_pos,
                        rh->name,
-                       (int) (strlen (cname) - (strlen (tld) + 1)),
-                       cname);
+                       (int) (strlen (rname) - (strlen (tld) + 1)),
+                       rname);
     }
     rh->name_resolution_pos = strlen (res);
     GNUNET_free (rh->name);
@@ -1326,17 +1326,63 @@ handle_gns_cname_result (struct GNS_ResolverHandle *rh,
   }
 
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              "Got CNAME `%s' from GNS for `%s'\n",
-              cname,
+              "Got REDIRECT `%s' from GNS for `%s'\n",
+              rname,
               rh->name);
   if (NULL != rh->std_resolve)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Multiple CNAME results from GNS resolving `%s'! Not really allowed...\n",
+                "Multiple REDIRECT results from GNS resolving `%s'! Not really allowed...\n",
                 rh->name);
     GNUNET_RESOLVER_request_cancel (rh->std_resolve);
   }
   /* name is absolute, go to DNS */
+  GNUNET_free (rh->name);
+  rh->name = GNUNET_strdup (rname);
+  rh->name_resolution_pos = strlen (rh->name);
+  switch (rh->record_type)
+  {
+  case GNUNET_DNSPARSER_TYPE_A:
+    af = AF_INET;
+    break;
+
+  case GNUNET_DNSPARSER_TYPE_AAAA:
+    af = AF_INET6;
+    break;
+
+  default:
+    af = AF_UNSPEC;
+    break;
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Doing standard DNS lookup for `%s'\n",
+              rh->name);
+
+  rh->std_resolve = GNUNET_RESOLVER_ip_get (rh->name,
+                                            af,
+                                            DNS_LOOKUP_TIMEOUT,
+                                            &handle_dns_result,
+                                            rh);
+}
+
+
+
+/**
+ * We encountered a CNAME record during our resolution.
+ * Merge it into our chain.
+ *
+ * @param rh resolution we are performing
+ * @param cname value of the cname record we got for the current
+ *        authority chain tail
+ */
+static void
+handle_gns_cname_result (struct GNS_ResolverHandle *rh,
+                         const char *cname)
+{
+  struct AuthorityChain *ac;
+  int af;
+  struct GNUNET_IDENTITY_PublicKey zone;
+
   GNUNET_free (rh->name);
   rh->name = GNUNET_strdup (cname);
   rh->name_resolution_pos = strlen (rh->name);
@@ -1651,6 +1697,20 @@ handle_gns2dns_ip (void *cls,
       GNUNET_DNSSTUB_add_dns_sa (ac->authority_info.dns_authority.dns_handle,
                                  (struct sockaddr *) &ss))
     ac->authority_info.dns_authority.found = GNUNET_YES;
+}
+
+/**
+ * We found a REDIRECT record, perform recursive resolution on it.
+ *
+ * @param rh resolution handle
+ * @param rd record with CNAME to resolve recursively
+ */
+static void
+recursive_redirect_resolution (struct GNS_ResolverHandle *rh,
+                               const struct GNUNET_GNSRECORD_Data *rd)
+{
+  handle_gns_redirect_result (rh,
+                              rd->data);
 }
 
 
@@ -2006,6 +2066,16 @@ handle_gns_resolution_result (void *cls,
       GNUNET_free (cname);
       return;
     }
+    if ((rd_count > 0) &&
+        (GNUNET_GNSRECORD_TYPE_REDIRECT == rd[0].record_type) &&
+        (GNUNET_GNSRECORD_TYPE_REDIRECT != rh->record_type))
+    {
+      handle_gns_cname_result (rh,
+                               rd[0].data);
+      return;
+    }
+
+
     /* If A/AAAA was requested, but we got a VPN
        record, we convert it to A/AAAA using GNUnet VPN */
     if ((GNUNET_DNSPARSER_TYPE_A == rh->record_type) ||
@@ -2117,6 +2187,23 @@ handle_gns_resolution_result (void *cls,
          so we can free it afterwards. */
       switch (rd[i].record_type)
       {
+      case GNUNET_GNSRECORD_TYPE_REDIRECT:
+        {
+          char *rname;
+          rname = GNUNET_strndup (rd[i].data, rd[i].data_size);
+          rname = translate_dot_plus (rh, rname);
+          GNUNET_break (NULL != rname);
+          scratch_start = scratch_off;
+          memcpy (&scratch[scratch_start], rname, strlen (rname) + 1);
+          scratch_off += strlen (rname) + 1;
+          GNUNET_assert (rd_off < rd_count);
+          rd_new[rd_off].data = &scratch[scratch_start];
+          rd_new[rd_off].data_size = scratch_off - scratch_start;
+          rd_off++;
+          GNUNET_free (rname);
+        }
+        break;
+
       case GNUNET_DNSPARSER_TYPE_CNAME:
         {
           char *cname;
@@ -2380,6 +2467,12 @@ handle_gns_resolution_result (void *cls,
 
   switch (rd[0].record_type)
   {
+  case GNUNET_GNSRECORD_TYPE_REDIRECT:
+    GNUNET_break_op (1 == rd_count);  /* REDIRECT should be unique */
+    recursive_redirect_resolution (rh,
+                                   &rd[0]);
+    return;
+
   case GNUNET_DNSPARSER_TYPE_CNAME:
     GNUNET_break_op (1 == rd_count);  /* CNAME should be unique */
     recursive_cname_resolution (rh,

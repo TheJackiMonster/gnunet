@@ -64,8 +64,7 @@ gns_value_to_string (void *cls,
     return GNUNET_IDENTITY_public_key_to_string (&pk);
 
   case GNUNET_GNSRECORD_TYPE_NICK:
-    return GNUNET_strndup (data, data_size);
-
+  case GNUNET_GNSRECORD_TYPE_REDIRECT:
   case GNUNET_GNSRECORD_TYPE_LEHO:
     return GNUNET_strndup (data, data_size);
 
@@ -190,10 +189,7 @@ gns_string_to_value (void *cls,
     return GNUNET_OK;
 
   case GNUNET_GNSRECORD_TYPE_NICK:
-    *data = GNUNET_strdup (s);
-    *data_size = strlen (s);
-    return GNUNET_OK;
-
+  case GNUNET_GNSRECORD_TYPE_REDIRECT:
   case GNUNET_GNSRECORD_TYPE_LEHO:
     *data = GNUNET_strdup (s);
     *data_size = strlen (s);
