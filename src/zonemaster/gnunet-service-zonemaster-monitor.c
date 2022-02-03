@@ -255,17 +255,19 @@ perform_dht_put (const struct GNUNET_IDENTITY_PrivateKey *key,
   expire = GNUNET_GNSRECORD_record_get_expiration_time (rd_public_count,
                                                         rd_public);
   if (cache_keys)
-    block = GNUNET_GNSRECORD_block_create2 (key,
-                                            expire,
-                                            label,
-                                            rd_public,
-                                            rd_public_count);
+    GNUNET_assert (GNUNET_OK == GNUNET_GNSRECORD_block_create2 (key,
+                                                                expire,
+                                                                label,
+                                                                rd_public,
+                                                                rd_public_count,
+                                                                &block));
   else
-    block = GNUNET_GNSRECORD_block_create (key,
-                                           expire,
-                                           label,
-                                           rd_public,
-                                           rd_public_count);
+    GNUNET_assert (GNUNET_OK == GNUNET_GNSRECORD_block_create (key,
+                                                               expire,
+                                                               label,
+                                                               rd_public,
+                                                               rd_public_count,
+                                                               &block));
   if (NULL == block)
   {
     GNUNET_break (0);

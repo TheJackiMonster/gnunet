@@ -950,11 +950,13 @@ refresh_block (struct NamestoreClient *nc,
   }
   exp_time = GNUNET_GNSRECORD_record_get_expiration_time (res_count, res);
   if (cache_keys)
-    block =
-      GNUNET_GNSRECORD_block_create2 (zone_key, exp_time, name, res, res_count);
+    GNUNET_assert (GNUNET_OK ==
+      GNUNET_GNSRECORD_block_create2 (zone_key, exp_time, name,
+                                      res, res_count, &block));
   else
-    block =
-      GNUNET_GNSRECORD_block_create (zone_key, exp_time, name, res, res_count);
+    GNUNET_assert (GNUNET_OK ==
+      GNUNET_GNSRECORD_block_create (zone_key, exp_time, name,
+                                     res, res_count, &block));
   GNUNET_assert (NULL != block);
   GNUNET_IDENTITY_key_get_public (zone_key, &pkey);
   GNUNET_log (
