@@ -52,7 +52,6 @@
 #include "gns.h"
 #include "gnunet-service-gns.h"
 #include "gnunet-service-gns_resolver.h"
-#include "gnunet_vpn_service.h"
 
 
 /**
@@ -66,11 +65,6 @@
  */
 #define DNS_LOOKUP_TIMEOUT GNUNET_TIME_relative_multiply ( \
     GNUNET_TIME_UNIT_SECONDS, 15)
-
-/**
- * Default timeout for VPN redirections.
- */
-#define VPN_TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 30)
 
 /**
  * DHT replication level
@@ -255,38 +249,6 @@ struct DnsResult
 
 
 /**
- * Closure for #vpn_allocation_cb.
- */
-struct VpnContext
-{
-  /**
-   * Which resolution process are we processing.
-   */
-  struct GNS_ResolverHandle *rh;
-
-  /**
-   * Handle to the VPN request that we were performing.
-   */
-  struct GNUNET_VPN_RedirectionRequest *vpn_request;
-
-  /**
-   * Number of records serialized in @e rd_data.
-   */
-  unsigned int rd_count;
-
-  /**
-   * Serialized records.
-   */
-  char *rd_data;
-
-  /**
-   * Number of bytes in @e rd_data.
-   */
-  ssize_t rd_data_size;
-};
-
-
-/**
  * Handle to a currently pending resolution.  On result (positive or
  * negative) the #GNS_ResultProcessor is called.
  */
@@ -322,10 +284,6 @@ struct GNS_ResolverHandle
    */
   struct GNUNET_DHT_GetHandle *get_handle;
 
-  /**
-   * Handle to a VPN request, NULL if none is active.
-   */
-  struct VpnContext *vpn_ctx;
 
   /**
    * Socket for a DNS request, NULL if none is active.
@@ -461,11 +419,6 @@ struct CacheOps
  * Our handle to the namecache service
  */
 static struct GNUNET_NAMECACHE_Handle *namecache_handle;
-
-/**
- * Our handle to the vpn service
- */
-static struct GNUNET_VPN_Handle *vpn_handle;
 
 /**
  * Resolver handle to the dht
@@ -1425,80 +1378,6 @@ handle_gns_resolution_result (void *cls,
                               const struct GNUNET_GNSRECORD_Data *rd);
 
 
-/**
- * Callback invoked from the VPN service once a redirection is
- * available.  Provides the IP address that can now be used to
- * reach the requested destination.  Replaces the "VPN" record
- * with the respective A/AAAA record and continues processing.
- *
- * @param cls closure
- * @param af address family, AF_INET or AF_INET6; AF_UNSPEC on error;
- *                will match 'result_af' from the request
- * @param address IP address (struct in_addr or struct in_addr6, depending on 'af')
- *                that the VPN allocated for the redirection;
- *                traffic to this IP will now be redirected to the
- *                specified target peer; NULL on error
- */
-static void
-vpn_allocation_cb (void *cls,
-                   int af,
-                   const void *address)
-{
-  struct VpnContext *vpn_ctx = cls;
-  struct GNS_ResolverHandle *rh = vpn_ctx->rh;
-  struct GNUNET_GNSRECORD_Data rd[vpn_ctx->rd_count];
-  unsigned int i;
-
-  vpn_ctx->vpn_request = NULL;
-  rh->vpn_ctx = NULL;
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_GNSRECORD_records_deserialize (
-                   (size_t) vpn_ctx->rd_data_size,
-                   vpn_ctx->rd_data,
-                   vpn_ctx->rd_count,
-                   rd));
-  for (i = 0; i < vpn_ctx->rd_count; i++)
-  {
-    if (GNUNET_GNSRECORD_TYPE_VPN == rd[i].record_type)
-    {
-      switch (af)
-      {
-      case AF_INET:
-        rd[i].record_type = GNUNET_DNSPARSER_TYPE_A;
-        rd[i].data_size = sizeof(struct in_addr);
-        rd[i].expiration_time = GNUNET_TIME_relative_to_absolute (
-          VPN_TIMEOUT).abs_value_us;
-        rd[i].flags = 0;
-        rd[i].data = address;
-        break;
-
-      case AF_INET6:
-        rd[i].record_type = GNUNET_DNSPARSER_TYPE_AAAA;
-        rd[i].expiration_time = GNUNET_TIME_relative_to_absolute (
-          VPN_TIMEOUT).abs_value_us;
-        rd[i].flags = 0;
-        rd[i].data = address;
-        rd[i].data_size = sizeof(struct in6_addr);
-        break;
-
-      default:
-        GNUNET_assert (0);
-      }
-      break;
-    }
-  }
-  GNUNET_assert (i < vpn_ctx->rd_count);
-  if (0 == vpn_ctx->rd_count)
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                _ ("VPN returned empty result for `%s'\n"),
-                rh->name);
-  handle_gns_resolution_result (rh,
-                                vpn_ctx->rd_count,
-                                rd);
-  GNUNET_free (vpn_ctx->rd_data);
-  GNUNET_free (vpn_ctx);
-}
-
 
 /**
  * We have resolved one or more of the nameservers for a
@@ -2016,10 +1895,6 @@ handle_gns_resolution_result (void *cls,
 {
   struct GNS_ResolverHandle *rh = cls;
   char *cname;
-  struct VpnContext *vpn_ctx;
-  const struct GNUNET_TUN_GnsVpnRecord *vpn;
-  const char *vname;
-  struct GNUNET_HashCode vhash;
   int af;
   char scratch[UINT16_MAX];
   size_t scratch_off;
@@ -2076,8 +1951,8 @@ handle_gns_resolution_result (void *cls,
     }
 
 
-    /* If A/AAAA was requested, but we got a VPN
-       record, we convert it to A/AAAA using GNUnet VPN */
+    /* If A/AAAA was requested,
+     * but we got a GNS2DNS record */
     if ((GNUNET_DNSPARSER_TYPE_A == rh->record_type) ||
         (GNUNET_DNSPARSER_TYPE_AAAA == rh->record_type))
     {
@@ -2085,69 +1960,6 @@ handle_gns_resolution_result (void *cls,
       {
         switch (rd[i].record_type)
         {
-        case GNUNET_GNSRECORD_TYPE_VPN:
-          {
-            af = (GNUNET_DNSPARSER_TYPE_A == rh->record_type) ? AF_INET :
-                 AF_INET6;
-            if (sizeof(struct GNUNET_TUN_GnsVpnRecord) >
-                rd[i].data_size)
-            {
-              GNUNET_break_op (0);
-              fail_resolution (rh);
-              return;
-            }
-            vpn = (const struct GNUNET_TUN_GnsVpnRecord *) rd[i].data;
-            vname = (const char *) &vpn[1];
-            if ('\0' != vname[rd[i].data_size - 1 - sizeof(struct
-                                                           GNUNET_TUN_GnsVpnRecord)
-                ])
-            {
-              GNUNET_break_op (0);
-              fail_resolution (rh);
-              return;
-            }
-            GNUNET_TUN_service_name_to_hash (vname,
-                                             &vhash);
-            GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                        "Attempting VPN allocation for %s-%s (AF: %d, proto %d)\n",
-                        GNUNET_i2s (&vpn->peer),
-                        vname,
-                        (int) af,
-                        (int) ntohs (vpn->proto));
-            vpn_ctx = GNUNET_new (struct VpnContext);
-            rh->vpn_ctx = vpn_ctx;
-            vpn_ctx->rh = rh;
-            vpn_ctx->rd_data_size = GNUNET_GNSRECORD_records_get_size (rd_count,
-                                                                       rd);
-            if (vpn_ctx->rd_data_size < 0)
-            {
-              GNUNET_break_op (0);
-              GNUNET_free (vpn_ctx);
-              fail_resolution (rh);
-              return;
-            }
-            vpn_ctx->rd_data = GNUNET_malloc ((size_t) vpn_ctx->rd_data_size);
-            vpn_ctx->rd_count = rd_count;
-            GNUNET_assert (vpn_ctx->rd_data_size ==
-                           GNUNET_GNSRECORD_records_serialize (rd_count,
-                                                               rd,
-                                                               (size_t) vpn_ctx
-                                                               ->rd_data_size,
-                                                               vpn_ctx->rd_data));
-            vpn_ctx->vpn_request = GNUNET_VPN_redirect_to_peer (vpn_handle,
-                                                                af,
-                                                                ntohs (
-                                                                  vpn->proto),
-                                                                &vpn->peer,
-                                                                &vhash,
-                                                                GNUNET_TIME_relative_to_absolute (
-                                                                  VPN_TIMEOUT),
-                                                                &
-                                                                vpn_allocation_cb,
-                                                                vpn_ctx);
-            return;
-          }
-
         case GNUNET_GNSRECORD_TYPE_GNS2DNS:
           {
             /* delegation to DNS */
@@ -3014,7 +2826,6 @@ GNS_resolver_lookup_cancel (struct GNS_ResolverHandle *rh)
 {
   struct DnsResult *dr;
   struct AuthorityChain *ac;
-  struct VpnContext *vpn_ctx;
 
   GNUNET_CONTAINER_DLL_remove (rlh_head,
                                rlh_tail,
@@ -3079,12 +2890,6 @@ GNS_resolver_lookup_cancel (struct GNS_ResolverHandle *rh)
     GNUNET_CONTAINER_heap_remove_node (rh->dht_heap_node);
     rh->dht_heap_node = NULL;
   }
-  if (NULL != (vpn_ctx = rh->vpn_ctx))
-  {
-    GNUNET_VPN_cancel_request (vpn_ctx->vpn_request);
-    GNUNET_free (vpn_ctx->rd_data);
-    GNUNET_free (vpn_ctx);
-  }
   if (NULL != rh->namecache_qe)
   {
     GNUNET_NAMECACHE_cancel (rh->namecache_qe);
@@ -3144,8 +2949,7 @@ GNS_resolver_init (struct GNUNET_NAMECACHE_Handle *nc,
   if (GNUNET_YES == disable_cache)
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Namecache disabled\n");
-  vpn_handle = GNUNET_VPN_connect (cfg);
-}
+  }
 
 
 /**
@@ -3175,8 +2979,6 @@ GNS_resolver_done ()
   }
   GNUNET_CONTAINER_heap_destroy (dht_lookup_heap);
   dht_lookup_heap = NULL;
-  GNUNET_VPN_disconnect (vpn_handle);
-  vpn_handle = NULL;
   dht_handle = NULL;
   namecache_handle = NULL;
 }

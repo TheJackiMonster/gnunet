@@ -155,6 +155,7 @@ gnunet_dns2gns_LDADD = \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
   libgnunetgns.la \
   $(top_builddir)/src/util/libgnunetutil.la \
+  $(USE_VPN) \
   $(top_builddir)/src/identity/libgnunetidentity.la \
   $(GN_LIBINTL)
 
@@ -218,7 +219,6 @@ gnunet_service_gns_LDADD = \
   $(top_builddir)/src/dht/libgnunetdht.la \
   $(top_builddir)/src/namecache/libgnunetnamecache.la \
   $(LIBIDN) $(LIBIDN2) \
-  $(USE_VPN) \
   $(GN_LIBINTL)
 
 
