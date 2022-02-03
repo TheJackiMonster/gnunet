@@ -317,7 +317,7 @@ static struct
   const char *name;
   uint32_t number;
 } gns_name_map[] = { { "PKEY", GNUNET_GNSRECORD_TYPE_PKEY },
-                     { "EDKEY", GNUNET_GNSRECORD_TYPE_PKEY },
+                     { "EDKEY", GNUNET_GNSRECORD_TYPE_EDKEY },
                      { "NICK", GNUNET_GNSRECORD_TYPE_NICK },
                      { "LEHO", GNUNET_GNSRECORD_TYPE_LEHO },
                      { "VPN", GNUNET_GNSRECORD_TYPE_VPN },
