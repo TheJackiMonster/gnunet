@@ -61,6 +61,7 @@ extern "C" {
 
 /**
  * Flags that can be set for a record.
+ * MUST fit into 16 bit.
  */
 enum GNUNET_GNSRECORD_Flags
 {
@@ -70,10 +71,17 @@ enum GNUNET_GNSRECORD_Flags
   GNUNET_GNSRECORD_RF_NONE = 0,
 
   /**
-   * This is a private record of this peer and it should
-   * thus not be handed out to other peers.
+   * This record is critical. If it cannot be processed
+   * (for example beacuse the record type is unknown)
+   * resolution MUST fail
    */
-  GNUNET_GNSRECORD_RF_PRIVATE = 2,
+  GNUNET_GNSRECORD_RF_CRITICAL = 1,
+
+  /**
+   * This record should not be used unless all (other) records with an absolute
+   * expiration time have expired.
+   */
+  GNUNET_GNSRECORD_RF_SHADOW_RECORD = 2,
 
   /**
    * This is a supplemental record.
@@ -84,13 +92,14 @@ enum GNUNET_GNSRECORD_Flags
    * This expiration time of the record is a relative
    * time (not an absolute time).
    */
-  GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION = 8,
+  GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION = 16384, /* 2^14 */
 
   /**
-   * This record should not be used unless all (other) records with an absolute
-   * expiration time have expired.
+   * This is a private record of this peer and it should
+   * thus not be handed out to other peers.
    */
-  GNUNET_GNSRECORD_RF_SHADOW_RECORD = 16
+  GNUNET_GNSRECORD_RF_PRIVATE = 32768, /* 2^15 */
+
 
 /**
  * When comparing flags for record equality for removal,
@@ -184,12 +193,6 @@ struct GNUNET_GNSRECORD_EcdsaBlock
   struct GNUNET_CRYPTO_EcdsaSignature signature;
 
   /**
-   * Number of bytes signed; also specifies the number of bytes
-   * of encrypted data that follow.
-   */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
-
-  /**
    * Expiration time of the block.
    */
   struct GNUNET_TIME_AbsoluteNBO expiration_time;
@@ -214,15 +217,10 @@ struct GNUNET_GNSRECORD_EddsaBlock
   struct GNUNET_CRYPTO_EddsaSignature signature;
 
   /**
-   * Number of bytes signed; also specifies the number of bytes
-   * of encrypted data that follow.
-   */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
-
-  /**
    * Expiration time of the block.
    */
   struct GNUNET_TIME_AbsoluteNBO expiration_time;
+
 
   /* followed by encrypted data */
 };
@@ -230,6 +228,14 @@ struct GNUNET_GNSRECORD_EddsaBlock
 
 struct GNUNET_GNSRECORD_Block
 {
+  /**
+   * Size of the block.
+   */
+  uint32_t size;
+
+  /**
+   * The zone type (GNUNET_GNSRECORD_TYPE_PKEY)
+   */
   uint32_t type;
 
   union
@@ -387,6 +393,9 @@ GNUNET_GNSRECORD_records_serialize (unsigned int rd_count,
                                     const struct GNUNET_GNSRECORD_Data *rd,
                                     size_t dest_size, char *dest);
 
+unsigned int
+GNUNET_GNSRECORD_records_deserialize_get_size (size_t len,
+                                               const char *src);
 
 /**
  * Deserialize the given records to the given destination.
@@ -503,6 +512,21 @@ GNUNET_GNSRECORD_query_from_public_key (
 
 
 /**
+ * Get size of buffer for block creation.
+ *
+ * @param key the zone key
+ * @param rd record data
+ * @param rd_count number of records
+ * @return -1 on error (otherwise the length of the block)
+ */
+ssize_t
+GNUNET_GNSRECORD_block_calculate_size (const struct
+                                       GNUNET_IDENTITY_PrivateKey *key,
+                                       const struct GNUNET_GNSRECORD_Data *rd,
+                                       unsigned int rd_count);
+
+
+/**
  * Sign name and records
  *
  * @param key the private key
@@ -510,13 +534,16 @@ GNUNET_GNSRECORD_query_from_public_key (
  * @param label the name for the records
  * @param rd record data
  * @param rd_count number of records in @a rd
+ * @param result the block buffer. Will be allocated.
+ * @return GNUNET_OK on success
  */
-struct GNUNET_GNSRECORD_Block *
+enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_block_create (const struct GNUNET_IDENTITY_PrivateKey *key,
                                struct GNUNET_TIME_Absolute expire,
                                const char *label,
                                const struct GNUNET_GNSRECORD_Data *rd,
-                               unsigned int rd_count);
+                               unsigned int rd_count,
+                               struct GNUNET_GNSRECORD_Block **block);
 
 
 /**
@@ -529,13 +556,16 @@ GNUNET_GNSRECORD_block_create (const struct GNUNET_IDENTITY_PrivateKey *key,
  * @param label the name for the records
  * @param rd record data
  * @param rd_count number of records in @a rd
+ * @param result the block buffer. Will be allocated.
+ * @return GNUNET_OK on success.
  */
-struct GNUNET_GNSRECORD_Block *
+enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_block_create2 (const struct GNUNET_IDENTITY_PrivateKey *key,
                                 struct GNUNET_TIME_Absolute expire,
                                 const char *label,
                                 const struct GNUNET_GNSRECORD_Data *rd,
-                                unsigned int rd_count);
+                                unsigned int rd_count,
+                                struct GNUNET_GNSRECORD_Block **result);
 
 
 /**

@@ -38,12 +38,12 @@
 #define TEST_RRCOUNT 2
 
 static char *d_pkey =
-"50d7b652a4efeadff37396909785e5952171a02178c8e7d450fa907925fafd98";
+  "50d7b652a4efeadff37396909785e5952171a02178c8e7d450fa907925fafd98";
 
 static char *d_edkey =
-"5af7020ee19160328832352bbc6a68a8d71a7cbe1b929969a7c66d415a0d8f65";
+  "5af7020ee19160328832352bbc6a68a8d71a7cbe1b929969a7c66d415a0d8f65";
 
-int parsehex(char *src, char *dst, size_t dstlen, int invert)
+int parsehex (char *src, char *dst, size_t dstlen, int invert)
 {
   char *line = src;
   char *data = line;
@@ -51,7 +51,8 @@ int parsehex(char *src, char *dst, size_t dstlen, int invert)
   int read_byte;
   int data_len = 0;
 
-  while (sscanf(data, " %02x%n", &read_byte, &off) == 1) {
+  while (sscanf (data, " %02x%n", &read_byte, &off) == 1)
+  {
     if (invert)
       dst[dstlen - 1 - data_len++] = read_byte;
     else
@@ -155,9 +156,9 @@ run_pkey (void)
 
   id_priv.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
   GNUNET_CRYPTO_ecdsa_key_create (&id_priv.ecdsa_key);
-  parsehex(d_pkey,
-           (char*)&id_priv.ecdsa_key,
-           sizeof (id_priv.ecdsa_key), 1);
+  parsehex (d_pkey,
+            (char*) &id_priv.ecdsa_key,
+            sizeof (id_priv.ecdsa_key), 1);
 
   GNUNET_IDENTITY_key_get_public (&id_priv,
                                   &id_pub);
@@ -204,16 +205,12 @@ run_pkey (void)
   rdata_size = GNUNET_GNSRECORD_records_get_size (TEST_RRCOUNT,
                                                   rd);
   rdata = GNUNET_malloc (rdata_size);
-  rd_count_nbo = htonl (2);
-  GNUNET_memcpy (rdata,
-                 &rd_count_nbo,
-                 sizeof (uint32_t));
   GNUNET_GNSRECORD_records_serialize (2,
                                       rd,
                                       rdata_size,
-                                      rdata + sizeof (uint32_t));
+                                      rdata);
   fprintf (stdout, "RDATA:\n");
-  print_bytes (rdata, rdata_size + sizeof (uint32_t), 8);
+  print_bytes (rdata, rdata_size, 8);
   fprintf (stdout, "\n");
   expire = GNUNET_GNSRECORD_record_get_expiration_time (TEST_RRCOUNT, rd);
   GNR_derive_block_aes_key (ctr,
@@ -235,26 +232,20 @@ run_pkey (void)
   fprintf (stdout, "Storage key (q):\n");
   print_bytes (&query, sizeof (query), 8);
   fprintf (stdout, "\n");
-
-  rrblock = GNUNET_GNSRECORD_block_create (&id_priv,
-                                           expire,
-                                           TEST_RECORD_LABEL,
-                                           rd,
-                                           TEST_RRCOUNT);
-  size_t bdata_size = ntohl (rrblock->ecdsa_block.purpose.size)
-                      - sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
-                      - sizeof(struct GNUNET_TIME_AbsoluteNBO);
-  size_t ecblock_size = ntohl (rrblock->ecdsa_block.purpose.size)
-                        + sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey)
-                        + sizeof(struct GNUNET_CRYPTO_EcdsaSignature);
-  size_t block_size = ecblock_size + sizeof (uint32_t);
+  GNUNET_assert (GNUNET_OK == GNUNET_GNSRECORD_block_create (&id_priv,
+                                                             expire,
+                                                             TEST_RECORD_LABEL,
+                                                             rd,
+                                                             TEST_RRCOUNT,
+                                                             &rrblock));
+  size_t bdata_size = ntohl(rrblock->size) - sizeof (struct GNUNET_GNSRECORD_Block);
 
   bdata = (char*) &(&rrblock->ecdsa_block)[1];
   fprintf (stdout, "BDATA:\n");
   print_bytes (bdata, bdata_size, 8);
   fprintf (stdout, "\n");
   fprintf (stdout, "RRBLOCK:\n");
-  print_bytes (rrblock, block_size, 8);
+  print_bytes (rrblock, ntohl(rrblock->size), 8);
   fprintf (stdout, "\n");
   GNUNET_free (rdata);
 }
@@ -309,9 +300,9 @@ run_edkey (void)
 
   id_priv.type = htonl (GNUNET_IDENTITY_TYPE_EDDSA);
   GNUNET_CRYPTO_eddsa_key_create (&id_priv.eddsa_key);
-  parsehex(d_edkey,
-           (char*)&id_priv.eddsa_key,
-           sizeof (id_priv.eddsa_key), 0);
+  parsehex (d_edkey,
+            (char*) &id_priv.eddsa_key,
+            sizeof (id_priv.eddsa_key), 0);
   GNUNET_IDENTITY_key_get_public (&id_priv,
                                   &id_pub);
   fprintf (stdout,
@@ -358,17 +349,13 @@ run_edkey (void)
                                                   rd);
   expire = GNUNET_GNSRECORD_record_get_expiration_time (TEST_RRCOUNT,
                                                         rd);
-  rdata = GNUNET_malloc (sizeof (uint32_t) + rdata_size);
-  rd_count_nbo = htonl (2);
-  GNUNET_memcpy (rdata,
-                 &rd_count_nbo,
-                 sizeof (uint32_t));
+  rdata = GNUNET_malloc (rdata_size);
   GNUNET_GNSRECORD_records_serialize (2,
                                       rd,
                                       rdata_size,
-                                      rdata + sizeof (uint32_t));
+                                      rdata);
   fprintf (stdout, "RDATA:\n");
-  print_bytes (rdata, rdata_size + sizeof (uint32_t), 8);
+  print_bytes (rdata, rdata_size, 8);
   fprintf (stdout, "\n");
   GNR_derive_block_xsalsa_key (nonce,
                                skey,
@@ -389,25 +376,20 @@ run_edkey (void)
   print_bytes (&query, sizeof (query), 8);
   fprintf (stdout, "\n");
 
-  rrblock = GNUNET_GNSRECORD_block_create (&id_priv,
-                                           expire,
-                                           TEST_RECORD_LABEL,
-                                           rd,
-                                           TEST_RRCOUNT);
-  size_t bdata_size = ntohl (rrblock->eddsa_block.purpose.size)
-                      - sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
-                      - sizeof(struct GNUNET_TIME_AbsoluteNBO);
-  size_t ecblock_size = ntohl (rrblock->eddsa_block.purpose.size)
-                        + sizeof(struct GNUNET_CRYPTO_EddsaPublicKey)
-                        + sizeof(struct GNUNET_CRYPTO_EddsaSignature);
-  size_t block_size = ecblock_size + sizeof (uint32_t);
+  GNUNET_assert (GNUNET_OK ==  GNUNET_GNSRECORD_block_create (&id_priv,
+                                                              expire,
+                                                              TEST_RECORD_LABEL,
+                                                              rd,
+                                                              TEST_RRCOUNT,
+                                                              &rrblock));
+  size_t bdata_size = ntohl(rrblock->size) - sizeof (struct GNUNET_GNSRECORD_Block);
 
   bdata = (char*) &(&rrblock->eddsa_block)[1];
   fprintf (stdout, "BDATA:\n");
   print_bytes (bdata, bdata_size, 8);
   fprintf (stdout, "\n");
   fprintf (stdout, "RRBLOCK:\n");
-  print_bytes (rrblock, block_size, 8);
+  print_bytes (rrblock, ntohl(rrblock->size), 8);
   fprintf (stdout, "\n");
   GNUNET_free (rdata);
 }

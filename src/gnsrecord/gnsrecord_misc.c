@@ -334,24 +334,7 @@ GNUNET_GNSRECORD_is_zonekey_type (uint32_t type)
 size_t
 GNUNET_GNSRECORD_block_get_size (const struct GNUNET_GNSRECORD_Block *block)
 {
-  switch (ntohl (block->type))
-  {
-  case GNUNET_GNSRECORD_TYPE_PKEY:
-    return sizeof (uint32_t)   /* zone type */
-           + sizeof (block->ecdsa_block)   /* EcdsaBlock */
-           + ntohl (block->ecdsa_block.purpose.size)   /* Length of signed data */
-           - sizeof (block->ecdsa_block.purpose);   /* Purpose already in EcdsaBlock */
-    break;
-  case GNUNET_GNSRECORD_TYPE_EDKEY:
-    return sizeof (uint32_t)   /* zone type */
-           + sizeof (block->eddsa_block)   /* EddsaBlock */
-           + ntohl (block->eddsa_block.purpose.size)   /* Length of signed data */
-           - sizeof (block->ecdsa_block.purpose);   /* Purpose already in EcdsaBlock */
-
-  default:
-    return 0;
-  }
-  return 0;
+  return ntohl (block->size);
 }
 
 

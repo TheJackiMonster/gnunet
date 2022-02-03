@@ -35,6 +35,26 @@
 #include "gnunet_tun_lib.h"
 
 /**
+ * Information we have in an encrypted block with record data (i.e. in the DHT).
+ */
+struct GNRBlockPS
+{
+  /**
+   * Number of bytes signed; also specifies the number of bytes
+   * of encrypted data that follow.
+   */
+  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+
+  /**
+   * Expiration time of the block.
+   */
+  struct GNUNET_TIME_AbsoluteNBO expiration_time;
+
+  /* followed by encrypted data */
+};
+
+
+/**
  * Derive session key and iv from label and public key.
  *
  * @param iv initialization vector to initialize
