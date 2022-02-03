@@ -29,15 +29,39 @@
 #include "gnunet_revocation_service.h"
 #include "gnunet_dnsparser_lib.h"
 #include "gnunet_testing_lib.h"
+#include "revocation.h"
 #include <inttypes.h>
 
 #define TEST_EPOCHS 2
 #define TEST_DIFFICULTY 5
 
+static char* d_pkey =
+"6fea32c05af58bfa979553d188605fd57d8bf9cc263b78d5f7478c07b998ed70";
+
+int parsehex(char *src, char *dst, size_t dstlen, int invert)
+{
+  char *line = src;
+  char *data = line;
+  int off;
+  int read_byte;
+  int data_len = 0;
+
+  while (sscanf(data, " %02x%n", &read_byte, &off) == 1) {
+    if (invert)
+      dst[dstlen - 1 - data_len++] = read_byte;
+    else
+      dst[data_len++] = read_byte;
+    data += off;
+  }
+  return data_len;
+}
+
+
 static void
-print_bytes (void *buf,
+print_bytes_ (void *buf,
              size_t buf_len,
-             int fold)
+             int fold,
+             int in_be)
 {
   int i;
 
@@ -45,10 +69,22 @@ print_bytes (void *buf,
   {
     if ((0 != i) && (0 != fold) && (i % fold == 0))
       printf ("\n");
-    printf ("%02x", ((unsigned char*) buf)[i]);
+    if (in_be)
+      printf ("%02x", ((unsigned char*) buf)[buf_len - 1 - i]);
+    else
+      printf ("%02x", ((unsigned char*) buf)[i]);
   }
   printf ("\n");
 }
+
+static void
+print_bytes (void *buf,
+             size_t buf_len,
+             int fold)
+{
+  print_bytes_ (buf, buf_len, fold, 0);
+}
+
 
 
 /**
@@ -74,16 +110,17 @@ run (void *cls,
 
   id_priv.type = htonl (GNUNET_IDENTITY_TYPE_ECDSA);
   GNUNET_CRYPTO_ecdsa_key_create (&id_priv.ecdsa_key);
+  parsehex(d_pkey,(char*)&id_priv.ecdsa_key, sizeof (id_priv.ecdsa_key), 1);
   GNUNET_IDENTITY_key_get_public (&id_priv,
                                   &id_pub);
   GNUNET_STRINGS_data_to_string (&id_pub,
                                  GNUNET_IDENTITY_key_get_length (&id_pub),
                                  ztld,
                                  sizeof (ztld));
-  fprintf (stdout, "Zone private key (d, little-endian scalar, with ztype prepended):\n");
-  print_bytes (&id_priv, sizeof(id_priv), 8);
+  fprintf (stdout, "Zone private key (d, big-endian scalar):\n");
+  print_bytes_ (&id_priv.ecdsa_key, sizeof(id_priv.ecdsa_key), 8, 1);
   fprintf (stdout, "\n");
-  fprintf (stdout, "Zone identifier (zid):\n");
+  fprintf (stdout, "Zone identifier (ztype|zkey):\n");
   print_bytes (&id_pub, GNUNET_IDENTITY_key_get_length (&id_pub), 8);
   fprintf (stdout, "\n");
   fprintf (stdout, "Encoded zone identifier (zkl = zTLD):\n");
@@ -104,6 +141,15 @@ run (void *cls,
   {
     pow_passes++;
   }
+  struct GNUNET_REVOCATION_SignaturePurposePS *purp;
+  purp = REV_create_signature_message (pow);
+  fprintf (stdout, "Signed message:\n");
+  print_bytes (purp,
+               ntohl (purp->purpose.size),
+               8);
+  printf ("\n");
+  GNUNET_free (purp);
+
   exp = GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_YEARS,
                                        TEST_EPOCHS);
   GNUNET_assert (GNUNET_OK == GNUNET_REVOCATION_check_pow (pow,

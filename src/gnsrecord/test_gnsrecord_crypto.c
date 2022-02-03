@@ -123,12 +123,12 @@ test_with_type (struct GNUNET_IDENTITY_PrivateKey *privkey)
   s_rd = create_record (RECORDS);
 
   /* Create block */
-  GNUNET_assert (NULL != (block =
-                            GNUNET_GNSRECORD_block_create (privkey,
-                                                           expire,
-                                                           s_name,
-                                                           s_rd,
-                                                           RECORDS)));
+  GNUNET_assert (GNUNET_OK == GNUNET_GNSRECORD_block_create (privkey,
+                                                             expire,
+                                                             s_name,
+                                                             s_rd,
+                                                             RECORDS,
+                                                             &block));
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_GNSRECORD_query_from_block (block,
                                                     &query_block));

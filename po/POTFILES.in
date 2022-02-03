@@ -183,6 +183,7 @@ src/gnsrecord/gnsrecord_serialization.c
 src/gnsrecord/gnunet-gnsrecord-tvg.c
 src/gnsrecord/json_gnsrecord.c
 src/gnsrecord/plugin_gnsrecord_dns.c
+src/gnsrecord/test.c
 src/hello/address.c
 src/hello/gnunet-hello.c
 src/hello/hello-ng.c
@@ -314,6 +315,7 @@ src/reclaim/plugin_rest_reclaim.c
 src/reclaim/reclaim_api.c
 src/reclaim/reclaim_attribute.c
 src/reclaim/reclaim_credential.c
+src/reclaim/test.c
 src/regex/gnunet-daemon-regexprofiler.c
 src/regex/gnunet-regex-profiler.c
 src/regex/gnunet-regex-simulation-profiler.c

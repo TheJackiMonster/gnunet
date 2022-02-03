@@ -60,17 +60,18 @@ struct NetworkRecord
   /**
    * Number of bytes in 'data', network byte order.
    */
-  uint32_t data_size GNUNET_PACKED;
+  uint16_t data_size GNUNET_PACKED;
+
+  /**
+   * Flags for the record, network byte order.
+   */
+  uint16_t flags GNUNET_PACKED;
 
   /**
    * Type of the GNS/DNS record, network byte order.
    */
   uint32_t record_type GNUNET_PACKED;
 
-  /**
-   * Flags for the record, network byte order.
-   */
-  uint32_t flags GNUNET_PACKED;
 };
 
 GNUNET_NETWORK_STRUCT_END
@@ -169,9 +170,9 @@ GNUNET_GNSRECORD_records_serialize (unsigned int rd_count,
          rd[i].flags,
          (unsigned long long) rd[i].expiration_time);
     rec.expiration_time = GNUNET_htonll (rd[i].expiration_time);
-    rec.data_size = htonl ((uint32_t) rd[i].data_size);
+    rec.data_size = htons ((uint16_t) rd[i].data_size);
     rec.record_type = htonl (rd[i].record_type);
-    rec.flags = htonl (rd[i].flags);
+    rec.flags = htons (rd[i].flags);
     if ((off + sizeof(rec) > dest_size) ||
         (off + sizeof(rec) < off))
     {
@@ -214,13 +215,48 @@ GNUNET_GNSRECORD_records_serialize (unsigned int rd_count,
   return dest_size;
 }
 
+unsigned int
+GNUNET_GNSRECORD_records_deserialize_get_size (size_t len,
+                                               const char *src)
+{
+  struct NetworkRecord rec;
+  struct NetworkRecord rec_zero;
+  size_t off;
+  unsigned int rd_count = 0;
+
+  memset (&rec_zero, 0, sizeof (rec_zero));
+
+  off = 0;
+  for (off = 0; (off + sizeof(rec) <= len) && (off + sizeof(rec) >= off);)
+  {
+    /*
+     * If we have found a byte string of zeroes, we have reached
+     * the padding
+     */
+    if (0 == GNUNET_memcmp (&rec, &rec_zero))
+      break;
+    GNUNET_memcpy (&rec,
+                   &src[off],
+                   sizeof(rec));
+    off += sizeof(rec);
+    if ((off + ntohs ((uint16_t) rec.data_size) > len) ||
+        (off + ntohs ((uint16_t) rec.data_size) < off))
+    {
+      GNUNET_break_op (0);
+      return 0;
+    }
+    off += ntohs ((uint16_t) rec.data_size);
+    rd_count++;
+  }
+  return rd_count;
+}
 
 /**
  * Deserialize the given records to the given destination.
  *
  * @param len size of the serialized record data
  * @param src the serialized record data
- * @param rd_count number of records in the rd array
+ * @param rd_count number of records parsed
  * @param dest where to put the data
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
@@ -246,9 +282,9 @@ GNUNET_GNSRECORD_records_deserialize (size_t len,
                    &src[off],
                    sizeof(rec));
     dest[i].expiration_time = GNUNET_ntohll (rec.expiration_time);
-    dest[i].data_size = ntohl ((uint32_t) rec.data_size);
+    dest[i].data_size = ntohs ((uint16_t) rec.data_size);
     dest[i].record_type = ntohl (rec.record_type);
-    dest[i].flags = ntohl (rec.flags);
+    dest[i].flags = ntohs (rec.flags);
     off += sizeof(rec);
     if ((off + dest[i].data_size > len) ||
         (off + dest[i].data_size < off))
