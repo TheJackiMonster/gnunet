@@ -134,6 +134,39 @@ GNUNET_NAMESTORE_records_store (struct GNUNET_NAMESTORE_Handle *h,
                                 GNUNET_NAMESTORE_ContinuationWithStatus cont,
                                 void *cont_cls);
 
+/**
+ * Store an item in the namestore.  If the item is already present,
+ * it is replaced with the new record.  Use an empty array to
+ * remove all records under the given name.
+ *
+ * The continuation is called after the value has been stored in the
+ * database. Monitors may be notified asynchronously (basically with
+ * a buffer). However, if any monitor is consistently too slow to
+ * keep up with the changes, calling @a cont will be delayed until the
+ * monitors do keep up.
+ *
+ * @param h handle to the namestore
+ * @param pkey private key of the zone
+ * @param label name that is being mapped
+ * @param rd_count number of records in the 'rd' array
+ * @param rd array of records with data to store
+ * @param is_zonemaster update tombstones, do not process monitors
+ * @param cont continuation to call when done
+ * @param cont_cls closure for @a cont
+ * @return handle to abort the request
+ */
+struct GNUNET_NAMESTORE_QueueEntry *
+GNUNET_NAMESTORE_records_store_ (struct GNUNET_NAMESTORE_Handle *h,
+                                 const struct GNUNET_IDENTITY_PrivateKey *pkey,
+                                 const char *label,
+                                 unsigned int rd_count,
+                                 const struct GNUNET_GNSRECORD_Data *rd,
+                                 int is_zonemaster,
+                                 GNUNET_NAMESTORE_ContinuationWithStatus cont,
+                                 void *cont_cls);
+
+
+
 
 /**
  * Process a record that was stored in the namestore.

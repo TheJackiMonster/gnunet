@@ -299,6 +299,21 @@ struct GNUNET_GNSRECORD_ReverseRecord
   /* followed by the name the delegator uses to refer to our namespace */
 };
 
+
+/**
+ * Tombstone record.
+ * In case of deletion of all resource records under a label, the implementation
+ * MUST keep track of the last absolute expiration time of the last published
+ * resource block. Implementations MAY use a PADDING record as a tombstone that
+ * preserves the last absolute expiration time, but then MUST take care to not
+ * publish a block with just a PADDING record. When new records are added under
+ * this label later, the implementation MUST ensure that the expiration times
+ * are after the last published block.
+ */
+struct GNUNET_GNSRECORD_TombstoneRecord
+{
+  struct GNUNET_TIME_AbsoluteNBO time_of_death;
+};
 GNUNET_NETWORK_STRUCT_END
 
 

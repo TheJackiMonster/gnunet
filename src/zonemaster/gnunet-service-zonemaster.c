@@ -90,6 +90,29 @@
  */
 #define DHT_GNS_REPLICATION_LEVEL 5
 
+/**
+ * Handle for tombston updates which are executed for each published
+ * record set.
+ */
+struct TombstoneActivity
+{
+  /**
+   * Kept in a DLL.
+   */
+  struct TombstoneActivity *next;
+
+  /**
+   * Kept in a DLL.
+   */
+  struct TombstoneActivity *prev;
+
+  /**
+   * Handle for the store operation.
+   */
+  struct GNUNET_NAMESTORE_QueueEntry *ns_qe;
+
+};
+
 
 /**
  * Handle for DHT PUT activity triggered from the namestore monitor.
@@ -147,6 +170,16 @@ static struct DhtPutActivity *it_head;
  * Tail of iteration put activities; kept in a DLL.
  */
 static struct DhtPutActivity *it_tail;
+
+/**
+ * Head of the tombstone operations
+ */
+static struct TombstoneActivity *ta_head;
+
+/**
+ * Tail of the tombstone operations
+ */
+static struct TombstoneActivity *ta_tail;
 
 /**
  * Number of entries in the DHT queue #it_head.
@@ -248,6 +281,7 @@ static void
 shutdown_task (void *cls)
 {
   struct DhtPutActivity *ma;
+  struct TombstoneActivity *ta;
 
   (void) cls;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -261,6 +295,14 @@ shutdown_task (void *cls)
                                  ma);
     dht_queue_length--;
     GNUNET_free (ma);
+  }
+  while (NULL != (ta = ta_head))
+  {
+    GNUNET_NAMESTORE_cancel (ta->ns_qe);
+    GNUNET_CONTAINER_DLL_remove (ta_head,
+                                 ta_tail,
+                                 ta);
+    GNUNET_free (ta);
   }
   if (NULL != statistics)
   {
@@ -535,22 +577,33 @@ dht_put_continuation (void *cls)
  * @param rd input records
  * @param rd_count size of the @a rd and @a rd_public arrays
  * @param rd_public where to write the converted records
+ * @param expire the expiration of the block
  * @return number of records written to @a rd_public
  */
 static unsigned int
 convert_records_for_export (const struct GNUNET_GNSRECORD_Data *rd,
                             unsigned int rd_count,
-                            struct GNUNET_GNSRECORD_Data *rd_public)
+                            struct GNUNET_GNSRECORD_Data *rd_public,
+                            struct GNUNET_TIME_Absolute *expiry)
 {
+  const struct GNUNET_GNSRECORD_TombstoneRecord *tombstone;
+  struct GNUNET_TIME_Absolute expiry_tombstone;
   struct GNUNET_TIME_Absolute now;
   unsigned int rd_public_count;
 
   rd_public_count = 0;
+  tombstone = NULL;
   now = GNUNET_TIME_absolute_get ();
   for (unsigned int i = 0; i < rd_count; i++)
   {
     if (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE))
       continue;
+    /* Should always be private but just to be sure */
+    if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[i].record_type)
+    {
+      tombstone = rd[i].data;
+      continue;
+    }
     if ((0 == (rd[i].flags & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION)) &&
         (rd[i].expiration_time < now.abs_value_us))
       continue;   /* record already expired, skip it */
@@ -567,6 +620,21 @@ convert_records_for_export (const struct GNUNET_GNSRECORD_Data *rd,
     if (GNUNET_YES == GNUNET_GNSRECORD_is_critical (rd[i].record_type))
       rd_public[rd_public_count].flags |= GNUNET_GNSRECORD_RF_CRITICAL;
     rd_public_count++;
+  }
+
+  *expiry = GNUNET_GNSRECORD_record_get_expiration_time (rd_public_count,
+                                                         rd_public);
+
+  /* We need to check if the tombstone has an expiration in the fututre
+   * which would mean there was a block published under this label
+   * previously that is still valid. In this case we MUST NOT publish this
+   * block
+   */
+  if (NULL != tombstone)
+  {
+    expiry_tombstone = GNUNET_TIME_absolute_ntoh (tombstone->time_of_death);
+    if (GNUNET_TIME_absolute_cmp (*expiry,<=,expiry_tombstone))
+      return 0;
   }
   return rd_public_count;
 }
@@ -587,30 +655,28 @@ perform_dht_put (const struct GNUNET_IDENTITY_PrivateKey *key,
                  const char *label,
                  const struct GNUNET_GNSRECORD_Data *rd_public,
                  unsigned int rd_public_count,
+                 const struct GNUNET_TIME_Absolute expire,
                  struct DhtPutActivity *ma)
 {
   struct GNUNET_GNSRECORD_Block *block;
   struct GNUNET_HashCode query;
-  struct GNUNET_TIME_Absolute expire;
   size_t block_size;
   struct GNUNET_DHT_PutHandle *ret;
 
-  expire = GNUNET_GNSRECORD_record_get_expiration_time (rd_public_count,
-                                                        rd_public);
   if (cache_keys)
     GNUNET_assert (GNUNET_OK == GNUNET_GNSRECORD_block_create2 (key,
-                                            expire,
-                                            label,
-                                            rd_public,
-                                            rd_public_count,
-                                            &block));
+                                                                expire,
+                                                                label,
+                                                                rd_public,
+                                                                rd_public_count,
+                                                                &block));
   else
     GNUNET_assert (GNUNET_OK ==  GNUNET_GNSRECORD_block_create (key,
-                                           expire,
-                                           label,
-                                           rd_public,
-                                           rd_public_count,
-                                           &block));
+                                                                expire,
+                                                                label,
+                                                                rd_public,
+                                                                rd_public_count,
+                                                                &block));
   if (NULL == block)
   {
     GNUNET_break (0);
@@ -717,6 +783,74 @@ zone_iteration_finished (void *cls)
   }
 }
 
+static void
+ts_store_cont (void *cls, int32_t success, const char *emsg)
+{
+  struct TombstoneActivity *ta = cls;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Tombstone update complete\n");
+  GNUNET_CONTAINER_DLL_remove (ta_head,
+                               ta_tail,
+                               ta);
+  GNUNET_free (ta);
+
+}
+
+/**
+ * Update tombstone records.
+ *
+ * @param key key of the zone
+ * @param label label to store under
+ * @param rd_public public record data
+ * @param rd_public_count number of records in @a rd_public
+ * @param expire the expiration time for the tombstone
+ * @param ta handle for the put operation
+ * @return Namestore queue entry, NULL on error
+ */
+static struct GNUNET_NAMESTORE_QueueEntry *
+touch_tombstone (const struct GNUNET_IDENTITY_PrivateKey *key,
+                 const char *label,
+                 const struct GNUNET_GNSRECORD_Data *rd_original,
+                 unsigned int rd_count_original,
+                 const struct GNUNET_TIME_Absolute expire,
+                 struct TombstoneActivity *ta)
+{
+  struct GNUNET_TIME_AbsoluteNBO exp_nbo;
+  struct GNUNET_GNSRECORD_Data rd[rd_count_original + 1];
+  int tombstone_exists = GNUNET_NO;
+  unsigned int rd_count;
+
+  exp_nbo = GNUNET_TIME_absolute_hton (expire);
+  for (rd_count = 0; rd_count < rd_count_original; rd_count++)
+  {
+    memcpy (&rd[rd_count], &rd_original[rd_count],
+            sizeof (struct GNUNET_GNSRECORD_Data));
+    if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[rd_count].record_type)
+    {
+      rd[rd_count].data = &exp_nbo;
+      tombstone_exists = GNUNET_YES;
+    }
+  }
+  if (GNUNET_NO == tombstone_exists)
+  {
+    rd[rd_count].data = &exp_nbo;
+    rd[rd_count].data_size = sizeof (exp_nbo);
+    rd[rd_count].record_type = GNUNET_GNSRECORD_TYPE_TOMBSTONE;
+    rd[rd_count].flags = GNUNET_GNSRECORD_RF_PRIVATE;
+    rd[rd_count].expiration_time = GNUNET_TIME_UNIT_FOREVER_ABS.abs_value_us;
+    rd_count++;
+  }
+  return GNUNET_NAMESTORE_records_store_ (namestore_handle,
+                                                key,
+                                                label,
+                                                rd_count,
+                                                rd,
+                                                GNUNET_YES,
+                                                &ts_store_cont,
+                                                ta);
+}
+
 
 /**
  * Function used to put all records successively into the DHT.
@@ -737,12 +871,15 @@ put_gns_record (void *cls,
   struct GNUNET_GNSRECORD_Data rd_public[rd_count];
   unsigned int rd_public_count;
   struct DhtPutActivity *ma;
+  struct TombstoneActivity *ta;
+  struct GNUNET_TIME_Absolute expire;
 
   (void) cls;
   ns_iteration_left--;
   rd_public_count = convert_records_for_export (rd,
                                                 rd_count,
-                                                rd_public);
+                                                rd_public,
+                                                &expire);
   if (0 == rd_public_count)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -753,13 +890,25 @@ put_gns_record (void *cls,
   /* We got a set of records to publish */
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Starting DHT PUT\n");
+
   ma = GNUNET_new (struct DhtPutActivity);
   ma->start_date = GNUNET_TIME_absolute_get ();
   ma->ph = perform_dht_put (key,
                             label,
                             rd_public,
                             rd_public_count,
+                            expire,
                             ma);
+  ta = GNUNET_new (struct TombstoneActivity);
+  ta->ns_qe = touch_tombstone (key,
+                               label,
+                               rd,
+                               rd_count,
+                               expire,
+                               ta);
+  GNUNET_CONTAINER_DLL_insert_tail (ta_head,
+                                    ta_tail,
+                                    ta);
   put_cnt++;
   if (0 == put_cnt % DELTA_INTERVAL)
     update_velocity (DELTA_INTERVAL);

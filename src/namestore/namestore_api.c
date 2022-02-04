@@ -969,28 +969,14 @@ warn_delay (void *cls)
   GNUNET_NAMESTORE_cancel (qe);
 }
 
-
-/**
- * Store an item in the namestore.  If the item is already present,
- * it is replaced with the new record.  Use an empty array to
- * remove all records under the given name.
- *
- * @param h handle to the namestore
- * @param pkey private key of the zone
- * @param label name that is being mapped (at most 255 characters long)
- * @param rd_count number of records in the @a rd array
- * @param rd array of records with data to store
- * @param cont continuation to call when done
- * @param cont_cls closure for @a cont
- * @return handle to abort the request
- */
 struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_records_store (
+GNUNET_NAMESTORE_records_store_ (
   struct GNUNET_NAMESTORE_Handle *h,
   const struct GNUNET_IDENTITY_PrivateKey *pkey,
   const char *label,
   unsigned int rd_count,
   const struct GNUNET_GNSRECORD_Data *rd,
+  int is_zonemaster,
   GNUNET_NAMESTORE_ContinuationWithStatus cont,
   void *cont_cls)
 {
@@ -1037,7 +1023,7 @@ GNUNET_NAMESTORE_records_store (
   msg->name_len = htons (name_len);
   msg->rd_count = htons (rd_count);
   msg->rd_len = htons (rd_ser_len);
-  msg->reserved = htons (0);
+  msg->is_zonemaster = (GNUNET_YES == is_zonemaster) ? ntohs(1) : ntohs(0);
   msg->private_key = *pkey;
 
   name_tmp = (char *) &msg[1];
@@ -1069,6 +1055,36 @@ GNUNET_NAMESTORE_records_store (
   }
   return qe;
 }
+
+/**
+ * Store an item in the namestore.  If the item is already present,
+ * it is replaced with the new record.  Use an empty array to
+ * remove all records under the given name.
+ *
+ * @param h handle to the namestore
+ * @param pkey private key of the zone
+ * @param label name that is being mapped (at most 255 characters long)
+ * @param rd_count number of records in the @a rd array
+ * @param rd array of records with data to store
+ * @param cont continuation to call when done
+ * @param cont_cls closure for @a cont
+ * @return handle to abort the request
+ */
+struct GNUNET_NAMESTORE_QueueEntry *
+GNUNET_NAMESTORE_records_store (
+  struct GNUNET_NAMESTORE_Handle *h,
+  const struct GNUNET_IDENTITY_PrivateKey *pkey,
+  const char *label,
+  unsigned int rd_count,
+  const struct GNUNET_GNSRECORD_Data *rd,
+  GNUNET_NAMESTORE_ContinuationWithStatus cont,
+  void *cont_cls)
+{
+  return GNUNET_NAMESTORE_records_store_ (h, pkey, label, rd_count, rd,
+                                          GNUNET_NO, cont, cont_cls);
+}
+
+
 
 
 /**

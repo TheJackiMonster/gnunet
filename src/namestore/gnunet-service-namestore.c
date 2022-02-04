@@ -951,12 +951,12 @@ refresh_block (struct NamestoreClient *nc,
   exp_time = GNUNET_GNSRECORD_record_get_expiration_time (res_count, res);
   if (cache_keys)
     GNUNET_assert (GNUNET_OK ==
-      GNUNET_GNSRECORD_block_create2 (zone_key, exp_time, name,
-                                      res, res_count, &block));
+                   GNUNET_GNSRECORD_block_create2 (zone_key, exp_time, name,
+                                                   res, res_count, &block));
   else
     GNUNET_assert (GNUNET_OK ==
-      GNUNET_GNSRECORD_block_create (zone_key, exp_time, name,
-                                     res, res_count, &block));
+                   GNUNET_GNSRECORD_block_create (zone_key, exp_time, name,
+                                                  res, res_count, &block));
   GNUNET_assert (NULL != block);
   GNUNET_IDENTITY_key_get_public (zone_key, &pkey);
   GNUNET_log (
@@ -974,7 +974,7 @@ refresh_block (struct NamestoreClient *nc,
   cop->nc = nc;
   cop->zi = zi;
   if (NULL != zi)
-    zi->cache_ops++;
+    zi->cache_ops ++;
   cop->rid = rid;
   GNUNET_CONTAINER_DLL_insert (cop_head, cop_tail, cop);
   cop->qe = GNUNET_NAMECACHE_block_cache (namecache,
@@ -1341,7 +1341,6 @@ check_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
   return GNUNET_OK;
 }
 
-
 /**
  * Handles a #GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_LOOKUP message
  *
@@ -1452,6 +1451,39 @@ check_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
 
 
 /**
+ * Check if set contains a tombstone, store if necessary
+ *
+ * @param cls a `struct GNUNET_GNSRECORD_Data **` for storing the nick (if found)
+ * @param seq sequence number of the record, MUST NOT BE ZERO
+ * @param private_key the private key of the zone (unused)
+ * @param label should be #GNUNET_GNS_EMPTY_LABEL_AT
+ * @param rd_count number of records in @a rd
+ * @param rd records stored under @a label in the zone
+ */
+static void
+lookup_tombstone_it (void *cls,
+                     uint64_t seq,
+                     const struct GNUNET_IDENTITY_PrivateKey *private_key,
+                     const char *label,
+                     unsigned int rd_count,
+                     const struct GNUNET_GNSRECORD_Data *rd)
+{
+  struct GNUNET_GNSRECORD_TombstoneRecord *ts = cls;
+
+  (void) private_key;
+  GNUNET_assert (0 != seq);
+  for (unsigned int c = 0; c < rd_count; c++)
+  {
+    if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[c].record_type)
+    {
+      memcpy (ts, rd[c].data, rd[c].data_size);
+      return;
+    }
+  }
+}
+
+
+/**
  * Handles a #GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_STORE message
  *
  * @param cls client sending the message
@@ -1470,14 +1502,15 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
   unsigned int rd_count;
   int res;
   struct StoreActivity *sa;
+  struct GNUNET_GNSRECORD_TombstoneRecord tombstone;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received NAMESTORE_RECORD_STORE message\n");
+  tombstone.time_of_death.abs_value_us__ = 0;
   rid = ntohl (rp_msg->gns_header.r_id);
   name_len = ntohs (rp_msg->name_len);
   rd_count = ntohs (rp_msg->rd_count);
   rd_ser_len = ntohs (rp_msg->rd_len);
-  GNUNET_break (0 == ntohs (rp_msg->reserved));
   name_tmp = (const char *) &rp_msg[1];
   rd_ser = &name_tmp[name_len];
   {
@@ -1513,8 +1546,8 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
         (GNUNET_NO == GSN_database->lookup_records (GSN_database->cls,
                                                     &rp_msg->private_key,
                                                     conv_name,
-                                                    NULL,
-                                                    0)))
+                                                    &lookup_tombstone_it,
+                                                    &tombstone)))
     {
       /* This name does not exist, so cannot be removed */
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1525,16 +1558,34 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
     else
     {
       /* remove "NICK" records, unless this is for the
-       #GNUNET_GNS_EMPTY_LABEL_AT label */
-      struct GNUNET_GNSRECORD_Data rd_clean[GNUNET_NZL (rd_count)];
+       #GNUNET_GNS_EMPTY_LABEL_AT label
+       Also, add or update tombstone record if this is a zonemaster request.
+       Also, add existing tombstone record to set if this is not a zonemaster
+       request if one existed in the old set.
+       This is why we (may) need one additional record */
+      struct GNUNET_GNSRECORD_Data rd_clean[GNUNET_NZL (rd_count) + 1];
       unsigned int rd_clean_off;
       int have_nick;
+      int have_tombstone;
 
       rd_clean_off = 0;
       have_nick = GNUNET_NO;
+      have_tombstone = GNUNET_NO;
       for (unsigned int i = 0; i < rd_count; i++)
       {
         rd_clean[rd_clean_off] = rd[i];
+        if (GNUNET_YES == GNUNET_GNSRECORD_is_critical (rd[i].record_type))
+          rd_clean[rd_clean_off].flags |= GNUNET_GNSRECORD_RF_CRITICAL;
+        /* Do not allow to set tombstone records unless zonemaster */
+        if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[i].record_type)
+        {
+          if (1 == ntohs (rp_msg->is_zonemaster))
+          {
+            have_tombstone = GNUNET_YES;
+            rd_clean_off++;
+          }
+          continue;
+        }
         if ((0 == strcmp (GNUNET_GNS_EMPTY_LABEL_AT, conv_name)) ||
             (GNUNET_GNSRECORD_TYPE_NICK != rd[i].record_type))
           rd_clean_off++;
@@ -1545,8 +1596,24 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
           cache_nick (&rp_msg->private_key, &rd[i]);
           have_nick = GNUNET_YES;
         }
-        if (GNUNET_YES == GNUNET_GNSRECORD_is_critical (rd[i].record_type))
-          rd_clean[i].flags |= GNUNET_GNSRECORD_RF_CRITICAL;
+      }
+      /* At this point we are either zonemaster and have set a new tombstone
+       * (have_tombstone) or we are not zonemaster and we may want to
+       * add the old tombstone (if there was any and if it is not already
+       * old).
+       */
+      if ((GNUNET_NO == have_tombstone) &&
+          GNUNET_TIME_absolute_cmp (GNUNET_TIME_absolute_get (), (<),
+                                    GNUNET_TIME_absolute_ntoh (
+                                      tombstone.time_of_death)))
+      {
+        rd_clean[rd_clean_off].record_type = GNUNET_GNSRECORD_TYPE_TOMBSTONE;
+        rd_clean[rd_clean_off].expiration_time =
+          GNUNET_TIME_UNIT_FOREVER_ABS.abs_value_us;
+        rd_clean[rd_clean_off].data = &tombstone;
+        rd_clean[rd_clean_off].data_size = sizeof (tombstone);
+        rd_clean[rd_clean_off].flags |= GNUNET_GNSRECORD_RF_PRIVATE;
+        rd_clean_off++;
       }
       if ((0 == strcmp (GNUNET_GNS_EMPTY_LABEL_AT, conv_name)) &&
           (GNUNET_NO == have_nick))
@@ -1561,9 +1628,9 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
                                          rd_clean);
     }
 
-    if (GNUNET_OK != res)
+    if ((GNUNET_OK != res) || (1 == ntohs (rp_msg->is_zonemaster)))
     {
-      /* store not successful, not need to tell monitors */
+      /* store not successful or zonemaster, not need to tell monitors */
       send_store_response (nc, res, rid);
       GNUNET_SERVICE_client_continue (nc->client);
       GNUNET_free (conv_name);
