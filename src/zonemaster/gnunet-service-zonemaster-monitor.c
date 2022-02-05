@@ -28,7 +28,7 @@
 #include "gnunet_dht_service.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_statistics_service.h"
-
+#include "zonemaster_misc.h"
 
 #define LOG_STRERROR_FILE(kind, syscall, \
                           filename) GNUNET_log_from_strerror_file (kind, "util", \
@@ -240,68 +240,6 @@ dht_put_monitor_continuation (void *cls)
 
 
 /**
- * Convert namestore records from the internal format to that
- * suitable for publication (removes private records, converts
- * to absolute expiration time).
- *
- * @param rd input records
- * @param rd_count size of the @a rd and @a rd_public arrays
- * @param rd_public where to write the converted records
- * @return number of records written to @a rd_public
- */
-static unsigned int
-convert_records_for_export (const struct GNUNET_GNSRECORD_Data *rd,
-                            unsigned int rd_count,
-                            struct GNUNET_GNSRECORD_Data *rd_public,
-                            struct GNUNET_TIME_Absolute *expiry)
-{
-  const struct GNUNET_GNSRECORD_TombstoneRecord *tombstone;
-  struct GNUNET_TIME_Absolute expiry_tombstone;
-  struct GNUNET_TIME_Absolute now;
-  unsigned int rd_public_count;
-
-  rd_public_count = 0;
-  tombstone = NULL;
-  now = GNUNET_TIME_absolute_get ();
-  for (unsigned int i = 0; i < rd_count; i++)
-  {
-    if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[i].record_type)
-    {
-      tombstone = rd[i].data;
-      continue;
-    }
-    if (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE))
-      continue;
-    if ((0 == (rd[i].flags & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION)) &&
-        (rd[i].expiration_time < now.abs_value_us))
-      continue;   /* record already expired, skip it */
-    rd_public[rd_public_count] = rd[i];
-    /* Make sure critical record types are published as such */
-    if (GNUNET_YES == GNUNET_GNSRECORD_is_critical (rd[i].record_type))
-      rd_public[rd_public_count].flags |= GNUNET_GNSRECORD_RF_CRITICAL;
-    rd_public_count++;
-  }
-
-  *expiry = GNUNET_GNSRECORD_record_get_expiration_time (rd_public_count,
-                                                         rd_public);
-
-  /* We need to check if the tombstone has an expiration in the fututre
-   * which would mean there was a block published under this label
-   * previously that is still valid. In this case we MUST NOT publish this
-   * block
-   */
-  if (NULL != tombstone)
-  {
-    expiry_tombstone = GNUNET_TIME_absolute_ntoh (tombstone->time_of_death);
-    if (GNUNET_TIME_absolute_cmp (*expiry,<=,expiry_tombstone))
-      return 0;
-  }
-
-  return rd_public_count;
-}
-
-
-/**
  * Store GNS records in the DHT.
  *
  * @param key key of the zone
@@ -387,62 +325,6 @@ ts_store_cont (void *cls, int32_t success, const char *emsg)
 
 
 /**
- * Update tombstone records.
- *
- * @param key key of the zone
- * @param label label to store under
- * @param rd_public public record data
- * @param rd_public_count number of records in @a rd_public
- * @param expire the expiration time for the tombstone
- * @param ta handle for the put operation
- * @return Namestore queue entry, NULL on error
- */
-static struct GNUNET_NAMESTORE_QueueEntry *
-touch_tombstone (const struct GNUNET_IDENTITY_PrivateKey *key,
-                 const char *label,
-                 const struct GNUNET_GNSRECORD_Data *rd_original,
-                 unsigned int rd_count_original,
-                 const struct GNUNET_TIME_Absolute expire,
-                 struct TombstoneActivity *ta)
-{
-  struct GNUNET_TIME_AbsoluteNBO exp_nbo;
-  struct GNUNET_GNSRECORD_Data rd[rd_count_original + 1];
-  int tombstone_exists = GNUNET_NO;
-  unsigned int rd_count;
-
-  exp_nbo = GNUNET_TIME_absolute_hton (expire);
-  for (rd_count = 0; rd_count < rd_count_original; rd_count++)
-  {
-    memcpy (&rd[rd_count], &rd_original[rd_count],
-            sizeof (struct GNUNET_GNSRECORD_Data));
-    if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[rd_count].record_type)
-    {
-      rd[rd_count].data = &exp_nbo;
-      tombstone_exists = GNUNET_YES;
-    }
-  }
-  if (GNUNET_NO == tombstone_exists)
-  {
-    rd[rd_count].data = &exp_nbo;
-    rd[rd_count].data_size = sizeof (exp_nbo);
-    rd[rd_count].record_type = GNUNET_GNSRECORD_TYPE_TOMBSTONE;
-    rd[rd_count].flags = GNUNET_GNSRECORD_RF_PRIVATE;
-    rd[rd_count].expiration_time = GNUNET_TIME_UNIT_FOREVER_ABS.abs_value_us;
-    rd_count++;
-  }
-  return GNUNET_NAMESTORE_records_store_ (namestore_handle,
-                                                key,
-                                                label,
-                                                rd_count,
-                                                rd,
-                                                GNUNET_YES,
-                                                &ts_store_cont,
-                                                ta);
-}
-
-
-
-/**
  * Process a record that was stored in the namestore
  * (invoked by the monitor).
  *
@@ -460,7 +342,9 @@ handle_monitor_event (void *cls,
                       const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct GNUNET_GNSRECORD_Data rd_public[rd_count];
+  struct GNUNET_GNSRECORD_Data rd_fresh[rd_count + 1];
   unsigned int rd_public_count;
+  unsigned int rd_fresh_count;
   struct DhtPutActivity *ma;
   struct TombstoneActivity *ta;
   struct GNUNET_TIME_Absolute expire;
@@ -476,10 +360,10 @@ handle_monitor_event (void *cls,
               label);
   /* filter out records that are not public, and convert to
      absolute expiration time. */
-  rd_public_count = convert_records_for_export (rd,
-                                                rd_count,
-                                                rd_public,
-                                                &expire);
+  rd_public_count = ZMSTR_convert_records_for_export (rd,
+                                                      rd_count,
+                                                      rd_public,
+                                                      &expire);
   if (0 == rd_public_count)
   {
     GNUNET_NAMESTORE_zone_monitor_next (zmon,
@@ -495,12 +379,23 @@ handle_monitor_event (void *cls,
                             expire,
                             ma);
   ta = GNUNET_new (struct TombstoneActivity);
-  ta->ns_qe = touch_tombstone (zone,
-                               label,
-                               rd,
-                               rd_count,
-                               expire,
-                               ta);
+  ZMSTR_touch_tombstone (zone,
+                         label,
+                         rd,
+                         rd_count,
+                         rd_fresh,
+                         &rd_fresh_count,
+                         expire);
+  ta->ns_qe =  GNUNET_NAMESTORE_records_store_ (namestore_handle,
+                                                zone,
+                                                label,
+                                                rd_fresh_count,
+                                                rd_fresh,
+                                                GNUNET_YES,
+                                                &ts_store_cont,
+                                                ta);
+
+
   GNUNET_CONTAINER_DLL_insert_tail (ta_head,
                                     ta_tail,
                                     ta);
