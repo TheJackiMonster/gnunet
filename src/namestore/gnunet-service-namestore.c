@@ -1542,12 +1542,12 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
                 "Creating %u records for name `%s'\n",
                 (unsigned int) rd_count,
                 conv_name);
-    if ((0 == rd_count) &&
-        (GNUNET_NO == GSN_database->lookup_records (GSN_database->cls,
+    if ((GNUNET_NO == GSN_database->lookup_records (GSN_database->cls,
                                                     &rp_msg->private_key,
                                                     conv_name,
                                                     &lookup_tombstone_it,
-                                                    &tombstone)))
+                                                    &tombstone)) &&
+        (rd_count == 0))
     {
       /* This name does not exist, so cannot be removed */
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1573,19 +1573,17 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
       have_tombstone = GNUNET_NO;
       for (unsigned int i = 0; i < rd_count; i++)
       {
-        rd_clean[rd_clean_off] = rd[i];
-        if (GNUNET_YES == GNUNET_GNSRECORD_is_critical (rd[i].record_type))
-          rd_clean[rd_clean_off].flags |= GNUNET_GNSRECORD_RF_CRITICAL;
         /* Do not allow to set tombstone records unless zonemaster */
         if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[i].record_type)
         {
-          if (1 == ntohs (rp_msg->is_zonemaster))
-          {
-            have_tombstone = GNUNET_YES;
-            rd_clean_off++;
-          }
-          continue;
+          if (1 != ntohs (rp_msg->is_zonemaster))
+            continue;
+          have_tombstone = GNUNET_YES;
         }
+        rd_clean[rd_clean_off] = rd[i];
+        if (GNUNET_YES == GNUNET_GNSRECORD_is_critical (rd[i].record_type))
+          rd_clean[rd_clean_off].flags |= GNUNET_GNSRECORD_RF_CRITICAL;
+
         if ((0 == strcmp (GNUNET_GNS_EMPTY_LABEL_AT, conv_name)) ||
             (GNUNET_GNSRECORD_TYPE_NICK != rd[i].record_type))
           rd_clean_off++;
@@ -1598,7 +1596,8 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
         }
       }
       /* At this point we are either zonemaster and have set a new tombstone
-       * (have_tombstone) or we are not zonemaster and we may want to
+       * (have_tombstone)
+       * or we are not zonemaster and we may want to
        * add the old tombstone (if there was any and if it is not already
        * old).
        */

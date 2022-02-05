@@ -265,13 +265,13 @@ convert_records_for_export (const struct GNUNET_GNSRECORD_Data *rd,
   now = GNUNET_TIME_absolute_get ();
   for (unsigned int i = 0; i < rd_count; i++)
   {
-    if (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE))
-      continue;
     if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[i].record_type)
     {
       tombstone = rd[i].data;
       continue;
     }
+    if (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE))
+      continue;
     if ((0 == (rd[i].flags & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION)) &&
         (rd[i].expiration_time < now.abs_value_us))
       continue;   /* record already expired, skip it */
