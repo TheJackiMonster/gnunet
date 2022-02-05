@@ -132,7 +132,12 @@ gns_value_to_string (void *cls,
       GNUNET_free (ival);
       return box_str;
     }
-
+  case GNUNET_GNSRECORD_TYPE_TOMBSTONE: {
+    const struct GNUNET_GNSRECORD_TombstoneRecord *ts = data;
+    struct GNUNET_TIME_Absolute tod;
+    tod = GNUNET_TIME_absolute_ntoh (ts->time_of_death);
+    return GNUNET_strdup (GNUNET_STRINGS_absolute_time_to_string (tod));
+  }
   default:
     return NULL;
   }
@@ -183,7 +188,7 @@ gns_string_to_value (void *cls,
     if (record_type != type)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  _("Record type does not match parsed record type\n"));
+                  _ ("Record type does not match parsed record type\n"));
       return GNUNET_SYSERR;
     }
     return GNUNET_OK;
@@ -297,6 +302,19 @@ gns_string_to_value (void *cls,
       GNUNET_free (bval);
       return GNUNET_OK;
     }
+  case GNUNET_GNSRECORD_TYPE_TOMBSTONE: {
+      struct GNUNET_TIME_Absolute tod;
+      struct GNUNET_TIME_AbsoluteNBO *tod_nbo;
+      if (GNUNET_OK != GNUNET_STRINGS_fancy_time_to_absolute (s,
+                                                              &tod))
+        return GNUNET_SYSERR;
+      tod_nbo = GNUNET_new (struct GNUNET_TIME_AbsoluteNBO);
+      *tod_nbo = GNUNET_TIME_absolute_hton (tod);
+      *data_size = sizeof (*tod_nbo);
+      *data = tod_nbo;
+      return GNUNET_OK;
+    }
+
 
   default:
     return GNUNET_SYSERR;
@@ -320,6 +338,7 @@ static struct
                      { "GNS2DNS", GNUNET_GNSRECORD_TYPE_GNS2DNS },
                      { "BOX", GNUNET_GNSRECORD_TYPE_BOX },
                      { "REDIRECT", GNUNET_GNSRECORD_TYPE_REDIRECT },
+                     { "TOMBSTONE", GNUNET_GNSRECORD_TYPE_TOMBSTONE },
                      { NULL, UINT32_MAX } };
 
 
