@@ -1603,9 +1603,9 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
        * old).
        */
       if ((GNUNET_NO == have_tombstone) &&
-          GNUNET_TIME_absolute_cmp (GNUNET_TIME_absolute_get (), (<),
-                                    GNUNET_TIME_absolute_ntoh (
-                                      tombstone.time_of_death)))
+          GNUNET_TIME_absolute_cmp (
+            GNUNET_TIME_absolute_get (), <, GNUNET_TIME_absolute_ntoh (
+              tombstone.time_of_death)))
       {
         rd_clean[rd_clean_off].record_type = GNUNET_GNSRECORD_TYPE_TOMBSTONE;
         rd_clean[rd_clean_off].expiration_time =
