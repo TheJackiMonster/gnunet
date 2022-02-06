@@ -20,8 +20,7 @@ libexec_PROGRAMS = \
  gnunet-service-zonemaster-monitor
 
 gnunet_service_zonemaster_SOURCES = \
- gnunet-service-zonemaster.c \
- zonemaster_misc.c zonemaster_misc.h
+ gnunet-service-zonemaster.c
 gnunet_service_zonemaster_LDADD = \
   $(top_builddir)/src/dht/libgnunetdht.la \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
@@ -33,8 +32,7 @@ gnunet_service_zonemaster_LDADD = \
 
 
 gnunet_service_zonemaster_monitor_SOURCES = \
- gnunet-service-zonemaster-monitor.c \
- zonemaster_misc.c zonemaster_misc.h
+ gnunet-service-zonemaster-monitor.c
 gnunet_service_zonemaster_monitor_LDADD = \
   $(top_builddir)/src/dht/libgnunetdht.la \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \

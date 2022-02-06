@@ -631,11 +631,13 @@ GNUNET_GNSRECORD_records_cmp (const struct GNUNET_GNSRECORD_Data *a,
  *
  * @param rd_count number of records given in @a rd
  * @param rd array of records
+ * @param min minimum expiration time
  * @return absolute expiration time
  */
 struct GNUNET_TIME_Absolute
-GNUNET_GNSRECORD_record_get_expiration_time (
-  unsigned int rd_count, const struct GNUNET_GNSRECORD_Data *rd);
+GNUNET_GNSRECORD_record_get_expiration_time (unsigned int rd_count,
+                                             const struct GNUNET_GNSRECORD_Data *rd,
+                                             struct GNUNET_TIME_Absolute min);
 
 
 /**
@@ -724,6 +726,22 @@ GNUNET_GNSRECORD_is_zonekey_type (uint32_t type);
 enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_is_critical (uint32_t type);
 
+/**
+ * Convert namestore records from the internal format to that
+ * suitable for publication (removes private records, converts
+ * to absolute expiration time).
+ *
+ * @param rd input records
+ * @param rd_count size of the @a rd and @a rd_public arrays
+ * @param rd_public where to write the converted records
+ * @param expiry the expiration of the block
+ * @return number of records written to @a rd_public
+ */
+unsigned int
+GNUNET_GNSRECORD_convert_records_for_export (const struct GNUNET_GNSRECORD_Data *rd,
+                            unsigned int rd_count,
+                            struct GNUNET_GNSRECORD_Data *rd_public,
+                            struct GNUNET_TIME_Absolute *expiry);
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {

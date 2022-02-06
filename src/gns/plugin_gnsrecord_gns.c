@@ -133,10 +133,7 @@ gns_value_to_string (void *cls,
       return box_str;
     }
   case GNUNET_GNSRECORD_TYPE_TOMBSTONE: {
-    const struct GNUNET_GNSRECORD_TombstoneRecord *ts = data;
-    struct GNUNET_TIME_Absolute tod;
-    tod = GNUNET_TIME_absolute_ntoh (ts->time_of_death);
-    return GNUNET_strdup (GNUNET_STRINGS_absolute_time_to_string (tod));
+    return GNUNET_strdup ("\u271E");
   }
   default:
     return NULL;
@@ -303,15 +300,8 @@ gns_string_to_value (void *cls,
       return GNUNET_OK;
     }
   case GNUNET_GNSRECORD_TYPE_TOMBSTONE: {
-      struct GNUNET_TIME_Absolute tod;
-      struct GNUNET_TIME_AbsoluteNBO *tod_nbo;
-      if (GNUNET_OK != GNUNET_STRINGS_fancy_time_to_absolute (s,
-                                                              &tod))
-        return GNUNET_SYSERR;
-      tod_nbo = GNUNET_new (struct GNUNET_TIME_AbsoluteNBO);
-      *tod_nbo = GNUNET_TIME_absolute_hton (tod);
-      *data_size = sizeof (*tod_nbo);
-      *data = tod_nbo;
+      *data_size = 0;
+      *data = NULL;
       return GNUNET_OK;
     }
 

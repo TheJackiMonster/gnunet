@@ -83,11 +83,9 @@ struct RecordStoreMessage
   uint16_t rd_count GNUNET_PACKED;
 
   /**
-   * This is a zonemaster request.
-   * It means more authoritative tombstone processing
-   * and not notification of monitors.
+   * Reserved for alignment.
    */
-  uint16_t is_zonemaster GNUNET_PACKED;
+  uint16_t reserved GNUNET_PACKED;
 
   /**
    * The private key of the authority.

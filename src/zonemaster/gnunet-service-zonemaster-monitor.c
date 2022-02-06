@@ -28,7 +28,6 @@
 #include "gnunet_dht_service.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_statistics_service.h"
-#include "zonemaster_misc.h"
 
 #define LOG_STRERROR_FILE(kind, syscall, \
                           filename) GNUNET_log_from_strerror_file (kind, "util", \
@@ -57,30 +56,6 @@
  * What replication level do we use for DHT PUT operations?
  */
 #define DHT_GNS_REPLICATION_LEVEL 5
-
-/**
- * Handle for tombston updates which are executed for each published
- * record set.
- */
-struct TombstoneActivity
-{
-  /**
-   * Kept in a DLL.
-   */
-  struct TombstoneActivity *next;
-
-  /**
-   * Kept in a DLL.
-   */
-  struct TombstoneActivity *prev;
-
-  /**
-   * Handle for the store operation.
-   */
-  struct GNUNET_NAMESTORE_QueueEntry *ns_qe;
-
-};
-
 
 /**
  * Handle for DHT PUT activity triggered from the namestore monitor.
@@ -130,17 +105,6 @@ static struct GNUNET_NAMESTORE_Handle *namestore_handle;
 static struct GNUNET_NAMESTORE_ZoneMonitor *zmon;
 
 /**
- * Head of the tombstone operations
- */
-static struct TombstoneActivity *ta_head;
-
-/**
- * Tail of the tombstone operations
- */
-static struct TombstoneActivity *ta_tail;
-
-
-/**
  * Head of monitor activities; kept in a DLL.
  */
 static struct DhtPutActivity *ma_head;
@@ -185,14 +149,6 @@ shutdown_task (void *cls)
                                  ma_tail,
                                  ma);
     GNUNET_free (ma);
-  }
-  while (NULL != (ta = ta_head))
-  {
-    GNUNET_NAMESTORE_cancel (ta->ns_qe);
-    GNUNET_CONTAINER_DLL_remove (ta_head,
-                                 ta_tail,
-                                 ta);
-    GNUNET_free (ta);
   }
   if (NULL != statistics)
   {
@@ -309,21 +265,6 @@ perform_dht_put (const struct GNUNET_IDENTITY_PrivateKey *key,
   return ret;
 }
 
-static void
-ts_store_cont (void *cls, int32_t success, const char *emsg)
-{
-  struct TombstoneActivity *ta = cls;
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Tombstone update complete\n");
-  GNUNET_CONTAINER_DLL_remove (ta_head,
-                               ta_tail,
-                               ta);
-  GNUNET_free (ta);
-
-}
-
-
 /**
  * Process a record that was stored in the namestore
  * (invoked by the monitor).
@@ -346,7 +287,6 @@ handle_monitor_event (void *cls,
   unsigned int rd_public_count;
   unsigned int rd_fresh_count;
   struct DhtPutActivity *ma;
-  struct TombstoneActivity *ta;
   struct GNUNET_TIME_Absolute expire;
 
   (void) cls;
@@ -360,10 +300,10 @@ handle_monitor_event (void *cls,
               label);
   /* filter out records that are not public, and convert to
      absolute expiration time. */
-  rd_public_count = ZMSTR_convert_records_for_export (rd,
-                                                      rd_count,
-                                                      rd_public,
-                                                      &expire);
+  rd_public_count = GNUNET_GNSRECORD_convert_records_for_export (rd,
+                                                                 rd_count,
+                                                                 rd_public,
+                                                                 &expire);
   if (0 == rd_public_count)
   {
     GNUNET_NAMESTORE_zone_monitor_next (zmon,
@@ -378,27 +318,6 @@ handle_monitor_event (void *cls,
                             rd_count,
                             expire,
                             ma);
-  ta = GNUNET_new (struct TombstoneActivity);
-  ZMSTR_touch_tombstone (zone,
-                         label,
-                         rd,
-                         rd_count,
-                         rd_fresh,
-                         &rd_fresh_count,
-                         expire);
-  ta->ns_qe =  GNUNET_NAMESTORE_records_store_ (namestore_handle,
-                                                zone,
-                                                label,
-                                                rd_fresh_count,
-                                                rd_fresh,
-                                                GNUNET_YES,
-                                                &ts_store_cont,
-                                                ta);
-
-
-  GNUNET_CONTAINER_DLL_insert_tail (ta_head,
-                                    ta_tail,
-                                    ta);
   if (NULL == ma->ph)
   {
     /* PUT failed, do not remember operation */

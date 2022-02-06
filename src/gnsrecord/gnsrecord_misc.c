@@ -144,19 +144,11 @@ GNUNET_GNSRECORD_records_cmp (const struct GNUNET_GNSRECORD_Data *a,
 }
 
 
-/**
- * Returns the expiration time of the given block of records. The block
- * expiration time is the expiration time of the record with smallest
- * expiration time.
- *
- * @param rd_count number of records given in @a rd
- * @param rd array of records
- * @return absolute expiration time
- */
 struct GNUNET_TIME_Absolute
 GNUNET_GNSRECORD_record_get_expiration_time (unsigned int rd_count,
                                              const struct
-                                             GNUNET_GNSRECORD_Data *rd)
+                                             GNUNET_GNSRECORD_Data *rd,
+                                             struct GNUNET_TIME_Absolute min)
 {
   struct GNUNET_TIME_Absolute expire;
   struct GNUNET_TIME_Absolute at;
@@ -202,6 +194,7 @@ GNUNET_GNSRECORD_record_get_expiration_time (unsigned int rd_count,
     expire = GNUNET_TIME_absolute_min (at,
                                        expire);
   }
+  expire = GNUNET_TIME_absolute_min (expire, min);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Determined expiration time for block with %u records to be %s\n",
        rd_count,
@@ -405,6 +398,47 @@ GNUNET_GNSRECORD_record_to_identity_key (const struct GNUNET_GNSRECORD_Data *rd,
 
 
 }
+
+unsigned int
+GNUNET_GNSRECORD_convert_records_for_export (const struct GNUNET_GNSRECORD_Data *rd,
+                            unsigned int rd_count,
+                            struct GNUNET_GNSRECORD_Data *rd_public,
+                            struct GNUNET_TIME_Absolute *expiry)
+{
+  struct GNUNET_TIME_Absolute expiry_tombstone;
+  struct GNUNET_TIME_Absolute now;
+  struct GNUNET_TIME_Absolute minimum_expiration;
+  unsigned int rd_public_count;
+
+  rd_public_count = 0;
+  minimum_expiration = GNUNET_TIME_UNIT_FOREVER_ABS;
+  now = GNUNET_TIME_absolute_get ();
+  for (unsigned int i = 0; i < rd_count; i++)
+  {
+    if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[i].record_type)
+    {
+      minimum_expiration.abs_value_us = rd[i].expiration_time;
+      continue;
+    }
+    if (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE))
+      continue;
+    if ((0 == (rd[i].flags & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION)) &&
+        (rd[i].expiration_time < now.abs_value_us))
+      continue;   /* record already expired, skip it */
+      rd_public[rd_public_count] = rd[i];
+    /* Make sure critical record types are published as such */
+    if (GNUNET_YES == GNUNET_GNSRECORD_is_critical (rd[i].record_type))
+      rd_public[rd_public_count].flags |= GNUNET_GNSRECORD_RF_CRITICAL;
+    rd_public_count++;
+  }
+
+  *expiry = GNUNET_GNSRECORD_record_get_expiration_time (rd_public_count,
+                                                         rd_public,
+                                                         minimum_expiration);
+
+  return rd_public_count;
+}
+
 
 
 /* end of gnsrecord_misc.c */

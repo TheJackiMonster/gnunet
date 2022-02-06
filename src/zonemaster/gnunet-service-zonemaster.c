@@ -29,7 +29,6 @@
 #include "gnunet_dht_service.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_statistics_service.h"
-#include "zonemaster_misc.h"
 
 #define LOG_STRERROR_FILE(kind, syscall, \
                           filename) GNUNET_log_from_strerror_file (kind, "util", \
@@ -91,30 +90,6 @@
 #define DHT_GNS_REPLICATION_LEVEL 5
 
 /**
- * Handle for tombston updates which are executed for each published
- * record set.
- */
-struct TombstoneActivity
-{
-  /**
-   * Kept in a DLL.
-   */
-  struct TombstoneActivity *next;
-
-  /**
-   * Kept in a DLL.
-   */
-  struct TombstoneActivity *prev;
-
-  /**
-   * Handle for the store operation.
-   */
-  struct GNUNET_NAMESTORE_QueueEntry *ns_qe;
-
-};
-
-
-/**
  * Handle for DHT PUT activity triggered from the namestore monitor.
  */
 struct DhtPutActivity
@@ -170,16 +145,6 @@ static struct DhtPutActivity *it_head;
  * Tail of iteration put activities; kept in a DLL.
  */
 static struct DhtPutActivity *it_tail;
-
-/**
- * Head of the tombstone operations
- */
-static struct TombstoneActivity *ta_head;
-
-/**
- * Tail of the tombstone operations
- */
-static struct TombstoneActivity *ta_tail;
 
 /**
  * Number of entries in the DHT queue #it_head.
@@ -295,14 +260,6 @@ shutdown_task (void *cls)
                                  ma);
     dht_queue_length--;
     GNUNET_free (ma);
-  }
-  while (NULL != (ta = ta_head))
-  {
-    GNUNET_NAMESTORE_cancel (ta->ns_qe);
-    GNUNET_CONTAINER_DLL_remove (ta_head,
-                                 ta_tail,
-                                 ta);
-    GNUNET_free (ta);
   }
   if (NULL != statistics)
   {
@@ -713,21 +670,6 @@ zone_iteration_finished (void *cls)
   }
 }
 
-static void
-ts_store_cont (void *cls, int32_t success, const char *emsg)
-{
-  struct TombstoneActivity *ta = cls;
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Tombstone update complete\n");
-  GNUNET_CONTAINER_DLL_remove (ta_head,
-                               ta_tail,
-                               ta);
-  GNUNET_free (ta);
-
-}
-
-
 /**
  * Function used to put all records successively into the DHT.
  *
@@ -749,15 +691,14 @@ put_gns_record (void *cls,
   unsigned int rd_public_count;
   unsigned int rd_fresh_count = 0;
   struct DhtPutActivity *ma;
-  struct TombstoneActivity *ta;
   struct GNUNET_TIME_Absolute expire;
 
   (void) cls;
   ns_iteration_left--;
-  rd_public_count = ZMSTR_convert_records_for_export (rd,
-                                                      rd_count,
-                                                      rd_public,
-                                                      &expire);
+  rd_public_count = GNUNET_GNSRECORD_convert_records_for_export (rd,
+                                                                 rd_count,
+                                                                 rd_public,
+                                                                 &expire);
   if (0 == rd_public_count)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -790,27 +731,6 @@ put_gns_record (void *cls,
                             rd_public_count,
                             expire,
                             ma);
-  ta = GNUNET_new (struct TombstoneActivity);
-  ZMSTR_touch_tombstone (key,
-                         label,
-                         rd,
-                         rd_count,
-                         rd_fresh,
-                         &rd_fresh_count,
-                         expire);
-  ta->ns_qe =  GNUNET_NAMESTORE_records_store_ (namestore_handle,
-                                                key,
-                                                label,
-                                                rd_fresh_count,
-                                                rd_fresh,
-                                                GNUNET_YES,
-                                                &ts_store_cont,
-                                                ta);
-
-
-  GNUNET_CONTAINER_DLL_insert_tail (ta_head,
-                                    ta_tail,
-                                    ta);
   put_cnt++;
   if (0 == put_cnt % DELTA_INTERVAL)
     update_velocity (DELTA_INTERVAL);
