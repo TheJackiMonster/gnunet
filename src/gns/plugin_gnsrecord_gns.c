@@ -133,7 +133,7 @@ gns_value_to_string (void *cls,
       return box_str;
     }
   case GNUNET_GNSRECORD_TYPE_TOMBSTONE: {
-    return GNUNET_strdup ("\u271E");
+    return GNUNET_strdup (_("This is a memento for an older block for internal maintenance."));
   }
   default:
     return NULL;
@@ -328,7 +328,9 @@ static struct
                      { "GNS2DNS", GNUNET_GNSRECORD_TYPE_GNS2DNS },
                      { "BOX", GNUNET_GNSRECORD_TYPE_BOX },
                      { "REDIRECT", GNUNET_GNSRECORD_TYPE_REDIRECT },
-                     { "TOMBSTONE", GNUNET_GNSRECORD_TYPE_TOMBSTONE },
+                     /* Tombstones should never be added manually
+                      * so this makes sense, kind of */
+                     { "\u271E", GNUNET_GNSRECORD_TYPE_TOMBSTONE },
                      { NULL, UINT32_MAX } };
 
 
