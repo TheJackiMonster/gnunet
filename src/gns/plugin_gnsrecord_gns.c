@@ -133,7 +133,7 @@ gns_value_to_string (void *cls,
       return box_str;
     }
   case GNUNET_GNSRECORD_TYPE_TOMBSTONE: {
-    return GNUNET_strdup (_("This is a memento for an older block for internal maintenance."));
+    return GNUNET_strdup (_("This is a memento of an older block for internal maintenance."));
   }
   default:
     return NULL;
