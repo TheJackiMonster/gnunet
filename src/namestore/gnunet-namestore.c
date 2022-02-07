@@ -447,8 +447,8 @@ display_record (const char *rname,
     if ((GNUNET_GNSRECORD_TYPE_NICK == rd[i].record_type) &&
         (0 != strcmp (rname, GNUNET_GNS_EMPTY_LABEL_AT)))
       continue;
-    if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[i].record_type)
-      continue;
+    /*if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[i].record_type)
+      continue;*/
     if ((type != rd[i].record_type) && (GNUNET_GNSRECORD_TYPE_ANY != type))
       continue;
     typestr = GNUNET_GNSRECORD_number_to_typename (rd[i].record_type);
@@ -651,28 +651,6 @@ get_existing_record (void *cls,
   {
     switch (rd[i].record_type)
     {
-    case GNUNET_DNSPARSER_TYPE_CNAME:
-      fprintf (
-        stderr,
-        _ (
-          "A %s record exists already under `%s', no other records can be added.\n"),
-        "CNAME",
-        rec_name);
-      ret = 1;
-      test_finished ();
-      return;
-
-    case GNUNET_GNSRECORD_TYPE_PKEY:
-    case GNUNET_GNSRECORD_TYPE_EDKEY:
-      fprintf (
-        stderr,
-        _ (
-          "A zone key record exists already under `%s', no other records can be added.\n"),
-        rec_name);
-      ret = 1;
-      test_finished ();
-      return;
-
     case GNUNET_DNSPARSER_TYPE_SOA:
       if (GNUNET_DNSPARSER_TYPE_SOA == type)
       {
@@ -687,51 +665,6 @@ get_existing_record (void *cls,
       }
       break;
     }
-  }
-  switch (type)
-  {
-  case GNUNET_DNSPARSER_TYPE_CNAME:
-    if (0 != rd_count)
-    {
-      fprintf (stderr,
-               _ (
-                 "Records already exist under `%s', cannot add `%s' record.\n"),
-               rec_name,
-               "CNAME");
-      ret = 1;
-      test_finished ();
-      return;
-    }
-    break;
-
-  case GNUNET_GNSRECORD_TYPE_PKEY:
-  case GNUNET_GNSRECORD_TYPE_EDKEY:
-    if (0 != rd_count)
-    {
-      fprintf (stderr,
-               _ (
-                 "Records already exist under `%s', cannot add record.\n"),
-               rec_name);
-      ret = 1;
-      test_finished ();
-      return;
-    }
-    break;
-
-  case GNUNET_GNSRECORD_TYPE_GNS2DNS:
-    for (unsigned int i = 0; i < rd_count; i++)
-      if (GNUNET_GNSRECORD_TYPE_GNS2DNS != rd[i].record_type)
-      {
-        fprintf (
-          stderr,
-          _ (
-            "Non-GNS2DNS records already exist under `%s', cannot add GNS2DNS record.\n"),
-          rec_name);
-        ret = 1;
-        test_finished ();
-        return;
-      }
-    break;
   }
   memset (rdn, 0, sizeof(struct GNUNET_GNSRECORD_Data));
   GNUNET_memcpy (&rdn[1], rd, rd_count * sizeof(struct GNUNET_GNSRECORD_Data));

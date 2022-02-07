@@ -1484,12 +1484,12 @@ get_block_exp_existing (void *cls,
   char *emsg;
 
   if (GNUNET_OK != GNUNET_GNSRECORD_convert_records_for_export (label,
-                                               rd,
-                                               rd_count,
-                                               rd_pub,
-                                               &rd_pub_count,
-                                               exp,
-                                               &emsg))
+                                                                rd,
+                                                                rd_count,
+                                                                rd_pub,
+                                                                &rd_pub_count,
+                                                                exp,
+                                                                &emsg))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "%s\n", emsg);
@@ -1522,7 +1522,8 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received NAMESTORE_RECORD_STORE message\n");
-  existing_block_exp.abs_value_us = 0;
+  existing_block_exp = GNUNET_TIME_UNIT_ZERO_ABS;
+  new_block_exp = GNUNET_TIME_UNIT_ZERO_ABS;
   rid = ntohl (rp_msg->gns_header.r_id);
   name_len = ntohs (rp_msg->name_len);
   rd_count = ntohs (rp_msg->rd_count);
@@ -1634,7 +1635,7 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
           existing_block_exp.abs_value_us;
         rd_nf[rd_nf_count].data = NULL;
         rd_nf[rd_nf_count].data_size = 0;
-        rd_nf[rd_nf_count].flags |= GNUNET_GNSRECORD_RF_PRIVATE;
+        rd_nf[rd_nf_count].flags = GNUNET_GNSRECORD_RF_PRIVATE;
         rd_nf_count++;
       }
       if ((0 == strcmp (GNUNET_GNS_EMPTY_LABEL_AT, conv_name)) &&
@@ -1652,7 +1653,10 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
 
     if (GNUNET_OK != res)
     {
-      /* store not successful or zonemaster, not need to tell monitors */
+      /* store not successful, no need to tell monitors */
+      send_store_response (nc, res, _("Store failed"), rid);
+      GNUNET_SERVICE_client_continue (nc->client);
+      GNUNET_free (conv_name);
     }
 
     sa = GNUNET_malloc (sizeof(struct StoreActivity)

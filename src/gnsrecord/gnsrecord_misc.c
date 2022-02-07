@@ -156,8 +156,8 @@ GNUNET_GNSRECORD_record_get_expiration_time (unsigned int rd_count,
   struct GNUNET_TIME_Absolute at_shadow;
   struct GNUNET_TIME_Relative rt_shadow;
 
-  if (NULL == rd)
-    return GNUNET_TIME_UNIT_ZERO_ABS;
+  if (0 == rd_count)
+    return GNUNET_TIME_absolute_max (GNUNET_TIME_UNIT_ZERO_ABS, min);
   expire = GNUNET_TIME_UNIT_FOREVER_ABS;
   for (unsigned int c = 0; c < rd_count; c++)
   {
@@ -194,7 +194,7 @@ GNUNET_GNSRECORD_record_get_expiration_time (unsigned int rd_count,
     expire = GNUNET_TIME_absolute_min (at,
                                        expire);
   }
-  expire = GNUNET_TIME_absolute_min (expire, min);
+  expire = GNUNET_TIME_absolute_max (expire, min);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Determined expiration time for block with %u records to be %s\n",
        rd_count,
@@ -422,7 +422,7 @@ GNUNET_GNSRECORD_normalize_record_set (const char *label,
   int have_empty_label = (0 == strcmp (GNUNET_GNS_EMPTY_LABEL_AT, label));
   unsigned int rd_count_tmp;
 
-  minimum_expiration = GNUNET_TIME_UNIT_FOREVER_ABS;
+  minimum_expiration = GNUNET_TIME_UNIT_ZERO_ABS;
   now = GNUNET_TIME_absolute_get ();
   rd_count_tmp = 0;
   for (unsigned int i = 0; i < rd_count; i++)
@@ -498,7 +498,7 @@ GNUNET_GNSRECORD_normalize_record_set (const char *label,
       if (have_empty_label)
       {
         *emsg = GNUNET_strdup (_ (
-                                 "Redirection records not allowed in apex..\n"));
+                                 "Redirection records not allowed in apex.."));
         return GNUNET_SYSERR;
       }
       if ((GNUNET_YES == have_other) ||
@@ -520,7 +520,7 @@ GNUNET_GNSRECORD_normalize_record_set (const char *label,
           (GNUNET_YES == have_gns2dns))
       {
         *emsg = GNUNET_strdup (_ (
-                                 "Mutually exclusive records.\n"));
+                                 "Mutually exclusive records."));
         return GNUNET_SYSERR;
       }
       have_other = GNUNET_YES;
