@@ -7,11 +7,12 @@
 @c of GNUnet.
 The primary goal of the GNUnet project is to provide a reliable, open,
 non-discriminating and censorship-resistant system for information
-exchange. We value free speech above state interests and intellectual
+exchange.
+We value free speech above state interests and intellectual
 monopoly. GNUnet's long-term goal is to serve as a development
 platform for the next generation of Internet protocols.
 
-GNUnet is an anarchistic network. Participants are encouraged to
+Participants are encouraged to
 contribute at least as much resources (storage, bandwidth) to the network
 as they consume, so that their participation does not have a negative
 impact on other users.
