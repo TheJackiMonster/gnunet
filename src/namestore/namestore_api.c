@@ -346,6 +346,44 @@ check_rd (size_t rd_len, const void *rd_buf, unsigned int rd_count)
   return GNUNET_OK;
 }
 
+/**
+ * Handle an incoming message of type
+ * #GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_STORE_RESPONSE
+ *
+ * @param cls
+ * @param msg the message we received
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
+ */
+static int
+check_record_store_response (void *cls,
+                             const struct RecordStoreResponseMessage *msg)
+{
+  const char *emsg;
+  size_t msg_len;
+  size_t emsg_len;
+
+  (void) cls;
+  msg_len = ntohs (msg->gns_header.header.size);
+  emsg_len = ntohs (msg->emsg_len);
+  if (0 != ntohs (msg->reserved))
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  if (msg_len != sizeof(struct RecordStoreResponseMessage) + emsg_len)
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  emsg = (const char *) &msg[1];
+  if ((0 != emsg_len) && ('\0' != emsg[emsg_len - 1]))
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
+}
+
 
 /**
  * Handle an incoming message of type
@@ -364,15 +402,11 @@ handle_record_store_response (void *cls,
   const char *emsg;
 
   qe = find_qe (h, ntohl (msg->gns_header.r_id));
+  emsg = (const char *) &msg[1];
   res = ntohl (msg->op_result);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Received RECORD_STORE_RESPONSE with result %d\n",
        res);
-  /* TODO: add actual error message from namestore to response... */
-  if (GNUNET_SYSERR == res)
-    emsg = _ ("Namestore failed to store record\n");
-  else
-    emsg = NULL;
   if (NULL == qe)
     return;
   if (NULL != qe->cont)
@@ -775,7 +809,7 @@ static void
 reconnect (struct GNUNET_NAMESTORE_Handle *h)
 {
   struct GNUNET_MQ_MessageHandler handlers[] =
-  { GNUNET_MQ_hd_fixed_size (record_store_response,
+  { GNUNET_MQ_hd_var_size (record_store_response,
                              GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_STORE_RESPONSE,
                              struct RecordStoreResponseMessage,
                              h),

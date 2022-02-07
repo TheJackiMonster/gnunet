@@ -288,6 +288,7 @@ handle_monitor_event (void *cls,
   unsigned int rd_fresh_count;
   struct DhtPutActivity *ma;
   struct GNUNET_TIME_Absolute expire;
+  char *emsg;
 
   (void) cls;
   GNUNET_STATISTICS_update (statistics,
@@ -300,10 +301,21 @@ handle_monitor_event (void *cls,
               label);
   /* filter out records that are not public, and convert to
      absolute expiration time. */
-  rd_public_count = GNUNET_GNSRECORD_convert_records_for_export (rd,
-                                                                 rd_count,
-                                                                 rd_public,
-                                                                 &expire);
+  if (GNUNET_OK != GNUNET_GNSRECORD_convert_records_for_export (label,
+                                                                rd,
+                                                                rd_count,
+                                                                rd_public,
+                                                                &rd_public_count,
+                                                                &expire,
+                                                                &emsg))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Zonemaster-monitor failed: %s\n", emsg);
+    GNUNET_free (emsg);
+    GNUNET_NAMESTORE_zone_monitor_next (zmon,
+                                        1);
+    return;   /* nothing to do */
+  }
   if (0 == rd_public_count)
   {
     GNUNET_NAMESTORE_zone_monitor_next (zmon,

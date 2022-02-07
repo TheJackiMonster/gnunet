@@ -300,7 +300,8 @@ GNUNET_GNSRECORD_data_from_identity (const struct
     return GNUNET_SYSERR;
   tmp = GNUNET_malloc (*data_size);
   if (GNUNET_IDENTITY_write_key_to_buffer (key, tmp, *data_size)
-      != *data_size) {
+      != *data_size)
+  {
     GNUNET_free (tmp);
     *data_size = 0;
     return GNUNET_SYSERR;
@@ -399,44 +400,148 @@ GNUNET_GNSRECORD_record_to_identity_key (const struct GNUNET_GNSRECORD_Data *rd,
 
 }
 
-unsigned int
-GNUNET_GNSRECORD_convert_records_for_export (const struct GNUNET_GNSRECORD_Data *rd,
-                            unsigned int rd_count,
-                            struct GNUNET_GNSRECORD_Data *rd_public,
-                            struct GNUNET_TIME_Absolute *expiry)
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_normalize_record_set (const char *label,
+                                       const struct
+                                       GNUNET_GNSRECORD_Data *rd,
+                                       unsigned int rd_count,
+                                       struct GNUNET_GNSRECORD_Data *
+                                       rd_public,
+                                       unsigned int *rd_count_public,
+                                       struct GNUNET_TIME_Absolute *expiry,
+                                       int include_private,
+                                       char **emsg)
 {
   struct GNUNET_TIME_Absolute expiry_tombstone;
   struct GNUNET_TIME_Absolute now;
   struct GNUNET_TIME_Absolute minimum_expiration;
-  unsigned int rd_public_count;
+  int have_zone_delegation = GNUNET_NO;
+  int have_gns2dns = GNUNET_NO;
+  int have_other = GNUNET_NO;
+  int have_redirect = GNUNET_NO;
+  int have_empty_label = (0 == strcmp (GNUNET_GNS_EMPTY_LABEL_AT, label));
+  unsigned int rd_count_tmp;
 
-  rd_public_count = 0;
   minimum_expiration = GNUNET_TIME_UNIT_FOREVER_ABS;
   now = GNUNET_TIME_absolute_get ();
+  rd_count_tmp = 0;
   for (unsigned int i = 0; i < rd_count; i++)
   {
+    /* Ignore the tombstone. For maintenance only. Remember expiration time. */
     if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[i].record_type)
     {
       minimum_expiration.abs_value_us = rd[i].expiration_time;
       continue;
     }
-    if (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE))
+    /* No NICK records unless empty label */
+    if (have_empty_label &&
+        (GNUNET_GNSRECORD_TYPE_NICK == rd[i].record_type))
       continue;
+
+    /**
+     * Check for delegation and redirect consistency.
+     * Note that we check for consistency BEFORE we filter for
+     * private records ON PURPOSE.
+     * We also want consistent record sets in our local zone(s).
+     * The only exception is the tombstone (above) which we ignore
+     * for the consistency check(s).
+     */
+    if (GNUNET_YES == GNUNET_GNSRECORD_is_zonekey_type (rd[i].record_type))
+    {
+      have_zone_delegation = GNUNET_YES;
+      /* No delegation records under empty label*/
+      if (have_empty_label)
+      {
+        *emsg = GNUNET_strdup (_ (
+                                 "Record set inconsistent: Multiple delegation records."));
+        return GNUNET_SYSERR;
+      }
+    }
+    else if (GNUNET_GNSRECORD_TYPE_REDIRECT == rd[i].record_type)
+    {
+      if (GNUNET_YES == have_redirect)
+      {
+        *emsg = GNUNET_strdup (_ (
+                                 "Record set inconsistent: Multiple REDIRECT records."));
+        return GNUNET_SYSERR;
+      }
+      have_redirect = GNUNET_YES;
+      /* No redirection records under empty label*/
+      if (have_empty_label)
+      {
+        *emsg = GNUNET_strdup (_ (
+                                 "Record set inconsistent: REDIRECT record under apex label."));
+        return GNUNET_SYSERR;
+      }
+    }
+    else if (GNUNET_GNSRECORD_TYPE_GNS2DNS == rd[i].record_type)
+    {
+      have_gns2dns = GNUNET_YES;
+      /* No gns2dns records under empty label*/
+      if (have_empty_label)
+      {
+        *emsg = GNUNET_strdup (_ (
+                                 "Record set inconsistent: GNS2DNS record under apex label.\n"));
+        return GNUNET_SYSERR;
+      }
+    }
+    else
+    {
+      /* Some other record.
+       * Not allowed for zone delegations or redirections */
+      if ((GNUNET_YES == have_zone_delegation) ||
+          (GNUNET_YES == have_redirect) ||
+          (GNUNET_YES == have_gns2dns))
+      {
+        *emsg = GNUNET_strdup (_("Record set inconsistent: Mutually exclusive records.\n"));
+        return GNUNET_SYSERR;
+        have_other = GNUNET_YES;
+      }
+    }
+
+    /* Ignore private records for public record set */
+
+    if ((GNUNET_NO != include_private) &&
+        (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE)))
+      continue;
+    /* Skip expired records */
     if ((0 == (rd[i].flags & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION)) &&
         (rd[i].expiration_time < now.abs_value_us))
-      continue;   /* record already expired, skip it */
-      rd_public[rd_public_count] = rd[i];
-    /* Make sure critical record types are published as such */
+      continue;     /* record already expired, skip it */
+    rd_public[rd_count_tmp] = rd[i];
+    /* Make sure critical record types are marked as such */
     if (GNUNET_YES == GNUNET_GNSRECORD_is_critical (rd[i].record_type))
-      rd_public[rd_public_count].flags |= GNUNET_GNSRECORD_RF_CRITICAL;
-    rd_public_count++;
+      rd_public[rd_count_tmp].flags |= GNUNET_GNSRECORD_RF_CRITICAL;
+    rd_count_tmp++;
   }
 
-  *expiry = GNUNET_GNSRECORD_record_get_expiration_time (rd_public_count,
+  *expiry = GNUNET_GNSRECORD_record_get_expiration_time (rd_count_tmp,
                                                          rd_public,
                                                          minimum_expiration);
+  *rd_count_public = rd_count_tmp;
+  return GNUNET_OK;
+}
 
-  return rd_public_count;
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_convert_records_for_export (const char *label,
+                                             const struct
+                                             GNUNET_GNSRECORD_Data *rd,
+                                             unsigned int rd_count,
+                                             struct GNUNET_GNSRECORD_Data *
+                                             rd_public,
+                                             unsigned int *rd_count_public,
+                                             struct GNUNET_TIME_Absolute *expiry,
+                                             char **emsg)
+{
+  return GNUNET_GNSRECORD_normalize_record_set (label,
+                                                rd,
+                                                rd_count,
+                                                rd_public,
+                                                rd_count_public,
+                                                expiry,
+                                                GNUNET_NO,
+                                                emsg);
+
 }
 
 

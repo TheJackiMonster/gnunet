@@ -113,6 +113,20 @@ struct RecordStoreResponseMessage
    * #GNUNET_SYSERR on failure, #GNUNET_OK on success
    */
   int32_t op_result GNUNET_PACKED;
+
+  /**
+   * Error message length
+   */
+  uint16_t emsg_len GNUNET_PACKED;
+
+  /**
+   * Reserved for alignment.
+   */
+  uint16_t reserved GNUNET_PACKED;
+
+  /**
+   * Followed by error message
+   */
 };
 
 
