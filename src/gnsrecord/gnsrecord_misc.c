@@ -445,45 +445,71 @@ GNUNET_GNSRECORD_normalize_record_set (const char *label,
      * We also want consistent record sets in our local zone(s).
      * The only exception is the tombstone (above) which we ignore
      * for the consistency check(s).
+     * FIXME: What about shadow records? Should we ignore them?
      */
     if (GNUNET_YES == GNUNET_GNSRECORD_is_zonekey_type (rd[i].record_type))
     {
-      have_zone_delegation = GNUNET_YES;
       /* No delegation records under empty label*/
       if (have_empty_label)
       {
         *emsg = GNUNET_strdup (_ (
-                                 "Record set inconsistent: Multiple delegation records."));
+                                 "Zone delegation record not allowed in apex."));
         return GNUNET_SYSERR;
       }
+      if ((GNUNET_YES == have_other) ||
+          (GNUNET_YES == have_redirect) ||
+          (GNUNET_YES == have_gns2dns))
+      {
+        *emsg = GNUNET_strdup (_ (
+                                 "Zone delegation record set contains mutually exclusive records."));
+        return GNUNET_SYSERR;
+      }
+      have_zone_delegation = GNUNET_YES;
     }
     else if (GNUNET_GNSRECORD_TYPE_REDIRECT == rd[i].record_type)
     {
       if (GNUNET_YES == have_redirect)
       {
         *emsg = GNUNET_strdup (_ (
-                                 "Record set inconsistent: Multiple REDIRECT records."));
+                                 "Multiple REDIRECT records."));
+        return GNUNET_SYSERR;
+
+      }
+      if ((GNUNET_YES == have_other) ||
+          (GNUNET_YES == have_zone_delegation) ||
+          (GNUNET_YES == have_gns2dns))
+      {
+        *emsg = GNUNET_strdup (_ (
+                                 "Redirection record set conains mutually exclusive records."));
         return GNUNET_SYSERR;
       }
-      have_redirect = GNUNET_YES;
       /* No redirection records under empty label*/
       if (have_empty_label)
       {
         *emsg = GNUNET_strdup (_ (
-                                 "Record set inconsistent: REDIRECT record under apex label."));
+                                 "Redirection records not allowed in apex."));
         return GNUNET_SYSERR;
       }
+      have_redirect = GNUNET_YES;
     }
     else if (GNUNET_GNSRECORD_TYPE_GNS2DNS == rd[i].record_type)
     {
-      have_gns2dns = GNUNET_YES;
       /* No gns2dns records under empty label*/
       if (have_empty_label)
       {
         *emsg = GNUNET_strdup (_ (
-                                 "Record set inconsistent: GNS2DNS record under apex label.\n"));
+                                 "Redirection records not allowed in apex..\n"));
         return GNUNET_SYSERR;
       }
+      if ((GNUNET_YES == have_other) ||
+          (GNUNET_YES == have_redirect) ||
+          (GNUNET_YES == have_zone_delegation))
+      {
+        *emsg = GNUNET_strdup (_ (
+                                 "Redirection record set conains mutually exclusive records."));
+        return GNUNET_SYSERR;
+      }
+      have_gns2dns = GNUNET_YES;
     }
     else
     {
@@ -493,10 +519,11 @@ GNUNET_GNSRECORD_normalize_record_set (const char *label,
           (GNUNET_YES == have_redirect) ||
           (GNUNET_YES == have_gns2dns))
       {
-        *emsg = GNUNET_strdup (_("Record set inconsistent: Mutually exclusive records.\n"));
+        *emsg = GNUNET_strdup (_ (
+                                 "Mutually exclusive records.\n"));
         return GNUNET_SYSERR;
-        have_other = GNUNET_YES;
       }
+      have_other = GNUNET_YES;
     }
 
     /* Ignore private records for public record set */
