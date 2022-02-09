@@ -486,10 +486,19 @@ main (int argc,
   size_t message_len = strlen ("test message");
 
   struct GNUNET_CRYPTO_CsPrivateKey priv;
+
+  memset (&priv,
+          42,
+          sizeof (priv));
   test_create_priv (&priv);
 
   struct GNUNET_CRYPTO_CsPublicKey pub;
-  test_generate_pub (&priv, &pub);
+
+  memset (&pub,
+          42,
+          sizeof (pub));
+  test_generate_pub (&priv,
+                     &pub);
 
   // derive nonce
   struct GNUNET_CRYPTO_CsNonce nonce;
@@ -505,22 +514,45 @@ main (int argc,
 
   // generate r, R
   struct GNUNET_CRYPTO_CsRSecret r_secrets[2];
-  test_derive_rsecret (&nonce, &priv, r_secrets);
+
+  memset (r_secrets,
+          42,
+          sizeof (r_secrets));
+  test_derive_rsecret (&nonce,
+                       &priv,
+                       r_secrets);
 
   struct GNUNET_CRYPTO_CsRPublic r_publics[2];
-  test_generate_rpublic (&r_secrets[0], &r_publics[0]);
-  test_generate_rpublic (&r_secrets[1], &r_publics[1]);
+
+  memset (r_publics,
+          42,
+          sizeof (r_publics));
+  test_generate_rpublic (&r_secrets[0],
+                         &r_publics[0]);
+  test_generate_rpublic (&r_secrets[1],
+                         &r_publics[1]);
 
   // ---------- actions performed by user
 
   // generate blinding secrets
   struct GNUNET_CRYPTO_CsBlindingSecret blindingsecrets[2];
+
+  memset (blindingsecrets,
+          42,
+          sizeof (blindingsecrets));
   test_derive_blindingsecrets (&nonce,
                                blindingsecrets);
 
   // calculate blinded c's
   struct GNUNET_CRYPTO_CsC blinded_cs[2];
   struct GNUNET_CRYPTO_CsRPublic blinded_r_pubs[2];
+
+  memset (blinded_cs,
+          42,
+          sizeof (blinded_cs));
+  memset (blinded_r_pubs,
+          42,
+          sizeof (blinded_r_pubs));
   test_calc_blindedc (blindingsecrets,
                       r_publics,
                       &pub,
@@ -533,6 +565,10 @@ main (int argc,
   // sign blinded c's and get b and s in return
   unsigned int b;
   struct GNUNET_CRYPTO_CsBlindS blinded_s;
+
+  memset (&blinded_s,
+          42,
+          sizeof (blinded_s));
   test_blind_sign (&b,
                    &priv,
                    r_secrets,
@@ -542,6 +578,7 @@ main (int argc,
 
   // verify blinded signature
   struct GNUNET_CRYPTO_CsSignature blinded_signature;
+
   blinded_signature.r_point = r_publics[b];
   blinded_signature.s_scalar.scalar = blinded_s.scalar;
   test_blind_verify (&blinded_signature,
@@ -550,6 +587,10 @@ main (int argc,
 
   // ---------- actions performed by user
   struct GNUNET_CRYPTO_CsS sig_scalar;
+
+  memset (&sig_scalar,
+          42,
+          sizeof (sig_scalar));
   test_unblinds (&blinded_s,
                  &blindingsecrets[b],
                  &sig_scalar);

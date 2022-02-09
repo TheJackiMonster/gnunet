@@ -205,11 +205,16 @@ cs_full_domain_hash (const struct GNUNET_CRYPTO_CsRPublic *r_dash,
   memcpy (r_m_concat, r_dash, sizeof(struct GNUNET_CRYPTO_CsRPublic));
   memcpy (r_m_concat + sizeof(struct GNUNET_CRYPTO_CsRPublic), msg, msg_len);
   struct GNUNET_HashCode prehash;
-  GNUNET_CRYPTO_hash (r_m_concat, r_m_concat_len, &prehash);
+
+  GNUNET_CRYPTO_hash (r_m_concat,
+                      r_m_concat_len,
+                      &prehash);
 
   // modulus converted to MPI representation
   gcry_mpi_t l_mpi;
-  GNUNET_CRYPTO_mpi_scan_unsigned (&l_mpi, L_BIG_ENDIAN, sizeof(L_BIG_ENDIAN));
+  GNUNET_CRYPTO_mpi_scan_unsigned (&l_mpi,
+                                   L_BIG_ENDIAN,
+                                   sizeof(L_BIG_ENDIAN));
 
   // calculate full domain hash
   gcry_mpi_t c_mpi;
@@ -224,7 +229,9 @@ cs_full_domain_hash (const struct GNUNET_CRYPTO_CsRPublic *r_dash,
 
   // convert c from mpi
   unsigned char c_big_endian[256 / 8];
-  GNUNET_CRYPTO_mpi_print_unsigned (c_big_endian, sizeof(c_big_endian), c_mpi);
+  GNUNET_CRYPTO_mpi_print_unsigned (c_big_endian,
+                                    sizeof(c_big_endian),
+                                    c_mpi);
   gcry_mpi_release (c_mpi);
   for (size_t i = 0; i<32; i++)
     c->scalar.d[i] = c_big_endian[31 - i];
