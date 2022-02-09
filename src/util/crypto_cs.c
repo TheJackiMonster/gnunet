@@ -409,7 +409,12 @@ GNUNET_CRYPTO_cs_verify (const struct GNUNET_CRYPTO_CsSignature *sig,
 {
   // calculate c' = H(R, m)
   struct GNUNET_CRYPTO_CsC c_dash;
-  cs_full_domain_hash (&sig->r_point, msg, msg_len, pub, &c_dash);
+
+  cs_full_domain_hash (&sig->r_point,
+                       msg,
+                       msg_len,
+                       pub,
+                       &c_dash);
 
   // s'G ?= R' + c' pub
   struct GNUNET_CRYPTO_Cs25519Point sig_scal_mul_base;
