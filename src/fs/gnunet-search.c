@@ -771,9 +771,11 @@ main (int argc, char *const *argv)
       't',
       "timeout",
       "DELAY",
-      gettext_noop ("automatically terminate search after DELAY (in number of "
-                    "microseconds - 1 second = 1000000); if 0 or omitted it "
-                    "means to wait for CTRL-C"),
+      gettext_noop ("automatically terminate search after DELAY; the value "
+                    "given must be a number followed by a space and a time "
+                    "unit, for example \"500 ms\"; without a unit it defaults "
+                    "to microseconds - 1 second = 1000000; if 0 or omitted "
+                    "it means to wait for CTRL-C"),
       &timeout),
     GNUNET_GETOPT_option_increment_uint (
       'V',
