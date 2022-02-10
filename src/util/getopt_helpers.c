@@ -174,7 +174,8 @@ OUTER:
     i++;
   }
   pd = GNUNET_OS_project_data_get ();
-  printf ("Report bugs to %s.\n"
+  printf ("\n"
+          "Report bugs to %s.\n"
           "Home page: %s\n",
           pd->bug_email,
           pd->homepage);
