@@ -63,13 +63,137 @@ The specific numeric value (for anonymity levels above 1) is simple:
 Given an anonymity level L (above 1), each request FS makes on your behalf must be hidden in L-1 equivalent requests of cover traffic (traffic your peer routes for others) in the same time-period.
 The time-period is twice the average delay by which GNUnet artificially delays traffic.
 Note that regardless of the anonymity level you choose, peers that cache content in the network always use anonymity level 1.
+.It Fl b | -bookmark-only
+Do not search, print only the URI that points to the search with the given keywords.
 .It Fl c Ar FILENAME | Fl -config= Ns Ar FILENAME
 Use the configuration file
 .Ar FILENAME
 (default:
-.Pa ~/.config/gnunet.conf )
+.Pa ~/.config/gnunet.conf Ns
+).
+.It Fl F Ar FORMAT | Fl -dir-printf= Ns Ar FORMAT
+Write the search results for directories according to
+.Ar FORMAT Ns
+\&. The format specifiers supported here are identical to those supported in the
+.Nm --printf
+argument (please refer to it for more information). If missing,
+.Nm --dir-printf
+defaults to
+.Nm --printf Ns
+\&. If
+.Nm --printf
+is missing too
+.Nm --dir-printf
+defaults to
+.Dq #%n:\engnunet-download -o "%f" -R %u\en\en Ns
+\&.
+.It Fl f Ar FORMAT | Fl -printf= Ns Ar FORMAT
+Write the search results according to
+.Ar FORMAT Ns
+, in which
+.Ql \e
+and
+.Ql %
+directives are interpreted as follows:
+.Bl -tag -width indent
+.It Li \e\e
+a literal backslash
+.No ( Ql \e Ns )
+.It Li \ea
+an alarm bell
+.It Li \eb
+a backspace
+.It Li \ee
+an escape
+.It Li \ef
+a form feed
+.It Li \en
+a newline
+.It Li \er
+a carriage return
+.It Li \et
+a horizontal tab
+.It Li \ev
+a vertical tab
+.It Li \e0
+an ASCII NUL.
+.It Li \eN...
+the character whose ASCII code is N..., expressed in octal digits
+.It Li \exX...
+the character whose ASCII code is X..., expressed in hexadecimal digits
+.It Li %%
+a percent sign
+.It Li %a
+the complete list of all the printable metadata available, displayed according to the
+.Nm --iter-printf
+argument; this specifier optionally supports metatype filtering via hash sign
+.No (e.g.
+.Dq %2#a
+prints all embedded file names, if present - see libextractor's metatypes for the complete list of numerical identifiers)
+.It Li %f
+the file's name
+.It Li %j
+the first printable metadatum available, displayed according to the
+.Nm --iter-printf
+argument; this specifier optionally supports metatype filtering via hash sign
+.No (e.g.
+.Dq %5#j
+prints a book title, if present); see libextractor's metatypes for the complete list of numerical identifiers)
+.It Li %l
+the file name's length
+.It Li %m
+the file's mime type
+.It Li %n
+the search result number
+.It Li %s
+the file's size in bytes
+.It Li %u
+the file's URI
+.El
+.Pp
+If missing,
+.Nm --printf
+defaults to
+.Dq #%n:\engnunet-download -o "%f" %u\en\en Ns
+\&.
 .It Fl h | -help
 Print the help page.
+.It Fl i Ar FORMAT | Fl -iter-printf= Ns Ar FORMAT
+When the %a or %j format specifiers appear in
+.Nm --printf
+or
+.Nm --dir-printf Ns
+, list each metadata property according to
+.Ar FORMAT Ns
+, in which the
+.Ql \e
+directives are interpreted as in
+.Nm --printf
+and
+.Nm --dir-printf Ns
+, while the
+.Ql %
+directives are interpreted as follows:
+.Bl -tag -width indent
+.It Li %%
+a percent sign
+.It Li %p
+the property's content
+.It Li %l
+the property content's length in bytes
+.It Li %i
+the property type's unique identifier
+.It Li %n
+the property number
+.It Li %w
+the name of the plugin that provided the information
+.El
+.Pp
+If missing,
+.Nm --iter-printf
+defaults to
+.Dq \& \& MetaType #%i: %p\en Ns
+\&.
 .It Fl L Ar LOGLEVEL | Fl -loglevel= Ns Ar LOGLEVEL
 Change the loglevel.
 Possible values for LOGLEVEL are ERROR, WARNING, INFO and DEBUG.
@@ -78,24 +202,38 @@ Write logs to
 .Ar FILENAME .
 .It Fl o Ar FILENAME | Fl -output= Ns Ar FILENAME
 Writes a GNUnet directory containing all of the search results to
-.Ar FILENAME .
+.Ar FILENAME
+.No (e.g.
+.Ql gnunet-search --output=commons.gnd commons Ns
+).
 .It Fl n | -no-network
 Only search locally, do not forward requests to other peers.
 .It Fl N Ar VALUE | Fl -results= Ns Ar VALUE
 Automatically terminate the search after receiving
 .Ar VALUE
 results.
+.It Fl s | -silent
+Enable silent mode and do not print any result (the
+.Nm --output
+argument is required).
 .It Fl t Ar DELAY | Fl -timeout= Ns Ar DELAY
 Automatically timeout search after
 .Ar DELAY .
 The value given must be a number followed by a space and a time unit, for example "500 ms".
-Note that the quotes are required on the shell.
-Otherwise the search runs until gnunet-search is aborted with CTRL-C.
+Note that the quotes are required on the shell. Without a unit it defaults to microseconds (1 second = 1000000).
+If 0 or omitted the search runs until gnunet-search is aborted with CTRL-C.
 .It Fl v | -version
 print the version number
 .It Fl V | -verbose
-print meta data from search results as well
+append
+.Dq %a\en
+to the default
+.Nm --printf
+and
+.Nm --dir-printf
+arguments \[u2013] ignored when these are provided by the user
 .El
+.Pp
 You can run gnunet-search with an URI instead of a keyword.
 The URI can have the format for a namespace search or for a keyword search.
 For a namespace search, the format is
