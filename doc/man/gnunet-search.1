@@ -79,7 +79,7 @@ Use the configuration file
 .It Fl F Ar FORMAT | Fl -dir-printf= Ns Ar FORMAT
 Write the search results for directories according to
 .Ar FORMAT Ns
-\&. The format specifiers supported here are identical to those supported in the
+\&. The directives supported here are identical to those supported in the
 .Nm --printf
 argument (please refer to it for more information). If missing,
 .Nm --dir-printf
@@ -190,6 +190,8 @@ the property content's length in bytes
 the property type's unique identifier
 .It Li %n
 the property number
+.It Li %t
+the property type
 .It Li %w
 the name of the plugin that provided the information
 .El
