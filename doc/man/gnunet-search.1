@@ -80,15 +80,15 @@ Use the configuration file
 Write the search results for directories according to
 .Ar FORMAT Ns
 \&. The directives supported here are identical to those supported in the
-.Nm --printf
+.Fl -printf
 argument (please refer to it for more information). If missing,
-.Nm --dir-printf
+.Fl -dir-printf
 defaults to
-.Nm --printf Ns
+.Fl -printf Ns
 \&. If
-.Nm --printf
+.Fl -printf
 is missing too
-.Nm --dir-printf
+.Fl -dir-printf
 defaults to
 .Dq #%n:\engnunet-download -o "%f" -R %u\en\en Ns
 \&.
@@ -129,8 +129,8 @@ the character whose ASCII code is X..., expressed in hexadecimal digits
 .It Li %%
 a percent sign
 .It Li %a
-the complete list of all the printable metadata available, displayed according to the
-.Nm --iter-printf
+the complete list of all the printable metadata properties available, displayed according to the
+.Fl -iter-printf
 argument; this specifier optionally supports metatype filtering via hash sign
 .No (e.g.
 .Dq %2#a
@@ -138,8 +138,8 @@ prints all embedded file names, if present - see libextractor's metatypes for th
 .It Li %f
 the file's name
 .It Li %j
-the first printable metadatum available, displayed according to the
-.Nm --iter-printf
+the first printable metadata property available, displayed according to the
+.Fl -iter-printf
 argument; this specifier optionally supports metatype filtering via hash sign
 .No (e.g.
 .Dq %5#j
@@ -157,7 +157,7 @@ the file's URI
 .El
 .Pp
 If missing,
-.Nm --printf
+.Fl -printf
 defaults to
 .Dq #%n:\engnunet-download -o "%f" %u\en\en Ns
 \&.
@@ -165,17 +165,17 @@ defaults to
 Print the help page.
 .It Fl i Ar FORMAT | Fl -iter-printf= Ns Ar FORMAT
 When the %a or %j format specifiers appear in
-.Nm --printf
+.Fl -printf
 or
-.Nm --dir-printf Ns
+.Fl -dir-printf Ns
 , list each metadata property according to
 .Ar FORMAT Ns
 , in which the
 .Ql \e
 directives are interpreted as in
-.Nm --printf
+.Fl -printf
 and
-.Nm --dir-printf Ns
+.Fl -dir-printf Ns
 , while the
 .Ql %
 directives are interpreted as follows:
@@ -191,13 +191,13 @@ the property type's unique identifier
 .It Li %n
 the property number
 .It Li %t
-the property type's string (available only if compiled with libextractor)
+the property type (available only if compiled with libextractor)
 .It Li %w
 the name of the plugin that provided the information
 .El
 .Pp
 If missing,
-.Nm --iter-printf
+.Fl -iter-printf
 defaults to
 .Dq \& \& %t: %p\en
 or
@@ -205,7 +205,9 @@ or
 , depending on whether the program was compiled with libextractor or not.
 .It Fl L Ar LOGLEVEL | Fl -loglevel= Ns Ar LOGLEVEL
 Change the loglevel.
-Possible values for LOGLEVEL are ERROR, WARNING, INFO and DEBUG.
+Possible values for
+.Ar LOGLEVEL
+are ERROR, WARNING, INFO and DEBUG.
 .It Fl l Ar FILENAME | Fl -logfile= Ns Ar FILENAME
 Write logs to
 .Ar FILENAME .
@@ -223,7 +225,7 @@ Automatically terminate the search after receiving
 results.
 .It Fl s | -silent
 Enable silent mode and do not print any result (the
-.Nm --output
+.Fl -output
 argument is required).
 .It Fl t Ar DELAY | Fl -timeout= Ns Ar DELAY
 Automatically timeout search after
@@ -237,13 +239,15 @@ print the version number
 append
 .Dq %a\en
 to the default
-.Nm --printf
+.Fl -printf
 and
-.Nm --dir-printf
+.Fl -dir-printf
 arguments \[u2013] ignored when these are provided by the user
 .El
 .Pp
-You can run gnunet-search with an URI instead of a keyword.
+It is possible to run
+.Nm gnunet-search
+with an URI instead of a keyword.
 The URI can have the format for a namespace search or for a keyword search.
 For a namespace search, the format is
 .Pp
@@ -255,33 +259,53 @@ For a keyword search, use
 .Pp
 If the format does not correspond to a GNUnet URI, GNUnet will automatically assume that keywords are supplied directly.
 .sp
-If multiple keywords are passed, gnunet-search will look for content matching any of the keywords.
-The prefix "+" makes a keyword mandatory.
+If multiple keywords are passed,
+.Nm gnunet-search
+will look for content matching any of the keywords.
+The
+.Ql +
+prefix makes a keyword mandatory.
 .Sh FILES
 .Pa ~/.config/gnunet.conf
 GNUnet configuration file; specifies the default value for the timeout
 .Sh EXAMPLES
 .Dl $ gnunet-search "Das Kapital"
 .Pp
-Searches for content matching the keyword "Das Kapital".
+searches for content matching the keyword
+.Dq Das Kapital Ns
+.
 .Pp
 .Dl $ gnunet-search +Das +Kapital
 .Pp
-Searches for content matching both mandatory keywords "Das" and "Kapital".
+searches for content matching both mandatory keywords
+.Dq Das
+and
+.Dq Kapital Ns
+.
 .sp
 Search results are printed by gnunet-search like this:
 .Pp
 .ad l
-        gnunet-download -o "COPYING" gnunet://fs/chk/HASH1.HASH2.SIZE
-                Description: The GNU General Public License
-                Mime-type: text/plain
+        gnunet-download -V -o "COPYING" gnunet://fs/chk/HASH1.HASH2.SIZE
+
+          Description: The GNU General Public License
+          Mime-type: text/plain
+          ...
 .ad b
 
 The first line contains the command to run to download the file.
 The suggested filename in the example is COPYING.
 The GNUnet URI consists of the key and query hash of the file and finally the size of the file.
-After the command to download the file, GNUnet will print meta-data about the file as advertised in the search result.
-The meta-data here is the description ("The GNU General Public License") and the mime-type ("text-plain").
+If the
+.Fl -verbose
+option was provided, after the command to download the file, GNUnet will print meta-data about the file as advertised in the search result.
+The meta-data here is the description
+.No ( Ns
+.Dq The GNU General Public License Ns
+) and the mime-type
+.No ( Ns
+.Dq text-plain Ns
+).
 See the options for
 .Xr gnunet-publish 1
 on how to supply meta-data by hand.
@@ -291,10 +315,10 @@ on how to supply meta-data by hand.
 .Xr gnunet-publish 1 ,
 .Xr gnunet.conf 5
 .sp
-The full documentation for gnunet is maintained as a Texinfo manual.
+The full documentation for GNUnet is maintained as a Texinfo manual.
 If the
 .Xr info 1
-and gnunet programs are properly installed at your site, the command
+and gnunet packages are properly installed at your site, the command
 .Pp
 .Dl info gnunet
 .Pp
