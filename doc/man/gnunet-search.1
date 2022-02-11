@@ -191,7 +191,7 @@ the property type's unique identifier
 .It Li %n
 the property number
 .It Li %t
-the property type
+the property type's string (available only if compiled with libextractor)
 .It Li %w
 the name of the plugin that provided the information
 .El
@@ -199,8 +199,10 @@ the name of the plugin that provided the information
 If missing,
 .Nm --iter-printf
 defaults to
+.Dq \& \& %t: %p\en
+or
 .Dq \& \& MetaType #%i: %p\en Ns
-\&.
+, depending on whether the program was compiled with libextractor or not.
 .It Fl L Ar LOGLEVEL | Fl -loglevel= Ns Ar LOGLEVEL
 Change the loglevel.
 Possible values for LOGLEVEL are ERROR, WARNING, INFO and DEBUG.
