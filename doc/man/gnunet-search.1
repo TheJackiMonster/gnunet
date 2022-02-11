@@ -90,7 +90,7 @@ defaults to
 is missing too
 .Fl -dir-printf
 defaults to
-.Dq #%n:\engnunet-download -o "%f" -R %u\en\en Ns
+.Ql #%n:\engnunet-download -o "%f" -R %u\en\en Ns
 \&.
 .It Fl f Ar FORMAT | Fl -printf= Ns Ar FORMAT
 Write the search results according to
@@ -126,6 +126,13 @@ an ASCII NUL.
 the character whose ASCII code is N..., expressed in octal digits
 .It Li \exX...
 the character whose ASCII code is X..., expressed in hexadecimal digits
+.Pp
+.El
+.Sy Note:
+The
+.Ql \e
+character followed by any other character not listed above is treated as an ordinary character, so both characters are printed.
+.Bl -tag -width indent
 .It Li %%
 a percent sign
 .It Li %a
@@ -156,15 +163,24 @@ the file's size in bytes
 the file's URI
 .El
 .Pp
+.Sy Note:
+The
+.Ql %
+character followed by any other character not listed above is treated as an ordinary character, so both characters are printed.
+.Pp
 If missing,
 .Fl -printf
 defaults to
-.Dq #%n:\engnunet-download -o "%f" %u\en\en Ns
+.Ql #%n:\engnunet-download -o "%f" %u\en\en Ns
 \&.
 .It Fl h | -help
 Print the help page.
 .It Fl i Ar FORMAT | Fl -iter-printf= Ns Ar FORMAT
-When the %a or %j format specifiers appear in
+When the
+.Ql %a
+or
+.Ql %j
+format specifiers appear in
 .Fl -printf
 or
 .Fl -dir-printf Ns
@@ -196,12 +212,17 @@ the property type (available only if compiled with libextractor)
 the name of the plugin that provided the information
 .El
 .Pp
+.Sy Note:
+The
+.Ql %
+character followed by any other character not listed above is treated as an ordinary character, so both characters are printed.
+.Pp
 If missing,
 .Fl -iter-printf
 defaults to
-.Dq \& \& %t: %p\en
+.Ql \& \& %t: %p\en
 or
-.Dq \& \& MetaType #%i: %p\en Ns
+.Ql \& \& MetaType #%i: %p\en Ns
 , depending on whether the program was compiled with libextractor or not.
 .It Fl L Ar LOGLEVEL | Fl -loglevel= Ns Ar LOGLEVEL
 Change the loglevel.
@@ -231,7 +252,7 @@ argument is required).
 Automatically timeout search after
 .Ar DELAY .
 The value given must be a number followed by a space and a time unit, for example "500 ms".
-Note that the quotes are required on the shell. Without a unit it defaults to microseconds (1 second = 1000000).
+Note that the quotes are required on the shell. Without a unit it defaults to microseconds (1000000 = 1 second).
 If 0 or omitted the search runs until gnunet-search is aborted with CTRL-C.
 .It Fl v | -version
 print the version number
@@ -269,11 +290,25 @@ prefix makes a keyword mandatory.
 .Pa ~/.config/gnunet.conf
 GNUnet configuration file; specifies the default value for the timeout
 .Sh EXAMPLES
-.Dl $ gnunet-search "Das Kapital"
+Example 1:
+.Pp
+.Dl $ gnunet-search 'Das Kapital'
 .Pp
 searches for content matching the keyword
 .Dq Das Kapital Ns
 .
+.Pp
+Example 2:
+.Pp
+.Dl $ gnunet-search Das Kapital
+.Pp
+searches for content matching either keyword
+.Dq Das
+or keyword
+.Dq Kapital Ns
+.
+.Pp
+Example 3:
 .Pp
 .Dl $ gnunet-search +Das +Kapital
 .Pp
@@ -283,19 +318,22 @@ and
 .Dq Kapital Ns
 .
 .sp
-Search results are printed by gnunet-search like this:
+Search results are printed by
+.Nm gnunet-search
+like this:
 .Pp
 .ad l
         gnunet-download -V -o "COPYING" gnunet://fs/chk/HASH1.HASH2.SIZE
-
+.Pp
           Description: The GNU General Public License
           Mime-type: text/plain
           ...
 .ad b
-
+.Pp
 The first line contains the command to run to download the file.
-The suggested filename in the example is COPYING.
-The GNUnet URI consists of the key and query hash of the file and finally the size of the file.
+The suggested filename in the example is
+.Ql COPYING Ns
+\&. The GNUnet URI consists of the key and query hash of the file and finally the size of the file.
 If the
 .Fl -verbose
 option was provided, after the command to download the file, GNUnet will print meta-data about the file as advertised in the search result.
