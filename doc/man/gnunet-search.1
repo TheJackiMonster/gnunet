@@ -140,7 +140,7 @@ the complete list of all the printable metadata properties available, displayed 
 .Fl -iter-printf
 argument; this specifier optionally supports metatype filtering via hash sign
 .No (e.g.
-.Dq %2#a
+.Ql %2#a
 prints all embedded file names, if present - see libextractor's metatypes for the complete list of numerical identifiers)
 .It Li %f
 the file's name
@@ -149,7 +149,7 @@ the first printable metadata property available, displayed according to the
 .Fl -iter-printf
 argument; this specifier optionally supports metatype filtering via hash sign
 .No (e.g.
-.Dq %5#j
+.Ql %5#j
 prints a book title, if present); see libextractor's metatypes for the complete list of numerical identifiers)
 .It Li %l
 the file name's length
@@ -258,7 +258,7 @@ If 0 or omitted the search runs until gnunet-search is aborted with CTRL-C.
 print the version number
 .It Fl V | -verbose
 append
-.Dq %a\en
+.Ql %a\en
 to the default
 .Fl -printf
 and
@@ -323,7 +323,7 @@ Search results are printed by
 like this:
 .Pp
 .ad l
-        gnunet-download -V -o "COPYING" gnunet://fs/chk/HASH1.HASH2.SIZE
+        gnunet-download -o "COPYING" gnunet://fs/chk/HASH1.HASH2.SIZE
 .Pp
           Description: The GNU General Public License
           Mime-type: text/plain
@@ -336,8 +336,8 @@ The suggested filename in the example is
 \&. The GNUnet URI consists of the key and query hash of the file and finally the size of the file.
 If the
 .Fl -verbose
-option was provided, after the command to download the file, GNUnet will print meta-data about the file as advertised in the search result.
-The meta-data here is the description
+option was provided, after the command to download the file, GNUnet will print metadata about the file as advertised in the search result.
+The metadata here is the description
 .No ( Ns
 .Dq The GNU General Public License Ns
 ) and the mime-type
@@ -346,7 +346,7 @@ The meta-data here is the description
 ).
 See the options for
 .Xr gnunet-publish 1
-on how to supply meta-data by hand.
+on how to supply metadata by hand.
 .Sh SEE ALSO
 .Xr gnunet-download 1 ,
 .Xr gnunet-fs-gtk 1 ,
