@@ -21,7 +21,7 @@
 .\"
 .\" SPDX-License-Identifier: GPL3.0-or-later OR FDL1.3-or-later
 .\"
-.Dd February 25, 2012
+.Dd February 12, 2022
 .Dt GNUNET-SEARCH 1
 .Os
 .Sh NAME
@@ -347,6 +347,55 @@ The metadata here is the description
 See the options for
 .Xr gnunet-publish 1
 on how to supply metadata by hand.
+.Pp
+The
+.Fl -printf
+.No ( Ns
+.Fl f Ns
+),
+.Fl -dir-printf
+.No ( Ns
+.Fl F Ns
+) and
+.Fl -iter-printf
+.No ( Ns
+.Fl i Ns
+) arguments offer powerful tools for manipulating the output printed. For instance,
+.Pp
+Example 4:
+.Pp
+.ad l
+        $ gnunet-search -f '%f (%s bytes)\en' commons
+.Pp
+will print a simple list of the results that match the
+.Dq commons
+keyword, with only the file name and the size printed, without any URI. Or, for instance,
+.Pp
+Example 5:
+.Pp
+.ad l
+        #!/bin/sh
+        {
+          printf '<list>'
+          gnunet-search -f '\en\et<file uri="%u">
+ \et\et<filename len="%l">%f</filename>
+ \et\et<size>%s</size>\en\et\et<mimetype>%m</mimetype>
+ \et\et<result_id>%n</result_id>
+ \et\et<metadata>%a\en\et\et</metadata>\en\et</file>' \e
+            -i '\en\et\et<property tid="%i" type="%t">
+ \et\et\et<content len="%l">%p</content>
+ \et\et\et<property_id>%n</property_id>
+ \et\et\et<provided_by>%w</provided_by>
+ \et\et</file>' \e
+            -t '2 s' commons
+          printf '\en</list>\en'
+        } > commons.xml
+.Pp
+will run for two seconds and then create a file named
+.Pa commons.xml Ns
+, containing the search results that match the
+.Dq commons
+keyword in XML format.
 .Sh SEE ALSO
 .Xr gnunet-download 1 ,
 .Xr gnunet-fs-gtk 1 ,
