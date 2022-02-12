@@ -377,16 +377,21 @@ Example 5:
         #!/bin/sh
         {
           printf '<list>'
-          gnunet-search -f '\en\et<file uri="%u">
- \et\et<filename len="%l">%f</filename>
- \et\et<size>%s</size>\en\et\et<mimetype>%m</mimetype>
- \et\et<result_id>%n</result_id>
- \et\et<metadata>%a\en\et\et</metadata>\en\et</file>' \e
-            -i '\en\et\et<property tid="%i" type="%t">
- \et\et\et<content len="%l">%p</content>
- \et\et\et<property_id>%n</property_id>
- \et\et\et<provided_by>%w</provided_by>
- \et\et</file>' \e
+          gnunet-search -f '
+          <file uri="%u">
+            <filename len="%l">%f</filename>
+            <size>%s</size>
+            <mimetype>%m</mimetype>
+            <result_id>%n</result_id>
+            <metadata>%a
+            </metadata>
+          </file>' \e
+            -i '
+              <property tid="%i" type="%t">
+                <content len="%l">%p</content>
+                <property_id>%n</property_id>
+                <provided_by>%w</provided_by>
+              </property>' \e
             -t '2 s' commons
           printf '\en</list>\en'
         } > commons.xml
