@@ -1197,7 +1197,7 @@ recursive_dns_resolution (struct GNS_ResolverHandle *rh)
  */
 static void
 handle_gns_redirect_result (struct GNS_ResolverHandle *rh,
-                         const char *rname)
+                            const char *rname)
 {
   size_t nlen;
   char *res;
@@ -1206,6 +1206,9 @@ handle_gns_redirect_result (struct GNS_ResolverHandle *rh,
   int af;
   struct GNUNET_IDENTITY_PublicKey zone;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Handling GNS REDIRECT result `%s'\n",
+              rname);
   nlen = strlen (rname);
   tld = GNS_get_tld (rname);
   if (0 == strcmp ("+", tld))
@@ -1945,8 +1948,8 @@ handle_gns_resolution_result (void *cls,
         (GNUNET_GNSRECORD_TYPE_REDIRECT == rd[0].record_type) &&
         (GNUNET_GNSRECORD_TYPE_REDIRECT != rh->record_type))
     {
-      handle_gns_cname_result (rh,
-                               rd[0].data);
+      handle_gns_redirect_result (rh,
+                                  rd[0].data);
       return;
     }
 
@@ -2311,7 +2314,7 @@ handle_gns_resolution_result (void *cls,
                 _ ("Unable to process critical delegation record\n"));
     break;
   }
-fail:
+  fail:
   GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
               _ ("GNS lookup recursion failed (no delegation record found)\n"));
   fail_resolution (rh);
@@ -2949,7 +2952,7 @@ GNS_resolver_init (struct GNUNET_NAMECACHE_Handle *nc,
   if (GNUNET_YES == disable_cache)
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Namecache disabled\n");
-  }
+}
 
 
 /**
