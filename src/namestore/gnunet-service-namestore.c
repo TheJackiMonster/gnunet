@@ -918,21 +918,32 @@ refresh_block (struct NamestoreClient *nc,
                const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct GNUNET_GNSRECORD_Block *block;
+  struct GNUNET_GNSRECORD_Data rd_clean[rd_count];
   struct CacheOperation *cop;
   struct GNUNET_IDENTITY_PublicKey pkey;
   struct GNUNET_GNSRECORD_Data *nick;
   struct GNUNET_GNSRECORD_Data *res;
   unsigned int res_count;
+  unsigned int rd_count_clean;
   struct GNUNET_TIME_Absolute exp_time;
 
+  /** Do not block-cache tombstones */
+  rd_count_clean = 0;
+  for (int i = 0; i < rd_count; i++)
+  {
+    if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[i].record_type)
+      continue;
+    rd_clean[rd_count_clean++] = rd[i];
+  }
+
   nick = get_nick_record (zone_key);
-  res_count = rd_count;
-  res = (struct GNUNET_GNSRECORD_Data *) rd;  /* fixme: a bit unclean... */
+  res_count = rd_count_clean;
+  res = (struct GNUNET_GNSRECORD_Data *) rd_clean;  /* fixme: a bit unclean... */
   if ((NULL != nick) && (0 != strcmp (name, GNUNET_GNS_EMPTY_LABEL_AT)))
   {
     nick->flags =
       (nick->flags | GNUNET_GNSRECORD_RF_PRIVATE) ^ GNUNET_GNSRECORD_RF_PRIVATE;
-    merge_with_nick_records (nick, rd_count, rd, &res_count, &res);
+    merge_with_nick_records (nick, rd_count_clean, rd_clean, &res_count, &res);
   }
   if (NULL != nick)
     GNUNET_free (nick);
@@ -940,7 +951,7 @@ refresh_block (struct NamestoreClient *nc,
   {
     if (NULL != nc)
       send_store_response (nc, GNUNET_OK, NULL, rid);
-    if (rd != res)
+    if (rd_clean != res)
       GNUNET_free (res);
     return;   /* no data, no need to update cache */
   }
@@ -952,7 +963,7 @@ refresh_block (struct NamestoreClient *nc,
                               GNUNET_NO);
     if (NULL != nc)
       send_store_response (nc, GNUNET_OK, NULL, rid);
-    if (rd != res)
+    if (rd_clean != res)
       GNUNET_free (res);
     return;
   }
@@ -991,7 +1002,7 @@ refresh_block (struct NamestoreClient *nc,
                                           &finish_cache_operation,
                                           cop);
   GNUNET_free (block);
-  if (rd != res)
+  if (rd_clean != res)
     GNUNET_free (res);
 }
 

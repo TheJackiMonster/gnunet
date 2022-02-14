@@ -17,9 +17,11 @@ rm -rf `gnunet-config -c test_gns_lookup.conf -f -s paths -o GNUNET_TEST_HOME`
 # IP address of 'docs.gnunet.org'
 TEST_IP_ALT2="147.87.255.218"
 # IP address of 'www.gnunet.org'
-TEST_IP="131.159.74.67"
+TEST_IP="147.87.255.218"
+# IP address of 'gnunet.org'
+TEST_IP_ALT="131.159.74.67"
 # IPv6 address of 'gnunet.org'
-TEST_IP6="2001:4ca0:2001:42:225:90ff:fe6b:d60"
+TEST_IP6="2a07:6b47:100:464::9357:ffdb"
 # permissive DNS resolver we will use for the test
 TEST_IP_GNS2DNS="8.8.8.8"
 
@@ -49,7 +51,7 @@ which timeout > /dev/null 2>&1 && DO_TIMEOUT="timeout 15"
 
 gnunet-arm -s -c test_gns_lookup.conf
 
-OUT=`$DO_TIMEOUT gnunet-resolver -c test_gns_lookup.conf gnunet.org`
+OUT=`$DO_TIMEOUT gnunet-resolver -c test_gns_lookup.conf www.gnunet.org`
 echo $OUT | grep $TEST_IP - > /dev/null || { gnunet-arm -e -c test_gns_lookup.conf ; echo "IPv4 for gnunet.org not found ($OUT), skipping test"; exit 77; }
 echo $OUT | grep $TEST_IP6 - > /dev/null || { gnunet-arm -e -c test_gns_lookup.conf ; echo "IPv6 for gnunet.org not found ($OUT), skipping test"; exit 77; }
 
@@ -69,7 +71,7 @@ gnunet-identity -d
 # lookup 'www.gnunet.org', IPv4
 RES_IP=`$DO_TIMEOUT gnunet-gns --raw -u $TEST_DOMAIN -t A -c test_gns_lookup.conf`
 # lookup 'www.gnunet.org', IPv6
-RES_IP6=`$DO_TIMEOUT gnunet-gns --raw -u $TEST_DOMAIN -t AAAA -c test_gns_lookup.conf`
+RES_IP6=`$DO_TIMEOUT gnunet-gns --raw -u $TEST_DOMAIN -t AAAA -c test_gns_lookup.conf | head -n1`
 # lookup 'gnunet.org', IPv4
 RES_IP_ALT=`$DO_TIMEOUT gnunet-gns --raw -u $TEST_DOMAIN_ALT -t A -c test_gns_lookup.conf`
 # lookup 'docs.gnunet.org', IPv4
@@ -99,7 +101,7 @@ else
   ret=1
 fi
 
-if echo "$RES_IP_ALT" | grep "$TEST_IP" > /dev/null
+if echo "$RES_IP_ALT" | grep "$TEST_IP_ALT" > /dev/null
 then
   echo "PASS: Resolved $TEST_DOMAIN_ALT to $RES_IP_ALT."
 else
