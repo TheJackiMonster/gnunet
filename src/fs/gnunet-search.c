@@ -49,7 +49,7 @@
 #if HAVE_LIBEXTRACTOR
 #define DEFAULT_META_FORMAT      "  %t: %p\n"
 #define HELP_DEFAULT_META_FORMAT "  %t: %p\\n"
-#define HELP_EXTRACTOR_TEXTADD   ", %t is the property type"
+#define HELP_EXTRACTOR_TEXTADD   ", %t"
 #else
 #define DEFAULT_META_FORMAT      "  MetaType #%i: %p\n"
 #define HELP_DEFAULT_META_FORMAT "  MetaType #%i: %p\\n"
@@ -705,43 +705,28 @@ main (int argc, char *const *argv)
       "dir-printf",
       "FORMAT",
       gettext_noop ("write search results for directories according to "
-                    "FORMAT; the format specifiers supported here are "
-                    "identical to those supported in the --printf argument "
-                    "(please refer to it for more information); if missing, "
-                    "--dir-printf defaults to --printf; if --printf is "
-                    "missing too --dir-printf defaults to `"
-                    HELP_DEFAULT_DIR_FORMAT "`"),
+                    "FORMAT; accepted placeholders are: %a, %f, %j, %l, %m, "
+                    "%n, %s; defaults to the value of --printf when omitted "
+                    "or to `" HELP_DEFAULT_DIR_FORMAT "` if --printf is "
+                    "omitted too"),
       &dir_format_string),
     GNUNET_GETOPT_option_string (
       'f',
       "printf",
       "FORMAT",
-      gettext_noop ("write search results according to FORMAT, where %a is "
-                    "the complete list of all the printable metadata "
-                    "available (each member will be displayed according to "
-                    "the --iter-printf argument) - use %j for printing only "
-                    "one field - %f is the file's name, %l is the file name's "
-                    "length, %m is the file's mime type, %n is the search "
-                    "result number, %s is the file's size in bytes and %u is "
-                    "the file's URI; the %a and %j specifiers optionally "
-                    "support metatype filtering via hash sign (e.g. `%5#j` "
-                    "prints a book title, if present - see libextractor's "
-                    "metatypes for the complete list of numerical "
-                    "identifiers); if missing, --printf defaults to `"
-                    HELP_DEFAULT_FILE_FORMAT "`"),
+      gettext_noop ("write search results according to FORMAT; accepted "
+                    "placeholders are: %a, %f, %j, %l, %m, %n, %s; defaults "
+                    "to `" HELP_DEFAULT_FILE_FORMAT "` when omitted"),
       &format_string),
     GNUNET_GETOPT_option_string (
       'i',
       "iter-printf",
       "FORMAT",
-      gettext_noop ("when the %a or %j format specifiers appear in --printf "
-                    "or --dir-printf, list each metadata property according "
-                    "to FORMAT, where %p is the property's content, %l is the "
-                    "content's length in bytes" HELP_EXTRACTOR_TEXTADD ", %i "
-                    "is the property type's unique identifier, %n is the "
-                    "property number and %w is the name of the plugin that "
-                    "provided the information; if missing, --iter-printf "
-                    "defaults to `" HELP_DEFAULT_META_FORMAT "`"),
+      gettext_noop ("when the %a or %j placeholders appear in --printf or "
+                    "--dir-printf, list each metadata property according to "
+                    "FORMAT; accepted placeholders are: %i, %l, %n, %p"
+                    HELP_EXTRACTOR_TEXTADD ", %w; defaults to `"
+                    HELP_DEFAULT_META_FORMAT "` when omitted"),
       &meta_format_string),
     GNUNET_GETOPT_option_uint ('N',
                                "results",
@@ -787,22 +772,14 @@ main (int argc, char *const *argv)
     GNUNET_GETOPT_OPTION_END };
 
   if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
-    return 2;
+    return 12;
 
   if (GNUNET_SYSERR == 
       GNUNET_PROGRAM_run (argc,
                           argv,
                           "gnunet-search [OPTIONS] KEYWORD1 KEYWORD2 ...",
                           gettext_noop ("Search for files that have been "
-                                        "published on GNUnet\n\nKeywords "
-                                        "should start with a plus sign to "
-                                        "indicate that they are required -\n"
-                                        "e.g. `gnunet-search commons gpl` "
-                                        "searches for files that match "
-                                        "*either*\n\"commons\" or \"gpl\", "
-                                        "whereas `gnunet-search +commons "
-                                        "+gpl` searches for files\nthat match "
-                                        "*both* \"commons\" and \"gpl\".\n"),
+                                        "published on GNUnet\n"),
                          options,
                          &run,
                          NULL))
