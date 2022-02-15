@@ -2531,6 +2531,13 @@ handle_namecache_block_response (void *cls,
 
   GNUNET_assert (NULL != rh->namecache_qe);
   rh->namecache_qe = NULL;
+  if (NULL == block)
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "No block found\n");
+  else
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Got block with expiration %s\n",
+                GNUNET_STRINGS_absolute_time_to_string (GNUNET_GNSRECORD_block_get_expiration (block)));
   if (((GNUNET_GNS_LO_DEFAULT == rh->options) ||
        ((GNUNET_GNS_LO_LOCAL_MASTER == rh->options) &&
         (ac != rh->ac_head))) &&

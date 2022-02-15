@@ -32,12 +32,14 @@ TEST_KEY=$(gnunet-identity -d -e testego -q -c test_reclaim.conf)
 gnunet-reclaim -e testego -a email -V john@doe.gnu -c test_reclaim.conf
 gnunet-reclaim -e testego -a name -V John -c test_reclaim.conf
 TICKET=$(gnunet-reclaim -e testego -i "email,name" -r $SUBJECT_KEY -c test_reclaim.conf | awk '{print $1}')
-gnunet-reclaim -e rpego -C $TICKET -c test_reclaim.conf >/dev/null 2>&1
+gnunet-reclaim -e rpego -C $TICKET -c test_reclaim.conf #>/dev/null 2>&1
 
-if test $? != 0
-then
-  "Failed."
-  exit 1
-fi
-#curl http://localhost:7776/reclaim/tickets/testego
+RES=$?
+gnunet-identity -D testego -c test_reclaim.conf
+gnunet-identity -D rpego -c test_reclaim.conf
 gnunet-arm -e -c test_reclaim.conf
+if test $RES != 0
+then
+  echo "Failed."
+fi
+

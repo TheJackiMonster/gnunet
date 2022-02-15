@@ -968,7 +968,7 @@ refresh_block (struct NamestoreClient *nc,
     return;
   }
   exp_time = GNUNET_GNSRECORD_record_get_expiration_time (res_count, res,
-                                                          GNUNET_TIME_UNIT_FOREVER_ABS);
+                                                          GNUNET_TIME_UNIT_ZERO_ABS);
   if (cache_keys)
     GNUNET_assert (GNUNET_OK ==
                    GNUNET_GNSRECORD_block_create2 (zone_key, exp_time, name,

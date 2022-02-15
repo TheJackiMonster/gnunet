@@ -420,15 +420,11 @@ handle_lookup (void *cls,
                const struct LookupMessage *sh_msg)
 {
   struct GnsClient *gc = cls;
-  char name[GNUNET_DNSPARSER_MAX_NAME_LENGTH + 1];
   struct ClientLookupHandle *clh;
-  char *nameptr = name;
-  const char *utf_in;
+  const char *name;
 
   GNUNET_SERVICE_client_continue (gc->client);
-  utf_in = (const char *) &sh_msg[1];
-  GNUNET_STRINGS_utf8_tolower (utf_in,
-                               nameptr);
+  name = (const char *) &sh_msg[1];
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received LOOKUP `%s' message\n",
               name);
