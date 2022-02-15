@@ -92,7 +92,7 @@ print_bytes (void *buf,
 static void
 print_record (const struct GNUNET_GNSRECORD_Data *rd)
 {
-
+  uint16_t flags = htons(rd->flags);
   fprintf (stdout,
            "EXPIRATION: %" PRIu64 "\n", rd->expiration_time);
   fprintf (stdout,
@@ -101,7 +101,7 @@ print_record (const struct GNUNET_GNSRECORD_Data *rd)
            "TYPE: %d\n", rd->record_type);
   fprintf (stdout,
            "FLAGS: ");
-  print_bytes ((void*)&rd->flags, sizeof (rd->flags), 8);
+  print_bytes ((void*)&flags, sizeof (flags), 8);
   printf ("\n");
   fprintf (stdout,
            "DATA:\n");
@@ -413,7 +413,7 @@ run (void *cls,
   rd[0].record_type = GNUNET_DNSPARSER_TYPE_AAAA;
   rd[0].flags = GNUNET_GNSRECORD_RF_NONE;
 
-  rd[1].data = "Some nick";
+  rd[1].data = "\u611b\u79f0";
   rd[1].data_size = strlen (rd[1].data);
   rd[1].expiration_time = exp2.abs_value_us;
   rd[1].record_type = GNUNET_GNSRECORD_TYPE_NICK;
@@ -426,9 +426,9 @@ run (void *cls,
   rd[2].flags = GNUNET_GNSRECORD_RF_SUPPLEMENTAL | GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
 
   run_pkey (&rd_pkey, 1, "testdelegation");
-  run_pkey (rd, 3, "testset");
+  run_pkey (rd, 3, "\u65b0 Name System");
   run_edkey (&rd_pkey, 1, "testdelegation");
-  run_edkey (rd, 3, "testset");
+  run_edkey (rd, 3, "\u65b0 Name System");
 }
 
 

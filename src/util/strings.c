@@ -433,7 +433,7 @@ GNUNET_STRINGS_utf8_normalize (const char *input,
   uint8_t *tmp;
   size_t len;
 
-  tmp = u8_normalize (UNINORM_NFC,
+  tmp = u8_normalize (UNINORM_NFKC,
                       (uint8_t *) input,
                       strlen ((char*) input),
                       NULL,

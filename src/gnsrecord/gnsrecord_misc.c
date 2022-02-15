@@ -52,7 +52,7 @@ GNUNET_GNSRECORD_string_normalize (const char *src)
 {
   char *res;
   res = GNUNET_strdup (src);
-  //GNUNET_STRINGS_utf8_tolower (src, res);
+  GNUNET_STRINGS_utf8_tolower (src, res);
   GNUNET_STRINGS_utf8_normalize (src, res);
   return res;
 }
