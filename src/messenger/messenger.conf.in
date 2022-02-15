@@ -1,12 +1,12 @@
 [messenger]
-START_ON_DEMAND = YES
+START_ON_DEMAND = @START_ON_DEMAND@
 RUN_PER_USER = YES
-PORT = 2097
+@JAVAPORT@PORT = 2125
 HOSTNAME = localhost
 BINARY = gnunet-service-messenger
 ACCEPT_FROM = 127.0.0.1;
 ACCEPT_FROM6 = ::1;
-UNIXPATH = $GNUNET_RUNTIME_DIR/gnunet-service-messenger.sock
+UNIXPATH = $GNUNET_USER_RUNTIME_DIR/gnunet-service-messenger.sock
 UNIX_MATCH_UID = NO
 UNIX_MATCH_GID = YES
 
