@@ -159,14 +159,12 @@ GNUNET_STRINGS_to_utf8 (const char *input,
 
 /**
  * Normalize the utf-8 input string to NFC.
- * Output needs to be allocated appropriately.
  *
  * @param input input string
- * @param output output buffer
+ * @return result (freshly allocated) or NULL on error.
  */
-void
-GNUNET_STRINGS_utf8_normalize (const char *input,
-                               char *output);
+char*
+GNUNET_STRINGS_utf8_normalize (const char *input);
 
 
 /**
@@ -192,8 +190,9 @@ GNUNET_STRINGS_from_utf8 (const char *input,
  *
  * @param input input string
  * @param output output buffer
+ * @return GNUNET_OK on success
  */
-void
+enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_utf8_tolower (const char *input,
                              char *output);
 
@@ -204,8 +203,9 @@ GNUNET_STRINGS_utf8_tolower (const char *input,
  *
  * @param input input string
  * @param output output buffer
+ * @return GNUNET_OK on success
  */
-void
+enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_utf8_toupper (const char *input,
                              char *output);
 

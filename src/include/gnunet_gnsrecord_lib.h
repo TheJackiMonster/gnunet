@@ -431,21 +431,13 @@ GNUNET_GNSRECORD_is_expired (const struct GNUNET_GNSRECORD_Data *rd);
 
 
 /**
- * Normalize a UTF-8 string to UTF-8 NFC
+ * Normalize a UTF-8 string to a GNS name
+ *
  * @param src source string
  * @return converted result
  */
 char *
 GNUNET_GNSRECORD_string_normalize (const char *src);
-
-
-/**
- * Convert a UTF-8 string to UTF-8 lowercase
- * @param src source string
- * @return converted result
- */
-char *
-GNUNET_GNSRECORD_string_to_lowercase (const char *src);
 
 
 /**

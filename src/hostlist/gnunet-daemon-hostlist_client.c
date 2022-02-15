@@ -1635,7 +1635,11 @@ GNUNET_HOSTLIST_client_start (const struct GNUNET_CONFIGURATION_Handle *c,
                                                             "PROXY_TYPE",
                                                             &proxytype_str))
     {
-      GNUNET_STRINGS_utf8_toupper (proxytype_str, proxytype_str);
+      if (GNUNET_OK != GNUNET_STRINGS_utf8_toupper (proxytype_str,
+                                                    proxytype_str))
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                    "Unable to convert `%s' to UTF-8 uppercase\n",
+                    proxytype_str);
       proxy_type = CURLPROXY_HTTP;
       if (0 == strcmp (proxytype_str, "HTTP"))
         proxy_type = CURLPROXY_HTTP;

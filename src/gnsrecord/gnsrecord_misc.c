@@ -38,23 +38,10 @@
 #define LOG(kind, ...) GNUNET_log_from (kind, "gnsrecord", __VA_ARGS__)
 
 char *
-GNUNET_GNSRECORD_string_to_lowercase (const char *src)
-{
-  char *res;
-
-  res = GNUNET_strdup (src);
-  GNUNET_STRINGS_utf8_tolower (src, res);
-  return res;
-}
-
-char *
 GNUNET_GNSRECORD_string_normalize (const char *src)
 {
-  char *res;
-  res = GNUNET_strdup (src);
-  GNUNET_STRINGS_utf8_tolower (src, res);
-  GNUNET_STRINGS_utf8_normalize (src, res);
-  return res;
+  /*FIXME: We may want to follow RFC3491 a bit more (Nameprep)*/
+  return GNUNET_STRINGS_utf8_normalize (src);
 }
 
 /**

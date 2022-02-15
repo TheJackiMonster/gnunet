@@ -426,9 +426,14 @@ run (void *cls,
   rd[2].flags = GNUNET_GNSRECORD_RF_SUPPLEMENTAL | GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
 
   run_pkey (&rd_pkey, 1, "testdelegation");
-  run_pkey (rd, 3, "\u65b0 Name System");
+  run_pkey (rd, 3, "namesystem");
   run_edkey (&rd_pkey, 1, "testdelegation");
-  run_edkey (rd, 3, "\u65b0 Name System");
+  run_edkey (rd, 3, "namesystem");
+  /*char *norm_lbl;
+  norm_lbl = GNUNET_GNSRECORD_string_normalize ("q\u0307\u0323namesysteM");
+  print_bytes ("q\u0307\u0323namesysteM", strlen ("q\u0307\u0323namesysteM"), 8);
+  print_bytes (norm_lbl, strlen (norm_lbl), 8);
+  printf ("%s\n", norm_lbl);*/
 }
 
 

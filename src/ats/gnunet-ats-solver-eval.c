@@ -442,7 +442,7 @@ GNUNET_ATS_solver_logging_write_to_disk (struct LoggingHandle *l, int
     }
   }
 
-cleanup:
+  cleanup:
   next = lf_head;
   for (cur = next; NULL != cur; cur = next)
   {
@@ -1414,7 +1414,8 @@ load_op_add_address (struct GNUNET_ATS_TEST_Operation *o,
   }
   else
   {
-    GNUNET_STRINGS_utf8_toupper (op_network, op_network);
+    GNUNET_break (GNUNET_OK == GNUNET_STRINGS_utf8_toupper (op_network,
+                                                            op_network));
     if (0 == strcmp (op_network, "UNSPECIFIED"))
     {
       o->address_network = GNUNET_NT_UNSPECIFIED;
