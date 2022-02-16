@@ -40,7 +40,7 @@
 char *
 GNUNET_GNSRECORD_string_normalize (const char *src)
 {
-  /*FIXME: We may want to follow RFC3491 a bit more (Nameprep)*/
+  /*FIXME: We may want to follow RFC5890/RFC5891 */
   return GNUNET_STRINGS_utf8_normalize (src);
 }
 

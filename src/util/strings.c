@@ -432,12 +432,11 @@ GNUNET_STRINGS_utf8_normalize (const char *input)
   uint8_t *tmp;
   size_t len;
   char *output;
-  tmp = u8_tolower ((uint8_t *) input,
-                    strlen ((char *) input),
-                    NULL,
-                    UNINORM_NFKC,
-                    NULL,
-                    &len);
+  tmp = u8_normalize (UNINORM_NFC,
+                      (uint8_t *) input,
+                      strlen ((char*) input),
+                      NULL,
+                      &len);
   if (NULL == tmp)
     return NULL;
   output = GNUNET_malloc (len + 1);
