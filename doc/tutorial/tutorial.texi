@@ -225,7 +225,7 @@ This is required for obtaining the repository, which is achieved with
 the following command:
 
 @example
-$ git clone https://git.gnunet.org/gnunet
+$ git clone https://git.gnunet.org/gnunet.git
 @end example
 
 @noindent
@@ -795,7 +795,7 @@ a template build system for writing GNUnet extensions in C. It can be
 obtained as follows:
 
 @example
-$ git clone https://git.gnunet.org/gnunet-ext
+$ git clone https://git.gnunet.org/gnunet-ext.git
 $ cd gnunet-ext/
 $ ./bootstrap
 $ ./configure --prefix=$PREFIX --with-gnunet=$PREFIX
