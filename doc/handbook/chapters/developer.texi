@@ -6250,7 +6250,7 @@ by NAMESTORE.
 Here a client uses the @code{GNUNET_NAMESTORE_zone_iteration_start}
 function and passes the namestore handle, the zone to iterate over and a
 callback function to call with the result.
-If the client wants to iterate over all the WHAT!? FIXME, it passes NULL for the zone.
+To iterate over all the zones, it is possible to pass NULL for the zone.
 A @code{GNUNET_NAMESTORE_ZoneIterator} handle is returned to be used to
 continue iteration.
 
