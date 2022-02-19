@@ -40,7 +40,8 @@ static char *d_pkey =
 static char *d_edkey =
   "5af7020ee19160328832352bbc6a68a8d71a7cbe1b929969a7c66d415a0d8f65";
 
-int
+
+static int
 parsehex (char *src, char *dst, size_t dstlen, int invert)
 {
   char *line = src;
@@ -124,9 +125,6 @@ static void
 run_pkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char *label)
 {
   struct GNUNET_TIME_Absolute expire;
-  struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
-  struct GNUNET_TIME_Relative delta1;
-  struct GNUNET_TIME_Relative delta2;
   struct GNUNET_GNSRECORD_Block *rrblock;
   char *bdata;
   struct GNUNET_IDENTITY_PrivateKey id_priv;
@@ -134,8 +132,6 @@ run_pkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char *label)
   struct GNUNET_IDENTITY_PrivateKey pkey_data_p;
   struct GNUNET_IDENTITY_PublicKey pkey_data;
   struct GNUNET_HashCode query;
-  void *data;
-  size_t data_size;
   char *rdata;
   size_t rdata_size;
   char ztld[128];
@@ -244,9 +240,6 @@ static void
 run_edkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char*label)
 {
   struct GNUNET_TIME_Absolute expire;
-  struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
-  struct GNUNET_TIME_Relative delta1;
-  struct GNUNET_TIME_Relative delta2;
   struct GNUNET_GNSRECORD_Block *rrblock;
   char *bdata;
   struct GNUNET_IDENTITY_PrivateKey id_priv;
@@ -254,8 +247,6 @@ run_edkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char*label)
   struct GNUNET_IDENTITY_PrivateKey pkey_data_p;
   struct GNUNET_IDENTITY_PublicKey pkey_data;
   struct GNUNET_HashCode query;
-  void *data;
-  size_t data_size;
   char *rdata;
   size_t rdata_size;
 
@@ -373,8 +364,67 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
-  run_pkey ();
-  run_edkey ();
+  struct GNUNET_GNSRECORD_Data rd_pkey;
+  struct GNUNET_GNSRECORD_Data rd[3];
+  struct GNUNET_TIME_Absolute exp1;
+  struct GNUNET_TIME_Absolute exp2;
+  struct GNUNET_TIME_Relative exp3;
+  size_t pkey_data_size;
+  size_t ip_data_size;
+  char *pkey_data;
+  char *ip_data;
+
+  /*
+   * Make different expiration times
+   */
+  GNUNET_STRINGS_fancy_time_to_absolute ("2048-01-23 10:51:34",
+                                         &exp1);
+  GNUNET_STRINGS_fancy_time_to_absolute ("3540-05-22 07:55:01",
+                                         &exp2);
+  GNUNET_STRINGS_fancy_time_to_relative ("100y",
+                                         &exp3);
+
+
+  memset (&rd_pkey, 0, sizeof (struct GNUNET_GNSRECORD_Data));
+  GNUNET_assert (GNUNET_OK == GNUNET_GNSRECORD_string_to_value (
+                   GNUNET_GNSRECORD_TYPE_PKEY,
+                   "000G0011WESGZY9VRV9NNJ66W3GKNZFZF56BFD2BQF3MHMJST2G2GKDYGG",
+                   (void**) &pkey_data,
+                   &pkey_data_size));
+  rd_pkey.data = pkey_data;
+  rd_pkey.data_size = pkey_data_size;
+  rd_pkey.expiration_time = exp1.abs_value_us;
+  rd_pkey.record_type = GNUNET_GNSRECORD_TYPE_PKEY;
+  rd_pkey.flags = GNUNET_GNSRECORD_RF_CRITICAL;
+  GNUNET_assert (GNUNET_OK == GNUNET_GNSRECORD_string_to_value (
+                   GNUNET_DNSPARSER_TYPE_AAAA,
+                   "::dead:beef",
+                   (void**) &ip_data,
+                   &ip_data_size));
+
+  rd[0].data = ip_data;
+  rd[0].data_size = ip_data_size;
+  rd[0].expiration_time = exp1.abs_value_us;
+  rd[0].record_type = GNUNET_DNSPARSER_TYPE_AAAA;
+  rd[0].flags = GNUNET_GNSRECORD_RF_NONE;
+
+  rd[1].data = "\u611b\u79f0";
+  rd[1].data_size = strlen (rd[1].data);
+  rd[1].expiration_time = exp2.abs_value_us;
+  rd[1].record_type = GNUNET_GNSRECORD_TYPE_NICK;
+  rd[1].flags = GNUNET_GNSRECORD_RF_PRIVATE;
+
+  rd[2].data = "Hello World";
+  rd[2].data_size = strlen (rd[2].data);
+  rd[2].expiration_time = exp3.rel_value_us;
+  rd[2].record_type = GNUNET_DNSPARSER_TYPE_TXT;
+  rd[2].flags = GNUNET_GNSRECORD_RF_SUPPLEMENTAL
+                | GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
+
+  run_pkey (&rd_pkey, 1, "testdelegation");
+  run_pkey (rd, 3, "namesystem");
+  run_edkey (&rd_pkey, 1, "testdelegation");
+  run_edkey (rd, 3, "namesystem");
 }
 
 
