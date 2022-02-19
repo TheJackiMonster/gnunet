@@ -58,6 +58,11 @@ static unsigned int verbose;
 static int demultixplex_everywhere;
 
 /**
+ * Use #GNUNET_DHT_RO_RECORD_ROUTE.
+ */
+static int record_route;
+
+/**
  * Handle to the DHT
  */
 static struct GNUNET_DHT_Handle *dht_handle;
@@ -160,9 +165,9 @@ get_result_iterator (void *cls,
            : _ ("Result %d, type %d:\n"),
            result_count,
            type,
-           (unsigned int) size,
+           (int) size,
            (char *) data);
-  if (verbose)
+  if (record_route && verbose)
   {
     fprintf (stdout,
              "  GET path: ");
@@ -200,6 +205,7 @@ run (void *cls,
      const struct GNUNET_CONFIGURATION_Handle *c)
 {
   struct GNUNET_HashCode key;
+  enum GNUNET_DHT_RouteOption ro;
 
   cfg = c;
   if (NULL == query_key)
@@ -228,13 +234,16 @@ run (void *cls,
              GNUNET_h2s_full (&key));
   GNUNET_SCHEDULER_add_shutdown (&cleanup_task, NULL);
   tt = GNUNET_SCHEDULER_add_delayed (timeout_request, &timeout_task, NULL);
+  ro = GNUNET_DHT_RO_NONE;
+  if (demultixplex_everywhere)
+    ro |= GNUNET_DHT_RO_DEMULTIPLEX_EVERYWHERE;
+  if (record_route)
+    ro |= GNUNET_DHT_RO_RECORD_ROUTE;
   get_handle = GNUNET_DHT_get_start (dht_handle,
                                      query_type,
                                      &key,
                                      replication,
-                                     (demultixplex_everywhere)
-                                     ? GNUNET_DHT_RO_DEMULTIPLEX_EVERYWHERE
-                                     : GNUNET_DHT_RO_NONE,
+                                     ro,
                                      NULL,
                                      0,
                                      &get_result_iterator,
@@ -265,6 +274,11 @@ main (int argc, char *const *argv)
       "LEVEL",
       gettext_noop ("how many parallel requests (replicas) to create"),
       &replication),
+    GNUNET_GETOPT_option_flag (
+      'R',
+      "record",
+      gettext_noop ("use DHT's record route option"),
+      &record_route),
     GNUNET_GETOPT_option_uint (
       't',
       "type",

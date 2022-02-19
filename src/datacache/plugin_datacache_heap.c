@@ -158,7 +158,7 @@ struct PutContext
  * @param value an existing value
  * @return #GNUNET_YES if not found (to continue to iterate)
  */
-static int
+static enum GNUNET_GenericReturnValue
 put_cb (void *cls,
         const struct GNUNET_HashCode *key,
         void *value)
@@ -224,15 +224,20 @@ heap_plugin_put (void *cls,
 {
   struct Plugin *plugin = cls;
   struct Value *val;
-  struct PutContext put_ctx;
+  struct PutContext put_ctx = {
+    .data = data,
+    .size = size,
+    .path_info = path_info,
+    .path_info_len = path_info_len,
+    .discard_time = discard_time,
+    .type = type
+  };
 
-  put_ctx.found = GNUNET_NO;
-  put_ctx.data = data;
-  put_ctx.size = size;
-  put_ctx.path_info = path_info;
-  put_ctx.path_info_len = path_info_len;
-  put_ctx.discard_time = discard_time;
-  put_ctx.type = type;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Storing %u bytes under key %s with path length %u\n",
+              (unsigned int) size,
+              GNUNET_h2s (key),
+              path_info_len);
   GNUNET_CONTAINER_multihashmap_get_multiple (plugin->map,
                                               key,
                                               &put_cb,
@@ -313,12 +318,25 @@ get_cb (void *cls,
   struct Value *val = value;
   int ret;
 
-  if ((get_ctx->type != val->type) &&
-      (GNUNET_BLOCK_TYPE_ANY != get_ctx->type))
+  if ( (get_ctx->type != val->type) &&
+       (GNUNET_BLOCK_TYPE_ANY != get_ctx->type) )
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Result for key %s does not match block type %d\n",
+                GNUNET_h2s (key),
+                get_ctx->type);
     return GNUNET_OK;
-  if (0 ==
-      GNUNET_TIME_absolute_get_remaining (val->discard_time).rel_value_us)
+  }
+  if (GNUNET_TIME_absolute_is_past (val->discard_time))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Result for key %s is expired\n",
+                GNUNET_h2s (key));
     return GNUNET_OK;
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Found result for key %s\n",
+              GNUNET_h2s (key));
   if (NULL != get_ctx->iter)
     ret = get_ctx->iter (get_ctx->iter_cls,
                          key,

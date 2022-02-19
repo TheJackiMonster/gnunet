@@ -63,8 +63,8 @@ GDS_NEIGHBOURS_lookup_peer (const struct GNUNET_PeerIdentity *target);
 enum GNUNET_GenericReturnValue
 GDS_NEIGHBOURS_handle_put (const struct GDS_DATACACHE_BlockData *bd,
                            enum GNUNET_DHT_RouteOption options,
-                           uint32_t desired_replication_level,
-                           uint32_t hop_count,
+                           uint16_t desired_replication_level,
+                           uint16_t hop_count,
                            struct GNUNET_CONTAINER_BloomFilter *bf);
 
 
@@ -88,8 +88,8 @@ GDS_NEIGHBOURS_handle_put (const struct GDS_DATACACHE_BlockData *bd,
 enum GNUNET_GenericReturnValue
 GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
                            enum GNUNET_DHT_RouteOption options,
-                           uint32_t desired_replication_level,
-                           uint32_t hop_count,
+                           uint16_t desired_replication_level,
+                           uint16_t hop_count,
                            const struct GNUNET_HashCode *key,
                            const void *xquery,
                            size_t xquery_size,
