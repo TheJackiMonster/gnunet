@@ -1807,9 +1807,10 @@ handle_dht_p2p_put (void *cls,
                         GNUNET_memcmp (&pp[i].pred,
                                        &pp[j].pred));
         }
-        GNUNET_break (0 !=
-                      GNUNET_memcmp (&pp[i].pred,
-                                     &peer->id));
+        if (i < putlen)
+          GNUNET_break (0 !=
+                        GNUNET_memcmp (&pp[i].pred,
+                                       &peer->id));
       }
       if (0 !=
           GNUNET_DHT_verify_path (&bd.key,
@@ -2338,6 +2339,7 @@ handle_dht_p2p_result (void *cls,
     .expiration_time  = GNUNET_TIME_absolute_ntoh (prm->expiration_time),
     .put_path = (const struct GNUNET_DHT_PathElement *) &prm[1],
     .put_path_length = ntohs (prm->put_path_length),
+    .key = prm->key,
     .type = ntohl (prm->type)
   };
   const struct GNUNET_DHT_PathElement *get_path
