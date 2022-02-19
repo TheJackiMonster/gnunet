@@ -69,14 +69,15 @@ GNUNET_CRYPTO_cs_private_key_get_public (const struct
 
 
 /**
- * maps 32 random bytes to a scalar
- * this is necessary because libsodium expects scalar to be in the prime order subgroup
- * @param[out] scalar containing 32 byte char array, is modified to be in prime order subgroup
+ * Maps 32 random bytes to a scalar.  This is necessary because libsodium
+ * expects scalar to be in the prime order subgroup.
+ *
+ * @param[in,out] scalar containing 32 byte char array, is modified to be in prime order subgroup
  */
 static void
 map_to_scalar_subgroup (struct GNUNET_CRYPTO_Cs25519Scalar *scalar)
 {
-  // perform clamping as described in RFC7748
+  /* perform clamping as described in RFC7748 */
   scalar->d[0] &= 248;
   scalar->d[31] &= 127;
   scalar->d[31] |= 64;
@@ -100,21 +101,14 @@ GNUNET_CRYPTO_cs_r_derive (const struct GNUNET_CRYPTO_CsNonce *nonce,
                            const struct GNUNET_CRYPTO_CsPrivateKey *lts,
                            struct GNUNET_CRYPTO_CsRSecret r[2])
 {
-  GNUNET_assert (GNUNET_YES ==
-                 GNUNET_CRYPTO_hkdf (r,
-                                     sizeof (struct GNUNET_CRYPTO_CsRSecret)
-                                     * 2,
-                                     GCRY_MD_SHA512,
-                                     GCRY_MD_SHA256,
-                                     "r",
-                                     strlen ("r"),
-                                     lts,
-                                     sizeof (*lts),
-                                     nonce,
-                                     sizeof (*nonce),
-                                     NULL,
-                                     0));
-
+  GNUNET_assert (
+    GNUNET_YES ==
+    GNUNET_CRYPTO_kdf (
+      r,     sizeof (struct GNUNET_CRYPTO_CsRSecret) * 2,
+      "r",   strlen ("r"),
+      lts,   sizeof (*lts),
+      nonce, sizeof (*nonce),
+      NULL,  0));
   map_to_scalar_subgroup (&r[0].scalar);
   map_to_scalar_subgroup (&r[1].scalar);
 }
