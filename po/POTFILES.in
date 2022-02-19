@@ -97,6 +97,7 @@ src/datastore/plugin_datastore_template.c
 src/dht/dht_api.c
 src/dht/dht_test_lib.c
 src/dht/gnunet-dht-get.c
+src/dht/gnunet-dht-hello.c
 src/dht/gnunet-dht-monitor.c
 src/dht/gnunet-dht-put.c
 src/dht/gnunet-service-dht.c
