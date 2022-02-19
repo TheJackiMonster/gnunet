@@ -213,7 +213,10 @@ EXTRA_DIST = \
   test_dht_line.conf \
   test_dht_tools.conf \
   test_dht_tools.py.in \
-  test_dht_multipeer_topology.dat
+  test_dht_multipeer_topology.dat \
+  dhtu_testbed_connect.sh \
+  dhtu_testbed_deploy.conf \
+  dhtu_testbed_deploy.sh
 
 if HAVE_PYTHON
 check_SCRIPTS = \
