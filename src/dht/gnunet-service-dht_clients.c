@@ -561,7 +561,6 @@ static void
 handle_local_result (void *cls,
                      const struct GDS_DATACACHE_BlockData *bd)
 {
-  /* FIXME: use 'cls' instead of looking up the client? */
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Datacache provided result for query key %s\n",
               GNUNET_h2s (&bd->key));
