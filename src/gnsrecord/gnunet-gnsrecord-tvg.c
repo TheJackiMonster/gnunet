@@ -158,7 +158,7 @@ run_pkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char *label)
                                  ztld,
                                  sizeof (ztld));
   fprintf (stdout, "\n");
-  fprintf (stdout, "Encoded zone identifier (zkl = zTLD):\n");
+  fprintf (stdout, "zTLD:\n");
   fprintf (stdout, "%s\n", ztld);
   fprintf (stdout, "\n");
 
@@ -278,7 +278,7 @@ run_edkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char*label)
                                  ztld,
                                  sizeof (ztld));
   fprintf (stdout, "\n");
-  fprintf (stdout, "Encoded zone identifier (zkl = zTLD):\n");
+  fprintf (stdout, "zTLD:\n");
   fprintf (stdout, "%s\n", ztld);
   fprintf (stdout, "\n");
 
