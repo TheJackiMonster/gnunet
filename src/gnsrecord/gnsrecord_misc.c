@@ -515,7 +515,7 @@ GNUNET_GNSRECORD_normalize_record_set (const char *label,
 
     /* Ignore private records for public record set */
 
-    if ((GNUNET_NO != include_private) &&
+    if ((GNUNET_NO == include_private) &&
         (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE)))
       continue;
     /* Skip expired records */
