@@ -570,7 +570,7 @@ struct DvInitPS
   /**
    * Challenge value used by the initiator to re-identify the path.
    */
-  struct ChallengeNonceP challenge;
+  struct GNUNET_CRYPTO_ChallengeNonceP challenge;
 };
 
 
@@ -610,7 +610,7 @@ struct DvHopPS
   /**
    * Challenge value used by the initiator to re-identify the path.
    */
-  struct ChallengeNonceP challenge;
+  struct GNUNET_CRYPTO_ChallengeNonceP challenge;
 };
 
 
@@ -704,7 +704,7 @@ struct TransportDVLearnMessage
   /**
    * Challenge value used by the initiator to re-identify the path.
    */
-  struct ChallengeNonceP challenge;
+  struct GNUNET_CRYPTO_ChallengeNonceP challenge;
 
   /* Followed by @e num_hops `struct DVPathEntryP` values,
      excluding the initiator of the DV trace; the last entry is the
@@ -813,7 +813,7 @@ struct TransportValidationChallengeMessage
   /**
    * Challenge to be signed by the receiving peer.
    */
-  struct ChallengeNonceP challenge;
+  struct GNUNET_CRYPTO_ChallengeNonceP challenge;
 
   /**
    * Timestamp of the sender, to be copied into the reply to allow
@@ -843,7 +843,7 @@ struct TransportValidationPS
   /**
    * Challenge signed by the receiving peer.
    */
-  struct ChallengeNonceP challenge;
+  struct GNUNET_CRYPTO_ChallengeNonceP challenge;
 };
 
 
@@ -872,7 +872,7 @@ struct TransportValidationResponseMessage
   /**
    * The challenge that was signed by the receiving peer.
    */
-  struct ChallengeNonceP challenge;
+  struct GNUNET_CRYPTO_ChallengeNonceP challenge;
 
   /**
    * Original timestamp of the sender (was @code{sender_time}),
@@ -1035,7 +1035,7 @@ struct LearnLaunchEntry
   /**
    * Challenge that uniquely identifies this activity.
    */
-  struct ChallengeNonceP challenge;
+  struct GNUNET_CRYPTO_ChallengeNonceP challenge;
 
   /**
    * When did we transmit the DV learn message (used to calculate RTT) and
@@ -2537,7 +2537,7 @@ struct ValidationState
    * (We must not rotate more often as otherwise we may discard valid answers
    * due to packet losses, latency and reorderings on the network).
    */
-  struct ChallengeNonceP challenge;
+  struct GNUNET_CRYPTO_ChallengeNonceP challenge;
 
   /**
    * Claimed address of the peer.
@@ -6712,7 +6712,7 @@ static int
 validate_dv_initiator_signature (
   struct GNUNET_TIME_AbsoluteNBO sender_monotonic_time,
   const struct GNUNET_PeerIdentity *init,
-  const struct ChallengeNonceP *challenge,
+  const struct GNUNET_CRYPTO_ChallengeNonceP *challenge,
   const struct GNUNET_CRYPTO_EddsaSignature *init_sig)
 {
   struct DvInitPS ip = { .purpose.purpose = htonl (
@@ -8172,7 +8172,7 @@ struct CheckKnownChallengeContext
   /**
    * Set to the challenge we are looking for.
    */
-  const struct ChallengeNonceP *challenge;
+  const struct GNUNET_CRYPTO_ChallengeNonceP *challenge;
 
   /**
    * Set to a matching validation state, if one was found.

@@ -143,7 +143,7 @@ struct TcpHandshakeSignature
   /**
    * Challenge value used to protect against replay attack, if there is no stored monotonic time value.
    */
-  struct ChallengeNonceP challenge;
+  struct GNUNET_CRYPTO_ChallengeNonceP challenge;
 };
 
 /**
@@ -176,7 +176,7 @@ struct TcpHandshakeAckSignature
   /**
    * Challenge value used to protect against replay attack, if there is no stored monotonic time value.
    */
-  struct ChallengeNonceP challenge;
+  struct GNUNET_CRYPTO_ChallengeNonceP challenge;
 };
 
 /**
@@ -203,7 +203,7 @@ struct TCPConfirmation
   /**
    * Challenge value used to protect against replay attack, if there is no stored monotonic time value.
    */
-  struct ChallengeNonceP challenge;
+  struct GNUNET_CRYPTO_ChallengeNonceP challenge;
 
 };
 
@@ -238,7 +238,7 @@ struct TCPConfirmationAck
   /**
    * Challenge value used to protect against replay attack, if there is no stored monotonic time value.
    */
-  struct ChallengeNonceP challenge;
+  struct GNUNET_CRYPTO_ChallengeNonceP challenge;
 
 };
 
@@ -587,12 +587,12 @@ struct Queue
   /**
    * Challenge value used to protect against replay attack, if there is no stored monotonic time value.
    */
-  struct ChallengeNonceP challenge;
+  struct GNUNET_CRYPTO_ChallengeNonceP challenge;
 
   /**
    * Challenge value received. In case of inbound connection we have to remember the value, because we send the challenge back later after we received the GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_CONFIRMATION_ACK.
    */
-  struct ChallengeNonceP challenge_received;
+  struct GNUNET_CRYPTO_ChallengeNonceP challenge_received;
 
   /**
    * Iteration Context for retrieving the monotonic time send with key for rekeying.
@@ -1447,7 +1447,7 @@ handshake_ack_monotime_cb (void *cls,
  * @param queue The queue context.
  */
 static void
-send_challenge (struct ChallengeNonceP challenge, struct Queue *queue)
+send_challenge (struct GNUNET_CRYPTO_ChallengeNonceP challenge, struct Queue *queue)
 {
   struct TCPConfirmationAck tca;
   struct TcpHandshakeAckSignature thas;
@@ -1680,7 +1680,7 @@ try_handle_plaintext (struct Queue *queue)
   uint16_t type;
   size_t size = 0; /* make compiler happy */
   struct TcpHandshakeAckSignature thas;
-  const struct ChallengeNonceP challenge = queue->challenge;
+  const struct GNUNET_CRYPTO_ChallengeNonceP challenge = queue->challenge;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "try handle plaintext!\n");

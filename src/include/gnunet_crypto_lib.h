@@ -307,7 +307,7 @@ struct GNUNET_CRYPTO_SymmetricSessionKey
 /**
  * Type of a nonce used for challenges.
  */
-struct ChallengeNonceP
+struct GNUNET_CRYPTO_ChallengeNonceP
 {
   /**
    * The value of the nonce.  Note that this is NOT a hash.
