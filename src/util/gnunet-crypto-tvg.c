@@ -852,7 +852,7 @@ checkvec (const char *operation,
       return GNUNET_SYSERR;
     }
 
-    if ((b != 1)&& (b != 0))
+    if ((b != 1) && (b != 0))
     {
       GNUNET_break (0);
       return GNUNET_SYSERR;
@@ -869,9 +869,14 @@ checkvec (const char *operation,
     unsigned int b_comp;
 
 
-    GNUNET_CRYPTO_cs_r_derive (&nonce, &priv, r_priv_comp);
-    GNUNET_CRYPTO_cs_r_get_public (&r_priv_comp[0], &r_pub_comp[0]);
-    GNUNET_CRYPTO_cs_r_get_public (&r_priv_comp[1], &r_pub_comp[1]);
+    GNUNET_CRYPTO_cs_r_derive (&nonce,
+                               "rw",
+                               &priv,
+                               r_priv_comp);
+    GNUNET_CRYPTO_cs_r_get_public (&r_priv_comp[0],
+                                   &r_pub_comp[0]);
+    GNUNET_CRYPTO_cs_r_get_public (&r_priv_comp[1],
+                                   &r_pub_comp[1]);
     GNUNET_assert (0 == memcmp (&r_priv_comp,
                                 &r_priv,
                                 sizeof(struct GNUNET_CRYPTO_CsRSecret) * 2));
@@ -1316,9 +1321,14 @@ output_vectors ()
                                                      strlen ("nonce_secret"),
                                                      NULL,
                                                      0));
-    GNUNET_CRYPTO_cs_r_derive (&nonce, &priv, r_priv);
-    GNUNET_CRYPTO_cs_r_get_public (&r_priv[0], &r_pub[0]);
-    GNUNET_CRYPTO_cs_r_get_public (&r_priv[1], &r_pub[1]);
+    GNUNET_CRYPTO_cs_r_derive (&nonce,
+                               "rw",
+                               &priv,
+                               r_priv);
+    GNUNET_CRYPTO_cs_r_get_public (&r_priv[0],
+                                   &r_pub[0]);
+    GNUNET_CRYPTO_cs_r_get_public (&r_priv[1],
+                                   &r_pub[1]);
     GNUNET_CRYPTO_cs_blinding_secrets_derive (&nonce,
                                               bs);
     GNUNET_CRYPTO_cs_calc_blinded_c (bs,

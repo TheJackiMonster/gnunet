@@ -97,6 +97,7 @@ test_derive_rsecret (const struct GNUNET_CRYPTO_CsNonce *nonce,
           r,
           sizeof(struct GNUNET_CRYPTO_CsPrivateKey) * 2);
   GNUNET_CRYPTO_cs_r_derive (nonce,
+                             "nw",
                              priv,
                              r);
   GNUNET_assert (0 !=
@@ -114,6 +115,7 @@ test_derive_rsecret (const struct GNUNET_CRYPTO_CsNonce *nonce,
   for (unsigned int i = 0; i<ITER; i++)
   {
     GNUNET_CRYPTO_cs_r_derive (nonce,
+                               "nw",
                                priv,
                                r);
     GNUNET_assert (0 ==
