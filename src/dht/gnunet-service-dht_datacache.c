@@ -36,7 +36,7 @@
  * How many "closest" results to we return for migration when
  * asked (at most)?
  */
-#define NUM_CLOSEST 42
+#define NUM_CLOSEST 4
 
 
 /**

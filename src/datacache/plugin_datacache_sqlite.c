@@ -651,11 +651,19 @@ libgnunet_plugin_datacache_sqlite_init (void *cls)
                                 &plugin->del_stmt)) ||
       (SQLITE_OK !=
        sq_prepare (plugin->dbh,
-                   "SELECT value,expire,path,type,key FROM ds091 "
+                   "SELECT * FROM ("
+                   " SELECT value,expire,path,type,key FROM ds091 "
                    " WHERE key>=?1 "
                    "  AND expire >= ?2"
                    "  AND ( (type=?3) or (0 == ?3) )"
-                   " ORDER BY KEY ASC LIMIT ?4",
+                   " ORDER BY KEY ASC LIMIT ?4)"
+                   "UNION "
+                   "SELECT * FROM ("
+                   " SELECT value,expire,path,type,key FROM ds091 "
+                   " WHERE key>=?1 "
+                   "  AND expire >= ?2"
+                   "  AND ( (type=?3) or (0 == ?3) )"
+                   " ORDER BY KEY ASC LIMIT ?4)",
                    &plugin->get_closest_stmt)))
   {
     LOG_SQLITE (plugin->dbh,

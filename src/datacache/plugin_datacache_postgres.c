@@ -108,14 +108,20 @@ init_connection (struct Plugin *plugin)
                             "SELECT length(value) AS len,oid,key FROM gn011dc"
                             " ORDER BY prox ASC, discard_time ASC LIMIT 1",
                             0),
-    /* FIXME: do key >= ASC +  UNION key <=  DESC! */
     GNUNET_PQ_make_prepare ("get_closest",
-                            "SELECT discard_time,type,value,path,key FROM gn011dc"
+                            "(SELECT discard_time,type,value,path,key FROM gn011dc"
                             " WHERE key >= $1"
                             "   AND discard_time >= $2"
                             "   AND ( (type = $3) OR ( 0 = $3) )"
                             " ORDER BY key ASC"
-                            " LIMIT $4",
+                            " LIMIT $4)"
+                            " UNION "
+                            "(SELECT discard_time,type,value,path,key FROM gn011dc"
+                            " WHERE key <= $1"
+                            "   AND discard_time >= $2"
+                            "   AND ( (type = $3) OR ( 0 = $3) )"
+                            " ORDER BY key DESC"
+                            " LIMIT $4)",
                             4),
     GNUNET_PQ_make_prepare ("delrow",
                             "DELETE FROM gn011dc WHERE oid=$1",

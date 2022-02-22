@@ -427,15 +427,16 @@ struct GetClosestContext
 {
   struct Value **values;
 
+  const struct GNUNET_HashCode *key;
+
   enum GNUNET_BLOCK_Type type;
 
   unsigned int num_results;
 
-  const struct GNUNET_HashCode *key;
 };
 
 
-static int
+static enum GNUNET_GenericReturnValue
 find_closest (void *cls,
               const struct GNUNET_HashCode *key,
               void *value)
@@ -458,8 +459,9 @@ find_closest (void *cls,
       j = i;
       break;
     }
-    if (1 == GNUNET_CRYPTO_hash_cmp (&gcc->values[i]->key,
-                                     key))
+    if (1 ==
+        GNUNET_CRYPTO_hash_cmp (&gcc->values[i]->key,
+                                key))
     {
       j = i;
       break;
@@ -499,14 +501,14 @@ heap_plugin_get_closest (void *cls,
   struct GetClosestContext gcc = {
     .values = values,
     .type = type,
-    .num_results = num_results,
+    .num_results = num_results * 2,
     .key = key
   };
 
   GNUNET_CONTAINER_multihashmap_iterate (plugin->map,
                                          &find_closest,
                                          &gcc);
-  for (unsigned int i = 0; i < num_results; i++)
+  for (unsigned int i = 0; i < num_results * 2; i++)
   {
     if (NULL == values[i])
       return i;
@@ -519,7 +521,7 @@ heap_plugin_get_closest (void *cls,
           values[i]->path_info_len,
           values[i]->path_info);
   }
-  return num_results;
+  return num_results * 2;
 }
 
 
