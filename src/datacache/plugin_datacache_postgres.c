@@ -108,6 +108,7 @@ init_connection (struct Plugin *plugin)
                             "SELECT length(value) AS len,oid,key FROM gn011dc"
                             " ORDER BY prox ASC, discard_time ASC LIMIT 1",
                             0),
+    /* FIXME: do key >= ASC +  UNION key <=  DESC! */
     GNUNET_PQ_make_prepare ("get_closest",
                             "SELECT discard_time,type,value,path,key FROM gn011dc"
                             " WHERE key >= $1"
