@@ -17,9 +17,9 @@ static char *zid =
   "00010000677c477d2d93097c85b195c6f96d84ff61f5982c2c4fe02d5a11fedfb0c2901f";
 
 #define RRCOUNT 2
-#define LABEL "test"
+#define LABEL "namesystem"
 
-#define R0_EXPIRATION 14888744139323793
+#define R0_EXPIRATION 
 #define R0_DATA_SIZE 4
 #define R0_TYPE 1
 #define R0_FLAGS 0
@@ -121,8 +121,7 @@ main ()
   rrblock = GNUNET_malloc (strlen (R1_RRBLOCK) / 2);
   parsehex (R1_RRBLOCK, (char*) rrblock, 0, 0);
   GNUNET_assert (GNUNET_YES
-                 == GNUNET_GNSRECORD_is_critical_record_type (
-                   GNUNET_GNSRECORD_TYPE_PKEY));
+                 == GNUNET_GNSRECORD_is_critical (GNUNET_GNSRECORD_TYPE_PKEY));
   GNUNET_GNSRECORD_block_decrypt (rrblock,
                                   &pub_parsed,
                                   LABEL,
