@@ -447,8 +447,8 @@ display_record (const char *rname,
     if ((GNUNET_GNSRECORD_TYPE_NICK == rd[i].record_type) &&
         (0 != strcmp (rname, GNUNET_GNS_EMPTY_LABEL_AT)))
       continue;
-    /*if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[i].record_type)
-      continue;*/
+    if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[i].record_type)
+      continue;
     if ((type != rd[i].record_type) && (GNUNET_GNSRECORD_TYPE_ANY != type))
       continue;
     typestr = GNUNET_GNSRECORD_number_to_typename (rd[i].record_type);
