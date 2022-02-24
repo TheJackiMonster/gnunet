@@ -1400,6 +1400,10 @@ GDS_NEIGHBOURS_handle_put (const struct GDS_DATACACHE_BlockData *bd,
                  &pp[put_path_length - 1].pred,
                  &target->id,
                  &pp[put_path_length - 1].sig);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Signing PUT PATH %u => %s\n",
+                  put_path_length,
+                  GNUNET_B2S (&pp[put_path_length - 1].sig));
     }
 
     GNUNET_memcpy (&pp[put_path_length],
@@ -1594,7 +1598,7 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
     GNUNET_break (0);
     return;
   }
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Forwarding reply for key %s to peer %s\n",
               GNUNET_h2s (query_hash),
               GNUNET_i2s (&pi->id));
@@ -1636,22 +1640,55 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
     {
       GNUNET_assert (0 == get_path_length);
     }
-    /* 0 == get_path_length means path is not being tracked */
-    if (0 != get_path_length)
+    /* 0 == get_path_length+ppl means path is not being tracked */
+    if (0 != (get_path_length + ppl))
     {
-      /* Note that the signature in 'get_path' was not initialized before,
+      /* Note that the last signature in 'paths' was not initialized before,
          so this is crucial to avoid sending garbage. */
-      sign_path (&bd->key,
+      sign_path (query_hash,
                  bd->data,
                  bd->data_size,
                  bd->expiration_time,
                  &paths[ppl + get_path_length - 1].pred,
                  &pi->id,
                  &paths[ppl + get_path_length - 1].sig);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Signing GET PATH %u/%u of %s => %s\n",
+                  ppl,
+                  get_path_length,
+                  GNUNET_h2s (query_hash),
+                  GNUNET_B2S (&paths[ppl + get_path_length - 1].sig));
     }
     GNUNET_memcpy (&paths[ppl + get_path_length],
                    bd->data,
                    bd->data_size);
+
+#if SANITY_CHECKS
+    {
+      struct GNUNET_DHT_PathElement xpaths[get_path_length + 1];
+
+      memcpy (xpaths,
+              &paths[ppl],
+              get_path_length * sizeof (struct GNUNET_DHT_PathElement));
+      xpaths[get_path_length].pred = GDS_my_identity;
+      if (0 !=
+          GNUNET_DHT_verify_path (&prm->key,
+                                  bd->data,
+                                  bd->data_size,
+                                  bd->expiration_time,
+                                  paths,
+                                  ppl,
+                                  xpaths,
+                                  get_path_length + 1,
+                                  &pi->id))
+      {
+        GNUNET_break (0);
+        return;
+      }
+    }
+#endif
+
+
     do_send (pi,
              &prm->header);
   }
@@ -2201,6 +2238,8 @@ process_reply_with_path (const struct GDS_DATACACHE_BlockData *bd,
                          const struct GNUNET_DHT_PathElement *get_path)
 {
   /* forward to local clients */
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Forwarding reply to local clients\n");
   GDS_CLIENTS_handle_reply (bd,
                             query_hash,
                             get_path_length,
@@ -2246,6 +2285,10 @@ check_dht_p2p_result (void *cls,
   uint16_t get_path_length = ntohs (prm->get_path_length);
   uint16_t put_path_length = ntohs (prm->put_path_length);
   uint16_t msize = ntohs (prm->header.size);
+  const struct GNUNET_DHT_PathElement *pp
+    = (const struct GNUNET_DHT_PathElement *) &prm[1];
+  const struct GNUNET_DHT_PathElement *gp
+    = &pp[put_path_length];
 
   (void) cls;
   if ( (msize <
@@ -2260,6 +2303,26 @@ check_dht_p2p_result (void *cls,
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
   }
+
+#if SANITY_CHECKS
+  if (0 !=
+      GNUNET_DHT_verify_path (&prm->key,
+                              &gp[get_path_length],
+                              msize - (sizeof(struct PeerResultMessage)
+                                       + (get_path_length + put_path_length)
+                                       * sizeof(struct GNUNET_DHT_PathElement)),
+                              GNUNET_TIME_absolute_ntoh (prm->expiration_time),
+                              pp,
+                              put_path_length,
+                              gp,
+                              get_path_length,
+                              &GDS_my_identity))
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
+#endif
+
   return GNUNET_OK;
 }
 
@@ -2412,13 +2475,18 @@ handle_dht_p2p_result (void *cls,
 
   /* First, check if 'peer' is already on the path, and if
      so, truncate it instead of expanding. */
-  for (unsigned int i = 0; i <= get_path_length; i++)
+  for (unsigned int i = 0; i < get_path_length; i++)
     if (0 == GNUNET_memcmp (&get_path[i].pred,
                             &peer->id))
     {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Truncating path at %u/%u\n",
+                  i,
+                  get_path_length);
       process_reply_with_path (&bd,
                                &prm->key,
-                               i, get_path);
+                               i,
+                               get_path);
       return;
     }
 
@@ -2433,9 +2501,14 @@ handle_dht_p2p_result (void *cls,
     memset (&xget_path[get_path_length].sig,
             0,
             sizeof (xget_path[get_path_length].sig));
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Extending GET path of length %u with %s\n",
+                get_path_length,
+                GNUNET_i2s (&peer->id));
     process_reply_with_path (&bd,
                              &prm->key,
-                             get_path_length + 1, xget_path);
+                             get_path_length + 1,
+                             xget_path);
   }
 }
 
@@ -2540,7 +2613,7 @@ GDS_u_receive (void *cls,
     GNUNET_break_op (0);
     return;
   }
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Handling message of type %u from peer %s\n",
               ntohs (mh->type),
               GNUNET_i2s (&t->pi->id));

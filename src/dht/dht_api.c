@@ -1317,7 +1317,9 @@ GNUNET_DHT_verify_path (const struct GNUNET_HashCode *key,
   if (0 == get_path_len + put_path_len)
     return 0;
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              "Verifying signatures with GPL: %u PPL: %u!\n",
+              "%s is verifying signatures for %s with GPL: %u PPL: %u!\n",
+              GNUNET_i2s (me),
+              GNUNET_h2s (key),
               get_path_len,
               put_path_len);
   i = put_path_len + get_path_len - 1;
@@ -1345,7 +1347,10 @@ GNUNET_DHT_verify_path (const struct GNUNET_HashCode *key,
           (i >= put_path_len)
           ? &get_path[i - put_path_len].pred.public_key
           : &put_path[i].pred.public_key))
+    {
+      GNUNET_break_op (0);
       return i;
+    }
     i--;
   }
   return i;

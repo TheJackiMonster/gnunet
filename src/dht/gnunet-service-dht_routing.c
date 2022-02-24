@@ -198,7 +198,8 @@ process (void *cls,
       GDS_NEIGHBOURS_handle_reply (pi,
                                    &bdx,
                                    query_hash,
-                                   get_path_length, pc->get_path);
+                                   get_path_length,
+                                   pc->get_path);
     }
     break;
   case GNUNET_BLOCK_REPLY_OK_DUPLICATE:

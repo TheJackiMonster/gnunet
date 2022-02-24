@@ -623,6 +623,31 @@ GNUNET_abort_ (void) GNUNET_NORETURN;
 
 
 /**
+ * Convert a buffer to an 8-character string
+ * representative of the contents. This is used
+ * for logging binary data when debugging.
+ *
+ * @param buf buffer to log
+ * @param buf_size number of bytes in @a buf
+ * @return text representation of buf, valid until next
+ *         call to this function
+ */
+const char *
+GNUNET_b2s (const void *buf,
+           size_t buf_size);
+
+
+/**
+ * Convert a fixed-sized object to a string using
+ * #GNUNET_b2s().
+ *
+ * @param obj address of object to convert
+ * @return string representing the binary obj buffer
+ */
+#define GNUNET_B2S(obj) GNUNET_b2s ((obj), sizeof (*(obj)))
+
+
+/**
  * @ingroup logging
  * Ignore the next @a n calls to the log function.
  *
@@ -1240,7 +1265,7 @@ GNUNET_is_zero_ (const void *a,
  * @return GNUNET_YES if a is zero, GNUNET_NO otherwise
  */
 #define GNUNET_is_zero(a)           \
-  GNUNET_is_zero_ (a, sizeof (*a))
+  GNUNET_is_zero_ ((a), sizeof (*(a)))
 
 
 /**

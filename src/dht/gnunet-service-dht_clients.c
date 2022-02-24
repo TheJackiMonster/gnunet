@@ -24,7 +24,6 @@
  * @author Christian Grothoff
  * @author Nathan Evans
  */
-
 #include "platform.h"
 #include "gnunet_constants.h"
 #include "gnunet_protocols.h"
@@ -34,6 +33,11 @@
 #include "gnunet-service-dht_neighbours.h"
 #include "dht.h"
 
+
+/**
+ * Enable slow sanity checks to debug issues.
+ */
+#define SANITY_CHECKS 1
 
 /**
  * Should routing details be logged to stderr (for debugging)?
@@ -1006,7 +1010,8 @@ forward_reply (void *cls,
                  * frc->bd->put_path_length);
   GNUNET_memcpy (&paths[frc->bd->put_path_length],
                  frc->get_path,
-                 sizeof(struct GNUNET_DHT_PathElement) * frc->get_path_length);
+                 sizeof(struct GNUNET_DHT_PathElement)
+                 * frc->get_path_length);
   GNUNET_memcpy (&paths[frc->get_path_length + frc->bd->put_path_length],
                  frc->bd->data,
                  frc->bd->data_size);
@@ -1039,12 +1044,30 @@ GDS_CLIENTS_handle_reply (const struct GDS_DATACACHE_BlockData *bd,
     GNUNET_break (0);
     return;
   }
+#if SANITY_CHECKS
+  if (0 !=
+      GNUNET_DHT_verify_path (&bd->key,
+                              bd->data,
+                              bd->data_size,
+                              bd->expiration_time,
+                              get_path,
+                              get_path_length,
+                              bd->put_path,
+                              bd->put_path_length,
+                              &GDS_my_identity))
+  {
+    GNUNET_break_op (0);
+    return;
+  }
+#endif
   frc.bd = bd;
   frc.get_path = get_path;
   frc.get_path_length = get_path_length;
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Forwarding reply for query hash %s to client\n",
-       GNUNET_h2s (query_hash));
+       "Forwarding reply for query hash %s with GPL %u and PPL %u to client\n",
+       GNUNET_h2s (query_hash),
+       get_path_length,
+       bd->put_path_length);
   if (0 ==
       GNUNET_CONTAINER_multihashmap_get_multiple (forward_map,
                                                   query_hash,

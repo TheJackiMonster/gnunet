@@ -380,6 +380,7 @@ dht_get_handler (void *cls,
                               put_path_length,
                               &get_op->me))
   {
+    GNUNET_break (0);
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Path signature verification failed!\n");
   }
