@@ -773,6 +773,8 @@ TESTS += \
 endif
 endif
 
+# Only test TNG if we run experimental
+if HAVE_EXPERIMENTAL
 check_SCRIPTS= \
   test_transport_simple_send_string.sh \
   test_transport_simple_send.sh \
@@ -780,6 +782,7 @@ check_SCRIPTS= \
   test_transport_udp_backchannel.sh \
   # test_transport_simple_send_dv_circle.sh 
   # test_transport_simple_send_dv_inverse.sh
+endif
 
 test_transport_start_with_config_SOURCES = \
  test_transport_start_with_config.c
