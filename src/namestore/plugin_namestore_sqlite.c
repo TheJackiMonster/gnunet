@@ -329,6 +329,11 @@ namestore_sqlite_store_records (void *cls,
           0,
           sizeof(pkey));
   for (unsigned int i = 0; i < rd_count; i++)
+  {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Checking if `%d' is zonekey type\n",
+       rd[i].record_type);
+
     if (GNUNET_YES == GNUNET_GNSRECORD_is_zonekey_type (rd[i].record_type))
     {
       GNUNET_break (GNUNET_YES ==
@@ -336,8 +341,13 @@ namestore_sqlite_store_records (void *cls,
                                                          rd[i].data_size,
                                                          rd[i].record_type,
                                                          &pkey));
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Storing delegation zone record value `%s'\n",
+       GNUNET_GNSRECORD_z2s (&pkey));
+
       break;
     }
+  }
   rvalue = GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_WEAK,
                                      UINT64_MAX);
   data_size = GNUNET_GNSRECORD_records_get_size (rd_count,

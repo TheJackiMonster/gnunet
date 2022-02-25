@@ -1668,6 +1668,7 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
       send_store_response (nc, res, _("Store failed"), rid);
       GNUNET_SERVICE_client_continue (nc->client);
       GNUNET_free (conv_name);
+      return;
     }
 
     sa = GNUNET_malloc (sizeof(struct StoreActivity)
