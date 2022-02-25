@@ -1,3 +1,165 @@
+Fri, 25 Feb 2022 00:46:09 +0100 (5e4cbb92b)
+add GNUNET_B2S() macro; fix dht_line_test: we sign over query_hash, not block key - Martin Schanzenbach
+
+Mon, 21 Feb 2022 00:11:28 +0100 (7bc5bb42a)
+fix #7173 - Christian Grothoff
+
+Sun, 20 Feb 2022 21:34:39 +0100 (3bda89642)
+add salt argument to GNUNET_CRYPTO_CS_r_derive() - Christian Grothoff
+
+Wed, 12 Jan 2022 20:42:34 +0100 (ac77d5f43)
+add new HELLO_URI block support to block plugin - Christian Grothoff
+
+Wed, 12 Jan 2022 14:34:56 +0100 (3e3081cfd)
+incomplete first hack of new hello-uri lib - Christian Grothoff
+
+Mon, 10 Jan 2022 21:51:53 +0100 (ba9296269)
+first steps towards usable dhtu - Christian Grothoff
+
+Fri, 18 Feb 2022 13:02:24 +0100 (a85bfe2fe)
+DOC: Fix error - Martin Schanzenbach
+
+Thu, 17 Feb 2022 12:53:23 +0100 (d4dffb077)
+DOC: Fixed git links in tutorial - Martin Schanzenbach
+
+Tue, 15 Feb 2022 14:37:56 +0100 (f72ffa1a9)
+GNS: Allow lowercase and uppercase - Martin Schanzenbach
+
+Tue, 15 Feb 2022 00:13:04 +0000 (839b4da34)
+Fix incorrect information in `contrib/xdg-scheme-handler/README` - madmurphy
+
+Tue, 15 Feb 2022 00:07:16 +0000 (679d390e4)
+`gnunet-search`: Reduce the help page and include Alessio's suggestions - madmurphy
+
+Mon, 14 Feb 2022 16:00:15 +0100 (336acc330)
+GNS/NAMESTORE: Fix GNS2DNS delegations - Martin Schanzenbach
+
+Mon, 14 Feb 2022 15:15:03 +0100 (6866469e6)
+UTIL: Fix DNS resolution - Martin Schanzenbach
+
+Mon, 14 Feb 2022 12:15:54 +0100 (8f7f4944a)
+GNS: Rename CNAME test; bugfix - Martin Schanzenbach
+
+Sat, 12 Feb 2022 20:18:16 +0000 (e94d71fdc)
+`man gnunet-search`: better layout for `--printf` examples - madmurphy
+
+Sat, 12 Feb 2022 18:14:33 +0000 (8c316d9dc)
+`man gnunet-search`: add `--printf` examples, update page date - madmurphy
+
+Fri, 11 Feb 2022 15:20:37 +0000 (c252554c5)
+`man gnunet-search`: not just quotes - madmurphy
+
+Fri, 11 Feb 2022 14:59:28 +0000 (b99f65d5e)
+`man gnunet-search`: general review (cont'd) - madmurphy
+
+Fri, 11 Feb 2022 03:20:27 +0000 (c4bd3744a)
+`man gnunet-search`: general review - madmurphy
+
+Fri, 11 Feb 2022 02:52:46 +0000 (0e04edc6b)
+`man gnunet-search`: note about libextractor - madmurphy
+
+Fri, 11 Feb 2022 02:45:23 +0000 (d267f384a)
+`man gnunet-search`: metatype string - madmurphy
+
+Fri, 11 Feb 2022 01:49:29 +0000 (55307d34d)
+`man gnunet-search`: update synopsis - madmurphy
+
+Fri, 11 Feb 2022 01:32:58 +0000 (3ce3d040f)
+First draft of updated man page for `gnunet-search` (to be reviewed) - madmurphy
+
+Thu, 10 Feb 2022 22:45:00 +0000 (9294003d1)
+Add missing information to `gnunet-search`'s help page - madmurphy
+
+Thu, 10 Feb 2022 22:24:56 +0000 (4b887d8a8)
+New version of `gnunet-search` is ready to be tested - madmurphy
+
+Thu, 10 Feb 2022 22:20:32 +0000 (82e288bca)
+Use `const` for `GNUNET_FS_file_information_get_filename()`'s only argument - madmurphy
+
+Thu, 10 Feb 2022 22:12:48 +0000 (99dcb607e)
+Add newline before help pages' footer - madmurphy
+
+Mon, 7 Feb 2022 15:59:04 +0100 (14b3c75ab)
+GNS: LSD0001 improvements - Martin Schanzenbach
+
+Sat, 5 Feb 2022 17:17:37 +0100 (aa85ac347)
+GNS: Add tombstone string processing; also handle tombstones in monitor properly - Martin Schanzenbach
+
+Sat, 5 Feb 2022 00:50:38 +0100 (ee865f851)
+GNS: Implement Tombstone logic - Martin Schanzenbach
+
+Thu, 3 Feb 2022 22:47:03 +0100 (f3eaf5dae)
+GNS: Move VPN to DNS2GNS. Fixes #7171 - Martin Schanzenbach
+
+Thu, 3 Feb 2022 18:44:40 +0100 (afd2cb5db)
+GNS: Introduce REDIRECT records. Fixes #7172 - Martin Schanzenbach
+
+Thu, 3 Feb 2022 18:12:10 +0100 (3d72be074)
+GNS: Introduce CRITICAL flag. Fixes #7169 - Martin Schanzenbach
+
+Thu, 3 Feb 2022 09:25:12 +0100 (112ef3796)
+GNS: Rework GNS block wire format - Martin Schanzenbach
+
+Tue, 1 Feb 2022 17:52:33 +0100 (4f07822ff)
+GNS: Fix context strings in key derivation according to LSD0001 - Martin Schanzenbach
+
+Tue, 1 Feb 2022 15:48:52 +0100 (816bab695)
+GNS: Fix revocation wire format - Martin Schanzenbach
+
+Wed, 26 Jan 2022 22:41:40 +0100 (e96a8d741)
+added CS test vectors - Gian Demarmels
+
+Thu, 20 Jan 2022 15:21:53 +0100 (856078f62)
+DOC: Update README and handbook for dependencies - Martin Schanzenbach
+
+Tue, 18 Jan 2022 14:05:12 +0100 (18bf1b905)
+UTIL: Add UTF-8 NFC test - Martin Schanzenbach
+
+Tue, 18 Jan 2022 11:05:41 +0100 (54554ca53)
+GNS: Towards NFC - Martin Schanzenbach
+
+Fri, 14 Jan 2022 18:42:27 +0100 (7e43ac554)
+RECLAIM: Add DIDs - trizuz - Martin Schanzenbach
+
+Mon, 10 Jan 2022 10:31:59 +0100 (8f8351c2d)
+add more information to ensure signatures are fresh and request-specific - Christian Grothoff
+
+Sun, 9 Jan 2022 12:22:04 +0100 (ec19c1e31)
+DHT: modify API and protocol messages to add path signatures, except for now the actual signatures are just placeholders (signing and signature verification are missing) - Christian Grothoff
+
+Tue, 4 Jan 2022 22:18:34 +0100 (d228a5859)
+BUILD: Make GANA generation mandatory for beetstrap. Requires recutils - Martin Schanzenbach
+
+Tue, 4 Jan 2022 15:53:29 +0100 (a5ca7d597)
+BUILD: gnunet-signatures from gana - Martin Schanzenbach
+
+Tue, 4 Jan 2022 15:37:21 +0100 (7b6e0eb4f)
+BUILD: Add gana gnunet-signatures; do not yet copy - Martin Schanzenbach
+
+Tue, 4 Jan 2022 15:23:22 +0100 (c5f6aafd6)
+BUILD: Add gana GNS TLDs - Martin Schanzenbach
+
+Tue, 4 Jan 2022 13:47:07 +0100 (8fc699d2a)
+BUILD: Add gana build target for easy updates of generated headers - Martin Schanzenbach
+
+Sun, 2 Jan 2022 14:53:35 +0100 (329f0458f)
+clean up am_closest_peer and other functions - Christian Grothoff
+
+Sun, 2 Jan 2022 13:10:25 +0100 (bb686c483)
+revise DHT hashing functions, add test logic - Christian Grothoff
+
+Wed, 29 Dec 2021 19:12:28 +0100 (daa928456)
+implement revised block API - Christian Grothoff
+
+Wed, 29 Dec 2021 00:11:40 +0100 (68b028c18)
+implement new block API for FS, fix FTBFS - Christian Grothoff
+
+Tue, 28 Dec 2021 23:39:36 +0100 (8d8976f00)
+revise block plugin design as per discussion with Martin today (only implemented for GNS) - Christian Grothoff
+
+Thu, 16 Dec 2021 18:13:21 +0100 (88fb1d89e)
+IDENTITY: Expose encryption based on identities on CLI - Martin Schanzenbach
+
 Tue, 21 Dec 2021 15:27:27 +0100 (ff714cca7)
 changed derive_secrets API - Gian Demarmels
 
