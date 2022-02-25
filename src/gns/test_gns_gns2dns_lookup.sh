@@ -93,7 +93,7 @@ else
   ret=1
 fi
 
-if [ "$RES_IP6" = "$TEST_IP6" ]
+if [ "${RES_IP6%?}" = "${TEST_IP6%?}" ]
 then
   echo "PASS: Resolved $TEST_DOMAIN to $RES_IP6."
 else
