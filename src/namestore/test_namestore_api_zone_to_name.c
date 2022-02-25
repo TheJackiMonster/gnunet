@@ -218,8 +218,8 @@ run (void *cls,
 
     rd.expiration_time = GNUNET_TIME_absolute_get ().abs_value_us;
     rd.record_type = GNUNET_GNSRECORD_TYPE_PKEY;
-    rd.data_size = GNUNET_IDENTITY_key_get_length (&s_zone_value);
-    rd.data = &s_zone_value;
+    rd.data_size = sizeof (s_zone_value.ecdsa_key);
+    rd.data = &s_zone_value.ecdsa_key;
     rd.flags = 0;
 
     nsh = GNUNET_NAMESTORE_connect (cfg);
@@ -230,7 +230,7 @@ run (void *cls,
                                     1,
                                     &rd,
                                     &put_cont,
-                                    NULL);
+                                    s_name);
   }
 }
 
