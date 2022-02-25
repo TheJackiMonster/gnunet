@@ -1626,7 +1626,7 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
                                                               GNUNET_YES,
                                                               &emsg))
       {
-        send_store_response (nc, res, emsg, rid);
+        send_store_response (nc, GNUNET_SYSERR, emsg, rid);
         GNUNET_free (emsg);
         GNUNET_SERVICE_client_continue (nc->client);
         GNUNET_free (conv_name);

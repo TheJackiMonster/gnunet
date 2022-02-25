@@ -410,7 +410,8 @@ handle_record_store_response (void *cls,
   if (NULL == qe)
     return;
   if (NULL != qe->cont)
-    qe->cont (qe->cont_cls, res, emsg);
+    qe->cont (qe->cont_cls, res,
+             (GNUNET_OK != res) ? NULL : emsg);
   free_qe (qe);
 }
 
