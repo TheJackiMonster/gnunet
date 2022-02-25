@@ -411,7 +411,7 @@ handle_record_store_response (void *cls,
     return;
   if (NULL != qe->cont)
     qe->cont (qe->cont_cls, res,
-             (GNUNET_OK != res) ? NULL : emsg);
+             (GNUNET_OK == res) ? NULL : emsg);
   free_qe (qe);
 }
 
