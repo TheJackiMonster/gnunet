@@ -136,7 +136,6 @@ static void
 shutdown_task (void *cls)
 {
   struct DhtPutActivity *ma;
-  struct TombstoneActivity *ta;
 
   (void) cls;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -283,9 +282,7 @@ handle_monitor_event (void *cls,
                       const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct GNUNET_GNSRECORD_Data rd_public[rd_count];
-  struct GNUNET_GNSRECORD_Data rd_fresh[rd_count + 1];
   unsigned int rd_public_count;
-  unsigned int rd_fresh_count;
   struct DhtPutActivity *ma;
   struct GNUNET_TIME_Absolute expire;
   char *emsg;

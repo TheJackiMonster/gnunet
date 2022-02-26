@@ -1335,9 +1335,7 @@ static void
 handle_gns_cname_result (struct GNS_ResolverHandle *rh,
                          const char *cname)
 {
-  struct AuthorityChain *ac;
   int af;
-  struct GNUNET_IDENTITY_PublicKey zone;
 
   GNUNET_free (rh->name);
   rh->name = GNUNET_strdup (cname);
@@ -1898,7 +1896,6 @@ handle_gns_resolution_result (void *cls,
 {
   struct GNS_ResolverHandle *rh = cls;
   char *cname;
-  int af;
   char scratch[UINT16_MAX];
   size_t scratch_off;
   size_t scratch_start;

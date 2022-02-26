@@ -403,7 +403,6 @@ GNUNET_GNSRECORD_normalize_record_set (const char *label,
                                        int include_private,
                                        char **emsg)
 {
-  struct GNUNET_TIME_Absolute expiry_tombstone;
   struct GNUNET_TIME_Absolute now;
   struct GNUNET_TIME_Absolute minimum_expiration;
   int have_zone_delegation = GNUNET_NO;

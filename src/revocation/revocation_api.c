@@ -758,13 +758,11 @@ GNUNET_REVOCATION_proof_get_size (const struct GNUNET_REVOCATION_PowP *pow)
   size_t size;
   size_t ksize;
   const struct GNUNET_IDENTITY_PublicKey *pk;
-  const struct GNUNET_IDENTITY_Signature *sig;
 
   size = sizeof (struct GNUNET_REVOCATION_PowP);
   pk = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
   ksize = GNUNET_IDENTITY_key_get_length (pk);
   size += ksize;
-  sig = (struct GNUNET_IDENTITY_Signature *) ((char*) &pow[1] + ksize);
   size += GNUNET_IDENTITY_signature_get_raw_length_by_type (pk->type);
   return size;
 }
