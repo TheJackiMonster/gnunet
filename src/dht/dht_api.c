@@ -1300,8 +1300,7 @@ GNUNET_DHT_pp2s (const struct GNUNET_DHT_PathElement *path,
 
 
 unsigned int
-GNUNET_DHT_verify_path (const struct GNUNET_HashCode *query_hash,
-                        const void *data,
+GNUNET_DHT_verify_path (const void *data,
                         size_t data_size,
                         struct GNUNET_TIME_Absolute exp_time,
                         const struct GNUNET_DHT_PathElement *put_path,
@@ -1310,15 +1309,10 @@ GNUNET_DHT_verify_path (const struct GNUNET_HashCode *query_hash,
                         unsigned int get_path_len,
                         const struct GNUNET_PeerIdentity *me)
 {
-  struct GNUNET_DHT_PutHopSignature phs = {
-    .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DHT_PUT_HOP),
-    .purpose.size = htonl (sizeof (phs)),
+  struct GNUNET_DHT_HopSignature hs = {
+    .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DHT_HOP),
+    .purpose.size = htonl (sizeof (hs)),
     .expiration_time = GNUNET_TIME_absolute_hton (exp_time)
-  };
-  struct GNUNET_DHT_ResultHopSignature ghs = {
-    .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DHT_RESULT_HOP),
-    .purpose.size = htonl (sizeof (ghs)),
-    .expiration_time = GNUNET_TIME_absolute_hton (exp_time),
   };
   const struct GNUNET_PeerIdentity *pred;
   const struct GNUNET_PeerIdentity *succ;
@@ -1326,24 +1320,18 @@ GNUNET_DHT_verify_path (const struct GNUNET_HashCode *query_hash,
 
   if (0 == get_path_len + put_path_len)
     return 0;
-  if (0 != get_path_len)
-  {
-    GNUNET_assert (NULL != query_hash);
-    ghs.query_hash = *query_hash;
-  }
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              "%s is verifying signatures for %s with GPL: %u PPL: %u!\n",
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "%s is verifying signatures with GPL: %u PPL: %u!\n",
               GNUNET_i2s (me),
-              NULL != query_hash ? GNUNET_h2s (query_hash) : "<null>",
               get_path_len,
               put_path_len);
   for (unsigned int j = 0; j<put_path_len; j++)
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "PP%u=%s\n",
                 j,
                 GNUNET_i2s (&put_path[j].pred));
   for (unsigned int j = 0; j<get_path_len; j++)
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "GP%u=%s\n",
                 j,
                 GNUNET_i2s (&get_path[j].pred));
@@ -1351,8 +1339,7 @@ GNUNET_DHT_verify_path (const struct GNUNET_HashCode *query_hash,
   i = put_path_len + get_path_len - 1;
   GNUNET_CRYPTO_hash (data,
                       data_size,
-                      &phs.h_data);
-  ghs.h_data = phs.h_data;
+                      &hs.h_data);
   while (i > 0)
   {
     pred = (i - 1 >= put_path_len)
@@ -1364,71 +1351,21 @@ GNUNET_DHT_verify_path (const struct GNUNET_HashCode *query_hash,
       succ = (i + 1 >= put_path_len)
         ? &get_path[i + 1 - put_path_len].pred
         : &put_path[i + 1].pred;
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                "PRED: %s\n",
-                GNUNET_i2s (pred));
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                "SUCC: %s\n",
-                GNUNET_i2s (succ));
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                "SIGNER: %s\n",
-                GNUNET_i2s ((i >= put_path_len)
-                            ? &get_path[i - put_path_len].pred
-                            : &put_path[i].pred));
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                "SIG: %s\n",
-                GNUNET_B2S ((i - 1 >= put_path_len)
-                            ? &get_path[i - put_path_len - 1].sig
-                            : &put_path[i - 1].sig));
-    if ( (i + 1 >= put_path_len) &&
-         (0 != get_path_len) )
-    {
-      /* NOTE: the last signature inside the 'PUT'
-         path is from the cross-over point and already
-         of type RESULT_HOP, but only if we have
-         a non-empty 'GET' path! */
-      GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                  "Key: %s offset %u\n",
-                  GNUNET_h2s (query_hash),
-                  i);
-      ghs.pred = *pred;
-      ghs.succ = *succ;
-      if (GNUNET_OK !=
-          GNUNET_CRYPTO_eddsa_verify (
-            GNUNET_SIGNATURE_PURPOSE_DHT_RESULT_HOP,
-            &ghs,
-            (i - 1 >= put_path_len)
+    hs.pred = *pred;
+    hs.succ = *succ;
+    if (GNUNET_OK !=
+        GNUNET_CRYPTO_eddsa_verify (
+          GNUNET_SIGNATURE_PURPOSE_DHT_HOP,
+          &hs,
+          (i - 1 >= put_path_len)
             ? &get_path[i - put_path_len - 1].sig
           : &put_path[i - 1].sig,
-            (i >= put_path_len)
+          (i >= put_path_len)
           ? &get_path[i - put_path_len].pred.public_key
           : &put_path[i].pred.public_key))
-      {
-        GNUNET_break_op (0);
-        return i;
-      }
-    }
-    else
     {
-      phs.pred = *pred;
-      phs.succ = *succ;
-      GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                  "offset %u\n",
-                  i);
-      if (GNUNET_OK !=
-          GNUNET_CRYPTO_eddsa_verify (
-            GNUNET_SIGNATURE_PURPOSE_DHT_PUT_HOP,
-            &phs,
-            (i - 1 >= put_path_len)
-          ? &get_path[i - put_path_len - 1].sig
-          : &put_path[i - 1].sig,
-            (i >= put_path_len)
-          ? &get_path[i - put_path_len].pred.public_key
-          : &put_path[i].pred.public_key))
-      {
-        GNUNET_break_op (0);
-        return i;
-      }
+      GNUNET_break_op (0);
+      return i;
     }
     i--;
   }

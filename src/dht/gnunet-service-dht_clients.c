@@ -36,8 +36,11 @@
 
 /**
  * Enable slow sanity checks to debug issues.
+ * 0: do not check
+ * 1: check all external inputs
+ * 2: check internal computations as well
  */
-#define SANITY_CHECKS 1
+#define SANITY_CHECKS 2
 
 /**
  * Should routing details be logged to stderr (for debugging)?
@@ -1044,10 +1047,9 @@ GDS_CLIENTS_handle_reply (const struct GDS_DATACACHE_BlockData *bd,
     GNUNET_break (0);
     return false;
   }
-#if SANITY_CHECKS
+#if SANITY_CHECKS > 1
   if (0 !=
-      GNUNET_DHT_verify_path (query_hash,
-                              bd->data,
+      GNUNET_DHT_verify_path (bd->data,
                               bd->data_size,
                               bd->expiration_time,
                               bd->put_path,

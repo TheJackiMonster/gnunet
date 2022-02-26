@@ -40,8 +40,11 @@
 
 /**
  * Enable slow sanity checks to debug issues.
+ * 0: do not check
+ * 1: check all external inputs
+ * 2: check internal computations as well
  */
-#define SANITY_CHECKS 1
+#define SANITY_CHECKS 2
 
 /**
  * How many buckets will we allow in total.
@@ -522,57 +525,17 @@ do_send (struct PeerInfo *pi,
  *      (of purpose #GNUNET_SIGNATURE_PURPOSE_DHT_PUT_HOP)
  */
 static void
-sign_put_path (const void *data,
-               size_t data_size,
-               struct GNUNET_TIME_Absolute exp_time,
-               const struct GNUNET_PeerIdentity *pred,
-               const struct GNUNET_PeerIdentity *succ,
-               struct GNUNET_CRYPTO_EddsaSignature *sig)
+sign_path (const void *data,
+           size_t data_size,
+           struct GNUNET_TIME_Absolute exp_time,
+           const struct GNUNET_PeerIdentity *pred,
+           const struct GNUNET_PeerIdentity *succ,
+           struct GNUNET_CRYPTO_EddsaSignature *sig)
 {
-  struct GNUNET_DHT_PutHopSignature hs = {
-    .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DHT_PUT_HOP),
+  struct GNUNET_DHT_HopSignature hs = {
+    .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DHT_HOP),
     .purpose.size = htonl (sizeof (hs)),
     .expiration_time = GNUNET_TIME_absolute_hton (exp_time),
-    .pred = *pred,
-    .succ = *succ
-  };
-
-  GNUNET_CRYPTO_hash (data,
-                      data_size,
-                      &hs.h_data);
-  GNUNET_CRYPTO_eddsa_sign (&GDS_my_private_key,
-                            &hs,
-                            sig);
-}
-
-
-/**
- * Sign that we are routing a message from @a pred to @a succ.
- * (So the route is $PRED->us->$SUCC).
- *
- * @param query_hash query being answered
- * @param data payload (the block)
- * @param data_size number of bytes in @a data
- * @param exp_time expiration time of @a data
- * @param pred predecessor peer ID
- * @param succ successor peer ID
- * @param[out] sig where to write the signature
- *      (of purpose #GNUNET_SIGNATURE_PURPOSE_DHT_HOP)
- */
-static void
-sign_result_path (const struct GNUNET_HashCode *query_hash,
-                  const void *data,
-                  size_t data_size,
-                  struct GNUNET_TIME_Absolute exp_time,
-                  const struct GNUNET_PeerIdentity *pred,
-                  const struct GNUNET_PeerIdentity *succ,
-                  struct GNUNET_CRYPTO_EddsaSignature *sig)
-{
-  struct GNUNET_DHT_ResultHopSignature hs = {
-    .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DHT_RESULT_HOP),
-    .purpose.size = htonl (sizeof (hs)),
-    .expiration_time = GNUNET_TIME_absolute_hton (exp_time),
-    .query_hash = *query_hash,
     .pred = *pred,
     .succ = *succ
   };
@@ -1335,10 +1298,9 @@ GDS_NEIGHBOURS_handle_put (const struct GDS_DATACACHE_BlockData *bd,
   unsigned int put_path_length = bd->put_path_length;
 
   GNUNET_assert (NULL != bf);
-#if SANITY_CHECKS
+#if SANITY_CHECKS > 1
   if (0 !=
-      GNUNET_DHT_verify_path (NULL,
-                              bd->data,
+      GNUNET_DHT_verify_path (bd->data,
                               bd->data_size,
                               bd->expiration_time,
                               bd->put_path,
@@ -1431,12 +1393,12 @@ GDS_NEIGHBOURS_handle_put (const struct GDS_DATACACHE_BlockData *bd,
     {
       /* Note that the signature in 'put_path' was not initialized before,
          so this is crucial to avoid sending garbage. */
-      sign_put_path (bd->data,
-                     bd->data_size,
-                     bd->expiration_time,
-                     &pp[put_path_length - 1].pred,
-                     &target->id,
-                     &pp[put_path_length - 1].sig);
+      sign_path (bd->data,
+                 bd->data_size,
+                 bd->expiration_time,
+                 &pp[put_path_length - 1].pred,
+                 &target->id,
+                 &pp[put_path_length - 1].sig);
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Signing PUT PATH %u => %s\n",
                   put_path_length,
@@ -1594,10 +1556,9 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
   size_t msize;
   unsigned int ppl = bd->put_path_length;
 
-#if SANITY_CHECKS
+#if SANITY_CHECKS > 1
   if (0 !=
-      GNUNET_DHT_verify_path (query_hash,
-                              bd->data,
+      GNUNET_DHT_verify_path (bd->data,
                               bd->data_size,
                               bd->expiration_time,
                               bd->put_path,
@@ -1634,7 +1595,7 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
     GNUNET_break (0);
     return false;
   }
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Forwarding reply for key %s to peer %s\n",
               GNUNET_h2s (query_hash),
               GNUNET_i2s (&pi->id));
@@ -1681,13 +1642,12 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
     {
       /* Note that the last signature in 'paths' was not initialized before,
          so this is crucial to avoid sending garbage. */
-      sign_result_path (query_hash,
-                        bd->data,
-                        bd->data_size,
-                        bd->expiration_time,
-                        &paths[ppl + get_path_length - 1].pred,
-                        &pi->id,
-                        &paths[ppl + get_path_length - 1].sig);
+      sign_path (bd->data,
+                 bd->data_size,
+                 bd->expiration_time,
+                 &paths[ppl + get_path_length - 1].pred,
+                 &pi->id,
+                 &paths[ppl + get_path_length - 1].sig);
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Signing GET PATH %u/%u of %s => %s\n",
                   ppl,
@@ -1699,7 +1659,7 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
                    bd->data,
                    bd->data_size);
 
-#if SANITY_CHECKS
+#if SANITY_CHECKS > 1
     {
       struct GNUNET_DHT_PathElement xpaths[get_path_length + 1];
 
@@ -1708,8 +1668,7 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
               get_path_length * sizeof (struct GNUNET_DHT_PathElement));
       xpaths[get_path_length].pred = GDS_my_identity;
       if (0 !=
-          GNUNET_DHT_verify_path (&prm->key,
-                                  bd->data,
+          GNUNET_DHT_verify_path (bd->data,
                                   bd->data_size,
                                   bd->expiration_time,
                                   paths,
@@ -1743,10 +1702,24 @@ static enum GNUNET_GenericReturnValue
 check_dht_p2p_put (void *cls,
                    const struct PeerPutMessage *put)
 {
+  struct Target *t = cls;
+  struct PeerInfo *peer = t->pi;
+  enum GNUNET_DHT_RouteOption options
+    = (enum GNUNET_DHT_RouteOption) ntohs (put->options);
+  const struct GNUNET_DHT_PathElement *put_path
+    = (const struct GNUNET_DHT_PathElement *) &put[1];
   uint16_t msize = ntohs (put->header.size);
   uint16_t putlen = ntohs (put->put_path_length);
+  struct GDS_DATACACHE_BlockData bd = {
+    .key = put->key,
+    .expiration_time = GNUNET_TIME_absolute_ntoh (put->expiration_time),
+    .type = ntohl (put->type),
+    .data_size = msize - (sizeof(*put)
+                          + putlen * sizeof(struct GNUNET_DHT_PathElement)),
+    .data = &put_path[putlen]
+  };
+  struct GNUNET_DHT_PathElement pp[putlen + 1];
 
-  (void) cls;
   if ( (msize <
         sizeof(struct PeerPutMessage)
         + putlen * sizeof(struct GNUNET_DHT_PathElement)) ||
@@ -1756,6 +1729,52 @@ check_dht_p2p_put (void *cls,
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
   }
+
+  GNUNET_memcpy (pp,
+                 put_path,
+                 putlen * sizeof(struct GNUNET_DHT_PathElement));
+  pp[putlen].pred = peer->id;
+  /* zero-out signature, not valid until we actually do forward! */
+  memset (&pp[putlen].sig,
+          0,
+          sizeof (pp[putlen].sig));
+#if SANITY_CHECKS
+  /* extend 'put path' by sender */
+  if (0 != (options & GNUNET_DHT_RO_RECORD_ROUTE))
+  {
+    for (unsigned int i = 0; i <= putlen; i++)
+    {
+      for (unsigned int j = 0; j < i; j++)
+      {
+        GNUNET_break (0 !=
+                      GNUNET_memcmp (&pp[i].pred,
+                                     &pp[j].pred));
+      }
+      if (i < putlen)
+        GNUNET_break (0 !=
+                      GNUNET_memcmp (&pp[i].pred,
+                                     &peer->id));
+    }
+    if (0 !=
+        GNUNET_DHT_verify_path (bd.data,
+                                bd.data_size,
+                                bd.expiration_time,
+                                pp,
+                                putlen + 1,
+                                NULL, 0,   /* get_path */
+                                &GDS_my_identity))
+    {
+      GNUNET_break_op (0);
+      return GNUNET_SYSERR;
+    }
+  }
+  else if (0 != putlen)
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
+#endif
+
   return GNUNET_OK;
 }
 
@@ -1775,19 +1794,19 @@ handle_dht_p2p_put (void *cls,
   uint16_t msize = ntohs (put->header.size);
   enum GNUNET_DHT_RouteOption options
     = (enum GNUNET_DHT_RouteOption) ntohs (put->options);
-  struct GDS_DATACACHE_BlockData bd = {
-    .key = put->key,
-    .expiration_time = GNUNET_TIME_absolute_ntoh (put->expiration_time),
-    .type = ntohl (put->type)
-  };
   const struct GNUNET_DHT_PathElement *put_path
     = (const struct GNUNET_DHT_PathElement *) &put[1];
   uint16_t putlen
     = ntohs (put->put_path_length);
+  struct GDS_DATACACHE_BlockData bd = {
+    .key = put->key,
+    .expiration_time = GNUNET_TIME_absolute_ntoh (put->expiration_time),
+    .type = ntohl (put->type),
+    .data_size = msize - (sizeof(*put)
+                          + putlen * sizeof(struct GNUNET_DHT_PathElement)),
+    .data = &put_path[putlen]
+  };
 
-  bd.data_size = msize - (sizeof(*put)
-                          + putlen * sizeof(struct GNUNET_DHT_PathElement));
-  bd.data = &put_path[putlen];
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "PUT for `%s' from %s with RO (%s/%s)\n",
               GNUNET_h2s (&put->key),
@@ -1872,34 +1891,6 @@ handle_dht_p2p_put (void *cls,
       memset (&pp[putlen].sig,
               0,
               sizeof (pp[putlen].sig));
-#if SANITY_CHECKS
-      for (unsigned int i = 0; i <= putlen; i++)
-      {
-        for (unsigned int j = 0; j < i; j++)
-        {
-          GNUNET_break (0 !=
-                        GNUNET_memcmp (&pp[i].pred,
-                                       &pp[j].pred));
-        }
-        if (i < putlen)
-          GNUNET_break (0 !=
-                        GNUNET_memcmp (&pp[i].pred,
-                                       &peer->id));
-      }
-      if (0 !=
-          GNUNET_DHT_verify_path (&bd.key,
-                                  bd.data,
-                                  bd.data_size,
-                                  bd.expiration_time,
-                                  bd.put_path,
-                                  putlen,
-                                  NULL, 0, /* get_path */
-                                  &GDS_my_identity))
-      {
-        GNUNET_break_op (0);
-        putlen = 0;
-      }
-#endif
     }
     else
     {
@@ -2359,8 +2350,7 @@ check_dht_p2p_result (void *cls,
           0,
           sizeof (gpx[get_path_length].sig));
   if (0 !=
-      GNUNET_DHT_verify_path (&prm->key,
-                              &gp[get_path_length],
+      GNUNET_DHT_verify_path (&gp[get_path_length],
                               msize - (sizeof(struct PeerResultMessage)
                                        + (get_path_length + put_path_length)
                                        * sizeof(struct GNUNET_DHT_PathElement)),

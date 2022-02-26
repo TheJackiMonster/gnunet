@@ -118,10 +118,10 @@ GNUNET_NETWORK_STRUCT_BEGIN
 /**
  * Message signed by a peer when doing path tracking.
  */
-struct GNUNET_DHT_PutHopSignature
+struct GNUNET_DHT_HopSignature
 {
   /**
-   * Must be #GNUNET_SIGNATURE_PURPOSE_DHT_PUT_HOP.
+   * Must be #GNUNET_SIGNATURE_PURPOSE_DHT_HOP.
    */
   struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
 
@@ -129,45 +129,6 @@ struct GNUNET_DHT_PutHopSignature
    * Expiration time of the block.
    */
   struct GNUNET_TIME_AbsoluteNBO expiration_time;
-
-  /**
-   * Hash over the payload of the block.
-   */
-  struct GNUNET_HashCode h_data;
-
-  /**
-   * Previous hop the message was received from.  All zeros
-   * if this peer was the initiator.
-   */
-  struct GNUNET_PeerIdentity pred;
-
-  /**
-   * Next hop the message was forwarded to.
-   */
-  struct GNUNET_PeerIdentity succ;
-};
-
-
-/**
- * Message signed by a peer when doing path tracking
- * for RESULT (GET) hops.
- */
-struct GNUNET_DHT_ResultHopSignature
-{
-  /**
-   * Must be #GNUNET_SIGNATURE_PURPOSE_DHT_RESULT_HOP.
-   */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
-
-  /**
-   * Expiration time of the block.
-   */
-  struct GNUNET_TIME_AbsoluteNBO expiration_time;
-
-  /**
-   * Query hash of the GET that is being answered.
-   */
-  struct GNUNET_HashCode query_hash;
 
   /**
    * Hash over the payload of the block.
@@ -522,7 +483,6 @@ GNUNET_DHT_pp2s (const struct GNUNET_DHT_PathElement *path,
  * the last signature on the path is never verified as that is the slot where
  * our peer (@a me) would need to sign.
  *
- * @param query_hash the query hash, not necessarily the key of the block
  * @param data payload (the block)
  * @param data_size number of bytes in @a data
  * @param exp_time expiration time of @a data
@@ -536,8 +496,7 @@ GNUNET_DHT_pp2s (const struct GNUNET_DHT_PathElement *path,
  *         @a get_path_len + @a put_path_len - 1 if no signature was valid
  */
 unsigned int
-GNUNET_DHT_verify_path (const struct GNUNET_HashCode *query_hash,
-                        const void *data,
+GNUNET_DHT_verify_path (const void *data,
                         size_t data_size,
                         struct GNUNET_TIME_Absolute exp_time,
                         const struct GNUNET_DHT_PathElement *put_path,

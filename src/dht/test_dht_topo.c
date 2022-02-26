@@ -377,8 +377,7 @@ dht_get_handler (void *cls,
     return;
   }
   if (0 !=
-      GNUNET_DHT_verify_path (query,
-                              data,
+      GNUNET_DHT_verify_path (data,
                               size,
                               exp,
                               put_path,
