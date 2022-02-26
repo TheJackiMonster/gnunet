@@ -1524,7 +1524,10 @@ test_transport_api_slow_ats_LDADD = \
 
 
 EXTRA_DIST = \
-$(check_SCRIPTS) \
+test_transport_simple_send_string.sh \
+test_transport_simple_send.sh \
+test_transport_simple_send_broadcast.sh \
+test_transport_udp_backchannel.sh \
 gnunet-transport-certificate-creation.in \
 communicator-unix.conf \
 test_plugin_hostkey \
