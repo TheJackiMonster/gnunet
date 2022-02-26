@@ -108,8 +108,9 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
  * @param query_hash query that was used for the request
  * @param get_path_length number of entries in put_path
  * @param get_path peers this reply has traversed so far (if tracked)
+ * @return true on success
  */
-void
+bool
 GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
                              const struct GDS_DATACACHE_BlockData *bd,
                              const struct GNUNET_HashCode *query_hash,

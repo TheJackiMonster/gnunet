@@ -90,7 +90,7 @@ gnunet_dht_hello_SOURCES = \
 gnunet_dht_hello_LDADD = \
   libgnunetdht.la \
   $(top_builddir)/src/util/libgnunetutil.la
-gnunet_dht_get_LDFLAGS = \
+gnunet_dht_hello_LDFLAGS = \
   $(GN_LIBINTL)
 
 gnunet_dht_put_SOURCES = \

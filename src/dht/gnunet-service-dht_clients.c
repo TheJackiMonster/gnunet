@@ -515,9 +515,9 @@ handle_dht_local_put (void *cls,
                "CLIENT-PUT %s\n",
                GNUNET_h2s_full (&dht_msg->key));
   /* give to local clients */
-  GDS_CLIENTS_handle_reply (&bd,
-                            &bd.key,
-                            0, NULL /* get path */);
+  GNUNET_break (GDS_CLIENTS_handle_reply (&bd,
+                                          &bd.key,
+                                          0, NULL /* get path */));
 
   {
     struct GNUNET_CONTAINER_BloomFilter *peer_bf;
@@ -568,9 +568,9 @@ handle_local_result (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Datacache provided result for query key %s\n",
               GNUNET_h2s (&bd->key));
-  GDS_CLIENTS_handle_reply (bd,
-                            &bd->key,
-                            0, NULL /* get_path */);
+  GNUNET_break (GDS_CLIENTS_handle_reply (bd,
+                                          &bd->key,
+                                          0, NULL /* get_path */));
 }
 
 
@@ -1002,7 +1002,7 @@ forward_reply (void *cls,
   reply->put_path_length = htonl (frc->bd->put_path_length);
   reply->unique_id = record->unique_id;
   reply->expiration = GNUNET_TIME_absolute_hton (frc->bd->expiration_time);
-  reply->key = frc->bd->key;
+  reply->key = *query_hash;
   paths = (struct GNUNET_DHT_PathElement *) &reply[1];
   GNUNET_memcpy (paths,
                  frc->bd->put_path,
@@ -1027,7 +1027,7 @@ forward_reply (void *cls,
 }
 
 
-void
+bool
 GDS_CLIENTS_handle_reply (const struct GDS_DATACACHE_BlockData *bd,
                           const struct GNUNET_HashCode *query_hash,
                           unsigned int get_path_length,
@@ -1042,22 +1042,22 @@ GDS_CLIENTS_handle_reply (const struct GDS_DATACACHE_BlockData *bd,
   if (msize >= GNUNET_MAX_MESSAGE_SIZE)
   {
     GNUNET_break (0);
-    return;
+    return false;
   }
 #if SANITY_CHECKS
   if (0 !=
-      GNUNET_DHT_verify_path (&bd->key,
+      GNUNET_DHT_verify_path (query_hash,
                               bd->data,
                               bd->data_size,
                               bd->expiration_time,
-                              get_path,
-                              get_path_length,
                               bd->put_path,
                               bd->put_path_length,
+                              get_path,
+                              get_path_length,
                               &GDS_my_identity))
   {
-    GNUNET_break_op (0);
-    return;
+    GNUNET_break (0);
+    return false;
   }
 #endif
   frc.bd = bd;
@@ -1082,6 +1082,7 @@ GDS_CLIENTS_handle_reply (const struct GDS_DATACACHE_BlockData *bd,
                               1,
                               GNUNET_NO);
   }
+  return true;
 }
 
 

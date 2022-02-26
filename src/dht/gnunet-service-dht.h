@@ -146,8 +146,9 @@ GDS_u_hold (struct GDS_Underlay *u,
  * @param query_hash hash of the original query, might not match key in @a bd
  * @param get_path_length number of entries in @a get_path
  * @param get_path path the reply has taken
+ * @return true on success, false on failures
  */
-void
+bool
 GDS_CLIENTS_handle_reply (const struct GDS_DATACACHE_BlockData *bd,
                           const struct GNUNET_HashCode *query_hash,
                           unsigned int get_path_length,

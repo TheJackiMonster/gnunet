@@ -195,11 +195,11 @@ process (void *cls,
                     GNUNET_h2s (query_hash));
         return GNUNET_OK;
       }
-      GDS_NEIGHBOURS_handle_reply (pi,
-                                   &bdx,
-                                   query_hash,
-                                   get_path_length,
-                                   pc->get_path);
+      GNUNET_break (GDS_NEIGHBOURS_handle_reply (pi,
+                                                 &bdx,
+                                                 query_hash,
+                                                 get_path_length,
+                                                 pc->get_path));
     }
     break;
   case GNUNET_BLOCK_REPLY_OK_DUPLICATE:

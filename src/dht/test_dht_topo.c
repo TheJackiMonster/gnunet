@@ -326,7 +326,7 @@ timeout_cb (void *cls)
  *
  * @param cls closure with our 'struct GetOperation'
  * @param exp when will this value expire
- * @param key key of the result
+ * @param query query hash
  * @param get_path peers on reply path (or NULL if not recorded)
  * @param get_path_length number of entries in @a get_path
  * @param put_path peers on the PUT path (or NULL if not recorded)
@@ -338,7 +338,7 @@ timeout_cb (void *cls)
 static void
 dht_get_handler (void *cls,
                  struct GNUNET_TIME_Absolute exp,
-                 const struct GNUNET_HashCode *key,
+                 const struct GNUNET_HashCode *query,
                  const struct GNUNET_DHT_PathElement *get_path,
                  unsigned int get_path_length,
                  const struct GNUNET_DHT_PathElement *put_path,
@@ -359,8 +359,15 @@ dht_get_handler (void *cls,
     GNUNET_break (0);
     return;
   }
-  GNUNET_CRYPTO_hash (key,
-                      sizeof(*key),
+  if (0 != GNUNET_memcmp (query,
+                          &get_op->key))
+  {
+    /* exact search should only yield exact results */
+    GNUNET_break (0);
+    return;
+  }
+  GNUNET_CRYPTO_hash (query,
+                      sizeof(*query),
                       &want);
   if (0 != memcmp (&want,
                    data,
@@ -370,19 +377,22 @@ dht_get_handler (void *cls,
     return;
   }
   if (0 !=
-      GNUNET_DHT_verify_path (key,
+      GNUNET_DHT_verify_path (query,
                               data,
                               size,
                               exp,
-                              get_path,
-                              get_path_length,
                               put_path,
                               put_path_length,
+                              get_path,
+                              get_path_length,
                               &get_op->me))
   {
     GNUNET_break (0);
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Path signature verification failed!\n");
+                "Path signature (%u/%u) verification failed for peer %s!\n",
+                get_path_length,
+                put_path_length,
+                GNUNET_i2s (&get_op->me));
   }
   else
   {

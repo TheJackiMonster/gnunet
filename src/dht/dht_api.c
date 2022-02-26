@@ -561,9 +561,10 @@ handle_monitor_get (void *cls,
                     const struct GNUNET_DHT_MonitorGetMessage *msg)
 {
   struct GNUNET_DHT_Handle *handle = cls;
-  struct GNUNET_DHT_MonitorHandle *mh;
 
-  for (mh = handle->monitor_head; NULL != mh; mh = mh->next)
+  for (struct GNUNET_DHT_MonitorHandle *mh = handle->monitor_head;
+       NULL != mh;
+       mh = mh->next)
   {
     if (NULL == mh->get_cb)
       continue;
@@ -626,10 +627,12 @@ handle_monitor_get_resp (void *cls,
   const struct GNUNET_DHT_PathElement *path;
   uint32_t getl = ntohl (msg->get_path_length);
   uint32_t putl = ntohl (msg->put_path_length);
-  struct GNUNET_DHT_MonitorHandle *mh;
+
 
   path = (const struct GNUNET_DHT_PathElement *) &msg[1];
-  for (mh = handle->monitor_head; NULL != mh; mh = mh->next)
+  for (struct GNUNET_DHT_MonitorHandle *mh = handle->monitor_head;
+       NULL != mh;
+       mh = mh->next)
   {
     if (NULL == mh->get_resp_cb)
       continue;
@@ -641,9 +644,9 @@ handle_monitor_get_resp (void *cls,
                        sizeof(struct GNUNET_HashCode)))))
       mh->get_resp_cb (mh->cb_cls,
                        (enum GNUNET_BLOCK_Type) ntohl (msg->type),
-                       path,
+                       &path[putl],
                        getl,
-                       &path[getl],
+                       path,
                        putl,
                        GNUNET_TIME_absolute_ntoh (msg->expiration_time),
                        &msg->key,
@@ -773,12 +776,18 @@ process_client_result (void *cls,
   uint16_t type = ntohl (crm->type);
   uint32_t put_path_length = ntohl (crm->put_path_length);
   uint32_t get_path_length = ntohl (crm->get_path_length);
-  const struct GNUNET_DHT_PathElement *put_path;
-  const struct GNUNET_DHT_PathElement *get_path;
+  const struct GNUNET_DHT_PathElement *put_path
+    = (const struct GNUNET_DHT_PathElement *) &crm[1];
+  const struct GNUNET_DHT_PathElement *get_path
+    = &put_path[put_path_length];
+  const void *data
+    = &get_path[get_path_length];
+  size_t meta_length
+    = sizeof(struct GNUNET_DHT_PathElement) * (get_path_length
+                                               + put_path_length);
+  size_t data_length
+    = msize - meta_length;
   struct GNUNET_HashCode hc;
-  size_t data_length;
-  size_t meta_length;
-  const void *data;
 
   if (crm->unique_id != get_handle->unique_id)
   {
@@ -797,11 +806,7 @@ process_client_result (void *cls,
     GNUNET_break (0);
     return GNUNET_YES;
   }
-  meta_length =
-    sizeof(struct GNUNET_DHT_PathElement) * (get_path_length + put_path_length);
-  data_length = msize - meta_length;
-  put_path = (const struct GNUNET_DHT_PathElement *) &crm[1];
-  get_path = &put_path[put_path_length];
+
   {
     char *pp;
     char *gp;
@@ -819,7 +824,6 @@ process_client_result (void *cls,
     GNUNET_free (gp);
     GNUNET_free (pp);
   }
-  data = &get_path[get_path_length];
   /* remember that we've seen this result */
   GNUNET_CRYPTO_hash (data,
                       data_length,
@@ -1296,7 +1300,7 @@ GNUNET_DHT_pp2s (const struct GNUNET_DHT_PathElement *path,
 
 
 unsigned int
-GNUNET_DHT_verify_path (const struct GNUNET_HashCode *key,
+GNUNET_DHT_verify_path (const struct GNUNET_HashCode *query_hash,
                         const void *data,
                         size_t data_size,
                         struct GNUNET_TIME_Absolute exp_time,
@@ -1306,50 +1310,125 @@ GNUNET_DHT_verify_path (const struct GNUNET_HashCode *key,
                         unsigned int get_path_len,
                         const struct GNUNET_PeerIdentity *me)
 {
-  struct GNUNET_DHT_HopSignature hs = {
-    .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DHT_HOP),
-    .purpose.size = htonl (sizeof (hs)),
-    .expiration_time = GNUNET_TIME_absolute_hton (exp_time),
-    .key = *key,
+  struct GNUNET_DHT_PutHopSignature phs = {
+    .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DHT_PUT_HOP),
+    .purpose.size = htonl (sizeof (phs)),
+    .expiration_time = GNUNET_TIME_absolute_hton (exp_time)
   };
+  struct GNUNET_DHT_ResultHopSignature ghs = {
+    .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DHT_RESULT_HOP),
+    .purpose.size = htonl (sizeof (ghs)),
+    .expiration_time = GNUNET_TIME_absolute_hton (exp_time),
+  };
+  const struct GNUNET_PeerIdentity *pred;
+  const struct GNUNET_PeerIdentity *succ;
   unsigned int i;
 
   if (0 == get_path_len + put_path_len)
     return 0;
+  if (0 != get_path_len)
+  {
+    GNUNET_assert (NULL != query_hash);
+    ghs.query_hash = *query_hash;
+  }
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "%s is verifying signatures for %s with GPL: %u PPL: %u!\n",
               GNUNET_i2s (me),
-              GNUNET_h2s (key),
+              NULL != query_hash ? GNUNET_h2s (query_hash) : "<null>",
               get_path_len,
               put_path_len);
+  for (unsigned int j = 0; j<put_path_len; j++)
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                "PP%u=%s\n",
+                j,
+                GNUNET_i2s (&put_path[j].pred));
+  for (unsigned int j = 0; j<get_path_len; j++)
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                "GP%u=%s\n",
+                j,
+                GNUNET_i2s (&get_path[j].pred));
+
   i = put_path_len + get_path_len - 1;
   GNUNET_CRYPTO_hash (data,
                       data_size,
-                      &hs.h_data);
+                      &phs.h_data);
+  ghs.h_data = phs.h_data;
   while (i > 0)
   {
-    hs.pred = (i - 1 >= put_path_len)
-      ? get_path[i - put_path_len - 1].pred
-      : put_path[i - 1].pred;
+    pred = (i - 1 >= put_path_len)
+      ? &get_path[i - put_path_len - 1].pred
+      : &put_path[i - 1].pred;
     if (i + 1 == get_path_len + put_path_len)
-      hs.succ = *me;
+      succ = me;
     else
-      hs.succ = (i + 1 >= put_path_len)
-        ? get_path[i + 1 - put_path_len].pred
-        : put_path[i + 1].pred;
-    if (GNUNET_OK !=
-        GNUNET_CRYPTO_eddsa_verify (
-          GNUNET_SIGNATURE_PURPOSE_DHT_HOP,
-          &hs,
-          (i - 1 >= put_path_len)
-          ? &get_path[i - put_path_len - 1].sig
+      succ = (i + 1 >= put_path_len)
+        ? &get_path[i + 1 - put_path_len].pred
+        : &put_path[i + 1].pred;
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                "PRED: %s\n",
+                GNUNET_i2s (pred));
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                "SUCC: %s\n",
+                GNUNET_i2s (succ));
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                "SIGNER: %s\n",
+                GNUNET_i2s ((i >= put_path_len)
+                            ? &get_path[i - put_path_len].pred
+                            : &put_path[i].pred));
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                "SIG: %s\n",
+                GNUNET_B2S ((i - 1 >= put_path_len)
+                            ? &get_path[i - put_path_len - 1].sig
+                            : &put_path[i - 1].sig));
+    if ( (i + 1 >= put_path_len) &&
+         (0 != get_path_len) )
+    {
+      /* NOTE: the last signature inside the 'PUT'
+         path is from the cross-over point and already
+         of type RESULT_HOP, but only if we have
+         a non-empty 'GET' path! */
+      GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                  "Key: %s offset %u\n",
+                  GNUNET_h2s (query_hash),
+                  i);
+      ghs.pred = *pred;
+      ghs.succ = *succ;
+      if (GNUNET_OK !=
+          GNUNET_CRYPTO_eddsa_verify (
+            GNUNET_SIGNATURE_PURPOSE_DHT_RESULT_HOP,
+            &ghs,
+            (i - 1 >= put_path_len)
+            ? &get_path[i - put_path_len - 1].sig
           : &put_path[i - 1].sig,
-          (i >= put_path_len)
+            (i >= put_path_len)
           ? &get_path[i - put_path_len].pred.public_key
           : &put_path[i].pred.public_key))
+      {
+        GNUNET_break_op (0);
+        return i;
+      }
+    }
+    else
     {
-      GNUNET_break_op (0);
-      return i;
+      phs.pred = *pred;
+      phs.succ = *succ;
+      GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                  "offset %u\n",
+                  i);
+      if (GNUNET_OK !=
+          GNUNET_CRYPTO_eddsa_verify (
+            GNUNET_SIGNATURE_PURPOSE_DHT_PUT_HOP,
+            &phs,
+            (i - 1 >= put_path_len)
+          ? &get_path[i - put_path_len - 1].sig
+          : &put_path[i - 1].sig,
+            (i >= put_path_len)
+          ? &get_path[i - put_path_len].pred.public_key
+          : &put_path[i].pred.public_key))
+      {
+        GNUNET_break_op (0);
+        return i;
+      }
     }
     i--;
   }
