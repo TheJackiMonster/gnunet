@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2022-02-24 10:28+0100\n"
+"POT-Creation-Date: 2022-02-26 09:13+0100\n"
 "PO-Revision-Date: 2020-10-23 18:39+0200\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: Serbian <(nothing)>\n"
@@ -1962,7 +1962,7 @@ msgstr ""
 
 #: src/datastore/plugin_datastore_sqlite.c:1337
 #: src/namecache/plugin_namecache_sqlite.c:564
-#: src/namestore/plugin_namestore_sqlite.c:765
+#: src/namestore/plugin_namestore_sqlite.c:775
 msgid "Sqlite database running\n"
 msgstr "База података Скулајта ради\n"
 
@@ -4133,31 +4133,31 @@ msgstr "Не могу да обрадим ниску ВПН записа „%s�
 msgid "Gns REST API initialized\n"
 msgstr "Меш је покренут\n"
 
-#: src/gnsrecord/gnsrecord_misc.c:443
+#: src/gnsrecord/gnsrecord_misc.c:447
 msgid "Zone delegation record not allowed in apex."
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:451
+#: src/gnsrecord/gnsrecord_misc.c:455
 msgid "Zone delegation record set contains mutually exclusive records."
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:461
+#: src/gnsrecord/gnsrecord_misc.c:465
 msgid "Multiple REDIRECT records."
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:470 src/gnsrecord/gnsrecord_misc.c:496
+#: src/gnsrecord/gnsrecord_misc.c:474 src/gnsrecord/gnsrecord_misc.c:500
 msgid "Redirection record set conains mutually exclusive records."
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:477
+#: src/gnsrecord/gnsrecord_misc.c:481
 msgid "Redirection records not allowed in apex."
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:488
+#: src/gnsrecord/gnsrecord_misc.c:492
 msgid "Redirection records not allowed in apex.."
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:510
+#: src/gnsrecord/gnsrecord_misc.c:514
 msgid "Mutually exclusive records."
 msgstr ""
 
@@ -8192,58 +8192,58 @@ msgstr ""
 msgid "Need a non-empty hostname for service `%s'.\n"
 msgstr "Потребан је не-празан назив домаћина за услугу „%s“.\n"
 
-#: src/util/common_logging.c:626 src/util/common_logging.c:665
+#: src/util/common_logging.c:648 src/util/common_logging.c:687
 #, c-format
 msgid "ERROR: Unable to parse log definition: Syntax error at `%s'.\n"
 msgstr ""
 
-#: src/util/common_logging.c:904
+#: src/util/common_logging.c:926
 #, c-format
 msgid "Message `%.*s' repeated %u times in the last %s\n"
 msgstr "Порука „%.*s“ је поновљена %u пута у прошлости %s\n"
 
-#: src/util/common_logging.c:1108
+#: src/util/common_logging.c:1131
 msgid "ERROR"
 msgstr "ГРЕШКА"
 
-#: src/util/common_logging.c:1110
+#: src/util/common_logging.c:1133
 msgid "WARNING"
 msgstr "УПОЗОРЕЊЕ"
 
-#: src/util/common_logging.c:1112
+#: src/util/common_logging.c:1135
 msgid "MESSAGE"
 msgstr ""
 
-#: src/util/common_logging.c:1114
+#: src/util/common_logging.c:1137
 msgid "INFO"
 msgstr "ПОДАЦИ"
 
-#: src/util/common_logging.c:1116
+#: src/util/common_logging.c:1139
 msgid "DEBUG"
 msgstr "ПРОЧИШЋАВАЊЕ"
 
-#: src/util/common_logging.c:1118
+#: src/util/common_logging.c:1141
 msgid "NONE"
 msgstr "НИШТА"
 
-#: src/util/common_logging.c:1119
+#: src/util/common_logging.c:1142
 msgid "INVALID"
 msgstr "НЕИСПРАВНО"
 
-#: src/util/common_logging.c:1400
+#: src/util/common_logging.c:1423
 msgid "unknown address"
 msgstr "непозната адреса"
 
-#: src/util/common_logging.c:1445
+#: src/util/common_logging.c:1468
 msgid "invalid address"
 msgstr "неисправна адреса"
 
-#: src/util/common_logging.c:1464
+#: src/util/common_logging.c:1487
 #, c-format
 msgid "Configuration fails to specify option `%s' in section `%s'!\n"
 msgstr "Подешавање није успело да наведе опцију „%s“ у одељку „%s“!\n"
 
-#: src/util/common_logging.c:1487
+#: src/util/common_logging.c:1510
 #, c-format
 msgid ""
 "Configuration specifies invalid value for option `%s' in section `%s': %s\n"
