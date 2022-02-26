@@ -253,7 +253,6 @@ block_create_ecdsa (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
   /* serialize */
   *block = GNUNET_malloc (sizeof (struct GNUNET_GNSRECORD_Block) + payload_len);
   (*block)->size = htonl(sizeof (struct GNUNET_GNSRECORD_Block) + payload_len);
-  rd_count_nbo = htonl (rd_count);
   {
     char payload[payload_len];
 
@@ -379,7 +378,6 @@ block_create_eddsa (const struct GNUNET_CRYPTO_EddsaPrivateKey *key,
                           + payload_len + crypto_secretbox_MACBYTES);
   (*block)->size = htonl(sizeof (struct GNUNET_GNSRECORD_Block)
                  + payload_len + crypto_secretbox_MACBYTES);
-  rd_count_nbo = htonl (rd_count);
   {
     char payload[payload_len];
 
