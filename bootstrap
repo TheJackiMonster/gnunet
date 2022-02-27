@@ -97,9 +97,9 @@ submodules()
     if ! git --version >/dev/null; then
         echo "git not installed, skipping submodule update"
     else
-        git submodule update --init || exit 1
-        git submodule update --remote --recursive || exit 1
-        git submodule sync || exit 1
+        git submodule update --init && \
+        git submodule update --remote --recursive && \
+        git submodule sync
     fi
 }
 
@@ -112,17 +112,17 @@ gana_update()
       cd gnu-name-system-record-types && \
          make && \
          cp gnu_name_system_record_types.h ../../../src/include/ && \
-         make clean
+         make clean || exit 1
       cd ../gnu-name-system-default-tlds && \
          make && \
          cp tlds.conf ../../../src/gns && \
-         make clean
+         make clean || exit 1
 
       # Signatures
       cd ../gnunet-signatures && \
          make && \
          cp gnunet_signatures.h ../../../src/include && \
-         make clean
+         make clean || exit 1
       cd $cwd
     else
       echo "ERROR: No recutils found! Unable to generate recent GANA headers and configs."
