@@ -206,6 +206,7 @@ EXTRA_DIST = \
   docker/README.md \
   docker/gnunet.conf \
   benchmark/collect.awk \
+  get_version.sh \
   gnunet_infrastructure/handbook_pull.sh \
   guix.scm \
   indent_pre-commit \
