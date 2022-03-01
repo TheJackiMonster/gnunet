@@ -2304,6 +2304,7 @@ handle_gns_resolution_result (void *cls,
                                       rd_count,
                                       rd))
       return;
+    break;
   default:
     if (GNUNET_YES != GNUNET_GNSRECORD_is_critical (rd[0].record_type))
       return;

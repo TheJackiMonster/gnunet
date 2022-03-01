@@ -264,16 +264,18 @@ GNUNET_GNSRECORD_identity_from_data (const char *data,
 {
   if (GNUNET_NO == GNUNET_GNSRECORD_is_zonekey_type (type))
     return GNUNET_SYSERR;
-  if (data_size > sizeof (struct GNUNET_IDENTITY_PublicKey))
-    return GNUNET_SYSERR;
   switch (type)
   {
-    case GNUNET_GNSRECORD_TYPE_PKEY:
-      memcpy (&key->ecdsa_key, data, data_size);
-      break;
-    case GNUNET_GNSRECORD_TYPE_EDKEY:
-      memcpy (&key->eddsa_key, data, data_size);
-      break;
+  case GNUNET_GNSRECORD_TYPE_PKEY:
+    if (data_size > sizeof (struct GNUNET_CRYPTO_EcdsaPublicKey))
+      return GNUNET_SYSERR;
+    memcpy (&key->ecdsa_key, data, data_size);
+    break;
+  case GNUNET_GNSRECORD_TYPE_EDKEY:
+    if (data_size > sizeof (struct GNUNET_CRYPTO_EddsaPublicKey))
+      return GNUNET_SYSERR;
+    memcpy (&key->eddsa_key, data, data_size);
+    break;
   default:
     return GNUNET_NO;
   }
@@ -296,7 +298,7 @@ GNUNET_GNSRECORD_data_from_identity (const struct
   if (0 == *data_size)
     return GNUNET_SYSERR;
   tmp = GNUNET_malloc (*data_size);
-  memcpy (tmp, ((char*)key) + sizeof (key->type), *data_size);
+  memcpy (tmp, ((char*) key) + sizeof (key->type), *data_size);
   *data = tmp;
   return GNUNET_OK;
 }

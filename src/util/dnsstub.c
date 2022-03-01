@@ -351,7 +351,7 @@ do_dns_read (struct GNUNET_DNSSTUB_RequestSocket *rs,
 
         if (0 == memcmp (&v6->sin6_addr,
                          &ds_v6->sin6_addr,
-                         expectedlen) &&
+                         sizeof (v6->sin6_addr)) &&
             (v6->sin6_port == ds_v6->sin6_port))
         {
           found = GNUNET_YES;
