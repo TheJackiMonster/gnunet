@@ -323,8 +323,8 @@ handle_monitor_event (void *cls,
   ma->start_date = GNUNET_TIME_absolute_get ();
   ma->ph = perform_dht_put (zone,
                             label,
-                            rd,
-                            rd_count,
+                            rd_public,
+                            rd_public_count,
                             expire,
                             ma);
   if (NULL == ma->ph)
