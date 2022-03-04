@@ -33,6 +33,12 @@
 #include <gnunet_gns_service.h>
 #include <gnunet_namestore_service.h>
 
+/**
+ * The upper bound for the zone iteration interval
+ * (per record).
+ */
+#define WARN_RELATIVE_EXPIRATION_LIMIT GNUNET_TIME_relative_multiply ( \
+    GNUNET_TIME_UNIT_MINUTES, 15)
 
 /**
  * Entry in record set for bulk processing.
@@ -866,6 +872,13 @@ parse_expiration (const char *expirationstring,
   {
     *etime_is_rel = GNUNET_YES;
     *etime = etime_rel.rel_value_us;
+    if (GNUNET_TIME_relative_cmp (etime_rel, <, WARN_RELATIVE_EXPIRATION_LIMIT))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Relative expiration times of less than %s are not recommended\n",
+                  GNUNET_STRINGS_relative_time_to_string (
+                    WARN_RELATIVE_EXPIRATION_LIMIT, GNUNET_NO));
+    }
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Storing record with relative expiration time of %s\n",
                 GNUNET_STRINGS_relative_time_to_string (etime_rel, GNUNET_NO));
@@ -1149,8 +1162,8 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
     char sname[64];
     struct GNUNET_IDENTITY_PublicKey pkey;
 
-    memset(sh, 0, 105);
-    memset(sname, 0, 64);
+    memset (sh, 0, 105);
+    memset (sname, 0, 64);
 
     if ((2 != (sscanf (uri, "gnunet://gns/%58s/%63s", sh, sname))) ||
         (GNUNET_OK !=
@@ -1642,13 +1655,13 @@ main (int argc, char *const *argv)
                                   NULL)))
   {
     GNUNET_free_nz ((void *) argv);
-    //FIXME
-    //GNUNET_CRYPTO_ecdsa_key_clear (&zone_pkey);
+    // FIXME
+    // GNUNET_CRYPTO_ecdsa_key_clear (&zone_pkey);
     return lret;
   }
   GNUNET_free_nz ((void *) argv);
-  //FIXME
-  //GNUNET_CRYPTO_ecdsa_key_clear (&zone_pkey);
+  // FIXME
+  // GNUNET_CRYPTO_ecdsa_key_clear (&zone_pkey);
   return ret;
 }
 
