@@ -626,6 +626,7 @@ libgnunet_plugin_dhtu_gnunet_init (void *cls)
        (NULL == plugin->nse) )
   {
     GNUNET_break (0);
+    GNUNET_free (api);
     libgnunet_plugin_dhtu_gnunet_done (plugin);
     return NULL;
   }
