@@ -292,6 +292,7 @@ EXTRA_DIST = \
   zonefiles/OEFL7A4VEF1B40QLEMTG5D8G1CN6EN16QUSG5R2DT71GRJN34LSG.zkey \
   zonefiles/test_zonekey \
   $(check_SCRIPTS) \
+  test_proxy.sh \
   $(pkgdata_DATA) \
   test_gnunet_gns.sh.in
 
