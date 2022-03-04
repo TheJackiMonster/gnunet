@@ -306,7 +306,6 @@ do_dns_read (struct GNUNET_DNSSTUB_RequestSocket *rs,
     int found;
     struct sockaddr_storage addr;
     socklen_t addrlen;
-    socklen_t expectedlen;
     struct GNUNET_TUN_DnsHeader *dns;
 
     addrlen = sizeof(addr);
@@ -333,10 +332,9 @@ do_dns_read (struct GNUNET_DNSSTUB_RequestSocket *rs,
         struct sockaddr_in *ds_v4 = (struct sockaddr_in *) &ds->ss;
 
 
-        expectedlen = sizeof(struct sockaddr_in);
         if ((0 == memcmp (&v4->sin_addr,
                          &ds_v4->sin_addr,
-                         expectedlen)) &&
+                         sizeof(struct sockaddr_in))) &&
             (v4->sin_port == ds_v4->sin_port))
         {
           found = GNUNET_YES;
@@ -345,7 +343,6 @@ do_dns_read (struct GNUNET_DNSSTUB_RequestSocket *rs,
       }
       else
       {
-        expectedlen = sizeof(struct sockaddr_in6);
         struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) &addr;
         struct sockaddr_in6 *ds_v6 = (struct sockaddr_in6 *) &ds->ss;
 
