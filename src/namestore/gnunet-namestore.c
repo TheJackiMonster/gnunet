@@ -875,7 +875,7 @@ parse_expiration (const char *expirationstring,
     if (GNUNET_TIME_relative_cmp (etime_rel, <, WARN_RELATIVE_EXPIRATION_LIMIT))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                  "Relative expiration times of less than %s are not recommended\n",
+                  "Relative expiration times of less than %s are not recommended. To improve availability, consider increasing this value.\n",
                   GNUNET_STRINGS_relative_time_to_string (
                     WARN_RELATIVE_EXPIRATION_LIMIT, GNUNET_NO));
     }

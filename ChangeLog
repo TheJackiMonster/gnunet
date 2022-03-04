@@ -1,3 +1,21 @@
+Fri, 4 Mar 2022 14:17:37 +0100 (0e6b1f4a2)
+NAMESTORE: Warn use of low relative expiration times - Martin Schanzenbach
+
+Thu, 3 Mar 2022 21:34:09 +0100 (0f0ff3785)
+NAMESTORE: Do not display label for TOMBSTONE only record sets - Martin Schanzenbach
+
+Thu, 3 Mar 2022 21:31:15 +0100 (64598c8fe)
+GNS: Fix publishing of private records - Martin Schanzenbach
+
+Mon, 28 Feb 2022 02:51:04 +0000 (8d9b10826)
+Add `contrib/get_version.sh` to `EXTRA_DIST` (for allowing to launch `autoreconf -i` with the released tarball, when necessary) - madmurphy
+
+Sun, 27 Feb 2022 20:54:49 +0100 (fd1d4df8f)
+BUILD: Allow boostrap when offline (if gana files exist) - Martin Schanzenbach
+
+Sat, 26 Feb 2022 23:26:33 +0100 (82d9ca012)
+BUILD: Detect missing libsodium. Fixes #7153 - Martin Schanzenbach
+
 Fri, 25 Feb 2022 00:46:09 +0100 (5e4cbb92b)
 add GNUNET_B2S() macro; fix dht_line_test: we sign over query_hash, not block key - Martin Schanzenbach
 
