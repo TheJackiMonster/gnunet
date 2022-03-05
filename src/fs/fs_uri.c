@@ -659,20 +659,16 @@ GNUNET_FS_uri_parse (const char *uri, char **emsg)
   msg = NULL;
   if (NULL != (ret = uri_chk_parse (uri, &msg)))
     return ret;
-  if (NULL != msg)
-    GNUNET_free (msg);
+  GNUNET_free (msg);
   if (NULL != (ret = uri_ksk_parse (uri, &msg)))
     return ret;
-  if (NULL != msg)
-    GNUNET_free (msg);
+  GNUNET_free (msg);
   if (NULL != (ret = uri_sks_parse (uri, &msg)))
     return ret;
-  if (NULL != msg)
-    GNUNET_free (msg);
+  GNUNET_free (msg);
   if (NULL != (ret = uri_loc_parse (uri, &msg)))
     return ret;
-  if (NULL != msg)
-    GNUNET_free (msg);
+  GNUNET_free (msg);
   if (NULL != emsg)
     *emsg = GNUNET_strdup (_ ("Unrecognized URI type"));
   return NULL;
