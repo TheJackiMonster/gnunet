@@ -188,7 +188,9 @@ netjail_node_add_nat() {
 	local ADDRESS=$2
 	local MASK=$3
 
-	ip netns exec $NODE iptables -t nat -A POSTROUTING -s "$ADDRESS/$MASK" -j MASQUERADE
+	ip netns exec $NODE nft add table nat
+	ip netns exec $NODE nft add chain nat postrouting { type nat hook postrouting priority 0 \; }
+	ip netns exec $NODE nft add rule ip nat postrouting ip saddr "$ADDRESS/$MASK" counter masquerade
 }
 
 netjail_node_add_default() {
