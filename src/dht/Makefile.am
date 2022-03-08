@@ -203,7 +203,6 @@ test_dht_monitor_LDADD = \
  libgnunetdht.la
 
 EXTRA_DIST = \
-  $(check_SCRIPTS) \
   gnunet-service-dht_clients.c \
   test_dht_api_data.conf \
   test_dht_api_peer1.conf \
