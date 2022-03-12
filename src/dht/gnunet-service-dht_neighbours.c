@@ -1865,10 +1865,10 @@ handle_dht_p2p_put (void *cls,
       }
       break;
     case GNUNET_NO:
-      GNUNET_break_op (0);
-      return;
-    case GNUNET_SYSERR:
       /* cannot verify, good luck */
+      break;
+    case GNUNET_SYSERR:
+      /* block type not supported, good luck */
       break;
     }
   }
