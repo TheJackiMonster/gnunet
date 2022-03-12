@@ -510,6 +510,15 @@ handle_dht_local_put (void *cls,
        (unsigned long) (size - sizeof(struct GNUNET_DHT_ClientPutMessage)),
        GNUNET_h2s (&dht_msg->key),
        (unsigned int) bd.type);
+  if (GNUNET_OK !=
+      GNUNET_BLOCK_check_block (GDS_block_context,
+                                bd.type,
+                                bd.data,
+                                bd.data_size))
+  {
+    GNUNET_break (0);
+    return;
+  }
   GNUNET_STATISTICS_update (GDS_stats,
                             "# PUT requests received from clients",
                             1,

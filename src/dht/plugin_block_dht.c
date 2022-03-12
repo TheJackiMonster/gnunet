@@ -240,7 +240,7 @@ block_plugin_dht_check_reply (
 
       GNUNET_assert (reply_block_size >= sizeof(struct GNUNET_MessageHeader));
       GNUNET_assert (reply_block_size == ntohs (msg->size));
-      GNUNET_assert (GNUNET_OK !=
+      GNUNET_assert (GNUNET_OK ==
                      GNUNET_HELLO_get_id (hello,
                                           &pid));
       GNUNET_CRYPTO_hash (&pid,
