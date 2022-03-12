@@ -2443,23 +2443,6 @@ handle_dht_p2p_result (void *cls,
   /* if we got a HELLO, consider it for our own routing table */
   hello_check (&bd);
 
-  /* First, check if 'peer' is already on the path, and if
-     so, truncate it instead of expanding. */
-  for (unsigned int i = 0; i < get_path_length; i++)
-    if (0 == GNUNET_memcmp (&get_path[i].pred,
-                            &peer->id))
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Truncating path at %u/%u\n",
-                  i,
-                  get_path_length);
-      GNUNET_break (process_reply_with_path (&bd,
-                                             &prm->key,
-                                             i,
-                                             get_path));
-      return;
-    }
-
   /* Need to append 'peer' to 'get_path' (normal case) */
   {
     struct GNUNET_DHT_PathElement xget_path[get_path_length + 1];
