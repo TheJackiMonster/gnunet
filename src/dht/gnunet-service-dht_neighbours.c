@@ -2343,63 +2343,6 @@ check_dht_p2p_result (void *cls,
 
 
 /**
- * Callback function used to extract URIs from a builder.
- * Called when we should consider connecting to a peer.
- *
- * @param cls closure pointing to a `struct GNUNET_PeerIdentity *`
- * @param uri one of the URIs
- */
-void
-GDS_try_connect (void *cls,
-                 const char *uri)
-{
-  const struct GNUNET_PeerIdentity *pid = cls;
-  struct GNUNET_HashCode phash;
-  int peer_bucket;
-  struct PeerBucket *bucket;
-
-  if (0 == GNUNET_memcmp (&GDS_my_identity,
-                          pid))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Got a HELLO for my own PID, ignoring it\n");
-    return; /* that's us! */
-  }
-  GNUNET_CRYPTO_hash (pid,
-                      sizeof(*pid),
-                      &phash);
-  peer_bucket = find_bucket (&phash);
-  GNUNET_assert ( (peer_bucket >= 0) &&
-                  ((unsigned int) peer_bucket < MAX_BUCKETS));
-  bucket = &k_buckets[peer_bucket];
-  if (bucket->peers_size >= bucket_size)
-    return; /* do not care */
-  for (struct PeerInfo *pi = bucket->head;
-       NULL != pi;
-       pi = pi->next)
-    if (0 ==
-        GNUNET_memcmp (&pi->id,
-                       pid))
-    {
-      /* already connected */
-      /* TODO: maybe consider 'uri' anyway as an additional
-         alternative address??? */
-      return;
-    }
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              "Discovered peer %s at %s suitable for bucket %d (%u/%u), trying to connect\n",
-              GNUNET_i2s (pid),
-              uri,
-              peer_bucket,
-              bucket->peers_size,
-              bucket_size);
-  /* new peer that we like! */
-  GDS_u_try_connect (pid,
-                     uri);
-}
-
-
-/**
  * Core handler for p2p result messages.
  *
  * @param cls closure
@@ -2651,6 +2594,63 @@ GDS_u_receive (void *cls,
     GNUNET_break_op (0);
     return;
   }
+}
+
+
+/**
+ * Callback function used to extract URIs from a builder.
+ * Called when we should consider connecting to a peer.
+ *
+ * @param cls closure pointing to a `struct GNUNET_PeerIdentity *`
+ * @param uri one of the URIs
+ */
+void
+GDS_try_connect (void *cls,
+                 const char *uri)
+{
+  const struct GNUNET_PeerIdentity *pid = cls;
+  struct GNUNET_HashCode phash;
+  int peer_bucket;
+  struct PeerBucket *bucket;
+
+  if (0 == GNUNET_memcmp (&GDS_my_identity,
+                          pid))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Got a HELLO for my own PID, ignoring it\n");
+    return; /* that's us! */
+  }
+  GNUNET_CRYPTO_hash (pid,
+                      sizeof(*pid),
+                      &phash);
+  peer_bucket = find_bucket (&phash);
+  GNUNET_assert ( (peer_bucket >= 0) &&
+                  ((unsigned int) peer_bucket < MAX_BUCKETS));
+  bucket = &k_buckets[peer_bucket];
+  if (bucket->peers_size >= bucket_size)
+    return; /* do not care */
+  for (struct PeerInfo *pi = bucket->head;
+       NULL != pi;
+       pi = pi->next)
+    if (0 ==
+        GNUNET_memcmp (&pi->id,
+                       pid))
+    {
+      /* already connected */
+      /* TODO: maybe consider 'uri' anyway as an additional
+         alternative address??? */
+      return;
+    }
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Discovered peer %s at %s suitable for bucket %d (%u/%u), trying to connect\n",
+              GNUNET_i2s (pid),
+              uri,
+              peer_bucket,
+              bucket->peers_size,
+              bucket_size);
+  /* new peer that we like! */
+  GDS_u_try_connect (pid,
+                     uri);
 }
 
 
