@@ -254,14 +254,23 @@ block_plugin_dht_check_reply (
     }
   case GNUNET_BLOCK_TYPE_DHT_URL_HELLO:
     {
-      struct GNUNET_HashCode phash;
+      struct GNUNET_HELLO_Builder *b;
+      struct GNUNET_PeerIdentity pid;
+      struct GNUNET_HashCode h_pid;
 
-      GNUNET_CRYPTO_hash (reply_block,
-                          reply_block_size,
-                          &phash);
+      b = GNUNET_HELLO_builder_from_block (reply_block,
+                                           reply_block_size);
+      GNUNET_assert (NULL != b);
+      GNUNET_HELLO_builder_iterate (b,
+                                    &pid,
+                                    NULL, NULL);
+      GNUNET_CRYPTO_hash (&pid,
+                          sizeof (pid),
+                          &h_pid);
+      GNUNET_HELLO_builder_free (b);
       if (GNUNET_YES ==
           GNUNET_BLOCK_GROUP_bf_test_and_set (group,
-                                              &phash))
+                                              &h_pid))
         return GNUNET_BLOCK_REPLY_OK_DUPLICATE;
       return GNUNET_BLOCK_REPLY_OK_MORE;
     }
