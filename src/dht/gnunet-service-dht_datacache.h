@@ -107,7 +107,7 @@ typedef void
  * @param gc_cls closure for @a gc
  * @return evaluation result for the local replies
  */
-enum GNUNET_BLOCK_EvaluationResult
+enum GNUNET_BLOCK_ReplyEvaluationResult
 GDS_DATACACHE_handle_get (const struct GNUNET_HashCode *key,
                           enum GNUNET_BLOCK_Type type,
                           const void *xquery,
@@ -130,7 +130,7 @@ GDS_DATACACHE_handle_get (const struct GNUNET_HashCode *key,
  * @param cb_cls closure for @a cb
  * @return evaluation result for the local replies
  */
-enum GNUNET_BLOCK_EvaluationResult
+enum GNUNET_BLOCK_ReplyEvaluationResult
 GDS_DATACACHE_get_closest (const struct GNUNET_HashCode *key,
                            enum GNUNET_BLOCK_Type type,
                            const void *xquery,

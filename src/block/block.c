@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2010, 2017, 2021 GNUnet e.V.
+     Copyright (C) 2010, 2017, 2021, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -255,35 +255,6 @@ GNUNET_BLOCK_group_create (struct GNUNET_BLOCK_Context *ctx,
 }
 
 
-enum GNUNET_BLOCK_EvaluationResult
-GNUNET_BLOCK_evaluate (struct GNUNET_BLOCK_Context *ctx,
-                       enum GNUNET_BLOCK_Type type,
-                       struct GNUNET_BLOCK_Group *group,
-                       enum GNUNET_BLOCK_EvaluationOptions eo,
-                       const struct GNUNET_HashCode *query,
-                       const void *xquery,
-                       size_t xquery_size,
-                       const void *reply_block,
-                       size_t reply_block_size)
-{
-  struct GNUNET_BLOCK_PluginFunctions *plugin = find_plugin (ctx,
-                                                             type);
-
-  if (NULL == plugin)
-    return GNUNET_BLOCK_EVALUATION_TYPE_NOT_SUPPORTED;
-  return plugin->evaluate (plugin->cls,
-                           ctx,
-                           type,
-                           group,
-                           eo,
-                           query,
-                           xquery,
-                           xquery_size,
-                           reply_block,
-                           reply_block_size);
-}
-
-
 enum GNUNET_GenericReturnValue
 GNUNET_BLOCK_get_key (struct GNUNET_BLOCK_Context *ctx,
                       enum GNUNET_BLOCK_Type type,
@@ -327,7 +298,6 @@ GNUNET_BLOCK_check_query (struct GNUNET_BLOCK_Context *ctx,
 enum GNUNET_GenericReturnValue
 GNUNET_BLOCK_check_block (struct GNUNET_BLOCK_Context *ctx,
                           enum GNUNET_BLOCK_Type type,
-                          const struct GNUNET_HashCode *query,
                           const void *block,
                           size_t block_size)
 {
@@ -338,7 +308,6 @@ GNUNET_BLOCK_check_block (struct GNUNET_BLOCK_Context *ctx,
     return GNUNET_SYSERR;
   return plugin->check_block (plugin->cls,
                               type,
-                              query,
                               block,
                               block_size);
 }

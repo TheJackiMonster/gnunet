@@ -90,93 +90,6 @@ block_plugin_dns_create_group (void *cls,
 
 
 /**
- * Function called to validate a reply or a request.  For
- * request evaluation, simply pass "NULL" for the reply_block.
- *
- * @param cls closure
- * @param ctx block context
- * @param type block type
- * @param bg group to evaluate against
- * @param eo control flags
- * @param query original query (hash)
- * @param xquery extended query data (can be NULL, depending on type)
- * @param xquery_size number of bytes in @a xquery
- * @param reply_block response to validate
- * @param reply_block_size number of bytes in @a reply_block
- * @return characterization of result
- */
-static enum GNUNET_BLOCK_EvaluationResult
-block_plugin_dns_evaluate (void *cls,
-                           struct GNUNET_BLOCK_Context *ctx,
-                           enum GNUNET_BLOCK_Type type,
-                           struct GNUNET_BLOCK_Group *bg,
-                           enum GNUNET_BLOCK_EvaluationOptions eo,
-                           const struct GNUNET_HashCode *query,
-                           const void *xquery,
-                           size_t xquery_size,
-                           const void *reply_block,
-                           size_t reply_block_size)
-{
-  const struct GNUNET_DNS_Advertisement *ad;
-  struct GNUNET_HashCode phash;
-
-  switch (type)
-  {
-  case GNUNET_BLOCK_TYPE_DNS:
-    if (0 != xquery_size)
-      return GNUNET_BLOCK_EVALUATION_REQUEST_INVALID;
-
-    if (NULL == reply_block)
-      return GNUNET_BLOCK_EVALUATION_REQUEST_VALID;
-
-    if (sizeof(struct GNUNET_DNS_Advertisement) != reply_block_size)
-    {
-      GNUNET_break_op (0);
-      return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
-    }
-    ad = reply_block;
-
-    if (ntohl (ad->purpose.size) !=
-        sizeof(struct GNUNET_DNS_Advertisement)
-        - sizeof(struct GNUNET_CRYPTO_EddsaSignature))
-    {
-      GNUNET_break_op (0);
-      return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
-    }
-    if (0 ==
-        GNUNET_TIME_absolute_get_remaining (GNUNET_TIME_absolute_ntoh
-                                              (ad->expiration_time)).
-        rel_value_us)
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "DNS advertisement has expired\n");
-      return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
-    }
-    if (GNUNET_OK !=
-        GNUNET_CRYPTO_eddsa_verify_ (GNUNET_SIGNATURE_PURPOSE_DNS_RECORD,
-                                     &ad->purpose,
-                                     &ad->signature,
-                                     &ad->peer.public_key))
-    {
-      GNUNET_break_op (0);
-      return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
-    }
-    GNUNET_CRYPTO_hash (reply_block,
-                        reply_block_size,
-                        &phash);
-    if (GNUNET_YES ==
-        GNUNET_BLOCK_GROUP_bf_test_and_set (bg,
-                                            &phash))
-      return GNUNET_BLOCK_EVALUATION_OK_DUPLICATE;
-    return GNUNET_BLOCK_EVALUATION_OK_MORE;
-
-  default:
-    return GNUNET_BLOCK_EVALUATION_TYPE_NOT_SUPPORTED;
-  }
-}
-
-
-/**
  * Function called to validate a query.
  *
  * @param cls closure
@@ -198,9 +111,13 @@ block_plugin_dns_check_query (void *cls,
   {
   case GNUNET_BLOCK_TYPE_DNS:
     if (0 != xquery_size)
-      return GNUNET_NO;
+      {
+        GNUNET_break_op (0);
+        return GNUNET_NO;
+      }
     return GNUNET_OK;
   default:
+    GNUNET_break (0);
     return GNUNET_SYSERR;
   }
 }
@@ -211,17 +128,15 @@ block_plugin_dns_check_query (void *cls,
  *
  * @param cls closure
  * @param type block type
- * @param query key for the block (hash), must match exactly
  * @param block block data to validate
  * @param block_size number of bytes in @a block
  * @return #GNUNET_OK if the block is fine, #GNUNET_NO if not
  */
 static enum GNUNET_GenericReturnValue
 block_plugin_dns_check_block (void *cls,
-                                    enum GNUNET_BLOCK_Type type,
-                                    const struct GNUNET_HashCode *query,
-                                    const void *block,
-                                    size_t block_size)
+                              enum GNUNET_BLOCK_Type type,
+                              const void *block,
+                              size_t block_size)
 {
   const struct GNUNET_DNS_Advertisement *ad;
 
@@ -260,6 +175,7 @@ block_plugin_dns_check_block (void *cls,
     }
     return GNUNET_OK;
   default:
+    GNUNET_break (0);
     return GNUNET_SYSERR;
   }
 }
@@ -283,14 +199,14 @@ block_plugin_dns_check_block (void *cls,
  */
 static enum GNUNET_BLOCK_ReplyEvaluationResult
 block_plugin_dns_check_reply (
-                                   void *cls,
-                                   enum GNUNET_BLOCK_Type type,
-                                    struct GNUNET_BLOCK_Group *group,
-                                    const struct GNUNET_HashCode *query,
-                                    const void *xquery,
-                                    size_t xquery_size,
-                                    const void *reply_block,
-                                    size_t reply_block_size)
+                              void *cls,
+                              enum GNUNET_BLOCK_Type type,
+                              struct GNUNET_BLOCK_Group *group,
+                              const struct GNUNET_HashCode *query,
+                              const void *xquery,
+                              size_t xquery_size,
+                              const void *reply_block,
+                              size_t reply_block_size)
 {
   struct GNUNET_HashCode phash;
 
@@ -306,6 +222,7 @@ block_plugin_dns_check_reply (
       return GNUNET_BLOCK_REPLY_OK_DUPLICATE;
     return GNUNET_BLOCK_REPLY_OK_MORE;
   default:
+    GNUNET_break (0);
     return GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED;
   }
 }
@@ -329,8 +246,12 @@ block_plugin_dns_get_key (void *cls,
                           size_t block_size,
                           struct GNUNET_HashCode *key)
 {
-  /* we cannot extract a key from a block of this type */
-  return GNUNET_SYSERR;
+  if (GNUNET_BLOCK_TYPE_DNS != type)
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_NO;
 }
 
 
@@ -347,7 +268,6 @@ libgnunet_plugin_block_dns_init (void *cls)
   struct GNUNET_BLOCK_PluginFunctions *api;
 
   api = GNUNET_new (struct GNUNET_BLOCK_PluginFunctions);
-  api->evaluate = &block_plugin_dns_evaluate;
   api->get_key = &block_plugin_dns_get_key;
   api->check_query = &block_plugin_dns_check_query;
   api->check_block = &block_plugin_dns_check_block;

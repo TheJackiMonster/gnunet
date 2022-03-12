@@ -1821,6 +1821,16 @@ handle_dht_p2p_put (void *cls,
                               GNUNET_NO);
     return;
   }
+  if (GNUNET_NO ==
+      GNUNET_BLOCK_check_block (GDS_block_context,
+                                bd.type,
+                                bd.data,
+                                bd.data_size))
+  {
+    GNUNET_break_op (0);
+    return;
+  }
+
   GNUNET_STATISTICS_update (GDS_stats,
                             "# P2P PUT requests received",
                             1,
@@ -1855,17 +1865,6 @@ handle_dht_p2p_put (void *cls,
       /* cannot verify, good luck */
       break;
     }
-  }
-
-  if (GNUNET_NO ==
-      GNUNET_BLOCK_check_block (GDS_block_context,
-                                bd.type,
-                                &bd.key,
-                                bd.data,
-                                bd.data_size))
-  {
-    GNUNET_break_op (0);
-    return;
   }
 
   {
@@ -2465,6 +2464,15 @@ handle_dht_p2p_result (void *cls,
   bd.data_size = msize - (sizeof(struct PeerResultMessage)
                           + (get_path_length + bd.put_path_length)
                           * sizeof(struct GNUNET_DHT_PathElement));
+  if (GNUNET_OK !=
+      GNUNET_BLOCK_check_block (GDS_block_context,
+                                bd.type,
+                                bd.data,
+                                bd.data_size))
+  {
+    GNUNET_break_op (0);
+    return;
+  }
   GNUNET_STATISTICS_update (GDS_stats,
                             "# P2P RESULTS received",
                             1,
@@ -2475,7 +2483,6 @@ handle_dht_p2p_result (void *cls,
                             GNUNET_NO);
   {
     enum GNUNET_GenericReturnValue ret;
-    const struct GNUNET_HashCode *pquery;
 
     ret = GNUNET_BLOCK_get_key (GDS_block_context,
                                 bd.type,
@@ -2484,18 +2491,7 @@ handle_dht_p2p_result (void *cls,
                                 &bd.key);
     if (GNUNET_NO == ret)
     {
-      GNUNET_break_op (0);
-      return;
-    }
-    pquery = (GNUNET_OK == ret) ? &bd.key : &prm->key;
-    if (GNUNET_OK !=
-        GNUNET_BLOCK_check_block (GDS_block_context,
-                                  bd.type,
-                                  pquery,
-                                  bd.data,
-                                  bd.data_size))
-    {
-      GNUNET_break_op (0);
+      bd.key = prm->key;
       return;
     }
   }

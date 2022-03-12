@@ -23,46 +23,9 @@
  * @brief set test block, recognizes elements with non-zero first byte as invalid
  * @author Christian Grothoff
  */
-
 #include "platform.h"
 #include "gnunet_block_plugin.h"
 #include "gnunet_block_group_lib.h"
-
-
-/**
- * Function called to validate a reply or a request.  For
- * request evaluation, simply pass "NULL" for the reply_block.
- *
- * @param cls closure
- * @param ctx block context
- * @param type block type
- * @param group block group to use
- * @param eo control flags
- * @param query original query (hash)
- * @param xquery extrended query data (can be NULL, depending on type)
- * @param xquery_size number of bytes in xquery
- * @param reply_block response to validate
- * @param reply_block_size number of bytes in reply block
- * @return characterization of result
- */
-static enum GNUNET_BLOCK_EvaluationResult
-block_plugin_setu_test_evaluate (void *cls,
-                                 struct GNUNET_BLOCK_Context *ctx,
-                                 enum GNUNET_BLOCK_Type type,
-                                 struct GNUNET_BLOCK_Group *group,
-                                 enum GNUNET_BLOCK_EvaluationOptions eo,
-                                 const struct GNUNET_HashCode *query,
-                                 const void *xquery,
-                                 size_t xquery_size,
-                                 const void *reply_block,
-                                 size_t reply_block_size)
-{
-  if ((NULL == reply_block) ||
-      (reply_block_size == 0) ||
-      (0 != ((char *) reply_block)[0]))
-    return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
-  return GNUNET_BLOCK_EVALUATION_OK_MORE;
-}
 
 
 /**
@@ -83,6 +46,16 @@ block_plugin_setu_test_check_query (void *cls,
                                     const void *xquery,
                                     size_t xquery_size)
 {
+  if (GNUNET_BLOCK_TYPE_SETU_TEST != type)
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  if (0 != xquery_size)
+  {
+    GNUNET_break_op (0);
+    return GNUNET_NO;
+  }
   return GNUNET_OK;
 }
 
@@ -92,7 +65,6 @@ block_plugin_setu_test_check_query (void *cls,
  *
  * @param cls closure
  * @param type block type
- * @param query key for the block (hash), must match exactly
  * @param block block data to validate
  * @param block_size number of bytes in @a block
  * @return #GNUNET_OK if the block is fine, #GNUNET_NO if not
@@ -100,14 +72,18 @@ block_plugin_setu_test_check_query (void *cls,
 static enum GNUNET_GenericReturnValue
 block_plugin_setu_test_check_block (void *cls,
                                     enum GNUNET_BLOCK_Type type,
-                                    const struct GNUNET_HashCode *query,
                                     const void *block,
                                     size_t block_size)
 {
+  if (GNUNET_BLOCK_TYPE_SETU_TEST != type)
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
   if ( (NULL == block) ||
        (0 == block_size) ||
        (0 != ((char *) block)[0]) )
-    return GNUNET_SYSERR;
+    return GNUNET_NO;
   return GNUNET_OK;
 }
 
@@ -138,10 +114,18 @@ block_plugin_setu_test_check_reply (void *cls,
                                     const void *reply_block,
                                     size_t reply_block_size)
 {
+  (void) cls;
+  (void) xquery;
+  (void) xquery_size;
+  if (GNUNET_BLOCK_TYPE_SETU_TEST != type)
+  {
+    GNUNET_break (0);
+    return GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED;
+  }
   if ( (NULL == reply_block) ||
        (0 == reply_block_size) ||
        (0 != ((char *) reply_block)[0]) )
-    return GNUNET_BLOCK_REPLY_INVALID;
+    GNUNET_assert (0);
   return GNUNET_BLOCK_REPLY_OK_MORE;
 }
 
@@ -164,7 +148,12 @@ block_plugin_setu_test_get_key (void *cls,
                                 size_t block_size,
                                 struct GNUNET_HashCode *key)
 {
-  return GNUNET_SYSERR;
+  if (GNUNET_BLOCK_TYPE_SETU_TEST != type)
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_NO;
 }
 
 
@@ -175,13 +164,12 @@ void *
 libgnunet_plugin_block_setu_test_init (void *cls)
 {
   static enum GNUNET_BLOCK_Type types[] = {
-    GNUNET_BLOCK_TYPE_SETU_TEST,
+                                           GNUNET_BLOCK_TYPE_SETU_TEST,
     GNUNET_BLOCK_TYPE_ANY       /* end of list */
   };
   struct GNUNET_BLOCK_PluginFunctions *api;
 
   api = GNUNET_new (struct GNUNET_BLOCK_PluginFunctions);
-  api->evaluate = &block_plugin_setu_test_evaluate;
   api->get_key = &block_plugin_setu_test_get_key;
   api->check_query = &block_plugin_setu_test_check_query;
   api->check_block = &block_plugin_setu_test_check_block;

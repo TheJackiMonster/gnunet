@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet
-     Copyright (C) 2010,2013,2017 GNUnet e.V.
+     Copyright (C) 2010, 2013, 2017, 2021, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -163,43 +163,9 @@ typedef struct GNUNET_BLOCK_Group *
 
 
 /**
- * Function called to validate a reply or a request.  For
- * request evaluation, simply pass "NULL" for the @a reply_block.
- * Note that it is assumed that the reply has already been
- * matched to the key (and signatures checked) as it would
- * be done with the "get_key" function.
- *
- * @param cls closure
- * @param ctx block context
- * @param type block type
- * @param group which block group to use for evaluation
- * @param eo evaluation options to control evaluation
- * @param query original query (hash)
- * @param xquery extrended query data (can be NULL, depending on type)
- * @param xquery_size number of bytes in @a xquery
- * @param reply_block response to validate
- * @param reply_block_size number of bytes in @a reply_block
- * @return characterization of result
- * @deprecated
- */
-typedef enum GNUNET_BLOCK_EvaluationResult
-(*GNUNET_BLOCK_EvaluationFunction)(void *cls,
-                                   struct GNUNET_BLOCK_Context *ctx,
-                                   enum GNUNET_BLOCK_Type type,
-                                   struct GNUNET_BLOCK_Group *group,
-                                   enum GNUNET_BLOCK_EvaluationOptions eo,
-                                   const struct GNUNET_HashCode *query,
-                                   const void *xquery,
-                                   size_t xquery_size,
-                                   const void *reply_block,
-                                   size_t reply_block_size);
-
-
-/**
  * Function called to validate a query.
  *
  * @param cls closure
- * @param ctx block context
  * @param type block type
  * @param query original query (hash)
  * @param xquery extrended query data (can be NULL, depending on type)
@@ -215,19 +181,17 @@ typedef enum GNUNET_GenericReturnValue
 
 
 /**
- * Function called to validate a block for storage.
+ * Function called to validate a @a block for storage.
  *
  * @param cls closure
  * @param type block type
- * @param query key for the block (hash), must match exactly
  * @param block block data to validate
  * @param block_size number of bytes in @a block
- * @return #GNUNET_OK if the block is fine, #GNUNET_NO if not
+ * @return #GNUNET_OK if the @a block is fine, #GNUNET_NO if not, #GNUNET_SYSERR if the @a type is not supported
  */
 typedef enum GNUNET_GenericReturnValue
 (*GNUNET_BLOCK_BlockEvaluationFunction)(void *cls,
                                         enum GNUNET_BLOCK_Type type,
-                                        const struct GNUNET_HashCode *query,
                                         const void *block,
                                         size_t block_size);
 
@@ -260,17 +224,18 @@ typedef enum GNUNET_BLOCK_ReplyEvaluationResult
 
 
 /**
- * Function called to obtain the key for a block.
+ * Function called to obtain the @a key for a block.
+ * If the @a block is malformed, the function should
+ * zero-out @a key and return #GNUNET_OK.
  *
  * @param cls closure
  * @param type block type
- * @param block block to get the key for
+ * @param block block to get the @a key for
  * @param block_size number of bytes in @a block
  * @param[out] key set to the key (query) for the given block
  * @return #GNUNET_YES on success,
- *         #GNUNET_NO if the block is malformed
- *         #GNUNET_SYSERR if type not supported
- *         (or if extracting a key from a block of this type does not work)
+ *         #GNUNET_NO if extracting a key for this @a type does not work
+ *         #GNUNET_SYSERR if @a type not supported
  */
 typedef enum GNUNET_GenericReturnValue
 (*GNUNET_BLOCK_GetKeyFunction) (void *cls,
@@ -295,14 +260,6 @@ struct GNUNET_BLOCK_PluginFunctions
    * 0-terminated array of block types supported by this plugin.
    */
   const enum GNUNET_BLOCK_Type *types;
-
-  /**
-   * Main function of a block plugin.  Allows us to check if a
-   * block matches a query.
-   *
-   * @param deprecated
-   */
-  GNUNET_BLOCK_EvaluationFunction evaluate;
 
   /**
    * Obtain the key for a given block (if possible).

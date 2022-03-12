@@ -208,13 +208,6 @@ process (void *cls,
                               1,
                               GNUNET_NO);
     return GNUNET_OK;
-  case GNUNET_BLOCK_REPLY_INVALID:
-    GNUNET_break (0);
-    GNUNET_STATISTICS_update (GDS_stats,
-                              "# Invalid REPLIES matched against routing table",
-                              1,
-                              GNUNET_NO);
-    return GNUNET_OK;
   case GNUNET_BLOCK_REPLY_IRRELEVANT:
     GNUNET_STATISTICS_update (GDS_stats,
                               "# Irrelevant REPLIES matched against routing table",

@@ -982,9 +982,6 @@ forward_reply (void *cls,
     /* should be impossible to encounter here */
     GNUNET_break (0);
     return GNUNET_YES;
-  case GNUNET_BLOCK_REPLY_INVALID:
-    GNUNET_break_op (0);
-    return GNUNET_NO;
   case GNUNET_BLOCK_REPLY_IRRELEVANT:
     return GNUNET_YES;
   default:

@@ -591,8 +591,9 @@ GNUNET_GNSRECORD_block_verify (const struct GNUNET_GNSRECORD_Block *block)
   purp = GNUNET_malloc (sizeof (struct GNRBlockPS) + payload_len);
   purp->purpose.size = htonl (sizeof (struct GNRBlockPS) + payload_len);
   purp->purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_GNS_RECORD_SIGN);
-  GNUNET_memcpy (&purp[1], &block[1], payload_len);
-
+  GNUNET_memcpy (&purp[1],
+                 &block[1],
+                 payload_len);
   switch (ntohl (block->type))
   {
   case GNUNET_GNSRECORD_TYPE_PKEY:

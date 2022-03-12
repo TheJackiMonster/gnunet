@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet
-     Copyright (C) 2010-2013 GNUnet e.V.
+     Copyright (C) 2010-2013, 2021, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -92,98 +92,16 @@ block_plugin_gns_create_group (void *cls,
 
 
 /**
- * Function called to validate a reply or a request.  For
- * request evaluation, simply pass "NULL" for the reply_block.
- * Note that it is assumed that the reply has already been
- * matched to the key (and signatures checked) as it would
- * be done with the "get_key" function.
- *
- * @param cls closure
- * @param ctx block context
- * @param type block type
- * @param bg block group to use for evaluation
- * @param eo control flags
- * @param query original query (hash)
- * @param xquery extrended query data (can be NULL, depending on @a type)
- * @param xquery_size number of bytes in @a xquery
- * @param reply_block response to validate
- * @param reply_block_size number of bytes in @a reply_block
- * @return characterization of result
- */
-static enum GNUNET_BLOCK_EvaluationResult
-block_plugin_gns_evaluate (void *cls,
-                           struct GNUNET_BLOCK_Context *ctx,
-                           enum GNUNET_BLOCK_Type type,
-                           struct GNUNET_BLOCK_Group *bg,
-                           enum GNUNET_BLOCK_EvaluationOptions eo,
-                           const struct GNUNET_HashCode *query,
-                           const void *xquery,
-                           size_t xquery_size,
-                           const void *reply_block,
-                           size_t reply_block_size)
-{
-  const struct GNUNET_GNSRECORD_Block *block;
-  struct GNUNET_HashCode h;
-  struct GNUNET_HashCode chash;
-
-  if (type != GNUNET_BLOCK_TYPE_GNS_NAMERECORD)
-    return GNUNET_BLOCK_EVALUATION_TYPE_NOT_SUPPORTED;
-  if (NULL == reply_block)
-  {
-    if (0 != xquery_size)
-    {
-      GNUNET_break_op (0);
-      return GNUNET_BLOCK_EVALUATION_REQUEST_INVALID;
-    }
-    return GNUNET_BLOCK_EVALUATION_REQUEST_VALID;
-  }
-
-  /* this is a reply */
-  if (reply_block_size < sizeof(struct GNUNET_GNSRECORD_Block))
-  {
-    GNUNET_break_op (0);
-    return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
-  }
-  block = reply_block;
-  if (GNUNET_GNSRECORD_block_get_size (block) > reply_block_size)
-  {
-    GNUNET_break_op (0);
-    return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
-  }
-  GNUNET_GNSRECORD_query_from_block (block,
-                                     &h);
-  if (0 != GNUNET_memcmp (&h, query))
-  {
-    GNUNET_break_op (0);
-    return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
-  }
-  if (GNUNET_OK !=
-      GNUNET_GNSRECORD_block_verify (block))
-  {
-    GNUNET_break_op (0);
-    return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
-  }
-  GNUNET_CRYPTO_hash (reply_block,
-                      reply_block_size,
-                      &chash);
-  if (GNUNET_YES ==
-      GNUNET_BLOCK_GROUP_bf_test_and_set (bg,
-                                          &chash))
-    return GNUNET_BLOCK_EVALUATION_OK_DUPLICATE;
-  return GNUNET_BLOCK_EVALUATION_OK_MORE;
-}
-
-
-/**
  * Function called to obtain the key for a block.
+ * If the @a block is malformed, the function should
+ * zero-out @a key and return #GNUNET_OK.
  *
  * @param cls closure
  * @param type block type
  * @param reply_block block to get the key for
  * @param reply_block_size number of bytes in @a reply_block
  * @param key set to the key (query) for the given block
- * @return #GNUNET_OK on success, #GNUNET_SYSERR if type not supported
- *         (or if extracting a key from a block of this type does not work)
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR if type not supported, #GNUNET_NO if extracting a key from a block of this type does not work
  */
 static enum GNUNET_GenericReturnValue
 block_plugin_gns_get_key (void *cls,
@@ -194,12 +112,18 @@ block_plugin_gns_get_key (void *cls,
 {
   const struct GNUNET_GNSRECORD_Block *block;
 
-  if (type != GNUNET_BLOCK_TYPE_GNS_NAMERECORD)
+  if (GNUNET_BLOCK_TYPE_GNS_NAMERECORD != type)
+  {
+    GNUNET_break (0);
     return GNUNET_SYSERR;
+  }
   if (reply_block_size < sizeof(struct GNUNET_GNSRECORD_Block))
   {
     GNUNET_break_op (0);
-    return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
+    memset (key,
+            0,
+            sizeof (*key));
+    return GNUNET_OK;
   }
   block = reply_block;
   GNUNET_GNSRECORD_query_from_block (block,
@@ -227,8 +151,11 @@ block_plugin_gns_check_query (void *cls,
                               const void *xquery,
                               size_t xquery_size)
 {
-  if (type != GNUNET_BLOCK_TYPE_GNS_NAMERECORD)
+  if (GNUNET_BLOCK_TYPE_GNS_NAMERECORD != type)
+  {
+    GNUNET_break (0);
     return GNUNET_SYSERR;
+  }
   if (0 != xquery_size)
   {
     GNUNET_break_op (0);
@@ -243,7 +170,6 @@ block_plugin_gns_check_query (void *cls,
  *
  * @param cls closure
  * @param type block type
- * @param query key for the block (hash), must match exactly
  * @param block block data to validate
  * @param block_size number of bytes in @a block
  * @return #GNUNET_OK if the block is fine, #GNUNET_NO if not
@@ -251,14 +177,16 @@ block_plugin_gns_check_query (void *cls,
 static enum GNUNET_GenericReturnValue
 block_plugin_gns_check_block (void *cls,
                               enum GNUNET_BLOCK_Type type,
-                              const struct GNUNET_HashCode *query,
                               const void *block,
                               size_t block_size)
 {
   const struct GNUNET_GNSRECORD_Block *gblock;
   
-  if (type != GNUNET_BLOCK_TYPE_GNS_NAMERECORD)
+  if (GNUNET_BLOCK_TYPE_GNS_NAMERECORD != type)
+  {
+    GNUNET_break (0);
     return GNUNET_SYSERR;
+  }
   if (block_size < sizeof(struct GNUNET_GNSRECORD_Block))
   {
     GNUNET_break_op (0);
@@ -306,23 +234,16 @@ block_plugin_gns_check_reply (void *cls,
                               const void *reply_block,
                               size_t reply_block_size)
 {
-  const struct GNUNET_GNSRECORD_Block *block;
+  const struct GNUNET_GNSRECORD_Block *block = reply_block;
   struct GNUNET_HashCode chash;
 
-  if (type != GNUNET_BLOCK_TYPE_GNS_NAMERECORD)
+  if (GNUNET_BLOCK_TYPE_GNS_NAMERECORD != type)
+  {
+    GNUNET_break (0);
     return GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED;
-  /* this is a reply */
-  if (reply_block_size < sizeof(struct GNUNET_GNSRECORD_Block))
-  {
-    GNUNET_break_op (0);
-    return GNUNET_BLOCK_REPLY_INVALID;
   }
-  block = reply_block;
-  if (GNUNET_GNSRECORD_block_get_size (block) > reply_block_size)
-  {
-    GNUNET_break_op (0);
-    return GNUNET_BLOCK_REPLY_INVALID;
-  }
+  GNUNET_assert (reply_block_size >= sizeof(struct GNUNET_GNSRECORD_Block));
+  GNUNET_assert (GNUNET_GNSRECORD_block_get_size (block) > reply_block_size);
   GNUNET_CRYPTO_hash (reply_block,
                       reply_block_size,
                       &chash);
@@ -347,7 +268,6 @@ libgnunet_plugin_block_gns_init (void *cls)
   struct GNUNET_BLOCK_PluginFunctions *api;
 
   api = GNUNET_new (struct GNUNET_BLOCK_PluginFunctions);
-  api->evaluate = &block_plugin_gns_evaluate;
   api->get_key = &block_plugin_gns_get_key;
   api->create_group = &block_plugin_gns_create_group;
   api->check_query = &block_plugin_gns_check_query;

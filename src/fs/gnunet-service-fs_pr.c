@@ -247,7 +247,8 @@ static unsigned long long max_pending_requests = (32 * 1024);
  * @param pr request for which the BF is to be recomputed
  */
 static void
-refresh_bloomfilter (enum GNUNET_BLOCK_Type type, struct GSF_PendingRequest *pr)
+refresh_bloomfilter (enum GNUNET_BLOCK_Type type,
+                     struct GSF_PendingRequest *pr)
 {
   if (NULL != pr->bg)
   {
@@ -406,7 +407,7 @@ GSF_pending_request_create_ (enum GSF_PendingRequestOptions options,
         break;     /* let the request live briefly... */
       if (NULL != dpr->rh)
         dpr->rh (dpr->rh_cls,
-                 GNUNET_BLOCK_EVALUATION_REQUEST_VALID,
+                 GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED,
                  dpr,
                  UINT32_MAX,
                  GNUNET_TIME_UNIT_FOREVER_ABS,
@@ -557,7 +558,10 @@ GSF_pending_request_get_message_ (struct GSF_PendingRequest *pr)
     k++;
   }
   if (GNUNET_OK !=
-      GNUNET_BLOCK_group_serialize (pr->bg, &bf_nonce, &bf_data, &bf_size))
+      GNUNET_BLOCK_group_serialize (pr->bg,
+                                    &bf_nonce,
+                                    &bf_data,
+                                    &bf_size))
   {
     bf_size = 0;
     bf_data = NULL;
@@ -765,11 +769,6 @@ struct ProcessReplyClosure
   enum GNUNET_BLOCK_Type type;
 
   /**
-   * Control flags for evaluation.
-   */
-  enum GNUNET_BLOCK_EvaluationOptions eo;
-
-  /**
    * How much was this reply worth to us?
    */
   uint32_t priority;
@@ -850,7 +849,6 @@ process_reply (void *cls,
   case GNUNET_BLOCK_REPLY_OK_MORE:
     update_request_performance_data (prq, pr);
     break;
-
   case GNUNET_BLOCK_REPLY_OK_LAST:
     /* short cut: stop processing early, no BF-update, etc. */
     update_request_performance_data (prq, pr);
@@ -885,7 +883,6 @@ process_reply (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Duplicate response, discarding.\n");
     return GNUNET_YES;   /* duplicate */
-
   case GNUNET_BLOCK_REPLY_IRRELEVANT:
     GNUNET_STATISTICS_update (GSF_stats,
                               "# irrelevant replies discarded",
@@ -893,8 +890,6 @@ process_reply (void *cls,
                               GNUNET_NO);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Irrelevant response, ignoring.\n");
-    return GNUNET_YES;
-  case GNUNET_BLOCK_REPLY_INVALID:
     return GNUNET_YES;
   case GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED:
     GNUNET_break (0); /* bad installation? */
@@ -1127,8 +1122,9 @@ handle_dht_reply (void *cls,
                                              prq.expiration);
   prq.size = size;
   prq.type = type;
-  prq.eo = GNUNET_BLOCK_EO_NONE;
-  process_reply (&prq, key, pr);
+  process_reply (&prq,
+                 key,
+                 pr);
   if ((GNUNET_YES == active_to_migration) &&
       (GNUNET_NO == test_put_load_too_high (prq.priority)))
   {
@@ -1229,6 +1225,15 @@ cadet_reply_proc (void *cls,
   struct GNUNET_HashCode query;
 
   pr->cadet_request = NULL;
+  if (GNUNET_OK !=
+      GNUNET_BLOCK_check_block (GSF_block_ctx,
+                                type,
+                                data,
+                                data_size))
+  {
+    GNUNET_break_op (0);
+    return;
+  }
   if (GNUNET_BLOCK_TYPE_ANY == type)
   {
     GNUNET_break (NULL == data);
@@ -1247,7 +1252,11 @@ cadet_reply_proc (void *cls,
     return;
   }
   if (GNUNET_YES !=
-      GNUNET_BLOCK_get_key (GSF_block_ctx, type, data, data_size, &query))
+      GNUNET_BLOCK_get_key (GSF_block_ctx,
+                            type,
+                            data,
+                            data_size,
+                            &query))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Failed to derive key for block of type %d\n",
@@ -1268,8 +1277,9 @@ cadet_reply_proc (void *cls,
                                              prq.expiration);
   prq.size = data_size;
   prq.type = type;
-  prq.eo = GNUNET_BLOCK_EO_NONE;
-  process_reply (&prq, &query, pr);
+  process_reply (&prq,
+                 &query,
+                 pr);
 }
 
 
@@ -1611,7 +1621,11 @@ called_from_on_demand:
   prq.expiration = expiration;
   prq.size = size;
   if (GNUNET_OK !=
-      GNUNET_BLOCK_get_key (GSF_block_ctx, type, data, size, &query))
+      GNUNET_BLOCK_get_key (GSF_block_ctx,
+                            type,
+                            data,
+                            size,
+                            &query))
   {
     GNUNET_break (0);
     GNUNET_DATASTORE_remove (GSF_dsh,
@@ -1631,8 +1645,9 @@ called_from_on_demand:
   prq.anonymity_level = anonymity;
   if ((0 == old_rf) && (0 == pr->public_data.results_found))
     GSF_update_datastore_delay_ (pr->public_data.start_time);
-  prq.eo = GNUNET_BLOCK_EO_LOCAL_SKIP_CRYPTO;
-  process_reply (&prq, key, pr);
+  process_reply (&prq,
+                 key,
+                 pr);
   pr->local_result = prq.eval;
   if (GNUNET_BLOCK_REPLY_OK_LAST == prq.eval)
   {
@@ -1720,7 +1735,8 @@ GSF_local_lookup_ (struct GSF_PendingRequest *pr,
  * @param put the actual message
  */
 void
-handle_p2p_put (void *cls, const struct PutMessage *put)
+handle_p2p_put (void *cls,
+                const struct PutMessage *put)
 {
   struct GSF_ConnectedPeer *cp = cls;
   uint16_t msize;
@@ -1746,7 +1762,20 @@ handle_p2p_put (void *cls, const struct PutMessage *put)
                                            GNUNET_TIME_UNIT_YEARS),
                                          expiration);
   if (GNUNET_OK !=
-      GNUNET_BLOCK_get_key (GSF_block_ctx, type, &put[1], dsize, &query))
+      GNUNET_BLOCK_check_block (GSF_block_ctx,
+                                type,
+                                &put[1],
+                                dsize))
+  {
+    GNUNET_break_op (0);
+    return;
+  }
+  if (GNUNET_OK !=
+      GNUNET_BLOCK_get_key (GSF_block_ctx,
+                            type,
+                            &put[1],
+                            dsize,
+                            &query))
   {
     GNUNET_break_op (0);
     return;
@@ -1764,7 +1793,6 @@ handle_p2p_put (void *cls, const struct PutMessage *put)
   prq.priority = 0;
   prq.anonymity_level = UINT32_MAX;
   prq.request_found = GNUNET_NO;
-  prq.eo = GNUNET_BLOCK_EO_NONE;
   GNUNET_CONTAINER_multihashmap_get_multiple (pr_map,
                                               &query,
                                               &process_reply,

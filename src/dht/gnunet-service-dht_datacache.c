@@ -126,7 +126,7 @@ struct GetRequestContext
   /**
    * Return value to give back.
    */
-  enum GNUNET_BLOCK_EvaluationResult eval;
+  enum GNUNET_BLOCK_ReplyEvaluationResult eval;
 };
 
 
@@ -204,13 +204,6 @@ datacache_get_iterator (void *cls,
                               1,
                               GNUNET_NO);
     break;
-  case GNUNET_BLOCK_REPLY_INVALID:
-    /* maybe it expired? */
-    GNUNET_STATISTICS_update (GDS_stats,
-                              "# Invalid RESULTS found in datacache",
-                              1,
-                              GNUNET_NO);
-    break;
   case GNUNET_BLOCK_REPLY_IRRELEVANT:
     GNUNET_STATISTICS_update (GDS_stats,
                               "# Irrelevant RESULTS found in datacache",
@@ -222,7 +215,7 @@ datacache_get_iterator (void *cls,
 }
 
 
-enum GNUNET_BLOCK_EvaluationResult
+enum GNUNET_BLOCK_ReplyEvaluationResult
 GDS_DATACACHE_handle_get (const struct GNUNET_HashCode *key,
                           enum GNUNET_BLOCK_Type type,
                           const void *xquery,
@@ -232,7 +225,7 @@ GDS_DATACACHE_handle_get (const struct GNUNET_HashCode *key,
                           void *gc_cls)
 {
   struct GetRequestContext ctx = {
-    .eval = GNUNET_BLOCK_EVALUATION_REQUEST_VALID,
+                                  .eval = GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED,
     .key = *key,
     .xquery = xquery,
     .xquery_size = xquery_size,
@@ -243,7 +236,7 @@ GDS_DATACACHE_handle_get (const struct GNUNET_HashCode *key,
   unsigned int r;
 
   if (NULL == datacache)
-    return GNUNET_BLOCK_EVALUATION_REQUEST_VALID;
+    return GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED;
   GNUNET_STATISTICS_update (GDS_stats,
                             "# GET requests given to datacache",
                             1,
@@ -262,7 +255,7 @@ GDS_DATACACHE_handle_get (const struct GNUNET_HashCode *key,
 }
 
 
-enum GNUNET_BLOCK_EvaluationResult
+enum GNUNET_BLOCK_ReplyEvaluationResult
 GDS_DATACACHE_get_closest (const struct GNUNET_HashCode *key,
                            enum GNUNET_BLOCK_Type type,
                            const void *xquery,
@@ -272,7 +265,7 @@ GDS_DATACACHE_get_closest (const struct GNUNET_HashCode *key,
                            void *cb_cls)
 {
   struct GetRequestContext ctx = {
-    .eval = GNUNET_BLOCK_EVALUATION_REQUEST_VALID,
+                                  .eval = GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED,
     .key = *key,
     .xquery = xquery,
     .xquery_size = xquery_size,
@@ -283,7 +276,7 @@ GDS_DATACACHE_get_closest (const struct GNUNET_HashCode *key,
   unsigned int r;
 
   if (NULL == datacache)
-    return GNUNET_BLOCK_EVALUATION_REQUEST_VALID;
+    return GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED;
   GNUNET_STATISTICS_update (GDS_stats,
                             "# GET closest requests given to datacache",
                             1,
