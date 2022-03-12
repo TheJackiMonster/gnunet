@@ -1284,6 +1284,31 @@ get_target_peers (const struct GNUNET_HashCode *key,
 }
 
 
+/**
+ * If we got a HELLO, consider it for our own routing table 
+ *
+ * @param bd block data we got 
+ */
+static void
+hello_check (const struct GDS_DATACACHE_BlockData *bd)
+{
+  struct GNUNET_PeerIdentity pid;
+  struct GNUNET_HELLO_Builder *b;
+
+  if (GNUNET_BLOCK_TYPE_DHT_URL_HELLO != bd->type)
+    return;
+
+  b = GNUNET_HELLO_builder_from_block (bd->data,
+                                       bd->data_size);
+  if (GNUNET_YES != disable_try_connect)
+    GNUNET_HELLO_builder_iterate (b,
+                                  &pid,
+                                  &GDS_try_connect,
+                                  &pid);
+  GNUNET_HELLO_builder_free (b);
+}
+
+
 enum GNUNET_GenericReturnValue
 GDS_NEIGHBOURS_handle_put (const struct GDS_DATACACHE_BlockData *bd,
                            enum GNUNET_DHT_RouteOption options,
@@ -1318,6 +1343,9 @@ GDS_NEIGHBOURS_handle_put (const struct GDS_DATACACHE_BlockData *bd,
               GNUNET_h2s (&bd->key),
               (options & GNUNET_DHT_RO_DEMULTIPLEX_EVERYWHERE) ? "x" : "-",
               (options & GNUNET_DHT_RO_RECORD_ROUTE) ? "R" : "-");
+  
+  /* if we got a HELLO, consider it for our own routing table */
+  hello_check (bd);
   GNUNET_CONTAINER_bloomfilter_add (bf,
                                     &GDS_my_identity_hash);
   GNUNET_STATISTICS_update (GDS_stats,
@@ -2470,20 +2498,7 @@ handle_dht_p2p_result (void *cls,
   }
 
   /* if we got a HELLO, consider it for our own routing table */
-  if (GNUNET_BLOCK_TYPE_DHT_URL_HELLO == bd.type)
-  {
-    struct GNUNET_PeerIdentity pid;
-    struct GNUNET_HELLO_Builder *b;
-
-    b = GNUNET_HELLO_builder_from_block (bd.data,
-                                         bd.data_size);
-    if (GNUNET_YES != disable_try_connect)
-      GNUNET_HELLO_builder_iterate (b,
-                                    &pid,
-                                    &GDS_try_connect,
-                                    &pid);
-    GNUNET_HELLO_builder_free (b);
-  }
+  hello_check (&bd);
 
   /* First, check if 'peer' is already on the path, and if
      so, truncate it instead of expanding. */

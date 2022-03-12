@@ -294,7 +294,7 @@ GNUNET_BLOCK_group_destroy (struct GNUNET_BLOCK_Group *bg);
  *
  * @param ctx block contxt
  * @param type block type
- * @param group block group to use for evaluation
+ * @param[in,out] group block group to use for evaluation
  * @param query original query (hash)
  * @param xquery extrended query data (can be NULL, depending on type)
  * @param xquery_size number of bytes in @a xquery

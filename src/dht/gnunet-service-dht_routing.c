@@ -27,6 +27,7 @@
 #include "gnunet-service-dht_neighbours.h"
 #include "gnunet-service-dht_routing.h"
 #include "gnunet-service-dht.h"
+#include "gnunet_block_group_lib.h"
 
 
 /**
@@ -174,6 +175,22 @@ process (void *cls,
               GNUNET_h2s (&bdx.key),
               bdx.type,
               eval);
+  if (GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED == eval)
+  {
+    /* If we do not know the block type, we still filter
+       exact duplicates by the block content */
+    struct GNUNET_HashCode chash;
+    
+    GNUNET_CRYPTO_hash (bdx.data,
+                        bdx.data_size,
+                        &chash);
+    if (GNUNET_YES ==
+        GNUNET_BLOCK_GROUP_bf_test_and_set (rr->bg,
+                                            &chash))
+      eval = GNUNET_BLOCK_REPLY_OK_DUPLICATE;
+    else
+      eval = GNUNET_BLOCK_REPLY_OK_MORE;
+  }
   switch (eval)
   {
   case GNUNET_BLOCK_REPLY_OK_MORE:
@@ -319,6 +336,7 @@ try_combine_recent (void *cls,
  *
  * @param sender peer that originated the request
  * @param type type of the block
+ * @param[in] bg block group for filtering duplicate replies
  * @param options options for processing
  * @param key key for the content
  * @param xquery extended query
