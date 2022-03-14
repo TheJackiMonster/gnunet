@@ -891,11 +891,8 @@ get_forward_count (uint16_t hop_count,
   uint32_t random_value;
   uint32_t forward_count;
   float target_value;
+  float rm1;
 
-  if (0 == target_replication)
-    target_replication = 1; /* 0 is verboten */
-  if (target_replication > GNUNET_DHT_MAXIMUM_REPLICATION_LEVEL)
-    target_replication = GNUNET_DHT_MAXIMUM_REPLICATION_LEVEL;
   if (hop_count > GDS_NSE_get () * 4.0)
   {
     /* forcefully terminate */
@@ -910,15 +907,15 @@ get_forward_count (uint16_t hop_count,
     /* Once we have reached our ideal number of hops, only forward to 1 peer */
     return 1;
   }
-  /* bound by system-wide maximum */
+  /* bound by system-wide maximum and minimum */
+  if (0 == target_replication)
+    target_replication = 1; /* 0 is verboten */
   target_replication =
     GNUNET_MIN (GNUNET_DHT_MAXIMUM_REPLICATION_LEVEL,
                 target_replication);
+  rm1 = target_replication - 1.0;
   target_value =
-    1 + (target_replication - 1.0) / (GDS_NSE_get ()
-                                      + ((float) (target_replication - 1.0)
-                                         * hop_count));
-
+    1 + (rm1) / (GDS_NSE_get () + (rm1 * hop_count));
 
   /* Set forward count to floor of target_value */
   forward_count = (uint32_t) target_value;
