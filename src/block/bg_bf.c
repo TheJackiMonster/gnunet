@@ -61,7 +61,7 @@ struct BfGroupInternals
  * @return #GNUNET_OK on success, #GNUNET_NO if serialization is not
  *         supported, #GNUNET_SYSERR on error
  */
-static int
+static enum GNUNET_GenericReturnValue
 bf_group_serialize_cb (struct GNUNET_BLOCK_Group *bg,
                        uint32_t *nonce,
                        void **raw_data,
@@ -124,7 +124,7 @@ bf_group_mark_seen_cb (struct GNUNET_BLOCK_Group *bg,
  * @return #GNUNET_OK on success, #GNUNET_NO if the nonces were different and thus
  *         we failed.
  */
-static int
+static enum GNUNET_GenericReturnValue
 bf_group_merge_cb (struct GNUNET_BLOCK_Group *bg1,
                    const struct GNUNET_BLOCK_Group *bg2)
 {

@@ -39,10 +39,15 @@
                                                 __VA_ARGS__)
 
 /**
- * Enable slow sanity checks to debug issues.
- * 0: do not check
- * 1: check all external inputs
- * 2: check internal computations as well
+ * Enable slow sanity checks to debug issues. 
+ * 
+ * TODO: might want to eventually implement probabilistic
+ * load-based path verification, but for now it is all or nothing
+ * based on this define.
+ *
+ * 0: do not check -- if signatures become performance critical
+ * 1: check all external inputs -- normal production for now
+ * 2: check internal computations as well -- for debugging 
  */
 #define SANITY_CHECKS 2
 
@@ -1796,45 +1801,6 @@ handle_dht_p2p_put (void *cls,
     GNUNET_break_op (0);
     return;
   }
-  {
-#if SANITY_CHECKS
-    struct GNUNET_DHT_PathElement pp[putlen + 1];
-
-    GNUNET_memcpy (pp,
-                   put_path,
-                   putlen * sizeof(struct GNUNET_DHT_PathElement));
-    pp[putlen].pred = peer->id;
-    /* zero-out signature, not valid until we actually do forward! */
-    memset (&pp[putlen].sig,
-            0,
-            sizeof (pp[putlen].sig));
-    for (unsigned int i = 0; i <= putlen; i++)
-    {
-      for (unsigned int j = 0; j < i; j++)
-      {
-        GNUNET_break (0 !=
-                      GNUNET_memcmp (&pp[i].pred,
-                                     &pp[j].pred));
-      }
-      if (i < putlen)
-        GNUNET_break (0 !=
-                      GNUNET_memcmp (&pp[i].pred,
-                                     &peer->id));
-    }
-    if (0 !=
-        GNUNET_DHT_verify_path (bd.data,
-                                bd.data_size,
-                                bd.expiration_time,
-                                pp,
-                                putlen + 1,
-                                NULL, 0,   /* get_path */
-                                &GDS_my_identity))
-    {
-      GNUNET_break_op (0);
-      putlen = 0;
-    }
-#endif
-  }
   if (0 == (options & GNUNET_DHT_RO_RECORD_ROUTE))
     putlen = 0;
   GNUNET_STATISTICS_update (GDS_stats,
@@ -1888,6 +1854,8 @@ handle_dht_p2p_put (void *cls,
     bd.put_path_length = putlen + 1;
     if (0 != (options & GNUNET_DHT_RO_RECORD_ROUTE))
     {
+      unsigned int failure_offset;
+      
       GNUNET_memcpy (pp,
                      put_path,
                      putlen * sizeof(struct GNUNET_DHT_PathElement));
@@ -1896,6 +1864,29 @@ handle_dht_p2p_put (void *cls,
       memset (&pp[putlen].sig,
               0,
               sizeof (pp[putlen].sig));
+#if SANITY_CHECKS      
+    /* TODO: might want to eventually implement probabilistic
+       load-based path verification, but for now it is all or nothing */
+      failure_offset 
+        = GNUNET_DHT_verify_path (bd.data,
+                                  bd.data_size,
+                                  bd.expiration_time,
+                                  pp,
+                                  putlen + 1,
+                                  NULL, 0,   /* get_path */
+                                  &GDS_my_identity);
+#else
+      failure_offset = 0;
+#endif
+      if (0 != failure_offset)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                    "Recorded put path invalid at offset %u, truncating\n",
+                    failure_offset);
+        GNUNET_assert (failure_offset <= putlen);
+        bd.put_path = &pp[failure_offset];
+        bd.put_path_length = putlen - failure_offset;
+      }      
     }
     else
     {
@@ -2365,7 +2356,7 @@ handle_dht_p2p_result (void *cls,
   };
   const struct GNUNET_DHT_PathElement *get_path
     = &bd.put_path[bd.put_path_length];
-
+    
   /* parse and validate message */
   if (GNUNET_TIME_absolute_is_past (bd.expiration_time))
   {
@@ -2389,34 +2380,6 @@ handle_dht_p2p_result (void *cls,
     GNUNET_break_op (0);
     return;
   }
-  {
-#if SANITY_CHECKS
-    struct GNUNET_DHT_PathElement gpx[get_path_length + 1];
-
-    memcpy (gpx,
-            get_path,
-            get_path_length
-            * sizeof (struct GNUNET_DHT_PathElement));
-    gpx[get_path_length].pred = peer->id;
-    memset (&gpx[get_path_length].sig,
-            0,
-            sizeof (gpx[get_path_length].sig));
-    if (0 !=
-        GNUNET_DHT_verify_path (bd.data,
-                                bd.data_size,
-                                bd.expiration_time,
-                                bd.put_path,
-                                bd.put_path_length,
-                                gpx,
-                                get_path_length + 1,
-                                &GDS_my_identity))
-    {
-      GNUNET_break_op (0);
-      get_path_length = 0;
-      bd.put_path_length = 0;
-    }
-#endif
-  }
   GNUNET_STATISTICS_update (GDS_stats,
                             "# P2P RESULTS received",
                             1,
@@ -2434,18 +2397,17 @@ handle_dht_p2p_result (void *cls,
                                 bd.data_size,
                                 &bd.key);
     if (GNUNET_NO == ret)
-    {
       bd.key = prm->key;
-      return;
-    }
   }
 
   /* if we got a HELLO, consider it for our own routing table */
   hello_check (&bd);
 
-  /* Need to append 'peer' to 'get_path' (normal case) */
+  /* Need to append 'peer' to 'get_path' */
   {
     struct GNUNET_DHT_PathElement xget_path[get_path_length + 1];
+    struct GNUNET_DHT_PathElement *gp = xget_path;
+    unsigned int failure_offset;
 
     GNUNET_memcpy (xget_path,
                    get_path,
@@ -2454,6 +2416,41 @@ handle_dht_p2p_result (void *cls,
     memset (&xget_path[get_path_length].sig,
             0,
             sizeof (xget_path[get_path_length].sig));
+#if SANITY_CHECKS
+    /* TODO: might want to eventually implement probabilistic
+       load-based path verification, but for now it is all or nothing */
+    failure_offset 
+      = GNUNET_DHT_verify_path (bd.data,
+                                bd.data_size,
+                                bd.expiration_time,
+                                bd.put_path,
+                                bd.put_path_length,
+                                xget_path,
+                                get_path_length + 1,
+                                &GDS_my_identity);
+#else
+    failure_offset = 0;
+#endif
+    if (0 != failure_offset)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Recorded path invalid at offset %u, truncating\n",
+                  failure_offset);
+      GNUNET_assert (failure_offset <= bd.put_path_length + get_path_length);
+      if (failure_offset >= bd.put_path_length)
+      {
+        /* failure on get path */
+        get_path_length -= (failure_offset - bd.put_path_length);
+        gp = &xget_path[failure_offset - bd.put_path_length];
+        bd.put_path_length = 0;
+      }
+      else
+      {
+        /* failure on put path */
+        bd.put_path = &bd.put_path[failure_offset];
+        bd.put_path_length -= failure_offset;
+      }
+    }
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Extending GET path of length %u with %s\n",
                 get_path_length,
@@ -2461,7 +2458,7 @@ handle_dht_p2p_result (void *cls,
     GNUNET_break (process_reply_with_path (&bd,
                                            &prm->key,
                                            get_path_length + 1,
-                                           xget_path));
+                                           gp));
   }
 }
 
