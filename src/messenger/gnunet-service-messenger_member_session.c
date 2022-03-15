@@ -84,6 +84,9 @@ check_member_session_completion (struct GNUNET_MESSENGER_MemberSession *session)
 {
   GNUNET_assert (session);
 
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Check session history (%s) for completion.\n",
+             GNUNET_sh2s(get_member_session_id(session)));
+
   if (!session->messages.tail)
   {
     session->completed = GNUNET_YES;
@@ -142,7 +145,10 @@ check_member_session_completion (struct GNUNET_MESSENGER_MemberSession *session)
 completion:
   if (GNUNET_YES == is_member_session_completed(session))
   {
-    GNUNET_CONTAINER_multihashmap_destroy (session->history);
+    GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Completed session history (%s)\n",
+               GNUNET_sh2s(get_member_session_id(session)));
+
+    GNUNET_CONTAINER_multihashmap_clear (session->history);
 
     struct GNUNET_MESSENGER_ContactStore *store = get_member_contact_store(session->member->store);
 

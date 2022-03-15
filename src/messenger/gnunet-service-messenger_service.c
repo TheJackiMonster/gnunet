@@ -94,7 +94,7 @@ iterate_destroy_rooms (void *cls,
                        void *value)
 {
   struct GNUNET_MESSENGER_SrvRoom *room = value;
-  destroy_room (room);
+  destroy_room (room, GNUNET_NO);
   return GNUNET_YES;
 }
 
@@ -220,7 +220,7 @@ open_service_room (struct GNUNET_MESSENGER_Service *service,
                                                        GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST)))
     return GNUNET_YES;
 
-  destroy_room (room);
+  destroy_room (room, GNUNET_YES);
   return GNUNET_NO;
 }
 
@@ -253,7 +253,7 @@ entry_service_room (struct GNUNET_MESSENGER_Service *service,
   }
   else
   {
-    destroy_room (room);
+    destroy_room (room, GNUNET_YES);
     return GNUNET_NO;
   }
 
@@ -287,7 +287,7 @@ close_service_room (struct GNUNET_MESSENGER_Service *service,
   {
     if (GNUNET_OK == GNUNET_CONTAINER_multihashmap_remove (service->rooms, key, room))
     {
-      destroy_room (room);
+      destroy_room (room, GNUNET_YES);
       return GNUNET_YES;
     }
     else
