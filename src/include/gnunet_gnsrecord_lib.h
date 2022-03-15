@@ -761,6 +761,16 @@ GNUNET_GNSRECORD_convert_records_for_export (const char *label,
                                              struct GNUNET_TIME_Absolute *expiry,
                                              char **emsg);
 
+/**
+ * Check label for invalid characters.
+ *
+ * @param label the label to check
+ * @param emsg an error message (NULL if label is valid). Will be allocated.
+ * @return GNUNET_OK if label is valid.
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_label_check (const char*label, char **emsg);
+
 #if 0 /* keep Emacsens' auto-indent happy */
 {
 #endif

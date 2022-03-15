@@ -1543,25 +1543,43 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
   rd_ser = &name_tmp[name_len];
   {
     struct GNUNET_GNSRECORD_Data rd[GNUNET_NZL (rd_count)];
-
-    if (GNUNET_OK !=
-        GNUNET_GNSRECORD_records_deserialize (rd_ser_len, rd_ser, rd_count, rd))
-    {
-      GNUNET_break (0);
-      GNUNET_SERVICE_client_drop (nc->client);
-      return;
-    }
+    char *emsg;
 
     /* Extracting and converting private key */
     conv_name = GNUNET_GNSRECORD_string_normalize (name_tmp);
     if (NULL == conv_name)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "Error converting name `%s'\n",
+                  "Error normalizing name `%s'\n",
                   name_tmp);
-      GNUNET_SERVICE_client_drop (nc->client);
+      send_store_response (nc, GNUNET_SYSERR, _("Error normalizing name."), rid);
+      GNUNET_SERVICE_client_continue (nc->client);
       return;
     }
+
+    /* Check name for validity */
+    if (GNUNET_OK != GNUNET_GNSRECORD_label_check (conv_name, &emsg))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Label invalid: `%s'\n",
+                  emsg);
+      send_store_response (nc, GNUNET_SYSERR, emsg, rid);
+      GNUNET_free (emsg);
+      GNUNET_free (conv_name);
+      GNUNET_SERVICE_client_continue (nc->client);
+      return;
+    }
+
+    if (GNUNET_OK !=
+        GNUNET_GNSRECORD_records_deserialize (rd_ser_len, rd_ser, rd_count, rd))
+    {
+      send_store_response (nc, GNUNET_SYSERR,
+                           _("Error deserializing records."), rid);
+      GNUNET_free (conv_name);
+      GNUNET_SERVICE_client_continue (nc->client);
+      return;
+    }
+
     GNUNET_STATISTICS_update (statistics,
                               "Well-formed store requests received",
                               1,

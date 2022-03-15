@@ -44,6 +44,22 @@ GNUNET_GNSRECORD_string_normalize (const char *src)
   return GNUNET_STRINGS_utf8_normalize (src);
 }
 
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_label_check (const char*label, char **emsg)
+{
+  if (NULL == label)
+  {
+    *emsg = GNUNET_strdup (_ ("Label is NULL which is not allowed\n"));
+    return GNUNET_NO;
+  }
+  if (0 != strchr (label, '.'))
+  {
+    *emsg = GNUNET_strdup (_ ("Label  contains `.' which is not allowed\n"));
+    return GNUNET_NO;
+  }
+  return GNUNET_OK;
+}
+
 /**
  * Convert a zone key to a string (for printing debug messages).
  * This is one of the very few calls in the entire API that is

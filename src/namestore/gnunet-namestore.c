@@ -1236,15 +1236,6 @@ identity_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   const struct GNUNET_CONFIGURATION_Handle *cfg = cls;
 
   el = NULL;
-  if ((NULL != name) && (0 != strchr (name, '.')))
-  {
-    fprintf (stderr,
-             _ ("Label `%s' contains `.' which is not allowed\n"),
-             name);
-    GNUNET_SCHEDULER_shutdown ();
-    ret = -1;
-    return;
-  }
 
   if (NULL == ego)
   {
