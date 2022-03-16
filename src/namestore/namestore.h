@@ -68,6 +68,11 @@ struct RecordStoreMessage
   struct GNUNET_TIME_AbsoluteNBO expire;
 
   /**
+   * Unock the label with this request.
+   */
+  uint32_t locking GNUNET_PACKED;
+
+  /**
    * Name length
    */
   uint16_t name_len GNUNET_PACKED;
@@ -146,6 +151,11 @@ struct LabelLookupMessage
   uint32_t label_len GNUNET_PACKED;
 
   /**
+   * Lock the label with this lookup
+   */
+  uint32_t locking GNUNET_PACKED;
+
+  /**
    * The private key of the zone to look up in
    */
   struct GNUNET_IDENTITY_PrivateKey zone;
@@ -185,7 +195,7 @@ struct LabelLookupResponseMessage
    * Was the label found in the database??
    * #GNUNET_YES or #GNUNET_NO
    */
-  uint16_t found GNUNET_PACKED;
+  int16_t found GNUNET_PACKED;
 
   /**
    * The private key of the authority.

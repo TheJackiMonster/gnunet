@@ -121,6 +121,23 @@ struct ZoneIteration
   int send_end;
 };
 
+/**
+ * Lock on a record set
+ */
+struct RecordsLock
+{
+  /* DLL */
+  struct RecordsLock *prev;
+
+  /* DLL */
+  struct RecordsLock *next;
+
+  /* Hash of the locked label */
+  struct GNUNET_HashCode label_hash;
+
+  /* Client locking the zone */
+  struct NamestoreClient *client;
+};
 
 /**
  * A namestore client
@@ -394,6 +411,16 @@ static struct StoreActivity *sa_head;
 static struct StoreActivity *sa_tail;
 
 /**
+ * Head of the DLL of record set locks
+ */
+static struct RecordsLock *locks_head;
+
+/**
+ * Tail of the DLL of record set locks
+ */
+static struct RecordsLock *locks_tail;
+
+/**
  * Notification context shared by all monitors.
  */
 static struct GNUNET_NotificationContext *monitor_nc;
@@ -420,6 +447,7 @@ static void
 cleanup_task (void *cls)
 {
   struct CacheOperation *cop;
+  struct RecordsLock *lock;
 
   (void) cls;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Stopping namestore service\n");
@@ -431,6 +459,14 @@ cleanup_task (void *cls)
     GNUNET_CONTAINER_DLL_remove (cop_head, cop_tail, cop);
     GNUNET_free (cop);
   }
+  while (NULL != (lock = locks_head))
+  {
+    GNUNET_CONTAINER_DLL_remove (locks_head,
+                                 locks_tail,
+                                 lock);
+    GNUNET_free (lock);
+  }
+
   if (NULL != namecache)
   {
     GNUNET_NAMECACHE_disconnect (namecache);
@@ -1118,6 +1154,7 @@ client_disconnect_cb (void *cls,
   struct NamestoreClient *nc = app_ctx;
   struct ZoneIteration *no;
   struct CacheOperation *cop;
+  struct RecordsLock *lock;
 
   (void) cls;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Client %p disconnected\n", client);
@@ -1168,6 +1205,15 @@ client_disconnect_cb (void *cls,
   for (cop = cop_head; NULL != cop; cop = cop->next)
     if (nc == cop->nc)
       cop->nc = NULL;
+  for (lock = locks_head; NULL != lock; lock = lock->next)
+  {
+    if (nc != lock->client)
+      continue;
+    GNUNET_CONTAINER_DLL_remove (locks_head,
+                                 locks_tail,
+                                 lock);
+    GNUNET_free (lock);
+  }
   GNUNET_free (nc);
 }
 
@@ -1361,6 +1407,7 @@ check_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
   return GNUNET_OK;
 }
 
+
 /**
  * Handles a #GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_LOOKUP message
  *
@@ -1374,13 +1421,14 @@ handle_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
   struct GNUNET_MQ_Envelope *env;
   struct LabelLookupResponseMessage *llr_msg;
   struct RecordLookupContext rlc;
+  struct RecordsLock *lock;
+  struct GNUNET_HashCode label_hash;
   const char *name_tmp;
   char *res_name;
   char *conv_name;
   uint32_t name_len;
   int res;
 
-  name_len = ntohl (ll_msg->label_len);
   name_tmp = (const char *) &ll_msg[1];
   GNUNET_SERVICE_client_continue (nc->client);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1396,6 +1444,52 @@ handle_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
     GNUNET_SERVICE_client_drop (nc->client);
     return;
   }
+  name_len = strlen (conv_name) + 1;
+  if (GNUNET_YES == ntohl (ll_msg->locking))
+  {
+    GNUNET_CRYPTO_hash (conv_name, strlen (conv_name), &label_hash);
+    for (lock = locks_head; NULL != lock; lock = lock->next)
+      if (0 == memcmp (&label_hash, &lock->label_hash, sizeof (label_hash)))
+        break;
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Record locked: %s\n", (NULL == lock) ? "No" : "Yes");
+    if (NULL != lock)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Client holds lock: %s\n", (lock->client != nc) ? "No" : "Yes");
+
+      if (lock->client != nc)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                    "Lock is held by other client on `%s'\n", conv_name);
+        env =
+          GNUNET_MQ_msg_extra (llr_msg,
+                               name_len,
+                               GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_LOOKUP_RESPONSE);
+        llr_msg->gns_header.r_id = ll_msg->gns_header.r_id;
+        llr_msg->private_key = ll_msg->zone;
+        llr_msg->name_len = htons (name_len);
+        llr_msg->rd_count = htons (0);
+        llr_msg->rd_len = htons (0);
+        llr_msg->found = htons (GNUNET_SYSERR);
+        GNUNET_memcpy (&llr_msg[1], conv_name, name_len);
+        GNUNET_MQ_send (nc->mq, env);
+        GNUNET_free (conv_name);
+        return;
+      }
+    }
+    else
+    {
+      lock = GNUNET_new (struct RecordsLock);
+      lock->client = nc;
+      GNUNET_CRYPTO_hash (conv_name,
+                          strlen (conv_name),
+                          &lock->label_hash);
+      GNUNET_CONTAINER_DLL_insert (locks_head,
+                                   locks_tail,
+                                   lock);
+    }
+  }
   rlc.label = conv_name;
   rlc.found = GNUNET_NO;
   rlc.res_rd_count = 0;
@@ -1407,7 +1501,6 @@ handle_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
                                       conv_name,
                                       &lookup_it,
                                       &rlc);
-  GNUNET_free (conv_name);
   env =
     GNUNET_MQ_msg_extra (llr_msg,
                          name_len + rlc.rd_ser_len,
@@ -1419,14 +1512,16 @@ handle_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
   llr_msg->rd_len = htons (rlc.rd_ser_len);
   res_name = (char *) &llr_msg[1];
   if ((GNUNET_YES == rlc.found) && (GNUNET_OK == res))
-    llr_msg->found = ntohs (GNUNET_YES);
+    llr_msg->found = htons (GNUNET_YES);
   else
-    llr_msg->found = ntohs (GNUNET_NO);
-  GNUNET_memcpy (&llr_msg[1], name_tmp, name_len);
+    llr_msg->found = htons (GNUNET_NO);
+  GNUNET_memcpy (&llr_msg[1], conv_name, name_len);
   GNUNET_memcpy (&res_name[name_len], rlc.res_rd, rlc.rd_ser_len);
   GNUNET_MQ_send (nc->mq, env);
   GNUNET_free (rlc.res_rd);
+  GNUNET_free (conv_name);
 }
+
 
 
 /**
@@ -1528,6 +1623,8 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
   unsigned int rd_count;
   int res;
   struct StoreActivity *sa;
+  struct RecordsLock *lock;
+  struct GNUNET_HashCode label_hash;
   struct GNUNET_TIME_Absolute existing_block_exp;
   struct GNUNET_TIME_Absolute new_block_exp;
 
@@ -1552,7 +1649,8 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Error normalizing name `%s'\n",
                   name_tmp);
-      send_store_response (nc, GNUNET_SYSERR, _("Error normalizing name."), rid);
+      send_store_response (nc, GNUNET_SYSERR, _ ("Error normalizing name."),
+                           rid);
       GNUNET_SERVICE_client_continue (nc->client);
       return;
     }
@@ -1574,10 +1672,27 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
         GNUNET_GNSRECORD_records_deserialize (rd_ser_len, rd_ser, rd_count, rd))
     {
       send_store_response (nc, GNUNET_SYSERR,
-                           _("Error deserializing records."), rid);
+                           _ ("Error deserializing records."), rid);
       GNUNET_free (conv_name);
       GNUNET_SERVICE_client_continue (nc->client);
       return;
+    }
+    if (GNUNET_YES == ntohl (rp_msg->locking))
+    {
+      GNUNET_CRYPTO_hash (conv_name, strlen (conv_name), &label_hash);
+      for (lock = locks_head; NULL != lock; lock = lock->next)
+        if (0 == memcmp (&label_hash, &lock->label_hash, sizeof (label_hash)))
+          break;
+      if ((NULL == lock) ||
+          (lock->client != nc))
+      {
+        send_store_response (nc, res, _ ("Record set locked."), rid);
+        GNUNET_SERVICE_client_continue (nc->client);
+        GNUNET_free (conv_name);
+        return;
+      }
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Client has lock on `%s', continuing.\n", conv_name);
     }
 
     GNUNET_STATISTICS_update (statistics,
@@ -1683,10 +1798,20 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
     if (GNUNET_OK != res)
     {
       /* store not successful, no need to tell monitors */
-      send_store_response (nc, res, _("Store failed"), rid);
+      send_store_response (nc, res, _ ("Store failed"), rid);
       GNUNET_SERVICE_client_continue (nc->client);
       GNUNET_free (conv_name);
       return;
+    }
+    if (GNUNET_YES == ntohl (rp_msg->locking))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Releasing lock on `%s'\n", conv_name);
+      GNUNET_assert (NULL != lock);
+      GNUNET_CONTAINER_DLL_remove (locks_head,
+                                   locks_tail,
+                                   lock);
+      GNUNET_free (lock);
     }
 
     sa = GNUNET_malloc (sizeof(struct StoreActivity)

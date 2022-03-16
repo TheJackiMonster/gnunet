@@ -212,6 +212,61 @@ GNUNET_NAMESTORE_records_lookup (struct GNUNET_NAMESTORE_Handle *h,
 
 
 /**
+ * Open a record set for editing.
+ * Retrieves an exclusive lock on this set.
+ * Must be commited using @a GNUNET_NAMESTORE_records_commit
+ *
+ * @param h handle to the namestore
+ * @param pkey private key of the zone
+ * @param label name that is being mapped
+ * @param error_cb function to call on error (i.e. disconnect or unable to get lock)
+ *        the handle is afterwards invalid
+ * @param error_cb_cls closure for @a error_cb
+ * @param rm function to call with the result (with 0 records if we don't have that label)
+ * @param rm_cls closure for @a rm
+ * @return handle to abort the request
+ */
+struct GNUNET_NAMESTORE_QueueEntry *
+GNUNET_NAMESTORE_records_open (struct GNUNET_NAMESTORE_Handle *h,
+                               const struct
+                               GNUNET_IDENTITY_PrivateKey *pkey,
+                               const char *label,
+                               GNUNET_SCHEDULER_TaskCallback error_cb,
+                               void *error_cb_cls,
+                               GNUNET_NAMESTORE_RecordMonitor rm,
+                               void *rm_cls);
+
+/**
+ * Commit the record set to the namestore.
+ * Releases the lock on the record set.
+ * Use an empty array to
+ * remove all records under the given name.
+ *
+ * The continuation is called after the value has been stored in the
+ * database. Monitors may be notified asynchronously (basically with
+ * a buffer). However, if any monitor is consistently too slow to
+ * keep up with the changes, calling @a cont will be delayed until the
+ * monitors do keep up.
+ *
+ * @param h handle to the namestore
+ * @param pkey private key of the zone
+ * @param label name that is being mapped
+ * @param rd_count number of records in the 'rd' array
+ * @param rd array of records with data to store
+ * @param cont continuation to call when done
+ * @param cont_cls closure for @a cont
+ * @return handle to abort the request
+ */
+struct GNUNET_NAMESTORE_QueueEntry *
+GNUNET_NAMESTORE_records_commit (struct GNUNET_NAMESTORE_Handle *h,
+                                 const struct GNUNET_IDENTITY_PrivateKey *pkey,
+                                 const char *label,
+                                 unsigned int rd_count,
+                                 const struct GNUNET_GNSRECORD_Data *rd,
+                                 GNUNET_NAMESTORE_ContinuationWithStatus cont,
+                                 void *cont_cls);
+
+/**
  * Look for an existing PKEY delegation record for a given public key.
  * Returns at most one result to the processor.
  *
