@@ -1757,7 +1757,7 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
     {
       if (GNUNET_NO == NST_label_lock (conv_name, &rp_msg->private_key, nc))
       {
-        send_store_response (nc, res, _ ("Record set locked."), rid);
+        send_store_response (nc, GNUNET_SYSERR, _ ("Record set locked."), rid);
         GNUNET_SERVICE_client_continue (nc->client);
         GNUNET_free (conv_name);
         return;
