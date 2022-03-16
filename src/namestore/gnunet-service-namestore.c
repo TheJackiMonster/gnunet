@@ -1407,6 +1407,20 @@ check_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
   return GNUNET_OK;
 }
 
+static void
+calculate_lock_hash (const char *label,
+                     const struct GNUNET_IDENTITY_PrivateKey *zone,
+                     struct GNUNET_HashCode *result)
+{
+  struct GNUNET_HashContext *hctx;
+
+  hctx = GNUNET_CRYPTO_hash_context_start ();
+  GNUNET_CRYPTO_hash_context_read (hctx, label, strlen (label));
+  GNUNET_CRYPTO_hash_context_read (hctx, zone,
+                                   sizeof (*zone));
+  GNUNET_CRYPTO_hash_context_finish (hctx, result);
+}
+
 
 /**
  * Handles a #GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_LOOKUP message
@@ -1447,7 +1461,7 @@ handle_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
   name_len = strlen (conv_name) + 1;
   if (GNUNET_YES == ntohl (ll_msg->locking))
   {
-    GNUNET_CRYPTO_hash (conv_name, strlen (conv_name), &label_hash);
+    calculate_lock_hash (conv_name, &ll_msg->zone, &label_hash);
     for (lock = locks_head; NULL != lock; lock = lock->next)
       if (0 == memcmp (&label_hash, &lock->label_hash, sizeof (label_hash)))
         break;
@@ -1482,9 +1496,9 @@ handle_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
     {
       lock = GNUNET_new (struct RecordsLock);
       lock->client = nc;
-      GNUNET_CRYPTO_hash (conv_name,
-                          strlen (conv_name),
-                          &lock->label_hash);
+      memcpy (&lock->label_hash, &label_hash, sizeof (label_hash));
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Locking %s\n", GNUNET_h2s (&label_hash));
       GNUNET_CONTAINER_DLL_insert (locks_head,
                                    locks_tail,
                                    lock);
@@ -1679,7 +1693,7 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
     }
     if (GNUNET_YES == ntohl (rp_msg->locking))
     {
-      GNUNET_CRYPTO_hash (conv_name, strlen (conv_name), &label_hash);
+      calculate_lock_hash (conv_name, &rp_msg->private_key, &label_hash);
       for (lock = locks_head; NULL != lock; lock = lock->next)
         if (0 == memcmp (&label_hash, &lock->label_hash, sizeof (label_hash)))
           break;
