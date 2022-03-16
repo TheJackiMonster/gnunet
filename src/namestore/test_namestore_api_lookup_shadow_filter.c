@@ -32,7 +32,7 @@
 
 #define TEST_RECORD_TYPE GNUNET_DNSPARSER_TYPE_TXT
 
-#define TEST_NAME "dummy.dummy.gnunet"
+#define TEST_NAME "gnunet"
 #define TEST_RECORD_DATALEN 123
 #define TEST_RECORD_DATA 'a'
 #define TEST_SHADOW_RECORD_DATA 'b'

@@ -188,7 +188,7 @@ run (void *cls,
      struct GNUNET_TESTING_Peer *peer)
 {
   struct GNUNET_GNSRECORD_Data rd;
-  const char *name = "dummy.dummy.gnunet";
+  const char *name = "dummy";
 
   endbadly_task = GNUNET_SCHEDULER_add_delayed (TIMEOUT,
                                                 &endbadly,
