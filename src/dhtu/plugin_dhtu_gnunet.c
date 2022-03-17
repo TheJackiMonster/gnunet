@@ -70,11 +70,6 @@ struct GNUNET_DHTU_Source
 {
 
   /**
-   * Hash of @e pid, position of this peer in the DHT overlay.
-   */
-  struct GNUNET_DHTU_HashKey id;
-
-  /**
    * Application context for this source.
    */
   void *app_ctx;
@@ -123,11 +118,6 @@ struct GNUNET_DHTU_Target
    * Identity of this peer.
    */
   struct GNUNET_PeerIdentity pid;
-
-  /**
-   * Hash of @e pid, position of this peer in the DHT overlay.
-   */
-  struct GNUNET_DHTU_HashKey id;
 
   /**
    * Preference counter, length of the @a ph_head DLL.
@@ -240,27 +230,26 @@ hello_offered_cb (void *cls)
  * Request creation of a session with a peer at the given @a address.
  *
  * @param cls closure (internal context for the plugin)
+ * @param pid target identity of the peer to connect to
  * @param address target address to connect to
  */
 static void
-ip_try_connect (void *cls,
-                const char *address)
+gnunet_try_connect (void *cls,
+                    const struct GNUNET_PeerIdentity *pid,
+                    const char *address)
 {
   struct Plugin *plugin = cls;
   struct GNUNET_HELLO_Message *hello = NULL;
   struct HelloHandle *hh;
   struct GNUNET_CRYPTO_EddsaPublicKey pubkey;
 
+  (void) pid; /* will be needed with future address URIs */
   if (GNUNET_OK !=
       GNUNET_HELLO_parse_uri (address,
                               &pubkey,
                               &hello,
                               &GPI_plugins_find))
-  {
-    GNUNET_break (0);
     return;
-  }
-
   hh = GNUNET_new (struct HelloHandle);
   hh->plugin = plugin;
   GNUNET_CONTAINER_DLL_insert (plugin->hh_head,
@@ -283,8 +272,8 @@ ip_try_connect (void *cls,
  * @param target connection to keep alive
  */
 static struct GNUNET_DHTU_PreferenceHandle *
-ip_hold (void *cls,
-         struct GNUNET_DHTU_Target *target)
+gnunet_hold (void *cls,
+             struct GNUNET_DHTU_Target *target)
 {
   struct Plugin *plugin = cls;
   struct GNUNET_DHTU_PreferenceHandle *ph;
@@ -312,7 +301,7 @@ ip_hold (void *cls,
  * @param target connection to keep alive
  */
 static void
-ip_drop (struct GNUNET_DHTU_PreferenceHandle *ph)
+gnunet_drop (struct GNUNET_DHTU_PreferenceHandle *ph)
 {
   struct GNUNET_DHTU_Target *target = ph->target;
   struct Plugin *plugin = target->plugin;
@@ -350,12 +339,12 @@ ip_drop (struct GNUNET_DHTU_PreferenceHandle *ph)
  * @param finished_cb_cls closure for @a finished_cb
  */
 static void
-ip_send (void *cls,
-         struct GNUNET_DHTU_Target *target,
-         const void *msg,
-         size_t msg_size,
-         GNUNET_SCHEDULER_TaskCallback finished_cb,
-         void *finished_cb_cls)
+gnunet_send (void *cls,
+             struct GNUNET_DHTU_Target *target,
+             const void *msg,
+             size_t msg_size,
+             GNUNET_SCHEDULER_TaskCallback finished_cb,
+             void *finished_cb_cls)
 {
   struct GNUNET_MQ_Envelope *env;
   struct GNUNET_MessageHeader *cmsg;
@@ -394,12 +383,9 @@ core_connect_cb (void *cls,
   target->plugin = plugin;
   target->mq = mq;
   target->pid = *peer;
-  GNUNET_CRYPTO_hash (peer,
-                      sizeof (*peer),
-                      &target->id.sha512);
   plugin->env->connect_cb (plugin->env->cls,
                            target,
-                           &target->id,
+                           &target->pid,
                            &target->app_ctx);
   return target;
 }
@@ -461,11 +447,7 @@ peerinfo_cb (void *cls,
                                    &GPI_plugins_find);
   if (NULL == addr)
     return;
-  GNUNET_CRYPTO_hash (peer,
-                      sizeof (*peer),
-                      &plugin->src.id.sha512);
   plugin->env->address_add_cb (plugin->env->cls,
-                               &plugin->src.id,
                                addr,
                                &plugin->src,
                                &plugin->src.app_ctx);
@@ -584,6 +566,10 @@ libgnunet_plugin_dhtu_gnunet_done (void *cls)
   }
   if (NULL != plugin->nse)
     GNUNET_NSE_disconnect (plugin->nse);
+  plugin->env->network_size_cb (plugin->env->cls,
+                                GNUNET_TIME_UNIT_FOREVER_ABS,
+                                0.0,
+                                0.0);
   if (NULL != plugin->core)
     GNUNET_CORE_disconnect (plugin->core);
   if (NULL != plugin->ats)
@@ -604,7 +590,7 @@ libgnunet_plugin_dhtu_gnunet_done (void *cls)
  * @return the plugin's API
  */
 void *
-libgnunet_plugin_dhtu_ip_init (void *cls)
+libgnunet_plugin_dhtu_gnunet_init (void *cls)
 {
   struct GNUNET_DHTU_PluginEnvironment *env = cls;
   struct GNUNET_DHTU_PluginFunctions *api;
@@ -621,10 +607,10 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
   plugin->env = env;
   api = GNUNET_new (struct GNUNET_DHTU_PluginFunctions);
   api->cls = plugin;
-  api->try_connect = &ip_try_connect;
-  api->hold = &ip_hold;
-  api->drop = &ip_drop;
-  api->send = &ip_send;
+  api->try_connect = &gnunet_try_connect;
+  api->hold = &gnunet_hold;
+  api->drop = &gnunet_drop;
+  api->send = &gnunet_send;
   plugin->ats = GNUNET_ATS_connectivity_init (env->cfg);
   plugin->core = GNUNET_CORE_connect (env->cfg,
                                       plugin,
@@ -640,6 +626,7 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
        (NULL == plugin->nse) )
   {
     GNUNET_break (0);
+    GNUNET_free (api);
     libgnunet_plugin_dhtu_gnunet_done (plugin);
     return NULL;
   }

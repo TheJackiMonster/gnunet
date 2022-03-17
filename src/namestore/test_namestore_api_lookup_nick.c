@@ -262,12 +262,12 @@ nick_cont (void *cls, int32_t success, const char *emsg)
               "Nick added : %s\n",
               (success == GNUNET_OK) ? "SUCCESS" : "FAIL");
 
-  rd_orig.expiration_time = GNUNET_TIME_absolute_get ().abs_value_us;
+  rd_orig.expiration_time = GNUNET_TIME_UNIT_HOURS.rel_value_us;
   rd_orig.record_type = TEST_RECORD_TYPE;
   rd_orig.data_size = TEST_RECORD_DATALEN;
   record_data = GNUNET_malloc (TEST_RECORD_DATALEN);
   rd_orig.data = record_data;
-  rd_orig.flags = 0;
+  rd_orig.flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
   memset ((char *) rd_orig.data, 'a', TEST_RECORD_DATALEN);
 
   nsqe = GNUNET_NAMESTORE_records_store (nsh, &privkey,

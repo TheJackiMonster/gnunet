@@ -454,6 +454,7 @@ sqlite_plugin_del (void *cls)
  *
  * @param cls closure (internal context for the plugin)
  * @param key area of the keyspace to look into
+ * @param type desired block type for the replies
  * @param num_results number of results that should be returned to @a iter
  * @param iter maybe NULL (to just count)
  * @param iter_cls closure for @a iter
@@ -462,11 +463,13 @@ sqlite_plugin_del (void *cls)
 static unsigned int
 sqlite_plugin_get_closest (void *cls,
                            const struct GNUNET_HashCode *key,
+                           enum GNUNET_BLOCK_Type type,
                            unsigned int num_results,
                            GNUNET_DATACACHE_Iterator iter,
                            void *iter_cls)
 {
   struct Plugin *plugin = cls;
+  uint32_t type32 = type;
   uint32_t num_results32 = num_results;
   struct GNUNET_TIME_Absolute now;
   struct GNUNET_TIME_Absolute exp;
@@ -474,38 +477,46 @@ sqlite_plugin_get_closest (void *cls,
   void *dat;
   unsigned int cnt;
   size_t psize;
-  uint32_t type;
+  uint32_t rtype;
   struct GNUNET_HashCode hc;
   struct GNUNET_DHT_PathElement *path;
-  struct GNUNET_SQ_QueryParam params[] =
-  { GNUNET_SQ_query_param_auto_from_type (key),
+  struct GNUNET_SQ_QueryParam params[] = {
+    GNUNET_SQ_query_param_auto_from_type (key),
     GNUNET_SQ_query_param_absolute_time (&now),
+    GNUNET_SQ_query_param_uint32 (&type32),
     GNUNET_SQ_query_param_uint32 (&num_results32),
-    GNUNET_SQ_query_param_end };
-  struct GNUNET_SQ_ResultSpec rs[] =
-  { GNUNET_SQ_result_spec_variable_size (&dat, &size),
+    GNUNET_SQ_query_param_end
+  };
+  struct GNUNET_SQ_ResultSpec rs[] = {
+    GNUNET_SQ_result_spec_variable_size (&dat, &size),
     GNUNET_SQ_result_spec_absolute_time (&exp),
     GNUNET_SQ_result_spec_variable_size ((void **) &path, &psize),
-    GNUNET_SQ_result_spec_uint32 (&type),
+    GNUNET_SQ_result_spec_uint32 (&rtype),
     GNUNET_SQ_result_spec_auto_from_type (&hc),
-    GNUNET_SQ_result_spec_end };
+    GNUNET_SQ_result_spec_end
+  };
 
   now = GNUNET_TIME_absolute_get ();
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Processing GET_CLOSEST for key `%s'\n",
        GNUNET_h2s (key));
-  if (GNUNET_OK != GNUNET_SQ_bind (plugin->get_closest_stmt, params))
+  if (GNUNET_OK !=
+      GNUNET_SQ_bind (plugin->get_closest_stmt,
+                      params))
   {
     LOG_SQLITE (plugin->dbh,
                 GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
                 "sqlite3_bind_xxx");
-    GNUNET_SQ_reset (plugin->dbh, plugin->get_closest_stmt);
+    GNUNET_SQ_reset (plugin->dbh,
+                     plugin->get_closest_stmt);
     return 0;
   }
   cnt = 0;
   while (SQLITE_ROW == sqlite3_step (plugin->get_closest_stmt))
   {
-    if (GNUNET_OK != GNUNET_SQ_extract_result (plugin->get_closest_stmt, rs))
+    if (GNUNET_OK !=
+        GNUNET_SQ_extract_result (plugin->get_closest_stmt,
+                                  rs))
     {
       GNUNET_break (0);
       break;
@@ -522,14 +533,22 @@ sqlite_plugin_get_closest (void *cls,
          "Found %u-byte result at %s when processing GET_CLOSE\n",
          (unsigned int) size,
          GNUNET_h2s (&hc));
-    if (GNUNET_OK != iter (iter_cls, &hc, size, dat, type, exp, psize, path))
+    if (GNUNET_OK != iter (iter_cls,
+                           &hc,
+                           size,
+                           dat,
+                           rtype,
+                           exp,
+                           psize,
+                           path))
     {
       GNUNET_SQ_cleanup_result (rs);
       break;
     }
     GNUNET_SQ_cleanup_result (rs);
   }
-  GNUNET_SQ_reset (plugin->dbh, plugin->get_closest_stmt);
+  GNUNET_SQ_reset (plugin->dbh,
+                   plugin->get_closest_stmt);
   return cnt;
 }
 
@@ -620,7 +639,7 @@ libgnunet_plugin_datacache_sqlite_init (void *cls)
                    &plugin->get_stmt)) ||
       (SQLITE_OK != sq_prepare (plugin->dbh,
                                 "SELECT _ROWID_,key,value FROM ds091"
-                                " WHERE expire < ?"
+                                " WHERE expire < ?1"
                                 " ORDER BY expire ASC LIMIT 1",
                                 &plugin->del_expired_stmt)) ||
       (SQLITE_OK != sq_prepare (plugin->dbh,
@@ -632,8 +651,19 @@ libgnunet_plugin_datacache_sqlite_init (void *cls)
                                 &plugin->del_stmt)) ||
       (SQLITE_OK !=
        sq_prepare (plugin->dbh,
-                   "SELECT value,expire,path,type,key FROM ds091 "
-                   "WHERE key>=? AND expire >= ? ORDER BY KEY ASC LIMIT ?",
+                   "SELECT * FROM ("
+                   " SELECT value,expire,path,type,key FROM ds091 "
+                   " WHERE key>=?1 "
+                   "  AND expire >= ?2"
+                   "  AND ( (type=?3) or (0 == ?3) )"
+                   " ORDER BY KEY ASC LIMIT ?4)"
+                   "UNION "
+                   "SELECT * FROM ("
+                   " SELECT value,expire,path,type,key FROM ds091 "
+                   " WHERE key<=?1 "
+                   "  AND expire >= ?2"
+                   "  AND ( (type=?3) or (0 == ?3) )"
+                   " ORDER BY KEY DESC LIMIT ?4)",
                    &plugin->get_closest_stmt)))
   {
     LOG_SQLITE (plugin->dbh,

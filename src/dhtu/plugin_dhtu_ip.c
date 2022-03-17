@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet
-     Copyright (C) 2021 GNUnet e.V.
+     Copyright (C) 2021, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -56,17 +56,12 @@ struct GNUNET_DHTU_Source
   struct GNUNET_DHTU_Source *prev;
 
   /**
-   * Position of this peer in the DHT.
-   */
-  struct GNUNET_DHTU_HashKey id;
-
-  /**
    * Application context for this source.
    */
   void *app_ctx;
 
   /**
-   * Address in URL form ("ip+udp://$IP:$PORT")
+   * Address in URL form ("ip+udp://$PID/$IP:$PORT")
    */
   char *address;
 
@@ -121,9 +116,9 @@ struct GNUNET_DHTU_Target
   struct GNUNET_DHTU_PreferenceHandle *ph_tail;
 
   /**
-   * Position of this peer in the DHT.
+   * Peer's identity.
    */
-  struct GNUNET_DHTU_HashKey id;
+  struct GNUNET_PeerIdentity pid;
 
   /**
    * Target IP address.
@@ -217,14 +212,24 @@ struct Plugin
   char *port;
 
   /**
+   * My UDP socket.
+   */
+  struct GNUNET_NETWORK_Handle *sock;
+
+  /**
+   * My identity.
+   */
+  struct GNUNET_PeerIdentity my_id;
+
+  /**
    * How often have we scanned for IPs?
    */
   unsigned int scan_generation;
 
   /**
-   * My UDP socket.
+   * Port as a 16-bit value.
    */
-  struct GNUNET_NETWORK_Handle *sock;
+  uint16_t port16;
 };
 
 
@@ -232,18 +237,20 @@ struct Plugin
  * Create a target to which we may send traffic.
  *
  * @param plugin our plugin
+ * @param pid presumed identity of the target
  * @param addr target address
  * @param addrlen number of bytes in @a addr
  * @return new target object
  */
 static struct GNUNET_DHTU_Target *
 create_target (struct Plugin *plugin,
+               const struct GNUNET_PeerIdentity *pid,
                const struct sockaddr *addr,
                socklen_t addrlen)
 {
   struct GNUNET_DHTU_Target *dst;
 
-  if (MAX_DESTS >
+  if (MAX_DESTS <=
       GNUNET_CONTAINER_multihashmap_size (plugin->dsts))
   {
     struct GNUNET_HashCode key;
@@ -275,42 +282,16 @@ create_target (struct Plugin *plugin,
   }
   dst = GNUNET_new (struct GNUNET_DHTU_Target);
   dst->addrlen = addrlen;
+  dst->pid = *pid;
   memcpy (&dst->addr,
           addr,
           addrlen);
-  switch (addr->sa_family)
-  {
-  case AF_INET:
-    {
-      const struct sockaddr_in *s4 = (const struct sockaddr_in *) addr;
-
-      GNUNET_assert (sizeof (struct sockaddr_in) == addrlen);
-      GNUNET_CRYPTO_hash (&s4->sin_addr,
-                          sizeof (struct in_addr),
-                          &dst->id.sha512);
-    }
-    break;
-  case AF_INET6:
-    {
-      const struct sockaddr_in6 *s6 = (const struct sockaddr_in6 *) addr;
-
-      GNUNET_assert (sizeof (struct sockaddr_in6) == addrlen);
-      GNUNET_CRYPTO_hash (&s6->sin6_addr,
-                          sizeof (struct in6_addr),
-                          &dst->id.sha512);
-    }
-    break;
-  default:
-    GNUNET_break (0);
-    GNUNET_free (dst);
-    return NULL;
-  }
   GNUNET_CONTAINER_DLL_insert (plugin->dst_head,
                                plugin->dst_tail,
                                dst);
   plugin->env->connect_cb (plugin->env->cls,
                            dst,
-                           &dst->id,
+                           &dst->pid,
                            &dst->app_ctx);
   return dst;
 }
@@ -321,6 +302,7 @@ create_target (struct Plugin *plugin,
  * create one!
  *
  * @param plugin the plugin handle
+ * @param pid presumed identity of the target
  * @param src source target is from, or NULL if unknown
  * @param addr socket address to find
  * @param addrlen number of bytes in @a addr
@@ -328,6 +310,7 @@ create_target (struct Plugin *plugin,
  */
 static struct GNUNET_DHTU_Target *
 find_target (struct Plugin *plugin,
+             const struct GNUNET_PeerIdentity *pid,
              const void *addr,
              size_t addrlen)
 {
@@ -342,6 +325,7 @@ find_target (struct Plugin *plugin,
   if (NULL == dst)
   {
     dst = create_target (plugin,
+                         pid,
                          (const struct sockaddr *) addr,
                          addrlen);
     GNUNET_assert (GNUNET_YES ==
@@ -370,10 +354,12 @@ find_target (struct Plugin *plugin,
  * Request creation of a session with a peer at the given @a address.
  *
  * @param cls closure (internal context for the plugin)
+ * @param pid identity of the target peer
  * @param address target address to connect to
  */
 static void
 ip_try_connect (void *cls,
+                const struct GNUNET_PeerIdentity *pid,
                 const char *address)
 {
   struct Plugin *plugin = cls;
@@ -389,19 +375,13 @@ ip_try_connect (void *cls,
       strncmp (address,
                "ip+",
                strlen ("ip+")))
-  {
-    GNUNET_break (0);
     return;
-  }
   address += strlen ("ip+");
   if (0 !=
       strncmp (address,
                "udp://",
                strlen ("udp://")))
-  {
-    GNUNET_break (0);
     return;
-  }
   address += strlen ("udp://");
   addr = GNUNET_strdup (address);
   colon = strchr (addr, ':');
@@ -426,6 +406,7 @@ ip_try_connect (void *cls,
   }
   GNUNET_free (addr);
   (void) find_target (plugin,
+                      pid,
                       result->ai_addr,
                       result->ai_addrlen);
   freeaddrinfo (result);
@@ -499,10 +480,17 @@ ip_send (void *cls,
          void *finished_cb_cls)
 {
   struct Plugin *plugin = cls;
+  char buf[sizeof (plugin->my_id) + msg_size];
 
+  memcpy (buf,
+          &plugin->my_id,
+          sizeof (plugin->my_id));
+  memcpy (&buf[sizeof (plugin->my_id)],
+          msg,
+          msg_size);
   GNUNET_NETWORK_socket_sendto (plugin->sock,
-                                msg,
-                                msg_size,
+                                buf,
+                                sizeof (buf),
                                 (const struct sockaddr *) &target->addr,
                                 target->addrlen);
   finished_cb (finished_cb_cls);
@@ -538,9 +526,6 @@ create_source (struct Plugin *plugin,
       char buf[INET_ADDRSTRLEN];
 
       GNUNET_assert (sizeof (struct sockaddr_in) == addrlen);
-      GNUNET_CRYPTO_hash (&s4->sin_addr,
-                          sizeof (struct in_addr),
-                          &src->id.sha512);
       GNUNET_asprintf (&src->address,
                        "ip+udp://%s:%u",
                        inet_ntop (AF_INET,
@@ -556,9 +541,6 @@ create_source (struct Plugin *plugin,
       char buf[INET6_ADDRSTRLEN];
 
       GNUNET_assert (sizeof (struct sockaddr_in6) == addrlen);
-      GNUNET_CRYPTO_hash (&s6->sin6_addr,
-                          sizeof (struct in6_addr),
-                          &src->id.sha512);
       GNUNET_asprintf (&src->address,
                        "ip+udp://[%s]:%u",
                        inet_ntop (AF_INET6,
@@ -577,11 +559,105 @@ create_source (struct Plugin *plugin,
                                plugin->src_tail,
                                src);
   plugin->env->address_add_cb (plugin->env->cls,
-                               &src->id,
                                src->address,
                                src,
                                &src->app_ctx);
   return src;
+}
+
+
+/**
+ * Compare two addresses excluding the ports for equality. Only compares IP
+ * address. Must only be called on AF_INET or AF_INET6 addresses.
+ *
+ * @param a1 address to compare
+ * @param a2 address to compare
+ * @param alen number of bytes in @a a1 and @a a2
+ * @return 0 if @a a1 == @a a2.
+ */
+static int
+addrcmp_np (const struct sockaddr *a1,
+            const struct sockaddr *a2,
+            size_t alen)
+{
+  GNUNET_assert (a1->sa_family == a2->sa_family);
+  switch (a1->sa_family)
+  {
+  case AF_INET:
+    GNUNET_assert (sizeof (struct sockaddr_in) == alen);
+    {
+      const struct sockaddr_in *s1 = (const struct sockaddr_in *) a1;
+      const struct sockaddr_in *s2 = (const struct sockaddr_in *) a2;
+
+      if (s1->sin_addr.s_addr != s2->sin_addr.s_addr)
+        return 1;
+      break;
+    }
+  case AF_INET6:
+    GNUNET_assert (sizeof (struct sockaddr_in6) == alen);
+    {
+      const struct sockaddr_in6 *s1 = (const struct sockaddr_in6 *) a1;
+      const struct sockaddr_in6 *s2 = (const struct sockaddr_in6 *) a2;
+
+      if (0 != GNUNET_memcmp (&s1->sin6_addr,
+                              &s2->sin6_addr))
+        return 1;
+      break;
+    }
+  default:
+    GNUNET_assert (0);
+  }
+  return 0;
+}
+
+
+/**
+ * Compare two addresses for equality. Only
+ * compares IP address and port. Must only be
+ * called on AF_INET or AF_INET6 addresses.
+ *
+ * @param a1 address to compare
+ * @param a2 address to compare
+ * @param alen number of bytes in @a a1 and @a a2
+ * @return 0 if @a a1 == @a a2.
+ */
+static int
+addrcmp (const struct sockaddr *a1,
+         const struct sockaddr *a2,
+         size_t alen)
+{
+  GNUNET_assert (a1->sa_family == a2->sa_family);
+  switch (a1->sa_family)
+  {
+  case AF_INET:
+    GNUNET_assert (sizeof (struct sockaddr_in) == alen);
+    {
+      const struct sockaddr_in *s1 = (const struct sockaddr_in *) a1;
+      const struct sockaddr_in *s2 = (const struct sockaddr_in *) a2;
+
+      if (s1->sin_port != s2->sin_port)
+        return 1;
+      if (s1->sin_addr.s_addr != s2->sin_addr.s_addr)
+        return 1;
+      break;
+    }
+  case AF_INET6:
+    GNUNET_assert (sizeof (struct sockaddr_in6) == alen);
+    {
+      const struct sockaddr_in6 *s1 = (const struct sockaddr_in6 *) a1;
+      const struct sockaddr_in6 *s2 = (const struct sockaddr_in6 *) a2;
+
+      if (s1->sin6_port != s2->sin6_port)
+        return 1;
+      if (0 != GNUNET_memcmp (&s1->sin6_addr,
+                              &s2->sin6_addr))
+        return 1;
+      break;
+    }
+  default:
+    GNUNET_assert (0);
+  }
+  return 0;
 }
 
 
@@ -597,7 +673,7 @@ create_source (struct Plugin *plugin,
  * @param addrlen length of the address
  * @return #GNUNET_OK to continue iteration, #GNUNET_SYSERR to abort
  */
-static int
+static enum GNUNET_GenericReturnValue
 process_ifcs (void *cls,
               const char *name,
               int isDefault,
@@ -614,17 +690,45 @@ process_ifcs (void *cls,
        src = src->next)
   {
     if ( (addrlen == src->addrlen) &&
-         (0 == memcmp (addr,
-                       &src->addr,
-                       addrlen)) )
+         (0 == addrcmp_np (addr,
+                           (const struct sockaddr *) &src->addr,
+                           addrlen)) )
     {
       src->scan_generation = plugin->scan_generation;
       return GNUNET_OK;
     }
   }
-  (void) create_source (plugin,
-                        addr,
-                        addrlen);
+  switch (addr->sa_family)
+  {
+  case AF_INET:
+    {
+      struct sockaddr_in v4;
+
+      GNUNET_assert (sizeof(v4) == addrlen);
+      memcpy (&v4,
+              addr,
+              addrlen);
+      v4.sin_port = htons (plugin->port16);
+      (void) create_source (plugin,
+                            (const struct sockaddr *) &v4,
+                            sizeof (v4));
+      break;
+    }
+  case AF_INET6:
+    {
+      struct sockaddr_in6 v6;
+
+      GNUNET_assert (sizeof(v6) == addrlen);
+      memcpy (&v6,
+              addr,
+              addrlen);
+      v6.sin6_port = htons (plugin->port16);
+      (void) create_source (plugin,
+                            (const struct sockaddr *) &v6,
+                            sizeof (v6));
+      break;
+    }
+  }
   return GNUNET_OK;
 }
 
@@ -648,7 +752,7 @@ scan (void *cls)
        src = next)
   {
     next = src->next;
-    if (src->scan_generation == plugin->scan_generation)
+    if (src->scan_generation >= plugin->scan_generation)
       continue;
     GNUNET_CONTAINER_DLL_remove (plugin->src_head,
                                  plugin->src_tail,
@@ -682,9 +786,9 @@ find_source (struct Plugin *plugin,
        src = src->next)
   {
     if ( (addrlen == src->addrlen) &&
-         (0 == memcmp (addr,
-                       &src->addr,
-                       addrlen)) )
+         (0 == addrcmp (addr,
+                        (const struct sockaddr *) &src->addr,
+                        addrlen)) )
       return src;
   }
 
@@ -704,7 +808,8 @@ read_cb (void *cls)
 {
   struct Plugin *plugin = cls;
   ssize_t ret;
-  char buf[65536];
+  const struct GNUNET_PeerIdentity *pid;
+  char buf[65536] GNUNET_ALIGN;
   struct sockaddr_storage sa;
   struct iovec iov = {
     .iov_base = buf,
@@ -719,98 +824,120 @@ read_cb (void *cls)
     .msg_control = ctl,
     .msg_controllen = sizeof (ctl)
   };
+  struct GNUNET_DHTU_Target *dst = NULL;
+  struct GNUNET_DHTU_Source *src = NULL;
 
   ret = recvmsg  (GNUNET_NETWORK_get_fd (plugin->sock),
                   &mh,
                   MSG_DONTWAIT);
-  if (ret >= 0)
-  {
-    struct GNUNET_DHTU_Target *dst = NULL;
-    struct GNUNET_DHTU_Source *src = NULL;
-    struct cmsghdr *cmsg;
-
-    /* find IP where we received message */
-    for (cmsg = CMSG_FIRSTHDR (&mh);
-         NULL != cmsg;
-         cmsg = CMSG_NXTHDR (&mh,
-                             cmsg))
-    {
-      if ( (cmsg->cmsg_level == IPPROTO_IP) &&
-           (cmsg->cmsg_type == IP_PKTINFO) )
-      {
-        if (CMSG_LEN (sizeof (struct in_pktinfo)) ==
-            cmsg->cmsg_len)
-        {
-          struct in_pktinfo pi;
-
-          memcpy (&pi,
-                  CMSG_DATA (cmsg),
-                  sizeof (pi));
-          {
-            struct sockaddr_in sa = {
-              .sin_family = AF_INET,
-              .sin_addr = pi.ipi_addr
-            };
-
-            src = find_source (plugin,
-                               &sa,
-                               sizeof (sa));
-          }
-          break;
-        }
-        else
-          GNUNET_break (0);
-      }
-      if ( (cmsg->cmsg_level == IPPROTO_IPV6) &&
-           (cmsg->cmsg_type == IPV6_RECVPKTINFO) )
-      {
-        if (CMSG_LEN (sizeof (struct in6_pktinfo)) ==
-            cmsg->cmsg_len)
-        {
-          struct in6_pktinfo pi;
-
-          memcpy (&pi,
-                  CMSG_DATA (cmsg),
-                  sizeof (pi));
-          {
-            struct sockaddr_in6 sa = {
-              .sin6_family = AF_INET6,
-              .sin6_addr = pi.ipi6_addr,
-              .sin6_scope_id = pi.ipi6_ifindex
-            };
-
-            src = find_source (plugin,
-                               &sa,
-                               sizeof (sa));
-            break;
-          }
-        }
-        else
-          GNUNET_break (0);
-      }
-    }
-    dst = find_target (plugin,
-                       &sa,
-                       mh.msg_namelen);
-    if ( (NULL == src) ||
-         (NULL == dst) )
-    {
-      GNUNET_break (0);
-    }
-    else
-    {
-      plugin->env->receive_cb (plugin->env->cls,
-                               dst->app_ctx,
-                               src->app_ctx,
-                               buf,
-                               ret);
-    }
-  }
   plugin->read_task = GNUNET_SCHEDULER_add_read_net (
     GNUNET_TIME_UNIT_FOREVER_REL,
     plugin->sock,
     &read_cb,
     plugin);
+  if (ret < 0)
+    return; /* read failure, hopefully EAGAIN */
+  if (ret < sizeof (*pid))
+  {
+    GNUNET_break_op (0);
+    return;
+  }
+  /* find IP where we received message */
+  for (struct cmsghdr *cmsg = CMSG_FIRSTHDR (&mh);
+       NULL != cmsg;
+       cmsg = CMSG_NXTHDR (&mh,
+                           cmsg))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                "Got CMSG level %u (%d/%d), type %u (%d/%d)\n",
+                cmsg->cmsg_level,
+                (cmsg->cmsg_level == IPPROTO_IP),
+                (cmsg->cmsg_level == IPPROTO_IPV6),
+                cmsg->cmsg_type,
+                (cmsg->cmsg_type == IP_PKTINFO),
+                (cmsg->cmsg_type == IPV6_PKTINFO));
+    if ( (cmsg->cmsg_level == IPPROTO_IP) &&
+         (cmsg->cmsg_type == IP_PKTINFO) )
+    {
+      if (CMSG_LEN (sizeof (struct in_pktinfo)) ==
+          cmsg->cmsg_len)
+      {
+        struct in_pktinfo pi;
+
+        memcpy (&pi,
+                CMSG_DATA (cmsg),
+                sizeof (pi));
+        {
+          struct sockaddr_in sa = {
+            .sin_family = AF_INET,
+            .sin_addr = pi.ipi_addr,
+            .sin_port = htons (plugin->port16)
+          };
+
+          src = find_source (plugin,
+                             &sa,
+                             sizeof (sa));
+          /* For sources we discovered by reading,
+             force the generation far into the future */
+          src->scan_generation = plugin->scan_generation + 60;
+        }
+        break;
+      }
+      else
+        GNUNET_break (0);
+    }
+    if ( (cmsg->cmsg_level == IPPROTO_IPV6) &&
+         (cmsg->cmsg_type == IPV6_PKTINFO) )
+    {
+      if (CMSG_LEN (sizeof (struct in6_pktinfo)) ==
+          cmsg->cmsg_len)
+      {
+        struct in6_pktinfo pi;
+
+        memcpy (&pi,
+                CMSG_DATA (cmsg),
+                sizeof (pi));
+        {
+          struct sockaddr_in6 sa = {
+            .sin6_family = AF_INET6,
+            .sin6_addr = pi.ipi6_addr,
+            .sin6_port = htons (plugin->port16),
+            .sin6_scope_id = pi.ipi6_ifindex
+          };
+
+          src = find_source (plugin,
+                             &sa,
+                             sizeof (sa));
+          /* For sources we discovered by reading,
+             force the generation far into the future */
+          src->scan_generation = plugin->scan_generation + 60;
+          break;
+        }
+      }
+      else
+        GNUNET_break (0);
+    }
+  }
+  if (NULL == src)
+  {
+    GNUNET_break (0);
+    return;
+  }
+  pid = (const struct GNUNET_PeerIdentity *) buf;
+  dst = find_target (plugin,
+                     pid,
+                     &sa,
+                     mh.msg_namelen);
+  if (NULL == dst)
+  {
+    GNUNET_break (0);
+    return;
+  }
+  plugin->env->receive_cb (plugin->env->cls,
+                           &dst->app_ctx,
+                           &src->app_ctx,
+                           &buf[sizeof(*pid)],
+                           ret - sizeof (*pid));
 }
 
 
@@ -874,6 +1001,14 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
   plugin = GNUNET_new (struct Plugin);
   plugin->env = env;
   plugin->port = port;
+  plugin->port16 = (uint16_t) nport;
+  if (GNUNET_OK !=
+      GNUNET_CRYPTO_get_peer_identity (env->cfg,
+                                       &plugin->my_id))
+  {
+    GNUNET_free (plugin);
+    return NULL;
+  }
   af = AF_INET6;
   sock = socket (af,
                  SOCK_DGRAM,
@@ -1017,9 +1152,18 @@ libgnunet_plugin_dhtu_ip_done (void *cls)
     GNUNET_free (src->address);
     GNUNET_free (src);
   }
+  plugin->env->network_size_cb (plugin->env->cls,
+                                GNUNET_TIME_UNIT_FOREVER_ABS,
+                                0.0,
+                                0.0);
   GNUNET_CONTAINER_multihashmap_destroy (plugin->dsts);
+  if (NULL != plugin->read_task)
+  {
+    GNUNET_SCHEDULER_cancel (plugin->read_task);
+    plugin->read_task = NULL;
+  }
   GNUNET_SCHEDULER_cancel (plugin->scan_task);
-  GNUNET_break (0 ==
+  GNUNET_break (GNUNET_OK ==
                 GNUNET_NETWORK_socket_close (plugin->sock));
   GNUNET_free (plugin->port);
   GNUNET_free (plugin);

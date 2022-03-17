@@ -153,10 +153,10 @@ extern "C" {
  ******************************************************************************/
 
 /**
- * Previously used for HELLO messages used for communicating peer addresses.
+ * Latest HELLO messages used for communicating peer addresses.
  * Managed by libgnunethello.
  */
-#define GNUNET_MESSAGE_TYPE_HELLO_LEGACY 16
+#define GNUNET_MESSAGE_TYPE_HELLO_URI 16
 
 /**
  * HELLO message with friend only flag used for communicating peer addresses.
@@ -660,13 +660,26 @@ extern "C" {
 #define GNUNET_MESSAGE_TYPE_DHT_CLIENT_GET_RESULTS_KNOWN 156
 
 /**
- * DHT wants to use CORE to transmit data.
+ * HELLO advertising a neighbours addresses.
  */
-#define GNUNET_MESSAGE_TYPE_DHT_CORE 143
+#define GNUNET_MESSAGE_TYPE_DHT_P2P_HELLO 157
 
 /**
- * Further X-VINE DHT messages continued from 880
+ * Encapsulation of DHT messages in CORE service.
  */
+#define GNUNET_MESSAGE_TYPE_DHT_CORE 158
+
+/**
+ * HELLO URL send between client and service (in
+ * either direction).
+ */
+#define GNUNET_MESSAGE_TYPE_DHT_CLIENT_HELLO_URL 159
+
+/**
+ * Client requests DHT service's HELLO URL.
+ */
+#define GNUNET_MESSAGE_TYPE_DHT_CLIENT_HELLO_GET 161
+
 
 /*******************************************************************************
  * HOSTLIST message types
@@ -1794,7 +1807,6 @@ extern "C" {
  */
 
 #define GNUNET_MESSAGE_TYPE_SETU_P2P_SEND_FULL 710
-
 
 
 /*******************************************************************************

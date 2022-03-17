@@ -154,6 +154,7 @@ GNUNET_DATACACHE_get (struct GNUNET_DATACACHE_Handle *h,
  *
  * @param h handle to the datacache
  * @param key area of the keyspace to look into
+ * @param type entries of which type are relevant?
  * @param num_results number of results that should be returned to @a iter
  * @param iter maybe NULL (to just count)
  * @param iter_cls closure for @a iter
@@ -162,6 +163,7 @@ GNUNET_DATACACHE_get (struct GNUNET_DATACACHE_Handle *h,
 unsigned int
 GNUNET_DATACACHE_get_closest (struct GNUNET_DATACACHE_Handle *h,
                               const struct GNUNET_HashCode *key,
+                              enum GNUNET_BLOCK_Type type,
                               unsigned int num_results,
                               GNUNET_DATACACHE_Iterator iter,
                               void *iter_cls);

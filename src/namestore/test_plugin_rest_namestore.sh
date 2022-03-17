@@ -78,15 +78,16 @@ curl_delete () {
 
 TEST_ID="test"
 gnunet-arm -s -c test_namestore_api.conf
-gnunet-arm -i rest -c test_namestore_api.conf
 #Test GET
 gnunet-identity -C $TEST_ID -c test_namestore_api.conf
 test="$(gnunet-namestore -D -z $TEST_ID -c test_namestore_api.conf)"
 name=$TEST_ID
 public="$(gnunet-identity -d -c test_namestore_api.conf | grep $TEST_ID | awk 'NR==1{print $3}')"
 echo "$name $public"
-valgrind gnunet-namestore -z $name -p -a -n "test_entry" -e "1d" -V "000G006WVZ8HQ5YTVFNX09HK0VJVVQ9ZCBYDSCH3ERT04N5ZRBKEB82EP8" -t "PKEY" -c test_namestore_api.conf
-#curl_get "${namestore_link}" "HTTP/1.1 200 OK"
+gnunet-namestore -z $name -p -a -n "test_entry" -e "1d" -V "000G006WVZ8HQ5YTVFNX09HK0VJVVQ9ZCBYDSCH3ERT04N5ZRBKEB82EP8" -t "PKEY" -c test_namestore_api.conf
+sleep 1
+gnunet-arm -i rest -c test_namestore_api.conf
+sleep 1
 curl_get "${namestore_link}/$name" "HTTP/1.1 200 OK"
 curl_get "${namestore_link}/$public" "error"
 gnunet-namestore -z $name -d -n "test_entry" -c test_namestore_api.conf
@@ -128,9 +129,6 @@ gnunet-namestore -z $name -d -n "test_entry"  -c test_namestore_api.conf > /dev/
 #Test DELETE
 gnunet-namestore -z $name -p -a -n "test_entry" -e "1d" -V "000G006WVZ8HQ5YTVFNX09HK0VJVVQ9ZCBYDSCH3ERT04N5ZRBKEB82EP8" -t "PKEY"  -c test_namestore_api.conf
 curl_delete "${namestore_link}/$name/test_entry" "HTTP/1.1 204" 
-curl_delete "${namestore_link}/$name/test_entry" "error" 
-gnunet-namestore -z $name -p -a -n "test_entry" -e "1d" -V "000G006WVZ8HQ5YTVFNX09HK0VJVVQ9ZCBYDSCH3ERT04N5ZRBKEB82EP8" -t "PKEY"  -c test_namestore_api.conf
-curl_delete "${namestore_link}/$public/test_entry" "error" 
 
 gnunet-arm -e  -c test_namestore_api.conf
 exit 0;

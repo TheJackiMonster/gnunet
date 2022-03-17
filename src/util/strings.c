@@ -390,7 +390,7 @@ GNUNET_STRINGS_conv (const char *input,
   ret[encoded_string_length] = '\0';
   free (encoded_string);
   return ret;
-fail:
+  fail:
   LOG (GNUNET_ERROR_TYPE_WARNING,
        _ ("Character sets requested were `%s'->`%s'\n"),
        "UTF-8",
@@ -426,24 +426,27 @@ GNUNET_STRINGS_from_utf8 (const char *input,
 }
 
 
-void
-GNUNET_STRINGS_utf8_normalize (const char *input,
-                               char *output)
+char *
+GNUNET_STRINGS_utf8_normalize (const char *input)
 {
   uint8_t *tmp;
   size_t len;
-
+  char *output;
   tmp = u8_normalize (UNINORM_NFC,
                       (uint8_t *) input,
                       strlen ((char*) input),
                       NULL,
                       &len);
+  if (NULL == tmp)
+    return NULL;
+  output = GNUNET_malloc (len + 1);
   GNUNET_memcpy (output, tmp, len);
   output[len] = '\0';
   free (tmp);
+  return output;
 }
 
-void
+enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_utf8_tolower (const char *input,
                              char *output)
 {
@@ -456,13 +459,16 @@ GNUNET_STRINGS_utf8_tolower (const char *input,
                        UNINORM_NFD,
                        NULL,
                        &len);
+  if (NULL == tmp_in)
+    return GNUNET_SYSERR;
   GNUNET_memcpy (output, tmp_in, len);
   output[len] = '\0';
-  free (tmp_in);
+  GNUNET_free (tmp_in);
+  return GNUNET_OK;
 }
 
 
-void
+enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_utf8_toupper (const char *input,
                              char *output)
 {
@@ -475,9 +481,13 @@ GNUNET_STRINGS_utf8_toupper (const char *input,
                        UNINORM_NFD,
                        NULL,
                        &len);
+  if (NULL == tmp_in)
+    return GNUNET_SYSERR;
+  /* 0-terminator does not fit */
   GNUNET_memcpy (output, tmp_in, len);
   output[len] = '\0';
-  free (tmp_in);
+  GNUNET_free (tmp_in);
+  return GNUNET_OK;
 }
 
 
@@ -1604,7 +1614,7 @@ GNUNET_STRINGS_base64_encode (const void *in,
   char *opt;
 
   ret = 0;
-  GNUNET_assert (len < SIZE_MAX / 4 * 3 );
+  GNUNET_assert (len < SIZE_MAX / 4 * 3);
   opt = GNUNET_malloc (2 + (len * 4 / 3) + 8);
   for (size_t i = 0; i < len; ++i)
   {
@@ -1741,7 +1751,7 @@ GNUNET_STRINGS_base64_decode (const char *data,
       output[ret++] = c;
     }
   }
-END:
+  END:
   *out = output;
   return ret;
 }
@@ -1803,12 +1813,19 @@ GNUNET_STRINGS_urldecode (const char *data,
   char *wpos = *out;
   size_t resl = 0;
 
-  while ('\0' != *rpos)
+  while ( ('\0' != *rpos) &&
+          (data + len != rpos) )
   {
     unsigned int num;
     switch (*rpos)
     {
     case '%':
+      if (rpos + 3 > data + len)
+      {
+        GNUNET_break_op (0);
+        GNUNET_free (*out);
+        return 0;
+      }
       if (1 != sscanf (rpos + 1, "%2x", &num))
         break;
       *wpos = (char) ((unsigned char) num);

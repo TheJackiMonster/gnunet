@@ -31,6 +31,12 @@ GNUNET_JSON_pack_ (struct GNUNET_JSON_PackSpec spec[])
 {
   json_t *ret;
 
+  if (NULL == spec[0].field_name)
+  {
+    ret = spec[0].object;
+    spec[0].object = NULL;
+    return ret;
+  }
   ret = json_object ();
   GNUNET_assert (NULL != ret);
   for (unsigned int i = 0;

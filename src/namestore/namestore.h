@@ -68,6 +68,11 @@ struct RecordStoreMessage
   struct GNUNET_TIME_AbsoluteNBO expire;
 
   /**
+   * Unock the label with this request.
+   */
+  uint32_t locking GNUNET_PACKED;
+
+  /**
    * Name length
    */
   uint16_t name_len GNUNET_PACKED;
@@ -83,7 +88,7 @@ struct RecordStoreMessage
   uint16_t rd_count GNUNET_PACKED;
 
   /**
-   * always zero (for alignment)
+   * Reserved for alignment.
    */
   uint16_t reserved GNUNET_PACKED;
 
@@ -113,6 +118,20 @@ struct RecordStoreResponseMessage
    * #GNUNET_SYSERR on failure, #GNUNET_OK on success
    */
   int32_t op_result GNUNET_PACKED;
+
+  /**
+   * Error message length
+   */
+  uint16_t emsg_len GNUNET_PACKED;
+
+  /**
+   * Reserved for alignment.
+   */
+  uint16_t reserved GNUNET_PACKED;
+
+  /**
+   * Followed by error message
+   */
 };
 
 
@@ -130,6 +149,11 @@ struct LabelLookupMessage
    * Length of the name
    */
   uint32_t label_len GNUNET_PACKED;
+
+  /**
+   * Lock the label with this lookup
+   */
+  uint32_t locking GNUNET_PACKED;
 
   /**
    * The private key of the zone to look up in
@@ -171,7 +195,7 @@ struct LabelLookupResponseMessage
    * Was the label found in the database??
    * #GNUNET_YES or #GNUNET_NO
    */
-  uint16_t found GNUNET_PACKED;
+  int16_t found GNUNET_PACKED;
 
   /**
    * The private key of the authority.

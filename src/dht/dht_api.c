@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2009, 2010, 2011, 2012, 2016, 2018 GNUnet e.V.
+     Copyright (C) 2009-2012, 2016, 2018, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -197,6 +197,40 @@ struct GNUNET_DHT_MonitorHandle
 
 
 /**
+ * Handle to get a HELLO URL from the DHT for manual bootstrapping.
+ */
+struct GNUNET_DHT_HelloGetHandle
+{
+
+  /**
+   * DLL.
+   */
+  struct GNUNET_DHT_HelloGetHandle *next;
+
+  /**
+   * DLL.
+   */
+  struct GNUNET_DHT_HelloGetHandle *prev;
+
+  /**
+   * Function to call with the result.
+   */
+  GNUNET_DHT_HelloGetCallback cb;
+
+  /**
+   * Closure for @a cb.
+   */
+  void *cb_cls;
+
+  /**
+   * Connection to the DHT service.
+   */
+  struct GNUNET_DHT_Handle *dht_handle;
+
+};
+
+
+/**
  * Connection to the DHT service.
  */
 struct GNUNET_DHT_Handle
@@ -230,6 +264,16 @@ struct GNUNET_DHT_Handle
    * Tail of active PUT requests.
    */
   struct GNUNET_DHT_PutHandle *put_tail;
+
+  /**
+   * DLL.
+   */
+  struct GNUNET_DHT_HelloGetHandle *hgh_head;
+
+  /**
+   * DLL.
+   */
+  struct GNUNET_DHT_HelloGetHandle *hgh_tail;
 
   /**
    * Hash map containing the current outstanding unique GET requests
@@ -517,9 +561,10 @@ handle_monitor_get (void *cls,
                     const struct GNUNET_DHT_MonitorGetMessage *msg)
 {
   struct GNUNET_DHT_Handle *handle = cls;
-  struct GNUNET_DHT_MonitorHandle *mh;
 
-  for (mh = handle->monitor_head; NULL != mh; mh = mh->next)
+  for (struct GNUNET_DHT_MonitorHandle *mh = handle->monitor_head;
+       NULL != mh;
+       mh = mh->next)
   {
     if (NULL == mh->get_cb)
       continue;
@@ -582,10 +627,12 @@ handle_monitor_get_resp (void *cls,
   const struct GNUNET_DHT_PathElement *path;
   uint32_t getl = ntohl (msg->get_path_length);
   uint32_t putl = ntohl (msg->put_path_length);
-  struct GNUNET_DHT_MonitorHandle *mh;
+
 
   path = (const struct GNUNET_DHT_PathElement *) &msg[1];
-  for (mh = handle->monitor_head; NULL != mh; mh = mh->next)
+  for (struct GNUNET_DHT_MonitorHandle *mh = handle->monitor_head;
+       NULL != mh;
+       mh = mh->next)
   {
     if (NULL == mh->get_resp_cb)
       continue;
@@ -597,9 +644,9 @@ handle_monitor_get_resp (void *cls,
                        sizeof(struct GNUNET_HashCode)))))
       mh->get_resp_cb (mh->cb_cls,
                        (enum GNUNET_BLOCK_Type) ntohl (msg->type),
-                       path,
+                       &path[putl],
                        getl,
-                       &path[getl],
+                       path,
                        putl,
                        GNUNET_TIME_absolute_ntoh (msg->expiration_time),
                        &msg->key,
@@ -726,14 +773,21 @@ process_client_result (void *cls,
   const struct GNUNET_DHT_ClientResultMessage *crm = cls;
   struct GNUNET_DHT_GetHandle *get_handle = value;
   size_t msize = ntohs (crm->header.size) - sizeof(*crm);
+  uint16_t type = ntohl (crm->type);
   uint32_t put_path_length = ntohl (crm->put_path_length);
   uint32_t get_path_length = ntohl (crm->get_path_length);
-  const struct GNUNET_DHT_PathElement *put_path;
-  const struct GNUNET_DHT_PathElement *get_path;
+  const struct GNUNET_DHT_PathElement *put_path
+    = (const struct GNUNET_DHT_PathElement *) &crm[1];
+  const struct GNUNET_DHT_PathElement *get_path
+    = &put_path[put_path_length];
+  const void *data
+    = &get_path[get_path_length];
+  size_t meta_length
+    = sizeof(struct GNUNET_DHT_PathElement) * (get_path_length
+                                               + put_path_length);
+  size_t data_length
+    = msize - meta_length;
   struct GNUNET_HashCode hc;
-  size_t data_length;
-  size_t meta_length;
-  const void *data;
 
   if (crm->unique_id != get_handle->unique_id)
   {
@@ -745,12 +799,14 @@ process_client_result (void *cls,
          (unsigned long long) get_handle->unique_id);
     return GNUNET_YES;
   }
-  /* FIXME: might want to check that type matches */
-  meta_length =
-    sizeof(struct GNUNET_DHT_PathElement) * (get_path_length + put_path_length);
-  data_length = msize - meta_length;
-  put_path = (const struct GNUNET_DHT_PathElement *) &crm[1];
-  get_path = &put_path[put_path_length];
+  if ( (get_handle->type != GNUNET_BLOCK_TYPE_ANY) &&
+       (get_handle->type != type) )
+  {
+    /* type mismatch */
+    GNUNET_break (0);
+    return GNUNET_YES;
+  }
+
   {
     char *pp;
     char *gp;
@@ -768,7 +824,6 @@ process_client_result (void *cls,
     GNUNET_free (gp);
     GNUNET_free (pp);
   }
-  data = &get_path[get_path_length];
   /* remember that we've seen this result */
   GNUNET_CRYPTO_hash (data,
                       data_length,
@@ -786,7 +841,7 @@ process_client_result (void *cls,
                     get_path_length,
                     put_path,
                     put_path_length,
-                    ntohl (crm->type),
+                    type,
                     data_length,
                     data);
   return GNUNET_YES;
@@ -809,6 +864,53 @@ handle_client_result (void *cls,
                                               &msg->key,
                                               &process_client_result,
                                               (void *) msg);
+}
+
+
+/**
+ * Process a client HELLO message received from the service.
+ *
+ * @param cls The DHT handle.
+ * @param hdr HELLO URL message from the service.
+ * @return #GNUNET_OK if @a hdr is well-formed
+ */
+static enum GNUNET_GenericReturnValue
+check_client_hello (void *cls,
+                    const struct GNUNET_MessageHeader *hdr)
+{
+  uint16_t len = ntohs (hdr->size);
+  const char *buf = (const char *) &hdr[1];
+
+  (void) cls;
+  if ('\0' != buf[len - sizeof (*hdr) - 1])
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
+}
+
+
+/**
+ * Process a client HELLO message received from the service.
+ *
+ * @param cls The DHT handle.
+ * @param hdr HELLO URL message from the service.
+ */
+static void
+handle_client_hello (void *cls,
+                     const struct GNUNET_MessageHeader *hdr)
+{
+  struct GNUNET_DHT_Handle *handle = cls;
+  const char *url = (const char *) &hdr[1];
+  struct GNUNET_DHT_HelloGetHandle *hgh;
+
+  while (NULL != (hgh = handle->hgh_head))
+  {
+    hgh->cb (hgh->cb_cls,
+             url);
+    GNUNET_DHT_hello_get_cancel (hgh);
+  }
 }
 
 
@@ -858,6 +960,10 @@ try_connect (struct GNUNET_DHT_Handle *h)
     GNUNET_MQ_hd_var_size (client_result,
                            GNUNET_MESSAGE_TYPE_DHT_CLIENT_RESULT,
                            struct GNUNET_DHT_ClientResultMessage,
+                           h),
+    GNUNET_MQ_hd_var_size (client_hello,
+                           GNUNET_MESSAGE_TYPE_DHT_CLIENT_HELLO_URL,
+                           struct GNUNET_MessageHeader,
                            h),
     GNUNET_MQ_handler_end ()
   };
@@ -1194,8 +1300,7 @@ GNUNET_DHT_pp2s (const struct GNUNET_DHT_PathElement *path,
 
 
 unsigned int
-GNUNET_DHT_verify_path (const struct GNUNET_HashCode *key,
-                        const void *data,
+GNUNET_DHT_verify_path (const void *data,
                         size_t data_size,
                         struct GNUNET_TIME_Absolute exp_time,
                         const struct GNUNET_DHT_PathElement *put_path,
@@ -1207,46 +1312,124 @@ GNUNET_DHT_verify_path (const struct GNUNET_HashCode *key,
   struct GNUNET_DHT_HopSignature hs = {
     .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DHT_HOP),
     .purpose.size = htonl (sizeof (hs)),
-    .expiration_time = GNUNET_TIME_absolute_hton (exp_time),
-    .key = *key,
+    .expiration_time = GNUNET_TIME_absolute_hton (exp_time)
   };
+  const struct GNUNET_PeerIdentity *pred;
+  const struct GNUNET_PeerIdentity *succ;
   unsigned int i;
 
   if (0 == get_path_len + put_path_len)
     return 0;
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              "Verifying signatures with GPL: %u PPL: %u!\n",
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "%s is verifying signatures with GPL: %u PPL: %u!\n",
+              GNUNET_i2s (me),
               get_path_len,
               put_path_len);
+  for (unsigned int j = 0; j<put_path_len; j++)
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "PP%u=%s\n",
+                j,
+                GNUNET_i2s (&put_path[j].pred));
+  for (unsigned int j = 0; j<get_path_len; j++)
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "GP%u=%s\n",
+                j,
+                GNUNET_i2s (&get_path[j].pred));
+
   i = put_path_len + get_path_len - 1;
   GNUNET_CRYPTO_hash (data,
                       data_size,
                       &hs.h_data);
   while (i > 0)
   {
-    hs.pred = (i - 1 >= put_path_len)
-      ? get_path[i - put_path_len - 1].pred
-      : put_path[i - 1].pred;
+    pred = (i - 1 >= put_path_len)
+      ? &get_path[i - put_path_len - 1].pred
+      : &put_path[i - 1].pred;
     if (i + 1 == get_path_len + put_path_len)
-      hs.succ = *me;
+      succ = me;
     else
-      hs.succ = (i + 1 >= put_path_len)
-        ? get_path[i + 1 - put_path_len].pred
-        : put_path[i + 1].pred;
+      succ = (i + 1 >= put_path_len)
+        ? &get_path[i + 1 - put_path_len].pred
+        : &put_path[i + 1].pred;
+    hs.pred = *pred;
+    hs.succ = *succ;
     if (GNUNET_OK !=
         GNUNET_CRYPTO_eddsa_verify (
           GNUNET_SIGNATURE_PURPOSE_DHT_HOP,
           &hs,
           (i - 1 >= put_path_len)
-          ? &get_path[i - put_path_len - 1].sig
+            ? &get_path[i - put_path_len - 1].sig
           : &put_path[i - 1].sig,
           (i >= put_path_len)
           ? &get_path[i - put_path_len].pred.public_key
           : &put_path[i].pred.public_key))
+    {
+      GNUNET_break_op (0);
       return i;
+    }
     i--;
   }
   return i;
+}
+
+
+struct GNUNET_DHT_HelloGetHandle *
+GNUNET_DHT_hello_get (struct GNUNET_DHT_Handle *dht_handle,
+                      GNUNET_DHT_HelloGetCallback cb,
+                      void *cb_cls)
+{
+  struct GNUNET_DHT_HelloGetHandle *hgh;
+  struct GNUNET_MessageHeader *hdr;
+  struct GNUNET_MQ_Envelope *env;
+
+  hgh = GNUNET_new (struct GNUNET_DHT_HelloGetHandle);
+  hgh->cb = cb;
+  hgh->cb_cls = cb_cls;
+  hgh->dht_handle = dht_handle;
+  GNUNET_CONTAINER_DLL_insert (dht_handle->hgh_head,
+                               dht_handle->hgh_tail,
+                               hgh);
+  env = GNUNET_MQ_msg (hdr,
+                       GNUNET_MESSAGE_TYPE_DHT_CLIENT_HELLO_GET);
+  GNUNET_MQ_send (dht_handle->mq,
+                  env);
+  return hgh;
+}
+
+
+void
+GNUNET_DHT_hello_get_cancel (struct GNUNET_DHT_HelloGetHandle *hgh)
+{
+  struct GNUNET_DHT_Handle *dht_handle = hgh->dht_handle;
+
+  GNUNET_CONTAINER_DLL_remove (dht_handle->hgh_head,
+                               dht_handle->hgh_tail,
+                               hgh);
+  GNUNET_free (hgh);
+}
+
+
+void
+GNUNET_DHT_hello_offer (struct GNUNET_DHT_Handle *dht_handle,
+                        const char *url,
+                        GNUNET_SCHEDULER_TaskCallback cb,
+                        void *cb_cls)
+{
+  struct GNUNET_MessageHeader *hdr;
+  size_t slen = strlen (url) + 1;
+  struct GNUNET_MQ_Envelope *env;
+
+  env = GNUNET_MQ_msg_extra (hdr,
+                             slen,
+                             GNUNET_MESSAGE_TYPE_DHT_CLIENT_HELLO_URL);
+  memcpy (&hdr[1],
+          url,
+          slen);
+  GNUNET_MQ_notify_sent (env,
+                         cb,
+                         cb_cls);
+  GNUNET_MQ_send (dht_handle->mq,
+                  env);
 }
 
 

@@ -321,6 +321,28 @@ log_rotate (const char *new_name)
 }
 
 
+const char *
+GNUNET_b2s (const void *buf,
+            size_t buf_size)
+{
+  static GNUNET_THREAD_LOCAL char ret[9];
+  struct GNUNET_HashCode hc;
+  char *tmp;
+
+  GNUNET_CRYPTO_hash (buf,
+                      buf_size,
+                      &hc);
+  tmp = GNUNET_STRINGS_data_to_string_alloc (&hc,
+                                             sizeof (hc));
+  memcpy (ret,
+          tmp,
+          8);
+  GNUNET_free (tmp);
+  ret[8] = '\0';
+  return ret;
+}
+
+
 /**
  * Setup the log file.
  *
@@ -1015,7 +1037,8 @@ mylog (enum GNUNET_ErrorType kind,
     else
     {
       /* RFC 3339 timestamp, with snprintf placeholder for microseconds */
-      if (0 == strftime (date2, DATE_STR_SIZE, "%Y-%m-%dT%H:%M:%S.%%06u%z", tmptr))
+      if (0 == strftime (date2, DATE_STR_SIZE, "%Y-%m-%dT%H:%M:%S.%%06u%z",
+                         tmptr))
         abort ();
       /* Fill in microseconds */
       if (0 > snprintf (date, sizeof(date), date2, timeofday.tv_usec))

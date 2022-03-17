@@ -90,12 +90,12 @@ run (void *cls,
   start_time = GNUNET_TIME_absolute_get ();
   for (unsigned int i = 0; i < ROUNDS; i++)
   {
-    GNUNET_assert (NULL != (block =
-                              GNUNET_GNSRECORD_block_create2 (&privkey,
+    GNUNET_assert (GNUNET_OK == GNUNET_GNSRECORD_block_create2 (&privkey,
                                                               expire,
                                                               s_name,
                                                               s_rd,
-                                                              RECORDS)));
+                                                              RECORDS,
+							      &block));
     GNUNET_GNSRECORD_query_from_private_key (&privkey,
                                              s_name,
                                              &query);

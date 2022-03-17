@@ -216,11 +216,11 @@ run (void *cls,
   {
     struct GNUNET_GNSRECORD_Data rd;
 
-    rd.expiration_time = GNUNET_TIME_absolute_get ().abs_value_us;
+    rd.expiration_time = GNUNET_TIME_UNIT_HOURS.rel_value_us;
     rd.record_type = GNUNET_GNSRECORD_TYPE_PKEY;
-    rd.data_size = GNUNET_IDENTITY_key_get_length (&s_zone_value);
-    rd.data = &s_zone_value;
-    rd.flags = 0;
+    rd.data_size = sizeof (s_zone_value.ecdsa_key);
+    rd.data = &s_zone_value.ecdsa_key;
+    rd.flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
 
     nsh = GNUNET_NAMESTORE_connect (cfg);
     GNUNET_break (NULL != nsh);
@@ -230,7 +230,7 @@ run (void *cls,
                                     1,
                                     &rd,
                                     &put_cont,
-                                    NULL);
+                                    s_name);
   }
 }
 

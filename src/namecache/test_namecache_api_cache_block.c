@@ -187,9 +187,10 @@ run (void *cls,
   rd.data = GNUNET_malloc (TEST_RECORD_DATALEN);
   rd.flags = 0;
   memset ((char *) rd.data, 'a', TEST_RECORD_DATALEN);
-  block = GNUNET_GNSRECORD_block_create (&privkey,
-                                         GNUNET_TIME_UNIT_FOREVER_ABS,
-                                         name, &rd, 1);
+  GNUNET_assert (GNUNET_OK == GNUNET_GNSRECORD_block_create (&privkey,
+                                                             GNUNET_TIME_UNIT_FOREVER_ABS,
+                                                             name, &rd, 1,
+                                                             &block));
   if (NULL == block)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,

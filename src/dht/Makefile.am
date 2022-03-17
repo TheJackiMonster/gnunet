@@ -50,7 +50,8 @@ libexec_PROGRAMS = \
 bin_PROGRAMS = \
  gnunet-dht-monitor \
  gnunet-dht-get \
- gnunet-dht-put
+ gnunet-dht-put \
+ gnunet-dht-hello
 
 noinst_PROGRAMS = \
  gnunet-dht-profiler
@@ -58,8 +59,6 @@ noinst_PROGRAMS = \
 gnunet_service_dht_SOURCES = \
  gnunet-service-dht.c gnunet-service-dht.h \
  gnunet-service-dht_datacache.c gnunet-service-dht_datacache.h \
- gnunet-service-dht_hello.c gnunet-service-dht_hello.h \
- gnunet-service-dht_nse.c gnunet-service-dht_nse.h \
  gnunet-service-dht_neighbours.c gnunet-service-dht_neighbours.h \
  gnunet-service-dht_routing.c gnunet-service-dht_routing.h
 gnunet_service_dht_LDADD = \
@@ -72,6 +71,7 @@ gnunet_service_dht_LDADD = \
   $(top_builddir)/src/peerinfo/libgnunetpeerinfo.la \
   $(top_builddir)/src/hello/libgnunethello.la \
   $(top_builddir)/src/block/libgnunetblock.la \
+  $(top_builddir)/src/block/libgnunetblockgroup.la \
   $(top_builddir)/src/datacache/libgnunetdatacache.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   -lm
@@ -82,16 +82,22 @@ gnunet_dht_get_SOURCES = \
  gnunet-dht-get.c
 gnunet_dht_get_LDADD = \
   libgnunetdht.la \
-  $(top_builddir)/src/core/libgnunetcore.la \
   $(top_builddir)/src/util/libgnunetutil.la
 gnunet_dht_get_LDFLAGS = \
+  $(GN_LIBINTL)
+
+gnunet_dht_hello_SOURCES = \
+ gnunet-dht-hello.c
+gnunet_dht_hello_LDADD = \
+  libgnunetdht.la \
+  $(top_builddir)/src/util/libgnunetutil.la
+gnunet_dht_hello_LDFLAGS = \
   $(GN_LIBINTL)
 
 gnunet_dht_put_SOURCES = \
  gnunet-dht-put.c
 gnunet_dht_put_LDADD = \
   libgnunetdht.la \
-  $(top_builddir)/src/core/libgnunetcore.la \
   $(top_builddir)/src/util/libgnunetutil.la
 gnunet_dht_put_LDFLAGS = \
   $(GN_LIBINTL)
@@ -100,7 +106,6 @@ gnunet_dht_monitor_SOURCES = \
  gnunet-dht-monitor.c
 gnunet_dht_monitor_LDADD = \
   libgnunetdht.la \
-  $(top_builddir)/src/core/libgnunetcore.la \
   $(top_builddir)/src/util/libgnunetutil.la
 gnunet_dht_monitor_LDFLAGS = \
   $(GN_LIBINTL)
@@ -199,7 +204,6 @@ test_dht_monitor_LDADD = \
  libgnunetdht.la
 
 EXTRA_DIST = \
-  $(check_SCRIPTS) \
   gnunet-service-dht_clients.c \
   test_dht_api_data.conf \
   test_dht_api_peer1.conf \
@@ -209,7 +213,10 @@ EXTRA_DIST = \
   test_dht_line.conf \
   test_dht_tools.conf \
   test_dht_tools.py.in \
-  test_dht_multipeer_topology.dat
+  test_dht_multipeer_topology.dat \
+  dhtu_testbed_connect.sh \
+  dhtu_testbed_deploy.conf \
+  dhtu_testbed_deploy.sh
 
 if HAVE_PYTHON
 check_SCRIPTS = \

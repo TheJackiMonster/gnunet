@@ -324,24 +324,50 @@ do_dns_read (struct GNUNET_DNSSTUB_RequestSocket *rs,
     found = GNUNET_NO;
     for (struct DnsServer *ds = ctx->dns_head; NULL != ds; ds = ds->next)
     {
-      if (0 == memcmp (&addr,
-                       &ds->ss,
-                       GNUNET_MIN (sizeof(struct sockaddr_storage), addrlen)))
+      if (ds->ss.ss_family != addr.ss_family)
+        continue;
+      if (addr.ss_family == AF_INET)
       {
-        found = GNUNET_YES;
-        break;
+        struct sockaddr_in *v4 = (struct sockaddr_in *) &addr;
+        struct sockaddr_in *ds_v4 = (struct sockaddr_in *) &ds->ss;
+
+
+        if ((0 == memcmp (&v4->sin_addr,
+                         &ds_v4->sin_addr,
+                         sizeof(struct sockaddr_in))) &&
+            (v4->sin_port == ds_v4->sin_port))
+        {
+          found = GNUNET_YES;
+          break;
+        }
+      }
+      else
+      {
+        struct sockaddr_in6 *v6 = (struct sockaddr_in6 *) &addr;
+        struct sockaddr_in6 *ds_v6 = (struct sockaddr_in6 *) &ds->ss;
+
+        if (0 == memcmp (&v6->sin6_addr,
+                         &ds_v6->sin6_addr,
+                         sizeof (v6->sin6_addr)) &&
+            (v6->sin6_port == ds_v6->sin6_port))
+        {
+          found = GNUNET_YES;
+          break;
+        }
+
       }
     }
     if (GNUNET_NO == found)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Received DNS response from server we never asked (ignored)");
+                  "Received DNS response from server we never asked (ignored)\n");
+
       return GNUNET_NO;
     }
     if (sizeof(struct GNUNET_TUN_DnsHeader) > (size_t) r)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  _ ("Received DNS response that is too small (%u bytes)"),
+                  _ ("Received DNS response that is too small (%u bytes)\n"),
                   (unsigned int) r);
       return GNUNET_NO;
     }
@@ -648,7 +674,7 @@ GNUNET_DNSSTUB_add_dns_sa (struct GNUNET_DNSSTUB_Context *ctx,
   ds = GNUNET_new (struct DnsServer);
   switch (sa->sa_family)
   {
-  case AF_INET:
+  case AF_INET :
     GNUNET_memcpy (&ds->ss, sa, sizeof(struct sockaddr_in));
     break;
 

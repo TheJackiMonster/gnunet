@@ -419,6 +419,8 @@ create_response (void *cls,
              "\\def\\gpglineone{%s}\n\\def\\gpglinetwo{%s}\n",
              line1,
              line2);
+    GNUNET_free (line1);
+    GNUNET_free (line2);
   }
 
   fprintf (deffile,

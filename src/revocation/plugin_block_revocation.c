@@ -44,65 +44,6 @@ struct InternalContext
 
 
 /**
- * Function called to validate a reply or a request.  For
- * request evaluation, simply pass "NULL" for the reply_block.
- *
- * @param cls our `struct InternalContext`
- * @param ctx context
- * @param type block type
- * @param group block group to use
- * @param eo control flags
- * @param query original query (hash)
- * @param xquery extrended query data (can be NULL, depending on type)
- * @param xquery_size number of bytes in xquery
- * @param reply_block response to validate
- * @param reply_block_size number of bytes in reply block
- * @return characterization of result
- */
-static enum GNUNET_BLOCK_EvaluationResult
-block_plugin_revocation_evaluate (void *cls,
-                                  struct GNUNET_BLOCK_Context *ctx,
-                                  enum GNUNET_BLOCK_Type type,
-                                  struct GNUNET_BLOCK_Group *group,
-                                  enum GNUNET_BLOCK_EvaluationOptions eo,
-                                  const struct GNUNET_HashCode *query,
-                                  const void *xquery,
-                                  size_t xquery_size,
-                                  const void *reply_block,
-                                  size_t reply_block_size)
-{
-  struct InternalContext *ic = cls;
-  ssize_t pklen;
-  const struct RevokeMessage *rm = reply_block;
-
-  if (NULL == reply_block)
-    return GNUNET_BLOCK_EVALUATION_REQUEST_VALID;
-  if (reply_block_size != sizeof(*rm))
-  {
-    GNUNET_break_op (0);
-    return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
-  }
-  struct GNUNET_REVOCATION_PowP *pow = (struct GNUNET_REVOCATION_PowP *) &rm[1];
-  const struct GNUNET_IDENTITY_PublicKey *pk;
-  pk = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
-  if (GNUNET_YES != GNUNET_REVOCATION_check_pow (pow,
-                                                 ic->matching_bits,
-                                                 ic->epoch_duration))
-  {
-    GNUNET_break_op (0);
-    return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
-  }
-  pklen = GNUNET_IDENTITY_key_get_length (pk);
-  if (0 > pklen)
-  {
-    GNUNET_break_op (0);
-    return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
-  }
-  return GNUNET_BLOCK_EVALUATION_OK_LAST;
-}
-
-
-/**
  * Function called to validate a query.
  *
  * @param cls closure
@@ -124,7 +65,10 @@ block_plugin_revocation_check_query (void *cls,
   (void) query;
   (void) xquery;
   if (GNUNET_BLOCK_TYPE_REVOCATION != type)
+  {
+    GNUNET_break (0);
     return GNUNET_SYSERR;
+  }
   if (0 != xquery_size)
     return GNUNET_NO;
   return GNUNET_OK;
@@ -136,7 +80,6 @@ block_plugin_revocation_check_query (void *cls,
  *
  * @param cls closure
  * @param type block type
- * @param query key for the block (hash), must match exactly
  * @param block block data to validate
  * @param block_size number of bytes in @a block
  * @return #GNUNET_OK if the block is fine, #GNUNET_NO if not
@@ -144,7 +87,6 @@ block_plugin_revocation_check_query (void *cls,
 static enum GNUNET_GenericReturnValue
 block_plugin_revocation_check_block (void *cls,
                                     enum GNUNET_BLOCK_Type type,
-                                    const struct GNUNET_HashCode *query,
                                     const void *block,
                                     size_t block_size)
 {
@@ -157,7 +99,10 @@ block_plugin_revocation_check_block (void *cls,
   size_t left;
 
   if (GNUNET_BLOCK_TYPE_REVOCATION != type)
+  {
+    GNUNET_break (0);
     return GNUNET_SYSERR;
+  }
   if (block_size < sizeof(*rm) + sizeof(*pow))
   {
     GNUNET_break_op (0);
@@ -224,7 +169,10 @@ block_plugin_revocation_check_reply (
   (void) reply_block;
   (void) reply_block_size;
   if (GNUNET_BLOCK_TYPE_REVOCATION != type)
+  {
+    GNUNET_break (0);
     return GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED;
+  }
   return GNUNET_BLOCK_REPLY_OK_LAST;
 }
 
@@ -255,7 +203,10 @@ block_plugin_revocation_get_key (void *cls,
   size_t left;
 
   if (GNUNET_BLOCK_TYPE_REVOCATION != type)
+  {
+    GNUNET_break (0);
     return GNUNET_SYSERR;
+  }
   if (block_size < sizeof(*rm) + sizeof(*pow))
   {
     GNUNET_break_op (0);
@@ -314,7 +265,6 @@ libgnunet_plugin_block_revocation_init (void *cls)
     return NULL;
 
   api = GNUNET_new (struct GNUNET_BLOCK_PluginFunctions);
-  api->evaluate = &block_plugin_revocation_evaluate;
   api->get_key = &block_plugin_revocation_get_key;
   api->check_query = &block_plugin_revocation_check_query;
   api->check_block = &block_plugin_revocation_check_block;

@@ -92,14 +92,14 @@ static void
 handle_room_messages (struct GNUNET_MESSENGER_SrvRoom *room);
 
 void
-destroy_room (struct GNUNET_MESSENGER_SrvRoom *room)
+destroy_room (struct GNUNET_MESSENGER_SrvRoom *room,
+              int deletion)
 {
   GNUNET_assert(room);
 
   if (room->idle)
   {
     GNUNET_SCHEDULER_cancel (room->idle);
-
     room->idle = NULL;
   }
 
@@ -107,18 +107,22 @@ destroy_room (struct GNUNET_MESSENGER_SrvRoom *room)
     GNUNET_CADET_close_port (room->port);
 
   GNUNET_CONTAINER_multipeermap_iterate (room->tunnels, iterate_destroy_tunnels, NULL);
-
   handle_room_messages (room);
 
-  if (room->service->dir)
+  if (!(room->service->dir))
+    goto skip_saving;
+
+  if (GNUNET_YES == deletion)
+    remove_room (room);
+  else
     save_room (room);
 
+skip_saving:
   clear_member_store (get_room_member_store(room));
   clear_message_store (get_room_message_store(room));
   clear_operation_store(get_room_operation_store(room));
 
   GNUNET_CONTAINER_multipeermap_destroy (room->tunnels);
-
   clear_list_tunnels (&(room->basement));
   clear_message_state(&(room->state));
 
@@ -1217,6 +1221,20 @@ save_room (struct GNUNET_MESSENGER_SrvRoom *room)
 
     save_message_state(&(room->state), room_dir);
   }
+
+  GNUNET_free(room_dir);
+}
+
+void
+remove_room (struct GNUNET_MESSENGER_SrvRoom *room)
+{
+  GNUNET_assert(room);
+
+  char *room_dir;
+  get_room_data_subdir (room, &room_dir);
+
+  if (GNUNET_YES == GNUNET_DISK_directory_test (room_dir, GNUNET_YES))
+    GNUNET_DISK_directory_remove(room_dir);
 
   GNUNET_free(room_dir);
 }

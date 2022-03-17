@@ -289,12 +289,12 @@ GNUNET_PLUGIN_unload (const char *library_name,
   done = resolve_function (pos,
                            "done");
   ret = NULL;
-  if (NULL != done)
-    ret = done (arg);
   if (NULL == prev)
     plugins = pos->next;
   else
     prev->next = pos->next;
+  if (NULL != done)
+    ret = done (arg);
   lt_dlclose (pos->handle);
   GNUNET_free (pos->name);
   GNUNET_free (pos);

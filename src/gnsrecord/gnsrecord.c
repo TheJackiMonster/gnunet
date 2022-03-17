@@ -260,4 +260,25 @@ GNUNET_GNSRECORD_number_to_typename (uint32_t type)
 }
 
 
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_is_critical (uint32_t type)
+{
+  struct Plugin *plugin;
+
+  if (GNUNET_GNSRECORD_TYPE_ANY == type)
+    return GNUNET_NO;
+  init ();
+  for (unsigned int i = 0; i < num_plugins; i++)
+  {
+    plugin = gns_plugins[i];
+    if (NULL == plugin->api->is_critical)
+      continue;
+    if (GNUNET_NO == plugin->api->is_critical (plugin->api->cls, type))
+      continue;
+    return GNUNET_YES;
+  }
+  return GNUNET_NO;
+}
+
+
 /* end of gnsrecord.c */

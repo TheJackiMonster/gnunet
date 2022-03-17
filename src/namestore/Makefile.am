@@ -39,6 +39,7 @@ if HAVE_SQLITE
 SQLITE_PLUGIN = libgnunet_plugin_namestore_sqlite.la
 SQLITE_TESTS = test_plugin_namestore_sqlite \
  test_namestore_api_store_sqlite \
+ test_namestore_api_store_locking_sqlite \
  test_namestore_api_store_update_sqlite \
  test_namestore_api_zone_iteration_sqlite \
  test_namestore_api_remove_sqlite \
@@ -248,6 +249,16 @@ test_namestore_api_store_sqlite_LDADD = \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
   libgnunetnamestore.la
+
+test_namestore_api_store_locking_sqlite_SOURCES = \
+ test_namestore_api_store_locking.c
+test_namestore_api_store_locking_sqlite_LDADD = \
+  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
+  libgnunetnamestore.la
+
 
 test_namestore_api_store_postgres_SOURCES = \
  test_namestore_api_store.c

@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet
-     Copyright (C) 2010 GNUnet e.V.
+     Copyright (C) 2010, 2021, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -92,49 +92,6 @@ block_plugin_template_create_group (void *cls,
 
 
 /**
- * Function called to validate a reply or a request.  For
- * request evaluation, simply pass "NULL" for the reply_block.
- *
- * @param cls closure
- * @param ctx context
- * @param type block type
- * @param group block group to use
- * @param eo control flags
- * @param query original query (hash)
- * @param xquery extrended query data (can be NULL, depending on type)
- * @param xquery_size number of bytes in xquery
- * @param reply_block response to validate
- * @param reply_block_size number of bytes in reply block
- * @return characterization of result
- */
-static enum GNUNET_BLOCK_EvaluationResult
-block_plugin_template_evaluate (void *cls,
-                                struct GNUNET_BLOCK_Context *ctx,
-                                enum GNUNET_BLOCK_Type type,
-                                struct GNUNET_BLOCK_Group *group,
-                                enum GNUNET_BLOCK_EvaluationOptions eo,
-                                const struct GNUNET_HashCode *query,
-                                const void *xquery,
-                                size_t xquery_size,
-                                const void *reply_block,
-                                size_t reply_block_size)
-{
-  struct GNUNET_HashCode chash;
-
-  if (NULL == reply_block)
-    return GNUNET_BLOCK_EVALUATION_REQUEST_VALID;
-  GNUNET_CRYPTO_hash (reply_block,
-                      reply_block_size,
-                      &chash);
-  if (GNUNET_YES ==
-      GNUNET_BLOCK_GROUP_bf_test_and_set (group,
-                                          &chash))
-    return GNUNET_BLOCK_EVALUATION_OK_DUPLICATE;
-  return GNUNET_BLOCK_EVALUATION_TYPE_NOT_SUPPORTED;
-}
-
-
-/**
  * Function called to validate a query.
  *
  * @param cls closure
@@ -143,16 +100,16 @@ block_plugin_template_evaluate (void *cls,
  * @param query original query (hash)
  * @param xquery extrended query data (can be NULL, depending on type)
  * @param xquery_size number of bytes in @a xquery
- * @return #GNUNET_OK if the query is fine, #GNUNET_NO if not
+ * @return #GNUNET_OK if the query is fine, #GNUNET_NO if not, #GNUNET_SYSERR if not supported
  */
 static enum GNUNET_GenericReturnValue
 block_plugin_template_check_query (void *cls,
-                                    enum GNUNET_BLOCK_Type type,
-                                    const struct GNUNET_HashCode *query,
-                                    const void *xquery,
-                                    size_t xquery_size)
+                                   enum GNUNET_BLOCK_Type type,
+                                   const struct GNUNET_HashCode *query,
+                                   const void *xquery,
+                                   size_t xquery_size)
 {
-  return GNUNET_OK;
+  return GNUNET_SYSERR;
 }
 
 
@@ -161,19 +118,17 @@ block_plugin_template_check_query (void *cls,
  *
  * @param cls closure
  * @param type block type
- * @param query key for the block (hash), must match exactly
  * @param block block data to validate
  * @param block_size number of bytes in @a block
- * @return #GNUNET_OK if the block is fine, #GNUNET_NO if not
+ * @return #GNUNET_OK if the block is fine, #GNUNET_NO if not, #GNUNET_SYSERR if not supported
  */
 static enum GNUNET_GenericReturnValue
 block_plugin_template_check_block (void *cls,
                                     enum GNUNET_BLOCK_Type type,
-                                    const struct GNUNET_HashCode *query,
                                     const void *block,
                                     size_t block_size)
 {
-  return GNUNET_OK;
+  return GNUNET_SYSERR;
 }
 
 
@@ -195,16 +150,16 @@ block_plugin_template_check_block (void *cls,
  */
 static enum GNUNET_BLOCK_ReplyEvaluationResult
 block_plugin_template_check_reply (
-                                        void *cls,
-                                        enum GNUNET_BLOCK_Type type,
-                                    struct GNUNET_BLOCK_Group *group,
-                                    const struct GNUNET_HashCode *query,
-                                    const void *xquery,
-                                    size_t xquery_size,
-                                    const void *reply_block,
-                                    size_t reply_block_size)
+                                   void *cls,
+                                   enum GNUNET_BLOCK_Type type,
+                                   struct GNUNET_BLOCK_Group *group,
+                                   const struct GNUNET_HashCode *query,
+                                   const void *xquery,
+                                   size_t xquery_size,
+                                   const void *reply_block,
+                                   size_t reply_block_size)
 {
-  return GNUNET_BLOCK_REPLY_OK_MORE;
+  return GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED;
 }
 
 
@@ -245,7 +200,6 @@ libgnunet_plugin_block_template_init (void *cls)
   struct GNUNET_BLOCK_PluginFunctions *api;
 
   api = GNUNET_new (struct GNUNET_BLOCK_PluginFunctions);
-  api->evaluate = &block_plugin_template_evaluate;
   api->get_key = &block_plugin_template_get_key;
   api->check_query = &block_plugin_template_check_query;
   api->check_block = &block_plugin_template_check_block;

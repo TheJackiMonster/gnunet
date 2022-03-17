@@ -773,6 +773,12 @@ dns_number_to_typename (void *cls, uint32_t type)
 }
 
 
+static enum GNUNET_GenericReturnValue
+dns_is_critical (void *cls, uint32_t type)
+{
+  return GNUNET_NO;
+}
+
 /**
  * Entry point for the plugin.
  *
@@ -789,6 +795,7 @@ libgnunet_plugin_gnsrecord_dns_init (void *cls)
   api->string_to_value = &dns_string_to_value;
   api->typename_to_number = &dns_typename_to_number;
   api->number_to_typename = &dns_number_to_typename;
+  api->is_critical = &dns_is_critical;
   return api;
 }
 

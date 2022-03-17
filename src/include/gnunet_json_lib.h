@@ -48,10 +48,10 @@ struct GNUNET_JSON_Specification;
  * @return #GNUNET_SYSERR on error,
  *         #GNUNET_OK on success
  */
-typedef int
-(*GNUNET_JSON_Parser) (void *cls,
-                       json_t *root,
-                       struct GNUNET_JSON_Specification *spec);
+typedef enum GNUNET_GenericReturnValue
+(*GNUNET_JSON_Parser)(void *cls,
+                      json_t *root,
+                      struct GNUNET_JSON_Specification *spec);
 
 
 /**

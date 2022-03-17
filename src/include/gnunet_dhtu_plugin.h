@@ -59,15 +59,6 @@ struct GNUNET_DHTU_PreferenceHandle;
 
 
 /**
- * Key used to identify peer's position in the DHT.
- */
-struct GNUNET_DHTU_HashKey
-{
-  struct GNUNET_HashCode sha512;
-};
-
-
-/**
  * The datastore service will pass a pointer to a struct
  * of this type as the first and only argument to the
  * entry point of each datastore plugin.
@@ -88,7 +79,6 @@ struct GNUNET_DHTU_PluginEnvironment
    * Function to call with new addresses of this peer.
    *
    * @param cls the closure
-   * @param key hash position of this address in the DHT
    * @param address address under which we are likely reachable,
    *           pointer will remain valid until @e address_del_cb is called; to be used for HELLOs. Example: "ip+udp://1.1.1.1:2086/"
    * @param source handle for sending from this address, NULL if we can only receive
@@ -96,7 +86,6 @@ struct GNUNET_DHTU_PluginEnvironment
    */
   void
   (*address_add_cb)(void *cls,
-                    struct GNUNET_DHTU_HashKey *key,
                     const char *address,
                     struct GNUNET_DHTU_Source *source,
                     void **ctx);
@@ -128,19 +117,18 @@ struct GNUNET_DHTU_PluginEnvironment
    * that peer.
    *
    * @param cls the closure
-   * @param pk public key of the target,
-   *    pointer will remain valid until @e disconnect_cb is called
-   * @para peer_id hash position of the peer,
-   *    pointer will remain valid until @e disconnect_cb is called
    * @param target handle to the target,
+   *    pointer will remain valid until @e disconnect_cb is called
+   * @para pid peer identity,
    *    pointer will remain valid until @e disconnect_cb is called
    * @param[out] ctx storage space for DHT to use in association with this target
    */
   void
   (*connect_cb)(void *cls,
                 struct GNUNET_DHTU_Target *target,
-                struct GNUNET_DHTU_HashKey *key,
+                const struct GNUNET_PeerIdentity *pid,
                 void **ctx);
+
 
   /**
    * Function to call when we disconnected from a peer and can henceforth
@@ -185,10 +173,12 @@ struct GNUNET_DHTU_PluginFunctions
    * Request creation of a session with a peer at the given @a address.
    *
    * @param cls closure (internal context for the plugin)
-   * @param address target address to connect to
+   * @param pid target identity of the peer to connect to
+   * @param address target address URI to connect to
    */
   void
   (*try_connect) (void *cls,
+                  const struct GNUNET_PeerIdentity *pid,
                   const char *address);
 
 
@@ -205,7 +195,7 @@ struct GNUNET_DHTU_PluginFunctions
           struct GNUNET_DHTU_Target *target);
 
   /**
-   * Do no long request underlay to keep the connection alive.
+   * Do no longer request underlay to keep the connection alive.
    *
    * @param cls closure
    * @param target connection to keep alive

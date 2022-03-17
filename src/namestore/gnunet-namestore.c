@@ -33,6 +33,12 @@
 #include <gnunet_gns_service.h>
 #include <gnunet_namestore_service.h>
 
+/**
+ * The upper bound for the zone iteration interval
+ * (per record).
+ */
+#define WARN_RELATIVE_EXPIRATION_LIMIT GNUNET_TIME_relative_multiply ( \
+    GNUNET_TIME_UNIT_MINUTES, 15)
 
 /**
  * Entry in record set for bulk processing.
@@ -430,6 +436,8 @@ display_record (const char *rname,
     if ((GNUNET_GNSRECORD_TYPE_NICK == rd[i].record_type) &&
         (0 != strcmp (rname, GNUNET_GNS_EMPTY_LABEL_AT)))
       continue;
+    if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[i].record_type)
+      continue;
     if ((type != rd[i].record_type) && (GNUNET_GNSRECORD_TYPE_ANY != type))
       continue;
     have_record = GNUNET_YES;
@@ -446,6 +454,8 @@ display_record (const char *rname,
   {
     if ((GNUNET_GNSRECORD_TYPE_NICK == rd[i].record_type) &&
         (0 != strcmp (rname, GNUNET_GNS_EMPTY_LABEL_AT)))
+      continue;
+    if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[i].record_type)
       continue;
     if ((type != rd[i].record_type) && (GNUNET_GNSRECORD_TYPE_ANY != type))
       continue;
@@ -649,28 +659,6 @@ get_existing_record (void *cls,
   {
     switch (rd[i].record_type)
     {
-    case GNUNET_DNSPARSER_TYPE_CNAME:
-      fprintf (
-        stderr,
-        _ (
-          "A %s record exists already under `%s', no other records can be added.\n"),
-        "CNAME",
-        rec_name);
-      ret = 1;
-      test_finished ();
-      return;
-
-    case GNUNET_GNSRECORD_TYPE_PKEY:
-    case GNUNET_GNSRECORD_TYPE_EDKEY:
-      fprintf (
-        stderr,
-        _ (
-          "A zone key record exists already under `%s', no other records can be added.\n"),
-        rec_name);
-      ret = 1;
-      test_finished ();
-      return;
-
     case GNUNET_DNSPARSER_TYPE_SOA:
       if (GNUNET_DNSPARSER_TYPE_SOA == type)
       {
@@ -685,51 +673,6 @@ get_existing_record (void *cls,
       }
       break;
     }
-  }
-  switch (type)
-  {
-  case GNUNET_DNSPARSER_TYPE_CNAME:
-    if (0 != rd_count)
-    {
-      fprintf (stderr,
-               _ (
-                 "Records already exist under `%s', cannot add `%s' record.\n"),
-               rec_name,
-               "CNAME");
-      ret = 1;
-      test_finished ();
-      return;
-    }
-    break;
-
-  case GNUNET_GNSRECORD_TYPE_PKEY:
-  case GNUNET_GNSRECORD_TYPE_EDKEY:
-    if (0 != rd_count)
-    {
-      fprintf (stderr,
-               _ (
-                 "Records already exist under `%s', cannot add record.\n"),
-               rec_name);
-      ret = 1;
-      test_finished ();
-      return;
-    }
-    break;
-
-  case GNUNET_GNSRECORD_TYPE_GNS2DNS:
-    for (unsigned int i = 0; i < rd_count; i++)
-      if (GNUNET_GNSRECORD_TYPE_GNS2DNS != rd[i].record_type)
-      {
-        fprintf (
-          stderr,
-          _ (
-            "Non-GNS2DNS records already exist under `%s', cannot add GNS2DNS record.\n"),
-          rec_name);
-        ret = 1;
-        test_finished ();
-        return;
-      }
-    break;
   }
   memset (rdn, 0, sizeof(struct GNUNET_GNSRECORD_Data));
   GNUNET_memcpy (&rdn[1], rd, rd_count * sizeof(struct GNUNET_GNSRECORD_Data));
@@ -929,6 +872,13 @@ parse_expiration (const char *expirationstring,
   {
     *etime_is_rel = GNUNET_YES;
     *etime = etime_rel.rel_value_us;
+    if (GNUNET_TIME_relative_cmp (etime_rel, <, WARN_RELATIVE_EXPIRATION_LIMIT))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Relative expiration times of less than %s are not recommended. To improve availability, consider increasing this value.\n",
+                  GNUNET_STRINGS_relative_time_to_string (
+                    WARN_RELATIVE_EXPIRATION_LIMIT, GNUNET_NO));
+    }
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Storing record with relative expiration time of %s\n",
                 GNUNET_STRINGS_relative_time_to_string (etime_rel, GNUNET_NO));
@@ -1212,8 +1162,8 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
     char sname[64];
     struct GNUNET_IDENTITY_PublicKey pkey;
 
-    memset(sh, 0, 105);
-    memset(sname, 0, 64);
+    memset (sh, 0, 105);
+    memset (sname, 0, 64);
 
     if ((2 != (sscanf (uri, "gnunet://gns/%58s/%63s", sh, sname))) ||
         (GNUNET_OK !=
@@ -1286,15 +1236,6 @@ identity_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   const struct GNUNET_CONFIGURATION_Handle *cfg = cls;
 
   el = NULL;
-  if ((NULL != name) && (0 != strchr (name, '.')))
-  {
-    fprintf (stderr,
-             _ ("Label `%s' contains `.' which is not allowed\n"),
-             name);
-    GNUNET_SCHEDULER_shutdown ();
-    ret = -1;
-    return;
-  }
 
   if (NULL == ego)
   {
@@ -1705,13 +1646,13 @@ main (int argc, char *const *argv)
                                   NULL)))
   {
     GNUNET_free_nz ((void *) argv);
-    //FIXME
-    //GNUNET_CRYPTO_ecdsa_key_clear (&zone_pkey);
+    // FIXME
+    // GNUNET_CRYPTO_ecdsa_key_clear (&zone_pkey);
     return lret;
   }
   GNUNET_free_nz ((void *) argv);
-  //FIXME
-  //GNUNET_CRYPTO_ecdsa_key_clear (&zone_pkey);
+  // FIXME
+  // GNUNET_CRYPTO_ecdsa_key_clear (&zone_pkey);
   return ret;
 }
 

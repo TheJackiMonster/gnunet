@@ -64,8 +64,7 @@ gns_value_to_string (void *cls,
     return GNUNET_IDENTITY_public_key_to_string (&pk);
 
   case GNUNET_GNSRECORD_TYPE_NICK:
-    return GNUNET_strndup (data, data_size);
-
+  case GNUNET_GNSRECORD_TYPE_REDIRECT:
   case GNUNET_GNSRECORD_TYPE_LEHO:
     return GNUNET_strndup (data, data_size);
 
@@ -133,7 +132,9 @@ gns_value_to_string (void *cls,
       GNUNET_free (ival);
       return box_str;
     }
-
+  case GNUNET_GNSRECORD_TYPE_TOMBSTONE: {
+    return GNUNET_strdup (_("This is a memento of an older block for internal maintenance."));
+  }
   default:
     return NULL;
   }
@@ -184,16 +185,13 @@ gns_string_to_value (void *cls,
     if (record_type != type)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  _("Record type does not match parsed record type\n"));
+                  _ ("Record type does not match parsed record type\n"));
       return GNUNET_SYSERR;
     }
     return GNUNET_OK;
 
   case GNUNET_GNSRECORD_TYPE_NICK:
-    *data = GNUNET_strdup (s);
-    *data_size = strlen (s);
-    return GNUNET_OK;
-
+  case GNUNET_GNSRECORD_TYPE_REDIRECT:
   case GNUNET_GNSRECORD_TYPE_LEHO:
     *data = GNUNET_strdup (s);
     *data_size = strlen (s);
@@ -301,6 +299,12 @@ gns_string_to_value (void *cls,
       GNUNET_free (bval);
       return GNUNET_OK;
     }
+  case GNUNET_GNSRECORD_TYPE_TOMBSTONE: {
+      *data_size = 0;
+      *data = NULL;
+      return GNUNET_OK;
+    }
+
 
   default:
     return GNUNET_SYSERR;
@@ -317,12 +321,16 @@ static struct
   const char *name;
   uint32_t number;
 } gns_name_map[] = { { "PKEY", GNUNET_GNSRECORD_TYPE_PKEY },
-                     { "EDKEY", GNUNET_GNSRECORD_TYPE_PKEY },
+                     { "EDKEY", GNUNET_GNSRECORD_TYPE_EDKEY },
                      { "NICK", GNUNET_GNSRECORD_TYPE_NICK },
                      { "LEHO", GNUNET_GNSRECORD_TYPE_LEHO },
                      { "VPN", GNUNET_GNSRECORD_TYPE_VPN },
                      { "GNS2DNS", GNUNET_GNSRECORD_TYPE_GNS2DNS },
                      { "BOX", GNUNET_GNSRECORD_TYPE_BOX },
+                     { "REDIRECT", GNUNET_GNSRECORD_TYPE_REDIRECT },
+                     /* Tombstones should never be added manually
+                      * so this makes sense, kind of */
+                     { "\u271E", GNUNET_GNSRECORD_TYPE_TOMBSTONE },
                      { NULL, UINT32_MAX } };
 
 
@@ -365,6 +373,19 @@ gns_number_to_typename (void *cls, uint32_t type)
 }
 
 
+static enum GNUNET_GenericReturnValue
+gns_is_critical (void *cls, uint32_t type)
+{
+  return ((type == GNUNET_GNSRECORD_TYPE_PKEY) ||
+          (type == GNUNET_GNSRECORD_TYPE_EDKEY) ||
+          (type == GNUNET_GNSRECORD_TYPE_GNS2DNS) ||
+          (type == GNUNET_GNSRECORD_TYPE_REDIRECT) ?
+          GNUNET_YES : GNUNET_NO);
+}
+
+
+
+
 /**
  * Entry point for the plugin.
  *
@@ -381,6 +402,7 @@ libgnunet_plugin_gnsrecord_gns_init (void *cls)
   api->string_to_value = &gns_string_to_value;
   api->typename_to_number = &gns_typename_to_number;
   api->number_to_typename = &gns_number_to_typename;
+  api->is_critical = &gns_is_critical;
   return api;
 }
 

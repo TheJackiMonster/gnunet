@@ -95,10 +95,15 @@ create_room (struct GNUNET_MESSENGER_SrvHandle *handle,
 /**
  * Destroys a room and frees its memory fully.
  *
+ * The <i>deletion</i> flag should only be set to #GNUNET_YES if the
+ * room gets dropped by the service, otherwise #GNUNET_NO.
+ *
  * @param[in/out] room Room
+ * @param[in] deletion Flag to indicate context of destruction
  */
 void
-destroy_room (struct GNUNET_MESSENGER_SrvRoom *room);
+destroy_room (struct GNUNET_MESSENGER_SrvRoom *room,
+              int deletion);
 
 /**
  * Returns the used member store of a given <i>room</i>.
@@ -363,5 +368,13 @@ load_room (struct GNUNET_MESSENGER_SrvRoom *room);
  */
 void
 save_room (struct GNUNET_MESSENGER_SrvRoom *room);
+
+/**
+ * Removes the configuration for a given <i>room</i> of a service.
+ *
+ * @param[in] room Room
+ */
+void
+remove_room (struct GNUNET_MESSENGER_SrvRoom *room);
 
 #endif //GNUNET_SERVICE_MESSENGER_ROOM_H

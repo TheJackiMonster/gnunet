@@ -21,7 +21,7 @@
 .\"
 .\" SPDX-License-Identifier: GPL3.0-or-later OR FDL1.3-or-later
 .\"
-.Dd February 25, 2012
+.Dd February 12, 2022
 .Dt GNUNET-SEARCH 1
 .Os
 .Sh NAME
@@ -30,13 +30,18 @@
 .Sh SYNOPSIS
 .Nm
 .Op Fl a Ar LEVEL | Fl -anonymity= Ns Ar LEVEL
+.Op Fl b | -bookmark-only
 .Op Fl c Ar FILENAME | Fl -config= Ns Ar FILENAME
+.Op Fl F Ar FORMAT | Fl -dir-printf= Ns Ar FORMAT
+.Op Fl f Ar FORMAT | Fl -printf= Ns Ar FORMAT
 .Op Fl h | -help
+.Op Fl i Ar FORMAT | Fl -iter-printf= Ns Ar FORMAT
 .Op Fl L Ar LOGLEVEL | Fl -loglevel= Ns Ar LOGLEVEL
 .Op Fl l Ar FILENAME | Fl -logfile= Ns Ar FILENAME
 .Op Fl o Ar FILENAME | Fl -output= Ns Ar FILENAME
 .Op Fl n | -no-network
 .Op Fl N Ar VALUE | Fl -results= Ns Ar VALUE
+.Op Fl s | -silent
 .Op Fl t Ar DELAY | Fl -timeout= Ns Ar DELAY
 .Op Fl v | -version
 .Op Fl V | -verbose
@@ -63,40 +68,207 @@ The specific numeric value (for anonymity levels above 1) is simple:
 Given an anonymity level L (above 1), each request FS makes on your behalf must be hidden in L-1 equivalent requests of cover traffic (traffic your peer routes for others) in the same time-period.
 The time-period is twice the average delay by which GNUnet artificially delays traffic.
 Note that regardless of the anonymity level you choose, peers that cache content in the network always use anonymity level 1.
+.It Fl b | -bookmark-only
+Do not search, print only the URI that points to the search with the given keywords.
 .It Fl c Ar FILENAME | Fl -config= Ns Ar FILENAME
 Use the configuration file
 .Ar FILENAME
 (default:
-.Pa ~/.config/gnunet.conf )
+.Pa ~/.config/gnunet.conf Ns
+).
+.It Fl F Ar FORMAT | Fl -dir-printf= Ns Ar FORMAT
+Write the search results for directories according to
+.Ar FORMAT Ns
+\&. The directives supported here are identical to those supported in the
+.Fl -printf
+argument (please refer to it for more information). If missing,
+.Fl -dir-printf
+defaults to
+.Fl -printf Ns
+\&. If
+.Fl -printf
+is missing too
+.Fl -dir-printf
+defaults to
+.Ql #%n:\engnunet-download -o "%f" -R %u\en\en Ns
+\&.
+.It Fl f Ar FORMAT | Fl -printf= Ns Ar FORMAT
+Write the search results according to
+.Ar FORMAT Ns
+, in which
+.Ql \e
+and
+.Ql %
+directives are interpreted as follows:
+.Bl -tag -width indent
+.It Li \e\e
+a literal backslash
+.No ( Ql \e Ns )
+.It Li \ea
+an alarm bell
+.It Li \eb
+a backspace
+.It Li \ee
+an escape
+.It Li \ef
+a form feed
+.It Li \en
+a newline
+.It Li \er
+a carriage return
+.It Li \et
+a horizontal tab
+.It Li \ev
+a vertical tab
+.It Li \e0
+an ASCII NUL.
+.It Li \eN...
+the character whose ASCII code is N..., expressed in octal digits
+.It Li \exX...
+the character whose ASCII code is X..., expressed in hexadecimal digits
+.Pp
+.El
+.Sy Note:
+The
+.Ql \e
+character followed by any other character not listed above is treated as an ordinary character, so both characters are printed.
+.Bl -tag -width indent
+.It Li %%
+a percent sign
+.It Li %a
+the complete list of all the printable metadata properties available, displayed according to the
+.Fl -iter-printf
+argument; this specifier optionally supports metatype filtering via hash sign
+.No (e.g.
+.Ql %2#a
+prints all embedded file names, if present - see libextractor's metatypes for the complete list of numerical identifiers)
+.It Li %f
+the file's name
+.It Li %j
+the first printable metadata property available, displayed according to the
+.Fl -iter-printf
+argument; this specifier optionally supports metatype filtering via hash sign
+.No (e.g.
+.Ql %5#j
+prints a book title, if present); see libextractor's metatypes for the complete list of numerical identifiers)
+.It Li %l
+the file name's length
+.It Li %m
+the file's mime type
+.It Li %n
+the search result number
+.It Li %s
+the file's size in bytes
+.It Li %u
+the file's URI
+.El
+.Pp
+.Sy Note:
+The
+.Ql %
+character followed by any other character not listed above is treated as an ordinary character, so both characters are printed.
+.Pp
+If missing,
+.Fl -printf
+defaults to
+.Ql #%n:\engnunet-download -o "%f" %u\en\en Ns
+\&.
 .It Fl h | -help
 Print the help page.
+.It Fl i Ar FORMAT | Fl -iter-printf= Ns Ar FORMAT
+When the
+.Ql %a
+or
+.Ql %j
+format specifiers appear in
+.Fl -printf
+or
+.Fl -dir-printf Ns
+, list each metadata property according to
+.Ar FORMAT Ns
+, in which the
+.Ql \e
+directives are interpreted as in
+.Fl -printf
+and
+.Fl -dir-printf Ns
+, while the
+.Ql %
+directives are interpreted as follows:
+.Bl -tag -width indent
+.It Li %%
+a percent sign
+.It Li %p
+the property's content
+.It Li %l
+the property content's length in bytes
+.It Li %i
+the property type's unique identifier
+.It Li %n
+the property number
+.It Li %t
+the property type (available only if compiled with libextractor)
+.It Li %w
+the name of the plugin that provided the information
+.El
+.Pp
+.Sy Note:
+The
+.Ql %
+character followed by any other character not listed above is treated as an ordinary character, so both characters are printed.
+.Pp
+If missing,
+.Fl -iter-printf
+defaults to
+.Ql \& \& %t: %p\en
+or
+.Ql \& \& MetaType #%i: %p\en Ns
+, depending on whether the program was compiled with libextractor or not.
 .It Fl L Ar LOGLEVEL | Fl -loglevel= Ns Ar LOGLEVEL
 Change the loglevel.
-Possible values for LOGLEVEL are ERROR, WARNING, INFO and DEBUG.
+Possible values for
+.Ar LOGLEVEL
+are ERROR, WARNING, INFO and DEBUG.
 .It Fl l Ar FILENAME | Fl -logfile= Ns Ar FILENAME
 Write logs to
 .Ar FILENAME .
 .It Fl o Ar FILENAME | Fl -output= Ns Ar FILENAME
 Writes a GNUnet directory containing all of the search results to
-.Ar FILENAME .
+.Ar FILENAME
+.No (e.g.
+.Ql gnunet-search --output=commons.gnd commons Ns
+).
 .It Fl n | -no-network
 Only search locally, do not forward requests to other peers.
 .It Fl N Ar VALUE | Fl -results= Ns Ar VALUE
 Automatically terminate the search after receiving
 .Ar VALUE
 results.
+.It Fl s | -silent
+Enable silent mode and do not print any result (the
+.Fl -output
+argument is required).
 .It Fl t Ar DELAY | Fl -timeout= Ns Ar DELAY
 Automatically timeout search after
 .Ar DELAY .
 The value given must be a number followed by a space and a time unit, for example "500 ms".
-Note that the quotes are required on the shell.
-Otherwise the search runs until gnunet-search is aborted with CTRL-C.
+Note that the quotes are required on the shell. Without a unit it defaults to microseconds (1000000 = 1 second).
+If 0 or omitted the search runs until gnunet-search is aborted with CTRL-C.
 .It Fl v | -version
 print the version number
 .It Fl V | -verbose
-print meta data from search results as well
+append
+.Ql %a\en
+to the default
+.Fl -printf
+and
+.Fl -dir-printf
+arguments \[u2013] ignored when these are provided by the user
 .El
-You can run gnunet-search with an URI instead of a keyword.
+.Pp
+It is possible to run
+.Nm gnunet-search
+with an URI instead of a keyword.
 The URI can have the format for a namespace search or for a keyword search.
 For a namespace search, the format is
 .Pp
@@ -108,46 +280,137 @@ For a keyword search, use
 .Pp
 If the format does not correspond to a GNUnet URI, GNUnet will automatically assume that keywords are supplied directly.
 .sp
-If multiple keywords are passed, gnunet-search will look for content matching any of the keywords.
-The prefix "+" makes a keyword mandatory.
+If multiple keywords are passed,
+.Nm gnunet-search
+will look for content matching any of the keywords.
+The
+.Ql +
+prefix makes a keyword mandatory.
 .Sh FILES
 .Pa ~/.config/gnunet.conf
 GNUnet configuration file; specifies the default value for the timeout
 .Sh EXAMPLES
-.Dl $ gnunet-search "Das Kapital"
+Example 1:
 .Pp
-Searches for content matching the keyword "Das Kapital".
+.Dl $ gnunet-search 'Das Kapital'
+.Pp
+searches for content matching the keyword
+.Dq Das Kapital Ns
+.
+.Pp
+Example 2:
+.Pp
+.Dl $ gnunet-search Das Kapital
+.Pp
+searches for content matching either keyword
+.Dq Das
+or keyword
+.Dq Kapital Ns
+.
+.Pp
+Example 3:
 .Pp
 .Dl $ gnunet-search +Das +Kapital
 .Pp
-Searches for content matching both mandatory keywords "Das" and "Kapital".
+searches for content matching both mandatory keywords
+.Dq Das
+and
+.Dq Kapital Ns
+.
 .sp
-Search results are printed by gnunet-search like this:
+Search results are printed by
+.Nm gnunet-search
+like this:
 .Pp
 .ad l
         gnunet-download -o "COPYING" gnunet://fs/chk/HASH1.HASH2.SIZE
-                Description: The GNU General Public License
-                Mime-type: text/plain
+.Pp
+          Description: The GNU General Public License
+          Mime-type: text/plain
+          ...
 .ad b
-
+.Pp
 The first line contains the command to run to download the file.
-The suggested filename in the example is COPYING.
-The GNUnet URI consists of the key and query hash of the file and finally the size of the file.
-After the command to download the file, GNUnet will print meta-data about the file as advertised in the search result.
-The meta-data here is the description ("The GNU General Public License") and the mime-type ("text-plain").
+The suggested filename in the example is
+.Ql COPYING Ns
+\&. The GNUnet URI consists of the key and query hash of the file and finally the size of the file.
+If the
+.Fl -verbose
+option was provided, after the command to download the file, GNUnet will print metadata about the file as advertised in the search result.
+The metadata here is the description
+.No ( Ns
+.Dq The GNU General Public License Ns
+) and the mime-type
+.No ( Ns
+.Dq text-plain Ns
+).
 See the options for
 .Xr gnunet-publish 1
-on how to supply meta-data by hand.
+on how to supply metadata by hand.
+.Pp
+The
+.Fl -printf
+.No ( Ns
+.Fl f Ns
+),
+.Fl -dir-printf
+.No ( Ns
+.Fl F Ns
+) and
+.Fl -iter-printf
+.No ( Ns
+.Fl i Ns
+) arguments offer powerful tools for manipulating the output printed. For instance,
+.Pp
+Example 4:
+.Pp
+.ad l
+        $ gnunet-search -f '%f (%s bytes)\en' commons
+.Pp
+will print a simple list of the results that match the
+.Dq commons
+keyword, with only the file name and the size printed, without any URI. Or, for instance,
+.Pp
+Example 5:
+.Pp
+.ad l
+        #!/bin/sh
+        {
+          printf '<list>'
+          gnunet-search -f '
+          <file uri="%u">
+            <filename len="%l">%f</filename>
+            <size>%s</size>
+            <mimetype>%m</mimetype>
+            <result_id>%n</result_id>
+            <metadata>%a
+            </metadata>
+          </file>' \e
+            -i '
+              <property tid="%i" type="%t">
+                <content len="%l">%p</content>
+                <property_id>%n</property_id>
+                <provided_by>%w</provided_by>
+              </property>' \e
+            -t '2 s' commons
+          printf '\en</list>\en'
+        } > commons.xml
+.Pp
+will run for two seconds and then create a file named
+.Pa commons.xml Ns
+, containing the search results that match the
+.Dq commons
+keyword in XML format.
 .Sh SEE ALSO
 .Xr gnunet-download 1 ,
 .Xr gnunet-fs-gtk 1 ,
 .Xr gnunet-publish 1 ,
 .Xr gnunet.conf 5
 .sp
-The full documentation for gnunet is maintained as a Texinfo manual.
+The full documentation for GNUnet is maintained as a Texinfo manual.
 If the
 .Xr info 1
-and gnunet programs are properly installed at your site, the command
+and gnunet packages are properly installed at your site, the command
 .Pp
 .Dl info gnunet
 .Pp

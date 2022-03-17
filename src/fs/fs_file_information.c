@@ -57,7 +57,7 @@ GNUNET_FS_file_information_get_id (struct GNUNET_FS_FileInformation *s)
  * @return "filename" field of the structure (can be NULL)
  */
 const char *
-GNUNET_FS_file_information_get_filename (struct GNUNET_FS_FileInformation *s)
+GNUNET_FS_file_information_get_filename (const struct GNUNET_FS_FileInformation *s)
 {
   return s->filename;
 }

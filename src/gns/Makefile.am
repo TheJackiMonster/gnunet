@@ -155,6 +155,7 @@ gnunet_dns2gns_LDADD = \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
   libgnunetgns.la \
   $(top_builddir)/src/util/libgnunetutil.la \
+  $(USE_VPN) \
   $(top_builddir)/src/identity/libgnunetidentity.la \
   $(GN_LIBINTL)
 
@@ -218,7 +219,6 @@ gnunet_service_gns_LDADD = \
   $(top_builddir)/src/dht/libgnunetdht.la \
   $(top_builddir)/src/namecache/libgnunetnamecache.la \
   $(LIBIDN) $(LIBIDN2) \
-  $(USE_VPN) \
   $(GN_LIBINTL)
 
 
@@ -270,8 +270,7 @@ check_SCRIPTS = \
   test_gns_rel_expiration.sh\
   test_gns_soa_lookup.sh\
   test_gns_revocation.sh\
-  test_gns_cname_lookup.sh\
-  test_proxy.sh
+  test_gns_redirect_lookup.sh
 
 if HAVE_GNUTLS
 if HAVE_LIBGNURL
@@ -292,7 +291,26 @@ EXTRA_DIST = \
   zonefiles/J7POEUT41A8PBFS7KVVDRF88GBOU4HK8PSU5QKVLVE3R9T91E99G.zkey \
   zonefiles/OEFL7A4VEF1B40QLEMTG5D8G1CN6EN16QUSG5R2DT71GRJN34LSG.zkey \
   zonefiles/test_zonekey \
-  $(check_SCRIPTS) \
+  test_gns_lookup.sh \
+  test_gns_config_lookup.sh \
+  test_gns_ipv6_lookup.sh\
+  test_gns_txt_lookup.sh\
+  test_gns_caa_lookup.sh\
+  test_gns_mx_lookup.sh \
+  test_gns_gns2dns_lookup.sh \
+  test_gns_gns2dns_zkey_lookup.sh \
+  test_gns_gns2dns_cname_lookup.sh \
+  test_gns_dht_lookup.sh\
+  test_gns_delegated_lookup.sh \
+  test_gns_at_lookup.sh\
+  test_gns_zkey_lookup.sh\
+  test_gns_rel_expiration.sh\
+  test_gns_soa_lookup.sh\
+  test_gns_revocation.sh\
+  test_gns_redirect_lookup.sh\
+  test_proxy.sh\
+  test_plugin_rest_gns.sh\
+  test_proxy.sh \
   $(pkgdata_DATA) \
   test_gnunet_gns.sh.in
 

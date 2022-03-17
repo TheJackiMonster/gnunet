@@ -653,18 +653,24 @@ GNUNET_FS_uri_parse (const char *uri, char **emsg)
       *emsg = GNUNET_strdup (_ ("invalid argument"));
     return NULL;
   }
-  if (NULL == emsg)
-    emsg = &msg;
-  *emsg = NULL;
-  if ((NULL != (ret = uri_chk_parse (uri, emsg))) ||
-      (NULL != (ret = uri_ksk_parse (uri, emsg))) ||
-      (NULL != (ret = uri_sks_parse (uri, emsg))) ||
-      (NULL != (ret = uri_loc_parse (uri, emsg))))
+  /**
+   * FIXME: Do we want to log this?
+   */
+  msg = NULL;
+  if (NULL != (ret = uri_chk_parse (uri, &msg)))
     return ret;
-  if (NULL == *emsg)
+  GNUNET_free (msg);
+  if (NULL != (ret = uri_ksk_parse (uri, &msg)))
+    return ret;
+  GNUNET_free (msg);
+  if (NULL != (ret = uri_sks_parse (uri, &msg)))
+    return ret;
+  GNUNET_free (msg);
+  if (NULL != (ret = uri_loc_parse (uri, &msg)))
+    return ret;
+  GNUNET_free (msg);
+  if (NULL != emsg)
     *emsg = GNUNET_strdup (_ ("Unrecognized URI type"));
-  if (emsg == &msg)
-    GNUNET_free (msg);
   return NULL;
 }
 

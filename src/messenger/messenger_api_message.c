@@ -219,6 +219,10 @@ get_message_body_kind_size (enum GNUNET_MESSENGER_MessageKind kind)
   case GNUNET_MESSENGER_KIND_PRIVATE:
     length += member_size(struct GNUNET_MESSENGER_Message, body.privacy.key);
     break;
+  case GNUNET_MESSENGER_KIND_DELETE:
+    length += member_size(struct GNUNET_MESSENGER_Message, body.deletion.hash);
+    length += member_size(struct GNUNET_MESSENGER_Message, body.deletion.delay);
+    break;
   default:
     break;
   }
@@ -445,6 +449,10 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
     encode_step(buffer, offset, &(body->privacy.key));
     encode_step_ext(buffer, offset, body->privacy.data, min(length - offset, body->privacy.length));
     break;
+  case GNUNET_MESSENGER_KIND_DELETE:
+    encode_step(buffer, offset, &(body->deletion.hash));
+    encode_step(buffer, offset, &(body->deletion.delay));
+    break;
   default:
     break;
   }
@@ -615,6 +623,10 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
 
     body->privacy.length = (length - offset);
     decode_step_malloc(buffer, offset, body->privacy.data, length - offset, 0);
+    break;
+  case GNUNET_MESSENGER_KIND_DELETE:
+    decode_step(buffer, offset, &(body->deletion.hash));
+    decode_step(buffer, offset, &(body->deletion.delay));
     break;
   default:
     *kind = GNUNET_MESSENGER_KIND_UNKNOWN;

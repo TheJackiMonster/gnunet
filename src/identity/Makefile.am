@@ -95,6 +95,7 @@ test_identity_defaults_LDADD = \
   $(top_builddir)/src/util/libgnunetutil.la 
 
 EXTRA_DIST = \
-  test_identity.conf 
+  test_identity.conf \
+  test_identity_messages.sh 
 
 

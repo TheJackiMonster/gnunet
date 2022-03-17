@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2010 GNUnet e.V.
+     Copyright (C) 2010, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -119,6 +119,12 @@ enum GNUNET_BLOCK_Type
   GNUNET_BLOCK_TYPE_REVOCATION = 12,
 
   /**
+   * Type of a block that contains a DHT-NG HELLO for a peer (for
+   * DHT and CADET find-peer operations).
+   */
+  GNUNET_BLOCK_TYPE_DHT_URL_HELLO = 13,
+
+  /**
    * Block to store a cadet regex state
    */
   GNUNET_BLOCK_TYPE_REGEX = 22,
@@ -156,93 +162,10 @@ enum GNUNET_BLOCK_Type
 
 
 /**
- * Flags that can be set to control the evaluation.
- * @deprecated
- */
-enum GNUNET_BLOCK_EvaluationOptions
-{
-  /**
-   * Default behavior.
-   */
-  GNUNET_BLOCK_EO_NONE = 0,
-
-  /**
-   * The block is obtained from the local database, skip cryptographic
-   * checks.
-   */
-  GNUNET_BLOCK_EO_LOCAL_SKIP_CRYPTO = 1
-};
-
-
-/**
- * Possible ways for how a block may relate to a query.
- * @deprecated
- */
-enum GNUNET_BLOCK_EvaluationResult
-{
-  /**
-   * Valid result, and there may be more.
-   */
-  GNUNET_BLOCK_EVALUATION_OK_MORE = 0,
-
-  /**
-   * Last possible valid result.
-   */
-  GNUNET_BLOCK_EVALUATION_OK_LAST = 1,
-
-  /**
-   * Valid result, but suppressed because it is a duplicate.
-   */
-  GNUNET_BLOCK_EVALUATION_OK_DUPLICATE = 2,
-
-  /**
-   * Block does not match query (invalid result)
-   */
-  GNUNET_BLOCK_EVALUATION_RESULT_INVALID = 3,
-
-  /**
-   * Block does not match xquery (valid result, not relevant for the request)
-   */
-  GNUNET_BLOCK_EVALUATION_RESULT_IRRELEVANT = 4,
-
-  /**
-   * Query is valid, no reply given.
-   */
-  GNUNET_BLOCK_EVALUATION_REQUEST_VALID = 10,
-
-  /**
-   * Query format does not match block type (invalid query).  For
-   * example, xquery not given or xquery_size not appropriate for
-   * type.
-   */
-  GNUNET_BLOCK_EVALUATION_REQUEST_INVALID = 11,
-
-  /**
-   * Specified block type not supported by this plugin.
-   */
-  GNUNET_BLOCK_EVALUATION_TYPE_NOT_SUPPORTED = 20
-};
-
-
-/**
  * Possible ways for how a block may relate to a query.
  */
 enum GNUNET_BLOCK_ReplyEvaluationResult
 {
-  /**
-   * Valid result, but suppressed because it is a duplicate.
-   */
-  GNUNET_BLOCK_REPLY_OK_DUPLICATE = 0,
-
-  /**
-   * Valid result, and there may be more.
-   */
-  GNUNET_BLOCK_REPLY_OK_MORE = 1,
-
-  /**
-   * Last possible valid result.
-   */
-  GNUNET_BLOCK_REPLY_OK_LAST = 2,
 
   /**
    * Specified block type not supported by any plugin.
@@ -250,14 +173,24 @@ enum GNUNET_BLOCK_ReplyEvaluationResult
   GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED = -1,
 
   /**
-   * Block does not match query (invalid result)
+   * Valid result, but suppressed because it is a duplicate.
    */
-  GNUNET_BLOCK_REPLY_INVALID = -2,
+  GNUNET_BLOCK_REPLY_OK_DUPLICATE = 0,
 
   /**
    * Block does not match xquery (valid result, not relevant for the request)
    */
-  GNUNET_BLOCK_REPLY_IRRELEVANT = -3,
+  GNUNET_BLOCK_REPLY_IRRELEVANT = 1,
+
+  /**
+   * Valid result, and there may be more.
+   */
+  GNUNET_BLOCK_REPLY_OK_MORE = 2,
+
+  /**
+   * Last possible valid result.
+   */
+  GNUNET_BLOCK_REPLY_OK_LAST = 3
 
 };
 
@@ -356,44 +289,12 @@ GNUNET_BLOCK_group_destroy (struct GNUNET_BLOCK_Group *bg);
 
 
 /**
- * Function called to validate a reply or a request.  For
- * request evaluation, simply pass "NULL" for the @a reply_block.
- * Note that it is assumed that the reply has already been
- * matched to the key (and signatures checked) as it would
- * be done with the #GNUNET_BLOCK_get_key() function.
+ * Function called to validate if a reply is good for a
+ * particular query.
  *
  * @param ctx block contxt
  * @param type block type
- * @param group block group to use for evaluation
- * @param eo evaluation options to control evaluation
- * @param query original query (hash)
- * @param xquery extrended query data (can be NULL, depending on type)
- * @param xquery_size number of bytes in @a xquery
- * @param reply_block response to validate
- * @param reply_block_size number of bytes in @a reply_block
- * @return characterization of result
- * @deprecated
- */
-enum GNUNET_BLOCK_EvaluationResult
-GNUNET_BLOCK_evaluate (struct GNUNET_BLOCK_Context *ctx,
-                       enum GNUNET_BLOCK_Type type,
-                       struct GNUNET_BLOCK_Group *group,
-                       enum GNUNET_BLOCK_EvaluationOptions eo,
-                       const struct GNUNET_HashCode *query,
-                       const void *xquery,
-                       size_t xquery_size,
-                       const void *reply_block,
-                       size_t reply_block_size);
-
-
-/**
- * Function called to validate a reply.
- * Also checks the query key against the block contents
- * as it would be done with the #GNUNET_BLOCK_get_key() function.
- *
- * @param ctx block contxt
- * @param type block type
- * @param group block group to use for evaluation
+ * @param[in,out] group block group to use for evaluation
  * @param query original query (hash)
  * @param xquery extrended query data (can be NULL, depending on type)
  * @param xquery_size number of bytes in @a xquery
@@ -436,7 +337,6 @@ GNUNET_BLOCK_check_query (struct GNUNET_BLOCK_Context *ctx,
  *
  * @param ctx block contxt
  * @param type block type
- * @param query query key (hash)
  * @param block payload to put
  * @param block_size number of bytes in @a block
  * @return #GNUNET_OK if the block is fine, #GNUNET_NO if not,
@@ -445,13 +345,14 @@ GNUNET_BLOCK_check_query (struct GNUNET_BLOCK_Context *ctx,
 enum GNUNET_GenericReturnValue
 GNUNET_BLOCK_check_block (struct GNUNET_BLOCK_Context *ctx,
                           enum GNUNET_BLOCK_Type type,
-                          const struct GNUNET_HashCode *query,
                           const void *block,
                           size_t block_size);
 
 
 /**
- * Function called to obtain the key for a block.
+ * Function called to obtain the @a key for a @a block.
+ * If the @a block is malformed, the function should
+ * zero-out @a key and return #GNUNET_OK.
  *
  * @param ctx block context
  * @param type block type
@@ -459,9 +360,8 @@ GNUNET_BLOCK_check_block (struct GNUNET_BLOCK_Context *ctx,
  * @param block_size number of bytes in @a block
  * @param key set to the key (query) for the given block
  * @return #GNUNET_YES on success,
- *         #GNUNET_NO if the block is malformed
- *         #GNUNET_SYSERR if type not supported
- *         (or if extracting a key from a block of this type does not work)
+ *         #GNUNET_NO if extracting a key from a block of this @a type does not work
+ *         #GNUNET_SYSERR if @a type not supported
  */
 enum GNUNET_GenericReturnValue
 GNUNET_BLOCK_get_key (struct GNUNET_BLOCK_Context *ctx,

@@ -76,7 +76,8 @@ GNUNET_CRYPTO_hash_from_string2 (const char *enc,
   char upper_enc[enclen];
   char *up_ptr = upper_enc;
 
-  GNUNET_STRINGS_utf8_toupper (enc, up_ptr);
+  if (GNUNET_OK != GNUNET_STRINGS_utf8_toupper (enc, up_ptr))
+    return GNUNET_SYSERR;
 
   return GNUNET_STRINGS_string_to_data (upper_enc, enclen,
                                         (unsigned char *) result,

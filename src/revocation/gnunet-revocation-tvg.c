@@ -159,6 +159,7 @@ run (void *cls,
   print_bytes (pow,
                GNUNET_REVOCATION_proof_get_size (pow),
                8);
+  GNUNET_free (ph);
 }
 
 

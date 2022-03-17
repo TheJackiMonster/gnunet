@@ -346,6 +346,44 @@ check_rd (size_t rd_len, const void *rd_buf, unsigned int rd_count)
   return GNUNET_OK;
 }
 
+/**
+ * Handle an incoming message of type
+ * #GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_STORE_RESPONSE
+ *
+ * @param cls
+ * @param msg the message we received
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
+ */
+static int
+check_record_store_response (void *cls,
+                             const struct RecordStoreResponseMessage *msg)
+{
+  const char *emsg;
+  size_t msg_len;
+  size_t emsg_len;
+
+  (void) cls;
+  msg_len = ntohs (msg->gns_header.header.size);
+  emsg_len = ntohs (msg->emsg_len);
+  if (0 != ntohs (msg->reserved))
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  if (msg_len != sizeof(struct RecordStoreResponseMessage) + emsg_len)
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  emsg = (const char *) &msg[1];
+  if ((0 != emsg_len) && ('\0' != emsg[emsg_len - 1]))
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
+}
+
 
 /**
  * Handle an incoming message of type
@@ -364,19 +402,16 @@ handle_record_store_response (void *cls,
   const char *emsg;
 
   qe = find_qe (h, ntohl (msg->gns_header.r_id));
+  emsg = (const char *) &msg[1];
   res = ntohl (msg->op_result);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Received RECORD_STORE_RESPONSE with result %d\n",
        res);
-  /* TODO: add actual error message from namestore to response... */
-  if (GNUNET_SYSERR == res)
-    emsg = _ ("Namestore failed to store record\n");
-  else
-    emsg = NULL;
   if (NULL == qe)
     return;
   if (NULL != qe->cont)
-    qe->cont (qe->cont_cls, res, emsg);
+    qe->cont (qe->cont_cls, res,
+             (GNUNET_OK == res) ? NULL : emsg);
   free_qe (qe);
 }
 
@@ -444,8 +479,10 @@ handle_lookup_result (void *cls, const struct LabelLookupResponseMessage *msg)
   size_t name_len;
   size_t rd_len;
   unsigned int rd_count;
+  int16_t found = (int16_t) ntohs (msg->found);
 
-  LOG (GNUNET_ERROR_TYPE_DEBUG, "Received RECORD_LOOKUP_RESULT\n");
+  LOG (GNUNET_ERROR_TYPE_DEBUG, "Received RECORD_LOOKUP_RESULT (found=%i)\n",
+        found);
   qe = find_qe (h, ntohl (msg->gns_header.r_id));
   if (NULL == qe)
     return;
@@ -453,11 +490,18 @@ handle_lookup_result (void *cls, const struct LabelLookupResponseMessage *msg)
   rd_count = ntohs (msg->rd_count);
   name_len = ntohs (msg->name_len);
   name = (const char *) &msg[1];
-  if (GNUNET_NO == ntohs (msg->found))
+  if (GNUNET_NO == found)
   {
     /* label was not in namestore */
     if (NULL != qe->proc)
       qe->proc (qe->proc_cls, &msg->private_key, name, 0, NULL);
+    free_qe (qe);
+    return;
+  }
+  if (GNUNET_SYSERR == found)
+  {
+    if (NULL != qe->error_cb)
+      qe->error_cb (qe->error_cb_cls);
     free_qe (qe);
     return;
   }
@@ -775,7 +819,7 @@ static void
 reconnect (struct GNUNET_NAMESTORE_Handle *h)
 {
   struct GNUNET_MQ_MessageHandler handlers[] =
-  { GNUNET_MQ_hd_fixed_size (record_store_response,
+  { GNUNET_MQ_hd_var_size (record_store_response,
                              GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_STORE_RESPONSE,
                              struct RecordStoreResponseMessage,
                              h),
@@ -969,30 +1013,16 @@ warn_delay (void *cls)
   GNUNET_NAMESTORE_cancel (qe);
 }
 
-
-/**
- * Store an item in the namestore.  If the item is already present,
- * it is replaced with the new record.  Use an empty array to
- * remove all records under the given name.
- *
- * @param h handle to the namestore
- * @param pkey private key of the zone
- * @param label name that is being mapped (at most 255 characters long)
- * @param rd_count number of records in the @a rd array
- * @param rd array of records with data to store
- * @param cont continuation to call when done
- * @param cont_cls closure for @a cont
- * @return handle to abort the request
- */
 struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_records_store (
+records_store_ (
   struct GNUNET_NAMESTORE_Handle *h,
   const struct GNUNET_IDENTITY_PrivateKey *pkey,
   const char *label,
   unsigned int rd_count,
   const struct GNUNET_GNSRECORD_Data *rd,
   GNUNET_NAMESTORE_ContinuationWithStatus cont,
-  void *cont_cls)
+  void *cont_cls,
+  int locking)
 {
   struct GNUNET_NAMESTORE_QueueEntry *qe;
   struct GNUNET_MQ_Envelope *env;
@@ -1037,8 +1067,9 @@ GNUNET_NAMESTORE_records_store (
   msg->name_len = htons (name_len);
   msg->rd_count = htons (rd_count);
   msg->rd_len = htons (rd_ser_len);
-  msg->reserved = htons (0);
+  msg->reserved = ntohs(0);
   msg->private_key = *pkey;
+  msg->locking = htonl (locking);
 
   name_tmp = (char *) &msg[1];
   GNUNET_memcpy (name_tmp, label, name_len);
@@ -1070,28 +1101,45 @@ GNUNET_NAMESTORE_records_store (
   return qe;
 }
 
-
-/**
- * Lookup an item in the namestore.
- *
- * @param h handle to the namestore
- * @param pkey private key of the zone
- * @param label name that is being mapped (at most 255 characters long)
- * @param error_cb function to call on error (i.e. disconnect)
- * @param error_cb_cls closure for @a error_cb
- * @param rm function to call with the result (with 0 records if we don't have that label)
- * @param rm_cls closure for @a rm
- * @return handle to abort the request
- */
 struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_records_lookup (
+GNUNET_NAMESTORE_records_store (
+  struct GNUNET_NAMESTORE_Handle *h,
+  const struct GNUNET_IDENTITY_PrivateKey *pkey,
+  const char *label,
+  unsigned int rd_count,
+  const struct GNUNET_GNSRECORD_Data *rd,
+  GNUNET_NAMESTORE_ContinuationWithStatus cont,
+  void *cont_cls)
+{
+  return records_store_ (h, pkey, label,
+                         rd_count, rd, cont, cont_cls, GNUNET_NO);
+}
+
+struct GNUNET_NAMESTORE_QueueEntry *
+GNUNET_NAMESTORE_records_commit (
+  struct GNUNET_NAMESTORE_Handle *h,
+  const struct GNUNET_IDENTITY_PrivateKey *pkey,
+  const char *label,
+  unsigned int rd_count,
+  const struct GNUNET_GNSRECORD_Data *rd,
+  GNUNET_NAMESTORE_ContinuationWithStatus cont,
+  void *cont_cls)
+{
+  return records_store_ (h, pkey, label,
+                         rd_count, rd, cont, cont_cls, GNUNET_YES);
+}
+
+
+struct GNUNET_NAMESTORE_QueueEntry *
+records_lookup_ (
   struct GNUNET_NAMESTORE_Handle *h,
   const struct GNUNET_IDENTITY_PrivateKey *pkey,
   const char *label,
   GNUNET_SCHEDULER_TaskCallback error_cb,
   void *error_cb_cls,
   GNUNET_NAMESTORE_RecordMonitor rm,
-  void *rm_cls)
+  void *rm_cls,
+  int locking)
 {
   struct GNUNET_NAMESTORE_QueueEntry *qe;
   struct GNUNET_MQ_Envelope *env;
@@ -1119,6 +1167,7 @@ GNUNET_NAMESTORE_records_lookup (
   msg->gns_header.r_id = htonl (qe->op_id);
   msg->zone = *pkey;
   msg->label_len = htonl (label_len);
+  msg->locking = htonl (locking);
   GNUNET_memcpy (&msg[1], label, label_len);
   if (NULL == h->mq)
     qe->env = env;
@@ -1127,22 +1176,34 @@ GNUNET_NAMESTORE_records_lookup (
   return qe;
 }
 
+struct GNUNET_NAMESTORE_QueueEntry *
+GNUNET_NAMESTORE_records_lookup (
+  struct GNUNET_NAMESTORE_Handle *h,
+  const struct GNUNET_IDENTITY_PrivateKey *pkey,
+  const char *label,
+  GNUNET_SCHEDULER_TaskCallback error_cb,
+  void *error_cb_cls,
+  GNUNET_NAMESTORE_RecordMonitor rm,
+  void *rm_cls)
+{
+  return records_lookup_ (h, pkey, label,
+                          error_cb, error_cb_cls, rm, rm_cls, GNUNET_NO);
+}
 
-/**
- * Look for an existing PKEY delegation record for a given public key.
- * Returns at most one result to the processor.
- *
- * @param h handle to the namestore
- * @param zone public key of the zone to look up in, never NULL
- * @param value_zone public key of the target zone (value), never NULL
- * @param error_cb function to call on error (i.e. disconnect)
- * @param error_cb_cls closure for @a error_cb
- * @param proc function to call on the matching records, or with
- *        NULL (rd_count == 0) if there are no matching records
- * @param proc_cls closure for @a proc
- * @return a handle that can be used to
- *         cancel
- */
+struct GNUNET_NAMESTORE_QueueEntry *
+GNUNET_NAMESTORE_records_open (
+  struct GNUNET_NAMESTORE_Handle *h,
+  const struct GNUNET_IDENTITY_PrivateKey *pkey,
+  const char *label,
+  GNUNET_SCHEDULER_TaskCallback error_cb,
+  void *error_cb_cls,
+  GNUNET_NAMESTORE_RecordMonitor rm,
+  void *rm_cls)
+{
+  return records_lookup_ (h, pkey, label,
+                          error_cb, error_cb_cls, rm, rm_cls, GNUNET_YES);
+}
+
 struct GNUNET_NAMESTORE_QueueEntry *
 GNUNET_NAMESTORE_zone_to_name (
   struct GNUNET_NAMESTORE_Handle *h,

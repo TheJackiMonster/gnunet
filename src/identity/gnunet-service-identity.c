@@ -489,8 +489,7 @@ handle_get_default_message (void *cls,
   char *identifier;
 
   name = GNUNET_strdup ((const char *) &gdm[1]);
-  GNUNET_STRINGS_utf8_tolower ((const char *) &gdm[1],
-                               name);
+  GNUNET_STRINGS_utf8_tolower ((const char *) &gdm[1], name);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received GET_DEFAULT for service `%s' from client\n",
               name);

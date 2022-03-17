@@ -101,14 +101,14 @@ enum GNUNET_DHT_RouteOption
   GNUNET_DHT_RO_RECORD_ROUTE = 2,
 
   /**
-   * This is a 'FIND-PEER' request, so approximate results are fine.
+   * Approximate results are fine.
    */
-  GNUNET_DHT_RO_FIND_PEER = 4,
+  GNUNET_DHT_RO_FIND_APPROXIMATE = 4,
 
   /**
-    * Flag given to monitors if this was the last hop for a GET/PUT.
-    * This is only used for internal processing.
-    */
+   * Flag given to monitors if this was the last hop for a GET/PUT.
+   * This is only used for internal processing.
+   */
   GNUNET_DHT_RO_LAST_HOP = 65535
 };
 
@@ -129,11 +129,6 @@ struct GNUNET_DHT_HopSignature
    * Expiration time of the block.
    */
   struct GNUNET_TIME_AbsoluteNBO expiration_time;
-
-  /**
-   * Key of the block.
-   */
-  struct GNUNET_HashCode key;
 
   /**
    * Hash over the payload of the block.
@@ -180,6 +175,7 @@ struct GNUNET_DHT_PathElement
   struct GNUNET_CRYPTO_EddsaSignature sig;
 
 };
+
 
 GNUNET_NETWORK_STRUCT_END
 
@@ -266,7 +262,7 @@ GNUNET_DHT_put_cancel (struct GNUNET_DHT_PutHandle *ph);
  *
  * @param cls closure
  * @param exp when will this value expire
- * @param key key of the result
+ * @param query_hash key of the query
  * @param get_path peers on reply path (or NULL if not recorded)
  *                 [0] = datastore's first neighbor, [length - 1] = local peer
  * @param get_path_length number of entries in @a get_path
@@ -282,7 +278,7 @@ GNUNET_DHT_put_cancel (struct GNUNET_DHT_PutHandle *ph);
 typedef void
 (*GNUNET_DHT_GetIterator) (void *cls,
                            struct GNUNET_TIME_Absolute exp,
-                           const struct GNUNET_HashCode *key,
+                           const struct GNUNET_HashCode *query_hash,
                            const struct GNUNET_DHT_PathElement *get_path,
                            unsigned int get_path_length,
                            const struct GNUNET_DHT_PathElement *put_path,
@@ -487,7 +483,6 @@ GNUNET_DHT_pp2s (const struct GNUNET_DHT_PathElement *path,
  * the last signature on the path is never verified as that is the slot where
  * our peer (@a me) would need to sign.
  *
- * @param key key of the data (not necessarily the query hash)
  * @param data payload (the block)
  * @param data_size number of bytes in @a data
  * @param exp_time expiration time of @a data
@@ -501,8 +496,7 @@ GNUNET_DHT_pp2s (const struct GNUNET_DHT_PathElement *path,
  *         @a get_path_len + @a put_path_len - 1 if no signature was valid
  */
 unsigned int
-GNUNET_DHT_verify_path (const struct GNUNET_HashCode *key,
-                        const void *data,
+GNUNET_DHT_verify_path (const void *data,
                         size_t data_size,
                         struct GNUNET_TIME_Absolute exp_time,
                         const struct GNUNET_DHT_PathElement *put_path,
@@ -510,6 +504,63 @@ GNUNET_DHT_verify_path (const struct GNUNET_HashCode *key,
                         const struct GNUNET_DHT_PathElement *get_path,
                         unsigned int get_path_len,
                         const struct GNUNET_PeerIdentity *me);
+
+
+/**
+ * Handle to get a HELLO URL from the DHT for manual bootstrapping.
+ */
+struct GNUNET_DHT_HelloGetHandle;
+
+
+/**
+ * Signature called with the result of a HELLO GET operation.
+ *
+ * @param cls closure
+ * @param hello_url the resulting HELLO URL, NULL on error
+ */
+typedef void
+(*GNUNET_DHT_HelloGetCallback)(void *cls,
+                               const char *hello_url);
+
+
+/**
+ * Obtain HELLO URL of the DHT identified by @a dht_handle.
+ *
+ * @param dht_handle DHT to query
+ * @param cb function to call with the result
+ * @param cb_cls closure for @a cb
+ * @return NULL on failure
+ */
+struct GNUNET_DHT_HelloGetHandle *
+GNUNET_DHT_hello_get (struct GNUNET_DHT_Handle *dht_handle,
+                      GNUNET_DHT_HelloGetCallback cb,
+                      void *cb_cls);
+
+
+/**
+ * Cancel hello get operation.
+ *
+ * @param[in] hgh operation to cancel.
+ */
+void
+GNUNET_DHT_hello_get_cancel (struct GNUNET_DHT_HelloGetHandle *hgh);
+
+
+/**
+ * Offer HELLO URL of the DHT identified by @a dht_handle.
+ * Callback may be invoked once, only way to cancel is to
+ * disconnect @a dht_handle.
+ *
+ * @param dht_handle DHT to query
+ * @param url URL with a HELLO to offer to the DHT
+ * @param cb function called when done
+ * @param cb_cls closure for @a cb
+ */
+void
+GNUNET_DHT_hello_offer (struct GNUNET_DHT_Handle *dht_handle,
+                        const char *url,
+                        GNUNET_SCHEDULER_TaskCallback cb,
+                        void *cb_cls);
 
 
 #if 0                           /* keep Emacsens' auto-indent happy */

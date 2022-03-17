@@ -1,3 +1,5 @@
 gnunet-hello
 test_friend_hello
 test_hello
+test_hello-uri
+test_hello-ng

@@ -170,9 +170,7 @@ handle_room_close (void *cls,
 
   if (GNUNET_YES == close_handle_room (msg_client->handle, &(msg->key)))
   {
-    const struct GNUNET_ShortHashCode *member_id = get_handle_member_id (msg_client->handle, &(msg->key));
-
-    GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Closing room with member id: %s\n", GNUNET_sh2s (member_id));
+    GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Closing room succeeded: %s\n", GNUNET_h2s (&(msg->key)));
 
     struct GNUNET_MESSENGER_RoomMessage *response;
     struct GNUNET_MQ_Envelope *env;

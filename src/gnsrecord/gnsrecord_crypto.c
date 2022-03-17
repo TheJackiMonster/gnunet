@@ -223,7 +223,6 @@ block_create_ecdsa (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
   unsigned char ctr[GNUNET_CRYPTO_AES_KEY_LENGTH / 2];
   unsigned char skey[GNUNET_CRYPTO_AES_KEY_LENGTH];
   struct GNUNET_GNSRECORD_Data rdc[GNUNET_NZL (rd_count)];
-  uint32_t rd_count_nbo;
   struct GNUNET_TIME_Absolute now;
 
   if (payload_len < 0)
@@ -254,7 +253,6 @@ block_create_ecdsa (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
   /* serialize */
   *block = GNUNET_malloc (sizeof (struct GNUNET_GNSRECORD_Block) + payload_len);
   (*block)->size = htonl(sizeof (struct GNUNET_GNSRECORD_Block) + payload_len);
-  rd_count_nbo = htonl (rd_count);
   {
     char payload[payload_len];
 
@@ -282,12 +280,12 @@ block_create_ecdsa (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
                               label,
                               ecblock->expiration_time.abs_value_us__,
                               pkey);
-    GNUNET_break (payload_len ==
-                  ecdsa_symmetric_encrypt (payload,
-                                           payload_len,
-                                           skey,
-                                           ctr,
-                                           &ecblock[1]));
+    GNUNET_assert (payload_len ==
+                   ecdsa_symmetric_encrypt (payload,
+                                            payload_len,
+                                            skey,
+                                            ctr,
+                                            &ecblock[1]));
     GNUNET_memcpy (&gnr_block[1], &ecblock[1], payload_len);
   }
   if (GNUNET_OK !=
@@ -298,8 +296,10 @@ block_create_ecdsa (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
     GNUNET_break (0);
     GNUNET_free (*block);
     GNUNET_free (dkey);
+    GNUNET_free (gnr_block);
     return GNUNET_SYSERR;
   }
+  GNUNET_free (gnr_block);
   GNUNET_free (dkey);
   return GNUNET_OK;
 }
@@ -348,7 +348,6 @@ block_create_eddsa (const struct GNUNET_CRYPTO_EddsaPrivateKey *key,
   unsigned char nonce[crypto_secretbox_NONCEBYTES];
   unsigned char skey[crypto_secretbox_KEYBYTES];
   struct GNUNET_GNSRECORD_Data rdc[GNUNET_NZL (rd_count)];
-  uint32_t rd_count_nbo;
   struct GNUNET_TIME_Absolute now;
 
   if (payload_len < 0)
@@ -381,7 +380,6 @@ block_create_eddsa (const struct GNUNET_CRYPTO_EddsaPrivateKey *key,
                           + payload_len + crypto_secretbox_MACBYTES);
   (*block)->size = htonl(sizeof (struct GNUNET_GNSRECORD_Block)
                  + payload_len + crypto_secretbox_MACBYTES);
-  rd_count_nbo = htonl (rd_count);
   {
     char payload[payload_len];
 
@@ -415,12 +413,12 @@ block_create_eddsa (const struct GNUNET_CRYPTO_EddsaPrivateKey *key,
                                  label,
                                  edblock->expiration_time.abs_value_us__,
                                  pkey);
-    GNUNET_break (GNUNET_OK ==
-                  eddsa_symmetric_encrypt (payload,
-                                           payload_len,
-                                           skey,
-                                           nonce,
-                                           &edblock[1]));
+    GNUNET_assert (GNUNET_OK ==
+                   eddsa_symmetric_encrypt (payload,
+                                            payload_len,
+                                            skey,
+                                            nonce,
+                                            &edblock[1]));
     GNUNET_memcpy (&gnr_block[1], &edblock[1],
                    payload_len + crypto_secretbox_MACBYTES);
 
@@ -438,7 +436,7 @@ GNUNET_GNSRECORD_block_calculate_size (const struct
                                        unsigned int rd_count)
 {
   struct GNUNET_IDENTITY_PublicKey pkey;
-  ssize_t res;
+  ssize_t res = -1;
 
   GNUNET_IDENTITY_key_get_public (key,
                                   &pkey);
@@ -453,7 +451,7 @@ GNUNET_GNSRECORD_block_calculate_size (const struct
   default:
     GNUNET_assert (0);
   }
-  return -1;
+  return res;
 
 }
 
@@ -593,8 +591,9 @@ GNUNET_GNSRECORD_block_verify (const struct GNUNET_GNSRECORD_Block *block)
   purp = GNUNET_malloc (sizeof (struct GNRBlockPS) + payload_len);
   purp->purpose.size = htonl (sizeof (struct GNRBlockPS) + payload_len);
   purp->purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_GNS_RECORD_SIGN);
-  GNUNET_memcpy (&purp[1], &block[1], payload_len);
-
+  GNUNET_memcpy (&purp[1],
+                 &block[1],
+                 payload_len);
   switch (ntohl (block->type))
   {
   case GNUNET_GNSRECORD_TYPE_PKEY:
@@ -650,10 +649,10 @@ block_decrypt_ecdsa (const struct GNUNET_GNSRECORD_Block *block,
     char payload[payload_len];
     unsigned int rd_count;
 
-    GNUNET_break (payload_len ==
-                  ecdsa_symmetric_decrypt (&block[1], payload_len,
-                                           key, ctr,
-                                           payload));
+    GNUNET_assert (payload_len ==
+                   ecdsa_symmetric_decrypt (&block[1], payload_len,
+                                            key, ctr,
+                                            payload));
     rd_count = GNUNET_GNSRECORD_records_deserialize_get_size (payload_len,
                                                               payload);
     if (rd_count > 2048)
@@ -754,7 +753,6 @@ block_decrypt_eddsa (const struct GNUNET_GNSRECORD_Block *block,
                      GNUNET_GNSRECORD_RecordCallback proc,
                      void *proc_cls)
 {
-  const struct GNUNET_GNSRECORD_EddsaBlock *edblock = &block->eddsa_block;
   size_t payload_len = ntohl (block->size) - sizeof (struct
                                                      GNUNET_GNSRECORD_Block);
   unsigned char nonce[crypto_secretbox_NONCEBYTES];
@@ -776,10 +774,10 @@ block_decrypt_eddsa (const struct GNUNET_GNSRECORD_Block *block,
     char payload[payload_len];
     unsigned int rd_count;
 
-    GNUNET_break (GNUNET_OK ==
-                  eddsa_symmetric_decrypt (&block[1], payload_len,
-                                           key, nonce,
-                                           payload));
+    GNUNET_assert (GNUNET_OK ==
+                   eddsa_symmetric_decrypt (&block[1], payload_len,
+                                            key, nonce,
+                                            payload));
     payload_len -= crypto_secretbox_MACBYTES;
     rd_count = GNUNET_GNSRECORD_records_deserialize_get_size (payload_len,
                                                               payload);
@@ -909,7 +907,7 @@ GNUNET_GNSRECORD_block_decrypt (const struct GNUNET_GNSRECORD_Block *block,
                                proc_cls);
     break;
   default:
-    return GNUNET_SYSERR;
+    res = GNUNET_SYSERR;
   }
   GNUNET_free (norm_label);
   return res;

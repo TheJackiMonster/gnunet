@@ -816,6 +816,7 @@ AC_CHECK_LIB([kvm], [kvm_open])
 AC_CHECK_LIB([kstat], [kstat_open])
 
 # check for libsodium version >= 1.0.18
+libsodium=0
 AC_CHECK_HEADER([sodium.h],
   [AC_CHECK_LIB([sodium], [crypto_core_ed25519_scalar_mul],
                 [libsodium=1],

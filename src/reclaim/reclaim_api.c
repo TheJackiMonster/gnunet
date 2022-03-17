@@ -1550,7 +1550,6 @@ GNUNET_RECLAIM_ticket_issue (
   struct IssueTicketMessage *tim;
   size_t attr_len;
 
-  fprintf (stderr, "Issuing ticket\n");
   op = GNUNET_new (struct GNUNET_RECLAIM_Operation);
   op->h = h;
   op->ti_cb = cb;

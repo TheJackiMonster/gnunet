@@ -30,12 +30,8 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_block_lib.h"
 #include "gnunet_dht_service.h"
+#include "gnunet_dhtu_plugin.h"
 #include "gnunet-service-dht_datacache.h"
-
-/**
- * Hash of the identity of this peer.
- */
-extern struct GNUNET_HashCode my_identity_hash;
 
 
 struct PeerInfo;
@@ -67,8 +63,8 @@ GDS_NEIGHBOURS_lookup_peer (const struct GNUNET_PeerIdentity *target);
 enum GNUNET_GenericReturnValue
 GDS_NEIGHBOURS_handle_put (const struct GDS_DATACACHE_BlockData *bd,
                            enum GNUNET_DHT_RouteOption options,
-                           uint32_t desired_replication_level,
-                           uint32_t hop_count,
+                           uint16_t desired_replication_level,
+                           uint16_t hop_count,
                            struct GNUNET_CONTAINER_BloomFilter *bf);
 
 
@@ -92,8 +88,8 @@ GDS_NEIGHBOURS_handle_put (const struct GDS_DATACACHE_BlockData *bd,
 enum GNUNET_GenericReturnValue
 GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
                            enum GNUNET_DHT_RouteOption options,
-                           uint32_t desired_replication_level,
-                           uint32_t hop_count,
+                           uint16_t desired_replication_level,
+                           uint16_t hop_count,
                            const struct GNUNET_HashCode *key,
                            const void *xquery,
                            size_t xquery_size,
@@ -112,8 +108,9 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
  * @param query_hash query that was used for the request
  * @param get_path_length number of entries in put_path
  * @param get_path peers this reply has traversed so far (if tracked)
+ * @return true on success
  */
-void
+bool
 GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
                              const struct GDS_DATACACHE_BlockData *bd,
                              const struct GNUNET_HashCode *query_hash,
@@ -134,6 +131,73 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
 enum GNUNET_GenericReturnValue
 GDS_am_closest_peer (const struct GNUNET_HashCode *key,
                      const struct GNUNET_CONTAINER_BloomFilter *bloom);
+
+
+/**
+ * Callback function used to extract URIs from a builder.
+ * Called when we should consider connecting to a peer.
+ *
+ * @param cls closure pointing to a `struct GNUNET_PeerIdentity *`
+ * @param uri one of the URIs
+ */
+void
+GDS_try_connect (void *cls,
+                 const char *uri);
+
+
+/**
+ * Function to call when we connect to a peer and can henceforth transmit to
+ * that peer.
+ *
+ * @param cls the closure, must be a `struct GDS_Underlay`
+ * @param target handle to the target,
+ *    pointer will remain valid until @e disconnect_cb is called
+ * @para pid peer identity,
+ *    pointer will remain valid until @e disconnect_cb is called
+ * @param[out] ctx storage space for DHT to use in association with this target
+ */
+void
+GDS_u_connect (void *cls,
+               struct GNUNET_DHTU_Target *target,
+               const struct GNUNET_PeerIdentity *pid,
+               void **ctx);
+
+
+/**
+ * Function to call when we disconnected from a peer and can henceforth
+ * cannot transmit to that peer anymore.
+ *
+ * @param[in] ctx storage space used by the DHT in association with this target
+ */
+void
+GDS_u_disconnect (void *ctx);
+
+
+/**
+ * Function to call when we receive a message.
+ *
+ * @param cls the closure
+ * @param origin where the message originated from
+ * @param[in,out] tctx ctx of target address where we received the message from
+ * @param[in,out] sctx ctx of our own source address at which we received the message
+ * @param message the message we received @param message_size number of
+ * bytes in @a message
+ */
+void
+GDS_u_receive (void *cls,
+               void **tctx,
+               void **sctx,
+               const void *message,
+               size_t message_size);
+
+
+/**
+ * Send @a msg to all peers in our buckets.
+ *
+ * @param msg message to broadcast
+ */
+void
+GDS_NEIGHBOURS_broadcast (const struct GNUNET_MessageHeader *msg);
 
 
 /**

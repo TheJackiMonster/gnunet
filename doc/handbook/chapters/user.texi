@@ -1561,6 +1561,9 @@ The GNS currently supports the record types as defined in
 @uref{https://git.gnunet.org/gana.git/tree/gnu-name-system-record-types/registry.rec, GANA}.
 In addition, GNS supports DNS record types, such as A, AAAA or TXT.
 
+For a complete description of the records, please refer to the specification
+at @uref{https://lsd.gnunet.org/lsd0001, LSD0001}.
+
 In the following, we discuss GNS records with specific behaviour or special
 handling of DNS records.
 
@@ -1570,8 +1573,9 @@ handling of DNS records.
 * BOX::
 * LEHO::
 * VPN::
-* CNAME::
+* REDIRECT::
 * GNS2DNS::
+* TOMBSTONE::
 * SOA SRV PTR and MX::
 @end menu
 
@@ -1668,11 +1672,11 @@ having the following lines in the @file{gnunet.conf} configuration file:
 TCP_REDIRECTS = 80:localhost4:8080
 @end example
 
-@node CNAME
-@subsubsection CNAME
+@node REDIRECT
+@subsubsection REDIRECT
 
-As specified in RFC 1035 whenever a CNAME is encountered the query
-needs to be restarted with the specified name. In GNS a CNAME
+As specified in LSD0001 whenever a REDIRECT is encountered the query
+needs to be restarted with the specified name. A REDIRECT
 can either be:
 
 @itemize @bullet
@@ -1720,6 +1724,21 @@ obvious as the nameserver for "gnunet.org" is in the ".com" zone.
 However, imagine the nameserver was "ns.gnunet.org". In this case,
 delegating to "ns.gnunet.org" would mean that despite using GNS,
 censorship in the DNS ".org" zone would still be effective.
+
+@node TOMBSTONE
+@subsubsection TOMBSTONE
+
+The GNUnet GNS implementation uses the TOMBSTONE record to ensure
+ciphertext indistinguishability for published records.
+It must be ensured that when relative expiration times are decreased, the
+expiration time of the next record block MUST be after the last published block.
+A similar issue arises if the record set under a label is deleted and reused
+later.
+
+The creation and maintenance of the TOMBSTONE record is done automatically.
+You do not need to mind it yourself and can safely ignore any TOMBSTONE
+blocks you may see when investigating your zone(s).
+TOMBSTONE records are always private and will never be published.
 
 @node SOA SRV PTR and MX
 @subsubsection SOA SRV PTR and MX

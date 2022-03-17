@@ -15,8 +15,8 @@ MODE = proportional
 # IMPORTANT: Do not lower those quotas below 10 MiB
 # Or your peer may not bootstrap correctly.
 # Network specific inbound/outbound quotas
-UNSPECIFIED_QUOTA_IN = 10 MiB
-UNSPECIFIED_QUOTA_OUT = 10 MiB
+UNSPECIFIED_QUOTA_IN = unlimited
+UNSPECIFIED_QUOTA_OUT = unlimited
 # LOOPBACK
 LOOPBACK_QUOTA_IN = unlimited
 LOOPBACK_QUOTA_OUT = unlimited
@@ -27,8 +27,8 @@ LAN_QUOTA_OUT = unlimited
 WAN_QUOTA_IN = 10 MiB
 WAN_QUOTA_OUT = 10 MiB
 # WLAN
-WLAN_QUOTA_IN = 10 MiB
-WLAN_QUOTA_OUT = 10 MiB
+WLAN_QUOTA_IN = unlimited
+WLAN_QUOTA_OUT = unlimited
 # BLUETOOTH
 BLUETOOTH_QUOTA_IN = 10 MiB
 BLUETOOTH_QUOTA_OUT = 10 MiB
@@ -38,7 +38,7 @@ BLUETOOTH_QUOTA_OUT = 10 MiB
 # How proportional to preferences is bandwidth distribution in a network
 # 1.0: Fair with respect to addresses without preferences
 # > 1.0: The bigger, the more respect is paid to preferences
-PROP_PROPORTIONALITY_FACTOR = 2.00
-# Should we stick to existing connections are prefer to switch?
+PROP_PROPORTIONALITY_FACTOR = 10.00
+# Should we stick to existing connections or prefer to switch?
 # [1.0...2.0], lower value prefers to switch, bigger value is more tolerant
 PROP_STABILITY_FACTOR = 1.25

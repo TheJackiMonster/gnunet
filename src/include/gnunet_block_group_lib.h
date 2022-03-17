@@ -94,7 +94,7 @@ GNUNET_BLOCK_GROUP_bf_create (void *cls,
  * @return #GNUNET_YES if @a hc is (likely) a duplicate
  *         #GNUNET_NO if @a hc was definitively not in @bg (but now is)
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BLOCK_GROUP_bf_test_and_set (struct GNUNET_BLOCK_Group *bg,
                                     const struct GNUNET_HashCode *hc);
 

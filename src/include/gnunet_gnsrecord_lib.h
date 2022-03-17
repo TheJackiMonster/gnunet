@@ -44,6 +44,12 @@ extern "C" {
 #endif
 
 /**
+ * String we use to indicate an empty label (top-level
+ * entry in the zone).  DNS uses "@", so do we.
+ */
+#define GNUNET_GNS_EMPTY_LABEL_AT "@"
+
+/**
  * Maximum size of a value that can be stored in a GNS block.
  */
 #define GNUNET_GNSRECORD_MAX_BLOCK_SIZE (63 * 1024)
@@ -299,8 +305,6 @@ struct GNUNET_GNSRECORD_ReverseRecord
   /* followed by the name the delegator uses to refer to our namespace */
 };
 
-GNUNET_NETWORK_STRUCT_END
-
 
 /**
  * Process a records that were decrypted from a block.
@@ -427,21 +431,13 @@ GNUNET_GNSRECORD_is_expired (const struct GNUNET_GNSRECORD_Data *rd);
 
 
 /**
- * Normalize a UTF-8 string to UTF-8 NFC
+ * Normalize a UTF-8 string to a GNS name
+ *
  * @param src source string
  * @return converted result
  */
 char *
 GNUNET_GNSRECORD_string_normalize (const char *src);
-
-
-/**
- * Convert a UTF-8 string to UTF-8 lowercase
- * @param src source string
- * @return converted result
- */
-char *
-GNUNET_GNSRECORD_string_to_lowercase (const char *src);
 
 
 /**
@@ -616,11 +612,14 @@ GNUNET_GNSRECORD_records_cmp (const struct GNUNET_GNSRECORD_Data *a,
  *
  * @param rd_count number of records given in @a rd
  * @param rd array of records
+ * @param min minimum expiration time
  * @return absolute expiration time
  */
 struct GNUNET_TIME_Absolute
-GNUNET_GNSRECORD_record_get_expiration_time (
-  unsigned int rd_count, const struct GNUNET_GNSRECORD_Data *rd);
+GNUNET_GNSRECORD_record_get_expiration_time (unsigned int rd_count,
+                                             const struct
+                                             GNUNET_GNSRECORD_Data *rd,
+                                             struct GNUNET_TIME_Absolute min);
 
 
 /**
@@ -700,6 +699,77 @@ GNUNET_GNSRECORD_data_from_identity (const struct
 enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_is_zonekey_type (uint32_t type);
 
+/**
+ * Check if this type is a critical record.
+ *
+ * @param type the type to check
+ * @return GNUNET_YES if it is critical.
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_is_critical (uint32_t type);
+
+/**
+ * Normalize namestore records: Check for consistency and
+ * expirations. Purge expired records. Returns a "clean" record set.
+ * Also returns the minimum expiration time this block should be
+ * published under.
+ * Also checks rules with respect to labels (e.g. no delegations under
+ * the empty label)
+ *
+ * @param label the label under which this set (supposed to be) stored.
+ * @param rd input records
+ * @param rd_count size of the @a rd and @a rd_public arrays
+ * @param rd_public where to write the converted records
+ * @param rd_public_count number of records written to @a rd_public
+ * @param min_expiry the minimum expiration of this set
+ * @param include_private GNUNET_YES if private records should be included.
+ * @param emsg the error message if something went wrong
+ * @return GNUNET_OK if set could be normalized and is consistent
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_normalize_record_set (const char *label,
+                                       const struct GNUNET_GNSRECORD_Data *rd,
+                                       unsigned int rd_count,
+                                       struct GNUNET_GNSRECORD_Data *rd_public,
+                                       unsigned int *rd_count_public,
+                                       struct GNUNET_TIME_Absolute *min_expiry,
+                                       int include_private,
+                                       char **emsg);
+
+
+/**
+ * Convert namestore records from the internal format to that
+ * suitable for publication (removes private records).
+ *
+ * @param label the label under which this set is (supposed to be) published.
+ * @param rd input records
+ * @param rd_count size of the @a rd and @a rd_public arrays
+ * @param rd_public where to write the converted records
+ * @param rd_public_count number of records written to @a rd_public
+ * @param expiry the expiration of the block
+ * @param emsg the error message if something went wrong
+ * @return GNUNET_OK if set is consistent and can be exported
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_convert_records_for_export (const char *label,
+                                             const struct
+                                             GNUNET_GNSRECORD_Data *rd,
+                                             unsigned int rd_count,
+                                             struct GNUNET_GNSRECORD_Data *
+                                             rd_public,
+                                             unsigned int *rd_count_public,
+                                             struct GNUNET_TIME_Absolute *expiry,
+                                             char **emsg);
+
+/**
+ * Check label for invalid characters.
+ *
+ * @param label the label to check
+ * @param emsg an error message (NULL if label is valid). Will be allocated.
+ * @return GNUNET_OK if label is valid.
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_label_check (const char*label, char **emsg);
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {

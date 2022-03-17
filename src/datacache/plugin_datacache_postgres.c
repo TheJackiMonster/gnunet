@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet
-     Copyright (C) 2006, 2009, 2010, 2012, 2015, 2017, 2018 GNUnet e.V.
+     Copyright (C) 2006, 2009, 2010, 2012, 2015, 2017, 2018, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -109,9 +109,20 @@ init_connection (struct Plugin *plugin)
                             " ORDER BY prox ASC, discard_time ASC LIMIT 1",
                             0),
     GNUNET_PQ_make_prepare ("get_closest",
-                            "SELECT discard_time,type,value,path,key FROM gn011dc "
-                            "WHERE key>=$1 AND discard_time >= $2 ORDER BY key ASC LIMIT $3",
-                            3),
+                            "(SELECT discard_time,type,value,path,key FROM gn011dc"
+                            " WHERE key >= $1"
+                            "   AND discard_time >= $2"
+                            "   AND ( (type = $3) OR ( 0 = $3) )"
+                            " ORDER BY key ASC"
+                            " LIMIT $4)"
+                            " UNION "
+                            "(SELECT discard_time,type,value,path,key FROM gn011dc"
+                            " WHERE key <= $1"
+                            "   AND discard_time >= $2"
+                            "   AND ( (type = $3) OR ( 0 = $3) )"
+                            " ORDER BY key DESC"
+                            " LIMIT $4)",
+                            4),
     GNUNET_PQ_make_prepare ("delrow",
                             "DELETE FROM gn011dc WHERE oid=$1",
                             1),
@@ -511,6 +522,7 @@ extract_result_cb (void *cls,
  *
  * @param cls closure (internal context for the plugin)
  * @param key area of the keyspace to look into
+ * @param type desired block type for the replies
  * @param num_results number of results that should be returned to @a iter
  * @param iter maybe NULL (to just count)
  * @param iter_cls closure for @a iter
@@ -519,16 +531,19 @@ extract_result_cb (void *cls,
 static unsigned int
 postgres_plugin_get_closest (void *cls,
                              const struct GNUNET_HashCode *key,
+                             enum GNUNET_BLOCK_Type type,
                              unsigned int num_results,
                              GNUNET_DATACACHE_Iterator iter,
                              void *iter_cls)
 {
   struct Plugin *plugin = cls;
   uint32_t num_results32 = (uint32_t) num_results;
+  uint32_t type32 = (uint32_t) type;
   struct GNUNET_TIME_Absolute now;
   struct GNUNET_PQ_QueryParam params[] = {
     GNUNET_PQ_query_param_auto_from_type (key),
     GNUNET_PQ_query_param_absolute_time (&now),
+    GNUNET_PQ_query_param_uint32 (&type32),
     GNUNET_PQ_query_param_uint32 (&num_results32),
     GNUNET_PQ_query_param_end
   };

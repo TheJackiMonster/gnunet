@@ -307,7 +307,7 @@ struct GNUNET_CRYPTO_SymmetricSessionKey
 /**
  * Type of a nonce used for challenges.
  */
-struct ChallengeNonceP
+struct GNUNET_CRYPTO_ChallengeNonceP
 {
   /**
    * The value of the nonce.  Note that this is NOT a hash.
@@ -2551,9 +2551,9 @@ GNUNET_CRYPTO_cs_private_key_generate (struct GNUNET_CRYPTO_CsPrivateKey *priv);
  * @param[out] pub where to write the public key
  */
 void
-GNUNET_CRYPTO_cs_private_key_get_public (const struct
-                                         GNUNET_CRYPTO_CsPrivateKey *priv,
-                                         struct GNUNET_CRYPTO_CsPublicKey *pub);
+GNUNET_CRYPTO_cs_private_key_get_public (
+  const struct GNUNET_CRYPTO_CsPrivateKey *priv,
+  struct GNUNET_CRYPTO_CsPublicKey *pub);
 
 
 /**
@@ -2565,11 +2565,13 @@ GNUNET_CRYPTO_cs_private_key_get_public (const struct
  * Comment: Can be done in one HKDF shot and split output.
  *
  * @param nonce is a random nonce
+ * @param seed seed to use in derivation
  * @param lts is a long-term-secret in form of a private key
  * @param[out] r array containing derived secrets r0 and r1
  */
 void
 GNUNET_CRYPTO_cs_r_derive (const struct GNUNET_CRYPTO_CsNonce *nonce,
+                           const char *seed,
                            const struct GNUNET_CRYPTO_CsPrivateKey *lts,
                            struct GNUNET_CRYPTO_CsRSecret r[2]);
 
@@ -2595,10 +2597,9 @@ GNUNET_CRYPTO_cs_r_get_public (const struct GNUNET_CRYPTO_CsRSecret *r_priv,
  * @param[out] bs array containing the two derived blinding secrets
  */
 void
-GNUNET_CRYPTO_cs_blinding_secrets_derive (const struct
-                                          GNUNET_CRYPTO_CsNonce *blind_seed,
-                                          struct GNUNET_CRYPTO_CsBlindingSecret
-                                          bs[2]);
+GNUNET_CRYPTO_cs_blinding_secrets_derive (
+  const struct GNUNET_CRYPTO_CsNonce *blind_seed,
+  struct GNUNET_CRYPTO_CsBlindingSecret bs[2]);
 
 
 /**
@@ -2614,15 +2615,14 @@ GNUNET_CRYPTO_cs_blinding_secrets_derive (const struct
  * @param[out] blinded_r_pub array of the two blinded R
  */
 void
-GNUNET_CRYPTO_cs_calc_blinded_c (const struct GNUNET_CRYPTO_CsBlindingSecret
-                                 bs[2],
-                                 const struct GNUNET_CRYPTO_CsRPublic r_pub[2],
-                                 const struct GNUNET_CRYPTO_CsPublicKey *pub,
-                                 const void *msg,
-                                 size_t msg_len,
-                                 struct GNUNET_CRYPTO_CsC blinded_c[2],
-                                 struct GNUNET_CRYPTO_CsRPublic
-                                 blinded_r_pub[2]);
+GNUNET_CRYPTO_cs_calc_blinded_c (
+  const struct GNUNET_CRYPTO_CsBlindingSecret bs[2],
+  const struct GNUNET_CRYPTO_CsRPublic r_pub[2],
+  const struct GNUNET_CRYPTO_CsPublicKey *pub,
+  const void *msg,
+  size_t msg_len,
+  struct GNUNET_CRYPTO_CsC blinded_c[2],
+  struct GNUNET_CRYPTO_CsRPublic blinded_r_pub[2]);
 
 
 /**
@@ -2642,13 +2642,12 @@ GNUNET_CRYPTO_cs_calc_blinded_c (const struct GNUNET_CRYPTO_CsBlindingSecret
  * @return 0 or 1 for b (see Clause Blind Signature Scheme)
  */
 unsigned int
-GNUNET_CRYPTO_cs_sign_derive (const struct GNUNET_CRYPTO_CsPrivateKey *priv,
-                              const struct GNUNET_CRYPTO_CsRSecret r[2],
-                              const struct GNUNET_CRYPTO_CsC c[2],
-                              const struct GNUNET_CRYPTO_CsNonce *nonce,
-                              struct GNUNET_CRYPTO_CsBlindS *
-                              blinded_signature_scalar
-                              );
+GNUNET_CRYPTO_cs_sign_derive (
+  const struct GNUNET_CRYPTO_CsPrivateKey *priv,
+  const struct GNUNET_CRYPTO_CsRSecret r[2],
+  const struct GNUNET_CRYPTO_CsC c[2],
+  const struct GNUNET_CRYPTO_CsNonce *nonce,
+  struct GNUNET_CRYPTO_CsBlindS *blinded_signature_scalar);
 
 
 /**
@@ -2659,10 +2658,10 @@ GNUNET_CRYPTO_cs_sign_derive (const struct GNUNET_CRYPTO_CsPrivateKey *priv,
  * @param[out] signature_scalar where to write the unblinded signature
  */
 void
-GNUNET_CRYPTO_cs_unblind (const struct
-                          GNUNET_CRYPTO_CsBlindS *blinded_signature_scalar,
-                          const struct GNUNET_CRYPTO_CsBlindingSecret *bs,
-                          struct GNUNET_CRYPTO_CsS *signature_scalar);
+GNUNET_CRYPTO_cs_unblind (
+  const struct GNUNET_CRYPTO_CsBlindS *blinded_signature_scalar,
+  const struct GNUNET_CRYPTO_CsBlindingSecret *bs,
+  struct GNUNET_CRYPTO_CsS *signature_scalar);
 
 
 /**

@@ -47,57 +47,6 @@ struct BlockContext
 };
 
 
-/**
- * Function called to validate a reply or a request.  For
- * request evaluation, simply pass "NULL" for the reply_block.
- *
- * @param cls closure
- * @param ctx context
- * @param type block type
- * @param group block group to use
- * @param eo control flags
- * @param query original query (hash)
- * @param xquery extrended query data (can be NULL, depending on type)
- * @param xquery_size number of bytes in xquery
- * @param reply_block response to validate
- * @param reply_block_size number of bytes in reply block
- * @return characterization of result
- */
-static enum GNUNET_BLOCK_EvaluationResult
-block_plugin_consensus_evaluate (void *cls,
-                                 struct GNUNET_BLOCK_Context *ctx,
-                                 enum GNUNET_BLOCK_Type type,
-                                 struct GNUNET_BLOCK_Group *group,
-                                 enum GNUNET_BLOCK_EvaluationOptions eo,
-                                 const struct GNUNET_HashCode *query,
-                                 const void *xquery,
-                                 size_t xquery_size,
-                                 const void *reply_block,
-                                 size_t reply_block_size)
-{
-  struct BlockContext *bctx = cls;
-  const struct ConsensusElement *ce = reply_block;
-
-  if (reply_block_size < sizeof(struct ConsensusElement))
-    return GNUNET_BLOCK_EVALUATION_RESULT_INVALID;
-  if ( (0 != ce->marker) ||
-       (0 == ce->payload_type) )
-    return GNUNET_BLOCK_EVALUATION_OK_MORE;
-
-  if (NULL == bctx->bc)
-    bctx->bc = GNUNET_BLOCK_context_create (bctx->cfg);
-  return GNUNET_BLOCK_evaluate (bctx->bc,
-                                type,
-                                group,
-                                eo,
-                                query,
-                                xquery,
-                                xquery_size,
-                                &ce[1],
-                                reply_block_size
-                                - sizeof(struct ConsensusElement));
-}
-
 
 /**
  * Function called to validate a query.
@@ -128,7 +77,6 @@ block_plugin_consensus_check_query (void *cls,
  *
  * @param cls closure
  * @param type block type
- * @param query key for the block (hash), must match exactly
  * @param block block data to validate
  * @param block_size number of bytes in @a block
  * @return #GNUNET_OK if the block is fine, #GNUNET_NO if not
@@ -136,7 +84,6 @@ block_plugin_consensus_check_query (void *cls,
 static enum GNUNET_GenericReturnValue
 block_plugin_consensus_check_block (void *cls,
                                     enum GNUNET_BLOCK_Type type,
-                                    const struct GNUNET_HashCode *query,
                                     const void *block,
                                     size_t block_size)
 {
@@ -144,7 +91,10 @@ block_plugin_consensus_check_block (void *cls,
   const struct ConsensusElement *ce = block;
 
   if (block_size < sizeof(*ce))
+  {
+    GNUNET_break_op (0);
     return GNUNET_NO;
+  }
   if ( (0 != ce->marker) ||
        (0 == ce->payload_type) )
     return GNUNET_OK;
@@ -152,7 +102,6 @@ block_plugin_consensus_check_block (void *cls,
     ctx->bc = GNUNET_BLOCK_context_create (ctx->cfg);
   return GNUNET_BLOCK_check_block (ctx->bc,
                                    ntohl (ce->payload_type),
-                                   query,
                                    &ce[1],
                                    block_size - sizeof(*ce));
 }
@@ -188,8 +137,7 @@ block_plugin_consensus_check_reply (
   struct BlockContext *ctx = cls;
   const struct ConsensusElement *ce = reply_block;
 
-  if (reply_block_size < sizeof(struct ConsensusElement))
-    return GNUNET_NO;
+  GNUNET_assert (reply_block_size >= sizeof(struct ConsensusElement));
   if ( (0 != ce->marker) ||
        (0 == ce->payload_type) )
     return GNUNET_BLOCK_REPLY_OK_MORE;
@@ -246,7 +194,6 @@ libgnunet_plugin_block_consensus_init (void *cls)
   ctx->cfg = cfg;
   api = GNUNET_new (struct GNUNET_BLOCK_PluginFunctions);
   api->cls = ctx;
-  api->evaluate = &block_plugin_consensus_evaluate;
   api->get_key = &block_plugin_consensus_get_key;
   api->check_query = &block_plugin_consensus_check_query;
   api->check_block = &block_plugin_consensus_check_block;
