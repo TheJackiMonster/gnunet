@@ -1273,7 +1273,7 @@ pass_plaintext_to_core (struct SenderAddress *sender,
   const struct GNUNET_MessageHeader *hdr = plaintext;
   const char *pos = plaintext;
 
-  while (ntohs (hdr->size) < plaintext_len)
+  while (ntohs (hdr->size) <= plaintext_len)
   {
     GNUNET_STATISTICS_update (stats,
                               "# bytes given to core",
@@ -1722,6 +1722,12 @@ try_handle_plaintext (struct SenderAddress *sender,
   const struct UDPAck *ack = (const struct UDPAck *) buf;
   uint16_t type;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "try_handle_plaintext of size %u (%u %u) and type %u\n",
+              buf_size,
+              ntohs (hdr->size),
+              sizeof(*hdr),
+              ntohs (hdr->type));
   if (sizeof(*hdr) > buf_size)
     return; /* not even a header */
   if (ntohs (hdr->size) > buf_size)
@@ -2202,7 +2208,8 @@ verify_confirmation (const struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral,
 {
   struct UdpHandshakeSignature uhs;
 
-  uhs.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_UDP_HANDSHAKE);
+  uhs.purpose.purpose = htonl (
+    GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_UDP_HANDSHAKE);
   uhs.purpose.size = htonl (sizeof(uhs));
   uhs.sender = uc->sender;
   uhs.receiver = my_identity;
@@ -2350,7 +2357,8 @@ sock_read (void *cls)
                 "received UDPBroadcast from %s\n",
                 GNUNET_a2s ((const struct sockaddr *) addr_verify, salen));
     ub = (const struct UDPBroadcast *) buf;
-    uhs.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_UDP_BROADCAST);
+    uhs.purpose.purpose = htonl (
+      GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_UDP_BROADCAST);
     uhs.purpose.size = htonl (sizeof(uhs));
     uhs.sender = ub->sender;
     sender = ub->sender;
@@ -2366,10 +2374,11 @@ sock_read (void *cls)
                 GNUNET_i2s (&sender));
     GNUNET_CRYPTO_hash ((struct sockaddr *) addr_verify, salen, &uhs.h_address);
     if (GNUNET_OK ==
-        GNUNET_CRYPTO_eddsa_verify (GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_UDP_BROADCAST,
-                                    &uhs,
-                                    &ub->sender_sig,
-                                    &ub->sender.public_key))
+        GNUNET_CRYPTO_eddsa_verify (
+          GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_UDP_BROADCAST,
+          &uhs,
+          &ub->sender_sig,
+          &ub->sender.public_key))
     {
       char *addr_s;
       enum GNUNET_NetworkType nt;
@@ -2699,7 +2708,8 @@ mq_send_kx (struct GNUNET_MQ_Handle *mq,
   uc.sender = my_identity;
   uc.monotonic_time =
     GNUNET_TIME_absolute_hton (GNUNET_TIME_absolute_get_monotonic (cfg));
-  uhs.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_UDP_HANDSHAKE);
+  uhs.purpose.purpose = htonl (
+    GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_UDP_HANDSHAKE);
   uhs.purpose.size = htonl (sizeof(uhs));
   uhs.sender = my_identity;
   uhs.receiver = receiver->target;
@@ -3644,7 +3654,8 @@ iface_proc (void *cls,
   bi->salen = addrlen;
   bi->found = GNUNET_YES;
   bi->bcm.sender = my_identity;
-  ubs.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_UDP_BROADCAST);
+  ubs.purpose.purpose = htonl (
+    GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_UDP_BROADCAST);
   ubs.purpose.size = htonl (sizeof(ubs));
   ubs.sender = my_identity;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,

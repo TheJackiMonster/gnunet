@@ -65,12 +65,12 @@ struct TestState
    */
   struct GNUNET_TESTING_NetjailTopology *topology;
 
-  /**
+};
+
+/**
    * The number of messages received.
    */
-  unsigned int number_received;
-
-};
+static unsigned int number_received;
 
 static struct GNUNET_TESTING_Command block_send;
 
@@ -105,52 +105,61 @@ static void
 handle_test (void *cls,
              const struct GNUNET_TRANSPORT_TESTING_TestMessage *message)
 {
-  struct TestState *ts = cls;
+  struct GNUNET_PeerIdentity *peer = cls;
   const struct GNUNET_TESTING_AsyncContext *ac_block;
   const struct GNUNET_TESTING_AsyncContext *ac_start;
   const struct GNUNET_TESTING_Command *cmd;
   const struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map;
   unsigned int connected;
   struct BlockState *bs;
+  struct GNUNET_TRANSPORT_CoreHandle *ch;
+  const struct StartPeerState *sps;
 
 
-
+  GNUNET_TRANSPORT_get_trait_state (&start_peer,
+                                    &sps);
+  ch = sps->th;
   GNUNET_TRANSPORT_get_trait_connected_peers_map (&start_peer,
                                                   &connected_peers_map);
 
-  connected = GNUNET_CONTAINER_multishortmap_size (
-    connected_peers_map);
-
-  ts->number_received++;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Received %u test message(s) from %u connected peer(s)\n",
-              ts->number_received,
-              connected);
-
-  GNUNET_TESTING_get_trait_async_context (&block_receive,
-                                          &ac_block);
-
-  if ( connected == ts->number_received)
+  if (NULL != connected_peers_map)
   {
-    if (NULL != ac_block->is)
-    {
-      GNUNET_assert  (NULL != ac_block);
-      if (NULL == ac_block->cont)
-        GNUNET_TESTING_async_fail ((struct
-                                    GNUNET_TESTING_AsyncContext *) ac_block);
-      else
-        GNUNET_TESTING_async_finish ((struct
-                                      GNUNET_TESTING_AsyncContext *) ac_block);
-    }
-    else
-    {
-      GNUNET_TESTING_get_trait_block_state (
-        &block_receive,
-        (const struct BlockState  **) &bs);
-      bs->asynchronous_finish = GNUNET_YES;
-    }
+    connected = GNUNET_CONTAINER_multishortmap_size (
+      connected_peers_map);
 
+    number_received++;
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Received %u test message(s) from %s, %u connected peer(s)\n",
+                number_received,
+                GNUNET_i2s (peer),
+                connected);
+
+    GNUNET_TESTING_get_trait_async_context (&block_receive,
+                                            &ac_block);
+
+    if ( connected == number_received)
+    {
+      if (NULL != ac_block->is)
+      {
+        GNUNET_assert  (NULL != ac_block);
+        if (NULL == ac_block->cont)
+          GNUNET_TESTING_async_fail ((struct
+                                      GNUNET_TESTING_AsyncContext *) ac_block);
+        else
+          GNUNET_TESTING_async_finish ((struct
+                                        GNUNET_TESTING_AsyncContext *) ac_block);
+      }
+      else
+      {
+        GNUNET_TESTING_get_trait_block_state (
+          &block_receive,
+          (const struct BlockState  **) &bs);
+        bs->asynchronous_finish = GNUNET_YES;
+      }
+
+    }
   }
+  GNUNET_TRANSPORT_core_receive_continue (ch, peer);
 }
 
 
@@ -284,10 +293,6 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
     GNUNET_MQ_handler_end ()
   };
 
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "number_received %u\n",
-       ts->number_received);
-
   if (GNUNET_YES == *read_file)
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -347,7 +352,7 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
                                                 handlers,
                                                 ts->cfgname,
                                                 notify_connect,
-                                                GNUNET_YES);
+                                                GNUNET_NO);
   struct GNUNET_TESTING_Command commands[] = {
     GNUNET_TESTING_cmd_system_create ("system-create",
                                       ts->testdir),
