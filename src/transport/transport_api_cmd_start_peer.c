@@ -124,7 +124,7 @@ notify_connect (void *cls,
   struct GNUNET_HashCode hc;
   struct GNUNET_CRYPTO_EddsaPublicKey public_key = peer->public_key;
 
-  void *ret = sps->handlers;
+  void *ret = (struct GNUNET_PeerIdentity *) peer;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "This Peer %s \n",

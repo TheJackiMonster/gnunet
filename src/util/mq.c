@@ -273,7 +273,7 @@ GNUNET_MQ_handle_message (const struct GNUNET_MQ_MessageHandler *handlers,
       break;
     }
   }
-done:
+  done:
   if (GNUNET_NO == handled)
   {
     LOG (GNUNET_ERROR_TYPE_INFO,
@@ -384,8 +384,9 @@ GNUNET_MQ_send (struct GNUNET_MQ_Handle *mq,
   mq->current_envelope = ev;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "sending message of type %u, queue empty (MQ: %p)\n",
+       "sending message of type %u and size %u, queue empty (MQ: %p)\n",
        ntohs (ev->mh->type),
+       ntohs (ev->mh->size),
        mq);
 
   mq->send_impl (mq,
@@ -479,8 +480,10 @@ impl_send_continue (void *cls)
                                mq->current_envelope);
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "sending message of type %u from queue\n",
-       ntohs (mq->current_envelope->mh->type));
+       "sending message of type %u and size %u from queue (MQ: %p)\n",
+       ntohs (mq->current_envelope->mh->type),
+       ntohs (mq->current_envelope->mh->size),
+       mq);
 
   mq->send_impl (mq,
                  mq->current_envelope->mh,
