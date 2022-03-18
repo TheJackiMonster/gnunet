@@ -128,6 +128,7 @@ AS_CASE(["$host_os"],
   [*freebsd*],
   [CFLAGS="-D_THREAD_SAFE $CFLAGS"
    build_target="freebsd"
+   DEFAULT_INTERFACE="\"lo0\""
    xbsd="yes"
    LIBPREFIX=
    DLLDIR=lib
@@ -139,6 +140,7 @@ AS_CASE(["$host_os"],
    # and PIC has to be enabled
    CFLAGS="-fPIC $CFLAGS"
    build_target="openbsd"
+   DEFAULT_INTERFACE="\"lo0\""
    xbsd="yes"
    LIBPREFIX=
    DLLDIR=lib
@@ -146,6 +148,7 @@ AS_CASE(["$host_os"],
   ],
   [*netbsd*],
   [build_target="netbsd"
+   DEFAULT_INTERFACE="\"lo0\""
    xbsd="yes"
    LIBPREFIX=
    DLLDIR=lib
