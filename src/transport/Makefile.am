@@ -1528,6 +1528,7 @@ test_transport_simple_send_string.sh \
 test_transport_simple_send.sh \
 test_transport_simple_send_broadcast.sh \
 test_transport_udp_backchannel.sh \
+test_transport_simple_send_dv_circle.sh \
 gnunet-transport-certificate-creation.in \
 communicator-unix.conf \
 test_plugin_hostkey \

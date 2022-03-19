@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.9.5a\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2022-03-04 22:23+0100\n"
+"POT-Creation-Date: 2022-03-19 10:20+0100\n"
 "PO-Revision-Date: 2013-02-23 17:50+0100\n"
 "Last-Translator: Miguel Ángel Arruga Vivas <rosen644835@gmail.com>\n"
 "Language-Team: Spanish <es@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/abd/gnunet-abd.c:392 src/namestore/gnunet-namestore.c:1254
+#: src/abd/gnunet-abd.c:392 src/namestore/gnunet-namestore.c:1245
 #, fuzzy, c-format
 msgid "Ego `%s' not known to identity service\n"
 msgstr "'%s': servicio desconocido: %s\n"
@@ -2194,21 +2194,6 @@ msgstr ""
 msgid "Measure quality and performance of the DHT service."
 msgstr "Medir la calidad y rendimiento del servicio NSE."
 
-#: src/dht/plugin_block_dht.c:404
-#, c-format
-msgid "Block not of type %u\n"
-msgstr "El bloque no es del tipo %u\n"
-
-#: src/dht/plugin_block_dht.c:413
-#, fuzzy, c-format
-msgid "Size mismatch for block with type %u\n"
-msgstr "Discrepancias de tamaños para el bloque\n"
-
-#: src/dht/plugin_block_dht.c:424
-#, c-format
-msgid "Block of type %u is malformed\n"
-msgstr "El bloque del tipo %u está mal formado\n"
-
 #: src/dns/gnunet-dns-monitor.c:371 src/dns/gnunet-dns-monitor.c:376
 msgid "only monitor DNS queries"
 msgstr "sólo monitorizar consultas DNS"
@@ -2972,20 +2957,20 @@ msgstr "URI SKS mal formada (no se encuentra el tiempo de expiración)"
 msgid "LOC URI malformed (signature failed validation)"
 msgstr "URI SKS mal formada (se produjo un fallo al validar la firma)"
 
-#: src/fs/fs_uri.c:652
+#: src/fs/fs_uri.c:653
 #, fuzzy
 msgid "invalid argument"
 msgstr "Parámetro no válido «%s»\n"
 
-#: src/fs/fs_uri.c:671
+#: src/fs/fs_uri.c:673
 msgid "Unrecognized URI type"
 msgstr "Tipo de URI no reconocido"
 
-#: src/fs/fs_uri.c:1075 src/fs/fs_uri.c:1102
+#: src/fs/fs_uri.c:1077 src/fs/fs_uri.c:1104
 msgid "No keywords specified!\n"
 msgstr "¡Ninguna palabra clave especificada!\n"
 
-#: src/fs/fs_uri.c:1108
+#: src/fs/fs_uri.c:1110
 msgid "Number of double-quotes not balanced!\n"
 msgstr "¡Número de comillas dobles no balanceado!\n"
 
@@ -3740,95 +3725,95 @@ msgstr "# peticiones refrescadas"
 msgid "# query plan entries"
 msgstr "# entradas de planes de búsqueda"
 
-#: src/fs/gnunet-service-fs_pr.c:329
+#: src/fs/gnunet-service-fs_pr.c:330
 msgid "# Pending requests created"
 msgstr "# Peticiones pendientes creadas"
 
-#: src/fs/gnunet-service-fs_pr.c:421 src/fs/gnunet-service-fs_pr.c:658
+#: src/fs/gnunet-service-fs_pr.c:422 src/fs/gnunet-service-fs_pr.c:662
 msgid "# Pending requests active"
 msgstr "# Peticiones pendientes activas"
 
-#: src/fs/gnunet-service-fs_pr.c:838
+#: src/fs/gnunet-service-fs_pr.c:837
 msgid "# replies received and matched"
 msgstr "# respuestas recibidas y asociadas"
 
-#: src/fs/gnunet-service-fs_pr.c:916
+#: src/fs/gnunet-service-fs_pr.c:911
 msgid "# results found locally"
 msgstr "# resultados hallados localmente"
 
-#: src/fs/gnunet-service-fs_pr.c:1050
+#: src/fs/gnunet-service-fs_pr.c:1045
 msgid "# Datastore `PUT' failures"
 msgstr "# «PUT» en el almacén de datos fallidos"
 
-#: src/fs/gnunet-service-fs_pr.c:1079
+#: src/fs/gnunet-service-fs_pr.c:1074
 msgid "# storage requests dropped due to high load"
 msgstr "# peticiones de almacenamiento omitidas debido a alta carga"
 
-#: src/fs/gnunet-service-fs_pr.c:1118
+#: src/fs/gnunet-service-fs_pr.c:1113
 msgid "# Replies received from DHT"
 msgstr "# Respuestas recibidas de la DHT"
 
-#: src/fs/gnunet-service-fs_pr.c:1259
+#: src/fs/gnunet-service-fs_pr.c:1268
 #, fuzzy
 msgid "# Replies received from CADET"
 msgstr "# Respuestas recibidas de la DHT"
 
-#: src/fs/gnunet-service-fs_pr.c:1313
+#: src/fs/gnunet-service-fs_pr.c:1323
 #, c-format
 msgid "Datastore lookup already took %s!\n"
 msgstr "¡La búsqueda en el almacén de datos toma %s!\n"
 
-#: src/fs/gnunet-service-fs_pr.c:1334
+#: src/fs/gnunet-service-fs_pr.c:1344
 #, c-format
 msgid "On-demand lookup already took %s!\n"
 msgstr "¡La búsqueda en bajo demanda toma %s!\n"
 
-#: src/fs/gnunet-service-fs_pr.c:1401
+#: src/fs/gnunet-service-fs_pr.c:1411
 msgid "# requested DBLOCK or IBLOCK not found"
 msgstr "# «DBLOCK» o «IBLOCK» pedido no encontrado"
 
-#: src/fs/gnunet-service-fs_pr.c:1463
+#: src/fs/gnunet-service-fs_pr.c:1473
 msgid "# Datastore lookups concluded (error queueing)"
 msgstr "# Búsquedas en el almacén de datos finalizadas (error encolando)"
 
-#: src/fs/gnunet-service-fs_pr.c:1518
+#: src/fs/gnunet-service-fs_pr.c:1528
 msgid "# Datastore lookups concluded (no results)"
 msgstr "# Búsquedas en el almacén de datos finalizadas (sin resultados)"
 
-#: src/fs/gnunet-service-fs_pr.c:1533
+#: src/fs/gnunet-service-fs_pr.c:1543
 msgid "# Datastore lookups concluded (seen all)"
 msgstr "# Búsquedas en el almacén de datos finalizadas (vistos todos)"
 
-#: src/fs/gnunet-service-fs_pr.c:1556
+#: src/fs/gnunet-service-fs_pr.c:1566
 msgid "# Datastore lookups aborted (more than MAX_RESULTS)"
 msgstr "# Búsquedas en el almacén de datos finalizadas (más de «MAX_RESULTS»)"
 
-#: src/fs/gnunet-service-fs_pr.c:1573
+#: src/fs/gnunet-service-fs_pr.c:1583
 msgid "# on-demand blocks matched requests"
 msgstr "# peticiones asociadas de bloques bajo demanda"
 
-#: src/fs/gnunet-service-fs_pr.c:1594
+#: src/fs/gnunet-service-fs_pr.c:1604
 msgid "# on-demand lookups performed successfully"
 msgstr "# búsquedas satisfactorias de bloques bajo demanda"
 
-#: src/fs/gnunet-service-fs_pr.c:1600
+#: src/fs/gnunet-service-fs_pr.c:1610
 msgid "# on-demand lookups failed"
 msgstr "# búsquedas fallidas de bloques bajo demanda"
 
-#: src/fs/gnunet-service-fs_pr.c:1641
+#: src/fs/gnunet-service-fs_pr.c:1656
 msgid "# Datastore lookups concluded (found last result)"
 msgstr ""
 "# Búsquedas en el almacén de datos finalizadas (encontrado último resultado)"
 
-#: src/fs/gnunet-service-fs_pr.c:1654
+#: src/fs/gnunet-service-fs_pr.c:1669
 msgid "# Datastore lookups concluded (load too high)"
 msgstr "# Búsquedas en el almacén de datos finalizadas (carga demasiado alta)"
 
-#: src/fs/gnunet-service-fs_pr.c:1705
+#: src/fs/gnunet-service-fs_pr.c:1720
 msgid "# Datastore lookups initiated"
 msgstr "# Búsquedas en el almacén de datos iniciadas"
 
-#: src/fs/gnunet-service-fs_pr.c:1755
+#: src/fs/gnunet-service-fs_pr.c:1784
 msgid "# GAP PUT messages received"
 msgstr "# Mensajes «GAP PUT» recibidos"
 
@@ -4145,65 +4130,65 @@ msgstr "¡Se produjo un error al convertir los argumentos a una URI!\n"
 msgid "Failed to connect to the DNS service!\n"
 msgstr "¡Se produjo un fallo al conectar con el servicio GNS!\n"
 
-#: src/gns/gnunet-service-gns_resolver.c:659
+#: src/gns/gnunet-service-gns_resolver.c:672
 #, fuzzy, c-format
 msgid "Protocol `%s' unknown, skipping labels.\n"
 msgstr "Módulo «%s» no encontrado\n"
 
-#: src/gns/gnunet-service-gns_resolver.c:671
+#: src/gns/gnunet-service-gns_resolver.c:684
 #, c-format
 msgid "Service `%s' unknown for protocol `%s', trying as number.\n"
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:677
+#: src/gns/gnunet-service-gns_resolver.c:690
 #, fuzzy, c-format
 msgid "Service `%s' not a port, skipping service labels.\n"
 msgstr "Módulo «%s» no encontrado\n"
 
-#: src/gns/gnunet-service-gns_resolver.c:891
+#: src/gns/gnunet-service-gns_resolver.c:904
 #, fuzzy
 msgid "Failed to parse DNS response\n"
 msgstr "Se produjo un fallo al procesar la petición DNS.  Omitiendo.\n"
 
-#: src/gns/gnunet-service-gns_resolver.c:1082
+#: src/gns/gnunet-service-gns_resolver.c:1095
 #, c-format
 msgid "Skipping record of unsupported type %d\n"
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:1859
+#: src/gns/gnunet-service-gns_resolver.c:1872
 #, c-format
 msgid "Name `%s' cannot be converted to IDNA."
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:1874
+#: src/gns/gnunet-service-gns_resolver.c:1887
 #, c-format
 msgid "GNS lookup resulted in DNS name that is too long (`%s')\n"
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:1914
+#: src/gns/gnunet-service-gns_resolver.c:1927
 #, fuzzy, c-format
 msgid "GNS lookup failed (zero records found for `%s')\n"
 msgstr "No se han encontrado ficheros en «%s»\n"
 
-#: src/gns/gnunet-service-gns_resolver.c:2312
+#: src/gns/gnunet-service-gns_resolver.c:2329
 msgid "Unable to process critical delegation record\n"
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:2317
+#: src/gns/gnunet-service-gns_resolver.c:2334
 msgid "GNS lookup recursion failed (no delegation record found)\n"
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:2340
+#: src/gns/gnunet-service-gns_resolver.c:2357
 #, fuzzy, c-format
 msgid "Failed to cache GNS resolution: %s\n"
 msgstr "Se produjo un fallo al mandar la petición DNS a %s\n"
 
-#: src/gns/gnunet-service-gns_resolver.c:2505
+#: src/gns/gnunet-service-gns_resolver.c:2522
 #, c-format
 msgid "GNS namecache returned empty result for `%s'\n"
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:2652
+#: src/gns/gnunet-service-gns_resolver.c:2669
 #, c-format
 msgid "Zone %s was revoked, resolution fails\n"
 msgstr ""
@@ -4248,31 +4233,39 @@ msgstr "No se pudo procesar la cadena de registro VPN «%s»\n"
 msgid "Gns REST API initialized\n"
 msgstr "Conexión fallida\n"
 
-#: src/gnsrecord/gnsrecord_misc.c:448
+#: src/gnsrecord/gnsrecord_misc.c:52
+msgid "Label is NULL which is not allowed\n"
+msgstr ""
+
+#: src/gnsrecord/gnsrecord_misc.c:57
+msgid "Label  contains `.' which is not allowed\n"
+msgstr ""
+
+#: src/gnsrecord/gnsrecord_misc.c:464
 msgid "Zone delegation record not allowed in apex."
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:456
+#: src/gnsrecord/gnsrecord_misc.c:472
 msgid "Zone delegation record set contains mutually exclusive records."
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:466
+#: src/gnsrecord/gnsrecord_misc.c:482
 msgid "Multiple REDIRECT records."
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:475 src/gnsrecord/gnsrecord_misc.c:501
+#: src/gnsrecord/gnsrecord_misc.c:491 src/gnsrecord/gnsrecord_misc.c:517
 msgid "Redirection record set conains mutually exclusive records."
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:482
+#: src/gnsrecord/gnsrecord_misc.c:498
 msgid "Redirection records not allowed in apex."
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:493
+#: src/gnsrecord/gnsrecord_misc.c:509
 msgid "Redirection records not allowed in apex.."
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:515
+#: src/gnsrecord/gnsrecord_misc.c:531
 msgid "Mutually exclusive records."
 msgstr ""
 
@@ -4929,7 +4922,7 @@ msgstr "Parámetro no válido «%s»\n"
 msgid "You must specify a name\n"
 msgstr "¡Debes especificar un receptor!\n"
 
-#: src/namecache/gnunet-namecache.c:214 src/namestore/gnunet-namestore.c:1591
+#: src/namecache/gnunet-namecache.c:214 src/namestore/gnunet-namestore.c:1582
 msgid "name of the record to add/delete/display"
 msgstr "nombre del registro a añadir/borrar/mostrar"
 
@@ -4938,7 +4931,7 @@ msgstr "nombre del registro a añadir/borrar/mostrar"
 msgid "specifies the public key of the zone to look in"
 msgstr "Especificar el tipo del registro a buscar"
 
-#: src/namecache/gnunet-namecache.c:233 src/namestore/gnunet-namestore.c:1652
+#: src/namecache/gnunet-namecache.c:233 src/namestore/gnunet-namestore.c:1643
 msgid "GNUnet zone manipulation tool"
 msgstr "Herramienta de manipulación de zona de GNUnet"
 
@@ -5191,12 +5184,7 @@ msgstr "Parámetro no válido «%s»\n"
 msgid "Invalid URI `%s'\n"
 msgstr "URI no válida: «%s»\n"
 
-#: src/namestore/gnunet-namestore.c:1242
-#, c-format
-msgid "Label `%s' contains `.' which is not allowed\n"
-msgstr ""
-
-#: src/namestore/gnunet-namestore.c:1292
+#: src/namestore/gnunet-namestore.c:1283
 #, c-format
 msgid ""
 "No default identity configured for `namestore' subsystem\n"
@@ -5204,114 +5192,128 @@ msgid ""
 "Run gnunet-identity -d to get a list of choices for $NAME\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1357
+#: src/namestore/gnunet-namestore.c:1348
 #, fuzzy, c-format
 msgid "Superfluous command line arguments (starting with `%s') ignored\n"
 msgstr "Argumentos superfluos (ignorados).\n"
 
-#: src/namestore/gnunet-namestore.c:1386
+#: src/namestore/gnunet-namestore.c:1377
 #, fuzzy, c-format
 msgid "Cannot connect to identity service\n"
 msgstr "¡No se pudo conectar al servicio %s!\n"
 
-#: src/namestore/gnunet-namestore.c:1433
+#: src/namestore/gnunet-namestore.c:1424
 msgid "Empty record line argument is not allowed.\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1445
+#: src/namestore/gnunet-namestore.c:1436
 #, c-format
 msgid "Invalid expiration time `%s' (must be without unit)\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1457 src/namestore/gnunet-namestore.c:1473
-#: src/namestore/gnunet-namestore.c:1490
+#: src/namestore/gnunet-namestore.c:1448 src/namestore/gnunet-namestore.c:1464
+#: src/namestore/gnunet-namestore.c:1481
 #, fuzzy, c-format
 msgid "Missing entries in record line `%s'.\n"
 msgstr "Se produjo un fallo al cargar el módulo del transporte para «%s»\n"
 
-#: src/namestore/gnunet-namestore.c:1465
+#: src/namestore/gnunet-namestore.c:1456
 #, fuzzy, c-format
 msgid "Unknown record type `%s'\n"
 msgstr "Comando desconocido «%s»\n"
 
-#: src/namestore/gnunet-namestore.c:1503
+#: src/namestore/gnunet-namestore.c:1494
 #, fuzzy, c-format
 msgid "Invalid record data for type %s: `%s'.\n"
 msgstr "Formato no válido para la IP: «%s»\n"
 
-#: src/namestore/gnunet-namestore.c:1560
+#: src/namestore/gnunet-namestore.c:1551
 msgid "add record"
 msgstr "añadir registro"
 
-#: src/namestore/gnunet-namestore.c:1563
+#: src/namestore/gnunet-namestore.c:1554
 msgid "delete record"
 msgstr "borrar registro"
 
-#: src/namestore/gnunet-namestore.c:1567
+#: src/namestore/gnunet-namestore.c:1558
 msgid "display records"
 msgstr "mostrar registros"
 
-#: src/namestore/gnunet-namestore.c:1574
+#: src/namestore/gnunet-namestore.c:1565
 msgid ""
 "expiration time for record to use (for adding only), \"never\" is possible"
 msgstr ""
 "tiempo de expiración del registro a usar (únicamente para añadir), nunca "
 "(\"never\") es posible"
 
-#: src/namestore/gnunet-namestore.c:1580
+#: src/namestore/gnunet-namestore.c:1571
 #, fuzzy
 msgid "set the desired nick name for the zone"
 msgstr "establece el nivel LEVEL deseado de replicación"
 
-#: src/namestore/gnunet-namestore.c:1585
+#: src/namestore/gnunet-namestore.c:1576
 #, fuzzy
 msgid "monitor changes in the namestore"
 msgstr "¡Se produjo un fallo al conectar con el almacén de nombres!\n"
 
-#: src/namestore/gnunet-namestore.c:1597
+#: src/namestore/gnunet-namestore.c:1588
 #, fuzzy
 msgid "determine our name for the given PKEY"
 msgstr "establece las preferencias para el par dado"
 
-#: src/namestore/gnunet-namestore.c:1604
+#: src/namestore/gnunet-namestore.c:1595
 msgid ""
 "set record set to values given by (possibly multiple) RECORDLINES; can be "
 "specified multiple times"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1610
+#: src/namestore/gnunet-namestore.c:1601
 msgid "type of the record to add/delete/display"
 msgstr "tipo del registro a añadir/borrar/mostrar"
 
-#: src/namestore/gnunet-namestore.c:1615
+#: src/namestore/gnunet-namestore.c:1606
 msgid "URI to import into our zone"
 msgstr "URI a importar a nuestra zona"
 
-#: src/namestore/gnunet-namestore.c:1621
+#: src/namestore/gnunet-namestore.c:1612
 msgid "value of the record to add/delete"
 msgstr "valor del registro a añadir/borrar"
 
-#: src/namestore/gnunet-namestore.c:1625
+#: src/namestore/gnunet-namestore.c:1616
 msgid "create or list public record"
 msgstr "crear o listar registros públicos"
 
-#: src/namestore/gnunet-namestore.c:1631
+#: src/namestore/gnunet-namestore.c:1622
 msgid ""
 "create shadow record (only valid if all other records of the same type have "
 "expired"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1637
+#: src/namestore/gnunet-namestore.c:1628
 #, fuzzy
 msgid "name of the ego controlling the zone"
 msgstr "nombre de la sección a la que acceder"
 
-#: src/namestore/gnunet-service-namestore.c:879
+#: src/namestore/gnunet-service-namestore.c:915
 #, fuzzy, c-format
 msgid "Failed to replicate block in namecache: %s\n"
 msgstr "Se produjo un fallo al crear el espacio de nombres «%s»\n"
 
-#: src/namestore/gnunet-service-namestore.c:1668
+#: src/namestore/gnunet-service-namestore.c:1728
+#, fuzzy
+msgid "Error normalizing name."
+msgstr "Error creando el túnel\n"
+
+#: src/namestore/gnunet-service-namestore.c:1751
+#, fuzzy
+msgid "Error deserializing records."
+msgstr "Error interno escaneando directorio.\n"
+
+#: src/namestore/gnunet-service-namestore.c:1760
+msgid "Record set locked."
+msgstr ""
+
+#: src/namestore/gnunet-service-namestore.c:1874
 #, fuzzy
 msgid "Store failed"
 msgstr "«gnunet-ecc» falló"
@@ -7123,8 +7125,8 @@ msgid "GNUnet topology control"
 msgstr ""
 
 #: src/transport/gnunet-communicator-tcp.c:3338
-#: src/transport/gnunet-communicator-udp.c:3856
-#: src/transport/gnunet-service-tng.c:10623
+#: src/transport/gnunet-communicator-udp.c:3867
+#: src/transport/gnunet-service-tng.c:10926
 #: src/transport/gnunet-service-transport.c:2627
 #, fuzzy
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
@@ -7137,7 +7139,7 @@ msgstr ""
 msgid "GNUnet TCP communicator"
 msgstr "Configurador Gtk de GNUnet"
 
-#: src/transport/gnunet-communicator-udp.c:3931
+#: src/transport/gnunet-communicator-udp.c:3942
 #, fuzzy
 msgid "GNUnet UDP communicator"
 msgstr "Configurador Gtk de GNUnet"
@@ -9471,6 +9473,18 @@ msgstr "Configurar túneles vía VPN."
 #: src/zonemaster/gnunet-service-zonemaster.c:832
 msgid "Failed to connect to the namestore!\n"
 msgstr "¡Se produjo un fallo al conectar con el almacén de nombres!\n"
+
+#, c-format
+#~ msgid "Block not of type %u\n"
+#~ msgstr "El bloque no es del tipo %u\n"
+
+#, fuzzy, c-format
+#~ msgid "Size mismatch for block with type %u\n"
+#~ msgstr "Discrepancias de tamaños para el bloque\n"
+
+#, c-format
+#~ msgid "Block of type %u is malformed\n"
+#~ msgstr "El bloque del tipo %u está mal formado\n"
 
 #~ msgid "# items stored"
 #~ msgstr "# elementos almacenados"
