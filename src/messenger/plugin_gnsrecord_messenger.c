@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2021 GNUnet e.V.
+   Copyright (C) 2021--2022 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -63,12 +63,30 @@ messenger_value_to_string (void *cls,
       char *key = GNUNET_STRINGS_data_to_string_alloc (&(record->key), sizeof(struct GNUNET_HashCode));
 
       char *ret;
-      GNUNET_asprintf (&ret, "%s-%s", door, key);
+      GNUNET_asprintf (&ret, "%s-%s", key, door);
       GNUNET_free (key);
       GNUNET_free (door);
       return ret;
     }
+  case GNUNET_GNSRECORD_TYPE_MESSENGER_ROOM_DETAILS:
+    {
+      if (data_size != sizeof(struct GNUNET_MESSENGER_RoomDetailsRecord))
+      {
+        GNUNET_break_op (0);
+        return NULL;
+      }
 
+      const struct GNUNET_MESSENGER_RoomDetailsRecord *record = data;
+
+      char *name = GNUNET_strndup(record->name, 256);
+      char *flags = GNUNET_STRINGS_data_to_string_alloc (&(record->flags), sizeof(uint32_t));
+
+      char *ret;
+      GNUNET_asprintf (&ret, "%s-%s", flags, name);
+      GNUNET_free (flags);
+      GNUNET_free (name);
+      return ret;
+    }
   default:
     return NULL;
   }
@@ -141,7 +159,43 @@ messenger_string_to_value (void *cls,
       *data_size = sizeof(struct GNUNET_MESSENGER_RoomEntryRecord);
       return GNUNET_OK;
     }
+  case GNUNET_GNSRECORD_TYPE_MESSENGER_ROOM_DETAILS:
+    {
+      char flags [7];
+      const char *dash;
 
+      if ((NULL == (dash = strchr (s, '-'))) ||
+          (1 != sscanf (s, "%7s-", flags)) ||
+          (strlen (dash + 1) > 256))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    _ ("Unable to parse MESSENGER_ROOM_DETAILS record `%s'\n"),
+                    s);
+        return GNUNET_SYSERR;
+      }
+
+      struct GNUNET_MESSENGER_RoomDetailsRecord *record = GNUNET_new (
+          struct GNUNET_MESSENGER_RoomDetailsRecord
+      );
+
+      if (GNUNET_OK != GNUNET_STRINGS_string_to_data (flags,
+                                                      strlen (flags),
+                                                      &(record->flags),
+                                                      sizeof(uint32_t)))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    _ ("Unable to parse MESSENGER_ROOM_DETAILS record `%s'\n"),
+                    s);
+        GNUNET_free (record);
+        return GNUNET_SYSERR;
+      }
+
+      GNUNET_memcpy(record->name, dash + 1, strlen(dash + 1));
+
+      *data = record;
+      *data_size = sizeof(struct GNUNET_MESSENGER_RoomDetailsRecord);
+      return GNUNET_OK;
+    }
   default:
     return GNUNET_SYSERR;
   }
@@ -158,6 +212,7 @@ static struct
   uint32_t number;
 } name_map[] = {
   { "MESSENGER_ROOM_ENTRY", GNUNET_GNSRECORD_TYPE_MESSENGER_ROOM_ENTRY },
+  { "MESSENGER_ROOM_DETAILS", GNUNET_GNSRECORD_TYPE_MESSENGER_ROOM_DETAILS },
   { NULL, UINT32_MAX }
 };
 
