@@ -80,7 +80,7 @@ testLocation ()
   char *uric;
   struct GNUNET_FS_Uri *uri2;
   struct GNUNET_FS_Uri *baseURI;
-  char *emsg;
+  char *emsg = NULL;
   struct GNUNET_CRYPTO_EddsaPrivateKey pk;
 
   baseURI =
