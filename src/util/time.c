@@ -58,6 +58,22 @@ GNUNET_TIME_get_offset ()
 }
 
 
+bool
+GNUNET_TIME_absolute_approx_eq (struct GNUNET_TIME_Absolute a1,
+                                struct GNUNET_TIME_Absolute a2,
+                                struct GNUNET_TIME_Relative t)
+{
+  struct GNUNET_TIME_Relative delta;
+
+  delta = GNUNET_TIME_relative_min (
+    GNUNET_TIME_absolute_get_difference (a1, a2),
+    GNUNET_TIME_absolute_get_difference (a2, a1));
+  return GNUNET_TIME_relative_cmp (delta,
+                                   <=,
+                                   t);
+}
+
+
 struct GNUNET_TIME_Timestamp
 GNUNET_TIME_absolute_to_timestamp (struct GNUNET_TIME_Absolute at)
 {
