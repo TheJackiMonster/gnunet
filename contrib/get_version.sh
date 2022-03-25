@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Gets the version number from git, or from the contents of .version
 VERSION=
 if test -f ".version"
@@ -8,7 +8,7 @@ fi
 if test "x$VERSION" = "x" -a -d "./.git"
 then
   VERSION=$(git describe --tags)
-  VERSION=${VERSION:1:${#VERSION}}
+  VERSION=${VERSION#v}
   echo $VERSION > .version
 fi
 if test "x$VERSION" = "x"
