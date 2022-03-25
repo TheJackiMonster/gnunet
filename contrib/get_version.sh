@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Gets the version number from git, or from the contents of .version
 VERSION=
 if test -f ".version"
@@ -15,4 +15,4 @@ if test "x$VERSION" = "x"
 then
   VERSION="unknown"
 fi
-echo -n "$VERSION"
+echo "$VERSION"\c
