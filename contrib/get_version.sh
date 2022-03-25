@@ -15,4 +15,4 @@ if test "x$VERSION" = "x"
 then
   VERSION="unknown"
 fi
-echo "$VERSION"\c
+echo -e "$VERSION\c"
