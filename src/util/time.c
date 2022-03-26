@@ -386,6 +386,20 @@ GNUNET_TIME_timestamp_min (struct GNUNET_TIME_Timestamp t1,
 }
 
 
+struct GNUNET_TIME_Absolute
+GNUNET_TIME_absolute_round_down (struct GNUNET_TIME_Absolute at,
+                                 struct GNUNET_TIME_Relative rt)
+{
+  struct GNUNET_TIME_Absolute ret;
+
+  GNUNET_assert (! GNUNET_TIME_relative_is_zero (rt));
+  ret.abs_value_us
+    = at.abs_value_us
+    - at.abs_value_us % rt.rel_value_us;
+  return ret;
+}
+
+
 struct GNUNET_TIME_Relative
 GNUNET_TIME_absolute_get_remaining (struct GNUNET_TIME_Absolute future)
 {

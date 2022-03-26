@@ -482,6 +482,18 @@ GNUNET_TIME_absolute_max (struct GNUNET_TIME_Absolute t1,
 
 
 /**
+ * Round down absolute time @a at to multiple of @a rt.
+ *
+ * @param at absolute time to round
+ * @param rt multiple to round to (non-zero)
+ * @return rounded time
+ */
+struct GNUNET_TIME_Absolute
+GNUNET_TIME_absolute_round_down (struct GNUNET_TIME_Absolute at,
+                                 struct GNUNET_TIME_Relative rt);
+
+
+/**
  * Return the maximum of two timestamps.
  *
  * @param t1 first timestamp
