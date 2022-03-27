@@ -2018,6 +2018,26 @@ GNUNET_CRYPTO_ecdsa_public_key_derive (
   const char *context,
   struct GNUNET_CRYPTO_EcdsaPublicKey *result);
 
+/**
+ * This is a signature function for ECDSA which takes a
+ * private key, derives/blinds it and signs the message.
+ *
+ * @param pkey original private key
+ * @param label label to use for key deriviation
+ * @param context additional context to use for HKDF of 'h';
+ *        typically the name of the subsystem/application
+ * @param purp the signature purpose
+ * @param sig the resulting signature
+ * @return GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_ecdsa_sign_derived (
+  const struct GNUNET_CRYPTO_EcdsaPrivateKey *pkey,
+  const char *label,
+  const char *context,
+  const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
+  struct GNUNET_CRYPTO_EcdsaSignature *sig);
+
 
 /**
  * @ingroup crypto
@@ -2063,23 +2083,23 @@ GNUNET_CRYPTO_eddsa_public_key_derive (
 
 
 /**
- * This is a signature function for EdDSA which takes the
- * secret scalar sk instead of the private seed which is
- * usually the case for crypto APIs. We require this functionality
- * in order to use derived private keys for signatures we
- * cannot calculate the inverse of a sk to find the seed
- * efficiently.
+ * This is a signature function for EdDSA which takes a
+ * private key and derives it using the label and context
+ * before signing.
  *
- * The resulting signature is a standard EdDSA signature
- * which can be verified using the usual APIs.
- *
- * @param sk the secret scalar
+ * @param pkey original private key
+ * @param label label to use for key deriviation
+ * @param context additional context to use for HKDF of 'h';
+ *        typically the name of the subsystem/application
  * @param purp the signature purpose
  * @param sig the resulting signature
+ * @return GNUNET_OK on success
  */
-void
-GNUNET_CRYPTO_eddsa_sign_with_scalar (
-  const struct GNUNET_CRYPTO_EddsaPrivateScalar *priv,
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_eddsa_sign_derived (
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *pkey,
+  const char *label,
+  const char *context,
   const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
   struct GNUNET_CRYPTO_EddsaSignature *sig);
 

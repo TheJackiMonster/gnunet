@@ -130,9 +130,11 @@ testDeriveSignVerify (void)
     return GNUNET_SYSERR;
   }
 
-  GNUNET_CRYPTO_eddsa_sign_with_scalar (&dpriv,
-                                        &purp,
-                                        &sig);
+  GNUNET_CRYPTO_eddsa_sign_derived (&key,
+                                    "test-derive",
+                                    "test-CTX",
+                                    &purp,
+                                    &sig);
   if (GNUNET_SYSERR ==
       GNUNET_CRYPTO_eddsa_verify_ (GNUNET_SIGNATURE_PURPOSE_TEST,
                                    &purp,
