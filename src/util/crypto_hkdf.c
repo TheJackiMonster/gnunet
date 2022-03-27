@@ -74,16 +74,21 @@
  * @return HMAC, freed by caller via gcry_md_close/_reset
  */
 static const void *
-doHMAC (gcry_md_hd_t mac, const void *key, size_t key_len, const void *buf,
+doHMAC (gcry_md_hd_t mac,
+        const void *key,
+        size_t key_len,
+        const void *buf,
         size_t buf_len)
 {
-  if (GPG_ERR_NO_ERROR != gcry_md_setkey (mac, key, key_len))
+  if (GPG_ERR_NO_ERROR !=
+      gcry_md_setkey (mac, key, key_len))
   {
     GNUNET_break (0);
     return NULL;
   }
-  gcry_md_write (mac, buf, buf_len);
-
+  gcry_md_write (mac,
+                 buf,
+                 buf_len);
   return (const void *) gcry_md_read (mac, 0);
 }
 
@@ -98,9 +103,13 @@ doHMAC (gcry_md_hd_t mac, const void *key, size_t key_len, const void *buf,
  * @param prk result buffer (allocated by caller; at least gcry_md_dlen() bytes)
  * @return #GNUNET_YES on success
  */
-static int
-getPRK (gcry_md_hd_t mac, const void *xts, size_t xts_len, const void *skm,
-        size_t skm_len, void *prk)
+static enum GNUNET_GenericReturnValue
+getPRK (gcry_md_hd_t mac,
+        const void *xts,
+        size_t xts_len,
+        const void *skm,
+        size_t skm_len,
+        void *prk)
 {
   const void *ret;
   size_t dlen;
@@ -114,9 +123,10 @@ getPRK (gcry_md_hd_t mac, const void *xts, size_t xts_len, const void *skm,
    * salt - optional salt value (a non-secret random value);
    * if not provided, it is set to a string of HashLen zeros. */
 
-  if (xts_len == 0)
+  if (0 == xts_len)
   {
     char zero_salt[dlen];
+    
     memset (zero_salt, 0, dlen);
     ret = doHMAC (mac, zero_salt, dlen, skm, skm_len);
   }
@@ -124,22 +134,23 @@ getPRK (gcry_md_hd_t mac, const void *xts, size_t xts_len, const void *skm,
   {
     ret = doHMAC (mac, xts, xts_len, skm, skm_len);
   }
-  if (ret == NULL)
+  if (NULL == ret)
     return GNUNET_SYSERR;
-  GNUNET_memcpy (prk, ret, dlen);
-
+  GNUNET_memcpy (prk,
+                 ret,
+                 dlen);
   return GNUNET_YES;
 }
 
 
 #if DEBUG_HKDF
 static void
-dump (const char *src, const void *p, unsigned int l)
+dump (const char *src,
+      const void *p,
+      unsigned int l)
 {
-  unsigned int i;
-
   printf ("\n%s: ", src);
-  for (i = 0; i < l; i++)
+  for (unsigned int i = 0; i < l; i++)
   {
     printf ("%2x", (int) ((const unsigned char *) p)[i]);
   }
@@ -150,23 +161,16 @@ dump (const char *src, const void *p, unsigned int l)
 #endif
 
 
-/**
- * @brief Derive key
- * @param result buffer for the derived key, allocated by caller
- * @param out_len desired length of the derived key
- * @param xtr_algo hash algorithm for the extraction phase, GCRY_MD_...
- * @param prf_algo hash algorithm for the expansion phase, GCRY_MD_...
- * @param xts salt
- * @param xts_len length of @a xts
- * @param skm source key material
- * @param skm_len length of @a skm
- * @param argp va_list of void * & size_t pairs for context chunks
- * @return #GNUNET_YES on success
- */
-int
-GNUNET_CRYPTO_hkdf_v (void *result, size_t out_len, int xtr_algo, int prf_algo,
-                      const void *xts, size_t xts_len, const void *skm,
-                      size_t skm_len, va_list argp)
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hkdf_v (void *result,
+                      size_t out_len,
+                      int xtr_algo,
+                      int prf_algo,
+                      const void *xts,
+                      size_t xts_len,
+                      const void *skm,
+                      size_t skm_len,
+                      va_list argp)
 {
   gcry_md_hd_t xtr;
   gcry_md_hd_t prf;
@@ -186,10 +190,14 @@ GNUNET_CRYPTO_hkdf_v (void *result, size_t out_len, int xtr_algo, int prf_algo,
   if (0 == k)
     return GNUNET_SYSERR;
   if (GPG_ERR_NO_ERROR !=
-      gcry_md_open (&xtr, xtr_algo, GCRY_MD_FLAG_HMAC))
+      gcry_md_open (&xtr,
+                    xtr_algo,
+                    GCRY_MD_FLAG_HMAC))
     return GNUNET_SYSERR;
   if (GPG_ERR_NO_ERROR !=
-      gcry_md_open (&prf, prf_algo, GCRY_MD_FLAG_HMAC))
+      gcry_md_open (&prf,
+                    prf_algo,
+                    GCRY_MD_FLAG_HMAC))
   {
     gcry_md_close (xtr);
     return GNUNET_SYSERR;
@@ -221,7 +229,8 @@ GNUNET_CRYPTO_hkdf_v (void *result, size_t out_len, int xtr_algo, int prf_algo,
   }
 
   memset (result, 0, out_len);
-  if (getPRK (xtr, xts, xts_len, skm, skm_len, prk) != GNUNET_YES)
+  if (GNUNET_YES !=
+      getPRK (xtr, xts, xts_len, skm, skm_len, prk))
     goto hkdf_error;
 #if DEBUG_HKDF
   dump ("PRK", prk, xtr_len);
@@ -276,7 +285,7 @@ GNUNET_CRYPTO_hkdf_v (void *result, size_t out_len, int xtr_algo, int prf_algo,
       dump ("K(i+1)", plain, plain_len);
 #endif
       hc = doHMAC (prf, prk, xtr_len, plain, plain_len);
-      if (hc == NULL)
+      if (NULL == hc)
       {
         GNUNET_free (plain);
         goto hkdf_error;
@@ -327,32 +336,31 @@ hkdf_ok:
 }
 
 
-/**
- * @brief Derive key
- * @param result buffer for the derived key, allocated by caller
- * @param out_len desired length of the derived key
- * @param xtr_algo hash algorithm for the extraction phase, GCRY_MD_...
- * @param prf_algo hash algorithm for the expansion phase, GCRY_MD_...
- * @param xts salt
- * @param xts_len length of @a xts
- * @param skm source key material
- * @param skm_len length of @a skm
- * @return #GNUNET_YES on success
- */
-int
-GNUNET_CRYPTO_hkdf (void *result, size_t out_len, int xtr_algo, int prf_algo,
-                    const void *xts, size_t xts_len, const void *skm,
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hkdf (void *result,
+                    size_t out_len,
+                    int xtr_algo,
+                    int prf_algo,
+                    const void *xts,
+                    size_t xts_len,
+                    const void *skm,
                     size_t skm_len, ...)
 {
   va_list argp;
-  int ret;
+  enum GNUNET_GenericReturnValue ret;
 
   va_start (argp, skm_len);
   ret =
-    GNUNET_CRYPTO_hkdf_v (result, out_len, xtr_algo, prf_algo, xts, xts_len,
-                          skm, skm_len, argp);
+    GNUNET_CRYPTO_hkdf_v (result,
+                          out_len,
+                          xtr_algo,
+                          prf_algo,
+                          xts,
+                          xts_len,
+                          skm,
+                          skm_len,
+                          argp);
   va_end (argp);
-
   return ret;
 }
 
