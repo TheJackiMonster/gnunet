@@ -43,7 +43,7 @@
  * @param argp va_list of void * & size_t pairs for context chunks
  * @return #GNUNET_YES on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_kdf_v (void *result,
                      size_t out_len,
                      const void *xts,
@@ -62,7 +62,7 @@ GNUNET_CRYPTO_kdf_v (void *result,
    * hash function."
    *
    * http://eprint.iacr.org/2010/264
-   *///
+   */
   return GNUNET_CRYPTO_hkdf_v (result,
                                out_len,
                                GCRY_MD_SHA512,
@@ -86,7 +86,7 @@ GNUNET_CRYPTO_kdf_v (void *result,
  * @param ... void * & size_t pairs for context chunks
  * @return #GNUNET_YES on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_kdf (void *result,
                    size_t out_len,
                    const void *xts,
@@ -145,6 +145,7 @@ GNUNET_CRYPTO_kdf_mod_mpi (gcry_mpi_t *r,
     uint8_t buf[ (nbits - 1) / 8 + 1 ];
     uint16_t ctr_nbo = htons (ctr);
 
+    memset (buf, 0, sizeof (buf));
     rc = GNUNET_CRYPTO_kdf (buf,
                             sizeof(buf),
                             xts, xts_len,
@@ -160,7 +161,7 @@ GNUNET_CRYPTO_kdf_mod_mpi (gcry_mpi_t *r,
                         sizeof(buf),
                         &rsize);
     GNUNET_assert (0 == rc);  /* Allocation error? */
-
+    GNUNET_assert (rsize == sizeof (buf));
     gcry_mpi_clear_highbit (*r, nbits);
     GNUNET_assert (0 == gcry_mpi_test_bit (*r, nbits));
     ++ctr;
