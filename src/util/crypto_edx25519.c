@@ -110,6 +110,7 @@ GNUNET_CRYPTO_edx25519_sign_ (
   unsigned char r[64];
   unsigned char hram[64];
   unsigned char P[32];
+  unsigned char r_mod[64];
   unsigned char R[32];
   unsigned char tmp[32];
 
@@ -143,7 +144,6 @@ GNUNET_CRYPTO_edx25519_sign_ (
   /**
    * Reduce the scalar value r
    */
-  unsigned char r_mod[64];
   crypto_core_ed25519_scalar_reduce (r_mod, r);
 
   /**
@@ -255,6 +255,7 @@ derive_h_mod_n (
   GNUNET_assert (! gcry_mpi_cmp_ui (h_mod_n, 1));
 #endif
 
+  gcry_mpi_release(h);
   return h_mod_n;
 }
 
@@ -330,6 +331,7 @@ GNUNET_CRYPTO_edx25519_private_key_derive (
 #endif
 
   gcry_mpi_release (h_mod_n);
+  gcry_mpi_release (eight);
   gcry_mpi_release (h);
   gcry_mpi_release (x);
   gcry_mpi_release (n);
