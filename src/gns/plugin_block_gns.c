@@ -242,14 +242,8 @@ block_plugin_gns_check_reply (void *cls,
     GNUNET_break (0);
     return GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED;
   }
-  if (reply_block_size < sizeof(struct GNUNET_GNSRECORD_Block)) {
-    GNUNET_break_op (0);
-    return GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED;
-  }
-  if (GNUNET_GNSRECORD_block_get_size (block) > reply_block_size) {
-    GNUNET_break_op (0);
-    return GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED;
-  }
+  GNUNET_assert (reply_block_size >= sizeof(struct GNUNET_GNSRECORD_Block));
+  GNUNET_assert (reply_block_size >= GNUNET_GNSRECORD_block_get_size (block));
   GNUNET_CRYPTO_hash (reply_block,
                       reply_block_size,
                       &chash);
