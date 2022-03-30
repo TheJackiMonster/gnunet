@@ -270,9 +270,7 @@ GNUNET_CRYPTO_edx25519_private_key_derive (
   struct GNUNET_CRYPTO_Edx25519PublicKey pub;
   struct GNUNET_HashCode hc;
   uint8_t a[32];
-  unsigned char sk[64];
   gcry_ctx_t ctx;
-  gcry_mpi_t h;
   gcry_mpi_t h_mod_n;
   gcry_mpi_t x;
   gcry_mpi_t n;
@@ -332,7 +330,6 @@ GNUNET_CRYPTO_edx25519_private_key_derive (
 
   gcry_mpi_release (h_mod_n);
   gcry_mpi_release (eight);
-  gcry_mpi_release (h);
   gcry_mpi_release (x);
   gcry_mpi_release (n);
   gcry_mpi_release (a1);
@@ -370,10 +367,8 @@ GNUNET_CRYPTO_edx25519_public_key_derive (
   size_t seedsize,
   struct GNUNET_CRYPTO_Edx25519PublicKey *result)
 {
-  struct GNUNET_HashCode hc;
   gcry_ctx_t ctx;
   gcry_mpi_t q_y;
-  gcry_mpi_t h;
   gcry_mpi_t n;
   gcry_mpi_t h_mod_n;
   gcry_mpi_point_t q;
@@ -409,7 +404,6 @@ GNUNET_CRYPTO_edx25519_public_key_derive (
   v = gcry_mpi_point_new (0);
   gcry_mpi_ec_mul (v, h_mod_n, q, ctx);
   gcry_mpi_release (h_mod_n);
-  gcry_mpi_release (h);
   gcry_mpi_release (n);
   gcry_mpi_point_release (q);
 
@@ -421,5 +415,4 @@ GNUNET_CRYPTO_edx25519_public_key_derive (
   GNUNET_CRYPTO_mpi_print_unsigned (result->q_y, sizeof(result->q_y), q_y);
   gcry_mpi_release (q_y);
   gcry_ctx_release (ctx);
-
 }
