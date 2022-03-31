@@ -20,7 +20,7 @@
 #
 #
 AC_PREREQ([2.69])
-AC_INIT([gnunet], m4_esyscmd_s([contrib/get_version.sh]), [bug-gnunet@gnu.org])
+AC_INIT([gnunet], m4_esyscmd_s([sh contrib/get_version.sh]), [bug-gnunet@gnu.org])
 
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIRS([m4])
@@ -136,7 +136,7 @@ AS_CASE(["$host_os"],
   ],
   [*openbsd*],
   [# libc needs to be linked explicitly
-   LDFLAGS="$LDFLAGS -Wl -lc"
+   LDFLAGS="$OLD_LDFLAGS -lc"
    # and PIC has to be enabled
    CFLAGS="-fPIC $CFLAGS"
    build_target="openbsd"
