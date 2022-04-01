@@ -29,7 +29,7 @@
 #include "transport-testing-cmds.h"
 #include "gnunet_util_lib.h"
 
-#define TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 300)
+#define TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 600)
 
 
 int

@@ -323,11 +323,14 @@ store_request_sent (void *cls)
   GNUNET_PEERSTORE_Continuation cont;
   void *cont_cls;
 
-  cont = sc->cont;
-  cont_cls = sc->cont_cls;
-  GNUNET_PEERSTORE_store_cancel (sc);
-  if (NULL != cont)
-    cont (cont_cls, GNUNET_OK);
+  if (NULL != sc)
+  {
+    cont = sc->cont;
+    cont_cls = sc->cont_cls;
+    GNUNET_PEERSTORE_store_cancel (sc);
+    if (NULL != cont)
+      cont (cont_cls, GNUNET_OK);
+  }
 }
 
 
@@ -492,11 +495,17 @@ GNUNET_PEERSTORE_store_cancel (struct GNUNET_PEERSTORE_StoreContext *sc)
 {
   struct GNUNET_PEERSTORE_Handle *h = sc->h;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "store cancel with sc %p \n",
+              sc);
   GNUNET_CONTAINER_DLL_remove (sc->h->store_head, sc->h->store_tail, sc);
   GNUNET_free (sc->sub_system);
   GNUNET_free (sc->value);
   GNUNET_free (sc->key);
   GNUNET_free (sc);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "store cancel with sc %p is null\n",
+              sc);
   if ((GNUNET_YES == h->disconnecting) && (NULL == h->store_head))
     final_disconnect (h);
 }

@@ -2235,6 +2235,11 @@ struct PendingMessage
   enum GNUNET_MQ_PriorityPreferences prefs;
 
   /**
+   * If pmt is of type PMT_DV_BOX we store the used path here.
+   */
+  struct DistanceVectorHop *used_dvh;
+
+  /**
    * Size of the original message.
    */
   uint16_t bytes_msg;
@@ -2937,6 +2942,21 @@ free_fragment_tree (struct PendingMessage *root)
       pa->pm = NULL;
     }
     GNUNET_CONTAINER_MDLL_remove (frag, root->head_frag, root->tail_frag, frag);
+    if (NULL != frag->qe)
+    {
+      GNUNET_assert (frag == frag->qe->pm);
+      frag->qe->pm = NULL;
+      GNUNET_CONTAINER_DLL_remove (frag->qe->queue->queue_head,
+                                   frag->qe->queue->queue_tail,
+                                   frag->qe);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Removing QueueEntry MID %llu from queue\n",
+                  frag->qe->mid);
+      GNUNET_free (frag->qe);
+    }
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Free frag %p\n",
+                frag);
     GNUNET_free (frag);
   }
 }
@@ -2956,6 +2976,9 @@ free_pending_message (struct PendingMessage *pm)
   struct VirtualLink *vl = pm->vl;
   struct PendingAcknowledgement *pa;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Freeing pm %p\n",
+              pm);
   if (NULL != tc)
   {
     GNUNET_CONTAINER_MDLL_remove (client,
@@ -2996,6 +3019,13 @@ free_pending_message (struct PendingMessage *pm)
   {
     GNUNET_assert (pm == pm->qe->pm);
     pm->qe->pm = NULL;
+    GNUNET_CONTAINER_DLL_remove (pm->qe->queue->queue_head,
+                                 pm->qe->queue->queue_tail,
+                                 pm->qe);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Removing QueueEntry MID %llu from queue\n",
+                pm->qe->mid);
+    GNUNET_free (pm->qe);
   }
   if (NULL != pm->bpm)
   {
@@ -3090,7 +3120,8 @@ free_virtual_link (struct VirtualLink *vl)
   struct CoreSentContext *csc;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "free virtual link\n");
+              "free virtual link %p\n",
+              vl);
 
   if (NULL != vl->reassembly_map)
   {
@@ -3624,8 +3655,9 @@ schedule_transmit_on_queue (struct GNUNET_TIME_Relative delay,
     GNUNET_SCHEDULER_add_delayed_with_priority (delay, p, &transmit_on_queue,
                                                 queue);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Considering transmission on queue `%s' to %s\n",
+              "Considering transmission on queue `%s' QID %llu to %s\n",
               queue->address,
+              (unsigned long long) queue->qid,
               GNUNET_i2s (&queue->neighbour->pid));
 }
 
@@ -4385,6 +4417,8 @@ queue_send_msg (struct Queue *queue,
     GNUNET_assert (CT_COMMUNICATOR == queue->tc->type);
     queue->queue_length++;
     queue->tc->details.communicator.total_queue_length++;
+    if (0 == queue->q_capacity)
+      return;
     if (GNUNET_NO == queue->unlimited_length)
       queue->q_capacity--;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -4400,7 +4434,8 @@ queue_send_msg (struct Queue *queue,
     if (0 == queue->q_capacity)
       queue->idle = GNUNET_NO;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Sending message of type %u (%u) and size %u with MQ %p\n",
+                "Sending message MID %llu of type %u (%u) and size %u with MQ %p\n",
+                smt->mid,
                 ntohs (((const struct GNUNET_MessageHeader *) payload)->type),
                 ntohs (smt->header.size),
                 payload_size,
@@ -5211,6 +5246,10 @@ handle_client_send (void *cls, const struct OutboundMessage *obm)
   }
 
   pm = GNUNET_malloc (sizeof(struct PendingMessage) + bytes_msg);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "1 created pm %p storing vl %p\n",
+              pm,
+              vl);
   pm->logging_uuid = logging_uuid_gen++;
   pm->prefs = pp;
   pm->client = tc;
@@ -6218,24 +6257,27 @@ completed_pending_message (struct PendingMessage *pm)
 
   case PMT_FRAGMENT_BOX:
     /* Fragment sent over reliable channel */
-    free_fragment_tree (pm);
     pos = pm->frag_parent;
     GNUNET_CONTAINER_MDLL_remove (frag, pos->head_frag, pos->tail_frag, pm);
-    GNUNET_free (pm);
+    free_pending_message (pm);
     /* check if subtree is done */
     while ((NULL == pos->head_frag) && (pos->frag_off == pos->bytes_msg) &&
-           (pos != pm))
+           (NULL != pos->frag_parent))
     {
       pm = pos;
       pos = pm->frag_parent;
-      if (PMT_DV_BOX == pm->pmt)
+      if ((NULL == pos) && (PMT_DV_BOX == pm->pmt))
       {
-        GNUNET_free (pm);
+        client_send_response (pm);
+        return;
+      }
+      else if (PMT_DV_BOX == pm->pmt)
+      {
         client_send_response (pos);
         return;
       }
       GNUNET_CONTAINER_MDLL_remove (frag, pos->head_frag, pos->tail_frag, pm);
-      GNUNET_free (pm);
+      free_pending_message (pm);
     }
 
     /* Was this the last applicable fragment? */
@@ -6248,7 +6290,16 @@ completed_pending_message (struct PendingMessage *pm)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Completed transmission of message %llu (DV Box)\n",
                 pm->logging_uuid);
-    free_pending_message (pm);
+    if (NULL != pm->frag_parent)
+    {
+      if (NULL != pm->bpm)
+      {
+        GNUNET_free (pm->bpm);
+      }
+      client_send_response (pm->frag_parent);
+    }
+    else
+      client_send_response (pm);
     return;
   }
 }
@@ -6517,10 +6568,12 @@ activate_core_visible_dv_path (struct DistanceVectorHop *hop)
   vl = lookup_virtual_link (&dv->target);
   if (NULL == vl)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Creating new virtual link to %s using DV!\n",
-                GNUNET_i2s (&dv->target));
+
     vl = GNUNET_new (struct VirtualLink);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Creating new virtual link %p to %s using DV!\n",
+                vl,
+                GNUNET_i2s (&dv->target));
     vl->confirmed = GNUNET_YES;
     vl->message_uuid_ctr =
       GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_WEAK, UINT64_MAX);
@@ -7528,14 +7581,6 @@ forward_dv_box (struct Neighbour *next_hop,
   char msg_buf[msg_size] GNUNET_ALIGN;
   struct GNUNET_PeerIdentity *dhops;
 
-  if (GNUNET_NO == ntohs (hdr->without_fc))
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "forward dv box without fc\n");
-  if (NULL == vl)
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "forward dv box vl null\n");
-  GNUNET_assert (GNUNET_YES == ntohs (hdr->without_fc) || NULL != vl);
-
   hdr->num_hops = htons (num_hops);
   hdr->total_hops = htons (total_hops);
   hdr->header.size = htons (msg_size);
@@ -7557,9 +7602,13 @@ forward_dv_box (struct Neighbour *next_hop,
                                     GNUNET_MessageHeader *) msg_buf,
                          RMO_ANYTHING_GOES);
   }
-  else
+  else if (NULL != vl)
   {
     pm = GNUNET_malloc (sizeof(struct PendingMessage) + msg_size);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "2 created pm %p storing vl %p \n",
+                pm,
+                vl);
     pm->pmt = PMT_DV_BOX;
     pm->vl = vl;
     pm->timeout = GNUNET_TIME_relative_to_absolute (DV_FORWARD_TIMEOUT);
@@ -7579,6 +7628,12 @@ forward_dv_box (struct Neighbour *next_hop,
                 (unsigned int) num_hops,
                 (unsigned int) total_hops);
     check_vl_transmission (vl);
+  }
+  else
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "The virtual link is not ready for forwarding a DV Box with payload.\n");
+    // FIXME The DV Box was send before the validation response. Shall we send a validation request for DV paths?
   }
 }
 
@@ -7611,6 +7666,9 @@ free_backtalker (struct Backtalker *b)
     GNUNET_PEERSTORE_store_cancel (b->sc);
     b->sc = NULL;
   }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Removing backtalker for %s\n",
+              GNUNET_i2s (&b->pid));
   GNUNET_assert (
     GNUNET_YES ==
     GNUNET_CONTAINER_multipeermap_remove (backtalkers, &b->pid, b));
@@ -7739,6 +7797,11 @@ backtalker_monotime_store_cb (void *cls, int success)
                 "Failed to store backtalker's monotonic time in PEERSTORE!\n");
   }
   b->sc = NULL;
+  if (NULL != b->task)
+  {
+    GNUNET_SCHEDULER_cancel (b->task);
+    b->task = NULL;
+  }
   b->task = GNUNET_SCHEDULER_add_at (b->timeout, &backtalker_timeout_cb, b);
 }
 
@@ -7756,9 +7819,13 @@ update_backtalker_monotime (struct Backtalker *b)
   if (NULL != b->sc)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "store cancel\n");
-    GNUNET_PEERSTORE_store_cancel (b->sc);
-    b->sc = NULL;
+                "store cancel before store with sc %p\n",
+                b->sc);
+    /*GNUNET_PEERSTORE_store_cancel (b->sc);
+      b->sc = NULL;*/
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "store cancel before store with sc %p is null\n",
+                b->sc);
   }
   else
   {
@@ -8550,10 +8617,11 @@ handle_validation_response (
   vl = lookup_virtual_link (&vs->pid);
   if (NULL == vl)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Creating new virtual link to %s using direct neighbour!\n",
-                GNUNET_i2s (&vs->pid));
     vl = GNUNET_new (struct VirtualLink);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Creating new virtual link %p to %s using direct neighbour!\n",
+                vl,
+                GNUNET_i2s (&vs->pid));
     vl->confirmed = GNUNET_YES;
     vl->message_uuid_ctr =
       GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_WEAK, UINT64_MAX);
@@ -8654,10 +8722,11 @@ handle_flow_control (void *cls, const struct TransportFlowControlMessage *fc)
   vl = lookup_virtual_link (&cmc->im.sender);
   if (NULL == vl)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "No virtual link for FC creating new unconfirmed virtual link to %s!\n",
-                GNUNET_i2s (&cmc->im.sender));
     vl = GNUNET_new (struct VirtualLink);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "No virtual link for %p FC creating new unconfirmed virtual link to %s!\n",
+                vl,
+                GNUNET_i2s (&cmc->im.sender));
     vl->confirmed = GNUNET_NO;
     vl->message_uuid_ctr =
       GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_WEAK, UINT64_MAX);
@@ -8973,6 +9042,12 @@ fragment_message (struct Queue *queue,
     frag =
       GNUNET_malloc (sizeof(struct PendingMessage)
                      + sizeof(struct TransportFragmentBoxMessage) + fragsize);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "3 created pm %p from pm %p storing vl %p from pm %p\n",
+                frag,
+                ff,
+                pm->vl,
+                pm);
     frag->logging_uuid = logging_uuid_gen++;
     frag->vl = pm->vl;
     frag->frag_parent = ff;
@@ -9037,7 +9112,11 @@ reliability_box_message (struct Queue *queue,
                   do nothing */
   if (NULL != pm->bpm)
     return pm->bpm; /* already computed earlier: do nothing */
-  GNUNET_assert (NULL == pm->head_frag);
+  // TODO I guess we do not need this assertion. We might have a DLL with
+  // fragments, because the MTU changed, and we do not need to fragment anymore.
+  // But we should keep the fragments until message was completed, because
+  // the MTU might change again.
+  // GNUNET_assert (NULL == pm->head_frag);
   if (pm->bytes_msg + sizeof(rbox) > UINT16_MAX)
   {
     /* failed hard */
@@ -9050,6 +9129,11 @@ reliability_box_message (struct Queue *queue,
 
   bpm = GNUNET_malloc (sizeof(struct PendingMessage) + sizeof(rbox)
                        + pm->bytes_msg);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "4 created pm %p storing vl %p from pm %p\n",
+              bpm,
+              pm->vl,
+              pm);
   bpm->logging_uuid = logging_uuid_gen++;
   bpm->vl = pm->vl;
   bpm->frag_parent = pm;
@@ -9255,6 +9339,8 @@ select_best_pending_from_link (struct PendingMessageScoreContext *sc,
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "too early for all messages, they are sorted by next_attempt\n");
       sc->to_early = GNUNET_YES;
+      sc->to_early_retry_delay = GNUNET_TIME_absolute_get_remaining (
+        pos->next_attempt);
 
       break;   /* too early for all messages, they are sorted by next_attempt */
     }
@@ -9312,9 +9398,12 @@ select_best_pending_from_link (struct PendingMessageScoreContext *sc,
         relb = GNUNET_YES;
       }
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Create reliability box of msg with size %u, realoverhead is %u\n",
+                  "Create reliability box of msg with size %u, realoverhead is %u %u %u %u\n",
                   pos->bytes_msg,
-                  real_overhead);
+                  real_overhead,
+                  queue->mtu,
+                  frag,
+                  relb);
     }
 
     /* Finally, compare to existing 'best' in sc to see if this 'pos' pending
@@ -9397,6 +9486,11 @@ extract_box_cb (void *cls,
 
   GNUNET_assert (NULL == pm->bpm);
   bpm = GNUNET_malloc (sizeof(struct PendingMessage) + bsize);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "5 created pm %p storing vl %p from pm %p\n",
+              bpm,
+              pm->vl,
+              pm);
   bpm->logging_uuid = logging_uuid_gen++;
   bpm->pmt = PMT_DV_BOX;
   bpm->vl = pm->vl;
@@ -9484,43 +9578,45 @@ transmit_on_queue (void *cls)
 
   /* Given selection in `sc`, do transmission */
   pm = sc.best;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Selected message <%llu>\n",
+              pm->logging_uuid);
   if (NULL != sc.dvh)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Is this %u a DV box?\n",
                 pm->pmt);
     GNUNET_assert (PMT_DV_BOX != pm->pmt);
-    if (NULL != sc.best->bpm)
+    if ((NULL != sc.best->bpm) && (sc.best->bpm->used_dvh != sc.dvh))
     {
-      const struct DVPathEntryP *hops_old;
-      const struct DVPathEntryP *hops_selected;
-
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Discard old box\n");
-      /* We did this boxing before, but possibly for a different path!
-         Discard old DV box!  OPTIMIZE-ME: we might want to check if
-         it is the same and then not re-build the message... */
+                  "Discard old box, because we have a new DV path.\n");
       free_pending_message (sc.best->bpm);
       sc.best->bpm = NULL;
     }
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "encapsulate_for_dv 2\n");
-    encapsulate_for_dv (sc.dvh->dv,
-                        1,
-                        &sc.dvh,
-                        (const struct GNUNET_MessageHeader *) &sc.best[1],
-                        &extract_box_cb,
-                        &sc,
-                        RMO_NONE,
-                        GNUNET_NO);
-    GNUNET_assert (NULL != sc.best->bpm);
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "%u %u %u %u %u\n",
-                sizeof(struct GNUNET_PeerIdentity),
-                sizeof(struct TransportDVBoxMessage),
-                sizeof(struct TransportDVBoxPayloadP),
-                sizeof(struct TransportFragmentBoxMessage),
-                ((const struct GNUNET_MessageHeader *) &sc.best[1])->size);
+
+    if (NULL == sc.best->bpm)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "encapsulate_for_dv 2\n");
+      encapsulate_for_dv (sc.dvh->dv,
+                          1,
+                          &sc.dvh,
+                          (const struct GNUNET_MessageHeader *) &sc.best[1],
+                          &extract_box_cb,
+                          &sc,
+                          RMO_NONE,
+                          GNUNET_NO);
+      GNUNET_assert (NULL != sc.best->bpm);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "%u %u %u %u %u\n",
+                  sizeof(struct GNUNET_PeerIdentity),
+                  sizeof(struct TransportDVBoxMessage),
+                  sizeof(struct TransportDVBoxPayloadP),
+                  sizeof(struct TransportFragmentBoxMessage),
+                  ((const struct GNUNET_MessageHeader *) &sc.best[1])->size);
+      sc.best->bpm->used_dvh = sc.dvh;
+    }
     pm = sc.best->bpm;
   }
   if (GNUNET_YES == sc.frag)
@@ -9722,13 +9818,13 @@ handle_send_message_ack (void *cls,
     for (struct QueueEntry *qep = queue->queue_head; NULL != qep;
          qep = qep->next)
     {
+      if (qep->mid != sma->mid)
+        continue;
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "QueueEntry MID: %llu on queue QID: %llu, Ack MID: %llu\n",
                   (unsigned long long) qep->mid,
                   (unsigned long long) queue->qid,
                   (unsigned long long) sma->mid);
-      if (qep->mid != sma->mid)
-        continue;
       qe = qep;
       if ((NULL != qe->pm)&&(qe->pm->qe != qe))
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -9739,9 +9835,13 @@ handle_send_message_ack (void *cls,
   }
   if (NULL == qe)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "No QueueEntry found for Ack MID %llu\n",
+                (unsigned long long) sma->mid);
+    // TODO I guess this can happen, if the Ack from the peer comes before the Ack from the queue.
     /* this should never happen */
-    GNUNET_break (0);
-    GNUNET_SERVICE_client_drop (tc->client);
+    /*GNUNET_break (0);
+      GNUNET_SERVICE_client_drop (tc->client);*/
     return;
   }
   GNUNET_CONTAINER_DLL_remove (qe->queue->queue_head,
@@ -9790,6 +9890,7 @@ handle_send_message_ack (void *cls,
   }
   else if (1 == qe->queue->q_capacity)
   {
+    // TODO I guess this will never happen, because the communicator triggers this by updating its queue length itself.
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Transmission rescheduled due to communicator message queue with qid %u has capacity %lu.\n",
                 qe->queue->qid,
@@ -9814,9 +9915,14 @@ handle_send_message_ack (void *cls,
     /* If waiting for this communicator may have blocked transmission
        of pm on other queues for this neighbour, force schedule
        transmit on queue for queues of the neighbour */
-    vl = pm->vl;
-    if (vl->pending_msg_head == pm)
-      check_vl_transmission (vl);
+    if (NULL == pm->frag_parent)
+    {
+      vl = pm->vl;
+      if ((NULL != vl) &&
+          (NULL != vl->pending_msg_head) &&
+          (vl->pending_msg_head == pm))
+        check_vl_transmission (vl);
+    }
   }
   GNUNET_free (qe);
 }
@@ -10350,11 +10456,12 @@ handle_add_queue_message (void *cls,
     addr_len = ntohs (aqm->header.size) - sizeof(*aqm);
     addr = (const char *) &aqm[1];
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "New queue %s to %s available with QID %llu and q_len %lu \n",
+                "New queue %s to %s available with QID %llu and q_len %lu and mtu %u\n",
                 addr,
                 GNUNET_i2s (&aqm->receiver),
                 (unsigned long long) aqm->qid,
-                GNUNET_ntohll (aqm->q_len));
+                GNUNET_ntohll (aqm->q_len),
+                ntohl (aqm->mtu));
     queue = GNUNET_malloc (sizeof(struct Queue) + addr_len);
     queue->tc = tc;
     queue->address = (const char *) &queue[1];
@@ -10416,8 +10523,10 @@ handle_update_queue_message (void *cls,
   struct Queue *target_queue = NULL;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Received queue update message for %u with q_len %llu\n",
-              msg->qid, (unsigned long long) GNUNET_ntohll (msg->q_len));
+              "Received queue update message for %u with q_len %llu and mtu %u\n",
+              msg->qid,
+              (unsigned long long) GNUNET_ntohll (msg->q_len),
+              ntohl (msg->mtu));
   for (target_queue = tc->details.communicator.queue_head;
        NULL != target_queue;
        target_queue = target_queue->next_client)
@@ -10444,6 +10553,10 @@ handle_update_queue_message (void *cls,
   else
     target_queue->unlimited_length = GNUNET_NO;
   target_queue->q_capacity = GNUNET_ntohll (msg->q_len);
+  if (0 < target_queue->q_capacity)
+    schedule_transmit_on_queue (GNUNET_TIME_UNIT_ZERO,
+                                target_queue,
+                                GNUNET_SCHEDULER_PRIORITY_DEFAULT);
   GNUNET_SERVICE_client_continue (tc->client);
 }
 
@@ -10772,6 +10885,7 @@ free_ack_cummulator_cb (void *cls,
 
   (void) cls;
   (void) pid;
+  GNUNET_SCHEDULER_cancel (ac->task);
   GNUNET_free (ac);
   return GNUNET_OK;
 }
