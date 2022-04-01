@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.8.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2022-03-19 10:20+0100\n"
+"POT-Creation-Date: 2022-04-01 08:42+0200\n"
 "PO-Revision-Date: 2011-07-09 12:12+0800\n"
 "Last-Translator: Wylmer Wang <wantinghard@gmail.com>\n"
 "Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
@@ -4599,10 +4599,16 @@ msgstr ""
 msgid "Failed to parse JSON in option `%s': %s (%s)\n"
 msgstr "解析配置文件“%s”失败\n"
 
-#: src/messenger/plugin_gnsrecord_messenger.c:118
-#: src/messenger/plugin_gnsrecord_messenger.c:133
+#: src/messenger/plugin_gnsrecord_messenger.c:136
+#: src/messenger/plugin_gnsrecord_messenger.c:151
 #, fuzzy, c-format
 msgid "Unable to parse MESSENGER_ROOM_ENTRY record `%s'\n"
+msgstr "解析配置文件“%s”失败\n"
+
+#: src/messenger/plugin_gnsrecord_messenger.c:172
+#: src/messenger/plugin_gnsrecord_messenger.c:187
+#, fuzzy, c-format
+msgid "Unable to parse MESSENGER_ROOM_DETAILS record `%s'\n"
 msgstr "解析配置文件“%s”失败\n"
 
 #: src/my/my.c:196 src/my/my.c:215
@@ -5010,26 +5016,22 @@ msgstr ""
 msgid "name of the ego controlling the zone"
 msgstr ""
 
-#: src/namestore/gnunet-service-namestore.c:915
+#: src/namestore/gnunet-service-namestore.c:879
 #, fuzzy, c-format
 msgid "Failed to replicate block in namecache: %s\n"
 msgstr "发送消息失败。\n"
 
-#: src/namestore/gnunet-service-namestore.c:1728
+#: src/namestore/gnunet-service-namestore.c:1559
 #, fuzzy
 msgid "Error normalizing name."
 msgstr "创建用户出错"
 
-#: src/namestore/gnunet-service-namestore.c:1751
+#: src/namestore/gnunet-service-namestore.c:1582
 #, fuzzy
 msgid "Error deserializing records."
 msgstr "未知错误。\n"
 
-#: src/namestore/gnunet-service-namestore.c:1760
-msgid "Record set locked."
-msgstr ""
-
-#: src/namestore/gnunet-service-namestore.c:1874
+#: src/namestore/gnunet-service-namestore.c:1691
 #, fuzzy
 msgid "Store failed"
 msgstr "“%s”已连接到“%s”。\n"
@@ -8132,12 +8134,12 @@ msgstr "找不到接口“%s”的一个 IP 地址。\n"
 msgid "libgcrypt has not the expected version (version %s is required).\n"
 msgstr "libgcrypt 的版本不符合预期(要求版本 %s)。\n"
 
-#: src/util/crypto_rsa.c:901
+#: src/util/crypto_rsa.c:907
 #, fuzzy, c-format
 msgid "RSA signing failed at %s:%d: %s\n"
 msgstr "对驱动器“%2$s”的“%1$s”操作失败：%3$u\n"
 
-#: src/util/crypto_rsa.c:1201
+#: src/util/crypto_rsa.c:1207
 #, fuzzy, c-format
 msgid "RSA signature verification failed at %s:%d: %s\n"
 msgstr "对驱动器“%2$s”的“%1$s”操作失败：%3$u\n"
@@ -8808,12 +8810,12 @@ msgstr "网络掩码的格式“%s”错误\n"
 msgid "Wrong format `%s' for network\n"
 msgstr "网络的格式“%s”错误\n"
 
-#: src/util/time.c:870 src/util/time.c:898
+#: src/util/time.c:900 src/util/time.c:928
 #, c-format
 msgid "Failed to map `%s', cannot assure monotonic time!\n"
 msgstr ""
 
-#: src/util/time.c:906
+#: src/util/time.c:936
 #, c-format
 msgid ""
 "Failed to setup monotonic time file `%s', cannot assure monotonic time!\n"
