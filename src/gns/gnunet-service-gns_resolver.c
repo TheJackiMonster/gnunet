@@ -623,6 +623,19 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
     rp = rh->name;
     rh->name_resolution_pos = 0;
   }
+  else if (('_' == dot[1]) &&
+           ('_' == rh->name[0]) &&
+           (dot == memchr (rh->name, (int) '.', rh->name_resolution_pos)))
+  {
+    /**
+     * Do not advance a label. This seems to be a name only consisting
+     * of a BOX indicator (_443,_tcp).
+     * Which means, it is a BOX under the empty label.
+     * leaving name_resolution_pos as is and returning empty label.
+     */
+    rp = GNUNET_GNS_EMPTY_LABEL_AT;
+    len = strlen (GNUNET_GNS_EMPTY_LABEL_AT);
+  }
   else
   {
     /* advance by one label */
@@ -683,7 +696,7 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
     }
     else
     {
-      rh->service = se->s_port;
+      rh->service = ntohs (se->s_port);
     }
     rh->protocol = pe->p_proto;
     GNUNET_free (proto_name);
@@ -2237,6 +2250,10 @@ handle_gns_resolution_result (void *cls,
             const struct GNUNET_GNSRECORD_BoxRecord *box;
 
             box = rd[i].data;
+            GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                        "Got BOX record, checking if parameters match... %u/%u vs %u/%u\n",
+                        ntohs (box->protocol), ntohs (box->service),
+                        rh->protocol, rh->service);
             if ((ntohs (box->protocol) == rh->protocol) &&
                 (ntohs (box->service) == rh->service))
             {

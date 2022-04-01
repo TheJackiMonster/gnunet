@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2001-2013 GNUnet e.V.
+     Copyright (C) 2001-2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -482,6 +482,18 @@ GNUNET_TIME_absolute_max (struct GNUNET_TIME_Absolute t1,
 
 
 /**
+ * Round down absolute time @a at to multiple of @a rt.
+ *
+ * @param at absolute time to round
+ * @param rt multiple to round to (non-zero)
+ * @return rounded time
+ */
+struct GNUNET_TIME_Absolute
+GNUNET_TIME_absolute_round_down (struct GNUNET_TIME_Absolute at,
+                                 struct GNUNET_TIME_Relative rt);
+
+
+/**
  * Return the maximum of two timestamps.
  *
  * @param t1 first timestamp
@@ -514,6 +526,21 @@ GNUNET_TIME_timestamp_min (struct GNUNET_TIME_Timestamp t1,
  */
 struct GNUNET_TIME_Relative
 GNUNET_TIME_absolute_get_remaining (struct GNUNET_TIME_Absolute future);
+
+
+/**
+ * Test if @a a1 and @a a2 are equal within a margin of
+ * error of @a t.
+ *
+ * @param a1 time to compare
+ * @param a2 time to compare
+ * @param t tolerance to apply
+ * @return true if "|a1-a2|<=t" holds.
+ */
+bool
+GNUNET_TIME_absolute_approx_eq (struct GNUNET_TIME_Absolute a1,
+                                struct GNUNET_TIME_Absolute a2,
+                                struct GNUNET_TIME_Relative t);
 
 
 /**

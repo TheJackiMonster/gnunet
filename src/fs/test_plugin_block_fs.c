@@ -43,7 +43,6 @@ test_fs (struct GNUNET_BLOCK_Context *ctx)
   if (GNUNET_OK !=
       GNUNET_BLOCK_check_block (ctx,
                                 GNUNET_BLOCK_TYPE_FS_DBLOCK,
-                                &key,
                                 block,
                                 sizeof(block)))
     return 2;
@@ -54,7 +53,7 @@ test_fs (struct GNUNET_BLOCK_Context *ctx)
                                 NULL, 0))
     return 4;
   GNUNET_log_skip (1, GNUNET_NO);
-  if (GNUNET_BLOCK_EVALUATION_REQUEST_INVALID !=
+  if (GNUNET_NO !=
       GNUNET_BLOCK_check_query (ctx,
                                 GNUNET_BLOCK_TYPE_FS_DBLOCK,
                                 &key,

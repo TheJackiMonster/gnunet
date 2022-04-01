@@ -1086,6 +1086,12 @@ extract_uint64 (void *cls,
                    fnum))
   {
     GNUNET_break (0);
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Got length %u for field `%s'\n",
+                PQgetlength (result,
+                             row,
+                             fnum),
+                fname);
     return GNUNET_SYSERR;
   }
   res = (uint64_t *) PQgetvalue (result,

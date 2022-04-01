@@ -219,7 +219,6 @@ block_create_ecdsa (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
                                                            rd);
   struct GNUNET_GNSRECORD_EcdsaBlock *ecblock;
   struct GNRBlockPS *gnr_block;
-  struct GNUNET_CRYPTO_EcdsaPrivateKey *dkey;
   unsigned char ctr[GNUNET_CRYPTO_AES_KEY_LENGTH / 2];
   unsigned char skey[GNUNET_CRYPTO_AES_KEY_LENGTH];
   struct GNUNET_GNSRECORD_Data rdc[GNUNET_NZL (rd_count)];
@@ -270,11 +269,10 @@ block_create_ecdsa (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
     gnr_block->expiration_time = GNUNET_TIME_absolute_hton (expire);
     ecblock->expiration_time = gnr_block->expiration_time;
     /* encrypt and sign */
-    dkey = GNUNET_CRYPTO_ecdsa_private_key_derive (key,
-                                                   label,
-                                                   "gns");
-    GNUNET_CRYPTO_ecdsa_key_get_public (dkey,
-                                        &ecblock->derived_key);
+    GNUNET_CRYPTO_ecdsa_public_key_derive (pkey,
+                                           label,
+                                           "gns",
+                                           &ecblock->derived_key);
     GNR_derive_block_aes_key (ctr,
                               skey,
                               label,
@@ -289,18 +287,18 @@ block_create_ecdsa (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
     GNUNET_memcpy (&gnr_block[1], &ecblock[1], payload_len);
   }
   if (GNUNET_OK !=
-      GNUNET_CRYPTO_ecdsa_sign_ (dkey,
-                                 &gnr_block->purpose,
-                                 &ecblock->signature))
+      GNUNET_CRYPTO_ecdsa_sign_derived (key,
+                                        label,
+                                        "gns",
+                                        &gnr_block->purpose,
+                                        &ecblock->signature))
   {
     GNUNET_break (0);
     GNUNET_free (*block);
-    GNUNET_free (dkey);
     GNUNET_free (gnr_block);
     return GNUNET_SYSERR;
   }
   GNUNET_free (gnr_block);
-  GNUNET_free (dkey);
   return GNUNET_OK;
 }
 
@@ -344,7 +342,6 @@ block_create_eddsa (const struct GNUNET_CRYPTO_EddsaPrivateKey *key,
                                                            rd);
   struct GNUNET_GNSRECORD_EddsaBlock *edblock;
   struct GNRBlockPS *gnr_block;
-  struct GNUNET_CRYPTO_EddsaPrivateScalar dkey;
   unsigned char nonce[crypto_secretbox_NONCEBYTES];
   unsigned char skey[crypto_secretbox_KEYBYTES];
   struct GNUNET_GNSRECORD_Data rdc[GNUNET_NZL (rd_count)];
@@ -402,12 +399,10 @@ block_create_eddsa (const struct GNUNET_CRYPTO_EddsaPrivateKey *key,
     gnr_block->expiration_time = GNUNET_TIME_absolute_hton (expire);
     edblock->expiration_time = gnr_block->expiration_time;
     /* encrypt and sign */
-    GNUNET_CRYPTO_eddsa_private_key_derive (key,
-                                            label,
-                                            "gns",
-                                            &dkey);
-    GNUNET_CRYPTO_eddsa_key_get_public_from_scalar (&dkey,
-                                                    &edblock->derived_key);
+    GNUNET_CRYPTO_eddsa_public_key_derive (pkey,
+                                           label,
+                                           "gns",
+                                           &edblock->derived_key);
     GNR_derive_block_xsalsa_key (nonce,
                                  skey,
                                  label,
@@ -422,9 +417,11 @@ block_create_eddsa (const struct GNUNET_CRYPTO_EddsaPrivateKey *key,
     GNUNET_memcpy (&gnr_block[1], &edblock[1],
                    payload_len + crypto_secretbox_MACBYTES);
 
-    GNUNET_CRYPTO_eddsa_sign_with_scalar (&dkey,
-                                          &gnr_block->purpose,
-                                          &edblock->signature);
+    GNUNET_CRYPTO_eddsa_sign_derived (key,
+                                      label,
+                                      "gns",
+                                      &gnr_block->purpose,
+                                      &edblock->signature);
   }
   return GNUNET_OK;
 }

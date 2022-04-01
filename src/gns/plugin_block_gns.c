@@ -181,7 +181,7 @@ block_plugin_gns_check_block (void *cls,
                               size_t block_size)
 {
   const struct GNUNET_GNSRECORD_Block *gblock;
-  
+
   if (GNUNET_BLOCK_TYPE_GNS_NAMERECORD != type)
   {
     GNUNET_break (0);
@@ -243,7 +243,7 @@ block_plugin_gns_check_reply (void *cls,
     return GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED;
   }
   GNUNET_assert (reply_block_size >= sizeof(struct GNUNET_GNSRECORD_Block));
-  GNUNET_assert (GNUNET_GNSRECORD_block_get_size (block) > reply_block_size);
+  GNUNET_assert (reply_block_size >= GNUNET_GNSRECORD_block_get_size (block));
   GNUNET_CRYPTO_hash (reply_block,
                       reply_block_size,
                       &chash);

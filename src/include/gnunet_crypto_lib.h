@@ -287,6 +287,59 @@ struct GNUNET_CRYPTO_EddsaPrivateScalar
   unsigned char s[512 / 8];
 };
 
+/**
+ * Private ECC key material encoded for transmission.  To be used only for
+ * Edx25519 signatures.  An inital key corresponds to data from the key
+ * expansion and clamping in the EdDSA key generation.
+ */
+struct GNUNET_CRYPTO_Edx25519PrivateKey
+{
+  /**
+   * a is a value mod n, where n has at most 256 bits.  It is the first half of
+   * the seed-expansion of EdDSA and will be clamped.
+   */
+  unsigned char a[256 / 8];
+
+  /**
+   * b consists of 32 bytes which where originally the lower 32bytes of the key
+   * expansion.  Subsequent calls to derive_private will change this value, too.
+   */
+  unsigned char b[256 / 8];
+};
+
+
+/**
+ * Public ECC key (always for curve Ed25519) encoded in a format suitable for
+ * network transmission and Edx25519 (same as EdDSA) signatures.  Refer to
+ * section 5.1.3 of rfc8032, for a thorough explanation of how this value maps
+ * to the x- and y-coordinates.
+ */
+struct GNUNET_CRYPTO_Edx25519PublicKey
+{
+  /**
+   * Point Q consists of a y-value mod p (256 bits); the x-value is
+   * always positive. The point is stored in Ed25519 standard
+   * compact format.
+   */
+  unsigned char q_y[256 / 8];
+};
+
+/**
+ * @brief an ECC signature using Edx25519 (same as in EdDSA).
+ */
+struct GNUNET_CRYPTO_Edx25519Signature
+{
+  /**
+   * R value.
+   */
+  unsigned char r[256 / 8];
+
+  /**
+   * S value.
+   */
+  unsigned char s[256 / 8];
+};
+
 
 /**
  * @brief type for session keys
@@ -1279,6 +1332,17 @@ GNUNET_CRYPTO_eddsa_key_get_public (
   const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
   struct GNUNET_CRYPTO_EddsaPublicKey *pub);
 
+/**
+ * @ingroup crypto
+ * Extract the public key for the given private key.
+ *
+ * @param priv the private key
+ * @param pub where to write the public key
+ */
+void
+GNUNET_CRYPTO_edx25519_key_get_public (
+  const struct GNUNET_CRYPTO_Edx25519PrivateKey *priv,
+  struct GNUNET_CRYPTO_Edx25519PublicKey *pub);
 
 /**
  * @ingroup crypto
@@ -1465,6 +1529,30 @@ GNUNET_CRYPTO_eddsa_key_create (struct GNUNET_CRYPTO_EddsaPrivateKey *pk);
 
 /**
  * @ingroup crypto
+ * Create a new private key.
+ *
+ * @param[out] pk private key to initialize
+ */
+void
+GNUNET_CRYPTO_edx25519_key_create (struct GNUNET_CRYPTO_Edx25519PrivateKey *pk);
+
+/**
+ * @ingroup crypto
+ * Create a new private key for Edx25519 from a given seed.  After expanding
+ * the seed, the first half of the key will be clamped according to EdDSA.
+ *
+ * @param seed seed input
+ * @param seedsize size of the seed in bytes
+ * @param[out] pk private key to initialize
+ */
+void
+GNUNET_CRYPTO_edx25519_key_create_from_seed (
+  const void *seed,
+  size_t seedsize,
+  struct GNUNET_CRYPTO_Edx25519PrivateKey *pk);
+
+/**
+ * @ingroup crypto
  * Create a new private key.  Clear with #GNUNET_CRYPTO_ecdhe_key_clear().
  *
  * @param[out] pk set to fresh private key;
@@ -1492,6 +1580,14 @@ GNUNET_CRYPTO_eddsa_key_clear (struct GNUNET_CRYPTO_EddsaPrivateKey *pk);
 void
 GNUNET_CRYPTO_ecdsa_key_clear (struct GNUNET_CRYPTO_EcdsaPrivateKey *pk);
 
+/**
+ * @ingroup crypto
+ * Clear memory that was used to store a private key.
+ *
+ * @param pk location of the key
+ */
+void
+GNUNET_CRYPTO_edx25519_key_clear (struct GNUNET_CRYPTO_Edx25519PrivateKey *pk);
 
 /**
  * @ingroup crypto
@@ -1874,6 +1970,53 @@ GNUNET_CRYPTO_ecdsa_sign_ (
                                               sig));               \
 } while (0)
 
+/**
+ * @ingroup crypto
+ * @brief Edx25519 sign a given block.
+ *
+ * The @a purpose data is the beginning of the data of which the signature is
+ * to be created. The `size` field in @a purpose must correctly indicate the
+ * number of bytes of the data structure, including its header.  If possible,
+ * use #GNUNET_CRYPTO_edx25519_sign() instead of this function (only if @a
+ * validate is not fixed-size, you must use this function directly).
+ *
+ * @param priv private key to use for the signing
+ * @param purpose what to sign (size, purpose)
+ * @param[out] sig where to write the signature
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_edx25519_sign_ (
+  const struct GNUNET_CRYPTO_Edx25519PrivateKey *priv,
+  const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
+  struct GNUNET_CRYPTO_Edx25519Signature *sig);
+
+
+/**
+ * @ingroup crypto
+ * @brief Edx25519 sign a given block.  The resulting signature is compatible
+ * with EdDSA.
+ *
+ * The @a ps data must be a fixed-size struct for which the signature is to be
+ * created. The `size` field in @a ps->purpose must correctly indicate the
+ * number of bytes of the data structure, including its header.
+ *
+ * @param priv private key to use for the signing
+ * @param ps packed struct with what to sign, MUST begin with a purpose
+ * @param[out] sig where to write the signature
+ */
+#define GNUNET_CRYPTO_edx25519_sign(priv,ps,sig) do {              \
+    /* check size is set correctly */                              \
+    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));  \
+    /* check 'ps' begins with the purpose */                       \
+    GNUNET_static_assert (((void*) (ps)) ==                        \
+                          ((void*) &(ps)->purpose));               \
+    GNUNET_assert (GNUNET_OK ==                                    \
+                   GNUNET_CRYPTO_edx25519_sign_ (priv,             \
+                                                 &(ps)->purpose,   \
+                                                 sig));            \
+} while (0)
+
 
 /**
  * @ingroup crypto
@@ -1917,7 +2060,7 @@ GNUNET_CRYPTO_eddsa_verify_ (
  */
 #define GNUNET_CRYPTO_eddsa_verify(purp,ps,sig,pub) ({             \
     /* check size is set correctly */                              \
-    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps))); \
+    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));  \
     /* check 'ps' begins with the purpose */                       \
     GNUNET_static_assert (((void*) (ps)) ==                        \
                           ((void*) &(ps)->purpose));               \
@@ -1926,7 +2069,6 @@ GNUNET_CRYPTO_eddsa_verify_ (
                                  sig,                              \
                                  pub);                             \
   })
-
 
 /**
  * @ingroup crypto
@@ -1982,6 +2124,58 @@ GNUNET_CRYPTO_ecdsa_verify_ (
 
 /**
  * @ingroup crypto
+ * @brief Verify Edx25519 signature.
+ *
+ * The @a validate data is the beginning of the data of which the signature
+ * is to be verified. The `size` field in @a validate must correctly indicate
+ * the number of bytes of the data structure, including its header.  If @a
+ * purpose does not match the purpose given in @a validate (the latter must be
+ * in big endian), signature verification fails.  If possible, use
+ * #GNUNET_CRYPTO_edx25519_verify() instead of this function (only if @a
+ * validate is not fixed-size, you must use this function directly).
+ *
+ * @param purpose what is the purpose that the signature should have?
+ * @param validate block to validate (size, purpose, data)
+ * @param sig signature that is being validated
+ * @param pub public key of the signer
+ * @returns #GNUNET_OK if ok, #GNUNET_SYSERR if invalid
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_edx25519_verify_ (
+  uint32_t purpose,
+  const struct GNUNET_CRYPTO_EccSignaturePurpose *validate,
+  const struct GNUNET_CRYPTO_Edx25519Signature *sig,
+  const struct GNUNET_CRYPTO_Edx25519PublicKey *pub);
+
+
+/**
+ * @ingroup crypto
+ * @brief Verify Edx25519 signature.
+ *
+ * The @a ps data must be a fixed-size struct for which the signature is to be
+ * created. The `size` field in @a ps->purpose must correctly indicate the
+ * number of bytes of the data structure, including its header.
+ *
+ * @param purp purpose of the signature, must match 'ps->purpose.purpose'
+ *              (except in host byte order)
+ * @param priv private key to use for the signing
+ * @param ps packed struct with what to sign, MUST begin with a purpose
+ * @param sig where to write the signature
+ */
+#define GNUNET_CRYPTO_edx25519_verify(purp,ps,sig,pub) ({         \
+    /* check size is set correctly */                             \
+    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps))); \
+    /* check 'ps' begins with the purpose */                      \
+    GNUNET_static_assert (((void*) (ps)) ==                       \
+                          ((void*) &(ps)->purpose));              \
+    GNUNET_CRYPTO_edx25519_verify_ (purp,                         \
+                                    &(ps)->purpose,               \
+                                    sig,                          \
+                                    pub);                         \
+  })
+
+/**
+ * @ingroup crypto
  * Derive a private key from a given private key and a label.
  * Essentially calculates a private key 'h = H(l,P) * d mod n'
  * where n is the size of the ECC group and P is the public
@@ -2017,6 +2211,26 @@ GNUNET_CRYPTO_ecdsa_public_key_derive (
   const char *label,
   const char *context,
   struct GNUNET_CRYPTO_EcdsaPublicKey *result);
+
+/**
+ * This is a signature function for ECDSA which takes a
+ * private key, derives/blinds it and signs the message.
+ *
+ * @param pkey original private key
+ * @param label label to use for key deriviation
+ * @param context additional context to use for HKDF of 'h';
+ *        typically the name of the subsystem/application
+ * @param purp the signature purpose
+ * @param sig the resulting signature
+ * @return GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_ecdsa_sign_derived (
+  const struct GNUNET_CRYPTO_EcdsaPrivateKey *pkey,
+  const char *label,
+  const char *context,
+  const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
+  struct GNUNET_CRYPTO_EcdsaSignature *sig);
 
 
 /**
@@ -2063,23 +2277,23 @@ GNUNET_CRYPTO_eddsa_public_key_derive (
 
 
 /**
- * This is a signature function for EdDSA which takes the
- * secret scalar sk instead of the private seed which is
- * usually the case for crypto APIs. We require this functionality
- * in order to use derived private keys for signatures we
- * cannot calculate the inverse of a sk to find the seed
- * efficiently.
+ * This is a signature function for EdDSA which takes a
+ * private key and derives it using the label and context
+ * before signing.
  *
- * The resulting signature is a standard EdDSA signature
- * which can be verified using the usual APIs.
- *
- * @param sk the secret scalar
+ * @param pkey original private key
+ * @param label label to use for key deriviation
+ * @param context additional context to use for HKDF of 'h';
+ *        typically the name of the subsystem/application
  * @param purp the signature purpose
  * @param sig the resulting signature
+ * @return GNUNET_OK on success
  */
-void
-GNUNET_CRYPTO_eddsa_sign_with_scalar (
-  const struct GNUNET_CRYPTO_EddsaPrivateScalar *priv,
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_eddsa_sign_derived (
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *pkey,
+  const char *label,
+  const char *context,
   const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
   struct GNUNET_CRYPTO_EddsaSignature *sig);
 
@@ -2094,6 +2308,43 @@ void
 GNUNET_CRYPTO_eddsa_key_get_public_from_scalar (
   const struct GNUNET_CRYPTO_EddsaPrivateScalar *s,
   struct GNUNET_CRYPTO_EddsaPublicKey *pkey);
+
+/**
+ * @ingroup crypto
+ * Derive a private scalar from a given private key and a label.
+ * Essentially calculates a private key 'h = H(l,P) * d mod n'
+ * where n is the size of the ECC group and P is the public
+ * key associated with the private key 'd'.
+ *
+ * @param priv original private key
+ * @param seed input seed
+ * @param seedsize size of the seed
+ * @param result derived private key
+ */
+void
+GNUNET_CRYPTO_edx25519_private_key_derive (
+  const struct GNUNET_CRYPTO_Edx25519PrivateKey *priv,
+  const void *seed,
+  size_t seedsize,
+  struct GNUNET_CRYPTO_Edx25519PrivateKey *result);
+
+
+/**
+ * @ingroup crypto
+ * Derive a public key from a given public key and a label.
+ * Essentially calculates a public key 'V = H(l,P) * P'.
+ *
+ * @param pub original public key
+ * @param seed input seed
+ * @param seedsize size of the seed
+ * @param result where to write the derived public key
+ */
+void
+GNUNET_CRYPTO_edx25519_public_key_derive (
+  const struct GNUNET_CRYPTO_Edx25519PublicKey *pub,
+  const void *seed,
+  size_t seedsize,
+  struct GNUNET_CRYPTO_Edx25519PublicKey *result);
 
 
 /**

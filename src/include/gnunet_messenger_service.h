@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2022 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -92,6 +92,27 @@ struct GNUNET_MESSENGER_RoomEntryRecord
    * The hash identifying the port of the room.
    */
   struct GNUNET_HashCode key;
+};
+
+GNUNET_NETWORK_STRUCT_END
+
+GNUNET_NETWORK_STRUCT_BEGIN
+
+/**
+ * A room details record specifies a custom name for a given room and
+ * some additional space for flags.
+ */
+struct GNUNET_MESSENGER_RoomDetailsRecord
+{
+  /**
+   * The custom name for the room.
+   */
+  char name [256];
+
+  /**
+   * The flags of the room.
+   */
+  uint32_t flags;
 };
 
 GNUNET_NETWORK_STRUCT_END

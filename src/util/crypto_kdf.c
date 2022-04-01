@@ -32,18 +32,8 @@
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-crypto-kdf", __VA_ARGS__)
 
-/**
- * @brief Derive key
- * @param result buffer for the derived key, allocated by caller
- * @param out_len desired length of the derived key
- * @param xts salt
- * @param xts_len length of @a xts
- * @param skm source key material
- * @param skm_len length of @a skm
- * @param argp va_list of void * & size_t pairs for context chunks
- * @return #GNUNET_YES on success
- */
-int
+
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_kdf_v (void *result,
                      size_t out_len,
                      const void *xts,
@@ -62,7 +52,7 @@ GNUNET_CRYPTO_kdf_v (void *result,
    * hash function."
    *
    * http://eprint.iacr.org/2010/264
-   *///
+   */
   return GNUNET_CRYPTO_hkdf_v (result,
                                out_len,
                                GCRY_MD_SHA512,
@@ -75,18 +65,7 @@ GNUNET_CRYPTO_kdf_v (void *result,
 }
 
 
-/**
- * @brief Derive key
- * @param result buffer for the derived key, allocated by caller
- * @param out_len desired length of the derived key
- * @param xts salt
- * @param xts_len length of @a xts
- * @param skm source key material
- * @param skm_len length of @a skm
- * @param ... void * & size_t pairs for context chunks
- * @return #GNUNET_YES on success
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_kdf (void *result,
                    size_t out_len,
                    const void *xts,
@@ -111,18 +90,6 @@ GNUNET_CRYPTO_kdf (void *result,
 }
 
 
-/**
- * Deterministically generate a pseudo-random number uniformly from the
- * integers modulo a libgcrypt mpi.
- *
- * @param[out] r MPI value set to the FDH
- * @param n MPI to work modulo
- * @param xts salt
- * @param xts_len length of @a xts
- * @param skm source key material
- * @param skm_len length of @a skm
- * @param ctx context string
- */
 void
 GNUNET_CRYPTO_kdf_mod_mpi (gcry_mpi_t *r,
                            gcry_mpi_t n,
@@ -137,32 +104,34 @@ GNUNET_CRYPTO_kdf_mod_mpi (gcry_mpi_t *r,
 
   nbits = gcry_mpi_get_nbits (n);
   /* GNUNET_assert (nbits > 512); */
-
   ctr = 0;
   while (1)
   {
     /* Ain't clear if n is always divisible by 8 */
-    uint8_t buf[ (nbits - 1) / 8 + 1 ];
+    size_t bsize = (nbits - 1) / 8 + 1;
+    uint8_t buf[bsize];
     uint16_t ctr_nbo = htons (ctr);
 
     rc = GNUNET_CRYPTO_kdf (buf,
-                            sizeof(buf),
+                            bsize,
                             xts, xts_len,
                             skm, skm_len,
                             ctx, strlen (ctx),
                             &ctr_nbo, sizeof(ctr_nbo),
                             NULL, 0);
     GNUNET_assert (GNUNET_YES == rc);
-
     rc = gcry_mpi_scan (r,
                         GCRYMPI_FMT_USG,
                         (const unsigned char *) buf,
-                        sizeof(buf),
+                        bsize,
                         &rsize);
-    GNUNET_assert (0 == rc);  /* Allocation error? */
-
-    gcry_mpi_clear_highbit (*r, nbits);
-    GNUNET_assert (0 == gcry_mpi_test_bit (*r, nbits));
+    GNUNET_assert (GPG_ERR_NO_ERROR == rc);  /* Allocation error? */
+    GNUNET_assert (rsize == bsize);
+    gcry_mpi_clear_highbit (*r,
+                            nbits);
+    GNUNET_assert (0 ==
+                   gcry_mpi_test_bit (*r,
+                                      nbits));
     ++ctr;
     /* We reject this FDH if either *r > n and retry with another ctr */
     if (0 > gcry_mpi_cmp (*r, n))

@@ -497,7 +497,8 @@ GNUNET_CRYPTO_rsa_public_key_decode (const char *buf,
  * @return True if gcd(r,n) = 1, False means RSA key is malicious
  */
 static int
-rsa_gcd_validate (gcry_mpi_t r, gcry_mpi_t n)
+rsa_gcd_validate (gcry_mpi_t r,
+                  gcry_mpi_t n)
 {
   gcry_mpi_t g;
   int t;
@@ -520,29 +521,34 @@ static struct RsaBlindingKey *
 rsa_blinding_key_derive (const struct GNUNET_CRYPTO_RsaPublicKey *pkey,
                          const struct GNUNET_CRYPTO_RsaBlindingKeySecret *bks)
 {
-  char *xts = "Blinding KDF extractor HMAC key";  /* Trusts bks' randomness more */
+  const char *xts = "Blinding KDF extractor HMAC key";  /* Trusts bks' randomness more */
   struct RsaBlindingKey *blind;
   gcry_mpi_t n;
 
   blind = GNUNET_new (struct RsaBlindingKey);
-  GNUNET_assert (NULL != blind);
 
   /* Extract the composite n from the RSA public key */
-  GNUNET_assert (0 == key_from_sexp (&n, pkey->sexp, "rsa", "n"));
+  GNUNET_assert (0 ==
+                 key_from_sexp (&n,
+                                pkey->sexp,
+                                "rsa",
+                                "n"));
   /* Assert that it at least looks like an RSA key */
-  GNUNET_assert (0 == gcry_mpi_get_flag (n, GCRYMPI_FLAG_OPAQUE));
-
+  GNUNET_assert (0 ==
+                 gcry_mpi_get_flag (n,
+                                    GCRYMPI_FLAG_OPAQUE));
   GNUNET_CRYPTO_kdf_mod_mpi (&blind->r,
                              n,
                              xts, strlen (xts),
                              bks, sizeof(*bks),
                              "Blinding KDF");
-  if (0 == rsa_gcd_validate (blind->r, n))
+  if (0 == rsa_gcd_validate (blind->r,
+                             n))
   {
+    gcry_mpi_release (blind->r);
     GNUNET_free (blind);
     blind = NULL;
   }
-
   gcry_mpi_release (n);
   return blind;
 }
@@ -760,8 +766,9 @@ rsa_full_domain_hash (const struct GNUNET_CRYPTO_RsaPublicKey *pkey,
   /* We key with the public denomination key as a homage to RSA-PSS by  *
   * Mihir Bellare and Phillip Rogaway.  Doing this lowers the degree   *
   * of the hypothetical polyomial-time attack on RSA-KTI created by a  *
-  * polynomial-time one-more forgary attack.  Yey seeding!             */
-  xts_len = GNUNET_CRYPTO_rsa_public_key_encode (pkey, &xts);
+  * polynomial-time one-more forgary attack.  Yey seeding!       */
+  xts_len = GNUNET_CRYPTO_rsa_public_key_encode (pkey,
+                                                 &xts);
 
   GNUNET_CRYPTO_kdf_mod_mpi (&r,
                              n,
@@ -769,7 +776,6 @@ rsa_full_domain_hash (const struct GNUNET_CRYPTO_RsaPublicKey *pkey,
                              hash, sizeof(*hash),
                              "RSA-FDA FTpsW!");
   GNUNET_free (xts);
-
   ok = rsa_gcd_validate (r, n);
   gcry_mpi_release (n);
   if (ok)

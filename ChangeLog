@@ -1,3 +1,45 @@
+Tue, 29 Mar 2022 10:11:15 +0200 (a9b18aa64)
+GNS: Do not fail on assertions in block processing - Martin Schanzenbach
+
+Sun, 27 Mar 2022 17:12:52 +0200 (ce38d1f6c)
+Edx25519 implemented - Özgür Kesim
+
+Sun, 27 Mar 2022 12:25:01 +0200 (1e4d62567)
+GNS: Sanitize APIs and align with LSD0001 - Martin Schanzenbach
+
+Sat, 26 Mar 2022 07:17:12 +0100 (e598ffe0a)
+add GNUNET_TIME_absolute_round_down() function - Christian Grothoff
+
+Fri, 25 Mar 2022 11:28:37 -0500 (c93cf9ae1)
+Remove bash-ism from get_version.sh - David Barksdale
+
+Mon, 21 Mar 2022 13:54:28 +0100 (4e95b59a6)
+NAMESTORE: Towards new transaction-based API - Martin Schanzenbach
+
+Mon, 21 Mar 2022 03:37:29 +0100 (ec8a825b0)
+add new approximate time cmp function - Christian Grothoff
+
+Fri, 18 Mar 2022 13:51:02 +0100 (4f3c8d098)
+configure.ac: use lo0 for the 3 listed BSD Systems. - Martin Schanzenbach
+
+Fri, 18 Mar 2022 08:52:01 +0100 (fcbabc6b6)
+GNS: Fix BOX handling in apex - Martin Schanzenbach
+
+Thu, 17 Mar 2022 23:24:19 +0100 (c37f01bc9)
+GNS: Fix BOX service port handling in NBO - Martin Schanzenbach
+
+Wed, 16 Mar 2022 18:53:22 +0100 (68ac68b70)
+NAMESTORE: Add record set blocking API - Martin Schanzenbach
+
+Tue, 15 Mar 2022 08:42:42 +0100 (cfd3db44a)
+NAMESTORE: Prevent storing records under invalid labels - Martin Schanzenbach
+
+Sat, 5 Mar 2022 08:58:51 +0100 (2087b149d)
+FS: Fix segfault in URI handling - Martin Schanzenbach
+
+Fri, 4 Mar 2022 23:40:34 +0100 (343177a0b)
+GNS: Fix including proxy test in make dist. Addresses issue #7182 - Martin Schanzenbach
+
 Fri, 4 Mar 2022 14:17:37 +0100 (0e6b1f4a2)
 NAMESTORE: Warn use of low relative expiration times - Martin Schanzenbach
 

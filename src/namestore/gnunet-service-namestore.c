@@ -122,24 +122,6 @@ struct ZoneIteration
 };
 
 /**
- * Lock on a record set
- */
-struct RecordsLock
-{
-  /* DLL */
-  struct RecordsLock *prev;
-
-  /* DLL */
-  struct RecordsLock *next;
-
-  /* Hash of the locked label */
-  struct GNUNET_HashCode label_hash;
-
-  /* Client locking the zone */
-  struct NamestoreClient *client;
-};
-
-/**
  * A namestore client
  */
 struct NamestoreClient
@@ -411,16 +393,6 @@ static struct StoreActivity *sa_head;
 static struct StoreActivity *sa_tail;
 
 /**
- * Head of the DLL of record set locks
- */
-static struct RecordsLock *locks_head;
-
-/**
- * Tail of the DLL of record set locks
- */
-static struct RecordsLock *locks_tail;
-
-/**
  * Notification context shared by all monitors.
  */
 static struct GNUNET_NotificationContext *monitor_nc;
@@ -447,7 +419,6 @@ static void
 cleanup_task (void *cls)
 {
   struct CacheOperation *cop;
-  struct RecordsLock *lock;
 
   (void) cls;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Stopping namestore service\n");
@@ -458,13 +429,6 @@ cleanup_task (void *cls)
     GNUNET_NAMECACHE_cancel (cop->qe);
     GNUNET_CONTAINER_DLL_remove (cop_head, cop_tail, cop);
     GNUNET_free (cop);
-  }
-  while (NULL != (lock = locks_head))
-  {
-    GNUNET_CONTAINER_DLL_remove (locks_head,
-                                 locks_tail,
-                                 lock);
-    GNUNET_free (lock);
   }
 
   if (NULL != namecache)
@@ -1154,7 +1118,6 @@ client_disconnect_cb (void *cls,
   struct NamestoreClient *nc = app_ctx;
   struct ZoneIteration *no;
   struct CacheOperation *cop;
-  struct RecordsLock *lock;
 
   (void) cls;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Client %p disconnected\n", client);
@@ -1205,15 +1168,6 @@ client_disconnect_cb (void *cls,
   for (cop = cop_head; NULL != cop; cop = cop->next)
     if (nc == cop->nc)
       cop->nc = NULL;
-  for (lock = locks_head; NULL != lock; lock = lock->next)
-  {
-    if (nc != lock->client)
-      continue;
-    GNUNET_CONTAINER_DLL_remove (locks_head,
-                                 locks_tail,
-                                 lock);
-    GNUNET_free (lock);
-  }
   GNUNET_free (nc);
 }
 
@@ -1407,105 +1361,6 @@ check_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
   return GNUNET_OK;
 }
 
-static void
-calculate_lock_hash (const char *label,
-                     const struct GNUNET_IDENTITY_PrivateKey *zone,
-                     struct GNUNET_HashCode *result)
-{
-  struct GNUNET_HashContext *hctx;
-
-  hctx = GNUNET_CRYPTO_hash_context_start ();
-  GNUNET_CRYPTO_hash_context_read (hctx, label, strlen (label));
-  GNUNET_CRYPTO_hash_context_read (hctx, zone,
-                                   sizeof (*zone));
-  GNUNET_CRYPTO_hash_context_finish (hctx, result);
-}
-
-/**
- * Release a lock on a record set.
- * Does nothing if lock not held.
- *
- * @param label the label of the record set
- * @param zone the zone
- * @param nc the client releasing the lock
- */
-static void
-NST_label_lock_release (const char *label,
-                        const struct GNUNET_IDENTITY_PrivateKey *zone,
-                        const struct NamestoreClient *nc)
-{
-  struct GNUNET_HashCode label_hash;
-  struct RecordsLock *lock;
-
-  calculate_lock_hash (label, zone, &label_hash);
-  for (lock = locks_head; NULL != lock; lock = lock->next)
-    if (0 == memcmp (&label_hash, &lock->label_hash, sizeof (label_hash)))
-      break;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Record locked: %s\n", (NULL == lock) ? "No" : "Yes");
-  if (NULL == lock)
-    return;
-  if (lock->client != nc)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Lock is held by other client on `%s'\n", label);
-    return;
-  }
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Unocking %s\n", GNUNET_h2s (&label_hash));
-  GNUNET_CONTAINER_DLL_remove (locks_head,
-                               locks_tail,
-                               lock);
-  GNUNET_free (lock);
-}
-
-/**
- * Get/set a lock on a record set.
- * May be called multiple times but will
- * not aquire additional locks.
- *
- * @param the label of the record set
- * @param the zone
- * @param the client doing the locking
- * @return GNUNET_YES if lock retrieved or set already.
- */
-static enum GNUNET_GenericReturnValue
-NST_label_lock (const char *label,
-                const struct GNUNET_IDENTITY_PrivateKey *zone,
-                struct NamestoreClient *nc)
-{
-  struct GNUNET_HashCode label_hash;
-  struct RecordsLock *lock;
-
-  calculate_lock_hash (label, zone, &label_hash);
-  for (lock = locks_head; NULL != lock; lock = lock->next)
-    if (0 == memcmp (&label_hash, &lock->label_hash, sizeof (label_hash)))
-      break;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Record locked: %s\n", (NULL == lock) ? "No" : "Yes");
-  if (NULL != lock)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Client holds lock: %s\n", (lock->client != nc) ? "No" : "Yes");
-    if (lock->client != nc)
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                  "Lock is held by other client on `%s'\n", label);
-      return GNUNET_NO;
-    }
-    return GNUNET_YES;
-  }
-  lock = GNUNET_new (struct RecordsLock);
-  lock->client = nc;
-  memcpy (&lock->label_hash, &label_hash, sizeof (label_hash));
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Locking %s\n", GNUNET_h2s (&label_hash));
-  GNUNET_CONTAINER_DLL_insert (locks_head,
-                               locks_tail,
-                               lock);
-  return GNUNET_YES;
-}
-
 
 /**
  * Handles a #GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_LOOKUP message
@@ -1520,7 +1375,6 @@ handle_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
   struct GNUNET_MQ_Envelope *env;
   struct LabelLookupResponseMessage *llr_msg;
   struct RecordLookupContext rlc;
-  struct RecordsLock *lock;
   struct GNUNET_HashCode label_hash;
   const char *name_tmp;
   char *res_name;
@@ -1544,28 +1398,6 @@ handle_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
     return;
   }
   name_len = strlen (conv_name) + 1;
-  if (GNUNET_YES == ntohl (ll_msg->locking))
-  {
-    if (GNUNET_NO == NST_label_lock (conv_name, &ll_msg->zone, nc))
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                  "Lock is held by other client on `%s'\n", conv_name);
-      env =
-        GNUNET_MQ_msg_extra (llr_msg,
-                             name_len,
-                             GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_LOOKUP_RESPONSE);
-      llr_msg->gns_header.r_id = ll_msg->gns_header.r_id;
-      llr_msg->private_key = ll_msg->zone;
-      llr_msg->name_len = htons (name_len);
-      llr_msg->rd_count = htons (0);
-      llr_msg->rd_len = htons (0);
-      llr_msg->found = htons (GNUNET_SYSERR);
-      GNUNET_memcpy (&llr_msg[1], conv_name, name_len);
-      GNUNET_MQ_send (nc->mq, env);
-      GNUNET_free (conv_name);
-      return;
-    }
-  }
   rlc.label = conv_name;
   rlc.found = GNUNET_NO;
   rlc.res_rd_count = 0;
@@ -1699,7 +1531,6 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
   unsigned int rd_count;
   int res;
   struct StoreActivity *sa;
-  struct RecordsLock *lock;
   struct GNUNET_HashCode label_hash;
   struct GNUNET_TIME_Absolute existing_block_exp;
   struct GNUNET_TIME_Absolute new_block_exp;
@@ -1752,20 +1583,6 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
       GNUNET_free (conv_name);
       GNUNET_SERVICE_client_continue (nc->client);
       return;
-    }
-    if (GNUNET_YES == ntohl (rp_msg->locking))
-    {
-      if (GNUNET_NO == NST_label_lock (conv_name, &rp_msg->private_key, nc))
-      {
-        send_store_response (nc, GNUNET_SYSERR, _ ("Record set locked."), rid);
-        GNUNET_SERVICE_client_continue (nc->client);
-        GNUNET_free (conv_name);
-        return;
-      }
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Client has lock on `%s', continuing.\n", conv_name);
-      if (GNUNET_YES == ntohl (rp_msg->locking))
-        NST_label_lock_release (conv_name, &rp_msg->private_key, nc);
     }
 
     GNUNET_STATISTICS_update (statistics,

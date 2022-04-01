@@ -96,20 +96,22 @@ static void
 print_record (const struct GNUNET_GNSRECORD_Data *rd)
 {
   uint16_t flags = htons (rd->flags);
-  fprintf (stdout,
-           "EXPIRATION: %" PRIu64 "\n", rd->expiration_time);
-  fprintf (stdout,
-           "DATA_SIZE: %zu\n", rd->data_size);
-  fprintf (stdout,
-           "TYPE: %d\n", rd->record_type);
-  fprintf (stdout,
-           "FLAGS: ");
+  uint64_t abs_nbo = GNUNET_htonll (rd->expiration_time);
+  uint16_t size_nbo = htons (rd->data_size);
+  uint32_t type_nbo = htonl (rd->record_type);
+  printf ("EXPIRATION:\n");
+  print_bytes (&abs_nbo, sizeof (abs_nbo), 8);
+  printf ("\nDATA_SIZE:\n");
+  print_bytes (&size_nbo, sizeof (size_nbo), 8);
+  printf ("\nTYPE:\n");
+  print_bytes(&type_nbo, sizeof (type_nbo), 8);
+  printf ("\nFLAGS: ");
   print_bytes ((void*) &flags, sizeof (flags), 8);
   printf ("\n");
   fprintf (stdout,
            "DATA:\n");
   print_bytes ((char*) rd->data, rd->data_size, 8);
-  fprintf (stdout, "\n");
+  printf ("\n");
 }
 
 
@@ -133,6 +135,7 @@ run_pkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char *label)
   struct GNUNET_IDENTITY_PublicKey pkey_data;
   struct GNUNET_HashCode query;
   char *rdata;
+  char *conv_lbl;
   size_t rdata_size;
   char ztld[128];
   unsigned char ctr[GNUNET_CRYPTO_AES_KEY_LENGTH / 2];
@@ -146,34 +149,37 @@ run_pkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char *label)
 
   GNUNET_IDENTITY_key_get_public (&id_priv,
                                   &id_pub);
-  fprintf (stdout,
-           "Zone private key (d, big-endian):\n");
+  printf ("Zone private key (d, big-endian):\n");
   print_bytes_ (&id_priv.ecdsa_key,
                 sizeof (struct GNUNET_CRYPTO_EcdsaPrivateKey), 8, 1);
-  fprintf (stdout, "\n");
-  fprintf (stdout, "Zone identifier (ztype|zkey):\n");
+  printf ("\n");
+  printf ("Zone identifier (ztype|zkey):\n");
   GNUNET_assert (0 < GNUNET_IDENTITY_key_get_length (&id_pub));
   print_bytes (&id_pub, GNUNET_IDENTITY_key_get_length (&id_pub), 8);
   GNUNET_STRINGS_data_to_string (&id_pub,
                                  GNUNET_IDENTITY_key_get_length (&id_pub),
                                  ztld,
                                  sizeof (ztld));
-  fprintf (stdout, "\n");
-  fprintf (stdout, "zTLD:\n");
-  fprintf (stdout, "%s\n", ztld);
-  fprintf (stdout, "\n");
+  printf ("\n");
+  printf ("zTLD:\n");
+  printf ("%s\n", ztld);
+  printf ("\n");
 
   pkey_data_p.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
   GNUNET_CRYPTO_ecdsa_key_create (&pkey_data_p.ecdsa_key);
   GNUNET_IDENTITY_key_get_public (&pkey_data_p,
                                   &pkey_data);
-  fprintf (stdout,
-           "Label: %s\nRRCOUNT: %d\n\n", label, rd_count);
+  conv_lbl = GNUNET_GNSRECORD_string_normalize (label);
+  printf ("Label:\n");
+  print_bytes (conv_lbl, strlen (conv_lbl), 8);
+  GNUNET_free (conv_lbl);
+  printf ("\nNumber of records (integer): %d\n\n", rd_count);
 
   for (int i = 0; i < rd_count; i++)
   {
-    fprintf (stdout, "Record #%d\n", i);
+    printf ("Record #%d := (\n", i);
     print_record (&rd[i]);
+    printf (")\n\n");
   }
 
   rdata_size = GNUNET_GNSRECORD_records_get_size (rd_count,
@@ -183,11 +189,11 @@ run_pkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char *label)
                                       rd,
                                       (size_t) rdata_size,
                                       rdata);
-  fprintf (stdout, "RDATA:\n");
+  printf ("RDATA:\n");
   print_bytes (rdata,
                (size_t) rdata_size,
                8);
-  fprintf (stdout, "\n");
+  printf ("\n");
   expire = GNUNET_GNSRECORD_record_get_expiration_time (rd_count, rd,
                                                         GNUNET_TIME_UNIT_ZERO_ABS);
   GNR_derive_block_aes_key (ctr,
@@ -197,18 +203,18 @@ run_pkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char *label)
                               expire).abs_value_us__,
                             &id_pub.ecdsa_key);
 
-  fprintf (stdout, "Encryption NONCE|EXPIRATION|BLOCK COUNTER:\n");
+  printf ("Encryption NONCE|EXPIRATION|BLOCK COUNTER:\n");
   print_bytes (ctr, sizeof (ctr), 8);
-  fprintf (stdout, "\n");
-  fprintf (stdout, "Encryption key (K):\n");
+  printf ("\n");
+  printf ("Encryption key (K):\n");
   print_bytes (skey, sizeof (skey), 8);
-  fprintf (stdout, "\n");
+  printf ("\n");
   GNUNET_GNSRECORD_query_from_public_key (&id_pub,
                                           label,
                                           &query);
-  fprintf (stdout, "Storage key (q):\n");
+  printf ("Storage key (q):\n");
   print_bytes (&query, sizeof (query), 8);
-  fprintf (stdout, "\n");
+  printf ("\n");
   GNUNET_assert (GNUNET_OK == GNUNET_GNSRECORD_block_create (&id_priv,
                                                              expire,
                                                              label,
@@ -219,12 +225,12 @@ run_pkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char *label)
                                                       GNUNET_GNSRECORD_Block);
 
   bdata = (char*) &(&rrblock->ecdsa_block)[1];
-  fprintf (stdout, "BDATA:\n");
+  printf ("BDATA:\n");
   print_bytes (bdata, bdata_size, 8);
-  fprintf (stdout, "\n");
-  fprintf (stdout, "RRBLOCK:\n");
+  printf ("\n");
+  printf ("RRBLOCK:\n");
   print_bytes (rrblock, ntohl (rrblock->size), 8);
-  fprintf (stdout, "\n");
+  printf ("\n");
   GNUNET_free (rdata);
 }
 
@@ -249,6 +255,7 @@ run_edkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char*label)
   struct GNUNET_IDENTITY_PublicKey pkey_data;
   struct GNUNET_HashCode query;
   char *rdata;
+  char *conv_lbl;
   size_t rdata_size;
 
   char ztld[128];
@@ -271,30 +278,35 @@ run_edkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char*label)
            "Zone private key (d):\n");
   print_bytes (&id_priv.eddsa_key, sizeof (struct
                                            GNUNET_CRYPTO_EddsaPrivateKey), 8);
-  fprintf (stdout, "\n");
-  fprintf (stdout, "Zone identifier (ztype|zkey):\n");
+  printf ("\n");
+  printf ("Zone identifier (ztype|zkey):\n");
   GNUNET_assert (0 < GNUNET_IDENTITY_key_get_length (&id_pub));
   print_bytes (&id_pub, GNUNET_IDENTITY_key_get_length (&id_pub), 8);
   GNUNET_STRINGS_data_to_string (&id_pub,
                                  GNUNET_IDENTITY_key_get_length (&id_pub),
                                  ztld,
                                  sizeof (ztld));
-  fprintf (stdout, "\n");
-  fprintf (stdout, "zTLD:\n");
-  fprintf (stdout, "%s\n", ztld);
-  fprintf (stdout, "\n");
+  printf ("\n");
+  printf ("zTLD:\n");
+  printf ("%s\n", ztld);
+  printf ("\n");
 
   pkey_data_p.type = htonl (GNUNET_GNSRECORD_TYPE_EDKEY);
   GNUNET_CRYPTO_eddsa_key_create (&pkey_data_p.eddsa_key);
   GNUNET_IDENTITY_key_get_public (&pkey_data_p,
                                   &pkey_data);
+  conv_lbl = GNUNET_GNSRECORD_string_normalize (label);
+  printf ("Label:\n");
+  print_bytes (conv_lbl, strlen (conv_lbl), 8);
+  GNUNET_free (conv_lbl);
   fprintf (stdout,
-           "Label: %s\nRRCOUNT: %d\n\n", label, rd_count);
+           "\nNumber of records (integer): %d\n\n", rd_count);
 
   for (int i = 0; i < rd_count; i++)
   {
-    fprintf (stdout, "Record #%d\n", i);
+    printf ("Record #%d := (\n", i);
     print_record (&rd[i]);
+    printf (")\n\n");
   }
 
   rdata_size = GNUNET_GNSRECORD_records_get_size (rd_count,
@@ -308,29 +320,29 @@ run_edkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char*label)
                                       rd,
                                       (size_t) rdata_size,
                                       rdata);
-  fprintf (stdout, "RDATA:\n");
+  printf ("RDATA:\n");
   print_bytes (rdata,
                (size_t) rdata_size,
                8);
-  fprintf (stdout, "\n");
+  printf ("\n");
   GNR_derive_block_xsalsa_key (nonce,
                                skey,
                                label,
                                GNUNET_TIME_absolute_hton (
                                  expire).abs_value_us__,
                                &id_pub.eddsa_key);
-  fprintf (stdout, "Encryption NONCE|EXPIRATION:\n");
+  printf ("Encryption NONCE|EXPIRATION:\n");
   print_bytes (nonce, sizeof (nonce), 8);
-  fprintf (stdout, "\n");
-  fprintf (stdout, "Encryption key (K):\n");
+  printf ("\n");
+  printf ("Encryption key (K):\n");
   print_bytes (skey, sizeof (skey), 8);
-  fprintf (stdout, "\n");
+  printf ("\n");
   GNUNET_GNSRECORD_query_from_public_key (&id_pub,
                                           label,
                                           &query);
-  fprintf (stdout, "Storage key (q):\n");
+  printf ("Storage key (q):\n");
   print_bytes (&query, sizeof (query), 8);
-  fprintf (stdout, "\n");
+  printf ("\n");
 
   GNUNET_assert (GNUNET_OK ==  GNUNET_GNSRECORD_block_create (&id_priv,
                                                               expire,
@@ -342,12 +354,12 @@ run_edkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char*label)
                                                       GNUNET_GNSRECORD_Block);
 
   bdata = (char*) &(&rrblock->eddsa_block)[1];
-  fprintf (stdout, "BDATA:\n");
+  printf ("BDATA:\n");
   print_bytes (bdata, bdata_size, 8);
-  fprintf (stdout, "\n");
-  fprintf (stdout, "RRBLOCK:\n");
+  printf ("\n");
+  printf ("RRBLOCK:\n");
   print_bytes (rrblock, ntohl (rrblock->size), 8);
-  fprintf (stdout, "\n");
+  printf ("\n");
   GNUNET_free (rdata);
 }
 
@@ -424,9 +436,9 @@ run (void *cls,
                 | GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
 
   run_pkey (&rd_pkey, 1, "testdelegation");
-  run_pkey (rd, 3, "namesystem");
+  run_pkey (rd, 3, "\u5929\u4e0b\u7121\u6575");
   run_edkey (&rd_pkey, 1, "testdelegation");
-  run_edkey (rd, 3, "namesystem");
+  run_edkey (rd, 3, "\u5929\u4e0b\u7121\u6575");
 }
 
 

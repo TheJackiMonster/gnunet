@@ -68,28 +68,15 @@ derive_h (const void *pub,
 }
 
 
-/**
- * This is a signature function for EdDSA which takes the
- * secret scalar sk instead of the private seed which is
- * usually the case for crypto APIs. We require this functionality
- * in order to use derived private keys for signatures we
- * cannot calculate the inverse of a sk to find the seed
- * efficiently.
- *
- * The resulting signature is a standard EdDSA signature
- * which can be verified using the usual APIs.
- *
- * @param sk the secret scalar
- * @param purp the signature purpose
- * @param sig the resulting signature
- */
-void
-GNUNET_CRYPTO_eddsa_sign_with_scalar (
-  const struct GNUNET_CRYPTO_EddsaPrivateScalar *priv,
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_eddsa_sign_derived (
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *pkey,
+  const char *label,
+  const char *context,
   const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
   struct GNUNET_CRYPTO_EddsaSignature *sig)
 {
-
+  struct GNUNET_CRYPTO_EddsaPrivateScalar priv;
   crypto_hash_sha512_state hs;
   unsigned char sk[64];
   unsigned char r[64];
@@ -97,6 +84,14 @@ GNUNET_CRYPTO_eddsa_sign_with_scalar (
   unsigned char R[32];
   unsigned char zk[32];
   unsigned char tmp[32];
+
+  /**
+   * Derive the private key
+   */
+  GNUNET_CRYPTO_eddsa_private_key_derive (pkey,
+                                          label,
+                                          context,
+                                          &priv);
 
   crypto_hash_sha512_init (&hs);
 
@@ -108,7 +103,7 @@ GNUNET_CRYPTO_eddsa_sign_with_scalar (
    * sk[0..31] = h * SHA512 (d)[0..31]
    * sk[32..63] = SHA512 (d)[32..63]
    */
-  memcpy (sk, priv->s, 64);
+  memcpy (sk, priv.s, 64);
 
   /**
    * Calculate the derived zone key zk' from the
@@ -172,8 +167,28 @@ GNUNET_CRYPTO_eddsa_sign_with_scalar (
   sodium_memzero (sk, sizeof (sk));
   sodium_memzero (r, sizeof (r));
   sodium_memzero (r_mod, sizeof (r_mod));
+  return GNUNET_OK;
 }
 
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_ecdsa_sign_derived (
+  const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv,
+  const char *label,
+  const char *context,
+  const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
+  struct GNUNET_CRYPTO_EcdsaSignature *sig)
+{
+  struct GNUNET_CRYPTO_EcdsaPrivateKey *key;
+  enum GNUNET_GenericReturnValue res;
+  key = GNUNET_CRYPTO_ecdsa_private_key_derive (priv,
+                                                label,
+                                                context);
+  res = GNUNET_CRYPTO_ecdsa_sign_ (key,
+                                   purpose,
+                                   sig);
+  GNUNET_free (key);
+  return res;
+}
 
 struct GNUNET_CRYPTO_EcdsaPrivateKey *
 GNUNET_CRYPTO_ecdsa_private_key_derive (
