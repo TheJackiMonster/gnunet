@@ -13,10 +13,12 @@ endif
 pkgcfg_DATA = \
   dhtu.conf
 
-
 plugin_LTLIBRARIES = \
-  libgnunet_plugin_dhtu_gnunet.la \
-  libgnunet_plugin_dhtu_ip.la
+  libgnunet_plugin_dhtu_gnunet.la
+
+if !OPENBSD
+plugin_LTLIBRARIES += libgnunet_plugin_dhtu_ip.la
+endif
 
 libgnunet_plugin_dhtu_ip_la_SOURCES = \
   plugin_dhtu_ip.c
