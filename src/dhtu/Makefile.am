@@ -18,7 +18,6 @@ plugin_LTLIBRARIES = \
 
 if !OPENBSD
 plugin_LTLIBRARIES += libgnunet_plugin_dhtu_ip.la
-endif
 
 libgnunet_plugin_dhtu_ip_la_SOURCES = \
   plugin_dhtu_ip.c
@@ -28,7 +27,7 @@ libgnunet_plugin_dhtu_ip_la_LIBADD = \
   $(LTLIBINTL)
 libgnunet_plugin_dhtu_ip_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
-
+endif
 
 
 libgnunet_plugin_dhtu_gnunet_la_SOURCES = \
