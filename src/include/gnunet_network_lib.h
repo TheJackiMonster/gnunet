@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2009-2013 GNUnet e.V.
+     Copyright (C) 2009-2013, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -20,6 +20,7 @@
 
 /**
  * @author Nils Durner
+ * @author Tobias Frisch
  *
  * @file
  * Basic low-level networking interface
@@ -39,6 +40,13 @@ extern "C"
 #endif
 #endif
 
+//#ifdef HAVE_SYS_SELECT_H
+/*
+ * Include "sys/select.h" because it is required to use
+ * "fd_set" in "struct GNUNET_NETWORK_FDSet"!
+ */
+#include <sys/select.h>
+//#endif
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif
