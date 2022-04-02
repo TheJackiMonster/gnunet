@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2022 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -62,7 +62,8 @@ struct GNUNET_MESSENGER_EgoOperation
   struct GNUNET_IDENTITY_Operation *operation;
 
   struct GNUNET_MESSENGER_EgoStore *store;
-  void *handle;
+
+  void *cls;
 
   char *identifier;
 };
@@ -73,6 +74,7 @@ struct GNUNET_MESSENGER_EgoStore
 
   struct GNUNET_IDENTITY_Handle *identity;
   struct GNUNET_CONTAINER_MultiHashMap *egos;
+  struct GNUNET_CONTAINER_MultiHashMap *handles;
 
   struct GNUNET_MESSENGER_EgoLookup *lu_start;
   struct GNUNET_MESSENGER_EgoLookup *lu_end;
@@ -101,15 +103,38 @@ clear_ego_store (struct GNUNET_MESSENGER_EgoStore *store);
 
 /**
  * Creates a new EGO which will be registered to a <i>store</i> under
- * a specific <i>identifier</i>. A given <i>handle</i> will be informed
- * about the creation and changes its EGO accordingly.
+ * a specific <i>identifier</i>.
  *
  * @param[in/out] store EGO-store
  * @param[in] identifier Identifier string
- * @param[in/out] handle Handle or NULL
  */
 void
 create_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
+                  const char *identifier);
+
+/**
+ * Binds an EGO which was registered to a <i>store</i> under
+ * a specific <i>identifier</i> to a given <i>handle</i>
+ *
+ * @param[in/out] store EGO-store
+ * @param[in] identifier Identifier string
+ * @param[in/out] handle Handle
+ */
+void
+bind_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
+                const char *identifier,
+                void *handle);
+
+/**
+ * Binds an EGO which was registered to a <i>store</i> under
+ * a specific <i>identifier</i> to a given <i>handle</i>
+ *
+ * @param[in/out] store EGO-store
+ * @param[in] identifier Identifier string
+ * @param[in/out] handle Handle
+ */
+void
+unbind_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
                   const char *identifier,
                   void *handle);
 
@@ -143,6 +168,17 @@ update_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
                   const struct GNUNET_IDENTITY_PrivateKey *key);
 
 /**
+ * Deletes the registration of an EGO in a <i>store</i> under
+ * a specific <i>identifier</i>.
+ *
+ * @param[in/out] store EGO-store
+ * @param[in] identifier Identifier string
+ */
+void
+delete_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
+                  const char *identifier);
+
+/**
  * Updates the location of a registered EGO in a <i>store</i> to
  * a different one under a specific <i>new_identifier<i> replacing
  * its old one.
@@ -155,5 +191,16 @@ void
 rename_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
                   const char *old_identifier,
                   const char *new_identifier);
+
+/**
+ * Replaces the registered EGO in a <i>store</i> under a specific
+ * <i>identifier</i> with a newly created one.
+ *
+ * @param[in/out] store EGO-store
+ * @param[in] identifier Identifier string
+ */
+void
+renew_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
+                 const char *identifier);
 
 #endif //GNUNET_SERVICE_MESSENGER_EGO_STORE_H

@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2022 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -68,7 +68,13 @@ destroy_handle (struct GNUNET_MESSENGER_SrvHandle *handle)
     save_handle_configuration (handle);
 
   if (handle->name)
+  {
+    struct GNUNET_MESSENGER_EgoStore *store = get_service_ego_store(handle->service);
+
+    unbind_store_ego(store, handle->name, handle);
+
     GNUNET_free(handle->name);
+  }
 
   GNUNET_CONTAINER_multihashmap_iterate (handle->member_ids, iterate_free_member_ids, NULL);
   GNUNET_CONTAINER_multihashmap_destroy (handle->member_ids);
@@ -317,24 +323,26 @@ callback_update_handle (void *cls,
 {
   struct GNUNET_MESSENGER_SrvHandle *handle = cls;
 
-  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Updating handle...\n");
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Updating handle...\n");
 
   struct GNUNET_MESSENGER_EgoStore *store = get_service_ego_store(handle->service);
 
+  bind_store_ego(store, handle->name, handle);
+
   if (!ego)
-    create_store_ego(store, handle->name, handle);
+    create_store_ego (store, handle->name);
   else
-    change_handle_ego (handle, ego);
+    renew_store_ego (store, handle->name);
 }
 
 void
 update_handle (struct GNUNET_MESSENGER_SrvHandle *handle)
 {
-  GNUNET_assert(handle);
+  GNUNET_assert (handle);
 
   if (!handle->name)
   {
-    GNUNET_log(GNUNET_ERROR_TYPE_WARNING, "Updating handle failed: Name is required!\n");
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Updating handle failed: Name is required!\n");
     return;
   }
 
@@ -360,46 +368,38 @@ callback_set_handle_name (void *cls,
 
   struct GNUNET_MESSENGER_EgoStore *store = get_service_ego_store(handle->service);
 
-  int rename_ego_in_store = handle->ego? GNUNET_YES : GNUNET_NO;
-
   char *old_dir;
   get_handle_data_subdir (handle, handle->name, &old_dir);
 
   char *new_dir;
   get_handle_data_subdir (handle, name, &new_dir);
 
-  int result = 0;
+  if ((GNUNET_YES == GNUNET_DISK_directory_test (new_dir, GNUNET_NO)) &&
+      (GNUNET_OK != GNUNET_DISK_directory_remove(new_dir)))
+    goto free_dirs;
 
   if (GNUNET_YES == GNUNET_DISK_directory_test (old_dir, GNUNET_YES))
   {
     GNUNET_DISK_directory_create_for_file (new_dir);
 
-    result = rename (old_dir, new_dir);
+    if (0 != rename (old_dir, new_dir))
+      goto free_dirs;
   }
-  else if (GNUNET_YES == GNUNET_DISK_directory_test (new_dir, GNUNET_NO))
-    result = -1;
 
-  if (0 == result)
-  {
-    struct GNUNET_MESSENGER_MessageHandle msg_handle;
+  if (handle->ego)
+    rename_store_ego(store, handle->name, name);
 
-    msg_handle.handle = handle;
-    msg_handle.message = create_message_name (name);
+  struct GNUNET_MESSENGER_MessageHandle msg_handle;
+  msg_handle.handle = handle;
+  msg_handle.message = create_message_name (name);
 
-    GNUNET_CONTAINER_multihashmap_iterate (handle->member_ids, iterate_send_message, &msg_handle);
+  GNUNET_CONTAINER_multihashmap_iterate (handle->member_ids, iterate_send_message, &msg_handle);
+  destroy_message (msg_handle.message);
+  change_handle_name (handle, name);
 
-    destroy_message (msg_handle.message);
-
-    change_handle_name (handle, name);
-  }
-  else
-    rename_ego_in_store = GNUNET_NO;
-
+free_dirs:
   GNUNET_free(old_dir);
   GNUNET_free(new_dir);
-
-  if (GNUNET_YES == rename_ego_in_store)
-    rename_store_ego(store, handle->name, name);
 }
 
 void
