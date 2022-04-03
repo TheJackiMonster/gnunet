@@ -1375,7 +1375,6 @@ handle_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
   struct GNUNET_MQ_Envelope *env;
   struct LabelLookupResponseMessage *llr_msg;
   struct RecordLookupContext rlc;
-  struct GNUNET_HashCode label_hash;
   const char *name_tmp;
   char *res_name;
   char *conv_name;
@@ -1531,7 +1530,6 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
   unsigned int rd_count;
   int res;
   struct StoreActivity *sa;
-  struct GNUNET_HashCode label_hash;
   struct GNUNET_TIME_Absolute existing_block_exp;
   struct GNUNET_TIME_Absolute new_block_exp;
 
