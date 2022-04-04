@@ -96,7 +96,11 @@ get_weak_random (void)
 void
 GNUNET_CRYPTO_seed_weak_random (int32_t seed)
 {
+#ifdef OPENBSD
+  srandom_deterministic (seed);
+#else
   srandom (seed);
+#endif
 }
 
 
