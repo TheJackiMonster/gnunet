@@ -1028,19 +1028,12 @@ CPPFLAGS="$SAVE_CPPFLAGS"
 AC_ARG_WITH([microhttpd],
   [AS_HELP_STRING([--with-microhttpd=PFX],
                   [base of libmicrohttpd installation])],
-  [httpd=${withval}],
-  [httpd=check])
-
-AS_CASE([$withval],
-  [no],
-  [AC_MSG_ERROR([GNUnet requires libmicrohttpd >= 0.9.63])],
-  [yes],
-  [PKG_CHECK_MODULES([MHD], [libmicrohttpd >= 0.9.63], [libmhd=1], [libmhd=0])],
   [SAVE_PKG_PATH="$PKG_CONFIG_PATH"
    PKG_CONFIG_PATH="$httpd/lib/pkgconfig"
    export PKG_CONFIG_PATH
    PKG_CHECK_MODULES([MHD], [libmicrohttpd >= 0.9.63], [libmhd=1], [libmhd=0])
-   PKG_CONFIG_PATH="$SAVE_PKG_PATH"])
+   PKG_CONFIG_PATH="$SAVE_PKG_PATH"],
+  [PKG_CHECK_MODULES([MHD], [libmicrohttpd >= 0.9.63], [libmhd=1], [libmhd=0])])
 
 AS_IF([test "x$libmhd" = "x0"],
   [AC_MSG_ERROR([GNUnet requires libmicrohttpd >= 0.9.63])])
