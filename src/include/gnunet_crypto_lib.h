@@ -956,7 +956,7 @@ GNUNET_CRYPTO_hash_context_abort (struct GNUNET_HashContext *hc);
 
 /**
  * Calculate HMAC of a message (RFC 2104)
- * TODO: Shouldn' this be the standard hmac function and
+ * TODO: Shouldn't this be the standard hmac function and
  * the above be renamed?
  *
  * @param key secret key
