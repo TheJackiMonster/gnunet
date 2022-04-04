@@ -135,7 +135,8 @@ AS_CASE(["$host_os"],
    UNIXONLY="#"
   ],
   [*openbsd*],
-  [# libc needs to be linked explicitly
+  [AC_DEFINE([OPENBSD],[1],[Define to 1 if this is an OpenBSD system])
+   # libc needs to be linked explicitly
    LDFLAGS="$OLD_LDFLAGS -lc"
    # and PIC has to be enabled
    CFLAGS="-fPIC $CFLAGS"
