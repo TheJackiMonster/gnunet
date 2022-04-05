@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet
-   Copyright (C) 2014-2017, 2021 GNUnet e.V.
+   Copyright (C) 2014-2017, 2021, 2022 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -48,7 +48,11 @@ GNUNET_JSON_parse (const json_t *root,
     if ( ( (NULL == pos) ||
            (json_is_null (pos) ) ) &&
          (spec[i].is_optional) )
+    {
+      if (NULL != spec[i].missing)
+        *spec[i].missing = true;
       continue;
+    }
     if ( (NULL == pos) ||
          (GNUNET_OK !=
           spec[i].parser (spec[i].cls,
@@ -67,17 +71,21 @@ GNUNET_JSON_parse (const json_t *root,
       GNUNET_JSON_parse_free (spec);
       return GNUNET_SYSERR;
     }
+    if (NULL != spec[i].missing)
+      *spec[i].missing = false;
   }
   return GNUNET_OK; /* all OK! */
 }
 
 
 struct GNUNET_JSON_Specification
-GNUNET_JSON_spec_mark_optional (struct GNUNET_JSON_Specification spec)
+GNUNET_JSON_spec_mark_optional (struct GNUNET_JSON_Specification spec,
+                                bool *missing)
 {
   struct GNUNET_JSON_Specification ret = spec;
 
   ret.is_optional = true;
+  ret.missing = missing;
   return ret;
 }
 
@@ -104,7 +112,7 @@ GNUNET_JSON_parse_free (struct GNUNET_JSON_Specification *spec)
  * @param value actual value of the option as a string.
  * @return #GNUNET_OK if parsing the value worked
  */
-static int
+static enum GNUNET_GenericReturnValue
 set_json (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
           void *scls,
           const char *option,
@@ -113,7 +121,9 @@ set_json (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
   json_t **json = scls;
   json_error_t error;
 
-  *json = json_loads (value, JSON_REJECT_DUPLICATES, &error);
+  *json = json_loads (value,
+                      JSON_REJECT_DUPLICATES,
+                      &error);
   if (NULL == *json)
   {
     fprintf (stderr,
@@ -134,13 +144,15 @@ GNUNET_JSON_getopt (char shortName,
                     const char *description,
                     json_t **json)
 {
-  struct GNUNET_GETOPT_CommandLineOption clo = { .shortName = shortName,
-                                                 .name = name,
-                                                 .argumentHelp = argumentHelp,
-                                                 .description = description,
-                                                 .require_argument = 1,
-                                                 .processor = &set_json,
-                                                 .scls = (void *) json };
+  struct GNUNET_GETOPT_CommandLineOption clo = {
+    .shortName = shortName,
+    .name = name,
+    .argumentHelp = argumentHelp,
+    .description = description,
+    .require_argument = 1,
+    .processor = &set_json,
+    .scls = (void *) json
+  };
 
   return clo;
 }

@@ -97,14 +97,20 @@ struct GNUNET_JSON_Specification
   void *ptr;
 
   /**
-   * Number of bytes available in @e ptr.
+   * Pointer to set to true if this argument is
+   * indeed missing. Can be NULL.
    */
-  size_t ptr_size;
+  bool *missing;
 
   /**
    * Where should we store the final size of @e ptr.
    */
   size_t *size_ptr;
+
+  /**
+   * Number of bytes available in @e ptr.
+   */
+  size_t ptr_size;
 
   /**
    * Set to true if this component is optional.
@@ -157,10 +163,12 @@ GNUNET_JSON_spec_end (void);
  * Set the "optional" flag for a parser specification entry.
  *
  * @param spec specification to modify
+ * @param[out] missing set to true if the argument is missing, NULL is allowed.
  * @return spec copy of @a spec with optional bit set
  */
 struct GNUNET_JSON_Specification
-GNUNET_JSON_spec_mark_optional (struct GNUNET_JSON_Specification spec);
+GNUNET_JSON_spec_mark_optional (struct GNUNET_JSON_Specification spec,
+                                bool *missing);
 
 
 /**
