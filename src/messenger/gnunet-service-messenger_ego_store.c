@@ -181,8 +181,14 @@ create_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
 
   element->identifier = GNUNET_strdup (identifier);
 
-  element->operation = GNUNET_IDENTITY_create (store->identity, identifier, NULL,
-                                               GNUNET_IDENTITY_TYPE_ECDSA, callback_ego_create, element);
+  element->operation = GNUNET_IDENTITY_create (
+      store->identity,
+      identifier,
+      NULL,
+      GNUNET_IDENTITY_TYPE_ECDSA,
+      callback_ego_create,
+      element
+  );
 
   GNUNET_CONTAINER_DLL_insert (store->op_start, store->op_end, element);
 }
@@ -228,14 +234,28 @@ callback_ego_lookup (void *cls,
 
   GNUNET_assert (element->identifier);
 
-  struct GNUNET_MESSENGER_Ego *msg_ego;
+  struct GNUNET_MESSENGER_Ego *msg_ego = NULL;
 
   if (ego)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "New ego looked up: '%s'\n", element->identifier);
     msg_ego = update_store_ego (
-        store, element->identifier, GNUNET_IDENTITY_ego_get_private_key(ego)
+        store,
+        element->identifier,
+        GNUNET_IDENTITY_ego_get_private_key(ego)
     );
+  }
   else
-    msg_ego = NULL;
+  {
+    struct GNUNET_HashCode hash;
+    GNUNET_CRYPTO_hash (element->identifier, strlen (element->identifier), &hash);
+
+    if (GNUNET_CONTAINER_multihashmap_get (store->egos, &hash))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Looked up ego got deleted: '%s'\n", element->identifier);
+      delete_store_ego(store, element->identifier);
+    }
+  }
 
   if (element->cb)
     element->cb(element->cls, element->identifier, msg_ego);
@@ -261,28 +281,18 @@ lookup_store_ego(struct GNUNET_MESSENGER_EgoStore *store,
     return;
   }
 
-  struct GNUNET_HashCode hash;
-  GNUNET_CRYPTO_hash (identifier, strlen (identifier), &hash);
+  struct GNUNET_MESSENGER_EgoLookup *element = GNUNET_new (struct GNUNET_MESSENGER_EgoLookup);
 
-  struct GNUNET_MESSENGER_Ego *ego = GNUNET_CONTAINER_multihashmap_get (store->egos, &hash);
+  element->store = store;
 
-  if (ego)
-    lookup(cls, identifier, ego);
-  else
-  {
-    struct GNUNET_MESSENGER_EgoLookup *element = GNUNET_new (struct GNUNET_MESSENGER_EgoLookup);
+  element->cb = lookup;
+  element->cls = cls;
 
-    element->store = store;
+  element->identifier = GNUNET_strdup (identifier);
 
-    element->cb = lookup;
-    element->cls = cls;
+  element->lookup = GNUNET_IDENTITY_ego_lookup(store->cfg, identifier, callback_ego_lookup, element);
 
-    element->identifier = GNUNET_strdup (identifier);
-
-    element->lookup = GNUNET_IDENTITY_ego_lookup(store->cfg, identifier, callback_ego_lookup, element);
-
-    GNUNET_CONTAINER_DLL_insert (store->lu_start, store->lu_end, element);
-  }
+  GNUNET_CONTAINER_DLL_insert (store->lu_start, store->lu_end, element);
 }
 
 struct GNUNET_MESSENGER_Ego*
@@ -334,6 +344,8 @@ delete_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
 
   GNUNET_CONTAINER_multihashmap_remove (store->egos, &hash, ego);
   GNUNET_free(ego);
+
+
 }
 
 static void
@@ -391,11 +403,16 @@ rename_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
 
   element->identifier = GNUNET_strdup (old_identifier);
 
-  element->operation = GNUNET_IDENTITY_rename (store->identity, old_identifier, new_identifier, callback_ego_rename, element);
+  element->operation = GNUNET_IDENTITY_rename (
+      store->identity,
+      old_identifier,
+      new_identifier,
+      callback_ego_rename,
+      element
+  );
 
   GNUNET_CONTAINER_DLL_insert (store->op_start, store->op_end, element);
 }
-
 
 static void
 callback_ego_delete (void *cls,
@@ -431,7 +448,12 @@ renew_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
 
   element->identifier = GNUNET_strdup (identifier);
 
-  element->operation = GNUNET_IDENTITY_delete(store->identity, identifier, callback_ego_delete, element);
+  element->operation = GNUNET_IDENTITY_delete(
+      store->identity,
+      identifier,
+      callback_ego_delete,
+      element
+  );
 
   GNUNET_CONTAINER_DLL_insert (store->op_start, store->op_end, element);
 }
