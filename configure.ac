@@ -1030,7 +1030,7 @@ AC_ARG_WITH([microhttpd],
   [AS_HELP_STRING([--with-microhttpd=PFX],
                   [base of libmicrohttpd installation])],
   [SAVE_PKG_PATH="$PKG_CONFIG_PATH"
-   PKG_CONFIG_PATH="$httpd/lib/pkgconfig"
+   PKG_CONFIG_PATH="${withval}/lib/pkgconfig"
    export PKG_CONFIG_PATH
    PKG_CHECK_MODULES([MHD], [libmicrohttpd >= 0.9.63], [libmhd=1], [libmhd=0])
    PKG_CONFIG_PATH="$SAVE_PKG_PATH"],
