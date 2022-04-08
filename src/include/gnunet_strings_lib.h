@@ -63,7 +63,7 @@ extern "C"
  * @param size set to the size in bytes
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_fancy_size_to_bytes (const char *fancy_size,
                                     unsigned long long *size);
 
@@ -203,7 +203,7 @@ GNUNET_STRINGS_utf8_tolower (const char *input,
  *
  * @param input input string
  * @param output output buffer
- * @return GNUNET_OK on success
+ * @return #GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_utf8_toupper (const char *input,
