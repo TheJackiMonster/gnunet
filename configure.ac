@@ -992,7 +992,7 @@ AC_SUBST(MYSQL_CPPFLAGS)
 AS_IF([test "x$mysql" = "xtrue"],
   [AC_MSG_CHECKING([for mysql version])
    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-     [[include <mysql/mysql_version.h>]],
+     [[#include <mysql/mysql_version.h>]],
      [[#if (MYSQL_VERSION_ID < 40100)
 #error required at least version 4.1
 #endif]])],
