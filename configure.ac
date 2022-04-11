@@ -719,6 +719,11 @@ CHECK_WITH_LIB([jansson], [json_loads], [jansson.h], [HAVE_JANSSON])
 AS_IF([test "x$jansson" = "x0"],
   [AC_MSG_ERROR([GNUnet requires jansson])])
 
+# check for jose
+CHECK_WITH_LIB([jose], [jose_jwk_gen], [jose/jose.h], [HAVE_JOSE])
+AS_IF([test "x$jose" = "x0"],
+  [AC_MSG_ERROR([GNUnet requires jose])])
+
 # check for libpulse (pulseaudio)
 CHECK_WITH_LIB([pulse], [pa_stream_peek], [pulse/simple.h], [HAVE_PULSE])
 

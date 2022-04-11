@@ -28,13 +28,11 @@
 #define JWT_H
 
 #define JWT_ALG "alg"
-
-/* Use 512bit HMAC */
-#define JWT_ALG_VALUE "HS512"
-
 #define JWT_TYP "typ"
-
 #define JWT_TYP_VALUE "jwt"
+
+#define JWT_ALG_VALUE_HMAC "HS512"
+#define JWT_ALG_VALUE_RSA "RS256"
 
 #define SERVER_ADDRESS "https://api.reclaim"
 
@@ -52,7 +50,28 @@ enum OIDC_VerificationOptions
 };
 
 /**
- * Create a JWT from attributes
+ * Create a JWT using RSA256 from attributes
+ *
+ * @param aud_key the public of the audience
+ * @param sub_key the public key of the subject
+ * @param attrs the attribute list
+ * @param presentations credential presentation list (may be empty)
+ * @param expiration_time the validity of the token
+ * @param secret_key the key used to sign the JWT
+ * @return a new base64-encoded JWT string.
+ */
+char *
+OIDC_generate_id_token_rsa (const struct GNUNET_IDENTITY_PublicKey *aud_key,
+                            const struct GNUNET_IDENTITY_PublicKey *sub_key,
+                            const struct GNUNET_RECLAIM_AttributeList *attrs,
+                            const struct
+                            GNUNET_RECLAIM_PresentationList *presentations,
+                            const struct GNUNET_TIME_Relative *expiration_time,
+                            const char *nonce,
+                            const json_t *secret_rsa_key);
+
+/**
+ * Create a JWT using HMAC (HS256) from attributes
  *
  * @param aud_key the public of the audience
  * @param sub_key the public key of the subject
@@ -63,14 +82,14 @@ enum OIDC_VerificationOptions
  * @return a new base64-encoded JWT string.
  */
 char*
-OIDC_generate_id_token (const struct GNUNET_IDENTITY_PublicKey *aud_key,
-                        const struct GNUNET_IDENTITY_PublicKey *sub_key,
-                        const struct GNUNET_RECLAIM_AttributeList *attrs,
-                        const struct
-                        GNUNET_RECLAIM_PresentationList *presentations,
-                        const struct GNUNET_TIME_Relative *expiration_time,
-                        const char *nonce,
-                        const char *secret_key);
+OIDC_generate_id_token_hmac (const struct GNUNET_IDENTITY_PublicKey *aud_key,
+                             const struct GNUNET_IDENTITY_PublicKey *sub_key,
+                             const struct GNUNET_RECLAIM_AttributeList *attrs,
+                             const struct
+                             GNUNET_RECLAIM_PresentationList *presentations,
+                             const struct GNUNET_TIME_Relative *expiration_time,
+                             const char *nonce,
+                             const char *secret_key);
 
 /**
  * Builds an OIDC authorization code including
