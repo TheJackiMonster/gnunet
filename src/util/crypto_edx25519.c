@@ -225,9 +225,9 @@ derive_h (
   GNUNET_CRYPTO_kdf (/* output*/
                      phc, sizeof(*phc),
                      /* salt */
-                     pub, sizeof(*pub),
-                     /* ikm */
                      seed, seedsize,
+                     /* ikm */
+                     pub, sizeof(*pub),
                      /* ctx chunks*/
                      salt, strlen (salt),
                      NULL, 0);
