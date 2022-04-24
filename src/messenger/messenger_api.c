@@ -64,6 +64,8 @@ GNUNET_MESSENGER_name_of_kind (enum GNUNET_MESSENGER_MessageKind kind)
     return "FILE";
   case GNUNET_MESSENGER_KIND_PRIVATE:
     return "PRIVATE";
+  case GNUNET_MESSENGER_KIND_DELETE:
+    return "DELETE";
   default:
     return "UNKNOWN";
   }
