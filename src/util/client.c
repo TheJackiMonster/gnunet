@@ -261,12 +261,13 @@ transmit_ready (void *cls)
   len = ntohs (cstate->msg->size);
   GNUNET_assert (cstate->msg_off < len);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "message of type %u trying to send with socket %p (MQ: %p\n",
+       "message of type %u and size %u trying to send with socket %p (MQ: %p\n",
        ntohs (cstate->msg->type),
+       ntohs (cstate->msg->size),
        cstate->sock,
        cstate->mq);
 
-RETRY:
+  RETRY:
   ret = GNUNET_NETWORK_socket_send (cstate->sock,
                                     &pos[cstate->msg_off],
                                     len - cstate->msg_off);
@@ -311,8 +312,9 @@ RETRY:
     return;
   }
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "sending message of type %u successful\n",
-       ntohs (cstate->msg->type));
+       "sending message of type %u and size %u successful\n",
+       ntohs (cstate->msg->type),
+       ntohs (cstate->msg->size));
   cstate->msg = NULL;
   GNUNET_MQ_impl_send_continue (cstate->mq);
 }

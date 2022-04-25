@@ -129,14 +129,16 @@ GNUNET_MST_from_buffer (struct GNUNET_MessageStreamTokenizer *mst,
   GNUNET_assert (mst->off <= mst->pos);
   GNUNET_assert (mst->pos <= mst->curr_buf);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "MST receives %u bytes with %u bytes already in private buffer\n",
+       "MST receives %u bytes with %u (%u/%u) bytes already in private buffer\n",
        (unsigned int) size,
-       (unsigned int) (mst->pos - mst->off));
+       (unsigned int) (mst->pos - mst->off),
+       (unsigned int) mst->pos,
+       (unsigned int) mst->off);
   ret = GNUNET_OK;
   ibuf = (char *) mst->hdr;
   while (mst->pos > 0)
   {
-do_align:
+    do_align:
     GNUNET_assert (mst->pos >= mst->off);
     if ((mst->curr_buf - mst->off < sizeof(struct GNUNET_MessageHeader)) ||
         (0 != (mst->off % ALIGN_FACTOR)))
@@ -172,6 +174,9 @@ do_align:
     }
     hdr = (const struct GNUNET_MessageHeader *) &ibuf[mst->off];
     want = ntohs (hdr->size);
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "We want to read message of size %u\n",
+         want);
     if (want < sizeof(struct GNUNET_MessageHeader))
     {
       GNUNET_break_op (0);
@@ -299,7 +304,7 @@ do_align:
       goto do_align;
     }
   }
-copy:
+  copy:
   if ((size > 0) && (! purge))
   {
     if (size + mst->pos > mst->curr_buf)
@@ -321,8 +326,10 @@ copy:
     mst->pos = 0;
   }
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Server-mst leaves %u bytes in private buffer\n",
-       (unsigned int) (mst->pos - mst->off));
+       "Server-mst leaves %u (%u/%u) bytes in private buffer\n",
+       (unsigned int) (mst->pos - mst->off),
+       (unsigned int) mst->pos,
+       (unsigned int) mst->off);
   return ret;
 }
 
