@@ -182,49 +182,28 @@ struct GNUNET_MQ_Handle
 };
 
 
-/**
- * Call the message message handler that was registered
- * for the type of the given message in the given message queue.
- *
- * This function is intended to be used for the implementation
- * of message queues.
- *
- * @param mq message queue with the handlers
- * @param mh message to dispatch
- */
 void
 GNUNET_MQ_inject_message (struct GNUNET_MQ_Handle *mq,
                           const struct GNUNET_MessageHeader *mh)
 {
-  int ret;
+  enum GNUNET_GenericReturnValue ret;
 
-  ret = GNUNET_MQ_handle_message (mq->handlers, mh);
+  ret = GNUNET_MQ_handle_message (mq->handlers,
+                                  mh);
   if (GNUNET_SYSERR == ret)
   {
-    GNUNET_MQ_inject_error (mq, GNUNET_MQ_ERROR_MALFORMED);
+    GNUNET_MQ_inject_error (mq,
+                            GNUNET_MQ_ERROR_MALFORMED);
     return;
   }
 }
 
 
-/**
- * Call the message message handler that was registered
- * for the type of the given message in the given @a handlers list.
- *
- * This function is intended to be used for the implementation
- * of message queues.
- *
- * @param handlers a set of handlers
- * @param mh message to dispatch
- * @return #GNUNET_OK on success, #GNUNET_NO if no handler matched,
- *         #GNUNET_SYSERR if message was rejected by check function
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_MQ_handle_message (const struct GNUNET_MQ_MessageHandler *handlers,
                           const struct GNUNET_MessageHeader *mh)
 {
-  const struct GNUNET_MQ_MessageHandler *handler;
-  int handled = GNUNET_NO;
+  bool handled = false;
   uint16_t msize = ntohs (mh->size);
   uint16_t mtype = ntohs (mh->type);
 
@@ -232,16 +211,18 @@ GNUNET_MQ_handle_message (const struct GNUNET_MQ_MessageHandler *handlers,
        "Received message of type %u and size %u\n",
        mtype,
        msize);
-
   if (NULL == handlers)
     goto done;
-  for (handler = handlers; NULL != handler->cb; handler++)
+  for (const struct GNUNET_MQ_MessageHandler *handler = handlers;
+       NULL != handler->cb;
+       handler++)
   {
     if (handler->type == mtype)
     {
-      handled = GNUNET_YES;
-      if ((handler->expected_size > msize) ||
-          ((handler->expected_size != msize) && (NULL == handler->mv)))
+      handled = true;
+      if ( (handler->expected_size > msize) ||
+           ( (handler->expected_size != msize) &&
+             (NULL == handler->mv) ) )
       {
         /* Too small, or not an exact size and
            no 'mv' handler to check rest */
@@ -250,8 +231,10 @@ GNUNET_MQ_handle_message (const struct GNUNET_MQ_MessageHandler *handlers,
              (unsigned int) handler->type);
         return GNUNET_SYSERR;
       }
-      if ((NULL == handler->mv) ||
-          (GNUNET_OK == handler->mv (handler->cls, mh)))
+      if ( (NULL == handler->mv) ||
+           (GNUNET_OK ==
+            handler->mv (handler->cls,
+                         mh)) )
       {
         /* message well-formed, pass to handler */
         handler->cb (handler->cls, mh);
@@ -268,7 +251,7 @@ GNUNET_MQ_handle_message (const struct GNUNET_MQ_MessageHandler *handlers,
     }
   }
 done:
-  if (GNUNET_NO == handled)
+  if (! handled)
   {
     LOG (GNUNET_ERROR_TYPE_INFO,
          "No handler for message of type %u and size %u\n",
@@ -280,16 +263,6 @@ done:
 }
 
 
-/**
- * Call the error handler of a message queue with the given
- * error code.  If there is no error handler, log a warning.
- *
- * This function is intended to be used by the implementation
- * of message queues.
- *
- * @param mq message queue
- * @param error the error type
- */
 void
 GNUNET_MQ_inject_error (struct GNUNET_MQ_Handle *mq,
                         enum GNUNET_MQ_Error error)
@@ -306,13 +279,6 @@ GNUNET_MQ_inject_error (struct GNUNET_MQ_Handle *mq,
 }
 
 
-/**
- * Discard the message queue message, free all
- * allocated resources. Must be called in the event
- * that a message is created but should not actually be sent.
- *
- * @param mqm the message to discard
- */
 void
 GNUNET_MQ_discard (struct GNUNET_MQ_Envelope *ev)
 {
@@ -321,12 +287,6 @@ GNUNET_MQ_discard (struct GNUNET_MQ_Envelope *ev)
 }
 
 
-/**
- * Obtain the current length of the message queue.
- *
- * @param mq queue to inspect
- * @return number of queued, non-transmitted messages
- */
 unsigned int
 GNUNET_MQ_get_length (struct GNUNET_MQ_Handle *mq)
 {
@@ -338,13 +298,6 @@ GNUNET_MQ_get_length (struct GNUNET_MQ_Handle *mq)
 }
 
 
-/**
- * Send a message with the given message queue.
- * May only be called once per message.
- *
- * @param mq message queue
- * @param ev the envelope with the message to send.
- */
 void
 GNUNET_MQ_send (struct GNUNET_MQ_Handle *mq,
                 struct GNUNET_MQ_Envelope *ev)
@@ -389,33 +342,21 @@ GNUNET_MQ_send (struct GNUNET_MQ_Handle *mq,
 }
 
 
-/**
- * Remove the first envelope that has not yet been sent from the message
- * queue and return it.
- *
- * @param mq queue to remove envelope from
- * @return NULL if queue is empty (or has no envelope that is not under transmission)
- */
 struct GNUNET_MQ_Envelope *
 GNUNET_MQ_unsent_head (struct GNUNET_MQ_Handle *mq)
 {
   struct GNUNET_MQ_Envelope *env;
 
   env = mq->envelope_head;
-  GNUNET_CONTAINER_DLL_remove (mq->envelope_head, mq->envelope_tail, env);
+  GNUNET_CONTAINER_DLL_remove (mq->envelope_head,
+                               mq->envelope_tail,
+                               env);
   mq->queue_length--;
   env->parent_queue = NULL;
   return env;
 }
 
 
-/**
- * Function to copy an envelope.  The envelope must not yet
- * be in any queue or have any options or callbacks set.
- *
- * @param env envelope to copy
- * @return copy of @a env
- */
 struct GNUNET_MQ_Envelope *
 GNUNET_MQ_env_copy (struct GNUNET_MQ_Envelope *env)
 {
@@ -427,13 +368,6 @@ GNUNET_MQ_env_copy (struct GNUNET_MQ_Envelope *env)
 }
 
 
-/**
- * Send a copy of a message with the given message queue.
- * Can be called repeatedly on the same envelope.
- *
- * @param mq message queue
- * @param ev the envelope with the message to send.
- */
 void
 GNUNET_MQ_send_copy (struct GNUNET_MQ_Handle *mq,
                      const struct GNUNET_MQ_Envelope *ev)
@@ -485,13 +419,6 @@ impl_send_continue (void *cls)
 }
 
 
-/**
- * Call the send implementation for the next queued message, if any.
- * Only useful for implementing message queues, results in undefined
- * behavior if not used carefully.
- *
- * @param mq message queue to send the next message with
- */
 void
 GNUNET_MQ_impl_send_continue (struct GNUNET_MQ_Handle *mq)
 {
@@ -515,16 +442,6 @@ GNUNET_MQ_impl_send_continue (struct GNUNET_MQ_Handle *mq)
 }
 
 
-/**
- * Call the send notification for the current message, but do not
- * try to send the next message until #GNUNET_MQ_impl_send_continue
- * is called.
- *
- * Only useful for implementing message queues, results in undefined
- * behavior if not used carefully.
- *
- * @param mq message queue to send the next message with
- */
 void
 GNUNET_MQ_impl_send_in_flight (struct GNUNET_MQ_Handle *mq)
 {
@@ -546,18 +463,6 @@ GNUNET_MQ_impl_send_in_flight (struct GNUNET_MQ_Handle *mq)
 }
 
 
-/**
- * Create a message queue for the specified handlers.
- *
- * @param send function the implements sending messages
- * @param destroy function that implements destroying the queue
- * @param cancel function that implements canceling a message
- * @param impl_state for the queue, passed to 'send' and 'destroy'
- * @param handlers array of message handlers
- * @param error_handler handler for read and write errors
- * @param error_handler_cls closure for @a error_handler
- * @return a new message queue
- */
 struct GNUNET_MQ_Handle *
 GNUNET_MQ_queue_for_callbacks (GNUNET_MQ_SendImpl send,
                                GNUNET_MQ_DestroyImpl destroy,
@@ -582,15 +487,9 @@ GNUNET_MQ_queue_for_callbacks (GNUNET_MQ_SendImpl send,
 }
 
 
-/**
- * Change the closure argument in all of the `handlers` of the
- * @a mq.
- *
- * @param mq to modify
- * @param handlers_cls new closure to use
- */
 void
-GNUNET_MQ_set_handlers_closure (struct GNUNET_MQ_Handle *mq, void *handlers_cls)
+GNUNET_MQ_set_handlers_closure (struct GNUNET_MQ_Handle *mq,
+                                void *handlers_cls)
 {
   if (NULL == mq->handlers)
     return;
@@ -599,15 +498,6 @@ GNUNET_MQ_set_handlers_closure (struct GNUNET_MQ_Handle *mq, void *handlers_cls)
 }
 
 
-/**
- * Get the message that should currently be sent.
- * Fails if there is no current message.
- * Only useful for implementing message queues,
- * results in undefined behavior if not used carefully.
- *
- * @param mq message queue with the current message
- * @return message to send, never NULL
- */
 const struct GNUNET_MessageHeader *
 GNUNET_MQ_impl_current (struct GNUNET_MQ_Handle *mq)
 {
@@ -617,20 +507,6 @@ GNUNET_MQ_impl_current (struct GNUNET_MQ_Handle *mq)
 }
 
 
-/**
- * Get the implementation state associated with the
- * message queue.
- *
- * While the GNUNET_MQ_Impl* callbacks receive the
- * implementation state, continuations that are scheduled
- * by the implementation function often only have one closure
- * argument, with this function it is possible to get at the
- * implementation state when only passing the GNUNET_MQ_Handle
- * as closure.
- *
- * @param mq message queue with the current message
- * @return message to send, never NULL
- */
 void *
 GNUNET_MQ_impl_state (struct GNUNET_MQ_Handle *mq)
 {
@@ -639,7 +515,9 @@ GNUNET_MQ_impl_state (struct GNUNET_MQ_Handle *mq)
 
 
 struct GNUNET_MQ_Envelope *
-GNUNET_MQ_msg_ (struct GNUNET_MessageHeader **mhp, uint16_t size, uint16_t type)
+GNUNET_MQ_msg_ (struct GNUNET_MessageHeader **mhp,
+                uint16_t size,
+                uint16_t type)
 {
   struct GNUNET_MQ_Envelope *ev;
 
@@ -653,12 +531,6 @@ GNUNET_MQ_msg_ (struct GNUNET_MessageHeader **mhp, uint16_t size, uint16_t type)
 }
 
 
-/**
- * Create a new envelope by copying an existing message.
- *
- * @param hdr header of the message to copy
- * @return envelope containing @a hdr
- */
 struct GNUNET_MQ_Envelope *
 GNUNET_MQ_msg_copy (const struct GNUNET_MessageHeader *hdr)
 {
@@ -674,15 +546,6 @@ GNUNET_MQ_msg_copy (const struct GNUNET_MessageHeader *hdr)
 }
 
 
-/**
- * Implementation of the #GNUNET_MQ_msg_nested_mh macro.
- *
- * @param mhp pointer to the message header pointer that will be changed to allocate at
- *        the newly allocated space for the message.
- * @param base_size size of the data before the nested message
- * @param type type of the message in the envelope
- * @param nested_mh the message to append to the message after base_size
- */
 struct GNUNET_MQ_Envelope *
 GNUNET_MQ_msg_nested_mh_ (struct GNUNET_MessageHeader **mhp,
                           uint16_t base_size,
@@ -693,31 +556,26 @@ GNUNET_MQ_msg_nested_mh_ (struct GNUNET_MessageHeader **mhp,
   uint16_t size;
 
   if (NULL == nested_mh)
-    return GNUNET_MQ_msg_ (mhp, base_size, type);
-
+    return GNUNET_MQ_msg_ (mhp,
+                           base_size,
+                           type);
   size = base_size + ntohs (nested_mh->size);
-
   /* check for uint16_t overflow */
   if (size < base_size)
     return NULL;
-
-  mqm = GNUNET_MQ_msg_ (mhp, size, type);
+  mqm = GNUNET_MQ_msg_ (mhp,
+                        size,
+                        type);
   GNUNET_memcpy ((char *) mqm->mh + base_size,
                  nested_mh,
                  ntohs (nested_mh->size));
-
   return mqm;
 }
 
 
-/**
- * Associate the assoc_data in mq with a unique request id.
- *
- * @param mq message queue, id will be unique for the queue
- * @param assoc_data to associate
- */
 uint32_t
-GNUNET_MQ_assoc_add (struct GNUNET_MQ_Handle *mq, void *assoc_data)
+GNUNET_MQ_assoc_add (struct GNUNET_MQ_Handle *mq,
+                     void *assoc_data)
 {
   uint32_t id;
 
@@ -745,11 +603,13 @@ GNUNET_MQ_assoc_add (struct GNUNET_MQ_Handle *mq, void *assoc_data)
  * @return the associated data
  */
 void *
-GNUNET_MQ_assoc_get (struct GNUNET_MQ_Handle *mq, uint32_t request_id)
+GNUNET_MQ_assoc_get (struct GNUNET_MQ_Handle *mq,
+                     uint32_t request_id)
 {
   if (NULL == mq->assoc_map)
     return NULL;
-  return GNUNET_CONTAINER_multihashmap32_get (mq->assoc_map, request_id);
+  return GNUNET_CONTAINER_multihashmap32_get (mq->assoc_map,
+                                              request_id);
 }
 
 
@@ -761,27 +621,21 @@ GNUNET_MQ_assoc_get (struct GNUNET_MQ_Handle *mq, uint32_t request_id)
  * @return the associated data
  */
 void *
-GNUNET_MQ_assoc_remove (struct GNUNET_MQ_Handle *mq, uint32_t request_id)
+GNUNET_MQ_assoc_remove (struct GNUNET_MQ_Handle *mq,
+                        uint32_t request_id)
 {
   void *val;
 
   if (NULL == mq->assoc_map)
     return NULL;
-  val = GNUNET_CONTAINER_multihashmap32_get (mq->assoc_map, request_id);
-  GNUNET_CONTAINER_multihashmap32_remove_all (mq->assoc_map, request_id);
+  val = GNUNET_CONTAINER_multihashmap32_get (mq->assoc_map,
+                                             request_id);
+  GNUNET_CONTAINER_multihashmap32_remove_all (mq->assoc_map,
+                                              request_id);
   return val;
 }
 
 
-/**
- * Call a callback once the envelope has been sent, that is,
- * sending it can not be canceled anymore.
- * There can be only one notify sent callback per envelope.
- *
- * @param ev message to call the notify callback for
- * @param cb the notify callback
- * @param cb_cls closure for the callback
- */
 void
 GNUNET_MQ_notify_sent (struct GNUNET_MQ_Envelope *ev,
                        GNUNET_SCHEDULER_TaskCallback cb,
@@ -827,11 +681,6 @@ struct GNUNET_MQ_DestroyNotificationHandle
 };
 
 
-/**
- * Destroy the message queue.
- *
- * @param mq message queue to destroy
- */
 void
 GNUNET_MQ_destroy (struct GNUNET_MQ_Handle *mq)
 {
@@ -917,13 +766,6 @@ GNUNET_MQ_extract_nested_mh_ (const struct GNUNET_MessageHeader *mh,
 }
 
 
-/**
- * Cancel sending the message. Message must have been sent with
- * #GNUNET_MQ_send before.  May not be called after the notify sent
- * callback has been called
- *
- * @param ev queued envelope to cancel
- */
 void
 GNUNET_MQ_send_cancel (struct GNUNET_MQ_Envelope *ev)
 {
@@ -931,14 +773,13 @@ GNUNET_MQ_send_cancel (struct GNUNET_MQ_Envelope *ev)
 
   GNUNET_assert (NULL != mq);
   GNUNET_assert (NULL != mq->cancel_impl);
-
+  GNUNET_assert (0 < mq->queue_length);
+  mq->queue_length--;
   if (mq->current_envelope == ev)
   {
     /* complex case, we already started with transmitting
        the message using the callbacks. */
     GNUNET_assert (! mq->in_flight);
-    GNUNET_assert (0 < mq->queue_length);
-    mq->queue_length--;
     mq->cancel_impl (mq,
                      mq->impl_state);
     /* continue sending the next message, if any */
@@ -948,7 +789,6 @@ GNUNET_MQ_send_cancel (struct GNUNET_MQ_Envelope *ev)
       GNUNET_CONTAINER_DLL_remove (mq->envelope_head,
                                    mq->envelope_tail,
                                    mq->current_envelope);
-
       LOG (GNUNET_ERROR_TYPE_DEBUG,
            "sending canceled message of type %u queue\n",
            ntohs (ev->mh->type));
@@ -963,8 +803,6 @@ GNUNET_MQ_send_cancel (struct GNUNET_MQ_Envelope *ev)
     GNUNET_CONTAINER_DLL_remove (mq->envelope_head,
                                  mq->envelope_tail,
                                  ev);
-    GNUNET_assert (0 < mq->queue_length);
-    mq->queue_length--;
   }
   ev->parent_queue = NULL;
   ev->mh = NULL;
@@ -973,13 +811,6 @@ GNUNET_MQ_send_cancel (struct GNUNET_MQ_Envelope *ev)
 }
 
 
-/**
- * Function to obtain the current envelope
- * from within #GNUNET_MQ_SendImpl implementations.
- *
- * @param mq message queue to interrogate
- * @return the current envelope
- */
 struct GNUNET_MQ_Envelope *
 GNUNET_MQ_get_current_envelope (struct GNUNET_MQ_Handle *mq)
 {
@@ -987,12 +818,6 @@ GNUNET_MQ_get_current_envelope (struct GNUNET_MQ_Handle *mq)
 }
 
 
-/**
- * Function to obtain the last envelope in the queue.
- *
- * @param mq message queue to interrogate
- * @return the last envelope in the queue
- */
 struct GNUNET_MQ_Envelope *
 GNUNET_MQ_get_last_envelope (struct GNUNET_MQ_Handle *mq)
 {
@@ -1003,14 +828,6 @@ GNUNET_MQ_get_last_envelope (struct GNUNET_MQ_Handle *mq)
 }
 
 
-/**
- * Set application-specific preferences for this envelope.
- * Overrides the options set for the queue with
- * #GNUNET_MQ_set_options() for this message only.
- *
- * @param env message to set options for
- * @param pp priorities and preferences to apply
- */
 void
 GNUNET_MQ_env_set_options (struct GNUNET_MQ_Envelope *env,
                            enum GNUNET_MQ_PriorityPreferences pp)
@@ -1020,12 +837,6 @@ GNUNET_MQ_env_set_options (struct GNUNET_MQ_Envelope *env,
 }
 
 
-/**
- * Get application-specific options for this envelope.
- *
- * @param env message to set options for
- * @return priorities and preferences to apply for @a env
- */
 enum GNUNET_MQ_PriorityPreferences
 GNUNET_MQ_env_get_options (struct GNUNET_MQ_Envelope *env)
 {
@@ -1039,14 +850,6 @@ GNUNET_MQ_env_get_options (struct GNUNET_MQ_Envelope *env)
 }
 
 
-/**
- * Combine performance preferences set for different
- * envelopes that are being combined into one larger envelope.
- *
- * @param p1 one set of preferences
- * @param p2 second set of preferences
- * @return combined priority and preferences to use
- */
 enum GNUNET_MQ_PriorityPreferences
 GNUNET_MQ_env_combine_options (enum GNUNET_MQ_PriorityPreferences p1,
                                enum GNUNET_MQ_PriorityPreferences p2)
@@ -1066,12 +869,6 @@ GNUNET_MQ_env_combine_options (enum GNUNET_MQ_PriorityPreferences p1,
 }
 
 
-/**
- * Set application-specific default options for this queue.
- *
- * @param mq message queue to set options for
- * @param pp priorities and preferences to apply
- */
 void
 GNUNET_MQ_set_options (struct GNUNET_MQ_Handle *mq,
                        enum GNUNET_MQ_PriorityPreferences pp)
@@ -1080,12 +877,6 @@ GNUNET_MQ_set_options (struct GNUNET_MQ_Handle *mq,
 }
 
 
-/**
- * Obtain message contained in envelope.
- *
- * @param env the envelope
- * @return message contained in the envelope
- */
 const struct GNUNET_MessageHeader *
 GNUNET_MQ_env_get_msg (const struct GNUNET_MQ_Envelope *env)
 {
@@ -1093,12 +884,6 @@ GNUNET_MQ_env_get_msg (const struct GNUNET_MQ_Envelope *env)
 }
 
 
-/**
- * Return next envelope in queue.
- *
- * @param env a queued envelope
- * @return next one, or NULL
- */
 const struct GNUNET_MQ_Envelope *
 GNUNET_MQ_env_next (const struct GNUNET_MQ_Envelope *env)
 {
@@ -1106,15 +891,6 @@ GNUNET_MQ_env_next (const struct GNUNET_MQ_Envelope *env)
 }
 
 
-/**
- * Register function to be called whenever @a mq is being
- * destroyed.
- *
- * @param mq message queue to watch
- * @param cb function to call on @a mq destruction
- * @param cb_cls closure for @a cb
- * @return handle for #GNUNET_MQ_destroy_notify_cancel().
- */
 struct GNUNET_MQ_DestroyNotificationHandle *
 GNUNET_MQ_destroy_notify (struct GNUNET_MQ_Handle *mq,
                           GNUNET_SCHEDULER_TaskCallback cb,
@@ -1126,100 +902,59 @@ GNUNET_MQ_destroy_notify (struct GNUNET_MQ_Handle *mq,
   dnh->mq = mq;
   dnh->cb = cb;
   dnh->cb_cls = cb_cls;
-  GNUNET_CONTAINER_DLL_insert (mq->dnh_head, mq->dnh_tail, dnh);
+  GNUNET_CONTAINER_DLL_insert (mq->dnh_head,
+                               mq->dnh_tail,
+                               dnh);
   return dnh;
 }
 
 
-/**
- * Cancel registration from #GNUNET_MQ_destroy_notify().
- *
- * @param dnh handle for registration to cancel
- */
 void
-GNUNET_MQ_destroy_notify_cancel (struct
-                                 GNUNET_MQ_DestroyNotificationHandle *dnh)
+GNUNET_MQ_destroy_notify_cancel (
+  struct GNUNET_MQ_DestroyNotificationHandle *dnh)
 {
   struct GNUNET_MQ_Handle *mq = dnh->mq;
 
-  GNUNET_CONTAINER_DLL_remove (mq->dnh_head, mq->dnh_tail, dnh);
+  GNUNET_CONTAINER_DLL_remove (mq->dnh_head,
+                               mq->dnh_tail,
+                               dnh);
   GNUNET_free (dnh);
 }
 
 
-/**
- * Insert @a env into the envelope DLL starting at @a env_head
- * Note that @a env must not be in any MQ while this function
- * is used with DLLs defined outside of the MQ module.  This
- * is just in case some application needs to also manage a
- * FIFO of envelopes independent of MQ itself and wants to
- * re-use the pointers internal to @a env.  Use with caution.
- *
- * @param[in|out] env_head of envelope DLL
- * @param[in|out] env_tail tail of envelope DLL
- * @param[in|out] env element to insert at the tail
- */
 void
 GNUNET_MQ_dll_insert_head (struct GNUNET_MQ_Envelope **env_head,
                            struct GNUNET_MQ_Envelope **env_tail,
                            struct GNUNET_MQ_Envelope *env)
 {
-  GNUNET_CONTAINER_DLL_insert (*env_head, *env_tail, env);
+  GNUNET_CONTAINER_DLL_insert (*env_head,
+                               *env_tail,
+                               env);
 }
 
 
-/**
- * Insert @a env into the envelope DLL starting at @a env_head
- * Note that @a env must not be in any MQ while this function
- * is used with DLLs defined outside of the MQ module.  This
- * is just in case some application needs to also manage a
- * FIFO of envelopes independent of MQ itself and wants to
- * re-use the pointers internal to @a env.  Use with caution.
- *
- * @param[in|out] env_head of envelope DLL
- * @param[in|out] env_tail tail of envelope DLL
- * @param[in|out] env element to insert at the tail
- */
 void
 GNUNET_MQ_dll_insert_tail (struct GNUNET_MQ_Envelope **env_head,
                            struct GNUNET_MQ_Envelope **env_tail,
                            struct GNUNET_MQ_Envelope *env)
 {
-  GNUNET_CONTAINER_DLL_insert_tail (*env_head, *env_tail, env);
+  GNUNET_CONTAINER_DLL_insert_tail (*env_head,
+                                    *env_tail,
+                                    env);
 }
 
 
-/**
- * Remove @a env from the envelope DLL starting at @a env_head.
- * Note that @a env must not be in any MQ while this function
- * is used with DLLs defined outside of the MQ module. This
- * is just in case some application needs to also manage a
- * FIFO of envelopes independent of MQ itself and wants to
- * re-use the pointers internal to @a env.  Use with caution.
- *
- * @param[in|out] env_head of envelope DLL
- * @param[in|out] env_tail tail of envelope DLL
- * @param[in|out] env element to remove from the DLL
- */
 void
 GNUNET_MQ_dll_remove (struct GNUNET_MQ_Envelope **env_head,
                       struct GNUNET_MQ_Envelope **env_tail,
                       struct GNUNET_MQ_Envelope *env)
 {
-  GNUNET_CONTAINER_DLL_remove (*env_head, *env_tail, env);
+  GNUNET_CONTAINER_DLL_remove (*env_head,
+                               *env_tail,
+                               env);
 }
 
 
-/**
- * Copy an array of handlers.
- *
- * Useful if the array has been declared in local memory and needs to be
- * persisted for future use.
- *
- * @param handlers Array of handlers to be copied. Can be NULL (nothing done).
- * @return A newly allocated array of handlers.
- *         Needs to be freed with #GNUNET_free.
- */
 struct GNUNET_MQ_MessageHandler *
 GNUNET_MQ_copy_handlers (const struct GNUNET_MQ_MessageHandler *handlers)
 {
@@ -1228,9 +963,9 @@ GNUNET_MQ_copy_handlers (const struct GNUNET_MQ_MessageHandler *handlers)
 
   if (NULL == handlers)
     return NULL;
-
   count = GNUNET_MQ_count_handlers (handlers);
-  copy = GNUNET_new_array (count + 1, struct GNUNET_MQ_MessageHandler);
+  copy = GNUNET_new_array (count + 1,
+                           struct GNUNET_MQ_MessageHandler);
   GNUNET_memcpy (copy,
                  handlers,
                  count * sizeof(struct GNUNET_MQ_MessageHandler));
@@ -1238,18 +973,6 @@ GNUNET_MQ_copy_handlers (const struct GNUNET_MQ_MessageHandler *handlers)
 }
 
 
-/**
- * Copy an array of handlers, appending AGPL handler.
- *
- * Useful if the array has been declared in local memory and needs to be
- * persisted for future use.
- *
- * @param handlers Array of handlers to be copied. Can be NULL (nothing done).
- * @param agpl_handler function to call for AGPL handling
- * @param agpl_cls closure for @a agpl_handler
- * @return A newly allocated array of handlers.
- *         Needs to be freed with #GNUNET_free.
- */
 struct GNUNET_MQ_MessageHandler *
 GNUNET_MQ_copy_handlers2 (const struct GNUNET_MQ_MessageHandler *handlers,
                           GNUNET_MQ_MessageCallback agpl_handler,
@@ -1261,7 +984,8 @@ GNUNET_MQ_copy_handlers2 (const struct GNUNET_MQ_MessageHandler *handlers,
   if (NULL == handlers)
     return NULL;
   count = GNUNET_MQ_count_handlers (handlers);
-  copy = GNUNET_new_array (count + 2, struct GNUNET_MQ_MessageHandler);
+  copy = GNUNET_new_array (count + 2,
+                           struct GNUNET_MQ_MessageHandler);
   GNUNET_memcpy (copy,
                  handlers,
                  count * sizeof(struct GNUNET_MQ_MessageHandler));
@@ -1274,12 +998,6 @@ GNUNET_MQ_copy_handlers2 (const struct GNUNET_MQ_MessageHandler *handlers,
 }
 
 
-/**
- * Count the handlers in a handler array.
- *
- * @param handlers Array of handlers to be counted.
- * @return The number of handlers in the array.
- */
 unsigned int
 GNUNET_MQ_count_handlers (const struct GNUNET_MQ_MessageHandler *handlers)
 {
@@ -1287,20 +1005,12 @@ GNUNET_MQ_count_handlers (const struct GNUNET_MQ_MessageHandler *handlers)
 
   if (NULL == handlers)
     return 0;
-
   for (i = 0; NULL != handlers[i].cb; i++)
     ;
-
   return i;
 }
 
 
-/**
- * Convert an `enum GNUNET_MQ_PreferenceType` to a string
- *
- * @param type the preference type
- * @return a string or NULL if invalid
- */
 const char *
 GNUNET_MQ_preference_to_string (enum GNUNET_MQ_PreferenceKind type)
 {
@@ -1308,17 +1018,13 @@ GNUNET_MQ_preference_to_string (enum GNUNET_MQ_PreferenceKind type)
   {
   case GNUNET_MQ_PREFERENCE_NONE:
     return "NONE";
-
   case GNUNET_MQ_PREFERENCE_BANDWIDTH:
     return "BANDWIDTH";
-
   case GNUNET_MQ_PREFERENCE_LATENCY:
     return "LATENCY";
-
   case GNUNET_MQ_PREFERENCE_RELIABILITY:
     return "RELIABILITY";
   }
-  ;
   return NULL;
 }
 
