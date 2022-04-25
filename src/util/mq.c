@@ -176,15 +176,9 @@ struct GNUNET_MQ_Handle
   unsigned int queue_length;
 
   /**
-   * #GNUNET_YES if GNUNET_MQ_impl_evacuate was called.
-   * FIXME: is this dead?
+   * True if GNUNET_MQ_impl_send_in_flight() was called.
    */
-  int evacuate_called;
-
-  /**
-   * #GNUNET_YES if GNUNET_MQ_impl_send_in_flight() was called.
-   */
-  int in_flight;
+  bool in_flight;
 };
 
 
@@ -273,7 +267,7 @@ GNUNET_MQ_handle_message (const struct GNUNET_MQ_MessageHandler *handlers,
       break;
     }
   }
-  done:
+done:
   if (GNUNET_NO == handled)
   {
     LOG (GNUNET_ERROR_TYPE_INFO,
@@ -336,7 +330,7 @@ GNUNET_MQ_discard (struct GNUNET_MQ_Envelope *ev)
 unsigned int
 GNUNET_MQ_get_length (struct GNUNET_MQ_Handle *mq)
 {
-  if (GNUNET_YES != mq->in_flight)
+  if (! mq->in_flight)
   {
     return mq->queue_length;
   }
@@ -506,7 +500,7 @@ GNUNET_MQ_impl_send_continue (struct GNUNET_MQ_Handle *mq)
 
   GNUNET_assert (0 < mq->queue_length);
   mq->queue_length--;
-  mq->in_flight = GNUNET_NO;
+  mq->in_flight = false;
   current_envelope = mq->current_envelope;
   current_envelope->parent_queue = NULL;
   mq->current_envelope = NULL;
@@ -537,7 +531,7 @@ GNUNET_MQ_impl_send_in_flight (struct GNUNET_MQ_Handle *mq)
   struct GNUNET_MQ_Envelope *current_envelope;
   GNUNET_SCHEDULER_TaskCallback cb;
 
-  mq->in_flight = GNUNET_YES;
+  mq->in_flight = true;
   /* call is only valid if we're actually currently sending
    * a message */
   current_envelope = mq->current_envelope;
@@ -938,13 +932,11 @@ GNUNET_MQ_send_cancel (struct GNUNET_MQ_Envelope *ev)
   GNUNET_assert (NULL != mq);
   GNUNET_assert (NULL != mq->cancel_impl);
 
-  mq->evacuate_called = GNUNET_NO;
-
   if (mq->current_envelope == ev)
   {
     /* complex case, we already started with transmitting
        the message using the callbacks. */
-    GNUNET_assert (GNUNET_NO == mq->in_flight);
+    GNUNET_assert (! mq->in_flight);
     GNUNET_assert (0 < mq->queue_length);
     mq->queue_length--;
     mq->cancel_impl (mq,
@@ -974,14 +966,10 @@ GNUNET_MQ_send_cancel (struct GNUNET_MQ_Envelope *ev)
     GNUNET_assert (0 < mq->queue_length);
     mq->queue_length--;
   }
-
-  if (GNUNET_YES != mq->evacuate_called)
-  {
-    ev->parent_queue = NULL;
-    ev->mh = NULL;
-    /* also frees ev */
-    GNUNET_free (ev);
-  }
+  ev->parent_queue = NULL;
+  ev->mh = NULL;
+  /* also frees ev */
+  GNUNET_free (ev);
 }
 
 
