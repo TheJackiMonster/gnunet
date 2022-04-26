@@ -337,7 +337,7 @@ GNUNET_CRYPTO_edx25519_public_key_derive (
   struct GNUNET_CRYPTO_Edx25519PublicKey *result)
 {
   struct GNUNET_HashCode hc;
-  uint8_t h[crypto_core_ed25519_SCALARBYTES] = { 0 };
+  uint8_t h[64] = { 0 };
 
   derive_h (pub,
             seed,
@@ -345,7 +345,7 @@ GNUNET_CRYPTO_edx25519_public_key_derive (
             &hc);
   memcpy (h,
           &hc,
-          crypto_core_ed25519_SCALARBYTES);
+          64);
   crypto_core_ed25519_scalar_reduce (h,
                                      h);
   GNUNET_assert (0 == crypto_scalarmult_ed25519_noclamp (result->q_y,
