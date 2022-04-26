@@ -309,11 +309,17 @@ GNUNET_CRYPTO_edx25519_private_key_derive (
    * generation, the "R" is derived from the same derivation path as "h" and is
    * not reused. */
   {
-    crypto_hash_sha256_state hs;
-    crypto_hash_sha256_init (&hs);
-    crypto_hash_sha256_update (&hs, priv->b, sizeof(priv->b));
-    crypto_hash_sha256_update (&hs, (unsigned char*) &hc, sizeof (hc));
-    crypto_hash_sha256_final (&hs, result->b);
+    struct GNUNET_HashCode hcb;
+    struct GNUNET_HashContext *hctx;
+
+    hctx = GNUNET_CRYPTO_hash_context_start ();
+    GNUNET_CRYPTO_hash_context_read (hctx, priv->b, sizeof(priv->b));
+    GNUNET_CRYPTO_hash_context_read (hctx, (unsigned char*) &hc, sizeof (hc));
+    GNUNET_CRYPTO_hash_context_finish (hctx, &hcb);
+
+    /* Truncate result, effectively doing SHA512/256 */
+    for (size_t i = 0; i < 32; i++)
+      result->b[i] = ((unsigned char *) &hcb)[i];
   }
 
   for (size_t i = 0; i < 32; i++)
