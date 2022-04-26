@@ -1201,6 +1201,45 @@ output_vectors ()
   }
 
   {
+    json_t *vec = vec_for (vecs, "edx25519_derive");
+    struct GNUNET_CRYPTO_Edx25519PrivateKey priv1_edx;
+    struct GNUNET_CRYPTO_Edx25519PublicKey pub1_edx;
+    struct GNUNET_CRYPTO_Edx25519PrivateKey priv2_edx;
+    struct GNUNET_CRYPTO_Edx25519PublicKey pub2_edx;
+    struct GNUNET_HashCode seed;
+
+    GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_WEAK,
+                                &seed,
+                                sizeof (struct GNUNET_HashCode));
+    GNUNET_CRYPTO_edx25519_key_create (&priv1_edx);
+    GNUNET_CRYPTO_edx25519_key_get_public (&priv1_edx, &pub1_edx);
+    GNUNET_CRYPTO_edx25519_private_key_derive (&priv1_edx,
+                                               &seed,
+                                               sizeof (seed),
+                                               &priv2_edx);
+    GNUNET_CRYPTO_edx25519_public_key_derive (&pub1_edx,
+                                              &seed,
+                                              sizeof (seed),
+                                              &pub2_edx);
+
+    d2j (vec, "priv1_edx",
+         &priv1_edx,
+         sizeof (struct GNUNET_CRYPTO_Edx25519PrivateKey));
+    d2j (vec, "pub1_edx",
+         &pub1_edx,
+         sizeof (struct GNUNET_CRYPTO_Edx25519PublicKey));
+    d2j (vec, "seed",
+         &seed,
+         sizeof (struct GNUNET_HashCode));
+    d2j (vec, "priv2_edx",
+         &priv2_edx,
+         sizeof (struct GNUNET_CRYPTO_Edx25519PrivateKey));
+    d2j (vec, "pub2_edx",
+         &pub2_edx,
+         sizeof (struct GNUNET_CRYPTO_Edx25519PublicKey));
+  }
+
+  {
     json_t *vec = vec_for (vecs, "rsa_blind_signing");
 
     struct GNUNET_CRYPTO_RsaPrivateKey *skey;
