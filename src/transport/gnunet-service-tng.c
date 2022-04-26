@@ -8692,7 +8692,8 @@ handle_incoming_msg (void *cls,
   cmc->tc = tc;
   cmc->im = *im;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Received message via communicator from peer %s\n",
+              "Received message with size %u via communicator from peer %s\n",
+              &im->header.size,
               GNUNET_i2s (&im->sender));
   demultiplex_with_cmc (cmc, (const struct GNUNET_MessageHeader *) &im[1]);
 }
@@ -9842,6 +9843,7 @@ handle_send_message_ack (void *cls,
     /* this should never happen */
     /*GNUNET_break (0);
       GNUNET_SERVICE_client_drop (tc->client);*/
+    GNUNET_SERVICE_client_continue (tc->client);
     return;
   }
   GNUNET_CONTAINER_DLL_remove (qe->queue->queue_head,
