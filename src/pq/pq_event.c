@@ -189,6 +189,7 @@ static void
 event_do_poll (struct GNUNET_PQ_Context *db)
 {
   PGnotify *n;
+  unsigned int cnt = 0;
 
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "PG poll job active\n");
@@ -210,6 +211,7 @@ event_do_poll (struct GNUNET_PQ_Context *db)
       .extra = NULL
     };
 
+    cnt++;
     if ('X' != toupper ((int) n->relname[0]))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -254,6 +256,9 @@ event_do_poll (struct GNUNET_PQ_Context *db)
     GNUNET_free (ctx.extra);
     PQfreemem (n);
   }
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "PG poll job finishes after %u events\n",
+              cnt);
 }
 
 
