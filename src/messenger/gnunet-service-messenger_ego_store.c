@@ -200,13 +200,17 @@ bind_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
 {
   GNUNET_assert ((store) && (identifier) && (handle));
 
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Store bind ego: %s\n", identifier);
+
   struct GNUNET_HashCode hash;
   GNUNET_CRYPTO_hash (identifier, strlen (identifier), &hash);
 
   if (GNUNET_YES == GNUNET_CONTAINER_multihashmap_contains_value(store->handles, &hash, handle))
     return;
 
-  GNUNET_CONTAINER_multihashmap_put(store->handles, &hash, handle, GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
+  if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put(store->handles, &hash, handle,
+                                                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE))
+    GNUNET_log(GNUNET_ERROR_TYPE_ERROR, "Putting handle binding to ego store failed!\n");
 }
 
 void
@@ -216,13 +220,16 @@ unbind_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
 {
   GNUNET_assert ((store) && (identifier) && (handle));
 
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Store unbind ego: %s\n", identifier);
+
   struct GNUNET_HashCode hash;
   GNUNET_CRYPTO_hash (identifier, strlen (identifier), &hash);
 
   if (GNUNET_YES != GNUNET_CONTAINER_multihashmap_contains_value(store->handles, &hash, handle))
     return;
 
-  GNUNET_CONTAINER_multihashmap_remove(store->handles, &hash, handle);
+  if (GNUNET_YES != GNUNET_CONTAINER_multihashmap_remove(store->handles, &hash, handle))
+    GNUNET_log(GNUNET_ERROR_TYPE_ERROR, "Removing handle binding from ego store failed!\n");
 }
 
 static void
@@ -342,10 +349,13 @@ delete_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
     return;
   }
 
-  GNUNET_CONTAINER_multihashmap_remove (store->egos, &hash, ego);
+  if (GNUNET_YES != GNUNET_CONTAINER_multihashmap_remove (store->egos, &hash, ego))
+  {
+    GNUNET_log(GNUNET_ERROR_TYPE_ERROR, "Removing ego from store failed!\n");
+    return;
+  }
+
   GNUNET_free(ego);
-
-
 }
 
 static void
