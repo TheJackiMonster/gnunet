@@ -123,6 +123,12 @@ gana_update()
          make && \
          cp gnunet_signatures.h ../../../src/include && \
          make clean || exit 1
+      # DHT Block Types
+      cd ../gnunet-dht-block-types && \
+         make && \
+         cp gnunet_dht_block_types.h ../../../src/include && \
+         make clean || exit 1
+
       cd $cwd
     else
       echo "ERROR: No recutils found! Unable to generate recent GANA headers and configs."

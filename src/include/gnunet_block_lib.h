@@ -32,6 +32,8 @@
 #define GNUNET_BLOCK_LIB_H
 
 #include "gnunet_util_lib.h"
+#include "gnunet_dht_block_types.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -39,126 +41,6 @@ extern "C"
 }
 #endif
 #endif
-
-
-/**
- * Blocks in the datastore and the datacache must have a unique type.
- *
- * TODO: move to GANA!
- */
-enum GNUNET_BLOCK_Type
-{
-  /**
-   * Any type of block, used as a wildcard when searching.  Should
-   * never be attached to a specific block.
-   */
-  GNUNET_BLOCK_TYPE_ANY = 0,
-
-  /**
-   * Data block (leaf) in the CHK tree.
-   */
-  GNUNET_BLOCK_TYPE_FS_DBLOCK = 1,
-
-  /**
-   * Inner block in the CHK tree.
-   */
-  GNUNET_BLOCK_TYPE_FS_IBLOCK = 2,
-
-  /**
-   * Legacy type, no longer in use.
-   */
-  GNUNET_BLOCK_TYPE_FS_KBLOCK = 3,
-
-  /**
-   * Legacy type, no longer in use.
-   */
-  GNUNET_BLOCK_TYPE_FS_SBLOCK = 4,
-
-  /**
-   * Legacy type, no longer in use.
-   */
-  GNUNET_BLOCK_TYPE_FS_NBLOCK = 5,
-
-  /**
-   * Type of a block representing a block to be encoded on demand from disk.
-   * Should never appear on the network directly.
-   */
-  GNUNET_BLOCK_TYPE_FS_ONDEMAND = 6,
-
-  /**
-   * Type of a block that contains a HELLO for a peer (for
-   * DHT and CADET find-peer operations).
-   */
-  GNUNET_BLOCK_TYPE_DHT_HELLO = 7,
-
-  /**
-   * Block for testing.
-   */
-  GNUNET_BLOCK_TYPE_TEST = 8,
-
-  /**
-   * Type of a block representing any type of search result
-   * (universal).  Implemented in the context of #2564, replaces
-   * SBLOCKS, KBLOCKS and NBLOCKS.
-   */
-  GNUNET_BLOCK_TYPE_FS_UBLOCK = 9,
-
-  /**
-   * Block for storing DNS exit service advertisements.
-   */
-  GNUNET_BLOCK_TYPE_DNS = 10,
-
-  /**
-   * Block for storing record data
-   */
-  GNUNET_BLOCK_TYPE_GNS_NAMERECORD = 11,
-
-  /**
-   * Block type for a revocation message by which a key is revoked.
-   */
-  GNUNET_BLOCK_TYPE_REVOCATION = 12,
-
-  /**
-   * Type of a block that contains a DHT-NG HELLO for a peer (for
-   * DHT and CADET find-peer operations).
-   */
-  GNUNET_BLOCK_TYPE_DHT_URL_HELLO = 13,
-
-  /**
-   * Block to store a cadet regex state
-   */
-  GNUNET_BLOCK_TYPE_REGEX = 22,
-
-  /**
-   * Block to store a cadet regex accepting state
-   */
-  GNUNET_BLOCK_TYPE_REGEX_ACCEPT = 23,
-
-  /**
-   * Block for testing set/consensus.  If first byte of the block
-   * is non-zero, the block is considered invalid.
-   */
-  GNUNET_BLOCK_TYPE_SET_TEST = 24,
-
-  /**
-   * Block type for consensus elements.
-   * Contains either special marker elements or a nested block.
-   */
-  GNUNET_BLOCK_TYPE_CONSENSUS_ELEMENT = 25,
-
-  /**
-   * Block for testing set intersection.  If first byte of the block
-   * is non-zero, the block is considered invalid.
-   */
-  GNUNET_BLOCK_TYPE_SETI_TEST = 24,
-
-  /**
-   * Block for testing set union.  If first byte of the block
-   * is non-zero, the block is considered invalid.
-   */
-  GNUNET_BLOCK_TYPE_SETU_TEST = 24,
-
-};
 
 
 /**

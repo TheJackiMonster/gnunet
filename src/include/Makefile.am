@@ -21,6 +21,7 @@ gnunetinclude_HEADERS = \
   gnunet_ats_plugin.h \
   gnunet_bandwidth_lib.h \
   gnunet_bio_lib.h \
+	gnunet_dht_block_types.h \
   gnunet_block_lib.h \
   gnunet_block_group_lib.h \
   gnunet_block_plugin.h \
