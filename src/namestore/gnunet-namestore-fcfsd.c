@@ -165,6 +165,11 @@ static struct StaticPage *notfound_page = NULL;
 static struct StaticPage *forbidden_page = NULL;
 
 /**
+ * The relative expiration time for added records
+ */
+static struct GNUNET_TIME_Relative record_exp;
+
+/**
  * Task ran at shutdown to clean up everything.
  *
  * @param cls unused
@@ -532,8 +537,8 @@ register_do_cb (void *cls,
   }
 
   gd.data = gdraw;
-  gd.expiration_time = UINT64_MAX;
-  gd.flags = GNUNET_GNSRECORD_RF_NONE;
+  gd.expiration_time = record_exp.rel_value_us;
+  gd.flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
 
   rd->searching = GNUNET_NAMESTORE_records_store (namestore,
                                                   zone_key,
@@ -1061,6 +1066,17 @@ run_service (void *cls,
   (void) cfgfile;
 
   GNUNET_log_setup ("fcfsd", "WARNING", NULL);
+
+  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_time (cfg,
+                                                        "fcfsd",
+                                                        "RELATIVE_RECORD_EXPIRATION",
+                                                        &record_exp))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                _("No expiration specified for records.\n"));
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
 
   if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_number (cfg,
                                                           "fcfsd",

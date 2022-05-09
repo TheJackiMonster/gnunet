@@ -44,6 +44,7 @@ gns = gnunet-namestore -e 1a -u
 BINARY = gnunet-namestore-fcfsd
 START_ON_DEMAND = NO
 UNIXPATH = $GNUNET_RUNTIME_DIR/gnunet-service-fcfsd.sock
+RELATIVE_RECORD_EXPIRATION = 7 d
 
 # On what port does the FCFS daemon listen for HTTP clients?
 HTTPPORT = 18080
