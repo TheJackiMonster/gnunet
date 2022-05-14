@@ -97,9 +97,8 @@ submodules()
     if ! git --version >/dev/null; then
         echo "git not installed, skipping submodule update"
     else
-        git submodule update --init && \
-        git submodule update --remote --recursive && \
-        git submodule sync
+        git submodule update --init --recursive && \
+        git submodule sync --recursive
     fi
 }
 
