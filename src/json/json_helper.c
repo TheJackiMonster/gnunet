@@ -66,6 +66,9 @@ parse_fixed_data (void *cls,
   if (((len * 5) / 8) != spec->ptr_size)
   {
     GNUNET_break_op (0);
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Field `%s' has wrong length\n",
+                spec->field);
     return GNUNET_SYSERR;
   }
   if (GNUNET_OK !=
