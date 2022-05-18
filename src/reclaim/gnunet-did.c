@@ -38,9 +38,9 @@
 #include "gnunet_namestore_service.h"
 #include "gnunet_gns_service.h"
 #include "gnunet_gnsrecord_lib.h"
+#include "did_helper.h"
 #include "jansson.h"
 
-#define GNUNET_DID_METHOD_RECLAIM_PREFIX "did:reclaim:"
 #define GNUNET_DID_DEFAULT_DID_DOCUMENT_EXPIRATION_TIME "1d"
 
 /**
@@ -146,24 +146,6 @@ cleanup (void *cls)
   GNUNET_SCHEDULER_shutdown ();
 }
 
-char*
-ego_to_did (struct GNUNET_IDENTITY_Ego *ego)
-{
-  struct GNUNET_IDENTITY_PublicKey pkey; // Get Public key
-  char *pkey_str;
-  char *did_str;
-  size_t pkey_len;
-
-  GNUNET_IDENTITY_ego_get_public_key (ego, &pkey);
-
-  pkey_str = GNUNET_IDENTITY_public_key_to_string (&pkey);
-  GNUNET_asprintf (&did_str, "%s%s",
-                   GNUNET_DID_METHOD_RECLAIM_PREFIX,
-                   pkey_str);
-
-  free (pkey_str);
-  return did_str;
-}
 
 /**
  * @brief Callback for ego loockup of get_did_for_ego()
@@ -183,7 +165,7 @@ get_did_for_ego_lookup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
     ret = 1;
     return;
   }
-  did_str = ego_to_did (ego);
+  did_str = GNUNET_DID_identity_to_did (ego);
 
   printf ("%s\n", did_str);
 
@@ -229,7 +211,7 @@ get_pkey_from_attr_did (struct GNUNET_IDENTITY_PublicKey *pkey)
    */
   char pkey_str[59];
 
-  if ((1 != (sscanf (did, GNUNET_DID_METHOD_RECLAIM_PREFIX"%58s", pkey_str))) ||
+  if ((1 != (sscanf (did, GNUNET_DID_METHOD_PREFIX"%58s", pkey_str))) ||
       (GNUNET_OK != GNUNET_IDENTITY_public_key_from_string (pkey_str, pkey)))
   {
     fprintf (stderr, _("Invalid DID `%s'\n"), pkey_str);
@@ -410,140 +392,6 @@ remove_did_document (remove_did_document_callback cont, void *cls)
 
 
 /**
- * @brief Create a did generate did object
- *
- * @param pkey
- * @return void* Return pointer to the DID Document
- */
-char *
-create_did_generate (struct GNUNET_IDENTITY_PublicKey pkey)
-{
-  /* FIXME-MSC: I would prefer constants instead of magic numbers */
-  char *pkey_str;  // Convert public key to string
-  char did_str[71]; // 58 + 12 + 1 = 71
-  char *didd_str;
-  char verify_id_str[77]; // did_str len + "#key-1" = 71 + 6 = 77
-  char *pkey_multibase_str;
-
-  /* FIXME-MSC: This screams for a GNUNET_DID_identity_key_to_string() */
-  char *b64;
-  char pkx[34];
-  pkx[0] = 0xed;
-  pkx[1] = 0x01;
-  memcpy (pkx + 2, &(pkey.eddsa_key), sizeof(pkey.eddsa_key));
-  GNUNET_STRINGS_base64_encode (pkx, sizeof(pkx), &b64);
-
-  GNUNET_asprintf (&pkey_multibase_str, "u%s", b64);
-
-  json_t *didd;
-  json_t *did_json;
-  json_t *pkey_multibase_json;
-  json_t *context_json;
-  json_t *context_1_json;
-  json_t *context_2_json;
-  json_t *verify_json;
-  json_t *verify_1_json;
-  json_t *verify_1_type_json;
-  json_t *verify_1_id_json;
-  json_t *verify_relative_ref_json;
-  json_t *auth_json;
-  json_t *assert_json;
-
-  /* FIXME-MSC: This screams for GNUNET_DID_identity_to_did() */
-  pkey_str = GNUNET_IDENTITY_public_key_to_string (&pkey); // Convert public key to string
-  sprintf (did_str, "did:reclaim:%s", pkey_str); // Convert the public key to a DID str
-  sprintf (verify_id_str, "did:reclaim:%s#key-1", pkey_str); // Convert the public key to a DID str
-
-  // sprintf(pkey_multibase_str, "V%s", pkey_str); // Convert the public key to MultiBase data format
-
-  /* FIXME-MSC: This is effectively creating a DID Document default template for
-   * the initial document.
-   * Maybe this can be refactored to generate such a template for an identity?
-   * Even if higher layers add/modify it, there should probably still be a
-   * GNUNET_DID_document_template_from_identity()
-   */
-  // Create Json Strings
-  did_json = json_string (did_str);
-  pkey_multibase_json = json_string (pkey_multibase_str);
-
-  context_1_json = json_string ("https://www.w3.org/ns/did/v1");
-  context_2_json = json_string (
-    "https://w3id.org/security/suites/ed25519-2020/v1");
-  verify_1_id_json = json_string (verify_id_str);
-  verify_1_type_json = json_string ("Ed25519VerificationKey2020");
-
-  // Add a relative DID URL to reference a verifiation method
-  // https://www.w3.org/TR/did-core/#relative-did-urls`
-  verify_relative_ref_json = json_string ("#key-1");
-
-  // Create DID Document
-  didd = json_object ();
-
-  // Add context
-  context_json = json_array ();
-  json_array_append (context_json, context_1_json);
-  json_array_append (context_json, context_2_json);
-  json_object_set (didd, "@context", context_json);
-
-  // Add id
-  json_object_set (didd, "id", did_json);
-
-  // Add verification method
-  verify_json = json_array ();
-  verify_1_json = json_object ();
-  json_object_set (verify_1_json, "id", verify_1_id_json);
-  json_object_set (verify_1_json, "type", verify_1_type_json);
-  json_object_set (verify_1_json, "controller", did_json);
-  json_object_set (verify_1_json, "publicKeyMultiBase", pkey_multibase_json);
-  json_array_append (verify_json, verify_1_json);
-  json_object_set (didd, "verificationMethod", verify_json);
-
-  // Add authentication method
-  auth_json = json_array ();
-  json_array_append (auth_json, verify_relative_ref_json);
-  json_object_set (didd, "authentication", auth_json);
-
-  // Add assertion method to issue a Verifiable Credential
-  assert_json = json_array ();
-  json_array_append (assert_json, verify_relative_ref_json);
-  json_object_set (didd, "assertionMethod", assert_json);
-
-  // Encode DID Document as JSON string
-  didd_str = json_dumps (didd, JSON_INDENT (2));
-  if (didd_str == NULL)
-  {
-    printf ("DID Document could not be encoded");
-    GNUNET_SCHEDULER_add_now (&cleanup, NULL);
-    ret = 1;
-    return NULL;
-  }
-
-  // TODO: MORE FREEEEEEEE
-  /* FIXME-MSC: json_t's are free'd using "json_decref". Also json_t usually
-   * keeps a reference counter. Check jansson docs for how to use it.
-   * Also: Use valgrind to find leaks.
-   */
-  free (pkey_multibase_str);
-  free (b64);
-
-  free (didd);
-  free (did_json);
-  free (pkey_multibase_json);
-  free (context_json);
-  free (context_1_json);
-  free (context_2_json);
-  free (verify_json);
-  free (verify_1_json);
-  free (verify_1_type_json);
-  free (verify_1_id_json);
-  free (auth_json);
-  free (assert_json);
-  free (verify_relative_ref_json);
-
-  return didd_str;
-}
-
-/**
  * @brief Create a DID. Store DID in Namestore cb
  *
  */
@@ -636,7 +484,7 @@ create_did_ego_lockup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   }
   else {
     // Generate DID Docuement from public key
-    didd_str = create_did_generate (pkey);
+    didd_str = GNUNET_DID_pkey_to_did_document (&pkey);
   }
 
   // Print DID Document to stdout
@@ -681,6 +529,8 @@ create_did_document ()
 {
   if ((egoname != NULL) && (expire != NULL))
   {
+    // TODO: Check if ego already has a DID document
+
     GNUNET_IDENTITY_create (identity_handle,
                             egoname,
                             NULL,
@@ -798,7 +648,7 @@ process_dids (void *cls, struct GNUNET_IDENTITY_Ego *ego,
   }
   if (1 == show_all)
   {
-    did_str = ego_to_did (ego);
+    did_str = GNUNET_DID_identity_to_did (ego);
     printf ("%s\n", did_str);
     GNUNET_free (did_str);
     return;
@@ -807,7 +657,7 @@ process_dids (void *cls, struct GNUNET_IDENTITY_Ego *ego,
   {
     if (0 == strncmp (name, egoname, strlen (egoname)))
     {
-      did_str = ego_to_did (ego);
+      did_str = GNUNET_DID_identity_to_did (ego);
       printf ("%s\n", did_str);
       GNUNET_free (did_str);
       return;
@@ -879,7 +729,7 @@ main (int argc, char *const argv[])
                                gettext_noop ("Replace the DID Document."),
                                &replace),
     GNUNET_GETOPT_option_flag ('A',
-                               "--show-all",
+                               "show-all",
                                gettext_noop ("Replace the DID Document."),
                                &show_all),
     GNUNET_GETOPT_option_string ('d',
@@ -889,7 +739,7 @@ main (int argc, char *const argv[])
                                    "The Decentralized Identity (DID)"),
                                  &did),
     GNUNET_GETOPT_option_string ('D',
-                                 "--did-document",
+                                 "did-document",
                                  "JSON",
                                  gettext_noop (
                                    "The DID Document to store in GNUNET"),
