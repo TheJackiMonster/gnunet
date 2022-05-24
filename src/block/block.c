@@ -70,19 +70,40 @@ struct GNUNET_BLOCK_Context
 };
 
 
+GNUNET_NETWORK_STRUCT_BEGIN
+
+
+/**
+ * Serialization to use in #GNUNET_BLOCK_mingle_hash.
+ */
+struct MinglePacker
+{
+  /**
+   * Original hash.
+   */
+  struct GNUNET_HashCode in;
+
+  /**
+   * Mingle value.
+   */
+  uint32_t mingle GNUNET_PACKED;
+};
+
+GNUNET_NETWORK_STRUCT_END
+
 void
 GNUNET_BLOCK_mingle_hash (const struct GNUNET_HashCode *in,
                           uint32_t mingle_number,
                           struct GNUNET_HashCode *hc)
 {
-  struct GNUNET_HashCode m;
+  struct MinglePacker mp = {
+    .in = *in,
+    .mingle = mingle_number
+  };
 
-  GNUNET_CRYPTO_hash (&mingle_number,
-                      sizeof(uint32_t),
-                      &m);
-  GNUNET_CRYPTO_hash_xor (&m,
-                          in,
-                          hc);
+  GNUNET_CRYPTO_hash (&mp,
+                      sizeof(mp),
+                      hc);
 }
 
 

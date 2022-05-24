@@ -358,11 +358,12 @@ make_empty_file (const struct GNUNET_DISK_FileHandle *fh, size_t size)
  * @param cls closure
  * @param bf the filter to manipulate
  * @param bit the current bit
- * @return GNUNET_YES to continue, GNUNET_NO to stop early
+ * @return #GNUNET_YES to continue, #GNUNET_NO to stop early
  */
-typedef int (*BitIterator) (void *cls,
-                            const struct GNUNET_CONTAINER_BloomFilter *bf,
-                            unsigned int bit);
+typedef int
+(*BitIterator) (void *cls,
+                const struct GNUNET_CONTAINER_BloomFilter *bf,
+                unsigned int bit);
 
 
 /**
