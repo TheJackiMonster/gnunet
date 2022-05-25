@@ -206,6 +206,11 @@ test_w3c_ed25519_2020_SOURCES = \
 test_w3c_ed25519_2020_LDADD = \
   $(top_builddir)/src/util/libgnunetutil.la
 
+test_did_helper_SOURCES = \
+  test_did_helper.c
+test_did_helper_LDADD = \
+  $(top_builddir)/src/util/libgnunetutil.la
+
 check_SCRIPTS = \
   test_reclaim_attribute.sh \
   test_reclaim_issue.sh \
@@ -213,9 +218,12 @@ check_SCRIPTS = \
 
 check_PROGRAMS = \
   test_reclaim_attribute \
-  test_w3c_ed25519_2020
+  test_w3c_ed25519_2020 \
+  test_did_helper
 
 if ENABLE_TEST_RUN
  AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
- TESTS = $(check_SCRIPTS)
+ TESTS = \ 
+  $(check_SCRIPTS) \
+  $(check_PROGRAMS)
 endif
