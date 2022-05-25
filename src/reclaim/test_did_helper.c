@@ -25,11 +25,52 @@
  */
 
 #include "platform.h"
-#include "gnunet_common.h"
+#include "gnunet_util_lib.h"
+#include "gnunet_namestore_service.h"
+#include "gnunet_gns_service.h"
+#include "gnunet_gnsrecord_lib.h"
+#include "did_helper.h"
+
+static char test_privkey[32] = {
+  0x9b, 0x93, 0x7b, 0x81, 0x32, 0x2d, 0x81, 0x6c,
+  0xfa, 0xb9, 0xd5, 0xa3, 0xba, 0xac, 0xc9, 0xb2,
+  0xa5, 0xfe, 0xbe, 0x4b, 0x14, 0x9f, 0x12, 0x6b,
+  0x36, 0x30, 0xf9, 0x3a, 0x29, 0x52, 0x70, 0x17
+};
+
 
 int
-main()
+test_GNUNET_DID_pkey_to_did ()
 {
-    GNUNET_assert(0 == 1);
-    return 0;
+  struct GNUNET_IDENTITY_PrivateKey skey;
+  struct GNUNET_IDENTITY_PublicKey pkey;
+  char *str_pkey;
+
+  skey.type = GNUNET_GNSRECORD_TYPE_EDKEY;
+  memcpy (&(skey.eddsa_key), test_privkey, sizeof(struct GNUNET_CRYPTO_EddsaPrivateKey));
+
+  GNUNET_IDENTITY_key_get_public (&skey, &pkey);
+
+  str_pkey = GNUNET_IDENTITY_public_key_to_string (&pkey);
+
+  // TODO: Give to function, compare to real DID
+  return 0;
+}
+
+int
+test_GNUNET_DID_did_to_pkey ();
+
+int
+test_GNUNET_DID_key_covert_multibase_base64_to_gnunet ();
+
+int
+test_GNUNET_DID_key_covert_gnunet_to_multibase_base64 ();
+
+int
+main ()
+{
+  test_GNUNET_DID_pkey_to_did();
+
+  GNUNET_assert (0 == 0);
+  return 0;
 }

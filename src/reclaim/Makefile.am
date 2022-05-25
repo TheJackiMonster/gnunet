@@ -209,7 +209,11 @@ test_w3c_ed25519_2020_LDADD = \
 test_did_helper_SOURCES = \
   test_did_helper.c
 test_did_helper_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/util/libgnunetutil.la \
+	$(top_builddir)/src/gns/libgnunetgns.la \
+	$(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+	$(top_builddir)/src/identity/libgnunetidentity.la \
+	$(top_builddir)/src/namestore/libgnunetnamestore.la
 
 check_SCRIPTS = \
   test_reclaim_attribute.sh \

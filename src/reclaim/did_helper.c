@@ -19,7 +19,7 @@
  */
 
 /**
- * @file reclaim/oidc_helper.h
+ * @file reclaim/did_helper.c
  * @brief helper library for DID related functions
  * @author Tristan Schwieren
  */
@@ -72,10 +72,27 @@ GNUNET_DID_identity_to_did (struct GNUNET_IDENTITY_Ego *ego)
 /**
  * @brief Return the public key of a DID
  */
-struct GNUNET_IDENTITY_PublicKey *
-GNUNET_DID_did_to_pkey (char *did)
+int
+GNUNET_DID_did_to_pkey (char *did, struct GNUNET_IDENTITY_PublicKey *pkey)
 {
-  return NULL;
+  /* FIXME-MSC: I suggest introducing a
+   * #define MAX_DID_LENGTH <something>
+   * here and use it for parsing
+   */
+  char pkey_str[MAX_DID_SPECIFIC_IDENTIFIER_LENGTH];
+
+  if ((1 != (sscanf (did,
+                     GNUNET_DID_METHOD_PREFIX "%"
+                     STR (MAX_DID_SPECIFIC_IDENTIFIER_LENGTH)
+                     "s", pkey_str))) ||
+      (GNUNET_OK != GNUNET_IDENTITY_public_key_from_string (pkey_str, pkey)))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Could not decode given DID: %s\n",
+                did);
+    return 1;
+  }
+
+  return 0;
 }
 
 /**
@@ -100,7 +117,7 @@ GNUNET_DID_key_covert_multibase_base64_to_gnunet (char *pkey_str)
  * @brief Convert GNUNET key to a base 64 encoded public key
  */
 char *
-GNUNET_DID_key_covert_gnunet_multibase_to_base64 (struct
+GNUNET_DID_key_covert_gnunet_to_multibase_base64 (struct
                                                   GNUNET_IDENTITY_PublicKey *
                                                   pkey)
 {

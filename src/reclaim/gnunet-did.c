@@ -211,10 +211,10 @@ get_pkey_from_attr_did (struct GNUNET_IDENTITY_PublicKey *pkey)
    */
   char pkey_str[59];
 
-  if ((1 != (sscanf (did, GNUNET_DID_METHOD_PREFIX"%58s", pkey_str))) ||
+  if ((1 != (sscanf (did, GNUNET_DID_METHOD_PREFIX "%58s", pkey_str))) ||
       (GNUNET_OK != GNUNET_IDENTITY_public_key_from_string (pkey_str, pkey)))
   {
-    fprintf (stderr, _("Invalid DID `%s'\n"), pkey_str);
+    fprintf (stderr, _ ("Invalid DID `%s'\n"), pkey_str);
     GNUNET_SCHEDULER_add_now (cleanup, NULL);
     ret = 1;
     return;
@@ -279,7 +279,8 @@ resolve_did_document ()
 
   get_pkey_from_attr_did (&pkey);
 
-  GNUNET_GNS_lookup (gns_handle, GNUNET_GNS_EMPTY_LABEL_AT, &pkey, GNUNET_DNSPARSER_TYPE_TXT,
+  GNUNET_GNS_lookup (gns_handle, GNUNET_GNS_EMPTY_LABEL_AT, &pkey,
+                     GNUNET_DNSPARSER_TYPE_TXT,
                      GNUNET_GNS_LO_DEFAULT, &print_did_document, NULL);
 }
 
@@ -328,7 +329,8 @@ remove_did_document_namestore_cb (void *cls, int32_t success, const char *emgs)
       ret = 0;
       return;
     }
-  } else {
+  }
+  else {
     printf ("Something went wrong when deleting the DID Document\n");
 
     if (emgs != NULL)
@@ -433,7 +435,7 @@ create_did_store (char *didd_str, struct GNUNET_IDENTITY_Ego *ego)
     GNUNET_NAMESTORE_records_store (namestore_handle,
                                     skey,
                                     GNUNET_GNS_EMPTY_LABEL_AT,
-                                    1, //FIXME what if GNUNET_GNS_EMPTY_LABEL_AT has records
+                                    1, // FIXME what if GNUNET_GNS_EMPTY_LABEL_AT has records
                                     &record_data,
                                     &create_did_store_cb,
                                     NULL);
@@ -642,7 +644,7 @@ process_dids (void *cls, struct GNUNET_IDENTITY_Ego *ego,
       (0 == strncmp (name, egoname, strlen (egoname))) &&
       (1 != ego_exists))
   {
-    fprintf(stderr, "%s already exists!\n", egoname);
+    fprintf (stderr, "%s already exists!\n", egoname);
     ego_exists = 1;
     return;
   }
@@ -761,8 +763,7 @@ main (int argc, char *const argv[])
   if (GNUNET_OK != GNUNET_PROGRAM_run (argc,
                                        argv,
                                        "gnunet-did",
-                                       _ (
-                                         "Manage Decentralized Identities (DIDs)"),
+                                       "Manage Decentralized Identities (DIDs)",
                                        options,
                                        &run,
                                        NULL))
