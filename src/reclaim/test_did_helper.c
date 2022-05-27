@@ -31,25 +31,25 @@
 #include "gnunet_gnsrecord_lib.h"
 #include "did_helper.h"
 
-static char test_privkey[32] = {
+static const char test_privkey[32] = {
   0x9b, 0x93, 0x7b, 0x81, 0x32, 0x2d, 0x81, 0x6c,
   0xfa, 0xb9, 0xd5, 0xa3, 0xba, 0xac, 0xc9, 0xb2,
   0xa5, 0xfe, 0xbe, 0x4b, 0x14, 0x9f, 0x12, 0x6b,
   0x36, 0x30, 0xf9, 0x3a, 0x29, 0x52, 0x70, 0x17
 };
 
+static const char *test_did = "did:reclaim:000G0509BYD1MPAXVSTNV0KRD1JAT0YZMPJFQNM869B66S72PSF17K4Y8G";
+
 static struct GNUNET_IDENTITY_PrivateKey skey;
 static struct GNUNET_IDENTITY_PublicKey pkey;
 
-int
+// TODO: Create a did manual from private key / independet of implementation
+void
 test_GNUNET_DID_pkey_to_did ()
 {
   char *str_did;
   str_did = GNUNET_DID_pkey_to_did(&pkey);
-  printf("%s\n", str_did);
-
-  // TODO: Give to function, compare to real DID
-  return 0;
+  GNUNET_assert(strcmp(test_did, str_did) == 0);
 }
 
 int
@@ -69,7 +69,5 @@ main ()
   GNUNET_IDENTITY_key_get_public (&skey, &pkey);
 
   test_GNUNET_DID_pkey_to_did();
-
-  GNUNET_assert (0 == 0);
   return 0;
 }
