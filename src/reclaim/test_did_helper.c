@@ -38,20 +38,15 @@ static char test_privkey[32] = {
   0x36, 0x30, 0xf9, 0x3a, 0x29, 0x52, 0x70, 0x17
 };
 
+static struct GNUNET_IDENTITY_PrivateKey skey;
+static struct GNUNET_IDENTITY_PublicKey pkey;
 
 int
 test_GNUNET_DID_pkey_to_did ()
 {
-  struct GNUNET_IDENTITY_PrivateKey skey;
-  struct GNUNET_IDENTITY_PublicKey pkey;
-  char *str_pkey;
-
-  skey.type = GNUNET_GNSRECORD_TYPE_EDKEY;
-  memcpy (&(skey.eddsa_key), test_privkey, sizeof(struct GNUNET_CRYPTO_EddsaPrivateKey));
-
-  GNUNET_IDENTITY_key_get_public (&skey, &pkey);
-
-  str_pkey = GNUNET_IDENTITY_public_key_to_string (&pkey);
+  char *str_did;
+  str_did = GNUNET_DID_pkey_to_did(&pkey);
+  printf("%s\n", str_did);
 
   // TODO: Give to function, compare to real DID
   return 0;
@@ -69,6 +64,10 @@ test_GNUNET_DID_key_covert_gnunet_to_multibase_base64 ();
 int
 main ()
 {
+  skey.type = htonl(GNUNET_IDENTITY_TYPE_EDDSA);
+  memcpy (&(skey.eddsa_key), test_privkey, sizeof(struct GNUNET_CRYPTO_EddsaPrivateKey));
+  GNUNET_IDENTITY_key_get_public (&skey, &pkey);
+
   test_GNUNET_DID_pkey_to_did();
 
   GNUNET_assert (0 == 0);

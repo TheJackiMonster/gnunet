@@ -35,7 +35,8 @@ pkgcfg_DATA = \
   reclaim.conf
 
 lib_LTLIBRARIES = \
-  libgnunetreclaim.la
+  libgnunetreclaim.la \
+  libgnunetdid.la
 plugin_LTLIBRARIES = \
   libgnunet_plugin_gnsrecord_reclaim.la \
   libgnunet_plugin_reclaim_attribute_basic.la \
@@ -138,6 +139,19 @@ libgnunetreclaim_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)   \
   -version-info 0:0:0
 
+libgnunetdid_la_SOURCES = \
+  did_helper.c \
+  did_helper.h
+libgnunetdid_la_LIBADD = \
+	$(top_builddir)/src/util/libgnunetutil.la \
+	$(top_builddir)/src/gns/libgnunetgns.la \
+	$(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+	$(top_builddir)/src/identity/libgnunetidentity.la \
+	$(top_builddir)/src/namestore/libgnunetnamestore.la \
+	-ljansson
+libgnunetdid_la_LDFLAGS = \
+  $(GN_LIB_LDFLAGS)   \
+  -version-info 0:0:0
 
 libgnunet_plugin_reclaim_attribute_basic_la_SOURCES = \
   plugin_reclaim_attribute_basic.c
@@ -190,14 +204,13 @@ test_reclaim_attribute_LDADD = \
 
 gnunet_did_SOURCES = \
 	gnunet-did.c \
-  did_helper.h \
-  did_helper.c
 gnunet_did_LDADD = \
 	$(top_builddir)/src/util/libgnunetutil.la \
 	$(top_builddir)/src/gns/libgnunetgns.la \
 	$(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
 	$(top_builddir)/src/identity/libgnunetidentity.la \
 	$(top_builddir)/src/namestore/libgnunetnamestore.la \
+  libgnunetdid.la \
 	-ljansson
 
 
@@ -213,7 +226,8 @@ test_did_helper_LDADD = \
 	$(top_builddir)/src/gns/libgnunetgns.la \
 	$(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
 	$(top_builddir)/src/identity/libgnunetidentity.la \
-	$(top_builddir)/src/namestore/libgnunetnamestore.la
+	$(top_builddir)/src/namestore/libgnunetnamestore.la \
+  libgnunetdid.la
 
 check_SCRIPTS = \
   test_reclaim_attribute.sh \
@@ -227,7 +241,7 @@ check_PROGRAMS = \
 
 if ENABLE_TEST_RUN
  AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
- TESTS = \ 
+ TESTS = \
   $(check_SCRIPTS) \
   $(check_PROGRAMS)
 endif
