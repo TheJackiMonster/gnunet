@@ -525,8 +525,10 @@ main (int argc,
   stop_arm (&p2);
   GNUNET_free (p1.hello);
   GNUNET_free (p2.hello);
-  GNUNET_DISK_directory_remove ("/tmp/test-gnunet-core-peer-1");
-  GNUNET_DISK_directory_remove ("/tmp/test-gnunet-core-peer-2");
+  GNUNET_DISK_purge_cfg_dir ("test_core_api_peer1.conf",
+                             "GNUNET_TEST_HOME");
+  GNUNET_DISK_purge_cfg_dir ("test_core_api_peer2.conf",
+                             "GNUNET_TEST_HOME");
 
   return ok;
 }

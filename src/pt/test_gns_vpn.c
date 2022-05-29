@@ -857,7 +857,8 @@ main (int argc,
                                &run,
                                NULL))
     return 1;
-  GNUNET_DISK_directory_remove ("/tmp/gnunet-test-vpn");
+  GNUNET_DISK_purge_cfg_dir ("test_gns_vpn.conf", 
+                             "GNUNET_TEST_HOME");
   return global_ret;
 }
 

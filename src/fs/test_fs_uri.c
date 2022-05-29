@@ -327,7 +327,10 @@ main (int argc, char *argv[])
     failureCount += testFile (i);
   }
   /* fprintf (stderr, "%s",  "\n"); */
-  GNUNET_DISK_directory_remove ("/tmp/gnunet-test-fs-uri");
+  GNUNET_DISK_purge_cfg_dir 
+    ("test_fs_uri.conf", 
+     "GNUNET_TEST_HOME");
+
   if (failureCount != 0)
     return 1;
   return 0;

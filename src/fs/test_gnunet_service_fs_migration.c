@@ -213,7 +213,9 @@ main (int argc,
                                   0, NULL, NULL,
                                   &do_publish,
                                   NULL);
-  GNUNET_DISK_directory_remove ("/tmp/test-gnunet-service-fs-migration/");
+  GNUNET_DISK_purge_cfg_dir 
+    ("test_gnunet_service_fs_migration_data.conf", 
+     "GNUNET_TEST_HOME");
   return ok;
 }
 

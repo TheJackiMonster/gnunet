@@ -722,22 +722,30 @@ cleanup_directory (int test)
   switch (test)
   {
   case SYMMETRIC:
-    GNUNET_DISK_directory_remove ("/tmp/test-gnunet-core-quota-sym-peer-1/");
-    GNUNET_DISK_directory_remove ("/tmp/test-gnunet-core-quota-sym-peer-2/");
+    GNUNET_DISK_purge_cfg_dir 
+      ("test_core_quota_peer1.conf", 
+       "GNUNET_TEST_HOME");
+    GNUNET_DISK_purge_cfg_dir 
+      ("test_core_quota_peer2.conf", 
+       "GNUNET_TEST_HOME");
     break;
 
   case ASYMMETRIC_SEND_LIMITED:
-    GNUNET_DISK_directory_remove
-      ("/tmp/test-gnunet-core-quota-asym-send-lim-peer-1/");
-    GNUNET_DISK_directory_remove
-      ("/tmp/test-gnunet-core-quota-asym-send-lim-peer-2/");
+    GNUNET_DISK_purge_cfg_dir 
+      ("test_core_quota_asymmetric_send_limit_peer1.conf", 
+       "GNUNET_TEST_HOME");
+    GNUNET_DISK_purge_cfg_dir 
+      ("test_core_quota_asymmetric_send_limit_peer2.conf", 
+       "GNUNET_TEST_HOME");
     break;
 
   case ASYMMETRIC_RECV_LIMITED:
-    GNUNET_DISK_directory_remove
-      ("/tmp/test-gnunet-core-quota-asym-recv-lim-peer-1/");
-    GNUNET_DISK_directory_remove
-      ("/tmp/test-gnunet-core-quota-asym-recv-lim-peer-2/");
+    GNUNET_DISK_purge_cfg_dir 
+      ("test_core_quota_asymmetric_recv_limited_peer1.conf", 
+       "GNUNET_TEST_HOME");
+    GNUNET_DISK_purge_cfg_dir 
+      ("test_core_quota_asymmetric_recv_limited_peer2.conf", 
+       "GNUNET_TEST_HOME");
     break;
   }
 }

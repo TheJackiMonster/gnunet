@@ -277,7 +277,8 @@ run_set (void *cls,
 int
 main (int argc, char *argv[])
 {
-  GNUNET_DISK_directory_remove ("/tmp/gnunet/test-identity-service");
+  GNUNET_DISK_purge_cfg_dir ("test_identity.conf",
+                             "GNUNET_TEST_HOME");
   res = 1;
   if (0 != GNUNET_TESTING_service_run ("test-identity-defaults",
                                        "identity",
@@ -291,7 +292,8 @@ main (int argc, char *argv[])
                                        &run_get,
                                        NULL))
     return 1;
-  GNUNET_DISK_directory_remove ("/tmp/gnunet/test-identity-service");
+  GNUNET_DISK_purge_cfg_dir ("test_identity.conf",
+                             "GNUNET_TEST_HOME");
   return res;
 }
 

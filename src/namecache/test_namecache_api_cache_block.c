@@ -227,7 +227,9 @@ run (void *cls,
 int
 main (int argc, char *argv[])
 {
-  GNUNET_DISK_directory_remove ("/tmp/test-gnunet-namecache/");
+  GNUNET_DISK_purge_cfg_dir 
+    ("test_namecache_api.conf", 
+     "GNUNET_TEST_HOME");
   res = 1;
   if (0 !=
       GNUNET_TESTING_service_run ("test-namecache-api",

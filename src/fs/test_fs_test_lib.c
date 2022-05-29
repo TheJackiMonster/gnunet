@@ -165,13 +165,15 @@ run (void *cls,
 int
 main (int argc, char *argv[])
 {
-  GNUNET_DISK_directory_remove ("/tmp/gnunet-test-fs-lib/");
+  GNUNET_DISK_purge_cfg_dir ("fs_test_lib_data.conf", 
+                             "GNUNET_TEST_HOME");
   (void) GNUNET_TESTBED_test_run ("test_fs_test_lib",
                                   "fs_test_lib_data.conf",
                                   NUM_DAEMONS,
                                   0, NULL, NULL,
                                   &run, NULL);
-  GNUNET_DISK_directory_remove ("/tmp/gnunet-test-fs-lib/");
+  GNUNET_DISK_purge_cfg_dir ("fs_test_lib_data.conf", 
+                             "GNUNET_TEST_HOME");
   return ret;
 }
 
