@@ -874,7 +874,7 @@ GNUNET_OS_start_process_s (enum GNUNET_OS_InheritStdioFlags std_inheritance,
  * @param options WNOHANG if non-blocking is desired
  * @return #GNUNET_OK on success, #GNUNET_NO if the process is still running, #GNUNET_SYSERR otherwise
  */
-static int
+static enum GNUNET_GenericReturnValue
 process_status (struct GNUNET_OS_Process *proc,
                 enum GNUNET_OS_ProcessStatusType *type,
                 unsigned long *code,
@@ -884,10 +884,13 @@ process_status (struct GNUNET_OS_Process *proc,
   int ret;
 
   GNUNET_assert (0 != proc);
-  ret = waitpid (proc->pid, &status, options);
+  ret = waitpid (proc->pid,
+                 &status,
+                 options);
   if (ret < 0)
   {
-    LOG_STRERROR (GNUNET_ERROR_TYPE_WARNING, "waitpid");
+    LOG_STRERROR (GNUNET_ERROR_TYPE_WARNING,
+                  "waitpid");
     return GNUNET_SYSERR;
   }
   if (0 == ret)
@@ -898,7 +901,8 @@ process_status (struct GNUNET_OS_Process *proc,
   }
   if (proc->pid != ret)
   {
-    LOG_STRERROR (GNUNET_ERROR_TYPE_WARNING, "waitpid");
+    LOG_STRERROR (GNUNET_ERROR_TYPE_WARNING,
+                  "waitpid");
     return GNUNET_SYSERR;
   }
   if (WIFEXITED (status))
@@ -942,7 +946,7 @@ process_status (struct GNUNET_OS_Process *proc,
  * @param code return code/signal number
  * @return #GNUNET_OK on success, #GNUNET_NO if the process is still running, #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_OS_process_status (struct GNUNET_OS_Process *proc,
                           enum GNUNET_OS_ProcessStatusType *type,
                           unsigned long *code)
@@ -960,7 +964,7 @@ GNUNET_OS_process_status (struct GNUNET_OS_Process *proc,
  * @param code return code/signal number
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_OS_process_wait_status (struct GNUNET_OS_Process *proc,
                                enum GNUNET_OS_ProcessStatusType *type,
                                unsigned long *code)
