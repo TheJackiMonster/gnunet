@@ -206,7 +206,6 @@ typedef void
  * @param target preferred target for the request, NULL for none
  * @param bf_data raw data for bloom filter for known replies, can be NULL
  * @param bf_size number of bytes in bf_data
- * @param mingle mingle value for bf
  * @param anonymity_level desired anonymity level
  * @param priority maximum outgoing cumulative request priority to use
  * @param ttl current time-to-live for the request
@@ -226,7 +225,6 @@ GSF_pending_request_create_ (enum GSF_PendingRequestOptions options,
                              const struct GNUNET_PeerIdentity *target,
                              const char *bf_data,
                              size_t bf_size,
-                             uint32_t mingle,
                              uint32_t anonymity_level,
                              uint32_t priority,
                              int32_t ttl,

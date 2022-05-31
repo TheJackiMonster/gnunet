@@ -893,7 +893,7 @@ handle_client_start_search (void *cls,
                                                    &all_zeros,
                                                    sizeof(struct
                                                           GNUNET_PeerIdentity)))
-                                          ? &sm->target : NULL, NULL, 0,
+                                          ? &sm->target : NULL, NULL,
                                           0 /* bf */,
                                           ntohl (sm->anonymity_level),
                                           0 /* priority */,

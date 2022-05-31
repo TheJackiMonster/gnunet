@@ -260,9 +260,6 @@ refresh_bloomfilter (enum GNUNET_BLOCK_Type type,
   pr->bg =
     GNUNET_BLOCK_group_create (GSF_block_ctx,
                                type,
-                               GNUNET_CRYPTO_random_u32 (
-                                 GNUNET_CRYPTO_QUALITY_WEAK,
-                                 UINT32_MAX),
                                NULL,
                                0,
                                "seen-set-size",
@@ -286,7 +283,6 @@ refresh_bloomfilter (enum GNUNET_BLOCK_Type type,
  * @param target preferred target for the request, NULL for none
  * @param bf_data raw data for bloom filter for known replies, can be NULL
  * @param bf_size number of bytes in @a bf_data
- * @param mingle mingle value for bf
  * @param anonymity_level desired anonymity level
  * @param priority maximum outgoing cumulative request priority to use
  * @param ttl current time-to-live for the request
@@ -305,7 +301,6 @@ GSF_pending_request_create_ (enum GSF_PendingRequestOptions options,
                              const struct GNUNET_PeerIdentity *target,
                              const char *bf_data,
                              size_t bf_size,
-                             uint32_t mingle,
                              uint32_t anonymity_level,
                              uint32_t priority,
                              int32_t ttl,
@@ -376,7 +371,6 @@ GSF_pending_request_create_ (enum GSF_PendingRequestOptions options,
   {
     pr->bg = GNUNET_BLOCK_group_create (GSF_block_ctx,
                                         pr->public_data.type,
-                                        mingle,
                                         bf_data,
                                         bf_size,
                                         "seen-set-size",
@@ -533,7 +527,6 @@ GSF_pending_request_get_message_ (struct GSF_PendingRequest *pr)
   int64_t ttl;
   int do_route;
   void *bf_data;
-  uint32_t bf_nonce;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Building request message for `%s' of type %d\n",
@@ -559,7 +552,6 @@ GSF_pending_request_get_message_ (struct GSF_PendingRequest *pr)
   }
   if (GNUNET_OK !=
       GNUNET_BLOCK_group_serialize (pr->bg,
-                                    &bf_nonce,
                                     &bf_data,
                                     &bf_size))
   {
@@ -582,7 +574,7 @@ GSF_pending_request_get_message_ (struct GSF_PendingRequest *pr)
   now = GNUNET_TIME_absolute_get ();
   ttl = (int64_t) (pr->public_data.ttl.abs_value_us - now.abs_value_us);
   gm->ttl = htonl (ttl / 1000LL / 1000LL);
-  gm->filter_mutator = htonl (bf_nonce);
+  gm->reserved = htonl (0);
   gm->hash_bitmap = htonl (bm);
   gm->query = pr->public_data.query;
   ext = (struct GNUNET_PeerIdentity *) &gm[1];

@@ -39,15 +39,15 @@
                                                 __VA_ARGS__)
 
 /**
- * Enable slow sanity checks to debug issues. 
- * 
+ * Enable slow sanity checks to debug issues.
+ *
  * TODO: might want to eventually implement probabilistic
  * load-based path verification, but for now it is all or nothing
  * based on this define.
  *
  * 0: do not check -- if signatures become performance critical
  * 1: check all external inputs -- normal production for now
- * 2: check internal computations as well -- for debugging 
+ * 2: check internal computations as well -- for debugging
  */
 #define SANITY_CHECKS 2
 
@@ -235,9 +235,9 @@ struct PeerGetMessage
   uint16_t desired_replication_level GNUNET_PACKED;
 
   /**
-   * Size of the extended query.
+   * Size of the result filter.
    */
-  uint16_t xquery_size;
+  uint16_t result_filter_size GNUNET_PACKED;
 
   /**
    * Bloomfilter (for peer identities) to stop circular routes
@@ -249,14 +249,10 @@ struct PeerGetMessage
    */
   struct GNUNET_HashCode key;
 
-  /**
-   * Bloomfilter mutator.
-   */
-  uint32_t bf_mutator;
+  /* result bloomfilter */
 
   /* xquery */
 
-  /* result bloomfilter */
 };
 GNUNET_NETWORK_STRUCT_END
 
@@ -654,9 +650,6 @@ send_find_peer_message (void *cls)
 
     bg = GNUNET_BLOCK_group_create (GDS_block_context,
                                     GNUNET_BLOCK_TYPE_DHT_URL_HELLO,
-                                    GNUNET_CRYPTO_random_u32 (
-                                      GNUNET_CRYPTO_QUALITY_WEAK,
-                                      UINT32_MAX),
                                     NULL,
                                     0,
                                     "filter-size",
@@ -1287,9 +1280,9 @@ get_target_peers (const struct GNUNET_HashCode *key,
 
 
 /**
- * If we got a HELLO, consider it for our own routing table 
+ * If we got a HELLO, consider it for our own routing table
  *
- * @param bd block data we got 
+ * @param bd block data we got
  */
 static void
 hello_check (const struct GDS_DATACACHE_BlockData *bd)
@@ -1345,7 +1338,7 @@ GDS_NEIGHBOURS_handle_put (const struct GDS_DATACACHE_BlockData *bd,
               GNUNET_h2s (&bd->key),
               (options & GNUNET_DHT_RO_DEMULTIPLEX_EVERYWHERE) ? "x" : "-",
               (options & GNUNET_DHT_RO_RECORD_ROUTE) ? "R" : "-");
-  
+
   /* if we got a HELLO, consider it for our own routing table */
   hello_check (bd);
   GNUNET_CONTAINER_bloomfilter_add (bf,
@@ -1464,10 +1457,9 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
   unsigned int target_count;
   struct PeerInfo **targets;
   size_t msize;
-  size_t reply_bf_size;
-  void *reply_bf;
+  size_t result_filter_size;
+  void *result_filter;
   unsigned int skip_count;
-  uint32_t bf_nonce;
 
   GNUNET_assert (NULL != peer_bf);
   GNUNET_STATISTICS_update (GDS_stats,
@@ -1499,20 +1491,17 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
   }
   if (GNUNET_OK !=
       GNUNET_BLOCK_group_serialize (bg,
-                                    &bf_nonce,
-                                    &reply_bf,
-                                    &reply_bf_size))
+                                    &result_filter,
+                                    &result_filter_size))
   {
-    reply_bf = NULL;
-    reply_bf_size = 0;
-    bf_nonce = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK,
-                                         UINT32_MAX);
+    result_filter = NULL;
+    result_filter_size = 0;
   }
-  msize = xquery_size + reply_bf_size;
+  msize = xquery_size + result_filter_size;
   if (msize + sizeof(struct PeerGetMessage) >= GNUNET_MAX_MESSAGE_SIZE)
   {
     GNUNET_break (0);
-    GNUNET_free (reply_bf);
+    GNUNET_free (result_filter);
     GNUNET_free (targets);
     return GNUNET_NO;
   }
@@ -1523,7 +1512,7 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
     struct PeerInfo *target = targets[i];
     struct PeerGetMessage *pgm;
     char buf[sizeof (*pgm) + msize] GNUNET_ALIGN;
-    char *xq;
+    char *rf;
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Routing GET for %s after %u hops to %s\n",
@@ -1537,8 +1526,7 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
     pgm->options = htons (options);
     pgm->hop_count = htons (hop_count + 1);
     pgm->desired_replication_level = htons (desired_replication_level);
-    pgm->xquery_size = htonl (xquery_size);
-    pgm->bf_mutator = bf_nonce;
+    pgm->result_filter_size = htonl (result_filter_size);
     GNUNET_break (GNUNET_YES ==
                   GNUNET_CONTAINER_bloomfilter_test (peer_bf,
                                                      &target->phash));
@@ -1547,13 +1535,13 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
                                                               pgm->bloomfilter,
                                                               DHT_BLOOM_SIZE));
     pgm->key = *key;
-    xq = (char *) &pgm[1];
-    GNUNET_memcpy (xq,
+    rf = (char *) &pgm[1];
+    GNUNET_memcpy (rf,
+                   result_filter,
+                   result_filter_size);
+    GNUNET_memcpy (&rf[result_filter_size],
                    xquery,
                    xquery_size);
-    GNUNET_memcpy (&xq[xquery_size],
-                   reply_bf,
-                   reply_bf_size);
     do_send (target,
              &pgm->header);
   }
@@ -1562,7 +1550,7 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
                             target_count - skip_count,
                             GNUNET_NO);
   GNUNET_free (targets);
-  GNUNET_free (reply_bf);
+  GNUNET_free (result_filter);
   return (skip_count < target_count) ? GNUNET_OK : GNUNET_NO;
 }
 
@@ -1852,7 +1840,7 @@ handle_dht_p2p_put (void *cls,
     if (0 != (options & GNUNET_DHT_RO_RECORD_ROUTE))
     {
       unsigned int failure_offset;
-      
+
       GNUNET_memcpy (pp,
                      put_path,
                      putlen * sizeof(struct GNUNET_DHT_PathElement));
@@ -1861,10 +1849,10 @@ handle_dht_p2p_put (void *cls,
       memset (&pp[putlen].sig,
               0,
               sizeof (pp[putlen].sig));
-#if SANITY_CHECKS      
-    /* TODO: might want to eventually implement probabilistic
-       load-based path verification, but for now it is all or nothing */
-      failure_offset 
+#if SANITY_CHECKS
+      /* TODO: might want to eventually implement probabilistic
+         load-based path verification, but for now it is all or nothing */
+      failure_offset
         = GNUNET_DHT_verify_path (bd.data,
                                   bd.data_size,
                                   bd.expiration_time,
@@ -1883,7 +1871,7 @@ handle_dht_p2p_put (void *cls,
         GNUNET_assert (failure_offset <= putlen);
         bd.put_path = &pp[failure_offset];
         bd.put_path_length = putlen - failure_offset;
-      }      
+      }
     }
     else
     {
@@ -2073,10 +2061,10 @@ check_dht_p2p_get (void *cls,
                    const struct PeerGetMessage *get)
 {
   uint16_t msize = ntohs (get->header.size);
-  uint32_t xquery_size = ntohl (get->xquery_size);
+  uint32_t result_filter_size = ntohl (get->result_filter_size);
 
   (void) cls;
-  if (msize < sizeof(*get) + xquery_size)
+  if (msize < sizeof(*get) + result_filter_size)
   {
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
@@ -2098,14 +2086,15 @@ handle_dht_p2p_get (void *cls,
   struct Target *t = cls;
   struct PeerInfo *peer = t->pi;
   uint16_t msize = ntohs (get->header.size);
-  uint32_t xquery_size = ntohl (get->xquery_size);
+  uint32_t result_filter_size = ntohl (get->result_filter_size);
   uint32_t hop_count = ntohs (get->hop_count);
-  size_t reply_bf_size = msize - (sizeof(*get) + xquery_size);
   enum GNUNET_BLOCK_Type type = (enum GNUNET_BLOCK_Type) ntohl (get->type);
   enum GNUNET_DHT_RouteOption options = (enum GNUNET_DHT_RouteOption)  ntohs (
     get->options);
   enum GNUNET_BLOCK_ReplyEvaluationResult eval = GNUNET_BLOCK_REPLY_OK_MORE;
-  const void *xquery = (const void *) &get[1];
+  const void *result_filter = (const void *) &get[1];
+  const void *xquery = result_filter + result_filter_size;
+  size_t xquery_size = msize - sizeof (*get) - result_filter_size;
 
   /* parse and validate message */
   GNUNET_STATISTICS_update (GDS_stats,
@@ -2140,11 +2129,10 @@ handle_dht_p2p_get (void *cls,
                                                         &peer->phash));
     bg = GNUNET_BLOCK_group_create (GDS_block_context,
                                     type,
-                                    get->bf_mutator,
-                                    xquery + xquery_size,
-                                    reply_bf_size,
+                                    result_filter,
+                                    result_filter_size,
                                     "filter-size",
-                                    reply_bf_size,
+                                    result_filter_size,
                                     NULL);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "GET for %s at %s after %u hops\n",
@@ -2353,7 +2341,7 @@ handle_dht_p2p_result (void *cls,
   };
   const struct GNUNET_DHT_PathElement *get_path
     = &bd.put_path[bd.put_path_length];
-    
+
   /* parse and validate message */
   if (GNUNET_TIME_absolute_is_past (bd.expiration_time))
   {
@@ -2416,7 +2404,7 @@ handle_dht_p2p_result (void *cls,
 #if SANITY_CHECKS
     /* TODO: might want to eventually implement probabilistic
        load-based path verification, but for now it is all or nothing */
-    failure_offset 
+    failure_offset
       = GNUNET_DHT_verify_path (bd.data,
                                 bd.data_size,
                                 bd.expiration_time,

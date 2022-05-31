@@ -1317,7 +1317,6 @@ handle_p2p_get (void *cls,
                                     ? (const char *) &opt[bits]
                                     : NULL,
                                     bfsize,
-                                    ntohl (gm->filter_mutator),
                                     1 /* anonymity */,
                                     (uint32_t) tec.priority,
                                     tec.ttl,

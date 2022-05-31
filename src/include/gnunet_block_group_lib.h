@@ -68,7 +68,6 @@ GNUNET_BLOCK_GROUP_compute_bloomfilter_size (unsigned int entry_count,
  * @param bf_size size of the Bloom filter
  * @param bf_k K-value for the Bloom filter
  * @param type block type
- * @param nonce random value used to seed the group creation
  * @param raw_data optional serialized prior state of the group, NULL if unavailable/fresh
  * @param raw_data_size number of bytes in @a raw_data, 0 if unavailable/fresh
  * @return block group handle, NULL if block groups are not supported
@@ -79,7 +78,6 @@ GNUNET_BLOCK_GROUP_bf_create (void *cls,
                               size_t bf_size,
                               unsigned int bf_k,
                               enum GNUNET_BLOCK_Type type,
-                              uint32_t nonce,
                               const void *raw_data,
                               size_t raw_data_size);
 

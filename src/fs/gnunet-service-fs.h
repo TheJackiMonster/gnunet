@@ -103,13 +103,9 @@ struct GetMessage
   int32_t ttl GNUNET_PACKED;
 
   /**
-   * The content hash should be mutated using this value
-   * before checking against the bloomfilter (used to
-   * get many different filters for the same hash codes).
-   * The number should be in big-endian format when used
-   * for mingling.
+   * These days not used.
    */
-  uint32_t filter_mutator GNUNET_PACKED;
+  uint32_t reserved GNUNET_PACKED;
 
   /**
    * Which of the optional hash codes are present at the end of the

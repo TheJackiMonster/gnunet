@@ -91,6 +91,7 @@ struct MinglePacker
 
 GNUNET_NETWORK_STRUCT_END
 
+
 void
 GNUNET_BLOCK_mingle_hash (const struct GNUNET_HashCode *in,
                           uint32_t mingle_number,
@@ -172,11 +173,9 @@ GNUNET_BLOCK_context_destroy (struct GNUNET_BLOCK_Context *ctx)
 
 enum GNUNET_GenericReturnValue
 GNUNET_BLOCK_group_serialize (struct GNUNET_BLOCK_Group *bg,
-                              uint32_t *nonce,
                               void **raw_data,
                               size_t *raw_data_size)
 {
-  *nonce = 0;
   *raw_data = NULL;
   *raw_data_size = 0;
   if (NULL == bg)
@@ -184,7 +183,6 @@ GNUNET_BLOCK_group_serialize (struct GNUNET_BLOCK_Group *bg,
   if (NULL == bg->serialize_cb)
     return GNUNET_NO;
   return bg->serialize_cb (bg,
-                           nonce,
                            raw_data,
                            raw_data_size);
 }
@@ -248,7 +246,6 @@ find_plugin (struct GNUNET_BLOCK_Context *ctx,
 struct GNUNET_BLOCK_Group *
 GNUNET_BLOCK_group_create (struct GNUNET_BLOCK_Context *ctx,
                            enum GNUNET_BLOCK_Type type,
-                           uint32_t nonce,
                            const void *raw_data,
                            size_t raw_data_size,
                            ...)
@@ -267,7 +264,6 @@ GNUNET_BLOCK_group_create (struct GNUNET_BLOCK_Context *ctx,
             raw_data_size);
   bg = plugin->create_group (plugin->cls,
                              type,
-                             nonce,
                              raw_data,
                              raw_data_size,
                              ap);

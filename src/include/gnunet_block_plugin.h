@@ -49,9 +49,9 @@
  */
 typedef void
 (*GNUNET_BLOCK_GroupMarkSeenFunction)(
-                                      struct GNUNET_BLOCK_Group *bg,
-                                      const struct GNUNET_HashCode *seen_results,
-                                      unsigned int seen_results_count);
+  struct GNUNET_BLOCK_Group *bg,
+  const struct GNUNET_HashCode *seen_results,
+  unsigned int seen_results_count);
 
 
 /**
@@ -72,7 +72,6 @@ typedef enum GNUNET_GenericReturnValue
  * Serialize state of a block group.
  *
  * @param bg group to serialize
- * @param[out] nonce set to the nonce of the @a bg
  * @param[out] raw_data set to the serialized state
  * @param[out] raw_data_size set to the number of bytes in @a raw_data
  * @return #GNUNET_OK on success, #GNUNET_NO if serialization is not
@@ -80,7 +79,6 @@ typedef enum GNUNET_GenericReturnValue
  */
 typedef enum GNUNET_GenericReturnValue
 (*GNUNET_BLOCK_GroupSerializeFunction)(struct GNUNET_BLOCK_Group *bg,
-                                       uint32_t *nonce,
                                        void **raw_data,
                                        size_t *raw_data_size);
 
@@ -156,7 +154,6 @@ struct GNUNET_BLOCK_Group
 typedef struct GNUNET_BLOCK_Group *
 (*GNUNET_BLOCK_GroupCreateFunction)(void *cls,
                                     enum GNUNET_BLOCK_Type type,
-                                    uint32_t nonce,
                                     const void *raw_data,
                                     size_t raw_data_size,
                                     va_list va);
@@ -238,11 +235,11 @@ typedef enum GNUNET_BLOCK_ReplyEvaluationResult
  *         #GNUNET_SYSERR if @a type not supported
  */
 typedef enum GNUNET_GenericReturnValue
-(*GNUNET_BLOCK_GetKeyFunction) (void *cls,
-                                enum GNUNET_BLOCK_Type type,
-                                const void *block,
-                                size_t block_size,
-                                struct GNUNET_HashCode *key);
+(*GNUNET_BLOCK_GetKeyFunction)(void *cls,
+                               enum GNUNET_BLOCK_Type type,
+                               const void *block,
+                               size_t block_size,
+                               struct GNUNET_HashCode *key);
 
 
 /**
@@ -285,7 +282,7 @@ struct GNUNET_BLOCK_PluginFunctions
   /**
    * Check that a reply block matches a query.
    */
-  GNUNET_BLOCK_ReplyEvaluationFunction check_reply;  
+  GNUNET_BLOCK_ReplyEvaluationFunction check_reply;
 
 };
 

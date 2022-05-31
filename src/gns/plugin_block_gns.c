@@ -48,7 +48,6 @@
  *
  * @param ctx block context in which the block group is created
  * @param type type of the block for which we are creating the group
- * @param nonce random value used to seed the group creation
  * @param raw_data optional serialized prior state of the group, NULL if unavailable/fresh
  * @param raw_data_size number of bytes in @a raw_data, 0 if unavailable/fresh
  * @param va variable arguments specific to @a type
@@ -58,7 +57,6 @@
 static struct GNUNET_BLOCK_Group *
 block_plugin_gns_create_group (void *cls,
                                enum GNUNET_BLOCK_Type type,
-                               uint32_t nonce,
                                const void *raw_data,
                                size_t raw_data_size,
                                va_list va)
@@ -85,7 +83,6 @@ block_plugin_gns_create_group (void *cls,
                                        bf_size,
                                        BLOOMFILTER_K,
                                        type,
-                                       nonce,
                                        raw_data,
                                        raw_data_size);
 }
@@ -130,7 +127,6 @@ block_plugin_gns_get_key (void *cls,
                                      key);
   return GNUNET_OK;
 }
-
 
 
 /**

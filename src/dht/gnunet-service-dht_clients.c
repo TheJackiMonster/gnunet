@@ -381,9 +381,6 @@ transmit_request (struct ClientQueryRecord *cqr)
                             GNUNET_NO);
   bg = GNUNET_BLOCK_group_create (GDS_block_context,
                                   cqr->type,
-                                  GNUNET_CRYPTO_random_u32 (
-                                    GNUNET_CRYPTO_QUALITY_WEAK,
-                                    UINT32_MAX),
                                   NULL, /* raw data */
                                   0, /* raw data size */
                                   "seen-set-size",
