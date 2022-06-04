@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup GNS
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -504,3 +507,5 @@ GNUNET_NAMESTORE_records_replace (struct GNUNET_NAMESTORE_Handle *h,
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */

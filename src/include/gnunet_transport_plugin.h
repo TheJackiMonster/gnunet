@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup Backbone
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -723,5 +726,7 @@ struct GNUNET_TRANSPORT_PluginFunctions
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_transport_plugin.h */

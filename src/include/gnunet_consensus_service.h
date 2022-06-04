@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup Sets
+ * @{
+ *
  * @author Florian Dold
  *
  * @file
@@ -180,3 +183,5 @@ GNUNET_CONSENSUS_destroy (struct GNUNET_CONSENSUS_Handle *consensus);
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */

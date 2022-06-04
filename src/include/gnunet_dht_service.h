@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup Backbone
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -580,3 +583,5 @@ GNUNET_DHT_hello_offer (struct GNUNET_DHT_Handle *dht_handle,
 #endif
 
 /** @} */  /* end of group dht */
+
+/** @} */ /* end of group addition */

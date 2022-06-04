@@ -18,6 +18,9 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 /**
+ * @addtogroup Backbone
+ * @{
+ *
  * @author Christian Grothoff
  * @author Bart Polot
  *
@@ -627,4 +630,7 @@ GNUNET_CADET_list_tunnels_cancel (struct GNUNET_CADET_ListTunnels *lt);
 
 /** @} */ /* end of group */
 
+/** @} */ /* end of group addition */
+
 /* end of gnunet_cadet_service.h */
+

@@ -6,7 +6,7 @@
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = GNUnet
 PROJECT_NUMBER         = 0.16.x
-PROJECT_LOGO           = logo.png
+PROJECT_LOGO           = gnunet-logo-dark-text.png
 OUTPUT_DIRECTORY       = .
 CREATE_SUBDIRS         = YES
 OUTPUT_LANGUAGE        = English

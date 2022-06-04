@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup Backbone
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -113,5 +116,7 @@ GNUNET_TRANSPORT_manipulation_set (struct
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_transport_manipulation_service.h */

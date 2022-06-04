@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup Backbone
+ * @{
+ *
  * @author Omar Tarabai
  *
  * @file
@@ -131,3 +134,5 @@ struct GNUNET_PEERSTORE_PluginFunctions
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */

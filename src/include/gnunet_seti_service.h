@@ -18,6 +18,9 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 /**
+ * @addtogroup Sets
+ * @{
+ *
  * @author Florian Dold
  * @author Christian Grothoff
  *
@@ -367,3 +370,5 @@ GNUNET_SETI_element_hash (const struct GNUNET_SETI_Element *element,
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */

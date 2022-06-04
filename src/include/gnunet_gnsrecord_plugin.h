@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup GNS
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -156,6 +159,8 @@ struct GNUNET_GNSRECORD_PluginFunctions
 };
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */
 
 #if 0                           /* keep Emacsens' auto-indent happy */
 {

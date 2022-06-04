@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup Backbone
+ * @{
+ *
  * @author Julius Bünger
  *
  * @file
@@ -262,3 +265,5 @@ GNUNET_RPS_disconnect (struct GNUNET_RPS_Handle *h);
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */

@@ -18,6 +18,9 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 /**
+ * @addtogroup Backbone
+ * @{
+ *
  * @file
  * Automatic transport selection and outbound bandwidth determination
  *
@@ -620,5 +623,7 @@ GNUNET_ATS_performance_give_feedback (struct GNUNET_ATS_PerformanceHandle *ph,
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */  /* end of Backbone addition */
 
 /* end of file gnunet-service-transport_ats.h */

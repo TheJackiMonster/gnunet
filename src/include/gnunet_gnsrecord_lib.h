@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup GNS
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -781,3 +784,5 @@ GNUNET_GNSRECORD_label_check (const char*label, char **emsg);
 #endif
 
 /** @} */ /* end of group */
+
+/** @} */ /* end of group addition */

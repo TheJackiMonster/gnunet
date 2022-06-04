@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup Backbone
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -197,5 +200,7 @@ GNUNET_TRANSPORT_hello_parse (const struct GNUNET_MessageHeader *hello,
 #endif
 
 /** @} */ /* end of group */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_transport_hello_service.h */

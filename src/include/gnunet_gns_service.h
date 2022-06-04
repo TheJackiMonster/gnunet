@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup GNS
+ * @{
+ *
  * @author Martin Schanzenbach
  *
  * @file

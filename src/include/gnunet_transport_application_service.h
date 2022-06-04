@@ -18,6 +18,9 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 /**
+ * @addtogroup Backbone
+ * @{ 
+ *
  * @file
  * Bandwidth allocation API for applications to interact with
  *
@@ -117,6 +120,8 @@ GNUNET_TRANSPORT_application_validate (
   const char *addr);
 
 /** @} */ /* end of group */
+
+/** @} */ /* end of group addition */
 
 #endif
 /* end of file gnunet_ats_application_service.h */

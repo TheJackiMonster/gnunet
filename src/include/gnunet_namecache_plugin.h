@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup GNS
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -106,3 +109,5 @@ struct GNUNET_NAMECACHE_PluginFunctions
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */
