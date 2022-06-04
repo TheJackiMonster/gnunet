@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GNUnet 0.7.0b\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2022-04-01 08:42+0200\n"
+"POT-Creation-Date: 2022-05-24 20:46+0200\n"
 "PO-Revision-Date: 2006-01-21 17:16+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
@@ -27,7 +27,7 @@ msgid "Issuer public key `%s' is not well-formed\n"
 msgstr "Ogiltigt argument: \"%s\"\n"
 
 #: src/abd/gnunet-abd.c:558 src/abd/gnunet-service-abd.c:1751
-#: src/namestore/gnunet-namestore-fcfsd.c:1080
+#: src/namestore/gnunet-namestore-fcfsd.c:1096
 #: src/namestore/gnunet-namestore.c:951
 #, fuzzy, c-format
 msgid "Failed to connect to namestore\n"
@@ -397,14 +397,14 @@ msgid "Require valid port number for service `%s' in configuration!\n"
 msgstr ""
 
 #: src/arm/gnunet-service-arm.c:452 src/transport/plugin_transport_tcp.c:1163
-#: src/transport/tcp_service_legacy.c:634 src/util/client.c:527
+#: src/transport/tcp_service_legacy.c:634 src/util/client.c:529
 #: src/util/service.c:1133
 #, c-format
 msgid "UNIXPATH `%s' too long, maximum length is %llu\n"
 msgstr ""
 
 #: src/arm/gnunet-service-arm.c:456 src/transport/plugin_transport_tcp.c:1167
-#: src/transport/tcp_service_legacy.c:638 src/util/client.c:532
+#: src/transport/tcp_service_legacy.c:638 src/util/client.c:534
 #: src/util/service.c:1137
 #, fuzzy, c-format
 msgid "Using `%s' instead\n"
@@ -3752,12 +3752,12 @@ msgstr ""
 msgid "Invalid port number %u\n"
 msgstr "Ogiltiga argument. Avslutar.\n"
 
-#: src/gns/gnunet-bcd.c:614 src/namestore/gnunet-namestore-fcfsd.c:1113
+#: src/gns/gnunet-bcd.c:614 src/namestore/gnunet-namestore-fcfsd.c:1129
 #, fuzzy
 msgid "Unable to set up the daemon\n"
 msgstr "Kunde inte skapa namnrymd \"%s\" (existerar?).\n"
 
-#: src/gns/gnunet-bcd.c:637 src/namestore/gnunet-namestore-fcfsd.c:987
+#: src/gns/gnunet-bcd.c:637 src/namestore/gnunet-namestore-fcfsd.c:992
 #, fuzzy
 msgid "Failed to start HTTP server\n"
 msgstr "Misslyckades att starta samling.\n"
@@ -4720,7 +4720,7 @@ msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 msgid "Identity REST API initialized\n"
 msgstr " Anslutning misslyckades\n"
 
-#: src/json/json.c:120
+#: src/json/json.c:130
 #, fuzzy, c-format
 msgid "Failed to parse JSON in option `%s': %s (%s)\n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
@@ -4835,102 +4835,107 @@ msgstr ""
 msgid "Failed to setup database at `%s'\n"
 msgstr "Fel vid %s:%d.\n"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:368
+#: src/namestore/gnunet-namestore-fcfsd.c:373
 #, fuzzy
 msgid "can not search the namestore"
 msgstr "Misslyckades att ansluta till gnunetd.\n"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:422
-#: src/namestore/gnunet-namestore-fcfsd.c:563
+#: src/namestore/gnunet-namestore-fcfsd.c:427
+#: src/namestore/gnunet-namestore-fcfsd.c:568
 #, fuzzy
 msgid "unable to scan namestore"
 msgstr "Misslyckades att ansluta till gnunetd.\n"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:450
+#: src/namestore/gnunet-namestore-fcfsd.c:455
 #, fuzzy, c-format
 msgid "Failed to create record for `%s': %s\n"
 msgstr "Kunde inte tolka konfigurationsfil \"%s\".\n"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:462
+#: src/namestore/gnunet-namestore-fcfsd.c:467
 #, fuzzy
 msgid "no errors"
 msgstr "Okänt fel"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:498
+#: src/namestore/gnunet-namestore-fcfsd.c:503
 #, fuzzy, c-format
 msgid "The requested key `%s' exists as `%s'\n"
 msgstr "Skapade post \"%s\" i namnrymd \"%s\"\n"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:505
+#: src/namestore/gnunet-namestore-fcfsd.c:510
 msgid "key exists"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-fcfsd.c:522
+#: src/namestore/gnunet-namestore-fcfsd.c:527
 #, fuzzy
 msgid "Error creating record data\n"
 msgstr "=\tFel vid läsning av katalog.\n"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:526
+#: src/namestore/gnunet-namestore-fcfsd.c:531
 #, fuzzy
 msgid "unable to store record"
 msgstr "Misslyckades att starta samling.\n"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:597
+#: src/namestore/gnunet-namestore-fcfsd.c:602
 #, c-format
 msgid "Requested name `%s' exists with `%u' records\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-fcfsd.c:603
+#: src/namestore/gnunet-namestore-fcfsd.c:608
 msgid "name exists\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-fcfsd.c:789
+#: src/namestore/gnunet-namestore-fcfsd.c:794
 msgid "unable to process submitted data"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-fcfsd.c:800
+#: src/namestore/gnunet-namestore-fcfsd.c:805
 msgid "the submitted data is invalid"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-fcfsd.c:819
+#: src/namestore/gnunet-namestore-fcfsd.c:824
 #, fuzzy
 msgid "invalid parameters"
 msgstr "Ogiltigt argument: \"%s\"\n"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:836
+#: src/namestore/gnunet-namestore-fcfsd.c:841
 #, fuzzy
 msgid "invalid name"
 msgstr "Ogiltigt argument: \"%s\"\n"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:847
+#: src/namestore/gnunet-namestore-fcfsd.c:852
 #, fuzzy, c-format
 msgid "Unable to parse key %s\n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:851
+#: src/namestore/gnunet-namestore-fcfsd.c:856
 #, fuzzy
 msgid "unable to parse key"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:962
+#: src/namestore/gnunet-namestore-fcfsd.c:967
 msgid "No ego configured for `fcfsd` subsystem\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-fcfsd.c:1071
+#: src/namestore/gnunet-namestore-fcfsd.c:1076
+#, fuzzy
+msgid "No expiration specified for records.\n"
+msgstr "Inget tabellnamn angivet, använder \"%s\".\n"
+
+#: src/namestore/gnunet-namestore-fcfsd.c:1087
 #, fuzzy
 msgid "No port specified, using default value\n"
 msgstr "Konfigurationsfil \"%s\" skapad.\n"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:1089
+#: src/namestore/gnunet-namestore-fcfsd.c:1105
 #, fuzzy
 msgid "Failed to connect to identity\n"
 msgstr "Misslyckades att ansluta till gnunetd.\n"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:1136
+#: src/namestore/gnunet-namestore-fcfsd.c:1152
 msgid "name of the zone managed by FCFSD"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-fcfsd.c:1145
+#: src/namestore/gnunet-namestore-fcfsd.c:1161
 msgid "GNU Name System First-Come-First-Served name registration service"
 msgstr ""
 
@@ -5154,17 +5159,17 @@ msgstr "Visa värde av alternativet"
 msgid "Failed to replicate block in namecache: %s\n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 
-#: src/namestore/gnunet-service-namestore.c:1559
+#: src/namestore/gnunet-service-namestore.c:1557
 #, fuzzy
 msgid "Error normalizing name."
 msgstr "Klar med skapandet av värdnyckel.\n"
 
-#: src/namestore/gnunet-service-namestore.c:1582
+#: src/namestore/gnunet-service-namestore.c:1580
 #, fuzzy
 msgid "Error deserializing records."
 msgstr "=\tFel vid läsning av katalog.\n"
 
-#: src/namestore/gnunet-service-namestore.c:1691
+#: src/namestore/gnunet-service-namestore.c:1689
 #, fuzzy
 msgid "Store failed"
 msgstr "gnunet-update misslyckades!"
@@ -5678,17 +5683,17 @@ msgstr ""
 msgid "Could not load database backend `%s'\n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 
-#: src/peerstore/peerstore_api.c:594 src/peerstore/peerstore_api.c:642
+#: src/peerstore/peerstore_api.c:603 src/peerstore/peerstore_api.c:651
 #, fuzzy
 msgid "Unexpected iteration response, this should not happen.\n"
 msgstr "Utdataformat är inte känt, detta bör inte hända.\n"
 
-#: src/peerstore/peerstore_api.c:656
+#: src/peerstore/peerstore_api.c:665
 #, fuzzy
 msgid "Received a malformed response from service."
 msgstr "Mottog ogiltig \"%s\" begäran (storlek %d)\n"
 
-#: src/peerstore/peerstore_api.c:781
+#: src/peerstore/peerstore_api.c:790
 msgid "Received a watch result for a non existing watch.\n"
 msgstr ""
 
@@ -6934,7 +6939,7 @@ msgstr ""
 
 #: src/transport/gnunet-communicator-tcp.c:3338
 #: src/transport/gnunet-communicator-udp.c:3867
-#: src/transport/gnunet-service-tng.c:10926
+#: src/transport/gnunet-service-tng.c:11042
 #: src/transport/gnunet-service-transport.c:2627
 #, fuzzy
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
@@ -7646,15 +7651,15 @@ msgstr "Testar transport(er) %s\n"
 #, fuzzy, c-format
 msgid "Specific IPv4 address `%s' in configuration file is invalid!\n"
 msgstr ""
-"Du måste ange ett positivt nummer för \"%s\" i konfigurationen i sektion \"%s"
-"\".\n"
+"Du måste ange ett positivt nummer för \"%s\" i konfigurationen i sektion "
+"\"%s\".\n"
 
 #: src/transport/plugin_transport_http_server.c:3133
 #, fuzzy, c-format
 msgid "Specific IPv6 address `%s' in configuration file is invalid!\n"
 msgstr ""
-"Du måste ange ett positivt nummer för \"%s\" i konfigurationen i sektion \"%s"
-"\".\n"
+"Du måste ange ett positivt nummer för \"%s\" i konfigurationen i sektion "
+"\"%s\".\n"
 
 #: src/transport/plugin_transport_http_server.c:3208
 #, fuzzy, c-format
@@ -8172,11 +8177,11 @@ msgstr "Ogiltigt format för IP: \"%s\"\n"
 msgid "Failed to serialize metadata `%s'"
 msgstr "Misslyckades att leverera \"%s\" meddelande.\n"
 
-#: src/util/client.c:747 src/util/client.c:938
+#: src/util/client.c:749 src/util/client.c:940
 msgid "not a valid filename"
 msgstr ""
 
-#: src/util/client.c:1104
+#: src/util/client.c:1106
 #, c-format
 msgid "Need a non-empty hostname for service `%s'.\n"
 msgstr ""
@@ -8349,7 +8354,7 @@ msgstr "\"%s\" misslyckades vid %s:%d med fel: \"%s\".\n"
 msgid "Could not load peer's private key\n"
 msgstr "Kunde inte tolka konfigurationsfil \"%s\".\n"
 
-#: src/util/crypto_random.c:381
+#: src/util/crypto_random.c:385
 #, c-format
 msgid "libgcrypt has not the expected version (version %s is required).\n"
 msgstr "libgcrypt har inte den förväntande versionen (version %s krävs).\n"
@@ -8586,7 +8591,7 @@ msgstr ""
 msgid "Manipulate GNUnet configuration files"
 msgstr "skriv ut ett värde från konfigurationsfilen till standard ut"
 
-#: src/util/gnunet-crypto-tvg.c:1483
+#: src/util/gnunet-crypto-tvg.c:1522
 msgid "verify a test vector from stdin"
 msgstr ""
 
@@ -8920,8 +8925,8 @@ msgid ""
 "Missing `%s' or numeric IP address for `%s' of `%s' in configuration, DNS "
 "resolution will be unavailable.\n"
 msgstr ""
-"Du måste ange ett positivt nummer för \"%s\" i konfigurationen i sektion \"%s"
-"\".\n"
+"Du måste ange ett positivt nummer för \"%s\" i konfigurationen i sektion "
+"\"%s\".\n"
 
 #: src/util/resolver_api.c:887
 #, fuzzy, c-format
@@ -12229,8 +12234,8 @@ msgstr "Misslyckades att ansluta till gnunetd.\n"
 #~ msgstr "Kunde inte slå upp namnet för SMTP-server \"%s\": %s"
 
 #~ msgid ""
-#~ "You must specify the name of a pipe for the SMTP transport in section `"
-#~ "%s' under `%s'.\n"
+#~ "You must specify the name of a pipe for the SMTP transport in section "
+#~ "`%s' under `%s'.\n"
 #~ msgstr ""
 #~ "Du måste ange ett namn på röret för SMTP-transporten i sektion \"%s\" "
 #~ "under \"%s\".\n"

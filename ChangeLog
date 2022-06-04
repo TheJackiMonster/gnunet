@@ -1,3 +1,48 @@
+Tue, 31 May 2022 23:43:05 +0200 (edddc9384)
+protocol change: swap xquery and result filter, integrate mutator with result filter - Christian Grothoff
+
+Tue, 17 May 2022 10:00:25 +0200 (5fcabf87a)
+fix scheduler bug with same-priority immediately-ready tasks possibly hogging the scheduler - Christian Grothoff
+
+Sat, 14 May 2022 12:20:06 +0200 (b47e57809)
+BUILD: Change submodule handling, update gana - Martin Schanzenbach
+
+Thu, 12 May 2022 07:53:03 -0400 (69ac41f04)
+update contrib/gana to 5ada88d0d3e25587a1340cc35669c36f608a50db - Thien-Thi Nguyen
+
+Wed, 11 May 2022 05:15:34 -0400 (14464ed87)
+update submodule contrib/gana - Thien-Thi Nguyen
+
+Mon, 9 May 2022 10:49:46 +0200 (c42fd9b03)
+DHT: Move block type definitions to GANA - Martin Schanzenbach
+
+Mon, 9 May 2022 09:00:52 +0200 (2c589fcdf)
+FCFSD: Allow configuration of relative expiration time of added records - Martin Schanzenbach
+
+Tue, 26 Apr 2022 17:14:00 +0200 (132e09b6e)
+gnunet-crypto-tvg: edx25519 test vectors - Florian Dold
+
+Tue, 26 Apr 2022 17:13:36 +0200 (8d8e7d3da)
+edx25519: use SHA512/256 instead of SHA256 - Florian Dold
+
+Tue, 19 Apr 2022 14:53:07 +0200 (709e85100)
+edx25519: KDF call - Florian Dold
+
+Tue, 19 Apr 2022 14:43:30 +0200 (0487df9a0)
+edx25519: use libsodium, tweak KDF call - Florian Dold
+
+Sat, 9 Apr 2022 13:15:32 +0200 (25e750421)
+BUILD: Fix mysql detection as reported on ML - Martin Schanzenbach
+
+Tue, 5 Apr 2022 17:15:10 +0200 (2ea635b60)
+add flag to return 'not present' status from GNUNET_JSON_spec_mark_optional - Christian Grothoff
+
+Mon, 4 Apr 2022 22:49:41 +0200 (a15b424cb)
+UTIL: OpenBSD does not implement unsafe srandom - Martin Schanzenbach
+
+Mon, 4 Apr 2022 19:44:45 +0200 (aa3b3f27f)
+BUILD: Simplify mhd detection - Martin Schanzenbac
+
 Tue, 29 Mar 2022 10:11:15 +0200 (a9b18aa64)
 GNS: Do not fail on assertions in block processing - Martin Schanzenbach
 

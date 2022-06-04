@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2022-04-01 08:42+0200\n"
+"POT-Creation-Date: 2022-05-24 20:46+0200\n"
 "PO-Revision-Date: 2015-03-08 16:16+0100\n"
 "Last-Translator: Mario Blättermann <mario.blaettermann@gmail.com>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -32,7 +32,7 @@ msgid "Issuer public key `%s' is not well-formed\n"
 msgstr ""
 
 #: src/abd/gnunet-abd.c:558 src/abd/gnunet-service-abd.c:1751
-#: src/namestore/gnunet-namestore-fcfsd.c:1080
+#: src/namestore/gnunet-namestore-fcfsd.c:1096
 #: src/namestore/gnunet-namestore.c:951
 #, fuzzy, c-format
 msgid "Failed to connect to namestore\n"
@@ -395,14 +395,14 @@ msgid "Require valid port number for service `%s' in configuration!\n"
 msgstr ""
 
 #: src/arm/gnunet-service-arm.c:452 src/transport/plugin_transport_tcp.c:1163
-#: src/transport/tcp_service_legacy.c:634 src/util/client.c:527
+#: src/transport/tcp_service_legacy.c:634 src/util/client.c:529
 #: src/util/service.c:1133
 #, c-format
 msgid "UNIXPATH `%s' too long, maximum length is %llu\n"
 msgstr ""
 
 #: src/arm/gnunet-service-arm.c:456 src/transport/plugin_transport_tcp.c:1167
-#: src/transport/tcp_service_legacy.c:638 src/util/client.c:532
+#: src/transport/tcp_service_legacy.c:638 src/util/client.c:534
 #: src/util/service.c:1137
 #, c-format
 msgid "Using `%s' instead\n"
@@ -3732,12 +3732,12 @@ msgstr ""
 msgid "Invalid port number %u\n"
 msgstr "Ungültige Parameter. Abbruch.\n"
 
-#: src/gns/gnunet-bcd.c:614 src/namestore/gnunet-namestore-fcfsd.c:1113
+#: src/gns/gnunet-bcd.c:614 src/namestore/gnunet-namestore-fcfsd.c:1129
 #, fuzzy
 msgid "Unable to set up the daemon\n"
 msgstr "Zustellung der Nachricht `%s' fehlgeschlagen.\n"
 
-#: src/gns/gnunet-bcd.c:637 src/namestore/gnunet-namestore-fcfsd.c:987
+#: src/gns/gnunet-bcd.c:637 src/namestore/gnunet-namestore-fcfsd.c:992
 #, fuzzy
 msgid "Failed to start HTTP server\n"
 msgstr "Fehler beim Senden einer `%s' Anfrage an den SMTP Server.\n"
@@ -4701,7 +4701,7 @@ msgstr "Dateiformat fehlerhaft (kein GNUnet Verzeichnis?)\n"
 msgid "Identity REST API initialized\n"
 msgstr ""
 
-#: src/json/json.c:120
+#: src/json/json.c:130
 #, fuzzy, c-format
 msgid "Failed to parse JSON in option `%s': %s (%s)\n"
 msgstr "Datei wurde als `%s' gespeichert.\n"
@@ -4817,101 +4817,106 @@ msgstr "Sqlite-Datenbank läuft\n"
 msgid "Failed to setup database at `%s'\n"
 msgstr "Es konnte keine Verbindung mit gnunetd hergestellt werden.\n"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:368
+#: src/namestore/gnunet-namestore-fcfsd.c:373
 #, fuzzy
 msgid "can not search the namestore"
 msgstr "GNUnet testbed Controller starten."
 
-#: src/namestore/gnunet-namestore-fcfsd.c:422
-#: src/namestore/gnunet-namestore-fcfsd.c:563
+#: src/namestore/gnunet-namestore-fcfsd.c:427
+#: src/namestore/gnunet-namestore-fcfsd.c:568
 #, fuzzy
 msgid "unable to scan namestore"
 msgstr "Es konnte keine Verbindung mit gnunetd hergestellt werden.\n"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:450
+#: src/namestore/gnunet-namestore-fcfsd.c:455
 #, fuzzy, c-format
 msgid "Failed to create record for `%s': %s\n"
 msgstr "Fehler beim Lesen der Freunde-Liste von `%s'\n"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:462
+#: src/namestore/gnunet-namestore-fcfsd.c:467
 #, fuzzy
 msgid "no errors"
 msgstr "Unbekannter Fehler"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:498
+#: src/namestore/gnunet-namestore-fcfsd.c:503
 #, c-format
 msgid "The requested key `%s' exists as `%s'\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-fcfsd.c:505
+#: src/namestore/gnunet-namestore-fcfsd.c:510
 msgid "key exists"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-fcfsd.c:522
+#: src/namestore/gnunet-namestore-fcfsd.c:527
 #, fuzzy
 msgid "Error creating record data\n"
 msgstr "=\tFehler beim Lesen des Verzeichnisses.\n"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:526
+#: src/namestore/gnunet-namestore-fcfsd.c:531
 #, fuzzy
 msgid "unable to store record"
 msgstr "Zustellung der Nachricht `%s' fehlgeschlagen.\n"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:597
+#: src/namestore/gnunet-namestore-fcfsd.c:602
 #, c-format
 msgid "Requested name `%s' exists with `%u' records\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-fcfsd.c:603
+#: src/namestore/gnunet-namestore-fcfsd.c:608
 msgid "name exists\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-fcfsd.c:789
+#: src/namestore/gnunet-namestore-fcfsd.c:794
 msgid "unable to process submitted data"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-fcfsd.c:800
+#: src/namestore/gnunet-namestore-fcfsd.c:805
 msgid "the submitted data is invalid"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-fcfsd.c:819
+#: src/namestore/gnunet-namestore-fcfsd.c:824
 #, fuzzy
 msgid "invalid parameters"
 msgstr "Ungültiges Argument »%s«\n"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:836
+#: src/namestore/gnunet-namestore-fcfsd.c:841
 #, fuzzy
 msgid "invalid name"
 msgstr "Ungültiges Argument »%s«\n"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:847
+#: src/namestore/gnunet-namestore-fcfsd.c:852
 #, fuzzy, c-format
 msgid "Unable to parse key %s\n"
 msgstr "Dateiformat fehlerhaft (kein GNUnet Verzeichnis?)\n"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:851
+#: src/namestore/gnunet-namestore-fcfsd.c:856
 #, fuzzy
 msgid "unable to parse key"
 msgstr "Dateiformat fehlerhaft (kein GNUnet Verzeichnis?)\n"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:962
+#: src/namestore/gnunet-namestore-fcfsd.c:967
 msgid "No ego configured for `fcfsd` subsystem\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-fcfsd.c:1071
+#: src/namestore/gnunet-namestore-fcfsd.c:1076
+#, fuzzy
+msgid "No expiration specified for records.\n"
+msgstr "Keine Kommandos angegeben.\n"
+
+#: src/namestore/gnunet-namestore-fcfsd.c:1087
 msgid "No port specified, using default value\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-fcfsd.c:1089
+#: src/namestore/gnunet-namestore-fcfsd.c:1105
 #, fuzzy
 msgid "Failed to connect to identity\n"
 msgstr "Es konnte keine Verbindung mit gnunetd hergestellt werden.\n"
 
-#: src/namestore/gnunet-namestore-fcfsd.c:1136
+#: src/namestore/gnunet-namestore-fcfsd.c:1152
 msgid "name of the zone managed by FCFSD"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-fcfsd.c:1145
+#: src/namestore/gnunet-namestore-fcfsd.c:1161
 msgid "GNU Name System First-Come-First-Served name registration service"
 msgstr ""
 
@@ -5125,17 +5130,17 @@ msgstr ""
 msgid "Failed to replicate block in namecache: %s\n"
 msgstr ""
 
-#: src/namestore/gnunet-service-namestore.c:1559
+#: src/namestore/gnunet-service-namestore.c:1557
 #, fuzzy
 msgid "Error normalizing name."
 msgstr "Fehler beim Anlegen des Tunnels\n"
 
-#: src/namestore/gnunet-service-namestore.c:1582
+#: src/namestore/gnunet-service-namestore.c:1580
 #, fuzzy
 msgid "Error deserializing records."
 msgstr "=\tFehler beim Lesen des Verzeichnisses.\n"
 
-#: src/namestore/gnunet-service-namestore.c:1691
+#: src/namestore/gnunet-service-namestore.c:1689
 #, fuzzy
 msgid "Store failed"
 msgstr "Verbindung fehlgeschlagen: %s\n"
@@ -5648,16 +5653,16 @@ msgstr ""
 msgid "Could not load database backend `%s'\n"
 msgstr "`%s' konnte nicht aufgelöst werden: %s\n"
 
-#: src/peerstore/peerstore_api.c:594 src/peerstore/peerstore_api.c:642
+#: src/peerstore/peerstore_api.c:603 src/peerstore/peerstore_api.c:651
 msgid "Unexpected iteration response, this should not happen.\n"
 msgstr ""
 
-#: src/peerstore/peerstore_api.c:656
+#: src/peerstore/peerstore_api.c:665
 #, fuzzy
 msgid "Received a malformed response from service."
 msgstr "Beschädigte Antwort auf `%s' von Knoten `%s' empfangen.\n"
 
-#: src/peerstore/peerstore_api.c:781
+#: src/peerstore/peerstore_api.c:790
 msgid "Received a watch result for a non existing watch.\n"
 msgstr ""
 
@@ -6885,7 +6890,7 @@ msgstr ""
 
 #: src/transport/gnunet-communicator-tcp.c:3338
 #: src/transport/gnunet-communicator-udp.c:3867
-#: src/transport/gnunet-service-tng.c:10926
+#: src/transport/gnunet-service-tng.c:11042
 #: src/transport/gnunet-service-transport.c:2627
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr ""
@@ -8079,11 +8084,11 @@ msgstr "Ungültiger Parameter: `%s'\n"
 msgid "Failed to serialize metadata `%s'"
 msgstr "Fehler beim Lesen der Freunde-Liste von `%s'\n"
 
-#: src/util/client.c:747 src/util/client.c:938
+#: src/util/client.c:749 src/util/client.c:940
 msgid "not a valid filename"
 msgstr ""
 
-#: src/util/client.c:1104
+#: src/util/client.c:1106
 #, c-format
 msgid "Need a non-empty hostname for service `%s'.\n"
 msgstr ""
@@ -8259,7 +8264,7 @@ msgstr "RSA Signaturüberprüfung fehlgeschlagen bei %s:%d: %s\n"
 msgid "Could not load peer's private key\n"
 msgstr "Anwendung `%s' konnte nicht initialisiert werden.\n"
 
-#: src/util/crypto_random.c:381
+#: src/util/crypto_random.c:385
 #, c-format
 msgid "libgcrypt has not the expected version (version %s is required).\n"
 msgstr ""
@@ -8497,7 +8502,7 @@ msgstr ""
 msgid "Manipulate GNUnet configuration files"
 msgstr "GNUnet-Konfigurationsdateien bearbeiten"
 
-#: src/util/gnunet-crypto-tvg.c:1483
+#: src/util/gnunet-crypto-tvg.c:1522
 msgid "verify a test vector from stdin"
 msgstr ""
 
