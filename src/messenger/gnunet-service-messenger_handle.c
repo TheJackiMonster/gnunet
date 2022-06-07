@@ -31,8 +31,8 @@
 #include "messenger_api_util.h"
 
 struct GNUNET_MESSENGER_SrvHandle*
-create_handle (struct GNUNET_MESSENGER_Service *service,
-               struct GNUNET_MQ_Handle *mq)
+create_srv_handle (struct GNUNET_MESSENGER_Service *service,
+                   struct GNUNET_MQ_Handle *mq)
 {
   GNUNET_assert((service) && (mq));
 
@@ -60,12 +60,12 @@ iterate_free_member_ids (void *cls,
 }
 
 void
-destroy_handle (struct GNUNET_MESSENGER_SrvHandle *handle)
+destroy_srv_handle (struct GNUNET_MESSENGER_SrvHandle *handle)
 {
   GNUNET_assert(handle);
 
   if (handle->service->dir)
-    save_handle_configuration (handle);
+    save_srv_handle_configuration (handle);
 
   if (handle->name)
   {
@@ -83,9 +83,9 @@ destroy_handle (struct GNUNET_MESSENGER_SrvHandle *handle)
 }
 
 void
-get_handle_data_subdir (const struct GNUNET_MESSENGER_SrvHandle *handle,
-                        const char *name,
-                        char **dir)
+get_srv_handle_data_subdir (const struct GNUNET_MESSENGER_SrvHandle *handle,
+                            const char *name,
+                            char **dir)
 {
   GNUNET_assert((handle) && (dir));
 
@@ -124,8 +124,8 @@ create_handle_member_id (const struct GNUNET_MESSENGER_SrvHandle *handle,
 }
 
 const struct GNUNET_ShortHashCode*
-get_handle_member_id (const struct GNUNET_MESSENGER_SrvHandle *handle,
-                      const struct GNUNET_HashCode *key)
+get_srv_handle_member_id (const struct GNUNET_MESSENGER_SrvHandle *handle,
+                          const struct GNUNET_HashCode *key)
 {
   GNUNET_assert((handle) && (key));
 
@@ -133,9 +133,9 @@ get_handle_member_id (const struct GNUNET_MESSENGER_SrvHandle *handle,
 }
 
 int
-change_handle_member_id (struct GNUNET_MESSENGER_SrvHandle *handle,
-                         const struct GNUNET_HashCode *key,
-                         const struct GNUNET_ShortHashCode *unique_id)
+change_srv_handle_member_id (struct GNUNET_MESSENGER_SrvHandle *handle,
+                             const struct GNUNET_HashCode *key,
+                             const struct GNUNET_ShortHashCode *unique_id)
 {
   GNUNET_assert((handle) && (key) && (unique_id));
 
@@ -214,7 +214,7 @@ change_handle_ego (struct GNUNET_MESSENGER_SrvHandle *handle,
 
   handle->ego = ego;
 
-  ego = get_handle_ego (handle);
+  ego = get_srv_handle_ego (handle);
 
   const uint16_t length = GNUNET_IDENTITY_key_get_length(&(ego->pub));
 
@@ -244,14 +244,14 @@ iterate_send_message (void *cls,
 {
   struct GNUNET_MESSENGER_MessageHandle *msg_handle = cls;
 
-  send_handle_message (msg_handle->handle, key, msg_handle->message);
+  send_srv_handle_message (msg_handle->handle, key, msg_handle->message);
 
   return GNUNET_YES;
 }
 
 void
-set_handle_ego (struct GNUNET_MESSENGER_SrvHandle *handle,
-                const struct GNUNET_MESSENGER_Ego *ego)
+set_srv_handle_ego (struct GNUNET_MESSENGER_SrvHandle *handle,
+                    const struct GNUNET_MESSENGER_Ego *ego)
 {
   GNUNET_assert((handle) && (ego));
 
@@ -268,7 +268,7 @@ set_handle_ego (struct GNUNET_MESSENGER_SrvHandle *handle,
 }
 
 const struct GNUNET_MESSENGER_Ego*
-get_handle_ego (const struct GNUNET_MESSENGER_SrvHandle *handle)
+get_srv_handle_ego (const struct GNUNET_MESSENGER_SrvHandle *handle)
 {
   GNUNET_assert(handle);
 
@@ -302,12 +302,12 @@ callback_setup_handle_name (void *cls,
   change_handle_ego (handle, ego);
 
   if (handle->service->dir)
-    load_handle_configuration (handle);
+    load_srv_handle_configuration (handle);
 }
 
 void
-setup_handle_name (struct GNUNET_MESSENGER_SrvHandle *handle,
-                   const char *name)
+setup_srv_handle_name (struct GNUNET_MESSENGER_SrvHandle *handle,
+                       const char *name)
 {
   GNUNET_assert(handle);
 
@@ -336,7 +336,7 @@ callback_update_handle (void *cls,
 }
 
 void
-update_handle (struct GNUNET_MESSENGER_SrvHandle *handle)
+update_srv_handle (struct GNUNET_MESSENGER_SrvHandle *handle)
 {
   GNUNET_assert (handle);
 
@@ -369,10 +369,10 @@ callback_set_handle_name (void *cls,
   struct GNUNET_MESSENGER_EgoStore *store = get_service_ego_store(handle->service);
 
   char *old_dir;
-  get_handle_data_subdir (handle, handle->name, &old_dir);
+  get_srv_handle_data_subdir (handle, handle->name, &old_dir);
 
   char *new_dir;
-  get_handle_data_subdir (handle, name, &new_dir);
+  get_srv_handle_data_subdir (handle, name, &new_dir);
 
   if ((GNUNET_YES == GNUNET_DISK_directory_test (new_dir, GNUNET_NO)) &&
       (GNUNET_OK != GNUNET_DISK_directory_remove(new_dir)))
@@ -403,8 +403,8 @@ free_dirs:
 }
 
 void
-set_handle_name (struct GNUNET_MESSENGER_SrvHandle *handle,
-                 const char *name)
+set_srv_handle_name (struct GNUNET_MESSENGER_SrvHandle *handle,
+                     const char *name)
 {
   GNUNET_assert(handle);
 
@@ -424,50 +424,50 @@ set_handle_name (struct GNUNET_MESSENGER_SrvHandle *handle,
 }
 
 int
-open_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
-                  const struct GNUNET_HashCode *key)
+open_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
+                      const struct GNUNET_HashCode *key)
 {
   GNUNET_assert((handle) && (key));
 
-  if ((!get_handle_member_id (handle, key)) && (GNUNET_YES != create_handle_member_id (handle, key)))
+  if ((!get_srv_handle_member_id (handle, key)) && (GNUNET_YES != create_handle_member_id (handle, key)))
     return GNUNET_NO;
 
   return open_service_room (handle->service, handle, key);
 }
 
 int
-entry_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
-                   const struct GNUNET_PeerIdentity *door,
-                   const struct GNUNET_HashCode *key)
+entry_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
+                       const struct GNUNET_PeerIdentity *door,
+                       const struct GNUNET_HashCode *key)
 {
   GNUNET_assert((handle) && (door) && (key));
 
-  if ((!get_handle_member_id (handle, key)) && (GNUNET_YES != create_handle_member_id (handle, key)))
+  if ((!get_srv_handle_member_id (handle, key)) && (GNUNET_YES != create_handle_member_id (handle, key)))
     return GNUNET_NO;
 
   return entry_service_room (handle->service, handle, door, key);
 }
 
 int
-close_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
-                   const struct GNUNET_HashCode *key)
+close_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
+                       const struct GNUNET_HashCode *key)
 {
   GNUNET_assert((handle) && (key));
 
-  if (!get_handle_member_id (handle, key))
+  if (!get_srv_handle_member_id (handle, key))
     return GNUNET_NO;
 
   return close_service_room (handle->service, handle, key);
 }
 
 int
-send_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
-                     const struct GNUNET_HashCode *key,
-                     const struct GNUNET_MESSENGER_Message *message)
+send_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
+                         const struct GNUNET_HashCode *key,
+                         const struct GNUNET_MESSENGER_Message *message)
 {
   GNUNET_assert((handle) && (key) && (message));
 
-  const struct GNUNET_ShortHashCode *id = get_handle_member_id (handle, key);
+  const struct GNUNET_ShortHashCode *id = get_srv_handle_member_id (handle, key);
 
   if (!id)
   {
@@ -487,7 +487,7 @@ send_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
 
   GNUNET_memcpy(&(msg->header.sender_id), id, sizeof(*id));
 
-  return send_room_message (room, handle, msg);
+  return send_srv_room_message (room, handle, msg);
 }
 
 static const struct GNUNET_HashCode*
@@ -506,15 +506,15 @@ get_handle_member_session (struct GNUNET_MESSENGER_SrvHandle *handle,
 {
   GNUNET_assert((handle) && (room) && (key) && (handle->service));
 
-  const struct GNUNET_ShortHashCode *id = get_handle_member_id(handle, key);
+  const struct GNUNET_ShortHashCode *id = get_srv_handle_member_id(handle, key);
 
   if (!id)
     return NULL;
 
-  struct GNUNET_MESSENGER_MemberStore *store = get_room_member_store(room);
+  struct GNUNET_MESSENGER_MemberStore *store = get_srv_room_member_store(room);
   struct GNUNET_MESSENGER_Member *member = get_store_member(store, id);
 
-  const struct GNUNET_MESSENGER_Ego *ego = get_handle_ego(handle);
+  const struct GNUNET_MESSENGER_Ego *ego = get_srv_handle_ego(handle);
 
   if (!ego)
     return NULL;
@@ -523,17 +523,17 @@ get_handle_member_session (struct GNUNET_MESSENGER_SrvHandle *handle,
 }
 
 void
-notify_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
-                       struct GNUNET_MESSENGER_SrvRoom *room,
-                       const struct GNUNET_MESSENGER_MemberSession *session,
-                       const struct GNUNET_MESSENGER_Message *message,
-                       const struct GNUNET_HashCode *hash)
+notify_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
+                           struct GNUNET_MESSENGER_SrvRoom *room,
+                           const struct GNUNET_MESSENGER_MemberSession *session,
+                           const struct GNUNET_MESSENGER_Message *message,
+                           const struct GNUNET_HashCode *hash)
 {
   GNUNET_assert((handle) && (room) && (session) && (message) && (hash));
 
-  const struct GNUNET_HashCode *key = get_room_key(room);
+  const struct GNUNET_HashCode *key = get_srv_room_key(room);
 
-  if ((!handle->mq) || (!get_handle_member_id (handle, key)))
+  if ((!handle->mq) || (!get_srv_handle_member_id (handle, key)))
   {
     GNUNET_log(GNUNET_ERROR_TYPE_WARNING, "Notifying client about message requires membership!\n");
     return;
@@ -554,7 +554,7 @@ notify_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
   {
     private_message = copy_message(message);
 
-    if (GNUNET_YES != decrypt_message(private_message, &(get_handle_ego(handle)->priv)))
+    if (GNUNET_YES != decrypt_message(private_message, &(get_srv_handle_ego(handle)->priv)))
     {
       destroy_message(private_message);
       private_message = NULL;
@@ -612,7 +612,7 @@ callback_scan_for_rooms (void *cls,
 
     if ((GNUNET_OK == GNUNET_CONFIGURATION_get_data (cfg, "room", "key", &key, sizeof(key))) &&
         (GNUNET_OK == GNUNET_CONFIGURATION_get_data (cfg, "room", "member_id", &member_id, sizeof(member_id))))
-      change_handle_member_id (handle, &key, &member_id);
+      change_srv_handle_member_id (handle, &key, &member_id);
   }
 
   GNUNET_CONFIGURATION_destroy (cfg);
@@ -620,12 +620,12 @@ callback_scan_for_rooms (void *cls,
 }
 
 void
-load_handle_configuration (struct GNUNET_MESSENGER_SrvHandle *handle)
+load_srv_handle_configuration (struct GNUNET_MESSENGER_SrvHandle *handle)
 {
   GNUNET_assert(handle);
 
   char *id_dir;
-  get_handle_data_subdir (handle, handle->name, &id_dir);
+  get_srv_handle_data_subdir (handle, handle->name, &id_dir);
 
   if (GNUNET_YES == GNUNET_DISK_directory_test (id_dir, GNUNET_YES))
   {
@@ -650,7 +650,7 @@ iterate_save_rooms (void *cls,
   struct GNUNET_ShortHashCode *member_id = value;
 
   char *id_dir;
-  get_handle_data_subdir (handle, handle->name, &id_dir);
+  get_srv_handle_data_subdir (handle, handle->name, &id_dir);
 
   char *filename;
   GNUNET_asprintf (&filename, "%s%s%c%s.cfg", id_dir, "rooms", DIR_SEPARATOR, GNUNET_h2s (key));
@@ -687,12 +687,12 @@ iterate_save_rooms (void *cls,
 }
 
 void
-save_handle_configuration (struct GNUNET_MESSENGER_SrvHandle *handle)
+save_srv_handle_configuration (struct GNUNET_MESSENGER_SrvHandle *handle)
 {
   GNUNET_assert(handle);
 
   char *id_dir;
-  get_handle_data_subdir (handle, handle->name, &id_dir);
+  get_srv_handle_data_subdir (handle, handle->name, &id_dir);
 
   if ((GNUNET_YES == GNUNET_DISK_directory_test (id_dir, GNUNET_NO)) || (GNUNET_OK
       == GNUNET_DISK_directory_create (id_dir)))

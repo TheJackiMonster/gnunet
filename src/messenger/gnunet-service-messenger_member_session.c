@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2021 GNUnet e.V.
+   Copyright (C) 2021--2022 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -101,7 +101,7 @@ check_member_session_completion (struct GNUNET_MESSENGER_MemberSession *session)
 
   add_to_list_messages(&level, end);
 
-  struct GNUNET_MESSENGER_MessageStore *store = get_room_message_store(session->member->store->room);
+  struct GNUNET_MESSENGER_MessageStore *store = get_srv_room_message_store(session->member->store->room);
 
   struct GNUNET_MESSENGER_ListMessages list;
   init_list_messages(&list);

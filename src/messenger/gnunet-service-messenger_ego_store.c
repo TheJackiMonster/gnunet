@@ -132,7 +132,7 @@ iterate_create_ego (void *cls,
                     void *value)
 {
   struct GNUNET_MESSENGER_SrvHandle *handle = value;
-  set_handle_ego (handle, (struct GNUNET_MESSENGER_Ego*) cls);
+  set_srv_handle_ego (handle, (struct GNUNET_MESSENGER_Ego*) cls);
   return GNUNET_YES;
 }
 

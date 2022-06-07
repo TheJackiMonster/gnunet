@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2022 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -89,7 +89,7 @@ struct GNUNET_MESSENGER_SrvRoom
  * @return New room
  */
 struct GNUNET_MESSENGER_SrvRoom*
-create_room (struct GNUNET_MESSENGER_SrvHandle *handle,
+create_srv_room (struct GNUNET_MESSENGER_SrvHandle *handle,
              const struct GNUNET_HashCode *key);
 
 /**
@@ -102,7 +102,7 @@ create_room (struct GNUNET_MESSENGER_SrvHandle *handle,
  * @param[in] deletion Flag to indicate context of destruction
  */
 void
-destroy_room (struct GNUNET_MESSENGER_SrvRoom *room,
+destroy_srv_room (struct GNUNET_MESSENGER_SrvRoom *room,
               int deletion);
 
 /**
@@ -112,7 +112,7 @@ destroy_room (struct GNUNET_MESSENGER_SrvRoom *room,
  * @return Member store
  */
 struct GNUNET_MESSENGER_MemberStore*
-get_room_member_store (struct GNUNET_MESSENGER_SrvRoom *room);
+get_srv_room_member_store (struct GNUNET_MESSENGER_SrvRoom *room);
 
 /**
  * Returns the used message store of a given <i>room</i>.
@@ -121,7 +121,7 @@ get_room_member_store (struct GNUNET_MESSENGER_SrvRoom *room);
  * @return Message store
  */
 struct GNUNET_MESSENGER_MessageStore*
-get_room_message_store (struct GNUNET_MESSENGER_SrvRoom *room);
+get_srv_room_message_store (struct GNUNET_MESSENGER_SrvRoom *room);
 
 /**
  * Returns the used operation store of a given <i>room</i>.
@@ -130,7 +130,7 @@ get_room_message_store (struct GNUNET_MESSENGER_SrvRoom *room);
  * @return Operation store
  */
 struct GNUNET_MESSENGER_OperationStore*
-get_room_operation_store (struct GNUNET_MESSENGER_SrvRoom *room);
+get_srv_room_operation_store (struct GNUNET_MESSENGER_SrvRoom *room);
 
 /**
  * Tries to open a <i>room</i> for a given <i>handle</i>. If the room has already been opened, the handle
@@ -145,8 +145,8 @@ get_room_operation_store (struct GNUNET_MESSENGER_SrvRoom *room);
  * @return #GNUNET_YES on success, #GNUNET_NO on failure.
  */
 int
-open_room (struct GNUNET_MESSENGER_SrvRoom *room,
-           struct GNUNET_MESSENGER_SrvHandle *handle);
+open_srv_room (struct GNUNET_MESSENGER_SrvRoom *room,
+               struct GNUNET_MESSENGER_SrvHandle *handle);
 
 /**
  * Connects a tunnel to a hosting peer of a <i>room</i> through a so called <i>door</i> which is represented by
@@ -159,9 +159,9 @@ open_room (struct GNUNET_MESSENGER_SrvRoom *room,
  * @return #GNUNET_YES on success, #GNUNET_NO on failure.
  */
 int
-enter_room_at (struct GNUNET_MESSENGER_SrvRoom *room,
-               struct GNUNET_MESSENGER_SrvHandle *handle,
-               const struct GNUNET_PeerIdentity *door);
+enter_srv_room_at (struct GNUNET_MESSENGER_SrvRoom *room,
+                   struct GNUNET_MESSENGER_SrvHandle *handle,
+                   const struct GNUNET_PeerIdentity *door);
 
 /**
  * Packs a <i>message</i> depending on the selected <i>mode</i> into a newly allocated envelope. It will set the
@@ -181,11 +181,11 @@ enter_room_at (struct GNUNET_MESSENGER_SrvRoom *room,
  * @return New envelope or NULL
  */
 struct GNUNET_MQ_Envelope*
-pack_room_message (const struct GNUNET_MESSENGER_SrvRoom *room,
-                   const struct GNUNET_MESSENGER_SrvHandle *handle,
-                   struct GNUNET_MESSENGER_Message *message,
-                   struct GNUNET_HashCode *hash,
-                   int mode);
+pack_srv_room_message (const struct GNUNET_MESSENGER_SrvRoom *room,
+                       const struct GNUNET_MESSENGER_SrvHandle *handle,
+                       struct GNUNET_MESSENGER_Message *message,
+                       struct GNUNET_HashCode *hash,
+                       int mode);
 
 /**
  * Sends a <i>message</i> from a given <i>handle</i> into a <i>room</i>. The <i>hash</i> parameter will be
@@ -203,9 +203,9 @@ pack_room_message (const struct GNUNET_MESSENGER_SrvRoom *room,
  * @return #GNUNET_YES on success, #GNUNET_NO or #GNUNET_SYSERR otherwise.
  */
 int
-send_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
-                   struct GNUNET_MESSENGER_SrvHandle *handle,
-                   struct GNUNET_MESSENGER_Message *message);
+send_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
+                       struct GNUNET_MESSENGER_SrvHandle *handle,
+                       struct GNUNET_MESSENGER_Message *message);
 
 /**
  * Forwards a <i>message</i> with a given <i>hash</i> to a specific <i>tunnel</i> inside of a <i>room</i>.
@@ -216,10 +216,10 @@ send_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
  * @param[in] hash Hash of message
  */
 void
-forward_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
-                      struct GNUNET_MESSENGER_SrvTunnel *tunnel,
-                      struct GNUNET_MESSENGER_Message *message,
-                      const struct GNUNET_HashCode *hash);
+forward_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
+                          struct GNUNET_MESSENGER_SrvTunnel *tunnel,
+                          struct GNUNET_MESSENGER_Message *message,
+                          const struct GNUNET_HashCode *hash);
 
 /**
  * Checks the current state of opening a given <i>room</i> from this peer and re-publishes it
@@ -230,8 +230,8 @@ forward_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
  * @param[in/out] tunnel Tunnel
  */
 void
-check_room_peer_status (struct GNUNET_MESSENGER_SrvRoom *room,
-                        struct GNUNET_MESSENGER_SrvTunnel *tunnel);
+check_srv_room_peer_status (struct GNUNET_MESSENGER_SrvRoom *room,
+                            struct GNUNET_MESSENGER_SrvTunnel *tunnel);
 
 /**
  * Reduces all current forks inside of the message history of a <i>room</i> to one remaining last message
@@ -241,8 +241,8 @@ check_room_peer_status (struct GNUNET_MESSENGER_SrvRoom *room,
  * @param[in/out] handle Handle
  */
 void
-merge_room_last_messages (struct GNUNET_MESSENGER_SrvRoom *room,
-                          struct GNUNET_MESSENGER_SrvHandle *handle);
+merge_srv_room_last_messages (struct GNUNET_MESSENGER_SrvRoom *room,
+                              struct GNUNET_MESSENGER_SrvHandle *handle);
 
 /**
  * Deletes a message from the <i>room</i> with a given <i>hash</i> in a specific <i>delay</i> if
@@ -255,10 +255,10 @@ merge_room_last_messages (struct GNUNET_MESSENGER_SrvRoom *room,
  * @return #GNUNET_YES on success, #GNUNET_NO if permission gets denied, #GNUNET_SYSERR on operation failure
  */
 int
-delete_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
-                     struct GNUNET_MESSENGER_MemberSession *session,
-                     const struct GNUNET_HashCode *hash,
-                     const struct GNUNET_TIME_Relative delay);
+delete_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
+                         struct GNUNET_MESSENGER_MemberSession *session,
+                         const struct GNUNET_HashCode *hash,
+                         const struct GNUNET_TIME_Relative delay);
 
 /**
  * Returns the CADET handle from a rooms service.
@@ -267,7 +267,7 @@ delete_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
  * @return CADET handle
  */
 struct GNUNET_CADET_Handle*
-get_room_cadet (struct GNUNET_MESSENGER_SrvRoom *room);
+get_srv_room_cadet (struct GNUNET_MESSENGER_SrvRoom *room);
 
 /**
  * Returns the shared secret you need to access a <i>room</i>.
@@ -276,7 +276,7 @@ get_room_cadet (struct GNUNET_MESSENGER_SrvRoom *room);
  * @return Shared secret
  */
 const struct GNUNET_HashCode*
-get_room_key (const struct GNUNET_MESSENGER_SrvRoom *room);
+get_srv_room_key (const struct GNUNET_MESSENGER_SrvRoom *room);
 
 /**
  * Returns a tunnel inside of a <i>room</i> leading towards a given <i>peer</i> if such a tunnel exists,
@@ -287,8 +287,8 @@ get_room_key (const struct GNUNET_MESSENGER_SrvRoom *room);
  * @return Tunnel or NULL
  */
 const struct GNUNET_MESSENGER_SrvTunnel*
-get_room_tunnel (const struct GNUNET_MESSENGER_SrvRoom *room,
-                 const struct GNUNET_PeerIdentity *peer);
+get_srv_room_tunnel (const struct GNUNET_MESSENGER_SrvRoom *room,
+                     const struct GNUNET_PeerIdentity *peer);
 
 /**
  * Method called whenever a <i>message</i> is found during a request in a <i>room</i>.
@@ -321,11 +321,11 @@ typedef void (GNUNET_MESSENGER_MessageRequestCallback) (
  * @return #GNUNET_YES if the request could be processed, otherwise #GNUNET_NO
  */
 int
-request_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
-                      const struct GNUNET_HashCode *hash,
-                      const struct GNUNET_MESSENGER_MemberSession *session,
-                      GNUNET_MESSENGER_MessageRequestCallback callback,
-                      void* cls);
+request_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
+                          const struct GNUNET_HashCode *hash,
+                          const struct GNUNET_MESSENGER_MemberSession *session,
+                          GNUNET_MESSENGER_MessageRequestCallback callback,
+                          void* cls);
 
 /**
  * Checks for potential collisions with member ids and solves them changing active handles ids if they
@@ -337,10 +337,10 @@ request_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
  * @param[in] timestamp Timestamp
  */
 void
-solve_room_member_collisions (struct GNUNET_MESSENGER_SrvRoom *room,
-                              const struct GNUNET_IDENTITY_PublicKey *public_key,
-                              const struct GNUNET_ShortHashCode *member_id,
-                              struct GNUNET_TIME_Absolute timestamp);
+solve_srv_room_member_collisions (struct GNUNET_MESSENGER_SrvRoom *room,
+                                  const struct GNUNET_IDENTITY_PublicKey *public_key,
+                                  const struct GNUNET_ShortHashCode *member_id,
+                                  struct GNUNET_TIME_Absolute timestamp);
 
 /**
  * Rebuilds the decentralized structure for a <i>room</i> by ensuring all required connections are made
@@ -349,7 +349,7 @@ solve_room_member_collisions (struct GNUNET_MESSENGER_SrvRoom *room,
  * @param[in/out] room Room
  */
 void
-rebuild_room_basement_structure (struct GNUNET_MESSENGER_SrvRoom *room);
+rebuild_srv_room_basement_structure (struct GNUNET_MESSENGER_SrvRoom *room);
 
 /**
  * Loads the local configuration for a given <i>room</i> of a service which contains the last messages hash
@@ -358,7 +358,7 @@ rebuild_room_basement_structure (struct GNUNET_MESSENGER_SrvRoom *room);
  * @param[out] room Room
  */
 void
-load_room (struct GNUNET_MESSENGER_SrvRoom *room);
+load_srv_room (struct GNUNET_MESSENGER_SrvRoom *room);
 
 /**
  * Saves the configuration for a given <i>room</i> of a service which contains the last messages hash
@@ -367,7 +367,7 @@ load_room (struct GNUNET_MESSENGER_SrvRoom *room);
  * @param[in] room Room
  */
 void
-save_room (struct GNUNET_MESSENGER_SrvRoom *room);
+save_srv_room (struct GNUNET_MESSENGER_SrvRoom *room);
 
 /**
  * Removes the configuration for a given <i>room</i> of a service.
@@ -375,6 +375,6 @@ save_room (struct GNUNET_MESSENGER_SrvRoom *room);
  * @param[in] room Room
  */
 void
-remove_room (struct GNUNET_MESSENGER_SrvRoom *room);
+remove_srv_room (struct GNUNET_MESSENGER_SrvRoom *room);
 
 #endif //GNUNET_SERVICE_MESSENGER_ROOM_H

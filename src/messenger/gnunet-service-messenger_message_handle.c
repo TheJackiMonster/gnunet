@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2022 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -43,12 +43,12 @@ handle_message_join (struct GNUNET_MESSENGER_SrvRoom *room,
                      const struct GNUNET_HashCode *hash)
 {
   GNUNET_log(GNUNET_ERROR_TYPE_INFO, "Member (%s) joins room (%s).\n",
-             GNUNET_sh2s (&(message->header.sender_id)), GNUNET_h2s(get_room_key(room)));
+             GNUNET_sh2s (&(message->header.sender_id)), GNUNET_h2s(get_srv_room_key(room)));
 
   if (GNUNET_OK != reset_member_session(session, hash))
     GNUNET_log(GNUNET_ERROR_TYPE_ERROR, "Resetting member session failed!\n");
 
-  solve_room_member_collisions (
+  solve_srv_room_member_collisions (
       room,
       &(message->body.join.key),
       &(message->header.sender_id),
@@ -63,7 +63,7 @@ handle_message_leave (struct GNUNET_MESSENGER_SrvRoom *room,
                       const struct GNUNET_HashCode *hash)
 {
   GNUNET_log(GNUNET_ERROR_TYPE_INFO, "Member (%s) leaves room (%s).\n",
-             GNUNET_sh2s (&(message->header.sender_id)), GNUNET_h2s(get_room_key(room)));
+             GNUNET_sh2s (&(message->header.sender_id)), GNUNET_h2s(get_srv_room_key(room)));
 
   close_member_session(session);
 }
@@ -101,7 +101,7 @@ handle_message_peer (struct GNUNET_MESSENGER_SrvRoom *room,
     add_to_list_tunnels (&(room->basement), &(message->body.peer.peer));
 
   if (room->peer_message)
-    rebuild_room_basement_structure (room);
+    rebuild_srv_room_basement_structure (room);
 }
 
 void
@@ -112,7 +112,7 @@ handle_message_id (struct GNUNET_MESSENGER_SrvRoom *room,
 {
   handle_session_switch (session, message, hash);
 
-  solve_room_member_collisions (
+  solve_srv_room_member_collisions (
       room,
       get_member_session_public_key(session),
       &(message->body.id.id),
@@ -134,7 +134,7 @@ handle_message_miss (struct GNUNET_MESSENGER_SrvRoom *room,
   remove_from_list_tunnels (&(room->basement), element);
 
   if (room->peer_message)
-    rebuild_room_basement_structure (room);
+    rebuild_srv_room_basement_structure (room);
 }
 
 void
@@ -149,5 +149,5 @@ handle_message_delete (struct GNUNET_MESSENGER_SrvRoom *room,
   action = GNUNET_TIME_absolute_add (action, delay);
   delay = GNUNET_TIME_absolute_get_difference (GNUNET_TIME_absolute_get (), action);
 
-  delete_room_message (room, session, &(message->body.deletion.hash), delay);
+  delete_srv_room_message (room, session, &(message->body.deletion.hash), delay);
 }
