@@ -101,7 +101,7 @@ test_with_type (struct GNUNET_IDENTITY_PrivateKey *privkey)
   struct GNUNET_HashCode query_pub;
   struct GNUNET_HashCode query_priv;
   struct GNUNET_HashCode query_block;
-  struct GNUNET_TIME_Absolute expire = GNUNET_TIME_absolute_get ();
+  struct GNUNET_TIME_Absolute expire = GNUNET_TIME_UNIT_FOREVER_ABS;
 
 
   /* get public key */
@@ -143,7 +143,7 @@ test_with_type (struct GNUNET_IDENTITY_PrivateKey *privkey)
                                                  &pubkey,
                                                  s_name,
                                                  &rd_decrypt_cb,
-                                                 s_name));
+                                                 NULL));
   GNUNET_free (block);
 }
 
