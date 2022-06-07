@@ -24,9 +24,6 @@
  * @author Tristan Schwieren
  */
 
-#define STR_INDIR(x) #x
-#define STR(x) STR_INDIR(x)
-
 #define GNUNET_DID_METHOD_PREFIX "did:reclaim:"
 #define MAX_DID_SPECIFIC_IDENTIFIER_LENGTH 59
 
@@ -34,16 +31,16 @@
  * @brief Return a DID for a given GNUNET public key
  */
 char *
-GNUNET_DID_pkey_to_did(struct GNUNET_IDENTITY_PublicKey *pkey);
+GNUNET_DID_pkey_to_did (struct GNUNET_IDENTITY_PublicKey *pkey);
 
 /**
  * @brief Generate a DID for a given gnunet EGO
- * 
- * @param ego 
+ *
+ * @param ego
  * @return char * Returns the DID. Caller must free
  */
 char *
-GNUNET_DID_identity_to_did(struct GNUNET_IDENTITY_Ego *ego);
+GNUNET_DID_identity_to_did (struct GNUNET_IDENTITY_Ego *ego);
 
 /**
  * @brief Return the public key of a DID
@@ -51,17 +48,18 @@ GNUNET_DID_identity_to_did(struct GNUNET_IDENTITY_Ego *ego);
 int
 GNUNET_DID_did_to_pkey (char *did, struct GNUNET_IDENTITY_PublicKey *pkey);
 
-/**
- * @brief Convert a base 64 encoded public key to a GNUNET key
- */
-struct GNUNET_IDENTITY_PublicKey *
-GNUNET_DID_key_covert_multibase_base64_to_gnunet(char *);
+// /**
+//  * @brief Convert a base 64 encoded public key to a GNUNET key
+//  */
+// struct GNUNET_IDENTITY_PublicKey *
+// GNUNET_DID_key_covert_multibase_base64_to_gnunet(char *);
 
 /**
  * @brief Convert GNUNET key to a base 64 encoded public key
  */
 char *
-GNUNET_DID_key_covert_gnunet_to_multibase_base64(struct GNUNET_IDENTITY_PublicKey *);
+GNUNET_DID_key_covert_gnunet_to_multibase_base64 (struct
+                                                  GNUNET_IDENTITY_PublicKey *);
 
 /**
  * @brief Generate the default DID document for a GNUNET public key
@@ -73,4 +71,4 @@ GNUNET_DID_pkey_to_did_document (struct GNUNET_IDENTITY_PublicKey *pkey);
  * @brief Generate the default DID document for a GNUNET ego
  */
 char *
-GNUNET_DID_identity_to_did_document(struct GNUNET_IDENTITY_Ego *ego);
+GNUNET_DID_identity_to_did_document (struct GNUNET_IDENTITY_Ego *ego);

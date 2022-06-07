@@ -31,12 +31,8 @@
 #include "did_helper.h"
 #include "jansson.h"
 
-
-// TODO: GNUNET_DID_key_covert_multibase_base64_to_gnunet
-// TODO: GNUNET_DID_key_covert_gnunet_to_multibase_base64
-
-// TODO: GNUNET_DID_pkey_to_did_document
-
+#define STR_INDIR(x) #x
+#define STR(x) STR_INDIR (x)
 
 /**
  * @brief Generate a DID for a given GNUNET public key
@@ -119,7 +115,21 @@ GNUNET_DID_key_covert_gnunet_to_multibase_base64 (struct
                                                   GNUNET_IDENTITY_PublicKey *
                                                   pkey)
 {
-  return NULL;
+  struct GNUNET_CRYPTO_EddsaPublicKey pubkey = pkey->eddsa_key;
+
+  // This is how to convert out pubkeys to W3c Ed25519-2020 multibase (base64url no padding)
+  char *pkey_base_64;
+  char *pkey_multibase;
+  char pkx[34];
+
+  pkx[0] = 0xed;
+  pkx[1] = 0x01;
+  memcpy (pkx + 2, &pubkey, sizeof (pubkey));
+  GNUNET_STRINGS_base64url_encode (pkx, sizeof (pkx), &pkey_base_64);
+  GNUNET_asprintf (&pkey_multibase, "u%s", pkey_base_64);
+
+  GNUNET_free (pkey_base_64);
+  return pkey_multibase;
 }
 
 /**
@@ -131,28 +141,6 @@ GNUNET_DID_key_covert_gnunet_to_multibase_base64 (struct
 char *
 GNUNET_DID_pkey_to_did_document (struct GNUNET_IDENTITY_PublicKey *pkey)
 {
-  char *did_str;
-  char *didd_str;
-  char *verify_id_str;
-  char *pkey_multibase_str;
-
-  /* FIXME-MSC: This screams for a GNUNET_DID_identity_key_to_string() */
-  // char *b64;
-  // char pkx[34];
-  // pkx[0] = 0xed;
-  // pkx[1] = 0x01;
-  // memcpy (pkx + 2, &(pkey->eddsa_key), sizeof(pkey->eddsa_key));
-  // GNUNET_STRINGS_base64_encode (pkx, sizeof(pkx), &b64);
-
-  // GNUNET_asprintf (&pkey_multibase_str, "u%s", b64);
-  pkey_multibase_str = "moin";
-
-  json_t *didd_json;
-
-  did_str = GNUNET_DID_pkey_to_did (pkey);
-  GNUNET_asprintf (&verify_id_str, "%s#key-1", did_str);
-
-  // sprintf(pkey_multibase_str, "V%s", pkey_str); // Convert the public key to MultiBase data format
 
   /* FIXME-MSC: This is effectively creating a DID Document default template for
    * the initial document.
@@ -161,35 +149,45 @@ GNUNET_DID_pkey_to_did_document (struct GNUNET_IDENTITY_PublicKey *pkey)
    * GNUNET_DID_document_template_from_identity()
    */
 
-  // Add a relative DID URL to reference a verifiation method
-  // https://www.w3.org/TR/did-core/#relative-did-urls`
+  char *did_str;
+  char *verify_id_str;
+  char *pkey_multibase_str;
+  char *didd_str;
+  json_t *didd_json;
 
-  didd_json = json_pack ("{s:[ss], s:s, s:[{s:s, s:s, s:s, s:s}], s:[s], s:[s]}",
-                         "@context",
-                         "https://www.w3.org/ns/did/v1",
-                         "https://w3id.org/security/suites/ed25519-2020/v1",
-                         "id",
-                         did_str,
-                         "verificationMethod",
-                         "id",
-                         verify_id_str,
-                         "type",
-                         "Ed25519VerificationKey2020",
-                         "controller",
-                         did_str,
-                         "publicKeyMultibase",
-                         pkey_multibase_str,
-                         "authentication",
-                         "#key-1",
-                         "assertionMethod",
-                         "#key-1");
+  did_str = GNUNET_DID_pkey_to_did (pkey);
+  GNUNET_asprintf (&verify_id_str, "%s#key-1", did_str);
+
+  pkey_multibase_str = GNUNET_DID_key_covert_gnunet_to_multibase_base64 (pkey);
+
+  didd_json = json_pack (
+    "{s:[ss], s:s, s:[{s:s, s:s, s:s, s:s}], s:[s], s:[s]}",
+    "@context",
+    "https://www.w3.org/ns/did/v1",
+    "https://w3id.org/security/suites/ed25519-2020/v1",
+    "id",
+    did_str,
+    "verificationMethod",
+    "id",
+    verify_id_str,
+    "type",
+    "Ed25519VerificationKey2020",
+    "controller",
+    did_str,
+    "publicKeyMultibase",
+    pkey_multibase_str,
+    "authentication",
+    "#key-1",
+    "assertionMethod",
+    "#key-1");
 
   // Encode DID Document as JSON string
   didd_str = json_dumps (didd_json, JSON_INDENT (2));
 
   // Free
-  // GNUNET_free (pkey_multibase_str);
-  // GNUNET_free (b64);
+  GNUNET_free (did_str);
+  GNUNET_free (verify_id_str);
+  GNUNET_free (pkey_multibase_str);
   json_decref (didd_json);
 
   return didd_str;

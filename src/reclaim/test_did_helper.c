@@ -43,8 +43,11 @@ static const char test_skey_bytes[32] = {
 static const char *test_did =
   "did:reclaim:000G0509BYD1MPAXVSTNV0KRD1JAT0YZMPJFQNM869B66S72PSF17K4Y8G";
 
+static const char *test_multibase_key =
+  "u7QEJX5oaWV3edV2CeGhkrQPfpaT71ogyVmNk4rZeE8yeRA";
+
 static const char *test_did_document_format_str =
-  "{\"@context\":[\"https://www.w3.org/ns/did/v1\", \
+  "{\"@context\":[\"https://www.w3.org/ns/did/v1\",\
   \"https://w3id.org/security/suites/ed25519-2020/v1\"],\
   \"id\":\"%s\",\
   \"verificationMethod\":[{\
@@ -54,8 +57,6 @@ static const char *test_did_document_format_str =
   \"publicKeyMultibase\":\"%s\"}],\
   \"authentication\":[\"#key-1\"],\
   \"assertionMethod\":[\"#key-1\"]}";
-
-static const char *test_multibase_key = "moin";
 
 static struct GNUNET_IDENTITY_PrivateKey test_skey;
 static struct GNUNET_IDENTITY_PublicKey test_pkey;
@@ -81,11 +82,18 @@ test_GNUNET_DID_did_to_pkey ()
                          test_pkey.eddsa_key.q_y) == 0);
 }
 
-void
-test_GNUNET_DID_key_covert_multibase_base64_to_gnunet ();
+// void
+// test_GNUNET_DID_key_covert_multibase_base64_to_gnunet ();
 
 void
-test_GNUNET_DID_key_covert_gnunet_to_multibase_base64 ();
+test_GNUNET_DID_key_covert_gnunet_to_multibase_base64 ()
+{
+  char *multibase_key;
+  multibase_key = GNUNET_DID_key_covert_gnunet_to_multibase_base64 (&test_pkey);
+  printf ("%s\n", multibase_key);
+
+  GNUNET_assert (strcmp (test_multibase_key, multibase_key) == 0);
+}
 
 void
 test_GNUNET_DID_pkey_to_did_document ()
@@ -119,5 +127,6 @@ main ()
   test_GNUNET_DID_pkey_to_did ();
   test_GNUNET_DID_did_to_pkey ();
   test_GNUNET_DID_pkey_to_did_document ();
+  test_GNUNET_DID_key_covert_gnunet_to_multibase_base64 ();
   return 0;
 }

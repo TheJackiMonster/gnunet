@@ -214,11 +214,6 @@ gnunet_did_LDADD = \
 	-ljansson
 
 
-test_w3c_ed25519_2020_SOURCES = \
-  test_w3c_ed25519_2020.c
-test_w3c_ed25519_2020_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la
-
 test_did_helper_SOURCES = \
   test_did_helper.c
 test_did_helper_LDADD = \
@@ -237,7 +232,6 @@ check_SCRIPTS = \
 
 check_PROGRAMS = \
   test_reclaim_attribute \
-  test_w3c_ed25519_2020 \
   test_did_helper
 
 if ENABLE_TEST_RUN
