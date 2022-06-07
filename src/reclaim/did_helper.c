@@ -32,6 +32,12 @@
 #include "jansson.h"
 
 
+// TODO: GNUNET_DID_key_covert_multibase_base64_to_gnunet
+// TODO: GNUNET_DID_key_covert_gnunet_to_multibase_base64
+
+// TODO: GNUNET_DID_pkey_to_did_document
+
+
 /**
  * @brief Generate a DID for a given GNUNET public key
  *
@@ -55,7 +61,8 @@ GNUNET_DID_pkey_to_did (struct GNUNET_IDENTITY_PublicKey *pkey)
 }
 
 /**
- * @brief Generate a DID for a given gnunet EGO
+ * @brief Generate a DID for a given gnunet EGO.
+ * Wrapper around GNUNET_DID_pkey_to_did
  *
  * @param ego
  * @return char* Returns the DID. Caller must free
@@ -96,15 +103,6 @@ GNUNET_DID_did_to_pkey (char *did, struct GNUNET_IDENTITY_PublicKey *pkey)
 }
 
 /**
- * @brief Return the GNUNET EGO of a DID
- */
-struct GNUNET_IDENTITY_Ego *
-GNUNET_DID_did_to_identity (char *did)
-{
-  return NULL;
-}
-
-/**
  * @brief Convert a base 64 encoded public key to a GNUNET key
  */
 struct GNUNET_IDENTITY_PublicKey *
@@ -139,14 +137,15 @@ GNUNET_DID_pkey_to_did_document (struct GNUNET_IDENTITY_PublicKey *pkey)
   char *pkey_multibase_str;
 
   /* FIXME-MSC: This screams for a GNUNET_DID_identity_key_to_string() */
-  char *b64;
-  char pkx[34];
-  pkx[0] = 0xed;
-  pkx[1] = 0x01;
-  memcpy (pkx + 2, &(pkey->eddsa_key), sizeof(pkey->eddsa_key));
-  GNUNET_STRINGS_base64_encode (pkx, sizeof(pkx), &b64);
+  // char *b64;
+  // char pkx[34];
+  // pkx[0] = 0xed;
+  // pkx[1] = 0x01;
+  // memcpy (pkx + 2, &(pkey->eddsa_key), sizeof(pkey->eddsa_key));
+  // GNUNET_STRINGS_base64_encode (pkx, sizeof(pkx), &b64);
 
-  GNUNET_asprintf (&pkey_multibase_str, "u%s", b64);
+  // GNUNET_asprintf (&pkey_multibase_str, "u%s", b64);
+  pkey_multibase_str = "moin";
 
   json_t *didd_json;
 
@@ -165,16 +164,20 @@ GNUNET_DID_pkey_to_did_document (struct GNUNET_IDENTITY_PublicKey *pkey)
   // Add a relative DID URL to reference a verifiation method
   // https://www.w3.org/TR/did-core/#relative-did-urls`
 
-  didd_json = json_pack ("{s:[ss], s:s, s:[{ssss}], s:[s], s:[s]",
+  didd_json = json_pack ("{s:[ss], s:s, s:[{s:s, s:s, s:s, s:s}], s:[s], s:[s]}",
                          "@context",
                          "https://www.w3.org/ns/did/v1",
                          "https://w3id.org/security/suites/ed25519-2020/v1",
                          "id",
                          did_str,
                          "verificationMethod",
+                         "id",
                          verify_id_str,
+                         "type",
                          "Ed25519VerificationKey2020",
+                         "controller",
                          did_str,
+                         "publicKeyMultibase",
                          pkey_multibase_str,
                          "authentication",
                          "#key-1",
@@ -185,8 +188,8 @@ GNUNET_DID_pkey_to_did_document (struct GNUNET_IDENTITY_PublicKey *pkey)
   didd_str = json_dumps (didd_json, JSON_INDENT (2));
 
   // Free
-  GNUNET_free (pkey_multibase_str);
-  GNUNET_free (b64);
+  // GNUNET_free (pkey_multibase_str);
+  // GNUNET_free (b64);
   json_decref (didd_json);
 
   return didd_str;
@@ -194,6 +197,7 @@ GNUNET_DID_pkey_to_did_document (struct GNUNET_IDENTITY_PublicKey *pkey)
 
 /**
  * @brief Generate the default DID document for a GNUNET ego
+ * Wrapper around GNUNET_DID_pkey_to_did_document
  */
 char *
 GNUNET_DID_identity_to_did_document (struct GNUNET_IDENTITY_Ego *ego)

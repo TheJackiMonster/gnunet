@@ -227,7 +227,8 @@ test_did_helper_LDADD = \
 	$(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
 	$(top_builddir)/src/identity/libgnunetidentity.la \
 	$(top_builddir)/src/namestore/libgnunetnamestore.la \
-  libgnunetdid.la
+  libgnunetdid.la \
+  -ljansson
 
 check_SCRIPTS = \
   test_reclaim_attribute.sh \

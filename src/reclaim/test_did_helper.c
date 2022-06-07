@@ -30,6 +30,7 @@
 #include "gnunet_gns_service.h"
 #include "gnunet_gnsrecord_lib.h"
 #include "did_helper.h"
+#include "jansson.h"
 
 static const char test_skey_bytes[32] = {
   0x9b, 0x93, 0x7b, 0x81, 0x32, 0x2d, 0x81, 0x6c,
@@ -39,29 +40,45 @@ static const char test_skey_bytes[32] = {
 };
 
 // TODO: Create a did manual from private key / independet of implementation
-static char *test_did =
+static const char *test_did =
   "did:reclaim:000G0509BYD1MPAXVSTNV0KRD1JAT0YZMPJFQNM869B66S72PSF17K4Y8G";
+
+static const char *test_did_document_format_str =
+  "{\"@context\":[\"https://www.w3.org/ns/did/v1\", \
+  \"https://w3id.org/security/suites/ed25519-2020/v1\"],\
+  \"id\":\"%s\",\
+  \"verificationMethod\":[{\
+  \"id\":\"%s#key-1\",\
+  \"type\":\"Ed25519VerificationKey2020\",\
+  \"controller\":\"%s\",\
+  \"publicKeyMultibase\":\"%s\"}],\
+  \"authentication\":[\"#key-1\"],\
+  \"assertionMethod\":[\"#key-1\"]}";
+
+static const char *test_multibase_key = "moin";
 
 static struct GNUNET_IDENTITY_PrivateKey test_skey;
 static struct GNUNET_IDENTITY_PublicKey test_pkey;
+static struct json_t *test_did_document;
+static char *test_did_document_str;
 
 void
 test_GNUNET_DID_pkey_to_did ()
 {
   char *str_did;
   str_did = GNUNET_DID_pkey_to_did (&test_pkey);
-  GNUNET_assert (strcmp (test_did, str_did) == 0);
+  GNUNET_assert (strcmp ((char *) test_did, str_did) == 0);
 }
 
 void
 test_GNUNET_DID_did_to_pkey ()
 {
   struct GNUNET_IDENTITY_PublicKey pkey;
-  GNUNET_DID_did_to_pkey (test_did, &pkey);
+  GNUNET_DID_did_to_pkey ((char *) test_did, &pkey);
 
   GNUNET_assert (test_pkey.type = pkey.type);
-  GNUNET_assert (0 == strcmp (pkey.eddsa_key.q_y,
-                              test_pkey.eddsa_key.q_y));
+  GNUNET_assert (strcmp (pkey.eddsa_key.q_y,
+                         test_pkey.eddsa_key.q_y) == 0);
 }
 
 void
@@ -73,20 +90,30 @@ test_GNUNET_DID_key_covert_gnunet_to_multibase_base64 ();
 void
 test_GNUNET_DID_pkey_to_did_document ()
 {
-  char *did_document = GNUNET_DID_pkey_to_did_document (&test_pkey);
-  printf("%s\n", did_document);
-
-  GNUNET_assert(0 == 0);
+  struct json_t *did_document;
+  char *did_document_str = GNUNET_DID_pkey_to_did_document (&test_pkey);
+  did_document = json_loads (did_document_str, JSON_DECODE_ANY, NULL);
+  GNUNET_assert (json_equal (test_did_document, did_document) == 1);
 }
 
 int
 main ()
 {
-  // Setup
+  // Setup key
   test_skey.type = htonl (GNUNET_IDENTITY_TYPE_EDDSA);
-  memcpy (&(test_skey.eddsa_key), test_skey_bytes, sizeof(struct
-                                                          GNUNET_CRYPTO_EddsaPrivateKey));
+  memcpy (&(test_skey.eddsa_key),
+          test_skey_bytes,
+          sizeof(struct GNUNET_CRYPTO_EddsaPrivateKey));
   GNUNET_IDENTITY_key_get_public (&test_skey, &test_pkey);
+
+  // Setup did document
+  GNUNET_asprintf (&test_did_document_str,
+                   test_did_document_format_str,
+                   test_did,
+                   test_did,
+                   test_did,
+                   test_multibase_key);
+  test_did_document = json_loads (test_did_document_str, JSON_DECODE_ANY, NULL);
 
   // Do tests
   test_GNUNET_DID_pkey_to_did ();

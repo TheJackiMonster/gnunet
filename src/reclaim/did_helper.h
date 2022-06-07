@@ -52,12 +52,6 @@ int
 GNUNET_DID_did_to_pkey (char *did, struct GNUNET_IDENTITY_PublicKey *pkey);
 
 /**
- * @brief Return the GNUNET EGO of a DID
- */
-struct GNUNET_IDENTITY_Ego *
-GNUNET_DID_did_to_identity(char *did);
-
-/**
  * @brief Convert a base 64 encoded public key to a GNUNET key
  */
 struct GNUNET_IDENTITY_PublicKey *
