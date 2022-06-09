@@ -147,7 +147,8 @@ Dependencies of optional components/functionality:
 - PABC credential support
   * libpabc            any            (for re:claimID zero-knowledge privacy
                                       credentials)
-
+- re:claimID OpenID Connect plugin
+  * libjose            any            (for re:claimID OpenID Connect support)
 
 
 Additional dependencies to run the GNUnet testsuite:

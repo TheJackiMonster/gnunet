@@ -10,8 +10,11 @@ endif
 
 
 REST_PLUGIN = \
-  libgnunet_plugin_rest_openid_connect.la \
   libgnunet_plugin_rest_reclaim.la
+
+if HAVE_JOSE
+REST_PLUGIN += libgnunet_plugin_rest_openid_connect.la
+endif
 
 CREDENTIAL_PLUGIN = \
   libgnunet_plugin_reclaim_credential_jwt.la
@@ -66,7 +69,7 @@ libgnunet_plugin_rest_reclaim_la_LDFLAGS = \
   $(GN_PLUGIN_LDFLAGS)
 libgnunet_plugin_rest_reclaim_la_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
 
-
+if HAVE_JOSE
 libgnunet_plugin_rest_openid_connect_la_SOURCES = \
   plugin_rest_openid_connect.c \
   oidc_helper.h \
@@ -84,6 +87,7 @@ libgnunet_plugin_rest_openid_connect_la_LIBADD = \
 libgnunet_plugin_rest_openid_connect_la_LDFLAGS = \
   $(GN_PLUGIN_LDFLAGS)
 libgnunet_plugin_rest_openid_connect_la_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
+endif
 
 if HAVE_PABC
 libgnunet_plugin_rest_pabc_la_SOURCES = \
