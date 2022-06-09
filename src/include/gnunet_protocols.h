@@ -19,6 +19,10 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
  * @author Christian Grothoff
  * @author Tobias Frisch
  *
@@ -3616,5 +3620,7 @@ extern "C" {
 #endif
 
 /** @} */ /* end of group protocols */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_protocols.h */

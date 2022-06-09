@@ -19,6 +19,10 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
  * @author Christian Grothoff
  * @author Nils Durner
  *
@@ -2710,4 +2714,7 @@ GNUNET_CONTAINER_heap_update_cost (struct GNUNET_CONTAINER_HeapNode *node,
 
 /* ifndef GNUNET_CONTAINER_LIB_H */
 #endif
+
+/** @} */ /* end of group addition */
+
 /* end of gnunet_container_lib.h */

@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup Testing
+ * @{
+ *
  * @author Sree Harsha Totakura <sreeharsha@totakura.in>
  *
  * @file
@@ -129,5 +132,7 @@ GNUNET_TESTBED_LOGGER_flush_cancel (struct GNUNET_TESTBED_LOGGER_Handle *h);
 #endif  /* GNUNET_TESTBED_LOGGER_SERVICE_H */
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */
 
 /* End of gnunet_testbed_logger_service.h */

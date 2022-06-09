@@ -19,6 +19,10 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -506,5 +510,7 @@ GNUNET_GETOPT_run (const char *binaryOptions,
 #endif
 
 /** @} */ /* end of group getopt */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_getopt_lib.h */

@@ -18,6 +18,10 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -814,5 +818,7 @@ GNUNET_DISK_file_sync (const struct GNUNET_DISK_FileHandle *h);
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_disk_lib.h */

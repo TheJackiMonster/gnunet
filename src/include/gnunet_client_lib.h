@@ -19,6 +19,13 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
+ * @addtogroup networking
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -92,5 +99,9 @@ GNUNET_CLIENT_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
 #endif
 
 /** @} */ /* end of group client */
+
+/* @} */ /* end of group addition */
+
+/* @} */ /* end of group addition */
 
 /* end of gnunet_client_lib.h */

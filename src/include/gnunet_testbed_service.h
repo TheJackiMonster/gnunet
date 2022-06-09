@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup Testing
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -1727,3 +1730,5 @@ GNUNET_TESTBED_underlaylinkmodel_free (struct
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */

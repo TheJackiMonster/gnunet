@@ -19,6 +19,10 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
  * @author Christian Grothoff
  * @author Krista Bennett
  * @author Gerd Knorr <kraxel@bytesex.org>
@@ -764,5 +768,7 @@ GNUNET_STRINGS_parse_ipv6_policy (const char *routeListX);
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_util_string.h */

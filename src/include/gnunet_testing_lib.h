@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup Testing
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -472,3 +475,5 @@ GNUNET_TESTING_get_testname_from_underscore (const char *argv0);
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */

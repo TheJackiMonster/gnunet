@@ -19,6 +19,10 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
  * @author Christian Grothoff
  * @author Krista Bennett
  * @author Gerd Knorr <kraxel@bytesex.org>
@@ -689,5 +693,7 @@ GNUNET_OS_check_helper_binary (const char *binary,
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_os_lib.h */

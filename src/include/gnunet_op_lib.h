@@ -19,6 +19,10 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
  * @file
  * Asynchronous operations; register callbacks for operations and call them when a response arrives.
  *
@@ -153,3 +157,5 @@ GNUNET_OP_remove (struct GNUNET_OP_Handle *h,
 
 
 #endif // GNUNET_OP_H
+
+/** @} */ /* end of group addition */

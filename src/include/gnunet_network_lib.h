@@ -19,6 +19,13 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
+ * @addtogroup networking
+ * @{
+ *
  * @author Nils Durner
  * @author Tobias Frisch
  *
@@ -588,3 +595,7 @@ GNUNET_NETWORK_test_port_free (int ipproto,
 #endif /* GNUNET_NETWORK_LIB_H */
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */
+
+/** @} */ /* end of group addition */

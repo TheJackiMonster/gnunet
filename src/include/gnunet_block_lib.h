@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup dht_libs  DHT and support libraries
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -295,5 +298,7 @@ GNUNET_BLOCK_group_merge (struct GNUNET_BLOCK_Group *bg1,
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_block_lib.h */

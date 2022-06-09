@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup vpn_suite  VPN services and libraries
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -191,3 +194,5 @@ GNUNET_DNS_disconnect (struct GNUNET_DNS_Handle *dh);
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */

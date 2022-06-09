@@ -19,7 +19,7 @@
  */
 
 /**
- * @addtogroup Conversation
+ * @addtogroup conversation_l2  Conversation service and libraries
  * @{
  *
  * @author Simon Dieterle

@@ -19,6 +19,10 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
  * @file include/gnunet_crypto_lib.h
  * @brief cryptographic primitives for GNUnet
  *
@@ -2942,4 +2946,7 @@ GNUNET_CRYPTO_cs_verify (const struct GNUNET_CRYPTO_CsSignature *sig,
 
 /* ifndef GNUNET_CRYPTO_LIB_H */
 #endif
+
+/** @} */ /* end of group addition */
+
 /* end of gnunet_crypto_lib.h */

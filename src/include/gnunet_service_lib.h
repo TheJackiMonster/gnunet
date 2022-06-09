@@ -19,6 +19,13 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
+ * @addtogroup networking
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -441,5 +448,7 @@ GNUNET_SERVICE_client_persist (struct GNUNET_SERVICE_Client *c);
 #endif
 
 /** @} */  /* end of group service */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_service_lib.h */

@@ -19,6 +19,10 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
  * @file include/gnunet_child_management_lib.h
  * @brief GNUnet child management api
  * @author Christian Grothoff
@@ -70,3 +74,5 @@ void
 GNUNET_wait_child_cancel (struct GNUNET_ChildWaitHandle *cwh);
 
 #endif
+
+/** @} */ /* end of group addition */

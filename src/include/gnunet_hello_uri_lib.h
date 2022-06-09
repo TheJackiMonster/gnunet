@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup Backbone
+ * @{
+ *
  * @author Christian Grothoff
  * @file
  * Helper library for handling HELLO URIs
@@ -244,5 +247,7 @@ GNUNET_HELLO_dht_msg_to_block (const struct GNUNET_MessageHeader *hello,
 #endif
 
 /** @} */ /* end of group */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_hello_uri_lib.h */

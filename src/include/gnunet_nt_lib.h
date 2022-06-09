@@ -22,7 +22,7 @@
  * @author Christian Grothoff
  * @author Matthias Wachs
  *
- * @defgroup nt  network type characterization
+ * @defgroup nt  Network type characterization
  *
  * @{
  */

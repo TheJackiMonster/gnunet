@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup rest_l2  REST service and libraries
+ * @{
+ *
  * @author Martin Schanzenbach
  *
  * @file
@@ -137,3 +140,5 @@ GNUNET_REST_handle_request (struct GNUNET_REST_RequestHandle *conn,
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */

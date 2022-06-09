@@ -19,6 +19,10 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
  * @file include/gnunet_common.h
  * @brief commonly used definitions; globals in this file
  *        are exempt from the rule that the module name ("common")
@@ -1861,3 +1865,5 @@ enum GNUNET_SCHEDULER_Priority
 #endif
 
 #endif /* GNUNET_COMMON_H */
+
+/** @} */ /* end of group addition */

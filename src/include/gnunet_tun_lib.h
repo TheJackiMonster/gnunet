@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup vpn_suite  VPN services and libraries
+ * @{
+ *
  * @author Philipp Toelke
  * @author Christian Grothoff
  *
@@ -946,3 +949,5 @@ GNUNET_TUN_compute_service_cadet_port (const struct GNUNET_HashCode *desc,
 #endif
 
 /** @} */ /* end of group */
+
+/** @} */ /* end of group addition */

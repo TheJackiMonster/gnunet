@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup dht_libs  DHT and support libraries
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -208,3 +211,5 @@ GNUNET_DATACACHE_get_closest (struct GNUNET_DATACACHE_Handle *h,
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */

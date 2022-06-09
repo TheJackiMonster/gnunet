@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup egos  Ego management
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -867,5 +870,7 @@ GNUNET_IDENTITY_ego_lookup_by_suffix_cancel (
 #endif
 
 /** @} */ /* end of group identity */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_identity_service.h */

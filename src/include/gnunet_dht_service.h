@@ -21,6 +21,8 @@
 /**
  * @addtogroup Backbone
  * @{
+ * @addtogroup dht_libs  DHT and support libraries
+ * @{
  *
  * @author Christian Grothoff
  *
@@ -583,5 +585,7 @@ GNUNET_DHT_hello_offer (struct GNUNET_DHT_Handle *dht_handle,
 #endif
 
 /** @} */  /* end of group dht */
+
+/** @} */ /* end of group addition */
 
 /** @} */ /* end of group addition */
