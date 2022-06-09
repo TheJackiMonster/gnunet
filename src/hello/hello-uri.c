@@ -254,6 +254,9 @@ sign_hello (const struct GNUNET_HELLO_Builder *builder,
 
   hash_addresses (builder,
                   &hsp.h_addrs);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Address hash is %s\n",
+              GNUNET_h2s_full (&hsp.h_addrs));
   GNUNET_CRYPTO_eddsa_sign (priv,
                             &hsp,
                             sig);
