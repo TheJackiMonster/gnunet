@@ -22,7 +22,7 @@ command_re = "(?:</[^>]+>|\\\w+)"
 macro_params = rf"\({sep_re(simple_name, ', ')}(?:,\.\.\.)?\)"
 
 matches = {
-    "not an input @file": re.compile(rf"{main_match} the name '{filepath}' supplied as the argument in the \\file statement is not an input file"),
+    "not an input @file": re.compile(rf"{main_match} the name '(?P<name>{filepath}|{simple_name})' supplied as the argument in the \\file statement is not an input file"),
     "multiple @param docs": re.compile(rf"{main_match} argument '\w+' from the argument list of \w+ has multiple @param documentation sections"),
     "undocumented param (message)": re.compile(rf"{main_match} The following parameters? of {func_name}(?:{func_params}|{macro_params}) (?:is|are) not documented:"),
     "undocumented param (name)": re.compile(r"  parameter '[\w.]+'"),
