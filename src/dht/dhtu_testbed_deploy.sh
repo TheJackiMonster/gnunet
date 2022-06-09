@@ -43,7 +43,7 @@ fi
 
 MAX=`expr $1 - 1`
 
-# export GNUNET_FORCE_LOG="dht*;;;;DEBUG"
+export GNUNET_FORCE_LOG="dht*;;;;DEBUG"
 
 echo -n "Starting $1 peers "
 mkdir -p /tmp/deployment

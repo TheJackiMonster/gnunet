@@ -222,6 +222,10 @@ hash_addresses (const struct GNUNET_HELLO_Builder *builder,
        NULL != a;
        a = a->next)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Hashing over %.*s\n",
+                (int) a->uri_len,
+                a->uri);
     GNUNET_CRYPTO_hash_context_read (hc,
                                      a->uri,
                                      a->uri_len);
