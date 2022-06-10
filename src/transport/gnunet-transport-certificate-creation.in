@@ -107,14 +107,19 @@ generate_cert_key()
     OPENSSL=0
     if test -z "`gnutls-certtool --version`" > /dev/null
     then
-      if test -z "`openssl version`" > /dev/null
+      if test -z "`certtool --version`" > /dev/null
       then
-        warningmsg "Install either gnutls certtool or openssl for certificate generation!"
-        exit 1
+        if test -z "`openssl version`" > /dev/null
+        then
+          warningmsg "Install either gnutls certtool or openssl for certificate generation!"
+          exit 1
+        else
+          OPENSSL=1
+        fi
+        CERTTOOL="openssl"
       else
-        OPENSSL=1
+        CERTTOOL="certtool"
       fi
-      CERTTOOL="openssl"
     else
       CERTTOOL="gnutls-certtool"
     fi
