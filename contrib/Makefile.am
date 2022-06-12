@@ -42,9 +42,6 @@ INITD_FILES = \
   services/openrc/gnunet.initd
 
 PACKAGES_FILES = \
-  packages/guix/guix-env-py2.scm \
-  packages/guix/guix-env-gillmann.scm \
-  packages/guix/notest-guix-env.scm \
   packages/alpine/gnunet-gtk/APKBUILD \
   packages/alpine/gnurl/APKBUILD \
   packages/alpine/gnunet/gnunet-user-services.initd \
@@ -57,9 +54,30 @@ PACKAGES_FILES = \
   packages/alpine/gnunet/gnunet.pre-install \
   packages/alpine/gnunet/gnunet-system-services.initd \
   packages/alpine/gnunet/gnunet-gns-proxy.initd \
+  packages/arch/gnunet-git/gnunet.install \
+  packages/arch/gnunet-git/gnunet-system.service \
+  packages/arch/gnunet-git/gnunet.sysusers \
+  packages/arch/gnunet-git/gnunet.tmpfiles \
+  packages/arch/gnunet-git/gnunet-uri.desktop \
+  packages/arch/gnunet-git/gnunet-user.conf \
+  packages/arch/gnunet-git/gnunet-user.service \
+  packages/arch/gnunet-git/PKGBUILD \
+  packages/arch/gnunet-git/.SRCINFO \
+  packages/arch/gnunet/gnunet.install \
+  packages/arch/gnunet/gnunet-system.service \
+  packages/arch/gnunet/gnunet.sysusers \
+  packages/arch/gnunet/gnunet.tmpfiles \
+  packages/arch/gnunet/gnunet-uri.desktop \
+  packages/arch/gnunet/gnunet-user.conf \
+  packages/arch/gnunet/gnunet-user.service \
+  packages/arch/gnunet/PKGBUILD \
+  packages/arch/gnunet/.SRCINFO \
+  packages/guix/guix-env-py2.scm \
+  packages/guix/guix-env-gillmann.scm \
+  packages/guix/notest-guix-env.scm \
+  packages/homebrew/gnunet.rb \
   packages/nix/gnunet-dev.nix \
-  packages/nix/default.nix \
-  packages/homebrew/gnunet.rb
+  packages/nix/default.nix
 
 EXTRA_DIST = \
   sounds/vonlynX-bdbAm-lo.wav \
