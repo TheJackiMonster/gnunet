@@ -1,3 +1,15 @@
+Sun, 12 Jun 2022 15:50:22 +0100 (839640c0e)
+Restore lost quotes in `man gnunet-search` - madmurphy
+
+Sun, 12 Jun 2022 15:33:39 +0100 (22082c234)
+Add Arch packages - madmurphy
+
+Thu, 9 Jun 2022 18:17:52 +0200 (1da1632c4)
+log hash - Christian Grothoff
+
+Thu, 9 Jun 2022 11:49:32 +0200 (a87029a63)
+RECLAIM: Improve OIDC plugin; now requires jose (new optional dependency) - Martin Schanzenbach
+
 Tue, 31 May 2022 23:43:05 +0200 (edddc9384)
 protocol change: swap xquery and result filter, integrate mutator with result filter - Christian Grothoff
 
