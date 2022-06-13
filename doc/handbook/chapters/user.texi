@@ -2365,16 +2365,16 @@ that will terminate at the respective peer's service.
 @section Using the GNUnet Messenger
 
 The GNUnet Messenger subsystem allows decentralized message-based 
-communication inside of so called rooms. Each room can be hosted by
+communication inside of so called rooms. Each room can be relayed by
 a variable amount of peers. Every member of a room has the possibility
-to host the room on its own peer. A peer allows any amount of members 
+to relay the room on its own peer. A peer allows any amount of members 
 to join a room. The amount of members in a room is not restricted.
 
-Messages in a room will be distributed between all peers hosting the 
+Messages in a room will be distributed between all peers relaying the 
 room or being internally (in context of the messenger service) connected 
-to a hosting peer. All received or sent messages will be stored on any 
-peer locally which is hosting the respective room or is internally
-connected to such a hosting peer.
+to a relaying peer. All received or sent messages will be stored on any 
+peer locally which is relaying the respective room or is internally
+connected to such a relaying peer.
 
 The Messenger service is built on the CADET subsystem to make internal 
 connections between peers using a reliable and encrypted transmission. 
@@ -2411,9 +2411,9 @@ library designed for messenger applications.
 @node Entering a room
 @subsection Entering a room
 
-You can enter any room by its ROOMKEY and any PEERIDENTITY of a hosting peer.
-Optionally you can provide any IDENTITY which can represent a local ego by
-its name.
+You can enter any room by its ROOMKEY and any PEERIDENTITY of a relaying 
+peer. Optionally you can provide any IDENTITY which can represent a local 
+ego by its name.
 
 @example
 $ gnunet-messenger [-e IDENTITY] -d PEERIDENTITY -r ROOMKEY
@@ -2441,14 +2441,14 @@ be distributed as your name for the service in any case.
 @subsection Opening a room
 
 You can open any room in a similar way to entering it. You just have to leave
-out the '-d' parameter and the PEERIDENTITY of the hosting peer.
+out the '-d' parameter and the PEERIDENTITY of the relaying peer.
 
 @example
 $ gnunet-messenger [-e IDENTITY] -r ROOMKEY
 @end example
 
 Providing ROOMKEY and IDENTITY is identical to entering a room. Opening a room
-will also make your peer to a host of this room. So others can enter the room
+will also make your peer to a relay of this room. So others can enter the room
 through your peer if they have the required ROOMKEY and your peer ID.
 
 If you want to use the zeroed hash as shared secret key for the room you can

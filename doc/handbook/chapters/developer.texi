@@ -9990,7 +9990,7 @@ Also MESSENGER provides multiple features with privacy in mind:
       original sender (uses the MESSENGER provided verification)
 @item MESSENGER allows using the publicly known anonymous ego instead of any
       unique identifying ego
-@item MESSENGER allows your node to decide between acting as host of the used
+@item MESSENGER allows your node to decide between acting as relay of the used
       messaging room (sharing your peer's identity with all nodes in the group)
       or acting as guest (sharing your peer's identity only with the nodes you
       explicitly open a connection to)
