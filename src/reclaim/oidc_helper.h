@@ -34,7 +34,7 @@
 #define JWT_ALG_VALUE_HMAC "HS512"
 #define JWT_ALG_VALUE_RSA "RS256"
 
-#define SERVER_ADDRESS "https://api.reclaim"
+#define SERVER_ADDRESS "http://localhost:7776"
 
 enum OIDC_VerificationOptions
 {

@@ -939,15 +939,14 @@ generate_jwk ()
 }
 
 /**
- * Return the path to the RSA JWK key file
+ * Return the path to the oidc directory path
  *
  * @param cls the RequestHandle
  */
 char *
-get_oidc_jwk_path (void *cls)
+get_oidc_dir_path (void *cls)
 {
   char *oidc_directory;
-  char *oidc_jwk_path;
   struct RequestHandle *handle = cls;
 
   // Read OIDC directory from config
@@ -963,6 +962,22 @@ get_oidc_jwk_path (void *cls)
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return NULL;
   }
+
+  return oidc_directory;
+}
+
+/**
+ * Return the path to the RSA JWK key file
+ *
+ * @param cls the RequestHandle
+ */
+char *
+get_oidc_jwk_path (void *cls)
+{
+  char *oidc_directory;
+  char *oidc_jwk_path;
+  
+  oidc_directory = get_oidc_dir_path(cls);
 
   // Create path to file
   GNUNET_asprintf (&oidc_jwk_path, "%s/%s", oidc_directory,
@@ -2167,6 +2182,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   char *code_verifier;
   json_t *oidc_jwk;
   char *oidc_jwk_path;
+  char *oidc_directory;
 
   /*
    * Check Authorization
@@ -2285,11 +2301,33 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     jwa = JWT_ALG_VALUE_RSA;
   }
 
-  if (strcmp(jwa, JWT_ALG_VALUE_RSA))
+  if ( ! strcmp (jwa, JWT_ALG_VALUE_RSA))
   {
     // Replace for now
     oidc_jwk_path = get_oidc_jwk_path (cls);
     oidc_jwk = read_jwk_from_file (oidc_jwk_path);
+
+    // Check if secret JWK exists
+    if (! oidc_jwk)
+    {
+      // Generate and save a new key
+      oidc_jwk = generate_jwk ();
+      oidc_directory = get_oidc_dir_path(cls);
+
+      // Create new oidc directory
+      if (GNUNET_OK != GNUNET_DISK_directory_create (oidc_directory))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    ("Failed to create directory `%s' for storing oidc data\n"),
+                    oidc_directory);
+      }
+      else
+      {
+        write_jwk_to_file (oidc_jwk_path, oidc_jwk);
+      }
+    }
+
+    // Generate oidc token
     id_token = OIDC_generate_id_token_rsa (&ticket.audience,
                                            &ticket.identity,
                                            cl,
@@ -2298,7 +2336,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
                                            (NULL != nonce) ? nonce : NULL,
                                            oidc_jwk);
   }
-  else if (strcmp(jwa, JWT_ALG_VALUE_HMAC))
+  else if ( ! strcmp (jwa, JWT_ALG_VALUE_HMAC))
   {
     // TODO OPTIONAL acr,amr,azp
     if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_string (cfg,
@@ -2328,7 +2366,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
 
     GNUNET_free (jwt_secret);
   }
-  else 
+  else
   {
     // TODO: OPTION NOT FOUND ERROR
   }
@@ -2652,6 +2690,7 @@ jwks_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   {
     // Generate and save a new key
     oidc_jwk = generate_jwk ();
+    oidc_directory = get_oidc_dir_path(cls);
 
     // Create new oidc directory
     if (GNUNET_OK != GNUNET_DISK_directory_create (oidc_directory))
@@ -2675,7 +2714,7 @@ jwks_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
   json_decref (oidc_jwk);
   GNUNET_free (oidc_jwk_pub_str);
-  free (oidc_jwk_pub_str);
+  GNUNET_free (oidc_jwk_pub_str);
   cleanup_handle (handle);
 }
 
