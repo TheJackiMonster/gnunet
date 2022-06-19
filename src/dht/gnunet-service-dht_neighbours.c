@@ -1526,7 +1526,7 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
     pgm->options = htons (options);
     pgm->hop_count = htons (hop_count + 1);
     pgm->desired_replication_level = htons (desired_replication_level);
-    pgm->result_filter_size = htonl (result_filter_size);
+    pgm->result_filter_size = htons ((uint16_t) result_filter_size);
     GNUNET_break (GNUNET_YES ==
                   GNUNET_CONTAINER_bloomfilter_test (peer_bf,
                                                      &target->phash));
@@ -2061,7 +2061,7 @@ check_dht_p2p_get (void *cls,
                    const struct PeerGetMessage *get)
 {
   uint16_t msize = ntohs (get->header.size);
-  uint32_t result_filter_size = ntohl (get->result_filter_size);
+  uint16_t result_filter_size = ntohs (get->result_filter_size);
 
   (void) cls;
   if (msize < sizeof(*get) + result_filter_size)
@@ -2086,8 +2086,8 @@ handle_dht_p2p_get (void *cls,
   struct Target *t = cls;
   struct PeerInfo *peer = t->pi;
   uint16_t msize = ntohs (get->header.size);
-  uint32_t result_filter_size = ntohl (get->result_filter_size);
-  uint32_t hop_count = ntohs (get->hop_count);
+  uint16_t result_filter_size = ntohs (get->result_filter_size);
+  uint16_t hop_count = ntohs (get->hop_count);
   enum GNUNET_BLOCK_Type type = (enum GNUNET_BLOCK_Type) ntohl (get->type);
   enum GNUNET_DHT_RouteOption options = (enum GNUNET_DHT_RouteOption)  ntohs (
     get->options);
