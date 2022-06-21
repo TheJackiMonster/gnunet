@@ -1,4 +1,4 @@
-gnunet (0.17.1-1) unstable; urgency=low
+gnunet (0.17.1) unstable; urgency=low
 
   * Packaging latest release (with 7135 htonl fix).
 
