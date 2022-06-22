@@ -2448,12 +2448,31 @@ consume_ticket (void *cls,
   struct GNUNET_RECLAIM_AttributeListEntry *ale;
   struct GNUNET_RECLAIM_PresentationListEntry *atle;
   struct MHD_Response *resp;
+  struct GNUNET_HashCode cache_key;
   char *result_str;
+  char *cached_code;
 
   if (NULL != handle->consume_timeout_op)
     GNUNET_SCHEDULER_cancel (handle->consume_timeout_op);
   handle->consume_timeout_op = NULL;
   handle->idp_op = NULL;
+
+  /**
+   * We received a reply. In any case clear the cache.
+   */
+  GNUNET_CRYPTO_hash (handle->access_token,
+                      strlen (handle->access_token),
+                      &cache_key);
+  cached_code = GNUNET_CONTAINER_multihashmap_get (oidc_code_cache,
+                                                   &cache_key);
+  if (NULL != cached_code)
+  {
+    GNUNET_CONTAINER_multihashmap_remove (oidc_code_cache,
+                                          &cache_key,
+                                          cached_code);
+    GNUNET_free (cached_code);
+  }
+
 
   if (NULL == identity)
   {
