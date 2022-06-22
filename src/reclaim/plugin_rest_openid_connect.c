@@ -307,6 +307,11 @@ static struct GNUNET_GNS_Handle *gns_handle;
 static struct GNUNET_RECLAIM_Handle *idp;
 
 /**
+ * Timeout for consume call on userinfo
+ */
+static struct GNUNET_TIME_Relative consume_timeout;
+
+/**
  * @brief struct returned by the initialization function of the plugin
  */
 struct Plugin
@@ -976,8 +981,8 @@ get_oidc_jwk_path (void *cls)
 {
   char *oidc_directory;
   char *oidc_jwk_path;
-  
-  oidc_directory = get_oidc_dir_path(cls);
+
+  oidc_directory = get_oidc_dir_path (cls);
 
   // Create path to file
   GNUNET_asprintf (&oidc_jwk_path, "%s/%s", oidc_directory,
@@ -2183,6 +2188,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   json_t *oidc_jwk;
   char *oidc_jwk_path;
   char *oidc_directory;
+  char *tmp_at;
 
   /*
    * Check Authorization
@@ -2312,7 +2318,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     {
       // Generate and save a new key
       oidc_jwk = generate_jwk ();
-      oidc_directory = get_oidc_dir_path(cls);
+      oidc_directory = get_oidc_dir_path (cls);
 
       // Create new oidc directory
       if (GNUNET_OK != GNUNET_DISK_directory_create (oidc_directory))
@@ -2374,14 +2380,25 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   if (NULL != nonce)
     GNUNET_free (nonce);
   access_token = OIDC_access_token_new (&ticket);
-  /* Store mapping from access token to code so we can later
-   * fall back on the provided attributes in userinfo
+  /**
+   * Store mapping from access token to code so we can later
+   * fall back on the provided attributes in userinfo one time.
    */
   GNUNET_CRYPTO_hash (access_token,
                       strlen (access_token),
                       &cache_key);
-  char *tmp_at = GNUNET_CONTAINER_multihashmap_get (oidc_code_cache,
-                                                    &cache_key);
+  /**
+   * Note to future self: This cache has the following purpose:
+   * Some OIDC plugins call the userendpoint right after receiving an
+   * ID token and access token. There are reasons why this would make sense.
+   * Others not so much.
+   * In any case, in order to smoothen out the user experience upon login
+   * (authorization), we speculatively cache the next
+   * userinfo response in case the actual resolution through reclaim/GNS
+   * takes too long.
+   */
+  tmp_at = GNUNET_CONTAINER_multihashmap_get (oidc_code_cache,
+                                              &cache_key);
   GNUNET_CONTAINER_multihashmap_put (oidc_code_cache,
                                      &cache_key,
                                      code,
@@ -2490,15 +2507,18 @@ consume_ticket (void *cls,
 
 
 static void
-consume_timeout (void*cls)
+consume_fail (void *cls)
 {
   struct RequestHandle *handle = cls;
   struct GNUNET_HashCode cache_key;
   struct GNUNET_RECLAIM_AttributeList *cl = NULL;
   struct GNUNET_RECLAIM_PresentationList *pl = NULL;
   struct GNUNET_RECLAIM_Ticket ticket;
+  struct MHD_Response *resp;
   char *nonce;
   char *cached_code;
+  char *result_str;
+
 
   handle->consume_timeout_op = NULL;
   if (NULL != handle->idp_op)
@@ -2520,6 +2540,12 @@ consume_timeout (void*cls)
     GNUNET_SCHEDULER_add_now (&do_userinfo_error, handle);
     return;
   }
+  /**
+   * Remove the cached item
+   */
+  GNUNET_CONTAINER_multihashmap_remove (oidc_code_cache,
+                                        &cache_key,
+                                        cached_code);
 
   // decode code
   if (GNUNET_OK != OIDC_parse_authz_code (&handle->ticket.audience,
@@ -2537,8 +2563,7 @@ consume_timeout (void*cls)
     return;
   }
 
-  struct MHD_Response *resp;
-  char *result_str;
+  GNUNET_free (cached_code);
 
   result_str = OIDC_generate_userinfo (&handle->ticket.identity,
                                        cl,
@@ -2652,8 +2677,8 @@ userinfo_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
 
   /* If the consume takes too long, we use values from the cache */
   handle->access_token = GNUNET_strdup (authorization_access_token);
-  handle->consume_timeout_op = GNUNET_SCHEDULER_add_delayed (CONSUME_TIMEOUT,
-                                                             &consume_timeout,
+  handle->consume_timeout_op = GNUNET_SCHEDULER_add_delayed (consume_timeout,
+                                                             &consume_fail,
                                                              handle);
   handle->idp_op = GNUNET_RECLAIM_ticket_consume (idp,
                                                   privkey,
@@ -2690,7 +2715,7 @@ jwks_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   {
     // Generate and save a new key
     oidc_jwk = generate_jwk ();
-    oidc_directory = get_oidc_dir_path(cls);
+    oidc_directory = get_oidc_dir_path (cls);
 
     // Create new oidc directory
     if (GNUNET_OK != GNUNET_DISK_directory_create (oidc_directory))
@@ -3028,6 +3053,14 @@ libgnunet_plugin_rest_openid_connect_init (void *cls)
   identity_handle = GNUNET_IDENTITY_connect (cfg, &list_ego, NULL);
   gns_handle = GNUNET_GNS_connect (cfg);
   idp = GNUNET_RECLAIM_connect (cfg);
+  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_time (cfg,
+                                                        "reclaim-rest-plugin",
+                                                        "OIDC_USERINFO_CONSUME_TIMEOUT",
+                                                        &consume_timeout))
+  {
+    consume_timeout = CONSUME_TIMEOUT;
+  }
+
 
   state = ID_REST_STATE_INIT;
   GNUNET_asprintf (&allow_methods,
