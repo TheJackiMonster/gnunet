@@ -31,7 +31,7 @@
  * @brief Return a DID for a given GNUNET public key
  */
 char *
-GNUNET_DID_pkey_to_did (struct GNUNET_IDENTITY_PublicKey *pkey);
+DID_pkey_to_did (struct GNUNET_IDENTITY_PublicKey *pkey);
 
 /**
  * @brief Generate a DID for a given gnunet EGO
@@ -40,13 +40,13 @@ GNUNET_DID_pkey_to_did (struct GNUNET_IDENTITY_PublicKey *pkey);
  * @return char * Returns the DID. Caller must free
  */
 char *
-GNUNET_DID_identity_to_did (struct GNUNET_IDENTITY_Ego *ego);
+DID_identity_to_did (struct GNUNET_IDENTITY_Ego *ego);
 
 /**
  * @brief Return the public key of a DID
  */
 int
-GNUNET_DID_did_to_pkey (char *did, struct GNUNET_IDENTITY_PublicKey *pkey);
+DID_did_to_pkey (char *did, struct GNUNET_IDENTITY_PublicKey *pkey);
 
 // /**
 //  * @brief Convert a base 64 encoded public key to a GNUNET key
@@ -58,17 +58,17 @@ GNUNET_DID_did_to_pkey (char *did, struct GNUNET_IDENTITY_PublicKey *pkey);
  * @brief Convert GNUNET key to a base 64 encoded public key
  */
 char *
-GNUNET_DID_key_covert_gnunet_to_multibase_base64 (struct
+DID_key_covert_gnunet_to_multibase_base64 (struct
                                                   GNUNET_IDENTITY_PublicKey *);
 
 /**
  * @brief Generate the default DID document for a GNUNET public key
  */
 char *
-GNUNET_DID_pkey_to_did_document (struct GNUNET_IDENTITY_PublicKey *pkey);
+DID_pkey_to_did_document (struct GNUNET_IDENTITY_PublicKey *pkey);
 
 /**
  * @brief Generate the default DID document for a GNUNET ego
  */
 char *
-GNUNET_DID_identity_to_did_document (struct GNUNET_IDENTITY_Ego *ego);
+DID_identity_to_did_document (struct GNUNET_IDENTITY_Ego *ego);

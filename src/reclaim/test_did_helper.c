@@ -67,7 +67,7 @@ void
 test_GNUNET_DID_pkey_to_did ()
 {
   char *str_did;
-  str_did = GNUNET_DID_pkey_to_did (&test_pkey);
+  str_did = DID_pkey_to_did (&test_pkey);
   GNUNET_assert (strcmp ((char *) test_did, str_did) == 0);
 }
 
@@ -75,7 +75,7 @@ void
 test_GNUNET_DID_did_to_pkey ()
 {
   struct GNUNET_IDENTITY_PublicKey pkey;
-  GNUNET_DID_did_to_pkey ((char *) test_did, &pkey);
+  DID_did_to_pkey ((char *) test_did, &pkey);
 
   GNUNET_assert (test_pkey.type = pkey.type);
   GNUNET_assert (strcmp (pkey.eddsa_key.q_y,
@@ -89,8 +89,7 @@ void
 test_GNUNET_DID_key_covert_gnunet_to_multibase_base64 ()
 {
   char *multibase_key;
-  multibase_key = GNUNET_DID_key_covert_gnunet_to_multibase_base64 (&test_pkey);
-  printf ("%s\n", multibase_key);
+  multibase_key = DID_key_covert_gnunet_to_multibase_base64 (&test_pkey);
 
   GNUNET_assert (strcmp (test_multibase_key, multibase_key) == 0);
 }
@@ -99,7 +98,7 @@ void
 test_GNUNET_DID_pkey_to_did_document ()
 {
   struct json_t *did_document;
-  char *did_document_str = GNUNET_DID_pkey_to_did_document (&test_pkey);
+  char *did_document_str = DID_pkey_to_did_document (&test_pkey);
   did_document = json_loads (did_document_str, JSON_DECODE_ANY, NULL);
   GNUNET_assert (json_equal (test_did_document, did_document) == 1);
 }

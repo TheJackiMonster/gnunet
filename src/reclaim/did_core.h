@@ -26,20 +26,22 @@
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
+#include "gnunet_namestore_service.h"
 #include "gnunet_gns_service.h"
+#include "gnunet_gnsrecord_lib.h"
 #include "did_helper.h"
-
+#include "jansson.h"
 
 /**
  * @brief Signature of a callback function that is called after a did has been resolved.
  * did_document is NULL if DID can not be resolved.
- *Calls the given callback function with the resolved DID Document and the given closure.
+ * Calls the given callback function with the resolved DID Document and the given closure.
  * If the did can not be resolved did_document is NULL.
  * @param did_document resolved DID Document
  * @param cls previsouly given closure
  */
 typedef void
-  did_resolve_callback (char *did_document, void *cls);
+  DID_resolve_callback (char *did_document, void *cls);
 
 /**
  * @brief Signature of a callback function that is called after a did has been removed
@@ -50,7 +52,7 @@ typedef void
  * @param cls previsouly given closure
  */
 typedef void
-  did_action_callback (int status, void *cls);
+  DID_action_callback (enum GNUNET_GenericReturnValue status, void *cls);
 
 
 /**
@@ -59,13 +61,15 @@ typedef void
  * If the did can not be resolved did_document is NULL.
  *
  * @param did DID that is resolved
+ * @param gns_handle pointer to gns handle.
  * @param cont callback function
  * @param cls closure
  */
-void
-GNUNET_DID_resolve (char *did,
-                    did_resolve_callback *cont,
-                    void *cls);
+enum GNUNET_GenericReturnValue
+DID_resolve (const char *did,
+             struct GNUNET_GNS_Handle *gns_handle,
+             DID_resolve_callback *cont,
+             void *cls);
 
 
 /**
@@ -74,13 +78,17 @@ GNUNET_DID_resolve (char *did,
  * Calls the callback function with status and the given closure.
  *
  * @param ego ego which controlls the DID
+ * @param cfg_handle pointer to configuration handle
+ * @param namestore_handle pointer to namestore handle
  * @param cont callback function
  * @param cls closure
  */
-void
-GNUNET_DID_remove (struct GNUNET_IDENTITY_Ego *ego,
-                   did_action_callback *cont,
-                   void *cls);
+enum GNUNET_GenericReturnValue
+DID_remove (const struct GNUNET_IDENTITY_Ego *ego,
+            struct GNUNET_CONFIGURATION_Handle *cfg_handle,
+            struct GNUNET_NAMESTORE_Handle *namestore_handle,
+            DID_action_callback *cont,
+            void *cls);
 
 
 /**
@@ -91,14 +99,18 @@ GNUNET_DID_remove (struct GNUNET_IDENTITY_Ego *ego,
  * @param did_document did_document that should be saved in namestore.
  * If ego==NULL did_document can also be NULL.
  * Default DID document is created.
+ * @param cfg_handle pointer to configuration handle
+ * @param identity_hanlde pointer to configuration handle. Can be NULL if ego!=NULL
  * @param cont callback function
  * @param cls closure
  */
-void
-GNUNET_DID_create (struct GNUNET_IDENTITY_Ego *ego,
-                   char *did_document,
-                   did_action_callback *cont,
-                   void *cls);
+enum GNUNET_GenericReturnValue
+DID_create (const struct GNUNET_IDENTITY_Ego *ego,
+            const char *did_document,
+            struct GNUNET_CONFIGURATION_Handle *cfg_handle,
+            struct GNUNET_IDENTITY_Handle *identity_handle,
+            DID_action_callback *cont,
+            void *cls);
 
 
 /**
@@ -106,11 +118,17 @@ GNUNET_DID_create (struct GNUNET_IDENTITY_Ego *ego,
  *
  * @param ego ego for which the DID Document should be replaced
  * @param did_document new DID Document
+ * @param cfg_handle pointer to configuration handle
+ * @param identity_handle pointer to configuration handle
+ * @param namestore_handle pointer to namestore handle
  * @param cont callback function
  * @param cls closure
  */
-void
-GNUNET_DID_replace (struct GNUNET_IDENTITY_Ego *ego,
-                    char *did_document,
-                    did_action_callback *cont,
-                    void *cls);
+enum GNUNET_GenericReturnValue
+DID_replace (struct GNUNET_IDENTITY_Ego *ego,
+             char *did_document,
+             struct GNUNET_CONFIGURATION_Handle *cfg_handle,
+             struct GNUNET_IDENTITY_Handle *identity_handle,
+             struct GNUNET_NAMESTORE_Handle *namestore_handle,
+             DID_action_callback *cont,
+             void *cls);

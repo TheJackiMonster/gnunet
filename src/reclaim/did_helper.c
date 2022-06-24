@@ -42,7 +42,7 @@
  * TODO: Check if EdDSA
  */
 char*
-GNUNET_DID_pkey_to_did (struct GNUNET_IDENTITY_PublicKey *pkey)
+DID_pkey_to_did (struct GNUNET_IDENTITY_PublicKey *pkey)
 {
   char *pkey_str;
   char *did_str;
@@ -64,19 +64,19 @@ GNUNET_DID_pkey_to_did (struct GNUNET_IDENTITY_PublicKey *pkey)
  * @return char* Returns the DID. Caller must free
  */
 char*
-GNUNET_DID_identity_to_did (struct GNUNET_IDENTITY_Ego *ego)
+DID_identity_to_did (struct GNUNET_IDENTITY_Ego *ego)
 {
   struct GNUNET_IDENTITY_PublicKey pkey;
 
   GNUNET_IDENTITY_ego_get_public_key (ego, &pkey);
-  return GNUNET_DID_pkey_to_did (&pkey);
+  return DID_pkey_to_did (&pkey);
 }
 
 /**
  * @brief Return the public key of a DID
  */
 int
-GNUNET_DID_did_to_pkey (char *did, struct GNUNET_IDENTITY_PublicKey *pkey)
+DID_did_to_pkey (char *did, struct GNUNET_IDENTITY_PublicKey *pkey)
 {
   /* FIXME-MSC: I suggest introducing a
    * #define MAX_DID_LENGTH <something>
@@ -111,7 +111,7 @@ GNUNET_DID_key_covert_multibase_base64_to_gnunet (char *pkey_str)
  * @brief Convert GNUNET key to a base 64 encoded public key
  */
 char *
-GNUNET_DID_key_covert_gnunet_to_multibase_base64 (struct
+DID_key_covert_gnunet_to_multibase_base64 (struct
                                                   GNUNET_IDENTITY_PublicKey *
                                                   pkey)
 {
@@ -139,7 +139,7 @@ GNUNET_DID_key_covert_gnunet_to_multibase_base64 (struct
  * @return void* Return pointer to the DID Document
  */
 char *
-GNUNET_DID_pkey_to_did_document (struct GNUNET_IDENTITY_PublicKey *pkey)
+DID_pkey_to_did_document (struct GNUNET_IDENTITY_PublicKey *pkey)
 {
 
   /* FIXME-MSC: This is effectively creating a DID Document default template for
@@ -155,10 +155,10 @@ GNUNET_DID_pkey_to_did_document (struct GNUNET_IDENTITY_PublicKey *pkey)
   char *didd_str;
   json_t *didd_json;
 
-  did_str = GNUNET_DID_pkey_to_did (pkey);
+  did_str = DID_pkey_to_did (pkey);
   GNUNET_asprintf (&verify_id_str, "%s#key-1", did_str);
 
-  pkey_multibase_str = GNUNET_DID_key_covert_gnunet_to_multibase_base64 (pkey);
+  pkey_multibase_str = DID_key_covert_gnunet_to_multibase_base64 (pkey);
 
   didd_json = json_pack (
     "{s:[ss], s:s, s:[{s:s, s:s, s:s, s:s}], s:[s], s:[s]}",
@@ -198,10 +198,10 @@ GNUNET_DID_pkey_to_did_document (struct GNUNET_IDENTITY_PublicKey *pkey)
  * Wrapper around GNUNET_DID_pkey_to_did_document
  */
 char *
-GNUNET_DID_identity_to_did_document (struct GNUNET_IDENTITY_Ego *ego)
+DID_identity_to_did_document (struct GNUNET_IDENTITY_Ego *ego)
 {
   struct GNUNET_IDENTITY_PublicKey pkey;
 
   GNUNET_IDENTITY_ego_get_public_key (ego, &pkey);
-  return GNUNET_DID_pkey_to_did (&pkey);
+  return DID_pkey_to_did (&pkey);
 }
