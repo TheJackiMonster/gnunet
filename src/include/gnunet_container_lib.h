@@ -277,9 +277,9 @@ GNUNET_CONTAINER_bloomfilter_get_raw_data (
  *
  * @param e the element
  * @param bf the filter
- * @return #GNUNET_YES if the element is in the filter, #GNUNET_NO if not
+ * @return true if the element is in the filter, false if not
  */
-int
+bool
 GNUNET_CONTAINER_bloomfilter_test (
   const struct GNUNET_CONTAINER_BloomFilter *bf,
   const struct GNUNET_HashCode *e);
