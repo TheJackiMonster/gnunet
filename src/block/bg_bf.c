@@ -82,7 +82,7 @@ bf_group_serialize_cb (struct GNUNET_BLOCK_Group *bg,
           &gi->bf_mutator,
           sizeof (uint32_t));
   *raw_data = raw;
-  *raw_data_size = gi->bf_size;
+  *raw_data_size = gi->bf_size + sizeof (uint32_t);
   return GNUNET_OK;
 }
 
@@ -228,7 +228,7 @@ GNUNET_BLOCK_GROUP_bf_create (void *cls,
  * @return #GNUNET_YES if @a hc is (likely) a duplicate
  *         #GNUNET_NO if @a hc was definitively not in @bg (but now is)
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BLOCK_GROUP_bf_test_and_set (struct GNUNET_BLOCK_Group *bg,
                                     const struct GNUNET_HashCode *hc)
 {
