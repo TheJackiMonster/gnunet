@@ -1,5 +1,5 @@
 # This file is part of GNUnet.
-# (C) 2001--2021 GNUnet e.V.
+# (C) 2001--2022 GNUnet e.V.
 #
 # GNUnet is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Affero General Public License as published
@@ -1046,7 +1046,7 @@ AS_IF([test "x$libmhd" = "x0"],
 
 AM_CONDITIONAL([HAVE_MHD], [test "x$libmhd" = "x1"])
 AC_DEFINE_UNQUOTED([HAVE_MHD], [$libmhd],
-                   [Define to 1 if libmicrohttpd is avaliable])
+                   [Define to 1 if libmicrohttpd is available])
 AM_CONDITIONAL([HAVE_REST], [true])
 
 # check for gnutls
@@ -1198,7 +1198,7 @@ AC_ARG_ENABLE([nse-histogram],
   [nse_histogram=0])
 AM_CONDITIONAL([ENABLE_NSE_HISTOGRAM], [test "x$nse_histogram" = "x1"])
 AC_DEFINE_UNQUOTED([ENABLE_NSE_HISTOGRAM], [$nse_histogram],
-                   [Define to 1 if NSE should send timestamp informations])
+                   [Define to 1 if NSE should send timestamp information])
 
 # check if 'make check' should run tests
 AC_ARG_ENABLE([testruns],
@@ -1314,7 +1314,7 @@ AS_IF([test "x$enable_ttd" = "xyes"],
   [AC_DEFINE([ENABLE_TTD], [1],
              [Define if transport (not TNG) should warn about sending times.])])
 
-# get version informations
+# get version information
 AC_PATH_PROG([gitcommand], [git])
 AC_MSG_CHECKING([if source is under a VCS])
 AS_IF([test "x$gitcommand" = "x"],

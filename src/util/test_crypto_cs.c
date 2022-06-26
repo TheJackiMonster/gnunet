@@ -241,7 +241,7 @@ test_calc_blindedc (const struct GNUNET_CRYPTO_CsBlindingSecret bs[2],
 
   /* TEST 2
    * Check if R' - aG -bX = R for b = 0
-   * This test does the opposite operations and checks wether the equation is still correct.
+   * This test does the opposite operations and checks whether the equation is still correct.
    */
   for (unsigned int b = 0; b <= 1; b++)
   {
@@ -338,7 +338,7 @@ test_blind_sign (unsigned int *b,
 
   /* TEST 2
    * Check if s := rb + cbX
-   * This test does the opposite operations and checks wether the equation is still correct.
+   * This test does the opposite operations and checks whether the equation is still correct.
    */
   struct GNUNET_CRYPTO_Cs25519Scalar cb_mul_x;
   struct GNUNET_CRYPTO_Cs25519Scalar s_min_rb;
@@ -393,7 +393,7 @@ test_unblinds (const struct GNUNET_CRYPTO_CsBlindS *blinded_signature_scalar,
 
   /* TEST 2
    * Check if s' := s + a mod p
-   * This test does the opposite operations and checks wether the equation is still correct.
+   * This test does the opposite operations and checks whether the equation is still correct.
    */
   struct GNUNET_CRYPTO_Cs25519Scalar s_min_a;
 

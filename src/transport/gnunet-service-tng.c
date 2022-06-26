@@ -82,7 +82,7 @@
 #include "transport.h"
 
 /**
- * Maximum number of FC retransmissions for a runing retransmission task.
+ * Maximum number of FC retransmissions for a running retransmission task.
  */
 #define MAX_FC_RETRANSMIT_COUNT 1000
 
@@ -1932,9 +1932,6 @@ struct Queue
    */
   int idle;
 };
-
-
-
 
 
 /**
@@ -9827,7 +9824,7 @@ handle_send_message_ack (void *cls,
                   (unsigned long long) queue->qid,
                   (unsigned long long) sma->mid);
       qe = qep;
-      if ((NULL != qe->pm)&&(qe->pm->qe != qe))
+      if ((NULL != qe->pm) && (qe->pm->qe != qe))
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                     "For pending message %llu we had retransmissions.\n",
                     qe->pm->logging_uuid);

@@ -78,7 +78,7 @@ enum GNUNET_GNSRECORD_Flags
 
   /**
    * This record is critical. If it cannot be processed
-   * (for example beacuse the record type is unknown)
+   * (for example because the record type is unknown)
    * resolution MUST fail
    */
   GNUNET_GNSRECORD_RF_CRITICAL = 1,

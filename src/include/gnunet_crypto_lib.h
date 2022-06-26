@@ -289,7 +289,7 @@ struct GNUNET_CRYPTO_EddsaPrivateScalar
 
 /**
  * Private ECC key material encoded for transmission.  To be used only for
- * Edx25519 signatures.  An inital key corresponds to data from the key
+ * Edx25519 signatures.  An initial key corresponds to data from the key
  * expansion and clamping in the EdDSA key generation.
  */
 struct GNUNET_CRYPTO_Edx25519PrivateKey

@@ -1340,10 +1340,11 @@ do_rekey (struct Queue *queue, const struct TCPRekey *rekey)
                 GNUNET_TIME_absolute_ntoh (thp.monotonic_time)));
   GNUNET_assert (ntohl ((&thp)->purpose.size) == sizeof (*(&thp)));
   if (GNUNET_OK !=
-      GNUNET_CRYPTO_eddsa_verify (GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_REKEY,
-                                  &thp,
-                                  &rekey->sender_sig,
-                                  &queue->target.public_key))
+      GNUNET_CRYPTO_eddsa_verify (
+        GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_REKEY,
+        &thp,
+        &rekey->sender_sig,
+        &queue->target.public_key))
   {
     GNUNET_break (0);
     queue_finish (queue);
@@ -1447,7 +1448,8 @@ handshake_ack_monotime_cb (void *cls,
  * @param queue The queue context.
  */
 static void
-send_challenge (struct GNUNET_CRYPTO_ChallengeNonceP challenge, struct Queue *queue)
+send_challenge (struct GNUNET_CRYPTO_ChallengeNonceP challenge, struct
+                Queue *queue)
 {
   struct TCPConfirmationAck tca;
   struct TcpHandshakeAckSignature thas;
@@ -2450,7 +2452,7 @@ boot_queue (struct Queue *queue)
  * Generate and transmit our ephemeral key and the signature for
  * the initial KX with the other peer.  Must be called first, before
  * any other bytes are ever written to the output buffer.  Note that
- * our cipher must already be initialized when calling thi function.
+ * our cipher must already be initialized when calling this function.
  * Helper function for #start_initial_kx_out().
  *
  * @param queue queue to do KX for
@@ -2472,7 +2474,8 @@ transmit_kx (struct Queue *queue,
   GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
                               &tc.challenge,
                               sizeof(tc.challenge));
-  ths.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_HANDSHAKE);
+  ths.purpose.purpose = htonl (
+    GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_HANDSHAKE);
   ths.purpose.size = htonl (sizeof(ths));
   ths.sender = my_identity;
   ths.receiver = queue->target;
@@ -2625,7 +2628,8 @@ decrypt_and_check_tc (struct Queue *queue,
                          sizeof(*tc),
                          &ibuf[sizeof(struct GNUNET_CRYPTO_EcdhePublicKey)],
                          sizeof(*tc)));
-  ths.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_HANDSHAKE);
+  ths.purpose.purpose = htonl (
+    GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_HANDSHAKE);
   ths.purpose.size = htonl (sizeof(ths));
   ths.sender = tc->sender;
   ths.receiver = my_identity;

@@ -44,6 +44,7 @@ GNUNET_GNSRECORD_string_normalize (const char *src)
   return GNUNET_STRINGS_utf8_normalize (src);
 }
 
+
 enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_label_check (const char*label, char **emsg)
 {
@@ -59,6 +60,7 @@ GNUNET_GNSRECORD_label_check (const char*label, char **emsg)
   }
   return GNUNET_OK;
 }
+
 
 /**
  * Convert a zone key to a string (for printing debug messages).
@@ -409,6 +411,7 @@ GNUNET_GNSRECORD_record_to_identity_key (const struct GNUNET_GNSRECORD_Data *rd,
 
 }
 
+
 enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_normalize_record_set (const char *label,
                                        const struct
@@ -488,7 +491,7 @@ GNUNET_GNSRECORD_normalize_record_set (const char *label,
           (GNUNET_YES == have_gns2dns))
       {
         *emsg = GNUNET_strdup (_ (
-                                 "Redirection record set conains mutually exclusive records."));
+                                 "Redirection record set contains mutually exclusive records."));
         return GNUNET_SYSERR;
       }
       /* No redirection records under empty label*/
@@ -514,7 +517,7 @@ GNUNET_GNSRECORD_normalize_record_set (const char *label,
           (GNUNET_YES == have_zone_delegation))
       {
         *emsg = GNUNET_strdup (_ (
-                                 "Redirection record set conains mutually exclusive records."));
+                                 "Redirection record set contains mutually exclusive records."));
         return GNUNET_SYSERR;
       }
       have_gns2dns = GNUNET_YES;
@@ -557,6 +560,7 @@ GNUNET_GNSRECORD_normalize_record_set (const char *label,
   return GNUNET_OK;
 }
 
+
 enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_convert_records_for_export (const char *label,
                                              const struct
@@ -578,7 +582,6 @@ GNUNET_GNSRECORD_convert_records_for_export (const char *label,
                                                 emsg);
 
 }
-
 
 
 /* end of gnsrecord_misc.c */
