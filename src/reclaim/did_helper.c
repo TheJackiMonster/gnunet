@@ -75,8 +75,8 @@ DID_identity_to_did (struct GNUNET_IDENTITY_Ego *ego)
 /**
  * @brief Return the public key of a DID
  */
-int
-DID_did_to_pkey (char *did, struct GNUNET_IDENTITY_PublicKey *pkey)
+enum GNUNET_GenericReturnValue
+DID_did_to_pkey (const char *did, struct GNUNET_IDENTITY_PublicKey *pkey)
 {
   /* FIXME-MSC: I suggest introducing a
    * #define MAX_DID_LENGTH <something>
@@ -92,10 +92,10 @@ DID_did_to_pkey (char *did, struct GNUNET_IDENTITY_PublicKey *pkey)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Could not decode given DID: %s\n",
                 did);
-    return 1;
+    return GNUNET_NO;
   }
 
-  return 0;
+  return GNUNET_OK;
 }
 
 /**

@@ -20,9 +20,80 @@
 
 /**
  * @file reclaim/did_core.c
- * @brief Core functionality for DID 
+ * @brief Core functionality for DID
  * @author Tristan Schwieren
  */
 
 
 #include "did_core.h"
+
+static DID_resolve_callback *resolve_cb;
+static DID_action_callback *action_cb;
+static void *closure;
+
+/**
+ * @brief GNS lookup callback. Calls the given callback function 
+ * and gives it the DID Document.
+ * Fails if there is more than one DID record.
+ *
+ * @param cls closure
+ * @param rd_count number of records in rd
+ * @param rd the records in the reply
+ */
+static void
+DID_resolve_gns_lookup_cb (
+  void *cls,
+  uint32_t rd_count,
+  const struct GNUNET_GNSRECORD_Data *rd)
+{
+  /*
+   * FIXME-MSC: The user may decide to put other records here.
+   * In general I am fine with the constraint here, but not when
+   * we move it to "@"
+   */
+
+  char *didd;
+
+  if (rd_count != 1)
+    resolve_cb (GNUNET_NO, "An ego should only have one DID Document", closure);
+
+  if (rd[0].record_type == GNUNET_DNSPARSER_TYPE_TXT)
+  {
+    didd = (char *) rd[0].data;
+    resolve_cb (GNUNET_NO, didd, closure);
+  }
+  else
+    resolve_cb (GNUNET_NO, "DID Document is not a TXT record\n", closure);
+}
+
+/**
+ * @brief Resolve a DID.
+ * Calls the given callback function with the resolved DID Document and the given closure.
+ * If the did can not be resolved did_document is NULL.
+ *
+ * @param did DID that is resolved
+ * @param gns_handle pointer to gns handle.
+ * @param cont callback function
+ * @param cls closure
+ */
+enum GNUNET_GenericReturnValue
+DID_resolve (const char *did,
+             struct GNUNET_GNS_Handle *gns_handle,
+             DID_resolve_callback *cont,
+             void *cls)
+{
+  struct GNUNET_IDENTITY_PublicKey pkey;
+
+  if ((did == NULL) || (gns_handle == NULL) || (cont == NULL))
+    return GNUNET_NO;
+
+  resolve_cb = cont;
+  closure = cls;
+
+  if (GNUNET_OK != DID_did_to_pkey (did, &pkey))
+    return GNUNET_NO;
+
+  GNUNET_GNS_lookup (gns_handle, GNUNET_GNS_EMPTY_LABEL_AT, &pkey,
+                     GNUNET_DNSPARSER_TYPE_TXT,
+                     GNUNET_GNS_LO_DEFAULT, &DID_resolve_gns_lookup_cb, NULL);
+}

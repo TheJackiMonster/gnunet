@@ -141,14 +141,17 @@ libgnunetreclaim_la_LDFLAGS = \
 
 libgnunetdid_la_SOURCES = \
   did_helper.c \
-  did_helper.h
+  did_helper.h \
+  did_core.h \
+  did_core.c
 libgnunetdid_la_LIBADD = \
 	$(top_builddir)/src/util/libgnunetutil.la \
 	$(top_builddir)/src/gns/libgnunetgns.la \
 	$(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
 	$(top_builddir)/src/identity/libgnunetidentity.la \
 	$(top_builddir)/src/namestore/libgnunetnamestore.la \
-	-ljansson
+	-ljansson \
+  $(GN_LIBINTL) $(XLIB)
 libgnunetdid_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)   \
   -version-info 0:0:0

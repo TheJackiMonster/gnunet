@@ -39,6 +39,7 @@
 #include "gnunet_gns_service.h"
 #include "gnunet_gnsrecord_lib.h"
 #include "did_helper.h"
+#include "did_core.h"
 #include "jansson.h"
 
 #define GNUNET_DID_DEFAULT_DID_DOCUMENT_EXPIRATION_TIME "1d"
@@ -165,7 +166,7 @@ get_did_for_ego_lookup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
     ret = 1;
     return;
   }
-  did_str = GNUNET_DID_identity_to_did (ego);
+  did_str = DID_identity_to_did (ego);
 
   printf ("%s\n", did_str);
 
@@ -261,27 +262,46 @@ print_did_document (
   return;
 }
 
+static void
+print_did_document2(
+  enum GNUNET_GenericReturnValue status,
+  char *did_document, 
+  void *cls
+)
+{
+  if (GNUNET_OK == status)
+    printf("%s\n", did_document);
+  else 
+    printf("An error occured: %s\n", did_document);
+
+  GNUNET_SCHEDULER_add_now (cleanup, NULL);
+  ret = 0;
+  return;
+}
+
 /**
  * @brief Resolve a DID given by the user.
  */
 static void
 resolve_did_document ()
 {
-  struct GNUNET_IDENTITY_PublicKey pkey;
+  // struct GNUNET_IDENTITY_PublicKey pkey;
 
-  if (did == NULL)
-  {
-    printf ("Set DID option to resolve DID\n");
-    GNUNET_SCHEDULER_add_now (cleanup, NULL);
-    ret = 1;
-    return;
-  }
+  // if (did == NULL)
+  // {
+  //   printf ("Set DID option to resolve DID\n");
+  //   GNUNET_SCHEDULER_add_now (cleanup, NULL);
+  //   ret = 1;
+  //   return;
+  // }
 
-  get_pkey_from_attr_did (&pkey);
+  // get_pkey_from_attr_did (&pkey);
 
-  GNUNET_GNS_lookup (gns_handle, GNUNET_GNS_EMPTY_LABEL_AT, &pkey,
-                     GNUNET_DNSPARSER_TYPE_TXT,
-                     GNUNET_GNS_LO_DEFAULT, &print_did_document, NULL);
+  // GNUNET_GNS_lookup (gns_handle, GNUNET_GNS_EMPTY_LABEL_AT, &pkey,
+  //                    GNUNET_DNSPARSER_TYPE_TXT,
+  //                    GNUNET_GNS_LO_DEFAULT, &print_did_document, NULL);
+
+  DID_resolve(did, gns_handle, print_did_document2, NULL);
 }
 
 
@@ -486,7 +506,7 @@ create_did_ego_lockup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   }
   else {
     // Generate DID Docuement from public key
-    didd_str = GNUNET_DID_pkey_to_did_document (&pkey);
+    didd_str = DID_pkey_to_did_document (&pkey);
   }
 
   // Print DID Document to stdout
@@ -650,7 +670,7 @@ process_dids (void *cls, struct GNUNET_IDENTITY_Ego *ego,
   }
   if (1 == show_all)
   {
-    did_str = GNUNET_DID_identity_to_did (ego);
+    did_str = DID_identity_to_did (ego);
     printf ("%s\n", did_str);
     GNUNET_free (did_str);
     return;
@@ -659,7 +679,7 @@ process_dids (void *cls, struct GNUNET_IDENTITY_Ego *ego,
   {
     if (0 == strncmp (name, egoname, strlen (egoname)))
     {
-      did_str = GNUNET_DID_identity_to_did (ego);
+      did_str = DID_identity_to_did (ego);
       printf ("%s\n", did_str);
       GNUNET_free (did_str);
       return;

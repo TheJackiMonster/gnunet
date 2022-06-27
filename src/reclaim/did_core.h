@@ -34,14 +34,15 @@
 
 /**
  * @brief Signature of a callback function that is called after a did has been resolved.
- * did_document is NULL if DID can not be resolved.
+ * did_document contains an Error message if DID can not be resolved.
  * Calls the given callback function with the resolved DID Document and the given closure.
  * If the did can not be resolved did_document is NULL.
+ * @param status Equals GNUNET_OK if DID Docuemnt has been resolved
  * @param did_document resolved DID Document
  * @param cls previsouly given closure
  */
 typedef void
-  DID_resolve_callback (char *did_document, void *cls);
+  DID_resolve_callback (enum GNUNET_GenericReturnValue status, char *did_document, void *cls);
 
 /**
  * @brief Signature of a callback function that is called after a did has been removed
