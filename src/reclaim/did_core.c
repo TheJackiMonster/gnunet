@@ -27,6 +27,9 @@
 
 #include "did_core.h"
 
+// #define DID_DOCUMENT_LABEL GNUNET_GNS_EMPTY_LABEL_AT
+#define DID_DOCUMENT_LABEL "didd"
+
 static DID_resolve_callback *resolve_cb;
 static DID_action_callback *action_cb;
 static void *closure;
@@ -60,7 +63,7 @@ DID_resolve_gns_lookup_cb (
   if (rd[0].record_type == GNUNET_DNSPARSER_TYPE_TXT)
   {
     didd = (char *) rd[0].data;
-    resolve_cb (GNUNET_NO, didd, closure);
+    resolve_cb (GNUNET_OK, didd, closure);
   }
   else
     resolve_cb (GNUNET_NO, "DID Document is not a TXT record\n", closure);
@@ -93,7 +96,9 @@ DID_resolve (const char *did,
   if (GNUNET_OK != DID_did_to_pkey (did, &pkey))
     return GNUNET_NO;
 
-  GNUNET_GNS_lookup (gns_handle, GNUNET_GNS_EMPTY_LABEL_AT, &pkey,
+  GNUNET_GNS_lookup (gns_handle, DID_DOCUMENT_LABEL, &pkey,
                      GNUNET_DNSPARSER_TYPE_TXT,
                      GNUNET_GNS_LO_DEFAULT, &DID_resolve_gns_lookup_cb, NULL);
+
+  return GNUNET_OK;
 }

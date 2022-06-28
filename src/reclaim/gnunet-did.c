@@ -147,7 +147,6 @@ cleanup (void *cls)
   GNUNET_SCHEDULER_shutdown ();
 }
 
-
 /**
  * @brief Callback for ego loockup of get_did_for_ego()
  *
@@ -197,73 +196,16 @@ get_did_for_ego ()
   }
 }
 
-
 /**
- * @brief Get the public key from did attribute given by the user
- *
- * @param pkey place to write the public key to
- */
-static void
-get_pkey_from_attr_did (struct GNUNET_IDENTITY_PublicKey *pkey)
-{
-  /* FIXME-MSC: I suggest introducing a
-   * #define MAX_DID_LENGTH <something>
-   * here and use it for parsing
-   */
-  char pkey_str[59];
-
-  if ((1 != (sscanf (did, GNUNET_DID_METHOD_PREFIX "%58s", pkey_str))) ||
-      (GNUNET_OK != GNUNET_IDENTITY_public_key_from_string (pkey_str, pkey)))
-  {
-    fprintf (stderr, _ ("Invalid DID `%s'\n"), pkey_str);
-    GNUNET_SCHEDULER_add_now (cleanup, NULL);
-    ret = 1;
-    return;
-  }
-}
-
-/**
- * @brief GNS lookup callback. Prints the DID Document to standard out.
- * Fails if there is more than one DID record.
+ * @brief Resolve DID callback. Prints the DID Document to standard out.
+ * Prints error message if resolve fails
  *
  * @param cls closure
  * @param rd_count number of records in @a rd
  * @param rd the records in the reply
  */
 static void
-print_did_document (
-  void *cls,
-  uint32_t rd_count,
-  const struct GNUNET_GNSRECORD_Data *rd)
-{
-  /*
-   * FIXME-MSC: The user may decide to put other records here.
-   * In general I am fine with the constraint here, but not when
-   * we move it to "@"
-   */
-  if (rd_count != 1)
-  {
-    printf ("An ego should only have one DID Document\n");
-    GNUNET_SCHEDULER_add_now (cleanup, NULL);
-    ret = 1;
-    return;
-  }
-
-  if (rd[0].record_type == GNUNET_DNSPARSER_TYPE_TXT)
-  {
-    printf ("%s\n", (char *) rd[0].data);
-  }
-  else {
-    printf ("DID Document is not a TXT record\n");
-  }
-
-  GNUNET_SCHEDULER_add_now (cleanup, NULL);
-  ret = 0;
-  return;
-}
-
-static void
-print_did_document2(
+print_did_document(
   enum GNUNET_GenericReturnValue status,
   char *did_document, 
   void *cls
@@ -285,23 +227,23 @@ print_did_document2(
 static void
 resolve_did_document ()
 {
-  // struct GNUNET_IDENTITY_PublicKey pkey;
+  struct GNUNET_IDENTITY_PublicKey pkey;
 
-  // if (did == NULL)
-  // {
-  //   printf ("Set DID option to resolve DID\n");
-  //   GNUNET_SCHEDULER_add_now (cleanup, NULL);
-  //   ret = 1;
-  //   return;
-  // }
+  if (did == NULL)
+  {
+    printf ("Set DID option to resolve DID\n");
+    GNUNET_SCHEDULER_add_now (cleanup, NULL);
+    ret = 1;
+    return;
+  }
 
-  // get_pkey_from_attr_did (&pkey);
-
-  // GNUNET_GNS_lookup (gns_handle, GNUNET_GNS_EMPTY_LABEL_AT, &pkey,
-  //                    GNUNET_DNSPARSER_TYPE_TXT,
-  //                    GNUNET_GNS_LO_DEFAULT, &print_did_document, NULL);
-
-  DID_resolve(did, gns_handle, print_did_document2, NULL);
+  if (GNUNET_OK != DID_resolve(did, gns_handle, print_did_document, NULL))
+  {
+    printf("An error occured while resoling the DID\n");
+    GNUNET_SCHEDULER_add_now(cleanup, NULL);
+    ret = 0;
+    return;
+  }
 }
 
 
