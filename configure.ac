@@ -20,7 +20,7 @@
 #
 #
 AC_PREREQ([2.69])
-AC_INIT([gnunet], m4_esyscmd_s([sh contrib/get_version.sh]), [bug-gnunet@gnu.org])
+AC_INIT([gnunet],[m4_esyscmd_s(sh contrib/get_version.sh)],[bug-gnunet@gnu.org])
 
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIRS([m4])
