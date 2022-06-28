@@ -33,6 +33,9 @@ override_dh_auto_install-arch:
 		debian/tmp/usr/bin/gnunet-template \
 		debian/tmp/usr/bin/gnunet-helper-transport-wlan-dummy
 
+override_dh_builddeb:
+    dh_builddeb -- -Zgzip
+
 override_dh_auto_install-indep:
 
 override_dh_installsystemd:
