@@ -113,9 +113,26 @@ DID_resolve (const char *did,
 // ------------------------------------------------ //
 
 static void
-DID_create_did_store_cb ()
+DID_create_did_store_cb (void *cls,
+                         int32_t success,
+                         const char *emsg)
 {
-  return;
+  if (GNUNET_OK == success)
+  {
+    // TEST
+    struct GNUNET_IDENTITY_PublicKey *pkey_test;
+    GNUNET_IDENTITY_ego_get_public_key ((struct GNUNET_IDENTITY_Ego *) closure,
+                                        pkey_test);
+    printf ("pkey1: %s\n", GNUNET_IDENTITY_public_key_to_string (pkey_test));
+
+    printf ("cls3: %s\n", (char *) closure);
+    action_cb (GNUNET_OK, closure);
+  }
+  else
+  {
+    printf ("%s\n", emsg);
+    action_cb (GNUNET_NO, closure);
+  }
 }
 
 /**
@@ -126,37 +143,43 @@ DID_create_did_store_cb ()
  */
 static enum GNUNET_GenericReturnValue
 DID_create_did_store (struct GNUNET_NAMESTORE_Handle *namestore_handle,
-                  char *didd_str, struct GNUNET_IDENTITY_Ego *ego)
+                      char *didd_str, struct GNUNET_IDENTITY_Ego *ego)
 {
 
   struct GNUNET_TIME_Relative expire_time;
   struct GNUNET_GNSRECORD_Data record_data;
   const struct GNUNET_IDENTITY_PrivateKey *skey;
 
-  if (GNUNET_STRINGS_fancy_time_to_relative ((GNUNET_OK ==
-                                              DID_DOCUMENT_DEFAULT_EXPIRATION_TIME),
-                                             &expire_time))
+  if (GNUNET_OK != GNUNET_STRINGS_fancy_time_to_relative (
+        DID_DOCUMENT_DEFAULT_EXPIRATION_TIME, &expire_time))
   {
-    record_data.data = didd_str;
-    record_data.expiration_time = expire_time.rel_value_us;
-    record_data.data_size = strlen (didd_str) + 1;
-    record_data.record_type = GNUNET_GNSRECORD_typename_to_number ("TXT"),
-    record_data.flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
-
-    skey = GNUNET_IDENTITY_ego_get_private_key (ego);
-
-    GNUNET_NAMESTORE_records_store (namestore_handle,
-                                    skey,
-                                    GNUNET_GNS_EMPTY_LABEL_AT,
-                                    1, // FIXME what if GNUNET_GNS_EMPTY_LABEL_AT has records
-                                    &record_data,
-                                    &DID_create_did_store_cb,
-                                    NULL);
-  }
-  else {
     printf ("Failed to read given expiration time\n");
     return GNUNET_NO;
   }
+
+  record_data.data = didd_str;
+  record_data.expiration_time = expire_time.rel_value_us;
+  record_data.data_size = strlen (didd_str) + 1;
+  record_data.record_type = GNUNET_GNSRECORD_typename_to_number ("TXT"),
+  record_data.flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
+
+  skey = GNUNET_IDENTITY_ego_get_private_key (ego);
+
+  // TEST
+  struct GNUNET_IDENTITY_PublicKey *pkey_test;
+  GNUNET_IDENTITY_ego_get_public_key ((struct GNUNET_IDENTITY_Ego *) closure,
+                                      pkey_test);
+  printf ("pkey1: %s\n", GNUNET_IDENTITY_public_key_to_string (pkey_test));
+
+  GNUNET_NAMESTORE_records_store (namestore_handle,
+                                  skey,
+                                  DID_DOCUMENT_LABEL,
+                                  1,   // FIXME what if GNUNET_GNS_EMPTY_LABEL_AT has records
+                                  &record_data,
+                                  &DID_create_did_store_cb,
+                                  NULL);
+
+  return GNUNET_OK;
 }
 
 // TODO: Expiration time missing
@@ -165,10 +188,8 @@ DID_create_did_store (struct GNUNET_NAMESTORE_Handle *namestore_handle,
  * @brief Creates a DID and saves DID Document in Namestore.
  *
  * @param ego ego for which the DID should be created.
- * If ego==NULL a new ego is created
  * @param did_document did_document that should be saved in namestore.
- * If ego==NULL did_document can also be NULL.
- * Default DID document is created.
+ * If did_document==NULL -> Default DID document is created.
  * @param cfg_handle pointer to configuration handle
  * @param identity_hanlde pointer to identity handle. Can be NULL if ego!=NULL
  * @param namestore_handle
@@ -178,7 +199,7 @@ DID_create_did_store (struct GNUNET_NAMESTORE_Handle *namestore_handle,
 enum GNUNET_GenericReturnValue
 DID_create (const struct GNUNET_IDENTITY_Ego *ego,
             const char *did_document,
-            struct GNUNET_CONFIGURATION_Handle *cfg_handle,
+            const struct GNUNET_CONFIGURATION_Handle *cfg_handle,
             struct GNUNET_IDENTITY_Handle *identity_handle,
             struct GNUNET_NAMESTORE_Handle *namestore_handle,
             DID_action_callback *cont,
@@ -188,15 +209,27 @@ DID_create (const struct GNUNET_IDENTITY_Ego *ego,
 
   GNUNET_IDENTITY_ego_get_public_key (ego, &pkey);
 
-  if (did_document != NULL)
+  if (ntohl (pkey.type) != GNUNET_GNSRECORD_TYPE_EDKEY)
   {
-    printf (
-      "DID Docuement is read from \"did-document\" argument (EXPERIMENTAL)\n");
-  }
-  else
-  {
-    did_document = DID_pkey_to_did_document (&pkey);
+    printf ("The EGO has to have an EDDSA key pair\n");
+    return GNUNET_NO;
   }
 
-  return GNUNET_OK;
+  if (did_document != NULL)
+    printf (
+      "DID Docuement is read from \"DID-document\" argument (EXPERIMENTAL)\n");
+  else
+    did_document = DID_pkey_to_did_document (&pkey);
+
+
+  // TEST
+  struct GNUNET_IDENTITY_PublicKey *pkey_test;
+  GNUNET_IDENTITY_ego_get_public_key ((struct GNUNET_IDENTITY_Ego *) cls,
+                                      pkey_test);
+  printf ("pkey1: %s\n", GNUNET_IDENTITY_public_key_to_string (pkey_test));
+
+  action_cb = cont;
+  closure = cls;
+
+  return DID_create_did_store (namestore_handle, did_document, ego);
 }
