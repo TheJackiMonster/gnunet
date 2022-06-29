@@ -101,7 +101,8 @@ DID_remove (const struct GNUNET_IDENTITY_Ego *ego,
  * If ego==NULL did_document can also be NULL.
  * Default DID document is created.
  * @param cfg_handle pointer to configuration handle
- * @param identity_hanlde pointer to configuration handle. Can be NULL if ego!=NULL
+ * @param identity_handle pointer to identity handle. Can be NULL if ego!=NULL
+ * @param namestore_handle
  * @param cont callback function
  * @param cls closure
  */
@@ -110,6 +111,7 @@ DID_create (const struct GNUNET_IDENTITY_Ego *ego,
             const char *did_document,
             struct GNUNET_CONFIGURATION_Handle *cfg_handle,
             struct GNUNET_IDENTITY_Handle *identity_handle,
+            struct GNUNET_NAMESTORE_Handle *namestore_handle,
             DID_action_callback *cont,
             void *cls);
 
