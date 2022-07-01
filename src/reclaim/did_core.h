@@ -29,6 +29,7 @@
 #include "gnunet_namestore_service.h"
 #include "gnunet_gns_service.h"
 #include "gnunet_gnsrecord_lib.h"
+#include "gnunet_identity_service.h"
 #include "did_helper.h"
 #include "jansson.h"
 
@@ -96,12 +97,8 @@ DID_remove (const struct GNUNET_IDENTITY_Ego *ego,
  * @brief Creates a DID and saves DID Document in Namestore.
  *
  * @param ego ego for which the DID should be created.
- * If ego==NULL a new ego is created
  * @param did_document did_document that should be saved in namestore.
- * If ego==NULL did_document can also be NULL.
- * Default DID document is created.
- * @param cfg_handle pointer to configuration handle
- * @param identity_handle pointer to identity handle. Can be NULL if ego!=NULL
+ * If did_document==NULL -> Default DID document is created.
  * @param namestore_handle
  * @param cont callback function
  * @param cls closure
@@ -109,8 +106,6 @@ DID_remove (const struct GNUNET_IDENTITY_Ego *ego,
 enum GNUNET_GenericReturnValue
 DID_create (const struct GNUNET_IDENTITY_Ego *ego,
             const char *did_document,
-            const struct GNUNET_CONFIGURATION_Handle *cfg_handle,
-            struct GNUNET_IDENTITY_Handle *identity_handle,
             struct GNUNET_NAMESTORE_Handle *namestore_handle,
             DID_action_callback *cont,
             void *cls);
