@@ -25,14 +25,16 @@
  */
 
 
+// TODO: Expiration time missing in create
+// TODO: Check if ego already has a DID document in create
+// TODO: Store DID document with empty label and own type (maybe DID-Document or Json??)
+// TODO: Store DID document as compact JSON in GNS but resolve it with newlines
+
 #include "did_core.h"
 
 // #define DID_DOCUMENT_LABEL GNUNET_GNS_EMPTY_LABEL_AT
 #define DID_DOCUMENT_LABEL "didd"
 #define DID_DOCUMENT_DEFAULT_EXPIRATION_TIME "1d"
-
-static DID_resolve_callback *resolve_cb;
-static void *closure;
 
 struct DID_resolve_return
 {
@@ -65,24 +67,21 @@ DID_resolve_gns_lookup_cb (
   uint32_t rd_count,
   const struct GNUNET_GNSRECORD_Data *rd)
 {
-  /*
-   * FIXME-MSC: The user may decide to put other records here.
-   * In general I am fine with the constraint here, but not when
-   * we move it to "@"
-   */
-
-  char *didd;
+  char *did_document;
+  DID_resolve_callback *cb = ((struct DID_resolve_return *) cls)->cb;
+  void *cls2 = ((struct DID_resolve_return *) cls)->cls;
+  free (cls);
 
   if (rd_count != 1)
-    resolve_cb (GNUNET_NO, "An ego should only have one DID Document", closure);
+    cb (GNUNET_NO, "An ego should only have one DID Document", cls2);
 
   if (rd[0].record_type == GNUNET_DNSPARSER_TYPE_TXT)
   {
-    didd = (char *) rd[0].data;
-    resolve_cb (GNUNET_OK, didd, closure);
+    did_document = (char *) rd[0].data;
+    cb (GNUNET_OK, did_document, cls2);
   }
   else
-    resolve_cb (GNUNET_NO, "DID Document is not a TXT record\n", closure);
+    cb (GNUNET_NO, "DID Document is not a TXT record\n", cls2);
 }
 
 /**
@@ -103,18 +102,21 @@ DID_resolve (const char *did,
 {
   struct GNUNET_IDENTITY_PublicKey pkey;
 
+  // did, gns_handle and cont must me set
   if ((did == NULL) || (gns_handle == NULL) || (cont == NULL))
     return GNUNET_NO;
-
-  resolve_cb = cont;
-  closure = cls;
 
   if (GNUNET_OK != DID_did_to_pkey (did, &pkey))
     return GNUNET_NO;
 
+  // Create closure for lockup callback
+  struct DID_resolve_return *cls2 = malloc (sizeof(struct DID_resolve_return));
+  cls2->cb = cont;
+  cls2->cls = cls;
+
   GNUNET_GNS_lookup (gns_handle, DID_DOCUMENT_LABEL, &pkey,
                      GNUNET_DNSPARSER_TYPE_TXT,
-                     GNUNET_GNS_LO_DEFAULT, &DID_resolve_gns_lookup_cb, NULL);
+                     GNUNET_GNS_LO_DEFAULT, &DID_resolve_gns_lookup_cb, cls2);
 
   return GNUNET_OK;
 }
@@ -138,13 +140,11 @@ DID_create_did_store_cb (void *cls,
   }
   else
   {
+    // TODO: Log emsg. Not writing it to STDOUT
     printf ("%s\n", emsg);
     cb (GNUNET_NO, (void *) cls2);
   }
 }
-
-// TODO: Expiration time missing
-// TODO: Check if ego already has a DID document
 
 /**
  * @brief Creates a DID and saves DID Document in Namestore.
@@ -168,6 +168,10 @@ DID_create (const struct GNUNET_IDENTITY_Ego *ego,
   struct GNUNET_IDENTITY_PublicKey pkey;
   struct GNUNET_TIME_Relative expire_time;
   struct GNUNET_GNSRECORD_Data record_data;
+
+  // Ego, namestore_handle and cont must be set
+  if ((ego == NULL) || (namestore_handle == NULL) || (cont == NULL))
+    return GNUNET_NO;
 
   // Check if ego has EdDSA key
   GNUNET_IDENTITY_ego_get_public_key ((struct GNUNET_IDENTITY_Ego *) ego,

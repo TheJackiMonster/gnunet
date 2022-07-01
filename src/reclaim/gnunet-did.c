@@ -153,48 +153,48 @@ cleanup (void *cls)
  * @param cls closure
  * @param ego the returned ego
  */
-static void
-get_did_for_ego_lookup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
-{
-  char *did_str;
-
-  if (ego == NULL)
-  {
-    printf ("EGO not found\n");
-    GNUNET_SCHEDULER_add_now (&cleanup, NULL);
-    ret = 1;
-    return;
-  }
-  did_str = DID_identity_to_did (ego);
-
-  printf ("%s\n", did_str);
-
-  GNUNET_SCHEDULER_add_now (&cleanup, NULL);
-  ret = 0;
-  return;
-}
+// static void
+// get_did_for_ego_lookup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
+// {
+//   char *did_str;
+// 
+//   if (ego == NULL)
+//   {
+//     printf ("EGO not found\n");
+//     GNUNET_SCHEDULER_add_now (&cleanup, NULL);
+//     ret = 1;
+//     return;
+//   }
+//   did_str = DID_identity_to_did (ego);
+// 
+//   printf ("%s\n", did_str);
+// 
+//   GNUNET_SCHEDULER_add_now (&cleanup, NULL);
+//   ret = 0;
+//   return;
+// }
 
 /**
  * @brief Get the DID for a given EGO
  *
  */
-static void
-get_did_for_ego ()
-{
-  if (egoname != NULL)
-  {
-    GNUNET_IDENTITY_ego_lookup (my_cfg,
-                                egoname,
-                                &get_did_for_ego_lookup_cb,
-                                NULL);
-  }
-  else {
-    printf ("Set the EGO argument to get the DID for a given EGO\n");
-    GNUNET_SCHEDULER_add_now (&cleanup, NULL);
-    ret = 1;
-    return;
-  }
-}
+// static void
+// get_did_for_ego ()
+// {
+//   if (egoname != NULL)
+//   {
+//     GNUNET_IDENTITY_ego_lookup (my_cfg,
+//                                 egoname,
+//                                 &get_did_for_ego_lookup_cb,
+//                                 NULL);
+//   }
+//   else {
+//     printf ("Set the EGO argument to get the DID for a given EGO\n");
+//     GNUNET_SCHEDULER_add_now (&cleanup, NULL);
+//     ret = 1;
+//     return;
+//   }
+// }
 
 /**
  * @brief Resolve DID callback. Prints the DID Document to standard out.
@@ -374,7 +374,7 @@ create_did_cb (enum GNUNET_GenericReturnValue status, void *cls)
   }
   else
   {
-    printf ("An error occured while creating the DID\n");
+    printf ("An error occured while creating the DID.\n");
     ret = 1;
   }
 
@@ -427,6 +427,7 @@ create_did_ego_lockup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
     char *did = DID_identity_to_did (ego);
     void *cls = malloc (strlen (did) + 1);
     strcpy (cls, did);
+    // TODO: Add DID_document argument
     DID_create (ego, NULL, namestore_handle, create_did_cb, cls);
   }
 }
@@ -513,6 +514,8 @@ replace_did_document ()
 static void
 post_ego_iteration (void *cls)
 {
+  // TODO: Check that only one argument is set
+  
   if (1 == replace)
   {
     replace_did_document ();
@@ -633,10 +636,6 @@ main (int argc, char *const argv[])
                                gettext_noop (
                                  "Get the DID Document associated with the given DID"),
                                &get),
-    GNUNET_GETOPT_option_flag ('s',
-                               "show",
-                               gettext_noop ("Show the DID for a given ego"),
-                               &show),
     GNUNET_GETOPT_option_flag ('r',
                                "remove",
                                gettext_noop (
@@ -646,9 +645,13 @@ main (int argc, char *const argv[])
                                "replace",
                                gettext_noop ("Replace the DID Document."),
                                &replace),
+    GNUNET_GETOPT_option_flag ('s',
+                               "show",
+                               gettext_noop ("Show the DID for a given ego"),
+                               &show),
     GNUNET_GETOPT_option_flag ('A',
                                "show-all",
-                               gettext_noop ("Replace the DID Document."),
+                               gettext_noop ("Show egos with DIDs"),
                                &show_all),
     GNUNET_GETOPT_option_string ('d',
                                  "did",

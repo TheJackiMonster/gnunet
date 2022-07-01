@@ -78,10 +78,6 @@ DID_identity_to_did (struct GNUNET_IDENTITY_Ego *ego)
 enum GNUNET_GenericReturnValue
 DID_did_to_pkey (const char *did, struct GNUNET_IDENTITY_PublicKey *pkey)
 {
-  /* FIXME-MSC: I suggest introducing a
-   * #define MAX_DID_LENGTH <something>
-   * here and use it for parsing
-   */
   char pkey_str[MAX_DID_SPECIFIC_IDENTIFIER_LENGTH];
 
   if ((1 != (sscanf (did,
@@ -112,8 +108,8 @@ GNUNET_DID_key_covert_multibase_base64_to_gnunet (char *pkey_str)
  */
 char *
 DID_key_covert_gnunet_to_multibase_base64 (struct
-                                                  GNUNET_IDENTITY_PublicKey *
-                                                  pkey)
+                                           GNUNET_IDENTITY_PublicKey *
+                                           pkey)
 {
   struct GNUNET_CRYPTO_EddsaPublicKey pubkey = pkey->eddsa_key;
 
