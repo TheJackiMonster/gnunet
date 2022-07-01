@@ -640,16 +640,14 @@ namestore_get (struct GNUNET_REST_RequestHandle *con_handle,
   handle->zone_pkey = GNUNET_IDENTITY_ego_get_private_key (ego_entry->ego);
 
   GNUNET_CRYPTO_hash ("record_type", strlen ("record_type"), &key);
-  if (GNUNET_NO ==
+  handle->record_type = GNUNET_GNSRECORD_TYPE_ANY;
+  if (GNUNET_YES ==
       GNUNET_CONTAINER_multihashmap_contains (con_handle->url_param_map, &key))
-  {
-    handle->record_type = GNUNET_GNSRECORD_TYPE_ANY;
-  }
-  else
   {
     typename = GNUNET_CONTAINER_multihashmap_get (con_handle->url_param_map,
                                                   &key);
-    handle->record_type = GNUNET_GNSRECORD_typename_to_number (typename);
+    if (NULL != typename)
+      handle->record_type = GNUNET_GNSRECORD_typename_to_number (typename);
   }
   labelname = &egoname[strlen (ego_entry->identifier)];
   // set zone to name if given
