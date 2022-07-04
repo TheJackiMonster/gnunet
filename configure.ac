@@ -736,18 +736,6 @@ CHECK_WITH_LIB([opus], [opus_decode_float], [opus/opus.h], [HAVE_OPUS])
 # check for libogg
 CHECK_WITH_LIB([ogg], [ogg_stream_flush_fill], [ogg/ogg.h], [HAVE_OGG])
 
-PKG_CHECK_MODULES([GLIB], [glib-2.0],
-  [AC_CHECK_HEADER([pbc/pbc.h], [pbc=1], [pbc=0])
-   AC_CHECK_HEADER([gabe.h], [abe=1], [abe=0])
-   AM_CONDITIONAL([HAVE_PBC], [test "x$pbc" = "x1"])
-   AM_CONDITIONAL([HAVE_ABE], [test "x$abe" = "x1"])
-   AC_DEFINE_UNQUOTED([HAVE_PBC], [$pbc], [Define to 1 if pbc is available])
-   AC_DEFINE_UNQUOTED([HAVE_ABE], [$abe], [Define to 1 if abe is available])],
-  [AM_CONDITIONAL([HAVE_PBC], [false])
-   AM_CONDITIONAL([HAVE_ABE], [false])
-   AC_DEFINE([HAVE_PBC], [0], [Define to 1 if pbc is available])
-   AC_DEFINE([HAVE_ABE], [0], [Define to 1 if abe is available])])
-
 PKG_CHECK_MODULES([GST],
   [glib-2.0 gobject-2.0 gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0],
   [gst=1],
@@ -1444,7 +1432,6 @@ src/zonemaster/zonemaster.conf
 src/rest/Makefile
 src/abd/Makefile
 src/abd/abd.conf
-src/abe/Makefile
 src/reclaim/Makefile
 src/messenger/Makefile
 src/messenger/messenger.conf

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GNUnet 0.7.0b\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2022-06-04 22:36+0200\n"
+"POT-Creation-Date: 2022-06-13 12:32+0200\n"
 "PO-Revision-Date: 2006-01-21 17:16+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
@@ -5909,7 +5909,7 @@ msgstr ""
 msgid "re:claimID command line tool"
 msgstr ""
 
-#: src/reclaim/plugin_rest_openid_connect.c:2793
+#: src/reclaim/plugin_rest_openid_connect.c:3003
 #, fuzzy
 msgid "OpenID Connect REST API initialized\n"
 msgstr " Anslutning misslyckades\n"

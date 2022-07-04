@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2022-06-04 22:36+0200\n"
+"POT-Creation-Date: 2022-06-13 12:32+0200\n"
 "PO-Revision-Date: 2020-10-23 18:39+0200\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: Serbian <(nothing)>\n"
@@ -5898,7 +5898,7 @@ msgstr ""
 msgid "re:claimID command line tool"
 msgstr ""
 
-#: src/reclaim/plugin_rest_openid_connect.c:2793
+#: src/reclaim/plugin_rest_openid_connect.c:3003
 msgid "OpenID Connect REST API initialized\n"
 msgstr ""
 

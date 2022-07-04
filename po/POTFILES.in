@@ -4,7 +4,6 @@ src/abd/delegate_misc.c
 src/abd/gnunet-abd.c
 src/abd/gnunet-service-abd.c
 src/abd/plugin_gnsrecord_abd.c
-src/abe/abe.c
 src/arm/arm_api.c
 src/arm/arm_monitor_api.c
 src/arm/gnunet-arm.c

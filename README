@@ -141,9 +141,6 @@ Dependencies of optional components/functionality:
   * texi2mdoc                         (for automatic mdoc generation [*2], not
                                       the texi2mdoc script distributed with
                                       autogen but the texi2mdoc C application)
-- Attribute-Based Encryption (experimental):
-  * libpbc             >= 0.5.14
-  * libgabe
 - PABC credential support
   * libpabc            any            (for re:claimID zero-knowledge privacy
                                       credentials)
