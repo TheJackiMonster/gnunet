@@ -33,6 +33,10 @@
 #include "did_helper.h"
 #include "jansson.h"
 
+// #define DID_DOCUMENT_LABEL GNUNET_GNS_EMPTY_LABEL_AT
+#define DID_DOCUMENT_LABEL "didd"
+#define DID_DOCUMENT_DEFAULT_EXPIRATION_TIME "365d"
+
 /**
  * @brief Signature of a callback function that is called after a did has been resolved.
  * did_document contains an Error message if DID can not be resolved.
@@ -99,6 +103,7 @@ DID_remove (const struct GNUNET_IDENTITY_Ego *ego,
  * @param ego ego for which the DID should be created.
  * @param did_document did_document that should be saved in namestore.
  * If did_document==NULL -> Default DID document is created.
+ * @param expire_time 
  * @param namestore_handle
  * @param cont callback function
  * @param cls closure
@@ -106,6 +111,7 @@ DID_remove (const struct GNUNET_IDENTITY_Ego *ego,
 enum GNUNET_GenericReturnValue
 DID_create (const struct GNUNET_IDENTITY_Ego *ego,
             const char *did_document,
+            const struct GNUNET_TIME_Relative *expire_time,
             struct GNUNET_NAMESTORE_Handle *namestore_handle,
             DID_action_callback *cont,
             void *cls);

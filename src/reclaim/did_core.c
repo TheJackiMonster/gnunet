@@ -24,17 +24,15 @@
  * @author Tristan Schwieren
  */
 
+// DO: Expiration time missing in create
+// Add Expiration TIME to json DID document
 
-// TODO: Expiration time missing in create
 // TODO: Check if ego already has a DID document in create
-// TODO: Store DID document with empty label and own type (maybe DID-Document or Json??)
 // TODO: Store DID document as compact JSON in GNS but resolve it with newlines
 
-#include "did_core.h"
+// TODO: Store DID document with empty label and own type (maybe DID-Document or JSON??)
 
-// #define DID_DOCUMENT_LABEL GNUNET_GNS_EMPTY_LABEL_AT
-#define DID_DOCUMENT_LABEL "didd"
-#define DID_DOCUMENT_DEFAULT_EXPIRATION_TIME "1d"
+#include "did_core.h"
 
 struct DID_resolve_return
 {
@@ -89,10 +87,7 @@ DID_resolve_gns_lookup_cb (
  * Calls the given callback function with the resolved DID Document and the given closure.
  * If the did can not be resolved did_document is NULL.
  *
- * @param did DID that is resolved
- * @param gns_handle pointer to gns handle.
- * @param cont callback function
- * @param cls closure
+ * @param did DID that is resolved000G055PGJ4RJSS4G8HWCP86AWF1C6TF2DW2K3BW05HHRKSJG38NT2Z3JGe
  */
 enum GNUNET_GenericReturnValue
 DID_resolve (const char *did,
@@ -109,7 +104,7 @@ DID_resolve (const char *did,
   if (GNUNET_OK != DID_did_to_pkey (did, &pkey))
     return GNUNET_NO;
 
-  // Create closure for lockup callback
+  // Create closure for lookup callback
   struct DID_resolve_return *cls2 = malloc (sizeof(struct DID_resolve_return));
   cls2->cb = cont;
   cls2->cls = cls;
@@ -161,12 +156,13 @@ DID_create_did_store_cb (void *cls,
 enum GNUNET_GenericReturnValue
 DID_create (const struct GNUNET_IDENTITY_Ego *ego,
             const char *did_document,
+            const struct GNUNET_TIME_Relative *expire_time,
             struct GNUNET_NAMESTORE_Handle *namestore_handle,
             DID_action_callback *cont,
             void *cls)
 {
   struct GNUNET_IDENTITY_PublicKey pkey;
-  struct GNUNET_TIME_Relative expire_time;
+  // struct GNUNET_TIME_Relative expire_time;
   struct GNUNET_GNSRECORD_Data record_data;
 
   // Ego, namestore_handle and cont must be set
@@ -176,7 +172,6 @@ DID_create (const struct GNUNET_IDENTITY_Ego *ego,
   // Check if ego has EdDSA key
   GNUNET_IDENTITY_ego_get_public_key ((struct GNUNET_IDENTITY_Ego *) ego,
                                       &pkey);
-
   if (ntohl (pkey.type) != GNUNET_GNSRECORD_TYPE_EDKEY)
   {
     printf ("The EGO has to have an EdDSA key pair\n");
@@ -190,17 +185,9 @@ DID_create (const struct GNUNET_IDENTITY_Ego *ego,
   else
     did_document = DID_pkey_to_did_document (&pkey);
 
-  // TODO: Get the expiration time as argument
-  if (GNUNET_OK != GNUNET_STRINGS_fancy_time_to_relative (
-        DID_DOCUMENT_DEFAULT_EXPIRATION_TIME, &expire_time))
-  {
-    printf ("Failed to read given expiration time\n");
-    return GNUNET_NO;
-  }
-
   // Create record
   record_data.data = did_document;
-  record_data.expiration_time = expire_time.rel_value_us;
+  record_data.expiration_time = expire_time->rel_value_us;
   record_data.data_size = strlen (did_document) + 1;
   record_data.record_type = GNUNET_GNSRECORD_typename_to_number ("TXT"),
   record_data.flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;

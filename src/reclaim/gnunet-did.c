@@ -36,6 +36,7 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_namestore_service.h"
+#include "gnunet_identity_service.h"
 #include "gnunet_gns_service.h"
 #include "gnunet_gnsrecord_lib.h"
 #include "did_helper.h"
@@ -157,7 +158,7 @@ cleanup (void *cls)
 // get_did_for_ego_lookup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 // {
 //   char *did_str;
-// 
+//
 //   if (ego == NULL)
 //   {
 //     printf ("EGO not found\n");
@@ -166,9 +167,9 @@ cleanup (void *cls)
 //     return;
 //   }
 //   did_str = DID_identity_to_did (ego);
-// 
+//
 //   printf ("%s\n", did_str);
-// 
+//
 //   GNUNET_SCHEDULER_add_now (&cleanup, NULL);
 //   ret = 0;
 //   return;
@@ -426,9 +427,34 @@ create_did_ego_lockup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   {
     char *did = DID_identity_to_did (ego);
     void *cls = malloc (strlen (did) + 1);
+    struct GNUNET_TIME_Relative expire_relative;
+
+    if (expire == NULL)
+    {
+      GNUNET_STRINGS_fancy_time_to_relative (
+        DID_DOCUMENT_DEFAULT_EXPIRATION_TIME, &expire_relative);
+    }
+    else if (GNUNET_OK != GNUNET_STRINGS_fancy_time_to_relative (expire,
+                                                                 &
+                                                                 expire_relative))
+    {
+      printf ("Failed to read given expiration time\n");
+      GNUNET_SCHEDULER_add_now (cleanup, NULL);
+      ret = 1;
+      return;
+    }
+
     strcpy (cls, did);
     // TODO: Add DID_document argument
-    DID_create (ego, NULL, namestore_handle, create_did_cb, cls);
+    if (GNUNET_OK != DID_create (ego, NULL, &expire_relative, namestore_handle,
+                                 create_did_cb,
+                                 cls))
+    {
+      printf ("An error occured while creating the DID.\n");
+      ret = 1;
+      GNUNET_SCHEDULER_add_now (&cleanup, NULL);
+      return;
+    }
   }
 }
 
@@ -439,16 +465,6 @@ create_did_ego_lockup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 static void
 create_did ()
 {
-  // Expire has to be set
-  if (expire == NULL)
-  {
-    printf (
-      "Set the Expiration-time argument to create a new DID(-Document)\n");
-    GNUNET_SCHEDULER_add_now (&cleanup, NULL);
-    ret = 1;
-    return;
-  }
-
   // Ego name to be set
   if (egoname == NULL)
   {
@@ -515,7 +531,7 @@ static void
 post_ego_iteration (void *cls)
 {
   // TODO: Check that only one argument is set
-  
+
   if (1 == replace)
   {
     replace_did_document ();
