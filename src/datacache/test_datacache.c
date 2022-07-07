@@ -97,6 +97,9 @@ run (void *cls,
     block.key = k;
     block.data = &n;
     block.data_size = sizeof (n);
+    memset (&block.trunc_peer,
+            43,
+            sizeof (block.trunc_peer));
     block.ro = 42;
     block.type = (enum GNUNET_BLOCK_Type) (1 + i % 16);
     block.put_path = NULL;
@@ -134,6 +137,9 @@ run (void *cls,
   block.data = &n;
   block.data_size = sizeof (n);
   block.ro = 42;
+  memset (&block.trunc_peer,
+          44,
+          sizeof (block.trunc_peer));
   block.type = (enum GNUNET_BLOCK_Type) 792;
   block.put_path = NULL;
   block.put_path_length = 0;

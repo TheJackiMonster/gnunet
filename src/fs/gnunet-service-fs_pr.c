@@ -1077,6 +1077,7 @@ test_put_load_too_high (uint32_t priority)
  * @param cls closure
  * @param exp when will this value expire
  * @param key key of the result
+ * @param trunc_peer truncated peer, NULL for none
  * @param get_path peers on reply path (or NULL if not recorded)
  * @param get_path_length number of entries in @a get_path
  * @param put_path peers on the PUT path (or NULL if not recorded)
@@ -1089,6 +1090,7 @@ static void
 handle_dht_reply (void *cls,
                   struct GNUNET_TIME_Absolute exp,
                   const struct GNUNET_HashCode *key,
+                  const struct GNUNET_PeerIdentity *trunc_peer,
                   const struct GNUNET_DHT_PathElement *get_path,
                   unsigned int get_path_length,
                   const struct GNUNET_DHT_PathElement *put_path,

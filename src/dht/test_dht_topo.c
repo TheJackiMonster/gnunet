@@ -327,6 +327,7 @@ timeout_cb (void *cls)
  * @param cls closure with our 'struct GetOperation'
  * @param exp when will this value expire
  * @param query query hash
+ * @param trunc_peer peer the path was truncated at, or NULL
  * @param get_path peers on reply path (or NULL if not recorded)
  * @param get_path_length number of entries in @a get_path
  * @param put_path peers on the PUT path (or NULL if not recorded)
@@ -339,6 +340,7 @@ static void
 dht_get_handler (void *cls,
                  struct GNUNET_TIME_Absolute exp,
                  const struct GNUNET_HashCode *query,
+                 const struct GNUNET_PeerIdentity *trunc_peer,
                  const struct GNUNET_DHT_PathElement *get_path,
                  unsigned int get_path_length,
                  const struct GNUNET_DHT_PathElement *put_path,
@@ -380,6 +382,7 @@ dht_get_handler (void *cls,
       GNUNET_DHT_verify_path (data,
                               size,
                               exp,
+                              trunc_peer,
                               put_path,
                               put_path_length,
                               get_path,

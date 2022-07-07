@@ -372,6 +372,7 @@ regex_next_edge (const struct RegexBlock *block,
  *
  * @param cls Closure (search context).
  * @param exp When will this value expire.
+ * @param trunc_peer truncated peer, or NULL if none was truncated
  * @param key Key of the result.
  * @param get_path Path of the get request.
  * @param get_path_length Length of get_path.
@@ -384,6 +385,7 @@ regex_next_edge (const struct RegexBlock *block,
 static void
 dht_get_string_accept_handler (void *cls, struct GNUNET_TIME_Absolute exp,
                                const struct GNUNET_HashCode *key,
+                               const struct GNUNET_PeerIdentity *trunc_peer,
                                const struct GNUNET_DHT_PathElement *get_path,
                                unsigned int get_path_length,
                                const struct GNUNET_DHT_PathElement *put_path,
@@ -451,6 +453,7 @@ regex_find_path (const struct GNUNET_HashCode *key,
  * @param cls closure (search context)
  * @param exp when will this value expire
  * @param key key of the result
+ * @param trunc_peer NULL if not truncated
  * @param get_path path of the get request (not used)
  * @param get_path_length length of @a get_path (not used)
  * @param put_path path of the put request (not used)
@@ -464,6 +467,7 @@ regex_find_path (const struct GNUNET_HashCode *key,
 static void
 dht_get_string_handler (void *cls, struct GNUNET_TIME_Absolute exp,
                         const struct GNUNET_HashCode *key,
+                        const struct GNUNET_PeerIdentity *trunc_peer,
                         const struct GNUNET_DHT_PathElement *get_path,
                         unsigned int get_path_length,
                         const struct GNUNET_DHT_PathElement *put_path,

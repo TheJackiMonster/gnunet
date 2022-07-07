@@ -207,6 +207,7 @@ sqlite_plugin_put (void *cls,
     GNUNET_SQ_query_param_fixed_size (block->put_path,
                                       block->put_path_length
                                       * sizeof(struct GNUNET_DHT_PathElement)),
+    GNUNET_SQ_query_param_auto_from_type (&block->trunc_peer),
     GNUNET_SQ_query_param_end
   };
 
@@ -290,6 +291,7 @@ get_any (void *cls,
     GNUNET_SQ_result_spec_absolute_time (&block.expiration_time),
     GNUNET_SQ_result_spec_variable_size (&path,
                                          &path_size),
+    GNUNET_SQ_result_spec_auto_from_type (&block.trunc_peer),
     GNUNET_SQ_result_spec_uint32 (&btype32),
     GNUNET_SQ_result_spec_uint32 (&bro32),
     GNUNET_SQ_result_spec_end
@@ -451,6 +453,7 @@ get_typed (void *cls,
     GNUNET_SQ_result_spec_absolute_time (&block.expiration_time),
     GNUNET_SQ_result_spec_variable_size (&path,
                                          &path_size),
+    GNUNET_SQ_result_spec_auto_from_type (&block.trunc_peer),
     GNUNET_SQ_result_spec_uint32 (&bro32),
     GNUNET_SQ_result_spec_end
   };
@@ -749,6 +752,7 @@ sqlite_plugin_get_closest (void *cls,
     GNUNET_SQ_result_spec_absolute_time (&block.expiration_time),
     GNUNET_SQ_result_spec_variable_size (&path,
                                          &path_size),
+    GNUNET_SQ_result_spec_auto_from_type (&block.trunc_peer),
     GNUNET_SQ_result_spec_uint32 (&rtype32),
     GNUNET_SQ_result_spec_uint32 (&bro32),
     GNUNET_SQ_result_spec_auto_from_type (&block.key),
@@ -882,6 +886,7 @@ libgnunet_plugin_datacache_sqlite_init (void *cls)
                 "  key BLOB NOT NULL DEFAULT '',"
                 "  prox INTEGER NOT NULL,"
                 "  value BLOB NOT NULL,"
+                "  trunc BLOB NOT NULL,"
                 "  path BLOB DEFAULT '')");
   SQLITE3_EXEC (dbh,
                 "CREATE INDEX idx_hashidx"
@@ -900,8 +905,8 @@ libgnunet_plugin_datacache_sqlite_init (void *cls)
   if ((SQLITE_OK !=
        sq_prepare (plugin->dbh,
                    "INSERT INTO ds180"
-                   " (type, ro, expire, key, prox, value, path)"
-                   " VALUES (?, ?, ?, ?, ?, ?, ?)",
+                   " (type, ro, expire, key, prox, value, path, trunc)"
+                   " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                    &plugin->insert_stmt)) ||
       (SQLITE_OK !=
        sq_prepare (plugin->dbh,
@@ -917,7 +922,7 @@ libgnunet_plugin_datacache_sqlite_init (void *cls)
                    &plugin->get_count_any_stmt)) ||
       (SQLITE_OK !=
        sq_prepare (plugin->dbh,
-                   "SELECT value,expire,path,ro"
+                   "SELECT value,expire,path,trunc,ro"
                    " FROM ds180"
                    " WHERE key=?"
                    " AND type=?"
@@ -926,7 +931,7 @@ libgnunet_plugin_datacache_sqlite_init (void *cls)
                    &plugin->get_stmt)) ||
       (SQLITE_OK !=
        sq_prepare (plugin->dbh,
-                   "SELECT value,expire,path,type,ro"
+                   "SELECT value,expire,path,trunc,type,ro"
                    " FROM ds180"
                    " WHERE key=?"
                    " AND expire >= ?"
@@ -950,7 +955,7 @@ libgnunet_plugin_datacache_sqlite_init (void *cls)
       (SQLITE_OK !=
        sq_prepare (plugin->dbh,
                    "SELECT * FROM ("
-                   " SELECT value,expire,path,type,ro,key"
+                   " SELECT value,expire,path,trunc,type,ro,key"
                    " FROM ds180 "
                    " WHERE key>=?1 "
                    "  AND expire >= ?2"
@@ -958,7 +963,7 @@ libgnunet_plugin_datacache_sqlite_init (void *cls)
                    " ORDER BY KEY ASC LIMIT ?4)"
                    "UNION "
                    "SELECT * FROM ("
-                   " SELECT value,expire,path,type,ro,key"
+                   " SELECT value,expire,path,trunc,type,ro,key"
                    " FROM ds180 "
                    " WHERE key<=?1 "
                    "  AND expire >= ?2"

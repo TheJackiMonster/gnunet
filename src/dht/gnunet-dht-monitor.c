@@ -125,8 +125,6 @@ timeout_task (void *cls)
  * @param options Options, for instance RecordRoute, DemultiplexEverywhere.
  * @param type The type of data in the request.
  * @param hop_count Hop count so far.
- * @param path_length number of entries in path (or 0 if not recorded).
- * @param path peers on the GET path (or NULL if not recorded).
  * @param desired_replication_level Desired replication level.
  * @param key Key of the requested data.
  */
@@ -136,8 +134,6 @@ get_callback (void *cls,
               enum GNUNET_BLOCK_Type type,
               uint32_t hop_count,
               uint32_t desired_replication_level,
-              unsigned int path_length,
-              const struct GNUNET_DHT_PathElement *path,
               const struct GNUNET_HashCode *key)
 {
   fprintf (stdout,
@@ -154,6 +150,7 @@ get_callback (void *cls,
  *
  * @param cls Closure.
  * @param type The type of data in the result.
+ * @param trunc_peer peer where the path was truncated, or NULL if the path is complete
  * @param get_path Peers on GET path (or NULL if not recorded).
  * @param get_path_length number of entries in get_path.
  * @param put_path peers on the PUT path (or NULL if not recorded).
@@ -166,6 +163,7 @@ get_callback (void *cls,
 static void
 get_resp_callback (void *cls,
                    enum GNUNET_BLOCK_Type type,
+                   const struct GNUNET_PeerIdentity *trunc_peer,
                    const struct GNUNET_DHT_PathElement *get_path,
                    unsigned int get_path_length,
                    const struct GNUNET_DHT_PathElement *put_path,
@@ -196,6 +194,7 @@ get_resp_callback (void *cls,
  * @param options Options, for instance RecordRoute, DemultiplexEverywhere.
  * @param type The type of data in the request.
  * @param hop_count Hop count so far.
+ * @param trunc_peer peer where the path was truncated, or NULL if the path is complete
  * @param path_length number of entries in path (or 0 if not recorded).
  * @param path peers on the PUT path (or NULL if not recorded).
  * @param desired_replication_level Desired replication level.
@@ -210,6 +209,7 @@ put_callback (void *cls,
               enum GNUNET_BLOCK_Type type,
               uint32_t hop_count,
               uint32_t desired_replication_level,
+              const struct GNUNET_PeerIdentity *trunc_peer,
               unsigned int path_length,
               const struct GNUNET_DHT_PathElement *path,
               struct GNUNET_TIME_Absolute exp,

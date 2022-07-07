@@ -92,6 +92,9 @@ run (void *cls,
       block.key = k;
       block.data = buf;
       block.data_size = j;
+      memset (&block.trunc_peer,
+              43,
+              sizeof (block.trunc_peer));
       block.ro = 42;
       block.type = (enum GNUNET_BLOCK_Type) (1 + i);
       block.put_path = NULL;

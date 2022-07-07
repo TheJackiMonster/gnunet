@@ -196,10 +196,13 @@ heap_plugin_put (void *cls,
   else
     val->distance = xor_distance;
   if (0 != block->put_path_length)
-    val->block.put_path
+  {
+    val->put_path
       = GNUNET_memdup (block->put_path,
                        block->put_path_length
                        * sizeof (struct GNUNET_DHT_PathElement));
+    val->block.put_path = val->put_path;
+  }
   (void) GNUNET_CONTAINER_multihashmap_put (plugin->map,
                                             &val->block.key,
                                             val,

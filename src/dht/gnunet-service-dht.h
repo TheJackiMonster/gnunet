@@ -144,6 +144,7 @@ GDS_u_hold (struct GDS_Underlay *u,
  *
  * @param bd block details
  * @param query_hash hash of the original query, might not match key in @a bd
+ * @param trunc_peer peer at which the path was truncated, or NULL if path starts at the origin
  * @param get_path_length number of entries in @a get_path
  * @param get_path path the reply has taken
  * @return true on success, false on failures
@@ -162,8 +163,6 @@ GDS_CLIENTS_handle_reply (const struct GNUNET_DATACACHE_Block *bd,
  * @param options Options, for instance RecordRoute, DemultiplexEverywhere.
  * @param type The type of data in the request.
  * @param hop_count Hop count so far.
- * @param path_length number of entries in path (or 0 if not recorded).
- * @param path peers on the GET path (or NULL if not recorded).
  * @param desired_replication_level Desired replication level.
  * @param key Key of the requested data.
  */
@@ -172,8 +171,6 @@ GDS_CLIENTS_process_get (enum GNUNET_DHT_RouteOption options,
                          enum GNUNET_BLOCK_Type type,
                          uint32_t hop_count,
                          uint32_t desired_replication_level,
-                         unsigned int path_length,
-                         const struct GNUNET_DHT_PathElement *path,
                          const struct GNUNET_HashCode *key);
 
 

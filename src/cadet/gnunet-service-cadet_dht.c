@@ -101,6 +101,7 @@ static struct GNUNET_TIME_Relative announce_delay;
  * @param cls closure
  * @param exp when will this value expire
  * @param key key of the result
+ * @param trunc_peer peer preceeding with invalid signature, or NULL
  * @param get_path path of the get request
  * @param get_path_length length of @a get_path
  * @param put_path path of the put request
@@ -112,6 +113,7 @@ static struct GNUNET_TIME_Relative announce_delay;
 static void
 dht_get_id_handler (void *cls, struct GNUNET_TIME_Absolute exp,
                     const struct GNUNET_HashCode *key,
+                    const struct GNUNET_PeerIdentity *trunc_peer,
                     const struct GNUNET_DHT_PathElement *get_path,
                     unsigned int get_path_length,
                     const struct GNUNET_DHT_PathElement *put_path,
@@ -122,6 +124,7 @@ dht_get_id_handler (void *cls, struct GNUNET_TIME_Absolute exp,
 {
   const struct GNUNET_HELLO_Message *hello = data;
 
+  (void) trunc_peer;
   GCPP_try_path_from_dht (get_path,
                           get_path_length,
                           put_path,

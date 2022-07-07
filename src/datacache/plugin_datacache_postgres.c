@@ -71,11 +71,12 @@ init_connection (struct Plugin *plugin)
       "CREATE TEMPORARY SEQUENCE IF NOT EXISTS gn180dc_oid_seq"),
     GNUNET_PQ_make_execute ("CREATE TEMPORARY TABLE IF NOT EXISTS gn180dc ("
                             "  oid OID NOT NULL DEFAULT nextval('gn180dc_oid_seq'),"
-                            "  type INTEGER NOT NULL,"
-                            "  ro INTEGER NOT NULL,"
-                            "  prox INTEGER NOT NULL,"
-                            "  expiration_time BIGINT NOT NULL,"
-                            "  key BYTEA NOT NULL,"
+                            "  type INT4 NOT NULL,"
+                            "  ro INT4 NOT NULL,"
+                            "  prox INT4 NOT NULL,"
+                            "  expiration_time INT8 NOT NULL,"
+                            "  key BYTEA NOT NULL CHECK(LENGTH(key)=64),"
+                            "  trunc BYTEA NOT NULL CHECK(LENGTH(trunc)=32),"
                             "  value BYTEA NOT NULL,"
                             "  path BYTEA DEFAULT NULL)"),
     GNUNET_PQ_make_try_execute (
@@ -93,11 +94,11 @@ init_connection (struct Plugin *plugin)
   };
   struct GNUNET_PQ_PreparedStatement ps[] = {
     GNUNET_PQ_make_prepare ("getkt",
-                            "SELECT expiration_time,type,ro,value,path FROM gn180dc "
+                            "SELECT expiration_time,type,ro,value,trunc,path FROM gn180dc "
                             "WHERE key=$1 AND type=$2 AND expiration_time >= $3",
                             3),
     GNUNET_PQ_make_prepare ("getk",
-                            "SELECT expiration_time,type,ro,value,path FROM gn180dc "
+                            "SELECT expiration_time,type,ro,value,trunc,path FROM gn180dc "
                             "WHERE key=$1 AND expiration_time >= $2",
                             2),
     GNUNET_PQ_make_prepare ("getex",
@@ -110,14 +111,14 @@ init_connection (struct Plugin *plugin)
                             " ORDER BY prox ASC, expiration_time ASC LIMIT 1",
                             0),
     GNUNET_PQ_make_prepare ("get_closest",
-                            "(SELECT expiration_time,type,ro,value,path,key FROM gn180dc"
+                            "(SELECT expiration_time,type,ro,value,trunc,path,key FROM gn180dc"
                             " WHERE key >= $1"
                             "   AND expiration_time >= $2"
                             "   AND ( (type = $3) OR ( 0 = $3) )"
                             " ORDER BY key ASC"
                             " LIMIT $4)"
                             " UNION "
-                            "(SELECT expiration_time,type,ro,value,path,key FROM gn180dc"
+                            "(SELECT expiration_time,type,ro,value,trunc,path,key FROM gn180dc"
                             " WHERE key <= $1"
                             "   AND expiration_time >= $2"
                             "   AND ( (type = $3) OR ( 0 = $3) )"
@@ -129,9 +130,9 @@ init_connection (struct Plugin *plugin)
                             1),
     GNUNET_PQ_make_prepare ("put",
                             "INSERT INTO gn180dc"
-                            " (type, ro, prox, expiration_time, key, value, path) "
-                            "VALUES ($1, $2, $3, $4, $5, $6, $7)",
-                            7),
+                            " (type, ro, prox, expiration_time, key, value, trunc, path) "
+                            "VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+                            8),
     GNUNET_PQ_PREPARED_STATEMENT_END
   };
 
@@ -170,6 +171,7 @@ postgres_plugin_put (void *cls,
     GNUNET_PQ_query_param_auto_from_type (&block->key),
     GNUNET_PQ_query_param_fixed_size (block->data,
                                       block->data_size),
+    GNUNET_PQ_query_param_auto_from_type (&block->trunc_peer),
     GNUNET_PQ_query_param_fixed_size (block->put_path,
                                       block->put_path_length
                                       * sizeof(struct GNUNET_DHT_PathElement)),
@@ -243,6 +245,8 @@ handle_results (void *cls,
       GNUNET_PQ_result_spec_variable_size ("value",
                                            &data,
                                            &block.data_size),
+      GNUNET_PQ_result_spec_auto_from_type ("trunc",
+                                            &block.trunc_peer),
       GNUNET_PQ_result_spec_variable_size ("path",
                                            &path,
                                            &path_size),
@@ -465,6 +469,8 @@ extract_result_cb (void *cls,
       GNUNET_PQ_result_spec_variable_size ("value",
                                            &data,
                                            &block.data_size),
+      GNUNET_PQ_result_spec_auto_from_type ("trunc",
+                                            &block.trunc_peer),
       GNUNET_PQ_result_spec_variable_size ("path",
                                            &path,
                                            &path_size),

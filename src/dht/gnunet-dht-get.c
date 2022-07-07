@@ -139,6 +139,7 @@ timeout_task (void *cls)
  * @param cls closure
  * @param exp when will this value expire
  * @param key key of the result
+ * @param trunc_peer peer at which the path was truncated, or NULL if not
  * @param get_path peers on reply path (or NULL if not recorded)
  * @param get_path_length number of entries in get_path
  * @param put_path peers on the PUT path (or NULL if not recorded)
@@ -151,6 +152,7 @@ static void
 get_result_iterator (void *cls,
                      struct GNUNET_TIME_Absolute exp,
                      const struct GNUNET_HashCode *key,
+                     const struct GNUNET_PeerIdentity *trunc_peer,
                      const struct GNUNET_DHT_PathElement *get_path,
                      unsigned int get_path_length,
                      const struct GNUNET_DHT_PathElement *put_path,
@@ -183,6 +185,10 @@ get_result_iterator (void *cls,
                "%s%s",
                (0 == i) ? "" : "-",
                GNUNET_i2s (&put_path[i].pred));
+    if (NULL != trunc_peer)
+      fprintf (stdout,
+               "T%s",
+               GNUNET_i2s (trunc_peer));
     fprintf (stdout,
              "\n");
   }

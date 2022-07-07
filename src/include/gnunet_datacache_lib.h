@@ -66,6 +66,12 @@ struct GNUNET_DATACACHE_Block
   struct GNUNET_TIME_Absolute expiration_time;
 
   /**
+   * If the path was truncated, this is the peer
+   * ID at which the path was truncated.
+   */
+  struct GNUNET_PeerIdentity trunc_peer;
+
+  /**
    * PUT path taken by the block, array of peer identities.
    */
   const struct GNUNET_DHT_PathElement *put_path;

@@ -87,6 +87,7 @@ static void
 test_get_iterator (void *cls,
                    struct GNUNET_TIME_Absolute exp,
                    const struct GNUNET_HashCode *key,
+                   const struct GNUNET_PeerIdentity *trunc_peer,
                    const struct GNUNET_DHT_PathElement *get_path,
                    unsigned int get_path_length,
                    const struct GNUNET_DHT_PathElement *put_path,

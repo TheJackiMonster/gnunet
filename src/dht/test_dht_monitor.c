@@ -163,6 +163,7 @@ timeout_task_cb (void *cls)
  * @param cls closure with our 'struct GetOperation'
  * @param exp when will this value expire
  * @param key key of the result
+ * @param trunc_peer peer the path was truncated at, or NULL
  * @param get_path peers on reply path (or NULL if not recorded)
  * @param get_path_length number of entries in get_path
  * @param put_path peers on the PUT path (or NULL if not recorded)
@@ -174,6 +175,7 @@ timeout_task_cb (void *cls)
 static void
 dht_get_handler (void *cls, struct GNUNET_TIME_Absolute exp,
                  const struct GNUNET_HashCode *key,
+                 const struct GNUNET_PeerIdentity *trunc_peer,
                  const struct GNUNET_DHT_PathElement *get_path,
                  unsigned int get_path_length,
                  const struct GNUNET_DHT_PathElement *put_path,
@@ -189,7 +191,9 @@ dht_get_handler (void *cls, struct GNUNET_TIME_Absolute exp,
     GNUNET_break (0);
     return;
   }
-  GNUNET_CRYPTO_hash (key, sizeof(*key), &want);
+  GNUNET_CRYPTO_hash (key,
+                      sizeof(*key),
+                      &want);
   if (0 != memcmp (&want, data, sizeof(want)))
   {
     GNUNET_break (0);
@@ -249,8 +253,6 @@ do_puts (void *cls)
  * @param options Options, for instance RecordRoute, DemultiplexEverywhere.
  * @param type The type of data in the request.
  * @param hop_count Hop count so far.
- * @param path_length number of entries in path (or 0 if not recorded).
- * @param path peers on the GET path (or NULL if not recorded).
  * @param desired_replication_level Desired replication level.
  * @param key Key of the requested data.
  */
@@ -260,8 +262,6 @@ monitor_get_cb (void *cls,
                 enum GNUNET_BLOCK_Type type,
                 uint32_t hop_count,
                 uint32_t desired_replication_level,
-                unsigned int path_length,
-                const struct GNUNET_DHT_PathElement *path,
                 const struct GNUNET_HashCode *key)
 {
   unsigned int i;
@@ -283,6 +283,7 @@ monitor_get_cb (void *cls,
  * @param options Options, for instance RecordRoute, DemultiplexEverywhere.
  * @param type The type of data in the request.
  * @param hop_count Hop count so far.
+ * @param trunc_peer peer the path was truncated at, or NULL
  * @param path_length number of entries in path (or 0 if not recorded).
  * @param path peers on the PUT path (or NULL if not recorded).
  * @param desired_replication_level Desired replication level.
@@ -297,6 +298,7 @@ monitor_put_cb (void *cls,
                 enum GNUNET_BLOCK_Type type,
                 uint32_t hop_count,
                 uint32_t desired_replication_level,
+                const struct GNUNET_PeerIdentity *trunc_peer,
                 unsigned int path_length,
                 const struct GNUNET_DHT_PathElement *path,
                 struct GNUNET_TIME_Absolute exp,
@@ -322,6 +324,7 @@ monitor_put_cb (void *cls,
  *
  * @param cls Closure.
  * @param type The type of data in the result.
+ * @param trunc_peer peer the path was truncated at, or NULL
  * @param get_path Peers on GET path (or NULL if not recorded).
  * @param get_path_length number of entries in get_path.
  * @param put_path peers on the PUT path (or NULL if not recorded).
@@ -334,6 +337,7 @@ monitor_put_cb (void *cls,
 static void
 monitor_res_cb (void *cls,
                 enum GNUNET_BLOCK_Type type,
+                const struct GNUNET_PeerIdentity *trunc_peer,
                 const struct GNUNET_DHT_PathElement *get_path,
                 unsigned int get_path_length,
                 const struct GNUNET_DHT_PathElement *put_path,
