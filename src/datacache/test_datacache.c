@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2006, 2009, 2010 GNUnet e.V.
+     Copyright (C) 2006, 2009, 2010, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -39,26 +39,18 @@ static int ok;
 static const char *plugin_name;
 
 
-static int
+static enum GNUNET_GenericReturnValue
 checkIt (void *cls,
-         const struct GNUNET_HashCode *key,
-         size_t size, const char *data,
-         enum GNUNET_BLOCK_Type type,
-         struct GNUNET_TIME_Absolute exp,
-         unsigned int path_len,
-         const struct GNUNET_DHT_PathElement *path)
+         const struct GNUNET_DATACACHE_Block *block)
 {
-  (void) key;
-  (void) type;
-  (void) exp;
-  (void) path_len;
-  (void) path;
-  if (size != sizeof(struct GNUNET_HashCode))
+  if (block->data_size != sizeof(struct GNUNET_HashCode))
   {
     GNUNET_break (0);
     ok = 2;
   }
-  if (0 != memcmp (data, cls, size))
+  if (0 != memcmp (block->data,
+                   cls,
+                   block->data_size))
   {
     GNUNET_break (0);
     ok = 3;
@@ -74,9 +66,9 @@ run (void *cls,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
   struct GNUNET_DATACACHE_Handle *h;
+  struct GNUNET_DATACACHE_Block block;
   struct GNUNET_HashCode k;
   struct GNUNET_HashCode n;
-  struct GNUNET_TIME_Absolute exp;
 
   (void) cls;
   (void) args;
@@ -84,7 +76,7 @@ run (void *cls,
   ok = 0;
   h = GNUNET_DATACACHE_create (cfg,
                                "testcache");
-  if (h == NULL)
+  if (NULL == h)
   {
     fprintf (stderr,
              "%s",
@@ -92,19 +84,28 @@ run (void *cls,
     ok = 77;   /* mark test as skipped */
     return;
   }
-  exp = GNUNET_TIME_absolute_get ();
-  exp.abs_value_us += 5 * 60 * 1000 * 1000LL;
-  memset (&k, 0, sizeof(struct GNUNET_HashCode));
+  block.expiration_time = GNUNET_TIME_absolute_get ();
+  block.expiration_time.abs_value_us += 5 * 60 * 1000 * 1000LL;
+  memset (&k,
+          0,
+          sizeof(struct GNUNET_HashCode));
   for (unsigned int i = 0; i < 100; i++)
   {
-    GNUNET_CRYPTO_hash (&k, sizeof(struct GNUNET_HashCode), &n);
+    GNUNET_CRYPTO_hash (&k,
+                        sizeof(struct GNUNET_HashCode),
+                        &n);
+    block.key = k;
+    block.data = &n;
+    block.data_size = sizeof (n);
+    block.ro = 42;
+    block.type = (enum GNUNET_BLOCK_Type) (1 + i % 16);
+    block.put_path = NULL;
+    block.put_path_length = 0;
+    block.ro = GNUNET_DHT_RO_RECORD_ROUTE;
     ASSERT (GNUNET_OK ==
             GNUNET_DATACACHE_put (h,
-                                  &k,
-                                  GNUNET_YES,
-                                  sizeof(struct GNUNET_HashCode),
-                                  (const char *) &n, 1 + i % 16, exp,
-                                  0, NULL));
+                                  42,
+                                  &block));
     k = n;
   }
   memset (&k,
@@ -117,7 +118,7 @@ run (void *cls,
                         &n);
     ASSERT (1 == GNUNET_DATACACHE_get (h,
                                        &k,
-                                       1 + i % 16,
+                                       (enum GNUNET_BLOCK_Type) (1 + i % 16),
                                        &checkIt,
                                        &n));
     k = n;
@@ -129,16 +130,19 @@ run (void *cls,
   GNUNET_CRYPTO_hash (&k,
                       sizeof(struct GNUNET_HashCode),
                       &n);
+  block.key = k;
+  block.data = &n;
+  block.data_size = sizeof (n);
+  block.ro = 42;
+  block.type = (enum GNUNET_BLOCK_Type) 792;
+  block.put_path = NULL;
+  block.put_path_length = 0;
+  block.expiration_time = GNUNET_TIME_UNIT_FOREVER_ABS;
+  block.ro = GNUNET_DHT_RO_RECORD_ROUTE;
   ASSERT (GNUNET_OK ==
           GNUNET_DATACACHE_put (h,
-                                &k,
-                                GNUNET_YES,
-                                sizeof(struct GNUNET_HashCode),
-                                (const char *) &n,
-                                792,
-                                GNUNET_TIME_UNIT_FOREVER_ABS,
-                                0,
-                                NULL));
+                                42,
+                                &block));
   ASSERT (0 != GNUNET_DATACACHE_get (h,
                                      &k,
                                      792,

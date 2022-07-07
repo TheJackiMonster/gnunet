@@ -149,7 +149,7 @@ GDS_u_hold (struct GDS_Underlay *u,
  * @return true on success, false on failures
  */
 bool
-GDS_CLIENTS_handle_reply (const struct GDS_DATACACHE_BlockData *bd,
+GDS_CLIENTS_handle_reply (const struct GNUNET_DATACACHE_Block *bd,
                           const struct GNUNET_HashCode *query_hash,
                           unsigned int get_path_length,
                           const struct GNUNET_DHT_PathElement *get_path);
@@ -186,7 +186,7 @@ GDS_CLIENTS_process_get (enum GNUNET_DHT_RouteOption options,
  * @param get_path_length number of entries in @a get_path.
  */
 void
-GDS_CLIENTS_process_get_resp (const struct GDS_DATACACHE_BlockData *bd,
+GDS_CLIENTS_process_get_resp (const struct GNUNET_DATACACHE_Block *bd,
                               const struct GNUNET_DHT_PathElement *get_path,
                               unsigned int get_path_length);
 
@@ -196,14 +196,12 @@ GDS_CLIENTS_process_get_resp (const struct GDS_DATACACHE_BlockData *bd,
  * them in that case. The @a path should include our own
  * peer ID (if recorded).
  *
- * @param options routing options to apply
  * @param bd details about the block
  * @param hop_count Hop count so far.
  * @param desired_replication_level Desired replication level.
  */
 void
-GDS_CLIENTS_process_put (enum GNUNET_DHT_RouteOption options,
-                         const struct GDS_DATACACHE_BlockData *bd,
+GDS_CLIENTS_process_put (const struct GNUNET_DATACACHE_Block *bd,
                          uint32_t hop_count,
                          uint32_t desired_replication_level);
 

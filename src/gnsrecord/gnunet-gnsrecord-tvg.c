@@ -173,7 +173,7 @@ run_pkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char *label)
   printf ("Label:\n");
   print_bytes (conv_lbl, strlen (conv_lbl), 8);
   GNUNET_free (conv_lbl);
-  printf ("\Number of records (integer): %d\n\n", rd_count);
+  printf ("\nNumber of records (integer): %d\n\n", rd_count);
 
   for (int i = 0; i < rd_count; i++)
   {
@@ -300,7 +300,7 @@ run_edkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char*label)
   print_bytes (conv_lbl, strlen (conv_lbl), 8);
   GNUNET_free (conv_lbl);
   fprintf (stdout,
-           "\Number of records (integer): %d\n\n", rd_count);
+           "\nNumber of records (integer): %d\n\n", rd_count);
 
   for (int i = 0; i < rd_count; i++)
   {

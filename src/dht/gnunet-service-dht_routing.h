@@ -44,7 +44,7 @@
  * @param get_path peers this reply has traversed so far (if tracked)
  */
 void
-GDS_ROUTING_process (const struct GDS_DATACACHE_BlockData *bd,
+GDS_ROUTING_process (const struct GNUNET_DATACACHE_Block *bd,
                      const struct GNUNET_HashCode *query_hash,
                      unsigned int get_path_length,
                      const struct GNUNET_DHT_PathElement *get_path);

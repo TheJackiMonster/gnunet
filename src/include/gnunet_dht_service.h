@@ -106,10 +106,15 @@ enum GNUNET_DHT_RouteOption
   GNUNET_DHT_RO_FIND_APPROXIMATE = 4,
 
   /**
+   * Flag set if the path was truncated.
+   */
+  GNUNET_DHT_RO_TRUNCATED = 8,
+
+  /**
    * Flag given to monitors if this was the last hop for a GET/PUT.
    * This is only used for internal processing.
    */
-  GNUNET_DHT_RO_LAST_HOP = 65535
+  GNUNET_DHT_RO_LAST_HOP = 32768
 };
 
 

@@ -105,26 +105,14 @@ struct GNUNET_DATACACHE_PluginFunctions
    * Store an item in the datastore.
    *
    * @param cls closure (internal context for the plugin)
-   * @param key key to store the value under
    * @param xor_distance how close is @a key to our PID?
-   * @param size number of bytes in @a data
-   * @param data data to store
-   * @param type type of the value
-   * @param discard_time when to discard the value in any case
-   * @param path_info_len number of entries in @a path_info
-   * @param path_info a path through the network
+   * @param block data to store
    * @return 0 if duplicate, -1 on error, number of bytes used otherwise
    */
   ssize_t
   (*put) (void *cls,
-          const struct GNUNET_HashCode *key,
           uint32_t xor_distance,
-          size_t size,
-          const char *data,
-          enum GNUNET_BLOCK_Type type,
-          struct GNUNET_TIME_Absolute discard_time,
-          unsigned int path_info_len,
-          const struct GNUNET_DHT_PathElement *path_info);
+          const struct GNUNET_DATACACHE_Block *block);
 
 
   /**

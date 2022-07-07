@@ -490,16 +490,15 @@ handle_dht_local_put (void *cls,
 {
   struct ClientHandle *ch = cls;
   uint16_t size = ntohs (dht_msg->header.size);
-  enum GNUNET_DHT_RouteOption options
-    = (enum GNUNET_DHT_RouteOption) ntohl (dht_msg->options);
   uint32_t replication_level
     = ntohl (dht_msg->desired_replication_level);
-  struct GDS_DATACACHE_BlockData bd = {
+  struct GNUNET_DATACACHE_Block bd = {
     .key = dht_msg->key,
     .expiration_time = GNUNET_TIME_absolute_ntoh (dht_msg->expiration),
     .data = &dht_msg[1],
     .data_size = size - sizeof (*dht_msg),
-    .type = ntohl (dht_msg->type)
+    .type = ntohl (dht_msg->type),
+    .ro = (enum GNUNET_DHT_RouteOption) ntohl (dht_msg->options)
   };
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -536,14 +535,13 @@ handle_dht_local_put (void *cls,
                                            DHT_BLOOM_SIZE,
                                            GNUNET_CONSTANTS_BLOOMFILTER_K);
     /* store locally */
-    if ( (0 != (options & GNUNET_DHT_RO_DEMULTIPLEX_EVERYWHERE)) ||
+    if ( (0 != (bd.ro & GNUNET_DHT_RO_DEMULTIPLEX_EVERYWHERE)) ||
          (GDS_am_closest_peer (&dht_msg->key,
                                peer_bf)))
       GDS_DATACACHE_handle_put (&bd);
     /* route to other peers */
     if (GNUNET_OK !=
         GDS_NEIGHBOURS_handle_put (&bd,
-                                   options,
                                    replication_level,
                                    0 /* hop count */,
                                    peer_bf))
@@ -556,7 +554,6 @@ handle_dht_local_put (void *cls,
     GNUNET_CONTAINER_bloomfilter_free (peer_bf);
   }
   GDS_CLIENTS_process_put (
-    options,
     &bd,
     0,  /* hop count */
     replication_level);
@@ -572,7 +569,7 @@ handle_dht_local_put (void *cls,
  */
 static void
 handle_local_result (void *cls,
-                     const struct GDS_DATACACHE_BlockData *bd)
+                     const struct GNUNET_DATACACHE_Block *bd)
 {
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Datacache provided result for query key %s\n",
@@ -877,7 +874,7 @@ struct ForwardReplyContext
   /**
    * Block details.
    */
-  const struct GDS_DATACACHE_BlockData *bd;
+  const struct GNUNET_DATACACHE_Block *bd;
 
   /**
    * GET path taken.
@@ -1034,7 +1031,7 @@ forward_reply (void *cls,
 
 
 bool
-GDS_CLIENTS_handle_reply (const struct GDS_DATACACHE_BlockData *bd,
+GDS_CLIENTS_handle_reply (const struct GNUNET_DATACACHE_Block *bd,
                           const struct GNUNET_HashCode *query_hash,
                           unsigned int get_path_length,
                           const struct GNUNET_DHT_PathElement *get_path)
@@ -1414,7 +1411,7 @@ GDS_CLIENTS_process_get (enum GNUNET_DHT_RouteOption options,
  */
 struct ResponseActionContext
 {
-  const struct GDS_DATACACHE_BlockData *bd;
+  const struct GNUNET_DATACACHE_Block *bd;
   const struct GNUNET_DHT_PathElement *get_path;
   unsigned int get_path_length;
 };
@@ -1432,7 +1429,7 @@ response_action (void *cls,
                  struct ClientMonitorRecord *m)
 {
   const struct ResponseActionContext *resp_ctx = cls;
-  const struct GDS_DATACACHE_BlockData *bd = resp_ctx->bd;
+  const struct GNUNET_DATACACHE_Block *bd = resp_ctx->bd;
 
   struct GNUNET_MQ_Envelope *env;
   struct GNUNET_DHT_MonitorGetRespMessage *mmsg;
@@ -1467,7 +1464,7 @@ response_action (void *cls,
 
 
 void
-GDS_CLIENTS_process_get_resp (const struct GDS_DATACACHE_BlockData *bd,
+GDS_CLIENTS_process_get_resp (const struct GNUNET_DATACACHE_Block *bd,
                               const struct GNUNET_DHT_PathElement *get_path,
                               unsigned int get_path_length)
 {
@@ -1489,8 +1486,7 @@ GDS_CLIENTS_process_get_resp (const struct GDS_DATACACHE_BlockData *bd,
  */
 struct PutActionContext
 {
-  const struct GDS_DATACACHE_BlockData *bd;
-  enum GNUNET_DHT_RouteOption options;
+  const struct GNUNET_DATACACHE_Block *bd;
   uint32_t hop_count;
   uint32_t desired_replication_level;
 };
@@ -1508,7 +1504,7 @@ put_action (void *cls,
             struct ClientMonitorRecord *m)
 {
   const struct PutActionContext *put_ctx = cls;
-  const struct GDS_DATACACHE_BlockData *bd = put_ctx->bd;
+  const struct GNUNET_DATACACHE_Block *bd = put_ctx->bd;
   struct GNUNET_MQ_Envelope *env;
   struct GNUNET_DHT_MonitorPutMessage *mmsg;
   struct GNUNET_DHT_PathElement *msg_path;
@@ -1520,7 +1516,7 @@ put_action (void *cls,
   env = GNUNET_MQ_msg_extra (mmsg,
                              msize,
                              GNUNET_MESSAGE_TYPE_DHT_MONITOR_PUT);
-  mmsg->options = htonl (put_ctx->options);
+  mmsg->options = htonl (bd->ro);
   mmsg->type = htonl (bd->type);
   mmsg->hop_count = htonl (put_ctx->hop_count);
   mmsg->desired_replication_level = htonl (put_ctx->desired_replication_level);
@@ -1540,16 +1536,14 @@ put_action (void *cls,
 
 
 void
-GDS_CLIENTS_process_put (enum GNUNET_DHT_RouteOption options,
-                         const struct GDS_DATACACHE_BlockData *bd,
+GDS_CLIENTS_process_put (const struct GNUNET_DATACACHE_Block *bd,
                          uint32_t hop_count,
                          uint32_t desired_replication_level)
 {
   struct PutActionContext put_ctx = {
     .bd = bd,
     .hop_count = hop_count,
-    .desired_replication_level = desired_replication_level,
-    .options = options
+    .desired_replication_level = desired_replication_level
   };
 
   for_matching_monitors (bd->type,

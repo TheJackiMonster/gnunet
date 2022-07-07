@@ -30,48 +30,7 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_block_lib.h"
 #include "gnunet_dht_service.h"
-
-
-/**
- * Information about a block stored in the datacache.
- */
-struct GDS_DATACACHE_BlockData
-{
-  /**
-   * Key of the block.
-   */
-  struct GNUNET_HashCode key;
-
-  /**
-   * When does the block expire?
-   */
-  struct GNUNET_TIME_Absolute expiration_time;
-
-  /**
-   * PUT path taken by the block, array of peer identities.
-   */
-  const struct GNUNET_DHT_PathElement *put_path;
-
-  /**
-   * Actual block data.
-   */
-  const void *data;
-
-  /**
-   * Number of bytes in @a data.
-   */
-  size_t data_size;
-
-  /**
-   * Length of the @e put_path array.
-   */
-  unsigned int put_path_length;
-
-  /**
-   * Type of the block.
-   */
-  enum GNUNET_BLOCK_Type type;
-};
+#include "gnunet_datacache_lib.h"
 
 
 /**
@@ -81,7 +40,7 @@ struct GDS_DATACACHE_BlockData
  * @param bd block data to cache
  */
 void
-GDS_DATACACHE_handle_put (const struct GDS_DATACACHE_BlockData *bd);
+GDS_DATACACHE_handle_put (const struct GNUNET_DATACACHE_Block *bd);
 
 
 /**
@@ -92,7 +51,7 @@ GDS_DATACACHE_handle_put (const struct GDS_DATACACHE_BlockData *bd);
  */
 typedef void
 (*GDS_DATACACHE_GetCallback)(void *cls,
-                             const struct GDS_DATACACHE_BlockData *bd);
+                             const struct GNUNET_DATACACHE_Block *bd);
 
 
 /**
