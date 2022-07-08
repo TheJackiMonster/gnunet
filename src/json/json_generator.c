@@ -122,15 +122,6 @@ GNUNET_JSON_from_time_rel (struct GNUNET_TIME_Relative stamp)
       json_decref (j);
       return NULL;
     }
-    if (0 !=
-        json_object_set_new (j,
-                             "d_ms",
-                             json_string ("forever")))
-    {
-      GNUNET_break (0);
-      json_decref (j);
-      return NULL;
-    }
     return j;
   }
   if (stamp.rel_value_us >= (1LLU << 53))
@@ -144,16 +135,6 @@ GNUNET_JSON_from_time_rel (struct GNUNET_TIME_Relative stamp)
         j,
         "d_us",
         json_integer ((json_int_t) stamp.rel_value_us)))
-  {
-    GNUNET_break (0);
-    json_decref (j);
-    return NULL;
-  }
-  if (0 !=
-      json_object_set_new (
-        j,
-        "d_ms",
-        json_integer (((json_int_t) stamp.rel_value_us)/1000LL)))
   {
     GNUNET_break (0);
     json_decref (j);

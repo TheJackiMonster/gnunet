@@ -715,7 +715,6 @@ parse_rel_time (void *cls,
 {
   struct GNUNET_TIME_Relative *rel = spec->ptr;
   json_t *json_d_us;
-  json_t *json_d_ms;
   unsigned long long int tval;
 
   if (! json_is_object (root))
@@ -742,31 +741,6 @@ parse_rel_time (void *cls,
     const char *val;
 
     val = json_string_value (json_d_us);
-    if ((0 == strcasecmp (val,
-                          "forever")))
-    {
-      *rel = GNUNET_TIME_UNIT_FOREVER_REL;
-      return GNUNET_OK;
-    }
-    GNUNET_break_op (0);
-    return GNUNET_SYSERR;
-  }
-
-  json_d_ms = json_object_get (root,
-                               "d_ms");
-  if (json_is_integer (json_d_ms))
-  {
-    tval = json_integer_value (json_d_ms);
-    *rel = GNUNET_TIME_relative_multiply (
-      GNUNET_TIME_UNIT_MILLISECONDS,
-      tval);
-    return GNUNET_OK;
-  }
-  if (json_is_string (json_d_ms))
-  {
-    const char *val;
-
-    val = json_string_value (json_d_ms);
     if ((0 == strcasecmp (val,
                           "forever")))
     {
