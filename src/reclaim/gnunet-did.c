@@ -446,7 +446,10 @@ create_did_ego_lockup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 
     strcpy (cls, did);
     // TODO: Add DID_document argument
-    if (GNUNET_OK != DID_create (ego, NULL, &expire_relative, namestore_handle,
+    if (GNUNET_OK != DID_create (ego,
+                                 NULL,
+                                 &expire_relative,
+                                 namestore_handle,
                                  create_did_cb,
                                  cls))
     {

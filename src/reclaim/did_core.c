@@ -24,12 +24,7 @@
  * @author Tristan Schwieren
  */
 
-// DO: Expiration time missing in create
-// Add Expiration TIME to json DID document
-
-// TODO: Check if ego already has a DID document in create
-// TODO: Store DID document as compact JSON in GNS but resolve it with newlines
-
+// TODO: DID documents do not have an expiration date. Still we add one
 // TODO: Store DID document with empty label and own type (maybe DID-Document or JSON??)
 
 #include "did_core.h"
@@ -87,7 +82,7 @@ DID_resolve_gns_lookup_cb (
  * Calls the given callback function with the resolved DID Document and the given closure.
  * If the did can not be resolved did_document is NULL.
  *
- * @param did DID that is resolved000G055PGJ4RJSS4G8HWCP86AWF1C6TF2DW2K3BW05HHRKSJG38NT2Z3JGe
+ * @param did DID that is resolve
  */
 enum GNUNET_GenericReturnValue
 DID_resolve (const char *did,
@@ -141,6 +136,84 @@ DID_create_did_store_cb (void *cls,
   }
 }
 
+struct DID_create_namestore_lookup_closure
+{
+  const char *did_document;
+  struct GNUNET_TIME_Relative expire_time;
+  struct GNUNET_NAMESTORE_Handle *namestore_handle;
+  DID_action_callback *cont;
+  void *cls;
+};
+
+static void
+DID_create_namestore_lookup_cb (void *cls,
+                                const struct
+                                GNUNET_IDENTITY_PrivateKey *zone,
+                                const char *label,
+                                unsigned int rd_count,
+                                const struct GNUNET_GNSRECORD_Data *rd)
+{
+  struct GNUNET_GNSRECORD_Data record_data;
+  struct GNUNET_IDENTITY_PublicKey pkey;
+
+  const char *did_document
+    = ((struct DID_create_namestore_lookup_closure *) cls)->did_document;
+
+  const struct GNUNET_TIME_Relative expire_time
+    = ((struct DID_create_namestore_lookup_closure *) cls)->expire_time;
+
+  struct GNUNET_NAMESTORE_Handle *namestore_handle
+    = ((struct DID_create_namestore_lookup_closure *) cls)->namestore_handle;
+
+  DID_action_callback *cont
+    = ((struct DID_create_namestore_lookup_closure *) cls)->cont;
+
+  void *cls1
+    = ((struct DID_create_namestore_lookup_closure *) cls)->cls;
+
+  if (rd_count > 0)
+  {
+    printf ("Ego already has a DID Document. Abort.\n");
+    cont (GNUNET_NO, cls1);
+    return;
+  }
+  else {
+    // Get public key
+    GNUNET_IDENTITY_key_get_public (zone, &pkey);
+
+    // No DID Document is given a default one is created
+    if (did_document != NULL)
+      printf (
+        "DID Docuement is read from \"DID-document\" argument (EXPERIMENTAL)\n");
+    else
+      did_document = DID_pkey_to_did_document (&pkey);
+
+    // Create record
+    record_data.data = did_document;
+    record_data.expiration_time = expire_time.rel_value_us;
+    record_data.data_size = strlen (did_document) + 1;
+    record_data.record_type = GNUNET_GNSRECORD_typename_to_number ("TXT"),
+    record_data.flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
+
+    // Create closure for record store callback
+    struct DID_action_return *cls2 = malloc (sizeof(struct DID_action_return));
+    cls2->cb = cont;
+    cls2->cls = cls1;
+
+    // Store record
+    GNUNET_NAMESTORE_records_store (namestore_handle,
+                                    zone,
+                                    DID_DOCUMENT_LABEL,
+                                    1, // FIXME what if GNUNET_GNS_EMPTY_LABEL_AT has records
+                                    &record_data,
+                                    &DID_create_did_store_cb,
+                                    (void *) cls2);
+
+    free(cls);
+  }
+
+}
+
 /**
  * @brief Creates a DID and saves DID Document in Namestore.
  *
@@ -162,8 +235,6 @@ DID_create (const struct GNUNET_IDENTITY_Ego *ego,
             void *cls)
 {
   struct GNUNET_IDENTITY_PublicKey pkey;
-  // struct GNUNET_TIME_Relative expire_time;
-  struct GNUNET_GNSRECORD_Data record_data;
 
   // Ego, namestore_handle and cont must be set
   if ((ego == NULL) || (namestore_handle == NULL) || (cont == NULL))
@@ -178,33 +249,22 @@ DID_create (const struct GNUNET_IDENTITY_Ego *ego,
     return GNUNET_NO;
   }
 
-  // No DID Document is given a default one is created
-  if (did_document != NULL)
-    printf (
-      "DID Docuement is read from \"DID-document\" argument (EXPERIMENTAL)\n");
-  else
-    did_document = DID_pkey_to_did_document (&pkey);
-
-  // Create record
-  record_data.data = did_document;
-  record_data.expiration_time = expire_time->rel_value_us;
-  record_data.data_size = strlen (did_document) + 1;
-  record_data.record_type = GNUNET_GNSRECORD_typename_to_number ("TXT"),
-  record_data.flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
-
-  // Create closure for record store callback
-  struct DID_action_return *cls2 = malloc (sizeof(struct DID_action_return));
-  cls2->cb = cont;
+  struct DID_create_namestore_lookup_closure *cls2
+    = malloc (sizeof(struct DID_create_namestore_lookup_closure));
+  cls2->did_document = did_document;
+  cls2->expire_time = (*expire_time);
+  cls2->namestore_handle = namestore_handle;
+  cls2->cont = cont;
   cls2->cls = cls;
 
-  // Store record
-  GNUNET_NAMESTORE_records_store (namestore_handle,
-                                  GNUNET_IDENTITY_ego_get_private_key (ego),
-                                  DID_DOCUMENT_LABEL,
-                                  1, // FIXME what if GNUNET_GNS_EMPTY_LABEL_AT has records
-                                  &record_data,
-                                  &DID_create_did_store_cb,
-                                  (void *) cls2);
+  // Check if ego already has a DID Document
+  GNUNET_NAMESTORE_records_lookup (namestore_handle,
+                                   GNUNET_IDENTITY_ego_get_private_key (ego),
+                                   DID_DOCUMENT_LABEL,
+                                   NULL,
+                                   NULL,
+                                   DID_create_namestore_lookup_cb,
+                                   (void *) cls2);
 
   return GNUNET_OK;
 }
