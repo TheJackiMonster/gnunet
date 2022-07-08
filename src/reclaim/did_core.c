@@ -62,19 +62,19 @@ DID_resolve_gns_lookup_cb (
 {
   char *did_document;
   DID_resolve_callback *cb = ((struct DID_resolve_return *) cls)->cb;
-  void *cls2 = ((struct DID_resolve_return *) cls)->cls;
+  void *cls_did_resolve_cb = ((struct DID_resolve_return *) cls)->cls;
   free (cls);
 
   if (rd_count != 1)
-    cb (GNUNET_NO, "An ego should only have one DID Document", cls2);
+    cb (GNUNET_NO, "An ego should only have one DID Document", cls_did_resolve_cb);
 
   if (rd[0].record_type == GNUNET_DNSPARSER_TYPE_TXT)
   {
     did_document = (char *) rd[0].data;
-    cb (GNUNET_OK, did_document, cls2);
+    cb (GNUNET_OK, did_document, cls_did_resolve_cb);
   }
   else
-    cb (GNUNET_NO, "DID Document is not a TXT record\n", cls2);
+    cb (GNUNET_NO, "DID Document is not a TXT record\n", cls_did_resolve_cb);
 }
 
 /**
@@ -100,13 +100,13 @@ DID_resolve (const char *did,
     return GNUNET_NO;
 
   // Create closure for lookup callback
-  struct DID_resolve_return *cls2 = malloc (sizeof(struct DID_resolve_return));
-  cls2->cb = cont;
-  cls2->cls = cls;
+  struct DID_resolve_return *cls_gns_lookup_cb = malloc (sizeof(struct DID_resolve_return));
+  cls_gns_lookup_cb->cb = cont;
+  cls_gns_lookup_cb->cls = cls;
 
   GNUNET_GNS_lookup (gns_handle, DID_DOCUMENT_LABEL, &pkey,
                      GNUNET_DNSPARSER_TYPE_TXT,
-                     GNUNET_GNS_LO_DEFAULT, &DID_resolve_gns_lookup_cb, cls2);
+                     GNUNET_GNS_LO_DEFAULT, &DID_resolve_gns_lookup_cb, cls_gns_lookup_cb);
 
   return GNUNET_OK;
 }
@@ -121,18 +121,18 @@ DID_create_did_store_cb (void *cls,
                          const char *emsg)
 {
   DID_action_callback *cb = ((struct DID_action_return *) cls)->cb;
-  void *cls2 = ((struct DID_action_return *) cls)->cls;
+  void *cls_did_create_cb = ((struct DID_action_return *) cls)->cls;
   free (cls);
 
   if (GNUNET_OK == success)
   {
-    cb (GNUNET_OK, (void *) cls2);
+    cb (GNUNET_OK, (void *) cls_did_create_cb);
   }
   else
   {
     // TODO: Log emsg. Not writing it to STDOUT
     printf ("%s\n", emsg);
-    cb (GNUNET_NO, (void *) cls2);
+    cb (GNUNET_NO, (void *) cls_did_create_cb);
   }
 }
 
@@ -175,13 +175,12 @@ DID_create_namestore_lookup_cb (void *cls,
   {
     printf ("Ego already has a DID Document. Abort.\n");
     cont (GNUNET_NO, cls1);
-    return;
   }
   else {
     // Get public key
     GNUNET_IDENTITY_key_get_public (zone, &pkey);
 
-    // No DID Document is given a default one is created
+    // If no DID Document is given a default one is created
     if (did_document != NULL)
       printf (
         "DID Docuement is read from \"DID-document\" argument (EXPERIMENTAL)\n");
@@ -196,9 +195,9 @@ DID_create_namestore_lookup_cb (void *cls,
     record_data.flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
 
     // Create closure for record store callback
-    struct DID_action_return *cls2 = malloc (sizeof(struct DID_action_return));
-    cls2->cb = cont;
-    cls2->cls = cls1;
+    struct DID_action_return *cls_record_store_cb = malloc (sizeof(struct DID_action_return));
+    cls_record_store_cb->cb = cont;
+    cls_record_store_cb->cls = cls1;
 
     // Store record
     GNUNET_NAMESTORE_records_store (namestore_handle,
@@ -207,11 +206,11 @@ DID_create_namestore_lookup_cb (void *cls,
                                     1, // FIXME what if GNUNET_GNS_EMPTY_LABEL_AT has records
                                     &record_data,
                                     &DID_create_did_store_cb,
-                                    (void *) cls2);
+                                    (void *) cls_record_store_cb);
 
-    free(cls);
   }
-
+    
+  free(cls);
 }
 
 /**
@@ -249,13 +248,13 @@ DID_create (const struct GNUNET_IDENTITY_Ego *ego,
     return GNUNET_NO;
   }
 
-  struct DID_create_namestore_lookup_closure *cls2
+  struct DID_create_namestore_lookup_closure *cls_name_store_lookup_cb
     = malloc (sizeof(struct DID_create_namestore_lookup_closure));
-  cls2->did_document = did_document;
-  cls2->expire_time = (*expire_time);
-  cls2->namestore_handle = namestore_handle;
-  cls2->cont = cont;
-  cls2->cls = cls;
+  cls_name_store_lookup_cb->did_document = did_document;
+  cls_name_store_lookup_cb->expire_time = (*expire_time);
+  cls_name_store_lookup_cb->namestore_handle = namestore_handle;
+  cls_name_store_lookup_cb->cont = cont;
+  cls_name_store_lookup_cb->cls = cls;
 
   // Check if ego already has a DID Document
   GNUNET_NAMESTORE_records_lookup (namestore_handle,
@@ -264,7 +263,7 @@ DID_create (const struct GNUNET_IDENTITY_Ego *ego,
                                    NULL,
                                    NULL,
                                    DID_create_namestore_lookup_cb,
-                                   (void *) cls2);
+                                   (void *) cls_name_store_lookup_cb);
 
   return GNUNET_OK;
 }
