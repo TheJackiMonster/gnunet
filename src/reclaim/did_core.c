@@ -66,7 +66,8 @@ DID_resolve_gns_lookup_cb (
   free (cls);
 
   if (rd_count != 1)
-    cb (GNUNET_NO, "An ego should only have one DID Document", cls_did_resolve_cb);
+    cb (GNUNET_NO, "An ego should only have one DID Document",
+        cls_did_resolve_cb);
 
   if (rd[0].record_type == GNUNET_DNSPARSER_TYPE_TXT)
   {
@@ -100,13 +101,18 @@ DID_resolve (const char *did,
     return GNUNET_NO;
 
   // Create closure for lookup callback
-  struct DID_resolve_return *cls_gns_lookup_cb = malloc (sizeof(struct DID_resolve_return));
+  struct DID_resolve_return *cls_gns_lookup_cb
+    = malloc (sizeof(struct DID_resolve_return));
   cls_gns_lookup_cb->cb = cont;
   cls_gns_lookup_cb->cls = cls;
 
-  GNUNET_GNS_lookup (gns_handle, DID_DOCUMENT_LABEL, &pkey,
+  GNUNET_GNS_lookup (gns_handle,
+                     DID_DOCUMENT_LABEL,
+                     &pkey,
                      GNUNET_DNSPARSER_TYPE_TXT,
-                     GNUNET_GNS_LO_DEFAULT, &DID_resolve_gns_lookup_cb, cls_gns_lookup_cb);
+                     GNUNET_GNS_LO_DEFAULT,
+                     &DID_resolve_gns_lookup_cb,
+                     cls_gns_lookup_cb);
 
   return GNUNET_OK;
 }
@@ -195,7 +201,8 @@ DID_create_namestore_lookup_cb (void *cls,
     record_data.flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
 
     // Create closure for record store callback
-    struct DID_action_return *cls_record_store_cb = malloc (sizeof(struct DID_action_return));
+    struct DID_action_return *cls_record_store_cb
+      = malloc (sizeof(struct DID_action_return));
     cls_record_store_cb->cb = cont;
     cls_record_store_cb->cls = cls1;
 
@@ -209,8 +216,8 @@ DID_create_namestore_lookup_cb (void *cls,
                                     (void *) cls_record_store_cb);
 
   }
-    
-  free(cls);
+
+  free (cls);
 }
 
 /**
