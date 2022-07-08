@@ -147,8 +147,7 @@ struct DID_create_namestore_lookup_closure
   const char *did_document;
   struct GNUNET_TIME_Relative expire_time;
   struct GNUNET_NAMESTORE_Handle *namestore_handle;
-  DID_action_callback *cont;
-  void *cls;
+  struct DID_action_return *ret;
 };
 
 static void
@@ -171,16 +170,15 @@ DID_create_namestore_lookup_cb (void *cls,
   struct GNUNET_NAMESTORE_Handle *namestore_handle
     = ((struct DID_create_namestore_lookup_closure *) cls)->namestore_handle;
 
-  DID_action_callback *cont
-    = ((struct DID_create_namestore_lookup_closure *) cls)->cont;
+  struct DID_action_return *cls_record_store_cb
+    = ((struct DID_create_namestore_lookup_closure *) cls)->ret;
 
-  void *cls1
-    = ((struct DID_create_namestore_lookup_closure *) cls)->cls;
+  free (cls);
 
   if (rd_count > 0)
   {
     printf ("Ego already has a DID Document. Abort.\n");
-    cont (GNUNET_NO, cls1);
+    cls_record_store_cb->cb (GNUNET_NO, cls_record_store_cb->cls);
   }
   else {
     // Get public key
@@ -200,12 +198,6 @@ DID_create_namestore_lookup_cb (void *cls,
     record_data.record_type = GNUNET_GNSRECORD_typename_to_number ("TXT"),
     record_data.flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
 
-    // Create closure for record store callback
-    struct DID_action_return *cls_record_store_cb
-      = malloc (sizeof(struct DID_action_return));
-    cls_record_store_cb->cb = cont;
-    cls_record_store_cb->cls = cls1;
-
     // Store record
     GNUNET_NAMESTORE_records_store (namestore_handle,
                                     zone,
@@ -214,10 +206,7 @@ DID_create_namestore_lookup_cb (void *cls,
                                     &record_data,
                                     &DID_create_did_store_cb,
                                     (void *) cls_record_store_cb);
-
   }
-
-  free (cls);
 }
 
 /**
@@ -226,8 +215,6 @@ DID_create_namestore_lookup_cb (void *cls,
  * @param ego ego for which the DID should be created.
  * @param did_document did_document that should be saved in namestore.
  * If did_document==NULL -> Default DID document is created.
- * @param cfg_handle pointer to configuration handle
- * @param identity_hanlde pointer to identity handle. Can be NULL if ego!=NULL
  * @param namestore_handle
  * @param cont callback function
  * @param cls closure
@@ -255,13 +242,17 @@ DID_create (const struct GNUNET_IDENTITY_Ego *ego,
     return GNUNET_NO;
   }
 
+  struct DID_action_return *ret
+    = malloc (sizeof(struct DID_action_return));
+  ret->cb = cont;
+  ret->cls = cls;
+
   struct DID_create_namestore_lookup_closure *cls_name_store_lookup_cb
     = malloc (sizeof(struct DID_create_namestore_lookup_closure));
   cls_name_store_lookup_cb->did_document = did_document;
   cls_name_store_lookup_cb->expire_time = (*expire_time);
   cls_name_store_lookup_cb->namestore_handle = namestore_handle;
-  cls_name_store_lookup_cb->cont = cont;
-  cls_name_store_lookup_cb->cls = cls;
+  cls_name_store_lookup_cb->ret = ret;
 
   // Check if ego already has a DID Document
   GNUNET_NAMESTORE_records_lookup (namestore_handle,
