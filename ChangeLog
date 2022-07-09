@@ -1,3 +1,33 @@
+Fri, 8 Jul 2022 14:55:01 +0200 (6a60c7d43)
+relative time is in nanoseconds, kill redundant _ms variant - Christian Grothoff
+
+Fri, 8 Jul 2022 14:37:03 +0200 (78cba4124)
+timestamps are in seconds, kill redundant _ms variant - Christian Grothoff
+
+Thu, 7 Jul 2022 20:29:24 +0200 (3abeb4555)
+implemented new DHT path signing with origin authentication - Christian Grothoff
+
+Thu, 7 Jul 2022 13:42:52 +0200 (2906241b6)
+major modification to datacache to store route options (and clean up the API) - Christian Grothoff
+
+Mon, 4 Jul 2022 14:11:57 +0200 (374e3cf6d)
+ABE: Remove unused attribute-based encryption component - Martin Schanzenbach
+
+Tue, 28 Jun 2022 21:31:29 +0200 (877f8e25c)
+make sure Debian packages created on Ubuntu 21+ still work with Debian reprepro: force Debian standard compression algorithm - Christian Grothoff
+
+Sat, 25 Jun 2022 14:02:01 +0200 (fa7f0a3a4)
+BF bugfix: include mutator in size - Christian Grothoff
+
+Wed, 22 Jun 2022 20:14:04 +0200 (84303b044)
+RECLAIM: Improve OIDC userinfo caching; add config option for timeout - Martin Schanzenbach
+
+Mon, 20 Jun 2022 14:24:44 +0200 (af154e9c5)
+package v0.17.1 for Debian - Christian Grothoff
+
+Sun, 19 Jun 2022 13:55:40 +0200 (71350f124)
+fix: htonl vs htons, thanks Bernd - Christian Grothoff
+
 Sun, 12 Jun 2022 15:50:22 +0100 (839640c0e)
 Restore lost quotes in `man gnunet-search` - madmurphy
 
