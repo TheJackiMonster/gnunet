@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.9.5a\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2022-06-13 12:32+0200\n"
+"POT-Creation-Date: 2022-07-04 20:46+0200\n"
 "PO-Revision-Date: 2013-02-23 17:50+0100\n"
 "Last-Translator: Miguel Ángel Arruga Vivas <rosen644835@gmail.com>\n"
 "Language-Team: Spanish <es@li.org>\n"
@@ -4233,39 +4233,39 @@ msgstr "No se pudo procesar la cadena de registro VPN «%s»\n"
 msgid "Gns REST API initialized\n"
 msgstr "Conexión fallida\n"
 
-#: src/gnsrecord/gnsrecord_misc.c:52
+#: src/gnsrecord/gnsrecord_misc.c:53
 msgid "Label is NULL which is not allowed\n"
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:57
+#: src/gnsrecord/gnsrecord_misc.c:58
 msgid "Label  contains `.' which is not allowed\n"
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:464
+#: src/gnsrecord/gnsrecord_misc.c:467
 msgid "Zone delegation record not allowed in apex."
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:472
+#: src/gnsrecord/gnsrecord_misc.c:475
 msgid "Zone delegation record set contains mutually exclusive records."
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:482
+#: src/gnsrecord/gnsrecord_misc.c:485
 msgid "Multiple REDIRECT records."
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:491 src/gnsrecord/gnsrecord_misc.c:517
-msgid "Redirection record set conains mutually exclusive records."
+#: src/gnsrecord/gnsrecord_misc.c:494 src/gnsrecord/gnsrecord_misc.c:520
+msgid "Redirection record set contains mutually exclusive records."
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:498
+#: src/gnsrecord/gnsrecord_misc.c:501
 msgid "Redirection records not allowed in apex."
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:509
+#: src/gnsrecord/gnsrecord_misc.c:512
 msgid "Redirection records not allowed in apex.."
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:531
+#: src/gnsrecord/gnsrecord_misc.c:534
 msgid "Mutually exclusive records."
 msgstr ""
 
@@ -5348,7 +5348,7 @@ msgstr ""
 msgid "Flat file database running\n"
 msgstr "Base de datos de plantilla ejecutándose\n"
 
-#: src/namestore/plugin_rest_namestore.c:1111
+#: src/namestore/plugin_rest_namestore.c:1109
 #, fuzzy
 msgid "Namestore REST API initialized\n"
 msgstr "Conexión fallida\n"
@@ -6065,7 +6065,7 @@ msgstr ""
 msgid "re:claimID command line tool"
 msgstr ""
 
-#: src/reclaim/plugin_rest_openid_connect.c:3003
+#: src/reclaim/plugin_rest_openid_connect.c:3094
 #, fuzzy
 msgid "OpenID Connect REST API initialized\n"
 msgstr "Conexión fallida\n"
@@ -6894,17 +6894,17 @@ msgid ""
 "free topology cannot be more than %u.  Given `%s = %llu'"
 msgstr ""
 
-#: src/testbed/testbed_api_topology.c:1033 src/testing/testing.c:2657
+#: src/testbed/testbed_api_topology.c:1033 src/testing/testing.c:2651
 #, c-format
 msgid "Topology file %s not found\n"
 msgstr "El fichero de topología %s no fue encontrado\n"
 
-#: src/testbed/testbed_api_topology.c:1041 src/testing/testing.c:2665
+#: src/testbed/testbed_api_topology.c:1041 src/testing/testing.c:2659
 #, c-format
 msgid "Topology file %s has no data\n"
 msgstr "El fichero de topología %s no tiene datos\n"
 
-#: src/testbed/testbed_api_topology.c:1049 src/testing/testing.c:2673
+#: src/testbed/testbed_api_topology.c:1049 src/testing/testing.c:2667
 #, c-format
 msgid "Topology file %s cannot be read\n"
 msgstr "El fichero de topología %s no puede ser leido\n"
@@ -7131,9 +7131,9 @@ msgstr "# mensajes «HELLO» recibidos"
 msgid "GNUnet topology control"
 msgstr ""
 
-#: src/transport/gnunet-communicator-tcp.c:3338
+#: src/transport/gnunet-communicator-tcp.c:3342
 #: src/transport/gnunet-communicator-udp.c:3867
-#: src/transport/gnunet-service-tng.c:11042
+#: src/transport/gnunet-service-tng.c:11039
 #: src/transport/gnunet-service-transport.c:2627
 #, fuzzy
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
@@ -7141,7 +7141,7 @@ msgstr ""
 "El servicio de transporte carece de opciones de configuración de clave.  "
 "Saliendo.\n"
 
-#: src/transport/gnunet-communicator-tcp.c:3671
+#: src/transport/gnunet-communicator-tcp.c:3675
 #, fuzzy
 msgid "GNUnet TCP communicator"
 msgstr "Configurador Gtk de GNUnet"
@@ -8554,7 +8554,7 @@ msgstr "el parámetro --option es necesario para establecer un valor\n"
 msgid "failed to load configuration defaults"
 msgstr "Se produjo un fallo al cargar la configuración de %s\n"
 
-#: src/util/container_bloomfilter.c:548
+#: src/util/container_bloomfilter.c:542
 #, c-format
 msgid ""
 "Size of file on disk is incorrect for this Bloom filter (want %llu, have "
@@ -9084,7 +9084,7 @@ msgstr ""
 "¡Error lógico interno fatal, el proceso está colgado en «%s» (abortar con "
 "CTRL-C)!\n"
 
-#: src/util/os_installation.c:415
+#: src/util/os_installation.c:420
 #, c-format
 msgid ""
 "Could not determine installation path for %s.  Set `%s' environment "
@@ -9093,12 +9093,12 @@ msgstr ""
 "No se pudo determinar la ruta de instalación de %s.  Establezca la variable "
 "de entorno «%s».\n"
 
-#: src/util/os_installation.c:786
+#: src/util/os_installation.c:791
 #, c-format
 msgid "Could not find binary `%s' in PATH!\n"
 msgstr "¡No se pudo encontrar el programa llamado «%s» en PATH!\n"
 
-#: src/util/os_installation.c:819
+#: src/util/os_installation.c:824
 #, c-format
 msgid "Binary `%s' exists, but is not SUID\n"
 msgstr ""

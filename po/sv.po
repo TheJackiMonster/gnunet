@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GNUnet 0.7.0b\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2022-06-13 12:32+0200\n"
+"POT-Creation-Date: 2022-07-04 20:46+0200\n"
 "PO-Revision-Date: 2006-01-21 17:16+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
@@ -4122,39 +4122,39 @@ msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 msgid "Gns REST API initialized\n"
 msgstr " Anslutning misslyckades\n"
 
-#: src/gnsrecord/gnsrecord_misc.c:52
+#: src/gnsrecord/gnsrecord_misc.c:53
 msgid "Label is NULL which is not allowed\n"
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:57
+#: src/gnsrecord/gnsrecord_misc.c:58
 msgid "Label  contains `.' which is not allowed\n"
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:464
+#: src/gnsrecord/gnsrecord_misc.c:467
 msgid "Zone delegation record not allowed in apex."
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:472
+#: src/gnsrecord/gnsrecord_misc.c:475
 msgid "Zone delegation record set contains mutually exclusive records."
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:482
+#: src/gnsrecord/gnsrecord_misc.c:485
 msgid "Multiple REDIRECT records."
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:491 src/gnsrecord/gnsrecord_misc.c:517
-msgid "Redirection record set conains mutually exclusive records."
+#: src/gnsrecord/gnsrecord_misc.c:494 src/gnsrecord/gnsrecord_misc.c:520
+msgid "Redirection record set contains mutually exclusive records."
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:498
+#: src/gnsrecord/gnsrecord_misc.c:501
 msgid "Redirection records not allowed in apex."
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:509
+#: src/gnsrecord/gnsrecord_misc.c:512
 msgid "Redirection records not allowed in apex.."
 msgstr ""
 
-#: src/gnsrecord/gnsrecord_misc.c:531
+#: src/gnsrecord/gnsrecord_misc.c:534
 msgid "Mutually exclusive records."
 msgstr ""
 
@@ -5196,7 +5196,7 @@ msgstr ""
 msgid "Flat file database running\n"
 msgstr ""
 
-#: src/namestore/plugin_rest_namestore.c:1111
+#: src/namestore/plugin_rest_namestore.c:1109
 #, fuzzy
 msgid "Namestore REST API initialized\n"
 msgstr " Anslutning misslyckades\n"
@@ -5909,7 +5909,7 @@ msgstr ""
 msgid "re:claimID command line tool"
 msgstr ""
 
-#: src/reclaim/plugin_rest_openid_connect.c:3003
+#: src/reclaim/plugin_rest_openid_connect.c:3094
 #, fuzzy
 msgid "OpenID Connect REST API initialized\n"
 msgstr " Anslutning misslyckades\n"
@@ -6722,17 +6722,17 @@ msgid ""
 "free topology cannot be more than %u.  Given `%s = %llu'"
 msgstr ""
 
-#: src/testbed/testbed_api_topology.c:1033 src/testing/testing.c:2657
+#: src/testbed/testbed_api_topology.c:1033 src/testing/testing.c:2651
 #, fuzzy, c-format
 msgid "Topology file %s not found\n"
 msgstr "\"%s\" misslyckades: tabell hittades inte!\n"
 
-#: src/testbed/testbed_api_topology.c:1041 src/testing/testing.c:2665
+#: src/testbed/testbed_api_topology.c:1041 src/testing/testing.c:2659
 #, c-format
 msgid "Topology file %s has no data\n"
 msgstr ""
 
-#: src/testbed/testbed_api_topology.c:1049 src/testing/testing.c:2673
+#: src/testbed/testbed_api_topology.c:1049 src/testing/testing.c:2667
 #, c-format
 msgid "Topology file %s cannot be read\n"
 msgstr ""
@@ -6937,15 +6937,15 @@ msgstr "# krypterade PONG-meddelanden mottagna"
 msgid "GNUnet topology control"
 msgstr ""
 
-#: src/transport/gnunet-communicator-tcp.c:3338
+#: src/transport/gnunet-communicator-tcp.c:3342
 #: src/transport/gnunet-communicator-udp.c:3867
-#: src/transport/gnunet-service-tng.c:11042
+#: src/transport/gnunet-service-tng.c:11039
 #: src/transport/gnunet-service-transport.c:2627
 #, fuzzy
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr "GNUnet-konfiguration"
 
-#: src/transport/gnunet-communicator-tcp.c:3671
+#: src/transport/gnunet-communicator-tcp.c:3675
 msgid "GNUnet TCP communicator"
 msgstr ""
 
@@ -8332,7 +8332,7 @@ msgstr ""
 msgid "failed to load configuration defaults"
 msgstr "Kunde inte spara konfigurationsfil \"%s\":"
 
-#: src/util/container_bloomfilter.c:548
+#: src/util/container_bloomfilter.c:542
 #, c-format
 msgid ""
 "Size of file on disk is incorrect for this Bloom filter (want %llu, have "
@@ -8851,19 +8851,19 @@ msgid ""
 "Fatal internal logic error, process hangs in `%s' (abort with CTRL-C)!\n"
 msgstr ""
 
-#: src/util/os_installation.c:415
+#: src/util/os_installation.c:420
 #, c-format
 msgid ""
 "Could not determine installation path for %s.  Set `%s' environment "
 "variable.\n"
 msgstr ""
 
-#: src/util/os_installation.c:786
+#: src/util/os_installation.c:791
 #, fuzzy, c-format
 msgid "Could not find binary `%s' in PATH!\n"
 msgstr "Kunde inte hitta motpart \"%s\" i routingtabell!\n"
 
-#: src/util/os_installation.c:819
+#: src/util/os_installation.c:824
 #, c-format
 msgid "Binary `%s' exists, but is not SUID\n"
 msgstr ""
