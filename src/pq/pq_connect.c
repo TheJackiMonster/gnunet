@@ -150,6 +150,7 @@ apply_patch (struct GNUNET_PQ_Context *db,
   unsigned long code;
   size_t slen = strlen (load_path) + 10;
   char buf[slen];
+  enum GNUNET_GenericReturnValue ret;
 
   GNUNET_snprintf (buf,
                    sizeof (buf),
@@ -180,10 +181,21 @@ apply_patch (struct GNUNET_PQ_Context *db,
                               "psql");
     return GNUNET_SYSERR;
   }
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_OS_process_wait_status (psql,
-                                                &type,
-                                                &code));
+  ret = GNUNET_OS_process_wait_status (psql,
+                                       &type,
+                                       &code);
+  if (GNUNET_OK != ret)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "psql on file %s did not finish, killed it!\n",
+                buf);
+    /* can happen if we got a signal, like CTRL-C, before
+       psql was complete */
+    (void) GNUNET_OS_process_kill (psql,
+                                   SIGKILL);
+    GNUNET_OS_process_destroy (psql);
+    return GNUNET_SYSERR;
+  }
   GNUNET_OS_process_destroy (psql);
   if ( (GNUNET_OS_PROCESS_EXITED != type) ||
        (0 != code) )
