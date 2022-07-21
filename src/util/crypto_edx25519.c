@@ -220,7 +220,7 @@ derive_h (
   size_t seedsize,
   struct GNUNET_HashCode *phc)
 {
-  static const char *const salt = "edx2559-derivation";
+  static const char *const salt = "edx25519-derivation";
 
   GNUNET_CRYPTO_kdf (/* output*/
                      phc, sizeof(*phc),
