@@ -60,6 +60,11 @@ struct GNUNET_PQ_Context
   char *load_path;
 
   /**
+   * Suffix to append to path to load on startup.
+   */
+  char *auto_suffix;
+
+  /**
    * Map managing event subscriptions.
    */
   struct GNUNET_CONTAINER_MultiShortmap *channel_map;
