@@ -213,15 +213,9 @@ GNUNET_OS_process_current ()
 }
 
 
-/**
- * Sends a signal to the process
- *
- * @param proc pointer to process structure
- * @param sig signal
- * @return 0 on success, -1 on error
- */
 int
-GNUNET_OS_process_kill (struct GNUNET_OS_Process *proc, int sig)
+GNUNET_OS_process_kill (struct GNUNET_OS_Process *proc,
+                        int sig)
 {
   int ret;
   char csig;

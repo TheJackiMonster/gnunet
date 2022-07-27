@@ -920,6 +920,21 @@ GNUNET_PQ_connect (const char *config_str,
 
 
 /**
+ * Execute SQL statements from @a buf against @a db.
+ * The given filename infix in @a buf is prefixed with
+ * the "load_path" and ".sql" is appended to construct
+ * the full filename.
+ *
+ * @param db database context to use
+ * @param buf filename infix (!) with the SQL code to run
+ * @return #GNUNET_OK on success, #GNUNET_NO if patch @a buf does not exist, #GNUNET_SYSERR on error
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_PQ_exec_sql (struct GNUNET_PQ_Context *db,
+                    const char *buf);
+
+
+/**
  * Create a connection to the Postgres database using @a config_str for the
  * configuration.  Initialize logging via GNUnet's log routines and disable
  * Postgres's logger.  Also ensures that the statements in @a load_path and @a
@@ -936,6 +951,7 @@ GNUNET_PQ_connect (const char *config_str,
  *
  * @param config_str configuration to use
  * @param load_path path to directory with SQL transactions to run, can be NULL
+ * @param auto_suffix infix of SQL series to run on every reconnect; runs multiple (!) files, of the form auto_suffix-XXXX where XXXX is from 0 to 9999 (consequtive).
  * @param es #GNUNET_PQ_PREPARED_STATEMENT_END-terminated
  *            array of statements to execute upon EACH connection, can be NULL
  * @param ps array of prepared statements to prepare, can be NULL
@@ -945,6 +961,7 @@ GNUNET_PQ_connect (const char *config_str,
 struct GNUNET_PQ_Context *
 GNUNET_PQ_connect2 (const char *config_str,
                     const char *load_path,
+                    const char *auto_suffix,
                     const struct GNUNET_PQ_ExecuteStatement *es,
                     const struct GNUNET_PQ_PreparedStatement *ps,
                     enum GNUNET_PQ_Options flags);
