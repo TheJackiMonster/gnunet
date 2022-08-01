@@ -160,6 +160,11 @@ struct GNUNET_DHT_HopSignature
  */
 struct GNUNET_DHT_PathElement
 {
+  /**
+   * Signature affirming the hop of type
+   * #GNUNET_SIGNATURE_PURPOSE_DHT_HOP.
+   */
+  struct GNUNET_CRYPTO_EddsaSignature sig;
 
   /**
    * Previous peer on the path (matches "pred" in the signed field).
@@ -172,12 +177,6 @@ struct GNUNET_DHT_PathElement
    * element, or the recipient if this was the last element on the path.
    */
   struct GNUNET_PeerIdentity pred;
-
-  /**
-   * Signature affirming the hop of type
-   * #GNUNET_SIGNATURE_PURPOSE_DHT_HOP.
-   */
-  struct GNUNET_CRYPTO_EddsaSignature sig;
 
 };
 
