@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.8.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2022-07-04 20:46+0200\n"
+"POT-Creation-Date: 2022-07-09 19:58+0200\n"
 "PO-Revision-Date: 2011-07-09 12:12+0800\n"
 "Last-Translator: Wylmer Wang <wantinghard@gmail.com>\n"
 "Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
@@ -1522,13 +1522,13 @@ msgstr ""
 msgid "# updates to my type map"
 msgstr ""
 
-#: src/datacache/plugin_datacache_heap.c:555
+#: src/datacache/plugin_datacache_heap.c:492
 #, fuzzy
 msgid "Heap datacache running\n"
 msgstr "sqlite 数据仓库"
 
-#: src/datacache/plugin_datacache_sqlite.c:118
-#: src/datacache/plugin_datacache_sqlite.c:139
+#: src/datacache/plugin_datacache_sqlite.c:128
+#: src/datacache/plugin_datacache_sqlite.c:150
 #: src/datastore/plugin_datastore_mysql.c:890
 #: src/datastore/plugin_datastore_sqlite.c:63
 #: src/datastore/plugin_datastore_sqlite.c:81 src/my/my.c:81 src/my/my.c:93
@@ -1545,7 +1545,7 @@ msgstr "sqlite 数据仓库"
 msgid "`%s' failed at %s:%d with error: %s\n"
 msgstr "“%s”于 %s:%d 处失败，错误为：%s\n"
 
-#: src/datacache/plugin_datacache_sqlite.c:723
+#: src/datacache/plugin_datacache_sqlite.c:1035
 #: src/datastore/plugin_datastore_sqlite.c:531
 #: src/namecache/plugin_namecache_sqlite.c:237
 #: src/namestore/plugin_namestore_sqlite.c:273
@@ -1927,58 +1927,58 @@ msgstr "sqlite 数据仓库"
 msgid "Template database running\n"
 msgstr ""
 
-#: src/dht/gnunet-dht-get.c:164
+#: src/dht/gnunet-dht-get.c:166
 #, c-format
 msgid ""
 "Result %d, type %d:\n"
 "%.*s\n"
 msgstr ""
 
-#: src/dht/gnunet-dht-get.c:165
+#: src/dht/gnunet-dht-get.c:167
 #, c-format
 msgid "Result %d, type %d:\n"
 msgstr ""
 
-#: src/dht/gnunet-dht-get.c:215
+#: src/dht/gnunet-dht-get.c:221
 msgid "Must provide key for DHT GET!\n"
 msgstr ""
 
-#: src/dht/gnunet-dht-get.c:223 src/dht/gnunet-dht-hello.c:119
+#: src/dht/gnunet-dht-get.c:229 src/dht/gnunet-dht-hello.c:119
 #: src/dht/gnunet-dht-monitor.c:255
 #, fuzzy, c-format
 msgid "Failed to connect to DHT service!\n"
 msgstr "初始化“%s”服务失败。\n"
 
-#: src/dht/gnunet-dht-get.c:233
+#: src/dht/gnunet-dht-get.c:239
 msgid "Issuing DHT GET with key"
 msgstr ""
 
-#: src/dht/gnunet-dht-get.c:269 src/dht/gnunet-dht-monitor.c:302
+#: src/dht/gnunet-dht-get.c:275 src/dht/gnunet-dht-monitor.c:302
 #: src/dht/gnunet-dht-put.c:200
 msgid "the query key"
 msgstr ""
 
-#: src/dht/gnunet-dht-get.c:275
+#: src/dht/gnunet-dht-get.c:281
 msgid "how many parallel requests (replicas) to create"
 msgstr ""
 
-#: src/dht/gnunet-dht-get.c:280 src/dht/gnunet-dht-put.c:217
+#: src/dht/gnunet-dht-get.c:286 src/dht/gnunet-dht-put.c:217
 msgid "use DHT's record route option"
 msgstr ""
 
-#: src/dht/gnunet-dht-get.c:286 src/dht/gnunet-dht-monitor.c:308
+#: src/dht/gnunet-dht-get.c:292 src/dht/gnunet-dht-monitor.c:308
 msgid "the type of data to look for"
 msgstr ""
 
-#: src/dht/gnunet-dht-get.c:292
+#: src/dht/gnunet-dht-get.c:298
 msgid "how long to execute this query before giving up?"
 msgstr ""
 
-#: src/dht/gnunet-dht-get.c:298 src/dht/gnunet-dht-put.c:206
+#: src/dht/gnunet-dht-get.c:304 src/dht/gnunet-dht-put.c:206
 msgid "use DHT's demultiplex everywhere option"
 msgstr ""
 
-#: src/dht/gnunet-dht-get.c:315
+#: src/dht/gnunet-dht-get.c:321
 msgid "Issue a GET request to the GNUnet DHT, prints results."
 msgstr ""
 
@@ -2033,50 +2033,50 @@ msgstr ""
 msgid "Issue a PUT request to the GNUnet DHT insert DATA under KEY."
 msgstr ""
 
-#: src/dht/gnunet_dht_profiler.c:922 src/testbed/gnunet-testbed-profiler.c:253
+#: src/dht/gnunet_dht_profiler.c:925 src/testbed/gnunet-testbed-profiler.c:253
 #, fuzzy, c-format
 msgid "Exiting as the number of peers is %u\n"
 msgstr "增加 TCP/IP 的最大连接数"
 
-#: src/dht/gnunet_dht_profiler.c:955 src/rps/gnunet-rps-profiler.c:3136
+#: src/dht/gnunet_dht_profiler.c:958 src/rps/gnunet-rps-profiler.c:3136
 #, fuzzy
 msgid "number of peers to start"
 msgstr "迭代次数"
 
-#: src/dht/gnunet_dht_profiler.c:961
+#: src/dht/gnunet_dht_profiler.c:964
 msgid "number of PUTs to perform per peer"
 msgstr ""
 
-#: src/dht/gnunet_dht_profiler.c:967 src/nse/gnunet-nse-profiler.c:872
+#: src/dht/gnunet_dht_profiler.c:970 src/nse/gnunet-nse-profiler.c:872
 #: src/testbed/gnunet-testbed-profiler.c:302
 msgid "name of the file with the login information for the testbed"
 msgstr ""
 
-#: src/dht/gnunet_dht_profiler.c:973
+#: src/dht/gnunet_dht_profiler.c:976
 msgid "delay between rounds for collecting statistics (default: 30 sec)"
 msgstr ""
 
-#: src/dht/gnunet_dht_profiler.c:979
+#: src/dht/gnunet_dht_profiler.c:982
 msgid "delay to start doing PUTs (default: 1 sec)"
 msgstr ""
 
-#: src/dht/gnunet_dht_profiler.c:985
+#: src/dht/gnunet_dht_profiler.c:988
 msgid "delay to start doing GETs (default: 5 min)"
 msgstr ""
 
-#: src/dht/gnunet_dht_profiler.c:990
+#: src/dht/gnunet_dht_profiler.c:993
 msgid "replication degree for DHT PUTs"
 msgstr ""
 
-#: src/dht/gnunet_dht_profiler.c:996
+#: src/dht/gnunet_dht_profiler.c:999
 msgid "chance that a peer is selected at random for PUTs"
 msgstr ""
 
-#: src/dht/gnunet_dht_profiler.c:1002
+#: src/dht/gnunet_dht_profiler.c:1005
 msgid "timeout for DHT PUT and GET requests (default: 1 min)"
 msgstr ""
 
-#: src/dht/gnunet_dht_profiler.c:1023
+#: src/dht/gnunet_dht_profiler.c:1026
 #, fuzzy
 msgid "Measure quality and performance of the DHT service."
 msgstr "无法访问该服务"
@@ -2345,7 +2345,7 @@ msgstr ""
 msgid "`%s' is not SUID or the path is invalid, EXIT will not work\n"
 msgstr ""
 
-#: src/exit/gnunet-daemon-exit.c:3964 src/pt/gnunet-daemon-pt.c:1210
+#: src/exit/gnunet-daemon-exit.c:3964 src/pt/gnunet-daemon-pt.c:1212
 msgid "No useful service enabled.  Exiting.\n"
 msgstr ""
 
@@ -3530,69 +3530,69 @@ msgstr ""
 msgid "# storage requests dropped due to high load"
 msgstr ""
 
-#: src/fs/gnunet-service-fs_pr.c:1105
+#: src/fs/gnunet-service-fs_pr.c:1107
 msgid "# Replies received from DHT"
 msgstr ""
 
-#: src/fs/gnunet-service-fs_pr.c:1260
+#: src/fs/gnunet-service-fs_pr.c:1262
 msgid "# Replies received from CADET"
 msgstr ""
 
-#: src/fs/gnunet-service-fs_pr.c:1315
+#: src/fs/gnunet-service-fs_pr.c:1317
 #, c-format
 msgid "Datastore lookup already took %s!\n"
 msgstr ""
 
-#: src/fs/gnunet-service-fs_pr.c:1336
+#: src/fs/gnunet-service-fs_pr.c:1338
 #, c-format
 msgid "On-demand lookup already took %s!\n"
 msgstr ""
 
-#: src/fs/gnunet-service-fs_pr.c:1403
+#: src/fs/gnunet-service-fs_pr.c:1405
 msgid "# requested DBLOCK or IBLOCK not found"
 msgstr ""
 
-#: src/fs/gnunet-service-fs_pr.c:1465
+#: src/fs/gnunet-service-fs_pr.c:1467
 msgid "# Datastore lookups concluded (error queueing)"
 msgstr ""
 
-#: src/fs/gnunet-service-fs_pr.c:1520
+#: src/fs/gnunet-service-fs_pr.c:1522
 msgid "# Datastore lookups concluded (no results)"
 msgstr ""
 
-#: src/fs/gnunet-service-fs_pr.c:1535
+#: src/fs/gnunet-service-fs_pr.c:1537
 msgid "# Datastore lookups concluded (seen all)"
 msgstr ""
 
-#: src/fs/gnunet-service-fs_pr.c:1558
+#: src/fs/gnunet-service-fs_pr.c:1560
 msgid "# Datastore lookups aborted (more than MAX_RESULTS)"
 msgstr ""
 
-#: src/fs/gnunet-service-fs_pr.c:1575
+#: src/fs/gnunet-service-fs_pr.c:1577
 msgid "# on-demand blocks matched requests"
 msgstr ""
 
-#: src/fs/gnunet-service-fs_pr.c:1596
+#: src/fs/gnunet-service-fs_pr.c:1598
 msgid "# on-demand lookups performed successfully"
 msgstr ""
 
-#: src/fs/gnunet-service-fs_pr.c:1602
+#: src/fs/gnunet-service-fs_pr.c:1604
 msgid "# on-demand lookups failed"
 msgstr ""
 
-#: src/fs/gnunet-service-fs_pr.c:1648
+#: src/fs/gnunet-service-fs_pr.c:1650
 msgid "# Datastore lookups concluded (found last result)"
 msgstr ""
 
-#: src/fs/gnunet-service-fs_pr.c:1661
+#: src/fs/gnunet-service-fs_pr.c:1663
 msgid "# Datastore lookups concluded (load too high)"
 msgstr ""
 
-#: src/fs/gnunet-service-fs_pr.c:1712
+#: src/fs/gnunet-service-fs_pr.c:1714
 msgid "# Datastore lookups initiated"
 msgstr ""
 
-#: src/fs/gnunet-service-fs_pr.c:1776
+#: src/fs/gnunet-service-fs_pr.c:1778
 msgid "# GAP PUT messages received"
 msgstr ""
 
@@ -3927,40 +3927,40 @@ msgstr "打开日志文件“%s”失败：%s\n"
 msgid "Skipping record of unsupported type %d\n"
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:1872
+#: src/gns/gnunet-service-gns_resolver.c:1871
 #, c-format
 msgid "Name `%s' cannot be converted to IDNA."
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:1887
+#: src/gns/gnunet-service-gns_resolver.c:1886
 #, c-format
 msgid "GNS lookup resulted in DNS name that is too long (`%s')\n"
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:1927
+#: src/gns/gnunet-service-gns_resolver.c:1926
 #, fuzzy, c-format
 msgid "GNS lookup failed (zero records found for `%s')\n"
 msgstr "运行 %s失败：%s %d\n"
 
-#: src/gns/gnunet-service-gns_resolver.c:2329
+#: src/gns/gnunet-service-gns_resolver.c:2328
 msgid "Unable to process critical delegation record\n"
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:2334
+#: src/gns/gnunet-service-gns_resolver.c:2333
 msgid "GNS lookup recursion failed (no delegation record found)\n"
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:2357
+#: src/gns/gnunet-service-gns_resolver.c:2356
 #, fuzzy, c-format
 msgid "Failed to cache GNS resolution: %s\n"
 msgstr "打开日志文件“%s”失败：%s\n"
 
-#: src/gns/gnunet-service-gns_resolver.c:2522
+#: src/gns/gnunet-service-gns_resolver.c:2523
 #, c-format
 msgid "GNS namecache returned empty result for `%s'\n"
 msgstr ""
 
-#: src/gns/gnunet-service-gns_resolver.c:2669
+#: src/gns/gnunet-service-gns_resolver.c:2671
 #, c-format
 msgid "Zone %s was revoked, resolution fails\n"
 msgstr ""
@@ -5618,14 +5618,14 @@ msgstr ""
 msgid "# DNS replies dropped (too late?)"
 msgstr ""
 
-#: src/pt/gnunet-daemon-pt.c:1225 src/pt/gnunet-daemon-pt.c:1234
-#: src/pt/gnunet-daemon-pt.c:1250 src/pt/gnunet-daemon-pt.c:1259
-#: src/pt/gnunet-daemon-pt.c:1268
+#: src/pt/gnunet-daemon-pt.c:1227 src/pt/gnunet-daemon-pt.c:1236
+#: src/pt/gnunet-daemon-pt.c:1252 src/pt/gnunet-daemon-pt.c:1261
+#: src/pt/gnunet-daemon-pt.c:1270
 #, fuzzy, c-format
 msgid "Failed to connect to %s service.  Exiting.\n"
 msgstr "初始化“%s”服务失败。\n"
 
-#: src/pt/gnunet-daemon-pt.c:1314
+#: src/pt/gnunet-daemon-pt.c:1316
 msgid "Daemon to run to perform IP protocol translation to GNUnet"
 msgstr ""
 

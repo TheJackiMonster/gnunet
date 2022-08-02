@@ -441,26 +441,16 @@ AC_ARG_ENABLE([documentation],
                               [do not build the documentation])],
               [documentation=${enableval}],
               [documentation=yes])
+
+AC_CHECK_PROG([SPHINX_BINARY], [sphinx-build], [true], [false])
+AM_CONDITIONAL([HAVE_SPHINX_BINARY], [$SPHINX_BINARY])
+
 AM_CONDITIONAL([DOCUMENTATION], [test "x$documentation" = "xyes"])
 AS_IF([test "x$documentation" = "xyes"],
-      [AC_DEFINE([DOCUMENTATION], [1], [Define to 1 if documentation is built])],
+      [AS_IF([$SPHINX_BINARY],
+             [AC_DEFINE([DOCUMENTATION], [1], [Define to 1 if documentation is built])],
+             [AC_MSG_ERROR([Documentation requires sphinx])])],
       [AC_DEFINE([DOCUMENTATION], [0], [Define to 1 if documentation is built])])
-
-AC_ARG_ENABLE([texi2mdoc-generation],
-              [AS_HELP_STRING([--enable-texi2mdoc-generation],
-                              [generate and install texi2mdoc output])],
-              [texi2mdoc_enabled=${enableval}],
-              [texi2mdoc_enabled=no])
-AM_CONDITIONAL([TEXI2MDOC_GENERATION], [test "x$texi2mdoc_enabled" = "xyes"])
-AS_IF([test "x$texi2mdoc_enabled" = "xyes"],
-  [AC_CHECK_PROGS([TEXI2MDOC_BINARY], [texi2mdoc], [false])
-   AS_IF([test "x$TEXI2MDOC_BINARY" != "xfalse"],
-     [AC_DEFINE([TEXI2MDOC_GENERATION], [1],
-                [Define to 1 if mdoc output is generated])],
-     [AC_DEFINE([TEXI2MDOC_GENERATION], [0],
-               [Define to 1 if mdoc output is generated])])],
-  [TEXI2MDOC_BINARY=false])
-AM_CONDITIONAL([HAVE_TEXI2MDOC], [test "x$TEXI2MDOC_BINARY" != "xfalse"])
 
 AC_CHECK_PROGS([MANDOC_BINARY], [mandoc], [false])
 AM_CONDITIONAL([HAVE_MANDOC], [test "x$MANDOC_BINARY" != "xfalse"])
@@ -488,38 +478,6 @@ AC_ARG_ENABLE([include-manpages],
 AC_DEFINE_UNQUOTED([INCLUDE_MANPAGES], [$include_man],
                    [Define to 1 if man pages are included])
 AM_CONDITIONAL([INCLUDE_MANPAGES], [test "x$include_man" = "x1"])
-
-# Do we have texinfo4? If yes, it is used to set texinfo4 specific switches
-# (not syntax!) to the commandline tools which generate the html. If not,
-# texinfo5 switches are used. This comes with no version checks, is
-# enabled only at distributors action (ie defaults to "no").
-# Mantis #3914 for more details (https://bugs.gnunet.org/view.php?id=3914)
-# While GNU makeinfo 6.5 supports --css-ref=URL,
-# makeinfo 4.8 (in NetBSD 8.0, macOS, and maybe other
-# base) does only support --css-include=FILE.
-# The only difference is a shorter html output and
-# in 6.5 the ability to use refs instead of include.
-# We prefer not to break builds in this case, so
-# we use the include version which is backwards compatible
-# and upwards compatible, while the ref variant is neither.
-# In the 5.x version they added `--split=chapters|sections` in
-# addition to `--split=nodes`.
-# Hold on to your hats: In version 6.5 this is already removed, ffs.
-# GNU Texinfo, please be more consistent than 1 version in switches.
-AC_ARG_ENABLE([texinfo4],
-              [AS_HELP_STRING([--enable-texinfo4],
-                              [Use Texinfo version 4 specific switches])],
-              [activate_texinfo4=${enableval}],
-              [activate_texinfo4=no])
-AM_CONDITIONAL([ACTIVATE_TEXINFO4], [test "x$activate_texinfo4" = "xyes"])
-AS_IF([test "x$activate_texinfo4" = "xyes"],
-      [AC_DEFINE([ACTIVATE_TEXINFO4], [1],
-                 [Define to 1 if using Texinfo v4 switches])
-       TEXINFO_HTMLFLAGS="--no-split --css-include=style.css --css-include=manual.css"],
-      [AC_DEFINE([ACTIVATE_TEXINFO4], [0],
-                 [Define to 1 if using Texinfo v4 switches])
-       TEXINFO_HTMLFLAGS="--no-split --css-ref='../style.css' --css-ref='../manual.css'"])
-AC_SUBST([TEXINFO_HTMLFLAGS])
 
 # Hardening options
 AC_ARG_ENABLE([gcc-hardening],
@@ -1331,8 +1289,6 @@ contrib/scripts/gnunet-logread/Makefile
 doc/Makefile
 doc/man/Makefile
 doc/doxygen/Makefile
-doc/handbook/Makefile
-doc/tutorial/Makefile
 m4/Makefile
 po/Makefile.in
 src/Makefile
@@ -1497,23 +1453,15 @@ AS_IF([test "x$libidn_version" = "x2"],
   [libidn_msg="libidn2"],
   [libidn_msg="libidn"])
 
-# texi2mdoc
-AS_IF([test "x$texi2mdoc_enabled" = "xyes"],
-  [mdocml_msg="yes"],
-  [mdocml_msg="no"])
-AS_IF([test "x$TEXI2MDOC_BINARY" = "xfalse"],
-  [mdocbin_msg="no"],
-  [mdocbin_msg="yes"])
-
 # mandoc
 AS_IF([test "x$MANDOC_BINARY" = "xfalse"],
   [mandoc_msg="no"],
   [mandoc_msg="yes"])
 
-# texinfo
+# sphinx
 AS_IF([test "x$documentation" = "xyes"],
-  [texinfo_msg="yes"],
-  [texinfo_msg="no"])
+  [sphinx_msg="yes"],
+  [sphinx_msg="no"])
 
 # conversation
 conversation_msg="no"
@@ -1660,7 +1608,7 @@ gstreamer:                      ${gstreamer_msg}
 
 Java:                           ${java_msg}
 
-texi2mdoc:                      ${mdocbin_msg}
+sphinx:                         ${sphinx_msg}
 mandoc:                         ${mandoc_msg}
 
 GNUnet configuration
@@ -1671,7 +1619,6 @@ Conversation:                   ${conversation_msg}
 Database Backends               ${features_msg}
 Experimental Code:              ${experimental_msg}
 
-Texinfo Manual:                 ${texinfo_msg}
 Transpiled mdocml Manual:       ${mdocml_msg}
 ])
 

@@ -5,16 +5,6 @@ gnunet.conf.5: gnunet.conf.5.in Makefile
 
 CLEANFILES = gnunet.conf.5
 
-if TEXI2MDOC_GENERATION
-gnunet-tutorial.7: Makefile
-	@texi2mdoc -I../tutorial:../tutorial/chapters ../tutorial/tutorial.texi > gnunet-tutorial.7
-
-gnunet-documentation.7: Makefile
-	@texi2mdoc -I../handbook:../handbook/chapters ../handbook/gnunet.texi > gnunet-documentation.7
-
-CLEANFILES += gnunet-documentation.7 gnunet-tutorial.7
-endif
-
 if HAVE_EXPERIMENTAL
 if HAVE_MANDOC
 # After I went through the alternatives with the focus
@@ -94,10 +84,6 @@ man_MANS = \
   gnunet-uri.1 \
   gnunet-vpn.1 \
   gnunet-zoneimport.1
-
-if TEXI2MDOC_GENERATION
-man_MANS += gnunet-tutorial.7 gnunet-documentation.7
-endif
 
 EXTRA_DIST = ${man_MANS} \
  gnunet.conf.5.in \

@@ -2,15 +2,10 @@
 
 
 if DOCUMENTATION
-  SUBDIRS = doxygen handbook tutorial
-endif
-
-if !DOCUMENTATION
-  SUBDIRS = doxygen
-endif
-
+  SUBDIRS = doxygen sphinx
 if INCLUDE_MANPAGES
   SUBDIRS += man
+endif
 endif
 
 EXTRA_DIST =							\
