@@ -1288,6 +1288,7 @@ contrib/scripts/Makefile
 contrib/scripts/gnunet-logread/Makefile
 doc/Makefile
 doc/man/Makefile
+doc/sphinx/Makefile
 doc/doxygen/Makefile
 m4/Makefile
 po/Makefile.in
