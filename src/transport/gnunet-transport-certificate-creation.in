@@ -109,7 +109,7 @@ generate_cert_key()
     CERTTOOL=""
     GNUTLS_CA_TEMPLATE=@PKGDATADIRECTORY@/gnunet-gns-proxy-ca.template
     OPENSSL=0
-    if test -x $(existence gnunet-certtool)
+    if test -x $(existence gnutls-certtool)
     #if test -z "`gnutls-certtool --version`" > /dev/null
     then
       if test -z "`certtool --version | grep gnutls`" > /dev/null

@@ -268,8 +268,9 @@ do_subst = sed -e 's,[@]pkgdatadir[@],$(pkgdatadir),g'
 
 
 gnunet-transport-certificate-creation: gnunet-transport-certificate-creation.in Makefile
-	$(do_subst) < $(srcdir)/gnunet-transport-certificate-creation.in > gnunet-transport-certificate-creation
-	chmod +x gnunet-transport-certificate-creation
+	$(AWK) -v bdir="$(bindir)" -v py="$(PYTHON)" -v awkay="$(AWK_BINARY)" -v pfx="$(prefix)" -v prl="$(PERL)" -v sysconfdirectory="$(sysconfdir)" -v pkgdatadirectory="$(pkgdatadir)" -f $(top_srcdir)/bin/dosubst.awk < $(srcdir)/gnunet-transport-certificate-creation.in > gnunet-transport-certificate-creation
+	@chmod +x gnunet-transport-certificate-creation
+
 
 
 
