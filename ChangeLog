@@ -1,3 +1,36 @@
+Fri, 5 Aug 2022 03:55:24 +0200 (8582b511a)
+[contrib] Update `contrib/packages/arch/gnunet-git/.SRCINFO` - madmurphy
+
+Fri, 5 Aug 2022 03:46:15 +0200 (c3eb83195)
+[contrib] Enable the `gnunet://` URI scheme handler by ensuring that `/usr/share/applications/gnunet-uri.desktop` is installed; add `python-sphinx` and `python-sphinx_rtd_theme` to the `$makedepends` array of `contrib/packages/arch/gnunet-git/PKGBUILD` - madmurphy
+
+Tue, 2 Aug 2022 20:20:02 +0200 (d7dde2880)
+TRANSPORT: Fix certtool detection. Fixes #7257 - Martin Schanzenbach
+
+Tue, 2 Aug 2022 17:25:41 +0200 (4fe567d9d)
+DOC: Move from texinfo to sphinx - Martin Schanzenbach
+
+Mon, 1 Aug 2022 10:55:59 +0200 (e8b7707f8)
+DHT: Swap signature and peer id fields in path element lsd0004 - Martin Schanzenbach
+
+Wed, 27 Jul 2022 17:37:42 +0200 (f6bce460a)
+GANA: Bump version - Martin Schanzenbach
+
+Wed, 27 Jul 2022 11:23:34 +0200 (d66036550)
+DOC: Update instructions on GNS integration and use - Martin Schanzenbach
+
+Sun, 24 Jul 2022 11:32:21 +0200 (233ec6111)
+enable non-numbered sql statement execution - Christian Grothoff
+
+Thu, 21 Jul 2022 12:30:22 +0200 (63802d724)
+do not crash if psql is interrupted with CTRL-C - Christian Grothoff
+
+Thu, 21 Jul 2022 11:33:18 +0200 (3e4b81055)
+fixed typo in salt - Özgür Kesim
+
+Sun, 17 Jul 2022 01:06:38 +0100 (ab55856a8)
+[contrib/] Dependency update in Arch packages - madmurphy
+
 Fri, 8 Jul 2022 14:55:01 +0200 (6a60c7d43)
 relative time is in nanoseconds, kill redundant _ms variant - Christian Grothoff
 
