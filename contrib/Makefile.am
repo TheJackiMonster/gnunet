@@ -58,7 +58,6 @@ PACKAGES_FILES = \
   packages/arch/gnunet-git/gnunet-system.service \
   packages/arch/gnunet-git/gnunet.sysusers \
   packages/arch/gnunet-git/gnunet.tmpfiles \
-  packages/arch/gnunet-git/gnunet-uri.desktop \
   packages/arch/gnunet-git/gnunet-user.conf \
   packages/arch/gnunet-git/gnunet-user.service \
   packages/arch/gnunet-git/PKGBUILD \
@@ -84,7 +83,6 @@ EXTRA_DIST = \
   sounds/vonlynX-bdbG9-lo.wav \
   sounds/vonlynX-ringtones.txt \
   A-Z.ecc \
-  xdg-scheme-handler/gnunet-uri.desktop \
   xdg-scheme-handler/README.md \
   apparmor/gnunet-daemon-testbed-blacklist \
   apparmor/gnunet-service-identity \
@@ -229,7 +227,6 @@ EXTRA_DIST = \
   guix.scm \
   indent_pre-commit \
   Makefile.inc \
-  gnunet.m4 \
   vagrant/Vagrantfile \
   vagrant/bootstrap.ubuntu.sh \
   privacy-sensitive-symbols.mspec \
@@ -263,8 +260,12 @@ test_gnunet_prefix_LDADD = \
   $(LIBLTDL) -lunistring $(XLIB)
 
 aclocaldir = $(datadir)/aclocal
-aclocal_DATA = \
+dist_aclocal_DATA = \
   gnunet.m4
+
+xdgdeentrydir = $(datadir)/applications
+dist_xdgdeentry_DATA = \
+  xdg-scheme-handler/gnunet-uri.desktop
 
 install-data-hook:
 	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_core.sh'
