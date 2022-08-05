@@ -66,7 +66,6 @@ PACKAGES_FILES = \
   packages/arch/gnunet/gnunet-system.service \
   packages/arch/gnunet/gnunet.sysusers \
   packages/arch/gnunet/gnunet.tmpfiles \
-  packages/arch/gnunet/gnunet-uri.desktop \
   packages/arch/gnunet/gnunet-user.conf \
   packages/arch/gnunet/gnunet-user.service \
   packages/arch/gnunet/PKGBUILD \
