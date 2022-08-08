@@ -10,7 +10,7 @@ install-data-hook:
 	mkdir -p $(DESTDIR)$(docdir)
 	cp -pr sphinx/_build/html $(DESTDIR)$(docdir)
 
-_build/man/gnunet.1: Makefile
+sphinx/_build/man/gnunet.1: Makefile
 	cd sphinx && make man
 
 if INCLUDE_MANPAGES
