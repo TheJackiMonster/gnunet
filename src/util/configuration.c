@@ -1433,7 +1433,7 @@ GNUNET_CONFIGURATION_iterate_section_values (
 void
 GNUNET_CONFIGURATION_iterate_sections (
   const struct GNUNET_CONFIGURATION_Handle *cfg,
-  GNUNET_CONFIGURATION_Section_Iterator iter,
+  GNUNET_CONFIGURATION_SectionIterator iter,
   void *iter_cls)
 {
   struct ConfigSection *spos;
