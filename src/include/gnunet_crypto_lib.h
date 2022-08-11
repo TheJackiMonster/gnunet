@@ -1945,6 +1945,21 @@ GNUNET_CRYPTO_ecdsa_sign_ (
   const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
   struct GNUNET_CRYPTO_EcdsaSignature *sig);
 
+/**
+ * @brief 
+ * 
+ * @param priv 
+ * @param data 
+ * @param len 
+ * @param sig 
+ * @return enum GNUNET_GenericReturnValue 
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_ecdsa_sign_raw (
+  const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv,
+  void *data,
+  size_t len,
+  struct GNUNET_CRYPTO_EcdsaSignature *sig);
 
 /**
  * @ingroup crypto

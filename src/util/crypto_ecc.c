@@ -594,6 +594,70 @@ GNUNET_CRYPTO_ecdsa_sign_ (
   return GNUNET_OK;
 }
 
+// TODO: Code reuse with GNUNET_CRYPTO_ecdsa_sign_
+// Refactor above as a wrapper around raw 
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_ecdsa_sign_raw (
+  const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv,
+  void *data,
+  size_t len,
+  struct GNUNET_CRYPTO_EcdsaSignature *sig)
+{
+  struct GNUNET_HashCode hash_code;
+  gcry_sexp_t skey_sexp;
+  gcry_sexp_t sig_sexp;
+  gcry_sexp_t data_sexp;
+  gcry_error_t error;
+  gcry_mpi_t rs[2];
+
+  // Decode private key
+  skey_sexp = decode_private_ecdsa_key (priv);
+
+  // Hash data
+  GNUNET_CRYPTO_hash (data, len, &hash_code);
+  if (0 != (error = gcry_sexp_build (&data_sexp,
+                                  NULL,
+                                  "(data(flags rfc6979)(hash %s %b))",
+                                  "sha512",
+                                  (int) sizeof(hash_code),
+                                  &hash_code)))
+  {
+    LOG_GCRY (GNUNET_ERROR_TYPE_ERROR, "gcry_sexp_build", error);
+    return GNUNET_SYSERR;
+  }
+
+  // Sign Hash
+  if (0 != (error = gcry_pk_sign (&sig_sexp, data_sexp, skey_sexp)))
+  {
+    LOG (GNUNET_ERROR_TYPE_WARNING,
+         _ ("ECC signing failed at %s:%d: %s\n"),
+         __FILE__,
+         __LINE__,
+         gcry_strerror (error));
+    gcry_sexp_release (data_sexp);
+    gcry_sexp_release (skey_sexp);
+    return GNUNET_SYSERR;
+  }
+  gcry_sexp_release (skey_sexp);
+  gcry_sexp_release (data_sexp);
+
+  /* extract 'r' and 's' values from sexpression 'sig_sexp' and store in
+     'signature' */
+  if (0 != (error = key_from_sexp (rs, sig_sexp, "sig-val", "rs")))
+  {
+    GNUNET_break (0);
+    gcry_sexp_release (sig_sexp);
+    return GNUNET_SYSERR;
+  }
+  gcry_sexp_release (sig_sexp);
+  GNUNET_CRYPTO_mpi_print_unsigned (sig->r, sizeof(sig->r), rs[0]);
+  GNUNET_CRYPTO_mpi_print_unsigned (sig->s, sizeof(sig->s), rs[1]);
+  gcry_mpi_release (rs[0]);
+  gcry_mpi_release (rs[1]);
+
+  return GNUNET_OK;
+}
+
 
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_sign_ (
