@@ -34,6 +34,7 @@ EXTRA_DIST =							\
 	sphinx/man_developers \
 	sphinx/man_users \
 	sphinx/preface.rst \
-	sphinx/_static
+	sphinx/_static \
+	sphinx/Makefile
 
 
