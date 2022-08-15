@@ -50,6 +50,36 @@ GNUNET_JSON_from_data (const void *data,
 
 
 json_t *
+GNUNET_JSON_from_data64 (const void *data,
+                         size_t size)
+{
+  char *buf = NULL;
+  json_t *json;
+  size_t len;
+
+  if ((size * 8 + 5) / 6 + 1 >=
+      GNUNET_MAX_MALLOC_CHECKED)
+  {
+    GNUNET_break (0);
+    return NULL;
+  }
+  len = GNUNET_STRINGS_base64_encode (data,
+                                      size,
+                                      &buf);
+  if (NULL == buf)
+  {
+    GNUNET_break (0);
+    return NULL;
+  }
+  json = json_stringn (buf,
+                       len);
+  GNUNET_free (buf);
+  GNUNET_break (NULL != json);
+  return json;
+}
+
+
+json_t *
 GNUNET_JSON_from_timestamp (struct GNUNET_TIME_Timestamp stamp)
 {
   json_t *j;

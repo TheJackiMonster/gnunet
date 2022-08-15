@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet
-   Copyright (C) 2014, 2015, 2016 GNUnet e.V.
+   Copyright (C) 2014-2022 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -91,6 +91,69 @@ GNUNET_JSON_spec_fixed (const char *name,
 {
   struct GNUNET_JSON_Specification ret = {
     .parser = &parse_fixed_data,
+    .cleaner = NULL,
+    .cls = NULL,
+    .field = name,
+    .ptr = obj,
+    .ptr_size = size,
+    .size_ptr = NULL
+  };
+
+  return ret;
+}
+
+
+/**
+ * Parse given JSON object to fixed size data
+ *
+ * @param cls closure, NULL
+ * @param root the json object representing data
+ * @param[out] spec where to write the data
+ * @return #GNUNET_OK upon successful parsing; #GNUNET_SYSERR upon error
+ */
+static enum GNUNET_GenericReturnValue
+parse_fixed64_data (void *cls,
+                    json_t *root,
+                    struct GNUNET_JSON_Specification *spec)
+{
+  const char *enc;
+  unsigned int len;
+  void *output;
+  size_t olen;
+
+  if (NULL == (enc = json_string_value (root)))
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
+  len = strlen (enc);
+  output = NULL;
+  olen = GNUNET_STRINGS_base64_decode (enc,
+                                       len,
+                                       &output);
+  if (olen != spec->ptr_size)
+  {
+    GNUNET_break_op (0);
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Field `%s' has wrong length\n",
+                spec->field);
+    return GNUNET_SYSERR;
+  }
+  memcpy (spec->ptr,
+          output,
+          olen);
+  GNUNET_free (output);
+  return GNUNET_OK;
+}
+
+
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_fixed64 (const char *name,
+                          void *obj,
+                          size_t size)
+{
+  struct GNUNET_JSON_Specification ret = {
+    .parser = &parse_fixed64_data,
     .cleaner = NULL,
     .cls = NULL,
     .field = name,
