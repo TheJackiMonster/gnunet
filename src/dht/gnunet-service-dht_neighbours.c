@@ -176,9 +176,14 @@ struct PeerResultMessage
   uint32_t type GNUNET_PACKED;
 
   /**
+   * Always 0.
+   */
+  uint16_t reserved GNUNET_PACKED;
+
+  /**
    * Message options, actually an 'enum GNUNET_DHT_RouteOption' value in NBO.
    */
-  uint32_t options GNUNET_PACKED;
+  uint16_t options GNUNET_PACKED;
 
   /**
    * Length of the PUT path that follows (if tracked).
@@ -1771,7 +1776,7 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
     prm->header.type = htons (GNUNET_MESSAGE_TYPE_DHT_P2P_RESULT);
     prm->header.size = htons (sizeof (buf));
     prm->type = htonl ((uint32_t) bd->type);
-    prm->options = htonl ((uint32_t) ro);
+    prm->options = htons ((uint32_t) ro);
     prm->put_path_length = htons ((uint16_t) ppl);
     prm->get_path_length = htons ((uint16_t) get_path_length);
     prm->expiration_time = GNUNET_TIME_absolute_hton (bd->expiration_time);
@@ -2538,7 +2543,7 @@ handle_dht_p2p_result (void *cls,
   struct PeerInfo *peer = t->pi;
   uint16_t msize = ntohs (prm->header.size) - sizeof (*prm);
   enum GNUNET_DHT_RouteOption ro
-    = (enum GNUNET_DHT_RouteOption) ntohl (prm->options);
+    = (enum GNUNET_DHT_RouteOption) ntohs (prm->options);
   bool truncated = (0 != (ro & GNUNET_DHT_RO_TRUNCATED));
   bool tracked = (0 != (ro & GNUNET_DHT_RO_RECORD_ROUTE));
   uint16_t get_path_length = ntohs (prm->get_path_length);
