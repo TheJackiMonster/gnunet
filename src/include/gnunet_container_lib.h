@@ -766,7 +766,8 @@ enum GNUNET_CONTAINER_MultiHashMapOption
  *         iterate,
  *         #GNUNET_NO if not.
  */
-typedef int (*GNUNET_CONTAINER_MulitHashMapIteratorCallback) (
+typedef enum GNUNET_GenericReturnValue
+(*GNUNET_CONTAINER_MulitHashMapIteratorCallback)(
   void *cls,
   const struct GNUNET_HashCode *key,
   void *value);
@@ -834,7 +835,7 @@ GNUNET_CONTAINER_multihashmap_get (
  * @return #GNUNET_YES on success, #GNUNET_NO if the key-value pair
  *  is not in the map
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multihashmap_remove (struct GNUNET_CONTAINER_MultiHashMap *map,
                                       const struct GNUNET_HashCode *key,
                                       const void *value);
@@ -876,7 +877,7 @@ GNUNET_CONTAINER_multihashmap_clear (struct GNUNET_CONTAINER_MultiHashMap *map);
  * @return #GNUNET_YES if such a value exists,
  *         #GNUNET_NO if not
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multihashmap_contains (
   const struct GNUNET_CONTAINER_MultiHashMap *map,
   const struct GNUNET_HashCode *key);
@@ -893,7 +894,7 @@ GNUNET_CONTAINER_multihashmap_contains (
  * @return #GNUNET_YES if such a value exists,
  *         #GNUNET_NO if not
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multihashmap_contains_value (
   const struct GNUNET_CONTAINER_MultiHashMap *map,
   const struct GNUNET_HashCode *key,
@@ -913,7 +914,7 @@ GNUNET_CONTAINER_multihashmap_contains_value (
  *         #GNUNET_SYSERR if #GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY was the option and the
  *                       value already exists
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multihashmap_put (
   struct GNUNET_CONTAINER_MultiHashMap *map,
   const struct GNUNET_HashCode *key,
@@ -982,7 +983,7 @@ GNUNET_CONTAINER_multihashmap_iterator_create (
  * @return #GNUNET_YES we returned an element,
  *         #GNUNET_NO if we are out of elements
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multihashmap_iterator_next (
   struct GNUNET_CONTAINER_MultiHashMapIterator *iter,
   struct GNUNET_HashCode *key,
@@ -1050,7 +1051,8 @@ GNUNET_CONTAINER_multihashmap_get_random (
  *         iterate,
  *         #GNUNET_NO if not.
  */
-typedef int (*GNUNET_CONTAINER_PeerMapIterator) (
+typedef enum GNUNET_GenericReturnValue
+(*GNUNET_CONTAINER_PeerMapIterator)(
   void *cls,
   const struct GNUNET_PeerIdentity *key,
   void *value);
@@ -1123,7 +1125,7 @@ GNUNET_CONTAINER_multipeermap_get (
  * @return #GNUNET_YES on success, #GNUNET_NO if the key-value pair
  *  is not in the map
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multipeermap_remove (struct GNUNET_CONTAINER_MultiPeerMap *map,
                                       const struct GNUNET_PeerIdentity *key,
                                       const void *value);
@@ -1153,7 +1155,7 @@ GNUNET_CONTAINER_multipeermap_remove_all (
  * @return #GNUNET_YES if such a value exists,
  *         #GNUNET_NO if not
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multipeermap_contains (
   const struct GNUNET_CONTAINER_MultiPeerMap *map,
   const struct GNUNET_PeerIdentity *key);
@@ -1170,7 +1172,7 @@ GNUNET_CONTAINER_multipeermap_contains (
  * @return #GNUNET_YES if such a value exists,
  *         #GNUNET_NO if not
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multipeermap_contains_value (
   const struct GNUNET_CONTAINER_MultiPeerMap *map,
   const struct GNUNET_PeerIdentity *key,
@@ -1261,7 +1263,7 @@ GNUNET_CONTAINER_multipeermap_iterator_create (
  * @return #GNUNET_YES we returned an element,
  *         #GNUNET_NO if we are out of elements
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multipeermap_iterator_next (
   struct GNUNET_CONTAINER_MultiPeerMapIterator *iter,
   struct GNUNET_PeerIdentity *key,
@@ -1329,7 +1331,8 @@ GNUNET_CONTAINER_multipeermap_get_random (
  *         iterate,
  *         #GNUNET_NO if not.
  */
-typedef int (*GNUNET_CONTAINER_ShortmapIterator) (
+typedef enum GNUNET_GenericReturnValue
+(*GNUNET_CONTAINER_ShortmapIterator)(
   void *cls,
   const struct GNUNET_ShortHashCode *key,
   void *value);
@@ -1470,7 +1473,7 @@ GNUNET_CONTAINER_multishortmap_contains_value (
  *         #GNUNET_SYSERR if #GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY was the option and the
  *                       value already exists
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multishortmap_put (
   struct GNUNET_CONTAINER_MultiShortmap *map,
   const struct GNUNET_ShortHashCode *key,
@@ -1543,7 +1546,7 @@ GNUNET_CONTAINER_multishortmap_iterator_create (
  * @return #GNUNET_YES we returned an element,
  *         #GNUNET_NO if we are out of elements
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multishortmap_iterator_next (
   struct GNUNET_CONTAINER_MultiShortmapIterator *iter,
   struct GNUNET_ShortHashCode *key,
@@ -1612,7 +1615,8 @@ GNUNET_CONTAINER_multishortmap_get_random (
  *         iterate,
  *         #GNUNET_NO if not.
  */
-typedef int (*GNUNET_CONTAINER_MultiUuidmapIteratorCallback) (
+typedef enum GNUNET_GenericReturnValue
+(*GNUNET_CONTAINER_MultiUuidmapIteratorCallback)(
   void *cls,
   const struct GNUNET_Uuid *key,
   void *value);
@@ -1685,7 +1689,7 @@ GNUNET_CONTAINER_multiuuidmap_get (
  * @return #GNUNET_YES on success, #GNUNET_NO if the key-value pair
  *  is not in the map
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multiuuidmap_remove (struct GNUNET_CONTAINER_MultiUuidmap *map,
                                       const struct GNUNET_Uuid *key,
                                       const void *value);
@@ -1715,7 +1719,7 @@ GNUNET_CONTAINER_multiuuidmap_remove_all (
  * @return #GNUNET_YES if such a value exists,
  *         #GNUNET_NO if not
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multiuuidmap_contains (
   const struct GNUNET_CONTAINER_MultiUuidmap *map,
   const struct GNUNET_Uuid *key);
@@ -1732,7 +1736,7 @@ GNUNET_CONTAINER_multiuuidmap_contains (
  * @return #GNUNET_YES if such a value exists,
  *         #GNUNET_NO if not
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multiuuidmap_contains_value (
   const struct GNUNET_CONTAINER_MultiUuidmap *map,
   const struct GNUNET_Uuid *key,
@@ -1752,7 +1756,7 @@ GNUNET_CONTAINER_multiuuidmap_contains_value (
  *         #GNUNET_SYSERR if #GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY was the option and the
  *                       value already exists
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multiuuidmap_put (
   struct GNUNET_CONTAINER_MultiUuidmap *map,
   const struct GNUNET_Uuid *key,
@@ -1825,7 +1829,7 @@ GNUNET_CONTAINER_multiuuidmap_iterator_create (
  * @return #GNUNET_YES we returned an element,
  *         #GNUNET_NO if we are out of elements
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multiuuidmap_iterator_next (
   struct GNUNET_CONTAINER_MultiUuidmapIterator *iter,
   struct GNUNET_Uuid *key,
@@ -1908,9 +1912,11 @@ struct GNUNET_CONTAINER_MultiHashMap32Iterator;
  *         iterate,
  *         #GNUNET_NO if not.
  */
-typedef int (*GNUNET_CONTAINER_MulitHashMapIterator32Callback) (void *cls,
-                                                                uint32_t key,
-                                                                void *value);
+typedef enum GNUNET_GenericReturnValue
+(*GNUNET_CONTAINER_MulitHashMapIterator32Callback)(
+  void *cls,
+  uint32_t key,
+  void *value);
 
 
 /**
@@ -1994,7 +2000,7 @@ GNUNET_CONTAINER_multihashmap32_iterate (
  * @return #GNUNET_YES on success, #GNUNET_NO if the key-value pair
  *  is not in the map
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multihashmap32_remove (
   struct GNUNET_CONTAINER_MultiHashMap32 *map,
   uint32_t key,
@@ -2026,7 +2032,7 @@ GNUNET_CONTAINER_multihashmap32_remove_all (
  * @return #GNUNET_YES if such a value exists,
  *         #GNUNET_NO if not
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multihashmap32_contains (
   const struct GNUNET_CONTAINER_MultiHashMap32 *map,
   uint32_t key);
@@ -2043,7 +2049,7 @@ GNUNET_CONTAINER_multihashmap32_contains (
  * @return #GNUNET_YES if such a value exists,
  *         #GNUNET_NO if not
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multihashmap32_contains_value (
   const struct GNUNET_CONTAINER_MultiHashMap32 *map,
   uint32_t key,
@@ -2063,7 +2069,7 @@ GNUNET_CONTAINER_multihashmap32_contains_value (
  *         #GNUNET_SYSERR if #GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY was the option and the
  *                       value already exists
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multihashmap32_put (
   struct GNUNET_CONTAINER_MultiHashMap32 *map,
   uint32_t key,
@@ -2121,7 +2127,7 @@ GNUNET_CONTAINER_multihashmap32_iterator_create (
  * @return #GNUNET_YES we returned an element,
  *         #GNUNET_NO if we are out of elements
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multihashmap32_iterator_next (
   struct GNUNET_CONTAINER_MultiHashMap32Iterator *iter,
   uint32_t *key,
@@ -2568,7 +2574,7 @@ GNUNET_CONTAINER_heap_peek (const struct GNUNET_CONTAINER_Heap *heap);
  * @return #GNUNET_YES if an element is returned,
  *         #GNUNET_NO  if the heap is empty.
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_heap_peek2 (const struct GNUNET_CONTAINER_Heap *heap,
                              void **element,
                              GNUNET_CONTAINER_HeapCostType *cost);
@@ -2608,8 +2614,8 @@ GNUNET_CONTAINER_heap_node_get_cost (
  * @return #GNUNET_YES if we should continue to iterate,
  *         #GNUNET_NO if not.
  */
-typedef int
-(*GNUNET_CONTAINER_HeapIterator) (
+typedef enum GNUNET_GenericReturnValue
+(*GNUNET_CONTAINER_HeapIterator)(
   void *cls,
   struct GNUNET_CONTAINER_HeapNode *node,
   void *element,
