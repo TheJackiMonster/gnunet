@@ -1205,8 +1205,6 @@ ego_sign_data_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   char *data = (char *) ((struct ego_sign_data_cls *) cls)->data; // data is url decoded
   struct MHD_Response *resp;
   struct GNUNET_CRYPTO_EcdsaSignature sig;
-  struct GNUNET_IDENTITY_Signature sig_ident;
-  void *sig_buf;
   char *sig_str;
   char *result;
 
@@ -1230,16 +1228,20 @@ ego_sign_data_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   }
 
   // TODO: Encode the signature 
+  sig_str = malloc(64);
+  GNUNET_CRYPTO_ecdsa_signature_encode(
+    (const struct GNUNET_CRYPTO_EcdsaSignature *) &sig, 
+    &sig_str);
 
   GNUNET_asprintf (&result,
-                   "{\"data\": \"%s\", \"signature\": \"%s\"}",
-                   data,
+                   "{\"signature\": \"%s\"}",
                    sig_str);
 
   resp = GNUNET_REST_create_response (result);
   handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
 
   free (data);
+  free (sig_str);
   free (result);
   free (cls);
   GNUNET_SCHEDULER_add_now (&cleanup_handle, handle);

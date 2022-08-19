@@ -1962,6 +1962,30 @@ GNUNET_CRYPTO_ecdsa_sign_raw (
   struct GNUNET_CRYPTO_EcdsaSignature *sig);
 
 /**
+ * @brief 
+ * 
+ * @param sig 
+ * @param sig_str 
+ * @return enum GNUNET_GenericReturnValue 
+ */
+size_t
+GNUNET_CRYPTO_ecdsa_signature_encode(
+  const struct GNUNET_CRYPTO_EcdsaSignature *sig,
+  char **sig_str);
+
+/**
+ * @brief 
+ * 
+ * @param sig_str 
+ * @param sig 
+ * @return enum GNUNET_GenericReturnValue 
+ */
+size_t
+GNUNET_CRYPTO_ecdsa_signature_decode(
+  const char *sig_str,
+  struct GNUNET_CRYPTO_EcdsaSignature *sig);
+
+/**
  * @ingroup crypto
  * @brief ECDSA sign a given block.
  *

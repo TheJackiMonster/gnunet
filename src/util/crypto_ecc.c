@@ -595,7 +595,7 @@ GNUNET_CRYPTO_ecdsa_sign_ (
 }
 
 // TODO: Code reuse with GNUNET_CRYPTO_ecdsa_sign_
-// Refactor above as a wrapper around raw 
+// Refactor above as a wrapper around raw
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_ecdsa_sign_raw (
   const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv,
@@ -616,11 +616,11 @@ GNUNET_CRYPTO_ecdsa_sign_raw (
   // Hash data
   GNUNET_CRYPTO_hash (data, len, &hash_code);
   if (0 != (error = gcry_sexp_build (&data_sexp,
-                                  NULL,
-                                  "(data(flags rfc6979)(hash %s %b))",
-                                  "sha512",
-                                  (int) sizeof(hash_code),
-                                  &hash_code)))
+                                     NULL,
+                                     "(data(flags rfc6979)(hash %s %b))",
+                                     "sha512",
+                                     (int) sizeof(hash_code),
+                                     &hash_code)))
   {
     LOG_GCRY (GNUNET_ERROR_TYPE_ERROR, "gcry_sexp_build", error);
     return GNUNET_SYSERR;
@@ -656,6 +656,28 @@ GNUNET_CRYPTO_ecdsa_sign_raw (
   gcry_mpi_release (rs[1]);
 
   return GNUNET_OK;
+}
+
+size_t
+GNUNET_CRYPTO_ecdsa_signature_encode (
+  const struct GNUNET_CRYPTO_EcdsaSignature *sig,
+  char **sig_str)
+{
+  return GNUNET_STRINGS_base64url_encode (
+    (void*) sig,
+    32,
+    sig_str);
+}
+
+size_t
+GNUNET_CRYPTO_ecdsa_signature_decode (
+  const char *sig_str,
+  struct GNUNET_CRYPTO_EcdsaSignature *sig)
+{
+  return GNUNET_STRINGS_base64url_decode (
+    sig_str, 
+    strlen (sig_str),
+    (void **) &sig);
 }
 
 
