@@ -2083,7 +2083,7 @@ handle_dht_p2p_put (void *cls,
                     failure_offset);
         GNUNET_assert (failure_offset <= putlen + 1);
         bd.put_path = &pp[failure_offset];
-        bd.put_path_length = putlen - failure_offset;
+        bd.put_path_length = (putlen + 1) - failure_offset;
         bd.ro |= GNUNET_DHT_RO_TRUNCATED;
         bd.trunc_peer = pp[failure_offset - 1].pred;
       }
