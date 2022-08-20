@@ -2049,7 +2049,7 @@ handle_dht_p2p_put (void *cls,
                      GNUNET_CONTAINER_bloomfilter_test (bf,
                                                         &peer->phash));
     /* extend 'put path' by sender */
-    bd.put_path = (const struct GNUNET_DHT_PathElement *) pp;
+    bd.put_path = pp;
     bd.put_path_length = putlen + 1;
     if (has_path)
     {
