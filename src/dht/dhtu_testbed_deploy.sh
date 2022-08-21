@@ -23,11 +23,19 @@ then
     exit 1
 fi
 
+echo -n "Testing for GNU parallel ..."
+
 if test ! -x `which parallel`
 then
     echo "This script requires GNU parallel"
     exit 1
 fi
+
+parallel -V | grep "GNU parallel" > /dev/null || exit 1
+
+echo " OK"
+
+
 
 if test ! -x `which gnunet-service-dht`
 then
