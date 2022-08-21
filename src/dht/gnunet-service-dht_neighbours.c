@@ -1776,7 +1776,8 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
     prm->header.type = htons (GNUNET_MESSAGE_TYPE_DHT_P2P_RESULT);
     prm->header.size = htons (sizeof (buf));
     prm->type = htonl ((uint32_t) bd->type);
-    prm->options = htons ((uint32_t) ro);
+    prm->reserved = htons (0);
+    prm->options = htons ((uint16_t) ro);
     prm->put_path_length = htons ((uint16_t) ppl);
     prm->get_path_length = htons ((uint16_t) get_path_length);
     prm->expiration_time = GNUNET_TIME_absolute_hton (bd->expiration_time);
