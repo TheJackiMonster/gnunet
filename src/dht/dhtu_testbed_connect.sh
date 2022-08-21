@@ -1,6 +1,8 @@
 #!/bin/bash
 # This file is in the public domain.
 
+set -eu
+
 # Helper script for dhtu_testbed_deploy.sh.
 # Do not invoke directly.
 
