@@ -143,7 +143,7 @@ struct GNUNET_DHT_HopSignature
   /**
    * Hash over the payload of the block.
    */
-  struct GNUNET_HashCode h_data;
+  struct GNUNET_HashCode h_data GNUNET_PACKED;
 
   /**
    * Previous hop the message was received from.  All zeros
