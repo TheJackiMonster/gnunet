@@ -695,6 +695,7 @@ GNUNET_CRYPTO_eddsa_verify_ (
     return GNUNET_SYSERR; /* purpose mismatch */
 
   BENCHMARK_START (eddsa_verify);
+
   res = crypto_sign_verify_detached (s, m, mlen, pub->q_y);
   BENCHMARK_END (eddsa_verify);
   return (res == 0) ? GNUNET_OK : GNUNET_SYSERR;

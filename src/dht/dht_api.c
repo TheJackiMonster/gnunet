@@ -1385,7 +1385,6 @@ GNUNET_DHT_verify_path (const void *data,
                 "GP%u=%s\n",
                 j,
                 GNUNET_i2s (&get_path[j].pred));
-
   GNUNET_CRYPTO_hash (data,
                       data_size,
                       &hs.h_data);

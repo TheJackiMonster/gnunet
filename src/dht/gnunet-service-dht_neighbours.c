@@ -1965,8 +1965,8 @@ handle_dht_p2p_put (void *cls,
     : (const char *) &put_path[putlen];
   size_t var_meta_size
     = putlen * sizeof(struct GNUNET_DHT_PathElement)
-      + has_path ? sizeof (*last_sig) : 0
-      + truncated ? sizeof (*trunc_peer) : 0;
+      + (has_path ? sizeof (*last_sig) : 0)
+      + (truncated ? sizeof (*trunc_peer) : 0);
   struct GNUNET_DATACACHE_Block bd = {
     .key = put->key,
     .expiration_time = GNUNET_TIME_absolute_ntoh (put->expiration_time),
