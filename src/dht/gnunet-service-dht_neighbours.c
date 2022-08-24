@@ -2509,14 +2509,21 @@ static enum GNUNET_GenericReturnValue
 check_dht_p2p_result (void *cls,
                       const struct PeerResultMessage *prm)
 {
+  uint16_t msize = ntohs (prm->header.size) - sizeof (*prm);
+  enum GNUNET_DHT_RouteOption ro
+    = (enum GNUNET_DHT_RouteOption) ntohs (prm->options);
+  bool truncated = (0 != (ro & GNUNET_DHT_RO_TRUNCATED));
+  bool tracked = (0 != (ro & GNUNET_DHT_RO_RECORD_ROUTE));
+
   uint16_t get_path_length = ntohs (prm->get_path_length);
   uint16_t put_path_length = ntohs (prm->put_path_length);
-  uint16_t msize = ntohs (prm->header.size);
+  size_t vsize = (truncated ? sizeof (struct GNUNET_PeerIdentity) : 0)
+                 + (tracked ? sizeof (struct GNUNET_CRYPTO_EddsaSignature) : 0);
 
   (void) cls;
-  if ( (msize <
-        sizeof(struct PeerResultMessage)
-        + (get_path_length + put_path_length)
+  if ( (msize < vsize) ||
+       (msize - vsize <
+        (get_path_length + put_path_length)
         * sizeof(struct GNUNET_DHT_PathElement)) ||
        (get_path_length >
         GNUNET_MAX_MESSAGE_SIZE / sizeof(struct GNUNET_DHT_PathElement)) ||
