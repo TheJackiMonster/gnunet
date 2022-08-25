@@ -171,6 +171,23 @@ get_result_iterator (void *cls,
            (char *) data);
   if (record_route && verbose)
   {
+    {
+      struct GNUNET_PeerIdentity my_identity;
+
+      GNUNET_break (GNUNET_OK ==
+                    GNUNET_CRYPTO_get_peer_identity (cfg,
+                                                     &my_identity));
+      GNUNET_break (0 ==
+                    GNUNET_DHT_verify_path (data,
+                                            size,
+                                            exp,
+                                            trunc_peer,
+                                            put_path,
+                                            put_path_length,
+                                            get_path,
+                                            get_path_length,
+                                            &my_identity));
+    }
     fprintf (stdout,
              "  GET path: ");
     for (unsigned int i = 0; i < get_path_length; i++)

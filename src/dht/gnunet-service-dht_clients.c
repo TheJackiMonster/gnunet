@@ -917,13 +917,13 @@ forward_reply (void *cls,
 
   LOG_TRAFFIC (GNUNET_ERROR_TYPE_DEBUG,
                "CLIENT-RESULT %s\n",
-               GNUNET_h2s_full (&frc->bd->key));
+               GNUNET_h2s_full (&bd->key));
   if ( (record->type != GNUNET_BLOCK_TYPE_ANY) &&
-       (record->type != frc->bd->type) )
+       (record->type != bd->type) )
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Record type mismatch, not passing request for key %s to local client\n",
-         GNUNET_h2s (&frc->bd->key));
+         GNUNET_h2s (&bd->key));
     GNUNET_STATISTICS_update (GDS_stats,
                               "# Key match, type mismatches in REPLY to CLIENT",
                               1,
@@ -931,7 +931,7 @@ forward_reply (void *cls,
     return GNUNET_YES;          /* type mismatch */
   }
   if ( (0 == (record->msg_options & GNUNET_DHT_RO_FIND_APPROXIMATE)) &&
-       (0 != GNUNET_memcmp (&frc->bd->key,
+       (0 != GNUNET_memcmp (&bd->key,
                             query_hash)) )
   {
     GNUNET_STATISTICS_update (GDS_stats,
@@ -940,8 +940,8 @@ forward_reply (void *cls,
                               GNUNET_NO);
     return GNUNET_YES;          /* type mismatch */
   }
-  GNUNET_CRYPTO_hash (frc->bd->data,
-                      frc->bd->data_size,
+  GNUNET_CRYPTO_hash (bd->data,
+                      bd->data_size,
                       &ch);
   for (unsigned int i = 0; i < record->seen_replies_count; i++)
     if (0 ==
@@ -950,7 +950,7 @@ forward_reply (void *cls,
     {
       LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Duplicate reply, not passing request for key %s to local client\n",
-           GNUNET_h2s (&frc->bd->key));
+           GNUNET_h2s (&bd->key));
       GNUNET_STATISTICS_update (GDS_stats,
                                 "# Duplicate REPLIES to CLIENT request dropped",
                                 1,
@@ -961,15 +961,15 @@ forward_reply (void *cls,
     = GNUNET_BLOCK_check_reply (GDS_block_context,
                                 record->type,
                                 NULL,
-                                &frc->bd->key,
+                                &bd->key,
                                 record->xquery,
                                 record->xquery_size,
-                                frc->bd->data,
-                                frc->bd->data_size);
+                                bd->data,
+                                bd->data_size);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Evaluation result is %d for key %s for local client's query\n",
        (int) eval,
-       GNUNET_h2s (&frc->bd->key));
+       GNUNET_h2s (&bd->key));
   switch (eval)
   {
   case GNUNET_BLOCK_REPLY_OK_LAST:
@@ -996,19 +996,35 @@ forward_reply (void *cls,
                             "# RESULTS queued for clients",
                             1,
                             GNUNET_NO);
-  xsize += (frc->get_path_length + frc->bd->put_path_length)
+  xsize += (frc->get_path_length + bd->put_path_length)
            * sizeof(struct GNUNET_DHT_PathElement);
   if (truncated)
     xsize += sizeof (struct GNUNET_PeerIdentity);
+
+#if SUPER_REDUNDANT_CHECK
+  GNUNET_break (0 ==
+                GNUNET_DHT_verify_path (bd->data,
+                                        bd->data_size,
+                                        bd->expiration_time,
+                                        truncated
+                                        ? &bd->trunc_peer
+                                        : NULL,
+                                        bd->put_path,
+                                        bd->put_path_length,
+                                        frc->get_path,
+                                        frc->get_path_length,
+                                        &GDS_my_identity));
+#endif
+
   env = GNUNET_MQ_msg_extra (reply,
                              xsize,
                              GNUNET_MESSAGE_TYPE_DHT_CLIENT_RESULT);
-  reply->type = htonl (frc->bd->type);
+  reply->type = htonl (bd->type);
   reply->options = htonl (bd->ro);
   reply->get_path_length = htonl (frc->get_path_length);
-  reply->put_path_length = htonl (frc->bd->put_path_length);
+  reply->put_path_length = htonl (bd->put_path_length);
   reply->unique_id = record->unique_id;
-  reply->expiration = GNUNET_TIME_absolute_hton (frc->bd->expiration_time);
+  reply->expiration = GNUNET_TIME_absolute_hton (bd->expiration_time);
   reply->key = *query_hash;
   if (truncated)
   {
@@ -1025,16 +1041,16 @@ forward_reply (void *cls,
     paths = (struct GNUNET_DHT_PathElement *) &reply[1];
   }
   GNUNET_memcpy (paths,
-                 frc->bd->put_path,
+                 bd->put_path,
                  sizeof(struct GNUNET_DHT_PathElement)
-                 * frc->bd->put_path_length);
-  GNUNET_memcpy (&paths[frc->bd->put_path_length],
+                 * bd->put_path_length);
+  GNUNET_memcpy (&paths[bd->put_path_length],
                  frc->get_path,
                  sizeof(struct GNUNET_DHT_PathElement)
                  * frc->get_path_length);
-  GNUNET_memcpy (&paths[frc->get_path_length + frc->bd->put_path_length],
-                 frc->bd->data,
-                 frc->bd->data_size);
+  GNUNET_memcpy (&paths[frc->get_path_length + bd->put_path_length],
+                 bd->data,
+                 bd->data_size);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Sending reply to query %s for client %p\n",
        GNUNET_h2s (query_hash),

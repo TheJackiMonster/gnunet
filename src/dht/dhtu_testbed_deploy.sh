@@ -60,7 +60,7 @@ do
     PORT=`expr $MINPORT + $n`
     CFG="/tmp/deployment/${n}.conf"
     cat dhtu_testbed_deploy.conf | sed -e "s/%N%/$PORT/" > $CFG
-    gnunet-service-dht -c $CFG &> /tmp/deployment/$n.log &
+    gnunet-service-dht -c $CFG -L DEBUG &> /tmp/deployment/$n.log &
     echo -n "."
 done
 

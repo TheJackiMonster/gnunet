@@ -1635,7 +1635,7 @@ GNUNET_CRYPTO_eddsa_setup_hostkey (const char *cfg_name);
  * @return #GNUNET_OK on success, #GNUNET_SYSERR if the identity
  *         could not be retrieved
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_get_peer_identity (const struct GNUNET_CONFIGURATION_Handle *cfg,
                                  struct GNUNET_PeerIdentity *dst);
 
