@@ -187,7 +187,7 @@ get_result_iterator (void *cls,
                GNUNET_i2s (&put_path[i].pred));
     if (NULL != trunc_peer)
       fprintf (stdout,
-               "T%s",
+               "!%s",
                GNUNET_i2s (trunc_peer));
     fprintf (stdout,
              "\n");
