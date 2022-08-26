@@ -1398,16 +1398,6 @@ get_action (void *cls,
 }
 
 
-/**
- * Check if some client is monitoring GET messages and notify
- * them in that case.  If tracked, @a path should include the local peer.
- *
- * @param options Options, for instance RecordRoute, DemultiplexEverywhere.
- * @param type The type of data in the request.
- * @param hop_count Hop count so far.
- * @param desired_replication_level Desired replication level.
- * @param key Key of the requested data.
- */
 void
 GDS_CLIENTS_process_get (enum GNUNET_DHT_RouteOption options,
                          enum GNUNET_BLOCK_Type type,

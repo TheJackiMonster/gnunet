@@ -158,7 +158,8 @@ GDS_CLIENTS_handle_reply (const struct GNUNET_DATACACHE_Block *bd,
 
 /**
  * Check if some client is monitoring GET messages and notify
- * them in that case.
+ * them in that case.  If tracked, @a path should include the local peer.
+ *
  *
  * @param options Options, for instance RecordRoute, DemultiplexEverywhere.
  * @param type The type of data in the request.
