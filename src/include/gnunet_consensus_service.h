@@ -81,8 +81,8 @@ struct GNUNET_CONSENSUS_Handle;
  * Create a consensus session.  The set being reconciled is initially
  * empty.
  *
- * @param cfg
- * @param num_peers
+ * @param cfg configuration to use for connecting to the consensus service
+ * @param num_peers number of peers in the peers array
  * @param peers array of peers participating in this consensus session
  *              Inclusion of the local peer is optional.
  * @param session_id session identifier
