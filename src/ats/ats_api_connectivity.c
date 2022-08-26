@@ -330,11 +330,6 @@ GNUNET_ATS_connectivity_suggest (struct GNUNET_ATS_ConnectivityHandle *ch,
 }
 
 
-/**
- * We no longer care about being connected to a peer.
- *
- * @param sh handle to stop
- */
 void
 GNUNET_ATS_connectivity_suggest_cancel (struct
                                         GNUNET_ATS_ConnectivitySuggestHandle *sh)

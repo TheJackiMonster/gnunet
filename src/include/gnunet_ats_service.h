@@ -228,7 +228,7 @@ GNUNET_ATS_connectivity_suggest (struct GNUNET_ATS_ConnectivityHandle *ch,
 /**
  * We no longer care about being connected to a peer.
  *
- * @param sh handle
+ * @param sh handle to stop
  */
 void
 GNUNET_ATS_connectivity_suggest_cancel (struct
@@ -373,7 +373,7 @@ GNUNET_ATS_address_update (struct GNUNET_ATS_AddressRecord *ar,
 /**
  * An address got destroyed, stop using it as a valid address.
  *
- * @param ar address record to destroy, it's validation has
+ * @param ar address record to destroy, its validation has
  *           expired and ATS may no longer use it
  */
 void
@@ -524,7 +524,7 @@ GNUNET_ATS_reserve_bandwidth (struct GNUNET_ATS_PerformanceHandle *ph,
 /**
  * Cancel request for reserving bandwidth.
  *
- * @param rc context returned by the original GNUNET_ATS_reserve_bandwidth call
+ * @param rc context returned by the original #GNUNET_ATS_reserve_bandwidth() call
  */
 void
 GNUNET_ATS_reserve_bandwidth_cancel (struct GNUNET_ATS_ReservationContext *rc);
@@ -572,7 +572,7 @@ enum GNUNET_ATS_PreferenceKind
 
 
 /**
- * Convert a GNUNET_ATS_PreferenceType to a string
+ * Convert an `enum GNUNET_ATS_PreferenceType` to a string
  *
  * @param type the preference type
  * @return a string or NULL if invalid
@@ -582,12 +582,13 @@ GNUNET_ATS_print_preference_type (enum GNUNET_ATS_PreferenceKind type);
 
 
 /**
- * Change preferences for the given peer. Preference changes are forgotten if peers
- * disconnect.
+ * Change preferences for the given peer. Preference changes are 
+ * forgotten if peers disconnect.
  *
- * @param ph performance handle @param peer identifies the peer
+ * @param ph performance handle 
+ * @param peer identifies the peer
  * @param ... #GNUNET_ATS_PREFERENCE_END-terminated specification of the
- * desired changes
+ *            desired changes
  */
 void
 GNUNET_ATS_performance_change_preference (struct

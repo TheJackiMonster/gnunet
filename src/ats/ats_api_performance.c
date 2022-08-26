@@ -670,20 +670,6 @@ GNUNET_ATS_performance_done (struct GNUNET_ATS_PerformanceHandle *ph)
 }
 
 
-/**
- * Reserve inbound bandwidth from the given peer.  ATS will look at
- * the current amount of traffic we receive from the peer and ensure
- * that the peer could add @a amount of data to its stream.
- *
- * @param ph performance handle
- * @param peer identifies the peer
- * @param amount reserve N bytes for receiving, negative
- *                amounts can be used to undo a (recent) reservation;
- * @param rcb function to call with the resulting reservation information
- * @param rcb_cls closure for @a rcb
- * @return NULL on error
- * @deprecated will be replaced soon
- */
 struct GNUNET_ATS_ReservationContext *
 GNUNET_ATS_reserve_bandwidth (struct GNUNET_ATS_PerformanceHandle *ph,
                               const struct GNUNET_PeerIdentity *peer,
@@ -718,11 +704,6 @@ GNUNET_ATS_reserve_bandwidth (struct GNUNET_ATS_PerformanceHandle *ph,
 }
 
 
-/**
- * Cancel request for reserving bandwidth.
- *
- * @param rc context returned by the original #GNUNET_ATS_reserve_bandwidth() call
- */
 void
 GNUNET_ATS_reserve_bandwidth_cancel (struct GNUNET_ATS_ReservationContext *rc)
 {
@@ -730,18 +711,6 @@ GNUNET_ATS_reserve_bandwidth_cancel (struct GNUNET_ATS_ReservationContext *rc)
 }
 
 
-/**
- * Get information about addresses known to the ATS subsystem.
- *
- * @param ph the performance handle to use
- * @param peer peer idm can be NULL for all peers
- * @param all #GNUNET_YES to get information about all addresses or #GNUNET_NO to
- *        get only address currently used
- * @param infocb callback to call with the addresses,
- *        will callback with address == NULL when done
- * @param infocb_cls closure for @a infocb
- * @return ats performance context
- */
 struct GNUNET_ATS_AddressListHandle*
 GNUNET_ATS_performance_list_addresses (struct GNUNET_ATS_PerformanceHandle *ph,
                                        const struct GNUNET_PeerIdentity *peer,
@@ -791,11 +760,6 @@ GNUNET_ATS_performance_list_addresses (struct GNUNET_ATS_PerformanceHandle *ph,
 }
 
 
-/**
- * Cancel a pending address listing operation
- *
- * @param alh the handle of the request to cancel
- */
 void
 GNUNET_ATS_performance_list_addresses_cancel (struct
                                               GNUNET_ATS_AddressListHandle *alh)
@@ -809,12 +773,6 @@ GNUNET_ATS_performance_list_addresses_cancel (struct
 }
 
 
-/**
- * Convert a `enum GNUNET_ATS_PreferenceType` to a string
- *
- * @param type the preference type
- * @return a string or NULL if invalid
- */
 const char *
 GNUNET_ATS_print_preference_type (enum GNUNET_ATS_PreferenceKind type)
 {
@@ -826,14 +784,6 @@ GNUNET_ATS_print_preference_type (enum GNUNET_ATS_PreferenceKind type)
 }
 
 
-/**
- * Change preferences for the given peer. Preference changes are forgotten if peers
- * disconnect.
- *
- * @param ph performance handle
- * @param peer identifies the peer
- * @param ... #GNUNET_ATS_PREFERENCE_END-terminated specification of the desired changes
- */
 void
 GNUNET_ATS_performance_change_preference (struct
                                           GNUNET_ATS_PerformanceHandle *ph,
