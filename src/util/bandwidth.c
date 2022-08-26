@@ -92,14 +92,6 @@ GNUNET_BANDWIDTH_value_sum (struct GNUNET_BANDWIDTH_Value32NBO b1,
 }
 
 
-/**
- * At the given bandwidth, calculate how much traffic will be
- * available until the given deadline.
- *
- * @param bps bandwidth
- * @param deadline when is the deadline
- * @return number of bytes available at bps until deadline
- */
 uint64_t
 GNUNET_BANDWIDTH_value_get_available_until (
   struct GNUNET_BANDWIDTH_Value32NBO bps,
@@ -282,22 +274,6 @@ GNUNET_BANDWIDTH_tracker_init2 (
 }
 
 
-/**
- * Initialize bandwidth tracker.  Note that in addition to the
- * 'max_carry_s' limit, we also always allow at least
- * #GNUNET_MAX_MESSAGE_SIZE to accumulate.  So if the
- * bytes-per-second limit is so small that within 'max_carry_s' not
- * even #GNUNET_MAX_MESSAGE_SIZE is allowed to accumulate, it is
- * ignored and replaced by #GNUNET_MAX_MESSAGE_SIZE (which is in
- * bytes).
- *
- * @param av tracker to initialize
- * @param update_cb callback to notify a client about the tracker being updated
- * @param update_cb_cls cls for the callback
- * @param bytes_per_second_limit initial limit to assume
- * @param max_carry_s maximum number of seconds unused bandwidth
- *        may accumulate before it expires
- */
 void
 GNUNET_BANDWIDTH_tracker_init (
   struct GNUNET_BANDWIDTH_Tracker *av,
@@ -387,17 +363,6 @@ update_tracker (struct GNUNET_BANDWIDTH_Tracker *av)
 }
 
 
-/**
- * Notify the tracker that a certain number of bytes of bandwidth have
- * been consumed.  Note that it is legal to consume bytes even if not
- * enough bandwidth is available (in that case,
- * #GNUNET_BANDWIDTH_tracker_get_delay may return non-zero delay values
- * even for a size of zero for a while).
- *
- * @param av tracker to update
- * @param size number of bytes consumed
- * @return #GNUNET_YES if this consumption is above the limit
- */
 int
 GNUNET_BANDWIDTH_tracker_consume (struct GNUNET_BANDWIDTH_Tracker *av,
                                   ssize_t size)
