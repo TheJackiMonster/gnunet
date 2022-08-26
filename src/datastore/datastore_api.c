@@ -1098,26 +1098,6 @@ GNUNET_DATASTORE_reserve (struct GNUNET_DATASTORE_Handle *h,
 }
 
 
-/**
- * Signal that all of the data for which a reservation was made has
- * been stored and that whatever excess space might have been reserved
- * can now be released.
- *
- * @param h handle to the datastore
- * @param rid reservation ID (value of "success" in original continuation
- *        from the "reserve" function).
- * @param queue_priority ranking of this request in the priority queue
- * @param max_queue_size at what queue size should this request be dropped
- *        (if other requests of higher priority are in the queue)
- * @param queue_priority ranking of this request in the priority queue
- * @param max_queue_size at what queue size should this request be dropped
- *        (if other requests of higher priority are in the queue)
- * @param cont continuation to call when done
- * @param cont_cls closure for @a cont
- * @return NULL if the entry was not queued, otherwise a handle that can be used to
- *         cancel; note that even if NULL is returned, the callback will be invoked
- *         (or rather, will already have been invoked)
- */
 struct GNUNET_DATASTORE_QueueEntry *
 GNUNET_DATASTORE_release_reserve (struct GNUNET_DATASTORE_Handle *h,
                                   uint32_t rid,
