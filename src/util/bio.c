@@ -159,7 +159,8 @@ GNUNET_BIO_read_open_buffer (void *buffer, size_t size)
  *
  * @param h file handle
  * @param emsg set to the (allocated) error message
- *        if the handle has an error message, the return value is #GNUNET_SYSERR
+ *             if the handle has an error message, the return 
+ *             value is #GNUNET_SYSERR
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
 int
