@@ -768,15 +768,6 @@ GNUNET_log_setup (const char *comp,
 }
 
 
-/**
- * Add a custom logger. Note that installing any custom logger
- * will disable the standard logger.  When multiple custom loggers
- * are installed, all will be called.  The standard logger will
- * only be used if no custom loggers are present.
- *
- * @param logger log function
- * @param logger_cls closure for @a logger
- */
 void
 GNUNET_logger_add (GNUNET_Logger logger, void *logger_cls)
 {
@@ -790,12 +781,6 @@ GNUNET_logger_add (GNUNET_Logger logger, void *logger_cls)
 }
 
 
-/**
- * Remove a custom logger.
- *
- * @param logger log function
- * @param logger_cls closure for @a logger
- */
 void
 GNUNET_logger_remove (GNUNET_Logger logger, void *logger_cls)
 {
@@ -936,12 +921,6 @@ flush_bulk (const char *datestr)
 }
 
 
-/**
- * Ignore the next n calls to the log function.
- *
- * @param n number of log calls to ignore (could be negative)
- * @param check_reset #GNUNET_YES to assert that the log skip counter is currently zero
- */
 void
 GNUNET_log_skip (int n, int check_reset)
 {
@@ -1118,12 +1097,6 @@ GNUNET_log_from_nocheck (enum GNUNET_ErrorType kind,
 }
 
 
-/**
- * Convert error type to string.
- *
- * @param kind type to convert
- * @return string corresponding to the type
- */
 const char *
 GNUNET_error_type_to_string (enum GNUNET_ErrorType kind)
 {
@@ -1470,13 +1443,6 @@ GNUNET_a2s (const struct sockaddr *addr, socklen_t addrlen)
 }
 
 
-/**
- * Log error message about missing configuration option.
- *
- * @param kind log level
- * @param section section with missing option
- * @param option name of missing option
- */
 void
 GNUNET_log_config_missing (enum GNUNET_ErrorType kind,
                            const char *section,
@@ -1490,14 +1456,6 @@ GNUNET_log_config_missing (enum GNUNET_ErrorType kind,
 }
 
 
-/**
- * Log error message about invalid configuration option value.
- *
- * @param kind log level
- * @param section section with invalid option
- * @param option name of invalid option
- * @param required what is required that is invalid about the option
- */
 void
 GNUNET_log_config_invalid (enum GNUNET_ErrorType kind,
                            const char *section,
