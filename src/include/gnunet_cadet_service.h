@@ -312,7 +312,9 @@ union GNUNET_CADET_ChannelInfo
  * Get information about a channel.
  *
  * @param channel Channel handle.
+ * @param option Query (GNUNET_CADET_OPTION_*)
  * @param ... dependent on option, currently not used
+ *
  * @return Union with an answer to the query.
  */
 const union GNUNET_CADET_ChannelInfo *

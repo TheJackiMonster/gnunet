@@ -216,15 +216,6 @@ reconnect (void *cls)
 }
 
 
-/**
- * Request information about paths known to the running cadet peer.
- *
- * @param cfg configuration to use
- * @param id Peer whose paths to examine.
- * @param callback Function to call with the requested data.
- * @param callback_cls Closure for @c callback.
- * @return NULL on error
- */
 struct GNUNET_CADET_GetPath *
 GNUNET_CADET_get_path (const struct GNUNET_CONFIGURATION_Handle *cfg,
                        const struct GNUNET_PeerIdentity *id,

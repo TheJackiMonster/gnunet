@@ -798,12 +798,6 @@ GNUNET_CADET_disconnect (struct GNUNET_CADET_Handle *handle)
 }
 
 
-/**
- * Close a port opened with @a GNUNET_CADET_open_port().
- * The @a new_channel callback will no longer be called.
- *
- * @param p Port handle.
- */
 void
 GNUNET_CADET_close_port (struct GNUNET_CADET_Port *p)
 {
@@ -853,15 +847,6 @@ GNUNET_CADET_channel_destroy (struct GNUNET_CADET_Channel *channel)
 }
 
 
-/**
- * Get information about a channel.
- *
- * @param channel Channel handle.
- * @param option Query (GNUNET_CADET_OPTION_*).
- * @param ... dependent on option, currently not used
- *
- * @return Union with an answer to the query.
- */
 const union GNUNET_CADET_ChannelInfo *
 GNUNET_CADET_channel_get_info (struct GNUNET_CADET_Channel *channel,
                                enum GNUNET_CADET_ChannelInfoOption option,
