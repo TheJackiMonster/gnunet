@@ -38,7 +38,7 @@
  * Decrypt the given UBlock, storing the result in output.
  *
  * @param input input data
- * @param input_len number of bytes in input
+ * @param input_len number of bytes in @a input
  * @param ns public key under which the UBlock was stored
  * @param label label under which the UBlock was stored
  * @param output where to write the result, has input_len bytes
@@ -81,8 +81,8 @@ typedef void (*GNUNET_FS_UBlockContinuation) (void *cls,
  * @param bo per-block options
  * @param options publication options
  * @param cont continuation
- * @param cont_cls closure for cont
- * @return NULL on error ('cont' will still be called)
+ * @param cont_cls closure for @a cont
+ * @return NULL on error (@a cont will still be called)
  */
 struct GNUNET_FS_PublishUblockContext *
 GNUNET_FS_publish_ublock_ (struct GNUNET_FS_Handle *h,

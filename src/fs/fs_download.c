@@ -184,9 +184,9 @@ struct ProcessResultClosure
  * Iterator over entries in the pending requests in the 'active' map for the
  * reply that we just got.
  *
- * @param cls closure (our 'struct ProcessResultClosure')
+ * @param cls closure (our `struct ProcessResultClosure`)
  * @param key query for the given value / request
- * @param value value in the hash map (a 'struct DownloadRequest')
+ * @param value value in the hash map (a `struct DownloadRequest`)
  * @return #GNUNET_YES (we should continue to iterate); unless serious error
  */
 static int
@@ -1004,15 +1004,6 @@ GNUNET_FS_free_download_request_ (struct DownloadRequest *dr)
 }
 
 
-/**
- * Iterator over entries in the pending requests in the 'active' map for the
- * reply that we just got.
- *
- * @param cls closure (our `struct ProcessResultClosure`)
- * @param key query for the given value / request
- * @param value value in the hash map (a `struct DownloadRequest`)
- * @return #GNUNET_YES (we should continue to iterate); unless serious error
- */
 static int
 process_result_with_request (void *cls,
                              const struct GNUNET_HashCode *key,
@@ -1958,12 +1949,6 @@ GNUNET_FS_download_start_task_ (void *cls)
 }
 
 
-/**
- * Create SUSPEND event for the given download operation
- * and then clean up our state (without stop signal).
- *
- * @param cls the 'struct GNUNET_FS_DownloadContext' to signal for
- */
 void
 GNUNET_FS_download_signal_suspend_ (void *cls)
 {

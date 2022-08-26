@@ -1397,13 +1397,6 @@ update_sre_result_maps (void *cls,
 }
 
 
-/**
- * Build the request and actually initiate the search using the
- * GNUnet FS service.
- *
- * @param sc search context
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
 int
 GNUNET_FS_search_start_searching_ (struct GNUNET_FS_SearchContext *sc)
 {
@@ -1557,12 +1550,6 @@ search_result_suspend (void *cls,
 }
 
 
-/**
- * Create SUSPEND event for the given search operation
- * and then clean up our state (without stop signal).
- *
- * @param cls the `struct GNUNET_FS_SearchContext` to signal for
- */
 void
 GNUNET_FS_search_signal_suspend_ (void *cls)
 {

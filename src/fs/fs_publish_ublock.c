@@ -62,15 +62,6 @@ derive_ublock_encryption_key (struct GNUNET_CRYPTO_SymmetricSessionKey *skey,
 }
 
 
-/**
- * Decrypt the given UBlock, storing the result in output.
- *
- * @param input input data
- * @param input_len number of bytes in @a input
- * @param ns public key under which the UBlock was stored
- * @param label label under which the UBlock was stored
- * @param output where to write the result, has input_len bytes
- */
 void
 GNUNET_FS_ublock_decrypt_ (const void *input,
                            size_t input_len,
@@ -158,22 +149,6 @@ run_cont (void *cls)
 }
 
 
-/**
- * Publish a UBlock.
- *
- * @param h handle to the file sharing subsystem
- * @param dsh datastore handle to use for storage operation
- * @param label identifier to use
- * @param ulabel update label to use, may be an empty string for none
- * @param ns namespace to publish in
- * @param meta metadata to use
- * @param uri URI to refer to in the UBlock
- * @param bo per-block options
- * @param options publication options
- * @param cont continuation
- * @param cont_cls closure for @a cont
- * @return NULL on error (@a cont will still be called)
- */
 struct GNUNET_FS_PublishUblockContext *
 GNUNET_FS_publish_ublock_ (struct GNUNET_FS_Handle *h,
                            struct GNUNET_DATASTORE_Handle *dsh,

@@ -246,26 +246,6 @@ remove_cont (void *cls,
 }
 
 
-/**
- * We've received an on-demand encoded block from the datastore.
- * Attempt to do on-demand encoding and (if successful), call the
- * continuation with the resulting block.  On error, clean up and ask
- * the datastore for more results.
- *
- * @param key key for the content
- * @param size number of bytes in data
- * @param data content stored
- * @param type type of the content
- * @param priority priority of the content
- * @param anonymity anonymity-level for the content
- * @param replication replication-level for the content
- * @param expiration expiration time for the content
- * @param uid unique identifier for the datum;
- *        maybe 0 if no unique identifier is available
- * @param cont function to call with the actual block (at most once, on success)
- * @param cont_cls closure for cont
- * @return GNUNET_OK on success
- */
 int
 GNUNET_FS_handle_on_demand_block (const struct GNUNET_HashCode *key,
                                   uint32_t size,
@@ -501,12 +481,6 @@ GNUNET_FS_indexing_done ()
 }
 
 
-/**
- * Initialize the indexing submodule.
- *
- * @param c configuration to use
- * @param d datastore to use
- */
 int
 GNUNET_FS_indexing_init (const struct GNUNET_CONFIGURATION_Handle *c,
                          struct GNUNET_DATASTORE_Handle *d)

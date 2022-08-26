@@ -207,17 +207,6 @@ GNUNET_FS_tree_compute_iblock_size (unsigned int depth, uint64_t end_offset)
 }
 
 
-/**
- * Compute how many bytes of data should be stored in
- * the specified block.
- *
- * @param fsize overall file size, must be > 0.
- * @param offset offset in the original data corresponding
- *         to the beginning of the tree induced by the block;
- *         must be <= fsize
- * @param depth depth of the node in the tree, 0 for DBLOCK
- * @return number of bytes stored in this node
- */
 size_t
 GNUNET_FS_tree_calculate_block_size (uint64_t fsize, uint64_t offset,
                                      unsigned int depth)

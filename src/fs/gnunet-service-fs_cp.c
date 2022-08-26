@@ -565,15 +565,6 @@ consider_peer_for_forwarding (void *cls,
 }
 
 
-/**
- * A peer connected to us.  Setup the connected peer
- * records.
- *
- * @param cls NULL
- * @param peer identity of peer that connected
- * @param mq message queue for talking to @a peer
- * @return our internal handle for the peer
- */
 void *
 GSF_peer_connect_handler (void *cls,
                           const struct GNUNET_PeerIdentity *peer,
@@ -648,12 +639,6 @@ revive_migration (void *cls)
 }
 
 
-/**
- * Get a handle for a connected peer.
- *
- * @param peer peer's identity
- * @return NULL if the peer is not currently connected
- */
 struct GSF_ConnectedPeer *
 GSF_peer_get_ (const struct GNUNET_PeerIdentity *peer)
 {
@@ -1488,14 +1473,6 @@ flush_respect (void *cls,
 }
 
 
-/**
- * A peer disconnected from us.  Tear down the connected peer
- * record.
- *
- * @param cls unused
- * @param peer identity of peer that disconnected
- * @param internal_cls the corresponding `struct GSF_ConnectedPeer`
- */
 void
 GSF_peer_disconnect_handler (void *cls,
                              const struct GNUNET_PeerIdentity *peer,
@@ -1620,12 +1597,6 @@ call_iterator (void *cls,
 }
 
 
-/**
- * Iterate over all connected peers.
- *
- * @param it function to call for each peer
- * @param it_cls closure for @a it
- */
 void
 GSF_iterate_connected_peers_ (GSF_ConnectedPeerIterator it,
                               void *it_cls)

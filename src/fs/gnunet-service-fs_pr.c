@@ -274,26 +274,6 @@ refresh_bloomfilter (enum GNUNET_BLOCK_Type type,
 }
 
 
-/**
- * Create a new pending request.
- *
- * @param options request options
- * @param type type of the block that is being requested
- * @param query key for the lookup
- * @param target preferred target for the request, NULL for none
- * @param bf_data raw data for bloom filter for known replies, can be NULL
- * @param bf_size number of bytes in @a bf_data
- * @param anonymity_level desired anonymity level
- * @param priority maximum outgoing cumulative request priority to use
- * @param ttl current time-to-live for the request
- * @param sender_pid peer ID to use for the sender when forwarding, 0 for none
- * @param origin_pid peer ID of origin of query (do not loop back)
- * @param replies_seen hash codes of known local replies
- * @param replies_seen_count size of the @a replies_seen array
- * @param rh handle to call when we get a reply
- * @param rh_cls closure for @a rh
- * @return handle for the new pending request
- */
 struct GSF_PendingRequest *
 GSF_pending_request_create_ (enum GSF_PendingRequestOptions options,
                              enum GNUNET_BLOCK_Type type,
@@ -455,14 +435,6 @@ GSF_pending_request_is_compatible_ (struct GSF_PendingRequest *pra,
 }
 
 
-/**
- * Update a given pending request with additional replies
- * that have been seen.
- *
- * @param pr request to update
- * @param replies_seen hash codes of replies that we've seen
- * @param replies_seen_count size of the replies_seen array
- */
 void
 GSF_pending_request_update_ (struct GSF_PendingRequest *pr,
                              const struct GNUNET_HashCode *replies_seen,
@@ -714,12 +686,6 @@ GSF_pending_request_cancel_ (struct GSF_PendingRequest *pr, int full_cleanup)
 }
 
 
-/**
- * Iterate over all pending requests.
- *
- * @param it function to call for each request
- * @param cls closure for @a it
- */
 void
 GSF_iterate_pending_requests_ (GSF_PendingRequestIterator it, void *cls)
 {
