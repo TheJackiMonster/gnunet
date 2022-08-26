@@ -449,14 +449,6 @@ GCC_ack_observed (const struct GNUNET_CADET_ConnectionTunnelIdentifier *cid)
 }
 
 
-/**
- * We observed some the given @a latency on the connection
- * identified by @a cti.  (The same connection was taken
- * in both directions.)
- *
- * @param cid connection identifier where we measured latency
- * @param latency the observed latency
- */
 void
 GCC_latency_observed (const struct GNUNET_CADET_ConnectionTunnelIdentifier *cid,
                       struct GNUNET_TIME_Relative latency)
@@ -484,13 +476,6 @@ GCC_latency_observed (const struct GNUNET_CADET_ConnectionTunnelIdentifier *cid,
 }
 
 
-/**
- * A #GNUNET_MESSAGE_TYPE_CADET_CONNECTION_CREATE_ACK was received for
- * this connection, implying that the end-to-end connection is up.
- * Process it.
- *
- * @param cc the connection that got the ACK.
- */
 void
 GCC_handle_connection_create_ack (struct CadetConnection *cc)
 {
@@ -943,18 +928,6 @@ GCC_create_inbound (struct CadetPeer *destination,
 }
 
 
-/**
- * Create a connection to @a destination via @a path and
- * notify @a cb whenever we are ready for more data.
- *
- * @param destination where to go
- * @param path which path to take (may not be the full path)
- * @param off offset of @a destination on @a path
- * @param ct tunnel that uses the connection
- * @param ready_cb function to call when ready to transmit
- * @param ready_cb_cls closure for @a cb
- * @return handle to the connection
- */
 struct CadetConnection *
 GCC_create (struct CadetPeer *destination,
             struct CadetPeerPath *path,

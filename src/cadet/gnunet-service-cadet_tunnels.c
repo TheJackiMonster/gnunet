@@ -576,13 +576,6 @@ GCT_get_destination (struct CadetTunnel *t)
 }
 
 
-/**
- * Count channels of a tunnel.
- *
- * @param t Tunnel on which to count.
- *
- * @return Number of channels.
- */
 unsigned int
 GCT_count_channels (struct CadetTunnel *t)
 {
@@ -606,13 +599,6 @@ lookup_channel (struct CadetTunnel *t,
 }
 
 
-/**
- * Count all created connections of a tunnel. Not necessarily ready connections!
- *
- * @param t Tunnel on which to count.
- *
- * @return Number of connections created, either being established or ready.
- */
 unsigned int
 GCT_count_any_connections (const struct CadetTunnel *t)
 {
@@ -1706,14 +1692,6 @@ retry_kx (void *cls)
 }
 
 
-/**
- * Handle KX message that lacks authentication (and which will thus
- * only be considered authenticated after we respond with our own
- * KX_AUTH and finally successfully decrypt payload).
- *
- * @param ct connection/tunnel combo that received encrypted message
- * @param msg the key exchange message
- */
 void
 GCT_handle_kx (struct CadetTConnection *ct,
                const struct GNUNET_CADET_TunnelKeyExchangeMessage *msg)
@@ -2839,14 +2817,6 @@ maintain_connections_cb (void *cls)
 }
 
 
-/**
- * Consider using the path @a p for the tunnel @a t.
- * The tunnel destination is at offset @a off in path @a p.
- *
- * @param cls our tunnel
- * @param path a path to our destination
- * @param off offset of the destination on path @a path
- */
 void
 GCT_consider_path (struct CadetTunnel *t,
                    struct CadetPeerPath *p,
@@ -3216,16 +3186,6 @@ GCT_create_tunnel (struct CadetPeer *destination)
 }
 
 
-/**
- * Add a @a connection to the @a tunnel.
- *
- * @param t a tunnel
- * @param cid connection identifier to use for the connection
- * @param options options for the connection
- * @param path path to use for the connection
- * @return #GNUNET_OK on success,
- *         #GNUNET_SYSERR on failure (duplicate connection)
- */
 int
 GCT_add_inbound_connection (struct CadetTunnel *t,
                             const struct
@@ -3449,17 +3409,6 @@ GCT_handle_encrypted (struct CadetTConnection *ct,
 }
 
 
-/**
- * Sends an already built message on a tunnel, encrypting it and
- * choosing the best connection if not provided.
- *
- * @param message Message to send. Function modifies it.
- * @param t Tunnel on which this message is transmitted.
- * @param cont Continuation to call once message is really sent.
- * @param cont_cls Closure for @c cont.
- * @param The ID of the channel we are using for sending.
- * @return Handle to cancel message
- */
 struct CadetTunnelQueueEntry *
 GCT_send (struct CadetTunnel *t,
           const struct GNUNET_MessageHeader *message,
