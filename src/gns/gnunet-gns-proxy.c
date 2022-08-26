@@ -2565,11 +2565,6 @@ schedule_httpd (struct MhdHttpList *hd)
 }
 
 
-/**
- * Task run whenever HTTP server operations are pending.
- *
- * @param cls the `struct MhdHttpList` of the daemon that is being run
- */
 static void
 do_httpd (void *cls)
 {

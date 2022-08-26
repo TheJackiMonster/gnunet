@@ -849,7 +849,6 @@ handle_dns_result (void *cls,
  * Task scheduled to continue with the resolution process.
  *
  * @param cls the 'struct GNS_ResolverHandle' of the resolution
- * @param tc task context
  */
 static void
 recursive_resolution (void *cls);
@@ -1379,7 +1378,7 @@ handle_gns_cname_result (struct GNS_ResolverHandle *rh,
 
 
 /**
- * Process a records that were decrypted from a block.
+ * Process records that were decrypted from a block.
  *
  * @param cls closure with the 'struct GNS_ResolverHandle'
  * @param rd_count number of entries in @a rd array
@@ -1894,13 +1893,6 @@ recursive_gns2dns_resolution (struct GNS_ResolverHandle *rh,
 }
 
 
-/**
- * Process a records that were decrypted from a block.
- *
- * @param cls closure with the `struct GNS_ResolverHandle`
- * @param rd_count number of entries in @a rd array
- * @param rd array of records with data to store
- */
 static void
 handle_gns_resolution_result (void *cls,
                               unsigned int rd_count,
@@ -2698,11 +2690,6 @@ recursive_gns_resolution_revocation (struct GNS_ResolverHandle *rh)
 }
 
 
-/**
- * Task scheduled to continue with the resolution process.
- *
- * @param cls the `struct GNS_ResolverHandle` of the resolution
- */
 static void
 recursive_resolution (void *cls)
 {
@@ -2724,12 +2711,6 @@ recursive_resolution (void *cls)
 }
 
 
-/**
- * Begin the resolution process from 'name', starting with
- * the identification of the zone specified by 'name'.
- *
- * @param cls the `struct GNS_ResolverHandle`
- */
 static void
 start_resolver_lookup (void *cls)
 {
