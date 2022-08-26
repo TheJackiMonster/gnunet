@@ -594,68 +594,46 @@ GNUNET_CRYPTO_ecdsa_sign_ (
   return GNUNET_OK;
 }
 
-// TODO: Code reuse with GNUNET_CRYPTO_ecdsa_sign_
-// Refactor above as a wrapper around raw
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_ecdsa_sign_raw (
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv,
+GNUNET_CRYPTO_eddsa_sign_raw (
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
   void *data,
-  size_t len,
-  struct GNUNET_CRYPTO_EcdsaSignature *sig)
+  size_t size,
+  struct GNUNET_CRYPTO_EddsaSignature *sig)
 {
-  struct GNUNET_HashCode hash_code;
-  gcry_sexp_t skey_sexp;
-  gcry_sexp_t sig_sexp;
-  gcry_sexp_t data_sexp;
-  gcry_error_t error;
-  gcry_mpi_t rs[2];
+  unsigned char sk[crypto_sign_SECRETKEYBYTES];
+  unsigned char pk[crypto_sign_PUBLICKEYBYTES];
+  int res;
 
-  // Decode private key
-  skey_sexp = decode_private_ecdsa_key (priv);
+  GNUNET_assert (0 == crypto_sign_seed_keypair (pk, sk, priv->d));
+  res = crypto_sign_detached ((uint8_t *) sig,
+                              NULL,
+                              (uint8_t *) data,
+                              size,
+                              sk);
+  return (res == 0) ? GNUNET_OK : GNUNET_SYSERR;
+}
 
-  // Hash data
-  GNUNET_CRYPTO_hash (data, len, &hash_code);
-  if (0 != (error = gcry_sexp_build (&data_sexp,
-                                     NULL,
-                                     "(data(flags rfc6979)(hash %s %b))",
-                                     "sha512",
-                                     (int) sizeof(hash_code),
-                                     &hash_code)))
-  {
-    LOG_GCRY (GNUNET_ERROR_TYPE_ERROR, "gcry_sexp_build", error);
-    return GNUNET_SYSERR;
-  }
+size_t
+GNUNET_CRYPTO_eddsa_signature_encode (
+  const struct GNUNET_CRYPTO_EddsaSignature *sig,
+  char **sig_str)
+{
+  return GNUNET_STRINGS_base64url_encode (
+    (void*) sig,
+    32,
+    sig_str);
+}
 
-  // Sign Hash
-  if (0 != (error = gcry_pk_sign (&sig_sexp, data_sexp, skey_sexp)))
-  {
-    LOG (GNUNET_ERROR_TYPE_WARNING,
-         _ ("ECC signing failed at %s:%d: %s\n"),
-         __FILE__,
-         __LINE__,
-         gcry_strerror (error));
-    gcry_sexp_release (data_sexp);
-    gcry_sexp_release (skey_sexp);
-    return GNUNET_SYSERR;
-  }
-  gcry_sexp_release (skey_sexp);
-  gcry_sexp_release (data_sexp);
-
-  /* extract 'r' and 's' values from sexpression 'sig_sexp' and store in
-     'signature' */
-  if (0 != (error = key_from_sexp (rs, sig_sexp, "sig-val", "rs")))
-  {
-    GNUNET_break (0);
-    gcry_sexp_release (sig_sexp);
-    return GNUNET_SYSERR;
-  }
-  gcry_sexp_release (sig_sexp);
-  GNUNET_CRYPTO_mpi_print_unsigned (sig->r, sizeof(sig->r), rs[0]);
-  GNUNET_CRYPTO_mpi_print_unsigned (sig->s, sizeof(sig->s), rs[1]);
-  gcry_mpi_release (rs[0]);
-  gcry_mpi_release (rs[1]);
-
-  return GNUNET_OK;
+size_t
+GNUNET_CRYPTO_eddsa_signature_decode (
+  const char *sig_str,
+  struct GNUNET_CRYPTO_EddsaSignature *sig)
+{
+  return GNUNET_STRINGS_base64url_decode (
+    sig_str, 
+    strlen (sig_str),
+    (void **) &sig);
 }
 
 size_t

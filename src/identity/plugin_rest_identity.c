@@ -1202,9 +1202,10 @@ void
 ego_sign_data_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 {
   struct RequestHandle *handle = ((struct ego_sign_data_cls *) cls)->handle;
-  char *data = (char *) ((struct ego_sign_data_cls *) cls)->data; // data is url decoded
+  unsigned char *data
+    = (unsigned char *) ((struct ego_sign_data_cls *) cls)->data; // data is url decoded
   struct MHD_Response *resp;
-  struct GNUNET_CRYPTO_EcdsaSignature sig;
+  struct GNUNET_CRYPTO_EddsaSignature sig;
   char *sig_str;
   char *result;
 
@@ -1216,7 +1217,15 @@ ego_sign_data_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
     return;
   }
 
-  if ( GNUNET_OK != GNUNET_CRYPTO_ecdsa_sign_raw (&(ego->pk.ecdsa_key),
+  if (ntohl (ego->pk.type) != GNUNET_IDENTITY_TYPE_EDDSA)
+  {
+    handle->response_code = MHD_HTTP_BAD_REQUEST;
+    handle->emsg = GNUNET_strdup ("Ego has to use an EdDSA key");
+    GNUNET_SCHEDULER_add_now (&do_error, handle);
+    return;
+  }
+
+  if ( GNUNET_OK != GNUNET_CRYPTO_eddsa_sign_raw (&(ego->pk.eddsa_key),
                                                   (void *) data,
                                                   strlen (data),
                                                   &sig))
@@ -1227,10 +1236,9 @@ ego_sign_data_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
     return;
   }
 
-  // TODO: Encode the signature 
-  sig_str = malloc(64);
-  GNUNET_CRYPTO_ecdsa_signature_encode(
-    (const struct GNUNET_CRYPTO_EcdsaSignature *) &sig, 
+  sig_str = malloc (64);
+  GNUNET_CRYPTO_eddsa_signature_encode (
+    (const struct GNUNET_CRYPTO_EddsaSignature *) &sig,
     &sig_str);
 
   GNUNET_asprintf (&result,

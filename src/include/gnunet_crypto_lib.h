@@ -1955,11 +1955,35 @@ GNUNET_CRYPTO_ecdsa_sign_ (
  * @return enum GNUNET_GenericReturnValue 
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_ecdsa_sign_raw (
-  const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv,
+GNUNET_CRYPTO_eddsa_sign_raw (
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
   void *data,
-  size_t len,
-  struct GNUNET_CRYPTO_EcdsaSignature *sig);
+  size_t size,
+  struct GNUNET_CRYPTO_EddsaSignature *sig);
+
+/**
+ * @brief 
+ * 
+ * @param sig 
+ * @param sig_str 
+ * @return enum GNUNET_GenericReturnValue 
+ */
+size_t
+GNUNET_CRYPTO_eddsa_signature_encode(
+  const struct GNUNET_CRYPTO_EddsaSignature *sig,
+  char **sig_str);
+
+/**
+ * @brief 
+ * 
+ * @param sig_str 
+ * @param sig 
+ * @return enum GNUNET_GenericReturnValue 
+ */
+size_t
+GNUNET_CRYPTO_eddsa_signature_decode(
+  const char *sig_str,
+  struct GNUNET_CRYPTO_EddsaSignature *sig);
 
 /**
  * @brief 
