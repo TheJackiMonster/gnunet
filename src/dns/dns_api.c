@@ -193,11 +193,6 @@ handle_request (void *cls,
 }
 
 
-/**
- * Reconnect to the DNS service.
- *
- * @param cls handle with the connection to connect
- */
 static void
 reconnect (void *cls)
 {
