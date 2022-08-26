@@ -67,7 +67,7 @@ GAS_plugin_notify_preference_changed (const struct GNUNET_PeerIdentity *peer,
 /**
  * The relative value for a property changed.
  *
- * @param address the peer
+ * @param address The peer for which a property changed.
  */
 void
 GAS_plugin_notify_property_changed (struct ATS_Address *address);
@@ -78,7 +78,6 @@ GAS_plugin_notify_property_changed (struct ATS_Address *address);
  * for talking to the respective peer.
  *
  * @param new_address the new address
- * @param addr_net network scope the address is in
  */
 void
 GAS_plugin_new_address (struct ATS_Address *new_address);

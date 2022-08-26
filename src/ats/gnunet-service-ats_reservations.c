@@ -135,12 +135,6 @@ GAS_reservations_set_bandwidth (const struct GNUNET_PeerIdentity *peer,
 }
 
 
-/**
- * Handle 'reservation request' messages from clients.
- *
- * @param client client that sent the request
- * @param msg the request message
- */
 void
 GAS_handle_reservation_request (struct GNUNET_SERVICE_Client *client,
                                 const struct ReservationRequestMessage *msg)

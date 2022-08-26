@@ -70,11 +70,6 @@ GAS_plugin_notify_preference_changed (const struct GNUNET_PeerIdentity *peer,
 }
 
 
-/**
- * The relative value for a property changed.
- *
- * @param address the peer for which a property changed
- */
 void
 GAS_plugin_notify_property_changed (struct ATS_Address *address)
 {
@@ -425,13 +420,6 @@ load_quotas (const struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
-/**
- * Initialize plugins subsystem.
- *
- * @param cfg configuration to use
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error (failed to load
- *         solver plugin)
- */
 int
 GAS_plugin_init (const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
@@ -493,12 +481,6 @@ GAS_plugin_done ()
 }
 
 
-/**
- * Tell the solver that the given address can now be used
- * for talking to the respective peer.
- *
- * @param new_address the new address
- */
 void
 GAS_plugin_new_address (struct ATS_Address *new_address)
 {
