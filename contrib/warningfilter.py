@@ -32,8 +32,6 @@ verbose_name = rf"{sep_re(simple_name, ' ')}"
 command_re = "(?:</[^>]+>|\\\w+)"
 macro_params = rf"\({sep_re(simple_name, ', ')}(?:,\.\.\.)?\)"
 
-# Report generation
-location = "{path} {linenumber}"
 
 matches = {
     "not an input @file": re.compile(rf"{main_match} the name '(?P<name>{filepath}|{simple_name})' supplied as the argument in the \\file statement is not an input file"),
@@ -68,7 +66,6 @@ parser_choices = set(matches.keys()) - {"blank",
 parser = ap.ArgumentParser()
 parser.add_argument("filename")
 parser.add_argument("keys", choices=parser_choices, nargs="*")
-parser.add_argument("--summary", "-s", action="store_true")
 args = parser.parse_args()
 
 sorted_lines = {k:[] for k in matches.keys()}
@@ -101,9 +98,9 @@ del processed_lines["undocumented param (name)"]
 
 # Preparing count dictionary and summarising the results
 counts = {k: len(v) for k, v in processed_lines.items()}
-if args.summary:
-    for k, v in counts.items():
-        print(k+":", v)
+for k, v in counts.items():
+    print(k+":", v)
+print("")
 
 for key in args.keys:
     print(f"{key}: {counts[key]}")
