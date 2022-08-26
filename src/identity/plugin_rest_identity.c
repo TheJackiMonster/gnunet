@@ -1236,7 +1236,7 @@ ego_sign_data_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
     return;
   }
 
-  sig_str = malloc (64);
+  sig_str = malloc (128);
   GNUNET_CRYPTO_eddsa_signature_encode (
     (const struct GNUNET_CRYPTO_EddsaSignature *) &sig,
     &sig_str);

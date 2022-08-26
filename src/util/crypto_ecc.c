@@ -621,7 +621,7 @@ GNUNET_CRYPTO_eddsa_signature_encode (
 {
   return GNUNET_STRINGS_base64url_encode (
     (void*) sig,
-    32,
+    64,
     sig_str);
 }
 
@@ -643,7 +643,7 @@ GNUNET_CRYPTO_ecdsa_signature_encode (
 {
   return GNUNET_STRINGS_base64url_encode (
     (void*) sig,
-    32,
+    64,
     sig_str);
 }
 
