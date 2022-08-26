@@ -1,3 +1,39 @@
+Thu, 25 Aug 2022 13:56:11 +0200 (567469d45)
+double-check GP/PP are fine - Christian Grothoff
+
+Thu, 25 Aug 2022 13:28:44 +0200 (209277b43)
+separator change - Christian Grothoff
+
+Sun, 21 Aug 2022 23:58:13 +0200 (a53dce1f8)
+fix Bernd's signature violation discovery - Christian Grothoff
+
+Sun, 21 Aug 2022 23:57:19 +0200 (e23e49cac)
+check for GNU parallel - Christian Grothoff
+
+Sun, 12 Jun 2022 20:30:40 +0100 (cc738d28d)
+DOC: Initial work in CADET towards removing redundant doc comments. - Martin Schanzenbach
+
+Thu, 9 Jun 2022 19:22:07 +0100 (9a0de6543)
+DOC: Major doxygen organisation work, upgraded config, updated logo - Martin Schanzenbach
+
+Sun, 5 Jun 2022 00:31:58 +0100 (fd716c71a)
+DOC: Nesting doxygen groups to improve high-level organisation of source docs. - Martin Schanzenbach
+
+Thu, 18 Aug 2022 19:00:12 +0200 (5a8b9a11a)
+only 16 bit for options - Christian Grothoff
+
+Mon, 15 Aug 2022 12:19:49 +0200 (69844eacf)
+add JSON routines for base64 encoded values - Christian Grothoff
+
+Thu, 11 Aug 2022 08:06:28 +0200 (460f0d77b)
+DOC: Fix dist missing makefile - Martin Schanzenbach
+
+Sat, 6 Aug 2022 01:30:48 +0200 (18e758f51)
+Update `contrib/Makefile.am` - madmurphy
+
+Sat, 6 Aug 2022 01:19:17 +0200 (0e6d7fcd8)
+[contrib/] Update non-git Arch package (new deps: `python-sphinx` and `python-sphinx_rtd_theme`) - madmurphy
+
 Fri, 5 Aug 2022 03:55:24 +0200 (8582b511a)
 [contrib] Update `contrib/packages/arch/gnunet-git/.SRCINFO` - madmurphy
 
