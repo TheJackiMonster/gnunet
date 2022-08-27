@@ -467,17 +467,6 @@ testBitCallback (void *cls,
 
 /* *********************** INTERFACE **************** */
 
-/**
- * Load a bloom-filter from a file.
- *
- * @param filename the name of the file (or the prefix)
- * @param size the size of the bloom-filter (number of
- *        bytes of storage space to use); will be rounded up
- *        to next power of 2
- * @param k the number of GNUNET_CRYPTO_hash-functions to apply per
- *        element (number of bits set per element in the set)
- * @return the bloomfilter
- */
 struct GNUNET_CONTAINER_BloomFilter *
 GNUNET_CONTAINER_bloomfilter_load (const char *filename,
                                    size_t size,

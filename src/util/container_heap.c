@@ -129,12 +129,6 @@ check (const struct GNUNET_CONTAINER_HeapNode *node)
 #endif
 
 
-/**
- * Create a new heap.
- *
- * @param order how should the heap be sorted?
- * @return handle to the heap
- */
 struct GNUNET_CONTAINER_Heap *
 GNUNET_CONTAINER_heap_create (enum GNUNET_CONTAINER_HeapOrder order)
 {
@@ -146,12 +140,6 @@ GNUNET_CONTAINER_heap_create (enum GNUNET_CONTAINER_HeapOrder order)
 }
 
 
-/**
- * Destroys the heap.  Only call on a heap that
- * is already empty.
- *
- * @param heap heap to destroy
- */
 void
 GNUNET_CONTAINER_heap_destroy (struct GNUNET_CONTAINER_Heap *heap)
 {
@@ -160,12 +148,6 @@ GNUNET_CONTAINER_heap_destroy (struct GNUNET_CONTAINER_Heap *heap)
 }
 
 
-/**
- * Get element stored at the root of @a heap.
- *
- * @param heap  Heap to inspect.
- * @return Element at the root, or NULL if heap is empty.
- */
 void *
 GNUNET_CONTAINER_heap_peek (const struct GNUNET_CONTAINER_Heap *heap)
 {
@@ -199,12 +181,6 @@ GNUNET_CONTAINER_heap_peek2 (const struct GNUNET_CONTAINER_Heap *heap,
 }
 
 
-/**
- * Get the current size of the heap
- *
- * @param heap the heap to get the size of
- * @return number of elements stored
- */
 unsigned int
 GNUNET_CONTAINER_heap_get_size (const struct GNUNET_CONTAINER_Heap *heap)
 {
@@ -212,12 +188,6 @@ GNUNET_CONTAINER_heap_get_size (const struct GNUNET_CONTAINER_Heap *heap)
 }
 
 
-/**
- * Get the current cost of the node
- *
- * @param node the node to get the cost of
- * @return cost of the node
- */
 GNUNET_CONTAINER_HeapCostType
 GNUNET_CONTAINER_heap_node_get_cost (const struct GNUNET_CONTAINER_HeapNode
                                      *node)
@@ -252,13 +222,6 @@ node_iterator (const struct GNUNET_CONTAINER_Heap *heap,
 }
 
 
-/**
- * Iterate over all entries in the heap.
- *
- * @param heap the heap
- * @param iterator function to call on each entry
- * @param iterator_cls closure for iterator
- */
 void
 GNUNET_CONTAINER_heap_iterate (const struct GNUNET_CONTAINER_Heap *heap,
                                GNUNET_CONTAINER_HeapIterator iterator,
@@ -268,17 +231,6 @@ GNUNET_CONTAINER_heap_iterate (const struct GNUNET_CONTAINER_Heap *heap,
 }
 
 
-/**
- * Perform a random walk of the tree.  The walk is biased
- * towards elements closer to the root of the tree (since
- * each walk starts at the root and ends at a random leaf).
- * The heap internally tracks the current position of the
- * walk.
- *
- * @param heap heap to walk
- * @return data stored at the next random node in the walk;
- *         NULL if the tree is empty.
- */
 void *
 GNUNET_CONTAINER_heap_walk_get_next (struct GNUNET_CONTAINER_Heap *heap)
 {
@@ -360,14 +312,6 @@ insert_node (struct GNUNET_CONTAINER_Heap *heap,
 }
 
 
-/**
- * Inserts a new element into the heap.
- *
- * @param heap heap to modify
- * @param element element to insert
- * @param cost cost for the element
- * @return node for the new element
- */
 struct GNUNET_CONTAINER_HeapNode *
 GNUNET_CONTAINER_heap_insert (struct GNUNET_CONTAINER_Heap *heap, void *element,
                               GNUNET_CONTAINER_HeapCostType cost)
@@ -536,12 +480,6 @@ GNUNET_CONTAINER_heap_remove_node (struct GNUNET_CONTAINER_HeapNode *node)
 }
 
 
-/**
- * Updates the cost of any node in the tree
- *
- * @param node node for which the cost is to be changed
- * @param new_cost new cost for the node
- */
 void
 GNUNET_CONTAINER_heap_update_cost (struct GNUNET_CONTAINER_HeapNode *node,
                                    GNUNET_CONTAINER_HeapCostType new_cost)

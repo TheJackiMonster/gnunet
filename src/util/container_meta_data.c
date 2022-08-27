@@ -241,11 +241,6 @@ invalidate_sbuf (struct GNUNET_CONTAINER_MetaData *md)
 }
 
 
-/**
- * Free meta data.
- *
- * @param md what to free
- */
 void
 GNUNET_CONTAINER_meta_data_destroy (struct GNUNET_CONTAINER_MetaData *md)
 {
@@ -263,11 +258,6 @@ GNUNET_CONTAINER_meta_data_destroy (struct GNUNET_CONTAINER_MetaData *md)
 }
 
 
-/**
- * Remove all items in the container.
- *
- * @param md metadata to manipulate
- */
 void
 GNUNET_CONTAINER_meta_data_clear (struct GNUNET_CONTAINER_MetaData *md)
 {
@@ -285,16 +275,6 @@ GNUNET_CONTAINER_meta_data_clear (struct GNUNET_CONTAINER_MetaData *md)
 }
 
 
-/**
- * Test if two MDs are equal.  We consider them equal if
- * the meta types, formats and content match (we do not
- * include the mime types and plugins names in this
- * consideration).
- *
- * @param md1 first value to check
- * @param md2 other value to check
- * @return #GNUNET_YES if they are equal
- */
 int
 GNUNET_CONTAINER_meta_data_test_equal (const struct GNUNET_CONTAINER_MetaData
                                        *md1,
@@ -451,13 +431,6 @@ merge_helper (void *cls, const char *plugin_name, enum EXTRACTOR_MetaType type,
 }
 
 
-/**
- * Extend metadata.  Merges the meta data from the second argument
- * into the first, discarding duplicate key-value pairs.
- *
- * @param md metadata to extend
- * @param in metadata to merge
- */
 void
 GNUNET_CONTAINER_meta_data_merge (struct GNUNET_CONTAINER_MetaData *md,
                                   const struct GNUNET_CONTAINER_MetaData *in)
@@ -466,16 +439,6 @@ GNUNET_CONTAINER_meta_data_merge (struct GNUNET_CONTAINER_MetaData *md,
 }
 
 
-/**
- * Remove an item.
- *
- * @param md metadata to manipulate
- * @param type type of the item to remove
- * @param data specific value to remove, NULL to remove all
- *        entries of the given type
- * @param data_size number of bytes in @a data
- * @return #GNUNET_OK on success, #GNUNET_SYSERR if the item does not exist in md
- */
 int
 GNUNET_CONTAINER_meta_data_delete (struct GNUNET_CONTAINER_MetaData *md,
                                    enum EXTRACTOR_MetaType type,
@@ -503,12 +466,6 @@ GNUNET_CONTAINER_meta_data_delete (struct GNUNET_CONTAINER_MetaData *md,
 }
 
 
-/**
- * Add the current time as the publication date
- * to the meta-data.
- *
- * @param md metadata to modify
- */
 void
 GNUNET_CONTAINER_meta_data_add_publication_date (struct
                                                  GNUNET_CONTAINER_MetaData *md)
@@ -556,16 +513,6 @@ GNUNET_CONTAINER_meta_data_iterate (const struct GNUNET_CONTAINER_MetaData *md,
 }
 
 
-/**
- * Get the first MD entry of the given type.  Caller
- * is responsible for freeing the return value.
- * Also, only meta data items that are strings (0-terminated)
- * are returned by this function.
- *
- * @param md metadata to inspect
- * @param type type to look for
- * @return NULL if no entry was found
- */
 char *
 GNUNET_CONTAINER_meta_data_get_by_type (const struct
                                         GNUNET_CONTAINER_MetaData *md,
@@ -584,17 +531,6 @@ GNUNET_CONTAINER_meta_data_get_by_type (const struct
 }
 
 
-/**
- * Get the first matching MD entry of the given types. Caller is
- * responsible for freeing the return value.  Also, only meta data
- * items that are strings (0-terminated) are returned by this
- * function.
- *
- * @param md metadata to inspect
- * @param ... -1-terminated list of types
- * @return NULL if we do not have any such entry,
- *  otherwise client is responsible for freeing the value!
- */
 char *
 GNUNET_CONTAINER_meta_data_get_first_by_types (const struct
                                                GNUNET_CONTAINER_MetaData *md,
@@ -997,12 +933,6 @@ GNUNET_CONTAINER_meta_data_serialize (const struct GNUNET_CONTAINER_MetaData
 }
 
 
-/**
- * Get the size of the full meta-data in serialized form.
- *
- * @param md metadata to inspect
- * @return number of bytes needed for serialization, -1 on error
- */
 ssize_t
 GNUNET_CONTAINER_meta_data_get_serialized_size (const struct
                                                 GNUNET_CONTAINER_MetaData *md)

@@ -1256,9 +1256,12 @@ GNUNET_CONTAINER_multipeermap_iterator_create (
  * @ingroup hashmap
  * Retrieve the next element from the hash map at the iterator's
  * position.  If there are no elements left, #GNUNET_NO is returned,
- * and @a key and @a value are not modified.  This operation is only
- * allowed if no elements have been removed from the multihashmap
- * since the creation of @a iter, and the map has not been destroyed.
+ * and @a key and @a value are not modified.
+ *
+ * This operation is only allowed if no elements have been removed 
+ * from the multihashmap since the creation of @a iter, and the map 
+ * has not been destroyed.
+ * 
  * Adding elements may result in repeating or skipping elements.
  *
  * @param iter the iterator to get the next element from
