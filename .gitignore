@@ -11,11 +11,13 @@
 *.swp
 *.trs
 *.kdev4
+.clangd/
 .deps/
 .libs/
 .svn/
 Makefile
 Makefile.in
+compile_commands.json
 aclocal.m4
 autom4te.cache/
 compile
