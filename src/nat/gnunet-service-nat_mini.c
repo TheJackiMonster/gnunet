@@ -471,11 +471,6 @@ process_refresh_output (void *cls, const char *line)
 }
 
 
-/**
- * Run "upnpc -l" to find out if our mapping changed.
- *
- * @param cls the 'struct GNUNET_NAT_MiniHandle'
- */
 static void
 do_refresh (void *cls)
 {
