@@ -697,7 +697,7 @@ GNUNET_CRYPTO_random_u32 (enum GNUNET_CRYPTO_Quality mode, uint32_t i);
 
 /**
  * @ingroup crypto
- * Random on unsigned 64-bit values.
+ * Generate a random unsigned 64-bit value.
  *
  * @param mode desired quality of the random number
  * @param max value returned will be in range [0,@a max) (exclusive)
@@ -2428,7 +2428,8 @@ GNUNET_CRYPTO_paillier_decrypt (
 
 
 /**
- * Compute a ciphertext that represents the sum of the plaintext in @a x1 and @a x2
+ * Compute a ciphertext that represents the sum of the plaintext in @a c1 
+ * and @a c2
  *
  * Note that this operation can only be done a finite number of times
  * before an overflow occurs.

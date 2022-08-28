@@ -87,12 +87,6 @@ get_weak_random (void)
 }
 
 
-/**
- * Seed a weak random generator. Only #GNUNET_CRYPTO_QUALITY_WEAK-mode generator
- * can be seeded.
- *
- * @param seed the seed to use
- */
 void
 GNUNET_CRYPTO_seed_weak_random (int32_t seed)
 {
@@ -264,13 +258,6 @@ GNUNET_CRYPTO_random_permute (enum GNUNET_CRYPTO_Quality mode,
 }
 
 
-/**
- * Generate random unsigned 64-bit value.
- *
- * @param mode desired quality of the random number
- * @param max value returned will be in range [0,max) (exclusive)
- * @return random 64-bit number
- */
 uint64_t
 GNUNET_CRYPTO_random_u64 (enum GNUNET_CRYPTO_Quality mode,
                           uint64_t max)

@@ -260,14 +260,6 @@ GNUNET_CRYPTO_eddsa_key_create_from_configuration (
 }
 
 
-/**
- * Retrieve the identity of the host's peer.
- *
- * @param cfg configuration to use
- * @param dst pointer to where to write the peer identity
- * @return #GNUNET_OK on success, #GNUNET_SYSERR if the identity
- *         could not be retrieved
- */
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_get_peer_identity (const struct GNUNET_CONFIGURATION_Handle *cfg,
                                  struct GNUNET_PeerIdentity *dst)
