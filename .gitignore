@@ -27,6 +27,7 @@ config.log
 config.status
 config.sub
 configure
+.version
 contrib/vendored/
 depcomp
 gnunet_config.h
