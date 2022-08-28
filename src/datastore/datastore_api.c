@@ -941,31 +941,6 @@ drop_status_cont (void *cls,
 }
 
 
-/**
- * Store an item in the datastore.  If the item is already present,
- * the priorities are summed up and the higher expiration time and
- * lower anonymity level is used.
- *
- * @param h handle to the datastore
- * @param rid reservation ID to use (from "reserve"); use 0 if no
- *            prior reservation was made
- * @param key key for the value
- * @param size number of bytes in data
- * @param data content stored
- * @param type type of the content
- * @param priority priority of the content
- * @param anonymity anonymity-level for the content
- * @param replication how often should the content be replicated to other peers?
- * @param expiration expiration time for the content
- * @param queue_priority ranking of this request in the priority queue
- * @param max_queue_size at what queue size should this request be dropped
- *        (if other requests of higher priority are in the queue)
- * @param cont continuation to call when done
- * @param cont_cls closure for @a cont
- * @return NULL if the entry was not queued, otherwise a handle that can be used to
- *         cancel; note that even if NULL is returned, the callback will be invoked
- *         (or rather, will already have been invoked)
- */
 struct GNUNET_DATASTORE_QueueEntry *
 GNUNET_DATASTORE_put (struct GNUNET_DATASTORE_Handle *h,
                       uint32_t rid,
@@ -1142,26 +1117,6 @@ GNUNET_DATASTORE_release_reserve (struct GNUNET_DATASTORE_Handle *h,
 }
 
 
-/**
- * Explicitly remove some content from the database.
- * The @a cont continuation will be called with `status`
- * #GNUNET_OK" if content was removed, #GNUNET_NO
- * if no matching entry was found and #GNUNET_SYSERR
- * on all other types of errors.
- *
- * @param h handle to the datastore
- * @param key key for the value
- * @param size number of bytes in data
- * @param data content stored
- * @param queue_priority ranking of this request in the priority queue
- * @param max_queue_size at what queue size should this request be dropped
- *        (if other requests of higher priority are in the queue)
- * @param cont continuation to call when done
- * @param cont_cls closure for @a cont
- * @return NULL if the entry was not queued, otherwise a handle that can be used to
- *         cancel; note that even if NULL is returned, the callback will be invoked
- *         (or rather, will already have been invoked)
- */
 struct GNUNET_DATASTORE_QueueEntry *
 GNUNET_DATASTORE_remove (struct GNUNET_DATASTORE_Handle *h,
                          const struct GNUNET_HashCode *key,
@@ -1279,22 +1234,6 @@ GNUNET_DATASTORE_get_for_replication (struct GNUNET_DATASTORE_Handle *h,
 }
 
 
-/**
- * Get a single zero-anonymity value from the datastore.
- *
- * @param h handle to the datastore
- * @param next_uid return the result with lowest uid >= next_uid
- * @param queue_priority ranking of this request in the priority queue
- * @param max_queue_size at what queue size should this request be dropped
- *        (if other requests of higher priority are in the queue)
- * @param type allowed type for the operation (never zero)
- * @param proc function to call on a random value; it
- *        will be called once with a value (if available)
- *        or with NULL if none value exists.
- * @param proc_cls closure for @a proc
- * @return NULL if the entry was not queued, otherwise a handle that can be used to
- *         cancel
- */
 struct GNUNET_DATASTORE_QueueEntry *
 GNUNET_DATASTORE_get_zero_anonymity (struct GNUNET_DATASTORE_Handle *h,
                                      uint64_t next_uid,
