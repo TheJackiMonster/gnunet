@@ -7,6 +7,7 @@ import re
 import subprocess
 import time
 
+raw_tmp = True
 if os.name == "nt":
     tmp = os.getenv("TEMP")
 elif None != os.environ.get("TMPDIR"):
@@ -14,7 +15,9 @@ elif None != os.environ.get("TMPDIR"):
 elif None != os.environ.get("TMP"):
     tmp = os.getenv("TMP")
 else:
-    tmp = "/tmp"
+    raw_tmp = False
+    tmp = subprocess.check_output("gnunet-config -f -s PATHS -o GNUNET_TMP",
+                                  text=True)
 
 if os.name == 'nt':
     st = './gnunet-statistics.exe'
@@ -30,8 +33,14 @@ if debug:
     run_arm += [debug.split(' ')]
 
 
+if raw_tmp:
+    cleanup_path = "gnunet/test-gnunet-statistics"
+else:
+    cleanup_path = "test-gnunet-statistics"
+
+
 def cleanup():
-    shutil.rmtree(os.path.join(tmp, "gnunet/test-gnunet-statistics"), True)
+    shutil.rmtree(os.path.join(tmp, cleanup_path), True)
 
 
 def sub_run(args, want_stdo=True, want_stde=False, nofail=False):
