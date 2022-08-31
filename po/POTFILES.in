@@ -295,6 +295,8 @@ src/pq/pq_prepare.c
 src/pq/pq_query_helper.c
 src/pq/pq_result_helper.c
 src/pt/gnunet-daemon-pt.c
+src/reclaim/did_core.c
+src/reclaim/did_helper.c
 src/reclaim/did_misc.c
 src/reclaim/gnunet-did.c
 src/reclaim/gnunet-reclaim.c

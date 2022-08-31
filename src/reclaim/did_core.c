@@ -65,17 +65,15 @@ DID_resolve_gns_lookup_cb (
   void *cls_did_resolve_cb = ((struct DID_resolve_return *) cls)->cls;
   free (cls);
 
-  if (rd_count != 1)
-    cb (GNUNET_NO, "An ego should only have one DID Document",
-        cls_did_resolve_cb);
-
-  if (rd[0].record_type == GNUNET_DNSPARSER_TYPE_TXT)
-  {
-    did_document = (char *) rd[0].data;
+  for (int i = 0; i < rd_count; i++) {
+    if (rd[i].record_type != GNUNET_GNSRECORD_TYPE_DID_DOCUMENT)
+      continue;
+    did_document = (char *) rd[i].data;
     cb (GNUNET_OK, did_document, cls_did_resolve_cb);
+    return;
   }
-  else
-    cb (GNUNET_NO, "DID Document is not a TXT record\n", cls_did_resolve_cb);
+  cb (GNUNET_NO, "DID Document is not a DID_DOCUMENT record\n",
+      cls_did_resolve_cb);
 }
 
 /**
@@ -109,7 +107,7 @@ DID_resolve (const char *did,
   GNUNET_GNS_lookup (gns_handle,
                      DID_DOCUMENT_LABEL,
                      &pkey,
-                     GNUNET_DNSPARSER_TYPE_TXT,
+                     GNUNET_GNSRECORD_TYPE_DID_DOCUMENT,
                      GNUNET_GNS_LO_DEFAULT,
                      &DID_resolve_gns_lookup_cb,
                      cls_gns_lookup_cb);

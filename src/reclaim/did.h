@@ -21,7 +21,7 @@
 #ifndef RECLAIM_DID_H
 #define RECLAIM_DID_H
 
-#define GNUNET_RECLAIM_DID_METHOD_PREFIX "did:reclaim:"
+#define GNUNET_RECLAIM_DID_METHOD_PREFIX "did:gns:"
 
 /**
  * Create a DID string from an ego in the format

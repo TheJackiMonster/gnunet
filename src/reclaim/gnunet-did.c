@@ -526,21 +526,10 @@ process_dids (void *cls, struct GNUNET_IDENTITY_Ego *ego,
     return;
   }
 
-  // if (NULL == name)
-  //   return;
-  // if ((1 == create) &&
-  //     (0 == strncmp (name, egoname, strlen (egoname))) &&
-  //     (1 != ego_exists))
-  // {
-  //   fprintf (stderr, "%s already exists!\n", egoname);
-  //   ego_exists = 1;
-  //   return;
-  // }
-
   if (1 == show_all)
   {
     did_str = DID_identity_to_did (ego);
-    printf ("%s\n", did_str);
+    printf ("%s:\n\t%s\n", name, did_str);
     GNUNET_free (did_str);
     return;
   }
@@ -549,7 +538,7 @@ process_dids (void *cls, struct GNUNET_IDENTITY_Ego *ego,
     if (0 == strncmp (name, egoname, strlen (egoname)))
     {
       did_str = DID_identity_to_did (ego);
-      printf ("%s\n", did_str);
+      printf ("%s:\n\t%s\n", name, did_str);
       GNUNET_free (did_str);
       return;
     }
