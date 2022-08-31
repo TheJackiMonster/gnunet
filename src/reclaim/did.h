@@ -25,7 +25,7 @@
 
 /**
  * Create a DID string from an ego in the format
- * did:reclaim:<pubkey>
+ * did:gns:<pubkey>
  *
  * @param ego the Ego to use
  * @return the DID string
@@ -36,7 +36,7 @@ DID_ego_to_did (struct GNUNET_IDENTITY_Ego *ego);
 
 /**
  * Extract the public key from a DID
- * in the format did:reclaim:<pubkey>
+ * in the format did:gns:<pubkey>
  *
  * @param did the DID parse
  * @param pk where to store the public key

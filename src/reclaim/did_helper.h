@@ -24,7 +24,7 @@
  * @author Tristan Schwieren
  */
 
-#define GNUNET_DID_METHOD_PREFIX "did:reclaim:"
+#define GNUNET_DID_METHOD_PREFIX "did:gns:"
 #define MAX_DID_SPECIFIC_IDENTIFIER_LENGTH 59
 
 /**
