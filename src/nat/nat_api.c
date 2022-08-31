@@ -362,26 +362,6 @@ do_connect (void *cls)
 }
 
 
-/**
- * Attempt to enable port redirection and detect public IP address
- * contacting UPnP or NAT-PMP routers on the local network. Use @a
- * addr to specify to which of the local host's addresses should the
- * external port be mapped. The port is taken from the corresponding
- * sockaddr_in[6] field.  The NAT module should call the given @a
- * address_callback for any 'plausible' external address.
- *
- * @param cfg configuration to use
- * @param config_section name of the configuration section for optionsx
- * @param proto protocol this is about, IPPROTO_TCP or IPPROTO_UDP
- * @param num_addrs number of addresses in @a addrs
- * @param addrs list of local addresses packets should be redirected to
- * @param addrlens actual lengths of the addresses in @a addrs
- * @param address_callback function to call every time the public IP address changes
- * @param reversal_callback function to call if someone wants connection reversal from us,
- *        NULL if connection reversal is not supported
- * @param callback_cls closure for callbacks
- * @return NULL on error, otherwise handle that can be used to unregister
- */
 struct GNUNET_NAT_Handle *
 GNUNET_NAT_register (const struct GNUNET_CONFIGURATION_Handle *cfg,
                      const char *config_section,
