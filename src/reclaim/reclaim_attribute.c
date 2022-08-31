@@ -282,14 +282,6 @@ GNUNET_RECLAIM_attribute_new (const char *attr_name,
 }
 
 
-/**
- * Add a new attribute to a claim list
- *
- * @param attr_name the name of the new attribute claim
- * @param type the type of the claim
- * @param data claim payload
- * @param data_size claim payload size
- */
 void
 GNUNET_RECLAIM_attribute_list_add (
   struct GNUNET_RECLAIM_AttributeList *al,

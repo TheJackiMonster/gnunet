@@ -1076,14 +1076,6 @@ GNUNET_RECLAIM_connect (const struct GNUNET_CONFIGURATION_Handle *cfg)
 }
 
 
-/**
- * Cancel an operation. Note that the operation MAY still
- * be executed; this merely cancels the continuation; if the request
- * was already transmitted, the service may still choose to complete
- * the operation.
- *
- * @param op operation to cancel
- */
 void
 GNUNET_RECLAIM_cancel (struct GNUNET_RECLAIM_Operation *op)
 {
@@ -1210,18 +1202,6 @@ GNUNET_RECLAIM_attribute_delete (
 }
 
 
-/**
-   * Store an credential.  If the credential is already present,
-   * it is replaced with the new credential.
-   *
-   * @param h handle to the re:claimID service
-   * @param pkey private key of the identity
-   * @param attr the credential value
-   * @param exp_interval the relative expiration interval for the credential
-   * @param cont continuation to call when done
-   * @param cont_cls closure for @a cont
-   * @return handle to abort the request
-   */
 struct GNUNET_RECLAIM_Operation *
 GNUNET_RECLAIM_credential_store (
   struct GNUNET_RECLAIM_Handle *h,
@@ -1258,17 +1238,6 @@ GNUNET_RECLAIM_credential_store (
 }
 
 
-/**
-   * Delete an credential. Tickets used to share this credential are updated
-   * accordingly.
-   *
-   * @param h handle to the re:claimID service
-   * @param pkey Private key of the identity to add an attribute to
-   * @param attr The credential
-   * @param cont Continuation to call when done
-   * @param cont_cls Closure for @a cont
-   * @return handle Used to to abort the request
-   */
 struct GNUNET_RECLAIM_Operation *
 GNUNET_RECLAIM_credential_delete (
   struct GNUNET_RECLAIM_Handle *h,
@@ -1366,12 +1335,6 @@ GNUNET_RECLAIM_get_attributes_start (
 }
 
 
-/**
- * Calls the record processor specified in #GNUNET_RECLAIM_get_attributes_start
- * for the next record.
- *
- * @param it the iterator
- */
 void
 GNUNET_RECLAIM_get_attributes_next (struct GNUNET_RECLAIM_AttributeIterator *it)
 {
@@ -1524,19 +1487,6 @@ GNUNET_RECLAIM_get_credentials_stop (struct
 }
 
 
-/**
- * Issues a ticket to another relying party. The identity may use
- * @GNUNET_RECLAIM_ticket_consume to consume the ticket
- * and retrieve the attributes specified in the attribute list.
- *
- * @param h the reclaim to use
- * @param iss the issuing identity (= the user)
- * @param rp the subject of the ticket (= the relying party)
- * @param attrs the attributes that the relying party is given access to
- * @param cb the callback
- * @param cb_cls the callback closure
- * @return handle to abort the operation
- */
 struct GNUNET_RECLAIM_Operation *
 GNUNET_RECLAIM_ticket_issue (
   struct GNUNET_RECLAIM_Handle *h,

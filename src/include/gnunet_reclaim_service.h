@@ -235,7 +235,7 @@ GNUNET_RECLAIM_attribute_delete (
   GNUNET_RECLAIM_ContinuationWithStatus cont, void *cont_cls);
 
 /**
- * Delete a credential. Tickets used to share use a presentation of this
+ * Delete a credential. Tickets used to share a presentation of this
  * credential are updated accordingly.
  *
  * @param h handle to the re:claimID service
