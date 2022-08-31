@@ -36,10 +36,12 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_namestore_service.h"
+#include "gnunet_identity_service.h"
 #include "gnunet_gns_service.h"
 #include "gnunet_gnsrecord_lib.h"
+#include "did_helper.h"
+#include "did_core.h"
 #include "jansson.h"
-#include "did.h"
 
 #define GNUNET_DID_DEFAULT_DID_DOCUMENT_EXPIRATION_TIME "1d"
 
@@ -147,73 +149,6 @@ cleanup (void *cls)
 }
 
 /**
- * @brief Callback for ego loockup of get_did_for_ego()
- *
- * @param cls closure
- * @param ego the returned ego
- */
-static void
-get_did_for_ego_lookup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
-{
-  char *did_str;
-
-  if (ego == NULL)
-  {
-    printf ("EGO not found\n");
-    GNUNET_SCHEDULER_add_now (&cleanup, NULL);
-    ret = 1;
-    return;
-  }
-  did_str = DID_ego_to_did (ego);
-
-  printf ("%s\n", did_str);
-
-  GNUNET_SCHEDULER_add_now (&cleanup, NULL);
-  ret = 0;
-  return;
-}
-
-/**
- * @brief Get the DID for a given EGO
- *
- */
-static void
-get_did_for_ego ()
-{
-  if (egoname != NULL)
-  {
-    GNUNET_IDENTITY_ego_lookup (my_cfg,
-                                egoname,
-                                &get_did_for_ego_lookup_cb,
-                                NULL);
-  }
-  else {
-    printf ("Set the EGO argument to get the DID for a given EGO\n");
-    GNUNET_SCHEDULER_add_now (&cleanup, NULL);
-    ret = 1;
-    return;
-  }
-}
-
-
-/**
- * @brief Get the public key from did attribute given by the user
- *
- * @param pkey place to write the public key to
- */
-static void
-get_pkey_from_attr_did (struct GNUNET_IDENTITY_PublicKey *pkey)
-{
-  if (GNUNET_OK != DID_public_key_from_did (did, pkey))
-  {
-    fprintf (stderr, _("Invalid DID `%s'\n"), did);
-    GNUNET_SCHEDULER_add_now (cleanup, NULL);
-    ret = 1;
-    return;
-  }
-}
-
-/**
  * @brief GNS lookup callback. Prints the DID Document to standard out.
  * Fails if there is more than one DID record.
  *
@@ -223,32 +158,17 @@ get_pkey_from_attr_did (struct GNUNET_IDENTITY_PublicKey *pkey)
  */
 static void
 print_did_document (
-  void *cls,
-  uint32_t rd_count,
-  const struct GNUNET_GNSRECORD_Data *rd)
+  enum GNUNET_GenericReturnValue status,
+  char *did_document,
+  void *cls
+  )
 {
-  /*
-   * FIXME-MSC: The user may decide to put other records here.
-   * In general I am fine with the constraint here, but not when
-   * we move it to "@"
-   */
-  if (rd_count != 1)
-  {
-    printf ("An ego should only have one DID Document\n");
-    GNUNET_SCHEDULER_add_now (cleanup, NULL);
-    ret = 1;
-    return;
-  }
+  if (GNUNET_OK == status)
+    printf ("%s\n", did_document);
+  else
+    printf ("An error occured: %s\n", did_document);
 
-  if (rd[0].record_type == GNUNET_DNSPARSER_TYPE_TXT)
-  {
-    printf ("%s\n", (char *) rd[0].data);
-  }
-  else {
-    printf ("DID Document is not a TXT record\n");
-  }
-
-  GNUNET_SCHEDULER_add_now (&cleanup, NULL);
+  GNUNET_SCHEDULER_add_now (cleanup, NULL);
   ret = 0;
   return;
 }
@@ -257,7 +177,7 @@ print_did_document (
  * @brief Resolve a DID given by the user.
  */
 static void
-resolve_did_document ()
+resolve_did ()
 {
   struct GNUNET_IDENTITY_PublicKey pkey;
 
@@ -269,10 +189,13 @@ resolve_did_document ()
     return;
   }
 
-  get_pkey_from_attr_did (&pkey);
-
-  GNUNET_GNS_lookup (gns_handle, GNUNET_GNS_EMPTY_LABEL_AT, &pkey, GNUNET_DNSPARSER_TYPE_TXT,
-                     GNUNET_GNS_LO_DEFAULT, &print_did_document, NULL);
+  if (GNUNET_OK != DID_resolve (did, gns_handle, print_did_document, NULL))
+  {
+    printf ("An error occured while resoling the DID\n");
+    GNUNET_SCHEDULER_add_now (cleanup, NULL);
+    ret = 0;
+    return;
+  }
 }
 
 
@@ -320,7 +243,8 @@ remove_did_document_namestore_cb (void *cls, int32_t success, const char *emgs)
       ret = 0;
       return;
     }
-  } else {
+  }
+  else {
     printf ("Something went wrong when deleting the DID Document\n");
 
     if (emgs != NULL)
@@ -328,7 +252,7 @@ remove_did_document_namestore_cb (void *cls, int32_t success, const char *emgs)
       printf ("%s\n", emgs);
     }
 
-    GNUNET_SCHEDULER_add_now (&cleanup, NULL);
+    GNUNET_SCHEDULER_add_now (cleanup, NULL);
     ret = 0;
     return;
   }
@@ -382,256 +306,42 @@ remove_did_document (remove_did_document_callback cont, void *cls)
   }
 }
 
+// Needed because create_did_ego_lookup_cb() and
+// create_did_ego_create_cb() can call each other
+static void create_did_ego_lockup_cb ();
 
 /**
- * @brief Create a did generate did object
- *
- * @param pkey
- * @return void* Return pointer to the DID Document
- */
-char *
-create_did_generate (struct GNUNET_IDENTITY_PublicKey pkey)
-{
-  /* FIXME-MSC: I would prefer constants instead of magic numbers */
-  char *pkey_str;  // Convert public key to string
-  char did_str[71]; // 58 + 12 + 1 = 71
-  char *didd_str;
-  char verify_id_str[77]; // did_str len + "#key-1" = 71 + 6 = 77
-  char *pkey_multibase_str;
-
-  /* FIXME-MSC: This screams for a GNUNET_DID_identity_key_to_string() */
-  char *b64;
-  char pkx[34];
-  pkx[0] = 0xed;
-  pkx[1] = 0x01;
-  memcpy (pkx + 2, &(pkey.eddsa_key), sizeof(pkey.eddsa_key));
-  GNUNET_STRINGS_base64_encode (pkx, sizeof(pkx), &b64);
-
-  GNUNET_asprintf (&pkey_multibase_str, "u%s", b64);
-
-  json_t *didd;
-  json_t *did_json;
-  json_t *pkey_multibase_json;
-  json_t *context_json;
-  json_t *context_1_json;
-  json_t *context_2_json;
-  json_t *verify_json;
-  json_t *verify_1_json;
-  json_t *verify_1_type_json;
-  json_t *verify_1_id_json;
-  json_t *verify_relative_ref_json;
-  json_t *auth_json;
-  json_t *assert_json;
-
-  /* FIXME-MSC: This screams for GNUNET_DID_identity_to_did() */
-  pkey_str = GNUNET_IDENTITY_public_key_to_string (&pkey); // Convert public key to string
-  sprintf (did_str, "did:reclaim:%s", pkey_str); // Convert the public key to a DID str
-  sprintf (verify_id_str, "did:reclaim:%s#key-1", pkey_str); // Convert the public key to a DID str
-
-  // sprintf(pkey_multibase_str, "V%s", pkey_str); // Convert the public key to MultiBase data format
-
-  /* FIXME-MSC: This is effectively creating a DID Document default template for
-   * the initial document.
-   * Maybe this can be refactored to generate such a template for an identity?
-   * Even if higher layers add/modify it, there should probably still be a
-   * GNUNET_DID_document_template_from_identity()
-   */
-  // Create Json Strings
-  did_json = json_string (did_str);
-  pkey_multibase_json = json_string (pkey_multibase_str);
-
-  context_1_json = json_string ("https://www.w3.org/ns/did/v1");
-  context_2_json = json_string (
-    "https://w3id.org/security/suites/ed25519-2020/v1");
-  verify_1_id_json = json_string (verify_id_str);
-  verify_1_type_json = json_string ("Ed25519VerificationKey2020");
-
-  // Add a relative DID URL to reference a verifiation method
-  // https://www.w3.org/TR/did-core/#relative-did-urls`
-  verify_relative_ref_json = json_string ("#key-1");
-
-  // Create DID Document
-  didd = json_object ();
-
-  // Add context
-  context_json = json_array ();
-  json_array_append (context_json, context_1_json);
-  json_array_append (context_json, context_2_json);
-  json_object_set (didd, "@context", context_json);
-
-  // Add id
-  json_object_set (didd, "id", did_json);
-
-  // Add verification method
-  verify_json = json_array ();
-  verify_1_json = json_object ();
-  json_object_set (verify_1_json, "id", verify_1_id_json);
-  json_object_set (verify_1_json, "type", verify_1_type_json);
-  json_object_set (verify_1_json, "controller", did_json);
-  json_object_set (verify_1_json, "publicKeyMultiBase", pkey_multibase_json);
-  json_array_append (verify_json, verify_1_json);
-  json_object_set (didd, "verificationMethod", verify_json);
-
-  // Add authentication method
-  auth_json = json_array ();
-  json_array_append (auth_json, verify_relative_ref_json);
-  json_object_set (didd, "authentication", auth_json);
-
-  // Add assertion method to issue a Verifiable Credential
-  assert_json = json_array ();
-  json_array_append (assert_json, verify_relative_ref_json);
-  json_object_set (didd, "assertionMethod", assert_json);
-
-  // Encode DID Document as JSON string
-  didd_str = json_dumps (didd, JSON_INDENT (2));
-  if (didd_str == NULL)
-  {
-    printf ("DID Document could not be encoded");
-    GNUNET_SCHEDULER_add_now (&cleanup, NULL);
-    ret = 1;
-    return NULL;
-  }
-
-  // TODO: MORE FREEEEEEEE
-  /* FIXME-MSC: json_t's are free'd using "json_decref". Also json_t usually
-   * keeps a reference counter. Check jansson docs for how to use it.
-   * Also: Use valgrind to find leaks.
-   */
-  free (pkey_multibase_str);
-  free (b64);
-
-  free (didd);
-  free (did_json);
-  free (pkey_multibase_json);
-  free (context_json);
-  free (context_1_json);
-  free (context_2_json);
-  free (verify_json);
-  free (verify_1_json);
-  free (verify_1_type_json);
-  free (verify_1_id_json);
-  free (auth_json);
-  free (assert_json);
-  free (verify_relative_ref_json);
-
-  return didd_str;
-}
-
-/**
- * @brief Create a DID. Store DID in Namestore cb
+ * @brief Create a DID(-Document). Called after DID has been created
+ * Prints status and the DID.
  *
  */
 static void
-create_did_store_cb (void *cls, int32_t success, const char *emsg)
+create_did_cb (enum GNUNET_GenericReturnValue status, void *cls)
 {
+  if (GNUNET_OK == status)
+  {
+    printf ("DID has been created.\n%s\n", (char *) cls);
+    free (cls);
+    ret = 0;
+  }
+  else
+  {
+    printf ("An error occured while creating the DID.\n");
+    ret = 1;
+  }
+
   GNUNET_SCHEDULER_add_now (&cleanup, NULL);
-  ret = 0;
   return;
 }
 
 /**
- * @brief Create a did. Store DID in Namestore
- *
- * @param didd_str String endoced DID Docuement
- * @param ego Identity whos DID Document is stored
+ * @brief Create a DID(-Document) - Called after a new Identity has been created.
  */
 static void
-create_did_store (char *didd_str, struct GNUNET_IDENTITY_Ego *ego)
+create_did_ego_create_cb (void *cls,
+                          const struct GNUNET_IDENTITY_PrivateKey *pk,
+                          const char *emsg)
 {
-
-  struct GNUNET_TIME_Relative expire_time;
-  struct GNUNET_GNSRECORD_Data record_data;
-  const struct GNUNET_IDENTITY_PrivateKey *skey;
-
-  if (GNUNET_STRINGS_fancy_time_to_relative ((NULL != expire) ?
-                                             expire :
-                                             GNUNET_DID_DEFAULT_DID_DOCUMENT_EXPIRATION_TIME,
-                                             &expire_time) == GNUNET_OK)
-  {
-    record_data.data = didd_str;
-    record_data.expiration_time = expire_time.rel_value_us;
-    record_data.data_size = strlen (didd_str) + 1;
-    record_data.record_type = GNUNET_GNSRECORD_typename_to_number ("TXT"),
-    record_data.flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
-
-    skey = GNUNET_IDENTITY_ego_get_private_key (ego);
-
-    GNUNET_NAMESTORE_records_store (namestore_handle,
-                                    skey,
-                                    GNUNET_GNS_EMPTY_LABEL_AT,
-                                    1, //FIXME what if GNUNET_GNS_EMPTY_LABEL_AT has records
-                                    &record_data,
-                                    &create_did_store_cb,
-                                    NULL);
-  }
-  else {
-    printf ("Failed to read given expiration time\n");
-    GNUNET_SCHEDULER_add_now (&cleanup, NULL);
-    ret = 1;
-    return;
-  }
-}
-
-/**
- * @brief Create a did ego lockup cb
- *
- * @param cls
- * @param ego
- */
-static void
-create_did_ego_lockup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
-{
-  struct GNUNET_IDENTITY_PublicKey pkey;
-  char *didd_str;
-
-  if (ego == NULL)
-  {
-    printf ("EGO not found\n");
-    GNUNET_SCHEDULER_add_now (&cleanup, NULL);
-    ret = 1;
-    return;
-  }
-
-  GNUNET_IDENTITY_ego_get_public_key (ego, &pkey);
-
-  if (ntohl (pkey.type) != GNUNET_GNSRECORD_TYPE_EDKEY)
-  {
-    printf ("The EGO has to have an EDDSA key pair\n");
-    GNUNET_SCHEDULER_add_now (&cleanup, NULL);
-    ret = 1;
-    return;
-  }
-
-  if (didd != NULL)
-  {
-    printf (
-      "DID Docuement is read from \"did-document\" argument (EXPERIMENTAL)\n");
-    didd_str = strdup (didd);
-  }
-  else {
-    // Generate DID Docuement from public key
-    didd_str = create_did_generate (pkey);
-  }
-
-  // Print DID Document to stdout
-  printf ("%s\n", didd_str);
-
-  // Store the DID Document
-  create_did_store (didd_str, ego);
-
-  // Save DID Document String to GNS
-  free (didd_str);
-}
-
-/**
- * @brief Create a did document - Create a new identity first
- */
-static void
-create_did_document_ego_create_cb (void *cls,
-                                   const struct GNUNET_IDENTITY_PrivateKey *pk,
-                                   const char *emsg)
-{
-
   if (emsg != NULL)
   {
     printf ("%s\n", emsg);
@@ -647,28 +357,81 @@ create_did_document_ego_create_cb (void *cls,
 }
 
 /**
- * @brief Create a did document
+ * @brief Create a DID(-Document). Called after ego lookup
  *
  */
 static void
-create_did_document ()
+create_did_ego_lockup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 {
-  if ((egoname != NULL) && (expire != NULL))
+  if (ego == NULL)
   {
+    // If Ego was not found. Create new one first
+    printf ("Ego was not found. Creating new one.\n");
     GNUNET_IDENTITY_create (identity_handle,
                             egoname,
                             NULL,
                             GNUNET_IDENTITY_TYPE_EDDSA,
-                            &create_did_document_ego_create_cb,
+                            &create_did_ego_create_cb,
                             egoname);
   }
-  else {
-    printf (
-      "Set the EGO and the Expiration-time argument to create a new DID(-Document)\n");
+  else
+  {
+    char *did = DID_identity_to_did (ego);
+    void *cls = malloc (strlen (did) + 1);
+    struct GNUNET_TIME_Relative expire_relative;
+
+    if (expire == NULL)
+    {
+      GNUNET_STRINGS_fancy_time_to_relative (
+        DID_DOCUMENT_DEFAULT_EXPIRATION_TIME, &expire_relative);
+    }
+    else if (GNUNET_OK != GNUNET_STRINGS_fancy_time_to_relative (expire,
+                                                                 &
+                                                                 expire_relative))
+    {
+      printf ("Failed to read given expiration time\n");
+      GNUNET_SCHEDULER_add_now (cleanup, NULL);
+      ret = 1;
+      return;
+    }
+
+    strcpy (cls, did);
+    // TODO: Add DID_document argument
+    if (GNUNET_OK != DID_create (ego,
+                                 NULL,
+                                 &expire_relative,
+                                 namestore_handle,
+                                 create_did_cb,
+                                 cls))
+    {
+      printf ("An error occured while creating the DID.\n");
+      ret = 1;
+      GNUNET_SCHEDULER_add_now (&cleanup, NULL);
+      return;
+    }
+  }
+}
+
+/**
+ * @brief Create a DID(-Document).
+ *
+ */
+static void
+create_did ()
+{
+  // Ego name to be set
+  if (egoname == NULL)
+  {
+    printf ("Set the Ego argument to create a new DID(-Document)\n");
     GNUNET_SCHEDULER_add_now (&cleanup, NULL);
     ret = 1;
     return;
   }
+
+  GNUNET_IDENTITY_ego_lookup (my_cfg,
+                              egoname,
+                              &create_did_ego_lockup_cb,
+                              NULL);
 }
 
 
@@ -681,7 +444,7 @@ create_did_document ()
 static void
 replace_did_document_ego_lookup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 {
-  create_did_store (didd, ego);
+  // create_did_store (didd, ego);
 }
 
 /**
@@ -721,13 +484,15 @@ replace_did_document ()
 static void
 post_ego_iteration (void *cls)
 {
+  // TODO: Check that only one argument is set
+
   if (1 == replace)
   {
     replace_did_document ();
   }
   else if (1 == get)
   {
-    resolve_did_document ();
+    resolve_did ();
   }
   else if (1 == remove_did)
   {
@@ -735,7 +500,7 @@ post_ego_iteration (void *cls)
   }
   else if (1 == create)
   {
-    create_did_document ();
+    create_did ();
   }
   else {
     // No Argument found
@@ -760,19 +525,21 @@ process_dids (void *cls, struct GNUNET_IDENTITY_Ego *ego,
     GNUNET_SCHEDULER_add_now (&post_ego_iteration, NULL);
     return;
   }
-  if (NULL == name)
-    return;
-  if ((1 == create) &&
-      (0 == strncmp (name, egoname, strlen (egoname))) &&
-      (1 != ego_exists))
-  {
-    fprintf(stderr, "%s already exists!\n", egoname);
-    ego_exists = 1;
-    return;
-  }
+
+  // if (NULL == name)
+  //   return;
+  // if ((1 == create) &&
+  //     (0 == strncmp (name, egoname, strlen (egoname))) &&
+  //     (1 != ego_exists))
+  // {
+  //   fprintf (stderr, "%s already exists!\n", egoname);
+  //   ego_exists = 1;
+  //   return;
+  // }
+
   if (1 == show_all)
   {
-    did_str = DID_ego_to_did (ego);
+    did_str = DID_identity_to_did (ego);
     printf ("%s\n", did_str);
     GNUNET_free (did_str);
     return;
@@ -781,7 +548,7 @@ process_dids (void *cls, struct GNUNET_IDENTITY_Ego *ego,
   {
     if (0 == strncmp (name, egoname, strlen (egoname)))
     {
-      did_str = DID_ego_to_did (ego);
+      did_str = DID_identity_to_did (ego);
       printf ("%s\n", did_str);
       GNUNET_free (did_str);
       return;
@@ -839,10 +606,6 @@ main (int argc, char *const argv[])
                                gettext_noop (
                                  "Get the DID Document associated with the given DID"),
                                &get),
-    GNUNET_GETOPT_option_flag ('s',
-                               "show",
-                               gettext_noop ("Show the DID for a given ego"),
-                               &show),
     GNUNET_GETOPT_option_flag ('r',
                                "remove",
                                gettext_noop (
@@ -852,9 +615,13 @@ main (int argc, char *const argv[])
                                "replace",
                                gettext_noop ("Replace the DID Document."),
                                &replace),
+    GNUNET_GETOPT_option_flag ('s',
+                               "show",
+                               gettext_noop ("Show the DID for a given ego"),
+                               &show),
     GNUNET_GETOPT_option_flag ('A',
-                               "--show-all",
-                               gettext_noop ("Replace the DID Document."),
+                               "show-all",
+                               gettext_noop ("Show egos with DIDs"),
                                &show_all),
     GNUNET_GETOPT_option_string ('d',
                                  "did",
@@ -863,7 +630,7 @@ main (int argc, char *const argv[])
                                    "The Decentralized Identity (DID)"),
                                  &did),
     GNUNET_GETOPT_option_string ('D',
-                                 "--did-document",
+                                 "did-document",
                                  "JSON",
                                  gettext_noop (
                                    "The DID Document to store in GNUNET"),
@@ -885,8 +652,7 @@ main (int argc, char *const argv[])
   if (GNUNET_OK != GNUNET_PROGRAM_run (argc,
                                        argv,
                                        "gnunet-did",
-                                       _ (
-                                         "Manage Decentralized Identities (DIDs)"),
+                                       "Manage Decentralized Identities (DIDs)",
                                        options,
                                        &run,
                                        NULL))

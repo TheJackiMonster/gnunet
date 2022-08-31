@@ -1,3 +1,5 @@
 gnunet-reclaim
 gnunet-service-reclaim
 gnunet-did
+test_did_helper
+test_reclaim_attribute
