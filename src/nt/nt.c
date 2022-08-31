@@ -34,12 +34,6 @@
     GNUNET_TIME_UNIT_MINUTES, 2)
 
 
-/**
- * Convert a `enum GNUNET_NetworkType` to a string
- *
- * @param net the network type
- * @return a string or NULL if invalid
- */
 const char *
 GNUNET_NT_to_string (enum GNUNET_NetworkType net)
 {
