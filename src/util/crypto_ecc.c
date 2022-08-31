@@ -594,6 +594,70 @@ GNUNET_CRYPTO_ecdsa_sign_ (
   return GNUNET_OK;
 }
 
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_eddsa_sign_raw (
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
+  void *data,
+  size_t size,
+  struct GNUNET_CRYPTO_EddsaSignature *sig)
+{
+  unsigned char sk[crypto_sign_SECRETKEYBYTES];
+  unsigned char pk[crypto_sign_PUBLICKEYBYTES];
+  int res;
+
+  GNUNET_assert (0 == crypto_sign_seed_keypair (pk, sk, priv->d));
+  res = crypto_sign_detached ((uint8_t *) sig,
+                              NULL,
+                              (uint8_t *) data,
+                              size,
+                              sk);
+  return (res == 0) ? GNUNET_OK : GNUNET_SYSERR;
+}
+
+size_t
+GNUNET_CRYPTO_eddsa_signature_encode (
+  const struct GNUNET_CRYPTO_EddsaSignature *sig,
+  char **sig_str)
+{
+  return GNUNET_STRINGS_base64url_encode (
+    (void*) sig,
+    64,
+    sig_str);
+}
+
+size_t
+GNUNET_CRYPTO_eddsa_signature_decode (
+  const char *sig_str,
+  struct GNUNET_CRYPTO_EddsaSignature *sig)
+{
+  return GNUNET_STRINGS_base64url_decode (
+    sig_str, 
+    strlen (sig_str),
+    (void **) &sig);
+}
+
+size_t
+GNUNET_CRYPTO_ecdsa_signature_encode (
+  const struct GNUNET_CRYPTO_EcdsaSignature *sig,
+  char **sig_str)
+{
+  return GNUNET_STRINGS_base64url_encode (
+    (void*) sig,
+    64,
+    sig_str);
+}
+
+size_t
+GNUNET_CRYPTO_ecdsa_signature_decode (
+  const char *sig_str,
+  struct GNUNET_CRYPTO_EcdsaSignature *sig)
+{
+  return GNUNET_STRINGS_base64url_decode (
+    sig_str, 
+    strlen (sig_str),
+    (void **) &sig);
+}
+
 
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_sign_ (

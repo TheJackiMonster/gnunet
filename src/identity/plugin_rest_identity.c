@@ -28,6 +28,8 @@
 #include "gnunet_rest_plugin.h"
 #include "gnunet_identity_service.h"
 #include "gnunet_rest_lib.h"
+#include "identity.h"
+#include "gnunet_crypto_lib.h"
 #include "microhttpd.h"
 #include <jansson.h>
 
@@ -50,6 +52,11 @@
  * Identity Subsystem Namespace
  */
 #define GNUNET_REST_API_NS_IDENTITY_SUBSYSTEM "/identity/subsystem"
+
+/**
+ * Identity Namespace with sign specifier
+ */
+#define GNUNET_REST_API_NS_SIGN "/sign"
 
 /**
  * Parameter public key
@@ -1185,6 +1192,127 @@ ego_delete_name (struct GNUNET_REST_RequestHandle *con_handle,
                                        handle);
 }
 
+struct ego_sign_data_cls
+{
+  void *data;
+  struct RequestHandle *handle;
+};
+
+void
+ego_sign_data_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
+{
+  struct RequestHandle *handle = ((struct ego_sign_data_cls *) cls)->handle;
+  unsigned char *data
+    = (unsigned char *) ((struct ego_sign_data_cls *) cls)->data; // data is url decoded
+  struct MHD_Response *resp;
+  struct GNUNET_CRYPTO_EddsaSignature sig;
+  char *sig_str;
+  char *result;
+
+  if (ego == NULL)
+  {
+    handle->response_code = MHD_HTTP_BAD_REQUEST;
+    handle->emsg = GNUNET_strdup ("Ego not found");
+    GNUNET_SCHEDULER_add_now (&do_error, handle);
+    return;
+  }
+
+  if (ntohl (ego->pk.type) != GNUNET_IDENTITY_TYPE_EDDSA)
+  {
+    handle->response_code = MHD_HTTP_BAD_REQUEST;
+    handle->emsg = GNUNET_strdup ("Ego has to use an EdDSA key");
+    GNUNET_SCHEDULER_add_now (&do_error, handle);
+    return;
+  }
+
+  if ( GNUNET_OK != GNUNET_CRYPTO_eddsa_sign_raw (&(ego->pk.eddsa_key),
+                                                  (void *) data,
+                                                  strlen (data),
+                                                  &sig))
+  {
+    handle->response_code = MHD_HTTP_INTERNAL_SERVER_ERROR;
+    handle->emsg = GNUNET_strdup ("Signature creation failed");
+    GNUNET_SCHEDULER_add_now (&do_error, handle);
+    return;
+  }
+
+  sig_str = malloc (128);
+  GNUNET_CRYPTO_eddsa_signature_encode (
+    (const struct GNUNET_CRYPTO_EddsaSignature *) &sig,
+    &sig_str);
+
+  GNUNET_asprintf (&result,
+                   "{\"signature\": \"%s\"}",
+                   sig_str);
+
+  resp = GNUNET_REST_create_response (result);
+  handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
+
+  free (data);
+  free (sig_str);
+  free (result);
+  free (cls);
+  GNUNET_SCHEDULER_add_now (&cleanup_handle, handle);
+}
+
+/**
+ *
+ * @param con_handle the connection handle
+ * @param url the url
+ * @param cls the RequestHandle
+ */
+void
+ego_sign_data (struct GNUNET_REST_RequestHandle *con_handle,
+               const char *url,
+               void *cls)
+{
+  // TODO: replace with precompiler #define
+  const char *username_key = "user";
+  const char *data_key = "data";
+
+  struct RequestHandle *handle = cls;
+  struct MHD_Response *resp;
+  struct GNUNET_HashCode cache_key_username;
+  struct GNUNET_HashCode cache_key_data;
+  char *username;
+  char *data;
+  char *result;
+
+  struct ego_sign_data_cls *cls2;
+
+  GNUNET_CRYPTO_hash (username_key, strlen (username_key), &cache_key_username);
+  GNUNET_CRYPTO_hash (data_key, strlen (data_key), &cache_key_data);
+
+  if ((GNUNET_NO == GNUNET_CONTAINER_multihashmap_contains (
+         handle->rest_handle->url_param_map,
+         &cache_key_username)) ||
+      (GNUNET_NO == GNUNET_CONTAINER_multihashmap_contains (
+         handle->rest_handle->url_param_map,
+         &cache_key_data)))
+  {
+    handle->response_code = MHD_HTTP_BAD_REQUEST;
+    handle->emsg = GNUNET_strdup ("URL parameter missing");
+    GNUNET_SCHEDULER_add_now (&do_error, handle);
+    return;
+  }
+
+  username = (char *) GNUNET_CONTAINER_multihashmap_get (
+    handle->rest_handle->url_param_map,
+    &cache_key_username);
+
+  data = (char *) GNUNET_CONTAINER_multihashmap_get (
+    handle->rest_handle->url_param_map,
+    &cache_key_data);
+
+  cls2 = malloc (sizeof(struct ego_sign_data_cls));
+  cls2->data = (void *) GNUNET_strdup (data);
+  cls2->handle = handle;
+
+  GNUNET_IDENTITY_ego_lookup (cfg,
+                              username,
+                              ego_sign_data_cb,
+                              cls2);
+}
 
 /**
  * Respond to OPTIONS request
@@ -1335,6 +1463,7 @@ rest_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
       GNUNET_REST_API_NS_IDENTITY_NAME,
       &ego_delete_name },
     { MHD_HTTP_METHOD_OPTIONS, GNUNET_REST_API_NS_IDENTITY, &options_cont },
+    { MHD_HTTP_METHOD_GET, GNUNET_REST_API_NS_SIGN, &ego_sign_data},
     GNUNET_REST_HANDLER_END };
 
 

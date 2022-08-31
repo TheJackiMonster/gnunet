@@ -85,3 +85,5 @@ perf_malloc
 perf_mq
 perf_scheduler
 gnunet-base32
+test_crypto_cs
+test_crypto_ecc
