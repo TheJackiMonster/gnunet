@@ -117,11 +117,6 @@ GNUNET_OS_project_data_get ()
 }
 
 
-/**
- * Setup OS subsystem with project data.
- *
- * @param pd project data used to determine paths
- */
 void
 GNUNET_OS_init (const struct GNUNET_OS_ProjectData *pd)
 {

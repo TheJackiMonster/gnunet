@@ -164,15 +164,6 @@ struct GNUNET_HELPER_Handle
 };
 
 
-/**
- * Sends termination signal to the helper process.  The helper process is not
- * reaped; call GNUNET_HELPER_wait() for reaping the dead helper process.
- *
- * @param h the helper handle
- * @param soft_kill if GNUNET_YES, signals termination by closing the helper's
- *          stdin; GNUNET_NO to signal termination by sending SIGTERM to helper
- * @return #GNUNET_OK on success; #GNUNET_SYSERR on error
- */
 int
 GNUNET_HELPER_kill (struct GNUNET_HELPER_Handle *h, int soft_kill)
 {
@@ -213,14 +204,6 @@ GNUNET_HELPER_kill (struct GNUNET_HELPER_Handle *h, int soft_kill)
 }
 
 
-/**
- * Reap the helper process.  This call is blocking(!).  The helper process
- * should either be sent a termination signal before or should be dead before
- * calling this function
- *
- * @param h the helper handle
- * @return #GNUNET_OK on success; #GNUNET_SYSERR on error
- */
 int
 GNUNET_HELPER_wait (struct GNUNET_HELPER_Handle *h)
 {
@@ -475,22 +458,6 @@ restart_task (void *cls)
 }
 
 
-/**
- * Starts a helper and begins reading from it. The helper process is
- * restarted when it dies except when it is stopped using GNUNET_HELPER_stop()
- * or when the exp_cb callback is not NULL.
- *
- * @param with_control_pipe does the helper support the use of a control pipe for signalling?
- * @param binary_name name of the binary to run
- * @param binary_argv NULL-terminated list of arguments to give when starting the binary (this
- *                    argument must not be modified by the client for
- *                     the lifetime of the helper handle)
- * @param cb function to call if we get messages from the helper
- * @param exp_cb the exception callback to call. Set this to NULL if the helper
- *          process has to be restarted automatically when it dies/crashes
- * @param cb_cls closure for the above callback
- * @return the new Handle, NULL on error
- */
 struct GNUNET_HELPER_Handle *
 GNUNET_HELPER_start (int with_control_pipe,
                      const char *binary_name,
@@ -644,19 +611,6 @@ helper_write (void *cls)
 }
 
 
-/**
- * Send an message to the helper.
- *
- * @param h helper to send message to
- * @param msg message to send
- * @param can_drop can the message be dropped if there is already one in the queue?
- * @param cont continuation to run once the message is out (#GNUNET_OK on success, #GNUNET_NO
- *             if the helper process died, #GNUNET_SYSERR during #GNUNET_HELPER_destroy).
- * @param cont_cls closure for @a cont
- * @return NULL if the message was dropped,
- *         otherwise handle to cancel *cont* (actual transmission may
- *         not be abortable)
- */
 struct GNUNET_HELPER_SendHandle *
 GNUNET_HELPER_send (struct GNUNET_HELPER_Handle *h,
                     const struct GNUNET_MessageHeader *msg,
