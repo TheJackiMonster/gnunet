@@ -59,16 +59,6 @@ GNUNET_HELLO_address_get_size (const struct GNUNET_HELLO_Address *address)
 }
 
 
-/**
- * Allocate an address struct.
- *
- * @param peer the peer
- * @param transport_name plugin name
- * @param address binary address
- * @param address_length number of bytes in 'address'
- * @param local_info additional local information for the address
- * @return the address struct
- */
 struct GNUNET_HELLO_Address *
 GNUNET_HELLO_address_allocate (const struct GNUNET_PeerIdentity *peer,
                                const char *transport_name,
@@ -118,14 +108,6 @@ GNUNET_HELLO_address_copy (const struct GNUNET_HELLO_Address *address)
 }
 
 
-/**
- * Compare two addresses.  Does NOT compare the peer identity,
- * that is assumed already to match!
- *
- * @param a1 first address
- * @param a2 second address
- * @return 0 if the addresses are equal, -1 if a1<a2, 1 if a1>a2.
- */
 int
 GNUNET_HELLO_address_cmp (const struct GNUNET_HELLO_Address *a1,
                           const struct GNUNET_HELLO_Address *a2)
