@@ -174,16 +174,6 @@ GNUNET_GNSRECORD_value_to_string (uint32_t type,
 }
 
 
-/**
- * Convert human-readable version of a 'value' of a record to the binary
- * representation.
- *
- * @param type type of the record
- * @param s human-readable string
- * @param data set to value in binary encoding (will be allocated)
- * @param data_size set to number of bytes in @a data
- * @return #GNUNET_OK on success
- */
 int
 GNUNET_GNSRECORD_string_to_value (uint32_t type,
                                   const char *s,
@@ -207,12 +197,6 @@ GNUNET_GNSRECORD_string_to_value (uint32_t type,
 }
 
 
-/**
- * Convert a type name (e.g "AAAA") to the corresponding number.
- *
- * @param dns_typename name to convert
- * @return corresponding number, UINT32_MAX on error
- */
 uint32_t
 GNUNET_GNSRECORD_typename_to_number (const char *dns_typename)
 {

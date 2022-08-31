@@ -528,6 +528,7 @@ GNUNET_GNSRECORD_query_from_private_key (
 
 /**
  * Calculate the DHT query for a given @a label in a given @a zone.
+ * FIXME: We may want to plugin-ize this at some point.
  *
  * @param pub public key of the zone
  * @param label label of the record
