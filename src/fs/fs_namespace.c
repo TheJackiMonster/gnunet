@@ -423,21 +423,6 @@ sks_publish_cont (void *cls, const char *msg)
 }
 
 
-/**
- * Publish an SBlock on GNUnet.
- *
- * @param h handle to the file sharing subsystem
- * @param ns namespace to publish in
- * @param identifier identifier to use
- * @param update update identifier to use
- * @param meta metadata to use
- * @param uri URI to refer to in the SBlock
- * @param bo block options
- * @param options publication options
- * @param cont continuation
- * @param cont_cls closure for cont
- * @return NULL on error ('cont' will still be called)
- */
 struct GNUNET_FS_PublishSksContext *
 GNUNET_FS_publish_sks (struct GNUNET_FS_Handle *h,
                        const struct GNUNET_CRYPTO_EcdsaPrivateKey *ns,

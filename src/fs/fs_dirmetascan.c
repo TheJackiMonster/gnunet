@@ -112,14 +112,6 @@ GNUNET_FS_directory_scan_abort (struct GNUNET_FS_DirScanner *ds)
 }
 
 
-/**
- * Obtain the result of the scan after the scan has signalled
- * completion.  Must not be called prior to completion.  The 'ds' is
- * freed as part of this call.
- *
- * @param ds directory scanner structure
- * @return the results of the scan (a directory tree)
- */
 struct GNUNET_FS_ShareTreeItem *
 GNUNET_FS_directory_scan_get_result (struct GNUNET_FS_DirScanner *ds)
 {

@@ -2096,36 +2096,6 @@ create_download_context (struct GNUNET_FS_Handle *h,
 }
 
 
-/**
- * Download parts of a file.  Note that this will store
- * the blocks at the respective offset in the given file.  Also, the
- * download is still using the blocking of the underlying FS
- * encoding.  As a result, the download may *write* outside of the
- * given boundaries (if offset and length do not match the 32k FS
- * block boundaries). <p>
- *
- * This function should be used to focus a download towards a
- * particular portion of the file (optimization), not to strictly
- * limit the download to exactly those bytes.
- *
- * @param h handle to the file sharing subsystem
- * @param uri the URI of the file (determines what to download); CHK or LOC URI
- * @param meta known metadata for the file (can be NULL)
- * @param filename where to store the file, maybe NULL (then no file is
- *        created on disk and data must be grabbed from the callbacks)
- * @param tempname where to store temporary file data, not used if filename is non-NULL;
- *        can be NULL (in which case we will pick a name if needed); the temporary file
- *        may already exist, in which case we will try to use the data that is there and
- *        if it is not what is desired, will overwrite it
- * @param offset at what offset should we start the download (typically 0)
- * @param length how many bytes should be downloaded starting at offset
- * @param anonymity anonymity level to use for the download
- * @param options various options
- * @param cctx initial value for the client context for this download
- * @param parent parent download to associate this download with (use NULL
- *        for top-level downloads; useful for manually-triggered recursive downloads)
- * @return context that can be used to control this download
- */
 struct GNUNET_FS_DownloadContext *
 GNUNET_FS_download_start (struct GNUNET_FS_Handle *h,
                           const struct GNUNET_FS_Uri *uri,
@@ -2163,40 +2133,6 @@ GNUNET_FS_download_start (struct GNUNET_FS_Handle *h,
 }
 
 
-/**
- * Download parts of a file based on a search result.  The download
- * will be associated with the search result (and the association
- * will be preserved when serializing/deserializing the state).
- * If the search is stopped, the download will not be aborted but
- * be 'promoted' to a stand-alone download.
- *
- * As with the other download function, this will store
- * the blocks at the respective offset in the given file.  Also, the
- * download is still using the blocking of the underlying FS
- * encoding.  As a result, the download may *write* outside of the
- * given boundaries (if offset and length do not match the 32k FS
- * block boundaries). <p>
- *
- * The given range can be used to focus a download towards a
- * particular portion of the file (optimization), not to strictly
- * limit the download to exactly those bytes.
- *
- * @param h handle to the file sharing subsystem
- * @param sr the search result to use for the download (determines uri and
- *        meta data and associations)
- * @param filename where to store the file, maybe NULL (then no file is
- *        created on disk and data must be grabbed from the callbacks)
- * @param tempname where to store temporary file data, not used if filename is non-NULL;
- *        can be NULL (in which case we will pick a name if needed); the temporary file
- *        may already exist, in which case we will try to use the data that is there and
- *        if it is not what is desired, will overwrite it
- * @param offset at what offset should we start the download (typically 0)
- * @param length how many bytes should be downloaded starting at offset
- * @param anonymity anonymity level to use for the download
- * @param options various download options
- * @param cctx initial value for the client context for this download
- * @return context that can be used to control this download
- */
 struct GNUNET_FS_DownloadContext *
 GNUNET_FS_download_start_from_search (struct GNUNET_FS_Handle *h,
                                       struct GNUNET_FS_SearchResult *sr,

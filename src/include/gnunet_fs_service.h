@@ -111,7 +111,7 @@ typedef int
  * into HashMaps.  The key may change between FS implementations.
  *
  * @param uri uri to convert to a unique key
- * @param key wherer to store the unique key
+ * @param key where to store the unique key
  * @return #GNUNET_OK on success
  */
 int
