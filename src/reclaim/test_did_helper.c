@@ -41,7 +41,7 @@ static const char test_skey_bytes[32] = {
 
 // TODO: Create a did manual from private key / independet of implementation
 static const char *test_did =
-  "did:reclaim:000G0509BYD1MPAXVSTNV0KRD1JAT0YZMPJFQNM869B66S72PSF17K4Y8G";
+  "did:gns:000G0509BYD1MPAXVSTNV0KRD1JAT0YZMPJFQNM869B66S72PSF17K4Y8G";
 
 static const char *test_multibase_key =
   "u7QEJX5oaWV3edV2CeGhkrQPfpaT71ogyVmNk4rZeE8yeRA";
