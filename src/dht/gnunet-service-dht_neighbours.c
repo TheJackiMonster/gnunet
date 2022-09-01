@@ -2479,9 +2479,10 @@ process_reply_with_path (const struct GNUNET_DATACACHE_Block *bd,
                                                         + bd->put_path_length)];
     struct GNUNET_DATACACHE_Block bdx = *bd;
 
-    GNUNET_memcpy (xput_path,
-                   bd->put_path,
-                   bd->put_path_length * sizeof(struct GNUNET_DHT_PathElement));
+    if (NULL != bd->put_path)
+      GNUNET_memcpy (xput_path,
+                     bd->put_path,
+                     bd->put_path_length * sizeof(struct GNUNET_DHT_PathElement));
     GNUNET_memcpy (&xput_path[bd->put_path_length],
                    get_path,
                    get_path_length * sizeof(struct GNUNET_DHT_PathElement));
