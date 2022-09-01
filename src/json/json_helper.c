@@ -137,6 +137,7 @@ parse_fixed64_data (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Field `%s' has wrong length\n",
                 spec->field);
+    GNUNET_free (output);
     return GNUNET_SYSERR;
   }
   memcpy (spec->ptr,

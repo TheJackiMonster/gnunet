@@ -2168,27 +2168,27 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
                 void *cls)
 {
   struct RequestHandle *handle = cls;
-  const struct EgoEntry *ego_entry;
+  const struct EgoEntry *ego_entry = NULL;
   struct GNUNET_TIME_Relative expiration_time;
   struct GNUNET_RECLAIM_AttributeList *cl = NULL;
   struct GNUNET_RECLAIM_PresentationList *pl = NULL;
   struct GNUNET_RECLAIM_Ticket ticket;
   struct GNUNET_IDENTITY_PublicKey cid;
   struct GNUNET_HashCode cache_key;
-  struct MHD_Response *resp;
-  char *grant_type;
-  char *code;
-  char *json_response;
-  char *id_token;
-  char *access_token;
-  char *jwa;
-  char *jwt_secret;
+  struct MHD_Response *resp = NULL;
+  char *grant_type = NULL;
+  char *code = NULL;
+  char *json_response = NULL;
+  char *id_token = NULL;
+  char *access_token = NULL;
+  char *jwa = NULL;
+  char *jwt_secret = NULL;
   char *nonce = NULL;
-  char *code_verifier;
-  json_t *oidc_jwk;
-  char *oidc_jwk_path;
-  char *oidc_directory;
-  char *tmp_at;
+  char *code_verifier = NULL;
+  json_t *oidc_jwk = NULL;
+  char *oidc_jwk_path = NULL;
+  char *oidc_directory = NULL;
+  char *tmp_at = NULL;
 
   /*
    * Check Authorization
