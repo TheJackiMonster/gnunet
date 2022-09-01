@@ -614,50 +614,6 @@ GNUNET_CRYPTO_eddsa_sign_raw (
   return (res == 0) ? GNUNET_OK : GNUNET_SYSERR;
 }
 
-size_t
-GNUNET_CRYPTO_eddsa_signature_encode (
-  const struct GNUNET_CRYPTO_EddsaSignature *sig,
-  char **sig_str)
-{
-  return GNUNET_STRINGS_base64url_encode (
-    (void*) sig,
-    64,
-    sig_str);
-}
-
-size_t
-GNUNET_CRYPTO_eddsa_signature_decode (
-  const char *sig_str,
-  struct GNUNET_CRYPTO_EddsaSignature *sig)
-{
-  return GNUNET_STRINGS_base64url_decode (
-    sig_str, 
-    strlen (sig_str),
-    (void **) &sig);
-}
-
-size_t
-GNUNET_CRYPTO_ecdsa_signature_encode (
-  const struct GNUNET_CRYPTO_EcdsaSignature *sig,
-  char **sig_str)
-{
-  return GNUNET_STRINGS_base64url_encode (
-    (void*) sig,
-    64,
-    sig_str);
-}
-
-size_t
-GNUNET_CRYPTO_ecdsa_signature_decode (
-  const char *sig_str,
-  struct GNUNET_CRYPTO_EcdsaSignature *sig)
-{
-  return GNUNET_STRINGS_base64url_decode (
-    sig_str, 
-    strlen (sig_str),
-    (void **) &sig);
-}
-
 
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_sign_ (

@@ -1227,7 +1227,7 @@ ego_sign_data_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 
   if ( GNUNET_OK != GNUNET_CRYPTO_eddsa_sign_raw (&(ego->pk.eddsa_key),
                                                   (void *) data,
-                                                  strlen (data),
+                                                  strlen ( (char*) data),
                                                   &sig))
   {
     handle->response_code = MHD_HTTP_INTERNAL_SERVER_ERROR;
@@ -1236,10 +1236,9 @@ ego_sign_data_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
     return;
   }
 
-  sig_str = malloc (128);
-  GNUNET_CRYPTO_eddsa_signature_encode (
-    (const struct GNUNET_CRYPTO_EddsaSignature *) &sig,
-    &sig_str);
+  GNUNET_STRINGS_base64url_encode (&sig,
+                                   sizeof (struct GNUNET_CRYPTO_EddsaSignature),
+                                   &sig_str);
 
   GNUNET_asprintf (&result,
                    "{\"signature\": \"%s\"}",
