@@ -393,17 +393,6 @@ GNUNET_TESTBED_host_create (const char *hostname,
 }
 
 
-/**
- * Load a set of hosts from a configuration file.
- *
- * @param filename file with the host specification
- * @param cfg the configuration to use as a template while starting a controller
- *          on any of the loaded hosts.  Operation queue sizes specific to a host
- *          are also read from this configuration handle
- * @param hosts set to the hosts found in the file; caller must free this if
- *          number of hosts returned is greater than 0
- * @return number of hosts returned in 'hosts', 0 on error
- */
 unsigned int
 GNUNET_TESTBED_hosts_load_from_file (
   const char *filename,

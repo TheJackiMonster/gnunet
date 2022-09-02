@@ -1917,21 +1917,6 @@ GNUNET_TESTBED_get_slave_config_ (void *op_cls,
 }
 
 
-/**
- * Function to acquire the configuration of a running slave controller. The
- * completion of the operation is signalled through the controller_cb from
- * GNUNET_TESTBED_controller_connect(). If the operation is successful the
- * handle to the configuration is available in the generic pointer of
- * operation_finished field of struct GNUNET_TESTBED_EventInformation.
- *
- * @param op_cls the closure for the operation
- * @param master the handle to master controller
- * @param slave_host the host where the slave controller is running; the handle
- *          to the slave_host should remain valid until this operation is
- *          cancelled or marked as finished
- * @return the operation handle; NULL if the slave_host is not registered at
- *           master
- */
 struct GNUNET_TESTBED_Operation *
 GNUNET_TESTBED_get_slave_config (void *op_cls,
                                  struct GNUNET_TESTBED_Controller *master,
@@ -1946,15 +1931,6 @@ GNUNET_TESTBED_get_slave_config (void *op_cls,
 }
 
 
-/**
- * Ask the testbed controller to write the current overlay topology to
- * a file.  Naturally, the file will only contain a snapshot as the
- * topology may evolve all the time.
- *
- * @param controller overlay controller to inspect
- * @param filename name of the file the topology should
- *        be written to.
- */
 void
 GNUNET_TESTBED_overlay_write_topology_to_file (
   struct GNUNET_TESTBED_Controller *controller,

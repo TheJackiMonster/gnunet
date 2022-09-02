@@ -160,17 +160,6 @@ mq_error_handler (void *cls,
 }
 
 
-/**
- * Wait for a barrier to be crossed.  This function should be called by the
- * peers which have been started by the testbed.  If the peer is not started by
- * testbed this function may return error
- *
- * @param name the name of the barrier
- * @param cb the barrier wait callback
- * @param cb_cls the closure for @a cb
- * @return barrier wait handle which can be used to cancel the waiting at
- *   anytime before the callback is called.  NULL upon error.
- */
 struct GNUNET_TESTBED_BarrierWaitHandle *
 GNUNET_TESTBED_barrier_wait (const char *name,
                              GNUNET_TESTBED_barrier_wait_cb cb,
