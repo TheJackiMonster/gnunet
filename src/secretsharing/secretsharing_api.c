@@ -316,19 +316,6 @@ handle_decrypt_done (void *cls,
 }
 
 
-/**
- * Publish the given ciphertext for decryption.  Once a sufficient (>=k) number of peers has
- * published the same value, it will be decrypted.
- *
- * When the operation is canceled, the decrypt_cb is not called anymore, but the calling
- * peer may already have irrevocably contributed its share for the decryption of the value.
- *
- * @param share our secret share to use for decryption
- * @param ciphertext ciphertext to publish in order to decrypt it (if enough peers agree)
- * @param decrypt_cb callback called once the decryption succeeded
- * @param decrypt_cb_cls closure for @a decrypt_cb
- * @return handle to cancel the operation
- */
 struct GNUNET_SECRETSHARING_DecryptionHandle *
 GNUNET_SECRETSHARING_decrypt (const struct GNUNET_CONFIGURATION_Handle *cfg,
                               struct GNUNET_SECRETSHARING_Share *share,
