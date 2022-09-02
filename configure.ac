@@ -729,7 +729,7 @@ AS_IF([test "x$gnurl" = "x0"],
   [LIBCURL_CHECK_CONFIG([], [7.34.0], [curl=1], [curl=0])
    AS_IF([test "x$curl" = "x0"],
      [AC_CHECK_HEADER([curl/curl.h],
-        [AC_CHECK_DECLS([CURLINFO_TLS_SESSION],
+        [AC_CHECK_DECLS([CURLINFO_TLS_SSL_PTR],
                         [curl=1],
                         [curl=0],
                         [[#include <curl/curl.h>]])])

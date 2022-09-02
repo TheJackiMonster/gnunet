@@ -970,7 +970,7 @@ check_ssl_certificate (struct Socks5Request *s5r)
               "Checking X.509 certificate\n");
   if (CURLE_OK !=
       curl_easy_getinfo (s5r->curl,
-                         CURLINFO_TLS_SESSION,
+                         CURLINFO_TLS_SSL_PTR,
                          &tlsinfo))
     return GNUNET_SYSERR;
   if (CURLSSLBACKEND_GNUTLS != tlsinfo->backend)
