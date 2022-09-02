@@ -314,7 +314,7 @@ extract_search_domain (const char *line, size_t line_len)
  * Reads the list of nameservers from /etc/resolve.conf
  *
  * @param server_addrs[out] a list of null-terminated server address strings
- * @return the number of server addresses in @server_addrs, -1 on error
+ * @return the number of server addresses in @a server_addrs, -1 on error
  */
 static int
 lookup_dns_servers (char ***server_addrs)

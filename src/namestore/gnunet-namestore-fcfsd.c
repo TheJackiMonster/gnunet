@@ -1137,7 +1137,7 @@ run_service (void *cls,
  * The main function of the fcfs daemon.
  *
  * @param argc number of arguments from the command line
- * @parsm argv the command line arguments
+ * @param argv the command line arguments
  * @return 0 successful exit, a different value otherwise
  */
 int

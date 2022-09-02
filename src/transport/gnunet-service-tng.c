@@ -3247,7 +3247,7 @@ struct MonitorEvent
 
 
 /**
- * Free a @dvh. Callers MAY want to check if this was the last path to the
+ * Free a @a dvh. Callers MAY want to check if this was the last path to the
  * `target`, and if so call #free_dv_route to also free the associated DV
  * entry in #dv_routes (if not, the associated scheduler job should eventually
  * take care of it).
@@ -7550,7 +7550,7 @@ check_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
 
 /**
  * Create a DV Box message and queue it for transmission to
- * @ea next_hop.
+ * @a next_hop.
  *
  * @param next_hop peer to receive the message next
  * @param total_hops how many hops did the message take so far

@@ -1157,7 +1157,7 @@ GCCH_handle_channel_open_ack (
  * @param cls closure, to a flag where we indicate duplicate packets
  * @param m1 a message of to sort
  * @param m2 another message to sort
- * @return #GNUNET_YES if @e1 < @e2, otherwise #GNUNET_NO
+ * @return #GNUNET_YES if @a e1 < @a e2, otherwise #GNUNET_NO
  */
 static int
 is_before (void *cls,
@@ -1645,7 +1645,7 @@ GCCH_handle_remote_destroy (
  * @param cls closure, to a flag where we indicate duplicate packets
  * @param crm1 an element of to sort
  * @param crm2 another element to sort
- * @return #GNUNET_YES if @e1 < @e2, otherwise #GNUNET_NO
+ * @return #GNUNET_YES if @a e1 < @a e2, otherwise #GNUNET_NO
  */
 static int
 cmp_crm_by_next_retry (void *cls,

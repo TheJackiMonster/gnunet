@@ -1199,7 +1199,7 @@ handle_core_connect (void *cls,
  *
  * @param cls closure
  * @param peer peer identity this notification is about
- * @parma internal_cls the `struct NSEPeerEntry` for the @a peer
+ * @param internal_cls the `struct NSEPeerEntry` for the @a peer
  */
 static void
 handle_core_disconnect (void *cls,

@@ -119,7 +119,7 @@ struct GNUNET_DHTU_PluginEnvironment
    * @param cls the closure
    * @param target handle to the target,
    *    pointer will remain valid until @e disconnect_cb is called
-   * @para pid peer identity,
+   * @param pid peer identity,
    *    pointer will remain valid until @e disconnect_cb is called
    * @param[out] ctx storage space for DHT to use in association with this target
    */

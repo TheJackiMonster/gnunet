@@ -723,8 +723,8 @@ issue_ticket_result_cb (void *cls,
 /**
  * Check issue ticket message
  *
- * @cls unused
- * @im message to check
+ * @param cls unused
+ * @param im message to check
  * @return GNUNET_OK if message is ok
  */
 static int
@@ -937,7 +937,7 @@ check_consume_ticket_message (void *cls, const struct ConsumeTicketMessage *cm)
  * Handle a consume ticket message
  *
  * @param cls our client handle
- * @cm the message to handle
+ * @param cm the message to handle
  */
 static void
 handle_consume_ticket_message (void *cls, const struct ConsumeTicketMessage *cm)
@@ -1686,8 +1686,8 @@ attr_delete_cont (void *cls, int32_t success, const char *emsg)
 /**
  * Check attribute delete message format
  *
- * @cls unused
- * @dam message to check
+ * @param cls unused
+ * @param dam message to check
  */
 static int
 check_attribute_delete_message (void *cls,
@@ -1777,8 +1777,8 @@ cred_delete_cont (void *cls, int32_t success, const char *emsg)
 /**
  * Check credential delete message format
  *
- * @cls unused
- * @dam message to check
+ * @param cls unused
+ * @param dam message to check
  */
 static int
 check_credential_delete_message (void *cls,

@@ -253,7 +253,7 @@ my_nc (void *cls,
  *
  * @param cls our `struct GNUNET_TRANSPORT_TESTING_InternalPeerContext *`
  * @param peer peer we got disconnected from
- * @param custom_cls return value from @my_nc
+ * @param custom_cls return value from @a my_nc
  */
 static void
 my_nd (void *cls,

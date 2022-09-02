@@ -174,7 +174,7 @@ GNUNET_CONFIGURATION_serialize_diagnostics (
  * @param mem the memory block of serialized configuration
  * @param size the size of the memory block
  * @param source_filename source filename, will be used
- *        to resolve relative @INLINE@ statements
+ *        to resolve relative \@INLINE\@ statements
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
 enum GNUNET_GenericReturnValue

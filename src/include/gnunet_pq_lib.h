@@ -118,7 +118,7 @@ GNUNET_PQ_query_param_null (void);
  * @a ptr_size bytes.
  *
  * @param ptr pointer to the query parameter to pass
- * @oaran ptr_size number of bytes in @a ptr
+ * @param ptr_size number of bytes in @a ptr
  * @return query parameter to use
  */
 struct GNUNET_PQ_QueryParam
@@ -895,14 +895,14 @@ enum GNUNET_PQ_Options
  * configuration.  Initialize logging via GNUnet's log routines and disable
  * Postgres's logger.  Also ensures that the statements in @a load_path and @a
  * es are executed whenever we (re)connect to the database, and that the
- * prepared statements in @a ps are "ready".  If statements in @es fail that
+ * prepared statements in @a ps are "ready".  If statements in @a es fail that
  * were created with #GNUNET_PQ_make_execute(), then the entire operation
  * fails.
  *
  * In @a load_path, a list of "$XXXX.sql" files is expected where $XXXX
  * must be a sequence of contiguous integer values starting at 0000.
  * These files are then loaded in sequence using "psql $config_str" before
- * running statements from @e es.  The directory is inspected again on
+ * running statements from @a es.  The directory is inspected again on
  * reconnect.
  *
  * @param config_str configuration to use
@@ -939,7 +939,7 @@ GNUNET_PQ_exec_sql (struct GNUNET_PQ_Context *db,
  * configuration.  Initialize logging via GNUnet's log routines and disable
  * Postgres's logger.  Also ensures that the statements in @a load_path and @a
  * es are executed whenever we (re)connect to the database, and that the
- * prepared statements in @a ps are "ready".  If statements in @es fail that
+ * prepared statements in @a ps are "ready".  If statements in @a es fail that
  * were created with #GNUNET_PQ_make_execute(), then the entire operation
  * fails.
  *

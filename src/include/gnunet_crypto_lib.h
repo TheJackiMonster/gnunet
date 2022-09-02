@@ -2432,7 +2432,7 @@ GNUNET_CRYPTO_paillier_encrypt (
  * @param private_key Private key to use for decryption.
  * @param public_key Public key to use for decryption.
  * @param ciphertext Ciphertext to decrypt.
- * @param[out] m Decryption of @a ciphertext with @private_key.
+ * @param[out] m Decryption of @a ciphertext with @a private_key.
  */
 void
 GNUNET_CRYPTO_paillier_decrypt (

@@ -1671,7 +1671,7 @@ cleanup_iter (struct RECLAIM_TICKETS_Iterator *iter)
 
 
 /**
- * Return each record of type @GNUNET_GNSRECORD_TYPE_RECLAIM_TICKET
+ * Return each record of type #GNUNET_GNSRECORD_TYPE_RECLAIM_TICKET
  * to the caller and proceed with the iteration.
  * FIXME: Should we _not_ proceed automatically here?
  *

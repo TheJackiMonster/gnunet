@@ -169,7 +169,7 @@ struct CadetTunnelAxolotl
    * 32-byte chain keys (used for forward-secrecy) for
    * receiving messages. Updated for every message. If
    * messages are skipped, the respective derived MKs
-   * (and the current @HKr) are kept in the @e skipped_head DLL.
+   * (and the current @e HKr) are kept in the @e skipped_head DLL.
    */
   struct GNUNET_CRYPTO_SymmetricSessionKey CKr;
 

@@ -272,7 +272,7 @@ GNUNET_BLOCK_group_set_seen (struct GNUNET_BLOCK_Group *bg,
 
 /**
  * Try merging two block groups.  Afterwards, @a bg1 should remain
- * valid and contain the rules from both @a bg1 and @bg2, and
+ * valid and contain the rules from both @a bg1 and @a bg2, and
  * @a bg2 should be destroyed (as part of this call).  The latter
  * should happen even if merging is not supported.
  *

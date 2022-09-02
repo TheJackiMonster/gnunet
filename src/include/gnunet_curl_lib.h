@@ -224,7 +224,7 @@ typedef void
  *           be executed AND cleaned up
  * @param jcc callback to invoke upon completion
  * @param jcc_cls closure for @a jcc
- * @return NULL on error (in this case, @eh is still released!)
+ * @return NULL on error (in this case, @a eh is still released!)
  */
 struct GNUNET_CURL_Job *
 GNUNET_CURL_job_add (struct GNUNET_CURL_Context *ctx,
@@ -246,7 +246,7 @@ GNUNET_CURL_job_add (struct GNUNET_CURL_Context *ctx,
  *           be executed AND cleaned up
  * @param jcc callback to invoke upon completion
  * @param jcc_cls closure for @a jcc
- * @return NULL on error (in this case, @eh is still released!)
+ * @return NULL on error (in this case, @a eh is still released!)
  */
 struct GNUNET_CURL_Job *
 GNUNET_CURL_job_add_with_ct_json (struct GNUNET_CURL_Context *ctx,
@@ -304,7 +304,7 @@ GNUNET_CURL_set_tlscert (struct GNUNET_CURL_Context *ctx,
  * @param job_headers extra headers to add for this request
  * @param jcc callback to invoke upon completion
  * @param jcc_cls closure for @a jcc
- * @return NULL on error (in this case, @eh is still released!)
+ * @return NULL on error (in this case, @a eh is still released!)
  */
 struct GNUNET_CURL_Job *
 GNUNET_CURL_job_add2 (struct GNUNET_CURL_Context *ctx,
@@ -327,7 +327,7 @@ GNUNET_CURL_job_add2 (struct GNUNET_CURL_Context *ctx,
  * @param max_reply_size largest acceptable response body
  * @param jcc callback to invoke upon completion
  * @param jcc_cls closure for @a jcc
- * @return NULL on error (in this case, @eh is still released!)
+ * @return NULL on error (in this case, @a eh is still released!)
  */
 struct GNUNET_CURL_Job *
 GNUNET_CURL_job_add_raw (struct GNUNET_CURL_Context *ctx,
