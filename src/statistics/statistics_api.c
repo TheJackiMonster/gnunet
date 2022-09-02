@@ -1061,18 +1061,6 @@ schedule_action (void *cls)
 }
 
 
-/**
- * Get statistic from the peer.
- *
- * @param handle identification of the statistics service
- * @param subsystem limit to the specified subsystem, NULL for our subsystem
- * @param name name of the statistic value, NULL for all values
- * @param cont continuation to call when done (can be NULL)
- *        This callback CANNOT destroy the statistics handle in the same call.
- * @param proc function to call on each value
- * @param cls closure for @a cont and @a proc
- * @return NULL on error
- */
 struct GNUNET_STATISTICS_GetHandle *
 GNUNET_STATISTICS_get (struct GNUNET_STATISTICS_Handle *handle,
                        const char *subsystem,
@@ -1114,12 +1102,6 @@ GNUNET_STATISTICS_get (struct GNUNET_STATISTICS_Handle *handle,
 }
 
 
-/**
- * Cancel a 'get' request.  Must be called before the 'cont'
- * function is called.
- *
- * @param gh handle of the request to cancel
- */
 void
 GNUNET_STATISTICS_get_cancel (struct GNUNET_STATISTICS_GetHandle *gh)
 {
@@ -1321,15 +1303,6 @@ add_setter_action (struct GNUNET_STATISTICS_Handle *h,
 }
 
 
-/**
- * Set statistic value for the peer.  Will always use our
- * subsystem (the argument used when "handle" was created).
- *
- * @param handle identification of the statistics service
- * @param name name of the statistic value
- * @param value new value to set
- * @param make_persistent should the value be kept across restarts?
- */
 void
 GNUNET_STATISTICS_set (struct GNUNET_STATISTICS_Handle *handle,
                        const char *name,
@@ -1347,15 +1320,6 @@ GNUNET_STATISTICS_set (struct GNUNET_STATISTICS_Handle *handle,
 }
 
 
-/**
- * Set statistic value for the peer.  Will always use our
- * subsystem (the argument used when "handle" was created).
- *
- * @param handle identification of the statistics service
- * @param name name of the statistic value
- * @param delta change in value (added to existing value)
- * @param make_persistent should the value be kept across restarts?
- */
 void
 GNUNET_STATISTICS_update (struct GNUNET_STATISTICS_Handle *handle,
                           const char *name,
