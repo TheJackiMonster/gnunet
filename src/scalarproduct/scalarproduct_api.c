@@ -210,17 +210,6 @@ mq_error_handler (void *cls,
 }
 
 
-/**
- * Used by Bob's client to cooperate with Alice,
- *
- * @param cfg the gnunet configuration handle
- * @param key Session key unique to the requesting client
- * @param elements Array of elements of the vector
- * @param element_count Number of elements in the @a elements vector
- * @param cont Callback function
- * @param cont_cls Closure for @a cont
- * @return a new handle for this computation
- */
 struct GNUNET_SCALARPRODUCT_ComputationHandle *
 GNUNET_SCALARPRODUCT_accept_computation (
   const struct GNUNET_CONFIGURATION_Handle *cfg,
@@ -368,18 +357,6 @@ process_result_message (struct GNUNET_SCALARPRODUCT_ComputationHandle *h,
 }
 
 
-/**
- * Request by Alice's client for computing a scalar product
- *
- * @param cfg the gnunet configuration handle
- * @param session_key Session key should be unique to the requesting client
- * @param peer PeerID of the other peer
- * @param elements Array of elements of the vector
- * @param element_count Number of elements in the @a elements vector
- * @param cont Callback function
- * @param cont_cls Closure for @a cont
- * @return a new handle for this computation
- */
 struct GNUNET_SCALARPRODUCT_ComputationHandle *
 GNUNET_SCALARPRODUCT_start_computation (
   const struct GNUNET_CONFIGURATION_Handle *cfg,
