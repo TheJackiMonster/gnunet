@@ -46,14 +46,6 @@ GNUNET_SQ_make_prepare (const char *sql,
 }
 
 
-/**
- * Prepare all statements given in the (NULL,NULL)-terminated
- * array at @a ps
- *
- * @param dbh database to use
- * @param ps array of statements to prepare
- * @return #GNUNET_OK on success
- */
 int
 GNUNET_SQ_prepare (sqlite3 *dbh,
                    const struct GNUNET_SQ_PrepareStatement *ps)
