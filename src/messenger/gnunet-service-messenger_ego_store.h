@@ -180,7 +180,7 @@ delete_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
 
 /**
  * Updates the location of a registered EGO in a <i>store</i> to
- * a different one under a specific <i>new_identifier<i> replacing
+ * a different one under a specific <i>new_identifier</i> replacing
  * its old one.
  *
  * @param[in/out] store EGO-store

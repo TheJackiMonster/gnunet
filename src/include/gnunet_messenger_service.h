@@ -792,7 +792,7 @@ const struct GNUNET_IDENTITY_PublicKey*
 GNUNET_MESSENGER_contact_get_key (const struct GNUNET_MESSENGER_Contact *contact);
 
 /**
- * Send a <i>message</i> into a </i>room</i>. If you opened the <i>room</i> all entered members will receive the
+ * Send a <i>message</i> into a <i>room</i>. If you opened the <i>room</i> all entered members will receive the
  * <i>message</i>. If you entered the <i>room</i> through a <b>door</b> all so entered <b>doors</b> will receive the
  * <i>message</i> as well. All members receiving the <i>message</i> will also propagate this <i>message</i> recursively
  * as long as the <i>message</i> is unknown to them.

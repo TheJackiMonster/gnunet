@@ -488,7 +488,8 @@ derive_aes_key (const struct GNUNET_PeerIdentity *sender,
  * @param iv initialization vector to use
  * @param in ciphertext
  * @param out plaintext
- * @param size size of @a in/@a out
+ * @param size size of @a in / @a out
+ *
  * @return #GNUNET_OK on success
  */
 static int

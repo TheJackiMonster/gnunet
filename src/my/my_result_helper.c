@@ -531,7 +531,7 @@ pre_extract_string (void *cls,
 
 
 /**
- * Check size of extracted fixed size data from a Mysql database @a
+ * Check size of extracted fixed size data from a Mysql database 
  *
  * @param cls closure
  * @param[in,out] rs

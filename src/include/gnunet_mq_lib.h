@@ -601,6 +601,7 @@ struct GNUNET_MQ_MessageHandler
  *                         "context"),
  *   GNUNET_MQ_handler_end()
  * };
+ * </code>
  *
  * @param name unique basename for the functions
  * @param code message type constant
