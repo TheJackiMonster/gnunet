@@ -417,13 +417,12 @@ GNUNET_TESTING_cmd_stop_testing_system (
   const char *helper_start_label,
   struct GNUNET_TESTING_NetjailTopology *topology);
 
-
 /**
  * Create a GNUNET_CMDS_LOCAL_FINISHED message.
  *
  * @param rv The result of the local test as GNUNET_GenericReturnValue.
  * @return The GNUNET_CMDS_LOCAL_FINISHED message.
-*/
+ */
 struct GNUNET_MessageHeader *
 GNUNET_TESTING_send_local_test_finished_msg (enum GNUNET_GenericReturnValue rv);
 
