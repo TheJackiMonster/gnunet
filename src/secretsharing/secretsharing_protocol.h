@@ -108,22 +108,22 @@ struct GNUNET_SECRETSHARING_DecryptData
    */
   struct GNUNET_PeerIdentity peer;
   /**
-   * Partial decryption, computed as c_1^{s_i}
+   * Partial decryption, computed as \f$c_1^{s_i}\f$
    */
   struct GNUNET_SECRETSHARING_FieldElement partial_decryption;
   /**
    * Commitment for the non-interactive zero knowledge proof.
-   * g^\beta, with \beta < q
+   * \f$g^\beta\f$, with \f$\beta < q\f$
    */
   struct GNUNET_SECRETSHARING_FieldElement nizk_commit1;
   /**
    * Commitment for the non-interactive zero knowledge proof.
-   * c_1^\beta, with \beta < q
+   * \f$c_1^\beta\f$, with \f$\beta < q\f$
    */
   struct GNUNET_SECRETSHARING_FieldElement nizk_commit2;
   /**
    * Response to the challenge computed from the protocol transcript.
-   * r = \beta + challenge \cdot share_i
+   * \f$r = \beta + challenge \cdot share_i\f$
    */
   struct GNUNET_SECRETSHARING_FieldElement nizk_response;
 };
