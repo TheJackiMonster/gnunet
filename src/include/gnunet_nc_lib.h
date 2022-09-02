@@ -104,4 +104,6 @@ GNUNET_notification_context_get_size (struct GNUNET_NotificationContext *nc);
 
 #endif
 
+/** @} */ /* end of group mq */
+
 /** @} */ /* end of group addition */

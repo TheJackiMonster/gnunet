@@ -238,3 +238,5 @@ GNUNET_GNS_lookup_with_tld_cancel (struct GNUNET_GNS_LookupWithTldRequest *ltr);
 #endif
 
 /** @} */ /* end of group */
+
+/** @} */ /* end of group addition */

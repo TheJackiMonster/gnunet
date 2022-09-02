@@ -449,6 +449,8 @@ GNUNET_SERVICE_client_persist (struct GNUNET_SERVICE_Client *c);
 
 /** @} */  /* end of group service */
 
-/** @} */ /* end of group addition */
+/** @} */ /* end of group addition to networking*/
+
+/** @} */ /* end of group addition to libgnunetutil */
 
 /* end of gnunet_service_lib.h */
