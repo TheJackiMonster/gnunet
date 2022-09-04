@@ -4668,7 +4668,7 @@ dv_hmac (const struct DVKeyState *key,
  * Perform backchannel encryption using symmetric secret in @a key
  * to encrypt data from @a in to @a dst.
  *
- * @param key[in,out] key material to use
+ * @param[in,out] key key material to use
  * @param dst where to write the result
  * @param in input data to encrypt (plaintext)
  * @param in_size number of bytes of input in @a in and available at @a dst
@@ -4685,9 +4685,9 @@ dv_encrypt (struct DVKeyState *key, const void *in, void *dst, size_t in_size)
  * Perform backchannel encryption using symmetric secret in @a key
  * to encrypt data from @a in to @a dst.
  *
- * @param key[in,out] key material to use
+ * @param[in,out] key key material to use
  * @param ciph cipher text to decrypt
- * @param out[out] output data to generate (plaintext)
+ * @param[out] out output data to generate (plaintext)
  * @param out_size number of bytes of input in @a ciph and available in @a out
  */
 static void

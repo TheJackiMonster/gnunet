@@ -699,11 +699,6 @@ GNUNET_SERVER_suspend (struct GNUNET_SERVER_Handle *server)
 }
 
 
-/**
- * Resume accepting connections from the listen socket.
- *
- * @param server server to stop accepting connections.
- */
 void
 GNUNET_SERVER_resume (struct GNUNET_SERVER_Handle *server)
 {
@@ -1620,21 +1615,6 @@ transmit_ready_callback_wrapper (void *cls, size_t size, void *buf)
 }
 
 
-/**
- * Notify us when the server has enough space to transmit
- * a message of the given size to the given client.
- *
- * @param client client to transmit message to
- * @param size requested amount of buffer space
- * @param timeout after how long should we give up (and call
- *        notify with buf NULL and size 0)?
- * @param callback function to call when space is available
- * @param callback_cls closure for @a callback
- * @return non-NULL if the notify callback was queued; can be used
- *         to cancel the request using
- *         #GNUNET_SERVER_notify_transmit_ready_cancel().
- *         NULL if we are already going to notify someone else (busy)
- */
 struct GNUNET_SERVER_TransmitHandle *
 GNUNET_SERVER_notify_transmit_ready (struct GNUNET_SERVER_Client *client,
                                      size_t size,

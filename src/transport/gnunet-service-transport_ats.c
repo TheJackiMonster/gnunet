@@ -477,13 +477,6 @@ GST_ats_add_inbound_address (const struct GNUNET_HELLO_Address *address,
 }
 
 
-/**
- * Notify ATS about the new address including the network this address is
- * located in.  The address must NOT be inbound and must be new to ATS.
- *
- * @param address the address
- * @param prop performance information
- */
 void
 GST_ats_add_address (const struct GNUNET_HELLO_Address *address,
                      const struct GNUNET_ATS_Properties *prop)
@@ -755,13 +748,6 @@ GST_ats_update_distance (const struct GNUNET_HELLO_Address *address,
 }
 
 
-/**
- * Notify ATS about @a delay changes to properties of an @a address.
- * Does nothing if the @a address is not known to us.
- *
- * @param address the address
- * @param delay new delay value
- */
 void
 GST_ats_update_delay (const struct GNUNET_HELLO_Address *address,
                       struct GNUNET_TIME_Relative delay)

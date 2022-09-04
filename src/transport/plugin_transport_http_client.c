@@ -556,7 +556,6 @@ client_reschedule_session_timeout (struct GNUNET_ATS_Session *s)
  * Task performing curl operations
  *
  * @param cls plugin as closure
- * @param tc gnunet scheduler task context
  */
 static void
 client_run (void *cls);
@@ -1289,11 +1288,6 @@ client_receive (void *stream,
 }
 
 
-/**
- * Task performing curl operations
- *
- * @param cls plugin as closure
- */
 static void
 client_run (void *cls)
 {

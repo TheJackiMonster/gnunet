@@ -110,7 +110,7 @@ GST_ats_add_inbound_address (const struct GNUNET_HELLO_Address *address,
 
 
 /**
- * Notify ATS about a new address including the network this address is
+ * Notify ATS about a new address including the network the address is
  * located in.  The address must NOT be inbound and must be new to ATS.
  *
  * @param address the address
@@ -154,7 +154,6 @@ GST_ats_update_utilization (const struct GNUNET_HELLO_Address *address,
  * Does nothing if the @a address is not known to us.
  *
  * @param address the address
- * @param session the session
  * @param delay new delay value
  */
 void

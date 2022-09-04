@@ -360,8 +360,9 @@ typedef void
  * @param cfg configuration to use
  * @param peer a specific peer identity to obtain information for,
  *      NULL for all peers
- * @param one_shot #GNUNET_YES to return the current state and then end (with
- * NULL+NULL), #GNUNET_NO to monitor peers continuously
+ * @param one_shot #GNUNET_YES to return the current state and 
+ *                 then end (with NULL+NULL), 
+ *                 #GNUNET_NO to monitor peers continuously
  * @param peer_callback function to call with the results
  * @param peer_callback_cls closure for @a peer_callback
  */

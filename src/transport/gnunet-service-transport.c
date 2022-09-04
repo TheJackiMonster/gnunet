@@ -2486,11 +2486,6 @@ GST_blacklist_test_allowed (const struct GNUNET_PeerIdentity *peer,
 }
 
 
-/**
- * Cancel a blacklist check.
- *
- * @param bc check to cancel
- */
 void
 GST_blacklist_test_cancel (struct GST_BlacklistCheck *bc)
 {
