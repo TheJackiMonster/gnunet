@@ -295,11 +295,6 @@ GST_forwarded_operation_reply_relay (void *cls,
 }
 
 
-/**
- * Task to free resources when forwarded operation has been timed out
- *
- * @param cls the ForwardedOperationContext
- */
 void
 GST_forwarded_operation_timeout (void *cls)
 {

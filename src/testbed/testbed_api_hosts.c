@@ -215,13 +215,6 @@ GNUNET_TESTBED_host_create_by_id_ (
 }
 
 
-/**
- * Obtain the host's unique global ID.
- *
- * @param host handle to the host, NULL means 'localhost'
- * @return id global host ID assigned to the host (0 is
- *         'localhost', but then obviously not globally unique)
- */
 uint32_t
 GNUNET_TESTBED_host_get_id_ (const struct GNUNET_TESTBED_Host *host)
 {

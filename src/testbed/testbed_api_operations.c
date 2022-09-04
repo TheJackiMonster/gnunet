@@ -1039,14 +1039,6 @@ GNUNET_TESTBED_operation_create_ (void *cls, OperationStart start,
 }
 
 
-/**
- * Create an operation queue.
- *
- * @param type the type of operation queue
- * @param max_active maximum number of operations in this
- *        queue that can be active in parallel at the same time
- * @return handle to the queue
- */
 struct OperationQueue *
 GNUNET_TESTBED_operation_queue_create_ (enum OperationQueueType type,
                                         unsigned int max_active)

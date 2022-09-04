@@ -2146,13 +2146,6 @@ GNUNET_TESTBED_extract_config_ (const struct GNUNET_MessageHeader *msg)
 }
 
 
-/**
- * Checks the integrity of the OperationFailureEventMessage and if good returns
- * the error message it contains.
- *
- * @param msg the OperationFailureEventMessage
- * @return the error message
- */
 const char *
 GNUNET_TESTBED_parse_error_string_ (
   const struct GNUNET_TESTBED_OperationFailureEventMessage *msg)
@@ -2327,22 +2320,6 @@ GNUNET_TESTBED_barrier_remove_ (struct GNUNET_TESTBED_Barrier *barrier)
 }
 
 
-/**
- * Initialise a barrier and call the given callback when the required percentage
- * of peers (quorum) reach the barrier OR upon error.
- *
- * @param controller the handle to the controller
- * @param name identification name of the barrier
- * @param quorum the percentage of peers that is required to reach the barrier.
- *   Peers signal reaching a barrier by calling
- *   GNUNET_TESTBED_barrier_reached().
- * @param cb the callback to call when the barrier is reached or upon error.
- *   Cannot be NULL.
- * @param cls closure for the above callback
- * @param echo GNUNET_YES to echo the barrier crossed status message back to the
- *   controller
- * @return barrier handle; NULL upon error
- */
 struct GNUNET_TESTBED_Barrier *
 GNUNET_TESTBED_barrier_init_ (struct GNUNET_TESTBED_Controller *controller,
                               const char *name,

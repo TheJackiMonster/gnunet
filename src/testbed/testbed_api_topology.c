@@ -637,18 +637,6 @@ gen_topo_ring (struct TopologyContext *tc)
 }
 
 
-/**
- * Returns the number of links that are required to generate a 2d torus for the
- * given number of peers. Also returns the arrangement (number of rows and the
- * length of each row)
- *
- * @param num_peers number of peers
- * @param rows number of rows in the 2d torus. Can be NULL
- * @param rows_len the length of each row. This array will be allocated
- *          fresh. The caller should free it. Can be NULL
- * @return the number of links that are required to generate a 2d torus for the
- *           given number of peers
- */
 unsigned int
 GNUNET_TESTBED_2dtorus_calc_links (unsigned int num_peers, unsigned int *rows,
                                    unsigned int **rows_len)
@@ -1454,15 +1442,6 @@ GNUNET_TESTBED_overlay_configure_topology (void *op_cls,
 }
 
 
-/**
- * Get a topology from a string input.
- *
- * @param topology where to write the retrieved topology
- * @param topology_string The string to attempt to
- *        get a configuration value from
- * @return #GNUNET_YES if topology string matched a
- *         known topology, #GNUNET_NO if not
- */
 int
 GNUNET_TESTBED_topology_get_ (enum GNUNET_TESTBED_TopologyOption *topology,
                               const char *topology_string)
