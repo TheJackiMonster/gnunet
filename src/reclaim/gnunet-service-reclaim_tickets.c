@@ -568,7 +568,6 @@ rvk_ns_err (void *cls)
  * want to revoke.
  * When we are done, we need to update any other ticket which
  * included references to any of the changed attributes.
- * (Implementation further below)
  *
  * @param rvk handle to the operation
  */
@@ -757,14 +756,6 @@ rvk_move_attr_cb (void *cls,
 }
 
 
-/**
- * We change every attribute ID of the ticket attributes we
- * want to revoke.
- * When we are done, we need to update any other ticket which
- * included references to any of the changed attributes.
- *
- * @param rvk handle to the operation
- */
 static void
 move_attrs (struct RECLAIM_TICKETS_RevokeHandle *rvk)
 {

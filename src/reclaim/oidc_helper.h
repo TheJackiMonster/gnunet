@@ -162,7 +162,7 @@ OIDC_access_token_new (const struct GNUNET_RECLAIM_Ticket *ticket);
  * Parse an access token
  */
 int
-OIDC_access_token_parse (const char*token,
+OIDC_access_token_parse (const char *token,
                          struct GNUNET_RECLAIM_Ticket **ticket);
 
 
