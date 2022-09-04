@@ -384,28 +384,6 @@ GNUNET_VPN_cancel_request (struct GNUNET_VPN_RedirectionRequest *rr)
 }
 
 
-/**
- * Tell the VPN that a forwarding to a particular peer offering a
- * particular service is requested.  The VPN is to reserve a
- * particular IP for the redirection and return it.  The VPN will
- * begin the redirection as soon as possible and maintain it as long
- * as it is actively used and keeping it is feasible.  Given resource
- * limitations, the longest inactive mappings will be destroyed.
- *
- * @param vh VPN handle
- * @param result_af desired address family for the returned allocation
- *                  can also be AF_UNSPEC
- * @param protocol protocol, IPPROTO_UDP or IPPROTO_TCP
- * @param peer target peer for the redirection
- * @param serv service descriptor to give to the peer
- * @param expiration_time at what time should the redirection expire?
- *        (this should not impact connections that are active at that time)
- * @param cb function to call with the IP
- * @param cb_cls closure for @a cb
- * @return handle to cancel the request (means the callback won't be
- *         invoked anymore; the mapping may or may not be established
- *         anyway)
- */
 struct GNUNET_VPN_RedirectionRequest *
 GNUNET_VPN_redirect_to_peer (struct GNUNET_VPN_Handle *vh,
                              int result_af,
