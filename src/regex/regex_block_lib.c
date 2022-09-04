@@ -110,14 +110,6 @@ GNUNET_BLOCK_is_accepting (const struct RegexBlock *block,
 }
 
 
-/**
- * Check if the given 'proof' matches the given 'key'.
- *
- * @param proof partial regex of a state
- * @param proof_len number of bytes in 'proof'
- * @param key hash of a state.
- * @return #GNUNET_OK if the proof is valid for the given key.
- */
 int
 REGEX_BLOCK_check_proof (const char *proof,
                          size_t proof_len,
@@ -187,18 +179,6 @@ check_edge (void *cls,
 }
 
 
-/**
- * Check if the regex block is well formed, including all edges.
- *
- * @param block The start of the block.
- * @param size The size of the block.
- * @param query the query for the block
- * @param xquery String describing the edge we are looking for.
- *               Can be NULL in case this is a put block.
- * @return #GNUNET_OK in case it's fine.
- *         #GNUNET_NO in case the xquery exists and is not found (IRRELEVANT).
- *         #GNUNET_SYSERR if the block is invalid.
- */
 int
 REGEX_BLOCK_check (const struct RegexBlock *block,
                    size_t size,
@@ -246,14 +226,6 @@ REGEX_BLOCK_check (const struct RegexBlock *block,
 }
 
 
-/**
- * Obtain the key that a particular block is to be stored under.
- *
- * @param block block to get the key from
- * @param block_len number of bytes in block
- * @param key where to store the key
- * @return #GNUNET_OK on success, #GNUNET_SYSERR if the block is malformed
- */
 int
 REGEX_BLOCK_get_key (const struct RegexBlock *block,
                      size_t block_len,
@@ -289,21 +261,6 @@ REGEX_BLOCK_get_key (const struct RegexBlock *block,
 }
 
 
-/**
- * Iterate over all edges of a block of a regex state.
- *
- * @param block Block to iterate over.
- * @param size Size of @a block.
- * @param iterator Function to call on each edge in the block.
- * @param iter_cls Closure for the @a iterator.
- * @return #GNUNET_SYSERR if an error has been encountered.
- *         #GNUNET_OK if no error has been encountered.
- *           Note that if the iterator stops the iteration by returning
- *         #GNUNET_NO, the block will no longer be checked for further errors.
- *           The return value will be GNUNET_OK meaning that no errors were
- *         found until the edge last notified to the iterator, but there might
- *         be errors in further edges.
- */
 int
 REGEX_BLOCK_iterate (const struct RegexBlock *block,
                      size_t size,
