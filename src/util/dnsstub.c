@@ -387,7 +387,7 @@ do_dns_read (struct GNUNET_DNSSTUB_RequestSocket *rs,
 /**
  * Read a DNS response from the (unhindered) UDP-Socket
  *
- * @param cls socket to read from
+ * @param cls `struct GNUNET_DNSSTUB_RequestSocket` to read from
  */
 static void
 read_response (void *cls);
@@ -421,11 +421,6 @@ schedule_read (struct GNUNET_DNSSTUB_RequestSocket *rs)
 }
 
 
-/**
- * Read a DNS response from the (unhindered) UDP-Socket
- *
- * @param cls `struct GNUNET_DNSSTUB_RequestSocket` to read from
- */
 static void
 read_response (void *cls)
 {
