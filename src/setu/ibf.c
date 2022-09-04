@@ -216,18 +216,6 @@ ibf_is_empty (struct InvertibleBloomFilter *ibf)
 }
 
 
-/**
- * Decode and remove an element from the IBF, if possible.
- *
- * @param ibf the invertible bloom filter to decode
- * @param ret_side sign of the cell's count where the decoded element came from.
- *                 A negative sign indicates that the element was recovered
- *                 resides in an IBF that was previously subtracted from.
- * @param ret_id receives the hash code of the decoded element, if successful
- * @return #GNUNET_YES if decoding an element was successful,
- *         #GNUNET_NO if the IBF is empty,
- *         #GNUNET_SYSERR if the decoding has failed
- */
 int
 ibf_decode (struct InvertibleBloomFilter *ibf,
             int *ret_side,
