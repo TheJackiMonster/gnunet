@@ -715,7 +715,6 @@ GNUNET_MY_result_spec_uint16 (uint16_t *u16)
  * Extract data from a  MYSQL database @a result at row @a row
  *
  * @param cls closure
- * @param cls closure
  * @param[in,out] rs
  * @param stmt the mysql statement that is being run
  * @param column the column that is being processed
@@ -745,7 +744,6 @@ pre_extract_uint32 (void *cls,
 /**
  * Extract data from a  MYSQL database @a result at row @a row
  *
- * @param cls closure
  * @param cls closure
  * @param[in,out] rs
  * @param stmt the mysql statement that is being run
