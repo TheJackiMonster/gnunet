@@ -10,13 +10,12 @@ install-data-hook:
 	mkdir -p $(DESTDIR)$(docdir)
 	cp -pr sphinx/_build/html $(DESTDIR)$(docdir)
 
-if INCLUDE_MANPAGES
-# FIXME this is somehow broken on openbsd. See #7324
-if !OPENBSD
 sphinx/_build/man/gnunet.1: Makefile
 	cd sphinx && make man
+
+if INCLUDE_MANPAGES
+# FIXME this is somehow broken on openbsd. See #7324
 man_MANS = sphinx/_build/man/gnunet.1
-endif
 SUBDIRS += man
 endif
 endif
