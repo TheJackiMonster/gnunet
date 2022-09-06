@@ -42,19 +42,8 @@ dist_pkgcfg_DATA = \
 lib_LTLIBRARIES = \
   libgnunetgns.la
 
-
 if HAVE_GNUTLS
-if HAVE_LIBGNURL
-  DO_PROXY=gnunet-gns-proxy
-LIB_GNURL=@LIBGNURL@
-CPP_GNURL=@LIBGNURL_CPPFLAGS@
-else
-if HAVE_LIBCURL
-  DO_PROXY=gnunet-gns-proxy
-LIB_GNURL=@LIBCURL@
-CPP_GNURL=@LIBCURL_CPPFLAGS@
-endif
-endif
+DO_PROXY=gnunet-gns-proxy
 endif
 
 libexec_PROGRAMS = \
@@ -177,7 +166,7 @@ endif
 
 gnunet_gns_proxy_SOURCES = \
  gnunet-gns-proxy.c
-gnunet_gns_proxy_LDADD = $(MHD_LIBS) $(LIB_GNURL) -lgnutls \
+gnunet_gns_proxy_LDADD = $(MHD_LIBS) @LIBCURL@ -lgnutls \
   libgnunetgns.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/util/libgnunetutil.la \
@@ -185,14 +174,14 @@ gnunet_gns_proxy_LDADD = $(MHD_LIBS) $(LIB_GNURL) -lgnutls \
 if HAVE_GNUTLS_DANE
 gnunet_gns_proxy_LDADD += -lgnutls-dane
 endif
-gnunet_gns_proxy_CFLAGS = $(MHD_CFLAGS) $(CPP_GNURL) $(AM_CFLAGS)
+gnunet_gns_proxy_CFLAGS = $(MHD_CFLAGS) @LIBCURL_CPPFLAGS@ $(AM_CFLAGS)
 
 test_gns_proxy_SOURCES = \
   test_gns_proxy.c
-test_gns_proxy_LDADD = $(MHD_LIBS) $(LIB_GNURL) -lgnutls \
+test_gns_proxy_LDADD = $(MHD_LIBS) @LIBCURL@ -lgnutls \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(GN_LIBINTL)
-test_gns_proxy_CFLAGS = $(MHD_CFLAGS) $(CPP_GNURL) $(AM_CFLAGS)
+test_gns_proxy_CFLAGS = $(MHD_CFLAGS) @LIBCURL_CPPFLAGS@ $(AM_CFLAGS)
 
 #gnunet_gns_import_SOURCES = \
 #  gnunet-gns-import.c
@@ -247,10 +236,8 @@ libgnunet_plugin_block_gns_la_LDFLAGS = \
   $(GN_PLUGIN_LDFLAGS)
 
 if HAVE_GNUTLS
-if HAVE_LIBGNURL
 check_PROGRAMS = \
   test_gns_proxy
-endif
 endif
 
 check_SCRIPTS = \
@@ -273,10 +260,8 @@ check_SCRIPTS = \
   test_gns_redirect_lookup.sh
 
 if HAVE_GNUTLS
-if HAVE_LIBGNURL
 check_SCRIPTS += \
   test_proxy.sh
-endif
 endif
 check_SCRIPTS += \
   test_plugin_rest_gns.sh

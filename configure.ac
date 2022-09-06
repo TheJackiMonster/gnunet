@@ -719,35 +719,21 @@ AS_IF([test "x$pulse" != "x1" || test "x$opus" != "x1" || test "x$ogg" != "x1"],
 AM_CONDITIONAL([BUILD_CONVERSATION], [test "x$conversation_backend" != "xnone"])
 AC_MSG_RESULT([$conversation_backend])
 
-# check for libgnurl
-LIBGNURL_CHECK_CONFIG([], [7.34.0],
-                      [gnurl=1
-                       curl=0],
-                      [gnurl=0
-                       curl=0])
-AS_IF([test "x$gnurl" = "x0"],
-  [LIBCURL_CHECK_CONFIG([], [7.34.0], [curl=1], [curl=0])
-   AS_IF([test "x$curl" = "x0"],
-     [AC_CHECK_HEADER([curl/curl.h],
-        [AC_CHECK_DECLS([CURLINFO_TLS_SSL_PTR],
-                        [curl=1],
-                        [curl=0],
-                        [[#include <curl/curl.h>]])])
-      AC_CHECK_LIB([curl-gnutls],
-                   [curl_easy_getinfo],
-                   [curl_gnutls=1],
-                   [curl_gnutls=0])])
-   AS_IF([test "x$curl" = "x0" || test "x$curl_gnutls" = "x0"],
-     [AC_MSG_ERROR([cURL must have a version >= 7.34.0 and must support CURLINFO_TLS_SESSION])])])
+AC_CHECK_LIB([curl-gnutls],
+             [curl_easy_getinfo],
+             [curl_gnutls=1
+              LIBCURL="-lcurl-gnutls"
+              ],
+             [curl_gnutls=0])
 
-AS_IF([test "x$gnurl" = "x0" && test "x$curl" = "x0"],
-  [AC_MSG_ERROR([either gnurl or cURL must be available])])
+LIBCURL_CHECK_CONFIG([], [7.34.0], [],
+                     [AC_MSG_ERROR([cURL must have a version >= 7.34.0])])
 
-AM_CONDITIONAL([HAVE_LIBGNURL], [test "x$gnurl" = "x1"])
-AC_DEFINE_UNQUOTED([HAVE_LIBGNURL], [$gnurl], [Define to 1 if libgnurl is used])
-AM_CONDITIONAL([HAVE_LIBCURL], [test "x$curl" = "x1"])
-AC_DEFINE_UNQUOTED([HAVE_LIBCURL], [$curl], [Define to 0 if libcurl is used])
-
+AC_CHECK_HEADER([curl/curl.h],
+                [AC_CHECK_DECLS([CURLINFO_TLS_SSL_PTR],
+                                [],
+                                [AC_MSG_ERROR([cURL must support CURLINFO_TLS_SSL_PTR])],
+                                [[#include <curl/curl.h>]])])
 # libatomic
 AC_SEARCH_LIBS([__atomic_load_8], [atomic],
                [have_libatomic=1
@@ -1506,11 +1492,9 @@ AS_IF([test "x$png" = "x1"],
   [libpng_msg="no"])
 
 # curl or gnurl
-AS_IF([test "x$gnurl" = "x1"],
-  [http_client="gnurl"],
-  [AS_IF([test "x$curl_gnutls" = "x1"],
-     [http_client="curl-gnutls"],
-     [http_client="curl-openssl"])])
+AS_IF([test "x$curl_gnutls" = "x1"],
+      [http_client="curl-gnutls"],
+      [http_client="curl-openssl"])
 
 # ifconfig
 AS_IF([test "x$IFCONFIG_BINARY" = "xfalse"],

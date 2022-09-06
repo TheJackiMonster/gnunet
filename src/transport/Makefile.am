@@ -16,63 +16,28 @@ HTTPS_SERVER_PLUGIN_LA = libgnunet_plugin_transport_https_server.la
 HTTP_SERVER_PLUGIN_TEST = test_plugin_http_server
 HTTPS_SERVER_PLUGIN_TEST = test_plugin_https_server
 
-if HAVE_LIBGNURL
- HTTP_CLIENT_PLUGIN_TEST = test_plugin_http_client
- HTTPS_CLIENT_PLUGIN_TEST = test_plugin_https_client
- HTTP_CLIENT_PLUGIN_LA = libgnunet_plugin_transport_http_client.la
- HTTPS_CLIENT_PLUGIN_LA = libgnunet_plugin_transport_https_client.la
-LIB_GNURL=@LIBGNURL@
-CPP_GNURL=@LIBGNURL_CPPFLAGS@
-else
-if HAVE_LIBCURL
- HTTP_CLIENT_PLUGIN_TEST = test_plugin_http_client
- HTTPS_CLIENT_PLUGIN_TEST = test_plugin_https_client
- HTTP_CLIENT_PLUGIN_LA = libgnunet_plugin_transport_http_client.la
- HTTPS_CLIENT_PLUGIN_LA = libgnunet_plugin_transport_https_client.la
-LIB_GNURL=@LIBCURL@
-CPP_GNURL=@LIBCURL_CPPFLAGS@
-endif
-endif
+HTTP_CLIENT_PLUGIN_TEST = test_plugin_http_client
+HTTPS_CLIENT_PLUGIN_TEST = test_plugin_https_client
+HTTP_CLIENT_PLUGIN_LA = libgnunet_plugin_transport_http_client.la
+HTTPS_CLIENT_PLUGIN_LA = libgnunet_plugin_transport_https_client.la
 
-if HAVE_LIBGNURL
- HTTP_API_TEST = test_transport_api_http
- HTTP_REVERSE_API_TEST = test_transport_api_http_reverse
- HTTP_API_TIMEOUT_TEST = test_transport_api_timeout_http
- HTTP_REL_TEST = test_transport_api_reliability_http \
+HTTP_API_TEST = test_transport_api_http
+HTTP_REVERSE_API_TEST = test_transport_api_http_reverse
+HTTP_API_TIMEOUT_TEST = test_transport_api_timeout_http
+HTTP_REL_TEST = test_transport_api_reliability_http \
 		 test_transport_api_reliability_http_xhr
- HTTP_QUOTA_TEST = test_quota_compliance_http \
+HTTP_QUOTA_TEST = test_quota_compliance_http \
 		   test_quota_compliance_http_asymmetric
- HTTP_SWITCH = test_transport_address_switch_http
- HTTPS_API_TEST = test_transport_api_https
- HTTPS_API_TIMEOUT_TEST = test_transport_api_timeout_https
+HTTP_SWITCH = test_transport_address_switch_http
+HTTPS_API_TEST = test_transport_api_https
+HTTPS_API_TIMEOUT_TEST = test_transport_api_timeout_https
 if HAVE_EXPERIMENTAL
  HTTPS_REL_TEST = test_transport_api_reliability_https \
 		  test_transport_api_reliability_https_xhr
 endif
- HTTPS_QUOTA_TEST = test_quota_compliance_https \
+HTTPS_QUOTA_TEST = test_quota_compliance_https \
 		test_quota_compliance_https_asymmetric
- HTTPS_SWITCH = test_transport_address_switch_https
-else
-if HAVE_LIBCURL
- HTTP_API_TEST = test_transport_api_http
- HTTP_REVERSE_API_TEST = test_transport_api_http_reverse
- HTTP_API_TIMEOUT_TEST = test_transport_api_timeout_http
- HTTP_REL_TEST = test_transport_api_reliability_http \
-		 test_transport_api_reliability_http_xhr
- HTTP_QUOTA_TEST = test_quota_compliance_http \
-		   test_quota_compliance_http_asymmetric
- HTTP_SWITCH = test_transport_address_switch_http
- HTTPS_API_TEST = test_transport_api_https
- HTTPS_API_TIMEOUT_TEST = test_transport_api_timeout_https
-if HAVE_EXPERIMENTAL
- HTTPS_REL_TEST = test_transport_api_reliability_https \
-		  test_transport_api_reliability_https_xhr
-endif
- HTTPS_QUOTA_TEST = test_quota_compliance_https \
-		test_quota_compliance_https_asymmetric
- HTTPS_SWITCH = test_transport_address_switch_https
-endif
-endif
+HTTPS_SWITCH = test_transport_address_switch_https
 
 if USE_COVERAGE
   AM_CFLAGS = --coverage -O0
@@ -555,13 +520,13 @@ libgnunet_plugin_transport_http_client_la_LIBADD = \
   $(top_builddir)/src/hello/libgnunethello.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/peerinfo/libgnunetpeerinfo.la \
-  $(LIB_GNURL) \
+  @LIBCURL@ \
   $(top_builddir)/src/util/libgnunetutil.la
 libgnunet_plugin_transport_http_client_la_LDFLAGS = \
   $(GN_LIBINTL) \
   $(GN_PLUGIN_LDFLAGS)
 libgnunet_plugin_transport_http_client_la_CFLAGS = \
- $(CPP_GNURL) $(AM_CFLAGS)
+ @LIBCURL_CPPFLAGS@ $(AM_CFLAGS)
 
 
 libgnunet_plugin_transport_http_server_la_SOURCES = \
@@ -585,13 +550,13 @@ libgnunet_plugin_transport_https_client_la_LIBADD = \
   $(top_builddir)/src/hello/libgnunethello.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/peerinfo/libgnunetpeerinfo.la \
-  $(LIB_GNURL) \
+  @LIBCURL@ \
   $(top_builddir)/src/util/libgnunetutil.la
 libgnunet_plugin_transport_https_client_la_LDFLAGS = \
   $(GN_LIBINTL) \
   $(GN_PLUGIN_LDFLAGS)
 libgnunet_plugin_transport_https_client_la_CFLAGS = \
- $(CPP_GNURL) $(AM_CFLAGS) -DBUILD_HTTPS
+ @LIBCURL_CPPFLAGS@ $(AM_CFLAGS) -DBUILD_HTTPS
 
 
 libgnunet_plugin_transport_https_server_la_SOURCES = \

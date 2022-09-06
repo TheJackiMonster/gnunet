@@ -45,17 +45,6 @@ test_json_LDADD = \
   -ljansson
 
 
-if HAVE_LIBGNURL
-LIB_GNURL=@LIBGNURL@
-CPP_GNURL=@LIBGNURL_CPPFLAGS@
-else
-if HAVE_LIBCURL
-LIB_GNURL=@LIBCURL@
-CPP_GNURL=@LIBCURL_CPPFLAGS@
-endif
-endif
-
-
 test_json_mhd_SOURCES = \
   test_json_mhd.c
 test_json_mhd_LDADD = \
@@ -64,5 +53,5 @@ test_json_mhd_LDADD = \
   -ljansson \
   $(MHD_LIBS) \
   $(Z_LIBS) \
-  $(LIB_GNURL)
-test_json_mhd_CFLAGS = $(MHD_CFLAGS) $(CPP_GNURL) $(AM_CFLAGS)
+  @LIBCURL@
+test_json_mhd_CFLAGS = $(MHD_CFLAGS) @LIBCURL_CPPFLAGS@ $(AM_CFLAGS)
