@@ -14,8 +14,11 @@ sphinx/_build/man/gnunet.1: Makefile
 	cd sphinx && make man
 
 if INCLUDE_MANPAGES
+# FIXME this is somehow broken on openbsd. See #7324
+if !OPENBSD
 man_MANS = sphinx/_build/man/gnunet.1
-  SUBDIRS += man
+endif
+SUBDIRS += man
 endif
 endif
 
