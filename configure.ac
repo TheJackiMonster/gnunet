@@ -719,16 +719,20 @@ AS_IF([test "x$pulse" != "x1" || test "x$opus" != "x1" || test "x$ogg" != "x1"],
 AM_CONDITIONAL([BUILD_CONVERSATION], [test "x$conversation_backend" != "xnone"])
 AC_MSG_RESULT([$conversation_backend])
 
+# NOTE: If we find libcurl-gnutls here we set LIBCURL to -lcurl-gnutls
+# This affects the LIBCURL_CHECK_CONFIG call below as it takes LIBCURL into
+# account when checking for curl.
 AC_CHECK_LIB([curl-gnutls],
              [curl_easy_getinfo],
              [curl_gnutls=1
-              LIBCURL="-lcurl-gnutls"
-              ],
+              LIBCURL="-lcurl-gnutls"],
              [curl_gnutls=0])
 
 LIBCURL_CHECK_CONFIG([], [7.34.0], [],
                      [AC_MSG_ERROR([cURL must have a version >= 7.34.0])])
 
+# Even if curl is found, we check for this constant in order to determine
+# if we can use this feature.
 AC_CHECK_HEADER([curl/curl.h],
                 [AC_CHECK_DECLS([CURLINFO_TLS_SSL_PTR],
                                 [],
