@@ -168,7 +168,7 @@ static struct GNUNET_SCHEDULER_Task *generic_send_delay_task;
 /**
  * Set traffic metric to manipulate
  *
- * @param message containing information
+ * @param tm message containing information
  */
 void
 GST_manipulation_set_metric (const struct TrafficMetricMessage *tm)
@@ -349,7 +349,7 @@ GST_manipulation_send (const struct GNUNET_PeerIdentity *target,
  *
  * @param address binary address
  * @param session the session
- * @param prop[IN|OUT] metrics to modify
+ * @param[in,out] prop metrics to modify
  */
 void
 GST_manipulation_manipulate_metrics (const struct GNUNET_HELLO_Address *address,

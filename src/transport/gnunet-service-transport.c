@@ -2120,7 +2120,7 @@ free_blacklist_entry (void *cls,
  * Set traffic metric to manipulate
  *
  * @param cls closure
- * @param message containing information
+ * @param tm message containing information
  */
 static void
 handle_client_set_metric (void *cls, const struct TrafficMetricMessage *tm)

@@ -4081,7 +4081,7 @@ client_send_response (struct PendingMessage *pm)
  *
  * @param dv data structure to pick paths from
  * @param options constraints to satisfy
- * @param hops_array[out] set to the result
+ * @param[out] hops_array set to the result
  * @param hops_array_length length of the @a hops_array
  * @return number of entries set in @a hops_array
  */
@@ -4329,7 +4329,7 @@ check_communicator_backchannel (
  * Ensure ephemeral keys in our @a dv are current. If no current one exists,
  * set it up.
  *
- * @param dv[in,out] virtual link to update ephemeral for
+ * @param[in,out] dv virtual link to update ephemeral for
  */
 static void
 update_ephemeral (struct DistanceVector *dv)
@@ -4562,7 +4562,7 @@ struct DVKeyState
  *
  * @param km raw master secret
  * @param iv initialization vector
- * @param key[out] symmetric cipher and HMAC state to generate
+ * @param[out] key symmetric cipher and HMAC state to generate
  */
 static void
 dv_setup_key_state_from_km (const struct GNUNET_HashCode *km,
@@ -4604,7 +4604,7 @@ dv_setup_key_state_from_km (const struct GNUNET_HashCode *km,
  * @param priv_ephemeral ephemeral private key to use
  * @param target the target peer to encrypt to
  * @param iv unique IV to use
- * @param key[out] set to the key material
+ * @param[out] key set to the key material
  */
 static void
 dh_key_derive_eph_pid (
@@ -4629,7 +4629,7 @@ dh_key_derive_eph_pid (
  * @param priv_ephemeral ephemeral private key to use
  * @param target the target peer to encrypt to
  * @param iv unique IV to use
- * @param key[out] set to the key material
+ * @param[out] key set to the key material
  */
 static void
 dh_key_derive_eph_pub (const struct GNUNET_CRYPTO_EcdhePublicKey *pub_ephemeral,
@@ -4650,7 +4650,7 @@ dh_key_derive_eph_pub (const struct GNUNET_CRYPTO_EcdhePublicKey *pub_ephemeral,
  * material from @a key.
  *
  * @param key key material (from DH)
- * @param hmac[out] set to the HMAC
+ * @param[out] hmac set to the HMAC
  * @param data data to perform HMAC calculation over
  * @param data_size number of bytes in @a data
  */
@@ -4740,7 +4740,7 @@ typedef void (*DVMessageHandler) (void *cls,
  * @param use function to call with the encapsulated message
  * @param use_cls closure for @a use
  * @param options whether path must be confirmed or not, to be passed to @a use
- * @param shall this TransportDVBoxMessage be forwarded without flow control.
+ * @param without_fc shall this TransportDVBoxMessage be forwarded without flow control.
  * @return expected RTT for transmission, #GNUNET_TIME_UNIT_FOREVER_REL if sending failed
  */
 static struct GNUNET_TIME_Relative
@@ -6147,7 +6147,7 @@ handle_reliability_box (void *cls,
  * so, purge ancient statistics (more than GOODPUT_AGING_SLOTS before
  * the current age)
  *
- * @param pd[in,out] data to update
+ * @param[in,out] pd data to update
  * @param age current age
  */
 static void
@@ -6173,7 +6173,7 @@ update_pd_age (struct PerformanceData *pd, unsigned int age)
  * Update @a pd based on the latest @a rtt and the number of bytes
  * that were confirmed to be successfully transmitted.
  *
- * @param pd[in,out] data to update
+ * @param[in,out] pd data to update
  * @param rtt latest round-trip time
  * @param bytes_transmitted_ok number of bytes receiver confirmed as received
  */
@@ -8086,7 +8086,7 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
  * Client notified us about transmission from a peer.  Process the request.
  *
  * @param cls a `struct TransportClient` which sent us the message
- * @param obm the send message that was sent
+ * @param im the send message that was sent
  * @return #GNUNET_YES if message is well-formed
  */
 static int
@@ -9302,7 +9302,7 @@ struct PendingMessageScoreContext
  * Select the best pending message from @a vl for transmission
  * via @a queue.
  *
- * @param sc[in,out] best message so far (NULL for none), plus scoring data
+ * @param[in,out] sc best message so far (NULL for none), plus scoring data
  * @param queue the queue that will be used for transmission
  * @param vl the virtual link providing the messages
  * @param dvh path we are currently considering, or NULL for none

@@ -1418,7 +1418,7 @@ notify_session_monitor (struct Plugin *plugin,
  * Our external IP address/port mapping has changed.
  *
  * @param cls closure, the `struct Plugin`
- * @param app_ctx[in,out] location where the app can store stuff
+ * @param[in,out] app_ctx location where the app can store stuff
  *                  on add and retrieve it on remove
  * @param add_remove #GNUNET_YES to mean the new public IP address, #GNUNET_NO to mean
  *     the previous (now invalid) one

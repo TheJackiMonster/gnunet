@@ -220,17 +220,6 @@ connect_peers_traits (void *cls,
 }
 
 
-/**
- * Create command
- *
- * @param label name for command
- * @param start_peer_label Label of the cmd to start a peer.
- * @param create_peer_label Label of the cmd which started the test system.
- * @param num Number globally identifying the node.
- * @param The topology for the test setup.
- * @param additional_connects Number of additional connects this cmd will wait for not triggered by this cmd.
- * @return command.
- */
 struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_connect_peers (const char *label,
                                     const char *start_peer_label,

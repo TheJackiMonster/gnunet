@@ -227,9 +227,9 @@ GNUNET_TRANSPORT_cmd_stop_peer (const char *label,
  *
  * @param label name for command
  * @param start_peer_label Label of the cmd to start a peer.
- * @param create_peer_label Label of the cmd which started the test system.
+ * @param create_label Label of the cmd which started the test system.
  * @param num Number globally identifying the node.
- * @param The topology for the test setup.
+ * @param topology The topology for the test setup.
  * @param additional_connects Number of additional connects this cmd will wait for not triggered by this cmd.
  * @return command.
  */
@@ -248,9 +248,9 @@ GNUNET_TRANSPORT_cmd_connect_peers (
  *
  * @param label name for command.
  * @param start_peer_label Label of the cmd to start a peer.
- * @param create_peer_label Label of the cmd which started the test system.
+ * @param create_label Label of the cmd which started the test system.
  * @param num Number globally identifying the node.
- * @param The topology for the test setup.
+ * @param topology The topology for the test setup.
  * @return command.
  */
 struct GNUNET_TESTING_Command
@@ -271,7 +271,7 @@ GNUNET_TRANSPORT_cmd_send_simple (const char *label,
  * @param num Number globally identifying the node.
  * @param node_n The number of the node in a network namespace.
  * @param namespace_n The number of the network namespace.
- * @param The topology for the test setup.
+ * @param topology The topology for the test setup.
  * @return command.
  */
 struct GNUNET_TESTING_Command

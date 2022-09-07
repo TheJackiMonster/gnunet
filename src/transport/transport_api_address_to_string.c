@@ -56,7 +56,7 @@ struct GNUNET_TRANSPORT_AddressToStringContext
  * Function called with responses from the service.
  *
  * @param cls our `struct GNUNET_TRANSPORT_AddressToStringContext *`
- * @param msg message with the human-readable address
+ * @param atsm message with the human-readable address
  * @return #GNUNET_OK if message is well-formed
  */
 static int
@@ -97,7 +97,7 @@ check_reply (void *cls,
  * Function called with responses from the service.
  *
  * @param cls our `struct GNUNET_TRANSPORT_AddressToStringContext *`
- * @param msg message with the human-readable address
+ * @param atsm message with the human-readable address
  */
 static void
 handle_reply (void *cls,

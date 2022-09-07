@@ -83,7 +83,6 @@ static struct TransportPlugin *plugins_tail;
  *
  * @param cls closure
  * @param address address to update metrics for
- * @param session the session
  * @param distance new distance
  */
 static void

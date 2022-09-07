@@ -953,15 +953,6 @@ GNUNET_TRANSPORT_communicator_mq_add (
 }
 
 
-/**
- * Notify transport service that an MQ was updated
- *
- * @param ch connection to transport service
- * @param qh the queue to update
- * @param q_len number of messages that can be send through this queue
- * @param priority queue priority. Queues with highest priority should be
- *                 used
- */
 void
 GNUNET_TRANSPORT_communicator_mq_update (
   struct GNUNET_TRANSPORT_CommunicatorHandle *ch,
