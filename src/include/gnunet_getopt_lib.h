@@ -404,7 +404,6 @@ GNUNET_GETOPT_option_timestamp (char shortName,
  *
  * @param shortName short name of the option
  * @param name long name of the option
- * @param argumentHelp help text for the option argument
  * @param description long help text for the option
  * @param[out] val set to 1 if the option is present
  */

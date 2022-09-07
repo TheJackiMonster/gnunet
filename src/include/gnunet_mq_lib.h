@@ -390,9 +390,9 @@ typedef void
  * FIFO of envelopes independent of MQ itself and wants to
  * re-use the pointers internal to @a env.  Use with caution.
  *
- * @param[in|out] env_head of envelope DLL
- * @param[in|out] env_tail tail of envelope DLL
- * @param[in|out] env element to insert at the tail
+ * @param[in,out] env_head of envelope DLL
+ * @param[in,out] env_tail tail of envelope DLL
+ * @param[in,out] env element to insert at the tail
  */
 void
 GNUNET_MQ_dll_insert_head (struct GNUNET_MQ_Envelope **env_head,
@@ -408,9 +408,9 @@ GNUNET_MQ_dll_insert_head (struct GNUNET_MQ_Envelope **env_head,
  * FIFO of envelopes independent of MQ itself and wants to
  * re-use the pointers internal to @a env.  Use with caution.
  *
- * @param[in|out] env_head of envelope DLL
- * @param[in|out] env_tail tail of envelope DLL
- * @param[in|out] env element to insert at the tail
+ * @param[in,out] env_head of envelope DLL
+ * @param[in,out] env_tail tail of envelope DLL
+ * @param[in,out] env element to insert at the tail
  */
 void
 GNUNET_MQ_dll_insert_tail (struct GNUNET_MQ_Envelope **env_head,
@@ -426,9 +426,9 @@ GNUNET_MQ_dll_insert_tail (struct GNUNET_MQ_Envelope **env_head,
  * FIFO of envelopes independent of MQ itself and wants to
  * re-use the pointers internal to @a env.  Use with caution.
  *
- * @param[in|out] env_head of envelope DLL
- * @param[in|out] env_tail tail of envelope DLL
- * @param[in|out] env element to remove from the DLL
+ * @param[in,out] env_head of envelope DLL
+ * @param[in,out] env_tail tail of envelope DLL
+ * @param[in,out] env element to remove from the DLL
  */
 void
 GNUNET_MQ_dll_remove (struct GNUNET_MQ_Envelope **env_head,

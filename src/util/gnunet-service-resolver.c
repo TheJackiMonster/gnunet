@@ -313,7 +313,7 @@ extract_search_domain (const char *line, size_t line_len)
 /**
  * Reads the list of nameservers from /etc/resolve.conf
  *
- * @param server_addrs[out] a list of null-terminated server address strings
+ * @param[out] server_addrs a list of null-terminated server address strings
  * @return the number of server addresses in @a server_addrs, -1 on error
  */
 static int
@@ -670,8 +670,8 @@ try_cache (const char *hostname,
  * @param hostname DNS name to query
  * @param type requested DNS record type
  * @param dns_id what should be the DNS request ID
- * @param packet_buf[out] where to write the request packet
- * @param packet_size[out] set to size of @a packet_buf on success
+ * @param[out] packet_buf where to write the request packet
+ * @param[out] packet_size set to size of @a packet_buf on success
  * @return #GNUNET_OK on success
  */
 static int

@@ -403,7 +403,7 @@ GNUNET_STRINGS_base64_encode (const void *in,
  *
  * @param data the data to decode
  * @param len the length of the input
- * @param output where to write the output (*output should be NULL,
+ * @param out where to write the output (*out should be NULL,
  *   is allocated)
  * @return the size of the output
  */
@@ -448,7 +448,7 @@ GNUNET_STRINGS_base64_decode (const char *data,
  *
  * @param data the data to decode
  * @param len the length of the input
- * @param output where to write the output (*output should be NULL,
+ * @param out where to write the output (*out should be NULL,
  *   is allocated)
  * @return the size of the output
  */

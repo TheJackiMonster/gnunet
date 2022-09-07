@@ -1510,7 +1510,7 @@ GNUNET_is_zero_ (const void *a,
  *        will be updated to reflect the new address. The TYPE of
  *        arr is important since size is the number of elements and
  *        not the size in bytes
- * @param len the number of elements in the existing vector (number
+ * @param len2 the number of elements in the existing vector (number
  *        of elements to copy over), will be updated with the new
  *        array size
 
@@ -1743,7 +1743,7 @@ GNUNET_copy_message (const struct GNUNET_MessageHeader *msg);
  * Set the async scope for the current thread.
  *
  * @param aid the async scope identifier
- * @param old_scope[out] location to save the old scope
+ * @param[out] old_scope location to save the old scope
  */
 void
 GNUNET_async_scope_enter (const struct GNUNET_AsyncScopeId *aid,

@@ -197,7 +197,7 @@ child_management_done (void)
  * Adding a child process to be monitored by the child management.
  *
  * @param proc The child process to be monitored.
- * @param cp The callback to be called, when the child process completed.
+ * @param cb The callback to be called, when the child process completed.
  * @param cb_cls The closure for the callback.
  * @return An handle for the the child being monitored.
  */

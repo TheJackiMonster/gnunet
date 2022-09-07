@@ -1154,15 +1154,6 @@ GNUNET_h2s2 (const struct GNUNET_HashCode *hc)
 }
 
 
-/**
- * @ingroup logging
- * Convert a public key value to a string (for printing debug messages).
- * This is one of the very few calls in the entire API that is
- * NOT reentrant!
- *
- * @param hc the hash code
- * @return string
- */
 const char *
 GNUNET_p2s (const struct GNUNET_CRYPTO_EddsaPublicKey *p)
 {
@@ -1176,15 +1167,6 @@ GNUNET_p2s (const struct GNUNET_CRYPTO_EddsaPublicKey *p)
 }
 
 
-/**
- * @ingroup logging
- * Convert a public key value to a string (for printing debug messages).
- * This is one of the very few calls in the entire API that is
- * NOT reentrant!
- *
- * @param hc the hash code
- * @return string
- */
 const char *
 GNUNET_p2s2 (const struct GNUNET_CRYPTO_EddsaPublicKey *p)
 {
@@ -1198,15 +1180,6 @@ GNUNET_p2s2 (const struct GNUNET_CRYPTO_EddsaPublicKey *p)
 }
 
 
-/**
- * @ingroup logging
- * Convert a public key value to a string (for printing debug messages).
- * This is one of the very few calls in the entire API that is
- * NOT reentrant!
- *
- * @param hc the hash code
- * @return string
- */
 const char *
 GNUNET_e2s (const struct GNUNET_CRYPTO_EcdhePublicKey *p)
 {
@@ -1220,15 +1193,6 @@ GNUNET_e2s (const struct GNUNET_CRYPTO_EcdhePublicKey *p)
 }
 
 
-/**
- * @ingroup logging
- * Convert a public key value to a string (for printing debug messages).
- * This is one of the very few calls in the entire API that is
- * NOT reentrant!
- *
- * @param hc the hash code
- * @return string
- */
 const char *
 GNUNET_e2s2 (const struct GNUNET_CRYPTO_EcdhePublicKey *p)
 {
@@ -1476,7 +1440,7 @@ GNUNET_log_config_invalid (enum GNUNET_ErrorType kind,
  * Set the async scope for the current thread.
  *
  * @param aid the async scope identifier
- * @param old_scope[out] location to save the old scope
+ * @param[out] old_scope location to save the old scope
  */
 void
 GNUNET_async_scope_enter (const struct GNUNET_AsyncScopeId *aid,

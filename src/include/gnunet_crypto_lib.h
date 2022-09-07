@@ -1431,7 +1431,7 @@ enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_private_key_from_string (
   const char *enc,
   size_t enclen,
-  struct GNUNET_CRYPTO_EddsaPrivateKey *pub);
+  struct GNUNET_CRYPTO_EddsaPrivateKey *priv);
 
 
 /**
@@ -1683,7 +1683,7 @@ GNUNET_CRYPTO_ecc_dlog_prepare (unsigned int max,
  * Calculate ECC discrete logarithm for small factors.
  * Opposite of #GNUNET_CRYPTO_ecc_dexp().
  *
- * @param dlc precalculated values, determine range of factors
+ * @param edc precalculated values, determine range of factors
  * @param input point on the curve to factor
  * @return INT_MAX if dlog failed, otherwise the factor
  */
@@ -1954,7 +1954,7 @@ GNUNET_CRYPTO_ecdsa_sign_ (
  *
  * @param priv
  * @param data
- * @param len
+ * @param size
  * @param sig
  * @return enum GNUNET_GenericReturnValue
  */
@@ -2239,7 +2239,7 @@ GNUNET_CRYPTO_ecdsa_public_key_derive (
  * @param label label to use for key deriviation
  * @param context additional context to use for HKDF of 'h';
  *        typically the name of the subsystem/application
- * @param purp the signature purpose
+ * @param purpose the signature purpose
  * @param sig the resulting signature
  * @return GNUNET_OK on success
  */
@@ -2304,7 +2304,7 @@ GNUNET_CRYPTO_eddsa_public_key_derive (
  * @param label label to use for key deriviation
  * @param context additional context to use for HKDF of 'h';
  *        typically the name of the subsystem/application
- * @param purp the signature purpose
+ * @param purpose the signature purpose
  * @param sig the resulting signature
  * @return GNUNET_OK on success
  */
@@ -2690,7 +2690,7 @@ GNUNET_CRYPTO_rsa_public_key_cmp (const struct GNUNET_CRYPTO_RsaPublicKey *p1,
  * Blinds the given message with the given blinding key
  *
  * @param hash hash of the message to sign
- * @param bkey the blinding key
+ * @param bks the blinding key
  * @param pkey the public key of the signer
  * @param[out] buf set to a buffer with the blinded message to be signed
  * @param[out] buf_size number of bytes stored in @a buf
