@@ -235,7 +235,7 @@ GNUNET_PQ_query_param_absolute_time_nbo (
  */
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_timestamp_nbo (
-  const struct GNUNET_TIME_TimestampNBO *t);
+  const struct GNUNET_TIME_TimestampNBO *x);
 
 
 /**
@@ -853,7 +853,7 @@ GNUNET_PQ_make_try_execute (const char *sql);
 /**
  * Request execution of an array of statements @a es from Postgres.
  *
- * @param pq database to execute the statements in
+ * @param db database to execute the statements in
  * @param es #GNUNET_PQ_PREPARED_STATEMENT_END-terminated array of prepared
  *            statements.
  * @return #GNUNET_OK on success (modulo statements where errors can be ignored)

@@ -63,15 +63,6 @@ GNUNET_PQ_make_try_execute (const char *sql)
 }
 
 
-/**
- * Request execution of an array of statements @a es from Postgres.
- *
- * @param db database to execute the statements with
- * @param es #GNUNET_PQ_PREPARED_STATEMENT_END-terminated array of prepared
- *            statements.
- * @return #GNUNET_OK on success (modulo statements where errors can be ignored)
- *         #GNUNET_SYSERR on error
- */
 enum GNUNET_GenericReturnValue
 GNUNET_PQ_exec_statements (struct GNUNET_PQ_Context *db,
                            const struct GNUNET_PQ_ExecuteStatement *es)
