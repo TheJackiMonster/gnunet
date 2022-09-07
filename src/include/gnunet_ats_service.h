@@ -158,7 +158,7 @@ struct GNUNET_ATS_PropertiesNBO
 /**
  * Convert ATS properties from host to network byte order.
  *
- * @param nbo[OUT] value written
+ * @param nbo[out] value written
  * @param hbo value read
  */
 void
@@ -169,7 +169,7 @@ GNUNET_ATS_properties_hton (struct GNUNET_ATS_PropertiesNBO *nbo,
 /**
  * Convert ATS properties from network to host byte order.
  *
- * @param hbo[OUT] value written
+ * @param hbo[out] value written
  * @param nbo value read
  */
 void

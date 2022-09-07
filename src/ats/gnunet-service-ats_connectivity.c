@@ -76,7 +76,7 @@ GAS_connectivity_has_peer (void *cls,
  * Handle #GNUNET_MESSAGE_TYPE_ATS_REQUEST_ADDRESS messages from clients.
  *
  * @param client client that sent the request
- * @param message the request message
+ * @param msg the request message
  */
 void
 GAS_handle_request_address (struct GNUNET_SERVICE_Client *client,
