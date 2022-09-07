@@ -1889,12 +1889,6 @@ GSC_NEIGHBOURS_get_queue_length (const struct GSC_KeyExchangeInfo *kxinfo)
 }
 
 
-/**
- * Check if the given neighbour has excess bandwidth available.
- *
- * @param target neighbour to check
- * @return #GNUNET_YES if excess bandwidth is available, #GNUNET_NO if not
- */
 int
 GSC_NEIGHBOURS_check_excess_bandwidth (const struct GSC_KeyExchangeInfo *kxinfo)
 {
