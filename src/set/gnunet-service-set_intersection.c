@@ -754,13 +754,6 @@ begin_bf_exchange (struct Operation *op)
 }
 
 
-/**
- * Handle the initial `struct IntersectionElementInfoMessage` from a
- * remote peer.
- *
- * @param cls the intersection operation
- * @param mh the header of the message
- */
 void
 handle_intersection_p2p_element_info (void *cls,
                                       const struct
@@ -1039,7 +1032,7 @@ filter_all (void *cls,
  * Handle a done message from a remote peer
  *
  * @param cls the intersection operation
- * @param mh the message
+ * @param idm the message
  */
 void
 handle_intersection_p2p_done (void *cls,

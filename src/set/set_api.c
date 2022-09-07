@@ -296,7 +296,7 @@ check_iter_element (void *cls,
  * iterator and sends an acknowledgement to the service.
  *
  * @param cls the `struct GNUNET_SET_Handle *`
- * @param mh the message
+ * @param msg the message
  */
 static void
 handle_iter_element (void *cls,
