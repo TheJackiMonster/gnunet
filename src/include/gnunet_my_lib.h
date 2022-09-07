@@ -367,8 +367,8 @@ GNUNET_MY_query_param_uint64 (const uint64_t *x);
  * Variable-size result expected
  *
  * @param[out] dst where to store the result, allocated
- * @param[out] sptr where to store the size of @a dst
- * @return array entru for the result specification to use
+ * @param[out] ptr_size where to store the size of @a dst
+ * @return array entry for the result specification to use
  */
 struct GNUNET_MY_ResultSpec
 GNUNET_MY_result_spec_variable_size (void **dst,

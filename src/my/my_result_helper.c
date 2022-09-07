@@ -129,13 +129,6 @@ cleanup_varsize_blob (void *cls,
 }
 
 
-/**
- * Variable-size result expected
- *
- * @param[out] dst where to store the result, allocated
- * @param[out] ptr_size where to store the size of @a dst
- * @return array entru for the result specification to use
- */
 struct GNUNET_MY_ResultSpec
 GNUNET_MY_result_spec_variable_size (void **dst,
                                      size_t *ptr_size)

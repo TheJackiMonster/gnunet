@@ -48,7 +48,7 @@ my_clean_query (void *cls,
  * Function called to convert input argument into SQL parameters.
  *
  * @param cls closure
- * @param pq data about the query
+ * @param qp data about the query
  * @param qbind array of parameters to initialize
  * @return -1 on error
  */
@@ -95,7 +95,7 @@ GNUNET_MY_query_param_fixed_size (const void *ptr,
  * Function called to convert input argument into SQL parameters.
  *
  * @param cls closure
- * @param pq data about the query
+ * @param qp data about the query
  * @param qbind array of parameters to initialize
  * @return -1 on error
  */
@@ -138,7 +138,7 @@ GNUNET_MY_query_param_string (const char *ptr)
  * Function called to convert input argument into SQL parameters
  *
  * @param cls closure
- * @param pq data about the query
+ * @param qp data about the query
  * @param qbind array of parameters to initialize
  * @return -1 on error
  */
@@ -182,7 +182,7 @@ GNUNET_MY_query_param_uint16 (const uint16_t *x)
  * Function called to convert input argument into SQL parameters
  *
  * @param cls closure
- * @param pq data about the query
+ * @param qp data about the query
  * @param qbind array of parameters to initialize
  * @return -1 on error
  */
@@ -226,7 +226,7 @@ GNUNET_MY_query_param_uint32 (const uint32_t *x)
  * Function called to convert input argument into SQL parameters
  *
  * @param cls closure
- * @param pq data about the query
+ * @param qp data about the query
  * @param qbind array of parameters to initialize
  * @return -1 on error
  */
@@ -270,7 +270,7 @@ GNUNET_MY_query_param_uint64 (const uint64_t *x)
  * Function called to convert input argument into SQL parameters
  *
  * @param cls closure
- * @param pq data about the query
+ * @param qp data about the query
  * @param qbind array of parameters to initialize
  * @return -1 on error
  */
@@ -322,7 +322,7 @@ GNUNET_MY_query_param_rsa_public_key (const struct
  * Function called to convert input argument into SQL parameters
  *
  *@param cls closure
- *@param pq data about the query
+ *@param qp data about the query
  *@param qbind array of parameters to initialize
  *@return -1 on error
  */
