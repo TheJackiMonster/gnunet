@@ -963,7 +963,6 @@ daemon_started (void *cls,
  * into the DHT.
  *
  * @param cls NULL
- * @param tc the task context
  */
 static void
 do_announce (void *cls)
