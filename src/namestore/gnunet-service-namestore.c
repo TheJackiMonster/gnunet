@@ -654,8 +654,8 @@ get_nick_record (const struct GNUNET_IDENTITY_PrivateKey *zone)
  * @param nick_rd the nick record to integrate
  * @param rd2_length length of the @a rd2 array
  * @param rd2 array of records
- * @param rdc_res[out] length of the resulting @a rd_res array
- * @param rd_res[out] set to an array of records,
+ * @param[out] rdc_res length of the resulting @a rd_res array
+ * @param[out] rd_res set to an array of records,
  *                    including @a nick_rd and @a rd2;
  *           all of the variable-size 'data' fields in @a rd2 are
  *           allocated in the same chunk of memory!
@@ -874,7 +874,7 @@ send_lookup_response (struct NamestoreClient *nc,
 /**
  * Send response to the store request to the client.
  *
- * @param client client to talk to
+ * @param nc client to talk to
  * @param res status of the operation
  * @param rid client's request ID
  */
@@ -1338,7 +1338,7 @@ struct RecordLookupContext
  *
  * @param cls closure with a `struct RecordLookupContext`
  * @param seq unique serial number of the record, MUST NOT BE ZERO
- * @param zone_key private key of the zone
+ * @param private_key private key of the zone
  * @param label name that is being mapped (at most 255 characters long)
  * @param rd_count number of entries in @a rd array
  * @param rd array of records with data to store
@@ -2200,7 +2200,7 @@ handle_iteration_stop (void *cls,
  * Handles a #GNUNET_MESSAGE_TYPE_NAMESTORE_ZONE_ITERATION_NEXT message
  *
  * @param cls the client sending the message
- * @param message message from the client
+ * @param zis_msg message from the client
  */
 static void
 handle_iteration_next (void *cls,

@@ -437,7 +437,7 @@ get_label (struct Request *req)
  * Build DNS query for @a hostname.
  *
  * @param hostname host to build query for
- * @param raw_size[out] number of bytes in the query
+ * @param[out] raw_size number of bytes in the query
  * @return NULL on error, otherwise pointer to statically (!)
  *         allocated query buffer
  */
