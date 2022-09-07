@@ -375,7 +375,7 @@ handle_call_hangup (void *cls,
  * We received a `struct ClientAudioMessage`, check it is well-formed.
  *
  * @param cls the `struct GNUNET_CONVERSATION_Call`
- * @param msg the message
+ * @param am the message
  * @return #GNUNET_OK (always well-formed)
  */
 static int
@@ -393,7 +393,7 @@ check_call_audio (void *cls,
  * We received a `struct ClientAudioMessage`
  *
  * @param cls the `struct GNUNET_CONVERSATION_Call`
- * @param msg the message
+ * @param am the message
  */
 static void
 handle_call_audio (void *cls,

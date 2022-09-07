@@ -300,7 +300,7 @@ find_caller (struct GNUNET_CONVERSATION_Phone *phone,
  * We received a `struct ClientPhoneHangupMessage`.
  *
  * @param cls the `struct GNUNET_CONVERSATION_Phone *`
- * @param msg the message
+ * @param hang the message
  */
 static void
 handle_phone_hangup (void *cls,
