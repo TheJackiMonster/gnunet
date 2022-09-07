@@ -743,7 +743,7 @@ service_client_recv (void *cls)
  * setup the client (with the scheduler) and tell the application.
  *
  * @param sh service that accepted the client
- * @param sock socket associated with the client
+ * @param csock socket associated with the client
  */
 static void
 start_client (struct GNUNET_SERVICE_Handle *sh,
