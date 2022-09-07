@@ -487,7 +487,6 @@ GNUNET_TESTING_cmd_local_test_finished (
  *
  * @param label name for command.
  * @param write_message Callback to write messages to the master loop.
- * @param all_local_tests_prepared Flag which will be set from outside.
  * @return command.
  */
 struct GNUNET_TESTING_Command
