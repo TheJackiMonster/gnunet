@@ -446,7 +446,7 @@ check_statistics_value (void *cls,
  * Process a #GNUNET_MESSAGE_TYPE_STATISTICS_VALUE message.
  *
  * @param cls statistics handle
- * @param msg message received from the service, never NULL
+ * @param smsg message received from the service, never NULL
  * @return #GNUNET_OK if the message was well-formed
  */
 static void
@@ -492,7 +492,7 @@ handle_statistics_value (void *cls,
  * We have received a watch value from the service.  Process it.
  *
  * @param cls statistics handle
- * @param msg the watch value message
+ * @param wvm the watch value message
  */
 static void
 handle_statistics_watch_value (void *cls,
