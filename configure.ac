@@ -1499,9 +1499,12 @@ AS_IF([test "x$png" = "x1"],
 # against libcurl-gnutls directly, in which case we manually set it just to be
 # sure curl-config is not linked against another curl.
 AS_IF([test "x$curl_gnutls" = "x0"],
-       [AC_CHECK_PROG([CURL_SSL_BACKEND], ["curl-config"], [m4_esyscmd_s(curl-config --ssl-backends)])
+       [AC_CHECK_PROG([CURLCONFIG_BINARY], [curl-config], [curl-config], [None])
+        AS_IF([test "x$CURLCONFIG_BINARY" = "xNone"],
+              AC_SUBST([CURL_SSL_BACKEND],["Unkown SSL backend"]),
+              AC_SUBST([CURL_SSL_BACKEND],[`curl-config --ssl-backends`]))
         http_client="curl ($CURL_SSL_BACKEND)"],
-       [http_client="curl (GnuTLS)"])
+       [http_client="curl-gnutls"])
 
 # ifconfig
 AS_IF([test "x$IFCONFIG_BINARY" = "xfalse"],
