@@ -918,7 +918,6 @@ gen_rsh_suffix_args (const char *const *append_args)
  * Do not call GNUNET_SERVER_mst_destroy in callback
  *
  * @param cls closure
- * @param client identification of the client
  * @param message the actual message
  *
  * @return #GNUNET_OK on success, #GNUNET_SYSERR to stop further processing

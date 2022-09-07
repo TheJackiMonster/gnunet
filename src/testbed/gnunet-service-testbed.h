@@ -701,7 +701,7 @@ handle_peer_start (void *cls,
  * Message handler for #GNUNET_MESSAGE_TYPE_TESTBED_DESTROYPEER messages
  *
  * @param cls identification of the client
- * @param message the actual message
+ * @param msg the actual message
  */
 void
 handle_peer_stop (void *cls,

@@ -407,7 +407,7 @@ handle_add_host_confirm (void *cls,
 /**
  * Handler for forwarded operations
  *
- * @param c the controller handle
+ * @param cls the controller handle
  * @param opc the operation context
  * @param msg the message
  */
@@ -432,7 +432,7 @@ handle_forwarded_operation_msg (void *cls,
  * Handler for #GNUNET_MESSAGE_TYPE_TESTBED_ADD_HOST_SUCCESS message from
  * controller (testbed service)
  *
- * @param c the controller handler
+ * @param cls the controller handler
  * @param msg message received
  */
 static void
@@ -536,7 +536,7 @@ handle_opsuccess (
  * Handler for #GNUNET_MESSAGE_TYPE_TESTBED_CREATE_PEER_SUCCESS message from
  * controller (testbed service)
  *
- * @param c the controller handle
+ * @param cls the controller handle
  * @param msg message received
  */
 static void
@@ -594,7 +594,7 @@ handle_peer_create_success (
  * Handler for #GNUNET_MESSAGE_TYPE_TESTBED_PEER_EVENT message from
  * controller (testbed service)
  *
- * @param c the controller handler
+ * @param cls the controller handler
  * @param msg message received
  */
 static void
@@ -675,7 +675,7 @@ handle_peer_event (void *cls, const struct GNUNET_TESTBED_PeerEventMessage *msg)
  * Handler for #GNUNET_MESSAGE_TYPE_TESTBED_PEER_CONNECT_EVENT message from
  * controller (testbed service)
  *
- * @param c the controller handler
+ * @param cls the controller handler
  * @param msg message received
  */
 static void
@@ -751,7 +751,7 @@ handle_peer_conevent (void *cls,
  * Validate #GNUNET_MESSAGE_TYPE_TESTBED_PEER_INFORMATION message from
  * controller (testbed service)
  *
- * @param c the controller handler
+ * @param cls the controller handler
  * @param msg message received
  */
 static int
@@ -768,7 +768,7 @@ check_peer_config (
  * Handler for #GNUNET_MESSAGE_TYPE_TESTBED_PEER_INFORMATION message from
  * controller (testbed service)
  *
- * @param c the controller handler
+ * @param cls the controller handler
  * @param msg message received
  */
 static void
@@ -840,7 +840,7 @@ handle_peer_config (
  * Validate #GNUNET_MESSAGE_TYPE_TESTBED_OPERATION_FAIL_EVENT message from
  * controller (testbed service)
  *
- * @param c the controller handler
+ * @param cls the controller handler
  * @param msg message received
  * @return #GNUNET_OK if message is well-formed
  */
@@ -858,7 +858,7 @@ check_op_fail_event (
  * Handler for #GNUNET_MESSAGE_TYPE_TESTBED_OPERATION_FAIL_EVENT message from
  * controller (testbed service)
  *
- * @param c the controller handler
+ * @param cls the controller handler
  * @param msg message received
  */
 static void
@@ -1037,7 +1037,7 @@ check_slave_config (void *cls,
  * Handler for #GNUNET_MESSAGE_TYPE_TESTBED_SLAVE_CONFIGURATION message from controller
  * (testbed service)
  *
- * @param c the controller handler
+ * @param cls the controller handler
  * @param msg message received
  */
 static void
@@ -1099,7 +1099,7 @@ check_link_controllers_result (
  * Handler for #GNUNET_MESSAGE_TYPE_TESTBED_LINK_CONTROLLERS_RESULT message from controller
  * (testbed service)
  *
- * @param c the controller handler
+ * @param cls the controller handler
  * @param msg message received
  */
 static void
@@ -2384,7 +2384,7 @@ GNUNET_TESTBED_barrier_init_ (struct GNUNET_TESTBED_Controller *controller,
  *   GNUNET_TESTBED_barrier_reached().
  * @param cb the callback to call when the barrier is reached or upon error.
  *   Cannot be NULL.
- * @param cls closure for the above callback
+ * @param cb_cls closure for the above callback
  * @return barrier handle; NULL upon error
  */
 struct GNUNET_TESTBED_Barrier *
@@ -2392,13 +2392,13 @@ GNUNET_TESTBED_barrier_init (struct GNUNET_TESTBED_Controller *controller,
                              const char *name,
                              unsigned int quorum,
                              GNUNET_TESTBED_barrier_status_cb cb,
-                             void *cls)
+                             void *cb_cls)
 {
   return GNUNET_TESTBED_barrier_init_ (controller,
                                        name,
                                        quorum,
                                        cb,
-                                       cls,
+                                       cb_cls,
                                        GNUNET_YES);
 }
 

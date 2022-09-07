@@ -328,7 +328,7 @@ send_barrier_status_msg (struct Barrier *barrier,
  * Check #GNUNET_MESSAGE_TYPE_TESTBED_BARRIER_WAIT messages.
  *
  * @param cls identification of the client
- * @param message the actual message
+ * @param msg the actual message
  */
 static int
 check_barrier_wait (void *cls,
@@ -347,7 +347,7 @@ check_barrier_wait (void *cls,
  * either from the testbed driver or from a high level controller
  *
  * @param cls identification of the client
- * @param message the actual message
+ * @param msg the actual message
  */
 static void
 handle_barrier_wait (void *cls,

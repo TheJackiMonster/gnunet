@@ -379,7 +379,7 @@ parse_shared_services (char *ss_str,
  * Check #GNUNET_MESSAGE_TYPE_TESTBED_INIT messages
  *
  * @param cls identification of the client
- * @param message the actual message
+ * @param msg the actual message
  * @return #GNUNET_OK if @a message is well-formed
  */
 static int
@@ -404,7 +404,7 @@ check_init (void *cls,
  * Message handler for #GNUNET_MESSAGE_TYPE_TESTBED_INIT messages
  *
  * @param cls identification of the client
- * @param message the actual message
+ * @param msg the actual message
  */
 static void
 handle_init (void *cls,
