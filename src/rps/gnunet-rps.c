@@ -149,7 +149,7 @@ view_update_handle (void *cls,
 /**
  * Callback called on receipt of peer from biased stream
  *
- * @param n number of peers
+ * @param num_peers number of peers
  * @param recv_peers the received peers
  */
 static void

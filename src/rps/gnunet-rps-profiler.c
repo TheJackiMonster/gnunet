@@ -2206,7 +2206,7 @@ get_idx_of_pid (const struct GNUNET_PeerIdentity *pid)
  * @brief Counts number of peers in view of a that have b in their view
  *
  * @param a
- * @param uint32_tb
+ * @param b
  *
  * @return
  */
