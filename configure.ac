@@ -724,8 +724,8 @@ AC_MSG_RESULT([$conversation_backend])
 # account when checking for curl.
 AC_CHECK_LIB([curl-gnutls],
              [curl_easy_getinfo],
-             [curl_gnutls=1
-              LIBCURL="-lcurl-gnutls"],
+             [LIBCURL="-lcurl-gnutls"
+              curl_gnutls=1],
              [curl_gnutls=0])
 
 LIBCURL_CHECK_CONFIG([], [7.34.0], [],
@@ -1495,10 +1495,13 @@ AS_IF([test "x$png" = "x1"],
   [libpng_msg="yes"],
   [libpng_msg="no"])
 
-# curl or gnurl
-AS_IF([test "x$curl_gnutls" = "x1"],
-      [http_client="curl-gnutls"],
-      [http_client="curl-openssl"])
+# We get the supported backend(s) from curl-config unless we linked
+# against libcurl-gnutls directly, in which case we manually set it just to be
+# sure curl-config is not linked against another curl.
+AS_IF([test "x$curl_gnutls" = "x0"],
+       [AC_CHECK_PROG([CURL_SSL_BACKEND], ["curl-config"], [m4_esyscmd_s(curl-config --ssl-backends)])
+        http_client="curl ($CURL_SSL_BACKEND)"],
+       [http_client="curl (GnuTLS)"])
 
 # ifconfig
 AS_IF([test "x$IFCONFIG_BINARY" = "xfalse"],
