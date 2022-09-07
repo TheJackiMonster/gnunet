@@ -613,9 +613,9 @@ typedef int
  * @param[in] cfg Configuration to use
  * @param[in] name Name to look up an ego or NULL to stay anonymous
  * @param[in] identity_callback Function called when the EGO of the handle changes
- * @param[in/out] identity_cls Closure for the <i>identity_callback</i> handler
+ * @param[in,out] identity_cls Closure for the <i>identity_callback</i> handler
  * @param[in] msg_callback Function called when a new message is sent or received
- * @param[in/out] msg_cls Closure for the <i>msg_callback</i> handler
+ * @param[in,out] msg_cls Closure for the <i>msg_callback</i> handler
  * @return Messenger handle to use, NULL on error
  */
 struct GNUNET_MESSENGER_Handle*
@@ -634,7 +634,7 @@ GNUNET_MESSENGER_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
  * Keep in mind that this will fully delete the old ego key (if any is used) even if any other service wants to use it
  * as default.
  *
- * @param[in/out] handle Messenger handle to use
+ * @param[in,out] handle Messenger handle to use
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on failure
  */
 int
@@ -643,7 +643,7 @@ GNUNET_MESSENGER_update (struct GNUNET_MESSENGER_Handle *handle);
 /**
  * Disconnect all of the messengers used services and clears up its used memory.
  *
- * @param[in/out] handle Messenger handle to use
+ * @param[in,out] handle Messenger handle to use
  */
 void
 GNUNET_MESSENGER_disconnect (struct GNUNET_MESSENGER_Handle *handle);
@@ -662,7 +662,7 @@ GNUNET_MESSENGER_get_name (const struct GNUNET_MESSENGER_Handle *handle);
  * name to its new directory. If anything fails during this process the function returns #GNUNET_NO and the name for
  * the messenger won't change as specified.
  *
- * @param[in/out] handle Messenger handle to use
+ * @param[in,out] handle Messenger handle to use
  * @param[in] name Name for the messenger to change to
  * @return #GNUNET_YES on success, #GNUNET_NO on failure and #GNUNET_SYSERR if <i>handle</i> is NULL
  */
@@ -691,7 +691,7 @@ GNUNET_MESSENGER_get_key (const struct GNUNET_MESSENGER_Handle *handle);
  *
  * ( All <b>doors</b> form a ring structured network to shorten the latency sending and receiving messages. )
  *
- * @param[in/out] handle Messenger handle to use
+ * @param[in,out] handle Messenger handle to use
  * @param[in] key Hash identifying the port
  * @return Room handle, NULL on error
  */
@@ -712,7 +712,7 @@ GNUNET_MESSENGER_open_room (struct GNUNET_MESSENGER_Handle *handle,
  *
  * ( All <b>doors</b> form a ring structured network to shorten the latency sending and receiving messages. )
  *
- * @param[in/out] handle Messenger handle to use
+ * @param[in,out] handle Messenger handle to use
  * @param[in] door Peer identity of an open <b>door</b>
  * @param[in] key Hash identifying the port
  * @return Room handle, NULL on error
@@ -729,7 +729,7 @@ GNUNET_MESSENGER_enter_room (struct GNUNET_MESSENGER_Handle *handle,
  * ( After a member closes a <b>door</b>, all members entered through that specific <b>door</b> have to use another one
  * or open the room on their own. )
  *
- * @param[in/out] room Room handle
+ * @param[in,out] room Room handle
  */
 void
 GNUNET_MESSENGER_close_room (struct GNUNET_MESSENGER_Room *room);
@@ -805,7 +805,7 @@ GNUNET_MESSENGER_contact_get_key (const struct GNUNET_MESSENGER_Contact *contact
  *
  * Sending a message to all members in a given room can be done by providing NULL as contact.
  *
- * @param[in/out] room Room handle
+ * @param[in,out] room Room handle
  * @param[in] message New message to send
  * @param[in] contact Contact or NULL
  */

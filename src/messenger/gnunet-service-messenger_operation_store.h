@@ -45,7 +45,7 @@ struct GNUNET_MESSENGER_OperationStore
  * Initializes an operation <i>store</i> as fully empty with a given <i>room</i>.
  *
  * @param[out] store Operation store
- * @param[in/out] room Room
+ * @param[in,out] room Room
  */
 void
 init_operation_store (struct GNUNET_MESSENGER_OperationStore *store,
@@ -54,7 +54,7 @@ init_operation_store (struct GNUNET_MESSENGER_OperationStore *store,
 /**
  * Clears an operation <i>store</i>, stops all operations and deallocates its memory.
  *
- * @param[in/out] store Operation store
+ * @param[in,out] store Operation store
  */
 void
 clear_operation_store (struct GNUNET_MESSENGER_OperationStore *store);
@@ -103,7 +103,7 @@ get_store_operation_type (const struct GNUNET_MESSENGER_OperationStore *store,
  * If the new operation could be started successfully the method returns
  * #GNUNET_OK, otherwise #GNUNET_SYSERR.
  *
- * @param[in/out] store Operation store
+ * @param[in,out] store Operation store
  * @param[in] hash Hash of message
  * @param[in] type Operation type
  * @param[in] delay Delay
@@ -122,7 +122,7 @@ use_store_operation (struct GNUNET_MESSENGER_OperationStore *store,
  * Beware that calling this method will also implicitly free the memory
  * of any active operation under the given hash!
  *
- * @param[in/out] store Operation store
+ * @param[in,out] store Operation store
  * @param[in] hash Hash of message
  */
 void

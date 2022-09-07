@@ -57,7 +57,7 @@ init_list_handles (struct GNUNET_MESSENGER_ListHandles *handles);
 /**
  * Destroys remaining <i>handles</i> and clears the list.
  *
- * @param[in/out] handles List of handles
+ * @param[in,out] handles List of handles
  */
 void
 clear_list_handles (struct GNUNET_MESSENGER_ListHandles *handles);
@@ -65,8 +65,8 @@ clear_list_handles (struct GNUNET_MESSENGER_ListHandles *handles);
 /**
  * Adds a specific <i>handle</i> to the end of the list.
  *
- * @param[in/out] handles List of handles
- * @param[in/out] handle Handle
+ * @param[in,out] handles List of handles
+ * @param[in,out] handle Handle
  */
 void
 add_list_handle (struct GNUNET_MESSENGER_ListHandles *handles,
@@ -76,8 +76,8 @@ add_list_handle (struct GNUNET_MESSENGER_ListHandles *handles,
  * Removes the first entry matching with a specific <i>handle</i> from the list of
  * <i>handles</i> and returns #GNUNET_YES on success or #GNUNET_NO on failure.
  *
- * @param[in/out] handles List of handles
- * @param[in/out] handle Handle
+ * @param[in,out] handles List of handles
+ * @param[in,out] handle Handle
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
 int

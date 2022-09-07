@@ -69,7 +69,7 @@ init_message_store (struct GNUNET_MESSENGER_MessageStore *store);
 /**
  * Clears a message <i>store</i>, wipes its content and deallocates its memory.
  *
- * @param[in/out] store Message store
+ * @param[in,out] store Message store
  */
 void
 clear_message_store (struct GNUNET_MESSENGER_MessageStore *store);
@@ -115,7 +115,7 @@ contains_store_message (const struct GNUNET_MESSENGER_MessageStore *store,
  * This function requires the message to be loaded into memory!
  * @see contains_store_message()
  *
- * @param[in/out] store Message store
+ * @param[in,out] store Message store
  * @param[in] hash Hash of message
  * @return Message or NULL
  */
@@ -131,7 +131,7 @@ get_store_message (struct GNUNET_MESSENGER_MessageStore *store,
  * hash. The link which will be returned copies link information from the message for
  * temporary usage.
  *
- * @param[in/out] store Message store
+ * @param[in,out] store Message store
  * @param[in] hash Hash of message
  * @param[in] deleted_only Flag
  * @return Message link or NULL
@@ -144,9 +144,9 @@ get_store_message_link (struct GNUNET_MESSENGER_MessageStore *store,
 /**
  * Stores a message into the message store. The result indicates if the operation was successful.
  *
- * @param[in/out] store Message store
+ * @param[in,out] store Message store
  * @param[in] hash Hash of message
- * @param[in/out] message Message
+ * @param[in,out] message Message
  * @return #GNUNET_OK on success, otherwise #GNUNET_NO
  */
 int
@@ -158,7 +158,7 @@ put_store_message (struct GNUNET_MESSENGER_MessageStore *store,
  * Deletes a message in the message store. It will be removed from disk space and memory. The result
  * indicates if the operation was successful.
  *
- * @param[in/out] store Message store
+ * @param[in,out] store Message store
  * @param[in] hash Hash of message
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on failure
  */

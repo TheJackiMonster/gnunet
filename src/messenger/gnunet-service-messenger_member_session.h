@@ -62,7 +62,7 @@ struct GNUNET_MESSENGER_MemberSession {
  *
  * If the creation fails, NULL gets returned.
  *
- * @param[in/out] member Member
+ * @param[in,out] member Member
  * @param[in] pubkey Public key of EGO
  * @return New member session
  */
@@ -77,7 +77,7 @@ create_member_session (struct GNUNET_MESSENGER_Member *member,
  * <i>message</i> to switch session. The new session will be linked to the old
  * one.
  *
- * @param[in/out] session Old member session
+ * @param[in,out] session Old member session
  * @param[in] message Message
  * @param[in] hash Hash of message
  * @return New member session
@@ -90,7 +90,7 @@ switch_member_session (struct GNUNET_MESSENGER_MemberSession *session,
 /**
  * Destroys a member session and frees its memory fully.
  *
- * @param[in/out] session Member session
+ * @param[in,out] session Member session
  */
 void
 destroy_member_session(struct GNUNET_MESSENGER_MemberSession* session);
@@ -101,7 +101,7 @@ destroy_member_session(struct GNUNET_MESSENGER_MemberSession* session);
  * be dropped. The member sessions messages will be cleared but old
  * history from uncompleted sessions however can be reused!
  *
- * @param[in/out] session Member session
+ * @param[in,out] session Member session
  * @param[in] hash Hash of initial message (JOIN message!)
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
@@ -116,7 +116,7 @@ reset_member_session (struct GNUNET_MESSENGER_MemberSession* session,
  * Closing a session may complete a session and can't be used without
  * a reset! ( @see #reset_member_session() )
  *
- * @param[in/out] session Member session
+ * @param[in,out] session Member session
  */
 void
 close_member_session (struct GNUNET_MESSENGER_MemberSession* session);
@@ -234,7 +234,7 @@ check_member_session_history (const struct GNUNET_MESSENGER_MemberSession *sessi
  *
  * @see #is_member_session_completed() for updating a history.
  *
- * @param[in/out] session Member session
+ * @param[in,out] session Member session
  * @param[in] message Message
  * @param[in] hash Hash of message
  */
@@ -247,7 +247,7 @@ update_member_session_history (struct GNUNET_MESSENGER_MemberSession *session,
  * Removes a message from the history of a <i>session</i> using the messages
  * <i>hash</i>.
  *
- * @param[in/out] session Member session
+ * @param[in,out] session Member session
  * @param[in] hash Hash of message
  */
 void
@@ -271,7 +271,7 @@ load_member_session (struct GNUNET_MESSENGER_Member *member,
  * next attribute. Necessary information will be loaded from a configuration
  * file inside of a given <i>directory</i>.
  *
- * @param[in/out] session Member session
+ * @param[in,out] session Member session
  * @param[in] directory Path to a directory
  */
 void

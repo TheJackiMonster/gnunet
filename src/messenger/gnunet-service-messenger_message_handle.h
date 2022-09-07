@@ -39,8 +39,8 @@
  * Handles a received or sent join message to make changes of current member information.
  * (add matching member and clear member info)
  *
- * @param[in/out] room Room of the message
- * @param[in/out] session Member session
+ * @param[in,out] room Room of the message
+ * @param[in,out] session Member session
  * @param[in] message JOIN-Message
  * @param[in] hash Hash of the message
  */
@@ -54,8 +54,8 @@ handle_message_join (struct GNUNET_MESSENGER_SrvRoom *room,
  * Handles a received or sent leave message to make changes of current member information.
  * (remove matching member and clear member info)
  *
- * @param[in/out] room Room of the message
- * @param[in/out] session Member session
+ * @param[in,out] room Room of the message
+ * @param[in,out] session Member session
  * @param[in] message LEAVE-Message
  * @param[in] hash Hash of the message
  */
@@ -69,8 +69,8 @@ handle_message_leave (struct GNUNET_MESSENGER_SrvRoom *room,
  * Handles a received or sent name message to rename a current member.
  * (change name of matching member)
  *
- * @param[in/out] room Room of the message
- * @param[in/out] session Member session
+ * @param[in,out] room Room of the message
+ * @param[in,out] session Member session
  * @param[in] message NAME-Message
  * @param[in] hash Hash of the message
  */
@@ -84,8 +84,8 @@ handle_message_name (struct GNUNET_MESSENGER_SrvRoom *room,
  * Handles a received or sent key message to change the key of a member and rearrange the contacts accordingly.
  * (move the member in the contacts and change its key)
  *
- * @param[in/out] room Room of the message
- * @param[in/out] session Member session
+ * @param[in,out] room Room of the message
+ * @param[in,out] session Member session
  * @param[in] message KEY-Message
  * @param[in] hash Hash of the message
  */
@@ -99,8 +99,8 @@ handle_message_key (struct GNUNET_MESSENGER_SrvRoom *room,
  * Handles a received or sent peer message to make changes of the basement in the room.
  * (add a new peer to the basement and restructure connections based on updated list of peers)
  *
- * @param[in/out] room Room of the message
- * @param[in/out] session Member session
+ * @param[in,out] room Room of the message
+ * @param[in,out] session Member session
  * @param[in] message PEER-Message
  * @param[in] hash Hash of the message
  */
@@ -114,8 +114,8 @@ handle_message_peer (struct GNUNET_MESSENGER_SrvRoom *room,
  * Handles a received or sent id message to change a members id.
  * (change id of matching member)
  *
- * @param[in/out] room Room of the message
- * @param[in/out] session Member session
+ * @param[in,out] room Room of the message
+ * @param[in,out] session Member session
  * @param[in] message ID-Message
  * @param[in] hash Hash of the message
  */
@@ -129,8 +129,8 @@ handle_message_id (struct GNUNET_MESSENGER_SrvRoom *room,
  * Handles a received or sent miss message to drop a peer from the basement in the room.
  * (remove a peer from the basement and restructure connections based on updated list of peers)
  *
- * @param[in/out] room Room of the message
- * @param[in/out] session Member session
+ * @param[in,out] room Room of the message
+ * @param[in,out] session Member session
  * @param[in] message MISS-Message
  * @param[in] hash Hash of the message
  */
@@ -144,8 +144,8 @@ handle_message_miss (struct GNUNET_MESSENGER_SrvRoom *room,
  * Handles a received or sent delete message to delete a specific message from the store.
  * (remove a message from the store of a room under a given delay)
  *
- * @param[in/out] room Room of the message
- * @param[in/out] session Member session
+ * @param[in,out] room Room of the message
+ * @param[in,out] session Member session
  * @param[in] message DELETE-Message
  * @param[in] hash Hash of the message
  */

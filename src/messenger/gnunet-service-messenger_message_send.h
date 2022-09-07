@@ -38,8 +38,8 @@
  * Handles a sent join message to ensure growth of the decentralized room structure.
  * (if the service provides a peer message for this room currently, it will be forwarded)
  *
- * @param[in/out] room Room of the message
- * @param[in/out] handle Sending handle
+ * @param[in,out] room Room of the message
+ * @param[in,out] handle Sending handle
  * @param[in] message JOIN-Message
  * @param[in] hash Hash of the message
  */
@@ -53,8 +53,8 @@ send_message_join (struct GNUNET_MESSENGER_SrvRoom *room,
  * Handles a sent peer message to update the rooms peer message of this service.
  * (a set peer message indicates this service being a part of the decentralized room structure)
  *
- * @param[in/out] room Room of the message
- * @param[in/out] handle Sending handle
+ * @param[in,out] room Room of the message
+ * @param[in,out] handle Sending handle
  * @param[in] message PEER-Message
  * @param[in] hash Hash of the message
  */
@@ -68,8 +68,8 @@ send_message_peer (struct GNUNET_MESSENGER_SrvRoom *room,
  * Handles a sent id message to update the handles member id in the room.
  * (changing member id is useful to prevent collisions)
  *
- * @param[in/out] room Room of the message
- * @param[in/out] handle Sending handle
+ * @param[in,out] room Room of the message
+ * @param[in,out] handle Sending handle
  * @param[in] message ID-Message
  * @param[in] hash Hash of the message
  */
@@ -83,8 +83,8 @@ send_message_id (struct GNUNET_MESSENGER_SrvRoom *room,
  * Handles a sent request message to trigger the request operation for this service.
  * (the request operation will deactivate the possibility of spamming requests)
  *
- * @param[in/out] room Room of the message
- * @param[in/out] handle Sending handle
+ * @param[in,out] room Room of the message
+ * @param[in,out] handle Sending handle
  * @param[in] message PEER-Message
  * @param[in] hash Hash of the message
  */

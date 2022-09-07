@@ -64,7 +64,7 @@ struct GNUNET_MESSENGER_Service
  * Creates and allocates a new service using a given <i>config</i> and a GNUnet service handle.
  *
  * @param[in] config Configuration
- * @param[in/out] service_handle GNUnet service handle
+ * @param[in,out] service_handle GNUnet service handle
  * @return New service
  */
 struct GNUNET_MESSENGER_Service*
@@ -74,7 +74,7 @@ create_service (const struct GNUNET_CONFIGURATION_Handle *config,
 /**
  * Destroys a <i>service</i> and frees its memory fully.
  *
- * @param[in/out] service Service
+ * @param[in,out] service Service
  */
 void
 destroy_service (struct GNUNET_MESSENGER_Service *service);
@@ -82,7 +82,7 @@ destroy_service (struct GNUNET_MESSENGER_Service *service);
 /**
  * Returns the used EGO-store of a given <i>service</i>.
  *
- * @param[in/out] service Service
+ * @param[in,out] service Service
  * @return EGO-store
  */
 struct GNUNET_MESSENGER_EgoStore*
@@ -91,7 +91,7 @@ get_service_ego_store (struct GNUNET_MESSENGER_Service *service);
 /**
  * Returns the used contact store of a given <i>service</i>.
  *
- * @param[in/out] service Service
+ * @param[in,out] service Service
  * @return Contact store
  */
 struct GNUNET_MESSENGER_ContactStore*
@@ -100,8 +100,8 @@ get_service_contact_store (struct GNUNET_MESSENGER_Service *service);
 /**
  * Creates and adds a new handle to a <i>service</i> using a given message queue.
  *
- * @param[in/out] service Service
- * @param[in/out] mq Message queue
+ * @param[in,out] service Service
+ * @param[in,out] mq Message queue
  * @return New handle
  */
 struct GNUNET_MESSENGER_SrvHandle*
@@ -111,8 +111,8 @@ add_service_handle (struct GNUNET_MESSENGER_Service *service,
 /**
  * Removes a <i>handle</i> from a <i>service</i> and destroys it.
  *
- * @param[in/out] service Service
- * @param[in/out] handle Handle
+ * @param[in,out] service Service
+ * @param[in,out] handle Handle
  */
 void
 remove_service_handle (struct GNUNET_MESSENGER_Service *service,
@@ -146,8 +146,8 @@ get_service_room (const struct GNUNET_MESSENGER_Service *service,
  * Tries to open a room using a given <i>key</i> for a <i>service</i> by a specific <i>handle</i>. The room will be
  * created if necessary. If the function is successful, it returns #GNUNET_YES, otherwise #GNUNET_NO.
  *
- * @param[in/out] service Service
- * @param[in/out] handle Handle
+ * @param[in,out] service Service
+ * @param[in,out] handle Handle
  * @param[in] key Key of room
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
@@ -163,8 +163,8 @@ open_service_room (struct GNUNET_MESSENGER_Service *service,
  * The room will be entered through the peer identitied by the peer identity provided as <i>door</i> parameter and
  * a new connection will be made.
  *
- * @param[in/out] service Service
- * @param[in/out] handle Handle
+ * @param[in,out] service Service
+ * @param[in,out] handle Handle
  * @param[in] door Peer identity
  * @param[in] key Key of room
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
@@ -182,8 +182,8 @@ entry_service_room (struct GNUNET_MESSENGER_Service *service,
  * If the specific handle is currently the host of the room for this service, a new handle which is a member will
  * take its place. Otherwise the room will be destroyed for this service.
  *
- * @param[in/out] service Service
- * @param[in/out] handle Handle
+ * @param[in,out] service Service
+ * @param[in,out] handle Handle
  * @param[in] key Key of room
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
@@ -196,8 +196,8 @@ close_service_room (struct GNUNET_MESSENGER_Service *service,
  * Sends a received or sent <i>message</i> with a given <i>hash</i> to each handle of a <i>service</i> which
  * is currently member of a specific <i>room</i> for handling it in the client API.
  *
- * @param[in/out] service Service
- * @param[in/out] room Room
+ * @param[in,out] service Service
+ * @param[in,out] room Room
  * @param[in] session Member session
  * @param[in] message Message
  * @param[in] hash Hash of message

@@ -55,7 +55,7 @@ init_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels);
 /**
  * Clears the list of tunnels peer identities.
  *
- * @param[in/out] tunnels List of peer identities
+ * @param[in,out] tunnels List of peer identities
  */
 void
 clear_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels);
@@ -63,7 +63,7 @@ clear_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels);
 /**
  * Adds a specific <i>peer</i> from a tunnel to the end of the list.
  *
- * @param[in/out] tunnels List of peer identities
+ * @param[in,out] tunnels List of peer identities
  * @param[in] peer Peer identity of tunnel
  */
 void
@@ -80,7 +80,7 @@ add_to_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
  * the found element in the list. If no matching element is found, <i>index</i> will
  * contain the total amount of elements in the list.
  *
- * @param[in/out] tunnels List of peer identities
+ * @param[in,out] tunnels List of peer identities
  * @param[in] peer Peer identity of tunnel
  * @param[out] index Index of found element (optional)
  * @return Element in the list with matching peer identity
@@ -94,7 +94,7 @@ find_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
  * Tests linearly if the list of tunnels peer identities contains a specific
  * <i>peer</i> identity and returns #GNUNET_YES on success, otherwise #GNUNET_NO.
  *
- * @param[in/out] tunnels List of peer identities
+ * @param[in,out] tunnels List of peer identities
  * @param[in] peer Peer identity of tunnel
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
@@ -106,8 +106,8 @@ contains_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
  * Removes a specific <i>element</i> from the list of tunnels peer identities and returns
  * the next element in the list.
  *
- * @param[in/out] tunnels List of peer identities
- * @param[in/out] element Element of the list
+ * @param[in,out] tunnels List of peer identities
+ * @param[in,out] element Element of the list
  * @return Next element in the list
  */
 struct GNUNET_MESSENGER_ListTunnel*
@@ -117,7 +117,7 @@ remove_from_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
 /**
  * Loads the list of tunnels peer identities from a file under a given <i>path</i>.
  *
- * @param[out] messages List of hashes
+ * @param[out] tunnels List of hashes
  * @param[in] path Path of file
  */
 void
@@ -127,7 +127,7 @@ load_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
 /**
  * Saves the list of tunnels peer identities to a file under a given <i>path</i>.
  *
- * @param[in] messages List of hashes
+ * @param[in] tunnels List of hashes
  * @param[in] path Path of file
  */
 void

@@ -64,7 +64,7 @@ copy_message (const struct GNUNET_MESSENGER_Message *message);
 /**
  * Frees the messages body memory.
  *
- * @param[in/out] message Message
+ * @param[in,out] message Message
  */
 void
 cleanup_message (struct GNUNET_MESSENGER_Message *message);
@@ -72,7 +72,7 @@ cleanup_message (struct GNUNET_MESSENGER_Message *message);
 /**
  * Destroys a message and frees its memory fully.
  *
- * @param[in/out] message Message
+ * @param[in,out] message Message
  */
 void
 destroy_message (struct GNUNET_MESSENGER_Message *message);
@@ -163,7 +163,7 @@ hash_message (const struct GNUNET_MESSENGER_Message *message,
  * Signs the <i>hash</i> of a <i>message</i> with a given <i>ego</i> and writes the signature
  * into the <i>buffer</i> as well.
  *
- * @param[in/out] message Message
+ * @param[in,out] message Message
  * @param[in] length Length of buffer
  * @param[out] buffer Buffer
  * @param[in] hash Hash of message
@@ -196,7 +196,7 @@ verify_message (const struct GNUNET_MESSENGER_Message *message,
  * and kind with the now private encrypted <i>message</i>. The function returns
  * #GNUNET_YES if the operation succeeded, otherwise #GNUNET_NO.
  *
- * @param[in/out] message Message
+ * @param[in,out] message Message
  * @param[in] key Public key of EGO
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
@@ -209,7 +209,7 @@ encrypt_message (struct GNUNET_MESSENGER_Message *message,
  * and kind with the inner encrypted message. The function returns #GNUNET_YES if the
  * operation succeeded, otherwise #GNUNET_NO.
  *
- * @param[in/out] message Message
+ * @param[in,out] message Message
  * @param[in] key Private key of EGO
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */

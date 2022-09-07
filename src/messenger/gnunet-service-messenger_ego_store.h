@@ -96,7 +96,7 @@ init_ego_store (struct GNUNET_MESSENGER_EgoStore *store,
 /**
  * Clears an EGO-store, wipes its content and deallocates its memory.
  *
- * @param[in/out] store EGO-store
+ * @param[in,out] store EGO-store
  */
 void
 clear_ego_store (struct GNUNET_MESSENGER_EgoStore *store);
@@ -105,7 +105,7 @@ clear_ego_store (struct GNUNET_MESSENGER_EgoStore *store);
  * Creates a new EGO which will be registered to a <i>store</i> under
  * a specific <i>identifier</i>.
  *
- * @param[in/out] store EGO-store
+ * @param[in,out] store EGO-store
  * @param[in] identifier Identifier string
  */
 void
@@ -116,9 +116,9 @@ create_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
  * Binds an EGO which was registered to a <i>store</i> under
  * a specific <i>identifier</i> to a given <i>handle</i>
  *
- * @param[in/out] store EGO-store
+ * @param[in,out] store EGO-store
  * @param[in] identifier Identifier string
- * @param[in/out] handle Handle
+ * @param[in,out] handle Handle
  */
 void
 bind_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
@@ -129,9 +129,9 @@ bind_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
  * Binds an EGO which was registered to a <i>store</i> under
  * a specific <i>identifier</i> to a given <i>handle</i>
  *
- * @param[in/out] store EGO-store
+ * @param[in,out] store EGO-store
  * @param[in] identifier Identifier string
- * @param[in/out] handle Handle
+ * @param[in,out] handle Handle
  */
 void
 unbind_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
@@ -142,7 +142,7 @@ unbind_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
  * Lookups an EGO which was registered to a <i>store</i> under
  * a specific <i>identifier</i>.
  *
- * @param[in/out] store EGO-store
+ * @param[in,out] store EGO-store
  * @param[in] identifier Identifier string
  * @param[in] lookup Lookup callback (non-NULL)
  * @param[in] cls Closure
@@ -157,7 +157,7 @@ lookup_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
  * Updates the registration of an EGO to a <i>store</i> under
  * a specific <i>identifier</i> with a new <i>key</i>.
  *
- * @param[in/out] store EGO-store
+ * @param[in,out] store EGO-store
  * @param[in] identifier Identifier string
  * @param[in] key Private EGO key
  * @return Updated EGO
@@ -171,7 +171,7 @@ update_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
  * Deletes the registration of an EGO in a <i>store</i> under
  * a specific <i>identifier</i>.
  *
- * @param[in/out] store EGO-store
+ * @param[in,out] store EGO-store
  * @param[in] identifier Identifier string
  */
 void
@@ -183,7 +183,7 @@ delete_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
  * a different one under a specific <i>new_identifier</i> replacing
  * its old one.
  *
- * @param[in/out] store EGO-store
+ * @param[in,out] store EGO-store
  * @param[in] old_identifier Old identifier string
  * @param[in] new_identifier New identifier string
  */
@@ -196,7 +196,7 @@ rename_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
  * Replaces the registered EGO in a <i>store</i> under a specific
  * <i>identifier</i> with a newly created one.
  *
- * @param[in/out] store EGO-store
+ * @param[in,out] store EGO-store
  * @param[in] identifier Identifier string
  */
 void
