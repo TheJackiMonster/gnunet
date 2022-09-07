@@ -725,9 +725,7 @@ AC_MSG_RESULT([$conversation_backend])
 LIBCURL="-lcurl"
 AC_CHECK_LIB([curl-gnutls],
              [curl_easy_getinfo],
-             [LIBCURL="-lcurl-gnutls"
-              curl_gnutls=1],
-             [curl_gnutls=0])
+             [LIBCURL="-lcurl-gnutls"])
 
 LIBCURL_CHECK_CONFIG([], [7.34.0], [],
                      [AC_MSG_ERROR([cURL must have a version >= 7.34.0])])
@@ -739,7 +737,8 @@ AC_RUN_IFELSE(
                       [[const curl_ssl_backend **avail;]],
                       [[return (CURLSSLSET_OK != curl_global_sslset(CURLSSLBACKEND_GNUTLS, NULL, &avail)) ? 1 : 0;]])],
                     [curl_gnutls=1],
-                    [AC_MSG_WARN([cURL does not have GnuTLS backend])])
+                    [AC_MSG_WARN([cURL does not have GnuTLS backend])
+                     curl_gnutls=0])
 LIBS=$OLD_LIBS
 
 
