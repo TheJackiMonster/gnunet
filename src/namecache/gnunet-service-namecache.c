@@ -211,7 +211,7 @@ handle_lookup_block_it (void *cls,
  * Handles a #GNUNET_MESSAGE_TYPE_NAMECACHE_LOOKUP_BLOCK message
  *
  * @param cls a `struct NamecacheClient *`
- * @param the inbound message
+ * @param ln_msg the inbound message
  */
 static void
 handle_lookup_block (void *cls,

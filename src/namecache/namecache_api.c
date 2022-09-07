@@ -259,7 +259,6 @@ handle_lookup_block_response (void *cls,
  *
  * @param cls the `struct GNUNET_NAMECACHE_Handle`
  * @param msg the message we received
- * @param size the message size
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error and we did NOT notify the client
  */
 static void
