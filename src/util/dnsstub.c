@@ -687,13 +687,6 @@ GNUNET_DNSSTUB_add_dns_sa (struct GNUNET_DNSSTUB_Context *ctx,
 }
 
 
-/**
- * How long should we try requests before timing out?
- * Only effective for requests issued after this call.
- *
- * @param ctx resolver context to modify
- * @param retry_freq how long to wait between retries
- */
 void
 GNUNET_DNSSTUB_set_retry (struct GNUNET_DNSSTUB_Context *ctx,
                           struct GNUNET_TIME_Relative retry_freq)
