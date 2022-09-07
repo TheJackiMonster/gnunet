@@ -26,7 +26,7 @@ EXTRA_DIST =							\
 	sphinx/about.rst \
 	sphinx/conf.py \
 	sphinx/faq.rst \
-	sphinx/gana.rst \
+	sphinx/gana \
 	sphinx/guis \
 	sphinx/index.rst \
 	sphinx/installing.rst \
