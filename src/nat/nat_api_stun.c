@@ -112,7 +112,7 @@ encode_message (enum StunClasses msg_class,
 /**
  * Fill the stun_header with a random request_id
  *
- * @param req, stun header to be filled
+ * @param req stun header to be filled
  */
 static void
 generate_request_id (struct stun_header *req)

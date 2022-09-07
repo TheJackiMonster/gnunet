@@ -110,7 +110,7 @@ test_finished ()
  * a function to call whenever our set of 'valid' addresses changes.
  *
  * @param cls closure, NULL
- * @param app_ctx[in,out] location where the app can store stuff
+ * @param[in,out] app_ctx location where the app can store stuff
  *                  on add and retrieve it on remove
  * @param add_remove #GNUNET_YES to add a new public IP address,
  *                   #GNUNET_NO to remove a previous (now invalid) one
