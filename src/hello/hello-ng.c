@@ -60,8 +60,8 @@ GNUNET_NETWORK_STRUCT_END
  * @param nt network type of @a address
  * @param mono_time monotonic time at which @a address was valid
  * @param private_key signing key to use
- * @param result[out] where to write address record (allocated)
- * @param result_size[out] set to size of @a result
+ * @param[out] result where to write address record (allocated)
+ * @param[out] result_size set to size of @a result
  */
 void
 GNUNET_HELLO_sign_address (
