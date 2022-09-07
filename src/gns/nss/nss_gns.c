@@ -193,7 +193,7 @@ finish:
  * @param result the result hostent
  * @param buffer the result buffer
  * @param buflen length of the buffer
- * @param errnop[out] the low-level error code to return to the application
+ * @param[out] errnop the low-level error code to return to the application
  * @param h_errnop idk
  * @return a nss_status code
  */
@@ -225,7 +225,7 @@ _nss_gns_gethostbyname_r (const char *name,
  * @param result the result hostent
  * @param buffer the result buffer
  * @param buflen length of the buffer
- * @param errnop[out] the low-level error code to return to the application
+ * @param[out] errnop the low-level error code to return to the application
  * @param h_errnop idk
  * @return NSS_STATUS_UNAVAIL
  */
