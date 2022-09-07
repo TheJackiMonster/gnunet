@@ -418,19 +418,6 @@ GNUNET_SECRETSHARING_plaintext_generate_i (struct
 }
 
 
-/**
- * Encrypt a value.  This operation is executed locally, no communication is
- * necessary.
- *
- * This is a helper function, encryption can be done solely with a session's public key
- * and the crypto system parameters.
- *
- * @param public_key public key to use for decryption
- * @param message message to encrypt
- * @param message_size number of bytes in @a message
- * @param result_ciphertext pointer to store the resulting ciphertext
- * @return #GNUNET_YES on success, #GNUNET_SYSERR if the message is invalid (invalid range)
- */
 int
 GNUNET_SECRETSHARING_encrypt (const struct
                               GNUNET_SECRETSHARING_PublicKey *public_key,

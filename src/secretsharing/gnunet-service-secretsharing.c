@@ -653,7 +653,6 @@ keygen_session_destroy (struct KeygenSession *ks)
  * Task run during shutdown.
  *
  * @param cls unused
- * @param tc unused
  */
 static void
 cleanup_task (void *cls)
