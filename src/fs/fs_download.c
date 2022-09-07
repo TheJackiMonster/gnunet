@@ -1422,7 +1422,6 @@ try_reconnect (struct GNUNET_FS_DownloadContext *dc)
  * We're allowed to ask the FS service for our blocks.  Start the download.
  *
  * @param cls the 'struct GNUNET_FS_DownloadContext'
- * @param mq handle to use for communication with FS (we must destroy it!)
  */
 static void
 activate_fs_download (void *cls)

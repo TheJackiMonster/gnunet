@@ -603,7 +603,7 @@ update_latencies (void *cls,
  * Check P2P "PUT" message.
  *
  * @param cls closure with the `struct GSF_ConnectedPeer`
- * @param message the actual message
+ * @param put the actual message
  * @return #GNUNET_OK to keep the connection open,
  *         #GNUNET_SYSERR to close it (signal serious error)
  */
@@ -1063,7 +1063,7 @@ hash_for_index_val (void *cls,
  * Handle INDEX_START-message.
  *
  * @param cls identification of the client
- * @param message the actual message
+ * @param ism the actual message
  */
 static void
 handle_client_index_start (void *cls,
@@ -1144,7 +1144,7 @@ handle_client_index_list_get (void *cls,
  * Handle UNINDEX-message.
  *
  * @param cls identification of the client
- * @param message the actual message
+ * @param um the actual message
  */
 static void
 handle_client_unindex (void *cls,

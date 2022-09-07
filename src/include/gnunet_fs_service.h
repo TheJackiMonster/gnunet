@@ -464,7 +464,7 @@ GNUNET_FS_GETOPT_KEYWORDS (char shortName,
  * @param name long name of the option
  * @param argumentHelp help text for the option argument
  * @param description long help text for the option
- * @param[out] metadata set to the desired value
+ * @param[out] meta metadata set to the desired value
  */
 struct GNUNET_GETOPT_CommandLineOption
 GNUNET_FS_GETOPT_METADATA (char shortName,
