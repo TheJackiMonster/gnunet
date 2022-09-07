@@ -659,8 +659,6 @@ ping (void *cls)
 /**
  * @brief Reply with a pong to origin.
  *
- * @param cls Closure (peer).
- * @param tc Task context.
  */
 static void
 pong (struct GNUNET_CADET_Channel *channel,

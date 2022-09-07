@@ -95,7 +95,7 @@ handle_get_tunnels (void *cls,
  * Process a local reply about info on all tunnels, pass info to the user.
  *
  * @param cls a `struct GNUNET_CADET_ListTunnels *`
- * @param message Message itself.
+ * @param msg Message itself.
  */
 static void
 handle_get_tunnels_end (void *cls,

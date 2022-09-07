@@ -160,8 +160,8 @@ GCT_get_destination (struct CadetTunnel *t);
  * Consider using the path @a p for the tunnel @a t.
  * The tunnel destination is at offset @a off in path @a p.
  *
- * @param cls our tunnel
- * @param path a path to our destination
+ * @param t our tunnel
+ * @param p a path to our destination
  * @param off offset of the destination on path @a path
  */
 void

@@ -232,12 +232,6 @@ struct CadetPeer
 };
 
 
-/**
- * Get the static string for a peer ID.
- *
- * @param cp Peer.
- * @return Static string for it's ID.
- */
 const char *
 GCP_2s (const struct CadetPeer *cp)
 {

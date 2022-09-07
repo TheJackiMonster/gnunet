@@ -612,10 +612,10 @@ timeout_cb (void *cls)
  * later if the connection ever goes down.
  *
  * @param cls the `struct RouteDirection`
- * @param available #GNUNET_YES if sending is now possible,
- *                  #GNUNET_NO if sending is no longer possible
- *                  #GNUNET_SYSERR if sending is no longer possible
- *                                 and the last envelope was discarded
+ * @param ready #GNUNET_YES if sending is now possible,
+ *              #GNUNET_NO if sending is no longer possible
+ *              #GNUNET_SYSERR if sending is no longer possible
+ *                             and the last envelope was discarded
  */
 static void
 dir_ready_cb (void *cls, int ready)

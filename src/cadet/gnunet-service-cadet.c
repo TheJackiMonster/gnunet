@@ -442,7 +442,7 @@ shutdown_task (void *cls)
  * client @a cls opened port @a port.  Bind them now.
  *
  * @param cls the `struct CadetClient`
- * @param h_port the hashed port
+ * @param port the hashed port
  * @param value the `struct CadetChannel`
  * @return #GNUNET_YES (iterate over all such channels)
  */
@@ -1226,7 +1226,6 @@ client_disconnect_cb (void *cls,
  * Setup CADET internals.
  *
  * @param cls closure
- * @param server the initialized server
  * @param c configuration to use
  */
 static void

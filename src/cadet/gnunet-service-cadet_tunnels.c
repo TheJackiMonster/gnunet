@@ -674,7 +674,7 @@ new_ephemeral (struct CadetTunnelAxolotl *ax)
  * @param size Size of @c plaintext.
  * @param iv Initialization vector for the message.
  * @param key Key to use.
- * @param hmac[out] Destination to store the HMAC.
+ * @param[out] hmac Destination to store the HMAC.
  */
 static void
 t_hmac (const void *plaintext,
@@ -890,7 +890,7 @@ t_ax_decrypt (struct CadetTunnelAxolotl *ax,
  * Encrypt header with the axolotl header key.
  *
  * @param ax key material to use.
- * @param[in|out] msg Message whose header to encrypt.
+ * @param[in,out] msg Message whose header to encrypt.
  */
 static void
 t_h_encrypt (struct CadetTunnelAxolotl *ax,
@@ -1488,7 +1488,7 @@ cleanup_ax (struct CadetTunnelAxolotl *ax)
  * Computes the new chain keys, and root keys, etc, and also checks
  * whether this is a replay of the current chain.
  *
- * @param[in|out] axolotl chain key state to recompute
+ * @param[in,out] ax chain key state to recompute
  * @param pid peer identity of the other peer
  * @param ephemeral_key ephemeral public key of the other peer
  * @param ratchet_key senders next ephemeral public key
@@ -3487,15 +3487,6 @@ GCT_send (struct CadetTunnel *t,
 }
 
 
-/**
- * Cancel a previously sent message while it's in the queue.
- *
- * ONLY can be called before the continuation given to the send
- * function is called. Once the continuation is called, the message is
- * no longer in the queue!
- *
- * @param tq Handle to the queue entry to cancel.
- */
 void
 GCT_send_cancel (struct CadetTunnelQueueEntry *tq)
 {
