@@ -101,7 +101,6 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
  * forwarding to local clients.
  *
  * @param pi neighbour that should receive the block
- * @param type type of the block
  * @param bd details about the reply
  * @param query_hash query that was used for the request
  * @param get_path_length number of entries in put_path
@@ -175,7 +174,6 @@ GDS_u_disconnect (void *ctx);
  * Function to call when we receive a message.
  *
  * @param cls the closure
- * @param origin where the message originated from
  * @param[in,out] tctx ctx of target address where we received the message from
  * @param[in,out] sctx ctx of our own source address at which we received the message
  * @param message the message we received @param message_size number of

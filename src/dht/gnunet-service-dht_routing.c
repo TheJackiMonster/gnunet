@@ -341,8 +341,6 @@ try_combine_recent (void *cls,
  * @param key key for the content
  * @param xquery extended query
  * @param xquery_size number of bytes in @a xquery
- * @param reply_bf bloomfilter to filter duplicates
- * @param reply_bf_mutator mutator for @a reply_bf
  */
 void
 GDS_ROUTING_add (const struct GNUNET_PeerIdentity *sender,
