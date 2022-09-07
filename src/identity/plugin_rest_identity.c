@@ -280,7 +280,7 @@ static struct RequestHandle *requests_tail;
 
 /**
  * Cleanup lookup handle
- * @param handle Handle to clean up
+ * @param cls Handle to clean up
  */
 static void
 cleanup_handle (void *cls)
@@ -696,7 +696,7 @@ do_finished (void *cls, const char *emsg)
  * Processing finished, when creating an ego.
  *
  * @param cls request handle
- * @param private key of the ego, or NULL on error
+ * @param pk private key of the ego, or NULL on error
  * @param emsg error message
  */
 static void
