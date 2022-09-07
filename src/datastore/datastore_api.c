@@ -278,7 +278,7 @@ free_queue_entry (struct GNUNET_DATASTORE_QueueEntry *qe)
 /**
  * Task that logs an error after some time.
  *
- * @param qe `struct GNUNET_DATASTORE_QueueEntry` about which the error is
+ * @param cls `struct GNUNET_DATASTORE_QueueEntry` about which the error is
  */
 static void
 delay_warning (void *cls)
