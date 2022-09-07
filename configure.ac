@@ -722,6 +722,7 @@ AC_MSG_RESULT([$conversation_backend])
 # NOTE: If we find libcurl-gnutls here we set LIBCURL to -lcurl-gnutls
 # This affects the LIBCURL_CHECK_CONFIG call below as it takes LIBCURL into
 # account when checking for curl.
+LIBCURL="-lcurl"
 AC_CHECK_LIB([curl-gnutls],
              [curl_easy_getinfo],
              [LIBCURL="-lcurl-gnutls"
@@ -730,6 +731,17 @@ AC_CHECK_LIB([curl-gnutls],
 
 LIBCURL_CHECK_CONFIG([], [7.34.0], [],
                      [AC_MSG_ERROR([cURL must have a version >= 7.34.0])])
+
+OLD_LDFLAGS=$LDFLAGS
+LDFLAGS="$LDFLAGS $LIBCURL"
+AC_RUN_IFELSE(
+     [AC_LANG_PROGRAM([#include <curl/curl.h>]
+                      [[const curl_ssl_backend **avail;]],
+                      [[return (CURLSSLSET_OK != curl_global_sslset(CURLSSLBACKEND_GNUTLS, NULL, &avail)) ? 1 : 0;]])],
+                    [curl_gnutls=1],
+                    [AC_MSG_WARN([cURL does not have GnuTLS backend])])
+LDFLAGS=$OLD_LDFLAGS
+
 
 # Even if curl is found, we check for this constant in order to determine
 # if we can use this feature.
@@ -1495,16 +1507,9 @@ AS_IF([test "x$png" = "x1"],
   [libpng_msg="yes"],
   [libpng_msg="no"])
 
-# We get the supported backend(s) from curl-config unless we linked
-# against libcurl-gnutls directly, in which case we manually set it just to be
-# sure curl-config is not linked against another curl.
 AS_IF([test "x$curl_gnutls" = "x0"],
-       [AC_CHECK_PROG([CURLCONFIG_BINARY], [curl-config], [curl-config], [None])
-        AS_IF([test "x$CURLCONFIG_BINARY" = "xNone"],
-              AC_SUBST([CURL_SSL_BACKEND],["Unkown SSL backend"]),
-              AC_SUBST([CURL_SSL_BACKEND],[`curl-config --ssl-backends`]))
-        http_client="curl ($CURL_SSL_BACKEND)"],
-       [http_client="curl-gnutls"])
+       [http_client="curl (OpenSSL)"],
+       [http_client="curl (GnuTLS)"])
 
 # ifconfig
 AS_IF([test "x$IFCONFIG_BINARY" = "xfalse"],
