@@ -208,7 +208,7 @@ free_element_cb (void *cls,
 /**
  * Destroy session state, we are done with it.
  *
- * @param session the session to free elements from
+ * @param s the session to free elements from
  */
 static void
 destroy_service_session (struct BobServiceSession *s)
@@ -297,8 +297,6 @@ prepare_client_end_notification (struct BobServiceSession *session)
  *
  * @param cls the `struct BobServiceSession`
  * @param channel connection to the other end (henceforth invalid)
- * @param channel_ctx place where local state associated
- *                   with the channel is stored
  */
 static void
 cb_channel_destruction (void *cls,

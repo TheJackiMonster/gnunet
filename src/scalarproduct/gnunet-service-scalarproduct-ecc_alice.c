@@ -761,7 +761,7 @@ cb_intersection_request_alice (void *cls,
 /**
  * Our client has finished sending us its multipart message.
  *
- * @param session the service session context
+ * @param s the service session context
  */
 static void
 client_request_complete_alice (struct AliceServiceSession *s)

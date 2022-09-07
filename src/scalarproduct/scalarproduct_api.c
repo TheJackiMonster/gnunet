@@ -140,7 +140,7 @@ process_status_message (struct GNUNET_SCALARPRODUCT_ComputationHandle *h,
  * handles the response to the client which used the API.
  *
  * @param cls Pointer to the Master Context
- * @param msg Pointer to the data received in response
+ * @param message Pointer to the data received in response
  */
 static void
 handle_response (void *cls,

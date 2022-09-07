@@ -190,7 +190,6 @@ requester_callback (void *cls,
  * Task run during shutdown.
  *
  * @param cls unused
- * @param tc unused
  */
 static void
 shutdown_task (void *cls)
