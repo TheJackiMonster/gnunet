@@ -343,15 +343,6 @@ ibf_write_slice (const struct InvertibleBloomFilter *ibf,
 }
 
 
-/**
- *  Packs the counter to transmit only the smallest possible amount of bytes and
- *  preventing overflow of the counter
- * @param ibf the ibf to write
- * @param start with which bucket to start
- * @param count how many buckets to write
- * @param buf buffer to write the data to
- * @param max bit length of a counter for unpacking
- */
 
 void
 pack_counter (const struct InvertibleBloomFilter *ibf,
@@ -416,15 +407,6 @@ pack_counter (const struct InvertibleBloomFilter *ibf,
 }
 
 
-/**
- *  Unpacks the counter to transmit only the smallest possible amount of bytes and
- *  preventing overflow of the counter
- * @param ibf the ibf to write
- * @param start with which bucket to start
- * @param count how many buckets to write
- * @param buf buffer to write the data to
- * @param max bit length of a counter for unpacking
- */
 
 void
 unpack_counter (const struct InvertibleBloomFilter *ibf,
