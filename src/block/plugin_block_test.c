@@ -53,7 +53,7 @@
  *         by this @a type of block (this is not an error)
  */
 static struct GNUNET_BLOCK_Group *
-block_plugin_test_create_group (void *cls,
+block_plugin_test_create_group (void *ctx,
                                 enum GNUNET_BLOCK_Type type,
                                 const void *raw_data,
                                 size_t raw_data_size,
@@ -77,7 +77,7 @@ block_plugin_test_create_group (void *cls,
     bf_size = TEST_BF_SIZE;
   }
   GNUNET_break (NULL == va_arg (va, const char *));
-  return GNUNET_BLOCK_GROUP_bf_create (cls,
+  return GNUNET_BLOCK_GROUP_bf_create (ctx,
                                        bf_size,
                                        BLOOMFILTER_K,
                                        type,
@@ -90,10 +90,9 @@ block_plugin_test_create_group (void *cls,
  * Function called to validate a query.
  *
  * @param cls closure
- * @param ctx block context
  * @param type block type
  * @param query original query (hash)
- * @param xquery extrended query data (can be NULL, depending on type)
+ * @param xquery extended query data (can be NULL, depending on type)
  * @param xquery_size number of bytes in @a xquery
  * @return #GNUNET_OK if the query is fine, #GNUNET_NO if not, #GNUNET_SYSERR if @a type is not supported
  */

@@ -131,7 +131,6 @@ struct GNUNET_BLOCK_Group;
  *
  * @param ctx block context in which the block group is created
  * @param type type of the block for which we are creating the group
- * @param nonce random value used to seed the group creation
  * @param raw_data optional serialized prior state of the group, NULL if unavailable/fresh
  * @param raw_data_size number of bytes in @a raw_data, 0 if unavailable/fresh
  * @param ... type-specific additional data, can be empty
