@@ -218,7 +218,7 @@ struct HandleResultContext
  *
  * @param cls closure of type `struct HandleResultContext`
  * @param result the postgres result
- * @param num_result the number of results in @a result
+ * @param num_results the number of results in @a result
  */
 static void
 handle_results (void *cls,
@@ -440,7 +440,7 @@ struct ExtractResultContext
  *
  * @param cls closure with the `struct ExtractResultContext`
  * @param result the postgres result
- * @param num_result the number of results in @a result
+ * @param num_results the number of results in @a result
  */
 static void
 extract_result_cb (void *cls,

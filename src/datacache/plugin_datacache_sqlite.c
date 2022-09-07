@@ -161,7 +161,7 @@ struct Plugin
  * @brief Prepare a SQL statement
  *
  * @param dbh database handle
- * @param zsql SQL statement text
+ * @param zSql SQL statement text
  * @param[out] ppStmt set to the prepared statement
  * @return 0 on success
  */
