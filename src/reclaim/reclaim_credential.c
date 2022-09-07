@@ -301,13 +301,6 @@ GNUNET_RECLAIM_credential_list_serialize_get_size (
 }
 
 
-/**
- * Serialize an attribute list
- *
- * @param attrs the attribute list to serialize
- * @param result the serialized attribute
- * @return length of serialized data
- */
 size_t
 GNUNET_RECLAIM_credential_list_serialize (
   const struct GNUNET_RECLAIM_CredentialList *credentials,
@@ -399,19 +392,14 @@ GNUNET_RECLAIM_credential_list_dup (
 }
 
 
-/**
- * Destroy credential list
- *
- * @param attrs list to destroy
- */
 void
 GNUNET_RECLAIM_credential_list_destroy (
-  struct GNUNET_RECLAIM_CredentialList *al)
+  struct GNUNET_RECLAIM_CredentialList *credentials)
 {
   struct GNUNET_RECLAIM_CredentialListEntry *ale;
   struct GNUNET_RECLAIM_CredentialListEntry *tmp_ale;
 
-  for (ale = al->list_head; NULL != ale;)
+  for (ale = credentials->list_head; NULL != ale;)
   {
     if (NULL != ale->credential)
       GNUNET_free (ale->credential);
@@ -419,7 +407,7 @@ GNUNET_RECLAIM_credential_list_destroy (
     ale = ale->next;
     GNUNET_free (tmp_ale);
   }
-  GNUNET_free (al);
+  GNUNET_free (credentials);
 }
 
 
@@ -826,19 +814,14 @@ GNUNET_RECLAIM_presentation_list_dup (
 }
 
 
-/**
- * Destroy presentation list
- *
- * @param attrs list to destroy
- */
 void
 GNUNET_RECLAIM_presentation_list_destroy (
-  struct GNUNET_RECLAIM_PresentationList *al)
+  struct GNUNET_RECLAIM_PresentationList *presentations)
 {
   struct GNUNET_RECLAIM_PresentationListEntry *ale;
   struct GNUNET_RECLAIM_PresentationListEntry *tmp_ale;
 
-  for (ale = al->list_head; NULL != ale;)
+  for (ale = presentations->list_head; NULL != ale;)
   {
     if (NULL != ale->presentation)
       GNUNET_free (ale->presentation);
@@ -846,7 +829,7 @@ GNUNET_RECLAIM_presentation_list_destroy (
     ale = ale->next;
     GNUNET_free (tmp_ale);
   }
-  GNUNET_free (al);
+  GNUNET_free (presentations);
 }
 
 

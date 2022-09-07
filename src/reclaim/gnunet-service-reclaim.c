@@ -522,7 +522,7 @@ cleanup_adh (struct AttributeDeleteHandle *adh)
 /**
  * Cleanup attribute store handle
  *
- * @param handle handle to clean up
+ * @param ash handle to clean up
  */
 static void
 cleanup_as_handle (struct AttributeStoreHandle *ash)

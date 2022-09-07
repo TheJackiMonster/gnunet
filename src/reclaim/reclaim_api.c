@@ -1206,7 +1206,7 @@ struct GNUNET_RECLAIM_Operation *
 GNUNET_RECLAIM_credential_store (
   struct GNUNET_RECLAIM_Handle *h,
   const struct GNUNET_IDENTITY_PrivateKey *pkey,
-  const struct GNUNET_RECLAIM_Credential *attr,
+  const struct GNUNET_RECLAIM_Credential *credential,
   const struct GNUNET_TIME_Relative *exp_interval,
   GNUNET_RECLAIM_ContinuationWithStatus cont,
   void *cont_cls)
@@ -1221,7 +1221,7 @@ GNUNET_RECLAIM_credential_store (
   op->cls = cont_cls;
   op->r_id = h->r_id_gen++;
   GNUNET_CONTAINER_DLL_insert_tail (h->op_head, h->op_tail, op);
-  attr_len = GNUNET_RECLAIM_credential_serialize_get_size (attr);
+  attr_len = GNUNET_RECLAIM_credential_serialize_get_size (credential);
   op->env = GNUNET_MQ_msg_extra (sam,
                                  attr_len,
                                  GNUNET_MESSAGE_TYPE_RECLAIM_CREDENTIAL_STORE);
@@ -1229,7 +1229,7 @@ GNUNET_RECLAIM_credential_store (
   sam->id = htonl (op->r_id);
   sam->exp = GNUNET_htonll (exp_interval->rel_value_us);
 
-  GNUNET_RECLAIM_credential_serialize (attr, (char *) &sam[1]);
+  GNUNET_RECLAIM_credential_serialize (credential, (char *) &sam[1]);
 
   sam->attr_len = htons (attr_len);
   if (NULL != h->mq)
@@ -1439,12 +1439,6 @@ GNUNET_RECLAIM_get_credentials_start (
 }
 
 
-/**
- * Calls the record processor specified in #GNUNET_RECLAIM_get_credential_start
- * for the next record.
- *
- * @param it the iterator
- */
 void
 GNUNET_RECLAIM_get_credentials_next (struct
                                      GNUNET_RECLAIM_CredentialIterator *ait)
@@ -1460,13 +1454,6 @@ GNUNET_RECLAIM_get_credentials_next (struct
 }
 
 
-/**
- * Stops iteration and releases the handle for further calls. Must
- * be called on any iteration that has not yet completed prior to calling
- * #GNUNET_RECLAIM_disconnect.
- *
- * @param it the iterator
- */
 void
 GNUNET_RECLAIM_get_credentials_stop (struct
                                      GNUNET_RECLAIM_CredentialIterator *ait)

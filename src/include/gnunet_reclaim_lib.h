@@ -515,7 +515,7 @@ GNUNET_RECLAIM_attribute_number_to_typename (uint32_t type);
 /**
  * Get required size for serialization buffer
  *
- * @param attrs the attribute list to serialize
+ * @param credentials the attribute list to serialize
  * @return the required buffer size
  */
 size_t
@@ -524,9 +524,9 @@ GNUNET_RECLAIM_credential_list_serialize_get_size (
 
 
 /**
- * Destroy claim list
+ * Destroy credential list
  *
- * @param attrs list to destroy
+ * @param credentials list to destroy
  */
 void
 GNUNET_RECLAIM_credential_list_destroy (
@@ -551,15 +551,15 @@ GNUNET_RECLAIM_credential_list_add (
 
 
 /**
- * Serialize an attribute list
+ * Serialize a credential list
  *
- * @param attrs the attribute list to serialize
- * @param result the serialized attribute
+ * @param credentials the credential list to serialize
+ * @param result the serialized credential
  * @return length of serialized data
  */
 size_t
 GNUNET_RECLAIM_credential_list_serialize (
-  const struct GNUNET_RECLAIM_CredentialList *attrs,
+  const struct GNUNET_RECLAIM_CredentialList *credentials,
   char *result);
 
 
