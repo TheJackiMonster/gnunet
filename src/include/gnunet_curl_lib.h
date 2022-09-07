@@ -324,7 +324,6 @@ GNUNET_CURL_job_add2 (struct GNUNET_CURL_Context *ctx,
  * @param eh curl easy handle for the request, will
  *           be executed AND cleaned up
  * @param job_headers extra headers to add for this request
- * @param max_reply_size largest acceptable response body
  * @param jcc callback to invoke upon completion
  * @param jcc_cls closure for @a jcc
  * @return NULL on error (in this case, @a eh is still released!)
