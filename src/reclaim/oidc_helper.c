@@ -457,30 +457,32 @@ OIDC_generate_id_token_rsa (const struct GNUNET_IDENTITY_PublicKey *aud_key,
                                      expiration_time,
                                      nonce);
 
-  if (! body_str)
+  if (NULL == body_str)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Body for the JWS could not be generated\n");
+    return NULL;
   }
 
   // Creating the JSON Web Signature.
   jws = json_pack ("{s:o}", "payload",
-                           jose_b64_enc (body_str, strlen (body_str)));
+                   jose_b64_enc (body_str, strlen (body_str)));
+  GNUNET_free (body_str);
 
   if (! jose_jws_sig (NULL, jws, NULL, secret_rsa_key))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Signature generation failed\n");
+    return NULL;
   }
 
-  // Encoding JSON as compact JSON Web Signature 
+  // Encoding JSON as compact JSON Web Signature
   GNUNET_asprintf (&result, "%s.%s.%s",
                    json_string_value (json_object_get (jws, "protected")),
                    json_string_value (json_object_get (jws, "payload")),
                    json_string_value (json_object_get (jws, "signature")) );
 
-  json_decref(jws);
-  GNUNET_free(body_str);
+  json_decref (jws);
   return result;
 }
 
@@ -518,7 +520,14 @@ OIDC_generate_id_token_hmac (const struct GNUNET_IDENTITY_PublicKey *aud_key,
 
   // Generate and encode Header
   header = create_jwt_hmac_header ();
+  if (NULL == header)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Header for the JWS could not be generated\n");
+    return NULL;
+  }
   GNUNET_STRINGS_base64url_encode (header, strlen (header), &header_base64);
+  GNUNET_free (header);
   fix_base64 (header_base64);
 
   // Generate and encode the body of the JSON Web Signature
@@ -529,10 +538,12 @@ OIDC_generate_id_token_hmac (const struct GNUNET_IDENTITY_PublicKey *aud_key,
                                      expiration_time,
                                      nonce);
 
-  if (! body_str)
+  if (NULL == body_str)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Body for the JWS could not be generated\n");
+    GNUNET_free (header_base64);
+    return NULL;
   }
 
   GNUNET_STRINGS_base64url_encode (body_str, strlen (body_str), &body_base64);
@@ -559,7 +570,6 @@ OIDC_generate_id_token_hmac (const struct GNUNET_IDENTITY_PublicKey *aud_key,
                    body_base64,
                    signature_base64);
 
-  GNUNET_free (header);
   GNUNET_free (header_base64);
   GNUNET_free (body_str);
   GNUNET_free (body_base64);
