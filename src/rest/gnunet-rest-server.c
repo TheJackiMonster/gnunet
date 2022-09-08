@@ -120,6 +120,21 @@ static const struct GNUNET_CONFIGURATION_Handle *cfg;
 static int echo_origin;
 
 /**
+ * Do basic auth of user
+ */
+static int basic_auth_enabled;
+
+/**
+ * Basic auth secret
+ */
+static char *basic_auth_secret;
+
+/**
+ * User of the service
+ */
+char cuser[LOGIN_NAME_MAX];
+
+/**
  * Allowed Origins (CORS)
  */
 static char *allow_origins;
@@ -318,7 +333,8 @@ cleanup_ar (struct AcceptedRequest *ar)
   if (GNUNET_YES == ar->socket_with_mhd)
   {
     GNUNET_NETWORK_socket_free_memory_only_ (ar->sock);
-  } else {
+  }
+  else {
     GNUNET_NETWORK_socket_close (ar->sock);
   }
   ar->sock = NULL;
@@ -463,6 +479,8 @@ create_response (void *cls,
                  void **con_cls)
 {
   char *origin;
+  char *pw;
+  char *user;
   struct AcceptedRequest *ar;
   struct GNUNET_HashCode key;
   struct MhdConnectionHandle *con_handle;
@@ -506,6 +524,29 @@ create_response (void *cls,
                                MHD_HEADER_KIND,
                                (MHD_KeyValueIterator) & header_iterator,
                                rest_conndata_handle);
+    if (GNUNET_YES == basic_auth_enabled)
+    {
+      pw = NULL;
+      user = MHD_basic_auth_get_username_password (con, &pw);
+      if ((NULL == user) ||
+          (0 != strcmp (user, cuser)))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                    "Unknown user %s\n", user);
+        MHD_queue_basic_auth_fail_response (con, "gnunet", failure_response);
+        return MHD_YES;
+      }
+      if ((NULL == pw) ||
+          (0 != strcmp (pw, basic_auth_secret)))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                    "Password incorrect\n");
+        MHD_queue_basic_auth_fail_response (con, "gnunet", failure_response);
+        GNUNET_free (pw);
+        return MHD_YES;
+      }
+      GNUNET_free (pw);
+    }
 
     con_handle->pp = MHD_create_post_processor (con,
                                                 65536,
@@ -540,7 +581,7 @@ create_response (void *cls,
     MHD_suspend_connection (con_handle->con);
     return MHD_YES;
   }
-  //MHD_resume_connection (con_handle->con);
+  // MHD_resume_connection (con_handle->con);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Queueing response from plugin with MHD\n");
   // Handle Preflights for extensions
@@ -601,7 +642,7 @@ create_response (void *cls,
     MHD_RESULT ret = MHD_queue_response (con,
                                          con_handle->status,
                                          con_handle->response);
-    //cleanup_handle (con_handle);
+    // cleanup_handle (con_handle);
     return ret;
   }
 }
@@ -1065,6 +1106,8 @@ run (void *cls,
      const struct GNUNET_CONFIGURATION_Handle *c)
 {
   char *addr_str;
+  char *basic_auth_file;
+  uint64_t secret;
 
   cfg = c;
   plugins_head = NULL;
@@ -1119,6 +1162,62 @@ run (void *cls,
   }
   GNUNET_free (addr_str);
 
+  basic_auth_enabled = GNUNET_CONFIGURATION_get_value_yesno (cfg,
+                                                             "rest",
+                                                             "BASIC_AUTH_ENABLED");
+  if (basic_auth_enabled)
+  {
+    if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_filename (cfg,
+                                                              "rest",
+                                                              "BASIC_AUTH_SECRET_FILE",
+                                                              &basic_auth_file))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "No basic auth secret file location set...\n");
+      GNUNET_SCHEDULER_shutdown ();
+      return;
+    }
+    if (GNUNET_YES != GNUNET_DISK_file_test (basic_auth_file))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "No basic auth secret found... generating\n");
+      secret = GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_WEAK,
+                                         UINT64_MAX);
+      basic_auth_secret = GNUNET_STRINGS_data_to_string_alloc (&secret,
+                                                               sizeof(secret));
+      if (GNUNET_OK !=
+          GNUNET_DISK_fn_write (basic_auth_file,
+                                basic_auth_secret,
+                                strlen (basic_auth_secret),
+                                GNUNET_DISK_PERM_USER_READ
+                                | GNUNET_DISK_PERM_USER_WRITE))
+        GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING,
+                                  "write",
+                                  basic_auth_file);
+    }
+    else
+    {
+      char basic_auth_secret_tmp[16]; // Should be more than enough
+      memset (basic_auth_secret_tmp, 0, 16);
+      if (GNUNET_SYSERR == GNUNET_DISK_fn_read (basic_auth_file,
+                                                basic_auth_secret_tmp,
+                                                sizeof (basic_auth_secret_tmp)))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "Unable to read basic auth secret file.\n");
+        GNUNET_SCHEDULER_shutdown ();
+        return;
+      }
+      if (0 != getlogin_r (cuser, LOGIN_NAME_MAX))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "Unable to get user.\n");
+        GNUNET_SCHEDULER_shutdown ();
+        return;
+      }
+      basic_auth_secret = GNUNET_strdup (basic_auth_secret_tmp);
+    }
+  }
 
   /* Get CORS data from cfg */
   echo_origin =
@@ -1155,7 +1254,7 @@ run (void *cls,
                 "No CORS Access-Control-Allow-Headers Header will be sent...\n");
   }
 
-  /* Open listen socket proxy */
+/* Open listen socket proxy */
   lsock6 = bind_v6 ();
   if (NULL == lsock6)
   {
@@ -1203,7 +1302,8 @@ run (void *cls,
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Service listens on port %llu\n", port);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Service listens on port %llu\n",
+              port);
   httpd = MHD_start_daemon (MHD_USE_DEBUG | MHD_USE_NO_LISTEN_SOCKET
                             | MHD_ALLOW_SUSPEND_RESUME,
                             0,
@@ -1228,7 +1328,7 @@ run (void *cls,
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  /* Load plugins */
+/* Load plugins */
   GNUNET_PLUGIN_load_all_in_context (GNUNET_OS_project_data_default (),
                                      "libgnunet_plugin_rest",
                                      (void *) cfg,
