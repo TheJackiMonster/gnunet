@@ -733,9 +733,8 @@ LIBCURL_CHECK_CONFIG([], [7.34.0], [],
 OLD_LIBS=$LIBS
 LIBS="$LIBS $LIBCURL"
 AC_RUN_IFELSE(
-     [AC_LANG_PROGRAM([#include <curl/curl.h>],
-                      [],
-                      [[return (CURLSSLSET_OK != curl_global_sslset(CURLSSLBACKEND_GNUTLS, NULL, NULL)) ? 1 : 0;]])],
+     [AC_LANG_PROGRAM([[#include <curl/curl.h>]],
+                      [[return (CURLSSLSET_OK != curl_global_sslset(CURLSSLBACKEND_GNUTLS, NULL, NULL));]])],
                     [curl_gnutls=1],
                     [AC_MSG_WARN([cURL does not have GnuTLS backend])
                      curl_gnutls=0])
