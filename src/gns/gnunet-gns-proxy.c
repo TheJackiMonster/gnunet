@@ -1265,7 +1265,7 @@ curl_check_hdr (void *buffer,
     GNUNET_free (leho_host);
   }
   else if (0 == strcasecmp (MHD_HTTP_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN,
-                       hdr_type))
+                            hdr_type))
   {
     char *leho_host;
 
@@ -1309,7 +1309,7 @@ curl_check_hdr (void *buffer,
                                  s5r->header_tail,
                                  header);
   }
-cleanup:
+  cleanup:
   GNUNET_free (ndup);
   GNUNET_free (new_cookie_hdr);
   GNUNET_free (new_location);
@@ -3800,6 +3800,14 @@ run (void *cls,
   {
     GNUNET_SCHEDULER_shutdown ();
     return;
+  }
+  if (CURLSSLSET_OK != curl_global_sslset (CURLSSLBACKEND_GNUTLS,
+                                           NULL,
+                                           NULL))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "cURL does not support the GnuTLS backend\n");
+
   }
   if (0 != curl_global_init (CURL_GLOBAL_WIN32))
   {
