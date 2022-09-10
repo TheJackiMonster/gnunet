@@ -32,8 +32,8 @@ EXTRA_DIST =							\
 	sphinx/installing.rst \
 	sphinx/livingstandards.rst \
 	sphinx/make.bat \
-	sphinx/man_developers \
-	sphinx/man_users \
+	sphinx/developers \
+	sphinx/users \
 	sphinx/preface.rst \
 	sphinx/_static \
 	sphinx/Makefile
