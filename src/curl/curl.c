@@ -428,8 +428,14 @@ setup_job (CURL *eh,
        (CURLE_OK !=
         curl_easy_setopt (eh,
                           CURLOPT_SHARE,
-                          ctx->share)) ||
-       (CURLM_OK !=
+                          ctx->share)) )
+  {
+    GNUNET_break (0);
+    GNUNET_free (job);
+    curl_easy_cleanup (eh);
+    return NULL;
+  }
+  if ( (CURLM_OK !=
         curl_multi_add_handle (ctx->multi,
                                eh)) )
   {
