@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -123,5 +126,7 @@ GNUNET_LOAD_update (struct GNUNET_LOAD_Value *load, uint64_t data);
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */  /* end of group addition to libgnunetutil */
 
 /* end of gnunet_load_lib.h */

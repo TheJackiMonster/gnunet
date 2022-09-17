@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup Backbone 
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -116,3 +119,5 @@ GNUNET_FRIENDS_write (struct GNUNET_FRIENDS_Writer *w,
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */  /* end of group addition to backbone */

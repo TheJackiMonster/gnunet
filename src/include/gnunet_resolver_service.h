@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup vpn_suite
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -177,5 +180,7 @@ GNUNET_RESOLVER_request_cancel (struct GNUNET_RESOLVER_RequestHandle *rh);
 #endif
 
 /** @} */  /* end of group resolver */
+
+/** @} */  /* end of group addition to vpn_suite */
 
 /* end of gnunet_resolver_service.h */

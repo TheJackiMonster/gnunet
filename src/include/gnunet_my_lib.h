@@ -18,6 +18,9 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 /**
+ * @addtogroup lib_extra 
+ * @{
+ *
  * @author Christian Grothoff
  * @author Christophe Genevey
  *
@@ -498,3 +501,5 @@ GNUNET_MY_cleanup_result (struct GNUNET_MY_ResultSpec *rs);
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */  /* end of group addition to lib_extra */

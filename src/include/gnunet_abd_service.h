@@ -19,13 +19,16 @@
  */
 
 /**
+ * @addtogroup reclaim_suite
+ * @{
+ *
  * @author Martin Schanzenbach
  *
  * @file
  * API to the Credential service
  *
  * @defgroup abd  Credential service
- * Credentials
+ * Credential service for Attribute-Based Decryption
  *
  * @{
  */
@@ -415,3 +418,5 @@ GNUNET_ABD_request_cancel (struct GNUNET_ABD_Request *lr);
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */  /* end of group addition to reclaim_suite */

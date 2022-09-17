@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup fs_l2
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -98,3 +101,5 @@ GNUNET_NETWORK_STRUCT_END
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */  /* end of group addition to fs_l2 */

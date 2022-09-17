@@ -26,7 +26,7 @@
  * Service for testing and autoconfiguration of
  * NAT traversal functionality
  *
- * @defgroup nat  NAT testing library
+ * @defgroup nat  NAT library
  *
  * @{
  */

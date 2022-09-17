@@ -18,6 +18,9 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 /**
+ * @addtogroup lib_extra Additional libraries
+ * @{
+ *
  * @file src/include/gnunet_curl_lib.h
  * @brief library to make it easy to download JSON replies over HTTP
  * @author Sree Harsha Totakura <sreeharsha@totakura.in>
@@ -435,5 +438,7 @@ GNUNET_CURL_is_valid_scope_id (const char *scope_id);
 
 #endif
 /** @} */  /* end of group */
+
+/** @} */  /* end of group addition to lib_extra */
 
 /* end of gnunet_curl_lib.h */
