@@ -292,7 +292,6 @@ check_PROGRAMS = \
  test_container_heap \
  test_crypto_symmetric \
  test_crypto_crc \
- test_crypto_ecc \
  test_crypto_cs \
  test_crypto_ecdsa \
  test_crypto_eddsa \
@@ -460,11 +459,6 @@ test_crypto_cs_SOURCES = \
 test_crypto_cs_LDADD = \
  libgnunetutil.la \
  -lsodium
-
-test_crypto_ecc_SOURCES = \
- test_crypto_ecc.c
-test_crypto_ecc_LDADD = \
- libgnunetutil.la
 
 test_crypto_ecdsa_SOURCES = \
  test_crypto_ecdsa.c
