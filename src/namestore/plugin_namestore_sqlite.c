@@ -331,8 +331,8 @@ namestore_sqlite_store_records (void *cls,
   for (unsigned int i = 0; i < rd_count; i++)
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Checking if `%d' is zonekey type\n",
-       rd[i].record_type);
+         "Checking if `%d' is zonekey type\n",
+         rd[i].record_type);
 
     if (GNUNET_YES == GNUNET_GNSRECORD_is_zonekey_type (rd[i].record_type))
     {
@@ -342,8 +342,8 @@ namestore_sqlite_store_records (void *cls,
                                                          rd[i].record_type,
                                                          &pkey));
       LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Storing delegation zone record value `%s'\n",
-       GNUNET_GNSRECORD_z2s (&pkey));
+           "Storing delegation zone record value `%s'\n",
+           GNUNET_GNSRECORD_z2s (&pkey));
 
       break;
     }
@@ -740,6 +740,58 @@ namestore_sqlite_zone_to_name (void *cls,
                                         iter_cls);
 }
 
+/**
+ * Begin a transaction for a client.
+ * This locks the database. SQLite is unable to discern between different
+ * rows with a specific zone key but the API looks like this anyway.
+ * https://www.sqlite.org/lang_transaction.html
+ *
+ * @param cls closure (internal context for the plugin)
+ * @param emsg error message set of return code is #GNUNET_SYSERR
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR if transaction cannot be started.
+ */
+static enum GNUNET_GenericReturnValue
+namestore_sqlite_transaction_begin (void *cls,
+                                    char **emsg)
+{
+  struct Plugin *plugin = cls;
+  return (SQLITE_BUSY == sqlite3_exec (plugin->dbh, "BEGIN TRANSACTION;", NULL,
+                                       NULL, emsg)) ? GNUNET_SYSERR : GNUNET_OK;
+}
+
+/**
+ * Commit a transaction for a client.
+ * This releases the lock on the database.
+ *
+ * @param cls closure (internal context for the plugin)
+ * @param emsg error message set of return code is #GNUNET_SYSERR
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR if transaction cannot be started.
+ */
+static enum GNUNET_GenericReturnValue
+namestore_sqlite_transaction_rollback (void *cls,
+                                       char **emsg)
+{
+  struct Plugin *plugin = cls;
+  return (SQLITE_BUSY == sqlite3_exec (plugin->dbh, "ROLLBACK;", NULL,
+                                       NULL, emsg)) ? GNUNET_SYSERR : GNUNET_OK;
+}
+
+/**
+ * Roll back a transaction for a client.
+ * This releases the lock on the database.
+ *
+ * @param cls closure (internal context for the plugin)
+ * @param emsg error message set of return code is #GNUNET_SYSERR
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR if transaction cannot be started.
+ */
+static enum GNUNET_GenericReturnValue
+namestore_sqlite_transaction_commit (void *cls,
+                                     char **emsg)
+{
+  struct Plugin *plugin = cls;
+  return (SQLITE_BUSY == sqlite3_exec (plugin->dbh, "END TRANSACTION;", NULL,
+                                       NULL, emsg)) ? GNUNET_SYSERR : GNUNET_OK;
+}
 
 /**
  * Entry point for the plugin.
@@ -771,6 +823,9 @@ libgnunet_plugin_namestore_sqlite_init (void *cls)
   api->iterate_records = &namestore_sqlite_iterate_records;
   api->zone_to_name = &namestore_sqlite_zone_to_name;
   api->lookup_records = &namestore_sqlite_lookup_records;
+  api->transaction_begin = &namestore_sqlite_transaction_begin;
+  api->transaction_commit = &namestore_sqlite_transaction_commit;
+  api->transaction_rollback = &namestore_sqlite_transaction_rollback;
   LOG (GNUNET_ERROR_TYPE_INFO,
        _ ("Sqlite database running\n"));
   return api;
