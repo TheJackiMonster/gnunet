@@ -1355,9 +1355,9 @@ GNUNET_NAMESTORE_transaction_begin (struct GNUNET_NAMESTORE_Handle *h,
 
 
 struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_transaction_abort (struct GNUNET_NAMESTORE_Handle *h,
-                                    GNUNET_SCHEDULER_TaskCallback error_cb,
-                                    void *error_cb_cls)
+GNUNET_NAMESTORE_transaction_rollback (struct GNUNET_NAMESTORE_Handle *h,
+                                       GNUNET_SCHEDULER_TaskCallback error_cb,
+                                       void *error_cb_cls)
 {
   GNUNET_break (0);
   return NULL;
