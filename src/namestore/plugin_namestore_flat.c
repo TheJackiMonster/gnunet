@@ -767,19 +767,16 @@ namestore_flat_zone_to_name (void *cls,
 void *
 libgnunet_plugin_namestore_flat_init (void *cls)
 {
-  static struct Plugin plugin;
+  struct Plugin *plugin;
   const struct GNUNET_CONFIGURATION_Handle *cfg = cls;
   struct GNUNET_NAMESTORE_PluginFunctions *api;
 
-  if (NULL != plugin.cfg)
-    return NULL;                /* can only initialize once! */
-  memset (&plugin,
-          0,
-          sizeof(struct Plugin));
-  plugin.cfg = cfg;
-  if (GNUNET_OK != database_setup (&plugin))
+  plugin = GNUNET_new (struct Plugin);
+  plugin->cfg = cfg;
+  if (GNUNET_OK != database_setup (plugin))
   {
-    database_shutdown (&plugin);
+    database_shutdown (plugin);
+    GNUNET_free (plugin);
     return NULL;
   }
   api = GNUNET_new (struct GNUNET_NAMESTORE_PluginFunctions);
@@ -808,6 +805,7 @@ libgnunet_plugin_namestore_flat_done (void *cls)
 
   database_shutdown (plugin);
   plugin->cfg = NULL;
+  GNUNET_free (plugin);
   GNUNET_free (api);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Flat file plugin is finished\n");

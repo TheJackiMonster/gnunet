@@ -577,21 +577,20 @@ database_shutdown (struct Plugin *plugin)
 void *
 libgnunet_plugin_namestore_postgres_init (void *cls)
 {
-  static struct Plugin plugin;
+  struct Plugin *plugin;
   const struct GNUNET_CONFIGURATION_Handle *cfg = cls;
   struct GNUNET_NAMESTORE_PluginFunctions *api;
 
-  if (NULL != plugin.cfg)
-    return NULL;                /* can only initialize once! */
-  memset (&plugin, 0, sizeof(struct Plugin));
-  plugin.cfg = cfg;
-  if (GNUNET_OK != database_setup (&plugin))
+  plugin = GNUNET_new (struct Plugin);
+  plugin->cfg = cfg;
+  if (GNUNET_OK != database_setup (plugin))
   {
-    database_shutdown (&plugin);
+    database_shutdown (plugin);
+    GNUNET_free (plugin);
     return NULL;
   }
   api = GNUNET_new (struct GNUNET_NAMESTORE_PluginFunctions);
-  api->cls = &plugin;
+  api->cls = plugin;
   api->store_records = &namestore_postgres_store_records;
   api->iterate_records = &namestore_postgres_iterate_records;
   api->zone_to_name = &namestore_postgres_zone_to_name;
@@ -616,6 +615,7 @@ libgnunet_plugin_namestore_postgres_done (void *cls)
 
   database_shutdown (plugin);
   plugin->cfg = NULL;
+  GNUNET_free (plugin);
   GNUNET_free (api);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Postgres namestore plugin is finished\n");

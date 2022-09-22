@@ -132,6 +132,11 @@ struct NamestoreClient
   struct GNUNET_SERVICE_Client *client;
 
   /**
+   * Database handle
+   */
+  struct GNUNET_NAMESTORE_PluginFunctions *GSN_database;
+
+  /**
    * Message queue for transmission to @e client
    */
   struct GNUNET_MQ_Handle *mq;
@@ -353,11 +358,6 @@ static struct GNUNET_STATISTICS_Handle *statistics;
 static struct GNUNET_NAMECACHE_Handle *namecache;
 
 /**
- * Database handle
- */
-static struct GNUNET_NAMESTORE_PluginFunctions *GSN_database;
-
-/**
  * Name of the database plugin
  */
 static char *db_lib_name;
@@ -436,7 +436,6 @@ cleanup_task (void *cls)
     GNUNET_NAMECACHE_disconnect (namecache);
     namecache = NULL;
   }
-  GNUNET_break (NULL == GNUNET_PLUGIN_unload (db_lib_name, GSN_database));
   GNUNET_free (db_lib_name);
   db_lib_name = NULL;
   if (NULL != monitor_nc)
@@ -560,11 +559,13 @@ cache_nick (const struct GNUNET_IDENTITY_PrivateKey *zone,
 /**
  * Return the NICK record for the zone (if it exists).
  *
+ * @param nc the namestore client
  * @param zone private key for the zone to look for nick
  * @return NULL if no NICK record was found
  */
 static struct GNUNET_GNSRECORD_Data *
-get_nick_record (const struct GNUNET_IDENTITY_PrivateKey *zone)
+get_nick_record (const struct NamestoreClient *nc,
+                 const struct GNUNET_IDENTITY_PrivateKey *zone)
 {
   struct GNUNET_IDENTITY_PublicKey pub;
   struct GNUNET_GNSRECORD_Data *nick;
@@ -588,11 +589,11 @@ get_nick_record (const struct GNUNET_IDENTITY_PrivateKey *zone)
   }
 
   nick = NULL;
-  res = GSN_database->lookup_records (GSN_database->cls,
-                                      zone,
-                                      GNUNET_GNS_EMPTY_LABEL_AT,
-                                      &lookup_nick_it,
-                                      &nick);
+  res = nc->GSN_database->lookup_records (nc->GSN_database->cls,
+                                          zone,
+                                          GNUNET_GNS_EMPTY_LABEL_AT,
+                                          &lookup_nick_it,
+                                          &nick);
   if ((GNUNET_OK != res) || (NULL == nick))
   {
 #if ! defined(GNUNET_CULL_LOGGING)
@@ -735,7 +736,7 @@ send_lookup_response (struct NamestoreClient *nc,
   char *name_tmp;
   char *rd_ser;
 
-  nick = get_nick_record (zone_key);
+  nick = get_nick_record (nc, zone_key);
   GNUNET_assert (-1 != GNUNET_GNSRECORD_records_get_size (rd_count, rd));
 
   if ((NULL != nick) && (0 != strcmp (name, GNUNET_GNS_EMPTY_LABEL_AT)))
@@ -936,7 +937,7 @@ refresh_block (struct NamestoreClient *nc,
     rd_clean[rd_count_clean++] = rd[i];
   }
 
-  nick = get_nick_record (zone_key);
+  nick = get_nick_record (nc, zone_key);
   res_count = rd_count_clean;
   res = (struct GNUNET_GNSRECORD_Data *) rd_clean;  /* fixme: a bit unclean... */
   if ((NULL != nick) && (0 != strcmp (name, GNUNET_GNS_EMPTY_LABEL_AT)))
@@ -1168,6 +1169,7 @@ client_disconnect_cb (void *cls,
   for (cop = cop_head; NULL != cop; cop = cop->next)
     if (nc == cop->nc)
       cop->nc = NULL;
+  GNUNET_break (NULL == GNUNET_PLUGIN_unload (db_lib_name, nc->GSN_database));
   GNUNET_free (nc);
 }
 
@@ -1186,12 +1188,35 @@ client_connect_cb (void *cls,
                    struct GNUNET_MQ_Handle *mq)
 {
   struct NamestoreClient *nc;
+  char *database;
+  char *db_lib_name;
 
   (void) cls;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Client %p connected\n", client);
   nc = GNUNET_new (struct NamestoreClient);
   nc->client = client;
   nc->mq = mq;
+  /* Loading database plugin */
+  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_string (GSN_cfg,
+                                                          "namestore",
+                                                          "database",
+                                                          &database))
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "No database backend configured\n");
+  GNUNET_asprintf (&db_lib_name, "libgnunet_plugin_namestore_%s", database);
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Loading %s\n", db_lib_name);
+  nc->GSN_database = GNUNET_PLUGIN_load (db_lib_name, (void *) GSN_cfg);
+  GNUNET_free (database);
+  if (NULL == nc->GSN_database)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Could not load database backend `%s'\n",
+                db_lib_name);
+    GNUNET_free (db_lib_name);
+    GNUNET_free (nc);
+    return NULL;
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Loaded %s\n", db_lib_name);
+  GNUNET_free (db_lib_name);
   return nc;
 }
 
@@ -1402,12 +1427,12 @@ handle_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
   rlc.res_rd_count = 0;
   rlc.res_rd = NULL;
   rlc.rd_ser_len = 0;
-  rlc.nick = get_nick_record (&ll_msg->zone);
-  res = GSN_database->lookup_records (GSN_database->cls,
-                                      &ll_msg->zone,
-                                      conv_name,
-                                      &lookup_it,
-                                      &rlc);
+  rlc.nick = get_nick_record (nc, &ll_msg->zone);
+  res = nc->GSN_database->lookup_records (nc->GSN_database->cls,
+                                          &ll_msg->zone,
+                                          conv_name,
+                                          &lookup_it,
+                                          &rlc);
   env =
     GNUNET_MQ_msg_extra (llr_msg,
                          name_len + rlc.rd_ser_len,
@@ -1591,11 +1616,11 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
                 "Creating %u records for name `%s'\n",
                 (unsigned int) rd_count,
                 conv_name);
-    if ((GNUNET_NO == GSN_database->lookup_records (GSN_database->cls,
-                                                    &rp_msg->private_key,
-                                                    conv_name,
-                                                    &get_block_exp_existing,
-                                                    &existing_block_exp)) &&
+    if ((GNUNET_NO == nc->GSN_database->lookup_records (nc->GSN_database->cls,
+                                                        &rp_msg->private_key,
+                                                        conv_name,
+                                                        &get_block_exp_existing,
+                                                        &existing_block_exp)) &&
         (rd_count == 0))
     {
       /* This name does not exist, so cannot be removed */
@@ -1676,11 +1701,11 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
         /* remove nick record from cache, in case we have one there */
         cache_nick (&rp_msg->private_key, NULL);
       }
-      res = GSN_database->store_records (GSN_database->cls,
-                                         &rp_msg->private_key,
-                                         conv_name,
-                                         rd_nf_count,
-                                         rd_nf);
+      res = nc->GSN_database->store_records (nc->GSN_database->cls,
+                                             &rp_msg->private_key,
+                                             conv_name,
+                                             rd_nf_count,
+                                             rd_nf);
     }
 
     if (GNUNET_OK != res)
@@ -1817,11 +1842,11 @@ handle_zone_to_name (void *cls, const struct ZoneToNameMessage *ztn_msg)
   ztn_ctx.rid = ntohl (ztn_msg->gns_header.r_id);
   ztn_ctx.nc = nc;
   ztn_ctx.success = GNUNET_NO;
-  if (GNUNET_SYSERR == GSN_database->zone_to_name (GSN_database->cls,
-                                                   &ztn_msg->zone,
-                                                   &ztn_msg->value_zone,
-                                                   &handle_zone_to_name_it,
-                                                   &ztn_ctx))
+  if (GNUNET_SYSERR == nc->GSN_database->zone_to_name (nc->GSN_database->cls,
+                                                       &ztn_msg->zone,
+                                                       &ztn_msg->value_zone,
+                                                       &handle_zone_to_name_it,
+                                                       &ztn_ctx))
   {
     /* internal error, hang up instead of signalling something
        that might be wrong */
@@ -1935,6 +1960,7 @@ run_zone_iteration_round (struct ZoneIteration *zi, uint64_t limit)
   struct ZoneIterationProcResult proc;
   struct GNUNET_TIME_Absolute start;
   struct GNUNET_TIME_Relative duration;
+  struct NamestoreClient *nc = zi->nc;
 
   memset (&proc, 0, sizeof(proc));
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1945,15 +1971,16 @@ run_zone_iteration_round (struct ZoneIteration *zi, uint64_t limit)
   proc.limit = limit;
   start = GNUNET_TIME_absolute_get ();
   GNUNET_break (GNUNET_SYSERR !=
-                GSN_database->iterate_records (GSN_database->cls,
-                                               (GNUNET_YES == GNUNET_is_zero (
-                                                  &zi->zone))
+                nc->GSN_database->iterate_records (nc->GSN_database->cls,
+                                                   (GNUNET_YES ==
+                                                    GNUNET_is_zero (
+                                                      &zi->zone))
                                                ? NULL
                                                : &zi->zone,
-                                               zi->seq,
-                                               limit,
-                                               &zone_iterate_proc,
-                                               &proc));
+                                                   zi->seq,
+                                                   limit,
+                                                   &zone_iterate_proc,
+                                                   &proc));
   duration = GNUNET_TIME_absolute_get_duration (start);
   duration = GNUNET_TIME_relative_divide (duration, limit - proc.limit);
   GNUNET_STATISTICS_set (statistics,
@@ -2212,6 +2239,7 @@ static void
 monitor_iteration_next (void *cls)
 {
   struct ZoneMonitor *zm = cls;
+  struct NamestoreClient *nc = zm->nc;
   int ret;
 
   zm->task = NULL;
@@ -2220,15 +2248,13 @@ monitor_iteration_next (void *cls)
     zm->iteration_cnt = zm->limit / 2; /* leave half for monitor events */
   else
     zm->iteration_cnt = zm->limit; /* use it all */
-  ret = GSN_database->iterate_records (GSN_database->cls,
-                                       (GNUNET_YES == GNUNET_is_zero (
-                                          &zm->zone))
-                                       ? NULL
-                                       : &zm->zone,
-                                       zm->seq,
-                                       zm->iteration_cnt,
-                                       &monitor_iterate_cb,
-                                       zm);
+  ret = nc->GSN_database->iterate_records (nc->GSN_database->cls,
+                                           (GNUNET_YES == GNUNET_is_zero (
+                                              &zm->zone)) ? NULL : &zm->zone,
+                                           zm->seq,
+                                           zm->iteration_cnt,
+                                           &monitor_iterate_cb,
+                                           zm);
   if (GNUNET_SYSERR == ret)
   {
     GNUNET_SERVICE_client_drop (zm->nc->client);
@@ -2330,26 +2356,8 @@ run (void *cls,
     namecache = GNUNET_NAMECACHE_connect (cfg);
     GNUNET_assert (NULL != namecache);
   }
-  /* Loading database plugin */
-  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_string (cfg,
-                                                          "namestore",
-                                                          "database",
-                                                          &database))
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "No database backend configured\n");
-
-  GNUNET_asprintf (&db_lib_name, "libgnunet_plugin_namestore_%s", database);
-  GSN_database = GNUNET_PLUGIN_load (db_lib_name, (void *) GSN_cfg);
-  GNUNET_free (database);
   statistics = GNUNET_STATISTICS_create ("namestore", cfg);
   GNUNET_SCHEDULER_add_shutdown (&cleanup_task, NULL);
-  if (NULL == GSN_database)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Could not load database backend `%s'\n",
-                db_lib_name);
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
 }
 
 

@@ -129,7 +129,7 @@ database_setup (struct Plugin *plugin)
     GNUNET_SQ_make_try_execute ("PRAGMA legacy_file_format=OFF"),
     GNUNET_SQ_make_try_execute ("PRAGMA auto_vacuum=INCREMENTAL"),
     GNUNET_SQ_make_try_execute ("PRAGMA encoding=\"UTF-8\""),
-    GNUNET_SQ_make_try_execute ("PRAGMA locking_mode=EXCLUSIVE"),
+    GNUNET_SQ_make_try_execute ("PRAGMA locking_mode=NORMAL"),
     GNUNET_SQ_make_try_execute ("PRAGMA journal_mode=WAL"),
     GNUNET_SQ_make_try_execute ("PRAGMA page_size=4092"),
     GNUNET_SQ_make_execute ("CREATE TABLE IF NOT EXISTS ns098records ("
@@ -201,17 +201,16 @@ database_setup (struct Plugin *plugin)
       return GNUNET_SYSERR;
     }
   }
-  /* sqlite_filename should be UTF-8-encoded. If it isn't, it's a bug */
-  plugin->fn = sqlite_filename;
 
   /* Open database and precompile statements */
   if (SQLITE_OK !=
-      sqlite3_open (plugin->fn,
+      sqlite3_open (sqlite_filename,
                     &plugin->dbh))
   {
     LOG (GNUNET_ERROR_TYPE_ERROR,
          _ ("Unable to initialize SQLite: %s.\n"),
          sqlite3_errmsg (plugin->dbh));
+    GNUNET_free (sqlite_filename);
     return GNUNET_SYSERR;
   }
   GNUNET_break (SQLITE_OK ==
@@ -224,7 +223,8 @@ database_setup (struct Plugin *plugin)
     GNUNET_break (0);
     LOG (GNUNET_ERROR_TYPE_ERROR,
          _ ("Failed to setup database at `%s'\n"),
-         plugin->fn);
+         sqlite_filename);
+    GNUNET_free (sqlite_filename);
     return GNUNET_SYSERR;
   }
 
@@ -235,7 +235,8 @@ database_setup (struct Plugin *plugin)
     GNUNET_break (0);
     LOG (GNUNET_ERROR_TYPE_ERROR,
          _ ("Failed to setup database at `%s'\n"),
-         plugin->fn);
+         sqlite_filename);
+    GNUNET_free (sqlite_filename);
     return GNUNET_SYSERR;
   }
   return GNUNET_OK;
@@ -296,7 +297,6 @@ database_shutdown (struct Plugin *plugin)
                 GNUNET_ERROR_TYPE_ERROR,
                 "sqlite3_close");
 
-  GNUNET_free (plugin->fn);
 }
 
 
@@ -802,23 +802,20 @@ namestore_sqlite_transaction_commit (void *cls,
 void *
 libgnunet_plugin_namestore_sqlite_init (void *cls)
 {
-  static struct Plugin plugin;
+  struct Plugin *plugin;
   const struct GNUNET_CONFIGURATION_Handle *cfg = cls;
   struct GNUNET_NAMESTORE_PluginFunctions *api;
 
-  if (NULL != plugin.cfg)
-    return NULL;                /* can only initialize once! */
-  memset (&plugin,
-          0,
-          sizeof(struct Plugin));
-  plugin.cfg = cfg;
-  if (GNUNET_OK != database_setup (&plugin))
+  plugin = GNUNET_new (struct Plugin);
+  plugin->cfg = cfg;
+  if (GNUNET_OK != database_setup (plugin))
   {
-    database_shutdown (&plugin);
+    database_shutdown (plugin);
+    GNUNET_free (plugin);
     return NULL;
   }
   api = GNUNET_new (struct GNUNET_NAMESTORE_PluginFunctions);
-  api->cls = &plugin;
+  api->cls = plugin;
   api->store_records = &namestore_sqlite_store_records;
   api->iterate_records = &namestore_sqlite_iterate_records;
   api->zone_to_name = &namestore_sqlite_zone_to_name;
@@ -846,6 +843,7 @@ libgnunet_plugin_namestore_sqlite_done (void *cls)
 
   database_shutdown (plugin);
   plugin->cfg = NULL;
+  GNUNET_free (plugin);
   GNUNET_free (api);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "sqlite plugin is finished\n");
