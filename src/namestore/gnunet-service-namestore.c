@@ -1728,6 +1728,57 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
   }
 }
 
+/**
+ * Handles a #GNUNET_MESSAGE_TYPE_NAMESTORE_TX_CONTROL message
+ *
+ * @param cls client sending the message
+ * @param tx_msg message of type `struct TxControlMessage`
+ */
+static void
+handle_tx_control (void *cls, const struct TxControlMessage *tx_msg)
+{
+  struct NamestoreClient *nc = cls;
+  struct TxControlResultMessage *txr_msg;
+  struct GNUNET_MQ_Envelope *env;
+  enum GNUNET_GenericReturnValue ret;
+  char *emsg;
+  char *err_tmp;
+  size_t err_len;
+
+  switch (ntohs (tx_msg->control))
+  {
+  case GNUNET_NAMESTORE_TX_BEGIN:
+    ret = nc->GSN_database->transaction_begin (nc->GSN_database->cls,
+                                               &emsg);
+    break;
+  case GNUNET_NAMESTORE_TX_COMMIT:
+    ret = nc->GSN_database->transaction_commit (nc->GSN_database->cls,
+                                                &emsg);
+    break;
+  case GNUNET_NAMESTORE_TX_ROLLBACK:
+    ret = nc->GSN_database->transaction_rollback (nc->GSN_database->cls,
+                                                  &emsg);
+    break;
+  default:
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Unknown control type %u\n", ntohs (tx_msg->control));
+    GNUNET_break (0);
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "TX status is %u\n", ret);
+  err_len = (GNUNET_YES == ret) ? 0 : strlen (emsg) + 1;
+  env =
+    GNUNET_MQ_msg_extra (txr_msg,
+                         err_len,
+                         GNUNET_MESSAGE_TYPE_NAMESTORE_TX_CONTROL_RESULT);
+  txr_msg->gns_header.header.size = htons (sizeof (struct TxControlResultMessage) + err_len);
+  txr_msg->gns_header.r_id = tx_msg->gns_header.r_id;
+  txr_msg->success = htons (ret);
+  err_tmp = (char *) &txr_msg[1];
+  GNUNET_memcpy (err_tmp, emsg, err_len);
+  GNUNET_MQ_send (nc->mq, env);
+  GNUNET_SERVICE_client_continue (nc->client);
+}
 
 /**
  * Context for record remove operations passed from #handle_zone_to_name to
@@ -2371,6 +2422,10 @@ GNUNET_SERVICE_MAIN (
   &client_connect_cb,
   &client_disconnect_cb,
   NULL,
+  GNUNET_MQ_hd_fixed_size (tx_control,
+                           GNUNET_MESSAGE_TYPE_NAMESTORE_TX_CONTROL,
+                           struct TxControlMessage,
+                           NULL),
   GNUNET_MQ_hd_var_size (record_store,
                          GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_STORE,
                          struct RecordStoreMessage,

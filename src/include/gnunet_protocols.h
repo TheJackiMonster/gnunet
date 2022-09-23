@@ -3603,6 +3603,28 @@ extern "C" {
 
 /*********************************************************************************/
 
+/*********************************************************************************/
+/**********************************  NAMESTORE (cont.)  **************************/
+/*********************************************************************************/
+/* NAMESTORE: message types 1750-1800
+ */
+
+/**
+ * Message type for Begin, Commit or Rollback
+ */
+#define GNUNET_MESSAGE_TYPE_NAMESTORE_TX_CONTROL 1750
+
+/**
+ * Return status message for control message
+ */
+#define GNUNET_MESSAGE_TYPE_NAMESTORE_TX_CONTROL_RESULT 1751
+
+/**
+ * Open and lock records for editing message
+ */
+#define GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_EDIT 1752
+
+
 /**
  * Type used to match 'all' message types.
  */

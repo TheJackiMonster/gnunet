@@ -674,6 +674,60 @@ handle_record_result_end (void *cls, const struct GNUNET_NAMESTORE_Header *msg)
   free_ze (ze);
 }
 
+/**
+ * Handle an incoming message of type
+ * #GNUNET_MESSAGE_TYPE_NAMESTORE_TX_CONTROL_RESULT.
+ *
+ * @param qe the respective entry in the message queue
+ * @param msg the message we received
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR if message malformed
+ */
+static int
+check_tx_control_result (void *cls,
+                         const struct TxControlResultMessage *msg)
+{
+  const char *err_tmp;
+  size_t err_len;
+
+  (void) cls;
+  err_len = ntohs (msg->gns_header.header.size)
+            - sizeof (struct TxControlResultMessage);
+  if ((GNUNET_YES == ntohs (msg->success)) && (err_len > 0))
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  err_tmp = (const char *) &msg[1];
+  if ((err_len > 0) && ('\0' != err_tmp[err_len - 1]))
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
+}
+
+static void
+handle_tx_control_result (void *cls,
+                          const struct TxControlResultMessage *msg)
+{
+  struct GNUNET_NAMESTORE_Handle *h = cls;
+  struct GNUNET_NAMESTORE_QueueEntry *qe;
+  int res;
+  const char *emsg;
+
+  qe = find_qe (h, ntohl (msg->gns_header.r_id));
+  emsg = (const char *) &msg[1];
+  res = ntohs (msg->success);
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Received TX_CONTROL_RESULT with result %d\n",
+       res);
+  if (NULL == qe)
+    return;
+  if (NULL != qe->cont)
+    qe->cont (qe->cont_cls, res,
+              (GNUNET_YES == res) ? NULL : emsg);
+  free_qe (qe);
+}
 
 /**
  * Handle an incoming message of type
@@ -838,6 +892,10 @@ reconnect (struct GNUNET_NAMESTORE_Handle *h)
     GNUNET_MQ_hd_var_size (lookup_result,
                            GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_LOOKUP_RESPONSE,
                            struct LabelLookupResponseMessage,
+                           h),
+    GNUNET_MQ_hd_var_size (tx_control_result,
+                           GNUNET_MESSAGE_TYPE_NAMESTORE_TX_CONTROL_RESULT,
+                           struct TxControlResultMessage,
                            h),
     GNUNET_MQ_handler_end () };
   struct GNUNET_NAMESTORE_ZoneIterator *it;
@@ -1344,43 +1402,65 @@ GNUNET_NAMESTORE_cancel (struct GNUNET_NAMESTORE_QueueEntry *qe)
  * New API draft. Experimental
  */
 
-struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_transaction_begin (struct GNUNET_NAMESTORE_Handle *h,
-                                    GNUNET_SCHEDULER_TaskCallback error_cb,
-                                    void *error_cb_cls)
+static struct GNUNET_NAMESTORE_QueueEntry *
+send_transaction_control_msg (struct GNUNET_NAMESTORE_Handle *h,
+                              GNUNET_NAMESTORE_ContinuationWithStatus cont,
+                              void *cont_cls,
+                              enum GNUNET_NAMESTORE_TxControl ctrl)
 {
+  struct GNUNET_NAMESTORE_QueueEntry *qe;
+  struct GNUNET_MQ_Envelope *env;
+  struct TxControlMessage *msg;
+  uint32_t rid;
+
+  rid = get_op_id (h);
+  qe = GNUNET_new (struct GNUNET_NAMESTORE_QueueEntry);
+  qe->h = h;
+  qe->cont = cont;
+  qe->cont_cls = cont_cls;
+  qe->op_id = rid;
+  GNUNET_CONTAINER_DLL_insert_tail (h->op_head, h->op_tail, qe);
+
+  env = GNUNET_MQ_msg (msg, GNUNET_MESSAGE_TYPE_NAMESTORE_TX_CONTROL);
+  msg->gns_header.r_id = htonl (rid);
+  msg->control = htons (ctrl);
+  if (NULL == h->mq)
+    qe->env = env;
+  else
+    GNUNET_MQ_send (h->mq, env);
+  return qe;
   GNUNET_break (0);
   return NULL;
+}
+
+struct GNUNET_NAMESTORE_QueueEntry *
+GNUNET_NAMESTORE_transaction_begin (struct GNUNET_NAMESTORE_Handle *h,
+                                    GNUNET_NAMESTORE_ContinuationWithStatus cont,
+                                    void *cont_cls)
+{
+  return send_transaction_control_msg (h, cont, cont_cls,
+                                       GNUNET_NAMESTORE_TX_BEGIN);
+}
+
+struct GNUNET_NAMESTORE_QueueEntry *
+GNUNET_NAMESTORE_transaction_commit (struct GNUNET_NAMESTORE_Handle *h,
+                                     GNUNET_NAMESTORE_ContinuationWithStatus
+                                     cont,
+                                     void *cont_cls)
+{
+  return send_transaction_control_msg (h, cont, cont_cls,
+                                       GNUNET_NAMESTORE_TX_COMMIT);
 }
 
 
 struct GNUNET_NAMESTORE_QueueEntry *
 GNUNET_NAMESTORE_transaction_rollback (struct GNUNET_NAMESTORE_Handle *h,
-                                       GNUNET_SCHEDULER_TaskCallback error_cb,
-                                       void *error_cb_cls)
+                                       GNUNET_NAMESTORE_ContinuationWithStatus
+                                       cont,
+                                       void *cont_cls)
 {
-  GNUNET_break (0);
-  return NULL;
-}
-
-
-/**
- * Commit a namestore transaction.
- * Saves all actions performed since #GNUNET_NAMESTORE_transaction_begin
- *
- * @param h handle to the namestore
- * @param error_cb function to call on error (i.e. disconnect or unable to get lock)
- *        the handle is afterwards invalid
- * @param error_cb_cls closure for @a error_cb
- * @return handle to abort the request
- */
-struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_transaction_commit (struct GNUNET_NAMESTORE_Handle *h,
-                                     GNUNET_SCHEDULER_TaskCallback error_cb,
-                                     void *error_cb_cls)
-{
-  GNUNET_break (0);
-  return NULL;
+  return send_transaction_control_msg (h, cont, cont_cls,
+                                       GNUNET_NAMESTORE_TX_ROLLBACK);
 }
 
 

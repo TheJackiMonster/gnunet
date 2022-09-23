@@ -748,7 +748,7 @@ namestore_sqlite_zone_to_name (void *cls,
  *
  * @param cls closure (internal context for the plugin)
  * @param emsg error message set of return code is #GNUNET_SYSERR
- * @return #GNUNET_OK on success, #GNUNET_SYSERR if transaction cannot be started.
+ * @return #GNUNET_YES on success, #GNUNET_SYSERR if transaction cannot be started.
  */
 static enum GNUNET_GenericReturnValue
 namestore_sqlite_transaction_begin (void *cls,
@@ -756,7 +756,7 @@ namestore_sqlite_transaction_begin (void *cls,
 {
   struct Plugin *plugin = cls;
   return (SQLITE_BUSY == sqlite3_exec (plugin->dbh, "BEGIN TRANSACTION;", NULL,
-                                       NULL, emsg)) ? GNUNET_SYSERR : GNUNET_OK;
+                                       NULL, emsg)) ? GNUNET_SYSERR : GNUNET_YES;
 }
 
 /**
@@ -765,7 +765,7 @@ namestore_sqlite_transaction_begin (void *cls,
  *
  * @param cls closure (internal context for the plugin)
  * @param emsg error message set of return code is #GNUNET_SYSERR
- * @return #GNUNET_OK on success, #GNUNET_SYSERR if transaction cannot be started.
+ * @return #GNUNET_YES on success, #GNUNET_SYSERR if transaction cannot be started.
  */
 static enum GNUNET_GenericReturnValue
 namestore_sqlite_transaction_rollback (void *cls,
@@ -773,7 +773,7 @@ namestore_sqlite_transaction_rollback (void *cls,
 {
   struct Plugin *plugin = cls;
   return (SQLITE_BUSY == sqlite3_exec (plugin->dbh, "ROLLBACK;", NULL,
-                                       NULL, emsg)) ? GNUNET_SYSERR : GNUNET_OK;
+                                       NULL, emsg)) ? GNUNET_SYSERR : GNUNET_YES;
 }
 
 /**
@@ -782,7 +782,7 @@ namestore_sqlite_transaction_rollback (void *cls,
  *
  * @param cls closure (internal context for the plugin)
  * @param emsg error message set of return code is #GNUNET_SYSERR
- * @return #GNUNET_OK on success, #GNUNET_SYSERR if transaction cannot be started.
+ * @return #GNUNET_YES on success, #GNUNET_SYSERR if transaction cannot be started.
  */
 static enum GNUNET_GenericReturnValue
 namestore_sqlite_transaction_commit (void *cls,
@@ -790,7 +790,7 @@ namestore_sqlite_transaction_commit (void *cls,
 {
   struct Plugin *plugin = cls;
   return (SQLITE_BUSY == sqlite3_exec (plugin->dbh, "END TRANSACTION;", NULL,
-                                       NULL, emsg)) ? GNUNET_SYSERR : GNUNET_OK;
+                                       NULL, emsg)) ? GNUNET_SYSERR : GNUNET_YES;
 }
 
 /**
