@@ -70,6 +70,16 @@ struct GNUNET_NAMESTORE_Handle;
  */
 struct GNUNET_NAMESTORE_ZoneIterator;
 
+/**
+ * Transaction control types.
+ * They roughly correspond to DB transaction controls
+ */
+enum GNUNET_NAMESTORE_TxControl
+{
+  GNUNET_NAMESTORE_TX_BEGIN = 0,
+  GNUNET_NAMESTORE_TX_COMMIT = 1,
+  GNUNET_NAMESTORE_TX_ROLLBACK = 2,
+};
 
 /**
  * Connect to the namestore service.
@@ -404,98 +414,44 @@ GNUNET_NAMESTORE_zone_monitor_stop (struct GNUNET_NAMESTORE_ZoneMonitor *zm);
  * Begin a namestore transaction.
  *
  * @param h handle to the namestore
- * @param error_cb function to call on error (i.e. disconnect or unable to get lock)
- *        the handle is afterwards invalid
- * @param error_cb_cls closure for @a error_cb
+ * @param cont function to call on result
+ * @param cont_cls closure for @a cont
  * @return handle to abort the request
  */
 struct GNUNET_NAMESTORE_QueueEntry *
 GNUNET_NAMESTORE_transaction_begin (struct GNUNET_NAMESTORE_Handle *h,
-                                    GNUNET_SCHEDULER_TaskCallback error_cb,
-                                    void *error_cb_cls);
+                                    GNUNET_NAMESTORE_ContinuationWithStatus
+                                    cont,
+                                    void *cont_cls);
 
 /**
  * Begin rollback all actions in a transaction.
  * Reverts all actions performed since #GNUNET_NAMESTORE_transaction_begin
  *
  * @param h handle to the namestore
- * @param error_cb function to call on error (i.e. disconnect or unable to get lock)
- *        the handle is afterwards invalid
- * @param error_cb_cls closure for @a error_cb
+ * @param cont function to call on result
+ * @param cont_cls closure for @a cont
  * @return handle to abort the request
  */
 struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_transaction_abort (struct GNUNET_NAMESTORE_Handle *h,
-                                    GNUNET_SCHEDULER_TaskCallback error_cb,
-                                    void *error_cb_cls);
+GNUNET_NAMESTORE_transaction_rollback (struct GNUNET_NAMESTORE_Handle *h,
+                                     GNUNET_NAMESTORE_ContinuationWithStatus
+                                     cont,
+                                     void *cont_cls);
 /**
  * Commit a namestore transaction.
  * Saves all actions performed since #GNUNET_NAMESTORE_transaction_begin
  *
  * @param h handle to the namestore
- * @param error_cb function to call on error (i.e. disconnect or unable to get lock)
- *        the handle is afterwards invalid
- * @param error_cb_cls closure for @a error_cb
- * @return handle to abort the request
- */
-struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_transaction_commit (struct GNUNET_NAMESTORE_Handle *h,
-                                     GNUNET_SCHEDULER_TaskCallback error_cb,
-                                     void *error_cb_cls);
-
-/**
- * Lookup an item in the namestore.
- *
- * @param h handle to the namestore
- * @param pkey private key of the zone
- * @param label name that is being mapped
- * @param error_cb function to call on error (i.e. disconnect)
- *        the handle is afterwards invalid
- * @param error_cb_cls closure for @a error_cb
- * @param rm function to call with the result (with 0 records if we don't have that label);
- *        the handle is afterwards invalid
- * @param rm_cls closure for @a rm
- * @return handle to abort the request
- */
-struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_records_select (struct GNUNET_NAMESTORE_Handle *h,
-                                 const struct
-                                 GNUNET_IDENTITY_PrivateKey *pkey,
-                                 const char *label,
-                                 GNUNET_SCHEDULER_TaskCallback error_cb,
-                                 void *error_cb_cls,
-                                 GNUNET_NAMESTORE_RecordMonitor rm,
-                                 void *rm_cls);
-
-
-/**
- * Creates, deletes or updates an item in the namestore.
- * If the item is already present, it is replaced with the new record set.
- * Use an empty array to remove all records under the given name.
- *
- * The continuation is called after the value has been stored in the
- * database. Monitors may be notified asynchronously (basically with
- * a buffer). However, if any monitor is consistently too slow to
- * keep up with the changes, calling @a cont will be delayed until the
- * monitors do keep up.
- *
- * @param h handle to the namestore
- * @param pkey private key of the zone
- * @param label name that is being mapped
- * @param rd_count number of records in the 'rd' array
- * @param rd array of records with data to store
- * @param cont continuation to call when done
+ * @param cont function to call on result
  * @param cont_cls closure for @a cont
  * @return handle to abort the request
  */
 struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_records_replace (struct GNUNET_NAMESTORE_Handle *h,
-                                  const struct GNUNET_IDENTITY_PrivateKey *pkey,
-                                  const char *label,
-                                  unsigned int rd_count,
-                                  const struct GNUNET_GNSRECORD_Data *rd,
-                                  GNUNET_NAMESTORE_ContinuationWithStatus cont,
-                                  void *cont_cls);
+GNUNET_NAMESTORE_transaction_commit (struct GNUNET_NAMESTORE_Handle *h,
+                                     GNUNET_NAMESTORE_ContinuationWithStatus
+                                     cont,
+                                     void *cont_cls);
 
 #if 0                           /* keep Emacsens' auto-indent happy */
 {

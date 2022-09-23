@@ -305,6 +305,54 @@ struct RecordResultMessage
    */
 };
 
+/**
+ * Send a transaction control message.
+ */
+struct TxControlMessage
+{
+  /**
+   * Type will be #GNUNET_MESSAGE_TYPE_NAMESTORE_TX_CONTROL
+   */
+  struct GNUNET_NAMESTORE_Header gns_header;
+
+  /**
+   * The type of control message to send
+   */
+  uint16_t control GNUNET_PACKED;
+
+  /**
+   * always zero (for alignment)
+   */
+  uint16_t reserved GNUNET_PACKED;
+
+};
+
+/**
+ * Result of a transaction control message.
+ */
+struct TxControlResultMessage
+{
+  /**
+   * Type will be #GNUNET_MESSAGE_TYPE_NAMESTORE_TX_CONTROL_RESULT
+   */
+  struct GNUNET_NAMESTORE_Header gns_header;
+
+  /**
+   * The type of control message to send
+   */
+  uint16_t control GNUNET_PACKED;
+
+  /**
+   * Of type GNUNET_GenericReturnValue
+   */
+  uint16_t success GNUNET_PACKED;
+
+  /* followed by:
+   * an error message if status != ntohs(GNUNET_OK)
+   */
+};
+
+
 
 /**
  * Start monitoring a zone.
