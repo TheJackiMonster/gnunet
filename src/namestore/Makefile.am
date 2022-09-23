@@ -58,7 +58,8 @@ POSTGRES_TESTS = test_plugin_namestore_postgres \
  test_namestore_api_monitoring_existing_postgres \
  test_namestore_api_zone_to_name_postgres \
  perf_namestore_api_zone_iteration_postgres \
- test_namestore_api_tx_rollback_postgres
+ test_namestore_api_tx_rollback_postgres \
+ test_namestore_api_edit_records_postgres
 endif
 
 if HAVE_SQLITE
@@ -442,7 +443,14 @@ test_namestore_api_tx_rollback_postgres_LDADD = \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/util/libgnunetutil.la
 
-
+test_namestore_api_edit_records_postgres_SOURCES = \
+ test_namestore_api_edit_records.c
+test_namestore_api_edit_records_postgres_LDADD = \
+  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
+  libgnunetnamestore.la \
+  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/util/libgnunetutil.la
 
 test_namestore_api_zone_iteration_sqlite_SOURCES = \
  test_namestore_api_zone_iteration.c

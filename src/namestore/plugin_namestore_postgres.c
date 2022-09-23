@@ -153,7 +153,7 @@ database_setup (struct Plugin *plugin)
                               2),
       GNUNET_PQ_make_prepare ("edit_set",
                               "SELECT seq,record_count,record_data,label "
-                              "FROM ns098records WHERE zone_private_key=$1 AND label=$2 FOR UPDATE",
+                              "FROM ns098records WHERE zone_private_key=$1 AND label=$2 FOR UPDATE NOWAIT",
                               2),
       GNUNET_PQ_PREPARED_STATEMENT_END
     };
@@ -328,6 +328,8 @@ parse_result_call_iterator (void *cls,
 
   if (NULL == pc->iter)
     return; /* no need to do more work */
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Got %d results from PQ.\n", num_results);
   for (unsigned int i = 0; i < num_results; i++)
   {
     uint64_t serial;
@@ -412,12 +414,12 @@ parse_result_call_iterator (void *cls,
  */
 static int
 lookup_records (void *cls,
-                                   const struct
-                                   GNUNET_IDENTITY_PrivateKey *zone,
-                                   const char *label,
-                                   GNUNET_NAMESTORE_RecordIterator iter,
-                                   void *iter_cls,
-                                   const char* method)
+                const struct
+                GNUNET_IDENTITY_PrivateKey *zone,
+                const char *label,
+                GNUNET_NAMESTORE_RecordIterator iter,
+                void *iter_cls,
+                const char*method)
 {
   struct Plugin *plugin = cls;
   struct GNUNET_PQ_QueryParam params[] = {
@@ -481,11 +483,11 @@ namestore_postgres_lookup_records (void *cls,
  */
 static int
 namestore_postgres_edit_records (void *cls,
-                                   const struct
-                                   GNUNET_IDENTITY_PrivateKey *zone,
-                                   const char *label,
-                                   GNUNET_NAMESTORE_RecordIterator iter,
-                                   void *iter_cls)
+                                 const struct
+                                 GNUNET_IDENTITY_PrivateKey *zone,
+                                 const char *label,
+                                 GNUNET_NAMESTORE_RecordIterator iter,
+                                 void *iter_cls)
 {
   return lookup_records (cls, zone, label, iter, iter_cls, "edit_set");
 }

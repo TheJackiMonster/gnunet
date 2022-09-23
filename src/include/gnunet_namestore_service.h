@@ -453,6 +453,16 @@ GNUNET_NAMESTORE_transaction_commit (struct GNUNET_NAMESTORE_Handle *h,
                                      cont,
                                      void *cont_cls);
 
+struct GNUNET_NAMESTORE_QueueEntry *
+GNUNET_NAMESTORE_records_edit (
+  struct GNUNET_NAMESTORE_Handle *h,
+  const struct GNUNET_IDENTITY_PrivateKey *pkey,
+  const char *label,
+  GNUNET_SCHEDULER_TaskCallback error_cb,
+  void *error_cb_cls,
+  GNUNET_NAMESTORE_RecordMonitor rm,
+  void *rm_cls);
+
 #if 0                           /* keep Emacsens' auto-indent happy */
 {
 #endif

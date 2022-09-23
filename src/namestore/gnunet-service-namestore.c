@@ -1428,7 +1428,7 @@ handle_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
   rlc.res_rd = NULL;
   rlc.rd_ser_len = 0;
   rlc.nick = get_nick_record (nc, &ll_msg->zone);
-  if (GNUNET_YES == ntohl (ll_msg->is_edit_request))
+  if (GNUNET_YES != ntohl (ll_msg->is_edit_request))
     res = nc->GSN_database->lookup_records (nc->GSN_database->cls,
                                             &ll_msg->zone,
                                             conv_name,
@@ -1451,7 +1451,9 @@ handle_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
   llr_msg->rd_count = htons (rlc.res_rd_count);
   llr_msg->rd_len = htons (rlc.rd_ser_len);
   res_name = (char *) &llr_msg[1];
-  if ((GNUNET_YES == rlc.found) && (GNUNET_OK == res))
+  if (GNUNET_OK != res)
+   llr_msg->found = htons (GNUNET_SYSERR);
+  else if (GNUNET_YES == rlc.found)
     llr_msg->found = htons (GNUNET_YES);
   else
     llr_msg->found = htons (GNUNET_NO);
