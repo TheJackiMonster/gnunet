@@ -146,6 +146,11 @@ struct LabelLookupMessage
   uint32_t label_len GNUNET_PACKED;
 
   /**
+   * GNUNET_YES if this lookup corresponds to an edit request
+   */
+  uint32_t is_edit_request GNUNET_PACKED;
+
+  /**
    * The private key of the zone to look up in
    */
   struct GNUNET_IDENTITY_PrivateKey zone;

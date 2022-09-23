@@ -1158,32 +1158,16 @@ GNUNET_NAMESTORE_records_store (
   return qe;
 }
 
-/**
- * TODO: Experimental API will replace API above.
- */
-struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_records_replace (
-  struct GNUNET_NAMESTORE_Handle *h,
-  const struct GNUNET_IDENTITY_PrivateKey *pkey,
-  const char *label,
-  unsigned int rd_count,
-  const struct GNUNET_GNSRECORD_Data *rd,
-  GNUNET_NAMESTORE_ContinuationWithStatus cont,
-  void *cont_cls)
-{
-  return GNUNET_NAMESTORE_records_store (h, pkey, label, rd_count, rd,
-                                         cont, cont_cls);
-}
-
-struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_records_lookup (
+static struct GNUNET_NAMESTORE_QueueEntry *
+records_lookup (
   struct GNUNET_NAMESTORE_Handle *h,
   const struct GNUNET_IDENTITY_PrivateKey *pkey,
   const char *label,
   GNUNET_SCHEDULER_TaskCallback error_cb,
   void *error_cb_cls,
   GNUNET_NAMESTORE_RecordMonitor rm,
-  void *rm_cls)
+  void *rm_cls,
+  int is_edit_request)
 {
   struct GNUNET_NAMESTORE_QueueEntry *qe;
   struct GNUNET_MQ_Envelope *env;
@@ -1210,6 +1194,7 @@ GNUNET_NAMESTORE_records_lookup (
                              GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_LOOKUP);
   msg->gns_header.r_id = htonl (qe->op_id);
   msg->zone = *pkey;
+  msg->is_edit_request = htonl (is_edit_request);
   msg->label_len = htonl (label_len);
   GNUNET_memcpy (&msg[1], label, label_len);
   if (NULL == h->mq)
@@ -1219,12 +1204,8 @@ GNUNET_NAMESTORE_records_lookup (
   return qe;
 }
 
-
-/**
- * TODO experimental API. Will replace old API above.
- */
 struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_records_select (
+GNUNET_NAMESTORE_records_lookup (
   struct GNUNET_NAMESTORE_Handle *h,
   const struct GNUNET_IDENTITY_PrivateKey *pkey,
   const char *label,
@@ -1233,9 +1214,25 @@ GNUNET_NAMESTORE_records_select (
   GNUNET_NAMESTORE_RecordMonitor rm,
   void *rm_cls)
 {
-  return GNUNET_NAMESTORE_records_lookup (h, pkey, label,
-                                          error_cb, error_cb_cls,
-                                          rm, rm_cls);
+  records_lookup (h, pkey, label,
+                  error_cb, error_cb_cls,
+                  rm, rm_cls, GNUNET_NO);
+
+}
+
+struct GNUNET_NAMESTORE_QueueEntry *
+GNUNET_NAMESTORE_records_edit (
+  struct GNUNET_NAMESTORE_Handle *h,
+  const struct GNUNET_IDENTITY_PrivateKey *pkey,
+  const char *label,
+  GNUNET_SCHEDULER_TaskCallback error_cb,
+  void *error_cb_cls,
+  GNUNET_NAMESTORE_RecordMonitor rm,
+  void *rm_cls)
+{
+  return records_lookup (h, pkey, label,
+                         error_cb, error_cb_cls,
+                         rm, rm_cls, GNUNET_YES);
 }
 
 struct GNUNET_NAMESTORE_QueueEntry *

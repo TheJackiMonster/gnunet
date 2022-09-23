@@ -151,6 +151,10 @@ database_setup (struct Plugin *plugin)
                               "SELECT seq,record_count,record_data,label "
                               "FROM ns098records WHERE zone_private_key=$1 AND label=$2",
                               2),
+      GNUNET_PQ_make_prepare ("edit_set",
+                              "SELECT seq,record_count,record_data,label "
+                              "FROM ns098records WHERE zone_private_key=$1 AND label=$2 FOR UPDATE",
+                              2),
       GNUNET_PQ_PREPARED_STATEMENT_END
     };
 
@@ -403,15 +407,17 @@ parse_result_call_iterator (void *cls,
  * @param label name of the record in the zone
  * @param iter function to call with the result
  * @param iter_cls closure for @a iter
+ * @param method the method to use "lookup_record" or "edit_set"
  * @return #GNUNET_OK on success, #GNUNET_NO for no results, else #GNUNET_SYSERR
  */
 static int
-namestore_postgres_lookup_records (void *cls,
+lookup_records (void *cls,
                                    const struct
                                    GNUNET_IDENTITY_PrivateKey *zone,
                                    const char *label,
                                    GNUNET_NAMESTORE_RecordIterator iter,
-                                   void *iter_cls)
+                                   void *iter_cls,
+                                   const char* method)
 {
   struct Plugin *plugin = cls;
   struct GNUNET_PQ_QueryParam params[] = {
@@ -431,7 +437,7 @@ namestore_postgres_lookup_records (void *cls,
   pc.iter_cls = iter_cls;
   pc.zone_key = zone;
   res = GNUNET_PQ_eval_prepared_multi_select (plugin->dbh,
-                                              "lookup_label",
+                                              method,
                                               params,
                                               &parse_result_call_iterator,
                                               &pc);
@@ -440,6 +446,48 @@ namestore_postgres_lookup_records (void *cls,
   if (GNUNET_DB_STATUS_SUCCESS_NO_RESULTS == res)
     return GNUNET_NO;
   return GNUNET_OK;
+}
+
+/**
+ * Lookup records in the datastore for which we are the authority.
+ *
+ * @param cls closure (internal context for the plugin)
+ * @param zone private key of the zone
+ * @param label name of the record in the zone
+ * @param iter function to call with the result
+ * @param iter_cls closure for @a iter
+ * @return #GNUNET_OK on success, #GNUNET_NO for no results, else #GNUNET_SYSERR
+ */
+static int
+namestore_postgres_lookup_records (void *cls,
+                                   const struct
+                                   GNUNET_IDENTITY_PrivateKey *zone,
+                                   const char *label,
+                                   GNUNET_NAMESTORE_RecordIterator iter,
+                                   void *iter_cls)
+{
+  return lookup_records (cls, zone, label, iter, iter_cls, "lookup_label");
+}
+
+/**
+ * Edit records in the datastore for which we are the authority.
+ *
+ * @param cls closure (internal context for the plugin)
+ * @param zone private key of the zone
+ * @param label name of the record in the zone
+ * @param iter function to call with the result
+ * @param iter_cls closure for @a iter
+ * @return #GNUNET_OK on success, #GNUNET_NO for no results, else #GNUNET_SYSERR
+ */
+static int
+namestore_postgres_edit_records (void *cls,
+                                   const struct
+                                   GNUNET_IDENTITY_PrivateKey *zone,
+                                   const char *label,
+                                   GNUNET_NAMESTORE_RecordIterator iter,
+                                   void *iter_cls)
+{
+  return lookup_records (cls, zone, label, iter, iter_cls, "edit_set");
 }
 
 
@@ -566,7 +614,7 @@ namestore_postgres_transaction_begin (void *cls,
 {
   struct Plugin *plugin = cls;
   struct GNUNET_PQ_ExecuteStatement es[] = {
-    GNUNET_PQ_make_execute ("BEGIN;"),
+    GNUNET_PQ_make_execute ("BEGIN"),
     GNUNET_PQ_EXECUTE_STATEMENT_END
   };
 
@@ -587,7 +635,7 @@ namestore_postgres_transaction_rollback (void *cls,
 {
   struct Plugin *plugin = cls;
   struct GNUNET_PQ_ExecuteStatement es[] = {
-    GNUNET_PQ_make_execute ("ROLLBACK;"),
+    GNUNET_PQ_make_execute ("ROLLBACK"),
     GNUNET_PQ_EXECUTE_STATEMENT_END
   };
 
@@ -608,7 +656,7 @@ namestore_postgres_transaction_commit (void *cls,
 {
   struct Plugin *plugin = cls;
   struct GNUNET_PQ_ExecuteStatement es[] = {
-    GNUNET_PQ_make_execute ("COMMIT;"),
+    GNUNET_PQ_make_execute ("COMMIT"),
     GNUNET_PQ_EXECUTE_STATEMENT_END
   };
 
@@ -660,6 +708,7 @@ libgnunet_plugin_namestore_postgres_init (void *cls)
   api->transaction_begin = &namestore_postgres_transaction_begin;
   api->transaction_commit = &namestore_postgres_transaction_commit;
   api->transaction_rollback = &namestore_postgres_transaction_rollback;
+  api->edit_records = &namestore_postgres_edit_records;
   LOG (GNUNET_ERROR_TYPE_INFO,
        "Postgres namestore plugin running\n");
   return api;

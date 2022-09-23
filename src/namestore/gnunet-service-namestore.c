@@ -1428,11 +1428,19 @@ handle_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
   rlc.res_rd = NULL;
   rlc.rd_ser_len = 0;
   rlc.nick = get_nick_record (nc, &ll_msg->zone);
-  res = nc->GSN_database->lookup_records (nc->GSN_database->cls,
+  if (GNUNET_YES == ntohl (ll_msg->is_edit_request))
+    res = nc->GSN_database->lookup_records (nc->GSN_database->cls,
+                                            &ll_msg->zone,
+                                            conv_name,
+                                            &lookup_it,
+                                            &rlc);
+  else
+    res = nc->GSN_database->edit_records (nc->GSN_database->cls,
                                           &ll_msg->zone,
                                           conv_name,
                                           &lookup_it,
                                           &rlc);
+
   env =
     GNUNET_MQ_msg_extra (llr_msg,
                          name_len + rlc.rd_ser_len,
@@ -1771,7 +1779,9 @@ handle_tx_control (void *cls, const struct TxControlMessage *tx_msg)
     GNUNET_MQ_msg_extra (txr_msg,
                          err_len,
                          GNUNET_MESSAGE_TYPE_NAMESTORE_TX_CONTROL_RESULT);
-  txr_msg->gns_header.header.size = htons (sizeof (struct TxControlResultMessage) + err_len);
+  txr_msg->gns_header.header.size = htons (sizeof (struct
+                                                   TxControlResultMessage)
+                                           + err_len);
   txr_msg->gns_header.r_id = tx_msg->gns_header.r_id;
   txr_msg->success = htons (ret);
   err_tmp = (char *) &txr_msg[1];

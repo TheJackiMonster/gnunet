@@ -186,6 +186,25 @@ struct GNUNET_NAMESTORE_PluginFunctions
   enum GNUNET_GenericReturnValue
   (*transaction_commit) (void *cls, char **emsg);
 
+  /**
+   * Edit records in the datastore for which we are the authority.
+   * Should be called within a transaction (after begin) and maps
+   * to a SELECT ... FOR UPDATE in PQ.
+   *
+   * @param cls closure (internal context for the plugin)
+   * @param zone private key of the zone
+   * @param label name of the record in the zone
+   * @param iter function to call with the result
+   * @param iter_cls closure for @a iter
+   * @return #GNUNET_OK on success, #GNUNET_NO for no results, else #GNUNET_SYSERR
+   */
+  int
+  (*edit_records) (void *cls,
+                     const struct GNUNET_IDENTITY_PrivateKey *zone,
+                     const char *label,
+                     GNUNET_NAMESTORE_RecordIterator iter,
+                     void *iter_cls);
+
 };
 
 

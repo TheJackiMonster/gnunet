@@ -755,7 +755,7 @@ namestore_sqlite_transaction_begin (void *cls,
                                     char **emsg)
 {
   struct Plugin *plugin = cls;
-  return (SQLITE_BUSY == sqlite3_exec (plugin->dbh, "BEGIN TRANSACTION;", NULL,
+  return (SQLITE_BUSY == sqlite3_exec (plugin->dbh, "BEGIN IMMEDIATE TRANSACTION;", NULL,
                                        NULL, emsg)) ? GNUNET_SYSERR : GNUNET_YES;
 }
 
@@ -823,6 +823,12 @@ libgnunet_plugin_namestore_sqlite_init (void *cls)
   api->transaction_begin = &namestore_sqlite_transaction_begin;
   api->transaction_commit = &namestore_sqlite_transaction_commit;
   api->transaction_rollback = &namestore_sqlite_transaction_rollback;
+  /**
+   * NOTE: Since SQlite does not support SELECT ... FOR UPDATE this is
+   * just an alias to lookup_records. The BEGIN IMMEDIATE mechanic currently
+   * implicitly ensures this API behaves as it should
+   */
+  api->edit_records = &namestore_sqlite_lookup_records;
   LOG (GNUNET_ERROR_TYPE_INFO,
        _ ("Sqlite database running\n"));
   return api;
