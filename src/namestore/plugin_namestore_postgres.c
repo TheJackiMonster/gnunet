@@ -553,6 +553,68 @@ namestore_postgres_zone_to_name (void *cls,
   return GNUNET_OK;
 }
 
+/**
+ * Begin a transaction for a client.
+ *
+ * @param cls closure (internal context for the plugin)
+ * @param emsg error message set of return code is #GNUNET_SYSERR
+ * @return #GNUNET_YES on success, #GNUNET_SYSERR if transaction cannot be started.
+ */
+static enum GNUNET_GenericReturnValue
+namestore_postgres_transaction_begin (void *cls,
+                                      char **emsg)
+{
+  struct Plugin *plugin = cls;
+  struct GNUNET_PQ_ExecuteStatement es[] = {
+    GNUNET_PQ_make_execute ("BEGIN;"),
+    GNUNET_PQ_EXECUTE_STATEMENT_END
+  };
+
+  return GNUNET_PQ_exec_statements (plugin->dbh, es);
+}
+
+/**
+ * Commit a transaction for a client.
+ * This releases the lock on the database.
+ *
+ * @param cls closure (internal context for the plugin)
+ * @param emsg error message set of return code is #GNUNET_SYSERR
+ * @return #GNUNET_YES on success, #GNUNET_SYSERR if transaction cannot be started.
+ */
+static enum GNUNET_GenericReturnValue
+namestore_postgres_transaction_rollback (void *cls,
+                                         char **emsg)
+{
+  struct Plugin *plugin = cls;
+  struct GNUNET_PQ_ExecuteStatement es[] = {
+    GNUNET_PQ_make_execute ("ROLLBACK;"),
+    GNUNET_PQ_EXECUTE_STATEMENT_END
+  };
+
+  return GNUNET_PQ_exec_statements (plugin->dbh, es);
+}
+
+/**
+ * Roll back a transaction for a client.
+ * This releases the lock on the database.
+ *
+ * @param cls closure (internal context for the plugin)
+ * @param emsg error message set of return code is #GNUNET_SYSERR
+ * @return #GNUNET_YES on success, #GNUNET_SYSERR if transaction cannot be started.
+ */
+static enum GNUNET_GenericReturnValue
+namestore_postgres_transaction_commit (void *cls,
+                                       char **emsg)
+{
+  struct Plugin *plugin = cls;
+  struct GNUNET_PQ_ExecuteStatement es[] = {
+    GNUNET_PQ_make_execute ("COMMIT;"),
+    GNUNET_PQ_EXECUTE_STATEMENT_END
+  };
+
+  return GNUNET_PQ_exec_statements (plugin->dbh, es);
+}
+
 
 /**
  * Shutdown database connection and associate data
@@ -595,6 +657,9 @@ libgnunet_plugin_namestore_postgres_init (void *cls)
   api->iterate_records = &namestore_postgres_iterate_records;
   api->zone_to_name = &namestore_postgres_zone_to_name;
   api->lookup_records = &namestore_postgres_lookup_records;
+  api->transaction_begin = &namestore_postgres_transaction_begin;
+  api->transaction_commit = &namestore_postgres_transaction_commit;
+  api->transaction_rollback = &namestore_postgres_transaction_rollback;
   LOG (GNUNET_ERROR_TYPE_INFO,
        "Postgres namestore plugin running\n");
   return api;
