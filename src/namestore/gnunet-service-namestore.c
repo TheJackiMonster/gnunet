@@ -1451,10 +1451,10 @@ handle_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
   llr_msg->rd_count = htons (rlc.res_rd_count);
   llr_msg->rd_len = htons (rlc.rd_ser_len);
   res_name = (char *) &llr_msg[1];
-  if (GNUNET_OK != res)
-   llr_msg->found = htons (GNUNET_SYSERR);
-  else if (GNUNET_YES == rlc.found)
+  if (GNUNET_YES == rlc.found)
     llr_msg->found = htons (GNUNET_YES);
+  else if (GNUNET_SYSERR == res)
+   llr_msg->found = htons (GNUNET_SYSERR);
   else
     llr_msg->found = htons (GNUNET_NO);
   GNUNET_memcpy (&llr_msg[1], conv_name, name_len);
