@@ -1,8 +1,7 @@
 # This Makefile.am is in the public domain
 
-
 if DOCUMENTATION
-  SUBDIRS = doxygen
+  SUBDIRS = . doxygen
 all-local:
 	cd sphinx && make html
 
@@ -10,17 +9,18 @@ install-data-hook:
 	mkdir -p $(DESTDIR)$(docdir)
 	cp -pr sphinx/_build/html $(DESTDIR)$(docdir)
 
-sphinx/_build/man/gnunet.1: Makefile
-	cd sphinx && make man
-
 if INCLUDE_MANPAGES
-# FIXME this is somehow broken on openbsd. See #7324
 man_MANS = sphinx/_build/man/gnunet.1
 SUBDIRS += man
 endif
 endif
 
-EXTRA_DIST =							\
+info_TEXINFOS = \
+  sphinx/_build/texinfo/gnunet.texi
+
+EXTRA_DIST = \
+    sphinx/_build/man/gnunet.1 \
+    sphinx/_build/texinfo/gnunet.texinfo \
 	system_specific/outdated-and-old-installation-instructions.txt \
 	system_specific/FROM_SOURCE \
 	sphinx/about.rst \
@@ -37,5 +37,3 @@ EXTRA_DIST =							\
 	sphinx/preface.rst \
 	sphinx/_static \
 	sphinx/Makefile
-
-
