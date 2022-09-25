@@ -114,6 +114,8 @@ static int silent_mode;
 
 static struct GNUNET_SCHEDULER_Task *tt;
 
+static int stop_searching;
+
 
 /**
  * Print the escape sequence at the beginning of a string.
@@ -474,7 +476,7 @@ progress_cb (void *const cls,
     break;
 
   case GNUNET_FS_STATUS_SEARCH_RESULT:
-    if (silent_mode)
+    if (stop_searching)
       break;
 
     if (db != NULL)
@@ -483,6 +485,9 @@ progress_cb (void *const cls,
         info->value.search.specifics.result.uri,
         info->value.search.specifics.result.meta,
         NULL);
+
+    if (silent_mode)
+      break;
 
     cnt++;
     filename = GNUNET_CONTAINER_meta_data_get_by_type (
@@ -513,7 +518,7 @@ progress_cb (void *const cls,
     {
       GNUNET_SCHEDULER_shutdown ();
       /*  otherwise the function might keep printing results for a while...  */
-      silent_mode = GNUNET_YES;
+      stop_searching = GNUNET_YES;
     }
     break;
 
@@ -558,7 +563,7 @@ static void
 timeout_task (void *const cls)
 {
   tt = NULL;
-  silent_mode = GNUNET_YES;
+  stop_searching = GNUNET_YES;
   GNUNET_SCHEDULER_shutdown ();
 }
 
