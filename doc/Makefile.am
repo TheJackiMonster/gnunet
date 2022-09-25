@@ -26,6 +26,7 @@ EXTRA_DIST = \
 	$(info_TEXINFOS) \
 	system_specific/outdated-and-old-installation-instructions.txt \
 	system_specific/FROM_SOURCE \
+	sphinx/_build/html \
 	sphinx/about.rst \
 	sphinx/conf.py \
 	sphinx/faq.rst \
