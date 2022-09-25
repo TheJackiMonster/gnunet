@@ -18,10 +18,8 @@ man_MANS = sphinx/_build/man/gnunet.1
 SUBDIRS += man
 endif
 
-if !OPENBSD
 info_TEXINFOS = \
   sphinx/_build/texinfo/gnunet.texi
-endif
 
 EXTRA_DIST = \
 	$(man_MANS) \
