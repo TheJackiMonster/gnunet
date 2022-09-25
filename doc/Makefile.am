@@ -2,14 +2,16 @@
 
 SUBDIRS = .
 
-if DOCUMENTATION
+if HAVE_DOXY_BINARY
   SUBDIRS += doxygen
-all-local:
-	cd sphinx && make html
+endif
+
+sphinx: Makefile
+	cd sphinx && make html man info
+
 install-data-hook:
 	mkdir -p $(DESTDIR)$(docdir)
 	cp -pr sphinx/_build/html $(DESTDIR)$(docdir)
-endif
 
 if INCLUDE_MANPAGES
 man_MANS = sphinx/_build/man/gnunet.1
@@ -20,8 +22,8 @@ info_TEXINFOS = \
   sphinx/_build/texinfo/gnunet.texi
 
 EXTRA_DIST = \
-    $(man_MANS) \
-    $(info_TEXINFOS) \
+	$(man_MANS) \
+	$(info_TEXINFOS) \
 	system_specific/outdated-and-old-installation-instructions.txt \
 	system_specific/FROM_SOURCE \
 	sphinx/about.rst \

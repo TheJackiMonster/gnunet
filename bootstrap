@@ -90,7 +90,7 @@ check_libtool()
 sphinx ()
 {
     # Bootstrap Sphinx documentation
-    cd doc/sphinx; make man info ; cd -
+    cd doc/sphinx; make man info html >/dev/null; cd -
 }
 
 

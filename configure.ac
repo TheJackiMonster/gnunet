@@ -442,15 +442,10 @@ AC_ARG_ENABLE([documentation],
               [documentation=${enableval}],
               [documentation=yes])
 
-AC_CHECK_PROG([SPHINX_BINARY], [sphinx-build], [true], [false])
-AM_CONDITIONAL([HAVE_SPHINX_BINARY], [$SPHINX_BINARY])
+AC_CHECK_PROG([DOXY_BINARY], [doxygen], [true], [false])
+AM_CONDITIONAL([HAVE_DOXY_BINARY], [$DOXY_BINARY])
 
 AM_CONDITIONAL([DOCUMENTATION], [test "x$documentation" = "xyes"])
-AS_IF([test "x$documentation" = "xyes"],
-      [AS_IF([$SPHINX_BINARY],
-             [AC_DEFINE([DOCUMENTATION], [1], [Define to 1 if documentation is built])],
-             [AC_MSG_ERROR([Documentation requires sphinx])])],
-      [AC_DEFINE([DOCUMENTATION], [0], [Define to 1 if documentation is built])])
 
 AC_CHECK_PROGS([MANDOC_BINARY], [mandoc], [false])
 AM_CONDITIONAL([HAVE_MANDOC], [test "x$MANDOC_BINARY" != "xfalse"])
@@ -1458,10 +1453,10 @@ AS_IF([test "x$MANDOC_BINARY" = "xfalse"],
   [mandoc_msg="no"],
   [mandoc_msg="yes"])
 
-# sphinx
-AS_IF([test "x$documentation" = "xyes"],
-  [sphinx_msg="yes"],
-  [sphinx_msg="no"])
+# doxy
+AS_IF([$DOXY_BINARY],
+  [doxy_msg="yes"],
+  [doxy_msg="no"])
 
 # conversation
 conversation_msg="no"
@@ -1605,7 +1600,7 @@ gstreamer:                      ${gstreamer_msg}
 
 Java:                           ${java_msg}
 
-sphinx:                         ${sphinx_msg}
+doxygen:                        ${doxy_msg}
 mandoc:                         ${mandoc_msg}
 
 GNUnet configuration
