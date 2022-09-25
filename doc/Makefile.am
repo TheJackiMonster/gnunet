@@ -4,15 +4,14 @@ if DOCUMENTATION
   SUBDIRS = . doxygen
 all-local:
 	cd sphinx && make html
-
 install-data-hook:
 	mkdir -p $(DESTDIR)$(docdir)
 	cp -pr sphinx/_build/html $(DESTDIR)$(docdir)
+endif
 
 if INCLUDE_MANPAGES
 man_MANS = sphinx/_build/man/gnunet.1
 SUBDIRS += man
-endif
 endif
 
 info_TEXINFOS = \
