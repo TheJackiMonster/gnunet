@@ -1,7 +1,9 @@
 # This Makefile.am is in the public domain
 
+SUBDIRS = .
+
 if DOCUMENTATION
-  SUBDIRS = . doxygen
+  SUBDIRS += doxygen
 all-local:
 	cd sphinx && make html
 install-data-hook:
@@ -18,8 +20,8 @@ info_TEXINFOS = \
   sphinx/_build/texinfo/gnunet.texi
 
 EXTRA_DIST = \
-    sphinx/_build/man/gnunet.1 \
-    sphinx/_build/texinfo/gnunet.texinfo \
+    $(man_MANS) \
+    $(info_TEXINFOS) \
 	system_specific/outdated-and-old-installation-instructions.txt \
 	system_specific/FROM_SOURCE \
 	sphinx/about.rst \

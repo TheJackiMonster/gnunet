@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2022-09-04 11:01+0200\n"
+"POT-Creation-Date: 2022-09-25 14:04+0200\n"
 "PO-Revision-Date: 2020-10-23 18:39+0200\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: Serbian <(nothing)>\n"
@@ -14,8 +14,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Bugs: Report translation errors to the Language-Team address.\n"
 
 #: src/abd/gnunet-abd.c:392 src/namestore/gnunet-namestore.c:1245
@@ -1585,7 +1585,7 @@ msgstr "„%s“ није успело на %s:%d са грешком: %s\n"
 #: src/datacache/plugin_datacache_sqlite.c:1035
 #: src/datastore/plugin_datastore_sqlite.c:531
 #: src/namecache/plugin_namecache_sqlite.c:237
-#: src/namestore/plugin_namestore_sqlite.c:273
+#: src/namestore/plugin_namestore_sqlite.c:274
 msgid "Tried to close sqlite without finalizing all prepared statements.\n"
 msgstr "Покушај да затворим скулајт без довршавања свих спремљених изјава.\n"
 
@@ -1926,7 +1926,7 @@ msgstr "„%s“ није успело на %s:%u са грешком: %s"
 
 #: src/datastore/plugin_datastore_sqlite.c:310
 #: src/namecache/plugin_namecache_sqlite.c:180
-#: src/namestore/plugin_namestore_sqlite.c:213
+#: src/namestore/plugin_namestore_sqlite.c:211
 #: src/peerstore/plugin_peerstore_sqlite.c:540
 #, c-format
 msgid "Unable to initialize SQLite: %s.\n"
@@ -1962,7 +1962,7 @@ msgstr ""
 
 #: src/datastore/plugin_datastore_sqlite.c:1337
 #: src/namecache/plugin_namecache_sqlite.c:564
-#: src/namestore/plugin_namestore_sqlite.c:775
+#: src/namestore/plugin_namestore_sqlite.c:833
 msgid "Sqlite database running\n"
 msgstr "База података Скулајта ради\n"
 
@@ -3006,7 +3006,7 @@ msgid "Downloading `%s' done (%s/s).\n"
 msgstr "Преузимање „%s“ је готово (%s/сек).\n"
 
 #: src/fs/gnunet-download.c:206 src/fs/gnunet-publish.c:299
-#: src/fs/gnunet-search.c:538 src/fs/gnunet-unindex.c:117
+#: src/fs/gnunet-search.c:543 src/fs/gnunet-unindex.c:117
 #, c-format
 msgid "Unexpected status: %d\n"
 msgstr "Неочекивано стање: %d\n"
@@ -3042,7 +3042,7 @@ msgstr "поставља жељени НИВО анонимности прима
 msgid "delete incomplete downloads (when aborted with CTRL-C)"
 msgstr "брише недовршена преузимања (када се прекине са КТРЛ-Ц)"
 
-#: src/fs/gnunet-download.c:330 src/fs/gnunet-search.c:740
+#: src/fs/gnunet-download.c:330 src/fs/gnunet-search.c:745
 msgid "only search the local peer (no P2P network search)"
 msgstr "тражи само локалног парњака (без претраге П2П мреже)"
 
@@ -3301,95 +3301,95 @@ msgstr ""
 msgid "Publish a file or directory on GNUnet"
 msgstr "Објављује датотеку или директоријум на ГНУнет-у"
 
-#: src/fs/gnunet-search.c:441
+#: src/fs/gnunet-search.c:443
 #, c-format
 msgid "Failed to write directory with search results to `%s'\n"
 msgstr "Нисам успео да пишем директоријум са резултатима претраге за „%s“\n"
 
-#: src/fs/gnunet-search.c:527
+#: src/fs/gnunet-search.c:532
 #, c-format
 msgid "Error searching: %s.\n"
 msgstr "Грешка претраге: %s.\n"
 
-#: src/fs/gnunet-search.c:587
+#: src/fs/gnunet-search.c:592
 #, c-format
 msgid "Conflicting options --bookmark-only and --silent.\n"
 msgstr ""
 
-#: src/fs/gnunet-search.c:594
+#: src/fs/gnunet-search.c:599
 #, c-format
 msgid "Conflicting options --bookmark-only and --output.\n"
 msgstr ""
 
-#: src/fs/gnunet-search.c:600
+#: src/fs/gnunet-search.c:605
 #, c-format
 msgid "An output file is mandatory for silent mode.\n"
 msgstr ""
 
-#: src/fs/gnunet-search.c:621
+#: src/fs/gnunet-search.c:626
 msgid "Could not create keyword URI from arguments.\n"
 msgstr "Не могу да створим УРИ кључне речи из аргумената.\n"
 
-#: src/fs/gnunet-search.c:629
+#: src/fs/gnunet-search.c:634
 msgid ""
 "Invalid URI. Valid URIs for searching are keyword query URIs\n"
 "(\"gnunet://fs/ksk/...\") and namespace content URIs (\"gnunet://fs/sks/..."
 "\").\n"
 msgstr ""
 
-#: src/fs/gnunet-search.c:654
+#: src/fs/gnunet-search.c:659
 #, fuzzy, c-format
 msgid "Could not initialize the `%s` subsystem.\n"
 msgstr "Не могу да покренем „%s“ субсистем.\n"
 
-#: src/fs/gnunet-search.c:668
+#: src/fs/gnunet-search.c:673
 msgid "Could not start searching.\n"
 msgstr "Не могу да покренем претрагу.\n"
 
-#: src/fs/gnunet-search.c:694
+#: src/fs/gnunet-search.c:699
 #, fuzzy
 msgid "set the desired LEVEL of receiver-anonymity (default: 1)"
 msgstr "поставља жељени НИВО анонимности примаоца"
 
-#: src/fs/gnunet-search.c:700
+#: src/fs/gnunet-search.c:705
 msgid "do not search, print only the URI that points to this search"
 msgstr ""
 
-#: src/fs/gnunet-search.c:707
+#: src/fs/gnunet-search.c:712
 msgid ""
 "write search results for directories according to FORMAT; accepted "
 "placeholders are: %a, %f, %j, %l, %m, %n, %s; defaults to the value of --"
 "printf when omitted or to `"
 msgstr ""
 
-#: src/fs/gnunet-search.c:717
+#: src/fs/gnunet-search.c:722
 msgid ""
 "write search results according to FORMAT; accepted placeholders are: %a, %f, "
 "%j, %l, %m, %n, %s; defaults to `"
 msgstr ""
 
-#: src/fs/gnunet-search.c:725
+#: src/fs/gnunet-search.c:730
 msgid ""
 "when the %a or %j placeholders appear in --printf or --dir-printf, list each "
 "metadata property according to FORMAT; accepted placeholders are: %i, %l, "
 "%n, %p"
 msgstr ""
 
-#: src/fs/gnunet-search.c:734
+#: src/fs/gnunet-search.c:739
 msgid "automatically terminate search after VALUE results are found"
 msgstr "самостално окончава претрагу након што су пронађени резултати ВРЕДНОСТ"
 
-#: src/fs/gnunet-search.c:746
+#: src/fs/gnunet-search.c:751
 msgid ""
 "create a GNUnet directory with search results at FILENAME (e.g. `gnunet-"
 "search --output=commons"
 msgstr ""
 
-#: src/fs/gnunet-search.c:753
+#: src/fs/gnunet-search.c:758
 msgid "silent mode (requires the --output argument)"
 msgstr ""
 
-#: src/fs/gnunet-search.c:759
+#: src/fs/gnunet-search.c:764
 msgid ""
 "automatically terminate search after DELAY; the value given must be a number "
 "followed by a space and a time unit, for example \"500 ms\"; without a unit "
@@ -3397,14 +3397,14 @@ msgid ""
 "to wait for CTRL-C"
 msgstr ""
 
-#: src/fs/gnunet-search.c:768
+#: src/fs/gnunet-search.c:773
 #, c-format
 msgid ""
 "be verbose (append \"%a\\n\" to the default --printf and --dir-printf "
 "arguments - ignored when these are provided by the user)"
 msgstr ""
 
-#: src/fs/gnunet-search.c:781
+#: src/fs/gnunet-search.c:786
 #, fuzzy
 msgid "Search for files that have been published on GNUnet\n"
 msgstr "Претражује ГНУнет за датотекама које су објављене на ГНУнет-у"
@@ -3440,13 +3440,13 @@ msgstr ""
 "Неодговарајући хеш приликом покушаја индексирања датотеке „%s“ која има хеш "
 "„%s“\n"
 
-#: src/fs/gnunet-service-fs.c:1282
+#: src/fs/gnunet-service-fs.c:1288
 #, fuzzy
 msgid "FS service is lacking HOSTKEY configuration setting.  Exiting.\n"
 msgstr ""
 "Услузи језгра недостаје поставка подешавања КЉУЧА_ДОМАЋИНА.  Излазим.\n"
 
-#: src/fs/gnunet-service-fs.c:1316 src/hostlist/gnunet-daemon-hostlist.c:343
+#: src/fs/gnunet-service-fs.c:1322 src/hostlist/gnunet-daemon-hostlist.c:343
 #: src/topology/gnunet-daemon-topology.c:1098
 #, c-format
 msgid "Failed to connect to `%s' service.\n"
@@ -3911,7 +3911,7 @@ msgstr "Не могу да увезем уверење „%s“\n"
 msgid "Failed to start HTTPS server for `%s'\n"
 msgstr "Нисам успео да покренем ХТТПС сервер за „%s“\n"
 
-#: src/gns/gnunet-gns-proxy.c:2918 src/rest/gnunet-rest-server.c:917
+#: src/gns/gnunet-gns-proxy.c:2918 src/rest/gnunet-rest-server.c:958
 msgid "Failed to pass client to MHD\n"
 msgstr "Нисам успео да проследим клијента МХД-у\n"
 
@@ -3935,19 +3935,19 @@ msgstr "Неподржана врста адресе прикључнице %d\n
 msgid "Failed to load X.509 key and certificate from `%s'\n"
 msgstr "Нисам успео да учитам ССЛ/ТЛС кључ и уверење из „%s“\n"
 
-#: src/gns/gnunet-gns-proxy.c:3860
+#: src/gns/gnunet-gns-proxy.c:3868
 msgid "listen on specified port (default: 7777)"
 msgstr "ослушкиван на наведеном прикључнику (основно: 7777)"
 
-#: src/gns/gnunet-gns-proxy.c:3865
+#: src/gns/gnunet-gns-proxy.c:3873
 msgid "pem file to use as CA"
 msgstr "пем датотека за коришћење као издавач уверења"
 
-#: src/gns/gnunet-gns-proxy.c:3869
+#: src/gns/gnunet-gns-proxy.c:3877
 msgid "disable use of IPv6"
 msgstr ""
 
-#: src/gns/gnunet-gns-proxy.c:3895
+#: src/gns/gnunet-gns-proxy.c:3903
 msgid "GNUnet GNS proxy"
 msgstr "ГНУнет ГНС посредник"
 
@@ -4809,8 +4809,6 @@ msgstr "Грешка у комуникацији са услугом ПОДАЦ�
 
 #: src/namecache/plugin_namecache_flat.c:118
 #: src/namecache/plugin_namecache_flat.c:253
-#: src/namestore/plugin_namestore_flat.c:176
-#: src/namestore/plugin_namestore_flat.c:424
 #: src/peerstore/plugin_peerstore_flat.c:380
 #: src/peerstore/plugin_peerstore_flat.c:542
 #, fuzzy, c-format
@@ -4818,7 +4816,6 @@ msgid "Unable to initialize file: %s.\n"
 msgstr "Не могу да покренем СКуЛајт: %s.\n"
 
 #: src/namecache/plugin_namecache_flat.c:129
-#: src/namestore/plugin_namestore_flat.c:187
 #: src/peerstore/plugin_peerstore_flat.c:395
 #, fuzzy, c-format
 msgid "Unable to get filesize: %s.\n"
@@ -4836,7 +4833,7 @@ msgstr ""
 
 #: src/namecache/plugin_namecache_sqlite.c:190
 #: src/namecache/plugin_namecache_sqlite.c:204
-#: src/namestore/plugin_namestore_sqlite.c:226
+#: src/namestore/plugin_namestore_sqlite.c:225
 #: src/namestore/plugin_namestore_sqlite.c:237
 #, fuzzy, c-format
 msgid "Failed to setup database at `%s'\n"
@@ -5151,22 +5148,22 @@ msgstr ""
 msgid "name of the ego controlling the zone"
 msgstr "назив егоа који контролише зону"
 
-#: src/namestore/gnunet-service-namestore.c:879
+#: src/namestore/gnunet-service-namestore.c:880
 #, c-format
 msgid "Failed to replicate block in namecache: %s\n"
 msgstr "Нисам успео да реплицирам блок у остави назива: %s\n"
 
-#: src/namestore/gnunet-service-namestore.c:1557
+#: src/namestore/gnunet-service-namestore.c:1592
 #, fuzzy
 msgid "Error normalizing name."
 msgstr "Грешка стварања тунела\n"
 
-#: src/namestore/gnunet-service-namestore.c:1580
+#: src/namestore/gnunet-service-namestore.c:1615
 #, fuzzy
 msgid "Error deserializing records."
 msgstr "Унутрашња грешка скенирања директоријума.\n"
 
-#: src/namestore/gnunet-service-namestore.c:1689
+#: src/namestore/gnunet-service-namestore.c:1724
 #, fuzzy
 msgid "Store failed"
 msgstr "# Неуспеси „СТАВИ“ смештаја података"
@@ -5178,21 +5175,6 @@ msgstr ""
 #: src/namestore/gnunet-zoneimport.c:1853
 msgid "minimum expiration time we assume for imported records"
 msgstr ""
-
-#: src/namestore/plugin_namestore_flat.c:195
-#, c-format
-msgid "File too big to map: %llu bytes.\n"
-msgstr ""
-
-#: src/namestore/plugin_namestore_flat.c:219
-#, c-format
-msgid "Namestore database file `%s' malformed\n"
-msgstr ""
-
-#: src/namestore/plugin_namestore_flat.c:792
-#, fuzzy
-msgid "Flat file database running\n"
-msgstr "База података шаблона ради\n"
 
 #: src/namestore/plugin_rest_namestore.c:1109
 #, fuzzy
@@ -5991,7 +5973,7 @@ msgstr "Регуларни израз „%s“ је превелик!\n"
 msgid "Search string `%s' is too long!\n"
 msgstr "Регуларни израз „%s“ је превелик!\n"
 
-#: src/rest/gnunet-rest-server.c:1267
+#: src/rest/gnunet-rest-server.c:1367
 #, fuzzy
 msgid "GNUnet REST server"
 msgstr "Алат ГНУнет ГНС решавача"
@@ -9252,6 +9234,10 @@ msgstr "Поставља тунеле путем ВПН-а."
 #: src/zonemaster/gnunet-service-zonemaster.c:832
 msgid "Failed to connect to the namestore!\n"
 msgstr "Нисам успео да се повежем са смештајем назива!\n"
+
+#, fuzzy
+#~ msgid "Flat file database running\n"
+#~ msgstr "База података шаблона ради\n"
 
 #, fuzzy, c-format
 #~ msgid "Invalid DID `%s'\n"

@@ -248,7 +248,6 @@ src/namestore/gnunet-service-namestore.c
 src/namestore/gnunet-zoneimport.c
 src/namestore/namestore_api.c
 src/namestore/namestore_api_monitor.c
-src/namestore/plugin_namestore_flat.c
 src/namestore/plugin_namestore_postgres.c
 src/namestore/plugin_namestore_sqlite.c
 src/namestore/plugin_rest_namestore.c

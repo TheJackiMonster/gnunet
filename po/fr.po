@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2022-09-04 11:01+0200\n"
+"POT-Creation-Date: 2022-09-25 14:04+0200\n"
 "PO-Revision-Date: 2021-11-21 00:53+0100\n"
 "Last-Translator: Stéphane  Aulery <lkppo@free.fr>\n"
 "Language-Team: French <traduc@traduc.org>\n"
@@ -1517,7 +1517,7 @@ msgstr ""
 #: src/datacache/plugin_datacache_sqlite.c:1035
 #: src/datastore/plugin_datastore_sqlite.c:531
 #: src/namecache/plugin_namecache_sqlite.c:237
-#: src/namestore/plugin_namestore_sqlite.c:273
+#: src/namestore/plugin_namestore_sqlite.c:274
 msgid "Tried to close sqlite without finalizing all prepared statements.\n"
 msgstr ""
 
@@ -1847,7 +1847,7 @@ msgstr ""
 
 #: src/datastore/plugin_datastore_sqlite.c:310
 #: src/namecache/plugin_namecache_sqlite.c:180
-#: src/namestore/plugin_namestore_sqlite.c:213
+#: src/namestore/plugin_namestore_sqlite.c:211
 #: src/peerstore/plugin_peerstore_sqlite.c:540
 #, c-format
 msgid "Unable to initialize SQLite: %s.\n"
@@ -1880,7 +1880,7 @@ msgstr ""
 
 #: src/datastore/plugin_datastore_sqlite.c:1337
 #: src/namecache/plugin_namecache_sqlite.c:564
-#: src/namestore/plugin_namestore_sqlite.c:775
+#: src/namestore/plugin_namestore_sqlite.c:833
 msgid "Sqlite database running\n"
 msgstr ""
 
@@ -2868,7 +2868,7 @@ msgid "Downloading `%s' done (%s/s).\n"
 msgstr ""
 
 #: src/fs/gnunet-download.c:206 src/fs/gnunet-publish.c:299
-#: src/fs/gnunet-search.c:538 src/fs/gnunet-unindex.c:117
+#: src/fs/gnunet-search.c:543 src/fs/gnunet-unindex.c:117
 #, c-format
 msgid "Unexpected status: %d\n"
 msgstr ""
@@ -2904,7 +2904,7 @@ msgstr ""
 msgid "delete incomplete downloads (when aborted with CTRL-C)"
 msgstr ""
 
-#: src/fs/gnunet-download.c:330 src/fs/gnunet-search.c:740
+#: src/fs/gnunet-download.c:330 src/fs/gnunet-search.c:745
 msgid "only search the local peer (no P2P network search)"
 msgstr ""
 
@@ -3140,94 +3140,94 @@ msgstr ""
 msgid "Publish a file or directory on GNUnet"
 msgstr ""
 
-#: src/fs/gnunet-search.c:441
+#: src/fs/gnunet-search.c:443
 #, c-format
 msgid "Failed to write directory with search results to `%s'\n"
 msgstr ""
 
-#: src/fs/gnunet-search.c:527
+#: src/fs/gnunet-search.c:532
 #, c-format
 msgid "Error searching: %s.\n"
 msgstr ""
 
-#: src/fs/gnunet-search.c:587
+#: src/fs/gnunet-search.c:592
 #, c-format
 msgid "Conflicting options --bookmark-only and --silent.\n"
 msgstr ""
 
-#: src/fs/gnunet-search.c:594
+#: src/fs/gnunet-search.c:599
 #, c-format
 msgid "Conflicting options --bookmark-only and --output.\n"
 msgstr ""
 
-#: src/fs/gnunet-search.c:600
+#: src/fs/gnunet-search.c:605
 #, c-format
 msgid "An output file is mandatory for silent mode.\n"
 msgstr ""
 
-#: src/fs/gnunet-search.c:621
+#: src/fs/gnunet-search.c:626
 msgid "Could not create keyword URI from arguments.\n"
 msgstr ""
 
-#: src/fs/gnunet-search.c:629
+#: src/fs/gnunet-search.c:634
 msgid ""
 "Invalid URI. Valid URIs for searching are keyword query URIs\n"
 "(\"gnunet://fs/ksk/...\") and namespace content URIs (\"gnunet://fs/sks/..."
 "\").\n"
 msgstr ""
 
-#: src/fs/gnunet-search.c:654
+#: src/fs/gnunet-search.c:659
 #, c-format
 msgid "Could not initialize the `%s` subsystem.\n"
 msgstr ""
 
-#: src/fs/gnunet-search.c:668
+#: src/fs/gnunet-search.c:673
 msgid "Could not start searching.\n"
 msgstr ""
 
-#: src/fs/gnunet-search.c:694
+#: src/fs/gnunet-search.c:699
 msgid "set the desired LEVEL of receiver-anonymity (default: 1)"
 msgstr ""
 
-#: src/fs/gnunet-search.c:700
+#: src/fs/gnunet-search.c:705
 msgid "do not search, print only the URI that points to this search"
 msgstr ""
 
-#: src/fs/gnunet-search.c:707
+#: src/fs/gnunet-search.c:712
 msgid ""
 "write search results for directories according to FORMAT; accepted "
 "placeholders are: %a, %f, %j, %l, %m, %n, %s; defaults to the value of --"
 "printf when omitted or to `"
 msgstr ""
 
-#: src/fs/gnunet-search.c:717
+#: src/fs/gnunet-search.c:722
 msgid ""
 "write search results according to FORMAT; accepted placeholders are: %a, %f, "
 "%j, %l, %m, %n, %s; defaults to `"
 msgstr ""
 
-#: src/fs/gnunet-search.c:725
+#: src/fs/gnunet-search.c:730
 msgid ""
 "when the %a or %j placeholders appear in --printf or --dir-printf, list each "
 "metadata property according to FORMAT; accepted placeholders are: %i, %l, "
 "%n, %p"
 msgstr ""
 
-#: src/fs/gnunet-search.c:734
+#: src/fs/gnunet-search.c:739
 msgid "automatically terminate search after VALUE results are found"
 msgstr ""
 
-#: src/fs/gnunet-search.c:746
+#: src/fs/gnunet-search.c:751
 msgid ""
 "create a GNUnet directory with search results at FILENAME (e.g. `gnunet-"
 "search --output=commons"
 msgstr ""
 
-#: src/fs/gnunet-search.c:753
+#: src/fs/gnunet-search.c:758
 msgid "silent mode (requires the --output argument)"
 msgstr ""
 
-#: src/fs/gnunet-search.c:759
+#: src/fs/gnunet-search.c:764
 msgid ""
 "automatically terminate search after DELAY; the value given must be a number "
 "followed by a space and a time unit, for example \"500 ms\"; without a unit "
@@ -3235,14 +3235,14 @@ msgid ""
 "to wait for CTRL-C"
 msgstr ""
 
-#: src/fs/gnunet-search.c:768
+#: src/fs/gnunet-search.c:773
 #, c-format
 msgid ""
 "be verbose (append \"%a\\n\" to the default --printf and --dir-printf "
 "arguments - ignored when these are provided by the user)"
 msgstr ""
 
-#: src/fs/gnunet-search.c:781
+#: src/fs/gnunet-search.c:786
 msgid "Search for files that have been published on GNUnet\n"
 msgstr ""
 
@@ -3275,11 +3275,11 @@ msgstr ""
 msgid "Hash mismatch trying to index file `%s' which does not have hash `%s'\n"
 msgstr ""
 
-#: src/fs/gnunet-service-fs.c:1282
+#: src/fs/gnunet-service-fs.c:1288
 msgid "FS service is lacking HOSTKEY configuration setting.  Exiting.\n"
 msgstr ""
 
-#: src/fs/gnunet-service-fs.c:1316 src/hostlist/gnunet-daemon-hostlist.c:343
+#: src/fs/gnunet-service-fs.c:1322 src/hostlist/gnunet-daemon-hostlist.c:343
 #: src/topology/gnunet-daemon-topology.c:1098
 #, c-format
 msgid "Failed to connect to `%s' service.\n"
@@ -3724,7 +3724,7 @@ msgstr ""
 msgid "Failed to start HTTPS server for `%s'\n"
 msgstr ""
 
-#: src/gns/gnunet-gns-proxy.c:2918 src/rest/gnunet-rest-server.c:917
+#: src/gns/gnunet-gns-proxy.c:2918 src/rest/gnunet-rest-server.c:958
 msgid "Failed to pass client to MHD\n"
 msgstr ""
 
@@ -3748,19 +3748,19 @@ msgstr ""
 msgid "Failed to load X.509 key and certificate from `%s'\n"
 msgstr ""
 
-#: src/gns/gnunet-gns-proxy.c:3860
+#: src/gns/gnunet-gns-proxy.c:3868
 msgid "listen on specified port (default: 7777)"
 msgstr ""
 
-#: src/gns/gnunet-gns-proxy.c:3865
+#: src/gns/gnunet-gns-proxy.c:3873
 msgid "pem file to use as CA"
 msgstr ""
 
-#: src/gns/gnunet-gns-proxy.c:3869
+#: src/gns/gnunet-gns-proxy.c:3877
 msgid "disable use of IPv6"
 msgstr ""
 
-#: src/gns/gnunet-gns-proxy.c:3895
+#: src/gns/gnunet-gns-proxy.c:3903
 msgid "GNUnet GNS proxy"
 msgstr ""
 
@@ -4594,8 +4594,6 @@ msgstr ""
 
 #: src/namecache/plugin_namecache_flat.c:118
 #: src/namecache/plugin_namecache_flat.c:253
-#: src/namestore/plugin_namestore_flat.c:176
-#: src/namestore/plugin_namestore_flat.c:424
 #: src/peerstore/plugin_peerstore_flat.c:380
 #: src/peerstore/plugin_peerstore_flat.c:542
 #, c-format
@@ -4603,7 +4601,6 @@ msgid "Unable to initialize file: %s.\n"
 msgstr ""
 
 #: src/namecache/plugin_namecache_flat.c:129
-#: src/namestore/plugin_namestore_flat.c:187
 #: src/peerstore/plugin_peerstore_flat.c:395
 #, c-format
 msgid "Unable to get filesize: %s.\n"
@@ -4621,7 +4618,7 @@ msgstr ""
 
 #: src/namecache/plugin_namecache_sqlite.c:190
 #: src/namecache/plugin_namecache_sqlite.c:204
-#: src/namestore/plugin_namestore_sqlite.c:226
+#: src/namestore/plugin_namestore_sqlite.c:225
 #: src/namestore/plugin_namestore_sqlite.c:237
 #, fuzzy, c-format
 msgid "Failed to setup database at `%s'\n"
@@ -4930,22 +4927,22 @@ msgstr ""
 msgid "name of the ego controlling the zone"
 msgstr ""
 
-#: src/namestore/gnunet-service-namestore.c:879
+#: src/namestore/gnunet-service-namestore.c:880
 #, c-format
 msgid "Failed to replicate block in namecache: %s\n"
 msgstr ""
 
-#: src/namestore/gnunet-service-namestore.c:1557
+#: src/namestore/gnunet-service-namestore.c:1592
 #, fuzzy
 msgid "Error normalizing name."
 msgstr "Erreur de création du tunnel\n"
 
-#: src/namestore/gnunet-service-namestore.c:1580
+#: src/namestore/gnunet-service-namestore.c:1615
 #, fuzzy
 msgid "Error deserializing records."
 msgstr "Erreur de création du tunnel\n"
 
-#: src/namestore/gnunet-service-namestore.c:1689
+#: src/namestore/gnunet-service-namestore.c:1724
 #, fuzzy
 msgid "Store failed"
 msgstr "pa_stream_new() échoué : %s\n"
@@ -4956,20 +4953,6 @@ msgstr ""
 
 #: src/namestore/gnunet-zoneimport.c:1853
 msgid "minimum expiration time we assume for imported records"
-msgstr ""
-
-#: src/namestore/plugin_namestore_flat.c:195
-#, c-format
-msgid "File too big to map: %llu bytes.\n"
-msgstr ""
-
-#: src/namestore/plugin_namestore_flat.c:219
-#, c-format
-msgid "Namestore database file `%s' malformed\n"
-msgstr ""
-
-#: src/namestore/plugin_namestore_flat.c:792
-msgid "Flat file database running\n"
 msgstr ""
 
 #: src/namestore/plugin_rest_namestore.c:1109
@@ -5742,7 +5725,7 @@ msgstr ""
 msgid "Search string `%s' is too long!\n"
 msgstr ""
 
-#: src/rest/gnunet-rest-server.c:1267
+#: src/rest/gnunet-rest-server.c:1367
 msgid "GNUnet REST server"
 msgstr ""
 
