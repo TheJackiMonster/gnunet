@@ -1214,9 +1214,9 @@ GNUNET_NAMESTORE_records_lookup (
   GNUNET_NAMESTORE_RecordMonitor rm,
   void *rm_cls)
 {
-  records_lookup (h, pkey, label,
-                  error_cb, error_cb_cls,
-                  rm, rm_cls, GNUNET_NO);
+  return records_lookup (h, pkey, label,
+                         error_cb, error_cb_cls,
+                         rm, rm_cls, GNUNET_NO);
 
 }
 
