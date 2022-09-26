@@ -15,6 +15,7 @@ if USE_COVERAGE
   XLIBS = -lgcov
 endif
 
+
 if HAVE_SQLITE
 SQLITE_PLUGIN = libgnunet_plugin_namestore_sqlite.la
 SQLITE_TESTS = test_plugin_namestore_sqlite \
@@ -38,6 +39,7 @@ SQLITE_TESTS = test_plugin_namestore_sqlite \
  test_namestore_api_tx_rollback_sqlite
 endif
 
+
 if HAVE_POSTGRESQL
 POSTGRES_PLUGIN = libgnunet_plugin_namestore_postgres.la
 POSTGRES_TESTS = test_plugin_namestore_postgres \
@@ -58,8 +60,10 @@ POSTGRES_TESTS = test_plugin_namestore_postgres \
  test_namestore_api_monitoring_existing_postgres \
  test_namestore_api_zone_to_name_postgres \
  perf_namestore_api_zone_iteration_postgres \
- test_namestore_api_tx_rollback_postgres \
- test_namestore_api_edit_records_postgres
+ test_namestore_api_tx_rollback_postgres
+if HAVE_EXPERIMENTAL
+POSTGRES_TESTS += test_namestore_api_edit_records_postgres
+endif
 endif
 
 if HAVE_SQLITE
@@ -443,6 +447,7 @@ test_namestore_api_tx_rollback_postgres_LDADD = \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/util/libgnunetutil.la
 
+if HAVE_EXPERIMENTAL
 test_namestore_api_edit_records_postgres_SOURCES = \
  test_namestore_api_edit_records.c
 test_namestore_api_edit_records_postgres_LDADD = \
@@ -451,6 +456,7 @@ test_namestore_api_edit_records_postgres_LDADD = \
   libgnunetnamestore.la \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/util/libgnunetutil.la
+endif
 
 test_namestore_api_zone_iteration_sqlite_SOURCES = \
  test_namestore_api_zone_iteration.c

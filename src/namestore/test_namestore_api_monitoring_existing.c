@@ -248,9 +248,6 @@ put_cont (void *cls,
     return;
   }
 
-  if (3 == c)
-  {
-  }
 }
 
 
