@@ -1270,12 +1270,10 @@ ego_sign_data (struct GNUNET_REST_RequestHandle *con_handle,
   const char *data_key = "data";
 
   struct RequestHandle *handle = cls;
-  struct MHD_Response *resp;
   struct GNUNET_HashCode cache_key_username;
   struct GNUNET_HashCode cache_key_data;
   char *username;
   char *data;
-  char *result;
 
   struct ego_sign_data_cls *cls2;
 

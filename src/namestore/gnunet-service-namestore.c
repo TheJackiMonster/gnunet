@@ -2403,8 +2403,6 @@ run (void *cls,
      const struct GNUNET_CONFIGURATION_Handle *cfg,
      struct GNUNET_SERVICE_Handle *service)
 {
-  char *database;
-
   (void) cls;
   (void) service;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Starting namestore service\n");
