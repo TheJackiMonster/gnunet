@@ -1,3 +1,9 @@
+gnunet (0.17.6) unstable; urgency=low
+
+  * Packaging latest release.
+
+ -- Christian Grothoff <grothoff@gnu.org>  Mon, Sep 26 09:50:12 +0200
+
 gnunet (0.17.1) unstable; urgency=low
 
   * Packaging latest release (with 7135 htonl fix).
