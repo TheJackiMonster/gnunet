@@ -6,24 +6,44 @@ if HAVE_DOXY_BINARY
   SUBDIRS += doxygen
 endif
 
-sphinx: Makefile
-	cd sphinx && make html man info
+sphinx/_build/texinfo/gnunet.info:
+	cd sphinx && make info
 
-install-data-hook:
+sphinx/_build/html:
+	cd sphinx && make html
+
+sphinx: sphinx/_build/texinfo/gnunet.info sphinx/_build/html
+	cd sphinx && make html info
+
+install-data-hook: sphinx
 	mkdir -p $(DESTDIR)$(docdir)
 	cp -pr sphinx/_build/html $(DESTDIR)$(docdir)
+	mkdir -p $(DESTDIR)$(infodir)
+	cp -pr sphinx/_build/texinfo/gnunet.info $(DESTDIR)$(infodir)
+
+clean-local:
+	cd sphinx && make clean
+
+sphinx/_build/man/gnunet.1:
+	cd sphinx && make man
 
 if INCLUDE_MANPAGES
 man_MANS = sphinx/_build/man/gnunet.1
 SUBDIRS += man
 endif
 
-info_TEXINFOS = \
-  sphinx/_build/texinfo/gnunet.texi
+# NOTE: We cannot make this conditional because automake
+# This means that if documentation is built, you MUST also build texinfos
+# and need makeinfo.
+# And yes, sphinx already compiled texi->info at this point and this will
+# re-create it.
+# So, we now manually copy it above in the install-data-hook
+#info_TEXINFOS = \
+#  sphinx/_build/texinfo/gnunet.texi
 
 EXTRA_DIST = \
 	$(man_MANS) \
-	$(info_TEXINFOS) \
+	sphinx/_build/texinfo \
 	system_specific/outdated-and-old-installation-instructions.txt \
 	system_specific/FROM_SOURCE \
 	sphinx/_build/html \

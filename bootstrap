@@ -87,13 +87,6 @@ check_libtool()
     fi
 }
 
-sphinx ()
-{
-    # Bootstrap Sphinx documentation
-    cd doc/sphinx; make man info html >/dev/null; cd -
-}
-
-
 submodules()
 {
     # Try to update the submodule. Since bootstrap
@@ -149,7 +142,6 @@ main()
     gana_update
     check_uncrustify
     check_yapf
-    sphinx
     check_libtool
 }
 
