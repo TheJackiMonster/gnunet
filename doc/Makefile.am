@@ -43,7 +43,7 @@ endif
 
 EXTRA_DIST = \
 	$(man_MANS) \
-	sphinx/_build/texinfo \
+	sphinx/_build/texinfo/gnunet.info \
 	system_specific/outdated-and-old-installation-instructions.txt \
 	system_specific/FROM_SOURCE \
 	sphinx/_build/html \
