@@ -83,6 +83,11 @@ struct GNUNET_NAMESTORE_QueueEntry
   GNUNET_NAMESTORE_RecordMonitor proc;
 
   /**
+   * Function to call with the records we get back; or NULL.
+   */
+  GNUNET_NAMESTORE_RecordSetMonitor proc2;
+
+  /**
    * Closure for @e proc.
    */
   void *proc_cls;
@@ -149,6 +154,11 @@ struct GNUNET_NAMESTORE_ZoneIterator
    * The continuation to call with the results
    */
   GNUNET_NAMESTORE_RecordMonitor proc;
+
+  /**
+   * The continuation to call with the results
+   */
+  GNUNET_NAMESTORE_RecordSetMonitor proc2;
 
   /**
    * Closure for @e proc.
@@ -630,6 +640,9 @@ handle_record_result (void *cls, const struct RecordResultMessage *msg)
     {
       if (NULL != ze->proc)
         ze->proc (ze->proc_cls, &msg->private_key, name, rd_count, rd);
+      if (NULL != ze->proc2)
+        ze->proc2 (ze->proc_cls, &msg->private_key, name,
+                   rd_count, rd, GNUNET_TIME_absolute_ntoh (msg->expire));
       return;
     }
   }
@@ -1272,25 +1285,6 @@ GNUNET_NAMESTORE_zone_to_name (
 }
 
 
-/**
- * Starts a new zone iteration (used to periodically PUT all of our
- * records into our DHT). This MUST lock the struct GNUNET_NAMESTORE_Handle
- * for any other calls than #GNUNET_NAMESTORE_zone_iterator_next and
- * #GNUNET_NAMESTORE_zone_iteration_stop. @a proc will be called once
- * immediately, and then again after
- * #GNUNET_NAMESTORE_zone_iterator_next is invoked.
- *
- * @param h handle to the namestore
- * @param zone zone to access, NULL for all zones
- * @param error_cb function to call on error (i.e. disconnect)
- * @param error_cb_cls closure for @a error_cb
- * @param proc function to call on each name from the zone; it
- *        will be called repeatedly with a value (if available)
- * @param proc_cls closure for @a proc
- * @param finish_cb function to call on completion
- * @param finish_cb_cls closure for @a finish_cb
- * @return an iterator handle to use for iteration
- */
 struct GNUNET_NAMESTORE_ZoneIterator *
 GNUNET_NAMESTORE_zone_iteration_start (
   struct GNUNET_NAMESTORE_Handle *h,
@@ -1332,15 +1326,50 @@ GNUNET_NAMESTORE_zone_iteration_start (
   return it;
 }
 
+struct GNUNET_NAMESTORE_ZoneIterator *
+GNUNET_NAMESTORE_zone_iteration_start2 (
+  struct GNUNET_NAMESTORE_Handle *h,
+  const struct GNUNET_IDENTITY_PrivateKey *zone,
+  GNUNET_SCHEDULER_TaskCallback error_cb,
+  void *error_cb_cls,
+  GNUNET_NAMESTORE_RecordSetMonitor proc,
+  void *proc_cls,
+  GNUNET_SCHEDULER_TaskCallback finish_cb,
+  void *finish_cb_cls,
+  enum GNUNET_GNSRECORD_Filter filter)
+{
+  struct GNUNET_NAMESTORE_ZoneIterator *it;
+  struct GNUNET_MQ_Envelope *env;
+  struct ZoneIterationStartMessage *msg;
+  uint32_t rid;
 
-/**
- * Calls the record processor specified in #GNUNET_NAMESTORE_zone_iteration_start
- * for the next record.
- *
- * @param it the iterator
- * @param limit number of records to return to the iterator in one shot
- *         (before #GNUNET_NAMESTORE_zone_iterator_next is to be called again)
- */
+  LOG (GNUNET_ERROR_TYPE_DEBUG, "Sending ZONE_ITERATION_START message\n");
+  rid = get_op_id (h);
+  it = GNUNET_new (struct GNUNET_NAMESTORE_ZoneIterator);
+  it->h = h;
+  it->error_cb = error_cb;
+  it->error_cb_cls = error_cb_cls;
+  it->finish_cb = finish_cb;
+  it->finish_cb_cls = finish_cb_cls;
+  it->proc2 = proc;
+  it->proc_cls = proc_cls;
+  it->op_id = rid;
+  if (NULL != zone)
+    it->zone = *zone;
+  GNUNET_CONTAINER_DLL_insert_tail (h->z_head, h->z_tail, it);
+  env = GNUNET_MQ_msg (msg, GNUNET_MESSAGE_TYPE_NAMESTORE_ZONE_ITERATION_START);
+  msg->gns_header.r_id = htonl (rid);
+  msg->filter = htons ((uint16_t) filter);
+  if (NULL != zone)
+    msg->zone = *zone;
+  if (NULL == h->mq)
+    it->env = env;
+  else
+    GNUNET_MQ_send (h->mq, env);
+  return it;
+}
+
+
 void
 GNUNET_NAMESTORE_zone_iterator_next (struct GNUNET_NAMESTORE_ZoneIterator *it,
                                      uint64_t limit)

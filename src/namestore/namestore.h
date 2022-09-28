@@ -280,6 +280,12 @@ struct RecordResultMessage
   struct GNUNET_NAMESTORE_Header gns_header;
 
   /**
+   * Expiration time if the record result (if any).
+   * Takes TOMBSTONEs into account.
+   */
+  struct GNUNET_TIME_AbsoluteNBO expire;
+
+  /**
    * Name length
    */
   uint16_t name_len GNUNET_PACKED;
@@ -376,6 +382,17 @@ struct ZoneMonitorStartMessage
   uint32_t iterate_first GNUNET_PACKED;
 
   /**
+   * Record set filter control flags.
+   * See GNUNET_NAMESTORE_Filter enum.
+   */
+  uint16_t filter;
+
+  /**
+   * Reserved for alignment
+   */
+  uint16_t reserved;
+
+  /**
    * Zone key.
    */
   struct GNUNET_IDENTITY_PrivateKey zone;
@@ -420,6 +437,17 @@ struct ZoneIterationStartMessage
    * Zone key.  All zeros for "all zones".
    */
   struct GNUNET_IDENTITY_PrivateKey zone;
+
+  /**
+   * Record set filter control flags.
+   * See GNUNET_NAMESTORE_Filter enum.
+   */
+  uint16_t filter;
+
+  /**
+   * Reserved for alignment
+   */
+  uint16_t reserved;
 };
 
 

@@ -124,6 +124,35 @@ enum GNUNET_GNSRECORD_Flags
 #define GNUNET_GNSRECORD_RF_RCMP_FLAGS (GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION)
 };
 
+/**
+ * Filter for GNUNET_GNSRECORD_normalize_record_set().
+ */
+enum GNUNET_GNSRECORD_Filter
+{
+  /**
+   * No filter flags set.
+   * Private and public records are returned,
+   * maintenance records (TOMBSTONE etc) are not.
+   */
+  GNUNET_GNSRECORD_FILTER_NONE = 0,
+
+  /**
+   * Include maintenance records (TOMBSTONE etc).
+   */
+  GNUNET_GNSRECORD_FILTER_INCLUDE_MAINTENANCE = 1,
+
+  /**
+   * Filter private records
+   */
+  GNUNET_GNSRECORD_FILTER_OMIT_PRIVATE = 2,
+
+  /**
+   * Filter public records.
+   * FIXME: Not implemented
+   */
+  //GNUNET_NAMESTORE_FILTER_OMIT_PUBLIC = 4,
+};
+
 
 /**
  * A GNS record.
@@ -725,7 +754,7 @@ GNUNET_GNSRECORD_is_critical (uint32_t type);
  * @param rd_public where to write the converted records
  * @param rd_public_count number of records written to @a rd_public
  * @param min_expiry the minimum expiration of this set
- * @param include_private GNUNET_YES if private records should be included.
+ * @param filter the record set filter, see GNUNET_GNSRECORD_Filter.
  * @param emsg the error message if something went wrong
  * @return GNUNET_OK if set could be normalized and is consistent
  */
@@ -736,33 +765,9 @@ GNUNET_GNSRECORD_normalize_record_set (const char *label,
                                        struct GNUNET_GNSRECORD_Data *rd_public,
                                        unsigned int *rd_count_public,
                                        struct GNUNET_TIME_Absolute *min_expiry,
-                                       int include_private,
+                                       enum GNUNET_GNSRECORD_Filter filter,
                                        char **emsg);
 
-
-/**
- * Convert namestore records from the internal format to that
- * suitable for publication (removes private records).
- *
- * @param label the label under which this set is (supposed to be) published.
- * @param rd input records
- * @param rd_count size of the @a rd and @a rd_public arrays
- * @param rd_public where to write the converted records
- * @param rd_public_count number of records written to @a rd_public
- * @param expiry the expiration of the block
- * @param emsg the error message if something went wrong
- * @return GNUNET_OK if set is consistent and can be exported
- */
-enum GNUNET_GenericReturnValue
-GNUNET_GNSRECORD_convert_records_for_export (const char *label,
-                                             const struct
-                                             GNUNET_GNSRECORD_Data *rd,
-                                             unsigned int rd_count,
-                                             struct GNUNET_GNSRECORD_Data *
-                                             rd_public,
-                                             unsigned int *rd_count_public,
-                                             struct GNUNET_TIME_Absolute *expiry,
-                                             char **emsg);
 
 /**
  * Check label for invalid characters.

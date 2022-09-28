@@ -683,46 +683,28 @@ put_gns_record (void *cls,
                 const struct GNUNET_IDENTITY_PrivateKey *key,
                 const char *label,
                 unsigned int rd_count,
-                const struct GNUNET_GNSRECORD_Data *rd)
+                const struct GNUNET_GNSRECORD_Data *rd,
+                struct GNUNET_TIME_Absolute expire)
 {
-  struct GNUNET_GNSRECORD_Data rd_public[rd_count];
-  unsigned int rd_public_count;
   struct DhtPutActivity *ma;
-  struct GNUNET_TIME_Absolute expire;
-  char *emsg;
 
   (void) cls;
   ns_iteration_left--;
-  if (GNUNET_OK != GNUNET_GNSRECORD_convert_records_for_export (label,
-                                                                rd,
-                                                                rd_count,
-                                                                rd_public,
-                                                                &rd_public_count,
-                                                                &expire,
-                                                                &emsg))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Record set inconsistent, moving to next record set: %s\n",
-                emsg);
-    GNUNET_free (emsg);
-    check_zone_namestore_next ();
-    return;
-  }
-  if (0 == rd_public_count)
+  if (0 == rd_count)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Record set empty, moving to next record set\n");
     check_zone_namestore_next ();
     return;
   }
-  for (unsigned int i = 0; i < rd_public_count; i++)
+  for (unsigned int i = 0; i < rd_count; i++)
   {
-    if (0 != (rd_public[i].flags & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION))
+    if (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION))
     {
       /* GNUNET_GNSRECORD_block_create will convert to absolute time;
          we just need to adjust our iteration frequency */
       min_relative_record_time.rel_value_us =
-        GNUNET_MIN (rd_public[i].expiration_time,
+        GNUNET_MIN (rd[i].expiration_time,
                     min_relative_record_time.rel_value_us);
     }
   }
@@ -736,8 +718,8 @@ put_gns_record (void *cls,
   ma->start_date = GNUNET_TIME_absolute_get ();
   ma->ph = perform_dht_put (key,
                             label,
-                            rd_public,
-                            rd_public_count,
+                            rd,
+                            rd_count,
                             expire,
                             ma);
   put_cnt++;
@@ -793,14 +775,15 @@ publish_zone_dht_start (void *cls)
   GNUNET_assert (NULL == namestore_iter);
   ns_iteration_left = 1;
   namestore_iter
-    = GNUNET_NAMESTORE_zone_iteration_start (namestore_handle,
-                                             NULL, /* All zones */
-                                             &zone_iteration_error,
-                                             NULL,
-                                             &put_gns_record,
-                                             NULL,
-                                             &zone_iteration_finished,
-                                             NULL);
+    = GNUNET_NAMESTORE_zone_iteration_start2 (namestore_handle,
+                                              NULL, /* All zones */
+                                              &zone_iteration_error,
+                                              NULL,
+                                              &put_gns_record,
+                                              NULL,
+                                              &zone_iteration_finished,
+                                              NULL,
+                                              GNUNET_GNSRECORD_FILTER_OMIT_PRIVATE);
   GNUNET_assert (NULL != namestore_iter);
 }
 
