@@ -1182,6 +1182,8 @@ AC_ARG_ENABLE([experimental],
          [enable_experimental=1])],
   [enable_experimental=0])
 AM_CONDITIONAL([HAVE_EXPERIMENTAL], [test "x$enable_experimental" = "x1"])
+AS_IF([test "x$enable_experimental" = "x1"],
+      AC_DEFINE([GNUNET_EXPERIMENTAL], 1, [Set to 1 is this is an experimental build]))
 
 # check if malicious code should be compiled (for testing)
 AC_ARG_ENABLE([malicious],
@@ -1501,8 +1503,8 @@ AS_IF([test "x$png" = "x1"],
   [libpng_msg="no"])
 
 AS_IF([test "x$curl_gnutls" = "x0"],
-       [http_client="curl (OpenSSL)"],
-       [http_client="curl (GnuTLS)"])
+       [curl_tls_backend="OpenSSL"],
+       [curl_tls_backend="GnuTLS"])
 
 # ifconfig
 AS_IF([test "x$IFCONFIG_BINARY" = "xfalse"],
@@ -1581,7 +1583,7 @@ sqlite3:                        ${sqlite_msg}
 MySQL:                          ${mysql_msg}
 PostgreSQL:                     ${postgres_msg}
 
-HTTP Client:                    ${http_client}
+cURL TLS backend:               ${curl_tls_backend}
 Bluetooth:                      ${bluetooth_msg}
 iptables:                       ${iptables_msg}
 ifconfig:                       ${ifconfig_msg}
