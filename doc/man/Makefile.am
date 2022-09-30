@@ -61,6 +61,7 @@ man_MANS = \
   gnunet-namecache.1 \
   gnunet-namestore.1 \
   gnunet-namestore-fcfsd.1 \
+  gnunet-namestore-dbtool.1 \
   gnunet-nat.1 \
   gnunet-nat-auto.1 \
   gnunet-nat-server.1 \
