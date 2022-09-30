@@ -137,9 +137,14 @@ struct NamestoreClient
   struct GNUNET_SERVICE_Client *client;
 
   /**
-   * Database handle
+   * Database handle for client
    */
   struct GNUNET_NAMESTORE_PluginFunctions *GSN_database;
+
+  /**
+   * Name of loaded plugin (neeed for cleanup)
+   */
+  char *db_lib_name;
 
   /**
    * Message queue for transmission to @e client
@@ -373,6 +378,12 @@ static struct GNUNET_NAMECACHE_Handle *namecache;
 static char *db_lib_name;
 
 /**
+ * Database handle for service
+ */
+struct GNUNET_NAMESTORE_PluginFunctions *GSN_database;
+
+
+/**
  * Head of cop DLL.
  */
 static struct CacheOperation *cop_head;
@@ -446,8 +457,6 @@ cleanup_task (void *cls)
     GNUNET_NAMECACHE_disconnect (namecache);
     namecache = NULL;
   }
-  GNUNET_free (db_lib_name);
-  db_lib_name = NULL;
   if (NULL != monitor_nc)
   {
     GNUNET_notification_context_destroy (monitor_nc);
@@ -458,6 +467,9 @@ cleanup_task (void *cls)
     GNUNET_STATISTICS_destroy (statistics, GNUNET_NO);
     statistics = NULL;
   }
+  GNUNET_break (NULL == GNUNET_PLUGIN_unload (db_lib_name, GSN_database));
+  GNUNET_free (db_lib_name);
+  db_lib_name = NULL;
 }
 
 
@@ -574,8 +586,7 @@ cache_nick (const struct GNUNET_IDENTITY_PrivateKey *zone,
  * @return NULL if no NICK record was found
  */
 static struct GNUNET_GNSRECORD_Data *
-get_nick_record (const struct NamestoreClient *nc,
-                 const struct GNUNET_IDENTITY_PrivateKey *zone)
+get_nick_record (const struct GNUNET_IDENTITY_PrivateKey *zone)
 {
   struct GNUNET_IDENTITY_PublicKey pub;
   struct GNUNET_GNSRECORD_Data *nick;
@@ -599,11 +610,11 @@ get_nick_record (const struct NamestoreClient *nc,
   }
 
   nick = NULL;
-  res = nc->GSN_database->lookup_records (nc->GSN_database->cls,
-                                          zone,
-                                          GNUNET_GNS_EMPTY_LABEL_AT,
-                                          &lookup_nick_it,
-                                          &nick);
+  res = GSN_database->lookup_records (GSN_database->cls,
+                                      zone,
+                                      GNUNET_GNS_EMPTY_LABEL_AT,
+                                      &lookup_nick_it,
+                                      &nick);
   if ((GNUNET_OK != res) || (NULL == nick))
   {
 #if ! defined(GNUNET_CULL_LOGGING)
@@ -753,7 +764,7 @@ send_lookup_response_with_filter (struct NamestoreClient *nc,
   char *rd_ser;
   char *emsg;
 
-  nick = get_nick_record (nc, zone_key);
+  nick = get_nick_record (zone_key);
   GNUNET_assert (-1 != GNUNET_GNSRECORD_records_get_size (rd_count, rd));
 
   if (GNUNET_OK != GNUNET_GNSRECORD_normalize_record_set (name,
@@ -996,7 +1007,7 @@ refresh_block (struct NamestoreClient *nc,
     rd_clean[rd_count_clean++] = rd[i];
   }
 
-  nick = get_nick_record (nc, zone_key);
+  nick = get_nick_record (zone_key);
   res_count = rd_count_clean;
   res = (struct GNUNET_GNSRECORD_Data *) rd_clean;  /* fixme: a bit unclean... */
   if ((NULL != nick) && (0 != strcmp (name, GNUNET_GNS_EMPTY_LABEL_AT)))
@@ -1229,7 +1240,8 @@ client_disconnect_cb (void *cls,
   for (cop = cop_head; NULL != cop; cop = cop->next)
     if (nc == cop->nc)
       cop->nc = NULL;
-  GNUNET_break (NULL == GNUNET_PLUGIN_unload (db_lib_name, nc->GSN_database));
+  GNUNET_break (NULL == GNUNET_PLUGIN_unload (nc->db_lib_name, nc->GSN_database));
+  GNUNET_free (nc->db_lib_name);
   GNUNET_free (nc);
 }
 
@@ -1249,7 +1261,6 @@ client_connect_cb (void *cls,
 {
   struct NamestoreClient *nc;
   char *database;
-  char *db_lib_name;
 
   (void) cls;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Client %p connected\n", client);
@@ -1261,9 +1272,12 @@ client_connect_cb (void *cls,
                                                           "namestore",
                                                           "database",
                                                           &database))
+  {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "No database backend configured\n");
-  GNUNET_asprintf (&db_lib_name, "libgnunet_plugin_namestore_%s", database);
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Loading %s\n", db_lib_name);
+    GNUNET_free (nc);
+    return NULL;
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Loading %s\n", db_lib_name);
   nc->GSN_database = GNUNET_PLUGIN_load (db_lib_name, (void *) GSN_cfg);
   GNUNET_free (database);
   if (NULL == nc->GSN_database)
@@ -1271,12 +1285,11 @@ client_connect_cb (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Could not load database backend `%s'\n",
                 db_lib_name);
-    GNUNET_free (db_lib_name);
     GNUNET_free (nc);
     return NULL;
   }
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Loaded %s\n", db_lib_name);
-  GNUNET_free (db_lib_name);
+  nc->db_lib_name = GNUNET_strdup (db_lib_name);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Loaded %s\n", db_lib_name);
   return nc;
 }
 
@@ -1487,7 +1500,7 @@ handle_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
   rlc.res_rd_count = 0;
   rlc.res_rd = NULL;
   rlc.rd_ser_len = 0;
-  rlc.nick = get_nick_record (nc, &ll_msg->zone);
+  rlc.nick = get_nick_record (&ll_msg->zone);
   if (GNUNET_YES != ntohl (ll_msg->is_edit_request))
     res = nc->GSN_database->lookup_records (nc->GSN_database->cls,
                                             &ll_msg->zone,
@@ -2469,6 +2482,7 @@ run (void *cls,
      const struct GNUNET_CONFIGURATION_Handle *cfg,
      struct GNUNET_SERVICE_Handle *service)
 {
+  char *database;
   (void) cls;
   (void) service;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Starting namestore service\n");
@@ -2484,6 +2498,29 @@ run (void *cls,
     GNUNET_assert (NULL != namecache);
   }
   statistics = GNUNET_STATISTICS_create ("namestore", cfg);
+  /* Loading database plugin */
+  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_string (cfg,
+                                                          "namestore",
+                                                          "database",
+                                                          &database))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "No database backend configured\n");
+    GNUNET_SCHEDULER_add_now (&cleanup_task, NULL);
+    return;
+  }
+  GNUNET_asprintf (&db_lib_name, "libgnunet_plugin_namestore_%s", database);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Loading %s\n", db_lib_name);
+  GSN_database = GNUNET_PLUGIN_load (db_lib_name, (void *) cfg);
+  GNUNET_free (database);
+  if (NULL == GSN_database)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Could not load database backend `%s'\n",
+                db_lib_name);
+    GNUNET_free (db_lib_name);
+    GNUNET_SCHEDULER_add_now (&cleanup_task, NULL);
+    return;
+  }
   GNUNET_SCHEDULER_add_shutdown (&cleanup_task, NULL);
 }
 

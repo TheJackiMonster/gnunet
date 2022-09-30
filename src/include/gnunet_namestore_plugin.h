@@ -205,6 +205,28 @@ struct GNUNET_NAMESTORE_PluginFunctions
                      GNUNET_NAMESTORE_RecordIterator iter,
                      void *iter_cls);
 
+  /**
+   * Setup the database.
+   * Note that this will also fail if the database is already initialized.
+   * See reset_database().
+   *
+   * @param cls closure (internal context for the plugin)
+   * @param emsg error message on failure. Will be allocated, must be freed.
+   * @return #GNUNET_OK on success, else fails with #GNUNET_SYSERR
+   */
+  int
+  (*initialize_database) (void *cls, char **emsg);
+
+  /**
+   * Re-initializes the database.
+   * DANGEROUS: All existing data in the dabase will be lost!
+   *
+   * @param cls closure (internal context for the plugin)
+   * @param emsg error message on failure. Will be allocated, must be freed.
+   * @return #GNUNET_OK on success, else fails with #GNUNET_SYSERR
+   */
+  int
+  (*reset_database) (void *cls, char **emsg);
 };
 
 

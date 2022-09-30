@@ -21,6 +21,7 @@
  * @file namestore/test_common.c
  * @brief common functions for testcase setup
  */
+#include <gnunet_namestore_plugin.h>
 
 /**
  * test if we can load the plugin @a name.
@@ -30,6 +31,7 @@ TNC_test_plugin (const char *cfg_name)
 {
   char *database;
   char *db_lib_name;
+  char *emsg;
   struct GNUNET_NAMESTORE_PluginFunctions *db;
   struct GNUNET_CONFIGURATION_Handle *cfg;
 
@@ -53,7 +55,15 @@ TNC_test_plugin (const char *cfg_name)
   GNUNET_free (database);
   db = GNUNET_PLUGIN_load (db_lib_name, (void *) cfg);
   if (NULL != db)
+  {
+    if (GNUNET_OK != db->reset_database (db->cls, &emsg))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Error resetting database: %s\n", emsg);
+      GNUNET_free (emsg);
+      return GNUNET_SYSERR;
+    }
     GNUNET_break (NULL == GNUNET_PLUGIN_unload (db_lib_name, db));
+  }
   GNUNET_free (db_lib_name);
   GNUNET_CONFIGURATION_destroy (cfg);
   if (NULL == db)

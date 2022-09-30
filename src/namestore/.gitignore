@@ -1,5 +1,6 @@
 gnunet-service-namestore
 gnunet-namestore
+gnunet-namestore-dbtool
 gnunet-namestore-fcfsd
 test_namestore_api_lookup_nick.nc
 test_namestore_api_lookup_private.nc

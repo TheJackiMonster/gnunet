@@ -90,6 +90,7 @@ libexec_PROGRAMS = \
 
 bin_PROGRAMS = \
  gnunet-namestore \
+ gnunet-namestore-dbtool \
  gnunet-zoneimport
 
 libexec_PROGRAMS += \
@@ -152,6 +153,14 @@ gnunet_namestore_LDADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
   libgnunetnamestore.la \
   $(GN_LIBINTL)
+
+gnunet_namestore_dbtool_SOURCES = \
+ gnunet-namestore-dbtool.c
+gnunet_namestore_dbtool_LDADD = \
+  $(top_builddir)/src/util/libgnunetutil.la \
+  libgnunetnamestore.la \
+  $(GN_LIBINTL)
+
 
 
 gnunet_namestore_fcfsd_SOURCES = \
