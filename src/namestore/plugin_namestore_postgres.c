@@ -60,8 +60,10 @@ struct Plugin
  * @return #GNUNET_OK on success
  */
 static int
-database_setup (struct Plugin *plugin)
+init_database (struct Plugin *plugin, char **emsg, int drop)
 {
+  struct GNUNET_PQ_ExecuteStatement es_drop =
+    GNUNET_PQ_make_execute ("DROP TABLE IF EXISTS ns098records");
   struct GNUNET_PQ_ExecuteStatement es_temporary =
     GNUNET_PQ_make_execute (
       "CREATE TEMPORARY TABLE IF NOT EXISTS ns098records ("
@@ -87,7 +89,7 @@ database_setup (struct Plugin *plugin)
                             ")");
   const struct GNUNET_PQ_ExecuteStatement *cr;
   struct GNUNET_PQ_ExecuteStatement sc = GNUNET_PQ_EXECUTE_STATEMENT_END;
-
+  struct GNUNET_PQ_ExecuteStatement sc2 = GNUNET_PQ_EXECUTE_STATEMENT_END;
   if (GNUNET_YES ==
       GNUNET_CONFIGURATION_get_value_yesno (plugin->cfg,
                                             "namestore-postgres",
@@ -104,7 +106,13 @@ database_setup (struct Plugin *plugin)
       GNUNET_CONFIGURATION_get_value_yesno (plugin->cfg,
                                             "namestore-postgres",
                                             "ASYNC_COMMIT"))
+  {
     sc = GNUNET_PQ_make_try_execute ("SET synchronous_commit TO off");
+    if (GNUNET_YES == drop)
+      sc2 = es_drop;
+  }
+  else if (GNUNET_YES == drop)
+    sc = es_drop;
 
   {
     struct GNUNET_PQ_ExecuteStatement es[] = {
@@ -118,8 +126,59 @@ database_setup (struct Plugin *plugin)
       GNUNET_PQ_make_try_execute ("CREATE INDEX IF NOT EXISTS zone_label "
                                   "ON ns098records (zone_private_key,label)"),
       sc,
+      sc2,
       GNUNET_PQ_EXECUTE_STATEMENT_END
     };
+
+    plugin->dbh = GNUNET_PQ_connect_with_cfg (plugin->cfg,
+                                              "namestore-postgres",
+                                              NULL,
+                                              es,
+                                              NULL);
+  }
+  if (NULL == plugin->dbh)
+  {
+    *emsg = GNUNET_strdup ("Failed to connect to PQ database");
+    return GNUNET_SYSERR;
+  }
+  GNUNET_PQ_disconnect (plugin->dbh);
+  plugin->dbh = NULL;
+  return GNUNET_OK;
+}
+
+/**
+ * Initialize the database connections and associated
+ * data structures (create tables and indices
+ * as needed as well).
+ *
+ * @param plugin the plugin context (state for this module)
+ * @return #GNUNET_OK on success
+ */
+static int
+database_connect (struct Plugin *plugin)
+{
+  const struct GNUNET_PQ_ExecuteStatement *cr;
+  char *emsg;
+  struct GNUNET_PQ_ExecuteStatement sc = GNUNET_PQ_EXECUTE_STATEMENT_END;
+
+  if (GNUNET_YES ==
+      GNUNET_CONFIGURATION_get_value_yesno (plugin->cfg,
+                                            "namestore-postgres",
+                                            "INIT_ON_CONNECT"))
+  {
+    /**
+     * Gracefully fail as this should not be a critical error if the
+     * database is already created
+     */
+    if (GNUNET_OK != init_database (plugin, &emsg, GNUNET_NO))
+    {
+      LOG (GNUNET_ERROR_TYPE_WARNING,
+           "Failed to initialize database on connect: `%s'\n",
+           emsg);
+      GNUNET_free (emsg);
+    }
+  }
+  {
     struct GNUNET_PQ_PreparedStatement ps[] = {
       GNUNET_PQ_make_prepare ("store_records",
                               "INSERT INTO ns098records"
@@ -161,7 +220,7 @@ database_setup (struct Plugin *plugin)
     plugin->dbh = GNUNET_PQ_connect_with_cfg (plugin->cfg,
                                               "namestore-postgres",
                                               NULL,
-                                              es,
+                                              NULL,
                                               ps);
   }
   if (NULL == plugin->dbh)
@@ -666,6 +725,23 @@ namestore_postgres_transaction_commit (void *cls,
 }
 
 
+static enum GNUNET_GenericReturnValue
+namestore_postgres_initialize_database (void *cls,
+                                        char **emsg)
+{
+  return init_database (cls, emsg, GNUNET_NO);
+}
+
+
+static enum GNUNET_GenericReturnValue
+namestore_postgres_reset_database (void *cls,
+                                   char **emsg)
+{
+  return init_database (cls, emsg, GNUNET_YES);
+}
+
+
+
 /**
  * Shutdown database connection and associate data
  * structures.
@@ -695,7 +771,7 @@ libgnunet_plugin_namestore_postgres_init (void *cls)
 
   plugin = GNUNET_new (struct Plugin);
   plugin->cfg = cfg;
-  if (GNUNET_OK != database_setup (plugin))
+  if (GNUNET_OK != database_connect (plugin))
   {
     database_shutdown (plugin);
     GNUNET_free (plugin);
@@ -710,6 +786,8 @@ libgnunet_plugin_namestore_postgres_init (void *cls)
   api->transaction_begin = &namestore_postgres_transaction_begin;
   api->transaction_commit = &namestore_postgres_transaction_commit;
   api->transaction_rollback = &namestore_postgres_transaction_rollback;
+  api->initialize_database = &namestore_postgres_initialize_database;
+  api->reset_database = &namestore_postgres_reset_database;
   api->edit_records = &namestore_postgres_edit_records;
   LOG (GNUNET_ERROR_TYPE_INFO,
        "Postgres namestore plugin running\n");
