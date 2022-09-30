@@ -45,6 +45,11 @@ struct Plugin
   const struct GNUNET_CONFIGURATION_Handle *cfg;
 
   /**
+   * Database is prepared and ready
+   */
+  int ready;
+
+  /**
    * Postgres database handle.
    */
   struct GNUNET_PQ_Context *dbh;
@@ -62,11 +67,9 @@ struct Plugin
 static int
 init_database (struct Plugin *plugin, char **emsg, int drop)
 {
-  struct GNUNET_PQ_ExecuteStatement es_drop =
-    GNUNET_PQ_make_execute ("DROP TABLE IF EXISTS ns098records");
   struct GNUNET_PQ_ExecuteStatement es_temporary =
     GNUNET_PQ_make_execute (
-      "CREATE TEMPORARY TABLE IF NOT EXISTS ns098records ("
+      "CREATE TEMPORARY TABLE ns098records ("
       " seq BIGSERIAL PRIMARY KEY,"
       " zone_private_key BYTEA NOT NULL DEFAULT '',"
       " pkey BYTEA DEFAULT '',"
@@ -77,7 +80,7 @@ init_database (struct Plugin *plugin, char **emsg, int drop)
       " CONSTRAINT zl UNIQUE (zone_private_key,label)"
       ")");
   struct GNUNET_PQ_ExecuteStatement es_default =
-    GNUNET_PQ_make_execute ("CREATE TABLE IF NOT EXISTS ns098records ("
+    GNUNET_PQ_make_execute ("CREATE TABLE ns098records ("
                             " seq BIGSERIAL PRIMARY KEY,"
                             " zone_private_key BYTEA NOT NULL DEFAULT '',"
                             " pkey BYTEA DEFAULT '',"
@@ -89,30 +92,21 @@ init_database (struct Plugin *plugin, char **emsg, int drop)
                             ")");
   const struct GNUNET_PQ_ExecuteStatement *cr;
   struct GNUNET_PQ_ExecuteStatement sc = GNUNET_PQ_EXECUTE_STATEMENT_END;
-  struct GNUNET_PQ_ExecuteStatement sc2 = GNUNET_PQ_EXECUTE_STATEMENT_END;
+  struct GNUNET_PQ_ExecuteStatement es_drop =
+    GNUNET_PQ_make_execute ("DROP TABLE IF EXISTS ns098records");
   if (GNUNET_YES ==
       GNUNET_CONFIGURATION_get_value_yesno (plugin->cfg,
                                             "namestore-postgres",
                                             "TEMPORARY_TABLE"))
-  {
     cr = &es_temporary;
-  }
   else
-  {
     cr = &es_default;
-  }
 
   if (GNUNET_YES ==
       GNUNET_CONFIGURATION_get_value_yesno (plugin->cfg,
                                             "namestore-postgres",
                                             "ASYNC_COMMIT"))
-  {
     sc = GNUNET_PQ_make_try_execute ("SET synchronous_commit TO off");
-    if (GNUNET_YES == drop)
-      sc2 = es_drop;
-  }
-  else if (GNUNET_YES == drop)
-    sc = es_drop;
 
   {
     struct GNUNET_PQ_ExecuteStatement es[] = {
@@ -126,15 +120,37 @@ init_database (struct Plugin *plugin, char **emsg, int drop)
       GNUNET_PQ_make_try_execute ("CREATE INDEX IF NOT EXISTS zone_label "
                                   "ON ns098records (zone_private_key,label)"),
       sc,
-      sc2,
       GNUNET_PQ_EXECUTE_STATEMENT_END
     };
-
-    plugin->dbh = GNUNET_PQ_connect_with_cfg (plugin->cfg,
-                                              "namestore-postgres",
-                                              NULL,
-                                              es,
-                                              NULL);
+    struct GNUNET_PQ_ExecuteStatement es_alt[] = {
+      es_drop,
+      *cr,
+      GNUNET_PQ_make_try_execute ("CREATE INDEX IF NOT EXISTS ir_pkey_reverse "
+                                  "ON ns098records (zone_private_key,pkey)"),
+      GNUNET_PQ_make_try_execute ("CREATE INDEX IF NOT EXISTS ir_pkey_iter "
+                                  "ON ns098records (zone_private_key,seq)"),
+      GNUNET_PQ_make_try_execute ("CREATE INDEX IF NOT EXISTS ir_label "
+                                  "ON ns098records (label)"),
+      GNUNET_PQ_make_try_execute ("CREATE INDEX IF NOT EXISTS zone_label "
+                                  "ON ns098records (zone_private_key,label)"),
+      sc,
+      GNUNET_PQ_EXECUTE_STATEMENT_END
+    };
+    if (GNUNET_NO == drop)
+    {
+      plugin->dbh = GNUNET_PQ_connect_with_cfg (plugin->cfg,
+                                                "namestore-postgres",
+                                                NULL,
+                                                es,
+                                                NULL);
+    }
+    else {
+      plugin->dbh = GNUNET_PQ_connect_with_cfg (plugin->cfg,
+                                                "namestore-postgres",
+                                                NULL,
+                                                es_alt,
+                                                NULL);
+    }
   }
   if (NULL == plugin->dbh)
   {
@@ -145,6 +161,57 @@ init_database (struct Plugin *plugin, char **emsg, int drop)
   plugin->dbh = NULL;
   return GNUNET_OK;
 }
+
+static int
+database_prepare (struct Plugin *plugin)
+{
+  enum GNUNET_GenericReturnValue ret;
+  if (GNUNET_YES == plugin->ready)
+    return GNUNET_OK;
+  struct GNUNET_PQ_PreparedStatement ps[] = {
+    GNUNET_PQ_make_prepare ("store_records",
+                            "INSERT INTO ns098records"
+                            " (zone_private_key, pkey, rvalue, record_count, record_data, label)"
+                            " VALUES ($1, $2, $3, $4, $5, $6)"
+                            " ON CONFLICT ON CONSTRAINT zl"
+                            " DO UPDATE"
+                            "    SET pkey=$2,rvalue=$3,record_count=$4,record_data=$5"
+                            "    WHERE ns098records.zone_private_key = $1"
+                            "          AND ns098records.label = $6",
+                            6),
+    GNUNET_PQ_make_prepare ("delete_records",
+                            "DELETE FROM ns098records "
+                            "WHERE zone_private_key=$1 AND label=$2",
+                            2),
+    GNUNET_PQ_make_prepare ("zone_to_name",
+                            "SELECT seq,record_count,record_data,label FROM ns098records"
+                            " WHERE zone_private_key=$1 AND pkey=$2",
+                            2),
+    GNUNET_PQ_make_prepare ("iterate_zone",
+                            "SELECT seq,record_count,record_data,label FROM ns098records "
+                            "WHERE zone_private_key=$1 AND seq > $2 ORDER BY seq ASC LIMIT $3",
+                            3),
+    GNUNET_PQ_make_prepare ("iterate_all_zones",
+                            "SELECT seq,record_count,record_data,label,zone_private_key"
+                            " FROM ns098records WHERE seq > $1 ORDER BY seq ASC LIMIT $2",
+                            2),
+    GNUNET_PQ_make_prepare ("lookup_label",
+                            "SELECT seq,record_count,record_data,label "
+                            "FROM ns098records WHERE zone_private_key=$1 AND label=$2",
+                            2),
+    GNUNET_PQ_make_prepare ("edit_set",
+                            "SELECT seq,record_count,record_data,label "
+                            "FROM ns098records WHERE zone_private_key=$1 AND label=$2 FOR UPDATE NOWAIT",
+                            2),
+    GNUNET_PQ_PREPARED_STATEMENT_END
+  };
+  ret = GNUNET_PQ_prepare_statements (plugin->dbh, ps);
+  if (GNUNET_OK != ret)
+    return ret;
+  plugin->ready = GNUNET_YES;
+  return GNUNET_OK;
+}
+
 
 /**
  * Initialize the database connections and associated
@@ -178,51 +245,11 @@ database_connect (struct Plugin *plugin)
       GNUNET_free (emsg);
     }
   }
-  {
-    struct GNUNET_PQ_PreparedStatement ps[] = {
-      GNUNET_PQ_make_prepare ("store_records",
-                              "INSERT INTO ns098records"
-                              " (zone_private_key, pkey, rvalue, record_count, record_data, label)"
-                              " VALUES ($1, $2, $3, $4, $5, $6)"
-                              " ON CONFLICT ON CONSTRAINT zl"
-                              " DO UPDATE"
-                              "    SET pkey=$2,rvalue=$3,record_count=$4,record_data=$5"
-                              "    WHERE ns098records.zone_private_key = $1"
-                              "          AND ns098records.label = $6",
-                              6),
-      GNUNET_PQ_make_prepare ("delete_records",
-                              "DELETE FROM ns098records "
-                              "WHERE zone_private_key=$1 AND label=$2",
-                              2),
-      GNUNET_PQ_make_prepare ("zone_to_name",
-                              "SELECT seq,record_count,record_data,label FROM ns098records"
-                              " WHERE zone_private_key=$1 AND pkey=$2",
-                              2),
-      GNUNET_PQ_make_prepare ("iterate_zone",
-                              "SELECT seq,record_count,record_data,label FROM ns098records "
-                              "WHERE zone_private_key=$1 AND seq > $2 ORDER BY seq ASC LIMIT $3",
-                              3),
-      GNUNET_PQ_make_prepare ("iterate_all_zones",
-                              "SELECT seq,record_count,record_data,label,zone_private_key"
-                              " FROM ns098records WHERE seq > $1 ORDER BY seq ASC LIMIT $2",
-                              2),
-      GNUNET_PQ_make_prepare ("lookup_label",
-                              "SELECT seq,record_count,record_data,label "
-                              "FROM ns098records WHERE zone_private_key=$1 AND label=$2",
-                              2),
-      GNUNET_PQ_make_prepare ("edit_set",
-                              "SELECT seq,record_count,record_data,label "
-                              "FROM ns098records WHERE zone_private_key=$1 AND label=$2 FOR UPDATE NOWAIT",
-                              2),
-      GNUNET_PQ_PREPARED_STATEMENT_END
-    };
-
-    plugin->dbh = GNUNET_PQ_connect_with_cfg (plugin->cfg,
-                                              "namestore-postgres",
-                                              NULL,
-                                              NULL,
-                                              ps);
-  }
+  plugin->dbh = GNUNET_PQ_connect_with_cfg (plugin->cfg,
+                                            "namestore-postgres",
+                                            NULL,
+                                            NULL,
+                                            NULL);
   if (NULL == plugin->dbh)
     return GNUNET_SYSERR;
   return GNUNET_OK;
@@ -254,6 +281,7 @@ namestore_postgres_store_records (void *cls,
   uint32_t rd_count32 = (uint32_t) rd_count;
   ssize_t data_size;
 
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
   memset (&pkey,
           0,
           sizeof(pkey));
@@ -386,7 +414,7 @@ parse_result_call_iterator (void *cls,
   struct ParserContext *pc = cls;
 
   if (NULL == pc->iter)
-    return; /* no need to do more work */
+    return;   /* no need to do more work */
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Got %d results from PQ.\n", num_results);
   for (unsigned int i = 0; i < num_results; i++)
@@ -459,7 +487,6 @@ parse_result_call_iterator (void *cls,
   pc->limit -= num_results;
 }
 
-
 /**
  * Lookup records in the datastore for which we are the authority.
  *
@@ -481,6 +508,7 @@ lookup_records (void *cls,
                 const char*method)
 {
   struct Plugin *plugin = cls;
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
   struct GNUNET_PQ_QueryParam params[] = {
     GNUNET_PQ_query_param_auto_from_type (zone),
     GNUNET_PQ_query_param_string (label),
@@ -577,6 +605,7 @@ namestore_postgres_iterate_records (void *cls,
   enum GNUNET_DB_QueryStatus res;
   struct ParserContext pc;
 
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
   pc.iter = iter;
   pc.iter_cls = iter_cls;
   pc.zone_key = zone;
@@ -641,6 +670,7 @@ namestore_postgres_zone_to_name (void *cls,
                                  void *iter_cls)
 {
   struct Plugin *plugin = cls;
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
   struct GNUNET_PQ_QueryParam params[] = {
     GNUNET_PQ_query_param_auto_from_type (zone),
     GNUNET_PQ_query_param_auto_from_type (value_zone),
@@ -674,6 +704,7 @@ namestore_postgres_transaction_begin (void *cls,
                                       char **emsg)
 {
   struct Plugin *plugin = cls;
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
   struct GNUNET_PQ_ExecuteStatement es[] = {
     GNUNET_PQ_make_execute ("BEGIN"),
     GNUNET_PQ_EXECUTE_STATEMENT_END
@@ -695,6 +726,7 @@ namestore_postgres_transaction_rollback (void *cls,
                                          char **emsg)
 {
   struct Plugin *plugin = cls;
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
   struct GNUNET_PQ_ExecuteStatement es[] = {
     GNUNET_PQ_make_execute ("ROLLBACK"),
     GNUNET_PQ_EXECUTE_STATEMENT_END
@@ -716,6 +748,7 @@ namestore_postgres_transaction_commit (void *cls,
                                        char **emsg)
 {
   struct Plugin *plugin = cls;
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
   struct GNUNET_PQ_ExecuteStatement es[] = {
     GNUNET_PQ_make_execute ("COMMIT"),
     GNUNET_PQ_EXECUTE_STATEMENT_END
