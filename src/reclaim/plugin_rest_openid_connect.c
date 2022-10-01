@@ -682,9 +682,9 @@ do_error (void *cls)
                    MHD_add_response_header (resp,
                                             MHD_HTTP_HEADER_WWW_AUTHENTICATE,
                                             "Basic"));
-  MHD_add_response_header (resp,
-                           MHD_HTTP_HEADER_CONTENT_TYPE,
-                           "application/json");
+  GNUNET_assert (MHD_NO != MHD_add_response_header (resp,
+                                                    MHD_HTTP_HEADER_CONTENT_TYPE,
+                                                    "application/json"));
   handle->proc (handle->proc_cls, resp, handle->response_code);
   cleanup_handle (handle);
   GNUNET_free (json_error);
