@@ -109,7 +109,7 @@ sphinx_update()
       cwd=$PWD
       cd contrib/sphinx || exit 1
       # GNS
-      make all >/dev/null || exit 1
+      make all || exit 1
       cp -r _build/html ../../doc/handbook/ || exit 1
       cp -r _build/texinfo ../../doc/handbook/ || exit 1
       cp -r _build/man/* ../../doc/man || exit 1
