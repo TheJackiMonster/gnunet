@@ -27,8 +27,34 @@ clean-local:
 sphinx/_build/man/gnunet.1:
 	cd sphinx && make man
 
+sphinx-man:
+	cd sphinx && make man
+
+.DEFAULT: sphinx-man
+
 if INCLUDE_MANPAGES
-man_MANS = sphinx/_build/man/gnunet.1
+man_MANS = \
+	sphinx/_build/man/gnunet.1 \
+	sphinx/_build/man/gnunet.2 \
+	sphinx/_build/man/gnunet.3 \
+	sphinx/_build/man/gnunet.4 \
+	sphinx/_build/man/gnunet.5 \
+	sphinx/_build/man/gnunet.6 \
+	sphinx/_build/man/gnunet.7 \
+	sphinx/_build/man/gnunet.8 \
+	sphinx/_build/man/gnunet.9 \
+	sphinx/_build/man/gana.1 \
+	sphinx/_build/man/gana.2 \
+	sphinx/_build/man/gana.3 \
+	sphinx/_build/man/gana.4 \
+	sphinx/_build/man/gana.5 \
+	sphinx/_build/man/gnunet-dev.1 \
+	sphinx/_build/man/gnunet-dev.2 \
+	sphinx/_build/man/gnunet-dev.3 \
+	sphinx/_build/man/gnunet-dev.4 \
+	sphinx/_build/man/gnunet-dev.5 \
+	sphinx/_build/man/gnunet-dev.6 \
+	sphinx/_build/man/lsd.1
 SUBDIRS += man
 endif
 
