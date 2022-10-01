@@ -5,42 +5,28 @@
 # It only supports building the documentation (and cleanup).
 # So, the only targets used are "make (all)" and "make clean".
 # Actuall installation of manpages/docs is done below
+# Also, the manpages are handled in man/, but some of them are built using
+# sphinx in all-local
 
-SUBDIRS = sphinx .
+SUBDIRS = .
 
 if HAVE_DOXY_BINARY
   SUBDIRS += doxygen
 endif
 
-install-data-hook: sphinx
+all-local:
+	cd sphinx && make all
+
+clean-local:
+	cd sphinx && make clean
+
+install-data-hook:
 	mkdir -p $(DESTDIR)$(docdir)
 	cp -pr sphinx/_build/html $(DESTDIR)$(docdir)
 	mkdir -p $(DESTDIR)$(infodir)
 	cp -pr sphinx/_build/texinfo/gnunet.info $(DESTDIR)$(infodir)
 
 if INCLUDE_MANPAGES
-man_MANS = \
-	sphinx/_build/man/gnunet.1 \
-	sphinx/_build/man/gnunet.2 \
-	sphinx/_build/man/gnunet.3 \
-	sphinx/_build/man/gnunet.4 \
-	sphinx/_build/man/gnunet.5 \
-	sphinx/_build/man/gnunet.6 \
-	sphinx/_build/man/gnunet.7 \
-	sphinx/_build/man/gnunet.8 \
-	sphinx/_build/man/gnunet.9 \
-	sphinx/_build/man/gana.1 \
-	sphinx/_build/man/gana.2 \
-	sphinx/_build/man/gana.3 \
-	sphinx/_build/man/gana.4 \
-	sphinx/_build/man/gana.5 \
-	sphinx/_build/man/gnunet-dev.1 \
-	sphinx/_build/man/gnunet-dev.2 \
-	sphinx/_build/man/gnunet-dev.3 \
-	sphinx/_build/man/gnunet-dev.4 \
-	sphinx/_build/man/gnunet-dev.5 \
-	sphinx/_build/man/gnunet-dev.6 \
-	sphinx/_build/man/lsd.1
 SUBDIRS += man
 endif
 
@@ -54,7 +40,6 @@ endif
 #  sphinx/_build/texinfo/gnunet.texi
 
 EXTRA_DIST = \
-	$(man_MANS) \
 	sphinx/_build/texinfo/gnunet.info \
 	system_specific/outdated-and-old-installation-instructions.txt \
 	system_specific/FROM_SOURCE \
