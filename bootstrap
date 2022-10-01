@@ -104,14 +104,15 @@ submodules()
 
 sphinx_update()
 {
+    echo "Updating handbook..."
     if existence sphinx-build; then
       cwd=$PWD
       cd contrib/sphinx || exit 1
       # GNS
-      make all || exit 1
+      make all >/dev/null 2>&1 || exit 1
       cp -r _build/html ../../doc/handbook/ || exit 1
       cp -r _build/texinfo ../../doc/handbook/ || exit 1
-      cp -r _build/man/* ../../doc/man || exit 1
+      cp -r _build/man/* ../../doc/man >/dev/null || exit 1
       cd $cwd
     else
       echo "ERROR: Sphinx not found! Unable to generate recent documentation."
@@ -122,29 +123,26 @@ sphinx_update()
 
 gana_update()
 {
+    echo "Updating GANA..."
     if existence recfmt; then
       cwd=$PWD
       cd contrib/gana || exit 1
       # GNS
       cd gnu-name-system-record-types && \
-         make && \
-         cp gnu_name_system_record_types.h ../../../src/include/ && \
-         make clean || exit 1
+         make >/dev/null 2>&1 && \
+         cp gnu_name_system_record_types.h ../../../src/include/ || exit 1
       cd ../gnu-name-system-default-tlds && \
-         make && \
-         cp tlds.conf ../../../src/gns && \
-         make clean || exit 1
+         make >/dev/null 2>&1 && \
+         cp tlds.conf ../../../src/gns || exit 1
 
       # Signatures
       cd ../gnunet-signatures && \
-         make && \
-         cp gnunet_signatures.h ../../../src/include && \
-         make clean || exit 1
+         make >/dev/null 2>&1 && \
+         cp gnunet_signatures.h ../../../src/include || exit 1
       # DHT Block Types
       cd ../gnunet-dht-block-types && \
-         make && \
-         cp gnunet_dht_block_types.h ../../../src/include && \
-         make clean || exit 1
+         make >/dev/null 2>&1 && \
+         cp gnunet_dht_block_types.h ../../../src/include || exit 1
 
       cd $cwd
     else
