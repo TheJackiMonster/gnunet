@@ -1,36 +1,22 @@
 # This Makefile.am is in the public domain
 
-SUBDIRS = .
+# A note on sphinx:
+# gnunet-handbook does not have a Makefile.am.
+# It only supports building the documentation (and cleanup).
+# So, the only targets used are "make (all)" and "make clean".
+# Actuall installation of manpages/docs is done below
+
+SUBDIRS = sphinx .
 
 if HAVE_DOXY_BINARY
   SUBDIRS += doxygen
 endif
-
-sphinx/_build/texinfo/gnunet.info:
-	cd sphinx && make info
-
-sphinx/_build/html:
-	cd sphinx && make html
-
-sphinx: sphinx/_build/texinfo/gnunet.info sphinx/_build/html
-	cd sphinx && make html info
 
 install-data-hook: sphinx
 	mkdir -p $(DESTDIR)$(docdir)
 	cp -pr sphinx/_build/html $(DESTDIR)$(docdir)
 	mkdir -p $(DESTDIR)$(infodir)
 	cp -pr sphinx/_build/texinfo/gnunet.info $(DESTDIR)$(infodir)
-
-clean-local:
-	cd sphinx && make clean
-
-sphinx/_build/man/gnunet.1:
-	cd sphinx && make man
-
-sphinx-man:
-	cd sphinx && make man
-
-.DEFAULT: sphinx-man
 
 if INCLUDE_MANPAGES
 man_MANS = \
