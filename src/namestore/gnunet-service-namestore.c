@@ -806,7 +806,7 @@ send_lookup_response_with_filter (struct NamestoreClient *nc,
   rd_ser_len = GNUNET_GNSRECORD_records_get_size (res_count, res);
   if (rd_ser_len < 0)
   {
-    if (rd != res)
+    if (rd_nf != res)
       GNUNET_free (res);
     GNUNET_break (0);
     GNUNET_SERVICE_client_drop (nc->client);
@@ -814,7 +814,7 @@ send_lookup_response_with_filter (struct NamestoreClient *nc,
   }
   if (((size_t) rd_ser_len) >= UINT16_MAX - name_len - sizeof(*zir_msg))
   {
-    if (rd != res)
+    if (rd_nf != res)
       GNUNET_free (res);
     GNUNET_break (0);
     GNUNET_SERVICE_client_drop (nc->client);
@@ -1827,7 +1827,7 @@ handle_tx_control (void *cls, const struct TxControlMessage *tx_msg)
   struct TxControlResultMessage *txr_msg;
   struct GNUNET_MQ_Envelope *env;
   enum GNUNET_GenericReturnValue ret;
-  char *emsg;
+  char *emsg = NULL;
   char *err_tmp;
   size_t err_len;
 
@@ -1852,7 +1852,7 @@ handle_tx_control (void *cls, const struct TxControlMessage *tx_msg)
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "TX status is %u\n", ret);
-  err_len = (GNUNET_YES == ret) ? 0 : strlen (emsg) + 1;
+  err_len = (NULL == emsg) ? 0 : strlen (emsg) + 1;
   env =
     GNUNET_MQ_msg_extra (txr_msg,
                          err_len,

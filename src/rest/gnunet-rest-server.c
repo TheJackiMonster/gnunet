@@ -1201,7 +1201,7 @@ run (void *cls,
       memset (basic_auth_secret_tmp, 0, 16);
       if (GNUNET_SYSERR == GNUNET_DISK_fn_read (basic_auth_file,
                                                 basic_auth_secret_tmp,
-                                                sizeof (basic_auth_secret_tmp)))
+                                                sizeof (basic_auth_secret_tmp) - 1))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     "Unable to read basic auth secret file.\n");
