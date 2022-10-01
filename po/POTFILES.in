@@ -242,6 +242,7 @@ src/namecache/namecache_api.c
 src/namecache/plugin_namecache_flat.c
 src/namecache/plugin_namecache_postgres.c
 src/namecache/plugin_namecache_sqlite.c
+src/namestore/gnunet-namestore-dbtool.c
 src/namestore/gnunet-namestore-fcfsd.c
 src/namestore/gnunet-namestore.c
 src/namestore/gnunet-service-namestore.c

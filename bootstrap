@@ -102,6 +102,24 @@ submodules()
     fi
 }
 
+sphinx_update()
+{
+    if existence sphinx-build; then
+      cwd=$PWD
+      cd contrib/sphinx || exit 1
+      # GNS
+      make all || exit 1
+      cp -r _build/html ../../doc/handbook/ || exit 1
+      cp -r _build/texinfo ../../doc/handbook/ || exit 1
+      cp -r _build/man/* ../../doc/man || exit 1
+      cd $cwd
+    else
+      echo "ERROR: Sphinx not found! Unable to generate recent documentation."
+      exit 1
+    fi
+}
+
+
 gana_update()
 {
     if existence recfmt; then
@@ -140,6 +158,7 @@ main()
     cleanup
     submodules
     gana_update
+    sphinx_update
     check_uncrustify
     check_yapf
     check_libtool

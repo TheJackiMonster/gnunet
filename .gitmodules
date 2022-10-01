@@ -2,5 +2,5 @@
 	path = contrib/gana
 	url = git://git.gnunet.org/gana.git
 [submodule "doc/sphinx"]
-	path = doc/sphinx
+	path = contrib/sphinx
 	url = https://git.gnunet.org/gnunet-handbook

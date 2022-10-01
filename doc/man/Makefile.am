@@ -36,27 +36,27 @@ endif
 endif
 
 man_MANS = \
-  ../sphinx/_build/man/gnunet.1 \
-	../sphinx/_build/man/gnunet.2 \
-	../sphinx/_build/man/gnunet.3 \
-	../sphinx/_build/man/gnunet.4 \
-	../sphinx/_build/man/gnunet.5 \
-	../sphinx/_build/man/gnunet.6 \
-	../sphinx/_build/man/gnunet.7 \
-	../sphinx/_build/man/gnunet.8 \
-	../sphinx/_build/man/gnunet.9 \
-	../sphinx/_build/man/gana.1 \
-	../sphinx/_build/man/gana.2 \
-	../sphinx/_build/man/gana.3 \
-	../sphinx/_build/man/gana.4 \
-	../sphinx/_build/man/gana.5 \
-	../sphinx/_build/man/gnunet-dev.1 \
-	../sphinx/_build/man/gnunet-dev.2 \
-	../sphinx/_build/man/gnunet-dev.3 \
-	../sphinx/_build/man/gnunet-dev.4 \
-	../sphinx/_build/man/gnunet-dev.5 \
-	../sphinx/_build/man/gnunet-dev.6 \
-	../sphinx/_build/man/lsd.1 \
+  gnunet.1 \
+	gnunet.2 \
+	gnunet.3 \
+	gnunet.4 \
+	gnunet.5 \
+	gnunet.6 \
+	gnunet.7 \
+	gnunet.8 \
+	gnunet.9 \
+	gana.1 \
+	gana.2 \
+	gana.3 \
+	gana.4 \
+	gana.5 \
+	gnunet-dev.1 \
+	gnunet-dev.2 \
+	gnunet-dev.3 \
+	gnunet-dev.4 \
+	gnunet-dev.5 \
+	gnunet-dev.6 \
+	lsd.1 \
   gnunet.conf.5 \
   gnunet-arm.1 \
   gnunet-ats.1 \
