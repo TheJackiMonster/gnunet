@@ -174,7 +174,7 @@ GNUNET_CRYPTO_eddsa_key_from_file (const char *filename,
                       sizeof (*pkey)))
   {
     /* file existed, report that *we* didn't create it... */
-    return (do_create) ? GNUNET_NO : GNUNET_OK;
+    return GNUNET_NO;
   }
   /* give up */
   return GNUNET_SYSERR;

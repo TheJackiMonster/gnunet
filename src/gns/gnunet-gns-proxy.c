@@ -1230,6 +1230,7 @@ curl_check_hdr (void *buffer,
       new_cookie_hdr[offset++] = ';';
     }
     hdr_val = new_cookie_hdr;
+    hdr_val[offset] = '\0';
   }
 
   new_location = NULL;
