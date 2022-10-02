@@ -6,6 +6,12 @@ if HAVE_DOXY_BINARY
   SUBDIRS += doxygen
 endif
 
+# OpenBSD is a bit iffy wrt sphinx make info
+if OPENBSD
+all-local:
+	cd handbook/texinfo && make || touch gnunet.info
+endif
+
 install-data-hook:
 	mkdir -p $(DESTDIR)$(docdir)
 	cp -pr handbook/html $(DESTDIR)$(docdir)
@@ -16,17 +22,13 @@ if INCLUDE_MANPAGES
 SUBDIRS += man
 endif
 
-# NOTE: We cannot make this conditional because automake
-# This means that if documentation is built, you MUST also build texinfos
-# and need makeinfo.
-# And yes, sphinx already compiled texi->info at this point and this will
-# re-create it.
-# So, we now manually copy it above in the install-data-hook
-#info_TEXINFOS = \
-#  sphinx/_build/texinfo/gnunet.texi
+AM_MAKEINFOFLAGS = --no-headers --no-split
+
+info_TEXINFOS = \
+  handbook/texinfo/gnunet.texi
 
 EXTRA_DIST = \
-	handbook/texinfo/gnunet.info \
+	handbook/texinfo \
 	system_specific/outdated-and-old-installation-instructions.txt \
 	system_specific/FROM_SOURCE \
 	handbook/html
