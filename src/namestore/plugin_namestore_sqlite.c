@@ -871,6 +871,7 @@ database_connect (struct Plugin *plugin)
     GNUNET_free (sqlite_filename);
     return GNUNET_SYSERR;
   }
+  GNUNET_free (sqlite_filename);
   GNUNET_break (SQLITE_OK ==
                 sqlite3_busy_timeout (plugin->dbh,
                                       BUSY_TIMEOUT_MS));

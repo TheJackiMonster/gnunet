@@ -51,22 +51,8 @@ struct GNUNET_NAMESTORE_Header
   uint32_t r_id GNUNET_PACKED;
 };
 
-
-/**
- * Store a record to the namestore (as authority).
- */
-struct RecordStoreMessage
+struct RecordSet
 {
-  /**
-   * Type will be #GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_STORE
-   */
-  struct GNUNET_NAMESTORE_Header gns_header;
-
-  /**
-   * Expiration time
-   */
-  struct GNUNET_TIME_AbsoluteNBO expire;
-
   /**
    * Name length
    */
@@ -87,14 +73,35 @@ struct RecordStoreMessage
    */
   uint16_t reserved GNUNET_PACKED;
 
+
+  /* followed by:
+   * name with length name_len
+   * serialized record data with rd_count records
+   */
+};
+
+/**
+ * Store a record to the namestore (as authority).
+ */
+struct RecordStoreMessage
+{
+  /**
+   * Type will be #GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_STORE
+   */
+  struct GNUNET_NAMESTORE_Header gns_header;
+
   /**
    * The private key of the authority.
    */
   struct GNUNET_IDENTITY_PrivateKey private_key;
 
-  /* followed by:
-   * name with length name_len
-   * serialized record data with rd_count records
+  /**
+   * Number of record sets
+   */
+  uint16_t rd_set_count;
+
+  /**
+   * Followed by rd_set_count RecordSets
    */
 };
 

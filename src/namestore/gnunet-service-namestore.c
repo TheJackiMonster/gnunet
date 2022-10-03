@@ -147,6 +147,11 @@ struct NamestoreClient
   char *db_lib_name;
 
   /**
+   * GNUNET_YES if this nc has begun a transaction which is uncommited.
+   */
+  int in_transaction;
+
+  /**
    * Message queue for transmission to @e client
    */
   struct GNUNET_MQ_Handle *mq;
@@ -308,10 +313,26 @@ struct StoreActivity
   struct NamestoreClient *nc;
 
   /**
-   * Copy of the original store message (as data fields in @e rd will
+   * The request ID
+   */
+  uint32_t rid;
+
+  /**
+   * Wheather or not this store action is already commited.
+   * The store activity will not be processed unless this field is GNUNET_YES
+   */
+  int uncommited;
+
+  /**
+   * The zone private key
+   */
+  struct GNUNET_IDENTITY_PrivateKey private_key;
+
+  /**
+   * Copy of the original record set (as data fields in @e rd will
    * point into it!).
    */
-  const struct RecordStoreMessage *rsm;
+  const struct RecordSet *rs;
 
   /**
    * Next zone monitor that still needs to be notified about this PUT.
@@ -879,7 +900,7 @@ send_lookup_response (struct NamestoreClient *nc,
  * @param rid client's request ID
  */
 static void
-send_store_response (struct NamestoreClient *nc, int res, const char*emsg,
+send_store_response (struct NamestoreClient *nc, int res, const char *emsg,
                      uint32_t rid)
 {
   struct GNUNET_MQ_Envelope *env;
@@ -1105,7 +1126,7 @@ warn_monitor_slow (void *cls)
 static void
 continue_store_activity (struct StoreActivity *sa)
 {
-  const struct RecordStoreMessage *rp_msg = sa->rsm;
+  const struct RecordSet *rd_set = sa->rs;
   unsigned int rd_count;
   size_t name_len;
   size_t rd_ser_len;
@@ -1113,11 +1134,20 @@ continue_store_activity (struct StoreActivity *sa)
   const char *name_tmp;
   const char *rd_ser;
 
-  rid = ntohl (rp_msg->gns_header.r_id);
-  name_len = ntohs (rp_msg->name_len);
-  rd_count = ntohs (rp_msg->rd_count);
-  rd_ser_len = ntohs (rp_msg->rd_len);
-  name_tmp = (const char *) &rp_msg[1];
+  // If we are in a transaction, do not notify monitors or update
+  // cached. This will be done when we are commiting.
+  if (GNUNET_YES == sa->uncommited)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Transaction not yet committed, delaying monitor and cache updates\n");
+    send_store_response (sa->nc, GNUNET_YES, NULL, sa->rid);
+    GNUNET_SERVICE_client_continue (sa->nc->client);
+    return;
+  }
+  name_len = ntohs (rd_set->name_len);
+  rd_count = ntohs (rd_set->rd_count);
+  rd_ser_len = ntohs (rd_set->rd_len);
+  name_tmp = (const char *) &rd_set[1];
   rd_ser = &name_tmp[name_len];
   {
     struct GNUNET_GNSRECORD_Data rd[GNUNET_NZL (rd_count)];
@@ -1129,7 +1159,7 @@ continue_store_activity (struct StoreActivity *sa)
 
     for (struct ZoneMonitor *zm = sa->zm_pos; NULL != zm; zm = sa->zm_pos)
     {
-      if ((0 != GNUNET_memcmp (&rp_msg->private_key, &zm->zone)) &&
+      if ((0 != GNUNET_memcmp (&sa->private_key, &zm->zone)) &&
           (0 != GNUNET_memcmp (&zm->zone, &zero)))
       {
         sa->zm_pos = zm->next;     /* not interesting to this monitor */
@@ -1153,7 +1183,7 @@ continue_store_activity (struct StoreActivity *sa)
       zm->limit--;
       send_lookup_response_with_filter (zm->nc,
                                         0,
-                                        &rp_msg->private_key,
+                                        &sa->private_key,
                                         sa->conv_name,
                                         rd_count,
                                         rd,
@@ -1163,8 +1193,8 @@ continue_store_activity (struct StoreActivity *sa)
     /* great, done with the monitors, unpack (again) for refresh_block operation */
     refresh_block (sa->nc,
                    NULL,
-                   rid,
-                   &rp_msg->private_key,
+                   sa->rid,
+                   &sa->private_key,
                    sa->conv_name,
                    rd_count,
                    rd);
@@ -1240,7 +1270,8 @@ client_disconnect_cb (void *cls,
   for (cop = cop_head; NULL != cop; cop = cop->next)
     if (nc == cop->nc)
       cop->nc = NULL;
-  GNUNET_break (NULL == GNUNET_PLUGIN_unload (nc->db_lib_name, nc->GSN_database));
+  GNUNET_break (NULL == GNUNET_PLUGIN_unload (nc->db_lib_name,
+                                              nc->GSN_database));
   GNUNET_free (nc->db_lib_name);
   GNUNET_free (nc);
 }
@@ -1549,29 +1580,16 @@ handle_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
 static int
 check_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
 {
-  size_t name_len;
   size_t msg_size;
-  size_t msg_size_exp;
-  size_t rd_ser_len;
-  const char *name_tmp;
+  size_t min_size_exp;
+  size_t rd_set_count;
 
   (void) cls;
-  name_len = ntohs (rp_msg->name_len);
   msg_size = ntohs (rp_msg->gns_header.header.size);
-  rd_ser_len = ntohs (rp_msg->rd_len);
-  msg_size_exp = sizeof(struct RecordStoreMessage) + name_len + rd_ser_len;
-  if (msg_size != msg_size_exp)
-  {
-    GNUNET_break (0);
-    return GNUNET_SYSERR;
-  }
-  if ((0 == name_len) || (name_len > MAX_NAME_LEN))
-  {
-    GNUNET_break (0);
-    return GNUNET_SYSERR;
-  }
-  name_tmp = (const char *) &rp_msg[1];
-  if ('\0' != name_tmp[name_len - 1])
+  rd_set_count = ntohs (rp_msg->rd_set_count);
+  min_size_exp = sizeof(struct RecordStoreMessage) + sizeof (struct RecordSet)
+                 * rd_set_count;
+  if (msg_size < min_size_exp)
   {
     GNUNET_break (0);
     return GNUNET_SYSERR;
@@ -1620,77 +1638,61 @@ get_block_exp_existing (void *cls,
   }
 }
 
-
-/**
- * Handles a #GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_STORE message
- *
- * @param cls client sending the message
- * @param rp_msg message of type `struct RecordStoreMessage`
- */
-static void
-handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
+static enum GNUNET_GenericReturnValue
+store_record_set (struct NamestoreClient *nc,
+                  const struct GNUNET_IDENTITY_PrivateKey *private_key,
+                  const struct RecordSet *rd_set,
+                  char **conv_name,
+                  ssize_t *len,
+                  char **emsg)
 {
-  struct NamestoreClient *nc = cls;
   size_t name_len;
   size_t rd_ser_len;
-  uint32_t rid;
   const char *name_tmp;
-  char *conv_name;
   const char *rd_ser;
   unsigned int rd_count;
   int res;
-  struct StoreActivity *sa;
   struct GNUNET_TIME_Absolute existing_block_exp;
   struct GNUNET_TIME_Absolute new_block_exp;
+  *len = sizeof (struct RecordSet);
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Received NAMESTORE_RECORD_STORE message\n");
-  existing_block_exp = GNUNET_TIME_UNIT_ZERO_ABS;
-  new_block_exp = GNUNET_TIME_UNIT_ZERO_ABS;
-  rid = ntohl (rp_msg->gns_header.r_id);
-  name_len = ntohs (rp_msg->name_len);
-  rd_count = ntohs (rp_msg->rd_count);
-  rd_ser_len = ntohs (rp_msg->rd_len);
-  name_tmp = (const char *) &rp_msg[1];
+  name_len = ntohs (rd_set->name_len);
+  *len += name_len;
+  rd_count = ntohs (rd_set->rd_count);
+  rd_ser_len = ntohs (rd_set->rd_len);
+  *len += rd_ser_len;
+  name_tmp = (const char *) &rd_set[1];
   rd_ser = &name_tmp[name_len];
   {
     struct GNUNET_GNSRECORD_Data rd[GNUNET_NZL (rd_count)];
-    char *emsg;
 
     /* Extracting and converting private key */
-    conv_name = GNUNET_GNSRECORD_string_normalize (name_tmp);
-    if (NULL == conv_name)
+    *conv_name = GNUNET_GNSRECORD_string_normalize (name_tmp);
+    if (NULL == *conv_name)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Error normalizing name `%s'\n",
                   name_tmp);
-      send_store_response (nc, GNUNET_SYSERR, _ ("Error normalizing name."),
-                           rid);
-      GNUNET_SERVICE_client_continue (nc->client);
-      return;
+      *emsg = GNUNET_strdup (_ ("Error normalizing name."));
+      return GNUNET_SYSERR;
     }
 
     /* Check name for validity */
-    if (GNUNET_OK != GNUNET_GNSRECORD_label_check (conv_name, &emsg))
+    if (GNUNET_OK != GNUNET_GNSRECORD_label_check (*conv_name, emsg))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Label invalid: `%s'\n",
-                  emsg);
-      send_store_response (nc, GNUNET_SYSERR, emsg, rid);
-      GNUNET_free (emsg);
-      GNUNET_free (conv_name);
-      GNUNET_SERVICE_client_continue (nc->client);
-      return;
+                  *emsg);
+      GNUNET_free (*conv_name);
+      return -1;
     }
 
     if (GNUNET_OK !=
         GNUNET_GNSRECORD_records_deserialize (rd_ser_len, rd_ser, rd_count, rd))
     {
-      send_store_response (nc, GNUNET_SYSERR,
-                           _ ("Error deserializing records."), rid);
-      GNUNET_free (conv_name);
-      GNUNET_SERVICE_client_continue (nc->client);
-      return;
+      *emsg = GNUNET_strdup (_ ("Error deserializing records."));
+      GNUNET_free (*conv_name);
+      return GNUNET_SYSERR;
     }
 
     GNUNET_STATISTICS_update (statistics,
@@ -1700,10 +1702,10 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Creating %u records for name `%s'\n",
                 (unsigned int) rd_count,
-                conv_name);
+                *conv_name);
     if ((GNUNET_NO == nc->GSN_database->lookup_records (nc->GSN_database->cls,
-                                                        &rp_msg->private_key,
-                                                        conv_name,
+                                                        private_key,
+                                                        *conv_name,
                                                         &get_block_exp_existing,
                                                         &existing_block_exp)) &&
         (rd_count == 0))
@@ -1711,7 +1713,7 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
       /* This name does not exist, so cannot be removed */
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Name `%s' does not exist, no deletion required\n",
-                  conv_name);
+                  *conv_name);
       res = GNUNET_NO;
     }
     else
@@ -1728,7 +1730,6 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
       struct GNUNET_GNSRECORD_Data rd_nf[GNUNET_NZL (rd_count) + 1];
       unsigned int rd_clean_off;
       unsigned int rd_nf_count;
-      char *emsg;
       int have_nick;
 
       rd_clean_off = 0;
@@ -1737,35 +1738,34 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
       {
         rd_clean[rd_clean_off] = rd[i];
 
-        if ((0 == strcmp (GNUNET_GNS_EMPTY_LABEL_AT, conv_name)) ||
+        if ((0 == strcmp (GNUNET_GNS_EMPTY_LABEL_AT, *conv_name)) ||
             (GNUNET_GNSRECORD_TYPE_NICK != rd[i].record_type))
           rd_clean_off++;
 
-        if ((0 == strcmp (GNUNET_GNS_EMPTY_LABEL_AT, conv_name)) &&
+        if ((0 == strcmp (GNUNET_GNS_EMPTY_LABEL_AT, *conv_name)) &&
             (GNUNET_GNSRECORD_TYPE_NICK == rd[i].record_type))
         {
-          cache_nick (&rp_msg->private_key, &rd[i]);
+          // FIXME: In case this is an uncommited transaction,
+          // we should not do this here. Can we do this in the store activity?
+          cache_nick (private_key, &rd[i]);
           have_nick = GNUNET_YES;
         }
       }
       if (GNUNET_OK !=
-          GNUNET_GNSRECORD_normalize_record_set (conv_name,
+          GNUNET_GNSRECORD_normalize_record_set (*conv_name,
                                                  rd_clean,
                                                  rd_clean_off,
                                                  rd_nf,
                                                  &rd_nf_count,
                                                  &new_block_exp,
                                                  GNUNET_GNSRECORD_FILTER_NONE,
-                                                 &emsg))
+                                                 emsg))
       {
-        send_store_response (nc, GNUNET_SYSERR, emsg, rid);
-        GNUNET_free (emsg);
-        GNUNET_SERVICE_client_continue (nc->client);
-        GNUNET_free (conv_name);
-        return;
+        GNUNET_free (*conv_name);
+        return GNUNET_SYSERR;
       }
       /*
-       * If existing_block_exp is 0, then there was not record set
+       * If existing_block_exp is 0, then there was no record set
        * and no tombstone.
        * Otherwise, if the existing block expiration is after the
        * new block expiration would be, we need to add a tombstone
@@ -1781,36 +1781,91 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
         rd_nf[rd_nf_count].flags = GNUNET_GNSRECORD_RF_PRIVATE;
         rd_nf_count++;
       }
-      if ((0 == strcmp (GNUNET_GNS_EMPTY_LABEL_AT, conv_name)) &&
+      if ((0 == strcmp (GNUNET_GNS_EMPTY_LABEL_AT, *conv_name)) &&
           (GNUNET_NO == have_nick))
       {
         /* remove nick record from cache, in case we have one there */
-        cache_nick (&rp_msg->private_key, NULL);
+        // FIXME: In case this is an uncommited transaction,
+        // we should not do this here. Can we do this in the store activity?
+        cache_nick (private_key, NULL);
       }
       res = nc->GSN_database->store_records (nc->GSN_database->cls,
-                                             &rp_msg->private_key,
-                                             conv_name,
+                                             private_key,
+                                             *conv_name,
                                              rd_nf_count,
                                              rd_nf);
     }
 
-    if (GNUNET_OK != res)
+    if (GNUNET_SYSERR == res)
     {
       /* store not successful, no need to tell monitors */
-      send_store_response (nc, res, _ ("Store failed"), rid);
+      *emsg = GNUNET_strdup (_ ("Store failed"));
+      GNUNET_free (*conv_name);
+      return GNUNET_SYSERR;
+    }
+  }
+  return res;
+}
+
+/**
+ * Handles a #GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_STORE message
+ *
+ * @param cls client sending the message
+ * @param rp_msg message of type `struct RecordStoreMessage`
+ */
+static void
+handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
+{
+  struct NamestoreClient *nc = cls;
+  size_t name_len;
+  size_t rd_ser_len;
+  uint32_t rid;
+  uint16_t rd_set_count;
+  const char *name_tmp;
+  char *conv_name;
+  char *emsg = NULL;
+  const char *buf;
+  const char *rd_ser;
+  unsigned int rd_count;
+  ssize_t read;
+  struct StoreActivity *sa;
+  struct RecordSet *rs;
+  struct GNUNET_TIME_Absolute existing_block_exp;
+  struct GNUNET_TIME_Absolute new_block_exp;
+  enum GNUNET_GenericReturnValue res;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Received NAMESTORE_RECORD_STORE message\n");
+  existing_block_exp = GNUNET_TIME_UNIT_ZERO_ABS;
+  new_block_exp = GNUNET_TIME_UNIT_ZERO_ABS;
+  rid = ntohl (rp_msg->gns_header.r_id);
+  rd_set_count = ntohs (rp_msg->rd_set_count);
+  buf = (const char *) &rp_msg[1];
+  for (int i = 0; i < rd_set_count; i++)
+  {
+    rs = (struct RecordSet *) buf;
+    res = store_record_set (nc, &rp_msg->private_key,
+                            rs, &conv_name, &read, &emsg);
+    if (GNUNET_OK != res)
+    {
+      send_store_response (nc, res, emsg,
+                           rid);
+      GNUNET_free (emsg);
       GNUNET_SERVICE_client_continue (nc->client);
-      GNUNET_free (conv_name);
       return;
     }
-    sa = GNUNET_malloc (sizeof(struct StoreActivity)
-                        + ntohs (rp_msg->gns_header.header.size));
+    sa = GNUNET_malloc (sizeof(struct StoreActivity) + read);
     GNUNET_CONTAINER_DLL_insert (sa_head, sa_tail, sa);
     sa->nc = nc;
-    sa->rsm = (const struct RecordStoreMessage *) &sa[1];
-    GNUNET_memcpy (&sa[1], rp_msg, ntohs (rp_msg->gns_header.header.size));
+    sa->rs = (const struct RecordSet *) &sa[1];
+    GNUNET_memcpy (&sa[1], rs, read);
+    sa->rid = rid;
+    sa->private_key = rp_msg->private_key;
     sa->zm_pos = monitor_head;
     sa->conv_name = conv_name;
+    sa->uncommited = nc->in_transaction;
     continue_store_activity (sa);
+    buf += read;
   }
 }
 
@@ -1826,6 +1881,8 @@ handle_tx_control (void *cls, const struct TxControlMessage *tx_msg)
   struct NamestoreClient *nc = cls;
   struct TxControlResultMessage *txr_msg;
   struct GNUNET_MQ_Envelope *env;
+  struct StoreActivity *sa = sa_head;
+  struct StoreActivity *sn;
   enum GNUNET_GenericReturnValue ret;
   char *emsg = NULL;
   char *err_tmp;
@@ -1836,14 +1893,47 @@ handle_tx_control (void *cls, const struct TxControlMessage *tx_msg)
   case GNUNET_NAMESTORE_TX_BEGIN:
     ret = nc->GSN_database->transaction_begin (nc->GSN_database->cls,
                                                &emsg);
+    nc->in_transaction = GNUNET_YES;
     break;
   case GNUNET_NAMESTORE_TX_COMMIT:
     ret = nc->GSN_database->transaction_commit (nc->GSN_database->cls,
                                                 &emsg);
+    if (GNUNET_SYSERR != ret)
+    {
+      nc->in_transaction = GNUNET_NO;
+      while (NULL != sa)
+      {
+        if ((nc != sa->nc) ||
+            (GNUNET_NO == sa->uncommited))
+        {
+          sa = sa->next;
+          continue;
+        }
+        sa->uncommited = GNUNET_NO;
+        continue_store_activity (sa);
+        sa = sa->next;
+      }
+    }
     break;
   case GNUNET_NAMESTORE_TX_ROLLBACK:
     ret = nc->GSN_database->transaction_rollback (nc->GSN_database->cls,
                                                   &emsg);
+    if (GNUNET_SYSERR != ret)
+    {
+      nc->in_transaction = GNUNET_NO;
+      while (NULL != sa)
+      {
+        if ((nc != sa->nc) ||
+            (GNUNET_NO == sa->uncommited))
+        {
+          sa = sa->next;
+          continue;
+        }
+        sn = sa->next;
+        free_store_activity (sa);
+        sa = sn;
+      }
+    }
     break;
   default:
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,

@@ -21,11 +21,8 @@ CACHE_KEYS = YES
 
 
 [namestore-sqlite]
+INIT_ON_CONNECT = YES
 FILENAME = $GNUNET_DATA_HOME/namestore/sqlite.db
-
-[namestore-heap]
-FILENAME = $GNUNET_DATA_HOME/namestore/heap.db
-
 
 [namestore-postgres]
 # How to connect to the database
@@ -34,6 +31,7 @@ CONFIG = postgres:///gnunet
 TEMPORARY_TABLE = NO
 # Use asynchronous commit (SET synchronous_commit TO OFF).
 ASYNC_COMMIT = NO
+INIT_ON_CONNECT = YES
 
 [uri]
 gns = gnunet-namestore -e 1a -u
