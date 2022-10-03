@@ -1148,7 +1148,7 @@ GNUNET_NAMESTORE_records_store2 (
       GNUNET_break (0);
       return NULL;
     }
-    rd_set_len = sizeof (struct RecordSet) + name_len + rd_ser_len[i];
+    rd_set_len += sizeof (struct RecordSet) + name_len + rd_ser_len[i];
   }
   rid = get_op_id (h);
   qe = GNUNET_new (struct GNUNET_NAMESTORE_QueueEntry);
