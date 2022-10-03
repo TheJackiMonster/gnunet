@@ -40,6 +40,11 @@ static char *backend_check;
  */
 static int cflags;
 
+/**
+ * Check if this is an experimental build
+ */
+static int is_experimental;
+
 
 /**
  * If printing the value of LIBS has been requested.
@@ -73,6 +78,15 @@ run (void *cls,
 {
   struct GNUNET_CONFIGURATION_ConfigSettings *cs = cls;
 
+  if (1 == is_experimental)
+  {
+#ifdef GNUNET_EXPERIMENTAL
+    cs->global_ret = 0;
+#else
+    cs->global_ret = 1;
+#endif
+    return;
+  }
   if (1 == cflags || 1 == libs || 1 == prefix)
   {
     char *prefixdir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_PREFIX);
@@ -144,6 +158,11 @@ main (int argc,
       gettext_noop (
         "Provide an appropriate value for CFLAGS to applications building on top of GNUnet"),
       &cflags),
+    GNUNET_GETOPT_option_flag (
+      'E',
+      "is-experimental",
+      gettext_noop ("Is this an experimental build of GNUnet"),
+      &is_experimental),
     GNUNET_GETOPT_option_flag (
       'j',
       "libs",

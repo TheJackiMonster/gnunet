@@ -248,28 +248,6 @@ put_cont (void *cls,
     return;
   }
 
-  if (3 == c)
-  {
-    /* Start monitoring */
-    zm = GNUNET_NAMESTORE_zone_monitor_start (cfg,
-                                              &privkey,
-                                              GNUNET_YES,
-                                              &fail_cb,
-                                              NULL,
-                                              &zone_proc,
-                                              NULL,
-                                              &sync_cb,
-                                              NULL);
-    if (NULL == zm)
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "Failed to create zone monitor\n");
-      GNUNET_break (0);
-      res = 1;
-      GNUNET_SCHEDULER_shutdown ();
-      return;
-    }
-  }
 }
 
 
@@ -322,6 +300,25 @@ run (void *cls,
     GNUNET_break (0);
     endbadly_task = GNUNET_SCHEDULER_add_now (&endbadly,
                                               NULL);
+    return;
+  }
+  /* Start monitoring */
+  zm = GNUNET_NAMESTORE_zone_monitor_start (cfg,
+                                            &privkey,
+                                            GNUNET_YES,
+                                            &fail_cb,
+                                            NULL,
+                                            &zone_proc,
+                                            NULL,
+                                            &sync_cb,
+                                            NULL);
+  if (NULL == zm)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to create zone monitor\n");
+    GNUNET_break (0);
+    res = 1;
+    GNUNET_SCHEDULER_shutdown ();
     return;
   }
 

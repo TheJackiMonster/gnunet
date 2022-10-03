@@ -273,13 +273,13 @@ static void
 namecache_sqlite_expire_blocks (struct Plugin *plugin)
 {
   struct GNUNET_TIME_Absolute now;
+  now = GNUNET_TIME_absolute_get ();
   struct GNUNET_SQ_QueryParam params[] = {
     GNUNET_SQ_query_param_absolute_time (&now),
     GNUNET_SQ_query_param_end
   };
   int n;
 
-  now = GNUNET_TIME_absolute_get ();
   if (GNUNET_OK !=
       GNUNET_SQ_bind (plugin->expire_blocks,
                       params))

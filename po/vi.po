@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.8.0a\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2022-09-04 11:01+0200\n"
+"POT-Creation-Date: 2022-10-01 22:27+0900\n"
 "PO-Revision-Date: 2008-09-10 22:05+0930\n"
 "Last-Translator: Clytie Siddall <clytie@riverland.net.au>\n"
 "Language-Team: Vietnamese <vi-VN@googlegroups.com>\n"
@@ -1602,7 +1602,7 @@ msgstr "« %s » bị lỗi tại %s:%d với lỗi: %s\n"
 #: src/datacache/plugin_datacache_sqlite.c:1035
 #: src/datastore/plugin_datastore_sqlite.c:531
 #: src/namecache/plugin_namecache_sqlite.c:237
-#: src/namestore/plugin_namestore_sqlite.c:273
+#: src/namestore/plugin_namestore_sqlite.c:227
 msgid "Tried to close sqlite without finalizing all prepared statements.\n"
 msgstr ""
 
@@ -1959,7 +1959,7 @@ msgstr "« %s » bị lỗi tại %s:%d với lỗi: %s"
 
 #: src/datastore/plugin_datastore_sqlite.c:310
 #: src/namecache/plugin_namecache_sqlite.c:180
-#: src/namestore/plugin_namestore_sqlite.c:213
+#: src/namestore/plugin_namestore_sqlite.c:869
 #: src/peerstore/plugin_peerstore_sqlite.c:540
 #, c-format
 msgid "Unable to initialize SQLite: %s.\n"
@@ -1993,7 +1993,6 @@ msgstr ""
 
 #: src/datastore/plugin_datastore_sqlite.c:1337
 #: src/namecache/plugin_namecache_sqlite.c:564
-#: src/namestore/plugin_namestore_sqlite.c:775
 #, fuzzy
 msgid "Sqlite database running\n"
 msgstr "kho dữ liệu sqlite"
@@ -3027,7 +3026,7 @@ msgid "Downloading `%s' done (%s/s).\n"
 msgstr "Tiến trình tải lên « %s » đã tiếp tục lại.\n"
 
 #: src/fs/gnunet-download.c:206 src/fs/gnunet-publish.c:299
-#: src/fs/gnunet-search.c:538 src/fs/gnunet-unindex.c:117
+#: src/fs/gnunet-search.c:543 src/fs/gnunet-unindex.c:117
 #, fuzzy, c-format
 msgid "Unexpected status: %d\n"
 msgstr "Gặp sự kiện bất thường: %d\n"
@@ -3065,7 +3064,7 @@ msgstr "đặt CẤP mong muốn của tình trạng nặc danh của người g
 msgid "delete incomplete downloads (when aborted with CTRL-C)"
 msgstr "xoá việc tải về không hoàn thành (khi hủy bở dùng CTRL-C)"
 
-#: src/fs/gnunet-download.c:330 src/fs/gnunet-search.c:740
+#: src/fs/gnunet-download.c:330 src/fs/gnunet-search.c:745
 msgid "only search the local peer (no P2P network search)"
 msgstr ""
 
@@ -3325,97 +3324,97 @@ msgstr ""
 msgid "Publish a file or directory on GNUnet"
 msgstr ""
 
-#: src/fs/gnunet-search.c:441
+#: src/fs/gnunet-search.c:443
 #, c-format
 msgid "Failed to write directory with search results to `%s'\n"
 msgstr ""
 
-#: src/fs/gnunet-search.c:527
+#: src/fs/gnunet-search.c:532
 #, fuzzy, c-format
 msgid "Error searching: %s.\n"
 msgstr "Gặp lỗi khi tải xuống: %s\n"
 
-#: src/fs/gnunet-search.c:587
+#: src/fs/gnunet-search.c:592
 #, c-format
 msgid "Conflicting options --bookmark-only and --silent.\n"
 msgstr ""
 
-#: src/fs/gnunet-search.c:594
+#: src/fs/gnunet-search.c:599
 #, c-format
 msgid "Conflicting options --bookmark-only and --output.\n"
 msgstr ""
 
-#: src/fs/gnunet-search.c:600
+#: src/fs/gnunet-search.c:605
 #, c-format
 msgid "An output file is mandatory for silent mode.\n"
 msgstr ""
 
-#: src/fs/gnunet-search.c:621
+#: src/fs/gnunet-search.c:626
 #, fuzzy
 msgid "Could not create keyword URI from arguments.\n"
 msgstr "Không thể tạo miền tên.\n"
 
-#: src/fs/gnunet-search.c:629
+#: src/fs/gnunet-search.c:634
 msgid ""
 "Invalid URI. Valid URIs for searching are keyword query URIs\n"
 "(\"gnunet://fs/ksk/...\") and namespace content URIs (\"gnunet://fs/sks/..."
 "\").\n"
 msgstr ""
 
-#: src/fs/gnunet-search.c:654
+#: src/fs/gnunet-search.c:659
 #, fuzzy, c-format
 msgid "Could not initialize the `%s` subsystem.\n"
 msgstr "Lỗi sơ khởi dịch vụ « %s ».\n"
 
-#: src/fs/gnunet-search.c:668
+#: src/fs/gnunet-search.c:673
 #, fuzzy
 msgid "Could not start searching.\n"
 msgstr "Không thể tạo miền tên.\n"
 
-#: src/fs/gnunet-search.c:694
+#: src/fs/gnunet-search.c:699
 #, fuzzy
 msgid "set the desired LEVEL of receiver-anonymity (default: 1)"
 msgstr "đặt CẤP mong muốn của tình trạng nặc danh của người gửi"
 
-#: src/fs/gnunet-search.c:700
+#: src/fs/gnunet-search.c:705
 msgid "do not search, print only the URI that points to this search"
 msgstr ""
 
-#: src/fs/gnunet-search.c:707
+#: src/fs/gnunet-search.c:712
 msgid ""
 "write search results for directories according to FORMAT; accepted "
 "placeholders are: %a, %f, %j, %l, %m, %n, %s; defaults to the value of --"
 "printf when omitted or to `"
 msgstr ""
 
-#: src/fs/gnunet-search.c:717
+#: src/fs/gnunet-search.c:722
 msgid ""
 "write search results according to FORMAT; accepted placeholders are: %a, %f, "
 "%j, %l, %m, %n, %s; defaults to `"
 msgstr ""
 
-#: src/fs/gnunet-search.c:725
+#: src/fs/gnunet-search.c:730
 msgid ""
 "when the %a or %j placeholders appear in --printf or --dir-printf, list each "
 "metadata property according to FORMAT; accepted placeholders are: %i, %l, "
 "%n, %p"
 msgstr ""
 
-#: src/fs/gnunet-search.c:734
+#: src/fs/gnunet-search.c:739
 msgid "automatically terminate search after VALUE results are found"
 msgstr ""
 
-#: src/fs/gnunet-search.c:746
+#: src/fs/gnunet-search.c:751
 msgid ""
 "create a GNUnet directory with search results at FILENAME (e.g. `gnunet-"
 "search --output=commons"
 msgstr ""
 
-#: src/fs/gnunet-search.c:753
+#: src/fs/gnunet-search.c:758
 msgid "silent mode (requires the --output argument)"
 msgstr ""
 
-#: src/fs/gnunet-search.c:759
+#: src/fs/gnunet-search.c:764
 msgid ""
 "automatically terminate search after DELAY; the value given must be a number "
 "followed by a space and a time unit, for example \"500 ms\"; without a unit "
@@ -3423,14 +3422,14 @@ msgid ""
 "to wait for CTRL-C"
 msgstr ""
 
-#: src/fs/gnunet-search.c:768
+#: src/fs/gnunet-search.c:773
 #, c-format
 msgid ""
 "be verbose (append \"%a\\n\" to the default --printf and --dir-printf "
 "arguments - ignored when these are provided by the user)"
 msgstr ""
 
-#: src/fs/gnunet-search.c:781
+#: src/fs/gnunet-search.c:786
 #, fuzzy
 msgid "Search for files that have been published on GNUnet\n"
 msgstr "Không hiển thị kết quả tìm kiếm cho tập tin được chúng ta tải lên"
@@ -3468,12 +3467,12 @@ msgstr ""
 msgid "Hash mismatch trying to index file `%s' which does not have hash `%s'\n"
 msgstr ""
 
-#: src/fs/gnunet-service-fs.c:1282
+#: src/fs/gnunet-service-fs.c:1288
 #, fuzzy
 msgid "FS service is lacking HOSTKEY configuration setting.  Exiting.\n"
 msgstr "Lưu cấu hình ngay bây giờ không?"
 
-#: src/fs/gnunet-service-fs.c:1316 src/hostlist/gnunet-daemon-hostlist.c:343
+#: src/fs/gnunet-service-fs.c:1322 src/hostlist/gnunet-daemon-hostlist.c:343
 #: src/topology/gnunet-daemon-topology.c:1098
 #, fuzzy, c-format
 msgid "Failed to connect to `%s' service.\n"
@@ -3934,64 +3933,64 @@ msgstr ""
 msgid "Cookie domain `%s' supplied by server is invalid\n"
 msgstr ""
 
-#: src/gns/gnunet-gns-proxy.c:2134
+#: src/gns/gnunet-gns-proxy.c:2135
 #, fuzzy, c-format
 msgid "Unsupported HTTP method `%s'\n"
 msgstr "Lệnh không được hỗ trợ « %s ». Đang hủy bỏ.\n"
 
-#: src/gns/gnunet-gns-proxy.c:2653
+#: src/gns/gnunet-gns-proxy.c:2654
 #, fuzzy, c-format
 msgid "Unable to import private key from file `%s'\n"
 msgstr "Không thể tạo tài khoản người dùng:"
 
-#: src/gns/gnunet-gns-proxy.c:2685
+#: src/gns/gnunet-gns-proxy.c:2686
 #, fuzzy, c-format
 msgid "Unable to import certificate from `%s'\n"
 msgstr "Không thể lưu tập tin cấu hình « %s »:"
 
-#: src/gns/gnunet-gns-proxy.c:2894
+#: src/gns/gnunet-gns-proxy.c:2895
 #, fuzzy, c-format
 msgid "Failed to start HTTPS server for `%s'\n"
 msgstr "Lỗi bắt đầu thu thập.\n"
 
-#: src/gns/gnunet-gns-proxy.c:2918 src/rest/gnunet-rest-server.c:917
+#: src/gns/gnunet-gns-proxy.c:2919 src/rest/gnunet-rest-server.c:958
 #, fuzzy
 msgid "Failed to pass client to MHD\n"
 msgstr "Lỗi kết nối đến gnunetd.\n"
 
-#: src/gns/gnunet-gns-proxy.c:3267
+#: src/gns/gnunet-gns-proxy.c:3268
 #, fuzzy, c-format
 msgid "Unsupported socks version %d\n"
 msgstr "Lệnh không được hỗ trợ « %s ». Đang hủy bỏ.\n"
 
-#: src/gns/gnunet-gns-proxy.c:3299
+#: src/gns/gnunet-gns-proxy.c:3300
 #, fuzzy, c-format
 msgid "Unsupported socks command %d\n"
 msgstr "Lệnh không được hỗ trợ « %s ». Đang hủy bỏ.\n"
 
-#: src/gns/gnunet-gns-proxy.c:3385
+#: src/gns/gnunet-gns-proxy.c:3386
 #, fuzzy, c-format
 msgid "Unsupported socks address type %d\n"
 msgstr "Lệnh không được hỗ trợ « %s ». Đang hủy bỏ.\n"
 
-#: src/gns/gnunet-gns-proxy.c:3726
+#: src/gns/gnunet-gns-proxy.c:3727
 #, fuzzy, c-format
 msgid "Failed to load X.509 key and certificate from `%s'\n"
 msgstr "Lỗi đọc danh sách bạn bè từ « %s »\n"
 
-#: src/gns/gnunet-gns-proxy.c:3860
+#: src/gns/gnunet-gns-proxy.c:3869
 msgid "listen on specified port (default: 7777)"
 msgstr ""
 
-#: src/gns/gnunet-gns-proxy.c:3865
+#: src/gns/gnunet-gns-proxy.c:3874
 msgid "pem file to use as CA"
 msgstr ""
 
-#: src/gns/gnunet-gns-proxy.c:3869
+#: src/gns/gnunet-gns-proxy.c:3878
 msgid "disable use of IPv6"
 msgstr ""
 
-#: src/gns/gnunet-gns-proxy.c:3895
+#: src/gns/gnunet-gns-proxy.c:3904
 msgid "GNUnet GNS proxy"
 msgstr ""
 
@@ -4052,8 +4051,8 @@ msgid "Failed to connect to the namecache!\n"
 msgstr "Không kết nối được đến trình nền gnunetd."
 
 #: src/gns/gnunet-service-gns.c:556
-#: src/zonemaster/gnunet-service-zonemaster-monitor.c:421
-#: src/zonemaster/gnunet-service-zonemaster.c:870
+#: src/zonemaster/gnunet-service-zonemaster-monitor.c:402
+#: src/zonemaster/gnunet-service-zonemaster.c:853
 #, fuzzy
 msgid "Could not connect to DHT!\n"
 msgstr "Không thể kết nối tới %s:%u: %s\n"
@@ -4775,7 +4774,7 @@ msgstr "Không thể lưu tập tin cấu hình « %s »:"
 msgid "Failed to create directory `%s' for storing egos\n"
 msgstr "Lỗi đọc danh sách bạn bè từ « %s »\n"
 
-#: src/identity/plugin_rest_identity.c:1529
+#: src/identity/plugin_rest_identity.c:1527
 #, fuzzy
 msgid "Identity REST API initialized\n"
 msgstr "Lỗi sơ khởi lõi.\n"
@@ -4862,8 +4861,6 @@ msgstr "Cổng để liên lạc với giao diện người dùng GNUnet"
 
 #: src/namecache/plugin_namecache_flat.c:118
 #: src/namecache/plugin_namecache_flat.c:253
-#: src/namestore/plugin_namestore_flat.c:176
-#: src/namestore/plugin_namestore_flat.c:424
 #: src/peerstore/plugin_peerstore_flat.c:380
 #: src/peerstore/plugin_peerstore_flat.c:542
 #, fuzzy, c-format
@@ -4871,7 +4868,6 @@ msgid "Unable to initialize file: %s.\n"
 msgstr "Không thể sơ khởi SQLite: %s.\n"
 
 #: src/namecache/plugin_namecache_flat.c:129
-#: src/namestore/plugin_namestore_flat.c:187
 #: src/peerstore/plugin_peerstore_flat.c:395
 #, fuzzy, c-format
 msgid "Unable to get filesize: %s.\n"
@@ -4890,11 +4886,32 @@ msgstr "kho dữ liệu sqlite"
 
 #: src/namecache/plugin_namecache_sqlite.c:190
 #: src/namecache/plugin_namecache_sqlite.c:204
-#: src/namestore/plugin_namestore_sqlite.c:226
-#: src/namestore/plugin_namestore_sqlite.c:237
 #, fuzzy, c-format
 msgid "Failed to setup database at `%s'\n"
 msgstr "Lỗi chạy %s: %s %d\n"
+
+#: src/namestore/gnunet-namestore-dbtool.c:87
+#: src/namestore/gnunet-namestore.c:1348
+#, c-format
+msgid "Superfluous command line arguments (starting with `%s') ignored\n"
+msgstr ""
+
+#: src/namestore/gnunet-namestore-dbtool.c:154
+msgid "initialize database"
+msgstr ""
+
+#: src/namestore/gnunet-namestore-dbtool.c:158
+msgid "reset database (DANGEROUS: All existing data is lost!"
+msgstr ""
+
+#: src/namestore/gnunet-namestore-dbtool.c:165
+msgid "the namestore plugin to work with, e.g. 'sqlite'"
+msgstr ""
+
+#: src/namestore/gnunet-namestore-dbtool.c:179
+#, fuzzy
+msgid "GNUnet namestore database manipulation tool"
+msgstr "Cấu hình GNUnet"
 
 #: src/namestore/gnunet-namestore-fcfsd.c:373
 #, fuzzy
@@ -5109,11 +5126,6 @@ msgid ""
 "Run gnunet-identity -d to get a list of choices for $NAME\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1348
-#, c-format
-msgid "Superfluous command line arguments (starting with `%s') ignored\n"
-msgstr ""
-
 #: src/namestore/gnunet-namestore.c:1377
 #, fuzzy, c-format
 msgid "Cannot connect to identity service\n"
@@ -5208,22 +5220,22 @@ msgstr ""
 msgid "name of the ego controlling the zone"
 msgstr ""
 
-#: src/namestore/gnunet-service-namestore.c:879
+#: src/namestore/gnunet-service-namestore.c:950
 #, fuzzy, c-format
 msgid "Failed to replicate block in namecache: %s\n"
 msgstr "Lỗi cập nhật dữ liệu cho mô-đun « %s »\n"
 
-#: src/namestore/gnunet-service-namestore.c:1557
+#: src/namestore/gnunet-service-namestore.c:1667
 #, fuzzy
 msgid "Error normalizing name."
 msgstr "Hoàn thành tạo khoá.\n"
 
-#: src/namestore/gnunet-service-namestore.c:1580
+#: src/namestore/gnunet-service-namestore.c:1690
 #, fuzzy
 msgid "Error deserializing records."
 msgstr "=\tLỗi đọc thư mục.\n"
 
-#: src/namestore/gnunet-service-namestore.c:1689
+#: src/namestore/gnunet-service-namestore.c:1800
 #, fuzzy
 msgid "Store failed"
 msgstr "Kho dữ liệu đầy.\n"
@@ -5236,19 +5248,21 @@ msgstr ""
 msgid "minimum expiration time we assume for imported records"
 msgstr ""
 
-#: src/namestore/plugin_namestore_flat.c:195
-#, c-format
-msgid "File too big to map: %llu bytes.\n"
-msgstr ""
+#: src/namestore/plugin_namestore_sqlite.c:180
+#: src/namestore/plugin_namestore_sqlite.c:190
+#: src/namestore/plugin_namestore_sqlite.c:806
+#, fuzzy, c-format
+msgid "Failed to setup database with: `%s'\n"
+msgstr "Lỗi chạy %s: %s %d\n"
 
-#: src/namestore/plugin_namestore_flat.c:219
-#, c-format
-msgid "Namestore database file `%s' malformed\n"
-msgstr ""
+#: src/namestore/plugin_namestore_sqlite.c:797
+#, fuzzy, c-format
+msgid "Failed to drop database with: `%s'\n"
+msgstr "Lỗi chạy %s: %s %d\n"
 
-#: src/namestore/plugin_namestore_flat.c:792
+#: src/namestore/plugin_namestore_sqlite.c:938
 #, fuzzy
-msgid "Flat file database running\n"
+msgid "SQlite database running\n"
 msgstr "kho dữ liệu sqlite"
 
 #: src/namestore/plugin_rest_namestore.c:1109
@@ -6064,7 +6078,7 @@ msgstr "« %s » không phải là một tập tin.\n"
 msgid "Search string `%s' is too long!\n"
 msgstr "« %s » không phải là một tập tin.\n"
 
-#: src/rest/gnunet-rest-server.c:1267
+#: src/rest/gnunet-rest-server.c:1367
 #, fuzzy
 msgid "GNUnet REST server"
 msgstr "Bản ghi lỗi GNUnet"
@@ -8402,7 +8416,7 @@ msgstr "%s bị lỗi tại %s:%d: « %s »\n"
 msgid "ECDSA signature verification failed at %s:%d: %s\n"
 msgstr "Lỗi thẩm tra chữ ký RSA tại %s:%d: %s\n"
 
-#: src/util/crypto_ecc_setup.c:272
+#: src/util/crypto_ecc_setup.c:281
 #, fuzzy
 msgid "Could not load peer's private key\n"
 msgstr "Không thể truy cập đến tập tin gnunet-directory « %s »\n"
@@ -8621,27 +8635,31 @@ msgstr ""
 msgid "run decoder modus, otherwise runs as encoder"
 msgstr ""
 
-#: src/util/gnunet-config.c:139
+#: src/util/gnunet-config.c:153
 msgid "test if the current installation supports the specified BACKEND"
 msgstr ""
 
-#: src/util/gnunet-config.c:145
+#: src/util/gnunet-config.c:159
 msgid ""
 "Provide an appropriate value for CFLAGS to applications building on top of "
 "GNUnet"
 msgstr ""
 
-#: src/util/gnunet-config.c:151
+#: src/util/gnunet-config.c:164
+msgid "Is this an experimental build of GNUnet"
+msgstr ""
+
+#: src/util/gnunet-config.c:170
 msgid ""
 "Provide an appropriate value for LIBS to applications building on top of "
 "GNUnet"
 msgstr ""
 
-#: src/util/gnunet-config.c:157
+#: src/util/gnunet-config.c:176
 msgid "Provide the path under which GNUnet was installed"
 msgstr ""
 
-#: src/util/gnunet-config.c:172
+#: src/util/gnunet-config.c:191
 #, fuzzy
 msgid "Manipulate GNUnet configuration files"
 msgstr "cập nhật một giá trị trong tập tin cấu hình"
@@ -9282,11 +9300,15 @@ msgstr "# các byte đã nhận qua UDP"
 msgid "Setup tunnels via VPN."
 msgstr ""
 
-#: src/zonemaster/gnunet-service-zonemaster-monitor.c:397
-#: src/zonemaster/gnunet-service-zonemaster.c:832
+#: src/zonemaster/gnunet-service-zonemaster-monitor.c:378
+#: src/zonemaster/gnunet-service-zonemaster.c:815
 #, fuzzy
 msgid "Failed to connect to the namestore!\n"
 msgstr "Không kết nối được đến trình nền gnunetd."
+
+#, fuzzy
+#~ msgid "Flat file database running\n"
+#~ msgstr "kho dữ liệu sqlite"
 
 #, fuzzy, c-format
 #~ msgid "Invalid DID `%s'\n"

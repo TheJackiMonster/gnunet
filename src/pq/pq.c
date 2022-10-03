@@ -97,9 +97,9 @@ GNUNET_PQ_exec_prepared (struct GNUNET_PQ_Context *db,
                           1);
     GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG,
                      "pq",
-                     "Execution of prepared SQL statement `%s' finished (%d)\n",
+                     "Execution of prepared SQL statement `%s' finished (%s)\n",
                      name,
-                     PGRES_COMMAND_OK == PQresultStatus (res));
+                     PQresStatus (PQresultStatus (res)));
     if ( (PGRES_COMMAND_OK != PQresultStatus (res)) &&
          (CONNECTION_OK != (status = PQstatus (db->conn))) )
     {

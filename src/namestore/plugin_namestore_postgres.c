@@ -45,6 +45,11 @@ struct Plugin
   const struct GNUNET_CONFIGURATION_Handle *cfg;
 
   /**
+   * Database is prepared and ready
+   */
+  int ready;
+
+  /**
    * Postgres database handle.
    */
   struct GNUNET_PQ_Context *dbh;
@@ -60,11 +65,11 @@ struct Plugin
  * @return #GNUNET_OK on success
  */
 static int
-database_setup (struct Plugin *plugin)
+init_database (struct Plugin *plugin, char **emsg, int drop)
 {
   struct GNUNET_PQ_ExecuteStatement es_temporary =
     GNUNET_PQ_make_execute (
-      "CREATE TEMPORARY TABLE IF NOT EXISTS ns098records ("
+      "CREATE TEMPORARY TABLE ns098records ("
       " seq BIGSERIAL PRIMARY KEY,"
       " zone_private_key BYTEA NOT NULL DEFAULT '',"
       " pkey BYTEA DEFAULT '',"
@@ -75,7 +80,7 @@ database_setup (struct Plugin *plugin)
       " CONSTRAINT zl UNIQUE (zone_private_key,label)"
       ")");
   struct GNUNET_PQ_ExecuteStatement es_default =
-    GNUNET_PQ_make_execute ("CREATE TABLE IF NOT EXISTS ns098records ("
+    GNUNET_PQ_make_execute ("CREATE TABLE ns098records ("
                             " seq BIGSERIAL PRIMARY KEY,"
                             " zone_private_key BYTEA NOT NULL DEFAULT '',"
                             " pkey BYTEA DEFAULT '',"
@@ -87,18 +92,15 @@ database_setup (struct Plugin *plugin)
                             ")");
   const struct GNUNET_PQ_ExecuteStatement *cr;
   struct GNUNET_PQ_ExecuteStatement sc = GNUNET_PQ_EXECUTE_STATEMENT_END;
-
+  struct GNUNET_PQ_ExecuteStatement es_drop =
+    GNUNET_PQ_make_execute ("DROP TABLE IF EXISTS ns098records");
   if (GNUNET_YES ==
       GNUNET_CONFIGURATION_get_value_yesno (plugin->cfg,
                                             "namestore-postgres",
                                             "TEMPORARY_TABLE"))
-  {
     cr = &es_temporary;
-  }
   else
-  {
     cr = &es_default;
-  }
 
   if (GNUNET_YES ==
       GNUNET_CONFIGURATION_get_value_yesno (plugin->cfg,
@@ -120,46 +122,134 @@ database_setup (struct Plugin *plugin)
       sc,
       GNUNET_PQ_EXECUTE_STATEMENT_END
     };
-    struct GNUNET_PQ_PreparedStatement ps[] = {
-      GNUNET_PQ_make_prepare ("store_records",
-                              "INSERT INTO ns098records"
-                              " (zone_private_key, pkey, rvalue, record_count, record_data, label)"
-                              " VALUES ($1, $2, $3, $4, $5, $6)"
-                              " ON CONFLICT ON CONSTRAINT zl"
-                              " DO UPDATE"
-                              "    SET pkey=$2,rvalue=$3,record_count=$4,record_data=$5"
-                              "    WHERE ns098records.zone_private_key = $1"
-                              "          AND ns098records.label = $6",
-                              6),
-      GNUNET_PQ_make_prepare ("delete_records",
-                              "DELETE FROM ns098records "
-                              "WHERE zone_private_key=$1 AND label=$2",
-                              2),
-      GNUNET_PQ_make_prepare ("zone_to_name",
-                              "SELECT seq,record_count,record_data,label FROM ns098records"
-                              " WHERE zone_private_key=$1 AND pkey=$2",
-                              2),
-      GNUNET_PQ_make_prepare ("iterate_zone",
-                              "SELECT seq,record_count,record_data,label FROM ns098records "
-                              "WHERE zone_private_key=$1 AND seq > $2 ORDER BY seq ASC LIMIT $3",
-                              3),
-      GNUNET_PQ_make_prepare ("iterate_all_zones",
-                              "SELECT seq,record_count,record_data,label,zone_private_key"
-                              " FROM ns098records WHERE seq > $1 ORDER BY seq ASC LIMIT $2",
-                              2),
-      GNUNET_PQ_make_prepare ("lookup_label",
-                              "SELECT seq,record_count,record_data,label "
-                              "FROM ns098records WHERE zone_private_key=$1 AND label=$2",
-                              2),
-      GNUNET_PQ_PREPARED_STATEMENT_END
+    struct GNUNET_PQ_ExecuteStatement es_alt[] = {
+      es_drop,
+      *cr,
+      GNUNET_PQ_make_try_execute ("CREATE INDEX IF NOT EXISTS ir_pkey_reverse "
+                                  "ON ns098records (zone_private_key,pkey)"),
+      GNUNET_PQ_make_try_execute ("CREATE INDEX IF NOT EXISTS ir_pkey_iter "
+                                  "ON ns098records (zone_private_key,seq)"),
+      GNUNET_PQ_make_try_execute ("CREATE INDEX IF NOT EXISTS ir_label "
+                                  "ON ns098records (label)"),
+      GNUNET_PQ_make_try_execute ("CREATE INDEX IF NOT EXISTS zone_label "
+                                  "ON ns098records (zone_private_key,label)"),
+      sc,
+      GNUNET_PQ_EXECUTE_STATEMENT_END
     };
-
-    plugin->dbh = GNUNET_PQ_connect_with_cfg (plugin->cfg,
-                                              "namestore-postgres",
-                                              NULL,
-                                              es,
-                                              ps);
+    if (GNUNET_NO == drop)
+    {
+      plugin->dbh = GNUNET_PQ_connect_with_cfg (plugin->cfg,
+                                                "namestore-postgres",
+                                                NULL,
+                                                es,
+                                                NULL);
+    }
+    else {
+      plugin->dbh = GNUNET_PQ_connect_with_cfg (plugin->cfg,
+                                                "namestore-postgres",
+                                                NULL,
+                                                es_alt,
+                                                NULL);
+    }
   }
+  if (NULL == plugin->dbh)
+  {
+    *emsg = GNUNET_strdup ("Failed to connect to PQ database");
+    return GNUNET_SYSERR;
+  }
+  GNUNET_PQ_disconnect (plugin->dbh);
+  plugin->dbh = NULL;
+  return GNUNET_OK;
+}
+
+static int
+database_prepare (struct Plugin *plugin)
+{
+  enum GNUNET_GenericReturnValue ret;
+  if (GNUNET_YES == plugin->ready)
+    return GNUNET_OK;
+  struct GNUNET_PQ_PreparedStatement ps[] = {
+    GNUNET_PQ_make_prepare ("store_records",
+                            "INSERT INTO ns098records"
+                            " (zone_private_key, pkey, rvalue, record_count, record_data, label)"
+                            " VALUES ($1, $2, $3, $4, $5, $6)"
+                            " ON CONFLICT ON CONSTRAINT zl"
+                            " DO UPDATE"
+                            "    SET pkey=$2,rvalue=$3,record_count=$4,record_data=$5"
+                            "    WHERE ns098records.zone_private_key = $1"
+                            "          AND ns098records.label = $6",
+                            6),
+    GNUNET_PQ_make_prepare ("delete_records",
+                            "DELETE FROM ns098records "
+                            "WHERE zone_private_key=$1 AND label=$2",
+                            2),
+    GNUNET_PQ_make_prepare ("zone_to_name",
+                            "SELECT seq,record_count,record_data,label FROM ns098records"
+                            " WHERE zone_private_key=$1 AND pkey=$2",
+                            2),
+    GNUNET_PQ_make_prepare ("iterate_zone",
+                            "SELECT seq,record_count,record_data,label FROM ns098records "
+                            "WHERE zone_private_key=$1 AND seq > $2 ORDER BY seq ASC LIMIT $3",
+                            3),
+    GNUNET_PQ_make_prepare ("iterate_all_zones",
+                            "SELECT seq,record_count,record_data,label,zone_private_key"
+                            " FROM ns098records WHERE seq > $1 ORDER BY seq ASC LIMIT $2",
+                            2),
+    GNUNET_PQ_make_prepare ("lookup_label",
+                            "SELECT seq,record_count,record_data,label "
+                            "FROM ns098records WHERE zone_private_key=$1 AND label=$2",
+                            2),
+    GNUNET_PQ_make_prepare ("edit_set",
+                            "SELECT seq,record_count,record_data,label "
+                            "FROM ns098records WHERE zone_private_key=$1 AND label=$2 FOR UPDATE NOWAIT",
+                            2),
+    GNUNET_PQ_PREPARED_STATEMENT_END
+  };
+  ret = GNUNET_PQ_prepare_statements (plugin->dbh, ps);
+  if (GNUNET_OK != ret)
+    return ret;
+  plugin->ready = GNUNET_YES;
+  return GNUNET_OK;
+}
+
+
+/**
+ * Initialize the database connections and associated
+ * data structures (create tables and indices
+ * as needed as well).
+ *
+ * @param plugin the plugin context (state for this module)
+ * @return #GNUNET_OK on success
+ */
+static int
+database_connect (struct Plugin *plugin)
+{
+  const struct GNUNET_PQ_ExecuteStatement *cr;
+  char *emsg;
+  struct GNUNET_PQ_ExecuteStatement sc = GNUNET_PQ_EXECUTE_STATEMENT_END;
+
+  if (GNUNET_YES ==
+      GNUNET_CONFIGURATION_get_value_yesno (plugin->cfg,
+                                            "namestore-postgres",
+                                            "INIT_ON_CONNECT"))
+  {
+    /**
+     * Gracefully fail as this should not be a critical error if the
+     * database is already created
+     */
+    if (GNUNET_OK != init_database (plugin, &emsg, GNUNET_NO))
+    {
+      LOG (GNUNET_ERROR_TYPE_WARNING,
+           "Failed to initialize database on connect: `%s'\n",
+           emsg);
+      GNUNET_free (emsg);
+    }
+  }
+  plugin->dbh = GNUNET_PQ_connect_with_cfg (plugin->cfg,
+                                            "namestore-postgres",
+                                            NULL,
+                                            NULL,
+                                            NULL);
   if (NULL == plugin->dbh)
     return GNUNET_SYSERR;
   return GNUNET_OK;
@@ -191,6 +281,7 @@ namestore_postgres_store_records (void *cls,
   uint32_t rd_count32 = (uint32_t) rd_count;
   ssize_t data_size;
 
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
   memset (&pkey,
           0,
           sizeof(pkey));
@@ -323,7 +414,9 @@ parse_result_call_iterator (void *cls,
   struct ParserContext *pc = cls;
 
   if (NULL == pc->iter)
-    return; /* no need to do more work */
+    return;   /* no need to do more work */
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Got %d results from PQ.\n", num_results);
   for (unsigned int i = 0; i < num_results; i++)
   {
     uint64_t serial;
@@ -394,6 +487,55 @@ parse_result_call_iterator (void *cls,
   pc->limit -= num_results;
 }
 
+/**
+ * Lookup records in the datastore for which we are the authority.
+ *
+ * @param cls closure (internal context for the plugin)
+ * @param zone private key of the zone
+ * @param label name of the record in the zone
+ * @param iter function to call with the result
+ * @param iter_cls closure for @a iter
+ * @param method the method to use "lookup_record" or "edit_set"
+ * @return #GNUNET_OK on success, #GNUNET_NO for no results, else #GNUNET_SYSERR
+ */
+static int
+lookup_records (void *cls,
+                const struct
+                GNUNET_IDENTITY_PrivateKey *zone,
+                const char *label,
+                GNUNET_NAMESTORE_RecordIterator iter,
+                void *iter_cls,
+                const char*method)
+{
+  struct Plugin *plugin = cls;
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
+  struct GNUNET_PQ_QueryParam params[] = {
+    GNUNET_PQ_query_param_auto_from_type (zone),
+    GNUNET_PQ_query_param_string (label),
+    GNUNET_PQ_query_param_end
+  };
+  struct ParserContext pc;
+  enum GNUNET_DB_QueryStatus res;
+
+  if (NULL == zone)
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  pc.iter = iter;
+  pc.iter_cls = iter_cls;
+  pc.zone_key = zone;
+  res = GNUNET_PQ_eval_prepared_multi_select (plugin->dbh,
+                                              method,
+                                              params,
+                                              &parse_result_call_iterator,
+                                              &pc);
+  if (res < 0)
+    return GNUNET_SYSERR;
+  if (GNUNET_DB_STATUS_SUCCESS_NO_RESULTS == res)
+    return GNUNET_NO;
+  return GNUNET_OK;
+}
 
 /**
  * Lookup records in the datastore for which we are the authority.
@@ -413,33 +555,28 @@ namestore_postgres_lookup_records (void *cls,
                                    GNUNET_NAMESTORE_RecordIterator iter,
                                    void *iter_cls)
 {
-  struct Plugin *plugin = cls;
-  struct GNUNET_PQ_QueryParam params[] = {
-    GNUNET_PQ_query_param_auto_from_type (zone),
-    GNUNET_PQ_query_param_string (label),
-    GNUNET_PQ_query_param_end
-  };
-  struct ParserContext pc;
-  enum GNUNET_DB_QueryStatus res;
+  return lookup_records (cls, zone, label, iter, iter_cls, "lookup_label");
+}
 
-  if (NULL == zone)
-  {
-    GNUNET_break (0);
-    return GNUNET_SYSERR;
-  }
-  pc.iter = iter;
-  pc.iter_cls = iter_cls;
-  pc.zone_key = zone;
-  res = GNUNET_PQ_eval_prepared_multi_select (plugin->dbh,
-                                              "lookup_label",
-                                              params,
-                                              &parse_result_call_iterator,
-                                              &pc);
-  if (res < 0)
-    return GNUNET_SYSERR;
-  if (GNUNET_DB_STATUS_SUCCESS_NO_RESULTS == res)
-    return GNUNET_NO;
-  return GNUNET_OK;
+/**
+ * Edit records in the datastore for which we are the authority.
+ *
+ * @param cls closure (internal context for the plugin)
+ * @param zone private key of the zone
+ * @param label name of the record in the zone
+ * @param iter function to call with the result
+ * @param iter_cls closure for @a iter
+ * @return #GNUNET_OK on success, #GNUNET_NO for no results, else #GNUNET_SYSERR
+ */
+static int
+namestore_postgres_edit_records (void *cls,
+                                 const struct
+                                 GNUNET_IDENTITY_PrivateKey *zone,
+                                 const char *label,
+                                 GNUNET_NAMESTORE_RecordIterator iter,
+                                 void *iter_cls)
+{
+  return lookup_records (cls, zone, label, iter, iter_cls, "edit_set");
 }
 
 
@@ -468,6 +605,7 @@ namestore_postgres_iterate_records (void *cls,
   enum GNUNET_DB_QueryStatus res;
   struct ParserContext pc;
 
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
   pc.iter = iter;
   pc.iter_cls = iter_cls;
   pc.zone_key = zone;
@@ -532,6 +670,7 @@ namestore_postgres_zone_to_name (void *cls,
                                  void *iter_cls)
 {
   struct Plugin *plugin = cls;
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
   struct GNUNET_PQ_QueryParam params[] = {
     GNUNET_PQ_query_param_auto_from_type (zone),
     GNUNET_PQ_query_param_auto_from_type (value_zone),
@@ -552,6 +691,88 @@ namestore_postgres_zone_to_name (void *cls,
     return GNUNET_SYSERR;
   return GNUNET_OK;
 }
+
+/**
+ * Begin a transaction for a client.
+ *
+ * @param cls closure (internal context for the plugin)
+ * @param emsg error message set of return code is #GNUNET_SYSERR
+ * @return #GNUNET_YES on success, #GNUNET_SYSERR if transaction cannot be started.
+ */
+static enum GNUNET_GenericReturnValue
+namestore_postgres_transaction_begin (void *cls,
+                                      char **emsg)
+{
+  struct Plugin *plugin = cls;
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
+  struct GNUNET_PQ_ExecuteStatement es[] = {
+    GNUNET_PQ_make_execute ("BEGIN"),
+    GNUNET_PQ_EXECUTE_STATEMENT_END
+  };
+
+  return GNUNET_PQ_exec_statements (plugin->dbh, es);
+}
+
+/**
+ * Commit a transaction for a client.
+ * This releases the lock on the database.
+ *
+ * @param cls closure (internal context for the plugin)
+ * @param emsg error message set of return code is #GNUNET_SYSERR
+ * @return #GNUNET_YES on success, #GNUNET_SYSERR if transaction cannot be started.
+ */
+static enum GNUNET_GenericReturnValue
+namestore_postgres_transaction_rollback (void *cls,
+                                         char **emsg)
+{
+  struct Plugin *plugin = cls;
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
+  struct GNUNET_PQ_ExecuteStatement es[] = {
+    GNUNET_PQ_make_execute ("ROLLBACK"),
+    GNUNET_PQ_EXECUTE_STATEMENT_END
+  };
+
+  return GNUNET_PQ_exec_statements (plugin->dbh, es);
+}
+
+/**
+ * Roll back a transaction for a client.
+ * This releases the lock on the database.
+ *
+ * @param cls closure (internal context for the plugin)
+ * @param emsg error message set of return code is #GNUNET_SYSERR
+ * @return #GNUNET_YES on success, #GNUNET_SYSERR if transaction cannot be started.
+ */
+static enum GNUNET_GenericReturnValue
+namestore_postgres_transaction_commit (void *cls,
+                                       char **emsg)
+{
+  struct Plugin *plugin = cls;
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
+  struct GNUNET_PQ_ExecuteStatement es[] = {
+    GNUNET_PQ_make_execute ("COMMIT"),
+    GNUNET_PQ_EXECUTE_STATEMENT_END
+  };
+
+  return GNUNET_PQ_exec_statements (plugin->dbh, es);
+}
+
+
+static enum GNUNET_GenericReturnValue
+namestore_postgres_initialize_database (void *cls,
+                                        char **emsg)
+{
+  return init_database (cls, emsg, GNUNET_NO);
+}
+
+
+static enum GNUNET_GenericReturnValue
+namestore_postgres_reset_database (void *cls,
+                                   char **emsg)
+{
+  return init_database (cls, emsg, GNUNET_YES);
+}
+
 
 
 /**
@@ -577,25 +798,30 @@ database_shutdown (struct Plugin *plugin)
 void *
 libgnunet_plugin_namestore_postgres_init (void *cls)
 {
-  static struct Plugin plugin;
+  struct Plugin *plugin;
   const struct GNUNET_CONFIGURATION_Handle *cfg = cls;
   struct GNUNET_NAMESTORE_PluginFunctions *api;
 
-  if (NULL != plugin.cfg)
-    return NULL;                /* can only initialize once! */
-  memset (&plugin, 0, sizeof(struct Plugin));
-  plugin.cfg = cfg;
-  if (GNUNET_OK != database_setup (&plugin))
+  plugin = GNUNET_new (struct Plugin);
+  plugin->cfg = cfg;
+  if (GNUNET_OK != database_connect (plugin))
   {
-    database_shutdown (&plugin);
+    database_shutdown (plugin);
+    GNUNET_free (plugin);
     return NULL;
   }
   api = GNUNET_new (struct GNUNET_NAMESTORE_PluginFunctions);
-  api->cls = &plugin;
+  api->cls = plugin;
   api->store_records = &namestore_postgres_store_records;
   api->iterate_records = &namestore_postgres_iterate_records;
   api->zone_to_name = &namestore_postgres_zone_to_name;
   api->lookup_records = &namestore_postgres_lookup_records;
+  api->transaction_begin = &namestore_postgres_transaction_begin;
+  api->transaction_commit = &namestore_postgres_transaction_commit;
+  api->transaction_rollback = &namestore_postgres_transaction_rollback;
+  api->initialize_database = &namestore_postgres_initialize_database;
+  api->reset_database = &namestore_postgres_reset_database;
+  api->edit_records = &namestore_postgres_edit_records;
   LOG (GNUNET_ERROR_TYPE_INFO,
        "Postgres namestore plugin running\n");
   return api;
@@ -616,6 +842,7 @@ libgnunet_plugin_namestore_postgres_done (void *cls)
 
   database_shutdown (plugin);
   plugin->cfg = NULL;
+  GNUNET_free (plugin);
   GNUNET_free (api);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Postgres namestore plugin is finished\n");

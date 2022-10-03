@@ -51,22 +51,8 @@ struct GNUNET_NAMESTORE_Header
   uint32_t r_id GNUNET_PACKED;
 };
 
-
-/**
- * Store a record to the namestore (as authority).
- */
-struct RecordStoreMessage
+struct RecordSet
 {
-  /**
-   * Type will be #GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_STORE
-   */
-  struct GNUNET_NAMESTORE_Header gns_header;
-
-  /**
-   * Expiration time
-   */
-  struct GNUNET_TIME_AbsoluteNBO expire;
-
   /**
    * Name length
    */
@@ -87,14 +73,35 @@ struct RecordStoreMessage
    */
   uint16_t reserved GNUNET_PACKED;
 
+
+  /* followed by:
+   * name with length name_len
+   * serialized record data with rd_count records
+   */
+};
+
+/**
+ * Store a record to the namestore (as authority).
+ */
+struct RecordStoreMessage
+{
+  /**
+   * Type will be #GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_STORE
+   */
+  struct GNUNET_NAMESTORE_Header gns_header;
+
   /**
    * The private key of the authority.
    */
   struct GNUNET_IDENTITY_PrivateKey private_key;
 
-  /* followed by:
-   * name with length name_len
-   * serialized record data with rd_count records
+  /**
+   * Number of record sets
+   */
+  uint16_t rd_set_count;
+
+  /**
+   * Followed by rd_set_count RecordSets
    */
 };
 
@@ -144,6 +151,11 @@ struct LabelLookupMessage
    * Length of the name
    */
   uint32_t label_len GNUNET_PACKED;
+
+  /**
+   * GNUNET_YES if this lookup corresponds to an edit request
+   */
+  uint32_t is_edit_request GNUNET_PACKED;
 
   /**
    * The private key of the zone to look up in
@@ -275,6 +287,12 @@ struct RecordResultMessage
   struct GNUNET_NAMESTORE_Header gns_header;
 
   /**
+   * Expiration time if the record result (if any).
+   * Takes TOMBSTONEs into account.
+   */
+  struct GNUNET_TIME_AbsoluteNBO expire;
+
+  /**
    * Name length
    */
   uint16_t name_len GNUNET_PACKED;
@@ -305,6 +323,54 @@ struct RecordResultMessage
    */
 };
 
+/**
+ * Send a transaction control message.
+ */
+struct TxControlMessage
+{
+  /**
+   * Type will be #GNUNET_MESSAGE_TYPE_NAMESTORE_TX_CONTROL
+   */
+  struct GNUNET_NAMESTORE_Header gns_header;
+
+  /**
+   * The type of control message to send
+   */
+  uint16_t control GNUNET_PACKED;
+
+  /**
+   * always zero (for alignment)
+   */
+  uint16_t reserved GNUNET_PACKED;
+
+};
+
+/**
+ * Result of a transaction control message.
+ */
+struct TxControlResultMessage
+{
+  /**
+   * Type will be #GNUNET_MESSAGE_TYPE_NAMESTORE_TX_CONTROL_RESULT
+   */
+  struct GNUNET_NAMESTORE_Header gns_header;
+
+  /**
+   * The type of control message to send
+   */
+  uint16_t control GNUNET_PACKED;
+
+  /**
+   * Of type GNUNET_GenericReturnValue
+   */
+  uint16_t success GNUNET_PACKED;
+
+  /* followed by:
+   * an error message if status != ntohs(GNUNET_OK)
+   */
+};
+
+
 
 /**
  * Start monitoring a zone.
@@ -321,6 +387,17 @@ struct ZoneMonitorStartMessage
    * #GNUNET_NO to only monitor changes.o
    */
   uint32_t iterate_first GNUNET_PACKED;
+
+  /**
+   * Record set filter control flags.
+   * See GNUNET_NAMESTORE_Filter enum.
+   */
+  uint16_t filter;
+
+  /**
+   * Reserved for alignment
+   */
+  uint16_t reserved;
 
   /**
    * Zone key.
@@ -367,6 +444,17 @@ struct ZoneIterationStartMessage
    * Zone key.  All zeros for "all zones".
    */
   struct GNUNET_IDENTITY_PrivateKey zone;
+
+  /**
+   * Record set filter control flags.
+   * See GNUNET_NAMESTORE_Filter enum.
+   */
+  uint16_t filter;
+
+  /**
+   * Reserved for alignment
+   */
+  uint16_t reserved;
 };
 
 

@@ -3,3 +3,7 @@ groff_lint.log
 *.html
 gnunet-c-tutorial.7
 gnunet-documentation.7
+gana.*
+gnunet.*
+gnunet-dev.*
+lsd.*

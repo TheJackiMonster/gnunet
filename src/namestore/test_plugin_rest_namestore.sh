@@ -18,7 +18,6 @@ rm -rf `gnunet-config -c test_namestore_api.conf -f -s paths -o GNUNET_TEST_HOME
 namestore_link="http://localhost:7776/namestore"
 wrong_link="http://localhost:7776/namestoreandmore"
 
-
 curl_get () {
   #$1 is link
   #$2 is grep

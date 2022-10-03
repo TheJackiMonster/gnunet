@@ -1,3 +1,57 @@
+Mon, 26 Sep 2022 00:08:32 +0900 (4bfdbabb8)
+BUILD: Wow, automake is sh*t - Martin Schanzenbach
+
+Sun, 25 Sep 2022 22:15:05 +0900 (10f582fe6)
+GANA: Bump version - Martin Schanzenbach
+
+Sun, 25 Sep 2022 21:35:32 +0900 (82a7bd8af)
+DOC: Conditionally build doxygen; build sphinx on bootstrap - Martin Schanzenbach
+
+Sun, 25 Sep 2022 09:05:16 +0100 (f66919668)
+[gnunet-search] Fix `-s` and `-o` options not working together - madmurphy
+
+Sat, 24 Sep 2022 18:04:56 +0900 (7a2a6471d)
+NAMESTORE: Fix error handling for lookups - Martin Schanzenbach
+
+Fri, 23 Sep 2022 16:39:21 +0900 (e0e36b6fe)
+NAMESTORE: Towards proper transactional locks - Martin Schanzenbach
+
+Fri, 23 Sep 2022 14:57:57 +0900 (7678d77b1)
+NAMESTORE: Add select ... for update / edit records APIs - Martin Schanzenbach
+
+Fri, 23 Sep 2022 12:59:28 +0900 (e238c132f)
+NAMESTORE: Add tx API for postgres - Martin Schanzenbach
+
+Fri, 23 Sep 2022 12:51:00 +0900 (764871dcb)
+NAMESTORE: Remove head based database - Martin Schanzenbach
+
+Fri, 23 Sep 2022 12:44:45 +0900 (52babbd64)
+NAMESTORE: Add begin, commit and rollback API messages - Martin Schanzenbach
+
+Fri, 23 Sep 2022 01:06:59 +0900 (127ad07a3)
+NAMESTORE: Use a per client database connection - Martin Schanzenbach
+
+Fri, 23 Sep 2022 01:05:53 +0900 (d78b7864d)
+NAMESTORE: Fix existing monitoring test race condition - Martin Schanzenbach
+
+Thu, 22 Sep 2022 00:22:30 +0900 (49d5c4da4)
+NAMESTORE: Remove unneeded functions and renames. - Martin Schanzenbach
+
+Thu, 22 Sep 2022 00:13:52 +0900 (e1d8213bb)
+NAMESTORE: Start transactional API - Martin Schanzenbach
+
+Thu, 22 Sep 2022 00:30:24 +0900 (c50fba92d)
+UTIL: Remove outdated test. Fixes #7361 - Martin Schanzenbach
+
+Thu, 8 Sep 2022 23:52:57 +0200 (5ab4d4a54)
+DOC: Update - Martin Schanzenbach
+
+Thu, 8 Sep 2022 22:17:34 +0200 (9ee1ef3d5)
+REST: Implement basic authentication for per user service. Fixes #5669 - Martin Schanzenbach
+
+Tue, 6 Sep 2022 12:34:39 +0200 (afea0eea1)
+BUILD: Remove gnurl. Improve curl-gnutls detection - Martin Schanzenbach
+
 Fri, 2 Sep 2022 13:20:37 +0200 (794266c3c)
 GNS: Update deprecated cURL constant - Martin Schanzenbach
 

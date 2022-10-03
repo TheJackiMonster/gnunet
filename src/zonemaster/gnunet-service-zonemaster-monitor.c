@@ -273,19 +273,17 @@ perform_dht_put (const struct GNUNET_IDENTITY_PrivateKey *key,
  * @param label label of the records; NULL on disconnect
  * @param rd_count number of entries in @a rd array, 0 if label was deleted
  * @param rd array of records with data to store
+ * @param expire expiration of this record set
  */
 static void
 handle_monitor_event (void *cls,
                       const struct GNUNET_IDENTITY_PrivateKey *zone,
                       const char *label,
                       unsigned int rd_count,
-                      const struct GNUNET_GNSRECORD_Data *rd)
+                      const struct GNUNET_GNSRECORD_Data *rd,
+                      struct GNUNET_TIME_Absolute expire)
 {
-  struct GNUNET_GNSRECORD_Data rd_public[rd_count];
-  unsigned int rd_public_count;
   struct DhtPutActivity *ma;
-  struct GNUNET_TIME_Absolute expire;
-  char *emsg;
 
   (void) cls;
   GNUNET_STATISTICS_update (statistics,
@@ -296,24 +294,7 @@ handle_monitor_event (void *cls,
               "Received %u records for label `%s' via namestore monitor\n",
               rd_count,
               label);
-  /* filter out records that are not public, and convert to
-     absolute expiration time. */
-  if (GNUNET_OK != GNUNET_GNSRECORD_convert_records_for_export (label,
-                                                                rd,
-                                                                rd_count,
-                                                                rd_public,
-                                                                &rd_public_count,
-                                                                &expire,
-                                                                &emsg))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Zonemaster-monitor failed: %s\n", emsg);
-    GNUNET_free (emsg);
-    GNUNET_NAMESTORE_zone_monitor_next (zmon,
-                                        1);
-    return;   /* nothing to do */
-  }
-  if (0 == rd_public_count)
+  if (0 == rd_count)
   {
     GNUNET_NAMESTORE_zone_monitor_next (zmon,
                                         1);
@@ -323,8 +304,8 @@ handle_monitor_event (void *cls,
   ma->start_date = GNUNET_TIME_absolute_get ();
   ma->ph = perform_dht_put (zone,
                             label,
-                            rd_public,
-                            rd_public_count,
+                            rd,
+                            rd_count,
                             expire,
                             ma);
   if (NULL == ma->ph)
@@ -427,15 +408,16 @@ run (void *cls,
   /* Schedule periodic put for our records. */
   statistics = GNUNET_STATISTICS_create ("zonemaster-mon",
                                          c);
-  zmon = GNUNET_NAMESTORE_zone_monitor_start (c,
-                                              NULL,
-                                              GNUNET_NO,
-                                              &handle_monitor_error,
-                                              NULL,
-                                              &handle_monitor_event,
-                                              NULL,
-                                              NULL /* sync_cb */,
-                                              NULL);
+  zmon = GNUNET_NAMESTORE_zone_monitor_start2 (c,
+                                               NULL,
+                                               GNUNET_NO,
+                                               &handle_monitor_error,
+                                               NULL,
+                                               &handle_monitor_event,
+                                               NULL,
+                                               NULL /* sync_cb */,
+                                               NULL,
+                                               GNUNET_GNSRECORD_FILTER_OMIT_PRIVATE);
   GNUNET_NAMESTORE_zone_monitor_next (zmon,
                                       NAMESTORE_QUEUE_LIMIT - 1);
   GNUNET_break (NULL != zmon);

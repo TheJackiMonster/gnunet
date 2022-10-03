@@ -602,9 +602,9 @@ create_response (void *cls,
                          origin,
                          strlen ("chrome-extension://"))))
       {
-        MHD_add_response_header (con_handle->response,
+        GNUNET_assert (MHD_NO != MHD_add_response_header (con_handle->response,
                                  MHD_HTTP_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN,
-                                 origin);
+                                 origin));
       }
     }
     if (NULL != allow_origins)
@@ -615,9 +615,9 @@ create_response (void *cls,
       {
         if (0 == strncmp (allow_origin, origin, strlen (allow_origin)))
         {
-          MHD_add_response_header (con_handle->response,
+          GNUNET_assert (MHD_NO != MHD_add_response_header (con_handle->response,
                                    MHD_HTTP_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN,
-                                   allow_origin);
+                                   allow_origin));
           break;
         }
         allow_origin = strtok (NULL, ",");
@@ -627,15 +627,15 @@ create_response (void *cls,
   }
   if (NULL != allow_credentials)
   {
-    MHD_add_response_header (con_handle->response,
+    GNUNET_assert (MHD_NO != MHD_add_response_header (con_handle->response,
                              "Access-Control-Allow-Credentials",
-                             allow_credentials);
+                             allow_credentials));
   }
   if (NULL != allow_headers)
   {
-    MHD_add_response_header (con_handle->response,
+    GNUNET_assert (MHD_NO != MHD_add_response_header (con_handle->response,
                              "Access-Control-Allow-Headers",
-                             allow_headers);
+                             allow_headers));
   }
   run_mhd_now ();
   {
@@ -1201,7 +1201,7 @@ run (void *cls,
       memset (basic_auth_secret_tmp, 0, 16);
       if (GNUNET_SYSERR == GNUNET_DISK_fn_read (basic_auth_file,
                                                 basic_auth_secret_tmp,
-                                                sizeof (basic_auth_secret_tmp)))
+                                                sizeof (basic_auth_secret_tmp) - 1))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     "Unable to read basic auth secret file.\n");

@@ -1,41 +1,34 @@
 # This Makefile.am is in the public domain
 
+SUBDIRS = .
 
-if DOCUMENTATION
-  SUBDIRS = doxygen
+if HAVE_DOXY_BINARY
+  SUBDIRS += doxygen
+endif
+
+# OpenBSD is a bit iffy wrt sphinx make info
+if OPENBSD
 all-local:
-	cd sphinx && make html
+	cd handbook/texinfo && make || touch gnunet.info
+endif
 
 install-data-hook:
 	mkdir -p $(DESTDIR)$(docdir)
-	cp -pr sphinx/_build/html $(DESTDIR)$(docdir)
-
-sphinx/_build/man/gnunet.1: Makefile
-	cd sphinx && make man
+	cp -pr handbook/html $(DESTDIR)$(docdir)
+	mkdir -p $(DESTDIR)$(infodir)
+	cp -pr handbook/texinfo/gnunet.info $(DESTDIR)$(infodir)
 
 if INCLUDE_MANPAGES
-# FIXME this is somehow broken on openbsd. See #7324
-man_MANS = sphinx/_build/man/gnunet.1
 SUBDIRS += man
 endif
-endif
 
-EXTRA_DIST =							\
+AM_MAKEINFOFLAGS = --no-headers --no-split
+
+info_TEXINFOS = \
+  handbook/texinfo/gnunet.texi
+
+EXTRA_DIST = \
+	handbook/texinfo \
 	system_specific/outdated-and-old-installation-instructions.txt \
 	system_specific/FROM_SOURCE \
-	sphinx/about.rst \
-	sphinx/conf.py \
-	sphinx/faq.rst \
-	sphinx/gana \
-	sphinx/guis \
-	sphinx/index.rst \
-	sphinx/installing.rst \
-	sphinx/livingstandards.rst \
-	sphinx/make.bat \
-	sphinx/developers \
-	sphinx/users \
-	sphinx/preface.rst \
-	sphinx/_static \
-	sphinx/Makefile
-
-
+	handbook/html

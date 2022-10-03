@@ -174,7 +174,7 @@ GNUNET_CRYPTO_eddsa_key_from_file (const char *filename,
                       sizeof (*pkey)))
   {
     /* file existed, report that *we* didn't create it... */
-    return (do_create) ? GNUNET_NO : GNUNET_OK;
+    return GNUNET_NO;
   }
   /* give up */
   return GNUNET_SYSERR;
@@ -209,6 +209,10 @@ GNUNET_CRYPTO_ecdsa_key_from_file (const char *filename,
     /* file existed, report that we didn't create it... */
     return (do_create) ? GNUNET_NO : GNUNET_OK;
   }
+  else if (! do_create)
+  {
+    return GNUNET_SYSERR;
+  }
   GNUNET_CRYPTO_ecdsa_key_create (pkey);
   if (GNUNET_OK ==
       GNUNET_DISK_fn_write (filename,
@@ -223,7 +227,7 @@ GNUNET_CRYPTO_ecdsa_key_from_file (const char *filename,
                       sizeof (*pkey)))
   {
     /* file existed, report that *we* didn't create it... */
-    return (do_create) ? GNUNET_NO : GNUNET_OK;
+    return GNUNET_NO;
   }
   /* give up */
   return GNUNET_SYSERR;
@@ -252,9 +256,14 @@ GNUNET_CRYPTO_eddsa_key_create_from_configuration (
                                                &fn))
     return NULL;
   priv = GNUNET_new (struct GNUNET_CRYPTO_EddsaPrivateKey);
-  GNUNET_CRYPTO_eddsa_key_from_file (fn,
-                                     GNUNET_YES,
-                                     priv);
+  if (GNUNET_SYSERR == GNUNET_CRYPTO_eddsa_key_from_file (fn,
+                                                          GNUNET_YES,
+                                                          priv))
+  {
+    GNUNET_free (fn);
+    GNUNET_free (priv);
+    return NULL;
+  }
   GNUNET_free (fn);
   return priv;
 }

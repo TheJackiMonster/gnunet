@@ -442,15 +442,10 @@ AC_ARG_ENABLE([documentation],
               [documentation=${enableval}],
               [documentation=yes])
 
-AC_CHECK_PROG([SPHINX_BINARY], [sphinx-build], [true], [false])
-AM_CONDITIONAL([HAVE_SPHINX_BINARY], [$SPHINX_BINARY])
+AC_CHECK_PROG([DOXY_BINARY], [doxygen], [true], [false])
+AM_CONDITIONAL([HAVE_DOXY_BINARY], [$DOXY_BINARY])
 
 AM_CONDITIONAL([DOCUMENTATION], [test "x$documentation" = "xyes"])
-AS_IF([test "x$documentation" = "xyes"],
-      [AS_IF([$SPHINX_BINARY],
-             [AC_DEFINE([DOCUMENTATION], [1], [Define to 1 if documentation is built])],
-             [AC_MSG_ERROR([Documentation requires sphinx])])],
-      [AC_DEFINE([DOCUMENTATION], [0], [Define to 1 if documentation is built])])
 
 AC_CHECK_PROGS([MANDOC_BINARY], [mandoc], [false])
 AM_CONDITIONAL([HAVE_MANDOC], [test "x$MANDOC_BINARY" != "xfalse"])
@@ -943,7 +938,7 @@ AC_SUBST(MYSQL_CPPFLAGS)
 AS_IF([test "x$mysql" = "xtrue"],
   [AC_MSG_CHECKING([for mysql version])
    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-     [[#include <mysql/mysql_version.h>]],
+     [[#include <mysql/mysql.h>]],
      [[#if (MYSQL_VERSION_ID < 40100)
 #error required at least version 4.1
 #endif]])],
@@ -953,7 +948,7 @@ AS_IF([test "x$mysql" = "xtrue"],
      [AC_MSG_RESULT([< 4.1])
       AC_MSG_RESULT([mysql version >= 4.1 required. Will not use MySQL])])
    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-     [[#include <mysql/mysql_version.h>]],
+     [[#include <mysql/mysql.h>]],
      [[#if (MYSQL_VERSION_ID < 80000)
 #error needs at least version 8.0
 #endif]])],
@@ -1187,6 +1182,8 @@ AC_ARG_ENABLE([experimental],
          [enable_experimental=1])],
   [enable_experimental=0])
 AM_CONDITIONAL([HAVE_EXPERIMENTAL], [test "x$enable_experimental" = "x1"])
+AS_IF([test "x$enable_experimental" = "x1"],
+      AC_DEFINE([GNUNET_EXPERIMENTAL], 1, [Set to 1 is this is an experimental build]))
 
 # check if malicious code should be compiled (for testing)
 AC_ARG_ENABLE([malicious],
@@ -1458,10 +1455,10 @@ AS_IF([test "x$MANDOC_BINARY" = "xfalse"],
   [mandoc_msg="no"],
   [mandoc_msg="yes"])
 
-# sphinx
-AS_IF([test "x$documentation" = "xyes"],
-  [sphinx_msg="yes"],
-  [sphinx_msg="no"])
+# doxy
+AS_IF([$DOXY_BINARY],
+  [doxy_msg="yes"],
+  [doxy_msg="no"])
 
 # conversation
 conversation_msg="no"
@@ -1506,8 +1503,8 @@ AS_IF([test "x$png" = "x1"],
   [libpng_msg="no"])
 
 AS_IF([test "x$curl_gnutls" = "x0"],
-       [http_client="curl (OpenSSL)"],
-       [http_client="curl (GnuTLS)"])
+       [curl_tls_backend="OpenSSL"],
+       [curl_tls_backend="GnuTLS"])
 
 # ifconfig
 AS_IF([test "x$IFCONFIG_BINARY" = "xfalse"],
@@ -1586,7 +1583,7 @@ sqlite3:                        ${sqlite_msg}
 MySQL:                          ${mysql_msg}
 PostgreSQL:                     ${postgres_msg}
 
-HTTP Client:                    ${http_client}
+cURL TLS backend:               ${curl_tls_backend}
 Bluetooth:                      ${bluetooth_msg}
 iptables:                       ${iptables_msg}
 ifconfig:                       ${ifconfig_msg}
@@ -1605,7 +1602,7 @@ gstreamer:                      ${gstreamer_msg}
 
 Java:                           ${java_msg}
 
-sphinx:                         ${sphinx_msg}
+doxygen:                        ${doxy_msg}
 mandoc:                         ${mandoc_msg}
 
 GNUnet configuration

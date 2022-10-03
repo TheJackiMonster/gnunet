@@ -1,4 +1,5 @@
 [fs]
+RUN_PER_USER = YES
 START_ON_DEMAND = @START_ON_DEMAND@
 IMMEDIATE_START = YES
 INDEXDB = $GNUNET_DATA_HOME/fs/idxinfo.lst
@@ -23,7 +24,7 @@ CONTENT_CACHING = YES
 # (may improve anonymity, probably not a good idea if content_caching is NO)
 CONTENT_PUSHING = YES
 
-UNIXPATH = $GNUNET_RUNTIME_DIR/gnunet-service-fs.sock
+UNIXPATH = $GNUNET_USER_RUNTIME_DIR/gnunet-service-fs.sock
 
 # Do we require users that want to access file-sharing to run this process
 # (usually not a good idea)
