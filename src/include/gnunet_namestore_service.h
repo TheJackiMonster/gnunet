@@ -172,7 +172,6 @@ GNUNET_NAMESTORE_records_store (struct GNUNET_NAMESTORE_Handle *h,
  * @param cont_cls closure for @a cont
  * @return handle to abort the request
  */
-
 struct GNUNET_NAMESTORE_QueueEntry *
 GNUNET_NAMESTORE_records_store2 (
   struct GNUNET_NAMESTORE_Handle *h,

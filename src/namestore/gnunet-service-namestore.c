@@ -1128,8 +1128,9 @@ warn_monitor_slow (void *cls)
  *
  * @param sa store activity to process
  */
-static void
-continue_store_activity (struct StoreActivity *sa)
+static int
+continue_store_activity (struct StoreActivity *sa,
+                         int call_continue)
 {
   const struct RecordSet *rd_set = sa->rs;
   unsigned int rd_count;
@@ -1148,8 +1149,9 @@ continue_store_activity (struct StoreActivity *sa)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Transaction not yet committed, delaying monitor and cache updates\n");
     send_store_response (sa->nc, GNUNET_YES, NULL, sa->rid);
-    GNUNET_SERVICE_client_continue (sa->nc->client);
-    return;
+    if (GNUNET_YES == call_continue)
+      GNUNET_SERVICE_client_continue (sa->nc->client);
+    return GNUNET_OK;
   }
   buf = (const char *) &sa[1];
   for (int i = sa->rd_set_pos; i < sa->rd_set_count; i++)
@@ -1190,7 +1192,7 @@ continue_store_activity (struct StoreActivity *sa)
                                           &warn_monitor_slow,
                                           zm);
           GNUNET_free (conv_name);
-          return;   /* blocked on zone monitor */
+          return GNUNET_NO;   /* blocked on zone monitor */
         }
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                     "Notifying monitor about changes under label `%s'\n",
@@ -1217,9 +1219,10 @@ continue_store_activity (struct StoreActivity *sa)
       GNUNET_free (conv_name);
     }
   }
-  GNUNET_SERVICE_client_continue (sa->nc->client);
+  if (GNUNET_YES == call_continue)
+    GNUNET_SERVICE_client_continue (sa->nc->client);
   free_store_activity (sa);
-  return;
+  return GNUNET_OK;
 }
 
 
@@ -1296,7 +1299,7 @@ client_disconnect_cb (void *cls,
       {
         sa->zm_pos = zm->next;
         /* this may free sa */
-        continue_store_activity (sa);
+        continue_store_activity (sa, GNUNET_YES);
       }
     }
     GNUNET_free (zm);
@@ -1705,6 +1708,8 @@ store_record_set (struct NamestoreClient *nc,
   struct GNUNET_TIME_Absolute new_block_exp;
   *len = sizeof (struct RecordSet);
 
+  existing_block_exp = GNUNET_TIME_UNIT_ZERO_ABS;
+  new_block_exp = GNUNET_TIME_UNIT_ZERO_ABS;
   name_len = ntohs (rd_set->name_len);
   *len += name_len;
   rd_count = ntohs (rd_set->rd_count);
@@ -1882,15 +1887,11 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
   ssize_t read;
   struct StoreActivity *sa;
   struct RecordSet *rs;
-  struct GNUNET_TIME_Absolute existing_block_exp;
-  struct GNUNET_TIME_Absolute new_block_exp;
   enum GNUNET_GenericReturnValue res;
   int blocked = GNUNET_NO;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received NAMESTORE_RECORD_STORE message\n");
-  existing_block_exp = GNUNET_TIME_UNIT_ZERO_ABS;
-  new_block_exp = GNUNET_TIME_UNIT_ZERO_ABS;
   rid = ntohl (rp_msg->gns_header.r_id);
   rd_set_count = ntohs (rp_msg->rd_set_count);
   buf = (const char *) &rp_msg[1];
@@ -1923,7 +1924,32 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
   sa->private_key = rp_msg->private_key;
   sa->zm_pos = monitor_head;
   sa->uncommited = nc->in_transaction;
-  continue_store_activity (sa);
+  continue_store_activity (sa, GNUNET_YES);
+}
+
+static void
+send_tx_response (int rid, int status, char *emsg, struct NamestoreClient *nc)
+{
+  struct TxControlResultMessage *txr_msg;
+  struct GNUNET_MQ_Envelope *env;
+  char *err_tmp;
+  size_t err_len;
+
+  err_len = (NULL == emsg) ? 0 : strlen (emsg) + 1;
+  env =
+    GNUNET_MQ_msg_extra (txr_msg,
+                         err_len,
+                         GNUNET_MESSAGE_TYPE_NAMESTORE_TX_CONTROL_RESULT);
+  txr_msg->gns_header.header.size = htons (sizeof (struct
+                                                   TxControlResultMessage)
+                                           + err_len);
+  txr_msg->gns_header.r_id = rid;
+  txr_msg->success = htons (status);
+  err_tmp = (char *) &txr_msg[1];
+  GNUNET_memcpy (err_tmp, emsg, err_len);
+  GNUNET_free (emsg);
+  GNUNET_MQ_send (nc->mq, env);
+
 }
 
 /**
@@ -1936,14 +1962,11 @@ static void
 handle_tx_control (void *cls, const struct TxControlMessage *tx_msg)
 {
   struct NamestoreClient *nc = cls;
-  struct TxControlResultMessage *txr_msg;
-  struct GNUNET_MQ_Envelope *env;
   struct StoreActivity *sa = sa_head;
   struct StoreActivity *sn;
   enum GNUNET_GenericReturnValue ret;
   char *emsg = NULL;
-  char *err_tmp;
-  size_t err_len;
+  int blocked;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received TX_CONTROL message\n");
 
@@ -1952,11 +1975,14 @@ handle_tx_control (void *cls, const struct TxControlMessage *tx_msg)
   case GNUNET_NAMESTORE_TX_BEGIN:
     ret = nc->GSN_database->transaction_begin (nc->GSN_database->cls,
                                                &emsg);
+    send_tx_response (tx_msg->gns_header.r_id, ret, emsg, nc);
+    GNUNET_SERVICE_client_continue (nc->client);
     nc->in_transaction = GNUNET_YES;
     break;
   case GNUNET_NAMESTORE_TX_COMMIT:
     ret = nc->GSN_database->transaction_commit (nc->GSN_database->cls,
                                                 &emsg);
+    send_tx_response (tx_msg->gns_header.r_id, ret, emsg, nc);
     if (GNUNET_SYSERR != ret)
     {
       nc->in_transaction = GNUNET_NO;
@@ -1969,14 +1995,20 @@ handle_tx_control (void *cls, const struct TxControlMessage *tx_msg)
           continue;
         }
         sa->uncommited = GNUNET_NO;
-        continue_store_activity (sa);
-        sa = sa->next;
+        sn = sa->next;
+        if (GNUNET_OK != continue_store_activity (sa, GNUNET_NO))
+          blocked = GNUNET_YES;
+        sa = sn;
       }
+      if (GNUNET_YES != blocked)
+        GNUNET_SERVICE_client_continue (nc->client);
     }
     break;
   case GNUNET_NAMESTORE_TX_ROLLBACK:
     ret = nc->GSN_database->transaction_rollback (nc->GSN_database->cls,
                                                   &emsg);
+    send_tx_response (tx_msg->gns_header.r_id, ret, emsg, nc);
+    GNUNET_SERVICE_client_continue (nc->client);
     if (GNUNET_SYSERR != ret)
     {
       nc->in_transaction = GNUNET_NO;
@@ -1988,7 +2020,8 @@ handle_tx_control (void *cls, const struct TxControlMessage *tx_msg)
           sa = sa->next;
           continue;
         }
-        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Discarding uncommited StoreActivity\n");
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "Discarding uncommited StoreActivity\n");
         sn = sa->next;
         free_store_activity (sa);
         sa = sn;
@@ -2000,23 +2033,6 @@ handle_tx_control (void *cls, const struct TxControlMessage *tx_msg)
                 "Unknown control type %u\n", ntohs (tx_msg->control));
     GNUNET_break (0);
   }
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "TX status is %u\n", ret);
-  err_len = (NULL == emsg) ? 0 : strlen (emsg) + 1;
-  env =
-    GNUNET_MQ_msg_extra (txr_msg,
-                         err_len,
-                         GNUNET_MESSAGE_TYPE_NAMESTORE_TX_CONTROL_RESULT);
-  txr_msg->gns_header.header.size = htons (sizeof (struct
-                                                   TxControlResultMessage)
-                                           + err_len);
-  txr_msg->gns_header.r_id = tx_msg->gns_header.r_id;
-  txr_msg->success = htons (ret);
-  err_tmp = (char *) &txr_msg[1];
-  GNUNET_memcpy (err_tmp, emsg, err_len);
-  GNUNET_free (emsg);
-  GNUNET_MQ_send (nc->mq, env);
-  GNUNET_SERVICE_client_continue (nc->client);
 }
 
 /**
@@ -2399,7 +2415,7 @@ monitor_unblock (struct ZoneMonitor *zm)
     struct StoreActivity *sn = sa->next;
 
     if (sa->zm_pos == zm)
-      continue_store_activity (sa);
+      continue_store_activity (sa, GNUNET_YES);
     sa = sn;
   }
   if (zm->limit > zm->iteration_cnt)
