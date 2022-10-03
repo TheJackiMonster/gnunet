@@ -1220,13 +1220,43 @@ client_disconnect_cb (void *cls,
   struct NamestoreClient *nc = app_ctx;
   struct ZoneIteration *no;
   struct CacheOperation *cop;
+  struct StoreActivity *sa;
+  struct StoreActivity *sn;
+  char *emsg;
 
   (void) cls;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Client %p disconnected\n", client);
+  if (GNUNET_YES == nc->in_transaction)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Client in transaction, rolling back...\n");
+    if (GNUNET_SYSERR == nc->GSN_database->transaction_rollback (
+          nc->GSN_database->cls,
+          &emsg))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Unable to roll back: %s\n", emsg);
+      GNUNET_free (emsg);
+    }
+    else
+    {
+      nc->in_transaction = GNUNET_NO;
+      while (NULL != sa)
+      {
+        if ((nc != sa->nc) ||
+            (GNUNET_NO == sa->uncommited))
+        {
+          sa = sa->next;
+          continue;
+        }
+        sn = sa->next;
+        free_store_activity (sa);
+        sa = sn;
+      }
+    }
+  }
   for (struct ZoneMonitor *zm = monitor_head; NULL != zm; zm = zm->next)
   {
-    struct StoreActivity *san;
-
     if (nc != zm->nc)
       continue;
     GNUNET_CONTAINER_DLL_remove (monitor_head, monitor_tail, zm);
@@ -1240,9 +1270,9 @@ client_disconnect_cb (void *cls,
       GNUNET_SCHEDULER_cancel (zm->sa_wait_warning);
       zm->sa_wait_warning = NULL;
     }
-    for (struct StoreActivity *sa = sa_head; NULL != sa; sa = san)
+    for (sa = sa_head; NULL != sa; sa = sn)
     {
-      san = sa->next;
+      sn = sa->next;
       if (zm == sa->zm_pos)
       {
         sa->zm_pos = zm->next;
@@ -1688,7 +1718,8 @@ store_record_set (struct NamestoreClient *nc,
     }
 
     if (GNUNET_OK !=
-        GNUNET_GNSRECORD_records_deserialize (rd_ser_len, rd_ser, rd_count, rd))
+        GNUNET_GNSRECORD_records_deserialize (rd_ser_len, rd_ser, rd_count,
+                                              rd))
     {
       *emsg = GNUNET_strdup (_ ("Error deserializing records."));
       GNUNET_free (*conv_name);
@@ -1706,8 +1737,10 @@ store_record_set (struct NamestoreClient *nc,
     if ((GNUNET_NO == nc->GSN_database->lookup_records (nc->GSN_database->cls,
                                                         private_key,
                                                         *conv_name,
-                                                        &get_block_exp_existing,
-                                                        &existing_block_exp)) &&
+                                                        &
+                                                        get_block_exp_existing,
+                                                        &existing_block_exp))
+        &&
         (rd_count == 0))
     {
       /* This name does not exist, so cannot be removed */
@@ -1954,6 +1987,7 @@ handle_tx_control (void *cls, const struct TxControlMessage *tx_msg)
   txr_msg->success = htons (ret);
   err_tmp = (char *) &txr_msg[1];
   GNUNET_memcpy (err_tmp, emsg, err_len);
+  GNUNET_free (emsg);
   GNUNET_MQ_send (nc->mq, env);
   GNUNET_SERVICE_client_continue (nc->client);
 }
@@ -2439,12 +2473,14 @@ monitor_iterate_cb (void *cls,
  * @param zis_msg message from the client
  */
 static void
-handle_monitor_start (void *cls, const struct ZoneMonitorStartMessage *zis_msg)
+handle_monitor_start (void *cls, const struct
+                      ZoneMonitorStartMessage *zis_msg)
 {
   struct NamestoreClient *nc = cls;
   struct ZoneMonitor *zm;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received ZONE_MONITOR_START message\n");
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Received ZONE_MONITOR_START message\n");
   zm = GNUNET_new (struct ZoneMonitor);
   zm->nc = nc;
   zm->zone = zis_msg->zone;
@@ -2477,9 +2513,9 @@ monitor_iteration_next (void *cls)
   zm->task = NULL;
   GNUNET_assert (0 == zm->iteration_cnt);
   if (zm->limit > 16)
-    zm->iteration_cnt = zm->limit / 2; /* leave half for monitor events */
+    zm->iteration_cnt = zm->limit / 2;   /* leave half for monitor events */
   else
-    zm->iteration_cnt = zm->limit; /* use it all */
+    zm->iteration_cnt = zm->limit;   /* use it all */
   ret = nc->GSN_database->iterate_records (nc->GSN_database->cls,
                                            (GNUNET_YES == GNUNET_is_zero (
                                               &zm->zone)) ? NULL : &zm->zone,
