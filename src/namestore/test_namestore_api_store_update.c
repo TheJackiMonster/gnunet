@@ -24,7 +24,6 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
-#include "gnunet_namecache_service.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_testing_lib.h"
 #include "gnunet_dnsparser_lib.h"
@@ -44,8 +43,6 @@
 
 static struct GNUNET_NAMESTORE_Handle *nsh;
 
-static struct GNUNET_NAMECACHE_Handle *nch;
-
 static struct GNUNET_SCHEDULER_Task *endbadly_task;
 
 static struct GNUNET_IDENTITY_PrivateKey privkey;
@@ -57,8 +54,6 @@ static int res;
 static int update_performed;
 
 static struct GNUNET_NAMESTORE_QueueEntry *nsqe;
-
-static struct GNUNET_NAMECACHE_QueueEntry *ncqe;
 
 static const char *name = "dummy";
 
@@ -91,20 +86,10 @@ end (void *cls)
     GNUNET_NAMESTORE_cancel (nsqe);
     nsqe = NULL;
   }
-  if (NULL != ncqe)
-  {
-    GNUNET_NAMECACHE_cancel (ncqe);
-    ncqe = NULL;
-  }
   if (NULL != nsh)
   {
     GNUNET_NAMESTORE_disconnect (nsh);
     nsh = NULL;
-  }
-  if (NULL != nch)
-  {
-    GNUNET_NAMECACHE_disconnect (nch);
-    nch = NULL;
   }
 }
 
@@ -116,15 +101,17 @@ put_cont (void *cls,
 
 
 static void
-rd_decrypt_cb (void *cls,
-               unsigned int rd_count,
-               const struct GNUNET_GNSRECORD_Data *rd)
+lookup_success (void *cls,
+                const struct GNUNET_IDENTITY_PrivateKey *zone,
+                const char* label,
+                unsigned int rd_count,
+                const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct GNUNET_GNSRECORD_Data rd_new;
 
   GNUNET_assert (1 == rd_count);
   GNUNET_assert (NULL != rd);
-
+  nsqe = NULL;
   if (GNUNET_NO == update_performed)
   {
     char rd_cmp_data[TEST_RECORD_DATALEN];
@@ -179,34 +166,6 @@ rd_decrypt_cb (void *cls,
 
 
 static void
-name_lookup_proc (void *cls,
-                  const struct GNUNET_GNSRECORD_Block *block)
-{
-  const char *name = cls;
-
-  ncqe = NULL;
-  GNUNET_assert (NULL != cls);
-  if (NULL == block)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                _ ("Namecache returned no block for `%s'\n"),
-                name);
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Namecache returned block, decrypting \n");
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_GNSRECORD_block_decrypt (block,
-                                                 &pubkey,
-                                                 name,
-                                                 &rd_decrypt_cb,
-                                                 (void *) name));
-}
-
-
-static void
 put_cont (void *cls,
           int32_t success,
           const char *emsg)
@@ -225,11 +184,15 @@ put_cont (void *cls,
                                            name,
                                            &derived_hash);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Looking in namecache for `%s'\n",
+              "Looking in namestore for `%s'\n",
               GNUNET_h2s (&derived_hash));
-  ncqe = GNUNET_NAMECACHE_lookup_block (nch,
-                                        &derived_hash,
-                                        &name_lookup_proc, (void *) name);
+  nsqe = GNUNET_NAMESTORE_records_lookup (nsh,
+                                          &privkey,
+                                          name,
+                                          &endbadly,
+                                          (void *) name,
+                                          & lookup_success,
+                                          (void *) name);
 }
 
 
@@ -261,8 +224,6 @@ run (void *cls,
 
   nsh = GNUNET_NAMESTORE_connect (cfg);
   GNUNET_break (NULL != nsh);
-  nch = GNUNET_NAMECACHE_connect (cfg);
-  GNUNET_break (NULL != nch);
   nsqe = GNUNET_NAMESTORE_records_store (nsh,
                                          &privkey,
                                          name,
