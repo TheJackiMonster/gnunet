@@ -819,19 +819,19 @@ namestore_import (struct GNUNET_REST_RequestHandle *con_handle,
     return;
   }
   size_t rd_set_count = json_array_size (data_js);
+  struct GNUNET_NAMESTORE_RecordInfo ri[rd_set_count];
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Got record set of size %d\n", rd_set_count);
   const struct GNUNET_GNSRECORD_Data *a_rd[rd_set_count];
-  unsigned int a_rd_count[rd_set_count];
-  char *a_label[rd_set_count];
+  char *albl;
   size_t index;
   json_t *value;
   json_array_foreach (data_js, index, value) {
     {
       struct GNUNET_GNSRECORD_Data *rd;
       struct GNUNET_JSON_Specification gnsspec[] =
-      { GNUNET_GNSRECORD_JSON_spec_gnsrecord (&rd, &a_rd_count[index],
-                                              &a_label[index]),
+      { GNUNET_GNSRECORD_JSON_spec_gnsrecord (&rd, &ri[index].a_rd_count,
+                                              &albl),
         GNUNET_JSON_spec_end () };
       if (GNUNET_OK != GNUNET_JSON_parse (value, gnsspec, NULL, NULL))
       {
@@ -840,9 +840,10 @@ namestore_import (struct GNUNET_REST_RequestHandle *con_handle,
         json_decref (data_js);
         return;
       }
-      a_rd[index] = rd;
+      ri[index].a_rd = rd;
+      ri[index].a_label = albl;
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Parsed record set for name %s\n", a_label[index]);
+                  "Parsed record set for name %s\n", ri[index].a_label);
     }
   }
   //json_decref (data_js);
@@ -851,9 +852,7 @@ namestore_import (struct GNUNET_REST_RequestHandle *con_handle,
   handle->ns_qe = GNUNET_NAMESTORE_records_store2 (ns_handle,
                                                    handle->zone_pkey,
                                                    rd_set_count,
-                                                   (const char**) a_label,
-                                                   a_rd_count,
-                                                   a_rd,
+                                                   ri,
                                                    &import_finished_cb,
                                                    handle);
   if (NULL == handle->ns_qe)

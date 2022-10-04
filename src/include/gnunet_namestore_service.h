@@ -82,6 +82,18 @@ enum GNUNET_NAMESTORE_TxControl
 };
 
 /**
+ * A struct for record bulk import.
+ * The fields are arrays pointing to individual GNS records and names.
+ */
+struct GNUNET_NAMESTORE_RecordInfo
+{
+  const char *a_label;
+  unsigned int a_rd_count;
+  struct GNUNET_GNSRECORD_Data *a_rd;
+};
+
+
+/**
  * Connect to the namestore service.
  *
  * @param cfg configuration to use
@@ -165,9 +177,7 @@ GNUNET_NAMESTORE_records_store (struct GNUNET_NAMESTORE_Handle *h,
  * @param h handle to the namestore
  * @param pkey private key of the zone
  * @param rd_set_count the number of record sets
- * @param a_label an array of size @a rd_set_count of names for each record set
- * @param a_rd_count an array of size @a rd_set_count containing the number of records in the corresponding 'rd' array
- * @param a_rd an array of size @a rd_set_count of arrays of records with data to store
+ * @param record_info the records to add containing @a rd_set_count records
  * @param cont continuation to call when done
  * @param cont_cls closure for @a cont
  * @return handle to abort the request
@@ -177,9 +187,7 @@ GNUNET_NAMESTORE_records_store2 (
   struct GNUNET_NAMESTORE_Handle *h,
   const struct GNUNET_IDENTITY_PrivateKey *pkey,
   unsigned int rd_set_count,
-  const char **a_label,
-  unsigned int *a_rd_count,
-  const struct GNUNET_GNSRECORD_Data **a_rd,
+  const struct GNUNET_NAMESTORE_RecordInfo *record_info,
   GNUNET_NAMESTORE_ContinuationWithStatus cont,
   void *cont_cls);
 

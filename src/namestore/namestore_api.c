@@ -1095,7 +1095,11 @@ GNUNET_NAMESTORE_records_store (
   GNUNET_NAMESTORE_ContinuationWithStatus cont,
   void *cont_cls)
 {
-  return GNUNET_NAMESTORE_records_store2 (h, pkey, 1, &label, &rd_count, &rd,
+  struct GNUNET_NAMESTORE_RecordInfo ri;
+  ri.a_label = label;
+  ri.a_rd_count = rd_count;
+  ri.a_rd = (struct GNUNET_GNSRECORD_Data *) rd;
+  return GNUNET_NAMESTORE_records_store2 (h, pkey, 1, &ri,
                                           cont, cont_cls);
 }
 
@@ -1104,9 +1108,7 @@ GNUNET_NAMESTORE_records_store2 (
   struct GNUNET_NAMESTORE_Handle *h,
   const struct GNUNET_IDENTITY_PrivateKey *pkey,
   unsigned int rd_set_count,
-  const char **a_label,
-  unsigned int *a_rd_count,
-  const struct GNUNET_GNSRECORD_Data **a_rd,
+  const struct GNUNET_NAMESTORE_RecordInfo *record_info,
   GNUNET_NAMESTORE_ContinuationWithStatus cont,
   void *cont_cls)
 {
@@ -1128,9 +1130,9 @@ GNUNET_NAMESTORE_records_store2 (
 
   for (i = 0; i < rd_set_count; i++)
   {
-    label = a_label[i];
-    rd_count = a_rd_count[i];
-    rd = a_rd[i];
+    label = record_info[i].a_label;
+    rd_count = record_info[i].a_rd_count;
+    rd = record_info[i].a_rd;
     name_len = strlen (label) + 1;
     if (name_len > MAX_NAME_LEN)
     {
@@ -1168,18 +1170,18 @@ GNUNET_NAMESTORE_records_store2 (
   rd_set = (struct RecordSet*) &msg[1];
   for (int i = 0; i < rd_set_count; i++)
   {
-    label = a_label[i];
-    rd = a_rd[i];
+    label = record_info[i].a_label;
+    rd = record_info[i].a_rd;
     name_len = strlen (label) + 1;
     rd_set->name_len = htons (name_len);
-    rd_set->rd_count = htons (a_rd_count[i]);
+    rd_set->rd_count = htons (record_info[i].a_rd_count);
     rd_set->rd_len = htons (rd_ser_len[i]);
     rd_set->reserved = ntohs (0);
     name_tmp = (char *) &rd_set[1];
     GNUNET_memcpy (name_tmp, label, name_len);
     rd_ser = &name_tmp[name_len];
-    sret = GNUNET_GNSRECORD_records_serialize (a_rd_count[i], rd, rd_ser_len[i],
-                                               rd_ser);
+    sret = GNUNET_GNSRECORD_records_serialize (record_info[i].a_rd_count,
+                                               rd, rd_ser_len[i], rd_ser);
     if ((0 > sret) || (sret != rd_ser_len[i]))
     {
       GNUNET_break (0);
