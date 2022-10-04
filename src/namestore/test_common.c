@@ -71,7 +71,22 @@ TNC_test_plugin (const char *cfg_name)
   return GNUNET_YES;
 }
 
-
+/**
+ * General setup logic for starting the tests.  Obtains the @a
+ * plugin_name and initializes the @a cfg_name.
+ */
+#define SETUP_CFG2(file_template, plugin_name, cfg_name)                                    \
+  do                                                                        \
+  {                                                                         \
+    plugin_name = GNUNET_TESTING_get_testname_from_underscore (argv[0]);    \
+    GNUNET_asprintf (&cfg_name, file_template, plugin_name); \
+    if (! TNC_test_plugin (cfg_name))                                       \
+    {                                                                       \
+      GNUNET_free (cfg_name);                                               \
+      return 77;                                                            \
+    }                                                                       \
+    GNUNET_DISK_purge_cfg_dir (cfg_name, "GNUNET_TEST_HOME");               \
+  } while (0)
 /**
  * General setup logic for starting the tests.  Obtains the @a
  * plugin_name and initializes the @a cfg_name.

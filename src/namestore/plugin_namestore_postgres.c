@@ -762,7 +762,11 @@ static enum GNUNET_GenericReturnValue
 namestore_postgres_initialize_database (void *cls,
                                         char **emsg)
 {
-  return init_database (cls, emsg, GNUNET_NO);
+  int ret;
+  ret = init_database (cls, emsg, GNUNET_NO);
+  if (GNUNET_SYSERR == ret)
+    return ret;
+  return database_connect (cls);
 }
 
 
@@ -770,7 +774,11 @@ static enum GNUNET_GenericReturnValue
 namestore_postgres_reset_database (void *cls,
                                    char **emsg)
 {
-  return init_database (cls, emsg, GNUNET_YES);
+  int ret;
+  ret = init_database (cls, emsg, GNUNET_YES);
+  if (GNUNET_SYSERR == ret)
+    return ret;
+  return database_connect (cls);
 }
 
 

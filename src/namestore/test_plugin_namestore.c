@@ -66,6 +66,7 @@ load_plugin (const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
   struct GNUNET_NAMESTORE_PluginFunctions *ret;
   char *libname;
+  char *emsg;
 
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               _ ("Loading `%s' namestore plugin\n"),
@@ -78,6 +79,12 @@ load_plugin (const struct GNUNET_CONFIGURATION_Handle *cfg)
     return NULL;
   }
   GNUNET_free (libname);
+  if (GNUNET_OK != ret->reset_database (ret->cls, &emsg))
+  {
+    fprintf (stderr, "Error resetting database: %s\n", emsg);
+    GNUNET_free (emsg);
+    return NULL;
+  }
   return ret;
 }
 
@@ -101,6 +108,7 @@ test_record (void *cls,
   for (unsigned int i = 0; i < trd_count; i++)
   {
     GNUNET_assert (rd[i].data_size == id % 10);
+    printf ("%s\n", rd[i].data);
     GNUNET_assert (0 == memcmp ("Hello World", rd[i].data, id % 10));
     GNUNET_assert (rd[i].record_type == TEST_RECORD_TYPE);
     GNUNET_assert (rd[i].flags == 0);

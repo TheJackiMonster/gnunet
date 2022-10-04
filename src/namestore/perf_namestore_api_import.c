@@ -30,9 +30,9 @@
 
 #define TEST_RECORD_TYPE GNUNET_DNSPARSER_TYPE_TXT
 
-#define TEST_BATCH_COUNT 5
+#define TEST_BATCH_COUNT 3
 
-#define TEST_BATCH_SIZE 1000
+#define TEST_BATCH_SIZE 500
 
 #define TEST_RECORD_COUNT TEST_BATCH_COUNT * TEST_BATCH_SIZE
 
@@ -191,6 +191,7 @@ commit_cont (void *cls,
            TEST_RECORD_COUNT,
            GNUNET_STRINGS_relative_time_to_string (delay,
                                                    GNUNET_YES));
+  res = 0;
   GNUNET_SCHEDULER_shutdown ();
 }
 
@@ -437,7 +438,7 @@ main (int argc,
   const char *plugin_name;
   char *cfg_name;
 
-  SETUP_CFG (plugin_name, cfg_name);
+  SETUP_CFG2 ("perf_namestore_api_%s.conf", plugin_name, cfg_name);
   res = 1;
   if (0 !=
       GNUNET_TESTING_peer_run ("perf-namestore-api-import",
