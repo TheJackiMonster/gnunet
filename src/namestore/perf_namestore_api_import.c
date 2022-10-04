@@ -82,11 +82,7 @@ static uint8_t seen[1 + BENCHMARK_SIZE / 8];
 
 static struct GNUNET_TIME_Absolute start;
 
-const struct GNUNET_GNSRECORD_Data *a_rd[TEST_RECORD_COUNT];
-
-unsigned int a_rd_count[TEST_RECORD_COUNT];
-
-const char *a_label[TEST_RECORD_COUNT];
+struct GNUNET_NAMESTORE_RecordInfo ri[TEST_RECORD_COUNT];
 
 int single_put_pos;
 
@@ -239,9 +235,7 @@ publish_records_bulk_tx (void *cls)
   qe = GNUNET_NAMESTORE_records_store2 (nsh,
                                         &privkey,
                                         TEST_BATCH_SIZE,
-                                        &a_label[bulk_count * TEST_BATCH_SIZE],
-                                        &a_rd_count[bulk_count * TEST_BATCH_SIZE],
-                                        &a_rd[bulk_count * TEST_BATCH_SIZE],
+                                        &ri[bulk_count * TEST_BATCH_SIZE],
                                         (bulk_count == TEST_BATCH_COUNT - 1) ? &put_cont_bulk_tx :
                                         &reput_cont_bulk_tx,
                                         NULL);
@@ -258,9 +252,7 @@ begin_cont (void *cls,
   qe = GNUNET_NAMESTORE_records_store2 (nsh,
                                         &privkey,
                                         TEST_BATCH_SIZE,
-                                        &a_label[bulk_count * TEST_BATCH_SIZE],
-                                        &a_rd_count[bulk_count * TEST_BATCH_SIZE],
-                                        &a_rd[bulk_count * TEST_BATCH_SIZE],
+                                        &ri[bulk_count * TEST_BATCH_SIZE],
                                         (bulk_count == TEST_BATCH_COUNT - 1) ? &put_cont_bulk_tx :
                                         &reput_cont_bulk_tx,
                                         NULL);
@@ -327,9 +319,7 @@ publish_records_bulk (void *cls)
   qe = GNUNET_NAMESTORE_records_store2 (nsh,
                                         &privkey,
                                         TEST_BATCH_SIZE,
-                                        &a_label[bulk_count * TEST_BATCH_SIZE],
-                                        &a_rd_count[bulk_count * TEST_BATCH_SIZE],
-                                        &a_rd[bulk_count * TEST_BATCH_SIZE],
+                                        &ri[bulk_count * TEST_BATCH_SIZE],
                                         (bulk_count == TEST_BATCH_COUNT - 1) ? &put_cont_bulk :
                                         &reput_cont_bulk,
                                         NULL);
@@ -391,9 +381,9 @@ publish_records_single (void *cls)
   }
   qe = GNUNET_NAMESTORE_records_store (nsh,
                                        &privkey,
-                                       a_label[single_put_pos],
-                                       a_rd_count[single_put_pos],
-                                       a_rd[single_put_pos],
+                                       ri[single_put_pos].a_label,
+                                       ri[single_put_pos].a_rd_count,
+                                       ri[single_put_pos].a_rd,
                                        &put_cont_single,
                                        NULL);
   GNUNET_free (label);
@@ -409,9 +399,9 @@ run (void *cls,
 
   for (int i = 0; i < TEST_RECORD_COUNT; i++)
   {
-    a_rd[i] = create_record (1);
-    a_rd_count[i] = 1;
-    GNUNET_asprintf ((char**) &a_label[i], "label_%d", i);
+    ri[i].a_rd = create_record (1);
+    ri[i].a_rd_count = 1;
+    GNUNET_asprintf ((char**) &ri[i].a_label, "label_%d", i);
   }
   GNUNET_SCHEDULER_add_shutdown (&end,
                                  NULL);
