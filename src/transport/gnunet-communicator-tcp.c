@@ -1340,10 +1340,11 @@ do_rekey (struct Queue *queue, const struct TCPRekey *rekey)
                 GNUNET_TIME_absolute_ntoh (thp.monotonic_time)));
   GNUNET_assert (ntohl ((&thp)->purpose.size) == sizeof (*(&thp)));
   if (GNUNET_OK !=
-      GNUNET_CRYPTO_eddsa_verify (GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_REKEY,
-                                  &thp,
-                                  &rekey->sender_sig,
-                                  &queue->target.public_key))
+      GNUNET_CRYPTO_eddsa_verify (
+        GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_REKEY,
+        &thp,
+        &rekey->sender_sig,
+        &queue->target.public_key))
   {
     GNUNET_break (0);
     queue_finish (queue);
@@ -1447,7 +1448,8 @@ handshake_ack_monotime_cb (void *cls,
  * @param queue The queue context.
  */
 static void
-send_challenge (struct GNUNET_CRYPTO_ChallengeNonceP challenge, struct Queue *queue)
+send_challenge (struct GNUNET_CRYPTO_ChallengeNonceP challenge, struct
+                Queue *queue)
 {
   struct TCPConfirmationAck tca;
   struct TcpHandshakeAckSignature thas;
@@ -1605,7 +1607,11 @@ queue_write (void *cls)
   }
   /* can we encrypt more? (always encrypt full messages, needed
      such that #mq_cancel() can work!) */
-  if ((0 < queue->rekey_left_bytes) &&
+  unsigned int we_do_not_need_to_rekey = (0 < queue->rekey_left_bytes
+                                          - (queue->cwrite_off
+                                             + queue->pwrite_off
+                                             + sizeof (struct TCPRekey)));
+  if (we_do_not_need_to_rekey &&
       (queue->pwrite_off > 0) &&
       (queue->cwrite_off + queue->pwrite_off <= BUF_SIZE))
   {
@@ -1625,11 +1631,11 @@ queue_write (void *cls)
     queue->pwrite_off = 0;
   }
   // if ((-1 != unverified_size)&& ((0 == queue->pwrite_off) &&
-  if (((0 == queue->pwrite_off) &&
-       ((0 == queue->rekey_left_bytes) ||
-        (0 ==
-         GNUNET_TIME_absolute_get_remaining (
-           queue->rekey_time).rel_value_us))))
+  if (((0 == queue->rekey_left_bytes) ||
+       (0 == GNUNET_TIME_absolute_get_remaining (
+          queue->rekey_time).rel_value_us)) &&
+      (((0 == queue->pwrite_off) || ! we_do_not_need_to_rekey)&&
+       (queue->cwrite_off + sizeof (struct TCPRekey) <= BUF_SIZE)))
   {
     inject_rekey (queue);
   }
@@ -2272,8 +2278,9 @@ tcp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
   struct sockaddr_in6 v6;
   char *start;
 
+  memset (&v4, 0, sizeof(v4));
   start = extract_address (bindto);
-  // FIXME: check NULL == start
+  GNUNET_assert (NULL != start);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "start %s\n",
               start);
@@ -2472,7 +2479,8 @@ transmit_kx (struct Queue *queue,
   GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
                               &tc.challenge,
                               sizeof(tc.challenge));
-  ths.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_HANDSHAKE);
+  ths.purpose.purpose = htonl (
+    GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_HANDSHAKE);
   ths.purpose.size = htonl (sizeof(ths));
   ths.sender = my_identity;
   ths.receiver = queue->target;
@@ -2625,7 +2633,8 @@ decrypt_and_check_tc (struct Queue *queue,
                          sizeof(*tc),
                          &ibuf[sizeof(struct GNUNET_CRYPTO_EcdhePublicKey)],
                          sizeof(*tc)));
-  ths.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_HANDSHAKE);
+  ths.purpose.purpose = htonl (
+    GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_HANDSHAKE);
   ths.purpose.size = htonl (sizeof(ths));
   ths.sender = tc->sender;
   ths.receiver = my_identity;

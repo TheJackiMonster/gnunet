@@ -61,7 +61,6 @@ connect_peers_run (void *cls,
   struct GNUNET_TESTING_AddressPrefix *pos_prefix;
   unsigned int con_num = 0;
   const enum GNUNET_GenericReturnValue *broadcast;
-  char *port;
 
   cps->is = is;
   peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
@@ -167,17 +166,18 @@ notify_connect (struct GNUNET_TESTING_Interpreter *is,
       cps->con_num_notified++;
     GNUNET_free (peer_connection);
   }
-  if (cps->con_num == con_num)
+  if (cps->con_num_notified == con_num)
     cps->additional_connects_notified++;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "con_num: %u add: %u num_notified: %u add_notified: %u\n",
+              "con_num: %u add: %u num_notified: %u add_notified: %u peer: %s\n",
               cps->con_num,
               cps->additional_connects,
               cps->con_num_notified,
-              cps->additional_connects_notified);
-  if (cps->con_num + cps->additional_connects == cps->con_num_notified
-      + cps->additional_connects_notified)
+              cps->additional_connects_notified,
+              GNUNET_i2s (peer));
+  if ((cps->con_num == cps->con_num_notified) &&
+      (cps->additional_connects <= cps->additional_connects_notified))
   {
     GNUNET_TESTING_async_finish (&cps->ac);
   }
@@ -241,6 +241,18 @@ GNUNET_TRANSPORT_cmd_connect_peers (const char *label,
                                     unsigned int additional_connects)
 {
   struct ConnectPeersState *cps;
+  unsigned int node_additional_connects;
+
+  node_additional_connects = GNUNET_TESTING_get_additional_connects (num,
+                                                                     topology);
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "global: %u and local: %u additional_connects\n",
+       additional_connects,
+       node_additional_connects);
+
+  if (0 != node_additional_connects)
+    additional_connects = node_additional_connects;
 
   cps = GNUNET_new (struct ConnectPeersState);
   cps->start_peer_label = start_peer_label;

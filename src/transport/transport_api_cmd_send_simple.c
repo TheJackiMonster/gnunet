@@ -90,7 +90,8 @@ send_simple_cb  (void *cls,
   struct GNUNET_TRANSPORT_TESTING_TestMessage *test;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Sending simple test message\n");
+       "Sending simple test message with mq %p\n",
+       mq);
 
   env = GNUNET_MQ_msg_extra (test,
                              1000 - sizeof(*test),
@@ -116,13 +117,6 @@ send_simple_run (void *cls,
   struct SendSimpleState *sss = cls;
   const struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map;
   const struct GNUNET_TESTING_Command *peer1_cmd;
-  // struct GNUNET_ShortHashCode *key = GNUNET_new (struct GNUNET_ShortHashCode);
-  struct GNUNET_HashCode hc;
-  struct GNUNET_TESTING_NodeConnection *node_connections_head;
-  struct GNUNET_PeerIdentity *peer;
-  struct GNUNET_CRYPTO_EddsaPublicKey public_key;
-  uint32_t num;
-  struct GNUNET_TESTING_NodeConnection *pos_connection;
   const struct GNUNET_TESTING_Command *system_cmd;
   const struct GNUNET_TESTING_System *tl_system;
 
@@ -136,42 +130,10 @@ send_simple_run (void *cls,
   GNUNET_TESTING_get_trait_test_system (system_cmd,
                                         &tl_system);
 
-  node_connections_head = GNUNET_TESTING_get_connections (sss->num,
-                                                          sss->topology);
-
   GNUNET_CONTAINER_multishortmap_iterate (
     (struct GNUNET_CONTAINER_MultiShortmap *)
     connected_peers_map, send_simple_cb,
     sss);
-  /*for (int i = 0; i < 1; i++)
-  {
-    for (pos_connection = node_connections_head; NULL != pos_connection;
-         pos_connection = pos_connection->next)
-    {
-      num = GNUNET_TESTING_calculate_num (pos_connection, sss->topology);
-      peer = GNUNET_TESTING_get_pub_key (num, tl_system);
-      public_key = peer->public_key;
-      GNUNET_CRYPTO_hash (&public_key, sizeof(public_key), &hc);
-
-      memcpy (key,
-              &hc,
-              sizeof (*key));
-      mq = GNUNET_CONTAINER_multishortmap_get (connected_peers_map,
-                                               key);
-      env = GNUNET_MQ_msg_extra (test,
-                                 1000 - sizeof(*test),
-                                 GNUNET_TRANSPORT_TESTING_SIMPLE_MTYPE);
-      test->num = htonl (sss->num);
-      memset (&test[1],
-              sss->num,
-              1000 - sizeof(*test));
-      GNUNET_MQ_send (mq,
-                      env);
-    }
-    }*/
-
-  // GNUNET_free (key);
-
 }
 
 

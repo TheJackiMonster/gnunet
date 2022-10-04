@@ -773,6 +773,11 @@ struct GNUNET_TRANSPORT_IncomingMessage
    */
   struct GNUNET_PeerIdentity sender;
 
+  /**
+   * Direct neighbour sender identifier.
+   */
+  struct GNUNET_PeerIdentity neighbour_sender;
+
   /* followed by the message */
 };
 

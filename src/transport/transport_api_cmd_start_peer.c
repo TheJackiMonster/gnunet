@@ -129,12 +129,15 @@ notify_connect (void *cls,
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "This Peer %s \n",
        GNUNET_i2s (&sps->id));
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Peer %s connected to peer number %u\n",
-       GNUNET_i2s (peer),
-       sps->no);
+
 
   GNUNET_CRYPTO_hash (&public_key, sizeof(public_key), &hc);
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Peer %s connected to peer number %u with mq %p\n",
+       GNUNET_i2s (peer),
+       sps->no,
+       mq);
 
 
   memcpy (key,

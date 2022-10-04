@@ -2,14 +2,18 @@
 
 declare -A K_PLUGIN
 declare -A R_TCP
+declare -A R_TCP_ALLOWED
+declare -i -A R_TCP_ALLOWED_NUMBER
 declare -A R_UDP
+declare -A R_UDP_ALLOWED
+declare -i -A R_UDP_ALLOWED_NUMBER
 declare -A P_PLUGIN
 
 extract_attributes()
 {
     line_key=$1
     line=$2
-    
+
     if [ "$line_key" = "P" ]
     then
 	n=$(echo $line|cut -d \| -f 1|awk -F: '{print $2}')
@@ -21,34 +25,68 @@ extract_attributes()
 	echo $number
     fi
 
-    nf=$(echo $line|awk -F: '{print NF}')
+    #nf=$(echo $line|awk -F: '{print NF}')
+    nf=$(echo $line|awk -F\| '{print NF}')
     for ((i=2;i<=$nf;i++))
     do
-	entry=$(echo $line |awk -v i=$i -F\| '{print $i}')
+        entry=$(echo $line |awk -v i=$i -F\| '{print $i}')
+        echo $entry
+        if [ "$(echo $entry|grep P)" = "" ]; then
+	        key=$(echo $entry|cut -d { -f 2|cut -d } -f 1|cut -d : -f 1)
+	        echo $key
+	        value=$(echo $entry|cut -d { -f 2|cut -d } -f 1|cut -d : -f 2)
+	        echo $value
+            if [ "$key" = "tcp_port" ]
+	        then
+                R_TCP_ALLOWED_NUMBER[$number]=0
+	            echo tcp port: $value
+	            R_TCP[$number]=$value
+	        elif [ "$key" = "udp_port" ]
+	        then
+                R_UDP_ALLOWED_NUMBER[$number]=0
+	            echo udp port: $value
+	            R_UDP[$number]=$value
+	        elif [ "$key" = "plugin" ]
+	        then
+	            echo plugin: $value
+	            echo $line_key
+	            if [ "$line_key" = "P" ]
+	            then
+		            P_PLUGIN[$n,$m]=$value
+		            echo $n $m ${P_PLUGIN[$n,$m]}
+	            elif [ "$line_key" = "K" ]
+	            then
+		            K_PLUGIN[$number]=$value
+	            fi
+	        fi
+        else
+	        p1=$(echo $entry|cut -d P -f 2|cut -d } -f 1|cut -d : -f 2)
+            echo $p1
+            p2=$(echo $entry|cut -d P -f 2|cut -d } -f 1|cut -d : -f 3)
+	        echo $p2
+            if [ "$key" = "tcp_port" ]
+	        then
+                R_TCP_ALLOWED_NUMBER[$number]+=1
+	            R_TCP_ALLOWED[$number,${R_TCP_ALLOWED_NUMBER[$number]},1]=$p1
+                R_TCP_ALLOWED[$number,${R_TCP_ALLOWED_NUMBER[$number]},2]=$p2
+                echo ${R_TCP_ALLOWED_NUMBER[$number]}
+                echo ${R_TCP_ALLOWED[$number,${R_TCP_ALLOWED_NUMBER[$number]},1]}
+                echo ${R_TCP_ALLOWED[$number,${R_TCP_ALLOWED_NUMBER[$number]},2]}
+	        elif [ "$key" = "udp_port" ]
+	        then
+                R_UDP_ALLOWED_NUMBER[$number]+=1
+	            R_UDP_ALLOWED[$number,${R_UDP_ALLOWED_NUMBER[$number]},1]=$p1
+                R_UDP_ALLOWED[$number,${R_UDP_ALLOWED_NUMBER[$number]},2]=$p2
+            fi
+        fi
+    done
+    #for ((i=2;i<=$nf;i++))
+    # do
+	#entry=$(echo $line |awk -v i=$i -F\| '{print $i}')
 	key=$(echo $entry|cut -d { -f 2|cut -d } -f 1|cut -d : -f 1)
 	value=$(echo $entry|cut -d { -f 2|cut -d } -f 1|cut -d : -f 2)
-	if [ "$key" = "tcp_port" ]
-	then
-	    echo tcp port: $value
-	    R_TCP[$number]=$value
-	elif [ "$key" = "udp_port" ]
-	then
-	    echo udp port: $value
-	    R_UDP[$number]=$value
-	elif [ "$key" = "plugin" ]
-	then
-	    echo plugin: $value
-	    echo $line_key
-	    if [ "$line_key" = "P" ]
-	    then
-		P_PLUGIN[$n,$m]=$value
-		echo $n $m ${P_PLUGIN[$n,$m]}
-	    elif [ "$line_key" = "K" ]
-	    then
-		K_PLUGIN[$number]=$value
-	    fi
-	fi
-    done
+	
+    #done
 }
 
 parse_line(){

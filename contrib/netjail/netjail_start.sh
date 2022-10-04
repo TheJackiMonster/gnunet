@@ -79,14 +79,46 @@ for N in $(seq $GLOBAL_N); do
     then
         #ip netns exec ${ROUTERS[$N]} nft add rule ip nat prerouting ip daddr $GLOBAL_GROUP.$N tcp dport 60002 counter dnat to $LOCAL_GROUP.1
         #ip netns exec ${ROUTERS[$N]} nft add rule ip filter FORWARD ip daddr $LOCAL_GROUP.1 ct state new,related,established  counter accept
-        ip netns exec ${ROUTERS[$N]} iptables -t nat -A PREROUTING -p tcp -d $GLOBAL_GROUP.$N --dport 60002 -j DNAT --to $LOCAL_GROUP.1
+        if [ "0" == "${R_TCP_ALLOWED_NUMBER[$N]}" ]; then
+            ip netns exec ${ROUTERS[$N]} iptables -t nat -A PREROUTING -p tcp -d $GLOBAL_GROUP.$N --dport 60002 -j DNAT --to $LOCAL_GROUP.1
+        else
+            delimiter=","
+            sources=$GLOBAL_GROUP."${R_TCP_ALLOWED[$N,1,1]}"
+            if [ "1" -lt "${R_TCP_ALLOWED_NUMBER[$N]}" ]
+            then
+               for ((i = 2; i <= ${R_TCP_ALLOWED_NUMBER[$N]}; i++))
+               do
+                   echo $i
+                   temp=$delimiter$GLOBAL_GROUP."${R_TCP_ALLOWED[$N,$i,1]}"
+                   sources=$sources$temp
+               done
+            fi
+            echo $sources
+            ip netns exec ${ROUTERS[$N]} iptables -t nat -A PREROUTING -p tcp -s $sources -d $GLOBAL_GROUP.$N --dport 60002 -j DNAT --to $LOCAL_GROUP.1
+        fi
         ip netns exec ${ROUTERS[$N]} iptables -A FORWARD -d $LOCAL_GROUP.1  -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
     fi
     if [ "1" == "${R_UDP[$N]}" ]
     then
         #ip netns exec ${ROUTERS[$N]} nft add rule ip nat prerouting ip daddr $GLOBAL_GROUP.$N udp dport $PORT counter dnat to $LOCAL_GROUP.1
         #ip netns exec ${ROUTERS[$N]} nft add rule ip filter FORWARD ip daddr $LOCAL_GROUP.1 ct state new,related,established  counter accept
-        ip netns exec ${ROUTERS[$N]} iptables -t nat -A PREROUTING -p udp -d $GLOBAL_GROUP.$N --dport $PORT -j DNAT --to $LOCAL_GROUP.1
+        if [ "0" == "${R_UDP_ALLOWED_NUMBER[$N]}" ]; then
+            ip netns exec ${ROUTERS[$N]} iptables -t nat -A PREROUTING -p udp -d $GLOBAL_GROUP.$N --dport $PORT -j DNAT --to $LOCAL_GROUP.1
+        else
+            delimiter=","
+            sources=$GLOBAL_GROUP."${R_UDP_ALLOWED[$N,1,1]}"
+            if [ "1" -lt "${R_UDP_ALLOWED_NUMBER[$N]}" ]
+            then
+               for ((i = 2; i <= ${R_UDP_ALLOWED_NUMBER[$N]}; i++))
+               do
+                   echo $i
+                   temp=$delimiter$GLOBAL_GROUP."${R_UDP_ALLOWED[$N,$i,1]}"
+                   sources=$sources$temp
+               done
+            fi
+            echo $sources
+            ip netns exec ${ROUTERS[$N]} iptables -t nat -A PREROUTING -p udp -s $GLOBAL_GROUP.$sources -d $GLOBAL_GROUP.$N --dport $PORT -j DNAT --to $LOCAL_GROUP.1
+        fi
         ip netns exec ${ROUTERS[$N]} iptables -A FORWARD -d $LOCAL_GROUP.1  -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
     fi
 done

@@ -9,3 +9,4 @@ if [ -f /proc/sys/kernel/unprivileged_userns_clone ]; then
   fi
 fi
 exec unshare -r -nmU bash -c "mount -t tmpfs --make-rshared tmpfs /run/netns; ./test_transport_start_with_config test_transport_distance_vector_circle_topo.conf"
+# sudo valgrind --leak-check=full --track-origins=yes --trace-children=yes --trace-children-skip=/usr/bin/awk,/usr/bin/cut,/usr/bin/seq,/sbin/ip/sed/bash ./test_transport_start_with_config test_transport_distance_vector_circle_topo.conf

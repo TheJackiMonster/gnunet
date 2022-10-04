@@ -300,7 +300,6 @@ send_message_to_locals (
     tbc);
 
   tbc->shandle = sh;
-  // GNUNET_array_append (tbc->shandle, tbc->n_shandle, sh);
 }
 
 
@@ -319,6 +318,7 @@ send_all_local_tests_prepared (unsigned int i, unsigned int j, struct
   reply->header.size = htons ((uint16_t) msg_length);
 
   send_message_to_locals (i, j, ns, &reply->header);
+  GNUNET_free (reply);
 }
 
 
@@ -337,6 +337,7 @@ send_all_peers_started (unsigned int i, unsigned int j, struct NetJailState *ns)
   reply->header.size = htons ((uint16_t) msg_length);
 
   send_message_to_locals (i, j, ns, &reply->header);
+  GNUNET_free (reply);
 }
 
 
@@ -702,10 +703,10 @@ start_helper (struct NetJailState *ns,
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Send handle is NULL!\n");
-    GNUNET_free (msg);
     GNUNET_TESTING_interpreter_fail (ns->is);
   }
   GNUNET_free (hkey);
+  GNUNET_free (msg);
 }
 
 

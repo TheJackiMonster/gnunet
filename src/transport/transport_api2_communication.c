@@ -540,12 +540,21 @@ handle_incoming_ack (
                       &incoming_ack->sender,
                       sizeof(struct GNUNET_PeerIdentity))))
     {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Done with message with flow control id %lu for sender %s from sender %s\n",
+                  incoming_ack->fc_id,
+                  GNUNET_i2s (&fc->sender),
+                  GNUNET_i2s (&incoming_ack->sender));
       GNUNET_CONTAINER_DLL_remove (ch->fc_head, ch->fc_tail, fc);
       fc->cb (fc->cb_cls, GNUNET_OK);
       GNUNET_free (fc);
       return;
     }
   }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Message with flow control id %lu from sender %s not found\n",
+              incoming_ack->fc_id,
+              GNUNET_i2s (&incoming_ack->sender));
   GNUNET_break (0);
   disconnect (ch);
   /* TODO: maybe do this with exponential backoff/delay */
@@ -948,6 +957,10 @@ GNUNET_TRANSPORT_communicator_receive (
     fc->cb = cb;
     fc->cb_cls = cb_cls;
     GNUNET_CONTAINER_DLL_insert (ch->fc_head, ch->fc_tail, fc);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Created flow control id %lu for sender %s\n",
+                fc->id,
+                GNUNET_i2s (&fc->sender));
   }
   GNUNET_MQ_send (ch->mq, env);
   return GNUNET_OK;
@@ -1101,6 +1114,18 @@ GNUNET_TRANSPORT_communicator_address_remove (
   struct GNUNET_TRANSPORT_CommunicatorHandle *ch = ai->ch;
 
   send_del_address (ai);
+  if (NULL == ai->prev)
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "prev null\n");
+  if (ch->ai_head == ai)
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "equals head\n");
+  if (NULL == ai->next)
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "next null\n");
+  if (ch->ai_tail == ai)
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "equals tail\n");
   GNUNET_CONTAINER_DLL_remove (ch->ai_head, ch->ai_tail, ai);
   GNUNET_free (ai->address);
   GNUNET_free (ai);

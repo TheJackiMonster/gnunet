@@ -165,6 +165,11 @@ struct GNUNET_TESTING_NetjailNode
   unsigned int node_n;
 
   /**
+   * The number of unintentional additional connections this node waits for. This overwrites the global additional_connects value.
+   */
+  unsigned int additional_connects;
+
+  /**
    * Head of the DLL with the connections which shall be established to other nodes.
    */
   struct GNUNET_TESTING_NodeConnection *node_connections_head;
@@ -257,6 +262,18 @@ GNUNET_TESTING_get_topo_from_file (const char *filename);
  */
 struct GNUNET_TESTING_NetjailTopology *
 GNUNET_TESTING_get_topo_from_string (char *data);
+
+
+/**
+ * Get the number of unintentional additional connections the node waits for.
+ *
+ * @param num The specific node we want the additional connects for.
+ * @return The number of additional connects
+ */
+unsigned int
+GNUNET_TESTING_get_additional_connects (unsigned int num,
+                                        struct GNUNET_TESTING_NetjailTopology *
+                                        topology);
 
 
 /**

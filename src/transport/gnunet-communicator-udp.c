@@ -1723,7 +1723,7 @@ try_handle_plaintext (struct SenderAddress *sender,
   uint16_t type;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "try_handle_plaintext of size %u (%u %u) and type %u\n",
+              "try_handle_plaintext of size %lu (%u %lu) and type %u\n",
               buf_size,
               ntohs (hdr->size),
               sizeof(*hdr),
@@ -2394,6 +2394,7 @@ sock_read (void *cls)
                   GNUNET_i2s (&sender));
       GNUNET_TRANSPORT_application_validate (ah, &sender, nt, addr_s);
       GNUNET_free (addr_s);
+      GNUNET_free (addr_verify);
       return;
     }
     else
@@ -2589,6 +2590,8 @@ udp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
   {
     /* try IPv4 */
     struct sockaddr_in v4;
+
+    memset (&v4, 0, sizeof(v4));
     if (1 == inet_pton (AF_INET, cp, &v4.sin_addr))
     {
       v4.sin_family = AF_INET;
@@ -2607,6 +2610,7 @@ udp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
     struct sockaddr_in6 v6;
     const char *start;
 
+    memset (&v6, 0, sizeof(v6));
     start = cp;
     if (('[' == *cp) && (']' == cp[strlen (cp) - 1]))
     {

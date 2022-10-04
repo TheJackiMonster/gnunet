@@ -107,8 +107,6 @@ handle_test (void *cls,
 {
   struct GNUNET_PeerIdentity *peer = cls;
   const struct GNUNET_TESTING_AsyncContext *ac_block;
-  const struct GNUNET_TESTING_AsyncContext *ac_start;
-  const struct GNUNET_TESTING_Command *cmd;
   const struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map;
   unsigned int connected;
   struct BlockState *bs;

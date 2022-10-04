@@ -561,6 +561,7 @@ main (int argc, char **argv)
   struct GNUNET_GETOPT_CommandLineOption options[] =
   { GNUNET_GETOPT_OPTION_END };
   int ret;
+  unsigned int sscanf_ret;
   int i;
   size_t topology_data_length = 0;
   unsigned int read_file;
@@ -575,11 +576,16 @@ main (int argc, char **argv)
   ni->m = argv[3];
   ni->n = argv[4];
 
-  sscanf (argv[5], "%u", &read_file);
+  errno = 0;
+  sscanf_ret = sscanf (argv[5], "%u", &read_file);
 
-  if (1 == read_file)
+  if (errno != 0)
+  {
+    GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "sscanf");
+  }
+  else if (1 == read_file)
     ni->topology_data = argv[6];
-  else
+  else if (0 == read_file)
   {
     for (i = 6; i<argc; i++)
       topology_data_length += strlen (argv[i]) + 1;
@@ -587,12 +593,19 @@ main (int argc, char **argv)
          "topo data length %lu\n",
          topology_data_length);
     ni->topology_data = GNUNET_malloc (topology_data_length);
+    memset (ni->topology_data, '\0', topology_data_length);
     for (i = 6; i<argc; i++)
     {
       strcat (ni->topology_data, argv[i]);
       strcat (ni->topology_data, cr);
     }
   }
+  else
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Wrong input for the fourth argument\n");
+  }
+  GNUNET_assert (0 < sscanf_ret);
   ni->read_file = &read_file;
   ni->topology_data[topology_data_length - 1] = '\0';
   LOG (GNUNET_ERROR_TYPE_DEBUG,

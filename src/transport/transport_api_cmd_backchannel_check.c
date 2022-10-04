@@ -388,6 +388,8 @@ add_search_string (struct CheckState *cs, const struct
   }
   else
     GNUNET_assert (0);
+  GNUNET_free (peer);
+  GNUNET_free (us);
 }
 
 
@@ -400,17 +402,10 @@ backchannel_check_run (void *cls,
                        struct GNUNET_TESTING_Interpreter *is)
 {
   struct CheckState *cs = cls;
-  // char *buf;
-  // char *part_one = "Delivering backchannel message from ";
-  // char *part_two = " of type 1460 to udp";
   const struct GNUNET_TESTING_Command *system_cmd;
   const struct GNUNET_TESTING_System *tl_system;
   const struct GNUNET_TESTING_Command *peer1_cmd;
   const struct GNUNET_TRANSPORT_ApplicationHandle *ah;
-  // struct GNUNET_PeerIdentity *peer;
-  // uint32_t num;
-  // struct GNUNET_TESTING_NodeConnection *pos_connection;
-  // unsigned int con_num = 0;
   struct GNUNET_CONTAINER_MultiShortmapIterator *node_it;
   struct GNUNET_CONTAINER_MultiShortmapIterator *namespace_it;
   struct GNUNET_ShortHashCode node_key;
@@ -484,40 +479,7 @@ backchannel_check_run (void *cls,
       }
     }
   }
-  /* for (pos_connection = cs->node_connections_head; NULL != pos_connection; */
-  /*      pos_connection = pos_connection->next) */
-  /* { */
 
-  /*   if (GNUNET_YES == will_the_other_node_connect_via_udp (cs, node)) */
-  /*   { */
-  /*     num = GNUNET_TESTING_calculate_num (pos_connection, cs->topology); */
-  /*     peer = GNUNET_TESTING_get_pub_key (num, tl_system); */
-  /*     LOG (GNUNET_ERROR_TYPE_DEBUG, */
-  /*          "peer: %s\n", */
-  /*          GNUNET_i2s (peer)); */
-
-  /*     if (0 < GNUNET_asprintf (&buf, */
-  /*                              "%s%s%s", */
-  /*                              part_one, */
-  /*                              GNUNET_i2s (peer), */
-  /*                              part_two)) */
-  /*     { */
-  /*       GNUNET_array_append (cs->search_string, */
-  /*                            con_num, */
-  /*                            buf); */
-  /*       /\*LOG (GNUNET_ERROR_TYPE_DEBUG, */
-  /*            "con_num: %u search: %s %p\n", */
-  /*            con_num, */
-  /*            cs->search_string[con_num - 1], */
-  /*            cs->search_string);*\/ */
-  /*     } */
-  /*     else */
-  /*       GNUNET_assert (0); */
-  /*   } */
-
-
-  /* } */
-  // cs->con_num = con_num;
   if (0 != cs->con_num)
   {
     cs->task =
@@ -526,6 +488,9 @@ backchannel_check_run (void *cls,
   }
   else
     GNUNET_TESTING_async_finish (&cs->ac);
+
+  GNUNET_free (namespace_it);
+  GNUNET_free (node_it);
 
 }
 
