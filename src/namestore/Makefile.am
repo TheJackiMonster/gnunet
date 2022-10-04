@@ -27,8 +27,6 @@ SQLITE_TESTS = test_plugin_namestore_sqlite \
  test_namestore_api_monitoring_sqlite \
  test_namestore_api_lookup_public_sqlite \
  test_namestore_api_lookup_private_sqlite \
- test_namestore_api_lookup_shadow_sqlite \
- test_namestore_api_lookup_shadow_filter_sqlite \
  test_namestore_api_remove_not_existing_record_sqlite \
  test_namestore_api_zone_iteration_nick_sqlite \
  test_namestore_api_zone_iteration_specific_zone_sqlite \
@@ -53,8 +51,6 @@ POSTGRES_TESTS = test_plugin_namestore_postgres \
  test_namestore_api_monitoring_postgres \
  test_namestore_api_lookup_public_postgres \
  test_namestore_api_lookup_private_postgres \
- test_namestore_api_lookup_shadow_postgres \
- test_namestore_api_lookup_shadow_filter_postgres \
  test_namestore_api_remove_not_existing_record_postgres \
  test_namestore_api_zone_iteration_nick_postgres \
  test_namestore_api_zone_iteration_specific_zone_postgres \
@@ -308,45 +304,6 @@ test_namestore_api_lookup_private_postgres_SOURCES = \
 test_namestore_api_lookup_private_postgres_LDADD = \
   $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
-  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/namecache/libgnunetnamecache.la \
-  libgnunetnamestore.la
-
-test_namestore_api_lookup_shadow_sqlite_SOURCES = \
- test_namestore_api_lookup_shadow.c
-test_namestore_api_lookup_shadow_sqlite_LDADD = \
-  $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
-  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/namecache/libgnunetnamecache.la \
-  libgnunetnamestore.la
-
-test_namestore_api_lookup_shadow_postgres_SOURCES = \
- test_namestore_api_lookup_shadow.c
-test_namestore_api_lookup_shadow_postgres_LDADD = \
-  $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
-  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/namecache/libgnunetnamecache.la \
-  libgnunetnamestore.la
-
-test_namestore_api_lookup_shadow_filter_sqlite_SOURCES = \
- test_namestore_api_lookup_shadow_filter.c
-test_namestore_api_lookup_shadow_filter_sqlite_LDADD = \
-  $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
-  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/namecache/libgnunetnamecache.la \
-  libgnunetnamestore.la
-test_namestore_api_lookup_shadow_filter_postgres_SOURCES = \
- test_namestore_api_lookup_shadow_filter.c
-test_namestore_api_lookup_shadow_filter_postgres_LDADD = \
-  $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/namecache/libgnunetnamecache.la \
