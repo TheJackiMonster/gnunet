@@ -188,7 +188,7 @@ put_cont (void *cls, int32_t success, const char *emsg)
               (success == GNUNET_OK) ? "SUCCESS" : "FAIL");
 
 
-  GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_MINUTES,
+  GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
                                 &lookup_block, (void *) name);
 }
 
