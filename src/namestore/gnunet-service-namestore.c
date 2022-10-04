@@ -28,7 +28,6 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_dnsparser_lib.h"
 #include "gnunet_gns_service.h"
-#include "gnunet_namecache_service.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_namestore_plugin.h"
 #include "gnunet_statistics_service.h"
@@ -253,43 +252,6 @@ struct ZoneMonitor
 };
 
 
-/**
- * Pending operation on the namecache.
- */
-struct CacheOperation
-{
-  /**
-   * Kept in a DLL.
-   */
-  struct CacheOperation *prev;
-
-  /**
-   * Kept in a DLL.
-   */
-  struct CacheOperation *next;
-
-  /**
-   * Handle to namecache queue.
-   */
-  struct GNUNET_NAMECACHE_QueueEntry *qe;
-
-  /**
-   * Client to notify about the result, can be NULL.
-   */
-  struct NamestoreClient *nc;
-
-  /**
-   * Zone iteration to call #zone_iteration_done_client_continue()
-   * for if applicable, can be NULL.
-   */
-  struct ZoneIteration *zi;
-
-  /**
-   * Client's request ID.
-   */
-  uint32_t rid;
-};
-
 
 /**
  * Information for an ongoing #handle_record_store() operation.
@@ -395,11 +357,6 @@ static const struct GNUNET_CONFIGURATION_Handle *GSN_cfg;
 static struct GNUNET_STATISTICS_Handle *statistics;
 
 /**
- * Namecache handle.
- */
-static struct GNUNET_NAMECACHE_Handle *namecache;
-
-/**
  * Name of the database plugin
  */
 static char *db_lib_name;
@@ -409,16 +366,6 @@ static char *db_lib_name;
  */
 struct GNUNET_NAMESTORE_PluginFunctions *GSN_database;
 
-
-/**
- * Head of cop DLL.
- */
-static struct CacheOperation *cop_head;
-
-/**
- * Tail of cop DLL.
- */
-static struct CacheOperation *cop_tail;
 
 /**
  * First active zone monitor.
@@ -452,13 +399,6 @@ static struct GNUNET_NotificationContext *monitor_nc;
 static int cache_keys;
 
 /**
- * Use the namecache? Doing so creates additional cryptographic
- * operations whenever we touch a record.
- */
-static int disable_namecache;
-
-
-/**
  * Task run during shutdown.
  *
  * @param cls unused
@@ -466,24 +406,8 @@ static int disable_namecache;
 static void
 cleanup_task (void *cls)
 {
-  struct CacheOperation *cop;
-
   (void) cls;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Stopping namestore service\n");
-  while (NULL != (cop = cop_head))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Aborting incomplete namecache operation\n");
-    GNUNET_NAMECACHE_cancel (cop->qe);
-    GNUNET_CONTAINER_DLL_remove (cop_head, cop_tail, cop);
-    GNUNET_free (cop);
-  }
-
-  if (NULL != namecache)
-  {
-    GNUNET_NAMECACHE_disconnect (namecache);
-    namecache = NULL;
-  }
   if (NULL != monitor_nc)
   {
     GNUNET_notification_context_destroy (monitor_nc);
@@ -958,150 +882,6 @@ zone_iteration_done_client_continue (struct ZoneIteration *zi)
 }
 
 
-/**
- * Cache operation complete, clean up.
- *
- * @param cls the `struct CacheOperation`
- * @param success success
- * @param emsg error messages
- */
-static void
-finish_cache_operation (void *cls, int32_t success, const char *emsg)
-{
-  struct CacheOperation *cop = cls;
-  struct ZoneIteration *zi;
-
-  if (NULL != emsg)
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                _ ("Failed to replicate block in namecache: %s\n"),
-                emsg);
-  else
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "CACHE operation completed\n");
-  GNUNET_CONTAINER_DLL_remove (cop_head, cop_tail, cop);
-  if (NULL != cop->nc)
-    send_store_response (cop->nc, success, emsg, cop->rid);
-  if (NULL != (zi = cop->zi))
-  {
-    zi->cache_ops--;
-    if (0 == zi->cache_ops)
-    {
-      /* unchoke zone iteration, cache has caught up */
-      zone_iteration_done_client_continue (zi);
-    }
-  }
-  GNUNET_free (cop);
-}
-
-
-/**
- * We just touched the plaintext information about a name in our zone;
- * refresh the corresponding (encrypted) block in the namecache.
- *
- * @param nc client responsible for the request, can be NULL
- * @param zi zone iteration response for the request, can be NULL
- * @param rid request ID of the client
- * @param zone_key private key of the zone
- * @param name label for the records
- * @param rd_count number of records
- * @param rd records stored under the given @a name
- */
-static void
-refresh_block (struct NamestoreClient *nc,
-               struct ZoneIteration *zi,
-               uint32_t rid,
-               const struct GNUNET_IDENTITY_PrivateKey *zone_key,
-               const char *name,
-               unsigned int rd_count,
-               const struct GNUNET_GNSRECORD_Data *rd)
-{
-  struct GNUNET_GNSRECORD_Block *block;
-  struct GNUNET_GNSRECORD_Data rd_clean[rd_count];
-  struct CacheOperation *cop;
-  struct GNUNET_IDENTITY_PublicKey pkey;
-  struct GNUNET_GNSRECORD_Data *nick;
-  struct GNUNET_GNSRECORD_Data *res;
-  unsigned int res_count;
-  unsigned int rd_count_clean;
-  struct GNUNET_TIME_Absolute exp_time;
-
-  /** Do not block-cache tombstones */
-  rd_count_clean = 0;
-  for (int i = 0; i < rd_count; i++)
-  {
-    if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[i].record_type)
-      continue;
-    rd_clean[rd_count_clean++] = rd[i];
-  }
-
-  nick = get_nick_record (zone_key);
-  res_count = rd_count_clean;
-  res = (struct GNUNET_GNSRECORD_Data *) rd_clean;  /* fixme: a bit unclean... */
-  if ((NULL != nick) && (0 != strcmp (name, GNUNET_GNS_EMPTY_LABEL_AT)))
-  {
-    nick->flags =
-      (nick->flags | GNUNET_GNSRECORD_RF_PRIVATE) ^ GNUNET_GNSRECORD_RF_PRIVATE;
-    merge_with_nick_records (nick, rd_count_clean, rd_clean, &res_count, &res);
-  }
-  if (NULL != nick)
-    GNUNET_free (nick);
-  if (0 == res_count)
-  {
-    if (NULL != nc)
-      send_store_response (nc, GNUNET_OK, NULL, rid);
-    if (rd_clean != res)
-      GNUNET_free (res);
-    return;   /* no data, no need to update cache */
-  }
-  if (GNUNET_YES == disable_namecache)
-  {
-    GNUNET_STATISTICS_update (statistics,
-                              "Namecache updates skipped (NC disabled)",
-                              1,
-                              GNUNET_NO);
-    if (NULL != nc)
-      send_store_response (nc, GNUNET_OK, NULL, rid);
-    if (rd_clean != res)
-      GNUNET_free (res);
-    return;
-  }
-  exp_time = GNUNET_GNSRECORD_record_get_expiration_time (res_count, res,
-                                                          GNUNET_TIME_UNIT_ZERO_ABS);
-  if (cache_keys)
-    GNUNET_assert (GNUNET_OK ==
-                   GNUNET_GNSRECORD_block_create2 (zone_key, exp_time, name,
-                                                   res, res_count, &block));
-  else
-    GNUNET_assert (GNUNET_OK ==
-                   GNUNET_GNSRECORD_block_create (zone_key, exp_time, name,
-                                                  res, res_count, &block));
-  GNUNET_assert (NULL != block);
-  GNUNET_IDENTITY_key_get_public (zone_key, &pkey);
-  GNUNET_log (
-    GNUNET_ERROR_TYPE_DEBUG,
-    "Caching block for label `%s' with %u records and expiration %s in zone `%s' in namecache\n",
-    name,
-    res_count,
-    GNUNET_STRINGS_absolute_time_to_string (exp_time),
-    GNUNET_GNSRECORD_z2s (&pkey));
-  GNUNET_STATISTICS_update (statistics,
-                            "Namecache updates pushed",
-                            1,
-                            GNUNET_NO);
-  cop = GNUNET_new (struct CacheOperation);
-  cop->nc = nc;
-  cop->zi = zi;
-  if (NULL != zi)
-    zi->cache_ops++;
-  cop->rid = rid;
-  GNUNET_CONTAINER_DLL_insert (cop_head, cop_tail, cop);
-  cop->qe = GNUNET_NAMECACHE_block_cache (namecache,
-                                          block,
-                                          &finish_cache_operation,
-                                          cop);
-  GNUNET_free (block);
-  if (rd_clean != res)
-    GNUNET_free (res);
-}
 
 
 /**
@@ -1173,6 +953,9 @@ continue_store_activity (struct StoreActivity *sa,
         GNUNET_GNSRECORD_records_deserialize (rd_ser_len, rd_ser, rd_count,
                                               rd));
 
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Checking monitors watching for `%s'\n",
+                  conv_name);
       for (struct ZoneMonitor *zm = sa->zm_pos; NULL != zm; zm = sa->zm_pos)
       {
         if ((0 != GNUNET_memcmp (&sa->private_key, &zm->zone)) &&
@@ -1191,8 +974,11 @@ continue_store_activity (struct StoreActivity *sa,
             GNUNET_SCHEDULER_add_delayed (MONITOR_STALL_WARN_DELAY,
                                           &warn_monitor_slow,
                                           zm);
+          GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                      "Monitor is blocking client for `%s'\n",
+                      conv_name);
           GNUNET_free (conv_name);
-          return GNUNET_NO;   /* blocked on zone monitor */
+          return GNUNET_NO;    /* blocked on zone monitor */
         }
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                     "Notifying monitor about changes under label `%s'\n",
@@ -1207,20 +993,13 @@ continue_store_activity (struct StoreActivity *sa,
                                           zm->filter);
         sa->zm_pos = zm->next;
       }
-      /* great, done with the monitors, unpack (again) for refresh_block operation */
       sa->rd_set_pos++;
-      refresh_block ((sa->rd_set_pos == sa->rd_set_count) ? sa->nc : NULL,
-                     NULL,
-                     sa->rid,
-                     &sa->private_key,
-                     conv_name,
-                     rd_count,
-                     rd);
       GNUNET_free (conv_name);
     }
   }
   if (GNUNET_YES == call_continue)
     GNUNET_SERVICE_client_continue (sa->nc->client);
+  send_store_response (sa->nc, GNUNET_YES, NULL, sa->rid);
   free_store_activity (sa);
   return GNUNET_OK;
 }
@@ -1241,7 +1020,6 @@ client_disconnect_cb (void *cls,
 {
   struct NamestoreClient *nc = app_ctx;
   struct ZoneIteration *no;
-  struct CacheOperation *cop;
   struct StoreActivity *sa;
   struct StoreActivity *sn;
   char *emsg;
@@ -1319,9 +1097,6 @@ client_disconnect_cb (void *cls,
     GNUNET_CONTAINER_DLL_remove (nc->op_head, nc->op_tail, no);
     GNUNET_free (no);
   }
-  for (cop = cop_head; NULL != cop; cop = cop->next)
-    if (nc == cop->nc)
-      cop->nc = NULL;
   GNUNET_break (NULL == GNUNET_PLUGIN_unload (nc->db_lib_name,
                                               nc->GSN_database));
   GNUNET_free (nc->db_lib_name);
@@ -2212,7 +1987,6 @@ zone_iterate_proc (void *cls,
                    const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct ZoneIterationProcResult *proc = cls;
-  int do_refresh_block;
 
   GNUNET_assert (0 != seq);
   if ((NULL == zone_key) && (NULL == name))
@@ -2241,17 +2015,6 @@ zone_iterate_proc (void *cls,
                                     rd_count,
                                     rd,
                                     proc->zi->filter);
-
-
-  do_refresh_block = GNUNET_NO;
-  for (unsigned int i = 0; i < rd_count; i++)
-    if (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION))
-    {
-      do_refresh_block = GNUNET_YES;
-      break;
-    }
-  if (GNUNET_YES == do_refresh_block)
-    refresh_block (NULL, proc->zi, 0, zone_key, name, rd_count, rd);
 }
 
 
@@ -2410,6 +2173,8 @@ monitor_unblock (struct ZoneMonitor *zm)
   struct StoreActivity *sa = sa_head;
   int blocked = GNUNET_NO;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Unblocking zone monitor %p\n", zm);
   while ((NULL != sa) && (zm->limit > zm->iteration_cnt))
   {
     struct StoreActivity *sn = sa->next;
@@ -2450,6 +2215,8 @@ monitor_sync (struct ZoneMonitor *zm)
 {
   struct GNUNET_MQ_Envelope *env;
   struct GNUNET_MessageHeader *sync;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Synching zone monitor %p\n", zm);
 
   env = GNUNET_MQ_msg (sync, GNUNET_MESSAGE_TYPE_NAMESTORE_MONITOR_SYNC);
   GNUNET_MQ_send (zm->nc->mq, env);
@@ -2658,15 +2425,8 @@ run (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Starting namestore service\n");
   cache_keys =
     GNUNET_CONFIGURATION_get_value_yesno (cfg, "namestore", "CACHE_KEYS");
-  disable_namecache =
-    GNUNET_CONFIGURATION_get_value_yesno (cfg, "namecache", "DISABLE");
   GSN_cfg = cfg;
   monitor_nc = GNUNET_notification_context_create (1);
-  if (GNUNET_YES != disable_namecache)
-  {
-    namecache = GNUNET_NAMECACHE_connect (cfg);
-    GNUNET_assert (NULL != namecache);
-  }
   statistics = GNUNET_STATISTICS_create ("namestore", cfg);
   /* Loading database plugin */
   if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_string (cfg,

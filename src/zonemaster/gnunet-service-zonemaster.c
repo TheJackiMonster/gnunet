@@ -28,6 +28,7 @@
 #include "gnunet_dnsparser_lib.h"
 #include "gnunet_dht_service.h"
 #include "gnunet_namestore_service.h"
+#include "gnunet_namecache_service.h"
 #include "gnunet_statistics_service.h"
 
 #define LOG_STRERROR_FILE(kind, syscall, \
@@ -115,6 +116,28 @@ struct DhtPutActivity
   struct GNUNET_TIME_Absolute start_date;
 };
 
+/**
+ * Pending operation on the namecache.
+ */
+struct CacheOperation
+{
+  /**
+   * Kept in a DLL.
+   */
+  struct CacheOperation *prev;
+
+  /**
+   * Kept in a DLL.
+   */
+  struct CacheOperation *next;
+
+  /**
+   * Handle to namecache queue.
+   */
+  struct GNUNET_NAMECACHE_QueueEntry *qe;
+
+};
+
 
 /**
  * Handle to the statistics service
@@ -130,6 +153,17 @@ static struct GNUNET_DHT_Handle *dht_handle;
  * Our handle to the namestore service
  */
 static struct GNUNET_NAMESTORE_Handle *namestore_handle;
+
+/**
+ * Our handle to the namecache service
+ */
+static struct GNUNET_NAMECACHE_Handle *namecache;
+
+/**
+ * Use the namecache? Doing so creates additional cryptographic
+ * operations whenever we touch a record.
+ */
+static int disable_namecache;
 
 /**
  * Handle to iterate over our authoritative zone in namestore
@@ -235,6 +269,16 @@ static int first_zone_iteration;
  */
 static int cache_keys;
 
+/**
+ * Head of cop DLL.
+ */
+static struct CacheOperation *cop_head;
+
+/**
+ * Tail of cop DLL.
+ */
+static struct CacheOperation *cop_tail;
+
 
 /**
  * Task run during shutdown.
@@ -246,10 +290,20 @@ static void
 shutdown_task (void *cls)
 {
   struct DhtPutActivity *ma;
+  struct CacheOperation *cop;
 
   (void) cls;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Shutting down!\n");
+  while (NULL != (cop = cop_head))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Aborting incomplete namecache operation\n");
+    GNUNET_NAMECACHE_cancel (cop->qe);
+    GNUNET_CONTAINER_DLL_remove (cop_head, cop_tail, cop);
+    GNUNET_free (cop);
+  }
+
   while (NULL != (ma = it_head))
   {
     GNUNET_DHT_put_cancel (ma->ph);
@@ -281,12 +335,77 @@ shutdown_task (void *cls)
     GNUNET_NAMESTORE_disconnect (namestore_handle);
     namestore_handle = NULL;
   }
-  if (NULL != dht_handle)
+  if (NULL != namecache)
+  {
+    GNUNET_NAMECACHE_disconnect (namecache);
+    namecache = NULL;
+  }
+if (NULL != dht_handle)
   {
     GNUNET_DHT_disconnect (dht_handle);
     dht_handle = NULL;
   }
 }
+
+/**
+ * Cache operation complete, clean up.
+ *
+ * @param cls the `struct CacheOperation`
+ * @param success success
+ * @param emsg error messages
+ */
+static void
+finish_cache_operation (void *cls, int32_t success, const char *emsg)
+{
+  struct CacheOperation *cop = cls;
+
+  if (NULL != emsg)
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                _ ("Failed to replicate block in namecache: %s\n"),
+                emsg);
+  else
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "CACHE operation completed\n");
+  GNUNET_CONTAINER_DLL_remove (cop_head, cop_tail, cop);
+  GNUNET_free (cop);
+}
+
+
+/**
+ * Refresh the (encrypted) block in the namecache.
+ *
+ * @param zone_key private key of the zone
+ * @param name label for the records
+ * @param rd_count number of records
+ * @param rd records stored under the given @a name
+ */
+static void
+refresh_block (const struct GNUNET_GNSRECORD_Block *block)
+{
+  struct CacheOperation *cop;
+  struct GNUNET_TIME_Absolute exp_time;
+
+  if (GNUNET_YES == disable_namecache)
+  {
+    GNUNET_STATISTICS_update (statistics,
+                              "Namecache updates skipped (NC disabled)",
+                              1,
+                              GNUNET_NO);
+    return;
+  }
+  GNUNET_assert (NULL != block);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Caching block in namecache\n");
+  GNUNET_STATISTICS_update (statistics,
+                            "Namecache updates pushed",
+                            1,
+                            GNUNET_NO);
+  cop = GNUNET_new (struct CacheOperation);
+  GNUNET_CONTAINER_DLL_insert (cop_head, cop_tail, cop);
+  cop->qe = GNUNET_NAMECACHE_block_cache (namecache,
+                                          block,
+                                          &finish_cache_operation,
+                                          cop);
+}
+
 
 
 /**
@@ -539,35 +658,68 @@ dht_put_continuation (void *cls)
 static struct GNUNET_DHT_PutHandle *
 perform_dht_put (const struct GNUNET_IDENTITY_PrivateKey *key,
                  const char *label,
-                 const struct GNUNET_GNSRECORD_Data *rd_public,
-                 unsigned int rd_public_count,
+                 const struct GNUNET_GNSRECORD_Data *rd,
+                 unsigned int rd_count,
                  const struct GNUNET_TIME_Absolute expire,
                  struct DhtPutActivity *ma)
 {
+  struct GNUNET_GNSRECORD_Data rd_public[rd_count];
   struct GNUNET_GNSRECORD_Block *block;
+  struct GNUNET_GNSRECORD_Block *block_priv;
   struct GNUNET_HashCode query;
+  struct GNUNET_TIME_Absolute expire_priv;
   size_t block_size;
+  unsigned int rd_public_count = 0;
   struct GNUNET_DHT_PutHandle *ret;
+  char *emsg;
+
+  if (GNUNET_OK !=
+      GNUNET_GNSRECORD_normalize_record_set (label,
+                                             rd,
+                                             rd_count,
+                                             rd_public,
+                                             &rd_public_count,
+                                             &expire_priv,
+                                             GNUNET_GNSRECORD_FILTER_OMIT_PRIVATE,
+                                             &emsg))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "%s\n", emsg);
+    GNUNET_free (emsg);
+  }
 
   if (cache_keys)
+  {
     GNUNET_assert (GNUNET_OK == GNUNET_GNSRECORD_block_create2 (key,
                                                                 expire,
                                                                 label,
                                                                 rd_public,
                                                                 rd_public_count,
                                                                 &block));
+  }
   else
-    GNUNET_assert (GNUNET_OK ==  GNUNET_GNSRECORD_block_create (key,
-                                                                expire,
-                                                                label,
-                                                                rd_public,
-                                                                rd_public_count,
-                                                                &block));
+  {
+    GNUNET_assert (GNUNET_OK == GNUNET_GNSRECORD_block_create (key,
+                                                               expire,
+                                                               label,
+                                                               rd_public,
+                                                               rd_public_count,
+                                                               &block));
+  }
   if (NULL == block)
   {
     GNUNET_break (0);
     return NULL;   /* whoops */
   }
+  if (rd_count != rd_public_count)
+    GNUNET_assert (GNUNET_OK ==  GNUNET_GNSRECORD_block_create (key,
+                                                                expire_priv,
+                                                                label,
+                                                                rd,
+                                                                rd_count,
+                                                                &block_priv));
+  else
+    block_priv = block;
   block_size = GNUNET_GNSRECORD_block_get_size (block);
   GNUNET_GNSRECORD_query_from_private_key (key,
                                            label,
@@ -593,6 +745,9 @@ perform_dht_put (const struct GNUNET_IDENTITY_PrivateKey *key,
                         expire,
                         &dht_put_continuation,
                         ma);
+  refresh_block (block_priv);
+  if (block != block_priv)
+    GNUNET_free (block_priv);
   GNUNET_free (block);
   return ret;
 }
@@ -783,7 +938,7 @@ publish_zone_dht_start (void *cls)
                                               NULL,
                                               &zone_iteration_finished,
                                               NULL,
-                                              GNUNET_GNSRECORD_FILTER_OMIT_PRIVATE);
+                                              GNUNET_GNSRECORD_FILTER_NONE);
   GNUNET_assert (NULL != namestore_iter);
 }
 
@@ -815,6 +970,20 @@ run (void *cls,
                 _ ("Failed to connect to the namestore!\n"));
     GNUNET_SCHEDULER_shutdown ();
     return;
+  }
+  disable_namecache = GNUNET_CONFIGURATION_get_value_yesno (c,
+                                                            "namecache",
+                                                            "DISABLE");
+  if (GNUNET_NO == disable_namecache)
+  {
+    namecache = GNUNET_NAMECACHE_connect (c);
+    if (NULL == namecache)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  _ ("Failed to connect to the namecache!\n"));
+      GNUNET_SCHEDULER_shutdown ();
+      return;
+    }
   }
   cache_keys = GNUNET_CONFIGURATION_get_value_yesno (c,
                                                      "namestore",

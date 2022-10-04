@@ -150,20 +150,35 @@ name_lookup_proc (void *cls,
   }
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Namestore returned block, decrypting \n");
+              "Namecache returned block, decrypting \n");
   GNUNET_assert (GNUNET_OK == GNUNET_GNSRECORD_block_decrypt (block,
                                                               &pubkey, name,
                                                               &rd_decrypt_cb,
                                                               (void *) name));
 }
 
+static void
+lookup_block (void *cls)
+{
+  const char *name = cls;
+  struct GNUNET_HashCode derived_hash;
+  struct GNUNET_IDENTITY_PublicKey pubkey;
+
+  /* Create derived hash */
+  GNUNET_IDENTITY_key_get_public (&privkey,
+                                  &pubkey);
+  GNUNET_GNSRECORD_query_from_public_key (&pubkey, name, &derived_hash);
+
+  ncqe = GNUNET_NAMECACHE_lookup_block (nch, &derived_hash,
+                                        &name_lookup_proc, cls);
+}
+
+
 
 static void
 put_cont (void *cls, int32_t success, const char *emsg)
 {
   const char *name = cls;
-  struct GNUNET_HashCode derived_hash;
-  struct GNUNET_IDENTITY_PublicKey pubkey;
 
   nsqe = NULL;
   GNUNET_assert (NULL != cls);
@@ -172,13 +187,9 @@ put_cont (void *cls, int32_t success, const char *emsg)
               name,
               (success == GNUNET_OK) ? "SUCCESS" : "FAIL");
 
-  /* Create derived hash */
-  GNUNET_IDENTITY_key_get_public (&privkey,
-                                  &pubkey);
-  GNUNET_GNSRECORD_query_from_public_key (&pubkey, name, &derived_hash);
 
-  ncqe = GNUNET_NAMECACHE_lookup_block (nch, &derived_hash,
-                                        &name_lookup_proc, (void *) name);
+  GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_MINUTES,
+                                &lookup_block, (void *) name);
 }
 
 
