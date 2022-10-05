@@ -22,10 +22,12 @@
  * @file reclaim/oidc_helper.c
  * @brief helper library for OIDC related functions
  * @author Martin Schanzenbach
+ * @author Tristan Schwieren
  */
 #include "platform.h"
 #include <inttypes.h>
 #include <jansson.h>
+#include <jose/jose.h>
 #include "gnunet_util_lib.h"
 #include "gnunet_reclaim_lib.h"
 #include "gnunet_reclaim_service.h"
@@ -115,13 +117,13 @@ is_claim_in_address_scope (const char *claim)
 
 
 static char *
-create_jwt_header (void)
+create_jwt_hmac_header (void)
 {
   json_t *root;
   char *json_str;
 
   root = json_object ();
-  json_object_set_new (root, JWT_ALG, json_string (JWT_ALG_VALUE));
+  json_object_set_new (root, JWT_ALG, json_string (JWT_ALG_VALUE_HMAC));
   json_object_set_new (root, JWT_TYP, json_string (JWT_TYP_VALUE));
 
   json_str = json_dumps (root, JSON_INDENT (0) | JSON_COMPACT);
@@ -356,40 +358,22 @@ OIDC_generate_userinfo (const struct GNUNET_IDENTITY_PublicKey *sub_key,
 }
 
 
-/**
- * Create a JWT from attributes
- *
- * @param aud_key the public of the audience
- * @param sub_key the public key of the subject
- * @param attrs the attribute list
- * @param presentations credential presentation list (may be empty)
- * @param expiration_time the validity of the token
- * @param secret_key the key used to sign the JWT
- * @return a new base64-encoded JWT string.
- */
 char *
-OIDC_generate_id_token (const struct GNUNET_IDENTITY_PublicKey *aud_key,
+generate_id_token_body (const struct GNUNET_IDENTITY_PublicKey *aud_key,
                         const struct GNUNET_IDENTITY_PublicKey *sub_key,
                         const struct GNUNET_RECLAIM_AttributeList *attrs,
                         const struct
                         GNUNET_RECLAIM_PresentationList *presentations,
                         const struct GNUNET_TIME_Relative *expiration_time,
-                        const char *nonce,
-                        const char *secret_key)
+                        const char *nonce)
 {
   struct GNUNET_HashCode signature;
   struct GNUNET_TIME_Absolute exp_time;
   struct GNUNET_TIME_Absolute time_now;
+  json_t *body;
   char *audience;
   char *subject;
-  char *header;
   char *body_str;
-  char *result;
-  char *header_base64;
-  char *body_base64;
-  char *signature_target;
-  char *signature_base64;
-  json_t *body;
 
   body = generate_userinfo_json (sub_key,
                                  attrs,
@@ -409,7 +393,6 @@ OIDC_generate_id_token (const struct GNUNET_IDENTITY_PublicKey *aud_key,
     GNUNET_STRINGS_data_to_string_alloc (aud_key,
                                          sizeof(struct
                                                 GNUNET_IDENTITY_PublicKey));
-  header = create_jwt_header ();
 
   // aud REQUIRED public key client_id must be there
   json_object_set_new (body, "aud", json_string (audience));
@@ -429,18 +412,142 @@ OIDC_generate_id_token (const struct GNUNET_IDENTITY_PublicKey *aud_key,
   if (NULL != nonce)
     json_object_set_new (body, "nonce", json_string (nonce));
 
-  body_str = json_dumps (body, JSON_INDENT (0) | JSON_COMPACT);
-  json_decref (body);
+  // Error checking
+  body_str = json_dumps (body, JSON_INDENT (2) | JSON_COMPACT);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,"ID-Token: %s\n", body_str);
 
+  json_decref (body);
+  GNUNET_free (subject);
+  GNUNET_free (audience);
+
+  return body_str;
+}
+
+
+/**
+ * Create a JWT using RSA256 algorithm from attributes
+ *
+ * @param aud_key the public of the audience
+ * @param sub_key the public key of the subject
+ * @param attrs the attribute list
+ * @param presentations credential presentation list (may be empty)
+ * @param expiration_time the validity of the token
+ * @param secret_rsa_key the key used to sign the JWT
+ * @return a new base64-encoded JWT string.
+ */
+char *
+OIDC_generate_id_token_rsa (const struct GNUNET_IDENTITY_PublicKey *aud_key,
+                            const struct GNUNET_IDENTITY_PublicKey *sub_key,
+                            const struct GNUNET_RECLAIM_AttributeList *attrs,
+                            const struct
+                            GNUNET_RECLAIM_PresentationList *presentations,
+                            const struct GNUNET_TIME_Relative *expiration_time,
+                            const char *nonce,
+                            const json_t *secret_rsa_key)
+{
+  json_t *jws;
+  char *body_str;
+  char *result;
+
+  // Generate the body of the JSON Web Signature
+  body_str = generate_id_token_body (aud_key,
+                                     sub_key,
+                                     attrs,
+                                     presentations,
+                                     expiration_time,
+                                     nonce);
+
+  if (NULL == body_str)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Body for the JWS could not be generated\n");
+    return NULL;
+  }
+
+  // Creating the JSON Web Signature.
+  jws = json_pack ("{s:o}", "payload",
+                   jose_b64_enc (body_str, strlen (body_str)));
+  GNUNET_free (body_str);
+
+  if (! jose_jws_sig (NULL, jws, NULL, secret_rsa_key))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Signature generation failed\n");
+    return NULL;
+  }
+
+  // Encoding JSON as compact JSON Web Signature
+  GNUNET_asprintf (&result, "%s.%s.%s",
+                   json_string_value (json_object_get (jws, "protected")),
+                   json_string_value (json_object_get (jws, "payload")),
+                   json_string_value (json_object_get (jws, "signature")) );
+
+  json_decref (jws);
+  return result;
+}
+
+/**
+ * Create a JWT using HMAC (HS256) from attributes
+ *
+ * @param aud_key the public of the audience
+ * @param sub_key the public key of the subject
+ * @param attrs the attribute list
+ * @param presentations credential presentation list (may be empty)
+ * @param expiration_time the validity of the token
+ * @param secret_key the key used to sign the JWT
+ * @return a new base64-encoded JWT string.
+ */
+char *
+OIDC_generate_id_token_hmac (const struct GNUNET_IDENTITY_PublicKey *aud_key,
+                             const struct GNUNET_IDENTITY_PublicKey *sub_key,
+                             const struct GNUNET_RECLAIM_AttributeList *attrs,
+                             const struct
+                             GNUNET_RECLAIM_PresentationList *presentations,
+                             const struct GNUNET_TIME_Relative *expiration_time,
+                             const char *nonce,
+                             const char *secret_key)
+{
+  struct GNUNET_HashCode signature;
+  struct GNUNET_TIME_Absolute exp_time;
+  struct GNUNET_TIME_Absolute time_now;
+  char *header;
+  char *header_base64;
+  char *body_str;
+  char *body_base64;
+  char *signature_target;
+  char *signature_base64;
+  char *result;
+
+  // Generate and encode Header
+  header = create_jwt_hmac_header ();
+  if (NULL == header)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Header for the JWS could not be generated\n");
+    return NULL;
+  }
   GNUNET_STRINGS_base64url_encode (header, strlen (header), &header_base64);
+  GNUNET_free (header);
   fix_base64 (header_base64);
+
+  // Generate and encode the body of the JSON Web Signature
+  body_str = generate_id_token_body (aud_key,
+                                     sub_key,
+                                     attrs,
+                                     presentations,
+                                     expiration_time,
+                                     nonce);
+
+  if (NULL == body_str)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Body for the JWS could not be generated\n");
+    GNUNET_free (header_base64);
+    return NULL;
+  }
 
   GNUNET_STRINGS_base64url_encode (body_str, strlen (body_str), &body_base64);
   fix_base64 (body_base64);
-
-  GNUNET_free (subject);
-  GNUNET_free (audience);
 
   /**
    * Creating the JWT signature. This might not be
@@ -463,12 +570,11 @@ OIDC_generate_id_token (const struct GNUNET_IDENTITY_PublicKey *aud_key,
                    body_base64,
                    signature_base64);
 
-  GNUNET_free (signature_target);
-  GNUNET_free (header);
-  GNUNET_free (body_str);
-  GNUNET_free (signature_base64);
-  GNUNET_free (body_base64);
   GNUNET_free (header_base64);
+  GNUNET_free (body_str);
+  GNUNET_free (body_base64);
+  GNUNET_free (signature_target);
+  GNUNET_free (signature_base64);
   return result;
 }
 

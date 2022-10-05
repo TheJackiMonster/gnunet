@@ -196,17 +196,6 @@ find_exact_address (const struct GNUNET_PeerIdentity *peer,
 }
 
 
-/**
- * Add a new address for a peer.
- *
- * @param peer peer
- * @param plugin_name transport plugin name
- * @param plugin_addr plugin address
- * @param plugin_addr_len length of the plugin address in @a plugin_addr
- * @param local_address_info the local address for the address
- * @param session_id session id, can be 0
- * @param prop performance information for this address
- */
 void
 GAS_addresses_add (const struct GNUNET_PeerIdentity *peer,
                    const char *plugin_name,
@@ -265,13 +254,6 @@ GAS_addresses_add (const struct GNUNET_PeerIdentity *peer,
 }
 
 
-/**
- * Update an address with new performance information for a peer.
- *
- * @param peer peer
- * @param session_id session id, never 0
- * @param prop performance information for this address
- */
 void
 GAS_addresses_update (const struct GNUNET_PeerIdentity *peer,
                       uint32_t session_id,
@@ -465,13 +447,6 @@ peerinfo_it (void *cls,
 }
 
 
-/**
- * Return information all peers currently known to ATS
- *
- * @param peer the respective peer, NULL for 'all' peers
- * @param pi_it the iterator to call for every peer
- * @param pi_it_cls the closure for @a pi_it
- */
 void
 GAS_addresses_get_peer_info (const struct GNUNET_PeerIdentity *peer,
                              GNUNET_ATS_PeerInfo_Iterator pi_it,
@@ -665,12 +640,6 @@ req_addr_peerinfo_it (void *cls,
 }
 
 
-/**
- * Handle 'address list request' messages from clients.
- *
- * @param cls client that sent the request
- * @param alrm the request message
- */
 void
 GAS_handle_request_address_list (struct GNUNET_SERVICE_Client *client,
                                  const struct AddressListRequestMessage *alrm)

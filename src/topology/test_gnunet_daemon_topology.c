@@ -289,7 +289,9 @@ main (int argc, char *argv[])
                                   NUM_PEERS,
                                   0, NULL, NULL,
                                   &do_connect, NULL);
-  GNUNET_DISK_directory_remove ("/tmp/test-gnunet-topology");
+  GNUNET_DISK_purge_cfg_dir 
+    ("test_gnunet_daemon_topology_data.conf", 
+     "GNUNET_TEST_HOME");
 
   return (GNUNET_OK != result) ? 1 : 0;
 }

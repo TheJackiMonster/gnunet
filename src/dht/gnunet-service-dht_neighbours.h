@@ -54,15 +54,13 @@ GDS_NEIGHBOURS_lookup_peer (const struct GNUNET_PeerIdentity *target);
  * network).
  *
  * @param bd data about the block
- * @param options routing options
  * @param desired_replication_level desired replication level
  * @param hop_count how many hops has this message traversed so far
  * @param bf Bloom filter of peers this PUT has already traversed
  * @return #GNUNET_OK if the request was forwarded, #GNUNET_NO if not
  */
 enum GNUNET_GenericReturnValue
-GDS_NEIGHBOURS_handle_put (const struct GDS_DATACACHE_BlockData *bd,
-                           enum GNUNET_DHT_RouteOption options,
+GDS_NEIGHBOURS_handle_put (const struct GNUNET_DATACACHE_Block *bd,
                            uint16_t desired_replication_level,
                            uint16_t hop_count,
                            struct GNUNET_CONTAINER_BloomFilter *bf);
@@ -112,7 +110,7 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
  */
 bool
 GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
-                             const struct GDS_DATACACHE_BlockData *bd,
+                             const struct GNUNET_DATACACHE_Block *bd,
                              const struct GNUNET_HashCode *query_hash,
                              unsigned int get_path_length,
                              const struct GNUNET_DHT_PathElement *get_path);

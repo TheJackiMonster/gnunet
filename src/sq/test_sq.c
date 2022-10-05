@@ -138,6 +138,7 @@ run_queries (sqlite3 *dbh)
       GNUNET_CRYPTO_rsa_public_key_free (pub);
       return 1;
     }
+    sqlite3_reset (stmt);
   }
   sqlite3_finalize (stmt);
 
@@ -209,6 +210,7 @@ run_queries (sqlite3 *dbh)
     GNUNET_break (32 == u322);
     GNUNET_break (64 == u642);
     GNUNET_SQ_cleanup_result (results_select);
+    sqlite3_reset (stmt);
   }
   sqlite3_finalize (stmt);
 

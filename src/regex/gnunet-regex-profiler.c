@@ -321,7 +321,9 @@ static struct GNUNET_TIME_Relative reannounce_period_max;
 /******************************************************************************/
 
 /**
- * DHT connect callback.
+ * DHT connect callback. Called when we are connected to the dht service for
+ * the peer in 'cls'. If successful we connect to the stats service of this
+ * peer and then try to match the search string of this peer.
  *
  * @param cls internal peer id.
  * @param op operation handle.
@@ -333,10 +335,10 @@ dht_connect_cb (void *cls, struct GNUNET_TESTBED_Operation *op,
                 void *ca_result, const char *emsg);
 
 /**
- * DHT connect adapter.
+ * DHT connect adapter. Opens a connection to the DHT service.
  *
- * @param cls not used.
- * @param cfg configuration handle.
+ * @param cls Closure (peer).
+ * @param cfg Configuration handle.
  *
  * @return
  */
@@ -346,10 +348,10 @@ dht_ca (void *cls, const struct GNUNET_CONFIGURATION_Handle *cfg);
 
 /**
  * Adapter function called to destroy a connection to
- * the DHT service
+ * the DHT service.
  *
- * @param cls closure
- * @param op_result service handle returned from the connect adapter
+ * @param cls Closure
+ * @param op_result Service handle returned from the connect adapter.
  */
 static void
 dht_da (void *cls, void *op_result);
@@ -1023,16 +1025,6 @@ announce_next_regex (void *cls)
 }
 
 
-/**
- * DHT connect callback. Called when we are connected to the dht service for
- * the peer in 'cls'. If successful we connect to the stats service of this
- * peer and then try to match the search string of this peer.
- *
- * @param cls internal peer id.
- * @param op operation handle.
- * @param ca_result connect adapter result.
- * @param emsg error message.
- */
 static void
 dht_connect_cb (void *cls,
                 struct GNUNET_TESTBED_Operation *op,
@@ -1060,14 +1052,6 @@ dht_connect_cb (void *cls,
 }
 
 
-/**
- * DHT connect adapter. Opens a connection to the dht service.
- *
- * @param cls Closure (peer).
- * @param cfg Configuration handle.
- *
- * @return
- */
 static void *
 dht_ca (void *cls, const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
@@ -1079,12 +1063,6 @@ dht_ca (void *cls, const struct GNUNET_CONFIGURATION_Handle *cfg)
 }
 
 
-/**
- * Adapter function called to destroy a connection to the dht service.
- *
- * @param cls Closure (peer).
- * @param op_result Service handle returned from the connect adapter.
- */
 static void
 dht_da (void *cls, void *op_result)
 {

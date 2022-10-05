@@ -139,14 +139,6 @@ struct RouteDirection
 };
 
 
-/**
- * Description of a segment of a `struct CadetConnection` at the
- * intermediate peers.  Routes are basically entries in a peer's
- * routing table for forwarding traffic.  At both endpoints, the
- * routes are terminated by a `struct CadetConnection`, which knows
- * the complete `struct CadetPath` that is formed by the individual
- * routes.
- */
 struct CadetRoute
 {
   /**
@@ -1321,9 +1313,6 @@ GCO_init (const struct GNUNET_CONFIGURATION_Handle *c)
 }
 
 
-/**
- * Shut down the CORE subsystem.
- */
 void
 GCO_shutdown ()
 {

@@ -13,11 +13,6 @@ if DOCUMENTATION
   SUBDIRS += doc
 endif
 
-# only manpages, needs "doc" subdir
-if INCLUDE_MANPAGES
-  SUBDIRS += doc
-endif
-
 SUBDIRS += contrib
 
 EXTRA_DIST = \

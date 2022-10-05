@@ -43,7 +43,6 @@
  *
  * @param ctx block context in which the block group is created
  * @param type type of the block for which we are creating the group
- * @param nonce random value used to seed the group creation
  * @param raw_data optional serialized prior state of the group, NULL if unavailable/fresh
  * @param raw_data_size number of bytes in @a raw_data, 0 if unavailable/fresh
  * @param va variable arguments specific to @a type
@@ -53,7 +52,6 @@
 static struct GNUNET_BLOCK_Group *
 block_plugin_fs_create_group (void *cls,
                               enum GNUNET_BLOCK_Type type,
-                              uint32_t nonce,
                               const void *raw_data,
                               size_t raw_data_size,
                               va_list va)
@@ -66,11 +64,9 @@ block_plugin_fs_create_group (void *cls,
   case GNUNET_BLOCK_TYPE_FS_DBLOCK:
     GNUNET_break (NULL == va_arg (va, const char *));
     return NULL;
-
   case GNUNET_BLOCK_TYPE_FS_IBLOCK:
     GNUNET_break (NULL == va_arg (va, const char *));
     return NULL;
-
   case GNUNET_BLOCK_TYPE_FS_UBLOCK:
     guard = va_arg (va, const char *);
     if (0 == strcmp (guard,
@@ -98,7 +94,6 @@ block_plugin_fs_create_group (void *cls,
                                          size,
                                          BLOOMFILTER_K,
                                          type,
-                                         nonce,
                                          raw_data,
                                          raw_data_size);
 
@@ -218,7 +213,7 @@ block_plugin_fs_check_block (void *cls,
   case GNUNET_BLOCK_TYPE_FS_UBLOCK:
     {
       const struct UBlock *ub;
-      
+
       if (block_size < sizeof(struct UBlock))
       {
         GNUNET_break_op (0);
@@ -226,8 +221,8 @@ block_plugin_fs_check_block (void *cls,
       }
       ub = block;
       if (block_size !=
-          ntohl (ub->purpose.size) +
-          sizeof (struct GNUNET_CRYPTO_EcdsaSignature))
+          ntohl (ub->purpose.size)
+          + sizeof (struct GNUNET_CRYPTO_EcdsaSignature))
       {
         GNUNET_break_op (0);
         return GNUNET_NO;

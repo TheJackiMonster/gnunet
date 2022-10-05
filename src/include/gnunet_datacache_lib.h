@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet
-     Copyright (C) 2006, 2009, 2015 GNUnet e.V.
+     Copyright (C) 2006, 2009, 2015, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup dht_libs  DHT and support libraries
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -48,6 +51,59 @@ extern "C"
 }
 #endif
 #endif
+
+
+/**
+ * Information about a block stored in the datacache.
+ */
+struct GNUNET_DATACACHE_Block
+{
+  /**
+   * Key of the block.
+   */
+  struct GNUNET_HashCode key;
+
+  /**
+   * When does the block expire?
+   */
+  struct GNUNET_TIME_Absolute expiration_time;
+
+  /**
+   * If the path was truncated, this is the peer
+   * ID at which the path was truncated.
+   */
+  struct GNUNET_PeerIdentity trunc_peer;
+
+  /**
+   * PUT path taken by the block, array of peer identities.
+   */
+  const struct GNUNET_DHT_PathElement *put_path;
+
+  /**
+   * Actual block data.
+   */
+  const void *data;
+
+  /**
+   * Number of bytes in @a data.
+   */
+  size_t data_size;
+
+  /**
+   * Length of the @e put_path array.
+   */
+  unsigned int put_path_length;
+
+  /**
+   * Type of the block.
+   */
+  enum GNUNET_BLOCK_Type type;
+
+  /**
+   * Options for routing for the block.
+   */
+  enum GNUNET_DHT_RouteOption ro;
+};
 
 
 /**
@@ -81,50 +137,26 @@ GNUNET_DATACACHE_destroy (struct GNUNET_DATACACHE_Handle *h);
  * An iterator over a set of items stored in the datacache.
  *
  * @param cls closure
- * @param key key for the content
- * @param data_size number of bytes in @a data
- * @param data content stored
- * @param type type of the content
- * @param exp when will the content expire?
- * @param path_info_len number of entries in @a path_info
- * @param path_info a path through the network
+ * @param block a block from the datacache
  * @return #GNUNET_OK to continue iterating, #GNUNET_SYSERR to abort
  */
 typedef enum GNUNET_GenericReturnValue
 (*GNUNET_DATACACHE_Iterator)(void *cls,
-                             const struct GNUNET_HashCode *key,
-                             size_t data_size,
-                             const char *data,
-                             enum GNUNET_BLOCK_Type type,
-                             struct GNUNET_TIME_Absolute exp,
-                             unsigned int path_info_len,
-                             const struct GNUNET_DHT_PathElement *path_info);
+                             const struct GNUNET_DATACACHE_Block *block);
 
 
 /**
  * Store an item in the datacache.
  *
  * @param h handle to the datacache
- * @param key key to store data under
- * @param how close is @a key to our pid?
- * @param data_size number of bytes in @a data
- * @param data data to store
- * @param type type of the value
- * @param discard_time when to discard the value in any case
- * @param path_info_len number of entries in @a path_info
- * @param path_info a path through the network
+ * @param xor_distance how close is the block's key to our pid?
+ * @param block actual block data to store
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error, #GNUNET_NO if duplicate
  */
 enum GNUNET_GenericReturnValue
 GNUNET_DATACACHE_put (struct GNUNET_DATACACHE_Handle *h,
-                      const struct GNUNET_HashCode *key,
                       uint32_t xor_distance,
-                      size_t data_size,
-                      const char *data,
-                      enum GNUNET_BLOCK_Type type,
-                      struct GNUNET_TIME_Absolute discard_time,
-                      unsigned int path_info_len,
-                      const struct GNUNET_DHT_PathElement *path_info);
+                      const struct GNUNET_DATACACHE_Block *block);
 
 
 /**
@@ -179,3 +211,5 @@ GNUNET_DATACACHE_get_closest (struct GNUNET_DATACACHE_Handle *h,
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */

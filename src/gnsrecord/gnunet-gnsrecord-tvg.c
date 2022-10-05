@@ -104,7 +104,7 @@ print_record (const struct GNUNET_GNSRECORD_Data *rd)
   printf ("\nDATA_SIZE:\n");
   print_bytes (&size_nbo, sizeof (size_nbo), 8);
   printf ("\nTYPE:\n");
-  print_bytes(&type_nbo, sizeof (type_nbo), 8);
+  print_bytes (&type_nbo, sizeof (type_nbo), 8);
   printf ("\nFLAGS: ");
   print_bytes ((void*) &flags, sizeof (flags), 8);
   printf ("\n");

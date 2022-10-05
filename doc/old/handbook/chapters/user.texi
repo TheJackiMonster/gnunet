@@ -56,7 +56,8 @@ $ gnunet-arm -e
 * The GNS Tab::
 * Creating a Record::
 * Resolving GNS records::
-* Integration with Browsers::
+* Integration with Browsers (DNS2GNS service)::
+* Integration with Browsers (SOCKS proxy)::
 * Creating a Business Card::
 * Be Social::
 * Backup of Identities and Egos::
@@ -67,8 +68,16 @@ $ gnunet-arm -e
 @node Preliminaries
 @subsection Preliminaries
 
+In the default configuration, there are two zones defined and shipped with
+GNUnet:
 
-``.pin'' is a default zone which points to a zone managed by gnunet.org.
+The first is ``gnunet.org'', which points to the authoritate zone of the
+GNUnet project. It can be used to resolve, for example, ``www.gnunet.org''.
+
+``.pin'' is another default zone which points to a special zone also  managed
+by gnunet.org. Users may register submodomains on a first-come first-served-basis
+at @url{https://fcfs.gnunet.org}.
+
 Use @code{gnunet-config -s gns} to view the GNS configuration, including
 all configured zones that are operated by other users.  The respective
 configuration entry names start with a ``.'', e.g. ``.pin''.
@@ -190,13 +199,99 @@ Got `A' record: 217.92.15.146
 That shows that resolution works, once GNS is integrated with
 the application.
 
-@node Integration with Browsers
-@subsection Integration with Browsers
+@node Integration with Browsers (DNS2GNS service)
+@subsection Integration with Browsers (DNS2GNS service)
 
+Most OSes allow you to either modify your @code{/etc/resolv.conf} directly or
+through @code{resolvectl}.
+We are going to configure the @code{dns2gns} service in order to translate DNS name
+queries by applications to GNS name queries where applicable and else fall back
+to DNS.
 
-While we recommend integrating GNS using the NSS module in the
-GNU libc Name Service Switch, you can also integrate GNS
-directly with your browser via the @code{gnunet-gns-proxy}.
+Optionally, you may want to configure your @code{dns2gns} service to run on a
+non-priviledged port like 5353.
+But, in case you are going to edit @code{/etc/resolv.conf} directly, the
+@code{dns2gns} service MUST run on port 53 as you cannot specify the port number.
+A $FALLBACK_DNS variable should be a DNS server you trust such as your local router:
+
+@example
+$ gnunet-config -s dns2gns -o OPTIONS -V "-d $FALLBACK_DNS -p 5252"
+$ gnunet-arm -i dns2gns # Make sure the service is started
+@end example
+
+If you edit your resolv.conf directly, it should contain and entry like this:
+
+@example
+nameserver 127.0.0.1
+@end example
+
+In any case, it is very likely that the method of modification of your
+resolver is OS specific.
+Recently, the combination of NetworkManager and systemd-resolved is becoming
+increasingly popular.
+
+If you use resolvectl and systemd-resolved you can temporarily
+set the nameserver like this:
+
+@example
+$ resolvectl $INTERFACE 127.0.0.1:5353
+@end example
+
+Where @code{$INTERFACE} is your network interface such as ``eth0''.
+
+In order to automatically set the DNS2GNS server if it is running already you
+can use NetworkManager-dispatcher. First, enable it:
+
+@example
+$ sudo systemctl enable NetworkManager-dispatcher.service
+$ sudo systemctl start NetworkManager-dispatcher.service
+@end example
+
+Then, create a script /etc/NetworkManager/dispatch.h/10-dns2-gns.sh:
+
+@example
+#!/bin/sh
+interface=$1
+status=$2
+
+if [ "$interface" = "eth0" ]; then
+  case $status in
+    up)
+      if nc -u -z 127.0.0.1 5353; then
+      resolvectl dns $interface 127.0.0.1:5353
+    fi
+    ;;
+    down)
+    ;;
+  esac
+fi
+@end example
+
+Make sure the script is owned by root and executable:
+
+@example
+$ sudo root:root /etc/NetworkManager/dispatch.d/10-dns2gns.sh
+$ sudo +x /etc/NetworkManager/dispatch.d/10-dns2gns.sh
+@end example
+
+You can test accessing this website using your browser or curl:
+
+@example
+$ curl www.gnunet.org
+@end example
+
+Note that ``gnunet.org'' is a domain that also exists in DNS and for which the
+GNUnet project webservers can provide trusted TLS certificates.
+When using non-DNS names with GNS or aliases, this may result in issues
+when accessing HTTPS websites with browsers.
+In order learn how to provide relief for this issue, read on.
+
+@node Integration with Browsers (SOCKS proxy)
+@subsection Integration with Browsers (SOCKS proxy)
+
+While we recommend integrating GNS using the DNS2GNS service or the
+NSSwitch plugin, you can also
+integrate GNS directly with your browser via the @code{gnunet-gns-proxy}.
 This method can have the advantage that the proxy can validate
 TLS/X.509 records and thus strengthen web security; however, the proxy
 is still a bit brittle, so expect subtle failures. We have had reasonable
@@ -2365,16 +2460,16 @@ that will terminate at the respective peer's service.
 @section Using the GNUnet Messenger
 
 The GNUnet Messenger subsystem allows decentralized message-based 
-communication inside of so called rooms. Each room can be hosted by
+communication inside of so called rooms. Each room can be relayed by
 a variable amount of peers. Every member of a room has the possibility
-to host the room on its own peer. A peer allows any amount of members 
+to relay the room on its own peer. A peer allows any amount of members 
 to join a room. The amount of members in a room is not restricted.
 
-Messages in a room will be distributed between all peers hosting the 
+Messages in a room will be distributed between all peers relaying the 
 room or being internally (in context of the messenger service) connected 
-to a hosting peer. All received or sent messages will be stored on any 
-peer locally which is hosting the respective room or is internally
-connected to such a hosting peer.
+to a relaying peer. All received or sent messages will be stored on any 
+peer locally which is relaying the respective room or is internally
+connected to such a relaying peer.
 
 The Messenger service is built on the CADET subsystem to make internal 
 connections between peers using a reliable and encrypted transmission. 
@@ -2411,9 +2506,9 @@ library designed for messenger applications.
 @node Entering a room
 @subsection Entering a room
 
-You can enter any room by its ROOMKEY and any PEERIDENTITY of a hosting peer.
-Optionally you can provide any IDENTITY which can represent a local ego by
-its name.
+You can enter any room by its ROOMKEY and any PEERIDENTITY of a relaying 
+peer. Optionally you can provide any IDENTITY which can represent a local 
+ego by its name.
 
 @example
 $ gnunet-messenger [-e IDENTITY] -d PEERIDENTITY -r ROOMKEY
@@ -2441,14 +2536,14 @@ be distributed as your name for the service in any case.
 @subsection Opening a room
 
 You can open any room in a similar way to entering it. You just have to leave
-out the '-d' parameter and the PEERIDENTITY of the hosting peer.
+out the '-d' parameter and the PEERIDENTITY of the relaying peer.
 
 @example
 $ gnunet-messenger [-e IDENTITY] -r ROOMKEY
 @end example
 
 Providing ROOMKEY and IDENTITY is identical to entering a room. Opening a room
-will also make your peer to a host of this room. So others can enter the room
+will also make your peer to a relay of this room. So others can enter the room
 through your peer if they have the required ROOMKEY and your peer ID.
 
 If you want to use the zeroed hash as shared secret key for the room you can

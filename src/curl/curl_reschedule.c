@@ -59,12 +59,6 @@ struct GNUNET_CURL_RescheduleContext
 };
 
 
-/**
- * Initialize reschedule context; with custom response parser
- *
- * @param ctx context to manage
- * @return closure for #GNUNET_CURL_gnunet_scheduler_reschedule().
- */
 struct GNUNET_CURL_RescheduleContext *
 GNUNET_CURL_gnunet_rc_create_with_parser (struct GNUNET_CURL_Context *ctx,
                                           GNUNET_CURL_RawParser rp,
@@ -93,12 +87,6 @@ clean_result (void *response)
 }
 
 
-/**
- * Initialize reschedule context.
- *
- * @param ctx context to manage
- * @return closure for #GNUNET_CURL_gnunet_scheduler_reschedule().
- */
 struct GNUNET_CURL_RescheduleContext *
 GNUNET_CURL_gnunet_rc_create (struct GNUNET_CURL_Context *ctx)
 {
@@ -112,11 +100,6 @@ GNUNET_CURL_gnunet_rc_create (struct GNUNET_CURL_Context *ctx)
 }
 
 
-/**
- * Destroy reschedule context.
- *
- * @param rc context to destroy
- */
 void
 GNUNET_CURL_gnunet_rc_destroy (struct GNUNET_CURL_RescheduleContext *rc)
 {
@@ -159,13 +142,18 @@ context_task (void *cls)
                                &timeout);
   if (timeout >= 0)
     delay =
-      GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MILLISECONDS, timeout);
+      GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MILLISECONDS,
+                                     timeout);
   else
     delay = GNUNET_TIME_UNIT_FOREVER_REL;
   rs = GNUNET_NETWORK_fdset_create ();
-  GNUNET_NETWORK_fdset_copy_native (rs, &read_fd_set, max_fd + 1);
+  GNUNET_NETWORK_fdset_copy_native (rs,
+                                    &read_fd_set,
+                                    max_fd + 1);
   ws = GNUNET_NETWORK_fdset_create ();
-  GNUNET_NETWORK_fdset_copy_native (ws, &write_fd_set, max_fd + 1);
+  GNUNET_NETWORK_fdset_copy_native (ws,
+                                    &write_fd_set,
+                                    max_fd + 1);
   if (NULL == rc->task)
     rc->task = GNUNET_SCHEDULER_add_select (GNUNET_SCHEDULER_PRIORITY_DEFAULT,
                                             delay,
@@ -178,15 +166,6 @@ context_task (void *cls)
 }
 
 
-/**
- * Implementation of the #GNUNET_CURL_RescheduleCallback for GNUnet's
- * scheduler.  Will run the CURL context using GNUnet's scheduler.
- * Note that you MUST immediately destroy the reschedule context after
- * calling #GNUNET_CURL_fini().
- *
- * @param cls must point to a `struct GNUNET_CURL_RescheduleContext *`
- *           (pointer to a pointer!)
- */
 void
 GNUNET_CURL_gnunet_scheduler_reschedule (void *cls)
 {
@@ -194,7 +173,8 @@ GNUNET_CURL_gnunet_scheduler_reschedule (void *cls)
 
   if (NULL != rc->task)
     GNUNET_SCHEDULER_cancel (rc->task);
-  rc->task = GNUNET_SCHEDULER_add_now (&context_task, rc);
+  rc->task = GNUNET_SCHEDULER_add_now (&context_task,
+                                       rc);
 }
 
 

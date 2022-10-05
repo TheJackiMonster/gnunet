@@ -113,18 +113,21 @@ main (int argc, char *argv[])
     GNUNET_GETOPT_OPTION_END
   };
 
-  GNUNET_DISK_directory_remove ("/tmp/gnunet-test-plugin-namecache-sqlite");
-  GNUNET_log_setup ("test-plugin-namecache",
-                    "WARNING",
-                    NULL);
   plugin_name = GNUNET_TESTING_get_testname_from_underscore (argv[0]);
   GNUNET_snprintf (cfg_name, sizeof(cfg_name), "test_plugin_namecache_%s.conf",
                    plugin_name);
+
+  GNUNET_DISK_purge_cfg_dir (cfg_name, "GNUNET_TEST_HOME");
+
+  GNUNET_log_setup ("test-plugin-namecache",
+                    "WARNING",
+                    NULL);
   GNUNET_PROGRAM_run ((sizeof(xargv) / sizeof(char *)) - 1, xargv,
                       "test-plugin-namecache", "nohelp", options, &run, NULL);
+
   if (ok != 0)
     fprintf (stderr, "Missed some testcases: %d\n", ok);
-  GNUNET_DISK_directory_remove ("/tmp/gnunet-test-plugin-namecache-sqlite");
+  GNUNET_DISK_purge_cfg_dir (cfg_name, "GNUNET_TEST_HOME");
   return ok;
 }
 

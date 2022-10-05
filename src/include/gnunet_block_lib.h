@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup dht_libs  DHT and support libraries
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -138,7 +141,6 @@ struct GNUNET_BLOCK_Group;
 struct GNUNET_BLOCK_Group *
 GNUNET_BLOCK_group_create (struct GNUNET_BLOCK_Context *ctx,
                            enum GNUNET_BLOCK_Type type,
-                           uint32_t nonce,
                            const void *raw_data,
                            size_t raw_data_size,
                            ...);
@@ -148,7 +150,6 @@ GNUNET_BLOCK_group_create (struct GNUNET_BLOCK_Context *ctx,
  * Serialize state of a block group.
  *
  * @param bg group to serialize
- * @param[out] nonce set to the nonce of the @a bg
  * @param[out] raw_data set to the serialized state
  * @param[out] raw_data_size set to the number of bytes in @a raw_data
  * @return #GNUNET_OK on success, #GNUNET_NO if serialization is not
@@ -156,7 +157,6 @@ GNUNET_BLOCK_group_create (struct GNUNET_BLOCK_Context *ctx,
  */
 enum GNUNET_GenericReturnValue
 GNUNET_BLOCK_group_serialize (struct GNUNET_BLOCK_Group *bg,
-                              uint32_t *nonce,
                               void **raw_data,
                               size_t *raw_data_size);
 
@@ -298,5 +298,7 @@ GNUNET_BLOCK_group_merge (struct GNUNET_BLOCK_Group *bg1,
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_block_lib.h */

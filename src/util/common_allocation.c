@@ -155,17 +155,6 @@ GNUNET_xnew_array_3d_ (size_t n,
 }
 
 
-/**
- * Allocate and initialize memory. Checks the return value, aborts if no more
- * memory is available.  Don't use #GNUNET_xmemdup_() directly. Use the
- * GNUNET_memdup() macro.
- *
- * @param buf buffer to initialize from (must contain size bytes)
- * @param size number of bytes to allocate
- * @param filename where is this call being made (for debugging)
- * @param linenumber line where this call is being made (for debugging)
- * @return allocated memory, never NULL
- */
 void *
 GNUNET_xmemdup_ (const void *buf,
                  size_t size,
@@ -476,12 +465,6 @@ GNUNET_snprintf (char *buf, size_t size, const char *format, ...)
 }
 
 
-/**
- * Create a copy of the given message.
- *
- * @param msg message to copy
- * @return duplicate of the message
- */
 struct GNUNET_MessageHeader *
 GNUNET_copy_message (const struct GNUNET_MessageHeader *msg)
 {

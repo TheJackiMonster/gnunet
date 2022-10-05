@@ -19,6 +19,10 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -909,5 +913,7 @@ GNUNET_TIME_absolute_get_monotonic (
 #endif
 
 /** @} */ /* end of group time */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_time_lib.h */

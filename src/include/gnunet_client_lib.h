@@ -19,6 +19,13 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
+ * @addtogroup networking
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -67,7 +74,8 @@ GNUNET_CLIENT_test (const struct GNUNET_CONFIGURATION_Handle *cfg,
  * Create a message queue to connect to a GNUnet service.
  * If handlers are specified, receive messages from the connection.
  *
- * @param connection the client connection
+ * @param cfg our configuration
+ * @param service_name name of the service to connect to
  * @param handlers handlers for receiving messages, can be NULL
  * @param error_handler error handler
  * @param error_handler_cls closure for the @a error_handler
@@ -92,5 +100,9 @@ GNUNET_CLIENT_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
 #endif
 
 /** @} */ /* end of group client */
+
+/* @} */ /* end of group addition */
+
+/* @} */ /* end of group addition */
 
 /* end of gnunet_client_lib.h */

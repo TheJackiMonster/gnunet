@@ -670,7 +670,7 @@ GNUNET_FS_data_reader_file_ (void *cls,
  * Create the closure for the #GNUNET_FS_data_reader_file_() callback.
  *
  * @param filename file to read
- * @return closure to use
+ * @return closure to use, NULL on error
  */
 void *
 GNUNET_FS_make_file_reader_context_ (const char *filename);
@@ -839,7 +839,7 @@ GNUNET_FS_unindex_do_remove_ (struct GNUNET_FS_UnindexContext *uc);
  * GNUnet FS service.
  *
  * @param sc search context
- * @return GNUNET_OK on success, GNUNET_SYSERR on error
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
 int
 GNUNET_FS_search_start_searching_ (struct GNUNET_FS_SearchContext *sc);

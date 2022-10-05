@@ -1,3 +1,234 @@
+Mon, 26 Sep 2022 00:08:32 +0900 (4bfdbabb8)
+BUILD: Wow, automake is sh*t - Martin Schanzenbach
+
+Sun, 25 Sep 2022 22:15:05 +0900 (10f582fe6)
+GANA: Bump version - Martin Schanzenbach
+
+Sun, 25 Sep 2022 21:35:32 +0900 (82a7bd8af)
+DOC: Conditionally build doxygen; build sphinx on bootstrap - Martin Schanzenbach
+
+Sun, 25 Sep 2022 09:05:16 +0100 (f66919668)
+[gnunet-search] Fix `-s` and `-o` options not working together - madmurphy
+
+Sat, 24 Sep 2022 18:04:56 +0900 (7a2a6471d)
+NAMESTORE: Fix error handling for lookups - Martin Schanzenbach
+
+Fri, 23 Sep 2022 16:39:21 +0900 (e0e36b6fe)
+NAMESTORE: Towards proper transactional locks - Martin Schanzenbach
+
+Fri, 23 Sep 2022 14:57:57 +0900 (7678d77b1)
+NAMESTORE: Add select ... for update / edit records APIs - Martin Schanzenbach
+
+Fri, 23 Sep 2022 12:59:28 +0900 (e238c132f)
+NAMESTORE: Add tx API for postgres - Martin Schanzenbach
+
+Fri, 23 Sep 2022 12:51:00 +0900 (764871dcb)
+NAMESTORE: Remove head based database - Martin Schanzenbach
+
+Fri, 23 Sep 2022 12:44:45 +0900 (52babbd64)
+NAMESTORE: Add begin, commit and rollback API messages - Martin Schanzenbach
+
+Fri, 23 Sep 2022 01:06:59 +0900 (127ad07a3)
+NAMESTORE: Use a per client database connection - Martin Schanzenbach
+
+Fri, 23 Sep 2022 01:05:53 +0900 (d78b7864d)
+NAMESTORE: Fix existing monitoring test race condition - Martin Schanzenbach
+
+Thu, 22 Sep 2022 00:22:30 +0900 (49d5c4da4)
+NAMESTORE: Remove unneeded functions and renames. - Martin Schanzenbach
+
+Thu, 22 Sep 2022 00:13:52 +0900 (e1d8213bb)
+NAMESTORE: Start transactional API - Martin Schanzenbach
+
+Thu, 22 Sep 2022 00:30:24 +0900 (c50fba92d)
+UTIL: Remove outdated test. Fixes #7361 - Martin Schanzenbach
+
+Thu, 8 Sep 2022 23:52:57 +0200 (5ab4d4a54)
+DOC: Update - Martin Schanzenbach
+
+Thu, 8 Sep 2022 22:17:34 +0200 (9ee1ef3d5)
+REST: Implement basic authentication for per user service. Fixes #5669 - Martin Schanzenbach
+
+Tue, 6 Sep 2022 12:34:39 +0200 (afea0eea1)
+BUILD: Remove gnurl. Improve curl-gnutls detection - Martin Schanzenbach
+
+Fri, 2 Sep 2022 13:20:37 +0200 (794266c3c)
+GNS: Update deprecated cURL constant - Martin Schanzenbach
+
+Wed, 31 Aug 2022 18:07:56 +0200 (a964469a9)
+DID: change method name - Martin Schanzenbach
+
+Wed, 29 Dec 2021 14:56:24 +0100 (821db736f)
+fix bugs - Tristan Schwieren
+
+Fri, 26 Nov 2021 14:05:12 +0100 (25481cc07)
+remove binary - Martin Schanzenbach
+
+Fri, 19 Nov 2021 10:46:02 +0100 (841bf3572)
+DID:Initial commit - Martin Schanzenbach
+
+Fri, 26 Nov 2021 14:05:12 +0100 (bcaf1b1f0)
+remove binary - Martin Schanzenbach
+
+Fri, 19 Nov 2021 10:46:02 +0100 (8685ef460)
+DID:Initial commit - Tristan Schwieren
+
+Thu, 25 Aug 2022 13:56:11 +0200 (567469d45)
+double-check GP/PP are fine - Christian Grothoff
+
+Thu, 25 Aug 2022 13:28:44 +0200 (209277b43)
+separator change - Christian Grothoff
+
+Sun, 21 Aug 2022 23:58:13 +0200 (a53dce1f8)
+fix Bernd's signature violation discovery - Christian Grothoff
+
+Sun, 21 Aug 2022 23:57:19 +0200 (e23e49cac)
+check for GNU parallel - Christian Grothoff
+
+Sun, 12 Jun 2022 20:30:40 +0100 (cc738d28d)
+DOC: Initial work in CADET towards removing redundant doc comments. - Martin Schanzenbach
+
+Thu, 9 Jun 2022 19:22:07 +0100 (9a0de6543)
+DOC: Major doxygen organisation work, upgraded config, updated logo - Martin Schanzenbach
+
+Sun, 5 Jun 2022 00:31:58 +0100 (fd716c71a)
+DOC: Nesting doxygen groups to improve high-level organisation of source docs. - Martin Schanzenbach
+
+Thu, 18 Aug 2022 19:00:12 +0200 (5a8b9a11a)
+only 16 bit for options - Christian Grothoff
+
+Mon, 15 Aug 2022 12:19:49 +0200 (69844eacf)
+add JSON routines for base64 encoded values - Christian Grothoff
+
+Thu, 11 Aug 2022 08:06:28 +0200 (460f0d77b)
+DOC: Fix dist missing makefile - Martin Schanzenbach
+
+Sat, 6 Aug 2022 01:30:48 +0200 (18e758f51)
+Update `contrib/Makefile.am` - madmurphy
+
+Sat, 6 Aug 2022 01:19:17 +0200 (0e6d7fcd8)
+[contrib/] Update non-git Arch package (new deps: `python-sphinx` and `python-sphinx_rtd_theme`) - madmurphy
+
+Fri, 5 Aug 2022 03:55:24 +0200 (8582b511a)
+[contrib] Update `contrib/packages/arch/gnunet-git/.SRCINFO` - madmurphy
+
+Fri, 5 Aug 2022 03:46:15 +0200 (c3eb83195)
+[contrib] Enable the `gnunet://` URI scheme handler by ensuring that `/usr/share/applications/gnunet-uri.desktop` is installed; add `python-sphinx` and `python-sphinx_rtd_theme` to the `$makedepends` array of `contrib/packages/arch/gnunet-git/PKGBUILD` - madmurphy
+
+Tue, 2 Aug 2022 20:20:02 +0200 (d7dde2880)
+TRANSPORT: Fix certtool detection. Fixes #7257 - Martin Schanzenbach
+
+Tue, 2 Aug 2022 17:25:41 +0200 (4fe567d9d)
+DOC: Move from texinfo to sphinx - Martin Schanzenbach
+
+Mon, 1 Aug 2022 10:55:59 +0200 (e8b7707f8)
+DHT: Swap signature and peer id fields in path element lsd0004 - Martin Schanzenbach
+
+Wed, 27 Jul 2022 17:37:42 +0200 (f6bce460a)
+GANA: Bump version - Martin Schanzenbach
+
+Wed, 27 Jul 2022 11:23:34 +0200 (d66036550)
+DOC: Update instructions on GNS integration and use - Martin Schanzenbach
+
+Sun, 24 Jul 2022 11:32:21 +0200 (233ec6111)
+enable non-numbered sql statement execution - Christian Grothoff
+
+Thu, 21 Jul 2022 12:30:22 +0200 (63802d724)
+do not crash if psql is interrupted with CTRL-C - Christian Grothoff
+
+Thu, 21 Jul 2022 11:33:18 +0200 (3e4b81055)
+fixed typo in salt - Özgür Kesim
+
+Sun, 17 Jul 2022 01:06:38 +0100 (ab55856a8)
+[contrib/] Dependency update in Arch packages - madmurphy
+
+Fri, 8 Jul 2022 14:55:01 +0200 (6a60c7d43)
+relative time is in nanoseconds, kill redundant _ms variant - Christian Grothoff
+
+Fri, 8 Jul 2022 14:37:03 +0200 (78cba4124)
+timestamps are in seconds, kill redundant _ms variant - Christian Grothoff
+
+Thu, 7 Jul 2022 20:29:24 +0200 (3abeb4555)
+implemented new DHT path signing with origin authentication - Christian Grothoff
+
+Thu, 7 Jul 2022 13:42:52 +0200 (2906241b6)
+major modification to datacache to store route options (and clean up the API) - Christian Grothoff
+
+Mon, 4 Jul 2022 14:11:57 +0200 (374e3cf6d)
+ABE: Remove unused attribute-based encryption component - Martin Schanzenbach
+
+Tue, 28 Jun 2022 21:31:29 +0200 (877f8e25c)
+make sure Debian packages created on Ubuntu 21+ still work with Debian reprepro: force Debian standard compression algorithm - Christian Grothoff
+
+Sat, 25 Jun 2022 14:02:01 +0200 (fa7f0a3a4)
+BF bugfix: include mutator in size - Christian Grothoff
+
+Wed, 22 Jun 2022 20:14:04 +0200 (84303b044)
+RECLAIM: Improve OIDC userinfo caching; add config option for timeout - Martin Schanzenbach
+
+Mon, 20 Jun 2022 14:24:44 +0200 (af154e9c5)
+package v0.17.1 for Debian - Christian Grothoff
+
+Sun, 19 Jun 2022 13:55:40 +0200 (71350f124)
+fix: htonl vs htons, thanks Bernd - Christian Grothoff
+
+Sun, 12 Jun 2022 15:50:22 +0100 (839640c0e)
+Restore lost quotes in `man gnunet-search` - madmurphy
+
+Sun, 12 Jun 2022 15:33:39 +0100 (22082c234)
+Add Arch packages - madmurphy
+
+Thu, 9 Jun 2022 18:17:52 +0200 (1da1632c4)
+log hash - Christian Grothoff
+
+Thu, 9 Jun 2022 11:49:32 +0200 (a87029a63)
+RECLAIM: Improve OIDC plugin; now requires jose (new optional dependency) - Martin Schanzenbach
+
+Tue, 31 May 2022 23:43:05 +0200 (edddc9384)
+protocol change: swap xquery and result filter, integrate mutator with result filter - Christian Grothoff
+
+Tue, 17 May 2022 10:00:25 +0200 (5fcabf87a)
+fix scheduler bug with same-priority immediately-ready tasks possibly hogging the scheduler - Christian Grothoff
+
+Sat, 14 May 2022 12:20:06 +0200 (b47e57809)
+BUILD: Change submodule handling, update gana - Martin Schanzenbach
+
+Thu, 12 May 2022 07:53:03 -0400 (69ac41f04)
+update contrib/gana to 5ada88d0d3e25587a1340cc35669c36f608a50db - Thien-Thi Nguyen
+
+Wed, 11 May 2022 05:15:34 -0400 (14464ed87)
+update submodule contrib/gana - Thien-Thi Nguyen
+
+Mon, 9 May 2022 10:49:46 +0200 (c42fd9b03)
+DHT: Move block type definitions to GANA - Martin Schanzenbach
+
+Mon, 9 May 2022 09:00:52 +0200 (2c589fcdf)
+FCFSD: Allow configuration of relative expiration time of added records - Martin Schanzenbach
+
+Tue, 26 Apr 2022 17:14:00 +0200 (132e09b6e)
+gnunet-crypto-tvg: edx25519 test vectors - Florian Dold
+
+Tue, 26 Apr 2022 17:13:36 +0200 (8d8e7d3da)
+edx25519: use SHA512/256 instead of SHA256 - Florian Dold
+
+Tue, 19 Apr 2022 14:53:07 +0200 (709e85100)
+edx25519: KDF call - Florian Dold
+
+Tue, 19 Apr 2022 14:43:30 +0200 (0487df9a0)
+edx25519: use libsodium, tweak KDF call - Florian Dold
+
+Sat, 9 Apr 2022 13:15:32 +0200 (25e750421)
+BUILD: Fix mysql detection as reported on ML - Martin Schanzenbach
+
+Tue, 5 Apr 2022 17:15:10 +0200 (2ea635b60)
+add flag to return 'not present' status from GNUNET_JSON_spec_mark_optional - Christian Grothoff
+
+Mon, 4 Apr 2022 22:49:41 +0200 (a15b424cb)
+UTIL: OpenBSD does not implement unsafe srandom - Martin Schanzenbach
+
+Mon, 4 Apr 2022 19:44:45 +0200 (aa3b3f27f)
+BUILD: Simplify mhd detection - Martin Schanzenbac
+
 Tue, 29 Mar 2022 10:11:15 +0200 (a9b18aa64)
 GNS: Do not fail on assertions in block processing - Martin Schanzenbach
 

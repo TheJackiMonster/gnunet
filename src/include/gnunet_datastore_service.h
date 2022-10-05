@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup fs_l2  File sharing and support services/libraries
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -361,3 +364,5 @@ GNUNET_DATASTORE_cancel (struct GNUNET_DATASTORE_QueueEntry *qe);
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */

@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup GNS
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -173,3 +176,5 @@ GNUNET_NAMECACHE_cancel (struct GNUNET_NAMECACHE_QueueEntry *qe);
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */

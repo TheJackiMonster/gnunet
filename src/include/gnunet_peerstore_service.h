@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup Backbone
+ * @{
+ *
  * @author Omar Tarabai
  *
  * @file
@@ -306,3 +309,5 @@ GNUNET_PEERSTORE_watch_cancel (struct GNUNET_PEERSTORE_WatchContext *wc);
 #endif
 
 /** @} */ /* end of group */
+
+/** @} */ /* end of group addition */

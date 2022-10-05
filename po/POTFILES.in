@@ -4,7 +4,6 @@ src/abd/delegate_misc.c
 src/abd/gnunet-abd.c
 src/abd/gnunet-service-abd.c
 src/abd/plugin_gnsrecord_abd.c
-src/abe/abe.c
 src/arm/arm_api.c
 src/arm/arm_monitor_api.c
 src/arm/gnunet-arm.c
@@ -243,13 +242,13 @@ src/namecache/namecache_api.c
 src/namecache/plugin_namecache_flat.c
 src/namecache/plugin_namecache_postgres.c
 src/namecache/plugin_namecache_sqlite.c
+src/namestore/gnunet-namestore-dbtool.c
 src/namestore/gnunet-namestore-fcfsd.c
 src/namestore/gnunet-namestore.c
 src/namestore/gnunet-service-namestore.c
 src/namestore/gnunet-zoneimport.c
 src/namestore/namestore_api.c
 src/namestore/namestore_api_monitor.c
-src/namestore/plugin_namestore_flat.c
 src/namestore/plugin_namestore_postgres.c
 src/namestore/plugin_namestore_sqlite.c
 src/namestore/plugin_rest_namestore.c
@@ -296,6 +295,8 @@ src/pq/pq_prepare.c
 src/pq/pq_query_helper.c
 src/pq/pq_result_helper.c
 src/pt/gnunet-daemon-pt.c
+src/reclaim/did_core.c
+src/reclaim/did_helper.c
 src/reclaim/did_misc.c
 src/reclaim/gnunet-did.c
 src/reclaim/gnunet-reclaim.c
@@ -523,7 +524,6 @@ src/util/container_multihashmap32.c
 src/util/container_multipeermap.c
 src/util/container_multishortmap.c
 src/util/container_multiuuidmap.c
-src/util/crypto_abe.c
 src/util/crypto_crc.c
 src/util/crypto_cs.c
 src/util/crypto_ecc.c

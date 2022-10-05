@@ -164,16 +164,6 @@ file_hash_task (void *cls)
 }
 
 
-/**
- * Compute the hash of an entire file.
- *
- * @param priority scheduling priority to use
- * @param filename name of file to hash
- * @param blocksize number of bytes to process in one task
- * @param callback function to call upon completion
- * @param callback_cls closure for @a callback
- * @return NULL on (immediate) error
- */
 struct GNUNET_CRYPTO_FileHashContext *
 GNUNET_CRYPTO_hash_file (enum GNUNET_SCHEDULER_Priority priority,
                          const char *filename,

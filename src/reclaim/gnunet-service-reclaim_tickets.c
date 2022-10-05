@@ -741,6 +741,8 @@ rvk_move_attr_cb (void *cls,
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Adding credential %s\n",
                   new_label);
       GNUNET_free (credential);
+    } else {
+      memcpy (&new_rd[i], &rd[i], sizeof (struct GNUNET_GNSRECORD_Data));
     }
   }
   rvk->ns_qe = GNUNET_NAMESTORE_records_store (nsh,

@@ -511,7 +511,8 @@ main (int argc, char *const *argv)
       GNUNET_TESTING_peer_run ("test-gnunet-vpn", "test_gnunet_vpn.conf", &run,
                                NULL))
     return 1;
-  GNUNET_DISK_directory_remove ("/tmp/gnunet-test-vpn");
+  GNUNET_DISK_purge_cfg_dir ("test_gnunet_vpn.conf", 
+                             "GNUNET_TEST_HOME");
   return global_ret;
 }
 

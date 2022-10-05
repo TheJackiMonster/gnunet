@@ -430,21 +430,6 @@ publish_fs_connect_complete_cb (void *cls,
 }
 
 
-/**
- * Publish a file at the given peer.
- *
- * @param peer where to publish
- * @param timeout if this operation cannot be completed within the
- *                given period, call the continuation with an error code
- * @param anonymity option for publication
- * @param do_index GNUNET_YES for index, GNUNET_NO for insertion,
- *                GNUNET_SYSERR for simulation
- * @param size size of the file to publish
- * @param seed seed to use for file generation
- * @param verbose how verbose to be in reporting
- * @param cont function to call when done
- * @param cont_cls closure for cont
- */
 void
 GNUNET_FS_TEST_publish (struct GNUNET_TESTBED_Peer *peer,
                         struct GNUNET_TIME_Relative timeout, uint32_t anonymity,
@@ -612,19 +597,6 @@ download_fs_connect_complete_cb (void *cls,
 }
 
 
-/**
- * Perform test download.
- *
- * @param peer which peer to download from
- * @param timeout if this operation cannot be completed within the
- *                given period, call the continuation with an error code
- * @param anonymity option for download
- * @param seed used for file validation
- * @param uri URI of file to download (CHK/LOC only)
- * @param verbose how verbose to be in reporting
- * @param cont function to call when done
- * @param cont_cls closure for cont
- */
 void
 GNUNET_FS_TEST_download (struct GNUNET_TESTBED_Peer *peer,
                          struct GNUNET_TIME_Relative timeout,

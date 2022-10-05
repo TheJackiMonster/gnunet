@@ -19,6 +19,11 @@
  */
 
 /**
+ * @addtogroup Backbone
+ * @{
+ * @addtogroup dht_libs  DHT and support libraries
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -106,10 +111,15 @@ enum GNUNET_DHT_RouteOption
   GNUNET_DHT_RO_FIND_APPROXIMATE = 4,
 
   /**
+   * Flag set if the path was truncated.
+   */
+  GNUNET_DHT_RO_TRUNCATED = 8,
+
+  /**
    * Flag given to monitors if this was the last hop for a GET/PUT.
    * This is only used for internal processing.
    */
-  GNUNET_DHT_RO_LAST_HOP = 65535
+  GNUNET_DHT_RO_LAST_HOP = 32768
 };
 
 
@@ -133,7 +143,7 @@ struct GNUNET_DHT_HopSignature
   /**
    * Hash over the payload of the block.
    */
-  struct GNUNET_HashCode h_data;
+  struct GNUNET_HashCode h_data GNUNET_PACKED;
 
   /**
    * Previous hop the message was received from.  All zeros
@@ -155,6 +165,11 @@ struct GNUNET_DHT_HopSignature
  */
 struct GNUNET_DHT_PathElement
 {
+  /**
+   * Signature affirming the hop of type
+   * #GNUNET_SIGNATURE_PURPOSE_DHT_HOP.
+   */
+  struct GNUNET_CRYPTO_EddsaSignature sig;
 
   /**
    * Previous peer on the path (matches "pred" in the signed field).
@@ -167,12 +182,6 @@ struct GNUNET_DHT_PathElement
    * element, or the recipient if this was the last element on the path.
    */
   struct GNUNET_PeerIdentity pred;
-
-  /**
-   * Signature affirming the hop of type
-   * #GNUNET_SIGNATURE_PURPOSE_DHT_HOP.
-   */
-  struct GNUNET_CRYPTO_EddsaSignature sig;
 
 };
 
@@ -263,6 +272,7 @@ GNUNET_DHT_put_cancel (struct GNUNET_DHT_PutHandle *ph);
  * @param cls closure
  * @param exp when will this value expire
  * @param query_hash key of the query
+ * @param trunc_peer peer where the path was truncated, or NULL if the path is complete
  * @param get_path peers on reply path (or NULL if not recorded)
  *                 [0] = datastore's first neighbor, [length - 1] = local peer
  * @param get_path_length number of entries in @a get_path
@@ -279,6 +289,7 @@ typedef void
 (*GNUNET_DHT_GetIterator) (void *cls,
                            struct GNUNET_TIME_Absolute exp,
                            const struct GNUNET_HashCode *query_hash,
+                           const struct GNUNET_PeerIdentity *trunc_peer,
                            const struct GNUNET_DHT_PathElement *get_path,
                            unsigned int get_path_length,
                            const struct GNUNET_DHT_PathElement *put_path,
@@ -354,10 +365,6 @@ struct GNUNET_DHT_MonitorHandle;
  * @param options Options, for instance RecordRoute, DemultiplexEverywhere.
  * @param type The type of data in the request.
  * @param hop_count Hop count so far.
- * @param path_length number of entries in @a path (or 0 if not recorded).
- * @param path peers on the GET path (or NULL if not recorded).
- *        note that the last signature will be all zeros as
- *        we did not forward and thus did not sign!
  * @param desired_replication_level Desired replication level.
  * @param key Key of the requested data.
  */
@@ -367,8 +374,6 @@ typedef void
                             enum GNUNET_BLOCK_Type type,
                             uint32_t hop_count,
                             uint32_t desired_replication_level,
-                            unsigned int path_length,
-                            const struct GNUNET_DHT_PathElement *path,
                             const struct GNUNET_HashCode *key);
 
 
@@ -377,6 +382,7 @@ typedef void
  *
  * @param cls Closure.
  * @param type The type of data in the result.
+ * @param trunc_peer peer where the path was truncated, or NULL if the path is complete
  * @param get_path Peers on GET path (or NULL if not recorded).
  *        note that the last signature will be all zeros as
  *        we did not forward and thus did not sign!
@@ -391,6 +397,7 @@ typedef void
 typedef void
 (*GNUNET_DHT_MonitorGetRespCB) (void *cls,
                                 enum GNUNET_BLOCK_Type type,
+                                const struct GNUNET_PeerIdentity *trunc_peer,
                                 const struct GNUNET_DHT_PathElement *get_path,
                                 unsigned int get_path_length,
                                 const struct GNUNET_DHT_PathElement *put_path,
@@ -408,11 +415,12 @@ typedef void
  * @param options Options, for instance RecordRoute, DemultiplexEverywhere.
  * @param type The type of data in the request.
  * @param hop_count Hop count so far.
+ * @param desired_replication_level Desired replication level.
+ * @param trunc_peer peer where the path was truncated, or NULL if the path is complete
  * @param path_length number of entries in @a path (or 0 if not recorded).
  * @param path peers on the PUT path (or NULL if not recorded).
  *        note that the last signature will be all zeros as
  *        we did not forward and thus did not sign!
- * @param desired_replication_level Desired replication level.
  * @param exp Expiration time of the data.
  * @param key Key under which data is to be stored.
  * @param data Pointer to the data carried.
@@ -424,6 +432,7 @@ typedef void
                             enum GNUNET_BLOCK_Type type,
                             uint32_t hop_count,
                             uint32_t desired_replication_level,
+                            const struct GNUNET_PeerIdentity *trunc_peer,
                             unsigned int path_length,
                             const struct GNUNET_DHT_PathElement *path,
                             struct GNUNET_TIME_Absolute exp,
@@ -486,6 +495,8 @@ GNUNET_DHT_pp2s (const struct GNUNET_DHT_PathElement *path,
  * @param data payload (the block)
  * @param data_size number of bytes in @a data
  * @param exp_time expiration time of @a data
+ * @param trunc_peer peer which signature was broken or where the path was truncated,
+ *                  NULL if path is not truncated
  * @param get_path array of path elements to verify
  * @param get_path_len length of the @a get_path array
  * @param put_path array of path elements to verify
@@ -493,12 +504,13 @@ GNUNET_DHT_pp2s (const struct GNUNET_DHT_PathElement *path,
  * @param me our own peer identity (needed to verify the last element)
  * @return 0 on success, otherwise the index of
  *         the last path element that succeeded with verification;
- *         @a get_path_len + @a put_path_len - 1 if no signature was valid
+ *         @a get_path_len + @a put_path_len if no signature was valid
  */
 unsigned int
 GNUNET_DHT_verify_path (const void *data,
                         size_t data_size,
                         struct GNUNET_TIME_Absolute exp_time,
+                        const struct GNUNET_PeerIdentity *trunc_peer,
                         const struct GNUNET_DHT_PathElement *put_path,
                         unsigned int put_path_len,
                         const struct GNUNET_DHT_PathElement *get_path,
@@ -573,3 +585,7 @@ GNUNET_DHT_hello_offer (struct GNUNET_DHT_Handle *dht_handle,
 #endif
 
 /** @} */  /* end of group dht */
+
+/** @} */ /* end of group addition */
+
+/** @} */ /* end of group addition */

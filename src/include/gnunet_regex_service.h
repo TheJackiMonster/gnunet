@@ -18,6 +18,9 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 /**
+ * @addtogroup Backbone
+ * @{
+ *
  * @author Maximilian Szengel
  * @author Christian Grothoff
  *
@@ -149,3 +152,5 @@ GNUNET_REGEX_search_cancel (struct GNUNET_REGEX_Search *s);
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */

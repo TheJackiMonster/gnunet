@@ -15,23 +15,10 @@ endif
  GN_LIBMHD = $(MHD_LIBS)
  GN_CPPMHD = $(MHD_CFLAGS)
 
-if HAVE_LIBGNURL
 libexec_PROGRAMS = \
  gnunet-daemon-hostlist
-LIB_GNURL=@LIBGNURL@
-CPP_GNURL=@LIBGNURL_CPPFLAGS@
 dist_pkgcfg_DATA = \
   hostlist.conf
-else
-if HAVE_LIBCURL
-libexec_PROGRAMS = \
- gnunet-daemon-hostlist
-LIB_GNURL=@LIBCURL@
-CPP_GNURL=@LIBCURL_CPPFLAGS@
-dist_pkgcfg_DATA = \
-  hostlist.conf
-endif
-endif
 
 gnunet_daemon_hostlist_SOURCES = \
  gnunet-daemon-hostlist.c gnunet-daemon-hostlist.h \
@@ -46,27 +33,18 @@ gnunet_daemon_hostlist_LDADD = \
   $(top_builddir)/src/transport/libgnunettransport.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(GN_LIBMHD) \
-  $(LIB_GNURL) \
+  @LIBCURL@ \
   $(GN_LIBINTL)
 
 gnunet_daemon_hostlist_CFLAGS = \
   $(GN_CPPMHD) \
-  $(CPP_GNURL) \
+  @LIBCURL_CPPFLAGS@ \
   $(AM_CFLAGS)
 
-if HAVE_LIBGNURL
 check_PROGRAMS = \
  test_gnunet_daemon_hostlist \
  test_gnunet_daemon_hostlist_reconnect \
  test_gnunet_daemon_hostlist_learning
-else
-if HAVE_LIBCURL
-check_PROGRAMS = \
- test_gnunet_daemon_hostlist \
- test_gnunet_daemon_hostlist_reconnect \
- test_gnunet_daemon_hostlist_learning
-endif
-endif
 
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;

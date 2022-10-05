@@ -594,13 +594,6 @@ GCPP_try_path_from_dht (const struct GNUNET_DHT_PathElement *get_path,
 }
 
 
-/**
- * We got an incoming connection, obtain the corresponding path.
- *
- * @param path_length number of segments on the @a path
- * @param pids path through the network, in reverse order (we are at the end at index @a path_length)
- * @return corresponding path object
- */
 struct CadetPeerPath *
 GCPP_get_path_from_route (unsigned int path_length,
                           const struct GNUNET_PeerIdentity *pids)
@@ -723,13 +716,6 @@ GCPP_find_peer (struct CadetPeerPath *path,
 }
 
 
-/**
- * Obtain the peer at offset @a off in @a path.
- *
- * @param path peer path to inspect
- * @param off offset to return, must be smaller than path length
- * @return the peer at offset @a off
- */
 struct CadetPeer *
 GCPP_get_peer_at_offset (struct CadetPeerPath *path,
                          unsigned int off)

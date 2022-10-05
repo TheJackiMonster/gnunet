@@ -31,6 +31,47 @@
 #define SIZE 65536
 #define TESTFILE "/tmp/bloomtest.dat"
 
+
+static void
+bernd_interop (void)
+{
+  struct GNUNET_HashCode hc;
+  char val[128];
+  size_t len;
+  struct GNUNET_CONTAINER_BloomFilter *bf;
+
+  len = GNUNET_DNSPARSER_hex_to_bin (
+    "ac4d46b62f8ddaf3cefbc1c01e47536b7ff297cb081e27a396362b1e92e5729b",
+    val);
+  GNUNET_assert (len < 128);
+  GNUNET_CRYPTO_hash (val,
+                      len,
+                      &hc);
+  fprintf (stderr,
+           "sha512: %s\n",
+           GNUNET_DNSPARSER_bin_to_hex (&hc,
+                                        sizeof (hc)));
+  bf = GNUNET_CONTAINER_bloomfilter_init (NULL,
+                                          128,
+                                          16);
+  GNUNET_CONTAINER_bloomfilter_add (bf,
+                                    &hc);
+  len = GNUNET_CONTAINER_bloomfilter_get_size (bf);
+  {
+    char raw[len];
+
+    GNUNET_CONTAINER_bloomfilter_get_raw_data (bf,
+                                               raw,
+                                               len);
+    fprintf (stderr,
+             "BF: %s\n",
+             GNUNET_DNSPARSER_bin_to_hex (raw,
+                                          len));
+  }
+
+}
+
+
 /**
  * Generate a random hashcode.
  */
@@ -68,7 +109,14 @@ main (int argc, char *argv[])
   char buf[SIZE];
   struct stat sbuf;
 
-  GNUNET_log_setup ("test-container-bloomfilter", "WARNING", NULL);
+  GNUNET_log_setup ("test-container-bloomfilter",
+                    "WARNING",
+                    NULL);
+  if (0)
+  {
+    bernd_interop ();
+    return 0;
+  }
   GNUNET_CRYPTO_seed_weak_random (1);
   if (0 == stat (TESTFILE, &sbuf))
     if (0 != unlink (TESTFILE))

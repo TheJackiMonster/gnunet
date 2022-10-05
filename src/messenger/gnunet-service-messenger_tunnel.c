@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2022 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -157,13 +157,13 @@ static void
 update_tunnel_last_message (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
                             const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_MESSENGER_OperationStore *operation_store = get_room_operation_store(tunnel->room);
+  struct GNUNET_MESSENGER_OperationStore *operation_store = get_srv_room_operation_store(tunnel->room);
 
   const int requested = (GNUNET_MESSENGER_OP_REQUEST == get_store_operation_type(operation_store, hash)?
       GNUNET_YES : GNUNET_NO
   );
 
-  struct GNUNET_MESSENGER_MessageStore *message_store = get_room_message_store(tunnel->room);
+  struct GNUNET_MESSENGER_MessageStore *message_store = get_srv_room_message_store(tunnel->room);
 
   const struct GNUNET_MESSENGER_Message *message = get_store_message(message_store, hash);
 
@@ -221,7 +221,7 @@ handle_tunnel_message (void *cls, const struct GNUNET_MessageHeader *header)
 
   if (GNUNET_YES == forward_message)
   {
-    forward_room_message (tunnel->room, tunnel, &message, &hash);
+    forward_srv_room_message (tunnel->room, tunnel, &message, &hash);
     callback_room_handle_message (tunnel->room, NULL, &message, &hash);
   }
 
@@ -241,8 +241,8 @@ connect_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel)
 
   const struct GNUNET_PeerIdentity *door = GNUNET_PEER_resolve2 (tunnel->peer);
 
-  struct GNUNET_CADET_Handle *cadet = get_room_cadet (tunnel->room);
-  const struct GNUNET_HashCode *key = get_room_key (tunnel->room);
+  struct GNUNET_CADET_Handle *cadet = get_srv_room_cadet (tunnel->room);
+  const struct GNUNET_HashCode *key = get_srv_room_key (tunnel->room);
 
   struct GNUNET_MQ_MessageHandler handlers[] = { GNUNET_MQ_hd_var_size(tunnel_message, GNUNET_MESSAGE_TYPE_CADET_CLI,
                                                                        struct GNUNET_MessageHeader, NULL),
@@ -323,7 +323,7 @@ send_tunnel_message (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
     return GNUNET_NO;
 
   struct GNUNET_HashCode hash;
-  struct GNUNET_MQ_Envelope *env = pack_room_message (
+  struct GNUNET_MQ_Envelope *env = pack_srv_room_message (
       tunnel->room, (struct GNUNET_MESSENGER_SrvHandle*) handle,
       message, &hash, GNUNET_MESSENGER_PACK_MODE_ENVELOPE
   );

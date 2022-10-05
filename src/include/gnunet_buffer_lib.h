@@ -19,6 +19,10 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
  * Common buffer management functions.
  *
  * @author Florian Dold
@@ -203,3 +207,5 @@ GNUNET_buffer_clear (struct GNUNET_Buffer *buf);
 
 
 #endif
+
+/** @} */ /* end of group addition */

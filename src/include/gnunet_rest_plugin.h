@@ -18,6 +18,9 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 /**
+ * @addtogroup rest_l2  REST service and libraries
+ * @{
+ *
  * @author Martin Schanzenbach
  *
  * @file
@@ -88,3 +91,5 @@ struct GNUNET_REST_Plugin
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */

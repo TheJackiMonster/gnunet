@@ -252,20 +252,21 @@ GCT_send_cancel (struct CadetTunnelQueueEntry *q);
 
 
 /**
- * Return the number of channels using a tunnel.
+ * Returns the number of channels using a tunnel.
  *
- * @param t tunnel to count obtain the number of channels for
- * @return number of channels using the tunnel
+ * @param t Tunnel in question.
+ * @return Number of channels using the tunnel.
  */
 unsigned int
 GCT_count_channels (struct CadetTunnel *t);
 
 
 /**
- * Return the number of connections available for a tunnel.
+ * Counts the number of connections created for a tunnel,
+ * including busy connections.
  *
- * @param t tunnel to count obtain the number of connections for
- * @return number of connections available for the tunnel
+ * @param t Tunnel to be counted.
+ * @return Number of connections created for the tunnel.
  */
 unsigned int
 GCT_count_any_connections (const struct CadetTunnel *t);
@@ -341,7 +342,9 @@ GCT_change_estate (struct CadetTunnel *t,
                    enum CadetTunnelEState state);
 
 /**
- * Handle KX message.
+ * Handle KX message that lacks authentication (and which will thus
+ * only be considered authenticated after we respond with our own
+ * KX_AUTH and finally successfully decrypt the payload).
  *
  * @param ct connection/tunnel combo that received encrypted message
  * @param msg the key exchange message

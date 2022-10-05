@@ -46,7 +46,7 @@ static struct GNUNET_DATACACHE_Handle *datacache;
 
 
 void
-GDS_DATACACHE_handle_put (const struct GDS_DATACACHE_BlockData *bd)
+GDS_DATACACHE_handle_put (const struct GNUNET_DATACACHE_Block *bd)
 {
   struct GNUNET_HashCode xor;
   enum GNUNET_GenericReturnValue r;
@@ -71,14 +71,8 @@ GDS_DATACACHE_handle_put (const struct GDS_DATACACHE_BlockData *bd)
                           &GDS_my_identity_hash,
                           &xor);
   r = GNUNET_DATACACHE_put (datacache,
-                            &bd->key,
                             GNUNET_CRYPTO_hash_count_leading_zeros (&xor),
-                            bd->data_size,
-                            bd->data,
-                            bd->type,
-                            bd->expiration_time,
-                            bd->put_path_length,
-                            bd->put_path);
+                            bd);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "DATACACHE PUT for key %s [%lu] completed (%d) after %u hops\n",
        GNUNET_h2s (&bd->key),
@@ -134,55 +128,34 @@ struct GetRequestContext
  * Iterator for local get request results,
  *
  * @param cls closure for iterator, a `struct GetRequestContext`
- * @param exp when does this value expire?
- * @param key the key this data is stored under
- * @param data_size the size of the data identified by key
- * @param data the actual data
- * @param type the type of the @a data
- * @param put_path_length number of peers in @a put_path
- * @param put_path path the reply took on put
+ * @param bd block data
  * @return #GNUNET_OK to continue iteration, anything else
  * to stop iteration.
  */
 static enum GNUNET_GenericReturnValue
 datacache_get_iterator (void *cls,
-                        const struct GNUNET_HashCode *key,
-                        size_t data_size,
-                        const char *data,
-                        enum GNUNET_BLOCK_Type type,
-                        struct GNUNET_TIME_Absolute exp,
-                        unsigned int put_path_length,
-                        const struct GNUNET_DHT_PathElement *put_path)
+                        const struct GNUNET_DATACACHE_Block *bd)
 {
   struct GetRequestContext *ctx = cls;
   enum GNUNET_BLOCK_ReplyEvaluationResult eval;
-  struct GDS_DATACACHE_BlockData bd = {
-    .key = *key,
-    .expiration_time = exp,
-    .put_path = put_path,
-    .data = data,
-    .data_size = data_size,
-    .put_path_length = put_path_length,
-    .type = type
-  };
 
-  if (GNUNET_TIME_absolute_is_past (exp))
+  if (GNUNET_TIME_absolute_is_past (bd->expiration_time))
   {
     GNUNET_break (0);  /* why does datacache return expired values? */
     return GNUNET_OK;   /* skip expired record */
   }
   eval
     = GNUNET_BLOCK_check_reply (GDS_block_context,
-                                bd.type,
+                                bd->type,
                                 ctx->bg,
-                                &bd.key,
+                                &bd->key,
                                 ctx->xquery,
                                 ctx->xquery_size,
-                                bd.data,
-                                bd.data_size);
+                                bd->data,
+                                bd->data_size);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Evaluated reply for query %s in datacache, result is %d\n",
-       GNUNET_h2s (key),
+       GNUNET_h2s (&bd->key),
        (int) eval);
   ctx->eval = eval;
   switch (eval)
@@ -196,7 +169,7 @@ datacache_get_iterator (void *cls,
                               1,
                               GNUNET_NO);
     ctx->gc (ctx->gc_cls,
-             &bd);
+             bd);
     break;
   case GNUNET_BLOCK_REPLY_OK_DUPLICATE:
     GNUNET_STATISTICS_update (GDS_stats,
@@ -225,7 +198,7 @@ GDS_DATACACHE_handle_get (const struct GNUNET_HashCode *key,
                           void *gc_cls)
 {
   struct GetRequestContext ctx = {
-                                  .eval = GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED,
+    .eval = GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED,
     .key = *key,
     .xquery = xquery,
     .xquery_size = xquery_size,
@@ -265,7 +238,7 @@ GDS_DATACACHE_get_closest (const struct GNUNET_HashCode *key,
                            void *cb_cls)
 {
   struct GetRequestContext ctx = {
-                                  .eval = GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED,
+    .eval = GNUNET_BLOCK_REPLY_TYPE_NOT_SUPPORTED,
     .key = *key,
     .xquery = xquery,
     .xquery_size = xquery_size,

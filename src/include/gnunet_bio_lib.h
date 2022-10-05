@@ -19,6 +19,10 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -682,5 +686,7 @@ GNUNET_BIO_write_spec_commit (struct GNUNET_BIO_WriteHandle *h,
 #endif
 
 /** @} */  /* end of group bio */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_bio_lib.h */

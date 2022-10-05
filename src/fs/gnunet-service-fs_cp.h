@@ -199,7 +199,7 @@ struct GSF_PeerTransmitHandle;
  *
  * @param cls NULL
  * @param peer identity of peer that connected
- * @param mq queue for sending messages to @a peer
+ * @param mq message queue for talking to @a peer
  * @return internal handle for the peer
  */
 void *
@@ -333,8 +333,8 @@ GSF_block_peer_migration_ (struct GSF_ConnectedPeer *cp,
  * record.
  *
  * @param cls unused
- * @param peer identity of peer that connected
- * @param internal_cls our `struct GSF_ConnectedPeer` for @a peer
+ * @param peer identity of peer that disconnected
+ * @param internal_cls the corresponding `struct GSF_ConnectedPeer` 
  */
 void
 GSF_peer_disconnect_handler (void *cls,
@@ -391,7 +391,7 @@ GSF_connected_peer_get_identity2_ (const struct GSF_ConnectedPeer *cp);
  * Iterate over all connected peers.
  *
  * @param it function to call for each peer
- * @param it_cls closure for it
+ * @param it_cls closure for @a it
  */
 void
 GSF_iterate_connected_peers_ (GSF_ConnectedPeerIterator it, void *it_cls);

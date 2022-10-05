@@ -19,6 +19,10 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
  * @author Florian Dold
  * @author Christian Grothoff
  *
@@ -1120,3 +1124,5 @@ GNUNET_MQ_preference_to_string (enum GNUNET_MQ_PreferenceKind type);
 #endif
 
 /** @} */ /* end of group mq */
+
+/** @} */ /* end of group addition */

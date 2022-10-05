@@ -250,16 +250,6 @@ GNUNET_RECLAIM_attribute_value_to_string (uint32_t type,
 }
 
 
-/**
- * Create a new attribute.
- *
- * @param attr_name the attribute name
- * @param credential credential ID of the attribute (maybe NULL)
- * @param type the attribute type
- * @param data the attribute value
- * @param data_size the attribute value size
- * @return the new attribute
- */
 struct GNUNET_RECLAIM_Attribute *
 GNUNET_RECLAIM_attribute_new (const char *attr_name,
                               const struct

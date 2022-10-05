@@ -124,7 +124,8 @@ plugin_fini (void)
     GNUNET_free (old_dlsearchpath);
     old_dlsearchpath = NULL;
   }
-  lt_dlexit ();
+  if (NULL == getenv ("VALGRINDING_PLUGINS"))
+    lt_dlexit ();
 }
 
 
@@ -162,16 +163,7 @@ resolve_function (struct PluginList *plug,
 }
 
 
-/**
- * Test if a plugin exists.
- *
- * Note that the library must export a symbol called
- * `library_name_init` for the test to succeed.
- *
- * @param library_name name of the plugin to test if it is installed
- * @return #GNUNET_YES if the plugin exists, #GNUNET_NO if not
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_PLUGIN_test (const char *library_name)
 {
   void *libhandle;
@@ -201,18 +193,6 @@ GNUNET_PLUGIN_test (const char *library_name)
 }
 
 
-/**
- * Setup plugin (runs the `init` callback and returns whatever `init`
- * returned).  If `init` returns NULL, the plugin is unloaded.
- *
- * Note that the library must export symbols called
- * `library_name_init` and `library_name_done`.  These will be called
- * when the library is loaded and unloaded respectively.
- *
- * @param library_name name of the plugin to load
- * @param arg argument to the plugin initialization function
- * @return whatever the initialization function returned
- */
 void *
 GNUNET_PLUGIN_load (const char *library_name,
                     void *arg)
@@ -257,14 +237,6 @@ GNUNET_PLUGIN_load (const char *library_name,
 }
 
 
-/**
- * Unload plugin (runs the `done` callback and returns whatever `done`
- * returned).  The plugin is then unloaded.
- *
- * @param library_name name of the plugin to unload
- * @param arg argument to the plugin shutdown function
- * @return whatever the shutdown function returned
- */
 void *
 GNUNET_PLUGIN_unload (const char *library_name,
                       void *arg)
@@ -295,7 +267,8 @@ GNUNET_PLUGIN_unload (const char *library_name,
     prev->next = pos->next;
   if (NULL != done)
     ret = done (arg);
-  lt_dlclose (pos->handle);
+  if (NULL == getenv ("VALGRINDING_PLUGINS"))
+    lt_dlclose (pos->handle);
   GNUNET_free (pos->name);
   GNUNET_free (pos);
   if (NULL == plugins)
@@ -381,23 +354,6 @@ find_libraries (void *cls,
 }
 
 
-/**
- * Load all compatible plugins with the given base name.
- *
- * Note that the library must export symbols called
- * `basename_ANYTHING_init` and `basename_ANYTHING__done`.  These will
- * be called when the library is loaded and unloaded respectively.
- *
- * If you are writing a service to which third-party applications can connect,
- * like GNUnet's own GNS service for example, you should use
- * #GNUNET_PLUGIN_load_all_in_context instead of this function, passing your
- * service's project data as context.
- *
- * @param basename basename of the plugins to load
- * @param arg argument to the plugin initialization function
- * @param cb function to call for each plugin found
- * @param cb_cls closure for @a cb
- */
 void
 GNUNET_PLUGIN_load_all (const char *basename,
                         void *arg,
@@ -425,20 +381,6 @@ GNUNET_PLUGIN_load_all (const char *basename,
 }
 
 
-/**
- * Load all compatible plugins with the given base name while inside the given
- * context (i.e. a specific project data structure.)
- *
- * Note that the library must export symbols called `basename_ANYTHING_init`
- * and `basename_ANYTHING__done`.  These will be called when the library is
- * loaded and unloaded respectively.
- *
- * @param ctx the context used to find the plugins
- * @param basename basename of the plugins to load
- * @param arg argument to the plugin initialization function
- * @param cb function to call for each plugin found
- * @param cb_cls closure for @a cb
- */
 void
 GNUNET_PLUGIN_load_all_in_context (const struct GNUNET_OS_ProjectData *ctx,
                                    const char *basename,

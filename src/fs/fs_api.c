@@ -316,17 +316,6 @@ process_job_queue (void *cls)
 }
 
 
-/**
- * Add a job to the queue.
- *
- * @param h handle to the overall FS state
- * @param start function to call to begin the job
- * @param stop function to call to pause the job, or on dequeue (if the job was running)
- * @param cls closure for start and stop
- * @param blocks number of blocks this jobs uses
- * @param priority how important is this download
- * @return queue handle
- */
 struct GNUNET_FS_QueueEntry *
 GNUNET_FS_queue_ (struct GNUNET_FS_Handle *h,
                   GNUNET_SCHEDULER_TaskCallback start,
@@ -515,12 +504,6 @@ GNUNET_FS_data_reader_file_ (void *cls,
 }
 
 
-/**
- * Create the closure for the #GNUNET_FS_data_reader_file_() callback.
- *
- * @param filename file to read
- * @return closure to use, NULL on error
- */
 void *
 GNUNET_FS_make_file_reader_context_ (const char *filename)
 {

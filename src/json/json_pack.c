@@ -251,6 +251,23 @@ GNUNET_JSON_pack_data_varsize (const char *name,
 
 
 struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_data64_varsize (const char *name,
+                                 const void *blob,
+                                 size_t blob_size)
+{
+  struct GNUNET_JSON_PackSpec ps = {
+    .field_name = name,
+    .object = (NULL != blob)
+    ? GNUNET_JSON_from_data64 (blob,
+                               blob_size)
+    : NULL
+  };
+
+  return ps;
+}
+
+
+struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_timestamp (const char *name,
                             struct GNUNET_TIME_Timestamp t)
 {

@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup Backbone
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -704,5 +707,7 @@ GNUNET_TRANSPORT_core_get_mq (struct GNUNET_TRANSPORT_CoreHandle *handle,
 #endif
 
 /** @} */ /* end of group */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_transport_service.h */

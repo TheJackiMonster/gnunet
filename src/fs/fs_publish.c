@@ -699,7 +699,7 @@ check_index_start_failed (void *cls,
   size_t msize = ntohs (msg->size) - sizeof(*msg);
   const char *emsg = (const char *) &msg[1];
 
-  if (emsg[msize - sizeof(struct GNUNET_MessageHeader) - 1] != '\0')
+  if (emsg[msize - 1] != '\0')
   {
     GNUNET_break (0);
     return GNUNET_SYSERR;

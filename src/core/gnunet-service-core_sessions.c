@@ -855,14 +855,6 @@ GSC_SESSIONS_solicit (const struct GNUNET_PeerIdentity *pid)
 }
 
 
-/**
- * Transmit a message to a particular peer.
- *
- * @param car original request that was queued and then solicited;
- *            this handle will now be 'owned' by the SESSIONS subsystem
- * @param msg message to transmit
- * @param priority how important is this message
- */
 void
 GSC_SESSIONS_transmit (struct GSC_ClientActiveRequest *car,
                        const struct GNUNET_MessageHeader *msg,
@@ -904,13 +896,6 @@ GSC_SESSIONS_transmit (struct GSC_ClientActiveRequest *car,
 }
 
 
-/**
- * We have received a typemap message from a peer, update ours.
- * Notifies clients about the session.
- *
- * @param peer peer this is about
- * @param msg typemap update message
- */
 void
 GSC_SESSIONS_set_typemap (const struct GNUNET_PeerIdentity *peer,
                           const struct GNUNET_MessageHeader *msg)

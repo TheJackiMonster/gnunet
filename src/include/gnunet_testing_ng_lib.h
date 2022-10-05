@@ -240,7 +240,7 @@ GNUNET_TESTING_interpreter_lookup_command (
 
 /**
  * Lookup command by label.
- * All commands, first into the past, then into the furture are looked up.
+ * All commands, first into the past, then into the future are looked up.
  *
  * @param is interpreter to lookup command in
  * @param label label of the command to lookup.

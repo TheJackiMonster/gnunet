@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup Backbone
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -484,3 +487,5 @@ struct GNUNET_ATS_PluginEnvironment
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */  /* end of group addition */

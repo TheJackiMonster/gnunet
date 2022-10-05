@@ -1692,12 +1692,6 @@ client_connect_get (struct GNUNET_ATS_Session *s)
 }
 
 
-/**
- * Connect a HTTP put request
- *
- * @param s the session to connect
- * @return #GNUNET_SYSERR for hard failure, #GNUNET_OK for ok
- */
 static int
 client_connect_put (struct GNUNET_ATS_Session *s)
 {

@@ -747,11 +747,6 @@ GAS_preference_get_by_peer (void *cls,
 }
 
 
-/**
- * A performance client disconnected
- *
- * @param client the client
- */
 void
 GAS_preference_client_disconnect (struct GNUNET_SERVICE_Client *client)
 {

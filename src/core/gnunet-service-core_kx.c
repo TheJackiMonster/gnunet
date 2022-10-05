@@ -1392,13 +1392,6 @@ send_key (struct GSC_KeyExchangeInfo *kx)
 }
 
 
-/**
- * Encrypt and transmit a message with the given payload.
- *
- * @param kx key exchange context
- * @param payload payload of the message
- * @param payload_size number of bytes in @a payload
- */
 void
 GSC_KX_encrypt_and_transmit (struct GSC_KeyExchangeInfo *kx,
                              const void *payload,

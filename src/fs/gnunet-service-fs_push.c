@@ -201,7 +201,7 @@ delete_migration_block (struct MigrationReadyBlock *mb)
 /**
  * Find content for migration to this peer.
  *
- * @param cls a `struct MigrationReadyPeer *`
+ * @param cls A `struct MigrationReadyPeer *` to find content for
  */
 static void
 find_content (void *cls);
@@ -325,11 +325,6 @@ static void
 consider_gathering (void);
 
 
-/**
- * Find content for migration to this peer.
- *
- * @param cls peer to find content for
- */
 static void
 find_content (void *cls)
 {

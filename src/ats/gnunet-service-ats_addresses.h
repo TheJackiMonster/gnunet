@@ -464,7 +464,7 @@ typedef void
 /**
  * Return information all peers currently known to ATS
  *
- * @param peer the respective peer
+ * @param peer the respective peer, NULL for 'all' peers
  * @param pi_it the iterator to call for every peer
  * @param pi_it_cls the closure for @a pi_it
  */

@@ -480,7 +480,7 @@ client_connect_cb (void *cls,
 /**
  * Perform next action in the blacklist check.
  *
- * @param cls the `struct BlacklistCheck*`
+ * @param cls the `struct GST_BlacklistCheck *`
  */
 static void
 do_blacklist_check (void *cls);
@@ -2189,11 +2189,6 @@ shutdown_task (void *cls)
 }
 
 
-/**
- * Perform next action in the blacklist check.
- *
- * @param cls the `struct GST_BlacklistCheck *`
- */
 static void
 do_blacklist_check (void *cls)
 {

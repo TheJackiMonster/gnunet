@@ -19,12 +19,15 @@
  */
 
 /**
+ * @addtogroup reclaim_suite  RECLAIM services and libraries
+ * @{
+ *
  * @author Martin Schanzenbach
  *
  * @file
  * Identity attribute definitions
  *
- * @defgroup reclaim-attribute reclaim attributes
+ * @defgroup reclaim-attribute Reclaim attributes
  * @{
  */
 #ifndef GNUNET_RECLAIM_ATTRIBUTE_LIB_H
@@ -857,5 +860,7 @@ GNUNET_RECLAIM_credential_get_presentation (
 #endif
 
 /** @} */ /* end of group reclaim-attribute */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_reclaim_attribute_lib.h */

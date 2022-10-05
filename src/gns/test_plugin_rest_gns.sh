@@ -21,10 +21,10 @@ wrong_link="http://localhost:7776/gnsandmore"
 curl_get () {
     #$1 is link
     #$2 is grep
-    XURL=`which gnurl || which curl`
+    XURL=`which curl`
     if [ "" = "$XURL" ]
     then
-        echo "HTTP client (curl/gnurl) not found, exiting"
+        echo "HTTP client (curl) not found, exiting"
         exit 77
     fi
     sleep 0.5
@@ -34,13 +34,14 @@ curl_get () {
     then
         gnunet-identity -D "$TEST_TLD" -c test_gns_lookup.conf > /dev/null 2>&1
         gnunet-arm -e -c test_gns_lookup.conf
-        echo "Download of $1 using $XURL failed"
+        echo "Download of $1 using $XURL failed, expected $2"
         exit 1
     fi
 }
 TEST_TLD="testtld"
 
 gnunet-arm -s -c test_gns_lookup.conf
+
 curl_get "$gns_link/www.$TEST_TLD" "error"
 
 gnunet-identity -C "$TEST_TLD"  -c test_gns_lookup.conf

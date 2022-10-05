@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup conversation_l2  Conversation service and libraries
+ * @{
+ *
  * @author Simon Dieterle
  * @author Andreas Fuchs
  * @author Christian Grothoff
@@ -438,3 +441,5 @@ GNUNET_CONVERSATION_call_stop (struct GNUNET_CONVERSATION_Call *call);
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */

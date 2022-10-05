@@ -21,6 +21,7 @@
  * @file namestore/test_common.c
  * @brief common functions for testcase setup
  */
+#include <gnunet_namestore_plugin.h>
 
 /**
  * test if we can load the plugin @a name.
@@ -30,6 +31,7 @@ TNC_test_plugin (const char *cfg_name)
 {
   char *database;
   char *db_lib_name;
+  char *emsg;
   struct GNUNET_NAMESTORE_PluginFunctions *db;
   struct GNUNET_CONFIGURATION_Handle *cfg;
 
@@ -53,7 +55,15 @@ TNC_test_plugin (const char *cfg_name)
   GNUNET_free (database);
   db = GNUNET_PLUGIN_load (db_lib_name, (void *) cfg);
   if (NULL != db)
+  {
+    if (GNUNET_OK != db->reset_database (db->cls, &emsg))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Error resetting database: %s\n", emsg);
+      GNUNET_free (emsg);
+      return GNUNET_SYSERR;
+    }
     GNUNET_break (NULL == GNUNET_PLUGIN_unload (db_lib_name, db));
+  }
   GNUNET_free (db_lib_name);
   GNUNET_CONFIGURATION_destroy (cfg);
   if (NULL == db)
@@ -61,7 +71,22 @@ TNC_test_plugin (const char *cfg_name)
   return GNUNET_YES;
 }
 
-
+/**
+ * General setup logic for starting the tests.  Obtains the @a
+ * plugin_name and initializes the @a cfg_name.
+ */
+#define SETUP_CFG2(file_template, plugin_name, cfg_name)                                    \
+  do                                                                        \
+  {                                                                         \
+    plugin_name = GNUNET_TESTING_get_testname_from_underscore (argv[0]);    \
+    GNUNET_asprintf (&cfg_name, file_template, plugin_name); \
+    if (! TNC_test_plugin (cfg_name))                                       \
+    {                                                                       \
+      GNUNET_free (cfg_name);                                               \
+      return 77;                                                            \
+    }                                                                       \
+    GNUNET_DISK_purge_cfg_dir (cfg_name, "GNUNET_TEST_HOME");               \
+  } while (0)
 /**
  * General setup logic for starting the tests.  Obtains the @a
  * plugin_name and initializes the @a cfg_name.

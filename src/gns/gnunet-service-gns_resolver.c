@@ -849,7 +849,6 @@ handle_dns_result (void *cls,
  * Task scheduled to continue with the resolution process.
  *
  * @param cls the 'struct GNS_ResolverHandle' of the resolution
- * @param tc task context
  */
 static void
 recursive_resolution (void *cls);
@@ -1335,7 +1334,6 @@ handle_gns_redirect_result (struct GNS_ResolverHandle *rh,
 }
 
 
-
 /**
  * We encountered a CNAME record during our resolution.
  * Merge it into our chain.
@@ -1380,7 +1378,7 @@ handle_gns_cname_result (struct GNS_ResolverHandle *rh,
 
 
 /**
- * Process a records that were decrypted from a block.
+ * Process records that were decrypted from a block.
  *
  * @param cls closure with the 'struct GNS_ResolverHandle'
  * @param rd_count number of entries in @a rd array
@@ -1390,7 +1388,6 @@ static void
 handle_gns_resolution_result (void *cls,
                               unsigned int rd_count,
                               const struct GNUNET_GNSRECORD_Data *rd);
-
 
 
 /**
@@ -1591,6 +1588,7 @@ handle_gns2dns_ip (void *cls,
                                  (struct sockaddr *) &ss))
     ac->authority_info.dns_authority.found = GNUNET_YES;
 }
+
 
 /**
  * We found a REDIRECT record, perform recursive resolution on it.
@@ -1895,13 +1893,6 @@ recursive_gns2dns_resolution (struct GNS_ResolverHandle *rh,
 }
 
 
-/**
- * Process a records that were decrypted from a block.
- *
- * @param cls closure with the `struct GNS_ResolverHandle`
- * @param rd_count number of entries in @a rd array
- * @param rd array of records with data to store
- */
 static void
 handle_gns_resolution_result (void *cls,
                               unsigned int rd_count,
@@ -2329,7 +2320,7 @@ handle_gns_resolution_result (void *cls,
                 _ ("Unable to process critical delegation record\n"));
     break;
   }
-  fail:
+fail:
   GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
               _ ("GNS lookup recursion failed (no delegation record found)\n"));
   fail_resolution (rh);
@@ -2370,6 +2361,7 @@ namecache_cache_continuation (void *cls,
  * @param cls closure with the `struct GNS_ResolverHandle`
  * @param exp when will this value expire
  * @param key key of the result
+ * @param trunc_peer truncated peer, NULL if not truncated
  * @param get_path peers on reply path (or NULL if not recorded)
  *                 [0] = datastore's first neighbor, [length - 1] = local peer
  * @param get_path_length number of entries in @a get_path
@@ -2384,6 +2376,7 @@ static void
 handle_dht_response (void *cls,
                      struct GNUNET_TIME_Absolute exp,
                      const struct GNUNET_HashCode *key,
+                     const struct GNUNET_PeerIdentity *trunc_peer,
                      const struct GNUNET_DHT_PathElement *get_path,
                      unsigned int get_path_length,
                      const struct GNUNET_DHT_PathElement *put_path,
@@ -2552,7 +2545,8 @@ handle_namecache_block_response (void *cls,
   else
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Got block with expiration %s\n",
-                GNUNET_STRINGS_absolute_time_to_string (GNUNET_GNSRECORD_block_get_expiration (block)));
+                GNUNET_STRINGS_absolute_time_to_string (
+                  GNUNET_GNSRECORD_block_get_expiration (block)));
   if (((GNUNET_GNS_LO_DEFAULT == rh->options) ||
        ((GNUNET_GNS_LO_LOCAL_MASTER == rh->options) &&
         (ac != rh->ac_head))) &&
@@ -2696,11 +2690,6 @@ recursive_gns_resolution_revocation (struct GNS_ResolverHandle *rh)
 }
 
 
-/**
- * Task scheduled to continue with the resolution process.
- *
- * @param cls the `struct GNS_ResolverHandle` of the resolution
- */
 static void
 recursive_resolution (void *cls)
 {
@@ -2722,12 +2711,6 @@ recursive_resolution (void *cls)
 }
 
 
-/**
- * Begin the resolution process from 'name', starting with
- * the identification of the zone specified by 'name'.
- *
- * @param cls the `struct GNS_ResolverHandle`
- */
 static void
 start_resolver_lookup (void *cls)
 {

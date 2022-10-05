@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet
-     Copyright (C) 2012, 2015 GNUnet e.V.
+     Copyright (C) 2012, 2015, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -63,14 +63,9 @@ struct Plugin
 struct Value
 {
   /**
-   * Key for the entry.
+   * Block data.
    */
-  struct GNUNET_HashCode key;
-
-  /**
-   * Expiration time.
-   */
-  struct GNUNET_TIME_Absolute discard_time;
+  struct GNUNET_DATACACHE_Block block;
 
   /**
    * Corresponding node in the heap.
@@ -78,29 +73,15 @@ struct Value
   struct GNUNET_CONTAINER_HeapNode *hn;
 
   /**
-   * Path information.
+   * Put path as a non-const pointer.
    */
-  struct GNUNET_DHT_PathElement *path_info;
-
-  /**
-   * Payload (actual payload follows this struct)
-   */
-  size_t size;
-
-  /**
-   * Number of entries in @e path_info.
-   */
-  unsigned int path_info_len;
+  struct GNUNET_DHT_PathElement *put_path;
 
   /**
    * How close is the hash to us? Determines which heap we are in!
    */
   uint32_t distance;
 
-  /**
-   * Type of the block.
-   */
-  enum GNUNET_BLOCK_Type type;
 };
 
 
@@ -113,39 +94,14 @@ struct Value
 struct PutContext
 {
   /**
-   * Expiration time for the new value.
+   * Block data.
    */
-  struct GNUNET_TIME_Absolute discard_time;
+  const struct GNUNET_DATACACHE_Block *block;
 
   /**
-   * Data for the new value.
+   * Value to set to true if an equivalent block was found.
    */
-  const char *data;
-
-  /**
-   * Path information.
-   */
-  const struct GNUNET_DHT_PathElement *path_info;
-
-  /**
-   * Number of bytes in @e data.
-   */
-  size_t size;
-
-  /**
-   * Type of the node.
-   */
-  enum GNUNET_BLOCK_Type type;
-
-  /**
-   * Number of entries in @e path_info.
-   */
-  unsigned int path_info_len;
-
-  /**
-   * Value to set to #GNUNET_YES if an equivalent block was found.
-   */
-  int found;
+  bool found;
 };
 
 
@@ -166,31 +122,31 @@ put_cb (void *cls,
   struct PutContext *put_ctx = cls;
   struct Value *val = value;
 
-  if ((val->size == put_ctx->size) &&
-      (val->type == put_ctx->type) &&
-      (0 == memcmp (&val[1],
-                    put_ctx->data,
-                    put_ctx->size)))
+  if ((val->block.data_size == put_ctx->block->data_size) &&
+      (val->block.type == put_ctx->block->type) &&
+      (0 == memcmp (val->block.data,
+                    put_ctx->block->data,
+                    put_ctx->block->data_size)))
   {
-    put_ctx->found = GNUNET_YES;
-    val->discard_time = GNUNET_TIME_absolute_max (val->discard_time,
-                                                  put_ctx->discard_time);
+    put_ctx->found = true;
+    val->block.expiration_time
+      = GNUNET_TIME_absolute_max (val->block.expiration_time,
+                                  put_ctx->block->expiration_time);
     /* replace old path with new path */
-    GNUNET_array_grow (val->path_info,
-                       val->path_info_len,
-                       put_ctx->path_info_len);
-    GNUNET_memcpy (val->path_info,
-                   put_ctx->path_info,
-                   put_ctx->path_info_len * sizeof(struct
-                                                   GNUNET_DHT_PathElement));
+    GNUNET_free (val->put_path);
+    val->put_path = GNUNET_memdup (put_ctx->block->put_path,
+                                   put_ctx->block->put_path_length
+                                   * sizeof (struct GNUNET_DHT_PathElement));
+    val->block.put_path = val->put_path;
+    val->block.put_path_length = put_ctx->block->put_path_length;
     GNUNET_CONTAINER_heap_update_cost (val->hn,
-                                       val->discard_time.abs_value_us);
+                                       val->block.expiration_time.abs_value_us);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Got same value for key %s and type %d (size %u vs %u)\n",
+                "Got same value for key %s and type %u (size %u vs %u)\n",
                 GNUNET_h2s (key),
-                val->type,
-                (unsigned int) val->size,
-                (unsigned int) put_ctx->size);
+                (unsigned int) val->block.type,
+                (unsigned int) val->block.data_size,
+                (unsigned int) put_ctx->block->data_size);
     return GNUNET_NO;
   }
   return GNUNET_YES;
@@ -201,75 +157,61 @@ put_cb (void *cls,
  * Store an item in the datastore.
  *
  * @param cls closure (our `struct Plugin`)
- * @param key key to store data under
  * @param xor_distance how close is @a key to our PID?
- * @param size number of bytes in @a data
- * @param data data to store
- * @param type type of the value
- * @param discard_time when to discard the value in any case
- * @param path_info_len number of entries in @a path_info
- * @param path_info a path through the network
+ * @param block data to store
  * @return 0 if duplicate, -1 on error, number of bytes used otherwise
  */
 static ssize_t
 heap_plugin_put (void *cls,
-                 const struct GNUNET_HashCode *key,
                  uint32_t xor_distance,
-                 size_t size,
-                 const char *data,
-                 enum GNUNET_BLOCK_Type type,
-                 struct GNUNET_TIME_Absolute discard_time,
-                 unsigned int path_info_len,
-                 const struct GNUNET_DHT_PathElement *path_info)
+                 const struct GNUNET_DATACACHE_Block *block)
 {
   struct Plugin *plugin = cls;
   struct Value *val;
   struct PutContext put_ctx = {
-    .data = data,
-    .size = size,
-    .path_info = path_info,
-    .path_info_len = path_info_len,
-    .discard_time = discard_time,
-    .type = type
+    .block = block,
+    .found = false
   };
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Storing %u bytes under key %s with path length %u\n",
-              (unsigned int) size,
-              GNUNET_h2s (key),
-              path_info_len);
+              (unsigned int) block->data_size,
+              GNUNET_h2s (&block->key),
+              block->put_path_length);
   GNUNET_CONTAINER_multihashmap_get_multiple (plugin->map,
-                                              key,
+                                              &block->key,
                                               &put_cb,
                                               &put_ctx);
   if (GNUNET_YES == put_ctx.found)
     return 0;
-  val = GNUNET_malloc (sizeof(struct Value) + size);
+  val = GNUNET_malloc (sizeof(struct Value)
+                       + block->data_size);
   GNUNET_memcpy (&val[1],
-                 data,
-                 size);
-  val->key = *key;
-  val->type = type;
-  val->discard_time = discard_time;
-  val->size = size;
+                 block->data,
+                 block->data_size);
+  val->block = *block;
+  val->block.data = &val[1];
   if (xor_distance >= NUM_HEAPS)
     val->distance = NUM_HEAPS - 1;
   else
     val->distance = xor_distance;
-  GNUNET_array_grow (val->path_info,
-                     val->path_info_len,
-                     path_info_len);
-  GNUNET_memcpy (val->path_info,
-                 path_info,
-                 path_info_len * sizeof(struct GNUNET_DHT_PathElement));
+  if (0 != block->put_path_length)
+  {
+    val->put_path
+      = GNUNET_memdup (block->put_path,
+                       block->put_path_length
+                       * sizeof (struct GNUNET_DHT_PathElement));
+    val->block.put_path = val->put_path;
+  }
   (void) GNUNET_CONTAINER_multihashmap_put (plugin->map,
-                                            &val->key,
+                                            &val->block.key,
                                             val,
                                             GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
-  val->hn = GNUNET_CONTAINER_heap_insert (plugin->heaps[val->distance],
-                                          val,
-                                          val->discard_time.abs_value_us);
-  return size + OVERHEAD;
+  val->hn = GNUNET_CONTAINER_heap_insert (
+    plugin->heaps[val->distance],
+    val,
+    val->block.expiration_time.abs_value_us);
+  return val->block.data_size + OVERHEAD;
 }
 
 
@@ -309,16 +251,16 @@ struct GetContext
  * @param value an existing value
  * @return #GNUNET_YES to continue to iterate
  */
-static int
+static enum GNUNET_GenericReturnValue
 get_cb (void *cls,
         const struct GNUNET_HashCode *key,
         void *value)
 {
   struct GetContext *get_ctx = cls;
   struct Value *val = value;
-  int ret;
+  enum GNUNET_GenericReturnValue ret;
 
-  if ( (get_ctx->type != val->type) &&
+  if ( (get_ctx->type != val->block.type) &&
        (GNUNET_BLOCK_TYPE_ANY != get_ctx->type) )
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -327,7 +269,7 @@ get_cb (void *cls,
                 get_ctx->type);
     return GNUNET_OK;
   }
-  if (GNUNET_TIME_absolute_is_past (val->discard_time))
+  if (GNUNET_TIME_absolute_is_past (val->block.expiration_time))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Result for key %s is expired\n",
@@ -339,13 +281,7 @@ get_cb (void *cls,
               GNUNET_h2s (key));
   if (NULL != get_ctx->iter)
     ret = get_ctx->iter (get_ctx->iter_cls,
-                         key,
-                         val->size,
-                         (const char *) &val[1],
-                         val->type,
-                         val->discard_time,
-                         val->path_info_len,
-                         val->path_info);
+                         &val->block);
   else
     ret = GNUNET_YES;
   get_ctx->cnt++;
@@ -393,7 +329,7 @@ heap_plugin_get (void *cls,
  * @param cls closure (our `struct Plugin`)
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-static int
+static enum GNUNET_GenericReturnValue
 heap_plugin_del (void *cls)
 {
   struct Plugin *plugin = cls;
@@ -409,12 +345,12 @@ heap_plugin_del (void *cls)
     return GNUNET_SYSERR;
   GNUNET_assert (GNUNET_YES ==
                  GNUNET_CONTAINER_multihashmap_remove (plugin->map,
-                                                       &val->key,
+                                                       &val->block.key,
                                                        val));
   plugin->env->delete_notify (plugin->env->cls,
-                              &val->key,
-                              val->size + OVERHEAD);
-  GNUNET_free (val->path_info);
+                              &val->block.key,
+                              val->block.data_size + OVERHEAD);
+  GNUNET_free (val->put_path);
   GNUNET_free (val);
   return GNUNET_OK;
 }
@@ -448,7 +384,7 @@ find_closest (void *cls,
   if (1 != GNUNET_CRYPTO_hash_cmp (key,
                                    gcc->key))
     return GNUNET_OK; /* useless */
-  if ( (val->type != gcc->type) &&
+  if ( (val->block.type != gcc->type) &&
        (GNUNET_BLOCK_TYPE_ANY != gcc->type) )
     return GNUNET_OK; /* useless */
   j = gcc->num_results;
@@ -460,7 +396,7 @@ find_closest (void *cls,
       break;
     }
     if (1 ==
-        GNUNET_CRYPTO_hash_cmp (&gcc->values[i]->key,
+        GNUNET_CRYPTO_hash_cmp (&gcc->values[i]->block.key,
                                 key))
     {
       j = i;
@@ -512,14 +448,15 @@ heap_plugin_get_closest (void *cls,
   {
     if (NULL == values[i])
       return i;
-    iter (iter_cls,
-          &values[i]->key,
-          values[i]->size,
-          (void *) &values[i][1],
-          values[i]->type,
-          values[i]->discard_time,
-          values[i]->path_info_len,
-          values[i]->path_info);
+    if ( (NULL != iter) &&
+         (GNUNET_SYSERR ==
+          iter (iter_cls,
+                &values[i]->block)) )
+    {
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
+           "Ending iteration (client error)\n");
+      return i;
+    }
   }
   return num_results * 2;
 }
@@ -576,9 +513,9 @@ libgnunet_plugin_datacache_heap_done (void *cls)
     {
       GNUNET_assert (GNUNET_YES ==
                      GNUNET_CONTAINER_multihashmap_remove (plugin->map,
-                                                           &val->key,
+                                                           &val->block.key,
                                                            val));
-      GNUNET_free (val->path_info);
+      GNUNET_free (val->put_path);
       GNUNET_free (val);
     }
     GNUNET_CONTAINER_heap_destroy (plugin->heaps[i]);

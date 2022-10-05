@@ -22,11 +22,13 @@ dist_pkgdata_DATA = \
   branding/logo/gnunet-logo.png \
   branding/logo/lynXified-amirouche-v3.svg \
   branding/logo/gnunet-logo-dark-text.svg \
-  branding/logo/gnunet-logo-color.png \
   branding/logo/lynXified-amirouche-anonymous-v3.png \
   branding/logo/gnunet-logo-dark-only-text.svg \
-  branding/logo/gnunet-logo-big.png \
-  branding/logo/gnunet-logo.pdf \
+  branding/logo/old-gnunet-logo.pdf \
+  branding/logo/old-gnunet-logo.svg \
+  branding/logo/old-gnunet-logo-big.png \
+  branding/logo/old-gnunet-logo-color.png \
+  branding/logo/old-gnunet-logo-regrouped.svg \
   testing_hostkeys.ecc \
   netjail/netjail_core.sh \
   netjail/netjail_exec.sh \
@@ -42,9 +44,6 @@ INITD_FILES = \
   services/openrc/gnunet.initd
 
 PACKAGES_FILES = \
-  packages/guix/guix-env-py2.scm \
-  packages/guix/guix-env-gillmann.scm \
-  packages/guix/notest-guix-env.scm \
   packages/alpine/gnunet-gtk/APKBUILD \
   packages/alpine/gnurl/APKBUILD \
   packages/alpine/gnunet/gnunet-user-services.initd \
@@ -57,16 +56,34 @@ PACKAGES_FILES = \
   packages/alpine/gnunet/gnunet.pre-install \
   packages/alpine/gnunet/gnunet-system-services.initd \
   packages/alpine/gnunet/gnunet-gns-proxy.initd \
+  packages/arch/gnunet-git/gnunet.install \
+  packages/arch/gnunet-git/gnunet-system.service \
+  packages/arch/gnunet-git/gnunet.sysusers \
+  packages/arch/gnunet-git/gnunet.tmpfiles \
+  packages/arch/gnunet-git/gnunet-user.conf \
+  packages/arch/gnunet-git/gnunet-user.service \
+  packages/arch/gnunet-git/PKGBUILD \
+  packages/arch/gnunet-git/.SRCINFO \
+  packages/arch/gnunet/gnunet.install \
+  packages/arch/gnunet/gnunet-system.service \
+  packages/arch/gnunet/gnunet.sysusers \
+  packages/arch/gnunet/gnunet.tmpfiles \
+  packages/arch/gnunet/gnunet-user.conf \
+  packages/arch/gnunet/gnunet-user.service \
+  packages/arch/gnunet/PKGBUILD \
+  packages/arch/gnunet/.SRCINFO \
+  packages/guix/guix-env-py2.scm \
+  packages/guix/guix-env-gillmann.scm \
+  packages/guix/notest-guix-env.scm \
+  packages/homebrew/gnunet.rb \
   packages/nix/gnunet-dev.nix \
-  packages/nix/default.nix \
-  packages/homebrew/gnunet.rb
+  packages/nix/default.nix
 
 EXTRA_DIST = \
   sounds/vonlynX-bdbAm-lo.wav \
   sounds/vonlynX-bdbG9-lo.wav \
   sounds/vonlynX-ringtones.txt \
   A-Z.ecc \
-  xdg-scheme-handler/gnunet-uri.desktop \
   xdg-scheme-handler/README.md \
   apparmor/gnunet-daemon-testbed-blacklist \
   apparmor/gnunet-service-identity \
@@ -211,7 +228,6 @@ EXTRA_DIST = \
   guix.scm \
   indent_pre-commit \
   Makefile.inc \
-  gnunet.m4 \
   vagrant/Vagrantfile \
   vagrant/bootstrap.ubuntu.sh \
   privacy-sensitive-symbols.mspec \
@@ -245,8 +261,12 @@ test_gnunet_prefix_LDADD = \
   $(LIBLTDL) -lunistring $(XLIB)
 
 aclocaldir = $(datadir)/aclocal
-aclocal_DATA = \
+dist_aclocal_DATA = \
   gnunet.m4
+
+xdgdeentrydir = $(datadir)/applications
+dist_xdgdeentry_DATA = \
+  xdg-scheme-handler/gnunet-uri.desktop
 
 install-data-hook:
 	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_core.sh'

@@ -305,8 +305,6 @@ GNUNET_CONSENSUS_insert (struct GNUNET_CONSENSUS_Handle *consensus,
  * inserted by the client.
  *
  * @param consensus consensus session
- * @param deadline deadline after which the conculde callback
- *                must be called
  * @param conclude called when the conclusion was successful
  * @param conclude_cls closure for the conclude callback
  */

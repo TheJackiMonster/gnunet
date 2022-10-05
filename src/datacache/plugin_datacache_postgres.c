@@ -63,73 +63,76 @@ struct Plugin
  * @param plugin global context
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-static int
+static enum GNUNET_GenericReturnValue
 init_connection (struct Plugin *plugin)
 {
   struct GNUNET_PQ_ExecuteStatement es[] = {
     GNUNET_PQ_make_try_execute (
-      "CREATE TEMPORARY SEQUENCE IF NOT EXISTS gn011dc_oid_seq"),
-    GNUNET_PQ_make_execute ("CREATE TEMPORARY TABLE IF NOT EXISTS gn011dc ("
-                            "  oid OID NOT NULL DEFAULT nextval('gn011dc_oid_seq'),"
-                            "  type INTEGER NOT NULL,"
-                            "  prox INTEGER NOT NULL,"
-                            "  discard_time BIGINT NOT NULL,"
-                            "  key BYTEA NOT NULL,"
+      "CREATE TEMPORARY SEQUENCE IF NOT EXISTS gn180dc_oid_seq"),
+    GNUNET_PQ_make_execute ("CREATE TEMPORARY TABLE IF NOT EXISTS gn180dc ("
+                            "  oid OID NOT NULL DEFAULT nextval('gn180dc_oid_seq'),"
+                            "  type INT4 NOT NULL,"
+                            "  ro INT4 NOT NULL,"
+                            "  prox INT4 NOT NULL,"
+                            "  expiration_time INT8 NOT NULL,"
+                            "  key BYTEA NOT NULL CHECK(LENGTH(key)=64),"
+                            "  trunc BYTEA NOT NULL CHECK(LENGTH(trunc)=32),"
                             "  value BYTEA NOT NULL,"
                             "  path BYTEA DEFAULT NULL)"),
     GNUNET_PQ_make_try_execute (
-      "ALTER SEQUENCE gnu011dc_oid_seq OWNED BY gn011dc.oid"),
+      "ALTER SEQUENCE gnu011dc_oid_seq OWNED BY gn180dc.oid"),
     GNUNET_PQ_make_try_execute (
-      "CREATE INDEX IF NOT EXISTS idx_oid ON gn011dc (oid)"),
+      "CREATE INDEX IF NOT EXISTS idx_oid ON gn180dc (oid)"),
     GNUNET_PQ_make_try_execute (
-      "CREATE INDEX IF NOT EXISTS idx_key ON gn011dc (key)"),
+      "CREATE INDEX IF NOT EXISTS idx_key ON gn180dc (key)"),
     GNUNET_PQ_make_try_execute (
-      "CREATE INDEX IF NOT EXISTS idx_dt ON gn011dc (discard_time)"),
+      "CREATE INDEX IF NOT EXISTS idx_dt ON gn180dc (expiration_time)"),
     GNUNET_PQ_make_execute (
-      "ALTER TABLE gn011dc ALTER value SET STORAGE EXTERNAL"),
-    GNUNET_PQ_make_execute ("ALTER TABLE gn011dc ALTER key SET STORAGE PLAIN"),
+      "ALTER TABLE gn180dc ALTER value SET STORAGE EXTERNAL"),
+    GNUNET_PQ_make_execute ("ALTER TABLE gn180dc ALTER key SET STORAGE PLAIN"),
     GNUNET_PQ_EXECUTE_STATEMENT_END
   };
   struct GNUNET_PQ_PreparedStatement ps[] = {
     GNUNET_PQ_make_prepare ("getkt",
-                            "SELECT discard_time,type,value,path FROM gn011dc "
-                            "WHERE key=$1 AND type=$2 AND discard_time >= $3",
+                            "SELECT expiration_time,type,ro,value,trunc,path FROM gn180dc "
+                            "WHERE key=$1 AND type=$2 AND expiration_time >= $3",
                             3),
     GNUNET_PQ_make_prepare ("getk",
-                            "SELECT discard_time,type,value,path FROM gn011dc "
-                            "WHERE key=$1 AND discard_time >= $2",
+                            "SELECT expiration_time,type,ro,value,trunc,path FROM gn180dc "
+                            "WHERE key=$1 AND expiration_time >= $2",
                             2),
     GNUNET_PQ_make_prepare ("getex",
-                            "SELECT length(value) AS len,oid,key FROM gn011dc"
-                            " WHERE discard_time < $1"
-                            " ORDER BY discard_time ASC LIMIT 1",
+                            "SELECT LENGTH(value) AS len,oid,key FROM gn180dc"
+                            " WHERE expiration_time < $1"
+                            " ORDER BY expiration_time ASC LIMIT 1",
                             1),
     GNUNET_PQ_make_prepare ("getm",
-                            "SELECT length(value) AS len,oid,key FROM gn011dc"
-                            " ORDER BY prox ASC, discard_time ASC LIMIT 1",
+                            "SELECT LENGTH(value) AS len,oid,key FROM gn180dc"
+                            " ORDER BY prox ASC, expiration_time ASC LIMIT 1",
                             0),
     GNUNET_PQ_make_prepare ("get_closest",
-                            "(SELECT discard_time,type,value,path,key FROM gn011dc"
+                            "(SELECT expiration_time,type,ro,value,trunc,path,key FROM gn180dc"
                             " WHERE key >= $1"
-                            "   AND discard_time >= $2"
+                            "   AND expiration_time >= $2"
                             "   AND ( (type = $3) OR ( 0 = $3) )"
                             " ORDER BY key ASC"
                             " LIMIT $4)"
                             " UNION "
-                            "(SELECT discard_time,type,value,path,key FROM gn011dc"
+                            "(SELECT expiration_time,type,ro,value,trunc,path,key FROM gn180dc"
                             " WHERE key <= $1"
-                            "   AND discard_time >= $2"
+                            "   AND expiration_time >= $2"
                             "   AND ( (type = $3) OR ( 0 = $3) )"
                             " ORDER BY key DESC"
                             " LIMIT $4)",
                             4),
     GNUNET_PQ_make_prepare ("delrow",
-                            "DELETE FROM gn011dc WHERE oid=$1",
+                            "DELETE FROM gn180dc WHERE oid=$1",
                             1),
     GNUNET_PQ_make_prepare ("put",
-                            "INSERT INTO gn011dc (type, prox, discard_time, key, value, path) "
-                            "VALUES ($1, $2, $3, $4, $5, $6)",
-                            6),
+                            "INSERT INTO gn180dc"
+                            " (type, ro, prox, expiration_time, key, value, trunc, path) "
+                            "VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+                            8),
     GNUNET_PQ_PREPARED_STATEMENT_END
   };
 
@@ -148,38 +151,30 @@ init_connection (struct Plugin *plugin)
  * Store an item in the datastore.
  *
  * @param cls closure (our `struct Plugin`)
- * @param key key to store @a data under
  * @param prox proximity of @a key to my PID
- * @param data_size number of bytes in @a data
- * @param data data to store
- * @param type type of the value
- * @param discard_time when to discard the value in any case
- * @param path_info_len number of entries in @a path_info
- * @param path_info a path through the network
+ * @param block data to store
  * @return 0 if duplicate, -1 on error, number of bytes used otherwise
  */
 static ssize_t
 postgres_plugin_put (void *cls,
-                     const struct GNUNET_HashCode *key,
                      uint32_t prox,
-                     size_t data_size,
-                     const char *data,
-                     enum GNUNET_BLOCK_Type type,
-                     struct GNUNET_TIME_Absolute discard_time,
-                     unsigned int path_info_len,
-                     const struct GNUNET_DHT_PathElement *path_info)
+                     const struct GNUNET_DATACACHE_Block *block)
 {
   struct Plugin *plugin = cls;
-  uint32_t type32 = (uint32_t) type;
+  uint32_t type32 = (uint32_t) block->type;
+  uint32_t ro32 = (uint32_t) block->type;
   struct GNUNET_PQ_QueryParam params[] = {
     GNUNET_PQ_query_param_uint32 (&type32),
+    GNUNET_PQ_query_param_uint32 (&ro32),
     GNUNET_PQ_query_param_uint32 (&prox),
-    GNUNET_PQ_query_param_absolute_time (&discard_time),
-    GNUNET_PQ_query_param_auto_from_type (key),
-    GNUNET_PQ_query_param_fixed_size (data, data_size),
-    GNUNET_PQ_query_param_fixed_size (path_info,
-                                      path_info_len * sizeof(struct
-                                                             GNUNET_DHT_PathElement)),
+    GNUNET_PQ_query_param_absolute_time (&block->expiration_time),
+    GNUNET_PQ_query_param_auto_from_type (&block->key),
+    GNUNET_PQ_query_param_fixed_size (block->data,
+                                      block->data_size),
+    GNUNET_PQ_query_param_auto_from_type (&block->trunc_peer),
+    GNUNET_PQ_query_param_fixed_size (block->put_path,
+                                      block->put_path_length
+                                      * sizeof(struct GNUNET_DHT_PathElement)),
     GNUNET_PQ_query_param_end
   };
   enum GNUNET_DB_QueryStatus ret;
@@ -190,7 +185,7 @@ postgres_plugin_put (void *cls,
   if (0 > ret)
     return -1;
   plugin->num_items++;
-  return data_size + OVERHEAD;
+  return block->data_size + OVERHEAD;
 }
 
 
@@ -234,23 +229,27 @@ handle_results (void *cls,
 
   for (unsigned int i = 0; i < num_results; i++)
   {
-    struct GNUNET_TIME_Absolute expiration_time;
-    uint32_t type;
+    uint32_t type32;
+    uint32_t bro32;
     void *data;
-    size_t data_size;
-    struct GNUNET_DHT_PathElement *path;
-    size_t path_len;
+    struct GNUNET_DATACACHE_Block block;
+    void *path;
+    size_t path_size;
     struct GNUNET_PQ_ResultSpec rs[] = {
-      GNUNET_PQ_result_spec_absolute_time ("discard_time",
-                                           &expiration_time),
+      GNUNET_PQ_result_spec_absolute_time ("expiration_time",
+                                           &block.expiration_time),
       GNUNET_PQ_result_spec_uint32 ("type",
-                                    &type),
+                                    &type32),
+      GNUNET_PQ_result_spec_uint32 ("ro",
+                                    &bro32),
       GNUNET_PQ_result_spec_variable_size ("value",
                                            &data,
-                                           &data_size),
+                                           &block.data_size),
+      GNUNET_PQ_result_spec_auto_from_type ("trunc",
+                                            &block.trunc_peer),
       GNUNET_PQ_result_spec_variable_size ("path",
-                                           (void **) &path,
-                                           &path_len),
+                                           &path,
+                                           &path_size),
       GNUNET_PQ_result_spec_end
     };
 
@@ -262,26 +261,27 @@ handle_results (void *cls,
       GNUNET_break (0);
       return;
     }
-    if (0 != (path_len % sizeof(struct GNUNET_DHT_PathElement)))
+    if (0 != (path_size % sizeof(struct GNUNET_DHT_PathElement)))
     {
       GNUNET_break (0);
-      path_len = 0;
+      path_size = 0;
+      path = NULL;
     }
-    path_len %= sizeof(struct GNUNET_DHT_PathElement);
+    block.data = data;
+    block.put_path = path;
+    block.put_path_length
+      = path_size / sizeof (struct GNUNET_DHT_PathElement);
+    block.type = (enum GNUNET_BLOCK_Type) type32;
+    block.ro = (enum GNUNET_DHT_RouteOption) bro32;
+    block.key = *hrc->key;
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Found result of size %u bytes and type %u in database\n",
-         (unsigned int) data_size,
-         (unsigned int) type);
-    if ((NULL != hrc->iter) &&
-        (GNUNET_SYSERR ==
-         hrc->iter (hrc->iter_cls,
-                    hrc->key,
-                    data_size,
-                    data,
-                    (enum GNUNET_BLOCK_Type) type,
-                    expiration_time,
-                    path_len,
-                    path)))
+         (unsigned int) block.data_size,
+         (unsigned int) block.type);
+    if ( (NULL != hrc->iter) &&
+         (GNUNET_SYSERR ==
+          hrc->iter (hrc->iter_cls,
+                     &block)) )
     {
       LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Ending iteration (client error)\n");
@@ -350,7 +350,7 @@ postgres_plugin_get (void *cls,
  * @param cls closure (our `struct Plugin`)
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-static int
+static enum GNUNET_GenericReturnValue
 postgres_plugin_del (void *cls)
 {
   struct Plugin *plugin = cls;
@@ -453,26 +453,29 @@ extract_result_cb (void *cls,
     return;
   for (unsigned int i = 0; i < num_results; i++)
   {
-    struct GNUNET_TIME_Absolute expiration_time;
-    uint32_t type;
+    uint32_t type32;
+    uint32_t bro32;
+    struct GNUNET_DATACACHE_Block block;
     void *data;
-    size_t data_size;
-    struct GNUNET_DHT_PathElement *path;
-    size_t path_len;
-    struct GNUNET_HashCode key;
+    void *path;
+    size_t path_size;
     struct GNUNET_PQ_ResultSpec rs[] = {
-      GNUNET_PQ_result_spec_absolute_time ("",
-                                           &expiration_time),
+      GNUNET_PQ_result_spec_absolute_time ("expiration_time",
+                                           &block.expiration_time),
       GNUNET_PQ_result_spec_uint32 ("type",
-                                    &type),
+                                    &type32),
+      GNUNET_PQ_result_spec_uint32 ("ro",
+                                    &bro32),
       GNUNET_PQ_result_spec_variable_size ("value",
                                            &data,
-                                           &data_size),
+                                           &block.data_size),
+      GNUNET_PQ_result_spec_auto_from_type ("trunc",
+                                            &block.trunc_peer),
       GNUNET_PQ_result_spec_variable_size ("path",
-                                           (void **) &path,
-                                           &path_len),
+                                           &path,
+                                           &path_size),
       GNUNET_PQ_result_spec_auto_from_type ("key",
-                                            &key),
+                                            &block.key),
       GNUNET_PQ_result_spec_end
     };
 
@@ -484,25 +487,25 @@ extract_result_cb (void *cls,
       GNUNET_break (0);
       return;
     }
-    if (0 != (path_len % sizeof(struct GNUNET_DHT_PathElement)))
+    if (0 != (path_size % sizeof(struct GNUNET_DHT_PathElement)))
     {
       GNUNET_break (0);
-      path_len = 0;
+      path_size = 0;
+      path = NULL;
     }
-    path_len %= sizeof(struct GNUNET_DHT_PathElement);
+    block.type = (enum GNUNET_BLOCK_Type) type32;
+    block.ro = (enum GNUNET_DHT_RouteOption) bro32;
+    block.data = data;
+    block.put_path = path;
+    block.put_path_length = path_size / sizeof (struct GNUNET_DHT_PathElement);
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Found result of size %u bytes and type %u in database\n",
-         (unsigned int) data_size,
-         (unsigned int) type);
-    if (GNUNET_SYSERR ==
-        erc->iter (erc->iter_cls,
-                   &key,
-                   data_size,
-                   data,
-                   (enum GNUNET_BLOCK_Type) type,
-                   expiration_time,
-                   path_len,
-                   path))
+         (unsigned int) block.data_size,
+         (unsigned int) block.type);
+    if ( (NULL != erc->iter) &&
+         (GNUNET_SYSERR ==
+          erc->iter (erc->iter_cls,
+                     &block)) )
     {
       LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Ending iteration (client error)\n");

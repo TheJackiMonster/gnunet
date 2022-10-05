@@ -19,6 +19,10 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -168,5 +172,7 @@ GNUNET_PLUGIN_unload (const char *library_name,
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_plugin_lib.h */

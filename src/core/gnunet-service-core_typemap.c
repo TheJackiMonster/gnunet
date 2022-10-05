@@ -253,12 +253,6 @@ GSC_TYPEMAP_add (const uint16_t *types, unsigned int tlen)
 }
 
 
-/**
- * Remove a set of types from our type map.
- *
- * @param types array of types to remove
- * @param tlen length of the @a types array
- */
 void
 GSC_TYPEMAP_remove (const uint16_t *types, unsigned int tlen)
 {

@@ -19,6 +19,13 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
+ * @addtogroup networking
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -160,5 +167,7 @@ GNUNET_MST_destroy (struct GNUNET_MessageStreamTokenizer *mst);
 #endif
 
 /** @} */  /* end of group server */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_mst_lib.h */

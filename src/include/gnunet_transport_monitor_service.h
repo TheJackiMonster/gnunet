@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup Backbone
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -188,5 +191,7 @@ GNUNET_TRANSPORT_monitor_cancel (struct GNUNET_TRANSPORT_MonitorContext *mc);
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_transport_monitor_service.h */

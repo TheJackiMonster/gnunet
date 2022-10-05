@@ -1319,7 +1319,7 @@ GNUNET_TESTING_peer_configure (struct GNUNET_TESTING_System *system,
   peer->nports = nports;
   return peer;
 
-  err_ret:
+err_ret:
   GNUNET_free (ss_instances);
   GNUNET_free (ports);
   GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "%s", emsg_);
@@ -2293,17 +2293,11 @@ GNUNET_TESTING_free_topology (struct GNUNET_TESTING_NetjailTopology *topology)
   GNUNET_free (topology);
 }
 
-/**
- * Calculate the unique id identifying a node from a given connction.
- *
- * @param node_connection The connection we calculate the id from.
- * @param topology The topology we get all needed information from.
- * @return The unique id of the node from the connection.
- */
+
 unsigned int
-GNUNET_TESTING_calculate_num (struct
-                              GNUNET_TESTING_NodeConnection *node_connection,
-                              struct GNUNET_TESTING_NetjailTopology *topology)
+GNUNET_TESTING_calculate_num (
+  struct GNUNET_TESTING_NodeConnection *node_connection,
+  struct GNUNET_TESTING_NetjailTopology *topology)
 {
   unsigned int n, m, num;
 
@@ -2751,7 +2745,7 @@ GNUNET_TESTING_get_topo_from_file (const char *filename)
   }
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "file lenght %lu\n",
+       "file length %lu\n",
        fs);
   data[fs] = '\0';
 

@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup Backbone
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -226,5 +229,7 @@ GNUNET_STATISTICS_update (struct GNUNET_STATISTICS_Handle *handle,
 #endif
 
 /** @} */ /* end of group statistics */
+
+/** @} */ /* end of group addition */
 
 #endif

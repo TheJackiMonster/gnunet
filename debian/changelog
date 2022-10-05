@@ -1,3 +1,15 @@
+gnunet (0.17.6) unstable; urgency=low
+
+  * Packaging latest release.
+
+ -- Christian Grothoff <grothoff@gnu.org>  Mon, Sep 26 2022 09:50:12 +0200
+
+gnunet (0.17.1) unstable; urgency=low
+
+  * Packaging latest release (with 7135 htonl fix).
+
+ -- Christian Grothoff <grothoff@gnu.org>  Mon, 20 Jun 2022 21:14:18 +0200
+
 gnunet (0.15.3-1) unstable; urgency=low
 
   * Packaging latest code with bugfixes in libgnunetpq (and others) from upstream.

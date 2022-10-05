@@ -23,11 +23,19 @@ then
     exit 1
 fi
 
+echo -n "Testing for GNU parallel ..."
+
 if test ! -x `which parallel`
 then
     echo "This script requires GNU parallel"
     exit 1
 fi
+
+parallel -V | grep "GNU parallel" > /dev/null || exit 1
+
+echo " OK"
+
+
 
 if test ! -x `which gnunet-service-dht`
 then
@@ -43,7 +51,7 @@ fi
 
 MAX=`expr $1 - 1`
 
-# export GNUNET_FORCE_LOG="dht*;;;;DEBUG"
+export GNUNET_FORCE_LOG="dht*;;;;DEBUG"
 
 echo -n "Starting $1 peers "
 mkdir -p /tmp/deployment
@@ -52,7 +60,7 @@ do
     PORT=`expr $MINPORT + $n`
     CFG="/tmp/deployment/${n}.conf"
     cat dhtu_testbed_deploy.conf | sed -e "s/%N%/$PORT/" > $CFG
-    gnunet-service-dht -c $CFG &> /tmp/deployment/$n.log &
+    gnunet-service-dht -c $CFG -L DEBUG &> /tmp/deployment/$n.log &
     echo -n "."
 done
 

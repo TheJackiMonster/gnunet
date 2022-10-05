@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -147,3 +150,5 @@ GNUNET_DNSSTUB_resolve_cancel (struct GNUNET_DNSSTUB_RequestSocket *rs);
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */

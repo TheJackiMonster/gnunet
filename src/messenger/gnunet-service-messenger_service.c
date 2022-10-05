@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2022 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -94,7 +94,7 @@ iterate_destroy_rooms (void *cls,
                        void *value)
 {
   struct GNUNET_MESSENGER_SrvRoom *room = value;
-  destroy_room (room, GNUNET_NO);
+  destroy_srv_room (room, GNUNET_NO);
   return GNUNET_YES;
 }
 
@@ -159,7 +159,7 @@ add_service_handle (struct GNUNET_MESSENGER_Service *service,
 {
   GNUNET_assert((service) && (mq));
 
-  struct GNUNET_MESSENGER_SrvHandle *handle = create_handle (service, mq);
+  struct GNUNET_MESSENGER_SrvHandle *handle = create_srv_handle (service, mq);
 
   if (handle)
   {
@@ -179,7 +179,7 @@ remove_service_handle (struct GNUNET_MESSENGER_Service *service,
     return;
 
   if (GNUNET_YES == remove_list_handle (&(service->handles), handle))
-    destroy_handle (handle);
+    destroy_srv_handle (handle);
 }
 
 int
@@ -210,17 +210,17 @@ open_service_room (struct GNUNET_MESSENGER_Service *service,
   struct GNUNET_MESSENGER_SrvRoom *room = get_service_room (service, key);
 
   if (room)
-    return open_room (room, handle);
+    return open_srv_room (room, handle);
 
-  room = create_room (handle, key);
+  room = create_srv_room (handle, key);
 
-  if ((GNUNET_YES == open_room (room, handle)) &&
+  if ((GNUNET_YES == open_srv_room (room, handle)) &&
       (GNUNET_OK == GNUNET_CONTAINER_multihashmap_put (service->rooms,
                                                        key, room,
                                                        GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST)))
     return GNUNET_YES;
 
-  destroy_room (room, GNUNET_YES);
+  destroy_srv_room (room, GNUNET_YES);
   return GNUNET_NO;
 }
 
@@ -236,15 +236,15 @@ entry_service_room (struct GNUNET_MESSENGER_Service *service,
 
   if (room)
   {
-    if (GNUNET_YES == enter_room_at (room, handle, door))
+    if (GNUNET_YES == enter_srv_room_at (room, handle, door))
       return GNUNET_YES;
     else
       return GNUNET_NO;
   }
 
-  room = create_room (handle, key);
+  room = create_srv_room (handle, key);
 
-  if ((GNUNET_YES == enter_room_at (room, handle, door)) &&
+  if ((GNUNET_YES == enter_srv_room_at (room, handle, door)) &&
       (GNUNET_OK == GNUNET_CONTAINER_multihashmap_put (service->rooms,
                                                        key, room,
                                                        GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST)))
@@ -253,7 +253,7 @@ entry_service_room (struct GNUNET_MESSENGER_Service *service,
   }
   else
   {
-    destroy_room (room, GNUNET_YES);
+    destroy_srv_room (room, GNUNET_YES);
     return GNUNET_NO;
   }
 
@@ -271,9 +271,9 @@ close_service_room (struct GNUNET_MESSENGER_Service *service,
   if (!room)
     return GNUNET_NO;
 
-  send_room_message (room, handle, create_message_leave ());
+  send_srv_room_message (room, handle, create_message_leave ());
 
-  const struct GNUNET_ShortHashCode *id = get_handle_member_id (handle, key);
+  const struct GNUNET_ShortHashCode *id = get_srv_handle_member_id (handle, key);
 
   GNUNET_assert(id);
 
@@ -287,7 +287,7 @@ close_service_room (struct GNUNET_MESSENGER_Service *service,
   {
     if (GNUNET_OK == GNUNET_CONTAINER_multihashmap_remove (service->rooms, key, room))
     {
-      destroy_room (room, GNUNET_YES);
+      destroy_srv_room (room, GNUNET_YES);
       return GNUNET_YES;
     }
     else
@@ -313,7 +313,7 @@ handle_service_message (struct GNUNET_MESSENGER_Service *service,
 
   while (element)
   {
-    notify_handle_message (element->handle, room, session, message, hash);
+    notify_srv_handle_message (element->handle, room, session, message, hash);
     element = element->next;
   }
 }

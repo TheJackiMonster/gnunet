@@ -20,6 +20,9 @@
 /**
  * @author Christian Grothoff
  *
+ * @addtogroup Backbone
+ * @{
+ *
  * @file include/gnunet_core_service.h
  * Core service; the main API for encrypted P2P communications
  *
@@ -440,5 +443,7 @@ GNUNET_CORE_mq_create (struct GNUNET_CORE_Handle *h,
 #endif
 
 /** @} */ /* end of group core */
+
+/** @} */ /* end of backbone addition */
 
 /* end of gnunet_core_service.h */

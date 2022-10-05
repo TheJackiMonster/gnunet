@@ -139,12 +139,6 @@ kb_put_cont (void *cls,
 }
 
 
-/**
- * Continuation of #GNUNET_FS_publish_ksk() that performs the actual
- * publishing operation (iterating over all of the keywords).
- *
- * @param cls closure of type `struct GNUNET_FS_PublishKskContext *`
- */
 static void
 publish_ksk_cont (void *cls)
 {

@@ -19,6 +19,10 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -104,5 +108,7 @@ GNUNET_SIGNAL_raise (const int sig);
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_signal_lib.h */

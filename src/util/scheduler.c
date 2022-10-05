@@ -1,6 +1,6 @@
 /*
       This file is part of GNUnet
-      Copyright (C) 2009-2017 GNUnet e.V.
+      Copyright (C) 2009-2017, 2022 GNUnet e.V.
 
       GNUnet is free software: you can redistribute it and/or modify it
       under the terms of the GNU Affero General Public License as published
@@ -516,6 +516,8 @@ queue_ready_task (struct GNUNET_SCHEDULER_Task *task)
   GNUNET_CONTAINER_DLL_insert_tail (ready_head[p],
                                     ready_tail[p],
                                     task);
+  if (p > work_priority)
+    work_priority = p;
   task->in_ready_list = GNUNET_YES;
   ready_count++;
 }
@@ -639,29 +641,11 @@ sighandler_pipe ()
 }
 
 
-///**
-// * Wait for a short time.
-// * Sleeps for @a ms ms (as that should be long enough for virtually all
-// * modern systems to context switch and allow another process to do
-// * some 'real' work).
-// *
-// * @param ms how many ms to wait
-// */
-// static void
-// short_wait (unsigned int ms)
-// {
-//  struct GNUNET_TIME_Relative timeout;
-//
-//  timeout = GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MILLISECONDS, ms);
-//  (void) GNUNET_NETWORK_socket_select (NULL, NULL, NULL, timeout);
-// }
-
-
 /**
  * Signal handler called for signals that should cause us to shutdown.
  */
 static void
-sighandler_shutdown ()
+sighandler_shutdown (void)
 {
   static char c;
   int old_errno = errno;        /* backup errno */
@@ -669,15 +653,16 @@ sighandler_shutdown ()
   if (getpid () != my_pid)
     _exit (1);                   /* we have fork'ed since the signal handler was created,
                                   * ignore the signal, see https://gnunet.org/vfork discussion */
-  GNUNET_DISK_file_write (GNUNET_DISK_pipe_handle
-                            (shutdown_pipe_handle, GNUNET_DISK_PIPE_END_WRITE),
+  GNUNET_DISK_file_write (GNUNET_DISK_pipe_handle (
+                            shutdown_pipe_handle,
+                            GNUNET_DISK_PIPE_END_WRITE),
                           &c, sizeof(c));
   errno = old_errno;
 }
 
 
 static void
-shutdown_if_no_lifeness ()
+shutdown_if_no_lifeness (void)
 {
   struct GNUNET_SCHEDULER_Task *t;
 
@@ -2072,6 +2057,8 @@ GNUNET_SCHEDULER_do_work (struct GNUNET_SCHEDULER_Handle *sh)
   }
   else
   {
+    struct GNUNET_SCHEDULER_Task *last;
+
     /* find out which task priority level we are going to
        process this time */
     max_priority_added = GNUNET_SCHEDULER_PRIORITY_KEEP;
@@ -2088,7 +2075,9 @@ GNUNET_SCHEDULER_do_work (struct GNUNET_SCHEDULER_Handle *sh)
     }
     GNUNET_assert (NULL != pos);        /* ready_count wrong? */
 
-    /* process all tasks at this priority level, then yield */
+    /* process all *existing* tasks at this priority
+       level, then yield */
+    last = ready_tail[work_priority];
     while (NULL != (pos = ready_head[work_priority]))
     {
       GNUNET_CONTAINER_DLL_remove (ready_head[work_priority],
@@ -2147,7 +2136,8 @@ GNUNET_SCHEDULER_do_work (struct GNUNET_SCHEDULER_Handle *sh)
       }
       if (NULL != pos->fds)
       {
-        int del_result = scheduler_driver->del (scheduler_driver->cls, pos);
+        int del_result = scheduler_driver->del (scheduler_driver->cls,
+                                                pos);
         if (GNUNET_OK != del_result)
         {
           LOG (GNUNET_ERROR_TYPE_ERROR,
@@ -2158,6 +2148,13 @@ GNUNET_SCHEDULER_do_work (struct GNUNET_SCHEDULER_Handle *sh)
       active_task = NULL;
       dump_backtrace (pos);
       destroy_task (pos);
+      /* pointer 'pos' was free'd, but we can still safely check for
+         pointer equality still. */
+      if (pos == last)
+        break; /* All tasks that _were_ ready when we started were
+                  executed. New tasks may have been added in the
+                  meantime, but we should check with the OS to
+                  be sure no higher-priority actions are pending! */
     }
   }
   shutdown_if_no_lifeness ();

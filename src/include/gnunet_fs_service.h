@@ -18,6 +18,9 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 /**
+ * @addtogroup fs_l2  File sharing and support services/libraries
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -2788,3 +2791,5 @@ GNUNET_FS_share_tree_free (struct GNUNET_FS_ShareTreeItem *toplevel);
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */

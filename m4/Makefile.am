@@ -21,7 +21,6 @@ inttypes-pri.m4\
 isc-posix.m4\
 lcmessage.m4\
 libgcrypt.m4\
-libgnurl.m4\
 libcurl.m4\
 lib-ld.m4\
 lib-link.m4\

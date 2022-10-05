@@ -471,7 +471,8 @@ main (int argc, char *argv[])
                                   NUM_DAEMONS,
                                   0, NULL, NULL,
                                   &do_connect, NULL);
-  GNUNET_DISK_directory_remove ("/tmp/gnunet-test-fs-lib/");
+  GNUNET_DISK_purge_cfg_dir ("perf_gnunet_service_fs_p2p.conf",
+                             "GNUNET_TEST_HOME");
   return ok;
 }
 

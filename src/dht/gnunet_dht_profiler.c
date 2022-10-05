@@ -455,6 +455,7 @@ cancel_get (void *cls)
  * @param cls closure
  * @param exp when will this value expire
  * @param key key of the result
+ * @param trunc_peer peer the path was truncated at, or NULL
  * @param get_path peers on reply path (or NULL if not recorded)
  *                 [0] = datastore's first neighbor, [length - 1] = local peer
  * @param get_path_length number of entries in @a get_path
@@ -469,12 +470,14 @@ static void
 get_iter (void *cls,
           struct GNUNET_TIME_Absolute exp,
           const struct GNUNET_HashCode *key,
+          const struct GNUNET_PeerIdentity *trunc_peer,
           const struct GNUNET_DHT_PathElement *get_path,
           unsigned int get_path_length,
           const struct GNUNET_DHT_PathElement *put_path,
           unsigned int put_path_length,
           enum GNUNET_BLOCK_Type type,
-          size_t size, const void *data)
+          size_t size,
+          const void *data)
 {
   struct ActiveContext *ac = cls;
   struct ActiveContext *get_ac = ac->get_ac;

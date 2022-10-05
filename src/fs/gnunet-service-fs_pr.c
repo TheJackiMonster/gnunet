@@ -260,9 +260,6 @@ refresh_bloomfilter (enum GNUNET_BLOCK_Type type,
   pr->bg =
     GNUNET_BLOCK_group_create (GSF_block_ctx,
                                type,
-                               GNUNET_CRYPTO_random_u32 (
-                                 GNUNET_CRYPTO_QUALITY_WEAK,
-                                 UINT32_MAX),
                                NULL,
                                0,
                                "seen-set-size",
@@ -277,27 +274,6 @@ refresh_bloomfilter (enum GNUNET_BLOCK_Type type,
 }
 
 
-/**
- * Create a new pending request.
- *
- * @param options request options
- * @param type type of the block that is being requested
- * @param query key for the lookup
- * @param target preferred target for the request, NULL for none
- * @param bf_data raw data for bloom filter for known replies, can be NULL
- * @param bf_size number of bytes in @a bf_data
- * @param mingle mingle value for bf
- * @param anonymity_level desired anonymity level
- * @param priority maximum outgoing cumulative request priority to use
- * @param ttl current time-to-live for the request
- * @param sender_pid peer ID to use for the sender when forwarding, 0 for none
- * @param origin_pid peer ID of origin of query (do not loop back)
- * @param replies_seen hash codes of known local replies
- * @param replies_seen_count size of the @a replies_seen array
- * @param rh handle to call when we get a reply
- * @param rh_cls closure for @a rh
- * @return handle for the new pending request
- */
 struct GSF_PendingRequest *
 GSF_pending_request_create_ (enum GSF_PendingRequestOptions options,
                              enum GNUNET_BLOCK_Type type,
@@ -305,7 +281,6 @@ GSF_pending_request_create_ (enum GSF_PendingRequestOptions options,
                              const struct GNUNET_PeerIdentity *target,
                              const char *bf_data,
                              size_t bf_size,
-                             uint32_t mingle,
                              uint32_t anonymity_level,
                              uint32_t priority,
                              int32_t ttl,
@@ -376,7 +351,6 @@ GSF_pending_request_create_ (enum GSF_PendingRequestOptions options,
   {
     pr->bg = GNUNET_BLOCK_group_create (GSF_block_ctx,
                                         pr->public_data.type,
-                                        mingle,
                                         bf_data,
                                         bf_size,
                                         "seen-set-size",
@@ -461,14 +435,6 @@ GSF_pending_request_is_compatible_ (struct GSF_PendingRequest *pra,
 }
 
 
-/**
- * Update a given pending request with additional replies
- * that have been seen.
- *
- * @param pr request to update
- * @param replies_seen hash codes of replies that we've seen
- * @param replies_seen_count size of the replies_seen array
- */
 void
 GSF_pending_request_update_ (struct GSF_PendingRequest *pr,
                              const struct GNUNET_HashCode *replies_seen,
@@ -533,7 +499,6 @@ GSF_pending_request_get_message_ (struct GSF_PendingRequest *pr)
   int64_t ttl;
   int do_route;
   void *bf_data;
-  uint32_t bf_nonce;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Building request message for `%s' of type %d\n",
@@ -559,7 +524,6 @@ GSF_pending_request_get_message_ (struct GSF_PendingRequest *pr)
   }
   if (GNUNET_OK !=
       GNUNET_BLOCK_group_serialize (pr->bg,
-                                    &bf_nonce,
                                     &bf_data,
                                     &bf_size))
   {
@@ -582,7 +546,7 @@ GSF_pending_request_get_message_ (struct GSF_PendingRequest *pr)
   now = GNUNET_TIME_absolute_get ();
   ttl = (int64_t) (pr->public_data.ttl.abs_value_us - now.abs_value_us);
   gm->ttl = htonl (ttl / 1000LL / 1000LL);
-  gm->filter_mutator = htonl (bf_nonce);
+  gm->reserved = htonl (0);
   gm->hash_bitmap = htonl (bm);
   gm->query = pr->public_data.query;
   ext = (struct GNUNET_PeerIdentity *) &gm[1];
@@ -722,12 +686,6 @@ GSF_pending_request_cancel_ (struct GSF_PendingRequest *pr, int full_cleanup)
 }
 
 
-/**
- * Iterate over all pending requests.
- *
- * @param it function to call for each request
- * @param cls closure for @a it
- */
 void
 GSF_iterate_pending_requests_ (GSF_PendingRequestIterator it, void *cls)
 {
@@ -1085,6 +1043,7 @@ test_put_load_too_high (uint32_t priority)
  * @param cls closure
  * @param exp when will this value expire
  * @param key key of the result
+ * @param trunc_peer truncated peer, NULL for none
  * @param get_path peers on reply path (or NULL if not recorded)
  * @param get_path_length number of entries in @a get_path
  * @param put_path peers on the PUT path (or NULL if not recorded)
@@ -1097,6 +1056,7 @@ static void
 handle_dht_reply (void *cls,
                   struct GNUNET_TIME_Absolute exp,
                   const struct GNUNET_HashCode *key,
+                  const struct GNUNET_PeerIdentity *trunc_peer,
                   const struct GNUNET_DHT_PathElement *get_path,
                   unsigned int get_path_length,
                   const struct GNUNET_DHT_PathElement *put_path,

@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2022 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -46,7 +46,7 @@ clear_list_handles (struct GNUNET_MESSENGER_ListHandles *handles)
     struct GNUNET_MESSENGER_ListHandle *element = handles->head;
 
     GNUNET_CONTAINER_DLL_remove(handles->head, handles->tail, element);
-    destroy_handle (element->handle);
+    destroy_srv_handle (element->handle);
     GNUNET_free(element);
   }
 
@@ -97,7 +97,7 @@ find_list_handle_by_member (const struct GNUNET_MESSENGER_ListHandles *handles,
   struct GNUNET_MESSENGER_ListHandle *element;
 
   for (element = handles->head; element; element = element->next)
-    if (get_handle_member_id ((struct GNUNET_MESSENGER_SrvHandle*) element->handle, key))
+    if (get_srv_handle_member_id ((struct GNUNET_MESSENGER_SrvHandle*) element->handle, key))
       return element->handle;
 
   return NULL;

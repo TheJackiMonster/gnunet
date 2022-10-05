@@ -222,6 +222,10 @@ hash_addresses (const struct GNUNET_HELLO_Builder *builder,
        NULL != a;
        a = a->next)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Hashing over %.*s\n",
+                (int) a->uri_len,
+                a->uri);
     GNUNET_CRYPTO_hash_context_read (hc,
                                      a->uri,
                                      a->uri_len);
@@ -254,6 +258,9 @@ sign_hello (const struct GNUNET_HELLO_Builder *builder,
 
   hash_addresses (builder,
                   &hsp.h_addrs);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Address hash is %s\n",
+              GNUNET_h2s_full (&hsp.h_addrs));
   GNUNET_CRYPTO_eddsa_sign (priv,
                             &hsp,
                             sig);
@@ -565,7 +572,7 @@ GNUNET_HELLO_builder_to_env (const struct GNUNET_HELLO_Builder *builder,
   env = GNUNET_MQ_msg_extra (msg,
                              blen,
                              GNUNET_MESSAGE_TYPE_HELLO_URI);
-  msg->url_counter = htonl ((uint16_t) builder->a_length);
+  msg->url_counter = htons ((uint16_t) builder->a_length);
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_HELLO_builder_to_block (builder,
                                                 priv,
@@ -618,7 +625,7 @@ GNUNET_HELLO_builder_to_dht_hello_msg (
     msg->sig = block->sig;
     msg->expiration_time = block->expiration_time;
   }
-  msg->url_counter = htonl ((uint16_t) builder->a_length);
+  msg->url_counter = htons ((uint16_t) builder->a_length);
   return &msg->header;
 }
 

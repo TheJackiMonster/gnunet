@@ -65,6 +65,16 @@ struct GNUNET_NAMESTORE_ZoneMonitor
   GNUNET_NAMESTORE_RecordMonitor monitor;
 
   /**
+   * Function to call on events.
+   */
+  GNUNET_NAMESTORE_RecordSetMonitor monitor2;
+
+  /**
+   * Record set filter for this monitor
+   */
+  enum GNUNET_GNSRECORD_Filter filter;
+
+  /**
    * Closure for @e monitor.
    */
   void *monitor_cls;
@@ -213,7 +223,11 @@ handle_result (void *cls, const struct RecordResultMessage *lrm)
     GNUNET_assert (
       GNUNET_OK ==
       GNUNET_GNSRECORD_records_deserialize (rd_len, rd_ser_tmp, rd_count, rd));
-    zm->monitor (zm->monitor_cls, &lrm->private_key, name_tmp, rd_count, rd);
+    if (NULL != zm->monitor2)
+      zm->monitor2 (zm->monitor_cls, &lrm->private_key, name_tmp,
+                    rd_count, rd, GNUNET_TIME_absolute_ntoh (lrm->expire));
+    else
+      zm->monitor (zm->monitor_cls, &lrm->private_key, name_tmp, rd_count, rd);
   }
 }
 
@@ -272,33 +286,11 @@ reconnect (struct GNUNET_NAMESTORE_ZoneMonitor *zm)
   env = GNUNET_MQ_msg (sm, GNUNET_MESSAGE_TYPE_NAMESTORE_MONITOR_START);
   sm->iterate_first = htonl (zm->iterate_first);
   sm->zone = zm->zone;
+  sm->filter = htons ((uint16_t) zm->filter);
   GNUNET_MQ_send (zm->mq, env);
 }
 
 
-/**
- * Begin monitoring a zone for changes.  If @a iterate_first is set,
- * we Will first call the @a monitor function on all existing records
- * in the selected zone(s).  In any case, we will call @a sync and
- * afterwards call @a monitor whenever a record changes.
- *
- * @param cfg configuration to use to connect to namestore
- * @param zone zone to monitor
- * @param iterate_first #GNUNET_YES to first iterate over all existing records,
- *                      #GNUNET_NO to only return changes that happen from now
- * on
- * @param error_cb function to call on error (i.e. disconnect); note that
- *         unlike the other error callbacks in this API, a call to this
- *         function does NOT destroy the monitor handle, it merely signals
- *         that monitoring is down. You need to still explicitly call
- *         #GNUNET_NAMESTORE_zone_monitor_stop().
- * @param error_cb_cls closure for @a error_cb
- * @param monitor function to call on zone changes
- * @param monitor_cls closure for @a monitor
- * @param sync_cb function called when we're in sync with the namestore
- * @param cls closure for @a sync_cb
- * @return handle to stop monitoring
- */
 struct GNUNET_NAMESTORE_ZoneMonitor *
 GNUNET_NAMESTORE_zone_monitor_start (
   const struct GNUNET_CONFIGURATION_Handle *cfg,
@@ -324,6 +316,42 @@ GNUNET_NAMESTORE_zone_monitor_start (
   zm->sync_cb = sync_cb;
   zm->sync_cb_cls = sync_cb_cls;
   zm->cfg = cfg;
+  reconnect (zm);
+  if (NULL == zm->mq)
+  {
+    GNUNET_free (zm);
+    return NULL;
+  }
+  return zm;
+}
+
+struct GNUNET_NAMESTORE_ZoneMonitor *
+GNUNET_NAMESTORE_zone_monitor_start2 (
+  const struct GNUNET_CONFIGURATION_Handle *cfg,
+  const struct GNUNET_IDENTITY_PrivateKey *zone,
+  int iterate_first,
+  GNUNET_SCHEDULER_TaskCallback error_cb,
+  void *error_cb_cls,
+  GNUNET_NAMESTORE_RecordSetMonitor monitor,
+  void *monitor_cls,
+  GNUNET_SCHEDULER_TaskCallback sync_cb,
+  void *sync_cb_cls,
+  enum GNUNET_GNSRECORD_Filter filter)
+{
+  struct GNUNET_NAMESTORE_ZoneMonitor *zm;
+
+  zm = GNUNET_new (struct GNUNET_NAMESTORE_ZoneMonitor);
+  if (NULL != zone)
+    zm->zone = *zone;
+  zm->iterate_first = iterate_first;
+  zm->error_cb = error_cb;
+  zm->error_cb_cls = error_cb_cls;
+  zm->monitor2 = monitor;
+  zm->monitor_cls = monitor_cls;
+  zm->sync_cb = sync_cb;
+  zm->sync_cb_cls = sync_cb_cls;
+  zm->cfg = cfg;
+  zm->filter = filter;
   reconnect (zm);
   if (NULL == zm->mq)
   {

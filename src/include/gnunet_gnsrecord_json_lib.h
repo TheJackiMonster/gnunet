@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup GNS
+ * @{
+ *
  * @author Martin Schanzenbach
  *
  * @file
@@ -71,3 +74,7 @@ GNUNET_GNSRECORD_JSON_from_gnsrecord (const char*rname,
 
 
 #endif
+
+/** @} */ /* end of group */
+
+/** @} */ /* end of group addition */

@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup conversation_l2  Conversation service and libraries
+ * @{
+ *
  * @author Simon Dieterle
  * @author Andreas Fuchs
  * @author Christian Grothoff
@@ -141,5 +144,7 @@ GNUNET_SPEAKER_destroy (struct GNUNET_SPEAKER_Handle *speaker);
 #endif
 
 /** @} */ /* end of group */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_speaker_lib.h */

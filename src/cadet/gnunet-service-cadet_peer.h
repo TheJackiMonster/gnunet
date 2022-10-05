@@ -62,6 +62,12 @@ GCP_get (const struct GNUNET_PeerIdentity *peer_id,
  * Calculate how desirable a path is for @a cp if
  * @a cp is at offset @a off in the path.
  *
+ * The 'desirability_table.c' program can be used to compute a list of
+ * sample outputs for different scenarios.  Basically, we score paths
+ * lower if there are many alternatives, and higher if they are
+ * shorter than average, and very high if they are much shorter than
+ * average and without many alternatives.
+ *
  * @param cp a peer reachable via a path
  * @param off offset of @a cp in a path
  * @return score how useful a path is to reach @a cp,
@@ -229,7 +235,7 @@ GCP_drop_tunnel (struct CadetPeer *cp,
  * @param cp peer to which the @a path leads to
  * @param path a path looking for an owner; may not be fully initialized yet!
  * @param off offset of @a cp in @a path
- * @param force for attaching the path
+ * @param force force attaching the path
  * @return NULL if this peer does not care to become a new owner,
  *         otherwise the node in the peer's path heap for the @a path.
  */

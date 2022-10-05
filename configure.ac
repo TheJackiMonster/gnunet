@@ -1,5 +1,5 @@
 # This file is part of GNUnet.
-# (C) 2001--2021 GNUnet e.V.
+# (C) 2001--2022 GNUnet e.V.
 #
 # GNUnet is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Affero General Public License as published
@@ -20,7 +20,7 @@
 #
 #
 AC_PREREQ([2.69])
-AC_INIT([gnunet], m4_esyscmd_s([sh contrib/get_version.sh]), [bug-gnunet@gnu.org])
+AC_INIT([gnunet],[m4_esyscmd_s(sh contrib/get_version.sh)],[bug-gnunet@gnu.org])
 
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIRS([m4])
@@ -441,26 +441,11 @@ AC_ARG_ENABLE([documentation],
                               [do not build the documentation])],
               [documentation=${enableval}],
               [documentation=yes])
-AM_CONDITIONAL([DOCUMENTATION], [test "x$documentation" = "xyes"])
-AS_IF([test "x$documentation" = "xyes"],
-      [AC_DEFINE([DOCUMENTATION], [1], [Define to 1 if documentation is built])],
-      [AC_DEFINE([DOCUMENTATION], [0], [Define to 1 if documentation is built])])
 
-AC_ARG_ENABLE([texi2mdoc-generation],
-              [AS_HELP_STRING([--enable-texi2mdoc-generation],
-                              [generate and install texi2mdoc output])],
-              [texi2mdoc_enabled=${enableval}],
-              [texi2mdoc_enabled=no])
-AM_CONDITIONAL([TEXI2MDOC_GENERATION], [test "x$texi2mdoc_enabled" = "xyes"])
-AS_IF([test "x$texi2mdoc_enabled" = "xyes"],
-  [AC_CHECK_PROGS([TEXI2MDOC_BINARY], [texi2mdoc], [false])
-   AS_IF([test "x$TEXI2MDOC_BINARY" != "xfalse"],
-     [AC_DEFINE([TEXI2MDOC_GENERATION], [1],
-                [Define to 1 if mdoc output is generated])],
-     [AC_DEFINE([TEXI2MDOC_GENERATION], [0],
-               [Define to 1 if mdoc output is generated])])],
-  [TEXI2MDOC_BINARY=false])
-AM_CONDITIONAL([HAVE_TEXI2MDOC], [test "x$TEXI2MDOC_BINARY" != "xfalse"])
+AC_CHECK_PROG([DOXY_BINARY], [doxygen], [true], [false])
+AM_CONDITIONAL([HAVE_DOXY_BINARY], [$DOXY_BINARY])
+
+AM_CONDITIONAL([DOCUMENTATION], [test "x$documentation" = "xyes"])
 
 AC_CHECK_PROGS([MANDOC_BINARY], [mandoc], [false])
 AM_CONDITIONAL([HAVE_MANDOC], [test "x$MANDOC_BINARY" != "xfalse"])
@@ -488,38 +473,6 @@ AC_ARG_ENABLE([include-manpages],
 AC_DEFINE_UNQUOTED([INCLUDE_MANPAGES], [$include_man],
                    [Define to 1 if man pages are included])
 AM_CONDITIONAL([INCLUDE_MANPAGES], [test "x$include_man" = "x1"])
-
-# Do we have texinfo4? If yes, it is used to set texinfo4 specific switches
-# (not syntax!) to the commandline tools which generate the html. If not,
-# texinfo5 switches are used. This comes with no version checks, is
-# enabled only at distributors action (ie defaults to "no").
-# Mantis #3914 for more details (https://bugs.gnunet.org/view.php?id=3914)
-# While GNU makeinfo 6.5 supports --css-ref=URL,
-# makeinfo 4.8 (in NetBSD 8.0, macOS, and maybe other
-# base) does only support --css-include=FILE.
-# The only difference is a shorter html output and
-# in 6.5 the ability to use refs instead of include.
-# We prefer not to break builds in this case, so
-# we use the include version which is backwards compatible
-# and upwards compatible, while the ref variant is neither.
-# In the 5.x version they added `--split=chapters|sections` in
-# addition to `--split=nodes`.
-# Hold on to your hats: In version 6.5 this is already removed, ffs.
-# GNU Texinfo, please be more consistent than 1 version in switches.
-AC_ARG_ENABLE([texinfo4],
-              [AS_HELP_STRING([--enable-texinfo4],
-                              [Use Texinfo version 4 specific switches])],
-              [activate_texinfo4=${enableval}],
-              [activate_texinfo4=no])
-AM_CONDITIONAL([ACTIVATE_TEXINFO4], [test "x$activate_texinfo4" = "xyes"])
-AS_IF([test "x$activate_texinfo4" = "xyes"],
-      [AC_DEFINE([ACTIVATE_TEXINFO4], [1],
-                 [Define to 1 if using Texinfo v4 switches])
-       TEXINFO_HTMLFLAGS="--no-split --css-include=style.css --css-include=manual.css"],
-      [AC_DEFINE([ACTIVATE_TEXINFO4], [0],
-                 [Define to 1 if using Texinfo v4 switches])
-       TEXINFO_HTMLFLAGS="--no-split --css-ref='../style.css' --css-ref='../manual.css'"])
-AC_SUBST([TEXINFO_HTMLFLAGS])
 
 # Hardening options
 AC_ARG_ENABLE([gcc-hardening],
@@ -719,6 +672,11 @@ CHECK_WITH_LIB([jansson], [json_loads], [jansson.h], [HAVE_JANSSON])
 AS_IF([test "x$jansson" = "x0"],
   [AC_MSG_ERROR([GNUnet requires jansson])])
 
+# check for jose
+CHECK_WITH_LIB([jose], [jose_jwk_gen], [jose/jose.h], [HAVE_JOSE])
+AS_IF([test "x$jose" = "x0"],
+  [AC_MSG_WARN([reclaimID OpenID Connect plugin requires jose])])
+
 # check for libpulse (pulseaudio)
 CHECK_WITH_LIB([pulse], [pa_stream_peek], [pulse/simple.h], [HAVE_PULSE])
 
@@ -730,18 +688,6 @@ CHECK_WITH_LIB([opus], [opus_decode_float], [opus/opus.h], [HAVE_OPUS])
 
 # check for libogg
 CHECK_WITH_LIB([ogg], [ogg_stream_flush_fill], [ogg/ogg.h], [HAVE_OGG])
-
-PKG_CHECK_MODULES([GLIB], [glib-2.0],
-  [AC_CHECK_HEADER([pbc/pbc.h], [pbc=1], [pbc=0])
-   AC_CHECK_HEADER([gabe.h], [abe=1], [abe=0])
-   AM_CONDITIONAL([HAVE_PBC], [test "x$pbc" = "x1"])
-   AM_CONDITIONAL([HAVE_ABE], [test "x$abe" = "x1"])
-   AC_DEFINE_UNQUOTED([HAVE_PBC], [$pbc], [Define to 1 if pbc is available])
-   AC_DEFINE_UNQUOTED([HAVE_ABE], [$abe], [Define to 1 if abe is available])],
-  [AM_CONDITIONAL([HAVE_PBC], [false])
-   AM_CONDITIONAL([HAVE_ABE], [false])
-   AC_DEFINE([HAVE_PBC], [0], [Define to 1 if pbc is available])
-   AC_DEFINE([HAVE_ABE], [0], [Define to 1 if abe is available])])
 
 PKG_CHECK_MODULES([GST],
   [glib-2.0 gobject-2.0 gstreamer-1.0 gstreamer-app-1.0 gstreamer-audio-1.0],
@@ -768,35 +714,35 @@ AS_IF([test "x$pulse" != "x1" || test "x$opus" != "x1" || test "x$ogg" != "x1"],
 AM_CONDITIONAL([BUILD_CONVERSATION], [test "x$conversation_backend" != "xnone"])
 AC_MSG_RESULT([$conversation_backend])
 
-# check for libgnurl
-LIBGNURL_CHECK_CONFIG([], [7.34.0],
-                      [gnurl=1
-                       curl=0],
-                      [gnurl=0
-                       curl=0])
-AS_IF([test "x$gnurl" = "x0"],
-  [LIBCURL_CHECK_CONFIG([], [7.34.0], [curl=1], [curl=0])
-   AS_IF([test "x$curl" = "x0"],
-     [AC_CHECK_HEADER([curl/curl.h],
-        [AC_CHECK_DECLS([CURLINFO_TLS_SESSION],
-                        [curl=1],
-                        [curl=0],
-                        [[#include <curl/curl.h>]])])
-      AC_CHECK_LIB([curl-gnutls],
-                   [curl_easy_getinfo],
-                   [curl_gnutls=1],
-                   [curl_gnutls=0])])
-   AS_IF([test "x$curl" = "x0" || test "x$curl_gnutls" = "x0"],
-     [AC_MSG_ERROR([cURL must have a version >= 7.34.0 and must support CURLINFO_TLS_SESSION])])])
+# NOTE: If we find libcurl-gnutls here we set LIBCURL to -lcurl-gnutls
+# This affects the LIBCURL_CHECK_CONFIG call below as it takes LIBCURL into
+# account when checking for curl.
+LIBCURL="-lcurl"
+AC_CHECK_LIB([curl-gnutls],
+             [curl_easy_getinfo],
+             [LIBCURL="-lcurl-gnutls"])
 
-AS_IF([test "x$gnurl" = "x0" && test "x$curl" = "x0"],
-  [AC_MSG_ERROR([either gnurl or cURL must be available])])
+LIBCURL_CHECK_CONFIG([], [7.34.0], [],
+                     [AC_MSG_ERROR([cURL must have a version >= 7.34.0])])
 
-AM_CONDITIONAL([HAVE_LIBGNURL], [test "x$gnurl" = "x1"])
-AC_DEFINE_UNQUOTED([HAVE_LIBGNURL], [$gnurl], [Define to 1 if libgnurl is used])
-AM_CONDITIONAL([HAVE_LIBCURL], [test "x$curl" = "x1"])
-AC_DEFINE_UNQUOTED([HAVE_LIBCURL], [$curl], [Define to 0 if libcurl is used])
+OLD_LIBS=$LIBS
+LIBS="$LIBS $LIBCURL"
+AC_RUN_IFELSE(
+     [AC_LANG_PROGRAM([[#include <curl/curl.h>]],
+                      [[return (CURLSSLSET_OK != curl_global_sslset(CURLSSLBACKEND_GNUTLS, NULL, NULL));]])],
+                    [curl_gnutls=1],
+                    [AC_MSG_WARN([cURL does not have GnuTLS backend])
+                     curl_gnutls=0])
+LIBS=$OLD_LIBS
 
+
+# Even if curl is found, we check for this constant in order to determine
+# if we can use this feature.
+AC_CHECK_HEADER([curl/curl.h],
+                [AC_CHECK_DECLS([CURLINFO_TLS_SSL_PTR],
+                                [],
+                                [AC_MSG_ERROR([cURL must support CURLINFO_TLS_SSL_PTR])],
+                                [[#include <curl/curl.h>]])])
 # libatomic
 AC_SEARCH_LIBS([__atomic_load_8], [atomic],
                [have_libatomic=1
@@ -992,7 +938,7 @@ AC_SUBST(MYSQL_CPPFLAGS)
 AS_IF([test "x$mysql" = "xtrue"],
   [AC_MSG_CHECKING([for mysql version])
    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-     [[#include <mysql/mysql_version.h>]],
+     [[#include <mysql/mysql.h>]],
      [[#if (MYSQL_VERSION_ID < 40100)
 #error required at least version 4.1
 #endif]])],
@@ -1002,7 +948,7 @@ AS_IF([test "x$mysql" = "xtrue"],
      [AC_MSG_RESULT([< 4.1])
       AC_MSG_RESULT([mysql version >= 4.1 required. Will not use MySQL])])
    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-     [[#include <mysql/mysql_version.h>]],
+     [[#include <mysql/mysql.h>]],
      [[#if (MYSQL_VERSION_ID < 80000)
 #error needs at least version 8.0
 #endif]])],
@@ -1041,7 +987,7 @@ AS_IF([test "x$libmhd" = "x0"],
 
 AM_CONDITIONAL([HAVE_MHD], [test "x$libmhd" = "x1"])
 AC_DEFINE_UNQUOTED([HAVE_MHD], [$libmhd],
-                   [Define to 1 if libmicrohttpd is avaliable])
+                   [Define to 1 if libmicrohttpd is available])
 AM_CONDITIONAL([HAVE_REST], [true])
 
 # check for gnutls
@@ -1193,7 +1139,7 @@ AC_ARG_ENABLE([nse-histogram],
   [nse_histogram=0])
 AM_CONDITIONAL([ENABLE_NSE_HISTOGRAM], [test "x$nse_histogram" = "x1"])
 AC_DEFINE_UNQUOTED([ENABLE_NSE_HISTOGRAM], [$nse_histogram],
-                   [Define to 1 if NSE should send timestamp informations])
+                   [Define to 1 if NSE should send timestamp information])
 
 # check if 'make check' should run tests
 AC_ARG_ENABLE([testruns],
@@ -1236,6 +1182,8 @@ AC_ARG_ENABLE([experimental],
          [enable_experimental=1])],
   [enable_experimental=0])
 AM_CONDITIONAL([HAVE_EXPERIMENTAL], [test "x$enable_experimental" = "x1"])
+AS_IF([test "x$enable_experimental" = "x1"],
+      AC_DEFINE([GNUNET_EXPERIMENTAL], 1, [Set to 1 is this is an experimental build]))
 
 # check if malicious code should be compiled (for testing)
 AC_ARG_ENABLE([malicious],
@@ -1309,7 +1257,7 @@ AS_IF([test "x$enable_ttd" = "xyes"],
   [AC_DEFINE([ENABLE_TTD], [1],
              [Define if transport (not TNG) should warn about sending times.])])
 
-# get version informations
+# get version information
 AC_PATH_PROG([gitcommand], [git])
 AC_MSG_CHECKING([if source is under a VCS])
 AS_IF([test "x$gitcommand" = "x"],
@@ -1338,8 +1286,6 @@ contrib/scripts/gnunet-logread/Makefile
 doc/Makefile
 doc/man/Makefile
 doc/doxygen/Makefile
-doc/handbook/Makefile
-doc/tutorial/Makefile
 m4/Makefile
 po/Makefile.in
 src/Makefile
@@ -1439,7 +1385,6 @@ src/zonemaster/zonemaster.conf
 src/rest/Makefile
 src/abd/Makefile
 src/abd/abd.conf
-src/abe/Makefile
 src/reclaim/Makefile
 src/messenger/Makefile
 src/messenger/messenger.conf
@@ -1505,23 +1450,15 @@ AS_IF([test "x$libidn_version" = "x2"],
   [libidn_msg="libidn2"],
   [libidn_msg="libidn"])
 
-# texi2mdoc
-AS_IF([test "x$texi2mdoc_enabled" = "xyes"],
-  [mdocml_msg="yes"],
-  [mdocml_msg="no"])
-AS_IF([test "x$TEXI2MDOC_BINARY" = "xfalse"],
-  [mdocbin_msg="no"],
-  [mdocbin_msg="yes"])
-
 # mandoc
 AS_IF([test "x$MANDOC_BINARY" = "xfalse"],
   [mandoc_msg="no"],
   [mandoc_msg="yes"])
 
-# texinfo
-AS_IF([test "x$documentation" = "xyes"],
-  [texinfo_msg="yes"],
-  [texinfo_msg="no"])
+# doxy
+AS_IF([$DOXY_BINARY],
+  [doxy_msg="yes"],
+  [doxy_msg="no"])
 
 # conversation
 conversation_msg="no"
@@ -1565,12 +1502,9 @@ AS_IF([test "x$png" = "x1"],
   [libpng_msg="yes"],
   [libpng_msg="no"])
 
-# curl or gnurl
-AS_IF([test "x$gnurl" = "x1"],
-  [http_client="gnurl"],
-  [AS_IF([test "x$curl_gnutls" = "x1"],
-     [http_client="curl-gnutls"],
-     [http_client="curl-openssl"])])
+AS_IF([test "x$curl_gnutls" = "x0"],
+       [curl_tls_backend="OpenSSL"],
+       [curl_tls_backend="GnuTLS"])
 
 # ifconfig
 AS_IF([test "x$IFCONFIG_BINARY" = "xfalse"],
@@ -1649,7 +1583,7 @@ sqlite3:                        ${sqlite_msg}
 MySQL:                          ${mysql_msg}
 PostgreSQL:                     ${postgres_msg}
 
-HTTP Client:                    ${http_client}
+cURL TLS backend:               ${curl_tls_backend}
 Bluetooth:                      ${bluetooth_msg}
 iptables:                       ${iptables_msg}
 ifconfig:                       ${ifconfig_msg}
@@ -1668,7 +1602,7 @@ gstreamer:                      ${gstreamer_msg}
 
 Java:                           ${java_msg}
 
-texi2mdoc:                      ${mdocbin_msg}
+doxygen:                        ${doxy_msg}
 mandoc:                         ${mandoc_msg}
 
 GNUnet configuration
@@ -1679,7 +1613,6 @@ Conversation:                   ${conversation_msg}
 Database Backends               ${features_msg}
 Experimental Code:              ${experimental_msg}
 
-Texinfo Manual:                 ${texinfo_msg}
 Transpiled mdocml Manual:       ${mdocml_msg}
 ])
 

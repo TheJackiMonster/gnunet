@@ -71,15 +71,6 @@ GAS_scheduling_remove_client (struct GNUNET_SERVICE_Client *client)
 }
 
 
-/**
- * Transmit the given address suggestion and bandwidth update to all scheduling
- * clients.
- *
- * @param peer peer for which this is an address suggestion
- * @param session_id session ID to use for the given client
- * @param bandwidth_out assigned outbound bandwidth
- * @param bandwidth_in assigned inbound bandwidth
- */
 void
 GAS_scheduling_transmit_address_suggestion (const struct
                                             GNUNET_PeerIdentity *peer,
@@ -114,11 +105,6 @@ GAS_scheduling_transmit_address_suggestion (const struct
 }
 
 
-/**
- * Handle 'address add' messages from clients.
- *
- * @param m the request message
- */
 void
 GAS_handle_address_add (const struct AddressAddMessage *m)
 {

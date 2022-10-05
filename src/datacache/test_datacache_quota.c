@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2006, 2009, 2010 GNUnet e.V.
+     Copyright (C) 2006, 2009, 2010, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -53,8 +53,8 @@ run (void *cls,
   struct GNUNET_DATACACHE_Handle *h;
   struct GNUNET_HashCode k;
   struct GNUNET_HashCode n;
+  struct GNUNET_DATACACHE_Block block;
   char buf[3200];
-  struct GNUNET_TIME_Absolute exp;
 
   (void) cls;
   (void) args;
@@ -70,9 +70,14 @@ run (void *cls,
              "Failed to initialize datacache.  Database likely not setup, skipping test.\n");
     return;
   }
-  exp = GNUNET_TIME_relative_to_absolute (GNUNET_TIME_UNIT_HOURS);
-  memset (buf, 1, sizeof(buf));
-  memset (&k, 0, sizeof(struct GNUNET_HashCode));
+  block.expiration_time = GNUNET_TIME_relative_to_absolute (
+    GNUNET_TIME_UNIT_HOURS);
+  memset (buf,
+          1,
+          sizeof(buf));
+  memset (&k,
+          0,
+          sizeof(struct GNUNET_HashCode));
   for (unsigned int i = 0; i < 10; i++)
   {
     fprintf (stderr,
@@ -83,35 +88,59 @@ run (void *cls,
                         &n);
     for (unsigned int j = i; j < sizeof(buf); j += 10)
     {
-      exp.abs_value_us++;
       buf[j] = i;
+      block.key = k;
+      block.data = buf;
+      block.data_size = j;
+      memset (&block.trunc_peer,
+              43,
+              sizeof (block.trunc_peer));
+      block.ro = 42;
+      block.type = (enum GNUNET_BLOCK_Type) (1 + i);
+      block.put_path = NULL;
+      block.put_path_length = 0;
+      block.ro = GNUNET_DHT_RO_RECORD_ROUTE;
+      block.expiration_time.abs_value_us++;
       ASSERT (GNUNET_OK ==
               GNUNET_DATACACHE_put (h,
-                                    &k,
-                                    GNUNET_YES,
-                                    j,
-                                    buf,
-                                    1 + i,
-                                    exp,
-                                    0,
-                                    NULL));
-      ASSERT (0 < GNUNET_DATACACHE_get (h, &k, 1 + i, NULL, NULL));
+                                    42,
+                                    &block));
+      ASSERT (0 < GNUNET_DATACACHE_get (h,
+                                        &k,
+                                        1 + i,
+                                        NULL,
+                                        NULL));
     }
     k = n;
   }
   fprintf (stderr, "%s", "\n");
-  memset (&k, 0, sizeof(struct GNUNET_HashCode));
+  memset (&k,
+          0,
+          sizeof(struct GNUNET_HashCode));
   for (unsigned int i = 0; i < 10; i++)
   {
     fprintf (stderr, "%s", ".");
-    GNUNET_CRYPTO_hash (&k, sizeof(struct GNUNET_HashCode), &n);
+    GNUNET_CRYPTO_hash (&k,
+                        sizeof(struct GNUNET_HashCode),
+                        &n);
     if (i < 2)
-      ASSERT (0 == GNUNET_DATACACHE_get (h, &k, 1 + i, NULL, NULL));
+      ASSERT (0 ==
+              GNUNET_DATACACHE_get (h,
+                                    &k,
+                                    1 + i,
+                                    NULL,
+                                    NULL));
     if (i == 9)
-      ASSERT (0 < GNUNET_DATACACHE_get (h, &k, 1 + i, NULL, NULL));
+      ASSERT (0 < GNUNET_DATACACHE_get (h,
+                                        &k,
+                                        1 + i,
+                                        NULL,
+                                        NULL));
     k = n;
   }
-  fprintf (stderr, "%s", "\n");
+  fprintf (stderr,
+           "%s",
+           "\n");
   GNUNET_DATACACHE_destroy (h);
   return;
 FAILURE:

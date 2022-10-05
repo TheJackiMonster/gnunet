@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup Backbone
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -382,5 +385,7 @@ GNUNET_TRANSPORT_communicator_notify (
 #endif
 
 /** @} */ /* end of group */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_transport_communicator_service.h */

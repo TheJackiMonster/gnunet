@@ -46,7 +46,6 @@
  *
  * @param ctx block context in which the block group is created
  * @param type type of the block for which we are creating the group
- * @param nonce random value used to seed the group creation
  * @param raw_data optional serialized prior state of the group, NULL if unavailable/fresh
  * @param raw_data_size number of bytes in @a raw_data, 0 if unavailable/fresh
  * @param va variable arguments specific to @a type
@@ -56,7 +55,6 @@
 static struct GNUNET_BLOCK_Group *
 block_plugin_dns_create_group (void *cls,
                                enum GNUNET_BLOCK_Type type,
-                               uint32_t nonce,
                                const void *raw_data,
                                size_t raw_data_size,
                                va_list va)
@@ -83,7 +81,6 @@ block_plugin_dns_create_group (void *cls,
                                        bf_size,
                                        BLOOMFILTER_K,
                                        type,
-                                       nonce,
                                        raw_data,
                                        raw_data_size);
 }
@@ -102,19 +99,19 @@ block_plugin_dns_create_group (void *cls,
  */
 static enum GNUNET_GenericReturnValue
 block_plugin_dns_check_query (void *cls,
-                                    enum GNUNET_BLOCK_Type type,
-                                    const struct GNUNET_HashCode *query,
-                                    const void *xquery,
-                                    size_t xquery_size)
+                              enum GNUNET_BLOCK_Type type,
+                              const struct GNUNET_HashCode *query,
+                              const void *xquery,
+                              size_t xquery_size)
 {
   switch (type)
   {
   case GNUNET_BLOCK_TYPE_DNS:
     if (0 != xquery_size)
-      {
-        GNUNET_break_op (0);
-        return GNUNET_NO;
-      }
+    {
+      GNUNET_break_op (0);
+      return GNUNET_NO;
+    }
     return GNUNET_OK;
   default:
     GNUNET_break (0);
@@ -158,7 +155,7 @@ block_plugin_dns_check_block (void *cls,
       return GNUNET_NO;
     }
     if (GNUNET_TIME_absolute_is_past (
-         GNUNET_TIME_absolute_ntoh (ad->expiration_time)))
+          GNUNET_TIME_absolute_ntoh (ad->expiration_time)))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "DNS advertisement has expired\n");
@@ -199,14 +196,14 @@ block_plugin_dns_check_block (void *cls,
  */
 static enum GNUNET_BLOCK_ReplyEvaluationResult
 block_plugin_dns_check_reply (
-                              void *cls,
-                              enum GNUNET_BLOCK_Type type,
-                              struct GNUNET_BLOCK_Group *group,
-                              const struct GNUNET_HashCode *query,
-                              const void *xquery,
-                              size_t xquery_size,
-                              const void *reply_block,
-                              size_t reply_block_size)
+  void *cls,
+  enum GNUNET_BLOCK_Type type,
+  struct GNUNET_BLOCK_Group *group,
+  const struct GNUNET_HashCode *query,
+  const void *xquery,
+  size_t xquery_size,
+  const void *reply_block,
+  size_t reply_block_size)
 {
   struct GNUNET_HashCode phash;
 

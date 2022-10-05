@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2022 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -74,7 +74,7 @@ get_member_store_key (const struct GNUNET_MESSENGER_MemberStore *store)
 {
   GNUNET_assert (store);
 
-  return get_room_key((const struct GNUNET_MESSENGER_SrvRoom*) store->room);
+  return get_srv_room_key((const struct GNUNET_MESSENGER_SrvRoom*) store->room);
 }
 
 static int

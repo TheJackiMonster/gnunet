@@ -67,7 +67,7 @@ GCCH_is_type_to_drop (struct CadetChannel *ch, const struct
                       GNUNET_MessageHeader *message);
 
 /**
- * Check if type of message is the one to drop.
+ * Assign type of message to drop.
  * @param ch CadetChannel to assign type to drop.
  * @param message GNUNET_CADET_RequestDropCadetMessage to get the type from.
  */
@@ -174,7 +174,6 @@ GCCH_tunnel_up (struct CadetChannel *ch);
  *
  * @param t tunnel to the remote peer
  * @param chid identifier of this channel in the tunnel
- * @param origin peer to who initiated the channel
  * @param h_port hash of desired local port
  * @param options options for the channel
  * @return handle to the new channel
@@ -201,7 +200,8 @@ GCCH_handle_duplicate_open (struct CadetChannel *ch,
 
 
 /**
- * We got payload data for a channel.  Pass it on to the client.
+ * We got payload data for a channel.  Pass it on to the client
+ * and send an ACK to the other end (once flow control allows it!)
  *
  * @param ch channel that got data
  * @param cti identifier of the connection that delivered the message
@@ -234,7 +234,8 @@ GCCH_handle_channel_plaintext_data_ack (struct CadetChannel *ch,
 
 /**
  * We got an acknowledgement for the creation of the channel
- * (the port is open on the other side). Begin transmissions.
+ * (the port is open on the other side).  Verify that the
+ * other end really has the right port, and begin transmissions.
  *
  * @param ch channel to destroy
  * @param cti identifier of the connection that delivered the message,
@@ -262,7 +263,7 @@ GCCH_handle_channel_open_ack (struct CadetChannel *ch,
  *
  * @param ch channel to destroy
  * @param cti identifier of the connection that delivered the message,
- *            NULL during shutdown
+ *            NULL if we are simulating receiving a destroy due to shutdown
  */
 void
 GCCH_handle_remote_destroy (struct CadetChannel *ch,
@@ -292,7 +293,8 @@ GCCH_handle_local_data (struct CadetChannel *ch,
 
 
 /**
- * Handle ACK from client on local channel.
+ * Handle ACK from client on local channel.  Means the client is ready
+ * for more data, see if we have any for it.
  *
  * @param ch channel to destroy
  * @param client_ccn ccn of the client sending the ack

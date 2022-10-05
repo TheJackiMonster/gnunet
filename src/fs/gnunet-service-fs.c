@@ -893,7 +893,7 @@ handle_client_start_search (void *cls,
                                                    &all_zeros,
                                                    sizeof(struct
                                                           GNUNET_PeerIdentity)))
-                                          ? &sm->target : NULL, NULL, 0,
+                                          ? &sm->target : NULL, NULL,
                                           0 /* bf */,
                                           ntohl (sm->anonymity_level),
                                           0 /* priority */,
@@ -1041,8 +1041,14 @@ hash_for_index_val (void *cls,
                   "Hash mismatch trying to index file `%s' which does not have hash `%s'\n"),
                 isc->filename,
                 GNUNET_h2s (&isc->file_id));
-    env = GNUNET_MQ_msg (msg,
-                         GNUNET_MESSAGE_TYPE_FS_INDEX_START_FAILED);
+
+    const char *emsg = "hash mismatch";
+    const size_t msize = strlen(emsg) + 1;
+
+    env = GNUNET_MQ_msg_extra (msg,
+                               msize,
+                               GNUNET_MESSAGE_TYPE_FS_INDEX_START_FAILED);
+    memcpy((char*) &msg[1], emsg, msize);
     GNUNET_MQ_send (lc->mq,
                     env);
     GNUNET_SERVICE_client_continue (lc->client);

@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup Backbone
+ * @{
+ *
  * @author Christian Grothoff
  * @file
  * Helper library for handling HELLOs
@@ -535,5 +538,7 @@ GNUNET_HELLO_address_to_prefix (const char *address);
 #endif
 
 /** @} */ /* end of group */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_hello_lib.h */

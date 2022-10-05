@@ -229,15 +229,15 @@ GNUNET_GNSRECORD_records_deserialize_get_size (size_t len,
   off = 0;
   for (off = 0; (off + sizeof(rec) <= len) && (off + sizeof(rec) >= off);)
   {
+    GNUNET_memcpy (&rec,
+                   &src[off],
+                   sizeof(rec));
     /*
      * If we have found a byte string of zeroes, we have reached
      * the padding
      */
     if (0 == GNUNET_memcmp (&rec, &rec_zero))
       break;
-    GNUNET_memcpy (&rec,
-                   &src[off],
-                   sizeof(rec));
     off += sizeof(rec);
     if ((off + ntohs ((uint16_t) rec.data_size) > len) ||
         (off + ntohs ((uint16_t) rec.data_size) < off))

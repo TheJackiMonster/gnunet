@@ -460,7 +460,7 @@ check_signature (const struct GNUNET_REVOCATION_PowP *pow)
  * Check if the given proof-of-work is valid.
  *
  * @param pow proof of work
- * @param matching_bits how many bits must match (configuration)
+ * @param difficulty how many bits must match (configuration) LSD0001: D
  * @param epoch_duration length of single epoch in configuration
  * @return #GNUNET_YES if the @a pow is acceptable, #GNUNET_NO if not
  */
@@ -477,6 +477,7 @@ GNUNET_REVOCATION_check_pow (const struct GNUNET_REVOCATION_PowP *pow,
   struct GNUNET_TIME_Absolute exp;
   struct GNUNET_TIME_Relative ttl;
   struct GNUNET_TIME_Relative buffer;
+  /* LSD0001: D' */
   unsigned int score = 0;
   unsigned int tmp_score = 0;
   unsigned int epochs;
@@ -535,7 +536,8 @@ GNUNET_REVOCATION_check_pow (const struct GNUNET_REVOCATION_PowP *pow,
   score = score / POW_COUNT;
   if (score < difficulty)
     return GNUNET_NO;
-  epochs = score - difficulty;
+  /* LSD0001: (D'-D+1) */
+  epochs = score - difficulty + 1;
 
   /**
    * Check expiration

@@ -19,6 +19,10 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
  * @author Philipp Toelke
  * @author Christian Grothoff
  *
@@ -181,3 +185,5 @@ GNUNET_HELPER_send_cancel (struct GNUNET_HELPER_SendHandle *sh);
 /* end of include guard: GNUNET_HELPER_LIB_H */
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */

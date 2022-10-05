@@ -139,6 +139,7 @@ timeout_task (void *cls)
  * @param cls closure
  * @param exp when will this value expire
  * @param key key of the result
+ * @param trunc_peer peer at which the path was truncated, or NULL if not
  * @param get_path peers on reply path (or NULL if not recorded)
  * @param get_path_length number of entries in get_path
  * @param put_path peers on the PUT path (or NULL if not recorded)
@@ -151,6 +152,7 @@ static void
 get_result_iterator (void *cls,
                      struct GNUNET_TIME_Absolute exp,
                      const struct GNUNET_HashCode *key,
+                     const struct GNUNET_PeerIdentity *trunc_peer,
                      const struct GNUNET_DHT_PathElement *get_path,
                      unsigned int get_path_length,
                      const struct GNUNET_DHT_PathElement *put_path,
@@ -169,6 +171,23 @@ get_result_iterator (void *cls,
            (char *) data);
   if (record_route && verbose)
   {
+    {
+      struct GNUNET_PeerIdentity my_identity;
+
+      GNUNET_break (GNUNET_OK ==
+                    GNUNET_CRYPTO_get_peer_identity (cfg,
+                                                     &my_identity));
+      GNUNET_break (0 ==
+                    GNUNET_DHT_verify_path (data,
+                                            size,
+                                            exp,
+                                            trunc_peer,
+                                            put_path,
+                                            put_path_length,
+                                            get_path,
+                                            get_path_length,
+                                            &my_identity));
+    }
     fprintf (stdout,
              "  GET path: ");
     for (unsigned int i = 0; i < get_path_length; i++)
@@ -183,6 +202,10 @@ get_result_iterator (void *cls,
                "%s%s",
                (0 == i) ? "" : "-",
                GNUNET_i2s (&put_path[i].pred));
+    if (NULL != trunc_peer)
+      fprintf (stdout,
+               "!%s",
+               GNUNET_i2s (trunc_peer));
     fprintf (stdout,
              "\n");
   }

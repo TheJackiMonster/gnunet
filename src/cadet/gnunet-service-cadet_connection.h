@@ -142,7 +142,9 @@ GCC_transmit (struct CadetConnection *cc,
 
 
 /**
- * A CREATE_ACK was received for this connection, process it.
+ * A #GNUNET_MESSAGE_TYPE_CADET_CONNECTION_CREATE_ACK was received for
+ * this connection, implying that the end-to-end connection is up.
+ * Process it.
  *
  * @param cc the connection that got the ACK.
  */

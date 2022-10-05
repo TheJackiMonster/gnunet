@@ -55,9 +55,6 @@
 #define LOG(level, ...) GNUNET_log_from (level, "cadet-dht", __VA_ARGS__)
 
 
-/**
- * Handle for DHT searches.
- */
 struct GCD_search_handle
 {
   /**
@@ -101,6 +98,7 @@ static struct GNUNET_TIME_Relative announce_delay;
  * @param cls closure
  * @param exp when will this value expire
  * @param key key of the result
+ * @param trunc_peer peer preceeding with invalid signature, or NULL
  * @param get_path path of the get request
  * @param get_path_length length of @a get_path
  * @param put_path path of the put request
@@ -112,6 +110,7 @@ static struct GNUNET_TIME_Relative announce_delay;
 static void
 dht_get_id_handler (void *cls, struct GNUNET_TIME_Absolute exp,
                     const struct GNUNET_HashCode *key,
+                    const struct GNUNET_PeerIdentity *trunc_peer,
                     const struct GNUNET_DHT_PathElement *get_path,
                     unsigned int get_path_length,
                     const struct GNUNET_DHT_PathElement *put_path,
@@ -122,6 +121,7 @@ dht_get_id_handler (void *cls, struct GNUNET_TIME_Absolute exp,
 {
   const struct GNUNET_HELLO_Message *hello = data;
 
+  (void) trunc_peer;
   GCPP_try_path_from_dht (get_path,
                           get_path_length,
                           put_path,
@@ -212,10 +212,6 @@ announce_id (void *cls)
 }
 
 
-/**
- * Function called by the HELLO subsystem whenever OUR hello
- * changes. Re-triggers the DHT PUT immediately.
- */
 void
 GCD_hello_update ()
 {
@@ -229,11 +225,6 @@ GCD_hello_update ()
 }
 
 
-/**
- * Initialize the DHT subsystem.
- *
- * @param c Configuration.
- */
 void
 GCD_init (const struct GNUNET_CONFIGURATION_Handle *c)
 {
@@ -274,9 +265,6 @@ GCD_init (const struct GNUNET_CONFIGURATION_Handle *c)
 }
 
 
-/**
- * Shut down the DHT subsystem.
- */
 void
 GCD_shutdown (void)
 {
@@ -293,12 +281,6 @@ GCD_shutdown (void)
 }
 
 
-/**
- * Search DHT for paths to @a peeR_id
- *
- * @param peer_id peer to search for
- * @return handle to abort search
- */
 struct GCD_search_handle *
 GCD_search (const struct GNUNET_PeerIdentity *peer_id)
 {
@@ -335,11 +317,6 @@ GCD_search (const struct GNUNET_PeerIdentity *peer_id)
 }
 
 
-/**
- * Stop DHT search started with #GCD_search().
- *
- * @param h handle to search to stop
- */
 void
 GCD_search_stop (struct GCD_search_handle *h)
 {

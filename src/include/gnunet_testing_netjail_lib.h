@@ -310,7 +310,7 @@ GNUNET_TESTING_free_topology (struct GNUNET_TESTING_NetjailTopology *topology);
 
 
 /**
- * Calculate the unique id identifying a node from a given connction.
+ * Calculate the unique id identifying a node from a given connection.
  *
  * @param node_connection The connection we calculate the id from.
  * @param topology The topology we get all needed information from.

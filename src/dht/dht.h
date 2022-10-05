@@ -153,6 +153,16 @@ struct GNUNET_DHT_ClientResultMessage
   uint32_t type GNUNET_PACKED;
 
   /**
+   * Reserved, always 0.
+   */
+  uint32_t reserved GNUNET_PACKED;
+
+  /**
+   * Message options, actually an 'enum GNUNET_DHT_RouteOption' value.
+   */
+  uint32_t options GNUNET_PACKED;
+
+  /**
    * Number of peers recorded in the outgoing path from source to the
    * storgage location of this message.
    */
@@ -179,7 +189,7 @@ struct GNUNET_DHT_ClientResultMessage
    */
   struct GNUNET_HashCode key GNUNET_PACKED;
 
-  /* put path, get path and actual data are copied to end of this dealy do */
+  /* trunc_peer, put path, get path and actual data are copied to end of this dealy do */
 };
 
 
@@ -348,10 +358,9 @@ struct GNUNET_DHT_MonitorGetMessage
   uint32_t desired_replication_level GNUNET_PACKED;
 
   /**
-   * Number of peers recorded in the outgoing path from source to the
-   * storage location of this message.
+   * Always zero.
    */
-  uint32_t get_path_length GNUNET_PACKED;
+  uint32_t reserved GNUNET_PACKED;
 
   /**
    * The key to store the value under.
@@ -375,6 +384,16 @@ struct GNUNET_DHT_MonitorGetRespMessage
    * Content type.
    */
   uint32_t type GNUNET_PACKED;
+
+  /**
+   * Reserved, always 0.
+   */
+  uint32_t reserved GNUNET_PACKED;
+
+  /**
+   * Message options, actually an 'enum GNUNET_DHT_RouteOption' value.
+   */
+  uint32_t options GNUNET_PACKED;
 
   /**
    * Length of the PUT path that follows (if tracked).

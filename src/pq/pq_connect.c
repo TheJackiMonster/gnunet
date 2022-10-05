@@ -72,6 +72,9 @@ GNUNET_PQ_connect (const char *config_str,
 {
   return GNUNET_PQ_connect2 (config_str,
                              load_path,
+                             NULL == load_path
+                             ? NULL
+                             : "",
                              es,
                              ps,
                              GNUNET_PQ_FLAG_NONE);
@@ -81,6 +84,7 @@ GNUNET_PQ_connect (const char *config_str,
 struct GNUNET_PQ_Context *
 GNUNET_PQ_connect2 (const char *config_str,
                     const char *load_path,
+                    const char *auto_suffix,
                     const struct GNUNET_PQ_ExecuteStatement *es,
                     const struct GNUNET_PQ_PreparedStatement *ps,
                     enum GNUNET_PQ_Options flags)
@@ -101,6 +105,8 @@ GNUNET_PQ_connect2 (const char *config_str,
   db->config_str = GNUNET_strdup (config_str);
   if (NULL != load_path)
     db->load_path = GNUNET_strdup (load_path);
+  if (NULL != auto_suffix)
+    db->auto_suffix = GNUNET_strdup (auto_suffix);
   if (0 != elen)
   {
     db->es = GNUNET_new_array (elen + 1,
@@ -124,6 +130,7 @@ GNUNET_PQ_connect2 (const char *config_str,
   {
     GNUNET_CONTAINER_multishortmap_destroy (db->channel_map);
     GNUNET_free (db->load_path);
+    GNUNET_free (db->auto_suffix);
     GNUNET_free (db->config_str);
     GNUNET_free (db);
     return NULL;
@@ -132,33 +139,32 @@ GNUNET_PQ_connect2 (const char *config_str,
 }
 
 
-/**
- * Apply patch number @a from path @a load_path.
- *
- * @param db database context to use
- * @param load_path where to find the SQL code to run
- * @param i patch number to append to the @a load_path
- * @return #GNUNET_OK on success, #GNUNET_NO if patch @a i does not exist, #GNUNET_SYSERR on error
- */
-static enum GNUNET_GenericReturnValue
-apply_patch (struct GNUNET_PQ_Context *db,
-             const char *load_path,
-             unsigned int i)
+enum GNUNET_GenericReturnValue
+GNUNET_PQ_exec_sql (struct GNUNET_PQ_Context *db,
+                    const char *buf)
 {
   struct GNUNET_OS_Process *psql;
   enum GNUNET_OS_ProcessStatusType type;
   unsigned long code;
-  size_t slen = strlen (load_path) + 10;
-  char buf[slen];
+  enum GNUNET_GenericReturnValue ret;
+  char *fn;
 
-  GNUNET_snprintf (buf,
-                   sizeof (buf),
-                   "%s%04u.sql",
-                   load_path,
-                   i);
+  GNUNET_asprintf (&fn,
+                   "%s%s.sql",
+                   db->load_path,
+                   buf);
+  if (GNUNET_YES !=
+      GNUNET_DISK_file_test (fn))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                "SQL resource `%s' does not exist\n",
+                fn);
+    GNUNET_free (fn);
+    return GNUNET_NO;
+  }
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Applying SQL file `%s' on database %s\n",
-              buf,
+              fn,
               db->config_str);
   psql = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_ERR,
                                   NULL,
@@ -168,7 +174,7 @@ apply_patch (struct GNUNET_PQ_Context *db,
                                   "psql",
                                   db->config_str,
                                   "-f",
-                                  buf,
+                                  fn,
                                   "-q",
                                   "--set",
                                   "ON_ERROR_STOP=1",
@@ -178,22 +184,37 @@ apply_patch (struct GNUNET_PQ_Context *db,
     GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR,
                               "exec",
                               "psql");
+    GNUNET_free (fn);
     return GNUNET_SYSERR;
   }
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_OS_process_wait_status (psql,
-                                                &type,
-                                                &code));
+  ret = GNUNET_OS_process_wait_status (psql,
+                                       &type,
+                                       &code);
+  if (GNUNET_OK != ret)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "psql on file %s did not finish, killed it!\n",
+                fn);
+    /* can happen if we got a signal, like CTRL-C, before
+       psql was complete */
+    (void) GNUNET_OS_process_kill (psql,
+                                   SIGKILL);
+    GNUNET_OS_process_destroy (psql);
+    GNUNET_free (fn);
+    return GNUNET_SYSERR;
+  }
   GNUNET_OS_process_destroy (psql);
   if ( (GNUNET_OS_PROCESS_EXITED != type) ||
        (0 != code) )
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Could not run PSQL on file %s: psql exit code was %d\n",
-                buf,
+                fn,
                 (int) code);
+    GNUNET_free (fn);
     return GNUNET_SYSERR;
   }
+  GNUNET_free (fn);
   return GNUNET_OK;
 }
 
@@ -207,31 +228,18 @@ GNUNET_PQ_run_sql (struct GNUNET_PQ_Context *db,
 
   load_path_suffix = strrchr (load_path, '/');
   if (NULL == load_path_suffix)
-  {
-    GNUNET_break (0);
-    return GNUNET_SYSERR;
-  }
-  load_path_suffix++; /* skip '/' */
+    load_path_suffix = load_path;
+  else
+    load_path_suffix++; /* skip '/' */
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Loading SQL resources from `%s'\n",
               load_path);
   for (unsigned int i = 1; i<10000; i++)
   {
     char patch_name[slen];
-    char buf[slen];
     enum GNUNET_DB_QueryStatus qs;
 
-    /* First, check patch actually exists */
-    GNUNET_snprintf (buf,
-                     sizeof (buf),
-                     "%s%04u.sql",
-                     load_path,
-                     i);
-    if (GNUNET_YES !=
-        GNUNET_DISK_file_test (buf))
-      return GNUNET_OK;     /* We are done */
-
-    /* Second, check with DB versioning schema if this patch was already applied,
+    /* Check with DB versioning schema if this patch was already applied,
        if so, skip it. */
     GNUNET_snprintf (patch_name,
                      sizeof (patch_name),
@@ -284,9 +292,13 @@ GNUNET_PQ_run_sql (struct GNUNET_PQ_Context *db,
       /* patch not yet applied, run it! */
       enum GNUNET_GenericReturnValue ret;
 
-      ret = apply_patch (db,
-                         load_path,
-                         i);
+      GNUNET_snprintf (patch_name,
+                       sizeof (patch_name),
+                       "%s%04u",
+                       load_path,
+                       i);
+      ret = GNUNET_PQ_exec_sql (db,
+                                patch_name);
       if (GNUNET_NO == ret)
         break;
       if (GNUNET_SYSERR == ret)
@@ -324,8 +336,8 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
                      "pq",
                      "Database connection to '%s' failed: %s\n",
                      db->config_str,
-                     (NULL != db->conn) ?
-                     PQerrorMessage (db->conn)
+                     (NULL != db->conn) 
+                     ? PQerrorMessage (db->conn)
                      : "PQconnectdb returned NULL");
     if (NULL != db->conn)
     {
@@ -340,7 +352,7 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
   PQsetNoticeProcessor (db->conn,
                         &pq_notice_processor_cb,
                         db);
-  if (NULL != db->load_path)
+  if (NULL != db->auto_suffix)
   {
     PGresult *res;
 
@@ -367,10 +379,9 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
         return;
       }
       GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                  "Failed to prepare statement to check patch level. Likely versioning schema does not exist yet, loading patch level 0000!\n");
-      ret = apply_patch (db,
-                         db->load_path,
-                         0);
+                  "Failed to prepare statement to check patch level. Likely versioning schema does not exist yet, loading versioning!\n");
+      ret = GNUNET_PQ_exec_sql (db,
+                                "versioning");
       if (GNUNET_NO == ret)
       {
         GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -413,11 +424,11 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
 
     if (GNUNET_SYSERR ==
         GNUNET_PQ_run_sql (db,
-                           db->load_path))
+                           db->auto_suffix))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                   "Failed to load SQL statements from `%s*'\n",
-                  db->load_path);
+                  db->auto_suffix);
       PQfinish (db->conn);
       db->conn = NULL;
       return;
@@ -473,7 +484,6 @@ GNUNET_PQ_connect_with_cfg2 (const struct GNUNET_CONFIGURATION_Handle *cfg,
   struct GNUNET_PQ_Context *db;
   char *conninfo;
   char *load_path;
-  char *sp;
 
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_string (cfg,
@@ -482,24 +492,31 @@ GNUNET_PQ_connect_with_cfg2 (const struct GNUNET_CONFIGURATION_Handle *cfg,
                                              &conninfo))
     conninfo = NULL;
   load_path = NULL;
-  sp = NULL;
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_get_value_filename (cfg,
+                                               section,
+                                               "SQL_DIR",
+                                               &load_path))
+  {
+    GNUNET_log_config_missing (GNUNET_ERROR_TYPE_INFO,
+                               section,
+                               "SQL_DIR");
+  }
   if ( (NULL != load_path_suffix) &&
-       (GNUNET_OK ==
-        GNUNET_CONFIGURATION_get_value_filename (cfg,
-                                                 section,
-                                                 "SQL_DIR",
-                                                 &sp)) )
-    GNUNET_asprintf (&load_path,
-                     "%s%s",
-                     sp,
-                     load_path_suffix);
+       (NULL == load_path) )
+  {
+    GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
+                               section,
+                               "SQL_DIR");
+    return NULL;
+  }
   db = GNUNET_PQ_connect2 (conninfo == NULL ? "" : conninfo,
                            load_path,
+                           load_path_suffix,
                            es,
                            ps,
                            flags);
   GNUNET_free (load_path);
-  GNUNET_free (sp);
   GNUNET_free (conninfo);
   return db;
 }
@@ -516,6 +533,7 @@ GNUNET_PQ_disconnect (struct GNUNET_PQ_Context *db)
   GNUNET_free (db->es);
   GNUNET_free (db->ps);
   GNUNET_free (db->load_path);
+  GNUNET_free (db->auto_suffix);
   GNUNET_free (db->config_str);
   PQfinish (db->conn);
   GNUNET_free (db);

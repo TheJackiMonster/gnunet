@@ -105,7 +105,7 @@ struct ProcessContext
   /**
    * Block data.
    */
-  const struct GDS_DATACACHE_BlockData *bd;
+  const struct GNUNET_DATACACHE_Block *bd;
 
   /**
    * Path of the reply.
@@ -137,7 +137,7 @@ process (void *cls,
   struct RecentRequest *rr = value;
   enum GNUNET_BLOCK_ReplyEvaluationResult eval;
   unsigned int get_path_length;
-  struct GDS_DATACACHE_BlockData bdx = *pc->bd;
+  struct GNUNET_DATACACHE_Block bdx = *pc->bd;
 
   if ( (rr->type != GNUNET_BLOCK_TYPE_ANY) &&
        (rr->type != pc->bd->type) )
@@ -252,7 +252,7 @@ process (void *cls,
  * @param get_path peers this reply has traversed so far (if tracked)
  */
 void
-GDS_ROUTING_process (const struct GDS_DATACACHE_BlockData *bd,
+GDS_ROUTING_process (const struct GNUNET_DATACACHE_Block *bd,
                      const struct GNUNET_HashCode *query_hash,
                      unsigned int get_path_length,
                      const struct GNUNET_DHT_PathElement *get_path)

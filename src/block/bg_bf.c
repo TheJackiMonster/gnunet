@@ -55,7 +55,6 @@ struct BfGroupInternals
  * Serialize state of a block group.
  *
  * @param bg group to serialize
- * @param[out] nonce set to the nonce of the @a bg
  * @param[out] raw_data set to the serialized state
  * @param[out] raw_data_size set to the number of bytes in @a raw_data
  * @return #GNUNET_OK on success, #GNUNET_NO if serialization is not
@@ -63,26 +62,27 @@ struct BfGroupInternals
  */
 static enum GNUNET_GenericReturnValue
 bf_group_serialize_cb (struct GNUNET_BLOCK_Group *bg,
-                       uint32_t *nonce,
                        void **raw_data,
                        size_t *raw_data_size)
 {
   struct BfGroupInternals *gi = bg->internal_cls;
-  char *raw;
+  void *raw;
 
-  raw = GNUNET_malloc (gi->bf_size);
+  raw = GNUNET_malloc (gi->bf_size + sizeof (uint32_t));
   if (GNUNET_OK !=
       GNUNET_CONTAINER_bloomfilter_get_raw_data (gi->bf,
-                                                 raw,
+                                                 raw + sizeof (uint32_t),
                                                  gi->bf_size))
   {
     GNUNET_free (raw);
     GNUNET_break (0);
     return GNUNET_SYSERR;
   }
-  *nonce = gi->bf_mutator;
+  memcpy (raw,
+          &gi->bf_mutator,
+          sizeof (uint32_t));
   *raw_data = raw;
-  *raw_data_size = gi->bf_size;
+  *raw_data_size = gi->bf_size + sizeof (uint32_t);
   return GNUNET_OK;
 }
 
@@ -164,7 +164,6 @@ bf_group_destroy_cb (struct GNUNET_BLOCK_Group *bg)
  * @param bf_size size of the Bloom filter
  * @param bf_k K-value for the Bloom filter
  * @param type block type
- * @param nonce random value used to seed the group creation
  * @param raw_data optional serialized prior state of the group, NULL if unavailable/fresh
  * @param raw_data_size number of bytes in @a raw_data, 0 if unavailable/fresh
  * @return block group handle, NULL if block groups are not supported
@@ -175,13 +174,32 @@ GNUNET_BLOCK_GROUP_bf_create (void *cls,
                               size_t bf_size,
                               unsigned int bf_k,
                               enum GNUNET_BLOCK_Type type,
-                              uint32_t nonce,
                               const void *raw_data,
                               size_t raw_data_size)
 {
   struct BfGroupInternals *gi;
   struct GNUNET_BLOCK_Group *bg;
+  uint32_t nonce;
 
+  if ( (NULL != raw_data) &&
+       (raw_data_size < sizeof (nonce)) )
+  {
+    GNUNET_break_op (0);
+    return NULL;
+  }
+  if (NULL != raw_data)
+  {
+    memcpy (&nonce,
+            raw_data,
+            sizeof (nonce));
+    raw_data += sizeof (nonce);
+    raw_data_size -= sizeof (nonce);
+  }
+  else
+  {
+    nonce = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_NONCE,
+                                      UINT32_MAX);
+  }
   gi = GNUNET_new (struct BfGroupInternals);
   gi->bf = GNUNET_CONTAINER_bloomfilter_init ((bf_size != raw_data_size) ?
                                               NULL : raw_data,
@@ -210,7 +228,7 @@ GNUNET_BLOCK_GROUP_bf_create (void *cls,
  * @return #GNUNET_YES if @a hc is (likely) a duplicate
  *         #GNUNET_NO if @a hc was definitively not in @bg (but now is)
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BLOCK_GROUP_bf_test_and_set (struct GNUNET_BLOCK_Group *bg,
                                     const struct GNUNET_HashCode *hc)
 {

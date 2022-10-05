@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2006-2018 GNUnet e.V.
+     Copyright (C) 2006-2018, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -80,11 +80,12 @@ static const struct GNUNET_OS_ProjectData default_pd = {
 static const struct GNUNET_OS_ProjectData *current_pd = &default_pd;
 
 /**
- * Whether or not gettext has been initialized for the library.
+ * PD for which gettext has been initialized last.
  * Note that the gettext initialization done within
  * GNUNET_PROGRAM_run2 is for the specific application.
  */
-static int gettextinit = 0;
+static const struct GNUNET_OS_ProjectData *gettextinit;
+
 
 /**
  * Return default project data used by 'libgnunetutil' for GNUnet.
@@ -102,13 +103,15 @@ GNUNET_OS_project_data_default (void)
 const struct GNUNET_OS_ProjectData *
 GNUNET_OS_project_data_get ()
 {
-  if (0 == gettextinit)
+  if (current_pd != gettextinit)
   {
     char *path = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_LOCALEDIR);
+
     if (NULL != path)
-      bindtextdomain (PACKAGE, path);
+      bindtextdomain (PACKAGE,
+                      path);
     GNUNET_free (path);
-    gettextinit = 1;
+    gettextinit = current_pd;
   }
   return current_pd;
 }
@@ -122,16 +125,18 @@ GNUNET_OS_project_data_get ()
 void
 GNUNET_OS_init (const struct GNUNET_OS_ProjectData *pd)
 {
-  if (0 == gettextinit)
-  {
-    char *path = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_LOCALEDIR);
-    if (NULL != path)
-      bindtextdomain (PACKAGE, path);
-    GNUNET_free (path);
-    gettextinit = 1;
-  }
   GNUNET_assert (NULL != pd);
   current_pd = pd;
+  if (pd != gettextinit)
+  {
+    char *path = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_LOCALEDIR);
+
+    if (NULL != path)
+      bindtextdomain (PACKAGE,
+                      path);
+    GNUNET_free (path);
+    gettextinit = pd;
+  }
 }
 
 

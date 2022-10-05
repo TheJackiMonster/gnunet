@@ -5,16 +5,6 @@ gnunet.conf.5: gnunet.conf.5.in Makefile
 
 CLEANFILES = gnunet.conf.5
 
-if TEXI2MDOC_GENERATION
-gnunet-tutorial.7: Makefile
-	@texi2mdoc -I../tutorial:../tutorial/chapters ../tutorial/tutorial.texi > gnunet-tutorial.7
-
-gnunet-documentation.7: Makefile
-	@texi2mdoc -I../handbook:../handbook/chapters ../handbook/gnunet.texi > gnunet-documentation.7
-
-CLEANFILES += gnunet-documentation.7 gnunet-tutorial.7
-endif
-
 if HAVE_EXPERIMENTAL
 if HAVE_MANDOC
 # After I went through the alternatives with the focus
@@ -46,6 +36,27 @@ endif
 endif
 
 man_MANS = \
+  gnunet.1 \
+	gnunet.2 \
+	gnunet.3 \
+	gnunet.4 \
+	gnunet.5 \
+	gnunet.6 \
+	gnunet.7 \
+	gnunet.8 \
+	gnunet.9 \
+	gana.1 \
+	gana.2 \
+	gana.3 \
+	gana.4 \
+	gana.5 \
+	gnunet-dev.1 \
+	gnunet-dev.2 \
+	gnunet-dev.3 \
+	gnunet-dev.4 \
+	gnunet-dev.5 \
+	gnunet-dev.6 \
+	lsd.1 \
   gnunet.conf.5 \
   gnunet-arm.1 \
   gnunet-ats.1 \
@@ -71,6 +82,7 @@ man_MANS = \
   gnunet-namecache.1 \
   gnunet-namestore.1 \
   gnunet-namestore-fcfsd.1 \
+  gnunet-namestore-dbtool.1 \
   gnunet-nat.1 \
   gnunet-nat-auto.1 \
   gnunet-nat-server.1 \
@@ -94,10 +106,6 @@ man_MANS = \
   gnunet-uri.1 \
   gnunet-vpn.1 \
   gnunet-zoneimport.1
-
-if TEXI2MDOC_GENERATION
-man_MANS += gnunet-tutorial.7 gnunet-documentation.7
-endif
 
 EXTRA_DIST = ${man_MANS} \
  gnunet.conf.5.in \

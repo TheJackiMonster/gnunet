@@ -10,8 +10,11 @@ endif
 
 
 REST_PLUGIN = \
-  libgnunet_plugin_rest_openid_connect.la \
   libgnunet_plugin_rest_reclaim.la
+
+if HAVE_JOSE
+REST_PLUGIN += libgnunet_plugin_rest_openid_connect.la
+endif
 
 CREDENTIAL_PLUGIN = \
   libgnunet_plugin_reclaim_credential_jwt.la
@@ -35,7 +38,8 @@ pkgcfg_DATA = \
   reclaim.conf
 
 lib_LTLIBRARIES = \
-  libgnunetreclaim.la
+  libgnunetreclaim.la \
+  libgnunetdid.la
 plugin_LTLIBRARIES = \
   libgnunet_plugin_gnsrecord_reclaim.la \
   libgnunet_plugin_reclaim_attribute_basic.la \
@@ -66,7 +70,7 @@ libgnunet_plugin_rest_reclaim_la_LDFLAGS = \
   $(GN_PLUGIN_LDFLAGS)
 libgnunet_plugin_rest_reclaim_la_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
 
-
+if HAVE_JOSE
 libgnunet_plugin_rest_openid_connect_la_SOURCES = \
   plugin_rest_openid_connect.c \
   oidc_helper.h \
@@ -79,11 +83,12 @@ libgnunet_plugin_rest_openid_connect_la_LIBADD = \
   $(top_builddir)/src/gns/libgnunetgns.la \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/util/libgnunetutil.la $(XLIBS) \
-  $(LTLIBINTL) -ljansson $(MHD_LIBS) \
+  $(LTLIBINTL) -ljansson -ljose $(MHD_LIBS) \
 	$(LIBGCRYPT_LIBS)
 libgnunet_plugin_rest_openid_connect_la_LDFLAGS = \
   $(GN_PLUGIN_LDFLAGS)
 libgnunet_plugin_rest_openid_connect_la_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
+endif
 
 if HAVE_PABC
 libgnunet_plugin_rest_pabc_la_SOURCES = \
@@ -138,6 +143,22 @@ libgnunetreclaim_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)   \
   -version-info 0:0:0
 
+libgnunetdid_la_SOURCES = \
+  did_helper.c \
+  did_helper.h \
+  did_core.h \
+  did_core.c
+libgnunetdid_la_LIBADD = \
+	$(top_builddir)/src/util/libgnunetutil.la \
+	$(top_builddir)/src/gns/libgnunetgns.la \
+	$(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+	$(top_builddir)/src/identity/libgnunetidentity.la \
+	$(top_builddir)/src/namestore/libgnunetnamestore.la \
+	-ljansson \
+  $(GN_LIBINTL) $(XLIB)
+libgnunetdid_la_LDFLAGS = \
+  $(GN_LIB_LDFLAGS)   \
+  -version-info 0:0:0
 
 libgnunet_plugin_reclaim_attribute_basic_la_SOURCES = \
   plugin_reclaim_attribute_basic.c
@@ -190,22 +211,27 @@ test_reclaim_attribute_LDADD = \
   $(GN_LIBINTL)
 
 gnunet_did_SOURCES = \
-	gnunet-did.c \
-  did_misc.c \
-	did.h
+	gnunet-did.c
 gnunet_did_LDADD = \
 	$(top_builddir)/src/util/libgnunetutil.la \
 	$(top_builddir)/src/gns/libgnunetgns.la \
 	$(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
 	$(top_builddir)/src/identity/libgnunetidentity.la \
 	$(top_builddir)/src/namestore/libgnunetnamestore.la \
+  libgnunetdid.la \
 	-ljansson
 
 
-test_w3c_ed25519_2020_SOURCES = \
-  test_w3c_ed25519_2020.c
-test_w3c_ed25519_2020_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la
+test_did_helper_SOURCES = \
+  test_did_helper.c
+test_did_helper_LDADD = \
+  $(top_builddir)/src/util/libgnunetutil.la \
+	$(top_builddir)/src/gns/libgnunetgns.la \
+	$(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+	$(top_builddir)/src/identity/libgnunetidentity.la \
+	$(top_builddir)/src/namestore/libgnunetnamestore.la \
+  libgnunetdid.la \
+  -ljansson
 
 check_SCRIPTS = \
   test_reclaim_attribute.sh \
@@ -214,9 +240,11 @@ check_SCRIPTS = \
 
 check_PROGRAMS = \
   test_reclaim_attribute \
-  test_w3c_ed25519_2020
+  test_did_helper
 
 if ENABLE_TEST_RUN
  AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
- TESTS = $(check_SCRIPTS)
+ TESTS = \
+  $(check_SCRIPTS) \
+  $(check_PROGRAMS)
 endif

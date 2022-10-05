@@ -557,14 +557,6 @@ reconnect (struct GNUNET_ATS_SchedulingHandle *sh)
 }
 
 
-/**
- * Initialize the ATS subsystem.
- *
- * @param cfg configuration to use
- * @param suggest_cb notification to call whenever the suggestation changed
- * @param suggest_cb_cls closure for @a suggest_cb
- * @return ats context
- */
 struct GNUNET_ATS_SchedulingHandle *
 GNUNET_ATS_scheduling_init (const struct GNUNET_CONFIGURATION_Handle *cfg,
                             GNUNET_ATS_AddressSuggestionCallback suggest_cb,
@@ -701,18 +693,6 @@ GNUNET_ATS_address_add_session (struct GNUNET_ATS_AddressRecord *ar,
 }
 
 
-/**
- * A session was destroyed, disassociate it from the
- * given address record.  If this was an incoming
- * address, destroy the address as well.
- *
- * @param ar address record to update information for
- * @param session session handle
- * @return #GNUNET_YES if the @a ar was destroyed because
- *                     it was an incoming address,
- *         #GNUNET_NO if the @ar was kept because we can
- *                    use it still to establish a new session
- */
 int
 GNUNET_ATS_address_del_session (struct GNUNET_ATS_AddressRecord *ar,
                                 struct GNUNET_ATS_Session *session)

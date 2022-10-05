@@ -90,7 +90,7 @@ defaults to
 is missing too
 .Fl -dir-printf
 defaults to
-.Ql #%n:\engnunet-download -o "%f" -R %u\en\en Ns
+.Ql #%n:\engnunet-download -o Qo %f Qc -R %u\en\en Ns
 \&.
 .It Fl f Ar FORMAT | Fl -printf= Ns Ar FORMAT
 Write the search results according to
@@ -171,7 +171,7 @@ character followed by any other character not listed above is treated as an ordi
 If missing,
 .Fl -printf
 defaults to
-.Ql #%n:\engnunet-download -o "%f" %u\en\en Ns
+.Ql #%n:\engnunet-download -o Qo %f Qc %u\en\en Ns
 \&.
 .It Fl h | -help
 Print the help page.
@@ -251,8 +251,8 @@ argument is required).
 .It Fl t Ar DELAY | Fl -timeout= Ns Ar DELAY
 Automatically timeout search after
 .Ar DELAY .
-The value given must be a number followed by a space and a time unit, for example "500 ms".
-Note that the quotes are required on the shell. Without a unit it defaults to microseconds (1000000 = 1 second).
+The value given must be a number followed by a space and a time unit, for example
+.Qo 500 ms Qc . Note that the quotes are required on the shell. Without a unit it defaults to microseconds (1000000 = 1 second).
 If 0 or omitted the search runs until gnunet-search is aborted with CTRL-C.
 .It Fl v | -version
 print the version number

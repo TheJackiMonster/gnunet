@@ -194,7 +194,7 @@ GNUNET_SQ_query_param_uint64 (const uint64_t *x);
  * @param params parameters to the statement
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_SQ_bind (sqlite3_stmt *stmt,
                 const struct GNUNET_SQ_QueryParam *params);
 
@@ -498,7 +498,7 @@ GNUNET_SQ_make_prepare (const char *sql,
  * @param ps array of statements to prepare
  * @return #GNUNET_OK on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_SQ_prepare (sqlite3 *dbh,
                    const struct GNUNET_SQ_PrepareStatement *ps);
 
@@ -520,7 +520,7 @@ struct GNUNET_SQ_ExecuteStatement
   /**
    * Should we ignore errors?
    */
-  int ignore_errors;
+  bool ignore_errors;
 };
 
 
@@ -560,7 +560,7 @@ GNUNET_SQ_make_try_execute (const char *sql);
  * @return #GNUNET_OK on success (modulo statements where errors can be ignored)
  *         #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_SQ_exec_statements (sqlite3 *dbh,
                            const struct GNUNET_SQ_ExecuteStatement *es);
 

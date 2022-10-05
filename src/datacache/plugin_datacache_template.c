@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet
-     Copyright (C) 2006, 2009, 2015 GNUnet e.V.
+     Copyright (C) 2006, 2009, 2015, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -44,26 +44,14 @@ struct Plugin
  * Store an item in the datastore.
  *
  * @param cls closure (our `struct Plugin`)
- * @param key key to store @a data under
  * @param xor_distance distance of @a key to our PID
- * @param size number of bytes in @a data
- * @param data data to store
- * @param type type of the value
- * @param discard_time when to discard the value in any case
- * @param path_info_len number of entries in @a path_info
- * @param path_info a path through the network
+ * @param block data to store
  * @return 0 if duplicate, -1 on error, number of bytes used otherwise
  */
 static ssize_t
 template_plugin_put (void *cls,
-                     const struct GNUNET_HashCode *key,
                      uint32_t xor_distance,
-                     size_t size,
-                     const char *data,
-                     enum GNUNET_BLOCK_Type type,
-                     struct GNUNET_TIME_Absolute discard_time,
-                     unsigned int path_info_len,
-                     const struct GNUNET_DHT_PathElement *path_info)
+                     const struct GNUNET_DATACACHE_Block *block)
 {
   GNUNET_break (0);
   return -1;
@@ -100,7 +88,7 @@ template_plugin_get (void *cls,
  * @param cls closure (our `struct Plugin`)
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-static int
+static enum GNUNET_GenericReturnValue
 template_plugin_del (void *cls)
 {
   GNUNET_break (0);

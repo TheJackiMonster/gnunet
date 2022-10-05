@@ -388,11 +388,6 @@ struct CadetChannel
 
 };
 
-/**
- * Assign type of message to drop.
- * @param ch CadetChannel to assign type to drop.
- * @param message GNUNET_CADET_RequestDropCadetMessage to get the type from.
- */
 void
 GCCH_assign_type_to_drop (struct CadetChannel *ch, const struct
                           GNUNET_CADET_RequestDropCadetMessage *message)
@@ -660,16 +655,6 @@ GCCH_tunnel_up (struct CadetChannel *ch)
 }
 
 
-/**
- * Create a new channel.
- *
- * @param owner local client owning the channel
- * @param ccn local number of this channel at the @a owner
- * @param destination peer to which we should build the channel
- * @param port desired port at @a destination
- * @param options options for the channel
- * @return handle to the new channel
- */
 struct CadetChannel *
 GCCH_channel_local_new (struct CadetClient *owner,
                         struct GNUNET_CADET_ClientChannelNumber ccn,
@@ -756,15 +741,6 @@ timeout_closed_cb (void *cls)
 }
 
 
-/**
- * Create a new channel based on a request coming in over the network.
- *
- * @param t tunnel to the remote peer
- * @param ctn identifier of this channel in the tunnel
- * @param h_port desired hash of local port
- * @param options options for the channel
- * @return handle to the new channel
- */
 struct CadetChannel *
 GCCH_channel_incoming_new (struct CadetTunnel *t,
                            struct GNUNET_CADET_ChannelTunnelNumber ctn,
@@ -960,15 +936,6 @@ send_ack_to_client (struct CadetChannel *ch, int to_owner)
 }
 
 
-/**
- * A client is bound to the port that we have a channel
- * open to.  Send the acknowledgement for the connection
- * request and establish the link with the client.
- *
- * @param ch open incoming channel
- * @param c client listening on the respective @a port
- * @param port the port @a is listening on
- */
 void
 GCCH_bind (struct CadetChannel *ch,
            struct CadetClient *c,
@@ -1126,15 +1093,6 @@ GCCH_channel_local_destroy (struct CadetChannel *ch,
 }
 
 
-/**
- * We got an acknowledgement for the creation of the channel
- * (the port is open on the other side).  Verify that the
- * other end really has the right port, and begin transmissions.
- *
- * @param ch channel to destroy
- * @param cti identifier of the connection that delivered the message
- * @param port port number (needed to verify receiver knows the port)
- */
 void
 GCCH_handle_channel_open_ack (
   struct CadetChannel *ch,
@@ -1227,14 +1185,6 @@ is_before (void *cls,
 }
 
 
-/**
- * We got payload data for a channel.  Pass it on to the client
- * and send an ACK to the other end (once flow control allows it!)
- *
- * @param ch channel that got data
- * @param cti identifier of the connection that delivered the message
- * @param msg message that was received
- */
 void
 GCCH_handle_channel_plaintext_data (
   struct CadetChannel *ch,
@@ -1657,15 +1607,6 @@ GCCH_handle_channel_plaintext_data_ack (
 }
 
 
-/**
- * Destroy channel, based on the other peer closing the
- * connection.  Also needs to remove this channel from
- * the tunnel.
- *
- * @param ch channel to destroy
- * @param cti identifier of the connection that delivered the message,
- *            NULL if we are simulating receiving a destroy due to shutdown
- */
 void
 GCCH_handle_remote_destroy (
   struct CadetChannel *ch,
@@ -1916,13 +1857,6 @@ GCCH_handle_local_data (struct CadetChannel *ch,
 }
 
 
-/**
- * Handle ACK from client on local channel.  Means the client is ready
- * for more data, see if we have any for it.
- *
- * @param ch channel to destroy
- * @param client_ccn ccn of the client sending the ack
- */
 void
 GCCH_handle_local_ack (struct CadetChannel *ch,
                        struct GNUNET_CADET_ClientChannelNumber client_ccn)

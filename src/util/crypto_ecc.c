@@ -594,6 +594,26 @@ GNUNET_CRYPTO_ecdsa_sign_ (
   return GNUNET_OK;
 }
 
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_eddsa_sign_raw (
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
+  void *data,
+  size_t size,
+  struct GNUNET_CRYPTO_EddsaSignature *sig)
+{
+  unsigned char sk[crypto_sign_SECRETKEYBYTES];
+  unsigned char pk[crypto_sign_PUBLICKEYBYTES];
+  int res;
+
+  GNUNET_assert (0 == crypto_sign_seed_keypair (pk, sk, priv->d));
+  res = crypto_sign_detached ((uint8_t *) sig,
+                              NULL,
+                              (uint8_t *) data,
+                              size,
+                              sk);
+  return (res == 0) ? GNUNET_OK : GNUNET_SYSERR;
+}
+
 
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_sign_ (
@@ -695,6 +715,7 @@ GNUNET_CRYPTO_eddsa_verify_ (
     return GNUNET_SYSERR; /* purpose mismatch */
 
   BENCHMARK_START (eddsa_verify);
+
   res = crypto_sign_verify_detached (s, m, mlen, pub->q_y);
   BENCHMARK_END (eddsa_verify);
   return (res == 0) ? GNUNET_OK : GNUNET_SYSERR;

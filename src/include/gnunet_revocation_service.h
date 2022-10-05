@@ -24,6 +24,9 @@
 #include "gnunet_identity_service.h"
 
 /**
+ * @addtogroup egos  Ego management
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -268,3 +271,5 @@ GNUNET_REVOCATION_proof_get_size (const struct GNUNET_REVOCATION_PowP *pow);
 #endif /* GNUNET_REVOCATION_SERVICE_H_ */
 
 /** @} */ /* end of group revocation */
+
+/** @} */ /* end of group addition */

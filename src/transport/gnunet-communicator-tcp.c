@@ -2457,7 +2457,7 @@ boot_queue (struct Queue *queue)
  * Generate and transmit our ephemeral key and the signature for
  * the initial KX with the other peer.  Must be called first, before
  * any other bytes are ever written to the output buffer.  Note that
- * our cipher must already be initialized when calling thi function.
+ * our cipher must already be initialized when calling this function.
  * Helper function for #start_initial_kx_out().
  *
  * @param queue queue to do KX for

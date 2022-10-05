@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet
-     Copyright (C) 2004, 2005, 2006, 2007, 2009, 2010, 2015 GNUnet e.V.
+     Copyright (C) 2004-2010, 2015, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -259,26 +259,14 @@ GNUNET_DATACACHE_destroy (struct GNUNET_DATACACHE_Handle *h)
 
 enum GNUNET_GenericReturnValue
 GNUNET_DATACACHE_put (struct GNUNET_DATACACHE_Handle *h,
-                      const struct GNUNET_HashCode *key,
                       uint32_t xor_distance,
-                      size_t data_size,
-                      const char *data,
-                      enum GNUNET_BLOCK_Type type,
-                      struct GNUNET_TIME_Absolute discard_time,
-                      unsigned int path_info_len,
-                      const struct GNUNET_DHT_PathElement *path_info)
+                      const struct GNUNET_DATACACHE_Block *block)
 {
   ssize_t used;
 
   used = h->api->put (h->api->cls,
-                      key,
                       xor_distance,
-                      data_size,
-                      data,
-                      type,
-                      discard_time,
-                      path_info_len,
-                      path_info);
+                      block);
   if (-1 == used)
   {
     GNUNET_break (0);
@@ -291,10 +279,10 @@ GNUNET_DATACACHE_put (struct GNUNET_DATACACHE_Handle *h,
   }
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Stored data under key `%s' in cache\n",
-       GNUNET_h2s (key));
+       GNUNET_h2s (&block->key));
   if (NULL != h->filter)
     GNUNET_CONTAINER_bloomfilter_add (h->filter,
-                                      key);
+                                      &block->key);
   GNUNET_STATISTICS_update (h->stats,
                             "# bytes stored",
                             used,
@@ -325,9 +313,10 @@ GNUNET_DATACACHE_get (struct GNUNET_DATACACHE_Handle *h,
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Processing request for key `%s'\n",
        GNUNET_h2s (key));
-  if ((NULL != h->filter) &&
-      (GNUNET_OK !=
-       GNUNET_CONTAINER_bloomfilter_test (h->filter, key)))
+  if ( (NULL != h->filter) &&
+       (GNUNET_OK !=
+        GNUNET_CONTAINER_bloomfilter_test (h->filter,
+                                           key)) )
   {
     GNUNET_STATISTICS_update (h->stats,
                               "# requests filtered by bloom filter",
@@ -364,7 +353,8 @@ GNUNET_DATACACHE_get_closest (struct GNUNET_DATACACHE_Handle *h,
                               key,
                               type,
                               num_results,
-                              iter, iter_cls);
+                              iter,
+                              iter_cls);
 }
 
 

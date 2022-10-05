@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup Sets
+ * @{
+ *
  * @author Florian Dold
  * @author Christian Grothoff
  *
@@ -574,3 +577,5 @@ GNUNET_SET_element_hash (const struct GNUNET_SET_Element *element,
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */

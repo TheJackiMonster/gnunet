@@ -44,6 +44,7 @@ GNUNET_GNSRECORD_string_normalize (const char *src)
   return GNUNET_STRINGS_utf8_normalize (src);
 }
 
+
 enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_label_check (const char*label, char **emsg)
 {
@@ -59,6 +60,7 @@ GNUNET_GNSRECORD_label_check (const char*label, char **emsg)
   }
   return GNUNET_OK;
 }
+
 
 /**
  * Convert a zone key to a string (for printing debug messages).
@@ -409,6 +411,7 @@ GNUNET_GNSRECORD_record_to_identity_key (const struct GNUNET_GNSRECORD_Data *rd,
 
 }
 
+
 enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_normalize_record_set (const char *label,
                                        const struct
@@ -418,7 +421,7 @@ GNUNET_GNSRECORD_normalize_record_set (const char *label,
                                        rd_public,
                                        unsigned int *rd_count_public,
                                        struct GNUNET_TIME_Absolute *expiry,
-                                       int include_private,
+                                       enum GNUNET_GNSRECORD_Filter filter,
                                        char **emsg)
 {
   struct GNUNET_TIME_Absolute now;
@@ -488,7 +491,7 @@ GNUNET_GNSRECORD_normalize_record_set (const char *label,
           (GNUNET_YES == have_gns2dns))
       {
         *emsg = GNUNET_strdup (_ (
-                                 "Redirection record set conains mutually exclusive records."));
+                                 "Redirection record set contains mutually exclusive records."));
         return GNUNET_SYSERR;
       }
       /* No redirection records under empty label*/
@@ -514,7 +517,7 @@ GNUNET_GNSRECORD_normalize_record_set (const char *label,
           (GNUNET_YES == have_zone_delegation))
       {
         *emsg = GNUNET_strdup (_ (
-                                 "Redirection record set conains mutually exclusive records."));
+                                 "Redirection record set contains mutually exclusive records."));
         return GNUNET_SYSERR;
       }
       have_gns2dns = GNUNET_YES;
@@ -536,7 +539,7 @@ GNUNET_GNSRECORD_normalize_record_set (const char *label,
 
     /* Ignore private records for public record set */
 
-    if ((GNUNET_NO == include_private) &&
+    if ((0 != (filter & GNUNET_GNSRECORD_FILTER_OMIT_PRIVATE)) &&
         (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE)))
       continue;
     /* Skip expired records */
@@ -556,29 +559,6 @@ GNUNET_GNSRECORD_normalize_record_set (const char *label,
   *rd_count_public = rd_count_tmp;
   return GNUNET_OK;
 }
-
-enum GNUNET_GenericReturnValue
-GNUNET_GNSRECORD_convert_records_for_export (const char *label,
-                                             const struct
-                                             GNUNET_GNSRECORD_Data *rd,
-                                             unsigned int rd_count,
-                                             struct GNUNET_GNSRECORD_Data *
-                                             rd_public,
-                                             unsigned int *rd_count_public,
-                                             struct GNUNET_TIME_Absolute *expiry,
-                                             char **emsg)
-{
-  return GNUNET_GNSRECORD_normalize_record_set (label,
-                                                rd,
-                                                rd_count,
-                                                rd_public,
-                                                rd_count_public,
-                                                expiry,
-                                                GNUNET_NO,
-                                                emsg);
-
-}
-
 
 
 /* end of gnsrecord_misc.c */

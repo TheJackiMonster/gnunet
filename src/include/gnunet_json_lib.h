@@ -197,6 +197,29 @@ GNUNET_JSON_spec_fixed (const char *name,
 
 
 /**
+ * Variable size object (in network byte order, encoded using base64 encoding).
+ *
+ * @param name name of the JSON field
+ * @param[out] obj pointer where to write the data, must have @a size bytes
+ * @param size number of bytes expected in @a obj
+ */
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_fixed64 (const char *name,
+                          void *obj,
+                          size_t size);
+
+
+/**
+ * Fixed size object (in network byte order, encoded using base64 encoding).
+ *
+ * @param name name of the JSON field
+ * @param obj pointer where to write the data (type of `*obj` will determine size)
+ */
+#define GNUNET_JSON_spec_fixed64_auto(name, obj) \
+  GNUNET_JSON_spec_fixed (name, obj, sizeof(*obj))
+
+
+/**
  * Variable size object (in network byte order, encoded using
  * Crockford Base32hex encoding).
  *
@@ -378,7 +401,21 @@ GNUNET_JSON_spec_rsa_signature (const char *name,
  * @return json string that encodes @a data
  */
 json_t *
-GNUNET_JSON_from_data (const void *data, size_t size);
+GNUNET_JSON_from_data (const void *data,
+                       size_t size);
+
+
+/**
+ * Convert binary data to a JSON string with base64
+ * encoding.
+ *
+ * @param data binary data
+ * @param size size of @a data in bytes
+ * @return json string that encodes @a data
+ */
+json_t *
+GNUNET_JSON_from_data64 (const void *data,
+                         size_t size);
 
 
 /**
@@ -390,6 +427,17 @@ GNUNET_JSON_from_data (const void *data, size_t size);
  */
 #define GNUNET_JSON_from_data_auto(ptr) \
   GNUNET_JSON_from_data (ptr, sizeof(*ptr))
+
+
+/**
+ * Convert binary data to a JSON string with base64
+ * encoding.
+ *
+ * @param ptr binary data, sizeof (*ptr) must yield correct size
+ * @return json string that encodes @a data
+ */
+#define GNUNET_JSON_from_data64_auto(ptr) \
+  GNUNET_JSON_from_data64 (ptr, sizeof(*ptr))
 
 
 /**
@@ -751,6 +799,37 @@ GNUNET_JSON_pack_data_varsize (const char *name,
  */
 #define GNUNET_JSON_pack_data_auto(name,blob) \
   GNUNET_JSON_pack_data_varsize (name, blob, sizeof (*blob))
+
+
+/**
+ * Generate packer instruction for a JSON field of type
+ * variable size binary blob.
+ * Use base64-encoding, instead of the more common
+ * Crockford base32-encoding.
+ *
+ * @param name name of the field to add to the object
+ * @param blob binary data to pack
+ * @param blob_size number of bytes in @a blob
+ * @return json pack specification
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_data64_varsize (const char *name,
+                                 const void *blob,
+                                 size_t blob_size);
+
+
+/**
+ * Generate packer instruction for a JSON field where the
+ * size is automatically determined from the argument.
+ * Use base64-encoding, instead of the more common
+ * Crockford base32-encoding.
+ *
+ * @param name name of the field to add to the object
+ * @param blob data to pack, must not be an array
+ * @return json pack specification
+ */
+#define GNUNET_JSON_pack_data64_auto(name,blob) \
+  GNUNET_JSON_pack_data64_varsize (name, blob, sizeof (*blob))
 
 
 /**

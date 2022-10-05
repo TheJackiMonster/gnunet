@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup reclaim_suite  RECLAIM services and libraries
+ * @{
+ *
  * @author Martin Schanzenbach
  *
  * @file
@@ -439,3 +442,5 @@ struct GNUNET_RECLAIM_CredentialPluginFunctions
 #endif
 
 /** @} */ /* end of group */
+
+/** @} */ /* end of group addition */

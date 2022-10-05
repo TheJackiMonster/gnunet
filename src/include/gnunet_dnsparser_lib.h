@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * @{
+ *
  * @author Philipp Toelke
  * @author Christian Grothoff
  *
@@ -978,3 +981,5 @@ GNUNET_DNSPARSER_hex_to_bin (const char *hex,
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */

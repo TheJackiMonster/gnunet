@@ -19,6 +19,10 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -929,3 +933,5 @@ GNUNET_SCHEDULER_begin_async_scope (struct GNUNET_AsyncScopeId *aid);
 #endif
 
 /** @} */ /* end of group scheduler */
+
+/** @} */ /* end of group addition */

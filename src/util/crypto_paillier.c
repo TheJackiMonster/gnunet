@@ -323,14 +323,6 @@ GNUNET_CRYPTO_paillier_encrypt (const struct
 }
 
 
-/**
- * Decrypt a paillier ciphertext with a private key.
- *
- * @param private_key Private key to use for decryption.
- * @param public_key Public key to use for encryption.
- * @param ciphertext Ciphertext to decrypt.
- * @param[out] m Decryption of @a ciphertext with @private_key.
- */
 void
 GNUNET_CRYPTO_paillier_decrypt (const struct
                                 GNUNET_CRYPTO_PaillierPrivateKey *private_key,
@@ -395,20 +387,6 @@ GNUNET_CRYPTO_paillier_decrypt (const struct
 }
 
 
-/**
- * Compute a ciphertext that represents the sum of the plaintext in @a
- * c1 and @a c2.
- *
- * Note that this operation can only be done a finite number of times
- * before an overflow occurs.
- *
- * @param public_key Public key to use for encryption.
- * @param c1 Paillier cipher text.
- * @param c2 Paillier cipher text.
- * @param[out] result Result of the homomorphic operation.
- * @return #GNUNET_OK if the result could be computed,
- *         #GNUNET_SYSERR if no more homomorphic operations are remaining.
- */
 int
 GNUNET_CRYPTO_paillier_hom_add (const struct
                                 GNUNET_CRYPTO_PaillierPublicKey *public_key,

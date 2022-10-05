@@ -365,12 +365,6 @@ handle_dns_request (void *cls,
 }
 
 
-/**
- * Initialized the interceptor
- *
- * @param c the configuration
- * @return #GNUNET_OK on success
- */
 int
 GNS_interceptor_init (const struct GNUNET_CONFIGURATION_Handle *c)
 {

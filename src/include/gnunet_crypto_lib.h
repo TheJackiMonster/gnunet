@@ -19,6 +19,10 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
  * @file include/gnunet_crypto_lib.h
  * @brief cryptographic primitives for GNUnet
  *
@@ -289,7 +293,7 @@ struct GNUNET_CRYPTO_EddsaPrivateScalar
 
 /**
  * Private ECC key material encoded for transmission.  To be used only for
- * Edx25519 signatures.  An inital key corresponds to data from the key
+ * Edx25519 signatures.  An initial key corresponds to data from the key
  * expansion and clamping in the EdDSA key generation.
  */
 struct GNUNET_CRYPTO_Edx25519PrivateKey
@@ -693,7 +697,7 @@ GNUNET_CRYPTO_random_u32 (enum GNUNET_CRYPTO_Quality mode, uint32_t i);
 
 /**
  * @ingroup crypto
- * Random on unsigned 64-bit values.
+ * Generate a random unsigned 64-bit value.
  *
  * @param mode desired quality of the random number
  * @param max value returned will be in range [0,@a max) (exclusive)
@@ -1631,7 +1635,7 @@ GNUNET_CRYPTO_eddsa_setup_hostkey (const char *cfg_name);
  * @return #GNUNET_OK on success, #GNUNET_SYSERR if the identity
  *         could not be retrieved
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_get_peer_identity (const struct GNUNET_CONFIGURATION_Handle *cfg,
                                  struct GNUNET_PeerIdentity *dst);
 
@@ -1945,6 +1949,21 @@ GNUNET_CRYPTO_ecdsa_sign_ (
   const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
   struct GNUNET_CRYPTO_EcdsaSignature *sig);
 
+/**
+ * @brief
+ *
+ * @param priv
+ * @param data
+ * @param len
+ * @param sig
+ * @return enum GNUNET_GenericReturnValue
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_eddsa_sign_raw (
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
+  void *data,
+  size_t size,
+  struct GNUNET_CRYPTO_EddsaSignature *sig);
 
 /**
  * @ingroup crypto
@@ -2424,7 +2443,8 @@ GNUNET_CRYPTO_paillier_decrypt (
 
 
 /**
- * Compute a ciphertext that represents the sum of the plaintext in @a x1 and @a x2
+ * Compute a ciphertext that represents the sum of the plaintext in @a c1
+ * and @a c2
  *
  * Note that this operation can only be done a finite number of times
  * before an overflow occurs.
@@ -2942,4 +2962,7 @@ GNUNET_CRYPTO_cs_verify (const struct GNUNET_CRYPTO_CsSignature *sig,
 
 /* ifndef GNUNET_CRYPTO_LIB_H */
 #endif
+
+/** @} */ /* end of group addition */
+
 /* end of gnunet_crypto_lib.h */

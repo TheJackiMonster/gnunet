@@ -211,9 +211,13 @@ check ()
   struct GNUNET_GETOPT_CommandLineOption options[] = {
     GNUNET_GETOPT_OPTION_END
   };
-
-  GNUNET_DISK_directory_remove ("/tmp/test-gnunet-core-peer-1");
-  GNUNET_DISK_directory_remove ("/tmp/test-gnunet-core-peer-2");
+  
+  GNUNET_DISK_purge_cfg_dir 
+      ("test_core_api_peer1.conf", 
+       "GNUNET_TEST_HOME");
+  GNUNET_DISK_purge_cfg_dir 
+      ("test_core_api_peer2.conf", 
+       "GNUNET_TEST_HOME");
 
   ok = 1;
   GNUNET_PROGRAM_run ((sizeof(argv) / sizeof(char *)) - 1,
@@ -241,8 +245,12 @@ main (int argc,
                     "WARNING",
                     NULL);
   ret = check ();
-  GNUNET_DISK_directory_remove ("/tmp/test-gnunet-core-peer-1");
-  GNUNET_DISK_directory_remove ("/tmp/test-gnunet-core-peer-2");
+  GNUNET_DISK_purge_cfg_dir 
+      ("test_core_api_peer1.conf", 
+       "GNUNET_TEST_HOME");
+  GNUNET_DISK_purge_cfg_dir 
+      ("test_core_api_peer2.conf", 
+       "GNUNET_TEST_HOME");
   return ret;
 }
 

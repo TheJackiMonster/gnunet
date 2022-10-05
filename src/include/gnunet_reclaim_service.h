@@ -19,13 +19,16 @@
  */
 
 /**
+ * @addtogroup reclaim_suite  RECLAIM services and libraries
+ * @{
+ *
  * @author Martin Schanzenbach
  *
  * @file
  * reclaim service; implements identity and personal data sharing
  * for GNUnet
  *
- * @defgroup reclaim service
+ * @defgroup reclaim  Reclaim service
  * @{
  */
 #ifndef GNUNET_RECLAIM_SERVICE_H
@@ -508,5 +511,7 @@ GNUNET_RECLAIM_cancel (struct GNUNET_RECLAIM_Operation *op);
 #endif
 
 /** @} */ /* end of group reclaim */
+
+/** @} */ /* end of group addition */
 
 /* end of gnunet_reclaim_service.h */

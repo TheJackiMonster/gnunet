@@ -802,7 +802,6 @@ clean_up ()
  * server.
  *
  * @param cls closure, unused
- * @param tc task context, unused
  */
 static void
 task_download (void *cls);
@@ -873,12 +872,6 @@ download_prepare ()
 }
 
 
-/**
- * Task that is run when we are ready to receive more data from the hostlist
- * server.
- *
- * @param cls closure, unused
- */
 static void
 task_download (void *cls)
 {

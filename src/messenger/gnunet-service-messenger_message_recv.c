@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2022 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -36,7 +36,7 @@ forward_about_members (struct GNUNET_MESSENGER_SrvRoom *room,
   if (session->prev)
     forward_about_members (room, tunnel, session->prev, map);
 
-  struct GNUNET_MESSENGER_MessageStore *message_store = get_room_message_store(room);
+  struct GNUNET_MESSENGER_MessageStore *message_store = get_srv_room_message_store(room);
   struct GNUNET_MESSENGER_ListMessage *element;
 
   for (element = session->messages.head; element; element = element->next)
@@ -92,7 +92,7 @@ recv_message_info (struct GNUNET_MESSENGER_SrvRoom *room,
 
   if (room->host)
   {
-    const struct GNUNET_MESSENGER_Ego *ego = get_handle_ego(room->host);
+    const struct GNUNET_MESSENGER_Ego *ego = get_srv_handle_ego(room->host);
 
     send_tunnel_message (tunnel, room->host, create_message_info(ego));
   }
@@ -102,12 +102,12 @@ recv_message_info (struct GNUNET_MESSENGER_SrvRoom *room,
 
   if (GNUNET_YES != contains_list_tunnels(&(room->basement), &peer))
   {
-    struct GNUNET_MESSENGER_MemberStore *member_store = get_room_member_store(room);
+    struct GNUNET_MESSENGER_MemberStore *member_store = get_srv_room_member_store(room);
 
     iterate_store_members(member_store, iterate_forward_members, tunnel);
   }
 
-  check_room_peer_status(room, tunnel);
+  check_srv_room_peer_status(room, tunnel);
 
   return GNUNET_NO;
 }
@@ -142,7 +142,7 @@ callback_found_message (void *cls,
 
   if (!message)
   {
-    struct GNUNET_MESSENGER_OperationStore *operation_store = get_room_operation_store(room);
+    struct GNUNET_MESSENGER_OperationStore *operation_store = get_srv_room_operation_store(room);
 
     use_store_operation(
         operation_store,
@@ -165,7 +165,7 @@ recv_message_request (struct GNUNET_MESSENGER_SrvRoom *room,
                       const struct GNUNET_MESSENGER_Message *message,
                       const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_MESSENGER_MemberStore *member_store = get_room_member_store(room);
+  struct GNUNET_MESSENGER_MemberStore *member_store = get_srv_room_member_store(room);
   struct GNUNET_MESSENGER_Member *member = get_store_member_of(member_store, message);
 
   GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Request for message (%s)\n", GNUNET_h2s (hash));
@@ -178,7 +178,7 @@ recv_message_request (struct GNUNET_MESSENGER_SrvRoom *room,
   if ((!session) || (GNUNET_YES != check_member_session_history(session, hash, GNUNET_NO)))
     return GNUNET_NO;
 
-  if (GNUNET_NO == request_room_message(room, &(message->body.request.hash), session, callback_found_message, tunnel))
+  if (GNUNET_NO == request_srv_room_message(room, &(message->body.request.hash), session, callback_found_message, tunnel))
     return GNUNET_YES;
 
   return GNUNET_NO;

@@ -19,6 +19,10 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -160,8 +164,8 @@ GNUNET_CONFIGURATION_serialize (const struct GNUNET_CONFIGURATION_Handle *cfg,
  *           present. This memory should be freed by the caller
  */
 char *
-GNUNET_CONFIGURATION_serialize_diagnostics (const struct
-                                            GNUNET_CONFIGURATION_Handle *cfg);
+GNUNET_CONFIGURATION_serialize_diagnostics (
+  const struct GNUNET_CONFIGURATION_Handle *cfg);
 
 /**
  * De-serializes configuration
@@ -266,8 +270,8 @@ GNUNET_CONFIGURATION_parse_and_run (const char *filename,
  * @param cfg configuration handle
  */
 void
-GNUNET_CONFIGURATION_enable_diagnostics (struct
-                                         GNUNET_CONFIGURATION_Handle *cfg);
+GNUNET_CONFIGURATION_enable_diagnostics (
+  struct GNUNET_CONFIGURATION_Handle *cfg);
 
 
 /**
@@ -292,8 +296,8 @@ typedef void
  * @param section name of the section
  */
 typedef void
-(*GNUNET_CONFIGURATION_Section_Iterator) (void *cls,
-                                          const char *section);
+(*GNUNET_CONFIGURATION_SectionIterator) (void *cls,
+                                         const char *section);
 
 
 /**
@@ -317,11 +321,10 @@ GNUNET_CONFIGURATION_iterate (const struct GNUNET_CONFIGURATION_Handle *cfg,
  * @param iter_cls closure for @a iter
  */
 void
-GNUNET_CONFIGURATION_iterate_sections (const struct
-                                       GNUNET_CONFIGURATION_Handle *cfg,
-                                       GNUNET_CONFIGURATION_Section_Iterator
-                                       iter,
-                                       void *iter_cls);
+GNUNET_CONFIGURATION_iterate_sections (
+  const struct GNUNET_CONFIGURATION_Handle *cfg,
+  GNUNET_CONFIGURATION_SectionIterator iter,
+  void *iter_cls);
 
 
 /**
@@ -345,11 +348,11 @@ GNUNET_CONFIGURATION_remove_section (struct GNUNET_CONFIGURATION_Handle *cfg,
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CONFIGURATION_get_value_number (const struct
-                                       GNUNET_CONFIGURATION_Handle *cfg,
-                                       const char *section,
-                                       const char *option,
-                                       unsigned long long *number);
+GNUNET_CONFIGURATION_get_value_number (
+  const struct GNUNET_CONFIGURATION_Handle *cfg,
+  const char *section,
+  const char *option,
+  unsigned long long *number);
 
 
 /**
@@ -362,11 +365,11 @@ GNUNET_CONFIGURATION_get_value_number (const struct
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CONFIGURATION_get_value_float (const struct
-                                      GNUNET_CONFIGURATION_Handle *cfg,
-                                      const char *section,
-                                      const char *option,
-                                      float *number);
+GNUNET_CONFIGURATION_get_value_float (
+  const struct GNUNET_CONFIGURATION_Handle *cfg,
+  const char *section,
+  const char *option,
+  float *number);
 
 
 /**
@@ -379,11 +382,11 @@ GNUNET_CONFIGURATION_get_value_float (const struct
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CONFIGURATION_get_value_time (const struct
-                                     GNUNET_CONFIGURATION_Handle *cfg,
-                                     const char *section,
-                                     const char *option,
-                                     struct GNUNET_TIME_Relative *time);
+GNUNET_CONFIGURATION_get_value_time (
+  const struct GNUNET_CONFIGURATION_Handle *cfg,
+  const char *section,
+  const char *option,
+  struct GNUNET_TIME_Relative *time);
 
 
 /**
@@ -396,11 +399,11 @@ GNUNET_CONFIGURATION_get_value_time (const struct
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CONFIGURATION_get_value_size (const struct
-                                     GNUNET_CONFIGURATION_Handle *cfg,
-                                     const char *section,
-                                     const char *option,
-                                     unsigned long long *size);
+GNUNET_CONFIGURATION_get_value_size (
+  const struct GNUNET_CONFIGURATION_Handle *cfg,
+  const char *section,
+  const char *option,
+  unsigned long long *size);
 
 
 /**
@@ -447,11 +450,11 @@ GNUNET_CONFIGURATION_get_value_string (
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CONFIGURATION_get_value_filename (const struct
-                                         GNUNET_CONFIGURATION_Handle *cfg,
-                                         const char *section,
-                                         const char *option,
-                                         char **value);
+GNUNET_CONFIGURATION_get_value_filename (
+  const struct GNUNET_CONFIGURATION_Handle *cfg,
+  const char *section,
+  const char *option,
+  char **value);
 
 
 /**
@@ -465,12 +468,13 @@ GNUNET_CONFIGURATION_get_value_filename (const struct
  * @return number of filenames iterated over, -1 on error
  */
 int
-GNUNET_CONFIGURATION_iterate_value_filenames (const struct
-                                              GNUNET_CONFIGURATION_Handle *cfg,
-                                              const char *section,
-                                              const char *option,
-                                              GNUNET_FileNameCallback cb,
-                                              void *cb_cls);
+GNUNET_CONFIGURATION_iterate_value_filenames (
+  const struct GNUNET_CONFIGURATION_Handle *cfg,
+  const char *section,
+  const char *option,
+  GNUNET_FileNameCallback cb,
+  void *cb_cls);
+
 
 /**
  * Iterate over values of a section in the configuration.
@@ -481,11 +485,12 @@ GNUNET_CONFIGURATION_iterate_value_filenames (const struct
  * @param iter_cls closure for @a iter
  */
 void
-GNUNET_CONFIGURATION_iterate_section_values (const struct
-                                             GNUNET_CONFIGURATION_Handle *cfg,
-                                             const char *section,
-                                             GNUNET_CONFIGURATION_Iterator iter,
-                                             void *iter_cls);
+GNUNET_CONFIGURATION_iterate_section_values (
+  const struct GNUNET_CONFIGURATION_Handle *cfg,
+  const char *section,
+  GNUNET_CONFIGURATION_Iterator iter,
+  void *iter_cls);
+
 
 /**
  * Get a configuration value that should be in a set of
@@ -500,12 +505,13 @@ GNUNET_CONFIGURATION_iterate_section_values (const struct
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CONFIGURATION_get_value_choice (const struct
-                                       GNUNET_CONFIGURATION_Handle *cfg,
-                                       const char *section,
-                                       const char *option,
-                                       const char *const *choices,
-                                       const char **value);
+GNUNET_CONFIGURATION_get_value_choice (
+  const struct GNUNET_CONFIGURATION_Handle *cfg,
+  const char *section,
+  const char *option,
+  const char *const *choices,
+  const char **value);
+
 
 /**
  * Get a configuration value that should be in a set of
@@ -517,10 +523,10 @@ GNUNET_CONFIGURATION_get_value_choice (const struct
  * @return #GNUNET_YES, #GNUNET_NO or if option has no valid value, #GNUNET_SYSERR
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CONFIGURATION_get_value_yesno (const struct
-                                      GNUNET_CONFIGURATION_Handle *cfg,
-                                      const char *section,
-                                      const char *option);
+GNUNET_CONFIGURATION_get_value_yesno (
+  const struct GNUNET_CONFIGURATION_Handle *cfg,
+  const char *section,
+  const char *option);
 
 
 /**
@@ -607,11 +613,11 @@ GNUNET_CONFIGURATION_set_value_string (struct GNUNET_CONFIGURATION_Handle *cfg,
  *         #GNUNET_SYSERR if the filename is not in the list
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CONFIGURATION_remove_value_filename (struct
-                                            GNUNET_CONFIGURATION_Handle *cfg,
-                                            const char *section,
-                                            const char *option,
-                                            const char *value);
+GNUNET_CONFIGURATION_remove_value_filename (
+  struct GNUNET_CONFIGURATION_Handle *cfg,
+  const char *section,
+  const char *option,
+  const char *value);
 
 
 /**
@@ -626,11 +632,11 @@ GNUNET_CONFIGURATION_remove_value_filename (struct
  *         #GNUNET_SYSERR if the filename already in the list
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CONFIGURATION_append_value_filename (struct
-                                            GNUNET_CONFIGURATION_Handle *cfg,
-                                            const char *section,
-                                            const char *option,
-                                            const char *value);
+GNUNET_CONFIGURATION_append_value_filename (
+  struct GNUNET_CONFIGURATION_Handle *cfg,
+  const char *section,
+  const char *option,
+  const char *value);
 
 
 /**
@@ -793,3 +799,5 @@ GNUNET_CONFIGURATION_config_tool_run (
 #endif
 
 /** @} */ /* end of group configuration */
+
+/** @} */ /* end of group addition */

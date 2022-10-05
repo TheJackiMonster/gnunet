@@ -18,6 +18,10 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 /**
+ * @addtogroup libgnunetutil
+ * Multi-function utilities library for GNUnet programs
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -99,3 +103,5 @@ unsigned int
 GNUNET_notification_context_get_size (struct GNUNET_NotificationContext *nc);
 
 #endif
+
+/** @} */ /* end of group addition */

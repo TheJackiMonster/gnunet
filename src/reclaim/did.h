@@ -21,11 +21,11 @@
 #ifndef RECLAIM_DID_H
 #define RECLAIM_DID_H
 
-#define GNUNET_RECLAIM_DID_METHOD_PREFIX "did:reclaim:"
+#define GNUNET_RECLAIM_DID_METHOD_PREFIX "did:gns:"
 
 /**
  * Create a DID string from an ego in the format
- * did:reclaim:<pubkey>
+ * did:gns:<pubkey>
  *
  * @param ego the Ego to use
  * @return the DID string
@@ -36,7 +36,7 @@ DID_ego_to_did (struct GNUNET_IDENTITY_Ego *ego);
 
 /**
  * Extract the public key from a DID
- * in the format did:reclaim:<pubkey>
+ * in the format did:gns:<pubkey>
  *
  * @param did the DID parse
  * @param pk where to store the public key

@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup GNS
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -157,49 +160,36 @@ struct GNUNET_NAMESTORE_PluginFunctions
    * Start a transaction in the database
    *
    * @param cls closure (internal context for the plugin)
-   * @return #GNUNET_OK on success, #GNUNET_NO if there were no results, #GNUNET_SYSERR on error
+   * @param emsg message. On error, string will be allocated and must be freed.
+   * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
    */
   enum GNUNET_GenericReturnValue
-  (*transaction_begin) (void *cls);
+  (*transaction_begin) (void *cls, char **emsg);
 
   /**
-   * Abort a transaction in the database
+   * Abort and roll back a transaction in the database
    *
    * @param cls closure (internal context for the plugin)
-   * @return #GNUNET_OK on success, #GNUNET_NO if there were no results, #GNUNET_SYSERR on error
+   * @param emsg message. On error, string will be allocated and must be freed.
+   * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
    */
   enum GNUNET_GenericReturnValue
-  (*transaction_abort) (void *cls);
+  (*transaction_rollback) (void *cls, char **emsg);
 
   /**
    * Commit a transaction in the database
    *
    * @param cls closure (internal context for the plugin)
-   * @return #GNUNET_OK on success, #GNUNET_NO if there were no results, #GNUNET_SYSERR on error
+   * @param emsg message. On error, string will be allocated and must be freed.
+   * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
    */
   enum GNUNET_GenericReturnValue
-  (*transaction_commit) (void *cls);
+  (*transaction_commit) (void *cls, char **emsg);
 
   /**
-   * Replace a record in the datastore for which we are the authority.
-   * Removes any existing record in the same zone with the same name.
-   *
-   * @param cls closure (internal context for the plugin)
-   * @param zone private key of the zone
-   * @param label name of the record in the zone
-   * @param rd_count number of entries in @a rd array, 0 to delete all records
-   * @param rd array of records with data to store
-   * @return #GNUNET_OK on success, else #GNUNET_SYSERR
-   */
-  int
-  (*replace_records) (void *cls,
-                    const struct GNUNET_IDENTITY_PrivateKey *zone,
-                    const char *label,
-                    unsigned int rd_count,
-                    const struct GNUNET_GNSRECORD_Data *rd);
-
-  /**
-   * Lookup records in the datastore for which we are the authority.
+   * Edit records in the datastore for which we are the authority.
+   * Should be called within a transaction (after begin) and maps
+   * to a SELECT ... FOR UPDATE in PQ.
    *
    * @param cls closure (internal context for the plugin)
    * @param zone private key of the zone
@@ -209,12 +199,34 @@ struct GNUNET_NAMESTORE_PluginFunctions
    * @return #GNUNET_OK on success, #GNUNET_NO for no results, else #GNUNET_SYSERR
    */
   int
-  (*select_records) (void *cls,
+  (*edit_records) (void *cls,
                      const struct GNUNET_IDENTITY_PrivateKey *zone,
                      const char *label,
                      GNUNET_NAMESTORE_RecordIterator iter,
                      void *iter_cls);
 
+  /**
+   * Setup the database.
+   * Note that this will also fail if the database is already initialized.
+   * See reset_database().
+   *
+   * @param cls closure (internal context for the plugin)
+   * @param emsg error message on failure. Will be allocated, must be freed.
+   * @return #GNUNET_OK on success, else fails with #GNUNET_SYSERR
+   */
+  int
+  (*initialize_database) (void *cls, char **emsg);
+
+  /**
+   * Re-initializes the database.
+   * DANGEROUS: All existing data in the dabase will be lost!
+   *
+   * @param cls closure (internal context for the plugin)
+   * @param emsg error message on failure. Will be allocated, must be freed.
+   * @return #GNUNET_OK on success, else fails with #GNUNET_SYSERR
+   */
+  int
+  (*reset_database) (void *cls, char **emsg);
 };
 
 
@@ -228,3 +240,5 @@ struct GNUNET_NAMESTORE_PluginFunctions
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */ /* end of group addition */

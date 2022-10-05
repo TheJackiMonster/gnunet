@@ -22,6 +22,9 @@
 #define GNUNET_NSE_SERVICE_H_
 
 /**
+ * @addtogroup Backbone
+ * @{
+ *
  * @author Nathan Evans
  *
  * @file
@@ -115,5 +118,7 @@ GNUNET_NSE_disconnect (struct GNUNET_NSE_Handle *h);
 #endif
 
 /** @} */ /* end of group nse */
+
+/** @} */ /* end of group addition */
 
 #endif /* GNUNET_NSE_SERVICE_H_ */

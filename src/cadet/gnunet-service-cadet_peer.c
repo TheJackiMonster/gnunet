@@ -260,21 +260,6 @@ GCP_2s (const struct CadetPeer *cp)
 }
 
 
-/**
- * Calculate how desirable a path is for @a cp if @a cp
- * is at offset @a off.
- *
- * The 'desirability_table.c' program can be used to compute a list of
- * sample outputs for different scenarios.  Basically, we score paths
- * lower if there are many alternatives, and higher if they are
- * shorter than average, and very high if they are much shorter than
- * average and without many alternatives.
- *
- * @param cp a peer reachable via a path
- * @param off offset of @a cp in the path
- * @return score how useful a path is to reach @a cp,
- *         positive scores mean path is more desirable
- */
 double
 GCP_get_desirability_of_path (struct CadetPeer *cp,
                               unsigned int off)
@@ -965,17 +950,6 @@ path_heap_cleanup (void *cls)
 }
 
 
-/**
- * Try adding a @a path to this @a peer.  If the peer already
- * has plenty of paths, return NULL.
- *
- * @param cp peer to which the @a path leads to
- * @param path a path looking for an owner; may not be fully initialized yet!
- * @param off offset of @a cp in @a path
- * @param force force attaching the path
- * @return NULL if this peer does not care to become a new owner,
- *         otherwise the node in the peer's path heap for the @a path.
- */
 struct GNUNET_CONTAINER_HeapNode *
 GCP_attach_path (struct CadetPeer *cp,
                  struct CadetPeerPath *path,
@@ -1287,16 +1261,6 @@ GCP_iterate_indirect_paths (struct CadetPeer *cp,
 }
 
 
-/**
- * Iterate over the paths to @a cp where
- * @a cp is at distance @a dist from us.
- *
- * @param cp Peer to get path info.
- * @param dist desired distance of @a cp to us on the path
- * @param callback Function to call for every path.
- * @param callback_cls Closure for @a callback.
- * @return Number of iterated paths.
- */
 unsigned int
 GCP_iterate_paths_at (struct CadetPeer *cp,
                       unsigned int dist,
@@ -1365,13 +1329,6 @@ hello_offer_done (void *cls)
 }
 
 
-/**
- * We got a HELLO for a @a peer, remember it, and possibly
- * trigger adequate actions (like trying to connect).
- *
- * @param cp the peer we got a HELLO for
- * @param hello the HELLO to remember
- */
 void
 GCP_set_hello (struct CadetPeer *cp,
                const struct GNUNET_HELLO_Message *hello)

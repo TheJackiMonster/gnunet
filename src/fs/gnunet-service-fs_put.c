@@ -97,7 +97,6 @@ static struct PutOperator operators[] = {
  * Task that is run periodically to obtain blocks for DHT PUTs.
  *
  * @param cls type of blocks to gather
- * @param tc scheduler context (unused)
  */
 static void
 gather_dht_put_blocks (void *cls);
@@ -219,11 +218,6 @@ process_dht_put_content (void *cls,
 }
 
 
-/**
- * Task that is run periodically to obtain blocks for DHT PUTs.
- *
- * @param cls type of blocks to gather
- */
 static void
 gather_dht_put_blocks (void *cls)
 {
