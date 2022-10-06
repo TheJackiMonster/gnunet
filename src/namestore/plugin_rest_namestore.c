@@ -35,9 +35,14 @@
 #include <jansson.h>
 
 /**
- * Namestore Namespace
+ * Namestore namespace
  */
 #define GNUNET_REST_API_NS_NAMESTORE "/namestore"
+
+/**
+ * Namestore import API namespace
+ */
+#define GNUNET_REST_API_NS_NAMESTORE_IMPORT "/namestore/import"
 
 /**
  * Error message Unknown Error
@@ -773,7 +778,7 @@ namestore_import (struct GNUNET_REST_RequestHandle *con_handle,
 
   char term_data[handle->rest_handle->data_size + 1];
   // set zone to name if given
-  if (strlen (GNUNET_REST_API_NS_NAMESTORE) + 1 >= strlen (handle->url))
+  if (strlen (GNUNET_REST_API_NS_NAMESTORE_IMPORT) + 1 >= strlen (handle->url))
   {
     handle->response_code = MHD_HTTP_NOT_FOUND;
     handle->emsg = GNUNET_strdup (GNUNET_REST_IDENTITY_NOT_FOUND);
@@ -782,7 +787,7 @@ namestore_import (struct GNUNET_REST_RequestHandle *con_handle,
   }
   ego_entry = NULL;
 
-  egoname = &handle->url[strlen (GNUNET_REST_API_NS_NAMESTORE) + 1];
+  egoname = &handle->url[strlen (GNUNET_REST_API_NS_NAMESTORE_IMPORT) + 1];
   ego_entry = get_egoentry_namestore (handle, egoname);
 
   if (NULL == ego_entry)
@@ -1183,8 +1188,8 @@ rest_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
   struct GNUNET_REST_RequestHandlerError err;
   static const struct GNUNET_REST_RequestHandler handlers[] =
   { { MHD_HTTP_METHOD_GET, GNUNET_REST_API_NS_NAMESTORE, &namestore_get },
-    //{ MHD_HTTP_METHOD_POST, GNUNET_REST_API_NS_NAMESTORE, &namestore_add },
-    { MHD_HTTP_METHOD_POST, GNUNET_REST_API_NS_NAMESTORE, &namestore_import },
+    { MHD_HTTP_METHOD_POST, GNUNET_REST_API_NS_NAMESTORE_IMPORT, &namestore_import },
+    { MHD_HTTP_METHOD_POST, GNUNET_REST_API_NS_NAMESTORE, &namestore_add },
     { MHD_HTTP_METHOD_PUT, GNUNET_REST_API_NS_NAMESTORE, &namestore_update },
     { MHD_HTTP_METHOD_DELETE, GNUNET_REST_API_NS_NAMESTORE,
       &namestore_delete },
