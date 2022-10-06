@@ -206,6 +206,11 @@ struct RequestHandle
   struct GNUNET_NAMESTORE_QueueEntry *ns_qe;
 
   /**
+   * For bulk import, we need a dedicated Namestore handle
+   */
+  struct GNUNET_NAMESTORE_Handle *nc;
+
+  /**
    * Response object
    */
   json_t *resp_object;
@@ -319,7 +324,8 @@ cleanup_handle (void *cls)
     GNUNET_NAMESTORE_zone_iteration_stop (handle->list_it);
   if (NULL != handle->ns_qe)
     GNUNET_NAMESTORE_cancel (handle->ns_qe);
-
+  if (NULL != handle->nc)
+    GNUNET_NAMESTORE_disconnect (handle->nc);
   if (NULL != handle->resp_object)
   {
     json_decref (handle->resp_object);
@@ -726,6 +732,34 @@ ns_lookup_cb (void *cls,
   }
 }
 
+
+static void
+bulk_tx_commit_cb (void *cls, int32_t success, const char *emsg)
+{
+  struct RequestHandle *handle = cls;
+  struct MHD_Response *resp;
+
+  handle->ns_qe = NULL;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Commit finished, %d\n", success);
+  if (GNUNET_YES != success)
+  {
+    if (NULL != emsg)
+    {
+      handle->emsg = GNUNET_strdup (emsg);
+      GNUNET_SCHEDULER_add_now (&do_error, handle);
+      return;
+    }
+    handle->emsg = GNUNET_strdup ("Error importing records on commit");
+    GNUNET_SCHEDULER_add_now (&do_error, handle);
+    return;
+  }
+  resp = GNUNET_REST_create_response (NULL);
+  handle->proc (handle->proc_cls, resp, MHD_HTTP_NO_CONTENT);
+  GNUNET_SCHEDULER_add_now (&cleanup_handle, handle);
+}
+
+
 /**
  * Import callback
  *
@@ -737,8 +771,9 @@ static void
 import_finished_cb (void *cls, int32_t success, const char *emsg)
 {
   struct RequestHandle *handle = cls;
-  struct MHD_Response *resp;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Import finished, %d\n", success);
   handle->ns_qe = NULL;
   if (GNUNET_YES != success)
   {
@@ -752,52 +787,20 @@ import_finished_cb (void *cls, int32_t success, const char *emsg)
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
-  resp = GNUNET_REST_create_response (NULL);
-  handle->proc (handle->proc_cls, resp, MHD_HTTP_NO_CONTENT);
-  GNUNET_SCHEDULER_add_now (&cleanup_handle, handle);
+  handle->ns_qe = GNUNET_NAMESTORE_transaction_commit (handle->nc,
+                                                       &bulk_tx_commit_cb,
+                                                       handle);
 }
 
-
-/**
- * Handle namestore POST import
- *
- * @param con_handle the connection handle
- * @param url the url
- * @param cls the RequestHandle
- */
-void
-namestore_import (struct GNUNET_REST_RequestHandle *con_handle,
-                  const char *url,
-                  void *cls)
+static void
+bulk_tx_start (void *cls, int32_t success, const char *emsg)
 {
   struct RequestHandle *handle = cls;
-  struct EgoEntry *ego_entry;
-  char *egoname;
   json_t *data_js;
   json_error_t err;
 
-  char term_data[handle->rest_handle->data_size + 1];
-  // set zone to name if given
-  if (strlen (GNUNET_REST_API_NS_NAMESTORE_IMPORT) + 1 >= strlen (handle->url))
-  {
-    handle->response_code = MHD_HTTP_NOT_FOUND;
-    handle->emsg = GNUNET_strdup (GNUNET_REST_IDENTITY_NOT_FOUND);
-    GNUNET_SCHEDULER_add_now (&do_error, handle);
-    return;
-  }
-  ego_entry = NULL;
-
-  egoname = &handle->url[strlen (GNUNET_REST_API_NS_NAMESTORE_IMPORT) + 1];
-  ego_entry = get_egoentry_namestore (handle, egoname);
-
-  if (NULL == ego_entry)
-  {
-    handle->response_code = MHD_HTTP_NOT_FOUND;
-    handle->emsg = GNUNET_strdup (GNUNET_REST_IDENTITY_NOT_FOUND);
-    GNUNET_SCHEDULER_add_now (&do_error, handle);
-    return;
-  }
-
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Transaction started...\n");
   if (0 >= handle->rest_handle->data_size)
   {
     handle->response_code = MHD_HTTP_BAD_REQUEST;
@@ -805,6 +808,7 @@ namestore_import (struct GNUNET_REST_RequestHandle *con_handle,
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
+  char term_data[handle->rest_handle->data_size + 1];
   term_data[handle->rest_handle->data_size] = '\0';
   GNUNET_memcpy (term_data,
                  handle->rest_handle->data,
@@ -851,10 +855,9 @@ namestore_import (struct GNUNET_REST_RequestHandle *con_handle,
                   "Parsed record set for name %s\n", ri[index].a_label);
     }
   }
-  //json_decref (data_js);
+  // json_decref (data_js);
 
-  handle->zone_pkey = GNUNET_IDENTITY_ego_get_private_key (ego_entry->ego);
-  handle->ns_qe = GNUNET_NAMESTORE_records_store2 (ns_handle,
+  handle->ns_qe = GNUNET_NAMESTORE_records_store2 (handle->nc,
                                                    handle->zone_pkey,
                                                    rd_set_count,
                                                    ri,
@@ -866,6 +869,61 @@ namestore_import (struct GNUNET_REST_RequestHandle *con_handle,
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
+}
+
+
+
+/**
+ * Handle namestore POST import
+ *
+ * @param con_handle the connection handle
+ * @param url the url
+ * @param cls the RequestHandle
+ */
+void
+namestore_import (struct GNUNET_REST_RequestHandle *con_handle,
+                  const char *url,
+                  void *cls)
+{
+  struct RequestHandle *handle = cls;
+  struct EgoEntry *ego_entry;
+  char *egoname;
+
+  // set zone to name if given
+  if (strlen (GNUNET_REST_API_NS_NAMESTORE_IMPORT) + 1 >= strlen (
+        handle->url))
+  {
+    handle->response_code = MHD_HTTP_NOT_FOUND;
+    handle->emsg = GNUNET_strdup (GNUNET_REST_IDENTITY_NOT_FOUND);
+    GNUNET_SCHEDULER_add_now (&do_error, handle);
+    return;
+  }
+  ego_entry = NULL;
+
+  egoname = &handle->url[strlen (GNUNET_REST_API_NS_NAMESTORE_IMPORT) + 1];
+  ego_entry = get_egoentry_namestore (handle, egoname);
+
+  if (NULL == ego_entry)
+  {
+    handle->response_code = MHD_HTTP_NOT_FOUND;
+    handle->emsg = GNUNET_strdup (GNUNET_REST_IDENTITY_NOT_FOUND);
+    GNUNET_SCHEDULER_add_now (&do_error, handle);
+    return;
+  }
+  handle->zone_pkey = GNUNET_IDENTITY_ego_get_private_key (ego_entry->ego);
+
+  // We need a per-client connection for a transactional bulk import
+  handle->nc = GNUNET_NAMESTORE_connect (cfg);
+  if (NULL == handle->nc)
+  {
+    handle->response_code = MHD_HTTP_BAD_REQUEST;
+    handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_NO_DATA);
+    GNUNET_SCHEDULER_add_now (&do_error, handle);
+    return;
+  }
+  handle->ns_qe = GNUNET_NAMESTORE_transaction_begin (handle->nc,
+                                                      &bulk_tx_start,
+                                                      handle);
 }
 
 /**
@@ -1188,7 +1246,8 @@ rest_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
   struct GNUNET_REST_RequestHandlerError err;
   static const struct GNUNET_REST_RequestHandler handlers[] =
   { { MHD_HTTP_METHOD_GET, GNUNET_REST_API_NS_NAMESTORE, &namestore_get },
-    { MHD_HTTP_METHOD_POST, GNUNET_REST_API_NS_NAMESTORE_IMPORT, &namestore_import },
+    { MHD_HTTP_METHOD_POST, GNUNET_REST_API_NS_NAMESTORE_IMPORT,
+      &namestore_import },
     { MHD_HTTP_METHOD_POST, GNUNET_REST_API_NS_NAMESTORE, &namestore_add },
     { MHD_HTTP_METHOD_PUT, GNUNET_REST_API_NS_NAMESTORE, &namestore_update },
     { MHD_HTTP_METHOD_DELETE, GNUNET_REST_API_NS_NAMESTORE,
