@@ -179,6 +179,7 @@ GNUNET_NAMESTORE_records_store (struct GNUNET_NAMESTORE_Handle *h,
  * @param rd_set_count the number of record sets
  * @param record_info the records to add containing @a rd_set_count records
  * @param cont continuation to call when done
+ * @param rds_sent set to how many record sets could actually be sent
  * @param cont_cls closure for @a cont
  * @return handle to abort the request
  */
@@ -188,6 +189,7 @@ GNUNET_NAMESTORE_records_store2 (
   const struct GNUNET_IDENTITY_PrivateKey *pkey,
   unsigned int rd_set_count,
   const struct GNUNET_NAMESTORE_RecordInfo *record_info,
+  unsigned int *rds_sent,
   GNUNET_NAMESTORE_ContinuationWithStatus cont,
   void *cont_cls);
 

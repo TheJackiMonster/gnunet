@@ -201,6 +201,21 @@ struct RequestHandle
   unsigned int rd_count;
 
   /**
+   * RecordInfo array
+   */
+  struct GNUNET_NAMESTORE_RecordInfo *ri;
+
+  /**
+   * Size of record info
+   */
+  unsigned int rd_set_count;
+
+  /**
+   * Position of record info
+   */
+  unsigned int rd_set_pos;
+
+  /**
    * NAMESTORE Operation
    */
   struct GNUNET_NAMESTORE_QueueEntry *ns_qe;
@@ -768,7 +783,7 @@ bulk_tx_commit_cb (void *cls, int32_t success, const char *emsg)
  * @param emsg the error message (can be NULL)
  */
 static void
-import_finished_cb (void *cls, int32_t success, const char *emsg)
+import_next_cb (void *cls, int32_t success, const char *emsg)
 {
   struct RequestHandle *handle = cls;
 
@@ -787,9 +802,32 @@ import_finished_cb (void *cls, int32_t success, const char *emsg)
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
-  handle->ns_qe = GNUNET_NAMESTORE_transaction_commit (handle->nc,
-                                                       &bulk_tx_commit_cb,
-                                                       handle);
+  unsigned int remaining = handle->rd_set_count - handle->rd_set_pos;
+  if (0 == remaining)
+  {
+    handle->ns_qe = GNUNET_NAMESTORE_transaction_commit (handle->nc,
+                                                         &bulk_tx_commit_cb,
+                                                         handle);
+    return;
+  }
+  unsigned int sent_rds = 0;
+  // Find the smallest set of records we can send with our message size
+  // restriction of 16 bit
+  handle->ns_qe = GNUNET_NAMESTORE_records_store2 (handle->nc,
+                                                   handle->zone_pkey,
+                                                   remaining,
+                                                   &handle->ri[handle->
+                                                               rd_set_pos],
+                                                   &sent_rds,
+                                                   &import_next_cb,
+                                                   handle);
+  if ((NULL == handle->ns_qe) && (0 == sent_rds))
+  {
+    handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_FAILED);
+    GNUNET_SCHEDULER_add_now (&do_error, handle);
+    return;
+  }
+  handle->rd_set_pos += sent_rds;
 }
 
 static void
@@ -827,11 +865,11 @@ bulk_tx_start (void *cls, int32_t success, const char *emsg)
     json_decref (data_js);
     return;
   }
-  size_t rd_set_count = json_array_size (data_js);
-  struct GNUNET_NAMESTORE_RecordInfo ri[rd_set_count];
+  handle->rd_set_count = json_array_size (data_js);
+  handle->ri = GNUNET_malloc (handle->rd_set_count
+                              * sizeof (struct GNUNET_NAMESTORE_RecordInfo));
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Got record set of size %d\n", rd_set_count);
-  const struct GNUNET_GNSRECORD_Data *a_rd[rd_set_count];
+              "Got record set of size %d\n", handle->rd_set_count);
   char *albl;
   size_t index;
   json_t *value;
@@ -839,7 +877,8 @@ bulk_tx_start (void *cls, int32_t success, const char *emsg)
     {
       struct GNUNET_GNSRECORD_Data *rd;
       struct GNUNET_JSON_Specification gnsspec[] =
-      { GNUNET_GNSRECORD_JSON_spec_gnsrecord (&rd, &ri[index].a_rd_count,
+      { GNUNET_GNSRECORD_JSON_spec_gnsrecord (&rd,
+                                              &handle->ri[index].a_rd_count,
                                               &albl),
         GNUNET_JSON_spec_end () };
       if (GNUNET_OK != GNUNET_JSON_parse (value, gnsspec, NULL, NULL))
@@ -849,28 +888,33 @@ bulk_tx_start (void *cls, int32_t success, const char *emsg)
         json_decref (data_js);
         return;
       }
-      ri[index].a_rd = rd;
-      ri[index].a_label = albl;
+      handle->ri[index].a_rd = rd;
+      handle->ri[index].a_label = albl;
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Parsed record set for name %s\n", ri[index].a_label);
+                  "Parsed record set for name %s\n",
+                  handle->ri[index].a_label);
     }
   }
   // json_decref (data_js);
 
+  unsigned int sent_rds = 0;
+  // Find the smallest set of records we can send with our message size
+  // restriction of 16 bit
   handle->ns_qe = GNUNET_NAMESTORE_records_store2 (handle->nc,
                                                    handle->zone_pkey,
-                                                   rd_set_count,
-                                                   ri,
-                                                   &import_finished_cb,
+                                                   handle->rd_set_count,
+                                                   handle->ri,
+                                                   &sent_rds,
+                                                   &import_next_cb,
                                                    handle);
-  if (NULL == handle->ns_qe)
+  if ((NULL == handle->ns_qe) && (0 == sent_rds))
   {
     handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_FAILED);
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
+  handle->rd_set_pos += sent_rds;
 }
-
 
 
 /**

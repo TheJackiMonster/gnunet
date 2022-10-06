@@ -1096,10 +1096,11 @@ GNUNET_NAMESTORE_records_store (
   void *cont_cls)
 {
   struct GNUNET_NAMESTORE_RecordInfo ri;
+  unsigned int rds_sent;
   ri.a_label = label;
   ri.a_rd_count = rd_count;
   ri.a_rd = (struct GNUNET_GNSRECORD_Data *) rd;
-  return GNUNET_NAMESTORE_records_store2 (h, pkey, 1, &ri,
+  return GNUNET_NAMESTORE_records_store2 (h, pkey, 1, &ri, &rds_sent,
                                           cont, cont_cls);
 }
 
@@ -1109,6 +1110,7 @@ GNUNET_NAMESTORE_records_store2 (
   const struct GNUNET_IDENTITY_PrivateKey *pkey,
   unsigned int rd_set_count,
   const struct GNUNET_NAMESTORE_RecordInfo *record_info,
+  unsigned int *rds_sent,
   GNUNET_NAMESTORE_ContinuationWithStatus cont,
   void *cont_cls)
 {
@@ -1127,7 +1129,9 @@ GNUNET_NAMESTORE_records_store2 (
   ssize_t sret;
   int i;
   size_t rd_set_len = 0;
+  size_t max_len = UINT16_MAX - sizeof (struct RecordStoreMessage);
 
+  *rds_sent = 0;
   for (i = 0; i < rd_set_count; i++)
   {
     label = record_info[i].a_label;
@@ -1137,21 +1141,30 @@ GNUNET_NAMESTORE_records_store2 (
     if (name_len > MAX_NAME_LEN)
     {
       GNUNET_break (0);
+      *rds_sent = 0;
       return NULL;
     }
     rd_ser_len[i] = GNUNET_GNSRECORD_records_get_size (rd_count, rd);
     if (rd_ser_len[i] < 0)
     {
       GNUNET_break (0);
+      *rds_sent = 0;
       return NULL;
     }
-    if (rd_ser_len[i] > UINT16_MAX)
+    if (rd_ser_len[i] > max_len)
     {
       GNUNET_break (0);
+      *rds_sent = 0;
       return NULL;
     }
+    if ((rd_set_len + sizeof (struct RecordSet) + name_len + rd_ser_len[i]) >
+        max_len)
+      break;
     rd_set_len += sizeof (struct RecordSet) + name_len + rd_ser_len[i];
   }
+  *rds_sent = i;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Sending %u of %u records!\n", *rds_sent, rd_count);
   rid = get_op_id (h);
   qe = GNUNET_new (struct GNUNET_NAMESTORE_QueueEntry);
   qe->h = h;
@@ -1164,11 +1177,13 @@ GNUNET_NAMESTORE_records_store2 (
   env = GNUNET_MQ_msg_extra (msg,
                              rd_set_len,
                              GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_STORE);
+  GNUNET_assert (NULL != msg);
+  GNUNET_assert (NULL != env);
   msg->gns_header.r_id = htonl (rid);
-  msg->rd_set_count = htons (rd_set_count);
+  msg->rd_set_count = htons ((uint16_t) (*rds_sent));
   msg->private_key = *pkey;
   rd_set = (struct RecordSet*) &msg[1];
-  for (int i = 0; i < rd_set_count; i++)
+  for (int i = 0; i < *rds_sent; i++)
   {
     label = record_info[i].a_label;
     rd = record_info[i].a_rd;
@@ -1193,7 +1208,7 @@ GNUNET_NAMESTORE_records_store2 (
   }
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Sending NAMESTORE_RECORD_STORE message for name %u record sets\n",
-       rd_set_count);
+       *rds_sent);
   qe->timeout_task =
     GNUNET_SCHEDULER_add_delayed (NAMESTORE_DELAY_TOLERANCE, &warn_delay, qe);
   if (NULL == h->mq)
