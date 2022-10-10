@@ -953,7 +953,7 @@ continue_store_activity (struct StoreActivity *sa,
         GNUNET_GNSRECORD_records_deserialize (rd_ser_len, rd_ser, rd_count,
                                               rd));
 
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Checking monitors watching for `%s'\n",
                   conv_name);
       for (struct ZoneMonitor *zm = sa->zm_pos; NULL != zm; zm = sa->zm_pos)
@@ -974,7 +974,7 @@ continue_store_activity (struct StoreActivity *sa,
             GNUNET_SCHEDULER_add_delayed (MONITOR_STALL_WARN_DELAY,
                                           &warn_monitor_slow,
                                           zm);
-          GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                       "Monitor is blocking client for `%s'\n",
                       conv_name);
           GNUNET_free (conv_name);

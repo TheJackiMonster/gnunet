@@ -30,11 +30,7 @@
 
 #define TEST_RECORD_TYPE GNUNET_DNSPARSER_TYPE_TXT
 
-#define TEST_BATCH_COUNT 3
-
-#define TEST_BATCH_SIZE 500
-
-#define TEST_RECORD_COUNT TEST_BATCH_COUNT * TEST_BATCH_SIZE
+#define TEST_RECORD_COUNT 10000
 
 /**
  * A #BENCHMARK_SIZE of 1000 takes less than a minute on a reasonably
@@ -192,6 +188,10 @@ commit_cont (void *cls,
 }
 
 static void
+publish_records_bulk_tx (void *cls);
+
+
+static void
 put_cont_bulk_tx (void *cls,
                   int32_t success,
                   const char *emsg)
@@ -203,44 +203,29 @@ put_cont_bulk_tx (void *cls,
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  qe = GNUNET_NAMESTORE_transaction_commit (nsh, commit_cont, NULL);
-}
-
-
-static void
-publish_records_bulk_tx (void *cls);
-
-static void
-reput_cont_bulk_tx (void *cls,
-                    int32_t success,
-                    const char *emsg)
-{
-  (void) cls;
-  qe = NULL;
-  if (GNUNET_OK != success)
+  if (bulk_count == TEST_RECORD_COUNT)
   {
-    GNUNET_break (0);
-    GNUNET_SCHEDULER_shutdown ();
+    qe = GNUNET_NAMESTORE_transaction_commit (nsh, commit_cont, NULL);
     return;
   }
   t = GNUNET_SCHEDULER_add_now (&publish_records_bulk_tx, NULL);
-
-
 }
+
 
 static void
 publish_records_bulk_tx (void *cls)
 {
+  unsigned int sent_rds;
   t = NULL;
   qe = GNUNET_NAMESTORE_records_store2 (nsh,
                                         &privkey,
-                                        TEST_BATCH_SIZE,
-                                        &ri[bulk_count * TEST_BATCH_SIZE],
-                                        (bulk_count == TEST_BATCH_COUNT - 1) ? &put_cont_bulk_tx :
-                                        &reput_cont_bulk_tx,
+                                        TEST_RECORD_COUNT - bulk_count,
+                                        &ri[bulk_count],
+                                        &sent_rds,
+                                        &put_cont_bulk_tx,
                                         NULL);
-  bulk_count++;
-
+  bulk_count += sent_rds;
+  GNUNET_assert (sent_rds != 0);
 }
 
 
@@ -249,16 +234,20 @@ begin_cont (void *cls,
             int32_t success,
             const char *emsg)
 {
+  unsigned int sent_rds;
   qe = GNUNET_NAMESTORE_records_store2 (nsh,
                                         &privkey,
-                                        TEST_BATCH_SIZE,
-                                        &ri[bulk_count * TEST_BATCH_SIZE],
-                                        (bulk_count == TEST_BATCH_COUNT - 1) ? &put_cont_bulk_tx :
-                                        &reput_cont_bulk_tx,
+                                        TEST_RECORD_COUNT - bulk_count,
+                                        &ri[bulk_count],
+                                        &sent_rds,
+                                        &put_cont_bulk_tx,
                                         NULL);
-  bulk_count++;
-
+  bulk_count += sent_rds;
+  GNUNET_assert (sent_rds != 0);
 }
+
+static void
+publish_records_bulk (void *cls);
 
 static void
 put_cont_bulk (void *cls,
@@ -276,28 +265,19 @@ put_cont_bulk (void *cls,
     return;
   }
 
-  delay = GNUNET_TIME_absolute_get_duration (start);
-  fprintf (stdout,
-           "BULK: Publishing %u records took %s\n",
-           TEST_RECORD_COUNT,
-           GNUNET_STRINGS_relative_time_to_string (delay,
-                                                   GNUNET_YES));
-  start = GNUNET_TIME_absolute_get ();
-  bulk_count = 0;
-  qe = GNUNET_NAMESTORE_transaction_begin (nsh, begin_cont, NULL);
-
-}
-
-static void
-publish_records_bulk (void *cls);
-
-static void
-reput_cont_bulk (void *cls,
-                 int32_t success,
-                 const char *emsg)
-{
-  struct GNUNET_TIME_Relative delay;
-
+  if (bulk_count == TEST_RECORD_COUNT)
+  {
+    delay = GNUNET_TIME_absolute_get_duration (start);
+    fprintf (stdout,
+             "BULK: Publishing %u records took %s\n",
+             TEST_RECORD_COUNT,
+             GNUNET_STRINGS_relative_time_to_string (delay,
+                                                     GNUNET_YES));
+    start = GNUNET_TIME_absolute_get ();
+    bulk_count = 0;
+    qe = GNUNET_NAMESTORE_transaction_begin (nsh, begin_cont, NULL);
+    return;
+  }
   (void) cls;
   qe = NULL;
   if (GNUNET_OK != success)
@@ -307,23 +287,23 @@ reput_cont_bulk (void *cls,
     return;
   }
   t = GNUNET_SCHEDULER_add_now (&publish_records_bulk, NULL);
-
 }
-
 
 static void
 publish_records_bulk (void *cls)
 {
+  static unsigned int sent_rds = 0;
   (void) cls;
   t = NULL;
   qe = GNUNET_NAMESTORE_records_store2 (nsh,
                                         &privkey,
-                                        TEST_BATCH_SIZE,
-                                        &ri[bulk_count * TEST_BATCH_SIZE],
-                                        (bulk_count == TEST_BATCH_COUNT - 1) ? &put_cont_bulk :
-                                        &reput_cont_bulk,
+                                        TEST_RECORD_COUNT - bulk_count,
+                                        &ri[bulk_count],
+                                        &sent_rds,
+                                        &put_cont_bulk,
                                         NULL);
-  bulk_count++;
+  bulk_count += sent_rds;
+  GNUNET_assert (sent_rds != 0);
 }
 
 
