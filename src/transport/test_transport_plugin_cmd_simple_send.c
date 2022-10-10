@@ -40,32 +40,6 @@
 
 #define TOPOLOGY_CONFIG "test_transport_simple_send_topo.conf"
 
-struct TestState
-{
-  /**
-   * Callback to write messages to the master loop.
-   *
-   */
-  TESTING_CMD_HELPER_write_cb write_message;
-
-  /**
-   * The name for a specific test environment directory.
-   *
-   */
-  char *testdir;
-
-  /**
-   * The name for the configuration file of the specific node.
-   *
-   */
-  char *cfgname;
-
-  /**
-   * The complete topology information.
-   */
-  struct GNUNET_TESTING_NetjailTopology *topology;
-};
-
 static struct GNUNET_TESTING_Command block_send;
 
 static struct GNUNET_TESTING_Command block_receive;
@@ -144,14 +118,10 @@ handle_result (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Local test exits with status %d\n",
               rv);
-  reply = GNUNET_TESTING_send_local_test_finished_msg (rv);
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "message prepared\n");
-  ts->write_message (reply,
-                     ntohs (reply->size));
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "message send\n");
+  reply = GNUNET_TESTING_send_local_test_finished_msg ();
+
+  ts->finished_cb ();
   GNUNET_free (ts->testdir);
   GNUNET_free (ts->cfgname);
   GNUNET_TESTING_free_topology (ts->topology);
@@ -218,7 +188,8 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
                 char *n,
                 char *local_m,
                 char *topology_data,
-                unsigned int *read_file)
+                unsigned int *read_file,
+                TESTING_CMD_HELPER_finish_cb finished_cb)
 {
 
   unsigned int n_int;
@@ -228,6 +199,12 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
   struct TestState *ts = GNUNET_new (struct TestState);
   struct GNUNET_TESTING_NetjailTopology *topology;
   unsigned int sscanf_ret = 0;
+
+  ts->finished_cb = finished_cb;
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "n %s m %s\n",
+       n,
+       m);
 
   if (GNUNET_YES == *read_file)
   {
@@ -241,21 +218,21 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
   ts->topology = topology;
 
   errno = 0;
-  sscanf (m, "%u", &m_int);
+  sscanf_ret = sscanf (m, "%u", &m_int);
   if (errno != 0)
   {
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "sscanf");
   }
   GNUNET_assert (0 < sscanf_ret);
   errno = 0;
-  sscanf (n, "%u", &n_int);
+  sscanf_ret = sscanf (n, "%u", &n_int);
   if (errno != 0)
   {
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "sscanf");
   }
   GNUNET_assert (0 < sscanf_ret);
   errno = 0;
-  sscanf (local_m, "%u", &local_m_int);
+  sscanf_ret = sscanf (local_m, "%u", &local_m_int);
   if (errno != 0)
   {
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "sscanf");
