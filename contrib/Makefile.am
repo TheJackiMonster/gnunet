@@ -44,6 +44,7 @@ INITD_FILES = \
   services/openrc/gnunet.initd
 
 PACKAGES_FILES = \
+	packages/fedora/10-dns2gns.sh \
   packages/alpine/gnunet-gtk/APKBUILD \
   packages/alpine/gnurl/APKBUILD \
   packages/alpine/gnunet/gnunet-user-services.initd \
