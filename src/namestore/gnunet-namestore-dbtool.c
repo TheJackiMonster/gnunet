@@ -73,7 +73,6 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
-  const char *pkey_str;
   char *db_lib_name;
   char *emsg;
   struct GNUNET_NAMESTORE_PluginFunctions *plugin;

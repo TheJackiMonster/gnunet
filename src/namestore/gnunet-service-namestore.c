@@ -916,7 +916,6 @@ continue_store_activity (struct StoreActivity *sa,
   unsigned int rd_count;
   size_t name_len;
   size_t rd_ser_len;
-  uint32_t rid;
   const char *name_tmp;
   const char *rd_ser;
   const char *buf;
@@ -1020,7 +1019,7 @@ client_disconnect_cb (void *cls,
 {
   struct NamestoreClient *nc = app_ctx;
   struct ZoneIteration *no;
-  struct StoreActivity *sa;
+  struct StoreActivity *sa = sa_head;
   struct StoreActivity *sn;
   char *emsg;
 
@@ -1650,20 +1649,14 @@ static void
 handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
 {
   struct NamestoreClient *nc = cls;
-  size_t name_len;
-  size_t rd_ser_len;
   uint32_t rid;
   uint16_t rd_set_count;
-  const char *name_tmp;
   char *emsg = NULL;
   const char *buf;
-  const char *rd_ser;
-  unsigned int rd_count;
   ssize_t read;
   struct StoreActivity *sa;
   struct RecordSet *rs;
   enum GNUNET_GenericReturnValue res;
-  int blocked = GNUNET_NO;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received NAMESTORE_RECORD_STORE message\n");
@@ -1741,7 +1734,7 @@ handle_tx_control (void *cls, const struct TxControlMessage *tx_msg)
   struct StoreActivity *sn;
   enum GNUNET_GenericReturnValue ret;
   char *emsg = NULL;
-  int blocked;
+  int blocked = GNUNET_NO;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received TX_CONTROL message\n");
 
@@ -2171,7 +2164,6 @@ static void
 monitor_unblock (struct ZoneMonitor *zm)
 {
   struct StoreActivity *sa = sa_head;
-  int blocked = GNUNET_NO;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Unblocking zone monitor %p\n", zm);

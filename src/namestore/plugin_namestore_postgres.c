@@ -224,9 +224,7 @@ database_prepare (struct Plugin *plugin)
 static int
 database_connect (struct Plugin *plugin)
 {
-  const struct GNUNET_PQ_ExecuteStatement *cr;
   char *emsg;
-  struct GNUNET_PQ_ExecuteStatement sc = GNUNET_PQ_EXECUTE_STATEMENT_END;
 
   if (GNUNET_YES ==
       GNUNET_CONFIGURATION_get_value_yesno (plugin->cfg,

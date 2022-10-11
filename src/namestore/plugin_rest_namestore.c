@@ -374,7 +374,9 @@ do_error (void *cls)
     handle->response_code = MHD_HTTP_INTERNAL_SERVER_ERROR;
   response = json_dumps (json_error, 0);
   resp = GNUNET_REST_create_response (response);
-  MHD_add_response_header (resp, "Content-Type", "application/json");
+  GNUNET_assert (MHD_YES ==
+                 MHD_add_response_header (resp, "Content-Type",
+                                          "application/json"));
   handle->proc (handle->proc_cls, resp, handle->response_code);
   json_decref (json_error);
   GNUNET_free (response);
@@ -524,7 +526,9 @@ namestore_list_finished (void *cls)
   result_str = json_dumps (handle->resp_object, 0);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Result %s\n", result_str);
   resp = GNUNET_REST_create_response (result_str);
-  MHD_add_response_header (resp, "Content-Type", "application/json");
+  GNUNET_assert (MHD_YES ==
+                 MHD_add_response_header (resp, "Content-Type",
+                                          "application/json"));
   handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
   GNUNET_free (result_str);
   GNUNET_SCHEDULER_add_now (&cleanup_handle, handle);
@@ -1180,8 +1184,10 @@ options_cont (struct GNUNET_REST_RequestHandle *con_handle,
 
   // independent of path return all options
   resp = GNUNET_REST_create_response (NULL);
-  MHD_add_response_header (resp, "Access-Control-Allow-Methods",
-                           allow_methods);
+  GNUNET_assert (MHD_YES ==
+                 MHD_add_response_header (resp,
+                                          "Access-Control-Allow-Methods",
+                                          allow_methods));
   handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
   GNUNET_SCHEDULER_add_now (&cleanup_handle, handle);
   return;

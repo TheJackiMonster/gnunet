@@ -835,7 +835,6 @@ database_connect (struct Plugin *plugin)
 {
   char *sqlite_filename;
   char *emsg;
-  int try_create = GNUNET_NO;
 
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_filename (plugin->cfg,
