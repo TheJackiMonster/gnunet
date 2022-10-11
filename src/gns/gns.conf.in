@@ -43,5 +43,5 @@ RUN_PER_USER = YES
 BIND_TO=127.0.0.1
 BIND_TO6=::1
 
-# -d: DNS resolver to use, -s: suffix to use, -f: fcfs suffix to use
-OPTIONS = -d 8.8.8.8
+# -d: DNS resolver to use, -s: suffix to use, -f: fcfs suffix to use, -p port to use
+OPTIONS = -d 8.8.8.8 -p 5353
