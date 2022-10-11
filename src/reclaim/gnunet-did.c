@@ -179,7 +179,6 @@ print_did_document (
 static void
 resolve_did ()
 {
-  struct GNUNET_IDENTITY_PublicKey pkey;
 
   if (did == NULL)
   {

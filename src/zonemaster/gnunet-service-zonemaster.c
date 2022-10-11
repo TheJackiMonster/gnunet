@@ -382,7 +382,6 @@ static void
 refresh_block (const struct GNUNET_GNSRECORD_Block *block)
 {
   struct CacheOperation *cop;
-  struct GNUNET_TIME_Absolute exp_time;
 
   if (GNUNET_YES == disable_namecache)
   {
