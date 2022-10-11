@@ -320,7 +320,36 @@ unsigned int
 GNUNET_TESTING_calculate_num (struct
                               GNUNET_TESTING_NodeConnection *node_connection,
                               struct GNUNET_TESTING_NetjailTopology *topology);
+struct TestState
+{
+  /**
+   * Callback to write messages to the master loop.
+   *
+   */
+  TESTING_CMD_HELPER_write_cb write_message;
 
+  /**
+   * Callback to notify the helper test case has finished.
+   */
+  TESTING_CMD_HELPER_finish_cb finished_cb;
+
+  /**
+   * The name for a specific test environment directory.
+   *
+   */
+  char *testdir;
+
+  /**
+   * The name for the configuration file of the specific node.
+   *
+   */
+  char *cfgname;
+
+  /**
+   * The complete topology information.
+   */
+  struct GNUNET_TESTING_NetjailTopology *topology;
+};
 
 /**
  * Struct with information for callbacks.
@@ -362,7 +391,14 @@ struct LocalPreparedState
   TESTING_CMD_HELPER_write_cb write_message;
 };
 
-
+/**
+ * Create command.
+ *
+ * @param label name for command.
+ * @param create_label Label of the cmd which started the test system.
+ * @param write_message Callback to write messages to the master loop.
+ * @return command.
+ */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_system_destroy (const char *label,
                                    const char *create_label);
@@ -438,11 +474,10 @@ GNUNET_TESTING_cmd_stop_testing_system (
 /**
  * Create a GNUNET_CMDS_LOCAL_FINISHED message.
  *
- * @param rv The result of the local test as GNUNET_GenericReturnValue.
  * @return The GNUNET_CMDS_LOCAL_FINISHED message.
 */
 struct GNUNET_MessageHeader *
-GNUNET_TESTING_send_local_test_finished_msg (enum GNUNET_GenericReturnValue rv);
+GNUNET_TESTING_send_local_test_finished_msg ();
 
 
 struct GNUNET_TESTING_Command
@@ -482,7 +517,13 @@ struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_block_until_external_trigger (
   const char *label);
 
-
+/**
+ * Create command.
+ *
+ * @param label name for command.
+ * @param write_message Callback to write messages to the master loop.
+ * @return command.
+ */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_send_peer_ready (const char *label,
                                     TESTING_CMD_HELPER_write_cb write_message);

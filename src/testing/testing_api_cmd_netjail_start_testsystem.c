@@ -414,66 +414,6 @@ helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
     // We received a message we can not handle.
     GNUNET_assert (0);
   }
-  /*if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_REPLY == ntohs (message->type))
-  {
-    ns->number_of_testsystems_started++;
-  }
-  else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_PEER_STARTED == ntohs (
-             message->type))
-  {
-    ns->number_of_peers_started++;
-    if (ns->number_of_peers_started == total_number)
-    {
-      for (int i = 1; i <= ns->known; i++)
-      {
-        send_all_peers_started (0,i, ns);
-      }
-
-      for (int i = 1; i <= ns->global_n; i++)
-      {
-        for (int j = 1; j <= ns->local_m; j++)
-        {
-          send_all_peers_started (i,j, ns);
-        }
-      }
-      ns->number_of_peers_started = 0;
-    }
-  }
-  else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_TEST_PREPARED == ntohs (
-             message->type))
-  {
-    ns->number_of_local_tests_prepared++;
-    if (ns->number_of_local_tests_prepared == total_number)
-    {
-      for (int i = 1; i <= ns->known; i++)
-      {
-        send_all_local_tests_prepared (0,i, ns);
-      }
-
-      for (int i = 1; i <= ns->global_n; i++)
-      {
-        for (int j = 1; j <= ns->local_m; j++)
-        {
-          send_all_local_tests_prepared (i,j, ns);
-        }
-      }
-    }
-  }
-  else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_FINISHED == ntohs (
-             message->type))
-  {
-    ns->number_of_local_tests_finished++;
-    if (ns->number_of_local_tests_finished == total_number)
-    {
-      GNUNET_TESTING_async_finish (&ns->ac);
-    }
-  }
-  else
-  {
-    // We received a message we can not handle.
-    GNUNET_assert (0);
-    }*/
-
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "total %u sysstarted %u peersstarted %u prep %u finished %u %u %u %u\n",

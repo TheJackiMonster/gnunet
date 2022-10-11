@@ -40,32 +40,6 @@
 
 #define TOPOLOGY_CONFIG "test_transport_udp_backchannel_topo.conf"
 
-struct TestState
-{
-  /**
-   * Callback to write messages to the master loop.
-   *
-   */
-  TESTING_CMD_HELPER_write_cb write_message;
-
-  /**
-   * The name for a specific test environment directory.
-   *
-   */
-  char *testdir;
-
-  /**
-   * The name for the configuration file of the specific node.
-   *
-   */
-  char *cfgname;
-
-  /**
-   * The complete topology information.
-   */
-  struct GNUNET_TESTING_NetjailTopology *topology;
-};
-
 static struct GNUNET_TESTING_Command block_send;
 
 static struct GNUNET_TESTING_Command connect_peers;
@@ -136,18 +110,12 @@ handle_result (void *cls,
                enum GNUNET_GenericReturnValue rv)
 {
   struct TestState *ts = cls;
-  struct GNUNET_MessageHeader *reply;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Local test exits with status %d\n",
               rv);
-  reply = GNUNET_TESTING_send_local_test_finished_msg (rv);
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "message prepared\n");
-  ts->write_message (reply,
-                     ntohs (reply->size));
-
+  ts->finished_cb ();
   GNUNET_free (ts->testdir);
   GNUNET_free (ts->cfgname);
   GNUNET_TESTING_free_topology (ts->topology);
@@ -209,7 +177,8 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
                 char *n,
                 char *local_m,
                 char *topology_data,
-                unsigned int *read_file)
+                unsigned int *read_file,
+                TESTING_CMD_HELPER_finish_cb finished_cb)
 {
 
   unsigned int n_int;
@@ -217,9 +186,9 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
   unsigned int local_m_int;
   unsigned int num;
   struct TestState *ts = GNUNET_new (struct TestState);
-
   struct GNUNET_TESTING_NetjailTopology *topology;
 
+  ts->finished_cb = finished_cb;
   if (GNUNET_YES == *read_file)
     topology = GNUNET_TESTING_get_topo_from_file (topology_data);
   else

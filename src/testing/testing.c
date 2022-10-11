@@ -1319,7 +1319,7 @@ GNUNET_TESTING_peer_configure (struct GNUNET_TESTING_System *system,
   peer->nports = nports;
   return peer;
 
-err_ret:
+  err_ret:
   GNUNET_free (ss_instances);
   GNUNET_free (ports);
   GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "%s", emsg_);
@@ -2118,7 +2118,7 @@ get_node_info (unsigned int num,
   unsigned int node_m;
   struct GNUNET_TESTING_NetjailNode *node;
   struct GNUNET_TESTING_NetjailNamespace *namespace;
-  struct GNUNET_TESTING_NodeConnection *node_connections;
+  struct GNUNET_TESTING_NodeConnection *node_connections = NULL;
 
   log_topo (topology);
   hkey = GNUNET_new (struct GNUNET_ShortHashCode);
@@ -2135,7 +2135,10 @@ get_node_info (unsigned int num,
     node = GNUNET_CONTAINER_multishortmap_get (topology->map_globals,
                                                hkey);
     if (NULL != node)
-      node_connections = node->node_connections_head;
+    {
+      *node_ex = node;
+      *node_connections_ex = node->node_connections_head;
+    }
   }
   else
   {
@@ -2248,8 +2251,15 @@ free_nodes_cb (void *cls,
   {
     while (NULL != (pos_prefix = pos_connection->address_prefixes_head))
     {
+      GNUNET_CONTAINER_DLL_remove (pos_connection->address_prefixes_head,
+                                   pos_connection->address_prefixes_tail,
+                                   pos_prefix);
       GNUNET_free (pos_prefix->address_prefix);
+      GNUNET_free (pos_prefix);
     }
+    GNUNET_CONTAINER_DLL_remove (node->node_connections_head,
+                                 node->node_connections_tail,
+                                 pos_connection);
     GNUNET_free (pos_connection);
   }
 
@@ -2398,9 +2408,11 @@ GNUNET_TESTING_get_additional_connects (unsigned int num,
   get_node_info (num, topology, &node, &namespace, &node_connections);
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "node additional_connects: %u %p\n",
-       node->additional_connects,
+       "node additional_connects for node %p\n",
        node);
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "node additional_connects: %u\n",
+       node->additional_connects);
 
   return node->additional_connects;
 }
@@ -2409,25 +2421,44 @@ GNUNET_TESTING_get_additional_connects (unsigned int num,
 /**
  * Create a GNUNET_CMDS_LOCAL_FINISHED message.
  *
- * @param rv The result of the local test as GNUNET_GenericReturnValue.
  * @return The GNUNET_CMDS_LOCAL_FINISHED message.
 */
 struct GNUNET_MessageHeader *
-GNUNET_TESTING_send_local_test_finished_msg (enum GNUNET_GenericReturnValue rv)
+GNUNET_TESTING_send_local_test_finished_msg ()
 {
   struct GNUNET_CMDS_LOCAL_FINISHED *reply;
   size_t msg_length;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Local test exits with status %d\n",
-              rv);
   msg_length = sizeof(struct GNUNET_CMDS_LOCAL_FINISHED);
   reply = GNUNET_new (struct GNUNET_CMDS_LOCAL_FINISHED);
   reply->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_FINISHED);
   reply->header.size = htons ((uint16_t) msg_length);
-  reply->result = htons (rv);
 
   return (struct GNUNET_MessageHeader *) reply;
+}
+
+
+static void
+parse_ac (struct GNUNET_TESTING_NetjailNode *p_node, char *token)
+{
+  char *ac_value;
+
+  ac_value = get_value ("AC", token);
+  if (NULL != ac_value)
+  {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "ac value: %s\n",
+         ac_value);
+    sscanf (ac_value, "%u", &p_node->additional_connects);
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "AC %u\n",
+         p_node->additional_connects);
+  }
+  else
+  {
+    p_node->additional_connects = 0;
+  }
+  GNUNET_free (ac_value);
 }
 
 
@@ -2446,7 +2477,6 @@ GNUNET_TESTING_get_topo_from_string (char *data)
   char *rest = NULL;
   char *value = NULL;
   char *value2;
-  char *ac_value;
   int ret;
   struct GNUNET_TESTING_NetjailTopology *topo;
   struct GNUNET_TESTING_NetjailRouter *router;
@@ -2555,6 +2585,7 @@ GNUNET_TESTING_get_topo_from_string (char *data)
            "value: %s\n",
            value);
       k_node->plugin = value;
+      parse_ac (k_node, token);
       node_connections (token, k_node);
       GNUNET_free (value);
     }
@@ -2617,6 +2648,7 @@ GNUNET_TESTING_get_topo_from_string (char *data)
     {
       struct GNUNET_TESTING_NetjailNode *p_node = GNUNET_new (struct
                                                               GNUNET_TESTING_NetjailNode);
+      hkey = GNUNET_new (struct GNUNET_ShortHashCode);
 
       LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Get first Value for P.\n");
@@ -2672,26 +2704,22 @@ GNUNET_TESTING_get_topo_from_string (char *data)
         LOG (GNUNET_ERROR_TYPE_DEBUG,
              "Get value for key plugin on P.\n");
         value = get_value ("plugin", token);
-        LOG (GNUNET_ERROR_TYPE_DEBUG,
-             "plugin: %s\n",
-             value);
-        memcpy (p_node->plugin, value, sizeof (*value));
+        if (NULL != value)
+        {
+          LOG (GNUNET_ERROR_TYPE_DEBUG,
+               "plugin: %s\n",
+               value);
+          p_node->plugin = GNUNET_malloc (sizeof(*value));
+          memcpy (p_node->plugin, value, sizeof (*value));
+        }
         GNUNET_free (value);
         p_node->node_n = out;
         p_node->namespace_n = namespace->namespace_n;
       }
       LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Get AC Value for P.\n");
-      ac_value = get_value ("AC", token);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "ac value: %s\n",
-           ac_value);
-      sscanf (ac_value, "%u", &p_node->additional_connects);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "P:AC %u\n",
-           p_node->additional_connects);
+      parse_ac (p_node, token);
       node_connections (token, p_node);
-      GNUNET_free (ac_value);
     }
     token = strtok_r (NULL, "\n", &rest);
     if (NULL != token)

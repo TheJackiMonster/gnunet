@@ -40,6 +40,7 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
 #include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_netjail_lib.h"
 #include "testing_cmds.h"
 #include "gnunet_testing_plugin.h"
 #include <zlib.h>
@@ -60,6 +61,8 @@ testing_api_cmd_block_until_all_peers_started.c */
 #define KNOWN_BASE_IP "92.68.151."
 
 #define ROUTER_BASE_IP "92.68.150."
+
+struct GNUNET_SCHEDULER_Task *finished_task;
 
 /**
  * Handle for a plugin.
@@ -232,7 +235,7 @@ static int status;
  * @param cls NULL
  */
 static void
-shutdown_task (void *cls)
+do_shutdown (void *cls)
 {
 
   LOG_DEBUG ("Shutting down.\n");
@@ -276,6 +279,8 @@ write_task (void *cls)
   bytes_wrote = GNUNET_DISK_file_write (stdout_fd,
                                         wc->data + wc->pos,
                                         wc->length - wc->pos);
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+              "message send to master loop\n");
   if (GNUNET_SYSERR == bytes_wrote)
   {
     LOG (GNUNET_ERROR_TYPE_WARNING,
@@ -307,6 +312,8 @@ write_message (struct GNUNET_MessageHeader *message, size_t msg_length)
 {
   struct WriteContext *wc;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+              "write message to master loop\n");
   wc = GNUNET_new (struct WriteContext);
   wc->length = msg_length;
   wc->data = message;
@@ -315,6 +322,35 @@ write_message (struct GNUNET_MessageHeader *message, size_t msg_length)
     stdout_fd,
     &write_task,
     wc);
+}
+
+static void
+delay_shutdown_cb ()
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "doing shutdown after delay\n");
+  GNUNET_SCHEDULER_shutdown ();
+}
+
+
+static void
+finished_cb ()
+{
+  struct GNUNET_MessageHeader *reply;
+
+  reply = GNUNET_TESTING_send_local_test_finished_msg ();
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "message prepared\n");
+  write_message (reply, ntohs (reply->size));
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "message send\n");
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "delaying shutdown\n");
+  GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
+                                delay_shutdown_cb,
+                                NULL);
 }
 
 
@@ -341,11 +377,16 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
   char *plugin_name;
   size_t plugin_name_size;
   uint16_t msize;
+  uint16_t type;
   size_t msg_length;
   char *router_ip;
   char *node_ip;
   unsigned int namespace_n;
 
+  type = ntohs (message->type);
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "Received message type %u\n",
+       type);
   msize = ntohs (message->size);
   if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_INIT == ntohs (message->type))
   {
@@ -402,7 +443,7 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
 
     plugin->api->start_testcase (&write_message, router_ip, node_ip, plugin->m,
                                  plugin->n, plugin->local_m, ni->topology_data,
-                                 ni->read_file);
+                                 ni->read_file, &finished_cb);
 
     msg_length = sizeof(struct GNUNET_CMDS_HelperReply);
     reply = GNUNET_new (struct GNUNET_CMDS_HelperReply);
@@ -522,7 +563,7 @@ run (void *cls,
                                                  stdin_fd,
                                                  &read_task,
                                                  NULL);
-  GNUNET_SCHEDULER_add_shutdown (&shutdown_task, NULL);
+  GNUNET_SCHEDULER_add_shutdown (&do_shutdown, NULL);
 }
 
 
@@ -629,6 +670,8 @@ main (int argc, char **argv)
                             &run,
                             ni);
 
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Finishing helper\n");
   GNUNET_SIGNAL_handler_uninstall (shc_chld);
   shc_chld = NULL;
   GNUNET_DISK_pipe_close (sigpipe);
