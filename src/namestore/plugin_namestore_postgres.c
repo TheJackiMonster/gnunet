@@ -144,7 +144,8 @@ init_database (struct Plugin *plugin, char **emsg, int drop)
                                                 es,
                                                 NULL);
     }
-    else {
+    else
+    {
       plugin->dbh = GNUNET_PQ_connect_with_cfg (plugin->cfg,
                                                 "namestore-postgres",
                                                 NULL,
@@ -162,6 +163,7 @@ init_database (struct Plugin *plugin, char **emsg, int drop)
   return GNUNET_OK;
 }
 
+
 static int
 database_prepare (struct Plugin *plugin)
 {
@@ -177,32 +179,25 @@ database_prepare (struct Plugin *plugin)
                             " DO UPDATE"
                             "    SET pkey=$2,rvalue=$3,record_count=$4,record_data=$5"
                             "    WHERE ns098records.zone_private_key = $1"
-                            "          AND ns098records.label = $6",
-                            6),
+                            "          AND ns098records.label = $6"),
     GNUNET_PQ_make_prepare ("delete_records",
                             "DELETE FROM ns098records "
-                            "WHERE zone_private_key=$1 AND label=$2",
-                            2),
+                            "WHERE zone_private_key=$1 AND label=$2"),
     GNUNET_PQ_make_prepare ("zone_to_name",
                             "SELECT seq,record_count,record_data,label FROM ns098records"
-                            " WHERE zone_private_key=$1 AND pkey=$2",
-                            2),
+                            " WHERE zone_private_key=$1 AND pkey=$2"),
     GNUNET_PQ_make_prepare ("iterate_zone",
                             "SELECT seq,record_count,record_data,label FROM ns098records "
-                            "WHERE zone_private_key=$1 AND seq > $2 ORDER BY seq ASC LIMIT $3",
-                            3),
+                            "WHERE zone_private_key=$1 AND seq > $2 ORDER BY seq ASC LIMIT $3"),
     GNUNET_PQ_make_prepare ("iterate_all_zones",
                             "SELECT seq,record_count,record_data,label,zone_private_key"
-                            " FROM ns098records WHERE seq > $1 ORDER BY seq ASC LIMIT $2",
-                            2),
+                            " FROM ns098records WHERE seq > $1 ORDER BY seq ASC LIMIT $2"),
     GNUNET_PQ_make_prepare ("lookup_label",
                             "SELECT seq,record_count,record_data,label "
-                            "FROM ns098records WHERE zone_private_key=$1 AND label=$2",
-                            2),
+                            "FROM ns098records WHERE zone_private_key=$1 AND label=$2"),
     GNUNET_PQ_make_prepare ("edit_set",
                             "SELECT seq,record_count,record_data,label "
-                            "FROM ns098records WHERE zone_private_key=$1 AND label=$2 FOR UPDATE NOWAIT",
-                            2),
+                            "FROM ns098records WHERE zone_private_key=$1 AND label=$2 FOR UPDATE NOWAIT"),
     GNUNET_PQ_PREPARED_STATEMENT_END
   };
   ret = GNUNET_PQ_prepare_statements (plugin->dbh, ps);
@@ -221,7 +216,7 @@ database_prepare (struct Plugin *plugin)
  * @param plugin the plugin context (state for this module)
  * @return #GNUNET_OK on success
  */
-static int
+static enum GNUNET_GenericReturnValue
 database_connect (struct Plugin *plugin)
 {
   char *emsg;
@@ -235,7 +230,10 @@ database_connect (struct Plugin *plugin)
      * Gracefully fail as this should not be a critical error if the
      * database is already created
      */
-    if (GNUNET_OK != init_database (plugin, &emsg, GNUNET_NO))
+    if (GNUNET_OK !=
+        init_database (plugin,
+                       &emsg,
+                       GNUNET_NO))
     {
       LOG (GNUNET_ERROR_TYPE_WARNING,
            "Failed to initialize database on connect: `%s'\n",
@@ -485,6 +483,7 @@ parse_result_call_iterator (void *cls,
   pc->limit -= num_results;
 }
 
+
 /**
  * Lookup records in the datastore for which we are the authority.
  *
@@ -535,6 +534,7 @@ lookup_records (void *cls,
   return GNUNET_OK;
 }
 
+
 /**
  * Lookup records in the datastore for which we are the authority.
  *
@@ -555,6 +555,7 @@ namestore_postgres_lookup_records (void *cls,
 {
   return lookup_records (cls, zone, label, iter, iter_cls, "lookup_label");
 }
+
 
 /**
  * Edit records in the datastore for which we are the authority.
@@ -690,6 +691,7 @@ namestore_postgres_zone_to_name (void *cls,
   return GNUNET_OK;
 }
 
+
 /**
  * Begin a transaction for a client.
  *
@@ -710,6 +712,7 @@ namestore_postgres_transaction_begin (void *cls,
 
   return GNUNET_PQ_exec_statements (plugin->dbh, es);
 }
+
 
 /**
  * Commit a transaction for a client.
@@ -732,6 +735,7 @@ namestore_postgres_transaction_rollback (void *cls,
 
   return GNUNET_PQ_exec_statements (plugin->dbh, es);
 }
+
 
 /**
  * Roll back a transaction for a client.
@@ -778,7 +782,6 @@ namestore_postgres_reset_database (void *cls,
     return ret;
   return database_connect (cls);
 }
-
 
 
 /**

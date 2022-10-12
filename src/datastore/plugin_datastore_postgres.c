@@ -119,59 +119,48 @@ init_connection (struct Plugin *plugin)
                             " (rvalue >= $2 OR 0 = $3::smallint) AND"
                             " (hash = $4 OR 0 = $5::smallint) AND"
                             " (type = $6 OR 0 = $7::smallint)"
-                            " ORDER BY oid ASC LIMIT 1",
-                            7),
+                            " ORDER BY oid ASC LIMIT 1"),
     GNUNET_PQ_make_prepare ("put",
                             "INSERT INTO gn090 (repl, type, prio, anonLevel, expire, rvalue, hash, vhash, value) "
-                            "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
-                            9),
+                            "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"),
     GNUNET_PQ_make_prepare ("update",
                             "UPDATE gn090"
                             " SET prio = prio + $1,"
                             " repl = repl + $2,"
                             " expire = GREATEST(expire, $3)"
-                            " WHERE hash = $4 AND vhash = $5",
-                            5),
+                            " WHERE hash = $4 AND vhash = $5"),
     GNUNET_PQ_make_prepare ("decrepl",
                             "UPDATE gn090 SET repl = GREATEST (repl - 1, 0) "
-                            "WHERE oid = $1",
-                            1),
+                            "WHERE oid = $1"),
     GNUNET_PQ_make_prepare ("select_non_anonymous",
                             "SELECT " RESULT_COLUMNS " FROM gn090 "
                             "WHERE anonLevel = 0 AND type = $1 AND oid >= $2::bigint "
-                            "ORDER BY oid ASC LIMIT 1",
-                            2),
+                            "ORDER BY oid ASC LIMIT 1"),
     GNUNET_PQ_make_prepare ("select_expiration_order",
                             "(SELECT " RESULT_COLUMNS " FROM gn090 "
                             "WHERE expire < $1 ORDER BY prio ASC LIMIT 1) "
                             "UNION "
                             "(SELECT " RESULT_COLUMNS " FROM gn090 "
                             "ORDER BY prio ASC LIMIT 1) "
-                            "ORDER BY expire ASC LIMIT 1",
-                            1),
+                            "ORDER BY expire ASC LIMIT 1"),
     GNUNET_PQ_make_prepare ("select_replication_order",
                             "SELECT " RESULT_COLUMNS " FROM gn090 "
-                            "ORDER BY repl DESC,RANDOM() LIMIT 1",
-                            0),
+                            "ORDER BY repl DESC,RANDOM() LIMIT 1"),
     GNUNET_PQ_make_prepare ("delrow",
                             "DELETE FROM gn090 "
-                            "WHERE oid=$1",
-                            1),
+                            "WHERE oid=$1"),
     GNUNET_PQ_make_prepare ("remove",
                             "DELETE FROM gn090"
                             " WHERE hash = $1 AND"
-                            " value = $2",
-                            2),
+                            " value = $2"),
     GNUNET_PQ_make_prepare ("get_keys",
-                            "SELECT hash FROM gn090",
-                            0),
+                            "SELECT hash FROM gn090"),
     GNUNET_PQ_make_prepare ("estimate_size",
                             "SELECT CASE WHEN NOT EXISTS"
                             "  (SELECT 1 FROM gn090)"
                             "  THEN 0"
                             "  ELSE (SELECT SUM(LENGTH(value))+256*COUNT(*) FROM gn090)"
-                            "END AS total",
-                            0),
+                            "END AS total"),
     GNUNET_PQ_PREPARED_STATEMENT_END
   };
 #undef RESULT_COLUMNS

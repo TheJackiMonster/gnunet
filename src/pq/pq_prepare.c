@@ -26,38 +26,64 @@
 #include "pq.h"
 
 
-/**
- * Create a `struct GNUNET_PQ_PreparedStatement`.
- *
- * @param name name of the statement
- * @param sql actual SQL statement
- * @param num_args number of arguments in the statement
- * @return initialized struct
- */
 struct GNUNET_PQ_PreparedStatement
 GNUNET_PQ_make_prepare (const char *name,
-                        const char *sql,
-                        unsigned int num_args)
+                        const char *sql)
 {
   struct GNUNET_PQ_PreparedStatement ps = {
     .name = name,
-    .sql = sql,
-    .num_arguments = num_args
+    .sql = sql
   };
 
   return ps;
 }
 
 
-/**
- * Request creation of prepared statements @a ps from Postgres.
- *
- * @param db database to prepare the statements for
- * @param ps #GNUNET_PQ_PREPARED_STATEMENT_END-terminated array of prepared
- *            statements.
- * @return #GNUNET_OK on success,
- *         #GNUNET_SYSERR on error
- */
+enum GNUNET_GenericReturnValue
+GNUNET_PQ_prepare_once (struct GNUNET_PQ_Context *db,
+                        const struct GNUNET_PQ_PreparedStatement *ps)
+{
+  for (unsigned int i = 0; NULL != ps[i].name; i++)
+  {
+    PGresult *ret;
+
+    GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG,
+                     "pq",
+                     "Preparing SQL statement `%s' as `%s'\n",
+                     ps[i].sql,
+                     ps[i].name);
+    ret = PQprepare (db->conn,
+                     ps[i].name,
+                     ps[i].sql,
+                     0,
+                     NULL);
+    if (PGRES_COMMAND_OK != PQresultStatus (ret))
+    {
+      GNUNET_log_from (GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
+                       "pq",
+                       "PQprepare (`%s' as `%s') failed with error: %s\n",
+                       ps[i].sql,
+                       ps[i].name,
+                       PQerrorMessage (db->conn));
+      PQclear (ret);
+      ret = PQdescribePrepared (db->conn,
+                                ps[i].name);
+      if (PGRES_COMMAND_OK != PQresultStatus (ret))
+      {
+        PQclear (ret);
+        return GNUNET_SYSERR;
+      }
+      GNUNET_log_from (GNUNET_ERROR_TYPE_ERROR,
+                       "pq",
+                       "Statement `%s' already known. Ignoring the issue in the hope that you are using connection pooling...\n",
+                       ps[i].name);
+    }
+    PQclear (ret);
+  }
+  return GNUNET_OK;
+}
+
+
 enum GNUNET_GenericReturnValue
 GNUNET_PQ_prepare_statements (struct GNUNET_PQ_Context *db,
                               const struct GNUNET_PQ_PreparedStatement *ps)
@@ -87,45 +113,8 @@ GNUNET_PQ_prepare_statements (struct GNUNET_PQ_Context *db,
     db->ps = rps;
   }
 
-  /* actually prepare statements */
-  for (unsigned int i = 0; NULL != ps[i].name; i++)
-  {
-    PGresult *ret;
-
-    GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG,
-                     "pq",
-                     "Preparing SQL statement `%s' as `%s'\n",
-                     ps[i].sql,
-                     ps[i].name);
-    ret = PQprepare (db->conn,
-                     ps[i].name,
-                     ps[i].sql,
-                     ps[i].num_arguments,
-                     NULL);
-    if (PGRES_COMMAND_OK != PQresultStatus (ret))
-    {
-      GNUNET_log_from (GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
-                       "pq",
-                       "PQprepare (`%s' as `%s') failed with error: %s\n",
-                       ps[i].sql,
-                       ps[i].name,
-                       PQerrorMessage (db->conn));
-      PQclear (ret);
-      ret = PQdescribePrepared (db->conn,
-                                ps[i].name);
-      if (PGRES_COMMAND_OK != PQresultStatus (ret))
-      {
-        PQclear (ret);
-        return GNUNET_SYSERR;
-      }
-      GNUNET_log_from (GNUNET_ERROR_TYPE_ERROR,
-                       "pq",
-                       "Statement `%s' already known. Ignoring the issue in the hope that you are using connection pooling...\n",
-                       ps[i].name);
-    }
-    PQclear (ret);
-  }
-  return GNUNET_OK;
+  return GNUNET_PQ_prepare_once (db,
+                                 ps);
 }
 
 

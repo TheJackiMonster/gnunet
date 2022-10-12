@@ -95,21 +95,17 @@ init_connection (struct Plugin *plugin)
   struct GNUNET_PQ_PreparedStatement ps[] = {
     GNUNET_PQ_make_prepare ("getkt",
                             "SELECT expiration_time,type,ro,value,trunc,path FROM gn180dc "
-                            "WHERE key=$1 AND type=$2 AND expiration_time >= $3",
-                            3),
+                            "WHERE key=$1 AND type=$2 AND expiration_time >= $3"),
     GNUNET_PQ_make_prepare ("getk",
                             "SELECT expiration_time,type,ro,value,trunc,path FROM gn180dc "
-                            "WHERE key=$1 AND expiration_time >= $2",
-                            2),
+                            "WHERE key=$1 AND expiration_time >= $2"),
     GNUNET_PQ_make_prepare ("getex",
                             "SELECT LENGTH(value) AS len,oid,key FROM gn180dc"
                             " WHERE expiration_time < $1"
-                            " ORDER BY expiration_time ASC LIMIT 1",
-                            1),
+                            " ORDER BY expiration_time ASC LIMIT 1"),
     GNUNET_PQ_make_prepare ("getm",
                             "SELECT LENGTH(value) AS len,oid,key FROM gn180dc"
-                            " ORDER BY prox ASC, expiration_time ASC LIMIT 1",
-                            0),
+                            " ORDER BY prox ASC, expiration_time ASC LIMIT 1"),
     GNUNET_PQ_make_prepare ("get_closest",
                             "(SELECT expiration_time,type,ro,value,trunc,path,key FROM gn180dc"
                             " WHERE key >= $1"
@@ -123,16 +119,13 @@ init_connection (struct Plugin *plugin)
                             "   AND expiration_time >= $2"
                             "   AND ( (type = $3) OR ( 0 = $3) )"
                             " ORDER BY key DESC"
-                            " LIMIT $4)",
-                            4),
+                            " LIMIT $4)"),
     GNUNET_PQ_make_prepare ("delrow",
-                            "DELETE FROM gn180dc WHERE oid=$1",
-                            1),
+                            "DELETE FROM gn180dc WHERE oid=$1"),
     GNUNET_PQ_make_prepare ("put",
                             "INSERT INTO gn180dc"
                             " (type, ro, prox, expiration_time, key, value, trunc, path) "
-                            "VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
-                            8),
+                            "VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"),
     GNUNET_PQ_PREPARED_STATEMENT_END
   };
 
