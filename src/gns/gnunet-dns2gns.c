@@ -193,7 +193,7 @@ static char *dns_ip;
 /**
  * UDP Port we listen on for inbound DNS requests.
  */
-static unsigned int listen_port = 53;
+static unsigned long long listen_port = 53;
 
 /**
  * Configuration to use.
@@ -561,7 +561,8 @@ result_processor (void *cls,
       if ((GNUNET_DNSPARSER_TYPE_A != request->packet->queries[0].type) &&
           (GNUNET_DNSPARSER_TYPE_AAAA != request->packet->queries[0].type))
         break;
-      af = (GNUNET_DNSPARSER_TYPE_A == request->packet->queries[0].type) ? AF_INET :
+      af = (GNUNET_DNSPARSER_TYPE_A == request->packet->queries[0].type) ?
+           AF_INET :
            AF_INET6;
       if (sizeof(struct GNUNET_TUN_GnsVpnRecord) >
           rd[i].data_size)
@@ -903,6 +904,11 @@ run (void *cls,
     return;
   }
   GNUNET_free (addr_str);
+  if (GNUNET_OK == GNUNET_CONFIGURATION_get_value_number (c, "dns2gns",
+                                         "PORT",
+                                         &listen_port))
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Listening on %llu\n", listen_port);
 
   listen_socket4 = GNUNET_NETWORK_socket_create (PF_INET,
                                                  SOCK_DGRAM,
@@ -994,12 +1000,6 @@ main (int argc,
                                  gettext_noop (
                                    "IP of recursive DNS resolver to use (required)"),
                                  &dns_ip),
-    GNUNET_GETOPT_option_uint ('p',
-                               "port",
-                               "UDPPORT",
-                               gettext_noop (
-                                 "UDP port to listen on for inbound DNS requests; default: 2853"),
-                               &listen_port),
     GNUNET_GETOPT_OPTION_END
   };
   int ret;
