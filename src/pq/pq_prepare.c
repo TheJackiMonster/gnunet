@@ -91,26 +91,30 @@ GNUNET_PQ_prepare_statements (struct GNUNET_PQ_Context *db,
   if (db->ps != ps)
   {
     /* add 'ps' to list db->ps of prepared statements to run on reconnect! */
-    unsigned int olen = 0; /* length of existing 'db->ps' array */
     unsigned int nlen = 0; /* length of 'ps' array */
+    unsigned int xlen;
     struct GNUNET_PQ_PreparedStatement *rps; /* combined array */
 
-    if (NULL != db->ps)
-      while (NULL != db->ps[olen].name)
-        olen++;
     while (NULL != ps[nlen].name)
       nlen++;
-    rps = GNUNET_new_array (olen + nlen + 1,
-                            struct GNUNET_PQ_PreparedStatement);
-    if (NULL != db->ps)
-      memcpy (rps,
-              db->ps,
-              olen * sizeof (struct GNUNET_PQ_PreparedStatement));
-    memcpy (&rps[olen],
+    xlen = nlen + db->ps_off;
+    if (xlen > db->ps_len)
+    {
+      xlen = 2 * xlen + 1;
+      rps = GNUNET_new_array (xlen,
+                              struct GNUNET_PQ_PreparedStatement);
+      if (NULL != db->ps)
+        memcpy (rps,
+                db->ps,
+                db->ps_off * sizeof (struct GNUNET_PQ_PreparedStatement));
+      GNUNET_free (db->ps);
+      db->ps_len = xlen;
+      db->ps = rps;
+    }
+    memcpy (&db->ps[db->ps_off],
             ps,
             nlen * sizeof (struct GNUNET_PQ_PreparedStatement));
-    GNUNET_free (db->ps);
-    db->ps = rps;
+    db->ps_off += nlen;
   }
 
   return GNUNET_PQ_prepare_once (db,

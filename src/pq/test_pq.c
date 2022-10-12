@@ -70,8 +70,7 @@ postgres_prepare (struct GNUNET_PQ_Context *db)
                             ",unn"
                             ") VALUES "
                             "($1, $2, $3, $4, $5, $6,"
-                            "$7, $8, $9, $10);",
-                            10),
+                            "$7, $8, $9, $10);"),
     GNUNET_PQ_make_prepare ("test_select",
                             "SELECT"
                             " pub"
@@ -86,8 +85,7 @@ postgres_prepare (struct GNUNET_PQ_Context *db)
                             ",unn"
                             " FROM test_pq"
                             " ORDER BY abs_time DESC "
-                            " LIMIT 1;",
-                            0),
+                            " LIMIT 1;"),
     GNUNET_PQ_PREPARED_STATEMENT_END
   };
 

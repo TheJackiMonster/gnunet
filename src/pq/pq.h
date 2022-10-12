@@ -50,6 +50,16 @@ struct GNUNET_PQ_Context
   struct GNUNET_PQ_PreparedStatement *ps;
 
   /**
+   * Length of the @e ps array.
+   */
+  unsigned int ps_len;
+
+  /**
+   * Last used offset in the @e ps array.
+   */
+  unsigned int ps_off;
+
+  /**
    * Configuration to use to connect to the DB.
    */
   char *config_str;
