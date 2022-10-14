@@ -36,7 +36,7 @@
 /**
  * Generic logging shortcut
  */
-#define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
+#define LOG(kind, ...) GNUNET_log_from (kind, "udp-backchannel",__VA_ARGS__)
 
 #define UDP "udp"
 
@@ -413,6 +413,9 @@ backchannel_check_run (void *cls,
   const struct GNUNET_TESTING_NetjailNode *node;
   const struct GNUNET_TESTING_NetjailNamespace *namespace;
 
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "check run 1\n");
+
   peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                          cs->start_peer_label);
   GNUNET_TRANSPORT_get_trait_application_handle (peer1_cmd,
@@ -429,7 +432,7 @@ backchannel_check_run (void *cls,
                                                               cs->topology);
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "check run\n");
+       "check run 2\n");
 
 
   node_it = GNUNET_CONTAINER_multishortmap_iterator_create (
@@ -450,6 +453,7 @@ backchannel_check_run (void *cls,
       add_search_string (cs, node);
     }
   }
+  GNUNET_free (node_it);
   namespace_it = GNUNET_CONTAINER_multishortmap_iterator_create (
     cs->topology->map_namespaces);
   while (GNUNET_YES == GNUNET_CONTAINER_multishortmap_iterator_next (
@@ -478,6 +482,7 @@ backchannel_check_run (void *cls,
         add_search_string (cs, node);
       }
     }
+    GNUNET_free (node_it);
   }
 
   if (0 != cs->con_num)

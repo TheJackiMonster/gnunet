@@ -2367,6 +2367,7 @@ sock_read (void *cls)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Received our own broadcast\n");
+      GNUNET_free (addr_verify);
       return;
     }
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,

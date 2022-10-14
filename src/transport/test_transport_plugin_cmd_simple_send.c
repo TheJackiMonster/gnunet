@@ -113,13 +113,10 @@ handle_result (void *cls,
                enum GNUNET_GenericReturnValue rv)
 {
   struct TestState *ts = cls;
-  struct GNUNET_MessageHeader *reply;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Local test exits with status %d\n",
               rv);
-
-  reply = GNUNET_TESTING_send_local_test_finished_msg ();
 
   ts->finished_cb ();
   GNUNET_free (ts->testdir);
@@ -238,6 +235,7 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "sscanf");
   }
   GNUNET_assert (0 < sscanf_ret);
+
   if (0 == n_int)
     num = m_int;
   else

@@ -226,9 +226,14 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
   unsigned int num;
   struct TestState *ts = GNUNET_new (struct TestState);
   struct GNUNET_TESTING_NetjailTopology *topology;
-
+  unsigned int sscanf_ret = 0;
 
   ts->finished_cb = finished_cb;
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "n %s m %s\n",
+       n,
+       m);
+
   if (GNUNET_YES == *read_file)
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -240,9 +245,27 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
 
   ts->topology = topology;
 
-  sscanf (m, "%u", &m_int);
-  sscanf (n, "%u", &n_int);
-  sscanf (local_m, "%u", &local_m_int);
+  errno = 0;
+  sscanf_ret = sscanf (m, "%u", &m_int);
+  if (errno != 0)
+  {
+    GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "sscanf");
+  }
+  GNUNET_assert (0 < sscanf_ret);
+  errno = 0;
+  sscanf_ret = sscanf (n, "%u", &n_int);
+  if (errno != 0)
+  {
+    GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "sscanf");
+  }
+  GNUNET_assert (0 < sscanf_ret);
+  errno = 0;
+  sscanf_ret = sscanf (local_m, "%u", &local_m_int);
+  if (errno != 0)
+  {
+    GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "sscanf");
+  }
+  GNUNET_assert (0 < sscanf_ret);
 
   if (0 == n_int)
     num = m_int;

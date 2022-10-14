@@ -34,7 +34,7 @@
 /**
  * Generic logging shortcut
  */
-#define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
+#define LOG(kind, ...) GNUNET_log_from (kind, "udp-backchannel", __VA_ARGS__)
 
 #define BASE_DIR "testdir"
 
@@ -187,18 +187,46 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
   unsigned int num;
   struct TestState *ts = GNUNET_new (struct TestState);
   struct GNUNET_TESTING_NetjailTopology *topology;
+  unsigned int sscanf_ret = 0;
 
   ts->finished_cb = finished_cb;
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "n %s m %s\n",
+       n,
+       m);
+
   if (GNUNET_YES == *read_file)
+  {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "read from file\n");
     topology = GNUNET_TESTING_get_topo_from_file (topology_data);
+  }
   else
     topology = GNUNET_TESTING_get_topo_from_string (topology_data);
 
   ts->topology = topology;
 
-  sscanf (m, "%u", &m_int);
-  sscanf (n, "%u", &n_int);
-  sscanf (local_m, "%u", &local_m_int);
+  errno = 0;
+  sscanf_ret = sscanf (m, "%u", &m_int);
+  if (errno != 0)
+  {
+    GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "sscanf");
+  }
+  GNUNET_assert (0 < sscanf_ret);
+  errno = 0;
+  sscanf_ret = sscanf (n, "%u", &n_int);
+  if (errno != 0)
+  {
+    GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "sscanf");
+  }
+  GNUNET_assert (0 < sscanf_ret);
+  errno = 0;
+  sscanf_ret = sscanf (local_m, "%u", &local_m_int);
+  if (errno != 0)
+  {
+    GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "sscanf");
+  }
+  GNUNET_assert (0 < sscanf_ret);
 
 
   if (0 == n_int)
@@ -296,7 +324,7 @@ libgnunet_test_transport_plugin_cmd_udp_backchannel_init (void *cls)
 
   GNUNET_log_setup ("udp-backchannel",
                     "DEBUG",
-                    NULL);
+                    "plugin.out");
 
   api = GNUNET_new (struct GNUNET_TESTING_PluginFunctions);
   api->start_testcase = &start_testcase;

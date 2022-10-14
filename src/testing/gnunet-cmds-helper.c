@@ -606,7 +606,7 @@ main (int argc, char **argv)
   int i;
   size_t topology_data_length = 0;
   unsigned int read_file;
-  char cr[1] = "\n";
+  char cr[2] = "\n\0";
 
   GNUNET_log_setup ("gnunet-cmds-helper",
                     "DEBUG",

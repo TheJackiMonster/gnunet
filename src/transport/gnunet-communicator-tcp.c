@@ -3554,6 +3554,8 @@ run (void *cls,
   socklen_t addr_len_ipv6;
 
   (void) cls;
+  memset (&v4,0,sizeof(struct sockaddr_in));
+  memset (&v6,0,sizeof(struct sockaddr_in6));
   cfg = c;
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_string (cfg,
