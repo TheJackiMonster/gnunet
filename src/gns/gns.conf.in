@@ -39,9 +39,10 @@ PROXY_UNIXPATH = $GNUNET_RUNTIME_DIR/gnunet-gns-proxy.sock
 [dns2gns]
 BINARY = gnunet-dns2gns
 START_ON_DEMAND = NO
-RUN_PER_USER = YES
+RUN_PER_USER = NO
 BIND_TO=127.0.0.1
 BIND_TO6=::1
 
-# -d: DNS resolver to use, -s: suffix to use, -f: fcfs suffix to use
-OPTIONS = -d 8.8.8.8
+# -d: DNS resolver to use
+OPTIONS = -d 9.9.9.9
+PORT = 15353

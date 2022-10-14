@@ -367,7 +367,6 @@ generate_id_token_body (const struct GNUNET_IDENTITY_PublicKey *aud_key,
                         const struct GNUNET_TIME_Relative *expiration_time,
                         const char *nonce)
 {
-  struct GNUNET_HashCode signature;
   struct GNUNET_TIME_Absolute exp_time;
   struct GNUNET_TIME_Absolute time_now;
   json_t *body;
@@ -508,8 +507,6 @@ OIDC_generate_id_token_hmac (const struct GNUNET_IDENTITY_PublicKey *aud_key,
                              const char *secret_key)
 {
   struct GNUNET_HashCode signature;
-  struct GNUNET_TIME_Absolute exp_time;
-  struct GNUNET_TIME_Absolute time_now;
   char *header;
   char *header_base64;
   char *body_str;

@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet
-   Copyright (C) 2016, 2017, 2020, 2021 GNUnet e.V.
+   Copyright (C) 2016, 2017, 2020-2022 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -754,11 +754,6 @@ struct GNUNET_PQ_PreparedStatement
    */
   const char *sql;
 
-  /**
-   * Number of arguments included in @e sql.
-   */
-  unsigned int num_arguments;
-
 };
 
 
@@ -767,7 +762,7 @@ struct GNUNET_PQ_PreparedStatement
  */
 #define GNUNET_PQ_PREPARED_STATEMENT_END \
   {                                      \
-    NULL, NULL, 0                        \
+    NULL, NULL                           \
   }
 
 
@@ -776,13 +771,11 @@ struct GNUNET_PQ_PreparedStatement
  *
  * @param name name of the statement
  * @param sql actual SQL statement
- * @param num_args number of arguments in the statement
  * @return initialized struct
  */
 struct GNUNET_PQ_PreparedStatement
 GNUNET_PQ_make_prepare (const char *name,
-                        const char *sql,
-                        unsigned int num_args);
+                        const char *sql);
 
 
 /**
@@ -797,6 +790,21 @@ GNUNET_PQ_make_prepare (const char *name,
 enum GNUNET_GenericReturnValue
 GNUNET_PQ_prepare_statements (struct GNUNET_PQ_Context *db,
                               const struct GNUNET_PQ_PreparedStatement *ps);
+
+
+/**
+ * Request creation of prepared statements @a ps from Postgres, but do not automatically re-prepare the statement
+ * if we are disconnected from the database.
+ *
+ * @param db database to prepare the statements for
+ * @param ps #GNUNET_PQ_PREPARED_STATEMENT_END-terminated array of prepared
+ *            statements.
+ * @return #GNUNET_OK on success,
+ *         #GNUNET_SYSERR on error
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_PQ_prepare_once (struct GNUNET_PQ_Context *db,
+                        const struct GNUNET_PQ_PreparedStatement *ps);
 
 
 /* ******************** pq_exec.c functions ************** */

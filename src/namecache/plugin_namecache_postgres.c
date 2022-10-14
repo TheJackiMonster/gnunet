@@ -96,16 +96,14 @@ database_setup (struct Plugin *plugin)
     struct GNUNET_PQ_PreparedStatement ps[] = {
       GNUNET_PQ_make_prepare ("cache_block",
                               "INSERT INTO ns096blocks (query, block, expiration_time) VALUES "
-                              "($1, $2, $3)", 3),
+                              "($1, $2, $3)"),
       GNUNET_PQ_make_prepare ("expire_blocks",
-                              "DELETE FROM ns096blocks WHERE expiration_time<$1",
-                              1),
+                              "DELETE FROM ns096blocks WHERE expiration_time<$1"),
       GNUNET_PQ_make_prepare ("delete_block",
-                              "DELETE FROM ns096blocks WHERE query=$1 AND expiration_time<=$2",
-                              2),
+                              "DELETE FROM ns096blocks WHERE query=$1 AND expiration_time<=$2"),
       GNUNET_PQ_make_prepare ("lookup_block",
                               "SELECT block FROM ns096blocks WHERE query=$1"
-                              " ORDER BY expiration_time DESC LIMIT 1", 1),
+                              " ORDER BY expiration_time DESC LIMIT 1"),
       GNUNET_PQ_PREPARED_STATEMENT_END
     };
 

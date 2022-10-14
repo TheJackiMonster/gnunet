@@ -72,10 +72,6 @@ static struct GNUNET_NAMESTORE_QueueEntry *qe;
 
 static int res;
 
-static unsigned int left_until_next;
-
-static uint8_t seen[1 + BENCHMARK_SIZE / 8];
-
 static struct GNUNET_TIME_Absolute start;
 
 struct GNUNET_NAMESTORE_RecordInfo ri[TEST_RECORD_COUNT];
@@ -149,14 +145,6 @@ create_record (unsigned int count)
   return rd;
 }
 
-
-static void
-fail_cb (void *cls)
-{
-  res = 2;
-  GNUNET_break (0);
-  GNUNET_SCHEDULER_shutdown ();
-}
 
 static void
 publish_records_single (void *cls);
@@ -342,10 +330,7 @@ put_cont_single (void *cls,
 static void
 publish_records_single (void *cls)
 {
-  struct GNUNET_GNSRECORD_Data *rd;
   struct GNUNET_TIME_Relative delay;
-
-  char *label;
 
   (void) cls;
   t = NULL;
@@ -366,8 +351,6 @@ publish_records_single (void *cls)
                                        ri[single_put_pos].a_rd,
                                        &put_cont_single,
                                        NULL);
-  GNUNET_free (label);
-  GNUNET_free (rd);
 }
 
 

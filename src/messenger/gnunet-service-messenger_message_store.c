@@ -259,8 +259,6 @@ iterate_save_entries (void *cls,
   struct GNUNET_MESSENGER_ClosureMessageSave *save = cls;
   struct GNUNET_MESSENGER_MessageEntry *entry = value;
 
-  struct GNUNET_MESSENGER_MessageEntryStorage storage;
-
   GNUNET_DISK_file_write (save->storage, key, sizeof(*key));
   GNUNET_DISK_file_write (save->storage, &(entry->offset), sizeof(entry->offset));
   GNUNET_DISK_file_write (save->storage, &(entry->length), sizeof(entry->length));

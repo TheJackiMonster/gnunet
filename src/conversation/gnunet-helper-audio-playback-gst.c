@@ -180,7 +180,7 @@ feed_buffer_to_gst (const char *audio, size_t b_len)
               "Feeding %u bytes to GStreamer\n",
               (unsigned int) b_len);
 
-  bufspace = g_memdup (audio, b_len);
+  bufspace = g_memdup2 (audio, b_len);
   b = gst_buffer_new_wrapped (bufspace, b_len);
   if (NULL == b)
   {

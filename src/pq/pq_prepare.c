@@ -26,68 +26,23 @@
 #include "pq.h"
 
 
-/**
- * Create a `struct GNUNET_PQ_PreparedStatement`.
- *
- * @param name name of the statement
- * @param sql actual SQL statement
- * @param num_args number of arguments in the statement
- * @return initialized struct
- */
 struct GNUNET_PQ_PreparedStatement
 GNUNET_PQ_make_prepare (const char *name,
-                        const char *sql,
-                        unsigned int num_args)
+                        const char *sql)
 {
   struct GNUNET_PQ_PreparedStatement ps = {
     .name = name,
-    .sql = sql,
-    .num_arguments = num_args
+    .sql = sql
   };
 
   return ps;
 }
 
 
-/**
- * Request creation of prepared statements @a ps from Postgres.
- *
- * @param db database to prepare the statements for
- * @param ps #GNUNET_PQ_PREPARED_STATEMENT_END-terminated array of prepared
- *            statements.
- * @return #GNUNET_OK on success,
- *         #GNUNET_SYSERR on error
- */
 enum GNUNET_GenericReturnValue
-GNUNET_PQ_prepare_statements (struct GNUNET_PQ_Context *db,
-                              const struct GNUNET_PQ_PreparedStatement *ps)
+GNUNET_PQ_prepare_once (struct GNUNET_PQ_Context *db,
+                        const struct GNUNET_PQ_PreparedStatement *ps)
 {
-  if (db->ps != ps)
-  {
-    /* add 'ps' to list db->ps of prepared statements to run on reconnect! */
-    unsigned int olen = 0; /* length of existing 'db->ps' array */
-    unsigned int nlen = 0; /* length of 'ps' array */
-    struct GNUNET_PQ_PreparedStatement *rps; /* combined array */
-
-    if (NULL != db->ps)
-      while (NULL != db->ps[olen].name)
-        olen++;
-    while (NULL != ps[nlen].name)
-      nlen++;
-    rps = GNUNET_new_array (olen + nlen + 1,
-                            struct GNUNET_PQ_PreparedStatement);
-    if (NULL != db->ps)
-      memcpy (rps,
-              db->ps,
-              olen * sizeof (struct GNUNET_PQ_PreparedStatement));
-    memcpy (&rps[olen],
-            ps,
-            nlen * sizeof (struct GNUNET_PQ_PreparedStatement));
-    GNUNET_free (db->ps);
-    db->ps = rps;
-  }
-
-  /* actually prepare statements */
   for (unsigned int i = 0; NULL != ps[i].name; i++)
   {
     PGresult *ret;
@@ -100,7 +55,7 @@ GNUNET_PQ_prepare_statements (struct GNUNET_PQ_Context *db,
     ret = PQprepare (db->conn,
                      ps[i].name,
                      ps[i].sql,
-                     ps[i].num_arguments,
+                     0,
                      NULL);
     if (PGRES_COMMAND_OK != PQresultStatus (ret))
     {
@@ -126,6 +81,44 @@ GNUNET_PQ_prepare_statements (struct GNUNET_PQ_Context *db,
     PQclear (ret);
   }
   return GNUNET_OK;
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_PQ_prepare_statements (struct GNUNET_PQ_Context *db,
+                              const struct GNUNET_PQ_PreparedStatement *ps)
+{
+  if (db->ps != ps)
+  {
+    /* add 'ps' to list db->ps of prepared statements to run on reconnect! */
+    unsigned int nlen = 0; /* length of 'ps' array */
+    unsigned int xlen;
+    struct GNUNET_PQ_PreparedStatement *rps; /* combined array */
+
+    while (NULL != ps[nlen].name)
+      nlen++;
+    xlen = nlen + db->ps_off;
+    if (xlen > db->ps_len)
+    {
+      xlen = 2 * xlen + 1;
+      rps = GNUNET_new_array (xlen,
+                              struct GNUNET_PQ_PreparedStatement);
+      if (NULL != db->ps)
+        memcpy (rps,
+                db->ps,
+                db->ps_off * sizeof (struct GNUNET_PQ_PreparedStatement));
+      GNUNET_free (db->ps);
+      db->ps_len = xlen;
+      db->ps = rps;
+    }
+    memcpy (&db->ps[db->ps_off],
+            ps,
+            nlen * sizeof (struct GNUNET_PQ_PreparedStatement));
+    db->ps_off += nlen;
+  }
+
+  return GNUNET_PQ_prepare_once (db,
+                                 ps);
 }
 
 

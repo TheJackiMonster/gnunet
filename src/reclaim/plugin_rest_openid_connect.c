@@ -2467,9 +2467,10 @@ consume_ticket (void *cls,
                                                    &cache_key);
   if (NULL != cached_code)
   {
-    GNUNET_CONTAINER_multihashmap_remove (oidc_code_cache,
-                                          &cache_key,
-                                          cached_code);
+    GNUNET_assert (GNUNET_YES ==
+                   GNUNET_CONTAINER_multihashmap_remove (oidc_code_cache,
+                                                         &cache_key,
+                                                         cached_code));
     GNUNET_free (cached_code);
   }
 
@@ -2562,9 +2563,10 @@ consume_fail (void *cls)
   /**
    * Remove the cached item
    */
-  GNUNET_CONTAINER_multihashmap_remove (oidc_code_cache,
-                                        &cache_key,
-                                        cached_code);
+  GNUNET_assert (GNUNET_YES ==
+                 GNUNET_CONTAINER_multihashmap_remove (oidc_code_cache,
+                                                       &cache_key,
+                                                       cached_code));
 
   // decode code
   if (GNUNET_OK != OIDC_parse_authz_code (&handle->ticket.audience,
