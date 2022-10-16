@@ -1,0 +1,14 @@
+# Typically placed into /usr/lib/systemd/system/gnunet.service
+[Unit]
+Description=GNUnet system service
+After=network.target
+
+[Service]
+Type=simple
+User=gnunet
+ExecStart=/usr/lib/gnunet/libexec/gnunet-service-arm -c /etc/gnunet.conf
+StateDirectory=gnunet
+StateDirectoryMode=0700
+
+[Install]
+WantedBy=multi-user.target
