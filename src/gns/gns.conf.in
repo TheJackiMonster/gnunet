@@ -46,3 +46,9 @@ BIND_TO6=::1
 # -d: DNS resolver to use
 OPTIONS = -d 9.9.9.9
 PORT = 15353
+
+# This setting is useful in combination with systemd-resolve and
+# NetworkManager-dispatcher. It allows the interfaces to automatically
+# configure the dns2gns server for interfaces going up
+# See also: contrib/packages/fedora/10-dns2gns.sh
+ENABLE_RESOLVECTL_NMDISPATCHER = NO
