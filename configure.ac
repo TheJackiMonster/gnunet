@@ -1617,7 +1617,7 @@ Transpiled mdocml Manual:       ${mdocml_msg}
 ])
 
 AS_IF([test "x$MSG_USER_SETUP" != "xfalse"],
-  [AC_MSG_WARN([Please make sure NOW to create a user and group 'gnunet' and additionall a group 'gnunetdns'. Make sure that '/var/lib/gnunet' is owned (and writable) by user 'gnunet'.])
+  [AC_MSG_WARN([Please make sure NOW to create a user and group 'gnunet' and additionally a group 'gnunetdns'. Make sure that '/var/lib/gnunet' is owned (and writable) by user 'gnunet'.])
    AS_IF([test "x$HAVE_GNUNET_USER" != "x0"],
      [AC_MSG_NOTICE([To do this on this system, run:
 # addgroup gnunetdns
