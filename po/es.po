@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.9.5a\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2022-10-01 22:27+0900\n"
+"POT-Creation-Date: 2022-10-16 18:47+0900\n"
 "PO-Revision-Date: 2013-02-23 17:50+0100\n"
 "Last-Translator: Miguel Ángel Arruga Vivas <rosen644835@gmail.com>\n"
 "Language-Team: Spanish <es@li.org>\n"
@@ -1960,16 +1960,16 @@ msgstr "«%s» para «%s» falló en %s: %d con error: %s\n"
 msgid "Mysql database running\n"
 msgstr "Base de datos Mysql ejecutándose\n"
 
-#: src/datastore/plugin_datastore_postgres.c:284
-#: src/datastore/plugin_datastore_postgres.c:897
+#: src/datastore/plugin_datastore_postgres.c:273
+#: src/datastore/plugin_datastore_postgres.c:886
 msgid "Postgresql exec failure"
 msgstr ""
 
-#: src/datastore/plugin_datastore_postgres.c:858
+#: src/datastore/plugin_datastore_postgres.c:847
 msgid "Failed to drop table from database.\n"
 msgstr "Se produjo un fallo al borrar una tabla de la base de datos.\n"
 
-#: src/datastore/plugin_datastore_postgres.c:956
+#: src/datastore/plugin_datastore_postgres.c:945
 msgid "Postgres database running\n"
 msgstr "Base de datos Postgres ejecutándose\n"
 
@@ -1983,7 +1983,7 @@ msgstr "«%s» falló en %s:%u con el error: %s"
 
 #: src/datastore/plugin_datastore_sqlite.c:310
 #: src/namecache/plugin_namecache_sqlite.c:180
-#: src/namestore/plugin_namestore_sqlite.c:869
+#: src/namestore/plugin_namestore_sqlite.c:868
 #: src/peerstore/plugin_peerstore_sqlite.c:540
 #, c-format
 msgid "Unable to initialize SQLite: %s.\n"
@@ -3888,36 +3888,29 @@ msgstr "Se produjo un fallo al procesar la petición DNS.  Omitiendo.\n"
 msgid "VPN returned empty result for `%s'\n"
 msgstr "El ATS devolvió resultados para %u direcciones\n"
 
-#: src/gns/gnunet-dns2gns.c:655
+#: src/gns/gnunet-dns2gns.c:656
 #, c-format
 msgid "Cannot parse DNS request from %s\n"
 msgstr "No se puede procesar la petición DNS de %s\n"
 
-#: src/gns/gnunet-dns2gns.c:671
+#: src/gns/gnunet-dns2gns.c:672
 #, c-format
 msgid "Received malformed DNS request from %s\n"
 msgstr "Recibida petición DNS mal formada de %s\n"
 
-#: src/gns/gnunet-dns2gns.c:679
+#: src/gns/gnunet-dns2gns.c:680
 #, c-format
 msgid "Received unsupported DNS request from %s\n"
 msgstr "Recibida petición DNS no soportada de %s\n"
 
-#: src/gns/gnunet-dns2gns.c:840
+#: src/gns/gnunet-dns2gns.c:841
 #, fuzzy
 msgid "No DNS server specified!\n"
 msgstr "¡Ninguna palabra clave especificada!\n"
 
-#: src/gns/gnunet-dns2gns.c:995
+#: src/gns/gnunet-dns2gns.c:1001
 msgid "IP of recursive DNS resolver to use (required)"
 msgstr "IP del resolvedor recursivo DNS a usar (requerido)"
-
-#: src/gns/gnunet-dns2gns.c:1001
-#, fuzzy
-msgid "UDP port to listen on for inbound DNS requests; default: 2853"
-msgstr ""
-"Puerto UDP en el que escuchar para peticiones DNS entrantes; predeterminado: "
-"53"
 
 #: src/gns/gnunet-dns2gns.c:1018
 msgid "GNUnet DNS-to-GNS proxy (a DNS server)"
@@ -4109,13 +4102,15 @@ msgid "Properly base32-encoded public key required"
 msgstr "Tipo requerido\n"
 
 #: src/gns/gnunet-service-gns.c:537
+#: src/zonemaster/gnunet-service-zonemaster-monitor.c:542
+#: src/zonemaster/gnunet-service-zonemaster.c:982
 #, fuzzy
 msgid "Failed to connect to the namecache!\n"
 msgstr "¡Se produjo un fallo al conectar con el almacén de nombres!\n"
 
 #: src/gns/gnunet-service-gns.c:556
-#: src/zonemaster/gnunet-service-zonemaster-monitor.c:402
-#: src/zonemaster/gnunet-service-zonemaster.c:853
+#: src/zonemaster/gnunet-service-zonemaster-monitor.c:572
+#: src/zonemaster/gnunet-service-zonemaster.c:1021
 msgid "Could not connect to DHT!\n"
 msgstr "¡No se pudo conectar a la DHT!\n"
 
@@ -4982,25 +4977,25 @@ msgstr "Base de datos sqlite ejecutándose\n"
 msgid "Failed to setup database at `%s'\n"
 msgstr "Se produjo un fallo al inciar «%s» en «%s»\n"
 
-#: src/namestore/gnunet-namestore-dbtool.c:87
+#: src/namestore/gnunet-namestore-dbtool.c:86
 #: src/namestore/gnunet-namestore.c:1348
 #, fuzzy, c-format
 msgid "Superfluous command line arguments (starting with `%s') ignored\n"
 msgstr "Argumentos superfluos (ignorados).\n"
 
-#: src/namestore/gnunet-namestore-dbtool.c:154
+#: src/namestore/gnunet-namestore-dbtool.c:153
 msgid "initialize database"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-dbtool.c:158
+#: src/namestore/gnunet-namestore-dbtool.c:157
 msgid "reset database (DANGEROUS: All existing data is lost!"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-dbtool.c:165
+#: src/namestore/gnunet-namestore-dbtool.c:164
 msgid "the namestore plugin to work with, e.g. 'sqlite'"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-dbtool.c:179
+#: src/namestore/gnunet-namestore-dbtool.c:178
 #, fuzzy
 msgid "GNUnet namestore database manipulation tool"
 msgstr "Herramienta de manipulación de zona de GNUnet"
@@ -5317,22 +5312,17 @@ msgstr ""
 msgid "name of the ego controlling the zone"
 msgstr "nombre de la sección a la que acceder"
 
-#: src/namestore/gnunet-service-namestore.c:950
-#, fuzzy, c-format
-msgid "Failed to replicate block in namecache: %s\n"
-msgstr "Se produjo un fallo al crear el espacio de nombres «%s»\n"
-
-#: src/namestore/gnunet-service-namestore.c:1667
+#: src/namestore/gnunet-service-namestore.c:1504
 #, fuzzy
 msgid "Error normalizing name."
 msgstr "Error creando el túnel\n"
 
-#: src/namestore/gnunet-service-namestore.c:1690
+#: src/namestore/gnunet-service-namestore.c:1522
 #, fuzzy
 msgid "Error deserializing records."
 msgstr "Error interno escaneando directorio.\n"
 
-#: src/namestore/gnunet-service-namestore.c:1800
+#: src/namestore/gnunet-service-namestore.c:1633
 #, fuzzy
 msgid "Store failed"
 msgstr "«gnunet-ecc» falló"
@@ -5362,7 +5352,7 @@ msgstr "Se produjo un fallo al inciar «%s» en «%s»\n"
 msgid "SQlite database running\n"
 msgstr "Base de datos sqlite ejecutándose\n"
 
-#: src/namestore/plugin_rest_namestore.c:1109
+#: src/namestore/plugin_rest_namestore.c:1369
 #, fuzzy
 msgid "Namestore REST API initialized\n"
 msgstr "Conexión fallida\n"
@@ -5950,43 +5940,43 @@ msgid "Daemon to run to perform IP protocol translation to GNUnet"
 msgstr ""
 "Demonio a ejecutar para realizar la traducción de protocolo IP a GNUnet"
 
-#: src/reclaim/gnunet-did.c:591
+#: src/reclaim/gnunet-did.c:590
 msgid "Create a DID Document and display its DID"
 msgstr ""
 
-#: src/reclaim/gnunet-did.c:596
+#: src/reclaim/gnunet-did.c:595
 msgid "Get the DID Document associated with the given DID"
 msgstr ""
 
-#: src/reclaim/gnunet-did.c:601
+#: src/reclaim/gnunet-did.c:600
 msgid "Remove the DID"
 msgstr ""
 
-#: src/reclaim/gnunet-did.c:605
+#: src/reclaim/gnunet-did.c:604
 msgid "Replace the DID Document."
 msgstr ""
 
-#: src/reclaim/gnunet-did.c:609
+#: src/reclaim/gnunet-did.c:608
 msgid "Show the DID for a given ego"
 msgstr ""
 
-#: src/reclaim/gnunet-did.c:613
+#: src/reclaim/gnunet-did.c:612
 msgid "Show egos with DIDs"
 msgstr ""
 
-#: src/reclaim/gnunet-did.c:619
+#: src/reclaim/gnunet-did.c:618
 msgid "The Decentralized Identity (DID)"
 msgstr ""
 
-#: src/reclaim/gnunet-did.c:625
+#: src/reclaim/gnunet-did.c:624
 msgid "The DID Document to store in GNUNET"
 msgstr ""
 
-#: src/reclaim/gnunet-did.c:630
+#: src/reclaim/gnunet-did.c:629
 msgid "The name of the EGO"
 msgstr ""
 
-#: src/reclaim/gnunet-did.c:636
+#: src/reclaim/gnunet-did.c:635
 msgid "The time until the DID Document is going to expire (e.g. 5d)"
 msgstr ""
 
@@ -6074,7 +6064,7 @@ msgstr ""
 msgid "re:claimID command line tool"
 msgstr ""
 
-#: src/reclaim/plugin_rest_openid_connect.c:3094
+#: src/reclaim/plugin_rest_openid_connect.c:3096
 #, fuzzy
 msgid "OpenID Connect REST API initialized\n"
 msgstr "Conexión fallida\n"
@@ -6903,17 +6893,17 @@ msgid ""
 "free topology cannot be more than %u.  Given `%s = %llu'"
 msgstr ""
 
-#: src/testbed/testbed_api_topology.c:1033 src/testing/testing.c:2651
+#: src/testbed/testbed_api_topology.c:1033 src/testing/testing.c:2753
 #, c-format
 msgid "Topology file %s not found\n"
 msgstr "El fichero de topología %s no fue encontrado\n"
 
-#: src/testbed/testbed_api_topology.c:1041 src/testing/testing.c:2659
+#: src/testbed/testbed_api_topology.c:1041 src/testing/testing.c:2761
 #, c-format
 msgid "Topology file %s has no data\n"
 msgstr "El fichero de topología %s no tiene datos\n"
 
-#: src/testbed/testbed_api_topology.c:1049 src/testing/testing.c:2667
+#: src/testbed/testbed_api_topology.c:1049 src/testing/testing.c:2769
 #, c-format
 msgid "Topology file %s cannot be read\n"
 msgstr "El fichero de topología %s no puede ser leido\n"
@@ -7140,9 +7130,9 @@ msgstr "# mensajes «HELLO» recibidos"
 msgid "GNUnet topology control"
 msgstr ""
 
-#: src/transport/gnunet-communicator-tcp.c:3342
-#: src/transport/gnunet-communicator-udp.c:3867
-#: src/transport/gnunet-service-tng.c:11039
+#: src/transport/gnunet-communicator-tcp.c:3347
+#: src/transport/gnunet-communicator-udp.c:3871
+#: src/transport/gnunet-service-tng.c:11334
 #: src/transport/gnunet-service-transport.c:2622
 #, fuzzy
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
@@ -7150,12 +7140,12 @@ msgstr ""
 "El servicio de transporte carece de opciones de configuración de clave.  "
 "Saliendo.\n"
 
-#: src/transport/gnunet-communicator-tcp.c:3675
+#: src/transport/gnunet-communicator-tcp.c:3680
 #, fuzzy
 msgid "GNUnet TCP communicator"
 msgstr "Configurador Gtk de GNUnet"
 
-#: src/transport/gnunet-communicator-udp.c:3942
+#: src/transport/gnunet-communicator-udp.c:3946
 #, fuzzy
 msgid "GNUnet UDP communicator"
 msgstr "Configurador Gtk de GNUnet"
@@ -8321,7 +8311,7 @@ msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
 msgid "Could not access configuration file `%s'\n"
 msgstr "No se pudo acceder al fichero de configuración «%s»\n"
 
-#: src/transport/transport_api2_communication.c:743
+#: src/transport/transport_api2_communication.c:752
 msgid "Dropped backchanel message: handler not provided by communicator\n"
 msgstr ""
 
@@ -9489,10 +9479,26 @@ msgstr "el servicio es ofrecido vía UDP"
 msgid "Setup tunnels via VPN."
 msgstr "Configurar túneles vía VPN."
 
-#: src/zonemaster/gnunet-service-zonemaster-monitor.c:378
-#: src/zonemaster/gnunet-service-zonemaster.c:815
+#: src/zonemaster/gnunet-service-zonemaster-monitor.c:249
+#: src/zonemaster/gnunet-service-zonemaster.c:364
+#, fuzzy, c-format
+msgid "Failed to replicate block in namecache: %s\n"
+msgstr "Se produjo un fallo al crear el espacio de nombres «%s»\n"
+
+#: src/zonemaster/gnunet-service-zonemaster-monitor.c:529
+#: src/zonemaster/gnunet-service-zonemaster.c:969
 msgid "Failed to connect to the namestore!\n"
 msgstr "¡Se produjo un fallo al conectar con el almacén de nombres!\n"
+
+#: src/zonemaster/gnunet-service-zonemaster-monitor.c:550
+msgid "Namecache is disabled!\n"
+msgstr ""
+
+#, fuzzy
+#~ msgid "UDP port to listen on for inbound DNS requests; default: 2853"
+#~ msgstr ""
+#~ "Puerto UDP en el que escuchar para peticiones DNS entrantes; "
+#~ "predeterminado: 53"
 
 #, fuzzy
 #~ msgid "Flat file database running\n"

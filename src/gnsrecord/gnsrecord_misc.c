@@ -430,10 +430,24 @@ GNUNET_GNSRECORD_normalize_record_set (const char *label,
   rd_count_tmp = 0;
   for (unsigned int i = 0; i < rd_count; i++)
   {
-    /* Ignore the tombstone. For maintenance only. Remember expiration time. */
+    /* Ignore private records for public record set */
+    if ((0 != (filter & GNUNET_GNSRECORD_FILTER_OMIT_PRIVATE)) &&
+        (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE)))
+      continue;
+    /* Skip expired records */
+    if ((0 == (rd[i].flags & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION)) &&
+        (rd[i].expiration_time < now.abs_value_us))
+      continue;     /* record already expired, skip it */
+    /* Ignore the tombstone unless filter permits explicitly.
+     * Remember expiration time. */
     if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[i].record_type)
     {
       minimum_expiration.abs_value_us = rd[i].expiration_time;
+      if (0 != (filter & GNUNET_GNSRECORD_FILTER_INCLUDE_MAINTENANCE))
+      {
+        rd_public[rd_count_tmp] = rd[i];
+        rd_count_tmp++;
+      }
       continue;
     }
     /* No NICK records unless empty label */
@@ -529,15 +543,6 @@ GNUNET_GNSRECORD_normalize_record_set (const char *label,
       have_other = GNUNET_YES;
     }
 
-    /* Ignore private records for public record set */
-
-    if ((0 != (filter & GNUNET_GNSRECORD_FILTER_OMIT_PRIVATE)) &&
-        (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE)))
-      continue;
-    /* Skip expired records */
-    if ((0 == (rd[i].flags & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION)) &&
-        (rd[i].expiration_time < now.abs_value_us))
-      continue;     /* record already expired, skip it */
     rd_public[rd_count_tmp] = rd[i];
     /* Make sure critical record types are marked as such */
     if (GNUNET_YES == GNUNET_GNSRECORD_is_critical (rd[i].record_type))
