@@ -529,7 +529,6 @@ do_send (struct PeerInfo *pi,
  * Sign that we are routing a message from @a pred to @a succ.
  * (So the route is $PRED->us->$SUCC).
  *
- * @param key key of the data (not necessarily the query hash)
  * @param data payload (the block)
  * @param data_size number of bytes in @a data
  * @param exp_time expiration time of @a data
@@ -1890,7 +1889,7 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
  * Check validity of a p2p put request.
  *
  * @param cls closure with the `struct PeerInfo` of the sender
- * @param message message
+ * @param put message
  * @return #GNUNET_OK if the message is valid
  */
 static enum GNUNET_GenericReturnValue
@@ -1933,7 +1932,7 @@ check_dht_p2p_put (void *cls,
  * Core handler for p2p put requests.
  *
  * @param cls closure with the `struct Target` of the sender
- * @param message message
+ * @param put message
  */
 static void
 handle_dht_p2p_put (void *cls,
@@ -2503,7 +2502,7 @@ process_reply_with_path (const struct GNUNET_DATACACHE_Block *bd,
  * Check validity of p2p result message.
  *
  * @param cls closure
- * @param message message
+ * @param prm message
  * @return #GNUNET_YES if the message is well-formed
  */
 static enum GNUNET_GenericReturnValue
@@ -2542,7 +2541,7 @@ check_dht_p2p_result (void *cls,
  * Core handler for p2p result messages.
  *
  * @param cls closure
- * @param message message
+ * @param prm message
  */
 static void
 handle_dht_p2p_result (void *cls,
@@ -2754,7 +2753,7 @@ check_dht_p2p_hello (void *cls,
  * Core handler for p2p HELLO messages.
  *
  * @param cls closure
- * @param message message
+ * @param hello message
  */
 static void
 handle_dht_p2p_hello (void *cls,

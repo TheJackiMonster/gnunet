@@ -18,6 +18,9 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 /**
+ * @addtogroup lib_extra Additional libraries
+ * @{
+ *
  * @file src/include/gnunet_curl_lib.h
  * @brief library to make it easy to download JSON replies over HTTP
  * @author Sree Harsha Totakura <sreeharsha@totakura.in>
@@ -224,7 +227,7 @@ typedef void
  *           be executed AND cleaned up
  * @param jcc callback to invoke upon completion
  * @param jcc_cls closure for @a jcc
- * @return NULL on error (in this case, @eh is still released!)
+ * @return NULL on error (in this case, @a eh is still released!)
  */
 struct GNUNET_CURL_Job *
 GNUNET_CURL_job_add (struct GNUNET_CURL_Context *ctx,
@@ -246,7 +249,7 @@ GNUNET_CURL_job_add (struct GNUNET_CURL_Context *ctx,
  *           be executed AND cleaned up
  * @param jcc callback to invoke upon completion
  * @param jcc_cls closure for @a jcc
- * @return NULL on error (in this case, @eh is still released!)
+ * @return NULL on error (in this case, @a eh is still released!)
  */
 struct GNUNET_CURL_Job *
 GNUNET_CURL_job_add_with_ct_json (struct GNUNET_CURL_Context *ctx,
@@ -304,7 +307,7 @@ GNUNET_CURL_set_tlscert (struct GNUNET_CURL_Context *ctx,
  * @param job_headers extra headers to add for this request
  * @param jcc callback to invoke upon completion
  * @param jcc_cls closure for @a jcc
- * @return NULL on error (in this case, @eh is still released!)
+ * @return NULL on error (in this case, @a eh is still released!)
  */
 struct GNUNET_CURL_Job *
 GNUNET_CURL_job_add2 (struct GNUNET_CURL_Context *ctx,
@@ -324,10 +327,9 @@ GNUNET_CURL_job_add2 (struct GNUNET_CURL_Context *ctx,
  * @param eh curl easy handle for the request, will
  *           be executed AND cleaned up
  * @param job_headers extra headers to add for this request
- * @param max_reply_size largest acceptable response body
  * @param jcc callback to invoke upon completion
  * @param jcc_cls closure for @a jcc
- * @return NULL on error (in this case, @eh is still released!)
+ * @return NULL on error (in this case, @a eh is still released!)
  */
 struct GNUNET_CURL_Job *
 GNUNET_CURL_job_add_raw (struct GNUNET_CURL_Context *ctx,
@@ -436,5 +438,7 @@ GNUNET_CURL_is_valid_scope_id (const char *scope_id);
 
 #endif
 /** @} */  /* end of group */
+
+/** @} */  /* end of group addition to lib_extra */
 
 /* end of gnunet_curl_lib.h */

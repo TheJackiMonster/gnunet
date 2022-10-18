@@ -191,15 +191,6 @@ RPS_sampler_set_desired_probability (struct RPS_Sampler *sampler,
 }
 
 
-/**
- * @brief Set the deficiency factor.
- *
- * Only used/useful with the client sampler
- * (Maybe move to rps-sampler_client.{h|c} ?)
- *
- * @param sampler
- * @param desired_probability
- */
 void
 RPS_sampler_set_deficiency_factor (struct RPS_Sampler *sampler,
                                    double deficiency_factor)
@@ -440,7 +431,6 @@ RPS_sampler_resize (struct RPS_Sampler *sampler, unsigned int new_size)
  * Empty the sampler.
  *
  * @param sampler the sampler to empty.
- * @param new_size the new size of the sampler
  */
 static void
 sampler_empty (struct RPS_Sampler *sampler)
@@ -555,18 +545,6 @@ check_peer_info_ready (void *cls,
 }
 
 
-/**
- * Get n random peers out of the sampled peers.
- *
- * We might want to reinitialise this sampler after giving the
- * corrsponding peer to the client.
- * Random with or without consumption?
- *
- * @param sampler the sampler to get peers from.
- * @param cb callback that will be called once the ids are ready.
- * @param cls closure given to @a cb
- * @param num_peers the number of peers requested
- */
 struct RPS_SamplerRequestHandle *
 RPS_sampler_get_n_rand_peers (struct RPS_Sampler *sampler,
                               uint32_t num_peers,

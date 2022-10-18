@@ -303,7 +303,6 @@ create_target (struct Plugin *plugin,
  *
  * @param plugin the plugin handle
  * @param pid presumed identity of the target
- * @param src source target is from, or NULL if unknown
  * @param addr socket address to find
  * @param addrlen number of bytes in @a addr
  * @return matching target object

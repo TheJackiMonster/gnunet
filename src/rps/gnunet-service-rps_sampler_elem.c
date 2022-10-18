@@ -44,7 +44,7 @@
 /**
  * Reinitialise a previously initialised sampler element.
  *
- * @param sampler_el The sampler element to (re-) initialise
+ * @param sampler_elem The sampler element to (re-) initialise
  */
 void
 RPS_sampler_elem_reinit (struct RPS_SamplerElement *sampler_elem)

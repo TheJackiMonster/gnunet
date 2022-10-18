@@ -83,20 +83,6 @@ GNUNET_FS_file_information_set_filename (struct GNUNET_FS_FileInformation *s,
 }
 
 
-/**
- * Create an entry for a file in a publish-structure.
- *
- * @param h handle to the file sharing subsystem
- * @param client_info initial value for the client-info value for this entry
- * @param filename name of the file or directory to publish
- * @param keywords under which keywords should this file be available
- *         directly; can be NULL
- * @param meta metadata for the file
- * @param do_index #GNUNET_YES for index, #GNUNET_NO for insertion,
- *                #GNUNET_SYSERR for simulation
- * @param bo block options
- * @return publish structure entry for the file
- */
 struct GNUNET_FS_FileInformation *
 GNUNET_FS_file_information_create_from_file (
   struct GNUNET_FS_Handle *h,
@@ -157,22 +143,6 @@ GNUNET_FS_file_information_create_from_file (
 }
 
 
-/**
- * Create an entry for a file in a publish-structure.
- *
- * @param h handle to the file sharing subsystem
- * @param client_info initial value for the client-info value for this entry
- * @param length length of the file
- * @param data data for the file (should not be used afterwards by
- *        the caller; callee will "free")
- * @param keywords under which keywords should this file be available
- *         directly; can be NULL
- * @param meta metadata for the file
- * @param do_index GNUNET_YES for index, GNUNET_NO for insertion,
- *                GNUNET_SYSERR for simulation
- * @param bo block options
- * @return publish structure entry for the file
- */
 struct GNUNET_FS_FileInformation *
 GNUNET_FS_file_information_create_from_data (
   struct GNUNET_FS_Handle *h,
@@ -202,22 +172,6 @@ GNUNET_FS_file_information_create_from_data (
 }
 
 
-/**
- * Create an entry for a file in a publish-structure.
- *
- * @param h handle to the file sharing subsystem
- * @param client_info initial value for the client-info value for this entry
- * @param length length of the file
- * @param reader function that can be used to obtain the data for the file
- * @param reader_cls closure for "reader"
- * @param keywords under which keywords should this file be available
- *         directly; can be NULL
- * @param meta metadata for the file
- * @param do_index #GNUNET_YES for index, #GNUNET_NO for insertion,
- *                #GNUNET_SYSERR for simulation
- * @param bo block options
- * @return publish structure entry for the file
- */
 struct GNUNET_FS_FileInformation *
 GNUNET_FS_file_information_create_from_reader (
   struct GNUNET_FS_Handle *h,
@@ -267,18 +221,6 @@ GNUNET_FS_file_information_is_directory (
 }
 
 
-/**
- * Create an entry for an empty directory in a publish-structure.
- *
- * @param h handle to the file sharing subsystem
- * @param client_info initial value for the client-info value for this entry
- * @param meta metadata for the directory
- * @param keywords under which keywords should this directory be available
- *         directly; can be NULL
- * @param bo block options
- * @param filename name of the directory; can be NULL
- * @return publish structure entry for the directory , NULL on error
- */
 struct GNUNET_FS_FileInformation *
 GNUNET_FS_file_information_create_empty_directory (
   struct GNUNET_FS_Handle *h,
@@ -303,17 +245,6 @@ GNUNET_FS_file_information_create_empty_directory (
 }
 
 
-/**
- * Add an entry to a directory in a publish-structure.  Clients
- * should never modify publish structures that were passed to
- * #GNUNET_FS_publish_start already.
- *
- * @param dir the directory
- * @param ent the entry to add; the entry must not have been
- *            added to any other directory at this point and
- *            must not include @a dir in its structure
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
 int
 GNUNET_FS_file_information_add (struct GNUNET_FS_FileInformation *dir,
                                 struct GNUNET_FS_FileInformation *ent)

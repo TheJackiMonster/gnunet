@@ -62,14 +62,6 @@ GNUNET_GNSRECORD_label_check (const char*label, char **emsg)
 }
 
 
-/**
- * Convert a zone key to a string (for printing debug messages).
- * This is one of the very few calls in the entire API that is
- * NOT reentrant!
- *
- * @param z the zone key
- * @return string form; will be overwritten by next call to #GNUNET_GNSRECORD_z2s
- */
 const char *
 GNUNET_GNSRECORD_z2s (const struct GNUNET_IDENTITY_PublicKey *z)
 {

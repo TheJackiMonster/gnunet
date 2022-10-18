@@ -745,7 +745,7 @@ mq_error_handler (void *cls,
  * (-group)
  *
  * @param share_val Share value
- * @param hash[out] Pointer to the location in which the hash will be stored.
+ * @param[out] hash Pointer to the location in which the hash will be stored.
  */
 static void
 hash_from_share_val (const char *share_val,

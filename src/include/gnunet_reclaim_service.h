@@ -200,7 +200,7 @@ GNUNET_RECLAIM_attribute_store (
    *
    * @param h handle to the re:claimID service
    * @param pkey private key of the identity
-   * @param attr the credential value
+   * @param credential the credential value
    * @param exp_interval the relative expiration interval for the credential
    * @param cont continuation to call when done
    * @param cont_cls closure for @a cont
@@ -235,7 +235,7 @@ GNUNET_RECLAIM_attribute_delete (
   GNUNET_RECLAIM_ContinuationWithStatus cont, void *cont_cls);
 
 /**
- * Delete a credential. Tickets used to share use a presentation of this
+ * Delete a credential. Tickets used to share a presentation of this
  * credential are updated accordingly.
  *
  * @param h handle to the re:claimID service
@@ -349,7 +349,7 @@ GNUNET_RECLAIM_get_credentials_start (
  * Calls the record processor specified in #GNUNET_RECLAIM_get_credentials_start
  * for the next record.
  *
- * @param it the iterator
+ * @param ait the iterator
  */
 void
 GNUNET_RECLAIM_get_credentials_next (
@@ -361,7 +361,7 @@ GNUNET_RECLAIM_get_credentials_next (
  * be called on any iteration that has not yet completed prior to calling
  * #GNUNET_RECLAIM_disconnect.
  *
- * @param it the iterator
+ * @param ait the iterator
  */
 void
 GNUNET_RECLAIM_get_credentials_stop (

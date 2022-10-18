@@ -334,16 +334,6 @@ GST_hello_modify_addresses (int addremove,
 }
 
 
-/**
- * Test if a particular address is one of ours.
- *
- * @param address address to test
- * @param sig location where to cache PONG signatures for this address [set]
- * @param sig_expiration how long until the current 'sig' expires?
- *            (ZERO if sig was never created) [set]
- * @return #GNUNET_YES if this is one of our addresses,
- *         #GNUNET_NO if not
- */
 int
 GST_hello_test_address (const struct GNUNET_HELLO_Address *address,
                         struct GNUNET_CRYPTO_EddsaSignature **sig,

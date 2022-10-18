@@ -158,7 +158,6 @@ reconnect (struct GNUNET_CORE_Handle *h);
  * Task schedule to try to re-connect to core.
  *
  * @param cls the `struct GNUNET_CORE_Handle`
- * @param tc task context
  */
 static void
 reconnect_task (void *cls)

@@ -696,7 +696,7 @@ make_up_icmpv6_payload (struct ChannelState *ts,
  * We got an ICMP packet back from the CADET channel.  Check it is OK.
  *
  * @param cls our `struct ChannelState *`
- * @param message the actual message
+ * @param i2v the actual message
  * @return #GNUNET_OK to keep the connection open,
  *         #GNUNET_SYSERR to close it (signal serious error)
  */
@@ -724,7 +724,7 @@ check_icmp_back (void *cls, const struct GNUNET_EXIT_IcmpToVPNMessage *i2v)
  * local virtual interface via the helper.
  *
  * @param cls our `struct ChannelState *`
- * @param message the actual message
+ * @param i2v the actual message
  */
 static void
 handle_icmp_back (void *cls, const struct GNUNET_EXIT_IcmpToVPNMessage *i2v)

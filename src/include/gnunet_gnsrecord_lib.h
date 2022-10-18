@@ -528,6 +528,7 @@ GNUNET_GNSRECORD_query_from_private_key (
 
 /**
  * Calculate the DHT query for a given @a label in a given @a zone.
+ * FIXME: We may want to plugin-ize this at some point.
  *
  * @param pub public key of the zone
  * @param label label of the record
@@ -752,7 +753,7 @@ GNUNET_GNSRECORD_is_critical (uint32_t type);
  * @param rd input records
  * @param rd_count size of the @a rd and @a rd_public arrays
  * @param rd_public where to write the converted records
- * @param rd_public_count number of records written to @a rd_public
+ * @param rd_count_public number of records written to @a rd_public
  * @param min_expiry the minimum expiration of this set
  * @param filter the record set filter, see GNUNET_GNSRECORD_Filter.
  * @param emsg the error message if something went wrong
@@ -767,7 +768,6 @@ GNUNET_GNSRECORD_normalize_record_set (const char *label,
                                        struct GNUNET_TIME_Absolute *min_expiry,
                                        enum GNUNET_GNSRECORD_Filter filter,
                                        char **emsg);
-
 
 /**
  * Check label for invalid characters.

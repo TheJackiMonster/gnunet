@@ -429,8 +429,8 @@ identity_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
  * Parse expiration time.
  *
  * @param expirationstring text to parse
- * @param etime_is_rel[out] set to #GNUNET_YES if time is relative
- * @param etime[out] set to expiration time (abs or rel)
+ * @param[out] etime_is_rel set to #GNUNET_YES if time is relative
+ * @param[out] etime set to expiration time (abs or rel)
  * @return #GNUNET_OK on success
  */
 static int

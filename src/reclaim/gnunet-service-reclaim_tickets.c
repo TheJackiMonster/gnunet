@@ -485,7 +485,7 @@ rvk_ticket_update_finished (void *cls)
  * @param cls handle to the operation
  * @param zone ticket issuer private key
  * @param label ticket rnd
- * @param rd_cound size of record set
+ * @param rd_count size of record set
  * @param rd record set
  */
 static void
@@ -568,9 +568,8 @@ rvk_ns_err (void *cls)
  * want to revoke.
  * When we are done, we need to update any other ticket which
  * included references to any of the changed attributes.
- * (Implementation further below)
  *
- * @param rvk handle to the operation
+ * @param rh handle to the operation
  */
 static void
 move_attrs (struct RECLAIM_TICKETS_RevokeHandle *rh);
@@ -757,14 +756,6 @@ rvk_move_attr_cb (void *cls,
 }
 
 
-/**
- * We change every attribute ID of the ticket attributes we
- * want to revoke.
- * When we are done, we need to update any other ticket which
- * included references to any of the changed attributes.
- *
- * @param rvk handle to the operation
- */
 static void
 move_attrs (struct RECLAIM_TICKETS_RevokeHandle *rvk)
 {
@@ -844,7 +835,7 @@ remove_ticket_cont (void *cls, int32_t success, const char *emsg)
  * @param cls handle to the operation
  * @param zone the issuer key
  * @param label ticket rnd
- * @param rd_cound size of record set
+ * @param rd_count size of record set
  * @param rd record set
  */
 static void
@@ -995,7 +986,7 @@ cleanup_cth (struct RECLAIM_TICKETS_ConsumeHandle *cth)
  * We found an attribute record.
  *
  * @param cls handle to the operation
- * @param rd_cound size of record set
+ * @param rd_count size of record set
  * @param rd record set
  */
 static void
@@ -1083,7 +1074,7 @@ abort_parallel_lookups (void *cls)
  * attribute record under the referenced label.
  *
  * @param cls handle to the operation
- * @param rd_cound size of the record set
+ * @param rd_count size of the record set
  * @param rd record set
  */
 static void
@@ -1671,7 +1662,7 @@ cleanup_iter (struct RECLAIM_TICKETS_Iterator *iter)
 
 
 /**
- * Return each record of type @GNUNET_GNSRECORD_TYPE_RECLAIM_TICKET
+ * Return each record of type #GNUNET_GNSRECORD_TYPE_RECLAIM_TICKET
  * to the caller and proceed with the iteration.
  * FIXME: Should we _not_ proceed automatically here?
  *

@@ -67,7 +67,7 @@ struct GNUNET_MESSENGER_Handle
  *
  * @param[in] cfg Configuration
  * @param[in] msg_callback Message callback
- * @param[in/out] msg_cls Closure
+ * @param[in,out] msg_cls Closure
  * @return New handle
  */
 struct GNUNET_MESSENGER_Handle*
@@ -80,7 +80,7 @@ create_handle (const struct GNUNET_CONFIGURATION_Handle *cfg,
 /**
  * Destroys a <i>handle</i> and frees its memory fully from the client API.
  *
- * @param[in/out] handle Handle
+ * @param[in,out] handle Handle
  */
 void
 destroy_handle (struct GNUNET_MESSENGER_Handle *handle);
@@ -88,7 +88,7 @@ destroy_handle (struct GNUNET_MESSENGER_Handle *handle);
 /**
  * Sets the name of a <i>handle</i> to a specific <i>name</i>.
  *
- * @param[in/out] handle Handle
+ * @param[in,out] handle Handle
  * @param[in] name New name
  */
 void
@@ -107,7 +107,7 @@ get_handle_name (const struct GNUNET_MESSENGER_Handle *handle);
 /**
  * Sets the public key of a given <i>handle</i> to a specific public key.
  *
- * @param[in/out] handle Handle
+ * @param[in,out] handle Handle
  * @param[in] pubkey Public key
  */
 void
@@ -126,7 +126,7 @@ get_handle_key (const struct GNUNET_MESSENGER_Handle *handle);
 /**
  * Returns the used contact store of a given <i>handle</i>.
  *
- * @param[in/out] handle Handle
+ * @param[in,out] handle Handle
  * @return Contact store
  */
 struct GNUNET_MESSENGER_ContactStore*
@@ -136,7 +136,7 @@ get_handle_contact_store (struct GNUNET_MESSENGER_Handle *handle);
  * Returns the contact of a given <i>handle</i> in a room identified by a
  * given <i>key</i>.
  *
- * @param[in/out] handle Handle
+ * @param[in,out] handle Handle
  * @param[in] key Key of room
  * @return Contact
  */
@@ -147,7 +147,7 @@ get_handle_contact (struct GNUNET_MESSENGER_Handle *handle,
 /**
  * Marks a room known to a <i>handle</i> identified by a given <i>key</i> as open.
  *
- * @param[in/out] handle Handle
+ * @param[in,out] handle Handle
  * @param[in] key Key of room
  */
 void
@@ -158,7 +158,7 @@ open_handle_room (struct GNUNET_MESSENGER_Handle *handle,
  * Adds a tunnel for a room known to a <i>handle</i> identified by a given <i>key</i> to a
  * list of opened connections.
  *
- * @param[in/out] handle Handle
+ * @param[in,out] handle Handle
  * @param[in] door Peer identity
  * @param[in] key Key of room
  */
@@ -170,7 +170,7 @@ entry_handle_room_at (struct GNUNET_MESSENGER_Handle *handle,
 /**
  * Destroys and so implicitly closes a room known to a <i>handle</i> identified by a given <i>key</i>.
  *
- * @param[in/out] handle Handle
+ * @param[in,out] handle Handle
  * @param[in] key Key of room
  */
 void

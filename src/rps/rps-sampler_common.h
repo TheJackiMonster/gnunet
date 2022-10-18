@@ -325,8 +325,6 @@ RPS_sampler_resize (struct RPS_Sampler *sampler, unsigned int new_size);
  * @param sampler the sampler to get peers from.
  * @param cb callback that will be called once the ids are ready.
  * @param cls closure given to @a cb
- * @param for_client #GNUNET_YES if result is used for client,
- *                   #GNUNET_NO if used internally
  * @param num_peers the number of peers requested
  */
 struct RPS_SamplerRequestHandle *

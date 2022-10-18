@@ -802,24 +802,6 @@ reconnect (struct GNUNET_TRANSPORT_CommunicatorHandle *ch)
 }
 
 
-/**
- * Connect to the transport service.
- *
- * @param cfg configuration to use
- * @param config_section section of the configuration to use for options
- * @param addr_prefix address prefix for addresses supported by this
- *        communicator, could be NULL for incoming-only communicators
- * @param cc what characteristics does the communicator have?
- * @param mtu maximum message size supported by communicator, 0 if
- *            sending is not supported, SIZE_MAX for no MTU
- * @param mq_init function to call to initialize a message queue given
- *                the address of another peer, can be NULL if the
- *                communicator only supports receiving messages
- * @param mq_init_cls closure for @a mq_init
- * @param notify_cb function to pass backchannel messages to communicator
- * @param notify_cb_cls closure for @a notify_cb
- * @return NULL on error
- */
 struct GNUNET_TRANSPORT_CommunicatorHandle *
 GNUNET_TRANSPORT_communicator_connect (
   const struct GNUNET_CONFIGURATION_Handle *cfg,
@@ -880,26 +862,6 @@ GNUNET_TRANSPORT_communicator_disconnect (
 /* ************************* Receiving *************************** */
 
 
-/**
- * Notify transport service that the communicator has received
- * a message.
- *
- * @param ch connection to transport service
- * @param sender presumed sender of the message (details to be checked
- *        by higher layers)
- * @param msg the message
- * @param expected_addr_validity how long does the communicator believe it
- *        will continue to be able to receive messages from the same address
- *        on which it received this message?
- * @param cb function to call once handling the message is done, NULL if
- *         flow control is not supported by this communicator
- * @param cb_cls closure for @a cb
- * @return #GNUNET_OK if all is well, #GNUNET_NO if the message was
- *         immediately dropped due to memory limitations (communicator
- *         should try to apply back pressure),
- *         #GNUNET_SYSERR if the message could not be delivered because
- *         the transport service is not yet up
- */
 int
 GNUNET_TRANSPORT_communicator_receive (
   struct GNUNET_TRANSPORT_CommunicatorHandle *ch,
@@ -970,25 +932,6 @@ GNUNET_TRANSPORT_communicator_receive (
 /* ************************* Discovery *************************** */
 
 
-/**
- * Notify transport service that an MQ became available due to an
- * "inbound" connection or because the communicator discovered the
- * presence of another peer.
- *
- * @param ch connection to transport service
- * @param peer peer with which we can now communicate
- * @param address address in human-readable format, 0-terminated, UTF-8
- * @param mtu maximum message size supported by queue, 0 if
- *            sending is not supported, SIZE_MAX for no MTU
- * @param q_len number of messages that can be send through this queue
- * @param priority queue priority. Queues with highest priority should be
- *                 used
- * @param nt which network type does the @a address belong to?
- * @param cc what characteristics does the communicator have?
- * @param cs what is the connection status of the queue?
- * @param mq message queue of the @a peer
- * @return API handle identifying the new MQ
- */
 struct GNUNET_TRANSPORT_QueueHandle *
 GNUNET_TRANSPORT_communicator_mq_add (
   struct GNUNET_TRANSPORT_CommunicatorHandle *ch,
@@ -1023,15 +966,6 @@ GNUNET_TRANSPORT_communicator_mq_add (
 }
 
 
-/**
- * Notify transport service that an MQ was updated
- *
- * @param ch connection to transport service
- * @param qh the queue to update
- * @param q_len number of messages that can be send through this queue
- * @param priority queue priority. Queues with highest priority should be
- *                 used
- */
 void
 GNUNET_TRANSPORT_communicator_mq_update (
   struct GNUNET_TRANSPORT_CommunicatorHandle *ch,
@@ -1149,20 +1083,6 @@ GNUNET_TRANSPORT_communicator_address_remove_all (
 /* ************************* Backchannel *************************** */
 
 
-/**
- * The communicator asks the transport service to route a message via
- * a different path to another communicator service at another peer.
- * This must only be done for special control traffic (as there is no
- * flow control for this API), such as acknowledgements, and generally
- * only be done if the communicator is uni-directional (i.e. cannot
- * send the message back itself).
- *
- * @param ch handle of this communicator
- * @param pid peer to send the message to
- * @param comm name of the communicator to send the message to
- * @param header header of the message to transmit and pass via the
- *        notify-API to @a pid's communicator @a comm
- */
 void
 GNUNET_TRANSPORT_communicator_notify (
   struct GNUNET_TRANSPORT_CommunicatorHandle *ch,

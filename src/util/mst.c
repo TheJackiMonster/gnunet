@@ -96,20 +96,6 @@ GNUNET_MST_create (GNUNET_MessageTokenizerCallback cb,
 }
 
 
-/**
- * Add incoming data to the receive buffer and call the
- * callback for all complete messages.
- *
- * @param mst tokenizer to use
- * @param buf input data to add
- * @param size number of bytes in @a buf
- * @param purge should any excess bytes in the buffer be discarded
- *       (i.e. for packet-based services like UDP)
- * @param one_shot only call callback once, keep rest of message in buffer
- * @return #GNUNET_OK if we are done processing (need more data)
- *         #GNUNET_NO if @a one_shot was set and we have another message ready
- *         #GNUNET_SYSERR if the data stream is corrupt
- */
 int
 GNUNET_MST_from_buffer (struct GNUNET_MessageStreamTokenizer *mst,
                         const char *buf,

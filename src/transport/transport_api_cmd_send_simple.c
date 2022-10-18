@@ -137,16 +137,6 @@ send_simple_run (void *cls,
 }
 
 
-/**
- * Create command.
- *
- * @param label name for command.
- * @param start_peer_label Label of the cmd to start a peer.
- * @param start_peer_label Label of the cmd which started the test system.
- * @param num Number globally identifying the node.
- * @param The topology for the test setup.
- * @return command.
- */
 struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_send_simple (const char *label,
                                   const char *start_peer_label,

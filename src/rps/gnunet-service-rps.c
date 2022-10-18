@@ -1191,7 +1191,7 @@ check_operation_scheduled (const struct PeerContext *peer_ctx,
 /**
  * @brief Callback for scheduler to destroy a channel
  *
- * @param cls Context of the channel
+ * @param channel_ctx Context of the channel
  */
 static void
 destroy_channel (struct ChannelCtx *channel_ctx)
@@ -3324,7 +3324,7 @@ check_client_seed (void *cls, const struct GNUNET_RPS_CS_SeedMessage *msg)
  * Handle seed from the client.
  *
  * @param cls closure
- * @param message the actual message
+ * @param msg the actual message
  */
 static void
 handle_client_seed (void *cls,
@@ -3362,7 +3362,7 @@ handle_client_seed (void *cls,
  * Handle RPS request from the client.
  *
  * @param cls Client context
- * @param message Message containing the number of updates the client wants to
+ * @param msg Message containing the number of updates the client wants to
  * receive
  */
 static void
@@ -3416,7 +3416,7 @@ handle_client_view_cancel (void *cls,
  * Handle RPS request for biased stream from the client.
  *
  * @param cls Client context
- * @param message unused
+ * @param msg unused
  */
 static void
 handle_client_stream_request (void *cls,
@@ -4691,7 +4691,7 @@ valid_peers_iterator (void *cls,
  * @param cls Closure - Sub
  * @param peer id of the peer, NULL for last call
  * @param hello hello message for the peer (can be NULL)
- * @param error message
+ * @param err_msg error message
  */
 void
 process_peerinfo_peers (void *cls,
@@ -4823,7 +4823,7 @@ client_connect_cb (void *cls,
  * Callback called when a client disconnected from the service
  *
  * @param cls closure for the service
- * @param c the client that disconnected
+ * @param client the client that disconnected
  * @param internal_cls should be equal to @a c
  */
 static void

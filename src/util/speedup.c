@@ -55,12 +55,6 @@ do_speedup (void *cls)
 }
 
 
-/**
- * Start task that may speed up our system clock artificially
- *
- * @param cfg configuration to use
- * @return #GNUNET_OK on success, #GNUNET_SYSERR if the speedup was not configured
- */
 int
 GNUNET_SPEEDUP_start_ (const struct GNUNET_CONFIGURATION_Handle *cfg)
 {

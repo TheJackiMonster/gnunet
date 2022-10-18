@@ -292,7 +292,7 @@ GST_neighbour_get_current_address (const struct GNUNET_PeerIdentity *peer);
 
 
 /**
- * We received a quoat message from the given peer,
+ * We received a quota message from the given peer,
  * validate and process.
  *
  * @param peer sender of the message

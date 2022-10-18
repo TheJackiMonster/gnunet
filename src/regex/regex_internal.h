@@ -368,9 +368,9 @@ typedef void
  * @param start start state, pass a->start or NULL to traverse the whole automaton.
  * @param check function that is checked before advancing on each transition
  *              in the DFS.
- * @param check_cls closure for check.
+ * @param check_cls closure for @a check.
  * @param action action to be performed on each state.
- * @param action_cls closure for action
+ * @param action_cls closure for @a action
  */
 void
 REGEX_INTERNAL_automaton_traverse (const struct REGEX_INTERNAL_Automaton *a,

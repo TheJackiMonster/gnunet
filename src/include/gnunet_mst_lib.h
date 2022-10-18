@@ -168,6 +168,8 @@ GNUNET_MST_destroy (struct GNUNET_MessageStreamTokenizer *mst);
 
 /** @} */  /* end of group server */
 
-/** @} */ /* end of group addition */
+/** @} */ /* end of group addition to networking */
+
+/** @} */ /* end of group addition to libgnunetutil*/
 
 /* end of gnunet_mst_lib.h */

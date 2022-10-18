@@ -91,7 +91,7 @@ struct GNUNET_SQ_QueryParam
  * @a ptr_size bytes.
  *
  * @param ptr pointer to the query parameter to pass
- * @oaran ptr_size number of bytes in @a ptr
+ * @param ptr_size number of bytes in @a ptr
  */
 struct GNUNET_SQ_QueryParam
 GNUNET_SQ_query_param_fixed_size (const void *ptr,

@@ -62,7 +62,7 @@ typedef void
  *   GNUNET_wait_barrier().
  * @param cb the callback to call when the pseudo-barrier is reached or upon
  *   error. Can be NULL.
- * @param cls closure for the above callback
+ * @param cb_cls closure for the above callback
  * @return pseudo-barrier handle; NULL upon error
  */
 struct GNUNET_BarrierHandle*
@@ -108,7 +108,7 @@ typedef void
  *
  * @param barrier the pseudo-barrier handle
  * @param cb the pseudo-barrier wait callback
- * @param cls the closure for the above callback
+ * @param cb_cls the closure for the above callback
  * @return pseudo-barrier wait handle which can be used to cancel the waiting
  *   at anytime before the callback is called. NULL upon error.
  */

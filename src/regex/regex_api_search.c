@@ -185,18 +185,6 @@ search_reconnect (struct GNUNET_REGEX_Search *s)
 }
 
 
-/**
- * Search for a peer offering a regex matching certain string in the DHT.
- * The search runs until #GNUNET_REGEX_search_cancel() is called, even if results
- * are returned.
- *
- * @param cfg configuration to use
- * @param string String to match against the regexes in the DHT.
- * @param callback Callback for found peers.
- * @param callback_cls Closure for @c callback.
- * @return Handle to stop search and free resources.
- *         Must be freed by calling #GNUNET_REGEX_search_cancel().
- */
 struct GNUNET_REGEX_Search *
 GNUNET_REGEX_search (const struct GNUNET_CONFIGURATION_Handle *cfg,
                      const char *string,
@@ -233,11 +221,6 @@ GNUNET_REGEX_search (const struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
-/**
- * Stop search and free all data used by a #GNUNET_REGEX_search() call.
- *
- * @param s Handle returned by a previous #GNUNET_REGEX_search() call.
- */
 void
 GNUNET_REGEX_search_cancel (struct GNUNET_REGEX_Search *s)
 {

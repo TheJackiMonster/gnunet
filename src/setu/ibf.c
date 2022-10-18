@@ -216,18 +216,6 @@ ibf_is_empty (struct InvertibleBloomFilter *ibf)
 }
 
 
-/**
- * Decode and remove an element from the IBF, if possible.
- *
- * @param ibf the invertible bloom filter to decode
- * @param ret_side sign of the cell's count where the decoded element came from.
- *                 A negative sign indicates that the element was recovered
- *                 resides in an IBF that was previously subtracted from.
- * @param ret_id receives the hash code of the decoded element, if successful
- * @return #GNUNET_YES if decoding an element was successful,
- *         #GNUNET_NO if the IBF is empty,
- *         #GNUNET_SYSERR if the decoding has failed
- */
 int
 ibf_decode (struct InvertibleBloomFilter *ibf,
             int *ret_side,
@@ -355,15 +343,6 @@ ibf_write_slice (const struct InvertibleBloomFilter *ibf,
 }
 
 
-/**
- *  Packs the counter to transmit only the smallest possible amount of bytes and
- *  preventing overflow of the counter
- * @param ibf the ibf to write
- * @param start with which bucket to start
- * @param count how many buckets to write
- * @param buf buffer to write the data to
- * @param max bit length of a counter for unpacking
- */
 
 void
 pack_counter (const struct InvertibleBloomFilter *ibf,
@@ -428,15 +407,6 @@ pack_counter (const struct InvertibleBloomFilter *ibf,
 }
 
 
-/**
- *  Unpacks the counter to transmit only the smallest possible amount of bytes and
- *  preventing overflow of the counter
- * @param ibf the ibf to write
- * @param start with which bucket to start
- * @param count how many buckets to write
- * @param buf buffer to write the data to
- * @param max bit length of a counter for unpacking
- */
 
 void
 unpack_counter (const struct InvertibleBloomFilter *ibf,

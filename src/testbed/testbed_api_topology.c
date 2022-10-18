@@ -637,18 +637,6 @@ gen_topo_ring (struct TopologyContext *tc)
 }
 
 
-/**
- * Returns the number of links that are required to generate a 2d torus for the
- * given number of peers. Also returns the arrangement (number of rows and the
- * length of each row)
- *
- * @param num_peers number of peers
- * @param rows number of rows in the 2d torus. Can be NULL
- * @param rows_len the length of each row. This array will be allocated
- *          fresh. The caller should free it. Can be NULL
- * @return the number of links that are required to generate a 2d torus for the
- *           given number of peers
- */
 unsigned int
 GNUNET_TESTBED_2dtorus_calc_links (unsigned int num_peers, unsigned int *rows,
                                    unsigned int **rows_len)
@@ -1250,17 +1238,6 @@ gen_topo_clique (struct TopologyContext *tc)
 }
 
 
-/**
- * Configure overall network topology to have a particular shape.
- *
- * @param op_cls closure argument to give with the operation event
- * @param num_peers number of peers in @a peers
- * @param peers array of @a num_peers with the peers to configure
- * @param topo desired underlay topology to use
- * @param ap topology-specific options
- * @return handle to the operation, NULL if configuring the topology
- *         is not allowed at this time
- */
 struct GNUNET_TESTBED_Operation *
 GNUNET_TESTBED_underlay_configure_topology_va (void *op_cls,
                                                unsigned int num_peers,
@@ -1275,17 +1252,6 @@ GNUNET_TESTBED_underlay_configure_topology_va (void *op_cls,
 }
 
 
-/**
- * Configure overall network topology to have a particular shape.
- *
- * @param op_cls closure argument to give with the operation event
- * @param num_peers number of peers in @a peers
- * @param peers array of @a num_peers with the peers to configure
- * @param topo desired underlay topology to use
- * @param ... topology-specific options
- * @return handle to the operation, NULL if configuring the topology
- *         is not allowed at this time
- */
 struct GNUNET_TESTBED_Operation *
 GNUNET_TESTBED_underlay_configure_topology (void *op_cls,
                                             unsigned int num_peers,
@@ -1298,26 +1264,6 @@ GNUNET_TESTBED_underlay_configure_topology (void *op_cls,
 }
 
 
-/**
- * All peers must have been started before calling this function.
- * This function then connects the given peers in the P2P overlay
- * using the given topology.
- *
- * @param op_cls closure argument to give with the peer connect operation events
- *          generated through this function
- * @param num_peers number of peers in @a peers
- * @param peers array of @a num_peers with the peers to configure
- * @param max_connections the maximums number of overlay connections that will
- *          be made to achieve the given topology
- * @param comp_cb the completion callback to call when the topology generation
- *          is completed
- * @param comp_cb_cls closure for the above completion callback
- * @param topo desired underlay topology to use
- * @param va topology-specific options
- * @return handle to the operation, NULL if connecting these
- *         peers is fundamentally not possible at this time (peers
- *         not running or underlay disallows) or if num_peers is less than 2
- */
 struct GNUNET_TESTBED_Operation *
 GNUNET_TESTBED_overlay_configure_topology_va (void *op_cls,
                                               unsigned int num_peers,
@@ -1496,15 +1442,6 @@ GNUNET_TESTBED_overlay_configure_topology (void *op_cls,
 }
 
 
-/**
- * Get a topology from a string input.
- *
- * @param topology where to write the retrieved topology
- * @param topology_string The string to attempt to
- *        get a configuration value from
- * @return #GNUNET_YES if topology string matched a
- *         known topology, #GNUNET_NO if not
- */
 int
 GNUNET_TESTBED_topology_get_ (enum GNUNET_TESTBED_TopologyOption *topology,
                               const char *topology_string)

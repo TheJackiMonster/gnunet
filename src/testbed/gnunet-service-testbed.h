@@ -570,10 +570,9 @@ GST_forwarded_operation_reply_relay (void *cls,
 
 
 /**
- * Task to free resources when forwarded operation has been timedout
+ * Task to free resources when forwarded operation has been timed out.
  *
  * @param cls the ForwardedOperationContext
- * @param tc the task context from scheduler
  */
 void
 GST_forwarded_operation_timeout (void *cls);
@@ -669,7 +668,7 @@ check_peer_create (void *cls,
  * Handler for #GNUNET_MESSAGE_TYPE_TESTBED_CREATEPEER messages
  *
  * @param cls identification of the client
- * @param message the actual message
+ * @param msg the actual message
  */
 void
 handle_peer_create (void *cls,
@@ -688,7 +687,7 @@ handle_peer_destroy (void *cls,
 
 
 /**
- * Message handler for #GNUNET_MESSAGE_TYPE_TESTBED_DESTROYPEER messages
+ * Message handler for #GNUNET_MESSAGE_TYPE_TESTBED_START_PEER messages
  *
  * @param cls identification of the client
  * @param msg the actual message
@@ -702,7 +701,7 @@ handle_peer_start (void *cls,
  * Message handler for #GNUNET_MESSAGE_TYPE_TESTBED_DESTROYPEER messages
  *
  * @param cls identification of the client
- * @param message the actual message
+ * @param msg the actual message
  */
 void
 handle_peer_stop (void *cls,
@@ -746,7 +745,7 @@ check_manage_peer_service (void *cls,
 
 
 /**
- * Handler for #GNUNET_MESSAGE_TYPE_TESTBED_MANAGE_PEER_SERVICE message
+ * Handler for #GNUNET_MESSAGE_TYPE_TESTBED_MANAGE_PEER_SERVICE messages
  *
  * @param cls identification of client
  * @param msg the actual message

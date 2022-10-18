@@ -211,7 +211,7 @@ locate_by_id (void *cls,
  * Function called with responses from the service.
  *
  * @param cls our `struct GNUNET_TRANSPORT_PluginMonitor *`
- * @paramm tpmm message with event data
+ * @param tpmm message with event data
  * @return #GNUNET_Ok if message is well-formed
  */
 static int
@@ -243,7 +243,7 @@ check_event (void *cls,
  * Function called with responses from the service.
  *
  * @param cls our `struct GNUNET_TRANSPORT_PluginMonitor *`
- * @paramm tpmm message with event data
+ * @param tpmm message with event data
  */
 static void
 handle_event (void *cls,

@@ -158,7 +158,7 @@ struct GNUNET_ATS_PropertiesNBO
 /**
  * Convert ATS properties from host to network byte order.
  *
- * @param nbo[OUT] value written
+ * @param nbo[out] value written
  * @param hbo value read
  */
 void
@@ -169,7 +169,7 @@ GNUNET_ATS_properties_hton (struct GNUNET_ATS_PropertiesNBO *nbo,
 /**
  * Convert ATS properties from network to host byte order.
  *
- * @param hbo[OUT] value written
+ * @param hbo[out] value written
  * @param nbo value read
  */
 void
@@ -344,7 +344,7 @@ GNUNET_ATS_address_add_session (struct GNUNET_ATS_AddressRecord *ar,
  * @param session session handle
  * @return #GNUNET_YES if the @a ar was destroyed because
  *                     it was an incoming address,
- *         #GNUNET_NO if the @ar was kept because we can
+ *         #GNUNET_NO if the @a ar was kept because we can
  *                    use it still to establish a new session
  */
 int

@@ -232,7 +232,7 @@ check_communicator_backchannel (void *cls,
  * Pass the message to the client.
  *
  * @param cls Closure - communicator handle
- * @param msg Message
+ * @param bc_msg Message
  */
 static void
 handle_communicator_backchannel (void *cls,
@@ -283,7 +283,7 @@ handle_communicator_backchannel (void *cls,
  * Address of our peer added.  Test message is well-formed.
  *
  * @param cls the client
- * @param aam the send message that was sent
+ * @param msg the send message that was sent
  * @return #GNUNET_OK if message is well-formed
  */
 static int
@@ -365,7 +365,7 @@ check_incoming_msg (void *cls,
  * Pass the message to the client.
  *
  * @param cls Closure - communicator handle
- * @param msg Message
+ * @param inc_msg Message
  */
 static void
 handle_incoming_msg (void *cls,
@@ -1146,15 +1146,6 @@ GNUNET_TRANSPORT_TESTING_transport_communicator_open_queue (
 }
 
 
-/**
- * @brief Instruct communicator to send data
- *
- * @param tc_queue The queue to use for sending
- * @param cont function to call when done sending
- * @param cont_cls closure for @a cont
- * @param payload Data to send
- * @param payload_size Size of the @a payload
- */
 void
 GNUNET_TRANSPORT_TESTING_transport_communicator_send
   (struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h,

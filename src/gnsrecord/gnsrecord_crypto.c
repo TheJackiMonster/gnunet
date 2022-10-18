@@ -868,17 +868,6 @@ block_decrypt_eddsa (const struct GNUNET_GNSRECORD_Block *block,
 }
 
 
-/**
- * Decrypt block.
- *
- * @param block block to decrypt
- * @param zone_key public key of the zone
- * @param label the name for the records
- * @param proc function to call with the result
- * @param proc_cls closure for proc
- * @return #GNUNET_OK on success, #GNUNET_SYSERR if the block was
- *        not well-formed
- */
 enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_block_decrypt (const struct GNUNET_GNSRECORD_Block *block,
                                 const struct
@@ -946,14 +935,6 @@ GNUNET_GNSRECORD_query_from_private_key (const struct
 }
 
 
-/**
- * Calculate the DHT query for a given @a label in a given @a zone.
- * FIXME: We may want to plugin-ize this at some point.
- *
- * @param pub public key of the zone
- * @param label label of the record
- * @param query hash to use for the query
- */
 void
 GNUNET_GNSRECORD_query_from_public_key (const struct
                                         GNUNET_IDENTITY_PublicKey *pub,

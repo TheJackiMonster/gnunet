@@ -288,7 +288,7 @@ GNUNET_TRANSPORT_TESTING_done (struct GNUNET_TRANSPORT_TESTING_Handle *tth);
  *
  * @param tth the testing handle
  * @param cfgname configuration file
- * @param peer_id the peer_id
+ * @param peer_id an identification number for the peer
  * @param handlers functions for receiving messages
  * @param nc connect callback
  * @param nd disconnect callback

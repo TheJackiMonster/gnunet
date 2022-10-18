@@ -61,13 +61,6 @@ extract_filename (const char *file)
 }
 
 
-/**
- * Extracts the test filename from an absolute file name and removes
- * the extension
- *
- * @param file absolute file name
- * @return the result
- */
 char *
 GNUNET_TRANSPORT_TESTING_get_test_name (const char *file)
 {
@@ -96,12 +89,6 @@ GNUNET_TRANSPORT_TESTING_get_test_name (const char *file)
 }
 
 
-/**
- * Extracts the filename from an absolute file name and removes the extension
- *
- * @param file absolute file name
- * @return the result
- */
 char *
 GNUNET_TRANSPORT_TESTING_get_test_source_name (const char *file)
 {
@@ -115,13 +102,6 @@ GNUNET_TRANSPORT_TESTING_get_test_source_name (const char *file)
 }
 
 
-/**
- * Extracts the plugin name from an absolute file name and the test name
- *
- * @param file absolute file name
- * @param test test name
- * @return the result
- */
 char *
 GNUNET_TRANSPORT_TESTING_get_test_plugin_name (const char *file,
                                                const char *test)
@@ -161,14 +141,6 @@ suc:
 }
 
 
-/**
- * This function takes the filename (e.g. argv[0), removes a "lt-"-prefix and
- * if existing ".exe"-prefix and adds the peer-number
- *
- * @param file filename of the test, e.g. argv[0]
- * @param count peer number
- * @return the result
- */
 char *
 GNUNET_TRANSPORT_TESTING_get_config_name (const char *file,
                                           int count)

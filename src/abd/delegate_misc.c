@@ -190,6 +190,7 @@ GNUNET_ABD_delegate_from_string (const char *s)
  * @param issuer the ego that should be used to issue the attribute
  * @param subject the subject of the attribute
  * @param iss_attr the name of the attribute
+ * @param expiration the TTL of the credential
  * @return handle to the queued request
  */
 

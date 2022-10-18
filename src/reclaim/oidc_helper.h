@@ -50,14 +50,14 @@ enum OIDC_VerificationOptions
 };
 
 /**
- * Create a JWT using RSA256 from attributes
+ * Create a JWT using RSA256 algorithm from attributes
  *
  * @param aud_key the public of the audience
  * @param sub_key the public key of the subject
  * @param attrs the attribute list
  * @param presentations credential presentation list (may be empty)
  * @param expiration_time the validity of the token
- * @param secret_key the key used to sign the JWT
+ * @param secret_rsa_key the key used to sign the JWT
  * @return a new base64-encoded JWT string.
  */
 char *
@@ -162,7 +162,7 @@ OIDC_access_token_new (const struct GNUNET_RECLAIM_Ticket *ticket);
  * Parse an access token
  */
 int
-OIDC_access_token_parse (const char*token,
+OIDC_access_token_parse (const char *token,
                          struct GNUNET_RECLAIM_Ticket **ticket);
 
 

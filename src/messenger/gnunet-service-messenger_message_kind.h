@@ -150,7 +150,7 @@ create_message_invite (const struct GNUNET_PeerIdentity *door,
                        const struct GNUNET_HashCode *key);
 
 /**
- * Creates and allocates a new <i>text message containing a string representing text.
+ * Creates and allocates a new <i>text</i> message containing a string representing text.
  * (all values are stored as copy)
  *
  * @param[in] text Text

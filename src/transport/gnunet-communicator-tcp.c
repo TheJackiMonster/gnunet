@@ -981,7 +981,7 @@ queue_destroy (struct Queue *queue)
  * @param[in,out] hmac_secret secret for HMAC calculation
  * @param buf buffer to MAC
  * @param buf_size number of bytes in @a buf
- * @param smac[out] where to write the HMAC
+ * @param[out] smac where to write the HMAC
  */
 static void
 calculate_hmac (struct GNUNET_HashCode *hmac_secret,
@@ -1155,8 +1155,8 @@ pass_plaintext_to_core (struct Queue *queue,
  *
  * @param dh shared secret
  * @param pid decrypting peer's identity
- * @param cipher[out] cipher to initialize
- * @param hmac_key[out] HMAC key to initialize
+ * @param[out] cipher cipher to initialize
+ * @param[out] hmac_key HMAC key to initialize
  */
 static void
 setup_cipher (const struct GNUNET_HashCode *dh,
@@ -1287,7 +1287,7 @@ rekey_monotime_cb (void *cls,
  * Setup cipher of @a queue for decryption.
  *
  * @param ephemeral ephemeral key we received from the other peer
- * @param queue[in,out] queue to initialize decryption cipher for
+ * @param[in,out] queue queue to initialize decryption cipher for
  */
 static void
 setup_in_cipher (const struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral,
@@ -1448,8 +1448,8 @@ handshake_ack_monotime_cb (void *cls,
  * @param queue The queue context.
  */
 static void
-send_challenge (struct GNUNET_CRYPTO_ChallengeNonceP challenge, struct
-                Queue *queue)
+send_challenge (struct GNUNET_CRYPTO_ChallengeNonceP challenge, 
+		struct Queue *queue)
 {
   struct TCPConfirmationAck tca;
   struct TcpHandshakeAckSignature thas;
@@ -2613,7 +2613,7 @@ handshake_monotime_cb (void *cls,
  * Note that #setup_in_cipher() must have already been called.
  *
  * @param queue queue to decrypt initial bytes from other peer for
- * @param tc[out] where to store the result
+ * @param[out] tc where to store the result
  * @param ibuf incoming data, of size
  *        `INITIAL_KX_SIZE`
  * @return #GNUNET_OK if the signature was OK, #GNUNET_SYSERR if not
@@ -3179,7 +3179,7 @@ enc_notify_cb (void *cls,
  * a function to call whenever our set of 'valid' addresses changes.
  *
  * @param cls closure
- * @param app_ctx[in,out] location where the app can store stuff
+ * @param[in,out] app_ctx location where the app can store stuff
  *                  on add and retrieve it on remove
  * @param add_remove #GNUNET_YES to add a new public IP address,
  *                   #GNUNET_NO to remove a previous (now invalid) one

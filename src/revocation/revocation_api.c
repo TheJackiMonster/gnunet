@@ -371,11 +371,6 @@ GNUNET_REVOCATION_revoke (const struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
-/**
- * Cancel key revocation.
- *
- * @param h operation to cancel
- */
 void
 GNUNET_REVOCATION_revoke_cancel (struct GNUNET_REVOCATION_Handle *h)
 {
@@ -623,15 +618,6 @@ GNUNET_REVOCATION_pow_init (const struct GNUNET_IDENTITY_PrivateKey *key,
 }
 
 
-/**
- * Starts a proof-of-work calculation given the pow object as well as
- * target epochs and difficulty.
- *
- * @param pow the PoW to based calculations on.
- * @param epochs the number of epochs for which the PoW must be valid.
- * @param difficulty the base difficulty of the PoW.
- * @return a handle for use in PoW rounds
- */
 struct GNUNET_REVOCATION_PowCalculationHandle*
 GNUNET_REVOCATION_pow_start (struct GNUNET_REVOCATION_PowP *pow,
                              int epochs,

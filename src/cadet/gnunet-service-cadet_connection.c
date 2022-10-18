@@ -431,9 +431,9 @@ GCC_ack_expected (const struct GNUNET_CADET_ConnectionTunnelIdentifier *cid)
 
 /**
  * We observed an ACK for a message that was originally sent via
- * the connection identified by @a cti.
+ * the connection identified by @a cid.
  *
- * @param cti connection identifier where we got an ACK for a message
+ * @param cid connection identifier where we got an ACK for a message
  *            that was originally sent via this connection (the ACK
  *            may have gotten back to us via a different connection).
  */
@@ -983,7 +983,7 @@ GCC_transmit (struct CadetConnection *cc, struct GNUNET_MQ_Envelope *env)
  * Obtain the path used by this connection.
  *
  * @param cc connection
- * @param off[out] set to the length of the path we use
+ * @param[out] off set to the length of the path we use
  * @return path to @a cc
  */
 struct CadetPeerPath *

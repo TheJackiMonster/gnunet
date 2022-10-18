@@ -83,7 +83,6 @@ static struct TransportPlugin *plugins_tail;
  *
  * @param cls closure
  * @param address address to update metrics for
- * @param session the session
  * @param distance new distance
  */
 static void
@@ -121,18 +120,6 @@ plugin_env_address_to_type (void *cls,
 }
 
 
-/**
- * Load and initialize all plugins.  The respective functions will be
- * invoked by the plugins when the respective events happen.  The
- * closure will be set to a 'const char*' containing the name of the
- * plugin that caused the call.
- *
- * @param recv_cb function to call when data is received
- * @param address_cb function to call when our public addresses changed
- * @param session_start_cb function to call when a session was created
- * @param session_end_cb function to call when a session was terminated
- * @param address_type_cb function to call when a address type is requested
- */
 void
 GST_plugins_load (GNUNET_TRANSPORT_PluginReceiveCallback recv_cb,
                   GNUNET_TRANSPORT_AddressNotification address_cb,
@@ -431,12 +418,6 @@ GST_plugins_a2s (const struct GNUNET_HELLO_Address *address)
 }
 
 
-/**
- * Register callback with all plugins to monitor their status.
- *
- * @param cb callback to register, NULL to unsubscribe
- * @param cb_cls closure for @a cb
- */
 void
 GST_plugins_monitor_subscribe (GNUNET_TRANSPORT_SessionInfoCallback cb,
                                void *cb_cls)

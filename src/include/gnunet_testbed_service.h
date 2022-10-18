@@ -1030,8 +1030,8 @@ enum GNUNET_TESTBED_TopologyOption
  * Configure overall network topology to have a particular shape.
  *
  * @param op_cls closure argument to give with the operation event
- * @param num_peers number of peers in 'peers'
- * @param peers array of 'num_peers' with the peers to configure
+ * @param num_peers number of peers in @a peers
+ * @param peers array of @a num_peers with the peers to configure
  * @param topo desired underlay topology to use
  * @param ap topology-specific options
  * @return handle to the operation, NULL if configuring the topology
@@ -1052,8 +1052,8 @@ GNUNET_TESTBED_underlay_configure_topology_va (void *op_cls,
  * Configure overall network topology to have a particular shape.
  *
  * @param op_cls closure argument to give with the operation event
- * @param num_peers number of peers in 'peers'
- * @param peers array of 'num_peers' with the peers to configure
+ * @param num_peers number of peers in @a peers
+ * @param peers array of @a num_peers with the peers to configure
  * @param topo desired underlay topology to use
  * @param ... topology-specific options
  * @return handle to the operation, NULL if configuring the topology

@@ -50,7 +50,7 @@ struct GNUNET_MESSENGER_SrvTunnel
 /**
  * Creates and allocates a tunnel of a <i>room</i> to a specific peer identity (called <i>door</i>).
  *
- * @param[in/out] room Room
+ * @param[in,out] room Room
  * @param[in] door Peer identity
  * @return New tunnel
  */
@@ -61,7 +61,7 @@ create_tunnel (struct GNUNET_MESSENGER_SrvRoom *room,
 /**
  * Destroys a <i>tunnel</i> and frees its memory fully.
  *
- * @param[in/out] tunnel
+ * @param[in,out] tunnel
  */
 void
 destroy_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel);
@@ -70,8 +70,8 @@ destroy_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel);
  * Binds a CADET <i>channel</i> to a <i>tunnel</i> and replaces its channel
  * the tunnel is currently bound to if necessary.
  *
- * @param[in/out] tunnel Tunnel
- * @param[in/out] channel CADET channel
+ * @param[in,out] tunnel Tunnel
+ * @param[in,out] channel CADET channel
  */
 void
 bind_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
@@ -81,7 +81,7 @@ bind_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
  * Tries to connect a <i>tunnel</i> by creating a new CADET channel and binding it.
  * The function returns #GNUNET_YES on success, otherwise #GNUNET_NO.
  *
- * @param[in/out] tunnel Tunnel
+ * @param[in,out] tunnel Tunnel
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
 int
@@ -91,7 +91,7 @@ connect_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel);
  * Disconnects and unbinds a channel from a <i>tunnel</i>. The actual disconnection
  * will be asynchronous.
  *
- * @param[in/out] tunnel Tunnel
+ * @param[in,out] tunnel Tunnel
  */
 void
 disconnect_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel);
@@ -109,8 +109,8 @@ is_tunnel_connected (const struct GNUNET_MESSENGER_SrvTunnel *tunnel);
  * Sends an envelope containing a <i>message</i> with a given <i>hash</i> through
  * a <i>tunnel</i>.
  *
- * @param[in/out] tunnel Tunnel
- * @param[in/out] env Envelope
+ * @param[in,out] tunnel Tunnel
+ * @param[in,out] env Envelope
  * @param[in] hash Hash of message
  */
 void
@@ -123,9 +123,9 @@ send_tunnel_envelope (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
  * through the <i>tunnel</i>. The used <i>handle</i> will sign the message and
  * the <i>hash</i> will be calculated and stored.
  *
- * @param[in/out] tunnel Tunnel
- * @param[in/out] handle Handle
- * @param[in/out] message Message
+ * @param[in,out] tunnel Tunnel
+ * @param[in,out] handle Handle
+ * @param[in,out] message Message
  * @return #GNUNET_YES on success, GNUNET_NO otherwise
  */
 int
@@ -136,7 +136,7 @@ send_tunnel_message (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
 /**
  * Forwards a given <i>message</i> with a known <i>hash</i> through a <i>tunnel</i>.
  *
- * @param[in/out] tunnel Tunnel
+ * @param[in,out] tunnel Tunnel
  * @param[in] message Message
  * @param[in] hash Hash of message
  */
@@ -184,7 +184,7 @@ get_tunnel_messenger_version (const struct GNUNET_MESSENGER_SrvTunnel *tunnel);
  * it is compatible to the running peer of the service. Depending on success it
  * returns #GNUNET_OK or #GNUNET_SYSERR on failure.
  *
- * @param[in/out] tunnel Tunnel
+ * @param[in,out] tunnel Tunnel
  * @param[in] version Version of messenger
  */
 int

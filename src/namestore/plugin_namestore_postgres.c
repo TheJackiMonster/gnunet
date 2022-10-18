@@ -399,8 +399,8 @@ struct ParserContext
  * call the @a iter in @a cls with the result.
  *
  * @param cls closure of type `struct ParserContext *`
- * @param result the postgres result
- * @param num_result the number of results in @a result
+ * @param res the postgres result
+ * @param num_results the number of results in @a result
  */
 static void
 parse_result_call_iterator (void *cls,

@@ -198,7 +198,6 @@ create_channel (struct GNUNET_CADET_Handle *h,
  * - Frees all memory used
  *
  * @param ch Pointer to the channel.
- * @param call_cleaner Whether to call the cleaner handler.
  */
 static void
 destroy_channel (struct GNUNET_CADET_Channel *ch)
@@ -461,7 +460,7 @@ cadet_mq_cancel_impl (struct GNUNET_MQ_Handle *mq, void *impl_state)
 /**
  * Process the new channel notification and add it to the channels in the handle
  *
- * @param h     The cadet handle
+ * @param cls   The cadet handle
  * @param msg   A message with the details of the new incoming channel
  */
 static void
@@ -529,7 +528,7 @@ handle_channel_created (
 /**
  * Process the channel destroy notification and free associated resources
  *
- * @param h     The cadet handle
+ * @param cls   The cadet handle
  * @param msg   A message with the details of the channel being destroyed
  */
 static void
@@ -582,7 +581,7 @@ check_local_data (void *cls, const struct GNUNET_CADET_LocalData *message)
 /**
  * Process the incoming data packets, call appropriate handlers.
  *
- * @param h       The cadet handle
+ * @param cls     The cadet handle
  * @param message A message encapsulating the data
  */
 static void
@@ -620,7 +619,7 @@ handle_local_data (void *cls, const struct GNUNET_CADET_LocalData *message)
  * Process a local ACK message, enabling the client to send
  * more data to the service.
  *
- * @param h Cadet handle.
+ * @param cls Cadet handle.
  * @param message Message itself.
  */
 static void

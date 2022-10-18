@@ -282,8 +282,8 @@ GNUNET_SERVICE_run_ (int argc,
  * #GNUNET_SERVICE_client_drop().
  *
  * @param service_name name of the service to run
- * @param options options controlling shutdown of the service
- * @param service_init_cb function to call once the service is ready
+ * @param service_options options controlling shutdown of the service
+ * @param init_cb function to call once the service is ready
  * @param connect_cb function to call whenever a client connects
  * @param disconnect_cb function to call whenever a client disconnects
  * @param cls closure argument for @a service_init_cb, @a connect_cb and @a disconnect_cb
@@ -449,6 +449,8 @@ GNUNET_SERVICE_client_persist (struct GNUNET_SERVICE_Client *c);
 
 /** @} */  /* end of group service */
 
-/** @} */ /* end of group addition */
+/** @} */ /* end of group addition to networking*/
+
+/** @} */ /* end of group addition to libgnunetutil */
 
 /* end of gnunet_service_lib.h */

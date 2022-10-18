@@ -709,7 +709,7 @@ rsa_blinding_key_free (struct RsaBlindingKey *bkey)
  * Print an MPI to a newly created buffer
  *
  * @param v MPI to print.
- * @param[out] newly allocated buffer containing the result
+ * @param[out] buffer newly allocated buffer containing the result
  * @return number of bytes stored in @a buffer
  */
 static size_t

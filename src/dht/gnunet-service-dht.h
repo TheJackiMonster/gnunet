@@ -144,7 +144,6 @@ GDS_u_hold (struct GDS_Underlay *u,
  *
  * @param bd block details
  * @param query_hash hash of the original query, might not match key in @a bd
- * @param trunc_peer peer at which the path was truncated, or NULL if path starts at the origin
  * @param get_path_length number of entries in @a get_path
  * @param get_path path the reply has taken
  * @return true on success, false on failures

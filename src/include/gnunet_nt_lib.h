@@ -18,6 +18,9 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 /**
+ * @addtogroup Backbone
+ * @{
+ *
  * @file network type characterization
  * @author Christian Grothoff
  * @author Matthias Wachs
@@ -122,3 +125,5 @@ GNUNET_NT_scanner_done (struct GNUNET_NT_InterfaceScanner *is);
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */  /* end of group addition to backbone */

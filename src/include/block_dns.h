@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup vpn_suite
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -65,3 +68,5 @@ GNUNET_NETWORK_STRUCT_END
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */  /* end of group addition to vpn_suite */

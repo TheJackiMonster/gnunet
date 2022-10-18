@@ -259,11 +259,11 @@ GNUNET_CONTAINER_multihashmap32_iterate (
 
 
 /**
- * We are about to free() the @a bme, make sure it is not in
+ * We are about to free() the @a me, make sure it is not in
  * the list of next values for any iterator in the @a map's next_cache.
  *
  * @param map the map to check
- * @param bme the entry that is about to be free'd
+ * @param me the entry that is about to be free'd
  */
 static void
 update_next_cache (struct GNUNET_CONTAINER_MultiHashMap32 *map,

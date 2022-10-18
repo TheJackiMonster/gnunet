@@ -368,10 +368,10 @@ GNUNET_SET_add_element (struct GNUNET_SET_Handle *set,
 
 
 /**
- * Remove an element to the given set.
- * After the element has been removed (in the sense of the
- * request being transmitted to the set service), cont will be called.
- * Calls to remove_element can be queued
+ * Remove an element to the given set. 
+ * After the element has been removed (in the sense of the request 
+ * being transmitted to the set service), @a cont will be called.  
+ * Multiple calls to GNUNET_SET_remove_element() can be queued
  *
  * @param set set to remove element from
  * @param element element to remove from the set
@@ -559,7 +559,7 @@ GNUNET_SET_element_dup (const struct GNUNET_SET_Element *element);
  * Hash a set element.
  *
  * @param element the element that should be hashed
- * @param ret_hash a pointer to where the hash of @a element
+ * @param[out] ret_hash a pointer to where the hash of @a element
  *        should be stored
  */
 void

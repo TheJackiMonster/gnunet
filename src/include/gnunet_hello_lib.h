@@ -485,8 +485,8 @@ GNUNET_HELLO_parse_uri (const char *uri,
  * @param nt network type of @a address
  * @param mono_time when was @a address valid
  * @param private_key signing key to use
- * @param result[out] where to write address record (allocated)
- * @param result_size[out] set to size of @a result
+ * @param[out] result where to write address record (allocated)
+ * @param[out] result_size set to size of @a result
  */
 void
 GNUNET_HELLO_sign_address (
@@ -504,8 +504,8 @@ GNUNET_HELLO_sign_address (
  * @param raw raw signed address
  * @param raw_size size of @a raw
  * @param pid public key to use for signature verification
- * @param nt[out] set to network type
- * @param mono_time[out] when was the address generated
+ * @param[out] nt set to network type
+ * @param[out] mono_time when was the address generated
  * @return NULL on error, otherwise the address
  */
 char *

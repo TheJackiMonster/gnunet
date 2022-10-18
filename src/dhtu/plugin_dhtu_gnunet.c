@@ -424,7 +424,7 @@ core_disconnect_cb (void *cls,
  * @param cls a `struct Plugin`
  * @param peer id of the peer, NULL for last call
  * @param hello hello message for the peer (can be NULL)
- * @param error message
+ * @param err_msg message
  */
 static void
 peerinfo_cb (void *cls,

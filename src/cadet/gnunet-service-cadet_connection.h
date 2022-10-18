@@ -322,7 +322,7 @@ GCC_get_ct (struct CadetConnection *cc);
  * Obtain the path used by this connection.
  *
  * @param cc connection
- * @param off[out] set to offset in this path where the connection @a cc ends
+ * @param[out] off set to offset in this path where the connection @a cc ends
  * @return path to @a cc
  */
 struct CadetPeerPath *

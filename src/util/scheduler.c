@@ -687,20 +687,6 @@ select_loop (struct GNUNET_SCHEDULER_Handle *sh,
              struct DriverContext *context);
 
 
-/**
- * Initialize and run scheduler.  This function will return when all
- * tasks have completed.  On systems with signals, receiving a SIGTERM
- * (and other similar signals) will cause #GNUNET_SCHEDULER_shutdown()
- * to be run after the active task is complete.  As a result, SIGTERM
- * causes all active tasks to be scheduled with reason
- * #GNUNET_SCHEDULER_REASON_SHUTDOWN.  (However, tasks added
- * afterwards will execute normally!). Note that any particular signal
- * will only shut down one scheduler; applications should always only
- * create a single scheduler.
- *
- * @param task task to run immediately
- * @param task_cls closure of @a task
- */
 void
 GNUNET_SCHEDULER_run (GNUNET_SCHEDULER_TaskCallback task,
                       void *task_cls)
@@ -1345,20 +1331,6 @@ GNUNET_SCHEDULER_add_shutdown (GNUNET_SCHEDULER_TaskCallback task,
 }
 
 
-/**
- * Schedule a new task to be run as soon as possible with the
- * (transitive) ignore-shutdown flag either explicitly set or
- * explicitly enabled.  This task (and all tasks created from it,
- * other than by another call to this function) will either count or
- * not count for the "lifeness" of the process.  This API is only
- * useful in a few special cases.
- *
- * @param lifeness #GNUNET_YES if the task counts for lifeness, #GNUNET_NO if not.
- * @param task main function of the task
- * @param task_cls closure of @a task
- * @return unique task identifier for the job
- *         only valid until @a task is started!
- */
 struct GNUNET_SCHEDULER_Task *
 GNUNET_SCHEDULER_add_now_with_lifeness (int lifeness,
                                         GNUNET_SCHEDULER_TaskCallback task,

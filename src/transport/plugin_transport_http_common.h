@@ -137,7 +137,7 @@ http_split_address (const char *addr);
  * @param type name of the transport that generated the address
  * @param addr one of the addresses of the host, NULL for the last address
  *        the specific address format depends on the transport
- * @param addrlen length of the address
+ * @param addrlen length of @a addr
  * @param numeric should (IP) addresses be displayed in numeric form?
  * @param timeout after how long should we give up?
  * @param asc function to call on each string
@@ -178,7 +178,7 @@ http_common_plugin_address_to_string (const char *plugin,
  *
  * @param cls closure (`struct Plugin*`)
  * @param addr string address
- * @param addrlen length of the address
+ * @param addrlen length of @a addr
  * @param buf location to store the buffer
  *        If the function returns #GNUNET_SYSERR, its contents are undefined.
  * @param added length of created address
@@ -198,7 +198,7 @@ http_common_plugin_string_to_address (void *cls,
  * @param protocol protocol
  * @param addr `sockaddr *` address
  * @param addrlen length of the @a addr
- * @return the string
+ * @return A pointer to a `struct HttpAddress` derived from @a addr
  */
 struct HttpAddress *
 http_common_address_from_socket (const char *protocol,

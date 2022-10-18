@@ -261,7 +261,7 @@ try_send_udp (uint32_t dst_ipv4,
  * traversal. Do it.
  *
  * @param cls handle to client (we always close)
- * @param msg message with details about what to test
+ * @param tm message with details about what to test
  */
 static void
 handle_test (void *cls,

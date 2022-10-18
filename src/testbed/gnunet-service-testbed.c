@@ -295,11 +295,6 @@ GST_forwarded_operation_reply_relay (void *cls,
 }
 
 
-/**
- * Task to free resources when forwarded operation has been timed out
- *
- * @param cls the ForwardedOperationContext
- */
 void
 GST_forwarded_operation_timeout (void *cls)
 {
@@ -384,7 +379,7 @@ parse_shared_services (char *ss_str,
  * Check #GNUNET_MESSAGE_TYPE_TESTBED_INIT messages
  *
  * @param cls identification of the client
- * @param message the actual message
+ * @param msg the actual message
  * @return #GNUNET_OK if @a message is well-formed
  */
 static int
@@ -409,7 +404,7 @@ check_init (void *cls,
  * Message handler for #GNUNET_MESSAGE_TYPE_TESTBED_INIT messages
  *
  * @param cls identification of the client
- * @param message the actual message
+ * @param msg the actual message
  */
 static void
 handle_init (void *cls,

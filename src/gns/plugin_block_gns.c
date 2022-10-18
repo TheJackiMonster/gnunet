@@ -133,7 +133,6 @@ block_plugin_gns_get_key (void *cls,
  * Function called to validate a query.
  *
  * @param cls closure
- * @param ctx block context
  * @param type block type
  * @param query original query (hash)
  * @param xquery extrended query data (can be NULL, depending on type)

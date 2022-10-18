@@ -250,15 +250,6 @@ GNUNET_RECLAIM_credential_value_to_string (uint32_t type,
 }
 
 
-/**
-   * Create a new credential.
-   *
-   * @param attr_name the credential name
-   * @param type the credential type
-   * @param data the credential value
-   * @param data_size the credential value size
-   * @return the new credential
-   */
 struct GNUNET_RECLAIM_Credential *
 GNUNET_RECLAIM_credential_new (const char *attr_name,
                                uint32_t type,
@@ -310,13 +301,6 @@ GNUNET_RECLAIM_credential_list_serialize_get_size (
 }
 
 
-/**
- * Serialize an attribute list
- *
- * @param attrs the attribute list to serialize
- * @param result the serialized attribute
- * @return length of serialized data
- */
 size_t
 GNUNET_RECLAIM_credential_list_serialize (
   const struct GNUNET_RECLAIM_CredentialList *credentials,
@@ -339,13 +323,6 @@ GNUNET_RECLAIM_credential_list_serialize (
 }
 
 
-/**
- * Deserialize an credential list
- *
- * @param data the serialized attribute list
- * @param data_size the length of the serialized data
- * @return a GNUNET_IDENTITY_PROVIDER_AttributeList, must be free'd by caller
- */
 struct GNUNET_RECLAIM_CredentialList *
 GNUNET_RECLAIM_credential_list_deserialize (const char *data, size_t data_size)
 {
@@ -415,19 +392,14 @@ GNUNET_RECLAIM_credential_list_dup (
 }
 
 
-/**
- * Destroy credential list
- *
- * @param attrs list to destroy
- */
 void
 GNUNET_RECLAIM_credential_list_destroy (
-  struct GNUNET_RECLAIM_CredentialList *al)
+  struct GNUNET_RECLAIM_CredentialList *credentials)
 {
   struct GNUNET_RECLAIM_CredentialListEntry *ale;
   struct GNUNET_RECLAIM_CredentialListEntry *tmp_ale;
 
-  for (ale = al->list_head; NULL != ale;)
+  for (ale = credentials->list_head; NULL != ale;)
   {
     if (NULL != ale->credential)
       GNUNET_free (ale->credential);
@@ -435,7 +407,7 @@ GNUNET_RECLAIM_credential_list_destroy (
     ale = ale->next;
     GNUNET_free (tmp_ale);
   }
-  GNUNET_free (al);
+  GNUNET_free (credentials);
 }
 
 
@@ -454,13 +426,6 @@ GNUNET_RECLAIM_credential_serialize_get_size (
 }
 
 
-/**
- * Serialize an credential
- *
- * @param attr the credential to serialize
- * @param result the serialized credential
- * @return length of serialized data
- */
 size_t
 GNUNET_RECLAIM_credential_serialize (
   const struct GNUNET_RECLAIM_Credential *credential,
@@ -627,12 +592,6 @@ GNUNET_RECLAIM_presentation_typename_to_number (const char *typename)
 }
 
 
-/**
- * Convert an presentation type number to the corresponding presentation type string
- *
- * @param type number of a type
- * @return corresponding typestring, NULL on error
- */
 const char *
 GNUNET_RECLAIM_presentation_number_to_typename (uint32_t type)
 {
@@ -758,13 +717,6 @@ GNUNET_RECLAIM_presentation_list_serialize_get_size (
 }
 
 
-/**
- * Serialize an attribute list
- *
- * @param attrs the attribute list to serialize
- * @param result the serialized attribute
- * @return length of serialized data
- */
 size_t
 GNUNET_RECLAIM_presentation_list_serialize (
   const struct GNUNET_RECLAIM_PresentationList *presentations,
@@ -862,19 +814,14 @@ GNUNET_RECLAIM_presentation_list_dup (
 }
 
 
-/**
- * Destroy presentation list
- *
- * @param attrs list to destroy
- */
 void
 GNUNET_RECLAIM_presentation_list_destroy (
-  struct GNUNET_RECLAIM_PresentationList *al)
+  struct GNUNET_RECLAIM_PresentationList *presentations)
 {
   struct GNUNET_RECLAIM_PresentationListEntry *ale;
   struct GNUNET_RECLAIM_PresentationListEntry *tmp_ale;
 
-  for (ale = al->list_head; NULL != ale;)
+  for (ale = presentations->list_head; NULL != ale;)
   {
     if (NULL != ale->presentation)
       GNUNET_free (ale->presentation);
@@ -882,7 +829,7 @@ GNUNET_RECLAIM_presentation_list_destroy (
     ale = ale->next;
     GNUNET_free (tmp_ale);
   }
-  GNUNET_free (al);
+  GNUNET_free (presentations);
 }
 
 
@@ -900,13 +847,6 @@ GNUNET_RECLAIM_presentation_serialize_get_size (
 }
 
 
-/**
- * Serialize an presentation
- *
- * @param attr the presentation to serialize
- * @param result the serialized presentation
- * @return length of serialized data
- */
 size_t
 GNUNET_RECLAIM_presentation_serialize (
   const struct GNUNET_RECLAIM_Presentation *presentation,

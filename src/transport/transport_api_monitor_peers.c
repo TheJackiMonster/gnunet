@@ -389,32 +389,6 @@ do_peer_connect (void *cls)
 }
 
 
-/**
- * Return information about a specific peer or all peers currently known to
- * transport service once or in monitoring mode. To obtain information about
- * a specific peer, a peer identity can be passed. To obtain information about
- * all peers currently known to transport service, NULL can be passed as peer
- * identity.
- *
- * For each peer, the callback is called with information about the address used
- * to communicate with this peer, the state this peer is currently in and the
- * the current timeout for this state.
- *
- * Upon completion, the 'GNUNET_TRANSPORT_PeerIterateCallback' is called one
- * more time with 'NULL'. After this, the operation must no longer be
- * explicitly canceled.
- *
- * The #GNUNET_TRANSPORT_monitor_peers_cancel call MUST not be called in the
- * the peer_callback!
- *
- * @param cfg configuration to use
- * @param peer a specific peer identity to obtain information for,
- *      NULL for all peers
- * @param one_shot #GNUNET_YES to return the current state and then end (with NULL+NULL),
- *                 #GNUNET_NO to monitor peers continuously
- * @param peer_callback function to call with the results
- * @param peer_callback_cls closure for @a peer_address_callback
- */
 struct GNUNET_TRANSPORT_PeerMonitoringContext *
 GNUNET_TRANSPORT_monitor_peers (const struct GNUNET_CONFIGURATION_Handle *cfg,
                                 const struct GNUNET_PeerIdentity *peer,

@@ -50,7 +50,7 @@ create_contact (const struct GNUNET_IDENTITY_PublicKey *key);
 /**
  * Destroys a contact and frees its memory fully.
  *
- * @param[in/out] contact Contact
+ * @param[in,out] contact Contact
  */
 void
 destroy_contact (struct GNUNET_MESSENGER_Contact *contact);
@@ -67,7 +67,7 @@ get_contact_name (const struct GNUNET_MESSENGER_Contact *contact);
 /**
  * Changes the current name of a given <i>contact</i> by copying it from the parameter <i>name</i>.
  *
- * @param[in/out] contact Contact
+ * @param[in,out] contact Contact
  * @param[in] name Name
  */
 void
@@ -86,7 +86,7 @@ get_contact_key (const struct GNUNET_MESSENGER_Contact *contact);
 /**
  * Increases the reference counter of a given <i>contact</i> which is zero as default.
  *
- * @param[in/out] contact Contact
+ * @param[in,out] contact Contact
  */
 void
 increase_contact_rc (struct GNUNET_MESSENGER_Contact *contact);
@@ -95,7 +95,7 @@ increase_contact_rc (struct GNUNET_MESSENGER_Contact *contact);
  * Decreases the reference counter if possible (can not underflow!) of a given <i>contact</i>
  * and returns #GNUNET_YES if the counter is equal to zero, otherwise #GNUNET_NO.
  *
- * @param[in/out] contact Contact
+ * @param[in,out] contact Contact
  * @return #GNUNET_YES or #GNUNET_NO depending on the reference counter
  */
 int
@@ -106,7 +106,7 @@ decrease_contact_rc (struct GNUNET_MESSENGER_Contact *contact);
  *
  * @param[in] key Key of room
  * @param[in] id Member id
- * @param[out] hash Member context
+ * @param[out] context Member context
  */
 void
 get_context_from_member (const struct GNUNET_HashCode *key,

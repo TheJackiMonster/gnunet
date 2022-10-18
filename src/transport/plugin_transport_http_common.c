@@ -407,20 +407,6 @@ http_common_dns_ip_lookup (const char *name,
 }
 
 
-/**
- * Convert the transports address to a nice, human-readable
- * format.
- *
- * @param cls closure
- * @param type name of the transport that generated the address
- * @param addr one of the addresses of the host, NULL for the last address
- *        the specific address format depends on the transport
- * @param addrlen length of the @a addr
- * @param numeric should (IP) addresses be displayed in numeric form?
- * @param timeout after how long should we give up?
- * @param asc function to call on each string
- * @param asc_cls closure for @a asc
- */
 void
 http_common_plugin_address_pretty_printer (void *cls, const char *type,
                                            const void *addr,
@@ -597,17 +583,6 @@ http_common_plugin_address_to_url (void *cls,
 }
 
 
-/**
- * Function called for a quick conversion of the binary address to
- * a numeric address.  Note that the caller must not free the
- * address and that the next call to this function is allowed
- * to override the address again.
- *
- * @param plugin the name of the plugin
- * @param addr binary address
- * @param addrlen length of the address
- * @return string representing the same address
- */
 const char *
 http_common_plugin_address_to_string (const char *plugin,
                                       const void *addr,
@@ -642,18 +617,6 @@ http_common_plugin_address_to_string (const char *plugin,
 }
 
 
-/**
- * Function called to convert a string address to
- * a binary address.
- *
- * @param cls closure ('struct Plugin*')
- * @param addr string address
- * @param addrlen length of the @a addr
- * @param buf location to store the buffer
- *        If the function returns #GNUNET_SYSERR, its contents are undefined.
- * @param added length of created address
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on failure
- */
 int
 http_common_plugin_string_to_address (void *cls,
                                       const char *addr,
@@ -721,14 +684,6 @@ http_common_plugin_string_to_address (void *cls,
 }
 
 
-/**
- * Create a HTTP address from a socketaddr
- *
- * @param protocol protocol
- * @param addr sockaddr * address
- * @param addrlen length of the address
- * @return the HttpAddress
- */
 struct HttpAddress *
 http_common_address_from_socket (const char *protocol,
                                  const struct sockaddr *addr,

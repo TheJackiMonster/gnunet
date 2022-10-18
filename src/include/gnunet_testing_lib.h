@@ -401,7 +401,7 @@ typedef void
  * Starts a peer using the given configuration and then invokes the
  * given callback.  This function ALSO initializes the scheduler loop
  * and should thus be called directly from "main".  The testcase
- * should self-terminate by invoking 'GNUNET_SCHEDULER_shutdown'.
+ * should self-terminate by invoking #GNUNET_SCHEDULER_shutdown().
  *
  * @param testdir only the directory name without any path. This is used for
  *          all service homes; the directory will be created in a temporary
@@ -409,7 +409,7 @@ typedef void
  * @param cfgfilename name of the configuration file to use;
  *         use NULL to only run with defaults
  * @param tm main function of the testcase
- * @param tm_cls closure for 'tm'
+ * @param tm_cls closure for @a tm
  * @return 0 on success, 1 on error
  */
 int
@@ -425,7 +425,7 @@ GNUNET_TESTING_peer_run (const char *testdir,
  * Starts a service using the given configuration and then invokes the
  * given callback.  This function ALSO initializes the scheduler loop
  * and should thus be called directly from "main".  The testcase
- * should self-terminate by invoking 'GNUNET_SCHEDULER_shutdown'.
+ * should self-terminate by invoking #GNUNET_SCHEDULER_shutdown().
  *
  * This function is useful if the testcase is for a single service
  * and if that service doesn't itself depend on other services.

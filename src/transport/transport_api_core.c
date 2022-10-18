@@ -713,7 +713,7 @@ handle_recv (void *cls, const struct InboundMessage *im)
  * Function we use for handling incoming set quota messages.
  *
  * @param cls closure, a `struct GNUNET_TRANSPORT_CoreHandle *`
- * @param msg message received
+ * @param qm message received
  */
 static void
 handle_set_quota (void *cls, const struct QuotaSetMessage *qm)

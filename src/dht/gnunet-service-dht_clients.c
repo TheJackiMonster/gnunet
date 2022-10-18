@@ -584,7 +584,7 @@ handle_local_result (void *cls,
  * Check DHT GET messages from the client.
  *
  * @param cls the client we received this message from
- * @param message the actual message received
+ * @param get the actual message received
  * @return #GNUNET_OK (always)
  */
 static enum GNUNET_GenericReturnValue
@@ -602,7 +602,7 @@ check_dht_local_get (void *cls,
  * Handler for DHT GET messages from the client.
  *
  * @param cls the client we received this message from
- * @param message the actual message received
+ * @param get the actual message received
  */
 static void
 handle_dht_local_get (void *cls,
@@ -720,7 +720,7 @@ find_by_unique_id (void *cls,
  * Check "GET result seen" messages from the client.
  *
  * @param cls the client we received this message from
- * @param message the actual message received
+ * @param seen the actual message received
  * @return #GNUNET_OK if @a seen is well-formed
  */
 static enum GNUNET_GenericReturnValue
@@ -746,7 +746,7 @@ check_dht_local_get_result_seen (
  * Handler for "GET result seen" messages from the client.
  *
  * @param cls the client we received this message from
- * @param message the actual message received
+ * @param seen the actual message received
  */
 static void
 handle_dht_local_get_result_seen (
@@ -835,7 +835,7 @@ remove_by_unique_id (void *cls,
  * depending on message type (if processed locally)
  *
  * @param cls client we received this message from
- * @param message the actual message received
+ * @param dht_stop_msg the actual message received
  *
  */
 static void
@@ -1603,8 +1603,6 @@ GDS_CLIENTS_process_put (const struct GNUNET_DATACACHE_Block *bd,
 
 /**
  * Initialize client subsystem.
- *
- * @param server the initialized server
  */
 static void
 GDS_CLIENTS_init (void)

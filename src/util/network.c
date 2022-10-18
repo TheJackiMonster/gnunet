@@ -561,11 +561,6 @@ GNUNET_NETWORK_socket_close (struct GNUNET_NETWORK_Handle *desc)
 }
 
 
-/**
- * Only free memory of a socket, keep the file descriptor untouched.
- *
- * @param desc socket
- */
 void
 GNUNET_NETWORK_socket_free_memory_only_ (struct GNUNET_NETWORK_Handle *desc)
 {
@@ -688,16 +683,6 @@ GNUNET_NETWORK_socket_recvfrom_amount (const struct GNUNET_NETWORK_Handle *desc)
 }
 
 
-/**
- * Read data from a socket (always non-blocking).
- *
- * @param desc socket
- * @param buffer buffer
- * @param length length of @a buffer
- * @param src_addr either the source to recv from, or all zeroes
- *        to be filled in by recvfrom
- * @param addrlen length of the @a src_addr
- */
 ssize_t
 GNUNET_NETWORK_socket_recvfrom (const struct GNUNET_NETWORK_Handle *desc,
                                 void *buffer,
@@ -748,14 +733,6 @@ GNUNET_NETWORK_socket_recv (const struct GNUNET_NETWORK_Handle *desc,
 }
 
 
-/**
- * Send data (always non-blocking).
- *
- * @param desc socket
- * @param buffer data to send
- * @param length size of the @a buffer
- * @return number of bytes sent, #GNUNET_SYSERR on error
- */
 ssize_t
 GNUNET_NETWORK_socket_send (const struct GNUNET_NETWORK_Handle *desc,
                             const void *buffer,

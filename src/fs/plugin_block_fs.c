@@ -158,10 +158,9 @@ block_plugin_fs_get_key (void *cls,
  * Function called to validate a query.
  *
  * @param cls closure
- * @param ctx block context
  * @param type block type
  * @param query original query (hash)
- * @param xquery extrended query data (can be NULL, depending on type)
+ * @param xquery extended query data (can be NULL, depending on type)
  * @param xquery_size number of bytes in @a xquery
  * @return #GNUNET_OK if the query is fine, #GNUNET_NO if not
  */

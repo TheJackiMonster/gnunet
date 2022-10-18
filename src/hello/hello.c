@@ -511,15 +511,6 @@ merge_addr (void *cls,
 }
 
 
-/**
- * Construct a HELLO message by merging the
- * addresses in two existing HELLOs (which
- * must be for the same peer).
- *
- * @param h1 first HELLO message
- * @param h2 the second HELLO message
- * @return the combined HELLO message
- */
 struct GNUNET_HELLO_Message *
 GNUNET_HELLO_merge (const struct GNUNET_HELLO_Message *h1,
                     const struct GNUNET_HELLO_Message *h2)
@@ -606,19 +597,6 @@ delta_match (void *cls,
 }
 
 
-/**
- * Iterate over addresses in @a new_hello that are NOT already present
- * in @a old_hello.  Note that if the address is present in @a old_hello
- * but the expiration time in @a new_hello is more recent, the iterator
- * is also called.
- *
- * @param new_hello a HELLO message
- * @param old_hello a HELLO message
- * @param expiration_limit ignore addresses in @a old_hello
- *        that expired before the given time stamp
- * @param it iterator to call on each address
- * @param it_cls closure for @a it
- */
 void
 GNUNET_HELLO_iterate_new_addresses (const struct
                                     GNUNET_HELLO_Message *new_hello,

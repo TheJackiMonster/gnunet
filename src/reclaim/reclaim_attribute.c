@@ -282,14 +282,6 @@ GNUNET_RECLAIM_attribute_new (const char *attr_name,
 }
 
 
-/**
- * Add a new attribute to a claim list
- *
- * @param attr_name the name of the new attribute claim
- * @param type the type of the claim
- * @param data claim payload
- * @param data_size claim payload size
- */
 void
 GNUNET_RECLAIM_attribute_list_add (
   struct GNUNET_RECLAIM_AttributeList *al,
@@ -333,16 +325,9 @@ GNUNET_RECLAIM_attribute_list_serialize_get_size (
 }
 
 
-/**
- * Serialize an attribute list
- *
- * @param attrs the attribute list to serialize
- * @param result the serialized attribute
- * @return length of serialized data
- */
 size_t
 GNUNET_RECLAIM_attribute_list_serialize (
-  const struct GNUNET_RECLAIM_AttributeList *al,
+  const struct GNUNET_RECLAIM_AttributeList *attrs,
   char *result)
 {
   struct GNUNET_RECLAIM_AttributeListEntry *ale;
@@ -351,7 +336,7 @@ GNUNET_RECLAIM_attribute_list_serialize (
   char *write_ptr;
   write_ptr = result;
   total_len = 0;
-  for (ale = al->list_head; NULL != ale; ale = ale->next)
+  for (ale = attrs->list_head; NULL != ale; ale = ale->next)
   {
     GNUNET_assert (NULL != ale->attribute);
     len = GNUNET_RECLAIM_attribute_serialize (ale->attribute, write_ptr);
@@ -404,21 +389,16 @@ GNUNET_RECLAIM_attribute_list_deserialize (const char *data, size_t data_size)
 }
 
 
-/**
- * Make a (deep) copy of a claim list
- * @param attrs claim list to copy
- * @return copied claim list
- */
 struct GNUNET_RECLAIM_AttributeList *
 GNUNET_RECLAIM_attribute_list_dup (
-  const struct GNUNET_RECLAIM_AttributeList *al)
+  const struct GNUNET_RECLAIM_AttributeList *attrs)
 {
   struct GNUNET_RECLAIM_AttributeListEntry *ale;
   struct GNUNET_RECLAIM_AttributeListEntry *result_ale;
   struct GNUNET_RECLAIM_AttributeList *result;
 
   result = GNUNET_new (struct GNUNET_RECLAIM_AttributeList);
-  for (ale = al->list_head; NULL != ale; ale = ale->next)
+  for (ale = attrs->list_head; NULL != ale; ale = ale->next)
   {
     result_ale = GNUNET_new (struct GNUNET_RECLAIM_AttributeListEntry);
     GNUNET_assert (NULL != ale->attribute);
@@ -441,11 +421,6 @@ GNUNET_RECLAIM_attribute_list_dup (
 }
 
 
-/**
- * Destroy claim list
- *
- * @param attrs list to destroy
- */
 void
 GNUNET_RECLAIM_attribute_list_destroy (
   struct GNUNET_RECLAIM_AttributeList *al)

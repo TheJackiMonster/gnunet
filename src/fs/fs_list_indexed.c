@@ -155,14 +155,6 @@ mq_error_handler (void *cls,
 }
 
 
-/**
- * Iterate over all indexed files.
- *
- * @param h handle to the file sharing subsystem
- * @param iterator function to call on each indexed file
- * @param iterator_cls closure for iterator
- * @return NULL on error ('iter' is not called)
- */
 struct GNUNET_FS_GetIndexedContext *
 GNUNET_FS_get_indexed_files (struct GNUNET_FS_Handle *h,
                              GNUNET_FS_IndexedFileProcessor iterator,

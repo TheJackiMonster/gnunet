@@ -905,7 +905,6 @@ do_httpd (void *cls)
  * Accept new incoming connections
  *
  * @param cls the closure with the lsock4 or lsock6
- * @param tc the scheduler context
  */
 static void
 do_accept (void *cls)

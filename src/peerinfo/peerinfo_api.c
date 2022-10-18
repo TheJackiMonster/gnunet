@@ -119,13 +119,6 @@ static void
 reconnect (struct GNUNET_PEERINFO_Handle *h);
 
 
-/**
- * Connect to the peerinfo service.
- *
- * @param cfg configuration to use
- * @return NULL on error (configuration related, actual connection
- *         establishment may happen asynchronously).
- */
 struct GNUNET_PEERINFO_Handle *
 GNUNET_PEERINFO_connect (const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
@@ -467,22 +460,6 @@ reconnect (struct GNUNET_PEERINFO_Handle *h)
 }
 
 
-/**
- * Call a method for each known matching host.  The callback method
- * will be invoked once for each matching host and then finally once
- * with a NULL pointer.  After that final invocation, the iterator
- * context must no longer be used.
- *
- * Instead of calling this function with `peer == NULL` it is often
- * better to use #GNUNET_PEERINFO_notify().
- *
- * @param h handle to the peerinfo service
- * @param include_friend_only include HELLO messages for friends only
- * @param peer restrict iteration to this peer only (can be NULL)
- * @param callback the method to call for each peer
- * @param callback_cls closure for @a callback
- * @return iterator context
- */
 struct GNUNET_PEERINFO_IteratorContext *
 GNUNET_PEERINFO_iterate (struct GNUNET_PEERINFO_Handle *h,
                          int include_friend_only,

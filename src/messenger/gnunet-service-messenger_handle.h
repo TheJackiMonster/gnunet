@@ -55,8 +55,8 @@ struct GNUNET_MESSENGER_SrvHandle
 /**
  * Creates and allocates a new handle related to a <i>service</i> and using a given <i>mq</i> (message queue).
  *
- * @param[in/out] service MESSENGER Service
- * @param[in/out] mq Message queue
+ * @param[in,out] service MESSENGER Service
+ * @param[in,out] mq Message queue
  * @return New handle
  */
 struct GNUNET_MESSENGER_SrvHandle*
@@ -66,7 +66,7 @@ create_srv_handle (struct GNUNET_MESSENGER_Service *service,
 /**
  * Destroys a handle and frees its memory fully.
  *
- * @param[in/out] handle Handle
+ * @param[in,out] handle Handle
  */
 void
 destroy_srv_handle (struct GNUNET_MESSENGER_SrvHandle *handle);
@@ -103,7 +103,7 @@ get_srv_handle_member_id (const struct GNUNET_MESSENGER_SrvHandle *handle,
  *
  * The client connected to the <i>handle</i> will be informed afterwards automatically.
  *
- * @param[in/out] handle Handle
+ * @param[in,out] handle Handle
  * @param[in] key Key of a room
  * @param[in] unique_id Unique member id
  * @return GNUNET_OK on success, otherwise GNUNET_SYSERR
@@ -116,7 +116,7 @@ change_srv_handle_member_id (struct GNUNET_MESSENGER_SrvHandle *handle,
 /**
  * Sets the EGO used by a given <i>handle</i>.
  *
- * @param[in/out] handle Handle
+ * @param[in,out] handle Handle
  * @param[in] ego EGO key pair
  */
 void
@@ -135,7 +135,7 @@ get_srv_handle_ego (const struct GNUNET_MESSENGER_SrvHandle *handle);
 /**
  * Tries to set the name and EGO key of a <i>handle</i> initially by looking up a specific <i>name</i>.
  *
- * @param[in/out] handle Handle
+ * @param[in,out] handle Handle
  * @param[in] name Name (optionally: valid EGO name)
  */
 void
@@ -146,7 +146,7 @@ setup_srv_handle_name (struct GNUNET_MESSENGER_SrvHandle *handle,
  * Tries to change the key pair of an EGO of a <i>handle</i> under the same name and informs all rooms
  * about the change automatically.
  *
- * @param[in/out] handle Handle
+ * @param[in,out] handle Handle
  */
 void
 update_srv_handle (struct GNUNET_MESSENGER_SrvHandle *handle);
@@ -157,7 +157,7 @@ update_srv_handle (struct GNUNET_MESSENGER_SrvHandle *handle);
  *
  * The client connected to the <i>handle</i> will be informed afterwards automatically.
  *
- * @param[in/out] handle Handle
+ * @param[in,out] handle Handle
  * @param[in] name New name
  */
 void
@@ -168,7 +168,7 @@ set_srv_handle_name (struct GNUNET_MESSENGER_SrvHandle *handle,
  * Makes a given <i>handle</i> a member of the room using a specific <i>key</i> and opens the
  * room from the handles service.
  *
- * @param[in/out] handle Handle
+ * @param[in,out] handle Handle
  * @param[in] key Key of a room
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
@@ -180,7 +180,7 @@ open_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
  * Makes a given <i>handle</i> a member of the room using a specific <i>key</i> and enters the room
  * through a tunnel to a peer identified by a given <i>door</i> (peer identity).
  *
- * @param[in/out] handle Handle
+ * @param[in,out] handle Handle
  * @param[in] door Peer identity
  * @param[in] key Key of a room
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
@@ -194,7 +194,7 @@ entry_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
  * Removes the membership of the room using a specific <i>key</i> and closes it if no other handle
  * from this service is still a member of it.
  *
- * @param[in/out] handle Handle
+ * @param[in,out] handle Handle
  * @param[in] key Key of a room
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
@@ -205,7 +205,7 @@ close_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
 /**
  * Sends a <i>message</i> from a given <i>handle</i> to the room using a specific <i>key</i>.
  *
- * @param[in/out] handle Handle
+ * @param[in,out] handle Handle
  * @param[in] key Key of a room
  * @param[in] message Message
  * @return #GNUNET_YES on success, #GNUNET_NO or #GNUNET_SYSERR otherwise.
@@ -218,7 +218,7 @@ send_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
 /**
  * Notifies the handle that a new message was received or sent.
  *
- * @param[in/out] handle Handle
+ * @param[in,out] handle Handle
  * @param[in] room Room of the message
  * @param[in] session Member session
  * @param[in] message Message

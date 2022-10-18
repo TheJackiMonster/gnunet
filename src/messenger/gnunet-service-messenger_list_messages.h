@@ -56,7 +56,7 @@ init_list_messages (struct GNUNET_MESSENGER_ListMessages *messages);
 /**
  * Clears the list of message hashes.
  *
- * @param[in/out] messages List of hashes
+ * @param[in,out] messages List of hashes
  */
 void
 clear_list_messages (struct GNUNET_MESSENGER_ListMessages *messages);
@@ -64,7 +64,7 @@ clear_list_messages (struct GNUNET_MESSENGER_ListMessages *messages);
 /**
  * Adds a specific <i>hash</i> from a message to the end of the list.
  *
- * @param[in/out] messages List of hashes
+ * @param[in,out] messages List of hashes
  * @param[in] hash Hash of message
  */
 void
@@ -74,7 +74,7 @@ add_to_list_messages (struct GNUNET_MESSENGER_ListMessages *messages,
 /**
  * Copies all message hashes from an <i>origin</i> to another list.
  *
- * @param[in/out] messages Destination list of hashes
+ * @param[in,out] messages Destination list of hashes
  * @param[in] origin Source list of hashes
  */
 void
@@ -84,7 +84,7 @@ copy_list_messages (struct GNUNET_MESSENGER_ListMessages *messages,
 /**
  * Removes the first entry with a matching <i>hash</i> from the list.
  *
- * @param[in/out] messages List of hashes
+ * @param[in,out] messages List of hashes
  * @param[in] hash Hash of message
  */
 void

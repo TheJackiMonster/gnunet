@@ -674,7 +674,7 @@ GNUNET_DISK_directory_scan (const char *dir_name,
  * Currently, the glob_pattern only supports asterisks in the last
  * path component.
  *
- * @param glob_patterb the glob pattern to search for
+ * @param glob_pattern the glob pattern to search for
  * @param callback the method to call for each file
  * @param callback_cls closure for @a callback
  * @return the number of files found, -1 on error

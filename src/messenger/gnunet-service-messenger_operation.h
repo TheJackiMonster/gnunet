@@ -66,7 +66,7 @@ create_operation (const struct GNUNET_HashCode *hash);
 /**
  * Destroys an operation and frees its memory fully.
  *
- * @param[in/out] op Operation
+ * @param[in,out] op Operation
  */
 void
 destroy_operation (struct GNUNET_MESSENGER_Operation *op);
@@ -82,7 +82,7 @@ destroy_operation (struct GNUNET_MESSENGER_Operation *op);
  * If the method fails to restore any valid operation from the file,
  * NULL gets returned instead.
  *
- * @param[in/out] store Operation store
+ * @param[in,out] store Operation store
  * @param[in] path Path of a configuration file
  */
 struct GNUNET_MESSENGER_Operation*
@@ -107,9 +107,9 @@ save_operation (const struct GNUNET_MESSENGER_Operation *op,
  * operations type to process it correctly. An operation can't be
  * started twice, it has to be stopped or fully processed first.
  *
- * @param[in/out] op Operation
+ * @param[in,out] op Operation
  * @param[in] type Type of operation
- * @param[in/out] store Operation store
+ * @param[in,out] store Operation store
  * @param[in] delay Delay
  * @return #GNUNET_OK on success, otherwise #GNUNET_SYSERR
  */

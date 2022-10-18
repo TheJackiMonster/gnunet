@@ -501,19 +501,6 @@ automaton_state_traverse (struct REGEX_INTERNAL_State *s,
 }
 
 
-/**
- * Traverses the given automaton using depth-first-search (DFS) from it's start
- * state, visiting all reachable states and calling 'action' on each one of
- * them.
- *
- * @param a automaton to be traversed.
- * @param start start state, pass a->start or NULL to traverse the whole automaton.
- * @param check function that is checked before advancing on each transition
- *              in the DFS.
- * @param check_cls closure for @a check.
- * @param action action to be performed on each state.
- * @param action_cls closure for @a action
- */
 void
 REGEX_INTERNAL_automaton_traverse (const struct REGEX_INTERNAL_Automaton *a,
                                    struct REGEX_INTERNAL_State *start,
@@ -3041,23 +3028,6 @@ construct_dfa_states (struct REGEX_INTERNAL_Context *ctx,
 }
 
 
-/**
- * Construct DFA for the given 'regex' of length 'len'.
- *
- * Path compression means, that for example a DFA o -> a -> b -> c -> o will be
- * compressed to o -> abc -> o. Note that this parameter influences the
- * non-determinism of states of the resulting NFA in the DHT (number of outgoing
- * edges with the same label). For example for an application that stores IPv4
- * addresses as bitstrings it could make sense to limit the path compression to
- * 4 or 8.
- *
- * @param regex regular expression string.
- * @param len length of the regular expression.
- * @param max_path_len limit the path compression length to the
- *        given value. If set to 1, no path compression is applied. Set to 0 for
- *        maximal possible path compression (generally not desirable).
- * @return DFA, needs to be freed using REGEX_INTERNAL_automaton_destroy.
- */
 struct REGEX_INTERNAL_Automaton *
 REGEX_INTERNAL_construct_dfa (const char *regex,
                               const size_t len,
@@ -3118,12 +3088,6 @@ REGEX_INTERNAL_construct_dfa (const char *regex,
 }
 
 
-/**
- * Free the memory allocated by constructing the REGEX_INTERNAL_Automaton data
- * structure.
- *
- * @param a automaton to be destroyed
- */
 void
 REGEX_INTERNAL_automaton_destroy (struct REGEX_INTERNAL_Automaton *a)
 {
@@ -3251,13 +3215,6 @@ evaluate_nfa (struct REGEX_INTERNAL_Automaton *a, const char *string)
 }
 
 
-/**
- * Evaluates the given @a string against the given compiled regex @a a
- *
- * @param a automaton
- * @param string string to check
- * @return 0 if string matches, non-0 otherwise
- */
 int
 REGEX_INTERNAL_eval (struct REGEX_INTERNAL_Automaton *a, const char *string)
 {
@@ -3284,17 +3241,6 @@ REGEX_INTERNAL_eval (struct REGEX_INTERNAL_Automaton *a, const char *string)
 }
 
 
-/**
- * Get the canonical regex of the given automaton.
- * When constructing the automaton a proof is computed for each state,
- * consisting of the regular expression leading to this state. A complete
- * regex for the automaton can be computed by combining these proofs.
- * As of now this function is only useful for testing.
- *
- * @param a automaton for which the canonical regex should be returned.
- *
- * @return
- */
 const char *
 REGEX_INTERNAL_get_canonical_regex (struct REGEX_INTERNAL_Automaton *a)
 {
@@ -3685,16 +3631,6 @@ iterate_reachables (void *cls, const struct GNUNET_HashCode *key, void *value)
 }
 
 
-/**
- * Iterate over all edges of automaton 'a' that are reachable from a state with
- * a proof of at least GNUNET_REGEX_INITIAL_BYTES characters.
- *
- * Call the iterator for each such edge.
- *
- * @param a automaton.
- * @param iterator iterator called for each reachable edge.
- * @param iterator_cls closure.
- */
 void
 REGEX_INTERNAL_iterate_reachable_edges (struct REGEX_INTERNAL_Automaton *a,
                                         REGEX_INTERNAL_KeyIterator iterator,

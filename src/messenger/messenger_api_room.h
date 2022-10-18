@@ -59,7 +59,7 @@ struct GNUNET_MESSENGER_Room
 /**
  * Creates and allocates a new room for a <i>handle</i> with a given <i>key</i> for the client API.
  *
- * @param[in/out] handle Handle
+ * @param[in,out] handle Handle
  * @param[in] key Key of room
  * @return New room
  */
@@ -70,7 +70,7 @@ create_room (struct GNUNET_MESSENGER_Handle *handle,
 /**
  * Destroys a room and frees its memory fully from the client API.
  *
- * @param[in/out] room Room
+ * @param[in,out] room Room
  */
 void
 destroy_room (struct GNUNET_MESSENGER_Room *room);
@@ -106,8 +106,8 @@ get_room_sender (const struct GNUNET_MESSENGER_Room *room,
  * The contact of the message's sender could be updated or even created. It may not be freed or destroyed though!
  * (The contact may still be in use for old messages...)
  *
- * @param[in/out] room Room
- * @param[in/out] sender Contact of sender
+ * @param[in,out] room Room
+ * @param[in,out] sender Contact of sender
  * @param[in] message Message
  * @param[in] hash Hash of message
  * @return Contact of sender
@@ -122,9 +122,9 @@ handle_room_message (struct GNUNET_MESSENGER_Room *room,
  * Iterates through all members of a given <i>room</i> to forward each of them to a selected
  * <i>callback</i> with a custom closure.
  *
- * @param[in/out] room Room
+ * @param[in,out] room Room
  * @param[in] callback Function called for each member
- * @param[in/out] cls Closure
+ * @param[in,out] cls Closure
  * @return Amount of members iterated
  */
 int

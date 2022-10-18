@@ -128,14 +128,6 @@ parent_control_handler (void *cls)
 }
 
 
-/**
- * Task that connects this process to its parent via pipe;
- * essentially, the parent control handler will read signal numbers
- * from the #GNUNET_OS_CONTROL_PIPE (as given in an environment
- * variable) and raise those signals.
- *
- * @param cls closure (unused)
- */
 void
 GNUNET_OS_install_parent_control_handler (void *cls)
 {
@@ -583,17 +575,6 @@ start_process (enum GNUNET_OS_InheritStdioFlags std_inheritance,
 }
 
 
-/**
- * Start a process.
- *
- * @param std_inheritance a set of GNUNET_OS_INHERIT_STD_* flags
- * @param pipe_stdin pipe to use to send input to child process (or NULL)
- * @param pipe_stdout pipe to use to get output from child process (or NULL)
- * @param pipe_stderr pipe to use to get output from child process (or NULL)
- * @param filename name of the binary
- * @param argv NULL-terminated array of arguments to the process
- * @return pointer to process structure of the new process, NULL on error
- */
 struct GNUNET_OS_Process *
 GNUNET_OS_start_process_vap (enum GNUNET_OS_InheritStdioFlags std_inheritance,
                              struct GNUNET_DISK_PipeHandle *pipe_stdin,
@@ -612,17 +593,6 @@ GNUNET_OS_start_process_vap (enum GNUNET_OS_InheritStdioFlags std_inheritance,
 }
 
 
-/**
- * Start a process.
- *
- * @param std_inheritance a set of GNUNET_OS_INHERIT_STD_* flags
- * @param pipe_stdin pipe to use to send input to child process (or NULL)
- * @param pipe_stdout pipe to use to get output from child process (or NULL)
- * @param pipe_stderr pipe to use to get output from child process (or NULL)
- * @param filename name of the binary
- * @param va NULL-terminated list of arguments to the process
- * @return pointer to process structure of the new process, NULL on error
- */
 struct GNUNET_OS_Process *
 GNUNET_OS_start_process_va (enum GNUNET_OS_InheritStdioFlags std_inheritance,
                             struct GNUNET_DISK_PipeHandle *pipe_stdin,
@@ -658,16 +628,6 @@ GNUNET_OS_start_process_va (enum GNUNET_OS_InheritStdioFlags std_inheritance,
 }
 
 
-/**
- * Start a process.
- *
- * @param std_inheritance a set of GNUNET_OS_INHERIT_STD_* flags
- * @param pipe_stdin pipe to use to send input to child process (or NULL)
- * @param pipe_stdout pipe to use to get output from child process (or NULL)
- * @param filename name of the binary
- * @param ... NULL-terminated list of arguments to the process
- * @return pointer to process structure of the new process, NULL on error
- */
 struct GNUNET_OS_Process *
 GNUNET_OS_start_process (enum GNUNET_OS_InheritStdioFlags std_inheritance,
                          struct GNUNET_DISK_PipeHandle *pipe_stdin,
@@ -1127,17 +1087,6 @@ cmd_read (void *cls)
 }
 
 
-/**
- * Run the given command line and call the given function
- * for each line of the output.
- *
- * @param proc function to call for each line of the output
- * @param proc_cls closure for @a proc
- * @param timeout when to time out
- * @param binary command to run
- * @param ... arguments to command
- * @return NULL on error
- */
 struct GNUNET_OS_CommandHandle *
 GNUNET_OS_command_run (GNUNET_OS_LineProcessor proc,
                        void *proc_cls,

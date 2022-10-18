@@ -265,16 +265,6 @@ restart_nat_server (void *cls)
 }
 
 
-/**
- * Start the gnunet-helper-nat-server and process incoming
- * requests.
- *
- * @param internal_address
- * @param cb function to call if we receive a request
- * @param cb_cls closure for @a cb
- * @param cfg Handle to the GNUnet configuration
- * @return NULL on error
- */
 struct HelperContext *
 GN_start_gnunet_nat_server_ (const struct in_addr *internal_address,
                              GN_ReversalCallback cb,

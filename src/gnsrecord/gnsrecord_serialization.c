@@ -77,14 +77,6 @@ struct NetworkRecord
 GNUNET_NETWORK_STRUCT_END
 
 
-/**
- * Calculate how many bytes we will need to serialize the given
- * records.
- *
- * @param rd_count number of records in the rd array
- * @param rd array of #GNUNET_GNSRECORD_Data with @a rd_count elements
- * @return the required size to serialize, -1 on error
- */
 ssize_t
 GNUNET_GNSRECORD_records_get_size (unsigned int rd_count,
                                    const struct GNUNET_GNSRECORD_Data *rd)
@@ -143,15 +135,6 @@ GNUNET_GNSRECORD_records_get_size (unsigned int rd_count,
 }
 
 
-/**
- * Serialize the given records to the given destination buffer.
- *
- * @param rd_count number of records in the rd array
- * @param rd array of #GNUNET_GNSRECORD_Data with @a rd_count elements
- * @param dest_size size of the destination array
- * @param dest where to write the result
- * @return the size of serialized records, -1 if records do not fit
- */
 ssize_t
 GNUNET_GNSRECORD_records_serialize (unsigned int rd_count,
                                     const struct GNUNET_GNSRECORD_Data *rd,

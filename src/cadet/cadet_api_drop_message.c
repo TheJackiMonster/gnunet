@@ -27,7 +27,7 @@
 
 
 /**
- * Drop the next cadet message of a given type..
+ * Drop the next cadet message of a given type.
  *
  * @param mq message queue
  * @param ccn client channel number.

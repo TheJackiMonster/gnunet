@@ -2120,7 +2120,7 @@ free_blacklist_entry (void *cls,
  * Set traffic metric to manipulate
  *
  * @param cls closure
- * @param message containing information
+ * @param tm message containing information
  */
 static void
 handle_client_set_metric (void *cls, const struct TrafficMetricMessage *tm)
@@ -2486,11 +2486,6 @@ GST_blacklist_test_allowed (const struct GNUNET_PeerIdentity *peer,
 }
 
 
-/**
- * Cancel a blacklist check.
- *
- * @param bc check to cancel
- */
 void
 GST_blacklist_test_cancel (struct GST_BlacklistCheck *bc)
 {

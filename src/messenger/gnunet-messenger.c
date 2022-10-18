@@ -34,7 +34,7 @@ struct GNUNET_MESSENGER_Handle *messenger;
 /**
  * Function called whenever a message is received or sent.
  *
- * @param[in/out] cls Closure
+ * @param[in,out] cls Closure
  * @param[in] room Room
  * @param[in] sender Sender of message
  * @param[in] message Message
@@ -104,7 +104,7 @@ struct GNUNET_SCHEDULER_Task *read_task;
 /**
  * Task to shut down this application.
  *
- * @param[in/out] cls Closure
+ * @param[in,out] cls Closure
  */
 static void
 shutdown_hook (void *cls)
@@ -144,7 +144,7 @@ int private_mode;
 /**
  * Task run in stdio mode, after some data is available at stdin.
  *
- * @param[in/out] cls Closure
+ * @param[in,out] cls Closure
  */
 static void
 read_stdio (void *cls)
@@ -184,7 +184,7 @@ read_stdio (void *cls)
 /**
  * Wait for input on STDIO and send it out over the #ch.
  *
- * @param[in/out] cls Closure
+ * @param[in,out] cls Closure
  */
 static void
 listen_stdio (void *cls)
@@ -205,7 +205,7 @@ listen_stdio (void *cls)
 /**
  * Initial task to startup application.
  *
- * @param[in/out] cls Closure
+ * @param[in,out] cls Closure
  */
 static void
 idle (void *cls)
@@ -226,8 +226,8 @@ struct GNUNET_SCHEDULER_Task *shutdown_task;
 /**
  * Function called when an identity is retrieved.
  *
- * @param[in/out] cls Closure
- * @param[in/out] handle Handle of messenger service
+ * @param[in,out] cls Closure
+ * @param[in,out] handle Handle of messenger service
  */
 static void
 on_identity (void *cls,

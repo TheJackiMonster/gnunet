@@ -305,7 +305,7 @@ static struct RequestHandle *requests_tail;
 
 /**
  * Cleanup lookup handle
- * @param handle Handle to clean up
+ * @param cls Handle to clean up
  */
 static void
 cleanup_handle (void *cls)

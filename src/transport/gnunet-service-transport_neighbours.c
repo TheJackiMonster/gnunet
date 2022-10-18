@@ -1768,16 +1768,6 @@ GST_neighbours_calculate_receive_delay (const struct
 }
 
 
-/**
- * Transmit a message to the given target using the active connection.
- *
- * @param target destination
- * @param msg message to send
- * @param msg_size number of bytes in msg
- * @param timeout when to fail with timeout
- * @param cont function to call when done
- * @param cont_cls closure for @a cont
- */
 void
 GST_neighbours_send (const struct GNUNET_PeerIdentity *target,
                      const void *msg,
@@ -3019,13 +3009,6 @@ GST_neighbours_notify_data_sent (const struct GNUNET_HELLO_Address *address,
 }
 
 
-/**
- * Master task run for every neighbour.  Performs all of the time-related
- * activities (keep alive, send next message, disconnect if idle, finish
- * clean up after disconnect).
- *
- * @param cls the 'struct NeighbourMapEntry' for which we are running
- */
 static void
 master_task (void *cls)
 {
@@ -3646,13 +3629,6 @@ delayed_disconnect (void *cls)
 }
 
 
-/**
- * We received a quota message from the given peer,
- * validate and process.
- *
- * @param peer sender of the message
- * @param msg the quota message
- */
 void
 GST_neighbours_handle_quota_message (const struct GNUNET_PeerIdentity *peer,
                                      const struct GNUNET_MessageHeader *msg)
