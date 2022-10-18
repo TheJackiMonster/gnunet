@@ -1,8 +1,9 @@
 #!/bin/sh
 # This file is in the public domain.
 
-out=`mktemp /tmp/test-gnunet-dht-logXXXXXXXX`
-tempcfg=`mktemp /tmp/test-dht-tools.XXXXXXXX`
+GNUNET_TMP="$(gnunet-config -f -s PATHS -o GNUNET_TMP)"
+out=`mktemp $GNUNET_TMP/test-gnunet-dht-logXXXXXXXX`
+tempcfg=`mktemp $GNUNET_TMP/test-dht-tools.XXXXXXXX`
 checkout="check.out"
 armexe="gnunet-arm -c $tempcfg "
 putexe="gnunet-dht-put -c $tempcfg "

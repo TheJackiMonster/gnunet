@@ -1,6 +1,9 @@
 #!/bin/bash
 # This file is in the public domain.
 
+# Getting location for temporary files
+GNUNET_TMP="$(gnunet-config -f -s PATHS -o GNUNET_TMP)"
+
 # We will use UDP ports above this number.
 MINPORT=10000
 
@@ -54,13 +57,13 @@ MAX=`expr $1 - 1`
 export GNUNET_FORCE_LOG="dht*;;;;DEBUG"
 
 echo -n "Starting $1 peers "
-mkdir -p /tmp/deployment
+mkdir -p "$GNUNET_TMP/deployment"
 for n in `seq 0 $MAX`
 do
     PORT=`expr $MINPORT + $n`
-    CFG="/tmp/deployment/${n}.conf"
+    CFG="$GNUNET_TMP/deployment/${n}.conf"
     cat dhtu_testbed_deploy.conf | sed -e "s/%N%/$PORT/" > $CFG
-    gnunet-service-dht -c $CFG -L DEBUG &> /tmp/deployment/$n.log &
+    gnunet-service-dht -c $CFG -L DEBUG &> "$GNUNET_TMP/deployment/$n.log" &
     echo -n "."
 done
 
@@ -85,7 +88,7 @@ fi
 
 echo ""
 echo "Network ready. Press ENTER to terminate the testbed!"
-echo "Interact with peers using '-c /tmp/deployment/\$N.conf'"
+echo "Interact with peers using '-c $GNUNET_TMP/deployment/\$N.conf'"
 
 read
 
