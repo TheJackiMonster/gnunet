@@ -243,6 +243,11 @@ struct ZoneMonitor
   int in_first_iteration;
 
   /**
+   * Run again because we skipped an orphan
+   */
+  int run_again;
+
+  /**
    * Is there a store activity waiting for this monitor?  We only raise the
    * flag when it happens and search the DLL for the store activity when we
    * had a limit increase.  If we cannot find any waiting store activity at
@@ -335,6 +340,36 @@ struct NickCache
   struct GNUNET_TIME_Absolute last_used;
 };
 
+/**
+ * The default namestore ego
+ */
+struct EgoEntry
+{
+  /**
+   * DLL
+   */
+  struct EgoEntry *next;
+
+  /**
+   * DLL
+   */
+  struct EgoEntry *prev;
+
+  /**
+   * Ego Identifier
+   */
+  char *identifier;
+
+  /**
+   * Public key string
+   */
+  char *keystring;
+
+  /**
+   * The Ego
+   */
+  struct GNUNET_IDENTITY_Ego *ego;
+};
 
 /**
  * We cache nick records to reduce DB load.
@@ -355,6 +390,27 @@ static const struct GNUNET_CONFIGURATION_Handle *GSN_cfg;
  * Handle to the statistics service
  */
 static struct GNUNET_STATISTICS_Handle *statistics;
+
+/**
+ * Handle to the identity service
+ */
+static struct GNUNET_IDENTITY_Handle *identity_handle;
+
+/**
+ * Indicator if we already have passed the first iteration if egos
+ */
+static int egos_collected = GNUNET_NO;
+
+/**
+ * Ego list
+ */
+static struct EgoEntry *ego_head;
+
+/**
+ * Ego list
+ */
+static struct EgoEntry *ego_tail;
+
 
 /**
  * Name of the database plugin
@@ -406,6 +462,9 @@ static int cache_keys;
 static void
 cleanup_task (void *cls)
 {
+  struct EgoEntry *ego_entry;
+  struct EgoEntry *ego_tmp;
+
   (void) cls;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Stopping namestore service\n");
   if (NULL != monitor_nc)
@@ -417,6 +476,20 @@ cleanup_task (void *cls)
   {
     GNUNET_STATISTICS_destroy (statistics, GNUNET_NO);
     statistics = NULL;
+  }
+  if (NULL != identity_handle)
+  {
+    GNUNET_IDENTITY_disconnect (identity_handle);
+    identity_handle = NULL;
+    // FIXME cleanup EgoEntries
+  }
+  for (ego_entry = ego_head; NULL != ego_entry;)
+  {
+    ego_tmp = ego_entry;
+    ego_entry = ego_entry->next;
+    GNUNET_free (ego_tmp->identifier);
+    GNUNET_free (ego_tmp->keystring);
+    GNUNET_free (ego_tmp);
   }
   GNUNET_break (NULL == GNUNET_PLUGIN_unload (db_lib_name, GSN_database));
   GNUNET_free (db_lib_name);
@@ -434,6 +507,48 @@ free_store_activity (struct StoreActivity *sa)
 {
   GNUNET_CONTAINER_DLL_remove (sa_head, sa_tail, sa);
   GNUNET_free (sa);
+}
+
+static enum GNUNET_GenericReturnValue
+is_orphaned (const struct GNUNET_IDENTITY_PrivateKey *zone)
+{
+  struct EgoEntry *ego_entry;
+  struct GNUNET_IDENTITY_PublicKey pk;
+  char *keystring;
+
+  GNUNET_IDENTITY_key_get_public (zone, &pk);
+  keystring = GNUNET_IDENTITY_public_key_to_string (&pk);
+
+  for (ego_entry = ego_head; NULL != ego_entry;
+       ego_entry = ego_entry->next)
+  {
+    if (0 == strcmp (ego_entry->keystring, keystring))
+      break;
+  }
+  if (NULL != ego_entry)
+  {
+    GNUNET_free (keystring);
+    return GNUNET_NO;
+  }
+  /*if (purge_orphans)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Removing orphaned zone data for ego %s\n",
+                ego_entry->keystring);
+    res = GSN_database->delete_records (GSN_database->cls,
+                                        zone,
+                                        &emsg);
+    if (GNUNET_SYSERR == res)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Error removing orphaned zone data: %s\n", emsg);
+    }
+  }*/
+  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+              "Found orphaned zone data for zone key %s\n",
+              keystring);
+  GNUNET_free (keystring);
+  return GNUNET_YES;
 }
 
 
@@ -1958,6 +2073,11 @@ struct ZoneIterationProcResult
    * Number of results left to be returned in this iteration.
    */
   uint64_t limit;
+
+  /**
+   * Skip a result and run again unless GNUNET_NO
+   */
+  int run_again;
 };
 
 
@@ -1999,8 +2119,15 @@ zone_iterate_proc (void *cls,
     GNUNET_break (0);
     return;
   }
-  proc->limit--;
   proc->zi->seq = seq;
+  if (GNUNET_YES == is_orphaned (zone_key))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Skipping orphaned zone data\n");
+    proc->run_again = GNUNET_YES;
+    return;
+  }
+  proc->limit--;
   send_lookup_response_with_filter (proc->zi->nc,
                                     proc->zi->request_id,
                                     zone_key,
@@ -2032,18 +2159,23 @@ run_zone_iteration_round (struct ZoneIteration *zi, uint64_t limit)
               (unsigned long long) zi->seq);
   proc.zi = zi;
   proc.limit = limit;
+  proc.run_again = GNUNET_YES;
   start = GNUNET_TIME_absolute_get ();
-  GNUNET_break (GNUNET_SYSERR !=
-                nc->GSN_database->iterate_records (nc->GSN_database->cls,
-                                                   (GNUNET_YES ==
-                                                    GNUNET_is_zero (
-                                                      &zi->zone))
+  while (GNUNET_YES == proc.run_again)
+  {
+    proc.run_again = GNUNET_NO;
+    GNUNET_break (GNUNET_SYSERR !=
+                  nc->GSN_database->iterate_records (nc->GSN_database->cls,
+                                                     (GNUNET_YES ==
+                                                      GNUNET_is_zero (
+                                                        &zi->zone))
                                                ? NULL
                                                : &zi->zone,
-                                                   zi->seq,
-                                                   limit,
-                                                   &zone_iterate_proc,
-                                                   &proc));
+                                                     zi->seq,
+                                                     proc.limit,
+                                                     &zone_iterate_proc,
+                                                     &proc));
+  }
   duration = GNUNET_TIME_absolute_get_duration (start);
   duration = GNUNET_TIME_relative_divide (duration, limit - proc.limit);
   GNUNET_STATISTICS_set (statistics,
@@ -2256,6 +2388,13 @@ monitor_iterate_cb (void *cls,
                             "Monitor notifications sent",
                             1,
                             GNUNET_NO);
+  if (GNUNET_YES == is_orphaned (zone_key))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Skipping orphaned zone data\n");
+    zm->run_again = GNUNET_YES;
+    return;
+  }
   zm->limit--;
   zm->iteration_cnt--;
   send_lookup_response (zm->nc, 0, zone_key, name, rd_count, rd);
@@ -2319,13 +2458,18 @@ monitor_iteration_next (void *cls)
     zm->iteration_cnt = zm->limit / 2;   /* leave half for monitor events */
   else
     zm->iteration_cnt = zm->limit;   /* use it all */
-  ret = nc->GSN_database->iterate_records (nc->GSN_database->cls,
-                                           (GNUNET_YES == GNUNET_is_zero (
-                                              &zm->zone)) ? NULL : &zm->zone,
-                                           zm->seq,
-                                           zm->iteration_cnt,
-                                           &monitor_iterate_cb,
-                                           zm);
+  zm->run_again = GNUNET_YES;
+  while (GNUNET_YES == zm->run_again)
+  {
+    zm->run_again = GNUNET_NO;
+    ret = nc->GSN_database->iterate_records (nc->GSN_database->cls,
+                                             (GNUNET_YES == GNUNET_is_zero (
+                                                &zm->zone)) ? NULL : &zm->zone,
+                                             zm->seq,
+                                             zm->iteration_cnt,
+                                             &monitor_iterate_cb,
+                                             zm);
+  }
   if (GNUNET_SYSERR == ret)
   {
     GNUNET_SERVICE_client_drop (zm->nc->client);
@@ -2338,7 +2482,6 @@ monitor_iteration_next (void *cls)
     return;
   }
 }
-
 
 /**
  * Handles a #GNUNET_MESSAGE_TYPE_NAMESTORE_MONITOR_NEXT message
@@ -2398,6 +2541,99 @@ handle_monitor_next (void *cls, const struct ZoneMonitorNextMessage *nm)
   }
 }
 
+static void
+ego_callback (void *cls,
+              struct GNUNET_IDENTITY_Ego *ego,
+              void **ctx,
+              const char *identifier)
+{
+  struct EgoEntry *ego_entry;
+  struct GNUNET_SERVICE_Handle *service = cls;
+  struct GNUNET_IDENTITY_PublicKey pk;
+
+  if ((NULL == ego) && (GNUNET_NO == egos_collected))
+  {
+    egos_collected = GNUNET_YES;
+    GNUNET_SERVICE_resume (service);
+    return;
+  }
+  if (NULL == ego)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Called with NULL ego\n");
+    return;
+  }
+  if ((GNUNET_NO == egos_collected) &&
+      (NULL != identifier))
+  {
+    ego_entry = GNUNET_new (struct EgoEntry);
+    GNUNET_IDENTITY_ego_get_public_key (ego, &pk);
+    ego_entry->keystring = GNUNET_IDENTITY_public_key_to_string (&pk);
+    ego_entry->ego = ego;
+    ego_entry->identifier = GNUNET_strdup (identifier);
+    GNUNET_CONTAINER_DLL_insert_tail (ego_head,
+                                      ego_tail,
+                                      ego_entry);
+    return;
+  }
+  /* Ego renamed or added */
+  if (identifier != NULL)
+  {
+    for (ego_entry = ego_head; NULL != ego_entry;
+         ego_entry = ego_entry->next)
+    {
+      if (ego_entry->ego == ego)
+      {
+        /* Rename */
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                    "Renaming ego %s->%s\n", ego_entry->identifier,
+                    identifier);
+        GNUNET_free (ego_entry->identifier);
+        ego_entry->identifier = GNUNET_strdup (identifier);
+        break;
+      }
+    }
+    if (NULL == ego_entry)
+    {
+      /* Add */
+      ego_entry = GNUNET_new (struct EgoEntry);
+      GNUNET_IDENTITY_ego_get_public_key (ego, &pk);
+      ego_entry->keystring = GNUNET_IDENTITY_public_key_to_string (&pk);
+      ego_entry->ego = ego;
+      ego_entry->identifier = GNUNET_strdup (identifier);
+      GNUNET_CONTAINER_DLL_insert_tail (ego_head,
+                                        ego_tail,
+                                        ego_entry);
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Added ego %s\n", ego_entry->identifier);
+    }
+  }
+  else
+  {
+    /* Delete */
+    for (ego_entry = ego_head; NULL != ego_entry;
+         ego_entry = ego_entry->next)
+    {
+      if (ego_entry->ego == ego)
+        break;
+    }
+    if (NULL == ego_entry)
+      return;   /* Not found */
+
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Removing ego %s\n", ego_entry->identifier);
+    GNUNET_CONTAINER_DLL_remove (ego_head,
+                                 ego_tail,
+                                 ego_entry);
+    GNUNET_free (ego_entry->identifier);
+    GNUNET_free (ego_entry->keystring);
+    GNUNET_free (ego_entry);
+    return;
+  }
+
+}
+
+
 
 /**
  * Process namestore requests.
@@ -2413,7 +2649,6 @@ run (void *cls,
 {
   char *database;
   (void) cls;
-  (void) service;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Starting namestore service\n");
   cache_keys =
     GNUNET_CONFIGURATION_get_value_yesno (cfg, "namestore", "CACHE_KEYS");
@@ -2443,6 +2678,10 @@ run (void *cls,
     GNUNET_SCHEDULER_add_now (&cleanup_task, NULL);
     return;
   }
+  egos_collected = GNUNET_NO;
+  /** Suspend until we have all egos */
+  GNUNET_SERVICE_suspend (service);
+  identity_handle = GNUNET_IDENTITY_connect (cfg, &ego_callback, service);
   GNUNET_SCHEDULER_add_shutdown (&cleanup_task, NULL);
 }
 
