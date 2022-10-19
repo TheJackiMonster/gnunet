@@ -42,8 +42,21 @@ do_shutdown (void *cls)
 {
   (void) cls;
 }
+
 /**
  * Main function that will be run.
+ *
+ * TODO:
+ *  - We need to actually create and store the records with in begin/commit
+ *  - We need to get as argument for what zone to import
+ *  - We must assume that names are not repeated later in the zonefile because
+ *    our _store APIs are replacing. No sure if that is common in zonefiles.
+ *  - We must only actually store a record set when the name to store changes or
+ *    the end of the file is reached.
+ *    that way we can group them and add (see above).
+ *  - We currently do not allow multiline payloads which seem to be common
+ *  - We currently do not sanitize payloads (e.g. `()')
+ *  - We need to hope our string formats are compatible, but seems ok.
  *
  * @param cls closure
  * @param args remaining command-line arguments
@@ -61,18 +74,23 @@ run (void *cls,
   char *token;
   char origin[255];
   char lastname[255];
+  struct GNUNET_TIME_Relative ttl;
   int origin_line = 0;
+  int ttl_line = 0;
+  uint32_t ttl_tmp;
 
   /* use filename provided as 1st argument (stdin by default) */
   int i = 0;
   while (fgets (buf, 5000, stdin))                     /* read each line of input */
   {
+    i++;
     origin_line = 0;
+    ttl_line = 0;
     /* Find space */
     next = strchr (buf, ' ');
     if (NULL == next)
     {
-      fprintf (stderr, "End?\n");
+      fprintf (stderr, "Error at line %u: %s\n", i, buf);
       break;
     }
     next[0] = '\0';
@@ -80,7 +98,9 @@ run (void *cls,
     if (0 == (strcmp (buf, "$ORIGIN")))
       origin_line = 1;
     else if (0 == (strcmp (buf, "$TTL")))
-      continue; // FIXME
+    {
+      ttl_line = 1;
+    }
     else
     {
       if (0 == strlen (buf)) // Inherit name from before
@@ -118,6 +138,23 @@ run (void *cls,
       next++;
     token = next;
 
+    if (ttl_line)
+    {
+      next = strchr (token, ';');
+      if (NULL != next)
+        next[0] = '\0';
+      next = strchr (token, ' ');
+      if (NULL != next)
+        next[0] = '\0';
+      if (1 != sscanf (token, "%u", &ttl_tmp))
+      {
+        fprintf (stderr, "Unable to parse TTL `%s'\n", token);
+        break;
+      }
+      printf ("TTL is: %u\n", ttl_tmp);
+      ttl.rel_value_us = ttl_tmp * 1000 * 1000;
+      continue;
+    }
     if (origin_line)
     {
       next = strchr (token, ';');
