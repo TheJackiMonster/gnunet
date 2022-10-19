@@ -132,6 +132,7 @@ gnunet_namestore_zonefile_SOURCES = \
  gnunet-namestore-zonefile.c
 gnunet_namestore_zonefile_LDADD = \
   libgnunetnamestore.la \
+  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la  \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
