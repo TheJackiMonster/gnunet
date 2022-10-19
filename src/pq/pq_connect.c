@@ -336,7 +336,7 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
                      "pq",
                      "Database connection to '%s' failed: %s\n",
                      db->config_str,
-                     (NULL != db->conn) 
+                     (NULL != db->conn)
                      ? PQerrorMessage (db->conn)
                      : "PQconnectdb returned NULL");
     if (NULL != db->conn)
@@ -352,6 +352,64 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
   PQsetNoticeProcessor (db->conn,
                         &pq_notice_processor_cb,
                         db);
+  {
+    PGresult *res;
+    ExecStatusType est;
+
+    res = PQexec (db->conn,
+                  "SELECT"
+                  " schema_name"
+                  " FROM information_schema.schemata"
+                  " WHERE schema_name='_v';");
+    est = PQresultStatus (res);
+    if ( (PGRES_COMMAND_OK != est) &&
+         (PGRES_TUPLES_OK != est) )
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Failed to run statement to check versioning schema. Bad!\n");
+      PQclear (res);
+      PQfinish (db->conn);
+      db->conn = NULL;
+      return;
+    }
+    if (0 == PQntuples (res))
+    {
+      enum GNUNET_GenericReturnValue ret;
+
+      PQclear (res);
+      if (0 != (db->flags & GNUNET_PQ_FLAG_DROP))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                    "Versioning schema does not exist yet. Not attempting drop!\n");
+        PQfinish (db->conn);
+        db->conn = NULL;
+        return;
+      }
+      ret = GNUNET_PQ_exec_sql (db,
+                                "versioning");
+      if (GNUNET_NO == ret)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "Failed to find SQL file to load database versioning logic\n");
+        PQfinish (db->conn);
+        db->conn = NULL;
+        return;
+      }
+      if (GNUNET_SYSERR == ret)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "Failed to run SQL logic to setup database versioning logic\n");
+        PQfinish (db->conn);
+        db->conn = NULL;
+        return;
+      }
+    }
+    else
+    {
+      PQclear (res);
+    }
+  }
+
   if (NULL != db->auto_suffix)
   {
     PGresult *res;
@@ -367,58 +425,14 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
                      NULL);
     if (PGRES_COMMAND_OK != PQresultStatus (res))
     {
-      enum GNUNET_GenericReturnValue ret;
-
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Failed to run SQL logic to setup database versioning logic: %s/%s\n",
+                  PQresultErrorMessage (res),
+                  PQerrorMessage (db->conn));
       PQclear (res);
-      if (0 != (db->flags & GNUNET_PQ_FLAG_DROP))
-      {
-        GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                    "Failed to prepare statement to check patch level. Likely versioning schema does not exist yet. Not attempting drop!\n");
-        PQfinish (db->conn);
-        db->conn = NULL;
-        return;
-      }
-      GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                  "Failed to prepare statement to check patch level. Likely versioning schema does not exist yet, loading versioning!\n");
-      ret = GNUNET_PQ_exec_sql (db,
-                                "versioning");
-      if (GNUNET_NO == ret)
-      {
-        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                    "Failed to find SQL file to load database versioning logic\n");
-        PQfinish (db->conn);
-        db->conn = NULL;
-        return;
-      }
-      if (GNUNET_SYSERR == ret)
-      {
-        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    "Failed to run SQL logic to setup database versioning logic\n");
-        PQfinish (db->conn);
-        db->conn = NULL;
-        return;
-      }
-      /* try again to prepare our statement! */
-      res = PQprepare (db->conn,
-                       "gnunet_pq_check_patch",
-                       "SELECT"
-                       " applied_by"
-                       " FROM _v.patches"
-                       " WHERE patch_name = $1"
-                       " LIMIT 1",
-                       1,
-                       NULL);
-      if (PGRES_COMMAND_OK != PQresultStatus (res))
-      {
-        GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                    "Failed to run SQL logic to setup database versioning logic: %s/%s\n",
-                    PQresultErrorMessage (res),
-                    PQerrorMessage (db->conn));
-        PQclear (res);
-        PQfinish (db->conn);
-        db->conn = NULL;
-        return;
-      }
+      PQfinish (db->conn);
+      db->conn = NULL;
+      return;
     }
     PQclear (res);
 
