@@ -1492,6 +1492,8 @@ handle_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
   }
   name_len = strlen (conv_name) + 1;
   rlc.label = conv_name;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Looking up with filter %u\n", ntohs(ll_msg->filter));
   rlc.filter = ntohs (ll_msg->filter);
   rlc.found = GNUNET_NO;
   rlc.res_rd_count = 0;
@@ -1563,6 +1565,22 @@ check_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
   return GNUNET_OK;
 }
 
+struct LookupExistingRecordsContext
+{
+
+  /**
+   * The expiration of the existing records or tombstone
+   */
+  struct GNUNET_TIME_Absolute exp;
+
+  /**
+   * Whether the existing record set consists only of a tombstone
+   * (e.g. is "empty")
+   */
+  int only_tombstone;
+
+};
+
 
 /**
  * Check if set contains a tombstone, store if necessary
@@ -1575,26 +1593,32 @@ check_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
  * @param rd records stored under @a label in the zone
  */
 static void
-get_block_exp_existing (void *cls,
-                        uint64_t seq,
-                        const struct
-                        GNUNET_IDENTITY_PrivateKey *private_key,
-                        const char *label,
-                        unsigned int rd_count,
-                        const struct GNUNET_GNSRECORD_Data *rd)
+get_existing_rd_exp (void *cls,
+                     uint64_t seq,
+                     const struct
+                     GNUNET_IDENTITY_PrivateKey *private_key,
+                     const char *label,
+                     unsigned int rd_count,
+                     const struct GNUNET_GNSRECORD_Data *rd)
 {
-  struct GNUNET_TIME_Absolute *exp = cls;
+  struct LookupExistingRecordsContext *lctx = cls;
   struct GNUNET_GNSRECORD_Data rd_pub[rd_count];
   unsigned int rd_pub_count;
   char *emsg;
 
+  if ((1 == rd_count) &&
+      (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[0].record_type))
+  {
+    /* This record set contains only a tombstone! */
+    lctx->only_tombstone = GNUNET_YES;
+  }
   if (GNUNET_OK !=
       GNUNET_GNSRECORD_normalize_record_set (label,
                                              rd,
                                              rd_count,
                                              rd_pub,
                                              &rd_pub_count,
-                                             exp,
+                                             &lctx->exp,
                                              GNUNET_GNSRECORD_FILTER_OMIT_PRIVATE,
                                              &emsg))
   {
@@ -1618,11 +1642,12 @@ store_record_set (struct NamestoreClient *nc,
   char *conv_name;
   unsigned int rd_count;
   int res;
-  struct GNUNET_TIME_Absolute existing_block_exp;
   struct GNUNET_TIME_Absolute new_block_exp;
+  struct LookupExistingRecordsContext lctx;
   *len = sizeof (struct RecordSet);
 
-  existing_block_exp = GNUNET_TIME_UNIT_ZERO_ABS;
+  lctx.only_tombstone = GNUNET_NO;
+  lctx.exp = GNUNET_TIME_UNIT_ZERO_ABS;
   new_block_exp = GNUNET_TIME_UNIT_ZERO_ABS;
   name_len = ntohs (rd_set->name_len);
   *len += name_len;
@@ -1675,9 +1700,8 @@ store_record_set (struct NamestoreClient *nc,
     if ((GNUNET_NO == nc->GSN_database->lookup_records (nc->GSN_database->cls,
                                                         private_key,
                                                         conv_name,
-                                                        &
-                                                        get_block_exp_existing,
-                                                        &existing_block_exp))
+                                                        &get_existing_rd_exp,
+                                                        &lctx))
         &&
         (rd_count == 0))
     {
@@ -1742,11 +1766,11 @@ store_record_set (struct NamestoreClient *nc,
        * new block expiration would be, we need to add a tombstone
        * or update it.
        */
-      if (GNUNET_TIME_absolute_cmp (new_block_exp, <=, existing_block_exp))
+      if (GNUNET_TIME_absolute_cmp (new_block_exp, <=, lctx.exp))
       {
         rd_nf[rd_nf_count].record_type = GNUNET_GNSRECORD_TYPE_TOMBSTONE;
         rd_nf[rd_nf_count].expiration_time =
-          existing_block_exp.abs_value_us;
+          lctx.exp.abs_value_us;
         rd_nf[rd_nf_count].data = NULL;
         rd_nf[rd_nf_count].data_size = 0;
         rd_nf[rd_nf_count].flags = GNUNET_GNSRECORD_RF_PRIVATE;
@@ -1765,6 +1789,15 @@ store_record_set (struct NamestoreClient *nc,
                                              conv_name,
                                              rd_nf_count,
                                              rd_nf);
+      /* If after a store there is only a TOMBSTONE left, and
+       * there was >1 record under this label found (the tombstone; indicated
+       * through res != GNUNET_NO) then we should return "NOT FOUND" == GNUNET_NO
+       */
+      if ((GNUNET_SYSERR != res) &&
+          (1 == rd_nf_count) &&
+          (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd_nf[0].record_type) &&
+          (lctx.only_tombstone))
+        res = GNUNET_NO;
     }
 
     if (GNUNET_SYSERR == res)
