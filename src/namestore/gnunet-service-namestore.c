@@ -449,10 +449,9 @@ static struct StoreActivity *sa_tail;
 static struct GNUNET_NotificationContext *monitor_nc;
 
 /**
- * Optimize block insertion by caching map of private keys to
- * public keys in memory?
+ * Returned orphaned records?
  */
-static int cache_keys;
+static int return_orphaned;
 
 /**
  * Task run during shutdown.
@@ -519,6 +518,8 @@ is_orphaned (const struct GNUNET_IDENTITY_PrivateKey *zone)
   GNUNET_IDENTITY_key_get_public (zone, &pk);
   keystring = GNUNET_IDENTITY_public_key_to_string (&pk);
 
+  if (GNUNET_YES == return_orphaned)
+    return GNUNET_NO;
   for (ego_entry = ego_head; NULL != ego_entry;
        ego_entry = ego_entry->next)
   {
@@ -1493,7 +1494,7 @@ handle_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
   name_len = strlen (conv_name) + 1;
   rlc.label = conv_name;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Looking up with filter %u\n", ntohs(ll_msg->filter));
+              "Looking up with filter %u\n", ntohs (ll_msg->filter));
   rlc.filter = ntohs (ll_msg->filter);
   rlc.found = GNUNET_NO;
   rlc.res_rd_count = 0;
@@ -1759,6 +1760,8 @@ store_record_set (struct NamestoreClient *nc,
         GNUNET_free (conv_name);
         return GNUNET_SYSERR;
       }
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "%u/%u records before tombstone\n", rd_nf_count, rd_clean_off);
       /*
        * If existing_block_exp is 0, then there was no record set
        * and no tombstone.
@@ -1794,10 +1797,16 @@ store_record_set (struct NamestoreClient *nc,
        * through res != GNUNET_NO) then we should return "NOT FOUND" == GNUNET_NO
        */
       if ((GNUNET_SYSERR != res) &&
+          (0 == rd_count) &&
           (1 == rd_nf_count) &&
           (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd_nf[0].record_type) &&
-          (lctx.only_tombstone))
+          (GNUNET_YES == lctx.only_tombstone))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "Client tried to remove non-existant record\n");
+        *emsg = GNUNET_strdup (_("Not records to delete."));
         res = GNUNET_NO;
+      }
     }
 
     if (GNUNET_SYSERR == res)
@@ -2708,8 +2717,9 @@ run (void *cls,
   char *database;
   (void) cls;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Starting namestore service\n");
-  cache_keys =
-    GNUNET_CONFIGURATION_get_value_yesno (cfg, "namestore", "CACHE_KEYS");
+  return_orphaned = GNUNET_CONFIGURATION_get_value_yesno (cfg,
+                                                          "namestore",
+                                                          "RETURN_ORPHANED");
   GSN_cfg = cfg;
   monitor_nc = GNUNET_notification_context_create (1);
   statistics = GNUNET_STATISTICS_create ("namestore", cfg);

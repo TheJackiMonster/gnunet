@@ -1164,7 +1164,7 @@ GNUNET_NAMESTORE_records_store2 (
   }
   *rds_sent = i;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Sending %u of %u records!\n", *rds_sent, rd_count);
+              "Sending %u of %u records!\n", *rds_sent, rd_set_count);
   rid = get_op_id (h);
   qe = GNUNET_new (struct GNUNET_NAMESTORE_QueueEntry);
   qe->h = h;

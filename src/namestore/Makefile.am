@@ -514,7 +514,8 @@ test_plugin_namestore_postgres_LDADD = \
 check_SCRIPTS = \
   test_namestore_put.sh \
   test_namestore_lookup.sh \
-  test_namestore_delete.sh
+  test_namestore_delete.sh \
+  test_namestore_zonefile_import.sh
 
 # FIXME
 #check_SCRIPTS += \
@@ -530,4 +531,5 @@ EXTRA_DIST = \
   test_plugin_namestore_sqlite.conf \
   test_plugin_namestore_postgres.conf \
   test_hostkey \
+	example_zonefile \
   $(check_SCRIPTS)

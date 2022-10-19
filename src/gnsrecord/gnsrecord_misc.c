@@ -433,13 +433,21 @@ GNUNET_GNSRECORD_normalize_record_set (const char *label,
     /* Ignore private records for public record set */
     if ((0 != (filter & GNUNET_GNSRECORD_FILTER_OMIT_PRIVATE)) &&
         (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE)))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Filtering private record filter=%u...\n", filter);
       continue;
+    }
     /* Skip expired records */
     if ((0 == (rd[i].flags & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION)) &&
         (rd[i].expiration_time < now.abs_value_us))
-      continue;     /* record already expired, skip it */
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Filtering expired record...\n");
+      continue;    /* record already expired, skip it */
+    }
     /* Ignore the tombstone unless filter permits explicitly.
-     * Remember expiration time. */
+    * Remember expiration time. */
     if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[i].record_type)
     {
       minimum_expiration.abs_value_us = rd[i].expiration_time;

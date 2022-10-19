@@ -96,6 +96,22 @@ tx_end (void *cls, int32_t success, const char *emsg)
   GNUNET_SCHEDULER_shutdown ();
 }
 
+static void
+parse (void *cls);
+
+static void
+add_continuation (void *cls, int32_t success, const char *emsg)
+{
+  ns_qe = NULL;
+  if (GNUNET_SYSERR == success)
+  {
+    fprintf (stderr,
+             _ ("Failed to store records...\n"));
+    GNUNET_SCHEDULER_shutdown ();
+    ret = -1;
+  }
+  GNUNET_SCHEDULER_add_now (&parse, NULL);
+}
 
 /**
  * Main function that will be run.
@@ -120,21 +136,22 @@ tx_end (void *cls, int32_t success, const char *emsg)
 static void
 parse (void *cls)
 {
-  struct GNUNET_GNSRECORD_Data rd[50]; // Let's hope we do not need more
-  struct GNUNET_GNSRECORD_Data *cur_rd = rd;
+  static struct GNUNET_GNSRECORD_Data rd[50]; // Let's hope we do not need more
   char buf[5000];   /* buffer to hold entire line (adjust MAXC as needed) */
   char *next;
   char *token;
   char origin[255];
-  char lastname[255];
+  static char lastname[255];
+  char newname[255];
   void *data;
   size_t data_size;
   struct GNUNET_TIME_Relative ttl;
   int origin_line = 0;
   int ttl_line = 0;
   int type;
-  unsigned int rd_count = 0;
+  static unsigned int rd_count = 0;
   uint32_t ttl_tmp;
+  int publish_rd = GNUNET_NO;
 
 /* use filename provided as 1st argument (stdin by default) */
   int i = 0;
@@ -163,16 +180,17 @@ parse (void *cls)
       if (0 == strlen (buf)) // Inherit name from before
       {
         printf ("Old name: %s\n", lastname);
+        strcpy (newname, lastname);
       }
       else if (buf[strlen (buf) - 1] != '.') // no fqdn
       {
         printf ("New name: %s\n", buf);
-        strcpy (lastname, buf);
+        strcpy (newname, buf);
       }
       else if (0 == strcmp (buf, origin))
       {
         printf ("New name: @\n");
-        strcpy (lastname, "@");
+        strcpy (newname, "@");
       }
       else
       {
@@ -188,8 +206,18 @@ parse (void *cls)
         }
         buf[strlen (buf) - strlen (origin) - 1] = '\0';
         printf ("New name: %s\n", buf);
-        strcpy (lastname, buf);
+        strcpy (newname, buf);
       }
+      if (0 != strcmp (newname, lastname) &&
+          (0 < rd_count))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "Name changed %s->%s, storing record set of %u elements\n",
+                    lastname, newname,
+                    rd_count);
+        publish_rd = GNUNET_YES;
+      }
+      strcpy (lastname, newname);
     }
     while (*next == ' ')
       next++;
@@ -225,8 +253,8 @@ parse (void *cls)
       continue;
     }
     // This is a record, let's go
-    cur_rd->flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
-    cur_rd->expiration_time = ttl.rel_value_us;
+    rd[rd_count].flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
+    rd[rd_count].expiration_time = ttl.rel_value_us;
     next = strchr (token, ' ');
     if (NULL == next)
     {
@@ -249,7 +277,7 @@ parse (void *cls)
     next++;
     printf ("type is: %s\n", token);
     type = GNUNET_GNSRECORD_typename_to_number (token);
-    cur_rd->record_type = type;
+    rd[rd_count].record_type = type;
     while (*next == ' ')
       next++;
     token = next;
@@ -264,6 +292,7 @@ parse (void *cls)
                                           &data,
                                           &data_size))
     {
+      // FIXME free rd
       fprintf (stderr,
                _ ("Data `%s' invalid\n"),
                token);
@@ -271,6 +300,25 @@ parse (void *cls)
       GNUNET_SCHEDULER_shutdown ();
       return;
     }
+    rd[rd_count].data = data;
+    rd[rd_count].data_size = data_size;
+    if (GNUNET_YES == publish_rd)
+      break;
+    rd_count++;
+  }
+  if (GNUNET_YES == publish_rd)
+  {
+    ns_qe = GNUNET_NAMESTORE_records_store (ns,
+                                            &zone_pkey,
+                                            lastname,
+                                            rd_count,
+                                            rd,
+                                            &add_continuation,
+                                            NULL);
+    // FIXME cleanup rd
+    rd[0] = rd[rd_count]; // recover last rd parsed.
+    rd_count = 1;
+    return;
   }
   ns_qe = GNUNET_NAMESTORE_transaction_commit (ns,
                                                &tx_end,

@@ -165,11 +165,11 @@ run (void *cls,
 
   removed = GNUNET_NO;
 
-  rd.expiration_time = GNUNET_TIME_absolute_get ().abs_value_us;
+  rd.expiration_time = GNUNET_TIME_UNIT_MINUTES.rel_value_us;
   rd.record_type = TEST_RECORD_TYPE;
   rd.data_size = TEST_RECORD_DATALEN;
   rd.data = GNUNET_malloc (TEST_RECORD_DATALEN);
-  rd.flags = 0;
+  rd.flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
   memset ((char *) rd.data,
           'a',
           TEST_RECORD_DATALEN);
