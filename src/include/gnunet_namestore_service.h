@@ -290,6 +290,33 @@ GNUNET_NAMESTORE_records_lookup (struct GNUNET_NAMESTORE_Handle *h,
                                  GNUNET_NAMESTORE_RecordMonitor rm,
                                  void *rm_cls);
 
+/**
+ * Lookup an item in the namestore with GNSRECORD filter.
+ *
+ * @param h handle to the namestore
+ * @param pkey private key of the zone
+ * @param label name that is being mapped
+ * @param error_cb function to call on error (i.e. disconnect)
+ *        the handle is afterwards invalid
+ * @param error_cb_cls closure for @a error_cb
+ * @param rm function to call with the result (with 0 records if we don't have that label);
+ *        the handle is afterwards invalid
+ * @param rm_cls closure for @a rm
+ *  @param filter the record set filter to use
+ * @return handle to abort the request
+ */
+struct GNUNET_NAMESTORE_QueueEntry *
+GNUNET_NAMESTORE_records_lookup2 (struct GNUNET_NAMESTORE_Handle *h,
+                                  const struct
+                                  GNUNET_IDENTITY_PrivateKey *pkey,
+                                  const char *label,
+                                  GNUNET_SCHEDULER_TaskCallback error_cb,
+                                  void *error_cb_cls,
+                                  GNUNET_NAMESTORE_RecordMonitor rm,
+                                  void *rm_cls,
+                                  enum GNUNET_GNSRECORD_Filter filter);
+
+
 
 /**
  * Look for an existing PKEY delegation record for a given public key.
@@ -393,6 +420,7 @@ GNUNET_NAMESTORE_zone_iteration_start (struct GNUNET_NAMESTORE_Handle *h,
  * @param finish_cb function to call on completion
  *        the handle is afterwards invalid
  * @param finish_cb_cls closure for @a finish_cb
+ * @param filter the record set filter to use
  * @return an iterator handle to use for iteration
  */
 struct GNUNET_NAMESTORE_ZoneIterator *

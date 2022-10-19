@@ -1272,32 +1272,37 @@ client_connect_cb (void *cls,
 struct RecordLookupContext
 {
   /**
-   * FIXME.
+   * The label to look up.
    */
   const char *label;
 
   /**
-   * FIXME.
+   * The record result.
    */
   char *res_rd;
 
   /**
-   * FIXME.
+   * The nick for the zone.
    */
   struct GNUNET_GNSRECORD_Data *nick;
 
   /**
-   * FIXME.
+   * If a record set was found or not.
    */
   int found;
 
   /**
-   * FIXME.
+   * The record filter
+   */
+  enum GNUNET_GNSRECORD_Filter filter;
+
+  /**
+   * The number of found records.
    */
   unsigned int res_rd_count;
 
   /**
-   * FIXME.
+   * The length of the serialized records.
    */
   ssize_t rd_ser_len;
 };
@@ -1320,16 +1325,35 @@ lookup_it (void *cls,
            uint64_t seq,
            const struct GNUNET_IDENTITY_PrivateKey *private_key,
            const char *label,
-           unsigned int rd_count,
-           const struct GNUNET_GNSRECORD_Data *rd)
+           unsigned int rd_count_nf,
+           const struct GNUNET_GNSRECORD_Data *rd_nf)
 {
   struct RecordLookupContext *rlc = cls;
+  struct GNUNET_GNSRECORD_Data rd[rd_count_nf];
+  struct GNUNET_TIME_Absolute block_exp;
+  unsigned int rd_count = 0;
+  char *emsg;
 
   (void) private_key;
   GNUNET_assert (0 != seq);
   if (0 != strcmp (label, rlc->label))
     return;
   rlc->found = GNUNET_YES;
+
+  if (GNUNET_OK != GNUNET_GNSRECORD_normalize_record_set (rlc->label,
+                                                          rd_nf,
+                                                          rd_count_nf,
+                                                          rd,
+                                                          &rd_count,
+                                                          &block_exp,
+                                                          rlc->filter,
+                                                          &emsg))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "%s\n", emsg);
+    GNUNET_free (emsg);
+    GNUNET_assert (0);
+  }
+
   if (0 == rd_count)
   {
     rlc->rd_ser_len = 0;
@@ -1468,6 +1492,7 @@ handle_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
   }
   name_len = strlen (conv_name) + 1;
   rlc.label = conv_name;
+  rlc.filter = ntohs (ll_msg->filter);
   rlc.found = GNUNET_NO;
   rlc.res_rd_count = 0;
   rlc.res_rd = NULL;

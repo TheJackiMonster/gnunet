@@ -52,7 +52,12 @@
 /**
  * Error message No identity found
  */
-#define GNUNET_REST_IDENTITY_NOT_FOUND "No identity found"
+#define GNUNET_REST_IDENTITY_NOT_FOUND "Zone not found"
+
+/**
+ * Error message No record found
+ */
+#define GNUNET_REST_RECORD_NOT_FOUND "Record not found"
 
 
 /**
@@ -521,8 +526,12 @@ namestore_list_finished (void *cls)
   handle->list_it = NULL;
 
   if (NULL == handle->resp_object)
-    handle->resp_object = json_array ();
-
+  {
+    handle->response_code = MHD_HTTP_NOT_FOUND;
+    handle->emsg = GNUNET_strdup (GNUNET_REST_RECORD_NOT_FOUND);
+    GNUNET_SCHEDULER_add_now (&do_error, handle);
+    return;
+  }
   result_str = json_dumps (handle->resp_object, 0);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Result %s\n", result_str);
   resp = GNUNET_REST_create_response (result_str);
@@ -545,7 +554,8 @@ namestore_list_iteration (void *cls,
                           const struct GNUNET_IDENTITY_PrivateKey *zone_key,
                           const char *rname,
                           unsigned int rd_len,
-                          const struct GNUNET_GNSRECORD_Data *rd)
+                          const struct GNUNET_GNSRECORD_Data *rd,
+                          struct GNUNET_TIME_Absolute expiry)
 {
   struct RequestHandle *handle = cls;
   struct GNUNET_GNSRECORD_Data rd_filtered[rd_len];
@@ -553,8 +563,13 @@ namestore_list_iteration (void *cls,
   int i = 0;
   int j = 0;
 
-  if (NULL == handle->resp_object)
-    handle->resp_object = json_array ();
+  if (rd_len == 0)
+  {
+    /** skip **/
+    GNUNET_NAMESTORE_zone_iterator_next (handle->list_it, 1);
+    return;
+  }
+
   for (i = 0; i < rd_len; i++)
   {
     if ((GNUNET_GNSRECORD_TYPE_ANY != handle->record_type) &&
@@ -567,6 +582,8 @@ namestore_list_iteration (void *cls,
   /** Only add if not empty **/
   if (j > 0)
   {
+    if (NULL == handle->resp_object)
+      handle->resp_object = json_array ();
     record_obj = GNUNET_GNSRECORD_JSON_from_gnsrecord (rname,
                                                        rd_filtered,
                                                        j);
@@ -600,13 +617,10 @@ ns_get_lookup_cb (void *cls,
 {
   struct RequestHandle *handle = cls;
   struct GNUNET_GNSRECORD_Data rd_filtered[rd_len];
-  json_t *record_obj;
   int i = 0;
   int j = 0;
 
   handle->ns_qe = NULL;
-  if (NULL == handle->resp_object)
-    handle->resp_object = json_array ();
   for (i = 0; i < rd_len; i++)
   {
     if ((GNUNET_GNSRECORD_TYPE_ANY != handle->record_type) &&
@@ -616,14 +630,17 @@ ns_get_lookup_cb (void *cls,
     rd_filtered[j].data = rd[i].data;
     j++;
   }
-  /** Only add if not empty **/
-  if (j > 0)
+  /** Return 404 if no set was found **/
+  if (j == 0)
   {
-    record_obj = GNUNET_GNSRECORD_JSON_from_gnsrecord (label,
-                                                       rd_filtered,
-                                                       j);
-    json_array_append_new (handle->resp_object, record_obj);
+    handle->response_code = MHD_HTTP_NOT_FOUND;
+    handle->emsg = GNUNET_strdup (GNUNET_REST_RECORD_NOT_FOUND);
+    GNUNET_SCHEDULER_add_now (&do_error, handle);
+    return;
   }
+  handle->resp_object = GNUNET_GNSRECORD_JSON_from_gnsrecord (label,
+                                                              rd_filtered,
+                                                              j);
   GNUNET_SCHEDULER_add_now (&namestore_list_finished, handle);
 }
 
@@ -643,9 +660,11 @@ namestore_get (struct GNUNET_REST_RequestHandle *con_handle,
   struct RequestHandle *handle = cls;
   struct EgoEntry *ego_entry;
   struct GNUNET_HashCode key;
+  enum GNUNET_GNSRECORD_Filter filter_flags;
   char *egoname;
   char *labelname;
   char *typename;
+  char *boolstring;
 
   egoname = NULL;
   ego_entry = NULL;
@@ -679,19 +698,44 @@ namestore_get (struct GNUNET_REST_RequestHandle *con_handle,
     if (NULL != typename)
       handle->record_type = GNUNET_GNSRECORD_typename_to_number (typename);
   }
+  GNUNET_CRYPTO_hash ("omit_private", strlen ("omit_private"), &key);
+  filter_flags = GNUNET_GNSRECORD_FILTER_NONE;
+  if (GNUNET_YES ==
+      GNUNET_CONTAINER_multihashmap_contains (con_handle->url_param_map, &key))
+  {
+    boolstring = GNUNET_CONTAINER_multihashmap_get (con_handle->url_param_map,
+                                                    &key);
+    if ((0 == strcmp (boolstring, "1")) ||
+        (0 == strcmp (boolstring, "yes")) ||
+        (0 == strcmp (boolstring, "true")))
+      filter_flags = GNUNET_GNSRECORD_FILTER_OMIT_PRIVATE;
+  }
+  GNUNET_CRYPTO_hash ("include_maintenance", strlen ("include_maintenance"),
+                      &key);
+  if (GNUNET_YES ==
+      GNUNET_CONTAINER_multihashmap_contains (con_handle->url_param_map, &key))
+  {
+    boolstring = GNUNET_CONTAINER_multihashmap_get (con_handle->url_param_map,
+                                                    &key);
+    if ((0 == strcmp (boolstring, "1")) ||
+        (0 == strcmp (boolstring, "yes")) ||
+        (0 == strcmp (boolstring, "true")))
+      filter_flags |= GNUNET_GNSRECORD_FILTER_INCLUDE_MAINTENANCE;
+  }
   labelname = &egoname[strlen (ego_entry->identifier)];
-  // set zone to name if given
   if (1 >= strlen (labelname))
   {
+    /* Iterate over all records */
     handle->list_it =
-      GNUNET_NAMESTORE_zone_iteration_start (ns_handle,
-                                             handle->zone_pkey,
-                                             &namestore_iteration_error,
-                                             handle,
-                                             &namestore_list_iteration,
-                                             handle,
-                                             &namestore_list_finished,
-                                             handle);
+      GNUNET_NAMESTORE_zone_iteration_start2 (ns_handle,
+                                              handle->zone_pkey,
+                                              &namestore_iteration_error,
+                                              handle,
+                                              &namestore_list_iteration,
+                                              handle,
+                                              &namestore_list_finished,
+                                              handle,
+                                              filter_flags);
     if (NULL == handle->list_it)
     {
       handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_FAILED);
@@ -701,13 +745,14 @@ namestore_get (struct GNUNET_REST_RequestHandle *con_handle,
     return;
   }
   handle->record_name = GNUNET_strdup (labelname + 1);
-  handle->ns_qe = GNUNET_NAMESTORE_records_lookup (ns_handle,
-                                                   handle->zone_pkey,
-                                                   handle->record_name,
-                                                   &ns_lookup_error_cb,
-                                                   handle,
-                                                   &ns_get_lookup_cb,
-                                                   handle);
+  handle->ns_qe = GNUNET_NAMESTORE_records_lookup2 (ns_handle,
+                                                    handle->zone_pkey,
+                                                    handle->record_name,
+                                                    &ns_lookup_error_cb,
+                                                    handle,
+                                                    &ns_get_lookup_cb,
+                                                    handle,
+                                                    filter_flags);
   if (NULL == handle->ns_qe)
   {
     handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_FAILED);

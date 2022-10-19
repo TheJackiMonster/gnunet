@@ -1234,7 +1234,8 @@ records_lookup (
   void *error_cb_cls,
   GNUNET_NAMESTORE_RecordMonitor rm,
   void *rm_cls,
-  int is_edit_request)
+  int is_edit_request,
+  enum GNUNET_GNSRECORD_Filter filter)
 {
   struct GNUNET_NAMESTORE_QueueEntry *qe;
   struct GNUNET_MQ_Envelope *env;
@@ -1263,6 +1264,7 @@ records_lookup (
   msg->zone = *pkey;
   msg->is_edit_request = htonl (is_edit_request);
   msg->label_len = htonl (label_len);
+  msg->filter = htons (filter);
   GNUNET_memcpy (&msg[1], label, label_len);
   if (NULL == h->mq)
     qe->env = env;
@@ -1283,9 +1285,27 @@ GNUNET_NAMESTORE_records_lookup (
 {
   return records_lookup (h, pkey, label,
                          error_cb, error_cb_cls,
-                         rm, rm_cls, GNUNET_NO);
+                         rm, rm_cls, GNUNET_NO, GNUNET_GNSRECORD_FILTER_NONE);
 
 }
+
+struct GNUNET_NAMESTORE_QueueEntry *
+GNUNET_NAMESTORE_records_lookup2 (
+  struct GNUNET_NAMESTORE_Handle *h,
+  const struct GNUNET_IDENTITY_PrivateKey *pkey,
+  const char *label,
+  GNUNET_SCHEDULER_TaskCallback error_cb,
+  void *error_cb_cls,
+  GNUNET_NAMESTORE_RecordMonitor rm,
+  void *rm_cls,
+  enum GNUNET_GNSRECORD_Filter filter)
+{
+  return records_lookup (h, pkey, label,
+                         error_cb, error_cb_cls,
+                         rm, rm_cls, GNUNET_NO, filter);
+
+}
+
 
 struct GNUNET_NAMESTORE_QueueEntry *
 GNUNET_NAMESTORE_records_edit (
@@ -1299,7 +1319,7 @@ GNUNET_NAMESTORE_records_edit (
 {
   return records_lookup (h, pkey, label,
                          error_cb, error_cb_cls,
-                         rm, rm_cls, GNUNET_YES);
+                         rm, rm_cls, GNUNET_YES, GNUNET_GNSRECORD_FILTER_NONE);
 }
 
 struct GNUNET_NAMESTORE_QueueEntry *
