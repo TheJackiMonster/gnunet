@@ -924,7 +924,9 @@ GNUNET_DNSPARSER_builder_add_name (char *dst,
       len = strlen (idna_name);
     else
       len = dot - idna_name;
-    if ((len >= 64) || (0 == len))
+    if (len == 0)
+      break;
+    if (len >= 64)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Invalid DNS name `%s': label with %u characters encountered\n",

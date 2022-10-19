@@ -100,7 +100,7 @@ dns_value_to_string (void *cls,
         return NULL;
       }
       GNUNET_asprintf (&result,
-                       "rname=%s mname=%s %u,%u,%u,%u,%u",
+                       "%s %s ( %u %u %u %u %u )",
                        soa->rname,
                        soa->mname,
                        soa->serial,
@@ -169,7 +169,7 @@ dns_value_to_string (void *cls,
         return NULL;
       }
       GNUNET_asprintf (&result,
-                       "%u,%s",
+                       "%u %s",
                        (unsigned int) mx->preference,
                        mx->mxhost);
       GNUNET_DNSPARSER_free_mx (mx);
@@ -503,7 +503,7 @@ dns_string_to_value (void *cls,
       size_t off;
 
       if (7 != sscanf (s,
-                       "rname=%253s mname=%253s %u,%u,%u,%u,%u",
+                       "%253s %253s ( %u %u %u %u %u )",
                        soa_rname,
                        soa_mname,
                        &soa_serial,
@@ -567,7 +567,7 @@ dns_string_to_value (void *cls,
       unsigned int mx_pref;
       size_t off;
 
-      if (2 != sscanf (s, "%u,%253s", &mx_pref, mxhost))
+      if (2 != sscanf (s, "%u %253s", &mx_pref, mxhost))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     _ ("Unable to parse MX record `%s'\n"),

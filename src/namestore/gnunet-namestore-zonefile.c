@@ -33,6 +33,32 @@
 static int ret = 0;
 
 /**
+ * Name of the ego
+ */
+static char *ego_name = NULL;
+
+/**
+ * Handle to identity lookup.
+ */
+static struct GNUNET_IDENTITY_EgoLookup *el;
+
+/**
+ * Private key for the our zone.
+ */
+static struct GNUNET_IDENTITY_PrivateKey zone_pkey;
+
+/**
+ * Queue entry for the 'add' operation.
+ */
+static struct GNUNET_NAMESTORE_QueueEntry *ns_qe;
+
+/**
+ * Handle to the namestore.
+ */
+static struct GNUNET_NAMESTORE_Handle *ns;
+
+
+/**
  * Task run on shutdown.  Cleans up everything.
  *
  * @param cls unused
@@ -41,7 +67,35 @@ static void
 do_shutdown (void *cls)
 {
   (void) cls;
+  if (NULL != ego_name)
+    GNUNET_free (ego_name);
+  if (NULL != el)
+  {
+    GNUNET_IDENTITY_ego_lookup_cancel (el);
+    el = NULL;
+  }
+  if (NULL != ns_qe)
+    GNUNET_NAMESTORE_cancel (ns_qe);
+  if (NULL != ns)
+    GNUNET_NAMESTORE_disconnect (ns);
+
 }
+
+static void
+tx_end (void *cls, int32_t success, const char *emsg)
+{
+  ns_qe = NULL;
+  if (GNUNET_SYSERR == success)
+  {
+    fprintf (stderr,
+             _ ("Ego `%s' not known to identity service\n"),
+             ego_name);
+    GNUNET_SCHEDULER_shutdown ();
+    ret = -1;
+  }
+  GNUNET_SCHEDULER_shutdown ();
+}
+
 
 /**
  * Main function that will be run.
@@ -64,22 +118,25 @@ do_shutdown (void *cls)
  * @param cfg configuration
  */
 static void
-run (void *cls,
-     char *const *args,
-     const char *cfgfile,
-     const struct GNUNET_CONFIGURATION_Handle *cfg)
+parse (void *cls)
 {
+  struct GNUNET_GNSRECORD_Data rd[50]; // Let's hope we do not need more
+  struct GNUNET_GNSRECORD_Data *cur_rd = rd;
   char buf[5000];   /* buffer to hold entire line (adjust MAXC as needed) */
   char *next;
   char *token;
   char origin[255];
   char lastname[255];
+  void *data;
+  size_t data_size;
   struct GNUNET_TIME_Relative ttl;
   int origin_line = 0;
   int ttl_line = 0;
+  int type;
+  unsigned int rd_count = 0;
   uint32_t ttl_tmp;
 
-  /* use filename provided as 1st argument (stdin by default) */
+/* use filename provided as 1st argument (stdin by default) */
   int i = 0;
   while (fgets (buf, 5000, stdin))                     /* read each line of input */
   {
@@ -167,6 +224,9 @@ run (void *cls,
       printf ("Origin is: %s\n", origin);
       continue;
     }
+    // This is a record, let's go
+    cur_rd->flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
+    cur_rd->expiration_time = ttl.rel_value_us;
     next = strchr (token, ' ');
     if (NULL == next)
     {
@@ -188,16 +248,99 @@ run (void *cls,
     next[0] = '\0';
     next++;
     printf ("type is: %s\n", token);
+    type = GNUNET_GNSRECORD_typename_to_number (token);
+    cur_rd->record_type = type;
     while (*next == ' ')
       next++;
     token = next;
     next = strchr (token, ';');
     if (NULL != next)
       next[0] = '\0';
+    while (token[strlen (token) - 1] == ' ')
+      token[strlen (token) - 1] = '\0';
     printf ("data is: %s\n\n", token);
+    if (GNUNET_OK !=
+        GNUNET_GNSRECORD_string_to_value (type, token,
+                                          &data,
+                                          &data_size))
+    {
+      fprintf (stderr,
+               _ ("Data `%s' invalid\n"),
+               token);
+      ret = 1;
+      GNUNET_SCHEDULER_shutdown ();
+      return;
+    }
   }
+  ns_qe = GNUNET_NAMESTORE_transaction_commit (ns,
+                                               &tx_end,
+                                               NULL);
+}
 
-  GNUNET_SCHEDULER_shutdown ();
+static void
+tx_start (void *cls, int32_t success, const char *emsg)
+{
+  ns_qe = NULL;
+  if (GNUNET_SYSERR == success)
+  {
+    fprintf (stderr,
+             _ ("Ego `%s' not known to identity service\n"),
+             ego_name);
+    GNUNET_SCHEDULER_shutdown ();
+    ret = -1;
+    return;
+  }
+  GNUNET_SCHEDULER_add_now (&parse, NULL);
+}
+
+static void
+identity_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
+{
+  const struct GNUNET_CONFIGURATION_Handle *cfg = cls;
+
+  el = NULL;
+
+  if (NULL == ego)
+  {
+    if (NULL != ego_name)
+    {
+      fprintf (stderr,
+               _ ("Ego `%s' not known to identity service\n"),
+               ego_name);
+    }
+    GNUNET_SCHEDULER_shutdown ();
+    ret = -1;
+    return;
+  }
+  zone_pkey = *GNUNET_IDENTITY_ego_get_private_key (ego);
+  ns_qe = GNUNET_NAMESTORE_transaction_begin (ns,
+                                              &tx_start,
+                                              NULL);
+}
+
+
+static void
+run (void *cls,
+     char *const *args,
+     const char *cfgfile,
+     const struct GNUNET_CONFIGURATION_Handle *cfg)
+{
+  ns = GNUNET_NAMESTORE_connect (cfg);
+  GNUNET_SCHEDULER_add_shutdown (&do_shutdown, (void *) cfg);
+  if (NULL == ns)
+  {
+    fprintf (stderr,
+             _ ("Failed to connect to namestore\n"));
+    return;
+  }
+  if (NULL == ego_name)
+  {
+    fprintf (stderr, _ ("You must provide a zone ego to use\n"));
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
+  el = GNUNET_IDENTITY_ego_lookup (cfg, ego_name, &identity_cb, (void *) cfg);
+
 }
 
 
@@ -212,6 +355,12 @@ int
 main (int argc, char *const *argv)
 {
   struct GNUNET_GETOPT_CommandLineOption options[] = {
+    GNUNET_GETOPT_option_string ('z',
+                                 "zone",
+                                 "EGO",
+                                 gettext_noop (
+                                   "name of the ego controlling the zone"),
+                                 &ego_name),
     GNUNET_GETOPT_OPTION_END
   };
   int lret;
@@ -223,7 +372,7 @@ main (int argc, char *const *argv)
   if (GNUNET_OK !=
       (lret = GNUNET_PROGRAM_run (argc,
                                   argv,
-                                  "gnunet-namestore-dbtool",
+                                  "gnunet-namestore-zonefile",
                                   _ (
                                     "GNUnet namestore database manipulation tool"),
                                   options,
