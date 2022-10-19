@@ -85,6 +85,7 @@ libexec_PROGRAMS = \
 bin_PROGRAMS = \
  gnunet-namestore \
  gnunet-namestore-dbtool \
+ gnunet-namestore-zonefile \
  gnunet-zoneimport
 
 libexec_PROGRAMS += \
@@ -127,7 +128,12 @@ libgnunetnamestore_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)  \
   -version-info 0:1:0
 
-
+gnunet_namestore_zonefile_SOURCES = \
+ gnunet-namestore-zonefile.c
+gnunet_namestore_zonefile_LDADD = \
+  libgnunetnamestore.la \
+  $(top_builddir)/src/util/libgnunetutil.la \
+  $(GN_LIBINTL)
 
 gnunet_zoneimport_SOURCES = \
  gnunet-zoneimport.c
