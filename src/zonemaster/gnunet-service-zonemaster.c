@@ -788,7 +788,7 @@ free_job (struct OpenSignJob *job)
  * @param ma handle for the put operation
  * @return DHT PUT handle, NULL on error
  */
-static struct GNUNET_DHT_PutHandle *
+static void
 perform_dht_put (const struct GNUNET_IDENTITY_PrivateKey *key,
                  const char *label,
                  const struct GNUNET_GNSRECORD_Data *rd,
@@ -830,7 +830,7 @@ perform_dht_put (const struct GNUNET_IDENTITY_PrivateKey *key,
   if (NULL == block)
   {
     GNUNET_break (0);
-    return NULL;   /* whoops */
+    return;   /* whoops */
   }
   if (rd_count != rd_public_count)
     GNUNET_assert (GNUNET_OK ==  GNUNET_GNSRECORD_block_create_unsigned (key,
@@ -861,7 +861,7 @@ perform_dht_put (const struct GNUNET_IDENTITY_PrivateKey *key,
               label,
               GNUNET_STRINGS_absolute_time_to_string (expire));
   num_public_records++;
-  return NULL; // FIXME-Martin: WTF?
+  return;
 }
 
 
@@ -1142,7 +1142,7 @@ dht_put_monitor_continuation (void *cls)
  * @param ma handle for the PUT operation
  * @return DHT PUT handle, NULL on error
  */
-static struct GNUNET_DHT_PutHandle *
+static void
 perform_dht_put_monitor (const struct GNUNET_IDENTITY_PrivateKey *key,
                          const char *label,
                          const struct GNUNET_GNSRECORD_Data *rd,
@@ -1184,7 +1184,7 @@ perform_dht_put_monitor (const struct GNUNET_IDENTITY_PrivateKey *key,
   if (NULL == block)
   {
     GNUNET_break (0);
-    return NULL;   /* whoops */
+    return;   /* whoops */
   }
   if (rd_count != rd_public_count)
     GNUNET_assert (GNUNET_OK ==  GNUNET_GNSRECORD_block_create_unsigned (key,
