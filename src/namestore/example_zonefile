@@ -22,3 +22,6 @@ mail2           IN  A     192.0.2.4             ; IPv4 address for mail2.example
 mail3           IN  A     192.0.2.5             ; IPv4 address for mail3.example.com
 
 mail3           IN  TXT   "This is ; quoted"    ; A quoted comment separator
+$ORIGIN example.de.
+www2            IN  A     192.0.2.7             ; IPv4 address for www2.example.de
+

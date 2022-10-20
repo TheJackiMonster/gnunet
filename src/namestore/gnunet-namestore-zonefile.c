@@ -46,6 +46,16 @@
 static struct GNUNET_GNSRECORD_Data rd[MAX_RECORDS_PER_NAME];
 
 /**
+ * Current record $TTL to use
+ */
+static struct GNUNET_TIME_Relative ttl;
+
+/**
+ * Current origin
+ */
+static char origin[GNUNET_DNSPARSER_MAX_NAME_LENGTH];
+
+/**
  * Number of records for currently parsed set
  */
 static unsigned int rd_count = 0;
@@ -96,6 +106,41 @@ static struct GNUNET_NAMESTORE_QueueEntry *ns_qe;
  */
 static struct GNUNET_NAMESTORE_Handle *ns;
 
+/**
+ * Origin create operations
+ */
+static struct GNUNET_IDENTITY_Operation *id_op;
+
+/**
+ * Handle to IDENTITY
+ */
+static struct GNUNET_IDENTITY_Handle *id;
+
+/**
+ * Current configurataion
+ */
+static const struct GNUNET_CONFIGURATION_Handle *cfg;
+
+/**
+ * The current state of the parser
+ */
+static int state;
+
+enum ZonefileImportState
+{
+
+  /* The initial state */
+  ZS_READY,
+
+  /* The $ORIGIN has changed */
+  ZS_ORIGIN_CHANGED,
+
+  /* The record name/label has changed */
+  ZS_NAME_CHANGED
+
+};
+
+
 
 /**
  * Task run on shutdown.  Cleans up everything.
@@ -115,8 +160,12 @@ do_shutdown (void *cls)
   }
   if (NULL != ns_qe)
     GNUNET_NAMESTORE_cancel (ns_qe);
+  if (NULL != id_op)
+    GNUNET_IDENTITY_cancel (id_op);
   if (NULL != ns)
     GNUNET_NAMESTORE_disconnect (ns);
+  if (NULL != id)
+    GNUNET_IDENTITY_disconnect (id);
   for (int i = 0; i < rd_count; i++)
   {
     void *rd_ptr = (void*) rd[i].data;
@@ -142,20 +191,6 @@ tx_end (void *cls, int32_t success, const char *emsg)
 
 static void
 parse (void *cls);
-
-static void
-add_continuation (void *cls, int32_t success, const char *emsg)
-{
-  ns_qe = NULL;
-  if (GNUNET_SYSERR == success)
-  {
-    fprintf (stderr,
-             _ ("Failed to store records...\n"));
-    GNUNET_SCHEDULER_shutdown ();
-    ret = -1;
-  }
-  GNUNET_SCHEDULER_add_now (&parse, NULL);
-}
 
 static char*
 trim (char *line)
@@ -236,6 +271,74 @@ parse_origin (char *token, char *origin)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Origin is: %s\n", origin);
 }
 
+static void
+origin_create_cb (void *cls, const struct GNUNET_IDENTITY_PrivateKey *pk,
+                  const char *emsg)
+{
+  id_op = NULL;
+  if (NULL != emsg)
+  {
+    fprintf (stderr, "Error: %s\n", emsg);
+    ret = 1;
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
+  state = ZS_READY;
+  zone_pkey = *pk;
+  GNUNET_SCHEDULER_add_now (&parse, NULL);
+}
+
+static void
+origin_lookup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
+{
+  const struct GNUNET_CONFIGURATION_Handle *cfg = cls;
+
+  el = NULL;
+
+  if (NULL == ego)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "$ORIGIN %s does not exist, creating...\n", ego_name);
+    id_op = GNUNET_IDENTITY_create (id, ego_name, NULL,
+                                    GNUNET_IDENTITY_TYPE_ECDSA, // FIXME make configurable
+                                    origin_create_cb,
+                                    NULL);
+    return;
+  }
+  state = ZS_READY;
+  zone_pkey = *GNUNET_IDENTITY_ego_get_private_key (ego);
+  GNUNET_SCHEDULER_add_now (&parse, NULL);
+}
+
+static void
+add_continuation (void *cls, int32_t success, const char *emsg)
+{
+  ns_qe = NULL;
+  if (GNUNET_SYSERR == success)
+  {
+    fprintf (stderr,
+             _ ("Failed to store records...\n"));
+    GNUNET_SCHEDULER_shutdown ();
+    ret = -1;
+  }
+  if (ZS_ORIGIN_CHANGED == state)
+  {
+    if (NULL != ego_name)
+      GNUNET_free (ego_name);
+    ego_name = GNUNET_strdup (origin);
+    if (ego_name[strlen (ego_name) - 1] == '.')
+      ego_name[strlen (ego_name) - 1] = '\0';
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Changing origin to %s\n", ego_name);
+    el = GNUNET_IDENTITY_ego_lookup (cfg, ego_name,
+                                     &origin_lookup_cb, NULL);
+    return;
+  }
+  GNUNET_SCHEDULER_add_now (&parse, NULL);
+}
+
+
+
 /**
  * Main function that will be run.
  *
@@ -260,16 +363,12 @@ parse (void *cls)
   char *next;
   char *token;
   char *payload_pos;
-  char origin[GNUNET_DNSPARSER_MAX_NAME_LENGTH];
   static char lastname[GNUNET_DNSPARSER_MAX_LABEL_LENGTH];
   char newname[GNUNET_DNSPARSER_MAX_LABEL_LENGTH];
   void *data;
   size_t data_size;
-  struct GNUNET_TIME_Relative ttl;
-  int origin_line = 0;
   int ttl_line = 0;
   int type;
-  int name_changed = 0;
   int bracket_unclosed = 0;
   int quoted = 0;
 
@@ -278,7 +377,6 @@ parse (void *cls)
   while (res = fgets (buf, sizeof(buf), stdin))                     /* read each line of input */
   {
     i++;
-    origin_line = 0;
     ttl_line = 0;
     token = trim (buf);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -302,7 +400,7 @@ parse (void *cls)
       next++;
       if (0 == (strcmp (token, "$ORIGIN")))
       {
-        origin_line = 1;
+        state = ZS_ORIGIN_CHANGED;
         token = next_token (next);
       }
       else if (0 == (strcmp (token, "$TTL")))
@@ -373,10 +471,9 @@ parse (void *cls)
                       "Name changed %s->%s, storing record set of %u elements\n",
                       lastname, newname,
                       rd_count);
-          name_changed = 1;
+          state = ZS_NAME_CHANGED;
         }
         else {
-          name_changed = 0;
           strcpy (lastname, newname);
         }
       }
@@ -391,7 +488,7 @@ parse (void *cls)
         }
         continue;
       }
-      if (origin_line)
+      if (ZS_ORIGIN_CHANGED == state)
       {
         if (GNUNET_SYSERR == parse_origin (token, origin))
         {
@@ -399,7 +496,7 @@ parse (void *cls)
           GNUNET_SCHEDULER_shutdown ();
           return;
         }
-        continue;
+        break;
       }
       // This is a record, let's go
       if (MAX_RECORDS_PER_NAME == rd_count)
@@ -476,7 +573,7 @@ parse (void *cls)
     }
     rd[rd_count].data = data;
     rd[rd_count].data_size = data_size;
-    if (name_changed)
+    if (ZS_NAME_CHANGED == state)
       break;
     rd_count++;
   }
@@ -496,14 +593,28 @@ parse (void *cls)
       data = (void*) rd[i].data;
       GNUNET_free (data);
     }
-    if (name_changed)
+    if (ZS_NAME_CHANGED == state)
     {
       rd[0] = rd[rd_count]; // recover last rd parsed.
       rd_count = 1;
       strcpy (lastname, newname);
+      state = ZS_READY;
     }
     else
       rd_count = 0;
+    return;
+  }
+  if (ZS_ORIGIN_CHANGED == state)
+  {
+    if (NULL != ego_name)
+      GNUNET_free (ego_name);
+    ego_name = GNUNET_strdup (origin);
+    if (ego_name[strlen (ego_name) - 1] == '.')
+      ego_name[strlen (ego_name) - 1] = '\0';
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Changing origin to %s\n", ego_name);
+    el = GNUNET_IDENTITY_ego_lookup (cfg, ego_name,
+                                     &origin_lookup_cb, NULL);
     return;
   }
   printf ("Published %u records sets with total %u records\n",
@@ -559,14 +670,22 @@ static void
 run (void *cls,
      char *const *args,
      const char *cfgfile,
-     const struct GNUNET_CONFIGURATION_Handle *cfg)
+     const struct GNUNET_CONFIGURATION_Handle *_cfg)
 {
+  cfg = _cfg;
   ns = GNUNET_NAMESTORE_connect (cfg);
   GNUNET_SCHEDULER_add_shutdown (&do_shutdown, (void *) cfg);
   if (NULL == ns)
   {
     fprintf (stderr,
-             _ ("Failed to connect to namestore\n"));
+             _ ("Failed to connect to NAMESTORE\n"));
+    return;
+  }
+  id = GNUNET_IDENTITY_connect (cfg, NULL, NULL);
+  if (NULL == id)
+  {
+    fprintf (stderr,
+             _ ("Failed to connect to IDENTITY\n"));
     return;
   }
   if (NULL == ego_name)
@@ -576,7 +695,7 @@ run (void *cls,
     return;
   }
   el = GNUNET_IDENTITY_ego_lookup (cfg, ego_name, &identity_cb, (void *) cfg);
-
+  state = ZS_READY;
 }
 
 
