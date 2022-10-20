@@ -1198,14 +1198,17 @@ client_disconnect_cb (void *cls,
     GNUNET_free (zm);
     break;
   }
-  for (struct StoreActivity *sa = sa_head; NULL != sa; sa = sa->next)
+  sa = sa_head;
+  while (NULL != sa)
   {
-    if (sa->nc == nc)
+    if (nc != sa->nc)
     {
-      /* this may free sa */
-      free_store_activity (sa);
-      break;     /* there can only be one per nc */
+      sa = sa->next;
+      continue;
     }
+    sn = sa->next;
+    free_store_activity (sa);
+    sa = sn;
   }
   while (NULL != (no = nc->op_head))
   {
@@ -1761,7 +1764,8 @@ store_record_set (struct NamestoreClient *nc,
         return GNUNET_SYSERR;
       }
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "%u/%u records before tombstone\n", rd_nf_count, rd_clean_off);
+                  "%u/%u records before tombstone\n", rd_nf_count,
+                  rd_clean_off);
       /*
        * If existing_block_exp is 0, then there was no record set
        * and no tombstone.
@@ -1804,7 +1808,7 @@ store_record_set (struct NamestoreClient *nc,
       {
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                     "Client tried to remove non-existant record\n");
-        *emsg = GNUNET_strdup (_("Not records to delete."));
+        *emsg = GNUNET_strdup (_ ("Not records to delete."));
         res = GNUNET_NO;
       }
     }
@@ -1897,9 +1901,9 @@ send_tx_response (int rid, int status, char *emsg, struct NamestoreClient *nc)
   txr_msg->success = htons (status);
   err_tmp = (char *) &txr_msg[1];
   GNUNET_memcpy (err_tmp, emsg, err_len);
-  GNUNET_free (emsg);
+  if (NULL != emsg)
+    GNUNET_free (emsg);
   GNUNET_MQ_send (nc->mq, env);
-
 }
 
 /**

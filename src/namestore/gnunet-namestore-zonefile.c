@@ -122,6 +122,11 @@ static struct GNUNET_IDENTITY_Handle *id;
 static const struct GNUNET_CONFIGURATION_Handle *cfg;
 
 /**
+ * Scheduled parse task
+ */
+static struct GNUNET_SCHEDULER_Task *parse_task;
+
+/**
  * The current state of the parser
  */
 static int state;
@@ -129,8 +134,11 @@ static int state;
 enum ZonefileImportState
 {
 
-  /* The initial state */
+  /* Uninitialized */
   ZS_READY,
+
+  /* The initial state */
+  ZS_ORIGIN_SET,
 
   /* The $ORIGIN has changed */
   ZS_ORIGIN_CHANGED,
@@ -171,7 +179,8 @@ do_shutdown (void *cls)
     void *rd_ptr = (void*) rd[i].data;
     GNUNET_free (rd_ptr);
   }
-
+  if (NULL != parse_task)
+    GNUNET_SCHEDULER_cancel (parse_task);
 }
 
 static void
@@ -283,9 +292,9 @@ origin_create_cb (void *cls, const struct GNUNET_IDENTITY_PrivateKey *pk,
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  state = ZS_READY;
+  state = ZS_ORIGIN_SET;
   zone_pkey = *pk;
-  GNUNET_SCHEDULER_add_now (&parse, NULL);
+  parse_task = GNUNET_SCHEDULER_add_now (&parse, NULL);
 }
 
 static void
@@ -305,9 +314,9 @@ origin_lookup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
                                     NULL);
     return;
   }
-  state = ZS_READY;
+  state = ZS_ORIGIN_SET;
   zone_pkey = *GNUNET_IDENTITY_ego_get_private_key (ego);
-  GNUNET_SCHEDULER_add_now (&parse, NULL);
+  parse_task = GNUNET_SCHEDULER_add_now (&parse, NULL);
 }
 
 static void
@@ -334,7 +343,7 @@ add_continuation (void *cls, int32_t success, const char *emsg)
                                      &origin_lookup_cb, NULL);
     return;
   }
-  GNUNET_SCHEDULER_add_now (&parse, NULL);
+  parse_task = GNUNET_SCHEDULER_add_now (&parse, NULL);
 }
 
 
@@ -372,18 +381,20 @@ parse (void *cls)
   int bracket_unclosed = 0;
   int quoted = 0;
 
+  parse_task = NULL;
   /* use filename provided as 1st argument (stdin by default) */
-  int i = 0;
+  int ln = 0;
   while (res = fgets (buf, sizeof(buf), stdin))                     /* read each line of input */
   {
-    i++;
+    ln++;
     ttl_line = 0;
     token = trim (buf);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Trimmed line (bracket %s): `%s'\n",
                 (bracket_unclosed > 0) ? "unclosed" : "closed",
                 token);
-    if ((1 == strlen (token)) && (' ' == *token))
+    if ((0 == strlen (token)) ||
+        ((1 == strlen (token)) && (' ' == *token)))
       continue; // I guess we can safely ignore blank lines
     if (bracket_unclosed == 0)
     {
@@ -393,7 +404,7 @@ parse (void *cls)
       next = strchr (token, ' ');
       if (NULL == next)
       {
-        fprintf (stderr, "Error at line %u: %s\n", i, token);
+        fprintf (stderr, "Error at line %u: %s\n", ln, token);
         break;
       }
       next[0] = '\0';
@@ -498,6 +509,14 @@ parse (void *cls)
         }
         break;
       }
+      if (ZS_READY == state)
+      {
+        fprintf (stderr,
+                 _ ("You must provide $ORIGIN in your zonefile or via arguments (--zone)!\n"));
+        ret = 1;
+        GNUNET_SCHEDULER_shutdown ();
+        return;
+      }
       // This is a record, let's go
       if (MAX_RECORDS_PER_NAME == rd_count)
       {
@@ -507,7 +526,6 @@ parse (void *cls)
         ret = 1;
         GNUNET_SCHEDULER_shutdown ();
         return;
-
       }
       rd[rd_count].flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
       rd[rd_count].expiration_time = ttl.rel_value_us;
@@ -598,7 +616,7 @@ parse (void *cls)
       rd[0] = rd[rd_count]; // recover last rd parsed.
       rd_count = 1;
       strcpy (lastname, newname);
-      state = ZS_READY;
+      state = ZS_ORIGIN_SET;
     }
     else
       rd_count = 0;
@@ -637,7 +655,7 @@ tx_start (void *cls, int32_t success, const char *emsg)
     ret = -1;
     return;
   }
-  GNUNET_SCHEDULER_add_now (&parse, NULL);
+  parse_task = GNUNET_SCHEDULER_add_now (&parse, NULL);
 }
 
 static void
@@ -654,12 +672,15 @@ identity_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
       fprintf (stderr,
                _ ("Ego `%s' not known to identity service\n"),
                ego_name);
+
     }
     GNUNET_SCHEDULER_shutdown ();
     ret = -1;
     return;
   }
   zone_pkey = *GNUNET_IDENTITY_ego_get_private_key (ego);
+  sprintf (origin, "%s.", ego_name);
+  state = ZS_ORIGIN_SET;
   ns_qe = GNUNET_NAMESTORE_transaction_begin (ns,
                                               &tx_start,
                                               NULL);
@@ -688,13 +709,10 @@ run (void *cls,
              _ ("Failed to connect to IDENTITY\n"));
     return;
   }
-  if (NULL == ego_name)
-  {
-    fprintf (stderr, _ ("You must provide a zone ego to use\n"));
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
-  el = GNUNET_IDENTITY_ego_lookup (cfg, ego_name, &identity_cb, (void *) cfg);
+  if (NULL != ego_name)
+    el = GNUNET_IDENTITY_ego_lookup (cfg, ego_name, &identity_cb, (void *) cfg);
+  else
+    parse_task = GNUNET_SCHEDULER_add_now (&parse, NULL);
   state = ZS_READY;
 }
 
