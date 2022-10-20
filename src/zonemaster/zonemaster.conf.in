@@ -6,6 +6,7 @@ HOSTNAME = localhost
 BINARY = gnunet-service-zonemaster
 UNIXPATH = $GNUNET_USER_RUNTIME_DIR/gnunet-service-zonemaster.sock
 @JAVAPORT@PORT = 2123
+WORKER_COUNT = 10
 
 # Do we require users that want to access GNS to run this process
 # (usually not a good idea)

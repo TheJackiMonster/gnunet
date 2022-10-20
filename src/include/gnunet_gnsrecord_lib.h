@@ -150,7 +150,7 @@ enum GNUNET_GNSRECORD_Filter
    * Filter public records.
    * FIXME: Not implemented
    */
-  //GNUNET_NAMESTORE_FILTER_OMIT_PUBLIC = 4,
+  // GNUNET_NAMESTORE_FILTER_OMIT_PUBLIC = 4,
 };
 
 
@@ -554,6 +554,19 @@ GNUNET_GNSRECORD_block_calculate_size (const struct
                                        const struct GNUNET_GNSRECORD_Data *rd,
                                        unsigned int rd_count);
 
+/**
+ * Sign a block create with #GNUNET_GNSRECORD_block_create_unsigned
+ *
+ * @param key the private key
+ * @param label the label of the block
+ * @param block the unsigned block
+ * @return GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_block_sign (const struct
+                             GNUNET_IDENTITY_PrivateKey *key,
+                             const char *label,
+                             struct GNUNET_GNSRECORD_Block *block);
 
 /**
  * Sign name and records
@@ -573,6 +586,31 @@ GNUNET_GNSRECORD_block_create (const struct GNUNET_IDENTITY_PrivateKey *key,
                                const struct GNUNET_GNSRECORD_Data *rd,
                                unsigned int rd_count,
                                struct GNUNET_GNSRECORD_Block **block);
+
+
+/**
+ * Create name and records but do not sign!
+ * Sign later with #GNUNET_GNSRECORD_block_sign().
+ * Cache derived public key (also keeps the
+ * private key in static memory, so do not use this function if
+ * keeping the private key in the process'es RAM is a major issue).
+ *
+ * @param key the private key
+ * @param expire block expiration
+ * @param label the name for the records
+ * @param rd record data
+ * @param rd_count number of records in @a rd
+ * @param result the block buffer. Will be allocated.
+ * @return GNUNET_OK on success.
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_block_create_unsigned (const struct
+                                        GNUNET_IDENTITY_PrivateKey *key,
+                                        struct GNUNET_TIME_Absolute expire,
+                                        const char *label,
+                                        const struct GNUNET_GNSRECORD_Data *rd,
+                                        unsigned int rd_count,
+                                        struct GNUNET_GNSRECORD_Block **result);
 
 
 /**
