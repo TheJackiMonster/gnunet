@@ -27,6 +27,29 @@
 #include <gnunet_util_lib.h>
 #include <gnunet_namestore_plugin.h>
 
+#define MAX_RECORDS_PER_NAME 50
+
+/**
+ * Maximum length of a zonefile line
+ */
+#define MAX_ZONEFILE_LINE_LEN 4096
+
+/**
+ * FIXME: Soft limit this?
+ */
+#define MAX_ZONEFILE_RECORD_DATA_LEN 2048
+
+/**
+ * The record data under a single label. Reused.
+ * Hard limit.
+ */
+static struct GNUNET_GNSRECORD_Data rd[MAX_RECORDS_PER_NAME];
+
+/**
+ * Number of records for currently parsed set
+ */
+static unsigned int rd_count = 0;
+
 /**
  * Return code
  */
@@ -41,6 +64,16 @@ static char *ego_name = NULL;
  * Currently read line or NULL on EOF
  */
 static char *res;
+
+/**
+ * Statistics, how many published record sets
+ */
+static unsigned int published_sets = 0;
+
+/**
+ * Statistics, how many records published in aggregate
+ */
+static unsigned int published_records = 0;
 
 
 /**
@@ -84,6 +117,11 @@ do_shutdown (void *cls)
     GNUNET_NAMESTORE_cancel (ns_qe);
   if (NULL != ns)
     GNUNET_NAMESTORE_disconnect (ns);
+  for (int i = 0; i < rd_count; i++)
+  {
+    void *rd_ptr = (void*) rd[i].data;
+    GNUNET_free (rd_ptr);
+  }
 
 }
 
@@ -162,6 +200,42 @@ next_token (char *token)
   return next;
 }
 
+static int
+parse_ttl (char *token, struct GNUNET_TIME_Relative *ttl)
+{
+  char *next;
+  unsigned int ttl_tmp;
+
+  next = strchr (token, ';');
+  if (NULL != next)
+    next[0] = '\0';
+  next = strchr (token, ' ');
+  if (NULL != next)
+    next[0] = '\0';
+  if (1 != sscanf (token, "%u", &ttl_tmp))
+  {
+    fprintf (stderr, "Unable to parse TTL `%s'\n", token);
+    return GNUNET_SYSERR;
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "TTL is: %u\n", ttl_tmp);
+  ttl->rel_value_us = ttl_tmp * 1000 * 1000;
+  return GNUNET_OK;
+}
+
+static int
+parse_origin (char *token, char *origin)
+{
+  char *next;
+  next = strchr (token, ';');
+  if (NULL != next)
+    next[0] = '\0';
+  next = strchr (token, ' ');
+  if (NULL != next)
+    next[0] = '\0';
+  strcpy (origin, token);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Origin is: %s\n", origin);
+}
+
 /**
  * Main function that will be run.
  *
@@ -181,40 +255,38 @@ next_token (char *token)
 static void
 parse (void *cls)
 {
-  static struct GNUNET_GNSRECORD_Data rd[50]; // Let's hope we do not need more
-  char buf[5000];   /* buffer to hold entire line (adjust MAXC as needed) */
-  char payload[5000];
+  char buf[MAX_ZONEFILE_LINE_LEN];
+  char payload[MAX_ZONEFILE_RECORD_DATA_LEN];
   char *next;
   char *token;
   char *payload_pos;
-  char origin[255];
-  static char lastname[255];
-  char newname[255];
+  char origin[GNUNET_DNSPARSER_MAX_NAME_LENGTH];
+  static char lastname[GNUNET_DNSPARSER_MAX_LABEL_LENGTH];
+  char newname[GNUNET_DNSPARSER_MAX_LABEL_LENGTH];
   void *data;
   size_t data_size;
   struct GNUNET_TIME_Relative ttl;
   int origin_line = 0;
   int ttl_line = 0;
   int type;
-  static unsigned int rd_count = 0;
-  uint32_t ttl_tmp;
   int name_changed = 0;
   int bracket_unclosed = 0;
   int quoted = 0;
-  static unsigned int published_sets = 0;
-  static unsigned int published_records = 0;
 
   /* use filename provided as 1st argument (stdin by default) */
   int i = 0;
-  while (res = fgets (buf, 5000, stdin))                     /* read each line of input */
+  while (res = fgets (buf, sizeof(buf), stdin))                     /* read each line of input */
   {
     i++;
     origin_line = 0;
     ttl_line = 0;
     token = trim (buf);
-    printf ("Trimmed line (bracket %s): `%s'\n",
-            (bracket_unclosed > 0) ? "unclosed" : "closed",
-            token);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Trimmed line (bracket %s): `%s'\n",
+                (bracket_unclosed > 0) ? "unclosed" : "closed",
+                token);
+    if ((1 == strlen (token)) && (' ' == *token))
+      continue; // I guess we can safely ignore blank lines
     if (bracket_unclosed == 0)
     {
       /* Payload is already parsed */
@@ -240,22 +312,31 @@ parse (void *cls)
       }
       else
       {
-        printf ("TOKEN: %s\n", token);
         if (0 == strcmp (token, "IN")) // Inherit name from before
         {
-          printf ("Old name: %s\n", lastname);
+          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                      "Old name: %s\n", lastname);
           strcpy (newname, lastname);
           token[strlen (token)] = ' ';
         }
         else if (token[strlen (token) - 1] != '.') // no fqdn
         {
-          printf ("New name: %s\n", token);
+          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "New name: %s\n", token);
+          if (GNUNET_DNSPARSER_MAX_LABEL_LENGTH < strlen (token))
+          {
+            fprintf (stderr,
+                     _ ("Name `%s' is too long\n"),
+                     token);
+            ret = 1;
+            GNUNET_SCHEDULER_shutdown ();
+            return;
+          }
           strcpy (newname, token);
           token = next_token (next);
         }
         else if (0 == strcmp (token, origin))
         {
-          printf ("New name: @\n");
+          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "New name: @\n");
           strcpy (newname, "@");
           token = next_token (next);
         }
@@ -272,7 +353,16 @@ parse (void *cls)
             break;
           }
           token[strlen (token) - strlen (origin) - 1] = '\0';
-          printf ("New name: %s\n", token);
+          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "New name: %s\n", token);
+          if (GNUNET_DNSPARSER_MAX_LABEL_LENGTH < strlen (token))
+          {
+            fprintf (stderr,
+                     _ ("Name `%s' is too long\n"),
+                     token);
+            ret = 1;
+            GNUNET_SCHEDULER_shutdown ();
+            return;
+          }
           strcpy (newname, token);
           token = next_token (next);
         }
@@ -293,45 +383,48 @@ parse (void *cls)
 
       if (ttl_line)
       {
-        next = strchr (token, ';');
-        if (NULL != next)
-          next[0] = '\0';
-        next = strchr (token, ' ');
-        if (NULL != next)
-          next[0] = '\0';
-        if (1 != sscanf (token, "%u", &ttl_tmp))
+        if (GNUNET_SYSERR == parse_ttl (token, &ttl))
         {
-          fprintf (stderr, "Unable to parse TTL `%s'\n", token);
-          break;
+          ret = 1;
+          GNUNET_SCHEDULER_shutdown ();
+          return;
         }
-        printf ("TTL is: %u\n", ttl_tmp);
-        ttl.rel_value_us = ttl_tmp * 1000 * 1000;
         continue;
       }
       if (origin_line)
       {
-        next = strchr (token, ';');
-        if (NULL != next)
-          next[0] = '\0';
-        next = strchr (token, ' ');
-        if (NULL != next)
-          next[0] = '\0';
-        strcpy (origin, token);
-        printf ("Origin is: %s\n", origin);
+        if (GNUNET_SYSERR == parse_origin (token, origin))
+        {
+          ret = 1;
+          GNUNET_SCHEDULER_shutdown ();
+          return;
+        }
         continue;
       }
       // This is a record, let's go
+      if (MAX_RECORDS_PER_NAME == rd_count)
+      {
+        fprintf (stderr,
+                 _ ("Only %u records per unique name supported.\n"),
+                 MAX_RECORDS_PER_NAME);
+        ret = 1;
+        GNUNET_SCHEDULER_shutdown ();
+        return;
+
+      }
       rd[rd_count].flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
       rd[rd_count].expiration_time = ttl.rel_value_us;
       next = strchr (token, ' ');
       if (NULL == next)
       {
         fprintf (stderr, "Error, last token: %s\n", token);
+        ret = 1;
+        GNUNET_SCHEDULER_shutdown ();
         break;
       }
       next[0] = '\0';
       next++;
-      printf ("class is: %s\n", token);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "class is: %s\n", token);
       while (*next == ' ')
         next++;
       token = next;
@@ -343,7 +436,7 @@ parse (void *cls)
       }
       next[0] = '\0';
       next++;
-      printf ("type is: %s\n", token);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "type is: %s\n", token);
       type = GNUNET_GNSRECORD_typename_to_number (token);
       rd[rd_count].record_type = type;
       while (*next == ' ')
@@ -368,13 +461,12 @@ parse (void *cls)
       continue;
     }
     *payload_pos = '\0';
-    printf ("data is: %s\n\n", payload);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "data is: %s\n\n", payload);
     if (GNUNET_OK !=
         GNUNET_GNSRECORD_string_to_value (type, payload,
                                           &data,
                                           &data_size))
     {
-      // FIXME free rd
       fprintf (stderr,
                _ ("Data `%s' invalid\n"),
                payload);
@@ -399,13 +491,18 @@ parse (void *cls)
                                             NULL);
     published_sets++;
     published_records += rd_count;
-    // FIXME cleanup rd
+    for (int i = 0; i < rd_count; i++)
+    {
+      data = (void*) rd[i].data;
+      GNUNET_free (data);
+    }
     if (name_changed)
     {
-    rd[0] = rd[rd_count]; // recover last rd parsed.
-    rd_count = 1;
-    strcpy (lastname, newname);
-    } else
+      rd[0] = rd[rd_count]; // recover last rd parsed.
+      rd_count = 1;
+      strcpy (lastname, newname);
+    }
+    else
       rd_count = 0;
     return;
   }

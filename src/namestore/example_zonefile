@@ -2,6 +2,7 @@ $ORIGIN example.com.     ; designates the start of this zone file in the namespa
 $TTL 3600                ; default expiration time (in seconds) of all RRs without their own TTL value
 example.com.    IN  SOA   ns.example.com. username.example.com. ( 2020091025 ; A comment
                                                                   7200 ; Comment
+                                                                 ; empty line on purpose
                                                                   3600
                                                                   1209600
                                                                   3600 )
@@ -19,4 +20,5 @@ wwwtest         IN  CNAME www                   ; wwwtest.example.com is another
 mail            IN  A     192.0.2.3             ; IPv4 address for mail.example.com
 mail2           IN  A     192.0.2.4             ; IPv4 address for mail2.example.com
 mail3           IN  A     192.0.2.5             ; IPv4 address for mail3.example.com
+
 mail3           IN  TXT   "This is ; quoted"    ; A quoted comment separator
