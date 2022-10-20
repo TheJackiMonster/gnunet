@@ -26,6 +26,7 @@ DELEGATED_PKEY=$(gnunet-identity -d -c test_gns_lookup.conf | grep $OTHER_EGO | 
 gnunet-identity -C $MY_EGO -c test_gns_lookup.conf
 gnunet-namestore -p -z $MY_EGO -a -n b -t PKEY -V $DELEGATED_PKEY -e never -c test_gns_lookup.conf
 gnunet-namestore -p -z $OTHER_EGO -a -n www -t A -V $TEST_IP -e never -c test_gns_lookup.conf
+sleep 1
 RES_IP=`$DO_TIMEOUT gnunet-gns --raw -u www.b.$MY_EGO -t A -c test_gns_lookup.conf`
 gnunet-revocation -R $OTHER_EGO -p  -c test_gns_lookup.conf
 RES_IP_REV=`$DO_TIMEOUT gnunet-gns --raw -u www.b.$MY_EGO -t A -c test_gns_lookup.conf`

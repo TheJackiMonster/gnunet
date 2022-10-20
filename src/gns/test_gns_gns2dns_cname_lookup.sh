@@ -63,8 +63,7 @@ gnunet-namestore -p -z $MY_EGO -a -n $TEST_RECORD_NAME -t GNS2DNS -V $TEST_RECOR
 
 gnunet-namestore -z $MY_EGO -D -c test_gns_lookup.conf
 
-echo "EGOs:"
-gnunet-identity -d
+sleep 0.5
 
 # lookup 'www.gnunet.org', IPv4
 RES_IP=`$DO_TIMEOUT gnunet-gns --raw -u $TEST_DOMAIN -t A -c test_gns_lookup.conf`

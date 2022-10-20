@@ -22,6 +22,7 @@ LABEL="testcaa"
 gnunet-arm -s -c test_gns_lookup.conf
 gnunet-identity -C $MY_EGO -c test_gns_lookup.conf
 gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t CAA -V "$TEST_CAA" -e never -c test_gns_lookup.conf
+sleep 0.5
 RES_CAA=`$DO_TIMEOUT gnunet-gns --raw -u $LABEL.$MY_EGO -t CAA -c test_gns_lookup.conf`
 gnunet-namestore -z $MY_EGO -d -n $LABEL -t CAA -V "$TEST_CAA" -e never -c test_gns_lookup.conf
 gnunet-identity -D $MY_EGO -c test_gns_lookup.conf

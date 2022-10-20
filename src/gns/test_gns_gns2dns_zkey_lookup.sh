@@ -65,6 +65,7 @@ gnunet-namestore -p -z $MY_EGO -a -n $TEST_RESOLVER_LABEL -t A -V $TEST_IP_GNS2D
 # map '$TEST_RECORD_NAME.$MY_EGO' to 'gnunet.org' in DNS
 gnunet-namestore -p -z $MY_EGO -a -n $TEST_RECORD_NAME -t GNS2DNS -V $TEST_RECORD_GNS2DNS -e never -c test_gns_lookup.conf
 
+sleep 1
 # lookup 'www.gnunet.org', IPv4
 RES_IP=`$DO_TIMEOUT gnunet-gns --raw -u $TEST_DOMAIN -t A -c test_gns_lookup.conf`
 # lookup 'www.gnunet.org', IPv6

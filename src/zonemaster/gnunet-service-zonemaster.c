@@ -100,7 +100,7 @@
 /**
  * Our workers
  */
-static pthread_t *worker;
+static pthread_t * worker;
 
 /**
  * Lock for the open jobs queue.
@@ -111,6 +111,11 @@ static pthread_mutex_t jobs_lock;
  * Lock for the finished results queue.
  */
 static pthread_mutex_t results_lock;
+
+/**
+ * Wait condition on new jobs
+ */
+static pthread_cond_t empty_jobs;
 
 /**
  * For threads to know we are shutting down
@@ -855,6 +860,7 @@ perform_dht_put (const struct GNUNET_IDENTITY_PrivateKey *key,
   job->expire_pub = expire_pub;
   GNUNET_CONTAINER_DLL_insert (jobs_head, jobs_tail, job);
   GNUNET_assert (0 == pthread_mutex_unlock (&jobs_lock));
+  pthread_cond_signal (&empty_jobs);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Storing %u record(s) for label `%s' in DHT with expiration `%s'\n",
               rd_public_count,
@@ -1208,6 +1214,7 @@ perform_dht_put_monitor (const struct GNUNET_IDENTITY_PrivateKey *key,
   job->expire_pub = expire_pub;
   GNUNET_CONTAINER_DLL_insert (jobs_head, jobs_tail, job);
   GNUNET_assert (0 == pthread_mutex_unlock (&jobs_lock));
+  pthread_cond_signal (&empty_jobs);
 }
 
 
@@ -1297,13 +1304,12 @@ sign_worker (void *cls)
   while (GNUNET_YES != in_shutdown)
   {
     GNUNET_assert (0 == pthread_mutex_lock (&jobs_lock));
-    if (NULL != jobs_head)
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Taking on Job for %s\n", jobs_head->label);
-      job = jobs_head;
-      GNUNET_CONTAINER_DLL_remove (jobs_head, jobs_tail, job);
-    }
+    while (NULL == jobs_head)
+      pthread_cond_wait (&empty_jobs, &jobs_lock);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Taking on Job for %s\n", jobs_head->label);
+    job = jobs_head;
+    GNUNET_CONTAINER_DLL_remove (jobs_head, jobs_tail, job);
     GNUNET_assert (0 == pthread_mutex_unlock (&jobs_lock));
     if (NULL != job)
     {
@@ -1317,10 +1323,6 @@ sign_worker (void *cls)
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Done, notifying main thread through pipe!\n");
       GNUNET_DISK_file_write (fh, "!", 1);
-    }
-    else
-    {
-      sleep (1);
     }
   }
   return NULL;

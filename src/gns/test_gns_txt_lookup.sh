@@ -22,6 +22,7 @@ LABEL="testtxt"
 gnunet-arm -s -c test_gns_lookup.conf
 gnunet-identity -C $MY_EGO -c test_gns_lookup.conf
 gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t TXT -V "$TEST_TXT" -e never -c test_gns_lookup.conf
+sleep 0.5
 RES_TXT=`$DO_TIMEOUT gnunet-gns --raw -u $LABEL.$MY_EGO -t TXT -c test_gns_lookup.conf`
 gnunet-namestore -z $MY_EGO -d -n $LABEL -t TXT -V "$TEST_TXT" -e never -c test_gns_lookup.conf
 gnunet-identity -D $MY_EGO -c test_gns_lookup.conf
