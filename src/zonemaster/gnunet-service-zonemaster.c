@@ -24,6 +24,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+#include <pthread.h>
 #include "gnunet_util_lib.h"
 #include "gnunet_dnsparser_lib.h"
 #include "gnunet_dht_service.h"
@@ -99,7 +100,7 @@
 /**
  * Our workers
  */
-static pthread_t * worker;
+static pthread_t *worker;
 
 /**
  * Lock for the open jobs queue.
@@ -469,6 +470,7 @@ shutdown_task (void *cls)
   }
 }
 
+
 /**
  * Cache operation complete, clean up.
  *
@@ -526,7 +528,6 @@ refresh_block (const struct GNUNET_GNSRECORD_Block *block)
                                           &finish_cache_operation,
                                           cop);
 }
-
 
 
 /**
@@ -764,6 +765,7 @@ dht_put_continuation (void *cls)
   GNUNET_free (ma);
 }
 
+
 static void
 free_job (struct OpenSignJob *job)
 {
@@ -859,7 +861,9 @@ perform_dht_put (const struct GNUNET_IDENTITY_PrivateKey *key,
               label,
               GNUNET_STRINGS_absolute_time_to_string (expire));
   num_public_records++;
+  return NULL; // FIXME-Martin: WTF?
 }
+
 
 static void
 notification_pipe_cb (void *cls);
@@ -888,7 +892,7 @@ initiate_put_from_pipe_trigger (void *cls)
   while (GNUNET_SYSERR !=
          (nf_count = GNUNET_DISK_file_read (np_fh, buf, sizeof (buf))))
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Read %lld notifications from pipe\n",
-                nf_count);
+                (long long) nf_count);
   if (NULL == job)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1004,6 +1008,7 @@ zone_iteration_finished (void *cls)
   }
 }
 
+
 /**
  * Function used to put all records successively into the DHT.
  *
@@ -1072,6 +1077,7 @@ put_gns_record (void *cls,
                                     it_tail,
                                     ma);
 }
+
 
 /**
  * Periodically iterate over all zones and store everything in DHT
@@ -1204,6 +1210,7 @@ perform_dht_put_monitor (const struct GNUNET_IDENTITY_PrivateKey *key,
   GNUNET_assert (0 == pthread_mutex_unlock (&jobs_lock));
 }
 
+
 /**
  * Process a record that was stored in the namestore
  * (invoked by the monitor).
@@ -1279,8 +1286,9 @@ handle_monitor_error (void *cls)
                             GNUNET_NO);
 }
 
+
 static void*
-sign_worker (void *)
+sign_worker (void *cls)
 {
   struct OpenSignJob *job;
   const struct GNUNET_DISK_FileHandle *fh;
@@ -1310,12 +1318,14 @@ sign_worker (void *)
                   "Done, notifying main thread through pipe!\n");
       GNUNET_DISK_file_write (fh, "!", 1);
     }
-    else {
+    else
+    {
       sleep (1);
     }
   }
   return NULL;
 }
+
 
 static void
 notification_pipe_cb (void *cls)
@@ -1324,6 +1334,7 @@ notification_pipe_cb (void *cls)
               "Received wake up notification through pipe, checking results\n");
   GNUNET_SCHEDULER_add_now (&initiate_put_from_pipe_trigger, NULL);
 }
+
 
 /**
  * Perform zonemaster duties: watch namestore, publish records.
