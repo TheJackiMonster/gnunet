@@ -734,6 +734,7 @@ AC_RUN_IFELSE(
                     [AC_MSG_WARN([cURL does not have GnuTLS backend])
                      curl_gnutls=0])
 LIBS=$OLD_LIBS
+AM_CONDITIONAL([HAVE_GNUTLS_CURL], [test "x$curl_gnutls" = "x1"])
 
 
 # Even if curl is found, we check for this constant in order to determine
