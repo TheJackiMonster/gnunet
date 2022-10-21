@@ -92,11 +92,11 @@ curl_get "${namestore_link}/$public" "error"
 gnunet-namestore -z $name -d -n "test_entry" -c test_namestore_api.conf
 
 #Test POST with NAME
-curl_post "${namestore_link}/$name" '{"data": [{"value":"000G006WVZ8HQ5YTVFNX09HK0VJVVQ9ZCBYDSCH3ERT04N5ZRBKEB82EP8", "record_type":"PKEY", "expiration_time":"1d","private": false, "relative_expiration": false, "supplemental": false, "shadow": false}],"record_name":"test_entry"}' "HTTP/1.1 204 No Content"
+curl_post "${namestore_link}/$name" '{"data": [{"value":"000G006WVZ8HQ5YTVFNX09HK0VJVVQ9ZCBYDSCH3ERT04N5ZRBKEB82EP8", "record_type":"PKEY", "expiration_time":"1d","is_private": false, "is_relative_expiration": false, "supplemental": false, "shadow": false}],"record_name":"test_entry"}' "HTTP/1.1 204 No Content"
 gnunet-namestore -z $name -d -n "test_entry" -c test_namestore_api.conf > /dev/null 2>&1
 
 # invalid values
-curl_post "${namestore_link}/$name" '{"data": [{"value":"HVX38H2CB7WJM0WCPWT9CFX6GASMYJVR65RN75SJSSKAYVYXHMRGxxx", "record_type":"PKEY", "expiration_time":"1d","private": false, "relative_expiration": false, "supplemental": false, "shadow": false}],"record_name":"test_entry"}' "error"
+curl_post "${namestore_link}/$name" '{"data": [{"value":"HVX38H2CB7WJM0WCPWT9CFX6GASMYJVR65RN75SJSSKAYVYXHMRGxxx", "record_type":"PKEY", "expiration_time":"1d","is_private": false, "is_relative_expiration": false, "supplemental": false, "shadow": false}],"record_name":"test_entry"}' "error"
 gnunet-namestore -z $name -d -n "test_entry" -c test_namestore_api.conf > /dev/null 2>&1
 
 
@@ -107,22 +107,22 @@ curl_post "${namestore_link}/$name" '{"data": [{"record_type":"PKEY", "expiratio
 gnunet-namestore -z $name -d -n "test_entry" -c test_namestore_api.conf > /dev/null 2>&1
 
 #expirations
-curl_post "${namestore_link}/$name" '{"data": [{"value":"000G006WVZ8HQ5YTVFNX09HK0VJVVQ9ZCBYDSCH3ERT04N5ZRBKEB82EP8", "record_type":"PKEY", "expiration_time":"0d","private": false, "relative_expiration": true, "supplemental": false, "shadow": false}],"record_name":"test_entry"}' "HTTP/1.1 204"
+curl_post "${namestore_link}/$name" '{"data": [{"value":"000G006WVZ8HQ5YTVFNX09HK0VJVVQ9ZCBYDSCH3ERT04N5ZRBKEB82EP8", "record_type":"PKEY", "expiration_time":"0d","is_private": false, "is_relative_expiration": true, "supplemental": false, "shadow": false}],"record_name":"test_entry"}' "HTTP/1.1 204"
 gnunet-namestore -z $name -d -n "test_entry" -c test_namestore_api.conf > /dev/null 2>&1
 
-curl_post "${namestore_link}/$name" '{"data": [{"value":"000G006WVZ8HQ5YTVFNX09HK0VJVVQ9ZCBYDSCH3ERT04N5ZRBKEB82EP8", "record_type":"PKEY", "expiration_time":"10000d","private": false, "relative_expiration": true, "supplemental": false, "shadow": false}],"record_name":"test_entry"}' "HTTP/1.1 204"
+curl_post "${namestore_link}/$name" '{"data": [{"value":"000G006WVZ8HQ5YTVFNX09HK0VJVVQ9ZCBYDSCH3ERT04N5ZRBKEB82EP8", "record_type":"PKEY", "expiration_time":"10000d","is_private": false, "is_relative_expiration": true, "supplemental": false, "shadow": false}],"record_name":"test_entry"}' "HTTP/1.1 204"
 gnunet-namestore -z $name -d -n "test_entry" -c test_namestore_api.conf > /dev/null 2>&1
 
-curl_post "${namestore_link}/$name" '{"data": [{"value":"000G006WVZ8HQ5YTVFNX09HK0VJVVQ9ZCBYDSCH3ERT04N5ZRBKEB82EP8", "record_type":"PKEY", "expiration_time":"now","private": false, "relative_expiration": false, "supplemental": false, "shadow": false}],"record_name":"test_entry"}' "error"
+curl_post "${namestore_link}/$name" '{"data": [{"value":"000G006WVZ8HQ5YTVFNX09HK0VJVVQ9ZCBYDSCH3ERT04N5ZRBKEB82EP8", "record_type":"PKEY", "expiration_time":"now","is_private": false, "is_relative_expiration": false, "supplemental": false, "shadow": false}],"record_name":"test_entry"}' "error"
 gnunet-namestore -z $name -d -n "test_entry" -c test_namestore_api.conf > /dev/null 2>&1
 
-curl_post "${namestore_link}/$name" '{"data": [{"value":"000G006WVZ8HQ5YTVFNX09HK0VJVVQ9ZCBYDSCH3ERT04N5ZRBKEB82EP8", "record_type":"PKEY", "expiration_time_missing":"1d","private": false, "relative_expiration": false, "supplemental": false, "shadow": false}],"record_name":"test_entry"}' "error"
+curl_post "${namestore_link}/$name" '{"data": [{"value":"000G006WVZ8HQ5YTVFNX09HK0VJVVQ9ZCBYDSCH3ERT04N5ZRBKEB82EP8", "record_type":"PKEY", "expiration_time_missing":"1d","is_private": false, "is_relative_expiration": false, "supplemental": false, "shadow": false}],"record_name":"test_entry"}' "error"
 gnunet-namestore -z $name -d -n "test_entry" -c test_namestore_api.conf > /dev/null 2>&1
 
 #record_name
-curl_post "${namestore_link}/$name" '{"data": [{"value":"000G006WVZ8HQ5YTVFNX09HK0VJVVQ9ZCBYDSCH3ERT04N5ZRBKEB82EP8", "record_type":"PKEY", "expiration_time":"1d","private": false, "relative_expiration": false, "supplemental": false, "shadow": false}],"record_name":""}' "error"
+curl_post "${namestore_link}/$name" '{"data": [{"value":"000G006WVZ8HQ5YTVFNX09HK0VJVVQ9ZCBYDSCH3ERT04N5ZRBKEB82EP8", "record_type":"PKEY", "expiration_time":"1d","is_private": false, "is_relative_expiration": false, "supplemental": false, "shadow": false}],"record_name":""}' "error"
 gnunet-namestore -z $name -d -n "test_entry"  -c test_namestore_api.conf > /dev/null 2>&1
-curl_post "${namestore_link}/$name" '{"data": [{"value":"000G006WVZ8HQ5YTVFNX09HK0VJVVQ9ZCBYDSCH3ERT04N5ZRBKEB82EP8", "record_type":"PKEY", "expiration_time":"1d","private": false, "relative_expiration": false, "supplemental": false, "shadow": false}],"record_name_missing":"test_entry"}' "error"
+curl_post "${namestore_link}/$name" '{"data": [{"value":"000G006WVZ8HQ5YTVFNX09HK0VJVVQ9ZCBYDSCH3ERT04N5ZRBKEB82EP8", "record_type":"PKEY", "expiration_time":"1d","is_private": false, "is_relative_expiration": false, "supplemental": false, "shadow": false}],"record_name_missing":"test_entry"}' "error"
 gnunet-namestore -z $name -d -n "test_entry"  -c test_namestore_api.conf > /dev/null 2>&1
 
 #Test DELETE

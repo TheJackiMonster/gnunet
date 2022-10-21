@@ -271,13 +271,11 @@ parse_origin (char *token, char *origin)
 {
   char *next;
   next = strchr (token, ';');
-  if (NULL == next)
-    return GNUNET_SYSERR;
-  next[0] = '\0';
+  if (NULL != next)
+    next[0] = '\0';
   next = strchr (token, ' ');
-  if (NULL == next)
-    return GNUNET_SYSERR;
-  next[0] = '\0';
+  if (NULL != next)
+    next[0] = '\0';
   strcpy (origin, token);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Origin is: %s\n", origin);
   return GNUNET_OK;
@@ -495,6 +493,7 @@ parse (void *cls)
       {
         if (GNUNET_SYSERR == parse_ttl (token, &ttl))
         {
+          fprintf (stderr, _("Failed to parse $TTL\n"));
           ret = 1;
           GNUNET_SCHEDULER_shutdown ();
           return;
@@ -505,6 +504,7 @@ parse (void *cls)
       {
         if (GNUNET_SYSERR == parse_origin (token, origin))
         {
+          fprintf (stderr, _("Failed to parse $ORIGIN from %s\n"), token);
           ret = 1;
           GNUNET_SCHEDULER_shutdown ();
           return;

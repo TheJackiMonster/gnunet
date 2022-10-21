@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2022-10-21 13:20+0900\n"
+"POT-Creation-Date: 2022-10-21 13:49+0900\n"
 "PO-Revision-Date: 2020-10-23 18:39+0200\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: Serbian <(nothing)>\n"
@@ -19,8 +19,8 @@ msgstr ""
 "X-Bugs: Report translation errors to the Language-Team address.\n"
 
 #: src/abd/gnunet-abd.c:392 src/namestore/gnunet-namestore-zonefile.c:193
-#: src/namestore/gnunet-namestore-zonefile.c:652
-#: src/namestore/gnunet-namestore-zonefile.c:673
+#: src/namestore/gnunet-namestore-zonefile.c:655
+#: src/namestore/gnunet-namestore-zonefile.c:674
 #: src/namestore/gnunet-namestore.c:1245
 #, c-format
 msgid "Ego `%s' not known to identity service\n"
@@ -3997,12 +3997,12 @@ msgid "Properly base32-encoded public key required"
 msgstr "исправан јавни кључ се захтева"
 
 #: src/gns/gnunet-service-gns.c:536
-#: src/zonemaster/gnunet-service-zonemaster.c:1396
+#: src/zonemaster/gnunet-service-zonemaster.c:1373
 msgid "Failed to connect to the namecache!\n"
 msgstr "Нисам успео да се повежем са оставом назива!\n"
 
 #: src/gns/gnunet-service-gns.c:555
-#: src/zonemaster/gnunet-service-zonemaster.c:1435
+#: src/zonemaster/gnunet-service-zonemaster.c:1412
 msgid "Could not connect to DHT!\n"
 msgstr "Не могу да се повежем на ДХТ!\n"
 
@@ -4855,7 +4855,7 @@ msgid "the namestore plugin to work with, e.g. 'sqlite'"
 msgstr ""
 
 #: src/namestore/gnunet-namestore-dbtool.c:178
-#: src/namestore/gnunet-namestore-zonefile.c:750
+#: src/namestore/gnunet-namestore-zonefile.c:751
 #, fuzzy
 msgid "GNUnet namestore database manipulation tool"
 msgstr "Алат манипуслисања ГНУнет зоном"
@@ -4963,43 +4963,43 @@ msgstr ""
 msgid "GNU Name System First-Come-First-Served name registration service"
 msgstr "Услуга регистрације назива Први Стиже Први Служи ГНУ Система Назива"
 
-#: src/namestore/gnunet-namestore-zonefile.c:329
+#: src/namestore/gnunet-namestore-zonefile.c:331
 #, fuzzy, c-format
 msgid "Failed to store records...\n"
 msgstr "Смештај назива није успео да смести запис\n"
 
-#: src/namestore/gnunet-namestore-zonefile.c:437
-#: src/namestore/gnunet-namestore-zonefile.c:469
+#: src/namestore/gnunet-namestore-zonefile.c:439
+#: src/namestore/gnunet-namestore-zonefile.c:471
 #, fuzzy, c-format
 msgid "Name `%s' is too long\n"
 msgstr "Регуларни израз „%s“ је превелик!\n"
 
-#: src/namestore/gnunet-namestore-zonefile.c:515
+#: src/namestore/gnunet-namestore-zonefile.c:518
 #, c-format
 msgid "You must provide $ORIGIN in your zonefile or via arguments (--zone)!\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-zonefile.c:524
+#: src/namestore/gnunet-namestore-zonefile.c:527
 #, c-format
 msgid "Only %u records per unique name supported.\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-zonefile.c:586
+#: src/namestore/gnunet-namestore-zonefile.c:589
 #, fuzzy, c-format
 msgid "Data `%s' invalid\n"
 msgstr "Кључ „%s“ је исправан\n"
 
-#: src/namestore/gnunet-namestore-zonefile.c:702
+#: src/namestore/gnunet-namestore-zonefile.c:703
 #, fuzzy, c-format
 msgid "Failed to connect to NAMESTORE\n"
 msgstr "Нисам успео да се повежем са ГНС-ом\n"
 
-#: src/namestore/gnunet-namestore-zonefile.c:709
+#: src/namestore/gnunet-namestore-zonefile.c:710
 #, fuzzy, c-format
 msgid "Failed to connect to IDENTITY\n"
 msgstr "Нисам успео да се повежем са ГНС-ом\n"
 
-#: src/namestore/gnunet-namestore-zonefile.c:735
+#: src/namestore/gnunet-namestore-zonefile.c:736
 #: src/namestore/gnunet-namestore.c:1628
 msgid "name of the ego controlling the zone"
 msgstr "назив егоа који контролише зону"
@@ -9324,7 +9324,7 @@ msgstr "Поставља тунеле путем ВПН-а."
 msgid "Failed to replicate block in namecache: %s\n"
 msgstr "Нисам успео да реплицирам блок у остави назива: %s\n"
 
-#: src/zonemaster/gnunet-service-zonemaster.c:1383
+#: src/zonemaster/gnunet-service-zonemaster.c:1360
 msgid "Failed to connect to the namestore!\n"
 msgstr "Нисам успео да се повежем са смештајем назива!\n"
 

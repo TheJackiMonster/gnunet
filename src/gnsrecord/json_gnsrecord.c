@@ -32,9 +32,9 @@
 #define GNUNET_JSON_GNSRECORD_RECORD_DATA "data"
 #define GNUNET_JSON_GNSRECORD_TYPE "record_type"
 #define GNUNET_JSON_GNSRECORD_EXPIRATION_TIME "expiration_time"
-#define GNUNET_JSON_GNSRECORD_FLAG_PRIVATE "private"
+#define GNUNET_JSON_GNSRECORD_FLAG_PRIVATE "is_private"
 #define GNUNET_JSON_GNSRECORD_FLAG_SUPPLEMENTAL "supplemental"
-#define GNUNET_JSON_GNSRECORD_FLAG_RELATIVE "relative_expiration"
+#define GNUNET_JSON_GNSRECORD_FLAG_RELATIVE "is_relative_expiration"
 #define GNUNET_JSON_GNSRECORD_FLAG_SHADOW "shadow"
 #define GNUNET_JSON_GNSRECORD_RECORD_NAME "record_name"
 #define GNUNET_JSON_GNSRECORD_NEVER "never"
@@ -350,9 +350,9 @@ GNUNET_GNSRECORD_JSON_from_gnsrecord (const char*rname,
                         record_type_str,
                         "expiration_time",
                         expiration_time_str,
-                        "private",
+                        GNUNET_JSON_GNSRECORD_FLAG_PRIVATE,
                         rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE,
-                        "relative_expiration",
+                        GNUNET_JSON_GNSRECORD_FLAG_RELATIVE,
                         rd[i].flags & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION,
                         "supplemental",
                         rd[i].flags & GNUNET_GNSRECORD_RF_SUPPLEMENTAL,

@@ -20,7 +20,7 @@ which timeout > /dev/null 2>&1 && DO_TIMEOUT="timeout 5"
 MY_EGO="myego"
 gnunet-arm -s -c test_namestore_api.conf
 gnunet-identity -C $MY_EGO -c test_namestore_api.conf
-gnunet-namestore-zonefile -c test_namestore_api.conf -z $MY_EGO < example_zonefile
+gnunet-namestore-zonefile -c test_namestore_api.conf < example_zonefile
 res=$?
 gnunet-identity -D $MY_EGO -c test_namestore_api.conf
 gnunet-arm -e -c test_namestore_api.conf

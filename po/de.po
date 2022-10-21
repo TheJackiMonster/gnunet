@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2022-10-21 13:20+0900\n"
+"POT-Creation-Date: 2022-10-21 13:49+0900\n"
 "PO-Revision-Date: 2015-03-08 16:16+0100\n"
 "Last-Translator: Mario Blättermann <mario.blaettermann@gmail.com>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -22,8 +22,8 @@ msgstr ""
 "X-Generator: Poedit 1.7.4\n"
 
 #: src/abd/gnunet-abd.c:392 src/namestore/gnunet-namestore-zonefile.c:193
-#: src/namestore/gnunet-namestore-zonefile.c:652
-#: src/namestore/gnunet-namestore-zonefile.c:673
+#: src/namestore/gnunet-namestore-zonefile.c:655
+#: src/namestore/gnunet-namestore-zonefile.c:674
 #: src/namestore/gnunet-namestore.c:1245
 #, fuzzy, c-format
 msgid "Ego `%s' not known to identity service\n"
@@ -3978,13 +3978,13 @@ msgid "Properly base32-encoded public key required"
 msgstr "# Bytes empfangen über TCP"
 
 #: src/gns/gnunet-service-gns.c:536
-#: src/zonemaster/gnunet-service-zonemaster.c:1396
+#: src/zonemaster/gnunet-service-zonemaster.c:1373
 #, fuzzy
 msgid "Failed to connect to the namecache!\n"
 msgstr "Es konnte keine Verbindung mit gnunetd hergestellt werden.\n"
 
 #: src/gns/gnunet-service-gns.c:555
-#: src/zonemaster/gnunet-service-zonemaster.c:1435
+#: src/zonemaster/gnunet-service-zonemaster.c:1412
 #, fuzzy
 msgid "Could not connect to DHT!\n"
 msgstr "Verbindung zu gnunetd konnte nicht hergestellt werden.\n"
@@ -4832,7 +4832,7 @@ msgid "the namestore plugin to work with, e.g. 'sqlite'"
 msgstr ""
 
 #: src/namestore/gnunet-namestore-dbtool.c:178
-#: src/namestore/gnunet-namestore-zonefile.c:750
+#: src/namestore/gnunet-namestore-zonefile.c:751
 #, fuzzy
 msgid "GNUnet namestore database manipulation tool"
 msgstr "GNUnet Konfiguration"
@@ -4940,43 +4940,43 @@ msgstr ""
 msgid "GNU Name System First-Come-First-Served name registration service"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-zonefile.c:329
+#: src/namestore/gnunet-namestore-zonefile.c:331
 #, fuzzy, c-format
 msgid "Failed to store records...\n"
 msgstr "Zustellung der Nachricht `%s' fehlgeschlagen.\n"
 
-#: src/namestore/gnunet-namestore-zonefile.c:437
-#: src/namestore/gnunet-namestore-zonefile.c:469
+#: src/namestore/gnunet-namestore-zonefile.c:439
+#: src/namestore/gnunet-namestore-zonefile.c:471
 #, fuzzy, c-format
 msgid "Name `%s' is too long\n"
 msgstr "Dienst »%s« läuft nicht\n"
 
-#: src/namestore/gnunet-namestore-zonefile.c:515
+#: src/namestore/gnunet-namestore-zonefile.c:518
 #, c-format
 msgid "You must provide $ORIGIN in your zonefile or via arguments (--zone)!\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-zonefile.c:524
+#: src/namestore/gnunet-namestore-zonefile.c:527
 #, c-format
 msgid "Only %u records per unique name supported.\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-zonefile.c:586
+#: src/namestore/gnunet-namestore-zonefile.c:589
 #, fuzzy, c-format
 msgid "Data `%s' invalid\n"
 msgstr "Schlüssel »%s« ist gültig\n"
 
-#: src/namestore/gnunet-namestore-zonefile.c:702
+#: src/namestore/gnunet-namestore-zonefile.c:703
 #, fuzzy, c-format
 msgid "Failed to connect to NAMESTORE\n"
 msgstr "Es konnte keine Verbindung mit gnunetd hergestellt werden.\n"
 
-#: src/namestore/gnunet-namestore-zonefile.c:709
+#: src/namestore/gnunet-namestore-zonefile.c:710
 #, fuzzy, c-format
 msgid "Failed to connect to IDENTITY\n"
 msgstr "Es konnte keine Verbindung mit gnunetd hergestellt werden.\n"
 
-#: src/namestore/gnunet-namestore-zonefile.c:735
+#: src/namestore/gnunet-namestore-zonefile.c:736
 #: src/namestore/gnunet-namestore.c:1628
 msgid "name of the ego controlling the zone"
 msgstr ""
@@ -9212,7 +9212,7 @@ msgstr "Tunnel über VPN einrichten."
 msgid "Failed to replicate block in namecache: %s\n"
 msgstr ""
 
-#: src/zonemaster/gnunet-service-zonemaster.c:1383
+#: src/zonemaster/gnunet-service-zonemaster.c:1360
 #, fuzzy
 msgid "Failed to connect to the namestore!\n"
 msgstr "Es konnte keine Verbindung mit gnunetd hergestellt werden.\n"
