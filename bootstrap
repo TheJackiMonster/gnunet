@@ -113,8 +113,6 @@ sphinx_update()
       cp -r _build/html ../../doc/handbook/ || exit 1
       make texinfo >/dev/null || exit 1
       cp -r _build/texinfo ../../doc/handbook/ || exit 1
-      make man >/dev/null || exit 1
-      cp -r _build/man/* ../../doc/man || exit 1
       cd $cwd
     else
       echo "ERROR: Sphinx not found! Unable to generate recent documentation."
