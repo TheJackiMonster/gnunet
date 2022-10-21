@@ -911,17 +911,17 @@ initiate_put_from_pipe_trigger (void *cls)
   nf_count = GNUNET_DISK_file_read (np_fh, buf, sizeof (buf));
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Read %lld notifications from pipe\n",
               (long long) nf_count);
-  for (int i = 0; i < nf_count; i++)
+  while (true)
   {
     GNUNET_assert (0 == pthread_mutex_lock (&results_lock));
-    job = results_head;
-    if (NULL == job)
+    if (NULL == results_head)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Hmm... no results. Back to sleep.\n");
+                  "No more results. Back to sleep.\n");
       GNUNET_assert (0 == pthread_mutex_unlock (&results_lock));
       return;
     }
+    job = results_head;
     GNUNET_CONTAINER_DLL_remove (results_head, results_tail, job);
     GNUNET_assert (0 == pthread_mutex_unlock (&results_lock));
     GNUNET_GNSRECORD_query_from_private_key (&job->zone,
@@ -956,7 +956,6 @@ initiate_put_from_pipe_trigger (void *cls)
     refresh_block (job->block_priv);
     free_job (job);
   }
-  return;
 }
 
 
