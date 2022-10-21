@@ -387,6 +387,17 @@ static struct CacheOperation *cop_head;
 static struct CacheOperation *cop_tail;
 
 
+static void
+free_job (struct OpenSignJob *job)
+{
+  if (job->block != job->block_priv)
+    GNUNET_free (job->block_priv);
+  GNUNET_free (job->block);
+  if (NULL != job->label)
+    GNUNET_free (job->label);
+  GNUNET_free (job);
+}
+
 /**
  * Task run during shutdown.
  *
@@ -398,6 +409,7 @@ shutdown_task (void *cls)
 {
   struct DhtPutActivity *ma;
   struct CacheOperation *cop;
+  struct OpenSignJob *job;
 
   (void) cls;
   in_shutdown == GNUNET_YES;
@@ -414,6 +426,22 @@ shutdown_task (void *cls)
     GNUNET_NAMECACHE_cancel (cop->qe);
     GNUNET_CONTAINER_DLL_remove (cop_head, cop_tail, cop);
     GNUNET_free (cop);
+  }
+
+  while (NULL != (job = jobs_head))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Removing incomplete jobs\n");
+    GNUNET_CONTAINER_DLL_remove (jobs_head, jobs_tail, job);
+    free_job (job);
+  }
+
+  while (NULL != (job = results_head))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Removing incomplete jobs\n");
+    GNUNET_CONTAINER_DLL_remove (results_head, results_tail, job);
+    free_job (job);
   }
 
   while (NULL != (ma = it_head))
@@ -771,18 +799,6 @@ dht_put_continuation (void *cls)
 }
 
 
-static void
-free_job (struct OpenSignJob *job)
-{
-  if (job->block != job->block_priv)
-    GNUNET_free (job->block_priv);
-  GNUNET_free (job->block);
-  if (NULL != job->label)
-    GNUNET_free (job->label);
-  GNUNET_free (job);
-}
-
-
 /**
  * Store GNS records in the DHT.
  *
@@ -850,8 +866,7 @@ perform_dht_put (const struct GNUNET_IDENTITY_PrivateKey *key,
   block_size = GNUNET_GNSRECORD_block_get_size (block);
   GNUNET_assert (0 == pthread_mutex_lock (&jobs_lock));
   struct OpenSignJob *job = GNUNET_new (struct OpenSignJob);
-  job->block = GNUNET_malloc (block_size); // FIXME this does not need to be copied, can be freed by worker
-  memcpy (job->block, block, block_size);
+  job->block = block;
   job->block_size = block_size;
   job->block_priv = block_priv;
   job->zone = *key;
@@ -859,10 +874,10 @@ perform_dht_put (const struct GNUNET_IDENTITY_PrivateKey *key,
   job->label = GNUNET_strdup (label);
   job->expire_pub = expire_pub;
   GNUNET_CONTAINER_DLL_insert (jobs_head, jobs_tail, job);
+  GNUNET_assert (0 == pthread_cond_signal (&empty_jobs));
   GNUNET_assert (0 == pthread_mutex_unlock (&jobs_lock));
-  pthread_cond_signal (&empty_jobs);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Storing %u record(s) for label `%s' in DHT with expiration `%s'\n",
+              "Creating job with %u record(s) for label `%s', expiration `%s'\n",
               rd_public_count,
               label,
               GNUNET_STRINGS_absolute_time_to_string (expire));
@@ -884,8 +899,6 @@ initiate_put_from_pipe_trigger (void *cls)
   ssize_t nf_count;
 
   pipe_read_task = NULL;
-  GNUNET_assert (0 == pthread_mutex_lock (&results_lock));
-  job = results_head;
   np_fh = GNUNET_DISK_pipe_handle (notification_pipe,
                                    GNUNET_DISK_PIPE_END_READ);
   pipe_read_task =
@@ -895,50 +908,54 @@ initiate_put_from_pipe_trigger (void *cls)
       notification_pipe_cb,
       NULL);
   /* empty queue */
-  while (GNUNET_SYSERR !=
-         (nf_count = GNUNET_DISK_file_read (np_fh, buf, sizeof (buf))))
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Read %lld notifications from pipe\n",
-                (long long) nf_count);
-  if (NULL == job)
+  nf_count = GNUNET_DISK_file_read (np_fh, buf, sizeof (buf));
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Read %lld notifications from pipe\n",
+              (long long) nf_count);
+  for (int i = 0; i < nf_count; i++)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Hmm... no results. Back to sleep.\n");
+    GNUNET_assert (0 == pthread_mutex_lock (&results_lock));
+    job = results_head;
+    if (NULL == job)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Hmm... no results. Back to sleep.\n");
+      GNUNET_assert (0 == pthread_mutex_unlock (&results_lock));
+      return;
+    }
+    GNUNET_CONTAINER_DLL_remove (results_head, results_tail, job);
     GNUNET_assert (0 == pthread_mutex_unlock (&results_lock));
-    return;
-  }
-  GNUNET_CONTAINER_DLL_remove (results_head, results_tail, job);
-  GNUNET_assert (0 == pthread_mutex_unlock (&results_lock));
-  GNUNET_GNSRECORD_query_from_private_key (&job->zone,
-                                           job->label,
-                                           &query);
-  GNUNET_STATISTICS_update (statistics,
-                            "DHT put operations initiated",
-                            1,
-                            GNUNET_NO);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Storing record(s) for label `%s' in DHT under key %s\n",
-              job->label,
-              GNUNET_h2s (&query));
-  job->ma->ph = GNUNET_DHT_put (dht_handle,
-                                &query,
-                                DHT_GNS_REPLICATION_LEVEL,
-                                GNUNET_DHT_RO_DEMULTIPLEX_EVERYWHERE,
-                                GNUNET_BLOCK_TYPE_GNS_NAMERECORD,
-                                job->block_size,
-                                job->block,
-                                job->expire_pub,
-                                &dht_put_continuation,
-                                job->ma);
-  if (NULL == job->ma->ph)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Could not perform DHT PUT, is the DHT running?\n");
-    GNUNET_free (job->ma);
+    GNUNET_GNSRECORD_query_from_private_key (&job->zone,
+                                             job->label,
+                                             &query);
+    GNUNET_STATISTICS_update (statistics,
+                              "DHT put operations initiated",
+                              1,
+                              GNUNET_NO);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Storing record(s) for label `%s' in DHT under key %s\n",
+                job->label,
+                GNUNET_h2s (&query));
+    job->ma->ph = GNUNET_DHT_put (dht_handle,
+                                  &query,
+                                  DHT_GNS_REPLICATION_LEVEL,
+                                  GNUNET_DHT_RO_DEMULTIPLEX_EVERYWHERE,
+                                  GNUNET_BLOCK_TYPE_GNS_NAMERECORD,
+                                  job->block_size,
+                                  job->block,
+                                  job->expire_pub,
+                                  &dht_put_continuation,
+                                  job->ma);
+    if (NULL == job->ma->ph)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Could not perform DHT PUT, is the DHT running?\n");
+      GNUNET_free (job->ma);
+      free_job (job);
+      return;
+    }
+    refresh_block (job->block_priv);
     free_job (job);
-    return;
   }
-  refresh_block (job->block_priv);
-  free_job (job);
   return;
 }
 
@@ -1213,8 +1230,8 @@ perform_dht_put_monitor (const struct GNUNET_IDENTITY_PrivateKey *key,
   job->label = GNUNET_strdup (label);
   job->expire_pub = expire_pub;
   GNUNET_CONTAINER_DLL_insert (jobs_head, jobs_tail, job);
+  GNUNET_assert (0 == pthread_cond_signal (&empty_jobs));
   GNUNET_assert (0 == pthread_mutex_unlock (&jobs_lock));
-  pthread_cond_signal (&empty_jobs);
 }
 
 
@@ -1305,25 +1322,27 @@ sign_worker (void *cls)
   {
     GNUNET_assert (0 == pthread_mutex_lock (&jobs_lock));
     while (NULL == jobs_head)
-      pthread_cond_wait (&empty_jobs, &jobs_lock);
+      GNUNET_assert (0 == pthread_cond_wait (&empty_jobs, &jobs_lock));
+    if (GNUNET_YES == in_shutdown)
+    {
+      GNUNET_assert (0 == pthread_mutex_unlock (&jobs_lock));
+      return NULL;
+    }
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Taking on Job for %s\n", jobs_head->label);
     job = jobs_head;
     GNUNET_CONTAINER_DLL_remove (jobs_head, jobs_tail, job);
     GNUNET_assert (0 == pthread_mutex_unlock (&jobs_lock));
-    if (NULL != job)
-    {
-      GNUNET_GNSRECORD_block_sign (&job->zone, job->label, job->block);
-      if (job->block != job->block_priv)
-        GNUNET_GNSRECORD_block_sign (&job->zone, job->label, job->block_priv);
-      GNUNET_assert (0 == pthread_mutex_lock (&results_lock));
-      GNUNET_CONTAINER_DLL_insert (results_head, results_tail, job);
-      GNUNET_assert (0 == pthread_mutex_unlock (&results_lock));
-      job = NULL;
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Done, notifying main thread through pipe!\n");
-      GNUNET_DISK_file_write (fh, "!", 1);
-    }
+    GNUNET_GNSRECORD_block_sign (&job->zone, job->label, job->block);
+    if (job->block != job->block_priv)
+      GNUNET_GNSRECORD_block_sign (&job->zone, job->label, job->block_priv);
+    GNUNET_assert (0 == pthread_mutex_lock (&results_lock));
+    GNUNET_CONTAINER_DLL_insert (results_head, results_tail, job);
+    GNUNET_assert (0 == pthread_mutex_unlock (&results_lock));
+    job = NULL;
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Done, notifying main thread through pipe!\n");
+    GNUNET_DISK_file_write (fh, "!", 1);
   }
   return NULL;
 }

@@ -26,7 +26,7 @@ fi
 rm -rf `gnunet-config -c test_gns_lookup.conf -f -s paths -o GNUNET_TEST_HOME`
 
 TEST_IP_PLUS="127.0.0.1"
-TEST_IP_DNS="131.159.74.67"
+TEST_IP_DNS="147.87.255.218"
 TEST_RECORD_REDIRECT_SERVER="server"
 TEST_RECORD_REDIRECT_PLUS="server.+"
 TEST_RECORD_REDIRECT_DNS="gnunet.org"
@@ -48,7 +48,7 @@ gnunet-namestore -p -z $MY_EGO -a -n $TEST_RECORD_NAME_DNS -t REDIRECT -V $TEST_
 gnunet-namestore -p -z $MY_EGO -a -n $TEST_RECORD_NAME_PLUS -t REDIRECT -V $TEST_RECORD_REDIRECT_PLUS -e never -c test_gns_lookup.conf
 gnunet-namestore -p -z $MY_EGO -a -n $TEST_RECORD_NAME_ZKEY -t REDIRECT -V $TEST_RECORD_REDIRECT_ZKEY -e never -c test_gns_lookup.conf
 gnunet-namestore -p -z $MY_EGO -a -n $TEST_RECORD_REDIRECT_SERVER -t A -V $TEST_IP_PLUS -e never -c test_gns_lookup.conf
-sleep 3
+sleep 1
 RES_REDIRECT=`$DO_TIMEOUT gnunet-gns --raw -u $TEST_DOMAIN_PLUS -t A -c test_gns_lookup.conf`
 RES_REDIRECT_RAW=`$DO_TIMEOUT gnunet-gns --raw -u $TEST_DOMAIN_PLUS -t REDIRECT -c test_gns_lookup.conf`
 RES_REDIRECT_ZKEY=`$DO_TIMEOUT gnunet-gns --raw -u $TEST_DOMAIN_ZKEY -t A -c test_gns_lookup.conf`

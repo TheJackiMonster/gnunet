@@ -18,8 +18,6 @@ rm -rf `gnunet-config -c test_gns_lookup.conf -f -s paths -o GNUNET_TEST_HOME`
 TEST_IP_ALT2="147.87.255.218"
 # IP address of 'www.gnunet.org'
 TEST_IP="147.87.255.218"
-# IP address of 'www.gnunet.org'
-TEST_IP_ALT="131.159.74.67"
 # IPv6 address of 'gnunet.org'
 TEST_IP6="2a07:6b47:100:464::9357:ffdb"
 # permissive DNS resolver we will use for the test
@@ -66,6 +64,7 @@ gnunet-namestore -p -z $MY_EGO -a -n $TEST_RESOLVER_LABEL -t A -V $TEST_IP_GNS2D
 gnunet-namestore -p -z $MY_EGO -a -n $TEST_RECORD_NAME -t GNS2DNS -V $TEST_RECORD_GNS2DNS -e never -c test_gns_lookup.conf
 
 sleep 1
+
 # lookup 'www.gnunet.org', IPv4
 RES_IP=`$DO_TIMEOUT gnunet-gns --raw -u $TEST_DOMAIN -t A -c test_gns_lookup.conf`
 # lookup 'www.gnunet.org', IPv6
@@ -99,7 +98,7 @@ else
   ret=1
 fi
 
-if echo "$RES_IP_ALT" | grep "$TEST_IP_ALT" > /dev/null
+if echo "$RES_IP_ALT" | grep "$TEST_IP" > /dev/null
 then
   echo "PASS: Resolved $TEST_DOMAIN_ALT to $RES_IP_ALT."
 else
