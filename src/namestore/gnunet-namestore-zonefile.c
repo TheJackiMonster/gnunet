@@ -271,13 +271,16 @@ parse_origin (char *token, char *origin)
 {
   char *next;
   next = strchr (token, ';');
-  if (NULL != next)
-    next[0] = '\0';
+  if (NULL == next)
+    return GNUNET_SYSERR;
+  next[0] = '\0';
   next = strchr (token, ' ');
-  if (NULL != next)
-    next[0] = '\0';
+  if (NULL == next)
+    return GNUNET_SYSERR;
+  next[0] = '\0';
   strcpy (origin, token);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Origin is: %s\n", origin);
+  return GNUNET_OK;
 }
 
 static void
@@ -300,7 +303,6 @@ origin_create_cb (void *cls, const struct GNUNET_IDENTITY_PrivateKey *pk,
 static void
 origin_lookup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 {
-  const struct GNUNET_CONFIGURATION_Handle *cfg = cls;
 
   el = NULL;
 
@@ -384,7 +386,7 @@ parse (void *cls)
   parse_task = NULL;
   /* use filename provided as 1st argument (stdin by default) */
   int ln = 0;
-  while (res = fgets (buf, sizeof(buf), stdin))                     /* read each line of input */
+  while ((res = fgets (buf, sizeof(buf), stdin)))                     /* read each line of input */
   {
     ln++;
     ttl_line = 0;
@@ -512,7 +514,8 @@ parse (void *cls)
       if (ZS_READY == state)
       {
         fprintf (stderr,
-                 _ ("You must provide $ORIGIN in your zonefile or via arguments (--zone)!\n"));
+                 _ (
+                   "You must provide $ORIGIN in your zonefile or via arguments (--zone)!\n"));
         ret = 1;
         GNUNET_SCHEDULER_shutdown ();
         return;
@@ -661,10 +664,8 @@ tx_start (void *cls, int32_t success, const char *emsg)
 static void
 identity_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 {
-  const struct GNUNET_CONFIGURATION_Handle *cfg = cls;
 
   el = NULL;
-
   if (NULL == ego)
   {
     if (NULL != ego_name)

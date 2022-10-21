@@ -412,7 +412,7 @@ shutdown_task (void *cls)
   struct OpenSignJob *job;
 
   (void) cls;
-  in_shutdown == GNUNET_YES;
+  in_shutdown = GNUNET_YES;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Shutting down!\n");
   if (NULL != notification_pipe)
@@ -820,11 +820,9 @@ perform_dht_put (const struct GNUNET_IDENTITY_PrivateKey *key,
   struct GNUNET_GNSRECORD_Data rd_public[rd_count];
   struct GNUNET_GNSRECORD_Block *block;
   struct GNUNET_GNSRECORD_Block *block_priv;
-  struct GNUNET_HashCode query;
   struct GNUNET_TIME_Absolute expire_pub;
   size_t block_size;
   unsigned int rd_public_count = 0;
-  struct GNUNET_DHT_PutHandle *ret;
   char *emsg;
 
   if (GNUNET_OK !=
@@ -1136,25 +1134,6 @@ publish_zone_dht_start (void *cls)
 
 
 /**
- * Continuation called from DHT once the PUT operation triggered
- * by a monitor is done.
- *
- * @param cls a `struct DhtPutActivity`
- */
-static void
-dht_put_monitor_continuation (void *cls)
-{
-  struct DhtPutActivity *ma = cls;
-
-  ma_queue_length--;
-  GNUNET_CONTAINER_DLL_remove (ma_head,
-                               ma_tail,
-                               ma);
-  GNUNET_free (ma);
-}
-
-
-/**
  * Store GNS records in the DHT.
  *
  * @param key key of the zone
@@ -1175,11 +1154,9 @@ perform_dht_put_monitor (const struct GNUNET_IDENTITY_PrivateKey *key,
   struct GNUNET_GNSRECORD_Data rd_public[rd_count];
   struct GNUNET_GNSRECORD_Block *block;
   struct GNUNET_GNSRECORD_Block *block_priv;
-  struct GNUNET_HashCode query;
   struct GNUNET_TIME_Absolute expire_pub;
   size_t block_size;
   unsigned int rd_public_count = 0;
-  struct GNUNET_DHT_PutHandle *ret;
   char *emsg;
 
   if (GNUNET_OK !=

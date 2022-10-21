@@ -244,6 +244,7 @@ src/namecache/plugin_namecache_postgres.c
 src/namecache/plugin_namecache_sqlite.c
 src/namestore/gnunet-namestore-dbtool.c
 src/namestore/gnunet-namestore-fcfsd.c
+src/namestore/gnunet-namestore-zonefile.c
 src/namestore/gnunet-namestore.c
 src/namestore/gnunet-service-namestore.c
 src/namestore/gnunet-zoneimport.c
@@ -587,7 +588,6 @@ src/vpn/gnunet-helper-vpn.c
 src/vpn/gnunet-service-vpn.c
 src/vpn/gnunet-vpn.c
 src/vpn/vpn_api.c
-src/zonemaster/gnunet-service-zonemaster-monitor.c
 src/zonemaster/gnunet-service-zonemaster.c
 src/fs/fs_api.h
 src/include/gnunet_json_lib.h
