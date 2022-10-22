@@ -247,16 +247,6 @@ static struct GNUNET_NAMESTORE_Handle *namestore_handle;
 static struct GNUNET_NAMESTORE_ZoneMonitor *zmon;
 
 /**
- * Head of monitor activities; kept in a DLL.
- */
-static struct DhtPutActivity *ma_head;
-
-/**
- * Tail of monitor activities; kept in a DLL.
- */
-static struct DhtPutActivity *ma_tail;
-
-/**
  * Our handle to the namecache service
  */
 static struct GNUNET_NAMECACHE_Handle *namecache;
@@ -266,11 +256,6 @@ static struct GNUNET_NAMECACHE_Handle *namecache;
  * operations whenever we touch a record.
  */
 static int disable_namecache;
-
-/**
- * Number of entries in the DHT queue #ma_head.
- */
-static unsigned int ma_queue_length;
 
 /**
  * Handle to iterate over our authoritative zone in namestore
@@ -448,21 +433,10 @@ shutdown_task (void *cls)
   {
     if (NULL != ma->ph)
       GNUNET_DHT_put_cancel (ma->ph);
-    dht_queue_length--;
     GNUNET_CONTAINER_DLL_remove (it_head,
                                  it_tail,
                                  ma);
     dht_queue_length--;
-    GNUNET_free (ma);
-  }
-  while (NULL != (ma = ma_head))
-  {
-    if (NULL != ma->ph)
-      GNUNET_DHT_put_cancel (ma->ph);
-    ma_queue_length--;
-    GNUNET_CONTAINER_DLL_remove (ma_head,
-                                 ma_tail,
-                                 ma);
     GNUNET_free (ma);
   }
   if (NULL != statistics)
@@ -1263,10 +1237,10 @@ handle_monitor_event (void *cls,
                            ma);
   GNUNET_NAMESTORE_zone_monitor_next (zmon,
                                       1);
-  GNUNET_CONTAINER_DLL_insert_tail (ma_head,
-                                    ma_tail,
+  GNUNET_CONTAINER_DLL_insert_tail (it_head,
+                                    it_tail,
                                     ma);
-  ma_queue_length++;
+  dht_queue_length++;
 }
 
 
