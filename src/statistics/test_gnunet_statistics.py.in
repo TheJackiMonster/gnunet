@@ -16,7 +16,7 @@ elif None != os.environ.get("TMP"):
     tmp = os.getenv("TMP")
 else:
     raw_tmp = False
-    tmp = subprocess.check_output("gnunet-config -f -s PATHS -o GNUNET_TMP",
+    tmp = subprocess.check_output(["gnunet-config", "-f", "-s", "PATHS", "-o", "GNUNET_TMP"],
                                   text=True)
 
 if os.name == 'nt':
