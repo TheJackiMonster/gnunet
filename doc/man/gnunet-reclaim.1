@@ -39,6 +39,9 @@
 .Op Fl d Ar ID | Fl -delete= Ns Ar ID
 .Op Fl r Ar RP | Fl -rp= Ns Ar RP
 .Op Fl D | -dump
+.Op Fl A | -credentials
+.Op Fl I | -credential-id Ns Ar CREDENTIAL_ID
+.Op Fl N | -credential-name Ns AR NAME
 .Op Fl i Ar A1,A2,... | Fl -issue= Ns Ar A1,A2,...
 .Op Fl C Ar TICKET | Fl -consume= Ns Ar TICKET
 .Op Fl R Ar TICKET | Fl -revoke= Ns Ar TICKET
@@ -73,6 +76,12 @@ Delete an attribute with ID.
 Specify relative expiration interval (freshness) of attribute.
 .It Fl D | -dump
 List all attributes for given identity.
+.It Fl A | -credentials
+List credentials for a given identity.
+.It Fl I | -credential-id= Ns Ar CREDENTIAL_ID
+Credential ID to use when creating an attribute backed by a credential
+.It Fl N | -credential-name= Ns Ar NAME
+The name of the credential to add.
 .It Fl i Ar A1,A2,... | Fl -issue= Ns Ar A1,A2,...
 Authorize a relying party to access a set of attributes. Must be
 used in conjunction with -r. Returns a TICKET.
