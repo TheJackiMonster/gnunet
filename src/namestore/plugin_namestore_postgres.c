@@ -235,7 +235,7 @@ database_connect (struct Plugin *plugin)
                        &emsg,
                        GNUNET_NO))
     {
-      LOG (GNUNET_ERROR_TYPE_WARNING,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Failed to initialize database on connect: `%s'\n",
            emsg);
       GNUNET_free (emsg);
