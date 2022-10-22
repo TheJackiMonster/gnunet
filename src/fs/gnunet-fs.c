@@ -36,6 +36,11 @@ static int ret;
 static struct GNUNET_FS_Handle *fs;
 
 /**
+ * Handle for the index listing operation.
+ */
+static struct GNUNET_FS_GetIndexedContext *gic;
+
+/**
  * Option -i given?
  */
 static int list_indexed_files;
@@ -54,22 +59,49 @@ static unsigned int verbose;
  * @param file_id hash of the contents of the indexed file
  * @return GNUNET_OK to continue iteration
  */
-static int
+static enum GNUNET_GenericReturnValue
 print_indexed (void *cls,
                const char *filename,
                const struct GNUNET_HashCode *file_id)
 {
   if (NULL == filename)
   {
-    GNUNET_FS_stop (fs);
-    fs = NULL;
+    gic = NULL;
+    GNUNET_SCHEDULER_shutdown ();
     return GNUNET_OK;
   }
   if (verbose)
-    fprintf (stdout, "%s: %s\n", GNUNET_h2s (file_id), filename);
+    fprintf (stdout,
+             "%s: %s\n",
+             GNUNET_h2s (file_id),
+             filename);
   else
-    fprintf (stdout, "%s\n", filename);
+    fprintf (stdout,
+             "%s\n",
+             filename);
   return GNUNET_OK;
+}
+
+
+/**
+ * Function run on shutdown.
+ *
+ * @param cls NULL
+ */
+static void
+do_shutdown (void *cls)
+{
+  (void) cls;
+  if (NULL != gic)
+  {
+    GNUNET_FS_get_indexed_files_cancel (gic);
+    gic = NULL;
+  }
+  if (NULL != fs)
+  {
+    GNUNET_FS_stop (fs);
+    fs = NULL;
+  }
 }
 
 
@@ -87,26 +119,29 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
-  if (list_indexed_files)
+  if (! list_indexed_files)
+    return;
+  GNUNET_SCHEDULER_add_shutdown (&do_shutdown,
+                                 NULL);
+  fs = GNUNET_FS_start (cfg,
+                        "gnunet-fs",
+                        NULL,
+                        NULL,
+                        GNUNET_FS_FLAGS_NONE,
+                        GNUNET_FS_OPTIONS_END);
+  if (NULL == fs)
   {
-    fs = GNUNET_FS_start (cfg,
-                          "gnunet-fs",
-                          NULL,
-                          NULL,
-                          GNUNET_FS_FLAGS_NONE,
-                          GNUNET_FS_OPTIONS_END);
-    if (NULL == fs)
-    {
-      ret = 1;
-      return;
-    }
-    if (NULL == GNUNET_FS_get_indexed_files (fs, &print_indexed, NULL))
-    {
-      ret = 2;
-      GNUNET_FS_stop (fs);
-      fs = NULL;
-      return;
-    }
+    ret = 1;
+    return;
+  }
+  gic = GNUNET_FS_get_indexed_files (fs,
+                                     &print_indexed,
+                                     NULL);
+  if (NULL == gic)
+  {
+    ret = 2;
+    GNUNET_SCHEDULER_shutdown ();
+    return;
   }
 }
 
@@ -119,7 +154,8 @@ run (void *cls,
  * @return 0 ok, 1 on error
  */
 int
-main (int argc, char *const *argv)
+main (int argc,
+      char *const *argv)
 {
   struct GNUNET_GETOPT_CommandLineOption options[] = {
     GNUNET_GETOPT_option_flag ('i',
@@ -132,7 +168,9 @@ main (int argc, char *const *argv)
     GNUNET_GETOPT_OPTION_END
   };
 
-  if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
+  if (GNUNET_OK !=
+      GNUNET_STRINGS_get_utf8_args (argc, argv,
+                                    &argc, &argv))
     return 2;
   ret = (GNUNET_OK ==
          GNUNET_PROGRAM_run (argc,
