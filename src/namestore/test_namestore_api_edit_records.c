@@ -112,15 +112,14 @@ fail_cb (void *cls)
 
 static void
 remove_cont (void *cls,
-             int32_t success,
-             const char *emsg)
+             enum GNUNET_ErrorCode ec)
 {
   nsqe = NULL;
-  if (GNUNET_YES != success)
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 _ ("Unable to roll back: `%s'\n"),
-                emsg);
+                GNUNET_ErrorCode_get_hint (ec));
     if (NULL != endbadly_task)
       GNUNET_SCHEDULER_cancel (endbadly_task);
     endbadly_task = GNUNET_SCHEDULER_add_now (&endbadly,
@@ -167,19 +166,18 @@ edit_cont_b (void *cls,
 
 static void
 commit_cont_a (void *cls,
-               int32_t success,
-               const char *emsg)
+               enum GNUNET_ErrorCode ec)
 {
   const char *name = cls;
 
   GNUNET_assert (NULL != cls);
   nsqe = NULL;
-  if (GNUNET_SYSERR == success)
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_break (0);
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Namestore could not store record: `%s'\n",
-                emsg);
+                GNUNET_ErrorCode_get_hint (ec));
     if (endbadly_task != NULL)
       GNUNET_SCHEDULER_cancel (endbadly_task);
     endbadly_task = GNUNET_SCHEDULER_add_now (&endbadly, NULL);
@@ -226,12 +224,11 @@ fail_cb_lock (void *cls)
 
 static void
 begin_cont_b (void *cls,
-              int32_t success,
-              const char *emsg)
+              enum GNUNET_ErrorCode ec)
 {
   const char *name = cls;
 
-  GNUNET_assert (success == GNUNET_YES);
+  GNUNET_assert (GNUNET_EC_NONE == ec);
   /** Now, we expect this to "hang" let's see how this behaves in practice. */
   nsqe = GNUNET_NAMESTORE_records_edit (nsh2,
                                         &privkey,
@@ -262,8 +259,7 @@ edit_cont (void *cls,
 
 static void
 begin_cont (void *cls,
-            int32_t success,
-            const char *emsg)
+            enum GNUNET_ErrorCode ec)
 {
   const char *name = cls;
 
@@ -281,19 +277,18 @@ begin_cont (void *cls,
 
 static void
 preload_cont (void *cls,
-              int32_t success,
-              const char *emsg)
+              enum GNUNET_ErrorCode ec)
 {
   const char *name = cls;
 
   GNUNET_assert (NULL != cls);
   nsqe = NULL;
-  if (GNUNET_SYSERR == success)
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_break (0);
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Namestore could not store record: `%s'\n",
-                emsg);
+                GNUNET_ErroCode_get_hint (ec));
     if (endbadly_task != NULL)
       GNUNET_SCHEDULER_cancel (endbadly_task);
     endbadly_task = GNUNET_SCHEDULER_add_now (&endbadly, NULL);

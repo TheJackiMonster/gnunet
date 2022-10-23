@@ -924,36 +924,26 @@ process_record (void *cls, const struct GNUNET_DNSPARSER_Record *rec)
 }
 
 
-/**
- * Continuation called to notify client about result of the
- * operation.
- *
- * @param cls closure with our `struct Request`
- * @param success #GNUNET_SYSERR on failure (including timeout/queue drop/failure to validate)
- *                #GNUNET_NO if content was already there or not found
- *                #GNUNET_YES (or other positive value) on success
- * @param emsg NULL on success, otherwise an error message
- */
 static void
-store_completed_cb (void *cls, int32_t success, const char *emsg)
+store_completed_cb (void *cls, enum GNUNET_ErrorCode ec)
 {
   static struct GNUNET_TIME_Absolute last;
   struct Request *req = cls;
 
   req->qe = NULL;
-  if (GNUNET_SYSERR == success)
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Failed to store zone data for `%s': %s\n",
                 req->hostname,
-                emsg);
+                GNUNET_ErrorCode_get_hint (ec));
   }
   else
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Stored records under `%s' (%d)\n",
                 req->hostname,
-                success);
+                ec);
   }
   total_reg_proc_dns_ns++; /* finished regular processing */
   pending_rs--;

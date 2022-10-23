@@ -394,7 +394,7 @@ process_tickets (void *cls);
  * @param emsg (NULL on success)
  */
 static void
-ticket_processed (void *cls, int32_t success, const char *emsg)
+ticket_processed (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct RECLAIM_TICKETS_RevokeHandle *rvk = cls;
 
@@ -596,16 +596,16 @@ move_attrs_cont (void *cls)
  * @param emsg error message (NULL on success)
  */
 static void
-del_attr_finished (void *cls, int32_t success, const char *emsg)
+del_attr_finished (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct RECLAIM_TICKETS_RevokeHandle *rvk = cls;
 
   rvk->ns_qe = NULL;
-  if (GNUNET_SYSERR == success)
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Error removing attribute: %s\n",
-                emsg);
+                GNUNET_ErrorCode_get_hint (ec));
     rvk->cb (rvk->cb_cls, GNUNET_SYSERR);
     cleanup_rvk (rvk);
     return;
@@ -625,15 +625,17 @@ del_attr_finished (void *cls, int32_t success, const char *emsg)
  * @param emsg error message (NULL on success)
  */
 static void
-move_attr_finished (void *cls, int32_t success, const char *emsg)
+move_attr_finished (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct RECLAIM_TICKETS_RevokeHandle *rvk = cls;
   char *label;
 
   rvk->ns_qe = NULL;
-  if (GNUNET_SYSERR == success)
+  if (GNUNET_EC_NONE != ec)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Error moving attribute: %s\n", emsg);
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Error moving attribute: %s\n",
+                GNUNET_ErrorCode_get_hint (ec));
     rvk->cb (rvk->cb_cls, GNUNET_SYSERR);
     cleanup_rvk (rvk);
     return;
@@ -802,14 +804,15 @@ move_attrs (struct RECLAIM_TICKETS_RevokeHandle *rvk)
  * @param emsg error message (NULL on success)
  */
 static void
-remove_ticket_cont (void *cls, int32_t success, const char *emsg)
+remove_ticket_cont (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct RECLAIM_TICKETS_RevokeHandle *rvk = cls;
 
   rvk->ns_qe = NULL;
-  if (GNUNET_SYSERR == success)
+  if (GNUNET_EC_NONE != ec)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "%s\n", emsg);
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "%s\n",
+                GNUNET_ErrorCode_get_hint (ec));
     rvk->cb (rvk->cb_cls, GNUNET_SYSERR);
     cleanup_rvk (rvk);
     return;
@@ -1250,12 +1253,12 @@ cleanup_issue_handle (struct TicketIssueHandle *handle)
  * @param emsg error message (or NULL on success)
  */
 static void
-store_ticket_issue_cont (void *cls, int32_t success, const char *emsg)
+store_ticket_issue_cont (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct TicketIssueHandle *handle = cls;
 
   handle->ns_qe = NULL;
-  if (GNUNET_SYSERR == success)
+  if (GNUNET_EC_NONE != ec)
   {
     handle->cb (handle->cb_cls,
                 &handle->ticket,

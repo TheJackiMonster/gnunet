@@ -87,7 +87,7 @@ end (void *cls)
 
 
 static void
-put_cont (void *cls, int32_t success, const char *emsg)
+put_cont (void *cls, enum GNUNET_ErrorCode ec)
 {
   const char *name = cls;
 
@@ -96,7 +96,7 @@ put_cont (void *cls, int32_t success, const char *emsg)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Name store added record for `%s': %s\n",
               name,
-              (success == GNUNET_OK) ? "SUCCESS" : "FAIL");
+              (GNUNET_EC_NONE == ec) ? "SUCCESS" : "FAIL");
   GNUNET_SCHEDULER_cancel (endbadly_task);
   endbadly_task = NULL;
   GNUNET_SCHEDULER_add_now (&end, NULL);

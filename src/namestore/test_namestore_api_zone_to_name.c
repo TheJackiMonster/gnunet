@@ -157,16 +157,16 @@ error_cb (void *cls)
 
 static void
 put_cont (void *cls,
-          int32_t success,
-          const char *emsg)
+          enum GNUNET_ErrorCode ec)
 {
   char *name = cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Name store added record for `%s': %s\n",
               name,
-              (success == GNUNET_OK) ? "SUCCESS" : emsg);
-  if (success == GNUNET_OK)
+              (GNUNET_EC_NONE == ec) ?
+              "SUCCESS" : GNUNET_ErrorCode_get_hint (ec));
+  if (GNUNET_EC_NONE == ec)
   {
     res = 0;
 

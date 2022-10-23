@@ -223,11 +223,11 @@ struct Event
  * @param emgs
  */
 static void
-remove_did_document_namestore_cb (void *cls, int32_t success, const char *emgs)
+remove_did_document_namestore_cb (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct Event *event;
 
-  if (success != GNUNET_SYSERR)
+  if (GNUNET_EC_NONE == ec)
   {
     event = (struct Event *) cls;
 
@@ -246,10 +246,7 @@ remove_did_document_namestore_cb (void *cls, int32_t success, const char *emgs)
   else {
     printf ("Something went wrong when deleting the DID Document\n");
 
-    if (emgs != NULL)
-    {
-      printf ("%s\n", emgs);
-    }
+    printf ("%s\n", GNUNET_ErrorCode_get_hint (ec));
 
     GNUNET_SCHEDULER_add_now (cleanup, NULL);
     ret = 0;

@@ -41,6 +41,7 @@
 #ifndef GNUNET_NAMESTORE_SERVICE_H
 #define GNUNET_NAMESTORE_SERVICE_H
 
+#include "gnunet_error_codes.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_block_lib.h"
 #include "gnunet_gnsrecord_lib.h"
@@ -122,12 +123,11 @@ GNUNET_NAMESTORE_disconnect (struct GNUNET_NAMESTORE_Handle *h);
  * @param success #GNUNET_SYSERR on failure (including timeout/queue drop/failure to validate)
  *                #GNUNET_NO if content was already there or not found
  *                #GNUNET_YES (or other positive value) on success
- * @param emsg NULL on success, otherwise an error message
+ * @param ec the #GNUNET_ErrorCode, #GNUNET_EC_NONE on success.
  */
 typedef void
 (*GNUNET_NAMESTORE_ContinuationWithStatus) (void *cls,
-                                            int32_t success,
-                                            const char *emsg);
+                                            enum GNUNET_ErrorCode ec);
 
 
 /**

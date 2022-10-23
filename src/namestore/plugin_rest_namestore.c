@@ -25,6 +25,7 @@
  */
 
 #include "platform.h"
+#include "gnunet_error_codes.h"
 #include "gnunet_rest_plugin.h"
 #include "gnunet_gns_service.h"
 #include "gnunet_namestore_service.h"
@@ -43,37 +44,6 @@
  * Namestore import API namespace
  */
 #define GNUNET_REST_API_NS_NAMESTORE_IMPORT "/namestore/import"
-
-/**
- * Error message Unknown Error
- */
-#define GNUNET_REST_NAMESTORE_ERROR_UNKNOWN "Unknown Error"
-
-/**
- * Error message No identity found
- */
-#define GNUNET_REST_IDENTITY_NOT_FOUND "Zone not found"
-
-/**
- * Error message No record found
- */
-#define GNUNET_REST_RECORD_NOT_FOUND "Record not found"
-
-
-/**
- * Error message Failed request
- */
-#define GNUNET_REST_NAMESTORE_FAILED "Namestore action failed"
-
-/**
- * Error message invalid data
- */
-#define GNUNET_REST_NAMESTORE_INVALID_DATA "Data invalid"
-
-/**
- * Error message No data
- */
-#define GNUNET_REST_NAMESTORE_NO_DATA "No data"
 
 /**
  * State while collecting all egos
@@ -287,14 +257,10 @@ struct RequestHandle
   char *url;
 
   /**
-   * Error response message
+   * Error code
    */
-  char *emsg;
+  enum GNUNET_ErrorCode ec;
 
-  /**
-   * Response code
-   */
-  int response_code;
 };
 
 /**
@@ -327,8 +293,6 @@ cleanup_handle (void *cls)
     GNUNET_free (handle->record_name);
   if (NULL != handle->url)
     GNUNET_free (handle->url);
-  if (NULL != handle->emsg)
-    GNUNET_free (handle->emsg);
   if (NULL != handle->rd)
   {
     for (int i = 0; i < handle->rd_count; i++)
@@ -369,20 +333,22 @@ do_error (void *cls)
   struct MHD_Response *resp;
   json_t *json_error = json_object ();
   char *response;
+  const char* emsg;
+  int response_code;
 
-  if (NULL == handle->emsg)
-    handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_ERROR_UNKNOWN);
+  if (0 != handle->ec)
+    emsg = GNUNET_strdup (GNUNET_ErrorCode_get_hint (handle->ec));
+  json_object_set_new (json_error, "error", json_string (emsg));
 
-  json_object_set_new (json_error, "error", json_string (handle->emsg));
-
-  if (0 == handle->response_code)
-    handle->response_code = MHD_HTTP_INTERNAL_SERVER_ERROR;
+  response_code = GNUNET_ErrorCode_get_http_status (handle->ec);
+  if (0 == response_code)
+    response_code = MHD_HTTP_INTERNAL_SERVER_ERROR;
   response = json_dumps (json_error, 0);
   resp = GNUNET_REST_create_response (response);
   GNUNET_assert (MHD_YES ==
                  MHD_add_response_header (resp, "Content-Type",
                                           "application/json"));
-  handle->proc (handle->proc_cls, resp, handle->response_code);
+  handle->proc (handle->proc_cls, resp, response_code);
   json_decref (json_error);
   GNUNET_free (response);
   cleanup_handle (handle);
@@ -433,35 +399,22 @@ namestore_iteration_error (void *cls)
 {
   struct RequestHandle *handle = cls;
 
-  handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_FAILED);
+  handle->ec = GNUNET_EC_NAMESTORE_ITERATION_FAILED;
   GNUNET_SCHEDULER_add_now (&do_error, handle);
   return;
 }
 
 
-/**
- * Create finished callback
- *
- * @param cls the `struct RequestHandle`
- * @param success the success indicating integer, GNUNET_OK on success
- * @param emsg the error message (can be NULL)
- */
 static void
-create_finished (void *cls, int32_t success, const char *emsg)
+create_finished (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct RequestHandle *handle = cls;
   struct MHD_Response *resp;
 
   handle->ns_qe = NULL;
-  if (GNUNET_YES != success)
+  handle->ec = ec;
+  if (GNUNET_EC_NONE != ec)
   {
-    if (NULL != emsg)
-    {
-      handle->emsg = GNUNET_strdup (emsg);
-      GNUNET_SCHEDULER_add_now (&do_error, handle);
-      return;
-    }
-    handle->emsg = GNUNET_strdup ("Error storing records");
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -471,35 +424,15 @@ create_finished (void *cls, int32_t success, const char *emsg)
 }
 
 
-/**
- * Delete finished callback
- *
- * @param cls the `struct RequestHandle`
- * @param success the success indicating integer, GNUNET_OK on success
- * @param emsg the error message (can be NULL)
- */
 static void
-del_finished (void *cls, int32_t success, const char *emsg)
+del_finished (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct RequestHandle *handle = cls;
 
   handle->ns_qe = NULL;
-  if (GNUNET_NO == success)
+  handle->ec = ec;
+  if (GNUNET_EC_NONE != ec)
   {
-    handle->response_code = MHD_HTTP_NOT_FOUND;
-    handle->emsg = GNUNET_strdup ("No record found");
-    GNUNET_SCHEDULER_add_now (&do_error, handle);
-    return;
-  }
-  if (GNUNET_SYSERR == success)
-  {
-    if (NULL != emsg)
-    {
-      handle->emsg = GNUNET_strdup (emsg);
-      GNUNET_SCHEDULER_add_now (&do_error, handle);
-      return;
-    }
-    handle->emsg = GNUNET_strdup ("Deleting record failed");
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -527,8 +460,7 @@ namestore_list_finished (void *cls)
 
   if (NULL == handle->resp_object)
   {
-    handle->response_code = MHD_HTTP_NOT_FOUND;
-    handle->emsg = GNUNET_strdup (GNUNET_REST_RECORD_NOT_FOUND);
+    handle->ec = GNUNET_EC_NAMESTORE_ZONE_EMPTY;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -603,7 +535,7 @@ ns_lookup_error_cb (void *cls)
 {
   struct RequestHandle *handle = cls;
 
-  handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_FAILED);
+  handle->ec = GNUNET_EC_NAMESTORE_LOOKUP_ERROR;
   GNUNET_SCHEDULER_add_now (&do_error, handle);
 }
 
@@ -633,8 +565,7 @@ ns_get_lookup_cb (void *cls,
   /** Return 404 if no set was found **/
   if (j == 0)
   {
-    handle->response_code = MHD_HTTP_NOT_FOUND;
-    handle->emsg = GNUNET_strdup (GNUNET_REST_RECORD_NOT_FOUND);
+    handle->ec = GNUNET_EC_NAMESTORE_RECORD_NOT_FOUND;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -672,8 +603,7 @@ namestore_get (struct GNUNET_REST_RequestHandle *con_handle,
   // set zone to name if given
   if (strlen (GNUNET_REST_API_NS_NAMESTORE) + 1  >= strlen (handle->url))
   {
-    handle->response_code = MHD_HTTP_NOT_FOUND;
-    handle->emsg = GNUNET_strdup (GNUNET_REST_IDENTITY_NOT_FOUND);
+    handle->ec = GNUNET_EC_NAMESTORE_ZONE_NOT_FOUND;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -681,8 +611,7 @@ namestore_get (struct GNUNET_REST_RequestHandle *con_handle,
   ego_entry = get_egoentry_namestore (handle, egoname);
   if (NULL == ego_entry)
   {
-    handle->response_code = MHD_HTTP_NOT_FOUND;
-    handle->emsg = GNUNET_strdup (GNUNET_REST_IDENTITY_NOT_FOUND);
+    handle->ec = GNUNET_EC_NAMESTORE_ZONE_NOT_FOUND;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -738,7 +667,7 @@ namestore_get (struct GNUNET_REST_RequestHandle *con_handle,
                                               filter_flags);
     if (NULL == handle->list_it)
     {
-      handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_FAILED);
+      handle->ec = GNUNET_EC_NAMESTORE_UNKNOWN;
       GNUNET_SCHEDULER_add_now (&do_error, handle);
       return;
     }
@@ -755,7 +684,7 @@ namestore_get (struct GNUNET_REST_RequestHandle *con_handle,
                                                     filter_flags);
   if (NULL == handle->ns_qe)
   {
-    handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_FAILED);
+    handle->ec = GNUNET_EC_NAMESTORE_UNKNOWN;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -790,7 +719,7 @@ ns_lookup_cb (void *cls,
                                                   handle);
   if (NULL == handle->ns_qe)
   {
-    handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_FAILED);
+    handle->ec = GNUNET_EC_NAMESTORE_UNKNOWN;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -798,23 +727,17 @@ ns_lookup_cb (void *cls,
 
 
 static void
-bulk_tx_commit_cb (void *cls, int32_t success, const char *emsg)
+bulk_tx_commit_cb (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct RequestHandle *handle = cls;
   struct MHD_Response *resp;
 
   handle->ns_qe = NULL;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Commit finished, %d\n", success);
-  if (GNUNET_YES != success)
+              "Commit finished (%d)\n", ec);
+  handle->ec = ec;
+  if (GNUNET_EC_NONE != ec)
   {
-    if (NULL != emsg)
-    {
-      handle->emsg = GNUNET_strdup (emsg);
-      GNUNET_SCHEDULER_add_now (&do_error, handle);
-      return;
-    }
-    handle->emsg = GNUNET_strdup ("Error importing records on commit");
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -824,30 +747,17 @@ bulk_tx_commit_cb (void *cls, int32_t success, const char *emsg)
 }
 
 
-/**
- * Import callback
- *
- * @param cls the `struct RequestHandle`
- * @param success the success indicating integer, GNUNET_OK on success
- * @param emsg the error message (can be NULL)
- */
 static void
-import_next_cb (void *cls, int32_t success, const char *emsg)
+import_next_cb (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct RequestHandle *handle = cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Import finished, %d\n", success);
+              "Import finished (%d)\n", ec);
   handle->ns_qe = NULL;
-  if (GNUNET_YES != success)
+  handle->ec = ec;
+  if (GNUNET_EC_NONE != ec)
   {
-    if (NULL != emsg)
-    {
-      handle->emsg = GNUNET_strdup (emsg);
-      GNUNET_SCHEDULER_add_now (&do_error, handle);
-      return;
-    }
-    handle->emsg = GNUNET_strdup ("Error importing records");
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -872,7 +782,7 @@ import_next_cb (void *cls, int32_t success, const char *emsg)
                                                    handle);
   if ((NULL == handle->ns_qe) && (0 == sent_rds))
   {
-    handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_FAILED);
+    handle->ec = GNUNET_EC_NAMESTORE_UNKNOWN;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -880,7 +790,7 @@ import_next_cb (void *cls, int32_t success, const char *emsg)
 }
 
 static void
-bulk_tx_start (void *cls, int32_t success, const char *emsg)
+bulk_tx_start (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct RequestHandle *handle = cls;
   json_t *data_js;
@@ -888,10 +798,15 @@ bulk_tx_start (void *cls, int32_t success, const char *emsg)
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Transaction started...\n");
+  handle->ec = ec;
+  if (GNUNET_EC_NONE != ec)
+  {
+    GNUNET_SCHEDULER_add_now (&do_error, handle);
+    return;
+  }
   if (0 >= handle->rest_handle->data_size)
   {
-    handle->response_code = MHD_HTTP_BAD_REQUEST;
-    handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_NO_DATA);
+    handle->ec = GNUNET_EC_NAMESTORE_NO_RECORDS_GIVEN;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -903,13 +818,15 @@ bulk_tx_start (void *cls, int32_t success, const char *emsg)
   data_js = json_loads (term_data, JSON_DECODE_ANY, &err);
   if (NULL == data_js)
   {
-    GNUNET_asprintf (&handle->emsg, "Error parsing data: %s", err.text);
+    handle->ec = GNUNET_EC_NAMESTORE_RECORD_DATA_INVALID;
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Error parsing data: %s", err.text);
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
   if (! json_is_array (data_js))
   {
-    handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_INVALID_DATA);
+    handle->ec = GNUNET_EC_NAMESTORE_RECORD_DATA_INVALID;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     json_decref (data_js);
     return;
@@ -932,7 +849,7 @@ bulk_tx_start (void *cls, int32_t success, const char *emsg)
         GNUNET_JSON_spec_end () };
       if (GNUNET_OK != GNUNET_JSON_parse (value, gnsspec, NULL, NULL))
       {
-        handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_INVALID_DATA);
+        handle->ec = GNUNET_EC_NAMESTORE_RECORD_DATA_INVALID;
         GNUNET_SCHEDULER_add_now (&do_error, handle);
         json_decref (data_js);
         return;
@@ -958,7 +875,7 @@ bulk_tx_start (void *cls, int32_t success, const char *emsg)
                                                    handle);
   if ((NULL == handle->ns_qe) && (0 == sent_rds))
   {
-    handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_FAILED);
+    handle->ec = GNUNET_EC_NAMESTORE_UNKNOWN;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -986,8 +903,7 @@ namestore_import (struct GNUNET_REST_RequestHandle *con_handle,
   if (strlen (GNUNET_REST_API_NS_NAMESTORE_IMPORT) + 1 >= strlen (
         handle->url))
   {
-    handle->response_code = MHD_HTTP_NOT_FOUND;
-    handle->emsg = GNUNET_strdup (GNUNET_REST_IDENTITY_NOT_FOUND);
+    handle->ec = GNUNET_EC_NAMESTORE_ZONE_NOT_FOUND;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -998,8 +914,7 @@ namestore_import (struct GNUNET_REST_RequestHandle *con_handle,
 
   if (NULL == ego_entry)
   {
-    handle->response_code = MHD_HTTP_NOT_FOUND;
-    handle->emsg = GNUNET_strdup (GNUNET_REST_IDENTITY_NOT_FOUND);
+    handle->ec = GNUNET_EC_NAMESTORE_ZONE_NOT_FOUND;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -1009,8 +924,7 @@ namestore_import (struct GNUNET_REST_RequestHandle *con_handle,
   handle->nc = GNUNET_NAMESTORE_connect (cfg);
   if (NULL == handle->nc)
   {
-    handle->response_code = MHD_HTTP_BAD_REQUEST;
-    handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_NO_DATA);
+    handle->ec = GNUNET_EC_NAMESTORE_UNKNOWN;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -1041,8 +955,7 @@ namestore_add_or_update (struct GNUNET_REST_RequestHandle *con_handle,
 
   if (0 >= handle->rest_handle->data_size)
   {
-    handle->response_code = MHD_HTTP_BAD_REQUEST;
-    handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_NO_DATA);
+    handle->ec = GNUNET_EC_NAMESTORE_NO_RECORDS_GIVEN;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -1057,7 +970,7 @@ namestore_add_or_update (struct GNUNET_REST_RequestHandle *con_handle,
     GNUNET_JSON_spec_end () };
   if (GNUNET_OK != GNUNET_JSON_parse (data_js, gnsspec, NULL, NULL))
   {
-    handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_INVALID_DATA);
+    handle->ec = GNUNET_EC_NAMESTORE_RECORD_DATA_INVALID;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     json_decref (data_js);
     return;
@@ -1065,8 +978,7 @@ namestore_add_or_update (struct GNUNET_REST_RequestHandle *con_handle,
   GNUNET_JSON_parse_free (gnsspec);
   if (0 >= strlen (handle->record_name))
   {
-    handle->response_code = MHD_HTTP_BAD_REQUEST;
-    handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_INVALID_DATA);
+    handle->ec = GNUNET_EC_NAMESTORE_RECORD_DATA_INVALID;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     json_decref (data_js);
     return;
@@ -1079,8 +991,7 @@ namestore_add_or_update (struct GNUNET_REST_RequestHandle *con_handle,
   // set zone to name if given
   if (strlen (GNUNET_REST_API_NS_NAMESTORE) + 1 >= strlen (handle->url))
   {
-    handle->response_code = MHD_HTTP_NOT_FOUND;
-    handle->emsg = GNUNET_strdup (GNUNET_REST_IDENTITY_NOT_FOUND);
+    handle->ec = GNUNET_EC_NAMESTORE_ZONE_NOT_FOUND;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -1089,8 +1000,7 @@ namestore_add_or_update (struct GNUNET_REST_RequestHandle *con_handle,
 
   if (NULL == ego_entry)
   {
-    handle->response_code = MHD_HTTP_NOT_FOUND;
-    handle->emsg = GNUNET_strdup (GNUNET_REST_IDENTITY_NOT_FOUND);
+    handle->ec = GNUNET_EC_NAMESTORE_ZONE_NOT_FOUND;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -1104,7 +1014,7 @@ namestore_add_or_update (struct GNUNET_REST_RequestHandle *con_handle,
                                                    handle);
   if (NULL == handle->ns_qe)
   {
-    handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_FAILED);
+    handle->ec = GNUNET_EC_NAMESTORE_UNKNOWN;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -1170,8 +1080,7 @@ namestore_delete (struct GNUNET_REST_RequestHandle *con_handle,
   // set zone to name if given
   if (strlen (GNUNET_REST_API_NS_NAMESTORE) + 1 >= strlen (handle->url))
   {
-    handle->response_code = MHD_HTTP_NOT_FOUND;
-    handle->emsg = GNUNET_strdup (GNUNET_REST_IDENTITY_NOT_FOUND);
+    handle->ec = GNUNET_EC_NAMESTORE_ZONE_NOT_FOUND;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -1179,8 +1088,7 @@ namestore_delete (struct GNUNET_REST_RequestHandle *con_handle,
   ego_entry = get_egoentry_namestore (handle, egoname);
   if (NULL == ego_entry)
   {
-    handle->response_code = MHD_HTTP_NOT_FOUND;
-    handle->emsg = GNUNET_strdup (GNUNET_REST_IDENTITY_NOT_FOUND);
+    handle->ec = GNUNET_EC_NAMESTORE_ZONE_NOT_FOUND;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -1190,8 +1098,7 @@ namestore_delete (struct GNUNET_REST_RequestHandle *con_handle,
   if (1 >= strlen (labelname))
   {
     /* label is only "/" */
-    handle->response_code = MHD_HTTP_BAD_REQUEST;
-    handle->emsg = GNUNET_strdup ("Label missing");
+    handle->ec = GNUNET_EC_NAMESTORE_NO_LABEL_GIVEN;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
   }
 
@@ -1205,7 +1112,7 @@ namestore_delete (struct GNUNET_REST_RequestHandle *con_handle,
                                                   handle);
   if (NULL == handle->ns_qe)
   {
-    handle->emsg = GNUNET_strdup (GNUNET_REST_NAMESTORE_FAILED);
+    handle->ec = GNUNET_EC_NAMESTORE_UNKNOWN;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
@@ -1350,7 +1257,7 @@ rest_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
     { MHD_HTTP_METHOD_OPTIONS, GNUNET_REST_API_NS_NAMESTORE, &options_cont },
     GNUNET_REST_HANDLER_END };
 
-  handle->response_code = 0;
+  handle->ec = GNUNET_EC_NONE;
   handle->timeout = GNUNET_TIME_UNIT_FOREVER_REL;
   handle->proc_cls = proc_cls;
   handle->proc = proc;

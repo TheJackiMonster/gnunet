@@ -318,28 +318,18 @@ test_finished ()
 }
 
 
-/**
- * Continuation called to notify client about result of the
- * operation.
- *
- * @param cls closure, location of the QueueEntry pointer to NULL out
- * @param success #GNUNET_SYSERR on failure (including timeout/queue drop/failure to validate)
- *                #GNUNET_NO if content was already there
- *                #GNUNET_YES (or other positive value) on success
- * @param emsg NULL on success, otherwise an error message
- */
 static void
-add_continuation (void *cls, int32_t success, const char *emsg)
+add_continuation (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct GNUNET_NAMESTORE_QueueEntry **qe = cls;
 
   *qe = NULL;
-  if (GNUNET_YES != success)
+  if (GNUNET_EC_NONE != ec)
   {
     fprintf (stderr,
              _ ("Adding record failed: %s\n"),
-             (GNUNET_NO == success) ? "record exists" : emsg);
-    if (GNUNET_NO != success)
+             GNUNET_ErrorCode_get_hint (ec));
+    if (GNUNET_EC_NAMESTORE_RECORD_EXISTS != ec)
       ret = 1;
   }
   ret = 0;
@@ -347,34 +337,15 @@ add_continuation (void *cls, int32_t success, const char *emsg)
 }
 
 
-/**
- * Continuation called to notify client about result of the
- * operation.
- *
- * @param cls closure, unused
- * @param success #GNUNET_SYSERR on failure (including timeout/queue drop/failure to validate)
- *                #GNUNET_NO if content was already there
- *                #GNUNET_YES (or other positive value) on success
- * @param emsg NULL on success, otherwise an error message
- */
 static void
-del_continuation (void *cls, int32_t success, const char *emsg)
+del_continuation (void *cls, enum GNUNET_ErrorCode ec)
 {
   (void) cls;
   del_qe = NULL;
-  if (GNUNET_NO == success)
+  if (GNUNET_EC_NAMESTORE_RECORD_NOT_FOUND == ec)
   {
     fprintf (stderr,
-             _ ("Deleting record failed, record does not exist%s%s\n"),
-             (NULL != emsg) ? ": " : "",
-             (NULL != emsg) ? emsg : "");
-  }
-  if (GNUNET_SYSERR == success)
-  {
-    fprintf (stderr,
-             _ ("Deleting record failed%s%s\n"),
-             (NULL != emsg) ? ": " : "",
-             (NULL != emsg) ? emsg : "");
+             _ ("Deleting record failed: %s\n"), GNUNET_ErrorCode_get_hint (ec));
   }
   test_finished ();
 }
@@ -898,27 +869,17 @@ parse_expiration (const char *expirationstring,
 }
 
 
-/**
- * Function called when namestore is done with the replace
- * operation.
- *
- * @param cls NULL
- * @param success #GNUNET_SYSERR on failure (including timeout/queue drop/failure to validate)
- *                #GNUNET_NO if content was already there or not found
- *                #GNUNET_YES (or other positive value) on success
- * @param emsg NULL on success, otherwise an error message
- */
 static void
-replace_cont (void *cls, int success, const char *emsg)
+replace_cont (void *cls, enum GNUNET_ErrorCode ec)
 {
   (void) cls;
 
   set_qe = NULL;
-  if (GNUNET_OK != success)
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_MESSAGE,
-                _ ("Failed to replace records: %s\n"),
-                emsg);
+                _ ("%s\n"),
+                GNUNET_ErrorCode_get_hint (ec));
     ret = 1;   /* fail from 'main' */
   }
   GNUNET_SCHEDULER_shutdown ();

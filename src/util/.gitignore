@@ -1,3 +1,4 @@
+gnunet_error_codes.c
 test_common_logging_dummy
 gnunet-config
 gnunet-config-diff

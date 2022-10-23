@@ -151,14 +151,13 @@ publish_records_single (void *cls);
 
 static void
 commit_cont (void *cls,
-             int32_t success,
-             const char *emsg)
+             enum GNUNET_ErrorCode ec)
 {
   struct GNUNET_TIME_Relative delay;
 
   (void) cls;
   qe = NULL;
-  if (GNUNET_OK != success)
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_break (0);
     GNUNET_SCHEDULER_shutdown ();
@@ -181,11 +180,10 @@ publish_records_bulk_tx (void *cls);
 
 static void
 put_cont_bulk_tx (void *cls,
-                  int32_t success,
-                  const char *emsg)
+                  enum GNUNET_ErrorCode ec)
 {
   qe = NULL;
-  if (GNUNET_OK != success)
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_break (0);
     GNUNET_SCHEDULER_shutdown ();
@@ -219,8 +217,7 @@ publish_records_bulk_tx (void *cls)
 
 static void
 begin_cont (void *cls,
-            int32_t success,
-            const char *emsg)
+            enum GNUNET_ErrorCode ec)
 {
   unsigned int sent_rds;
   qe = GNUNET_NAMESTORE_records_store2 (nsh,
@@ -239,14 +236,13 @@ publish_records_bulk (void *cls);
 
 static void
 put_cont_bulk (void *cls,
-               int32_t success,
-               const char *emsg)
+               enum GNUNET_ErrorCode ec)
 {
   struct GNUNET_TIME_Relative delay;
 
   (void) cls;
   qe = NULL;
-  if (GNUNET_OK != success)
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_break (0);
     GNUNET_SCHEDULER_shutdown ();
@@ -268,7 +264,7 @@ put_cont_bulk (void *cls,
   }
   (void) cls;
   qe = NULL;
-  if (GNUNET_OK != success)
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_break (0);
     GNUNET_SCHEDULER_shutdown ();
@@ -297,13 +293,12 @@ publish_records_bulk (void *cls)
 
 static void
 put_cont_single (void *cls,
-                 int32_t success,
-                 const char *emsg)
+                 enum GNUNET_ErrorCode ec)
 {
   struct GNUNET_TIME_Relative delay;
   (void) cls;
   qe = NULL;
-  if (GNUNET_OK != success)
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_break (0);
     GNUNET_SCHEDULER_shutdown ();

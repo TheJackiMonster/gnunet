@@ -184,10 +184,10 @@ do_shutdown (void *cls)
 }
 
 static void
-tx_end (void *cls, int32_t success, const char *emsg)
+tx_end (void *cls, enum GNUNET_ErrorCode ec)
 {
   ns_qe = NULL;
-  if (GNUNET_SYSERR == success)
+  if (GNUNET_EC_NONE != ec)
   {
     fprintf (stderr,
              _ ("Ego `%s' not known to identity service\n"),
@@ -320,10 +320,10 @@ origin_lookup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 }
 
 static void
-add_continuation (void *cls, int32_t success, const char *emsg)
+add_continuation (void *cls, enum GNUNET_ErrorCode ec)
 {
   ns_qe = NULL;
-  if (GNUNET_SYSERR == success)
+  if (GNUNET_EC_NONE != ec)
   {
     fprintf (stderr,
              _ ("Failed to store records...\n"));
@@ -646,10 +646,10 @@ parse (void *cls)
 }
 
 static void
-tx_start (void *cls, int32_t success, const char *emsg)
+tx_start (void *cls, enum GNUNET_ErrorCode ec)
 {
   ns_qe = NULL;
-  if (GNUNET_SYSERR == success)
+  if (GNUNET_EC_NONE != ec)
   {
     fprintf (stderr,
              _ ("Ego `%s' not known to identity service\n"),

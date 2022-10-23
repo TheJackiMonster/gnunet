@@ -114,11 +114,6 @@ struct BlockCacheMessage
   struct GNUNET_TIME_AbsoluteNBO expire;
 
   /**
-   * Signature.
-   */
-  struct GNUNET_CRYPTO_EcdsaSignature signature;
-
-  /**
    * Derived public key.
    */
   struct GNUNET_IDENTITY_PublicKey derived_key;
