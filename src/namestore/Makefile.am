@@ -519,9 +519,8 @@ check_SCRIPTS = \
   test_namestore_delete.sh \
   test_namestore_zonefile_import.sh
 
-# FIXME
-#check_SCRIPTS += \
-#  test_plugin_rest_namestore.sh
+check_SCRIPTS += \
+  test_plugin_rest_namestore.sh
 
 EXTRA_DIST = \
   test_common.c \

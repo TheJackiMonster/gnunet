@@ -339,7 +339,7 @@ do_error (void *cls)
   if (0 != handle->ec)
     emsg = GNUNET_strdup (GNUNET_ErrorCode_get_hint (handle->ec));
   json_object_set_new (json_error, "error", json_string (emsg));
-
+  json_object_set_new (json_error, "error_code", json_integer (handle->ec));
   response_code = GNUNET_ErrorCode_get_http_status (handle->ec);
   if (0 == response_code)
     response_code = MHD_HTTP_INTERNAL_SERVER_ERROR;
