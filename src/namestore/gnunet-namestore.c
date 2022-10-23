@@ -138,6 +138,16 @@ static int is_public;
 static int is_shadow;
 
 /**
+ * Filter private records
+ */
+static int omit_private;
+
+/**
+ * Do not filter maintenance records
+ */
+static int include_maintenance;
+
+/**
  * Queue entry for the 'del' operation.
  */
 static struct GNUNET_NAMESTORE_QueueEntry *del_qe;
@@ -345,7 +355,8 @@ del_continuation (void *cls, enum GNUNET_ErrorCode ec)
   if (GNUNET_EC_NAMESTORE_RECORD_NOT_FOUND == ec)
   {
     fprintf (stderr,
-             _ ("Deleting record failed: %s\n"), GNUNET_ErrorCode_get_hint (ec));
+             _ ("Deleting record failed: %s\n"), GNUNET_ErrorCode_get_hint (
+               ec));
   }
   test_finished ();
 }
@@ -397,17 +408,12 @@ display_record (const char *rname,
   int have_record;
 
   if ((NULL != name) && (0 != strcmp (name, rname)))
-  {
-    GNUNET_NAMESTORE_zone_iterator_next (list_it, 1);
     return;
-  }
   have_record = GNUNET_NO;
   for (unsigned int i = 0; i < rd_len; i++)
   {
     if ((GNUNET_GNSRECORD_TYPE_NICK == rd[i].record_type) &&
         (0 != strcmp (rname, GNUNET_GNS_EMPTY_LABEL_AT)))
-      continue;
-    if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[i].record_type)
       continue;
     if ((type != rd[i].record_type) && (GNUNET_GNSRECORD_TYPE_ANY != type))
       continue;
@@ -425,8 +431,6 @@ display_record (const char *rname,
   {
     if ((GNUNET_GNSRECORD_TYPE_NICK == rd[i].record_type) &&
         (0 != strcmp (rname, GNUNET_GNS_EMPTY_LABEL_AT)))
-      continue;
-    if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[i].record_type)
       continue;
     if ((type != rd[i].record_type) && (GNUNET_GNSRECORD_TYPE_ANY != type))
       continue;
@@ -480,10 +484,12 @@ display_record_iterator (void *cls,
                          const struct GNUNET_IDENTITY_PrivateKey *zone_key,
                          const char *rname,
                          unsigned int rd_len,
-                         const struct GNUNET_GNSRECORD_Data *rd)
+                         const struct GNUNET_GNSRECORD_Data *rd,
+                         struct GNUNET_TIME_Absolute expiry)
 {
   (void) cls;
   (void) zone_key;
+  (void) expiry;
   display_record (rname, rd_len, rd);
   GNUNET_NAMESTORE_zone_iterator_next (list_it, 1);
 }
@@ -503,10 +509,12 @@ display_record_monitor (void *cls,
                         const struct GNUNET_IDENTITY_PrivateKey *zone_key,
                         const char *rname,
                         unsigned int rd_len,
-                        const struct GNUNET_GNSRECORD_Data *rd)
+                        const struct GNUNET_GNSRECORD_Data *rd,
+                        struct GNUNET_TIME_Absolute expiry)
 {
   (void) cls;
   (void) zone_key;
+  (void) expiry;
   display_record (rname, rd_len, rd);
   GNUNET_NAMESTORE_zone_monitor_next (zm, 1);
 }
@@ -896,9 +904,14 @@ static void
 run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
   struct GNUNET_GNSRECORD_Data rd;
+  enum GNUNET_GNSRECORD_Filter filter_flags = GNUNET_GNSRECORD_FILTER_NONE;
 
+  if (omit_private)
+    filter_flags |= GNUNET_GNSRECORD_FILTER_OMIT_PRIVATE;
+  if (include_maintenance)
+    filter_flags |= GNUNET_GNSRECORD_FILTER_INCLUDE_MAINTENANCE;
   if (! (add | del | list | (NULL != nickstring) | (NULL != uri)
-         | (NULL != reverse_pkey) | (NULL != recordset)))
+         | (NULL != reverse_pkey) | (NULL != recordset) | (monitor)))
   {
     /* nothing more to be done */
     fprintf (stderr, _ ("No options given\n"));
@@ -1087,14 +1100,15 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
                                                 &display_record_lookup,
                                                 NULL);
     else
-      list_it = GNUNET_NAMESTORE_zone_iteration_start (ns,
-                                                       &zone_pkey,
-                                                       &zone_iteration_error_cb,
-                                                       NULL,
-                                                       &display_record_iterator,
-                                                       NULL,
-                                                       &zone_iteration_finished,
-                                                       NULL);
+      list_it = GNUNET_NAMESTORE_zone_iteration_start2 (ns,
+                                                        &zone_pkey,
+                                                        &zone_iteration_error_cb,
+                                                        NULL,
+                                                        &display_record_iterator,
+                                                        NULL,
+                                                        &zone_iteration_finished,
+                                                        NULL,
+                                                        filter_flags);
   }
   if (NULL != reverse_pkey)
   {
@@ -1171,15 +1185,16 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
   }
   if (monitor)
   {
-    zm = GNUNET_NAMESTORE_zone_monitor_start (cfg,
-                                              &zone_pkey,
-                                              GNUNET_YES,
-                                              &monitor_error_cb,
-                                              NULL,
-                                              &display_record_monitor,
-                                              NULL,
-                                              &sync_cb,
-                                              NULL);
+    zm = GNUNET_NAMESTORE_zone_monitor_start2 (cfg,
+                                               &zone_pkey,
+                                               GNUNET_YES,
+                                               &monitor_error_cb,
+                                               NULL,
+                                               &display_record_monitor,
+                                               NULL,
+                                               &sync_cb,
+                                               NULL,
+                                               filter_flags);
   }
 }
 
@@ -1576,6 +1591,15 @@ main (int argc, char *const *argv)
                                "public",
                                gettext_noop ("create or list public record"),
                                &is_public),
+    GNUNET_GETOPT_option_flag ('o',
+                               "omit-private",
+                               gettext_noop ("omit private records"),
+                               &omit_private),
+    GNUNET_GETOPT_option_flag ('T',
+                               "include-maintenance",
+                               gettext_noop (
+                                 "do not filter maintenance records"),
+                               &include_maintenance),
     GNUNET_GETOPT_option_flag (
       's',
       "shadow",

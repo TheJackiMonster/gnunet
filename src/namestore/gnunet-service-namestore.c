@@ -806,7 +806,7 @@ merge_with_nick_records (const struct GNUNET_GNSRECORD_Data *nick_rd,
  * @param rd array of records
  * @param filter record set filter
  */
-static void
+static int
 send_lookup_response_with_filter (struct NamestoreClient *nc,
                                   uint32_t request_id,
                                   const struct
@@ -865,6 +865,8 @@ send_lookup_response_with_filter (struct NamestoreClient *nc,
   if (NULL != nick)
     GNUNET_free (nick);
 
+  if (0 == res_count)
+    return 0;
   GNUNET_assert (-1 != GNUNET_GNSRECORD_records_get_size (res_count, res));
 
 
@@ -876,7 +878,7 @@ send_lookup_response_with_filter (struct NamestoreClient *nc,
       GNUNET_free (res);
     GNUNET_break (0);
     GNUNET_SERVICE_client_drop (nc->client);
-    return;
+    return 0;
   }
   if (((size_t) rd_ser_len) >= UINT16_MAX - name_len - sizeof(*zir_msg))
   {
@@ -884,7 +886,7 @@ send_lookup_response_with_filter (struct NamestoreClient *nc,
       GNUNET_free (res);
     GNUNET_break (0);
     GNUNET_SERVICE_client_drop (nc->client);
-    return;
+    return 0;
   }
   env = GNUNET_MQ_msg_extra (zir_msg,
                              name_len + rd_ser_len,
@@ -911,6 +913,7 @@ send_lookup_response_with_filter (struct NamestoreClient *nc,
   GNUNET_MQ_send (nc->mq, env);
   if (rd_nf != res)
     GNUNET_free (res);
+  return res_count;
 }
 
 /**
@@ -924,7 +927,7 @@ send_lookup_response_with_filter (struct NamestoreClient *nc,
  * @param rd_count number of records in @a rd
  * @param rd array of records
  */
-static void
+static int
 send_lookup_response (struct NamestoreClient *nc,
                       uint32_t request_id,
                       const struct
@@ -933,8 +936,9 @@ send_lookup_response (struct NamestoreClient *nc,
                       unsigned int rd_count,
                       const struct GNUNET_GNSRECORD_Data *rd)
 {
-  send_lookup_response_with_filter (nc, request_id, zone_key, name,
-                                    rd_count, rd, GNUNET_GNSRECORD_FILTER_NONE);
+  return send_lookup_response_with_filter (nc, request_id, zone_key, name,
+                                           rd_count, rd,
+                                           GNUNET_GNSRECORD_FILTER_NONE);
 }
 
 /**
@@ -1092,14 +1096,14 @@ continue_store_activity (struct StoreActivity *sa,
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                     "Notifying monitor about changes under label `%s'\n",
                     conv_name);
-        zm->limit--;
-        send_lookup_response_with_filter (zm->nc,
-                                          0,
-                                          &sa->private_key,
-                                          conv_name,
-                                          rd_count,
-                                          rd,
-                                          zm->filter);
+        if (0 < send_lookup_response_with_filter (zm->nc,
+                                                  0,
+                                                  &sa->private_key,
+                                                  conv_name,
+                                                  rd_count,
+                                                  rd,
+                                                  zm->filter))
+          zm->limit--;
         sa->zm_pos = zm->next;
       }
       sa->rd_set_pos++;
@@ -2204,14 +2208,16 @@ zone_iterate_proc (void *cls,
     proc->run_again = GNUNET_YES;
     return;
   }
-  proc->limit--;
-  send_lookup_response_with_filter (proc->zi->nc,
-                                    proc->zi->request_id,
-                                    zone_key,
-                                    name,
-                                    rd_count,
-                                    rd,
-                                    proc->zi->filter);
+  if (0 < send_lookup_response_with_filter (proc->zi->nc,
+                                            proc->zi->request_id,
+                                            zone_key,
+                                            name,
+                                            rd_count,
+                                            rd,
+                                            proc->zi->filter))
+    proc->limit--;
+  else
+    proc->run_again = GNUNET_YES;
 }
 
 
@@ -2472,9 +2478,16 @@ monitor_iterate_cb (void *cls,
     zm->run_again = GNUNET_YES;
     return;
   }
-  zm->limit--;
-  zm->iteration_cnt--;
-  send_lookup_response (zm->nc, 0, zone_key, name, rd_count, rd);
+  if (0 < send_lookup_response_with_filter (zm->nc, 0, zone_key, name,
+                                            rd_count, rd, zm->filter))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Sent records.\n");
+    zm->limit--;
+    zm->iteration_cnt--;
+  }
+  else
+    zm->run_again = GNUNET_YES;
   if ((0 == zm->iteration_cnt) && (0 != zm->limit))
   {
     /* We are done with the current iteration batch, AND the
@@ -2538,6 +2551,8 @@ monitor_iteration_next (void *cls)
   zm->run_again = GNUNET_YES;
   while (GNUNET_YES == zm->run_again)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Running iteration\n");
     zm->run_again = GNUNET_NO;
     ret = nc->GSN_database->iterate_records (nc->GSN_database->cls,
                                              (GNUNET_YES == GNUNET_is_zero (
@@ -2554,6 +2569,8 @@ monitor_iteration_next (void *cls)
   }
   if (GNUNET_NO == ret)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Zone empty... syncing\n");
     /* empty zone */
     monitor_sync (zm);
     return;

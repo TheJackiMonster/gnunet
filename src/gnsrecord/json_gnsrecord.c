@@ -338,7 +338,7 @@ GNUNET_GNSRECORD_JSON_from_gnsrecord (const char*rname,
     record = json_pack ("{s:s,s:s,s:I,s:b,s:b,s:b,s:b}",
                         GNUNET_JSON_GNSRECORD_VALUE,
                         value_str,
-                        GNUNET_JSON_GNSRECORD_VALUE,
+                        GNUNET_JSON_GNSRECORD_TYPE,
                         record_type_str,
                         (rd[i].flags & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION) ?
                         GNUNET_JSON_GNSRECORD_RELATIVE_EXPIRATION_TIME : GNUNET_JSON_GNSRECORD_ABSOLUTE_EXPIRATION_TIME,
