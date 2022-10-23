@@ -363,31 +363,6 @@ check_rd (size_t rd_len, const void *rd_buf, unsigned int rd_count)
  *
  * @param cls
  * @param msg the message we received
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
-static int
-check_record_store_response (void *cls,
-                             const struct RecordStoreResponseMessage *msg)
-{
-  size_t msg_len;
-
-  (void) cls;
-  msg_len = ntohs (msg->gns_header.header.size);
-  if (msg_len != sizeof(struct RecordStoreResponseMessage))
-  {
-    GNUNET_break (0);
-    return GNUNET_SYSERR;
-  }
-  return GNUNET_OK;
-}
-
-
-/**
- * Handle an incoming message of type
- * #GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_STORE_RESPONSE
- *
- * @param cls
- * @param msg the message we received
  */
 static void
 handle_record_store_response (void *cls,
@@ -669,38 +644,6 @@ handle_record_result_end (void *cls, const struct GNUNET_NAMESTORE_Header *msg)
   if (NULL != ze->finish_cb)
     ze->finish_cb (ze->finish_cb_cls);
   free_ze (ze);
-}
-
-/**
- * Handle an incoming message of type
- * #GNUNET_MESSAGE_TYPE_NAMESTORE_TX_CONTROL_RESULT.
- *
- * @param qe the respective entry in the message queue
- * @param msg the message we received
- * @return #GNUNET_OK on success, #GNUNET_SYSERR if message malformed
- */
-static int
-check_tx_control_result (void *cls,
-                         const struct TxControlResultMessage *msg)
-{
-  const char *err_tmp;
-  size_t err_len;
-
-  (void) cls;
-  err_len = ntohs (msg->gns_header.header.size)
-            - sizeof (struct TxControlResultMessage);
-  if ((GNUNET_EC_NONE == ntohs (msg->ec)) && (err_len > 0))
-  {
-    GNUNET_break (0);
-    return GNUNET_SYSERR;
-  }
-  err_tmp = (const char *) &msg[1];
-  if ((err_len > 0) && ('\0' != err_tmp[err_len - 1]))
-  {
-    GNUNET_break (0);
-    return GNUNET_SYSERR;
-  }
-  return GNUNET_OK;
 }
 
 static void
