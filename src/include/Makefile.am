@@ -21,7 +21,7 @@ gnunetinclude_HEADERS = \
   gnunet_ats_plugin.h \
   gnunet_bandwidth_lib.h \
   gnunet_bio_lib.h \
-	gnunet_dht_block_types.h \
+  gnunet_dht_block_types.h \
   gnunet_block_lib.h \
   gnunet_block_group_lib.h \
   gnunet_block_plugin.h \
@@ -48,6 +48,7 @@ gnunetinclude_HEADERS = \
   gnunet_dnsparser_lib.h \
   gnunet_dnsstub_lib.h \
   gnunet_dns_service.h \
+  gnunet_error_codes.h \
   gnunet_fragmentation_lib.h \
   gnunet_friends_lib.h \
   gnunet_fs_service.h \
