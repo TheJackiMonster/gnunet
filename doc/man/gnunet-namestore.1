@@ -1,5 +1,5 @@
 .\" This file is part of GNUnet.
-.\" Copyright (C) 2001-2019 GNUnet e.V.
+.\" Copyright (C) 2001-2022 GNUnet e.V.
 .\"
 .\" Permission is granted to copy, distribute and/or modify this document
 .\" under the terms of the GNU Free Documentation License, Version 1.3 or
@@ -39,14 +39,19 @@
 .Op Fl L Ar LOGLEVEL | Fl -loglevel= Ns Ar LOGLEVEL
 .Op Fl m | -monitor
 .Op Fl n Ar NAME | Fl -name= Ns Ar NAME
+.Op Fl O | -list-orphans
+.Op Fl o | -omit-private
+.Op Fl P | -purge-orphans
 .Op Fl p | -public
 .Op Fl r Ar PKEY | Fl -reverse= Ns Ar PKEY
 .Op Fl R Ar RECORDLINE | Fl -replace= Ns Ar RECORDLINE
 .Op Fl s | -shadow
+.Op Fl T | -include-maintenance
 .Op Fl t Ar TYPE | Fl -type= Ns Ar TYPE
 .Op Fl u Ar URI | Fl -uri= Ns Ar URI
 .Op Fl v | -version
 .Op Fl V Ar VALUE | Fl -value= Ns Ar VALUE
+.Op Fl X | -purge-zone-records
 .Op Fl z Ar EGO | Fl -zone= Ns Ar EGO
 .Sh DESCRIPTION
 .Nm
@@ -88,6 +93,12 @@ Monitor changes to the zone on an ongoing basis (in contrast to -D,
 which merely displays the current records).
 .It Fl n Ar NAME | Fl -name= Ns Ar NAME
 Label or name of the record to add/delete/display.
+.It Fl O | -list-orphans
+List orphaned records.
+.It Fl o | -omit-private
+Filter private records. Use in combination with --display.
+.It Fl P | -purge-orphans
+Delete orphaned records from namestore.
 .It Fl p | -public
 Create a record that is public (shared with other users that know the
 label).
@@ -108,6 +119,8 @@ The VALUE follows the usual human-readable value format(s) of DNS/GNS.
 Create a record that is a shadow record.
 Shadow records are only used once all other records of the same type
 under the same label have expired.
+.It Fl T | -include-maintenance
+Show maintenance records such as TOMBSTONEs. Use in combination with --display.
 .It Fl t Ar TYPE | Fl -type= Ns Ar TYPE
 Type of the record to add/delete/display ("A"; "AAAA"; "NS"; "PKEY"; "MX"; etc.).
 .It Fl u Ar URI | Fl -uri= Ns Ar URI
@@ -121,6 +134,8 @@ Specific format depends on the record type.
 A records expect a dotted decimal IPv4 address, AAAA records an IPv6
 address, PKEY a public key in GNUnet's printable format, and CNAME and
 NS records should be a domain name.
+.It Fl X | -purge-zone-records
+Delete all records in a zone.
 .It Fl z Ar EGO | Fl -zone= Ns Ar EGO
 Specifies the name of the ego controlling the private key for the
 zone. If not provided, we will attempt to use the default identity set
