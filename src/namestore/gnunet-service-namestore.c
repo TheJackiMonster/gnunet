@@ -341,37 +341,6 @@ struct NickCache
 };
 
 /**
- * The default namestore ego
- */
-struct EgoEntry
-{
-  /**
-   * DLL
-   */
-  struct EgoEntry *next;
-
-  /**
-   * DLL
-   */
-  struct EgoEntry *prev;
-
-  /**
-   * Ego Identifier
-   */
-  char *identifier;
-
-  /**
-   * Public key string
-   */
-  char *keystring;
-
-  /**
-   * The Ego
-   */
-  struct GNUNET_IDENTITY_Ego *ego;
-};
-
-/**
  * We cache nick records to reduce DB load.
  */
 static struct NickCache nick_cache[NC_SIZE];
@@ -390,27 +359,6 @@ static const struct GNUNET_CONFIGURATION_Handle *GSN_cfg;
  * Handle to the statistics service
  */
 static struct GNUNET_STATISTICS_Handle *statistics;
-
-/**
- * Handle to the identity service
- */
-static struct GNUNET_IDENTITY_Handle *identity_handle;
-
-/**
- * Indicator if we already have passed the first iteration if egos
- */
-static int egos_collected = GNUNET_NO;
-
-/**
- * Ego list
- */
-static struct EgoEntry *ego_head;
-
-/**
- * Ego list
- */
-static struct EgoEntry *ego_tail;
-
 
 /**
  * Name of the database plugin
@@ -461,9 +409,6 @@ static int return_orphaned;
 static void
 cleanup_task (void *cls)
 {
-  struct EgoEntry *ego_entry;
-  struct EgoEntry *ego_tmp;
-
   (void) cls;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Stopping namestore service\n");
   if (NULL != monitor_nc)
@@ -475,20 +420,6 @@ cleanup_task (void *cls)
   {
     GNUNET_STATISTICS_destroy (statistics, GNUNET_NO);
     statistics = NULL;
-  }
-  if (NULL != identity_handle)
-  {
-    GNUNET_IDENTITY_disconnect (identity_handle);
-    identity_handle = NULL;
-    // FIXME cleanup EgoEntries
-  }
-  for (ego_entry = ego_head; NULL != ego_entry;)
-  {
-    ego_tmp = ego_entry;
-    ego_entry = ego_entry->next;
-    GNUNET_free (ego_tmp->identifier);
-    GNUNET_free (ego_tmp->keystring);
-    GNUNET_free (ego_tmp);
   }
   GNUNET_break (NULL == GNUNET_PLUGIN_unload (db_lib_name, GSN_database));
   GNUNET_free (db_lib_name);
@@ -507,51 +438,6 @@ free_store_activity (struct StoreActivity *sa)
   GNUNET_CONTAINER_DLL_remove (sa_head, sa_tail, sa);
   GNUNET_free (sa);
 }
-
-static enum GNUNET_GenericReturnValue
-is_orphaned (const struct GNUNET_IDENTITY_PrivateKey *zone)
-{
-  struct EgoEntry *ego_entry;
-  struct GNUNET_IDENTITY_PublicKey pk;
-  char *keystring;
-
-  GNUNET_IDENTITY_key_get_public (zone, &pk);
-  keystring = GNUNET_IDENTITY_public_key_to_string (&pk);
-
-  if (GNUNET_YES == return_orphaned)
-    return GNUNET_NO;
-  for (ego_entry = ego_head; NULL != ego_entry;
-       ego_entry = ego_entry->next)
-  {
-    if (0 == strcmp (ego_entry->keystring, keystring))
-      break;
-  }
-  if (NULL != ego_entry)
-  {
-    GNUNET_free (keystring);
-    return GNUNET_NO;
-  }
-  /*if (purge_orphans)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Removing orphaned zone data for ego %s\n",
-                ego_entry->keystring);
-    res = GSN_database->delete_records (GSN_database->cls,
-                                        zone,
-                                        &emsg);
-    if (GNUNET_SYSERR == res)
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "Error removing orphaned zone data: %s\n", emsg);
-    }
-  }*/
-  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-              "Found orphaned zone data for zone key %s\n",
-              keystring);
-  GNUNET_free (keystring);
-  return GNUNET_YES;
-}
-
 
 /**
  * Function called with the records for the #GNUNET_GNS_EMPTY_LABEL_AT
@@ -914,31 +800,6 @@ send_lookup_response_with_filter (struct NamestoreClient *nc,
   if (rd_nf != res)
     GNUNET_free (res);
   return res_count;
-}
-
-/**
- * Generate a `struct LookupNameResponseMessage` and send it to the
- * given client using the given notification context.
- *
- * @param nc client to unicast to
- * @param request_id request ID to use
- * @param zone_key zone key of the zone
- * @param name name
- * @param rd_count number of records in @a rd
- * @param rd array of records
- */
-static int
-send_lookup_response (struct NamestoreClient *nc,
-                      uint32_t request_id,
-                      const struct
-                      GNUNET_IDENTITY_PrivateKey *zone_key,
-                      const char *name,
-                      unsigned int rd_count,
-                      const struct GNUNET_GNSRECORD_Data *rd)
-{
-  return send_lookup_response_with_filter (nc, request_id, zone_key, name,
-                                           rd_count, rd,
-                                           GNUNET_GNSRECORD_FILTER_NONE);
 }
 
 /**
@@ -2201,13 +2062,6 @@ zone_iterate_proc (void *cls,
     return;
   }
   proc->zi->seq = seq;
-  if (GNUNET_YES == is_orphaned (zone_key))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Skipping orphaned zone data\n");
-    proc->run_again = GNUNET_YES;
-    return;
-  }
   if (0 < send_lookup_response_with_filter (proc->zi->nc,
                                             proc->zi->request_id,
                                             zone_key,
@@ -2471,13 +2325,6 @@ monitor_iterate_cb (void *cls,
                             "Monitor notifications sent",
                             1,
                             GNUNET_NO);
-  if (GNUNET_YES == is_orphaned (zone_key))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Skipping orphaned zone data\n");
-    zm->run_again = GNUNET_YES;
-    return;
-  }
   if (0 < send_lookup_response_with_filter (zm->nc, 0, zone_key, name,
                                             rd_count, rd, zm->filter))
   {
@@ -2635,100 +2482,6 @@ handle_monitor_next (void *cls, const struct ZoneMonitorNextMessage *nm)
   }
 }
 
-static void
-ego_callback (void *cls,
-              struct GNUNET_IDENTITY_Ego *ego,
-              void **ctx,
-              const char *identifier)
-{
-  struct EgoEntry *ego_entry;
-  struct GNUNET_SERVICE_Handle *service = cls;
-  struct GNUNET_IDENTITY_PublicKey pk;
-
-  if ((NULL == ego) && (GNUNET_NO == egos_collected))
-  {
-    egos_collected = GNUNET_YES;
-    GNUNET_SERVICE_resume (service);
-    return;
-  }
-  if (NULL == ego)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Called with NULL ego\n");
-    return;
-  }
-  if ((GNUNET_NO == egos_collected) &&
-      (NULL != identifier))
-  {
-    ego_entry = GNUNET_new (struct EgoEntry);
-    GNUNET_IDENTITY_ego_get_public_key (ego, &pk);
-    ego_entry->keystring = GNUNET_IDENTITY_public_key_to_string (&pk);
-    ego_entry->ego = ego;
-    ego_entry->identifier = GNUNET_strdup (identifier);
-    GNUNET_CONTAINER_DLL_insert_tail (ego_head,
-                                      ego_tail,
-                                      ego_entry);
-    return;
-  }
-  /* Ego renamed or added */
-  if (identifier != NULL)
-  {
-    for (ego_entry = ego_head; NULL != ego_entry;
-         ego_entry = ego_entry->next)
-    {
-      if (ego_entry->ego == ego)
-      {
-        /* Rename */
-        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                    "Renaming ego %s->%s\n", ego_entry->identifier,
-                    identifier);
-        GNUNET_free (ego_entry->identifier);
-        ego_entry->identifier = GNUNET_strdup (identifier);
-        break;
-      }
-    }
-    if (NULL == ego_entry)
-    {
-      /* Add */
-      ego_entry = GNUNET_new (struct EgoEntry);
-      GNUNET_IDENTITY_ego_get_public_key (ego, &pk);
-      ego_entry->keystring = GNUNET_IDENTITY_public_key_to_string (&pk);
-      ego_entry->ego = ego;
-      ego_entry->identifier = GNUNET_strdup (identifier);
-      GNUNET_CONTAINER_DLL_insert_tail (ego_head,
-                                        ego_tail,
-                                        ego_entry);
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                  "Added ego %s\n", ego_entry->identifier);
-    }
-  }
-  else
-  {
-    /* Delete */
-    for (ego_entry = ego_head; NULL != ego_entry;
-         ego_entry = ego_entry->next)
-    {
-      if (ego_entry->ego == ego)
-        break;
-    }
-    if (NULL == ego_entry)
-      return;   /* Not found */
-
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Removing ego %s\n", ego_entry->identifier);
-    GNUNET_CONTAINER_DLL_remove (ego_head,
-                                 ego_tail,
-                                 ego_entry);
-    GNUNET_free (ego_entry->identifier);
-    GNUNET_free (ego_entry->keystring);
-    GNUNET_free (ego_entry);
-    return;
-  }
-
-}
-
-
-
 /**
  * Process namestore requests.
  *
@@ -2773,10 +2526,6 @@ run (void *cls,
     GNUNET_SCHEDULER_add_now (&cleanup_task, NULL);
     return;
   }
-  egos_collected = GNUNET_NO;
-  /** Suspend until we have all egos */
-  GNUNET_SERVICE_suspend (service);
-  identity_handle = GNUNET_IDENTITY_connect (cfg, &ego_callback, service);
   GNUNET_SCHEDULER_add_shutdown (&cleanup_task, NULL);
 }
 

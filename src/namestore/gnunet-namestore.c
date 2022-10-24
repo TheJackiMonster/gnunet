@@ -56,6 +56,57 @@ struct RecordSetEntry
   struct GNUNET_GNSRECORD_Data record;
 };
 
+/**
+ * The orphaned record
+ */
+struct Orphan
+{
+  /**
+   * DLL
+   */
+  struct Orphan *next;
+
+  /**
+   * DLL
+   */
+  struct Orphan *prev;
+
+  /**
+   * Ego Identifier
+   */
+  char *name;
+
+  /**
+   * The zone key
+   */
+  struct GNUNET_IDENTITY_PrivateKey key;
+};
+
+/**
+ * The default namestore ego
+ */
+struct EgoEntry
+{
+  /**
+   * DLL
+   */
+  struct EgoEntry *next;
+
+  /**
+   * DLL
+   */
+  struct EgoEntry *prev;
+
+  /**
+   * Ego Identifier
+   */
+  char *identifier;
+
+  /**
+   * The Ego
+   */
+  struct GNUNET_IDENTITY_Ego *ego;
+};
 
 /**
  * Handle to the namestore.
@@ -113,6 +164,27 @@ static struct GNUNET_NAMESTORE_QueueEntry *get_qe;
 static struct GNUNET_NAMESTORE_QueueEntry *reverse_qe;
 
 /**
+ * Orphan list
+ */
+static struct Orphan *orphans_head;
+
+/**
+ * Orphan list
+ */
+static struct Orphan *orphans_tail;
+
+
+/**
+ * Ego list
+ */
+static struct EgoEntry *ego_head;
+
+/**
+ * Ego list
+ */
+static struct EgoEntry *ego_tail;
+
+/**
  * Desired action is to list records.
  */
 static int list;
@@ -146,6 +218,16 @@ static int omit_private;
  * Do not filter maintenance records
  */
 static int include_maintenance;
+
+/**
+ * Purge orphaned records
+ */
+static int purge_orphaned;
+
+/**
+ * Recover zone keys of orphaned records
+ */
+static int recover_orphaned;
 
 /**
  * Queue entry for the 'del' operation.
@@ -237,6 +319,10 @@ static int monitor;
  */
 static struct RecordSetEntry *recordset;
 
+/**
+ * Purge task
+ */
+static struct GNUNET_SCHEDULER_Task *purge_task;
 
 /**
  * Task run on shutdown.  Cleans up everything.
@@ -246,11 +332,20 @@ static struct RecordSetEntry *recordset;
 static void
 do_shutdown (void *cls)
 {
+  struct EgoEntry *ego_entry;
+  struct EgoEntry *ego_tmp;
+  struct Orphan *orphan;
+  struct Orphan *orphan_tmp;
   (void) cls;
   if (NULL != get_default)
   {
     GNUNET_IDENTITY_cancel (get_default);
     get_default = NULL;
+  }
+  if (NULL != purge_task)
+  {
+    GNUNET_SCHEDULER_cancel (purge_task);
+    purge_task = NULL;
   }
   if (NULL != idh)
   {
@@ -261,6 +356,20 @@ do_shutdown (void *cls)
   {
     GNUNET_IDENTITY_ego_lookup_cancel (el);
     el = NULL;
+  }
+  for (orphan = orphans_head; NULL != orphan;)
+  {
+    orphan_tmp = orphan;
+    orphan = orphan->next;
+    GNUNET_free (orphan_tmp->name);
+    GNUNET_free (orphan_tmp);
+  }
+  for (ego_entry = ego_head; NULL != ego_entry;)
+  {
+    ego_tmp = ego_entry;
+    ego_entry = ego_entry->next;
+    GNUNET_free (ego_tmp->identifier);
+    GNUNET_free (ego_tmp);
   }
   if (NULL != list_it)
   {
@@ -361,6 +470,48 @@ del_continuation (void *cls, enum GNUNET_ErrorCode ec)
   test_finished ();
 }
 
+static void
+purge_next_orphan (void *cls);
+
+static void
+orphan_deleted (void *cls, enum GNUNET_ErrorCode ec)
+{
+  del_qe = NULL;
+  if (GNUNET_EC_NONE != ec)
+  {
+    fprintf (stderr,
+             _ ("Deleting orphan failed: %s\n"),
+             GNUNET_ErrorCode_get_hint (ec));
+  }
+  purge_task = GNUNET_SCHEDULER_add_now (&purge_next_orphan, NULL);
+}
+
+
+static void
+purge_next_orphan (void *cls)
+{
+  struct Orphan *orphan;
+  purge_task = NULL;
+
+  if (NULL == orphans_head)
+  {
+    ret = 0;
+    test_finished ();
+    return;
+  }
+  orphan = orphans_head;
+  GNUNET_CONTAINER_DLL_remove (orphans_head,
+                               orphans_tail,
+                               orphan);
+  del_qe = GNUNET_NAMESTORE_records_store (ns,
+                                           &orphan->key,
+                                           orphan->name,
+                                           0, NULL,
+                                           &orphan_deleted,
+                                           NULL);
+  GNUNET_free (orphan->name);
+  GNUNET_free (orphan);
+}
 
 /**
  * Function called when we are done with a zone iteration.
@@ -370,6 +521,12 @@ zone_iteration_finished (void *cls)
 {
   (void) cls;
   list_it = NULL;
+  if (purge_orphaned)
+  {
+    purge_task = GNUNET_SCHEDULER_add_now (&purge_next_orphan, NULL);
+    return;
+  }
+  ret = 0;
   test_finished ();
 }
 
@@ -387,6 +544,36 @@ zone_iteration_error_cb (void *cls)
   test_finished ();
 }
 
+static void
+collect_orphans (const struct GNUNET_IDENTITY_PrivateKey *zone_key,
+                const char *rname,
+                unsigned int rd_len,
+                const struct GNUNET_GNSRECORD_Data *rd)
+{
+  struct EgoEntry *ego;
+  struct Orphan *orphan;
+  int is_orphaned = 1;
+
+  for (ego = ego_head; NULL != ego; ego = ego->next)
+  {
+    if (0 == memcmp (GNUNET_IDENTITY_ego_get_private_key (ego->ego),
+                     zone_key,
+                     sizeof (*zone_key)))
+    {
+      is_orphaned = 0;
+      break;
+    }
+  }
+  if (is_orphaned)
+  {
+    orphan = GNUNET_new (struct Orphan);
+    orphan->key = *zone_key;
+    orphan->name = GNUNET_strdup (rname);
+    GNUNET_CONTAINER_DLL_insert (orphans_head,
+                                 orphans_tail,
+                                 orphan);
+  }
+}
 
 /**
  * Process a record that was stored in the namestore.
@@ -396,7 +583,8 @@ zone_iteration_error_cb (void *cls)
  * @param rd array of records with data to store
  */
 static void
-display_record (const char *rname,
+display_record (const struct GNUNET_IDENTITY_PrivateKey *zone_key,
+                const char *rname,
                 unsigned int rd_len,
                 const struct GNUNET_GNSRECORD_Data *rd)
 {
@@ -405,7 +593,10 @@ display_record (const char *rname,
   const char *ets;
   struct GNUNET_TIME_Absolute at;
   struct GNUNET_TIME_Relative rt;
+  struct EgoEntry *ego;
   int have_record;
+  int is_orphaned = 1;
+  char *orphaned_str;
 
   if ((NULL != name) && (0 != strcmp (name, rname)))
     return;
@@ -422,7 +613,23 @@ display_record (const char *rname,
   }
   if (GNUNET_NO == have_record)
     return;
-  fprintf (stdout, "%s:\n", rname);
+  for (ego = ego_head; NULL != ego; ego = ego->next)
+  {
+    if (0 == memcmp (GNUNET_IDENTITY_ego_get_private_key (ego->ego),
+                     zone_key,
+                     sizeof (*zone_key)))
+    {
+      is_orphaned = 0;
+      break;
+    }
+  }
+  if (recover_orphaned)
+    orphaned_str = GNUNET_IDENTITY_private_key_to_string (zone_key);
+  else
+    orphaned_str = GNUNET_strdup ("<orphaned>");
+  fprintf (stdout, "%s.%s:\n", rname, is_orphaned ? orphaned_str :
+           ego->identifier);
+  GNUNET_free (orphaned_str);
   if (NULL != typestring)
     type = GNUNET_GNSRECORD_typename_to_number (typestring);
   else
@@ -469,6 +676,21 @@ display_record (const char *rname,
   fprintf (stdout, "%s", "\n");
 }
 
+static void
+purge_orphans_iterator (void *cls,
+                         const struct GNUNET_IDENTITY_PrivateKey *zone_key,
+                         const char *rname,
+                         unsigned int rd_len,
+                         const struct GNUNET_GNSRECORD_Data *rd,
+                         struct GNUNET_TIME_Absolute expiry)
+{
+  (void) cls;
+  (void) zone_key;
+  (void) expiry;
+  collect_orphans (zone_key, rname, rd_len, rd);
+  GNUNET_NAMESTORE_zone_iterator_next (list_it, 1);
+}
+
 
 /**
  * Process a record that was stored in the namestore.
@@ -490,7 +712,7 @@ display_record_iterator (void *cls,
   (void) cls;
   (void) zone_key;
   (void) expiry;
-  display_record (rname, rd_len, rd);
+  display_record (zone_key, rname, rd_len, rd);
   GNUNET_NAMESTORE_zone_iterator_next (list_it, 1);
 }
 
@@ -515,7 +737,7 @@ display_record_monitor (void *cls,
   (void) cls;
   (void) zone_key;
   (void) expiry;
-  display_record (rname, rd_len, rd);
+  display_record (zone_key, rname, rd_len, rd);
   GNUNET_NAMESTORE_zone_monitor_next (zm, 1);
 }
 
@@ -539,7 +761,7 @@ display_record_lookup (void *cls,
   (void) cls;
   (void) zone_key;
   get_qe = NULL;
-  display_record (rname, rd_len, rd);
+  display_record (zone_key, rname, rd_len, rd);
   test_finished ();
 }
 
@@ -911,7 +1133,8 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
   if (include_maintenance)
     filter_flags |= GNUNET_GNSRECORD_FILTER_INCLUDE_MAINTENANCE;
   if (! (add | del | list | (NULL != nickstring) | (NULL != uri)
-         | (NULL != reverse_pkey) | (NULL != recordset) | (monitor)))
+         | (NULL != reverse_pkey) | (NULL != recordset) | (monitor)
+         | (purge_orphaned) | (recover_orphaned)) )
   {
     /* nothing more to be done */
     fprintf (stderr, _ ("No options given\n"));
@@ -1089,7 +1312,21 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
                                               &del_monitor,
                                               NULL);
   }
-  if (list)
+  if (purge_orphaned)
+  {
+    list_it = GNUNET_NAMESTORE_zone_iteration_start2 (ns,
+                                                      (NULL == ego_name) ?
+                                                      NULL : &zone_pkey,
+                                                      &zone_iteration_error_cb,
+                                                      NULL,
+                                                      &purge_orphans_iterator,
+                                                      NULL,
+                                                      &zone_iteration_finished,
+                                                      NULL,
+                                                      filter_flags);
+
+  }
+  else if (list)
   {
     if (NULL != name)
       get_qe = GNUNET_NAMESTORE_records_lookup (ns,
@@ -1101,7 +1338,8 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
                                                 NULL);
     else
       list_it = GNUNET_NAMESTORE_zone_iteration_start2 (ns,
-                                                        &zone_pkey,
+                                                        (NULL == ego_name) ?
+                                                        NULL : &zone_pkey,
                                                         &zone_iteration_error_cb,
                                                         NULL,
                                                         &display_record_iterator,
@@ -1289,13 +1527,29 @@ id_connect_cb (void *cls,
                const char *name)
 {
   const struct GNUNET_CONFIGURATION_Handle *cfg = cls;
+  struct GNUNET_IDENTITY_PublicKey pk;
+  struct EgoEntry *ego_entry;
 
   (void) ctx;
   (void) name;
+  if ((NULL != name) && (NULL != ego))
+  {
+    ego_entry = GNUNET_new (struct EgoEntry);
+    GNUNET_IDENTITY_ego_get_public_key (ego, &pk);
+    ego_entry->ego = ego;
+    ego_entry->identifier = GNUNET_strdup (name);
+    GNUNET_CONTAINER_DLL_insert_tail (ego_head,
+                                      ego_tail,
+                                      ego_entry);
+    return;
+  }
   if (NULL != ego)
     return;
-  get_default =
-    GNUNET_IDENTITY_get (idh, "namestore", &default_ego_cb, (void *) cfg);
+  if (NULL != ego_name)
+    el = GNUNET_IDENTITY_ego_lookup (cfg, ego_name, &identity_cb, (void *) cfg);
+  else
+    get_default =
+      GNUNET_IDENTITY_get (idh, "namestore", &default_ego_cb, (void *) cfg);
 }
 
 
@@ -1346,15 +1600,10 @@ run (void *cls,
     run_with_zone_pkey (cfg);
     return;
   }
-  if (NULL == ego_name)
-  {
-    idh = GNUNET_IDENTITY_connect (cfg, &id_connect_cb, (void *) cfg);
-    if (NULL == idh)
-      fprintf (stderr, _ ("Cannot connect to identity service\n"));
-    ret = -1;
-    return;
-  }
-  el = GNUNET_IDENTITY_ego_lookup (cfg, ego_name, &identity_cb, (void *) cfg);
+  idh = GNUNET_IDENTITY_connect (cfg, &id_connect_cb, (void *) cfg);
+  if (NULL == idh)
+    fprintf (stderr, _ ("Cannot connect to identity service\n"));
+  ret = -1;
 }
 
 
@@ -1600,6 +1849,16 @@ main (int argc, char *const *argv)
                                gettext_noop (
                                  "do not filter maintenance records"),
                                &include_maintenance),
+    GNUNET_GETOPT_option_flag ('P',
+                               "purge-orphans",
+                               gettext_noop (
+                                 "purge namestore of all orphans"),
+                               &purge_orphaned),
+    GNUNET_GETOPT_option_flag ('S',
+                               "show-orphans-private-key",
+                               gettext_noop (
+                                 "show private key for orphaned records for recovery using `gnunet-identity -C -P <key>'. Use in combination with --display"),
+                               &recover_orphaned),
     GNUNET_GETOPT_option_flag (
       's',
       "shadow",
