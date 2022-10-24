@@ -614,6 +614,7 @@ display_record (const struct GNUNET_IDENTITY_PrivateKey *zone_key,
   const char *typestr;
   char *s;
   const char *ets;
+  struct GNUNET_IDENTITY_PublicKey pk;
   struct GNUNET_TIME_Absolute at;
   struct GNUNET_TIME_Relative rt;
   struct EgoEntry *ego;
@@ -646,11 +647,12 @@ display_record (const struct GNUNET_IDENTITY_PrivateKey *zone_key,
       break;
     }
   }
-  if (list_orphaned && !is_orphaned)
+  if (list_orphaned && ! is_orphaned)
     return;
-  if (!list_orphaned && is_orphaned)
+  if (! list_orphaned && is_orphaned)
     return;
-  orphaned_str = GNUNET_IDENTITY_private_key_to_string (zone_key);
+  GNUNET_IDENTITY_key_get_public (zone_key, &pk);
+  orphaned_str = GNUNET_IDENTITY_public_key_to_string (&pk);
   fprintf (stdout, "%s.%s:\n", rname, is_orphaned ? orphaned_str :
            ego->identifier);
   GNUNET_free (orphaned_str);
@@ -1914,7 +1916,7 @@ main (int argc, char *const *argv)
     GNUNET_GETOPT_option_flag ('X',
                                "purge-zone-records",
                                gettext_noop (
-                               "delete all records in specified zone"),
+                                 "delete all records in specified zone"),
                                &purge_zone),
     GNUNET_GETOPT_option_flag (
       's',
