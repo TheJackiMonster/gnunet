@@ -336,7 +336,7 @@ do_error (void *cls)
   const char* emsg;
   int response_code;
 
-  emsg = GNUNET_strdup (GNUNET_ErrorCode_get_hint (handle->ec));
+  emsg = GNUNET_ErrorCode_get_hint (handle->ec);
   json_object_set_new (json_error, "error", json_string (emsg));
   json_object_set_new (json_error, "error_code", json_integer (handle->ec));
   response_code = GNUNET_ErrorCode_get_http_status (handle->ec);
