@@ -148,8 +148,9 @@ mq_error_handler (void *cls,
   struct GNUNET_FS_GetIndexedContext *gic = cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-              _ ("Failed to receive response from `%s' service.\n"),
-              "fs");
+              _ ("Failed to receive response from `%s' service (error code is %d).\n"),
+              "fs",
+              error);
   (void) gic->iterator (gic->iterator_cls, NULL, NULL);
   GNUNET_FS_get_indexed_files_cancel (gic);
 }
