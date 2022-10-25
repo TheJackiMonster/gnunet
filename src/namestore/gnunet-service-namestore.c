@@ -752,7 +752,11 @@ send_lookup_response_with_filter (struct NamestoreClient *nc,
     GNUNET_free (nick);
 
   if (0 == res_count)
+  {
+    if (rd_nf != res)
+      GNUNET_free (res);
     return 0;
+  }
   GNUNET_assert (-1 != GNUNET_GNSRECORD_records_get_size (res_count, res));
 
 
@@ -1573,6 +1577,7 @@ store_record_set (struct NamestoreClient *nc,
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Name `%s' does not exist, no deletion required\n",
                   conv_name);
+      res = GNUNET_NO;
       ec = GNUNET_EC_NAMESTORE_RECORD_NOT_FOUND;
     }
     else

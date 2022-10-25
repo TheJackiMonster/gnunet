@@ -985,9 +985,9 @@ GNUNET_CLIENT_test (const struct GNUNET_CONFIGURATION_Handle *cfg,
 #if HAVE_SOCKADDR_IN_SUN_LEN
     v4.sin_len = (u_char) sizeof(struct sockaddr_in);
 #endif
-    inet_pton (AF_INET,
-               "127.0.0.1",
-               &v4.sin_addr);
+    GNUNET_assert (1 == inet_pton (AF_INET,
+                                   "127.0.0.1",
+                                   &v4.sin_addr));
     ret = GNUNET_NO;
     sock = socket (AF_INET,
                    SOCK_STREAM,

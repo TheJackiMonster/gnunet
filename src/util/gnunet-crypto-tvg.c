@@ -640,6 +640,7 @@ checkvec (const char *operation,
       GNUNET_free (secret_enc_data);
       GNUNET_free (sig_enc_data);
       GNUNET_free (skey);
+      GNUNET_free (pkey);
       GNUNET_break (0);
       return GNUNET_NO;
     }
@@ -662,6 +663,8 @@ checkvec (const char *operation,
       GNUNET_free (secret_enc_data);
       GNUNET_free (sig_enc_data);
       GNUNET_free (skey);
+      GNUNET_free (sig);
+      GNUNET_free (pkey);
       GNUNET_break (0);
       return GNUNET_NO;
     }
@@ -670,6 +673,8 @@ checkvec (const char *operation,
     GNUNET_free (public_enc_data);
     GNUNET_free (secret_enc_data);
     GNUNET_free (sig_enc_data);
+    GNUNET_free (sig);
+    GNUNET_free (pkey);
     GNUNET_free (skey);
   }
   else if (0 == strcmp (operation, "cs_blind_signing"))

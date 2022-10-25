@@ -484,14 +484,14 @@ create_response (void *cls,
                                internal_error->response);
   }
 
-  MHD_add_response_header (pdfrs,
+  GNUNET_assert (MHD_NO != MHD_add_response_header (pdfrs,
                            MHD_HTTP_HEADER_CONTENT_TYPE,
-                           (NULL == qrpng) ? "application/pdf" : "image/png");
-  MHD_add_response_header (pdfrs,
+                           (NULL == qrpng) ? "application/pdf" : "image/png"));
+  GNUNET_assert (MHD_NO != MHD_add_response_header (pdfrs,
                            MHD_HTTP_HEADER_CONTENT_DISPOSITION,
                            (NULL == qrpng) ?
                            "attachment; filename=\"gns-business-card.pdf\"" :
-                           "attachment; filename=\"gns-qr-code.png\"");
+                           "attachment; filename=\"gns-qr-code.png\""));
   MHD_RESULT r = MHD_queue_response (connection, MHD_HTTP_OK, pdfrs);
 
   MHD_destroy_response (pdfrs);

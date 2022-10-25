@@ -412,7 +412,7 @@ shutdown_task (void *cls)
     GNUNET_CONTAINER_DLL_remove (cop_head, cop_tail, cop);
     GNUNET_free (cop);
   }
-
+  GNUNET_assert (0 == pthread_mutex_lock (&jobs_lock));
   while (NULL != (job = jobs_head))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -420,7 +420,8 @@ shutdown_task (void *cls)
     GNUNET_CONTAINER_DLL_remove (jobs_head, jobs_tail, job);
     free_job (job);
   }
-
+  GNUNET_assert (0 == pthread_mutex_unlock (&jobs_lock));
+  GNUNET_assert (0 == pthread_mutex_lock (&results_lock));
   while (NULL != (job = results_head))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -428,6 +429,7 @@ shutdown_task (void *cls)
     GNUNET_CONTAINER_DLL_remove (results_head, results_tail, job);
     free_job (job);
   }
+  GNUNET_assert (0 == pthread_mutex_unlock (&results_lock));
 
   while (NULL != (ma = it_head))
   {

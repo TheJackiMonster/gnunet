@@ -405,7 +405,9 @@ parse (void *cls)
       if (NULL == next)
       {
         fprintf (stderr, "Error at line %u: %s\n", ln, token);
-        break;
+        ret = 1;
+        GNUNET_SCHEDULER_shutdown ();
+        return;
       }
       next[0] = '\0';
       next++;
@@ -493,7 +495,7 @@ parse (void *cls)
       {
         if (GNUNET_SYSERR == parse_ttl (token, &ttl))
         {
-          fprintf (stderr, _("Failed to parse $TTL\n"));
+          fprintf (stderr, _ ("Failed to parse $TTL\n"));
           ret = 1;
           GNUNET_SCHEDULER_shutdown ();
           return;
@@ -504,7 +506,7 @@ parse (void *cls)
       {
         if (GNUNET_SYSERR == parse_origin (token, origin))
         {
-          fprintf (stderr, _("Failed to parse $ORIGIN from %s\n"), token);
+          fprintf (stderr, _ ("Failed to parse $ORIGIN from %s\n"), token);
           ret = 1;
           GNUNET_SCHEDULER_shutdown ();
           return;
