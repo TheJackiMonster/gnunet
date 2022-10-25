@@ -202,10 +202,6 @@ struct DhtPutActivity
    */
   struct GNUNET_TIME_Absolute start_date;
 
-  /**
-   * Zone monitor
-   */
-  struct GNUNET_NAMESTORE_ZoneMonitor *zm;
 };
 
 /**
@@ -772,13 +768,13 @@ dht_put_continuation (void *cls)
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "PUT complete\n");
-  /* When we just fall under the limit, trigger monitor or iterator again */
+  /* When we just fall under the limit, trigger monitor/iterator again
+   * creating a race condition, but we may actually have finished more
+   * PUTs by the time they come back and both can carry on */
   if (dht_queue_length == DHT_QUEUE_LIMIT)
   {
-    if (NULL != ma->zm)
-      GNUNET_NAMESTORE_zone_monitor_next (ma->zm, 1);
-    else
-      GNUNET_NAMESTORE_zone_iterator_next (namestore_iter, 1);
+    GNUNET_NAMESTORE_zone_monitor_next (zmon, 1);
+    GNUNET_NAMESTORE_zone_iterator_next (namestore_iter, 1);
   }
   dht_queue_length--;
   GNUNET_CONTAINER_DLL_remove (it_head,
@@ -1244,7 +1240,6 @@ handle_monitor_event (void *cls,
     return;
   }
   ma = GNUNET_new (struct DhtPutActivity);
-  ma->zm = zmon;
   perform_dht_put_monitor (zone,
                            label,
                            rd,
