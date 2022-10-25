@@ -59,7 +59,7 @@
 /**
  * How many pending DHT operations do we allow at most?
  */
-#define DHT_QUEUE_LIMIT 2000
+#define DHT_QUEUE_LIMIT 5000
 
 /**
  * How many events may the namestore give us before it has to wait
