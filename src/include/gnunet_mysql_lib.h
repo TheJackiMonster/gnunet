@@ -41,10 +41,14 @@ extern "C"
 #endif
 #endif
 
-#ifdef HAVE_MYSQL8
+#ifndef LIBMARIADB
+#ifdef HAVE_MYSQL8 && !LIBMARIADB
   typedef bool MYSQL_BOOL;
 #else
   typedef my_bool MYSQL_BOOL; //MySQL < 8 wants this
+#endif
+#else
+  typedef my_bool MYSQL_BOOL; //MariaDB still uses my_bool
 #endif
 
 

@@ -138,7 +138,8 @@ typedef void (*GNUNET_TRANSPORT_CommunicatorNotify) (
  * Connect to the transport service.
  *
  * @param cfg configuration to use
- * @param config_section section of the configuration to use for options
+ * @param config_section_name section of the configuration to use for 
+ *                            options
  * @param addr_prefix address prefix for addresses supported by this
  *        communicator, could be NULL for incoming-only communicators
  * @param cc what characteristics does the communicator have?
@@ -283,7 +284,7 @@ GNUNET_TRANSPORT_communicator_mq_add (
  * Notify transport service that an MQ was updated
  *
  * @param ch connection to transport service
- * @param qh the queue to update
+ * @param u_qh the queue to update
  * @param q_len number of messages that can be send through this queue
  * @param priority queue priority. Queues with highest priority should be
  *                 used

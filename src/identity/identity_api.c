@@ -661,16 +661,6 @@ GNUNET_IDENTITY_ego_get_public_key (struct GNUNET_IDENTITY_Ego *ego,
 }
 
 
-/**
- * Obtain the identity that is currently preferred/default
- * for a service.
- *
- * @param h identity service to query
- * @param service_name for which service is an identity wanted
- * @param cb function to call with the result (will only be called once)
- * @param cb_cls closure for @a cb
- * @return handle to abort the operation
- */
 struct GNUNET_IDENTITY_Operation *
 GNUNET_IDENTITY_get (struct GNUNET_IDENTITY_Handle *h,
                      const char *service_name,

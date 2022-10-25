@@ -493,18 +493,6 @@ GNUNET_SETU_destroy (struct GNUNET_SETU_Handle *set)
 }
 
 
-/**
- * Prepare a set operation to be evaluated with another peer.
- * The evaluation will not start until the client provides
- * a local set with #GNUNET_SETU_commit().
- *
- * @param other_peer peer with the other set
- * @param app_id hash for the application using the set
- * @param context_msg additional information for the request
- * @param result_cb called on error or success
- * @param result_cls closure for @e result_cb
- * @return a handle to cancel the operation
- */
 struct GNUNET_SETU_OperationHandle *
 GNUNET_SETU_prepare (const struct GNUNET_PeerIdentity *other_peer,
                      const struct GNUNET_HashCode *app_id,
@@ -777,20 +765,6 @@ GNUNET_SETU_listen_cancel (struct GNUNET_SETU_ListenHandle *lh)
 }
 
 
-/**
- * Accept a request we got via #GNUNET_SETU_listen.  Must be called during
- * #GNUNET_SETU_listen, as the 'struct GNUNET_SETU_Request' becomes invalid
- * afterwards.
- * Call #GNUNET_SETU_commit to provide the local set to use for the operation,
- * and to begin the exchange with the remote peer.
- *
- * @param request request to accept
- * @param result_mode specified how results will be returned,
- *        see `enum GNUNET_SETU_ResultMode`.
- * @param result_cb callback for the results
- * @param result_cls closure for @a result_cb
- * @return a handle to cancel the operation
- */
 struct GNUNET_SETU_OperationHandle *
 GNUNET_SETU_accept (struct GNUNET_SETU_Request *request,
                     const struct GNUNET_SETU_Option options[],

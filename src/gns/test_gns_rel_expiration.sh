@@ -34,6 +34,7 @@ DELEGATED_PKEY=$(gnunet-identity -d -c test_gns_lookup.conf | grep $OTHER_EGO | 
 gnunet-namestore -p -z $MY_EGO -a -n b -t PKEY -V $DELEGATED_PKEY -e never -c test_gns_lookup.conf
 gnunet-namestore -p -z $OTHER_EGO -a -n www -t A -V $TEST_IP -e '5 s' -c test_gns_lookup.conf
 gnunet-arm -i gns -c test_gns_lookup.conf
+sleep 0.5
 # confirm that lookup currently works
 RES_IP=`$DO_TIMEOUT gnunet-gns --raw -u www.b.$MY_EGO -t A -c test_gns_lookup.conf`
 # remove entry

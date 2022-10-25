@@ -58,8 +58,6 @@ GAS_handle_reservation_request (struct GNUNET_SERVICE_Client *client,
 
 /**
  * Initialize reservations subsystem.
- *
- * @param server handle to our server
  */
 void
 GAS_reservations_init (void);

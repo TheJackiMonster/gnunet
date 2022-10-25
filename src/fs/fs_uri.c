@@ -91,14 +91,6 @@
 #include <unistdio.h>
 
 
-/**
- * Get a unique key from a URI.  This is for putting URIs
- * into HashMaps.  The key may change between FS implementations.
- *
- * @param uri uri to convert to a unique key
- * @param key where to store the unique key
- * @return #GNUNET_OK on success
- */
 int
 GNUNET_FS_uri_to_key (const struct GNUNET_FS_Uri *uri,
                       struct GNUNET_HashCode *key)
@@ -723,15 +715,6 @@ GNUNET_FS_uri_ksk_get_keyword_count (const struct GNUNET_FS_Uri *uri)
 }
 
 
-/**
- * Iterate over all keywords in this keyword URI.
- *
- * @param uri ksk uri to get the keywords from
- * @param iterator function to call on each keyword
- * @param iterator_cls closure for iterator
- * @return -1 if this is not a keyword URI, otherwise number of
- *   keywords iterated over until iterator aborted
- */
 int
 GNUNET_FS_uri_ksk_get_keywords (const struct GNUNET_FS_Uri *uri,
                                 GNUNET_FS_KeywordIterator iterator,

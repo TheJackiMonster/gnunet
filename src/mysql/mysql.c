@@ -430,7 +430,6 @@ GNUNET_MYSQL_statement_run (struct GNUNET_MYSQL_Context *mc, const char *sql)
 /**
  * Prepare a statement for running.
  *
- * @param mc mysql context
  * @param sh statement handle to prepare
  * @return #GNUNET_OK on success
  */

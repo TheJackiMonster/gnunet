@@ -67,7 +67,7 @@ clean_varsize_blob (void *cls,
  *
  * @param cls closure
  * @param result where to extract data from
- * @param int row to extract data from
+ * @param row row to extract data from
  * @param fname name (or prefix) of the fields to extract from
  * @param[in,out] dst_size where to store size of result, may be NULL
  * @param[out] dst where to store the result
@@ -144,7 +144,7 @@ GNUNET_PQ_result_spec_variable_size (const char *name,
  *
  * @param cls closure
  * @param result where to extract data from
- * @param int row to extract data from
+ * @param row row to extract data from
  * @param fname name (or prefix) of the fields to extract from
  * @param[in] dst_size desired size, never NULL
  * @param[out] dst where to store the result
@@ -226,7 +226,7 @@ GNUNET_PQ_result_spec_fixed_size (const char *name,
  *
  * @param cls closure
  * @param result where to extract data from
- * @param int row to extract data from
+ * @param row row to extract data from
  * @param fname name (or prefix) of the fields to extract from
  * @param[in,out] dst_size where to store size of result, may be NULL
  * @param[out] dst where to store the result
@@ -322,7 +322,7 @@ GNUNET_PQ_result_spec_rsa_public_key (const char *name,
  *
  * @param cls closure
  * @param result where to extract data from
- * @param int row to extract data from
+ * @param row row to extract data from
  * @param fname name (or prefix) of the fields to extract from
  * @param[in,out] dst_size where to store size of result, may be NULL
  * @param[out] dst where to store the result
@@ -417,7 +417,7 @@ GNUNET_PQ_result_spec_rsa_signature (const char *name,
  *
  * @param cls closure
  * @param result where to extract data from
- * @param int row to extract data from
+ * @param row row to extract data from
  * @param fname name (or prefix) of the fields to extract from
  * @param[in,out] dst_size where to store size of result, may be NULL
  * @param[out] dst where to store the result
@@ -512,7 +512,7 @@ GNUNET_PQ_result_spec_string (const char *name,
  *
  * @param cls closure
  * @param result where to extract data from
- * @param int row to extract data from
+ * @param row row to extract data from
  * @param fname name (or prefix) of the fields to extract from
  * @param[in,out] dst_size where to store size of result, may be NULL
  * @param[out] dst where to store the result
@@ -582,7 +582,7 @@ GNUNET_PQ_result_spec_bool (const char *name,
  *
  * @param cls closure
  * @param result where to extract data from
- * @param int row to extract data from
+ * @param row row to extract data from
  * @param fname name (or prefix) of the fields to extract from
  * @param[in,out] dst_size where to store size of result, may be NULL
  * @param[out] dst where to store the result
@@ -659,7 +659,7 @@ GNUNET_PQ_result_spec_relative_time (const char *name,
  *
  * @param cls closure
  * @param result where to extract data from
- * @param int row to extract data from
+ * @param row row to extract data from
  * @param fname name (or prefix) of the fields to extract from
  * @param[in,out] dst_size where to store size of result, may be NULL
  * @param[out] dst where to store the result
@@ -748,7 +748,7 @@ GNUNET_PQ_result_spec_absolute_time_nbo (const char *name,
  *
  * @param cls closure
  * @param result where to extract data from
- * @param int row to extract data from
+ * @param row row to extract data from
  * @param fname name (or prefix) of the fields to extract from
  * @param[in,out] dst_size where to store size of result, may be NULL
  * @param[out] dst where to store the result
@@ -837,7 +837,7 @@ GNUNET_PQ_result_spec_timestamp (const char *name,
  *
  * @param cls closure
  * @param result where to extract data from
- * @param int row to extract data from
+ * @param row row to extract data from
  * @param fname name (or prefix) of the fields to extract from
  * @param[in,out] dst_size where to store size of result, may be NULL
  * @param[out] dst where to store the result
@@ -890,7 +890,7 @@ GNUNET_PQ_result_spec_timestamp_nbo (const char *name,
  *
  * @param cls closure
  * @param result where to extract data from
- * @param int row to extract data from
+ * @param row row to extract data from
  * @param fname name (or prefix) of the fields to extract from
  * @param[in,out] dst_size where to store size of result, may be NULL
  * @param[out] dst where to store the result
@@ -964,7 +964,7 @@ GNUNET_PQ_result_spec_uint16 (const char *name,
  *
  * @param cls closure
  * @param result where to extract data from
- * @param int row to extract data from
+ * @param row row to extract data from
  * @param fname name (or prefix) of the fields to extract from
  * @param[in,out] dst_size where to store size of result, may be NULL
  * @param[out] dst where to store the result
@@ -1038,7 +1038,7 @@ GNUNET_PQ_result_spec_uint32 (const char *name,
  *
  * @param cls closure
  * @param result where to extract data from
- * @param int row to extract data from
+ * @param row row to extract data from
  * @param fname name (or prefix) of the fields to extract from
  * @param[in,out] dst_size where to store size of result, may be NULL
  * @param[out] dst where to store the result

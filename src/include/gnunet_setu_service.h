@@ -291,9 +291,9 @@ GNUNET_SETU_destroy (struct GNUNET_SETU_Handle *set);
 
 
 /**
- * Prepare a set operation to be evaluated with another peer.  The evaluation
- * will not start until the client provides a local set with
- * GNUNET_SETU_commit().
+ * Prepare a set operation to be evaluated with another peer.
+ * The evaluation will not start until the client provides a 
+ * local set with GNUNET_SETU_commit().
  *
  * @param other_peer peer with the other set
  * @param app_id hash for the application using the set

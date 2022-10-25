@@ -148,21 +148,14 @@ mq_error_handler (void *cls,
   struct GNUNET_FS_GetIndexedContext *gic = cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-              _ ("Failed to receive response from `%s' service.\n"),
-              "fs");
+              _ ("Failed to receive response from `%s' service (error code is %d).\n"),
+              "fs",
+              error);
   (void) gic->iterator (gic->iterator_cls, NULL, NULL);
   GNUNET_FS_get_indexed_files_cancel (gic);
 }
 
 
-/**
- * Iterate over all indexed files.
- *
- * @param h handle to the file sharing subsystem
- * @param iterator function to call on each indexed file
- * @param iterator_cls closure for iterator
- * @return NULL on error ('iter' is not called)
- */
 struct GNUNET_FS_GetIndexedContext *
 GNUNET_FS_get_indexed_files (struct GNUNET_FS_Handle *h,
                              GNUNET_FS_IndexedFileProcessor iterator,

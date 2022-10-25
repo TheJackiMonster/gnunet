@@ -216,12 +216,6 @@ REGEX_INTERNAL_announce (struct GNUNET_DHT_Handle *dht,
 }
 
 
-/**
- * Announce again a regular expression previously announced.
- * Does use caching to speed up process.
- *
- * @param h Handle returned by a previous #REGEX_INTERNAL_announce call().
- */
 void
 REGEX_INTERNAL_reannounce (struct REGEX_INTERNAL_Announcement *h)
 {

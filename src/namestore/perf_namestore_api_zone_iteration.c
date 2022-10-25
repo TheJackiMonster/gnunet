@@ -266,12 +266,11 @@ publish_record (void *cls);
 
 static void
 put_cont (void *cls,
-          int32_t success,
-          const char *emsg)
+          enum GNUNET_ErrorCode ec)
 {
   (void) cls;
   qe = NULL;
-  if (GNUNET_OK != success)
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_break (0);
     GNUNET_SCHEDULER_shutdown ();

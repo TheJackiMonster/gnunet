@@ -297,13 +297,6 @@ GNUNET_TESTBED_LOGGER_write (struct GNUNET_TESTBED_LOGGER_Handle *h,
 }
 
 
-/**
- * Flush the buffered data to the logger service
- *
- * @param h the logger handle
- * @param cb the callback to call after the data is flushed
- * @param cb_cls the closure for the above callback
- */
 void
 GNUNET_TESTBED_LOGGER_flush (struct GNUNET_TESTBED_LOGGER_Handle *h,
                              GNUNET_TESTBED_LOGGER_FlushCompletion cb,

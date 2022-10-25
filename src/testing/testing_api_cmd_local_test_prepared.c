@@ -92,14 +92,6 @@ local_test_prepared_run (void *cls,
 }
 
 
-/**
- * Create command.
- *
- * @param label name for command.
- * @param write_message Callback to write messages to the master loop.
- * @param all_local_tests_prepared Flag which will be set from outside.
- * @return command.
- */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_local_test_prepared (const char *label,
                                         TESTING_CMD_HELPER_write_cb

@@ -210,7 +210,7 @@ find_content (void *cls);
 /**
  * Send the given block to the given peer.
  *
- * @param peer target peer
+ * @param mrp target peer
  * @param block the block
  * @return #GNUNET_YES if the block was deleted (!)
  */

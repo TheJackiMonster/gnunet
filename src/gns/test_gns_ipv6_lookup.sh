@@ -21,6 +21,7 @@ TEST_IP="dead::beef"
 gnunet-arm -s -c test_gns_lookup.conf
 gnunet-identity -C $MY_EGO -c test_gns_lookup.conf
 gnunet-namestore -p -z $MY_EGO -a -n www -t AAAA -V $TEST_IP -e never -c test_gns_lookup.conf
+sleep 0.5
 RES_IP=`$DO_TIMEOUT gnunet-gns --raw -u www.$MY_EGO -t AAAA -c test_gns_lookup.conf`
 gnunet-namestore -z $MY_EGO -d -n www -t AAAA -V $TEST_IP -e never -c test_gns_lookup.conf
 gnunet-identity -D $MY_EGO -c test_gns_lookup.conf

@@ -1342,8 +1342,6 @@ handle_p2p_get (void *cls,
  * @param cp target peer
  * @param is_query is this a query (#GNUNET_YES) or content (#GNUNET_NO) or neither (#GNUNET_SYSERR)
  * @param priority how important is this request?
- * @param timeout when does this request timeout
- * @param size number of bytes we would like to send to the peer
  * @param env message to send
  */
 void

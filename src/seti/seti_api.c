@@ -509,19 +509,6 @@ GNUNET_SETI_destroy (struct GNUNET_SETI_Handle *set)
 }
 
 
-/**
- * Prepare a set operation to be evaluated with another peer.
- * The evaluation will not start until the client provides
- * a local set with #GNUNET_SETI_commit().
- *
- * @param other_peer peer with the other set
- * @param app_id hash for the application using the set
- * @param context_msg additional information for the request
- * @param options options to use when processing the request
- * @param result_cb called on error or success
- * @param result_cls closure for @e result_cb
- * @return a handle to cancel the operation
- */
 struct GNUNET_SETI_OperationHandle *
 GNUNET_SETI_prepare (const struct GNUNET_PeerIdentity *other_peer,
                      const struct GNUNET_HashCode *app_id,
@@ -763,19 +750,6 @@ GNUNET_SETI_listen_cancel (struct GNUNET_SETI_ListenHandle *lh)
 }
 
 
-/**
- * Accept a request we got via #GNUNET_SETI_listen.  Must be called during
- * #GNUNET_SETI_listen, as the 'struct GNUNET_SETI_Request' becomes invalid
- * afterwards.
- * Call #GNUNET_SETI_commit to provide the local set to use for the operation,
- * and to begin the exchange with the remote peer.
- *
- * @param request request to accept
- * @param options options to use when processing the request
- * @param result_cb callback for the results
- * @param result_cls closure for @a result_cb
- * @return a handle to cancel the operation
- */
 struct GNUNET_SETI_OperationHandle *
 GNUNET_SETI_accept (struct GNUNET_SETI_Request *request,
                     const struct GNUNET_SETI_Option options[],

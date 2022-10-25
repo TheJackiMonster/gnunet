@@ -296,7 +296,7 @@ check_iter_element (void *cls,
  * iterator and sends an acknowledgement to the service.
  *
  * @param cls the `struct GNUNET_SET_Handle *`
- * @param mh the message
+ * @param msg the message
  */
 static void
 handle_iter_element (void *cls,
@@ -669,19 +669,6 @@ GNUNET_SET_create (const struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
-/**
- * Add an element to the given set.  After the element has been added
- * (in the sense of being transmitted to the set service), @a cont
- * will be called.  Multiple calls to GNUNET_SET_add_element() can be
- * queued.
- *
- * @param set set to add element to
- * @param element element to add to the set
- * @param cont continuation called after the element has been added
- * @param cont_cls closure for @a cont
- * @return #GNUNET_OK on success, #GNUNET_SYSERR if the
- *         set is invalid (e.g. the set service crashed)
- */
 int
 GNUNET_SET_add_element (struct GNUNET_SET_Handle *set,
                         const struct GNUNET_SET_Element *element,
@@ -716,19 +703,6 @@ GNUNET_SET_add_element (struct GNUNET_SET_Handle *set,
 }
 
 
-/**
- * Remove an element to the given set.  After the element has been
- * removed (in the sense of the request being transmitted to the set
- * service), @a cont will be called.  Multiple calls to
- * GNUNET_SET_remove_element() can be queued
- *
- * @param set set to remove element from
- * @param element element to remove from the set
- * @param cont continuation called after the element has been removed
- * @param cont_cls closure for @a cont
- * @return #GNUNET_OK on success, #GNUNET_SYSERR if the
- *         set is invalid (e.g. the set service crashed)
- */
 int
 GNUNET_SET_remove_element (struct GNUNET_SET_Handle *set,
                            const struct GNUNET_SET_Element *element,
@@ -794,20 +768,6 @@ GNUNET_SET_destroy (struct GNUNET_SET_Handle *set)
 }
 
 
-/**
- * Prepare a set operation to be evaluated with another peer.
- * The evaluation will not start until the client provides
- * a local set with #GNUNET_SET_commit().
- *
- * @param other_peer peer with the other set
- * @param app_id hash for the application using the set
- * @param context_msg additional information for the request
- * @param result_mode specified how results will be returned,
- *        see `enum GNUNET_SET_ResultMode`.
- * @param result_cb called on error or success
- * @param result_cls closure for @e result_cb
- * @return a handle to cancel the operation
- */
 struct GNUNET_SET_OperationHandle *
 GNUNET_SET_prepare (const struct GNUNET_PeerIdentity *other_peer,
                     const struct GNUNET_HashCode *app_id,
@@ -1066,20 +1026,6 @@ GNUNET_SET_listen_cancel (struct GNUNET_SET_ListenHandle *lh)
 }
 
 
-/**
- * Accept a request we got via #GNUNET_SET_listen.  Must be called during
- * #GNUNET_SET_listen, as the 'struct GNUNET_SET_Request' becomes invalid
- * afterwards.
- * Call #GNUNET_SET_commit to provide the local set to use for the operation,
- * and to begin the exchange with the remote peer.
- *
- * @param request request to accept
- * @param result_mode specified how results will be returned,
- *        see `enum GNUNET_SET_ResultMode`.
- * @param result_cb callback for the results
- * @param result_cls closure for @a result_cb
- * @return a handle to cancel the operation
- */
 struct GNUNET_SET_OperationHandle *
 GNUNET_SET_accept (struct GNUNET_SET_Request *request,
                    enum GNUNET_SET_ResultMode result_mode,
@@ -1234,13 +1180,6 @@ GNUNET_SET_element_dup (const struct GNUNET_SET_Element *element)
 }
 
 
-/**
- * Hash a set element.
- *
- * @param element the element that should be hashed
- * @param[out] ret_hash a pointer to where the hash of @a element
- *        should be stored
- */
 void
 GNUNET_SET_element_hash (const struct GNUNET_SET_Element *element,
                          struct GNUNET_HashCode *ret_hash)

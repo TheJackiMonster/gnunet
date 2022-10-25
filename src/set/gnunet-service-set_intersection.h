@@ -57,7 +57,7 @@ handle_intersection_p2p_bf (void *cls,
  * remote peer.
  *
  * @param cls the intersection operation
- * @param mh the header of the message
+ * @param msg the header of the message
  */
 void
 handle_intersection_p2p_element_info (void *cls,

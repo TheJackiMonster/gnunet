@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup Backbone
+ * @{
+ *
  * @author Christian Grothoff
  *
  * @file
@@ -132,5 +135,7 @@ extern "C"
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */  /* end of group addition to Backbone */
 
 /* end of gnunet_applications.h */

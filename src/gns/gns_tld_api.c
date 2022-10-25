@@ -186,7 +186,7 @@ lookup_with_public_key (struct GNUNET_GNS_LookupWithTldRequest *ltr,
  * @param cls a `struct GNUNET_GNS_LookupWithTldRequest *`
  * @param ego ego handle, NULL at the end of the iteration
  * @param ctx context we could store data to associate with @e ego
- * @param name name of the ego
+ * @param ego_name name of the ego
  */
 static void
 identity_zone_cb (void *cls,

@@ -56,6 +56,57 @@ struct RecordSetEntry
   struct GNUNET_GNSRECORD_Data record;
 };
 
+/**
+ * The record marked for deletion
+ */
+struct MarkedRecord
+{
+  /**
+   * DLL
+   */
+  struct MarkedRecord *next;
+
+  /**
+   * DLL
+   */
+  struct MarkedRecord *prev;
+
+  /**
+   * Ego Identifier
+   */
+  char *name;
+
+  /**
+   * The zone key
+   */
+  struct GNUNET_IDENTITY_PrivateKey key;
+};
+
+/**
+ * The default namestore ego
+ */
+struct EgoEntry
+{
+  /**
+   * DLL
+   */
+  struct EgoEntry *next;
+
+  /**
+   * DLL
+   */
+  struct EgoEntry *prev;
+
+  /**
+   * Ego Identifier
+   */
+  char *identifier;
+
+  /**
+   * The Ego
+   */
+  struct GNUNET_IDENTITY_Ego *ego;
+};
 
 /**
  * Handle to the namestore.
@@ -113,6 +164,27 @@ static struct GNUNET_NAMESTORE_QueueEntry *get_qe;
 static struct GNUNET_NAMESTORE_QueueEntry *reverse_qe;
 
 /**
+ * Marked record list
+ */
+static struct MarkedRecord *marked_head;
+
+/**
+ * Marked record list
+ */
+static struct MarkedRecord *marked_tail;
+
+
+/**
+ * Ego list
+ */
+static struct EgoEntry *ego_head;
+
+/**
+ * Ego list
+ */
+static struct EgoEntry *ego_tail;
+
+/**
  * Desired action is to list records.
  */
 static int list;
@@ -136,6 +208,31 @@ static int is_public;
  * Is record a shadow record (#GNUNET_GNSRECORD_RF_SHADOW_RECORD)
  */
 static int is_shadow;
+
+/**
+ * Filter private records
+ */
+static int omit_private;
+
+/**
+ * Purge zone contents
+ */
+static int purge_zone;
+
+/**
+ * Do not filter maintenance records
+ */
+static int include_maintenance;
+
+/**
+ * Purge orphaned records
+ */
+static int purge_orphaned;
+
+/**
+ * List records and zone keys of orphaned records
+ */
+static int list_orphaned;
 
 /**
  * Queue entry for the 'del' operation.
@@ -227,6 +324,10 @@ static int monitor;
  */
 static struct RecordSetEntry *recordset;
 
+/**
+ * Purge task
+ */
+static struct GNUNET_SCHEDULER_Task *purge_task;
 
 /**
  * Task run on shutdown.  Cleans up everything.
@@ -236,11 +337,20 @@ static struct RecordSetEntry *recordset;
 static void
 do_shutdown (void *cls)
 {
+  struct EgoEntry *ego_entry;
+  struct EgoEntry *ego_tmp;
+  struct MarkedRecord *mrec;
+  struct MarkedRecord *mrec_tmp;
   (void) cls;
   if (NULL != get_default)
   {
     GNUNET_IDENTITY_cancel (get_default);
     get_default = NULL;
+  }
+  if (NULL != purge_task)
+  {
+    GNUNET_SCHEDULER_cancel (purge_task);
+    purge_task = NULL;
   }
   if (NULL != idh)
   {
@@ -251,6 +361,20 @@ do_shutdown (void *cls)
   {
     GNUNET_IDENTITY_ego_lookup_cancel (el);
     el = NULL;
+  }
+  for (mrec = marked_head; NULL != mrec;)
+  {
+    mrec_tmp = mrec;
+    mrec = mrec->next;
+    GNUNET_free (mrec_tmp->name);
+    GNUNET_free (mrec_tmp);
+  }
+  for (ego_entry = ego_head; NULL != ego_entry;)
+  {
+    ego_tmp = ego_entry;
+    ego_entry = ego_entry->next;
+    GNUNET_free (ego_tmp->identifier);
+    GNUNET_free (ego_tmp);
   }
   if (NULL != list_it)
   {
@@ -318,28 +442,18 @@ test_finished ()
 }
 
 
-/**
- * Continuation called to notify client about result of the
- * operation.
- *
- * @param cls closure, location of the QueueEntry pointer to NULL out
- * @param success #GNUNET_SYSERR on failure (including timeout/queue drop/failure to validate)
- *                #GNUNET_NO if content was already there
- *                #GNUNET_YES (or other positive value) on success
- * @param emsg NULL on success, otherwise an error message
- */
 static void
-add_continuation (void *cls, int32_t success, const char *emsg)
+add_continuation (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct GNUNET_NAMESTORE_QueueEntry **qe = cls;
 
   *qe = NULL;
-  if (GNUNET_YES != success)
+  if (GNUNET_EC_NONE != ec)
   {
     fprintf (stderr,
              _ ("Adding record failed: %s\n"),
-             (GNUNET_NO == success) ? "record exists" : emsg);
-    if (GNUNET_NO != success)
+             GNUNET_ErrorCode_get_hint (ec));
+    if (GNUNET_EC_NAMESTORE_RECORD_EXISTS != ec)
       ret = 1;
   }
   ret = 0;
@@ -347,38 +461,62 @@ add_continuation (void *cls, int32_t success, const char *emsg)
 }
 
 
-/**
- * Continuation called to notify client about result of the
- * operation.
- *
- * @param cls closure, unused
- * @param success #GNUNET_SYSERR on failure (including timeout/queue drop/failure to validate)
- *                #GNUNET_NO if content was already there
- *                #GNUNET_YES (or other positive value) on success
- * @param emsg NULL on success, otherwise an error message
- */
 static void
-del_continuation (void *cls, int32_t success, const char *emsg)
+del_continuation (void *cls, enum GNUNET_ErrorCode ec)
 {
   (void) cls;
   del_qe = NULL;
-  if (GNUNET_NO == success)
+  if (GNUNET_EC_NAMESTORE_RECORD_NOT_FOUND == ec)
   {
     fprintf (stderr,
-             _ ("Deleting record failed, record does not exist%s%s\n"),
-             (NULL != emsg) ? ": " : "",
-             (NULL != emsg) ? emsg : "");
-  }
-  if (GNUNET_SYSERR == success)
-  {
-    fprintf (stderr,
-             _ ("Deleting record failed%s%s\n"),
-             (NULL != emsg) ? ": " : "",
-             (NULL != emsg) ? emsg : "");
+             _ ("Deleting record failed: %s\n"), GNUNET_ErrorCode_get_hint (
+               ec));
   }
   test_finished ();
 }
 
+static void
+purge_next_record (void *cls);
+
+static void
+marked_deleted (void *cls, enum GNUNET_ErrorCode ec)
+{
+  del_qe = NULL;
+  if (GNUNET_EC_NONE != ec)
+  {
+    fprintf (stderr,
+             _ ("Deleting record failed: %s\n"),
+             GNUNET_ErrorCode_get_hint (ec));
+  }
+  purge_task = GNUNET_SCHEDULER_add_now (&purge_next_record, NULL);
+}
+
+
+static void
+purge_next_record (void *cls)
+{
+  struct MarkedRecord *mrec;
+  purge_task = NULL;
+
+  if (NULL == marked_head)
+  {
+    ret = 0;
+    test_finished ();
+    return;
+  }
+  mrec = marked_head;
+  GNUNET_CONTAINER_DLL_remove (marked_head,
+                               marked_tail,
+                               mrec);
+  del_qe = GNUNET_NAMESTORE_records_store (ns,
+                                           &mrec->key,
+                                           mrec->name,
+                                           0, NULL,
+                                           &marked_deleted,
+                                           NULL);
+  GNUNET_free (mrec->name);
+  GNUNET_free (mrec);
+}
 
 /**
  * Function called when we are done with a zone iteration.
@@ -388,6 +526,12 @@ zone_iteration_finished (void *cls)
 {
   (void) cls;
   list_it = NULL;
+  if (purge_orphaned || purge_zone)
+  {
+    purge_task = GNUNET_SCHEDULER_add_now (&purge_next_record, NULL);
+    return;
+  }
+  ret = 0;
   test_finished ();
 }
 
@@ -405,6 +549,54 @@ zone_iteration_error_cb (void *cls)
   test_finished ();
 }
 
+static void
+collect_zone_records_to_purge (const struct
+                               GNUNET_IDENTITY_PrivateKey *zone_key,
+                               const char *rname,
+                               unsigned int rd_len,
+                               const struct GNUNET_GNSRECORD_Data *rd)
+{
+  struct MarkedRecord *mrec;
+
+  mrec = GNUNET_new (struct MarkedRecord);
+  mrec->key = *zone_key;
+  mrec->name = GNUNET_strdup (rname);
+  GNUNET_CONTAINER_DLL_insert (marked_head,
+                               marked_tail,
+                               mrec);
+}
+
+
+static void
+collect_orphans (const struct GNUNET_IDENTITY_PrivateKey *zone_key,
+                 const char *rname,
+                 unsigned int rd_len,
+                 const struct GNUNET_GNSRECORD_Data *rd)
+{
+  struct EgoEntry *ego;
+  struct MarkedRecord *orphan;
+  int is_orphaned = 1;
+
+  for (ego = ego_head; NULL != ego; ego = ego->next)
+  {
+    if (0 == memcmp (GNUNET_IDENTITY_ego_get_private_key (ego->ego),
+                     zone_key,
+                     sizeof (*zone_key)))
+    {
+      is_orphaned = 0;
+      break;
+    }
+  }
+  if (is_orphaned)
+  {
+    orphan = GNUNET_new (struct MarkedRecord);
+    orphan->key = *zone_key;
+    orphan->name = GNUNET_strdup (rname);
+    GNUNET_CONTAINER_DLL_insert (marked_head,
+                                 marked_tail,
+                                 orphan);
+  }
+}
 
 /**
  * Process a record that was stored in the namestore.
@@ -414,7 +606,8 @@ zone_iteration_error_cb (void *cls)
  * @param rd array of records with data to store
  */
 static void
-display_record (const char *rname,
+display_record (const struct GNUNET_IDENTITY_PrivateKey *zone_key,
+                const char *rname,
                 unsigned int rd_len,
                 const struct GNUNET_GNSRECORD_Data *rd)
 {
@@ -423,20 +616,18 @@ display_record (const char *rname,
   const char *ets;
   struct GNUNET_TIME_Absolute at;
   struct GNUNET_TIME_Relative rt;
+  struct EgoEntry *ego;
   int have_record;
+  int is_orphaned = 1;
+  char *orphaned_str;
 
   if ((NULL != name) && (0 != strcmp (name, rname)))
-  {
-    GNUNET_NAMESTORE_zone_iterator_next (list_it, 1);
     return;
-  }
   have_record = GNUNET_NO;
   for (unsigned int i = 0; i < rd_len; i++)
   {
     if ((GNUNET_GNSRECORD_TYPE_NICK == rd[i].record_type) &&
         (0 != strcmp (rname, GNUNET_GNS_EMPTY_LABEL_AT)))
-      continue;
-    if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[i].record_type)
       continue;
     if ((type != rd[i].record_type) && (GNUNET_GNSRECORD_TYPE_ANY != type))
       continue;
@@ -445,7 +636,24 @@ display_record (const char *rname,
   }
   if (GNUNET_NO == have_record)
     return;
-  fprintf (stdout, "%s:\n", rname);
+  for (ego = ego_head; NULL != ego; ego = ego->next)
+  {
+    if (0 == memcmp (GNUNET_IDENTITY_ego_get_private_key (ego->ego),
+                     zone_key,
+                     sizeof (*zone_key)))
+    {
+      is_orphaned = 0;
+      break;
+    }
+  }
+  if (list_orphaned && ! is_orphaned)
+    return;
+  if (! list_orphaned && is_orphaned)
+    return;
+  orphaned_str = GNUNET_IDENTITY_private_key_to_string (zone_key);
+  fprintf (stdout, "%s.%s:\n", rname, is_orphaned ? orphaned_str :
+           ego->identifier);
+  GNUNET_free (orphaned_str);
   if (NULL != typestring)
     type = GNUNET_GNSRECORD_typename_to_number (typestring);
   else
@@ -454,8 +662,6 @@ display_record (const char *rname,
   {
     if ((GNUNET_GNSRECORD_TYPE_NICK == rd[i].record_type) &&
         (0 != strcmp (rname, GNUNET_GNS_EMPTY_LABEL_AT)))
-      continue;
-    if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[i].record_type)
       continue;
     if ((type != rd[i].record_type) && (GNUNET_GNSRECORD_TYPE_ANY != type))
       continue;
@@ -494,6 +700,37 @@ display_record (const char *rname,
   fprintf (stdout, "%s", "\n");
 }
 
+static void
+purge_zone_iterator (void *cls,
+                     const struct GNUNET_IDENTITY_PrivateKey *zone_key,
+                     const char *rname,
+                     unsigned int rd_len,
+                     const struct GNUNET_GNSRECORD_Data *rd,
+                     struct GNUNET_TIME_Absolute expiry)
+{
+  (void) cls;
+  (void) zone_key;
+  (void) expiry;
+  collect_zone_records_to_purge (zone_key, rname, rd_len, rd);
+  GNUNET_NAMESTORE_zone_iterator_next (list_it, 1);
+}
+
+
+static void
+purge_orphans_iterator (void *cls,
+                        const struct GNUNET_IDENTITY_PrivateKey *zone_key,
+                        const char *rname,
+                        unsigned int rd_len,
+                        const struct GNUNET_GNSRECORD_Data *rd,
+                        struct GNUNET_TIME_Absolute expiry)
+{
+  (void) cls;
+  (void) zone_key;
+  (void) expiry;
+  collect_orphans (zone_key, rname, rd_len, rd);
+  GNUNET_NAMESTORE_zone_iterator_next (list_it, 1);
+}
+
 
 /**
  * Process a record that was stored in the namestore.
@@ -509,11 +746,13 @@ display_record_iterator (void *cls,
                          const struct GNUNET_IDENTITY_PrivateKey *zone_key,
                          const char *rname,
                          unsigned int rd_len,
-                         const struct GNUNET_GNSRECORD_Data *rd)
+                         const struct GNUNET_GNSRECORD_Data *rd,
+                         struct GNUNET_TIME_Absolute expiry)
 {
   (void) cls;
   (void) zone_key;
-  display_record (rname, rd_len, rd);
+  (void) expiry;
+  display_record (zone_key, rname, rd_len, rd);
   GNUNET_NAMESTORE_zone_iterator_next (list_it, 1);
 }
 
@@ -532,11 +771,13 @@ display_record_monitor (void *cls,
                         const struct GNUNET_IDENTITY_PrivateKey *zone_key,
                         const char *rname,
                         unsigned int rd_len,
-                        const struct GNUNET_GNSRECORD_Data *rd)
+                        const struct GNUNET_GNSRECORD_Data *rd,
+                        struct GNUNET_TIME_Absolute expiry)
 {
   (void) cls;
   (void) zone_key;
-  display_record (rname, rd_len, rd);
+  (void) expiry;
+  display_record (zone_key, rname, rd_len, rd);
   GNUNET_NAMESTORE_zone_monitor_next (zm, 1);
 }
 
@@ -560,7 +801,7 @@ display_record_lookup (void *cls,
   (void) cls;
   (void) zone_key;
   get_qe = NULL;
-  display_record (rname, rd_len, rd);
+  display_record (zone_key, rname, rd_len, rd);
   test_finished ();
 }
 
@@ -849,8 +1090,8 @@ del_monitor (void *cls,
  * Parse expiration time.
  *
  * @param expirationstring text to parse
- * @param etime_is_rel[out] set to #GNUNET_YES if time is relative
- * @param etime[out] set to expiration time (abs or rel)
+ * @param[out] etime_is_rel set to #GNUNET_YES if time is relative
+ * @param[out] etime set to expiration time (abs or rel)
  * @return #GNUNET_OK on success
  */
 static int
@@ -898,27 +1139,17 @@ parse_expiration (const char *expirationstring,
 }
 
 
-/**
- * Function called when namestore is done with the replace
- * operation.
- *
- * @param cls NULL
- * @param success #GNUNET_SYSERR on failure (including timeout/queue drop/failure to validate)
- *                #GNUNET_NO if content was already there or not found
- *                #GNUNET_YES (or other positive value) on success
- * @param emsg NULL on success, otherwise an error message
- */
 static void
-replace_cont (void *cls, int success, const char *emsg)
+replace_cont (void *cls, enum GNUNET_ErrorCode ec)
 {
   (void) cls;
 
   set_qe = NULL;
-  if (GNUNET_OK != success)
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_MESSAGE,
-                _ ("Failed to replace records: %s\n"),
-                emsg);
+                _ ("%s\n"),
+                GNUNET_ErrorCode_get_hint (ec));
     ret = 1;   /* fail from 'main' */
   }
   GNUNET_SCHEDULER_shutdown ();
@@ -935,9 +1166,15 @@ static void
 run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
   struct GNUNET_GNSRECORD_Data rd;
+  enum GNUNET_GNSRECORD_Filter filter_flags = GNUNET_GNSRECORD_FILTER_NONE;
 
+  if (omit_private)
+    filter_flags |= GNUNET_GNSRECORD_FILTER_OMIT_PRIVATE;
+  if (include_maintenance)
+    filter_flags |= GNUNET_GNSRECORD_FILTER_INCLUDE_MAINTENANCE;
   if (! (add | del | list | (NULL != nickstring) | (NULL != uri)
-         | (NULL != reverse_pkey) | (NULL != recordset)))
+         | (NULL != reverse_pkey) | (NULL != recordset) | (monitor)
+         | (purge_orphaned) | (list_orphaned) | (purge_zone)) )
   {
     /* nothing more to be done */
     fprintf (stderr, _ ("No options given\n"));
@@ -1115,7 +1352,33 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
                                               &del_monitor,
                                               NULL);
   }
-  if (list)
+  if (purge_orphaned)
+  {
+    list_it = GNUNET_NAMESTORE_zone_iteration_start2 (ns,
+                                                      NULL,
+                                                      &zone_iteration_error_cb,
+                                                      NULL,
+                                                      &purge_orphans_iterator,
+                                                      NULL,
+                                                      &zone_iteration_finished,
+                                                      NULL,
+                                                      filter_flags);
+
+  }
+  else if (purge_zone)
+  {
+    list_it = GNUNET_NAMESTORE_zone_iteration_start2 (ns,
+                                                      &zone_pkey,
+                                                      &zone_iteration_error_cb,
+                                                      NULL,
+                                                      &purge_zone_iterator,
+                                                      NULL,
+                                                      &zone_iteration_finished,
+                                                      NULL,
+                                                      filter_flags);
+
+  }
+  else if (list || list_orphaned)
   {
     if (NULL != name)
       get_qe = GNUNET_NAMESTORE_records_lookup (ns,
@@ -1126,14 +1389,16 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
                                                 &display_record_lookup,
                                                 NULL);
     else
-      list_it = GNUNET_NAMESTORE_zone_iteration_start (ns,
-                                                       &zone_pkey,
-                                                       &zone_iteration_error_cb,
-                                                       NULL,
-                                                       &display_record_iterator,
-                                                       NULL,
-                                                       &zone_iteration_finished,
-                                                       NULL);
+      list_it = GNUNET_NAMESTORE_zone_iteration_start2 (ns,
+                                                        (NULL == ego_name) ?
+                                                        NULL : &zone_pkey,
+                                                        &zone_iteration_error_cb,
+                                                        NULL,
+                                                        &display_record_iterator,
+                                                        NULL,
+                                                        &zone_iteration_finished,
+                                                        NULL,
+                                                        filter_flags);
   }
   if (NULL != reverse_pkey)
   {
@@ -1210,15 +1475,16 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
   }
   if (monitor)
   {
-    zm = GNUNET_NAMESTORE_zone_monitor_start (cfg,
-                                              &zone_pkey,
-                                              GNUNET_YES,
-                                              &monitor_error_cb,
-                                              NULL,
-                                              &display_record_monitor,
-                                              NULL,
-                                              &sync_cb,
-                                              NULL);
+    zm = GNUNET_NAMESTORE_zone_monitor_start2 (cfg,
+                                               &zone_pkey,
+                                               GNUNET_YES,
+                                               &monitor_error_cb,
+                                               NULL,
+                                               &display_record_monitor,
+                                               NULL,
+                                               &sync_cb,
+                                               NULL,
+                                               filter_flags);
   }
 }
 
@@ -1313,13 +1579,29 @@ id_connect_cb (void *cls,
                const char *name)
 {
   const struct GNUNET_CONFIGURATION_Handle *cfg = cls;
+  struct GNUNET_IDENTITY_PublicKey pk;
+  struct EgoEntry *ego_entry;
 
   (void) ctx;
   (void) name;
+  if ((NULL != name) && (NULL != ego))
+  {
+    ego_entry = GNUNET_new (struct EgoEntry);
+    GNUNET_IDENTITY_ego_get_public_key (ego, &pk);
+    ego_entry->ego = ego;
+    ego_entry->identifier = GNUNET_strdup (name);
+    GNUNET_CONTAINER_DLL_insert_tail (ego_head,
+                                      ego_tail,
+                                      ego_entry);
+    return;
+  }
   if (NULL != ego)
     return;
-  get_default =
-    GNUNET_IDENTITY_get (idh, "namestore", &default_ego_cb, (void *) cfg);
+  if (NULL != ego_name)
+    el = GNUNET_IDENTITY_ego_lookup (cfg, ego_name, &identity_cb, (void *) cfg);
+  else
+    get_default =
+      GNUNET_IDENTITY_get (idh, "namestore", &default_ego_cb, (void *) cfg);
 }
 
 
@@ -1370,15 +1652,10 @@ run (void *cls,
     run_with_zone_pkey (cfg);
     return;
   }
-  if (NULL == ego_name)
-  {
-    idh = GNUNET_IDENTITY_connect (cfg, &id_connect_cb, (void *) cfg);
-    if (NULL == idh)
-      fprintf (stderr, _ ("Cannot connect to identity service\n"));
-    ret = -1;
-    return;
-  }
-  el = GNUNET_IDENTITY_ego_lookup (cfg, ego_name, &identity_cb, (void *) cfg);
+  idh = GNUNET_IDENTITY_connect (cfg, &id_connect_cb, (void *) cfg);
+  if (NULL == idh)
+    fprintf (stderr, _ ("Cannot connect to identity service\n"));
+  ret = -1;
 }
 
 
@@ -1615,6 +1892,30 @@ main (int argc, char *const *argv)
                                "public",
                                gettext_noop ("create or list public record"),
                                &is_public),
+    GNUNET_GETOPT_option_flag ('o',
+                               "omit-private",
+                               gettext_noop ("omit private records"),
+                               &omit_private),
+    GNUNET_GETOPT_option_flag ('T',
+                               "include-maintenance",
+                               gettext_noop (
+                                 "do not filter maintenance records"),
+                               &include_maintenance),
+    GNUNET_GETOPT_option_flag ('P',
+                               "purge-orphans",
+                               gettext_noop (
+                                 "purge namestore of all orphans"),
+                               &purge_orphaned),
+    GNUNET_GETOPT_option_flag ('O',
+                               "list-orphans",
+                               gettext_noop (
+                                 "show private key for orphaned records for recovery using `gnunet-identity -C -P <key>'. Use in combination with --display"),
+                               &list_orphaned),
+    GNUNET_GETOPT_option_flag ('X',
+                               "purge-zone-records",
+                               gettext_noop (
+                                 "delete all records in specified zone"),
+                               &purge_zone),
     GNUNET_GETOPT_option_flag (
       's',
       "shadow",

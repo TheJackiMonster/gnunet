@@ -40,14 +40,12 @@ gnunet-arm -i zonemaster -c test_gns_lookup.conf
 #gnunet-arm -r -c test_gns_lookup.conf
 #gnunet-arm -i zonemaster
 #gnunet-arm -i gns -c test_gns_lookup.conf
-gnunet-arm -I -c test_gns_lookup.conf
 #gnunet-identity -D $OTHER_EGO -c test_gns_lookup.conf
 #gnunet-namestore -z $MY_EGO -d -n b -t PKEY -V $DELEGATED_PKEY  -e never -c test_gns_lookup.conf
 #gnunet-namestore -z $OTHER_EGO -d -n www -t A -V $TEST_IP  -e never -c test_gns_lookup.conf
 RES_IP=`$DO_TIMEOUT gnunet-gns --raw -u www.b.$MY_EGO -t A -c test_gns_lookup.conf`
 RES_IP_REL=`$DO_TIMEOUT gnunet-gns --raw -u www2.b.$MY_EGO -t A -c test_gns_lookup.conf`
 #gnunet-namestore -z $MY_EGO -d -n b -t PKEY -V $DELEGATED_PKEY  -e never -c test_gns_lookup.conf
-gnunet-arm -I -c test_gns_lookup.conf
 gnunet-arm -e -c test_gns_lookup.conf
 rm -rf `gnunet-config -c test_gns_lookup.conf -f -s paths -o GNUNET_TEST_HOME`
 

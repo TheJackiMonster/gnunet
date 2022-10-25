@@ -101,8 +101,8 @@ GNUNET_CLIENT_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
 
 /** @} */ /* end of group client */
 
-/* @} */ /* end of group addition */
+/** @} */ /* end of group addition */
 
-/* @} */ /* end of group addition */
+/** @} */ /* end of group addition */
 
 /* end of gnunet_client_lib.h */

@@ -639,14 +639,6 @@ process_unmap_output (void *cls, const char *line)
 }
 
 
-/**
- * Remove a mapping created with (mini)upnpc.  Calling
- * this function will give 'upnpc' 1s to remove tha mapping,
- * so while this function is non-blocking, a task will be
- * left with the scheduler for up to 1s past this call.
- *
- * @param mini the handle
- */
 void
 GNUNET_NAT_mini_map_stop (struct GNUNET_NAT_MiniHandle *mini)
 {

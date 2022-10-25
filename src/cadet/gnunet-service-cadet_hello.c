@@ -57,7 +57,7 @@ static struct GNUNET_PEERINFO_NotifyContext *nc;
  * Process each hello message received from peerinfo.
  *
  * @param cls Closure (unused).
- * @param peer Identity of the peer.
+ * @param id Identity of the peer.
  * @param hello Hello of the peer.
  * @param err_msg Error message.
  */

@@ -1821,7 +1821,7 @@ handle_tcp_remote (void *cls,
  * connection via this peer.
  *
  * @param cls our `struct ChannelState *`
- * @param message the actual message
+ * @param data the actual message
  * @return #GNUNET_OK to keep the connection open,
  *         #GNUNET_SYSERR to close it (signal serious error)
  */
@@ -1861,7 +1861,7 @@ check_tcp_data (void *cls,
  * connection via this peer.
  *
  * @param cls our `struct ChannelState *`
- * @param message the actual message
+ * @param data the actual message
  */
 static void
 handle_tcp_data (void *cls,
@@ -3231,7 +3231,6 @@ free_iterate (void *cls,
  * service process alive by virtue of being scheduled.
  *
  * @param cls NULL
- * @param tc scheduler context
  */
 static void
 dummy_task (void *cls)

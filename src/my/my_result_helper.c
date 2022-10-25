@@ -129,13 +129,6 @@ cleanup_varsize_blob (void *cls,
 }
 
 
-/**
- * Variable-size result expected
- *
- * @param[out] dst where to store the result, allocated
- * @param[out] ptr_size where to store the size of @a dst
- * @return array entru for the result specification to use
- */
 struct GNUNET_MY_ResultSpec
 GNUNET_MY_result_spec_variable_size (void **dst,
                                      size_t *ptr_size)
@@ -531,7 +524,7 @@ pre_extract_string (void *cls,
 
 
 /**
- * Check size of extracted fixed size data from a Mysql database @a
+ * Check size of extracted fixed size data from a Mysql database 
  *
  * @param cls closure
  * @param[in,out] rs
@@ -715,7 +708,6 @@ GNUNET_MY_result_spec_uint16 (uint16_t *u16)
  * Extract data from a  MYSQL database @a result at row @a row
  *
  * @param cls closure
- * @param cls closure
  * @param[in,out] rs
  * @param stmt the mysql statement that is being run
  * @param column the column that is being processed
@@ -745,7 +737,6 @@ pre_extract_uint32 (void *cls,
 /**
  * Extract data from a  MYSQL database @a result at row @a row
  *
- * @param cls closure
  * @param cls closure
  * @param[in,out] rs
  * @param stmt the mysql statement that is being run

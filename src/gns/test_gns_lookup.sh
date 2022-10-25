@@ -22,6 +22,7 @@ LABEL="www"
 gnunet-arm -s -c test_gns_lookup.conf
 gnunet-identity -C $MY_EGO -c test_gns_lookup.conf
 gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t A -V $TEST_IP -e never -c test_gns_lookup.conf
+sleep 0.5
 RES_IP=`$DO_TIMEOUT gnunet-gns --raw -u $LABEL.$MY_EGO -t A -c test_gns_lookup.conf`
 gnunet-namestore -z $MY_EGO -d -n $LABEL -t A -V $TEST_IP -e never -c test_gns_lookup.conf
 gnunet-identity -D $MY_EGO -c test_gns_lookup.conf

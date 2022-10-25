@@ -560,7 +560,7 @@ transmit_item (void *cls,
  * Handle RESERVE-message.
  *
  * @param cls identification of the client
- * @param message the actual message
+ * @param msg the actual message
  */
 static void
 handle_reserve (void *cls, const struct ReserveMessage *msg)
@@ -644,7 +644,7 @@ handle_reserve (void *cls, const struct ReserveMessage *msg)
  * Handle RELEASE_RESERVE-message.
  *
  * @param cls identification of the client
- * @param message the actual message
+ * @param msg the actual message
  */
 static void
 handle_release_reserve (void *cls, const struct ReleaseReserveMessage *msg)
@@ -768,7 +768,7 @@ put_continuation (void *cls,
  * Verify PUT-message.
  *
  * @param cls identification of the client
- * @param message the actual message
+ * @param dm the actual message
  * @return #GNUNET_OK if @a dm is well-formed
  */
 static int
@@ -787,7 +787,7 @@ check_put (void *cls, const struct DataMessage *dm)
  * Handle PUT-message.
  *
  * @param cls identification of the client
- * @param message the actual message
+ * @param dm the actual message
  */
 static void
 handle_put (void *cls, const struct DataMessage *dm)
@@ -949,7 +949,7 @@ handle_get_replication (void *cls, const struct GNUNET_MessageHeader *message)
  * Handle GET_ZERO_ANONYMITY-message.
  *
  * @param cls client identification of the client
- * @param message the actual message
+ * @param msg the actual message
  */
 static void
 handle_get_zero_anonymity (void *cls, const struct GetZeroAnonymityMessage *msg)
@@ -1028,7 +1028,7 @@ remove_continuation (void *cls,
  * Verify REMOVE-message.
  *
  * @param cls identification of the client
- * @param message the actual message
+ * @param dm the actual message
  * @return #GNUNET_OK if @a dm is well-formed
  */
 static int
@@ -1047,8 +1047,7 @@ check_remove (void *cls, const struct DataMessage *dm)
  * Handle REMOVE-message.
  *
  * @param cls closure
- * @param client identification of the client
- * @param message the actual message
+ * @param dm the actual message
  */
 static void
 handle_remove (void *cls, const struct DataMessage *dm)

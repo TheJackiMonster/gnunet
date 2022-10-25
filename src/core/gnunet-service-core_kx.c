@@ -488,7 +488,8 @@ derive_aes_key (const struct GNUNET_PeerIdentity *sender,
  * @param iv initialization vector to use
  * @param in ciphertext
  * @param out plaintext
- * @param size size of @a in/@a out
+ * @param size size of @a in / @a out
+ *
  * @return #GNUNET_OK on success
  */
 static int
@@ -1888,12 +1889,6 @@ GSC_NEIGHBOURS_get_queue_length (const struct GSC_KeyExchangeInfo *kxinfo)
 }
 
 
-/**
- * Check if the given neighbour has excess bandwidth available.
- *
- * @param target neighbour to check
- * @return #GNUNET_YES if excess bandwidth is available, #GNUNET_NO if not
- */
 int
 GSC_NEIGHBOURS_check_excess_bandwidth (const struct GSC_KeyExchangeInfo *kxinfo)
 {

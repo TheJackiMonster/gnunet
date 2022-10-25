@@ -50,7 +50,7 @@ init_contact_store (struct GNUNET_MESSENGER_ContactStore *store);
 /**
  * Clears a contact store, wipes its content and deallocates its memory.
  *
- * @param[in/out] store Contact store
+ * @param[in,out] store Contact store
  */
 void
 clear_contact_store (struct GNUNET_MESSENGER_ContactStore *store);
@@ -63,7 +63,7 @@ clear_contact_store (struct GNUNET_MESSENGER_ContactStore *store);
  * In case there is no contact stored which uses the given key or context,
  * NULL gets returned.
  *
- * @param[in/out] store Contact store
+ * @param[in,out] store Contact store
  * @param[in] context Member context
  * @param[in] key_hash Hash of public key
  */
@@ -83,7 +83,7 @@ get_store_contact_raw (struct GNUNET_MESSENGER_ContactStore *store,
  * The function returns NULL if an error occurs during allocation
  * or validation of the contacts key.
  *
- * @param[in/out] store Contact store
+ * @param[in,out] store Contact store
  * @param[in] context Member context
  * @param[in] pubkey Public key of EGO
  */
@@ -98,8 +98,8 @@ get_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
  *
  * This function allows changes of keys or changes of member contexts!
  *
- * @param[in/out] store Contact store
- * @param[in/out] contact Contact
+ * @param[in,out] store Contact store
+ * @param[in,out] contact Contact
  * @param[in] context Member context
  * @param[in] next_context Member context
  * @param[in] pubkey Public key of EGO
@@ -115,8 +115,8 @@ update_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
  * Removes a <i>contact</i> from the <i>store</i> which uses
  * a given member <i>context</i>.
  *
- * @param[in/out] store Contact store
- * @param[in/out] contact Contact
+ * @param[in,out] store Contact store
+ * @param[in,out] contact Contact
  * @param[in] context Member context
  */
 void

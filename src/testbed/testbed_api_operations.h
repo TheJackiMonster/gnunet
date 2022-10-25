@@ -60,8 +60,8 @@ enum OperationQueueType
  * Create an operation queue.
  *
  * @param type the type of operation queue
- * @param max_active maximum number of operations in this queue that can be
- *   active in parallel at the same time.
+ * @param max_active maximum number of operations in this
+ *        queue that can be active in parallel at the same time.
  * @return handle to the queue
  */
 struct OperationQueue *

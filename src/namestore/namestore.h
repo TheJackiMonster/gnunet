@@ -117,23 +117,10 @@ struct RecordStoreResponseMessage
   struct GNUNET_NAMESTORE_Header gns_header;
 
   /**
-   * #GNUNET_SYSERR on failure, #GNUNET_OK on success
+   * GNUNET_ErrorCode
    */
-  int32_t op_result GNUNET_PACKED;
+  uint32_t ec GNUNET_PACKED;
 
-  /**
-   * Error message length
-   */
-  uint16_t emsg_len GNUNET_PACKED;
-
-  /**
-   * Reserved for alignment.
-   */
-  uint16_t reserved GNUNET_PACKED;
-
-  /**
-   * Followed by error message
-   */
 };
 
 
@@ -156,6 +143,11 @@ struct LabelLookupMessage
    * GNUNET_YES if this lookup corresponds to an edit request
    */
   uint32_t is_edit_request GNUNET_PACKED;
+
+  /**
+   * The record filter
+   */
+  uint16_t filter;
 
   /**
    * The private key of the zone to look up in
@@ -259,10 +251,12 @@ struct ZoneToNameResponseMessage
   uint16_t rd_count GNUNET_PACKED;
 
   /**
-   * result in NBO: #GNUNET_OK on success, #GNUNET_NO if there were no
-   * results, #GNUNET_SYSERR on error
+   * result in NBO: #GNUNET_EC_NONE on success,
+   * #GNUNET_EC_NAMESTORE_NO_RESULTS if there were no
+   * results.
+   * Other error messages on error.
    */
-  int16_t res GNUNET_PACKED;
+  int32_t ec GNUNET_PACKED;
 
   /**
    * The private key of the zone that contained the name.
@@ -356,18 +350,10 @@ struct TxControlResultMessage
   struct GNUNET_NAMESTORE_Header gns_header;
 
   /**
-   * The type of control message to send
+   * Of type GNUNET_ErrorCode
    */
-  uint16_t control GNUNET_PACKED;
+  uint32_t ec GNUNET_PACKED;
 
-  /**
-   * Of type GNUNET_GenericReturnValue
-   */
-  uint16_t success GNUNET_PACKED;
-
-  /* followed by:
-   * an error message if status != ntohs(GNUNET_OK)
-   */
 };
 
 

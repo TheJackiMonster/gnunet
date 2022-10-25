@@ -129,7 +129,7 @@ struct GNUNET_JSON_Specification
  * @param root the JSON node to start the navigation at.
  * @param spec parse specification array
  * @param[out] error_json_name which JSON field was problematic
- * @param[out] which index into @a spec did we encounter an error
+ * @param[out] error_line which index into @a spec did we encounter an error
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
 enum GNUNET_GenericReturnValue
@@ -338,7 +338,7 @@ GNUNET_JSON_spec_boolean (const char *name,
  * Timestamp.
  *
  * @param name name of the JSON field
- * @param[out] at where to store the absolute time found under @a name
+ * @param[out] t at where to store the absolute time found under @a name
  */
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_timestamp (const char *name,

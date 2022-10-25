@@ -998,7 +998,7 @@ kce_destroy (struct KeyCacheEntry *kce)
  *
  * @param msec master secret for HMAC calculation
  * @param serial number for the @a smac calculation
- * @param kid[out] where to write the key ID
+ * @param[out] kid where to write the key ID
  */
 static void
 get_kid (const struct GNUNET_HashCode *msec,
@@ -1130,8 +1130,8 @@ sender_destroy (struct SenderAddress *sender)
  *
  * @param msec master secret for calculation
  * @param serial number for the @a smac calculation
- * @param key[out] where to write the decryption key
- * @param iv[out] where to write the IV
+ * @param[out] key where to write the decryption key
+ * @param[out] iv where to write the IV
  */
 static void
 get_iv_key (const struct GNUNET_HashCode *msec,
@@ -1237,7 +1237,7 @@ check_timeouts (void *cls)
 /**
  * Calculate cmac from master in @a ss.
  *
- * @param ss[in,out] data structure to complete
+ * @param[in,out] ss data structure to complete
  */
 static void
 calculate_cmac (struct SharedSecret *ss)
@@ -1397,7 +1397,7 @@ setup_shared_secret_dec (const struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral)
  * Setup shared secret for encryption.
  *
  * @param ephemeral ephemeral key we are sending to the other peer
- * @param receiver[in,out] queue to initialize encryption key for
+ * @param[in,out] receiver queue to initialize encryption key for
  * @return new shared secret
  */
 static struct SharedSecret *
@@ -2198,7 +2198,7 @@ setup_sender (const struct GNUNET_PeerIdentity *target,
 /**
  * Check signature from @a uc against @a ephemeral.
  *
- * @param ephermal key that is signed
+ * @param ephemeral key that is signed
  * @param uc signature of claimant
  * @return #GNUNET_OK if signature is valid
  */

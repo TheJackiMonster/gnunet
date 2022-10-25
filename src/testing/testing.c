@@ -1503,17 +1503,6 @@ disconn_status (void *cls, int connected)
 }
 
 
-/**
- * Stop a peer asynchronously using ARM API.  Peer's shutdown is signaled
- * through the GNUNET_TESTING_PeerStopCallback().
- *
- * @param peer the peer to stop
- * @param cb the callback to signal peer shutdown
- * @param cb_cls closure for the above callback
- * @return #GNUNET_OK upon successfully giving the request to the ARM API (this
- *           does not mean that the peer is successfully stopped); #GNUNET_SYSERR
- *           upon any error.
- */
 int
 GNUNET_TESTING_peer_stop_async (struct GNUNET_TESTING_Peer *peer,
                                 GNUNET_TESTING_PeerStopCallback cb,
@@ -1581,22 +1570,6 @@ GNUNET_TESTING_peer_destroy (struct GNUNET_TESTING_Peer *peer)
 }
 
 
-/**
- * Start a single peer and run a test using the testing library.
- * Starts a peer using the given configuration and then invokes the
- * given callback.  This function ALSO initializes the scheduler loop
- * and should thus be called directly from "main".  The testcase
- * should self-terminate by invoking #GNUNET_SCHEDULER_shutdown().
- *
- * @param testdir only the directory name without any path. This is used for
- *          all service homes; the directory will be created in a temporary
- *          location depending on the underlying OS
- * @param cfgfilename name of the configuration file to use;
- *         use NULL to only run with defaults
- * @param tm main function of the testcase
- * @param tm_cls closure for @a tm
- * @return 0 on success, 1 on error
- */
 int
 GNUNET_TESTING_peer_run (const char *testdir,
                          const char *cfgfilename,
@@ -1648,27 +1621,6 @@ service_run_main (void *cls)
 }
 
 
-/**
- * Start a single service (no ARM, except of course if the given
- * service name is 'arm') and run a test using the testing library.
- * Starts a service using the given configuration and then invokes the
- * given callback.  This function ALSO initializes the scheduler loop
- * and should thus be called directly from "main".  The testcase
- * should self-terminate by invoking #GNUNET_SCHEDULER_shutdown().
- *
- * This function is useful if the testcase is for a single service
- * and if that service doesn't itself depend on other services.
- *
- * @param testdir only the directory name without any path. This is used for
- *          all service homes; the directory will be created in a temporary
- *          location depending on the underlying OS
- * @param service_name name of the service to run
- * @param cfgfilename name of the configuration file to use;
- *         use NULL to only run with defaults
- * @param tm main function of the testcase
- * @param tm_cls closure for @a tm
- * @return 0 on success, 1 on error
- */
 int
 GNUNET_TESTING_service_run (const char *testdir,
                             const char *service_name,
@@ -2207,13 +2159,6 @@ GNUNET_TESTING_get_connections (unsigned int num,
 }
 
 
-/**
- * Retrieve the public key from the test system with the unique node id.
- *
- * @param num The unique node id.
- * @param tl_system The test system.
- * @return The peer identity wrapping the public key.
- */
 struct GNUNET_PeerIdentity *
 GNUNET_TESTING_get_pub_key (unsigned int num,
                             const struct GNUNET_TESTING_System *tl_system)
@@ -2417,11 +2362,6 @@ GNUNET_TESTING_get_additional_connects (unsigned int num,
 }
 
 
-/**
- * Create a GNUNET_CMDS_LOCAL_FINISHED message.
- *
- * @return The GNUNET_CMDS_LOCAL_FINISHED message.
-*/
 struct GNUNET_MessageHeader *
 GNUNET_TESTING_send_local_test_finished_msg ()
 {

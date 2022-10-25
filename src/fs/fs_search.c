@@ -927,7 +927,7 @@ try_reconnect (struct GNUNET_FS_SearchContext *sc);
  * We check a result message from the service.
  *
  * @param cls closure
- * @param msg result message received
+ * @param cm result message received
  */
 static int
 check_result (void *cls,
@@ -942,7 +942,7 @@ check_result (void *cls,
  * We process a search result from the service.
  *
  * @param cls closure
- * @param msg result message received
+ * @param cm result message received
  */
 static void
 handle_result (void *cls,

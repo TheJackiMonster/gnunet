@@ -394,7 +394,7 @@ process_tickets (void *cls);
  * @param emsg (NULL on success)
  */
 static void
-ticket_processed (void *cls, int32_t success, const char *emsg)
+ticket_processed (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct RECLAIM_TICKETS_RevokeHandle *rvk = cls;
 
@@ -485,7 +485,7 @@ rvk_ticket_update_finished (void *cls)
  * @param cls handle to the operation
  * @param zone ticket issuer private key
  * @param label ticket rnd
- * @param rd_cound size of record set
+ * @param rd_count size of record set
  * @param rd record set
  */
 static void
@@ -568,9 +568,8 @@ rvk_ns_err (void *cls)
  * want to revoke.
  * When we are done, we need to update any other ticket which
  * included references to any of the changed attributes.
- * (Implementation further below)
  *
- * @param rvk handle to the operation
+ * @param rh handle to the operation
  */
 static void
 move_attrs (struct RECLAIM_TICKETS_RevokeHandle *rh);
@@ -597,16 +596,16 @@ move_attrs_cont (void *cls)
  * @param emsg error message (NULL on success)
  */
 static void
-del_attr_finished (void *cls, int32_t success, const char *emsg)
+del_attr_finished (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct RECLAIM_TICKETS_RevokeHandle *rvk = cls;
 
   rvk->ns_qe = NULL;
-  if (GNUNET_SYSERR == success)
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Error removing attribute: %s\n",
-                emsg);
+                GNUNET_ErrorCode_get_hint (ec));
     rvk->cb (rvk->cb_cls, GNUNET_SYSERR);
     cleanup_rvk (rvk);
     return;
@@ -626,15 +625,17 @@ del_attr_finished (void *cls, int32_t success, const char *emsg)
  * @param emsg error message (NULL on success)
  */
 static void
-move_attr_finished (void *cls, int32_t success, const char *emsg)
+move_attr_finished (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct RECLAIM_TICKETS_RevokeHandle *rvk = cls;
   char *label;
 
   rvk->ns_qe = NULL;
-  if (GNUNET_SYSERR == success)
+  if (GNUNET_EC_NONE != ec)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Error moving attribute: %s\n", emsg);
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Error moving attribute: %s\n",
+                GNUNET_ErrorCode_get_hint (ec));
     rvk->cb (rvk->cb_cls, GNUNET_SYSERR);
     cleanup_rvk (rvk);
     return;
@@ -757,14 +758,6 @@ rvk_move_attr_cb (void *cls,
 }
 
 
-/**
- * We change every attribute ID of the ticket attributes we
- * want to revoke.
- * When we are done, we need to update any other ticket which
- * included references to any of the changed attributes.
- *
- * @param rvk handle to the operation
- */
 static void
 move_attrs (struct RECLAIM_TICKETS_RevokeHandle *rvk)
 {
@@ -811,14 +804,15 @@ move_attrs (struct RECLAIM_TICKETS_RevokeHandle *rvk)
  * @param emsg error message (NULL on success)
  */
 static void
-remove_ticket_cont (void *cls, int32_t success, const char *emsg)
+remove_ticket_cont (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct RECLAIM_TICKETS_RevokeHandle *rvk = cls;
 
   rvk->ns_qe = NULL;
-  if (GNUNET_SYSERR == success)
+  if (GNUNET_EC_NONE != ec)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "%s\n", emsg);
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "%s\n",
+                GNUNET_ErrorCode_get_hint (ec));
     rvk->cb (rvk->cb_cls, GNUNET_SYSERR);
     cleanup_rvk (rvk);
     return;
@@ -844,7 +838,7 @@ remove_ticket_cont (void *cls, int32_t success, const char *emsg)
  * @param cls handle to the operation
  * @param zone the issuer key
  * @param label ticket rnd
- * @param rd_cound size of record set
+ * @param rd_count size of record set
  * @param rd record set
  */
 static void
@@ -995,7 +989,7 @@ cleanup_cth (struct RECLAIM_TICKETS_ConsumeHandle *cth)
  * We found an attribute record.
  *
  * @param cls handle to the operation
- * @param rd_cound size of record set
+ * @param rd_count size of record set
  * @param rd record set
  */
 static void
@@ -1083,7 +1077,7 @@ abort_parallel_lookups (void *cls)
  * attribute record under the referenced label.
  *
  * @param cls handle to the operation
- * @param rd_cound size of the record set
+ * @param rd_count size of the record set
  * @param rd record set
  */
 static void
@@ -1259,12 +1253,12 @@ cleanup_issue_handle (struct TicketIssueHandle *handle)
  * @param emsg error message (or NULL on success)
  */
 static void
-store_ticket_issue_cont (void *cls, int32_t success, const char *emsg)
+store_ticket_issue_cont (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct TicketIssueHandle *handle = cls;
 
   handle->ns_qe = NULL;
-  if (GNUNET_SYSERR == success)
+  if (GNUNET_EC_NONE != ec)
   {
     handle->cb (handle->cb_cls,
                 &handle->ticket,
@@ -1671,7 +1665,7 @@ cleanup_iter (struct RECLAIM_TICKETS_Iterator *iter)
 
 
 /**
- * Return each record of type @GNUNET_GNSRECORD_TYPE_RECLAIM_TICKET
+ * Return each record of type #GNUNET_GNSRECORD_TYPE_RECLAIM_TICKET
  * to the caller and proceed with the iteration.
  * FIXME: Should we _not_ proceed automatically here?
  *

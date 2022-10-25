@@ -26,13 +26,6 @@
 #include "gnunet_sq_lib.h"
 
 
-/**
- * Execute a prepared statement.
- *
- * @param db_conn database connection
- * @param params parameters to the statement
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
 int
 GNUNET_SQ_bind (sqlite3_stmt *stmt,
                 const struct GNUNET_SQ_QueryParam *params)
@@ -107,12 +100,6 @@ GNUNET_SQ_extract_result (sqlite3_stmt *result,
 }
 
 
-/**
- * Free all memory that was allocated in @a rs during
- * #GNUNET_SQ_extract_result().
- *
- * @param rs reult specification to clean up
- */
 void
 GNUNET_SQ_cleanup_result (struct GNUNET_SQ_ResultSpec *rs)
 {

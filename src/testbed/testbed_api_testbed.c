@@ -1005,11 +1005,6 @@ host_registration_completion (void *cls, const char *emsg)
 }
 
 
-/**
- * Task to register all hosts available in the global host list
- *
- * @param cls RunContext
- */
 static void
 register_hosts (void *cls)
 {

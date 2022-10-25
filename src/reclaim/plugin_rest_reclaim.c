@@ -317,7 +317,7 @@ do_error (void *cls)
     handle->response_code = MHD_HTTP_BAD_REQUEST;
   }
   resp = GNUNET_REST_create_response (json_error);
-  MHD_add_response_header (resp, "Content-Type", "application/json");
+  GNUNET_assert (MHD_NO != MHD_add_response_header (resp, "Content-Type", "application/json"));
   handle->proc (handle->proc_cls, resp, handle->response_code);
   cleanup_handle (handle);
   GNUNET_free (json_error);
@@ -1316,7 +1316,7 @@ options_cont (struct GNUNET_REST_RequestHandle *con_handle,
 
   // For now, independent of path return all options
   resp = GNUNET_REST_create_response (NULL);
-  MHD_add_response_header (resp, "Access-Control-Allow-Methods", allow_methods);
+  GNUNET_assert (MHD_NO != MHD_add_response_header (resp, "Access-Control-Allow-Methods", allow_methods));
   handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
   cleanup_handle (handle);
   return;

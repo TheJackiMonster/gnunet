@@ -47,7 +47,7 @@ struct GNUNET_MESSENGER_Member
  *
  * If the creation fails, NULL gets returned.
  *
- * @param[in/out] store Member store
+ * @param[in,out] store Member store
  * @param[in] id Member id or NULL
  * @return New member or NULL
  */
@@ -58,7 +58,7 @@ create_member (struct GNUNET_MESSENGER_MemberStore *store,
 /**
  * Destroys a member and frees its memory fully.
  *
- * @param[in/out] member Member
+ * @param[in,out] member Member
  */
 void
 destroy_member (struct GNUNET_MESSENGER_Member *member);
@@ -88,7 +88,7 @@ load_member (struct GNUNET_MESSENGER_MemberStore *store,
  * Loads data about next sessions from a <i>directory</i> into an empty loaded
  * <i>member</i> which does not contain a fully built session graph yet.
  *
- * @param[in/out] member Member
+ * @param[in,out] member Member
  * @param[in] directory Path to a directory
  */
 void
@@ -110,7 +110,7 @@ save_member (struct GNUNET_MESSENGER_Member *member,
  * Synchronizes contacts between all sessions from a given <i>member</i>
  * and other sessions which are linked to them.
  *
- * @param[in/out] member Member
+ * @param[in,out] member Member
  */
 void
 sync_member_contacts (struct GNUNET_MESSENGER_Member *member);
@@ -145,8 +145,8 @@ get_member_session_of (struct GNUNET_MESSENGER_Member *member,
 /**
  * Adds a given member <i>session</i> to its <i>member</i>.
  *
- * @param[in/out] member Member
- * @param[in/out] session Member session
+ * @param[in,out] member Member
+ * @param[in,out] session Member session
  */
 void
 add_member_session (struct GNUNET_MESSENGER_Member *member,
@@ -155,8 +155,8 @@ add_member_session (struct GNUNET_MESSENGER_Member *member,
 /**
  * Removes a given member <i>session</i> from its <i>member</i>.
  *
- * @param[in/out] member Member
- * @param[in/out] session Member session
+ * @param[in,out] member Member
+ * @param[in,out] session Member session
  */
 void
 remove_member_session (struct GNUNET_MESSENGER_Member *member,
@@ -167,9 +167,9 @@ remove_member_session (struct GNUNET_MESSENGER_Member *member,
  * and call the provided iterator callback with a selected closure. The function
  * will return the amount of member sessions it iterated through.
  *
- * @param[in/out] member Member
+ * @param[in,out] member Member
  * @param[in] it Iterator callback
- * @param[in/out] cls Closure
+ * @param[in,out] cls Closure
  * @return Amount of sessions iterated through
  */
 int

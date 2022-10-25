@@ -215,13 +215,6 @@ GNUNET_TESTBED_host_create_by_id_ (
 }
 
 
-/**
- * Obtain the host's unique global ID.
- *
- * @param host handle to the host, NULL means 'localhost'
- * @return id global host ID assigned to the host (0 is
- *         'localhost', but then obviously not globally unique)
- */
 uint32_t
 GNUNET_TESTBED_host_get_id_ (const struct GNUNET_TESTBED_Host *host)
 {
@@ -393,17 +386,6 @@ GNUNET_TESTBED_host_create (const char *hostname,
 }
 
 
-/**
- * Load a set of hosts from a configuration file.
- *
- * @param filename file with the host specification
- * @param cfg the configuration to use as a template while starting a controller
- *          on any of the loaded hosts.  Operation queue sizes specific to a host
- *          are also read from this configuration handle
- * @param hosts set to the hosts found in the file; caller must free this if
- *          number of hosts returned is greater than 0
- * @return number of hosts returned in 'hosts', 0 on error
- */
 unsigned int
 GNUNET_TESTBED_hosts_load_from_file (
   const char *filename,
@@ -936,7 +918,6 @@ gen_rsh_suffix_args (const char *const *append_args)
  * Do not call GNUNET_SERVER_mst_destroy in callback
  *
  * @param cls closure
- * @param client identification of the client
  * @param message the actual message
  *
  * @return #GNUNET_OK on success, #GNUNET_SYSERR to stop further processing

@@ -19,13 +19,16 @@
  */
 
 /**
+ * @addtogroup reclaim_suite
+ * @{
+ *
  * @author Martin Schanzenbach
  *
  * @file
  * API to the Credential service
  *
  * @defgroup abd  Credential service
- * Credentials
+ * Credential service for Attribute-Based Decryption
  *
  * @{
  */
@@ -384,7 +387,7 @@ GNUNET_ABD_remove_delegation (struct GNUNET_ABD_Handle *handle,
  *
  * @param issuer the ego that should be used to issue the attribute
  * @param subject the subject of the attribute
- * @param attribute the name of the attribute
+ * @param iss_attr the name of the attribute
  * @param expiration the TTL of the credential
  * @return handle to the queued request
  */
@@ -415,3 +418,5 @@ GNUNET_ABD_request_cancel (struct GNUNET_ABD_Request *lr);
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */  /* end of group addition to reclaim_suite */

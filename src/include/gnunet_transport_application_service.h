@@ -27,9 +27,7 @@
  * @author Christian Grothoff
  * @author Matthias Wachs
  *
- * @defgroup TRANSPORT service
- * Bandwidth allocation
- *
+ * @defgroup transport  Transport service
  * @{
  */
 #ifndef GNUNET_TRANSPORT_APPLICATION_SERVICE_H

@@ -152,12 +152,6 @@ GNUNET_PEER_intern (const struct GNUNET_PeerIdentity *pid)
 }
 
 
-/**
- * Decrement multiple RCs of peer identities by one.
- *
- * @param ids array of PIDs to decrement the RCs of
- * @param count size of the ids array
- */
 void
 GNUNET_PEER_decrement_rcs (const GNUNET_PEER_Id *ids, unsigned int count)
 {
@@ -235,12 +229,6 @@ GNUNET_PEER_resolve (GNUNET_PEER_Id id, struct GNUNET_PeerIdentity *pid)
 }
 
 
-/**
- * Convert an interned PID to a normal peer identity.
- *
- * @param id interned PID to convert
- * @return pointer to peer identity, valid as long 'id' is valid
- */
 const struct GNUNET_PeerIdentity *
 GNUNET_PEER_resolve2 (GNUNET_PEER_Id id)
 {

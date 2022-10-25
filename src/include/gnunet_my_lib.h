@@ -18,6 +18,9 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 /**
+ * @addtogroup lib_extra 
+ * @{
+ *
  * @author Christian Grothoff
  * @author Christophe Genevey
  *
@@ -126,7 +129,7 @@ struct GNUNET_MY_QueryParam
  * @a ptr_size bytes.FG
  *
  * @param ptr pointer to the query parameter to pass
- * @oaran ptr_size number of bytes in @a ptr
+ * @param ptr_size number of bytes in @a ptr
  */
 struct GNUNET_MY_QueryParam
 GNUNET_MY_query_param_fixed_size (const void *ptr,
@@ -262,7 +265,7 @@ struct GNUNET_MY_ResultSpec
  * MySQL, store in already allocated buffer at @a ptr.
  *
  * @spec ptr where to write the result
- * @oaran ptr_size number of bytes available at @a ptr
+ * @param ptr_size number of bytes available at @a ptr
  */
 struct GNUNET_MY_ResultSpec
 GNUNET_MY_result_spec_fixed_size (void *ptr,
@@ -271,7 +274,7 @@ GNUNET_MY_result_spec_fixed_size (void *ptr,
 /**
  * Generate query parameter for a string
  *
- *@param ptr pointer to the string query parameter to pass
+ * @param ptr pointer to the string query parameter to pass
  */
 struct GNUNET_MY_QueryParam
 GNUNET_MY_query_param_string (const char *ptr);
@@ -339,7 +342,7 @@ GNUNET_MY_query_param_uint16 (const uint16_t *x);
 /**
  * Generate query parameter for an uint32_t in host byte order
  *
- *@param x pointer to the query parameter to pass
+ * @param x pointer to the query parameter to pass
  */
 struct GNUNET_MY_QueryParam
 GNUNET_MY_query_param_uint32 (const uint32_t *x);
@@ -347,7 +350,7 @@ GNUNET_MY_query_param_uint32 (const uint32_t *x);
 /**
  * Generate query parameter for an uint64_t in host byte order
  *
- *@param x pointer to the query parameter to pass
+ * @param x pointer to the query parameter to pass
  */
 struct GNUNET_MY_QueryParam
 GNUNET_MY_query_param_uint64 (const uint64_t *x);
@@ -367,8 +370,8 @@ GNUNET_MY_query_param_uint64 (const uint64_t *x);
  * Variable-size result expected
  *
  * @param[out] dst where to store the result, allocated
- * @param[out] sptr where to store the size of @a dst
- * @return array entru for the result specification to use
+ * @param[out] ptr_size where to store the size of @a dst
+ * @return array entry for the result specification to use
  */
 struct GNUNET_MY_ResultSpec
 GNUNET_MY_result_spec_variable_size (void **dst,
@@ -498,3 +501,5 @@ GNUNET_MY_cleanup_result (struct GNUNET_MY_ResultSpec *rs);
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */  /* end of group addition to lib_extra */

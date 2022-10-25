@@ -242,7 +242,7 @@ GNUNET_TIME_timestamp2s (struct GNUNET_TIME_Timestamp ts);
  * Note that the returned value will be overwritten if this function
  * is called again.
  *
- * @param t the absolute time to convert
+ * @param ts the absolute time to convert
  * @return timestamp in human-readable form in local time
  */
 const char *

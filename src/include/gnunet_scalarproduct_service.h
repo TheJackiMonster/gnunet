@@ -179,7 +179,7 @@ GNUNET_SCALARPRODUCT_start_computation (
 struct GNUNET_SCALARPRODUCT_ComputationHandle *
 GNUNET_SCALARPRODUCT_accept_computation (
   const struct GNUNET_CONFIGURATION_Handle *cfg,
-  const struct GNUNET_HashCode *key,
+  const struct GNUNET_HashCode *session_key,
   const struct GNUNET_SCALARPRODUCT_Element *elements,
   uint32_t element_count,
   GNUNET_SCALARPRODUCT_ContinuationWithStatus cont,

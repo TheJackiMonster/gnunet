@@ -169,11 +169,6 @@ GNUNET_REGEX_announce (const struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
-/**
- * Stop announcing the regex specified by the given handle.
- *
- * @param a handle returned by a previous #GNUNET_REGEX_announce() call.
- */
 void
 GNUNET_REGEX_announce_cancel (struct GNUNET_REGEX_Announcement *a)
 {

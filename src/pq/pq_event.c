@@ -384,7 +384,7 @@ manage_subscribe (struct GNUNET_PQ_Context *db,
  *
  * @param cls the DB context
  * @param sh the short hash of the channel
- * @param eh the event handler
+ * @param value the event handler
  * @return #GNUNET_OK to continue to iterate
  */
 static int

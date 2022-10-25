@@ -102,7 +102,6 @@ struct GNUNET_DNS_Handle
  * Reconnect to the DNS service.
  *
  * @param cls handle with the connection to connect
- * @param tc scheduler context (unused)
  */
 static void
 reconnect (void *cls);
@@ -171,7 +170,7 @@ check_request (void *cls,
  * handle it.
  *
  * @param cls the `struct GNUNET_DNS_Handle *`
- * @param msg message from the service (request)
+ * @param req message from the service (request)
  */
 static void
 handle_request (void *cls,

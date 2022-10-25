@@ -1358,7 +1358,7 @@ pool_write (char *pool_start, size_t pool_size, size_t *pool_pos, char *str)
  * Handle LIST-message.
  *
  * @param cls identification of the client
- * @param message the actual message
+ * @param request the actual message
  */
 static void
 handle_list (void *cls, const struct GNUNET_ARM_Message *request)

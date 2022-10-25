@@ -37,7 +37,7 @@
 /**
  * Starts an urgent task to close a CADET channel asynchronously.
  *
- * @param[in/out] channel Channel
+ * @param[in,out] channel Channel
  */
 void
 delayed_disconnect_channel (struct GNUNET_CADET_Channel *channel);

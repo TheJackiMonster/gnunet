@@ -91,7 +91,7 @@ struct ConfigSection
   /**
    * Is the configuration section marked as inaccessible?
    *
-   * This can happen if the section name is used in an @inline-secret@
+   * This can happen if the section name is used in an \@inline-secret\@
    * directive, but the referenced file can't be found or accessed.
    */
   bool inaccessible;
@@ -135,7 +135,7 @@ struct ConfigFile
 
   /**
    * Was this configuration file parsed via
-   * @inline-secret@?
+   * \@inline-secret\@?
    */
   char *hint_restrict_section;
 

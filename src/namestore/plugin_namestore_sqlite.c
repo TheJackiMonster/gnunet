@@ -177,8 +177,8 @@ database_prepare (struct Plugin *plugin)
                                  es))
   {
     LOG (GNUNET_ERROR_TYPE_ERROR,
-         _("Failed to setup database with: `%s'\n"),
-                     sqlite3_errmsg (plugin->dbh));
+         _ ("Failed to setup database with: `%s'\n"),
+         sqlite3_errmsg (plugin->dbh));
     return GNUNET_SYSERR;
   }
   if (GNUNET_OK !=
@@ -712,11 +712,18 @@ namestore_sqlite_transaction_begin (void *cls,
                                     char **emsg)
 {
   struct Plugin *plugin = cls;
+  int rc;
+  char *sqlEmsg;
+
   GNUNET_assert (GNUNET_OK == database_prepare (plugin));
-  return (SQLITE_BUSY == sqlite3_exec (plugin->dbh,
-                                       "BEGIN IMMEDIATE TRANSACTION;", NULL,
-                                       NULL, emsg)) ? GNUNET_SYSERR :
-         GNUNET_YES;
+  rc = sqlite3_exec (plugin->dbh, "BEGIN IMMEDIATE TRANSACTION;",
+                     NULL, NULL, &sqlEmsg);
+  if (SQLITE_OK != rc)
+  {
+    *emsg = GNUNET_strdup (sqlEmsg);
+    sqlite3_free (sqlEmsg);
+  }
+  return (SQLITE_OK != rc) ? GNUNET_SYSERR : GNUNET_YES;
 }
 
 /**
@@ -732,10 +739,18 @@ namestore_sqlite_transaction_rollback (void *cls,
                                        char **emsg)
 {
   struct Plugin *plugin = cls;
+  int rc;
+  char *sqlEmsg;
+
   GNUNET_assert (GNUNET_OK == database_prepare (plugin));
-  return (SQLITE_BUSY == sqlite3_exec (plugin->dbh, "ROLLBACK;", NULL,
-                                       NULL, emsg)) ? GNUNET_SYSERR :
-         GNUNET_YES;
+  rc = sqlite3_exec (plugin->dbh, "ROLLBACK;",
+                     NULL, NULL, &sqlEmsg);
+  if (SQLITE_OK != rc)
+  {
+    *emsg = GNUNET_strdup (sqlEmsg);
+    sqlite3_free (sqlEmsg);
+  }
+  return (SQLITE_OK != rc) ? GNUNET_SYSERR : GNUNET_YES;
 }
 
 /**
@@ -751,10 +766,18 @@ namestore_sqlite_transaction_commit (void *cls,
                                      char **emsg)
 {
   struct Plugin *plugin = cls;
+  int rc;
+  char *sqlEmsg;
+
   GNUNET_assert (GNUNET_OK == database_prepare (plugin));
-  return (SQLITE_BUSY == sqlite3_exec (plugin->dbh, "END TRANSACTION;", NULL,
-                                       NULL, emsg)) ? GNUNET_SYSERR :
-         GNUNET_YES;
+  rc = sqlite3_exec (plugin->dbh, "END TRANSACTION;",
+                     NULL, NULL, &sqlEmsg);
+  if (SQLITE_OK != rc)
+  {
+    *emsg = GNUNET_strdup (sqlEmsg);
+    sqlite3_free (sqlEmsg);
+  }
+  return (SQLITE_OK != rc) ? GNUNET_SYSERR : GNUNET_YES;
 }
 
 static enum GNUNET_GenericReturnValue
@@ -885,7 +908,7 @@ database_connect (struct Plugin *plugin)
      */
     if (GNUNET_OK != init_database (plugin, &emsg, GNUNET_NO))
     {
-      LOG (GNUNET_ERROR_TYPE_WARNING,
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Failed to initialize database on connect: `%s'\n",
            emsg);
       GNUNET_free (emsg);

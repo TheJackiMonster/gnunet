@@ -34,6 +34,7 @@ fi
 gnunet-arm -s -c test_gns_lookup.conf
 gnunet-identity -C $MY_EGO -c test_gns_lookup.conf
 gnunet-namestore -p -z $MY_EGO -a -n $TEST_RECORD_NAME -t GNS2DNS -V ${TEST_RECORD_GNS2DNS}@${TEST_IP_GNS2DNS} -e never -c test_gns_lookup.conf
+sleep 0.5
 RES_SOA=`$DO_TIMEOUT gnunet-gns --raw -u $TEST_DOMAIN -t SOA -c test_gns_lookup.conf`
 gnunet-namestore -z $MY_EGO -d -n $TEST_RECORD_NAME -t GNS2DNS -V ${TEST_RECORD_GNS2DNS}@${TEST_IP_GNS2DNS} -e never -c test_gns_lookup.conf > /dev/null 2>&1
 gnunet-identity -D $MY_EGO -c test_gns_lookup.conf

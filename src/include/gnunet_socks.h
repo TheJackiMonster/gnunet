@@ -19,6 +19,9 @@
  */
 
 /**
+ * @addtogroup libgnunetutil
+ * @{
+ *
  * @author Jeffrey Burdges
  *
  * @file
@@ -80,5 +83,7 @@ GNUNET_SOCKS_do_connect (const char *service_name,
 #endif
 
 /** @} */  /* end of group */
+
+/** @} */  /* end of group addition to libgnunetutil */
 
 /* end of gnunet_socks.h */

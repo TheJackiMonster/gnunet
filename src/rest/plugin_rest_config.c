@@ -113,7 +113,6 @@ cleanup_handle (struct RequestHandle *handle)
  * Task run on shutdown.  Cleans up everything.
  *
  * @param cls unused
- * @param tc scheduler context
  */
 static void
 do_error (void *cls)

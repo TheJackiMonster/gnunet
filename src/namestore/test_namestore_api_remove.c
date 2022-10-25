@@ -90,15 +90,14 @@ end (void *cls)
 
 static void
 remove_cont (void *cls,
-             int32_t success,
-             const char *emsg)
+             enum GNUNET_ErrorCode ec)
 {
   nsqe = NULL;
-  if (GNUNET_YES != success)
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 _ ("Records could not be removed: `%s'\n"),
-                emsg);
+                GNUNET_ErrorCode_get_hint (ec));
     if (NULL != endbadly_task)
       GNUNET_SCHEDULER_cancel (endbadly_task);
     endbadly_task = GNUNET_SCHEDULER_add_now (&endbadly,
@@ -116,19 +115,18 @@ remove_cont (void *cls,
 
 static void
 put_cont (void *cls,
-          int32_t success,
-          const char *emsg)
+          enum GNUNET_ErrorCode ec)
 {
   const char *name = cls;
 
   GNUNET_assert (NULL != cls);
   nsqe = NULL;
-  if (GNUNET_SYSERR == success)
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_break (0);
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Namestore could not store record: `%s'\n",
-                emsg);
+                GNUNET_ErrorCode_get_hint (ec));
     if (endbadly_task != NULL)
       GNUNET_SCHEDULER_cancel (endbadly_task);
     endbadly_task = GNUNET_SCHEDULER_add_now (&endbadly, NULL);
@@ -138,7 +136,7 @@ put_cont (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Name store added record for `%s': %s\n",
               name,
-              (success == GNUNET_OK) ? "SUCCESS" : "FAIL");
+              (GNUNET_EC_NONE == ec) ? "SUCCESS" : "FAIL");
   nsqe = GNUNET_NAMESTORE_records_store (nsh,
                                          &privkey,
                                          name,
@@ -165,11 +163,11 @@ run (void *cls,
 
   removed = GNUNET_NO;
 
-  rd.expiration_time = GNUNET_TIME_absolute_get ().abs_value_us;
+  rd.expiration_time = GNUNET_TIME_UNIT_MINUTES.rel_value_us;
   rd.record_type = TEST_RECORD_TYPE;
   rd.data_size = TEST_RECORD_DATALEN;
   rd.data = GNUNET_malloc (TEST_RECORD_DATALEN);
-  rd.flags = 0;
+  rd.flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
   memset ((char *) rd.data,
           'a',
           TEST_RECORD_DATALEN);

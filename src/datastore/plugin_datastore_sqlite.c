@@ -253,6 +253,7 @@ create_indices (sqlite3 *dbh)
   {                                                  \
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "%s\n", e); \
     sqlite3_free (e);                                \
+    e = NULL;                                        \
   }
 #endif
 

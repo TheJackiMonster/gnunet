@@ -225,7 +225,7 @@ fail_cb (void *cls)
 
 
 static void
-put_cont (void *cls, int32_t success, const char *emsg)
+put_cont (void *cls, enum GNUNET_ErrorCode ec)
 {
   const char *name = cls;
 
@@ -234,9 +234,9 @@ put_cont (void *cls, int32_t success, const char *emsg)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Name store added record for `%s': %s\n",
               name,
-              (success == GNUNET_OK) ? "SUCCESS" : "FAIL");
+              (ec == GNUNET_EC_NONE) ? "SUCCESS" : "FAIL");
 
-  if (GNUNET_OK != success)
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_SCHEDULER_cancel (endbadly_task);
     endbadly_task = GNUNET_SCHEDULER_add_now (&endbadly, NULL);
@@ -254,13 +254,13 @@ put_cont (void *cls, int32_t success, const char *emsg)
 
 
 static void
-nick_cont (void *cls, int32_t success, const char *emsg)
+nick_cont (void *cls, enum GNUNET_ErrorCode ec)
 {
   const char *name = cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Nick added : %s\n",
-              (success == GNUNET_OK) ? "SUCCESS" : "FAIL");
+              (ec == GNUNET_EC_NONE) ? "SUCCESS" : "FAIL");
 
   rd_orig.expiration_time = GNUNET_TIME_UNIT_HOURS.rel_value_us;
   rd_orig.record_type = TEST_RECORD_TYPE;

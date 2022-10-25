@@ -86,6 +86,7 @@ extern "C"
 #include "gnunet_dnsstub_lib.h"
 #include "gnunet_dnsparser_lib.h"
 #include "gnunet_child_management_lib.h"
+#include "gnunet_error_codes.h"
 
 #if 0                           /* keep Emacsens' auto-indent happy */
 {

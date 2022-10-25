@@ -415,7 +415,6 @@ connect_cb (void *cls,
  *
  * @param cls  our `struct CadetClient`
  * @param channel channel of the disconnecting client
- * @param channel_ctx
  */
 static void
 disconnect_cb (void *cls,

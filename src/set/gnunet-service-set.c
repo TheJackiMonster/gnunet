@@ -176,7 +176,6 @@ static uint32_t suggest_id;
 /**
  * Get the incoming socket associated with the given id.
  *
- * @param listener the listener to look in
  * @param id id to look for
  * @return the incoming socket associated with the id,
  *         or NULL if there is none
@@ -1006,7 +1005,7 @@ handle_client_iterate (void *cls, const struct GNUNET_MessageHeader *m)
  * operation to be performed.
  *
  * @param cls client that sent the message
- * @param m message sent by the client
+ * @param msg message sent by the client
  */
 static void
 handle_client_create_set (void *cls, const struct GNUNET_SET_CreateMessage *msg)
@@ -1066,7 +1065,6 @@ handle_client_create_set (void *cls, const struct GNUNET_SET_CreateMessage *msg)
  *  - we got the channel from a peer but no #GNUNET_MESSAGE_TYPE_SET_P2P_OPERATION_REQUEST
  *
  * @param cls channel context
- * @param tc context information (why was this task triggered now)
  */
 static void
 incoming_timeout_cb (void *cls)

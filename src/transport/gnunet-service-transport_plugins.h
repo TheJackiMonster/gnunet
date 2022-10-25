@@ -40,13 +40,9 @@
  * plugin that caused the call.
  *
  * @param recv_cb function to call when data is received
- * @param register_quota_cb function to call to register a quota callback
- * @param unregister_quota_cb function to call to unregister a quota callback
  * @param address_cb function to call when our public addresses changed
  * @param session_start_cb function to call when a session was created
  * @param session_end_cb function to call when a session was terminated
- * @param address_type_cb function to call when a address type is requested
- * @param metric_update_cb function to call when address metrics change
  */
 void
 GST_plugins_load (GNUNET_TRANSPORT_PluginReceiveCallback recv_cb,

@@ -428,12 +428,6 @@ check_peer_create (void *cls,
 }
 
 
-/**
- * Handler for #GNUNET_MESSAGE_TYPE_TESTBED_CREATEPEER messages
- *
- * @param cls identification of the client
- * @param msg the actual message
- */
 void
 handle_peer_create (void *cls,
                     const struct GNUNET_TESTBED_PeerCreateMessage *msg)
@@ -644,12 +638,6 @@ start_peer (struct Peer *peer)
 }
 
 
-/**
- * Message handler for #GNUNET_MESSAGE_TYPE_TESTBED_START_PEER messages
- *
- * @param cls identification of the client
- * @param msg the actual message
- */
 void
 handle_peer_start (void *cls,
                    const struct GNUNET_TESTBED_PeerStartMessage *msg)
@@ -1301,12 +1289,6 @@ check_manage_peer_service (void *cls,
 }
 
 
-/**
- * Handler for #GNUNET_MESSAGE_TYPE_TESTBED_MANAGE_PEER_SERVICE messages
- *
- * @param cls identification of client
- * @param msg the actual message
- */
 void
 handle_manage_peer_service (void *cls,
                             const struct

@@ -85,6 +85,7 @@ libexec_PROGRAMS = \
 bin_PROGRAMS = \
  gnunet-namestore \
  gnunet-namestore-dbtool \
+ gnunet-namestore-zonefile \
  gnunet-zoneimport
 
 libexec_PROGRAMS += \
@@ -127,7 +128,14 @@ libgnunetnamestore_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)  \
   -version-info 0:1:0
 
-
+gnunet_namestore_zonefile_SOURCES = \
+ gnunet-namestore-zonefile.c
+gnunet_namestore_zonefile_LDADD = \
+  libgnunetnamestore.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
+  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la  \
+  $(top_builddir)/src/util/libgnunetutil.la \
+  $(GN_LIBINTL)
 
 gnunet_zoneimport_SOURCES = \
  gnunet-zoneimport.c
@@ -508,11 +516,11 @@ test_plugin_namestore_postgres_LDADD = \
 check_SCRIPTS = \
   test_namestore_put.sh \
   test_namestore_lookup.sh \
-  test_namestore_delete.sh
+  test_namestore_delete.sh \
+  test_namestore_zonefile_import.sh
 
-# FIXME
-#check_SCRIPTS += \
-#  test_plugin_rest_namestore.sh
+check_SCRIPTS += \
+  test_plugin_rest_namestore.sh
 
 EXTRA_DIST = \
   test_common.c \
@@ -524,4 +532,5 @@ EXTRA_DIST = \
   test_plugin_namestore_sqlite.conf \
   test_plugin_namestore_postgres.conf \
   test_hostkey \
+	example_zonefile \
   $(check_SCRIPTS)

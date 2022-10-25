@@ -407,7 +407,7 @@ handle_add_host_confirm (void *cls,
 /**
  * Handler for forwarded operations
  *
- * @param c the controller handle
+ * @param cls the controller handle
  * @param opc the operation context
  * @param msg the message
  */
@@ -432,7 +432,7 @@ handle_forwarded_operation_msg (void *cls,
  * Handler for #GNUNET_MESSAGE_TYPE_TESTBED_ADD_HOST_SUCCESS message from
  * controller (testbed service)
  *
- * @param c the controller handler
+ * @param cls the controller handler
  * @param msg message received
  */
 static void
@@ -536,7 +536,7 @@ handle_opsuccess (
  * Handler for #GNUNET_MESSAGE_TYPE_TESTBED_CREATE_PEER_SUCCESS message from
  * controller (testbed service)
  *
- * @param c the controller handle
+ * @param cls the controller handle
  * @param msg message received
  */
 static void
@@ -594,7 +594,7 @@ handle_peer_create_success (
  * Handler for #GNUNET_MESSAGE_TYPE_TESTBED_PEER_EVENT message from
  * controller (testbed service)
  *
- * @param c the controller handler
+ * @param cls the controller handler
  * @param msg message received
  */
 static void
@@ -675,7 +675,7 @@ handle_peer_event (void *cls, const struct GNUNET_TESTBED_PeerEventMessage *msg)
  * Handler for #GNUNET_MESSAGE_TYPE_TESTBED_PEER_CONNECT_EVENT message from
  * controller (testbed service)
  *
- * @param c the controller handler
+ * @param cls the controller handler
  * @param msg message received
  */
 static void
@@ -751,7 +751,7 @@ handle_peer_conevent (void *cls,
  * Validate #GNUNET_MESSAGE_TYPE_TESTBED_PEER_INFORMATION message from
  * controller (testbed service)
  *
- * @param c the controller handler
+ * @param cls the controller handler
  * @param msg message received
  */
 static int
@@ -768,7 +768,7 @@ check_peer_config (
  * Handler for #GNUNET_MESSAGE_TYPE_TESTBED_PEER_INFORMATION message from
  * controller (testbed service)
  *
- * @param c the controller handler
+ * @param cls the controller handler
  * @param msg message received
  */
 static void
@@ -840,7 +840,7 @@ handle_peer_config (
  * Validate #GNUNET_MESSAGE_TYPE_TESTBED_OPERATION_FAIL_EVENT message from
  * controller (testbed service)
  *
- * @param c the controller handler
+ * @param cls the controller handler
  * @param msg message received
  * @return #GNUNET_OK if message is well-formed
  */
@@ -858,7 +858,7 @@ check_op_fail_event (
  * Handler for #GNUNET_MESSAGE_TYPE_TESTBED_OPERATION_FAIL_EVENT message from
  * controller (testbed service)
  *
- * @param c the controller handler
+ * @param cls the controller handler
  * @param msg message received
  */
 static void
@@ -1037,7 +1037,7 @@ check_slave_config (void *cls,
  * Handler for #GNUNET_MESSAGE_TYPE_TESTBED_SLAVE_CONFIGURATION message from controller
  * (testbed service)
  *
- * @param c the controller handler
+ * @param cls the controller handler
  * @param msg message received
  */
 static void
@@ -1099,7 +1099,7 @@ check_link_controllers_result (
  * Handler for #GNUNET_MESSAGE_TYPE_TESTBED_LINK_CONTROLLERS_RESULT message from controller
  * (testbed service)
  *
- * @param c the controller handler
+ * @param cls the controller handler
  * @param msg message received
  */
 static void
@@ -1917,21 +1917,6 @@ GNUNET_TESTBED_get_slave_config_ (void *op_cls,
 }
 
 
-/**
- * Function to acquire the configuration of a running slave controller. The
- * completion of the operation is signalled through the controller_cb from
- * GNUNET_TESTBED_controller_connect(). If the operation is successful the
- * handle to the configuration is available in the generic pointer of
- * operation_finished field of struct GNUNET_TESTBED_EventInformation.
- *
- * @param op_cls the closure for the operation
- * @param master the handle to master controller
- * @param slave_host the host where the slave controller is running; the handle
- *          to the slave_host should remain valid until this operation is
- *          cancelled or marked as finished
- * @return the operation handle; NULL if the slave_host is not registered at
- *           master
- */
 struct GNUNET_TESTBED_Operation *
 GNUNET_TESTBED_get_slave_config (void *op_cls,
                                  struct GNUNET_TESTBED_Controller *master,
@@ -1946,15 +1931,6 @@ GNUNET_TESTBED_get_slave_config (void *op_cls,
 }
 
 
-/**
- * Ask the testbed controller to write the current overlay topology to
- * a file.  Naturally, the file will only contain a snapshot as the
- * topology may evolve all the time.
- *
- * @param controller overlay controller to inspect
- * @param filename name of the file the topology should
- *        be written to.
- */
 void
 GNUNET_TESTBED_overlay_write_topology_to_file (
   struct GNUNET_TESTBED_Controller *controller,
@@ -2170,13 +2146,6 @@ GNUNET_TESTBED_extract_config_ (const struct GNUNET_MessageHeader *msg)
 }
 
 
-/**
- * Checks the integrity of the OperationFailureEventMessage and if good returns
- * the error message it contains.
- *
- * @param msg the OperationFailureEventMessage
- * @return the error message
- */
 const char *
 GNUNET_TESTBED_parse_error_string_ (
   const struct GNUNET_TESTBED_OperationFailureEventMessage *msg)
@@ -2351,22 +2320,6 @@ GNUNET_TESTBED_barrier_remove_ (struct GNUNET_TESTBED_Barrier *barrier)
 }
 
 
-/**
- * Initialise a barrier and call the given callback when the required percentage
- * of peers (quorum) reach the barrier OR upon error.
- *
- * @param controller the handle to the controller
- * @param name identification name of the barrier
- * @param quorum the percentage of peers that is required to reach the barrier.
- *   Peers signal reaching a barrier by calling
- *   GNUNET_TESTBED_barrier_reached().
- * @param cb the callback to call when the barrier is reached or upon error.
- *   Cannot be NULL.
- * @param cls closure for the above callback
- * @param echo GNUNET_YES to echo the barrier crossed status message back to the
- *   controller
- * @return barrier handle; NULL upon error
- */
 struct GNUNET_TESTBED_Barrier *
 GNUNET_TESTBED_barrier_init_ (struct GNUNET_TESTBED_Controller *controller,
                               const char *name,
@@ -2431,7 +2384,7 @@ GNUNET_TESTBED_barrier_init_ (struct GNUNET_TESTBED_Controller *controller,
  *   GNUNET_TESTBED_barrier_reached().
  * @param cb the callback to call when the barrier is reached or upon error.
  *   Cannot be NULL.
- * @param cls closure for the above callback
+ * @param cb_cls closure for the above callback
  * @return barrier handle; NULL upon error
  */
 struct GNUNET_TESTBED_Barrier *
@@ -2439,13 +2392,13 @@ GNUNET_TESTBED_barrier_init (struct GNUNET_TESTBED_Controller *controller,
                              const char *name,
                              unsigned int quorum,
                              GNUNET_TESTBED_barrier_status_cb cb,
-                             void *cls)
+                             void *cb_cls)
 {
   return GNUNET_TESTBED_barrier_init_ (controller,
                                        name,
                                        quorum,
                                        cb,
-                                       cls,
+                                       cb_cls,
                                        GNUNET_YES);
 }
 

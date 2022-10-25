@@ -476,8 +476,7 @@ check_get_default_message (void *cls,
  * default identity for some service.
  *
  * @param cls unused
- * @param client who sent the message
- * @param message the message received
+ * @param gdm the message received
  */
 static void
 handle_get_default_message (void *cls,
@@ -587,8 +586,7 @@ check_set_default_message (void *cls,
  * default identity for some service.
  *
  * @param cls unused
- * @param client who sent the message
- * @param message the message received
+ * @param sdm the message received
  */
 static void
 handle_set_default_message (void *cls,
@@ -699,8 +697,7 @@ check_create_message (void *cls,
  * Handler for CREATE message from client, creates new identity.
  *
  * @param cls unused
- * @param client who sent the message
- * @param message the message received
+ * @param crm the message received
  */
 static void
 handle_create_message (void *cls,
@@ -839,8 +836,7 @@ check_rename_message (void *cls, const struct RenameMessage *msg)
  * new identity.
  *
  * @param cls unused
- * @param client who sent the message
- * @param message the message received
+ * @param rm the message received
  */
 static void
 handle_rename_message (void *cls, const struct RenameMessage *rm)
@@ -985,8 +981,7 @@ check_delete_message (void *cls, const struct DeleteMessage *msg)
  * new identity.
  *
  * @param cls unused
- * @param client who sent the message
- * @param message the message received
+ * @param dm the message received
  */
 static void
 handle_delete_message (void *cls, const struct DeleteMessage *dm)

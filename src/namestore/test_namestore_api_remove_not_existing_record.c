@@ -87,8 +87,7 @@ end (void *cls)
 
 static void
 put_cont (void *cls,
-          int32_t success,
-          const char *emsg)
+          enum GNUNET_ErrorCode ec)
 {
   GNUNET_assert (NULL != cls);
   nsqe = NULL;
@@ -97,25 +96,24 @@ put_cont (void *cls,
     GNUNET_SCHEDULER_cancel (endbadly_task);
     endbadly_task = NULL;
   }
-  switch (success)
+  switch (ec)
   {
-  case GNUNET_NO:
-    /* We expected GNUNET_NO, since record was not found */
+  case GNUNET_EC_NAMESTORE_RECORD_NOT_FOUND:
+    /* We expect that the record is not found */
     GNUNET_SCHEDULER_add_now (&end, NULL);
     break;
 
-  case GNUNET_OK:
+  case GNUNET_EC_NONE:
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Namestore could remove non-existing record: `%s'\n",
-                (NULL != emsg) ? emsg : "");
+                GNUNET_ErrorCode_get_hint (ec));
     GNUNET_SCHEDULER_add_now (&endbadly, NULL);
     break;
 
-  case GNUNET_SYSERR:
   default:
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Namestore failed: `%s'\n",
-                (NULL != emsg) ? emsg : "");
+                GNUNET_ErrorCode_get_hint (ec));
     GNUNET_SCHEDULER_add_now (&endbadly, NULL);
     break;
   }

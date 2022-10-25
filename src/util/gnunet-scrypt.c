@@ -81,7 +81,6 @@ shutdown_task (void *cls)
  * Find our proof of work.
  *
  * @param cls closure (unused)
- * @param tc task context
  */
 static void
 find_proof (void *cls)

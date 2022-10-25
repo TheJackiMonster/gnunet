@@ -106,15 +106,14 @@ fail_cb (void *cls)
 
 static void
 remove_cont (void *cls,
-             int32_t success,
-             const char *emsg)
+             enum GNUNET_ErrorCode ec)
 {
   nsqe = NULL;
-  if (GNUNET_YES != success)
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 _ ("Unable to roll back: `%s'\n"),
-                emsg);
+                GNUNET_ErrorCode_get_hint (ec));
     if (NULL != endbadly_task)
       GNUNET_SCHEDULER_cancel (endbadly_task);
     endbadly_task = GNUNET_SCHEDULER_add_now (&endbadly,
@@ -139,19 +138,18 @@ remove_cont (void *cls,
 
 static void
 put_cont (void *cls,
-          int32_t success,
-          const char *emsg)
+          enum GNUNET_ErrorCode ec)
 {
   const char *name = cls;
 
   GNUNET_assert (NULL != cls);
   nsqe = NULL;
-  if (GNUNET_SYSERR == success)
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_break (0);
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Namestore could not store record: `%s'\n",
-                emsg);
+                GNUNET_ErrorCode_get_hint (ec));
     if (endbadly_task != NULL)
       GNUNET_SCHEDULER_cancel (endbadly_task);
     endbadly_task = GNUNET_SCHEDULER_add_now (&endbadly, NULL);
@@ -161,20 +159,19 @@ put_cont (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Name store added record for `%s': %s\n",
               name,
-              (success == GNUNET_OK) ? "SUCCESS" : "FAIL");
+              (GNUNET_EC_NONE == ec) ? "SUCCESS" : "FAIL");
   nsqe = GNUNET_NAMESTORE_transaction_rollback (nsh, remove_cont,
                                                 (void *) name);
 }
 
 static void
 begin_cont (void *cls,
-            int32_t success,
-            const char *emsg)
+            enum GNUNET_ErrorCode ec)
 {
   struct GNUNET_GNSRECORD_Data rd;
   const char *name = cls;
 
-  GNUNET_assert (success == GNUNET_YES);
+  GNUNET_assert (GNUNET_EC_NONE == ec);
   privkey.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
   GNUNET_CRYPTO_ecdsa_key_create (&privkey.ecdsa_key);
   GNUNET_IDENTITY_key_get_public (&privkey,

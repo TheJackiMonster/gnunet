@@ -111,10 +111,8 @@ sphinx_update()
       # GNS
       make html >/dev/null || exit 1
       cp -r _build/html ../../doc/handbook/ || exit 1
-      make texinfo >/dev/null || exit 1
+      make info >/dev/null || exit 1
       cp -r _build/texinfo ../../doc/handbook/ || exit 1
-      make man >/dev/null || exit 1
-      cp -r _build/man/* ../../doc/man || exit 1
       cd $cwd
     else
       echo "ERROR: Sphinx not found! Unable to generate recent documentation."
@@ -145,7 +143,10 @@ gana_update()
       cd ../gnunet-dht-block-types && \
          make >/dev/null 2>&1 && \
          cp gnunet_dht_block_types.h ../../../src/include || exit 1
-
+      cd ../gnunet-error-codes && \
+         make >/dev/null 2>&1 && \
+         cp gnunet_error_codes.h ../../../src/include && \
+         cp gnunet_error_codes.c ../../../src/util || exit 1
       cd $cwd
     else
       echo "ERROR: No recutils found! Unable to generate recent GANA headers and configs."

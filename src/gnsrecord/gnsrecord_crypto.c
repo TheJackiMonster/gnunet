@@ -95,7 +95,8 @@ eddsa_symmetric_decrypt (
   if (ctlen < 0)
     return GNUNET_SYSERR;
   if (0 != crypto_secretbox_open_detached (result,
-                                           ((unsigned char*) block) + crypto_secretbox_MACBYTES, // Ciphertext
+                                           ((unsigned char*) block)
+                                           + crypto_secretbox_MACBYTES,                          // Ciphertext
                                            block, // Tag
                                            ctlen,
                                            nonce, key))
@@ -193,6 +194,116 @@ block_get_size_ecdsa (const struct GNUNET_GNSRECORD_Data *rd,
   return len;
 }
 
+enum GNUNET_GenericReturnValue
+block_sign_ecdsa (const struct
+                  GNUNET_CRYPTO_EcdsaPrivateKey *key,
+                  const struct
+                  GNUNET_CRYPTO_EcdsaPublicKey *pkey,
+                  const char *label,
+                  struct GNUNET_GNSRECORD_Block *block)
+{
+  struct GNRBlockPS *gnr_block;
+  struct GNUNET_GNSRECORD_EcdsaBlock *ecblock;
+  size_t size = ntohl (block->size) - sizeof (*block) + sizeof (*gnr_block);
+
+  gnr_block = GNUNET_malloc (size);
+  ecblock = &(block)->ecdsa_block;
+  gnr_block->purpose.size = htonl (size);
+  gnr_block->purpose.purpose =
+    htonl (GNUNET_SIGNATURE_PURPOSE_GNS_RECORD_SIGN);
+  gnr_block->expiration_time = ecblock->expiration_time;
+  /* encrypt and sign */
+  GNUNET_memcpy (&gnr_block[1], &ecblock[1],
+                 size - sizeof (*gnr_block));
+  GNUNET_CRYPTO_ecdsa_public_key_derive (pkey,
+                                         label,
+                                         "gns",
+                                         &ecblock->derived_key);
+  if (GNUNET_OK !=
+      GNUNET_CRYPTO_ecdsa_sign_derived (key,
+                                        label,
+                                        "gns",
+                                        &gnr_block->purpose,
+                                        &ecblock->signature))
+  {
+    GNUNET_break (0);
+    GNUNET_free (gnr_block);
+    return GNUNET_SYSERR;
+  }
+  GNUNET_free (gnr_block);
+  return GNUNET_OK;
+}
+
+
+enum GNUNET_GenericReturnValue
+block_sign_eddsa (const struct
+                  GNUNET_CRYPTO_EddsaPrivateKey *key,
+                  const struct
+                  GNUNET_CRYPTO_EddsaPublicKey *pkey,
+                  const char *label,
+                  struct GNUNET_GNSRECORD_Block *block)
+{
+  struct GNRBlockPS *gnr_block;
+  struct GNUNET_GNSRECORD_EddsaBlock *edblock;
+  size_t size = ntohl (block->size) - sizeof (*block) + sizeof (*gnr_block);
+  gnr_block = GNUNET_malloc (size);
+  edblock = &(block)->eddsa_block;
+  gnr_block->purpose.size = htonl (size);
+  gnr_block->purpose.purpose =
+    htonl (GNUNET_SIGNATURE_PURPOSE_GNS_RECORD_SIGN);
+  gnr_block->expiration_time = edblock->expiration_time;
+  GNUNET_memcpy (&gnr_block[1], &edblock[1],
+                 size - sizeof (*gnr_block));
+  /* encrypt and sign */
+  GNUNET_CRYPTO_eddsa_public_key_derive (pkey,
+                                         label,
+                                         "gns",
+                                         &edblock->derived_key);
+  GNUNET_CRYPTO_eddsa_sign_derived (key,
+                                    label,
+                                    "gns",
+                                    &gnr_block->purpose,
+                                    &edblock->signature);
+  GNUNET_free (gnr_block);
+  return GNUNET_OK;
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_block_sign (const struct
+                             GNUNET_IDENTITY_PrivateKey *key,
+                             const char *label,
+                             struct GNUNET_GNSRECORD_Block *block)
+{
+  struct GNUNET_IDENTITY_PublicKey pkey;
+  enum GNUNET_GenericReturnValue res = GNUNET_SYSERR;
+  char *norm_label;
+
+  GNUNET_IDENTITY_key_get_public (key,
+                                  &pkey);
+  norm_label = GNUNET_GNSRECORD_string_normalize (label);
+
+  switch (ntohl (key->type))
+  {
+  case GNUNET_GNSRECORD_TYPE_PKEY:
+    res = block_sign_ecdsa (&key->ecdsa_key,
+                            &pkey.ecdsa_key,
+                            norm_label,
+                            block);
+    break;
+  case GNUNET_GNSRECORD_TYPE_EDKEY:
+    res = block_sign_eddsa (&key->eddsa_key,
+                            &pkey.eddsa_key,
+                            norm_label,
+                            block);
+    break;
+  default:
+    GNUNET_assert (0);
+  }
+  GNUNET_free (norm_label);
+  return res;
+}
+
 
 /**
  * Sign name and records
@@ -204,6 +315,7 @@ block_get_size_ecdsa (const struct GNUNET_GNSRECORD_Data *rd,
  * @param rd record data
  * @param rd_count number of records
  * @param block the block result. Must be allocated sufficiently.
+ * @param sign sign the block GNUNET_NO if block will be signed later.
  * @return GNUNET_SYSERR on error (otherwise GNUNET_OK)
  */
 static enum GNUNET_GenericReturnValue
@@ -213,12 +325,12 @@ block_create_ecdsa (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
                     const char *label,
                     const struct GNUNET_GNSRECORD_Data *rd,
                     unsigned int rd_count,
-                    struct GNUNET_GNSRECORD_Block **block)
+                    struct GNUNET_GNSRECORD_Block **block,
+                    int sign)
 {
   ssize_t payload_len = GNUNET_GNSRECORD_records_get_size (rd_count,
                                                            rd);
   struct GNUNET_GNSRECORD_EcdsaBlock *ecblock;
-  struct GNRBlockPS *gnr_block;
   unsigned char ctr[GNUNET_CRYPTO_AES_KEY_LENGTH / 2];
   unsigned char skey[GNUNET_CRYPTO_AES_KEY_LENGTH];
   struct GNUNET_GNSRECORD_Data rdc[GNUNET_NZL (rd_count)];
@@ -251,7 +363,7 @@ block_create_ecdsa (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
   }
   /* serialize */
   *block = GNUNET_malloc (sizeof (struct GNUNET_GNSRECORD_Block) + payload_len);
-  (*block)->size = htonl(sizeof (struct GNUNET_GNSRECORD_Block) + payload_len);
+  (*block)->size = htonl (sizeof (struct GNUNET_GNSRECORD_Block) + payload_len);
   {
     char payload[payload_len];
 
@@ -260,19 +372,9 @@ block_create_ecdsa (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
                                                        rdc,
                                                        payload_len,
                                                        payload));
-    gnr_block = GNUNET_malloc (sizeof (struct GNRBlockPS) + payload_len);
     ecblock = &(*block)->ecdsa_block;
     (*block)->type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
-    gnr_block->purpose.size = htonl (sizeof(struct GNRBlockPS) + payload_len);
-    gnr_block->purpose.purpose =
-      htonl (GNUNET_SIGNATURE_PURPOSE_GNS_RECORD_SIGN);
-    gnr_block->expiration_time = GNUNET_TIME_absolute_hton (expire);
-    ecblock->expiration_time = gnr_block->expiration_time;
-    /* encrypt and sign */
-    GNUNET_CRYPTO_ecdsa_public_key_derive (pkey,
-                                           label,
-                                           "gns",
-                                           &ecblock->derived_key);
+    ecblock->expiration_time = GNUNET_TIME_absolute_hton (expire);
     GNR_derive_block_aes_key (ctr,
                               skey,
                               label,
@@ -284,21 +386,16 @@ block_create_ecdsa (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
                                             skey,
                                             ctr,
                                             &ecblock[1]));
-    GNUNET_memcpy (&gnr_block[1], &ecblock[1], payload_len);
   }
+  if (GNUNET_YES != sign)
+    return GNUNET_OK;
   if (GNUNET_OK !=
-      GNUNET_CRYPTO_ecdsa_sign_derived (key,
-                                        label,
-                                        "gns",
-                                        &gnr_block->purpose,
-                                        &ecblock->signature))
+      block_sign_ecdsa (key, pkey, label, *block))
   {
     GNUNET_break (0);
     GNUNET_free (*block);
-    GNUNET_free (gnr_block);
     return GNUNET_SYSERR;
   }
-  GNUNET_free (gnr_block);
   return GNUNET_OK;
 }
 
@@ -327,6 +424,7 @@ block_get_size_eddsa (const struct GNUNET_GNSRECORD_Data *rd,
  * @param rd record data
  * @param rd_count number of records
  * @param block where to store the block. Must be allocated sufficiently.
+ * @param sign GNUNET_YES if block shall be signed as well
  * @return GNUNET_SYSERR on error (otherwise GNUNET_OK)
  */
 enum GNUNET_GenericReturnValue
@@ -336,12 +434,12 @@ block_create_eddsa (const struct GNUNET_CRYPTO_EddsaPrivateKey *key,
                     const char *label,
                     const struct GNUNET_GNSRECORD_Data *rd,
                     unsigned int rd_count,
-                    struct GNUNET_GNSRECORD_Block **block)
+                    struct GNUNET_GNSRECORD_Block **block,
+                    int sign)
 {
   ssize_t payload_len = GNUNET_GNSRECORD_records_get_size (rd_count,
                                                            rd);
   struct GNUNET_GNSRECORD_EddsaBlock *edblock;
-  struct GNRBlockPS *gnr_block;
   unsigned char nonce[crypto_secretbox_NONCEBYTES];
   unsigned char skey[crypto_secretbox_KEYBYTES];
   struct GNUNET_GNSRECORD_Data rdc[GNUNET_NZL (rd_count)];
@@ -375,8 +473,8 @@ block_create_eddsa (const struct GNUNET_CRYPTO_EddsaPrivateKey *key,
   /* serialize */
   *block = GNUNET_malloc (sizeof (struct GNUNET_GNSRECORD_Block)
                           + payload_len + crypto_secretbox_MACBYTES);
-  (*block)->size = htonl(sizeof (struct GNUNET_GNSRECORD_Block)
-                 + payload_len + crypto_secretbox_MACBYTES);
+  (*block)->size = htonl (sizeof (struct GNUNET_GNSRECORD_Block)
+                          + payload_len + crypto_secretbox_MACBYTES);
   {
     char payload[payload_len];
 
@@ -385,24 +483,9 @@ block_create_eddsa (const struct GNUNET_CRYPTO_EddsaPrivateKey *key,
                                                        rdc,
                                                        payload_len,
                                                        payload));
-    gnr_block = GNUNET_malloc (sizeof (struct GNRBlockPS)
-                               + payload_len
-                               + crypto_secretbox_MACBYTES);
     edblock = &(*block)->eddsa_block;
     (*block)->type = htonl (GNUNET_GNSRECORD_TYPE_EDKEY);
-    gnr_block->purpose.size =
-      htonl (sizeof(struct GNRBlockPS)
-             + payload_len
-             + crypto_secretbox_MACBYTES);
-    gnr_block->purpose.purpose =
-      htonl (GNUNET_SIGNATURE_PURPOSE_GNS_RECORD_SIGN);
-    gnr_block->expiration_time = GNUNET_TIME_absolute_hton (expire);
-    edblock->expiration_time = gnr_block->expiration_time;
-    /* encrypt and sign */
-    GNUNET_CRYPTO_eddsa_public_key_derive (pkey,
-                                           label,
-                                           "gns",
-                                           &edblock->derived_key);
+    edblock->expiration_time = GNUNET_TIME_absolute_hton (expire);
     GNR_derive_block_xsalsa_key (nonce,
                                  skey,
                                  label,
@@ -414,14 +497,9 @@ block_create_eddsa (const struct GNUNET_CRYPTO_EddsaPrivateKey *key,
                                             skey,
                                             nonce,
                                             &edblock[1]));
-    GNUNET_memcpy (&gnr_block[1], &edblock[1],
-                   payload_len + crypto_secretbox_MACBYTES);
-
-    GNUNET_CRYPTO_eddsa_sign_derived (key,
-                                      label,
-                                      "gns",
-                                      &gnr_block->purpose,
-                                      &edblock->signature);
+    if (GNUNET_YES != sign)
+      return GNUNET_OK;
+    block_sign_eddsa (key, pkey, label, *block);
   }
   return GNUNET_OK;
 }
@@ -477,7 +555,8 @@ GNUNET_GNSRECORD_block_create (const struct GNUNET_IDENTITY_PrivateKey *key,
                               norm_label,
                               rd,
                               rd_count,
-                              result);
+                              result,
+                              GNUNET_YES);
     break;
   case GNUNET_GNSRECORD_TYPE_EDKEY:
     res = block_create_eddsa (&key->eddsa_key,
@@ -486,7 +565,8 @@ GNUNET_GNSRECORD_block_create (const struct GNUNET_IDENTITY_PrivateKey *key,
                               norm_label,
                               rd,
                               rd_count,
-                              result);
+                              result,
+                              GNUNET_YES);
     break;
   default:
     GNUNET_assert (0);
@@ -513,13 +593,14 @@ struct KeyCacheLine
 };
 
 
-enum GNUNET_GenericReturnValue
-GNUNET_GNSRECORD_block_create2 (const struct GNUNET_IDENTITY_PrivateKey *pkey,
-                                struct GNUNET_TIME_Absolute expire,
-                                const char *label,
-                                const struct GNUNET_GNSRECORD_Data *rd,
-                                unsigned int rd_count,
-                                struct GNUNET_GNSRECORD_Block **result)
+static enum GNUNET_GenericReturnValue
+block_create2 (const struct GNUNET_IDENTITY_PrivateKey *pkey,
+               struct GNUNET_TIME_Absolute expire,
+               const char *label,
+               const struct GNUNET_GNSRECORD_Data *rd,
+               unsigned int rd_count,
+               struct GNUNET_GNSRECORD_Block **result,
+               int sign)
 {
   const struct GNUNET_CRYPTO_EcdsaPrivateKey *key;
   struct GNUNET_CRYPTO_EddsaPublicKey edpubkey;
@@ -552,7 +633,8 @@ GNUNET_GNSRECORD_block_create2 (const struct GNUNET_IDENTITY_PrivateKey *pkey,
                               norm_label,
                               rd,
                               rd_count,
-                              result);
+                              result,
+                              sign);
   }
   else if (GNUNET_IDENTITY_TYPE_EDDSA == ntohl (pkey->type))
   {
@@ -564,12 +646,39 @@ GNUNET_GNSRECORD_block_create2 (const struct GNUNET_IDENTITY_PrivateKey *pkey,
                               norm_label,
                               rd,
                               rd_count,
-                              result);
+                              result,
+                              sign);
   }
   GNUNET_free (norm_label);
   return res;
 }
 
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_block_create_unsigned (const struct
+                                        GNUNET_IDENTITY_PrivateKey *pkey,
+                                        struct GNUNET_TIME_Absolute expire,
+                                        const char *label,
+                                        const struct GNUNET_GNSRECORD_Data *rd,
+                                        unsigned int rd_count,
+                                        struct GNUNET_GNSRECORD_Block **result)
+{
+  return block_create2 (pkey, expire, label, rd, rd_count, result, GNUNET_NO);
+}
+
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_block_create2 (const struct GNUNET_IDENTITY_PrivateKey *pkey,
+                                struct GNUNET_TIME_Absolute expire,
+                                const char *label,
+                                const struct GNUNET_GNSRECORD_Data *rd,
+                                unsigned int rd_count,
+                                struct GNUNET_GNSRECORD_Block **result)
+{
+  return block_create2 (pkey, expire, label, rd, rd_count, result, GNUNET_YES);
+}
 
 /**
  * Check if a signature is valid.  This API is used by the GNS Block
@@ -868,17 +977,6 @@ block_decrypt_eddsa (const struct GNUNET_GNSRECORD_Block *block,
 }
 
 
-/**
- * Decrypt block.
- *
- * @param block block to decrypt
- * @param zone_key public key of the zone
- * @param label the name for the records
- * @param proc function to call with the result
- * @param proc_cls closure for proc
- * @return #GNUNET_OK on success, #GNUNET_SYSERR if the block was
- *        not well-formed
- */
 enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_block_decrypt (const struct GNUNET_GNSRECORD_Block *block,
                                 const struct
@@ -946,14 +1044,6 @@ GNUNET_GNSRECORD_query_from_private_key (const struct
 }
 
 
-/**
- * Calculate the DHT query for a given @a label in a given @a zone.
- * FIXME: We may want to plugin-ize this at some point.
- *
- * @param pub public key of the zone
- * @param label label of the record
- * @param query hash to use for the query
- */
 void
 GNUNET_GNSRECORD_query_from_public_key (const struct
                                         GNUNET_IDENTITY_PublicKey *pub,

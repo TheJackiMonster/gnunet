@@ -246,11 +246,11 @@ zone_proc_end (void *cls)
 
 
 static void
-put_cont (void *cls, int32_t success, const char *emsg)
+put_cont (void *cls, enum GNUNET_ErrorCode ec)
 {
   static int c = 0;
 
-  if (success == GNUNET_OK)
+  if (GNUNET_EC_NONE == ec)
   {
     c++;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Created record %u \n", c);
@@ -258,7 +258,7 @@ put_cont (void *cls, int32_t success, const char *emsg)
   else
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Failed to created records: `%s'\n",
-                emsg);
+                GNUNET_ErrorCode_get_hint (ec));
     GNUNET_break (0);
     GNUNET_SCHEDULER_shutdown ();
     return;

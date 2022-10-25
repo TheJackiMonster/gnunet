@@ -211,7 +211,7 @@ struct CadetPeer
 
   /**
    * Sum over all of the offsets of all of the paths in the @a path_heads DLLs.
-   * Used to speed-up @GCP_get_desirability_of_path() calculation.
+   * Used to speed-up #GCP_get_desirability_of_path() calculation.
    */
   unsigned int off_sum;
 
@@ -225,19 +225,13 @@ struct CadetPeer
   unsigned int mqm_ready_counter;
 
   /**
-   * Current length of the @e path_heads and @path_tails arrays.
+   * Current length of the @e path_heads and @e path_tails arrays.
    * The arrays should be grown as needed.
    */
   unsigned int path_dll_length;
 };
 
 
-/**
- * Get the static string for a peer ID.
- *
- * @param cp Peer.
- * @return Static string for it's ID.
- */
 const char *
 GCP_2s (const struct CadetPeer *cp)
 {

@@ -327,7 +327,7 @@ save ()
 /**
  * Transmit the given stats value.
  *
- * @param client receiver of the value
+ * @param ce receiver of the value
  * @param e value to transmit
  */
 static void
@@ -541,9 +541,9 @@ find_subsystem_entry (struct ClientEntry *ce, const char *service)
 /**
  * Find the statistics entry of the given subsystem.
  *
- * @param subsystem subsystem to look in
+ * @param se subsystem to look in
  * @param name name of the entry to look for
- * @return statistis entry, or NULL if not found
+ * @return statistics entry, or NULL if not found
  */
 static struct StatsEntry *
 find_stat_entry (struct SubsystemEntry *se, const char *name)
@@ -561,7 +561,7 @@ find_stat_entry (struct SubsystemEntry *se, const char *name)
  * Check format of SET-message.
  *
  * @param cls the `struct ClientEntry`
- * @param message the actual message
+ * @param msg the actual message
  * @return #GNUNET_OK if message is well-formed
  */
 static int
@@ -589,7 +589,7 @@ check_set (void *cls, const struct GNUNET_STATISTICS_SetMessage *msg)
  * Handle SET-message.
  *
  * @param cls the `struct ClientEntry`
- * @param message the actual message
+ * @param msg the actual message
  */
 static void
 handle_set (void *cls, const struct GNUNET_STATISTICS_SetMessage *msg)

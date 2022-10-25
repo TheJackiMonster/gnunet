@@ -1185,7 +1185,7 @@ upnp_addr_change_cb (void *cls,
  * port number has already been parsed, this task is
  * responsible for periodically doing a DNS lookup.
  *
- * @param ch client handle to act upon
+ * @param cls client handle to act upon
  */
 static void
 dyndns_lookup (void *cls);

@@ -3,17 +3,19 @@
 
 set -eu
 
+GNUNET_TMP="$(gnunet-config -f -s PATHS -o GNUNET_TMP)"
+
 # Helper script for dhtu_testbed_deploy.sh.
 # Do not invoke directly.
 
 n=$1
-CFG="/tmp/deployment/${n}.conf"
+CFG="$GNUNET_TMP/deployment/${n}.conf"
 HELLO=`gnunet-dht-hello -c $CFG`
 
 # Create dense topology:
 #for OFF in `seq 1 $MAX`
 #do
-#    TCFG="/tmp/deployment/${OFF}.conf"
+#    TCFG="$GNUNET_TMP/deployment/${OFF}.conf"
 #    gnunet-dht-hello -c $TCFG $HELLO
 #done
 #exit 0
@@ -26,7 +28,7 @@ do
     for M in `seq $R $R $END`
     do
         OFF=`expr \( $n + $M \) % $MAX`
-        TCFG="/tmp/deployment/${OFF}.conf"
+        TCFG="$GNUNET_TMP/deployment/${OFF}.conf"
         gnunet-dht-hello -c $TCFG $HELLO
     done
     R=`expr $R + 1`

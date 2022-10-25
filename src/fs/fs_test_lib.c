@@ -177,7 +177,6 @@ struct TestDownloadOperation
  * Task scheduled to report on the completion of our publish operation.
  *
  * @param cls the publish operation context
- * @param tc scheduler context (unused)
  */
 static void
 report_uri (void *cls)

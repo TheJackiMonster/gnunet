@@ -259,7 +259,7 @@ check_SCRIPTS = \
   test_gns_revocation.sh\
   test_gns_redirect_lookup.sh
 
-if HAVE_GNUTLS
+if HAVE_GNUTLS_CURL
 check_SCRIPTS += \
   test_proxy.sh
 endif

@@ -107,6 +107,7 @@ run (void *cls,
   struct GNUNET_REVOCATION_PowCalculationHandle *ph;
   struct GNUNET_TIME_Relative exp;
   char ztld[128];
+  ssize_t key_len;
 
   id_priv.type = htonl (GNUNET_IDENTITY_TYPE_ECDSA);
   GNUNET_CRYPTO_ecdsa_key_create (&id_priv.ecdsa_key);
@@ -121,7 +122,9 @@ run (void *cls,
   print_bytes_ (&id_priv.ecdsa_key, sizeof(id_priv.ecdsa_key), 8, 1);
   fprintf (stdout, "\n");
   fprintf (stdout, "Zone identifier (ztype|zkey):\n");
-  print_bytes (&id_pub, GNUNET_IDENTITY_key_get_length (&id_pub), 8);
+  key_len = GNUNET_IDENTITY_key_get_length (&id_pub);
+  GNUNET_assert (0 < key_len);
+  print_bytes (&id_pub, key_len, 8);
   fprintf (stdout, "\n");
   fprintf (stdout, "Encoded zone identifier (zkl = zTLD):\n");
   fprintf (stdout, "%s\n", ztld);

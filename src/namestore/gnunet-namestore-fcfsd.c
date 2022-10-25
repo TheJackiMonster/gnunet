@@ -432,31 +432,24 @@ register_error_cb (void *cls)
 }
 
 
-/**
- * A name/key pair has been successfully registered, or maybe not.
- *
- * @param cls the connection
- * @param status result of the operation
- * @param emsg error message if any
- */
 static void
 register_done_cb (void *cls,
-                  int32_t status,
-                  const char *emsg)
+                  enum GNUNET_ErrorCode ec)
 {
   struct RequestData *rd = cls;
 
   MHD_resume_connection (rd->c);
   rd->searching = NULL;
 
-  if ((GNUNET_SYSERR == status) || (GNUNET_NO == status))
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 _ ("Failed to create record for `%s': %s\n"),
                 rd->register_name,
-                emsg);
+                GNUNET_ErrorCode_get_hint (ec));
     rd->body = make_json ("error", "true",
-                          "message", emsg,
+                          "message",
+                          GNUNET_ErrorCode_get_hint (ec),
                           NULL);
     rd->body_length = strlen (rd->body);
     rd->code = MHD_HTTP_INTERNAL_SERVER_ERROR;
@@ -1137,7 +1130,7 @@ run_service (void *cls,
  * The main function of the fcfs daemon.
  *
  * @param argc number of arguments from the command line
- * @parsm argv the command line arguments
+ * @param argv the command line arguments
  * @return 0 successful exit, a different value otherwise
  */
 int

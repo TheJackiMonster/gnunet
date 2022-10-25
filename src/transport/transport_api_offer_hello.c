@@ -125,11 +125,6 @@ GNUNET_TRANSPORT_offer_hello (const struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
-/**
- * Cancel the request to transport to offer the HELLO message
- *
- * @param ohh the handle for the operation to cancel
- */
 void
 GNUNET_TRANSPORT_offer_hello_cancel (struct
                                      GNUNET_TRANSPORT_OfferHelloHandle *ohh)

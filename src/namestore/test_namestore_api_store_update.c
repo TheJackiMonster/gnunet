@@ -96,8 +96,7 @@ end (void *cls)
 
 static void
 put_cont (void *cls,
-          int32_t success,
-          const char *emsg);
+          enum GNUNET_ErrorCode ec);
 
 
 static void
@@ -167,8 +166,7 @@ lookup_success (void *cls,
 
 static void
 put_cont (void *cls,
-          int32_t success,
-          const char *emsg)
+          enum GNUNET_ErrorCode ec)
 {
   const char *name = cls;
   struct GNUNET_HashCode derived_hash;
@@ -178,7 +176,7 @@ put_cont (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Name store added record for `%s': %s\n",
               name,
-              (success == GNUNET_OK) ? "SUCCESS" : "FAIL");
+              (GNUNET_EC_NONE == ec) ? "SUCCESS" : "FAIL");
   /* Create derived hash */
   GNUNET_GNSRECORD_query_from_private_key (&privkey,
                                            name,

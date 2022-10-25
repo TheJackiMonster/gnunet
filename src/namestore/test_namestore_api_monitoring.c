@@ -198,8 +198,7 @@ zone_proc (void *cls,
 
 static void
 put_cont (void *cls,
-          int32_t success,
-          const char *emsg)
+          enum GNUNET_ErrorCode ec)
 {
   static int c = 0;
   char *label = cls;
@@ -211,7 +210,7 @@ put_cont (void *cls,
   else if (0 == strcmp (label, s_name_3))
     ns_ops[2] = NULL;
 
-  if (success == GNUNET_OK)
+  if (GNUNET_EC_NONE == ec)
   {
     c++;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,

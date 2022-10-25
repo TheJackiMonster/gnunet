@@ -286,7 +286,7 @@ reconnect (struct GNUNET_NAMESTORE_ZoneMonitor *zm)
   env = GNUNET_MQ_msg (sm, GNUNET_MESSAGE_TYPE_NAMESTORE_MONITOR_START);
   sm->iterate_first = htonl (zm->iterate_first);
   sm->zone = zm->zone;
-  sm->filter = htons ((uint16_t) zm->filter);
+  sm->filter = htons (zm->filter);
   GNUNET_MQ_send (zm->mq, env);
 }
 

@@ -522,7 +522,7 @@ cleanup_adh (struct AttributeDeleteHandle *adh)
 /**
  * Cleanup attribute store handle
  *
- * @param handle handle to clean up
+ * @param ash handle to clean up
  */
 static void
 cleanup_as_handle (struct AttributeStoreHandle *ash)
@@ -723,8 +723,8 @@ issue_ticket_result_cb (void *cls,
 /**
  * Check issue ticket message
  *
- * @cls unused
- * @im message to check
+ * @param cls unused
+ * @param im message to check
  * @return GNUNET_OK if message is ok
  */
 static int
@@ -937,7 +937,7 @@ check_consume_ticket_message (void *cls, const struct ConsumeTicketMessage *cm)
  * Handle a consume ticket message
  *
  * @param cls our client handle
- * @cm the message to handle
+ * @param cm the message to handle
  */
 static void
 handle_consume_ticket_message (void *cls, const struct ConsumeTicketMessage *cm)
@@ -970,7 +970,7 @@ handle_consume_ticket_message (void *cls, const struct ConsumeTicketMessage *cm)
  * @param emsg error message (NULL if success=GNUNET_OK)
  */
 static void
-attr_store_cont (void *cls, int32_t success, const char *emsg)
+attr_store_cont (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct AttributeStoreHandle *ash = cls;
   struct GNUNET_MQ_Envelope *env;
@@ -981,11 +981,11 @@ attr_store_cont (void *cls, int32_t success, const char *emsg)
                                ash->client->store_op_tail,
                                ash);
 
-  if (GNUNET_SYSERR == success)
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Failed to store attribute %s\n",
-                emsg);
+                GNUNET_ErrorCode_get_hint (ec));
     cleanup_as_handle (ash);
     GNUNET_SCHEDULER_add_now (&do_shutdown, NULL);
     return;
@@ -1108,7 +1108,7 @@ handle_attribute_store_message (void *cls,
  * @param emsg error message (NULL if success=GNUNET_OK)
  */
 static void
-cred_store_cont (void *cls, int32_t success, const char *emsg)
+cred_store_cont (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct AttributeStoreHandle *ash = cls;
   struct GNUNET_MQ_Envelope *env;
@@ -1119,11 +1119,11 @@ cred_store_cont (void *cls, int32_t success, const char *emsg)
                                ash->client->store_op_tail,
                                ash);
 
-  if (GNUNET_SYSERR == success)
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Failed to store credential: %s\n",
-                emsg);
+                GNUNET_ErrorCode_get_hint (ec));
     cleanup_as_handle (ash);
     GNUNET_SCHEDULER_add_now (&do_shutdown, NULL);
     return;
@@ -1395,7 +1395,7 @@ update_tickets (void *cls);
  * @param emsg error message (NULL if success=GNUNET_OK)
  */
 static void
-ticket_updated (void *cls, int32_t success, const char *emsg)
+ticket_updated (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct AttributeDeleteHandle *adh = cls;
 
@@ -1519,12 +1519,12 @@ static void
 purge_attributes (void *cls);;
 
 static void
-offending_attr_delete_cont (void *cls, int32_t success, const char *emsg)
+offending_attr_delete_cont (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct AttributeDeleteHandle *adh = cls;
 
   adh->ns_qe = NULL;
-  if (GNUNET_SYSERR == success)
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Error deleting attribute %s\n",
@@ -1664,12 +1664,12 @@ start_consistency_update (void *cls)
  * @param emsg error message (NULL if success=GNUNET_OK)
  */
 static void
-attr_delete_cont (void *cls, int32_t success, const char *emsg)
+attr_delete_cont (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct AttributeDeleteHandle *adh = cls;
 
   adh->ns_qe = NULL;
-  if (GNUNET_SYSERR == success)
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Error deleting attribute %s\n",
@@ -1686,8 +1686,8 @@ attr_delete_cont (void *cls, int32_t success, const char *emsg)
 /**
  * Check attribute delete message format
  *
- * @cls unused
- * @dam message to check
+ * @param cls unused
+ * @param dam message to check
  */
 static int
 check_attribute_delete_message (void *cls,
@@ -1755,12 +1755,12 @@ handle_attribute_delete_message (void *cls,
  * @param emsg error message (NULL if success=GNUNET_OK)
  */
 static void
-cred_delete_cont (void *cls, int32_t success, const char *emsg)
+cred_delete_cont (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct AttributeDeleteHandle *adh = cls;
 
   adh->ns_qe = NULL;
-  if (GNUNET_SYSERR == success)
+  if (GNUNET_EC_NONE != ec)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Error deleting credential `%s'\n",
@@ -1777,8 +1777,8 @@ cred_delete_cont (void *cls, int32_t success, const char *emsg)
 /**
  * Check credential delete message format
  *
- * @cls unused
- * @dam message to check
+ * @param cls unused
+ * @param dam message to check
  */
 static int
 check_credential_delete_message (void *cls,

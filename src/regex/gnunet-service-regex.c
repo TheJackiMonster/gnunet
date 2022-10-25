@@ -124,7 +124,7 @@ reannounce (void *cls)
  *
  * @param cls identification of the client
  * @param am the actual message
- * @return #GNUNET_OK if @am is well-formed
+ * @return #GNUNET_OK if @a am is well-formed
  */
 static int
 check_announce (void *cls,
@@ -238,7 +238,7 @@ handle_search_result (void *cls,
  * Check SEARCH message.
  *
  * @param cls identification of the client
- * @param message the actual message
+ * @param sm the actual message
  */
 static int
 check_search (void *cls,
@@ -269,7 +269,7 @@ check_search (void *cls,
  * Handle SEARCH message.
  *
  * @param cls identification of the client
- * @param message the actual message
+ * @param sm the actual message
  */
 static void
 handle_search (void *cls,

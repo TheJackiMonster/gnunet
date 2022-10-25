@@ -1318,8 +1318,6 @@ primary_task (void *cls, int success)
  * we go the stat.  Initiates hostlist download scheduling.
  *
  * @param cls closure
- * @param success #GNUNET_OK if statistics were
- *        successfully obtained, #GNUNET_SYSERR if not.
  */
 static void
 stat_timeout_task (void *cls)

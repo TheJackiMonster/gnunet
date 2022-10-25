@@ -379,19 +379,6 @@ retrieve_hello (void *cls)
 }
 
 
-/**
- * Start a peer with the given configuration
- * @param tth the testing handle
- * @param cfgname configuration file
- * @param peer_id a unique number to identify the peer
- * @param handlers functions for receiving messages
- * @param nc connect callback
- * @param nd disconnect callback
- * @param cb_cls closure for callback
- * @param start_cb start callback
- * @param start_cb_cls closure for callback
- * @return the peer context
- */
 struct GNUNET_TRANSPORT_TESTING_PeerContext *
 GNUNET_TRANSPORT_TESTING_start_peer (struct
                                      GNUNET_TRANSPORT_TESTING_Handle *tth,
@@ -545,14 +532,6 @@ GNUNET_TRANSPORT_TESTING_start_peer (struct
 }
 
 
-/**
- * Stops and restarts the given peer, sleeping (!) for 5s in between.
- *
- * @param p the peer
- * @param restart_cb callback to call when restarted
- * @param restart_cb_cls callback closure
- * @return #GNUNET_OK in success otherwise #GNUNET_SYSERR
- */
 int
 GNUNET_TRANSPORT_TESTING_restart_peer (struct
                                        GNUNET_TRANSPORT_TESTING_PeerContext *p,
@@ -751,11 +730,6 @@ GNUNET_TRANSPORT_TESTING_stop_peer (struct
    }*/
 
 
-/**
- * Offer the current HELLO of P2 to P1.
- *
- * @param cls our `struct GNUNET_TRANSPORT_TESTING_ConnectRequest`
- */
 static void
 offer_hello (void *cls)
 {
@@ -859,13 +833,6 @@ GNUNET_TRANSPORT_TESTING_connect_peers (struct
 }
 
 
-/**
- * Cancel the request to connect two peers
- * Tou MUST cancel the request if you stop the peers before the peers connected successfully
- *
- * @param tth transport testing handle
- * @param cc a connect request handle
- */
 void
 GNUNET_TRANSPORT_TESTING_connect_peers_cancel (struct
                                                GNUNET_TRANSPORT_TESTING_ConnectRequest

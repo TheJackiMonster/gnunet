@@ -62,7 +62,7 @@ init_member_store (struct GNUNET_MESSENGER_MemberStore *store,
 /**
  * Clears a member <i>store</i>, wipes its content and deallocates its memory.
  *
- * @param[in/out] store Member store
+ * @param[in,out] store Member store
  */
 void
 clear_member_store (struct GNUNET_MESSENGER_MemberStore *store);
@@ -70,7 +70,7 @@ clear_member_store (struct GNUNET_MESSENGER_MemberStore *store);
 /**
  * Returns the used contact store of a given member <i>store</i>.
  *
- * @param[in/out] store Member store
+ * @param[in,out] store Member store
  * @return Contact store
  */
 struct GNUNET_MESSENGER_ContactStore*
@@ -121,7 +121,7 @@ get_store_member (const struct GNUNET_MESSENGER_MemberStore *store,
  * Returns the member of a <i>store</i> using a sender id of a given <i>message</i>.
  * If the member does not provide a matching session, NULL gets returned.
  *
- * @param[in/out] store Member store
+ * @param[in,out] store Member store
  * @param[in] message Message
  * @return Member or NULL
  */
@@ -132,7 +132,7 @@ get_store_member_of (struct GNUNET_MESSENGER_MemberStore *store,
 /**
  * Adds a member to a <i>store</i> under a specific <i>id</i> and returns it on success.
  *
- * @param[in/out] store Member store
+ * @param[in,out] store Member store
  * @param[in] id Member id
  * @return Member or NULL
  */
@@ -145,9 +145,9 @@ add_store_member (struct GNUNET_MESSENGER_MemberStore *store,
  * member <i>store</i> and call the provided iterator callback with a selected closure.
  * The function will return the amount of members it iterated through.
  *
- * @param[in/out] store Member store
+ * @param[in,out] store Member store
  * @param[in] it Iterator callback
- * @param[in/out] cls Closure
+ * @param[in,out] cls Closure
  * @return Amount of members iterated through
  */
 int

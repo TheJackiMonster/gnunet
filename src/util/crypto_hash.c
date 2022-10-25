@@ -316,7 +316,8 @@ GNUNET_CRYPTO_hmac_raw (const void *key, size_t key_len,
   {
     gcry_md_reset (md);
   }
-  gcry_md_setkey (md, key, key_len);
+  GNUNET_assert (GPG_ERR_NO_ERROR ==
+                 gcry_md_setkey (md, key, key_len));
   gcry_md_write (md, plaintext, plaintext_len);
   mc = gcry_md_read (md, GCRY_MD_SHA512);
   GNUNET_assert (NULL != mc);

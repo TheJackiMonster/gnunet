@@ -563,7 +563,7 @@ compute_square_sum (const gcry_mpi_t *vector,
  *      S: $S := E_A(sum (r_i + b_i)^2)$
  *     S': $S' := E_A(sum r_i^2)$
  *
- * @param request the requesting session + bob's requesting peer
+ * @param session the requesting session + bob's requesting peer
  * @return #GNUNET_OK on success
  */
 static int

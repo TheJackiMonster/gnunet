@@ -412,8 +412,7 @@ check_lookup (void *cls,
  * Handle lookup requests from client
  *
  * @param cls the closure
- * @param client the client
- * @param message the message
+ * @param sh_msg the message
  */
 static void
 handle_lookup (void *cls,

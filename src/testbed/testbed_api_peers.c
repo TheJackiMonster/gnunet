@@ -661,18 +661,6 @@ GNUNET_TESTBED_peer_start (void *op_cls, struct GNUNET_TESTBED_Peer *peer,
 }
 
 
-/**
- * Stop the given peer.  The handle remains valid (use
- * "GNUNET_TESTBED_peer_destroy" to fully clean up the
- * state of the peer).
- *
- * @param op_cls the closure for this operation; will be set in the event
- *          information
- * @param peer peer to stop
- * @param pcc function to call upon completion
- * @param pcc_cls closure for 'pcc'
- * @return handle to the operation
- */
 struct GNUNET_TESTBED_Operation *
 GNUNET_TESTBED_peer_stop (void *op_cls,
                           struct GNUNET_TESTBED_Peer *peer,
@@ -701,20 +689,6 @@ GNUNET_TESTBED_peer_stop (void *op_cls,
 }
 
 
-/**
- * Request information about a peer. The controller callback will not be called
- * with event type GNUNET_TESTBED_ET_OPERATION_FINISHED when result for this
- * operation is available. Instead, the GNUNET_TESTBED_PeerInfoCallback() will
- * be called.
- * The peer information in the callback is valid until the operation is canceled.
- *
- * @param peer peer to request information about
- * @param pit desired information
- * @param cb the convenience callback to be called when results for this
- *          operation are available
- * @param cb_cls the closure for the above callback
- * @return handle to the operation
- */
 struct GNUNET_TESTBED_Operation *
 GNUNET_TESTBED_peer_get_information (struct GNUNET_TESTBED_Peer *peer,
                                      enum GNUNET_TESTBED_PeerInformationType
@@ -847,20 +821,6 @@ GNUNET_TESTBED_underlay_configure_link (void *op_cls,
 }
 
 
-/**
- * Both peers must have been started before calling this function.
- * This function then obtains a HELLO from 'p1', gives it to 'p2'
- * and asks 'p2' to connect to 'p1'.
- *
- * @param op_cls closure argument to give with the operation event
- * @param cb the callback to call when this operation has finished
- * @param cb_cls the closure for the above callback
- * @param p1 first peer
- * @param p2 second peer
- * @return handle to the operation, NULL if connecting these two
- *         peers is fundamentally not possible at this time (peers
- *         not running or underlay disallows)
- */
 struct GNUNET_TESTBED_Operation *
 GNUNET_TESTBED_overlay_connect (void *op_cls,
                                 GNUNET_TESTBED_OperationCompletionCallback cb,
@@ -957,21 +917,6 @@ oprelease_manage_service (void *cls)
 }
 
 
-/**
- * Start or stop given service at a peer.  This should not be called to
- * start/stop the peer's ARM service.  Use GNUNET_TESTBED_peer_start(),
- * GNUNET_TESTBED_peer_stop() for starting/stopping peer's ARM service.  Success
- * or failure of the generated operation is signalled through the controller
- * event callback and/or operation completion callback.
- *
- * @param op_cls the closure for the operation
- * @param peer the peer whose service is to be started/stopped
- * @param service_name the name of the service
- * @param cb the operation completion callback
- * @param cb_cls the closure for the operation completion callback
- * @param start 1 to start the service; 0 to stop the service
- * @return an operation handle; NULL upon error (peer not running)
- */
 struct GNUNET_TESTBED_Operation *
 GNUNET_TESTBED_peer_manage_service (void *op_cls,
                                     struct GNUNET_TESTBED_Peer *peer,

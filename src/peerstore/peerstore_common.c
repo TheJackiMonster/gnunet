@@ -118,12 +118,6 @@ PEERSTORE_create_record_mq_envelope (const char *sub_system,
 }
 
 
-/**
- * Parses a message carrying a record
- *
- * @param srm the actual message
- * @return Pointer to record or NULL if error
- */
 struct GNUNET_PEERSTORE_Record *
 PEERSTORE_parse_record_message (const struct StoreRecordMessage *srm)
 {

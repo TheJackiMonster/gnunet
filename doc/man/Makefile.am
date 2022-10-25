@@ -36,27 +36,6 @@ endif
 endif
 
 man_MANS = \
-  gnunet.1 \
-	gnunet.2 \
-	gnunet.3 \
-	gnunet.4 \
-	gnunet.5 \
-	gnunet.6 \
-	gnunet.7 \
-	gnunet.8 \
-	gnunet.9 \
-	gana.1 \
-	gana.2 \
-	gana.3 \
-	gana.4 \
-	gana.5 \
-	gnunet-dev.1 \
-	gnunet-dev.2 \
-	gnunet-dev.3 \
-	gnunet-dev.4 \
-	gnunet-dev.5 \
-	gnunet-dev.6 \
-	lsd.1 \
   gnunet.conf.5 \
   gnunet-arm.1 \
   gnunet-ats.1 \
@@ -83,6 +62,7 @@ man_MANS = \
   gnunet-namestore.1 \
   gnunet-namestore-fcfsd.1 \
   gnunet-namestore-dbtool.1 \
+	gnunet-namestore-zonefile.1 \
   gnunet-nat.1 \
   gnunet-nat-auto.1 \
   gnunet-nat-server.1 \

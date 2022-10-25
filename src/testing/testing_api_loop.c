@@ -429,12 +429,6 @@ do_timeout (void *cls)
 }
 
 
-/**
- * Check if the command is running.
- *
- * @param cmd The command to check.
- * @return GNUNET_NO if the command is not running, GNUNET_YES if it is running.
- */
 enum GNUNET_GenericReturnValue
 GNUNET_TESTING_running (const struct GNUNET_TESTING_Command *command)
 {
@@ -443,12 +437,6 @@ GNUNET_TESTING_running (const struct GNUNET_TESTING_Command *command)
 }
 
 
-/**
- * Check if a command is finished.
- *
- * @param cmd The command to check.
- * @return GNUNET_NO if the command is not finished, GNUNET_YES if it is finished.
- */
 enum GNUNET_GenericReturnValue
 GNUNET_TESTING_finished (struct GNUNET_TESTING_Command *command)
 {

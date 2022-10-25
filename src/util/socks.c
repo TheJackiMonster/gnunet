@@ -516,7 +516,7 @@ GNUNET_SOCKS_init_handshake_noauth ()
  * and port.
  *
  * @param ih SOCKS5 handshake
- * @param hostname
+ * @param host
  * @param port
  */
 void

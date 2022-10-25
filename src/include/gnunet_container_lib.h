@@ -28,24 +28,30 @@
  *
  * @file
  * Container classes for GNUnet
- *
- * @defgroup hashmap  Container library: MultiHashMap
+ * 
+ * @addtogroup container
+ * Common data structures in GNUnet programs 
+ * @{
+ * 
+ * @defgroup hashmap  MultiHashMap
  * Hash map with multiple values per key.
  *
  * @see [Documentation](https://gnunet.org/util_multihashmap)
  *
- * @defgroup heap  Container library: Heap
+ * @defgroup heap  Heap
  * Min- or max-heap with arbitrary element removal
  *
- * @defgroup bloomfilter  Container library: Bloom filter
+ * @defgroup bloomfilter  Bloom filter
  * Probabilistic set tests
  *
- * @defgroup dll  Container library: Doubly-linked list
+ * @defgroup dll  Doubly-linked list
  *
  * @see [Documentation](https://gnunet.org/mdll-api)
  *
- * @defgroup metadata  Container library: Metadata
+ * @defgroup metadata  Metadata
  * GNU libextractor key-value pairs
+ * 
+ * @}
  */
 
 #ifndef GNUNET_CONTAINER_LIB_H

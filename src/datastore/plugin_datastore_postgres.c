@@ -760,7 +760,7 @@ struct ProcessKeysContext
  *
  * @param cls closure with a `struct ProcessKeysContext`
  * @param result the postgres result
- * @param num_result the number of results in @a result
+ * @param num_results the number of results in @a result
  */
 static void
 process_keys (void *cls,

@@ -121,21 +121,20 @@ DID_resolve (const char *did,
 
 static void
 DID_create_did_store_cb (void *cls,
-                         int32_t success,
-                         const char *emsg)
+                         enum GNUNET_ErrorCode ec)
 {
   DID_action_callback *cb = ((struct DID_action_return *) cls)->cb;
   void *cls_did_create_cb = ((struct DID_action_return *) cls)->cls;
   free (cls);
 
-  if (GNUNET_OK == success)
+  if (GNUNET_EC_NONE == ec)
   {
     cb (GNUNET_OK, (void *) cls_did_create_cb);
   }
   else
   {
     // TODO: Log emsg. Not writing it to STDOUT
-    printf ("%s\n", emsg);
+    printf ("%s\n", GNUNET_ErrorCode_get_hint (ec));
     cb (GNUNET_NO, (void *) cls_did_create_cb);
   }
 }

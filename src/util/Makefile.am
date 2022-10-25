@@ -105,7 +105,8 @@ libgnunetutil_la_SOURCES = \
   tun.c \
   uri.c \
   speedup.c speedup.h \
-  proc_compat.c
+  proc_compat.c \
+	gnunet_error_codes.c
 
 if HAVE_LIBATOMIC
 if DARWIN

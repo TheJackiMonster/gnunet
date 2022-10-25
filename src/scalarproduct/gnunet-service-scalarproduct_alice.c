@@ -672,7 +672,7 @@ handle_bobs_cryptodata_multipart (
  * calculate a scalarproduct with.
  *
  * @param cls our `struct AliceServiceSession`
- * @param message the actual message
+ * @param msg the actual message
  * @return #GNUNET_OK to keep the connection open,
  *         #GNUNET_SYSERR to close it (we are done)
  */

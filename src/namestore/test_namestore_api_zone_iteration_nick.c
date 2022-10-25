@@ -207,12 +207,11 @@ fail_cb (void *cls)
 
 static void
 put_cont (void *cls,
-          int32_t success,
-          const char *emsg)
+          enum GNUNET_ErrorCode ec)
 {
   static int c = 0;
 
-  if (success == GNUNET_OK)
+  if (GNUNET_EC_NONE == ec)
   {
     c++;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Created record %u \n", c);
@@ -220,7 +219,7 @@ put_cont (void *cls,
   else
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Failed to created records: `%s'\n",
-                emsg);
+                GNUNET_ErrorCode_get_hint (ec));
     GNUNET_break (0);
     GNUNET_SCHEDULER_shutdown ();
     return;
@@ -274,12 +273,11 @@ create_record (unsigned int count)
 
 static void
 nick_2_cont (void *cls,
-             int32_t success,
-             const char *emsg)
+             enum GNUNET_ErrorCode ec)
 {
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Nick added : %s\n",
-              (success == GNUNET_OK) ? "SUCCESS" : "FAIL");
+              (GNUNET_EC_NONE == ec) ? "SUCCESS" : "FAIL");
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Created record 1\n");
 
@@ -309,11 +307,11 @@ nick_2_cont (void *cls,
 
 
 static void
-nick_1_cont (void *cls, int32_t success, const char *emsg)
+nick_1_cont (void *cls, enum GNUNET_ErrorCode ec)
 {
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Nick 1 added : %s\n",
-              (success == GNUNET_OK) ? "SUCCESS" : "FAIL");
+              (GNUNET_EC_NONE == ec) ? "SUCCESS" : "FAIL");
   struct GNUNET_GNSRECORD_Data rd;
 
   memset (&rd, 0, sizeof(rd));
