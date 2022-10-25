@@ -2065,6 +2065,7 @@ get_node_info (unsigned int num,
                struct GNUNET_TESTING_NodeConnection **node_connections_ex)
 {
   struct GNUNET_ShortHashCode *hkey;
+  struct GNUNET_ShortHashCode *hkey_node;
   struct GNUNET_HashCode hc;
   unsigned int namespace_n;
   unsigned int node_m;
@@ -2111,7 +2112,7 @@ get_node_info (unsigned int num,
     if (NULL != namespace)
     {
       node_m = num - topology->nodes_x - topology->nodes_m * (namespace_n - 1);
-      hkey = GNUNET_new (struct GNUNET_ShortHashCode);
+      hkey_node = GNUNET_new (struct GNUNET_ShortHashCode);
       GNUNET_CRYPTO_hash (&node_m, sizeof(node_m), &hc);
       memcpy (hkey,
               &hc,
@@ -2129,6 +2130,7 @@ get_node_info (unsigned int num,
       *node_ex = node;
       *namespace_ex = namespace;
       *node_connections_ex = node_connections;
+      GNUNET_free (hkey_node);
     }
   }
   GNUNET_free (hkey);

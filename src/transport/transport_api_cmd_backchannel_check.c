@@ -495,8 +495,6 @@ backchannel_check_run (void *cls,
     GNUNET_TESTING_async_finish (&cs->ac);
 
   GNUNET_free (namespace_it);
-  GNUNET_free (node_it);
-
 }
 
 
