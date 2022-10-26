@@ -130,6 +130,9 @@ else
   LIBIDN2=
 endif
 
+
+libgnunetutil_la_CFLAGS = \
+  ${MHD_CFLAGS}
 libgnunetutil_la_LIBADD = \
   $(GCLIBADD) $(WINLIB) \
   $(LIBATOMIC) \

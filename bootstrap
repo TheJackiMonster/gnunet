@@ -128,21 +128,26 @@ gana_update()
       cwd=$PWD
       cd contrib/gana || exit 1
       # GNS
+      echo "Updating GNS record types"
       cd gnu-name-system-record-types && \
          make >/dev/null && \
          cp gnu_name_system_record_types.h ../../../src/include/ || exit 1
+      echo "Creating default TLDs"
       cd ../gnu-name-system-default-tlds && \
          make >/dev/null && \
          cp tlds.conf ../../../src/gns || exit 1
 
       # Signatures
+      echo "Updating GNUnet signatures"
       cd ../gnunet-signatures && \
          make >/dev/null && \
          cp gnunet_signatures.h ../../../src/include || exit 1
       # DHT Block Types
+      echo "Updating DHT record types"
       cd ../gnunet-dht-block-types && \
          make >/dev/null && \
          cp gnunet_dht_block_types.h ../../../src/include || exit 1
+      echo "Generating GNUnet error types"
       cd ../gnunet-error-codes && \
          make >/dev/null && \
          cp gnunet_error_codes.h ../../../src/include && \
@@ -152,6 +157,7 @@ gana_update()
       echo "ERROR: No recutils found! Unable to generate recent GANA headers and configs."
       exit 1
     fi
+    echo "GANA finished"
 }
 
 main()
