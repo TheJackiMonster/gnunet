@@ -129,22 +129,22 @@ gana_update()
       cd contrib/gana || exit 1
       # GNS
       cd gnu-name-system-record-types && \
-         make >/dev/null 2>&1 && \
+         make >/dev/null && \
          cp gnu_name_system_record_types.h ../../../src/include/ || exit 1
       cd ../gnu-name-system-default-tlds && \
-         make >/dev/null 2>&1 && \
+         make >/dev/null && \
          cp tlds.conf ../../../src/gns || exit 1
 
       # Signatures
       cd ../gnunet-signatures && \
-         make >/dev/null 2>&1 && \
+         make >/dev/null && \
          cp gnunet_signatures.h ../../../src/include || exit 1
       # DHT Block Types
       cd ../gnunet-dht-block-types && \
-         make >/dev/null 2>&1 && \
+         make >/dev/null && \
          cp gnunet_dht_block_types.h ../../../src/include || exit 1
       cd ../gnunet-error-codes && \
-         make >/dev/null 2>&1 && \
+         make >/dev/null && \
          cp gnunet_error_codes.h ../../../src/include && \
          cp gnunet_error_codes.c ../../../src/util || exit 1
       cd $cwd
