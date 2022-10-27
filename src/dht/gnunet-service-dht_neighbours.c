@@ -2377,7 +2377,7 @@ handle_dht_p2p_get (void *cls,
                                    &get->key,
                                    bg);
       }
-      else
+      if (GNUNET_BLOCK_TYPE_DHT_URL_HELLO != type)
       {
         if (0 != (options & GNUNET_DHT_RO_FIND_APPROXIMATE))
           eval = GDS_DATACACHE_get_closest (&get->key,
