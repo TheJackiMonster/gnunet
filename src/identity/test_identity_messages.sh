@@ -23,12 +23,12 @@ gnunet-identity -C recipientego -c test_identity.conf
 RECIPIENT_KEY=$(gnunet-identity -d -e recipientego -q -c test_identity.conf)
 MSG_ENC=$(gnunet-identity -W "$TEST_MSG" -k $RECIPIENT_KEY -c test_identity.conf)
 MSG_DEC=$(gnunet-identity -R "$MSG_ENC" -e recipientego -c test_identity.conf)
-
-if test "$TEST_MSG" != "$MSG_DEC"
+gnunet-identity -D recipientego -c test_identity.conf
+gnunet-arm -e -c test_identity.conf
+if [ "$TEST_MSG" != "$MSG_DEC" ]
 then
   echo "Failed - $TEST_MSG != $MSG_DEC"
   exit 1
 fi
 
-gnunet-identity -D recipientego -c test_identity.conf
-gnunet-arm -e -c test_identity.conf
+

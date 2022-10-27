@@ -89,8 +89,6 @@ struct ResultCodeMessage
    * (currently not used).
    */
   uint32_t result_code GNUNET_PACKED;
-
-  /* followed by 0-terminated error message (on error) */
 };
 
 
@@ -136,62 +134,6 @@ struct UpdateMessage
   struct GNUNET_IDENTITY_PrivateKey private_key;
 
   /* followed by 0-terminated ego name */
-};
-
-
-/**
- * Client requests knowledge about default identity for
- * a subsystem from identity service.
- */
-struct GetDefaultMessage
-{
-  /**
-   * Type: #GNUNET_MESSAGE_TYPE_IDENTITY_GET_DEFAULT
-   */
-  struct GNUNET_MessageHeader header;
-
-  /**
-   * Number of bytes in service name string including 0-termination, in NBO.
-   */
-  uint16_t name_len GNUNET_PACKED;
-
-  /**
-   * Always zero.
-   */
-  uint16_t reserved GNUNET_PACKED;
-
-
-  /* followed by 0-terminated service name */
-};
-
-
-/**
- * Used from service to client as a result to the GET_DEFAULT
- * message, used from client to service to SET_DEFAULT.
- */
-struct SetDefaultMessage
-{
-  /**
-   * Type: #GNUNET_MESSAGE_TYPE_IDENTITY_SET_DEFAULT
-   */
-  struct GNUNET_MessageHeader header;
-
-  /**
-   * Number of bytes in service name string including 0-termination, in NBO.
-   */
-  uint16_t name_len GNUNET_PACKED;
-
-  /**
-   * Always zero.
-   */
-  uint16_t reserved GNUNET_PACKED;
-
-  /**
-   * The private key
-   */
-  struct GNUNET_IDENTITY_PrivateKey private_key;
-
-  /* followed by 0-terminated service name */
 };
 
 

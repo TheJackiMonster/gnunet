@@ -106,11 +106,6 @@ static char *pubkey_msg;
 static char *set_ego;
 
 /**
- * -S option.
- */
-static char *set_subsystem;
-
-/**
  * Operation handle for set operation.
  */
 static struct GNUNET_IDENTITY_Operation *set_op;
@@ -178,7 +173,6 @@ test_finished (void)
   if ( (NULL == create_op) &&
        (NULL == delete_op) &&
        (NULL == set_op) &&
-       (NULL == set_subsystem) &&
        (NULL == write_msg) &&
        (NULL == read_msg) &&
        (! list) &&
@@ -195,17 +189,17 @@ test_finished (void)
  * Deletion operation finished.
  *
  * @param cls pointer to operation handle
- * @param emsg NULL on success, otherwise an error message
+ * @param ec the error code
  */
 static void
 delete_finished (void *cls,
-                 const char *emsg)
+                 enum GNUNET_ErrorCode ec)
 {
   struct GNUNET_IDENTITY_Operation **op = cls;
 
   *op = NULL;
-  if (NULL != emsg)
-    fprintf (stderr, "%s\n", gettext (emsg));
+  if (GNUNET_EC_NONE != ec)
+    fprintf (stderr, "%s\n", GNUNET_ErrorCode_get_hint (ec));
   test_finished ();
 }
 
@@ -215,12 +209,12 @@ delete_finished (void *cls,
  *
  * @param cls pointer to operation handle
  * @param pk private key of the ego, or NULL on error
- * @param emsg error message, NULL on success
+ * @param ec the error code
  */
 static void
 create_finished (void *cls,
                  const struct GNUNET_IDENTITY_PrivateKey *pk,
-                 const char *emsg)
+                 enum GNUNET_ErrorCode ec)
 {
   struct GNUNET_IDENTITY_Operation **op = cls;
 
@@ -229,7 +223,7 @@ create_finished (void *cls,
   {
     fprintf (stderr,
              _ ("Failed to create ego: %s\n"),
-             emsg);
+             GNUNET_ErrorCode_get_hint (ec));
     global_ret = 1;
   }
   else if (verbose)
@@ -252,25 +246,6 @@ create_finished (void *cls,
       fprintf (stdout, "%s\n", pubs);
     }
     GNUNET_free (pubs);
-  }
-  test_finished ();
-}
-
-
-/**
- * Function called by #GNUNET_IDENTITY_set up on completion.
- *
- * @param cls NULL
- * @param emsg error message (NULL on success)
- */
-static void
-set_done (void *cls, const char *emsg)
-{
-  set_op = NULL;
-  if (NULL != emsg)
-  {
-    fprintf (stderr, _ ("Failed to set default ego: %s\n"), emsg);
-    global_ret = 1;
   }
   test_finished ();
 }
@@ -447,35 +422,6 @@ print_ego (void *cls,
   char *s;
   char *privs;
 
-  if ( (NULL != set_ego) &&
-       (NULL != set_subsystem) &&
-       (NULL != ego) &&
-       (NULL != identifier) &&
-       (0 == strcmp (identifier, set_ego)))
-  {
-    set_op = GNUNET_IDENTITY_set (sh,
-                                  set_subsystem,
-                                  ego,
-                                  &set_done,
-                                  NULL);
-    GNUNET_free (set_subsystem);
-    set_subsystem = NULL;
-    GNUNET_free (set_ego);
-    set_ego = NULL;
-  }
-  if ( (NULL == ego) &&
-       (NULL != set_ego) &&
-       (NULL != set_subsystem) )
-  {
-    fprintf (stderr,
-             "Could not set ego to `%s' for subsystem `%s', ego not known\n",
-             set_ego,
-             set_subsystem);
-    GNUNET_free (set_subsystem);
-    set_subsystem = NULL;
-    GNUNET_free (set_ego);
-    set_ego = NULL;
-  }
   if ( (NULL == ego) &&
        (NULL != set_ego) &&
        (NULL != read_msg) )
@@ -557,12 +503,6 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
-  if ((NULL != set_subsystem) && (NULL == set_ego))
-  {
-    fprintf (stderr, "Option -s requires option -e to be specified as well.\n");
-    return;
-  }
-
   if ((NULL != read_msg) && (NULL == set_ego))
   {
     fprintf (stderr,
@@ -577,8 +517,7 @@ run (void *cls,
   }
   sh = GNUNET_IDENTITY_connect (cfg,
                                 (monitor | list) ||
-                                (NULL != set_ego) ||
-                                (NULL != set_subsystem)
+                                (NULL != set_ego)
                                 ? &print_ego
                                 : NULL,
                                 NULL);
@@ -686,7 +625,7 @@ main (int argc, char *const *argv)
       "ego",
       "NAME",
       gettext_noop (
-        "set default identity to NAME for a subsystem SUBSYSTEM (use together with -s), restrict results to NAME (use together with -d) or read and decrypt a message for NAME (use together with -R)"),
+        "restrict results to NAME (use together with -d) or read and decrypt a message for NAME (use together with -R)"),
       &set_ego),
     GNUNET_GETOPT_option_string ('k',
                                  "key",
@@ -702,13 +641,6 @@ main (int argc, char *const *argv)
                                "private-keys",
                                gettext_noop ("display private keys as well"),
                                &private_keys),
-    GNUNET_GETOPT_option_string (
-      's',
-      "set",
-      "SUBSYSTEM",
-      gettext_noop (
-        "set default identity to EGO for a subsystem SUBSYSTEM (use together with -e)"),
-      &set_subsystem),
     GNUNET_GETOPT_option_verbose (&verbose),
     GNUNET_GETOPT_OPTION_END
   };

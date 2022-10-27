@@ -280,11 +280,11 @@ GNUNET_IDENTITY_get (struct GNUNET_IDENTITY_Handle *id,
  * been completed.
  *
  * @param cls closure
- * @param emsg NULL on success, otherwise an error message
+ * @param ec the #GNUNET_ErrorCode
  */
 typedef void
 (*GNUNET_IDENTITY_Continuation) (void *cls,
-                                 const char *emsg);
+                                 enum GNUNET_ErrorCode ec);
 
 
 /**
@@ -320,13 +320,13 @@ GNUNET_IDENTITY_disconnect (struct GNUNET_IDENTITY_Handle *h);
  *
  * @param cls closure
  * @param pk private key, NULL on error
- * @param emsg error message, NULL on success
+ * @param ec the #GNUNET_ErrorCode
  */
 typedef void
 (*GNUNET_IDENTITY_CreateContinuation) (
   void *cls,
   const struct GNUNET_IDENTITY_PrivateKey *pk,
-  const char *emsg);
+  enum GNUNET_ErrorCode ec);
 
 
 /**

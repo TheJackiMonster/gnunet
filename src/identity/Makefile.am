@@ -49,10 +49,10 @@ bin_PROGRAMS = \
  gnunet-identity
 
 libexec_PROGRAMS = \
- gnunet-service-identity 
+ gnunet-service-identity
 
 gnunet_service_identity_SOURCES = \
- gnunet-service-identity.c         
+ gnunet-service-identity.c
 gnunet_service_identity_LDADD = \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/util/libgnunetutil.la \
@@ -60,7 +60,7 @@ gnunet_service_identity_LDADD = \
 
 
 gnunet_identity_SOURCES = \
- gnunet-identity.c         
+ gnunet-identity.c
 gnunet_identity_LDADD = \
   libgnunetidentity.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
@@ -68,8 +68,7 @@ gnunet_identity_LDADD = \
   $(GN_LIBINTL)
 
 check_PROGRAMS = \
- test_identity \
- test_identity_defaults 
+ test_identity
 
 check_SCRIPTS = \
   test_identity_messages.sh
@@ -85,17 +84,10 @@ test_identity_SOURCES = \
 test_identity_LDADD = \
   libgnunetidentity.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/util/libgnunetutil.la 
-
-test_identity_defaults_SOURCES = \
- test_identity_defaults.c
-test_identity_defaults_LDADD = \
-  libgnunetidentity.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/util/libgnunetutil.la 
+  $(top_builddir)/src/util/libgnunetutil.la
 
 EXTRA_DIST = \
   test_identity.conf \
-  test_identity_messages.sh 
+  test_identity_messages.sh
 
 

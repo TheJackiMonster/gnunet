@@ -336,11 +336,11 @@ create_did_cb (enum GNUNET_GenericReturnValue status, void *cls)
 static void
 create_did_ego_create_cb (void *cls,
                           const struct GNUNET_IDENTITY_PrivateKey *pk,
-                          const char *emsg)
+                          enum GNUNET_ErrorCode ec)
 {
-  if (emsg != NULL)
+  if (GNUNET_EC_NONE != ec)
   {
-    printf ("%s\n", emsg);
+    printf ("%s\n", GNUNET_ErrorCode_get_hint (ec));
     GNUNET_SCHEDULER_add_now (&cleanup, NULL);
     ret = 1;
     return;

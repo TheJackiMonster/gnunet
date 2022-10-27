@@ -139,15 +139,19 @@ iterate_create_ego (void *cls,
 static void
 callback_ego_create (void *cls,
                      const struct GNUNET_IDENTITY_PrivateKey *key,
-                     const char *emsg)
+                     enum GNUNET_ErrorCode ec)
 {
   struct GNUNET_MESSENGER_EgoOperation *element = cls;
   struct GNUNET_MESSENGER_EgoStore *store = element->store;
 
   GNUNET_assert (element->identifier);
 
-  if (emsg)
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "%s\n", emsg);
+  /**
+   * FIXME: This is dangerous, please handle errors
+   */
+  if (GNUNET_EC_NONE != ec)
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "%s\n",
+                GNUNET_ErrorCode_get_hint (ec));
 
   if (key)
   {
@@ -360,15 +364,19 @@ delete_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
 
 static void
 callback_ego_rename (void *cls,
-                     const char *emsg)
+                     enum GNUNET_ErrorCode ec)
 {
   struct GNUNET_MESSENGER_EgoOperation *element = cls;
   struct GNUNET_MESSENGER_EgoStore *store = element->store;
 
   GNUNET_assert (element->identifier);
 
-  if (emsg)
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "%s\n", emsg);
+  /**
+   * FIXME: Dangerous, handle error
+   */
+  if (GNUNET_EC_NONE != ec)
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "%s\n",
+                GNUNET_ErrorCode_get_hint (ec));
 
   struct GNUNET_HashCode hash;
   GNUNET_CRYPTO_hash (element->identifier, strlen (element->identifier), &hash);
@@ -426,15 +434,19 @@ rename_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
 
 static void
 callback_ego_delete (void *cls,
-                     const char *emsg)
+                     enum GNUNET_ErrorCode ec)
 {
   struct GNUNET_MESSENGER_EgoOperation *element = cls;
   struct GNUNET_MESSENGER_EgoStore *store = element->store;
 
   GNUNET_assert (element->identifier);
 
-  if (emsg)
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "%s\n", emsg);
+  /**
+   * FIXME: Dangerous, handle error
+   */
+  if (GNUNET_EC_NONE != ec)
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "%s\n",
+                GNUNET_ErrorCode_get_hint (ec));
 
   create_store_ego (store, element->identifier);
 

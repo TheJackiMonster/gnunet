@@ -1195,6 +1195,16 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
     unsigned int rd_count;
     struct GNUNET_GNSRECORD_Data *rd;
 
+    if (NULL == ego_name)
+    {
+      fprintf (stderr,
+               _ ("Missing option `%s' for operation `%s'\n"),
+               "-z",
+               _ ("replace"));
+      GNUNET_SCHEDULER_shutdown ();
+      ret = 1;
+      return;
+    }
     if (NULL == name)
     {
       fprintf (stderr,
@@ -1247,6 +1257,16 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
 
   if (add)
   {
+    if (NULL == ego_name)
+    {
+      fprintf (stderr,
+               _ ("Missing option `%s' for operation `%s'\n"),
+               "-z",
+               _ ("add"));
+      GNUNET_SCHEDULER_shutdown ();
+      ret = 1;
+      return;
+    }
     if (NULL == name)
     {
       fprintf (stderr,
@@ -1334,6 +1354,16 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
   }
   if (del)
   {
+    if (NULL == ego_name)
+    {
+      fprintf (stderr,
+               _ ("Missing option `%s' for operation `%s'\n"),
+               "-z",
+               _ ("del"));
+      GNUNET_SCHEDULER_shutdown ();
+      ret = 1;
+      return;
+    }
     if (NULL == name)
     {
       fprintf (stderr,
@@ -1367,6 +1397,16 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
   }
   else if (purge_zone)
   {
+    if (NULL == ego_name)
+    {
+      fprintf (stderr,
+               _ ("Missing option `%s' for operation `%s'\n"),
+               "-z",
+               _ ("purge-zone"));
+      GNUNET_SCHEDULER_shutdown ();
+      ret = 1;
+      return;
+    }
     list_it = GNUNET_NAMESTORE_zone_iteration_start2 (ns,
                                                       &zone_pkey,
                                                       &zone_iteration_error_cb,
@@ -1381,6 +1421,17 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
   else if (list || list_orphaned)
   {
     if (NULL != name)
+    {
+      if (NULL == ego_name)
+      {
+        fprintf (stderr,
+                 _ ("Missing option `%s' for operation `%s'\n"),
+                 "-z",
+                 _ ("list"));
+        GNUNET_SCHEDULER_shutdown ();
+        ret = 1;
+        return;
+      }
       get_qe = GNUNET_NAMESTORE_records_lookup (ns,
                                                 &zone_pkey,
                                                 name,
@@ -1388,6 +1439,7 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
                                                 NULL,
                                                 &display_record_lookup,
                                                 NULL);
+    }
     else
       list_it = GNUNET_NAMESTORE_zone_iteration_start2 (ns,
                                                         (NULL == ego_name) ?
@@ -1404,6 +1456,16 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
   {
     struct GNUNET_IDENTITY_PublicKey pubkey;
 
+    if (NULL == ego_name)
+    {
+      fprintf (stderr,
+               _ ("Missing option `%s' for operation `%s'\n"),
+               "-z",
+               _ ("reverse-pkey"));
+      GNUNET_SCHEDULER_shutdown ();
+      ret = 1;
+      return;
+    }
     if (GNUNET_OK !=
         GNUNET_IDENTITY_public_key_from_string (reverse_pkey,
                                                 &pubkey))
@@ -1426,6 +1488,16 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
     char sh[105];
     char sname[64];
     struct GNUNET_IDENTITY_PublicKey pkey;
+    if (NULL == ego_name)
+    {
+      fprintf (stderr,
+               _ ("Missing option `%s' for operation `%s'\n"),
+               "-z",
+               _ ("uri"));
+      GNUNET_SCHEDULER_shutdown ();
+      ret = 1;
+      return;
+    }
 
     memset (sh, 0, 105);
     memset (sname, 0, 64);
@@ -1476,7 +1548,8 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
   if (monitor)
   {
     zm = GNUNET_NAMESTORE_zone_monitor_start2 (cfg,
-                                               &zone_pkey,
+                                               (NULL != ego_name) ?
+                                               &zone_pkey : NULL,
                                                GNUNET_YES,
                                                &monitor_error_cb,
                                                NULL,
@@ -1523,44 +1596,6 @@ identity_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 
 
 /**
- * Function called with the default ego to be used for GNS
- * operations. Used if the user did not specify a zone via
- * command-line or environment variables.
- *
- * @param cls NULL
- * @param ego default ego, NULL for none
- * @param ctx NULL
- * @param name unused
- */
-static void
-default_ego_cb (void *cls,
-                struct GNUNET_IDENTITY_Ego *ego,
-                void **ctx,
-                const char *name)
-{
-  const struct GNUNET_CONFIGURATION_Handle *cfg = cls;
-
-  (void) ctx;
-  (void) name;
-  get_default = NULL;
-  if (NULL == ego)
-  {
-    fprintf (stderr,
-             _ ("No default identity configured for `namestore' subsystem\n"
-                "Run gnunet-identity -s namestore -e $NAME to set the default to $NAME\n"
-                "Run gnunet-identity -d to get a list of choices for $NAME\n"));
-    GNUNET_SCHEDULER_shutdown ();
-    ret = -1;
-    return;
-  }
-  else
-  {
-    identity_cb ((void *) cfg, ego);
-  }
-}
-
-
-/**
  * Function called with ALL of the egos known to the
  * identity service, used on startup if the user did
  * not specify a zone on the command-line.
@@ -1597,11 +1632,10 @@ id_connect_cb (void *cls,
   }
   if (NULL != ego)
     return;
-  if (NULL != ego_name)
-    el = GNUNET_IDENTITY_ego_lookup (cfg, ego_name, &identity_cb, (void *) cfg);
+  if (NULL == ego_name)
+    run_with_zone_pkey (cfg);
   else
-    get_default =
-      GNUNET_IDENTITY_get (idh, "namestore", &default_ego_cb, (void *) cfg);
+    el = GNUNET_IDENTITY_ego_lookup (cfg, ego_name, &identity_cb, (void *) cfg);
 }
 
 

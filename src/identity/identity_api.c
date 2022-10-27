@@ -279,13 +279,13 @@ reschedule_connect (struct GNUNET_IDENTITY_Handle *h)
                                  op);
     if (NULL != op->cont)
       op->cont (op->cls,
-                "Error in communication with the identity service");
+                GNUNET_EC_SERVICE_COMMUNICATION_FAILED);
     else if (NULL != op->cb)
       op->cb (op->cls, NULL, NULL, NULL);
     else if (NULL != op->create_cont)
       op->create_cont (op->cls,
                        NULL,
-                       "Failed to communicate with the identity service");
+                       GNUNET_EC_SERVICE_COMMUNICATION_FAILED);
     GNUNET_free (op);
   }
   GNUNET_CONTAINER_multihashmap_iterate (h->egos,
@@ -322,24 +322,6 @@ mq_error_handler (void *cls,
 
 
 /**
- * We received a result code from the service.  Check the message
- * is well-formed.
- *
- * @param cls closure
- * @param rcm result message received
- * @return #GNUNET_OK if the message is well-formed
- */
-static int
-check_identity_result_code (void *cls,
-                            const struct ResultCodeMessage *rcm)
-{
-  if (sizeof(*rcm) != htons (rcm->header.size))
-    GNUNET_MQ_check_zero_termination (rcm);
-  return GNUNET_OK;
-}
-
-
-/**
  * We received a result code from the service.
  *
  * @param cls closure
@@ -351,8 +333,7 @@ handle_identity_result_code (void *cls,
 {
   struct GNUNET_IDENTITY_Handle *h = cls;
   struct GNUNET_IDENTITY_Operation *op;
-  uint16_t size = ntohs (rcm->header.size) - sizeof(*rcm);
-  const char *str = (0 == size) ? NULL : (const char *) &rcm[1];
+  enum GNUNET_ErrorCode ec = ntohl (rcm->result_code);
 
   op = h->op_head;
   if (NULL == op)
@@ -363,11 +344,11 @@ handle_identity_result_code (void *cls,
   }
   GNUNET_CONTAINER_DLL_remove (h->op_head, h->op_tail, op);
   if (NULL != op->cont)
-    op->cont (op->cls, str);
+    op->cont (op->cls, ec);
   else if (NULL != op->cb)
     op->cb (op->cls, NULL, NULL, NULL);
   else if (NULL != op->create_cont)
-    op->create_cont (op->cls, (NULL == str) ? &op->pk : NULL, str);
+    op->create_cont (op->cls, (GNUNET_EC_NONE == ec) ? &op->pk : NULL, ec);
   GNUNET_free (op);
 }
 
@@ -477,80 +458,6 @@ handle_identity_update (void *cls,
 
 
 /**
- * Function called when we receive a set default message from the
- * service.
- *
- * @param cls closure
- * @param sdm message received
- * @return #GNUNET_OK if the message is well-formed
- */
-static int
-check_identity_set_default (void *cls,
-                            const struct SetDefaultMessage *sdm)
-{
-  uint16_t size = ntohs (sdm->header.size) - sizeof(*sdm);
-  uint16_t name_len = ntohs (sdm->name_len);
-  const char *str = (const char *) &sdm[1];
-
-  if ((size != name_len) || ((0 != name_len) && ('\0' != str[name_len - 1])))
-  {
-    GNUNET_break (0);
-    return GNUNET_SYSERR;
-  }
-  GNUNET_break (0 == ntohs (sdm->reserved));
-  return GNUNET_OK;
-}
-
-
-/**
- * Type of a function to call when we receive a message
- * from the service.
- *
- * @param cls closure
- * @param sdm message received
- */
-static void
-handle_identity_set_default (void *cls,
-                             const struct SetDefaultMessage *sdm)
-{
-  struct GNUNET_IDENTITY_Handle *h = cls;
-  struct GNUNET_IDENTITY_Operation *op;
-  struct GNUNET_HashCode id;
-  struct GNUNET_IDENTITY_Ego *ego;
-
-  GNUNET_CRYPTO_hash (&sdm->private_key,
-                      sizeof(sdm->private_key),
-                      &id);
-  ego = GNUNET_CONTAINER_multihashmap_get (h->egos,
-                                           &id);
-  if (NULL == ego)
-  {
-    GNUNET_break (0);
-    reschedule_connect (h);
-    return;
-  }
-  op = h->op_head;
-  if (NULL == op)
-  {
-    GNUNET_break (0);
-    reschedule_connect (h);
-    return;
-  }
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Received SET_DEFAULT message from identity service\n");
-  GNUNET_CONTAINER_DLL_remove (h->op_head,
-                               h->op_tail,
-                               op);
-  if (NULL != op->cb)
-    op->cb (op->cls,
-            ego,
-            &ego->ctx,
-            ego->name);
-  GNUNET_free (op);
-}
-
-
-/**
  * Try again to connect to the identity service.
  *
  * @param cls handle to the identity service.
@@ -560,17 +467,13 @@ reconnect (void *cls)
 {
   struct GNUNET_IDENTITY_Handle *h = cls;
   struct GNUNET_MQ_MessageHandler handlers[] = {
-    GNUNET_MQ_hd_var_size (identity_result_code,
-                           GNUNET_MESSAGE_TYPE_IDENTITY_RESULT_CODE,
-                           struct ResultCodeMessage,
-                           h),
+    GNUNET_MQ_hd_fixed_size (identity_result_code,
+                             GNUNET_MESSAGE_TYPE_IDENTITY_RESULT_CODE,
+                             struct ResultCodeMessage,
+                             h),
     GNUNET_MQ_hd_var_size (identity_update,
                            GNUNET_MESSAGE_TYPE_IDENTITY_UPDATE,
                            struct UpdateMessage,
-                           h),
-    GNUNET_MQ_hd_var_size (identity_set_default,
-                           GNUNET_MESSAGE_TYPE_IDENTITY_SET_DEFAULT,
-                           struct SetDefaultMessage,
                            h),
     GNUNET_MQ_handler_end ()
   };
@@ -658,88 +561,6 @@ GNUNET_IDENTITY_ego_get_public_key (struct GNUNET_IDENTITY_Ego *ego,
     ego->pub_initialized = GNUNET_YES;
   }
   *pk = ego->pub;
-}
-
-
-struct GNUNET_IDENTITY_Operation *
-GNUNET_IDENTITY_get (struct GNUNET_IDENTITY_Handle *h,
-                     const char *service_name,
-                     GNUNET_IDENTITY_Callback cb,
-                     void *cb_cls)
-{
-  struct GNUNET_IDENTITY_Operation *op;
-  struct GNUNET_MQ_Envelope *env;
-  struct GetDefaultMessage *gdm;
-  size_t slen;
-
-  if (NULL == h->mq)
-    return NULL;
-  GNUNET_assert (NULL != h->cb);
-  slen = strlen (service_name) + 1;
-  if (slen >= GNUNET_MAX_MESSAGE_SIZE - sizeof(struct GetDefaultMessage))
-  {
-    GNUNET_break (0);
-    return NULL;
-  }
-  op = GNUNET_new (struct GNUNET_IDENTITY_Operation);
-  op->h = h;
-  op->cb = cb;
-  op->cls = cb_cls;
-  GNUNET_CONTAINER_DLL_insert_tail (h->op_head, h->op_tail, op);
-  env =
-    GNUNET_MQ_msg_extra (gdm, slen, GNUNET_MESSAGE_TYPE_IDENTITY_GET_DEFAULT);
-  gdm->name_len = htons (slen);
-  gdm->reserved = htons (0);
-  GNUNET_memcpy (&gdm[1], service_name, slen);
-  GNUNET_MQ_send (h->mq, env);
-  return op;
-}
-
-
-/**
- * Set the preferred/default identity for a service.
- *
- * @param h identity service to inform
- * @param service_name for which service is an identity set
- * @param ego new default identity to be set for this service
- * @param cont function to call once the operation finished
- * @param cont_cls closure for @a cont
- * @return handle to abort the operation
- */
-struct GNUNET_IDENTITY_Operation *
-GNUNET_IDENTITY_set (struct GNUNET_IDENTITY_Handle *h,
-                     const char *service_name,
-                     struct GNUNET_IDENTITY_Ego *ego,
-                     GNUNET_IDENTITY_Continuation cont,
-                     void *cont_cls)
-{
-  struct GNUNET_IDENTITY_Operation *op;
-  struct GNUNET_MQ_Envelope *env;
-  struct SetDefaultMessage *sdm;
-  size_t slen;
-
-  if (NULL == h->mq)
-    return NULL;
-  GNUNET_assert (NULL != h->cb);
-  slen = strlen (service_name) + 1;
-  if (slen >= GNUNET_MAX_MESSAGE_SIZE - sizeof(struct SetDefaultMessage))
-  {
-    GNUNET_break (0);
-    return NULL;
-  }
-  op = GNUNET_new (struct GNUNET_IDENTITY_Operation);
-  op->h = h;
-  op->cont = cont;
-  op->cls = cont_cls;
-  GNUNET_CONTAINER_DLL_insert_tail (h->op_head, h->op_tail, op);
-  env =
-    GNUNET_MQ_msg_extra (sdm, slen, GNUNET_MESSAGE_TYPE_IDENTITY_SET_DEFAULT);
-  sdm->name_len = htons (slen);
-  sdm->reserved = htons (0);
-  sdm->private_key = ego->pk;
-  GNUNET_memcpy (&sdm[1], service_name, slen);
-  GNUNET_MQ_send (h->mq, env);
-  return op;
 }
 
 
@@ -1119,11 +940,13 @@ GNUNET_IDENTITY_sign_raw_ (const struct
   {
   case GNUNET_IDENTITY_TYPE_ECDSA:
     return GNUNET_CRYPTO_ecdsa_sign_ (&(priv->ecdsa_key), purpose,
-                                      (struct GNUNET_CRYPTO_EcdsaSignature*)sig);
+                                      (struct
+                                       GNUNET_CRYPTO_EcdsaSignature*) sig);
     break;
   case GNUNET_IDENTITY_TYPE_EDDSA:
     return GNUNET_CRYPTO_eddsa_sign_ (&(priv->eddsa_key), purpose,
-                                      (struct GNUNET_CRYPTO_EddsaSignature*)sig);
+                                      (struct
+                                       GNUNET_CRYPTO_EddsaSignature*) sig);
     break;
   default:
     GNUNET_break (0);
@@ -1202,12 +1025,14 @@ GNUNET_IDENTITY_signature_verify_raw_ (uint32_t purpose,
   {
   case GNUNET_IDENTITY_TYPE_ECDSA:
     return GNUNET_CRYPTO_ecdsa_verify_ (purpose, validate,
-                                        (struct GNUNET_CRYPTO_EcdsaSignature*)sig,
+                                        (struct
+                                         GNUNET_CRYPTO_EcdsaSignature*) sig,
                                         &(pub->ecdsa_key));
     break;
   case GNUNET_IDENTITY_TYPE_EDDSA:
     return GNUNET_CRYPTO_eddsa_verify_ (purpose, validate,
-                                        (struct GNUNET_CRYPTO_EddsaSignature*)sig,
+                                        (struct
+                                         GNUNET_CRYPTO_EddsaSignature*) sig,
                                         &(pub->eddsa_key));
     break;
   default:

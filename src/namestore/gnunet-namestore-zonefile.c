@@ -283,12 +283,12 @@ parse_origin (char *token, char *origin)
 
 static void
 origin_create_cb (void *cls, const struct GNUNET_IDENTITY_PrivateKey *pk,
-                  const char *emsg)
+                  enum GNUNET_ErrorCode ec)
 {
   id_op = NULL;
-  if (NULL != emsg)
+  if (GNUNET_EC_NONE != ec)
   {
-    fprintf (stderr, "Error: %s\n", emsg);
+    fprintf (stderr, "Error: %s\n", GNUNET_ErrorCode_get_hint (ec));
     ret = 1;
     GNUNET_SCHEDULER_shutdown ();
     return;

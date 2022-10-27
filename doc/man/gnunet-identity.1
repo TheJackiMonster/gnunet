@@ -39,7 +39,6 @@
 .Op Fl p | -private-keys
 .Op Fl q | -quiet
 .Op Fl R Ar MESSAGE | Fl -read= Ns Ar MESSAGE
-.Op Fl s Ar SUBSYSTEM | Fl -set= Ns Ar SUBSYSTEM
 .Op Fl V | -verbose
 .Op Fl W Ar MESSAGE | Fl -write= Ns Ar MESSAGE
 .Op Fl X | -eddsa
@@ -100,16 +99,6 @@ Decrypt (read) a message using the respective ego private key. Use together with
 The message consists of an ephemeral key and the ciphertext, separated by a dot.
 Such messages can be created with
 .Fl W .
-.It Fl s Ar SUBSYSTEM | Fl -set= Ns Ar SUBSYSTEM
-Perform "set" operation for the specified
-.Ar SUBSYSTEM
-with the respective ego.
-Needs to be used together with option
-.Fl e .
-After this, the given SUBSYSTEM will use the ego with the specified NAME.
-This will fail if
-.Ar NAME
-does not yet exist.
 .It Fl V | -verbose
 Be verbose, in particular outputs the public key of freshly created egos.
 .It Fl W Ar MESSAGE | Fl -write= Ns Ar MESSAGE

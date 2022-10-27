@@ -189,13 +189,13 @@ notification_cb (void *cls,
  * Continuation called from successful delete operation.
  *
  * @param cls NULL
- * @param emsg (should also be NULL)
+ * @param ec
  */
 static void
-delete_cont (void *cls, const char *emsg)
+delete_cont (void *cls, enum GNUNET_ErrorCode ec)
 {
   op = NULL;
-  CHECK (NULL == emsg);
+  CHECK (GNUNET_EC_NONE == ec);
   res = 0;
   end ();
 }
@@ -217,12 +217,12 @@ finally_delete (void *cls)
  * Continuation called from expected-to-fail rename operation.
  *
  * @param cls NULL
- * @param emsg (should also be NULL)
+ * @param ec
  */
 static void
-fail_rename_cont (void *cls, const char *emsg)
+fail_rename_cont (void *cls, enum GNUNET_ErrorCode ec)
 {
-  CHECK (NULL != emsg);
+  CHECK (GNUNET_EC_NONE != ec);
   op = NULL;
   GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
                                 &finally_delete,
@@ -234,12 +234,12 @@ fail_rename_cont (void *cls, const char *emsg)
  * Continuation called from successful rename operation.
  *
  * @param cls NULL
- * @param emsg (should also be NULL)
+ * @param ec
  */
 static void
-success_rename_cont (void *cls, const char *emsg)
+success_rename_cont (void *cls, enum GNUNET_ErrorCode ec)
 {
-  CHECK (NULL == emsg);
+  CHECK (GNUNET_EC_NONE == ec);
   op = GNUNET_IDENTITY_rename (h, "test-id", "test", &fail_rename_cont, NULL);
 }
 
@@ -249,15 +249,15 @@ success_rename_cont (void *cls, const char *emsg)
  *
  * @param cls NULL
  * @param pk private key of the ego, or NULL on error
- * @param emsg error message
+ * @param ec
  */
 static void
 create_cb (void *cls,
            const struct GNUNET_IDENTITY_PrivateKey *pk,
-           const char *emsg)
+           enum GNUNET_ErrorCode ec)
 {
   CHECK (NULL != pk);
-  CHECK (NULL == emsg);
+  CHECK (GNUNET_EC_NONE == ec);
   op =
     GNUNET_IDENTITY_rename (h, "test-id", "test", &success_rename_cont, NULL);
 }
