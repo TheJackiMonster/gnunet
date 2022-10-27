@@ -111,7 +111,7 @@ struct PeerPutMessage
   struct GNUNET_MessageHeader header;
 
   /**
-   * Content type.
+   * Content type, must not be zero.
    */
   uint32_t type GNUNET_PACKED;
 
@@ -1924,6 +1924,11 @@ check_dht_p2p_put (void *cls,
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
   }
+  if (GNUNET_BLOCK_TYPE_ANY == htonl (put->type))
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
   return GNUNET_OK;
 }
 
@@ -2357,7 +2362,8 @@ handle_dht_p2p_get (void *cls,
          (GDS_am_closest_peer (&get->key,
                                peer_bf)) )
     {
-      if (GNUNET_BLOCK_TYPE_DHT_URL_HELLO == type)
+      if ( (GNUNET_BLOCK_TYPE_DHT_URL_HELLO == type) ||
+           (GNUNET_BLOCK_TYPE_ANY == type) )
       {
         GNUNET_STATISTICS_update (GDS_stats,
                                   "# P2P HELLO lookup requests processed",
@@ -2481,7 +2487,8 @@ process_reply_with_path (const struct GNUNET_DATACACHE_Block *bd,
     if (NULL != bd->put_path)
       GNUNET_memcpy (xput_path,
                      bd->put_path,
-                     bd->put_path_length * sizeof(struct GNUNET_DHT_PathElement));
+                     bd->put_path_length * sizeof(struct
+                                                  GNUNET_DHT_PathElement));
     GNUNET_memcpy (&xput_path[bd->put_path_length],
                    get_path,
                    get_path_length * sizeof(struct GNUNET_DHT_PathElement));
