@@ -1,3 +1,129 @@
+Wed, 26 Oct 2022 12:37:13 +0200 (d435321cf)
+gana to master - Christian Grothoff
+
+Mon, 24 Oct 2022 19:58:32 +0100 (3f89ededb)
+[fs] Print error code - madmurphy
+
+Mon, 24 Oct 2022 18:21:14 +0900 (6e874ef92)
+NAMESTORE: Allow to purge/recover orphans using CLI. Do not handle orphans in service - Martin Schanzenbach
+
+Sun, 23 Oct 2022 15:08:57 +0900 (ee99cbfa6)
+update submodules - Martin Schanzenbach
+
+Sun, 23 Oct 2022 15:00:54 +0900 (bb81464ed)
+NAMESTORE: Introduce GANA-managed error codes - Martin Schanzenbach
+
+Sat, 22 Oct 2022 12:22:00 +0900 (ce203bca7)
+RECLAIM: Update manpage for gnunet-reclaim - Martin Schanzenbach
+
+Thu, 20 Oct 2022 17:01:48 +0900 (64aefd7b6)
+ZONEMASTER: Use parallel worker thread for GNS block signing - Martin Schanzenbach
+
+Wed, 19 Oct 2022 22:56:22 +0900 (3683f556d)
+GNS: Make string formats more comaptible with DNS zonefiles - Martin Schanzenbach
+
+Wed, 19 Oct 2022 21:33:50 +0900 (89fed7a08)
+NAMESTORE: Start parser for DNS zonefiles - Martin Schanzenbach
+
+Wed, 19 Oct 2022 15:10:07 +0900 (1cb34e96b)
+NAMESTORE: Add records_lookup2 API for filtering and update REST API with filter functionality - Martin Schanzenbach
+
+Tue, 18 Oct 2022 21:24:09 +0200 (f0b91ff6c)
+fix #7374 - Christian Grothoff
+
+Wed, 19 Oct 2022 00:17:15 +0900 (282b9d369)
+NAMESTORE: Do not return orphaned zones to clients. Issue #7201 - Martin Schanzenbach
+
+Tue, 18 Oct 2022 15:30:28 +0900 (37f81821b)
+ZONEMASTER: Merge monitor into zonemaster process - Martin Schanzenbach
+
+Sun, 16 Oct 2022 18:09:48 +0900 (4ca81ff1a)
+PACKAGES: Update fedora configurations and scripts - Martin Schanzenbach
+
+Sat, 3 Sep 2022 20:45:51 +0100 (bd83912f4)
+DOC: Reconfigured Doxygen HTML output to improve navigability - Willow Liquorice
+
+Thu, 6 Oct 2022 16:35:26 +0900 (1e4cb697e)
+NAMESTORE: Bulk insert API now properly handles message length restriction - Martin Schanzenbach
+
+Tue, 4 Oct 2022 22:52:34 +0900 (e2cb3bd74)
+DOC: Update GANA - Martin Schanzenbach
+
+Tue, 4 Oct 2022 22:43:22 +0900 (1741ddcf5)
+NAMESTORE: Massaging new bulk API - Martin Schanzenbach
+
+Tue, 4 Oct 2022 20:31:16 +0900 (4aeb9686f)
+NAMESTORE: Move Namecache block refresh into zonemonitor - Martin Schanzenbach
+
+Tue, 4 Oct 2022 09:50:30 +0900 (1d28c7e16)
+NAMESTORE: Improve tests; fix reset/init bug - Martin Schanzenbach
+
+Mon, 3 Oct 2022 23:49:58 +0900 (a75505815)
+NAMESTORE: Add performance tests for bulk import/tx - Martin Schanzenbach
+
+Mon, 3 Oct 2022 20:50:53 +0900 (4be1619e0)
+NAMESTORE: Make bulk and transactional API consistent with monitoring - Martin Schanzenbach
+
+Mon, 3 Oct 2022 13:32:18 +0900 (74ba73f5d)
+NAMESTORE: Roll back on client disconnect - Martin Schanzenbach
+
+Mon, 3 Oct 2022 13:23:35 +0900 (e891aa916)
+NAMESTORE: Bulk store API and fix for delayed store activities - Martin Schanzenbach
+
+Sat, 3 Sep 2022 20:45:51 +0100 (bd83912f4)
+DOC: Reconfigured Doxygen HTML output to improve navigability - Willow Liquorice
+
+Sun, 2 Oct 2022 11:48:10 +0900 (4611664be)
+DOC: Back to info_TEXINFOS - Martin Schanzenbach
+
+Sat, 1 Oct 2022 22:55:32 +0900 (995778685)
+BUILD: Clean up build and submodules - Martin Schanzenbach
+
+Sat, 1 Oct 2022 22:55:09 +0900 (56d347ae7)
+GANA: Update submodule - Martin Schanzenbach
+
+Sat, 1 Oct 2022 16:27:59 +0900 (5d6900718)
+DOC: Manpage cleanup - Martin Schanzenbach
+
+Sat, 1 Oct 2022 00:05:04 +0900 (6021469a1)
+NAMESTORE: Add manpage for new database CLI - Martin Schanzenbach
+
+Fri, 30 Sep 2022 19:18:40 +0900 (51b6cf4d3)
+NAMESTORE: Add postgres functions for DB setup utility - Martin Schanzenbach
+
+Fri, 30 Sep 2022 17:36:52 +0900 (c3eca4a0a)
+NAMESTORE: Add DB setup utility with SQlite support; PQ broken - Martin Schanzenbach
+
+Fri, 30 Sep 2022 08:20:49 +0100 (003cc0ea2)
+[history] Mark old logos in `contrib/branding/logo/` as `old-` and add svg - madmurphy
+
+Thu, 29 Sep 2022 14:06:42 +0900 (c31abdb6d)
+UTIL: gnunet-config can now print experimental status. Issue #5708 - Martin Schanzenbach
+
+Thu, 29 Sep 2022 13:45:02 +0900 (f7a9e4199)
+BUILD: Fix mysql detection issue #7356 - Martin Schanzenbach
+
+Wed, 28 Sep 2022 14:05:01 +0900 (3ec2b451f)
+NAMESTORE: Allow service-side record set filtering. Fixes #7193 - Martin Schanzenbach
+
+Tue, 27 Sep 2022 11:26:06 +0900 (a3c972882)
+BUILD: Improve documentation build - Martin Schanzenbach
+
+Tue, 27 Sep 2022 11:01:08 +0900 (3d7a01259)
+BUILD: Do not build whole documentation if manpages are also enabled - Martin Schanzenbach
+
+Mon, 26 Sep 2022 22:24:17 +0100 (227727ee4)
+Arch packages don't depend anymore on gnURL - madmurphy
+
+Mon, 26 Sep 2022 21:00:11 +0900 (d56728566)
+BUILD: Silence some -Wall warnings - Martin Schanzenbach
+
+Mon, 26 Sep 2022 20:50:36 +0900 (6d019f05f)
+NAMESTORE: Fix API return value - Martin Schanzenbach
+
+Mon, 26 Sep 2022 09:53:54 +0200 (dadd71c73)
+updating Debian package - Christian Grothoff
+
 Mon, 26 Sep 2022 00:08:32 +0900 (4bfdbabb8)
 BUILD: Wow, automake is sh*t - Martin Schanzenbach
 
