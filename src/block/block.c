@@ -299,9 +299,12 @@ GNUNET_BLOCK_check_query (struct GNUNET_BLOCK_Context *ctx,
                           const void *xquery,
                           size_t xquery_size)
 {
-  struct GNUNET_BLOCK_PluginFunctions *plugin = find_plugin (ctx,
-                                                             type);
+  struct GNUNET_BLOCK_PluginFunctions *plugin;
 
+  if (GNUNET_BLOCK_TYPE_ANY == type)
+    return GNUNET_SYSERR; /* no checks */
+  plugin = find_plugin (ctx,
+                        type);
   if (NULL == plugin)
     return GNUNET_SYSERR;
   return plugin->check_query (plugin->cls,
