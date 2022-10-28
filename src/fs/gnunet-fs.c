@@ -57,7 +57,7 @@ static unsigned int verbose;
  * @param cls closure
  * @param filename the name of the file
  * @param file_id hash of the contents of the indexed file
- * @return GNUNET_OK to continue iteration
+ * @return #GNUNET_OK to continue iteration
  */
 static enum GNUNET_GenericReturnValue
 print_indexed (void *cls,
