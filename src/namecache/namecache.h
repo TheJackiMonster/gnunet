@@ -84,16 +84,6 @@ struct LookupBlockResponseMessage
    */
   struct GNUNET_TIME_AbsoluteNBO expire;
 
-  /**
-   * Signature.
-   */
-  struct GNUNET_CRYPTO_EcdsaSignature signature;
-
-  /**
-   * Derived public key.
-   */
-  struct GNUNET_IDENTITY_PublicKey derived_key;
-
   /* followed by encrypted block data */
 };
 
@@ -112,11 +102,6 @@ struct BlockCacheMessage
    * Expiration time
    */
   struct GNUNET_TIME_AbsoluteNBO expire;
-
-  /**
-   * Derived public key.
-   */
-  struct GNUNET_IDENTITY_PublicKey derived_key;
 
   /* followed by encrypted block data */
 };
