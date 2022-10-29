@@ -98,6 +98,11 @@ struct GNUNET_NAMESTORE_ZoneMonitor
    * Do we first iterate over all existing records?
    */
   int iterate_first;
+
+  /**
+   * Zone key length
+   */
+  uint32_t key_len;
 };
 
 
@@ -146,10 +151,12 @@ check_result (void *cls, const struct RecordResultMessage *lrm)
   unsigned rd_count;
   const char *name_tmp;
   const char *rd_ser_tmp;
+  size_t key_len;
 
+  (void) zm;
+  key_len = ntohl (lrm->key_len);
   (void) cls;
-  if ((0 != GNUNET_memcmp (&lrm->private_key, &zm->zone)) &&
-      (GNUNET_NO == GNUNET_is_zero (&zm->zone)))
+  if (0 == key_len)
   {
     GNUNET_break (0);
     return GNUNET_SYSERR;
@@ -163,7 +170,7 @@ check_result (void *cls, const struct RecordResultMessage *lrm)
     GNUNET_break (0);
     return GNUNET_SYSERR;
   }
-  exp_lrm_len = sizeof(struct RecordResultMessage) + name_len + rd_len;
+  exp_lrm_len = sizeof(struct RecordResultMessage) + name_len + rd_len + key_len;
   if (lrm_len != exp_lrm_len)
   {
     GNUNET_break (0);
@@ -174,7 +181,7 @@ check_result (void *cls, const struct RecordResultMessage *lrm)
     GNUNET_break (0);
     return GNUNET_SYSERR;
   }
-  name_tmp = (const char *) &lrm[1];
+  name_tmp = (const char *) &lrm[1] + key_len;
   if (name_tmp[name_len - 1] != '\0')
   {
     GNUNET_break (0);
@@ -206,16 +213,26 @@ static void
 handle_result (void *cls, const struct RecordResultMessage *lrm)
 {
   struct GNUNET_NAMESTORE_ZoneMonitor *zm = cls;
+  struct GNUNET_IDENTITY_PrivateKey private_key;
   size_t name_len;
   size_t rd_len;
+  size_t key_len;
+  size_t kbytes_read;
   unsigned rd_count;
   const char *name_tmp;
   const char *rd_ser_tmp;
 
+  key_len = ntohl (lrm->key_len);
   rd_len = ntohs (lrm->rd_len);
   rd_count = ntohs (lrm->rd_count);
   name_len = ntohs (lrm->name_len);
-  name_tmp = (const char *) &lrm[1];
+  name_tmp = (const char *) &lrm[1] + key_len;
+  GNUNET_assert (GNUNET_SYSERR !=
+                 GNUNET_IDENTITY_read_private_key_from_buffer (&lrm[1],
+                                                               key_len,
+                                                               &private_key,
+                                                               &kbytes_read));
+  GNUNET_assert (kbytes_read == key_len);
   rd_ser_tmp = (const char *) &name_tmp[name_len];
   {
     struct GNUNET_GNSRECORD_Data rd[rd_count];
@@ -224,10 +241,10 @@ handle_result (void *cls, const struct RecordResultMessage *lrm)
       GNUNET_OK ==
       GNUNET_GNSRECORD_records_deserialize (rd_len, rd_ser_tmp, rd_count, rd));
     if (NULL != zm->monitor2)
-      zm->monitor2 (zm->monitor_cls, &lrm->private_key, name_tmp,
+      zm->monitor2 (zm->monitor_cls, &private_key, name_tmp,
                     rd_count, rd, GNUNET_TIME_absolute_ntoh (lrm->expire));
     else
-      zm->monitor (zm->monitor_cls, &lrm->private_key, name_tmp, rd_count, rd);
+      zm->monitor (zm->monitor_cls, &private_key, name_tmp, rd_count, rd);
   }
 }
 
@@ -283,9 +300,15 @@ reconnect (struct GNUNET_NAMESTORE_ZoneMonitor *zm)
                                   zm);
   if (NULL == zm->mq)
     return;
-  env = GNUNET_MQ_msg (sm, GNUNET_MESSAGE_TYPE_NAMESTORE_MONITOR_START);
+  env = GNUNET_MQ_msg_extra (sm,
+                             zm->key_len,
+                             GNUNET_MESSAGE_TYPE_NAMESTORE_MONITOR_START);
   sm->iterate_first = htonl (zm->iterate_first);
-  sm->zone = zm->zone;
+  if (0 < zm->key_len)
+    GNUNET_IDENTITY_write_private_key_to_buffer (&zm->zone,
+                                               &sm[1],
+                                               zm->key_len);
+  sm->key_len = htonl (zm->key_len);
   sm->filter = htons (zm->filter);
   GNUNET_MQ_send (zm->mq, env);
 }
@@ -307,7 +330,10 @@ GNUNET_NAMESTORE_zone_monitor_start (
 
   zm = GNUNET_new (struct GNUNET_NAMESTORE_ZoneMonitor);
   if (NULL != zone)
+  {
+    zm->key_len = GNUNET_IDENTITY_private_key_get_length (zone);
     zm->zone = *zone;
+  }
   zm->iterate_first = iterate_first;
   zm->error_cb = error_cb;
   zm->error_cb_cls = error_cb_cls;
@@ -342,7 +368,10 @@ GNUNET_NAMESTORE_zone_monitor_start2 (
 
   zm = GNUNET_new (struct GNUNET_NAMESTORE_ZoneMonitor);
   if (NULL != zone)
+  {
+    zm->key_len = GNUNET_IDENTITY_private_key_get_length (zone);
     zm->zone = *zone;
+  }
   zm->iterate_first = iterate_first;
   zm->error_cb = error_cb;
   zm->error_cb_cls = error_cb_cls;

@@ -129,11 +129,6 @@ static struct GNUNET_IDENTITY_EgoLookup *el;
 static struct GNUNET_IDENTITY_Handle *idh;
 
 /**
- * Obtain default ego
- */
-struct GNUNET_IDENTITY_Operation *get_default;
-
-/**
  * Name of the ego controlling the zone.
  */
 static char *ego_name;
@@ -342,10 +337,10 @@ do_shutdown (void *cls)
   struct MarkedRecord *mrec;
   struct MarkedRecord *mrec_tmp;
   (void) cls;
-  if (NULL != get_default)
+  if (NULL != ego_name)
   {
-    GNUNET_IDENTITY_cancel (get_default);
-    get_default = NULL;
+    GNUNET_free (ego_name);
+    ego_name = NULL;
   }
   if (NULL != purge_task)
   {
@@ -1530,7 +1525,7 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
     }
     memset (&rd, 0, sizeof(rd));
     rd.data = &pkey;
-    rd.data_size = GNUNET_IDENTITY_key_get_length (&pkey);
+    rd.data_size = GNUNET_IDENTITY_public_key_get_length (&pkey);
     rd.record_type = ntohl (pkey.type);
     rd.expiration_time = etime;
     if (GNUNET_YES == etime_is_rel)
@@ -1589,8 +1584,6 @@ identity_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
     return;
   }
   zone_pkey = *GNUNET_IDENTITY_ego_get_private_key (ego);
-  GNUNET_free (ego_name);
-  ego_name = NULL;
   run_with_zone_pkey (cfg);
 }
 

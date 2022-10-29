@@ -54,6 +54,7 @@ libexec_PROGRAMS = \
 gnunet_service_identity_SOURCES = \
  gnunet-service-identity.c
 gnunet_service_identity_LDADD = \
+  libgnunetidentity.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(GN_LIBINTL)

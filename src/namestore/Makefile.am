@@ -179,7 +179,6 @@ gnunet_namestore_fcfsd_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
 
 gnunet_service_namestore_SOURCES = \
  gnunet-service-namestore.c
-
 gnunet_service_namestore_LDADD = \
   $(top_builddir)/src/namecache/libgnunetnamecache.la \
   $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \

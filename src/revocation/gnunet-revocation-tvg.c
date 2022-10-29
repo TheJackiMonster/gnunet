@@ -115,14 +115,14 @@ run (void *cls,
   GNUNET_IDENTITY_key_get_public (&id_priv,
                                   &id_pub);
   GNUNET_STRINGS_data_to_string (&id_pub,
-                                 GNUNET_IDENTITY_key_get_length (&id_pub),
+                                 GNUNET_IDENTITY_public_key_get_length (&id_pub),
                                  ztld,
                                  sizeof (ztld));
   fprintf (stdout, "Zone private key (d, big-endian scalar):\n");
   print_bytes_ (&id_priv.ecdsa_key, sizeof(id_priv.ecdsa_key), 8, 1);
   fprintf (stdout, "\n");
   fprintf (stdout, "Zone identifier (ztype|zkey):\n");
-  key_len = GNUNET_IDENTITY_key_get_length (&id_pub);
+  key_len = GNUNET_IDENTITY_public_key_get_length (&id_pub);
   GNUNET_assert (0 < key_len);
   print_bytes (&id_pub, key_len, 8);
   fprintf (stdout, "\n");

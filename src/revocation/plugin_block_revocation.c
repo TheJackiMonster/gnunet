@@ -56,10 +56,10 @@ struct InternalContext
  */
 static enum GNUNET_GenericReturnValue
 block_plugin_revocation_check_query (void *cls,
-                                    enum GNUNET_BLOCK_Type type,
-                                    const struct GNUNET_HashCode *query,
-                                    const void *xquery,
-                                    size_t xquery_size)
+                                     enum GNUNET_BLOCK_Type type,
+                                     const struct GNUNET_HashCode *query,
+                                     const void *xquery,
+                                     size_t xquery_size)
 {
   (void) cls;
   (void) query;
@@ -86,16 +86,16 @@ block_plugin_revocation_check_query (void *cls,
  */
 static enum GNUNET_GenericReturnValue
 block_plugin_revocation_check_block (void *cls,
-                                    enum GNUNET_BLOCK_Type type,
-                                    const void *block,
-                                    size_t block_size)
+                                     enum GNUNET_BLOCK_Type type,
+                                     const void *block,
+                                     size_t block_size)
 {
   struct InternalContext *ic = cls;
   const struct RevokeMessage *rm = block;
   const struct GNUNET_REVOCATION_PowP *pow
     = (const struct GNUNET_REVOCATION_PowP *) &rm[1];
   struct GNUNET_IDENTITY_PublicKey pk;
-  ssize_t pklen;
+  size_t pklen;
   size_t left;
 
   if (GNUNET_BLOCK_TYPE_REVOCATION != type)
@@ -114,9 +114,10 @@ block_plugin_revocation_check_block (void *cls,
     return GNUNET_NO;
   }
   left = block_size - sizeof (*rm) - sizeof (*pow);
-  pklen = GNUNET_IDENTITY_read_key_from_buffer (&pk,
-                                                &pow[1],
-                                                left);
+  GNUNET_IDENTITY_read_public_key_from_buffer (&pow[1],
+                                               left,
+                                               &pk,
+                                               &pklen);
   if (0 > pklen)
   {
     GNUNET_break_op (0);
@@ -152,14 +153,14 @@ block_plugin_revocation_check_block (void *cls,
  */
 static enum GNUNET_BLOCK_ReplyEvaluationResult
 block_plugin_revocation_check_reply (
-                                     void *cls,
-                                     enum GNUNET_BLOCK_Type type,
-                                    struct GNUNET_BLOCK_Group *group,
-                                    const struct GNUNET_HashCode *query,
-                                    const void *xquery,
-                                    size_t xquery_size,
-                                    const void *reply_block,
-                                    size_t reply_block_size)
+  void *cls,
+  enum GNUNET_BLOCK_Type type,
+  struct GNUNET_BLOCK_Group *group,
+  const struct GNUNET_HashCode *query,
+  const void *xquery,
+  size_t xquery_size,
+  const void *reply_block,
+  size_t reply_block_size)
 {
   (void) cls;
   (void) group;
@@ -199,7 +200,7 @@ block_plugin_revocation_get_key (void *cls,
   const struct GNUNET_REVOCATION_PowP *pow
     = (const struct GNUNET_REVOCATION_PowP *) &rm[1];
   struct GNUNET_IDENTITY_PublicKey pk;
-  ssize_t pklen;
+  size_t pklen;
   size_t left;
 
   if (GNUNET_BLOCK_TYPE_REVOCATION != type)
@@ -218,9 +219,10 @@ block_plugin_revocation_get_key (void *cls,
     return GNUNET_NO;
   }
   left = block_size - sizeof (*rm) - sizeof (*pow);
-  pklen = GNUNET_IDENTITY_read_key_from_buffer (&pk,
-                                                &pow[1],
-                                                left);
+  GNUNET_IDENTITY_read_public_key_from_buffer (&pow[1],
+                                               left,
+                                               &pk,
+                                               &pklen);
   if (0 > pklen)
   {
     GNUNET_break_op (0);
@@ -242,7 +244,7 @@ void *
 libgnunet_plugin_block_revocation_init (void *cls)
 {
   static const enum GNUNET_BLOCK_Type types[] = {
-                                                 GNUNET_BLOCK_TYPE_REVOCATION,
+    GNUNET_BLOCK_TYPE_REVOCATION,
     GNUNET_BLOCK_TYPE_ANY       /* end of list */
   };
   const struct GNUNET_CONFIGURATION_Handle *cfg = cls;

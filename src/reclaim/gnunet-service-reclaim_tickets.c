@@ -742,7 +742,8 @@ rvk_move_attr_cb (void *cls,
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Adding credential %s\n",
                   new_label);
       GNUNET_free (credential);
-    } else {
+    }
+    else {
       memcpy (&new_rd[i], &rd[i], sizeof (struct GNUNET_GNSRECORD_Data));
     }
   }
@@ -1197,9 +1198,11 @@ RECLAIM_TICKETS_consume (const struct GNUNET_IDENTITY_PrivateKey *id,
   label =
     GNUNET_STRINGS_data_to_string_alloc (&cth->ticket.rnd,
                                          sizeof(cth->ticket.rnd));
+  char *str = GNUNET_IDENTITY_public_key_to_string (&cth->ticket.identity);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Looking for AuthZ info under %s\n",
-              label);
+              "Looking for AuthZ info under %s in %s\n",
+              label, str);
+  GNUNET_free (str);
   cth->lookup_start_time = GNUNET_TIME_absolute_get ();
   cth->lookup_request =
     GNUNET_GNS_lookup (gns,
@@ -1289,6 +1292,7 @@ issue_ticket (struct TicketIssueHandle *ih)
   struct GNUNET_RECLAIM_PresentationListEntry *ple;
   struct GNUNET_GNSRECORD_Data *attrs_record;
   char *label;
+  char *tkt_data;
   int i;
   int j;
   int attrs_count = 0;
@@ -1376,8 +1380,13 @@ issue_ticket (struct TicketIssueHandle *ih)
       }
     }
   }
-  attrs_record[i].data = &ih->ticket;
-  attrs_record[i].data_size = sizeof(struct GNUNET_RECLAIM_Ticket);
+  attrs_record[i].data_size =
+    GNUNET_RECLAIM_ticket_serialize_get_size (&ih->ticket);
+  tkt_data = GNUNET_malloc (attrs_record[i].data_size);
+  GNUNET_RECLAIM_write_ticket_to_buffer (&ih->ticket,
+                                         tkt_data,
+                                         attrs_record[i].data_size);
+  attrs_record[i].data = tkt_data;
   attrs_record[i].expiration_time = ticket_refresh_interval.rel_value_us;
   attrs_record[i].record_type = GNUNET_GNSRECORD_TYPE_RECLAIM_TICKET;
   attrs_record[i].flags =
@@ -1387,6 +1396,13 @@ issue_ticket (struct TicketIssueHandle *ih)
   label =
     GNUNET_STRINGS_data_to_string_alloc (&ih->ticket.rnd,
                                          sizeof(ih->ticket.rnd));
+  struct GNUNET_IDENTITY_PublicKey pub;
+  GNUNET_IDENTITY_key_get_public (&ih->identity,
+                                  &pub);
+  char *str = GNUNET_IDENTITY_public_key_to_string (&pub);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Storing AuthZ information under %s in %s\n", label, str);
+  GNUNET_free (str);
   // Publish record
   ih->ns_qe = GNUNET_NAMESTORE_records_store (nsh,
                                               &ih->identity,
@@ -1404,6 +1420,7 @@ issue_ticket (struct TicketIssueHandle *ih)
     char *ptr = (char*) attrs_record[j].data;
     GNUNET_free (ptr);
   }
+  GNUNET_free (tkt_data);
   GNUNET_free (attrs_record);
   GNUNET_free (label);
 }
@@ -1454,7 +1471,7 @@ filter_tickets_cb (void *cls,
                    const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct TicketIssueHandle *tih = cls;
-  struct GNUNET_RECLAIM_Ticket *ticket = NULL;
+  struct GNUNET_RECLAIM_Ticket ticket;
   struct GNUNET_RECLAIM_Presentation *presentation;
   struct GNUNET_RECLAIM_PresentationList *ticket_presentations;
   struct GNUNET_RECLAIM_Credential *cred;
@@ -1462,6 +1479,7 @@ filter_tickets_cb (void *cls,
   struct GNUNET_RECLAIM_AttributeListEntry *le;
   unsigned int attr_cnt = 0;
   unsigned int pres_cnt = 0;
+  int ticket_found = GNUNET_NO;
 
   for (le = tih->attrs->list_head; NULL != le; le = le->next)
   {
@@ -1473,6 +1491,7 @@ filter_tickets_cb (void *cls,
   // ticket search
   unsigned int found_attrs_cnt = 0;
   unsigned int found_pres_cnt = 0;
+  size_t read;
   ticket_presentations = GNUNET_new (struct GNUNET_RECLAIM_PresentationList);
 
   for (int i = 0; i < rd_count; i++)
@@ -1480,16 +1499,28 @@ filter_tickets_cb (void *cls,
     // found ticket
     if (GNUNET_GNSRECORD_TYPE_RECLAIM_TICKET == rd[i].record_type)
     {
-      ticket = (struct GNUNET_RECLAIM_Ticket *) rd[i].data;
-      // cmp audience
-      if (0 == memcmp (&tih->ticket.audience,
-                       &ticket->audience,
-                       sizeof(struct GNUNET_IDENTITY_PublicKey)))
+      if ((GNUNET_SYSERR ==
+           GNUNET_RECLAIM_read_ticket_from_buffer (rd[i].data,
+                                                   rd[i].data_size,
+                                                   &ticket,
+                                                   &read)) ||
+          (read != rd[i].data_size))
       {
-        tih->ticket = *ticket;
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "Failed to deserialize ticket from record\n");
         continue;
       }
-      ticket = NULL;
+      // cmp audience
+      // FIXME this is ugly, GNUNET_IDENTITY_PublicKey cannot be compared
+      // like this
+      if (0 == memcmp (&tih->ticket.audience,
+                       &ticket.audience,
+                       sizeof(struct GNUNET_IDENTITY_PublicKey)))
+      {
+        tih->ticket = ticket;
+        ticket_found = GNUNET_YES;
+        continue;
+      }
     }
 
     // cmp requested attributes with ticket attributes
@@ -1573,7 +1604,7 @@ filter_tickets_cb (void *cls,
    */
   if ((attr_cnt == found_attrs_cnt) &&
       (pres_cnt == found_pres_cnt) &&
-      (NULL != ticket))
+      (GNUNET_YES == ticket_found))
   {
     GNUNET_NAMESTORE_zone_iteration_stop (tih->ns_it);
     tih->cb (tih->cb_cls, &tih->ticket, ticket_presentations, GNUNET_OK, NULL);
@@ -1683,12 +1714,25 @@ collect_tickets_cb (void *cls,
                     const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct RECLAIM_TICKETS_Iterator *iter = cls;
+  struct GNUNET_RECLAIM_Ticket ticket;
+  size_t read;
 
   for (int i = 0; i < rd_count; i++)
   {
     if (GNUNET_GNSRECORD_TYPE_RECLAIM_TICKET != rd[i].record_type)
       continue;
-    iter->cb (iter->cb_cls, (struct GNUNET_RECLAIM_Ticket *) rd[i].data);
+    if ((GNUNET_SYSERR ==
+         GNUNET_RECLAIM_read_ticket_from_buffer (rd[i].data,
+                                                 rd[i].data_size,
+                                                 &ticket,
+                                                 &read)) ||
+        (read != rd[i].data_size))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Failed to deserialize ticket from record\n");
+      continue;
+    }
+    iter->cb (iter->cb_cls, &ticket);
     return;
   }
   GNUNET_NAMESTORE_zone_iterator_next (iter->ns_it, 1);

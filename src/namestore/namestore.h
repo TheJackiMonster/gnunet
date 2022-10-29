@@ -91,16 +91,17 @@ struct RecordStoreMessage
   struct GNUNET_NAMESTORE_Header gns_header;
 
   /**
-   * The private key of the authority.
-   */
-  struct GNUNET_IDENTITY_PrivateKey private_key;
-
-  /**
    * Number of record sets
    */
   uint16_t rd_set_count;
 
   /**
+   * Length of the zone key
+   */
+  uint32_t key_len GNUNET_PACKED;
+
+  /**
+   * Followed by the private zone key
    * Followed by rd_set_count RecordSets
    */
 };
@@ -150,11 +151,12 @@ struct LabelLookupMessage
   uint16_t filter;
 
   /**
-   * The private key of the zone to look up in
+   * Length of the zone key
    */
-  struct GNUNET_IDENTITY_PrivateKey zone;
+  uint32_t key_len GNUNET_PACKED;
 
   /* followed by:
+   * the private zone key
    * name with length name_len
    */
 };
@@ -192,11 +194,12 @@ struct LabelLookupResponseMessage
   int16_t found GNUNET_PACKED;
 
   /**
-   * The private key of the authority.
+   * Length of the zone key
    */
-  struct GNUNET_IDENTITY_PrivateKey private_key;
+  uint32_t key_len GNUNET_PACKED;
 
   /* followed by:
+   * the private zone key
    * name with length name_len
    * serialized record data with rd_count records
    */
@@ -214,14 +217,20 @@ struct ZoneToNameMessage
   struct GNUNET_NAMESTORE_Header gns_header;
 
   /**
-   * The private key of the zone to look up in
+   * Length of the zone key
    */
-  struct GNUNET_IDENTITY_PrivateKey zone;
+  uint32_t key_len GNUNET_PACKED;
 
   /**
-   * The public key of the target zone
+   * Length of the public value zone key
    */
-  struct GNUNET_IDENTITY_PublicKey value_zone;
+  uint32_t pkey_len GNUNET_PACKED;
+
+  /**
+   * Followed by
+   * - the private zone key to look up in
+   * - the public key of the target zone
+   */
 };
 
 
@@ -259,11 +268,12 @@ struct ZoneToNameResponseMessage
   int32_t ec GNUNET_PACKED;
 
   /**
-   * The private key of the zone that contained the name.
+   * Length of the zone key
    */
-  struct GNUNET_IDENTITY_PrivateKey zone;
+  uint32_t key_len GNUNET_PACKED;
 
   /* followed by:
+   * the private zone key
    * name with length name_len
    * serialized record data with rd_count records
    */
@@ -307,11 +317,12 @@ struct RecordResultMessage
   uint16_t reserved GNUNET_PACKED;
 
   /**
-   * The private key of the authority.
+   * Length of the zone key
    */
-  struct GNUNET_IDENTITY_PrivateKey private_key;
+  uint32_t key_len GNUNET_PACKED;
 
   /* followed by:
+   * the private key of the authority
    * name with length name_len
    * serialized record data with rd_count records
    */
@@ -386,9 +397,13 @@ struct ZoneMonitorStartMessage
   uint16_t reserved;
 
   /**
-   * Zone key.
+   * Length of the zone key
    */
-  struct GNUNET_IDENTITY_PrivateKey zone;
+  uint32_t key_len GNUNET_PACKED;
+
+  /**
+   * Followed by the private zone key.
+   */
 };
 
 
@@ -427,11 +442,6 @@ struct ZoneIterationStartMessage
   struct GNUNET_NAMESTORE_Header gns_header;
 
   /**
-   * Zone key.  All zeros for "all zones".
-   */
-  struct GNUNET_IDENTITY_PrivateKey zone;
-
-  /**
    * Record set filter control flags.
    * See GNUNET_NAMESTORE_Filter enum.
    */
@@ -441,6 +451,15 @@ struct ZoneIterationStartMessage
    * Reserved for alignment
    */
   uint16_t reserved;
+
+  /**
+   * Length of the zone key
+   */
+  uint32_t key_len GNUNET_PACKED;
+
+  /**
+   * Followed by the private zone key (optional)
+   */
 };
 
 

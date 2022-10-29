@@ -164,7 +164,7 @@ GNUNET_IDENTITY_ego_get_anonymous ()
   anon.pub.type = htonl (GNUNET_IDENTITY_TYPE_ECDSA);
   anon.pk.ecdsa_key = *GNUNET_CRYPTO_ecdsa_key_get_anonymous ();
   GNUNET_CRYPTO_hash (&anon.pk,
-                      sizeof(anon.pk),
+                      GNUNET_IDENTITY_private_key_get_length (&anon.pk),
                       &anon.id);
   setup = 1;
   return &anon;
@@ -194,8 +194,7 @@ GNUNET_IDENTITY_key_get_public (const struct
   return GNUNET_OK;
 }
 
-
-static int
+static enum GNUNET_GenericReturnValue
 private_key_create (enum GNUNET_IDENTITY_KeyType ktype,
                     struct GNUNET_IDENTITY_PrivateKey *key)
 {
@@ -368,7 +367,7 @@ check_identity_update (void *cls,
   uint16_t name_len = ntohs (um->name_len);
   const char *str = (const char *) &um[1];
 
-  if ((size != name_len + sizeof(struct UpdateMessage)) ||
+  if ((size < name_len + sizeof(struct UpdateMessage)) ||
       ((0 != name_len) && ('\0' != str[name_len - 1])))
   {
     GNUNET_break (0);
@@ -390,9 +389,13 @@ handle_identity_update (void *cls,
 {
   struct GNUNET_IDENTITY_Handle *h = cls;
   uint16_t name_len = ntohs (um->name_len);
-  const char *str = (0 == name_len) ? NULL : (const char *) &um[1];
+  const char *str;
+  size_t key_len;
+  size_t kb_read;
   struct GNUNET_HashCode id;
   struct GNUNET_IDENTITY_Ego *ego;
+  struct GNUNET_IDENTITY_PrivateKey private_key;
+  const char *tmp;
 
   if (GNUNET_YES == ntohs (um->end_of_list))
   {
@@ -401,8 +404,18 @@ handle_identity_update (void *cls,
       h->cb (h->cb_cls, NULL, NULL, NULL);
     return;
   }
-  GNUNET_CRYPTO_hash (&um->private_key,
-                      sizeof (um->private_key),
+  tmp = (const char*) &um[1];
+  str = (0 == name_len) ? NULL : tmp;
+  memset (&private_key, 0, sizeof (private_key));
+  key_len = ntohs (um->header.size) - name_len;
+  GNUNET_assert (GNUNET_SYSERR !=
+                 GNUNET_IDENTITY_read_private_key_from_buffer (tmp + name_len,
+                                                               key_len,
+                                                               &private_key,
+                                                               &kb_read));
+  GNUNET_assert (0 <= GNUNET_IDENTITY_private_key_get_length (&private_key));
+  GNUNET_CRYPTO_hash (&private_key,
+                      GNUNET_IDENTITY_private_key_get_length (&private_key),
                       &id);
   ego = GNUNET_CONTAINER_multihashmap_get (h->egos,
                                            &id);
@@ -418,7 +431,7 @@ handle_identity_update (void *cls,
     }
     ego = GNUNET_new (struct GNUNET_IDENTITY_Ego);
     ego->pub_initialized = GNUNET_NO;
-    ego->pk = um->private_key;
+    ego->pk = private_key;
     ego->name = GNUNET_strdup (str);
     ego->id = id;
     GNUNET_assert (GNUNET_YES ==
@@ -572,10 +585,12 @@ GNUNET_IDENTITY_create (struct GNUNET_IDENTITY_Handle *h,
                         GNUNET_IDENTITY_CreateContinuation cont,
                         void *cont_cls)
 {
+  struct GNUNET_IDENTITY_PrivateKey private_key;
   struct GNUNET_IDENTITY_Operation *op;
   struct GNUNET_MQ_Envelope *env;
   struct CreateRequestMessage *crm;
   size_t slen;
+  size_t key_len;
 
   if (NULL == h->mq)
     return NULL;
@@ -590,18 +605,23 @@ GNUNET_IDENTITY_create (struct GNUNET_IDENTITY_Handle *h,
   op->create_cont = cont;
   op->cls = cont_cls;
   GNUNET_CONTAINER_DLL_insert_tail (h->op_head, h->op_tail, op);
-  env = GNUNET_MQ_msg_extra (crm, slen, GNUNET_MESSAGE_TYPE_IDENTITY_CREATE);
-  crm->name_len = htons (slen);
-  crm->reserved = htons (0);
   if (NULL == privkey)
   {
     GNUNET_assert (GNUNET_OK ==
-                   private_key_create (ktype, &crm->private_key));
+                   private_key_create (ktype, &private_key));
   }
   else
-    crm->private_key = *privkey;
-  op->pk = crm->private_key;
-  GNUNET_memcpy (&crm[1], name, slen);
+    private_key = *privkey;
+  key_len = GNUNET_IDENTITY_private_key_get_length (&private_key);
+  env = GNUNET_MQ_msg_extra (crm, slen + key_len, GNUNET_MESSAGE_TYPE_IDENTITY_CREATE);
+  crm->name_len = htons (slen);
+  crm->reserved = htons (0);
+  GNUNET_IDENTITY_write_private_key_to_buffer (&private_key,
+                                               &crm[1],
+                                               key_len);
+  crm->key_len = htonl (key_len);
+  op->pk = private_key;
+  GNUNET_memcpy ((char*) &crm[1] + key_len, name, slen);
   GNUNET_MQ_send (h->mq, env);
   return op;
 }
@@ -780,8 +800,9 @@ check_key_type (uint32_t type)
 }
 
 
-static ssize_t
-private_key_get_length (const struct GNUNET_IDENTITY_PrivateKey *key)
+ssize_t
+GNUNET_IDENTITY_private_key_get_length (const struct
+                                        GNUNET_IDENTITY_PrivateKey *key)
 {
   switch (ntohl (key->type))
   {
@@ -792,6 +813,8 @@ private_key_get_length (const struct GNUNET_IDENTITY_PrivateKey *key)
     return sizeof (key->type) + sizeof (key->eddsa_key);
     break;
   default:
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Got key type %u\n", ntohl (key->type));
     GNUNET_break (0);
   }
   return -1;
@@ -799,7 +822,8 @@ private_key_get_length (const struct GNUNET_IDENTITY_PrivateKey *key)
 
 
 ssize_t
-GNUNET_IDENTITY_key_get_length (const struct GNUNET_IDENTITY_PublicKey *key)
+GNUNET_IDENTITY_public_key_get_length (const struct
+                                       GNUNET_IDENTITY_PublicKey *key)
 {
   switch (ntohl (key->type))
   {
@@ -813,36 +837,99 @@ GNUNET_IDENTITY_key_get_length (const struct GNUNET_IDENTITY_PublicKey *key)
   return -1;
 }
 
-
 ssize_t
-GNUNET_IDENTITY_read_key_from_buffer (struct GNUNET_IDENTITY_PublicKey *key,
-                                      const void *buffer,
-                                      size_t len)
+GNUNET_IDENTITY_private_key_length_by_type (enum GNUNET_IDENTITY_KeyType kt)
+{
+  switch (kt)
+  {
+  case GNUNET_IDENTITY_TYPE_ECDSA:
+    return sizeof (struct GNUNET_CRYPTO_EcdsaPrivateKey);
+    break;
+  case GNUNET_IDENTITY_TYPE_EDDSA:
+    return sizeof (struct GNUNET_CRYPTO_EcdsaPrivateKey);
+    break;
+  default:
+    GNUNET_break (0);
+  }
+  return -1;
+}
+
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_IDENTITY_read_public_key_from_buffer (const void *buffer,
+                                             size_t len,
+                                             struct GNUNET_IDENTITY_PublicKey *
+                                             key,
+                                             size_t *kb_read)
 {
   if (len < sizeof (key->type))
-    return -1;
+    return GNUNET_SYSERR;
   GNUNET_memcpy (&key->type,
                  buffer,
                  sizeof (key->type));
-  ssize_t length = GNUNET_IDENTITY_key_get_length (key);
+  ssize_t length = GNUNET_IDENTITY_public_key_get_length (key);
+  if (len < length)
+    return GNUNET_SYSERR;
+  if (length < 0)
+    return GNUNET_SYSERR;
+  GNUNET_memcpy (&key->ecdsa_key,
+                 buffer + sizeof (key->type),
+                 length - sizeof (key->type));
+  *kb_read = length;
+  return GNUNET_OK;
+}
+
+
+ssize_t
+GNUNET_IDENTITY_write_public_key_to_buffer (const struct
+                                            GNUNET_IDENTITY_PublicKey *key,
+                                            void*buffer,
+                                            size_t len)
+{
+  const ssize_t length = GNUNET_IDENTITY_public_key_get_length (key);
   if (len < length)
     return -1;
   if (length < 0)
     return -2;
+  GNUNET_memcpy (buffer, &(key->type), sizeof (key->type));
+  GNUNET_memcpy (buffer + sizeof (key->type), &(key->ecdsa_key), length
+                 - sizeof (key->type));
+  return length;
+}
+
+enum GNUNET_GenericReturnValue
+GNUNET_IDENTITY_read_private_key_from_buffer (const void *buffer,
+                                              size_t len,
+                                              struct
+                                              GNUNET_IDENTITY_PrivateKey *key,
+                                              size_t *kb_read)
+{
+  if (len < sizeof (key->type))
+    return GNUNET_SYSERR;
+  GNUNET_memcpy (&key->type,
+                 buffer,
+                 sizeof (key->type));
+  ssize_t length = GNUNET_IDENTITY_private_key_get_length (key);
+  if (len < length)
+    return GNUNET_SYSERR;
+  if (length < 0)
+    return GNUNET_SYSERR;
   GNUNET_memcpy (&key->ecdsa_key,
                  buffer + sizeof (key->type),
                  length - sizeof (key->type));
-  return length;
+  *kb_read = length;
+  return GNUNET_OK;
 }
 
 
 ssize_t
-GNUNET_IDENTITY_write_key_to_buffer (const struct
-                                     GNUNET_IDENTITY_PublicKey *key,
-                                     void*buffer,
-                                     size_t len)
+GNUNET_IDENTITY_write_private_key_to_buffer (const struct
+                                             GNUNET_IDENTITY_PrivateKey *key,
+                                             void *buffer,
+                                             size_t len)
 {
-  const ssize_t length = GNUNET_IDENTITY_key_get_length (key);
+  const ssize_t length = GNUNET_IDENTITY_private_key_get_length (key);
   if (len < length)
     return -1;
   if (length < 0)
@@ -1123,7 +1210,7 @@ char *
 GNUNET_IDENTITY_public_key_to_string (const struct
                                       GNUNET_IDENTITY_PublicKey *key)
 {
-  size_t size = GNUNET_IDENTITY_key_get_length (key);
+  size_t size = GNUNET_IDENTITY_public_key_get_length (key);
   return GNUNET_STRINGS_data_to_string_alloc (key,
                                               size);
 }
@@ -1133,7 +1220,7 @@ char *
 GNUNET_IDENTITY_private_key_to_string (const struct
                                        GNUNET_IDENTITY_PrivateKey *key)
 {
-  size_t size = private_key_get_length (key);
+  size_t size = GNUNET_IDENTITY_private_key_get_length (key);
   return GNUNET_STRINGS_data_to_string_alloc (key,
                                               size);
 }

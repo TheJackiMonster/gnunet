@@ -238,7 +238,19 @@ transmit_phone_audio (void *cls,
                   e);
 }
 
-
+/**
+ * We received a `struct ClientPhoneRingMessage`
+ *
+ * @param cls the `struct GNUNET_CONVERSATION_Phone`
+ * @param ring the message
+ */
+static enum GNUNET_GenericReturnValue
+check_phone_ring (void *cls,
+                   const struct ClientPhoneRingMessage *ring)
+{
+  //FIXME
+  return GNUNET_OK;
+}
 /**
  * We received a `struct ClientPhoneRingMessage`
  *
@@ -251,7 +263,11 @@ handle_phone_ring (void *cls,
 {
   struct GNUNET_CONVERSATION_Phone *phone = cls;
   struct GNUNET_CONVERSATION_Caller *caller;
+  struct GNUNET_IDENTITY_PublicKey caller_id;
+  size_t key_len;
+  size_t read;
 
+  key_len = ntohl (ring->key_len);
   switch (phone->state)
   {
   case PS_REGISTER:
@@ -259,12 +275,22 @@ handle_phone_ring (void *cls,
     break;
 
   case PS_READY:
+    if ((GNUNET_SYSERR ==
+         GNUNET_IDENTITY_read_public_key_from_buffer (&ring[1],
+                                                      key_len,
+                                                      &caller_id,
+                                                      &read)) ||
+        (read != key_len))
+    {
+      GNUNET_break (0);
+      break;
+    }
     caller = GNUNET_new (struct GNUNET_CONVERSATION_Caller);
     caller->phone = phone;
     GNUNET_CONTAINER_DLL_insert (phone->caller_head,
                                  phone->caller_tail,
                                  caller);
-    caller->caller_id = ring->caller_id;
+    caller->caller_id = caller_id;
     caller->cid = ring->cid;
     caller->state = CS_RINGING;
     phone->event_handler (phone->event_handler_cls,
@@ -562,10 +588,10 @@ static void
 reconnect_phone (struct GNUNET_CONVERSATION_Phone *phone)
 {
   struct GNUNET_MQ_MessageHandler handlers[] = {
-    GNUNET_MQ_hd_fixed_size (phone_ring,
-                             GNUNET_MESSAGE_TYPE_CONVERSATION_CS_PHONE_RING,
-                             struct ClientPhoneRingMessage,
-                             phone),
+    GNUNET_MQ_hd_var_size (phone_ring,
+                           GNUNET_MESSAGE_TYPE_CONVERSATION_CS_PHONE_RING,
+                           struct ClientPhoneRingMessage,
+                           phone),
     GNUNET_MQ_hd_fixed_size (phone_hangup,
                              GNUNET_MESSAGE_TYPE_CONVERSATION_CS_PHONE_HANG_UP,
                              struct ClientPhoneHangupMessage,

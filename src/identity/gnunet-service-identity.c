@@ -236,13 +236,18 @@ create_update_message (struct Ego *ego)
   struct UpdateMessage *um;
   struct GNUNET_MQ_Envelope *env;
   size_t name_len;
+  ssize_t key_len;
 
+  key_len = GNUNET_IDENTITY_private_key_get_length (&ego->pk);
   name_len = (NULL == ego->identifier) ? 0 : (strlen (ego->identifier) + 1);
-  env = GNUNET_MQ_msg_extra (um, name_len, GNUNET_MESSAGE_TYPE_IDENTITY_UPDATE);
+  env = GNUNET_MQ_msg_extra (um, name_len + key_len,
+                             GNUNET_MESSAGE_TYPE_IDENTITY_UPDATE);
   um->name_len = htons (name_len);
   um->end_of_list = htons (GNUNET_NO);
-  um->private_key = ego->pk;
   GNUNET_memcpy (&um[1], ego->identifier, name_len);
+  GNUNET_IDENTITY_write_private_key_to_buffer (&ego->pk,
+                                               ((char*) &um[1]) + name_len,
+                                               key_len);
   return env;
 }
 
@@ -412,15 +417,19 @@ notify_listeners (struct Ego *ego)
 {
   struct UpdateMessage *um;
   size_t name_len;
+  ssize_t key_len;
 
   name_len = (NULL == ego->identifier) ? 0 : (strlen (ego->identifier) + 1);
-  um = GNUNET_malloc (sizeof(struct UpdateMessage) + name_len);
+  key_len = GNUNET_IDENTITY_private_key_get_length (&ego->pk);
+  um = GNUNET_malloc (sizeof(struct UpdateMessage) + name_len + key_len);
   um->header.type = htons (GNUNET_MESSAGE_TYPE_IDENTITY_UPDATE);
-  um->header.size = htons (sizeof(struct UpdateMessage) + name_len);
+  um->header.size = htons (sizeof(struct UpdateMessage) + name_len + key_len);
   um->name_len = htons (name_len);
   um->end_of_list = htons (GNUNET_NO);
-  um->private_key = ego->pk;
   GNUNET_memcpy (&um[1], ego->identifier, name_len);
+  GNUNET_IDENTITY_write_private_key_to_buffer (&ego->pk,
+                                               ((char*) &um[1]) + name_len,
+                                               key_len);
   GNUNET_notification_context_broadcast (nc, &um->header, GNUNET_NO);
   GNUNET_free (um);
 }
@@ -439,6 +448,7 @@ check_create_message (void *cls,
 {
   uint16_t size;
   uint16_t name_len;
+  size_t key_len;
   const char *str;
 
   size = ntohs (msg->header.size);
@@ -448,13 +458,14 @@ check_create_message (void *cls,
     return GNUNET_SYSERR;
   }
   name_len = ntohs (msg->name_len);
+  key_len = ntohl (msg->key_len);
   GNUNET_break (0 == ntohs (msg->reserved));
-  if (name_len + sizeof(struct CreateRequestMessage) != size)
+  if (name_len + key_len + sizeof(struct CreateRequestMessage) != size)
   {
     GNUNET_break (0);
     return GNUNET_SYSERR;
   }
-  str = (const char *) &msg[1];
+  str = (const char *) &msg[1] + key_len;
   if ('\0' != str[name_len - 1])
   {
     GNUNET_break (0);
@@ -474,14 +485,28 @@ static void
 handle_create_message (void *cls,
                        const struct CreateRequestMessage *crm)
 {
+  struct GNUNET_IDENTITY_PrivateKey private_key;
   struct GNUNET_SERVICE_Client *client = cls;
   struct Ego *ego;
   char *str;
   char *fn;
+  size_t key_len;
+  size_t kb_read;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received CREATE message from client\n");
-  str = GNUNET_strdup ((const char *) &crm[1]);
-  GNUNET_STRINGS_utf8_tolower ((const char *) &crm[1], str);
+  key_len = ntohl (crm->key_len);
+  if ((GNUNET_SYSERR ==
+      GNUNET_IDENTITY_read_private_key_from_buffer (&crm[1],
+                                                    key_len,
+                                                    &private_key,
+                                                    &kb_read)) ||
+      (kb_read != key_len))
+  {
+    GNUNET_SERVICE_client_drop (client);
+    return;
+  }
+  str = GNUNET_strdup ((const char *) &crm[1] + key_len);
+  GNUNET_STRINGS_utf8_tolower ((const char *) &crm[1] + key_len, str);
   for (ego = ego_head; NULL != ego; ego = ego->next)
   {
     if (0 == strcmp (ego->identifier, str))
@@ -494,7 +519,7 @@ handle_create_message (void *cls,
     }
   }
   ego = GNUNET_new (struct Ego);
-  ego->pk = crm->private_key;
+  ego->pk = private_key;
   ego->identifier = GNUNET_strdup (str);
   GNUNET_CONTAINER_DLL_insert (ego_head,
                                ego_tail,
@@ -503,7 +528,7 @@ handle_create_message (void *cls,
   fn = get_ego_filename (ego);
   if (GNUNET_OK !=
       GNUNET_DISK_fn_write (fn,
-                            &crm->private_key,
+                            &private_key,
                             sizeof(struct GNUNET_IDENTITY_PrivateKey),
                             GNUNET_DISK_PERM_USER_READ
                             | GNUNET_DISK_PERM_USER_WRITE))

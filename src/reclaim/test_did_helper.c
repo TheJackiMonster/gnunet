@@ -78,8 +78,9 @@ test_GNUNET_DID_did_to_pkey ()
   DID_did_to_pkey ((char *) test_did, &pkey);
 
   GNUNET_assert (test_pkey.type = pkey.type);
-  GNUNET_assert (strcmp (pkey.eddsa_key.q_y,
-                         test_pkey.eddsa_key.q_y) == 0);
+  GNUNET_assert (memcmp (&pkey.eddsa_key,
+                         &test_pkey.eddsa_key,
+                         sizeof (test_pkey.eddsa_key)) == 0);
 }
 
 // void

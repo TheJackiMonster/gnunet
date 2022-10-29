@@ -138,6 +138,7 @@ libgnunetreclaim_la_SOURCES = \
  reclaim_credential.h
 libgnunetreclaim_la_LIBADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   $(GN_LIBINTL) $(XLIB)
 libgnunetreclaim_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)   \

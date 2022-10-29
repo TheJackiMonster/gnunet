@@ -105,7 +105,7 @@ check_identity_update (void *cls, const struct UpdateMessage *um)
   uint16_t name_len = ntohs (um->name_len);
   const char *str = (const char *) &um[1];
 
-  if ((size != name_len + sizeof(struct UpdateMessage)) ||
+  if ((size < name_len + sizeof(struct UpdateMessage)) ||
       ((0 != name_len) && ('\0' != str[name_len - 1])))
   {
     GNUNET_break (0);
@@ -126,14 +126,29 @@ handle_identity_update (void *cls, const struct UpdateMessage *um)
 {
   struct GNUNET_IDENTITY_EgoLookup *el = cls;
   uint16_t name_len = ntohs (um->name_len);
-  const char *str = (0 == name_len) ? NULL : (const char *) &um[1];
+  const char *str;
+  size_t key_len;
+  size_t kb_read;
   struct GNUNET_HashCode id;
   struct GNUNET_IDENTITY_Ego ego;
+  struct GNUNET_IDENTITY_PrivateKey private_key;
+  const char *tmp;
+
   memset (&ego, 0, sizeof (ego));
 
   GNUNET_break (GNUNET_YES != ntohs (um->end_of_list));
-  GNUNET_CRYPTO_hash (&um->private_key, sizeof(um->private_key), &id);
-  ego.pk = um->private_key;
+  tmp = (const char*) &um[1];
+  str = (0 == name_len) ? NULL : tmp;
+  memset (&private_key, 0, sizeof (private_key));
+  key_len = ntohs (um->header.size) - sizeof (*um) - name_len;
+  GNUNET_assert (GNUNET_SYSERR !=
+                 GNUNET_IDENTITY_read_private_key_from_buffer (tmp + name_len,
+                                                               key_len,
+                                                               &private_key,
+                                                               &kb_read));
+  GNUNET_assert (key_len == kb_read);
+  GNUNET_CRYPTO_hash (&private_key, sizeof (private_key), &id);
+  ego.pk = private_key;
   ego.name = (char *) str;
   ego.id = id;
   el->cb (el->cb_cls, &ego);

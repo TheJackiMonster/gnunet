@@ -27,7 +27,7 @@ gnunet-identity -D recipientego -c test_identity.conf
 gnunet-arm -e -c test_identity.conf
 if [ "$TEST_MSG" != "$MSG_DEC" ]
 then
-  echo "Failed - $TEST_MSG != $MSG_DEC"
+  echo "Failed - \"$TEST_MSG\" != \"$MSG_DEC\""
   exit 1
 fi
 

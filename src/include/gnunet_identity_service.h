@@ -85,11 +85,10 @@ struct GNUNET_IDENTITY_Handle;
  */
 struct GNUNET_IDENTITY_Ego;
 
-// FIXME: these types are NOT packed,
-// NOT 64-bit aligned, but used in messages!!??
-
 /**
  * A private key for an identity as per LSD0001.
+ * Note that these types are NOT packed and MUST NOT be used in RPC
+ * messages. Use the respective serialization functions.
  */
 struct GNUNET_IDENTITY_PrivateKey
 {
@@ -406,8 +405,7 @@ GNUNET_IDENTITY_cancel (struct GNUNET_IDENTITY_Operation *op);
  * @return -1 on error, else the compacted length of the key.
  */
 ssize_t
-GNUNET_IDENTITY_key_get_length (const struct GNUNET_IDENTITY_PublicKey *key);
-
+GNUNET_IDENTITY_public_key_get_length (const struct GNUNET_IDENTITY_PublicKey *key);
 
 /**
  * Reads a #GNUNET_IDENTITY_PublicKey from a compact buffer.
@@ -416,15 +414,32 @@ GNUNET_IDENTITY_key_get_length (const struct GNUNET_IDENTITY_PublicKey *key);
  * If the buffer is too small, the function returns -1 as error.
  * If the buffer does not contain a valid key, it returns -2 as error.
  *
- * @param key the key
  * @param buffer the buffer
  * @param len the length of buffer
- * @return -1 or -2 on error, else the amount of bytes read from the buffer
+ * @param key the key
+ * @param the amount of bytes read from the buffer
+ * @return GNUNET_SYSERR on error
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_IDENTITY_read_public_key_from_buffer (const void *buffer,
+                                             size_t len,
+                                             struct
+                                             GNUNET_IDENTITY_PublicKey *key,
+                                             size_t *read);
+
+/**
+ * Get the compacted length of a #GNUNET_IDENTITY_PrivateKey.
+ * Compacted means that it returns the minimum number of bytes this
+ * key is long, as opposed to the union structure inside
+ * #GNUNET_IDENTITY_PrivateKey.
+ * Useful for compact serializations.
+ *
+ * @param key the key.
+ * @return -1 on error, else the compacted length of the key.
  */
 ssize_t
-GNUNET_IDENTITY_read_key_from_buffer (struct GNUNET_IDENTITY_PublicKey *key,
-                                      const void*buffer,
-                                      size_t len);
+GNUNET_IDENTITY_private_key_get_length (const struct
+                                        GNUNET_IDENTITY_PrivateKey *key);
 
 
 /**
@@ -440,10 +455,49 @@ GNUNET_IDENTITY_read_key_from_buffer (struct GNUNET_IDENTITY_PublicKey *key,
  * @return -1 or -2 on error, else the amount of bytes written to the buffer
  */
 ssize_t
-GNUNET_IDENTITY_write_key_to_buffer (const struct
-                                     GNUNET_IDENTITY_PublicKey *key,
-                                     void*buffer,
-                                     size_t len);
+GNUNET_IDENTITY_write_public_key_to_buffer (const struct
+                                            GNUNET_IDENTITY_PublicKey *key,
+                                            void*buffer,
+                                            size_t len);
+
+
+/**
+ * Reads a #GNUNET_IDENTITY_PrivateKey from a compact buffer.
+ * The buffer has to contain at least the compacted length of
+ * a #GNUNET_IDENTITY_PrivateKey in bytes.
+ * If the buffer is too small, the function returns GNUNET_SYSERR as error.
+ *
+ * @param buffer the buffer
+ * @param len the length of buffer
+ * @param key the key
+ * @param the amount of bytes read from the buffer
+ * @return GNUNET_SYSERR on error
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_IDENTITY_read_private_key_from_buffer (const void*buffer,
+                                              size_t len,
+                                              struct
+                                              GNUNET_IDENTITY_PrivateKey *key,
+                                              size_t *read);
+
+
+/**
+ * Writes a #GNUNET_IDENTITY_PrivateKey to a compact buffer.
+ * The buffer requires space for at least the compacted length of
+ * a #GNUNET_IDENTITY_PrivateKey in bytes.
+ * If the buffer is too small, the function returns -1 as error.
+ * If the key is not valid, it returns -2 as error.
+ *
+ * @param key the key
+ * @param buffer the buffer
+ * @param len the length of buffer
+ * @return -1 or -2 on error, else the amount of bytes written to the buffer
+ */
+ssize_t
+GNUNET_IDENTITY_write_private_key_to_buffer (const struct
+                                             GNUNET_IDENTITY_PrivateKey *key,
+                                             void*buffer,
+                                             size_t len);
 
 
 /**

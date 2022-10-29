@@ -657,18 +657,27 @@ send_ticket_result (const struct IdpClient *client,
   struct TicketResultMessage *irm;
   struct GNUNET_MQ_Envelope *env;
   size_t pres_len = 0;
+  size_t tkt_len = 0;
+  ssize_t written;
+  char *buf;
 
   if (NULL != presentations)
   {
     pres_len =
       GNUNET_RECLAIM_presentation_list_serialize_get_size (presentations);
   }
+  if (NULL != ticket)
+    tkt_len = GNUNET_RECLAIM_ticket_serialize_get_size (ticket);
   env = GNUNET_MQ_msg_extra (irm,
-                             pres_len,
+                             pres_len + tkt_len,
                              GNUNET_MESSAGE_TYPE_RECLAIM_TICKET_RESULT);
+  buf = (char*) &irm[1];
   if (NULL != ticket)
   {
-    irm->ticket = *ticket;
+    irm->tkt_len = htonl (tkt_len);
+    written = GNUNET_RECLAIM_write_ticket_to_buffer (ticket, buf, tkt_len);
+    GNUNET_assert (0 <= written);
+    buf += written;
   }
   // TODO add success member
   irm->id = htonl (r_id);
@@ -676,7 +685,7 @@ send_ticket_result (const struct IdpClient *client,
   if (NULL != presentations)
   {
     GNUNET_RECLAIM_presentation_list_serialize (presentations,
-                                                (char*) &irm[1]);
+                                                buf);
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sending TICKET_RESULT message\n");
   GNUNET_MQ_send (client->mq, env);
@@ -732,11 +741,15 @@ check_issue_ticket_message (void *cls, const struct IssueTicketMessage *im)
 {
   uint16_t size;
   size_t attrs_len;
+  size_t key_len;
+  size_t pkey_len;
 
   size = ntohs (im->header.size);
   attrs_len = ntohs (im->attr_len);
-
-  if (attrs_len > size - sizeof(struct IssueTicketMessage))
+  key_len = ntohl (im->key_len);
+  pkey_len = ntohl (im->pkey_len);
+  if (size != attrs_len + key_len + pkey_len + sizeof(struct
+                                                      IssueTicketMessage))
   {
     GNUNET_break (0);
     return GNUNET_SYSERR;
@@ -758,12 +771,43 @@ handle_issue_ticket_message (void *cls, const struct IssueTicketMessage *im)
   struct IdpClient *idp = cls;
   struct GNUNET_RECLAIM_AttributeList *attrs;
   struct GNUNET_RECLAIM_AttributeListEntry *le;
+  struct GNUNET_IDENTITY_PrivateKey identity;
+  struct GNUNET_IDENTITY_PublicKey rp;
   size_t attrs_len;
+  size_t key_len;
+  size_t pkey_len;
+  size_t read;
+  char *buf;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received ISSUE_TICKET message\n");
+  key_len = ntohl (im->key_len);
+  buf = (char *) &im[1];
+  if ((GNUNET_SYSERR ==
+       GNUNET_IDENTITY_read_private_key_from_buffer (buf, key_len,
+                                                     &identity, &read)) ||
+      (read != key_len))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to read private key\n");
+    GNUNET_SERVICE_client_drop (idp->client);
+    return;
+  }
+  buf += read;
+  pkey_len = ntohl (im->pkey_len);
+  if ((GNUNET_SYSERR ==
+       GNUNET_IDENTITY_read_public_key_from_buffer (buf, pkey_len,
+                                                    &rp, &read)) ||
+      (read != pkey_len))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to read public key\n");
+    GNUNET_SERVICE_client_drop (idp->client);
+    return;
+  }
+  buf += read;
   tio = GNUNET_new (struct TicketIssueOperation);
   attrs_len = ntohs (im->attr_len);
-  attrs = GNUNET_RECLAIM_attribute_list_deserialize ((char *) &im[1],
+  attrs = GNUNET_RECLAIM_attribute_list_deserialize (buf,
                                                      attrs_len);
   for (le = attrs->list_head; NULL != le; le = le->next)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -772,9 +816,9 @@ handle_issue_ticket_message (void *cls, const struct IssueTicketMessage *im)
   tio->r_id = ntohl (im->id);
   tio->client = idp;
   GNUNET_CONTAINER_DLL_insert (idp->issue_op_head, idp->issue_op_tail, tio);
-  RECLAIM_TICKETS_issue (&im->identity,
+  RECLAIM_TICKETS_issue (&identity,
                          attrs,
-                         &im->rp,
+                         &rp,
                          &issue_ticket_result_cb,
                          tio);
   GNUNET_SERVICE_client_continue (idp->client);
@@ -846,15 +890,44 @@ handle_revoke_ticket_message (void *cls, const struct RevokeTicketMessage *rm)
 {
   struct TicketRevocationOperation *rop;
   struct IdpClient *idp = cls;
+  struct GNUNET_IDENTITY_PrivateKey identity;
+  struct GNUNET_RECLAIM_Ticket ticket;
+  size_t key_len;
+  size_t tkt_len;
+  size_t read;
+  char *buf;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received REVOKE_TICKET message\n");
+  key_len = ntohl (rm->key_len);
+  buf = (char *) &rm[1];
+  if ((GNUNET_SYSERR ==
+       GNUNET_IDENTITY_read_private_key_from_buffer (buf, key_len,
+                                                     &identity, &read)) ||
+      (read != key_len))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to read private key\n");
+    GNUNET_SERVICE_client_drop (idp->client);
+    return;
+  }
+  buf += read;
+  tkt_len = ntohl (rm->tkt_len);
+  if ((GNUNET_SYSERR ==
+       GNUNET_RECLAIM_read_ticket_from_buffer (buf, key_len,
+                                               &ticket, &read)) ||
+      (read != tkt_len))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to read ticket\n");
+    GNUNET_SERVICE_client_drop (idp->client);
+    return;
+  }
   rop = GNUNET_new (struct TicketRevocationOperation);
   rop->r_id = ntohl (rm->id);
   rop->client = idp;
   GNUNET_CONTAINER_DLL_insert (idp->revoke_op_head, idp->revoke_op_tail, rop);
   rop->rh
-    = RECLAIM_TICKETS_revoke (&rm->ticket, &rm->identity, &revoke_result_cb,
-                              rop);
+    = RECLAIM_TICKETS_revoke (&ticket, &identity, &revoke_result_cb, rop);
   GNUNET_SERVICE_client_continue (idp->client);
 }
 
@@ -882,6 +955,8 @@ consume_result_cb (void *cls,
   char *data_tmp;
   size_t attrs_len = 0;
   size_t pres_len = 0;
+  size_t key_len;
+  ssize_t written;
 
   if (GNUNET_OK != success)
   {
@@ -890,17 +965,23 @@ consume_result_cb (void *cls,
   attrs_len = GNUNET_RECLAIM_attribute_list_serialize_get_size (attrs);
   pres_len = GNUNET_RECLAIM_presentation_list_serialize_get_size (
     presentations);
+  key_len = GNUNET_IDENTITY_public_key_get_length (identity);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Sending CONSUME_TICKET_RESULT message\n");
   env = GNUNET_MQ_msg_extra (crm,
-                             attrs_len + pres_len,
+                             attrs_len + pres_len + key_len,
                              GNUNET_MESSAGE_TYPE_RECLAIM_CONSUME_TICKET_RESULT);
   crm->id = htonl (cop->r_id);
   crm->attrs_len = htons (attrs_len);
   crm->presentations_len = htons (pres_len);
-  crm->identity = *identity;
+  crm->key_len = htonl (key_len);
   crm->result = htonl (success);
   data_tmp = (char *) &crm[1];
+  written = GNUNET_IDENTITY_write_public_key_to_buffer (identity,
+                                                        data_tmp,
+                                                        key_len);
+  GNUNET_assert (0 <= written);
+  data_tmp += written;
   GNUNET_RECLAIM_attribute_list_serialize (attrs, data_tmp);
   data_tmp += attrs_len;
   GNUNET_RECLAIM_presentation_list_serialize (presentations, data_tmp);
@@ -924,7 +1005,7 @@ check_consume_ticket_message (void *cls, const struct ConsumeTicketMessage *cm)
   uint16_t size;
 
   size = ntohs (cm->header.size);
-  if (size != sizeof(struct ConsumeTicketMessage))
+  if (size <= sizeof(struct ConsumeTicketMessage))
   {
     GNUNET_break (0);
     return GNUNET_SYSERR;
@@ -944,13 +1025,43 @@ handle_consume_ticket_message (void *cls, const struct ConsumeTicketMessage *cm)
 {
   struct ConsumeTicketOperation *cop;
   struct IdpClient *idp = cls;
+  struct GNUNET_IDENTITY_PrivateKey identity;
+  struct GNUNET_RECLAIM_Ticket ticket;
+  size_t key_len;
+  size_t tkt_len;
+  size_t read;
+  char *buf;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received CONSUME_TICKET message\n");
+  key_len = ntohl (cm->key_len);
+  buf = (char *) &cm[1];
+  if ((GNUNET_SYSERR ==
+       GNUNET_IDENTITY_read_private_key_from_buffer (buf, key_len,
+                                                     &identity, &read)) ||
+      (read != key_len))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to read private key\n");
+    GNUNET_SERVICE_client_drop (idp->client);
+    return;
+  }
+  buf += read;
+  tkt_len = ntohl (cm->tkt_len);
+  if ((GNUNET_SYSERR ==
+       GNUNET_RECLAIM_read_ticket_from_buffer (buf, tkt_len,
+                                               &ticket, &read)) ||
+      (read != tkt_len))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to read ticket\n");
+    GNUNET_SERVICE_client_drop (idp->client);
+    return;
+  }
   cop = GNUNET_new (struct ConsumeTicketOperation);
   cop->r_id = ntohl (cm->id);
   cop->client = idp;
   cop->ch
-    = RECLAIM_TICKETS_consume (&cm->identity, &cm->ticket, &consume_result_cb,
+    = RECLAIM_TICKETS_consume (&identity, &ticket, &consume_result_cb,
                                cop);
   GNUNET_CONTAINER_DLL_insert (idp->consume_op_head, idp->consume_op_tail, cop);
   GNUNET_SERVICE_client_continue (idp->client);
@@ -1077,21 +1188,37 @@ handle_attribute_store_message (void *cls,
 {
   struct AttributeStoreHandle *ash;
   struct IdpClient *idp = cls;
+  struct GNUNET_IDENTITY_PrivateKey identity;
   size_t data_len;
+  size_t key_len;
+  size_t read;
+  char *buf;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received ATTRIBUTE_STORE message\n");
 
   data_len = ntohs (sam->attr_len);
-
+  key_len = ntohl (sam->key_len);
+  buf = (char *) &sam[1];
+  if ((GNUNET_SYSERR ==
+       GNUNET_IDENTITY_read_private_key_from_buffer (buf, key_len,
+                                                     &identity, &read)) ||
+      (read != key_len))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to read private key\n");
+    GNUNET_SERVICE_client_drop (idp->client);
+    return;
+  }
+  buf += read;
   ash = GNUNET_new (struct AttributeStoreHandle);
-  GNUNET_RECLAIM_attribute_deserialize ((char *) &sam[1],
+  GNUNET_RECLAIM_attribute_deserialize (buf,
                                         data_len,
                                         &ash->claim);
 
   ash->r_id = ntohl (sam->id);
-  ash->identity = sam->identity;
+  ash->identity = identity;
   ash->exp.rel_value_us = GNUNET_ntohll (sam->exp);
-  GNUNET_IDENTITY_key_get_public (&sam->identity, &ash->identity_pkey);
+  GNUNET_IDENTITY_key_get_public (&identity, &ash->identity_pkey);
 
   GNUNET_SERVICE_client_continue (idp->client);
   ash->client = idp;
@@ -1262,20 +1389,36 @@ handle_credential_store_message (void *cls,
 {
   struct AttributeStoreHandle *ash;
   struct IdpClient *idp = cls;
+  struct GNUNET_IDENTITY_PrivateKey identity;
   size_t data_len;
+  size_t key_len;
+  size_t read;
+  char *buf;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received CREDENTIAL_STORE message\n");
 
   data_len = ntohs (sam->attr_len);
-
+  key_len = ntohl (sam->key_len);
+  buf = (char *) &sam[1];
+  if ((GNUNET_SYSERR ==
+       GNUNET_IDENTITY_read_private_key_from_buffer (buf, key_len,
+                                                     &identity, &read)) ||
+      (read != key_len))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to read private key\n");
+    GNUNET_SERVICE_client_drop (idp->client);
+    return;
+  }
+  buf += read;
   ash = GNUNET_new (struct AttributeStoreHandle);
-  ash->credential = GNUNET_RECLAIM_credential_deserialize ((char *) &sam[1],
+  ash->credential = GNUNET_RECLAIM_credential_deserialize (buf,
                                                            data_len);
 
   ash->r_id = ntohl (sam->id);
-  ash->identity = sam->identity;
+  ash->identity = identity;
   ash->exp.rel_value_us = GNUNET_ntohll (sam->exp);
-  GNUNET_IDENTITY_key_get_public (&sam->identity, &ash->identity_pkey);
+  GNUNET_IDENTITY_key_get_public (&identity, &ash->identity_pkey);
 
   GNUNET_SERVICE_client_continue (idp->client);
   ash->client = idp;
@@ -1717,20 +1860,36 @@ handle_attribute_delete_message (void *cls,
 {
   struct AttributeDeleteHandle *adh;
   struct IdpClient *idp = cls;
+  struct GNUNET_IDENTITY_PrivateKey identity;
   size_t data_len;
+  size_t key_len;
+  size_t read;
+  char *buf;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received ATTRIBUTE_DELETE message\n");
 
   data_len = ntohs (dam->attr_len);
-
+  key_len = ntohl (dam->key_len);
+  buf = (char *) &dam[1];
+  if ((GNUNET_SYSERR ==
+       GNUNET_IDENTITY_read_private_key_from_buffer (buf, key_len,
+                                                     &identity, &read)) ||
+      (read != key_len))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to read private key\n");
+    GNUNET_SERVICE_client_drop (idp->client);
+    return;
+  }
+  buf += read;
   adh = GNUNET_new (struct AttributeDeleteHandle);
-  GNUNET_RECLAIM_attribute_deserialize ((char *) &dam[1],
+  GNUNET_RECLAIM_attribute_deserialize (buf,
                                         data_len,
                                         &adh->claim);
   adh->credential = NULL;
 
   adh->r_id = ntohl (dam->id);
-  adh->identity = dam->identity;
+  adh->identity = identity;
   adh->label
     = GNUNET_STRINGS_data_to_string_alloc (&adh->claim->id,
                                            sizeof(adh->claim->id));
@@ -1808,19 +1967,35 @@ handle_credential_delete_message (void *cls,
 {
   struct AttributeDeleteHandle *adh;
   struct IdpClient *idp = cls;
+  struct GNUNET_IDENTITY_PrivateKey identity;
   size_t data_len;
+  size_t key_len;
+  size_t read;
+  char *buf;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received CREDENTIAL_DELETE message\n");
 
   data_len = ntohs (dam->attr_len);
-
+  key_len = ntohl (dam->key_len);
+  buf = (char *) &dam[1];
+  if ((GNUNET_SYSERR ==
+       GNUNET_IDENTITY_read_private_key_from_buffer (buf, key_len,
+                                                     &identity, &read)) ||
+      (read != key_len))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to read private key\n");
+    GNUNET_SERVICE_client_drop (idp->client);
+    return;
+  }
+  buf += read;
   adh = GNUNET_new (struct AttributeDeleteHandle);
-  adh->credential = GNUNET_RECLAIM_credential_deserialize ((char *) &dam[1],
+  adh->credential = GNUNET_RECLAIM_credential_deserialize (buf,
                                                            data_len);
   adh->claim = NULL;
 
   adh->r_id = ntohl (dam->id);
-  adh->identity = dam->identity;
+  adh->identity = identity;
   adh->label
     = GNUNET_STRINGS_data_to_string_alloc (&adh->credential->id,
                                            sizeof(adh->credential->id));
@@ -1858,6 +2033,7 @@ attr_iter_finished (void *cls)
   env = GNUNET_MQ_msg (arm, GNUNET_MESSAGE_TYPE_RECLAIM_ATTRIBUTE_RESULT);
   arm->id = htonl (ai->request_id);
   arm->attr_len = htons (0);
+  arm->pkey_len = htonl (0);
   GNUNET_MQ_send (ai->client->mq, env);
   GNUNET_CONTAINER_DLL_remove (ai->client->attr_iter_head,
                                ai->client->attr_iter_tail,
@@ -1899,7 +2075,10 @@ attr_iter_cb (void *cls,
 {
   struct Iterator *ai = cls;
   struct GNUNET_MQ_Envelope *env;
+  struct GNUNET_IDENTITY_PublicKey identity;
   char *data_tmp;
+  size_t key_len;
+  ssize_t written;
 
   if ((rd_count != 1) ||
       (GNUNET_GNSRECORD_TYPE_RECLAIM_ATTRIBUTE != rd->record_type))
@@ -1912,17 +2091,43 @@ attr_iter_cb (void *cls,
               label);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Sending ATTRIBUTE_RESULT message\n");
+  GNUNET_IDENTITY_key_get_public (zone, &identity);
+  key_len = GNUNET_IDENTITY_public_key_get_length (&identity);
   env = GNUNET_MQ_msg_extra (arm,
-                             rd->data_size,
+                             rd->data_size + key_len,
                              GNUNET_MESSAGE_TYPE_RECLAIM_ATTRIBUTE_RESULT);
   arm->id = htonl (ai->request_id);
   arm->attr_len = htons (rd->data_size);
-  GNUNET_IDENTITY_key_get_public (zone, &arm->identity);
   data_tmp = (char *) &arm[1];
+  arm->pkey_len = htonl (key_len);
+  written = GNUNET_IDENTITY_write_public_key_to_buffer (&identity,
+                                                        data_tmp,
+                                                        key_len);
+  GNUNET_assert (0 <= written);
+  data_tmp += written;
   GNUNET_memcpy (data_tmp, rd->data, rd->data_size);
   GNUNET_MQ_send (ai->client->mq, env);
 }
 
+
+static enum GNUNET_GenericReturnValue
+check_iteration_start (
+  void *cls,
+  const struct AttributeIterationStartMessage *ais_msg)
+{
+  uint16_t size;
+  size_t key_len;
+
+  size = ntohs (ais_msg->header.size);
+  key_len = ntohs (ais_msg->key_len);
+
+  if (size < key_len + sizeof(*ais_msg))
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
+}
 
 /**
  * Iterate over zone to get attributes
@@ -1936,13 +2141,29 @@ handle_iteration_start (void *cls,
 {
   struct IdpClient *idp = cls;
   struct Iterator *ai;
+  struct GNUNET_IDENTITY_PrivateKey identity;
+  size_t key_len;
+  size_t read;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received ATTRIBUTE_ITERATION_START message\n");
+  key_len = ntohl (ais_msg->key_len);
+  if ((GNUNET_SYSERR ==
+       GNUNET_IDENTITY_read_private_key_from_buffer (&ais_msg[1],
+                                                     key_len,
+                                                     &identity,
+                                                     &read)) ||
+      (read != key_len))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to read private key.\n");
+    GNUNET_SERVICE_client_drop (idp->client);
+    return;
+  }
   ai = GNUNET_new (struct Iterator);
   ai->request_id = ntohl (ais_msg->id);
   ai->client = idp;
-  ai->identity = ais_msg->identity;
+  ai->identity = identity;
 
   GNUNET_CONTAINER_DLL_insert (idp->attr_iter_head, idp->attr_iter_tail, ai);
   ai->ns_it = GNUNET_NAMESTORE_zone_iteration_start (nsh,
@@ -2084,7 +2305,10 @@ cred_iter_cb (void *cls,
   struct Iterator *ai = cls;
   struct GNUNET_MQ_Envelope *env;
   struct CredentialResultMessage *arm;
+  struct GNUNET_IDENTITY_PublicKey identity;
   char *data_tmp;
+  size_t key_len;
+  ssize_t written;
 
   if ((rd_count != 1) ||
       (GNUNET_GNSRECORD_TYPE_RECLAIM_CREDENTIAL != rd->record_type))
@@ -2096,16 +2320,40 @@ cred_iter_cb (void *cls,
               label);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Sending CREDENTIAL_RESULT message\n");
+  GNUNET_IDENTITY_key_get_public (zone, &identity);
+  key_len = GNUNET_IDENTITY_public_key_get_length (&identity);
   env = GNUNET_MQ_msg_extra (arm,
-                             rd->data_size,
+                             rd->data_size + key_len,
                              GNUNET_MESSAGE_TYPE_RECLAIM_CREDENTIAL_RESULT);
   arm->id = htonl (ai->request_id);
   arm->credential_len = htons (rd->data_size);
-  GNUNET_IDENTITY_key_get_public (zone, &arm->identity);
   data_tmp = (char *) &arm[1];
+  written = GNUNET_IDENTITY_write_public_key_to_buffer (&identity,
+                                                        data_tmp,
+                                                        key_len);
+  GNUNET_assert (written >= 0);
+  data_tmp += written;
   GNUNET_memcpy (data_tmp, rd->data, rd->data_size);
-
   GNUNET_MQ_send (ai->client->mq, env);
+}
+
+static enum GNUNET_GenericReturnValue
+check_credential_iteration_start (
+  void *cls,
+  const struct CredentialIterationStartMessage *cis_msg)
+{
+  uint16_t size;
+  size_t key_len;
+
+  size = ntohs (cis_msg->header.size);
+  key_len = ntohs (cis_msg->key_len);
+
+  if (size < key_len + sizeof(*cis_msg))
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
 }
 
 
@@ -2122,13 +2370,29 @@ handle_credential_iteration_start (void *cls,
 {
   struct IdpClient *idp = cls;
   struct Iterator *ai;
+  struct GNUNET_IDENTITY_PrivateKey identity;
+  size_t key_len;
+  size_t read;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received CREDENTIAL_ITERATION_START message\n");
+  key_len = ntohl (ais_msg->key_len);
+  if ((GNUNET_SYSERR ==
+       GNUNET_IDENTITY_read_private_key_from_buffer (&ais_msg[1],
+                                                     key_len,
+                                                     &identity,
+                                                     &read)) ||
+      (read != key_len))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to read private key.\n");
+    GNUNET_SERVICE_client_drop (idp->client);
+    return;
+  }
   ai = GNUNET_new (struct Iterator);
   ai->request_id = ntohl (ais_msg->id);
   ai->client = idp;
-  ai->identity = ais_msg->identity;
+  ai->identity = identity;
 
   GNUNET_CONTAINER_DLL_insert (idp->cred_iter_head, idp->cred_iter_tail,
                                ai);
@@ -2227,8 +2491,16 @@ ticket_iter_cb (void *cls, struct GNUNET_RECLAIM_Ticket *ticket)
   struct TicketIteration *ti = cls;
   struct GNUNET_MQ_Envelope *env;
   struct TicketResultMessage *trm;
+  size_t tkt_len;
 
-  env = GNUNET_MQ_msg (trm, GNUNET_MESSAGE_TYPE_RECLAIM_TICKET_RESULT);
+  if (NULL == ticket)
+    tkt_len = 0;
+  else
+    tkt_len = GNUNET_RECLAIM_ticket_serialize_get_size (ticket);
+
+  env = GNUNET_MQ_msg_extra (trm,
+                             tkt_len,
+                             GNUNET_MESSAGE_TYPE_RECLAIM_TICKET_RESULT);
   if (NULL == ticket)
   {
     /* send empty response to indicate end of list */
@@ -2238,8 +2510,11 @@ ticket_iter_cb (void *cls, struct GNUNET_RECLAIM_Ticket *ticket)
   }
   else
   {
-    trm->ticket = *ticket;
+    GNUNET_RECLAIM_write_ticket_to_buffer (ticket,
+                                           &trm[1],
+                                           tkt_len);
   }
+  trm->tkt_len = htonl (tkt_len);
   trm->id = htonl (ti->r_id);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sending TICKET_RESULT message\n");
   GNUNET_MQ_send (ti->client->mq, env);
@@ -2247,6 +2522,24 @@ ticket_iter_cb (void *cls, struct GNUNET_RECLAIM_Ticket *ticket)
     GNUNET_free (ti);
 }
 
+static enum GNUNET_GenericReturnValue
+check_ticket_iteration_start (
+  void *cls,
+  const struct TicketIterationStartMessage *tis_msg)
+{
+  uint16_t size;
+  size_t key_len;
+
+  size = ntohs (tis_msg->header.size);
+  key_len = ntohs (tis_msg->key_len);
+
+  if (size < key_len + sizeof(*tis_msg))
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
+}
 
 /**
  * Client requests a ticket iteration
@@ -2259,20 +2552,35 @@ handle_ticket_iteration_start (
   void *cls,
   const struct TicketIterationStartMessage *tis_msg)
 {
+  struct GNUNET_IDENTITY_PrivateKey identity;
   struct IdpClient *client = cls;
   struct TicketIteration *ti;
+  size_t key_len;
+  size_t read;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received TICKET_ITERATION_START message\n");
+  key_len = ntohl (tis_msg->key_len);
+  if ((GNUNET_SYSERR ==
+       GNUNET_IDENTITY_read_private_key_from_buffer (&tis_msg[1],
+                                                     key_len,
+                                                     &identity,
+                                                     &read)) ||
+      (read != key_len))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to read private key\n");
+    GNUNET_SERVICE_client_drop (client->client);
+    return;
+  }
   ti = GNUNET_new (struct TicketIteration);
   ti->r_id = ntohl (tis_msg->id);
   ti->client = client;
-
   GNUNET_CONTAINER_DLL_insert (client->ticket_iter_head,
                                client->ticket_iter_tail,
                                ti);
   ti->iter
-    = RECLAIM_TICKETS_iteration_start (&tis_msg->identity, &ticket_iter_cb, ti);
+    = RECLAIM_TICKETS_iteration_start (&identity, &ticket_iter_cb, ti);
   GNUNET_SERVICE_client_continue (client->client);
 }
 
@@ -2451,10 +2759,10 @@ GNUNET_SERVICE_MAIN (
                          GNUNET_MESSAGE_TYPE_RECLAIM_CREDENTIAL_DELETE,
                          struct AttributeDeleteMessage,
                          NULL),
-  GNUNET_MQ_hd_fixed_size (iteration_start,
-                           GNUNET_MESSAGE_TYPE_RECLAIM_ATTRIBUTE_ITERATION_START,
-                           struct AttributeIterationStartMessage,
-                           NULL),
+  GNUNET_MQ_hd_var_size (iteration_start,
+                         GNUNET_MESSAGE_TYPE_RECLAIM_ATTRIBUTE_ITERATION_START,
+                         struct AttributeIterationStartMessage,
+                         NULL),
   GNUNET_MQ_hd_fixed_size (iteration_next,
                            GNUNET_MESSAGE_TYPE_RECLAIM_ATTRIBUTE_ITERATION_NEXT,
                            struct AttributeIterationNextMessage,
@@ -2463,10 +2771,10 @@ GNUNET_SERVICE_MAIN (
                            GNUNET_MESSAGE_TYPE_RECLAIM_ATTRIBUTE_ITERATION_STOP,
                            struct AttributeIterationStopMessage,
                            NULL),
-  GNUNET_MQ_hd_fixed_size (credential_iteration_start,
-                           GNUNET_MESSAGE_TYPE_RECLAIM_CREDENTIAL_ITERATION_START,
-                           struct CredentialIterationStartMessage,
-                           NULL),
+  GNUNET_MQ_hd_var_size (credential_iteration_start,
+                         GNUNET_MESSAGE_TYPE_RECLAIM_CREDENTIAL_ITERATION_START,
+                         struct CredentialIterationStartMessage,
+                         NULL),
   GNUNET_MQ_hd_fixed_size (credential_iteration_next,
                            GNUNET_MESSAGE_TYPE_RECLAIM_CREDENTIAL_ITERATION_NEXT,
                            struct CredentialIterationNextMessage,
@@ -2484,10 +2792,10 @@ GNUNET_SERVICE_MAIN (
                          GNUNET_MESSAGE_TYPE_RECLAIM_CONSUME_TICKET,
                          struct ConsumeTicketMessage,
                          NULL),
-  GNUNET_MQ_hd_fixed_size (ticket_iteration_start,
-                           GNUNET_MESSAGE_TYPE_RECLAIM_TICKET_ITERATION_START,
-                           struct TicketIterationStartMessage,
-                           NULL),
+  GNUNET_MQ_hd_var_size (ticket_iteration_start,
+                         GNUNET_MESSAGE_TYPE_RECLAIM_TICKET_ITERATION_START,
+                         struct TicketIterationStartMessage,
+                         NULL),
   GNUNET_MQ_hd_fixed_size (ticket_iteration_next,
                            GNUNET_MESSAGE_TYPE_RECLAIM_TICKET_ITERATION_NEXT,
                            struct TicketIterationNextMessage,

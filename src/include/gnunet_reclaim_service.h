@@ -498,6 +498,43 @@ GNUNET_RECLAIM_disconnect (struct GNUNET_RECLAIM_Handle *h);
 void
 GNUNET_RECLAIM_cancel (struct GNUNET_RECLAIM_Operation *op);
 
+/**
+ * Get serialized ticket size
+ *
+ * @param tkt the ticket
+ * @return the buffer length requirement for a serialization
+ */
+size_t
+GNUNET_RECLAIM_ticket_serialize_get_size (const struct GNUNET_RECLAIM_Ticket *tkt);
+
+/**
+ * Deserializes a ticket
+ *
+ * @param buffer the buffer to read from
+ * @param len the length of the buffer
+ * @param tkt the ticket to write to (must be allocated)
+ * @param kb_read how many bytes were read from buffer
+ * @return GNUNET_SYSERR on error
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_RECLAIM_read_ticket_from_buffer (const void *buffer,
+                                        size_t len,
+                                        struct GNUNET_RECLAIM_Ticket *tkt,
+                                        size_t *tb_read);
+
+/**
+ * Serializes a ticket
+ *
+ * @param tkt the ticket to serialize
+ * @param buffer the buffer to serialize to (must be allocated with sufficient size
+ * @param len the length of the buffer
+ * @return the number of written bytes or < 0 on error
+ */
+ssize_t
+GNUNET_RECLAIM_write_ticket_to_buffer (const struct
+                                       GNUNET_RECLAIM_Ticket *tkt,
+                                       void *buffer,
+                                       size_t len);
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {

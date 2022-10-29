@@ -316,7 +316,7 @@ publicize_rm (const struct RevokeMessage *rm)
   const struct GNUNET_IDENTITY_PublicKey *pk
     = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
 
-  pklen = GNUNET_IDENTITY_key_get_length (pk);
+  pklen = GNUNET_IDENTITY_public_key_get_length (pk);
   if (0 > pklen)
   {
     GNUNET_break_op (0);
@@ -950,7 +950,7 @@ run (void *cls,
                                           GNUNET_REVOCATION_PowP *) &rm[1];
     ssize_t ksize;
     pk = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
-    ksize = GNUNET_IDENTITY_key_get_length (pk);
+    ksize = GNUNET_IDENTITY_public_key_get_length (pk);
     if (0 > ksize)
     {
       GNUNET_break_op (0);

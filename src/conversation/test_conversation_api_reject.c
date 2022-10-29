@@ -239,21 +239,20 @@ call_event_handler (void *cls, enum GNUNET_CONVERSATION_CallEventCode code)
 static void
 caller_ego_create_cont (void *cls,
                         const struct GNUNET_IDENTITY_PrivateKey *pk,
-                        const char *emsg)
+                        enum GNUNET_ErrorCode ec)
 {
   (void) cls;
   op = NULL;
-  GNUNET_assert (NULL == emsg);
+  GNUNET_assert (GNUNET_EC_NONE == ec);
 }
 
 
 static void
-namestore_put_cont (void *cls, int32_t success, const char *emsg)
+namestore_put_cont (void *cls, enum GNUNET_ErrorCode ec)
 {
   (void) cls;
   qe = NULL;
-  GNUNET_assert (GNUNET_YES == success);
-  GNUNET_assert (NULL == emsg);
+  GNUNET_assert (GNUNET_EC_NONE == ec);
   GNUNET_assert (NULL == op);
   op = GNUNET_IDENTITY_create (id, "caller-ego", NULL,
                                GNUNET_IDENTITY_TYPE_ECDSA,
@@ -321,11 +320,11 @@ identity_cb (void *cls,
 static void
 phone_ego_create_cont (void *cls,
                        const struct GNUNET_IDENTITY_PrivateKey *pk,
-                       const char *emsg)
+                       enum GNUNET_ErrorCode ec)
 {
   (void) cls;
   op = NULL;
-  GNUNET_assert (NULL == emsg);
+  GNUNET_assert (GNUNET_EC_NONE == ec);
 }
 
 

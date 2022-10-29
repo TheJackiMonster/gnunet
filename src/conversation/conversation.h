@@ -105,9 +105,13 @@ struct ClientPhoneRingMessage
   uint32_t cid GNUNET_PACKED;
 
   /**
-   * Who is calling us?
+   * The identity key length
    */
-  struct GNUNET_IDENTITY_PublicKey caller_id;
+  uint32_t key_len;
+
+  /**
+   * followed by who is calling us?, a public key
+   */
 };
 
 
@@ -230,9 +234,13 @@ struct ClientCallMessage
   struct GNUNET_HashCode line_port;
 
   /**
-   * Identity of the caller.
+   * The identity key length
    */
-  struct GNUNET_IDENTITY_PrivateKey caller_id;
+  uint32_t key_len;
+
+  /**
+   * followed by the identity of the caller.
+   */
 };
 
 
@@ -301,19 +309,24 @@ struct CadetPhoneRingMessage
   uint32_t reserved GNUNET_PACKED;
 
   /**
-   * Who is calling us? (also who is signing).
-   */
-  struct GNUNET_IDENTITY_PublicKey caller_id;
-
-  /**
    * When does the signature expire?
    */
   struct GNUNET_TIME_AbsoluteNBO expiration_time;
 
   /**
-   * Signature over a `struct CadetPhoneRingInfoPS`
+   * The length of the key
    */
-  struct GNUNET_IDENTITY_Signature signature;
+  uint32_t key_len;
+
+  /**
+   * The length of the signature
+   */
+  uint32_t sig_len;
+
+  /**
+   * Followed by the public key of who is calling us? (also who is signing).
+   * followed by the signature over a `struct CadetPhoneRingInfoPS`
+   */
 };
 
 
