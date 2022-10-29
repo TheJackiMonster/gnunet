@@ -259,16 +259,16 @@ get_message_body_size (enum GNUNET_MESSENGER_MessageKind kind,
   switch (kind)
   {
   case GNUNET_MESSENGER_KIND_INFO:
-    length += GNUNET_IDENTITY_key_get_length(&(body->info.host_key));
+    length += GNUNET_IDENTITY_public_key_get_length(&(body->info.host_key));
     break;
   case GNUNET_MESSENGER_KIND_JOIN:
-    length += GNUNET_IDENTITY_key_get_length(&(body->join.key));
+    length += GNUNET_IDENTITY_public_key_get_length(&(body->join.key));
     break;
   case GNUNET_MESSENGER_KIND_NAME:
     length += (body->name.name ? strlen (body->name.name) : 0);
     break;
   case GNUNET_MESSENGER_KIND_KEY:
-    length += GNUNET_IDENTITY_key_get_length(&(body->key.key));
+    length += GNUNET_IDENTITY_public_key_get_length(&(body->key.key));
     break;
   case GNUNET_MESSENGER_KIND_TEXT:
     length += strlen (body->text.text);
@@ -372,7 +372,7 @@ calc_padded_length (uint16_t length)
 } while (0)
 
 #define encode_step_key(dst, offset, src, length) do {  \
-  ssize_t result = GNUNET_IDENTITY_write_key_to_buffer( \
+  ssize_t result = GNUNET_IDENTITY_write_public_key_to_buffer( \
       src, dst + offset, length - offset                \
   );                                                    \
   if (result < 0)                                       \
@@ -539,8 +539,9 @@ encode_short_message (const struct GNUNET_MESSENGER_ShortMessage *message,
 } while (0)
 
 #define decode_step_key(src, offset, dst, length) do {   \
-  ssize_t result = GNUNET_IDENTITY_read_key_from_buffer( \
-    dst, src + offset, length - offset                   \
+  size_t read;                                           \
+  ssize_t result = GNUNET_IDENTITY_read_public_key_from_buffer( \
+    src + offset, length - offset, dst, &read            \
   );                                                     \
   if (result < 0)                                        \
     GNUNET_break(0);                                     \

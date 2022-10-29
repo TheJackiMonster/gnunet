@@ -105,7 +105,10 @@ check_get_key (void *cls,
   const char *buffer = ((const char*) msg) + sizeof(*msg);
 
   struct GNUNET_IDENTITY_PublicKey pubkey;
-  if (GNUNET_IDENTITY_read_key_from_buffer(&pubkey, buffer, length) < 0)
+  size_t read;
+  if (GNUNET_SYSERR ==
+      GNUNET_IDENTITY_read_public_key_from_buffer(buffer, length,
+                                                  &pubkey, &read))
     return GNUNET_NO;
 
   return GNUNET_OK;
@@ -121,7 +124,10 @@ handle_get_key (void *cls,
   const char *buffer = ((const char*) msg) + sizeof(*msg);
 
   struct GNUNET_IDENTITY_PublicKey pubkey;
-  if (GNUNET_IDENTITY_read_key_from_buffer(&pubkey, buffer, length) < 0)
+  size_t read;
+  if (GNUNET_SYSERR ==
+      GNUNET_IDENTITY_read_public_key_from_buffer(buffer, length,
+                                                  &pubkey, &read))
     return;
 
   char* str = GNUNET_IDENTITY_public_key_to_string (&pubkey);
@@ -719,7 +725,7 @@ GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room,
     );
 
     if (public_key)
-      key_length = GNUNET_IDENTITY_key_get_length(public_key);
+      key_length = GNUNET_IDENTITY_public_key_get_length(public_key);
     else
       key_length = -1;
   }
@@ -752,7 +758,7 @@ GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room,
   char *msg_buffer = buffer + key_length;
 
   if (key_length > 0)
-    GNUNET_IDENTITY_write_key_to_buffer(get_contact_key(contact), buffer, key_length);
+    GNUNET_IDENTITY_write_public_key_to_buffer(get_contact_key(contact), buffer, key_length);
 
   encode_message (message, msg_length, msg_buffer, GNUNET_NO);
 

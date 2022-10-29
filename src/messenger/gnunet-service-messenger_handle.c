@@ -216,7 +216,7 @@ change_handle_ego (struct GNUNET_MESSENGER_SrvHandle *handle,
 
   ego = get_srv_handle_ego (handle);
 
-  const uint16_t length = GNUNET_IDENTITY_key_get_length(&(ego->pub));
+  const uint16_t length = GNUNET_IDENTITY_public_key_get_length(&(ego->pub));
 
   struct GNUNET_MESSENGER_KeyMessage *msg;
   struct GNUNET_MQ_Envelope *env;
@@ -225,7 +225,7 @@ change_handle_ego (struct GNUNET_MESSENGER_SrvHandle *handle,
 
   char *extra = ((char*) msg) + sizeof(*msg);
 
-  if (GNUNET_IDENTITY_write_key_to_buffer(&(ego->pub), extra, length) < 0)
+  if (GNUNET_IDENTITY_write_public_key_to_buffer(&(ego->pub), extra, length) < 0)
     GNUNET_log(GNUNET_ERROR_TYPE_WARNING, "Could not write key to buffer.\n");
 
   GNUNET_MQ_send (handle->mq, env);
