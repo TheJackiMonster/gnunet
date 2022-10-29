@@ -267,7 +267,7 @@ transmit_ready (void *cls)
        cstate->sock,
        cstate->mq);
 
-  RETRY:
+RETRY:
   ret = GNUNET_NETWORK_socket_send (cstate->sock,
                                     &pos[cstate->msg_off],
                                     len - cstate->msg_off);
@@ -330,7 +330,7 @@ transmit_ready (void *cls)
  *     #GNUNET_NO to stop further processing due to disconnect (no error)
  *     #GNUNET_SYSERR to stop further processing due to error
  */
-static int
+static enum GNUNET_GenericReturnValue
 recv_message (void *cls,
               const struct GNUNET_MessageHeader *msg)
 {
@@ -439,7 +439,7 @@ static void
 receive_ready (void *cls)
 {
   struct ClientState *cstate = cls;
-  int ret;
+  enum GNUNET_GenericReturnValue ret;
 
   cstate->recv_task = NULL;
   cstate->in_destroy = GNUNET_SYSERR;
@@ -464,6 +464,7 @@ receive_ready (void *cls)
     return;
   }
   cstate->in_destroy = GNUNET_NO;
+  GNUNET_assert (NULL == cstate->recv_task);
   cstate->recv_task
     = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
                                      cstate->sock,

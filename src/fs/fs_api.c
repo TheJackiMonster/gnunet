@@ -3190,16 +3190,20 @@ deserialize_download_file (void *cls, const char *filename)
   if (NULL == rh)
   {
     if (0 != unlink (filename))
-      GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING, "unlink", filename);
+      GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING,
+                                "unlink",
+                                filename);
     GNUNET_free (set);
     return GNUNET_OK;
   }
   deserialize_download (h, rh, NULL, NULL, set);
   GNUNET_free (set);
-  if (GNUNET_OK != GNUNET_BIO_read_close (rh, &emsg))
+  if (GNUNET_OK !=
+      GNUNET_BIO_read_close (rh,
+                             &emsg))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                _ ("Failure while resuming download operation `%s': %s\n"),
+                "Failure while resuming download operation `%s': %s\n",
                 filename,
                 emsg);
     GNUNET_free (emsg);
@@ -3225,23 +3229,16 @@ deserialization_master (const char *master_path,
   dn = get_serialization_file_name (h, master_path, "");
   if (NULL == dn)
     return;
-  if (GNUNET_YES == GNUNET_DISK_directory_test (dn, GNUNET_YES))
-    GNUNET_DISK_directory_scan (dn, proc, h);
+  if (GNUNET_YES ==
+      GNUNET_DISK_directory_test (dn,
+                                  GNUNET_YES))
+    GNUNET_DISK_directory_scan (dn,
+                                proc,
+                                h);
   GNUNET_free (dn);
 }
 
 
-/**
- * Setup a connection to the file-sharing service.
- *
- * @param cfg configuration to use
- * @param client_name unique identifier for this client
- * @param upcb function to call to notify about FS actions
- * @param upcb_cls closure for @a upcb
- * @param flags specific attributes for fs-operations
- * @param ... list of optional options, terminated with #GNUNET_FS_OPTIONS_END
- * @return NULL on error
- */
 struct GNUNET_FS_Handle *
 GNUNET_FS_start (const struct GNUNET_CONFIGURATION_Handle *cfg,
                  const char *client_name,
@@ -3308,15 +3305,6 @@ GNUNET_FS_start (const struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
-/**
- * Close our connection with the file-sharing service.
- * The callback given to #GNUNET_FS_start() will no longer be
- * called after this function returns.
- * This function MUST NOT be called from within the
- * callback itself.
- *
- * @param h handle that was returned from #GNUNET_FS_start()
- */
 void
 GNUNET_FS_stop (struct GNUNET_FS_Handle *h)
 {

@@ -96,7 +96,7 @@ GNUNET_MST_create (GNUNET_MessageTokenizerCallback cb,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_MST_from_buffer (struct GNUNET_MessageStreamTokenizer *mst,
                         const char *buf,
                         size_t size,
@@ -107,8 +107,6 @@ GNUNET_MST_from_buffer (struct GNUNET_MessageStreamTokenizer *mst,
   size_t delta;
   uint16_t want;
   char *ibuf;
-  int need_align;
-  unsigned long offset;
   int ret;
   int cbret;
 
@@ -124,7 +122,7 @@ GNUNET_MST_from_buffer (struct GNUNET_MessageStreamTokenizer *mst,
   ibuf = (char *) mst->hdr;
   while (mst->pos > 0)
   {
-    do_align:
+do_align:
     GNUNET_assert (mst->pos >= mst->off);
     if ((mst->curr_buf - mst->off < sizeof(struct GNUNET_MessageHeader)) ||
         (0 != (mst->off % ALIGN_FACTOR)))
@@ -240,14 +238,15 @@ GNUNET_MST_from_buffer (struct GNUNET_MessageStreamTokenizer *mst,
   GNUNET_assert (0 == mst->pos);
   while (size > 0)
   {
+    unsigned long offset = (unsigned long) buf;
+    bool need_align = (0 != (offset % ALIGN_FACTOR));
+
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Server-mst has %u bytes left in inbound buffer\n",
          (unsigned int) size);
     if (size < sizeof(struct GNUNET_MessageHeader))
       break;
-    offset = (unsigned long) buf;
-    need_align = (0 != (offset % ALIGN_FACTOR)) ? GNUNET_YES : GNUNET_NO;
-    if (GNUNET_NO == need_align)
+    if (! need_align)
     {
       /* can try to do zero-copy and process directly from original buffer */
       hdr = (const struct GNUNET_MessageHeader *) buf;
@@ -267,7 +266,7 @@ GNUNET_MST_from_buffer (struct GNUNET_MessageStreamTokenizer *mst,
         ret = GNUNET_NO;
         goto copy;
       }
-      if (one_shot == GNUNET_YES)
+      if (GNUNET_YES == one_shot)
         one_shot = GNUNET_SYSERR;
       if (GNUNET_OK !=
           (cbret = mst->cb (mst->cb_cls,
@@ -290,7 +289,7 @@ GNUNET_MST_from_buffer (struct GNUNET_MessageStreamTokenizer *mst,
       goto do_align;
     }
   }
-  copy:
+copy:
   if ((size > 0) && (! purge))
   {
     if (size + mst->pos > mst->curr_buf)
@@ -334,7 +333,7 @@ GNUNET_MST_from_buffer (struct GNUNET_MessageStreamTokenizer *mst,
  *         #GNUNET_NO if one_shot was set and we have another message ready
  *         #GNUNET_SYSERR if the data stream is corrupt
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_MST_read (struct GNUNET_MessageStreamTokenizer *mst,
                  struct GNUNET_NETWORK_Handle *sock,
                  int purge,
@@ -383,7 +382,7 @@ GNUNET_MST_read (struct GNUNET_MessageStreamTokenizer *mst,
  *         #GNUNET_NO if one_shot was set and we have another message ready
  *         #GNUNET_SYSERR if the data stream is corrupt
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_MST_next (struct GNUNET_MessageStreamTokenizer *mst,
                  int one_shot)
 {

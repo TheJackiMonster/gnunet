@@ -103,7 +103,7 @@ GNUNET_MST_create (GNUNET_MessageTokenizerCallback cb,
  *         #GNUNET_NO if one_shot was set and we have another message ready
  *         #GNUNET_SYSERR if the data stream is corrupt
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_MST_from_buffer (struct GNUNET_MessageStreamTokenizer *mst,
                         const char *buf,
                         size_t size,

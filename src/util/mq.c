@@ -192,6 +192,7 @@ GNUNET_MQ_inject_message (struct GNUNET_MQ_Handle *mq,
                                   mh);
   if (GNUNET_SYSERR == ret)
   {
+    GNUNET_break_op (0);
     GNUNET_MQ_inject_error (mq,
                             GNUNET_MQ_ERROR_MALFORMED);
     return;
