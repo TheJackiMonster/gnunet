@@ -258,19 +258,17 @@ main (int argc, char **argv)
   GNUNET_log_setup ("test-testbed-logger-api",
                     "WARNING",
                     NULL);
-  GNUNET_break (GNUNET_OK ==
-                GNUNET_DISK_purge_cfg_dir 
-                  ("test_testbed_logger_api.conf", 
-                   "GNUNET_TEST_HOME"));
+  GNUNET_DISK_purge_cfg_dir
+    ("test_testbed_logger_api.conf",
+    "GNUNET_TEST_HOME");
   ret = GNUNET_TESTING_service_run ("test-testbed-logger",
                                     "testbed-logger",
                                     "test_testbed_logger_api.conf",
                                     &test_main,
                                     NULL);
-  GNUNET_break (GNUNET_OK ==
-                GNUNET_DISK_purge_cfg_dir 
-                  ("test_testbed_logger_api.conf", 
-                   "GNUNET_TEST_HOME"));
+  GNUNET_DISK_purge_cfg_dir
+    ("test_testbed_logger_api.conf",
+    "GNUNET_TEST_HOME");
   if (0 != ret)
     return 1;
   if (GNUNET_OK != result)
