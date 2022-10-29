@@ -195,16 +195,16 @@ ego_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 static void
 identity_create_cb (void *cls,
                     const struct GNUNET_IDENTITY_PrivateKey *pk,
-                    const char *emsg)
+                    enum GNUNET_ErrorCode ec)
 {
   static int completed = 0;
 
-  if ((NULL == emsg) && (cls == &testpeers[0]))
+  if ((GNUNET_EC_NONE == ec) && (cls == &testpeers[0]))
   {
     testpeers[0].create_id_op = NULL;
     completed++;
   }
-  if ((NULL == emsg) && (cls == &testpeers[1]))
+  if ((GNUNET_EC_NONE == ec) && (cls == &testpeers[1]))
   {
     testpeers[1].create_id_op = NULL;
     completed++;

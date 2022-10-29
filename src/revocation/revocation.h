@@ -42,14 +42,13 @@ struct QueryMessage
   struct GNUNET_MessageHeader header;
 
   /**
-   * For alignment.
+   * Key length.
    */
-  uint32_t reserved GNUNET_PACKED;
+  uint32_t key_len GNUNET_PACKED;
 
   /**
-   * Key to check.
+   * Followed by the public key to check.
    */
-  struct GNUNET_IDENTITY_PublicKey key;
 };
 
 

@@ -225,7 +225,7 @@ check_send_message (void *cls,
       return GNUNET_NO;
 
   const uint16_t msg_length = length - key_length;
-  const char*msg_buffer = buffer + key_length;
+  const char *msg_buffer = buffer + key_length;
 
   struct GNUNET_MESSENGER_Message message;
 

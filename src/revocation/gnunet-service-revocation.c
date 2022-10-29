@@ -221,6 +221,23 @@ client_disconnect_cb (void *cls,
   GNUNET_assert (client == app_cls);
 }
 
+static int
+check_query_message (void *cls,
+                     const struct QueryMessage *qm)
+{
+  uint16_t size;
+
+  size = ntohs (qm->header.size);
+  if (size <= sizeof(struct RevokeMessage) ||
+      (size > UINT16_MAX))
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
+
+}
+
 
 /**
  * Handle QUERY message from client.
@@ -233,13 +250,27 @@ handle_query_message (void *cls,
                       const struct QueryMessage *qm)
 {
   struct GNUNET_SERVICE_Client *client = cls;
+  struct GNUNET_IDENTITY_PublicKey zone;
   struct GNUNET_MQ_Envelope *env;
   struct QueryResponseMessage *qrm;
   struct GNUNET_HashCode hc;
   int res;
+  size_t key_len;
+  size_t read;
 
-  GNUNET_CRYPTO_hash (&qm->key,
-                      sizeof(struct GNUNET_IDENTITY_PublicKey),
+  key_len = ntohl (qm->key_len);
+  if ((GNUNET_SYSERR ==
+       GNUNET_IDENTITY_read_public_key_from_buffer (&qm[1], key_len,
+                                                    &zone, &read)) ||
+      (read != key_len))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Unable to parse query public key\n");
+    GNUNET_SERVICE_client_drop (client);
+    return;
+  }
+  GNUNET_CRYPTO_hash (&qm[1],
+                      key_len,
                       &hc);
   res = GNUNET_CONTAINER_multihashmap_contains (revocation_map,
                                                 &hc);
@@ -316,6 +347,7 @@ publicize_rm (const struct RevokeMessage *rm)
   const struct GNUNET_IDENTITY_PublicKey *pk
     = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
 
+  /** FIXME yeah this works, but should we have a key length somewhere? */
   pklen = GNUNET_IDENTITY_public_key_get_length (pk);
   if (0 > pklen)
   {
@@ -1000,10 +1032,10 @@ GNUNET_SERVICE_MAIN
   &client_connect_cb,
   &client_disconnect_cb,
   NULL,
-  GNUNET_MQ_hd_fixed_size (query_message,
-                           GNUNET_MESSAGE_TYPE_REVOCATION_QUERY,
-                           struct QueryMessage,
-                           NULL),
+  GNUNET_MQ_hd_var_size (query_message,
+                         GNUNET_MESSAGE_TYPE_REVOCATION_QUERY,
+                         struct QueryMessage,
+                         NULL),
   GNUNET_MQ_hd_var_size (revoke_message,
                          GNUNET_MESSAGE_TYPE_REVOCATION_REVOKE,
                          struct RevokeMessage,

@@ -175,6 +175,7 @@ GNUNET_REVOCATION_query (const struct GNUNET_CONFIGURATION_Handle *cfg,
   };
   struct QueryMessage *qm;
   struct GNUNET_MQ_Envelope *env;
+  size_t key_len;
 
   q->mq = GNUNET_CLIENT_connect (cfg,
                                  "revocation",
@@ -188,10 +189,11 @@ GNUNET_REVOCATION_query (const struct GNUNET_CONFIGURATION_Handle *cfg,
   }
   q->func = func;
   q->func_cls = func_cls;
-  env = GNUNET_MQ_msg (qm,
-                       GNUNET_MESSAGE_TYPE_REVOCATION_QUERY);
-  qm->reserved = htonl (0);
-  qm->key = *key;
+  key_len = GNUNET_IDENTITY_public_key_get_length (key);
+  env = GNUNET_MQ_msg_extra (qm, key_len,
+                             GNUNET_MESSAGE_TYPE_REVOCATION_QUERY);
+  GNUNET_IDENTITY_write_public_key_to_buffer (key, &qm[1], key_len);
+  qm->key_len = htonl (key_len);
   GNUNET_MQ_send (q->mq,
                   env);
   return q;
