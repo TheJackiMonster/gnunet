@@ -263,7 +263,7 @@ write_encrypted_message (void)
       GNUNET_SYSERR)
   {
     struct GNUNET_CRYPTO_EcdhePublicKey message_key;
-    size_t msg_len = strlen (write_msg);
+    size_t msg_len = strlen (write_msg) + 1;
     ssize_t res = GNUNET_IDENTITY_encrypt (write_msg,
                                            msg_len,
                                            &recipient,
@@ -355,6 +355,7 @@ read_encrypted_message (struct GNUNET_IDENTITY_Ego *ego)
                                              deserialized_msg);
       if (-1 != res)
       {
+        deserialized_msg[res - 1] = '\0';
         fprintf (stdout,
                  "%s\n",
                  deserialized_msg);
