@@ -395,10 +395,11 @@ check_lookup (void *cls,
               const struct LookupMessage *l_msg)
 {
   size_t nlen;
+  size_t klen;
 
   (void) cls;
-  GNUNET_MQ_check_zero_termination (l_msg);
-  nlen = ntohs (l_msg->header.size) - sizeof(struct LookupMessage);
+  klen = ntohl (l_msg->key_len);
+  nlen = ntohs (l_msg->header.size) - sizeof(struct LookupMessage) - klen;
   if (nlen > GNUNET_DNSPARSER_MAX_NAME_LENGTH)
   {
     GNUNET_break (0);
@@ -420,19 +421,37 @@ handle_lookup (void *cls,
 {
   struct GnsClient *gc = cls;
   struct ClientLookupHandle *clh;
+  struct GNUNET_IDENTITY_PublicKey zone;
   const char *name;
+  size_t key_len;
+  size_t read;
 
   GNUNET_SERVICE_client_continue (gc->client);
-  name = (const char *) &sh_msg[1];
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Received LOOKUP `%s' message\n",
-              name);
+  key_len = ntohl (sh_msg->key_len);
   clh = GNUNET_new (struct ClientLookupHandle);
   GNUNET_CONTAINER_DLL_insert (gc->clh_head,
                                gc->clh_tail,
                                clh);
   clh->gc = gc;
   clh->request_id = sh_msg->id;
+  if ((GNUNET_SYSERR ==
+       GNUNET_IDENTITY_read_public_key_from_buffer (&sh_msg[1],
+                                                    key_len,
+                                                    &zone,
+                                                    &read)) ||
+      (read != key_len))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "LOOKUP: Failed to read zone key!");
+    send_lookup_response (clh,
+                          0,
+                          NULL);
+    return;
+  }
+  name = (const char *) &sh_msg[1] + key_len;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Received LOOKUP `%s' message\n",
+              name);
   if ((GNUNET_DNSPARSER_TYPE_A == ntohl (sh_msg->type)) &&
       (GNUNET_OK != v4_enabled))
   {
@@ -453,7 +472,7 @@ handle_lookup (void *cls,
                           NULL);
     return;
   }
-  clh->lookup = GNS_resolver_lookup (&sh_msg->zone,
+  clh->lookup = GNS_resolver_lookup (&zone,
                                      ntohl (sh_msg->type),
                                      name,
                                      (enum GNUNET_GNS_LocalOptions) ntohs (

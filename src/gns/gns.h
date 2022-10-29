@@ -46,11 +46,6 @@ struct LookupMessage
   uint32_t id GNUNET_PACKED;
 
   /**
-   * Zone that is to be used for lookup
-   */
-  struct GNUNET_IDENTITY_PublicKey zone;
-
-  /**
    * Local options for where to look for results
    * (an `enum GNUNET_GNS_LocalOptions` in NBO).
    */
@@ -68,7 +63,13 @@ struct LookupMessage
    */
   int32_t type GNUNET_PACKED;
 
-  /* Followed by the zero-terminated name to look up */
+  /**
+   * Length of the zone key
+   */
+  uint32_t key_len GNUNET_PACKED;
+  /**
+   * Followed by the zone that is to be used for lookup
+   * Followed by the zero-terminated name to look up */
 };
 
 

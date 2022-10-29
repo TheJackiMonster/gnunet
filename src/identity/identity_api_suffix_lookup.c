@@ -138,13 +138,16 @@ handle_identity_update (void *cls, const struct UpdateMessage *um)
   tmp = (const char*) &um[1];
   str = (0 == name_len) ? NULL : tmp;
   memset (&private_key, 0, sizeof (private_key));
-  key_len = ntohs (um->header.size) - name_len;
-  GNUNET_assert (GNUNET_SYSERR !=
-                 GNUNET_IDENTITY_read_private_key_from_buffer (tmp + name_len,
-                                                               key_len,
-                                                               &private_key,
-                                                               &kb_read));
-  GNUNET_assert (key_len == kb_read);
+  key_len = ntohs (um->header.size) - name_len - sizeof (*um);
+  if (0 < key_len)
+  {
+    GNUNET_assert (GNUNET_SYSERR !=
+                   GNUNET_IDENTITY_read_private_key_from_buffer (tmp + name_len,
+                                                                 key_len,
+                                                                 &private_key,
+                                                                 &kb_read));
+    GNUNET_assert (key_len == kb_read);
+  }
   el->cb (el->cb_cls, &private_key, str);
   GNUNET_IDENTITY_ego_lookup_by_suffix_cancel (el);
 }

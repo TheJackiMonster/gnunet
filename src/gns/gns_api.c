@@ -354,6 +354,9 @@ GNUNET_GNS_lookup_limited (struct GNUNET_GNS_Handle *handle,
   struct LookupMessage *lookup_msg;
   struct GNUNET_GNS_LookupRequest *lr;
   size_t nlen;
+  size_t key_len;
+  ssize_t written;
+  char *buf;
 
   if (NULL == name)
   {
@@ -374,16 +377,23 @@ GNUNET_GNS_lookup_limited (struct GNUNET_GNS_Handle *handle,
   lr->lookup_proc = proc;
   lr->proc_cls = proc_cls;
   lr->r_id = handle->r_id_gen++;
+  key_len = GNUNET_IDENTITY_public_key_get_length (zone);
   lr->env = GNUNET_MQ_msg_extra (lookup_msg,
-                                 nlen,
+                                 nlen + key_len,
                                  GNUNET_MESSAGE_TYPE_GNS_LOOKUP);
+  buf = (char *) &lookup_msg[1];
   lookup_msg->id = htonl (lr->r_id);
   lookup_msg->options = htons ((uint16_t) options);
   lookup_msg->recursion_depth_limit
     = htons (recursion_depth_limit);
-  lookup_msg->zone = *zone;
+  lookup_msg->key_len = htonl (key_len);
+  written = GNUNET_IDENTITY_write_public_key_to_buffer (zone,
+                                                        buf,
+                                                        key_len);
+  GNUNET_assert (0 <= written);
+  buf += written;
   lookup_msg->type = htonl (type);
-  GNUNET_memcpy (&lookup_msg[1],
+  GNUNET_memcpy (buf,
                  name,
                  nlen);
   GNUNET_CONTAINER_DLL_insert (handle->lookup_head,
