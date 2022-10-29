@@ -10,6 +10,9 @@ endif
 if OPENBSD
 all-local:
 	cd handbook/texinfo && make || touch gnunet.info
+GNUNET_TEXI =
+else
+GNUNET_TEXI = handbook/texinfo/gnunet.texi
 endif
 
 install-data-hook:
@@ -25,7 +28,7 @@ endif
 AM_MAKEINFOFLAGS = --no-headers --no-split
 
 info_TEXINFOS = \
-  handbook/texinfo/gnunet.texi
+  $(GNUNET_TEXI)
 
 EXTRA_DIST = \
 	handbook/texinfo \
