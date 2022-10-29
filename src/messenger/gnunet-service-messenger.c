@@ -212,21 +212,17 @@ check_send_message (void *cls,
 
   const uint16_t length = full_length - sizeof(*msg);
   const char *buffer = ((const char*) msg) + sizeof(*msg);
+  struct GNUNET_IDENTITY_PublicKey public_key;
+
 
   size_t key_length = 0;
 
-  if (! (flags & GNUNET_MESSENGER_FLAG_PRIVATE))
-    goto check_for_message;
-
-  struct GNUNET_IDENTITY_PublicKey public_key;
-
-  if (GNUNET_SYSERR ==
-      GNUNET_IDENTITY_read_public_key_from_buffer (buffer, length,
-                                                   &public_key,
-                                                   &key_length))
-    return GNUNET_NO;
-
-  check_for_message:
+  if ((flags & GNUNET_MESSENGER_FLAG_PRIVATE))
+    if (GNUNET_SYSERR ==
+        GNUNET_IDENTITY_read_public_key_from_buffer (buffer, length,
+                                                     &public_key,
+                                                     &key_length))
+      return GNUNET_NO;
 
   const uint16_t msg_length = length - key_length;
   const char*msg_buffer = buffer + key_length;
