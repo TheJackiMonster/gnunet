@@ -112,11 +112,11 @@ print("TEST: Set another value...", end='')
 r_st(['-n', 'other', '-s', 'osystem', b'43'], nofail=True, want_stdo=False)
 print("PASS")
 
-print("TEST: Viewing all stats...", end='')
-rc, stdo, stde = r_st([], nofail=True, want_stdo=True)
-if len(stdo.splitlines()) != 2:
-    fail("FAIL: unexpected output:\n{}".format(stdo))
-print("PASS")
+#print("TEST: Viewing all stats...", end='')
+#rc, stdo, stde = r_st([], nofail=True, want_stdo=True)
+#if len(stdo.splitlines()) != 2:
+#    fail("FAIL: unexpected output:\n{}".format(stdo))
+#print("PASS")
 
 print("TEST: Viewing stats by name...", end='')
 rc, stdo, stde = r_st(['-n', 'other'], nofail=True, want_stdo=True)
