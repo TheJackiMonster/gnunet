@@ -142,6 +142,9 @@ parse_record (json_t *data, struct GNUNET_GNSRECORD_Data *rd)
                   (is_rel_exp) ? "No relative expiration given" : err.text);
       return GNUNET_SYSERR;
     }
+    rd->expiration_time = abs_exp.abs_value_us;
+  } else {
+    rd->expiration_time = rel_exp.rel_value_us;
   }
   rd->record_type = GNUNET_GNSRECORD_typename_to_number (record_type);
   if (UINT32_MAX == rd->record_type)
