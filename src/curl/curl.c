@@ -32,6 +32,10 @@
 #include "../util/benchmark.h"
 #endif
 
+/**
+ * Set to 1 for extra debug logging.
+ */
+#define DEBUG 0
 
 /**
  * Log error related to CURL operations.
@@ -644,10 +648,12 @@ GNUNET_CURL_download_get_result_ (struct GNUNET_CURL_DownloadBuffer *db,
   json_error_t error;
   char *ct;
 
+#if DEBUG
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Downloaded body: %.*s\n",
               (int) db->buf_size,
               (char *) db->buf);
+#endif
   if (CURLE_OK !=
       curl_easy_getinfo (eh,
                          CURLINFO_RESPONSE_CODE,
