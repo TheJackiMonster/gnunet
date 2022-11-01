@@ -2499,8 +2499,7 @@ GNUNET_TESTING_get_topo_from_string (char *data)
     }
     else if (0 == strcmp (key, "K"))
     {
-      struct GNUNET_ShortHashCode *hkey_k = GNUNET_new (struct
-                                                        GNUNET_ShortHashCode);
+      struct GNUNET_ShortHashCode hkey_k;
       struct GNUNET_TESTING_NetjailNode *k_node = GNUNET_new (struct
                                                               GNUNET_TESTING_NetjailNode);
 
@@ -2512,18 +2511,18 @@ GNUNET_TESTING_get_topo_from_string (char *data)
            out);
       k_node->node_n = out;
       GNUNET_CRYPTO_hash (&out, sizeof(out), &hc);
-      memcpy (hkey_k,
+      memcpy (&hkey_k,
               &hc,
-              sizeof (*hkey_k));
+              sizeof (hkey_k));
       k_node->is_global = GNUNET_YES;
 
       if (GNUNET_YES == GNUNET_CONTAINER_multishortmap_contains (
             topo->map_globals,
-            hkey_k))
+            &hkey_k))
         GNUNET_break (0);
       else
         GNUNET_CONTAINER_multishortmap_put (topo->map_globals,
-                                            hkey_k,
+                                            &hkey_k,
                                             k_node,
                                             GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
       LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -2539,8 +2538,7 @@ GNUNET_TESTING_get_topo_from_string (char *data)
     }
     else if (0 == strcmp (key, "R"))
     {
-      struct GNUNET_ShortHashCode *hkey_r = GNUNET_new (struct
-                                                        GNUNET_ShortHashCode);
+      struct GNUNET_ShortHashCode hkey_r;
       router = GNUNET_new (struct GNUNET_TESTING_NetjailRouter);
 
       LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -2550,9 +2548,9 @@ GNUNET_TESTING_get_topo_from_string (char *data)
            "R: %u\n",
            out);
       GNUNET_CRYPTO_hash (&out, sizeof(out), &hc);
-      memcpy (hkey_r,
+      memcpy (&hkey_r,
               &hc,
-              sizeof (*hkey_r));
+              sizeof (hkey_r));
       LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Get value for key tcp_port on R.\n");
       value = get_value ("tcp_port", token);
@@ -2575,10 +2573,10 @@ GNUNET_TESTING_get_topo_from_string (char *data)
       GNUNET_free (value2);
       if (GNUNET_YES == GNUNET_CONTAINER_multishortmap_contains (
             topo->map_namespaces,
-            hkey_r))
+            &hkey_r))
       {
         namespace = GNUNET_CONTAINER_multishortmap_get (topo->map_namespaces,
-                                                        hkey_r);
+                                                        &hkey_r);
       }
       else
       {
@@ -2586,7 +2584,7 @@ GNUNET_TESTING_get_topo_from_string (char *data)
         namespace->namespace_n = out;
         namespace->nodes = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
         GNUNET_CONTAINER_multishortmap_put (topo->map_namespaces,
-                                            hkey_r,
+                                            &hkey_r,
                                             namespace,
                                             GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
       }
@@ -2597,8 +2595,7 @@ GNUNET_TESTING_get_topo_from_string (char *data)
     {
       struct GNUNET_TESTING_NetjailNode *p_node = GNUNET_new (struct
                                                               GNUNET_TESTING_NetjailNode);
-      struct GNUNET_ShortHashCode *hkey_p = GNUNET_new (struct
-                                                        GNUNET_ShortHashCode);
+      struct GNUNET_ShortHashCode hkey_p;
 
       LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Get first Value for P.\n");
@@ -2607,16 +2604,16 @@ GNUNET_TESTING_get_topo_from_string (char *data)
            "P: %u\n",
            out);
       GNUNET_CRYPTO_hash (&out, sizeof(out), &hc);
-      memcpy (hkey_p,
+      memcpy (&hkey_p,
               &hc,
-              sizeof (*hkey_p));
+              sizeof (hkey_p));
 
       if (GNUNET_YES == GNUNET_CONTAINER_multishortmap_contains (
             topo->map_namespaces,
-            hkey_p))
+            &hkey_p))
       {
         namespace = GNUNET_CONTAINER_multishortmap_get (topo->map_namespaces,
-                                                        hkey_p);
+                                                        &hkey_p);
       }
       else
       {
@@ -2624,7 +2621,7 @@ GNUNET_TESTING_get_topo_from_string (char *data)
         namespace->nodes = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
         namespace->namespace_n = out;
         GNUNET_CONTAINER_multishortmap_put (topo->map_namespaces,
-                                            hkey_p,
+                                            &hkey_p,
                                             namespace,
                                             GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
       }
@@ -2635,12 +2632,12 @@ GNUNET_TESTING_get_topo_from_string (char *data)
            "P: %u\n",
            out);
       GNUNET_CRYPTO_hash (&out, sizeof(out), &hc);
-      memcpy (hkey_p,
+      memcpy (&hkey_p,
               &hc,
-              sizeof (*hkey_p));
+              sizeof (hkey_p));
       if (GNUNET_YES == GNUNET_CONTAINER_multishortmap_contains (
             namespace->nodes,
-            hkey_p))
+            &hkey_p))
       {
         GNUNET_break (0);
       }
@@ -2648,7 +2645,7 @@ GNUNET_TESTING_get_topo_from_string (char *data)
       {
 
         GNUNET_CONTAINER_multishortmap_put (namespace->nodes,
-                                            hkey_p,
+                                            &hkey_p,
                                             p_node,
                                             GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
         LOG (GNUNET_ERROR_TYPE_DEBUG,

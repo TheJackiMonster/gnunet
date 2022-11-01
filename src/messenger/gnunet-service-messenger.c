@@ -261,9 +261,13 @@ handle_send_message (void *cls,
   struct GNUNET_IDENTITY_PublicKey public_key;
 
   if (flags & GNUNET_MESSENGER_FLAG_PRIVATE)
-    GNUNET_IDENTITY_read_public_key_from_buffer (
-      buffer, length, &public_key, &key_length);
-
+  {
+    GNUNET_assert (GNUNET_SYSERR !=
+                   GNUNET_IDENTITY_read_public_key_from_buffer (buffer,
+                                                                length,
+                                                                &public_key,
+                                                                &key_length));
+  }
   const uint16_t msg_length = length - key_length;
   const char*msg_buffer = buffer + key_length;
 

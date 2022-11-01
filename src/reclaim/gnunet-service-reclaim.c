@@ -913,7 +913,7 @@ handle_revoke_ticket_message (void *cls, const struct RevokeTicketMessage *rm)
   buf += read;
   tkt_len = ntohl (rm->tkt_len);
   if ((GNUNET_SYSERR ==
-       GNUNET_RECLAIM_read_ticket_from_buffer (buf, key_len,
+       GNUNET_RECLAIM_read_ticket_from_buffer (buf, tkt_len,
                                                &ticket, &read)) ||
       (read != tkt_len))
   {

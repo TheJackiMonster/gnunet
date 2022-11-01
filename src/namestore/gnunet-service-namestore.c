@@ -2525,6 +2525,7 @@ handle_monitor_start (void *cls, const struct
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Error reading private key\n");
       GNUNET_SERVICE_client_drop (nc->client);
+      GNUNET_free (zm);
       return;
     }
     zm->zone = zone;

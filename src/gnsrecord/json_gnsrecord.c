@@ -97,7 +97,7 @@ parse_record (json_t *data, struct GNUNET_GNSRECORD_Data *rd)
   unpack_state = json_unpack_ex (data,
                                  &err,
                                  0,
-                                 "{s:s, s:s, s:i, s:b, s:b, s:b, s:b}",
+                                 "{s:s, s:s, s:I, s:b, s:b, s:b, s:b}",
                                  GNUNET_JSON_GNSRECORD_VALUE,
                                  &value,
                                  GNUNET_JSON_GNSRECORD_TYPE,

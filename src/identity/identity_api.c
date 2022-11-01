@@ -157,14 +157,17 @@ GNUNET_IDENTITY_ego_get_anonymous ()
 {
   static struct GNUNET_IDENTITY_Ego anon;
   static int setup;
+  ssize_t key_len;
 
   if (setup)
     return &anon;
   anon.pk.type = htonl (GNUNET_IDENTITY_TYPE_ECDSA);
   anon.pub.type = htonl (GNUNET_IDENTITY_TYPE_ECDSA);
   anon.pk.ecdsa_key = *GNUNET_CRYPTO_ecdsa_key_get_anonymous ();
+  key_len = GNUNET_IDENTITY_private_key_get_length (&anon.pk);
+  GNUNET_assert (0 < key_len);
   GNUNET_CRYPTO_hash (&anon.pk,
-                      GNUNET_IDENTITY_private_key_get_length (&anon.pk),
+                      key_len,
                       &anon.id);
   setup = 1;
   return &anon;

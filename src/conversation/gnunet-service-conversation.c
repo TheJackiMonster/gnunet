@@ -738,7 +738,7 @@ handle_client_audio_message (void *cls, const struct ClientAudioMessage *msg)
 static enum GNUNET_GenericReturnValue
 check_cadet_ring_message (void *cls, const struct CadetPhoneRingMessage *msg)
 {
-  //FIXME
+  // FIXME
   return GNUNET_OK;
 }
 
@@ -1181,6 +1181,18 @@ handle_client_call_message (void *cls, const struct ClientCallMessage *msg)
   rs.target_peer = msg->target;
   rs.expiration_time =
     GNUNET_TIME_absolute_hton (GNUNET_TIME_relative_to_absolute (RING_TIMEOUT));
+  key_len = ntohl (msg->key_len);
+  if (GNUNET_SYSERR ==
+      GNUNET_IDENTITY_read_private_key_from_buffer (&msg[1],
+                                                    key_len,
+                                                    &caller_id,
+                                                    &read))
+  {
+    GNUNET_break_op (0);
+    GNUNET_free (ch);
+    GNUNET_SERVICE_client_drop (line->client);
+    return;
+  }
   ch->line = line;
   GNUNET_CONTAINER_DLL_insert (line->channel_head, line->channel_tail, ch);
   ch->status = CS_CALLER_CALLING;
@@ -1192,11 +1204,6 @@ handle_client_call_message (void *cls, const struct ClientCallMessage *msg)
                                              &inbound_end,
                                              cadet_handlers);
   ch->mq = GNUNET_CADET_get_mq (ch->channel);
-  key_len = ntohl (msg->key_len);
-  GNUNET_IDENTITY_read_private_key_from_buffer (&msg[1],
-                                                key_len,
-                                                &caller_id,
-                                                &read);
   GNUNET_assert (read == key_len);
   GNUNET_IDENTITY_sign (&caller_id, &rs, &sig);
   sig_len = GNUNET_IDENTITY_signature_get_length (&sig);
