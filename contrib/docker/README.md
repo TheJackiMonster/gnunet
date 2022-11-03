@@ -10,13 +10,14 @@ This will take quite a while and will consume a bit of data.
 First you need to go to the root of this repo.
 
 ```bash
-cd ..
+cd ../..
 ```
 
 Now you can build the image.
 
 ```bash
-docker build -t gnunet .
+make clean
+docker build -f contrib/docker/Dockerfile -t gnunet .
 ```
 
 ## Start it from the newly created gnunet image

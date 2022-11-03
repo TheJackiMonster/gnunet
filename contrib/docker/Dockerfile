@@ -1,16 +1,27 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 ENV DEBIAN_FRONTEND noninteractive
 
 # Install tools and dependencies
-RUN apt-get update && \
-    apt-get -y install --no-install-recommends \
+RUN apt-get update
+RUN apt-get upgrade
+RUN apt-get -y install --no-install-recommends \
       ca-certificates \
       libsasl2-modules \
       git \
       automake \
       autopoint \
       autoconf \
+      recutils \
+      make \
+      libssl-dev \
+      ninja-build \
+      meson \
+      curl \
+      libcurl4-gnutls-dev \
+      libsodium-dev \
+      libsodium23 \
+      libjansson-dev \
       texinfo \
       libtool \
       libltdl-dev \
@@ -25,70 +36,54 @@ RUN apt-get update && \
       libgcrypt20-dev \
       libpq-dev \
       libsqlite3-dev \
-      wget && \
-    apt-get clean all && \
+      wget
+RUN apt-get clean all && \
     apt-get -y autoremove && \
     rm -rf \
       /var/lib/apt/lists/* \
       /tmp/*
 
-# Install GNUrl
-ENV GNURL_VERSION=7.57.0
-
-RUN wget -O /tmp/gnurl.tar.xz https://ftpmirror.gnu.org/gnu/gnunet/gnurl-${GNURL_VERSION}.tar.xz
+# Install jose
+RUN wget -O /tmp/jose.tar.gz https://github.com/latchset/jose/archive/refs/tags/v11.tar.gz
 RUN cd /tmp && \
-      tar xvf gnurl.tar.xz && \
-      cd gnurl-${GNURL_VERSION} && \
-      autoreconf -i && \
-      ./configure \
-        --enable-ipv6 \
-        --with-gnutls \
-        --without-libssh2 \
-        --without-libmetalink \
-        --without-winidn \
-        --without-librtmp \
-        --without-nghttp2 \
-        --without-nss \
-        --without-cyassl \
-        --without-polarssl \
-        --without-ssl \
-        --without-winssl \
-        --without-darwinssl \
-        --disable-sspi \
-        --disable-ntlm-wb \
-        --disable-ldap \
-        --disable-rtsp \
-        --disable-dict \
-        --disable-telnet \
-        --disable-tftp \
-        --disable-pop3 \
-        --disable-imap \
-        --disable-smtp \
-        --disable-gopher \
-        --disable-file \
-        --disable-ftp \
-        --disable-smb && \
-      make install && \
-    cd - && \
-    rm -rf /tmp/gnurl*
+      tar xvf jose.tar.gz && \
+      cd jose-11 && \
+      mkdir build && \
+      cd build && \
+      meson .. --prefix=/usr && \
+      ninja && \
+      ninja install && \
+      cd / && \
+      rm -rf /tmp/jose-11/*
 
 # Install GNUnet
-ENV GNUNET_PREFIX /usr/local/gnunet
+ENV GNUNET_PREFIX=/usr/local/lib
 ENV CFLAGS '-g -Wall -O0'
 
 COPY . /gnunet
+WORKDIR /gnunet
+RUN ./bootstrap --no-doc
+RUN ./configure \
+	--with-nssdir=/lib \
+	--prefix="$GNUNET_PREFIX/.." \
+	--enable-logging=verbose
+RUN make -j
+RUN make install 
+RUN ldconfig
+WORKDIR /
+RUN rm -rf /gnunet
 
-RUN cd /gnunet && \
-      ./bootstrap && \
-      ./configure \
-        --with-nssdir=/lib \
-        --prefix="$GNUNET_PREFIX" \
-        --enable-logging=verbose && \
-      make -j3 && \
-      make install && \
-      ldconfig && \
-    cd - && \
-    rm -fr /gnunet
+# RUN cd /gnunet && \
+#       ./bootstrap && \
+#       ./configure \
+#         --with-nssdir=/lib \
+#         --prefix="$GNUNET_PREFIX" \
+#         --enable-logging=verbose && \
+#       make -j && \
+#       make install && \
+#       ldconfig && \
+#     cd - && \
+#     rm -fr /gnunet
 
 # Configure GNUnet
 COPY ./contrib/docker/gnunet.conf /etc/gnunet.conf

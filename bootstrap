@@ -165,10 +165,16 @@ main()
     cleanup
     submodules
     gana_update
-    sphinx_update
-    check_uncrustify
     check_yapf
     check_libtool
+    check_uncrustify
+
+    if [ "$#" = "1" ] && [ "$1" = "--no-doc" ]
+    then
+        echo "Do not create documentation"
+    else
+        sphinx_update
+    fi 
 }
 
 main "$@"
