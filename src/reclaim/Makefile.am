@@ -188,6 +188,7 @@ endif
 libgnunet_plugin_reclaim_credential_jwt_la_SOURCES = \
   plugin_reclaim_credential_jwt.c
 libgnunet_plugin_reclaim_credential_jwt_la_LIBADD = \
+  $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   libgnunetreclaim.la \
   -ljansson\
