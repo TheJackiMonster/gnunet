@@ -351,16 +351,14 @@ start_curl (void *cls)
  */
 static void
 commence_testing (void *cls,
-                  int32_t success,
-                  const char *emsg)
+                  enum GNUNET_ErrorCode ec)
 {
   qe = NULL;
-  if ((NULL != emsg) &&
-      (GNUNET_YES != success))
+  if (GNUNET_EC_NONE != ec)
   {
     fprintf (stderr,
              "NS failed to create record %s\n",
-             emsg);
+             GNUNET_ErrorCode_get_hint (ec));
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
@@ -857,7 +855,7 @@ main (int argc,
                                &run,
                                NULL))
     return 1;
-  GNUNET_DISK_purge_cfg_dir ("test_gns_vpn.conf", 
+  GNUNET_DISK_purge_cfg_dir ("test_gns_vpn.conf",
                              "GNUNET_TEST_HOME");
   return global_ret;
 }
