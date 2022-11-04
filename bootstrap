@@ -123,6 +123,10 @@ sphinx_update()
 
 gana_update()
 {
+    if [ ! -z $GNUNET_SKIP_GANA ]; then
+      echo "Skipping GANA update"
+      return
+    fi
     echo "Updating GANA..."
     if existence recfmt; then
       cwd=$PWD
@@ -165,16 +169,10 @@ main()
     cleanup
     submodules
     gana_update
+    sphinx_update
+    check_uncrustify
     check_yapf
     check_libtool
-    check_uncrustify
-
-    if [ "$#" = "1" ] && [ "$1" = "--no-doc" ]
-    then
-        echo "Do not create documentation"
-    else
-        sphinx_update
-    fi 
 }
 
 main "$@"
