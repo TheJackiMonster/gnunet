@@ -26,6 +26,7 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_constants.h"
+#include "gnunet_error_codes.h"
 #include "gnunet_protocols.h"
 #include "gnunet_identity_service.h"
 #include "identity.h"
@@ -196,6 +197,7 @@ GNUNET_IDENTITY_key_get_public (const struct
   }
   return GNUNET_OK;
 }
+
 
 static enum GNUNET_GenericReturnValue
 private_key_create (enum GNUNET_IDENTITY_KeyType ktype,
@@ -616,7 +618,8 @@ GNUNET_IDENTITY_create (struct GNUNET_IDENTITY_Handle *h,
   else
     private_key = *privkey;
   key_len = GNUNET_IDENTITY_private_key_get_length (&private_key);
-  env = GNUNET_MQ_msg_extra (crm, slen + key_len, GNUNET_MESSAGE_TYPE_IDENTITY_CREATE);
+  env = GNUNET_MQ_msg_extra (crm, slen + key_len,
+                             GNUNET_MESSAGE_TYPE_IDENTITY_CREATE);
   crm->name_len = htons (slen);
   crm->reserved = htons (0);
   GNUNET_IDENTITY_write_private_key_to_buffer (&private_key,
@@ -840,6 +843,7 @@ GNUNET_IDENTITY_public_key_get_length (const struct
   return -1;
 }
 
+
 ssize_t
 GNUNET_IDENTITY_private_key_length_by_type (enum GNUNET_IDENTITY_KeyType kt)
 {
@@ -856,7 +860,6 @@ GNUNET_IDENTITY_private_key_length_by_type (enum GNUNET_IDENTITY_KeyType kt)
   }
   return -1;
 }
-
 
 
 enum GNUNET_GenericReturnValue
@@ -900,6 +903,7 @@ GNUNET_IDENTITY_write_public_key_to_buffer (const struct
                  - sizeof (key->type));
   return length;
 }
+
 
 enum GNUNET_GenericReturnValue
 GNUNET_IDENTITY_read_private_key_from_buffer (const void *buffer,
@@ -981,7 +985,6 @@ GNUNET_IDENTITY_signature_get_raw_length_by_type (uint32_t type)
 }
 
 
-
 ssize_t
 GNUNET_IDENTITY_read_signature_from_buffer (struct
                                             GNUNET_IDENTITY_Signature *sig,
@@ -1019,6 +1022,7 @@ GNUNET_IDENTITY_write_signature_to_buffer (const struct
   return length;
 }
 
+
 enum GNUNET_GenericReturnValue
 GNUNET_IDENTITY_sign_raw_ (const struct
                            GNUNET_IDENTITY_PrivateKey *priv,
@@ -1044,7 +1048,6 @@ GNUNET_IDENTITY_sign_raw_ (const struct
 
   return GNUNET_SYSERR;
 }
-
 
 
 enum GNUNET_GenericReturnValue
@@ -1131,8 +1134,6 @@ GNUNET_IDENTITY_signature_verify_raw_ (uint32_t purpose,
 
   return GNUNET_SYSERR;
 }
-
-
 
 
 ssize_t
@@ -1227,6 +1228,7 @@ GNUNET_IDENTITY_private_key_to_string (const struct
   return GNUNET_STRINGS_data_to_string_alloc (key,
                                               size);
 }
+
 
 enum GNUNET_GenericReturnValue
 GNUNET_IDENTITY_public_key_from_string (const char *str,
