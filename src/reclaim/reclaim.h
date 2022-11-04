@@ -138,17 +138,12 @@ struct AttributeResultMessage
   /**
    * Length of serialized attribute data
    */
-  uint16_t attr_len GNUNET_PACKED;
+  uint32_t attr_len GNUNET_PACKED;
 
   /**
    * Length of serialized credential data
    */
-  uint16_t credential_len GNUNET_PACKED;
-
-  /**
-   * always zero (for alignment)
-   */
-  uint16_t reserved GNUNET_PACKED;
+  uint32_t credential_len GNUNET_PACKED;
 
   /**
    * The length of the public key

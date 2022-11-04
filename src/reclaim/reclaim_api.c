@@ -570,9 +570,9 @@ check_consume_ticket_result (void *cls,
   size_t key_len;
 
   msg_len = ntohs (msg->header.size);
-  attrs_len = ntohs (msg->attrs_len);
+  attrs_len = ntohl (msg->attrs_len);
   key_len = ntohl (msg->key_len);
-  pl_len = ntohs (msg->presentations_len);
+  pl_len = ntohl (msg->presentations_len);
   if (msg_len != sizeof(*msg) + attrs_len + pl_len + key_len)
   {
     GNUNET_break (0);
@@ -603,9 +603,9 @@ handle_consume_ticket_result (void *cls,
   uint32_t r_id = ntohl (msg->id);
   char *read_ptr;
 
-  attrs_len = ntohs (msg->attrs_len);
+  attrs_len = ntohl (msg->attrs_len);
   key_len = ntohl (msg->key_len);
-  pl_len = ntohs (msg->presentations_len);
+  pl_len = ntohl (msg->presentations_len);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Processing ticket result.\n");
 
 
@@ -694,7 +694,7 @@ check_attribute_result (void *cls, const struct AttributeResultMessage *msg)
   size_t key_len;
 
   msg_len = ntohs (msg->header.size);
-  attr_len = ntohs (msg->attr_len);
+  attr_len = ntohl (msg->attr_len);
   key_len = ntohl (msg->pkey_len);
   if (msg_len != sizeof(*msg) + attr_len + key_len)
   {
@@ -725,7 +725,7 @@ handle_attribute_result (void *cls, const struct AttributeResultMessage *msg)
   uint32_t r_id = ntohl (msg->id);
   char *buf;
 
-  attr_len = ntohs (msg->attr_len);
+  attr_len = ntohl (msg->attr_len);
   key_len = ntohl (msg->pkey_len);
   LOG (GNUNET_ERROR_TYPE_DEBUG, "Processing attribute result.\n");
 
@@ -805,7 +805,7 @@ check_credential_result (void *cls, const struct CredentialResultMessage *msg)
   size_t key_len;
 
   msg_len = ntohs (msg->header.size);
-  cred_len = ntohs (msg->credential_len);
+  cred_len = ntohl (msg->credential_len);
   key_len = ntohl (msg->key_len);
   if (msg_len != sizeof(*msg) + cred_len + key_len)
   {
@@ -838,7 +838,7 @@ handle_credential_result (void *cls, const struct
   char *buf;
 
   key_len = ntohl (msg->key_len);
-  att_len = ntohs (msg->credential_len);
+  att_len = ntohl (msg->credential_len);
   LOG (GNUNET_ERROR_TYPE_DEBUG, "Processing credential result.\n");
 
 
@@ -922,7 +922,7 @@ check_ticket_result (void *cls, const struct TicketResultMessage *msg)
   size_t tkt_len;
 
   msg_len = ntohs (msg->header.size);
-  pres_len = ntohs (msg->presentations_len);
+  pres_len = ntohl (msg->presentations_len);
   tkt_len = ntohl (msg->tkt_len);
   if (msg_len != sizeof(*msg) + pres_len + tkt_len)
   {
@@ -955,7 +955,7 @@ handle_ticket_result (void *cls, const struct TicketResultMessage *msg)
   char *buf;
 
   tkt_len = ntohl (msg->tkt_len);
-  pres_len = ntohs (msg->presentations_len);
+  pres_len = ntohl (msg->presentations_len);
   for (op = handle->op_head; NULL != op; op = op->next)
     if (op->r_id == r_id)
       break;
