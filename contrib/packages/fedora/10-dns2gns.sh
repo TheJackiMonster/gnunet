@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 interface=$1
 status=$2
 
