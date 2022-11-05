@@ -167,7 +167,19 @@ jwt_parse_attributes (void *cls,
 
   jwt_string = GNUNET_strndup (data, data_size);
   const char *jwt_body = strtok (jwt_string, delim);
+  if (NULL == jwt_body)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to parse JSON %s\n", jwt_string);
+    return attrs;
+  }
   jwt_body = strtok (NULL, delim);
+  if (NULL == jwt_body)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to parse JSON %s\n", jwt_string);
+    return attrs;
+  }
   GNUNET_STRINGS_base64url_decode (jwt_body, strlen (jwt_body),
                                    (void **) &decoded_jwt);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Decoded JWT: %s\n", decoded_jwt);

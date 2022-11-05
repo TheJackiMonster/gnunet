@@ -175,12 +175,7 @@ struct CredentialResultMessage
   /**
    * Length of serialized attribute data
    */
-  uint16_t credential_len GNUNET_PACKED;
-
-  /**
-   * always zero (for alignment)
-   */
-  uint16_t reserved GNUNET_PACKED;
+  uint32_t credential_len GNUNET_PACKED;
 
   /**
    * The length of the public key
@@ -550,17 +545,12 @@ struct ConsumeTicketResultMessage
   /**
    * Length of serialized attribute data
    */
-  uint16_t attrs_len GNUNET_PACKED;
+  uint32_t attrs_len GNUNET_PACKED;
 
   /**
    * Length of presentation data
    */
-  uint16_t presentations_len;
-
-  /**
-   * always zero (for alignment)
-   */
-  uint16_t reserved GNUNET_PACKED;
+  uint32_t presentations_len;
 
   /**
    * The length of the private key
