@@ -2263,6 +2263,7 @@ cred_iter_finished (void *cls)
   env = GNUNET_MQ_msg (arm, GNUNET_MESSAGE_TYPE_RECLAIM_CREDENTIAL_RESULT);
   arm->id = htonl (ai->request_id);
   arm->credential_len = htonl (0);
+  arm->key_len = htonl (0);
   GNUNET_MQ_send (ai->client->mq, env);
   GNUNET_CONTAINER_DLL_remove (ai->client->cred_iter_head,
                                ai->client->cred_iter_tail,
@@ -2327,6 +2328,7 @@ cred_iter_cb (void *cls,
                              GNUNET_MESSAGE_TYPE_RECLAIM_CREDENTIAL_RESULT);
   arm->id = htonl (ai->request_id);
   arm->credential_len = htonl (rd->data_size);
+  arm->key_len = htonl (key_len);
   data_tmp = (char *) &arm[1];
   written = GNUNET_IDENTITY_write_public_key_to_buffer (&identity,
                                                         data_tmp,
