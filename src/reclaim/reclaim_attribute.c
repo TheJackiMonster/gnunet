@@ -477,7 +477,7 @@ GNUNET_RECLAIM_attribute_serialize (
   attr_ser->attribute_id = attr->id;
   attr_ser->credential_id = attr->credential;
   name_len = strlen (attr->name);
-  attr_ser->name_len = htonl (name_len);
+  attr_ser->name_len = htons (name_len);
   write_ptr = (char *) &attr_ser[1];
   GNUNET_memcpy (write_ptr, attr->name, name_len);
   write_ptr += name_len;
@@ -486,7 +486,7 @@ GNUNET_RECLAIM_attribute_serialize (
   //                                                  &attr_ser[1]);
   data_len_ser = attr->data_size;
   GNUNET_memcpy (write_ptr, attr->data, attr->data_size);
-  attr_ser->data_size = htonl (data_len_ser);
+  attr_ser->data_size = htons (data_len_ser);
 
   return sizeof(struct Attribute) + strlen (attr->name) + attr->data_size;
 }
@@ -514,8 +514,8 @@ GNUNET_RECLAIM_attribute_deserialize (const char *data, size_t data_size,
     return -1;
 
   attr_ser = (struct Attribute *) data;
-  data_len = ntohl (attr_ser->data_size);
-  name_len = ntohl (attr_ser->name_len);
+  data_len = ntohs (attr_ser->data_size);
+  name_len = ntohs (attr_ser->name_len);
   if (data_size < sizeof(struct Attribute) + data_len + name_len)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
