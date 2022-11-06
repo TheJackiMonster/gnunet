@@ -407,8 +407,13 @@ check_lookup_result (void *cls, const struct LabelLookupResponseMessage *msg)
   rd_len = ntohs (msg->rd_len);
   msg_len = ntohs (msg->gns_header.header.size);
   name_len = ntohs (msg->name_len);
-  key_len = ntohl (msg->key_len);
+  key_len = ntohs (msg->key_len);
   exp_msg_len = sizeof(*msg) + name_len + rd_len + key_len;
+  if (0 != ntohs (msg->reserved))
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
   if (msg_len != exp_msg_len)
   {
     GNUNET_break (0);
@@ -463,7 +468,7 @@ handle_lookup_result (void *cls, const struct LabelLookupResponseMessage *msg)
   rd_len = ntohs (msg->rd_len);
   rd_count = ntohs (msg->rd_count);
   name_len = ntohs (msg->name_len);
-  key_len = ntohl (msg->key_len);
+  key_len = ntohs (msg->key_len);
   GNUNET_assert (GNUNET_SYSERR !=
                  GNUNET_IDENTITY_read_private_key_from_buffer (&msg[1],
                                                                key_len,
@@ -527,13 +532,8 @@ check_record_result (void *cls, const struct RecordResultMessage *msg)
   (void) cls;
   rd_len = ntohs (msg->rd_len);
   msg_len = ntohs (msg->gns_header.header.size);
-  key_len = ntohl (msg->key_len);
+  key_len = ntohs (msg->key_len);
   name_len = ntohs (msg->name_len);
-  if (0 != ntohs (msg->reserved))
-  {
-    GNUNET_break (0);
-    return GNUNET_SYSERR;
-  }
   if (msg_len != sizeof(struct RecordResultMessage) + key_len + name_len
       + rd_len)
   {
@@ -581,7 +581,7 @@ handle_record_result (void *cls, const struct RecordResultMessage *msg)
   rd_len = ntohs (msg->rd_len);
   rd_count = ntohs (msg->rd_count);
   name_len = ntohs (msg->name_len);
-  key_len = ntohl (msg->key_len);
+  key_len = ntohs (msg->key_len);
   ze = find_zi (h, ntohl (msg->gns_header.r_id));
   qe = find_qe (h, ntohl (msg->gns_header.r_id));
   if ((NULL == ze) && (NULL == qe))
@@ -710,7 +710,7 @@ check_zone_to_name_response (void *cls,
   (void) cls;
   if (GNUNET_EC_NONE != ntohl (msg->ec))
     return GNUNET_OK;
-  key_len = ntohl (msg->key_len);
+  key_len = ntohs (msg->key_len);
   name_len = ntohs (msg->name_len);
   rd_ser_len = ntohs (msg->rd_len);
   if (ntohs (msg->gns_header.header.size) !=
@@ -762,7 +762,7 @@ handle_zone_to_name_response (void *cls,
     return;
   }
   res = ntohl (msg->ec);
-  key_len = ntohl (msg->key_len);
+  key_len = ntohs (msg->key_len);
   GNUNET_assert (GNUNET_SYSERR !=
                  GNUNET_IDENTITY_read_private_key_from_buffer (&msg[1],
                                                                key_len,
@@ -1140,7 +1140,7 @@ GNUNET_NAMESTORE_records_store2 (
   GNUNET_assert (NULL != msg);
   GNUNET_assert (NULL != env);
   msg->gns_header.r_id = htonl (rid);
-  msg->key_len = htonl (key_len);
+  msg->key_len = htons (key_len);
   msg->rd_set_count = htons ((uint16_t) (*rds_sent));
   GNUNET_IDENTITY_write_private_key_to_buffer (pkey,
                                                &msg[1],
@@ -1230,9 +1230,9 @@ records_lookup (
                                                &msg[1],
                                                key_len);
 
-  msg->key_len = htonl (key_len);
-  msg->is_edit_request = htonl (is_edit_request);
-  msg->label_len = htonl (label_len);
+  msg->key_len = htons (key_len);
+  msg->is_edit_request = htons (is_edit_request);
+  msg->label_len = htons (label_len);
   msg->filter = htons (filter);
   GNUNET_memcpy (((char*) &msg[1]) + key_len, label, label_len);
   if (NULL == h->mq)
@@ -1323,8 +1323,8 @@ GNUNET_NAMESTORE_zone_to_name (
   env = GNUNET_MQ_msg_extra (msg, key_len + pkey_len,
                              GNUNET_MESSAGE_TYPE_NAMESTORE_ZONE_TO_NAME);
   msg->gns_header.r_id = htonl (rid);
-  msg->key_len = htonl (key_len);
-  msg->pkey_len = htonl (pkey_len);
+  msg->key_len = htons (key_len);
+  msg->pkey_len = htons (pkey_len);
   GNUNET_IDENTITY_write_private_key_to_buffer (zone, &msg[1], key_len);
   GNUNET_IDENTITY_write_public_key_to_buffer (value_zone,
                                               (char*) &msg[1] + key_len,
@@ -1375,7 +1375,7 @@ GNUNET_NAMESTORE_zone_iteration_start (
                              key_len,
                              GNUNET_MESSAGE_TYPE_NAMESTORE_ZONE_ITERATION_START);
   msg->gns_header.r_id = htonl (rid);
-  msg->key_len = htonl (key_len);
+  msg->key_len = htons (key_len);
   if (NULL != zone)
     GNUNET_IDENTITY_write_private_key_to_buffer (zone, &msg[1], key_len);
   if (NULL == h->mq)
@@ -1424,7 +1424,7 @@ GNUNET_NAMESTORE_zone_iteration_start2 (
                              key_len,
                              GNUNET_MESSAGE_TYPE_NAMESTORE_ZONE_ITERATION_START);
   msg->gns_header.r_id = htonl (rid);
-  msg->key_len = htonl (key_len);
+  msg->key_len = htons (key_len);
   msg->filter = htons ((uint16_t) filter);
   if (NULL != zone)
     GNUNET_IDENTITY_write_private_key_to_buffer (zone, &msg[1], key_len);

@@ -57,12 +57,12 @@ struct AttributeStoreMessage
   /**
    * The length of the attribute
    */
-  uint32_t attr_len GNUNET_PACKED;
+  uint16_t attr_len GNUNET_PACKED;
 
   /**
    * The length of the private key
    */
-  uint32_t key_len GNUNET_PACKED;
+  uint16_t key_len GNUNET_PACKED;
 
   /*
    * followed by the zone private key
@@ -88,12 +88,12 @@ struct AttributeDeleteMessage
   /**
    * The length of the attribute
    */
-  uint32_t attr_len GNUNET_PACKED;
+  uint16_t attr_len GNUNET_PACKED;
 
   /**
    * The length of the private key
    */
-  uint32_t key_len GNUNET_PACKED;
+  uint16_t key_len GNUNET_PACKED;
 
   /* followed by the serialized attribute */
 };
@@ -136,19 +136,24 @@ struct AttributeResultMessage
   uint32_t id GNUNET_PACKED;
 
   /**
+   * Reserved (alignment)
+   */
+  uint16_t reserved GNUNET_PACKED;
+
+  /**
    * Length of serialized attribute data
    */
-  uint32_t attr_len GNUNET_PACKED;
+  uint16_t attr_len GNUNET_PACKED;
 
   /**
    * Length of serialized credential data
    */
-  uint32_t credential_len GNUNET_PACKED;
+  uint16_t credential_len GNUNET_PACKED;
 
   /**
    * The length of the public key
    */
-  uint32_t pkey_len GNUNET_PACKED;
+  uint16_t pkey_len GNUNET_PACKED;
 
   /**
    * followed by the public key key.
@@ -175,12 +180,12 @@ struct CredentialResultMessage
   /**
    * Length of serialized attribute data
    */
-  uint32_t credential_len GNUNET_PACKED;
+  uint16_t credential_len GNUNET_PACKED;
 
   /**
    * The length of the public key
    */
-  uint32_t key_len GNUNET_PACKED;
+  uint16_t key_len GNUNET_PACKED;
 
   /**
    * followed by the private key.
@@ -206,9 +211,14 @@ struct AttributeIterationStartMessage
   uint32_t id GNUNET_PACKED;
 
   /**
+   * Reserved (alignment)
+   */
+  uint16_t reserved GNUNET_PACKED;
+
+  /**
    * The length of the private key
    */
-  uint32_t key_len GNUNET_PACKED;
+  uint16_t key_len GNUNET_PACKED;
 
   /**
    * followed by the private key.
@@ -249,9 +259,14 @@ struct CredentialIterationStartMessage
   uint32_t id GNUNET_PACKED;
 
   /**
+   * Reserved (alignment)
+   */
+  uint16_t reserved GNUNET_PACKED;
+
+  /**
    * The length of the private key
    */
-  uint32_t key_len GNUNET_PACKED;
+  uint16_t key_len GNUNET_PACKED;
 
   /**
    * followed by the private key.
@@ -325,9 +340,14 @@ struct TicketIterationStartMessage
   uint32_t id GNUNET_PACKED;
 
   /**
+   * Reserved (alignment)
+   */
+  uint16_t reserved GNUNET_PACKED;
+
+  /**
    * The length of the private key
    */
-  uint32_t key_len GNUNET_PACKED;
+  uint16_t key_len GNUNET_PACKED;
 
   /**
    * followed by the private key.
@@ -385,19 +405,24 @@ struct IssueTicketMessage
   uint32_t id GNUNET_PACKED;
 
   /**
+   * Reserved (alignment)
+   */
+  uint16_t reserved GNUNET_PACKED;
+
+  /**
    * length of serialized attribute list
    */
-  uint32_t attr_len GNUNET_PACKED;
+  uint16_t attr_len GNUNET_PACKED;
 
   /**
    * The length of the identity private key
    */
-  uint32_t key_len GNUNET_PACKED;
+  uint16_t key_len GNUNET_PACKED;
 
   /**
    * The length of the relying party public key
    */
-  uint32_t pkey_len GNUNET_PACKED;
+  uint16_t pkey_len GNUNET_PACKED;
 
   /**
    * Followed by the private key.
@@ -424,12 +449,12 @@ struct RevokeTicketMessage
   /**
    * The length of the private key
    */
-  uint32_t key_len GNUNET_PACKED;
+  uint16_t key_len GNUNET_PACKED;
 
   /**
    * The length of the ticket
    */
-  uint32_t tkt_len GNUNET_PACKED;
+  uint16_t tkt_len GNUNET_PACKED;
 
   /**
    * Followed by the serialized ticket.
@@ -478,12 +503,12 @@ struct TicketResultMessage
   /**
    * Ticket length
    */
-  uint32_t tkt_len GNUNET_PACKED;
+  uint16_t tkt_len GNUNET_PACKED;
 
   /**
    * Length of new presentations created
    */
-  uint32_t presentations_len GNUNET_PACKED;
+  uint16_t presentations_len GNUNET_PACKED;
 
   /*
    * Followed by the serialized ticket
@@ -509,12 +534,12 @@ struct ConsumeTicketMessage
   /**
    * The length of the private key
    */
-  uint32_t key_len GNUNET_PACKED;
+  uint16_t key_len GNUNET_PACKED;
 
   /**
    * The length of the ticket
    */
-  uint32_t tkt_len GNUNET_PACKED;
+  uint16_t tkt_len GNUNET_PACKED;
 
   /**
    * Followed by the private key.
@@ -543,19 +568,24 @@ struct ConsumeTicketResultMessage
   uint32_t result GNUNET_PACKED;
 
   /**
+   * Reserved (alignment)
+   */
+  uint16_t reserved GNUNET_PACKED;
+
+  /**
    * Length of serialized attribute data
    */
-  uint32_t attrs_len GNUNET_PACKED;
+  uint16_t attrs_len GNUNET_PACKED;
 
   /**
    * Length of presentation data
    */
-  uint32_t presentations_len;
+  uint16_t presentations_len;
 
   /**
    * The length of the private key
    */
-  uint32_t key_len GNUNET_PACKED;
+  uint16_t key_len GNUNET_PACKED;
 
   /**
    * Followed by the private key.

@@ -98,7 +98,7 @@ struct RecordStoreMessage
   /**
    * Length of the zone key
    */
-  uint32_t key_len GNUNET_PACKED;
+  uint16_t key_len GNUNET_PACKED;
 
   /**
    * Followed by the private zone key
@@ -138,12 +138,12 @@ struct LabelLookupMessage
   /**
    * Length of the name
    */
-  uint32_t label_len GNUNET_PACKED;
+  uint16_t label_len GNUNET_PACKED;
 
   /**
    * GNUNET_YES if this lookup corresponds to an edit request
    */
-  uint32_t is_edit_request GNUNET_PACKED;
+  uint16_t is_edit_request GNUNET_PACKED;
 
   /**
    * The record filter
@@ -153,7 +153,7 @@ struct LabelLookupMessage
   /**
    * Length of the zone key
    */
-  uint32_t key_len GNUNET_PACKED;
+  uint16_t key_len GNUNET_PACKED;
 
   /* followed by:
    * the private zone key
@@ -194,9 +194,14 @@ struct LabelLookupResponseMessage
   int16_t found GNUNET_PACKED;
 
   /**
+   * Reserved (alignment)
+   */
+  uint16_t reserved GNUNET_PACKED;
+
+  /**
    * Length of the zone key
    */
-  uint32_t key_len GNUNET_PACKED;
+  uint16_t key_len GNUNET_PACKED;
 
   /* followed by:
    * the private zone key
@@ -219,12 +224,12 @@ struct ZoneToNameMessage
   /**
    * Length of the zone key
    */
-  uint32_t key_len GNUNET_PACKED;
+  uint16_t key_len GNUNET_PACKED;
 
   /**
    * Length of the public value zone key
    */
-  uint32_t pkey_len GNUNET_PACKED;
+  uint16_t pkey_len GNUNET_PACKED;
 
   /**
    * Followed by
@@ -245,6 +250,14 @@ struct ZoneToNameResponseMessage
   struct GNUNET_NAMESTORE_Header gns_header;
 
   /**
+   * result in NBO: #GNUNET_EC_NONE on success,
+   * #GNUNET_EC_NAMESTORE_NO_RESULTS if there were no
+   * results.
+   * Other error messages on error.
+   */
+  int32_t ec GNUNET_PACKED;
+
+  /**
    * Length of the name
    */
   uint16_t name_len GNUNET_PACKED;
@@ -260,17 +273,9 @@ struct ZoneToNameResponseMessage
   uint16_t rd_count GNUNET_PACKED;
 
   /**
-   * result in NBO: #GNUNET_EC_NONE on success,
-   * #GNUNET_EC_NAMESTORE_NO_RESULTS if there were no
-   * results.
-   * Other error messages on error.
-   */
-  int32_t ec GNUNET_PACKED;
-
-  /**
    * Length of the zone key
    */
-  uint32_t key_len GNUNET_PACKED;
+  uint16_t key_len GNUNET_PACKED;
 
   /* followed by:
    * the private zone key
@@ -312,14 +317,9 @@ struct RecordResultMessage
   uint16_t rd_count GNUNET_PACKED;
 
   /**
-   * always zero (for alignment)
-   */
-  uint16_t reserved GNUNET_PACKED;
-
-  /**
    * Length of the zone key
    */
-  uint32_t key_len GNUNET_PACKED;
+  uint16_t key_len GNUNET_PACKED;
 
   /* followed by:
    * the private key of the authority
@@ -339,14 +339,14 @@ struct TxControlMessage
   struct GNUNET_NAMESTORE_Header gns_header;
 
   /**
-   * The type of control message to send
-   */
-  uint16_t control GNUNET_PACKED;
-
-  /**
    * always zero (for alignment)
    */
   uint16_t reserved GNUNET_PACKED;
+
+  /**
+   * The type of control message to send
+   */
+  uint16_t control GNUNET_PACKED;
 
 };
 
@@ -392,14 +392,9 @@ struct ZoneMonitorStartMessage
   uint16_t filter;
 
   /**
-   * Reserved for alignment
-   */
-  uint16_t reserved;
-
-  /**
    * Length of the zone key
    */
-  uint32_t key_len GNUNET_PACKED;
+  uint16_t key_len GNUNET_PACKED;
 
   /**
    * Followed by the private zone key.
@@ -448,14 +443,9 @@ struct ZoneIterationStartMessage
   uint16_t filter;
 
   /**
-   * Reserved for alignment
-   */
-  uint16_t reserved;
-
-  /**
    * Length of the zone key
    */
-  uint32_t key_len GNUNET_PACKED;
+  uint16_t key_len GNUNET_PACKED;
 
   /**
    * Followed by the private zone key (optional)

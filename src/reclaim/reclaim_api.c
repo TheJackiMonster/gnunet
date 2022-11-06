@@ -570,9 +570,9 @@ check_consume_ticket_result (void *cls,
   size_t key_len;
 
   msg_len = ntohs (msg->header.size);
-  attrs_len = ntohl (msg->attrs_len);
-  key_len = ntohl (msg->key_len);
-  pl_len = ntohl (msg->presentations_len);
+  attrs_len = ntohs (msg->attrs_len);
+  key_len = ntohs (msg->key_len);
+  pl_len = ntohs (msg->presentations_len);
   if (msg_len != sizeof(*msg) + attrs_len + pl_len + key_len)
   {
     GNUNET_break (0);
@@ -603,9 +603,9 @@ handle_consume_ticket_result (void *cls,
   uint32_t r_id = ntohl (msg->id);
   char *read_ptr;
 
-  attrs_len = ntohl (msg->attrs_len);
-  key_len = ntohl (msg->key_len);
-  pl_len = ntohl (msg->presentations_len);
+  attrs_len = ntohs (msg->attrs_len);
+  key_len = ntohs (msg->key_len);
+  pl_len = ntohs (msg->presentations_len);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Processing ticket result.\n");
 
 
@@ -694,8 +694,8 @@ check_attribute_result (void *cls, const struct AttributeResultMessage *msg)
   size_t key_len;
 
   msg_len = ntohs (msg->header.size);
-  attr_len = ntohl (msg->attr_len);
-  key_len = ntohl (msg->pkey_len);
+  attr_len = ntohs (msg->attr_len);
+  key_len = ntohs (msg->pkey_len);
   if (msg_len != sizeof(*msg) + attr_len + key_len)
   {
     GNUNET_break (0);
@@ -725,8 +725,8 @@ handle_attribute_result (void *cls, const struct AttributeResultMessage *msg)
   uint32_t r_id = ntohl (msg->id);
   char *buf;
 
-  attr_len = ntohl (msg->attr_len);
-  key_len = ntohl (msg->pkey_len);
+  attr_len = ntohs (msg->attr_len);
+  key_len = ntohs (msg->pkey_len);
   LOG (GNUNET_ERROR_TYPE_DEBUG, "Processing attribute result.\n");
 
   for (it = h->it_head; NULL != it; it = it->next)
@@ -805,8 +805,8 @@ check_credential_result (void *cls, const struct CredentialResultMessage *msg)
   size_t key_len;
 
   msg_len = ntohs (msg->header.size);
-  cred_len = ntohl (msg->credential_len);
-  key_len = ntohl (msg->key_len);
+  cred_len = ntohs (msg->credential_len);
+  key_len = ntohs (msg->key_len);
   if (msg_len != sizeof(*msg) + cred_len + key_len)
   {
     GNUNET_break (0);
@@ -837,8 +837,8 @@ handle_credential_result (void *cls, const struct
   uint32_t r_id = ntohl (msg->id);
   char *buf;
 
-  key_len = ntohl (msg->key_len);
-  att_len = ntohl (msg->credential_len);
+  key_len = ntohs (msg->key_len);
+  att_len = ntohs (msg->credential_len);
   LOG (GNUNET_ERROR_TYPE_DEBUG, "Processing credential result.\n");
 
 
@@ -922,8 +922,8 @@ check_ticket_result (void *cls, const struct TicketResultMessage *msg)
   size_t tkt_len;
 
   msg_len = ntohs (msg->header.size);
-  pres_len = ntohl (msg->presentations_len);
-  tkt_len = ntohl (msg->tkt_len);
+  pres_len = ntohs (msg->presentations_len);
+  tkt_len = ntohs (msg->tkt_len);
   if (msg_len != sizeof(*msg) + pres_len + tkt_len)
   {
     GNUNET_break (0);
@@ -954,8 +954,8 @@ handle_ticket_result (void *cls, const struct TicketResultMessage *msg)
   size_t tb_read;
   char *buf;
 
-  tkt_len = ntohl (msg->tkt_len);
-  pres_len = ntohl (msg->presentations_len);
+  tkt_len = ntohs (msg->tkt_len);
+  pres_len = ntohs (msg->presentations_len);
   for (op = handle->op_head; NULL != op; op = op->next)
     if (op->r_id == r_id)
       break;
@@ -1186,7 +1186,7 @@ GNUNET_RECLAIM_attribute_store (
   op->env = GNUNET_MQ_msg_extra (sam,
                                  attr_len + key_len,
                                  GNUNET_MESSAGE_TYPE_RECLAIM_ATTRIBUTE_STORE);
-  sam->key_len = htonl (key_len);
+  sam->key_len = htons (key_len);
   buf = (char *) &sam[1];
   written = GNUNET_IDENTITY_write_private_key_to_buffer (pkey, buf, key_len);
   GNUNET_assert (0 < written);
@@ -1229,7 +1229,7 @@ GNUNET_RECLAIM_attribute_delete (
   op->env = GNUNET_MQ_msg_extra (dam,
                                  attr_len + key_len,
                                  GNUNET_MESSAGE_TYPE_RECLAIM_ATTRIBUTE_DELETE);
-  dam->key_len = htonl (key_len);
+  dam->key_len = htons (key_len);
   buf = (char *) &dam[1];
   written = GNUNET_IDENTITY_write_private_key_to_buffer (pkey, buf, key_len);
   GNUNET_assert (0 < written);
@@ -1271,7 +1271,7 @@ GNUNET_RECLAIM_credential_store (
   op->env = GNUNET_MQ_msg_extra (sam,
                                  attr_len + key_len,
                                  GNUNET_MESSAGE_TYPE_RECLAIM_CREDENTIAL_STORE);
-  sam->key_len = htonl (key_len);
+  sam->key_len = htons (key_len);
   buf = (char *) &sam[1];
   written = GNUNET_IDENTITY_write_private_key_to_buffer (pkey, buf, key_len);
   GNUNET_assert (0 <= written);
@@ -1314,7 +1314,7 @@ GNUNET_RECLAIM_credential_delete (
   op->env = GNUNET_MQ_msg_extra (dam,
                                  attr_len + key_len,
                                  GNUNET_MESSAGE_TYPE_RECLAIM_CREDENTIAL_DELETE);
-  dam->key_len = htonl (key_len);
+  dam->key_len = htons (key_len);
   buf = (char *) &dam[1];
   written = GNUNET_IDENTITY_write_private_key_to_buffer (pkey, buf, key_len);
   GNUNET_assert (0 <= written);
@@ -1364,7 +1364,7 @@ GNUNET_RECLAIM_get_attributes_start (
                          key_len,
                          GNUNET_MESSAGE_TYPE_RECLAIM_ATTRIBUTE_ITERATION_START);
   msg->id = htonl (rid);
-  msg->key_len = htonl (key_len);
+  msg->key_len = htons (key_len);
   GNUNET_IDENTITY_write_private_key_to_buffer (identity, &msg[1], key_len);
   if (NULL == h->mq)
     it->env = env;
@@ -1441,7 +1441,7 @@ GNUNET_RECLAIM_get_credentials_start (
                          key_len,
                          GNUNET_MESSAGE_TYPE_RECLAIM_CREDENTIAL_ITERATION_START);
   msg->id = htonl (rid);
-  msg->key_len = htonl (key_len);
+  msg->key_len = htons (key_len);
   GNUNET_IDENTITY_write_private_key_to_buffer (identity, &msg[1], key_len);
   if (NULL == h->mq)
     ait->env = env;
@@ -1515,8 +1515,8 @@ GNUNET_RECLAIM_ticket_issue (
   op->env = GNUNET_MQ_msg_extra (tim,
                                  attr_len + key_len + rpk_len,
                                  GNUNET_MESSAGE_TYPE_RECLAIM_ISSUE_TICKET);
-  tim->key_len = htonl (key_len);
-  tim->pkey_len = htonl (rpk_len);
+  tim->key_len = htons (key_len);
+  tim->pkey_len = htons (rpk_len);
   buf = (char *) &tim[1];
   written = GNUNET_IDENTITY_write_private_key_to_buffer (iss, buf, key_len);
   GNUNET_assert (0 <= written);
@@ -1571,11 +1571,11 @@ GNUNET_RECLAIM_ticket_consume (
   op->env = GNUNET_MQ_msg_extra (ctm,
                                  key_len + tkt_len,
                                  GNUNET_MESSAGE_TYPE_RECLAIM_CONSUME_TICKET);
-  ctm->key_len = htonl (key_len);
+  ctm->key_len = htons (key_len);
   buf = (char*) &ctm[1];
   GNUNET_IDENTITY_write_private_key_to_buffer (identity, buf, key_len);
   buf += key_len;
-  ctm->tkt_len = htonl (tkt_len);
+  ctm->tkt_len = htons (tkt_len);
   GNUNET_RECLAIM_write_ticket_to_buffer (ticket, buf, tkt_len);
   ctm->id = htonl (op->r_id);
   if (NULL != h->mq)
@@ -1620,7 +1620,7 @@ GNUNET_RECLAIM_ticket_iteration_start (
                              key_len,
                              GNUNET_MESSAGE_TYPE_RECLAIM_TICKET_ITERATION_START);
   msg->id = htonl (rid);
-  msg->key_len = htonl (key_len);
+  msg->key_len = htons (key_len);
   GNUNET_IDENTITY_write_private_key_to_buffer (identity,
                                                &msg[1],
                                                key_len);
@@ -1718,8 +1718,8 @@ GNUNET_RECLAIM_ticket_revoke (
                                  key_len + tkt_len,
                                  GNUNET_MESSAGE_TYPE_RECLAIM_REVOKE_TICKET);
   msg->id = htonl (rid);
-  msg->key_len = htonl (key_len);
-  msg->tkt_len = htonl (tkt_len);
+  msg->key_len = htons (key_len);
+  msg->tkt_len = htons (tkt_len);
   buf = (char*) &msg[1];
   written = GNUNET_IDENTITY_write_private_key_to_buffer (identity,
                                                          buf,

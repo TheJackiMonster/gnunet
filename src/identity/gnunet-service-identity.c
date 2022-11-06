@@ -244,6 +244,7 @@ create_update_message (struct Ego *ego)
                              GNUNET_MESSAGE_TYPE_IDENTITY_UPDATE);
   um->name_len = htons (name_len);
   um->end_of_list = htons (GNUNET_NO);
+  um->key_len = htons (key_len);
   GNUNET_memcpy (&um[1], ego->identifier, name_len);
   GNUNET_IDENTITY_write_private_key_to_buffer (&ego->pk,
                                                ((char*) &um[1]) + name_len,
@@ -287,6 +288,7 @@ handle_start_message (void *cls,
                                GNUNET_MESSAGE_TYPE_IDENTITY_UPDATE);
     ume->end_of_list = htons (GNUNET_YES);
     ume->name_len = htons (0);
+    ume->key_len = htons (0);
     GNUNET_MQ_send (GNUNET_SERVICE_client_get_mq (client),
                     env);
   }
@@ -426,6 +428,7 @@ notify_listeners (struct Ego *ego)
   um->header.size = htons (sizeof(struct UpdateMessage) + name_len + key_len);
   um->name_len = htons (name_len);
   um->end_of_list = htons (GNUNET_NO);
+  um->key_len = htons (key_len);
   GNUNET_memcpy (&um[1], ego->identifier, name_len);
   GNUNET_IDENTITY_write_private_key_to_buffer (&ego->pk,
                                                ((char*) &um[1]) + name_len,
@@ -458,8 +461,7 @@ check_create_message (void *cls,
     return GNUNET_SYSERR;
   }
   name_len = ntohs (msg->name_len);
-  key_len = ntohl (msg->key_len);
-  GNUNET_break (0 == ntohs (msg->reserved));
+  key_len = ntohs (msg->key_len);
   if (name_len + key_len + sizeof(struct CreateRequestMessage) != size)
   {
     GNUNET_break (0);
@@ -494,7 +496,7 @@ handle_create_message (void *cls,
   size_t kb_read;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received CREATE message from client\n");
-  key_len = ntohl (crm->key_len);
+  key_len = ntohs (crm->key_len);
   if ((GNUNET_SYSERR ==
       GNUNET_IDENTITY_read_private_key_from_buffer (&crm[1],
                                                     key_len,

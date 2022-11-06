@@ -412,7 +412,7 @@ handle_identity_update (void *cls,
   tmp = (const char*) &um[1];
   str = (0 == name_len) ? NULL : tmp;
   memset (&private_key, 0, sizeof (private_key));
-  key_len = ntohs (um->header.size) - name_len;
+  key_len = ntohs (um->key_len);
   GNUNET_assert (GNUNET_SYSERR !=
                  GNUNET_IDENTITY_read_private_key_from_buffer (tmp + name_len,
                                                                key_len,
@@ -621,11 +621,10 @@ GNUNET_IDENTITY_create (struct GNUNET_IDENTITY_Handle *h,
   env = GNUNET_MQ_msg_extra (crm, slen + key_len,
                              GNUNET_MESSAGE_TYPE_IDENTITY_CREATE);
   crm->name_len = htons (slen);
-  crm->reserved = htons (0);
   GNUNET_IDENTITY_write_private_key_to_buffer (&private_key,
                                                &crm[1],
                                                key_len);
-  crm->key_len = htonl (key_len);
+  crm->key_len = htons (key_len);
   op->pk = private_key;
   GNUNET_memcpy ((char*) &crm[1] + key_len, name, slen);
   GNUNET_MQ_send (h->mq, env);

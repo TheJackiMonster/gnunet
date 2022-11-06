@@ -154,7 +154,7 @@ check_result (void *cls, const struct RecordResultMessage *lrm)
   size_t key_len;
 
   (void) zm;
-  key_len = ntohl (lrm->key_len);
+  key_len = ntohs (lrm->key_len);
   (void) cls;
   if (0 == key_len)
   {
@@ -222,7 +222,7 @@ handle_result (void *cls, const struct RecordResultMessage *lrm)
   const char *name_tmp;
   const char *rd_ser_tmp;
 
-  key_len = ntohl (lrm->key_len);
+  key_len = ntohs (lrm->key_len);
   rd_len = ntohs (lrm->rd_len);
   rd_count = ntohs (lrm->rd_count);
   name_len = ntohs (lrm->name_len);
@@ -308,7 +308,7 @@ reconnect (struct GNUNET_NAMESTORE_ZoneMonitor *zm)
     GNUNET_IDENTITY_write_private_key_to_buffer (&zm->zone,
                                                &sm[1],
                                                zm->key_len);
-  sm->key_len = htonl (zm->key_len);
+  sm->key_len = htons (zm->key_len);
   sm->filter = htons (zm->filter);
   GNUNET_MQ_send (zm->mq, env);
 }
