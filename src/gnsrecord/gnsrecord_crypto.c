@@ -793,7 +793,7 @@ block_decrypt_ecdsa (const struct GNUNET_GNSRECORD_Block *block,
           continue;
         }
 
-        if (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_SHADOW_RECORD))
+        if (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_SHADOW))
         {
           int include_record = GNUNET_YES;
           /* Shadow record, figure out if we have a not expired active record */
@@ -805,7 +805,7 @@ block_decrypt_ecdsa (const struct GNUNET_GNSRECORD_Block *block,
               include_record = GNUNET_NO;       /* Shadow record is expired */
             if ((rd[k].record_type == rd[i].record_type) &&
                 (rd[k].expiration_time >= now.abs_value_us) &&
-                (0 == (rd[k].flags & GNUNET_GNSRECORD_RF_SHADOW_RECORD)))
+                (0 == (rd[k].flags & GNUNET_GNSRECORD_RF_SHADOW)))
             {
               include_record = GNUNET_NO;         /* We have a non-expired, non-shadow record of the same type */
               GNUNET_log (GNUNET_ERROR_TYPE_INFO,
@@ -815,7 +815,7 @@ block_decrypt_ecdsa (const struct GNUNET_GNSRECORD_Block *block,
           }
           if (GNUNET_YES == include_record)
           {
-            rd[i].flags ^= GNUNET_GNSRECORD_RF_SHADOW_RECORD;       /* Remove Flag */
+            rd[i].flags ^= GNUNET_GNSRECORD_RF_SHADOW;       /* Remove Flag */
             if (j != i)
               rd[j] = rd[i];
             j++;
@@ -919,7 +919,7 @@ block_decrypt_eddsa (const struct GNUNET_GNSRECORD_Block *block,
           continue;
         }
 
-        if (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_SHADOW_RECORD))
+        if (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_SHADOW))
         {
           int include_record = GNUNET_YES;
           /* Shadow record, figure out if we have a not expired active record */
@@ -931,7 +931,7 @@ block_decrypt_eddsa (const struct GNUNET_GNSRECORD_Block *block,
               include_record = GNUNET_NO;       /* Shadow record is expired */
             if ((rd[k].record_type == rd[i].record_type) &&
                 (rd[k].expiration_time >= now.abs_value_us) &&
-                (0 == (rd[k].flags & GNUNET_GNSRECORD_RF_SHADOW_RECORD)))
+                (0 == (rd[k].flags & GNUNET_GNSRECORD_RF_SHADOW)))
             {
               include_record = GNUNET_NO;         /* We have a non-expired, non-shadow record of the same type */
               GNUNET_log (GNUNET_ERROR_TYPE_INFO,
@@ -941,7 +941,7 @@ block_decrypt_eddsa (const struct GNUNET_GNSRECORD_Block *block,
           }
           if (GNUNET_YES == include_record)
           {
-            rd[i].flags ^= GNUNET_GNSRECORD_RF_SHADOW_RECORD;       /* Remove Flag */
+            rd[i].flags ^= GNUNET_GNSRECORD_RF_SHADOW;       /* Remove Flag */
             if (j != i)
               rd[j] = rd[i];
             j++;

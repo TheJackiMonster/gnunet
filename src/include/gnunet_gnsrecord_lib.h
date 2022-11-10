@@ -69,46 +69,9 @@ extern "C" {
 #include "gnu_name_system_record_types.h"
 
 /**
- * Flags that can be set for a record.
- * MUST fit into 16 bit.
+ * Include the record flags generated from GANA
  */
-enum GNUNET_GNSRECORD_Flags
-{
-  /**
-   * No special options.
-   */
-  GNUNET_GNSRECORD_RF_NONE = 0,
-
-  /**
-   * This record is critical. If it cannot be processed
-   * (for example because the record type is unknown)
-   * resolution MUST fail
-   */
-  GNUNET_GNSRECORD_RF_CRITICAL = 1,
-
-  /**
-   * This record should not be used unless all (other) records with an absolute
-   * expiration time have expired.
-   */
-  GNUNET_GNSRECORD_RF_SHADOW_RECORD = 2,
-
-  /**
-   * This is a supplemental record.
-   */
-  GNUNET_GNSRECORD_RF_SUPPLEMENTAL = 4,
-
-  /**
-   * This expiration time of the record is a relative
-   * time (not an absolute time).
-   */
-  GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION = 16384, /* 2^14 */
-
-  /**
-   * This is a private record of this peer and it should
-   * thus not be handed out to other peers.
-   */
-  GNUNET_GNSRECORD_RF_PRIVATE = 32768, /* 2^15 */
-
+#include "gnu_name_system_record_flags.h"
 
 /**
  * When comparing flags for record equality for removal,
@@ -122,7 +85,6 @@ enum GNUNET_GNSRECORD_Flags
  * #GNUNET_GNSRECORD_records_cmp.
  */
 #define GNUNET_GNSRECORD_RF_RCMP_FLAGS (GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION)
-};
 
 /**
  * Filter for GNUNET_GNSRECORD_normalize_record_set().

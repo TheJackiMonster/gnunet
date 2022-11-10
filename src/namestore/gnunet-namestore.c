@@ -200,7 +200,7 @@ static int del;
 static int is_public;
 
 /**
- * Is record a shadow record (#GNUNET_GNSRECORD_RF_SHADOW_RECORD)
+ * Is record a shadow record (#GNUNET_GNSRECORD_RF_SHADOW)
  */
 static int is_shadow;
 
@@ -688,7 +688,7 @@ display_record (const struct GNUNET_IDENTITY_PrivateKey *zone_key,
              ets,
              (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE)) ? "PRIVATE"
              : "PUBLIC",
-             (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_SHADOW_RECORD)) ? "SHADOW"
+             (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_SHADOW)) ? "SHADOW"
              : "");
     GNUNET_free (s);
   }
@@ -917,7 +917,7 @@ get_existing_record (void *cls,
   rde->data_size = data_size;
   rde->record_type = type;
   if (1 == is_shadow)
-    rde->flags |= GNUNET_GNSRECORD_RF_SHADOW_RECORD;
+    rde->flags |= GNUNET_GNSRECORD_RF_SHADOW;
   if (1 != is_public)
     rde->flags |= GNUNET_GNSRECORD_RF_PRIVATE;
   rde->expiration_time = etime;
@@ -1531,7 +1531,7 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
     if (GNUNET_YES == etime_is_rel)
       rd.flags |= GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
     if (1 == is_shadow)
-      rd.flags |= GNUNET_GNSRECORD_RF_SHADOW_RECORD;
+      rd.flags |= GNUNET_GNSRECORD_RF_SHADOW;
     add_qe_uri = GNUNET_NAMESTORE_records_store (ns,
                                                  &zone_pkey,
                                                  sname,
@@ -1776,7 +1776,7 @@ multirecord_process (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
   if (NULL == strchr (tok, (unsigned char) 'p')) /* p = public */
     record.flags |= GNUNET_GNSRECORD_RF_PRIVATE;
   if (NULL != strchr (tok, (unsigned char) 's'))
-    record.flags |= GNUNET_GNSRECORD_RF_SHADOW_RECORD;
+    record.flags |= GNUNET_GNSRECORD_RF_SHADOW;
   /* find beginning of record value */
   tok = strchr (&value[tok - cp], (unsigned char) ' ');
   if (NULL == tok)

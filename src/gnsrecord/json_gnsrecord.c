@@ -168,7 +168,7 @@ parse_record (json_t *data, struct GNUNET_GNSRECORD_Data *rd)
   if (1 == supplemental)
     rd->flags |= GNUNET_GNSRECORD_RF_SUPPLEMENTAL;
   if (1 == shadow)
-    rd->flags |= GNUNET_GNSRECORD_RF_SHADOW_RECORD;
+    rd->flags |= GNUNET_GNSRECORD_RF_SHADOW;
   return GNUNET_OK;
 }
 
@@ -353,7 +353,7 @@ GNUNET_GNSRECORD_JSON_from_gnsrecord (const char*rname,
                         GNUNET_JSON_GNSRECORD_FLAG_SUPPLEMENTAL,
                         rd[i].flags & GNUNET_GNSRECORD_RF_SUPPLEMENTAL,
                         GNUNET_JSON_GNSRECORD_FLAG_SUPPLEMENTAL,
-                        rd[i].flags & GNUNET_GNSRECORD_RF_SHADOW_RECORD);
+                        rd[i].flags & GNUNET_GNSRECORD_RF_SHADOW);
     GNUNET_free (value_str);
     if (NULL == record)
     {
