@@ -136,7 +136,7 @@ gana_update()
       cd gnu-name-system-record-types && \
          make >/dev/null && \
          cp gnu_name_system_record_types.h ../../../src/include/ || exit 1
-      cd gnu-name-system-record-flags && \
+      cd ../gnu-name-system-record-flags && \
          make >/dev/null && \
          cp gnu_name_system_record_flags.h ../../../src/include/ || exit 1
       echo "Creating default TLDs"
