@@ -1,3 +1,4 @@
 gnunet_error_codes.h
+gnu_name_system_record_flags.h
 gnu_name_system_record_types.h
 gnunet_signatures.h
