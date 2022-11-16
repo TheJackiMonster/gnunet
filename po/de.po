@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2022-11-04 14:22+0900\n"
+"POT-Creation-Date: 2022-11-14 08:54+0100\n"
 "PO-Revision-Date: 2015-03-08 16:16+0100\n"
 "Last-Translator: Mario Blättermann <mario.blaettermann@gmail.com>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -4627,23 +4627,23 @@ msgstr ""
 msgid "Maintain egos"
 msgstr ""
 
-#: src/identity/gnunet-service-identity.c:685
-#: src/identity/gnunet-service-identity.c:804
+#: src/identity/gnunet-service-identity.c:687
+#: src/identity/gnunet-service-identity.c:806
 #, fuzzy, c-format
 msgid "Failed to write subsystem default identifier map to `%s'.\n"
 msgstr "Fehler beim Aktualisieren der Daten des Moduls `%s'\n"
 
-#: src/identity/gnunet-service-identity.c:919
+#: src/identity/gnunet-service-identity.c:921
 #, fuzzy, c-format
 msgid "Failed to parse ego information in `%s'\n"
 msgstr "Fehler beim Parsen der Gerätedaten von `%s' bei %s:%d.\n"
 
-#: src/identity/gnunet-service-identity.c:977
+#: src/identity/gnunet-service-identity.c:979
 #, fuzzy, c-format
 msgid "Failed to parse subsystem identity configuration file `%s'\n"
 msgstr "Fehler beim Speichern der Konfigurationsdatei `%s':"
 
-#: src/identity/gnunet-service-identity.c:986
+#: src/identity/gnunet-service-identity.c:988
 #, fuzzy, c-format
 msgid "Failed to create directory `%s' for storing egos\n"
 msgstr "Dateiformat fehlerhaft (kein GNUnet Verzeichnis?)\n"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GNUnet 0.7.0b\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2022-11-04 14:22+0900\n"
+"POT-Creation-Date: 2022-11-14 08:54+0100\n"
 "PO-Revision-Date: 2006-01-21 17:16+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
@@ -4645,23 +4645,23 @@ msgstr ""
 msgid "Maintain egos"
 msgstr ""
 
-#: src/identity/gnunet-service-identity.c:685
-#: src/identity/gnunet-service-identity.c:804
+#: src/identity/gnunet-service-identity.c:687
+#: src/identity/gnunet-service-identity.c:806
 #, fuzzy, c-format
 msgid "Failed to write subsystem default identifier map to `%s'.\n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 
-#: src/identity/gnunet-service-identity.c:919
+#: src/identity/gnunet-service-identity.c:921
 #, fuzzy, c-format
 msgid "Failed to parse ego information in `%s'\n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 
-#: src/identity/gnunet-service-identity.c:977
+#: src/identity/gnunet-service-identity.c:979
 #, fuzzy, c-format
 msgid "Failed to parse subsystem identity configuration file `%s'\n"
 msgstr "Kunde inte spara konfigurationsfil \"%s\":"
 
-#: src/identity/gnunet-service-identity.c:986
+#: src/identity/gnunet-service-identity.c:988
 #, fuzzy, c-format
 msgid "Failed to create directory `%s' for storing egos\n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
@@ -7683,15 +7683,15 @@ msgstr "Testar transport(er) %s\n"
 #, fuzzy, c-format
 msgid "Specific IPv4 address `%s' in configuration file is invalid!\n"
 msgstr ""
-"Du måste ange ett positivt nummer för \"%s\" i konfigurationen i sektion "
-"\"%s\".\n"
+"Du måste ange ett positivt nummer för \"%s\" i konfigurationen i sektion \"%s"
+"\".\n"
 
 #: src/transport/plugin_transport_http_server.c:3133
 #, fuzzy, c-format
 msgid "Specific IPv6 address `%s' in configuration file is invalid!\n"
 msgstr ""
-"Du måste ange ett positivt nummer för \"%s\" i konfigurationen i sektion "
-"\"%s\".\n"
+"Du måste ange ett positivt nummer för \"%s\" i konfigurationen i sektion \"%s"
+"\".\n"
 
 #: src/transport/plugin_transport_http_server.c:3208
 #, fuzzy, c-format
@@ -9056,8 +9056,8 @@ msgid ""
 "Missing `%s' or numeric IP address for `%s' of `%s' in configuration, DNS "
 "resolution will be unavailable.\n"
 msgstr ""
-"Du måste ange ett positivt nummer för \"%s\" i konfigurationen i sektion "
-"\"%s\".\n"
+"Du måste ange ett positivt nummer för \"%s\" i konfigurationen i sektion \"%s"
+"\".\n"
 
 #: src/util/resolver_api.c:887
 #, fuzzy, c-format
@@ -12391,8 +12391,8 @@ msgstr "Misslyckades att ansluta till gnunetd.\n"
 #~ msgstr "Kunde inte slå upp namnet för SMTP-server \"%s\": %s"
 
 #~ msgid ""
-#~ "You must specify the name of a pipe for the SMTP transport in section "
-#~ "`%s' under `%s'.\n"
+#~ "You must specify the name of a pipe for the SMTP transport in section `"
+#~ "%s' under `%s'.\n"
 #~ msgstr ""
 #~ "Du måste ange ett namn på röret för SMTP-transporten i sektion \"%s\" "
 #~ "under \"%s\".\n"

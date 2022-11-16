@@ -147,6 +147,39 @@ GNUNET_PQ_query_param_bool (bool b);
 
 
 /**
+ * Information for an array argument.
+ */
+struct GNUNET_PQ_ArraySpec
+{
+  /**
+   * Number of dimensions of the array
+   */
+  unsigned int ndims;
+
+  /**
+   * Array of @e ndims lengths of the array
+   */
+  unsigned int *lens;
+
+  /**
+   * One-dimensional array of pointers to conversion functions for the
+   * elements in the array.
+   */
+  const struct GNUNET_PQ_QueryParam *ae;
+
+};
+
+
+/**
+ * Generate query parameter for an array.
+ *
+ * @param as array specification
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_array (const struct GNUNET_PQ_ArraySpec *as);
+
+
+/**
  * Generate fixed-size query parameter with size determined
  * by variable type.
  *

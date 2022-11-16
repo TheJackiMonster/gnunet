@@ -255,11 +255,11 @@ GNUNET_PQ_eval_prepared_multi_select (struct GNUNET_PQ_Context *db,
  *         codes to `enum GNUNET_DB_QueryStatus`.
  */
 enum GNUNET_DB_QueryStatus
-GNUNET_PQ_eval_prepared_singleton_select (struct GNUNET_PQ_Context *db,
-                                          const char *statement_name,
-                                          const struct
-                                          GNUNET_PQ_QueryParam *params,
-                                          struct GNUNET_PQ_ResultSpec *rs)
+GNUNET_PQ_eval_prepared_singleton_select (
+  struct GNUNET_PQ_Context *db,
+  const char *statement_name,
+  const struct GNUNET_PQ_QueryParam *params,
+  struct GNUNET_PQ_ResultSpec *rs)
 {
   PGresult *result;
   enum GNUNET_DB_QueryStatus qs;
