@@ -514,6 +514,7 @@ test_plugin_namestore_postgres_LDADD = \
 
 check_SCRIPTS = \
   test_namestore_put.sh \
+  test_namestore_put_stdin.sh \
   test_namestore_lookup.sh \
   test_namestore_delete.sh \
   test_namestore_zonefile_import.sh

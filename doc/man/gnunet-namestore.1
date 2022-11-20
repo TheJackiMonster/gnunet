@@ -46,6 +46,7 @@
 .Op Fl r Ar PKEY | Fl -reverse= Ns Ar PKEY
 .Op Fl R Ar RECORDLINE | Fl -replace= Ns Ar RECORDLINE
 .Op Fl s | -shadow
+.Op Fl S | -from-stdin
 .Op Fl T | -include-maintenance
 .Op Fl t Ar TYPE | Fl -type= Ns Ar TYPE
 .Op Fl u Ar URI | Fl -uri= Ns Ar URI
@@ -119,6 +120,12 @@ The VALUE follows the usual human-readable value format(s) of DNS/GNS.
 Create a record that is a shadow record.
 Shadow records are only used once all other records of the same type
 under the same label have expired.
+.It Fl S | -from-stdin
+This reads commands from stdin until EOF is encountered.
+The commands are formatted like the arguments used for gnunet-namestore.
+Arguments that
+.B cannot
+be used for commands in this mode are: -l, -L, -D, -S, -m, -h, -c, -v, -r, -o, -T, -O
 .It Fl T | -include-maintenance
 Show maintenance records such as TOMBSTONEs. Use in combination with --display.
 .It Fl t Ar TYPE | Fl -type= Ns Ar TYPE
@@ -145,7 +152,30 @@ variable. The latter is useful to improve performance of tools like
 Ascension as it allows the command to skip IPC with the identity
 management subsystem.
 .El
-.\".Sh EXAMPLES
+.Sh EXAMPLES
+.Tp
+.Nm
+-z example -a -n www -t A -V "1.2.3.4" -e 1d -p
+.Tp
+.Pp
+.Dl Add a public record for ego "example" with name "www" containing an IP address.
+.sp
+.Tp
+.Nm
+-z example -D
+.Tp
+.Pp
+.Dl Show all records for ego "example"
+.sp
+.Tp
+.Nm
+--from-stdin <<EOF
+  -z alice -a -n www -t A -V "1.2.3.4" -e 3600s -p
+  -z bob -a -n www -t A -V "4.3.2.1" -e 24h -p
+ EOF
+.Tp
+.Pp
+.Dl Read record multiple import commands from stdin.
 .\".Sh FILES
 .Sh SEE ALSO
 .Xr gnunet-gns 1 ,
