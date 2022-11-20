@@ -1763,14 +1763,6 @@ process_command_stdin ()
                                "delete",
                                gettext_noop ("delete record"),
                                &del),
-    GNUNET_GETOPT_option_flag ('D',
-                               "display",
-                               gettext_noop ("display records"),
-                               &list),
-    GNUNET_GETOPT_option_flag ('S',
-                               "from-stdin",
-                               gettext_noop ("read commands from stdin"),
-                               &read_from_stdin),
     GNUNET_GETOPT_option_string (
       'e',
       "expiration",
@@ -1784,23 +1776,12 @@ process_command_stdin ()
                                  gettext_noop (
                                    "set the desired nick name for the zone"),
                                  &nickstring),
-    GNUNET_GETOPT_option_flag ('m',
-                               "monitor",
-                               gettext_noop (
-                                 "monitor changes in the namestore"),
-                               &monitor),
     GNUNET_GETOPT_option_string ('n',
                                  "name",
                                  "NAME",
                                  gettext_noop (
                                    "name of the record to add/delete/display"),
                                  &name),
-    GNUNET_GETOPT_option_string ('r',
-                                 "reverse",
-                                 "PKEY",
-                                 gettext_noop (
-                                   "determine our name for the given PKEY"),
-                                 &reverse_pkey),
     multirecord_option (
       'R',
       "replace",
@@ -1829,25 +1810,11 @@ process_command_stdin ()
                                "public",
                                gettext_noop ("create or list public record"),
                                &is_public),
-    GNUNET_GETOPT_option_flag ('o',
-                               "omit-private",
-                               gettext_noop ("omit private records"),
-                               &omit_private),
-    GNUNET_GETOPT_option_flag ('T',
-                               "include-maintenance",
-                               gettext_noop (
-                                 "do not filter maintenance records"),
-                               &include_maintenance),
     GNUNET_GETOPT_option_flag ('P',
                                "purge-orphans",
                                gettext_noop (
                                  "purge namestore of all orphans"),
                                &purge_orphaned),
-    GNUNET_GETOPT_option_flag ('O',
-                               "list-orphans",
-                               gettext_noop (
-                                 "show private key for orphaned records for recovery using `gnunet-identity -C -P <key>'. Use in combination with --display"),
-                               &list_orphaned),
     GNUNET_GETOPT_option_flag ('X',
                                "purge-zone-records",
                                gettext_noop (
