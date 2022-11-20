@@ -119,11 +119,6 @@ static struct GNUNET_NAMESTORE_Handle *ns;
 static struct GNUNET_IDENTITY_PrivateKey zone_pkey;
 
 /**
- * Handle to identity lookup.
- */
-static struct GNUNET_IDENTITY_EgoLookup *el;
-
-/**
  * Identity service handle
  */
 static struct GNUNET_IDENTITY_Handle *idh;
@@ -168,6 +163,10 @@ static struct MarkedRecord *marked_head;
  */
 static struct MarkedRecord *marked_tail;
 
+/**
+ * Configuration handle
+ */
+const struct GNUNET_CONFIGURATION_Handle *cfg;
 
 /**
  * Ego list
@@ -188,6 +187,11 @@ static int list;
  * List iterator for the 'list' operation.
  */
 static struct GNUNET_NAMESTORE_ZoneIterator *list_it;
+
+/**
+ * Run in read from stdin mode.
+ */
+static int read_from_stdin;
 
 /**
  * Desired action is to remove a record.
@@ -238,6 +242,11 @@ static struct GNUNET_NAMESTORE_QueueEntry *del_qe;
  * Queue entry for the 'set/replace' operation.
  */
 static struct GNUNET_NAMESTORE_QueueEntry *set_qe;
+
+/**
+ * Queue entry for begin/commit
+ */
+static struct GNUNET_NAMESTORE_QueueEntry *ns_qe;
 
 /**
  * Name of the records to add/list/remove.
@@ -325,18 +334,217 @@ static struct RecordSetEntry *recordset;
 static struct GNUNET_SCHEDULER_Task *purge_task;
 
 /**
- * Task run on shutdown.  Cleans up everything.
+ * Parse expiration time.
  *
- * @param cls unused
+ * @param expirationstring text to parse
+ * @param[out] etime_is_rel set to #GNUNET_YES if time is relative
+ * @param[out] etime set to expiration time (abs or rel)
+ * @return #GNUNET_OK on success
  */
-static void
-do_shutdown (void *cls)
+static int
+parse_expiration (const char *expirationstring,
+                  int *etime_is_rel,
+                  uint64_t *etime)
 {
-  struct EgoEntry *ego_entry;
-  struct EgoEntry *ego_tmp;
+  struct GNUNET_TIME_Relative etime_rel;
+  struct GNUNET_TIME_Absolute etime_abs;
+
+  if (0 == strcmp (expirationstring, "never"))
+  {
+    *etime = GNUNET_TIME_UNIT_FOREVER_ABS.abs_value_us;
+    *etime_is_rel = GNUNET_NO;
+    return GNUNET_OK;
+  }
+  if (GNUNET_OK ==
+      GNUNET_STRINGS_fancy_time_to_relative (expirationstring, &etime_rel))
+  {
+    *etime_is_rel = GNUNET_YES;
+    *etime = etime_rel.rel_value_us;
+    if (GNUNET_TIME_relative_cmp (etime_rel, <, WARN_RELATIVE_EXPIRATION_LIMIT))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Relative expiration times of less than %s are not recommended. To improve availability, consider increasing this value.\n",
+                  GNUNET_STRINGS_relative_time_to_string (
+                    WARN_RELATIVE_EXPIRATION_LIMIT, GNUNET_NO));
+    }
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Storing record with relative expiration time of %s\n",
+                GNUNET_STRINGS_relative_time_to_string (etime_rel, GNUNET_NO));
+    return GNUNET_OK;
+  }
+  if (GNUNET_OK ==
+      GNUNET_STRINGS_fancy_time_to_absolute (expirationstring, &etime_abs))
+  {
+    *etime_is_rel = GNUNET_NO;
+    *etime = etime_abs.abs_value_us;
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Storing record with absolute expiration time of %s\n",
+                GNUNET_STRINGS_absolute_time_to_string (etime_abs));
+    return GNUNET_OK;
+  }
+  return GNUNET_SYSERR;
+}
+
+
+
+/**
+ * Command-line option parser function that allows the user to specify
+ * a complete record as one argument for adding/removing.  A pointer
+ * to the head of the list of record sets must be passed as the "scls"
+ * argument.
+ *
+ * @param ctx command line processor context
+ * @param scls must be of type "struct GNUNET_FS_Uri **"
+ * @param option name of the option (typically 'R')
+ * @param value command line argument given; format is
+ *        "TTL TYPE FLAGS VALUE" where TTL is an expiration time (rel or abs),
+ *        always given in seconds (without the unit),
+ *         TYPE is a DNS/GNS record type, FLAGS is either "n" for no flags or
+ *         a combination of 's' (shadow) and 'p' (public) and VALUE is the
+ *         value (in human-readable format)
+ * @return #GNUNET_OK on success
+ */
+static int
+multirecord_process (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
+                     void *scls,
+                     const char *option,
+                     const char *value)
+{
+  struct RecordSetEntry **head = scls;
+  struct RecordSetEntry *r;
+  struct GNUNET_GNSRECORD_Data record;
+  char *cp;
+  char *tok;
+  char *saveptr;
+  int etime_is_rel;
+  void *raw_data;
+
+  (void) ctx;
+  (void) option;
+  cp = GNUNET_strdup (value);
+  tok = strtok_r (cp, " ", &saveptr);
+  if (NULL == tok)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                _ ("Empty record line argument is not allowed.\n"));
+    GNUNET_free (cp);
+    return GNUNET_SYSERR;
+  }
+  {
+    char *etime_in_s;
+
+    GNUNET_asprintf (&etime_in_s, "%s s", tok);
+    if (GNUNET_OK !=
+        parse_expiration (etime_in_s, &etime_is_rel, &record.expiration_time))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  _ ("Invalid expiration time `%s' (must be without unit)\n"),
+                  tok);
+      GNUNET_free (cp);
+      GNUNET_free (etime_in_s);
+      return GNUNET_SYSERR;
+    }
+    GNUNET_free (etime_in_s);
+  }
+  tok = strtok_r (NULL, " ", &saveptr);
+  if (NULL == tok)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                _ ("Missing entries in record line `%s'.\n"),
+                value);
+    GNUNET_free (cp);
+    return GNUNET_SYSERR;
+  }
+  record.record_type = GNUNET_GNSRECORD_typename_to_number (tok);
+  if (UINT32_MAX == record.record_type)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, _ ("Unknown record type `%s'\n"), tok);
+    GNUNET_free (cp);
+    return GNUNET_SYSERR;
+  }
+  tok = strtok_r (NULL, " ", &saveptr);
+  if (NULL == tok)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                _ ("Missing entries in record line `%s'.\n"),
+                value);
+    GNUNET_free (cp);
+    return GNUNET_SYSERR;
+  }
+  record.flags = GNUNET_GNSRECORD_RF_NONE;
+  if (etime_is_rel)
+    record.flags |= GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
+  if (NULL == strchr (tok, (unsigned char) 'p')) /* p = public */
+    record.flags |= GNUNET_GNSRECORD_RF_PRIVATE;
+  if (NULL != strchr (tok, (unsigned char) 's'))
+    record.flags |= GNUNET_GNSRECORD_RF_SHADOW;
+  /* find beginning of record value */
+  tok = strchr (&value[tok - cp], (unsigned char) ' ');
+  if (NULL == tok)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                _ ("Missing entries in record line `%s'.\n"),
+                value);
+    GNUNET_free (cp);
+    return GNUNET_SYSERR;
+  }
+  GNUNET_free (cp);
+  tok++; /* skip space */
+  if (GNUNET_OK != GNUNET_GNSRECORD_string_to_value (record.record_type,
+                                                     tok,
+                                                     &raw_data,
+                                                     &record.data_size))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                _ ("Invalid record data for type %s: `%s'.\n"),
+                GNUNET_GNSRECORD_number_to_typename (record.record_type),
+                tok);
+    return GNUNET_SYSERR;
+  }
+
+  r = GNUNET_malloc (sizeof(struct RecordSetEntry) + record.data_size);
+  r->next = *head;
+  record.data = &r[1];
+  memcpy (&r[1], raw_data, record.data_size);
+  GNUNET_free (raw_data);
+  r->record = record;
+  *head = r;
+  return GNUNET_OK;
+}
+
+/**
+ * Allow user to specify keywords.
+ *
+ * @param shortName short name of the option
+ * @param name long name of the option
+ * @param argumentHelp help text for the option argument
+ * @param description long help text for the option
+ * @param[out] topKeywords set to the desired value
+ */
+struct GNUNET_GETOPT_CommandLineOption
+multirecord_option (char shortName,
+                    const char *name,
+                    const char *argumentHelp,
+                    const char *description,
+                    struct RecordSetEntry **rs)
+{
+  struct GNUNET_GETOPT_CommandLineOption clo = { .shortName = shortName,
+                                                 .name = name,
+                                                 .argumentHelp = argumentHelp,
+                                                 .description = description,
+                                                 .require_argument = 1,
+                                                 .processor =
+                                                   &multirecord_process,
+                                                 .scls = (void *) rs };
+
+  return clo;
+}
+
+static void
+reset_handles (void)
+{
   struct MarkedRecord *mrec;
   struct MarkedRecord *mrec_tmp;
-  (void) cls;
   if (NULL != ego_name)
   {
     GNUNET_free (ego_name);
@@ -347,29 +555,12 @@ do_shutdown (void *cls)
     GNUNET_SCHEDULER_cancel (purge_task);
     purge_task = NULL;
   }
-  if (NULL != idh)
-  {
-    GNUNET_IDENTITY_disconnect (idh);
-    idh = NULL;
-  }
-  if (NULL != el)
-  {
-    GNUNET_IDENTITY_ego_lookup_cancel (el);
-    el = NULL;
-  }
   for (mrec = marked_head; NULL != mrec;)
   {
     mrec_tmp = mrec;
     mrec = mrec->next;
     GNUNET_free (mrec_tmp->name);
     GNUNET_free (mrec_tmp);
-  }
-  for (ego_entry = ego_head; NULL != ego_entry;)
-  {
-    ego_tmp = ego_entry;
-    ego_entry = ego_entry->next;
-    GNUNET_free (ego_tmp->identifier);
-    GNUNET_free (ego_tmp);
   }
   if (NULL != list_it)
   {
@@ -401,10 +592,10 @@ do_shutdown (void *cls)
     GNUNET_NAMESTORE_cancel (del_qe);
     del_qe = NULL;
   }
-  if (NULL != ns)
+  if (NULL != reverse_qe)
   {
-    GNUNET_NAMESTORE_disconnect (ns);
-    ns = NULL;
+    GNUNET_NAMESTORE_cancel (reverse_qe);
+    reverse_qe = NULL;
   }
   memset (&zone_pkey, 0, sizeof(zone_pkey));
   if (NULL != uri)
@@ -425,15 +616,71 @@ do_shutdown (void *cls)
 }
 
 
+
 /**
- * Check if we are finished, and if so, perform shutdown.
+ * Task run on shutdown.  Cleans up everything.
+ *
+ * @param cls unused
  */
 static void
-test_finished ()
+do_shutdown (void *cls)
 {
-  if ((NULL == add_qe) && (NULL == add_qe_uri) && (NULL == get_qe) &&
-      (NULL == del_qe) && (NULL == reverse_qe) && (NULL == list_it))
-    GNUNET_SCHEDULER_shutdown ();
+  struct EgoEntry *ego_entry;
+  struct EgoEntry *ego_tmp;
+  (void) cls;
+
+  reset_handles ();
+  if (NULL != ns_qe)
+  {
+    GNUNET_NAMESTORE_cancel (ns_qe);
+    ns_qe = NULL;
+  }
+  if (NULL != ns)
+  {
+    GNUNET_NAMESTORE_disconnect (ns);
+    ns = NULL;
+  }
+  if (NULL != idh)
+  {
+    GNUNET_IDENTITY_disconnect (idh);
+    idh = NULL;
+  }
+  for (ego_entry = ego_head; NULL != ego_entry;)
+  {
+    ego_tmp = ego_entry;
+    ego_entry = ego_entry->next;
+    GNUNET_free (ego_tmp->identifier);
+    GNUNET_free (ego_tmp);
+  }
+}
+
+static void
+commit_cb (void *cls, enum GNUNET_ErrorCode ec)
+{
+  ns_qe = NULL;
+  if (GNUNET_EC_NONE != ec)
+  {
+    fprintf (stderr, "Failed to commit to namestore: `%s'\n",
+             GNUNET_ErrorCode_get_hint (ec));
+    ret = 1;
+  }
+  GNUNET_SCHEDULER_shutdown ();
+}
+
+static void
+process_command_stdin ();
+
+
+static void
+finish_command (void)
+{
+  reset_handles ();
+  if (read_from_stdin)
+  {
+    process_command_stdin ();
+    return;
+  }
+  ns_qe = GNUNET_NAMESTORE_transaction_commit (ns, &commit_cb, NULL);
 }
 
 
@@ -452,7 +699,7 @@ add_continuation (void *cls, enum GNUNET_ErrorCode ec)
       ret = 1;
   }
   ret = 0;
-  test_finished ();
+  finish_command ();
 }
 
 
@@ -467,7 +714,7 @@ del_continuation (void *cls, enum GNUNET_ErrorCode ec)
              _ ("Deleting record failed: %s\n"), GNUNET_ErrorCode_get_hint (
                ec));
   }
-  test_finished ();
+  finish_command ();
 }
 
 static void
@@ -496,7 +743,7 @@ purge_next_record (void *cls)
   if (NULL == marked_head)
   {
     ret = 0;
-    test_finished ();
+    finish_command ();
     return;
   }
   mrec = marked_head;
@@ -527,7 +774,7 @@ zone_iteration_finished (void *cls)
     return;
   }
   ret = 0;
-  test_finished ();
+  finish_command ();
 }
 
 
@@ -541,7 +788,7 @@ zone_iteration_error_cb (void *cls)
   list_it = NULL;
   fprintf (stderr, "Error iterating over zone\n");
   ret = 1;
-  test_finished ();
+  finish_command ();
 }
 
 static void
@@ -797,7 +1044,7 @@ display_record_lookup (void *cls,
   (void) zone_key;
   get_qe = NULL;
   display_record (zone_key, rname, rd_len, rd);
-  test_finished ();
+  finish_command ();
 }
 
 
@@ -838,7 +1085,7 @@ lookup_error_cb (void *cls)
   (void) cls;
   get_qe = NULL;
   fprintf (stderr, "%s", "Failed to lookup record.\n");
-  test_finished ();
+  finish_command ();
 }
 
 
@@ -852,7 +1099,7 @@ add_error_cb (void *cls)
   add_qe = NULL;
   GNUNET_break (0);
   ret = 1;
-  test_finished ();
+  finish_command ();
 }
 
 
@@ -883,7 +1130,7 @@ get_existing_record (void *cls,
   {
     GNUNET_break (0);
     ret = 1;
-    test_finished ();
+    finish_command ();
     return;
   }
 
@@ -904,7 +1151,7 @@ get_existing_record (void *cls,
             "A SOA record exists already under `%s', cannot add a second SOA to the same zone.\n"),
           rec_name);
         ret = 1;
-        test_finished ();
+        finish_command ();
         return;
       }
       break;
@@ -974,7 +1221,7 @@ handle_reverse_lookup (void *cls,
     fprintf (stdout, "%s\n", reverse_pkey);
   else
     fprintf (stdout, "%s.%s\n", label, ego_name);
-  test_finished ();
+  finish_command ();
 }
 
 
@@ -988,7 +1235,7 @@ del_lookup_error_cb (void *cls)
   del_qe = NULL;
   GNUNET_break (0);
   ret = 1;
-  test_finished ();
+  finish_command ();
 }
 
 
@@ -1025,7 +1272,7 @@ del_monitor (void *cls,
                "There are no records under label `%s' that could be deleted.\n"),
              label);
     ret = 1;
-    test_finished ();
+    finish_command ();
     return;
   }
   if ((NULL == value) && (NULL == typestring))
@@ -1067,7 +1314,7 @@ del_monitor (void *cls,
       _ (
         "There are no records under label `%s' that match the request for deletion.\n"),
       label);
-    test_finished ();
+    finish_command ();
     return;
   }
   /* delete everything but what we copied to 'rdx' */
@@ -1078,59 +1325,6 @@ del_monitor (void *cls,
                                            rdx,
                                            &del_continuation,
                                            NULL);
-}
-
-
-/**
- * Parse expiration time.
- *
- * @param expirationstring text to parse
- * @param[out] etime_is_rel set to #GNUNET_YES if time is relative
- * @param[out] etime set to expiration time (abs or rel)
- * @return #GNUNET_OK on success
- */
-static int
-parse_expiration (const char *expirationstring,
-                  int *etime_is_rel,
-                  uint64_t *etime)
-{
-  struct GNUNET_TIME_Relative etime_rel;
-  struct GNUNET_TIME_Absolute etime_abs;
-
-  if (0 == strcmp (expirationstring, "never"))
-  {
-    *etime = GNUNET_TIME_UNIT_FOREVER_ABS.abs_value_us;
-    *etime_is_rel = GNUNET_NO;
-    return GNUNET_OK;
-  }
-  if (GNUNET_OK ==
-      GNUNET_STRINGS_fancy_time_to_relative (expirationstring, &etime_rel))
-  {
-    *etime_is_rel = GNUNET_YES;
-    *etime = etime_rel.rel_value_us;
-    if (GNUNET_TIME_relative_cmp (etime_rel, <, WARN_RELATIVE_EXPIRATION_LIMIT))
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                  "Relative expiration times of less than %s are not recommended. To improve availability, consider increasing this value.\n",
-                  GNUNET_STRINGS_relative_time_to_string (
-                    WARN_RELATIVE_EXPIRATION_LIMIT, GNUNET_NO));
-    }
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Storing record with relative expiration time of %s\n",
-                GNUNET_STRINGS_relative_time_to_string (etime_rel, GNUNET_NO));
-    return GNUNET_OK;
-  }
-  if (GNUNET_OK ==
-      GNUNET_STRINGS_fancy_time_to_absolute (expirationstring, &etime_abs))
-  {
-    *etime_is_rel = GNUNET_NO;
-    *etime = etime_abs.abs_value_us;
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Storing record with absolute expiration time of %s\n",
-                GNUNET_STRINGS_absolute_time_to_string (etime_abs));
-    return GNUNET_OK;
-  }
-  return GNUNET_SYSERR;
 }
 
 
@@ -1147,7 +1341,7 @@ replace_cont (void *cls, enum GNUNET_ErrorCode ec)
                 GNUNET_ErrorCode_get_hint (ec));
     ret = 1;   /* fail from 'main' */
   }
-  GNUNET_SCHEDULER_shutdown ();
+  finish_command ();
 }
 
 
@@ -1173,14 +1367,7 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
   {
     /* nothing more to be done */
     fprintf (stderr, _ ("No options given\n"));
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
-  ns = GNUNET_NAMESTORE_connect (cfg);
-  if (NULL == ns)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                _ ("Failed to connect to namestore\n"));
+    finish_command ();
     return;
   }
 
@@ -1196,8 +1383,8 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
                _ ("Missing option `%s' for operation `%s'\n"),
                "-z",
                _ ("replace"));
-      GNUNET_SCHEDULER_shutdown ();
       ret = 1;
+      finish_command ();
       return;
     }
     if (NULL == name)
@@ -1206,8 +1393,8 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
                _ ("Missing option `%s' for operation `%s'\n"),
                "-R",
                _ ("replace"));
-      GNUNET_SCHEDULER_shutdown ();
       ret = 1;
+      finish_command ();
       return;
     }
     rd_count = 0;
@@ -1235,8 +1422,8 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
     if (0 == strlen (nickstring))
     {
       fprintf (stderr, _ ("Invalid nick `%s'\n"), nickstring);
-      GNUNET_SCHEDULER_shutdown ();
       ret = 1;
+      finish_command ();
       return;
     }
     add = 1;
@@ -1258,8 +1445,8 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
                _ ("Missing option `%s' for operation `%s'\n"),
                "-z",
                _ ("add"));
-      GNUNET_SCHEDULER_shutdown ();
       ret = 1;
+      finish_command ();
       return;
     }
     if (NULL == name)
@@ -1268,8 +1455,8 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
                _ ("Missing option `%s' for operation `%s'\n"),
                "-n",
                _ ("add"));
-      GNUNET_SCHEDULER_shutdown ();
       ret = 1;
+      finish_command ();
       return;
     }
     if (NULL == typestring)
@@ -1278,16 +1465,16 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
                _ ("Missing option `%s' for operation `%s'\n"),
                "-t",
                _ ("add"));
-      GNUNET_SCHEDULER_shutdown ();
       ret = 1;
+      finish_command ();
       return;
     }
     type = GNUNET_GNSRECORD_typename_to_number (typestring);
     if (UINT32_MAX == type)
     {
       fprintf (stderr, _ ("Unsupported type `%s'\n"), typestring);
-      GNUNET_SCHEDULER_shutdown ();
       ret = 1;
+      finish_command ();
       return;
     }
     if ((GNUNET_DNSPARSER_TYPE_SRV == type) ||
@@ -1297,8 +1484,8 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
       fprintf (stderr,
                _ ("For DNS record types `SRV', `TLSA' and `OPENPGPKEY'"));
       fprintf (stderr, ", please use a `BOX' record instead\n");
-      GNUNET_SCHEDULER_shutdown ();
       ret = 1;
+      finish_command ();
       return;
     }
     if (NULL == value)
@@ -1308,7 +1495,7 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
                "-V",
                _ ("add"));
       ret = 1;
-      GNUNET_SCHEDULER_shutdown ();
+      finish_command ();
       return;
     }
     if (GNUNET_OK !=
@@ -1318,8 +1505,8 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
                _ ("Value `%s' invalid for record type `%s'\n"),
                value,
                typestring);
-      GNUNET_SCHEDULER_shutdown ();
       ret = 1;
+      finish_command ();
       return;
     }
     if (NULL == expirationstring)
@@ -1328,15 +1515,15 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
                _ ("Missing option `%s' for operation `%s'\n"),
                "-e",
                _ ("add"));
-      GNUNET_SCHEDULER_shutdown ();
       ret = 1;
+      finish_command ();
       return;
     }
     if (GNUNET_OK != parse_expiration (expirationstring, &etime_is_rel, &etime))
     {
       fprintf (stderr, _ ("Invalid time format `%s'\n"), expirationstring);
-      GNUNET_SCHEDULER_shutdown ();
       ret = 1;
+      finish_command ();
       return;
     }
     add_qe = GNUNET_NAMESTORE_records_lookup (ns,
@@ -1355,8 +1542,8 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
                _ ("Missing option `%s' for operation `%s'\n"),
                "-z",
                _ ("del"));
-      GNUNET_SCHEDULER_shutdown ();
       ret = 1;
+      finish_command ();
       return;
     }
     if (NULL == name)
@@ -1365,8 +1552,8 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
                _ ("Missing option `%s' for operation `%s'\n"),
                "-n",
                _ ("del"));
-      GNUNET_SCHEDULER_shutdown ();
       ret = 1;
+      finish_command ();
       return;
     }
     del_qe = GNUNET_NAMESTORE_records_lookup (ns,
@@ -1398,8 +1585,8 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
                _ ("Missing option `%s' for operation `%s'\n"),
                "-z",
                _ ("purge-zone"));
-      GNUNET_SCHEDULER_shutdown ();
       ret = 1;
+      finish_command ();
       return;
     }
     list_it = GNUNET_NAMESTORE_zone_iteration_start2 (ns,
@@ -1423,8 +1610,8 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
                  _ ("Missing option `%s' for operation `%s'\n"),
                  "-z",
                  _ ("list"));
-        GNUNET_SCHEDULER_shutdown ();
         ret = 1;
+        finish_command ();
         return;
       }
       get_qe = GNUNET_NAMESTORE_records_lookup (ns,
@@ -1457,8 +1644,8 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
                _ ("Missing option `%s' for operation `%s'\n"),
                "-z",
                _ ("reverse-pkey"));
-      GNUNET_SCHEDULER_shutdown ();
       ret = 1;
+      finish_command ();
       return;
     }
     if (GNUNET_OK !=
@@ -1468,7 +1655,9 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
       fprintf (stderr,
                _ ("Invalid public key for reverse lookup `%s'\n"),
                reverse_pkey);
-      GNUNET_SCHEDULER_shutdown ();
+      ret = 1;
+      finish_command ();
+      return;
     }
     reverse_qe = GNUNET_NAMESTORE_zone_to_name (ns,
                                                 &zone_pkey,
@@ -1489,8 +1678,8 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
                _ ("Missing option `%s' for operation `%s'\n"),
                "-z",
                _ ("uri"));
-      GNUNET_SCHEDULER_shutdown ();
       ret = 1;
+      finish_command ();
       return;
     }
 
@@ -1502,8 +1691,8 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
          GNUNET_IDENTITY_public_key_from_string (sh, &pkey)))
     {
       fprintf (stderr, _ ("Invalid URI `%s'\n"), uri);
-      GNUNET_SCHEDULER_shutdown ();
       ret = 1;
+      finish_command ();
       return;
     }
     if (NULL == expirationstring)
@@ -1512,15 +1701,15 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
                _ ("Missing option `%s' for operation `%s'\n"),
                "-e",
                _ ("add"));
-      GNUNET_SCHEDULER_shutdown ();
       ret = 1;
+      finish_command ();
       return;
     }
     if (GNUNET_OK != parse_expiration (expirationstring, &etime_is_rel, &etime))
     {
       fprintf (stderr, _ ("Invalid time format `%s'\n"), expirationstring);
-      GNUNET_SCHEDULER_shutdown ();
       ret = 1;
+      finish_command ();
       return;
     }
     memset (&rd, 0, sizeof(rd));
@@ -1556,301 +1745,18 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
   }
 }
 
+#define MAX_LINE_LEN 4086
 
-/**
- * Callback invoked from identity service with ego information.
- * An @a ego of NULL means the ego was not found.
- *
- * @param cls closure with the configuration
- * @param ego an ego known to identity service, or NULL
- */
+#define MAX_ARGS 20
+
 static void
-identity_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
+process_command_stdin ()
 {
-  const struct GNUNET_CONFIGURATION_Handle *cfg = cls;
-
-  el = NULL;
-
-  if (NULL == ego)
-  {
-    if (NULL != ego_name)
-    {
-      fprintf (stderr,
-               _ ("Ego `%s' not known to identity service\n"),
-               ego_name);
-    }
-    GNUNET_SCHEDULER_shutdown ();
-    ret = -1;
-    return;
-  }
-  zone_pkey = *GNUNET_IDENTITY_ego_get_private_key (ego);
-  run_with_zone_pkey (cfg);
-}
-
-
-/**
- * Function called with ALL of the egos known to the
- * identity service, used on startup if the user did
- * not specify a zone on the command-line.
- * Once the iteration is done (@a ego is NULL), we
- * ask for the default ego for "namestore".
- *
- * @param cls a `struct GNUNET_CONFIGURATION_Handle`
- * @param ego an ego, NULL for end of iteration
- * @param ctx NULL
- * @param name name associated with @a ego
- */
-static void
-id_connect_cb (void *cls,
-               struct GNUNET_IDENTITY_Ego *ego,
-               void **ctx,
-               const char *name)
-{
-  const struct GNUNET_CONFIGURATION_Handle *cfg = cls;
-  struct GNUNET_IDENTITY_PublicKey pk;
   struct EgoEntry *ego_entry;
-
-  (void) ctx;
-  (void) name;
-  if ((NULL != name) && (NULL != ego))
-  {
-    ego_entry = GNUNET_new (struct EgoEntry);
-    GNUNET_IDENTITY_ego_get_public_key (ego, &pk);
-    ego_entry->ego = ego;
-    ego_entry->identifier = GNUNET_strdup (name);
-    GNUNET_CONTAINER_DLL_insert_tail (ego_head,
-                                      ego_tail,
-                                      ego_entry);
-    return;
-  }
-  if (NULL != ego)
-    return;
-  if (NULL == ego_name)
-    run_with_zone_pkey (cfg);
-  else
-    el = GNUNET_IDENTITY_ego_lookup (cfg, ego_name, &identity_cb, (void *) cfg);
-}
-
-
-/**
- * Main function that will be run.
- *
- * @param cls closure
- * @param args remaining command-line arguments
- * @param cfgfile name of the configuration file used (for saving, can be NULL!)
- * @param cfg configuration
- */
-static void
-run (void *cls,
-     char *const *args,
-     const char *cfgfile,
-     const struct GNUNET_CONFIGURATION_Handle *cfg)
-{
-  const char *pkey_str;
-
-  (void) cls;
-  (void) args;
-  (void) cfgfile;
-  if (NULL != args[0])
-    GNUNET_log (
-      GNUNET_ERROR_TYPE_WARNING,
-      _ ("Superfluous command line arguments (starting with `%s') ignored\n"),
-      args[0]);
-  if ((NULL != args[0]) && (NULL == uri))
-    uri = GNUNET_strdup (args[0]);
-
-  GNUNET_SCHEDULER_add_shutdown (&do_shutdown, (void *) cfg);
-  pkey_str = getenv ("GNUNET_NAMESTORE_EGO_PRIVATE_KEY");
-  if (NULL != pkey_str)
-  {
-    if (GNUNET_OK != GNUNET_STRINGS_string_to_data (pkey_str,
-                                                    strlen (pkey_str),
-                                                    &zone_pkey,
-                                                    sizeof(zone_pkey)))
-    {
-      fprintf (stderr,
-               "Malformed private key `%s' in $%s\n",
-               pkey_str,
-               "GNUNET_NAMESTORE_EGO_PRIVATE_KEY");
-      ret = 1;
-      GNUNET_SCHEDULER_shutdown ();
-      return;
-    }
-    run_with_zone_pkey (cfg);
-    return;
-  }
-  idh = GNUNET_IDENTITY_connect (cfg, &id_connect_cb, (void *) cfg);
-  if (NULL == idh)
-    fprintf (stderr, _ ("Cannot connect to identity service\n"));
-  ret = -1;
-}
-
-
-/**
- * Command-line option parser function that allows the user to specify
- * a complete record as one argument for adding/removing.  A pointer
- * to the head of the list of record sets must be passed as the "scls"
- * argument.
- *
- * @param ctx command line processor context
- * @param scls must be of type "struct GNUNET_FS_Uri **"
- * @param option name of the option (typically 'R')
- * @param value command line argument given; format is
- *        "TTL TYPE FLAGS VALUE" where TTL is an expiration time (rel or abs),
- *        always given in seconds (without the unit),
- *         TYPE is a DNS/GNS record type, FLAGS is either "n" for no flags or
- *         a combination of 's' (shadow) and 'p' (public) and VALUE is the
- *         value (in human-readable format)
- * @return #GNUNET_OK on success
- */
-static int
-multirecord_process (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
-                     void *scls,
-                     const char *option,
-                     const char *value)
-{
-  struct RecordSetEntry **head = scls;
-  struct RecordSetEntry *r;
-  struct GNUNET_GNSRECORD_Data record;
-  char *cp;
-  char *tok;
-  char *saveptr;
-  int etime_is_rel;
-  void *raw_data;
-
-  (void) ctx;
-  (void) option;
-  cp = GNUNET_strdup (value);
-  tok = strtok_r (cp, " ", &saveptr);
-  if (NULL == tok)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                _ ("Empty record line argument is not allowed.\n"));
-    GNUNET_free (cp);
-    return GNUNET_SYSERR;
-  }
-  {
-    char *etime_in_s;
-
-    GNUNET_asprintf (&etime_in_s, "%s s", tok);
-    if (GNUNET_OK !=
-        parse_expiration (etime_in_s, &etime_is_rel, &record.expiration_time))
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  _ ("Invalid expiration time `%s' (must be without unit)\n"),
-                  tok);
-      GNUNET_free (cp);
-      GNUNET_free (etime_in_s);
-      return GNUNET_SYSERR;
-    }
-    GNUNET_free (etime_in_s);
-  }
-  tok = strtok_r (NULL, " ", &saveptr);
-  if (NULL == tok)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                _ ("Missing entries in record line `%s'.\n"),
-                value);
-    GNUNET_free (cp);
-    return GNUNET_SYSERR;
-  }
-  record.record_type = GNUNET_GNSRECORD_typename_to_number (tok);
-  if (UINT32_MAX == record.record_type)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, _ ("Unknown record type `%s'\n"), tok);
-    GNUNET_free (cp);
-    return GNUNET_SYSERR;
-  }
-  tok = strtok_r (NULL, " ", &saveptr);
-  if (NULL == tok)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                _ ("Missing entries in record line `%s'.\n"),
-                value);
-    GNUNET_free (cp);
-    return GNUNET_SYSERR;
-  }
-  record.flags = GNUNET_GNSRECORD_RF_NONE;
-  if (etime_is_rel)
-    record.flags |= GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
-  if (NULL == strchr (tok, (unsigned char) 'p')) /* p = public */
-    record.flags |= GNUNET_GNSRECORD_RF_PRIVATE;
-  if (NULL != strchr (tok, (unsigned char) 's'))
-    record.flags |= GNUNET_GNSRECORD_RF_SHADOW;
-  /* find beginning of record value */
-  tok = strchr (&value[tok - cp], (unsigned char) ' ');
-  if (NULL == tok)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                _ ("Missing entries in record line `%s'.\n"),
-                value);
-    GNUNET_free (cp);
-    return GNUNET_SYSERR;
-  }
-  GNUNET_free (cp);
-  tok++; /* skip space */
-  if (GNUNET_OK != GNUNET_GNSRECORD_string_to_value (record.record_type,
-                                                     tok,
-                                                     &raw_data,
-                                                     &record.data_size))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                _ ("Invalid record data for type %s: `%s'.\n"),
-                GNUNET_GNSRECORD_number_to_typename (record.record_type),
-                tok);
-    return GNUNET_SYSERR;
-  }
-
-  r = GNUNET_malloc (sizeof(struct RecordSetEntry) + record.data_size);
-  r->next = *head;
-  record.data = &r[1];
-  memcpy (&r[1], raw_data, record.data_size);
-  GNUNET_free (raw_data);
-  r->record = record;
-  *head = r;
-  return GNUNET_OK;
-}
-
-
-/**
- * Allow user to specify keywords.
- *
- * @param shortName short name of the option
- * @param name long name of the option
- * @param argumentHelp help text for the option argument
- * @param description long help text for the option
- * @param[out] topKeywords set to the desired value
- */
-struct GNUNET_GETOPT_CommandLineOption
-multirecord_option (char shortName,
-                    const char *name,
-                    const char *argumentHelp,
-                    const char *description,
-                    struct RecordSetEntry **rs)
-{
-  struct GNUNET_GETOPT_CommandLineOption clo = { .shortName = shortName,
-                                                 .name = name,
-                                                 .argumentHelp = argumentHelp,
-                                                 .description = description,
-                                                 .require_argument = 1,
-                                                 .processor =
-                                                   &multirecord_process,
-                                                 .scls = (void *) rs };
-
-  return clo;
-}
-
-
-/**
- * The main function for gnunet-namestore.
- *
- * @param argc number of arguments from the command line
- * @param argv command line arguments
- * @return 0 ok, 1 on error
- */
-int
-main (int argc, char *const *argv)
-{
+  char buf[MAX_LINE_LEN];
+  char *tmp_argv[MAX_ARGS];
+  unsigned int tmp_argc = 0;
+  char *tmp;
   struct GNUNET_GETOPT_CommandLineOption options[] =
   { GNUNET_GETOPT_option_flag ('a', "add", gettext_noop ("add record"), &add),
     GNUNET_GETOPT_option_flag ('d',
@@ -1861,6 +1767,10 @@ main (int argc, char *const *argv)
                                "display",
                                gettext_noop ("display records"),
                                &list),
+    GNUNET_GETOPT_option_flag ('S',
+                               "from-stdin",
+                               gettext_noop ("read commands from stdin"),
+                               &read_from_stdin),
     GNUNET_GETOPT_option_string (
       'e',
       "expiration",
@@ -1956,7 +1866,275 @@ main (int argc, char *const *argv)
                                    "name of the ego controlling the zone"),
                                  &ego_name),
     GNUNET_GETOPT_OPTION_END };
+
+
+  if (NULL == fgets (buf, sizeof (buf), stdin))
+  {
+    ns_qe = GNUNET_NAMESTORE_transaction_commit (ns, &commit_cb, NULL);
+    return;
+  }
+  if (buf[strlen (buf) - 1] == '\n')
+    buf[strlen (buf) - 1] = '\0';
+  /* We need to build a char *const *argv here */
+  /* I guess strtok on space */
+  tmp = strtok (buf, " ");
+  if (NULL == tmp)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Error parsing line %s\n", buf);
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
+  tmp_argv[0] = tmp;
+  tmp_argc = 1;
+  while (NULL != (tmp = strtok (NULL, " ")))
+  {
+    tmp_argv[tmp_argc] = tmp;
+    tmp_argc++;
+  }
+  GNUNET_GETOPT_run ("gnunet-namestore", options, tmp_argc, tmp_argv);
+  for (ego_entry = ego_head; NULL != ego_entry; ego_entry = ego_entry->next)
+  {
+    if (0 != strcmp (ego_entry->identifier, ego_name))
+      continue;
+    zone_pkey = *GNUNET_IDENTITY_ego_get_private_key (ego_entry->ego);
+    break;
+  }
+  run_with_zone_pkey (cfg);
+}
+
+
+static void
+begin_cb (void *cls, enum GNUNET_ErrorCode ec)
+{
+  ns_qe = NULL;
+  if (GNUNET_EC_NONE != ec)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to start transaction: %s\n",
+                GNUNET_ErrorCode_get_hint (ec));
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
+  if (read_from_stdin)
+  {
+    process_command_stdin ();
+    return;
+  }
+  run_with_zone_pkey (cfg);
+}
+
+
+/**
+ * Function called with ALL of the egos known to the
+ * identity service, used on startup if the user did
+ * not specify a zone on the command-line.
+ * Once the iteration is done (@a ego is NULL), we
+ * ask for the default ego for "namestore".
+ *
+ * @param cls a `struct GNUNET_CONFIGURATION_Handle`
+ * @param ego an ego, NULL for end of iteration
+ * @param ctx NULL
+ * @param name name associated with @a ego
+ */
+static void
+id_connect_cb (void *cls,
+               struct GNUNET_IDENTITY_Ego *ego,
+               void **ctx,
+               const char *name)
+{
+  struct GNUNET_IDENTITY_PublicKey pk;
+  struct EgoEntry *ego_entry;
+
+  (void) ctx;
+  (void) name;
+  if ((NULL != name) && (NULL != ego))
+  {
+    ego_entry = GNUNET_new (struct EgoEntry);
+    GNUNET_IDENTITY_ego_get_public_key (ego, &pk);
+    ego_entry->ego = ego;
+    ego_entry->identifier = GNUNET_strdup (name);
+    GNUNET_CONTAINER_DLL_insert_tail (ego_head,
+                                      ego_tail,
+                                      ego_entry);
+    if ((NULL != ego_name) &&
+        (0 == strcmp (name, ego_name)))
+      zone_pkey = *GNUNET_IDENTITY_ego_get_private_key (ego);
+    return;
+  }
+  if (NULL != ego)
+    return;
+  ns_qe = GNUNET_NAMESTORE_transaction_begin (ns, &begin_cb, (void *) cfg);
+}
+
+
+
+
+
+/**
+ * Main function that will be run.
+ *
+ * @param cls closure
+ * @param args remaining command-line arguments
+ * @param cfgfile name of the configuration file used (for saving, can be NULL!)
+ * @param cfg configuration
+ */
+static void
+run (void *cls,
+     char *const *args,
+     const char *cfgfile,
+     const struct GNUNET_CONFIGURATION_Handle *_cfg)
+{
+  (void) cls;
+  (void) args;
+  (void) cfgfile;
+  cfg = _cfg;
+  if (NULL != args[0])
+    GNUNET_log (
+      GNUNET_ERROR_TYPE_WARNING,
+      _ ("Superfluous command line arguments (starting with `%s') ignored\n"),
+      args[0]);
+
+  GNUNET_SCHEDULER_add_shutdown (&do_shutdown, (void *) cfg);
+  ns = GNUNET_NAMESTORE_connect (cfg);
+  if (NULL == ns)
+  {
+    fprintf (stderr, _ ("Failed to connect to namestore\n"));
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
+  idh = GNUNET_IDENTITY_connect (cfg, &id_connect_cb, (void *) cfg);
+  if (NULL == idh)
+  {
+    ret = -1;
+    fprintf (stderr, _ ("Cannot connect to identity service\n"));
+    GNUNET_SCHEDULER_shutdown ();
+  }
+}
+
+
+
+/**
+ * The main function for gnunet-namestore.
+ *
+ * @param argc number of arguments from the command line
+ * @param argv command line arguments
+ * @return 0 ok, 1 on error
+ */
+int
+main (int argc, char *const *argv)
+{
   int lret;
+  struct GNUNET_GETOPT_CommandLineOption options[] =
+  { GNUNET_GETOPT_option_flag ('a', "add", gettext_noop ("add record"), &add),
+    GNUNET_GETOPT_option_flag ('d',
+                               "delete",
+                               gettext_noop ("delete record"),
+                               &del),
+    GNUNET_GETOPT_option_flag ('D',
+                               "display",
+                               gettext_noop ("display records"),
+                               &list),
+    GNUNET_GETOPT_option_flag ('S',
+                               "from-stdin",
+                               gettext_noop ("read commands from stdin"),
+                               &read_from_stdin),
+    GNUNET_GETOPT_option_string (
+      'e',
+      "expiration",
+      "TIME",
+      gettext_noop (
+        "expiration time for record to use (for adding only), \"never\" is possible"),
+      &expirationstring),
+    GNUNET_GETOPT_option_string ('i',
+                                 "nick",
+                                 "NICKNAME",
+                                 gettext_noop (
+                                   "set the desired nick name for the zone"),
+                                 &nickstring),
+    GNUNET_GETOPT_option_flag ('m',
+                               "monitor",
+                               gettext_noop (
+                                 "monitor changes in the namestore"),
+                               &monitor),
+    GNUNET_GETOPT_option_string ('n',
+                                 "name",
+                                 "NAME",
+                                 gettext_noop (
+                                   "name of the record to add/delete/display"),
+                                 &name),
+    GNUNET_GETOPT_option_string ('r',
+                                 "reverse",
+                                 "PKEY",
+                                 gettext_noop (
+                                   "determine our name for the given PKEY"),
+                                 &reverse_pkey),
+    multirecord_option (
+      'R',
+      "replace",
+      "RECORDLINE",
+      gettext_noop (
+        "set record set to values given by (possibly multiple) RECORDLINES; can be specified multiple times"),
+      &recordset),
+    GNUNET_GETOPT_option_string ('t',
+                                 "type",
+                                 "TYPE",
+                                 gettext_noop (
+                                   "type of the record to add/delete/display"),
+                                 &typestring),
+    GNUNET_GETOPT_option_string ('u',
+                                 "uri",
+                                 "URI",
+                                 gettext_noop ("URI to import into our zone"),
+                                 &uri),
+    GNUNET_GETOPT_option_string ('V',
+                                 "value",
+                                 "VALUE",
+                                 gettext_noop (
+                                   "value of the record to add/delete"),
+                                 &value),
+    GNUNET_GETOPT_option_flag ('p',
+                               "public",
+                               gettext_noop ("create or list public record"),
+                               &is_public),
+    GNUNET_GETOPT_option_flag ('o',
+                               "omit-private",
+                               gettext_noop ("omit private records"),
+                               &omit_private),
+    GNUNET_GETOPT_option_flag ('T',
+                               "include-maintenance",
+                               gettext_noop (
+                                 "do not filter maintenance records"),
+                               &include_maintenance),
+    GNUNET_GETOPT_option_flag ('P',
+                               "purge-orphans",
+                               gettext_noop (
+                                 "purge namestore of all orphans"),
+                               &purge_orphaned),
+    GNUNET_GETOPT_option_flag ('O',
+                               "list-orphans",
+                               gettext_noop (
+                                 "show private key for orphaned records for recovery using `gnunet-identity -C -P <key>'. Use in combination with --display"),
+                               &list_orphaned),
+    GNUNET_GETOPT_option_flag ('X',
+                               "purge-zone-records",
+                               gettext_noop (
+                                 "delete all records in specified zone"),
+                               &purge_zone),
+    GNUNET_GETOPT_option_flag (
+      's',
+      "shadow",
+      gettext_noop (
+        "create shadow record (only valid if all other records of the same type have expired"),
+      &is_shadow),
+    GNUNET_GETOPT_option_string ('z',
+                                 "zone",
+                                 "EGO",
+                                 gettext_noop (
+                                   "name of the ego controlling the zone"),
+                                 &ego_name),
+    GNUNET_GETOPT_OPTION_END };
+
 
   if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
     return 2;
