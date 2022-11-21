@@ -26,17 +26,20 @@ function start_peer
 {
 	gnunet-arm -s -c $CONFIGURATION
 	gnunet-identity -C testego -c $CONFIGURATION
+  gnunet-identity -C testego2 -c $CONFIGURATION
 }
 
 function stop_peer
 {
 	gnunet-identity -D testego -c $CONFIGURATION
+  gnunet-identity -D testego2 -c $CONFIGURATION
 	gnunet-arm -e -c $CONFIGURATION
 }
 
 
 start_peer
 # Create a public record
+EGOKEY=`gnunet-identity -d | grep testego2 | cut -d' ' -f3`
 gnunet-namestore -a -c $CONFIGURATION -S <<EOF
 $TEST_RECORD_NAME.testego:
   A 3600000000 [pr] $TEST_IP
@@ -48,9 +51,12 @@ $TEST_RECORD_NAME2.testego:
   AAAA 324241223 [prS] ::dead:beef
   A 111324241223000000 [pC] 1.1.1.1
 
+www7.$EGOKEY:
+  A 3600000000 [pr] $TEST_IP
+
 EOF
 NAMESTORE_RES=$?
-gnunet-namestore -z testego -D -r -c $CONFIGURATION
+gnunet-namestore -D -r -c $CONFIGURATION
 stop_peer
 
 if [ $NAMESTORE_RES = 0 ]

@@ -1371,12 +1371,12 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
     struct GNUNET_GNSRECORD_Data *rd;
 
     /* FIXME: We could easily support append and delete with this as well */
-    if (!add)
+    if (! add)
     {
-      fprintf (stderr, _("Recordlines only work with option `%s'\n"),
+      fprintf (stderr, _ ("Recordlines only work with option `%s'\n"),
                "-a");
       ret = 1;
-      finish_command();
+      finish_command ();
       return;
     }
     if (NULL == name)
@@ -1741,10 +1741,47 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
 
 #define MAX_ARGS 20
 
+static int
+get_identity_for_string (const char *str,
+                         struct GNUNET_IDENTITY_PrivateKey *zk)
+{
+  const struct GNUNET_IDENTITY_PrivateKey *privkey;
+  struct GNUNET_IDENTITY_PublicKey pubkey;
+  struct GNUNET_IDENTITY_PublicKey ego_pubkey;
+  struct EgoEntry *ego_entry;
+
+  if (GNUNET_OK == GNUNET_IDENTITY_public_key_from_string (str,
+                                                           &pubkey))
+  {
+    for (ego_entry = ego_head;
+         NULL != ego_entry; ego_entry = ego_entry->next)
+    {
+      privkey = GNUNET_IDENTITY_ego_get_private_key (ego_entry->ego);
+      GNUNET_IDENTITY_ego_get_public_key (ego_entry->ego, &ego_pubkey);
+      if (0 == memcmp (&ego_pubkey, &pubkey, sizeof (pubkey)))
+      {
+        *zk = *privkey;
+        return GNUNET_OK;
+      }
+    }
+  }
+  else
+  {
+    for (ego_entry = ego_head; NULL != ego_entry; ego_entry = ego_entry->next)
+    {
+      /** FIXME: Check for zTLD? **/
+      if (0 != strcmp (str, ego_entry->identifier))
+        continue;
+      *zk = *GNUNET_IDENTITY_ego_get_private_key (ego_entry->ego);
+      return GNUNET_OK;
+    }
+  }
+  return GNUNET_NO;
+}
+
 static void
 process_command_stdin ()
 {
-  struct EgoEntry *ego_entry;
   char buf[MAX_LINE_LEN];
   static struct GNUNET_IDENTITY_PrivateKey next_zone_key;
   static char next_name[GNUNET_DNSPARSER_MAX_NAME_LENGTH];
@@ -1783,13 +1820,12 @@ process_command_stdin ()
         ret = 1;
         return;
       }
-      for (ego_entry = ego_head; NULL != ego_entry; ego_entry = ego_entry->next)
+      if (GNUNET_OK != get_identity_for_string (tmp + 1, &next_zone_key))
       {
-        /** FIXME: Check for zTLD? **/
-        if (0 != strcmp (tmp + 1, ego_entry->identifier))
-          continue;
-        next_zone_key = *GNUNET_IDENTITY_ego_get_private_key (ego_entry->ego);
-        break;
+        fprintf (stderr, "Error parsing zone name `%s'\n", tmp + 1);
+        ret = 1;
+        GNUNET_SCHEDULER_shutdown ();
+        return;
       }
       *tmp = '\0';
       printf ("Switching to new name `%s' in zone `%s'\n", next_name, tmp + 1);
