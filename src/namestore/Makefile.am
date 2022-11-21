@@ -7,6 +7,12 @@ pkgcfgdir= $(pkgdatadir)/config.d/
 
 libexecdir= $(pkglibdir)/libexec/
 
+sqldir = $(prefix)/share/gnunet/sql/
+
+sql_DATA = \
+  namestore-0001.sql \
+  namestore-drop.sql
+
 pkgcfg_DATA = \
    namestore.conf
 

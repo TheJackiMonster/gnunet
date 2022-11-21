@@ -59,6 +59,8 @@ do_shutdown (void *cls)
   if (NULL != pluginname)
     GNUNET_free (pluginname);
 }
+
+
 /**
  * Main function that will be run.
  *
@@ -74,7 +76,6 @@ run (void *cls,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
   char *db_lib_name;
-  char *emsg;
   struct GNUNET_NAMESTORE_PluginFunctions *plugin;
 
   (void) cls;
@@ -86,7 +87,8 @@ run (void *cls,
       _ ("Superfluous command line arguments (starting with `%s') ignored\n"),
       args[0]);
 
-  GNUNET_SCHEDULER_add_shutdown (&do_shutdown, (void *) cfg);
+  GNUNET_SCHEDULER_add_shutdown (&do_shutdown,
+                                 (void *) cfg);
   if (NULL == pluginname)
   {
     fprintf (stderr, "No plugin given!\n");
@@ -94,11 +96,15 @@ run (void *cls,
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  GNUNET_asprintf (&db_lib_name, "libgnunet_plugin_namestore_%s", pluginname);
+  GNUNET_asprintf (&db_lib_name,
+                   "libgnunet_plugin_namestore_%s",
+                   pluginname);
   plugin = GNUNET_PLUGIN_load (db_lib_name, (void *) cfg);
   if (NULL == plugin)
   {
-    fprintf (stderr, "Failed to load %s!\n", db_lib_name);
+    fprintf (stderr,
+             "Failed to load %s!\n",
+             db_lib_name);
     ret = 1;
     GNUNET_SCHEDULER_shutdown ();
     GNUNET_free (db_lib_name);
@@ -106,34 +112,33 @@ run (void *cls,
   }
   if (reset)
   {
-    if (GNUNET_OK != plugin->reset_database (plugin->cls, &emsg))
+    if (GNUNET_OK !=
+        plugin->drop_tables (plugin->cls))
     {
-      // FIXME do we want to return a reason?
-      fprintf (stderr, "Failed to reset database: %s\n",
-               emsg);
+      fprintf (stderr,
+               "Failed to reset database\n");
       ret = 1;
-      GNUNET_free (emsg);
       GNUNET_free (db_lib_name);
       GNUNET_SCHEDULER_shutdown ();
       return;
     }
   }
-  else if (init)
+  if (init || reset)
   {
-    if (GNUNET_OK != plugin->initialize_database (plugin->cls, &emsg))
+    if (GNUNET_OK !=
+        plugin->create_tables (plugin->cls))
     {
-      // FIXME do we want to return a reason?
-      fprintf (stderr, "Failed to initialize database: %s\n",
-               emsg);
+      fprintf (stderr,
+               "Failed to initialize database\n");
       ret = 1;
-      GNUNET_free (emsg);
       GNUNET_free (db_lib_name);
       GNUNET_SCHEDULER_shutdown ();
       return;
     }
   }
   GNUNET_SCHEDULER_shutdown ();
-  GNUNET_break (NULL == GNUNET_PLUGIN_unload (db_lib_name, plugin));
+  GNUNET_break (NULL == GNUNET_PLUGIN_unload (db_lib_name,
+                                              plugin));
   GNUNET_free (db_lib_name);
 }
 
@@ -148,9 +153,10 @@ run (void *cls,
 int
 main (int argc, char *const *argv)
 {
-  struct GNUNET_GETOPT_CommandLineOption options[] =
-  { GNUNET_GETOPT_option_flag ('i', "init", gettext_noop (
-                                 "initialize database"), &init),
+  struct GNUNET_GETOPT_CommandLineOption options[] = {
+    GNUNET_GETOPT_option_flag ('i', "init",
+                               gettext_noop ("initialize database"),
+                               &init),
     GNUNET_GETOPT_option_flag ('r',
                                "reset",
                                gettext_noop (
@@ -163,13 +169,18 @@ main (int argc, char *const *argv)
       gettext_noop (
         "the namestore plugin to work with, e.g. 'sqlite'"),
       &pluginname),
-    GNUNET_GETOPT_OPTION_END };
+    GNUNET_GETOPT_OPTION_END
+  };
   int lret;
 
-  if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
+  if (GNUNET_OK !=
+      GNUNET_STRINGS_get_utf8_args (argc, argv,
+                                    &argc, &argv))
     return 2;
 
-  GNUNET_log_setup ("gnunet-namestore-dbtool", "WARNING", NULL);
+  GNUNET_log_setup ("gnunet-namestore-dbtool",
+                    "WARNING",
+                    NULL);
   if (GNUNET_OK !=
       (lret = GNUNET_PROGRAM_run (argc,
                                   argv,
