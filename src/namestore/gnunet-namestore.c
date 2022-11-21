@@ -455,14 +455,7 @@ parse_recordline (const char *line)
     record.flags |= GNUNET_GNSRECORD_RF_SHADOW;
   if (NULL != strchr (tok, (unsigned char) 'C'))
     record.flags |= GNUNET_GNSRECORD_RF_CRITICAL;
-  tok = strtok_r (NULL, " ", &saveptr);
-  if (NULL == tok)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                _ ("Empty record line argument is not allowed.\n"));
-    GNUNET_free (cp);
-    return GNUNET_SYSERR;
-  }
+  tok += strlen (tok) + 1;
   if (GNUNET_OK != GNUNET_GNSRECORD_string_to_value (record.record_type,
                                                      tok,
                                                      &raw_data,
@@ -1828,7 +1821,6 @@ process_command_stdin ()
         return;
       }
       *tmp = '\0';
-      printf ("Switching to new name `%s' in zone `%s'\n", next_name, tmp + 1);
       have_next_zonekey = GNUNET_YES;
       /* Run a command for the previous record set */
       if (NULL != recordset)
@@ -1848,20 +1840,19 @@ process_command_stdin ()
       fprintf (stderr, "Warning, encountered recordline without zone\n");
       continue;
     }
-    printf ("Parsing `%s'\n", buf);
     parse_recordline (buf);
   }
   if (GNUNET_NO == finished)
   {
-    if (GNUNET_NO == zonekey_set)
+    if (NULL != recordset)
     {
+      if (GNUNET_YES == zonekey_set)
+      {
+        run_with_zone_pkey (cfg); /** one last time **/
+        finished = GNUNET_YES;
+        return;
+      }
       fprintf (stderr, "Warning, encountered recordline without zone\n");
-    }
-    else if (NULL != recordset)
-    {
-      run_with_zone_pkey (cfg); /** one last time **/
-      finished = GNUNET_YES;
-      return;
     }
   }
   ns_qe = GNUNET_NAMESTORE_transaction_commit (ns, &commit_cb, NULL);
