@@ -451,7 +451,7 @@ shutdown_task (void *cls)
       GNUNET_DHT_put_cancel (job->ph);
     free_job (job);
   }
-if (NULL != statistics)
+  if (NULL != statistics)
   {
     GNUNET_STATISTICS_destroy (statistics,
                                GNUNET_NO);
@@ -740,6 +740,15 @@ check_zone_namestore_next ()
 
   if (0 != ns_iteration_left)
     return; /* current NAMESTORE iteration not yet done */
+  if (job_queue_length >= JOB_QUEUE_LIMIT)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Job queue length exceeded (%u/%u). Pausing namestore iteration.\n",
+                job_queue_length,
+                JOB_QUEUE_LIMIT);
+    iterator_halted = GNUNET_YES;
+    return;
+  }
   update_velocity (put_cnt);
   put_cnt = 0;
   delay = GNUNET_TIME_relative_subtract (target_iteration_velocity_per_record,
@@ -775,10 +784,10 @@ dht_put_continuation (void *cls)
   struct RecordPublicationJob *job = cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "PUT complete\n");
+              "PUT complete; Pending jobs: %u\n", job_queue_length - 1);
   /* When we just fall under the limit, trigger monitor/iterator again
    * if halted. We can only safely trigger one, prefer iterator. */
-  if (job_queue_length <= JOB_QUEUE_LIMIT - NS_BLOCK_SIZE)
+  if (job_queue_length <= JOB_QUEUE_LIMIT)
   {
     if (GNUNET_YES == iterator_halted)
     {
@@ -1077,15 +1086,6 @@ handle_record (void *cls,
                 rd_count,
                 expire);
   job_queue_length++;
-  if (job_queue_length >= JOB_QUEUE_LIMIT)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Job queue length exceeded (%u/%u). Halting namestore iteration.\n",
-                job_queue_length,
-                JOB_QUEUE_LIMIT);
-    iterator_halted = GNUNET_YES;
-    return;
-  }
   check_zone_namestore_next ();
 }
 
