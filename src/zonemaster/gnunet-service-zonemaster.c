@@ -778,7 +778,7 @@ dht_put_continuation (void *cls)
               "PUT complete\n");
   /* When we just fall under the limit, trigger monitor/iterator again
    * if halted. We can only safely trigger one, prefer iterator. */
-  if (job_queue_length <= JOB_QUEUE_LIMIT)
+  if (job_queue_length <= JOB_QUEUE_LIMIT - NS_BLOCK_SIZE)
   {
     if (GNUNET_YES == iterator_halted)
     {
@@ -1080,7 +1080,8 @@ handle_record (void *cls,
   if (job_queue_length >= JOB_QUEUE_LIMIT)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Job queue length exceeded (%u). Halting namestore iteration.\n",
+                "Job queue length exceeded (%u/%u). Halting namestore iteration.\n",
+                job_queue_length,
                 JOB_QUEUE_LIMIT);
     iterator_halted = GNUNET_YES;
     return;
@@ -1240,7 +1241,8 @@ handle_monitor_event (void *cls,
   if (job_queue_length >= JOB_QUEUE_LIMIT)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Job queue length exceeded (%u). Halting monitor.\n",
+                "Job queue length exceeded (%u/%u). Halting monitor.\n",
+                job_queue_length,
                 JOB_QUEUE_LIMIT);
     monitor_halted = GNUNET_YES;
     return;
