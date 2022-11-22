@@ -782,7 +782,7 @@ dht_put_continuation (void *cls)
   {
     if (GNUNET_YES == iterator_halted)
     {
-      GNUNET_NAMESTORE_zone_iterator_next (namestore_iter, 1);
+      check_zone_namestore_next ();
       iterator_halted = GNUNET_NO;
     }
     else if (GNUNET_YES == monitor_halted)
