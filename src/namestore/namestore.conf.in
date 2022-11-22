@@ -32,6 +32,7 @@ TEMPORARY_TABLE = NO
 # Use asynchronous commit (SET synchronous_commit TO OFF).
 ASYNC_COMMIT = NO
 INIT_ON_CONNECT = YES
+SQL_DIR = ${DATADIR}/sql/
 
 [uri]
 gns = gnunet-namestore -e 1a -u
