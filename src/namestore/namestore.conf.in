@@ -27,8 +27,6 @@ FILENAME = $GNUNET_DATA_HOME/namestore/sqlite.db
 [namestore-postgres]
 # How to connect to the database
 CONFIG = postgres:///gnunet
-# Use temporary tables
-TEMPORARY_TABLE = NO
 # Use asynchronous commit (SET synchronous_commit TO OFF).
 ASYNC_COMMIT = NO
 INIT_ON_CONNECT = YES

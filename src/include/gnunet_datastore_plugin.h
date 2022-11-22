@@ -101,17 +101,17 @@ struct GNUNET_DATASTORE_PluginEnvironment
  * @return #GNUNET_OK to keep the item
  *         #GNUNET_NO to delete the item
  */
-typedef int
-(*PluginDatumProcessor) (void *cls,
-                         const struct GNUNET_HashCode *key,
-                         uint32_t size,
-                         const void *data,
-                         enum GNUNET_BLOCK_Type type,
-                         uint32_t priority,
-                         uint32_t anonymity,
-                         uint32_t replication,
-                         struct GNUNET_TIME_Absolute expiration,
-                         uint64_t uid);
+typedef enum GNUNET_GenericReturnValue
+(*PluginDatumProcessor)(void *cls,
+                        const struct GNUNET_HashCode *key,
+                        uint32_t size,
+                        const void *data,
+                        enum GNUNET_BLOCK_Type type,
+                        uint32_t priority,
+                        uint32_t anonymity,
+                        uint32_t replication,
+                        struct GNUNET_TIME_Absolute expiration,
+                        uint64_t uid);
 
 
 /**
