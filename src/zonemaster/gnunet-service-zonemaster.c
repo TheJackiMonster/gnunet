@@ -781,7 +781,8 @@ dht_put_continuation (void *cls)
               "PUT complete; Pending jobs: %u\n", job_queue_length - 1);
   /* When we just fall under the limit, trigger monitor/iterator again
    * if halted. We can only safely trigger one, prefer iterator. */
-  check_zone_namestore_next ();
+  if (NULL != zone_publish_task)
+    check_zone_namestore_next ();
   if (job_queue_length <= JOB_QUEUE_LIMIT)
   {
     if (GNUNET_YES == monitor_halted)
