@@ -8,6 +8,13 @@ pkgcfgdir= $(pkgdatadir)/config.d/
 dist_pkgcfg_DATA = \
   datacache.conf
 
+sqldir = $(prefix)/share/gnunet/sql/
+
+sql_DATA = \
+  datacache-0001.sql \
+  datacache-drop.sql
+
+
 if USE_COVERAGE
   AM_CFLAGS = --coverage -O0
   XLIBS = -lgcov

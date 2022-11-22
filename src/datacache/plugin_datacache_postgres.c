@@ -66,64 +66,45 @@ struct Plugin
 static enum GNUNET_GenericReturnValue
 init_connection (struct Plugin *plugin)
 {
-  struct GNUNET_PQ_ExecuteStatement es[] = {
-    GNUNET_PQ_make_try_execute (
-      "CREATE TEMPORARY SEQUENCE IF NOT EXISTS gn180dc_oid_seq"),
-    GNUNET_PQ_make_execute ("CREATE TEMPORARY TABLE IF NOT EXISTS gn180dc ("
-                            "  oid OID NOT NULL DEFAULT nextval('gn180dc_oid_seq'),"
-                            "  type INT4 NOT NULL,"
-                            "  ro INT4 NOT NULL,"
-                            "  prox INT4 NOT NULL,"
-                            "  expiration_time INT8 NOT NULL,"
-                            "  key BYTEA NOT NULL CHECK(LENGTH(key)=64),"
-                            "  trunc BYTEA NOT NULL CHECK(LENGTH(trunc)=32),"
-                            "  value BYTEA NOT NULL,"
-                            "  path BYTEA DEFAULT NULL)"),
-    GNUNET_PQ_make_try_execute (
-      "ALTER SEQUENCE gnu011dc_oid_seq OWNED BY gn180dc.oid"),
-    GNUNET_PQ_make_try_execute (
-      "CREATE INDEX IF NOT EXISTS idx_oid ON gn180dc (oid)"),
-    GNUNET_PQ_make_try_execute (
-      "CREATE INDEX IF NOT EXISTS idx_key ON gn180dc (key)"),
-    GNUNET_PQ_make_try_execute (
-      "CREATE INDEX IF NOT EXISTS idx_dt ON gn180dc (expiration_time)"),
-    GNUNET_PQ_make_execute (
-      "ALTER TABLE gn180dc ALTER value SET STORAGE EXTERNAL"),
-    GNUNET_PQ_make_execute ("ALTER TABLE gn180dc ALTER key SET STORAGE PLAIN"),
-    GNUNET_PQ_EXECUTE_STATEMENT_END
-  };
   struct GNUNET_PQ_PreparedStatement ps[] = {
     GNUNET_PQ_make_prepare ("getkt",
-                            "SELECT expiration_time,type,ro,value,trunc,path FROM gn180dc "
-                            "WHERE key=$1 AND type=$2 AND expiration_time >= $3"),
+                            "SELECT expiration_time,type,ro,value,trunc,path"
+                            " FROM datacache.gn180dc"
+                            " WHERE key=$1 AND type=$2 AND expiration_time >= $3"),
     GNUNET_PQ_make_prepare ("getk",
-                            "SELECT expiration_time,type,ro,value,trunc,path FROM gn180dc "
-                            "WHERE key=$1 AND expiration_time >= $2"),
+                            "SELECT expiration_time,type,ro,value,trunc,path"
+                            " FROM datacache.gn180dc"
+                            " WHERE key=$1 AND expiration_time >= $2"),
     GNUNET_PQ_make_prepare ("getex",
-                            "SELECT LENGTH(value) AS len,oid,key FROM gn180dc"
+                            "SELECT LENGTH(value) AS len,oid,key"
+                            " FROM datacache.gn180dc"
                             " WHERE expiration_time < $1"
                             " ORDER BY expiration_time ASC LIMIT 1"),
     GNUNET_PQ_make_prepare ("getm",
-                            "SELECT LENGTH(value) AS len,oid,key FROM gn180dc"
+                            "SELECT LENGTH(value) AS len,oid,key"
+                            " FROM datacache.gn180dc"
                             " ORDER BY prox ASC, expiration_time ASC LIMIT 1"),
     GNUNET_PQ_make_prepare ("get_closest",
-                            "(SELECT expiration_time,type,ro,value,trunc,path,key FROM gn180dc"
+                            "(SELECT expiration_time,type,ro,value,trunc,path,key"
+                            " FROM datacache.gn180dc"
                             " WHERE key >= $1"
                             "   AND expiration_time >= $2"
                             "   AND ( (type = $3) OR ( 0 = $3) )"
                             " ORDER BY key ASC"
                             " LIMIT $4)"
                             " UNION "
-                            "(SELECT expiration_time,type,ro,value,trunc,path,key FROM gn180dc"
+                            "(SELECT expiration_time,type,ro,value,trunc,path,key"
+                            " FROM datacache.gn180dc"
                             " WHERE key <= $1"
                             "   AND expiration_time >= $2"
                             "   AND ( (type = $3) OR ( 0 = $3) )"
                             " ORDER BY key DESC"
                             " LIMIT $4)"),
     GNUNET_PQ_make_prepare ("delrow",
-                            "DELETE FROM gn180dc WHERE oid=$1"),
+                            "DELETE FROM datacache.gn180dc"
+                            " WHERE oid=$1"),
     GNUNET_PQ_make_prepare ("put",
-                            "INSERT INTO gn180dc"
+                            "INSERT INTO datacache.gn180dc"
                             " (type, ro, prox, expiration_time, key, value, trunc, path) "
                             "VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"),
     GNUNET_PQ_PREPARED_STATEMENT_END
@@ -131,8 +112,8 @@ init_connection (struct Plugin *plugin)
 
   plugin->dbh = GNUNET_PQ_connect_with_cfg (plugin->env->cfg,
                                             "datacache-postgres",
+                                            "datacache-",
                                             NULL,
-                                            es,
                                             ps);
   if (NULL == plugin->dbh)
     return GNUNET_SYSERR;
@@ -165,9 +146,12 @@ postgres_plugin_put (void *cls,
     GNUNET_PQ_query_param_fixed_size (block->data,
                                       block->data_size),
     GNUNET_PQ_query_param_auto_from_type (&block->trunc_peer),
-    GNUNET_PQ_query_param_fixed_size (block->put_path,
-                                      block->put_path_length
-                                      * sizeof(struct GNUNET_DHT_PathElement)),
+    (0 == block->put_path_length)
+    ? GNUNET_PQ_query_param_null ()
+    : GNUNET_PQ_query_param_fixed_size (
+      block->put_path,
+      block->put_path_length
+      * sizeof(struct GNUNET_DHT_PathElement)),
     GNUNET_PQ_query_param_end
   };
   enum GNUNET_DB_QueryStatus ret;
@@ -226,8 +210,8 @@ handle_results (void *cls,
     uint32_t bro32;
     void *data;
     struct GNUNET_DATACACHE_Block block;
-    void *path;
-    size_t path_size;
+    void *path = NULL;
+    size_t path_size = 0;
     struct GNUNET_PQ_ResultSpec rs[] = {
       GNUNET_PQ_result_spec_absolute_time ("expiration_time",
                                            &block.expiration_time),
@@ -240,9 +224,11 @@ handle_results (void *cls,
                                            &block.data_size),
       GNUNET_PQ_result_spec_auto_from_type ("trunc",
                                             &block.trunc_peer),
-      GNUNET_PQ_result_spec_variable_size ("path",
-                                           &path,
-                                           &path_size),
+      GNUNET_PQ_result_spec_allow_null (
+        GNUNET_PQ_result_spec_variable_size ("path",
+                                             &path,
+                                             &path_size),
+        NULL),
       GNUNET_PQ_result_spec_end
     };
 
@@ -351,12 +337,12 @@ postgres_plugin_del (void *cls)
     GNUNET_PQ_query_param_end
   };
   uint32_t size;
-  uint32_t oid;
+  uint64_t oid;
   struct GNUNET_HashCode key;
   struct GNUNET_PQ_ResultSpec rs[] = {
     GNUNET_PQ_result_spec_uint32 ("len",
                                   &size),
-    GNUNET_PQ_result_spec_uint32 ("oid",
+    GNUNET_PQ_result_spec_uint64 ("oid",
                                   &oid),
     GNUNET_PQ_result_spec_auto_from_type ("key",
                                           &key),
@@ -364,7 +350,7 @@ postgres_plugin_del (void *cls)
   };
   enum GNUNET_DB_QueryStatus res;
   struct GNUNET_PQ_QueryParam dparam[] = {
-    GNUNET_PQ_query_param_uint32 (&oid),
+    GNUNET_PQ_query_param_uint64 (&oid),
     GNUNET_PQ_query_param_end
   };
   struct GNUNET_TIME_Absolute now;
@@ -617,6 +603,9 @@ libgnunet_plugin_datacache_postgres_done (void *cls)
   struct GNUNET_DATACACHE_PluginFunctions *api = cls;
   struct Plugin *plugin = api->cls;
 
+  GNUNET_break (GNUNET_OK ==
+                GNUNET_PQ_exec_sql (plugin->dbh,
+                                    "datacache-drop"));
   GNUNET_PQ_disconnect (plugin->dbh);
   GNUNET_free (plugin);
   GNUNET_free (api);
