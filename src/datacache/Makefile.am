@@ -202,4 +202,5 @@ EXTRA_DIST = \
  test_datacache_data_heap.conf \
  perf_datacache_data_heap.conf \
  test_datacache_data_postgres.conf \
- perf_datacache_data_postgres.conf
+ perf_datacache_data_postgres.conf \
+ $(sql_DATA)

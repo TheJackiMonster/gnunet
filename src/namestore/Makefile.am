@@ -538,5 +538,6 @@ EXTRA_DIST = \
   test_plugin_namestore_sqlite.conf \
   test_plugin_namestore_postgres.conf \
   test_hostkey \
-	example_zonefile \
-  $(check_SCRIPTS)
+  example_zonefile \
+  $(check_SCRIPTS) \
+  $(sql_DATA)
