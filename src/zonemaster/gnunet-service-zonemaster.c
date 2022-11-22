@@ -117,11 +117,6 @@ static pthread_cond_t sign_jobs_cond;
 static int in_shutdown = GNUNET_NO;
 
 /**
- * Iterator halted?
- */
-static int iterator_halted = GNUNET_NO;
-
-/**
  * Monitor halted?
  */
 static int monitor_halted = GNUNET_NO;
@@ -746,7 +741,6 @@ check_zone_namestore_next ()
                 "Job queue length exceeded (%u/%u). Pausing namestore iteration.\n",
                 job_queue_length,
                 JOB_QUEUE_LIMIT);
-    iterator_halted = GNUNET_YES;
     return;
   }
   update_velocity (put_cnt);
@@ -787,14 +781,10 @@ dht_put_continuation (void *cls)
               "PUT complete; Pending jobs: %u\n", job_queue_length - 1);
   /* When we just fall under the limit, trigger monitor/iterator again
    * if halted. We can only safely trigger one, prefer iterator. */
+  check_zone_namestore_next ();
   if (job_queue_length <= JOB_QUEUE_LIMIT)
   {
-    if (GNUNET_YES == iterator_halted)
-    {
-      check_zone_namestore_next ();
-      iterator_halted = GNUNET_NO;
-    }
-    else if (GNUNET_YES == monitor_halted)
+    if (GNUNET_YES == monitor_halted)
     {
       GNUNET_NAMESTORE_zone_monitor_next (zmon, 1);
       monitor_halted = GNUNET_NO;
