@@ -1076,7 +1076,9 @@ GDS_CLIENTS_handle_reply (const struct GNUNET_DATACACHE_Block *bd,
                  + bd->data_size
                  + (get_path_length + bd->put_path_length)
                  * sizeof(struct GNUNET_DHT_PathElement);
+#if SANITY_CHECKS > 1
   bool truncated = (0 != (bd->ro & GNUNET_DHT_RO_TRUNCATED));
+#endif
 
   if (msize >= GNUNET_MAX_MESSAGE_SIZE)
   {
