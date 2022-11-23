@@ -512,6 +512,21 @@ GNUNET_PQ_event_listen_cancel (struct GNUNET_DB_EventHandler *eh)
 }
 
 
+char *
+GNUNET_PG_get_event_notify_channel (const struct GNUNET_DB_EventHeaderP *es)
+{
+  char sql[16 + 64 + extra_size * 8 / 5 + 8];
+  char *end;
+
+  end = stpcpy (sql,
+                "NOTIFY X");
+  end = es_to_channel (es,
+                       end);
+  GNUNET_assert (NULL != end);
+  return GNUNET_strdup (sql);
+}
+
+
 void
 GNUNET_PQ_event_notify (struct GNUNET_PQ_Context *db,
                         const struct GNUNET_DB_EventHeaderP *es,

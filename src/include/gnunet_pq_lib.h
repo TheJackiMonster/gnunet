@@ -1140,6 +1140,17 @@ GNUNET_PQ_event_notify (struct GNUNET_PQ_Context *db,
 
 
 /**
+ * Compute the channel that one should notify upon
+ * for the given event specification.
+ *
+ * @param es event specification
+ * @return channel to notify upon
+ */
+char *
+GNUNET_PG_get_event_notify_channel (const struct GNUNET_DB_EventHeaderP *es);
+
+
+/**
  * Within the @a db context, run all the SQL files
  * from the @a load_path from 0000-9999.sql (as long
  * as the files exist contiguously).
