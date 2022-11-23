@@ -10,6 +10,13 @@ libexecdir= $(pkglibdir)/libexec/
 pkgcfg_DATA = \
    namecache.conf
 
+sqldir = $(prefix)/share/gnunet/sql/
+
+sql_DATA = \
+  namecache-0001.sql \
+  namecache-drop.sql
+
+
 if USE_COVERAGE
   AM_CFLAGS = --coverage -O0
   XLIBS = -lgcov
@@ -168,4 +175,5 @@ EXTRA_DIST = \
   test_namecache_api.conf \
   test_plugin_namecache_sqlite.conf \
   test_plugin_namecache_postgres.conf \
-	test_plugin_namecache_flat.conf
+  test_plugin_namecache_flat.conf \
+  $(sql_DATA)

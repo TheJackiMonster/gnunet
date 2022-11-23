@@ -8,6 +8,13 @@ pkgcfgdir= $(pkgdatadir)/config.d/
 dist_pkgcfg_DATA = \
   datacache.conf
 
+sqldir = $(prefix)/share/gnunet/sql/
+
+sql_DATA = \
+  datacache-0001.sql \
+  datacache-drop.sql
+
+
 if USE_COVERAGE
   AM_CFLAGS = --coverage -O0
   XLIBS = -lgcov
@@ -195,4 +202,5 @@ EXTRA_DIST = \
  test_datacache_data_heap.conf \
  perf_datacache_data_heap.conf \
  test_datacache_data_postgres.conf \
- perf_datacache_data_postgres.conf
+ perf_datacache_data_postgres.conf \
+ $(sql_DATA)

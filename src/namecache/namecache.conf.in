@@ -24,7 +24,6 @@ FILENAME = $GNUNET_DATA_HOME/namecache/flat.db
 
 [namecache-postgres]
 CONFIG = postgres:///gnunet
-TEMPORARY_TABLE = NO
-
+SQL_DIR = ${DATADIR}/sql/
 
 
