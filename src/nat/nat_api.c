@@ -670,13 +670,6 @@ GNUNET_NAT_request_reversal (struct GNUNET_NAT_Handle *nh,
 }
 
 
-/**
- * Stop port redirection and public IP address detection for the given
- * handle.  This frees the handle, after having sent the needed
- * commands to close open ports.
- *
- * @param nh the handle to stop
- */
 void
 GNUNET_NAT_unregister (struct GNUNET_NAT_Handle *nh)
 {
