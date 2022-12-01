@@ -4680,8 +4680,9 @@ dv_setup_key_state_from_km (const struct GNUNET_HashCode *km,
  * @param target the target peer to encrypt to
  * @param iv unique IV to use
  * @param[out] key set to the key material
+ * @return GNUNET_OK on success
  */
-static void
+static enum GNUNET_GenericReturnValue
 dh_key_derive_eph_pid (
   const struct GNUNET_CRYPTO_EcdhePrivateKey *priv_ephemeral,
   const struct GNUNET_PeerIdentity *target,
@@ -4690,10 +4691,14 @@ dh_key_derive_eph_pid (
 {
   struct GNUNET_HashCode km;
 
-  GNUNET_assert (GNUNET_YES == GNUNET_CRYPTO_ecdh_eddsa (priv_ephemeral,
-                                                         &target->public_key,
-                                                         &km));
+  if (GNUNET_YES != GNUNET_CRYPTO_ecdh_eddsa (priv_ephemeral,
+                                              &target->public_key,
+                                              &km))
+    return GNUNET_SYSERR;
+  // FIXME: Possibly also add return values here. We are processing
+  // Input from other peers...
   dv_setup_key_state_from_km (&km, iv, key);
+  return GNUNET_OK;
 }
 
 
@@ -4705,18 +4710,21 @@ dh_key_derive_eph_pid (
  * @param target the target peer to encrypt to
  * @param iv unique IV to use
  * @param[out] key set to the key material
+ * @return GNUNET_OK on success
  */
-static void
+static enum GNUNET_GenericReturnValue
 dh_key_derive_eph_pub (const struct GNUNET_CRYPTO_EcdhePublicKey *pub_ephemeral,
                        const struct GNUNET_ShortHashCode *iv,
                        struct DVKeyState *key)
 {
   struct GNUNET_HashCode km;
 
-  GNUNET_assert (GNUNET_YES == GNUNET_CRYPTO_eddsa_ecdh (GST_my_private_key,
-                                                         pub_ephemeral,
-                                                         &km));
+  if (GNUNET_YES != GNUNET_CRYPTO_eddsa_ecdh (GST_my_private_key,
+                                              pub_ephemeral,
+                                              &km))
+    return GNUNET_SYSERR;
   dv_setup_key_state_from_km (&km, iv, key);
+  return GNUNET_OK;
 }
 
 
@@ -4850,7 +4858,11 @@ encapsulate_for_dv (struct DistanceVector *dv,
   GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
                               &box_hdr.iv,
                               sizeof(box_hdr.iv));
-  dh_key_derive_eph_pid (&dv->private_key, &dv->target, &box_hdr.iv, key);
+  // We are creating this key, so this must work.
+  GNUNET_assert (GNUNET_OK ==
+                 dh_key_derive_eph_pid (&dv->private_key,
+                                        &dv->target,
+                                        &box_hdr.iv, key));
   payload_hdr.sender = GST_my_identity;
   payload_hdr.monotonic_time = GNUNET_TIME_absolute_hton (dv->monotime);
   dv_encrypt (key, &payload_hdr, enc, sizeof(payload_hdr));
@@ -8228,7 +8240,14 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
                             GNUNET_NO);
   cmc->total_hops = ntohs (dvb->total_hops);
 
-  dh_key_derive_eph_pub (&dvb->ephemeral_key, &dvb->iv, &key);
+  // DH key derivation with received DV, could be garbage.
+  if (GNUNET_OK !=
+      dh_key_derive_eph_pub (&dvb->ephemeral_key, &dvb->iv, &key))
+  {
+    GNUNET_break_op (0);
+    finish_cmc_handling (cmc);
+    return;
+  }
   hdr = (const char *) &dvb[1];
   hdr_len = ntohs (dvb->orig_size) - sizeof(*dvb) - sizeof(struct
                                                            GNUNET_PeerIdentity)
