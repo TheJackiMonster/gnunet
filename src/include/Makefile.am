@@ -10,7 +10,9 @@ EXTRA_DIST = \
   block_regex.h
 
 gnunetinclude_HEADERS = \
-  platform.h gettext.h \
+  platform.h \
+  gnunet_platform.h \
+  gettext.h \
   compat.h \
   gnunet_abd_service.h \
   gnunet_applications.h \
