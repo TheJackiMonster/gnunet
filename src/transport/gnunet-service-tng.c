@@ -4835,8 +4835,6 @@ encapsulate_for_dv (struct DistanceVector *dv,
   struct TransportDVBoxPayloadP payload_hdr;
   uint16_t enc_body_size = ntohs (hdr->size);
   char enc[sizeof(struct TransportDVBoxPayloadP) + enc_body_size] GNUNET_ALIGN;
-  struct TransportDVBoxPayloadP *enc_payload_hdr =
-    (struct TransportDVBoxPayloadP *) enc;
   struct DVKeyState *key;
   struct GNUNET_TIME_Relative rtt;
 
@@ -4855,7 +4853,7 @@ encapsulate_for_dv (struct DistanceVector *dv,
   dh_key_derive_eph_pid (&dv->private_key, &dv->target, &box_hdr.iv, key);
   payload_hdr.sender = GST_my_identity;
   payload_hdr.monotonic_time = GNUNET_TIME_absolute_hton (dv->monotime);
-  dv_encrypt (key, &payload_hdr, enc_payload_hdr, sizeof(payload_hdr));
+  dv_encrypt (key, &payload_hdr, enc, sizeof(payload_hdr));
   dv_encrypt (key,
               hdr,
               &enc[sizeof(struct TransportDVBoxPayloadP)],
