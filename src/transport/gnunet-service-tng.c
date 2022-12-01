@@ -8151,12 +8151,10 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
   const char *enc_payload = (const char *) &hops[num_hops];
   uint16_t enc_payload_size =
     size - (num_hops * sizeof(struct GNUNET_PeerIdentity));
-  struct DVKeyState *key;
+  struct DVKeyState key;
   struct GNUNET_HashCode hmac;
   const char *hdr;
   size_t hdr_len;
-
-  key = GNUNET_new (struct DVKeyState);
 
   if (GNUNET_EXTRA_LOGGING > 0)
   {
@@ -8232,13 +8230,13 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
                             GNUNET_NO);
   cmc->total_hops = ntohs (dvb->total_hops);
 
-  dh_key_derive_eph_pub (&dvb->ephemeral_key, &dvb->iv, key);
+  dh_key_derive_eph_pub (&dvb->ephemeral_key, &dvb->iv, &key);
   hdr = (const char *) &dvb[1];
   hdr_len = ntohs (dvb->orig_size) - sizeof(*dvb) - sizeof(struct
                                                            GNUNET_PeerIdentity)
             * ntohs (dvb->total_hops);
 
-  dv_hmac (key, &hmac, hdr, hdr_len);
+  dv_hmac (&key, &hmac, hdr, hdr_len);
   if (0 != GNUNET_memcmp (&hmac, &dvb->hmac))
   {
     /* HMAC mismatch, discard! */
@@ -8257,7 +8255,7 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
 
     GNUNET_assert (hdr_len >=
                    sizeof(ppay) + sizeof(struct GNUNET_MessageHeader));
-    if (GNUNET_OK != dv_decrypt (key, &ppay, hdr, sizeof(ppay)))
+    if (GNUNET_OK != dv_decrypt (&key, &ppay, hdr, sizeof(ppay)))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Error decrypting DV payload header\n");
@@ -8265,7 +8263,8 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
       finish_cmc_handling (cmc);
       return;
     }
-    if (GNUNET_OK != dv_decrypt (key, &body, &hdr[sizeof(ppay)], hdr_len - sizeof(ppay)))
+    if (GNUNET_OK != dv_decrypt (&key, &body,
+                                 &hdr[sizeof(ppay)], hdr_len - sizeof(ppay)))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Error decrypting DV payload\n");
@@ -8273,7 +8272,7 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
       finish_cmc_handling (cmc);
       return;
     }
-    dv_key_clean (key);
+    dv_key_clean (&key);
     if (ntohs (mh->size) != sizeof(body))
     {
       GNUNET_break_op (0);
