@@ -803,6 +803,7 @@ handle_barrier_cancel (void *cls,
                                               &hash))
   {
     GNUNET_break_op (0);
+    GNUNET_free (name);
     GNUNET_SERVICE_client_drop (client);
     return;
   }
@@ -811,6 +812,7 @@ handle_barrier_cancel (void *cls,
   GNUNET_assert (NULL != barrier);
   cancel_wrappers (barrier);
   remove_barrier (barrier);
+  GNUNET_free (name);
   GNUNET_SERVICE_client_continue (client);
 }
 
