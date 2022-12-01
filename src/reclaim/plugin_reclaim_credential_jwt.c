@@ -178,6 +178,7 @@ jwt_parse_attributes (void *cls,
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Failed to parse JSON %s\n", jwt_string);
+    GNUNET_free (jwt_string);
     return attrs;
   }
   GNUNET_STRINGS_base64url_decode (jwt_body, strlen (jwt_body),
