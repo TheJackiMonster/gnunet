@@ -4764,15 +4764,18 @@ dv_encrypt (struct DVKeyState *key, const void *in, void *dst, size_t in_size)
  * @param ciph cipher text to decrypt
  * @param[out] out output data to generate (plaintext)
  * @param out_size number of bytes of input in @a ciph and available in @a out
+ * @return GNUNET_OK on success
  */
-static void
+static enum GNUNET_GenericReturnValue
 dv_decrypt (struct DVKeyState *key,
             void *out,
             const void *ciph,
             size_t out_size)
 {
-  GNUNET_assert (
-    0 == gcry_cipher_decrypt (key->cipher, out, out_size, ciph, out_size));
+  return (0 ==
+          gcry_cipher_decrypt (key->cipher,
+                               out, out_size,
+                               ciph, out_size)) ? GNUNET_OK : GNUNET_SYSERR;
 }
 
 
@@ -8254,8 +8257,22 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
 
     GNUNET_assert (hdr_len >=
                    sizeof(ppay) + sizeof(struct GNUNET_MessageHeader));
-    dv_decrypt (key, &ppay, hdr, sizeof(ppay));
-    dv_decrypt (key, &body, &hdr[sizeof(ppay)], hdr_len - sizeof(ppay));
+    if (GNUNET_OK != dv_decrypt (key, &ppay, hdr, sizeof(ppay)))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Error decrypting DV payload header\n");
+      GNUNET_break_op (0);
+      finish_cmc_handling (cmc);
+      return;
+    }
+    if (GNUNET_OK != dv_decrypt (key, &body, &hdr[sizeof(ppay)], hdr_len - sizeof(ppay)))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Error decrypting DV payload\n");
+      GNUNET_break_op (0);
+      finish_cmc_handling (cmc);
+      return;
+    }
     dv_key_clean (key);
     if (ntohs (mh->size) != sizeof(body))
     {
