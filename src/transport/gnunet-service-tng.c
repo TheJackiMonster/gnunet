@@ -8250,8 +8250,7 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
     struct GNUNET_TIME_Absolute monotime;
     struct TransportDVBoxPayloadP ppay;
     char body[hdr_len - sizeof(ppay)] GNUNET_ALIGN;
-    const struct GNUNET_MessageHeader *mh =
-      (const struct GNUNET_MessageHeader *) body;
+    const struct GNUNET_MessageHeader *mh;
 
     GNUNET_assert (hdr_len >=
                    sizeof(ppay) + sizeof(struct GNUNET_MessageHeader));
@@ -8263,7 +8262,7 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
       finish_cmc_handling (cmc);
       return;
     }
-    if (GNUNET_OK != dv_decrypt (&key, &body,
+    if (GNUNET_OK != dv_decrypt (&key, body,
                                  &hdr[sizeof(ppay)], hdr_len - sizeof(ppay)))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -8272,6 +8271,7 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
       finish_cmc_handling (cmc);
       return;
     }
+    mh = (const struct GNUNET_MessageHeader *) body;
     dv_key_clean (&key);
     if (ntohs (mh->size) != sizeof(body))
     {
