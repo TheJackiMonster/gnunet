@@ -21,6 +21,7 @@
 #ifndef GNUNET_REVOCATION_SERVICE_H_
 #define GNUNET_REVOCATION_SERVICE_H_
 
+#include "gnunet_platform.h"
 #include "gnunet_identity_service.h"
 
 /**

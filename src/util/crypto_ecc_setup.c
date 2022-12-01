@@ -23,7 +23,7 @@
  * @brief helper function for easy EdDSA key setup
  * @author Christian Grothoff
  */
-#include "platform.h"
+
 #include <gcrypt.h>
 #include "gnunet_util_lib.h"
 

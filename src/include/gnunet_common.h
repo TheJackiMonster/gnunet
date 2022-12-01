@@ -40,6 +40,7 @@
 #ifndef GNUNET_COMMON_H
 #define GNUNET_COMMON_H
 
+#include "gnunet_platform.h"
 #include <stdlib.h>
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>

@@ -37,6 +37,7 @@
 #ifndef GNUNET_GNSRECORD_LIB_H
 #define GNUNET_GNSRECORD_LIB_H
 
+#include "gnunet_platform.h"
 #include "gnunet_identity_service.h"
 
 #ifdef __cplusplus

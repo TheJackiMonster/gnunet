@@ -34,7 +34,7 @@
 #include <unistd.h>
 #include <unistr.h> /* for u16_to_u8 */
 
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 #if DARWIN
 #include <mach-o/ldsyms.h>

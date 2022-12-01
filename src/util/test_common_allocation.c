@@ -22,7 +22,7 @@
  * @file util/test_common_allocation.c
  * @brief testcase for common_allocation.c
  */
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 
 

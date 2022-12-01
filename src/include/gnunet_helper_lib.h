@@ -41,6 +41,7 @@
 #ifndef GNUNET_HELPER_LIB_H
 #define GNUNET_HELPER_LIB_H
 
+#include "gnunet_platform.h"
 #include "gnunet_scheduler_lib.h"
 #include "gnunet_mst_lib.h"
 

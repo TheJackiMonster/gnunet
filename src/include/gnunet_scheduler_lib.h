@@ -96,6 +96,7 @@ enum GNUNET_SCHEDULER_Reason
 };
 
 
+#include "gnunet_platform.h"
 #include "gnunet_time_lib.h"
 #include "gnunet_network_lib.h"
 

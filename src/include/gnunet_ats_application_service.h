@@ -37,6 +37,7 @@
 #ifndef GNUNET_ATS_APPLICATION_SERVICE_H
 #define GNUNET_ATS_APPLICATION_SERVICE_H
 
+#include "gnunet_platform.h"
 #include "gnunet_constants.h"
 #include "gnunet_util_lib.h"
 

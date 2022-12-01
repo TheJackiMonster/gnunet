@@ -25,7 +25,7 @@
  * @author Christian Grothoff
  */
 
-#include "platform.h"
+
 #include "gnunet_container_lib.h"
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-container-heap", \

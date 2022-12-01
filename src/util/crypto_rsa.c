@@ -25,7 +25,7 @@
  * @author Christian Grothoff
  * @author Jeffrey Burdges <burdges@gnunet.org>
  */
-#include "platform.h"
+
 #include <gcrypt.h>
 #include "gnunet_crypto_lib.h"
 #include "benchmark.h"

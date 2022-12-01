@@ -21,7 +21,7 @@
  * @file util/test_program.c
  * @brief tests for program.c
  */
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 
 

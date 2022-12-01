@@ -24,7 +24,7 @@
  * @brief Test of DLL operations
  */
 
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 
 /**

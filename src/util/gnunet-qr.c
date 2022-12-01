@@ -28,7 +28,7 @@
 #include <signal.h>
 #include <zbar.h>
 
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 
 #if HAVE_PNG

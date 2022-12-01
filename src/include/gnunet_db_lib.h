@@ -25,6 +25,7 @@
 #ifndef GNUNET_DB_LIB_H
 #define GNUNET_DB_LIB_H
 
+#include "gnunet_platform.h"
 #include "gnunet_common.h"
 
 /**

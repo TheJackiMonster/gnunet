@@ -41,6 +41,7 @@
 #ifndef GNUNET_NAMESTORE_SERVICE_H
 #define GNUNET_NAMESTORE_SERVICE_H
 
+#include "gnunet_platform.h"
 #include "gnunet_error_codes.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_block_lib.h"

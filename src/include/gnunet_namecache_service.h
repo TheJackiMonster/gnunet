@@ -41,6 +41,7 @@
 #ifndef GNUNET_NAMECACHE_SERVICE_H
 #define GNUNET_NAMECACHE_SERVICE_H
 
+#include "gnunet_platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_block_lib.h"
 #include "gnunet_namestore_service.h"

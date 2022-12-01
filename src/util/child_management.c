@@ -25,7 +25,7 @@
  * @author Dominik Meister (ANASTASIS)
  * @author t3sserakt
  */
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 #include "gnunet_child_management_lib.h"
 

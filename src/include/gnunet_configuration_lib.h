@@ -35,6 +35,7 @@
 #ifndef GNUNET_CONFIGURATION_LIB_H
 #define GNUNET_CONFIGURATION_LIB_H
 
+#include "gnunet_platform.h"
 #include "gnunet_time_lib.h"
 
 #ifdef __cplusplus

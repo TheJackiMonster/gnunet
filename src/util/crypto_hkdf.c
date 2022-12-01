@@ -50,7 +50,7 @@
 
 
 #if GNUNET_BUILD
-#include "platform.h"
+
 #include "gnunet_crypto_lib.h"
 #include "benchmark.h"
 #else

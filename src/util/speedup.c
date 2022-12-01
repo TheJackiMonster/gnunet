@@ -23,7 +23,7 @@
  * @author Matthias Wachs
  * @brief functions to speedup peer execution by manipulation system time
  */
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 #include "speedup.h"
 

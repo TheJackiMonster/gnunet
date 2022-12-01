@@ -32,6 +32,7 @@
 #ifndef GNUNET_REST_PLUGIN_H
 #define GNUNET_REST_PLUGIN_H
 
+#include "gnunet_platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_rest_lib.h"
 #include "microhttpd.h"

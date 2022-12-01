@@ -44,6 +44,7 @@ extern "C"
 #endif
 #endif
 
+#include "gnunet_platform.h"
 #include "gnunet_common.h"
 #include "gnunet_time_lib.h"
 #include "gnunet_configuration_lib.h"

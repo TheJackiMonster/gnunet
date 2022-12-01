@@ -26,7 +26,7 @@
  * @file util/test_crypto_crc.c
  * @brief testcase for crypto_crc.c
  */
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 
 static int expected[] = {

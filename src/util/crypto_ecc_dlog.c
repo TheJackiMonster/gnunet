@@ -25,7 +25,7 @@
  *        result is relativey small.
  * @author Christian Grothoff
  */
-#include "platform.h"
+
 #include <gcrypt.h>
 #include "gnunet_crypto_lib.h"
 #include "gnunet_container_lib.h"

@@ -36,6 +36,7 @@
 #ifndef GNUNET_BIO_LIB_H
 #define GNUNET_BIO_LIB_H
 
+#include "gnunet_platform.h"
 #include "gnunet_container_lib.h"
 
 #ifdef __cplusplus

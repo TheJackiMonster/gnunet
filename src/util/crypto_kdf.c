@@ -27,7 +27,7 @@
 
 #include <gcrypt.h>
 
-#include "platform.h"
+
 #include "gnunet_crypto_lib.h"
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-crypto-kdf", __VA_ARGS__)

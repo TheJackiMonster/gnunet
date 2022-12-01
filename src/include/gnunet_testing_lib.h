@@ -44,6 +44,7 @@
 #ifndef GNUNET_TESTING_LIB_H
 #define GNUNET_TESTING_LIB_H
 
+#include "gnunet_platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_arm_service.h"

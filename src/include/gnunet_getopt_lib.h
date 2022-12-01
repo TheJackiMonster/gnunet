@@ -43,6 +43,7 @@ extern "C" {
 #endif
 #endif
 
+#include "gnunet_platform.h"
 #include "gnunet_configuration_lib.h"
 
 /**

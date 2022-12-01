@@ -21,7 +21,7 @@
  * @file util/test_plugin.c
  * @brief testcase for plugin.c
  */
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 
 

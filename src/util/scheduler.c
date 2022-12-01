@@ -22,7 +22,7 @@
  * @brief schedule computations using continuation passing style
  * @author Christian Grothoff
  */
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 #include "disk.h"
 // DEBUG

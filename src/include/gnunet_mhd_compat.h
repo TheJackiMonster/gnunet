@@ -25,6 +25,7 @@
  * MHD compatibility definitions for warning-less compile of
  * our code against MHD before and after #MHD_VERSION 0x00097002.
  */
+#include "gnunet_platform.h"
 #include <microhttpd.h>
 
 #if MHD_VERSION >= 0x00097002

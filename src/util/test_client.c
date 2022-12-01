@@ -22,7 +22,7 @@
  * @brief tests for client.c
  * @author Christian Grothoff
  */
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 
 static int global_ret;

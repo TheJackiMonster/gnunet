@@ -24,7 +24,7 @@
  * @author Christian Grothoff
  * @author Florian Dold
  */
-#include "platform.h"
+
 #include <gcrypt.h>
 #include "gnunet_crypto_lib.h"
 

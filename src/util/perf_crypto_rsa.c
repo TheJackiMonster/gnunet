@@ -23,7 +23,7 @@
  * @file util/perf_crypto_rsa.c
  * @brief measure performance of RSA signing
  */
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 #include <gauger.h>
 

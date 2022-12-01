@@ -22,7 +22,7 @@
  * @brief test case for incremental hashing
  * @author Florian Dold
  */
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 
 #define LEN 1234

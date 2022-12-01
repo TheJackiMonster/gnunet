@@ -39,6 +39,7 @@
 #ifndef GNUNET_REGEX_SERVICE_H
 #define GNUNET_REGEX_SERVICE_H
 
+#include "gnunet_platform.h"
 #include "gnunet_util_lib.h"
 
 #ifdef __cplusplus

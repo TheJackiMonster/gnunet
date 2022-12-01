@@ -21,7 +21,7 @@
  * @file util/test_scheduler.c
  * @brief tests for the scheduler
  */
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 
 

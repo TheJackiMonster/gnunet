@@ -23,7 +23,7 @@
  * @brief testcase for the logging module  (runtime log level adjustment)
  * @author LRN
  */
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 
 #define VERBOSE GNUNET_NO

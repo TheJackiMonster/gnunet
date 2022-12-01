@@ -23,7 +23,7 @@
  * @author Maximilian Szengel
  * @author Christian Grothoff
  */
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 #include "gnunet_tun_lib.h"
 

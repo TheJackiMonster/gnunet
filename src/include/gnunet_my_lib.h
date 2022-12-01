@@ -34,6 +34,7 @@
 #ifndef GNUNET_MY_LIB_H
 #define GNUNET_MY_LIB_H
 
+#include "gnunet_platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_mysql_lib.h"
 #include <mysql/mysql.h>

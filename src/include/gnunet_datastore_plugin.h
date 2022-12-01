@@ -34,6 +34,7 @@
 #ifndef PLUGIN_DATASTORE_H
 #define PLUGIN_DATASTORE_H
 
+#include "gnunet_platform.h"
 #include "gnunet_block_lib.h"
 #include "gnunet_configuration_lib.h"
 #include "gnunet_datastore_service.h"

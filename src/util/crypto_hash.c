@@ -23,7 +23,7 @@
  * @brief SHA-512 #GNUNET_CRYPTO_hash() related functions
  * @author Christian Grothoff
  */
-#include "platform.h"
+
 #include "gnunet_crypto_lib.h"
 #include "gnunet_strings_lib.h"
 #include "benchmark.h"

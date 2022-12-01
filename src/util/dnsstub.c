@@ -22,7 +22,7 @@
  * @brief DNS stub resolver which sends DNS requests to an actual resolver
  * @author Christian Grothoff
  */
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 
 /**

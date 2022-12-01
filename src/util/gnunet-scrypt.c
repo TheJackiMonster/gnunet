@@ -22,7 +22,7 @@
  * @brief tool to manipulate SCRYPT proofs of work.
  * @author Bart Polot
  */
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 #include <gcrypt.h>
 

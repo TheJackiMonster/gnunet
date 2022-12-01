@@ -23,7 +23,7 @@
  * @brief tool to access and manipulate GNUnet configuration files
  * @author Christian Grothoff
  */
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 
 

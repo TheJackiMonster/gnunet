@@ -23,7 +23,7 @@
  * @brief tool to encode/decode from/to the Crockford Base32 encoding GNUnet uses
  * @author Christian Grothoff
  */
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 
 

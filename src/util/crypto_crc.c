@@ -27,7 +27,7 @@
  * @brief implementation of CRC16 and CRC32
  * @author Christian Grothoff
  */
-#include "platform.h"
+
 #include "gnunet_crypto_lib.h"
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-crypto-crc", __VA_ARGS__)

@@ -23,7 +23,7 @@
  * @author Christian Grothoff
  * @author Bart Polot
  */
-#include "platform.h"
+
 #include "gnunet_crypto_lib.h"
 #include <sodium.h>
 

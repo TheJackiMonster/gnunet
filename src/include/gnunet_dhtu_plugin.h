@@ -27,6 +27,7 @@
 #ifndef PLUGIN_DHTU_H
 #define PLUGIN_DHTU_H
 
+#include "gnunet_platform.h"
 #include "gnunet_util_lib.h"
 
 

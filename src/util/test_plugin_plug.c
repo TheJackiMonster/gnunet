@@ -21,7 +21,8 @@
  * @file util/test_plugin_plug.c
  * @brief plugin for testing
  */
-#include "platform.h"
+
+#include "gnunet_platform.h"
 
 
 void *

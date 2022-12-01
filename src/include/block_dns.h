@@ -33,6 +33,7 @@
 #ifndef BLOCK_DNS_H
 #define BLOCK_DNS_H
 
+#include "gnunet_platform.h"
 #include "gnunet_util_lib.h"
 
 GNUNET_NETWORK_STRUCT_BEGIN

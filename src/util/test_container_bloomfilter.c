@@ -24,7 +24,7 @@
  * @author Igor Wronsky
  */
 
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 
 #define K 4

@@ -24,7 +24,7 @@
  * @author Florian Dold <flo@dold.me>
  */
 
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 #include "benchmark.h"
 #include <pthread.h>

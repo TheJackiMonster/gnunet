@@ -34,6 +34,7 @@
 #ifndef PLUGIN_DATACACHE_H
 #define PLUGIN_DATACACHE_H
 
+#include "gnunet_platform.h"
 #include "gnunet_datacache_lib.h"
 
 #ifdef __cplusplus

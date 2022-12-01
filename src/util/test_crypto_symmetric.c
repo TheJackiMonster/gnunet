@@ -23,7 +23,7 @@
  * @file util/test_crypto_symmetric.c
  * @brief test for AES ciphers
  */
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 
 #define TESTSTRING "Hello World!"

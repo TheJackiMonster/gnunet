@@ -61,7 +61,7 @@ extern "C"
 #define GNUNET_AGPL_URL "https://git.gnunet.org/gnunet.git/tag/?h=v" \
   PACKAGE_VERSION
 
-
+#include "gnunet_platform.h"
 #include "gnunet_crypto_lib.h"
 #include "gnunet_bandwidth_lib.h"
 #include "gnunet_bio_lib.h"

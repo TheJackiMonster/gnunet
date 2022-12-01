@@ -21,7 +21,7 @@
  * @file util/test_speedup.c
  * @brief testcase for speedup.c
  */
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 
 /**

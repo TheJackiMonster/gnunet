@@ -24,7 +24,7 @@
  * log level adjustment)
  * @author LRN
  */
-#include "platform.h"
+
 #undef GNUNET_EXTRA_LOGGING
 #define GNUNET_EXTRA_LOGGING GNUNET_YES
 

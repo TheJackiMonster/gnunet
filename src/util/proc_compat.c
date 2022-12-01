@@ -17,7 +17,7 @@
 
      SPDX-License-Identifier: AGPL3.0-or-later
  */
-#include "platform.h"
+
 
 /**
  * @author Martin Schanzenbach
@@ -26,6 +26,7 @@
  * Definitions for macOS and Win32
  */
 
+#include "gnunet_platform.h"
 
 /**
  * memrchr as defined in glibc

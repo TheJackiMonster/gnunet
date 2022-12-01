@@ -31,6 +31,7 @@
 #ifndef GNUNET_SCALARPRODUCT_SERVICE_H
 #define GNUNET_SCALARPRODUCT_SERVICE_H
 #define GCRYPT_NO_DEPRECATED
+#include "gnunet_platform.h"
 #include <gcrypt.h>
 
 #ifdef __cplusplus

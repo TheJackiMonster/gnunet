@@ -22,7 +22,7 @@
  * @brief configuration management
  * @author Christian Grothoff
  */
-#include "platform.h"
+
 #include "gnunet_crypto_lib.h"
 #include "gnunet_strings_lib.h"
 #include "gnunet_os_lib.h"

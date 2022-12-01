@@ -44,6 +44,7 @@
    or unsigned long long, this IS platform dependent;
    but "stdlib.h" should be portable 'enough' to be
    unconditionally available... */
+#include "gnunet_platform.h"
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <netinet/in.h>

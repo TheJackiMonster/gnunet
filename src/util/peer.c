@@ -23,7 +23,7 @@
  * @brief peer-ID table that assigns integer IDs to peer-IDs to save memory
  * @author Christian Grothoff
  */
-#include "platform.h"
+
 #include "gnunet_peer_lib.h"
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-peer", __VA_ARGS__)

@@ -24,7 +24,7 @@
  * @brief functions to gather random numbers
  * @author Christian Grothoff
  */
-#include "platform.h"
+
 #include "gnunet_crypto_lib.h"
 #include "gnunet_time_lib.h"
 #include <gcrypt.h>

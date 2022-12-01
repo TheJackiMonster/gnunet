@@ -23,7 +23,7 @@
  * @brief testcase for ECC public key crypto for edx25519
  * @author Özgür Kesim
  */
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 #include "gnunet_signatures.h"
 #include <gcrypt.h>
