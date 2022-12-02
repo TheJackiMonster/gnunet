@@ -58,9 +58,9 @@ testing_api_cmd_block_until_all_peers_started.c */
 
 #define NODE_BASE_IP "192.168.15."
 
-#define KNOWN_BASE_IP "92.68.151."
+#define KNOWN_BASE_IP "172.168.151."
 
-#define ROUTER_BASE_IP "92.68.150."
+#define ROUTER_BASE_IP "172.16.150."
 
 struct GNUNET_SCHEDULER_Task *finished_task;
 
