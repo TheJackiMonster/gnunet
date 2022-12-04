@@ -23,12 +23,9 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_dns_service.h"
-#include "gnunet_dnsparser_lib.h"
 #include "gnunet_cadet_service.h"
-#include "gnunet_tun_lib.h"
 #include "gnunet_dht_service.h"
 #include "gnunet_vpn_service.h"
 #include "gnunet_statistics_service.h"

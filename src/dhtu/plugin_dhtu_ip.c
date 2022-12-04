@@ -25,7 +25,6 @@
  * @brief plain IP based DHT network underlay
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_dhtu_plugin.h"
 
 /**

@@ -33,7 +33,6 @@
  *            have properties like reliability.
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "cadet.h"
 #include "gnunet_statistics_service.h"

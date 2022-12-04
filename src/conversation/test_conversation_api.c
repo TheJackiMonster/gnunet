@@ -26,7 +26,6 @@
  * terminated by the party that initiated the call.
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
 #include "gnunet_gnsrecord_lib.h"

@@ -26,7 +26,6 @@
  * Routines for NAT auto configuration.
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_nat_service.h"
 #include "gnunet_nat_auto_service.h"
 #include "nat-auto.h"

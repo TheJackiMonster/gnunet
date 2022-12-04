@@ -26,7 +26,6 @@
 #include "platform.h"
 #include <stdio.h>
 
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_messenger_service.h"
 

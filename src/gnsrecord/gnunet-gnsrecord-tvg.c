@@ -24,15 +24,13 @@
  * @author Martin Schanzenbach
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_signatures.h"
 #include "gnunet_gns_service.h"
 #include "gnunet_gnsrecord_lib.h"
-#include "gnunet_dnsparser_lib.h"
 #include "gnunet_testing_lib.h"
-#include <inttypes.h>
 #include "gnsrecord_crypto.h"
+#include <inttypes.h>
 
 
 static char *d_pkey =

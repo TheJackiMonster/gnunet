@@ -26,7 +26,6 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_speaker_lib.h"
 #include "conversation.h"
 

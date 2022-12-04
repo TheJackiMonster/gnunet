@@ -24,7 +24,6 @@
  *
  */
 #include "platform.h"
-#include "platform.h"
 #include "microhttpd.h"
 #include <inttypes.h>
 #include <jansson.h>

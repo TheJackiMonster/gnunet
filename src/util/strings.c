@@ -29,9 +29,7 @@
 #if HAVE_ICONV
 #include <iconv.h>
 #endif
-#include "gnunet_crypto_lib.h"
-#include "gnunet_buffer_lib.h"
-#include "gnunet_strings_lib.h"
+#include "gnunet_util_lib.h"
 #include <unicase.h>
 #include <unistr.h>
 #include <uniconv.h>

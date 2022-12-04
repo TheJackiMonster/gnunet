@@ -32,7 +32,6 @@
  * dates are set using a pseudo-random value within a realistic range.
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_protocols.h"
 #include "gnunet_datastore_service.h"

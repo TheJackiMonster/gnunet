@@ -25,7 +25,6 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_ats_plugin.h"
 #include "gnunet-service-ats_connectivity.h"
 #include "gnunet-service-ats_performance.h"

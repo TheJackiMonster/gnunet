@@ -31,7 +31,6 @@
  *   detect & recover from channel-to-exit failure gracefully
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_common.h"
 #include "gnunet_protocols.h"
@@ -39,7 +38,6 @@
 #include "gnunet_cadet_service.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_constants.h"
-#include "gnunet_tun_lib.h"
 #include "gnunet_regex_service.h"
 #include "vpn.h"
 #include "exit.h"

@@ -24,7 +24,6 @@
  * @author Martin Schanzenbach
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_json_lib.h"
 #include "gnunet_reclaim_lib.h"

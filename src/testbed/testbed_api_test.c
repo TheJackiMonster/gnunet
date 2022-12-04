@@ -26,7 +26,6 @@
  * @author Tobias Frisch
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_testbed_service.h"
 #include "testbed.h"
 

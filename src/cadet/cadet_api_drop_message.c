@@ -23,7 +23,6 @@
  * @author t3sserakt
  */
 #include "platform.h"
-#include "platform.h"
 #include "cadet.h"
 
 

@@ -24,9 +24,7 @@
  * @author Igor Wronsky, Christian Grothoff
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_fs_service.h"
-#include "gnunet_getopt_lib.h"
 #include "fs_api.h"
 
 /* ******************** command-line option parsing API ******************** */

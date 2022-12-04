@@ -25,7 +25,6 @@
 * @author Martin Schanzenbach
 */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "transport-testing-communicator.h"
 #include "gnunet_ats_transport_service.h"

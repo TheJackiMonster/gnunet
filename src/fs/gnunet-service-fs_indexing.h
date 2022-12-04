@@ -29,7 +29,6 @@
 #include "gnunet_block_lib.h"
 #include "gnunet_core_service.h"
 #include "gnunet_datastore_service.h"
-#include "gnunet_peer_lib.h"
 #include "gnunet_protocols.h"
 #include "gnunet_signatures.h"
 #include "gnunet_util_lib.h"

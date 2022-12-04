@@ -38,11 +38,14 @@
  * @{
  */
 
+#if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
+#error "Only <gnunet_util_lib.h> can be included directly."
+#endif
+
 #ifndef GNUNET_HELPER_LIB_H
 #define GNUNET_HELPER_LIB_H
 
 
-#include "gnunet_scheduler_lib.h"
 #include "gnunet_mst_lib.h"
 
 

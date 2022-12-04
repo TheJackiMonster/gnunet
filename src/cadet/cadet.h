@@ -55,7 +55,6 @@ extern "C" {
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_peer_lib.h"
 #include "gnunet_core_service.h"
 #include "gnunet_cadet_service.h"
 #include "gnunet_protocols.h"

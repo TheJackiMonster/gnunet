@@ -30,6 +30,8 @@
 #ifndef GNUNET_UTIL_LIB_H
 #define GNUNET_UTIL_LIB_H
 
+#define __GNUNET_UTIL_LIB_H_INSIDE__
+
 #include <sys/socket.h>
 
 #ifdef __cplusplus
@@ -96,5 +98,7 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
+
+#undef __GNUNET_UTIL_LIB_H_INSIDE__
 
 #endif

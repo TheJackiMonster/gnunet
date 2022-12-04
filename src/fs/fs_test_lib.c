@@ -27,7 +27,6 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
-#include "platform.h"
 #include "fs_api.h"
 #include "fs_test_lib.h"
 

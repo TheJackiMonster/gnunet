@@ -33,7 +33,6 @@
  *   into memory
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_fs_service.h"
 #include "fs_api.h"
 

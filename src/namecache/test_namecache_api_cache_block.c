@@ -22,7 +22,6 @@
  * @brief testcase for namecache_api.c: store a record and perform a lookup
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_namecache_service.h"
 #include "gnunet_testing_lib.h"
 #include "gnunet_dnsparser_lib.h"

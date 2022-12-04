@@ -23,7 +23,6 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_block_lib.h"
 
 

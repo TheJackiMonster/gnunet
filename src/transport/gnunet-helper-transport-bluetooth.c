@@ -21,7 +21,6 @@
  */
 #include "platform.h"
 #include "gnunet_private_config.h"
-#include "platform.h"
 
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>

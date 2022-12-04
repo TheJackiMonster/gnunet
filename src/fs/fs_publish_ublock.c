@@ -26,7 +26,6 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_constants.h"
 #include "gnunet_signatures.h"
 #include "fs_publish_ublock.h"

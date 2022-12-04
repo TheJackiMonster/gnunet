@@ -23,7 +23,6 @@
  * @author Bruno Cabral - 99% based on Christian Grothoff code
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
 #include "gnunet_fs_service.h"

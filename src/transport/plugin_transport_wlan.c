@@ -28,7 +28,6 @@
  * variant of this code is compiled.
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_hello_lib.h"
 #include "gnunet_protocols.h"

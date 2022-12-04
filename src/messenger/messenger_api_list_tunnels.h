@@ -27,8 +27,7 @@
 #define GNUNET_MESSENGER_API_LIST_TUNNELS_H
 
 #include "platform.h"
-#include "gnunet_peer_lib.h"
-#include "gnunet_container_lib.h"
+#include "gnunet_util_lib.h"
 
 struct GNUNET_MESSENGER_ListTunnel
 {

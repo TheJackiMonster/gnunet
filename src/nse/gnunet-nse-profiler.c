@@ -30,7 +30,6 @@
  */
 
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_testbed_service.h"
 #include "gnunet_nse_service.h"
 

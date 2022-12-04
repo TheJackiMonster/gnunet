@@ -23,7 +23,6 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_testbed_service.h"
 #include "gnunet_dht_service.h"
 #include "dht_test_lib.h"

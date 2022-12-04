@@ -24,10 +24,8 @@
  * @author Florian Dold
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_protocols.h"
-#include "gnunet_client_lib.h"
 #include "gnunet_consensus_service.h"
 #include "consensus.h"
 

@@ -23,7 +23,6 @@
  * @brief library for writing CADET tests
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "cadet_test_lib.h"
 #include "gnunet_cadet_service.h"

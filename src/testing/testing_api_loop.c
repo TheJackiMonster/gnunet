@@ -26,7 +26,6 @@
  * @author t3sserakt
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
 #include "testing.h"

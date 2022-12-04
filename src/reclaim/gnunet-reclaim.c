@@ -24,7 +24,6 @@
  *
  */
 #include "platform.h"
-#include "platform.h"
 #include <inttypes.h>
 
 #include "gnunet_util_lib.h"

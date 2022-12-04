@@ -24,7 +24,6 @@
  * @author Bartlomiej Polot
  */
 #include "platform.h"
-#include "platform.h"
 #include "regex_internal_lib.h"
 #include "regex_block_lib.h"
 #include "gnunet_dht_service.h"

@@ -23,7 +23,6 @@
  * @brief library for writing DHT tests
  */
 #include "platform.h"
-#include "platform.h"
 #include "dht_test_lib.h"
 
 /**

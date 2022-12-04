@@ -24,7 +24,6 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet-daemon-hostlist_client.h"
 #include "gnunet_core_service.h"
 #include "gnunet_util_lib.h"

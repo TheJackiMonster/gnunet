@@ -24,7 +24,6 @@
  * @author Matthias Wachs
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet-daemon-hostlist_client.h"
 #include "gnunet_hello_lib.h"
 #include "gnunet_statistics_service.h"

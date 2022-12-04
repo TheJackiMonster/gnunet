@@ -24,7 +24,6 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet-service-dht_neighbours.h"
 #include "gnunet-service-dht_routing.h"
 #include "gnunet-service-dht.h"

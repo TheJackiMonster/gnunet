@@ -23,7 +23,6 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_json_lib.h"
 
 

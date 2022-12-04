@@ -25,12 +25,11 @@
  */
 
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_rest_plugin.h"
 #include "gnunet_identity_service.h"
 #include "gnunet_rest_lib.h"
 #include "identity.h"
-#include "gnunet_crypto_lib.h"
+#include "gnunet_util_lib.h"
 #include "microhttpd.h"
 #include <jansson.h>
 

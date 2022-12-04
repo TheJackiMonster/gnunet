@@ -24,7 +24,6 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
-#include "platform.h"
 #include "fs_test_lib.h"
 
 #define VERBOSE GNUNET_NO

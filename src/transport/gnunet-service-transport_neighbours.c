@@ -24,7 +24,6 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_ats_service.h"
 #include "gnunet-service-transport_ats.h"
 #include "gnunet-service-transport_neighbours.h"

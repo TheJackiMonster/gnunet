@@ -24,7 +24,6 @@
  * This test case tests quota compliance both on transport level
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_transport_service.h"
 #include "gnunet_ats_service.h"
 #include "gauger.h"

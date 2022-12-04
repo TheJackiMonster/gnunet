@@ -24,7 +24,6 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
-#include "platform.h"
 #include <limits.h>
 #include <gcrypt.h>
 #include "gnunet_util_lib.h"

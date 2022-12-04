@@ -23,7 +23,6 @@
  * @author Sree Harsha Totakura <sreeharsha@totakura.in>
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_json_lib.h"
 

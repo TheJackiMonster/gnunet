@@ -28,7 +28,6 @@
  * - support other TCP-specific NAT traversal methods (#5531)
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_core_service.h"
 #include "gnunet_peerstore_service.h"

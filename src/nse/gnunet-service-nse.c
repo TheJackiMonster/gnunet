@@ -36,7 +36,6 @@
  * this can calculate the expected number of peers in the network.
  */
 #include "platform.h"
-#include "platform.h"
 #include <math.h>
 #include "gnunet_util_lib.h"
 #include "gnunet_constants.h"

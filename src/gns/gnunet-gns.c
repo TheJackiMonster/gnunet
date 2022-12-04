@@ -23,7 +23,6 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
-#include "platform.h"
 #if HAVE_LIBIDN2
 #if HAVE_IDN2_H
 #include <idn2.h>
@@ -38,7 +37,6 @@
 #endif
 #endif
 #include <gnunet_util_lib.h>
-#include <gnunet_dnsparser_lib.h>
 #include <gnunet_gnsrecord_lib.h>
 #include <gnunet_namestore_service.h>
 #include <gnunet_gns_service.h>

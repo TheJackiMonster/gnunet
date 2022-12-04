@@ -29,7 +29,6 @@
  */
 
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet-service-testbed_meminfo.h"
 

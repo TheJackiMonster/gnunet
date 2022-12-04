@@ -24,7 +24,6 @@
  * @author Matthias Wachs
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_transport_application_service.h"
 #include "gnunet_transport_core_service.h"
 #include "transport.h"

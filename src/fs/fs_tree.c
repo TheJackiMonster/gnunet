@@ -25,7 +25,6 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
-#include "platform.h"
 #include "fs_tree.h"
 
 

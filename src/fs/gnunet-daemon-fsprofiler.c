@@ -27,7 +27,6 @@
  * - how to signal driver that we're done?
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_fs_service.h"
 #include "gnunet_statistics_service.h"
 

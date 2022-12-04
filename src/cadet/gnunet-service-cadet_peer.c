@@ -31,7 +31,6 @@
  *   to take a break if we have some connections and have searched a lot (?))
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_time_lib.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_hello_lib.h"

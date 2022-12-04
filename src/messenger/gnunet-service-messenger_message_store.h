@@ -27,8 +27,7 @@
 #define GNUNET_SERVICE_MESSENGER_MESSAGE_STORE_H
 
 #include "platform.h"
-#include "gnunet_container_lib.h"
-#include "gnunet_disk_lib.h"
+#include "gnunet_util_lib.h"
 
 struct GNUNET_MESSENGER_MessageEntry
 {

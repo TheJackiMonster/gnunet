@@ -25,7 +25,6 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
-#include "platform.h"
 #include <float.h>
 #include "gnunet_ats_service.h"
 #include "gnunet-service-ats_addresses.h"

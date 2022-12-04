@@ -21,7 +21,6 @@
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_buffer_lib.h"
 
 /**
  * Initialize a buffer with the given capacity.

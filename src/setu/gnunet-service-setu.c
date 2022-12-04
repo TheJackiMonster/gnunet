@@ -25,7 +25,6 @@
  * @author Elias Summermatter
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_statistics_service.h"
 #include "ibf.h"

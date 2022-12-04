@@ -33,6 +33,10 @@
  * @{
  */
 
+#if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
+#error "Only <gnunet_util_lib.h> can be included directly."
+#endif
+
 #ifndef GNUNET_BIO_LIB_H
 #define GNUNET_BIO_LIB_H
 

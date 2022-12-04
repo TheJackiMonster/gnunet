@@ -28,7 +28,6 @@
  * @author Bartlomiej Polot
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "regex_internal_lib.h"
 #include "regex_test_lib.h"

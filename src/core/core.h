@@ -26,9 +26,8 @@
 #ifndef CORE_H
 #define CORE_H
 
-#include "gnunet_bandwidth_lib.h"
 #include "gnunet_transport_service.h"
-#include "gnunet_crypto_lib.h"
+#include "gnunet_util_lib.h"
 #include "gnunet_time_lib.h"
 
 /**

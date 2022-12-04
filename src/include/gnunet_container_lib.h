@@ -28,11 +28,11 @@
  *
  * @file
  * Container classes for GNUnet
- * 
+ *
  * @addtogroup container
- * Common data structures in GNUnet programs 
+ * Common data structures in GNUnet programs
  * @{
- * 
+ *
  * @defgroup hashmap  MultiHashMap
  * Hash map with multiple values per key.
  *
@@ -50,9 +50,13 @@
  *
  * @defgroup metadata  Metadata
  * GNU libextractor key-value pairs
- * 
+ *
  * @}
  */
+
+#if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
+#error "Only <gnunet_util_lib.h> can be included directly."
+#endif
 
 #ifndef GNUNET_CONTAINER_LIB_H
 #define GNUNET_CONTAINER_LIB_H
@@ -1265,10 +1269,10 @@ GNUNET_CONTAINER_multipeermap_iterator_create (
  * position.  If there are no elements left, #GNUNET_NO is returned,
  * and @a key and @a value are not modified.
  *
- * This operation is only allowed if no elements have been removed 
- * from the multihashmap since the creation of @a iter, and the map 
+ * This operation is only allowed if no elements have been removed
+ * from the multihashmap since the creation of @a iter, and the map
  * has not been destroyed.
- * 
+ *
  * Adding elements may result in repeating or skipping elements.
  *
  * @param iter the iterator to get the next element from

@@ -28,7 +28,7 @@
 
 #include "platform.h"
 #include <gcrypt.h>
-#include "gnunet_crypto_lib.h"
+#include "gnunet_util_lib.h"
 #include "benchmark.h"
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-crypto-rsa", __VA_ARGS__)

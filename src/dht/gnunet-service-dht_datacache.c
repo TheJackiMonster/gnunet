@@ -24,7 +24,6 @@
  * @author Nathan Evans
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_datacache_lib.h"
 #include "gnunet-service-dht_datacache.h"
 #include "gnunet-service-dht_neighbours.h"

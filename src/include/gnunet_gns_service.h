@@ -39,7 +39,6 @@
 
 
 #include "gnunet_util_lib.h"
-#include "gnunet_dnsparser_lib.h"
 #include "gnunet_identity_service.h"
 #include "gnunet_namestore_service.h"
 

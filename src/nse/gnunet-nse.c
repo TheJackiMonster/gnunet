@@ -25,7 +25,6 @@
  */
 
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_nse_service.h"
 
 /**

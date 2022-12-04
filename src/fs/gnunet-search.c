@@ -30,7 +30,6 @@
 #include <ctype.h>
 #include <inttypes.h>
 #include <limits.h>
-#include "platform.h"
 #include "gnunet_fs_service.h"
 
 

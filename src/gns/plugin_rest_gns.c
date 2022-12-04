@@ -24,7 +24,6 @@
  */
 
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_rest_plugin.h"
 #include "gnunet_rest_lib.h"
 #include "gnunet_json_lib.h"

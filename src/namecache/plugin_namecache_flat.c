@@ -25,7 +25,6 @@
  */
 
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_namecache_plugin.h"
 #include "gnunet_namecache_service.h"
 #include "gnunet_gnsrecord_lib.h"

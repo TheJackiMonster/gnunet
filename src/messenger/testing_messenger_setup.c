@@ -27,7 +27,6 @@
 #include "testing_messenger_setup.h"
 
 #include <stdio.h>
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testbed_logger_service.h"
 #include "gnunet_testbed_service.h"

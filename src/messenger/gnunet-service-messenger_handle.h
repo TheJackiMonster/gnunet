@@ -28,11 +28,8 @@
 
 #include "platform.h"
 #include "gnunet_cadet_service.h"
-#include "gnunet_container_lib.h"
-#include "gnunet_crypto_lib.h"
+#include "gnunet_util_lib.h"
 #include "gnunet_identity_service.h"
-#include "gnunet_peer_lib.h"
-#include "gnunet_mq_lib.h"
 
 #include "gnunet-service-messenger_service.h"
 #include "gnunet-service-messenger_member_session.h"

@@ -27,7 +27,6 @@
  * and ensures that all message were received.
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_transport_service.h"
 #include "gauger.h"
 #include "transport-testing.h"

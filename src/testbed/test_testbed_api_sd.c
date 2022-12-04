@@ -26,7 +26,6 @@
  */
 
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "testbed_api_sd.h"
 

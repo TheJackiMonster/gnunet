@@ -28,7 +28,6 @@
  * might be a natural enough place for people to find the code...
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_block_plugin.h"
 #include "block_dns.h"
 #include "gnunet_signatures.h"

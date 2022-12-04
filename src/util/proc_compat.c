@@ -27,7 +27,6 @@
  */
 
 #include "platform.h"
-#include "platform.h"
 
 /**
  * memrchr as defined in glibc

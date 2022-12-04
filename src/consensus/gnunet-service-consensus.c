@@ -23,7 +23,6 @@
  * @author Florian Dold <flo@dold.me>
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_block_lib.h"
 #include "gnunet_protocols.h"

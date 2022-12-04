@@ -25,7 +25,6 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet-service-fs.h"
 #include "gnunet-service-fs_cp.h"
 #include "gnunet-service-fs_indexing.h"

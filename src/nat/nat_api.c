@@ -27,7 +27,6 @@
  * and external IP address retrieval
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_nat_service.h"
 #include "nat.h"
 #include "nat_stun.h"

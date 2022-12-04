@@ -27,7 +27,7 @@
 #define GNUNET_SERVICE_MESSENGER_MESSAGE_STATE_H
 
 #include "platform.h"
-#include "gnunet_crypto_lib.h"
+#include "gnunet_util_lib.h"
 
 #include "messenger_api_message.h"
 #include "gnunet-service-messenger_list_messages.h"

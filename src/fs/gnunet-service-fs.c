@@ -24,14 +24,12 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
-#include "platform.h"
 #include <float.h>
 #include "gnunet_constants.h"
 #include "gnunet_core_service.h"
 #include "gnunet_dht_service.h"
 #include "gnunet_datastore_service.h"
 #include "gnunet_load_lib.h"
-#include "gnunet_peer_lib.h"
 #include "gnunet_protocols.h"
 #include "gnunet_signatures.h"
 #include "gnunet_statistics_service.h"

@@ -24,7 +24,6 @@
  * @author Matthias Wachs
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet-ats-solver-eval.h"
 #include "gnunet-service-ats_normalization.h"

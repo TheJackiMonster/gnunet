@@ -26,7 +26,6 @@
  * @author Matthias Wachs
  */
 #include "platform.h"
-#include "platform.h"
 #include "plugin_transport_udp.h"
 #include "gnunet_hello_lib.h"
 #include "gnunet_util_lib.h"

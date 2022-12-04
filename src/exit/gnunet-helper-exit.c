@@ -42,7 +42,6 @@
  * - Philipp Tölke
  */
 #include "platform.h"
-#include "platform.h"
 
 #ifdef IF_TUN_HDR
 #include IF_TUN_HDR
@@ -56,7 +55,7 @@
 /**
  * Need 'struct GNUNET_MessageHeader'.
  */
-#include "gnunet_crypto_lib.h"
+#include "gnunet_util_lib.h"
 #include "gnunet_common.h"
 
 /**

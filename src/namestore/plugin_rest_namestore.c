@@ -25,7 +25,6 @@
  */
 
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_error_codes.h"
 #include "gnunet_rest_plugin.h"
 #include "gnunet_gns_service.h"

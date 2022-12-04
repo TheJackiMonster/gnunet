@@ -24,11 +24,9 @@
  * @author Martin Schanzenbach
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_signatures.h"
 #include "gnunet_revocation_service.h"
-#include "gnunet_dnsparser_lib.h"
 #include "gnunet_testing_lib.h"
 #include "revocation.h"
 #include <inttypes.h>

@@ -26,7 +26,6 @@
  * @brief application to provide an integrated hostlist HTTP server
  */
 #include "platform.h"
-#include "platform.h"
 #include <microhttpd.h>
 #include "gnunet-daemon-hostlist_server.h"
 #include "gnunet_hello_lib.h"

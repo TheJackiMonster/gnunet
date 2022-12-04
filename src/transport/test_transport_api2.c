@@ -28,7 +28,6 @@
  * C code apparently.
  */
 #include "platform.h"
-#include "platform.h"
 //#include "gnunet_transport_service.h"
 #include "transport-testing2.h"
 

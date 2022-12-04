@@ -111,7 +111,6 @@
  */
 #include "platform.h"
 #include "gnunet_private_config.h"
-#include "platform.h"
 #include <netpacket/packet.h>
 #include <linux/if_ether.h>
 #include <linux/wireless.h>

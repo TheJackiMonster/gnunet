@@ -25,7 +25,6 @@
  */
 
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_block_plugin.h"
 #include "gnunet_block_group_lib.h"
 

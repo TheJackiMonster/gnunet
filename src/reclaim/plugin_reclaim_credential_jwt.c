@@ -26,7 +26,6 @@
  * @author Martin Schanzenbach
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_reclaim_plugin.h"
 #include <inttypes.h>

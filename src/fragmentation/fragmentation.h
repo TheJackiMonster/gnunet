@@ -24,7 +24,9 @@
  */
 #ifndef FRAGMENTATION_H
 #define FRAGMENTATION_H
+
 #include "platform.h"
+#include "gnunet_util_lib.h"
 #include "gnunet_fragmentation_lib.h"
 
 GNUNET_NETWORK_STRUCT_BEGIN

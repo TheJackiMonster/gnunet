@@ -35,18 +35,14 @@
  *   service with an API to add local-exit services dynamically?
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_protocols.h"
 #include "gnunet_applications.h"
 #include "gnunet_dht_service.h"
 #include "gnunet_cadet_service.h"
-#include "gnunet_dnsparser_lib.h"
-#include "gnunet_dnsstub_lib.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_constants.h"
 #include "gnunet_signatures.h"
-#include "gnunet_tun_lib.h"
 #include "gnunet_regex_service.h"
 #include "exit.h"
 #include "block_dns.h"

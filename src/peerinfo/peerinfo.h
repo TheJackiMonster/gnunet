@@ -27,10 +27,9 @@
 #ifndef PEERINFO_H
 #define PEERINFO_H
 
-#include "gnunet_crypto_lib.h"
-#include "gnunet_time_lib.h"
+#include "gnunet_util_lib.h"
 #include "gnunet_peerinfo_service.h"
-
+#include "gnunet_time_lib.h"
 
 GNUNET_NETWORK_STRUCT_BEGIN
 

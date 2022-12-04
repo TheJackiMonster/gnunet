@@ -24,7 +24,6 @@
  * @author Nathan Evans
  */
 #include "platform.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_core_service.h"
 
