@@ -24,6 +24,7 @@
  * @author David Brodski
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_protocols.h"
 #include "plugin_transport_wlan.h"
 

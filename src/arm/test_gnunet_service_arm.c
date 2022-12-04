@@ -24,6 +24,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_arm_service.h"
 #include "gnunet_resolver_service.h"
 #include "gnunet_os_lib.h"

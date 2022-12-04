@@ -4,6 +4,7 @@
 // https://github.com/ontio/ontology-crypto/wiki/Anonymous-Credential
 // using the relic library https://github.com/relic-toolkit/relic/
 
+#include "platform.h"
 #include "pabc_helper.h"
 #include <pwd.h>
 #include <stdlib.h>

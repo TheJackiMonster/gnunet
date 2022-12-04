@@ -26,6 +26,7 @@
  * correct data "HELLO" is read then all is well.
  */
 
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "disk.h"
 

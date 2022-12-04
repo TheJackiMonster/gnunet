@@ -25,6 +25,7 @@
  */
 
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_ats_service.h"
 #include <sqlite3.h>

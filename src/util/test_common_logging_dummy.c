@@ -28,6 +28,7 @@
 #undef GNUNET_EXTRA_LOGGING
 #define GNUNET_EXTRA_LOGGING GNUNET_YES
 
+#include "platform.h"
 #include "gnunet_util_lib.h"
 
 /**

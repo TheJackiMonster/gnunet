@@ -25,6 +25,7 @@
  */
 
 
+#include "platform.h"
 #include <ltdl.h>
 #include "gnunet_util_lib.h"
 

@@ -25,6 +25,7 @@
  * @author Gian Demarmels <gian@demarmels.org>
  */
 
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #include <sodium.h>
 

@@ -23,6 +23,7 @@
  * start the peer, get the HELLO message, restart and stop the peer
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_transport_service.h"
 #include "transport-testing.h"
 

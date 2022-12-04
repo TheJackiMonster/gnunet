@@ -28,6 +28,7 @@
  * - actually call list_indexed API!
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
 #include "gnunet_fs_service.h"

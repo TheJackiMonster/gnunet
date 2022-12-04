@@ -23,6 +23,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_revocation_service.h"
 #include "gnunet_signatures.h"
 #include "gnunet_protocols.h"

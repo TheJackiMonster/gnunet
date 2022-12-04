@@ -24,6 +24,7 @@
  * @brief reclaim tickets
  *
  */
+#include "platform.h"
 #include <inttypes.h>
 #include "gnunet-service-reclaim_tickets.h"
 

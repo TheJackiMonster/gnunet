@@ -24,6 +24,7 @@
  * @author LRN
  */
 
+#include "platform.h"
 #include "gnunet_util_lib.h"
 
 #define VERBOSE GNUNET_NO

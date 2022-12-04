@@ -27,6 +27,7 @@
  * - add stability timer (a la buildbot)
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_util_lib.h"
 
 #define MAX_DELAY GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)

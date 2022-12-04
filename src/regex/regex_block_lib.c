@@ -24,6 +24,7 @@
  *        regex in the DHT
  */
 #include "platform.h"
+#include "platform.h"
 #include "regex_block_lib.h"
 #include "gnunet_constants.h"
 

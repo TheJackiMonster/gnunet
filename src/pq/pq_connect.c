@@ -23,6 +23,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+#include "platform.h"
 #include "pq.h"
 #include <pthread.h>
 

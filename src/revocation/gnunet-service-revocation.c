@@ -36,6 +36,7 @@
  *                 to make it rare to traverse each link twice (NSE-style)
  */
 #include "platform.h"
+#include "platform.h"
 #include <math.h>
 #include "gnunet_util_lib.h"
 #include "gnunet_block_lib.h"

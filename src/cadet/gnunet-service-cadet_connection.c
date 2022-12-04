@@ -26,6 +26,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_signatures.h"
 #include "gnunet-service-cadet_connection.h"
 #include "gnunet-service-cadet_channel.h"

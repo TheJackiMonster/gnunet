@@ -23,6 +23,7 @@
  * @brief A simple test-case setup for the messenger service
  */
 
+#include "platform.h"
 #include "testing_messenger_setup.h"
 
 #include <stdio.h>

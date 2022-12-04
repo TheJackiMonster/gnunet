@@ -11,7 +11,7 @@
 #ifndef __GAUGER_H__
 #define __GAUGER_H__
 
-#include "gnunet_platform.h"
+
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/wait.h>

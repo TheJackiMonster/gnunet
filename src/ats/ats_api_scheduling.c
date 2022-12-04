@@ -32,6 +32,7 @@
  *   to do with accessing the ATS service.
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_ats_service.h"
 #include "ats.h"
 

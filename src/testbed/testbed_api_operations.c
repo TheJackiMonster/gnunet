@@ -26,6 +26,7 @@
  */
 
 #include "platform.h"
+#include "platform.h"
 #include "testbed_api_operations.h"
 #include "testbed_api_sd.h"
 

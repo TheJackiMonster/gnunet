@@ -26,6 +26,7 @@
  *
  */
 #include "platform.h"
+#include "platform.h"
 #include <inttypes.h>
 #include <jansson.h>
 #include <jose/jose.h>

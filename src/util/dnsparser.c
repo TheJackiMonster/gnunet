@@ -25,6 +25,7 @@
  * @author Christian Grothoff
  */
 
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #if HAVE_LIBIDN2
 #if HAVE_IDN2_H

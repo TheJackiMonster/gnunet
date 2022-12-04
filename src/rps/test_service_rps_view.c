@@ -21,6 +21,7 @@
  * @file rps/test_service_rps_view.c
  * @brief testcase for gnunet-service-rps_view.c
  */
+#include "platform.h"
 #include <platform.h>
 #include "gnunet-service-rps_view.h"
 

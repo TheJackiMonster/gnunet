@@ -27,6 +27,7 @@
  * and report the results to stdout.
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_fs_service.h"
 
 

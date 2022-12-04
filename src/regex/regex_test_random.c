@@ -23,6 +23,7 @@
  * @author Maximilian Szengel
  */
 #include "platform.h"
+#include "platform.h"
 #include "regex_test_lib.h"
 #include "gnunet_crypto_lib.h"
 #include "regex_internal.h"

@@ -23,6 +23,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_fragmentation_lib.h"
 
 #define DETAILS GNUNET_NO

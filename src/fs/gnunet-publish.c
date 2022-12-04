@@ -26,6 +26,7 @@
  * @author Igor Wronsky
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_fs_service.h"
 #include "gnunet_identity_service.h"
 

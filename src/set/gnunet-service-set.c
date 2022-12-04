@@ -23,6 +23,7 @@
  * @author Florian Dold
  * @author Christian Grothoff
  */
+#include "platform.h"
 #include "gnunet-service-set.h"
 #include "gnunet-service-set_union.h"
 #include "gnunet-service-set_intersection.h"

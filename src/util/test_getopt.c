@@ -22,6 +22,7 @@
  * @brief testcase for util/getopt.c
  */
 
+#include "platform.h"
 #include "gnunet_util_lib.h"
 
 

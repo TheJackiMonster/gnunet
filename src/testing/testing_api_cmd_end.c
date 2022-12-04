@@ -22,6 +22,7 @@
  * @brief command to end a command array
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
 

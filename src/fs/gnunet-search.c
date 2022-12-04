@@ -26,6 +26,7 @@
  * @author Igor Wronsky
  * @author madmurphy
  */
+#include "platform.h"
 #include <ctype.h>
 #include <inttypes.h>
 #include <limits.h>

@@ -23,6 +23,7 @@
  * @author Martin Schanzenbach (integrate gnunet-uri)
  * @author Christian Grothoff (error handling)
  */
+#include "platform.h"
 #include <stdio.h>
 #include <stdbool.h>
 #include <signal.h>

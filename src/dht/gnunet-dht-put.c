@@ -24,6 +24,7 @@
  * @author Nathan Evans
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_dht_service.h"
 
 /**

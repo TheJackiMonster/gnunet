@@ -24,6 +24,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "ibf.h"
 #include "gnunet-service-set_union_strata_estimator.h"

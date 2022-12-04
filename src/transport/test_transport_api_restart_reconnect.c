@@ -26,6 +26,7 @@
  * How many peers are restarted is determined by the name of the binary.
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_transport_service.h"
 #include "transport-testing.h"
 

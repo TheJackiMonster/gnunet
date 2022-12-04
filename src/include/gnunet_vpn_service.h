@@ -34,7 +34,7 @@
 #ifndef GNUNET_VPN_SERVICE_H
 #define GNUNET_VPN_SERVICE_H
 
-#include "gnunet_platform.h"
+
 #include "gnunet_util_lib.h"
 
 

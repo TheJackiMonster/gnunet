@@ -25,7 +25,7 @@
 #ifndef GNUNET_PQ_LIB_H
 #define GNUNET_PQ_LIB_H
 
-#include "gnunet_platform.h"
+
 #include <libpq-fe.h>
 #include "gnunet_util_lib.h"
 #include "gnunet_db_lib.h"

@@ -24,6 +24,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+#include "platform.h"
 #if HAVE_EXTRACTOR_H
 #include <extractor.h>
 #endif

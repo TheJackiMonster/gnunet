@@ -54,7 +54,7 @@ extern "C" {
 #endif
 #endif
 
-#include "gnunet_platform.h"
+
 #include <stdbool.h>
 #include <sodium.h>
 

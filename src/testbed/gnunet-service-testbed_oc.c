@@ -24,6 +24,7 @@
  * @author Sree Harsha Totakura
  */
 
+#include "platform.h"
 #include "gnunet-service-testbed.h"
 #include "gnunet-service-testbed_connectionpool.h"
 #include "gnunet_transport_hello_service.h"

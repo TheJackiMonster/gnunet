@@ -22,6 +22,7 @@
  * @brief testcase for peerstore store operation
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_peerstore_service.h"
 #include "gnunet_testing_lib.h"
 

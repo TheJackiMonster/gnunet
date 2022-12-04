@@ -23,6 +23,7 @@
  * @brief tool to manipulate datastores
  * @author Christian Grothoff
  */
+#include "platform.h"
 #include <inttypes.h>
 #include "platform.h"
 #include "gnunet_util_lib.h"

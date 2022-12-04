@@ -58,7 +58,7 @@
 #define GNUNET_CONTAINER_LIB_H
 
 /* add error and config prototypes */
-#include "gnunet_platform.h"
+
 #include "gnunet_crypto_lib.h"
 
 

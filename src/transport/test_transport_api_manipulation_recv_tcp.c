@@ -28,6 +28,7 @@
  * In addition the distance on receiver side will be manipulated to be 10
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_transport_service.h"
 #include "transport-testing.h"
 

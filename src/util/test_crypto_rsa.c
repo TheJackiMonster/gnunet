@@ -25,6 +25,7 @@
  * @author Jeffrey Burdges <burdges@gnunet.org>
  */
 
+#include "platform.h"
 #include <gcrypt.h>
 #include "gnunet_util_lib.h"
 

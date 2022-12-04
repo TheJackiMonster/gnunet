@@ -27,6 +27,7 @@
  * connections between clients and service providers.
  */
 
+#include "platform.h"
 #include "gnunet_protocols.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_resolver_service.h"

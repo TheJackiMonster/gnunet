@@ -24,6 +24,7 @@
  * @author Christian Grothoff
  */
 
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #include <gcrypt.h>
 #include <gauger.h>

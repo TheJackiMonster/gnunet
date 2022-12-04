@@ -23,6 +23,7 @@
  * @brief testbed cache implementation
  * @author Sree Harsha Totakura
  */
+#include "platform.h"
 #include "gnunet-service-testbed.h"
 
 /**

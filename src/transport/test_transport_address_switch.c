@@ -43,6 +43,7 @@
  * out and returns "77" (skipped), so we set the timeout suitably low.
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_transport_service.h"
 #include "gnunet_ats_service.h"
 #include "transport-testing.h"

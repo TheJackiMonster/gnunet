@@ -31,6 +31,7 @@
  * module they are VERY, VERY important.
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_resolver_service.h"
 

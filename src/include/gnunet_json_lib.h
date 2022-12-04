@@ -27,7 +27,7 @@
 #ifndef GNUNET_JSON_LIB_H
 #define GNUNET_JSON_LIB_H
 
-#include "gnunet_platform.h"
+
 #include "gnunet_util_lib.h"
 #include <jansson.h>
 #include <microhttpd.h>

@@ -34,6 +34,7 @@
  *   reserve more bits in 'options' to allow for buffer size control?
  */
 #include "platform.h"
+#include "platform.h"
 #include "cadet.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet-service-cadet_channel.h"

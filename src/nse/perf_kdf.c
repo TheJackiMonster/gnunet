@@ -24,6 +24,7 @@
  * @brief measure performance of KDF hash function
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #include <gcrypt.h>
 #include <gauger.h>

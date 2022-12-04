@@ -23,6 +23,7 @@
  * @brief measure performance of scheduler functions
  */
 
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #include <gauger.h>
 

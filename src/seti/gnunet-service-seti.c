@@ -23,6 +23,7 @@
  * @author Florian Dold
  * @author Christian Grothoff
  */
+#include "platform.h"
 #include "gnunet-service-seti_protocol.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_cadet_service.h"

@@ -3,3 +3,4 @@ gnu_name_system_record_flags.h
 gnu_name_system_record_types.h
 gnunet_signatures.h
 !gnunet_config.h.in
+gnunet_config.h

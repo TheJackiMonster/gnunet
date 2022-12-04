@@ -30,6 +30,8 @@
 #ifndef GNUNET_UTIL_LIB_H
 #define GNUNET_UTIL_LIB_H
 
+#include <sys/socket.h>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -59,9 +61,9 @@ extern "C"
  * this service available to anyone but yourself.
  */
 #define GNUNET_AGPL_URL "https://git.gnunet.org/gnunet.git/tag/?h=v" \
-  PACKAGE_VERSION
+  GNUNET_VERSION
 
-#include "gnunet_platform.h"
+
 #include "gnunet_crypto_lib.h"
 #include "gnunet_bandwidth_lib.h"
 #include "gnunet_bio_lib.h"

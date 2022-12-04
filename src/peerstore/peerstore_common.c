@@ -23,6 +23,7 @@
  * @author Omar Tarabai
  */
 
+#include "platform.h"
 #include "peerstore_common.h"
 
 /**

@@ -23,6 +23,7 @@
  * @brief Test for the messenger service using cadet API.
  */
 
+#include "platform.h"
 #include "testing_messenger_setup.h"
 
 /**

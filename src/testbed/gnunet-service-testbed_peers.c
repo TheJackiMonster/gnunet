@@ -25,6 +25,7 @@
  * @author Sree Harsha Totakura <sreeharsha@totakura.in>
  */
 
+#include "platform.h"
 #include "gnunet-service-testbed.h"
 #include "gnunet_arm_service.h"
 #include <zlib.h>

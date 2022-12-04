@@ -24,6 +24,7 @@
  * @author Matthias Wachs
  */
 
+#include "platform.h"
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <signal.h>

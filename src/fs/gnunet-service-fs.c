@@ -24,6 +24,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+#include "platform.h"
 #include <float.h>
 #include "gnunet_constants.h"
 #include "gnunet_core_service.h"

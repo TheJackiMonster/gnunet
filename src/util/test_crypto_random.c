@@ -24,6 +24,7 @@
  * @brief testcase for crypto_random.c
  */
 
+#include "platform.h"
 #include "gnunet_util_lib.h"
 
 static int

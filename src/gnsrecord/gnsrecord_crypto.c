@@ -25,6 +25,7 @@
  * @author Matthias Wachs
  * @author Christian Grothoff
  */
+#include "platform.h"
 #include "gnsrecord_crypto.h"
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "gnsrecord", __VA_ARGS__)

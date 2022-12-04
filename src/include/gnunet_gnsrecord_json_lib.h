@@ -37,7 +37,7 @@
 #ifndef GNUNET_GNSRECORD_JSON_LIB_H
 #define GNUNET_GNSRECORD_JSON_LIB_H
 
-#include "gnunet_platform.h"
+
 #include "gnunet_gnsrecord_lib.h"
 #include "gnunet_json_lib.h"
 

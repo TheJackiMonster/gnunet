@@ -42,6 +42,7 @@
  * - Philipp Tölke
  */
 #include "platform.h"
+#include "platform.h"
 
 #ifdef IF_TUN_HDR
 #include IF_TUN_HDR

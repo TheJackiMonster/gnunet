@@ -28,6 +28,7 @@
  * - double-check queueing logic
  */
 #include "platform.h"
+#include "platform.h"
 #include <microhttpd.h>
 /* Just included for the right curl.h */
 #include "gnunet_curl_lib.h"

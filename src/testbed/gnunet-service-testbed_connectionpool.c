@@ -24,6 +24,7 @@
  * @author Sree Harsha Totakura <sreeharsha@totakura.in>
  */
 
+#include "platform.h"
 #include "gnunet-service-testbed.h"
 #include "gnunet-service-testbed_connectionpool.h"
 #include "testbed_api_operations.h"

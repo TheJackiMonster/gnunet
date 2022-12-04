@@ -24,6 +24,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+#include "platform.h"
 #include <gnunet_util_lib.h>
 #include <gnunet_dnsstub_lib.h>
 #include <gnunet_dnsparser_lib.h>

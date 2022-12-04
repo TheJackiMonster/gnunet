@@ -25,6 +25,7 @@
  * @author Gabor X Toth
  */
 
+#include "platform.h"
 #include <inttypes.h>
 
 

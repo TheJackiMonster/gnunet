@@ -5,6 +5,7 @@
  * for various plausible inputs.
  * @author Christian Grothoff
  */
+#include "platform.h"
 #include <stdio.h>
 
 int

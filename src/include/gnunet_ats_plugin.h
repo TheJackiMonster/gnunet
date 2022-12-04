@@ -40,7 +40,7 @@
 #ifndef PLUGIN_ATS_H
 #define PLUGIN_ATS_H
 
-#include "gnunet_platform.h"
+
 #include "gnunet_ats_service.h"
 #include "gnunet_statistics_service.h"
 

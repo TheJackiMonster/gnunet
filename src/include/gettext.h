@@ -23,7 +23,7 @@
 #if ENABLE_NLS
 
 /* Get declarations of GNU message catalog functions.  */
-#include "gnunet_platform.h"
+
 #include <libintl.h>
 
 #else

@@ -23,6 +23,7 @@
  * @brief Print information about messenger groups.
  */
 
+#include "platform.h"
 #include <stdio.h>
 
 #include "platform.h"

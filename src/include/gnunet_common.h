@@ -40,29 +40,35 @@
 #ifndef GNUNET_COMMON_H
 #define GNUNET_COMMON_H
 
-#include "gnunet_platform.h"
+#include "gnunet_config.h"
+
 #include <stdlib.h>
-#if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
-#endif
-#if HAVE_NETINET_IN_H
 #include <netinet/in.h>
-#endif
-#ifdef HAVE_STDINT_H
 #include <stdint.h>
-#endif
-#ifdef HAVE_STDARG_H
 #include <stdarg.h>
-#endif
-#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
-#endif
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
+
+#if defined(__FreeBSD__)
+
+#include <sys/endian.h>
+#define bswap_32(x) bswap32(x)
+#define bswap_64(x) bswap64(x)
+
+#elif defined(__OpenBSD__)
+
+#define bswap_32(x) swap32(x)
+#define bswap_64(x) swap64(x)
+
+#elif defined(__NetBSD__)
+
+#include <machine/bswap.h>
+#if defined(__BSWAP_RENAME) && !defined(__bswap_32)
+#define bswap_32(x) bswap32(x)
+#define bswap_64(x) bswap64(x)
 #endif
 
-
-#ifdef HAVE_BYTESWAP_H
+#elif defined(__linux__) || defined(GNU)
 #include <byteswap.h>
 #endif
 
@@ -156,7 +162,7 @@ enum GNUNET_GenericReturnValue
  */
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-#ifdef HAVE_BYTESWAP_H
+#if defined(bswap_16) || defined(bswap_32) || defined(bswap_64)
 #define BYTE_SWAP_16(x) bswap_16 (x)
 #define BYTE_SWAP_32(x) bswap_32 (x)
 #define BYTE_SWAP_64(x) bswap_64 (x)

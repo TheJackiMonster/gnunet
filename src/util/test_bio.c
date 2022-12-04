@@ -26,6 +26,7 @@
 
 
 
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #define TESTSTRING "testString"
 #define TESTNUMBER64 ((int64_t) 100000L)

@@ -27,6 +27,7 @@
 // TODO: DID documents do not have an expiration date. Still we add one
 // TODO: Store DID document with empty label and own type (maybe DID-Document or JSON??)
 
+#include "platform.h"
 #include "did_core.h"
 
 struct DID_resolve_return

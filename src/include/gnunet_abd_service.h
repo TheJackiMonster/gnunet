@@ -35,7 +35,7 @@
 #ifndef GNUNET_ABD_SERVICE_H
 #define GNUNET_ABD_SERVICE_H
 
-#include "gnunet_platform.h"
+
 #include "gnunet_util_lib.h"
 #include "gnunet_gns_service.h"
 #include "gnunet_identity_service.h"

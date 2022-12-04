@@ -22,6 +22,7 @@
  * @brief base test case for common http functionality
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_transport_service.h"
 #include "transport-testing.h"
 #include "plugin_transport_http_common.h"

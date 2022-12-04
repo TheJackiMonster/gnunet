@@ -22,7 +22,8 @@
  * @brief plugin for testing
  */
 
-#include "gnunet_platform.h"
+#include "platform.h"
+#include "platform.h"
 
 
 void *

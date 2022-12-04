@@ -23,6 +23,7 @@
  * @author Christian Grothoff
  * @brief Test for the cadet service using mq API.
  */
+#include "platform.h"
 #include <stdio.h>
 #include "platform.h"
 #include "cadet.h"

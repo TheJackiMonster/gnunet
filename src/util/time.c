@@ -24,6 +24,7 @@
  * @brief functions for handling time and time arithmetic
  */
 
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #if __STDC_NO_ATOMICS__
 #define ATOMIC

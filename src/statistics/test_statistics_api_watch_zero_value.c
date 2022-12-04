@@ -22,6 +22,7 @@
  * @brief testcase for statistics_api.c watch functions with initial 0 value
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_statistics_service.h"
 

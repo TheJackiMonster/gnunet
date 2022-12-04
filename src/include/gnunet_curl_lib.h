@@ -32,7 +32,7 @@
  */
 #ifndef GNUNET_CURL_LIB_H
 #define GNUNET_CURL_LIB_H
-#include "gnunet_platform.h"
+
 #include <curl/curl.h>
 #include "gnunet_util_lib.h"
 

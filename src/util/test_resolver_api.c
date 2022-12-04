@@ -22,6 +22,7 @@
  * @brief testcase for resolver_api.c
  */
 
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_resolver_service.h"
 #include "resolver.h"

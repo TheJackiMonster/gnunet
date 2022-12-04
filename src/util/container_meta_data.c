@@ -25,6 +25,7 @@
  */
 
 
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #if HAVE_EXTRACTOR_H
 #include <extractor.h>

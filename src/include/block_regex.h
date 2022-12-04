@@ -36,7 +36,7 @@ extern "C"
 #endif
 #endif
 
-#include "gnunet_platform.h"
+
 #include "gnunet_util_lib.h"
 #include <stdint.h>
 

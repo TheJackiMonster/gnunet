@@ -24,6 +24,7 @@
  * @brief measure performance of RSA signing
  */
 
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #include <gauger.h>
 

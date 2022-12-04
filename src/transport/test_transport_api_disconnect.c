@@ -26,6 +26,7 @@
  * stops one peer, expects the others to send a disconnect notification.
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_transport_service.h"
 #include "transport-testing.h"
 

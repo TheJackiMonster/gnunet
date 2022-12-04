@@ -25,6 +25,7 @@
  */
 
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_peerstore_plugin.h"
 #include "gnunet_peerstore_service.h"
 #include "peerstore.h"

@@ -22,6 +22,7 @@
  * @brief testcase for auction.c
  */
 #include "platform.h"
+#include "platform.h"
 
 static int
 check ()

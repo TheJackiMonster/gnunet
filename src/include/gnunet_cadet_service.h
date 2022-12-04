@@ -45,7 +45,7 @@ extern "C" {
 #endif
 #endif
 
-#include "gnunet_platform.h"
+
 #include "gnunet_util_lib.h"
 #include "gnunet_transport_service.h"
 

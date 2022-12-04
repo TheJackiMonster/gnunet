@@ -24,6 +24,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet-service-core.h"
 #include "gnunet-service-core_kx.h"
 #include "gnunet-service-core_typemap.h"

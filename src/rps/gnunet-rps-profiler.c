@@ -25,6 +25,7 @@
  *        for one message from each peer.
  */
 #include "platform.h"
+#include "platform.h"
 // #include "rps_test_lib.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testbed_service.h"

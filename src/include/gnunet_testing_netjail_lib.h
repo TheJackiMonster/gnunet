@@ -27,7 +27,7 @@
 #ifndef GNUNET_TESTING_NETJAIL_LIB_H
 #define GNUNET_TESTING_NETJAIL_LIB_H
 
-#include "gnunet_platform.h"
+
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_plugin.h"
 #include "gnunet_testing_ng_lib.h"

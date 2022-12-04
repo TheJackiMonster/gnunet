@@ -27,6 +27,7 @@
  * @author Nils Durner
  */
 
+#include "platform.h"
 #include <gcrypt.h>
 
 

@@ -23,6 +23,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+#include "platform.h"
 #if HAVE_LIBIDN2
 #if HAVE_IDN2_H
 #include <idn2.h>

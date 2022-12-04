@@ -27,6 +27,7 @@
  * @author Martin Schanzenbach
  */
 
+#include "platform.h"
 #include <gcrypt.h>
 #include <sodium.h>
 #include "gnunet_crypto_lib.h"

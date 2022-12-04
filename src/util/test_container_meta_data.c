@@ -25,6 +25,7 @@
  */
 
 
+#include "platform.h"
 #include "gnunet_util_lib.h"
 
 #define ABORT(m) { fprintf (stderr, "Error at %s:%d\n", __FILE__, __LINE__); \

@@ -21,6 +21,7 @@
  * @file namestore/test_common.c
  * @brief common functions for testcase setup
  */
+#include "platform.h"
 #include <gnunet_namestore_plugin.h>
 
 /**

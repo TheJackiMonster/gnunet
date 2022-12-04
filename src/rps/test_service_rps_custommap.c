@@ -21,6 +21,7 @@
  * @file rps/test_service_rps_custommap.c
  * @brief testcase for gnunet-service-rps_peers.c
  */
+#include "platform.h"
 #include <platform.h>
 #include "gnunet-service-rps_custommap.h"
 

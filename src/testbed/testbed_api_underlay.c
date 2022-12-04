@@ -24,6 +24,7 @@
  * @author Sree Harsha Totakura <sreeharsha@totakura.in>
  */
 
+#include "platform.h"
 #include "testbed_api_peers.h"
 
 

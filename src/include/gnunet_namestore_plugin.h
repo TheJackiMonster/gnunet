@@ -34,7 +34,7 @@
 #ifndef GNUNET_NAMESTORE_PLUGIN_H
 #define GNUNET_NAMESTORE_PLUGIN_H
 
-#include "gnunet_platform.h"
+
 #include "gnunet_util_lib.h"
 #include "gnunet_namestore_service.h"
 

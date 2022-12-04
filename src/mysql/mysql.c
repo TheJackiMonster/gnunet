@@ -23,6 +23,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+#include "platform.h"
 #include <mysql/mysql.h>
 #include "gnunet_mysql_lib.h"
 

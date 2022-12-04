@@ -24,6 +24,7 @@
  * @author Martin Schanzenbach
  */
 #include "platform.h"
+#include "platform.h"
 /* Just included for the right curl.h */
 #include "gnunet_curl_lib.h"
 #include <microhttpd.h>

@@ -23,6 +23,7 @@
  * @author Christian Grothoff <christian@grothoff.org>
  */
 #include "platform.h"
+#include "platform.h"
 #include "pq.h"
 
 /**

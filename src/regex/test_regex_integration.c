@@ -25,6 +25,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_applications.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_tun_lib.h"

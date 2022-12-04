@@ -26,7 +26,8 @@
  * Definitions for macOS and Win32
  */
 
-#include "gnunet_platform.h"
+#include "platform.h"
+#include "platform.h"
 
 /**
  * memrchr as defined in glibc

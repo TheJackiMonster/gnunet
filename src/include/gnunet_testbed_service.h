@@ -38,7 +38,7 @@
 #ifndef GNUNET_TESTBED_SERVICE_H
 #define GNUNET_TESTBED_SERVICE_H
 
-#include "gnunet_platform.h"
+
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
 

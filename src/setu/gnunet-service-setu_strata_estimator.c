@@ -25,6 +25,7 @@
  * @author Elias Summermatter
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "ibf.h"
 #include "gnunet-service-setu_strata_estimator.h"

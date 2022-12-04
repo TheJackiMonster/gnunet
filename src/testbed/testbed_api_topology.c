@@ -24,6 +24,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_testbed_service.h"
 #include "testbed_api.h"
 #include "testbed_api_peers.h"

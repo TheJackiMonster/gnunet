@@ -27,6 +27,7 @@
  * - simplify functions by passing a `struct GNUNET_HELLO_Address`
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet-service-ats.h"
 #include "gnunet-service-ats_addresses.h"
 #include "gnunet-service-ats_performance.h"

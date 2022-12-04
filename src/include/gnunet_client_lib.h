@@ -50,7 +50,7 @@ extern "C"
 #endif
 #endif
 
-#include "gnunet_platform.h"
+
 #include "gnunet_mq_lib.h"
 
 

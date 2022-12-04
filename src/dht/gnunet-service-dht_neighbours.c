@@ -25,6 +25,7 @@
  * @author Nathan Evans
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_constants.h"
 #include "gnunet_protocols.h"
 #include "gnunet_signatures.h"

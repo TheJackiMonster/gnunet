@@ -24,6 +24,7 @@
  * @author Julius Bünger
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_applications.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_cadet_service.h"

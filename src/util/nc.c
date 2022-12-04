@@ -26,6 +26,7 @@
  */
 
 
+#include "platform.h"
 #include "gnunet_util_lib.h"
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-nc", __VA_ARGS__)

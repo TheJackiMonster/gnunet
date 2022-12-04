@@ -24,6 +24,7 @@
  * @brief measure performance of encryption function
  */
 
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #include <gauger.h>
 

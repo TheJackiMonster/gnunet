@@ -39,7 +39,7 @@ extern "C" {
 #endif
 #endif
 
-#include "gnunet_platform.h"
+
 #include "platform.h"
 #include "gnunet_configuration_lib.h"
 #include "gnunet_crypto_lib.h"

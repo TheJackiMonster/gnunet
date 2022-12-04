@@ -24,6 +24,7 @@
  * @author Christian M. Fuchs
  */
 #define GCRYPT_NO_DEPRECATED
+#include "platform.h"
 #include <gcrypt.h>
 #include <inttypes.h>
 

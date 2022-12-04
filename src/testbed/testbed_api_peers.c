@@ -27,6 +27,7 @@
  */
 
 #include "platform.h"
+#include "platform.h"
 #include "testbed_api_peers.h"
 #include "testbed_api.h"
 #include "testbed.h"

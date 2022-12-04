@@ -24,6 +24,7 @@
  * @author Markus Teich
  */
 #include "platform.h"
+#include "platform.h"
 
 #include <float.h>
 

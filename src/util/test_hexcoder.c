@@ -25,6 +25,7 @@
  *                 #GNUNET_DNSPARSER_bin_to_hex()
  */
 
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_dnsparser_lib.h"
 

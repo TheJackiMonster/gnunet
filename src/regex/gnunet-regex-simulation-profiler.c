@@ -29,6 +29,7 @@
  */
 
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "regex_internal_lib.h"
 #include "gnunet_mysql_lib.h"

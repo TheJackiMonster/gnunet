@@ -22,6 +22,7 @@
  * @brief test for regex_graph.c
  * @author Maximilian Szengel
  */
+#include "platform.h"
 #include <regex.h>
 #include <time.h>
 #include "platform.h"

@@ -23,6 +23,7 @@
  * @author Nils Durner
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_datacache_lib.h"
 #include "gnunet_testing_lib.h"

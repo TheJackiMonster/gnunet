@@ -25,6 +25,7 @@
  * @author Florian Dold
  */
 
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #include <gcrypt.h>
 

@@ -23,6 +23,7 @@
  * @author Christian Grothoff
  * @brief Test for flow control of CADET service
  */
+#include "platform.h"
 #include <stdio.h>
 #include "platform.h"
 #include "cadet_test_lib.h"

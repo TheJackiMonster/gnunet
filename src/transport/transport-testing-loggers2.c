@@ -22,6 +22,7 @@
  * @brief convenience functions for logging common events in tests
  * @author Christian Grothoff
  */
+#include "platform.h"
 #include "transport-testing2.h"
 
 

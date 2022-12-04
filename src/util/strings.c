@@ -25,6 +25,7 @@
  */
 
 
+#include "platform.h"
 #if HAVE_ICONV
 #include <iconv.h>
 #endif

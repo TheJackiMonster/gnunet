@@ -22,6 +22,7 @@
  *
  * @brief Profiler for cadet experiments.
  */
+#include "platform.h"
 #include <stdio.h>
 #include "platform.h"
 #include "cadet_test_lib.h"

@@ -28,6 +28,7 @@
  */
 
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_datastore_plugin.h"
 
 

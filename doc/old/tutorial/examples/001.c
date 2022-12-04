@@ -1,3 +1,4 @@
+#include "platform.h"
 #include <gnunet/platform.h>
 #include <gnunet/gnunet_util_lib.h>
 

@@ -24,6 +24,7 @@
  * @author Omar Tarabai
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "peerstore.h"
 #include "gnunet_peerstore_plugin.h"

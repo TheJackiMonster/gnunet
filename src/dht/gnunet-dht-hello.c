@@ -23,6 +23,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_dht_service.h"
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "dht-clients", __VA_ARGS__)

@@ -25,6 +25,7 @@
  */
 
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_datastore_plugin.h"
 #include "gnunet_sq_lib.h"
 #include <sqlite3.h>

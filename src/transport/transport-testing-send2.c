@@ -22,6 +22,7 @@
  * @brief convenience transmission function for tests
  * @author Christian Grothoff
  */
+#include "platform.h"
 #include "transport-testing2.h"
 
 /**

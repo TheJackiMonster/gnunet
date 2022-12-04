@@ -25,6 +25,7 @@
  */
 
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_util.h"
 #include "gnunet_fsui_lib.h"
 

@@ -24,6 +24,7 @@
  * @brief Test for crypto_hash.c
  */
 
+#include "platform.h"
 #include "gnunet_util_lib.h"
 
 static char block[65536];

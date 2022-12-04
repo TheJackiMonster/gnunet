@@ -76,7 +76,7 @@ struct GNUNET_DISK_FileHandle
    or unsigned long long, this IS platform dependent;
    but "stdlib.h" should be portable 'enough' to be
    unconditionally available... */
-#include "gnunet_platform.h"
+
 #include <stdlib.h>
 #include "gnunet_configuration_lib.h"
 #include "gnunet_scheduler_lib.h"

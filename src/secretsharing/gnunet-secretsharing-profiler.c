@@ -24,6 +24,7 @@
  * @author Florian Dold
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_secretsharing_service.h"
 #include "gnunet_testbed_service.h"

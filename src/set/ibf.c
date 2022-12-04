@@ -24,6 +24,7 @@
  * @author Florian Dold
  */
 
+#include "platform.h"
 #include "ibf.h"
 
 /**

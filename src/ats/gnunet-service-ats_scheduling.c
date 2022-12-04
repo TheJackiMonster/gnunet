@@ -25,6 +25,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet-service-ats_addresses.h"
 #include "gnunet-service-ats_scheduling.h"
 #include "ats.h"

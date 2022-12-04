@@ -24,6 +24,7 @@
  */
 
 
+#include "platform.h"
 #include "gnunet_container_lib.h"
 
 #define LOG(kind, ...) \

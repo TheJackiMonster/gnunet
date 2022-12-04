@@ -36,7 +36,7 @@
 #ifndef GNUNET_PEER_LIB_H
 #define GNUNET_PEER_LIB_H
 
-#include "gnunet_platform.h"
+
 #include "gnunet_util_lib.h"
 
 #ifdef __cplusplus

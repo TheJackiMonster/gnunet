@@ -24,6 +24,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_namestore_plugin.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_gnsrecord_lib.h"

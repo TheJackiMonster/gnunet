@@ -29,6 +29,7 @@
  * Then we send response from P2 to P1 and expect delay of >= TEST_DELAY us
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_transport_service.h"
 #include "transport-testing.h"
 

@@ -24,6 +24,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_bio_lib.h"
 #include "gnunet_container_lib.h"
 #include "gnunet_disk_lib.h"

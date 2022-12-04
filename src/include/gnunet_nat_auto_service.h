@@ -34,7 +34,7 @@
 #ifndef GNUNET_NAT_AUTO_SERVICE_H
 #define GNUNET_NAT_AUTO_SERVICE_H
 
-#include "gnunet_platform.h"
+
 #include "gnunet_util_lib.h"
 #include "gnunet_nat_service.h"
 

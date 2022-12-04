@@ -44,6 +44,7 @@
  * Download speed of type `leach` was 1384 KiB/s
  */
 #include "platform.h"
+#include "platform.h"
 #include "fs_test_lib.h"
 #include "gnunet_testbed_service.h"
 

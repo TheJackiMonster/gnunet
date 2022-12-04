@@ -39,7 +39,7 @@
 #ifndef PLUGIN_TRANSPORT_H
 #define PLUGIN_TRANSPORT_H
 
-#include "gnunet_platform.h"
+
 #include "gnunet_configuration_lib.h"
 #include "gnunet_scheduler_lib.h"
 #include "gnunet_statistics_service.h"

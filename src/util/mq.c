@@ -24,6 +24,7 @@
  * @brief general purpose request queue
  */
 
+#include "platform.h"
 #include "gnunet_util_lib.h"
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-mq", __VA_ARGS__)

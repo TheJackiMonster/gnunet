@@ -45,7 +45,10 @@
 /* Set to 1 is this is an experimental build */
 #define GNUNET_EXPERIMENTAL @enable_experimental@
 
-/* Define to 1 if GnuTLS has DANE support */
+/* Set to 1 if GnuTLS has DANE support */
 #define GNUNET_CURL_GNUTLS @curl_gnutls@
+
+/* Set to 1 is we have the byteswap header */
+#define GNUNET_HAVE_BYTESWAP_H @have_byteswap@
 
 #endif

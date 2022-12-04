@@ -32,7 +32,7 @@
 #ifndef GNUNET_OP_H
 #define GNUNET_OP_H
 
-#include "gnunet_platform.h"
+
 #include "gnunet_util_lib.h"
 
 /**

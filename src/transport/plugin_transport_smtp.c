@@ -26,6 +26,7 @@
  */
 
 #include "platform.h"
+#include "platform.h"
 #include "gnunet_util.h"
 #include "gnunet_constants.h"
 #include "gnunet_protocols.h"

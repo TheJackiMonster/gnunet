@@ -24,6 +24,7 @@
  *  modern machines.
  */
 
+#include "platform.h"
 #include "gnunet_util_lib.h"
 
 static struct GNUNET_TIME_Absolute target;
