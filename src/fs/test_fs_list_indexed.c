@@ -183,7 +183,7 @@ run (void *cls,
     "down_bar",
   };
   char *buf;
-  struct GNUNET_CONTAINER_MetaData *meta;
+  struct GNUNET_FS_MetaData *meta;
   struct GNUNET_FS_Uri *kuri;
   struct GNUNET_FS_FileInformation *fi1;
   struct GNUNET_FS_FileInformation *fi2;

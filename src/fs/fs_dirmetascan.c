@@ -26,6 +26,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+#include "gnunet_extractor_compat.h"
 #include "gnunet_fs_service.h"
 #include "gnunet_scheduler_lib.h"
 #include <pthread.h>
@@ -359,26 +360,26 @@ process_helper_msgs (void *cls, const struct GNUNET_MessageHeader *msg)
                              GNUNET_FS_DIRSCANNER_EXTRACT_FINISHED);
       if (0 < left)
       {
-        ds->pos->meta = GNUNET_CONTAINER_meta_data_deserialize (end, left);
+        ds->pos->meta = GNUNET_FS_meta_data_deserialize (end, left);
         if (NULL == ds->pos->meta)
         {
           GNUNET_break (0);
           break;
         }
         /* having full filenames is too dangerous; always make sure we clean them up */
-        GNUNET_CONTAINER_meta_data_delete (ds->pos->meta,
-                                           EXTRACTOR_METATYPE_FILENAME,
-                                           NULL,
-                                           0);
+        GNUNET_FS_meta_data_delete (ds->pos->meta,
+                                    EXTRACTOR_METATYPE_FILENAME,
+                                    NULL,
+                                    0);
         /* instead, put in our 'safer' original filename */
-        GNUNET_CONTAINER_meta_data_insert (ds->pos->meta,
-                                           "<libgnunetfs>",
-                                           EXTRACTOR_METATYPE_GNUNET_ORIGINAL_FILENAME,
-                                           EXTRACTOR_METAFORMAT_UTF8,
-                                           "text/plain",
-                                           ds->pos->short_filename,
-                                           strlen (ds->pos->short_filename)
-                                           + 1);
+        GNUNET_FS_meta_data_insert (ds->pos->meta,
+                                    "<libgnunetfs>",
+                                    EXTRACTOR_METATYPE_GNUNET_ORIGINAL_FILENAME,
+                                    EXTRACTOR_METAFORMAT_UTF8,
+                                    "text/plain",
+                                    ds->pos->short_filename,
+                                    strlen (ds->pos->short_filename)
+                                    + 1);
       }
       ds->pos->ksk_uri = GNUNET_FS_uri_ksk_create_from_meta_data (
         ds->pos->meta);

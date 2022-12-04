@@ -35,7 +35,7 @@ static int err;
 
 static struct GNUNET_CRYPTO_EcdsaPrivateKey ns;
 
-static struct GNUNET_CONTAINER_MetaData *meta;
+static struct GNUNET_FS_MetaData *meta;
 
 static struct GNUNET_FS_Uri *uri_this;
 
@@ -66,7 +66,7 @@ do_shutdown ()
 static void
 check_next (void *cls, const char *last_id,
             const struct GNUNET_FS_Uri *last_uri,
-            const struct GNUNET_CONTAINER_MetaData *last_meta,
+            const struct GNUNET_FS_MetaData *last_meta,
             const char *next_id)
 {
   GNUNET_break (0 == strcmp (last_id, "next"));
@@ -78,7 +78,7 @@ check_next (void *cls, const char *last_id,
 static void
 check_this_next (void *cls, const char *last_id,
                  const struct GNUNET_FS_Uri *last_uri,
-                 const struct GNUNET_CONTAINER_MetaData *last_meta,
+                 const struct GNUNET_FS_MetaData *last_meta,
                  const char *next_id)
 {
   GNUNET_break (0 == strcmp (last_id, "this"));
@@ -101,7 +101,7 @@ sks_cont_next (void *cls, const struct GNUNET_FS_Uri *uri, const char *emsg)
 static void
 check_this (void *cls, const char *last_id,
             const struct GNUNET_FS_Uri *last_uri,
-            const struct GNUNET_CONTAINER_MetaData *last_meta,
+            const struct GNUNET_FS_MetaData *last_meta,
             const char *next_id)
 {
   GNUNET_break (0 == strcmp (last_id, "this"));

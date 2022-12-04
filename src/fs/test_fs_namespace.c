@@ -206,7 +206,7 @@ publish_cont (void *cls, const struct GNUNET_FS_Uri *ksk_uri, const char *emsg)
 static void
 sks_cont (void *cls, const struct GNUNET_FS_Uri *uri, const char *emsg)
 {
-  struct GNUNET_CONTAINER_MetaData *meta;
+  struct GNUNET_FS_MetaData *meta;
   struct GNUNET_FS_Uri *ksk_uri;
   char *msg;
   struct GNUNET_FS_BlockOptions bo;
@@ -238,7 +238,7 @@ sks_cont (void *cls, const struct GNUNET_FS_Uri *uri, const char *emsg)
 static void
 adv_cont (void *cls, const struct GNUNET_FS_Uri *uri, const char *emsg)
 {
-  struct GNUNET_CONTAINER_MetaData *meta;
+  struct GNUNET_FS_MetaData *meta;
   struct GNUNET_CRYPTO_EcdsaPrivateKey ns;
   struct GNUNET_FS_BlockOptions bo;
 
@@ -270,7 +270,7 @@ static void
 testNamespace (void)
 {
   struct GNUNET_FS_BlockOptions bo;
-  struct GNUNET_CONTAINER_MetaData *meta;
+  struct GNUNET_FS_MetaData *meta;
   struct GNUNET_FS_Uri *ksk_uri;
   struct GNUNET_FS_Uri *sks_uri;
 

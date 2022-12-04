@@ -40,7 +40,8 @@ libgnunetfs_la_SOURCES = \
   fs_sharetree.c \
   fs_tree.c fs_tree.h \
   fs_unindex.c \
-  fs_uri.c
+  fs_uri.c \
+  meta_data.c
 
 libgnunetfs_la_LIBADD = \
   $(top_builddir)/src/datastore/libgnunetdatastore.la \
@@ -148,8 +149,9 @@ endif
 gnunet_helper_fs_publish_SOURCES =  \
  gnunet-helper-fs-publish.c
 gnunet_helper_fs_publish_LDADD =  \
- $(top_builddir)/src/util/libgnunetutil.la \
- $(GN_LIBINTL)
+  libgnunetfs.la \
+  $(top_builddir)/src/util/libgnunetutil.la \
+  $(GN_LIBINTL)
 
 if HAVE_LIBEXTRACTOR
 gnunet_helper_fs_publish_LDADD += \
@@ -249,6 +251,7 @@ check_PROGRAMS = \
  test_fs_unindex \
  test_fs_unindex_persistence \
  test_fs_uri \
+ test_fs_meta_data \
  test_gnunet_service_fs_migration \
  test_gnunet_service_fs_p2p \
  test_gnunet_service_fs_p2p_cadet \
@@ -294,6 +297,7 @@ TESTS = \
  test_fs_unindex_persistence \
  test_fs_uri \
  test_fs_test_lib \
+ test_fs_meta_data \
  test_gnunet_service_fs_migration \
  test_gnunet_service_fs_p2p \
  test_gnunet_service_fs_p2p_cadet \
@@ -446,6 +450,13 @@ test_fs_unindex_persistence_LDADD = \
   libgnunetfs.la \
   $(top_builddir)/src/util/libgnunetutil.la
 
+test_fs_meta_data_SOURCES = \
+ test_fs_meta_data.c
+test_fs_meta_data_LDADD = \
+ libgnunetfs.la \
+ $(top_builddir)/src/util/libgnunetutil.la
+
+
 test_fs_uri_SOURCES = \
  test_fs_uri.c
 test_fs_uri_LDADD = \
@@ -519,7 +530,6 @@ perf_gnunet_service_fs_p2p_respect_LDADD = \
   $(top_builddir)/src/testbed/libgnunettestbed.la \
   libgnunetfs.la  \
   $(top_builddir)/src/util/libgnunetutil.la
-
 
 test_gnunet_fs_psd.py: test_gnunet_fs_psd.py.in Makefile
 	$(AWK) -v bdir="$(bindir)" -v py="$(PYTHON)" -v awkay="$(AWK_BINARY)" -v pfx="$(prefix)" -v prl="$(PERL)" -v sysconfdirectory="$(sysconfdir)" -v pkgdatadirectory="$(pkgdatadir)" -f $(top_srcdir)/bin/dosubst.awk < $(srcdir)/test_gnunet_fs_psd.py.in > test_gnunet_fs_psd.py

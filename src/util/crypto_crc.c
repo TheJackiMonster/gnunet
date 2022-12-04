@@ -84,7 +84,7 @@ crc_init ()
  * property of detecting all burst errors of length 32 bits or less.
  */
 static GNUNET_uLong
-crc32 (GNUNET_uLong crc, const char *buf, size_t len)
+gn_crc32 (GNUNET_uLong crc, const char *buf, size_t len)
 {
   crc_init ();
   GNUNET_assert (crc_table[255] != 0);
@@ -100,8 +100,8 @@ GNUNET_CRYPTO_crc32_n (const void *buf, size_t len)
 {
   GNUNET_uLong crc;
 
-  crc = crc32 (0L, Z_NULL, 0);
-  crc = crc32 (crc, (char *) buf, len);
+  crc = gn_crc32 (0L, Z_NULL, 0);
+  crc = gn_crc32 (crc, (char *) buf, len);
   return crc;
 }
 

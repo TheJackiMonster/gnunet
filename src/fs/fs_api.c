@@ -26,6 +26,7 @@
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
+#include "gnunet_extractor_compat.h"
 #include "gnunet_fs_service.h"
 #include "fs_api.h"
 #include "fs_tree.h"
@@ -902,7 +903,7 @@ deserialize_fi_node (struct GNUNET_FS_Handle *h,
   chks = NULL;
   skss = NULL;
   filename = NULL;
-  if ((GNUNET_OK != GNUNET_BIO_read_meta_data (rh, "metadata", &ret->meta)) ||
+  if ((GNUNET_OK != GNUNET_FS_read_meta_data (rh, "metadata", &ret->meta)) ||
       (GNUNET_OK != GNUNET_BIO_read_string (rh, "ksk-uri", &ksks, 32 * 1024)) ||
       ((NULL != ksks) &&
        ((NULL == (ret->keywords = GNUNET_FS_uri_parse (ksks, NULL))) ||
@@ -1370,7 +1371,7 @@ GNUNET_FS_file_information_sync_ (struct GNUNET_FS_FileInformation *fi)
     skss = NULL;
   struct GNUNET_BIO_WriteSpec ws1[] = {
     GNUNET_BIO_write_spec_object ("b", &b, sizeof (b)),
-    GNUNET_BIO_write_spec_meta_data ("meta", fi->meta),
+    GNUNET_FS_write_spec_meta_data ("meta", fi->meta),
     GNUNET_BIO_write_spec_string ("ksks", ksks),
     GNUNET_BIO_write_spec_string ("chks", chks),
     GNUNET_BIO_write_spec_string ("skss", skss),
@@ -1571,7 +1572,7 @@ static int
 fip_signal_resume (void *cls,
                    struct GNUNET_FS_FileInformation *fi,
                    uint64_t length,
-                   struct GNUNET_CONTAINER_MetaData *meta,
+                   struct GNUNET_FS_MetaData *meta,
                    struct GNUNET_FS_Uri **uri,
                    struct GNUNET_FS_BlockOptions *bo,
                    int *do_index,
@@ -2081,7 +2082,7 @@ GNUNET_FS_download_sync_ (struct GNUNET_FS_DownloadContext *dc)
   uris = GNUNET_FS_uri_to_string (dc->uri);
   struct GNUNET_BIO_WriteSpec ws1[] = {
     GNUNET_BIO_write_spec_string ("uris", uris),
-    GNUNET_BIO_write_spec_meta_data ("metadata", dc->meta),
+    GNUNET_FS_write_spec_meta_data ("metadata", dc->meta),
     GNUNET_BIO_write_spec_string ("emsg", dc->emsg),
     GNUNET_BIO_write_spec_string ("filename", dc->filename),
     GNUNET_BIO_write_spec_string ("temp filename", dc->temp_filename),
@@ -2184,7 +2185,7 @@ GNUNET_FS_search_result_sync_ (struct GNUNET_FS_SearchResult *sr)
                                   (sr->update_search != NULL)
                                   ? sr->update_search->serialization
                                   : NULL),
-    GNUNET_BIO_write_spec_meta_data ("metadata", sr->meta),
+    GNUNET_FS_write_spec_meta_data ("metadata", sr->meta),
     GNUNET_BIO_write_spec_object ("key", &sr->key,
                                   sizeof(struct GNUNET_HashCode)),
     GNUNET_BIO_write_spec_int32 ("mandatory missing",
@@ -2558,7 +2559,7 @@ deserialize_search_result (void *cls, const char *filename)
        GNUNET_BIO_read_string (rh, "download-lnk", &download, 16)) ||
       (GNUNET_OK !=
        GNUNET_BIO_read_string (rh, "search-lnk", &update_srch, 16)) ||
-      (GNUNET_OK != GNUNET_BIO_read_meta_data (rh, "result-meta", &sr->meta)) ||
+      (GNUNET_OK != GNUNET_FS_read_meta_data (rh, "result-meta", &sr->meta)) ||
       (GNUNET_OK != GNUNET_BIO_read (rh,
                                      "result-key",
                                      &sr->key,
@@ -2655,7 +2656,7 @@ cleanup:
   if (NULL != sr->uri)
     GNUNET_FS_uri_destroy (sr->uri);
   if (NULL != sr->meta)
-    GNUNET_CONTAINER_meta_data_destroy (sr->meta);
+    GNUNET_FS_meta_data_destroy (sr->meta);
   GNUNET_free (sr->serialization);
   GNUNET_free (sr);
   if (GNUNET_OK != GNUNET_BIO_read_close (rh, &emsg))
@@ -2778,7 +2779,7 @@ free_result (void *cls, const struct GNUNET_HashCode *key, void *value)
     free_search_context (sr->update_search);
     GNUNET_assert (NULL == sr->update_search);
   }
-  GNUNET_CONTAINER_meta_data_destroy (sr->meta);
+  GNUNET_FS_meta_data_destroy (sr->meta);
   GNUNET_FS_uri_destroy (sr->uri);
   GNUNET_free (sr);
   return GNUNET_YES;
@@ -2876,7 +2877,7 @@ free_download_context (struct GNUNET_FS_DownloadContext *dc)
   struct GNUNET_FS_DownloadContext *dcc;
 
   if (NULL != dc->meta)
-    GNUNET_CONTAINER_meta_data_destroy (dc->meta);
+    GNUNET_FS_meta_data_destroy (dc->meta);
   if (NULL != dc->uri)
     GNUNET_FS_uri_destroy (dc->uri);
   GNUNET_free (dc->temp_filename);
@@ -2925,7 +2926,7 @@ deserialize_download (struct GNUNET_FS_Handle *h,
   dc->h = h;
   dc->serialization = GNUNET_strdup (serialization);
   struct GNUNET_BIO_ReadSpec rs[] = {
-    GNUNET_BIO_read_spec_meta_data ("download-meta", &dc->meta),
+    GNUNET_FS_read_spec_meta_data ("download-meta", &dc->meta),
     GNUNET_BIO_read_spec_string ("download-emsg", &dc->emsg, 10 * 1024),
     GNUNET_BIO_read_spec_string ("download-fn", &dc->filename, 10 * 1024),
     GNUNET_BIO_read_spec_string ("download-tfn",

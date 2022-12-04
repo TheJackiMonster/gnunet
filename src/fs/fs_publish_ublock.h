@@ -30,6 +30,7 @@
 
 #include "gnunet_util_lib.h"
 #include "gnunet_datastore_service.h"
+#include "gnunet_extractor_compat.h"
 #include "gnunet_fs_service.h"
 #include "gnunet_identity_service.h"
 
@@ -90,7 +91,7 @@ GNUNET_FS_publish_ublock_ (struct GNUNET_FS_Handle *h,
                            const char *label,
                            const char *ulabel,
                            const struct GNUNET_CRYPTO_EcdsaPrivateKey *ns,
-                           const struct GNUNET_CONTAINER_MetaData *meta,
+                           const struct GNUNET_FS_MetaData *meta,
                            const struct GNUNET_FS_Uri *uri,
                            const struct GNUNET_FS_BlockOptions *bo,
                            enum GNUNET_FS_PublishOptions options,

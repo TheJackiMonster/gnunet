@@ -28,6 +28,7 @@
 #include "gnunet_constants.h"
 #include "gnunet_signatures.h"
 #include "gnunet_util_lib.h"
+#include "gnunet_extractor_compat.h"
 #include "gnunet_fs_service.h"
 #include "fs_api.h"
 #include "fs_publish_ublock.h"
@@ -52,7 +53,7 @@ struct NamespaceUpdateNode
   /**
    * Metadata for this entry.
    */
-  struct GNUNET_CONTAINER_MetaData *md;
+  struct GNUNET_FS_MetaData *md;
 
   /**
    * URI of this entry in the namespace.
@@ -167,7 +168,7 @@ free_update_information_graph (struct GNUNET_FS_UpdateInformationGraph *uig)
   for (i = 0; i < uig->update_node_count; i++)
   {
     nsn = uig->update_nodes[i];
-    GNUNET_CONTAINER_meta_data_destroy (nsn->md);
+    GNUNET_FS_meta_data_destroy (nsn->md);
     GNUNET_FS_uri_destroy (nsn->uri);
     GNUNET_free (nsn->id);
     GNUNET_free (nsn->update);
@@ -215,7 +216,7 @@ write_update_information_graph (struct GNUNET_FS_UpdateInformationGraph *uig)
     uris = GNUNET_FS_uri_to_string (n->uri);
     struct GNUNET_BIO_WriteSpec ws[] = {
       GNUNET_BIO_write_spec_string ("fs-namespace-node-id", n->id),
-      GNUNET_BIO_write_spec_meta_data ("fs-namespace-node-meta", n->md),
+      GNUNET_FS_write_spec_meta_data ("fs-namespace-node-meta", n->md),
       GNUNET_BIO_write_spec_string ("fs-namespace-node-update", n->update),
       GNUNET_BIO_write_spec_string ("fs-namespace-uris", uris),
       GNUNET_BIO_write_spec_end (),
@@ -227,7 +228,7 @@ write_update_information_graph (struct GNUNET_FS_UpdateInformationGraph *uig)
     }
     GNUNET_free (uris);
   }
-END:
+  END:
   if (GNUNET_OK != GNUNET_BIO_write_close (wh, NULL))
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 _ ("Failed to write `%s': %s\n"),
@@ -293,7 +294,7 @@ read_update_information_graph (struct GNUNET_FS_Handle *h,
     n = GNUNET_new (struct NamespaceUpdateNode);
     struct GNUNET_BIO_ReadSpec rs[] = {
       GNUNET_BIO_read_spec_string ("identifier", &n->id, 1024),
-      GNUNET_BIO_read_spec_meta_data ("meta", &n->md),
+      GNUNET_FS_read_spec_meta_data ("meta", &n->md),
       GNUNET_BIO_read_spec_string ("update-id", &n->update, 1024),
       GNUNET_BIO_read_spec_string ("uri", &uris, 1024 * 2),
       GNUNET_BIO_read_spec_end (),
@@ -304,7 +305,7 @@ read_update_information_graph (struct GNUNET_FS_Handle *h,
       GNUNET_free (n->id);
       GNUNET_free (n->update);
       if (n->md != NULL)
-        GNUNET_CONTAINER_meta_data_destroy (n->md);
+        GNUNET_FS_meta_data_destroy (n->md);
       GNUNET_free (n);
       break;
     }
@@ -316,14 +317,14 @@ read_update_information_graph (struct GNUNET_FS_Handle *h,
       GNUNET_free (emsg);
       GNUNET_free (n->id);
       GNUNET_free (n->update);
-      GNUNET_CONTAINER_meta_data_destroy (n->md);
+      GNUNET_FS_meta_data_destroy (n->md);
       GNUNET_free (n);
       break;
     }
     uig->update_nodes[i] = n;
   }
   uig->update_node_count = i;
-END:
+  END:
   if (GNUNET_OK != GNUNET_BIO_read_close (rh, &emsg))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -428,7 +429,7 @@ GNUNET_FS_publish_sks (struct GNUNET_FS_Handle *h,
                        const struct GNUNET_CRYPTO_EcdsaPrivateKey *ns,
                        const char *identifier,
                        const char *update,
-                       const struct GNUNET_CONTAINER_MetaData *meta,
+                       const struct GNUNET_FS_MetaData *meta,
                        const struct GNUNET_FS_Uri *uri,
                        const struct GNUNET_FS_BlockOptions *bo,
                        enum GNUNET_FS_PublishOptions options,
@@ -463,7 +464,7 @@ GNUNET_FS_publish_sks (struct GNUNET_FS_Handle *h,
     psc->nsn = GNUNET_new (struct NamespaceUpdateNode);
     psc->nsn->id = GNUNET_strdup (identifier);
     psc->nsn->update = GNUNET_strdup (update);
-    psc->nsn->md = GNUNET_CONTAINER_meta_data_duplicate (meta);
+    psc->nsn->md = GNUNET_FS_meta_data_duplicate (meta);
     psc->nsn->uri = GNUNET_FS_uri_dup (uri);
   }
   psc->uc = GNUNET_FS_publish_ublock_ (h,
@@ -502,7 +503,7 @@ GNUNET_FS_publish_sks_cancel (struct GNUNET_FS_PublishSksContext *psc)
   GNUNET_FS_uri_destroy (psc->uri);
   if (NULL != psc->nsn)
   {
-    GNUNET_CONTAINER_meta_data_destroy (psc->nsn->md);
+    GNUNET_FS_meta_data_destroy (psc->nsn->md);
     GNUNET_FS_uri_destroy (psc->nsn->uri);
     GNUNET_free (psc->nsn->id);
     GNUNET_free (psc->nsn->update);

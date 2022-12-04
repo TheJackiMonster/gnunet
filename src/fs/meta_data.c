@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009, 2010 GNUnet e.V.
+     Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009, 2010, 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -19,104 +19,28 @@
  */
 
 /**
- * @file util/container_meta_data.c
+ * @file fs/meta_data.c
  * @brief Storing of meta data
  * @author Christian Grothoff
+ * @author Martin Schanzenbach
  */
 
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#if HAVE_EXTRACTOR_H
-#include <extractor.h>
-#endif
-#include <zlib.h>
+#include "gnunet_extractor_compat.h"
+#include "gnunet_fs_service.h"
 
-#define LOG(kind, ...) GNUNET_log_from (kind, "util-container-meta-data", \
+/**
+ * Maximum size allowed for meta data written/read from disk.
+ * File-sharing limits to 64k, so this should be rather generous.
+ */
+#define MAX_META_DATA (1024 * 1024)
+
+
+#define LOG(kind, ...) GNUNET_log_from (kind, "fs-meta-data", \
                                         __VA_ARGS__)
 
-
-/**
- * Try to compress the given block of data using libz.  Only returns
- * the compressed block if compression worked and the new block is
- * actually smaller.  Decompress using #GNUNET_decompress().
- *
- * @param data block to compress; if compression
- *        resulted in a smaller block, the first
- *        bytes of data are updated to the compressed
- *        data
- * @param old_size number of bytes in data
- * @param[out] result set to the compressed data, if compression worked
- * @param[out] new_size set to size of result, if compression worked
- * @return #GNUNET_YES if compression reduce the size,
- *         #GNUNET_NO if compression did not help
- */
-int
-GNUNET_try_compression (const char *data,
-                        size_t old_size,
-                        char **result,
-                        size_t *new_size)
-{
-  char *tmp;
-  uLongf dlen;
-
-  *result = NULL;
-  *new_size = 0;
-#ifdef compressBound
-  dlen = compressBound (old_size);
-#else
-  dlen = old_size + (old_size / 100) + 20;
-  /* documentation says 100.1% oldSize + 12 bytes, but we
-   * should be able to overshoot by more to be safe */
-#endif
-  tmp = GNUNET_malloc (dlen);
-  if (Z_OK ==
-      compress2 ((Bytef *) tmp,
-                 &dlen,
-                 (const Bytef *) data,
-                 old_size, 9))
-  {
-    if (dlen < old_size)
-    {
-      *result = tmp;
-      *new_size = dlen;
-      return GNUNET_YES;
-    }
-  }
-  GNUNET_free (tmp);
-  return GNUNET_NO;
-}
-
-
-/**
- * Decompress input, return the decompressed data as output.  Dual to
- * #GNUNET_try_compression(). Caller must set @a output_size to the
- * number of bytes that were originally compressed.
- *
- * @param input compressed data
- * @param input_size number of bytes in input
- * @param output_size expected size of the output
- * @return NULL on error, buffer of @a output_size decompressed bytes otherwise
- */
-char *
-GNUNET_decompress (const char *input,
-                   size_t input_size,
-                   size_t output_size)
-{
-  char *output;
-  uLongf olen;
-
-  olen = output_size;
-  output = GNUNET_malloc (olen);
-  if (Z_OK ==
-      uncompress ((Bytef *) output,
-                  &olen,
-                  (const Bytef *) input,
-                  input_size))
-    return output;
-  GNUNET_free (output);
-  return NULL;
-}
 
 
 /**
@@ -168,7 +92,7 @@ struct MetaItem
 /**
  * Meta data to associate with a file, directory or namespace.
  */
-struct GNUNET_CONTAINER_MetaData
+struct GNUNET_FS_MetaData
 {
   /**
    * Head of linked list of the meta data items.
@@ -199,14 +123,14 @@ struct GNUNET_CONTAINER_MetaData
 
 
 /**
- * Create a fresh struct CONTAINER_MetaData token.
+ * Create a fresh struct FS_MetaData token.
  *
  * @return empty meta-data container
  */
-struct GNUNET_CONTAINER_MetaData *
-GNUNET_CONTAINER_meta_data_create ()
+struct GNUNET_FS_MetaData *
+GNUNET_FS_meta_data_create ()
 {
-  return GNUNET_new (struct GNUNET_CONTAINER_MetaData);
+  return GNUNET_new (struct GNUNET_FS_MetaData);
 }
 
 
@@ -232,7 +156,7 @@ meta_item_free (struct MetaItem *mi)
  * @param md meta data that changed
  */
 static void
-invalidate_sbuf (struct GNUNET_CONTAINER_MetaData *md)
+invalidate_sbuf (struct GNUNET_FS_MetaData *md)
 {
   if (NULL == md->sbuf)
     return;
@@ -243,7 +167,7 @@ invalidate_sbuf (struct GNUNET_CONTAINER_MetaData *md)
 
 
 void
-GNUNET_CONTAINER_meta_data_destroy (struct GNUNET_CONTAINER_MetaData *md)
+GNUNET_FS_meta_data_destroy (struct GNUNET_FS_MetaData *md)
 {
   struct MetaItem *pos;
 
@@ -260,7 +184,7 @@ GNUNET_CONTAINER_meta_data_destroy (struct GNUNET_CONTAINER_MetaData *md)
 
 
 void
-GNUNET_CONTAINER_meta_data_clear (struct GNUNET_CONTAINER_MetaData *md)
+GNUNET_FS_meta_data_clear (struct GNUNET_FS_MetaData *md)
 {
   struct MetaItem *mi;
 
@@ -272,15 +196,15 @@ GNUNET_CONTAINER_meta_data_clear (struct GNUNET_CONTAINER_MetaData *md)
     meta_item_free (mi);
   }
   GNUNET_free (md->sbuf);
-  memset (md, 0, sizeof(struct GNUNET_CONTAINER_MetaData));
+  memset (md, 0, sizeof(struct GNUNET_FS_MetaData));
 }
 
 
 int
-GNUNET_CONTAINER_meta_data_test_equal (const struct GNUNET_CONTAINER_MetaData
-                                       *md1,
-                                       const struct GNUNET_CONTAINER_MetaData
-                                       *md2)
+GNUNET_FS_meta_data_test_equal (const struct GNUNET_FS_MetaData
+                                *md1,
+                                const struct GNUNET_FS_MetaData
+                                *md2)
 {
   struct MetaItem *i;
   struct MetaItem *j;
@@ -331,12 +255,12 @@ GNUNET_CONTAINER_meta_data_test_equal (const struct GNUNET_CONTAINER_MetaData
  *         data_mime_type and plugin_name are not considered for "exists" checks
  */
 int
-GNUNET_CONTAINER_meta_data_insert (struct GNUNET_CONTAINER_MetaData *md,
-                                   const char *plugin_name,
-                                   enum EXTRACTOR_MetaType type,
-                                   enum EXTRACTOR_MetaFormat format,
-                                   const char *data_mime_type, const char *data,
-                                   size_t data_size)
+GNUNET_FS_meta_data_insert (struct GNUNET_FS_MetaData *md,
+                            const char *plugin_name,
+                            enum EXTRACTOR_MetaType type,
+                            enum EXTRACTOR_MetaFormat format,
+                            const char *data_mime_type, const char *data,
+                            size_t data_size)
 {
   struct MetaItem *pos;
   struct MetaItem *mi;
@@ -406,7 +330,7 @@ GNUNET_CONTAINER_meta_data_insert (struct GNUNET_CONTAINER_MetaData *md,
 /**
  * Merge given meta data.
  *
- * @param cls the `struct GNUNET_CONTAINER_MetaData` to merge into
+ * @param cls the `struct GNUNET_FS_MetaData` to merge into
  * @param plugin_name name of the plugin that produced this value;
  *        special values can be used (e.g. '&lt;zlib&gt;' for zlib being
  *        used in the main libextractor library and yielding
@@ -424,26 +348,26 @@ merge_helper (void *cls, const char *plugin_name, enum EXTRACTOR_MetaType type,
               enum EXTRACTOR_MetaFormat format, const char *data_mime_type,
               const char *data, size_t data_size)
 {
-  struct GNUNET_CONTAINER_MetaData *md = cls;
+  struct GNUNET_FS_MetaData *md = cls;
 
-  (void) GNUNET_CONTAINER_meta_data_insert (md, plugin_name, type, format,
-                                            data_mime_type, data, data_size);
+  (void) GNUNET_FS_meta_data_insert (md, plugin_name, type, format,
+                                     data_mime_type, data, data_size);
   return 0;
 }
 
 
 void
-GNUNET_CONTAINER_meta_data_merge (struct GNUNET_CONTAINER_MetaData *md,
-                                  const struct GNUNET_CONTAINER_MetaData *in)
+GNUNET_FS_meta_data_merge (struct GNUNET_FS_MetaData *md,
+                           const struct GNUNET_FS_MetaData *in)
 {
-  GNUNET_CONTAINER_meta_data_iterate (in, &merge_helper, md);
+  GNUNET_FS_meta_data_iterate (in, &merge_helper, md);
 }
 
 
 int
-GNUNET_CONTAINER_meta_data_delete (struct GNUNET_CONTAINER_MetaData *md,
-                                   enum EXTRACTOR_MetaType type,
-                                   const char *data, size_t data_size)
+GNUNET_FS_meta_data_delete (struct GNUNET_FS_MetaData *md,
+                            enum EXTRACTOR_MetaType type,
+                            const char *data, size_t data_size)
 {
   struct MetaItem *pos;
 
@@ -468,21 +392,21 @@ GNUNET_CONTAINER_meta_data_delete (struct GNUNET_CONTAINER_MetaData *md,
 
 
 void
-GNUNET_CONTAINER_meta_data_add_publication_date (struct
-                                                 GNUNET_CONTAINER_MetaData *md)
+GNUNET_FS_meta_data_add_publication_date (struct
+                                          GNUNET_FS_MetaData *md)
 {
   const char *dat;
   struct GNUNET_TIME_Absolute t;
 
   t = GNUNET_TIME_absolute_get ();
-  GNUNET_CONTAINER_meta_data_delete (md,
-                                     EXTRACTOR_METATYPE_PUBLICATION_DATE,
-                                     NULL, 0);
+  GNUNET_FS_meta_data_delete (md,
+                              EXTRACTOR_METATYPE_PUBLICATION_DATE,
+                              NULL, 0);
   dat = GNUNET_STRINGS_absolute_time_to_string (t);
-  GNUNET_CONTAINER_meta_data_insert (md, "<gnunet>",
-                                     EXTRACTOR_METATYPE_PUBLICATION_DATE,
-                                     EXTRACTOR_METAFORMAT_UTF8, "text/plain",
-                                     dat, strlen (dat) + 1);
+  GNUNET_FS_meta_data_insert (md, "<gnunet>",
+                              EXTRACTOR_METATYPE_PUBLICATION_DATE,
+                              EXTRACTOR_METAFORMAT_UTF8, "text/plain",
+                              dat, strlen (dat) + 1);
 }
 
 
@@ -495,9 +419,9 @@ GNUNET_CONTAINER_meta_data_add_publication_date (struct
  * @return number of entries
  */
 int
-GNUNET_CONTAINER_meta_data_iterate (const struct GNUNET_CONTAINER_MetaData *md,
-                                    EXTRACTOR_MetaDataProcessor iter,
-                                    void *iter_cls)
+GNUNET_FS_meta_data_iterate (const struct GNUNET_FS_MetaData *md,
+                             EXTRACTOR_MetaDataProcessor iter,
+                             void *iter_cls)
 {
   struct MetaItem *pos;
 
@@ -515,9 +439,9 @@ GNUNET_CONTAINER_meta_data_iterate (const struct GNUNET_CONTAINER_MetaData *md,
 
 
 char *
-GNUNET_CONTAINER_meta_data_get_by_type (const struct
-                                        GNUNET_CONTAINER_MetaData *md,
-                                        enum EXTRACTOR_MetaType type)
+GNUNET_FS_meta_data_get_by_type (const struct
+                                 GNUNET_FS_MetaData *md,
+                                 enum EXTRACTOR_MetaType type)
 {
   struct MetaItem *pos;
 
@@ -533,9 +457,9 @@ GNUNET_CONTAINER_meta_data_get_by_type (const struct
 
 
 char *
-GNUNET_CONTAINER_meta_data_get_first_by_types (const struct
-                                               GNUNET_CONTAINER_MetaData *md,
-                                               ...)
+GNUNET_FS_meta_data_get_first_by_types (const struct
+                                        GNUNET_FS_MetaData *md,
+                                        ...)
 {
   char *ret;
   va_list args;
@@ -550,7 +474,7 @@ GNUNET_CONTAINER_meta_data_get_first_by_types (const struct
     type = va_arg (args, int);
     if (-1 == type)
       break;
-    if (NULL != (ret = GNUNET_CONTAINER_meta_data_get_by_type (md, type)))
+    if (NULL != (ret = GNUNET_FS_meta_data_get_by_type (md, type)))
       break;
   }
   va_end (args);
@@ -567,8 +491,8 @@ GNUNET_CONTAINER_meta_data_get_first_by_types (const struct
  * @return number of bytes in thumbnail, 0 if not available
  */
 size_t
-GNUNET_CONTAINER_meta_data_get_thumbnail (const struct GNUNET_CONTAINER_MetaData
-                                          *md, unsigned char **thumb)
+GNUNET_FS_meta_data_get_thumbnail (const struct GNUNET_FS_MetaData
+                                   *md, unsigned char **thumb)
 {
   struct MetaItem *pos;
   struct MetaItem *match;
@@ -598,25 +522,25 @@ GNUNET_CONTAINER_meta_data_get_thumbnail (const struct GNUNET_CONTAINER_MetaData
 
 
 /**
- * Duplicate a `struct GNUNET_CONTAINER_MetaData`.
+ * Duplicate a `struct GNUNET_FS_MetaData`.
  *
  * @param md what to duplicate
  * @return duplicate meta-data container
  */
-struct GNUNET_CONTAINER_MetaData *
-GNUNET_CONTAINER_meta_data_duplicate (const struct GNUNET_CONTAINER_MetaData
-                                      *md)
+struct GNUNET_FS_MetaData *
+GNUNET_FS_meta_data_duplicate (const struct GNUNET_FS_MetaData
+                               *md)
 {
-  struct GNUNET_CONTAINER_MetaData *ret;
+  struct GNUNET_FS_MetaData *ret;
   struct MetaItem *pos;
 
   if (NULL == md)
     return NULL;
-  ret = GNUNET_CONTAINER_meta_data_create ();
+  ret = GNUNET_FS_meta_data_create ();
   for (pos = md->items_tail; NULL != pos; pos = pos->prev)
-    GNUNET_CONTAINER_meta_data_insert (ret, pos->plugin_name, pos->type,
-                                       pos->format, pos->mime_type, pos->data,
-                                       pos->data_size);
+    GNUNET_FS_meta_data_insert (ret, pos->plugin_name, pos->type,
+                                pos->format, pos->mime_type, pos->data,
+                                pos->data_size);
   return ret;
 }
 
@@ -714,13 +638,13 @@ struct MetaDataEntry
  *         space)
  */
 ssize_t
-GNUNET_CONTAINER_meta_data_serialize (const struct GNUNET_CONTAINER_MetaData
-                                      *md, char **target, size_t max,
-                                      enum
-                                      GNUNET_CONTAINER_MetaDataSerializationOptions
-                                      opt)
+GNUNET_FS_meta_data_serialize (const struct GNUNET_FS_MetaData
+                               *md, char **target, size_t max,
+                               enum
+                               GNUNET_FS_MetaDataSerializationOptions
+                               opt)
 {
-  struct GNUNET_CONTAINER_MetaData *vmd;
+  struct GNUNET_FS_MetaData *vmd;
   struct MetaItem *pos;
   struct MetaDataHeader ihdr;
   struct MetaDataHeader *hdr;
@@ -754,7 +678,7 @@ GNUNET_CONTAINER_meta_data_serialize (const struct GNUNET_CONTAINER_MetaData
       GNUNET_memcpy (*target, md->sbuf, md->sbuf_size);
       return md->sbuf_size;
     }
-    if (0 == (opt & GNUNET_CONTAINER_META_DATA_SERIALIZE_PART))
+    if (0 == (opt & GNUNET_FS_META_DATA_SERIALIZE_PART))
       return GNUNET_SYSERR;     /* can say that this will fail */
     /* need to compute a partial serialization, sbuf useless ... */
   }
@@ -821,7 +745,7 @@ GNUNET_CONTAINER_meta_data_serialize (const struct GNUNET_CONTAINER_MetaData
   for (pos = md->items_head; NULL != pos; pos = pos->next)
   {
     comp = GNUNET_NO;
-    if (0 == (opt & GNUNET_CONTAINER_META_DATA_SERIALIZE_NO_COMPRESS))
+    if (0 == (opt & GNUNET_FS_META_DATA_SERIALIZE_NO_COMPRESS))
       comp = GNUNET_try_compression ((const char *) &ent[i],
                                      left,
                                      &cdata,
@@ -832,7 +756,7 @@ GNUNET_CONTAINER_meta_data_serialize (const struct GNUNET_CONTAINER_MetaData
       /* fill 'sbuf'; this "modifies" md, but since this is only
        * an internal cache we will cast away the 'const' instead
        * of making the API look strange. */
-      vmd = (struct GNUNET_CONTAINER_MetaData *) md;
+      vmd = (struct GNUNET_FS_MetaData *) md;
       hdr = GNUNET_malloc (left + sizeof(struct MetaDataHeader));
       hdr->size = htonl (left);
       hdr->entries = htonl (md->item_count);
@@ -897,7 +821,7 @@ GNUNET_CONTAINER_meta_data_serialize (const struct GNUNET_CONTAINER_MetaData
       return rlen;
     }
 
-    if (0 == (opt & GNUNET_CONTAINER_META_DATA_SERIALIZE_PART))
+    if (0 == (opt & GNUNET_FS_META_DATA_SERIALIZE_PART))
     {
       /* does not fit! */
       GNUNET_free (ent);
@@ -935,8 +859,8 @@ GNUNET_CONTAINER_meta_data_serialize (const struct GNUNET_CONTAINER_MetaData
 
 
 ssize_t
-GNUNET_CONTAINER_meta_data_get_serialized_size (const struct
-                                                GNUNET_CONTAINER_MetaData *md)
+GNUNET_FS_meta_data_get_serialized_size (const struct
+                                         GNUNET_FS_MetaData *md)
 {
   ssize_t ret;
   char *ptr;
@@ -945,8 +869,8 @@ GNUNET_CONTAINER_meta_data_get_serialized_size (const struct
     return md->sbuf_size;
   ptr = NULL;
   ret =
-    GNUNET_CONTAINER_meta_data_serialize (md, &ptr, GNUNET_MAX_MALLOC_CHECKED,
-                                          GNUNET_CONTAINER_META_DATA_SERIALIZE_FULL);
+    GNUNET_FS_meta_data_serialize (md, &ptr, GNUNET_MAX_MALLOC_CHECKED,
+                                   GNUNET_FS_META_DATA_SERIALIZE_FULL);
   if (-1 != ret)
     GNUNET_free (ptr);
   return ret;
@@ -961,10 +885,10 @@ GNUNET_CONTAINER_meta_data_get_serialized_size (const struct
  * @return MD on success, NULL on error (i.e.
  *         bad format)
  */
-struct GNUNET_CONTAINER_MetaData *
-GNUNET_CONTAINER_meta_data_deserialize (const char *input, size_t size)
+struct GNUNET_FS_MetaData *
+GNUNET_FS_meta_data_deserialize (const char *input, size_t size)
 {
-  struct GNUNET_CONTAINER_MetaData *md;
+  struct GNUNET_FS_MetaData *md;
   struct MetaDataHeader hdr;
   struct MetaDataEntry ent;
   uint32_t ic;
@@ -1039,7 +963,7 @@ GNUNET_CONTAINER_meta_data_deserialize (const char *input, size_t size)
     }
   }
 
-  md = GNUNET_CONTAINER_meta_data_create ();
+  md = GNUNET_FS_meta_data_create ();
   left = dataSize - ic * sizeof(struct MetaDataEntry);
   mdata = &cdata[ic * sizeof(struct MetaDataEntry)];
   for (i = 0; i < ic; i++)
@@ -1109,14 +1033,192 @@ GNUNET_CONTAINER_meta_data_deserialize (const char *input, size_t size)
       mime_type = NULL;
     else
       mime_type = &mdata[left];
-    GNUNET_CONTAINER_meta_data_insert (md, plugin_name,
-                                       (enum EXTRACTOR_MetaType)
-                                       ntohl (ent.type), format, mime_type,
-                                       meta_data, dlen);
+    GNUNET_FS_meta_data_insert (md, plugin_name,
+                                (enum EXTRACTOR_MetaType)
+                                ntohl (ent.type), format, mime_type,
+                                meta_data, dlen);
   }
   GNUNET_free (data);
   return md;
 }
 
+/**
+ * Read a metadata container.
+ *
+ * @param h handle to an open file
+ * @param what describes what is being read (for error message creation)
+ * @param result the buffer to store a pointer to the (allocated) metadata
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR on failure
+ */
+int
+GNUNET_FS_read_meta_data (struct GNUNET_BIO_ReadHandle *h,
+                          const char *what,
+                          struct GNUNET_FS_MetaData **result)
+{
+  uint32_t size;
+  char *buf;
+  struct GNUNET_FS_MetaData *meta;
 
-/* end of container_meta_data.c */
+  if (GNUNET_OK != GNUNET_BIO_read_int32 (h,
+                                          _ ("metadata length"),
+                                          (int32_t *) &size))
+    return GNUNET_SYSERR;
+  if (0 == size)
+  {
+    *result = NULL;
+    return GNUNET_OK;
+  }
+  if (MAX_META_DATA < size)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                _ ("Serialized metadata `%s' larger than allowed (%u > %u)"),
+                what,
+                size,
+                MAX_META_DATA);
+    return GNUNET_SYSERR;
+  }
+  buf = GNUNET_malloc (size);
+  if (GNUNET_OK != GNUNET_BIO_read (h, what, buf, size))
+  {
+    GNUNET_free (buf);
+    return GNUNET_SYSERR;
+  }
+  meta = GNUNET_FS_meta_data_deserialize (buf, size);
+  if (NULL == meta)
+  {
+    GNUNET_free (buf);
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                _ ("Failed to deserialize metadata `%s'"), what);
+    return GNUNET_SYSERR;
+  }
+  GNUNET_free (buf);
+  *result = meta;
+  return GNUNET_OK;
+}
+
+/**
+ * Write a metadata container.
+ *
+ * @param h the IO handle to write to
+ * @param what what is being written (for error message creation)
+ * @param m metadata to write
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_FS_write_meta_data (struct GNUNET_BIO_WriteHandle *h,
+                           const char *what,
+                           const struct GNUNET_FS_MetaData *m)
+{
+  ssize_t size;
+  char *buf;
+
+  if (m == NULL)
+    return GNUNET_BIO_write_int32 (h, _ ("metadata length"), 0);
+  buf = NULL;
+  size = GNUNET_FS_meta_data_serialize (m,
+                                        &buf,
+                                        MAX_META_DATA,
+                                        GNUNET_FS_META_DATA_SERIALIZE_PART);
+  if (-1 == size)
+  {
+    GNUNET_free (buf);
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                _ ("Failed to serialize metadata `%s'"),
+                what);
+    return GNUNET_SYSERR;
+  }
+  if ((GNUNET_OK != GNUNET_BIO_write_int32 (h,
+                                            _ ("metadata length"),
+                                            (uint32_t) size))
+      || (GNUNET_OK != GNUNET_BIO_write (h, what, buf, size)))
+  {
+    GNUNET_free (buf);
+    return GNUNET_SYSERR;
+  }
+  GNUNET_free (buf);
+  return GNUNET_OK;
+}
+
+/**
+ * Function used internally to read a metadata container from within a read
+ * spec.
+ *
+ * @param cls ignored, always NULL
+ * @param h the IO handle to read from
+ * @param what what is being read (for error message creation)
+ * @param target where to store the data
+ * @param target_size ignored
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
+ */
+static int
+read_spec_handler_meta_data (void *cls,
+                             struct GNUNET_BIO_ReadHandle *h,
+                             const char *what,
+                             void *target,
+                             size_t target_size)
+{
+  struct GNUNET_FS_MetaData **result = target;
+  return GNUNET_FS_read_meta_data (h, what, result);
+}
+
+/**
+ * Create the specification to read a metadata container.
+ *
+ * @param what describes what is being read (for error message creation)
+ * @param result the buffer to store a pointer to the (allocated) metadata
+ * @return the read spec
+ */
+struct GNUNET_BIO_ReadSpec
+GNUNET_FS_read_spec_meta_data (const char *what,
+                               struct GNUNET_FS_MetaData **result)
+{
+  struct GNUNET_BIO_ReadSpec rs = {
+    .rh = &read_spec_handler_meta_data,
+    .cls = NULL,
+    .target = result,
+    .size = 0,
+  };
+
+  return rs;
+}
+
+/**
+ * Function used internally to write a metadata container from within a write
+ * spec.
+ *
+ * @param cls ignored, always NULL
+ * @param h the IO handle to write to
+ * @param what what is being written (for error message creation)
+ * @param source the data to write
+ * @param source_size ignored
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
+ */
+static int
+write_spec_handler_meta_data (void *cls,
+                              struct GNUNET_BIO_WriteHandle *h,
+                              const char *what,
+                              void *source,
+                              size_t source_size)
+{
+  const struct GNUNET_FS_MetaData *m = source;
+  return GNUNET_FS_write_meta_data (h, what, m);
+}
+
+
+struct GNUNET_BIO_WriteSpec
+GNUNET_FS_write_spec_meta_data (const char *what,
+                                const struct GNUNET_FS_MetaData *m)
+{
+  struct GNUNET_BIO_WriteSpec ws = {
+    .wh = &write_spec_handler_meta_data,
+    .cls = NULL,
+    .what = what,
+    .source = (void *) m,
+    .source_size = 0,
+  };
+
+  return ws;
+}
+
+
+/* end of meta_data.c */

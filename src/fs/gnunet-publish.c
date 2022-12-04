@@ -26,6 +26,7 @@
  * @author Igor Wronsky
  */
 #include "platform.h"
+#include "gnunet_extractor_compat.h"
 #include "gnunet_fs_service.h"
 #include "gnunet_identity_service.h"
 
@@ -57,7 +58,7 @@ static struct GNUNET_FS_PublishContext *pc;
 /**
  * Meta-data provided via command-line option.
  */
-static struct GNUNET_CONTAINER_MetaData *meta;
+static struct GNUNET_FS_MetaData *meta;
 
 /**
  * Keywords provided via command-line option.
@@ -175,7 +176,7 @@ do_stop_task (void *cls)
   }
   if (NULL != meta)
   {
-    GNUNET_CONTAINER_meta_data_destroy (meta);
+    GNUNET_FS_meta_data_destroy (meta);
     meta = NULL;
   }
   if (NULL != uri)
@@ -376,7 +377,7 @@ static int
 publish_inspector (void *cls,
                    struct GNUNET_FS_FileInformation *fi,
                    uint64_t length,
-                   struct GNUNET_CONTAINER_MetaData *m,
+                   struct GNUNET_FS_MetaData *m,
                    struct GNUNET_FS_Uri **uri,
                    struct GNUNET_FS_BlockOptions *bo,
                    int *do_index,
@@ -410,20 +411,20 @@ publish_inspector (void *cls,
   }
   if (NULL != meta)
   {
-    GNUNET_CONTAINER_meta_data_merge (m, meta);
-    GNUNET_CONTAINER_meta_data_destroy (meta);
+    GNUNET_FS_meta_data_merge (m, meta);
+    GNUNET_FS_meta_data_destroy (meta);
     meta = NULL;
   }
   if (enable_creation_time)
-    GNUNET_CONTAINER_meta_data_add_publication_date (m);
+    GNUNET_FS_meta_data_add_publication_date (m);
   if (extract_only)
   {
-    fn = GNUNET_CONTAINER_meta_data_get_by_type (
+    fn = GNUNET_FS_meta_data_get_by_type (
       m,
       EXTRACTOR_METATYPE_GNUNET_ORIGINAL_FILENAME);
     fs = GNUNET_STRINGS_byte_size_fancy (length);
     fprintf (stdout, _ ("Meta data for file `%s' (%s)\n"), fn, fs);
-    GNUNET_CONTAINER_meta_data_iterate (m, &meta_printer, NULL);
+    GNUNET_FS_meta_data_iterate (m, &meta_printer, NULL);
     fprintf (stdout, _ ("Keywords for file `%s' (%s)\n"), fn, fs);
     GNUNET_free (fn);
     GNUNET_free (fs);
@@ -521,11 +522,11 @@ get_file_information (struct GNUNET_FS_ShareTreeItem *item)
   if (GNUNET_YES == item->is_directory)
   {
     if (NULL == item->meta)
-      item->meta = GNUNET_CONTAINER_meta_data_create ();
-    GNUNET_CONTAINER_meta_data_delete (item->meta,
-                                       EXTRACTOR_METATYPE_MIMETYPE,
-                                       NULL,
-                                       0);
+      item->meta = GNUNET_FS_meta_data_create ();
+    GNUNET_FS_meta_data_delete (item->meta,
+                                EXTRACTOR_METATYPE_MIMETYPE,
+                                NULL,
+                                0);
     GNUNET_FS_meta_data_make_directory (item->meta);
     if (NULL == item->ksk_uri)
     {

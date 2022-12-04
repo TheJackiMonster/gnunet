@@ -157,6 +157,7 @@ src/fs/gnunet-service-fs_pr.c
 src/fs/gnunet-service-fs_push.c
 src/fs/gnunet-service-fs_put.c
 src/fs/gnunet-unindex.c
+src/fs/meta_data.c
 src/fs/plugin_block_fs.c
 src/gns/gns_api.c
 src/gns/gns_tld_api.c
@@ -520,7 +521,6 @@ src/util/configuration_helper.c
 src/util/consttime_memcmp.c
 src/util/container_bloomfilter.c
 src/util/container_heap.c
-src/util/container_meta_data.c
 src/util/container_multihashmap.c
 src/util/container_multihashmap32.c
 src/util/container_multipeermap.c

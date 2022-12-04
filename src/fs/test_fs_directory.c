@@ -36,14 +36,14 @@
 struct PCLS
 {
   struct GNUNET_FS_Uri **uri;
-  struct GNUNET_CONTAINER_MetaData **md;
+  struct GNUNET_FS_MetaData **md;
   unsigned int pos;
   unsigned int max;
 };
 
 static void
 processor (void *cls, const char *filename, const struct GNUNET_FS_Uri *uri,
-           const struct GNUNET_CONTAINER_MetaData *md, size_t length,
+           const struct GNUNET_FS_MetaData *md, size_t length,
            const void *data)
 {
   struct PCLS *p = cls;
@@ -71,8 +71,8 @@ testDirectory (unsigned int i)
   char *data;
   size_t dlen;
   struct GNUNET_FS_Uri **uris;
-  struct GNUNET_CONTAINER_MetaData **mds;
-  struct GNUNET_CONTAINER_MetaData *meta;
+  struct GNUNET_FS_MetaData **mds;
+  struct GNUNET_FS_MetaData *meta;
   struct PCLS cls;
   char *emsg;
   int p;
@@ -85,7 +85,7 @@ testDirectory (unsigned int i)
 
   cls.max = i;
   uris = GNUNET_malloc (sizeof(struct GNUNET_FS_Uri *) * i);
-  mds = GNUNET_malloc (sizeof(struct GNUNET_CONTAINER_MetaData *) * i);
+  mds = GNUNET_malloc (sizeof(struct GNUNET_FS_MetaData *) * i);
   meta = GNUNET_CONTAINER_meta_data_create ();
   GNUNET_CONTAINER_meta_data_insert (meta, "<test>", EXTRACTOR_METATYPE_TITLE,
                                      EXTRACTOR_METAFORMAT_UTF8, "text/plain",

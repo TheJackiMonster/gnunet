@@ -49,7 +49,7 @@
 
 static int
 mycleaner (void *cls, struct GNUNET_FS_FileInformation *fi, uint64_t length,
-           struct GNUNET_CONTAINER_MetaData *meta, struct GNUNET_FS_Uri **uri,
+           struct GNUNET_FS_MetaData *meta, struct GNUNET_FS_Uri **uri,
            struct GNUNET_FS_BlockOptions *bo, int *do_index, void **client_info)
 {
   return GNUNET_OK;
@@ -67,7 +67,7 @@ run (void *cls, char *const *args, const char *cfgfile,
   char *fn1;
   char *fn2;
   char *buf;
-  struct GNUNET_CONTAINER_MetaData *meta;
+  struct GNUNET_FS_MetaData *meta;
   struct GNUNET_FS_Uri *kuri;
   struct GNUNET_FS_FileInformation *fi1;
   struct GNUNET_FS_FileInformation *fi2;

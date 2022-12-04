@@ -28,6 +28,7 @@
 #include "gnunet_constants.h"
 #include "gnunet_signatures.h"
 #include "gnunet_util_lib.h"
+#include "gnunet_extractor_compat.h"
 #include "gnunet_fs_service.h"
 #include "fs_api.h"
 #include "fs_tree.h"
@@ -1098,8 +1099,8 @@ GNUNET_FS_publish_main_ (void *cls)
      * related files as well! */
     while (NULL != p->dir)
     {
-      fn = GNUNET_CONTAINER_meta_data_get_by_type (p->meta,
-                                                   EXTRACTOR_METATYPE_GNUNET_ORIGINAL_FILENAME);
+      fn = GNUNET_FS_meta_data_get_by_type (p->meta,
+                                            EXTRACTOR_METATYPE_GNUNET_ORIGINAL_FILENAME);
       p = p->dir;
       if (fn != NULL)
       {
@@ -1193,7 +1194,7 @@ static int
 fip_signal_start (void *cls,
                   struct GNUNET_FS_FileInformation *fi,
                   uint64_t length,
-                  struct GNUNET_CONTAINER_MetaData *meta,
+                  struct GNUNET_FS_MetaData *meta,
                   struct GNUNET_FS_Uri **uri,
                   struct GNUNET_FS_BlockOptions *bo,
                   int *do_index,
@@ -1319,7 +1320,7 @@ static int
 fip_signal_suspend (void *cls,
                     struct GNUNET_FS_FileInformation *fi,
                     uint64_t length,
-                    struct GNUNET_CONTAINER_MetaData *meta,
+                    struct GNUNET_FS_MetaData *meta,
                     struct GNUNET_FS_Uri **uri,
                     struct GNUNET_FS_BlockOptions *bo,
                     int *do_index,
@@ -1523,7 +1524,7 @@ static int
 fip_signal_stop (void *cls,
                  struct GNUNET_FS_FileInformation *fi,
                  uint64_t length,
-                 struct GNUNET_CONTAINER_MetaData *meta,
+                 struct GNUNET_FS_MetaData *meta,
                  struct GNUNET_FS_Uri **uri,
                  struct GNUNET_FS_BlockOptions *bo,
                  int *do_index, void **client_info)

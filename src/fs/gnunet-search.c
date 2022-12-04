@@ -30,11 +30,12 @@
 #include <ctype.h>
 #include <inttypes.h>
 #include <limits.h>
+#include "gnunet_extractor_compat.h"
 #include "gnunet_fs_service.h"
 
 
 #define GNUNET_SEARCH_log(kind, ...) \
-	GNUNET_log_from(kind, "gnunet-search", __VA_ARGS__)
+  GNUNET_log_from (kind, "gnunet-search", __VA_ARGS__)
 
 
 /*  The default settings that we use for the printed output  */
@@ -61,14 +62,16 @@
 #define GENERIC_FILE_MIMETYPE    "application/octet-stream"
 
 
-enum GNUNET_SEARCH_MetadataPrinterFlags {
+enum GNUNET_SEARCH_MetadataPrinterFlags
+{
   METADATA_PRINTER_FLAG_NONE = 0,
   METADATA_PRINTER_FLAG_ONE_RUN = 1,
   METADATA_PRINTER_FLAG_HAVE_TYPE = 2
 };
 
 
-struct GNUNET_SEARCH_MetadataPrinterInfo {
+struct GNUNET_SEARCH_MetadataPrinterInfo
+{
   unsigned int counter;
   unsigned int flags;
   int type;
@@ -132,7 +135,7 @@ static const char *
 print_escape_sequence (const char *const esc)
 {
   unsigned int probe;
-  const char * cursor = esc + 1;
+  const char *cursor = esc + 1;
   char tmp;
   switch (*cursor)
   {
@@ -150,7 +153,7 @@ print_escape_sequence (const char *const esc)
   /*  Possibly hexadecimal code point  */
   case 'x':
     probe = 0;
-    while (probe < 256 && isxdigit((tmp = *++cursor)))
+    while (probe < 256 && isxdigit ((tmp = *++cursor)))
       probe = (probe << 4) + tmp - (tmp > 96 ? 87 : tmp > 64 ? 55 : 48);
     goto maybe_codepoint;
 
@@ -167,7 +170,7 @@ print_escape_sequence (const char *const esc)
   default: printf ("\\%c", *cursor); return cursor + 1;
   }
 
-maybe_codepoint:
+  maybe_codepoint:
   if (probe < 256)
     putchar (probe);
   else
@@ -212,31 +215,31 @@ item_printer (void *const cls,
     return 0;
 
   const char *cursor = meta_format_string;
-  const char *next_spec = strchr(cursor, '%');
-  const char *next_esc = strchr(cursor, '\\');
+  const char *next_spec = strchr (cursor, '%');
+  const char *next_esc = strchr (cursor, '\\');
 
-parse_format:
+  parse_format:
 
   /*  If an escape sequence exists before the next format specifier...  */
-  if (next_esc && (!next_spec || next_esc < next_spec))
+  if (next_esc && (! next_spec || next_esc < next_spec))
   {
     if (next_esc > cursor)
       fwrite (cursor, 1, next_esc - cursor, stdout);
 
     cursor = print_escape_sequence (next_esc);
-    next_esc = strchr(cursor, '\\');
+    next_esc = strchr (cursor, '\\');
     goto parse_format;
   }
 
   /*  If a format specifier exists before the next escape sequence...  */
-  if (next_spec && (!next_esc || next_spec < next_esc))
+  if (next_spec && (! next_esc || next_spec < next_esc))
   {
     if (next_spec > cursor)
       fwrite (cursor, 1, next_spec - cursor, stdout);
 
     switch (*++next_spec)
     {
-    case '%': putchar('%'); break;
+    case '%': putchar ('%'); break;
     case 'i': printf ("%d", type); break;
     case 'l': printf ("%lu", (long unsigned int) data_size); break;
     case 'n': printf ("%u", info->counter); break;
@@ -249,11 +252,11 @@ parse_format:
       break;
 #endif
     case 'w': printf ("%s", plugin_name); break;
-    case '\0': putchar('%'); return 0;
+    case '\0': putchar ('%'); return 0;
     default: printf ("%%%c", *next_spec); break;
     }
     cursor = next_spec + 1;
-    next_spec = strchr(cursor, '%');
+    next_spec = strchr (cursor, '%');
     goto parse_format;
   }
 
@@ -270,7 +273,7 @@ parse_format:
  *
  * @param filename the filename for this result
  * @param uri the `struct GNUNET_FS_Uri` this result refers to
- * @param metadata the `struct GNUNET_CONTAINER_MetaData` associated with this
+ * @param metadata the `struct GNUNET_FS_MetaData` associated with this
           result
  * @param resultnum the result number
  * @param is_directory GNUNET_YES if this is a directory, otherwise GNUNET_NO
@@ -279,34 +282,34 @@ parse_format:
 static void
 print_search_result (const char *const filename,
                      const struct GNUNET_FS_Uri *const uri,
-                     const struct GNUNET_CONTAINER_MetaData *const metadata,
+                     const struct GNUNET_FS_MetaData *const metadata,
                      const unsigned int resultnum,
                      const int is_directory)
 {
 
   const char *cursor = GNUNET_YES == is_directory ?
-                         dir_format_string
+                       dir_format_string
                        : format_string;
 
-  const char *next_spec = strchr(cursor, '%');
-  const char *next_esc = strchr(cursor, '\\');
+  const char *next_spec = strchr (cursor, '%');
+  const char *next_esc = strchr (cursor, '\\');
   char *placeholder;
   struct GNUNET_SEARCH_MetadataPrinterInfo info;
 
-parse_format:
+  parse_format:
   /*  If an escape sequence exists before the next format specifier...  */
-  if (next_esc && (!next_spec || next_esc < next_spec))
+  if (next_esc && (! next_spec || next_esc < next_spec))
   {
     if (next_esc > cursor)
       fwrite (cursor, 1, next_esc - cursor, stdout);
 
     cursor = print_escape_sequence (next_esc);
-    next_esc = strchr(cursor, '\\');
+    next_esc = strchr (cursor, '\\');
     goto parse_format;
   }
 
   /*  If a format specifier exists before the next escape sequence...  */
-  if (next_spec && (!next_esc || next_spec < next_esc))
+  if (next_spec && (! next_esc || next_spec < next_esc))
   {
     if (next_spec > cursor)
       fwrite (cursor, 1, next_spec - cursor, stdout);
@@ -317,9 +320,9 @@ parse_format:
     case 'a':
       info.flags = METADATA_PRINTER_FLAG_NONE;
 
-iterate_meta:
+      iterate_meta:
       info.counter = 0;
-      GNUNET_CONTAINER_meta_data_iterate (metadata, &item_printer, &info);
+      GNUNET_FS_meta_data_iterate (metadata, &item_printer, &info);
       break;
     /*  File's name  */
     case 'f':
@@ -337,11 +340,11 @@ iterate_meta:
     /*  File name's length  */
     case 'l':
       printf ("%lu",
-              (long unsigned int) (  GNUNET_YES == is_directory ?
-                                       strlen(filename) +
-                                       (sizeof(GNUNET_FS_DIRECTORY_EXT) - 1)
+              (long unsigned int) (GNUNET_YES == is_directory ?
+                                   strlen (filename)
+                                   + (sizeof(GNUNET_FS_DIRECTORY_EXT) - 1)
                                    :
-                                       strlen(filename)));
+                                   strlen (filename)));
       break;
     /*  File's mime type  */
     case 'm':
@@ -350,7 +353,7 @@ iterate_meta:
         printf ("%s", GNUNET_FS_DIRECTORY_MIME);
         break;
       }
-      placeholder = GNUNET_CONTAINER_meta_data_get_by_type (
+      placeholder = GNUNET_FS_meta_data_get_by_type (
         metadata,
         EXTRACTOR_METATYPE_MIMETYPE);
       printf ("%s", placeholder ? placeholder : GENERIC_FILE_MIMETYPE);
@@ -376,7 +379,7 @@ iterate_meta:
     case '5': case '6': case '7': case '8': case '9':
       cursor = next_spec;
       info.type = *cursor - 48;
-      while (isdigit(*++cursor) && info.type < (INT_MAX - *cursor + 48) / 10)
+      while (isdigit (*++cursor) && info.type < (INT_MAX - *cursor + 48) / 10)
         info.type = info.type * 10 + *cursor - 48;
       if (info.type == 0 || *cursor != '#')
         goto not_a_specifier;
@@ -391,21 +394,21 @@ iterate_meta:
       /*  Only the first metadata field of type `info.type`  */
       case 'j':
         next_spec = cursor;
-        info.flags = METADATA_PRINTER_FLAG_HAVE_TYPE |
-                     METADATA_PRINTER_FLAG_ONE_RUN;
+        info.flags = METADATA_PRINTER_FLAG_HAVE_TYPE
+                     | METADATA_PRINTER_FLAG_ONE_RUN;
         goto iterate_meta;
       }
       goto not_a_specifier;
 
     /*  All other cases  */
-    case '%': putchar('%'); break;
-    case '\0': putchar('%'); return;
+    case '%': putchar ('%'); break;
+    case '\0': putchar ('%'); return;
 
-not_a_specifier:
+      not_a_specifier:
     default: printf ("%%%c", *next_spec); break;
     }
     cursor = next_spec + 1;
-    next_spec = strchr(cursor, '%');
+    next_spec = strchr (cursor, '%');
     goto parse_format;
   }
 
@@ -439,10 +442,10 @@ clean_task (void *const cls)
                             GNUNET_DISK_PERM_USER_READ
                             | GNUNET_DISK_PERM_USER_WRITE))
   {
-    GNUNET_SEARCH_log(GNUNET_ERROR_TYPE_ERROR,
-                      _ ("Failed to write directory with search results to "
-                         "`%s'\n"),
-                      output_filename);
+    GNUNET_SEARCH_log (GNUNET_ERROR_TYPE_ERROR,
+                       _ ("Failed to write directory with search results to "
+                          "`%s'\n"),
+                       output_filename);
   }
   GNUNET_free (ddata);
   GNUNET_free (output_filename);
@@ -490,7 +493,7 @@ progress_cb (void *const cls,
       break;
 
     cnt++;
-    filename = GNUNET_CONTAINER_meta_data_get_by_type (
+    filename = GNUNET_FS_meta_data_get_by_type (
       info->value.search.specifics.result.meta,
       EXTRACTOR_METATYPE_GNUNET_ORIGINAL_FILENAME);
     is_directory = GNUNET_FS_meta_data_test_for_directory (
@@ -501,12 +504,12 @@ progress_cb (void *const cls,
         filename[strlen (filename) - 1] = '\0';
       GNUNET_DISK_filename_canonicalize (filename);
     }
-    print_search_result (  filename ?
-                             filename
+    print_search_result (filename ?
+                         filename
                          : is_directory ?
-                             GENERIC_DIRECTORY_NAME
+                         GENERIC_DIRECTORY_NAME
                          :
-                             GENERIC_FILE_NAME,
+                         GENERIC_FILE_NAME,
                          info->value.search.specifics.result.uri,
                          info->value.search.specifics.result.meta,
                          cnt,
@@ -528,9 +531,9 @@ progress_cb (void *const cls,
     break;
 
   case GNUNET_FS_STATUS_SEARCH_ERROR:
-    GNUNET_SEARCH_log(GNUNET_ERROR_TYPE_ERROR,
-                      _ ("Error searching: %s.\n"),
-                      info->value.search.specifics.error.message);
+    GNUNET_SEARCH_log (GNUNET_ERROR_TYPE_ERROR,
+                       _ ("Error searching: %s.\n"),
+                       info->value.search.specifics.error.message);
     GNUNET_SCHEDULER_shutdown ();
     break;
 
@@ -539,9 +542,9 @@ progress_cb (void *const cls,
     break;
 
   default:
-    GNUNET_SEARCH_log(GNUNET_ERROR_TYPE_ERROR,
-                      _ ("Unexpected status: %d\n"),
-                      info->status);
+    GNUNET_SEARCH_log (GNUNET_ERROR_TYPE_ERROR,
+                       _ ("Unexpected status: %d\n"),
+                       info->status);
     break;
   }
   return NULL;
@@ -600,7 +603,7 @@ run (void *const cls,
     ret = 1;
     return;
   }
-  if (silent_mode && !output_filename)
+  if (silent_mode && ! output_filename)
   {
     fprintf (stderr, _ ("An output file is mandatory for silent mode.\n"));
     ret = 1;
@@ -627,7 +630,7 @@ run (void *const cls,
     ret = 1;
     return;
   }
-  if (!GNUNET_FS_uri_test_ksk (uri) && !GNUNET_FS_uri_test_sks (uri))
+  if (! GNUNET_FS_uri_test_ksk (uri) && ! GNUNET_FS_uri_test_sks (uri))
   {
     fprintf (stderr,
              "%s",
@@ -640,7 +643,7 @@ run (void *const cls,
   }
   if (bookmark_only)
   {
-    char * bmstr = GNUNET_FS_uri_to_string (uri);
+    char *bmstr = GNUNET_FS_uri_to_string (uri);
     printf ("%s\n", bmstr);
     GNUNET_free (bmstr);
     GNUNET_FS_uri_destroy (uri);
@@ -779,15 +782,15 @@ main (int argc, char *const *argv)
   if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
     return 12;
 
-  if (GNUNET_SYSERR == 
+  if (GNUNET_SYSERR ==
       GNUNET_PROGRAM_run (argc,
                           argv,
                           "gnunet-search [OPTIONS] KEYWORD1 KEYWORD2 ...",
                           gettext_noop ("Search for files that have been "
                                         "published on GNUnet\n"),
-                         options,
-                         &run,
-                         NULL))
+                          options,
+                          &run,
+                          NULL))
     ret = 1;
 
   GNUNET_free_nz ((void *) argv);

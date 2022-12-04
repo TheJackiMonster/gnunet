@@ -30,6 +30,7 @@
 #include "gnunet_constants.h"
 #include "gnunet_signatures.h"
 #include "gnunet_util_lib.h"
+#include "gnunet_extractor_compat.h"
 #include "gnunet_fs_service.h"
 #include "fs_api.h"
 #include "fs_tree.h"
@@ -53,7 +54,7 @@ struct GNUNET_FS_PublishKskContext
   /**
    * Metadata to use.
    */
-  struct GNUNET_CONTAINER_MetaData *meta;
+  struct GNUNET_FS_MetaData *meta;
 
   /**
    * Global FS context.
@@ -186,7 +187,7 @@ publish_ksk_cont (void *cls)
 struct GNUNET_FS_PublishKskContext *
 GNUNET_FS_publish_ksk (struct GNUNET_FS_Handle *h,
                        const struct GNUNET_FS_Uri *ksk_uri,
-                       const struct GNUNET_CONTAINER_MetaData *meta,
+                       const struct GNUNET_FS_MetaData *meta,
                        const struct GNUNET_FS_Uri *uri,
                        const struct GNUNET_FS_BlockOptions *bo,
                        enum GNUNET_FS_PublishOptions options,
@@ -201,7 +202,7 @@ GNUNET_FS_publish_ksk (struct GNUNET_FS_Handle *h,
   pkc->options = options;
   pkc->cont = cont;
   pkc->cont_cls = cont_cls;
-  pkc->meta = GNUNET_CONTAINER_meta_data_duplicate (meta);
+  pkc->meta = GNUNET_FS_meta_data_duplicate (meta);
   if (0 == (options & GNUNET_FS_PUBLISH_OPTION_SIMULATE_ONLY))
   {
     pkc->dsh = GNUNET_DATASTORE_connect (h->cfg);
@@ -244,7 +245,7 @@ GNUNET_FS_publish_ksk_cancel (struct GNUNET_FS_PublishKskContext *pkc)
     GNUNET_DATASTORE_disconnect (pkc->dsh, GNUNET_NO);
     pkc->dsh = NULL;
   }
-  GNUNET_CONTAINER_meta_data_destroy (pkc->meta);
+  GNUNET_FS_meta_data_destroy (pkc->meta);
   GNUNET_FS_uri_destroy (pkc->ksk_uri);
   GNUNET_FS_uri_destroy (pkc->uri);
   GNUNET_free (pkc);

@@ -48,12 +48,12 @@ libgnunetutil_la_SOURCES = \
   common_allocation.c \
   common_endian.c \
   common_logging.c \
+  compress.c \
   configuration.c \
   configuration_helper.c \
   consttime_memcmp.c \
   container_bloomfilter.c \
   container_heap.c \
-  container_meta_data.c \
   container_multihashmap.c \
   container_multishortmap.c \
   container_multiuuidmap.c \
@@ -421,11 +421,6 @@ test_container_bloomfilter_LDADD = \
 test_container_dll_SOURCES = \
  test_container_dll.c
 test_container_dll_LDADD = \
- libgnunetutil.la
-
-test_container_meta_data_SOURCES = \
- test_container_meta_data.c
-test_container_meta_data_LDADD = \
  libgnunetutil.la
 
 test_container_multihashmap_SOURCES = \
