@@ -121,6 +121,7 @@
 #include "gnunet_datastore_plugin.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_mysql_lib.h"
+#include "gnunet_mysql_compat.h"
 #include "gnunet_my_lib.h"
 
 #define MAX_DATUM_SIZE 65536

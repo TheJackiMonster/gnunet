@@ -32,6 +32,7 @@
 #include "gnunet_util_lib.h"
 #include "regex_internal_lib.h"
 #include "gnunet_mysql_lib.h"
+#include "gnunet_mysql_compat.h"
 #include "gnunet_my_lib.h"
 #include <mysql/mysql.h>
 

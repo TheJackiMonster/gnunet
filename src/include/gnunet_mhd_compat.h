@@ -36,7 +36,7 @@
 
 #else
 
-/**
+**
  * Data type to use for functions return an "MHD result".
  */
 #define MHD_RESULT int

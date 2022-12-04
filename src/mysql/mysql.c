@@ -25,6 +25,7 @@
 #include "platform.h"
 #include <mysql/mysql.h>
 #include "gnunet_mysql_lib.h"
+#include "gnunet_mysql_compat.h"
 
 /**
  * Maximum number of supported parameters for a prepared

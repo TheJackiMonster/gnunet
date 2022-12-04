@@ -18,11 +18,12 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 /**
- * @addtogroup lib_extra 
+ * @addtogroup lib_extra
  * @{
  *
  * @author Christian Grothoff
  * @author Christophe Genevey
+ * @author Martin Schanzenbach
  *
  * @file
  * Helper library to access a MySQL database
@@ -38,6 +39,10 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_mysql_lib.h"
 #include <mysql/mysql.h>
+
+#ifndef MYSQL_BOOL
+#error "You need to define MYSQL_BOOL. See (or include) gnunet_mysql_compat.h"
+#endif
 
 #ifdef __cplusplus
 extern "C"

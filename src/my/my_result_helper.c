@@ -25,6 +25,7 @@
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
+#include "gnunet_mysql_compat.h"
 #include "gnunet_my_lib.h"
 
 
@@ -524,7 +525,7 @@ pre_extract_string (void *cls,
 
 
 /**
- * Check size of extracted fixed size data from a Mysql database 
+ * Check size of extracted fixed size data from a Mysql database
  *
  * @param cls closure
  * @param[in,out] rs
