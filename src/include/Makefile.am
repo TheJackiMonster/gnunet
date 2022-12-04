@@ -51,6 +51,7 @@ gnunetinclude_HEADERS = \
   gnunet_dnsstub_lib.h \
   gnunet_dns_service.h \
   gnunet_error_codes.h \
+  gnunet_extractor_compat.h \
   gnunet_fragmentation_lib.h \
   gnunet_friends_lib.h \
   gnunet_fs_service.h \
