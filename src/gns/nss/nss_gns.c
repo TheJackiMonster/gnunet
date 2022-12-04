@@ -19,7 +19,7 @@
     USA.
  ***/
 
-#include <gnunet_config.h>
+#include <gnunet_private_config.h>
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>

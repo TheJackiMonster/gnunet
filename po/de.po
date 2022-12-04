@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2022-11-14 08:54+0100\n"
+"POT-Creation-Date: 2022-12-04 14:58+0900\n"
 "PO-Revision-Date: 2015-03-08 16:16+0100\n"
 "Last-Translator: Mario Blättermann <mario.blaettermann@gmail.com>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -24,7 +24,6 @@ msgstr ""
 #: src/abd/gnunet-abd.c:392 src/namestore/gnunet-namestore-zonefile.c:193
 #: src/namestore/gnunet-namestore-zonefile.c:657
 #: src/namestore/gnunet-namestore-zonefile.c:676
-#: src/namestore/gnunet-namestore.c:1579
 #, fuzzy, c-format
 msgid "Ego `%s' not known to identity service\n"
 msgstr "`%s': unbekannter Dienst: %s\n"
@@ -36,7 +35,7 @@ msgstr ""
 
 #: src/abd/gnunet-abd.c:558 src/abd/gnunet-service-abd.c:1751
 #: src/namestore/gnunet-namestore-fcfsd.c:1089
-#: src/namestore/gnunet-namestore.c:1183
+#: src/namestore/gnunet-namestore.c:1958
 #, fuzzy, c-format
 msgid "Failed to connect to namestore\n"
 msgstr "Es konnte keine Verbindung mit gnunetd hergestellt werden.\n"
@@ -1554,7 +1553,7 @@ msgstr ""
 #: src/datastore/plugin_datastore_sqlite.c:81 src/my/my.c:81 src/my/my.c:93
 #: src/mysql/mysql.c:46 src/mysql/mysql.c:64
 #: src/namecache/plugin_namecache_sqlite.c:54
-#: src/namestore/plugin_namestore_sqlite.c:55
+#: src/namestore/plugin_namestore_sqlite.c:56
 #: src/peerstore/plugin_peerstore_sqlite.c:54
 #: src/testbed/generate-underlay-topology.c:48
 #: src/testbed/gnunet-daemon-latency-logger.c:53
@@ -1568,7 +1567,7 @@ msgstr "»%s« schlug bei %s:%d mit dem Fehler %s fehl\n"
 #: src/datacache/plugin_datacache_sqlite.c:1035
 #: src/datastore/plugin_datastore_sqlite.c:532
 #: src/namecache/plugin_namecache_sqlite.c:237
-#: src/namestore/plugin_namestore_sqlite.c:227
+#: src/namestore/plugin_namestore_sqlite.c:228
 msgid "Tried to close sqlite without finalizing all prepared statements.\n"
 msgstr ""
 
@@ -1887,19 +1886,15 @@ msgstr "`%s' an `%s' schlug fehl bei %s:%d mit dem Fehler: %s\n"
 msgid "Mysql database running\n"
 msgstr "MySQL-Datenbank läuft\n"
 
-#: src/datastore/plugin_datastore_postgres.c:273
-#: src/datastore/plugin_datastore_postgres.c:886
+#: src/datastore/plugin_datastore_postgres.c:238
+#: src/datastore/plugin_datastore_postgres.c:850
 msgid "Postgresql exec failure"
 msgstr ""
 
-#: src/datastore/plugin_datastore_postgres.c:847
+#: src/datastore/plugin_datastore_postgres.c:811
 #, fuzzy
 msgid "Failed to drop table from database.\n"
 msgstr "Fehler beim Binden an UDP Port %d.\n"
-
-#: src/datastore/plugin_datastore_postgres.c:945
-msgid "Postgres database running\n"
-msgstr "PostgreSQL-Datenbank läuft\n"
 
 #: src/datastore/plugin_datastore_sqlite.c:87
 #: src/testbed/generate-underlay-topology.c:55
@@ -1911,7 +1906,7 @@ msgstr "`%s' schlug bei %s:%d mit dem Fehler %s fehl\n"
 
 #: src/datastore/plugin_datastore_sqlite.c:311
 #: src/namecache/plugin_namecache_sqlite.c:180
-#: src/namestore/plugin_namestore_sqlite.c:891
+#: src/namestore/plugin_namestore_sqlite.c:894
 #: src/peerstore/plugin_peerstore_sqlite.c:540
 #, c-format
 msgid "Unable to initialize SQLite: %s.\n"
@@ -3921,7 +3916,7 @@ msgstr ""
 msgid "`%s' is not a valid DNS domain name\n"
 msgstr "»%s« ist keine gültige IP-Adresse.\n"
 
-#: src/gns/gnunet-gns.c:267 src/util/dnsparser.c:254
+#: src/gns/gnunet-gns.c:267 src/util/dnsparser.c:253
 #, c-format
 msgid "Failed to convert DNS IDNA name `%s' to UTF-8: %s\n"
 msgstr ""
@@ -3968,13 +3963,13 @@ msgid "Properly base32-encoded public key required"
 msgstr "# Bytes empfangen über TCP"
 
 #: src/gns/gnunet-service-gns.c:555
-#: src/zonemaster/gnunet-service-zonemaster.c:1353
+#: src/zonemaster/gnunet-service-zonemaster.c:1346
 #, fuzzy
 msgid "Failed to connect to the namecache!\n"
 msgstr "Es konnte keine Verbindung mit gnunetd hergestellt werden.\n"
 
 #: src/gns/gnunet-service-gns.c:574
-#: src/zonemaster/gnunet-service-zonemaster.c:1392
+#: src/zonemaster/gnunet-service-zonemaster.c:1385
 #, fuzzy
 msgid "Could not connect to DHT!\n"
 msgstr "Verbindung zu gnunetd konnte nicht hergestellt werden.\n"
@@ -4689,7 +4684,7 @@ msgstr "`%s' konnte nicht aufgelöst werden: %s\n"
 msgid "No records found for `%s'"
 msgstr "Dienst `%s' konnte nicht ordentlich entladen werden!\n"
 
-#: src/namecache/gnunet-namecache.c:119 src/namestore/gnunet-namestore.c:670
+#: src/namecache/gnunet-namecache.c:119 src/namestore/gnunet-namestore.c:888
 #, c-format
 msgid "\tCorrupt or unsupported record of type %u\n"
 msgstr ""
@@ -4709,7 +4704,7 @@ msgstr "Ungültiger Parameter: `%s'\n"
 msgid "You must specify a name\n"
 msgstr "Sie müssen einen Empfänger angeben!\n"
 
-#: src/namecache/gnunet-namecache.c:214 src/namestore/gnunet-namestore.c:1886
+#: src/namecache/gnunet-namecache.c:214 src/namestore/gnunet-namestore.c:2020
 msgid "name of the record to add/delete/display"
 msgstr ""
 
@@ -4718,7 +4713,7 @@ msgstr ""
 msgid "specifies the public key of the zone to look in"
 msgstr "Die Priorität des Inhalts angeben"
 
-#: src/namecache/gnunet-namecache.c:233 src/namestore/gnunet-namestore.c:1971
+#: src/namecache/gnunet-namecache.c:233 src/namestore/gnunet-namestore.c:2102
 #, fuzzy
 msgid "GNUnet zone manipulation tool"
 msgstr "GNUnet Konfiguration"
@@ -4766,25 +4761,25 @@ msgstr "Sqlite-Datenbank läuft\n"
 msgid "Failed to setup database at `%s'\n"
 msgstr "Es konnte keine Verbindung mit gnunetd hergestellt werden.\n"
 
-#: src/namestore/gnunet-namestore-dbtool.c:86
-#: src/namestore/gnunet-namestore.c:1657
+#: src/namestore/gnunet-namestore-dbtool.c:87
+#: src/namestore/gnunet-namestore.c:1951
 #, c-format
 msgid "Superfluous command line arguments (starting with `%s') ignored\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-dbtool.c:153
+#: src/namestore/gnunet-namestore-dbtool.c:158
 msgid "initialize database"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-dbtool.c:157
+#: src/namestore/gnunet-namestore-dbtool.c:163
 msgid "reset database (DANGEROUS: All existing data is lost!"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-dbtool.c:164
+#: src/namestore/gnunet-namestore-dbtool.c:170
 msgid "the namestore plugin to work with, e.g. 'sqlite'"
 msgstr ""
 
-#: src/namestore/gnunet-namestore-dbtool.c:178
+#: src/namestore/gnunet-namestore-dbtool.c:189
 #: src/namestore/gnunet-namestore-zonefile.c:753
 #, fuzzy
 msgid "GNUnet namestore database manipulation tool"
@@ -4940,229 +4935,235 @@ msgid "Failed to connect to IDENTITY\n"
 msgstr "Es konnte keine Verbindung mit gnunetd hergestellt werden.\n"
 
 #: src/namestore/gnunet-namestore-zonefile.c:738
-#: src/namestore/gnunet-namestore.c:1956
+#: src/namestore/gnunet-namestore.c:2087
 msgid "name of the ego controlling the zone"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:449
+#: src/namestore/gnunet-namestore.c:412
+#, fuzzy, c-format
+msgid "Missing entries in record line `%s'.\n"
+msgstr "Anwendung `%s' konnte nicht initialisiert werden.\n"
+
+#: src/namestore/gnunet-namestore.c:420
+#, fuzzy, c-format
+msgid "Unknown record type `%s'\n"
+msgstr "Unbekannter Befehl »%s«\n"
+
+#: src/namestore/gnunet-namestore.c:428 src/namestore/gnunet-namestore.c:443
+msgid "Empty record line argument is not allowed.\n"
+msgstr ""
+
+#: src/namestore/gnunet-namestore.c:435
+#, fuzzy, c-format
+msgid "Error parsing expiration time %s.\n"
+msgstr "Fehler beim Lesen von »%s«: %s\n"
+
+#: src/namestore/gnunet-namestore.c:465
+#, fuzzy, c-format
+msgid "Invalid record data for type %s: `%s'.\n"
+msgstr "Ungültiges Format für IP: »%s«\n"
+
+#: src/namestore/gnunet-namestore.c:667
 #, c-format
 msgid "Adding record failed: %s\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:467 src/namestore/gnunet-namestore.c:483
+#: src/namestore/gnunet-namestore.c:685 src/namestore/gnunet-namestore.c:701
 #, fuzzy, c-format
 msgid "Deleting record failed: %s\n"
 msgstr "Zustellung der Nachricht `%s' fehlgeschlagen.\n"
 
-#: src/namestore/gnunet-namestore.c:904
+#: src/namestore/gnunet-namestore.c:1137
 #, c-format
 msgid ""
 "A SOA record exists already under `%s', cannot add a second SOA to the same "
 "zone.\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1025
+#: src/namestore/gnunet-namestore.c:1258
 #, c-format
 msgid "There are no records under label `%s' that could be deleted.\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1068
+#: src/namestore/gnunet-namestore.c:1301
 #, c-format
 msgid ""
 "There are no records under label `%s' that match the request for deletion.\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1146
+#: src/namestore/gnunet-namestore.c:1326
 #, c-format
 msgid "%s\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1175
+#: src/namestore/gnunet-namestore.c:1355
 #, c-format
 msgid "No options given\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1196 src/namestore/gnunet-namestore.c:1206
-#: src/namestore/gnunet-namestore.c:1258 src/namestore/gnunet-namestore.c:1268
-#: src/namestore/gnunet-namestore.c:1278 src/namestore/gnunet-namestore.c:1307
-#: src/namestore/gnunet-namestore.c:1328 src/namestore/gnunet-namestore.c:1355
-#: src/namestore/gnunet-namestore.c:1365 src/namestore/gnunet-namestore.c:1398
-#: src/namestore/gnunet-namestore.c:1423 src/namestore/gnunet-namestore.c:1457
-#: src/namestore/gnunet-namestore.c:1489 src/namestore/gnunet-namestore.c:1512
+#: src/namestore/gnunet-namestore.c:1369
+#, c-format
+msgid "Recordlines only work with option `%s'\n"
+msgstr ""
+
+#: src/namestore/gnunet-namestore.c:1378 src/namestore/gnunet-namestore.c:1430
+#: src/namestore/gnunet-namestore.c:1440 src/namestore/gnunet-namestore.c:1450
+#: src/namestore/gnunet-namestore.c:1479 src/namestore/gnunet-namestore.c:1500
+#: src/namestore/gnunet-namestore.c:1527 src/namestore/gnunet-namestore.c:1537
+#: src/namestore/gnunet-namestore.c:1570 src/namestore/gnunet-namestore.c:1595
+#: src/namestore/gnunet-namestore.c:1629 src/namestore/gnunet-namestore.c:1663
+#: src/namestore/gnunet-namestore.c:1686
 #, fuzzy, c-format
 msgid "Missing option `%s' for operation `%s'\n"
 msgstr "Unbekannte Operation `%s'\n"
 
-#: src/namestore/gnunet-namestore.c:1198 src/namestore/gnunet-namestore.c:1208
-msgid "replace"
+#: src/namestore/gnunet-namestore.c:1380
+msgid "name"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1237
+#: src/namestore/gnunet-namestore.c:1409
 #, fuzzy, c-format
 msgid "Invalid nick `%s'\n"
 msgstr "Ungültiger Parameter: `%s'\n"
 
-#: src/namestore/gnunet-namestore.c:1260 src/namestore/gnunet-namestore.c:1270
-#: src/namestore/gnunet-namestore.c:1280 src/namestore/gnunet-namestore.c:1309
-#: src/namestore/gnunet-namestore.c:1330 src/namestore/gnunet-namestore.c:1514
+#: src/namestore/gnunet-namestore.c:1432 src/namestore/gnunet-namestore.c:1442
+#: src/namestore/gnunet-namestore.c:1452 src/namestore/gnunet-namestore.c:1481
+#: src/namestore/gnunet-namestore.c:1502 src/namestore/gnunet-namestore.c:1688
 msgid "add"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1288
+#: src/namestore/gnunet-namestore.c:1460
 #, fuzzy, c-format
 msgid "Unsupported type `%s'\n"
 msgstr "Kommando `%s' wird nicht unterstützt. Vorgang wird abgebrochen.\n"
 
-#: src/namestore/gnunet-namestore.c:1298
+#: src/namestore/gnunet-namestore.c:1470
 #, c-format
 msgid "For DNS record types `SRV', `TLSA' and `OPENPGPKEY'"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1318
+#: src/namestore/gnunet-namestore.c:1490
 #, fuzzy, c-format
 msgid "Value `%s' invalid for record type `%s'\n"
 msgstr "%s: Symbolwert `%s' ist ungültig für %s\n"
 
-#: src/namestore/gnunet-namestore.c:1337 src/namestore/gnunet-namestore.c:1521
+#: src/namestore/gnunet-namestore.c:1509 src/namestore/gnunet-namestore.c:1695
 #, fuzzy, c-format
 msgid "Invalid time format `%s'\n"
 msgstr "Ungültiger Parameter: `%s'\n"
 
-#: src/namestore/gnunet-namestore.c:1357 src/namestore/gnunet-namestore.c:1367
+#: src/namestore/gnunet-namestore.c:1529 src/namestore/gnunet-namestore.c:1539
 msgid "del"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1400
+#: src/namestore/gnunet-namestore.c:1572
 msgid "purge-zone"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1425
+#: src/namestore/gnunet-namestore.c:1597
 msgid "list"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1459
+#: src/namestore/gnunet-namestore.c:1631
 msgid "reverse-pkey"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1469
+#: src/namestore/gnunet-namestore.c:1641
 #, c-format
 msgid "Invalid public key for reverse lookup `%s'\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1491
+#: src/namestore/gnunet-namestore.c:1665
 msgid "uri"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1504
+#: src/namestore/gnunet-namestore.c:1678
 #: src/peerinfo-tool/gnunet-peerinfo.c:737
 #, fuzzy, c-format
 msgid "Invalid URI `%s'\n"
 msgstr "Ungültiger Parameter: `%s'\n"
 
-#: src/namestore/gnunet-namestore.c:1684
+#: src/namestore/gnunet-namestore.c:1966
 #, fuzzy, c-format
 msgid "Cannot connect to identity service\n"
 msgstr "Verbindung zu %u.%u.%u.%u:%u fehlgeschlagen: %s\n"
 
-#: src/namestore/gnunet-namestore.c:1728
-msgid "Empty record line argument is not allowed.\n"
-msgstr ""
-
-#: src/namestore/gnunet-namestore.c:1740
-#, c-format
-msgid "Invalid expiration time `%s' (must be without unit)\n"
-msgstr ""
-
-#: src/namestore/gnunet-namestore.c:1752 src/namestore/gnunet-namestore.c:1768
-#: src/namestore/gnunet-namestore.c:1785
-#, fuzzy, c-format
-msgid "Missing entries in record line `%s'.\n"
-msgstr "Anwendung `%s' konnte nicht initialisiert werden.\n"
-
-#: src/namestore/gnunet-namestore.c:1760
-#, fuzzy, c-format
-msgid "Unknown record type `%s'\n"
-msgstr "Unbekannter Befehl »%s«\n"
-
-#: src/namestore/gnunet-namestore.c:1798
-#, fuzzy, c-format
-msgid "Invalid record data for type %s: `%s'.\n"
-msgstr "Ungültiges Format für IP: »%s«\n"
-
-#: src/namestore/gnunet-namestore.c:1855
+#: src/namestore/gnunet-namestore.c:1985
 msgid "add record"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1858
+#: src/namestore/gnunet-namestore.c:1988
 msgid "delete record"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1862
+#: src/namestore/gnunet-namestore.c:1992
 msgid "display records"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1869
+#: src/namestore/gnunet-namestore.c:1996
+msgid "read commands from stdin"
+msgstr ""
+
+#: src/namestore/gnunet-namestore.c:2003
 msgid ""
 "expiration time for record to use (for adding only), \"never\" is possible"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1875
+#: src/namestore/gnunet-namestore.c:2009
 msgid "set the desired nick name for the zone"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1880
+#: src/namestore/gnunet-namestore.c:2014
 msgid "monitor changes in the namestore"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1892
-msgid "determine our name for the given PKEY"
+#: src/namestore/gnunet-namestore.c:2024
+msgid "Output in recordline format"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1899
-msgid ""
-"set record set to values given by (possibly multiple) RECORDLINES; can be "
-"specified multiple times"
+#: src/namestore/gnunet-namestore.c:2030
+msgid "determine our name for the given KEY"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1905
+#: src/namestore/gnunet-namestore.c:2036
 msgid "type of the record to add/delete/display"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1910
+#: src/namestore/gnunet-namestore.c:2041
 msgid "URI to import into our zone"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1916
+#: src/namestore/gnunet-namestore.c:2047
 msgid "value of the record to add/delete"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1920
+#: src/namestore/gnunet-namestore.c:2051
 msgid "create or list public record"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1924
+#: src/namestore/gnunet-namestore.c:2055
 msgid "omit private records"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1929
+#: src/namestore/gnunet-namestore.c:2060
 msgid "do not filter maintenance records"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1934
+#: src/namestore/gnunet-namestore.c:2065
 msgid "purge namestore of all orphans"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1939
+#: src/namestore/gnunet-namestore.c:2070
 msgid ""
 "show private key for orphaned records for recovery using `gnunet-identity -C "
 "-P <key>'. Use in combination with --display"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1944
+#: src/namestore/gnunet-namestore.c:2075
 msgid "delete all records in specified zone"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1950
+#: src/namestore/gnunet-namestore.c:2081
 msgid ""
 "create shadow record (only valid if all other records of the same type have "
 "expired"
@@ -5191,19 +5192,13 @@ msgstr ""
 msgid "Flat file database running\n"
 msgstr "Sqlite-Datenbank läuft\n"
 
-#: src/namestore/plugin_namestore_sqlite.c:180
-#: src/namestore/plugin_namestore_sqlite.c:190
-#: src/namestore/plugin_namestore_sqlite.c:829
+#: src/namestore/plugin_namestore_sqlite.c:181
+#: src/namestore/plugin_namestore_sqlite.c:191
 #, fuzzy, c-format
 msgid "Failed to setup database with: `%s'\n"
 msgstr "Es konnte keine Verbindung mit gnunetd hergestellt werden.\n"
 
-#: src/namestore/plugin_namestore_sqlite.c:820
-#, fuzzy, c-format
-msgid "Failed to drop database with: `%s'\n"
-msgstr "Es konnte keine Verbindung mit gnunetd hergestellt werden.\n"
-
-#: src/namestore/plugin_namestore_sqlite.c:961
+#: src/namestore/plugin_namestore_sqlite.c:956
 #, fuzzy
 msgid "SQlite database running\n"
 msgstr "Sqlite-Datenbank läuft\n"
@@ -6713,17 +6708,17 @@ msgid ""
 "free topology cannot be more than %u.  Given `%s = %llu'"
 msgstr ""
 
-#: src/testbed/testbed_api_topology.c:1021 src/testing/testing.c:2700
+#: src/testbed/testbed_api_topology.c:1021 src/testing/testing.c:2725
 #, c-format
 msgid "Topology file %s not found\n"
 msgstr ""
 
-#: src/testbed/testbed_api_topology.c:1029 src/testing/testing.c:2708
+#: src/testbed/testbed_api_topology.c:1029 src/testing/testing.c:2733
 #, c-format
 msgid "Topology file %s has no data\n"
 msgstr ""
 
-#: src/testbed/testbed_api_topology.c:1037 src/testing/testing.c:2716
+#: src/testbed/testbed_api_topology.c:1037 src/testing/testing.c:2741
 #, c-format
 msgid "Topology file %s cannot be read\n"
 msgstr ""
@@ -6802,52 +6797,52 @@ msgstr ""
 msgid "Hostkeys file not found: %s\n"
 msgstr ""
 
-#: src/testing/testing.c:725
+#: src/testing/testing.c:724
 #, c-format
 msgid "Key number %u does not exist\n"
 msgstr ""
 
-#: src/testing/testing.c:1199
+#: src/testing/testing.c:1198
 #, c-format
 msgid ""
 "You attempted to create a testbed with more than %u hosts.  Please "
 "precompute more hostkeys first.\n"
 msgstr ""
 
-#: src/testing/testing.c:1208
+#: src/testing/testing.c:1207
 #, fuzzy, c-format
 msgid "Failed to initialize hostkey for peer %u\n"
 msgstr "SQLite Datenbank konnte nicht initialisiert werden.\n"
 
-#: src/testing/testing.c:1218
+#: src/testing/testing.c:1217
 msgid "PRIVATE_KEY option in PEER section missing in configuration\n"
 msgstr ""
 
-#: src/testing/testing.c:1231
+#: src/testing/testing.c:1230
 msgid "Failed to create configuration for peer (not enough free ports?)\n"
 msgstr ""
 
-#: src/testing/testing.c:1247
+#: src/testing/testing.c:1246
 #, fuzzy, c-format
 msgid "Cannot open hostkey file `%s': %s\n"
 msgstr "Konfigurationsdatei `%s' konnte nicht geöffnet werden.\n"
 
-#: src/testing/testing.c:1261
+#: src/testing/testing.c:1260
 #, fuzzy, c-format
 msgid "Failed to write hostkey file for peer %u: %s\n"
 msgstr "Datei wurde als `%s' gespeichert.\n"
 
-#: src/testing/testing.c:1289
+#: src/testing/testing.c:1288
 #, fuzzy, c-format
 msgid "Failed to write configuration file `%s' for peer %u: %s\n"
 msgstr "Fehler beim Speichern der Konfigurationsdatei `%s':"
 
-#: src/testing/testing.c:1395
+#: src/testing/testing.c:1394
 #, c-format
 msgid "Failed to start `%s': %s\n"
 msgstr "»%s« konnte nicht gestartet werden: %s\n"
 
-#: src/testing/testing.c:1646
+#: src/testing/testing.c:1645
 #, c-format
 msgid "Failed to load configuration from %s\n"
 msgstr "Konfiguration konnte nicht aus %s geladen werden\n"
@@ -6925,7 +6920,7 @@ msgstr ""
 
 #: src/transport/gnunet-communicator-tcp.c:3347
 #: src/transport/gnunet-communicator-udp.c:3872
-#: src/transport/gnunet-service-tng.c:11334
+#: src/transport/gnunet-service-tng.c:11367
 #: src/transport/gnunet-service-transport.c:2617
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr ""
@@ -8320,7 +8315,7 @@ msgstr "RSA Signaturüberprüfung fehlgeschlagen bei %s:%d: %s\n"
 msgid "Expected `%s' to be a directory!\n"
 msgstr "`%s' erwartet, dass `%s' ein Verzeichnis ist!\n"
 
-#: src/util/dnsparser.c:910
+#: src/util/dnsparser.c:909
 #, c-format
 msgid "Failed to convert UTF-8 name `%s' to DNS IDNA format: %s\n"
 msgstr ""
@@ -9275,15 +9270,22 @@ msgstr "Dienst wird über UDP angeboten"
 msgid "Setup tunnels via VPN."
 msgstr "Tunnel über VPN einrichten."
 
-#: src/zonemaster/gnunet-service-zonemaster.c:507
+#: src/zonemaster/gnunet-service-zonemaster.c:502
 #, c-format
 msgid "Failed to replicate block in namecache: %s\n"
 msgstr ""
 
-#: src/zonemaster/gnunet-service-zonemaster.c:1340
+#: src/zonemaster/gnunet-service-zonemaster.c:1333
 #, fuzzy
 msgid "Failed to connect to the namestore!\n"
 msgstr "Es konnte keine Verbindung mit gnunetd hergestellt werden.\n"
+
+#~ msgid "Postgres database running\n"
+#~ msgstr "PostgreSQL-Datenbank läuft\n"
+
+#, fuzzy, c-format
+#~ msgid "Failed to drop database with: `%s'\n"
+#~ msgstr "Es konnte keine Verbindung mit gnunetd hergestellt werden.\n"
 
 #, fuzzy, c-format
 #~ msgid "Failed to receive response from `%s' service (error code is %d).\n"
@@ -10091,10 +10093,6 @@ msgstr "Es konnte keine Verbindung mit gnunetd hergestellt werden.\n"
 #, fuzzy
 #~ msgid "Failed to load sensor definition: %s\n"
 #~ msgstr "Datei wurde als `%s' gespeichert.\n"
-
-#, fuzzy
-#~ msgid "Error loading sensor from file: %s\n"
-#~ msgstr "Fehler beim Lesen von »%s«: %s\n"
 
 #, fuzzy
 #~ msgid "dump statistics to stdout after completion"

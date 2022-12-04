@@ -43,7 +43,7 @@
  */
 #if HAVE_CONFIG_H
 /* Just needed for HAVE_SOCKADDR_IN_SIN_LEN test macro! */
-#include "gnunet_config.h"
+#include "gnunet_private_config.h"
 #else
 #define _GNU_SOURCE
 #endif

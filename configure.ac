@@ -22,10 +22,14 @@
 AC_PREREQ([2.69])
 AC_INIT([gnunet],[m4_esyscmd_s(sh contrib/get_version.sh)],[bug-gnunet@gnu.org])
 
+gnunet_version=m4_esyscmd_s(sh contrib/get_version.sh)
+
+AC_SUBST([gnunet_version])
+
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIRS([m4])
 
-AC_CONFIG_HEADERS([gnunet_config.h])
+AC_CONFIG_HEADERS([gnunet_private_config.h])
 
 AC_CANONICAL_TARGET
 AC_CANONICAL_HOST
@@ -735,7 +739,7 @@ AC_RUN_IFELSE(
                      curl_gnutls=0])
 LIBS=$OLD_LIBS
 AM_CONDITIONAL([HAVE_GNUTLS_CURL], [test "x$curl_gnutls" = "x1"])
-
+AC_SUBST([curl_gnutls])
 
 # Even if curl is found, we check for this constant in order to determine
 # if we can use this feature.
@@ -1186,6 +1190,8 @@ AM_CONDITIONAL([HAVE_EXPERIMENTAL], [test "x$enable_experimental" = "x1"])
 AS_IF([test "x$enable_experimental" = "x1"],
       AC_DEFINE([GNUNET_EXPERIMENTAL], 1, [Set to 1 is this is an experimental build]))
 
+AC_SUBST([enable_experimental])
+
 # check if malicious code should be compiled (for testing)
 AC_ARG_ENABLE([malicious],
   [AS_HELP_STRING([--enable-malicious],
@@ -1326,6 +1332,7 @@ src/hello/Makefile
 src/identity/Makefile
 src/identity/identity.conf
 src/include/Makefile
+src/include/gnunet_config.h
 src/integration-tests/Makefile
 src/json/Makefile
 src/hostlist/Makefile

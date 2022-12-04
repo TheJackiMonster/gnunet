@@ -19,7 +19,7 @@
 
      SPDX-License-Identifier: AGPL3.0-or-later
  */
-#include "gnunet_config.h"
+#include "gnunet_private_config.h"
 #include "gnunet_platform.h"
 
 #include <bluetooth/bluetooth.h>

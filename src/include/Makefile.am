@@ -11,6 +11,7 @@ EXTRA_DIST = \
 
 gnunetinclude_HEADERS = \
   platform.h \
+  gnunet_config.h \
   gnunet_platform.h \
   gettext.h \
   compat.h \

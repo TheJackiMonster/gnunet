@@ -109,7 +109,7 @@
 /*
  * parts taken from aircrack-ng, parts changend.
  */
-#include "gnunet_config.h"
+#include "gnunet_private_config.h"
 #include "gnunet_platform.h"
 #include <netpacket/packet.h>
 #include <linux/if_ether.h>
