@@ -597,16 +597,6 @@ gcry_md_close (mac);]])],
      [AC_MSG_RESULT([cross compiling, test skipped])])
    AC_LANG_POP([C])])
 
-AC_MSG_CHECKING([for static assertion support])
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],
-                     [[_Static_assert(sizeof(int) >= 4, "not big enough");]])],
-                  [AC_MSG_RESULT([yes])
-                   AC_DEFINE([HAVE_STATIC_ASSERT], [1],
-                             [Define to 1 if static assert is supported])],
-                  [AC_MSG_RESULT([no])
-                   AC_DEFINE([HAVE_STATIC_ASSERT], [0],
-                             [Define to 1 if static assert is supported])])
-
 dnl Helper function to shorten the amount of repeated code
 dnl It will create a --with-<lib> option for configure.
 dnl

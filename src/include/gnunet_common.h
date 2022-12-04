@@ -991,7 +991,7 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
   } while (0)
 
 
-#if HAVE_STATIC_ASSERT
+#ifdef _Static_assert
 /**
  * Assertion to be checked (if supported by C compiler) at
  * compile time, otherwise checked at runtime and resulting

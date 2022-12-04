@@ -409,9 +409,6 @@
 /* Define to 1 if you have the `statfs' function. */
 #undef HAVE_STATFS
 
-/* Define to 1 if static assert is supported */
-#undef HAVE_STATIC_ASSERT
-
 /* Define to 1 if you have the `statvfs' function. */
 #undef HAVE_STATVFS
 
