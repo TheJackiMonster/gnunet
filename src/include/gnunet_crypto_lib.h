@@ -67,7 +67,6 @@ extern "C" {
  */
 struct GNUNET_PeerIdentity;
 
-#include "gnunet_common.h"
 #include <gcrypt.h>
 
 

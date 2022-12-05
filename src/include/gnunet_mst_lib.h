@@ -55,9 +55,6 @@ extern "C"
 #endif
 
 
-#include "gnunet_common.h"
-
-
 /**
  * Handle to a message stream tokenizer.
  */

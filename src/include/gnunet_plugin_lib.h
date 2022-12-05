@@ -49,10 +49,6 @@ extern "C"
 #endif
 
 
-#include "gnunet_common.h"
-#include "gnunet_configuration_lib.h"
-
-
 /**
  * Signature of any function exported by a plugin.
  *
