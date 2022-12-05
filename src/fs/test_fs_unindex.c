@@ -203,7 +203,7 @@ run (void *cls,
                                        GNUNET_DISK_PERM_USER_READ
                                        | GNUNET_DISK_PERM_USER_WRITE));
   GNUNET_free (buf);
-  meta = GNUNET_CONTAINER_meta_data_create ();
+  meta = GNUNET_FS_meta_data_create ();
   kuri = GNUNET_FS_uri_ksk_create_from_args (2, keywords);
   bo.content_priority = 42;
   bo.anonymity_level = 1;
@@ -213,7 +213,7 @@ run (void *cls,
                                                     kuri, meta, GNUNET_YES,
                                                     &bo);
   GNUNET_FS_uri_destroy (kuri);
-  GNUNET_CONTAINER_meta_data_destroy (meta);
+  GNUNET_FS_meta_data_destroy (meta);
   GNUNET_assert (NULL != fi);
   start = GNUNET_TIME_absolute_get ();
   publish =

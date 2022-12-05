@@ -53,7 +53,7 @@ processor (void *cls, const char *filename, const struct GNUNET_FS_Uri *uri,
     return;                     /* ignore directory's meta data */
   for (i = 0; i < p->max; i++)
   {
-    if (GNUNET_CONTAINER_meta_data_test_equal (p->md[i], md) &&
+    if (GNUNET_FS_meta_data_test_equal (p->md[i], md) &&
         GNUNET_FS_uri_test_equal (p->uri[i], uri))
     {
       p->pos++;
@@ -86,28 +86,28 @@ testDirectory (unsigned int i)
   cls.max = i;
   uris = GNUNET_malloc (sizeof(struct GNUNET_FS_Uri *) * i);
   mds = GNUNET_malloc (sizeof(struct GNUNET_FS_MetaData *) * i);
-  meta = GNUNET_CONTAINER_meta_data_create ();
-  GNUNET_CONTAINER_meta_data_insert (meta, "<test>", EXTRACTOR_METATYPE_TITLE,
-                                     EXTRACTOR_METAFORMAT_UTF8, "text/plain",
-                                     "A title", strlen ("A title") + 1);
-  GNUNET_CONTAINER_meta_data_insert (meta, "<test>",
-                                     EXTRACTOR_METATYPE_AUTHOR_NAME,
-                                     EXTRACTOR_METAFORMAT_UTF8, "text/plain",
-                                     "An author", strlen ("An author") + 1);
+  meta = GNUNET_FS_meta_data_create ();
+  GNUNET_FS_meta_data_insert (meta, "<test>", EXTRACTOR_METATYPE_TITLE,
+                              EXTRACTOR_METAFORMAT_UTF8, "text/plain",
+                              "A title", strlen ("A title") + 1);
+  GNUNET_FS_meta_data_insert (meta, "<test>",
+                              EXTRACTOR_METATYPE_AUTHOR_NAME,
+                              EXTRACTOR_METAFORMAT_UTF8, "text/plain",
+                              "An author", strlen ("An author") + 1);
   for (p = 0; p < i; p++)
   {
-    mds[p] = GNUNET_CONTAINER_meta_data_create ();
+    mds[p] = GNUNET_FS_meta_data_create ();
     for (q = 0; q <= p; q++)
     {
       GNUNET_snprintf (txt, sizeof(txt), "%u -- %u\n", p, q);
-      GNUNET_CONTAINER_meta_data_insert (mds[p], "<test>",
+      GNUNET_FS_meta_data_insert (mds[p], "<test>",
 #if HAVE_EXTRACTOR_H && HAVE_LIBEXTRACTOR
-                                         q % EXTRACTOR_metatype_get_max (),
+                                  q % EXTRACTOR_metatype_get_max (),
 #else
-                                         q % 128,
+                                  q % 128,
 #endif
-                                         EXTRACTOR_METAFORMAT_UTF8,
-                                         "text/plain", txt, strlen (txt) + 1);
+                                  EXTRACTOR_METAFORMAT_UTF8,
+                                  "text/plain", txt, strlen (txt) + 1);
     }
     GNUNET_snprintf (uri, sizeof(uri),
                      "gnunet://fs/chk/C282GG70GKK41O4551011DO413KFBVTVMQG1OG30I0K4045N0G41HAPB82G680A02JRVVFO8URVRU2F159011DO41000000022RG820.RNVVVVOOLCLK065B5D04HTNVNSIB2AI022RG8200HSLK1CO1000ATQ98824DMA2032LIMG50CG0K057NVUVG200000H000004400000.%u",
@@ -116,16 +116,16 @@ testDirectory (unsigned int i)
     uris[p] = GNUNET_FS_uri_parse (uri, &emsg);
     if (uris[p] == NULL)
     {
-      GNUNET_CONTAINER_meta_data_destroy (mds[p]);
+      GNUNET_FS_meta_data_destroy (mds[p]);
       while (--p > 0)
       {
-        GNUNET_CONTAINER_meta_data_destroy (mds[p]);
+        GNUNET_FS_meta_data_destroy (mds[p]);
         GNUNET_FS_uri_destroy (uris[p]);
       }
       GNUNET_free (mds);
       GNUNET_free (uris);
       GNUNET_free (emsg);
-      GNUNET_CONTAINER_meta_data_destroy (meta);
+      GNUNET_FS_meta_data_destroy (meta);
       ABORT ();                 /* error in testcase */
     }
     GNUNET_assert (emsg == NULL);
@@ -150,10 +150,10 @@ testDirectory (unsigned int i)
     GNUNET_assert (cls.pos == i);
   }
   GNUNET_free (data);
-  GNUNET_CONTAINER_meta_data_destroy (meta);
+  GNUNET_FS_meta_data_destroy (meta);
   for (p = 0; p < i; p++)
   {
-    GNUNET_CONTAINER_meta_data_destroy (mds[p]);
+    GNUNET_FS_meta_data_destroy (mds[p]);
     GNUNET_FS_uri_destroy (uris[p]);
   }
   GNUNET_free (uris);

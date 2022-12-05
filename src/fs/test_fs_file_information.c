@@ -100,7 +100,7 @@ run (void *cls, char *const *args, const char *cfgfile,
                                        | GNUNET_DISK_PERM_USER_WRITE));
   GNUNET_free (buf);
 
-  meta = GNUNET_CONTAINER_meta_data_create ();
+  meta = GNUNET_FS_meta_data_create ();
   kuri = GNUNET_FS_uri_ksk_create_from_args (2, keywords);
   bo.content_priority = 42;
   bo.anonymity_level = 1;
@@ -125,7 +125,7 @@ run (void *cls, char *const *args, const char *cfgfile,
   GNUNET_assert (GNUNET_OK == GNUNET_FS_file_information_add (fidir, fi1));
   GNUNET_assert (GNUNET_OK == GNUNET_FS_file_information_add (fidir, fi2));
   GNUNET_FS_uri_destroy (kuri);
-  GNUNET_CONTAINER_meta_data_destroy (meta);
+  GNUNET_FS_meta_data_destroy (meta);
   GNUNET_assert (NULL != fidir);
   /* FIXME: test more of API! */
   GNUNET_FS_file_information_destroy (fidir, &mycleaner, NULL);

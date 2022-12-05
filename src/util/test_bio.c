@@ -46,19 +46,14 @@ test_normal_rw (void)
   int64_t wNum = TESTNUMBER64;
   int64_t rNum = 0;
 
-  mdW = GNUNET_CONTAINER_meta_data_create ();
-  GNUNET_CONTAINER_meta_data_add_publication_date (mdW);
-
   struct GNUNET_BIO_WriteSpec ws[] = {
     GNUNET_BIO_write_spec_string ("test-normal-rw-string", TESTSTRING),
-    GNUNET_BIO_write_spec_meta_data ("test-normal-rw-metadata", mdW),
     GNUNET_BIO_write_spec_int64 ("test-normal-rw-int64", &wNum),
     GNUNET_BIO_write_spec_end (),
   };
 
   struct GNUNET_BIO_ReadSpec rs[] = {
     GNUNET_BIO_read_spec_string ("test-normal-rw-string", &rString, 200),
-    GNUNET_BIO_read_spec_meta_data ("test-normal-rw-metadata", &mdR),
     GNUNET_BIO_read_spec_int64 ("test-normal-rw-int64", &rNum),
     GNUNET_BIO_read_spec_end (),
   };
@@ -74,11 +69,8 @@ test_normal_rw (void)
   GNUNET_assert (GNUNET_OK == GNUNET_BIO_read_spec_commit (rh, rs));
   GNUNET_assert (GNUNET_OK == GNUNET_BIO_read_close (rh, NULL));
   GNUNET_assert (0 == strcmp (TESTSTRING, rString));
-  GNUNET_assert (GNUNET_YES == GNUNET_CONTAINER_meta_data_test_equal (mdR,
-                                                                      mdW));
   GNUNET_assert (wNum == rNum);
 
-  GNUNET_CONTAINER_meta_data_destroy (mdR);
   GNUNET_assert (GNUNET_OK == GNUNET_DISK_directory_remove (filename));
   GNUNET_free (filename);
 
@@ -98,14 +90,10 @@ test_normal_rw (void)
   GNUNET_assert (GNUNET_OK == GNUNET_BIO_read_spec_commit (rh, rs));
   GNUNET_assert (GNUNET_OK == GNUNET_BIO_read_close (rh, NULL));
   GNUNET_assert (0 == strcmp (TESTSTRING, rString));
-  GNUNET_assert (GNUNET_YES == GNUNET_CONTAINER_meta_data_test_equal (mdR,
-                                                                      mdW));
   GNUNET_assert (wNum == rNum);
 
   GNUNET_free (buffer);
 
-  GNUNET_CONTAINER_meta_data_destroy (mdW);
-  GNUNET_CONTAINER_meta_data_destroy (mdR);
   return 0;
 }
 
@@ -225,10 +213,6 @@ test_bigmeta_rw (void)
 
   rh = GNUNET_BIO_read_open_file (filename);
   GNUNET_assert (NULL != rh);
-  GNUNET_assert (GNUNET_SYSERR ==
-                 GNUNET_BIO_read_meta_data (rh,
-                                            "test-bigmeta-rw-metadata",
-                                            &mdR));
   GNUNET_assert (GNUNET_SYSERR == GNUNET_BIO_read_close (rh, NULL));
 
   GNUNET_assert (NULL == mdR);
@@ -294,17 +278,12 @@ test_fullfile_rw (void)
   struct GNUNET_CONTAINER_MetaData *mdW;
   struct GNUNET_CONTAINER_MetaData *mdR = NULL;
 
-  mdW = GNUNET_CONTAINER_meta_data_create ();
-  GNUNET_CONTAINER_meta_data_add_publication_date (mdW);
-
   struct GNUNET_BIO_WriteSpec ws[] = {
     GNUNET_BIO_write_spec_object ("test-fullfile-rw-bytes",
                                   TESTSTRING,
                                   strlen (TESTSTRING)),
     GNUNET_BIO_write_spec_string ("test-fullfile-rw-string",
                                   TESTSTRING),
-    GNUNET_BIO_write_spec_meta_data ("test-fullfile-rw-metadata",
-                                     mdW),
     GNUNET_BIO_write_spec_end (),
   };
 
@@ -315,8 +294,6 @@ test_fullfile_rw (void)
     GNUNET_BIO_read_spec_string ("test-fullfile-rw-string",
                                  &rString,
                                  200),
-    GNUNET_BIO_read_spec_meta_data ("test-fullfile-rw-metadata",
-                                    &mdR),
     GNUNET_BIO_read_spec_end (),
   };
 
@@ -385,10 +362,6 @@ test_fakemeta_rw (void)
 
   rh = GNUNET_BIO_read_open_file (filename);
   GNUNET_assert (NULL != rh);
-  GNUNET_assert (GNUNET_SYSERR ==
-                 GNUNET_BIO_read_meta_data (rh,
-                                            "test-fakestring-rw-metadata",
-                                            &mdR));
   GNUNET_assert (GNUNET_SYSERR == GNUNET_BIO_read_close (rh, NULL));
 
   GNUNET_assert (NULL == mdR);
@@ -417,10 +390,6 @@ test_fakebigmeta_rw (void)
 
   rh = GNUNET_BIO_read_open_file (filename);
   GNUNET_assert (NULL != rh);
-  GNUNET_assert (GNUNET_SYSERR ==
-                 GNUNET_BIO_read_meta_data (rh,
-                                            "test-fakebigmeta-rw-metadata",
-                                            &mdR));
   GNUNET_assert (GNUNET_SYSERR == GNUNET_BIO_read_close (rh, NULL));
 
   GNUNET_assert (NULL == mdR);

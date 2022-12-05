@@ -218,7 +218,7 @@ sks_cont (void *cls, const struct GNUNET_FS_Uri *uri, const char *emsg)
     GNUNET_FS_stop (fs);
     return;
   }
-  meta = GNUNET_CONTAINER_meta_data_create ();
+  meta = GNUNET_FS_meta_data_create ();
   msg = NULL;
   ksk_uri = GNUNET_FS_uri_parse ("gnunet://fs/ksk/ns-search", &msg);
   GNUNET_assert (NULL == msg);
@@ -231,7 +231,7 @@ sks_cont (void *cls, const struct GNUNET_FS_Uri *uri, const char *emsg)
   GNUNET_FS_publish_ksk (fs, ksk_uri, meta, uri, &bo,
                          GNUNET_FS_PUBLISH_OPTION_NONE, &publish_cont, NULL);
   GNUNET_FS_uri_destroy (ksk_uri);
-  GNUNET_CONTAINER_meta_data_destroy (meta);
+  GNUNET_FS_meta_data_destroy (meta);
 }
 
 
@@ -250,7 +250,7 @@ adv_cont (void *cls, const struct GNUNET_FS_Uri *uri, const char *emsg)
     return;
   }
   GNUNET_CRYPTO_ecdsa_key_create (&ns);
-  meta = GNUNET_CONTAINER_meta_data_create ();
+  meta = GNUNET_FS_meta_data_create ();
   sks_expect_uri = GNUNET_FS_uri_dup (uri);
   bo.content_priority = 1;
   bo.anonymity_level = 1;
@@ -262,7 +262,7 @@ adv_cont (void *cls, const struct GNUNET_FS_Uri *uri, const char *emsg)
   GNUNET_FS_publish_sks (fs,
                          &ns, "this", "next", meta, uri,
                          &bo, GNUNET_FS_PUBLISH_OPTION_NONE, &sks_cont, NULL);
-  GNUNET_CONTAINER_meta_data_destroy (meta);
+  GNUNET_FS_meta_data_destroy (meta);
 }
 
 
@@ -274,7 +274,7 @@ testNamespace (void)
   struct GNUNET_FS_Uri *ksk_uri;
   struct GNUNET_FS_Uri *sks_uri;
 
-  meta = GNUNET_CONTAINER_meta_data_create ();
+  meta = GNUNET_FS_meta_data_create ();
   ksk_uri = GNUNET_FS_uri_parse ("gnunet://fs/ksk/testnsa", NULL);
   bo.content_priority = 1;
   bo.anonymity_level = 1;
@@ -291,7 +291,7 @@ testNamespace (void)
     GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_MINUTES, &do_timeout,
                                   NULL);
   GNUNET_FS_uri_destroy (ksk_uri);
-  GNUNET_CONTAINER_meta_data_destroy (meta);
+  GNUNET_FS_meta_data_destroy (meta);
 }
 
 

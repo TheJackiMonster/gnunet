@@ -59,7 +59,7 @@ do_shutdown ()
   if (uri_next != NULL)
     GNUNET_FS_uri_destroy (uri_next);
   if (meta != NULL)
-    GNUNET_CONTAINER_meta_data_destroy (meta);
+    GNUNET_FS_meta_data_destroy (meta);
 }
 
 
@@ -131,7 +131,7 @@ testNamespace (void)
   bo.replication_level = 0;
   bo.expiration_time =
     GNUNET_TIME_relative_to_absolute (GNUNET_TIME_UNIT_MINUTES);
-  meta = GNUNET_CONTAINER_meta_data_create ();
+  meta = GNUNET_FS_meta_data_create ();
 
   uri_this =
     GNUNET_FS_uri_parse

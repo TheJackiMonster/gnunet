@@ -31,7 +31,7 @@
 #include <gcrypt.h>
 
 
-#include "gnunet_crypto_lib.h"
+#include "gnunet_util_lib.h"
 
 void
 tc1 ()

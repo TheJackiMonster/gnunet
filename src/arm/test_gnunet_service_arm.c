@@ -26,8 +26,7 @@
 #include "platform.h"
 #include "gnunet_arm_service.h"
 #include "gnunet_resolver_service.h"
-#include "gnunet_os_lib.h"
-#include "gnunet_program_lib.h"
+#include "gnunet_util_lib.h"
 
 /**
  * Timeout for starting services, very short because of the strange way start works

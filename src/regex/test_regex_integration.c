@@ -27,7 +27,6 @@
 #include "platform.h"
 #include "gnunet_applications.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_tun_lib.h"
 #include "gnunet_testing_lib.h"
 #include "gnunet_regex_service.h"
 

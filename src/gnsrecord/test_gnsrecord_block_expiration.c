@@ -79,7 +79,7 @@ run (void *cls, char *const *args, const char *cfgfile,
   rd[1].record_type = TEST_RECORD_TYPE;
   rd[1].data_size = TEST_RECORD_DATALEN;
   rd[1].data = GNUNET_malloc (TEST_RECORD_DATALEN);
-  rd[1].flags = GNUNET_GNSRECORD_RF_SHADOW_RECORD;
+  rd[1].flags = GNUNET_GNSRECORD_RF_SHADOW;
   memset ((char *) rd[1].data, TEST_RECORD_DATA, TEST_RECORD_DATALEN);
 
   GNUNET_assert (expiration_abs_shadow.abs_value_us ==
