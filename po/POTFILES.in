@@ -516,6 +516,7 @@ src/util/client.c
 src/util/common_allocation.c
 src/util/common_endian.c
 src/util/common_logging.c
+src/util/compress.c
 src/util/configuration.c
 src/util/configuration_helper.c
 src/util/consttime_memcmp.c

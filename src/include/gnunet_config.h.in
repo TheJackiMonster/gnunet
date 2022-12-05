@@ -34,13 +34,13 @@
 #define GNUNET_VERSION "@gnunet_version@"
 
 /* Major version */
-#define GNUNET_MAJOR_VERSION 0
+#define GNUNET_MAJOR_VERSION @gnunet_major_version@
 
 /* Micro version */
-#define GNUNET_MINOR_VERSION 18
+#define GNUNET_MINOR_VERSION @gnunet_minor_version@
 
 /* Mico version */
-#define GNUNET_MICRO_VERSION 2
+#define GNUNET_MICRO_VERSION @gnunet_micro_version@
 
 /* Set to 1 is this is an experimental build */
 #define GNUNET_EXPERIMENTAL @enable_experimental@
