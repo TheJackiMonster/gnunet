@@ -289,7 +289,6 @@ check_PROGRAMS = \
  test_configuration \
  test_container_bloomfilter \
  test_container_dll \
- test_container_meta_data \
  test_container_multihashmap \
  test_container_multihashmap32 \
  test_container_multipeermap \
