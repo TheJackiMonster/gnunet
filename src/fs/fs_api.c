@@ -26,7 +26,7 @@
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_extractor_compat.h"
+
 #include "gnunet_fs_service.h"
 #include "fs_api.h"
 #include "fs_tree.h"

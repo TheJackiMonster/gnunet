@@ -23,7 +23,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
-#include "gnunet_extractor_compat.h"
+
 #include "gnunet_fs_service.h"
 
 /**

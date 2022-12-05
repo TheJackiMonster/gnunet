@@ -1490,6 +1490,8 @@ AS_IF([test "x$extractor" = "x0"],
    AC_MSG_WARN([libextractor not found, but various file-sharing operations require it])],
   [libextractor_msg="yes"])
 
+AC_SUBST([extractor])
+
 # libzbar
 AS_IF([test "x$zbar" = "x1"],
   [libzbar_msg="yes"],

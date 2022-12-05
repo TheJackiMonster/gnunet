@@ -28,7 +28,7 @@
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_extractor_compat.h"
+
 #include "gnunet_fs_service.h"
 
 #define ABORT(m) { fprintf (stderr, "Error at %s:%d\n", __FILE__, __LINE__); \

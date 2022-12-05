@@ -4,13 +4,13 @@ SUBDIRS = .
 gnunetincludedir = $(includedir)/gnunet
 
 EXTRA_DIST = \
+  platform.h \
   gauger.h \
   block_fs.h \
   block_dns.h \
   block_regex.h
 
 gnunetinclude_HEADERS = \
-  platform.h \
   gnunet_config.h \
   gettext.h \
   compat.h \
@@ -51,7 +51,6 @@ gnunetinclude_HEADERS = \
   gnunet_dnsstub_lib.h \
   gnunet_dns_service.h \
   gnunet_error_codes.h \
-  gnunet_extractor_compat.h \
   gnunet_fragmentation_lib.h \
   gnunet_friends_lib.h \
   gnunet_fs_service.h \

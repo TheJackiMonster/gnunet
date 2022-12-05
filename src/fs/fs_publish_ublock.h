@@ -30,7 +30,7 @@
 
 #include "gnunet_util_lib.h"
 #include "gnunet_datastore_service.h"
-#include "gnunet_extractor_compat.h"
+
 #include "gnunet_fs_service.h"
 #include "gnunet_identity_service.h"
 

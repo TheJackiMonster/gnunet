@@ -28,7 +28,7 @@
 #include "gnunet_constants.h"
 #include "gnunet_signatures.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_extractor_compat.h"
+
 #include "gnunet_fs_service.h"
 #include "fs_api.h"
 #include "fs_publish_ublock.h"
