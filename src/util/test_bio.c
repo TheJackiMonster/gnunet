@@ -40,8 +40,6 @@ test_normal_rw (void)
   void *buffer;
   size_t buffer_size = 0;
   char *filename = GNUNET_DISK_mktemp ("gnunet-bio");
-  struct GNUNET_CONTAINER_MetaData *mdW;
-  struct GNUNET_CONTAINER_MetaData *mdR = NULL;
   char *rString = NULL;
   int64_t wNum = TESTNUMBER64;
   int64_t rNum = 0;
@@ -189,41 +187,6 @@ test_bigstring_rw (void)
 
 
 static int
-test_bigmeta_rw (void)
-{
-  static char meta[1024 * 1024 * 10];
-  struct GNUNET_BIO_WriteHandle *wh;
-  struct GNUNET_BIO_ReadHandle *rh;
-  char *filename = GNUNET_DISK_mktemp ("gnunet_bio");
-  struct GNUNET_CONTAINER_MetaData *mdR = NULL;
-
-  memset (meta, 'b', sizeof (meta));
-  meta[sizeof (meta) - 1] = '\0';
-
-  wh = GNUNET_BIO_write_open_file (filename);
-  GNUNET_assert (NULL != wh);
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_write_int32 (wh,
-                                                      "test-bigmeta-rw-int32",
-                                                      sizeof (meta)));
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_write (wh,
-                                                "test-bigmeta-rw-bytes",
-                                                meta,
-                                                sizeof (meta)));
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_write_close (wh, NULL));
-
-  rh = GNUNET_BIO_read_open_file (filename);
-  GNUNET_assert (NULL != rh);
-  GNUNET_assert (GNUNET_SYSERR == GNUNET_BIO_read_close (rh, NULL));
-
-  GNUNET_assert (NULL == mdR);
-
-  GNUNET_assert (GNUNET_OK == GNUNET_DISK_directory_remove (filename));
-  GNUNET_free (filename);
-  return 0;
-}
-
-
-static int
 test_directory_r (void)
 {
 #ifdef LINUX
@@ -252,12 +215,12 @@ test_nullfile_rw (void)
   memset (filename, 'a', sizeof (filename));
   filename[sizeof (filename) - 1] = '\0';
 
-  GNUNET_log_skip (2, GNUNET_NO);
+  GNUNET_log_skip (1, GNUNET_NO);
   wh = GNUNET_BIO_write_open_file (filename);
   GNUNET_log_skip (0, GNUNET_YES);
   GNUNET_assert (NULL == wh);
 
-  GNUNET_log_skip (2, GNUNET_NO);
+  GNUNET_log_skip (1, GNUNET_NO);
   rh = GNUNET_BIO_read_open_file (filename);
   GNUNET_log_skip (0, GNUNET_YES);
   GNUNET_assert (NULL == rh);
@@ -275,8 +238,6 @@ test_fullfile_rw (void)
   struct GNUNET_BIO_ReadHandle *rh;
   char *rString = NULL;
   char rResult[200];
-  struct GNUNET_CONTAINER_MetaData *mdW;
-  struct GNUNET_CONTAINER_MetaData *mdR = NULL;
 
   struct GNUNET_BIO_WriteSpec ws[] = {
     GNUNET_BIO_write_spec_object ("test-fullfile-rw-bytes",
@@ -308,7 +269,6 @@ test_fullfile_rw (void)
   GNUNET_assert (GNUNET_SYSERR == GNUNET_BIO_read_close (rh, NULL));
 
   GNUNET_assert (NULL == rString);
-  GNUNET_assert (NULL == mdR);
 #endif
   return 0;
 }
@@ -346,77 +306,12 @@ test_fakestring_rw (void)
 
 
 static int
-test_fakemeta_rw (void)
-{
-  struct GNUNET_BIO_WriteHandle *wh;
-  struct GNUNET_BIO_ReadHandle *rh;
-  char *filename = GNUNET_DISK_mktemp ("gnunet_bio");
-  struct GNUNET_CONTAINER_MetaData *mdR = NULL;
-
-  wh = GNUNET_BIO_write_open_file (filename);
-  GNUNET_assert (NULL != wh);
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_write_int32 (wh,
-                                                      "test-fakestring-rw-int32",
-                                                      2));
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_write_close (wh, NULL));
-
-  rh = GNUNET_BIO_read_open_file (filename);
-  GNUNET_assert (NULL != rh);
-  GNUNET_assert (GNUNET_SYSERR == GNUNET_BIO_read_close (rh, NULL));
-
-  GNUNET_assert (NULL == mdR);
-
-  GNUNET_assert (GNUNET_OK == GNUNET_DISK_directory_remove (filename));
-  GNUNET_free (filename);
-  return 0;
-}
-
-
-static int
-test_fakebigmeta_rw (void)
-{
-  struct GNUNET_BIO_WriteHandle *wh;
-  struct GNUNET_BIO_ReadHandle *rh;
-  char *filename = GNUNET_DISK_mktemp ("gnunet_bio");
-  struct GNUNET_CONTAINER_MetaData *mdR = NULL;
-  int32_t wNum = 1024 * 1024 * 10;
-
-  wh = GNUNET_BIO_write_open_file (filename);
-  GNUNET_assert (NULL != wh);
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_write_int32 (wh,
-                                                      "test-fakebigmeta-rw-int32",
-                                                      wNum));
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_write_close (wh, NULL));
-
-  rh = GNUNET_BIO_read_open_file (filename);
-  GNUNET_assert (NULL != rh);
-  GNUNET_assert (GNUNET_SYSERR == GNUNET_BIO_read_close (rh, NULL));
-
-  GNUNET_assert (NULL == mdR);
-
-  GNUNET_assert (GNUNET_OK == GNUNET_DISK_directory_remove (filename));
-  GNUNET_free (filename);
-  return 0;
-}
-
-
-static int
 check_string_rw (void)
 {
   GNUNET_assert (0 == test_nullstring_rw ());
   GNUNET_assert (0 == test_emptystring_rw ());
   GNUNET_assert (0 == test_bigstring_rw ());
   GNUNET_assert (0 == test_fakestring_rw ());
-  return 0;
-}
-
-
-static int
-check_metadata_rw (void)
-{
-  GNUNET_assert (0 == test_fakebigmeta_rw ());
-  GNUNET_assert (0 == test_fakemeta_rw ());
-  GNUNET_assert (0 == test_bigmeta_rw ());
   return 0;
 }
 
@@ -437,7 +332,6 @@ main (int argc, char *argv[])
 {
   GNUNET_log_setup ("test-bio", "WARNING", NULL);
   GNUNET_assert (0 == check_file_rw ());
-  GNUNET_assert (0 == check_metadata_rw ());
   GNUNET_assert (0 == check_string_rw ());
   return 0;
 }
