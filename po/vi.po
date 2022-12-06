@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.8.0a\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2022-12-05 17:21+0900\n"
+"POT-Creation-Date: 2022-12-06 16:58+0900\n"
 "PO-Revision-Date: 2008-09-10 22:05+0930\n"
 "Last-Translator: Clytie Siddall <clytie@riverland.net.au>\n"
 "Language-Team: Vietnamese <vi-VN@googlegroups.com>\n"
@@ -3774,21 +3774,26 @@ msgstr "Không thể truy cập đến thông tin về không gian tên.\n"
 msgid "Unindex a file that was previously indexed with gnunet-publish."
 msgstr ""
 
-#: src/fs/meta_data.c:1063 src/fs/meta_data.c:1116 src/fs/meta_data.c:1131
+#: src/fs/meta_data.c:1064 src/fs/meta_data.c:1120 src/fs/meta_data.c:1139
 msgid "metadata length"
 msgstr ""
 
-#: src/fs/meta_data.c:1074
+#: src/fs/meta_data.c:1076
 #, c-format
-msgid "Serialized metadata `%s' larger than allowed (%u > %u)"
+msgid "Serialized metadata `%s' larger than allowed (%u > %u)\n"
 msgstr ""
 
-#: src/fs/meta_data.c:1091
+#: src/fs/meta_data.c:1095
 #, fuzzy, c-format
 msgid "Failed to deserialize metadata `%s'"
 msgstr "Lỗi lấy thông kê về truyền tải.\n"
 
-#: src/fs/meta_data.c:1126
+#: src/fs/meta_data.c:1127
+#, c-format
+msgid "Serialized %ld bytes of metadata"
+msgstr ""
+
+#: src/fs/meta_data.c:1134
 #, fuzzy, c-format
 msgid "Failed to serialize metadata `%s'"
 msgstr "Lỗi lấy thông kê về truyền tải.\n"
@@ -8201,62 +8206,62 @@ msgstr "Không thể truy cập đến tập tin gnunet-directory « %s »\n"
 msgid "Dropped backchanel message: handler not provided by communicator\n"
 msgstr ""
 
-#: src/util/bio.c:223 src/util/bio.c:231
+#: src/util/bio.c:230 src/util/bio.c:238
 #, fuzzy, c-format
 msgid "Error reading `%s' from file: %s"
 msgstr "Gặp lỗi khi tạo người dùng"
 
-#: src/util/bio.c:233
+#: src/util/bio.c:240
 msgid "End of file"
 msgstr ""
 
-#: src/util/bio.c:262
+#: src/util/bio.c:269
 #, fuzzy, c-format
 msgid "Error while reading `%s' from buffer: %s"
 msgstr "Gặp lỗi khi tải xuống: %s\n"
 
-#: src/util/bio.c:264
+#: src/util/bio.c:271
 msgid "Not enough data left"
 msgstr ""
 
-#: src/util/bio.c:304
+#: src/util/bio.c:311
 #, fuzzy, c-format
 msgid "Invalid handle type while reading `%s'"
 msgstr "Đối số không hợp lệ cho « %s ».\n"
 
-#: src/util/bio.c:331 src/util/bio.c:781
+#: src/util/bio.c:338 src/util/bio.c:788
 msgid "string length"
 msgstr ""
 
-#: src/util/bio.c:337
+#: src/util/bio.c:344
 #, fuzzy, c-format
 msgid "%s (while reading `%s')"
 msgstr "Gặp lỗi khi tải xuống: %s\n"
 
-#: src/util/bio.c:342
+#: src/util/bio.c:349
 #, c-format
 msgid "Error reading length of string `%s'"
 msgstr ""
 
-#: src/util/bio.c:355
+#: src/util/bio.c:362
 #, c-format
 msgid "String `%s' longer than allowed (%u > %lu)"
 msgstr ""
 
-#: src/util/bio.c:610
+#: src/util/bio.c:617
 msgid "Unable to flush buffer to file"
 msgstr ""
 
-#: src/util/bio.c:672 src/util/bio.c:693
+#: src/util/bio.c:679 src/util/bio.c:700
 #, fuzzy, c-format
 msgid "Error while writing `%s' to file: %s"
 msgstr "Gặp lỗi khi tải xuống: %s\n"
 
-#: src/util/bio.c:674
+#: src/util/bio.c:681
 msgid "No associated file"
 msgstr ""
 
-#: src/util/bio.c:758
+#: src/util/bio.c:765
 #, fuzzy, c-format
 msgid "Invalid handle type while writing `%s'"
 msgstr "Địa chỉ IP định dạng sai: %s\n"

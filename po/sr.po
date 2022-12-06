@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2022-12-05 17:21+0900\n"
+"POT-Creation-Date: 2022-12-06 16:58+0900\n"
 "PO-Revision-Date: 2020-10-23 18:39+0200\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: Serbian <(nothing)>\n"
@@ -3732,21 +3732,26 @@ msgstr ""
 "Поништава индексирање датотеке која је претходно била индексирана са „gnunet-"
 "publish“."
 
-#: src/fs/meta_data.c:1063 src/fs/meta_data.c:1116 src/fs/meta_data.c:1131
+#: src/fs/meta_data.c:1064 src/fs/meta_data.c:1120 src/fs/meta_data.c:1139
 msgid "metadata length"
 msgstr ""
 
-#: src/fs/meta_data.c:1074
+#: src/fs/meta_data.c:1076
 #, fuzzy, c-format
-msgid "Serialized metadata `%s' larger than allowed (%u > %u)"
+msgid "Serialized metadata `%s' larger than allowed (%u > %u)\n"
 msgstr "Серијализовани метаподаци „%s“ су већи од дозвољеног (%u>%u)"
 
-#: src/fs/meta_data.c:1091
+#: src/fs/meta_data.c:1095
 #, fuzzy, c-format
 msgid "Failed to deserialize metadata `%s'"
 msgstr "Нисам успео да серијализујем НС запис са вредношћу „%s“\n"
 
-#: src/fs/meta_data.c:1126
+#: src/fs/meta_data.c:1127
+#, fuzzy, c-format
+msgid "Serialized %ld bytes of metadata"
+msgstr "\t<изворна датотека угнеждена у %u бајта метаподатака>\n"
+
+#: src/fs/meta_data.c:1134
 #, fuzzy, c-format
 msgid "Failed to serialize metadata `%s'"
 msgstr "Нисам успео да серијализујем НС запис са вредношћу „%s“\n"
@@ -8160,62 +8165,62 @@ msgstr "Не могу да приступим датотеци подешава�
 msgid "Dropped backchanel message: handler not provided by communicator\n"
 msgstr ""
 
-#: src/util/bio.c:223 src/util/bio.c:231
+#: src/util/bio.c:230 src/util/bio.c:238
 #, fuzzy, c-format
 msgid "Error reading `%s' from file: %s"
 msgstr "Грешка при читању „%s“: %s"
 
-#: src/util/bio.c:233
+#: src/util/bio.c:240
 msgid "End of file"
 msgstr "Крај датотеке"
 
-#: src/util/bio.c:262
+#: src/util/bio.c:269
 #, fuzzy, c-format
 msgid "Error while reading `%s' from buffer: %s"
 msgstr "Грешка при читању „%s“: %s"
 
-#: src/util/bio.c:264
+#: src/util/bio.c:271
 msgid "Not enough data left"
 msgstr ""
 
-#: src/util/bio.c:304
+#: src/util/bio.c:311
 #, fuzzy, c-format
 msgid "Invalid handle type while reading `%s'"
 msgstr "Неисправан аргумент линије наредби „%s“\n"
 
-#: src/util/bio.c:331 src/util/bio.c:781
+#: src/util/bio.c:338 src/util/bio.c:788
 msgid "string length"
 msgstr ""
 
-#: src/util/bio.c:337
+#: src/util/bio.c:344
 #, c-format
 msgid "%s (while reading `%s')"
 msgstr ""
 
-#: src/util/bio.c:342
+#: src/util/bio.c:349
 #, c-format
 msgid "Error reading length of string `%s'"
 msgstr "Грешка читања дужине ниске „%s“"
 
-#: src/util/bio.c:355
+#: src/util/bio.c:362
 #, fuzzy, c-format
 msgid "String `%s' longer than allowed (%u > %lu)"
 msgstr "Ниска „%s“ је дужа од дозвољеног (%u > %u)"
 
-#: src/util/bio.c:610
+#: src/util/bio.c:617
 msgid "Unable to flush buffer to file"
 msgstr ""
 
-#: src/util/bio.c:672 src/util/bio.c:693
+#: src/util/bio.c:679 src/util/bio.c:700
 #, fuzzy, c-format
 msgid "Error while writing `%s' to file: %s"
 msgstr "Грешка писања „HELLO“-а у датотеку „%s“: %s\n"
 
-#: src/util/bio.c:674
+#: src/util/bio.c:681
 msgid "No associated file"
 msgstr ""
 
-#: src/util/bio.c:758
+#: src/util/bio.c:765
 #, fuzzy, c-format
 msgid "Invalid handle type while writing `%s'"
 msgstr "Неисправан формат времена „%s“\n"

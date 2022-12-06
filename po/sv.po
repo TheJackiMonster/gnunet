@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GNUnet 0.7.0b\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2022-12-05 17:21+0900\n"
+"POT-Creation-Date: 2022-12-06 16:58+0900\n"
 "PO-Revision-Date: 2006-01-21 17:16+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
@@ -3730,21 +3730,26 @@ msgstr "Kunde inte komma åt namnrymdsinformation.\n"
 msgid "Unindex a file that was previously indexed with gnunet-publish."
 msgstr ""
 
-#: src/fs/meta_data.c:1063 src/fs/meta_data.c:1116 src/fs/meta_data.c:1131
+#: src/fs/meta_data.c:1064 src/fs/meta_data.c:1120 src/fs/meta_data.c:1139
 msgid "metadata length"
 msgstr ""
 
-#: src/fs/meta_data.c:1074
+#: src/fs/meta_data.c:1076
 #, c-format
-msgid "Serialized metadata `%s' larger than allowed (%u > %u)"
+msgid "Serialized metadata `%s' larger than allowed (%u > %u)\n"
 msgstr ""
 
-#: src/fs/meta_data.c:1091
+#: src/fs/meta_data.c:1095
 #, fuzzy, c-format
 msgid "Failed to deserialize metadata `%s'"
 msgstr "Misslyckades att leverera \"%s\" meddelande.\n"
 
-#: src/fs/meta_data.c:1126
+#: src/fs/meta_data.c:1127
+#, c-format
+msgid "Serialized %ld bytes of metadata"
+msgstr ""
+
+#: src/fs/meta_data.c:1134
 #, fuzzy, c-format
 msgid "Failed to serialize metadata `%s'"
 msgstr "Misslyckades att leverera \"%s\" meddelande.\n"
@@ -8145,63 +8150,63 @@ msgstr "Kunde inte tolka konfigurationsfil \"%s\".\n"
 msgid "Dropped backchanel message: handler not provided by communicator\n"
 msgstr ""
 
-#: src/util/bio.c:223 src/util/bio.c:231
+#: src/util/bio.c:230 src/util/bio.c:238
 #, fuzzy, c-format
 msgid "Error reading `%s' from file: %s"
 msgstr "Fel vid skapandet av användare"
 
-#: src/util/bio.c:233
+#: src/util/bio.c:240
 #, fuzzy
 msgid "End of file"
 msgstr "Läs in en konfigurationsfil"
 
-#: src/util/bio.c:262
+#: src/util/bio.c:269
 #, fuzzy, c-format
 msgid "Error while reading `%s' from buffer: %s"
 msgstr "Fel vid nedladdning: %s\n"
 
-#: src/util/bio.c:264
+#: src/util/bio.c:271
 msgid "Not enough data left"
 msgstr ""
 
-#: src/util/bio.c:304
+#: src/util/bio.c:311
 #, fuzzy, c-format
 msgid "Invalid handle type while reading `%s'"
 msgstr "Ogiltiga kommandoradsargument:\n"
 
-#: src/util/bio.c:331 src/util/bio.c:781
+#: src/util/bio.c:338 src/util/bio.c:788
 msgid "string length"
 msgstr ""
 
-#: src/util/bio.c:337
+#: src/util/bio.c:344
 #, fuzzy, c-format
 msgid "%s (while reading `%s')"
 msgstr "Fel vid nedladdning: %s\n"
 
-#: src/util/bio.c:342
+#: src/util/bio.c:349
 #, c-format
 msgid "Error reading length of string `%s'"
 msgstr ""
 
-#: src/util/bio.c:355
+#: src/util/bio.c:362
 #, c-format
 msgid "String `%s' longer than allowed (%u > %lu)"
 msgstr ""
 
-#: src/util/bio.c:610
+#: src/util/bio.c:617
 msgid "Unable to flush buffer to file"
 msgstr ""
 
-#: src/util/bio.c:672 src/util/bio.c:693
+#: src/util/bio.c:679 src/util/bio.c:700
 #, fuzzy, c-format
 msgid "Error while writing `%s' to file: %s"
 msgstr "Fel vid nedladdning: %s\n"
 
-#: src/util/bio.c:674
+#: src/util/bio.c:681
 msgid "No associated file"
 msgstr ""
 
-#: src/util/bio.c:758
+#: src/util/bio.c:765
 #, fuzzy, c-format
 msgid "Invalid handle type while writing `%s'"
 msgstr "Ogiltigt format för IP: \"%s\"\n"
