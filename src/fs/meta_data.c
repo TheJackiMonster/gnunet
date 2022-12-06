@@ -1057,6 +1057,7 @@ GNUNET_FS_read_meta_data (struct GNUNET_BIO_ReadHandle *h,
 {
   uint32_t size;
   char *buf;
+  char *emsg;
   struct GNUNET_FS_MetaData *meta;
 
   if (GNUNET_OK != GNUNET_BIO_read_int32 (h,
@@ -1070,11 +1071,14 @@ GNUNET_FS_read_meta_data (struct GNUNET_BIO_ReadHandle *h,
   }
   if (MAX_META_DATA < size)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                _ ("Serialized metadata `%s' larger than allowed (%u > %u)"),
-                what,
-                size,
-                MAX_META_DATA);
+    GNUNET_asprintf (&emsg,
+                     _ (
+                       "Serialized metadata `%s' larger than allowed (%u > %u)\n"),
+                     what,
+                     size,
+                     MAX_META_DATA);
+    GNUNET_BIO_read_set_error (h, emsg);
+    GNUNET_free (emsg);
     return GNUNET_SYSERR;
   }
   buf = GNUNET_malloc (size);
@@ -1119,6 +1123,10 @@ GNUNET_FS_write_meta_data (struct GNUNET_BIO_WriteHandle *h,
                                         &buf,
                                         MAX_META_DATA,
                                         GNUNET_FS_META_DATA_SERIALIZE_PART);
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+              _ ("Serialized %ld bytes of metadata"),
+              size);
+
   if (-1 == size)
   {
     GNUNET_free (buf);

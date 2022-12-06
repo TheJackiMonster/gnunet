@@ -352,19 +352,132 @@ check ()
 }
 
 
+static int
+test_bigmeta_rw (void)
+{
+  static char meta[1024 * 1024 * 10];
+  struct GNUNET_BIO_WriteHandle *wh;
+  struct GNUNET_BIO_ReadHandle *rh;
+  char *filename = GNUNET_DISK_mktemp ("gnunet_bio");
+  struct GNUNET_FS_MetaData *mdR = NULL;
+
+  memset (meta, 'b', sizeof (meta));
+  meta[sizeof (meta) - 1] = '\0';
+
+  wh = GNUNET_BIO_write_open_file (filename);
+  GNUNET_assert (NULL != wh);
+  if (GNUNET_OK != GNUNET_BIO_write_int32 (wh,
+                                           "test-bigmeta-rw-int32",
+                                           sizeof (meta)))
+  {
+    GNUNET_BIO_write_close (wh, NULL);
+    return 1;
+  }
+  if (GNUNET_OK != GNUNET_BIO_write (wh,
+                                     "test-bigmeta-rw-bytes",
+                                     meta,
+                                     sizeof (meta)))
+  {
+    GNUNET_BIO_write_close (wh, NULL);
+    return 1;
+  }
+  GNUNET_assert (GNUNET_OK == GNUNET_BIO_write_close (wh, NULL));
+
+  rh = GNUNET_BIO_read_open_file (filename);
+  GNUNET_assert (NULL != rh);
+  GNUNET_assert (GNUNET_SYSERR ==
+                 GNUNET_FS_read_meta_data (rh,
+                                           "test-bigmeta-rw-metadata",
+                                           &mdR));
+  GNUNET_assert (GNUNET_SYSERR == GNUNET_BIO_read_close (rh, NULL));
+
+  GNUNET_assert (NULL == mdR);
+
+  GNUNET_assert (GNUNET_OK == GNUNET_DISK_directory_remove (filename));
+  GNUNET_free (filename);
+  return 0;
+}
+
+static int
+test_fakemeta_rw (void)
+{
+  struct GNUNET_BIO_WriteHandle *wh;
+  struct GNUNET_BIO_ReadHandle *rh;
+  char *filename = GNUNET_DISK_mktemp ("gnunet_bio");
+  struct GNUNET_FS_MetaData *mdR = NULL;
+
+  wh = GNUNET_BIO_write_open_file (filename);
+  GNUNET_assert (NULL != wh);
+  if (GNUNET_OK != GNUNET_BIO_write_int32 (wh,
+                                           "test-fakestring-rw-int32",
+                                           2))
+  {
+    GNUNET_BIO_write_close (wh, NULL);
+    return 1;
+  }
+  GNUNET_assert (GNUNET_OK == GNUNET_BIO_write_close (wh, NULL));
+
+  rh = GNUNET_BIO_read_open_file (filename);
+  GNUNET_assert (NULL != rh);
+  GNUNET_assert (GNUNET_SYSERR ==
+                 GNUNET_FS_read_meta_data (rh,
+                                           "test-fakestring-rw-metadata",
+                                           &mdR));
+  GNUNET_assert (GNUNET_SYSERR == GNUNET_BIO_read_close (rh, NULL));
+
+  GNUNET_assert (NULL == mdR);
+
+  GNUNET_assert (GNUNET_OK == GNUNET_DISK_directory_remove (filename));
+  GNUNET_free (filename);
+  return 0;
+}
+
+static int
+test_fakebigmeta_rw (void)
+{
+  struct GNUNET_BIO_WriteHandle *wh;
+  struct GNUNET_BIO_ReadHandle *rh;
+  char *filename = GNUNET_DISK_mktemp ("gnunet_bio");
+  struct GNUNET_FS_MetaData *mdR = NULL;
+  int32_t wNum = 1024 * 1024 * 10;
+
+  wh = GNUNET_BIO_write_open_file (filename);
+  GNUNET_assert (NULL != wh);
+  GNUNET_assert (GNUNET_OK == GNUNET_BIO_write_int32 (wh,
+                                                      "test-fakebigmeta-rw-int32",
+                                                      wNum));
+  GNUNET_assert (GNUNET_OK == GNUNET_BIO_write_close (wh, NULL));
+
+  rh = GNUNET_BIO_read_open_file (filename);
+  GNUNET_assert (NULL != rh);
+  GNUNET_assert (GNUNET_SYSERR ==
+                 GNUNET_FS_read_meta_data (rh,
+                                           "test-fakebigmeta-rw-metadata",
+                                           &mdR));
+  GNUNET_assert (GNUNET_SYSERR == GNUNET_BIO_read_close (rh, NULL));
+
+  GNUNET_assert (NULL == mdR);
+
+  GNUNET_assert (GNUNET_OK == GNUNET_DISK_directory_remove (filename));
+  GNUNET_free (filename);
+  return 0;
+}
+
 int
 main (int argc, char *argv[])
 {
   int failureCount = 0;
   int i;
 
-  GNUNET_log_setup ("test-container-meta-data", "WARNING", NULL);
+  GNUNET_log_setup ("test-fs-meta-data", "WARNING", NULL);
   for (i = 0; i < 255; i++)
     failureCount += testMeta (i);
   for (i = 1; i < 255; i++)
     failureCount += testMetaMore (i);
   failureCount += testMetaLink ();
-
+  failureCount += test_fakebigmeta_rw ();
+  failureCount += test_fakemeta_rw ();
+  failureCount +=  test_bigmeta_rw ();
   int ret = check ();
 
   if (ret == 1)

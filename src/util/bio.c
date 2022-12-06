@@ -182,6 +182,13 @@ GNUNET_BIO_read_close (struct GNUNET_BIO_ReadHandle *h, char **emsg)
   return err;
 }
 
+void
+GNUNET_BIO_read_set_error (struct GNUNET_BIO_ReadHandle *h, const char* emsg)
+{
+  GNUNET_assert (NULL == h->emsg);
+  h->emsg = GNUNET_strdup (emsg);
+}
+
 
 /**
  * Function used internally to read the contents of a file into a buffer.

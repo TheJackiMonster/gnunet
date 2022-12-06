@@ -91,6 +91,15 @@ GNUNET_BIO_read_open_buffer (void *buffer, size_t size);
 int
 GNUNET_BIO_read_close (struct GNUNET_BIO_ReadHandle *h, char **emsg);
 
+/**
+ * Set read error to handle
+ *
+ * @param h the handle
+ * @param emsg the message
+ */
+void
+GNUNET_BIO_read_set_error (struct GNUNET_BIO_ReadHandle *h, const char* emsg);
+
 
 /**
  * Read some contents into a buffer.
