@@ -27,9 +27,8 @@
 #define GNUNET_MESSENGER_API_MESSAGE_H
 
 #include "platform.h"
-#include "gnunet_crypto_lib.h"
+#include "gnunet_util_lib.h"
 #include "gnunet_identity_service.h"
-#include "gnunet_mq_lib.h"
 #include "gnunet_signatures.h"
 
 #include "gnunet_messenger_service.h"

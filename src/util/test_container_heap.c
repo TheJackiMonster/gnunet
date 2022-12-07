@@ -24,6 +24,7 @@
  * @brief Test of heap operations
  */
 
+
 #include "platform.h"
 #include "gnunet_util_lib.h"
 

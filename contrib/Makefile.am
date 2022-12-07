@@ -225,7 +225,6 @@ EXTRA_DIST = \
   docker/docker-entrypoint.sh \
   docker/Dockerfile \
   docker/README.md \
-  docker/gnunet.conf \
   benchmark/collect.awk \
   get_version.sh \
   gnunet_infrastructure/handbook_pull.sh \

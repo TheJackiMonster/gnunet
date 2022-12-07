@@ -24,6 +24,7 @@
  */
 #include "platform.h"
 #include "gnunet_constants.h"
+
 #include "gnunet_fs_service.h"
 #include "fs_api.h"
 #include "fs_tree.h"
@@ -280,7 +281,7 @@ static void
 trigger_recursive_download (void *cls,
                             const char *filename,
                             const struct GNUNET_FS_Uri *uri,
-                            const struct GNUNET_CONTAINER_MetaData *meta,
+                            const struct GNUNET_FS_MetaData *meta,
                             size_t length,
                             const void *data);
 
@@ -850,7 +851,7 @@ static void
 trigger_recursive_download (void *cls,
                             const char *filename,
                             const struct GNUNET_FS_Uri *uri,
-                            const struct GNUNET_CONTAINER_MetaData *meta,
+                            const struct GNUNET_FS_MetaData *meta,
                             size_t length,
                             const void *data)
 {
@@ -968,7 +969,7 @@ trigger_recursive_download (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Triggering recursive download of size %llu with %u bytes MD\n",
               (unsigned long long) GNUNET_FS_uri_chk_get_file_size (uri),
-              (unsigned int) GNUNET_CONTAINER_meta_data_get_serialized_size (
+              (unsigned int) GNUNET_FS_meta_data_get_serialized_size (
                 meta));
   GNUNET_FS_download_start (dc->h,
                             uri,
@@ -1907,8 +1908,8 @@ GNUNET_FS_download_start_task_ (void *cls)
       GNUNET_ERROR_TYPE_DEBUG,
       "Trying to find embedded meta data for download of size %llu with %u bytes MD\n",
       (unsigned long long) GNUNET_FS_uri_chk_get_file_size (dc->uri),
-      (unsigned int) GNUNET_CONTAINER_meta_data_get_serialized_size (dc->meta));
-    GNUNET_CONTAINER_meta_data_iterate (dc->meta, &match_full_data, dc);
+      (unsigned int) GNUNET_FS_meta_data_get_serialized_size (dc->meta));
+    GNUNET_FS_meta_data_iterate (dc->meta, &match_full_data, dc);
     if (BRS_DOWNLOAD_UP == dc->top_request->state)
     {
       if (NULL != dc->rfh)
@@ -1996,7 +1997,7 @@ GNUNET_FS_download_signal_suspend_ (void *cls)
     dc->active = NULL;
   }
   GNUNET_free (dc->filename);
-  GNUNET_CONTAINER_meta_data_destroy (dc->meta);
+  GNUNET_FS_meta_data_destroy (dc->meta);
   GNUNET_FS_uri_destroy (dc->uri);
   GNUNET_free (dc->temp_filename);
   GNUNET_free (dc->serialization);
@@ -2027,7 +2028,7 @@ GNUNET_FS_download_signal_suspend_ (void *cls)
 struct GNUNET_FS_DownloadContext *
 create_download_context (struct GNUNET_FS_Handle *h,
                          const struct GNUNET_FS_Uri *uri,
-                         const struct GNUNET_CONTAINER_MetaData *meta,
+                         const struct GNUNET_FS_MetaData *meta,
                          const char *filename,
                          const char *tempname,
                          uint64_t offset,
@@ -2053,7 +2054,7 @@ create_download_context (struct GNUNET_FS_Handle *h,
               (unsigned long long) offset);
   dc->h = h;
   dc->uri = GNUNET_FS_uri_dup (uri);
-  dc->meta = GNUNET_CONTAINER_meta_data_duplicate (meta);
+  dc->meta = GNUNET_FS_meta_data_duplicate (meta);
   dc->client_info = cctx;
   dc->start_time = GNUNET_TIME_absolute_get ();
   if (NULL != filename)
@@ -2098,7 +2099,7 @@ create_download_context (struct GNUNET_FS_Handle *h,
 struct GNUNET_FS_DownloadContext *
 GNUNET_FS_download_start (struct GNUNET_FS_Handle *h,
                           const struct GNUNET_FS_Uri *uri,
-                          const struct GNUNET_CONTAINER_MetaData *meta,
+                          const struct GNUNET_FS_MetaData *meta,
                           const char *filename,
                           const char *tempname,
                           uint64_t offset,
@@ -2319,7 +2320,7 @@ GNUNET_FS_download_stop (struct GNUNET_FS_DownloadContext *dc, int do_delete)
     }
     GNUNET_free (dc->filename);
   }
-  GNUNET_CONTAINER_meta_data_destroy (dc->meta);
+  GNUNET_FS_meta_data_destroy (dc->meta);
   GNUNET_FS_uri_destroy (dc->uri);
   if (NULL != dc->temp_filename)
   {

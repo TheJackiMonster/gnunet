@@ -23,12 +23,13 @@
  * @author Martin Schanzenbach (integrate gnunet-uri)
  * @author Christian Grothoff (error handling)
  */
+#include "platform.h"
 #include <stdio.h>
 #include <stdbool.h>
 #include <signal.h>
 #include <zbar.h>
 
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 
 #if HAVE_PNG

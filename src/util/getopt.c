@@ -37,6 +37,7 @@
  * replace main GNU getopt parser with one that
  * actually fits our API.
  */
+
 #include "platform.h"
 #include "gnunet_util_lib.h"
 

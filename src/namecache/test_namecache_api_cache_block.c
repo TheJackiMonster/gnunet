@@ -24,7 +24,6 @@
 #include "platform.h"
 #include "gnunet_namecache_service.h"
 #include "gnunet_testing_lib.h"
-#include "gnunet_dnsparser_lib.h"
 
 #define TEST_RECORD_TYPE GNUNET_DNSPARSER_TYPE_TXT
 
@@ -227,8 +226,8 @@ run (void *cls,
 int
 main (int argc, char *argv[])
 {
-  GNUNET_DISK_purge_cfg_dir 
-    ("test_namecache_api.conf", 
+  GNUNET_DISK_purge_cfg_dir
+    ("test_namecache_api.conf",
      "GNUNET_TEST_HOME");
   res = 1;
   if (0 !=

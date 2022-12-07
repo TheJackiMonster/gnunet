@@ -24,7 +24,9 @@
  * @author Philipp Toelke
  * @author Christian Grothoff
  */
+
 #include "platform.h"
+#include "gnunet_util_lib.h"
 #if HAVE_LIBIDN2
 #if HAVE_IDN2_H
 #include <idn2.h>
@@ -38,8 +40,6 @@
 #include <idn/idna.h>
 #endif
 #endif
-#include "gnunet_util_lib.h"
-
 
 /**
  * Check if a label in UTF-8 format can be coded into valid IDNA.

@@ -36,6 +36,8 @@
 #ifndef GNUNET_FS_LIB_H
 #define GNUNET_FS_LIB_H
 
+
+#include "gnunet_common.h"
 #include "gnunet_util_lib.h"
 
 #ifdef __cplusplus
@@ -69,6 +71,106 @@ extern "C"
  */
 #define GNUNET_FS_VERSION 0x00090300
 
+#if GNUNET_FS_EXTRACTOR_ENABLED
+
+#include <extractor.h>
+
+#else
+
+/* definitions from extractor.h we need for the build */
+
+/**
+ * Enumeration defining various sources of keywords.  See also
+ * http://dublincore.org/documents/1998/09/dces/
+ */
+enum EXTRACTOR_MetaType
+{
+  EXTRACTOR_METATYPE_RESERVED = 0,
+  EXTRACTOR_METATYPE_MIMETYPE = 1,
+  EXTRACTOR_METATYPE_FILENAME = 2,
+  EXTRACTOR_METATYPE_COMMENT = 3,
+  EXTRACTOR_METATYPE_TITLE = 4,
+  EXTRACTOR_METATYPE_BOOK_TITLE = 5,
+  EXTRACTOR_METATYPE_JOURNAL_NAME = 8,
+  EXTRACTOR_METATYPE_AUTHOR_NAME = 13,
+  EXTRACTOR_METATYPE_PUBLICATION_DATE = 24,
+  EXTRACTOR_METATYPE_URL = 29,
+  EXTRACTOR_METATYPE_URI = 30,
+  EXTRACTOR_METATYPE_ISRC = 31,
+  EXTRACTOR_METATYPE_UNKNOWN = 45,
+  EXTRACTOR_METATYPE_DESCRIPTION = 46,
+  EXTRACTOR_METATYPE_KEYWORDS = 49,
+  EXTRACTOR_METATYPE_SUBJECT = 52,
+  EXTRACTOR_METATYPE_PACKAGE_NAME = 69,
+  EXTRACTOR_METATYPE_THUMBNAIL = 114,
+  EXTRACTOR_METATYPE_ALBUM = 129,
+  EXTRACTOR_METATYPE_ARTIST = 130,
+  EXTRACTOR_METATYPE_ORIGINAL_TITLE = 162,
+  EXTRACTOR_METATYPE_GNUNET_FULL_DATA = 174,
+  EXTRACTOR_METATYPE_GNUNET_ORIGINAL_FILENAME = 180,
+};
+
+/**
+ * Format in which the extracted meta data is presented.
+ */
+enum EXTRACTOR_MetaFormat
+{
+  /**
+   * Format is unknown.
+   */
+  EXTRACTOR_METAFORMAT_UNKNOWN = 0,
+
+  /**
+   * 0-terminated, UTF-8 encoded string.  "data_len"
+   * is strlen(data)+1.
+   */
+  EXTRACTOR_METAFORMAT_UTF8 = 1,
+
+  /**
+   * Some kind of binary format, see given Mime type.
+   */
+  EXTRACTOR_METAFORMAT_BINARY = 2,
+
+  /**
+   * 0-terminated string.  The specific encoding is unknown.
+   * "data_len" is strlen (data)+1.
+   */
+  EXTRACTOR_METAFORMAT_C_STRING = 3
+};
+
+
+/**
+ * Type of a function that libextractor calls for each
+ * meta data item found.
+ *
+ * @param cls closure (user-defined)
+ * @param plugin_name name of the plugin that produced this value;
+ *        special values can be used (e.g. '&lt;zlib&gt;' for zlib being
+ *        used in the main libextractor library and yielding
+ *        meta data).
+ * @param type libextractor-type describing the meta data
+ * @param format basic format information about @a data
+ * @param data_mime_type mime-type of @a data (not of the original file);
+ *        can be NULL (if mime-type is not known)
+ * @param data actual meta-data found
+ * @param data_len number of bytes in @a data
+ * @return 0 to continue extracting, 1 to abort
+ */
+typedef int (*EXTRACTOR_MetaDataProcessor) (void *cls,
+                                            const char *plugin_name,
+                                            enum EXTRACTOR_MetaType type,
+                                            enum EXTRACTOR_MetaFormat format,
+                                            const char *data_mime_type,
+                                            const char *data,
+                                            size_t data_len);
+
+#endif
+
+#ifndef EXTRACTOR_METATYPE_GNUNET_ORIGINAL_FILENAME
+/* hack for LE < 0.6.3 */
+#define EXTRACTOR_METATYPE_GNUNET_ORIGINAL_FILENAME 180
+#endif
+
 
 /* ******************** URI API *********************** */
 
@@ -90,6 +192,12 @@ extern "C"
  * A Universal Resource Identifier (URI), opaque.
  */
 struct GNUNET_FS_Uri;
+
+/**
+ * @ingroup metadata
+ * Meta data to associate with a file, directory or namespace.
+ */
+struct GNUNET_FS_MetaData;
 
 
 /**
@@ -435,7 +543,7 @@ GNUNET_FS_uri_test_loc (const struct GNUNET_FS_Uri *uri);
  * @return NULL on error, otherwise a KSK URI
  */
 struct GNUNET_FS_Uri *
-GNUNET_FS_uri_ksk_create_from_meta_data (const struct GNUNET_CONTAINER_MetaData
+GNUNET_FS_uri_ksk_create_from_meta_data (const struct GNUNET_FS_MetaData
                                          *md);
 
 
@@ -471,7 +579,7 @@ GNUNET_FS_GETOPT_METADATA (char shortName,
                            const char *name,
                            const char *argumentHelp,
                            const char *description,
-                           struct GNUNET_CONTAINER_MetaData **meta);
+                           struct GNUNET_FS_MetaData **meta);
 
 /**
  * Command-line option parser function that allows the user to specify
@@ -480,7 +588,7 @@ GNUNET_FS_GETOPT_METADATA (char shortName,
  * the metadata must be passed as the "scls" argument.
  *
  * @param ctx command line processor context
- * @param scls must be of type `struct GNUNET_CONTAINER_MetaData **`
+ * @param scls must be of type `struct GNUNET_FS_MetaData **`
  * @param option name of the option (typically 'k')
  * @param value command line argument given
  * @return #GNUNET_OK on success
@@ -1098,7 +1206,7 @@ struct GNUNET_FS_ProgressInfo
           /**
            * Known metadata for the download.
            */
-          const struct GNUNET_CONTAINER_MetaData *meta;
+          const struct GNUNET_FS_MetaData *meta;
         } start;
 
         /**
@@ -1110,7 +1218,7 @@ struct GNUNET_FS_ProgressInfo
           /**
            * Known metadata for the download.
            */
-          const struct GNUNET_CONTAINER_MetaData *meta;
+          const struct GNUNET_FS_MetaData *meta;
 
           /**
            * Error message, NULL if we have not encountered any error yet.
@@ -1195,7 +1303,7 @@ struct GNUNET_FS_ProgressInfo
           /**
            * Metadata for the search result.
            */
-          const struct GNUNET_CONTAINER_MetaData *meta;
+          const struct GNUNET_FS_MetaData *meta;
 
           /**
            * URI for the search result.
@@ -1223,7 +1331,7 @@ struct GNUNET_FS_ProgressInfo
           /**
            * Metadata for the search result.
            */
-          const struct GNUNET_CONTAINER_MetaData *meta;
+          const struct GNUNET_FS_MetaData *meta;
 
           /**
            * URI for the search result.
@@ -1270,7 +1378,7 @@ struct GNUNET_FS_ProgressInfo
           /**
            * Metadata for the search result.
            */
-          const struct GNUNET_CONTAINER_MetaData *meta;
+          const struct GNUNET_FS_MetaData *meta;
 
           /**
            * URI for the search result.
@@ -1322,7 +1430,7 @@ struct GNUNET_FS_ProgressInfo
           /**
            * Metadata for the search result.
            */
-          const struct GNUNET_CONTAINER_MetaData *meta;
+          const struct GNUNET_FS_MetaData *meta;
 
           /**
            * URI for the search result.
@@ -1350,7 +1458,7 @@ struct GNUNET_FS_ProgressInfo
           /**
            * Metadata for the search result.
            */
-          const struct GNUNET_CONTAINER_MetaData *meta;
+          const struct GNUNET_FS_MetaData *meta;
 
           /**
            * URI for the search result.
@@ -1405,7 +1513,7 @@ struct GNUNET_FS_ProgressInfo
           /**
            * Metadata for the namespace.
            */
-          const struct GNUNET_CONTAINER_MetaData *meta;
+          const struct GNUNET_FS_MetaData *meta;
 
           /**
            * Public key of the namespace.
@@ -1705,7 +1813,7 @@ typedef int
 (*GNUNET_FS_FileInformationProcessor) (void *cls,
                                        struct GNUNET_FS_FileInformation *fi,
                                        uint64_t length,
-                                       struct GNUNET_CONTAINER_MetaData *meta,
+                                       struct GNUNET_FS_MetaData *meta,
                                        struct GNUNET_FS_Uri **uri,
                                        struct GNUNET_FS_BlockOptions *bo,
                                        int *do_index,
@@ -1770,7 +1878,7 @@ GNUNET_FS_file_information_create_from_file (struct GNUNET_FS_Handle *h,
                                              const struct
                                              GNUNET_FS_Uri *keywords,
                                              const struct
-                                             GNUNET_CONTAINER_MetaData *meta,
+                                             GNUNET_FS_MetaData *meta,
                                              int do_index,
                                              const struct
                                              GNUNET_FS_BlockOptions *bo);
@@ -1800,7 +1908,7 @@ GNUNET_FS_file_information_create_from_data (struct GNUNET_FS_Handle *h,
                                              const struct
                                              GNUNET_FS_Uri *keywords,
                                              const struct
-                                             GNUNET_CONTAINER_MetaData *meta,
+                                             GNUNET_FS_MetaData *meta,
                                              int do_index,
                                              const struct
                                              GNUNET_FS_BlockOptions *bo);
@@ -1859,7 +1967,7 @@ GNUNET_FS_file_information_create_from_reader (struct GNUNET_FS_Handle *h,
                                                const struct GNUNET_FS_Uri
                                                *keywords,
                                                const struct
-                                               GNUNET_CONTAINER_MetaData *meta,
+                                               GNUNET_FS_MetaData *meta,
                                                int do_index,
                                                const struct
                                                GNUNET_FS_BlockOptions *bo);
@@ -1883,7 +1991,7 @@ GNUNET_FS_file_information_create_empty_directory (struct GNUNET_FS_Handle *h,
                                                    const struct GNUNET_FS_Uri
                                                    *keywords,
                                                    const struct
-                                                   GNUNET_CONTAINER_MetaData
+                                                   GNUNET_FS_MetaData
                                                    *meta,
                                                    const struct
                                                    GNUNET_FS_BlockOptions *bo,
@@ -2042,7 +2150,7 @@ struct GNUNET_FS_PublishKskContext;
 struct GNUNET_FS_PublishKskContext *
 GNUNET_FS_publish_ksk (struct GNUNET_FS_Handle *h,
                        const struct GNUNET_FS_Uri *ksk_uri,
-                       const struct GNUNET_CONTAINER_MetaData *meta,
+                       const struct GNUNET_FS_MetaData *meta,
                        const struct GNUNET_FS_Uri *uri,
                        const struct GNUNET_FS_BlockOptions *bo,
                        enum GNUNET_FS_PublishOptions options,
@@ -2084,7 +2192,7 @@ GNUNET_FS_publish_sks (struct GNUNET_FS_Handle *h,
                        const struct GNUNET_CRYPTO_EcdsaPrivateKey *ns,
                        const char *identifier,
                        const char *update,
-                       const struct GNUNET_CONTAINER_MetaData *meta,
+                       const struct GNUNET_FS_MetaData *meta,
                        const struct GNUNET_FS_Uri *uri,
                        const struct GNUNET_FS_BlockOptions *bo,
                        enum GNUNET_FS_PublishOptions options,
@@ -2180,7 +2288,7 @@ typedef void (*GNUNET_FS_IdentifierProcessor) (void *cls,
                                                const struct
                                                GNUNET_FS_Uri *last_uri,
                                                const struct
-                                               GNUNET_CONTAINER_MetaData *
+                                               GNUNET_FS_MetaData *
                                                last_meta,
                                                const char *next_id);
 
@@ -2290,7 +2398,7 @@ GNUNET_FS_search_stop (struct GNUNET_FS_SearchContext *sc);
 struct GNUNET_FS_SearchResult *
 GNUNET_FS_probe (struct GNUNET_FS_Handle *h,
                  const struct GNUNET_FS_Uri *uri,
-                 const struct GNUNET_CONTAINER_MetaData *meta,
+                 const struct GNUNET_FS_MetaData *meta,
                  void *client_info,
                  uint32_t anonymity);
 
@@ -2378,7 +2486,7 @@ enum GNUNET_FS_DownloadOptions
 struct GNUNET_FS_DownloadContext *
 GNUNET_FS_download_start (struct GNUNET_FS_Handle *h,
                           const struct GNUNET_FS_Uri *uri,
-                          const struct GNUNET_CONTAINER_MetaData *meta,
+                          const struct GNUNET_FS_MetaData *meta,
                           const char *filename, const char *tempname,
                           uint64_t offset, uint64_t length, uint32_t anonymity,
                           enum GNUNET_FS_DownloadOptions options, void *cctx,
@@ -2472,7 +2580,7 @@ GNUNET_FS_download_resume (struct GNUNET_FS_DownloadContext *dc);
  *  we have no mime-type information (treat as #GNUNET_NO)
  */
 int
-GNUNET_FS_meta_data_test_for_directory (const struct GNUNET_CONTAINER_MetaData
+GNUNET_FS_meta_data_test_for_directory (const struct GNUNET_FS_MetaData
                                         *md);
 
 
@@ -2483,7 +2591,7 @@ GNUNET_FS_meta_data_test_for_directory (const struct GNUNET_CONTAINER_MetaData
  * @param md metadata to add mimetype to
  */
 void
-GNUNET_FS_meta_data_make_directory (struct GNUNET_CONTAINER_MetaData *md);
+GNUNET_FS_meta_data_make_directory (struct GNUNET_FS_MetaData *md);
 
 
 /**
@@ -2494,7 +2602,7 @@ GNUNET_FS_meta_data_make_directory (struct GNUNET_CONTAINER_MetaData *md);
  */
 char *
 GNUNET_FS_meta_data_suggest_filename (const struct
-                                      GNUNET_CONTAINER_MetaData *md);
+                                      GNUNET_FS_MetaData *md);
 
 
 /**
@@ -2517,7 +2625,7 @@ typedef void (*GNUNET_FS_DirectoryEntryProcessor) (void *cls,
                                                    const struct GNUNET_FS_Uri *
                                                    uri,
                                                    const struct
-                                                   GNUNET_CONTAINER_MetaData *
+                                                   GNUNET_FS_MetaData *
                                                    meta, size_t length,
                                                    const void *data);
 
@@ -2560,7 +2668,7 @@ struct GNUNET_FS_DirectoryBuilder;
  * @param mdir metadata for the directory
  */
 struct GNUNET_FS_DirectoryBuilder *
-GNUNET_FS_directory_builder_create (const struct GNUNET_CONTAINER_MetaData
+GNUNET_FS_directory_builder_create (const struct GNUNET_FS_MetaData
                                     *mdir);
 
 
@@ -2577,7 +2685,7 @@ GNUNET_FS_directory_builder_create (const struct GNUNET_CONTAINER_MetaData
 void
 GNUNET_FS_directory_builder_add (struct GNUNET_FS_DirectoryBuilder *bld,
                                  const struct GNUNET_FS_Uri *uri,
-                                 const struct GNUNET_CONTAINER_MetaData *md,
+                                 const struct GNUNET_FS_MetaData *md,
                                  const void *data);
 
 
@@ -2692,7 +2800,7 @@ struct GNUNET_FS_ShareTreeItem
   /**
    * Metadata for this file or directory
    */
-  struct GNUNET_CONTAINER_MetaData *meta;
+  struct GNUNET_FS_MetaData *meta;
 
   /**
    * Keywords for this file or directory (derived from metadata).
@@ -2780,6 +2888,336 @@ GNUNET_FS_share_tree_trim (struct GNUNET_FS_ShareTreeItem *toplevel);
  */
 void
 GNUNET_FS_share_tree_free (struct GNUNET_FS_ShareTreeItem *toplevel);
+
+/**
+ * Meta data processing
+ * @defgroup metadata  Metadata
+ * GNU libextractor key-value pairs
+ */
+
+
+/* ****************** metadata ******************* */
+
+
+/**
+ * @ingroup metadata
+ * Create a fresh meta data container.
+ *
+ * @return empty meta-data container
+ */
+struct GNUNET_FS_MetaData *
+GNUNET_FS_meta_data_create (void);
+
+
+/**
+ * @ingroup metadata
+ * Duplicate a MetaData token.
+ *
+ * @param md what to duplicate
+ * @return duplicate meta-data container
+ */
+struct GNUNET_FS_MetaData *
+GNUNET_FS_meta_data_duplicate (
+  const struct GNUNET_FS_MetaData *md);
+
+
+/**
+ * @ingroup metadata
+ * Free meta data.
+ *
+ * @param md what to free
+ */
+void
+GNUNET_FS_meta_data_destroy (struct GNUNET_FS_MetaData *md);
+
+
+/**
+ * @ingroup metadata
+ * Test if two MDs are equal. We consider them equal if
+ * the meta types, formats and content match (we do not
+ * include the mime types and plugins names in this
+ * consideration).
+ *
+ * @param md1 first value to check
+ * @param md2 other value to check
+ * @return #GNUNET_YES if they are equal
+ */
+int
+GNUNET_FS_meta_data_test_equal (
+  const struct GNUNET_FS_MetaData *md1,
+  const struct GNUNET_FS_MetaData *md2);
+
+
+/**
+ * @ingroup metadata
+ * Extend metadata.
+ *
+ * @param md metadata to extend
+ * @param plugin_name name of the plugin that produced this value;
+ *        special values can be used (e.g. '&lt;zlib&gt;' for zlib being
+ *        used in the main libextractor library and yielding
+ *        meta data).
+ * @param type libextractor-type describing the meta data
+ * @param format basic format information about data
+ * @param data_mime_type mime-type of data (not of the original file);
+ *        can be NULL (if mime-type is not known)
+ * @param data actual meta-data found
+ * @param data_size number of bytes in data
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR if this entry already exists
+ *         data_mime_type and plugin_name are not considered for "exists" checks
+ */
+int
+GNUNET_FS_meta_data_insert (struct GNUNET_FS_MetaData *md,
+                                   const char *plugin_name,
+                                   enum EXTRACTOR_MetaType type,
+                                   enum EXTRACTOR_MetaFormat format,
+                                   const char *data_mime_type,
+                                   const char *data,
+                                   size_t data_size);
+
+
+/**
+ * @ingroup metadata
+ * Extend metadata.  Merges the meta data from the second argument
+ * into the first, discarding duplicate key-value pairs.
+ *
+ * @param md metadata to extend
+ * @param in metadata to merge
+ */
+void
+GNUNET_FS_meta_data_merge (struct GNUNET_FS_MetaData *md,
+                                  const struct GNUNET_FS_MetaData *in);
+
+
+/**
+ * @ingroup metadata
+ * Remove an item.
+ *
+ * @param md metadata to manipulate
+ * @param type type of the item to remove
+ * @param data specific value to remove, NULL to remove all
+ *        entries of the given type
+ * @param data_size number of bytes in data
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR if the item does not exist in md
+ */
+int
+GNUNET_FS_meta_data_delete (struct GNUNET_FS_MetaData *md,
+                                   enum EXTRACTOR_MetaType type,
+                                   const char *data,
+                                   size_t data_size);
+
+
+/**
+ * @ingroup metadata
+ * Remove all items in the container.
+ *
+ * @param md metadata to manipulate
+ */
+void
+GNUNET_FS_meta_data_clear (struct GNUNET_FS_MetaData *md);
+
+
+/**
+ * @ingroup metadata
+ * Add the current time as the publication date
+ * to the meta-data.
+ *
+ * @param md metadata to modify
+ */
+void
+GNUNET_FS_meta_data_add_publication_date (
+  struct GNUNET_FS_MetaData *md);
+
+
+/**
+ * @ingroup metadata
+ * Iterate over MD entries.
+ *
+ * @param md metadata to inspect
+ * @param iter function to call on each entry, return 0 to continue to iterate
+ *             and 1 to abort iteration in this function (GNU libextractor API!)
+ * @param iter_cls closure for @a iter
+ * @return number of entries
+ */
+int
+GNUNET_FS_meta_data_iterate (const struct GNUNET_FS_MetaData *md,
+                                    EXTRACTOR_MetaDataProcessor iter,
+                                    void *iter_cls);
+
+
+/**
+ * @ingroup metadata
+ * Get the first MD entry of the given type.  Caller
+ * is responsible for freeing the return value.
+ * Also, only meta data items that are strings (0-terminated)
+ * are returned by this function.
+ *
+ * @param md metadata to inspect
+ * @param type type to look for
+ * @return NULL if no entry was found
+ */
+char *
+GNUNET_FS_meta_data_get_by_type (
+  const struct GNUNET_FS_MetaData *md,
+  enum EXTRACTOR_MetaType type);
+
+
+/**
+ * @ingroup metadata
+ * Get the first matching MD entry of the given types. Caller is
+ * responsible for freeing the return value.  Also, only meta data
+ * items that are strings (0-terminated) are returned by this
+ * function.
+ *
+ * @param md metadata to inspect
+ * @param ... -1-terminated list of types
+ * @return NULL if we do not have any such entry,
+ *  otherwise client is responsible for freeing the value!
+ */
+char *
+GNUNET_FS_meta_data_get_first_by_types (
+  const struct GNUNET_FS_MetaData *md,
+  ...);
+
+/**
+ * @ingroup metadata
+ * Get a thumbnail from the meta-data (if present).  Only matches meta
+ * data with mime type "image" and binary format.
+ *
+ * @param md metadata to inspect
+ * @param thumb will be set to the thumbnail data.  Must be
+ *        freed by the caller!
+ * @return number of bytes in thumbnail, 0 if not available
+ */
+size_t
+GNUNET_FS_meta_data_get_thumbnail (
+  const struct GNUNET_FS_MetaData *md,
+  unsigned char **thumb);
+
+
+/**
+ * @ingroup metadata
+ * Options for metadata serialization.
+ */
+enum GNUNET_FS_MetaDataSerializationOptions
+{
+  /**
+   * @ingroup metadata
+   * Serialize all of the data.
+   */
+  GNUNET_FS_META_DATA_SERIALIZE_FULL = 0,
+
+  /**
+   * @ingroup metadata
+   * If not enough space is available, it is acceptable
+   * to only serialize some of the metadata.
+   */
+  GNUNET_FS_META_DATA_SERIALIZE_PART = 1,
+
+  /**
+   * @ingroup metadata
+   * Speed is of the essence, do not allow compression.
+   */
+  GNUNET_FS_META_DATA_SERIALIZE_NO_COMPRESS = 2
+};
+
+
+/**
+ * @ingroup metadata
+ * Serialize meta-data to target.
+ *
+ * @param md metadata to serialize
+ * @param target where to write the serialized metadata;
+ *         *target can be NULL, in which case memory is allocated
+ * @param max maximum number of bytes available
+ * @param opt is it ok to just write SOME of the
+ *        meta-data to match the size constraint,
+ *        possibly discarding some data?
+ * @return number of bytes written on success,
+ *         -1 on error (typically: not enough
+ *         space)
+ */
+ssize_t
+GNUNET_FS_meta_data_serialize (
+  const struct GNUNET_FS_MetaData *md,
+  char **target,
+  size_t max,
+  enum GNUNET_FS_MetaDataSerializationOptions opt);
+
+
+/**
+ * @ingroup metadata
+ * Get the size of the full meta-data in serialized form.
+ *
+ * @param md metadata to inspect
+ * @return number of bytes needed for serialization, -1 on error
+ */
+ssize_t
+GNUNET_FS_meta_data_get_serialized_size (
+  const struct GNUNET_FS_MetaData *md);
+
+
+/**
+ * @ingroup metadata
+ * Deserialize meta-data.  Initializes md.
+ *
+ * @param input serialized meta-data.
+ * @param size number of bytes available
+ * @return MD on success, NULL on error (e.g.
+ *         bad format)
+ */
+struct GNUNET_FS_MetaData *
+GNUNET_FS_meta_data_deserialize (const char *input, size_t size);
+
+/**
+ * Write a metadata container.
+ *
+ * @param h the IO handle to write to
+ * @param what what is being written (for error message creation)
+ * @param m metadata to write
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_FS_write_meta_data (struct GNUNET_BIO_WriteHandle *h,
+                            const char *what,
+                            const struct GNUNET_FS_MetaData *m);
+
+/**
+ * Create the specification to read a metadata container.
+ *
+ * @param what describes what is being read (for error message creation)
+ * @param result the buffer to store a pointer to the (allocated) metadata
+ * @return the read spec
+ */
+struct GNUNET_BIO_ReadSpec
+GNUNET_FS_read_spec_meta_data (const char *what,
+                                struct GNUNET_FS_MetaData **result);
+
+
+
+/**
+ * Create the specification to write a metadata container.
+ *
+ * @param what what is being written (for error message creation)
+ * @param m metadata to write
+ * @return the write spec
+ */
+struct GNUNET_BIO_WriteSpec
+GNUNET_FS_write_spec_meta_data (const char *what,
+                                 const struct GNUNET_FS_MetaData *m);
+
+/**
+ * Read a metadata container.
+ *
+ * @param h handle to an open file
+ * @param what describes what is being read (for error message creation)
+ * @param result the buffer to store a pointer to the (allocated) metadata
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR on failure
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_FS_read_meta_data (struct GNUNET_BIO_ReadHandle *h,
+                           const char *what,
+                           struct GNUNET_FS_MetaData **result);
 
 
 #if 0                           /* keep Emacsens' auto-indent happy */

@@ -22,10 +22,20 @@
 AC_PREREQ([2.69])
 AC_INIT([gnunet],[m4_esyscmd_s(sh contrib/get_version.sh)],[bug-gnunet@gnu.org])
 
+gnunet_version=m4_esyscmd_s(sh contrib/get_version.sh)
+gnunet_major_version=m4_esyscmd_s(sh contrib/get_version.sh --major)
+gnunet_minor_version=m4_esyscmd_s(sh contrib/get_version.sh --minor)
+gnunet_micro_version=m4_esyscmd_s(sh contrib/get_version.sh --micro)
+
+AC_SUBST([gnunet_version])
+AC_SUBST([gnunet_major_version])
+AC_SUBST([gnunet_minor_version])
+AC_SUBST([gnunet_micro_version])
+
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIRS([m4])
 
-AC_CONFIG_HEADERS([gnunet_config.h])
+AC_CONFIG_HEADERS([gnunet_private_config.h])
 
 AC_CANONICAL_TARGET
 AC_CANONICAL_HOST
@@ -593,16 +603,6 @@ gcry_md_close (mac);]])],
      [AC_MSG_RESULT([cross compiling, test skipped])])
    AC_LANG_POP([C])])
 
-AC_MSG_CHECKING([for static assertion support])
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],
-                     [[_Static_assert(sizeof(int) >= 4, "not big enough");]])],
-                  [AC_MSG_RESULT([yes])
-                   AC_DEFINE([HAVE_STATIC_ASSERT], [1],
-                             [Define to 1 if static assert is supported])],
-                  [AC_MSG_RESULT([no])
-                   AC_DEFINE([HAVE_STATIC_ASSERT], [0],
-                             [Define to 1 if static assert is supported])])
-
 dnl Helper function to shorten the amount of repeated code
 dnl It will create a --with-<lib> option for configure.
 dnl
@@ -735,7 +735,7 @@ AC_RUN_IFELSE(
                      curl_gnutls=0])
 LIBS=$OLD_LIBS
 AM_CONDITIONAL([HAVE_GNUTLS_CURL], [test "x$curl_gnutls" = "x1"])
-
+AC_SUBST([curl_gnutls])
 
 # Even if curl is found, we check for this constant in order to determine
 # if we can use this feature.
@@ -1186,6 +1186,8 @@ AM_CONDITIONAL([HAVE_EXPERIMENTAL], [test "x$enable_experimental" = "x1"])
 AS_IF([test "x$enable_experimental" = "x1"],
       AC_DEFINE([GNUNET_EXPERIMENTAL], 1, [Set to 1 is this is an experimental build]))
 
+AC_SUBST([enable_experimental])
+
 # check if malicious code should be compiled (for testing)
 AC_ARG_ENABLE([malicious],
   [AS_HELP_STRING([--enable-malicious],
@@ -1326,6 +1328,7 @@ src/hello/Makefile
 src/identity/Makefile
 src/identity/identity.conf
 src/include/Makefile
+src/include/gnunet_config.h
 src/integration-tests/Makefile
 src/json/Makefile
 src/hostlist/Makefile
@@ -1492,6 +1495,8 @@ AS_IF([test "x$extractor" = "x0"],
   [libextractor_msg="no"
    AC_MSG_WARN([libextractor not found, but various file-sharing operations require it])],
   [libextractor_msg="yes"])
+
+AC_SUBST([extractor])
 
 # libzbar
 AS_IF([test "x$zbar" = "x1"],

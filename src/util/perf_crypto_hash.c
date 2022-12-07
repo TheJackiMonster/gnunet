@@ -23,6 +23,7 @@
  * @file util/perf_crypto_hash.c
  * @brief measure performance of hash function
  */
+
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include <gauger.h>

@@ -26,11 +26,11 @@
  * @author Florian Dold
  * @author Martin Schanzenbach
  */
+
 #include "platform.h"
 #include <gcrypt.h>
 #include <sodium.h>
-#include "gnunet_crypto_lib.h"
-#include "gnunet_strings_lib.h"
+#include "gnunet_util_lib.h"
 
 #define CURVE "Ed25519"
 

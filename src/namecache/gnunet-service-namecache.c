@@ -26,7 +26,6 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_dnsparser_lib.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_namecache_service.h"
 #include "gnunet_namecache_plugin.h"

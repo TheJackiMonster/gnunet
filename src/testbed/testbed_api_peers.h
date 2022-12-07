@@ -29,7 +29,7 @@
 #define NEW_TESTING_API_PEERS_H
 
 #include "gnunet_testbed_service.h"
-#include "gnunet_helper_lib.h"
+#include "gnunet_util_lib.h"
 
 
 /**

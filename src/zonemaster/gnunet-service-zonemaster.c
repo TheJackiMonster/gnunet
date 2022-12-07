@@ -26,7 +26,6 @@
 #include "platform.h"
 #include <pthread.h>
 #include "gnunet_util_lib.h"
-#include "gnunet_dnsparser_lib.h"
 #include "gnunet_dht_service.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_namecache_service.h"
@@ -115,11 +114,6 @@ static pthread_cond_t sign_jobs_cond;
  * For threads to know we are shutting down
  */
 static int in_shutdown = GNUNET_NO;
-
-/**
- * Iterator halted?
- */
-static int iterator_halted = GNUNET_NO;
 
 /**
  * Monitor halted?
@@ -451,7 +445,7 @@ shutdown_task (void *cls)
       GNUNET_DHT_put_cancel (job->ph);
     free_job (job);
   }
-if (NULL != statistics)
+  if (NULL != statistics)
   {
     GNUNET_STATISTICS_destroy (statistics,
                                GNUNET_NO);
@@ -740,6 +734,14 @@ check_zone_namestore_next ()
 
   if (0 != ns_iteration_left)
     return; /* current NAMESTORE iteration not yet done */
+  if (job_queue_length >= JOB_QUEUE_LIMIT)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Job queue length exceeded (%u/%u). Pausing namestore iteration.\n",
+                job_queue_length,
+                JOB_QUEUE_LIMIT);
+    return;
+  }
   update_velocity (put_cnt);
   put_cnt = 0;
   delay = GNUNET_TIME_relative_subtract (target_iteration_velocity_per_record,
@@ -775,17 +777,14 @@ dht_put_continuation (void *cls)
   struct RecordPublicationJob *job = cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "PUT complete\n");
+              "PUT complete; Pending jobs: %u\n", job_queue_length - 1);
   /* When we just fall under the limit, trigger monitor/iterator again
    * if halted. We can only safely trigger one, prefer iterator. */
+  if (NULL == zone_publish_task)
+    check_zone_namestore_next ();
   if (job_queue_length <= JOB_QUEUE_LIMIT)
   {
-    if (GNUNET_YES == iterator_halted)
-    {
-      GNUNET_NAMESTORE_zone_iterator_next (namestore_iter, 1);
-      iterator_halted = GNUNET_NO;
-    }
-    else if (GNUNET_YES == monitor_halted)
+    if (GNUNET_YES == monitor_halted)
     {
       GNUNET_NAMESTORE_zone_monitor_next (zmon, 1);
       monitor_halted = GNUNET_NO;
@@ -1077,14 +1076,6 @@ handle_record (void *cls,
                 rd_count,
                 expire);
   job_queue_length++;
-  if (job_queue_length >= JOB_QUEUE_LIMIT)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Job queue length exceeded (%u). Halting namestore iteration.\n",
-                JOB_QUEUE_LIMIT);
-    iterator_halted = GNUNET_YES;
-    return;
-  }
   check_zone_namestore_next ();
 }
 
@@ -1240,7 +1231,8 @@ handle_monitor_event (void *cls,
   if (job_queue_length >= JOB_QUEUE_LIMIT)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Job queue length exceeded (%u). Halting monitor.\n",
+                "Job queue length exceeded (%u/%u). Halting monitor.\n",
+                job_queue_length,
                 JOB_QUEUE_LIMIT);
     monitor_halted = GNUNET_YES;
     return;

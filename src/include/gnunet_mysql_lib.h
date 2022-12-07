@@ -30,6 +30,7 @@
 #ifndef GNUNET_MYSQL_LIB_H
 #define GNUNET_MYSQL_LIB_H
 
+
 #include "gnunet_util_lib.h"
 #include <mysql/mysql.h>
 
@@ -40,17 +41,6 @@ extern "C"
 }
 #endif
 #endif
-
-#ifndef LIBMARIADB
-#ifdef HAVE_MYSQL8 && !LIBMARIADB
-  typedef bool MYSQL_BOOL;
-#else
-  typedef my_bool MYSQL_BOOL; //MySQL < 8 wants this
-#endif
-#else
-  typedef my_bool MYSQL_BOOL; //MariaDB still uses my_bool
-#endif
-
 
 /**
  * Mysql context.

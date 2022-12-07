@@ -36,6 +36,7 @@
 #ifndef GNUNET_NAT_SERVICE_H
 #define GNUNET_NAT_SERVICE_H
 
+
 #include "gnunet_util_lib.h"
 
 
@@ -384,6 +385,12 @@ GNUNET_NAT_request_reversal (struct GNUNET_NAT_Handle *nh,
  * Stop port redirection and public IP address detection for the given
  * handle.  This frees the handle, after having sent the needed
  * commands to close open ports.
+ *
+ * FIXME: No, the implementation of this API does not do anything beyond
+ * cleaning up the handle.
+ * This is a problem for applications that use #GNUNET_NAT_AddressCallback
+ * and use the app_ctx to store objects, because the callback will never be
+ * called for cleanup on unregister.
  *
  * @param nh the handle to unregister
  */

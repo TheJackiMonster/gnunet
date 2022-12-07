@@ -23,6 +23,7 @@
  *  precise the timers are.  Expect values between 0.2 and 2 ms on
  *  modern machines.
  */
+
 #include "platform.h"
 #include "gnunet_util_lib.h"
 

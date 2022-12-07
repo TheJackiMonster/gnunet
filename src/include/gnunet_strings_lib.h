@@ -18,6 +18,10 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 
+#if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
+#error "Only <gnunet_util_lib.h> can be included directly."
+#endif
+
 /**
  * @addtogroup libgnunetutil
  * Multi-function utilities library for GNUnet programs
@@ -37,6 +41,10 @@
  * @{
  */
 
+#if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
+#error "Only <gnunet_util_lib.h> can be included directly."
+#endif
+
 #ifndef GNUNET_STRINGS_LIB_H
 #define GNUNET_STRINGS_LIB_H
 
@@ -44,6 +52,7 @@
    or unsigned long long, this IS platform dependent;
    but "stdlib.h" should be portable 'enough' to be
    unconditionally available... */
+
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <netinet/in.h>

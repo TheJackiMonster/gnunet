@@ -18,6 +18,7 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 
+#include "platform.h"
 #include "secretsharing.h"
 
 /**

@@ -40,9 +40,9 @@
 
 #define CONNECT_ADDRESS_TEMPLATE "%s-192.168.15.%u"
 
-#define ROUTER_CONNECT_ADDRESS_TEMPLATE "%s-92.68.150.%u"
+#define ROUTER_CONNECT_ADDRESS_TEMPLATE "%s-172.16.150.%u"
 
-#define KNOWN_CONNECT_ADDRESS_TEMPLATE "%s-92.68.151.%u"
+#define KNOWN_CONNECT_ADDRESS_TEMPLATE "%s-172.16.151.%u"
 
 #define PREFIX_TCP "tcp"
 
@@ -128,7 +128,7 @@ struct GNUNET_TESTING_System
    */
   struct GNUNET_DISK_MapHandle *map;
 
-  struct SharedService **shared_services;
+  struct SharedService *shared_services;
 
   unsigned int n_shared_services;
 
@@ -380,7 +380,7 @@ GNUNET_TESTING_system_create_with_portrange (
 {
   struct GNUNET_TESTING_System *system;
   struct GNUNET_TESTING_SharedService tss;
-  struct SharedService *ss;
+  struct SharedService ss;
   unsigned int cnt;
 
   GNUNET_assert (NULL != testdir);
@@ -410,22 +410,22 @@ GNUNET_TESTING_system_create_with_portrange (
   for (cnt = 0; NULL != shared_services[cnt].service; cnt++)
   {
     tss = shared_services[cnt];
-    ss = GNUNET_new (struct SharedService);
-    ss->sname = GNUNET_strdup (tss.service);
-    ss->cfg = GNUNET_CONFIGURATION_create ();
+    memset (&ss, 0, sizeof (ss));
+    ss.sname = GNUNET_strdup (tss.service);
+    ss.cfg = GNUNET_CONFIGURATION_create ();
     GNUNET_CONFIGURATION_iterate_section_values (tss.cfg,
-                                                 ss->sname,
+                                                 ss.sname,
                                                  &cfg_copy_iterator,
-                                                 ss->cfg);
+                                                 ss.cfg);
     GNUNET_CONFIGURATION_iterate_section_values (tss.cfg,
                                                  "TESTING",
                                                  &cfg_copy_iterator,
-                                                 ss->cfg);
+                                                 ss.cfg);
     GNUNET_CONFIGURATION_iterate_section_values (tss.cfg,
                                                  "PATHS",
                                                  &cfg_copy_iterator,
-                                                 ss->cfg);
-    ss->share = tss.share;
+                                                 ss.cfg);
+    ss.share = tss.share;
     GNUNET_array_append (system->shared_services,
                          system->n_shared_services,
                          ss);
@@ -547,7 +547,7 @@ GNUNET_TESTING_system_destroy (struct GNUNET_TESTING_System *system,
     hostkeys_unload (system);
   for (ss_cnt = 0; ss_cnt < system->n_shared_services; ss_cnt++)
   {
-    ss = system->shared_services[ss_cnt];
+    ss = &system->shared_services[ss_cnt];
     for (i_cnt = 0; i_cnt < ss->n_instances; i_cnt++)
     {
       i = ss->instances[i_cnt];
@@ -558,7 +558,6 @@ GNUNET_TESTING_system_destroy (struct GNUNET_TESTING_System *system,
     GNUNET_free (ss->instances);
     GNUNET_CONFIGURATION_destroy (ss->cfg);
     GNUNET_free (ss->sname);
-    GNUNET_free (ss);
   }
   GNUNET_free (system->shared_services);
   if (GNUNET_YES == remove_paths)
@@ -1221,7 +1220,7 @@ GNUNET_TESTING_peer_configure (struct GNUNET_TESTING_System *system,
   /* Remove sections for shared services */
   for (cnt = 0; cnt < system->n_shared_services; cnt++)
   {
-    ss = system->shared_services[cnt];
+    ss = &system->shared_services[cnt];
     GNUNET_CONFIGURATION_remove_section (cfg, ss->sname);
   }
   if (GNUNET_OK !=
@@ -1269,7 +1268,7 @@ GNUNET_TESTING_peer_configure (struct GNUNET_TESTING_System *system,
                                 * system->n_shared_services);
   for (cnt = 0; cnt < system->n_shared_services; cnt++)
   {
-    ss = system->shared_services[cnt];
+    ss = &system->shared_services[cnt];
     ss_instances[cnt] = associate_shared_service (system, ss, cfg);
     if (NULL == ss_instances[cnt])
     {
@@ -1736,8 +1735,12 @@ GNUNET_TESTING_get_testname_from_underscore (const char *argv0)
 }
 
 
+/**
+ * FIXME: I'm just janitoring around here. I have no idea what this function
+ * is supposed todo. Needs documentation.
+ */
 static unsigned int
-get_first_value (char *line)
+get_first_value (const char *line)
 {
   char *copy;
   size_t slen;
@@ -1756,8 +1759,12 @@ get_first_value (char *line)
 }
 
 
+/**
+ * FIXME: I'm just janitoring around here. I have no idea what this function
+ * is supposed todo. Needs documentation.
+ */
 static char *
-get_key (char *line)
+get_key (const char *line)
 {
   char *copy;
   size_t slen;
@@ -1778,8 +1785,12 @@ get_key (char *line)
 }
 
 
+/**
+ * FIXME: I'm just janitoring around here. I have no idea what this function
+ * is supposed todo. Needs documentation.
+ */
 static char *
-get_first_string_value (char *line)
+get_first_string_value (const char *line)
 {
   char *copy;
   size_t slen, slen_token;
@@ -1803,61 +1814,71 @@ get_first_string_value (char *line)
 }
 
 
+/**
+ * FIXME: I'm just janitoring around here. I have no idea what this function
+ * is supposed todo. Needs documentation.
+ */
 static unsigned int
-get_second_value (char *line)
+get_second_value (const char *line)
 {
   char *copy;
-  size_t slen;
   char *token;
   unsigned int ret;
   char *rest = NULL;
 
-  slen = strlen (line) + 1;
-  copy = malloc (slen);
-  memcpy (copy, line, slen);
+  copy = GNUNET_strdup (line);
   token = strtok_r (copy, ":", &rest);
   token = strtok_r (NULL, ":", &rest);
   token = strtok_r (NULL, ":", &rest);
+  /* FIXME: ASSERT??? Are we not parsing "user" input here? */
   GNUNET_assert (1 == sscanf (token, "%u", &ret));
   GNUNET_free (copy);
   return ret;
 }
 
 
+/**
+ * FIXME: I'm just janitoring around here. I have no idea what this function
+ * is supposed todo. Needs documentation.
+ */
 static char *
-get_value (char *key, char *line)
+get_value (const char *key, const char *line)
 {
-  char *copy;
-  size_t slen, slen_token;
+  char copy[strlen (line) + 1];
+  size_t slen;
   char *token;
   char *token2;
   char *temp;
   char *rest = NULL;
-  char *ret;
 
   slen = strlen (line) + 1;
-  copy = malloc (slen);
   memcpy (copy, line, slen);
   temp = strstr (copy, key);
   if (NULL == temp)
     return NULL;
   token = strtok_r (temp, ":", &rest);
+  if (NULL == token)
+    return NULL;
   token = strtok_r (NULL, ":", &rest);
+  if (NULL == token)
+    return NULL;
   token2 = strtok_r (token, "}", &rest);
-  slen_token = strlen (token2);
-  ret = malloc (slen_token + 1);
-  memcpy (ret, token2, slen_token + 1);
-  GNUNET_free (copy);
-  return ret;
+  if (NULL == token2)
+    return NULL;
+  return GNUNET_strdup (token2);
 }
 
 
+/**
+ * FIXME: I'm just janitoring around here. I have no idea what this function
+ * is supposed todo. Needs documentation.
+ */
 static struct GNUNET_TESTING_NodeConnection *
-get_connect_value (char *line, struct GNUNET_TESTING_NetjailNode *node)
+get_connect_value (const char *line,
+                   struct GNUNET_TESTING_NetjailNode *node)
 {
   struct GNUNET_TESTING_NodeConnection *node_connection;
   char *copy;
-  size_t slen;
   char *token;
   char *token2;
   unsigned int node_n;
@@ -1870,9 +1891,7 @@ get_connect_value (char *line, struct GNUNET_TESTING_NetjailNode *node)
   node_connection = GNUNET_new (struct GNUNET_TESTING_NodeConnection);
   node_connection->node = node;
 
-  slen = strlen (line) + 1;
-  copy = malloc (slen);
-  memcpy (copy, line, slen);
+  copy = GNUNET_strdup (line);
   token = strtok_r (copy, ":", &rest);
   if (0 == strcmp ("{K", token))
   {
@@ -1915,7 +1934,10 @@ get_connect_value (char *line, struct GNUNET_TESTING_NetjailNode *node)
   }
   else
   {
+    GNUNET_break (0);
     GNUNET_free (node_connection);
+    GNUNET_free (copy);
+    return NULL;
   }
 
   while (NULL != (token = strtok_r (NULL, ":", &rest)))
@@ -1923,17 +1945,9 @@ get_connect_value (char *line, struct GNUNET_TESTING_NetjailNode *node)
     prefix = GNUNET_new (struct GNUNET_TESTING_AddressPrefix);
     token2 = strtok_r (token, "}", &rest2);
     if (NULL != token2)
-    {
-      slen = strlen (token2) + 1;
-      prefix->address_prefix = malloc (slen);
-      memcpy (prefix->address_prefix, token2, slen);
-    }
+      prefix->address_prefix = GNUNET_strdup (token2);
     else
-    {
-      slen = strlen (token) + 1;
-      prefix->address_prefix = malloc (slen);
-      memcpy (prefix->address_prefix, token, slen);
-    }
+      prefix->address_prefix = GNUNET_strdup (token);
 
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "address_prefix %s\n",
@@ -1952,13 +1966,16 @@ get_connect_value (char *line, struct GNUNET_TESTING_NetjailNode *node)
 }
 
 
+/**
+ * FIXME: I'm just janitoring around here. I have no idea what this function
+ * is supposed todo. Needs documentation.
+ */
 static void
-node_connections (char *line, struct GNUNET_TESTING_NetjailNode *node)
+node_connections (const char *line, struct GNUNET_TESTING_NetjailNode *node)
 {
   char *value, *value2;
   char *temp;
   char *copy;
-  size_t slen;
   char *rest = NULL;
   char *rest2 = NULL;
   struct GNUNET_TESTING_NodeConnection *node_connection;
@@ -1967,9 +1984,7 @@ node_connections (char *line, struct GNUNET_TESTING_NetjailNode *node)
   temp = strstr (line, "connect");
   if (NULL != temp)
   {
-    slen = strlen (temp) + 1;
-    copy = GNUNET_malloc (slen);
-    memcpy (copy, temp, slen);
+    copy = GNUNET_strdup (temp);
     strtok_r (copy, ":", &rest);
     value = strtok_r (rest, "|", &rest2);
 
@@ -1979,6 +1994,8 @@ node_connections (char *line, struct GNUNET_TESTING_NetjailNode *node)
            "node_connections value %s\n",
            value);
       node_connection = get_connect_value (value, node);
+      if (NULL == node_connection)
+        break; /* FIXME: continue? */
       GNUNET_CONTAINER_DLL_insert (node->node_connections_head,
                                    node->node_connections_tail,
                                    node_connection);
@@ -1993,6 +2010,10 @@ node_connections (char *line, struct GNUNET_TESTING_NetjailNode *node)
 }
 
 
+/**
+ * FIXME: I'm just janitoring around here. I have no idea what this function
+ * is supposed todo. Needs documentation.
+ */
 static int
 log_nodes (void *cls, const struct GNUNET_ShortHashCode *id, void *value)
 {
@@ -2041,7 +2062,7 @@ log_namespaces (void *cls, const struct GNUNET_ShortHashCode *id, void *value)
 
 
 static int
-log_topo (struct GNUNET_TESTING_NetjailTopology *topology)
+log_topo (const struct GNUNET_TESTING_NetjailTopology *topology)
 {
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "plugin: %s spaces: %u nodes: %u known: %u\n",
@@ -2057,15 +2078,18 @@ log_topo (struct GNUNET_TESTING_NetjailTopology *topology)
   return GNUNET_YES;
 }
 
-void
+/**
+ * FIXME: I'm just janitoring around here. I have no idea what this function
+ * is supposed todo. Needs documentation.
+ */
+static void
 get_node_info (unsigned int num,
-               struct GNUNET_TESTING_NetjailTopology *topology,
+               const struct GNUNET_TESTING_NetjailTopology *topology,
                struct GNUNET_TESTING_NetjailNode **node_ex,
                struct GNUNET_TESTING_NetjailNamespace **namespace_ex,
                struct GNUNET_TESTING_NodeConnection **node_connections_ex)
 {
-  struct GNUNET_ShortHashCode *hkey;
-  struct GNUNET_ShortHashCode *hkey_node;
+  struct GNUNET_ShortHashCode hkey;
   struct GNUNET_HashCode hc;
   unsigned int namespace_n;
   unsigned int node_m;
@@ -2074,7 +2098,6 @@ get_node_info (unsigned int num,
   struct GNUNET_TESTING_NodeConnection *node_connections = NULL;
 
   log_topo (topology);
-  hkey = GNUNET_new (struct GNUNET_ShortHashCode);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "num: %u \n",
        num);
@@ -2082,11 +2105,11 @@ get_node_info (unsigned int num,
   {
 
     GNUNET_CRYPTO_hash (&num, sizeof(num), &hc);
-    memcpy (hkey,
+    memcpy (&hkey,
             &hc,
-            sizeof (*hkey));
+            sizeof (hkey));
     node = GNUNET_CONTAINER_multishortmap_get (topology->map_globals,
-                                               hkey);
+                                               &hkey);
     if (NULL != node)
     {
       *node_ex = node;
@@ -2104,21 +2127,20 @@ get_node_info (unsigned int num,
          topology->nodes_m,
          namespace_n);
     GNUNET_CRYPTO_hash (&namespace_n, sizeof(namespace_n), &hc);
-    memcpy (hkey,
+    memcpy (&hkey,
             &hc,
-            sizeof (*hkey));
+            sizeof (hkey));
     namespace = GNUNET_CONTAINER_multishortmap_get (topology->map_namespaces,
-                                                    hkey);
+                                                    &hkey);
     if (NULL != namespace)
     {
       node_m = num - topology->nodes_x - topology->nodes_m * (namespace_n - 1);
-      hkey_node = GNUNET_new (struct GNUNET_ShortHashCode);
       GNUNET_CRYPTO_hash (&node_m, sizeof(node_m), &hc);
-      memcpy (hkey,
+      memcpy (&hkey,
               &hc,
-              sizeof (*hkey));
+              sizeof (hkey));
       node = GNUNET_CONTAINER_multishortmap_get (namespace->nodes,
-                                                 hkey);
+                                                 &hkey);
       if (NULL != node)
       {
         LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -2130,10 +2152,8 @@ get_node_info (unsigned int num,
       *node_ex = node;
       *namespace_ex = namespace;
       *node_connections_ex = node_connections;
-      GNUNET_free (hkey_node);
     }
   }
-  GNUNET_free (hkey);
 }
 
 /**
@@ -2167,7 +2187,7 @@ GNUNET_TESTING_get_node (unsigned int num,
  */
 struct GNUNET_TESTING_NodeConnection *
 GNUNET_TESTING_get_connections (unsigned int num,
-                                struct GNUNET_TESTING_NetjailTopology *topology)
+                                const struct GNUNET_TESTING_NetjailTopology *topology)
 {
   struct GNUNET_TESTING_NetjailNode *node;
   struct GNUNET_TESTING_NetjailNamespace *namespace;
@@ -2182,13 +2202,14 @@ GNUNET_TESTING_get_connections (unsigned int num,
 }
 
 
+/**
+ * FIXME: Function named incorrectly IMO
+ */
 struct GNUNET_PeerIdentity *
 GNUNET_TESTING_get_pub_key (unsigned int num,
                             const struct GNUNET_TESTING_System *tl_system)
 {
   struct GNUNET_PeerIdentity *peer = GNUNET_new (struct GNUNET_PeerIdentity);
-  struct GNUNET_CRYPTO_EddsaPublicKey *pub_key = GNUNET_new (struct
-                                                             GNUNET_CRYPTO_EddsaPublicKey);
   struct GNUNET_CRYPTO_EddsaPrivateKey *priv_key;
 
   priv_key = GNUNET_TESTING_hostkey_get (tl_system,
@@ -2196,10 +2217,8 @@ GNUNET_TESTING_get_pub_key (unsigned int num,
                                          peer);
 
   GNUNET_CRYPTO_eddsa_key_get_public (priv_key,
-                                      pub_key);
-  peer->public_key = *pub_key;
+                                      &peer->public_key);
   GNUNET_free (priv_key);
-  GNUNET_free (pub_key);
   return peer;
 }
 
@@ -2299,7 +2318,7 @@ GNUNET_TESTING_calculate_num (
  */
 char *
 GNUNET_TESTING_get_address (struct GNUNET_TESTING_NodeConnection *connection,
-                            char *prefix)
+                            const char *prefix)
 {
   struct GNUNET_TESTING_NetjailNode *node;
   char *addr;
@@ -2374,6 +2393,12 @@ GNUNET_TESTING_get_additional_connects (unsigned int num,
 
   get_node_info (num, topology, &node, &namespace, &node_connections);
 
+  if (NULL == node)
+  {
+    LOG (GNUNET_ERROR_TYPE_WARNING,
+         "No info found for node %d\n", num);
+    return 0;
+  }
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "node additional_connects for node %p\n",
        node);
@@ -2401,7 +2426,7 @@ GNUNET_TESTING_send_local_test_finished_msg ()
 
 
 static void
-parse_ac (struct GNUNET_TESTING_NetjailNode *p_node, char *token)
+parse_ac (struct GNUNET_TESTING_NetjailNode *p_node, const char *token)
 {
   char *ac_value;
   int ret;
@@ -2438,7 +2463,7 @@ parse_ac (struct GNUNET_TESTING_NetjailNode *p_node, char *token)
  * @return The GNUNET_TESTING_NetjailTopology
  */
 struct GNUNET_TESTING_NetjailTopology *
-GNUNET_TESTING_get_topo_from_string (char *data)
+GNUNET_TESTING_get_topo_from_string (const char *input)
 {
   char *token;
   char *key = NULL;
@@ -2446,12 +2471,14 @@ GNUNET_TESTING_get_topo_from_string (char *data)
   char *rest = NULL;
   char *value = NULL;
   char *value2;
+  char *data;
   int ret;
   struct GNUNET_TESTING_NetjailTopology *topo;
   struct GNUNET_TESTING_NetjailRouter *router;
   struct GNUNET_TESTING_NetjailNamespace *namespace;
   struct GNUNET_HashCode hc;
 
+  data = GNUNET_strdup (input);
   token = strtok_r (data, "\n", &rest);
   topo = GNUNET_new (struct GNUNET_TESTING_NetjailTopology);
   topo->map_namespaces =
@@ -2462,7 +2489,7 @@ GNUNET_TESTING_get_topo_from_string (char *data)
   while (NULL != token)
   {
     if (NULL != key)
-      free (key);
+      GNUNET_free (key);
     key = get_key (token);
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "In the loop with token: %s beginning with %s\n",
@@ -2677,10 +2704,8 @@ GNUNET_TESTING_get_topo_from_string (char *data)
           LOG (GNUNET_ERROR_TYPE_DEBUG,
                "plugin: %s\n",
                value);
-          p_node->plugin = GNUNET_malloc (sizeof(*value));
-          memcpy (p_node->plugin, value, sizeof (*value));
+          p_node->plugin = value;
         }
-        GNUNET_free (value);
         p_node->node_n = out;
         p_node->namespace_n = namespace->namespace_n;
       }
@@ -2697,7 +2722,7 @@ GNUNET_TESTING_get_topo_from_string (char *data)
   }
   if (NULL != key)
     GNUNET_free (key);
-
+  GNUNET_free (data);
   return topo;
 }
 

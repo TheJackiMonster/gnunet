@@ -44,10 +44,7 @@
 #include "gnunet_signatures.h"
 #include "dns.h"
 #include "gnunet_dns_service.h"
-#include "gnunet_dnsparser_lib.h"
-#include "gnunet_dnsstub_lib.h"
 #include "gnunet_statistics_service.h"
-#include "gnunet_tun_lib.h"
 
 /**
  * Port number for DNS

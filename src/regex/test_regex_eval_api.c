@@ -22,9 +22,9 @@
  * @brief test for regex.c
  * @author Maximilian Szengel
  */
+#include "platform.h"
 #include <regex.h>
 #include <time.h>
-#include "platform.h"
 #include "regex_internal_lib.h"
 #include "regex_test_lib.h"
 #include "regex_internal.h"

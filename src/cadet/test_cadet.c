@@ -23,8 +23,8 @@
  * @author Christian Grothoff
  * @brief Test for the cadet service using mq API.
  */
-#include <stdio.h>
 #include "platform.h"
+#include <stdio.h>
 #include "cadet.h"
 #include "cadet_test_lib.h"
 #include "gnunet_cadet_service.h"

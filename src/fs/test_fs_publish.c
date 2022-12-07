@@ -169,7 +169,7 @@ run (void *cls,
     "down_bar",
   };
   char *buf;
-  struct GNUNET_CONTAINER_MetaData *meta;
+  struct GNUNET_FS_MetaData *meta;
   struct GNUNET_FS_Uri *kuri;
   struct GNUNET_FS_FileInformation *fi1;
   struct GNUNET_FS_FileInformation *fi2;
@@ -202,7 +202,7 @@ run (void *cls,
                                        | GNUNET_DISK_PERM_USER_WRITE));
   GNUNET_free (buf);
 
-  meta = GNUNET_CONTAINER_meta_data_create ();
+  meta = GNUNET_FS_meta_data_create ();
   kuri = GNUNET_FS_uri_ksk_create_from_args (2, keywords);
   bo.content_priority = 42;
   bo.anonymity_level = 1;
@@ -227,7 +227,7 @@ run (void *cls,
   GNUNET_assert (GNUNET_OK == GNUNET_FS_file_information_add (fidir, fi1));
   GNUNET_assert (GNUNET_OK == GNUNET_FS_file_information_add (fidir, fi2));
   GNUNET_FS_uri_destroy (kuri);
-  GNUNET_CONTAINER_meta_data_destroy (meta);
+  GNUNET_FS_meta_data_destroy (meta);
   GNUNET_assert (NULL != fidir);
   start = GNUNET_TIME_absolute_get ();
   publish =

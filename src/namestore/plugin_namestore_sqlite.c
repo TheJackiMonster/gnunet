@@ -50,13 +50,14 @@
  * a failure of the command 'cmd' on file 'filename'
  * with the message given by strerror(errno).
  */
-#define LOG_SQLITE(db, level, cmd) do { GNUNET_log_from (level, \
-                                                         "namestore-sqlite", _ ( \
-                                                           "`%s' failed at %s:%d with error: %s\n"), \
-                                                         cmd, \
-                                                         __FILE__, __LINE__, \
-                                                         sqlite3_errmsg ( \
-                                                           db->dbh)); \
+#define LOG_SQLITE(db, level, cmd) do { \
+    GNUNET_log_from (level,                                             \
+                     "namestore-sqlite", _ (                            \
+                       "`%s' failed at %s:%d with error: %s\n"), \
+                     cmd,                                               \
+                     __FILE__, __LINE__,                                \
+                     sqlite3_errmsg (                                   \
+                       db->dbh));                         \
 } while (0)
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "namestore-sqlite", __VA_ARGS__)
@@ -75,9 +76,9 @@ struct Plugin
   char *fn;
 
   /**
-   * Statements prepared, we are ready to go if GNUNET_YES
+   * Statements prepared, we are ready to go if true.
    */
-  int ready;
+  bool ready;
 
   /**
    * Native SQLite database handle.
@@ -124,10 +125,10 @@ struct Plugin
  * @param plugin the plugin context (state for this module)
  * @return #GNUNET_OK on success
  */
-static int
+static enum GNUNET_GenericReturnValue
 database_prepare (struct Plugin *plugin)
 {
-  if (GNUNET_YES == plugin->ready)
+  if (plugin->ready)
     return GNUNET_OK;
   struct GNUNET_SQ_ExecuteStatement es[] = {
     GNUNET_SQ_make_try_execute ("PRAGMA temp_store=MEMORY"),
@@ -264,7 +265,7 @@ database_shutdown (struct Plugin *plugin)
  * @param rd array of records with data to store
  * @return #GNUNET_OK on success, else #GNUNET_SYSERR
  */
-static int
+static enum GNUNET_GenericReturnValue
 namestore_sqlite_store_records (void *cls,
                                 const struct
                                 GNUNET_IDENTITY_PrivateKey *zone_key,
@@ -421,7 +422,7 @@ namestore_sqlite_store_records (void *cls,
  * @param iter_cls closure for @a iter
  * @return #GNUNET_OK on success, #GNUNET_NO if there were no results, #GNUNET_SYSERR on error
  */
-static int
+static enum GNUNET_GenericReturnValue
 get_records_and_call_iterator (struct Plugin *plugin,
                                sqlite3_stmt *stmt,
                                const struct
@@ -539,7 +540,7 @@ get_records_and_call_iterator (struct Plugin *plugin,
  * @param iter_cls closure for @a iter
  * @return #GNUNET_OK on success, #GNUNET_NO for no results, else #GNUNET_SYSERR
  */
-static int
+static enum GNUNET_GenericReturnValue
 namestore_sqlite_lookup_records (void *cls,
                                  const struct
                                  GNUNET_IDENTITY_PrivateKey *zone,
@@ -591,7 +592,7 @@ namestore_sqlite_lookup_records (void *cls,
  * @param iter_cls closure for @a iter
  * @return #GNUNET_OK on success, #GNUNET_NO if there were no more results, #GNUNET_SYSERR on error
  */
-static int
+static enum GNUNET_GenericReturnValue
 namestore_sqlite_iterate_records (void *cls,
                                   const struct
                                   GNUNET_IDENTITY_PrivateKey *zone,
@@ -659,7 +660,7 @@ namestore_sqlite_iterate_records (void *cls,
  * @param iter_cls closure for @a iter
  * @return #GNUNET_OK on success, #GNUNET_NO if there were no results, #GNUNET_SYSERR on error
  */
-static int
+static enum GNUNET_GenericReturnValue
 namestore_sqlite_zone_to_name (void *cls,
                                const struct GNUNET_IDENTITY_PrivateKey *zone,
                                const struct
@@ -697,6 +698,7 @@ namestore_sqlite_zone_to_name (void *cls,
                                         iter_cls);
 }
 
+
 /**
  * Begin a transaction for a client.
  * This locks the database. SQLite is unable to discern between different
@@ -726,6 +728,7 @@ namestore_sqlite_transaction_begin (void *cls,
   return (SQLITE_OK != rc) ? GNUNET_SYSERR : GNUNET_YES;
 }
 
+
 /**
  * Commit a transaction for a client.
  * This releases the lock on the database.
@@ -752,6 +755,7 @@ namestore_sqlite_transaction_rollback (void *cls,
   }
   return (SQLITE_OK != rc) ? GNUNET_SYSERR : GNUNET_YES;
 }
+
 
 /**
  * Roll back a transaction for a client.
@@ -780,14 +784,11 @@ namestore_sqlite_transaction_commit (void *cls,
   return (SQLITE_OK != rc) ? GNUNET_SYSERR : GNUNET_YES;
 }
 
+
 static enum GNUNET_GenericReturnValue
-init_database (void *cls, char **emsg, int drop)
+namestore_sqlite_create_tables (void *cls)
 {
   struct Plugin *plugin = cls;
-  struct GNUNET_SQ_ExecuteStatement es_drop[] = {
-    GNUNET_SQ_make_execute ("DROP TABLE IF EXISTS ns098records"),
-    GNUNET_SQ_EXECUTE_STATEMENT_END
-  };
   struct GNUNET_SQ_ExecuteStatement es[] = {
     GNUNET_SQ_make_try_execute ("PRAGMA temp_store=MEMORY"),
     GNUNET_SQ_make_try_execute ("PRAGMA synchronous=NORMAL"),
@@ -797,7 +798,7 @@ init_database (void *cls, char **emsg, int drop)
     GNUNET_SQ_make_try_execute ("PRAGMA locking_mode=NORMAL"),
     GNUNET_SQ_make_try_execute ("PRAGMA journal_mode=WAL"),
     GNUNET_SQ_make_try_execute ("PRAGMA page_size=4092"),
-    GNUNET_SQ_make_execute ("CREATE TABLE ns098records ("
+    GNUNET_SQ_make_execute ("CREATE TABLE IF NOT EXISTS ns098records ("
                             " uid INTEGER PRIMARY KEY,"
                             " zone_private_key BLOB NOT NULL,"
                             " pkey BLOB,"
@@ -812,38 +813,41 @@ init_database (void *cls, char **emsg, int drop)
                                 "ON ns098records (zone_private_key,uid)"),
     GNUNET_SQ_EXECUTE_STATEMENT_END
   };
-  if ((GNUNET_YES == drop) &&
-      (GNUNET_OK != GNUNET_SQ_exec_statements (plugin->dbh,
-                                               es_drop)))
-  {
-    GNUNET_asprintf (emsg,
-                     _ ("Failed to drop database with: `%s'\n"),
-                     sqlite3_errmsg (plugin->dbh));
-    return GNUNET_SYSERR;
-  }
+
   if (GNUNET_OK !=
       GNUNET_SQ_exec_statements (plugin->dbh,
                                  es))
   {
-    GNUNET_asprintf (emsg,
-                     _ ("Failed to setup database with: `%s'\n"),
-                     sqlite3_errmsg (plugin->dbh));
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to setup database with: `%s'\n",
+                sqlite3_errmsg (plugin->dbh));
     return GNUNET_SYSERR;
   }
   return GNUNET_OK;
 }
 
-enum GNUNET_GenericReturnValue
-namestore_sqlite_initialize_database (void *cls, char **emsg)
+
+static enum GNUNET_GenericReturnValue
+namestore_sqlite_drop_tables (void *cls)
 {
-  return init_database (cls, emsg, GNUNET_NO);
+  struct Plugin *plugin = cls;
+  struct GNUNET_SQ_ExecuteStatement es_drop[] = {
+    GNUNET_SQ_make_execute ("DROP TABLE IF EXISTS ns098records"),
+    GNUNET_SQ_EXECUTE_STATEMENT_END
+  };
+
+  if (GNUNET_OK !=
+      GNUNET_SQ_exec_statements (plugin->dbh,
+                                 es_drop))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to drop database with: `%s'\n",
+                sqlite3_errmsg (plugin->dbh));
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
 }
 
-enum GNUNET_GenericReturnValue
-namestore_sqlite_reset_database (void *cls, char **emsg)
-{
-  return init_database (cls, emsg, GNUNET_YES);
-}
 
 /**
  * Initialize the database connections and associated
@@ -853,11 +857,10 @@ namestore_sqlite_reset_database (void *cls, char **emsg)
  * @param plugin the plugin context (state for this module)
  * @return #GNUNET_OK on success
  */
-static int
+static enum GNUNET_GenericReturnValue
 database_connect (struct Plugin *plugin)
 {
   char *sqlite_filename;
-  char *emsg;
 
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_filename (plugin->cfg,
@@ -902,17 +905,9 @@ database_connect (struct Plugin *plugin)
                                             "namestore-sqlite",
                                             "INIT_ON_CONNECT"))
   {
-    /**
-     * Gracefully fail as this should not be a critical error if the
-     * database is already created
-     */
-    if (GNUNET_OK != init_database (plugin, &emsg, GNUNET_NO))
-    {
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Failed to initialize database on connect: `%s'\n",
-           emsg);
-      GNUNET_free (emsg);
-    }
+    if (GNUNET_OK !=
+        namestore_sqlite_create_tables (plugin))
+      return GNUNET_SYSERR;
   }
   return GNUNET_OK;
 }
@@ -949,8 +944,8 @@ libgnunet_plugin_namestore_sqlite_init (void *cls)
   api->transaction_begin = &namestore_sqlite_transaction_begin;
   api->transaction_commit = &namestore_sqlite_transaction_commit;
   api->transaction_rollback = &namestore_sqlite_transaction_rollback;
-  api->initialize_database = &namestore_sqlite_initialize_database;
-  api->reset_database = &namestore_sqlite_reset_database;
+  api->create_tables = &namestore_sqlite_create_tables;
+  api->drop_tables = &namestore_sqlite_drop_tables;
   /**
    * NOTE: Since SQlite does not support SELECT ... FOR UPDATE this is
    * just an alias to lookup_records. The BEGIN IMMEDIATE mechanic currently

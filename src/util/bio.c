@@ -22,6 +22,7 @@
  * @brief functions for buffering IO
  * @author Christian Grothoff
  */
+
 #include "platform.h"
 #include "gnunet_util_lib.h"
 
@@ -39,12 +40,6 @@
  * Size for I/O buffers.
  */
 #define BIO_BUFFER_SIZE 65536
-
-/**
- * Maximum size allowed for meta data written/read from disk.
- * File-sharing limits to 64k, so this should be rather generous.
- */
-#define MAX_META_DATA (1024 * 1024)
 
 
 /**
@@ -159,7 +154,7 @@ GNUNET_BIO_read_open_buffer (void *buffer, size_t size)
  *
  * @param h file handle
  * @param emsg set to the (allocated) error message
- *             if the handle has an error message, the return 
+ *             if the handle has an error message, the return
  *             value is #GNUNET_SYSERR
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
@@ -185,6 +180,13 @@ GNUNET_BIO_read_close (struct GNUNET_BIO_ReadHandle *h, char **emsg)
   }
   GNUNET_free (h);
   return err;
+}
+
+void
+GNUNET_BIO_read_set_error (struct GNUNET_BIO_ReadHandle *h, const char* emsg)
+{
+  GNUNET_assert (NULL == h->emsg);
+  h->emsg = GNUNET_strdup (emsg);
 }
 
 
@@ -377,60 +379,6 @@ GNUNET_BIO_read_string (struct GNUNET_BIO_ReadHandle *h,
   return GNUNET_OK;
 }
 
-
-/**
- * Read a metadata container.
- *
- * @param h handle to an open file
- * @param what describes what is being read (for error message creation)
- * @param result the buffer to store a pointer to the (allocated) metadata
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on failure
- */
-int
-GNUNET_BIO_read_meta_data (struct GNUNET_BIO_ReadHandle *h,
-                           const char *what,
-                           struct GNUNET_CONTAINER_MetaData **result)
-{
-  uint32_t size;
-  char *buf;
-  struct GNUNET_CONTAINER_MetaData *meta;
-
-  if (GNUNET_OK != GNUNET_BIO_read_int32 (h,
-                                          _ ("metadata length"),
-                                          (int32_t *) &size))
-    return GNUNET_SYSERR;
-  if (0 == size)
-  {
-    *result = NULL;
-    return GNUNET_OK;
-  }
-  if (MAX_META_DATA < size)
-  {
-    GNUNET_asprintf (
-      &h->emsg,
-      _ ("Serialized metadata `%s' larger than allowed (%u > %u)"),
-      what,
-      size,
-      MAX_META_DATA);
-    return GNUNET_SYSERR;
-  }
-  buf = GNUNET_malloc (size);
-  if (GNUNET_OK != GNUNET_BIO_read (h, what, buf, size))
-  {
-    GNUNET_free (buf);
-    return GNUNET_SYSERR;
-  }
-  meta = GNUNET_CONTAINER_meta_data_deserialize (buf, size);
-  if (NULL == meta)
-  {
-    GNUNET_free (buf);
-    GNUNET_asprintf (&h->emsg, _ ("Failed to deserialize metadata `%s'"), what);
-    return GNUNET_SYSERR;
-  }
-  GNUNET_free (buf);
-  *result = meta;
-  return GNUNET_OK;
-}
 
 
 /**
@@ -845,51 +793,6 @@ GNUNET_BIO_write_string (struct GNUNET_BIO_WriteHandle *h,
 }
 
 
-/**
- * Write a metadata container.
- *
- * @param h the IO handle to write to
- * @param what what is being written (for error message creation)
- * @param m metadata to write
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
-int
-GNUNET_BIO_write_meta_data (struct GNUNET_BIO_WriteHandle *h,
-                            const char *what,
-                            const struct GNUNET_CONTAINER_MetaData *m)
-{
-  ssize_t size;
-  char *buf;
-
-  if (m == NULL)
-    return GNUNET_BIO_write_int32 (h, _ ("metadata length"), 0);
-  buf = NULL;
-  size = GNUNET_CONTAINER_meta_data_serialize (
-    m,
-    &buf,
-    MAX_META_DATA,
-    GNUNET_CONTAINER_META_DATA_SERIALIZE_PART);
-  if (-1 == size)
-  {
-    GNUNET_free (buf);
-    GNUNET_free (h->emsg);
-    GNUNET_asprintf (&h->emsg,
-                     _ ("Failed to serialize metadata `%s'"),
-                     what);
-    return GNUNET_SYSERR;
-  }
-  if ((GNUNET_OK != GNUNET_BIO_write_int32 (h,
-                                            _ ("metadata length"),
-                                            (uint32_t) size))
-      || (GNUNET_OK != GNUNET_BIO_write (h, what, buf, size)))
-  {
-    GNUNET_free (buf);
-    return GNUNET_SYSERR;
-  }
-  GNUNET_free (buf);
-  return GNUNET_OK;
-}
-
 
 /**
  * Write a float.
@@ -1052,51 +955,6 @@ GNUNET_BIO_read_spec_string (const char *what,
     .cls = NULL,
     .target = result,
     .size = max_length,
-  };
-
-  return rs;
-}
-
-
-/**
- * Function used internally to read a metadata container from within a read
- * spec.
- *
- * @param cls ignored, always NULL
- * @param h the IO handle to read from
- * @param what what is being read (for error message creation)
- * @param target where to store the data
- * @param target_size ignored
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
-static int
-read_spec_handler_meta_data (void *cls,
-                             struct GNUNET_BIO_ReadHandle *h,
-                             const char *what,
-                             void *target,
-                             size_t target_size)
-{
-  struct GNUNET_CONTAINER_MetaData **result = target;
-  return GNUNET_BIO_read_meta_data (h, what, result);
-}
-
-
-/**
- * Create the specification to read a metadata container.
- *
- * @param what describes what is being read (for error message creation)
- * @param result the buffer to store a pointer to the (allocated) metadata
- * @return the read spec
- */
-struct GNUNET_BIO_ReadSpec
-GNUNET_BIO_read_spec_meta_data (const char *what,
-                                struct GNUNET_CONTAINER_MetaData **result)
-{
-  struct GNUNET_BIO_ReadSpec rs = {
-    .rh = &read_spec_handler_meta_data,
-    .cls = NULL,
-    .target = result,
-    .size = 0,
   };
 
   return rs;
@@ -1341,52 +1199,6 @@ GNUNET_BIO_write_spec_string (const char *what,
     .cls = NULL,
     .what = what,
     .source = (void *) s,
-    .source_size = 0,
-  };
-
-  return ws;
-}
-
-
-/**
- * Function used internally to write a metadata container from within a write
- * spec.
- *
- * @param cls ignored, always NULL
- * @param h the IO handle to write to
- * @param what what is being written (for error message creation)
- * @param source the data to write
- * @param source_size ignored
- * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
- */
-static int
-write_spec_handler_meta_data (void *cls,
-                              struct GNUNET_BIO_WriteHandle *h,
-                              const char *what,
-                              void *source,
-                              size_t source_size)
-{
-  const struct GNUNET_CONTAINER_MetaData *m = source;
-  return GNUNET_BIO_write_meta_data (h, what, m);
-}
-
-
-/**
- * Create the specification to write a metadata container.
- *
- * @param what what is being written (for error message creation)
- * @param m metadata to write
- * @return the write spec
- */
-struct GNUNET_BIO_WriteSpec
-GNUNET_BIO_write_spec_meta_data (const char *what,
-                                 const struct GNUNET_CONTAINER_MetaData *m)
-{
-  struct GNUNET_BIO_WriteSpec ws = {
-    .wh = &write_spec_handler_meta_data,
-    .cls = NULL,
-    .what = what,
-    .source = (void *) m,
     .source_size = 0,
   };
 

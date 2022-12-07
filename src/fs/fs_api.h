@@ -29,6 +29,7 @@
 #include "gnunet_constants.h"
 #include "gnunet_datastore_service.h"
 #include "gnunet_dht_service.h"
+
 #include "gnunet_fs_service.h"
 #include "gnunet_block_lib.h"
 #include "block_fs.h"
@@ -249,7 +250,7 @@ struct GNUNET_FS_FileInformation
   /**
    * Metadata to use for the file.
    */
-  struct GNUNET_CONTAINER_MetaData *meta;
+  struct GNUNET_FS_MetaData *meta;
 
   /**
    * Keywords to use for KBlocks.
@@ -525,7 +526,7 @@ struct GNUNET_FS_SearchResult
   /**
    * Metadata for the search result.
    */
-  struct GNUNET_CONTAINER_MetaData *meta;
+  struct GNUNET_FS_MetaData *meta;
 
   /**
    * Client info for this search result.
@@ -1801,7 +1802,7 @@ struct GNUNET_FS_DownloadContext
   /**
    * Known meta-data for the file (can be NULL).
    */
-  struct GNUNET_CONTAINER_MetaData *meta;
+  struct GNUNET_FS_MetaData *meta;
 
   /**
    * Error message, NULL if we're doing OK.

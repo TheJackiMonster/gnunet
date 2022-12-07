@@ -23,6 +23,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+
 #include "gnunet_fs_service.h"
 
 static int ret;
@@ -90,20 +91,20 @@ static void
 print_entry (void *cls,
              const char *filename,
              const struct GNUNET_FS_Uri *uri,
-             const struct GNUNET_CONTAINER_MetaData *meta,
+             const struct GNUNET_FS_MetaData *meta,
              size_t length,
              const void *data)
 {
   char *string;
   char *name;
 
-  name = GNUNET_CONTAINER_meta_data_get_by_type (
+  name = GNUNET_FS_meta_data_get_by_type (
     meta,
     EXTRACTOR_METATYPE_GNUNET_ORIGINAL_FILENAME);
   if (uri == NULL)
   {
     printf (_ ("Directory `%s' meta data:\n"), name ? name : "");
-    GNUNET_CONTAINER_meta_data_iterate (meta, &item_printer, NULL);
+    GNUNET_FS_meta_data_iterate (meta, &item_printer, NULL);
     printf ("\n");
     printf (_ ("Directory `%s' contents:\n"), name ? name : "");
     GNUNET_free (name);
@@ -112,7 +113,7 @@ print_entry (void *cls,
   string = GNUNET_FS_uri_to_string (uri);
   printf ("%s (%s):\n", name ? name : "", string);
   GNUNET_free (string);
-  GNUNET_CONTAINER_meta_data_iterate (meta, &item_printer, NULL);
+  GNUNET_FS_meta_data_iterate (meta, &item_printer, NULL);
   printf ("\n");
   GNUNET_free (name);
 }

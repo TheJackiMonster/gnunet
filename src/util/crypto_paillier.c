@@ -24,6 +24,7 @@
  * @author Florian Dold
  * @author Christian Fuchs
  */
+
 #include "platform.h"
 #include <gcrypt.h>
 #include "gnunet_util_lib.h"

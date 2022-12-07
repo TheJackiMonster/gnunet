@@ -472,7 +472,7 @@ GNUNET_RECLAIM_attribute_serialize (
   char *write_ptr;
 
   attr_ser = (struct Attribute *) result;
-  attr_ser->attribute_type = htons (attr->type);
+  attr_ser->attribute_type = htonl (attr->type);
   attr_ser->attribute_flag = htonl (attr->flag);
   attr_ser->attribute_id = attr->id;
   attr_ser->credential_id = attr->credential;
@@ -524,7 +524,7 @@ GNUNET_RECLAIM_attribute_deserialize (const char *data, size_t data_size,
   }
   attribute = GNUNET_malloc (sizeof(struct GNUNET_RECLAIM_Attribute)
                         + data_len + name_len + 1);
-  attribute->type = ntohs (attr_ser->attribute_type);
+  attribute->type = ntohl (attr_ser->attribute_type);
   attribute->flag = ntohl (attr_ser->attribute_flag);
   attribute->id = attr_ser->attribute_id;
   attribute->credential = attr_ser->credential_id;

@@ -43,9 +43,8 @@
 .Op Fl o | -omit-private
 .Op Fl P | -purge-orphans
 .Op Fl p | -public
-.Op Fl r Ar PKEY | Fl -reverse= Ns Ar PKEY
-.Op Fl R Ar RECORDLINE | Fl -replace= Ns Ar RECORDLINE
 .Op Fl s | -shadow
+.Op Fl S | -from-stdin
 .Op Fl T | -include-maintenance
 .Op Fl t Ar TYPE | Fl -type= Ns Ar TYPE
 .Op Fl u Ar URI | Fl -uri= Ns Ar URI
@@ -53,6 +52,7 @@
 .Op Fl V Ar VALUE | Fl -value= Ns Ar VALUE
 .Op Fl X | -purge-zone-records
 .Op Fl z Ar EGO | Fl -zone= Ns Ar EGO
+.Op Fl Z Ar KEY | Fl -zone-to-name= Ns Ar KEY
 .Sh DESCRIPTION
 .Nm
 can be used to manipulate records in a GNS zone.
@@ -102,23 +102,42 @@ Delete orphaned records from namestore.
 .It Fl p | -public
 Create a record that is public (shared with other users that know the
 label).
-.It Fl r Ar PKEY | Fl -reverse= Ns Ar PKEY
-Determine our GNS name for the given public key (reverse lookup of the
-PKEY) in the given zone.
-.It Fl R Ar RECORDLINE | Fl -replace= Ns Ar RECORDLINE
-Sets record set to values given in RECORDLINE.
-This option can be specified multiple times to provide multiple
-records for the record set.
-Existing records under the same label will be deleted.
-The format for the RECORDLINE is "TTL TYPE FLAGS VALUE" where TTL is
-the time to live in seconds (unit must not be given explicitly,
-seconds is always implied), TYPE is the DNS/GNS record type,
-FLAGS is "(N)ORMAL", "(S)HADOW" or "(P)UBLIC".
-The VALUE follows the usual human-readable value format(s) of DNS/GNS.
+.It Fl r | -recordline
+Changes the output format of zones and records to recordline.
 .It Fl s | -shadow
 Create a record that is a shadow record.
 Shadow records are only used once all other records of the same type
 under the same label have expired.
+.It Fl S | -from-stdin
+Read recordlines from stdin until EOF is encountered.
+The format uses
+.B recordlines
+:
+A record in a recordline follows the format
+
+NAME.EGO:
+ TYPE EXPIRATION [FLAGS] VALUE
+ ...
+Multiple records may be provided for a name.
+
+EXPIRATION is given in microseconds without a unit (e.g. 3600000000 for 3600 seconds).
+
+FLAGS is a concatenation of record flags.
+Possible values for flags and their meaning are:
+.Pp
+  p: Public
+  s: Shadow
+  S: Supplemental
+  C: Critical
+  r: Relative expiration
+
+TYPE and VALUE are used in the same way as for the "-t" and "-V" options.
+Example formats for recordlines can be output using the "-D" flag combined
+with "--recordline".
+An example record set in recordline format can be found in the examples.
+It is possible to specify multiple record sets.
+Can only be used in combination with "-a" to add the parsed record sets.
+Existing record sets under names will be replaced.
 .It Fl T | -include-maintenance
 Show maintenance records such as TOMBSTONEs. Use in combination with --display.
 .It Fl t Ar TYPE | Fl -type= Ns Ar TYPE
@@ -144,8 +163,45 @@ Base32-encoding using the GNUNET_NAMESTORE_EGO_PRIVATE_KEY environment
 variable. The latter is useful to improve performance of tools like
 Ascension as it allows the command to skip IPC with the identity
 management subsystem.
+.It Fl Z Ar KEY | Fl -zone-to-name= Ns Ar KEY
+Determine our GNS name for the given public key (reverse lookup of the
+KEY) in the given zone.
 .El
-.\".Sh EXAMPLES
+.Sh EXAMPLES
+.Tp
+.Nm
+-z example -a -n www -t A -V "1.2.3.4" -e 1d -p
+.Tp
+.Pp
+.Dl Add a public record for ego "example" with name "www" containing an IP address.
+.sp
+.Tp
+.Nm
+-z example -D
+.Tp
+.Pp
+.Dl Show all records for ego "example".
+.sp
+.Tp
+.Nm
+-z example -D -r
+.Tp
+.Pp
+.Dl Show all records for ego "example" in recordline format.
+.sp
+.Tp
+.Nm
+--add --from-stdin <<EOF
+ www.alice:
+  A 3600000000 [pr] 1.2.3.4
+  TXT 3600000001 [pr] Hello World
+
+ www.bob:
+  A 12345679000000 [pr] 4.3.2.1
+ EOF
+.Tp
+.Pp
+.Dl Read record sets in recordline format from stdin.
 .\".Sh FILES
 .Sh SEE ALSO
 .Xr gnunet-gns 1 ,

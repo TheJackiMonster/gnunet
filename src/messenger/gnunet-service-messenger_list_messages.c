@@ -23,6 +23,7 @@
  * @brief GNUnet MESSENGER service
  */
 
+#include "platform.h"
 #include "gnunet-service-messenger_list_messages.h"
 
 void

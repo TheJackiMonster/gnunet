@@ -23,6 +23,7 @@
  * @brief testcase for ECC public key crypto
  * @author Christian Grothoff
  */
+
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_signatures.h"

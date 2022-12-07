@@ -23,9 +23,9 @@
  * @brief Test how long it takes to create a automaton from a string regex.
  * @author Bartlomiej Polot
  */
+#include "platform.h"
 #include <regex.h>
 #include <time.h>
-#include "platform.h"
 #include "regex_internal_lib.h"
 #include "regex_test_lib.h"
 

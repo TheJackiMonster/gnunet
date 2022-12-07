@@ -28,13 +28,14 @@
  * @author Heikki Lindholm
  * @author LRN
  */
+#include "platform.h"
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <unistr.h> /* for u16_to_u8 */
 
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 #if DARWIN
 #include <mach-o/ldsyms.h>

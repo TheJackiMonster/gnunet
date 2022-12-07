@@ -1,5 +1,6 @@
 *~
 \#*\#
+gnunet-*.tar.gz
 *vgcore.*
 *.bak
 *.a
@@ -31,8 +32,8 @@ configure
 .version
 contrib/vendored/
 depcomp
-gnunet_config.h
-gnunet_config.h.in
+gnunet_private_config.h
+gnunet_private_config.h.in
 install-sh
 libtool
 ltmain.sh

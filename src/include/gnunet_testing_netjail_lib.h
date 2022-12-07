@@ -27,6 +27,7 @@
 #ifndef GNUNET_TESTING_NETJAIL_LIB_H
 #define GNUNET_TESTING_NETJAIL_LIB_H
 
+
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_plugin.h"
 #include "gnunet_testing_ng_lib.h"
@@ -271,7 +272,7 @@ GNUNET_TESTING_get_topo_from_file (const char *filename);
  * @return The GNUNET_TESTING_NetjailTopology
  */
 struct GNUNET_TESTING_NetjailTopology *
-GNUNET_TESTING_get_topo_from_string (char *data);
+GNUNET_TESTING_get_topo_from_string (const char *data);
 
 
 /**
@@ -305,8 +306,8 @@ GNUNET_TESTING_get_node (unsigned int num,
  * @return The connections of the node.
  */
 struct GNUNET_TESTING_NodeConnection *
-GNUNET_TESTING_get_connections (unsigned int num, struct
-                                GNUNET_TESTING_NetjailTopology *topology);
+GNUNET_TESTING_get_connections (unsigned int num,
+                                const struct GNUNET_TESTING_NetjailTopology *topology);
 
 
 /**
@@ -318,7 +319,7 @@ GNUNET_TESTING_get_connections (unsigned int num, struct
  */
 char *
 GNUNET_TESTING_get_address (struct GNUNET_TESTING_NodeConnection *connection,
-                            char *prefix);
+                            const char *prefix);
 
 
 /**

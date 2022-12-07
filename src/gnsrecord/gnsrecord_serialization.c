@@ -31,9 +31,6 @@
 #include "gnunet_signatures.h"
 #include "gnunet_arm_service.h"
 #include "gnunet_gnsrecord_lib.h"
-#include "gnunet_dnsparser_lib.h"
-#include "gnunet_tun_lib.h"
-
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "gnsrecord", __VA_ARGS__)
 

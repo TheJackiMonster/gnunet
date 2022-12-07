@@ -27,7 +27,7 @@
 #define GNUNET_SERVICE_MESSENGER_EGO_STORE_H
 
 #include "platform.h"
-#include "gnunet_container_lib.h"
+#include "gnunet_util_lib.h"
 
 #include "messenger_api_ego.h"
 

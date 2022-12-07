@@ -27,6 +27,7 @@
  * and report the results to stdout.
  */
 #include "platform.h"
+
 #include "gnunet_fs_service.h"
 
 
@@ -120,7 +121,7 @@ add_to_md (void *cls,
            const char *data,
            size_t data_len)
 {
-  struct GNUNET_CONTAINER_MetaData *md = cls;
+  struct GNUNET_FS_MetaData *md = cls;
 
   if (((EXTRACTOR_METAFORMAT_UTF8 == format) ||
        (EXTRACTOR_METAFORMAT_C_STRING == format)) &&
@@ -129,23 +130,23 @@ add_to_md (void *cls,
     char zdata[data_len + 1];
     GNUNET_memcpy (zdata, data, data_len);
     zdata[data_len] = '\0';
-    (void) GNUNET_CONTAINER_meta_data_insert (md,
-                                              plugin_name,
-                                              type,
-                                              format,
-                                              data_mime_type,
-                                              zdata,
-                                              data_len + 1);
+    (void) GNUNET_FS_meta_data_insert (md,
+                                       plugin_name,
+                                       type,
+                                       format,
+                                       data_mime_type,
+                                       zdata,
+                                       data_len + 1);
   }
   else
   {
-    (void) GNUNET_CONTAINER_meta_data_insert (md,
-                                              plugin_name,
-                                              type,
-                                              format,
-                                              data_mime_type,
-                                              data,
-                                              data_len);
+    (void) GNUNET_FS_meta_data_insert (md,
+                                       plugin_name,
+                                       type,
+                                       format,
+                                       data_mime_type,
+                                       data,
+                                       data_len);
   }
   return 0;
 }
@@ -373,7 +374,7 @@ preprocess_file (const char *filename, struct ScanTreeNode **dst)
 static int
 extract_files (struct ScanTreeNode *item)
 {
-  struct GNUNET_CONTAINER_MetaData *meta;
+  struct GNUNET_FS_MetaData *meta;
   ssize_t size;
   size_t slen;
 
@@ -390,16 +391,16 @@ extract_files (struct ScanTreeNode *item)
   }
 
   /* this is the expensive operation, *afterwards* we'll check for aborts */
-  meta = GNUNET_CONTAINER_meta_data_create ();
+  meta = GNUNET_FS_meta_data_create ();
 #if HAVE_LIBEXTRACTOR
   EXTRACTOR_extract (plugins, item->filename, NULL, 0, &add_to_md, meta);
 #endif
   slen = strlen (item->filename) + 1;
-  size = GNUNET_CONTAINER_meta_data_get_serialized_size (meta);
+  size = GNUNET_FS_meta_data_get_serialized_size (meta);
   if (-1 == size)
   {
     /* no meta data */
-    GNUNET_CONTAINER_meta_data_destroy (meta);
+    GNUNET_FS_meta_data_destroy (meta);
     if (GNUNET_OK !=
         write_message (GNUNET_MESSAGE_TYPE_FS_PUBLISH_HELPER_META_DATA,
                        item->filename,
@@ -417,17 +418,17 @@ extract_files (struct ScanTreeNode *item)
     char *dst = &buf[slen];
 
     GNUNET_memcpy (buf, item->filename, slen);
-    size = GNUNET_CONTAINER_meta_data_serialize (
+    size = GNUNET_FS_meta_data_serialize (
       meta,
       &dst,
       size,
-      GNUNET_CONTAINER_META_DATA_SERIALIZE_PART);
+      GNUNET_FS_META_DATA_SERIALIZE_PART);
     if (size < 0)
     {
       GNUNET_break (0);
       size = 0;
     }
-    GNUNET_CONTAINER_meta_data_destroy (meta);
+    GNUNET_FS_meta_data_destroy (meta);
     if (GNUNET_OK !=
         write_message (GNUNET_MESSAGE_TYPE_FS_PUBLISH_HELPER_META_DATA,
                        buf,

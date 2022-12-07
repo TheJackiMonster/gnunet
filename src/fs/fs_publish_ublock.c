@@ -155,7 +155,7 @@ GNUNET_FS_publish_ublock_ (struct GNUNET_FS_Handle *h,
                            const char *label,
                            const char *ulabel,
                            const struct GNUNET_CRYPTO_EcdsaPrivateKey *ns,
-                           const struct GNUNET_CONTAINER_MetaData *meta,
+                           const struct GNUNET_FS_MetaData *meta,
                            const struct GNUNET_FS_Uri *uri,
                            const struct GNUNET_FS_BlockOptions *bo,
                            enum GNUNET_FS_PublishOptions options,
@@ -181,7 +181,7 @@ GNUNET_FS_publish_ublock_ (struct GNUNET_FS_Handle *h,
   if (NULL == meta)
     mdsize = 0;
   else
-    mdsize = GNUNET_CONTAINER_meta_data_get_serialized_size (meta);
+    mdsize = GNUNET_FS_meta_data_get_serialized_size (meta);
   GNUNET_assert (mdsize >= 0);
   uris = GNUNET_FS_uri_to_string (uri);
   slen = strlen (uris) + 1;
@@ -206,8 +206,8 @@ GNUNET_FS_publish_ublock_ (struct GNUNET_FS_Handle *h,
   sptr = kbe;
   if (NULL != meta)
     mdsize =
-      GNUNET_CONTAINER_meta_data_serialize (meta, &sptr, mdsize,
-                                            GNUNET_CONTAINER_META_DATA_SERIALIZE_PART);
+      GNUNET_FS_meta_data_serialize (meta, &sptr, mdsize,
+                                     GNUNET_FS_META_DATA_SERIALIZE_PART);
   if (-1 == mdsize)
   {
     GNUNET_break (0);

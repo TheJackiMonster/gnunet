@@ -39,9 +39,9 @@
 #ifndef GNUNET_PEERINFO_SERVICE_H
 #define GNUNET_PEERINFO_SERVICE_H
 
+
 #include "gnunet_common.h"
-#include "gnunet_configuration_lib.h"
-#include "gnunet_crypto_lib.h"
+#include "gnunet_util_lib.h"
 #include "gnunet_hello_lib.h"
 
 #ifdef __cplusplus

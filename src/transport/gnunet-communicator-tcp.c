@@ -1448,7 +1448,7 @@ handshake_ack_monotime_cb (void *cls,
  * @param queue The queue context.
  */
 static void
-send_challenge (struct GNUNET_CRYPTO_ChallengeNonceP challenge, 
+send_challenge (struct GNUNET_CRYPTO_ChallengeNonceP challenge,
 		struct Queue *queue)
 {
   struct TCPConfirmationAck tca;
@@ -1914,10 +1914,10 @@ queue_read (void *cls)
                                      &queue->cread_buf[queue->cread_off],
                                      BUF_SIZE - queue->cread_off);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Received %lu bytes from TCP queue\n", rcvd);
+              "Received %zd bytes from TCP queue\n", rcvd);
   GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
                            "transport",
-                           "Received %lu bytes from TCP queue\n", rcvd);
+                           "Received %zd bytes from TCP queue\n", rcvd);
   if (-1 == rcvd)
   {
     if ((EAGAIN != errno) && (EINTR != errno))

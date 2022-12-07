@@ -25,6 +25,7 @@
 #ifndef GNUNET_SQ_LIB_H
 #define GNUNET_SQ_LIB_H
 
+
 #include <sqlite3.h>
 #include "gnunet_util_lib.h"
 

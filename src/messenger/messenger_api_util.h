@@ -28,9 +28,7 @@
 
 #include "platform.h"
 #include "gnunet_cadet_service.h"
-#include "gnunet_container_lib.h"
-#include "gnunet_crypto_lib.h"
-#include "gnunet_disk_lib.h"
+#include "gnunet_util_lib.h"
 #include "gnunet_identity_service.h"
 #include "gnunet_messenger_service.h"
 

@@ -18,6 +18,11 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 
+#if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
+#error "Only <gnunet_util_lib.h> can be included directly."
+#endif
+
+
 /**
  * @addtogroup libgnunetutil
  * Multi-function utilities library for GNUnet programs
@@ -38,6 +43,7 @@
  */
 #ifndef GNUNET_MQ_LIB_H
 #define GNUNET_MQ_LIB_H
+
 
 #include "gnunet_scheduler_lib.h"
 

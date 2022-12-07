@@ -25,6 +25,7 @@
  * MHD compatibility definitions for warning-less compile of
  * our code against MHD before and after #MHD_VERSION 0x00097002.
  */
+
 #include <microhttpd.h>
 
 #if MHD_VERSION >= 0x00097002
@@ -35,7 +36,7 @@
 
 #else
 
-/**
+**
  * Data type to use for functions return an "MHD result".
  */
 #define MHD_RESULT int

@@ -37,6 +37,7 @@
 #ifndef GNUNET_NAMECACHE_PLUGIN_H
 #define GNUNET_NAMECACHE_PLUGIN_H
 
+
 #include "gnunet_util_lib.h"
 #include "gnunet_namecache_service.h"
 #include "gnunet_namestore_service.h"

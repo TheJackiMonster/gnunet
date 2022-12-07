@@ -23,10 +23,9 @@
  * @author Christian Grothoff
  * @author Nils Durner
  */
+
 #include "platform.h"
-#include "disk.h"
-#include "gnunet_strings_lib.h"
-#include "gnunet_disk_lib.h"
+#include "gnunet_util_lib.h"
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-disk", __VA_ARGS__)
 

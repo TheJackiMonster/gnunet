@@ -34,6 +34,7 @@
 #ifndef GNUNET_NAMESTORE_PLUGIN_H
 #define GNUNET_NAMESTORE_PLUGIN_H
 
+
 #include "gnunet_util_lib.h"
 #include "gnunet_namestore_service.h"
 
@@ -88,12 +89,12 @@ struct GNUNET_NAMESTORE_PluginFunctions
    * @param rd array of records with data to store
    * @return #GNUNET_OK on success, else #GNUNET_SYSERR
    */
-  int
-  (*store_records) (void *cls,
-                    const struct GNUNET_IDENTITY_PrivateKey *zone,
-                    const char *label,
-                    unsigned int rd_count,
-                    const struct GNUNET_GNSRECORD_Data *rd);
+  enum GNUNET_GenericReturnValue
+  (*store_records)(void *cls,
+                   const struct GNUNET_IDENTITY_PrivateKey *zone,
+                   const char *label,
+                   unsigned int rd_count,
+                   const struct GNUNET_GNSRECORD_Data *rd);
 
   /**
    * Lookup records in the datastore for which we are the authority.
@@ -105,12 +106,12 @@ struct GNUNET_NAMESTORE_PluginFunctions
    * @param iter_cls closure for @a iter
    * @return #GNUNET_OK on success, #GNUNET_NO for no results, else #GNUNET_SYSERR
    */
-  int
-  (*lookup_records) (void *cls,
-                     const struct GNUNET_IDENTITY_PrivateKey *zone,
-                     const char *label,
-                     GNUNET_NAMESTORE_RecordIterator iter,
-                     void *iter_cls);
+  enum GNUNET_GenericReturnValue
+  (*lookup_records)(void *cls,
+                    const struct GNUNET_IDENTITY_PrivateKey *zone,
+                    const char *label,
+                    GNUNET_NAMESTORE_RecordIterator iter,
+                    void *iter_cls);
 
 
   /**
@@ -127,13 +128,13 @@ struct GNUNET_NAMESTORE_PluginFunctions
    * @param iter_cls closure for @a iter
    * @return #GNUNET_OK on success, #GNUNET_NO if there were no more results, #GNUNET_SYSERR on error
    */
-  int
-  (*iterate_records) (void *cls,
-                      const struct GNUNET_IDENTITY_PrivateKey *zone,
-                      uint64_t serial,
-                      uint64_t limit,
-                      GNUNET_NAMESTORE_RecordIterator iter,
-                      void *iter_cls);
+  enum GNUNET_GenericReturnValue
+  (*iterate_records)(void *cls,
+                     const struct GNUNET_IDENTITY_PrivateKey *zone,
+                     uint64_t serial,
+                     uint64_t limit,
+                     GNUNET_NAMESTORE_RecordIterator iter,
+                     void *iter_cls);
 
 
   /**
@@ -147,12 +148,12 @@ struct GNUNET_NAMESTORE_PluginFunctions
    * @param iter_cls closure for @a iter
    * @return #GNUNET_OK on success, #GNUNET_NO if there were no results, #GNUNET_SYSERR on error
    */
-  int
-  (*zone_to_name) (void *cls,
-                   const struct GNUNET_IDENTITY_PrivateKey *zone,
-                   const struct GNUNET_IDENTITY_PublicKey *value_zone,
-                   GNUNET_NAMESTORE_RecordIterator iter,
-                   void *iter_cls);
+  enum GNUNET_GenericReturnValue
+  (*zone_to_name)(void *cls,
+                  const struct GNUNET_IDENTITY_PrivateKey *zone,
+                  const struct GNUNET_IDENTITY_PublicKey *value_zone,
+                  GNUNET_NAMESTORE_RecordIterator iter,
+                  void *iter_cls);
 
   /** Transaction-based API draft **/
 
@@ -164,7 +165,7 @@ struct GNUNET_NAMESTORE_PluginFunctions
    * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
    */
   enum GNUNET_GenericReturnValue
-  (*transaction_begin) (void *cls, char **emsg);
+  (*transaction_begin)(void *cls, char **emsg);
 
   /**
    * Abort and roll back a transaction in the database
@@ -174,7 +175,7 @@ struct GNUNET_NAMESTORE_PluginFunctions
    * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
    */
   enum GNUNET_GenericReturnValue
-  (*transaction_rollback) (void *cls, char **emsg);
+  (*transaction_rollback)(void *cls, char **emsg);
 
   /**
    * Commit a transaction in the database
@@ -184,7 +185,7 @@ struct GNUNET_NAMESTORE_PluginFunctions
    * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
    */
   enum GNUNET_GenericReturnValue
-  (*transaction_commit) (void *cls, char **emsg);
+  (*transaction_commit)(void *cls, char **emsg);
 
   /**
    * Edit records in the datastore for which we are the authority.
@@ -198,35 +199,32 @@ struct GNUNET_NAMESTORE_PluginFunctions
    * @param iter_cls closure for @a iter
    * @return #GNUNET_OK on success, #GNUNET_NO for no results, else #GNUNET_SYSERR
    */
-  int
-  (*edit_records) (void *cls,
-                     const struct GNUNET_IDENTITY_PrivateKey *zone,
-                     const char *label,
-                     GNUNET_NAMESTORE_RecordIterator iter,
-                     void *iter_cls);
+  enum GNUNET_GenericReturnValue
+  (*edit_records)(void *cls,
+                  const struct GNUNET_IDENTITY_PrivateKey *zone,
+                  const char *label,
+                  GNUNET_NAMESTORE_RecordIterator iter,
+                  void *iter_cls);
 
   /**
    * Setup the database.
-   * Note that this will also fail if the database is already initialized.
-   * See reset_database().
    *
    * @param cls closure (internal context for the plugin)
-   * @param emsg error message on failure. Will be allocated, must be freed.
    * @return #GNUNET_OK on success, else fails with #GNUNET_SYSERR
    */
-  int
-  (*initialize_database) (void *cls, char **emsg);
+  enum GNUNET_GenericReturnValue
+  (*create_tables)(void *cls);
+
 
   /**
-   * Re-initializes the database.
+   * Drop existing tables.
    * DANGEROUS: All existing data in the dabase will be lost!
    *
    * @param cls closure (internal context for the plugin)
-   * @param emsg error message on failure. Will be allocated, must be freed.
    * @return #GNUNET_OK on success, else fails with #GNUNET_SYSERR
    */
-  int
-  (*reset_database) (void *cls, char **emsg);
+  enum GNUNET_GenericReturnValue
+  (*drop_tables)(void *cls);
 };
 
 

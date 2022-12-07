@@ -26,7 +26,7 @@
 #ifndef PLUGIN_TRANSPORT_WLAN
 #define PLUGIN_TRANSPORT_WLAN
 
-#include "gnunet_crypto_lib.h"
+#include "gnunet_util_lib.h"
 #include "gnunet_common.h"
 
 /**

@@ -1,7 +1,6 @@
 #include "platform.h"
 #include "gnunet_common.h"
 #include "gnunet_reclaim_lib.h"
-#include "gnunet_container_lib.h"
 
 int
 main (int argc, char *argv[])

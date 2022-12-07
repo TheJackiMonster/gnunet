@@ -24,25 +24,9 @@ if [ 0 -ne $ret ]; then
     gnunet-identity -C randomtestingid
 fi
 
-function minimize_ttl {
-    ttl=10000000
-    arr=$1
-    # parse each element and update ttl to smallest one
-    for i in "${arr[@]}"
-    do
-        currttl=$(echo -n "$i" | cut -d' ' -f1)
-        if [ "$currttl"  -lt "$ttl" ]
-        then
-            ttl=$currttl
-        fi
-
-    done
-    echo "$ttl"
-}
-
 function get_record_type {
     arr=$1
-    typ=$(echo -n "${arr[0]}" | cut -d' ' -f2)
+    typ=$(echo -n "${arr[0]}" | cut -d' ' -f1)
     echo "$typ"
 }
 
@@ -59,10 +43,14 @@ function testing {
     typ=$(get_record_type "${records[@]}")
     for i in "${records[@]}"
     do
-        recordstring+="-R $i"
+        recordstring+="$i"$'\n'
     done
-    #echo "$recordstring"
-    gnunet-namestore -z randomtestingid -n "$label" "$recordstring" 2>&1  /dev/null
+    echo "$recordstring"
+    gnunet-namestore -a -S <<EOF
+$label.randomtestingid:
+      $recordstring
+EOF
+    ret=$?
     if [ 0 -ne $ret ]; then
         echo "failed to add record $label: $recordstring"
     fi
@@ -75,26 +63,27 @@ function testing {
 # TEST CASES
 # 1
 echo "Testing adding of single A record with -R"
+declare -a arr=('A 1200 [r] 127.0.0.1')
 testing test1 "${arr[@]}"
 # 2
 echo "Testing adding of multiple A records with -R"
-declare -a arr=('1200 A n 127.0.0.1' '2400 A n 127.0.0.2')
+declare -a arr=('A 1200 [r] 127.0.0.1' 'A 2400 [r] 127.0.0.2')
 testing test2 "${arr[@]}"
 # 3
 echo "Testing adding of multiple different records with -R"
-declare -a arr=('1200 A n 127.0.0.1' '2400 AAAA n 2002::')
+declare -a arr=('A 1200 [r] 127.0.0.1' 'AAAA 2400 [r] 2002::')
 testing test3 "${arr[@]}"
 # 4
 echo "Testing adding of single GNS2DNS record with -R"
-declare -a arr=('86400 GNS2DNS n gnu.org@127.0.0.1')
+declare -a arr=('GNS2DNS 86400 [r] gnu.org@127.0.0.1')
 testing test4 "${arr[@]}"
 # 5
 echo "Testing adding of single GNS2DNS shadow record with -R"
-declare -a arr=('86409 GNS2DNS s gnu.org@127.0.0.250')
+declare -a arr=('GNS2DNS 86409 [rs] gnu.org@127.0.0.250')
 testing test5 "${arr[@]}"
 # 6
 echo "Testing adding of multiple GNS2DNS record with -R"
-declare -a arr=('1 GNS2DNS n gnunet.org@127.0.0.1' '3600 GNS2DNS s gnunet.org@127.0.0.2')
+declare -a arr=('GNS2DNS 1 [r] gnunet.org@127.0.0.1' 'GNS2DNS 3600 [s] gnunet.org@127.0.0.2')
 testing test6 "${arr[@]}"
 val=$(gnunet-gns -t GNS2DNS -u test6.randomtestingid)
 if [[ $val == *"127.0.0.1"* ]]; then
@@ -108,16 +97,16 @@ if [[ $val == *"127.0.0.2"* ]]; then
 fi
 # 7
 echo "Testing adding MX record with -R"
-declare -a arr=('3600 MX n 10,mail')
+declare -a arr=('MX 3600 [r] 10,mail')
 testing test7 "${arr[@]}"
 # 8
 echo "Testing adding TXT record with -R"
-declare -a arr=('3600 TXT n Pretty_Unicorns')
+declare -a arr=('TXT 3600 [r] Pretty_Unicorns')
 testing test8 "${arr[@]}"
 # 8
-echo "Testing adding TXT record with -R"
-declare -a arr=('3600 SRV n _autodiscover_old._tcp.bfh.ch.')
-testing test8 "${arr[@]}"
+#echo "Testing adding TXT record with -R"
+#declare -a arr=('SRV 3600 [r] _autodiscover_old._tcp.bfh.ch.')
+#testing test8 "${arr[@]}"
 
 # CLEANUP
 gnunet-identity -D randomtestingid

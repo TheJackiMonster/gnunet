@@ -49,14 +49,24 @@ struct Credential
   struct GNUNET_RECLAIM_Identifier credential_id;
 
   /**
+   * Reserved (alignment)
+   */
+  uint16_t nl_reserved;
+
+  /**
    * Name length
    */
-  uint32_t name_len;
+  uint16_t name_len;
+
+  /**
+   * Reserved (alignment)
+   */
+  uint16_t dl_reserved;
 
   /**
    * Data size
    */
-  uint32_t data_size;
+  uint16_t data_size;
 
   // followed by data_size Credential value data
 };
@@ -83,14 +93,24 @@ struct Presentation
   struct GNUNET_RECLAIM_Identifier credential_id;
 
   /**
+   * Reserved (alignment)
+   */
+  uint16_t reserved_nl GNUNET_PACKED;
+
+  /**
    * Name length
    */
-  uint32_t name_len;
+  uint16_t name_len GNUNET_PACKED;
+
+  /**
+   * Reserved (alignment)
+   */
+  uint16_t reserved_ds GNUNET_PACKED;
 
   /**
    * Data size
    */
-  uint32_t data_size;
+  uint16_t data_size GNUNET_PACKED;
 
   // followed by data_size Presentation value data
 };

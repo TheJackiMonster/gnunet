@@ -25,6 +25,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+
 #include "gnunet_fs_service.h"
 #include "gnunet_scheduler_lib.h"
 #include <pthread.h>
@@ -308,13 +309,13 @@ migrate_and_drop_metadata (void *cls, const struct GNUNET_HashCode *key,
   if (counter->count >= tc->move_threshold)
   {
     if (NULL == tc->pos->meta)
-      tc->pos->meta = GNUNET_CONTAINER_meta_data_create ();
-    GNUNET_CONTAINER_meta_data_insert (tc->pos->meta,
-                                       counter->plugin_name,
-                                       counter->type,
-                                       counter->format,
-                                       counter->data_mime_type, counter->data,
-                                       counter->data_size);
+      tc->pos->meta = GNUNET_FS_meta_data_create ();
+    GNUNET_FS_meta_data_insert (tc->pos->meta,
+                                counter->plugin_name,
+                                counter->type,
+                                counter->format,
+                                counter->data_mime_type, counter->data,
+                                counter->data_size);
   }
   GNUNET_assert (GNUNET_YES ==
                  GNUNET_CONTAINER_multihashmap_remove (tc->metacounter,
@@ -356,12 +357,12 @@ share_tree_trim (struct TrimContext *tc,
     {
       /* only use filename if it doesn't match $USER */
       if (NULL == tree->meta)
-        tree->meta = GNUNET_CONTAINER_meta_data_create ();
-      GNUNET_CONTAINER_meta_data_insert (tree->meta, "<libgnunetfs>",
-                                         EXTRACTOR_METATYPE_GNUNET_ORIGINAL_FILENAME,
-                                         EXTRACTOR_METAFORMAT_UTF8,
-                                         "text/plain", tree->short_filename,
-                                         strlen (tree->short_filename) + 1);
+        tree->meta = GNUNET_FS_meta_data_create ();
+      GNUNET_FS_meta_data_insert (tree->meta, "<libgnunetfs>",
+                                  EXTRACTOR_METATYPE_GNUNET_ORIGINAL_FILENAME,
+                                  EXTRACTOR_METAFORMAT_UTF8,
+                                  "text/plain", tree->short_filename,
+                                  strlen (tree->short_filename) + 1);
     }
   }
 
@@ -372,8 +373,8 @@ share_tree_trim (struct TrimContext *tc,
   for (pos = tree->children_head; NULL != pos; pos = pos->next)
   {
     if (NULL != pos->meta)
-      GNUNET_CONTAINER_meta_data_iterate (pos->meta, &add_to_meta_counter,
-                                          tc->metacounter);
+      GNUNET_FS_meta_data_iterate (pos->meta, &add_to_meta_counter,
+                                   tc->metacounter);
     if (NULL != pos->ksk_uri)
       GNUNET_FS_uri_ksk_get_keywords (pos->ksk_uri, &add_to_keyword_counter,
                                       tc->keywordcounter);
@@ -444,7 +445,7 @@ GNUNET_FS_share_tree_free (struct GNUNET_FS_ShareTreeItem *toplevel)
                                  toplevel->parent->children_tail,
                                  toplevel);
   if (NULL != toplevel->meta)
-    GNUNET_CONTAINER_meta_data_destroy (toplevel->meta);
+    GNUNET_FS_meta_data_destroy (toplevel->meta);
   if (NULL != toplevel->ksk_uri)
     GNUNET_FS_uri_destroy (toplevel->ksk_uri);
   GNUNET_free (toplevel->filename);

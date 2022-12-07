@@ -40,7 +40,7 @@
 /**
  * Need 'struct GNUNET_MessageHeader'.
  */
-#include "gnunet_crypto_lib.h"
+#include "gnunet_util_lib.h"
 #include "gnunet_common.h"
 
 /**

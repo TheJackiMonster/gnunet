@@ -24,11 +24,12 @@
  * log level adjustment)
  * @author LRN
  */
+
 #include "platform.h"
+#include "gnunet_util_lib.h"
+
 #undef GNUNET_EXTRA_LOGGING
 #define GNUNET_EXTRA_LOGGING GNUNET_YES
-
-#include "gnunet_util_lib.h"
 
 /**
  * Artificial delay attached to each log call that is not skipped out.

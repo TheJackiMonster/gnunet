@@ -123,15 +123,22 @@ sphinx_update()
 
 gana_update()
 {
+    if [ ! -z $GNUNET_SKIP_GANA ]; then
+      echo "Skipping GANA update"
+      return
+    fi
     echo "Updating GANA..."
     if existence recfmt; then
       cwd=$PWD
       cd contrib/gana || exit 1
       # GNS
-      echo "Updating GNS record types"
+      echo "Updating GNS record types/flags"
       cd gnu-name-system-record-types && \
          make >/dev/null && \
          cp gnu_name_system_record_types.h ../../../src/include/ || exit 1
+      cd ../gnu-name-system-record-flags && \
+         make >/dev/null && \
+         cp gnu_name_system_record_flags.h ../../../src/include/ || exit 1
       echo "Creating default TLDs"
       cd ../gnu-name-system-default-tlds && \
          make >/dev/null && \

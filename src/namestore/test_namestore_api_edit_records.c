@@ -24,7 +24,6 @@
 #include "platform.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_testing_lib.h"
-#include "gnunet_dnsparser_lib.h"
 
 #define TEST_RECORD_TYPE GNUNET_DNSPARSER_TYPE_TXT
 
@@ -187,7 +186,7 @@ commit_cont_a (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Name store added record for `%s': %s\n",
               name,
-              (success == GNUNET_OK) ? "SUCCESS" : "FAIL");
+              (GNUNET_EC_NONE == ec) ? "SUCCESS" : "FAIL");
   /**
    * Try again for B
    */
@@ -263,7 +262,7 @@ begin_cont (void *cls,
 {
   const char *name = cls;
 
-  GNUNET_assert (success == GNUNET_YES);
+  GNUNET_assert (GNUNET_EC_NONE == ec);
   nsqe = GNUNET_NAMESTORE_records_edit (nsh,
                                         &privkey,
                                         name,
@@ -288,7 +287,7 @@ preload_cont (void *cls,
     GNUNET_break (0);
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Namestore could not store record: `%s'\n",
-                GNUNET_ErroCode_get_hint (ec));
+                GNUNET_ErrorCode_get_hint (ec));
     if (endbadly_task != NULL)
       GNUNET_SCHEDULER_cancel (endbadly_task);
     endbadly_task = GNUNET_SCHEDULER_add_now (&endbadly, NULL);
@@ -298,7 +297,7 @@ preload_cont (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Name store added record for `%s': %s\n",
               name,
-              (success == GNUNET_OK) ? "SUCCESS" : "FAIL");
+              (GNUNET_EC_NONE == ec) ? "SUCCESS" : "FAIL");
   /* We start transaction for A */
   nsqe = GNUNET_NAMESTORE_transaction_begin (nsh, begin_cont, (void *) name);
 

@@ -22,8 +22,8 @@
  *
  * @brief Profiler for cadet experiments.
  */
-#include <stdio.h>
 #include "platform.h"
+#include <stdio.h>
 #include "cadet_test_lib.h"
 #include "gnunet_cadet_service.h"
 #include "gnunet_statistics_service.h"

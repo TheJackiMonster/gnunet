@@ -21,6 +21,7 @@
  * @file util/test_time.c
  * @brief testcase for time.c
  */
+
 #include "platform.h"
 #include "gnunet_util_lib.h"
 

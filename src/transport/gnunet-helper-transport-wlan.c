@@ -109,30 +109,11 @@
 /*
  * parts taken from aircrack-ng, parts changend.
  */
-#include "gnunet_config.h"
-#include <sys/socket.h>
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/wait.h>
-#include <sys/time.h>
-#include <sys/stat.h>
+#include "platform.h"
+#include "gnunet_private_config.h"
 #include <netpacket/packet.h>
 #include <linux/if_ether.h>
-#include <linux/if.h>
 #include <linux/wireless.h>
-#include <netinet/in.h>
-#include <linux/if_tun.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <dirent.h>
-#include <sys/param.h>
-#include <unistd.h>
-#include <stdint.h>
 
 #include "gnunet_protocols.h"
 #include "plugin_transport_wlan.h"

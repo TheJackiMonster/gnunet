@@ -57,7 +57,8 @@ GNUNET_FS_file_information_get_id (struct GNUNET_FS_FileInformation *s)
  * @return "filename" field of the structure (can be NULL)
  */
 const char *
-GNUNET_FS_file_information_get_filename (const struct GNUNET_FS_FileInformation *s)
+GNUNET_FS_file_information_get_filename (const struct
+                                         GNUNET_FS_FileInformation *s)
 {
   return s->filename;
 }
@@ -89,7 +90,7 @@ GNUNET_FS_file_information_create_from_file (
   void *client_info,
   const char *filename,
   const struct GNUNET_FS_Uri *keywords,
-  const struct GNUNET_CONTAINER_MetaData *meta,
+  const struct GNUNET_FS_MetaData *meta,
   int do_index,
   const struct GNUNET_FS_BlockOptions *bo)
 {
@@ -132,13 +133,13 @@ GNUNET_FS_file_information_create_from_file (
 /* FIXME: If we assume that on other platforms CRT is UTF-8-aware, then
  * this should be changed to EXTRACTOR_METAFORMAT_UTF8
  */
-  GNUNET_CONTAINER_meta_data_insert (ret->meta,
-                                     "<gnunet>",
-                                     EXTRACTOR_METATYPE_GNUNET_ORIGINAL_FILENAME,
-                                     EXTRACTOR_METAFORMAT_C_STRING,
-                                     "text/plain",
-                                     fn,
-                                     strlen (fn) + 1);
+  GNUNET_FS_meta_data_insert (ret->meta,
+                              "<gnunet>",
+                              EXTRACTOR_METATYPE_GNUNET_ORIGINAL_FILENAME,
+                              EXTRACTOR_METAFORMAT_C_STRING,
+                              "text/plain",
+                              fn,
+                              strlen (fn) + 1);
   return ret;
 }
 
@@ -150,7 +151,7 @@ GNUNET_FS_file_information_create_from_data (
   uint64_t length,
   void *data,
   const struct GNUNET_FS_Uri *keywords,
-  const struct GNUNET_CONTAINER_MetaData *meta,
+  const struct GNUNET_FS_MetaData *meta,
   int do_index,
   const struct GNUNET_FS_BlockOptions *bo)
 {
@@ -180,7 +181,7 @@ GNUNET_FS_file_information_create_from_reader (
   GNUNET_FS_DataReader reader,
   void *reader_cls,
   const struct GNUNET_FS_Uri *keywords,
-  const struct GNUNET_CONTAINER_MetaData *meta,
+  const struct GNUNET_FS_MetaData *meta,
   int do_index,
   const struct GNUNET_FS_BlockOptions *bo)
 {
@@ -194,9 +195,9 @@ GNUNET_FS_file_information_create_from_reader (
   ret = GNUNET_new (struct GNUNET_FS_FileInformation);
   ret->h = h;
   ret->client_info = client_info;
-  ret->meta = GNUNET_CONTAINER_meta_data_duplicate (meta);
+  ret->meta = GNUNET_FS_meta_data_duplicate (meta);
   if (ret->meta == NULL)
-    ret->meta = GNUNET_CONTAINER_meta_data_create ();
+    ret->meta = GNUNET_FS_meta_data_create ();
   ret->keywords = (keywords == NULL) ? NULL : GNUNET_FS_uri_dup (keywords);
   ret->data.file.reader = reader;
   ret->data.file.reader_cls = reader_cls;
@@ -226,7 +227,7 @@ GNUNET_FS_file_information_create_empty_directory (
   struct GNUNET_FS_Handle *h,
   void *client_info,
   const struct GNUNET_FS_Uri *keywords,
-  const struct GNUNET_CONTAINER_MetaData *meta,
+  const struct GNUNET_FS_MetaData *meta,
   const struct GNUNET_FS_BlockOptions *bo,
   const char *filename)
 {
@@ -235,7 +236,7 @@ GNUNET_FS_file_information_create_empty_directory (
   ret = GNUNET_new (struct GNUNET_FS_FileInformation);
   ret->h = h;
   ret->client_info = client_info;
-  ret->meta = GNUNET_CONTAINER_meta_data_duplicate (meta);
+  ret->meta = GNUNET_FS_meta_data_duplicate (meta);
   ret->keywords = GNUNET_FS_uri_dup (keywords);
   ret->bo = *bo;
   ret->is_directory = GNUNET_YES;
@@ -392,7 +393,7 @@ GNUNET_FS_file_information_destroy (struct GNUNET_FS_FileInformation *fi,
   if (NULL != fi->keywords)
     GNUNET_FS_uri_destroy (fi->keywords);
   if (NULL != fi->meta)
-    GNUNET_CONTAINER_meta_data_destroy (fi->meta);
+    GNUNET_FS_meta_data_destroy (fi->meta);
   GNUNET_free (fi->serialization);
   if (NULL != fi->te)
   {

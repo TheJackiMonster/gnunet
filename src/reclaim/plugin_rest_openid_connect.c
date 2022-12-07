@@ -30,8 +30,7 @@
 #include <jansson.h>
 #include <jose/jose.h>
 
-#include "gnunet_buffer_lib.h"
-#include "gnunet_strings_lib.h"
+#include "gnunet_util_lib.h"
 #include "gnunet_gns_service.h"
 #include "gnunet_gnsrecord_lib.h"
 #include "gnunet_identity_service.h"

@@ -40,7 +40,7 @@
  * 1: check all external inputs
  * 2: check internal computations as well
  */
-#define SANITY_CHECKS 2
+#define SANITY_CHECKS 0
 
 /**
  * Should routing details be logged to stderr (for debugging)?
@@ -506,6 +506,7 @@ handle_dht_local_put (void *cls,
        (unsigned long) (size - sizeof(struct GNUNET_DHT_ClientPutMessage)),
        GNUNET_h2s (&dht_msg->key),
        (unsigned int) bd.type);
+#if SANITY_CHECKS > 0
   if (GNUNET_OK !=
       GNUNET_BLOCK_check_block (GDS_block_context,
                                 bd.type,
@@ -515,6 +516,7 @@ handle_dht_local_put (void *cls,
     GNUNET_break (0);
     return;
   }
+#endif
   GNUNET_STATISTICS_update (GDS_stats,
                             "# PUT requests received from clients",
                             1,
@@ -1074,7 +1076,9 @@ GDS_CLIENTS_handle_reply (const struct GNUNET_DATACACHE_Block *bd,
                  + bd->data_size
                  + (get_path_length + bd->put_path_length)
                  * sizeof(struct GNUNET_DHT_PathElement);
+#if SANITY_CHECKS > 1
   bool truncated = (0 != (bd->ro & GNUNET_DHT_RO_TRUNCATED));
+#endif
 
   if (msize >= GNUNET_MAX_MESSAGE_SIZE)
   {

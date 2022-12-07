@@ -18,8 +18,8 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 
-#include <stdlib.h>
 #include "platform.h"
+#include <stdlib.h>
 #include "gnunet_util_lib.h"
 #include "gnunet_protocols.h"
 

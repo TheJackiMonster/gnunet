@@ -27,8 +27,7 @@
 #define GNUNET_MESSENGER_API_CONTACT_STORE_H
 
 #include "platform.h"
-#include "gnunet_container_lib.h"
-#include "gnunet_crypto_lib.h"
+#include "gnunet_util_lib.h"
 #include "gnunet_identity_service.h"
 
 struct GNUNET_MESSENGER_Contact;

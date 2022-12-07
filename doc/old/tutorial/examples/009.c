@@ -1,3 +1,4 @@
+#include "platform.h"
 #include <gnunet/gnunet_core_service.h>
 
 struct GNUNET_CORE_Handle *

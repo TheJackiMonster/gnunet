@@ -34,7 +34,7 @@
 #ifndef HAVE_USED_CONFIG_H
 #define HAVE_USED_CONFIG_H
 #if HAVE_CONFIG_H
-#include "gnunet_config.h"
+#include "gnunet_private_config.h"
 #endif
 #endif
 

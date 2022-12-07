@@ -23,6 +23,7 @@
  * @brief messenger api: client and service implementation of GNUnet MESSENGER service
  */
 
+#include "platform.h"
 #include "messenger_api_message.h"
 
 struct GNUNET_MESSENGER_MessageSignature
@@ -539,14 +540,15 @@ encode_short_message (const struct GNUNET_MESSENGER_ShortMessage *message,
 } while (0)
 
 #define decode_step_key(src, offset, dst, length) do {   \
+  enum GNUNET_GenericReturnValue result;                 \
   size_t read;                                           \
-  ssize_t result = GNUNET_IDENTITY_read_public_key_from_buffer( \
+  result = GNUNET_IDENTITY_read_public_key_from_buffer(  \
     src + offset, length - offset, dst, &read            \
   );                                                     \
-  if (result < 0)                                        \
+  if (GNUNET_SYSERR == result)                                        \
     GNUNET_break(0);                                     \
   else                                                   \
-    offset += result;                                    \
+    offset += read;                                    \
 } while (0)
 
 static uint16_t

@@ -29,6 +29,7 @@
 #include "gnunet_constants.h"
 #include "gnunet_datastore_service.h"
 #include "gnunet_dht_service.h"
+
 #include "gnunet_fs_service.h"
 #include "gnunet_block_lib.h"
 #include "block_fs.h"

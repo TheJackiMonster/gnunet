@@ -25,6 +25,7 @@
  * @author Elias Summermatter
  */
 
+#include "platform.h"
 #include "ibf.h"
 #include "gnunet_util_lib.h"
 #define LOG(kind, ...) GNUNET_log_from (kind, "setu", __VA_ARGS__)

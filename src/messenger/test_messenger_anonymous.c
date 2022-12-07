@@ -22,8 +22,8 @@
  * @author Tobias Frisch
  * @brief Test for the messenger service using cadet API.
  */
-#include <stdio.h>
 #include "platform.h"
+#include <stdio.h>
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
 #include "gnunet_messenger_service.h"

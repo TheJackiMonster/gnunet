@@ -7,6 +7,12 @@ pkgcfgdir= $(pkgdatadir)/config.d/
 
 libexecdir= $(pkglibdir)/libexec/
 
+sqldir = $(prefix)/share/gnunet/sql/
+
+sql_DATA = \
+  namestore-0001.sql \
+  namestore-drop.sql
+
 pkgcfg_DATA = \
    namestore.conf
 
@@ -514,6 +520,7 @@ test_plugin_namestore_postgres_LDADD = \
 
 check_SCRIPTS = \
   test_namestore_put.sh \
+  test_namestore_put_stdin.sh \
   test_namestore_lookup.sh \
   test_namestore_delete.sh \
   test_namestore_zonefile_import.sh
@@ -531,5 +538,6 @@ EXTRA_DIST = \
   test_plugin_namestore_sqlite.conf \
   test_plugin_namestore_postgres.conf \
   test_hostkey \
-	example_zonefile \
-  $(check_SCRIPTS)
+  example_zonefile \
+  $(check_SCRIPTS) \
+  $(sql_DATA)

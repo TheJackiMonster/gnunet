@@ -31,6 +31,11 @@
  * Disk IO APIs
  * @{
  */
+
+#if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
+#error "Only <gnunet_util_lib.h> can be included directly."
+#endif
+
 #ifndef GNUNET_DISK_LIB_H
 #define GNUNET_DISK_LIB_H
 
@@ -76,6 +81,7 @@ struct GNUNET_DISK_FileHandle
    or unsigned long long, this IS platform dependent;
    but "stdlib.h" should be portable 'enough' to be
    unconditionally available... */
+
 #include <stdlib.h>
 #include "gnunet_configuration_lib.h"
 #include "gnunet_scheduler_lib.h"

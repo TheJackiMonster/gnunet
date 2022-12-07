@@ -31,6 +31,7 @@
 #ifndef GNUNET_BLOCK_GROUP_LIB_H
 #define GNUNET_BLOCK_GROUP_LIB_H
 
+
 #include "gnunet_util_lib.h"
 #include "gnunet_block_lib.h"
 

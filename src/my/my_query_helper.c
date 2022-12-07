@@ -25,6 +25,7 @@
  */
 #include "platform.h"
 #include <mysql/mysql.h>
+#include "gnunet_mysql_compat.h"
 #include "gnunet_my_lib.h"
 
 

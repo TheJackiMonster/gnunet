@@ -27,8 +27,9 @@
  * @brief implementation of CRC16 and CRC32
  * @author Christian Grothoff
  */
+
 #include "platform.h"
-#include "gnunet_crypto_lib.h"
+#include "gnunet_util_lib.h"
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-crypto-crc", __VA_ARGS__)
 
@@ -56,18 +57,17 @@ static void
 crc_init ()
 {
   static int once;
-  unsigned int i, j;
   GNUNET_uLong h = 1;
 
   if (once)
     return;
   once = 1;
   crc_table[0] = 0;
-  for (i = 128; i; i >>= 1)
+  for (unsigned int i = 128; i; i >>= 1)
   {
     h = (h >> 1) ^ ((h & 1) ? POLYNOMIAL : 0);
     /* h is now crc_table[i] */
-    for (j = 0; j < 256; j += 2 * i)
+    for (unsigned int j = 0; j < 256; j += 2 * i)
       crc_table[i + j] = crc_table[j] ^ h;
   }
 }
@@ -84,7 +84,7 @@ crc_init ()
  * property of detecting all burst errors of length 32 bits or less.
  */
 static GNUNET_uLong
-crc32 (GNUNET_uLong crc, const char *buf, size_t len)
+gn_crc32 (GNUNET_uLong crc, const char *buf, size_t len)
 {
   crc_init ();
   GNUNET_assert (crc_table[255] != 0);
@@ -100,8 +100,8 @@ GNUNET_CRYPTO_crc32_n (const void *buf, size_t len)
 {
   GNUNET_uLong crc;
 
-  crc = crc32 (0L, Z_NULL, 0);
-  crc = crc32 (crc, (char *) buf, len);
+  crc = gn_crc32 (0L, Z_NULL, 0);
+  crc = gn_crc32 (crc, (char *) buf, len);
   return crc;
 }
 

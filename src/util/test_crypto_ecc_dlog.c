@@ -23,6 +23,7 @@
  * @brief testcase for ECC DLOG calculation
  * @author Christian Grothoff
  */
+
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include <gcrypt.h>

@@ -26,7 +26,6 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_namestore_plugin.h"
 #include "gnunet_testing_lib.h"
-#include "gnunet_dnsparser_lib.h"
 
 #define TEST_RECORD_TYPE GNUNET_DNSPARSER_TYPE_TXT
 
@@ -66,23 +65,30 @@ load_plugin (const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
   struct GNUNET_NAMESTORE_PluginFunctions *ret;
   char *libname;
-  char *emsg;
 
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              _ ("Loading `%s' namestore plugin\n"),
+              "Loading `%s' namestore plugin\n",
               plugin_name);
-  GNUNET_asprintf (&libname, "libgnunet_plugin_namestore_%s", plugin_name);
+  GNUNET_asprintf (&libname,
+                   "libgnunet_plugin_namestore_%s",
+                   plugin_name);
   if (NULL == (ret = GNUNET_PLUGIN_load (libname, (void *) cfg)))
   {
-    fprintf (stderr, "Failed to load plugin `%s'!\n", plugin_name);
+    fprintf (stderr,
+             "Failed to load plugin `%s'!\n",
+             plugin_name);
     GNUNET_free (libname);
     return NULL;
   }
   GNUNET_free (libname);
-  if (GNUNET_OK != ret->reset_database (ret->cls, &emsg))
+  if (GNUNET_OK != ret->drop_tables (ret->cls))
   {
-    fprintf (stderr, "Error resetting database: %s\n", emsg);
-    GNUNET_free (emsg);
+    GNUNET_break (0);
+    return NULL;
+  }
+  if (GNUNET_OK != ret->create_tables (ret->cls))
+  {
+    GNUNET_break (0);
     return NULL;
   }
   return ret;

@@ -33,8 +33,13 @@
  * @{
  */
 
+#if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
+#error "Only <gnunet_util_lib.h> can be included directly."
+#endif
+
 #ifndef GNUNET_BIO_LIB_H
 #define GNUNET_BIO_LIB_H
+
 
 #include "gnunet_container_lib.h"
 
@@ -86,6 +91,15 @@ GNUNET_BIO_read_open_buffer (void *buffer, size_t size);
 int
 GNUNET_BIO_read_close (struct GNUNET_BIO_ReadHandle *h, char **emsg);
 
+/**
+ * Set read error to handle
+ *
+ * @param h the handle
+ * @param emsg the message
+ */
+void
+GNUNET_BIO_read_set_error (struct GNUNET_BIO_ReadHandle *h, const char* emsg);
+
 
 /**
  * Read some contents into a buffer.
@@ -119,19 +133,6 @@ GNUNET_BIO_read_string (struct GNUNET_BIO_ReadHandle *h,
                         char **result,
                         size_t max_length);
 
-
-/**
- * Read a metadata container.
- *
- * @param h handle to an open file
- * @param what describes what is being read (for error message creation)
- * @param result the buffer to store a pointer to the (allocated) metadata
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on failure
- */
-int
-GNUNET_BIO_read_meta_data (struct GNUNET_BIO_ReadHandle *h,
-                           const char *what,
-                           struct GNUNET_CONTAINER_MetaData **result);
 
 
 /**
@@ -289,19 +290,6 @@ GNUNET_BIO_write_string (struct GNUNET_BIO_WriteHandle *h,
                          const char *s);
 
 
-/**
- * Write a metadata container.
- *
- * @param h the IO handle to write to
- * @param what what is being written (for error message creation)
- * @param m metadata to write
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
-int
-GNUNET_BIO_write_meta_data (struct GNUNET_BIO_WriteHandle *h,
-                            const char *what,
-                            const struct GNUNET_CONTAINER_MetaData *m);
-
 
 /**
  * Write a float.
@@ -448,17 +436,6 @@ GNUNET_BIO_read_spec_string (const char *what,
                              size_t max_length);
 
 
-/**
- * Create the specification to read a metadata container.
- *
- * @param what describes what is being read (for error message creation)
- * @param result the buffer to store a pointer to the (allocated) metadata
- * @return the read spec
- */
-struct GNUNET_BIO_ReadSpec
-GNUNET_BIO_read_spec_meta_data (const char *what,
-                                struct GNUNET_CONTAINER_MetaData **result);
-
 
 /**
  * Create the specification to read an (u)int32_t.
@@ -602,18 +579,6 @@ GNUNET_BIO_write_spec_object (const char *what,
 struct GNUNET_BIO_WriteSpec
 GNUNET_BIO_write_spec_string (const char *what,
                               const char *s);
-
-
-/**
- * Create the specification to write a metadata container.
- *
- * @param what what is being written (for error message creation)
- * @param m metadata to write
- * @return the write spec
- */
-struct GNUNET_BIO_WriteSpec
-GNUNET_BIO_write_spec_meta_data (const char *what,
-                                 const struct GNUNET_CONTAINER_MetaData *m);
 
 
 /**

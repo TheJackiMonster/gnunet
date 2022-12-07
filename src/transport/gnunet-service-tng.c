@@ -4685,8 +4685,9 @@ dv_setup_key_state_from_km (const struct GNUNET_HashCode *km,
  * @param target the target peer to encrypt to
  * @param iv unique IV to use
  * @param[out] key set to the key material
+ * @return GNUNET_OK on success
  */
-static void
+static enum GNUNET_GenericReturnValue
 dh_key_derive_eph_pid (
   const struct GNUNET_CRYPTO_EcdhePrivateKey *priv_ephemeral,
   const struct GNUNET_PeerIdentity *target,
@@ -4695,10 +4696,14 @@ dh_key_derive_eph_pid (
 {
   struct GNUNET_HashCode km;
 
-  GNUNET_assert (GNUNET_YES == GNUNET_CRYPTO_ecdh_eddsa (priv_ephemeral,
-                                                         &target->public_key,
-                                                         &km));
+  if (GNUNET_YES != GNUNET_CRYPTO_ecdh_eddsa (priv_ephemeral,
+                                              &target->public_key,
+                                              &km))
+    return GNUNET_SYSERR;
+  // FIXME: Possibly also add return values here. We are processing
+  // Input from other peers...
   dv_setup_key_state_from_km (&km, iv, key);
+  return GNUNET_OK;
 }
 
 
@@ -4710,18 +4715,21 @@ dh_key_derive_eph_pid (
  * @param target the target peer to encrypt to
  * @param iv unique IV to use
  * @param[out] key set to the key material
+ * @return GNUNET_OK on success
  */
-static void
+static enum GNUNET_GenericReturnValue
 dh_key_derive_eph_pub (const struct GNUNET_CRYPTO_EcdhePublicKey *pub_ephemeral,
                        const struct GNUNET_ShortHashCode *iv,
                        struct DVKeyState *key)
 {
   struct GNUNET_HashCode km;
 
-  GNUNET_assert (GNUNET_YES == GNUNET_CRYPTO_eddsa_ecdh (GST_my_private_key,
-                                                         pub_ephemeral,
-                                                         &km));
+  if (GNUNET_YES != GNUNET_CRYPTO_eddsa_ecdh (GST_my_private_key,
+                                              pub_ephemeral,
+                                              &km))
+    return GNUNET_SYSERR;
   dv_setup_key_state_from_km (&km, iv, key);
+  return GNUNET_OK;
 }
 
 
@@ -4769,15 +4777,18 @@ dv_encrypt (struct DVKeyState *key, const void *in, void *dst, size_t in_size)
  * @param ciph cipher text to decrypt
  * @param[out] out output data to generate (plaintext)
  * @param out_size number of bytes of input in @a ciph and available in @a out
+ * @return GNUNET_OK on success
  */
-static void
+static enum GNUNET_GenericReturnValue
 dv_decrypt (struct DVKeyState *key,
             void *out,
             const void *ciph,
             size_t out_size)
 {
-  GNUNET_assert (
-    0 == gcry_cipher_decrypt (key->cipher, out, out_size, ciph, out_size));
+  return (0 ==
+          gcry_cipher_decrypt (key->cipher,
+                               out, out_size,
+                               ciph, out_size)) ? GNUNET_OK : GNUNET_SYSERR;
 }
 
 
@@ -4837,8 +4848,6 @@ encapsulate_for_dv (struct DistanceVector *dv,
   struct TransportDVBoxPayloadP payload_hdr;
   uint16_t enc_body_size = ntohs (hdr->size);
   char enc[sizeof(struct TransportDVBoxPayloadP) + enc_body_size] GNUNET_ALIGN;
-  struct TransportDVBoxPayloadP *enc_payload_hdr =
-    (struct TransportDVBoxPayloadP *) enc;
   struct DVKeyState *key;
   struct GNUNET_TIME_Relative rtt;
 
@@ -4854,10 +4863,14 @@ encapsulate_for_dv (struct DistanceVector *dv,
   GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
                               &box_hdr.iv,
                               sizeof(box_hdr.iv));
-  dh_key_derive_eph_pid (&dv->private_key, &dv->target, &box_hdr.iv, key);
+  // We are creating this key, so this must work.
+  GNUNET_assert (GNUNET_OK ==
+                 dh_key_derive_eph_pid (&dv->private_key,
+                                        &dv->target,
+                                        &box_hdr.iv, key));
   payload_hdr.sender = GST_my_identity;
   payload_hdr.monotonic_time = GNUNET_TIME_absolute_hton (dv->monotime);
-  dv_encrypt (key, &payload_hdr, enc_payload_hdr, sizeof(payload_hdr));
+  dv_encrypt (key, &payload_hdr, enc, sizeof(payload_hdr));
   dv_encrypt (key,
               hdr,
               &enc[sizeof(struct TransportDVBoxPayloadP)],
@@ -8153,12 +8166,10 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
   const char *enc_payload = (const char *) &hops[num_hops];
   uint16_t enc_payload_size =
     size - (num_hops * sizeof(struct GNUNET_PeerIdentity));
-  struct DVKeyState *key;
+  struct DVKeyState key;
   struct GNUNET_HashCode hmac;
   const char *hdr;
   size_t hdr_len;
-
-  key = GNUNET_new (struct DVKeyState);
 
   if (GNUNET_EXTRA_LOGGING > 0)
   {
@@ -8234,13 +8245,20 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
                             GNUNET_NO);
   cmc->total_hops = ntohs (dvb->total_hops);
 
-  dh_key_derive_eph_pub (&dvb->ephemeral_key, &dvb->iv, key);
+  // DH key derivation with received DV, could be garbage.
+  if (GNUNET_OK !=
+      dh_key_derive_eph_pub (&dvb->ephemeral_key, &dvb->iv, &key))
+  {
+    GNUNET_break_op (0);
+    finish_cmc_handling (cmc);
+    return;
+  }
   hdr = (const char *) &dvb[1];
   hdr_len = ntohs (dvb->orig_size) - sizeof(*dvb) - sizeof(struct
                                                            GNUNET_PeerIdentity)
             * ntohs (dvb->total_hops);
 
-  dv_hmac (key, &hmac, hdr, hdr_len);
+  dv_hmac (&key, &hmac, hdr, hdr_len);
   if (0 != GNUNET_memcmp (&hmac, &dvb->hmac))
   {
     /* HMAC mismatch, discard! */
@@ -8254,14 +8272,29 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
     struct GNUNET_TIME_Absolute monotime;
     struct TransportDVBoxPayloadP ppay;
     char body[hdr_len - sizeof(ppay)] GNUNET_ALIGN;
-    const struct GNUNET_MessageHeader *mh =
-      (const struct GNUNET_MessageHeader *) body;
+    const struct GNUNET_MessageHeader *mh;
 
     GNUNET_assert (hdr_len >=
                    sizeof(ppay) + sizeof(struct GNUNET_MessageHeader));
-    dv_decrypt (key, &ppay, hdr, sizeof(ppay));
-    dv_decrypt (key, &body, &hdr[sizeof(ppay)], hdr_len - sizeof(ppay));
-    dv_key_clean (key);
+    if (GNUNET_OK != dv_decrypt (&key, &ppay, hdr, sizeof(ppay)))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Error decrypting DV payload header\n");
+      GNUNET_break_op (0);
+      finish_cmc_handling (cmc);
+      return;
+    }
+    if (GNUNET_OK != dv_decrypt (&key, body,
+                                 &hdr[sizeof(ppay)], hdr_len - sizeof(ppay)))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Error decrypting DV payload\n");
+      GNUNET_break_op (0);
+      finish_cmc_handling (cmc);
+      return;
+    }
+    mh = (const struct GNUNET_MessageHeader *) body;
+    dv_key_clean (&key);
     if (ntohs (mh->size) != sizeof(body))
     {
       GNUNET_break_op (0);

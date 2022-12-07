@@ -23,6 +23,7 @@
  * @brief GNUnet MESSENGER service
  */
 
+#include "platform.h"
 #include "gnunet-service-messenger_room.h"
 
 #include "gnunet-service-messenger_member.h"

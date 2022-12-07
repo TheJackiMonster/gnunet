@@ -31,8 +31,6 @@
 #include "gnunet_signatures.h"
 #include "gnunet_arm_service.h"
 #include "gnunet_gnsrecord_lib.h"
-#include "gnunet_dnsparser_lib.h"
-#include "gnunet_tun_lib.h"
 
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "gnsrecord", __VA_ARGS__)
@@ -173,7 +171,7 @@ GNUNET_GNSRECORD_record_get_expiration_time (unsigned int rd_count,
       /* Check for shadow record */
       if ((c == c2) ||
           (rd[c].record_type != rd[c2].record_type) ||
-          (0 == (rd[c2].flags & GNUNET_GNSRECORD_RF_SHADOW_RECORD)))
+          (0 == (rd[c2].flags & GNUNET_GNSRECORD_RF_SHADOW)))
         continue;
       /* We have a shadow record */
       if (0 != (rd[c2].flags & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION))

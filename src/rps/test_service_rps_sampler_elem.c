@@ -21,6 +21,7 @@
  * @file rps/test_service_rps_sampler_elem.c
  * @brief testcase for gnunet-service-rps_sampler_elem.c
  */
+#include "platform.h"
 #include <platform.h>
 #include "gnunet_util_lib.h"
 #include "gnunet-service-rps_sampler_elem.h"

@@ -81,6 +81,7 @@
  *
  */
 #include "platform.h"
+
 #include "gnunet_fs_service.h"
 #include "gnunet_signatures.h"
 #include "fs_api.h"
@@ -343,7 +344,7 @@ uri_ksk_parse (const char *s, char **emsg)
   ret->data.ksk.keywordCount = iret;
   ret->data.ksk.keywords = keywords;
   return ret;
-CLEANUP:
+  CLEANUP:
   for (i = 0; i < max; i++)
     GNUNET_free (keywords[i]);
   GNUNET_free (keywords);
@@ -620,7 +621,7 @@ uri_loc_parse (const char *s, char **emsg)
   uri->data.loc.contentSignature = sig;
 
   return uri;
-ERR:
+  ERR:
   return NULL;
 }
 
@@ -1768,7 +1769,7 @@ gather_uri_data (void *cls,
  */
 struct GNUNET_FS_Uri *
 GNUNET_FS_uri_ksk_create_from_meta_data (
-  const struct GNUNET_CONTAINER_MetaData *md)
+  const struct GNUNET_FS_MetaData *md)
 {
   struct GNUNET_FS_Uri *ret;
   char *filename;
@@ -1782,10 +1783,10 @@ GNUNET_FS_uri_ksk_create_from_meta_data (
     return NULL;
   ret = GNUNET_new (struct GNUNET_FS_Uri);
   ret->type = GNUNET_FS_URI_KSK;
-  ent = GNUNET_CONTAINER_meta_data_iterate (md, NULL, NULL);
+  ent = GNUNET_FS_meta_data_iterate (md, NULL, NULL);
   if (ent > 0)
   {
-    full_name = GNUNET_CONTAINER_meta_data_get_first_by_types (
+    full_name = GNUNET_FS_meta_data_get_first_by_types (
       md,
       EXTRACTOR_METATYPE_GNUNET_ORIGINAL_FILENAME,
       -1);
@@ -1801,7 +1802,7 @@ GNUNET_FS_uri_ksk_create_from_meta_data (
        plus theoretically one more for mime... */
     ret->data.ksk.keywords =
       GNUNET_new_array ((ent + tok_keywords + paren_keywords) * 3, char *);
-    GNUNET_CONTAINER_meta_data_iterate (md, &gather_uri_data, ret);
+    GNUNET_FS_meta_data_iterate (md, &gather_uri_data, ret);
   }
   if (tok_keywords > 0)
     ret->data.ksk.keywordCount +=

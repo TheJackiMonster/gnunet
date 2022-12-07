@@ -31,8 +31,6 @@
 #include "gnunet_signatures.h"
 #include "gnunet_arm_service.h"
 #include "gnunet_gnsrecord_lib.h"
-#include "gnunet_dnsparser_lib.h"
-#include "gnunet_tun_lib.h"
 
 /**
  * Information we have in an encrypted block with record data (i.e. in the DHT).

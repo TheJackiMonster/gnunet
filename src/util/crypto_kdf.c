@@ -25,10 +25,11 @@
  * @author Jeffrey Burdges <burdges@gnunet.org>
  */
 
+#include "platform.h"
 #include <gcrypt.h>
 
-#include "platform.h"
-#include "gnunet_crypto_lib.h"
+
+#include "gnunet_util_lib.h"
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-crypto-kdf", __VA_ARGS__)
 

@@ -22,14 +22,10 @@
  * @brief configuration management
  * @author Christian Grothoff
  */
+
 #include "platform.h"
-#include "gnunet_crypto_lib.h"
-#include "gnunet_strings_lib.h"
-#include "gnunet_os_lib.h"
+#include "gnunet_util_lib.h"
 #include "gnunet_configuration_lib.h"
-#include "gnunet_disk_lib.h"
-#include "gnunet_buffer_lib.h"
-#include "gnunet_container_lib.h"
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "util", __VA_ARGS__)
 

@@ -437,7 +437,7 @@ GNUNET_RECLAIM_credential_serialize (
   char *write_ptr;
 
   atts = (struct Credential *) result;
-  atts->credential_type = htons (credential->type);
+  atts->credential_type = htonl (credential->type);
   atts->credential_flag = htonl (credential->flag);
   atts->credential_id = credential->id;
   name_len = strlen (credential->name);
@@ -488,7 +488,7 @@ GNUNET_RECLAIM_credential_deserialize (const char *data, size_t data_size)
   }
   credential = GNUNET_malloc (sizeof(struct GNUNET_RECLAIM_Credential)
                               + data_len + name_len + 1);
-  credential->type = ntohs (atts->credential_type);
+  credential->type = ntohl (atts->credential_type);
   credential->flag = ntohl (atts->credential_flag);
   credential->id = atts->credential_id;
   credential->data_size = data_len;
@@ -856,7 +856,7 @@ GNUNET_RECLAIM_presentation_serialize (
   char *write_ptr;
 
   atts = (struct Presentation *) result;
-  atts->presentation_type = htons (presentation->type);
+  atts->presentation_type = htonl (presentation->type);
   atts->credential_id = presentation->credential_id;
   write_ptr = (char *) &atts[1];
   GNUNET_memcpy (write_ptr, presentation->data, presentation->data_size);
@@ -895,7 +895,7 @@ GNUNET_RECLAIM_presentation_deserialize (const char *data, size_t data_size)
   }
   presentation = GNUNET_malloc (sizeof(struct GNUNET_RECLAIM_Presentation)
                                 + data_len);
-  presentation->type = ntohs (atts->presentation_type);
+  presentation->type = ntohl (atts->presentation_type);
   presentation->credential_id = atts->credential_id;
   presentation->data_size = data_len;
 

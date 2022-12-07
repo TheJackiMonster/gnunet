@@ -39,11 +39,11 @@ extern "C" {
 #endif
 #endif
 
+
 #include "platform.h"
 #include "gnunet_configuration_lib.h"
-#include "gnunet_crypto_lib.h"
+#include "gnunet_util_lib.h"
 #include "gnunet_identity_service.h"
-#include "gnunet_mq_lib.h"
 #include "gnunet_protocols.h"
 #include "gnunet_scheduler_lib.h"
 #include "gnunet_time_lib.h"

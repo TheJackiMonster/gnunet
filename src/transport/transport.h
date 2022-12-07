@@ -26,7 +26,7 @@
 #ifndef TRANSPORT_H
 #define TRANSPORT_H
 
-#include "gnunet_crypto_lib.h"
+#include "gnunet_util_lib.h"
 #include "gnunet_time_lib.h"
 #include "gnunet_constants.h"
 

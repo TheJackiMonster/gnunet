@@ -26,6 +26,7 @@
  * This code was used for some internal experiments, it is not
  * build or shipped as part of the GNUnet system.
  */
+#include "platform.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

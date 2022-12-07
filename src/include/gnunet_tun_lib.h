@@ -18,6 +18,10 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 
+#if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
+#error "Only <gnunet_util_lib.h> can be included directly."
+#endif
+
 /**
  * @addtogroup vpn_suite  VPN services and libraries
  * @{
@@ -36,9 +40,6 @@
  */
 #ifndef GNUNET_TUN_LIB_H
 #define GNUNET_TUN_LIB_H
-
-#include "gnunet_common.h"
-#include "gnunet_crypto_lib.h"
 
 
 /* see http://www.iana.org/assignments/ethernet-numbers */

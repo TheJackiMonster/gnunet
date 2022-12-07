@@ -29,6 +29,7 @@ SOFTWARE.
 /* Rest of the file is 'original' */
 
 
+#include "platform.h"
 #include <stddef.h>
 #include <inttypes.h>
 

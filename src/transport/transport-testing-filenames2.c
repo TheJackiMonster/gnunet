@@ -23,6 +23,7 @@
  * @author Matthias Wachs
  * @author Christian Grothoff
  */
+#include "platform.h"
 #include "transport-testing2.h"
 
 

@@ -24,6 +24,7 @@
  */
 #include "platform.h"
 #include "gnunet_constants.h"
+
 #include "gnunet_fs_service.h"
 #include "fs_api.h"
 
@@ -35,7 +36,7 @@
  * @return NULL if meta data is useless for suggesting a filename
  */
 char *
-GNUNET_FS_meta_data_suggest_filename (const struct GNUNET_CONTAINER_MetaData
+GNUNET_FS_meta_data_suggest_filename (const struct GNUNET_FS_MetaData
                                       *md)
 {
   static const char *mimeMap[][2] = {
@@ -111,13 +112,13 @@ GNUNET_FS_meta_data_suggest_filename (const struct GNUNET_CONTAINER_MetaData
   const char *ext;
 
   ret =
-    GNUNET_CONTAINER_meta_data_get_by_type (md,
-                                            EXTRACTOR_METATYPE_GNUNET_ORIGINAL_FILENAME);
+    GNUNET_FS_meta_data_get_by_type (md,
+                                     EXTRACTOR_METATYPE_GNUNET_ORIGINAL_FILENAME);
   if (ret != NULL)
     return ret;
   ext = NULL;
   mime =
-    GNUNET_CONTAINER_meta_data_get_by_type (md, EXTRACTOR_METATYPE_MIMETYPE);
+    GNUNET_FS_meta_data_get_by_type (md, EXTRACTOR_METATYPE_MIMETYPE);
   if (mime != NULL)
   {
     i = 0;
@@ -131,24 +132,24 @@ GNUNET_FS_meta_data_suggest_filename (const struct GNUNET_CONTAINER_MetaData
     GNUNET_free (mime);
   }
   base =
-    GNUNET_CONTAINER_meta_data_get_first_by_types (md,
-                                                   EXTRACTOR_METATYPE_TITLE,
-                                                   EXTRACTOR_METATYPE_BOOK_TITLE,
-                                                   EXTRACTOR_METATYPE_ORIGINAL_TITLE,
-                                                   EXTRACTOR_METATYPE_PACKAGE_NAME,
-                                                   EXTRACTOR_METATYPE_URL,
-                                                   EXTRACTOR_METATYPE_URI,
-                                                   EXTRACTOR_METATYPE_DESCRIPTION,
-                                                   EXTRACTOR_METATYPE_ISRC,
-                                                   EXTRACTOR_METATYPE_JOURNAL_NAME,
-                                                   EXTRACTOR_METATYPE_AUTHOR_NAME,
-                                                   EXTRACTOR_METATYPE_SUBJECT,
-                                                   EXTRACTOR_METATYPE_ALBUM,
-                                                   EXTRACTOR_METATYPE_ARTIST,
-                                                   EXTRACTOR_METATYPE_KEYWORDS,
-                                                   EXTRACTOR_METATYPE_COMMENT,
-                                                   EXTRACTOR_METATYPE_UNKNOWN,
-                                                   -1);
+    GNUNET_FS_meta_data_get_first_by_types (md,
+                                            EXTRACTOR_METATYPE_TITLE,
+                                            EXTRACTOR_METATYPE_BOOK_TITLE,
+                                            EXTRACTOR_METATYPE_ORIGINAL_TITLE,
+                                            EXTRACTOR_METATYPE_PACKAGE_NAME,
+                                            EXTRACTOR_METATYPE_URL,
+                                            EXTRACTOR_METATYPE_URI,
+                                            EXTRACTOR_METATYPE_DESCRIPTION,
+                                            EXTRACTOR_METATYPE_ISRC,
+                                            EXTRACTOR_METATYPE_JOURNAL_NAME,
+                                            EXTRACTOR_METATYPE_AUTHOR_NAME,
+                                            EXTRACTOR_METATYPE_SUBJECT,
+                                            EXTRACTOR_METATYPE_ALBUM,
+                                            EXTRACTOR_METATYPE_ARTIST,
+                                            EXTRACTOR_METATYPE_KEYWORDS,
+                                            EXTRACTOR_METATYPE_COMMENT,
+                                            EXTRACTOR_METATYPE_UNKNOWN,
+                                            -1);
   if ((base == NULL) && (ext == NULL))
     return NULL;
   if (base == NULL)

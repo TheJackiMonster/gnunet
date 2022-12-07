@@ -24,8 +24,8 @@
  * @author Igor Wronsky, Christian Grothoff
  */
 #include "platform.h"
+
 #include "gnunet_fs_service.h"
-#include "gnunet_getopt_lib.h"
 #include "fs_api.h"
 
 /* ******************** command-line option parsing API ******************** */
@@ -164,20 +164,20 @@ getopt_set_metadata (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
                      const char *option,
                      const char *value)
 {
-  struct GNUNET_CONTAINER_MetaData **mm = scls;
+  struct GNUNET_FS_MetaData **mm = scls;
 
 #if HAVE_EXTRACTOR_H && HAVE_LIBEXTRACTOR
   enum EXTRACTOR_MetaType type;
   const char *typename;
   const char *typename_i18n;
 #endif
-  struct GNUNET_CONTAINER_MetaData *meta;
+  struct GNUNET_FS_MetaData *meta;
   char *tmp;
 
   meta = *mm;
   if (meta == NULL)
   {
-    meta = GNUNET_CONTAINER_meta_data_create ();
+    meta = GNUNET_FS_meta_data_create ();
     *mm = meta;
   }
 
@@ -197,12 +197,12 @@ getopt_set_metadata (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
         (tmp[strlen (typename)] == ':') &&
         (0 == strncmp (typename, tmp, strlen (typename))))
     {
-      GNUNET_CONTAINER_meta_data_insert (meta, "<gnunet>", type,
-                                         EXTRACTOR_METAFORMAT_UTF8,
-                                         "text/plain",
-                                         &tmp[strlen (typename) + 1],
-                                         strlen (&tmp[strlen (typename) + 1])
-                                         + 1);
+      GNUNET_FS_meta_data_insert (meta, "<gnunet>", type,
+                                  EXTRACTOR_METAFORMAT_UTF8,
+                                  "text/plain",
+                                  &tmp[strlen (typename) + 1],
+                                  strlen (&tmp[strlen (typename) + 1])
+                                  + 1);
       GNUNET_free (tmp);
       tmp = NULL;
       break;
@@ -211,13 +211,13 @@ getopt_set_metadata (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
         (tmp[strlen (typename_i18n)] == ':') &&
         (0 == strncmp (typename_i18n, tmp, strlen (typename_i18n))))
     {
-      GNUNET_CONTAINER_meta_data_insert (meta, "<gnunet>", type,
-                                         EXTRACTOR_METAFORMAT_UTF8,
-                                         "text/plain",
-                                         &tmp[strlen (typename_i18n) + 1],
-                                         strlen (&tmp
-                                                 [strlen (typename_i18n) + 1])
-                                         + 1);
+      GNUNET_FS_meta_data_insert (meta, "<gnunet>", type,
+                                  EXTRACTOR_METAFORMAT_UTF8,
+                                  "text/plain",
+                                  &tmp[strlen (typename_i18n) + 1],
+                                  strlen (&tmp
+                                          [strlen (typename_i18n) + 1])
+                                  + 1);
       GNUNET_free (tmp);
       tmp = NULL;
       break;
@@ -227,10 +227,10 @@ getopt_set_metadata (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
 
   if (NULL != tmp)
   {
-    GNUNET_CONTAINER_meta_data_insert (meta, "<gnunet>",
-                                       EXTRACTOR_METATYPE_UNKNOWN,
-                                       EXTRACTOR_METAFORMAT_UTF8, "text/plain",
-                                       tmp, strlen (tmp) + 1);
+    GNUNET_FS_meta_data_insert (meta, "<gnunet>",
+                                EXTRACTOR_METATYPE_UNKNOWN,
+                                EXTRACTOR_METAFORMAT_UTF8, "text/plain",
+                                tmp, strlen (tmp) + 1);
     GNUNET_free (tmp);
     printf (_
             (
@@ -255,7 +255,7 @@ GNUNET_FS_GETOPT_METADATA (char shortName,
                            const char *name,
                            const char *argumentHelp,
                            const char *description,
-                           struct GNUNET_CONTAINER_MetaData **meta)
+                           struct GNUNET_FS_MetaData **meta)
 {
   struct GNUNET_GETOPT_CommandLineOption clo = {
     .shortName = shortName,

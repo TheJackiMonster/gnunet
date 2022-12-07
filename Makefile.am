@@ -23,7 +23,7 @@ EXTRA_DIST = \
  .version
 
 gnunetincludedir = $(includedir)/gnunet
-gnunetinclude_HEADERS = gnunet_config.h
+#gnunetinclude_HEADERS = gnunet_config.h
 
 docdir = $(datadir)/doc/gnunet/
 doc_DATA = COPYING README

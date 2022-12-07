@@ -23,6 +23,7 @@
  * @brief testcase for ECC ECDHE public key crypto
  * @author Christian Grothoff
  */
+
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include <gcrypt.h>

@@ -1,3 +1,81 @@
+Mon, 5 Dec 2022 16:59:52 +0900 (1d670b15e)
+BUILD: include generated major/minor/micro version in gnunet_config.h - Martin Schanzenbach
+
+Mon, 5 Dec 2022 13:15:09 +0900 (6ccf51adc)
+BUILD: Improve extractor handling. Removed platform.h from include - Martin Schanzenbach
+
+Sun, 4 Dec 2022 23:26:25 +0900 (395bc9345)
+Large refactor in order to restore some sanity with respect to private defines used in headers - Martin Schanzenbach
+
+Sun, 4 Dec 2022 22:01:23 +0900 (3f0d91045)
+BUILD: Remove static_assert check - Martin Schanzenbach
+
+Sun, 4 Dec 2022 21:53:26 +0900 (a0914a0ad)
+MYSQL: Improve header includes with respect to compat handling - Martin Schanzenbach
+
+Sun, 4 Dec 2022 19:35:42 +0900 (38e77d7ab)
+UTIL: Allow only inlcusion of util glib-style. - Martin Schanzenbach
+
+Sun, 4 Dec 2022 16:47:17 +0900 (292cefa2a)
+BUILD: Attempt to disentable platform.h, gnunet_common.h and gnunet_private_config.h insanity - Martin Schanzenbach
+
+Sun, 4 Dec 2022 15:01:11 +0900 (cbe225ddc)
+BUILD: Move gnunet_config.h to gnunet_private_config.h and add new, partially generated gnunet_config.h - Martin Schanzenbach
+
+Thu, 1 Dec 2022 18:32:23 +0900 (de5949640)
+BUILD: Improve platform-specific includes - Martin Schanzenbach
+
+Wed, 23 Nov 2022 13:12:37 +0100 (7922fe165)
+typo - Christian Grothoff
+
+Wed, 23 Nov 2022 13:10:07 +0100 (28a4f4e5d)
+add function to compute channel name for notifications - Christian Grothoff
+
+Tue, 22 Nov 2022 15:38:22 +0100 (bf175e5d2)
+modernize datastore postgres implementation - Christian Grothoff
+
+Tue, 22 Nov 2022 15:21:50 +0100 (5ffa64ed1)
+modernize namecache postgres implementation - Christian Grothoff
+
+Tue, 22 Nov 2022 15:15:53 +0100 (7299f45d9)
+modernize datacache postgres implementation - Christian Grothoff
+
+Mon, 21 Nov 2022 17:08:39 +0100 (d237b33a4)
+modernize namestore postgres plugin, a bit - Christian Grothoff
+
+Sun, 20 Nov 2022 20:27:49 +0900 (9ee83b68e)
+NAMESTORE: Add recordline format for zone import and display - Martin Schanzenbach
+
+Sun, 20 Nov 2022 19:51:03 +0900 (56a3e354d)
+NAMESTORE: CLI utility can now parse multiple records from stdin - Martin Schanzenbach
+
+Wed, 16 Nov 2022 13:57:32 +0100 (e97190eb7)
+add versioning.sql - Christian Grothoff
+
+Thu, 10 Nov 2022 13:54:58 +0900 (4775f9e5e)
+GNS: Use flags as defined and generated from GANA - Martin Schanzenbach
+
+Sun, 6 Nov 2022 22:32:17 +0900 (bc3d776dd)
+IPC: Convert all message payload lengths to uint16_t types. - Martin Schanzenbach
+
+Sat, 5 Nov 2022 08:41:36 +0900 (e22c4a47f)
+RECLAIM: Fix length field inconsistencies in IPC protocol. Issue #7432 - Martin Schanzenbach
+
+Fri, 4 Nov 2022 11:18:46 +0100 (145a04e3a)
+update GANA - Christian Grothoff
+
+Sat, 29 Oct 2022 18:06:26 +0900 (0f2da4636)
+IDENTITY - Martin Schanzenbach
+
+Thu, 27 Oct 2022 23:24:27 +0900 (8ccba14bb)
+IDENTITY/NAMESTORE: - Martin Schanzenbach
+
+Thu, 27 Oct 2022 11:37:36 +0200 (aac2f0a62)
+actually, do both in case of ANY: datacache and HELLO - Christian Grothoff
+
+Thu, 27 Oct 2022 11:33:59 +0200 (2b86b51b1)
+disallow ANY for block type in PUTs; do return HELLOs for ANY in GET requests (see recent clarifications to R5N specification) - Christian Grothoff
+
 Wed, 26 Oct 2022 12:37:13 +0200 (d435321cf)
 gana to master - Christian Grothoff
 

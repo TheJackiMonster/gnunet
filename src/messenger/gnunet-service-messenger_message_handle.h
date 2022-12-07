@@ -27,7 +27,7 @@
 #define GNUNET_SERVICE_MESSENGER_MESSAGE_HANDLE_H
 
 #include "platform.h"
-#include "gnunet_crypto_lib.h"
+#include "gnunet_util_lib.h"
 
 #include "gnunet-service-messenger_message_kind.h"
 

@@ -25,6 +25,7 @@
 #ifndef GNUNET_PQ_LIB_H
 #define GNUNET_PQ_LIB_H
 
+
 #include <libpq-fe.h>
 #include "gnunet_util_lib.h"
 #include "gnunet_db_lib.h"
@@ -144,6 +145,39 @@ GNUNET_PQ_query_param_string (const char *ptr);
  */
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_bool (bool b);
+
+
+/**
+ * Information for an array argument.
+ */
+struct GNUNET_PQ_ArraySpec
+{
+  /**
+   * Number of dimensions of the array
+   */
+  unsigned int ndims;
+
+  /**
+   * Array of @e ndims lengths of the array
+   */
+  unsigned int *lens;
+
+  /**
+   * One-dimensional array of pointers to conversion functions for the
+   * elements in the array.
+   */
+  const struct GNUNET_PQ_QueryParam *ae;
+
+};
+
+
+/**
+ * Generate query parameter for an array.
+ *
+ * @param as array specification
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_array (const struct GNUNET_PQ_ArraySpec *as);
 
 
 /**
@@ -1104,6 +1138,17 @@ GNUNET_PQ_event_notify (struct GNUNET_PQ_Context *db,
                         const struct GNUNET_DB_EventHeaderP *es,
                         const void *extra,
                         size_t extra_size);
+
+
+/**
+ * Compute the channel that one should notify upon
+ * for the given event specification.
+ *
+ * @param es event specification
+ * @return channel to notify upon
+ */
+char *
+GNUNET_PG_get_event_notify_channel (const struct GNUNET_DB_EventHeaderP *es);
 
 
 /**

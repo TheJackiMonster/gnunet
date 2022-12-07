@@ -128,6 +128,16 @@ struct UpdateMessage
    */
   uint16_t end_of_list GNUNET_PACKED;
 
+  /**
+   * Key length
+   */
+  uint16_t key_len GNUNET_PACKED;
+
+  /**
+   * Reserved (alignment)
+   */
+  uint16_t reserved GNUNET_PACKED;
+
   /* followed by 0-terminated ego name */
   /* followed by the private key */
 };
@@ -150,11 +160,9 @@ struct CreateRequestMessage
   uint16_t name_len GNUNET_PACKED;
 
   /**
-   * Always zero.
+   * Key length
    */
-  uint16_t reserved GNUNET_PACKED;
-
-  uint32_t key_len GNUNET_PACKED;
+  uint16_t key_len GNUNET_PACKED;
 
   /*
    * Followed by the private key

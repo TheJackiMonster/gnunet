@@ -26,7 +26,6 @@
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_tun_lib.h"
 #include "gnunet_vpn_service.h"
 
 

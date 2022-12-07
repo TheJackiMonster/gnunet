@@ -39,15 +39,12 @@
 #endif
 #endif
 #include "gnunet_util_lib.h"
-#include "gnunet_dnsstub_lib.h"
 #include "gnunet_dht_service.h"
 #include "gnunet_gnsrecord_lib.h"
 #include "gnunet_namecache_service.h"
 #include "gnunet_dns_service.h"
 #include "gnunet_resolver_service.h"
 #include "gnunet_revocation_service.h"
-#include "gnunet_dnsparser_lib.h"
-#include "gnunet_tun_lib.h"
 #include "gnunet_gns_service.h"
 #include "gns.h"
 #include "gnunet-service-gns.h"

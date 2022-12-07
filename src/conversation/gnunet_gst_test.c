@@ -23,6 +23,7 @@
  * @author Hark
  */
 
+#include "platform.h"
 #include "gnunet_gst_def.h"
 #include "gnunet_gst.h"
 

@@ -50,8 +50,9 @@
 
 
 #if GNUNET_BUILD
+
 #include "platform.h"
-#include "gnunet_crypto_lib.h"
+#include "gnunet_util_lib.h"
 #include "benchmark.h"
 #else
 #define GNUNET_NO 0
@@ -126,7 +127,7 @@ getPRK (gcry_md_hd_t mac,
   if (0 == xts_len)
   {
     char zero_salt[dlen];
-    
+
     memset (zero_salt, 0, dlen);
     ret = doHMAC (mac, zero_salt, dlen, skm, skm_len);
   }

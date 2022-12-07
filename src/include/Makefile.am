@@ -4,13 +4,15 @@ SUBDIRS = .
 gnunetincludedir = $(includedir)/gnunet
 
 EXTRA_DIST = \
+  platform.h \
   gauger.h \
   block_fs.h \
   block_dns.h \
   block_regex.h
 
 gnunetinclude_HEADERS = \
-  platform.h gettext.h \
+  gnunet_config.h \
+  gettext.h \
   compat.h \
   gnunet_abd_service.h \
   gnunet_applications.h \
@@ -57,6 +59,7 @@ gnunetinclude_HEADERS = \
   gnunet_gnsrecord_lib.h \
   gnunet_gnsrecord_json_lib.h \
   gnunet_gnsrecord_plugin.h \
+  gnu_name_system_record_flags.h \
   gnu_name_system_record_types.h \
   gnunet_hello_lib.h \
   gnunet_hello_uri_lib.h \
@@ -74,6 +77,7 @@ gnunetinclude_HEADERS = \
   gnunet_mst_lib.h \
   gnunet_mq_lib.h \
   gnunet_my_lib.h \
+  gnunet_mysql_compat.h \
   gnunet_mysql_lib.h \
   gnunet_namecache_plugin.h \
   gnunet_namecache_service.h \

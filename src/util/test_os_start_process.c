@@ -25,6 +25,7 @@
  * giving a file descriptor to write stdout to.  If the
  * correct data "HELLO" is read then all is well.
  */
+
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "disk.h"

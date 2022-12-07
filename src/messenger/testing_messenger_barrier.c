@@ -23,6 +23,7 @@
  * @brief Pseudo-barriers for simple event handling
  */
 
+#include "platform.h"
 #include "testing_messenger_barrier.h"
 
 struct GNUNET_BarrierHandle

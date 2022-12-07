@@ -10,6 +10,12 @@ libexecdir= $(pkglibdir)/libexec/
 pkgcfg_DATA = \
   datastore.conf
 
+sqldir = $(prefix)/share/gnunet/sql/
+
+sql_DATA = \
+  datastore-0001.sql \
+  datastore-drop.sql
+
 if USE_COVERAGE
   AM_CFLAGS = --coverage -O0
   XLIBS = -lgcov
@@ -318,4 +324,5 @@ EXTRA_DIST = \
  test_plugin_datastore_data_mysql.conf \
  test_datastore_api_data_postgres.conf \
  perf_plugin_datastore_data_postgres.conf \
- test_plugin_datastore_data_postgres.conf
+ test_plugin_datastore_data_postgres.conf \
+ $(sql_DATA)

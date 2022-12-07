@@ -24,10 +24,10 @@
  * @author Christian M. Fuchs
  */
 #define GCRYPT_NO_DEPRECATED
+#include "platform.h"
 #include <gcrypt.h>
 #include <inttypes.h>
 
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_scalarproduct_service.h"
 #include "gnunet_protocols.h"

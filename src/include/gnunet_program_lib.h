@@ -18,6 +18,10 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 
+#if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
+#error "Only <gnunet_util_lib.h> can be included directly."
+#endif
+
 /**
  * @addtogroup libgnunetutil
  * Multi-function utilities library for GNUnet programs
@@ -43,6 +47,7 @@ extern "C"
 }
 #endif
 #endif
+
 
 #include "gnunet_configuration_lib.h"
 #include "gnunet_getopt_lib.h"

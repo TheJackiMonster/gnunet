@@ -52,6 +52,7 @@ extern "C"
  * Include "sys/select.h" because it is required to use
  * "fd_set" in "struct GNUNET_NETWORK_FDSet"!
  */
+
 #include <sys/select.h>
 //#endif
 #ifdef HAVE_SYS_SOCKET_H

@@ -352,6 +352,7 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
   PQsetNoticeProcessor (db->conn,
                         &pq_notice_processor_cb,
                         db);
+  if (NULL != db->load_path)
   {
     PGresult *res;
     ExecStatusType est;
@@ -414,6 +415,7 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
   {
     PGresult *res;
 
+    GNUNET_assert (NULL != db->load_path);
     res = PQprepare (db->conn,
                      "gnunet_pq_check_patch",
                      "SELECT"

@@ -27,10 +27,11 @@
  * @author Nils Durner
  */
 
+#include "platform.h"
 #include <gcrypt.h>
 
-#include "platform.h"
-#include "gnunet_crypto_lib.h"
+
+#include "gnunet_util_lib.h"
 
 void
 tc1 ()

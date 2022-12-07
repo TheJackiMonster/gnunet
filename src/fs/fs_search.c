@@ -24,6 +24,7 @@
  */
 #include "platform.h"
 #include "gnunet_constants.h"
+
 #include "gnunet_fs_service.h"
 #include "gnunet_protocols.h"
 #include "fs_api.h"
@@ -487,7 +488,7 @@ GNUNET_FS_search_start_probe_ (struct GNUNET_FS_SearchResult *sr)
 struct GNUNET_FS_SearchResult *
 GNUNET_FS_probe (struct GNUNET_FS_Handle *h,
                  const struct GNUNET_FS_Uri *uri,
-                 const struct GNUNET_CONTAINER_MetaData *meta,
+                 const struct GNUNET_FS_MetaData *meta,
                  void *client_info,
                  uint32_t anonymity)
 {
@@ -498,7 +499,7 @@ GNUNET_FS_probe (struct GNUNET_FS_Handle *h,
   sr = GNUNET_new (struct GNUNET_FS_SearchResult);
   sr->h = h;
   sr->uri = GNUNET_FS_uri_dup (uri);
-  sr->meta = GNUNET_CONTAINER_meta_data_duplicate (meta);
+  sr->meta = GNUNET_FS_meta_data_duplicate (meta);
   sr->client_info = client_info;
   sr->anonymity = anonymity;
   GNUNET_FS_search_start_probe_ (sr);
@@ -543,7 +544,7 @@ GNUNET_FS_probe_stop (struct GNUNET_FS_SearchResult *sr)
   GNUNET_assert (NULL == sr->sc);
   GNUNET_FS_search_stop_probe_ (sr);
   GNUNET_FS_uri_destroy (sr->uri);
-  GNUNET_CONTAINER_meta_data_destroy (sr->meta);
+  GNUNET_FS_meta_data_destroy (sr->meta);
   client_info = sr->client_info;
   GNUNET_free (sr);
   return client_info;
@@ -564,7 +565,7 @@ static void
 process_ksk_result (struct GNUNET_FS_SearchContext *sc,
                     struct SearchRequestEntry *ent,
                     const struct GNUNET_FS_Uri *uri,
-                    const struct GNUNET_CONTAINER_MetaData *meta)
+                    const struct GNUNET_FS_MetaData *meta)
 {
   struct GNUNET_HashCode key;
   struct GNUNET_FS_SearchResult *sr;
@@ -602,7 +603,7 @@ process_ksk_result (struct GNUNET_FS_SearchContext *sc,
     sr->sc = sc;
     sr->anonymity = sc->anonymity;
     sr->uri = GNUNET_FS_uri_dup (uri);
-    sr->meta = GNUNET_CONTAINER_meta_data_duplicate (meta);
+    sr->meta = GNUNET_FS_meta_data_duplicate (meta);
     sr->mandatory_missing = sc->mandatory_count;
     sr->key = key;
     sr->keyword_bitmap = GNUNET_malloc ((sc->uri->data.ksk.keywordCount + 7)
@@ -612,7 +613,7 @@ process_ksk_result (struct GNUNET_FS_SearchContext *sc,
   }
   else
   {
-    GNUNET_CONTAINER_meta_data_merge (sr->meta, meta);
+    GNUNET_FS_meta_data_merge (sr->meta, meta);
   }
   GNUNET_break (GNUNET_OK ==
                 GNUNET_CONTAINER_multihashmap_put (ent->results,
@@ -685,7 +686,7 @@ static void
 process_sks_result (struct GNUNET_FS_SearchContext *sc,
                     const char *id_update,
                     const struct GNUNET_FS_Uri *uri,
-                    const struct GNUNET_CONTAINER_MetaData *meta)
+                    const struct GNUNET_FS_MetaData *meta)
 {
   struct GNUNET_FS_Uri uu;
   struct GNUNET_HashCode key;
@@ -713,7 +714,7 @@ process_sks_result (struct GNUNET_FS_SearchContext *sc,
   sr->sc = sc;
   sr->anonymity = sc->anonymity;
   sr->uri = GNUNET_FS_uri_dup (uri);
-  sr->meta = GNUNET_CONTAINER_meta_data_duplicate (meta);
+  sr->meta = GNUNET_FS_meta_data_duplicate (meta);
   sr->key = key;
   GNUNET_CONTAINER_multihashmap_put (sc->master_result_map, &key, sr,
                                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
@@ -800,7 +801,7 @@ process_kblock (struct GNUNET_FS_SearchContext *sc,
   size_t j;
   char pt[size - sizeof(struct UBlock)];
   const char *eos;
-  struct GNUNET_CONTAINER_MetaData *meta;
+  struct GNUNET_FS_MetaData *meta;
   struct GNUNET_FS_Uri *uri;
   char *emsg;
   int i;
@@ -835,9 +836,9 @@ process_kblock (struct GNUNET_FS_SearchContext *sc,
   }
   j = eos - pt + 1;
   if (sizeof(pt) == j)
-    meta = GNUNET_CONTAINER_meta_data_create ();
+    meta = GNUNET_FS_meta_data_create ();
   else
-    meta = GNUNET_CONTAINER_meta_data_deserialize (&pt[j], sizeof(pt) - j);
+    meta = GNUNET_FS_meta_data_deserialize (&pt[j], sizeof(pt) - j);
   if (NULL == meta)
   {
     GNUNET_break_op (0);        /* ublock malformed */
@@ -850,7 +851,7 @@ process_kblock (struct GNUNET_FS_SearchContext *sc,
                       meta);
 
   /* clean up */
-  GNUNET_CONTAINER_meta_data_destroy (meta);
+  GNUNET_FS_meta_data_destroy (meta);
   GNUNET_FS_uri_destroy (uri);
 }
 
@@ -872,7 +873,7 @@ process_sblock (struct GNUNET_FS_SearchContext *sc,
   size_t len = size - sizeof(struct UBlock);
   char pt[len];
   struct GNUNET_FS_Uri *uri;
-  struct GNUNET_CONTAINER_MetaData *meta;
+  struct GNUNET_FS_MetaData *meta;
   const char *id;
   const char *uris;
   size_t off;
@@ -888,8 +889,8 @@ process_sblock (struct GNUNET_FS_SearchContext *sc,
     GNUNET_break_op (0);        /* ublock malformed */
     return;
   }
-  if (NULL == (meta = GNUNET_CONTAINER_meta_data_deserialize (&pt[off], len
-                                                              - off)))
+  if (NULL == (meta = GNUNET_FS_meta_data_deserialize (&pt[off], len
+                                                       - off)))
   {
     GNUNET_break_op (0);        /* ublock malformed */
     return;
@@ -901,14 +902,14 @@ process_sblock (struct GNUNET_FS_SearchContext *sc,
                 uris, emsg);
     GNUNET_break_op (0);        /* ublock malformed */
     GNUNET_free (emsg);
-    GNUNET_CONTAINER_meta_data_destroy (meta);
+    GNUNET_FS_meta_data_destroy (meta);
     return;
   }
   /* process */
   process_sks_result (sc, id, uri, meta);
   /* clean up */
   GNUNET_FS_uri_destroy (uri);
-  GNUNET_CONTAINER_meta_data_destroy (meta);
+  GNUNET_FS_meta_data_destroy (meta);
 }
 
 
@@ -1543,7 +1544,7 @@ search_result_suspend (void *cls,
   GNUNET_break (NULL == sr->client_info);
   GNUNET_free (sr->serialization);
   GNUNET_FS_uri_destroy (sr->uri);
-  GNUNET_CONTAINER_meta_data_destroy (sr->meta);
+  GNUNET_FS_meta_data_destroy (sr->meta);
   GNUNET_free (sr->keyword_bitmap);
   GNUNET_free (sr);
   return GNUNET_OK;
@@ -1749,7 +1750,7 @@ search_result_free (void *cls,
   GNUNET_break (NULL == sr->client_info);
   GNUNET_free (sr->serialization);
   GNUNET_FS_uri_destroy (sr->uri);
-  GNUNET_CONTAINER_meta_data_destroy (sr->meta);
+  GNUNET_FS_meta_data_destroy (sr->meta);
   GNUNET_free (sr->keyword_bitmap);
   GNUNET_free (sr);
   return GNUNET_OK;
