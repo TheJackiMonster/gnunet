@@ -3601,6 +3601,14 @@ extern "C" {
 
 #define GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_FINISHED 1706
 
+#define GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_REACHED 1707
+
+#define GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_ATTACH 1708
+
+#define GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_ADVANCED 1709
+
+#define GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_ATTACHED 1710
+
 /*********************************************************************************/
 
 /*********************************************************************************/

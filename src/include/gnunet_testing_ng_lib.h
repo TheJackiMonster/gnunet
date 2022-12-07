@@ -194,6 +194,16 @@ struct GNUNET_TESTING_Command
   struct GNUNET_TIME_Relative default_timeout;
 
   /**
+   * Pointer to the previous command in the DLL.
+   */
+  struct GNUNET_TESTING_Command *prev;
+
+  /**
+   * Pointer to the next command in the DLL.
+   */
+  struct GNUNET_TESTING_Command *next;
+
+  /**
    * How often did we try to execute this command? (In case it is a request
    * that is repated.)  Note that a command must have some built-in retry
    * mechanism for this value to be useful.
@@ -362,8 +372,9 @@ typedef void
  * @param timeout how long to wait for each command to execute
  * @param rc function to call with the final result
  * @param rc_cls closure for @a rc
+ * @return The interpreter.
  */
-void
+struct GNUNET_TESTING_Interpreter *
 GNUNET_TESTING_run (struct GNUNET_TESTING_Command *commands,
                     struct GNUNET_TIME_Relative timeout,
                     GNUNET_TESTING_ResultCallback rc,
@@ -396,8 +407,63 @@ int
 GNUNET_TESTING_has_in_name (const char *prog,
                             const char *marker);
 
+/**
+  * Deleting all barriers create in the context of this interpreter.
+  *
+  * @param is The interpreter.
+  */
+void
+GNUNET_TESTING_delete_barriers (struct GNUNET_TESTING_Interpreter *is);
+
+
+/**
+ * Getting a barrier from the interpreter.
+ *
+ * @param is The interpreter.
+ * @param barrier_name The name of the barrier.
+ * @return The barrier.
+ */
+struct GNUNET_TESTING_Barrier *
+GNUNET_TESTING_get_barrier (struct GNUNET_TESTING_Interpreter *is,
+                            const char *barrier_name);
+
+
+/**
+ * Add a barrier to the loop.
+ *
+ * @param is The interpreter.
+ * @param barrier The barrier to add.
+ */    
+void
+GNUNET_TESTING_barrier_add (struct GNUNET_TESTING_Interpreter *is,
+                            struct GNUNET_TESTING_Barrier *barrier);
+
 
 /* ************** Specific interpreter commands ************ */
+
+
+/**
+ * Adding a helper handle to the interpreter.
+ *
+ * @param is The interpreter.
+ * @param helper The helper handle.
+ */
+void
+GNUNET_TESTING_add_netjail_helper (struct GNUNET_TESTING_Interpreter *is,
+                                   const struct GNUNET_HELPER_Handle *helper);
+
+
+/**
+ * Send Message to netjail nodes that a barrier can be advanced.
+ *
+ * @param is The interpreter.
+ * @param global_node_number The node to inform.
+ * @param header The message to send.
+ */
+void
+GNUNET_TESTING_send_message_to_netjail (struct GNUNET_TESTING_Interpreter *is,
+                                        unsigned int global_node_number,
+                                        struct GNUNET_MessageHeader *header);
 
 
 /**

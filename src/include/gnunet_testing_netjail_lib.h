@@ -145,6 +145,16 @@ struct GNUNET_TESTING_NodeConnection
 struct GNUNET_TESTING_NetjailNode
 {
   /**
+   * Head of the DLL with the connections which shall be established to other nodes.
+   */
+  struct GNUNET_TESTING_NodeConnection *node_connections_head;
+
+  /**
+   * Tail of the DLL with the connections which shall be established to other nodes.
+   */
+  struct GNUNET_TESTING_NodeConnection *node_connections_tail;
+
+  /**
    * Plugin for the test case to be run on this node.
    */
   char *plugin;
@@ -165,19 +175,19 @@ struct GNUNET_TESTING_NetjailNode
   unsigned int node_n;
 
   /**
+   * The overall number of the node in the whole test system.
+   */
+  unsigned int node_number;
+
+  /**
    * The number of unintentional additional connections this node waits for. This overwrites the global additional_connects value.
    */
   unsigned int additional_connects;
 
   /**
-   * Head of the DLL with the connections which shall be established to other nodes.
+   * The number of cmds waiting for a specific barrier.
    */
-  struct GNUNET_TESTING_NodeConnection *node_connections_head;
-
-  /**
-   * Tail of the DLL with the connections which shall be established to other nodes.
-   */
-  struct GNUNET_TESTING_NodeConnection *node_connections_tail;
+  unsigned int expected_reaches;
 };
 
 
@@ -275,6 +285,17 @@ GNUNET_TESTING_get_additional_connects (unsigned int num,
                                         struct GNUNET_TESTING_NetjailTopology *
                                         topology);
 
+/**
+ * Get a node from the topology.
+ *
+ * @param num The specific node we want the connections for.
+ * @param topology The topology we get the connections from.
+ * @return The connections of the node.
+ */
+struct GNUNET_TESTING_NetjailNode *
+GNUNET_TESTING_get_node (unsigned int num,
+                         struct GNUNET_TESTING_NetjailTopology *topology);
+
 
 /**
  * Get the connections to other nodes for a specific node.
@@ -322,6 +343,16 @@ GNUNET_TESTING_calculate_num (struct
                               struct GNUNET_TESTING_NetjailTopology *topology);
 struct TestState
 {
+  /**
+   * The head of the DLL with barriers of the test case.
+   */
+  struct GNUNET_TESTING_Barrier *barriers_head;
+
+  /**
+   * The tail of the DLL with barriers of the test case.
+   */
+  struct GNUNET_TESTING_Barrier *barriers_tail;
+
   /**
    * Callback to write messages to the master loop.
    *
@@ -477,25 +508,6 @@ GNUNET_TESTING_cmd_stop_testing_system (
  */
 struct GNUNET_MessageHeader *
 GNUNET_TESTING_send_local_test_finished_msg ();
-
-
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_barrier_create (
-  const char *label);
-
-
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_barrier_setup_finished (
-  const char *label);
-
-
-// Wait for barrier to be reached by all;
-// async version implies reached but does not
-// wait on other peers to reach it.
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_barrier_reached (
-  const char *label,
-  const char *barrier_label);
 
 
 struct GNUNET_TESTING_Command

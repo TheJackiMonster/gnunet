@@ -121,4 +121,8 @@ for N in $(seq $GLOBAL_N); do
         fi
         ip netns exec ${ROUTERS[$N]} iptables -A FORWARD -d $LOCAL_GROUP.1  -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
     fi
+    if [ "" != "${R_SCRIPT[$N]}" ]
+    then
+        ip netns exec ${ROUTERS[$N]} ./${R_SCRIPT[$N]}
+    fi
 done

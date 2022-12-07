@@ -62,6 +62,12 @@ typedef void
 typedef void
 (*GNUNET_TESTING_PLUGIN_ALL_LOCAL_TESTS_PREPARED) ();
 
+typedef void
+(*GNUNET_TESTING_PLUGIN_BARRIER_ADVANCED) (const char *barrier_name);
+
+typedef struct GNUNET_TESTING_Barrier *
+(*GNUNET_TESTING_PLUGIN_GET_WAITING_FOR_BARRIERS) ();
+
 
 struct GNUNET_TESTING_PluginFunctions
 {
@@ -70,11 +76,15 @@ struct GNUNET_TESTING_PluginFunctions
    */
   void *cls;
 
+  GNUNET_TESTING_PLUGIN_BARRIER_ADVANCED barrier_advanced;
+
   GNUNET_TESTING_PLUGIN_StartTestCase start_testcase;
 
   GNUNET_TESTING_PLUGIN_ALL_PEERS_STARTED all_peers_started;
 
   GNUNET_TESTING_PLUGIN_ALL_LOCAL_TESTS_PREPARED all_local_tests_prepared;
+
+  GNUNET_TESTING_PLUGIN_GET_WAITING_FOR_BARRIERS get_waiting_for_barriers;
 };
 
 #if 0                           /* keep Emacsens' auto-indent happy */

@@ -43,12 +43,13 @@
 #include "gnunet_testing_netjail_lib.h"
 #include "testing_cmds.h"
 #include "gnunet_testing_plugin.h"
+#include "gnunet_testing_barrier.h"
 #include <zlib.h>
 
 
 /**
  * Generic logging shortcut
-testing_api_cmd_block_until_all_peers_started.c */
+ */
 #define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
 
 /**
@@ -63,58 +64,6 @@ testing_api_cmd_block_until_all_peers_started.c */
 #define ROUTER_BASE_IP "92.68.150."
 
 struct GNUNET_SCHEDULER_Task *finished_task;
-
-/**
- * Handle for a plugin.
- */
-struct Plugin
-{
-  /**
-   * Name of the shared library.
-   */
-  char *library_name;
-
-  /**
-   * Plugin API.
-   */
-  struct GNUNET_TESTING_PluginFunctions *api;
-
-  /**
-   * IP address of the specific node the helper is running for.
-   *
-   */
-  char *node_ip;
-
-  /**
-   * Name of the test case plugin.
-   *
-   */
-  char *plugin_name;
-
-  /**
-   * The number of namespaces
-   *
-   */
-  char *global_n;
-
-  /**
-   * The number of local nodes per namespace.
-   *
-   */
-  char *local_m;
-
-  /**
-   * The number of the namespace this node is in.
-   *
-   */
-  char *n;
-
-  /**
-   * The number of the node in the namespace.
-   *
-   */
-  char *m;
-};
 
 /**
  * Struct with information about a specific node and the whole network namespace setup.
@@ -371,8 +320,8 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
 {
 
   struct NodeIdentifier *ni = cls;
-  const struct GNUNET_CMDS_HelperInit *msg;
-  struct GNUNET_CMDS_HelperReply *reply;
+  const struct GNUNET_TESTING_CommandHelperInit *msg;
+  struct GNUNET_TESTING_CommandHelperReply *reply;
   char *binary;
   char *plugin_name;
   size_t plugin_name_size;
@@ -390,9 +339,9 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
   msize = ntohs (message->size);
   if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_INIT == ntohs (message->type))
   {
-    msg = (const struct GNUNET_CMDS_HelperInit *) message;
+    msg = (const struct GNUNET_TESTING_CommandHelperInit *) message;
     plugin_name_size = ntohs (msg->plugin_name_size);
-    if ((sizeof(struct GNUNET_CMDS_HelperInit) + plugin_name_size) > msize)
+    if ((sizeof(struct GNUNET_TESTING_CommandHelperInit) + plugin_name_size) > msize)
     {
       GNUNET_break (0);
       LOG (GNUNET_ERROR_TYPE_WARNING,
@@ -445,8 +394,8 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
                                  plugin->n, plugin->local_m, ni->topology_data,
                                  ni->read_file, &finished_cb);
 
-    msg_length = sizeof(struct GNUNET_CMDS_HelperReply);
-    reply = GNUNET_new (struct GNUNET_CMDS_HelperReply);
+    msg_length = sizeof(struct GNUNET_TESTING_CommandHelperReply);
+    reply = GNUNET_new (struct GNUNET_TESTING_CommandHelperReply);
     reply->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_REPLY);
     reply->header.size = htons ((uint16_t) msg_length);
 
@@ -456,6 +405,14 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
     GNUNET_free (router_ip);
     GNUNET_free (plugin_name);
 
+    return GNUNET_OK;
+  }
+  else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_ADVANCED == ntohs (
+             message->type))
+  {
+    struct GNUNET_TESTING_CommandBarrierAdvanced *adm = (struct GNUNET_TESTING_CommandBarrierAdvanced *) message;
+
+    plugin->api->barrier_advanced (adm->barrier_name);
     return GNUNET_OK;
   }
   else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_PEERS_STARTED == ntohs (
@@ -554,7 +511,8 @@ run (void *cls,
 {
   struct NodeIdentifier *ni = cls;
 
-  LOG_DEBUG ("Starting interpreter loop helper...\n");
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Starting interpreter loop helper...\n");
 
   tokenizer = GNUNET_MST_create (&tokenizer_cb, ni);
   stdin_fd = GNUNET_DISK_get_handle_from_native (stdin);
@@ -564,6 +522,8 @@ run (void *cls,
                                                  &read_task,
                                                  NULL);
   GNUNET_SCHEDULER_add_shutdown (&do_shutdown, NULL);
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Interpreter loop helper started.\n");
 }
 
 
@@ -662,6 +622,7 @@ main (int argc, char **argv)
   }
   shc_chld =
     GNUNET_SIGNAL_handler_install (GNUNET_SIGCHLD, &sighandler_child_death);
+  
   ret = GNUNET_PROGRAM_run (argc,
                             argv,
                             "gnunet-cmds-helper",

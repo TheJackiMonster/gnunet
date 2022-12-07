@@ -2136,6 +2136,27 @@ get_node_info (unsigned int num,
   GNUNET_free (hkey);
 }
 
+/**
+ * Get a node from the topology.
+ *
+ * @param num The specific node we want the connections for.
+ * @param topology The topology we get the connections from.
+ * @return The connections of the node.
+ */
+struct GNUNET_TESTING_NetjailNode *
+GNUNET_TESTING_get_node (unsigned int num,
+                                struct GNUNET_TESTING_NetjailTopology *topology)
+{
+  struct GNUNET_TESTING_NetjailNode *node;
+  struct GNUNET_TESTING_NetjailNamespace *namespace;
+  struct GNUNET_TESTING_NodeConnection *node_connections;
+
+  get_node_info (num, topology, &node, &namespace, &node_connections);
+
+  return node;
+
+}
+
 
 /**
  * Get the connections to other nodes for a specific node.
@@ -2208,7 +2229,7 @@ free_nodes_cb (void *cls,
                                  pos_connection);
     GNUNET_free (pos_connection);
   }
-
+  
   GNUNET_free (node->plugin);
   GNUNET_free (node);
   return GNUNET_OK;
@@ -2225,7 +2246,7 @@ free_namespaces_cb (void *cls,
 
   GNUNET_free (namespace->router);
   GNUNET_CONTAINER_multishortmap_iterate (namespace->nodes, free_nodes_cb,
-                                          NULL);
+                                          namespace->nodes);
   return GNUNET_OK;
 
 }

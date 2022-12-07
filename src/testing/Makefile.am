@@ -29,6 +29,8 @@ gnunet_cmds_helper_LDADD = $(XLIB) \
  $(LTLIBINTL) $(Z_LIBS)
 
 libgnunettesting_la_SOURCES = \
+  testing_api_cmd_barrier.c \
+  testing_api_cmd_barrier_reached.c \
   testing_api_cmd_end.c \
   testing_api_cmd_finish.c \
   testing_api_cmd_local_test_finished.c \

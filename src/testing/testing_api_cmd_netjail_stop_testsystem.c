@@ -118,7 +118,7 @@ stop_testing_system_run (void *cls,
                                                                  + j
                                                                  + shs->known
                                                                  - 1],
-                          GNUNET_NO);
+                          GNUNET_YES);
     }
   }
 }
