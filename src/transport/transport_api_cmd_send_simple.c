@@ -155,7 +155,7 @@ GNUNET_TRANSPORT_cmd_send_simple (const char *label,
 
   struct GNUNET_TESTING_Command cmd = {
     .cls = sss,
-    .label = label,
+    .label = GNUNET_strdup (label),
     .run = &send_simple_run,
     .cleanup = &send_simple_cleanup
   };
