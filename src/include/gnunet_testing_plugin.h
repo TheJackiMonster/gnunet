@@ -28,6 +28,8 @@
 #ifndef GNUNET_TESTING_PLUGIN_H
 #define GNUNET_TESTING_PLUGIN_H
 
+#include "gnunet_common.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -37,20 +39,21 @@ extern "C"
 #endif
 
 typedef void
-(*TESTING_CMD_HELPER_write_cb) (struct GNUNET_MessageHeader *message, size_t
-                                msg_length);
+(*TESTING_CMD_HELPER_write_cb) (struct GNUNET_MessageHeader *message,
+                                size_t msg_length);
 
 typedef void
 (*TESTING_CMD_HELPER_finish_cb) ();
 
 typedef void
 (*GNUNET_TESTING_PLUGIN_StartTestCase) (TESTING_CMD_HELPER_write_cb
-                                        write_message, char *router_ip,
-                                        char *node_ip,
-                                        char *n,
-                                        char *m,
-                                        char *local_m,
-                                        char *topology_data,
+                                        write_message,
+                                        const char *router_ip,
+                                        const char *node_ip,
+                                        const char *n,
+                                        const char *m,
+                                        const char *local_m,
+                                        const char *topology_data,
                                         unsigned int *read_file,
                                         TESTING_CMD_HELPER_finish_cb finish_cb);
 

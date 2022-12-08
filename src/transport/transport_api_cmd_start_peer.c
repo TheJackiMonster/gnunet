@@ -431,25 +431,11 @@ start_peer_traits (void *cls,
 }
 
 
-/**
- * Create command.
- *
- * @param label name for command.
- * @param system_label Label of the cmd to setup a test environment.
- * @param m The number of the local node of the actual network namespace.
- * @param n The number of the actual namespace.
- * @param local_m Number of local nodes in each namespace.
- * @param handlers Handler for messages received by this peer.
- * @param cfgname Configuration file name for this peer.
- * @param notify_connect Method which will be called, when a peer connects.
- * @param broadcast Flag indicating, if broadcast should be switched on.
- * @return command.
- */
 struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_start_peer (const char *label,
                                  const char *system_label,
                                  uint32_t no,
-                                 char *node_ip,
+                                 const char *node_ip,
                                  struct GNUNET_MQ_MessageHandler *handlers,
                                  const char *cfgname,
                                  GNUNET_TRANSPORT_notify_connect_cb

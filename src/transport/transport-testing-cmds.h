@@ -26,7 +26,7 @@
  */
 #ifndef TRANSPORT_TESTING_CMDS_H
 #define TRANSPORT_TESTING_CMDS_H
-#include "gnunet_testing_lib.h"
+#include "gnunet_testing_ng_lib.h"
 
 
 typedef void *
@@ -109,7 +109,7 @@ struct StartPeerState
   /**
    * The ip of a node.
    */
-  char *node_ip;
+  const char *node_ip;
 
   /**
    * Receive callback
@@ -193,6 +193,8 @@ struct StartPeerState
 
 /**
  * Create command.
+ * FIXME: Parameter list does not match documentation.
+ * FIXME: m and n parameters need a rename.
  *
  * @param label name for command.
  * @param system_label Label of the cmd to setup a test environment.
@@ -209,7 +211,7 @@ struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_start_peer (const char *label,
                                  const char *system_label,
                                  uint32_t no,
-                                 char *node_ip,
+                                 const char *node_ip,
                                  struct GNUNET_MQ_MessageHandler *handlers,
                                  const char *cfgname,
                                  GNUNET_TRANSPORT_notify_connect_cb

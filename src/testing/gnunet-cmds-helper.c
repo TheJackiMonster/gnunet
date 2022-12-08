@@ -385,6 +385,7 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
       LOG (GNUNET_ERROR_TYPE_ERROR,
            "subnet node n: %s\n",
            plugin->n);
+      // FIXME: Free?
       node_ip = GNUNET_malloc (strlen (NODE_BASE_IP) + strlen (plugin->m) + 1);
       strcat (node_ip, NODE_BASE_IP);
     }
@@ -622,7 +623,7 @@ main (int argc, char **argv)
   }
   shc_chld =
     GNUNET_SIGNAL_handler_install (GNUNET_SIGCHLD, &sighandler_child_death);
-  
+
   ret = GNUNET_PROGRAM_run (argc,
                             argv,
                             "gnunet-cmds-helper",

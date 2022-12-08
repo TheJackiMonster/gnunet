@@ -235,12 +235,13 @@ all_local_tests_prepared ()
  * @param local_m The number of nodes in a network namespace.
  */
 static void
-start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
-                char *node_ip,
-                char *m,
-                char *n,
-                char *local_m,
-                char *topology_data,
+start_testcase (TESTING_CMD_HELPER_write_cb write_message,
+                const char *router_ip,
+                const char *node_ip,
+                const char *m,
+                const char *n,
+                const char *local_m,
+                const char *topology_data,
                 unsigned int *read_file,
                 TESTING_CMD_HELPER_finish_cb finished_cb)
 {
