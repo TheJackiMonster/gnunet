@@ -479,7 +479,7 @@ GNUNET_TESTING_running (const struct GNUNET_TESTING_Command *command)
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_TESTING_finished (struct GNUNET_TESTING_Command *command)
+GNUNET_TESTING_finished (const struct GNUNET_TESTING_Command *command)
 {
   struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
   struct GNUNET_TIME_Relative diff = GNUNET_TIME_absolute_get_difference (

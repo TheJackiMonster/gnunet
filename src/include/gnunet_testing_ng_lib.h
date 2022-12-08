@@ -404,6 +404,7 @@ GNUNET_TESTING_main (struct GNUNET_TESTING_Command *commands,
  * @param marker chunk to find in @a prog
  * // FIXME: this does not belong here! => libgnunetutil, maybe?
  * // FIXME: return bool? document return value!
+ * // FIXME: man strstr??
  */
 int
 GNUNET_TESTING_has_in_name (const char *prog,
@@ -497,7 +498,7 @@ GNUNET_TESTING_running (const struct GNUNET_TESTING_Command *command);
  * @return GNUNET_NO if the command is not finished, GNUNET_YES if it is finished.
  */
 enum GNUNET_GenericReturnValue
-GNUNET_TESTING_finished (struct GNUNET_TESTING_Command *command);
+GNUNET_TESTING_finished (const struct GNUNET_TESTING_Command *command);
 
 
 /**
