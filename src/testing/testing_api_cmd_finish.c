@@ -178,7 +178,7 @@ GNUNET_TESTING_cmd_finish (const char *finish_label,
   {
     struct GNUNET_TESTING_Command cmd = {
       .cls = finish_state,
-      .label = finish_label,
+      .label = GNUNET_strdup (finish_label),
       .run = &run_finish,
       .ac = &finish_state->ac,
       .cleanup = &cleanup_finish

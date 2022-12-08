@@ -827,7 +827,7 @@ GNUNET_TESTING_cmd_netjail_start_testing_system (
 
   struct GNUNET_TESTING_Command cmd = {
     .cls = ns,
-    .label = label,
+    .label = GNUNET_strdup (label),
     .run = &netjail_exec_run,
     .ac = &ns->ac,
     .cleanup = &netjail_exec_cleanup,

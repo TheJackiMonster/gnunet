@@ -109,20 +109,22 @@ struct StartPeerState
   /**
    * The ip of a node.
    */
-  const char *node_ip;
+  char *node_ip;
 
   /**
    * Receive callback
    */
   struct GNUNET_MQ_MessageHandler *handlers;
 
-  const char *cfgname;
+  //FIXME documentation
+  char *cfgname;
 
   /**
    * Peer's configuration
    */
   struct GNUNET_CONFIGURATION_Handle *cfg;
 
+  //FIXME documentation
   struct GNUNET_TESTING_Peer *peer;
 
   /**
@@ -165,13 +167,14 @@ struct StartPeerState
    */
   size_t hello_size;
 
+  /** All of the below: FIXME documentation */
   char *m;
 
   char *n;
 
   char *local_m;
 
-  const char *system_label;
+  char *system_label;
 
   /**
    * An unique number to identify the peer

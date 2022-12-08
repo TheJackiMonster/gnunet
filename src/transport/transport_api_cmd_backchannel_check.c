@@ -547,7 +547,7 @@ GNUNET_TRANSPORT_cmd_backchannel_check (const char *label,
 
   struct GNUNET_TESTING_Command cmd = {
     .cls = cs,
-    .label = label,
+    .label = GNUNET_strdup (label),
     .run = &backchannel_check_run,
     .ac = &cs->ac,
     .cleanup = &backchannel_check_cleanup,

@@ -245,7 +245,7 @@ GNUNET_TESTING_cmd_barrier_create (const char *label,
   {
     struct GNUNET_TESTING_Command cmd = {
       .cls = bs,
-      .label = label,
+      .label = GNUNET_strdup (label),
       .run = &barrier_run,
       .cleanup = &barrier_cleanup,
       .traits = &barrier_traits

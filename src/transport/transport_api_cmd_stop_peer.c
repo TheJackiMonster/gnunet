@@ -146,7 +146,7 @@ GNUNET_TRANSPORT_cmd_stop_peer (const char *label,
   {
     struct GNUNET_TESTING_Command cmd = {
       .cls = sps,
-      .label = label,
+      .label = GNUNET_strdup (label),
       .run = &stop_peer_run,
       .cleanup = &stop_peer_cleanup,
       .traits = &stop_peer_traits

@@ -111,7 +111,7 @@ GNUNET_TESTING_cmd_block_until_external_trigger (
   {
     struct GNUNET_TESTING_Command cmd = {
       .cls = bs,
-      .label = label,
+      .label = GNUNET_strdup (label),
       .run = &block_until_all_peers_started_run,
       .ac = &bs->ac,
       .cleanup = &block_until_all_peers_started_cleanup,

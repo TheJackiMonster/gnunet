@@ -225,7 +225,7 @@ GNUNET_TESTING_cmd_netjail_start (const char *label,
   {
     struct GNUNET_TESTING_Command cmd = {
       .cls = ns,
-      .label = label,
+      .label = GNUNET_strdup (label),
       .run = &netjail_start_run,
       .ac = &ns->ac,
       .cleanup = &netjail_start_cleanup

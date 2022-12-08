@@ -173,7 +173,7 @@ GNUNET_TESTING_cmd_batch (const char *label,
   {
     struct GNUNET_TESTING_Command cmd = {
       .cls = bs,
-      .label = label,
+      .label = GNUNET_strdup (label),
       .run = &batch_run,
       .cleanup = &batch_cleanup,
       .traits = &batch_traits

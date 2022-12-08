@@ -119,7 +119,7 @@ GNUNET_TESTING_cmd_system_create (const char *label,
 
   struct GNUNET_TESTING_Command cmd = {
     .cls = tss,
-    .label = label,
+    .label = GNUNET_strdup (label),
     .run = &system_create_run,
     .cleanup = &system_create_cleanup,
     .traits = &system_create_traits

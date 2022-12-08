@@ -90,7 +90,7 @@ get_waiting_for_barriers ()
 {
   struct GNUNET_TESTING_Barrier *barrier;
 
-  //No Barrier
+  // No Barrier
   return NULL;
 }
 
@@ -98,7 +98,8 @@ get_waiting_for_barriers ()
 static void
 barrier_advanced (const char *barrier_name)
 {
-  struct GNUNET_TESTING_Barrier *barrier = GNUNET_TESTING_get_barrier (is, barrier_name);
+  struct GNUNET_TESTING_Barrier *barrier = GNUNET_TESTING_get_barrier (is,
+                                                                       barrier_name);
 
   GNUNET_TESTING_finish_attached_cmds (is, barrier);
 }
@@ -329,9 +330,9 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message,
   ts->write_message = write_message;
 
   is = GNUNET_TESTING_run (commands,
-                      TIMEOUT,
-                      &handle_result,
-                      ts);
+                           TIMEOUT,
+                           &handle_result,
+                           ts);
 
 }
 

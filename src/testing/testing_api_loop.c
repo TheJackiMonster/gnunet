@@ -41,7 +41,7 @@ struct GNUNET_TESTING_Interpreter
    * Send handle for sending messages to netjail nodes.
    */
   struct GNUNET_HELPER_SendHandle *sh;
-  
+
   /**
    * Array with handles of helper processes for communication with netjails.
    */
@@ -271,6 +271,7 @@ finish_test (void *cls)
                 "Cleaning up cmd %s\n",
                 cmd->label);
     cmd->cleanup (cmd->cls);
+    GNUNET_free (cmd->label);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Cleaned up cmd %s\n",
                 cmd->label);

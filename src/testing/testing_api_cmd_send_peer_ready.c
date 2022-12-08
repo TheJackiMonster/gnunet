@@ -116,7 +116,7 @@ GNUNET_TESTING_cmd_send_peer_ready (const char *label,
   {
     struct GNUNET_TESTING_Command cmd = {
       .cls = sprs,
-      .label = label,
+      .label = GNUNET_strdup (label),
       .run = &send_peer_ready_run,
       .cleanup = &send_peer_ready_cleanup,
       .traits = &send_peer_ready_traits

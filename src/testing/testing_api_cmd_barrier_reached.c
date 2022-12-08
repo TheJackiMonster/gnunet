@@ -202,7 +202,7 @@ GNUNET_TESTING_cmd_barrier_reached (
   {
     struct GNUNET_TESTING_Command cmd = {
       .cls = brs,
-      .label = label,
+      .label = GNUNET_strdup (label),
       .run = &barrier_reached_run,
       .ac = &brs->ac,
       .cleanup = &barrier_reached_cleanup,

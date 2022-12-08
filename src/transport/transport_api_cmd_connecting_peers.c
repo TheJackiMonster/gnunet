@@ -254,7 +254,7 @@ GNUNET_TRANSPORT_cmd_connect_peers (const char *label,
   {
     struct GNUNET_TESTING_Command cmd = {
       .cls = cps,
-      .label = label,
+      .label = GNUNET_strdup (label),
       .run = &connect_peers_run,
       .ac = &cps->ac,
       .cleanup = &connect_peers_cleanup,

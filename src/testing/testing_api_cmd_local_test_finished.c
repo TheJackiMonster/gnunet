@@ -110,7 +110,7 @@ GNUNET_TESTING_cmd_local_test_finished (
   {
     struct GNUNET_TESTING_Command cmd = {
       .cls = lfs,
-      .label = label,
+      .label = GNUNET_strdup (label),
       .run = &local_test_finished_run,
       .cleanup = &local_test_finished_cleanup,
     };

@@ -385,15 +385,19 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
       LOG (GNUNET_ERROR_TYPE_ERROR,
            "subnet node n: %s\n",
            plugin->n);
-      // FIXME: Free?
       node_ip = GNUNET_malloc (strlen (NODE_BASE_IP) + strlen (plugin->m) + 1);
       strcat (node_ip, NODE_BASE_IP);
     }
     strcat (node_ip, plugin->m);
 
     plugin->api->start_testcase (&write_message, router_ip, node_ip, plugin->m,
+
                                  plugin->n, plugin->local_m, ni->topology_data,
                                  ni->read_file, &finished_cb);
+    GNUNET_free (node_ip);
+    GNUNET_free (binary);
+    GNUNET_free (router_ip);
+    GNUNET_free (plugin_name);
 
     msg_length = sizeof(struct GNUNET_TESTING_CommandHelperReply);
     reply = GNUNET_new (struct GNUNET_TESTING_CommandHelperReply);
@@ -401,10 +405,6 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
     reply->header.size = htons ((uint16_t) msg_length);
 
     write_message ((struct GNUNET_MessageHeader *) reply, msg_length);
-
-    GNUNET_free (binary);
-    GNUNET_free (router_ip);
-    GNUNET_free (plugin_name);
 
     return GNUNET_OK;
   }

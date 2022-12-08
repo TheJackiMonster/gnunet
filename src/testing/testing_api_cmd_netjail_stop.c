@@ -192,7 +192,7 @@ GNUNET_TESTING_cmd_netjail_stop (const char *label,
   {
     struct GNUNET_TESTING_Command cmd = {
       .cls = ns,
-      .label = label,
+      .label = GNUNET_strdup (label),
       .run = &netjail_stop_run,
       .ac = &ns->ac,
       .cleanup = &netjail_stop_cleanup

@@ -386,6 +386,9 @@ start_peer_cleanup (void *cls)
     GNUNET_CONFIGURATION_destroy (sps->cfg);
     sps->cfg = NULL;
   }
+  GNUNET_free (sps->cfgname);
+  GNUNET_free (sps->node_ip);
+  GNUNET_free (sps->system_label);
   GNUNET_free (sps->hello);
   GNUNET_free (sps->connected_peers_map);
   GNUNET_free (sps);
@@ -449,10 +452,10 @@ GNUNET_TRANSPORT_cmd_start_peer (const char *label,
 
   sps = GNUNET_new (struct StartPeerState);
   sps->no = no;
-  sps->system_label = system_label;
+  sps->system_label = GNUNET_strdup (system_label);
   sps->connected_peers_map = connected_peers_map;
-  sps->cfgname = cfgname;
-  sps->node_ip = node_ip;
+  sps->cfgname = GNUNET_strdup (cfgname);
+  sps->node_ip = GNUNET_strdup (node_ip);
   sps->notify_connect = notify_connect;
   sps->broadcast = broadcast;
 
@@ -469,7 +472,7 @@ GNUNET_TRANSPORT_cmd_start_peer (const char *label,
 
   struct GNUNET_TESTING_Command cmd = {
     .cls = sps,
-    .label = label,
+    .label = GNUNET_strdup (label),
     .run = &start_peer_run,
     .ac = &sps->ac,
     .cleanup = &start_peer_cleanup,

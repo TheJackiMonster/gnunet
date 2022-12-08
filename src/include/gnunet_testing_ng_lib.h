@@ -108,7 +108,7 @@ struct GNUNET_TESTING_Command
   /**
    * Label for the command.
    */
-  const char *label;
+  char *label;
 
   /**
    * Runs the command.  Note that upon return, the interpreter
@@ -434,7 +434,7 @@ GNUNET_TESTING_get_barrier (struct GNUNET_TESTING_Interpreter *is,
  *
  * @param is The interpreter.
  * @param barrier The barrier to add.
- */    
+ */
 void
 GNUNET_TESTING_barrier_add (struct GNUNET_TESTING_Interpreter *is,
                             struct GNUNET_TESTING_Barrier *barrier);

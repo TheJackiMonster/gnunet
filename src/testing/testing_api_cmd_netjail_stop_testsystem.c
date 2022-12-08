@@ -149,7 +149,7 @@ GNUNET_TESTING_cmd_stop_testing_system (
 
   struct GNUNET_TESTING_Command cmd = {
     .cls = shs,
-    .label = label,
+    .label = GNUNET_strdup (label),
     .run = &stop_testing_system_run,
     .cleanup = &stop_testing_system_cleanup,
   };
