@@ -50,7 +50,7 @@ struct BarrierReachedState
   const char *label;
 
   /**
-   * The name of the barrier this commands wait (if finishing asynchronous) for or/and reaches. 
+   * The name of the barrier this commands wait (if finishing asynchronous) for or/and reaches.
    */
   const char *barrier_name;
 
@@ -103,6 +103,10 @@ barrier_reached_run (void *cls,
   }
   else if (GNUNET_NO == brs->asynchronous_finish)
   {
+    /** FIXME: This is already fishy as commands in is are an array
+     * It is unclear how this does not end up with a DLL issue.
+     * We should create a dedicated struct to hold this list.
+     */
     cmd = GNUNET_TESTING_interpreter_get_current_command (is);
     GNUNET_CONTAINER_DLL_insert (barrier->cmds_head,
                                  barrier->cmds_tail,

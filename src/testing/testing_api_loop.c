@@ -686,6 +686,9 @@ GNUNET_TESTING_finish_attached_cmds (struct GNUNET_TESTING_Interpreter *is,
     GNUNET_CONTAINER_DLL_remove (barrier->cmds_head,
                                  barrier->cmds_tail,
                                  pos);
+    // FIXME: DANGER DANGER! "pos" is a pointer to the array(!) element in an
+    // IS. This WILL crash and burn
+    GNUNET_break (0);
     GNUNET_free (pos);
   }
   free_barrier_node_cb_cls = GNUNET_new (struct FreeBarrierNodeCbCls);

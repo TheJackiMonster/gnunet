@@ -99,6 +99,17 @@ struct GNUNET_TESTING_AsyncContext
  */
 struct GNUNET_TESTING_Command
 {
+  // FIXME: This should not be here. Looking at the code commands are used
+  // in arrays. Not lists.
+  /**
+   * Pointer to the previous command in the DLL.
+   */
+  struct GNUNET_TESTING_Command *prev;
+
+  /**
+   * Pointer to the next command in the DLL.
+   */
+  struct GNUNET_TESTING_Command *next;
 
   /**
    * Closure for all commands with command-specific context information.
@@ -193,16 +204,6 @@ struct GNUNET_TESTING_Command
    * tests do not fail on slow systems.
    */
   struct GNUNET_TIME_Relative default_timeout;
-
-  /**
-   * Pointer to the previous command in the DLL.
-   */
-  struct GNUNET_TESTING_Command *prev;
-
-  /**
-   * Pointer to the next command in the DLL.
-   */
-  struct GNUNET_TESTING_Command *next;
 
   /**
    * How often did we try to execute this command? (In case it is a request
