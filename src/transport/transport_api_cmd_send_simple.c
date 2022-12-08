@@ -153,12 +153,10 @@ GNUNET_TRANSPORT_cmd_send_simple (const char *label,
   sss->create_label = create_label;
   sss->topology = topology;
 
-  struct GNUNET_TESTING_Command cmd = {
-    .cls = sss,
-    .label = GNUNET_strdup (label),
-    .run = &send_simple_run,
-    .cleanup = &send_simple_cleanup
-  };
-
-  return cmd;
+  return GNUNET_TESTING_command_new (sss,
+                                     label,
+                                     &send_simple_run,
+                                     &send_simple_cleanup,
+                                     NULL,
+                                     NULL);
 }

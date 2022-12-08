@@ -143,14 +143,10 @@ GNUNET_TRANSPORT_cmd_stop_peer (const char *label,
 
   sps = GNUNET_new (struct StopPeerState);
   sps->start_label = start_label;
-  {
-    struct GNUNET_TESTING_Command cmd = {
-      .cls = sps,
-      .label = GNUNET_strdup (label),
-      .run = &stop_peer_run,
-      .cleanup = &stop_peer_cleanup,
-      .traits = &stop_peer_traits
-    };
-    return cmd;
-  }
+  return GNUNET_TESTING_command_new (sps,
+                                     label,
+                                     &stop_peer_run,
+                                     &stop_peer_cleanup,
+                                     &stop_peer_traits,
+                                     NULL);
 }

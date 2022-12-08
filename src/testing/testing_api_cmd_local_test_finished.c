@@ -107,14 +107,8 @@ GNUNET_TESTING_cmd_local_test_finished (
 
   lfs = GNUNET_new (struct LocalFinishedState);
   lfs->write_message = write_message;
-  {
-    struct GNUNET_TESTING_Command cmd = {
-      .cls = lfs,
-      .label = GNUNET_strdup (label),
-      .run = &local_test_finished_run,
-      .cleanup = &local_test_finished_cleanup,
-    };
-
-    return cmd;
-  }
+  return GNUNET_TESTING_command_new (lfs, label,
+                                     &local_test_finished_run,
+                                     &local_test_finished_cleanup,
+                                     NULL, NULL);
 }

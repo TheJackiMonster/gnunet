@@ -222,15 +222,8 @@ GNUNET_TESTING_cmd_netjail_start (const char *label,
   ns = GNUNET_new (struct NetJailState);
   ns->topology_config = topology_config;
   ns->read_file = read_file;
-  {
-    struct GNUNET_TESTING_Command cmd = {
-      .cls = ns,
-      .label = GNUNET_strdup (label),
-      .run = &netjail_start_run,
-      .ac = &ns->ac,
-      .cleanup = &netjail_start_cleanup
-    };
-
-    return cmd;
-  }
+  return GNUNET_TESTING_command_new (ns, label,
+                                     &netjail_start_run,
+                                     &netjail_start_cleanup,
+                                     NULL, &ns->ac);
 }

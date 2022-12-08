@@ -149,12 +149,12 @@ get_command (struct GNUNET_TESTING_Interpreter *is,
   {
     const struct GNUNET_TESTING_Command *cmd = &is->commands[i];
 
-    if (NULL != cmd->label)
+    if (NULL != cmd->run)
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "label to compare %s\n",
                   cmd->label);
     /* Give precedence to top-level commands.  */
-    if ( (NULL != cmd->label) &&
+    if ( (NULL != cmd->run) &&
          (0 == strcmp (cmd->label,
                        label)) )
       return cmd;
@@ -173,12 +173,12 @@ get_command (struct GNUNET_TESTING_Interpreter *is,
       /* We must do the loop forward, but we can find the last match */
       match = NULL;
       for (unsigned int j = 0;
-           NULL != (icmd = &(*batch)[j])->label;
+           NULL != (icmd = &(*batch)[j])->run;
            j++)
       {
         if (current == icmd)
           break; /* do not go past current command */
-        if ( (NULL != icmd->label) &&
+        if ( (NULL != icmd->run) &&
              (0 == strcmp (icmd->label,
                            label)) )
           match = icmd;
@@ -264,14 +264,13 @@ finish_test (void *cls)
               label,
               is->result);
   for (unsigned int j = 0;
-       NULL != (cmd = &is->commands[j])->label;
+       NULL != (cmd = &is->commands[j])->run;
        j++)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Cleaning up cmd %s\n",
                 cmd->label);
     cmd->cleanup (cmd->cls);
-    GNUNET_free (cmd->label);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Cleaned up cmd %s\n",
                 cmd->label);
@@ -407,7 +406,7 @@ interpreter_run (void *cls)
   struct GNUNET_TESTING_Command *cmd = &is->commands[is->ip];
 
   is->task = NULL;
-  if (NULL == cmd->label)
+  if (NULL == cmd->run)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Running command END\n");
@@ -490,7 +489,7 @@ GNUNET_TESTING_finished (const struct GNUNET_TESTING_Command *command)
 
 
 struct GNUNET_TESTING_Interpreter *
-GNUNET_TESTING_run (struct GNUNET_TESTING_Command *commands,
+GNUNET_TESTING_run (const struct GNUNET_TESTING_Command *commands,
                     struct GNUNET_TIME_Relative timeout,
                     GNUNET_TESTING_ResultCallback rc,
                     void *rc_cls)
@@ -503,7 +502,7 @@ GNUNET_TESTING_run (struct GNUNET_TESTING_Command *commands,
   is->rc_cls = rc_cls;
   is->barriers = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
   /* get the number of commands */
-  for (i = 0; NULL != commands[i].label; i++)
+  for (i = 0; NULL != commands[i].run; i++)
     ;
   is->cmds_n = i + 1;
   is->commands = GNUNET_new_array (is->cmds_n,
@@ -521,6 +520,27 @@ GNUNET_TESTING_run (struct GNUNET_TESTING_Command *commands,
   return is;
 }
 
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_command_new (void *cls,
+                            const char *label,
+                            GNUNET_TESTING_CommandRunRoutine run,
+                            GNUNET_TESTING_CommandCleanupRoutine cleanup,
+                            GNUNET_TESTING_CommandGetTraits traits,
+                            struct GNUNET_TESTING_AsyncContext *ac)
+{
+    struct GNUNET_TESTING_Command cmd = {
+      .cls = cls,
+      .run = run,
+      .ac = ac,
+      .cleanup = cleanup,
+      .traits = traits
+    };
+    memset (&cmd, 0, sizeof (cmd));
+    strncpy (cmd.label, label, GNUNET_TESTING_CMD_MAX_LABEL_LENGTH);
+
+    return cmd;
+
+}
 
 /**
  * Closure for #loop_run().
@@ -658,6 +678,7 @@ free_barrier_node_cb (void *cls,
                                          node->node_number);
   }
   GNUNET_CONTAINER_multishortmap_remove (barrier->nodes, key, node);
+  return GNUNET_YES;
 }
 
 
@@ -708,7 +729,6 @@ free_barriers_cb (void *cls,
   struct GNUNET_TESTING_Interpreter *is = cls;
   struct GNUNET_TESTING_Barrier *barrier = value;
   struct GNUNET_TESTING_Command *pos;
-  struct GNUNET_TESTING_NetjailNode *node;
   struct FreeBarrierNodeCbCls *free_barrier_node_cb_cls;
 
   free_barrier_node_cb_cls = GNUNET_new (struct FreeBarrierNodeCbCls);
@@ -725,6 +745,7 @@ free_barriers_cb (void *cls,
     GNUNET_free (pos);
   }
   GNUNET_free (barrier);
+  return GNUNET_YES;
 }
 
 
@@ -756,7 +777,6 @@ GNUNET_TESTING_get_barrier (struct GNUNET_TESTING_Interpreter *is,
   struct GNUNET_HashCode hc;
   struct GNUNET_ShortHashCode create_key;
   struct GNUNET_TESTING_Barrier *barrier;
-  unsigned int kx;
 
   GNUNET_CRYPTO_hash (barrier_name, strlen(barrier_name), &hc);
   memcpy (&create_key,

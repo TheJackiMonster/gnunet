@@ -469,15 +469,10 @@ GNUNET_TRANSPORT_cmd_start_peer (const char *label,
                    handlers,
                    i * sizeof(struct GNUNET_MQ_MessageHandler));
   }
-
-  struct GNUNET_TESTING_Command cmd = {
-    .cls = sps,
-    .label = GNUNET_strdup (label),
-    .run = &start_peer_run,
-    .ac = &sps->ac,
-    .cleanup = &start_peer_cleanup,
-    .traits = &start_peer_traits
-  };
-
-  return cmd;
+  return GNUNET_TESTING_command_new (sps,
+                                     label,
+                                     &start_peer_run,
+                                     &start_peer_cleanup,
+                                     &start_peer_traits,
+                                     &sps->ac);
 }

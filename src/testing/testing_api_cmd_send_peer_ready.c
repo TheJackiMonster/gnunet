@@ -113,15 +113,8 @@ GNUNET_TESTING_cmd_send_peer_ready (const char *label,
 
   sprs = GNUNET_new (struct SendPeerReadyState);
   sprs->write_message = write_message;
-  {
-    struct GNUNET_TESTING_Command cmd = {
-      .cls = sprs,
-      .label = GNUNET_strdup (label),
-      .run = &send_peer_ready_run,
-      .cleanup = &send_peer_ready_cleanup,
-      .traits = &send_peer_ready_traits
-    };
-
-    return cmd;
-  }
+  return GNUNET_TESTING_command_new (sprs, label,
+                                     &send_peer_ready_run,
+                                     &send_peer_ready_cleanup,
+                                     &send_peer_ready_traits, NULL);
 }

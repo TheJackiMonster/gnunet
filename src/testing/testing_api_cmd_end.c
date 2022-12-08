@@ -29,11 +29,9 @@
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_end (void)
 {
-  static struct GNUNET_TESTING_Command cmd = {
-    .label = NULL
-  };
-
-  return cmd;
+  return GNUNET_TESTING_command_new (NULL, NULL,
+                                     NULL, NULL,
+                                     NULL, NULL);
 }
 
 

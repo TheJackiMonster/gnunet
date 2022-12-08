@@ -147,12 +147,8 @@ GNUNET_TESTING_cmd_stop_testing_system (
   shs->known = topology->nodes_x;
   shs->topology = topology;
 
-  struct GNUNET_TESTING_Command cmd = {
-    .cls = shs,
-    .label = GNUNET_strdup (label),
-    .run = &stop_testing_system_run,
-    .cleanup = &stop_testing_system_cleanup,
-  };
-
-  return cmd;
+  return GNUNET_TESTING_command_new (shs, label,
+                                     &stop_testing_system_run,
+                                     &stop_testing_system_cleanup,
+                                     NULL, NULL);
 }

@@ -545,14 +545,10 @@ GNUNET_TRANSPORT_cmd_backchannel_check (const char *label,
   cs->node_n = node_n;
   cs->namespace_n = namespace_n;
 
-  struct GNUNET_TESTING_Command cmd = {
-    .cls = cs,
-    .label = GNUNET_strdup (label),
-    .run = &backchannel_check_run,
-    .ac = &cs->ac,
-    .cleanup = &backchannel_check_cleanup,
-    .traits = &backchannel_check_traits
-  };
-
-  return cmd;
+  return GNUNET_TESTING_command_new (cs,
+                                     label,
+                                     &backchannel_check_run,
+                                     &backchannel_check_cleanup,
+                                     &backchannel_check_traits,
+                                     &cs->ac);
 }

@@ -79,11 +79,11 @@ struct BarrierReachedState
  */
 static void
 barrier_reached_run (void *cls,
-           struct GNUNET_TESTING_Interpreter *is)
+                     struct GNUNET_TESTING_Interpreter *is)
 {
   struct BarrierReachedState *brs = cls;
   struct GNUNET_TESTING_Barrier *barrier;
-  struct GNUNET_TESTING_Command *cmd;
+  struct GNUNET_TESTING_Command *cmd = NULL;
   size_t msg_length;
   struct GNUNET_TESTING_CommandBarrierReached *msg;
 
@@ -98,6 +98,8 @@ barrier_reached_run (void *cls,
   barrier->reached++;
   if (GNUNET_TESTING_can_barrier_advance (barrier))
   {
+    //FIXME cmd uninitialized
+    GNUNET_assert (NULL != cmd);
     cmd->asynchronous_finish = GNUNET_YES;
     GNUNET_TESTING_finish_attached_cmds (is, barrier);
   }
@@ -121,7 +123,7 @@ barrier_reached_run (void *cls,
     msg_length = sizeof(struct GNUNET_TESTING_CommandBarrierReached);
     msg = GNUNET_new (struct GNUNET_TESTING_CommandBarrierReached);
     msg->header.size = htons ((uint16_t) msg_length);
-    msg->header.type = htons(GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_REACHED);
+    msg->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_REACHED);
     msg->barrier_name = barrier->name;
     msg->node_number = brs->node_number;
     brs->write_message ((struct GNUNET_MessageHeader *) msg, msg_length);
@@ -155,9 +157,9 @@ barrier_reached_cleanup (void *cls)
  */
 static enum GNUNET_GenericReturnValue
 barrier_reached_traits (void *cls,
-              const void **ret,
-              const char *trait,
-              unsigned int index)
+                        const void **ret,
+                        const char *trait,
+                        unsigned int index)
 {
   struct BarrierReachedState *brs = cls;
   struct GNUNET_TESTING_AsyncContext *ac = &brs->ac;
@@ -203,16 +205,9 @@ GNUNET_TESTING_cmd_barrier_reached (
   brs->node_number = node_number;
   brs->running_on_master = running_on_master;
   brs->write_message = write_message;
-  {
-    struct GNUNET_TESTING_Command cmd = {
-      .cls = brs,
-      .label = GNUNET_strdup (label),
-      .run = &barrier_reached_run,
-      .ac = &brs->ac,
-      .cleanup = &barrier_reached_cleanup,
-      .traits = &barrier_reached_traits
-    };
-
-    return cmd;
-  }
+  return GNUNET_TESTING_command_new (brs, label,
+                                     &barrier_reached_run,
+                                     &barrier_reached_cleanup,
+                                     &barrier_reached_traits,
+                                     &brs->ac);
 }

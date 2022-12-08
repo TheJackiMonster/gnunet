@@ -62,13 +62,13 @@ batch_run (void *cls,
 {
   struct BatchState *bs = cls;
 
-  if (NULL != bs->batch[bs->batch_ip].label)
+  if (NULL != bs->batch[bs->batch_ip].run)
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "Running batched command: %s\n",
                 bs->batch[bs->batch_ip].label);
 
   /* hit end command, leap to next top-level command.  */
-  if (NULL == bs->batch[bs->batch_ip].label)
+  if (NULL == bs->batch[bs->batch_ip].run)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "Exiting from batch: %s\n",
@@ -96,7 +96,7 @@ batch_cleanup (void *cls)
   struct BatchState *bs = cls;
 
   for (unsigned int i = 0;
-       NULL != bs->batch[i].label;
+       NULL != bs->batch[i].run;
        i++)
     bs->batch[i].cleanup (bs->batch[i].cls);
   GNUNET_free (bs->batch);
@@ -161,7 +161,7 @@ GNUNET_TESTING_cmd_batch (const char *label,
   bs = GNUNET_new (struct BatchState);
   bs->label = label;
   /* Get number of commands.  */
-  for (i = 0; NULL != batch[i].label; i++)
+  for (i = 0; NULL != batch[i].run; i++)
     /* noop */
     ;
 
@@ -170,17 +170,10 @@ GNUNET_TESTING_cmd_batch (const char *label,
   memcpy (bs->batch,
           batch,
           sizeof (struct GNUNET_TESTING_Command) * i);
-  {
-    struct GNUNET_TESTING_Command cmd = {
-      .cls = bs,
-      .label = GNUNET_strdup (label),
-      .run = &batch_run,
-      .cleanup = &batch_cleanup,
-      .traits = &batch_traits
-    };
-
-    return cmd;
-  }
+  return GNUNET_TESTING_command_new (bs, label,
+                                     &batch_run,
+                                     &batch_cleanup,
+                                     &batch_traits, NULL);
 }
 
 
@@ -189,7 +182,7 @@ GNUNET_TESTING_cmd_batch_next_ (void *cls)
 {
   struct BatchState *bs = cls;
 
-  if (NULL == bs->batch[bs->batch_ip].label)
+  if (NULL == bs->batch[bs->batch_ip].run)
     return false;
   bs->batch[bs->batch_ip].finish_time
     = GNUNET_TIME_absolute_get ();

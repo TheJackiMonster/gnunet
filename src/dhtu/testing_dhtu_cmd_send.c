@@ -107,12 +107,12 @@ GNUNET_TESTING_DHTU_cmd_send (const char *label)
   {
     struct GNUNET_TESTING_Command cmd = {
       .cls = ss,
-      .label = label,
       .run = &send_run,
       .ac = &ss->ac,
       .cleanup = &send_cleanup,
       .traits = &send_traits
     };
+    strncpy (cmd.label, label, GNUNET_TESTING_CMD_MAX_LABEL_LENGTH);
 
     return cmd;
   }

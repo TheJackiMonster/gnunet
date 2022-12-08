@@ -104,15 +104,7 @@ GNUNET_TESTING_cmd_system_destroy (const char *label,
 
   tss = GNUNET_new (struct TestSystemState);
   tss->create_label = create_label;
-  {
-    struct GNUNET_TESTING_Command cmd = {
-      .cls = tss,
-      .label = GNUNET_strdup (label),
-      .run = &system_destroy_run,
-      .cleanup = &system_destroy_cleanup,
-      .traits = &system_destroy_traits
-    };
-
-    return cmd;
-  }
+  return GNUNET_TESTING_command_new (tss, label, &system_destroy_run,
+                                     &system_destroy_cleanup,
+                                     &system_destroy_traits, NULL);
 }

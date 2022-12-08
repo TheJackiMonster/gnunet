@@ -102,14 +102,9 @@ GNUNET_TESTING_cmd_local_test_prepared (const char *label,
   lfs = GNUNET_new (struct LocalPreparedState);
   lfs->write_message = write_message;
 
-  struct GNUNET_TESTING_Command cmd = {
-    .cls = lfs,
-    .label = GNUNET_strdup (label),
-    .run = &local_test_prepared_run,
-    .ac = &lfs->ac,
-    .cleanup = &local_test_prepared_cleanup,
-    .traits = &local_test_prepared_traits
-  };
-
-  return cmd;
+  return GNUNET_TESTING_command_new (lfs, label,
+                                     &local_test_prepared_run,
+                                     &local_test_prepared_cleanup,
+                                     &local_test_prepared_traits,
+                                     &lfs->ac);
 }

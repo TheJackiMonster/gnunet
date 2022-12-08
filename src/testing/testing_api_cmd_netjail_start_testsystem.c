@@ -284,9 +284,9 @@ send_message_to_locals (
   tbc = GNUNET_new (struct TestingSystemCount);
   tbc->ns = ns;
   if (0 == i)
-    count = j; 
+    count = j;
   else
-    count = (i - 1) * ns->local_m + j + ns->known; 
+    count = (i - 1) * ns->local_m + j + ns->known;
 
   helper = ns->helper[count - 1];
 
@@ -311,7 +311,7 @@ send_barrier_advanced (struct GNUNET_TESTING_CommandBarrierReached *rm,
 {
   struct GNUNET_TESTING_CommandBarrierAdvanced *adm = GNUNET_new (struct GNUNET_TESTING_CommandBarrierAdvanced);
   size_t msg_length = sizeof(struct GNUNET_TESTING_CommandAllLocalTestsPrepared);
-  
+
   adm->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_PEERS_STARTED);
   adm->header.size = htons ((uint16_t) msg_length);
   adm->barrier_name = rm->barrier_name;
@@ -383,7 +383,6 @@ barrier_reached (struct NetJailState *ns, const struct GNUNET_MessageHeader *mes
 {
   struct GNUNET_TESTING_CommandBarrierReached *rm = (struct GNUNET_TESTING_CommandBarrierReached *) message;
   struct GNUNET_TESTING_Barrier *barrier = GNUNET_TESTING_get_barrier (ns->is, rm->barrier_name);
-  struct GNUNET_TESTING_NetjailNode *node;
 
   GNUNET_assert (NULL != barrier && GNUNET_NO == barrier->shadow);
   barrier->reached++;
@@ -825,14 +824,9 @@ GNUNET_TESTING_cmd_netjail_start_testing_system (
   ns->topology_data = topology_data;
   ns->timeout = GNUNET_TIME_relative_subtract (timeout, TIMEOUT);
 
-  struct GNUNET_TESTING_Command cmd = {
-    .cls = ns,
-    .label = GNUNET_strdup (label),
-    .run = &netjail_exec_run,
-    .ac = &ns->ac,
-    .cleanup = &netjail_exec_cleanup,
-    .traits = &netjail_exec_traits
-  };
-
-  return cmd;
+  return GNUNET_TESTING_command_new (ns, label,
+                                     &netjail_exec_run,
+                                     &netjail_exec_cleanup,
+                                     &netjail_exec_traits,
+                                     &ns->ac);
 }

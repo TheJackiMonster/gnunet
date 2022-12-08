@@ -40,6 +40,10 @@
  */
 #define GNUNET_S(a) #a
 
+/**
+ * Maximum length of label in command
+ */
+#define GNUNET_TESTING_CMD_MAX_LABEL_LENGTH 127
 
 /* ********************* Helper functions ********************* */
 
@@ -93,6 +97,37 @@ struct GNUNET_TESTING_AsyncContext
   enum GNUNET_GenericReturnValue finished;
 };
 
+typedef void
+(*GNUNET_TESTING_CommandRunRoutine)(void *cls,
+                                    struct GNUNET_TESTING_Interpreter *is);
+
+typedef void
+(*GNUNET_TESTING_CommandCleanupRoutine)(void *cls);
+
+typedef  enum GNUNET_GenericReturnValue
+(*GNUNET_TESTING_CommandGetTraits) (void *cls,
+                                    const void **ret,
+                                    const char *trait,
+                                    unsigned int index);
+
+/**
+ * Create a new command
+ *
+ * @param cls the closure
+ * @param label the Label. Maximum length is GNUNET_TESTING_CMD_MAX_LABEL_LENGTH
+ * @param run the run routing
+ * @param cleanup the cleanup function
+ * @param traits the traits function (optional)
+ * @param the async context
+ * @return the command the function cannot fail
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_command_new (void *cls,
+                            const char *label,
+                            GNUNET_TESTING_CommandRunRoutine run,
+                            GNUNET_TESTING_CommandCleanupRoutine cleanup,
+                            GNUNET_TESTING_CommandGetTraits traits,
+                            struct GNUNET_TESTING_AsyncContext *ac);
 
 /**
  * A command to be run by the interpreter.
@@ -119,7 +154,7 @@ struct GNUNET_TESTING_Command
   /**
    * Label for the command.
    */
-  char *label;
+  char label[GNUNET_TESTING_CMD_MAX_LABEL_LENGTH + 1];
 
   /**
    * Runs the command.  Note that upon return, the interpreter
@@ -136,9 +171,7 @@ struct GNUNET_TESTING_Command
    * @param cls closure
    * @param is interpreter state
    */
-  void
-  (*run)(void *cls,
-         struct GNUNET_TESTING_Interpreter *is);
+  GNUNET_TESTING_CommandRunRoutine run;
 
   /**
    * Pointer to the asynchronous context in the command's
@@ -156,8 +189,7 @@ struct GNUNET_TESTING_Command
    *
    * @param cls closure
    */
-  void
-  (*cleanup)(void *cls);
+  GNUNET_TESTING_CommandCleanupRoutine cleanup;
 
   /**
    * Extract information from a command that is useful for other
@@ -170,11 +202,7 @@ struct GNUNET_TESTING_Command
    * @return #GNUNET_OK on success,
    *         #GNUNET_NO if no trait was found
    */
-  enum GNUNET_GenericReturnValue
-  (*traits)(void *cls,
-            const void **ret,
-            const char *trait,
-            unsigned int index);
+  GNUNET_TESTING_CommandGetTraits traits;
 
   /**
    * When did the execution of this command start?
@@ -377,7 +405,7 @@ typedef void
  * @return The interpreter.
  */
 struct GNUNET_TESTING_Interpreter *
-GNUNET_TESTING_run (struct GNUNET_TESTING_Command *commands,
+GNUNET_TESTING_run (const struct GNUNET_TESTING_Command *commands,
                     struct GNUNET_TIME_Relative timeout,
                     GNUNET_TESTING_ResultCallback rc,
                     void *rc_cls);
@@ -660,11 +688,11 @@ GNUNET_TESTING_get_trait (const struct GNUNET_TESTING_Trait *traits,
  */
 #define GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT(name,type)   \
   enum GNUNET_GenericReturnValue                          \
-    GNUNET_TESTING_get_trait_ ## name (                    \
+  GNUNET_TESTING_get_trait_ ## name (                    \
     const struct GNUNET_TESTING_Command *cmd,              \
     type **ret);                                          \
   struct GNUNET_TESTING_Trait                              \
-    GNUNET_TESTING_make_trait_ ## name (                   \
+  GNUNET_TESTING_make_trait_ ## name (                   \
     type * value);
 
 
@@ -674,9 +702,9 @@ GNUNET_TESTING_get_trait (const struct GNUNET_TESTING_Trait *traits,
  */
 #define GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT(name,type)  \
   enum GNUNET_GenericReturnValue                         \
-    GNUNET_TESTING_get_trait_ ## name (                   \
+  GNUNET_TESTING_get_trait_ ## name (                   \
     const struct GNUNET_TESTING_Command *cmd,             \
-    type **ret)                                          \
+    type * *ret)                                          \
   {                                                      \
     if (NULL == cmd->traits) return GNUNET_SYSERR;       \
     return cmd->traits (cmd->cls,                        \
@@ -685,7 +713,7 @@ GNUNET_TESTING_get_trait (const struct GNUNET_TESTING_Trait *traits,
                         0);                              \
   }                                                      \
   struct GNUNET_TESTING_Trait                             \
-    GNUNET_TESTING_make_trait_ ## name (                  \
+  GNUNET_TESTING_make_trait_ ## name (                  \
     type * value)                                        \
   {                                                      \
     struct GNUNET_TESTING_Trait ret = {                   \
@@ -702,14 +730,14 @@ GNUNET_TESTING_get_trait (const struct GNUNET_TESTING_Trait *traits,
  */
 #define GNUNET_TESTING_MAKE_DECL_INDEXED_TRAIT(name,type)  \
   enum GNUNET_GenericReturnValue                          \
-    GNUNET_TESTING_get_trait_ ## name (                    \
+  GNUNET_TESTING_get_trait_ ## name (                    \
     const struct GNUNET_TESTING_Command *cmd,              \
     unsigned int index,                                   \
     type **ret);                                          \
   struct GNUNET_TESTING_Trait                              \
-    GNUNET_TESTING_make_trait_ ## name (                   \
+  GNUNET_TESTING_make_trait_ ## name (                   \
     unsigned int index,                                   \
-    type * value);
+    type *value);
 
 
 /**
@@ -718,10 +746,10 @@ GNUNET_TESTING_get_trait (const struct GNUNET_TESTING_Trait *traits,
  */
 #define GNUNET_TESTING_MAKE_IMPL_INDEXED_TRAIT(name,type) \
   enum GNUNET_GenericReturnValue                         \
-    GNUNET_TESTING_get_trait_ ## name (                   \
+  GNUNET_TESTING_get_trait_ ## name (                   \
     const struct GNUNET_TESTING_Command *cmd,             \
     unsigned int index,                                  \
-    type **ret)                                          \
+    type * *ret)                                          \
   {                                                      \
     if (NULL == cmd->traits) return GNUNET_SYSERR;       \
     return cmd->traits (cmd->cls,                        \
@@ -730,7 +758,7 @@ GNUNET_TESTING_get_trait (const struct GNUNET_TESTING_Trait *traits,
                         index);                          \
   }                                                      \
   struct GNUNET_TESTING_Trait                             \
-    GNUNET_TESTING_make_trait_ ## name (                  \
+  GNUNET_TESTING_make_trait_ ## name (                  \
     unsigned int index,                                  \
     type * value)                                        \
   {                                                      \

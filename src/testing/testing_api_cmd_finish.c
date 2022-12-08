@@ -175,17 +175,10 @@ GNUNET_TESTING_cmd_finish (const char *finish_label,
   finish_state = GNUNET_new (struct FinishState);
   finish_state->async_label = cmd_ref;
   finish_state->timeout = timeout;
-  {
-    struct GNUNET_TESTING_Command cmd = {
-      .cls = finish_state,
-      .label = GNUNET_strdup (finish_label),
-      .run = &run_finish,
-      .ac = &finish_state->ac,
-      .cleanup = &cleanup_finish
-    };
-
-    return cmd;
-  }
+  return GNUNET_TESTING_command_new (finish_state, finish_label,
+                                     &run_finish,
+                                     &cleanup_finish,
+                                     NULL, &finish_state->ac);
 }
 
 

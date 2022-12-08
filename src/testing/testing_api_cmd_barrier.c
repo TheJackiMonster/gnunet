@@ -109,10 +109,10 @@ GNUNET_TESTING_can_barrier_advance (struct GNUNET_TESTING_Barrier *barrier)
   unsigned int reached = barrier->reached;
   double percentage_to_be_reached = barrier->percentage_to_be_reached;
   unsigned int number_to_be_reached = barrier->number_to_be_reached;
-
-  if ((0 < percentage_to_be_reached &&
-       (double)expected_reaches/reached*100) >= percentage_to_be_reached ||
-      (0 < number_to_be_reached && reached >= number_to_be_reached ))
+  double percentage_reached = (double)expected_reaches/reached*100;
+  if (((0 < percentage_to_be_reached) &&
+       (percentage_reached >= percentage_to_be_reached)) ||
+      ((0 < number_to_be_reached) && (reached >= number_to_be_reached)))
   {
     return GNUNET_YES;
   }
@@ -237,20 +237,14 @@ GNUNET_TESTING_cmd_barrier_create (const char *label,
   bs->label = label;
   barrier = GNUNET_new (struct GNUNET_TESTING_Barrier);
   barrier->name = label;
-  GNUNET_assert (0 < percentage_to_be_reached && 0 == number_to_be_reached ||
-                 0 ==  percentage_to_be_reached && 0 < number_to_be_reached);
+  GNUNET_assert ((0 < percentage_to_be_reached && 0 == number_to_be_reached) ||
+                 (0 ==  percentage_to_be_reached && 0 < number_to_be_reached));
   barrier->percentage_to_be_reached;
   barrier->number_to_be_reached;
   bs->barrier = barrier;
-  {
-    struct GNUNET_TESTING_Command cmd = {
-      .cls = bs,
-      .label = GNUNET_strdup (label),
-      .run = &barrier_run,
-      .cleanup = &barrier_cleanup,
-      .traits = &barrier_traits
-    };
-
-    return cmd;
-  }
+  return GNUNET_TESTING_command_new (bs, label,
+                                     &barrier_run,
+                                     &barrier_cleanup,
+                                     &barrier_traits,
+                                     NULL);
 }
