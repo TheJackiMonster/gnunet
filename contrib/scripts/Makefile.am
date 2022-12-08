@@ -45,8 +45,6 @@ EXTRA_DIST = \
   lint/lint-man.sh \
   lint/lint-python.sh \
   revisionary.sh \
-  netjail/netjail_core.sh \
-  netjail/netjail_setup_internet.sh \
   regression.sh \
   doc/texinfo-hacks.el \
   afferify \
