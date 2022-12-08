@@ -8,6 +8,7 @@ declare -A R_UDP
 declare -A R_UDP_ALLOWED
 declare -i -A R_UDP_ALLOWED_NUMBER
 declare -A P_PLUGIN
+declare -A R_SCRIPT
 
 extract_attributes()
 {
@@ -58,6 +59,11 @@ extract_attributes()
 	            then
 		            K_PLUGIN[$number]=$value
 	            fi
+            elif [ "$key" = "script" ]
+	        then
+	            echo script: $value
+	            echo $line_key
+	            R_SCRIPT[$number]=$value
 	        fi
         else
 	        p1=$(echo $entry|cut -d P -f 2|cut -d } -f 1|cut -d : -f 2)
@@ -105,6 +111,7 @@ parse_line(){
     do
         R_TCP[$i]=0
         R_UDP[$i]=0
+        R_SCRIPT[$i]=""
     done    
     elif [ "$key" = "X" ]
     then

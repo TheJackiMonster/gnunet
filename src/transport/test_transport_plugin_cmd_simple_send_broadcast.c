@@ -30,6 +30,7 @@
 #include "gnunet_transport_application_service.h"
 #include "transport-testing2.h"
 #include "transport-testing-cmds.h"
+#include "gnunet_testing_barrier.h"
 
 /**
  * Generic logging shortcut
@@ -40,6 +41,8 @@
 
 #define TOPOLOGY_CONFIG "test_transport_simple_send_topo.conf"
 
+#define TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 600)
+
 static struct GNUNET_TESTING_Command block_send;
 
 static struct GNUNET_TESTING_Command block_receive;
@@ -47,6 +50,8 @@ static struct GNUNET_TESTING_Command block_receive;
 static struct GNUNET_TESTING_Command connect_peers;
 
 static struct GNUNET_TESTING_Command local_prepared;
+
+static struct GNUNET_TESTING_Interpreter *is;
 
 /**
  * Function called to check a message of type GNUNET_TRANSPORT_TESTING_SIMPLE_MTYPE being
@@ -79,6 +84,25 @@ handle_test (void *cls,
     GNUNET_TESTING_async_fail ((struct GNUNET_TESTING_AsyncContext *) ac);
   else if (GNUNET_NO == ac->finished)
     GNUNET_TESTING_async_finish ((struct GNUNET_TESTING_AsyncContext *) ac);
+}
+
+
+struct GNUNET_TESTING_Barrier *
+get_waiting_for_barriers ()
+{
+  struct GNUNET_TESTING_Barrier *barrier;
+
+  //No Barrier
+  return NULL;
+}
+
+
+static void
+barrier_advanced (const char *barrier_name)
+{
+  struct GNUNET_TESTING_Barrier *barrier = GNUNET_TESTING_get_barrier (is, barrier_name);
+
+  GNUNET_TESTING_finish_attached_cmds (is, barrier);
 }
 
 
@@ -338,8 +362,8 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message, char *router_ip,
 
   ts->write_message = write_message;
 
-  GNUNET_TESTING_run (commands,
-                      GNUNET_TIME_UNIT_FOREVER_REL,
+  is = GNUNET_TESTING_run (commands,
+                      TIMEOUT,
                       &handle_result,
                       ts);
 
@@ -365,6 +389,8 @@ libgnunet_test_transport_plugin_cmd_simple_send_broadcast_init (void *cls)
   api->start_testcase = &start_testcase;
   api->all_peers_started = &all_peers_started;
   api->all_local_tests_prepared = all_local_tests_prepared;
+  api->barrier_advanced = barrier_advanced;
+  api->get_waiting_for_barriers = get_waiting_for_barriers;
   return api;
 }
 

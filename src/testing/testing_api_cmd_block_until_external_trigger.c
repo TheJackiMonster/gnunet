@@ -97,8 +97,6 @@ block_until_all_peers_started_run (void *cls,
  * Create command.
  *
  * @param label name for command.
- * @param all_peers_started Flag which will be set from outside.
- * @param asynchronous_finish If GNUNET_YES this command will not block. Can be NULL.
  * @return command.
  */
 struct GNUNET_TESTING_Command

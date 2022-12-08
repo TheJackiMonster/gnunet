@@ -32,9 +32,61 @@
 GNUNET_NETWORK_STRUCT_BEGIN
 
 /**
+ * Handle for a plugin.
+ */
+struct Plugin
+{
+  /**
+   * Name of the shared library.
+   */
+  char *library_name;
+
+  /**
+   * Plugin API.
+   */
+  struct GNUNET_TESTING_PluginFunctions *api;
+
+  /**
+   * IP address of the specific node the helper is running for.
+   *
+   */
+  char *node_ip;
+
+  /**
+   * Name of the test case plugin.
+   *
+   */
+  char *plugin_name;
+
+  /**
+   * The number of namespaces
+   *
+   */
+  char *global_n;
+
+  /**
+   * The number of local nodes per namespace.
+   *
+   */
+  char *local_m;
+
+  /**
+   * The number of the namespace this node is in.
+   *
+   */
+  char *n;
+
+  /**
+   * The number of the node in the namespace.
+   *
+   */
+  char *m;
+};
+
+/**
  * Initialization message for gnunet-cmds-testbed to start cmd binary.
  */
-struct GNUNET_CMDS_HelperInit
+struct GNUNET_TESTING_CommandHelperInit
 {
   /**
    * Type is GNUNET_MESSAGE_TYPE_CMDS_HELPER_INIT
@@ -53,7 +105,7 @@ struct GNUNET_CMDS_HelperInit
 /**
  * Reply message from cmds helper process
  */
-struct GNUNET_CMDS_HelperReply
+struct GNUNET_TESTING_CommandHelperReply
 {
   /**
    * Type is GNUNET_MESSAGE_TYPE_CMDS_HELPER_REPLY
@@ -61,7 +113,7 @@ struct GNUNET_CMDS_HelperReply
   struct GNUNET_MessageHeader header;
 };
 
-struct GNUNET_CMDS_PEER_STARTED
+struct GNUNET_TESTING_CommandPeerStarted
 {
   /**
    * Type is GNUNET_MESSAGE_TYPE_CMDS_HELPER_PEER_STARTED
@@ -69,7 +121,7 @@ struct GNUNET_CMDS_PEER_STARTED
   struct GNUNET_MessageHeader header;
 };
 
-struct GNUNET_CMDS_ALL_PEERS_STARTED
+struct GNUNET_TESTING_CommandAllPeersStarted
 {
   /**
    * Type is GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_PEERS_STARTED
@@ -86,7 +138,7 @@ struct GNUNET_CMDS_LOCAL_FINISHED
 };
 
 
-struct GNUNET_CMDS_LOCAL_TEST_PREPARED
+struct GNUNET_TESTING_CommandLocalTestPrepared
 {
   /**
    * Type is GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_TEST_PREPARED
@@ -94,7 +146,7 @@ struct GNUNET_CMDS_LOCAL_TEST_PREPARED
   struct GNUNET_MessageHeader header;
 };
 
-struct GNUNET_CMDS_ALL_LOCAL_TESTS_PREPARED
+struct GNUNET_TESTING_CommandAllLocalTestsPrepared
 {
   /**
    * Type is GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_LOCAL_TESTS_PREPARED

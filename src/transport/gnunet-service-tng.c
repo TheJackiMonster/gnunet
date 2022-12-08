@@ -4489,8 +4489,13 @@ queue_send_msg (struct Queue *queue,
     GNUNET_assert (CT_COMMUNICATOR == queue->tc->type);
     queue->queue_length++;
     queue->tc->details.communicator.total_queue_length++;
+    //FIXME Probably this if statement here is completely wrong in this method,
+    // and only fixed a symptom, but not an actual bug.
     if (0 == queue->q_capacity)
+    {
+      GNUNET_free (env);
       return;
+    }
     if (GNUNET_NO == queue->unlimited_length)
       queue->q_capacity--;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,

@@ -8,4 +8,4 @@ if [ -f /proc/sys/kernel/unprivileged_userns_clone ]; then
     exit 78
   fi
 fi
-exec unshare -r -nmU bash -c "mount -t tmpfs --make-rshared tmpfs /run/netns; ./test_transport_start_with_config test_transport_distance_vector_topo.conf"
+exec unshare -r -nmU bash -c "mount -t tmpfs --make-rshared tmpfs /run/netns; ./test_transport_start_with_config test_transport_nat_upnp_topo.conf"

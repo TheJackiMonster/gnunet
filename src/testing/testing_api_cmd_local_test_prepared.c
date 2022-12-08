@@ -80,11 +80,11 @@ local_test_prepared_run (void *cls,
 {
   struct LocalPreparedState *lfs = cls;
 
-  struct GNUNET_CMDS_LOCAL_TEST_PREPARED *reply;
+  struct GNUNET_TESTING_CommandLocalTestPrepared *reply;
   size_t msg_length;
 
-  msg_length = sizeof(struct GNUNET_CMDS_LOCAL_TEST_PREPARED);
-  reply = GNUNET_new (struct GNUNET_CMDS_LOCAL_TEST_PREPARED);
+  msg_length = sizeof(struct GNUNET_TESTING_CommandLocalTestPrepared);
+  reply = GNUNET_new (struct GNUNET_TESTING_CommandLocalTestPrepared);
   reply->header.type = htons (
     GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_TEST_PREPARED);
   reply->header.size = htons ((uint16_t) msg_length);

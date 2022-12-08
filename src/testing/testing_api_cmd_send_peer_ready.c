@@ -46,7 +46,7 @@ struct SendPeerReadyState
    * The message send back to the master loop.
    *
    */
-  struct GNUNET_CMDS_PEER_STARTED *reply;
+  struct GNUNET_TESTING_CommandPeerStarted *reply;
 };
 
 
@@ -86,11 +86,11 @@ send_peer_ready_run (void *cls,
                      struct GNUNET_TESTING_Interpreter *is)
 {
   struct SendPeerReadyState *sprs = cls;
-  struct GNUNET_CMDS_PEER_STARTED *reply;
+  struct GNUNET_TESTING_CommandPeerStarted *reply;
   size_t msg_length;
 
-  msg_length = sizeof(struct GNUNET_CMDS_PEER_STARTED);
-  reply = GNUNET_new (struct GNUNET_CMDS_PEER_STARTED);
+  msg_length = sizeof(struct GNUNET_TESTING_CommandPeerStarted);
+  reply = GNUNET_new (struct GNUNET_TESTING_CommandPeerStarted);
   reply->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_PEER_STARTED);
   reply->header.size = htons ((uint16_t) msg_length);
   sprs->reply = reply;
