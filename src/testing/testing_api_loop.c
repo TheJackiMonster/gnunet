@@ -25,6 +25,7 @@
  * @author Marcello Stanisci (GNU Taler testing)
  * @author t3sserakt
  */
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
@@ -507,6 +508,7 @@ GNUNET_TESTING_run (const struct GNUNET_TESTING_Command *commands,
   for (i = 0; NULL != commands[i].run; i++)
     ;
   is->cmds_n = i + 1;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Got %u commands\n", i);
   is->commands = GNUNET_new_array (is->cmds_n,
                                    struct GNUNET_TESTING_Command);
   memcpy (is->commands,
@@ -537,7 +539,7 @@ GNUNET_TESTING_command_new (void *cls,
     .cleanup = cleanup,
     .traits = traits
   };
-  memset (&cmd, 0, sizeof (cmd));
+  memset (&cmd.label, 0, sizeof (cmd.label));
   if (NULL != label)
     strncpy (cmd.label, label, GNUNET_TESTING_CMD_MAX_LABEL_LENGTH);
 
