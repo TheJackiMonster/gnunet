@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2022-12-07 00:03+0900\n"
+"POT-Creation-Date: 2022-12-09 15:19+0900\n"
 "PO-Revision-Date: 2021-11-21 00:53+0100\n"
 "Last-Translator: Stéphane  Aulery <lkppo@free.fr>\n"
 "Language-Team: French <traduc@traduc.org>\n"
@@ -6331,7 +6331,7 @@ msgid ""
 msgstr ""
 
 #: src/testbed/gnunet-daemon-testbed-underlay.c:234 src/testing/list-keys.c:47
-#: src/testing/testing.c:289 src/util/gnunet-ecc.c:319
+#: src/testing/testing.c:292 src/util/gnunet-ecc.c:319
 #, c-format
 msgid "Incorrect hostkey file format: %s\n"
 msgstr ""
@@ -6484,17 +6484,17 @@ msgid ""
 "free topology cannot be more than %u.  Given `%s = %llu'"
 msgstr ""
 
-#: src/testbed/testbed_api_topology.c:1021 src/testing/testing.c:2725
+#: src/testbed/testbed_api_topology.c:1021 src/testing/testing.c:2749
 #, c-format
 msgid "Topology file %s not found\n"
 msgstr ""
 
-#: src/testbed/testbed_api_topology.c:1029 src/testing/testing.c:2733
+#: src/testbed/testbed_api_topology.c:1029 src/testing/testing.c:2757
 #, c-format
 msgid "Topology file %s has no data\n"
 msgstr ""
 
-#: src/testbed/testbed_api_topology.c:1037 src/testing/testing.c:2741
+#: src/testbed/testbed_api_topology.c:1037 src/testing/testing.c:2765
 #, c-format
 msgid "Topology file %s cannot be read\n"
 msgstr ""
@@ -6566,57 +6566,57 @@ msgstr ""
 msgid "list COUNT number of keys"
 msgstr ""
 
-#: src/testing/testing.c:272
+#: src/testing/testing.c:275
 #, c-format
 msgid "Hostkeys file not found: %s\n"
 msgstr ""
 
-#: src/testing/testing.c:724
+#: src/testing/testing.c:727
 #, c-format
 msgid "Key number %u does not exist\n"
 msgstr ""
 
-#: src/testing/testing.c:1198
+#: src/testing/testing.c:1201
 #, c-format
 msgid ""
 "You attempted to create a testbed with more than %u hosts.  Please "
 "precompute more hostkeys first.\n"
 msgstr ""
 
-#: src/testing/testing.c:1207
+#: src/testing/testing.c:1210
 #, c-format
 msgid "Failed to initialize hostkey for peer %u\n"
 msgstr ""
 
-#: src/testing/testing.c:1217
+#: src/testing/testing.c:1220
 msgid "PRIVATE_KEY option in PEER section missing in configuration\n"
 msgstr ""
 
-#: src/testing/testing.c:1230
+#: src/testing/testing.c:1233
 msgid "Failed to create configuration for peer (not enough free ports?)\n"
 msgstr ""
 
-#: src/testing/testing.c:1246
+#: src/testing/testing.c:1249
 #, c-format
 msgid "Cannot open hostkey file `%s': %s\n"
 msgstr ""
 
-#: src/testing/testing.c:1260
+#: src/testing/testing.c:1263
 #, c-format
 msgid "Failed to write hostkey file for peer %u: %s\n"
 msgstr ""
 
-#: src/testing/testing.c:1288
+#: src/testing/testing.c:1291
 #, c-format
 msgid "Failed to write configuration file `%s' for peer %u: %s\n"
 msgstr ""
 
-#: src/testing/testing.c:1394
+#: src/testing/testing.c:1397
 #, c-format
 msgid "Failed to start `%s': %s\n"
 msgstr ""
 
-#: src/testing/testing.c:1645
+#: src/testing/testing.c:1648
 #, c-format
 msgid "Failed to load configuration from %s\n"
 msgstr ""
@@ -6692,7 +6692,7 @@ msgstr ""
 
 #: src/transport/gnunet-communicator-tcp.c:3347
 #: src/transport/gnunet-communicator-udp.c:3872
-#: src/transport/gnunet-service-tng.c:11367
+#: src/transport/gnunet-service-tng.c:11372
 #: src/transport/gnunet-service-transport.c:2617
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr ""

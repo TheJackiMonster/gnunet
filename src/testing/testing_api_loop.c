@@ -259,7 +259,7 @@ finish_test (void *cls)
   is->finishing = GNUNET_YES;
   is->final_task = NULL;
   label = is->commands[is->ip].label;
-  if (NULL == label)
+  if (NULL == is->commands[is->ip].run)
     label = "END";
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Interpreter finishes at `%s' with status %d\n",
@@ -538,7 +538,8 @@ GNUNET_TESTING_command_new (void *cls,
     .traits = traits
   };
   memset (&cmd, 0, sizeof (cmd));
-  strncpy (cmd.label, label, GNUNET_TESTING_CMD_MAX_LABEL_LENGTH);
+  if (NULL != label)
+    strncpy (cmd.label, label, GNUNET_TESTING_CMD_MAX_LABEL_LENGTH);
 
   return cmd;
 
