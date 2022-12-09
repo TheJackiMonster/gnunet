@@ -87,13 +87,11 @@ handle_test (void *cls,
 }
 
 
-struct GNUNET_TESTING_Barrier *
+struct GNUNET_TESTING_BarrierList *
 get_waiting_for_barriers ()
 {
-  struct GNUNET_TESTING_Barrier *barrier;
-
   //No Barrier
-  return NULL;
+  return GNUNET_new (struct GNUNET_TESTING_BarrierList);
 }
 
 
@@ -135,7 +133,7 @@ static void
 handle_result (void *cls,
                enum GNUNET_GenericReturnValue rv)
 {
-  struct TestState *ts = cls;
+  struct GNUNET_TESTING_TestState *ts = cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Local test exits with status %d\n",
@@ -178,7 +176,7 @@ notify_connect (struct GNUNET_TESTING_Interpreter *is,
 static void
 all_local_tests_prepared ()
 {
-  const struct LocalPreparedState *lfs;
+  const struct GNUNET_TESTING_LocalPreparedState *lfs;
 
   GNUNET_TESTING_get_trait_local_prepared_state (&local_prepared,
                                                  &lfs);
@@ -202,7 +200,7 @@ all_local_tests_prepared ()
  * @param local_m The number of nodes in a network namespace.
  */
 static void
-start_testcase (TESTING_CMD_HELPER_write_cb write_message,
+start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
                 const char *router_ip,
                 const char *node_ip,
                 const char *m,
@@ -210,14 +208,14 @@ start_testcase (TESTING_CMD_HELPER_write_cb write_message,
                 const char *local_m,
                 const char *topology_data,
                 unsigned int *read_file,
-                TESTING_CMD_HELPER_finish_cb finished_cb)
+                GNUNET_TESTING_cmd_helper_finish_cb finished_cb)
 {
 
   unsigned int n_int;
   unsigned int m_int;
   unsigned int local_m_int;
   unsigned int num;
-  struct TestState *ts = GNUNET_new (struct TestState);
+  struct GNUNET_TESTING_TestState *ts = GNUNET_new (struct GNUNET_TESTING_TestState);
   struct GNUNET_TESTING_NetjailTopology *topology;
   unsigned int sscanf_ret = 0;
 

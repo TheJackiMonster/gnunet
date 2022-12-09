@@ -26,6 +26,8 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_plugin.h"
+#include "gnunet_testing_barrier.h"
 #include "gnunet_testing_netjail_lib.h"
 #include "testing_cmds.h"
 
@@ -78,7 +80,7 @@ static void
 local_test_prepared_run (void *cls,
                          struct GNUNET_TESTING_Interpreter *is)
 {
-  struct LocalPreparedState *lfs = cls;
+  struct GNUNET_TESTING_LocalPreparedState *lfs = cls;
 
   struct GNUNET_TESTING_CommandLocalTestPrepared *reply;
   size_t msg_length;
@@ -94,12 +96,12 @@ local_test_prepared_run (void *cls,
 
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_local_test_prepared (const char *label,
-                                        TESTING_CMD_HELPER_write_cb
+                                        GNUNET_TESTING_cmd_helper_write_cb
                                         write_message)
 {
-  struct LocalPreparedState *lfs;
+  struct GNUNET_TESTING_LocalPreparedState *lfs;
 
-  lfs = GNUNET_new (struct LocalPreparedState);
+  lfs = GNUNET_new (struct GNUNET_TESTING_LocalPreparedState);
   lfs->write_message = write_message;
 
   return GNUNET_TESTING_command_new (lfs, label,

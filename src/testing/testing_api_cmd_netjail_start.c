@@ -26,6 +26,8 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_plugin.h"
+#include "gnunet_testing_barrier.h"
 #include "gnunet_testing_netjail_lib.h"
 
 #define NETJAIL_START_SCRIPT "netjail_start.sh"

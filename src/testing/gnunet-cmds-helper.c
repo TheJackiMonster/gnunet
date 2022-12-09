@@ -40,7 +40,9 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
 #include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_plugin.h"
 #include "gnunet_testing_netjail_lib.h"
+#include "testing.h"
 #include "testing_cmds.h"
 #include "gnunet_testing_plugin.h"
 #include "gnunet_testing_barrier.h"
@@ -135,7 +137,7 @@ static struct GNUNET_OS_Process *cmd_binary_process;*/
 /**
  * Plugin to dynamically load a test case.
  */
-struct Plugin *plugin;
+struct TestcasePlugin *plugin;
 
 /**
  * Our message stream tokenizer
@@ -355,7 +357,7 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
 
     binary = GNUNET_OS_get_libexec_binary_path ("gnunet-cmd");
 
-    plugin = GNUNET_new (struct Plugin);
+    plugin = GNUNET_new (struct TestcasePlugin);
     plugin->api = GNUNET_PLUGIN_load (plugin_name,
                                       NULL);
     plugin->library_name = GNUNET_strdup (basename (plugin_name));

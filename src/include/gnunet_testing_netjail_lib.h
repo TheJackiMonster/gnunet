@@ -27,11 +27,10 @@
 #ifndef GNUNET_TESTING_NETJAIL_LIB_H
 #define GNUNET_TESTING_NETJAIL_LIB_H
 
-
-#include "gnunet_util_lib.h"
-#include "gnunet_testing_plugin.h"
 #include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_plugin.h"
 
+struct GNUNET_TESTING_AsyncContext;
 
 /**
  * Router of a netjail subnet.
@@ -342,7 +341,10 @@ unsigned int
 GNUNET_TESTING_calculate_num (struct
                               GNUNET_TESTING_NodeConnection *node_connection,
                               struct GNUNET_TESTING_NetjailTopology *topology);
-struct TestState
+
+// FIXME this was not namespaced. Is this correct here? Why are the cmd_helpers
+// defined in _plugin??
+struct GNUNET_TESTING_TestState
 {
   /**
    * The head of the DLL with barriers of the test case.
@@ -358,12 +360,12 @@ struct TestState
    * Callback to write messages to the master loop.
    *
    */
-  TESTING_CMD_HELPER_write_cb write_message;
+  GNUNET_TESTING_cmd_helper_write_cb write_message;
 
   /**
    * Callback to notify the helper test case has finished.
    */
-  TESTING_CMD_HELPER_finish_cb finished_cb;
+  GNUNET_TESTING_cmd_helper_finish_cb finished_cb;
 
   /**
    * The name for a specific test environment directory.
@@ -387,12 +389,12 @@ struct TestState
  * Struct with information for callbacks.
  *
  */
-struct BlockState
+struct GNUNET_TESTING_BlockState
 {
   /**
    * Context for our asynchronous completion.
    */
-  struct GNUNET_TESTING_AsyncContext ac;
+  struct GNUNET_TESTING_AsyncContext *ac;
 
   /**
    * The label of this command.
@@ -409,7 +411,7 @@ struct BlockState
  * Struct to hold information for callbacks.
  *
  */
-struct LocalPreparedState
+struct GNUNET_TESTING_LocalPreparedState
 {
   /**
    * Context for our asynchronous completion.
@@ -420,7 +422,7 @@ struct LocalPreparedState
    * Callback to write messages to the master loop.
    *
    */
-  TESTING_CMD_HELPER_write_cb write_message;
+  GNUNET_TESTING_cmd_helper_write_cb write_message;
 };
 
 /**
@@ -538,7 +540,7 @@ GNUNET_TESTING_cmd_block_until_external_trigger (
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_send_peer_ready (const char *label,
-                                    TESTING_CMD_HELPER_write_cb write_message);
+                                    GNUNET_TESTING_cmd_helper_write_cb write_message);
 
 
 /**
@@ -551,7 +553,7 @@ GNUNET_TESTING_cmd_send_peer_ready (const char *label,
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_local_test_finished (
   const char *label,
-  TESTING_CMD_HELPER_write_cb write_message);
+  GNUNET_TESTING_cmd_helper_write_cb write_message);
 
 /**
  * Create command.
@@ -562,7 +564,7 @@ GNUNET_TESTING_cmd_local_test_finished (
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_local_test_prepared (const char *label,
-                                        TESTING_CMD_HELPER_write_cb
+                                        GNUNET_TESTING_cmd_helper_write_cb
                                         write_message);
 
 
@@ -576,8 +578,8 @@ GNUNET_TESTING_cmd_local_test_prepared (const char *label,
   op (test_system, const struct GNUNET_TESTING_System) \
   op (async_context, const struct GNUNET_TESTING_AsyncContext) \
   op (helper_handles, const struct GNUNET_HELPER_Handle *) \
-  op (local_prepared_state, const struct LocalPreparedState) \
-  op (block_state, const struct BlockState)
+  op (local_prepared_state, const struct GNUNET_TESTING_LocalPreparedState) \
+  op (block_state, const struct GNUNET_TESTING_BlockState)
 
 GNUNET_TESTING_SIMPLE_NETJAIL_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT)
 

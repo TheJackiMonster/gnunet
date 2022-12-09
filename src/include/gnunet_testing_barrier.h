@@ -27,73 +27,43 @@
 #ifndef GNUNET_TESTING_BARRIER_LIB_H
 #define GNUNET_TESTING_BARRIER_LIB_H
 
-#include "gnunet_testing_lib.h"
-#include "gnunet_testing_netjail_lib.h"
+#define GNUNET_TESTING_BARRIER_MAX 32
 
-struct GNUNET_TESTING_Barrier
+#include "gnunet_testing_plugin.h"
+
+/**
+ * A testing barrier
+ * FIXME better description
+ */
+struct GNUNET_TESTING_Barrier;
+
+/**
+ * An entry for a barrier list
+ */
+struct GNUNET_TESTING_BarrierListEntry
 {
-  /**
-   * Pointer to the previous prefix in the DLL.
-   */
-  struct GNUNET_TESTING_Barrier *prev;
+  /* DLL */
+  struct GNUNET_TESTING_BarrierListEntry *next;
 
-  /**
-   * Pointer to the next prefix in the DLL.
-   */
-  struct GNUNET_TESTING_Barrier *next;
+  /* DLL */
+  struct GNUNET_TESTING_BarrierListEntry *prev;
 
-  /**
-   * Head of the DLL with local commands the barrier is attached too.
-   */
-   struct GNUNET_TESTING_Command *cmds_head;
-
-  /**
-   * Tail of the DLL with local commands the barrier is attached too.
-   */
-   struct GNUNET_TESTING_Command *cmds_tail;
-
-  /**
-   * Hash map containing the global known nodes which are not natted.
-   */
-  struct GNUNET_CONTAINER_MultiShortmap *nodes;
-
-  /**
-   * Name of the barrier.
-   */
-  const char *name;
-
-  /**
-   * Is this barrier running on the master.
-   */
-  unsigned int running_on_master;
-
-  /**
-   * Number of commands attached to this barrier.
-   */
-  unsigned int expected_reaches;
-
-  /**
-   * Number of commands which reached this barrier.
-   */
-  unsigned int reached;
-
-  /**
-   * Percentage of of commands which need to reach the barrier to change state.
-   * Can not be used together with to_be_reached;
-   */
-  double percentage_to_be_reached;
-
-  /**
-   * Number of commands which need to reach the barrier to change state.
-   * Can not be used together with percentage_to_be_reached;
-   */
-  unsigned int number_to_be_reached;
-
-  /*
-   * No barrier locally. Shadow created. Real barrier created elsewhere.
-   */
-  unsigned int shadow;
+  /* The barrier */
+  struct GNUNET_TESTING_Barrier *barrier;
 };
+
+/**
+ * A list to hold barriers provided by plugins
+ */
+struct GNUNET_TESTING_BarrierList
+{
+  /** List head **/
+  struct GNUNET_TESTING_BarrierListEntry *head;
+
+  /** List tail **/
+  struct GNUNET_TESTING_BarrierListEntry *tail;
+};
+
 
 /**
  * Message send to a child loop to inform the child loop about a barrier being advanced.
@@ -112,7 +82,7 @@ struct GNUNET_TESTING_CommandBarrierAdvanced
 };
 
 /**
- * Message send by a child loop to inform the master loop how much 
+ * Message send by a child loop to inform the master loop how much
  * GNUNET_CMDS_BARRIER_REACHED messages the child will send.
  */
 struct GNUNET_TESTING_CommandBarrierAttached
@@ -162,17 +132,11 @@ struct GNUNET_TESTING_CommandBarrierReached
   unsigned int expected_number_of_reached_messages;
 };
 
-
 /**
- * Adding a node to the map of nodes of a barrier.
- *
- * @param nodes Map of nodes.
- * @param node The node to add.
+ * Create a new #GNUNET_TESTING_Barrier
  */
-void
-GNUNET_TESTING_barrier_add_node (struct GNUNET_CONTAINER_MultiShortmap *nodes,
-                                 struct GNUNET_TESTING_NetjailNode *node);
-
+struct GNUNET_TESTING_Barrier*
+GNUNET_TESTING_barrier_new (const char *testcase_name);
 
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_barrier_create (
@@ -203,7 +167,7 @@ GNUNET_TESTING_cmd_barrier_reached (
   unsigned int asynchronous_finish,
   unsigned int node_number,
   unsigned int running_on_master,
-  TESTING_CMD_HELPER_write_cb write_message);
+  GNUNET_TESTING_cmd_helper_write_cb write_message);
 
 
 /**
@@ -253,7 +217,7 @@ GNUNET_TESTING_send_barrier_attach (struct GNUNET_TESTING_Interpreter *is,
                                      char *barrier_name,
                                     unsigned int global_node_number,
                                     unsigned int expected_reaches,
-                                    TESTING_CMD_HELPER_write_cb write_message);
+                                    GNUNET_TESTING_cmd_helper_write_cb write_message);
 
 
 /**

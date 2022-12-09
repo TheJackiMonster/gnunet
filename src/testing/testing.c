@@ -33,6 +33,9 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_arm_service.h"
 #include "gnunet_testing_lib.h"
+#include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_plugin.h"
+#include "gnunet_testing_barrier.h"
 #include "gnunet_testing_netjail_lib.h"
 #include "testing_cmds.h"
 
@@ -2248,7 +2251,7 @@ free_nodes_cb (void *cls,
                                  pos_connection);
     GNUNET_free (pos_connection);
   }
-  
+
   GNUNET_free (node->plugin);
   GNUNET_free (node);
   return GNUNET_OK;

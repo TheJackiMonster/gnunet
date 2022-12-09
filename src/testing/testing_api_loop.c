@@ -28,7 +28,9 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_plugin.h"
 #include "gnunet_testing_barrier.h"
+#include "gnunet_testing_netjail_lib.h"
 #include "testing.h"
 
 /**
@@ -71,7 +73,7 @@ struct GNUNET_TESTING_Interpreter
   /**
    * Map with barriers for this loop.
    */
-   struct GNUNET_CONTAINER_MultiShortmap *barriers;
+  struct GNUNET_CONTAINER_MultiShortmap *barriers;
 
   /**
    * Number of GNUNET_TESTING_Command in commands.
@@ -528,17 +530,17 @@ GNUNET_TESTING_command_new (void *cls,
                             GNUNET_TESTING_CommandGetTraits traits,
                             struct GNUNET_TESTING_AsyncContext *ac)
 {
-    struct GNUNET_TESTING_Command cmd = {
-      .cls = cls,
-      .run = run,
-      .ac = ac,
-      .cleanup = cleanup,
-      .traits = traits
-    };
-    memset (&cmd, 0, sizeof (cmd));
-    strncpy (cmd.label, label, GNUNET_TESTING_CMD_MAX_LABEL_LENGTH);
+  struct GNUNET_TESTING_Command cmd = {
+    .cls = cls,
+    .run = run,
+    .ac = ac,
+    .cleanup = cleanup,
+    .traits = traits
+  };
+  memset (&cmd, 0, sizeof (cmd));
+  strncpy (cmd.label, label, GNUNET_TESTING_CMD_MAX_LABEL_LENGTH);
 
-    return cmd;
+  return cmd;
 
 }
 
@@ -649,8 +651,8 @@ GNUNET_TESTING_send_message_to_netjail (struct GNUNET_TESTING_Interpreter *is,
   const struct GNUNET_HELPER_Handle *helper;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-       "send message of type %u to locals\n",
-       header->type);
+              "send message of type %u to locals\n",
+              header->type);
   helper = is->helper[global_node_number - 1];
   struct GNUNET_HELPER_SendHandle *sh = GNUNET_HELPER_send (
     (struct GNUNET_HELPER_Handle *) helper,
@@ -691,18 +693,19 @@ void
 GNUNET_TESTING_finish_attached_cmds (struct GNUNET_TESTING_Interpreter *is,
                                      struct GNUNET_TESTING_Barrier *barrier)
 {
-  struct GNUNET_TESTING_Command *pos;
+  struct CommandListEntry *pos;
   struct FreeBarrierNodeCbCls *free_barrier_node_cb_cls;
 
   while (NULL != (pos = barrier->cmds_head))
   {
-    if (GNUNET_NO == pos->ac->finished && GNUNET_NO == pos->asynchronous_finish)
+    if (GNUNET_NO == pos->command->ac->finished &&
+        GNUNET_NO == pos->command->asynchronous_finish)
     {
-      GNUNET_TESTING_async_finish (pos->ac);
+      GNUNET_TESTING_async_finish (pos->command->ac);
     }
-    else if (GNUNET_NO == pos->ac->finished)
+    else if (GNUNET_NO == pos->command->ac->finished)
     {
-      pos->asynchronous_finish = GNUNET_YES;
+      pos->command->asynchronous_finish = GNUNET_YES;
     }
     GNUNET_CONTAINER_DLL_remove (barrier->cmds_head,
                                  barrier->cmds_tail,
@@ -715,7 +718,8 @@ GNUNET_TESTING_finish_attached_cmds (struct GNUNET_TESTING_Interpreter *is,
   free_barrier_node_cb_cls = GNUNET_new (struct FreeBarrierNodeCbCls);
   free_barrier_node_cb_cls->barrier = barrier;
   free_barrier_node_cb_cls->is = is;
-  GNUNET_CONTAINER_multishortmap_iterate (barrier->nodes, free_barrier_node_cb, free_barrier_node_cb_cls);
+  GNUNET_CONTAINER_multishortmap_iterate (barrier->nodes, free_barrier_node_cb,
+                                          free_barrier_node_cb_cls);
   GNUNET_CONTAINER_multishortmap_destroy (barrier->nodes);
   GNUNET_free (free_barrier_node_cb_cls);
 }
@@ -723,18 +727,19 @@ GNUNET_TESTING_finish_attached_cmds (struct GNUNET_TESTING_Interpreter *is,
 
 int
 free_barriers_cb (void *cls,
-               const struct GNUNET_ShortHashCode *key,
-               void *value)
+                  const struct GNUNET_ShortHashCode *key,
+                  void *value)
 {
   struct GNUNET_TESTING_Interpreter *is = cls;
   struct GNUNET_TESTING_Barrier *barrier = value;
-  struct GNUNET_TESTING_Command *pos;
+  struct CommandListEntry *pos;
   struct FreeBarrierNodeCbCls *free_barrier_node_cb_cls;
 
   free_barrier_node_cb_cls = GNUNET_new (struct FreeBarrierNodeCbCls);
   free_barrier_node_cb_cls->barrier = barrier;
   free_barrier_node_cb_cls->is = is;
-  GNUNET_CONTAINER_multishortmap_iterate (barrier->nodes, free_barrier_node_cb, free_barrier_node_cb_cls);
+  GNUNET_CONTAINER_multishortmap_iterate (barrier->nodes, free_barrier_node_cb,
+                                          free_barrier_node_cb_cls);
   GNUNET_CONTAINER_multishortmap_destroy (barrier->nodes);
 
   while (NULL != (pos = barrier->cmds_head))
@@ -778,12 +783,12 @@ GNUNET_TESTING_get_barrier (struct GNUNET_TESTING_Interpreter *is,
   struct GNUNET_ShortHashCode create_key;
   struct GNUNET_TESTING_Barrier *barrier;
 
-  GNUNET_CRYPTO_hash (barrier_name, strlen(barrier_name), &hc);
+  GNUNET_CRYPTO_hash (barrier_name, strlen (barrier_name), &hc);
   memcpy (&create_key,
           &hc,
           sizeof (create_key));
   barrier = GNUNET_CONTAINER_multishortmap_get (is->barriers, &create_key);
-  //GNUNET_free (create_key);
+  // GNUNET_free (create_key);
   return barrier;
 }
 
@@ -794,16 +799,16 @@ GNUNET_TESTING_get_barrier (struct GNUNET_TESTING_Interpreter *is,
  * @param barrier The barrier to add.
  */
 void
-GNUNET_TESTING_barrier_add (struct GNUNET_TESTING_Interpreter *is,
-                            struct GNUNET_TESTING_Barrier *barrier)
+GNUNET_TESTING_interpreter_add_barrier (struct GNUNET_TESTING_Interpreter *is,
+                                        struct GNUNET_TESTING_Barrier *barrier)
 {
   struct GNUNET_HashCode hc;
   struct GNUNET_ShortHashCode create_key;
 
-  GNUNET_CRYPTO_hash (barrier->name, strlen(barrier->name), &hc);
+  GNUNET_CRYPTO_hash (barrier->name, strlen (barrier->name), &hc);
   memcpy (&create_key,
-              &hc,
-              sizeof (create_key));
+          &hc,
+          sizeof (create_key));
   GNUNET_CONTAINER_multishortmap_put (is->barriers,
                                       &create_key,
                                       barrier,

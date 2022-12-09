@@ -24,8 +24,12 @@
  * @author t3sserakt
  */
 #include "platform.h"
+#include "gnunet_testing_lib.h"
 #include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_plugin.h"
 #include "gnunet_testing_barrier.h"
+#include "gnunet_testing_netjail_lib.h"
+#include "testing.h"
 
 /**
  * Struct with information for callbacks.
@@ -37,7 +41,7 @@ struct BarrierReachedState
    * Callback to write messages to the master loop.
    *
    */
-  TESTING_CMD_HELPER_write_cb write_message;
+  GNUNET_TESTING_cmd_helper_write_cb write_message;
 
   /**
    * Context for our asynchronous completion.
@@ -84,6 +88,7 @@ barrier_reached_run (void *cls,
   struct BarrierReachedState *brs = cls;
   struct GNUNET_TESTING_Barrier *barrier;
   struct GNUNET_TESTING_Command *cmd = NULL;
+  struct CommandListEntry *cle;
   size_t msg_length;
   struct GNUNET_TESTING_CommandBarrierReached *msg;
 
@@ -93,7 +98,7 @@ barrier_reached_run (void *cls,
     barrier = GNUNET_new (struct GNUNET_TESTING_Barrier);
     barrier->shadow = GNUNET_YES;
     barrier->name = brs->label;
-    GNUNET_TESTING_barrier_add (is, barrier);
+    GNUNET_TESTING_interpreter_add_barrier (is, barrier);
   }
   barrier->reached++;
   if (GNUNET_TESTING_can_barrier_advance (barrier))
@@ -109,10 +114,11 @@ barrier_reached_run (void *cls,
      * It is unclear how this does not end up with a DLL issue.
      * We should create a dedicated struct to hold this list.
      */
-    cmd = GNUNET_TESTING_interpreter_get_current_command (is);
+    cle = GNUNET_new (struct CommandListEntry);
+    cle->command = GNUNET_TESTING_interpreter_get_current_command (is);
     GNUNET_CONTAINER_DLL_insert (barrier->cmds_head,
                                  barrier->cmds_tail,
-                                 cmd);
+                                 cle);
   }
   else
   {
@@ -194,7 +200,7 @@ GNUNET_TESTING_cmd_barrier_reached (
   unsigned int asynchronous_finish,
   unsigned int node_number,
   unsigned int running_on_master,
-  TESTING_CMD_HELPER_write_cb write_message)
+  GNUNET_TESTING_cmd_helper_write_cb write_message)
 {
   struct BarrierReachedState *brs;
 

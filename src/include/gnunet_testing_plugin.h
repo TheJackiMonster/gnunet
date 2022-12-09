@@ -38,18 +38,21 @@ extern "C"
 #endif
 #endif
 
+struct GNUNET_TESTING_Barrier;
+
+//FIXME documentation for both functions
 typedef void
-(*TESTING_CMD_HELPER_write_cb) (struct GNUNET_MessageHeader *message,
+(*GNUNET_TESTING_cmd_helper_write_cb) (struct GNUNET_MessageHeader *message,
                                 size_t msg_length);
 
 typedef void
-(*TESTING_CMD_HELPER_finish_cb) ();
+(*GNUNET_TESTING_cmd_helper_finish_cb) ();
 
 // FIXME documentation
 // FIXME: Why are n, m, local_m strings?
 // FIXME: Why is topology_data a string and not a GNUNET_TESTING_NetworkTopology??
 typedef void
-(*GNUNET_TESTING_PLUGIN_StartTestCase) (TESTING_CMD_HELPER_write_cb
+(*GNUNET_TESTING_PLUGIN_StartTestCase) (GNUNET_TESTING_cmd_helper_write_cb
                                         write_message,
                                         const char *router_ip,
                                         const char *node_ip,
@@ -58,7 +61,7 @@ typedef void
                                         const char *local_m,
                                         const char *topology_data,
                                         unsigned int *read_file,
-                                        TESTING_CMD_HELPER_finish_cb finish_cb);
+                                        GNUNET_TESTING_cmd_helper_finish_cb finish_cb);
 
 
 typedef void
@@ -71,8 +74,8 @@ typedef void
 typedef void
 (*GNUNET_TESTING_PLUGIN_BARRIER_ADVANCED) (const char *barrier_name);
 
-typedef struct GNUNET_TESTING_Barrier *
-(*GNUNET_TESTING_PLUGIN_GET_WAITING_FOR_BARRIERS) ();
+typedef struct GNUNET_TESTING_BarrierList*
+(*GNUNET_TESTING_PLUGIN_GET_WAITING_FOR_BARRIERS) (void);
 
 
 // FIXME documentation

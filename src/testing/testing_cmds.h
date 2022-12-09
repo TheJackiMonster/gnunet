@@ -28,60 +28,9 @@
 #define TESTING_CMDS_H
 
 #define HELPER_CMDS_BINARY "gnunet-cmds-helper"
+#include "gnunet_common.h"
 
 GNUNET_NETWORK_STRUCT_BEGIN
-
-/**
- * Handle for a plugin.
- */
-struct Plugin
-{
-  /**
-   * Name of the shared library.
-   */
-  char *library_name;
-
-  /**
-   * Plugin API.
-   */
-  struct GNUNET_TESTING_PluginFunctions *api;
-
-  /**
-   * IP address of the specific node the helper is running for.
-   *
-   */
-  char *node_ip;
-
-  /**
-   * Name of the test case plugin.
-   *
-   */
-  char *plugin_name;
-
-  /**
-   * The number of namespaces
-   *
-   */
-  char *global_n;
-
-  /**
-   * The number of local nodes per namespace.
-   *
-   */
-  char *local_m;
-
-  /**
-   * The number of the namespace this node is in.
-   *
-   */
-  char *n;
-
-  /**
-   * The number of the node in the namespace.
-   *
-   */
-  char *m;
-};
 
 /**
  * Initialization message for gnunet-cmds-testbed to start cmd binary.

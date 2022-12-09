@@ -24,7 +24,10 @@
  * @author t3sserakt
  */
 #include "platform.h"
+#include "testing.h"
 #include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_plugin.h"
+#include "gnunet_testing_netjail_lib.h"
 #include "gnunet_testing_barrier.h"
 
 struct BarrierState
@@ -55,7 +58,7 @@ GNUNET_TESTING_send_barrier_attach (struct GNUNET_TESTING_Interpreter *is,
                                      char *barrier_name,
                                     unsigned int global_node_number,
                                     unsigned int expected_reaches,
-                                    TESTING_CMD_HELPER_write_cb write_message)
+                                    GNUNET_TESTING_cmd_helper_write_cb write_message)
 {
   struct GNUNET_TESTING_CommandBarrierAttached *atm = GNUNET_new (struct GNUNET_TESTING_CommandBarrierAttached);
   size_t msg_length = sizeof(struct GNUNET_TESTING_CommandBarrierAttached);
@@ -138,8 +141,6 @@ barrier_traits (void *cls,
               const char *trait,
               unsigned int index)
 {
-  struct BarrierState *bs = cls;
-
   struct GNUNET_TESTING_Trait traits[] = {
     GNUNET_TESTING_trait_end ()
   };
@@ -178,30 +179,8 @@ barrier_run (void *cls,
 {
   struct BarrierState *brs = cls;
 
-  GNUNET_TESTING_barrier_add (is, brs->barrier);
+  GNUNET_TESTING_interpreter_add_barrier (is, brs->barrier);
 }
-
-/**
- * Adding a node to the map of nodes of a barrier.
- *
- * @param nodes Map of nodes.
- * @param node The node to add.
- */
-void
-GNUNET_TESTING_barrier_add_node (struct GNUNET_CONTAINER_MultiShortmap *nodes,
-                                 struct GNUNET_TESTING_NetjailNode *node)
-{
-  struct GNUNET_HashCode hc;
-  struct GNUNET_ShortHashCode key;
-
-  GNUNET_CRYPTO_hash (&(node->node_number), sizeof(node->node_number), &hc);
-  memcpy (&key, &hc, sizeof (key));
-  GNUNET_CONTAINER_multishortmap_put (nodes,
-                                      &key,
-                                      node,
-                                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
-}
-
 
 /**
  * Getting a node from a map by global node number.
@@ -239,12 +218,22 @@ GNUNET_TESTING_cmd_barrier_create (const char *label,
   barrier->name = label;
   GNUNET_assert ((0 < percentage_to_be_reached && 0 == number_to_be_reached) ||
                  (0 ==  percentage_to_be_reached && 0 < number_to_be_reached));
-  barrier->percentage_to_be_reached;
-  barrier->number_to_be_reached;
   bs->barrier = barrier;
   return GNUNET_TESTING_command_new (bs, label,
                                      &barrier_run,
                                      &barrier_cleanup,
                                      &barrier_traits,
                                      NULL);
+}
+
+/**
+ * FIXME: Not sure if this is correct here
+ */
+struct GNUNET_TESTING_Barrier*
+GNUNET_TESTING_barrier_new (const char* testcase_name)
+{
+  struct GNUNET_TESTING_Barrier *barr;
+  barr = GNUNET_new (struct GNUNET_TESTING_Barrier);
+  barr->name = GNUNET_strdup (testcase_name);
+  return barr;
 }

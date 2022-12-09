@@ -26,6 +26,8 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_plugin.h"
+#include "gnunet_testing_barrier.h"
 #include "gnunet_testing_netjail_lib.h"
 
 /**
@@ -52,8 +54,8 @@ block_until_external_trigger_traits (void *cls,
                                      const char *trait,
                                      unsigned int index)
 {
-  struct BlockState *bs = cls;
-  struct GNUNET_TESTING_AsyncContext *ac = &bs->ac;
+  struct GNUNET_TESTING_BlockState *bs = cls;
+  struct GNUNET_TESTING_AsyncContext *ac = bs->ac;
   struct GNUNET_TESTING_Trait traits[] = {
     GNUNET_TESTING_make_trait_async_context ((const void *) ac),
     GNUNET_TESTING_make_trait_block_state ((const void *) bs),
@@ -75,7 +77,7 @@ static void
 block_until_all_peers_started_run (void *cls,
                                    struct GNUNET_TESTING_Interpreter *is)
 {
-  struct BlockState *bs = cls;
+  struct GNUNET_TESTING_BlockState *bs = cls;
   struct GNUNET_TESTING_Command *cmd =
     GNUNET_TESTING_interpreter_get_current_command (is);
 
@@ -103,14 +105,14 @@ struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_block_until_external_trigger (
   const char *label)
 {
-  struct BlockState *bs;
+  struct GNUNET_TESTING_BlockState *bs;
 
-  bs = GNUNET_new (struct BlockState);
+  bs = GNUNET_new (struct GNUNET_TESTING_BlockState);
   bs->label = label;
   bs->asynchronous_finish = GNUNET_NO;
   return GNUNET_TESTING_command_new (bs, label,
                                      &block_until_all_peers_started_run,
                                      &block_until_all_peers_started_cleanup,
                                      &block_until_external_trigger_traits,
-                                     &bs->ac);
+                                     bs->ac);
 }

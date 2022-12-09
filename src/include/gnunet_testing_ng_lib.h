@@ -29,7 +29,6 @@
 
 
 #include "gnunet_util_lib.h"
-#include "gnunet_testing_plugin.h"
 #include "gnunet_testing_lib.h"
 
 /**
@@ -134,18 +133,6 @@ GNUNET_TESTING_command_new (void *cls,
  */
 struct GNUNET_TESTING_Command
 {
-  // FIXME: This should not be here. Looking at the code commands are used
-  // in arrays. Not lists.
-  /**
-   * Pointer to the previous command in the DLL.
-   */
-  struct GNUNET_TESTING_Command *prev;
-
-  /**
-   * Pointer to the next command in the DLL.
-   */
-  struct GNUNET_TESTING_Command *next;
-
   /**
    * Closure for all commands with command-specific context information.
    */
@@ -466,7 +453,7 @@ GNUNET_TESTING_get_barrier (struct GNUNET_TESTING_Interpreter *is,
  * @param barrier The barrier to add.
  */
 void
-GNUNET_TESTING_barrier_add (struct GNUNET_TESTING_Interpreter *is,
+GNUNET_TESTING_interpreter_add_barrier (struct GNUNET_TESTING_Interpreter *is,
                             struct GNUNET_TESTING_Barrier *barrier);
 
 

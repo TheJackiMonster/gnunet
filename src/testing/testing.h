@@ -27,6 +27,133 @@
 
 
 /**
+ * Handle for a plugin.
+ */
+struct TestcasePlugin
+{
+  /**
+   * Name of the shared library.
+   */
+  char *library_name;
+
+  /**
+   * Plugin API.
+   */
+  struct GNUNET_TESTING_PluginFunctions *api;
+
+  /**
+   * IP address of the specific node the helper is running for.
+   *
+   */
+  char *node_ip;
+
+  /**
+   * Name of the test case plugin.
+   *
+   */
+  char *plugin_name;
+
+  /**
+   * The number of namespaces
+   *
+   */
+  char *global_n;
+
+  /**
+   * The number of local nodes per namespace.
+   *
+   */
+  char *local_m;
+
+  /**
+   * The number of the namespace this node is in.
+   *
+   */
+  char *n;
+
+  /**
+   * The number of the node in the namespace.
+   *
+   */
+  char *m;
+};
+
+struct CommandListEntry
+{
+  struct CommandListEntry *next;
+
+  struct CommandListEntry *prev;
+
+  struct GNUNET_TESTING_Command *command;
+};
+
+
+struct GNUNET_TESTING_Barrier
+{
+  /**
+   * Pointer to the previous prefix in the DLL.
+   */
+  struct GNUNET_TESTING_Barrier *prev;
+
+  /**
+   * Pointer to the next prefix in the DLL.
+   */
+  struct GNUNET_TESTING_Barrier *next;
+
+  /**
+   * Head of the DLL with local commands the barrier is attached too.
+   */
+   struct CommandListEntry *cmds_head;
+
+  /**
+   * Tail of the DLL with local commands the barrier is attached too.
+   */
+   struct CommandListEntry *cmds_tail;
+
+  /**
+   * Hash map containing the global known nodes which are not natted.
+   */
+  struct GNUNET_CONTAINER_MultiShortmap *nodes;
+
+  /**
+   * Name of the barrier.
+   */
+  const char *name;
+
+  /**
+   * Is this barrier running on the master.
+   */
+  unsigned int running_on_master;
+
+  /**
+   * Number of commands attached to this barrier.
+   */
+  unsigned int expected_reaches;
+
+  /**
+   * Number of commands which reached this barrier.
+   */
+  unsigned int reached;
+
+  /**
+   * Percentage of of commands which need to reach the barrier to change state.
+   * Can not be used together with to_be_reached;
+   */
+  double percentage_to_be_reached;
+
+  /**
+   * Number of commands which need to reach the barrier to change state.
+   * Can not be used together with percentage_to_be_reached;
+   */
+  unsigned int number_to_be_reached;
+
+  /*
+   * No barrier locally. Shadow created. Real barrier created elsewhere.
+   */
+  unsigned int shadow;
+};
+
+/**
  * Advance internal pointer to next command.
  *
  * @param cls batch internal state

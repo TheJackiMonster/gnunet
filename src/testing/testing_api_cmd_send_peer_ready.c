@@ -26,6 +26,8 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_plugin.h"
+#include "gnunet_testing_barrier.h"
 #include "gnunet_testing_netjail_lib.h"
 #include "testing_cmds.h"
 
@@ -40,7 +42,7 @@ struct SendPeerReadyState
    * Callback to write messages to the master loop.
    *
    */
-  TESTING_CMD_HELPER_write_cb write_message;
+  GNUNET_TESTING_cmd_helper_write_cb write_message;
 
   /**
    * The message send back to the master loop.
@@ -107,7 +109,7 @@ send_peer_ready_run (void *cls,
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_send_peer_ready (const char *label,
-                                    TESTING_CMD_HELPER_write_cb write_message)
+                                    GNUNET_TESTING_cmd_helper_write_cb write_message)
 {
   struct SendPeerReadyState *sprs;
 
