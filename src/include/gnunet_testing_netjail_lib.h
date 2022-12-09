@@ -50,6 +50,7 @@ struct GNUNET_TESTING_NetjailRouter
 
 
 /**
+ * FIXME: Naming
  * Enum for the different types of nodes.
  */
 enum GNUNET_TESTING_NODE_TYPE
@@ -265,6 +266,7 @@ GNUNET_TESTING_get_topo_from_file (const char *filename);
 
 
 /**
+ * FIXME: this could use a "to_string".
  * Parse the topology data.
  *
  * @param data The topology data.
@@ -386,6 +388,7 @@ struct GNUNET_TESTING_TestState
 };
 
 /**
+ * FIXME: This was also not namespaces.
  * Struct with information for callbacks.
  *
  */
@@ -408,6 +411,7 @@ struct GNUNET_TESTING_BlockState
 };
 
 /**
+ * FIXME: This was also not namespaced
  * Struct to hold information for callbacks.
  *
  */
@@ -426,7 +430,7 @@ struct GNUNET_TESTING_LocalPreparedState
 };
 
 /**
- * Create command.
+ * Create command. FIXME: What?
  *
  * @param label name for command.
  * @param create_label Label of the cmd which started the test system.
@@ -437,13 +441,14 @@ struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_system_destroy (const char *label,
                                    const char *create_label);
 
-
+//FIXME
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_system_create (const char *label,
                                   const char *testdir);
 
 
 /**
+ * FIXME
  * Create command.
  *
  * @param label name for command.
@@ -458,6 +463,7 @@ GNUNET_TESTING_cmd_netjail_start (const char *label,
 
 
 /**
+ * FIXME
  * Create command.
  *
  * @param label name for command.
@@ -472,6 +478,8 @@ GNUNET_TESTING_cmd_netjail_stop (const char *label,
 
 
 /**
+ * FIXME
+ * FIXME Naming?
  * Create command.
  *
  * @param label Name for the command.
@@ -506,6 +514,8 @@ GNUNET_TESTING_cmd_stop_testing_system (
 
 /**
  * Create a GNUNET_CMDS_LOCAL_FINISHED message.
+ * FIXME: This is strange as messages are not really used
+ * like this. Consider removing.
  *
  * @return The GNUNET_CMDS_LOCAL_FINISHED message.
  */
@@ -513,6 +523,7 @@ struct GNUNET_MessageHeader *
 GNUNET_TESTING_send_local_test_finished_msg ();
 
 
+//FIXME
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_block_until_all_peers_started (
   const char *label,
@@ -520,6 +531,7 @@ GNUNET_TESTING_cmd_block_until_all_peers_started (
 
 
 /**
+ * FIXME
  * Create command.
  *
  * @param label name for command.
@@ -532,6 +544,7 @@ GNUNET_TESTING_cmd_block_until_external_trigger (
   const char *label);
 
 /**
+ * FIXME
  * Create command.
  *
  * @param label name for command.
@@ -544,6 +557,7 @@ GNUNET_TESTING_cmd_send_peer_ready (const char *label,
 
 
 /**
+ * FIXME
  * Create command.
  *
  * @param label name for command.
@@ -556,6 +570,7 @@ GNUNET_TESTING_cmd_local_test_finished (
   GNUNET_TESTING_cmd_helper_write_cb write_message);
 
 /**
+ * FIXME
  * Create command.
  *
  * @param label name for command.

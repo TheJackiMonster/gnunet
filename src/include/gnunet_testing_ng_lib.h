@@ -328,6 +328,9 @@ GNUNET_TESTING_cmd_end (void);
 
 /**
  * Turn asynchronous command into non blocking command by setting asynchronous_finish to true.
+ * FIXME: what is this API doing? Is it returning a new cmd which is unblocking?
+ * Is it modifying cmd?
+ * Looking at the code, it both modifying cmd AND returning a copy oO
  *
  * @param cmd command to make synchronous.
  * @return a finish-command.
@@ -370,6 +373,8 @@ GNUNET_TESTING_cmd_rewind_ip (const char *label,
 
 /**
  * Function called with the final result of the test.
+ * FIXME: This may want to use a GNUNET_ErrorCode (namespaced, e.g.
+ * GNUNET_EC_TESTING_*)
  *
  * @param cls closure
  * @param rv #GNUNET_OK if the test passed
@@ -385,7 +390,7 @@ typedef void
  * defined into the "run" method that returns after
  * having scheduled the test interpreter.
  *
- * @param commands the list of command to execute
+ * @param commands the array of command to execute
  * @param timeout how long to wait for each command to execute
  * @param rc function to call with the final result
  * @param rc_cls closure for @a rc
@@ -402,6 +407,7 @@ GNUNET_TESTING_run (const struct GNUNET_TESTING_Command *commands,
  * Start a GNUnet scheduler event loop and
  * run the testsuite.  Return 0 upon success.
  * Expected to be called directly from main().
+ * FIXME: Why is this commands array here not const?
  *
  * @param commands the list of command to execute
  * @param timeout how long to wait for each command to execute
@@ -411,19 +417,6 @@ int
 GNUNET_TESTING_main (struct GNUNET_TESTING_Command *commands,
                      struct GNUNET_TIME_Relative timeout);
 
-
-/**
- * Look for substring in a programs' name.
- *
- * @param prog program's name to look into
- * @param marker chunk to find in @a prog
- * // FIXME: this does not belong here! => libgnunetutil, maybe?
- * // FIXME: return bool? document return value!
- * // FIXME: man strstr??
- */
-int
-GNUNET_TESTING_has_in_name (const char *prog,
-                            const char *marker);
 
 /**
   * Deleting all barriers create in the context of this interpreter.
@@ -473,6 +466,8 @@ GNUNET_TESTING_add_netjail_helper (struct GNUNET_TESTING_Interpreter *is,
 
 /**
  * Send Message to netjail nodes that a barrier can be advanced.
+ * FIXME: Naming. No "netjail" in argument. Or is there a
+ * GNUNET_TESTING_send_message without "to_netjail"??
  *
  * @param is The interpreter.
  * @param global_node_number The node to inform.
@@ -486,6 +481,8 @@ GNUNET_TESTING_send_message_to_netjail (struct GNUNET_TESTING_Interpreter *is,
 
 /**
  * Returns the actual running command.
+ * FIXME: Is Command allocated? Is it constant? Should this be a private
+ * function? => not used outside of testing
  *
  * @param is Global state of the interpreter, used by a command
  *        to access information about other commands.
@@ -498,6 +495,7 @@ GNUNET_TESTING_interpreter_get_current_command (
 
 /**
  * Check if the command is running.
+ * FIXME: Unused function.
  *
  * @param command The command to check.
  * @return GNUNET_NO if the command is not running, GNUNET_YES if it is running.
@@ -508,6 +506,7 @@ GNUNET_TESTING_running (const struct GNUNET_TESTING_Command *command);
 
 /**
  * Check if a command is finished.
+ * FIXME: Unused function
  *
  * @param command The command to check.
  * @return GNUNET_NO if the command is not finished, GNUNET_YES if it is finished.
@@ -595,6 +594,7 @@ struct GNUNET_TESTING_Timer
 
 /**
  * Retrieve the public key from the test system with the unique node id.
+ * FIXME: Naming. => get_peer? This returns a PeerIdentity not a PublicKey
  *
  * @param num The unique node id.
  * @param tl_system The test system.
@@ -618,6 +618,7 @@ GNUNET_TESTING_cmd_stat (struct GNUNET_TESTING_Timer *timers);
 /* *** Generic trait logic for implementing traits ********* */
 
 /**
+ * FIXME: Documentation
  * A trait.
  */
 struct GNUNET_TESTING_Trait
@@ -652,6 +653,7 @@ GNUNET_TESTING_trait_end (void);
 
 /**
  * Extract a trait.
+ * FIXME: Naming. This is something like "contains trait".
  *
  * @param traits the array of all the traits.
  * @param[out] ret where to store the result.

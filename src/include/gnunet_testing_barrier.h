@@ -67,6 +67,7 @@ struct GNUNET_TESTING_BarrierList
 
 /**
  * Message send to a child loop to inform the child loop about a barrier being advanced.
+ * FIXME: This is not packed and contains a char*... no payload documentation.
  */
 struct GNUNET_TESTING_CommandBarrierAdvanced
 {
@@ -84,6 +85,7 @@ struct GNUNET_TESTING_CommandBarrierAdvanced
 /**
  * Message send by a child loop to inform the master loop how much
  * GNUNET_CMDS_BARRIER_REACHED messages the child will send.
+ * FIXME: Not packed and contains char*; int in NBO? bitlength undefined.
  */
 struct GNUNET_TESTING_CommandBarrierAttached
 {
@@ -109,6 +111,7 @@ struct GNUNET_TESTING_CommandBarrierAttached
 };
 
 
+// FIXME: See above
 struct GNUNET_TESTING_CommandBarrierReached
 {
   /**
@@ -138,6 +141,12 @@ struct GNUNET_TESTING_CommandBarrierReached
 struct GNUNET_TESTING_Barrier*
 GNUNET_TESTING_barrier_new (const char *testcase_name);
 
+/**
+ * FIXME: documentation
+ * FIXME: high-level it is baffling how we need both the GNUNET_TESTING_Barrier
+ * and the Command that creates barriers. Conceptually this seems to be
+ * very much separate. Can we move _Barrier completely into testing as private?
+ */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_barrier_create (
  const char *label,
@@ -149,6 +158,7 @@ GNUNET_TESTING_cmd_barrier_create (
 // async version implies reached but does not
 // wait on other peers to reach it.
 /**
+ * FIXME: Documentation
  * Create command.
  *
  * @param label name for command.
@@ -171,6 +181,8 @@ GNUNET_TESTING_cmd_barrier_reached (
 
 
 /**
+ * FIXME: Return type
+ * FIXME: Documentation
  * Can we advance the barrier?
  *
  * @param barrier The barrier in question.
@@ -181,6 +193,7 @@ GNUNET_TESTING_can_barrier_advance (struct GNUNET_TESTING_Barrier *barrier);
 
 
 /**
+ * FIXME: Naming
  * Send Message to netjail nodes that a barrier can be advanced.
  *
  * @param is The interpreter loop.
