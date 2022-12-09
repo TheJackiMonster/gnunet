@@ -378,7 +378,7 @@ GNUNET_TESTING_interpreter_fail (struct GNUNET_TESTING_Interpreter *is)
  *        to access information about other commands.
  * @return The actual running command.
  */
-const struct GNUNET_TESTING_Command *
+struct GNUNET_TESTING_Command *
 GNUNET_TESTING_interpreter_get_current_command (
   struct GNUNET_TESTING_Interpreter *is)
 {
