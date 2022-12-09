@@ -59,6 +59,14 @@
 #ifndef GNUNET_CONTAINER_LIB_H
 #define GNUNET_CONTAINER_LIB_H
 
+#ifdef __cplusplus
+extern "C" {
+#if 0 /* keep Emacsens' auto-indent happy */
+}
+#endif
+#endif
+
+
 /* add error and config prototypes */
 
 #include "gnunet_crypto_lib.h"
