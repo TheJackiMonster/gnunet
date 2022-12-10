@@ -55,7 +55,7 @@ block_until_external_trigger_traits (void *cls,
                                      unsigned int index)
 {
   struct GNUNET_TESTING_BlockState *bs = cls;
-  struct GNUNET_TESTING_AsyncContext *ac = bs->ac;
+  struct GNUNET_TESTING_AsyncContext *ac = &bs->ac;
   struct GNUNET_TESTING_Trait traits[] = {
     GNUNET_TESTING_make_trait_async_context ((const void *) ac),
     GNUNET_TESTING_make_trait_block_state ((const void *) bs),
@@ -114,5 +114,5 @@ GNUNET_TESTING_cmd_block_until_external_trigger (
                                      &block_until_all_peers_started_run,
                                      &block_until_all_peers_started_cleanup,
                                      &block_until_external_trigger_traits,
-                                     bs->ac);
+                                     &bs->ac);
 }

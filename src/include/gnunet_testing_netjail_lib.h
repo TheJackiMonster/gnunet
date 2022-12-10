@@ -397,7 +397,7 @@ struct GNUNET_TESTING_BlockState
   /**
    * Context for our asynchronous completion.
    */
-  struct GNUNET_TESTING_AsyncContext *ac;
+  struct GNUNET_TESTING_AsyncContext ac;
 
   /**
    * The label of this command.
