@@ -70,11 +70,6 @@ extern "C" {
 #include "gnu_name_system_record_types.h"
 
 /**
- * Include the record flags generated from GANA
- */
-#include "gnu_name_system_record_flags.h"
-
-/**
  * When comparing flags for record equality for removal,
  * which flags should must match (in addition to the type,
  * name, expiration value and data of the record)?  All flags
@@ -86,6 +81,59 @@ extern "C" {
  * #GNUNET_GNSRECORD_records_cmp.
  */
 #define GNUNET_GNSRECORD_RF_RCMP_FLAGS (GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION)
+
+
+/**
+ * Flags that can be set for a record.
+ * The numbers in the registry correspond to the bit index as specified in
+ * LSD0001 Chapter "Resource Records".
+ * Each enum member represents the 16-bit integer value of the flags field if
+ * only that particular flag was set.
+ * The value can be used to efficiently compare the bitmask setting for the
+ * record flag in C.
+ * WARNING: The values are in host byte order! In order to correctly check
+ * against the flags field a record, the respective fields must
+ * also be converted to HBO (or the enum value to NBO).
+ */
+enum GNUNET_GNSRECORD_Flags
+{
+  /**
+   * Entry for no flags / cleared flags.
+   */
+  GNUNET_GNSRECORD_RF_NONE = 0,
+
+
+  /**
+   * This record is critical. If it cannot be processed (for example because the record type is unknown) resolution MUST fail
+   */
+  GNUNET_GNSRECORD_RF_CRITICAL = 1 << (15 - 15),
+
+
+  /**
+   * This record should not be used unless all (other) records in the set with an absolute expiration time have expired.
+   */
+  GNUNET_GNSRECORD_RF_SHADOW = 1 << (15 - 14),
+
+
+  /**
+   * This is a supplemental record.
+   */
+  GNUNET_GNSRECORD_RF_SUPPLEMENTAL = 1 << (15 - 13),
+
+
+  /**
+   * This expiration time of the record is a relative time (not an absolute time). Used in GNUnet implementation.
+   */
+  GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION = 1 << (15 - 1),
+
+
+  /**
+   * This is a private record of this peer and it should thus not be published.
+   */
+  GNUNET_GNSRECORD_RF_PRIVATE = 1 << (15 - 0),
+
+};
+
 
 /**
  * Filter for GNUNET_GNSRECORD_normalize_record_set().

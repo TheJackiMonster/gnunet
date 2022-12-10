@@ -73,6 +73,12 @@ GNUNET_GNSRECORD_JSON_from_gnsrecord (const char*rname,
                             const struct GNUNET_GNSRECORD_Data *rd,
                             unsigned int rd_count);
 
+#if 0 /* keep Emacsens' auto-indent happy */
+{
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 
