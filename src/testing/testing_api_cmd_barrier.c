@@ -37,9 +37,9 @@ struct BarrierState
    */
   struct GNUNET_TESTING_Barrier *barrier;
 
-    /*
-   * Our label.
-   */
+  /*
+ * Our label.
+ */
   const char *label;
 };
 
@@ -55,13 +55,15 @@ struct BarrierState
  */
 void
 GNUNET_TESTING_send_barrier_attach (struct GNUNET_TESTING_Interpreter *is,
-                                     char *barrier_name,
+                                    char *barrier_name,
                                     unsigned int global_node_number,
                                     unsigned int expected_reaches,
-                                    GNUNET_TESTING_cmd_helper_write_cb write_message)
+                                    GNUNET_TESTING_cmd_helper_write_cb
+                                    write_message)
 {
-  struct GNUNET_TESTING_CommandBarrierAttached *atm = GNUNET_new (struct GNUNET_TESTING_CommandBarrierAttached);
-  size_t msg_length = sizeof(struct GNUNET_TESTING_CommandBarrierAttached);
+  struct CommandBarrierAttached *atm = GNUNET_new (struct
+                                                   CommandBarrierAttached);
+  size_t msg_length = sizeof(struct CommandBarrierAttached);
   size_t name_len;
 
   name_len = strlen (barrier_name) + 1;
@@ -88,8 +90,9 @@ GNUNET_TESTING_send_barrier_advance (struct GNUNET_TESTING_Interpreter *is,
                                      const char *barrier_name,
                                      unsigned int global_node_number)
 {
-  struct GNUNET_TESTING_CommandBarrierAdvanced *adm = GNUNET_new (struct GNUNET_TESTING_CommandBarrierAdvanced);
-  size_t msg_length = sizeof(struct GNUNET_TESTING_CommandBarrierAdvanced);
+  struct CommandBarrierAdvanced *adm = GNUNET_new (struct
+                                                   CommandBarrierAdvanced);
+  size_t msg_length = sizeof(struct CommandBarrierAdvanced);
   size_t name_len;
 
   name_len = strlen (barrier_name) + 1;
@@ -97,8 +100,8 @@ GNUNET_TESTING_send_barrier_advance (struct GNUNET_TESTING_Interpreter *is,
   adm->header.size = htons ((uint16_t) msg_length);
   memcpy (&adm[1], barrier_name, name_len);
   GNUNET_TESTING_send_message_to_netjail (is,
-                                         global_node_number,
-                                         &adm->header);
+                                          global_node_number,
+                                          &adm->header);
   GNUNET_free (adm);
 }
 
@@ -116,7 +119,7 @@ GNUNET_TESTING_can_barrier_advance (struct GNUNET_TESTING_Barrier *barrier)
   unsigned int reached = barrier->reached;
   double percentage_to_be_reached = barrier->percentage_to_be_reached;
   unsigned int number_to_be_reached = barrier->number_to_be_reached;
-  double percentage_reached = (double)expected_reaches/reached*100;
+  double percentage_reached = (double) expected_reaches / reached * 100;
   if (((0 < percentage_to_be_reached) &&
        (percentage_reached >= percentage_to_be_reached)) ||
       ((0 < number_to_be_reached) && (reached >= number_to_be_reached)))
@@ -141,9 +144,9 @@ GNUNET_TESTING_can_barrier_advance (struct GNUNET_TESTING_Barrier *barrier)
  */
 static enum GNUNET_GenericReturnValue
 barrier_traits (void *cls,
-              const void **ret,
-              const char *trait,
-              unsigned int index)
+                const void **ret,
+                const char *trait,
+                unsigned int index)
 {
   struct GNUNET_TESTING_Trait traits[] = {
     GNUNET_TESTING_trait_end ()
@@ -179,7 +182,7 @@ barrier_cleanup (void *cls)
  */
 static void
 barrier_run (void *cls,
-           struct GNUNET_TESTING_Interpreter *is)
+             struct GNUNET_TESTING_Interpreter *is)
 {
   struct BarrierState *brs = cls;
 
@@ -198,20 +201,20 @@ GNUNET_TESTING_barrier_get_node (struct GNUNET_CONTAINER_MultiShortmap *nodes,
                                  unsigned int node_number)
 {
   struct GNUNET_HashCode hc;
-  struct GNUNET_ShortHashCode *key;
+  struct GNUNET_ShortHashCode key;
 
   GNUNET_CRYPTO_hash (&(node_number), sizeof(node_number), &hc);
   memcpy (&key,
-              &hc,
-              sizeof (key));
-  return GNUNET_CONTAINER_multishortmap_get (nodes, key);
+          &hc,
+          sizeof (key));
+  return GNUNET_CONTAINER_multishortmap_get (nodes, &key);
 }
 
 
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_barrier_create (const char *label,
- double percentage_to_be_reached,
- unsigned int number_to_be_reached)
+                                   double percentage_to_be_reached,
+                                   unsigned int number_to_be_reached)
 {
   struct GNUNET_TESTING_Barrier *barrier;
   struct BarrierState *bs;

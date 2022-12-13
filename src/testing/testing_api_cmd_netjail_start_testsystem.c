@@ -345,14 +345,14 @@ void
 barrier_attached (struct NetJailState *ns, const struct
                   GNUNET_MessageHeader *message)
 {
-  struct GNUNET_TESTING_CommandBarrierAttached *am;
+  struct CommandBarrierAttached *am;
   struct GNUNET_TESTING_NetjailNode *node;
   struct GNUNET_TESTING_Barrier *barrier;
   struct GNUNET_ShortHashCode key;
   struct GNUNET_HashCode hc;
   const char *barrier_name;
 
-  am = (struct GNUNET_TESTING_CommandBarrierAttached *) message;
+  am = (struct CommandBarrierAttached *) message;
   barrier_name = (const char *) &am[1];
   barrier = GNUNET_TESTING_get_barrier (ns->is, barrier_name);
   GNUNET_assert (NULL != barrier && GNUNET_NO == barrier->shadow);

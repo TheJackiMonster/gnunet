@@ -416,7 +416,7 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
              message->type))
   {
     const char *barrier_name;
-    struct GNUNET_TESTING_CommandBarrierAdvanced *adm = (struct GNUNET_TESTING_CommandBarrierAdvanced *) message;
+    struct CommandBarrierAdvanced *adm = (struct CommandBarrierAdvanced *) message;
 
     barrier_name = (const char *) &adm[1];
     GNUNET_TESTING_finish_attached_cmds (is, barrier_name);

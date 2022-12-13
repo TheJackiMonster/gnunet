@@ -32,7 +32,7 @@ GNUNET_NETWORK_STRUCT_BEGIN
  * Message send to a child loop to inform the child loop about a barrier being advanced.
  * FIXME: This is not packed and contains a char*... no payload documentation.
  */
-struct GNUNET_TESTING_CommandBarrierAdvanced
+struct CommandBarrierAdvanced
 {
   /**
    * Type is GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_ADVANCED
@@ -47,7 +47,7 @@ struct GNUNET_TESTING_CommandBarrierAdvanced
  * GNUNET_CMDS_BARRIER_REACHED messages the child will send.
  * FIXME: Not packed and contains char*; int in NBO? bitlength undefined.
  */
-struct GNUNET_TESTING_CommandBarrierAttached
+struct CommandBarrierAttached
 {
   /**
    * Type is GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_ATTACHED
