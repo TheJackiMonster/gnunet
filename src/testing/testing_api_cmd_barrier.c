@@ -43,16 +43,7 @@ struct BarrierState
   const char *label;
 };
 
-
-/**
- * Send Message to master loop that cmds being attached to a barrier.
- *
- * @param is The interpreter loop.
- * @param barrier_name The name of the barrier to advance.
- * @param subnet_number The number of the subnet.
- * @param node_number The node to inform.
- * @param write_message Callback to write messages to the master loop.
- */
+// FIXME Unused function
 void
 GNUNET_TESTING_send_barrier_attach (struct GNUNET_TESTING_Interpreter *is,
                                     char *barrier_name,
@@ -78,40 +69,6 @@ GNUNET_TESTING_send_barrier_attach (struct GNUNET_TESTING_Interpreter *is,
 }
 
 
-/**
- * Send Message to netjail nodes that a barrier can be advanced.
- *
- * @param is The interpreter loop.
- * @param barrier_name The name of the barrier to advance.
- * @param global_node_number The global number of the node to inform.
- */
-void
-GNUNET_TESTING_send_barrier_advance (struct GNUNET_TESTING_Interpreter *is,
-                                     const char *barrier_name,
-                                     unsigned int global_node_number)
-{
-  struct CommandBarrierAdvanced *adm = GNUNET_new (struct
-                                                   CommandBarrierAdvanced);
-  size_t msg_length = sizeof(struct CommandBarrierAdvanced);
-  size_t name_len;
-
-  name_len = strlen (barrier_name) + 1;
-  adm->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_ADVANCED);
-  adm->header.size = htons ((uint16_t) msg_length);
-  memcpy (&adm[1], barrier_name, name_len);
-  GNUNET_TESTING_send_message_to_netjail (is,
-                                          global_node_number,
-                                          &adm->header);
-  GNUNET_free (adm);
-}
-
-
-/**
- * Can we advance the barrier?
- *
- * @param barrier The barrier in question.
- * @return GNUNET_YES if we can advance the barrier, GNUNET_NO if not.
- */
 unsigned int
 GNUNET_TESTING_can_barrier_advance (struct GNUNET_TESTING_Barrier *barrier)
 {
@@ -186,18 +143,11 @@ barrier_run (void *cls,
 {
   struct BarrierState *brs = cls;
 
-  GNUNET_TESTING_interpreter_add_barrier (is, brs->barrier);
+  TST_interpreter_add_barrier (is, brs->barrier);
 }
 
-/**
- * Getting a node from a map by global node number.
- *
- * @param nodes The map.
- * @param node_number The global node number.
- * @return The node.
- */
 struct GNUNET_TESTING_NetjailNode *
-GNUNET_TESTING_barrier_get_node (struct GNUNET_CONTAINER_MultiShortmap *nodes,
+GNUNET_TESTING_barrier_get_node (struct GNUNET_TESTING_Barrier *barrier,
                                  unsigned int node_number)
 {
   struct GNUNET_HashCode hc;
@@ -207,7 +157,7 @@ GNUNET_TESTING_barrier_get_node (struct GNUNET_CONTAINER_MultiShortmap *nodes,
   memcpy (&key,
           &hc,
           sizeof (key));
-  return GNUNET_CONTAINER_multishortmap_get (nodes, &key);
+  return GNUNET_CONTAINER_multishortmap_get (barrier->nodes, &key);
 }
 
 

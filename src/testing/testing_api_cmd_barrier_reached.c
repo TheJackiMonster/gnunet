@@ -93,13 +93,13 @@ barrier_reached_run (void *cls,
   struct GNUNET_TESTING_CommandBarrierReached *msg;
   size_t name_len;
 
-  barrier = GNUNET_TESTING_get_barrier (is, brs->barrier_name);
+  barrier = TST_interpreter_get_barrier (is, brs->barrier_name);
   if (NULL == barrier)
   {
     barrier = GNUNET_new (struct GNUNET_TESTING_Barrier);
     barrier->shadow = GNUNET_YES;
     barrier->name = brs->label;
-    GNUNET_TESTING_interpreter_add_barrier (is, barrier);
+    TST_interpreter_add_barrier (is, barrier);
   }
   barrier->reached++;
   if (GNUNET_TESTING_can_barrier_advance (barrier))
@@ -107,7 +107,7 @@ barrier_reached_run (void *cls,
     //FIXME cmd uninitialized
     GNUNET_assert (NULL != cmd);
     cmd->asynchronous_finish = GNUNET_YES;
-    GNUNET_TESTING_finish_attached_cmds (is, barrier->name);
+    TST_interpreter_finish_attached_cmds (is, barrier->name);
   }
   else if (GNUNET_NO == brs->asynchronous_finish)
   {

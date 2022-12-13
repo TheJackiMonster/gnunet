@@ -265,6 +265,8 @@ GNUNET_TESTING_cmd_batch_set_current_ (const struct GNUNET_TESTING_Command *cmd,
 // wait on other peers to reach it.
 /**
  * FIXME: Documentation
+ * FIXME: Now this, as it returns a Command, seems to me like it should be
+ * part of the public API?
  * Create command.
  *
  * @param label name for command.
@@ -287,9 +289,13 @@ GNUNET_TESTING_cmd_barrier_reached (
 
 
 /**
- * FIXME: Return type
- * FIXME: Documentation
  * Can we advance the barrier?
+ * FIXME: As this is not in testing.h it should be in another namespace.
+ * Possibly BARRIER_can_advance. However, as this is also used in a netjail cmd,
+ * I am not sure if this needs to be public? Maybe there should be a barrier
+ * trait that returns a barrier where this helper function can be called on?
+ * Barriers are usually also not "advanced" but "crossed" or "passed"
+ * but it seems to me that the word here should correctly be "reached"?
  *
  * @param barrier The barrier in question.
  * @return GNUNET_YES if we can advance the barrier, GNUNET_NO if not.
@@ -307,7 +313,7 @@ GNUNET_TESTING_can_barrier_advance (struct GNUNET_TESTING_Barrier *barrier);
  * @param global_node_number The global number of the node to inform.
  */
 void
-GNUNET_TESTING_send_barrier_advance (struct GNUNET_TESTING_Interpreter *is,
+TST_interpreter_send_barrier_advance (struct GNUNET_TESTING_Interpreter *is,
                                      const char *barrier_name,
                                      unsigned int global_node_number);
 
@@ -318,12 +324,13 @@ GNUNET_TESTING_send_barrier_advance (struct GNUNET_TESTING_Interpreter *is,
  * @param barrier The barrier in question.
  */
 void
-GNUNET_TESTING_finish_attached_cmds (struct GNUNET_TESTING_Interpreter *is,
+TST_interpreter_finish_attached_cmds (struct GNUNET_TESTING_Interpreter *is,
                                      const char *barrier_name);
 
 
 /**
  * Send Message to master loop that cmds being attached to a barrier.
+ * FIXME: Unused function
  *
  * @param is The interpreter loop.
  * @param barrier_name The name of the barrier to advance.
@@ -341,13 +348,17 @@ GNUNET_TESTING_send_barrier_attach (struct GNUNET_TESTING_Interpreter *is,
 
 /**
  * Getting a node from a map by global node number.
+ * FIXME: This is a barrier helper function not related to a command but it is
+ * implemented in the *_cmd_barrier.c file.
+ * Maybe move into a separate file like testing_barrier.c; see also can
+ * barrier advance above
  *
  * @param nodes The map.
  * @param node_number The global node number.
  * @return The node.
  */
 struct GNUNET_TESTING_NetjailNode *
-GNUNET_TESTING_barrier_get_node (struct GNUNET_CONTAINER_MultiShortmap *nodes,
+GNUNET_TESTING_barrier_get_node (struct GNUNET_TESTING_Barrier *barrier,
                                  unsigned int node_number);
 
 
@@ -357,7 +368,7 @@ GNUNET_TESTING_barrier_get_node (struct GNUNET_CONTAINER_MultiShortmap *nodes,
   * @param is The interpreter.
   */
 void
-GNUNET_TESTING_delete_barriers (struct GNUNET_TESTING_Interpreter *is);
+TST_interpreter_delete_barriers (struct GNUNET_TESTING_Interpreter *is);
 
 
 /**
@@ -368,7 +379,7 @@ GNUNET_TESTING_delete_barriers (struct GNUNET_TESTING_Interpreter *is);
  * @return The barrier.
  */
 struct GNUNET_TESTING_Barrier *
-GNUNET_TESTING_get_barrier (struct GNUNET_TESTING_Interpreter *is,
+TST_interpreter_get_barrier (struct GNUNET_TESTING_Interpreter *is,
                             const char *barrier_name);
 
 
@@ -379,7 +390,7 @@ GNUNET_TESTING_get_barrier (struct GNUNET_TESTING_Interpreter *is,
  * @param barrier The barrier to add.
  */
 void
-GNUNET_TESTING_interpreter_add_barrier (struct GNUNET_TESTING_Interpreter *is,
+TST_interpreter_add_barrier (struct GNUNET_TESTING_Interpreter *is,
                                         struct GNUNET_TESTING_Barrier *barrier);
 
 

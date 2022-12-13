@@ -665,6 +665,27 @@ GNUNET_TESTING_send_message_to_netjail (struct GNUNET_TESTING_Interpreter *is,
     is);
 }
 
+void
+TST_interpreter_send_barrier_advance (struct GNUNET_TESTING_Interpreter *is,
+                                      const char *barrier_name,
+                                      unsigned int global_node_number)
+{
+  struct CommandBarrierAdvanced *adm = GNUNET_new (struct
+                                                   CommandBarrierAdvanced);
+  size_t msg_length = sizeof(struct CommandBarrierAdvanced);
+  size_t name_len;
+
+  name_len = strlen (barrier_name) + 1;
+  adm->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_ADVANCED);
+  adm->header.size = htons ((uint16_t) msg_length);
+  memcpy (&adm[1], barrier_name, name_len);
+  GNUNET_TESTING_send_message_to_netjail (is,
+                                          global_node_number,
+                                          &adm->header);
+  GNUNET_free (adm);
+}
+
+
 
 int
 free_barrier_node_cb (void *cls,
@@ -678,9 +699,9 @@ free_barrier_node_cb (void *cls,
 
   if (GNUNET_NO == is->finishing)
   {
-    GNUNET_TESTING_send_barrier_advance (is,
-                                         barrier->name,
-                                         node->node_number);
+    TST_interpreter_send_barrier_advance (is,
+                                          barrier->name,
+                                          node->node_number);
   }
   GNUNET_CONTAINER_multishortmap_remove (barrier->nodes, key, node);
   return GNUNET_YES;
@@ -695,7 +716,7 @@ free_barrier_node_cb (void *cls,
   * @return The barrier.
   */
 struct GNUNET_TESTING_Barrier *
-GNUNET_TESTING_get_barrier (struct GNUNET_TESTING_Interpreter *is,
+TST_interpreter_get_barrier (struct GNUNET_TESTING_Interpreter *is,
                             const char *barrier_name)
 {
   struct GNUNET_HashCode hc;
@@ -718,12 +739,12 @@ GNUNET_TESTING_get_barrier (struct GNUNET_TESTING_Interpreter *is,
  * @param barrier The barrier in question.
  */
 void
-GNUNET_TESTING_finish_attached_cmds (struct GNUNET_TESTING_Interpreter *is,
-                                     const char *barrier_name)
+TST_interpreter_finish_attached_cmds (struct GNUNET_TESTING_Interpreter *is,
+                                      const char *barrier_name)
 {
   struct CommandListEntry *pos;
   struct FreeBarrierNodeCbCls *free_barrier_node_cb_cls;
-  struct GNUNET_TESTING_Barrier *barrier = GNUNET_TESTING_get_barrier (is,
+  struct GNUNET_TESTING_Barrier *barrier = TST_interpreter_get_barrier (is,
                                                                        barrier_name);
 
   while (NULL != (pos = barrier->cmds_head))
@@ -783,14 +804,13 @@ free_barriers_cb (void *cls,
   return GNUNET_YES;
 }
 
-
 /**
   * Deleting all barriers create in the context of this interpreter.
   *
   * @param is The interpreter.
   */
 void
-GNUNET_TESTING_delete_barriers (struct GNUNET_TESTING_Interpreter *is)
+TST_interpreter_delete_barriers (struct GNUNET_TESTING_Interpreter *is)
 {
   GNUNET_CONTAINER_multishortmap_iterate (is->barriers,
                                           free_barriers_cb,
@@ -806,7 +826,7 @@ GNUNET_TESTING_delete_barriers (struct GNUNET_TESTING_Interpreter *is)
  * @param barrier The barrier to add.
  */
 void
-GNUNET_TESTING_interpreter_add_barrier (struct GNUNET_TESTING_Interpreter *is,
+TST_interpreter_add_barrier (struct GNUNET_TESTING_Interpreter *is,
                                         struct GNUNET_TESTING_Barrier *barrier)
 {
   struct GNUNET_HashCode hc;

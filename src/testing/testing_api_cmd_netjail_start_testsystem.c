@@ -207,6 +207,7 @@ struct TestingSystemCount
   struct GNUNET_MessageHeader *msg;
 };
 
+
 /**
 * Code to clean up resource this cmd used.
 *
@@ -216,7 +217,7 @@ static void
 netjail_exec_cleanup (void *cls)
 {
   struct NetJailState *ns = cls;
-  GNUNET_TESTING_delete_barriers (ns->is);
+  TST_interpreter_delete_barriers (ns->is);
   GNUNET_free (ns);
 }
 
@@ -354,9 +355,9 @@ barrier_attached (struct NetJailState *ns, const struct
 
   am = (struct CommandBarrierAttached *) message;
   barrier_name = (const char *) &am[1];
-  barrier = GNUNET_TESTING_get_barrier (ns->is, barrier_name);
+  barrier = TST_interpreter_get_barrier (ns->is, barrier_name);
   GNUNET_assert (NULL != barrier && GNUNET_NO == barrier->shadow);
-  node = GNUNET_TESTING_barrier_get_node (barrier->nodes, am->node_number);
+  node = GNUNET_TESTING_barrier_get_node (barrier, am->node_number);
   if (NULL == node)
   {
     node = GNUNET_new (struct GNUNET_TESTING_NetjailNode);
@@ -385,12 +386,12 @@ barrier_reached (struct NetJailState *ns, const struct
                                                      *) message;
 
   barrier_name = (const char *) &rm[1];
-  barrier = GNUNET_TESTING_get_barrier (ns->is, barrier_name);
+  barrier = TST_interpreter_get_barrier (ns->is, barrier_name);
   GNUNET_assert (NULL != barrier && GNUNET_NO == barrier->shadow);
   barrier->reached++;
   if (GNUNET_TESTING_can_barrier_advance (barrier))
   {
-    GNUNET_TESTING_finish_attached_cmds (ns->is, barrier->name);
+    TST_interpreter_finish_attached_cmds (ns->is, barrier->name);
   }
 }
 
@@ -702,12 +703,12 @@ start_helper (struct NetJailState *ns,
 
   for (pos = barriers->head; NULL != pos; pos = pos->next)
   {
-    barrier = GNUNET_TESTING_get_barrier (ns->is, pos->barrier_name);
+    barrier = TST_interpreter_get_barrier (ns->is, pos->barrier_name);
     if (NULL == barrier || GNUNET_YES == barrier->shadow)
     {
       barrier = GNUNET_new (struct GNUNET_TESTING_Barrier);
       barrier->name = pos->barrier_name;
-      GNUNET_TESTING_interpreter_add_barrier (ns->is, barrier);
+      TST_interpreter_add_barrier (ns->is, barrier);
 
       barrier->nodes = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
     }

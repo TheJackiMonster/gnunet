@@ -419,7 +419,7 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
     struct CommandBarrierAdvanced *adm = (struct CommandBarrierAdvanced *) message;
 
     barrier_name = (const char *) &adm[1];
-    GNUNET_TESTING_finish_attached_cmds (is, barrier_name);
+    TST_interpreter_finish_attached_cmds (is, barrier_name);
     return GNUNET_OK;
   }
   else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_PEERS_STARTED == ntohs (
