@@ -67,6 +67,8 @@
 
 struct GNUNET_SCHEDULER_Task *finished_task;
 
+struct GNUNET_TESTING_Interpreter *is;
+
 /**
  * Struct with information about a specific node and the whole network namespace setup.
  *
@@ -392,7 +394,7 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
     }
     strcat (node_ip, plugin->m);
 
-    plugin->api->start_testcase (&write_message, router_ip, node_ip, plugin->m,
+    is = plugin->api->start_testcase (&write_message, router_ip, node_ip, plugin->m,
 
                                  plugin->n, plugin->local_m, ni->topology_data,
                                  ni->read_file, &finished_cb);
@@ -413,9 +415,11 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
   else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_ADVANCED == ntohs (
              message->type))
   {
+    const char *barrier_name;
     struct GNUNET_TESTING_CommandBarrierAdvanced *adm = (struct GNUNET_TESTING_CommandBarrierAdvanced *) message;
 
-    plugin->api->barrier_advanced (adm->barrier_name);
+    barrier_name = (const char *) &adm[1];
+    GNUNET_TESTING_finish_attached_cmds (is, barrier_name);
     return GNUNET_OK;
   }
   else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_PEERS_STARTED == ntohs (

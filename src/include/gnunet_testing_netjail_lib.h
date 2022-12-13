@@ -349,16 +349,6 @@ GNUNET_TESTING_calculate_num (struct
 struct GNUNET_TESTING_TestState
 {
   /**
-   * The head of the DLL with barriers of the test case.
-   */
-  struct GNUNET_TESTING_Barrier *barriers_head;
-
-  /**
-   * The tail of the DLL with barriers of the test case.
-   */
-  struct GNUNET_TESTING_Barrier *barriers_tail;
-
-  /**
    * Callback to write messages to the master loop.
    *
    */

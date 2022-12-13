@@ -688,16 +688,43 @@ free_barrier_node_cb (void *cls,
 
 
 /**
+  * Getting a barrier from the interpreter.
+  *
+  * @param is The interpreter.
+  * @param barrier_name The name of the barrier.
+  * @return The barrier.
+  */
+struct GNUNET_TESTING_Barrier *
+GNUNET_TESTING_get_barrier (struct GNUNET_TESTING_Interpreter *is,
+                            const char *barrier_name)
+{
+  struct GNUNET_HashCode hc;
+  struct GNUNET_ShortHashCode create_key;
+  struct GNUNET_TESTING_Barrier *barrier;
+
+  GNUNET_CRYPTO_hash (barrier_name, strlen (barrier_name), &hc);
+  memcpy (&create_key,
+          &hc,
+          sizeof (create_key));
+  barrier = GNUNET_CONTAINER_multishortmap_get (is->barriers, &create_key);
+  // GNUNET_free (create_key);
+  return barrier;
+}
+
+
+/**
  * Finish all "barrier reached" comands attached to this barrier.
  *
  * @param barrier The barrier in question.
  */
 void
 GNUNET_TESTING_finish_attached_cmds (struct GNUNET_TESTING_Interpreter *is,
-                                     struct GNUNET_TESTING_Barrier *barrier)
+                                     const char *barrier_name)
 {
   struct CommandListEntry *pos;
   struct FreeBarrierNodeCbCls *free_barrier_node_cb_cls;
+  struct GNUNET_TESTING_Barrier *barrier = GNUNET_TESTING_get_barrier (is,
+                                                                       barrier_name);
 
   while (NULL != (pos = barrier->cmds_head))
   {
@@ -771,29 +798,6 @@ GNUNET_TESTING_delete_barriers (struct GNUNET_TESTING_Interpreter *is)
   GNUNET_CONTAINER_multishortmap_destroy (is->barriers);
 }
 
-/**
-  * Getting a barrier from the interpreter.
-  *
-  * @param is The interpreter.
-  * @param barrier_name The name of the barrier.
-  * @return The barrier.
-  */
-struct GNUNET_TESTING_Barrier *
-GNUNET_TESTING_get_barrier (struct GNUNET_TESTING_Interpreter *is,
-                            const char *barrier_name)
-{
-  struct GNUNET_HashCode hc;
-  struct GNUNET_ShortHashCode create_key;
-  struct GNUNET_TESTING_Barrier *barrier;
-
-  GNUNET_CRYPTO_hash (barrier_name, strlen (barrier_name), &hc);
-  memcpy (&create_key,
-          &hc,
-          sizeof (create_key));
-  barrier = GNUNET_CONTAINER_multishortmap_get (is->barriers, &create_key);
-  // GNUNET_free (create_key);
-  return barrier;
-}
 
 /**
  * Add a barrier to the loop.

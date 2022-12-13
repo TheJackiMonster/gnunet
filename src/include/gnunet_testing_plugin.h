@@ -51,7 +51,7 @@ typedef void
 // FIXME documentation
 // FIXME: Why are n, m, local_m strings?
 // FIXME: Why is topology_data a string and not a GNUNET_TESTING_NetworkTopology??
-typedef void
+typedef struct GNUNET_TESTING_Interpreter *
 (*GNUNET_TESTING_PLUGIN_StartTestCase) (GNUNET_TESTING_cmd_helper_write_cb
                                         write_message,
                                         const char *router_ip,

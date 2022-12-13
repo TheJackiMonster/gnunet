@@ -91,6 +91,7 @@ barrier_reached_run (void *cls,
   struct CommandListEntry *cle;
   size_t msg_length;
   struct GNUNET_TESTING_CommandBarrierReached *msg;
+  size_t name_len;
 
   barrier = GNUNET_TESTING_get_barrier (is, brs->barrier_name);
   if (NULL == barrier)
@@ -106,7 +107,7 @@ barrier_reached_run (void *cls,
     //FIXME cmd uninitialized
     GNUNET_assert (NULL != cmd);
     cmd->asynchronous_finish = GNUNET_YES;
-    GNUNET_TESTING_finish_attached_cmds (is, barrier);
+    GNUNET_TESTING_finish_attached_cmds (is, barrier->name);
   }
   else if (GNUNET_NO == brs->asynchronous_finish)
   {
@@ -126,11 +127,12 @@ barrier_reached_run (void *cls,
   }
   if (GNUNET_NO == brs->running_on_master)
   {
+    name_len = strlen (barrier->name) + 1;
     msg_length = sizeof(struct GNUNET_TESTING_CommandBarrierReached);
     msg = GNUNET_new (struct GNUNET_TESTING_CommandBarrierReached);
     msg->header.size = htons ((uint16_t) msg_length);
     msg->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_REACHED);
-    msg->barrier_name = barrier->name;
+    memcpy (&msg[1], barrier->name, name_len);
     msg->node_number = brs->node_number;
     brs->write_message ((struct GNUNET_MessageHeader *) msg, msg_length);
   }

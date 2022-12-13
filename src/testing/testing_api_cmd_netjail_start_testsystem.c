@@ -350,9 +350,11 @@ barrier_attached (struct NetJailState *ns, const struct
   struct GNUNET_TESTING_Barrier *barrier;
   struct GNUNET_ShortHashCode key;
   struct GNUNET_HashCode hc;
+  const char *barrier_name;
 
   am = (struct GNUNET_TESTING_CommandBarrierAttached *) message;
-  barrier = GNUNET_TESTING_get_barrier (ns->is, am->barrier_name);
+  barrier_name = (const char *) &am[1];
+  barrier = GNUNET_TESTING_get_barrier (ns->is, barrier_name);
   GNUNET_assert (NULL != barrier && GNUNET_NO == barrier->shadow);
   node = GNUNET_TESTING_barrier_get_node (barrier->nodes, am->node_number);
   if (NULL == node)
@@ -376,18 +378,19 @@ void
 barrier_reached (struct NetJailState *ns, const struct
                  GNUNET_MessageHeader *message)
 {
+  struct GNUNET_TESTING_Barrier *barrier;
+  const char *barrier_name;
   struct GNUNET_TESTING_CommandBarrierReached *rm = (struct
                                                      GNUNET_TESTING_CommandBarrierReached
                                                      *) message;
-  struct GNUNET_TESTING_Barrier *barrier = GNUNET_TESTING_get_barrier (ns->is,
-                                                                       rm->
-                                                                       barrier_name);
 
+  barrier_name = (const char *) &rm[1];
+  barrier = GNUNET_TESTING_get_barrier (ns->is, barrier_name);
   GNUNET_assert (NULL != barrier && GNUNET_NO == barrier->shadow);
   barrier->reached++;
   if (GNUNET_TESTING_can_barrier_advance (barrier))
   {
-    GNUNET_TESTING_finish_attached_cmds (ns->is, barrier);
+    GNUNET_TESTING_finish_attached_cmds (ns->is, barrier->name);
   }
 }
 
@@ -699,19 +702,21 @@ start_helper (struct NetJailState *ns,
 
   for (pos = barriers->head; NULL != pos; pos = pos->next)
   {
-    barrier = GNUNET_TESTING_get_barrier (ns->is, pos->barrier->name);
+    barrier = GNUNET_TESTING_get_barrier (ns->is, pos->barrier_name);
     if (NULL == barrier || GNUNET_YES == barrier->shadow)
     {
-      GNUNET_TESTING_interpreter_add_barrier (ns->is, pos->barrier);
-      barrier = pos->barrier;
+      barrier = GNUNET_new (struct GNUNET_TESTING_Barrier);
+      barrier->name = pos->barrier_name;
+      GNUNET_TESTING_interpreter_add_barrier (ns->is, barrier);
+
       barrier->nodes = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
     }
     GNUNET_assert (NULL != node);
     barrier_node = GNUNET_new (struct GNUNET_TESTING_NetjailNode);
     barrier_node->node_number = node->node_number;
-    barrier_node->expected_reaches = pos->barrier->expected_reaches;
+    barrier_node->expected_reaches = pos->expected_reaches;
     barrier->expected_reaches = barrier->expected_reaches
-                                + pos->barrier->expected_reaches;
+                                + pos->expected_reaches;
     GNUNET_CRYPTO_hash (&(node->node_number), sizeof(node->node_number), &hc);
     memcpy (&key, &hc, sizeof (key));
     GNUNET_CONTAINER_multishortmap_put (barrier->nodes,

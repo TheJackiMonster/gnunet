@@ -418,38 +418,6 @@ GNUNET_TESTING_main (struct GNUNET_TESTING_Command *commands,
                      struct GNUNET_TIME_Relative timeout);
 
 
-/**
-  * Deleting all barriers create in the context of this interpreter.
-  *
-  * @param is The interpreter.
-  */
-void
-GNUNET_TESTING_delete_barriers (struct GNUNET_TESTING_Interpreter *is);
-
-
-/**
- * Getting a barrier from the interpreter.
- *
- * @param is The interpreter.
- * @param barrier_name The name of the barrier.
- * @return The barrier.
- */
-struct GNUNET_TESTING_Barrier *
-GNUNET_TESTING_get_barrier (struct GNUNET_TESTING_Interpreter *is,
-                            const char *barrier_name);
-
-
-/**
- * Add a barrier to the loop.
- *
- * @param is The interpreter.
- * @param barrier The barrier to add.
- */
-void
-GNUNET_TESTING_interpreter_add_barrier (struct GNUNET_TESTING_Interpreter *is,
-                            struct GNUNET_TESTING_Barrier *barrier);
-
-
 /* ************** Specific interpreter commands ************ */
 
 

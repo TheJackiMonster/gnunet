@@ -62,12 +62,14 @@ GNUNET_TESTING_send_barrier_attach (struct GNUNET_TESTING_Interpreter *is,
 {
   struct GNUNET_TESTING_CommandBarrierAttached *atm = GNUNET_new (struct GNUNET_TESTING_CommandBarrierAttached);
   size_t msg_length = sizeof(struct GNUNET_TESTING_CommandBarrierAttached);
+  size_t name_len;
 
+  name_len = strlen (barrier_name) + 1;
   atm->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_ATTACHED);
   atm->header.size = htons ((uint16_t) msg_length);
-  atm->barrier_name = barrier_name;
   atm->expected_reaches = expected_reaches;
   atm->node_number = global_node_number;
+  memcpy (&atm[1], barrier_name, name_len);
   write_message ((struct GNUNET_MessageHeader *) atm, msg_length);
 
   GNUNET_free (atm);
@@ -88,10 +90,12 @@ GNUNET_TESTING_send_barrier_advance (struct GNUNET_TESTING_Interpreter *is,
 {
   struct GNUNET_TESTING_CommandBarrierAdvanced *adm = GNUNET_new (struct GNUNET_TESTING_CommandBarrierAdvanced);
   size_t msg_length = sizeof(struct GNUNET_TESTING_CommandBarrierAdvanced);
+  size_t name_len;
 
+  name_len = strlen (barrier_name) + 1;
   adm->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_ADVANCED);
   adm->header.size = htons ((uint16_t) msg_length);
-  adm->barrier_name = barrier_name;
+  memcpy (&adm[1], barrier_name, name_len);
   GNUNET_TESTING_send_message_to_netjail (is,
                                          global_node_number,
                                          &adm->header);
@@ -224,16 +228,4 @@ GNUNET_TESTING_cmd_barrier_create (const char *label,
                                      &barrier_cleanup,
                                      &barrier_traits,
                                      NULL);
-}
-
-/**
- * FIXME: Not sure if this is correct here
- */
-struct GNUNET_TESTING_Barrier*
-GNUNET_TESTING_barrier_new (const char* testcase_name)
-{
-  struct GNUNET_TESTING_Barrier *barr;
-  barr = GNUNET_new (struct GNUNET_TESTING_Barrier);
-  barr->name = GNUNET_strdup (testcase_name);
-  return barr;
 }

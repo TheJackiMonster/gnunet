@@ -24,7 +24,7 @@
  * @author t3sserakt
  */
 #include "platform.h"
-#include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_barrier.h"
 #include "gnunet_testing_netjail_lib.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_transport_application_service.h"
@@ -147,15 +147,6 @@ get_waiting_for_barriers ()
 }
 
 
-static void
-barrier_advanced (const char *barrier_name)
-{
-  struct GNUNET_TESTING_Barrier *barrier = GNUNET_TESTING_get_barrier (is, barrier_name);
-
-  GNUNET_TESTING_finish_attached_cmds (is, barrier);
-}
-
-
 /**
  * Callback to set the flag indicating all peers started. Will be called via the plugin api.
  *
@@ -255,7 +246,7 @@ all_local_tests_prepared ()
  * @param n The number of the network namespace.
  * @param local_m The number of nodes in a network namespace.
  */
-static void
+static struct GNUNET_TESTING_Interpreter *
 start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
                 const char *router_ip,
                 const char *node_ip,
@@ -393,7 +384,7 @@ start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
                       TIMEOUT,
                       &handle_result,
                       ts);
-
+  return is;
 }
 
 
@@ -416,7 +407,6 @@ libgnunet_test_transport_plugin_cmd_simple_send_dv_init (void *cls)
   api->start_testcase = &start_testcase;
   api->all_peers_started = &all_peers_started;
   api->all_local_tests_prepared = all_local_tests_prepared;
-  api->barrier_advanced = barrier_advanced;
   api->get_waiting_for_barriers = get_waiting_for_barriers;
   return api;
 }
