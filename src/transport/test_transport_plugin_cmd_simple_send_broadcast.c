@@ -126,7 +126,7 @@ static void
 handle_result (void *cls,
                enum GNUNET_GenericReturnValue rv)
 {
-  struct GNUNET_TESTING_TestState *ts = cls;
+  struct TestState *ts = cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Local test exits with status %d\n",
@@ -238,7 +238,7 @@ start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
   unsigned int m_int;
   unsigned int local_m_int;
   unsigned int num;
-  struct GNUNET_TESTING_TestState *ts = GNUNET_new (struct GNUNET_TESTING_TestState);
+  struct TestState *ts = GNUNET_new (struct TestState);
   struct GNUNET_TESTING_NetjailTopology *topology;
   unsigned int sscanf_ret = 0;
 

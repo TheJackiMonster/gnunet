@@ -344,39 +344,6 @@ GNUNET_TESTING_calculate_num (struct
                               GNUNET_TESTING_NodeConnection *node_connection,
                               struct GNUNET_TESTING_NetjailTopology *topology);
 
-// FIXME this was not namespaced. Is this correct here? Why are the cmd_helpers
-// defined in _plugin??
-struct GNUNET_TESTING_TestState
-{
-  /**
-   * Callback to write messages to the master loop.
-   *
-   */
-  GNUNET_TESTING_cmd_helper_write_cb write_message;
-
-  /**
-   * Callback to notify the helper test case has finished.
-   */
-  GNUNET_TESTING_cmd_helper_finish_cb finished_cb;
-
-  /**
-   * The name for a specific test environment directory.
-   *
-   */
-  char *testdir;
-
-  /**
-   * The name for the configuration file of the specific node.
-   *
-   */
-  char *cfgname;
-
-  /**
-   * The complete topology information.
-   */
-  struct GNUNET_TESTING_NetjailTopology *topology;
-};
-
 /**
  * FIXME: This was also not namespaces.
  * Struct with information for callbacks.

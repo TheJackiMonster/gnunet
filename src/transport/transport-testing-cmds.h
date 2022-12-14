@@ -27,7 +27,7 @@
 #ifndef TRANSPORT_TESTING_CMDS_H
 #define TRANSPORT_TESTING_CMDS_H
 #include "gnunet_testing_ng_lib.h"
-
+#include "gnunet_testing_plugin.h"
 
 typedef void *
 (*GNUNET_TRANSPORT_notify_connect_cb) (struct GNUNET_TESTING_Interpreter *is,
@@ -191,6 +191,37 @@ struct StartPeerState
    * Flag indicating, if udp broadcast should be switched on.
    */
   enum GNUNET_GenericReturnValue broadcast;
+};
+
+struct TestState
+{
+  /**
+   * Callback to write messages to the master loop.
+   *
+   */
+  GNUNET_TESTING_cmd_helper_write_cb write_message;
+
+  /**
+   * Callback to notify the helper test case has finished.
+   */
+  GNUNET_TESTING_cmd_helper_finish_cb finished_cb;
+
+  /**
+   * The name for a specific test environment directory.
+   *
+   */
+  char *testdir;
+
+  /**
+   * The name for the configuration file of the specific node.
+   *
+   */
+  char *cfgname;
+
+  /**
+   * The complete topology information.
+   */
+  struct GNUNET_TESTING_NetjailTopology *topology;
 };
 
 
