@@ -39,14 +39,13 @@ extern "C" {
 #endif
 #endif
 
-
-#include "platform.h"
+#include "gnunet_common.h"
 #include "gnunet_configuration_lib.h"
-#include "gnunet_util_lib.h"
 #include "gnunet_identity_service.h"
 #include "gnunet_protocols.h"
 #include "gnunet_scheduler_lib.h"
 #include "gnunet_time_lib.h"
+#include "gnunet_util_lib.h"
 
 /**
  * Version number of GNUnet Messenger API.
