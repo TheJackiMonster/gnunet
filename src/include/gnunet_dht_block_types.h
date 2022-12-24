@@ -70,7 +70,7 @@ enum GNUNET_BLOCK_Type
   /**
    * Type of a block that contains a HELLO for a peer.
    */
-  GNUNET_BLOCK_TYPE_DHT_HELLO = 7,
+  GNUNET_BLOCK_TYPE_LEGACY_HELLO = 7,
 
 
   /**
@@ -106,7 +106,7 @@ enum GNUNET_BLOCK_Type
   /**
    * Type of a block that contains a DHT-NG HELLO for a peer.
    */
-  GNUNET_BLOCK_TYPE_DHT_URL_HELLO = 13,
+  GNUNET_BLOCK_TYPE_DHT_HELLO = 13,
 
 
   /**

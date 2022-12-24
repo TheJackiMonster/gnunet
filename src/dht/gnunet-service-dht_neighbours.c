@@ -662,7 +662,7 @@ send_find_peer_message (void *cls)
     struct GNUNET_CONTAINER_BloomFilter *peer_bf;
 
     bg = GNUNET_BLOCK_group_create (GDS_block_context,
-                                    GNUNET_BLOCK_TYPE_DHT_URL_HELLO,
+                                    GNUNET_BLOCK_TYPE_DHT_HELLO,
                                     NULL,
                                     0,
                                     "filter-size",
@@ -676,7 +676,7 @@ send_find_peer_message (void *cls)
                                            DHT_BLOOM_SIZE,
                                            GNUNET_CONSTANTS_BLOOMFILTER_K);
     if (GNUNET_OK !=
-        GDS_NEIGHBOURS_handle_get (GNUNET_BLOCK_TYPE_DHT_URL_HELLO,
+        GDS_NEIGHBOURS_handle_get (GNUNET_BLOCK_TYPE_DHT_HELLO,
                                    GNUNET_DHT_RO_FIND_APPROXIMATE
                                    | GNUNET_DHT_RO_RECORD_ROUTE,
                                    FIND_PEER_REPLICATION_LEVEL,
@@ -1303,7 +1303,7 @@ hello_check (const struct GNUNET_DATACACHE_Block *bd)
   struct GNUNET_PeerIdentity pid;
   struct GNUNET_HELLO_Builder *b;
 
-  if (GNUNET_BLOCK_TYPE_DHT_URL_HELLO != bd->type)
+  if (GNUNET_BLOCK_TYPE_DHT_HELLO != bd->type)
     return;
 
   b = GNUNET_HELLO_builder_from_block (bd->data,
@@ -2168,7 +2168,7 @@ handle_find_my_hello (struct PeerInfo *pi,
     }
     else if (GNUNET_BLOCK_REPLY_OK_MORE ==
              GNUNET_BLOCK_check_reply (GDS_block_context,
-                                       GNUNET_BLOCK_TYPE_DHT_URL_HELLO,
+                                       GNUNET_BLOCK_TYPE_DHT_HELLO,
                                        bg,
                                        &GDS_my_identity_hash,
                                        NULL, 0,
@@ -2176,7 +2176,7 @@ handle_find_my_hello (struct PeerInfo *pi,
                                        block_size))
     {
       struct GNUNET_DATACACHE_Block bd = {
-        .type = GNUNET_BLOCK_TYPE_DHT_URL_HELLO,
+        .type = GNUNET_BLOCK_TYPE_DHT_HELLO,
         .expiration_time
           = GNUNET_TIME_relative_to_absolute (
               GNUNET_HELLO_ADDRESS_EXPIRATION),
@@ -2225,7 +2225,7 @@ handle_find_local_hello (struct PeerInfo *pi,
        (GNUNET_BLOCK_REPLY_OK_MORE ==
         GNUNET_BLOCK_check_reply (
           GDS_block_context,
-          GNUNET_BLOCK_TYPE_DHT_URL_HELLO,
+          GNUNET_BLOCK_TYPE_DHT_HELLO,
           bg,
           &peer->phash,
           NULL, 0,        /* xquery */
@@ -2233,7 +2233,7 @@ handle_find_local_hello (struct PeerInfo *pi,
           peer->hello_size)) )
   {
     struct GNUNET_DATACACHE_Block bd = {
-      .type = GNUNET_BLOCK_TYPE_DHT_URL_HELLO,
+      .type = GNUNET_BLOCK_TYPE_DHT_HELLO,
       .expiration_time = peer->hello_expiration,
       .key = peer->phash,
       .data = peer->hello,
@@ -2362,7 +2362,7 @@ handle_dht_p2p_get (void *cls,
          (GDS_am_closest_peer (&get->key,
                                peer_bf)) )
     {
-      if ( (GNUNET_BLOCK_TYPE_DHT_URL_HELLO == type) ||
+      if ( (GNUNET_BLOCK_TYPE_DHT_HELLO == type) ||
            (GNUNET_BLOCK_TYPE_ANY == type) )
       {
         GNUNET_STATISTICS_update (GDS_stats,
@@ -2377,7 +2377,7 @@ handle_dht_p2p_get (void *cls,
                                    &get->key,
                                    bg);
       }
-      if (GNUNET_BLOCK_TYPE_DHT_URL_HELLO != type)
+      if (GNUNET_BLOCK_TYPE_DHT_HELLO != type)
       {
         if (0 != (options & GNUNET_DHT_RO_FIND_APPROXIMATE))
           eval = GDS_DATACACHE_get_closest (&get->key,

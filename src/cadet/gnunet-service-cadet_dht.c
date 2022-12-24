@@ -203,7 +203,7 @@ announce_id (void *cls)
                   dht_replication_level,     /* Replication level */
                   GNUNET_DHT_RO_RECORD_ROUTE
                   | GNUNET_DHT_RO_DEMULTIPLEX_EVERYWHERE,    /* DHT options */
-                  GNUNET_BLOCK_TYPE_DHT_HELLO,       /* Block type */
+                  GNUNET_BLOCK_TYPE_LEGACY_HELLO,       /* Block type */
                   size,  /* Size of the data */
                   (const char *) hello, /* Data itself */
                   expiration,  /* Data expiration */
@@ -300,7 +300,7 @@ GCD_search (const struct GNUNET_PeerIdentity *peer_id)
 
   h = GNUNET_new (struct GCD_search_handle);
   h->dhtget = GNUNET_DHT_get_start (dht_handle,     /* handle */
-                                    GNUNET_BLOCK_TYPE_DHT_HELLO, /* type */
+                                    GNUNET_BLOCK_TYPE_LEGACY_HELLO, /* type */
                                     &phash,     /* key to search */
                                     dht_replication_level, /* replication level */
                                     GNUNET_DHT_RO_RECORD_ROUTE

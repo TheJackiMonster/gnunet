@@ -105,14 +105,14 @@ block_plugin_dht_check_query (void *cls,
 {
   switch (type)
   {
-  case GNUNET_BLOCK_TYPE_DHT_HELLO:
+  case GNUNET_BLOCK_TYPE_LEGACY_HELLO:
     if (0 != xquery_size)
     {
       GNUNET_break_op (0);
       return GNUNET_NO;
     }
     return GNUNET_OK;
-  case GNUNET_BLOCK_TYPE_DHT_URL_HELLO:
+  case GNUNET_BLOCK_TYPE_DHT_HELLO:
     if (0 != xquery_size)
     {
       GNUNET_break_op (0);
@@ -143,7 +143,7 @@ block_plugin_dht_check_block (void *cls,
 {
   switch (type)
   {
-  case GNUNET_BLOCK_TYPE_DHT_HELLO:
+  case GNUNET_BLOCK_TYPE_LEGACY_HELLO:
     {
       const struct GNUNET_HELLO_Message *hello;
       struct GNUNET_PeerIdentity pid;
@@ -170,7 +170,7 @@ block_plugin_dht_check_block (void *cls,
       }
       return GNUNET_OK;
     }
-  case GNUNET_BLOCK_TYPE_DHT_URL_HELLO:
+  case GNUNET_BLOCK_TYPE_DHT_HELLO:
     {
       struct GNUNET_HELLO_Builder *b;
       struct GNUNET_PeerIdentity pid;
@@ -228,8 +228,9 @@ block_plugin_dht_check_reply (
 {
   switch (type)
   {
-  case GNUNET_BLOCK_TYPE_DHT_HELLO:
+  case GNUNET_BLOCK_TYPE_LEGACY_HELLO:
     {
+      /* LEGACY */
       const struct GNUNET_MessageHeader *msg = reply_block;
       const struct GNUNET_HELLO_Message *hello = reply_block;
       struct GNUNET_PeerIdentity pid;
@@ -249,7 +250,7 @@ block_plugin_dht_check_reply (
         return GNUNET_BLOCK_REPLY_OK_DUPLICATE;
       return GNUNET_BLOCK_REPLY_OK_MORE;
     }
-  case GNUNET_BLOCK_TYPE_DHT_URL_HELLO:
+  case GNUNET_BLOCK_TYPE_DHT_HELLO:
     {
       struct GNUNET_HELLO_Builder *b;
       struct GNUNET_PeerIdentity pid;
@@ -297,8 +298,9 @@ block_plugin_dht_get_key (void *cls,
 {
   switch (type)
   {
-  case GNUNET_BLOCK_TYPE_DHT_HELLO:
+  case GNUNET_BLOCK_TYPE_LEGACY_HELLO:
     {
+      /* LEGACY */
       const struct GNUNET_MessageHeader *msg;
       const struct GNUNET_HELLO_Message *hello;
       struct GNUNET_PeerIdentity *pid;
@@ -337,7 +339,7 @@ block_plugin_dht_get_key (void *cls,
       }
       return GNUNET_OK;
     }
-  case GNUNET_BLOCK_TYPE_DHT_URL_HELLO:
+  case GNUNET_BLOCK_TYPE_DHT_HELLO:
     {
       struct GNUNET_HELLO_Builder *b;
       struct GNUNET_PeerIdentity pid;
@@ -375,8 +377,8 @@ void *
 libgnunet_plugin_block_dht_init (void *cls)
 {
   static enum GNUNET_BLOCK_Type types[] = {
+    GNUNET_BLOCK_TYPE_LEGACY_HELLO,
     GNUNET_BLOCK_TYPE_DHT_HELLO,
-    GNUNET_BLOCK_TYPE_DHT_URL_HELLO,
     GNUNET_BLOCK_TYPE_ANY       /* end of list */
   };
   struct GNUNET_BLOCK_PluginFunctions *api;
