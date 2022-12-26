@@ -2872,8 +2872,6 @@ GDS_try_connect (void *cls,
   GNUNET_assert ( (peer_bucket >= 0) &&
                   ((unsigned int) peer_bucket < MAX_BUCKETS));
   bucket = &k_buckets[peer_bucket];
-  if (bucket->peers_size >= bucket_size)
-    return; /* do not care */
   for (struct PeerInfo *pi = bucket->head;
        NULL != pi;
        pi = pi->next)
@@ -2886,6 +2884,8 @@ GDS_try_connect (void *cls,
                          uri);
       return;
     }
+  if (bucket->peers_size >= bucket_size)
+    return; /* do not care */
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Discovered peer %s at %s suitable for bucket %d (%u/%u), trying to connect\n",
               GNUNET_i2s (pid),
