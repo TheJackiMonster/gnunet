@@ -665,8 +665,8 @@ send_find_peer_message (void *cls)
                                     GNUNET_BLOCK_TYPE_DHT_HELLO,
                                     NULL,
                                     0,
-                                    "filter-size",
-                                    DHT_BLOOM_SIZE,
+                                    "set-seen-size",
+                                    GNUNET_CONTAINER_multipeermap_size (all_connected_peers),
                                     NULL);
     GNUNET_CONTAINER_multipeermap_iterate (all_connected_peers,
                                            &add_known_to_bloom,
