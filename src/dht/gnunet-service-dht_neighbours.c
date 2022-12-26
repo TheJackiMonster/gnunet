@@ -2882,8 +2882,8 @@ GDS_try_connect (void *cls,
                        pid))
     {
       /* already connected */
-      /* TODO: maybe consider 'uri' anyway as an additional
-         alternative address??? */
+      GDS_u_try_connect (pid,
+                         uri);
       return;
     }
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
