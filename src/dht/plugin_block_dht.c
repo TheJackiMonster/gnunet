@@ -55,7 +55,7 @@
 static struct GNUNET_BLOCK_Group *
 block_plugin_dht_create_group (void *cls,
                                enum GNUNET_BLOCK_Type type,
->                               const void *raw_data,
+                               const void *raw_data,
                                size_t raw_data_size,
                                va_list va)
 {
