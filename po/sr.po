@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2022-12-26 09:51+0100\n"
+"POT-Creation-Date: 2022-12-28 19:48+0900\n"
 "PO-Revision-Date: 2020-10-23 18:39+0200\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: Serbian <(nothing)>\n"
@@ -31,8 +31,8 @@ msgid "Issuer public key `%s' is not well-formed\n"
 msgstr "Јавни кључ „%s“ није добро оформљен\n"
 
 #: src/abd/gnunet-abd.c:558 src/abd/gnunet-service-abd.c:1750
-#: src/namestore/gnunet-namestore.c:1957
 #: src/namestore/gnunet-namestore-fcfsd.c:1089
+#: src/namestore/gnunet-namestore.c:1957
 #, c-format
 msgid "Failed to connect to namestore\n"
 msgstr "Нисам успео да се повежем са смештајем назива\n"
@@ -513,90 +513,6 @@ msgstr ""
 msgid "Initiating shutdown as requested by client.\n"
 msgstr "Започињем гашење као што је затражио клијент.\n"
 
-#: src/ats/gnunet-ats-solver-eval.c:2993 src/ats/gnunet-ats-solver-eval.c:3045
-#, c-format
-msgid ""
-"Could not load quota for network `%s':  `%s', assigning default bandwidth "
-"%llu\n"
-msgstr ""
-"Не могу да учитам квоту за мрежу „%s“:  „%s“, додељујем основни пропусни "
-"опсег %llu\n"
-
-#: src/ats/gnunet-ats-solver-eval.c:3012
-#, c-format
-msgid ""
-"No outbound quota configured for network `%s', assigning default bandwidth "
-"%llu\n"
-msgstr ""
-"Нема подешене одлазне квоте за мрежу „%s“, додељујем основни пропусни опсег "
-"%llu\n"
-
-#: src/ats/gnunet-ats-solver-eval.c:3064
-#, c-format
-msgid ""
-"No outbound quota configure for network `%s', assigning default bandwidth "
-"%llu\n"
-msgstr ""
-"Није подешена одлазна квота за мрежу „%s“, додељујем основни пропусни опсег "
-"%llu\n"
-
-#: src/ats/gnunet-ats-solver-eval.c:3553
-msgid "solver to use"
-msgstr "решавач за коришћење"
-
-#: src/ats/gnunet-ats-solver-eval.c:3558
-msgid "experiment to use"
-msgstr "експеримент за коришћење"
-
-#: src/ats/gnunet-ats-solver-eval.c:3565
-msgid "print logging"
-msgstr "исписује дневничење"
-
-#: src/ats/gnunet-ats-solver-eval.c:3570
-msgid "save logging to disk"
-msgstr ""
-
-#: src/ats/gnunet-ats-solver-eval.c:3575
-msgid "disable normalization"
-msgstr ""
-
-#: src/ats/gnunet-service-ats_plugins.c:321
-#, fuzzy, c-format
-msgid ""
-"Could not load %s quota for network `%s':  `%s', assigning default bandwidth "
-"%llu\n"
-msgstr ""
-"Не могу да учитам квоту за мрежу „%s“:  „%s“, додељујем основни пропусни "
-"опсег %llu\n"
-
-#: src/ats/gnunet-service-ats_plugins.c:331
-#, fuzzy, c-format
-msgid "%s quota configured for network `%s' is %llu\n"
-msgstr "Квота долазности подешена за мрежу „%s“ је %llu\n"
-
-#: src/ats/gnunet-service-ats_plugins.c:377
-#, fuzzy, c-format
-msgid ""
-"No %s-quota configured for network `%s', assigning default bandwidth %llu\n"
-msgstr ""
-"Нема подешене одлазне квоте за мрежу „%s“, додељујем основни пропусни опсег "
-"%llu\n"
-
-#: src/ats/gnunet-service-ats_plugins.c:462
-#, c-format
-msgid "Failed to initialize solver `%s'!\n"
-msgstr "Нисам успео да покренем решавача „%s“!\n"
-
-#: src/ats/plugin_ats_proportional.c:1142
-#, fuzzy, c-format
-msgid "Invalid %s configuration %f \n"
-msgstr "Нисам успео да учитам подешавање за „%s“\n"
-
-#: src/ats/plugin_ats_proportional.c:1165
-#, fuzzy, c-format
-msgid "Invalid %s configuration %f\n"
-msgstr "Нађох пријатеља „%s“ у подешавањима\n"
-
 #: src/ats-tool/gnunet-ats.c:299
 #, c-format
 msgid "%u address resolutions had a timeout\n"
@@ -713,6 +629,90 @@ msgstr "опширан излаз (укључује својства АТС ад
 #: src/ats-tool/gnunet-ats.c:977
 msgid "Print information about ATS state"
 msgstr "Исписује податке о АТС стању"
+
+#: src/ats/gnunet-ats-solver-eval.c:2993 src/ats/gnunet-ats-solver-eval.c:3045
+#, c-format
+msgid ""
+"Could not load quota for network `%s':  `%s', assigning default bandwidth "
+"%llu\n"
+msgstr ""
+"Не могу да учитам квоту за мрежу „%s“:  „%s“, додељујем основни пропусни "
+"опсег %llu\n"
+
+#: src/ats/gnunet-ats-solver-eval.c:3012
+#, c-format
+msgid ""
+"No outbound quota configured for network `%s', assigning default bandwidth "
+"%llu\n"
+msgstr ""
+"Нема подешене одлазне квоте за мрежу „%s“, додељујем основни пропусни опсег "
+"%llu\n"
+
+#: src/ats/gnunet-ats-solver-eval.c:3064
+#, c-format
+msgid ""
+"No outbound quota configure for network `%s', assigning default bandwidth "
+"%llu\n"
+msgstr ""
+"Није подешена одлазна квота за мрежу „%s“, додељујем основни пропусни опсег "
+"%llu\n"
+
+#: src/ats/gnunet-ats-solver-eval.c:3553
+msgid "solver to use"
+msgstr "решавач за коришћење"
+
+#: src/ats/gnunet-ats-solver-eval.c:3558
+msgid "experiment to use"
+msgstr "експеримент за коришћење"
+
+#: src/ats/gnunet-ats-solver-eval.c:3565
+msgid "print logging"
+msgstr "исписује дневничење"
+
+#: src/ats/gnunet-ats-solver-eval.c:3570
+msgid "save logging to disk"
+msgstr ""
+
+#: src/ats/gnunet-ats-solver-eval.c:3575
+msgid "disable normalization"
+msgstr ""
+
+#: src/ats/gnunet-service-ats_plugins.c:321
+#, fuzzy, c-format
+msgid ""
+"Could not load %s quota for network `%s':  `%s', assigning default bandwidth "
+"%llu\n"
+msgstr ""
+"Не могу да учитам квоту за мрежу „%s“:  „%s“, додељујем основни пропусни "
+"опсег %llu\n"
+
+#: src/ats/gnunet-service-ats_plugins.c:331
+#, fuzzy, c-format
+msgid "%s quota configured for network `%s' is %llu\n"
+msgstr "Квота долазности подешена за мрежу „%s“ је %llu\n"
+
+#: src/ats/gnunet-service-ats_plugins.c:377
+#, fuzzy, c-format
+msgid ""
+"No %s-quota configured for network `%s', assigning default bandwidth %llu\n"
+msgstr ""
+"Нема подешене одлазне квоте за мрежу „%s“, додељујем основни пропусни опсег "
+"%llu\n"
+
+#: src/ats/gnunet-service-ats_plugins.c:462
+#, c-format
+msgid "Failed to initialize solver `%s'!\n"
+msgstr "Нисам успео да покренем решавача „%s“!\n"
+
+#: src/ats/plugin_ats_proportional.c:1142
+#, fuzzy, c-format
+msgid "Invalid %s configuration %f \n"
+msgstr "Нисам успео да учитам подешавање за „%s“\n"
+
+#: src/ats/plugin_ats_proportional.c:1165
+#, fuzzy, c-format
+msgid "Invalid %s configuration %f\n"
+msgstr "Нађох пријатеља „%s“ у подешавањима\n"
 
 #: src/auction/gnunet-auction-create.c:163
 msgid "description of the item to be sold"
@@ -852,6 +852,34 @@ msgstr "бива опширнији (исписује примљене вред�
 msgid "Connection to conversation service lost, trying to reconnect\n"
 msgstr ""
 "Веза са услугом конверзације је изгубљена, покушавам поново да се повежем\n"
+
+#: src/conversation/gnunet-conversation-test.c:120
+#, c-format
+msgid ""
+"\n"
+"End of transmission.  Have a GNU day.\n"
+msgstr ""
+"\n"
+"Крај преноса.  Нека вам је ГНУ дан.\n"
+
+#: src/conversation/gnunet-conversation-test.c:146
+#, fuzzy, c-format
+msgid ""
+"\n"
+"ew are now playing your recording back.  If you can hear it, your audio "
+"settings are working..."
+msgstr ""
+"\n"
+"Сада пуштамо ваш снимак.  Ако можете да га чујете, ваша подешавања звука су "
+"добра..."
+
+#: src/conversation/gnunet-conversation-test.c:218
+#, c-format
+msgid ""
+"We will now be recording you for %s. After that time, the recording will be "
+"played back to you..."
+msgstr ""
+"Сада ћемо вас снимати за %s. Након тог времена, снимак ће вам бити пуштен..."
 
 #: src/conversation/gnunet-conversation.c:264
 #, fuzzy, c-format
@@ -1119,36 +1147,8 @@ msgstr "поставља РЕД за коришћење за телефон"
 msgid "Enables having a conversation with other GNUnet users."
 msgstr "Укључује могућност конверзације са другим ГНУнет корисницима."
 
-#: src/conversation/gnunet-conversation-test.c:120
-#, c-format
-msgid ""
-"\n"
-"End of transmission.  Have a GNU day.\n"
-msgstr ""
-"\n"
-"Крај преноса.  Нека вам је ГНУ дан.\n"
-
-#: src/conversation/gnunet-conversation-test.c:146
-#, fuzzy, c-format
-msgid ""
-"\n"
-"ew are now playing your recording back.  If you can hear it, your audio "
-"settings are working..."
-msgstr ""
-"\n"
-"Сада пуштамо ваш снимак.  Ако можете да га чујете, ваша подешавања звука су "
-"добра..."
-
-#: src/conversation/gnunet-conversation-test.c:218
-#, c-format
-msgid ""
-"We will now be recording you for %s. After that time, the recording will be "
-"played back to you..."
-msgstr ""
-"Сада ћемо вас снимати за %s. Након тог времена, снимак ће вам бити пуштен..."
-
-#: src/conversation/gnunet_gst.c:665
 #: src/conversation/gnunet-helper-audio-playback-gst.c:363
+#: src/conversation/gnunet_gst.c:665
 #, c-format
 msgid "Read error from STDIN: %d %s\n"
 msgstr "Грешка читања са СТНДУЛАЗА: %d %s\n"
@@ -2045,6 +2045,40 @@ msgstr "бива опширан (исписује податке напредо�
 msgid "Prints all packets that go through the DHT."
 msgstr "Исписује све пакете који иду кроз „DHT“."
 
+#: src/dht/gnunet-dht-put.c:133
+msgid "Must provide KEY and DATA for DHT put!\n"
+msgstr "Морате доставити КЉУЧ и ПОДАЦИ за ДХТ стављање!\n"
+
+#: src/dht/gnunet-dht-put.c:140
+#, fuzzy, c-format
+msgid "Could not connect to DHT service!\n"
+msgstr "Не могу да се повежем са „%s“ услугом!\n"
+
+#: src/dht/gnunet-dht-put.c:151
+#, c-format
+msgid "Issuing put request for `%s' with data `%s'!\n"
+msgstr "Издајем захтев стављања за „%s“ са подацима „%s“!\n"
+
+#: src/dht/gnunet-dht-put.c:188
+msgid "the data to insert under the key"
+msgstr "подаци за уметање под кључем"
+
+#: src/dht/gnunet-dht-put.c:194
+msgid "how long to store this entry in the dht (in seconds)"
+msgstr "колико ће дуго да држи овај унос у дхт-у (у секундама)"
+
+#: src/dht/gnunet-dht-put.c:212
+msgid "how many replicas to create"
+msgstr "број реплика за стварање"
+
+#: src/dht/gnunet-dht-put.c:223
+msgid "the type to insert data as"
+msgstr "врста за уметање података"
+
+#: src/dht/gnunet-dht-put.c:241
+msgid "Issue a PUT request to the GNUnet DHT insert DATA under KEY."
+msgstr "Издаје захтев СТАВИ у ГНУнет ДХТ уметак ПОДАТАКА под КЉУЧЕМ."
+
 #: src/dht/gnunet_dht_profiler.c:925 src/testbed/gnunet-testbed-profiler.c:253
 #, c-format
 msgid "Exiting as the number of peers is %u\n"
@@ -2093,40 +2127,6 @@ msgstr ""
 #, fuzzy
 msgid "Measure quality and performance of the DHT service."
 msgstr "Мери квалитет и учинковитост НСЕ услуге."
-
-#: src/dht/gnunet-dht-put.c:133
-msgid "Must provide KEY and DATA for DHT put!\n"
-msgstr "Морате доставити КЉУЧ и ПОДАЦИ за ДХТ стављање!\n"
-
-#: src/dht/gnunet-dht-put.c:140
-#, fuzzy, c-format
-msgid "Could not connect to DHT service!\n"
-msgstr "Не могу да се повежем са „%s“ услугом!\n"
-
-#: src/dht/gnunet-dht-put.c:151
-#, c-format
-msgid "Issuing put request for `%s' with data `%s'!\n"
-msgstr "Издајем захтев стављања за „%s“ са подацима „%s“!\n"
-
-#: src/dht/gnunet-dht-put.c:188
-msgid "the data to insert under the key"
-msgstr "подаци за уметање под кључем"
-
-#: src/dht/gnunet-dht-put.c:194
-msgid "how long to store this entry in the dht (in seconds)"
-msgstr "колико ће дуго да држи овај унос у дхт-у (у секундама)"
-
-#: src/dht/gnunet-dht-put.c:212
-msgid "how many replicas to create"
-msgstr "број реплика за стварање"
-
-#: src/dht/gnunet-dht-put.c:223
-msgid "the type to insert data as"
-msgstr "врста за уметање података"
-
-#: src/dht/gnunet-dht-put.c:241
-msgid "Issue a PUT request to the GNUnet DHT insert DATA under KEY."
-msgstr "Издаје захтев СТАВИ у ГНУнет ДХТ уметак ПОДАТАКА под КЉУЧЕМ."
 
 #: src/dns/gnunet-dns-monitor.c:370 src/dns/gnunet-dns-monitor.c:375
 msgid "only monitor DNS queries"
@@ -3057,14 +3057,6 @@ msgstr ""
 "Преузима датотеке са ГНУнет-а користећи ГНУнет CHK или LOC УРИ (gnunet://fs/"
 "chk/...)"
 
-#: src/fs/gnunet-fs.c:165
-msgid "print a list of all indexed files"
-msgstr "исписује списак свих индексираних датотека"
-
-#: src/fs/gnunet-fs.c:180
-msgid "Special file-sharing operations"
-msgstr "Посебне радње дељења датотека"
-
 #: src/fs/gnunet-fs-profiler.c:211
 msgid "run the experiment with COUNT peers"
 msgstr "одрађује експеримент са БРОЈ парњака"
@@ -3080,6 +3072,14 @@ msgstr "самостално окончава експеримент након 
 #: src/fs/gnunet-fs-profiler.c:237
 msgid "run a testbed to measure file-sharing performance"
 msgstr "покреће пробно место за мерење учинковитости дељења датотека"
+
+#: src/fs/gnunet-fs.c:165
+msgid "print a list of all indexed files"
+msgstr "исписује списак свих индексираних датотека"
+
+#: src/fs/gnunet-fs.c:180
+msgid "Special file-sharing operations"
+msgstr "Посебне радње дељења датотека"
 
 #: src/fs/gnunet-publish.c:220 src/fs/gnunet-publish.c:235
 #, c-format
@@ -3837,50 +3837,6 @@ msgstr ""
 msgid "look for GNS2DNS records instead of ANY"
 msgstr ""
 
-#: src/gns/gnunet-gns.c:256
-#, fuzzy, c-format
-msgid "`%s' is not a valid DNS domain name\n"
-msgstr "„%s“ није исправна ИП адреса.\n"
-
-#: src/gns/gnunet-gns.c:266 src/util/dnsparser.c:254
-#, c-format
-msgid "Failed to convert DNS IDNA name `%s' to UTF-8: %s\n"
-msgstr "Нисам успео да претворим ДНС ИДНА „%s“ у УТФ-8: %s\n"
-
-#: src/gns/gnunet-gns.c:280
-msgid "Cannot resolve using GNS: GNUnet peer not running\n"
-msgstr ""
-
-#: src/gns/gnunet-gns.c:304
-#, c-format
-msgid "Invalid typename specified, assuming `ANY'\n"
-msgstr ""
-
-#: src/gns/gnunet-gns.c:339
-msgid "Lookup a record for the given name"
-msgstr "Претражује запис за датим називом"
-
-#: src/gns/gnunet-gns.c:345
-msgid "Specify the type of the record to lookup"
-msgstr "Наводи врсту записа за претраживање"
-
-#: src/gns/gnunet-gns.c:351
-#, fuzzy
-msgid "Specify a timeout for the lookup"
-msgstr "Наводи време истека за претраживање"
-
-#: src/gns/gnunet-gns.c:355
-msgid "No unneeded output"
-msgstr "Нема непотребног излаза"
-
-#: src/gns/gnunet-gns.c:360
-msgid "DNS Compatibility: Name is passed in IDNA instead of UTF-8"
-msgstr ""
-
-#: src/gns/gnunet-gns.c:374
-msgid "GNUnet GNS resolver tool"
-msgstr "Алат ГНУнет ГНС решавача"
-
 #: src/gns/gnunet-gns-import.c:490
 msgid "This program will import some GNS authorities into your GNS namestore."
 msgstr "Овај програм ће увести неке ГНС ауторитете у ваш ГНС смештај назива."
@@ -3999,6 +3955,50 @@ msgstr ""
 #: src/gns/gnunet-gns-proxy.c:3903
 msgid "GNUnet GNS proxy"
 msgstr "ГНУнет ГНС посредник"
+
+#: src/gns/gnunet-gns.c:256
+#, fuzzy, c-format
+msgid "`%s' is not a valid DNS domain name\n"
+msgstr "„%s“ није исправна ИП адреса.\n"
+
+#: src/gns/gnunet-gns.c:266 src/util/dnsparser.c:254
+#, c-format
+msgid "Failed to convert DNS IDNA name `%s' to UTF-8: %s\n"
+msgstr "Нисам успео да претворим ДНС ИДНА „%s“ у УТФ-8: %s\n"
+
+#: src/gns/gnunet-gns.c:280
+msgid "Cannot resolve using GNS: GNUnet peer not running\n"
+msgstr ""
+
+#: src/gns/gnunet-gns.c:304
+#, c-format
+msgid "Invalid typename specified, assuming `ANY'\n"
+msgstr ""
+
+#: src/gns/gnunet-gns.c:339
+msgid "Lookup a record for the given name"
+msgstr "Претражује запис за датим називом"
+
+#: src/gns/gnunet-gns.c:345
+msgid "Specify the type of the record to lookup"
+msgstr "Наводи врсту записа за претраживање"
+
+#: src/gns/gnunet-gns.c:351
+#, fuzzy
+msgid "Specify a timeout for the lookup"
+msgstr "Наводи време истека за претраживање"
+
+#: src/gns/gnunet-gns.c:355
+msgid "No unneeded output"
+msgstr "Нема непотребног излаза"
+
+#: src/gns/gnunet-gns.c:360
+msgid "DNS Compatibility: Name is passed in IDNA instead of UTF-8"
+msgstr ""
+
+#: src/gns/gnunet-gns.c:374
+msgid "GNUnet GNS resolver tool"
+msgstr "Алат ГНУнет ГНС решавача"
 
 #: src/gns/gnunet-service-gns.c:518
 #, fuzzy
@@ -4806,249 +4806,11 @@ msgstr ""
 msgid "Failed to setup database at `%s'\n"
 msgstr "Нисам успео да покренем „%s“ на „%s“\n"
 
-#: src/namestore/gnunet-namestore.c:411
-#, fuzzy, c-format
-msgid "Missing entries in record line `%s'.\n"
-msgstr "Недостаје функција „%s“ у прикључку преноса за „%s“\n"
-
-#: src/namestore/gnunet-namestore.c:419
-#, fuzzy, c-format
-msgid "Unknown record type `%s'\n"
-msgstr "Непозната наредба „%s“\n"
-
-#: src/namestore/gnunet-namestore.c:427 src/namestore/gnunet-namestore.c:442
-msgid "Empty record line argument is not allowed.\n"
-msgstr ""
-
-#: src/namestore/gnunet-namestore.c:434
-#, fuzzy, c-format
-msgid "Error parsing expiration time %s.\n"
-msgstr "Грешка прорачуна уније скупа опозивања са %s\n"
-
-#: src/namestore/gnunet-namestore.c:464
-#, fuzzy, c-format
-msgid "Invalid record data for type %s: `%s'.\n"
-msgstr "Неисправан формат за ИП: „%s“\n"
-
-#: src/namestore/gnunet-namestore.c:666
-#, c-format
-msgid "Adding record failed: %s\n"
-msgstr "Додавање записа није успело: %s\n"
-
-#: src/namestore/gnunet-namestore.c:684 src/namestore/gnunet-namestore.c:700
-#, fuzzy, c-format
-msgid "Deleting record failed: %s\n"
-msgstr "Брисање записа није успело%s%s\n"
-
-#: src/namestore/gnunet-namestore.c:1136
-#, c-format
-msgid ""
-"A SOA record exists already under `%s', cannot add a second SOA to the same "
-"zone.\n"
-msgstr ""
-
-#: src/namestore/gnunet-namestore.c:1257
-#, fuzzy, c-format
-msgid "There are no records under label `%s' that could be deleted.\n"
-msgstr "Нема позива који би могао бити отказан управо сада.\n"
-
-#: src/namestore/gnunet-namestore.c:1300
-#, c-format
-msgid ""
-"There are no records under label `%s' that match the request for deletion.\n"
-msgstr ""
-
-#: src/namestore/gnunet-namestore.c:1325
-#, c-format
-msgid "%s\n"
-msgstr ""
-
-#: src/namestore/gnunet-namestore.c:1354
-#, c-format
-msgid "No options given\n"
-msgstr "Нису дате опције\n"
-
-#: src/namestore/gnunet-namestore.c:1368
-#, c-format
-msgid "Recordlines only work with option `%s'\n"
-msgstr ""
-
-#: src/namestore/gnunet-namestore.c:1377 src/namestore/gnunet-namestore.c:1429
-#: src/namestore/gnunet-namestore.c:1439 src/namestore/gnunet-namestore.c:1449
-#: src/namestore/gnunet-namestore.c:1478 src/namestore/gnunet-namestore.c:1499
-#: src/namestore/gnunet-namestore.c:1526 src/namestore/gnunet-namestore.c:1536
-#: src/namestore/gnunet-namestore.c:1569 src/namestore/gnunet-namestore.c:1594
-#: src/namestore/gnunet-namestore.c:1628 src/namestore/gnunet-namestore.c:1662
-#: src/namestore/gnunet-namestore.c:1685
-#, c-format
-msgid "Missing option `%s' for operation `%s'\n"
-msgstr "Недостаје опција „%s“ за радњу „%s“\n"
-
-#: src/namestore/gnunet-namestore.c:1379
-msgid "name"
-msgstr ""
-
-#: src/namestore/gnunet-namestore.c:1408
-#, c-format
-msgid "Invalid nick `%s'\n"
-msgstr "Неисправан надимак „%s“\n"
-
-#: src/namestore/gnunet-namestore.c:1431 src/namestore/gnunet-namestore.c:1441
-#: src/namestore/gnunet-namestore.c:1451 src/namestore/gnunet-namestore.c:1480
-#: src/namestore/gnunet-namestore.c:1501 src/namestore/gnunet-namestore.c:1687
-msgid "add"
-msgstr "додај"
-
-#: src/namestore/gnunet-namestore.c:1459
-#, c-format
-msgid "Unsupported type `%s'\n"
-msgstr "Неподржана врста „%s“\n"
-
-#: src/namestore/gnunet-namestore.c:1469
-#, c-format
-msgid "For DNS record types `SRV', `TLSA' and `OPENPGPKEY'"
-msgstr ""
-
-#: src/namestore/gnunet-namestore.c:1489
-#, c-format
-msgid "Value `%s' invalid for record type `%s'\n"
-msgstr "Вредност „%s“ је неисправна за врсту записа „%s“\n"
-
-#: src/namestore/gnunet-namestore.c:1508 src/namestore/gnunet-namestore.c:1694
-#, c-format
-msgid "Invalid time format `%s'\n"
-msgstr "Неисправан формат времена „%s“\n"
-
-#: src/namestore/gnunet-namestore.c:1528 src/namestore/gnunet-namestore.c:1538
-msgid "del"
-msgstr "обриши"
-
-#: src/namestore/gnunet-namestore.c:1571
-msgid "purge-zone"
-msgstr ""
-
-#: src/namestore/gnunet-namestore.c:1596
-msgid "list"
-msgstr ""
-
-#: src/namestore/gnunet-namestore.c:1630
-msgid "reverse-pkey"
-msgstr ""
-
-#: src/namestore/gnunet-namestore.c:1640
-#, c-format
-msgid "Invalid public key for reverse lookup `%s'\n"
-msgstr "Неисправан јавни кључ за обратну претрагу „%s“\n"
-
-#: src/namestore/gnunet-namestore.c:1664
-msgid "uri"
-msgstr ""
-
-#: src/namestore/gnunet-namestore.c:1677
-#: src/peerinfo-tool/gnunet-peerinfo.c:737
-#, c-format
-msgid "Invalid URI `%s'\n"
-msgstr "Неисправан УРИ „%s“\n"
-
-#: src/namestore/gnunet-namestore.c:1950
 #: src/namestore/gnunet-namestore-dbtool.c:87
+#: src/namestore/gnunet-namestore.c:1950
 #, c-format
 msgid "Superfluous command line arguments (starting with `%s') ignored\n"
 msgstr ""
-
-#: src/namestore/gnunet-namestore.c:1965
-#, c-format
-msgid "Cannot connect to identity service\n"
-msgstr "Не могу да се повежем са услугом идентитета\n"
-
-#: src/namestore/gnunet-namestore.c:1984
-msgid "add record"
-msgstr "додаје запис"
-
-#: src/namestore/gnunet-namestore.c:1987
-msgid "delete record"
-msgstr "брише запис"
-
-#: src/namestore/gnunet-namestore.c:1991
-msgid "display records"
-msgstr "приказује записе"
-
-#: src/namestore/gnunet-namestore.c:1995
-msgid "read commands from stdin"
-msgstr ""
-
-#: src/namestore/gnunet-namestore.c:2002
-msgid ""
-"expiration time for record to use (for adding only), \"never\" is possible"
-msgstr "време истека записа за коришћење (само за додавање), „never“ је могуће"
-
-#: src/namestore/gnunet-namestore.c:2008
-msgid "set the desired nick name for the zone"
-msgstr "поставља жељени назив надимка за зону"
-
-#: src/namestore/gnunet-namestore.c:2013
-msgid "monitor changes in the namestore"
-msgstr "прати измене у смештају назива"
-
-#: src/namestore/gnunet-namestore.c:2023
-msgid "Output in recordline format"
-msgstr ""
-
-#: src/namestore/gnunet-namestore.c:2029
-#, fuzzy
-msgid "determine our name for the given KEY"
-msgstr "одређује наш назив за дати „PKEY“"
-
-#: src/namestore/gnunet-namestore.c:2035
-msgid "type of the record to add/delete/display"
-msgstr "врста записа за додавање/брисање/приказ"
-
-#: src/namestore/gnunet-namestore.c:2040
-msgid "URI to import into our zone"
-msgstr "УРИ за увоз у нашу зону"
-
-#: src/namestore/gnunet-namestore.c:2046
-msgid "value of the record to add/delete"
-msgstr "вредност записа за додавање/брисање"
-
-#: src/namestore/gnunet-namestore.c:2050
-msgid "create or list public record"
-msgstr "ствара или исписује јавни запис"
-
-#: src/namestore/gnunet-namestore.c:2054
-#, fuzzy
-msgid "omit private records"
-msgstr "приказује записе"
-
-#: src/namestore/gnunet-namestore.c:2059
-msgid "do not filter maintenance records"
-msgstr ""
-
-#: src/namestore/gnunet-namestore.c:2064
-msgid "purge namestore of all orphans"
-msgstr ""
-
-#: src/namestore/gnunet-namestore.c:2069
-msgid ""
-"show private key for orphaned records for recovery using `gnunet-identity -C "
-"-P <key>'. Use in combination with --display"
-msgstr ""
-
-#: src/namestore/gnunet-namestore.c:2074
-msgid "delete all records in specified zone"
-msgstr ""
-
-#: src/namestore/gnunet-namestore.c:2080
-msgid ""
-"create shadow record (only valid if all other records of the same type have "
-"expired"
-msgstr ""
-"прави сеновити запис (важи само ако су сви остали записи исте врсте истекли"
-
-#: src/namestore/gnunet-namestore.c:2086
-#: src/namestore/gnunet-namestore-zonefile.c:738
-msgid "name of the ego controlling the zone"
-msgstr "назив егоа који контролише зону"
 
 #: src/namestore/gnunet-namestore-dbtool.c:158
 msgid "initialize database"
@@ -5216,6 +4978,244 @@ msgstr "Нисам успео да се повежем са ГНС-ом\n"
 #, fuzzy, c-format
 msgid "Failed to connect to IDENTITY\n"
 msgstr "Нисам успео да се повежем са ГНС-ом\n"
+
+#: src/namestore/gnunet-namestore-zonefile.c:738
+#: src/namestore/gnunet-namestore.c:2086
+msgid "name of the ego controlling the zone"
+msgstr "назив егоа који контролише зону"
+
+#: src/namestore/gnunet-namestore.c:411
+#, fuzzy, c-format
+msgid "Missing entries in record line `%s'.\n"
+msgstr "Недостаје функција „%s“ у прикључку преноса за „%s“\n"
+
+#: src/namestore/gnunet-namestore.c:419
+#, fuzzy, c-format
+msgid "Unknown record type `%s'\n"
+msgstr "Непозната наредба „%s“\n"
+
+#: src/namestore/gnunet-namestore.c:427 src/namestore/gnunet-namestore.c:442
+msgid "Empty record line argument is not allowed.\n"
+msgstr ""
+
+#: src/namestore/gnunet-namestore.c:434
+#, fuzzy, c-format
+msgid "Error parsing expiration time %s.\n"
+msgstr "Грешка прорачуна уније скупа опозивања са %s\n"
+
+#: src/namestore/gnunet-namestore.c:464
+#, fuzzy, c-format
+msgid "Invalid record data for type %s: `%s'.\n"
+msgstr "Неисправан формат за ИП: „%s“\n"
+
+#: src/namestore/gnunet-namestore.c:666
+#, c-format
+msgid "Adding record failed: %s\n"
+msgstr "Додавање записа није успело: %s\n"
+
+#: src/namestore/gnunet-namestore.c:684 src/namestore/gnunet-namestore.c:700
+#, fuzzy, c-format
+msgid "Deleting record failed: %s\n"
+msgstr "Брисање записа није успело%s%s\n"
+
+#: src/namestore/gnunet-namestore.c:1136
+#, c-format
+msgid ""
+"A SOA record exists already under `%s', cannot add a second SOA to the same "
+"zone.\n"
+msgstr ""
+
+#: src/namestore/gnunet-namestore.c:1257
+#, fuzzy, c-format
+msgid "There are no records under label `%s' that could be deleted.\n"
+msgstr "Нема позива који би могао бити отказан управо сада.\n"
+
+#: src/namestore/gnunet-namestore.c:1300
+#, c-format
+msgid ""
+"There are no records under label `%s' that match the request for deletion.\n"
+msgstr ""
+
+#: src/namestore/gnunet-namestore.c:1325
+#, c-format
+msgid "%s\n"
+msgstr ""
+
+#: src/namestore/gnunet-namestore.c:1354
+#, c-format
+msgid "No options given\n"
+msgstr "Нису дате опције\n"
+
+#: src/namestore/gnunet-namestore.c:1368
+#, c-format
+msgid "Recordlines only work with option `%s'\n"
+msgstr ""
+
+#: src/namestore/gnunet-namestore.c:1377 src/namestore/gnunet-namestore.c:1429
+#: src/namestore/gnunet-namestore.c:1439 src/namestore/gnunet-namestore.c:1449
+#: src/namestore/gnunet-namestore.c:1478 src/namestore/gnunet-namestore.c:1499
+#: src/namestore/gnunet-namestore.c:1526 src/namestore/gnunet-namestore.c:1536
+#: src/namestore/gnunet-namestore.c:1569 src/namestore/gnunet-namestore.c:1594
+#: src/namestore/gnunet-namestore.c:1628 src/namestore/gnunet-namestore.c:1662
+#: src/namestore/gnunet-namestore.c:1685
+#, c-format
+msgid "Missing option `%s' for operation `%s'\n"
+msgstr "Недостаје опција „%s“ за радњу „%s“\n"
+
+#: src/namestore/gnunet-namestore.c:1379
+msgid "name"
+msgstr ""
+
+#: src/namestore/gnunet-namestore.c:1408
+#, c-format
+msgid "Invalid nick `%s'\n"
+msgstr "Неисправан надимак „%s“\n"
+
+#: src/namestore/gnunet-namestore.c:1431 src/namestore/gnunet-namestore.c:1441
+#: src/namestore/gnunet-namestore.c:1451 src/namestore/gnunet-namestore.c:1480
+#: src/namestore/gnunet-namestore.c:1501 src/namestore/gnunet-namestore.c:1687
+msgid "add"
+msgstr "додај"
+
+#: src/namestore/gnunet-namestore.c:1459
+#, c-format
+msgid "Unsupported type `%s'\n"
+msgstr "Неподржана врста „%s“\n"
+
+#: src/namestore/gnunet-namestore.c:1469
+#, c-format
+msgid "For DNS record types `SRV', `TLSA' and `OPENPGPKEY'"
+msgstr ""
+
+#: src/namestore/gnunet-namestore.c:1489
+#, c-format
+msgid "Value `%s' invalid for record type `%s'\n"
+msgstr "Вредност „%s“ је неисправна за врсту записа „%s“\n"
+
+#: src/namestore/gnunet-namestore.c:1508 src/namestore/gnunet-namestore.c:1694
+#, c-format
+msgid "Invalid time format `%s'\n"
+msgstr "Неисправан формат времена „%s“\n"
+
+#: src/namestore/gnunet-namestore.c:1528 src/namestore/gnunet-namestore.c:1538
+msgid "del"
+msgstr "обриши"
+
+#: src/namestore/gnunet-namestore.c:1571
+msgid "purge-zone"
+msgstr ""
+
+#: src/namestore/gnunet-namestore.c:1596
+msgid "list"
+msgstr ""
+
+#: src/namestore/gnunet-namestore.c:1630
+msgid "reverse-pkey"
+msgstr ""
+
+#: src/namestore/gnunet-namestore.c:1640
+#, c-format
+msgid "Invalid public key for reverse lookup `%s'\n"
+msgstr "Неисправан јавни кључ за обратну претрагу „%s“\n"
+
+#: src/namestore/gnunet-namestore.c:1664
+msgid "uri"
+msgstr ""
+
+#: src/namestore/gnunet-namestore.c:1677
+#: src/peerinfo-tool/gnunet-peerinfo.c:737
+#, c-format
+msgid "Invalid URI `%s'\n"
+msgstr "Неисправан УРИ „%s“\n"
+
+#: src/namestore/gnunet-namestore.c:1965
+#, c-format
+msgid "Cannot connect to identity service\n"
+msgstr "Не могу да се повежем са услугом идентитета\n"
+
+#: src/namestore/gnunet-namestore.c:1984
+msgid "add record"
+msgstr "додаје запис"
+
+#: src/namestore/gnunet-namestore.c:1987
+msgid "delete record"
+msgstr "брише запис"
+
+#: src/namestore/gnunet-namestore.c:1991
+msgid "display records"
+msgstr "приказује записе"
+
+#: src/namestore/gnunet-namestore.c:1995
+msgid "read commands from stdin"
+msgstr ""
+
+#: src/namestore/gnunet-namestore.c:2002
+msgid ""
+"expiration time for record to use (for adding only), \"never\" is possible"
+msgstr "време истека записа за коришћење (само за додавање), „never“ је могуће"
+
+#: src/namestore/gnunet-namestore.c:2008
+msgid "set the desired nick name for the zone"
+msgstr "поставља жељени назив надимка за зону"
+
+#: src/namestore/gnunet-namestore.c:2013
+msgid "monitor changes in the namestore"
+msgstr "прати измене у смештају назива"
+
+#: src/namestore/gnunet-namestore.c:2023
+msgid "Output in recordline format"
+msgstr ""
+
+#: src/namestore/gnunet-namestore.c:2029
+#, fuzzy
+msgid "determine our name for the given KEY"
+msgstr "одређује наш назив за дати „PKEY“"
+
+#: src/namestore/gnunet-namestore.c:2035
+msgid "type of the record to add/delete/display"
+msgstr "врста записа за додавање/брисање/приказ"
+
+#: src/namestore/gnunet-namestore.c:2040
+msgid "URI to import into our zone"
+msgstr "УРИ за увоз у нашу зону"
+
+#: src/namestore/gnunet-namestore.c:2046
+msgid "value of the record to add/delete"
+msgstr "вредност записа за додавање/брисање"
+
+#: src/namestore/gnunet-namestore.c:2050
+msgid "create or list public record"
+msgstr "ствара или исписује јавни запис"
+
+#: src/namestore/gnunet-namestore.c:2054
+#, fuzzy
+msgid "omit private records"
+msgstr "приказује записе"
+
+#: src/namestore/gnunet-namestore.c:2059
+msgid "do not filter maintenance records"
+msgstr ""
+
+#: src/namestore/gnunet-namestore.c:2064
+msgid "purge namestore of all orphans"
+msgstr ""
+
+#: src/namestore/gnunet-namestore.c:2069
+msgid ""
+"show private key for orphaned records for recovery using `gnunet-identity -C "
+"-P <key>'. Use in combination with --display"
+msgstr ""
+
+#: src/namestore/gnunet-namestore.c:2074
+msgid "delete all records in specified zone"
+msgstr ""
+
+#: src/namestore/gnunet-namestore.c:2080
+msgid ""
+"create shadow record (only valid if all other records of the same type have "
+"expired"
+msgstr ""
+"прави сеновити запис (важи само ако су сви остали записи исте врсте истекли"
 
 #: src/namestore/gnunet-zoneimport.c:1835
 msgid "size to use for the main hash map"
@@ -5543,10 +5543,6 @@ msgstr "нисам нашао наредбу „external-ip“\n"
 msgid "`upnpc' command not found\n"
 msgstr "нисам нашао „upnpc“ наредбу\n"
 
-#: src/nse/gnunet-nse.c:124
-msgid "Show network size estimates from NSE service."
-msgstr "Показује процене величине мреже из НСЕ услуге."
-
 #: src/nse/gnunet-nse-profiler.c:857
 msgid "limit to the number of connections to NSE services, 0 for none"
 msgstr "ограничење броја веза на НСЕ услуге, 0 за ништа"
@@ -5571,66 +5567,14 @@ msgstr "застој између рунди"
 msgid "Measure quality and performance of the NSE service."
 msgstr "Мери квалитет и учинковитост НСЕ услуге."
 
+#: src/nse/gnunet-nse.c:124
+msgid "Show network size estimates from NSE service."
+msgstr "Показује процене величине мреже из НСЕ услуге."
+
 #: src/nse/gnunet-service-nse.c:1441
 #: src/revocation/gnunet-service-revocation.c:920 src/util/gnunet-scrypt.c:243
 msgid "Value is too large.\n"
 msgstr "Вредност је превелика.\n"
-
-#: src/peerinfo/gnunet-service-peerinfo.c:175
-#, c-format
-msgid "Removing expired address of transport `%s'\n"
-msgstr "Уклањам истеклу адресу преноса „%s“\n"
-
-#: src/peerinfo/gnunet-service-peerinfo.c:306
-#, c-format
-msgid "Failed to parse HELLO in file `%s': %s\n"
-msgstr "Нисам успео да обрадим „HELLO“ у датотеци „%s“: %s\n"
-
-#: src/peerinfo/gnunet-service-peerinfo.c:323
-#: src/peerinfo/gnunet-service-peerinfo.c:348
-#, c-format
-msgid "Failed to parse HELLO in file `%s'\n"
-msgstr "Нисам успео да обрадим „HELLO“ у датотеци „%s“\n"
-
-#: src/peerinfo/gnunet-service-peerinfo.c:426
-msgid "# peers known"
-msgstr "# парњака је познато"
-
-#: src/peerinfo/gnunet-service-peerinfo.c:468
-#, c-format
-msgid ""
-"File `%s' in directory `%s' does not match naming convention. Removed.\n"
-msgstr ""
-"Датотека „%s“ у директоријуму „%s“ не одговара договору именовања. Уклоњена "
-"је.\n"
-
-#: src/peerinfo/gnunet-service-peerinfo.c:624
-#, c-format
-msgid "Scanning directory `%s'\n"
-msgstr "Скенирам директоријум „%s“\n"
-
-#: src/peerinfo/gnunet-service-peerinfo.c:631
-#, c-format
-msgid "Still no peers found in `%s'!\n"
-msgstr "Још увек нисам нашао парњаке у „%s“!\n"
-
-#: src/peerinfo/gnunet-service-peerinfo.c:1027
-#, c-format
-msgid "Cleaning up directory `%s'\n"
-msgstr "Чистим директоријум „%s“\n"
-
-#: src/peerinfo/gnunet-service-peerinfo.c:1322
-#, c-format
-msgid "Importing HELLOs from `%s'\n"
-msgstr "Увозим „HELLO“-е из „%s“\n"
-
-#: src/peerinfo/gnunet-service-peerinfo.c:1335
-msgid "Skipping import of included HELLOs\n"
-msgstr "Прескачем увоз укључених „HELLO“-а\n"
-
-#: src/peerinfo/peerinfo_api.c:210
-msgid "Failed to receive response from `PEERINFO' service."
-msgstr "Нисам успео да примим одговор са услуге „PEERINFO“."
 
 #: src/peerinfo-tool/gnunet-peerinfo.c:237
 #, c-format
@@ -5725,6 +5669,62 @@ msgstr "Нисам успео да учитам прикључак пренос�
 #: src/peerinfo-tool/plugin_rest_peerinfo.c:811
 msgid "Peerinfo REST API initialized\n"
 msgstr ""
+
+#: src/peerinfo/gnunet-service-peerinfo.c:175
+#, c-format
+msgid "Removing expired address of transport `%s'\n"
+msgstr "Уклањам истеклу адресу преноса „%s“\n"
+
+#: src/peerinfo/gnunet-service-peerinfo.c:306
+#, c-format
+msgid "Failed to parse HELLO in file `%s': %s\n"
+msgstr "Нисам успео да обрадим „HELLO“ у датотеци „%s“: %s\n"
+
+#: src/peerinfo/gnunet-service-peerinfo.c:323
+#: src/peerinfo/gnunet-service-peerinfo.c:348
+#, c-format
+msgid "Failed to parse HELLO in file `%s'\n"
+msgstr "Нисам успео да обрадим „HELLO“ у датотеци „%s“\n"
+
+#: src/peerinfo/gnunet-service-peerinfo.c:426
+msgid "# peers known"
+msgstr "# парњака је познато"
+
+#: src/peerinfo/gnunet-service-peerinfo.c:468
+#, c-format
+msgid ""
+"File `%s' in directory `%s' does not match naming convention. Removed.\n"
+msgstr ""
+"Датотека „%s“ у директоријуму „%s“ не одговара договору именовања. Уклоњена "
+"је.\n"
+
+#: src/peerinfo/gnunet-service-peerinfo.c:624
+#, c-format
+msgid "Scanning directory `%s'\n"
+msgstr "Скенирам директоријум „%s“\n"
+
+#: src/peerinfo/gnunet-service-peerinfo.c:631
+#, c-format
+msgid "Still no peers found in `%s'!\n"
+msgstr "Још увек нисам нашао парњаке у „%s“!\n"
+
+#: src/peerinfo/gnunet-service-peerinfo.c:1027
+#, c-format
+msgid "Cleaning up directory `%s'\n"
+msgstr "Чистим директоријум „%s“\n"
+
+#: src/peerinfo/gnunet-service-peerinfo.c:1322
+#, c-format
+msgid "Importing HELLOs from `%s'\n"
+msgstr "Увозим „HELLO“-е из „%s“\n"
+
+#: src/peerinfo/gnunet-service-peerinfo.c:1335
+msgid "Skipping import of included HELLOs\n"
+msgstr "Прескачем увоз укључених „HELLO“-а\n"
+
+#: src/peerinfo/peerinfo_api.c:210
+msgid "Failed to receive response from `PEERINFO' service."
+msgstr "Нисам успео да примим одговор са услуге „PEERINFO“."
 
 #: src/peerstore/gnunet-peerstore.c:92
 msgid "peerstore"
@@ -6223,18 +6223,6 @@ msgstr "Услуга ПОСТАВИ се урушила, окончавам ус
 msgid "Could not open revocation database file!"
 msgstr "Не могу да отворим датотеку базе података опозивања!"
 
-#: src/rps/gnunet-rps.c:270
-msgid "Seed a PeerID"
-msgstr ""
-
-#: src/rps/gnunet-rps.c:275
-msgid "Get updates of view (0 for infinite updates)"
-msgstr ""
-
-#: src/rps/gnunet-rps.c:279
-msgid "Get peers from biased stream"
-msgstr ""
-
 #: src/rps/gnunet-rps-profiler.c:3142
 msgid "duration of the profiling"
 msgstr ""
@@ -6253,6 +6241,18 @@ msgstr "број парњака у концензусу"
 #, fuzzy
 msgid "Measure quality and performance of the RPS service."
 msgstr "Мери квалитет и учинковитост НСЕ услуге."
+
+#: src/rps/gnunet-rps.c:270
+msgid "Seed a PeerID"
+msgstr ""
+
+#: src/rps/gnunet-rps.c:275
+msgid "Get updates of view (0 for infinite updates)"
+msgstr ""
+
+#: src/rps/gnunet-rps.c:279
+msgid "Get peers from biased stream"
+msgstr ""
 
 #: src/scalarproduct/gnunet-scalarproduct.c:228
 msgid "You must specify at least one message ID to check!\n"
@@ -6317,10 +6317,10 @@ msgstr "ИБ преноса дељеног са парњаком."
 msgid "Calculate the Vectorproduct with a GNUnet peer."
 msgstr "Израчунава Производ вектора са ГНУнет парњаком."
 
-#: src/scalarproduct/gnunet-service-scalarproduct_alice.c:1358
-#: src/scalarproduct/gnunet-service-scalarproduct_bob.c:1355
 #: src/scalarproduct/gnunet-service-scalarproduct-ecc_alice.c:1118
 #: src/scalarproduct/gnunet-service-scalarproduct-ecc_bob.c:1032
+#: src/scalarproduct/gnunet-service-scalarproduct_alice.c:1358
+#: src/scalarproduct/gnunet-service-scalarproduct_bob.c:1355
 #, fuzzy
 msgid "Connect to CADET failed\n"
 msgstr "Повезивање са МЕШОМ није успело\n"
@@ -7049,10 +7049,6 @@ msgstr "Не могу да направим путању до „%s“\n"
 msgid "GNUnet UNIX domain socket communicator"
 msgstr ""
 
-#: src/transport/gnunet-service-transport_ats.c:137
-msgid "# Addresses given to ATS"
-msgstr ""
-
 #: src/transport/gnunet-service-transport.c:445
 msgid "# messages dropped due to slow client"
 msgstr "# поруке су одбачене услед спорог клијента"
@@ -7092,6 +7088,10 @@ msgstr "Додајем унос списка забрана за парњака 
 #, c-format
 msgid "Adding blacklisting entry for peer `%s':`%s'\n"
 msgstr "Додајем унос списка забрана за парњака „%s“:„%s“\n"
+
+#: src/transport/gnunet-service-transport_ats.c:137
+msgid "# Addresses given to ATS"
+msgstr ""
 
 #: src/transport/gnunet-service-transport_hello.c:195
 msgid "# refreshed my HELLO"
@@ -7433,6 +7433,44 @@ msgstr "# поновно потврђивање адресе је започет
 msgid "# HELLOs given to peerinfo"
 msgstr "# „HELLO“-и су добијени из података парњака"
 
+#: src/transport/gnunet-transport-profiler.c:220
+#, c-format
+msgid "%llu B in %llu ms == %.2f KB/s!\n"
+msgstr ""
+
+#: src/transport/gnunet-transport-profiler.c:577
+msgid "send data to peer"
+msgstr ""
+
+#: src/transport/gnunet-transport-profiler.c:581
+#, fuzzy
+msgid "receive data from peer"
+msgstr "# одговори су примљени за друге парњаке"
+
+#: src/transport/gnunet-transport-profiler.c:586
+msgid "iterations"
+msgstr ""
+
+#: src/transport/gnunet-transport-profiler.c:591
+#, fuzzy
+msgid "number of messages to send"
+msgstr "број парњака у концензусу"
+
+#: src/transport/gnunet-transport-profiler.c:596
+#, fuzzy
+msgid "message size to use"
+msgstr "експеримент за коришћење"
+
+#: src/transport/gnunet-transport-profiler.c:601
+#: src/transport/gnunet-transport.c:1404
+msgid "peer identity"
+msgstr "идентитет парњака"
+
+#: src/transport/gnunet-transport-profiler.c:614
+#: src/transport/gnunet-transport.c:1426
+msgid "Direct access to transport service."
+msgstr "Непосредан приступ услузи преноса."
+
 #: src/transport/gnunet-transport.c:406
 #, c-format
 msgid "Transmitted %llu bytes/s (%llu bytes in %s)\n"
@@ -7570,11 +7608,6 @@ msgstr ""
 msgid "do not resolve hostnames"
 msgstr "не разрешава називе домаћина"
 
-#: src/transport/gnunet-transport.c:1404
-#: src/transport/gnunet-transport-profiler.c:601
-msgid "peer identity"
-msgstr "идентитет парњака"
-
 #: src/transport/gnunet-transport.c:1408
 msgid "monitor plugin sessions"
 msgstr ""
@@ -7582,39 +7615,6 @@ msgstr ""
 #: src/transport/gnunet-transport.c:1414
 msgid "send data for benchmarking to the other peer (until CTRL-C)"
 msgstr "шаље податке за оцењивање другим парњацима (све до КТРЛ-Ц)"
-
-#: src/transport/gnunet-transport.c:1426
-#: src/transport/gnunet-transport-profiler.c:614
-msgid "Direct access to transport service."
-msgstr "Непосредан приступ услузи преноса."
-
-#: src/transport/gnunet-transport-profiler.c:220
-#, c-format
-msgid "%llu B in %llu ms == %.2f KB/s!\n"
-msgstr ""
-
-#: src/transport/gnunet-transport-profiler.c:577
-msgid "send data to peer"
-msgstr ""
-
-#: src/transport/gnunet-transport-profiler.c:581
-#, fuzzy
-msgid "receive data from peer"
-msgstr "# одговори су примљени за друге парњаке"
-
-#: src/transport/gnunet-transport-profiler.c:586
-msgid "iterations"
-msgstr ""
-
-#: src/transport/gnunet-transport-profiler.c:591
-#, fuzzy
-msgid "number of messages to send"
-msgstr "број парњака у концензусу"
-
-#: src/transport/gnunet-transport-profiler.c:596
-#, fuzzy
-msgid "message size to use"
-msgstr "експеримент за коришћење"
 
 #: src/transport/plugin_transport_http_client.c:1482
 #: src/transport/plugin_transport_http_server.c:2331
@@ -7890,24 +7890,6 @@ msgstr "ТЦП пренос не ослушкује ни на једном пр�
 msgid "TCP transport advertises itself as being on port %llu\n"
 msgstr "ТЦП пренос упозорава себе да је на прикључнику %llu\n"
 
-#: src/transport/plugin_transport_udp_broadcasting.c:169
-#, fuzzy
-msgid "# Multicast HELLO beacons received via UDP"
-msgstr "# ИПв6 вишеодредишне „HELLO“ ознаке су примљене путем удп-а"
-
-#: src/transport/plugin_transport_udp_broadcasting.c:553
-msgid ""
-"Disabling HELLO broadcasting due to friend-to-friend only configuration!\n"
-msgstr ""
-"Искључујем „HELLO“ емитовање због подешавања само пријатељ пријатељу!\n"
-
-#: src/transport/plugin_transport_udp_broadcasting.c:571
-#, c-format
-msgid "Failed to set IPv4 broadcast option for broadcast socket on port %d\n"
-msgstr ""
-"Нисам успео да поставим опцију ИПв4 емитовања за прикључницу емитовања на "
-"прикључнику %d\n"
-
 #: src/transport/plugin_transport_udp.c:3170
 #, c-format
 msgid ""
@@ -7959,6 +7941,24 @@ msgstr "Морате навести исправну ИПв6 адресу"
 #, fuzzy
 msgid "Failed to create UDP network sockets\n"
 msgstr "Нисам успео да направим прикључнице мреже, прикључак није успео\n"
+
+#: src/transport/plugin_transport_udp_broadcasting.c:169
+#, fuzzy
+msgid "# Multicast HELLO beacons received via UDP"
+msgstr "# ИПв6 вишеодредишне „HELLO“ ознаке су примљене путем удп-а"
+
+#: src/transport/plugin_transport_udp_broadcasting.c:553
+msgid ""
+"Disabling HELLO broadcasting due to friend-to-friend only configuration!\n"
+msgstr ""
+"Искључујем „HELLO“ емитовање због подешавања само пријатељ пријатељу!\n"
+
+#: src/transport/plugin_transport_udp_broadcasting.c:571
+#, c-format
+msgid "Failed to set IPv4 broadcast option for broadcast socket on port %d\n"
+msgstr ""
+"Нисам успео да поставим опцију ИПв4 емитовања за прикључницу емитовања на "
+"прикључнику %d\n"
 
 #: src/transport/plugin_transport_unix.c:1396
 #, fuzzy, c-format
@@ -8745,104 +8745,6 @@ msgstr "исписује примере ЕЦЦ операција (корист�
 msgid "Manipulate GNUnet private ECC key files"
 msgstr "Управља ГНУнет датотекама личног ЕЦЦ кључа"
 
-#: src/util/gnunet_error_codes.c:59
-msgid "No error (success)."
-msgstr ""
-
-#: src/util/gnunet_error_codes.c:65
-#, fuzzy
-msgid "Unknown and unspecified error."
-msgstr "%.s Непознат код резултата."
-
-#: src/util/gnunet_error_codes.c:71
-#, fuzzy
-msgid "Communication with service failed."
-msgstr "Грешка у комуникацији са услугом ПОДАЦИ_ПАРЊАКА: %s\n"
-
-#: src/util/gnunet_error_codes.c:77
-#, fuzzy
-msgid "Ego not found."
-msgstr "Нисам нашао садржај"
-
-#: src/util/gnunet_error_codes.c:83
-#, fuzzy
-msgid "Identifier already in use for another ego."
-msgstr "одредник се већ користи за други его"
-
-#: src/util/gnunet_error_codes.c:89
-msgid "The given ego is invalid or malformed."
-msgstr ""
-
-#: src/util/gnunet_error_codes.c:95
-#, fuzzy
-msgid "Unknown namestore error."
-msgstr "%.s Непознат код резултата."
-
-#: src/util/gnunet_error_codes.c:101 src/util/gnunet_error_codes.c:119
-#, fuzzy
-msgid "Zone iteration failed."
-msgstr "# Бирање парњака није успело"
-
-#: src/util/gnunet_error_codes.c:107
-#, fuzzy
-msgid "Zone not found."
-msgstr "Нисам нашао садржај"
-
-#: src/util/gnunet_error_codes.c:113
-#, fuzzy
-msgid "Record not found."
-msgstr "нисам нашао „upnpc“\n"
-
-#: src/util/gnunet_error_codes.c:125
-msgid "Zone does not contain any records."
-msgstr ""
-
-#: src/util/gnunet_error_codes.c:131
-#, fuzzy
-msgid "Failed to lookup record."
-msgstr "Смештај назива није успео да смести запис\n"
-
-#: src/util/gnunet_error_codes.c:137
-#, fuzzy
-msgid "No records given."
-msgstr "Није дат парњак!\n"
-
-#: src/util/gnunet_error_codes.c:143
-msgid "Record data invalid."
-msgstr ""
-
-#: src/util/gnunet_error_codes.c:149
-#, fuzzy
-msgid "No label given."
-msgstr "Није дат парњак!\n"
-
-#: src/util/gnunet_error_codes.c:155
-#, fuzzy
-msgid "No results given."
-msgstr "Нису дате опције\n"
-
-#: src/util/gnunet_error_codes.c:161
-#, fuzzy
-msgid "Record already exists."
-msgstr "назив мете већ постоји"
-
-#: src/util/gnunet_error_codes.c:167
-msgid "Record size exceeds maximum limit."
-msgstr ""
-
-#: src/util/gnunet_error_codes.c:173
-msgid "There was an error in the database backend."
-msgstr ""
-
-#: src/util/gnunet_error_codes.c:179
-#, fuzzy
-msgid "Failed to store the given records."
-msgstr "Смештај назива није успео да смести запис\n"
-
-#: src/util/gnunet_error_codes.c:185
-msgid "Label invalid or malformed."
-msgstr ""
-
 #: src/util/gnunet-qr.c:130 src/util/gnunet-qr.c:556
 #, fuzzy, c-format
 msgid "Failed to add URI %s\n"
@@ -8984,6 +8886,104 @@ msgstr "Није познат руковалац за подсистем „%s�
 #: src/util/gnunet-uri.c:179
 msgid "Perform default-actions for GNUnet URIs"
 msgstr "Обавља основне радње за путање ГНУнет-а"
+
+#: src/util/gnunet_error_codes.c:60
+msgid "No error (success)."
+msgstr ""
+
+#: src/util/gnunet_error_codes.c:66
+#, fuzzy
+msgid "Unknown and unspecified error."
+msgstr "%.s Непознат код резултата."
+
+#: src/util/gnunet_error_codes.c:72
+#, fuzzy
+msgid "Communication with service failed."
+msgstr "Грешка у комуникацији са услугом ПОДАЦИ_ПАРЊАКА: %s\n"
+
+#: src/util/gnunet_error_codes.c:78
+#, fuzzy
+msgid "Ego not found."
+msgstr "Нисам нашао садржај"
+
+#: src/util/gnunet_error_codes.c:84
+#, fuzzy
+msgid "Identifier already in use for another ego."
+msgstr "одредник се већ користи за други его"
+
+#: src/util/gnunet_error_codes.c:90
+msgid "The given ego is invalid or malformed."
+msgstr ""
+
+#: src/util/gnunet_error_codes.c:96
+#, fuzzy
+msgid "Unknown namestore error."
+msgstr "%.s Непознат код резултата."
+
+#: src/util/gnunet_error_codes.c:102 src/util/gnunet_error_codes.c:120
+#, fuzzy
+msgid "Zone iteration failed."
+msgstr "# Бирање парњака није успело"
+
+#: src/util/gnunet_error_codes.c:108
+#, fuzzy
+msgid "Zone not found."
+msgstr "Нисам нашао садржај"
+
+#: src/util/gnunet_error_codes.c:114
+#, fuzzy
+msgid "Record not found."
+msgstr "нисам нашао „upnpc“\n"
+
+#: src/util/gnunet_error_codes.c:126
+msgid "Zone does not contain any records."
+msgstr ""
+
+#: src/util/gnunet_error_codes.c:132
+#, fuzzy
+msgid "Failed to lookup record."
+msgstr "Смештај назива није успео да смести запис\n"
+
+#: src/util/gnunet_error_codes.c:138
+#, fuzzy
+msgid "No records given."
+msgstr "Није дат парњак!\n"
+
+#: src/util/gnunet_error_codes.c:144
+msgid "Record data invalid."
+msgstr ""
+
+#: src/util/gnunet_error_codes.c:150
+#, fuzzy
+msgid "No label given."
+msgstr "Није дат парњак!\n"
+
+#: src/util/gnunet_error_codes.c:156
+#, fuzzy
+msgid "No results given."
+msgstr "Нису дате опције\n"
+
+#: src/util/gnunet_error_codes.c:162
+#, fuzzy
+msgid "Record already exists."
+msgstr "назив мете већ постоји"
+
+#: src/util/gnunet_error_codes.c:168
+msgid "Record size exceeds maximum limit."
+msgstr ""
+
+#: src/util/gnunet_error_codes.c:174
+msgid "There was an error in the database backend."
+msgstr ""
+
+#: src/util/gnunet_error_codes.c:180
+#, fuzzy
+msgid "Failed to store the given records."
+msgstr "Смештај назива није успео да смести запис\n"
+
+#: src/util/gnunet_error_codes.c:186
+msgid "Label invalid or malformed."
+msgstr ""
 
 #: src/util/helper.c:305
 #, c-format

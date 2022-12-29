@@ -1,3 +1,73 @@
+Mon, 26 Dec 2022 14:41:09 +0100 (05fef7b53)
+DHT: call try_connect also on already connected peers, just in case address changed
+
+by: Christian Grothoff
+
+Mon, 26 Dec 2022 14:03:27 +0100 (cc41a24c5)
+DHT: adjust BF size to actual neighbour set size
+
+by: Christian Grothoff
+
+Sat, 10 Dec 2022 16:00:56 +0900 (52d0d0914)
+GNS: Do not autogenerate flags
+
+by: Martin Schanzenbach
+
+Fri, 9 Dec 2022 23:54:05 +0900 (7e725a7a8)
+TESTING: Fix NP deref
+
+by: Martin Schanzenbach
+
+Fri, 9 Dec 2022 14:06:20 +0900 (5357758fd)
+TESTING: Various notes on API
+
+by: Martin Schanzenbach
+
+Fri, 9 Dec 2022 12:07:26 +0900 (4f46e2f2e)
+TESTING: Fix TESTING-NG API to follow naming conventions
+Rename structs and functions to follow GNUnet naming conventions.
+Some structs may actually also be private, a review is necessary.
+The barrier API was modified in order to untangle Barriers and
+lists of Barriers.
+This is a rough draft, it needs fixes wrt memory leaks.
+
+by: Martin Schanzenbach
+
+Fri, 9 Dec 2022 10:40:56 +0900 (1b3f6f366)
+UTIL: Fix regression regarding C++ compatibility
+
+by: Martin Schanzenbach
+
+Thu, 8 Dec 2022 20:51:35 +0900 (7768a7a75)
+TESTING: Sanitize API. Add new GNUNET_TESTING_command_new API
+This commit changes the label member of GNUNET_TRANSPORT_Command to a
+static, fixed length buffer allocated with the struct itself.
+The check for the end of a command array should be done by checking the
+run command instead of the label.
+
+by: Martin Schanzenbach
+
+Thu, 8 Dec 2022 17:52:42 +0900 (1029772b3)
+TESTING: Properly handle label allocations
+
+by: Martin Schanzenbach
+
+Thu, 8 Dec 2022 17:30:22 +0900 (5c4b06071)
+TESTING: The testing API should properly take strings as const
+Strings passed to the API should either be const and copied, or handled
+by the caller and free'd. Looking at the transport tests currently
+neither is happening. The strings are probably safer but definitely
+leaked.
+Changed the API to use "const" strings. Users of the testing API must
+define functions that copy (and free!) strings accordingly.
+
+by: Martin Schanzenbach
+
+Thu, 8 Dec 2022 15:37:43 +0900 (2d257589d)
+BUILD: Add functionality to generate changes in plain text and HTML
+
+by: Martin Schanzenbach
+
 Thu, 8 Dec 2022 15:11:49 +0900 (3889a387e)
 BUILD: Add some helper scripts for release maintenance
 
