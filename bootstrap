@@ -110,7 +110,13 @@ sphinx_update()
       cd contrib/sphinx || exit 1
       # GNS
       make html >/dev/null || exit 1
+      if test -e ../../doc/handbook/html; then
+        rm -r ../../doc/handbook/html || exit 1
+      fi
       cp -r _build/html ../../doc/handbook/ || exit 1
+      if test -e ../../doc/handbook/texinfo; then
+        rm -r ../../doc/handbook/texinfo || exit 1
+      fi
       make info >/dev/null || exit 1
       cp -r _build/texinfo ../../doc/handbook/ || exit 1
       cd $cwd
