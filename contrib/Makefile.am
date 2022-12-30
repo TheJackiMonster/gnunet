@@ -20,15 +20,8 @@ dist_pkgdata_DATA = \
   fcfsd/fcfsd-forbidden.html \
   fcfsd/fcfsd-notfound.html \
   branding/logo/gnunet-logo.png \
-  branding/logo/lynXified-amirouche-v3.svg \
   branding/logo/gnunet-logo-dark-text.svg \
-  branding/logo/lynXified-amirouche-anonymous-v3.png \
   branding/logo/gnunet-logo-dark-only-text.svg \
-  branding/logo/old-gnunet-logo.pdf \
-  branding/logo/old-gnunet-logo.svg \
-  branding/logo/old-gnunet-logo-big.png \
-  branding/logo/old-gnunet-logo-color.png \
-  branding/logo/old-gnunet-logo-regrouped.svg \
   testing_hostkeys.ecc \
   netjail/netjail_core.sh \
   netjail/netjail_exec.sh \
