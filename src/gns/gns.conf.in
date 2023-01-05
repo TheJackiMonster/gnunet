@@ -35,6 +35,11 @@ BIND_TO6=::1
 PROXY_CACERT = $GNUNET_DATA_HOME/gns/gns_ca_cert.pem
 PROXY_UNIXPATH = $GNUNET_RUNTIME_DIR/gnunet-gns-proxy.sock
 
+[bcd]
+BINARY = gnunet-bcd
+OPTIONS = -p 8888
+START_ON_DEMAND = NO
+RUN_PER_USER = YES
 
 [dns2gns]
 BINARY = gnunet-dns2gns
