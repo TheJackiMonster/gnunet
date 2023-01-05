@@ -14,7 +14,8 @@ endif
 
 
 libexec_PROGRAMS = \
- gnunet-service-secretsharing
+ gnunet-service-secretsharing \
+ gnunet-secretsharing-profiler
 
 lib_LTLIBRARIES = \
   libgnunetsecretsharing.la
@@ -50,9 +51,6 @@ libgnunetsecretsharing_la_LIBADD = \
   $(LTLIBINTL)
 libgnunetsecretsharing_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)
-
-bin_PROGRAMS = \
- gnunet-secretsharing-profiler
 
 check_PROGRAMS = \
  test_secretsharing_api

@@ -16,7 +16,8 @@ endif
 
 
 libexec_PROGRAMS = \
- gnunet-service-consensus
+ gnunet-service-consensus \
+ gnunet-consensus-profiler
 
 if ENABLE_MALICIOUS
 libexec_PROGRAMS += \
@@ -88,9 +89,6 @@ libgnunet_plugin_block_consensus_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
 
 
-
-bin_PROGRAMS = \
- gnunet-consensus-profiler
 
 check_PROGRAMS = \
  test_consensus_api

@@ -14,14 +14,12 @@ if USE_COVERAGE
   AM_CFLAGS = -fprofile-arcs -ftest-coverage
 endif
 
-bin_PROGRAMS = \
- gnunet-setu-profiler
-
 noinst_PROGRAMS = \
  gnunet-setu-ibf-profiler
 
 libexec_PROGRAMS = \
- gnunet-service-setu
+ gnunet-service-setu \
+ gnunet-setu-profiler
 
 lib_LTLIBRARIES = \
   libgnunetsetu.la

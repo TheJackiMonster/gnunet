@@ -14,11 +14,9 @@ if USE_COVERAGE
   AM_CFLAGS = -fprofile-arcs -ftest-coverage
 endif
 
-bin_PROGRAMS = \
- gnunet-seti-profiler
-
 libexec_PROGRAMS = \
- gnunet-service-seti
+ gnunet-service-seti \
+ gnunet-seti-profiler
 
 lib_LTLIBRARIES = \
   libgnunetseti.la

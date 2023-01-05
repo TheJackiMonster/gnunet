@@ -16,9 +16,7 @@ pkgcfg_DATA = \
   revocation.conf
 
 bin_PROGRAMS = \
- gnunet-revocation \
- gnunet-revocation-tvg
-
+ gnunet-revocation
 
 plugin_LTLIBRARIES = \
   libgnunet_plugin_block_revocation.la
@@ -67,8 +65,8 @@ libgnunetrevocation_la_LDFLAGS = \
   -version-info 0:0:0
 
 libexec_PROGRAMS = \
- gnunet-service-revocation
-
+ gnunet-service-revocation \
+ gnunet-revocation-tvg
 
 gnunet_service_revocation_SOURCES = \
  gnunet-service-revocation.c
