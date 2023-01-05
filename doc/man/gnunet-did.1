@@ -1,0 +1,108 @@
+.\" This file is part of GNUnet.
+.\" Copyright (C) 2023 GNUnet e.V.
+.\"
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3 or
+.\" any later version published by the Free Software Foundation; with no
+.\" Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.  A
+.\" copy of the license is included in the file
+.\" FDL-1.3.
+.\"
+.\" A copy of the license is also available from the Free Software
+.\" Foundation Web site at http://www.gnu.org/licenses/fdl.html}.
+.\"
+.\" Alternately, this document is also available under the General
+.\" Public License, version 3 or later, as published by the Free Software
+.\" Foundation.  A copy of the license is included in the file
+.\" GPL3.
+.\"
+.\" A copy of the license is also available from the Free Software
+.\" Foundation Web site at http://www.gnu.org/licenses/gpl.html
+.\"
+.\" SPDX-License-Identifier: GPL3.0-or-later OR FDL1.3-or-later
+.\"
+.Dd January 5, 2023
+.Dt GNUNET-DID 1
+.Os
+.Sh NAME
+.Nm gnunet-did
+.Nd command line tool to create and manage gnunet identity DIDs.
+.Sh SYNOPSIS
+.Nm
+.Op Fl A | -show-all
+.Op Fl C | -create
+.Op Fl c Ar FILENAME | Fl -config= Ns Ar FILENAME
+.Op Fl d Ar DID | Fl -did= Ns Ar DID
+.Op Fl D Ar DID_DOCUMENT | Fl -did-document= Ns Ar DID_DOCUMENT
+.Op Fl e Ar EGO | Fl -ego= Ns Ar EGO
+.Op Fl g | -get
+.Op Fl h | -help
+.Op Fl L Ar LOGLEVEL | Fl -loglevel= Ns Ar LOGLEVEL
+.Op Fl l Ar LOGFILE | Fl -logfile= Ns Ar LOGFILE
+.Op Fl r | -remove
+.Op Fl R | -replace
+.Op Fl s | -show
+.Op Fl t Ar TIME | Fl -expiration-time= Ns Ar TIME
+.Op Fl v | -version
+.Sh DESCRIPTION
+.Nm
+is a command line tool to create and manage gnunet identity DIDs.
+.Sh OPTIONS
+.Bl -tag -width indent
+.It Fl A | -show-all
+List all DIDs for all egos.
+.It Fl C | -create
+Create a DID Document and display the DID.
+.It Fl c Ar FILENAME | Fl -config= Ns Ar FILENAME
+Use the specified configuration file
+.Ar FILENAME .
+.It Fl d Ar DID | Fl -did= Ns Ar DID
+The to use for the operation is 
+.Ar DID .
+.It Fl D Ar DID_DOCUMENT | Fl -did-document= Ns Ar DID_DOCUMENT
+The DID Document to use is
+.Ar DID_DOCUMENT .
+.It Fl e Ar EGO | Fl -ego= Ns Ar EGO
+The ego to use is
+.Ar EGO .
+.It Fl g | -get
+Get the DID Document associated with the DID given in
+.Ar DID .
+.It Fl h | -help
+Print short help on options.
+.It Fl L Ar LOGLEVEL | Fl -loglevel= Ns Ar LOGLEVEL
+Use LOGLEVEL for logging.
+Valid values are DEBUG, INFO, WARNING and ERROR.
+.It Fl l Ar LOGFILE | Fl -logfile= Ns Ar LOGFILE
+Configure logging to write logs to
+.Ar LOGFILE .
+.It Fl r | -remove
+Remove the DID given in --did.
+.It Fl R | -replace
+Replace the DID Docuemnt given in --did-document for the DID given in
+.Ar DID .
+.It Fl s | -show
+Show the DID for the ego given in --ego.
+.It Fl t | -expiration-time
+The expiration time to use in the GNS record for the DID Document given in
+Ar. DID_DOCUMENT .
+.It Fl v | -version
+Print GNUnet version number.
+.El
+.Sh SEE ALSO
+The full documentation for gnunet is maintained as a Texinfo manual.
+If the
+.Xr info 1
+and gnunet programs are properly installed at your site, the command
+.Pp
+.Dl info gnunet
+.Pp
+should give you access to the complete handbook.
+.sp
+.\".Sh HISTORY
+.\".Sh AUTHORS
+.Sh BUGS
+Report bugs by using
+.Lk https://bugs.gnunet.org
+or by sending electronic mail to
+.Aq Mt gnunet-developers@gnu.org .

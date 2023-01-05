@@ -51,6 +51,7 @@ man_MANS = \
   gnunet-dns2gns.1 \
   gnunet-datastore.1 \
   gnunet-download.1 \
+  gnunet-did.1 \
   gnunet-ecc.1 \
   gnunet-fs.1 \
   gnunet-gns.1 \
