@@ -21,7 +21,10 @@ noinst_SCRIPTS = \
   $(awkSCRIPTS)
 
 bin_SCRIPTS = \
-  gnunet-bugreport \
+  gnunet-bugreport
+
+# This script is not documented and its usage is quite uncommon.
+libexec_SCRIPTS = \
   gnunet-suidfix
 
 EXTRA_DIST = \
