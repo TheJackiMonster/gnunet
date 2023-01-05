@@ -63,6 +63,7 @@ man_MANS = \
   gnunet-gns-proxy-setup-ca.1 \
   gnunet-identity.1 \
   gnunet-cadet.1 \
+  gnunet-messenger.1 \
   gnunet-namecache.1 \
   gnunet-namestore.1 \
   gnunet-namestore-fcfsd.1 \
