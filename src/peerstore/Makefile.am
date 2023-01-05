@@ -14,7 +14,8 @@ if USE_COVERAGE
   AM_CFLAGS = -fprofile-arcs -ftest-coverage
 endif
 
-bin_PROGRAMS = \
+# This program does not do anything.
+noinst_PROGRAMS = \
  gnunet-peerstore
 
 libexec_PROGRAMS = \
