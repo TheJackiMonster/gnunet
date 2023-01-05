@@ -158,12 +158,12 @@ lib_LTLIBRARIES = libgnunetutil.la
 
 libexec_PROGRAMS = \
  gnunet-service-resolver \
- gnunet-timeout
+ gnunet-timeout \
+ gnunet-crypto-tvg
 
 bin_PROGRAMS = \
  gnunet-base32 \
  gnunet-config \
- gnunet-crypto-tvg \
  gnunet-resolver \
  $(GNUNET_ECC) \
  $(GNUNET_SCRYPT) \
