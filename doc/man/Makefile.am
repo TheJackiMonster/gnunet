@@ -47,6 +47,10 @@ man_MANS = \
   gnunet-core.1 \
   gnunet-conversation.1 \
   gnunet-conversation-test.1 \
+  gnunet-dht-get.1 \
+  gnunet-dht-put.1 \
+  gnunet-dht-monitor.1 \
+  gnunet-dht-hello.1 \
   gnunet-directory.1 \
   gnunet-dns2gns.1 \
   gnunet-datastore.1 \
