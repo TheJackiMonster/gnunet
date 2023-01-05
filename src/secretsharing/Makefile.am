@@ -14,7 +14,9 @@ endif
 
 
 libexec_PROGRAMS = \
- gnunet-service-secretsharing \
+ gnunet-service-secretsharing
+
+noinst_PROGRAMS = \
  gnunet-secretsharing-profiler
 
 lib_LTLIBRARIES = \

@@ -16,7 +16,9 @@ endif
 
 
 libexec_PROGRAMS = \
- gnunet-service-consensus \
+ gnunet-service-consensus
+
+noinst_PROGRAMS = \
  gnunet-consensus-profiler
 
 if ENABLE_MALICIOUS

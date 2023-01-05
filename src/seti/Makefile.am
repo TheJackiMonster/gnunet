@@ -15,7 +15,9 @@ if USE_COVERAGE
 endif
 
 libexec_PROGRAMS = \
- gnunet-service-seti \
+ gnunet-service-seti
+
+noinst_PROGRAMS = \
  gnunet-seti-profiler
 
 lib_LTLIBRARIES = \

@@ -158,8 +158,7 @@ lib_LTLIBRARIES = libgnunetutil.la
 
 libexec_PROGRAMS = \
  gnunet-service-resolver \
- gnunet-timeout \
- gnunet-crypto-tvg
+ gnunet-timeout
 
 bin_PROGRAMS = \
  gnunet-base32 \
@@ -174,8 +173,8 @@ endif
 
 noinst_PROGRAMS = \
  gnunet-config-diff \
- test_common_logging_dummy
-
+ test_common_logging_dummy \
+ gnunet-crypto-tvg
 
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;

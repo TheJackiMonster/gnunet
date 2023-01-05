@@ -12,7 +12,7 @@ if USE_COVERAGE
   XLIBS = -lgcov
 endif
 
-libexec_PROGRAMS = \
+noinst_PROGRAMS = \
   gnunet-gnsrecord-tvg
 
 

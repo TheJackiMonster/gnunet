@@ -65,7 +65,9 @@ libgnunetrevocation_la_LDFLAGS = \
   -version-info 0:0:0
 
 libexec_PROGRAMS = \
- gnunet-service-revocation \
+ gnunet-service-revocation
+
+noinst_PROGRAMS = \
  gnunet-revocation-tvg
 
 gnunet_service_revocation_SOURCES = \

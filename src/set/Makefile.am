@@ -15,11 +15,11 @@ if USE_COVERAGE
 endif
 
 noinst_PROGRAMS = \
- gnunet-set-ibf-profiler
+ gnunet-set-ibf-profiler \
+ gnunet-set-profiler
 
 libexec_PROGRAMS = \
- gnunet-service-set \
- gnunet-set-profiler
+ gnunet-service-set
 
 lib_LTLIBRARIES = \
   libgnunetset.la

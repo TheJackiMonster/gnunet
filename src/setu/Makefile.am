@@ -15,11 +15,11 @@ if USE_COVERAGE
 endif
 
 noinst_PROGRAMS = \
- gnunet-setu-ibf-profiler
+ gnunet-setu-ibf-profiler \
+ gnunet-setu-profiler
 
 libexec_PROGRAMS = \
- gnunet-service-setu \
- gnunet-setu-profiler
+ gnunet-service-setu
 
 lib_LTLIBRARIES = \
   libgnunetsetu.la
