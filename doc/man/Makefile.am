@@ -62,7 +62,7 @@ man_MANS = \
   gnunet-namestore.1 \
   gnunet-namestore-fcfsd.1 \
   gnunet-namestore-dbtool.1 \
-	gnunet-namestore-zonefile.1 \
+  gnunet-namestore-zonefile.1 \
   gnunet-nat.1 \
   gnunet-nat-auto.1 \
   gnunet-nat-server.1 \
@@ -78,6 +78,7 @@ man_MANS = \
   gnunet-search.1 \
   gnunet-statistics.1 \
   gnunet-testbed-profiler.1 \
+  gnunet-testing.1 \
   gnunet-testing-run-service.1 \
   gnunet-timeout.1 \
   gnunet-transport.1 \
