@@ -1,5 +1,6 @@
 # This Makefile.am is in the public domain
 AM_CPPFLAGS = -I$(top_srcdir)/src/include -I$(top_builddir)/src/include
+libexecdir= $(pkglibdir)/libexec/
 
 SUBDIRS = gnunet-logread
 

@@ -42,14 +42,9 @@ dist_pkgcfg_DATA = \
 lib_LTLIBRARIES = \
   libgnunetgns.la
 
-if HAVE_GNUTLS
-DO_PROXY=gnunet-gns-proxy
-endif
-
 libexec_PROGRAMS = \
   gnunet-service-gns \
-  gnunet-dns2gns \
-  $(DO_PROXY)
+  gnunet-dns2gns
 
 bin_PROGRAMS = \
   gnunet-gns
@@ -58,7 +53,11 @@ noinst_PROGRAMS = \
   gnunet-gns-benchmark
 
 if HAVE_PDFLATEX
-bin_PROGRAMS += gnunet-bcd
+libexec_PROGRAMS += gnunet-bcd
+endif
+
+if HAVE_GNUTLS
+libexec_PROGRAMS += gnunet-gns-proxy
 endif
 
 REST_PLUGIN = libgnunet_plugin_rest_gns.la
