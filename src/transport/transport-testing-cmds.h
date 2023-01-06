@@ -116,7 +116,9 @@ struct StartPeerState
    */
   struct GNUNET_MQ_MessageHandler *handlers;
 
-  //FIXME documentation
+  /**
+   * GNUnet configuration file used to start a peer.
+   */
   char *cfgname;
 
   /**
@@ -124,7 +126,9 @@ struct StartPeerState
    */
   struct GNUNET_CONFIGURATION_Handle *cfg;
 
-  //FIXME documentation
+  /**
+   * struct GNUNET_TESTING_Peer returned by GNUNET_TESTING_peer_configure.
+   */
   struct GNUNET_TESTING_Peer *peer;
 
   /**
@@ -167,13 +171,9 @@ struct StartPeerState
    */
   size_t hello_size;
 
-  /** All of the below: FIXME documentation */
-  char *m;
-
-  char *n;
-
-  char *local_m;
-
+  /**
+   * The label of the command which was started by calling GNUNET_TESTING_cmd_system_create.
+   */
   char *system_label;
 
   /**
@@ -181,10 +181,20 @@ struct StartPeerState
    */
   unsigned int no;
 
+  /**
+   * A map with struct GNUNET_MQ_Handle values for each peer this peer
+   * is connected to.
+   */
   struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map;
 
+  /**
+   * Test setup for this peer.
+   */
   const struct GNUNET_TESTING_System *tl_system;
 
+  /**
+   * Callback which is called on neighbour connect events.
+   */
   GNUNET_TRANSPORT_notify_connect_cb notify_connect;
 
   /**
@@ -227,14 +237,11 @@ struct TestState
 
 /**
  * Create command.
- * FIXME: Parameter list does not match documentation.
- * FIXME: m and n parameters need a rename.
  *
  * @param label name for command.
  * @param system_label Label of the cmd to setup a test environment.
- * @param m The number of the local node of the actual network namespace.
- * @param n The number of the actual namespace.
- * @param local_m Number of local nodes in each namespace.
+ * @param no Decimal number representing the last byte of the IP address of this peer.
+ * @param node_ip The IP address of this node.
  * @param handlers Handler for messages received by this peer.
  * @param cfgname Configuration file name for this peer.
  * @param notify_connect Method which will be called, when a peer connects.

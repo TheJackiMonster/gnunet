@@ -178,6 +178,8 @@ netjail_stop_run (void *cls,
                                &child_completed_callback,
                                ns);
   GNUNET_break (NULL != ns->cwh);
+  GNUNET_free (read_file);
+  GNUNET_free (pid);
 }
 
 

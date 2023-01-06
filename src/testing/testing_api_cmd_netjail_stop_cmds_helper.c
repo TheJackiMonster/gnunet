@@ -123,6 +123,7 @@ stop_testing_system_run (void *cls,
                           GNUNET_YES);
     }
   }
+  GNUNET_free (helper);
 }
 
 
@@ -135,7 +136,7 @@ stop_testing_system_run (void *cls,
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_stop_testing_system (
+GNUNET_TESTING_cmd_stop_cmds_helper (
   const char *label,
   const char *helper_start_label,
   struct GNUNET_TESTING_NetjailTopology *topology)

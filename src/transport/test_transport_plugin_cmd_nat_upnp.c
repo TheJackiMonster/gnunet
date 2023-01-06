@@ -146,7 +146,7 @@ handle_result (void *cls,
               "Local test exits with status %d\n",
               rv);
 
-  ts->finished_cb ();
+  ts->finished_cb (rv);
   GNUNET_free (ts->testdir);
   GNUNET_free (ts->cfgname);
   GNUNET_TESTING_free_topology (ts->topology);
@@ -201,10 +201,17 @@ all_local_tests_prepared ()
  *
  * @param write_message Callback to send a message to the master loop.
  * @param router_ip Global address of the network namespace.
- * @param node_ip Local address of a node i a network namespace.
+ * @param node_ip The IP address of the node.
  * @param m The number of the node in a network namespace.
  * @param n The number of the network namespace.
  * @param local_m The number of nodes in a network namespace.
+ * @param topology_data A file name for the file containing the topology configuration, or a string containing
+ *        the topology configuration.
+ * @param read_file If read_file is GNUNET_YES this string is the filename for the topology configuration,
+ *        if read_file is GNUNET_NO the string contains the topology configuration.
+ * @param finish_cb Callback function which writes a message from the helper process running on a netjail 
+ *                  node to the master process * signaling that the test case running on the netjail node finished.
+ * @return Returns the struct GNUNET_TESTING_Interpreter of the command loop running on this netjail node.
  */
 static struct GNUNET_TESTING_Interpreter *
 start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
@@ -321,9 +328,12 @@ start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
                                      ts->cfgname,
                                      notify_connect,
                                      GNUNET_NO),
-    GNUNET_TESTING_cmd_barrier_create ("ready-to-connect",
-                                       0.0,
-                                       2),
+    GNUNET_TESTING_cmd_barrier_reached ("ready-to-connect-reached",
+                                        "ready-to-connect",
+                                        GNUNET_NO,
+                                        num,
+                                        GNUNET_NO,
+                                        write_message),
     connect_peers,
     GNUNET_TRANSPORT_cmd_send_simple ("send-simple",
                                       "start-peer",
@@ -331,9 +341,12 @@ start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
                                       num,
                                       topology),
     block_receive,
-    GNUNET_TESTING_cmd_barrier_create ("test-case-finished",
-                                       0.0,
-                                       2),
+    GNUNET_TESTING_cmd_barrier_reached ("test-case-finished-reached",
+                                        "test-case-finished",
+                                        GNUNET_NO,
+                                        num,
+                                        GNUNET_NO,
+                                        write_message),
     GNUNET_TRANSPORT_cmd_stop_peer ("stop-peer",
                                     "start-peer"),
     GNUNET_TESTING_cmd_system_destroy ("system-destroy",
@@ -368,8 +381,6 @@ libgnunet_test_transport_plugin_cmd_nat_upnp_init (void *cls)
 
   api = GNUNET_new (struct GNUNET_TESTING_PluginFunctions);
   api->start_testcase = &start_testcase;
-  api->all_peers_started = &all_peers_started;
-  api->all_local_tests_prepared = all_local_tests_prepared;
   api->get_waiting_for_barriers = get_waiting_for_barriers;
   return api;
 }
@@ -378,11 +389,11 @@ libgnunet_test_transport_plugin_cmd_nat_upnp_init (void *cls)
 /**
  * Exit point from the plugin.
  *
- * @param cls the return value from #libgnunet_test_transport_plugin_block_test_init
+ * @param cls the return value from #libgnunet_test_transport_plugin_nat_upnp_init
  * @return NULL
  */
 void *
-libgnunet_test_transport_plugin_cmd_simple_send_done (void *cls)
+libgnunet_test_transport_plugin_cmd_nat_upnp_done (void *cls)
 {
   struct GNUNET_TESTING_PluginFunctions *api = cls;
 

@@ -422,46 +422,6 @@ GNUNET_TESTING_main (struct GNUNET_TESTING_Command *commands,
 
 
 /**
- * Adding a helper handle to the interpreter.
- *
- * @param is The interpreter.
- * @param helper The helper handle.
- */
-void
-GNUNET_TESTING_add_netjail_helper (struct GNUNET_TESTING_Interpreter *is,
-                                   const struct GNUNET_HELPER_Handle *helper);
-
-
-/**
- * Send Message to netjail nodes that a barrier can be advanced.
- * FIXME: Naming. No "netjail" in argument. Or is there a
- * GNUNET_TESTING_send_message without "to_netjail"??
- *
- * @param is The interpreter.
- * @param global_node_number The node to inform.
- * @param header The message to send.
- */
-void
-GNUNET_TESTING_send_message_to_netjail (struct GNUNET_TESTING_Interpreter *is,
-                                        unsigned int global_node_number,
-                                        struct GNUNET_MessageHeader *header);
-
-
-/**
- * Returns the actual running command.
- * FIXME: Is Command allocated? Is it constant? Should this be a private
- * function? => not used outside of testing
- *
- * @param is Global state of the interpreter, used by a command
- *        to access information about other commands.
- * @return The actual running command.
- */
-struct GNUNET_TESTING_Command *
-GNUNET_TESTING_interpreter_get_current_command (
-  struct GNUNET_TESTING_Interpreter *is);
-
-
-/**
  * Check if the command is running.
  * FIXME: Unused function.
  *
@@ -561,15 +521,14 @@ struct GNUNET_TESTING_Timer
 
 
 /**
- * Retrieve the public key from the test system with the unique node id.
- * FIXME: Naming. => get_peer? This returns a PeerIdentity not a PublicKey
+ * Retrieve peer identity from the test system with the unique node id.
  *
  * @param num The unique node id.
  * @param tl_system The test system.
  * @return The peer identity wrapping the public key.
  */
 struct GNUNET_PeerIdentity *
-GNUNET_TESTING_get_pub_key (unsigned int num,
+GNUNET_TESTING_get_peer (unsigned int num,
                             const struct GNUNET_TESTING_System *tl_system);
 
 
@@ -586,8 +545,13 @@ GNUNET_TESTING_cmd_stat (struct GNUNET_TESTING_Timer *timers);
 /* *** Generic trait logic for implementing traits ********* */
 
 /**
- * FIXME: Documentation
- * A trait.
+ * A struct GNUNET_TESTING_Trait can be used to exchange data between cmds. 
+ *
+ * Therefor the cmd which like to provide data to other cmds has to implement
+ * the trait function, where an array of traits is defined with the help of the 
+ * GNUNET_TESTING_make_trait_ macro. The data can be retrieved with the help of the
+ * GNUNET_TESTING_get_trait_ macro. Traits name and type must be defined to make 
+ * use of the macros.
  */
 struct GNUNET_TESTING_Trait
 {

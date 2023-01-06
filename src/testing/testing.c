@@ -1739,8 +1739,13 @@ GNUNET_TESTING_get_testname_from_underscore (const char *argv0)
 
 
 /**
- * FIXME: I'm just janitoring around here. I have no idea what this function
- * is supposed todo. Needs documentation.
+ * Every line in the topology configuration starts with a string indicating which 
+ * kind of information will be configured with this line. Configuration values following
+ * this string are seperated by special sequences of characters. An integer value seperated
+ * by ':' is returned by this function.
+ *
+ * @param line The line of configuration.
+ * @return An integer value.
  */
 static unsigned int
 get_first_value (const char *line)
@@ -1763,8 +1768,11 @@ get_first_value (const char *line)
 
 
 /**
- * FIXME: I'm just janitoring around here. I have no idea what this function
- * is supposed todo. Needs documentation.
+ * Every line in the topology configuration starts with a string indicating which
+ * kind of information will be configured with this line. This string is returned by this function.
+ *
+ * @param line The line of configuration.
+ * @return The leading string of this configuration line.
  */
 static char *
 get_key (const char *line)
@@ -1789,8 +1797,13 @@ get_key (const char *line)
 
 
 /**
- * FIXME: I'm just janitoring around here. I have no idea what this function
- * is supposed todo. Needs documentation.
+ * Every line in the topology configuration starts with a string indicating which 
+ * kind of information will be configured with this line. Configuration values following
+ * this string are seperated by special sequences of characters. A string value seperated
+ * by ':' is returned by this function.
+ *
+ * @param line The line of configuration.
+ * @return A string value.
  */
 static char *
 get_first_string_value (const char *line)
@@ -1818,8 +1831,13 @@ get_first_string_value (const char *line)
 
 
 /**
- * FIXME: I'm just janitoring around here. I have no idea what this function
- * is supposed todo. Needs documentation.
+ * Every line in the topology configuration starts with a string indicating which 
+ * kind of information will be configured with this line. Configuration values following
+ * this string are seperated by special sequences of characters. A second integer value 
+ * seperated by ':' from a first value is returned by this function.
+ *
+ * @param line The line of configuration.
+ * @return An integer value.
  */
 static unsigned int
 get_second_value (const char *line)
@@ -1833,7 +1851,9 @@ get_second_value (const char *line)
   token = strtok_r (copy, ":", &rest);
   token = strtok_r (NULL, ":", &rest);
   token = strtok_r (NULL, ":", &rest);
-  /* FIXME: ASSERT??? Are we not parsing "user" input here? */
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "Format error in configuration line: %s\n",
+       line);
   GNUNET_assert (1 == sscanf (token, "%u", &ret));
   GNUNET_free (copy);
   return ret;
@@ -1841,8 +1861,14 @@ get_second_value (const char *line)
 
 
 /**
- * FIXME: I'm just janitoring around here. I have no idea what this function
- * is supposed todo. Needs documentation.
+ * Every line in the topology configuration starts with a string indicating which 
+ * kind of information will be configured with this line. Configuration values following
+ * this string are seperated by special sequences of characters. A value might be 
+ * a key value pair.
+ * This function returns the value for a specific key in a configuration line.
+ *
+ * @param key The key of the key value pair.
+ * @return The value of the key value pair.
  */
 static char *
 get_value (const char *key, const char *line)
@@ -1873,8 +1899,16 @@ get_value (const char *key, const char *line)
 
 
 /**
- * FIXME: I'm just janitoring around here. I have no idea what this function
- * is supposed todo. Needs documentation.
+ * Every line in the topology configuration starts with a string indicating which 
+ * kind of information will be configured with this line. Configuration values following
+ * this string are seperated by special sequences of characters. A value might be 
+ * a key value pair. A special key is the 'connect' which can appear more than once.
+ * The value is the information about a connection via some protocol to some other node.
+ * This function returns the struct GNUNET_TESTING_NodeConnection which holds the information
+ * of the connect value.
+ *
+ * @param value The value of the connect key value pair.
+ * @return The struct GNUNET_TESTING_NodeConnection.
  */
 static struct GNUNET_TESTING_NodeConnection *
 get_connect_value (const char *line,
@@ -1970,8 +2004,20 @@ get_connect_value (const char *line,
 
 
 /**
- * FIXME: I'm just janitoring around here. I have no idea what this function
- * is supposed todo. Needs documentation.
+ * Every line in the topology configuration starts with a string indicating which 
+ * kind of information will be configured with this line. Configuration values following
+ * this string are seperated by special sequences of characters. A value might be 
+ * a key value pair. A special key is the 'connect' key.
+ * The value is the information about a connections via some protocol to other nodes.
+ * Each connection itself is a key value pair separated by the character '|' and 
+ * surrounded by the characters '{' and '}'.
+ * The struct GNUNET_TESTING_NodeConnection holds the information of each connection value.
+ * This function extracts the values of each connection into a DLL of 
+ * struct GNUNET_TESTING_NodeConnection which will be added to a node.
+ *
+ * @param line The line of configuration.
+ * @param node The struct GNUNET_TESTING_NetjailNode to which the DLL of 
+ *             struct GNUNET_TESTING_NodeConnection will be added.
  */
 static void
 node_connections (const char *line, struct GNUNET_TESTING_NetjailNode *node)
@@ -1998,7 +2044,12 @@ node_connections (const char *line, struct GNUNET_TESTING_NetjailNode *node)
            value);
       node_connection = get_connect_value (value, node);
       if (NULL == node_connection)
-        break; /* FIXME: continue? */
+      {
+        LOG (GNUNET_ERROR_TYPE_WARNING,
+             "connect key was not expected in this configuration line: %s\n",
+             line);
+        break;
+      }
       GNUNET_CONTAINER_DLL_insert (node->node_connections_head,
                                    node->node_connections_tail,
                                    node_connection);
@@ -2014,8 +2065,12 @@ node_connections (const char *line, struct GNUNET_TESTING_NetjailNode *node)
 
 
 /**
- * FIXME: I'm just janitoring around here. I have no idea what this function
- * is supposed todo. Needs documentation.
+ * A helper function to log information about individual nodes.
+ *
+ * @param cls This is not used actually.
+ * @param id The key of this value in the map.
+ * @param value A struct GNUNET_TESTING_NetjailNode which holds information about a node.
+ * return GNUNET_YES to continue with iterating, GNUNET_NO otherwise.
  */
 static int
 log_nodes (void *cls, const struct GNUNET_ShortHashCode *id, void *value)
@@ -2054,6 +2109,14 @@ log_nodes (void *cls, const struct GNUNET_ShortHashCode *id, void *value)
 }
 
 
+/**
+ * Helper function to log information about namespaces.
+ *
+ * @param cls This is not used actually.
+ * @param id The key of this value in the map.
+ * @param value A struct GNUNET_TESTING_NetjailNamespace which holds information about a subnet.
+ * return GNUNET_YES to continue with iterating, GNUNET_NO otherwise.
+ */
 static int
 log_namespaces (void *cls, const struct GNUNET_ShortHashCode *id, void *value)
 {
@@ -2064,6 +2127,11 @@ log_namespaces (void *cls, const struct GNUNET_ShortHashCode *id, void *value)
 }
 
 
+/**
+ * Helper function to log the configuration in case of a problem with configuration.
+ *
+ * @param topology The struct GNUNET_TESTING_NetjailTopology holding the configuration information.
+ */
 static int
 log_topo (const struct GNUNET_TESTING_NetjailTopology *topology)
 {
@@ -2082,9 +2150,15 @@ log_topo (const struct GNUNET_TESTING_NetjailTopology *topology)
 }
 
 /**
- * FIXME: I'm just janitoring around here. I have no idea what this function
- * is supposed todo. Needs documentation.
- */
+ * This function extracts information about a specific node from the topology.
+ *
+ * @param num The global index number of the node.
+ * @param[out] node_ex A struct GNUNET_TESTING_NetjailNode with information about the node.
+ * @param[out] namespace_ex A struct GNUNET_TESTING_NetjailNamespace with information about the namespace 
+               the node is in or NULL, if the node is a global node.
+ * @param[out] node_connections_ex A struct GNUNET_TESTING_NodeConnection with information about the connection 
+               of this node to other nodes.
+*/
 static void
 get_node_info (unsigned int num,
                const struct GNUNET_TESTING_NetjailTopology *topology,
@@ -2206,10 +2280,14 @@ GNUNET_TESTING_get_connections (unsigned int num,
 
 
 /**
- * FIXME: Function named incorrectly IMO
+ * Retrieve the peer identity from the test system with the unique node id.
+ *
+ * @param num The unique node id.
+ * @param tl_system The test system.
+ * @return The peer identity wrapping the public key.
  */
 struct GNUNET_PeerIdentity *
-GNUNET_TESTING_get_pub_key (unsigned int num,
+GNUNET_TESTING_get_peer (unsigned int num,
                             const struct GNUNET_TESTING_System *tl_system)
 {
   struct GNUNET_PeerIdentity *peer = GNUNET_new (struct GNUNET_PeerIdentity);
@@ -2411,22 +2489,6 @@ GNUNET_TESTING_get_additional_connects (unsigned int num,
 
   return node->additional_connects;
 }
-
-
-struct GNUNET_MessageHeader *
-GNUNET_TESTING_send_local_test_finished_msg ()
-{
-  struct GNUNET_CMDS_LOCAL_FINISHED *reply;
-  size_t msg_length;
-
-  msg_length = sizeof(struct GNUNET_CMDS_LOCAL_FINISHED);
-  reply = GNUNET_new (struct GNUNET_CMDS_LOCAL_FINISHED);
-  reply->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_FINISHED);
-  reply->header.size = htons ((uint16_t) msg_length);
-
-  return (struct GNUNET_MessageHeader *) reply;
-}
-
 
 static void
 parse_ac (struct GNUNET_TESTING_NetjailNode *p_node, const char *token)

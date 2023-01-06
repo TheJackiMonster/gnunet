@@ -30,12 +30,11 @@ GNUNET_NETWORK_STRUCT_BEGIN
 
 /**
  * Message send to a child loop to inform the child loop about a barrier being advanced.
- * FIXME: This is not packed and contains a char*... no payload documentation.
  */
-struct CommandBarrierAdvanced
+struct CommandBarrierCrossable
 {
   /**
-   * Type is GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_ADVANCED
+   * Type is GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_CROSSABLE
    */
   struct GNUNET_MessageHeader header;
 
@@ -45,7 +44,6 @@ struct CommandBarrierAdvanced
 /**
  * Message send by a child loop to inform the master loop how much
  * GNUNET_CMDS_BARRIER_REACHED messages the child will send.
- * FIXME: Not packed and contains char*; int in NBO? bitlength undefined.
  */
 struct CommandBarrierAttached
 {
@@ -260,60 +258,26 @@ GNUNET_TESTING_cmd_batch_set_current_ (const struct GNUNET_TESTING_Command *cmd,
                                        unsigned int new_ip);
 
 
-// Wait for barrier to be reached by all;
-// async version implies reached but does not
-// wait on other peers to reach it.
 /**
- * FIXME: Documentation
- * FIXME: Now this, as it returns a Command, seems to me like it should be
- * part of the public API?
- * Create command.
- *
- * @param label name for command.
- * @param barrier_label The name of the barrier we wait for and which will be reached.
- * @param asynchronous_finish If GNUNET_YES this command will not block. Can be NULL.
- * @param asynchronous_finish If GNUNET_YES this command will not block. Can be NULL.
- * @param node_number The global numer of the node the cmd runs on.
- * @param running_on_master Is this cmd running on the master loop.
- * @param write_message Callback to write messages to the master loop.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_barrier_reached (
-  const char *label,
-  const char *barrier_label,
-  unsigned int asynchronous_finish,
-  unsigned int node_number,
-  unsigned int running_on_master,
-  GNUNET_TESTING_cmd_helper_write_cb write_message);
-
-
-/**
- * Can we advance the barrier?
- * FIXME: As this is not in testing.h it should be in another namespace.
- * Possibly BARRIER_can_advance. However, as this is also used in a netjail cmd,
- * I am not sure if this needs to be public? Maybe there should be a barrier
- * trait that returns a barrier where this helper function can be called on?
- * Barriers are usually also not "advanced" but "crossed" or "passed"
- * but it seems to me that the word here should correctly be "reached"?
+ * This function checks, if a barrier can be crossed, which actually means that
+ * the cmd representing the barrier is finished.
  *
  * @param barrier The barrier in question.
- * @return GNUNET_YES if we can advance the barrier, GNUNET_NO if not.
+ * @return GNUNET_YES if we can cross the barrier, GNUNET_NO if not.
  */
 unsigned int
-GNUNET_TESTING_can_barrier_advance (struct GNUNET_TESTING_Barrier *barrier);
+GNUNET_TESTING_barrier_crossable (struct GNUNET_TESTING_Barrier *barrier);
 
 
 /**
- * FIXME: Naming
- * Send Message to netjail nodes that a barrier can be advanced.
+ * Send Message to a netjail node that a barrier can be crossed.
  *
  * @param is The interpreter loop.
- * @param barrier_name The name of the barrier to advance.
+ * @param barrier_name The name of the barrier to cross.
  * @param global_node_number The global number of the node to inform.
  */
 void
-TST_interpreter_send_barrier_advance (struct GNUNET_TESTING_Interpreter *is,
+TST_interpreter_send_barrier_crossable (struct GNUNET_TESTING_Interpreter *is,
                                      const char *barrier_name,
                                      unsigned int global_node_number);
 
@@ -333,7 +297,7 @@ TST_interpreter_finish_attached_cmds (struct GNUNET_TESTING_Interpreter *is,
  * FIXME: Unused function
  *
  * @param is The interpreter loop.
- * @param barrier_name The name of the barrier to advance.
+ * @param barrier_name The name of the barrier to attach to.
  * @param subnet_number The number of the subnet.
  * @param node_number The node to inform.
  * @param write_message Callback to write messages to the master loop.

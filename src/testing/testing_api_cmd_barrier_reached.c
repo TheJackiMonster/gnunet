@@ -25,11 +25,16 @@
  */
 #include "platform.h"
 #include "gnunet_testing_lib.h"
-#include "gnunet_testing_ng_lib.h"
+#include "testing_cmds.h"
 #include "gnunet_testing_plugin.h"
 #include "gnunet_testing_barrier.h"
 #include "gnunet_testing_netjail_lib.h"
 #include "testing.h"
+
+/**
+ * Generic logging shortcut
+ */
+#define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
 
 /**
  * Struct with information for callbacks.
@@ -87,7 +92,7 @@ barrier_reached_run (void *cls,
 {
   struct BarrierReachedState *brs = cls;
   struct GNUNET_TESTING_Barrier *barrier;
-  struct GNUNET_TESTING_Command *cmd = NULL;
+  struct GNUNET_TESTING_Command *cmd = GNUNET_TESTING_interpreter_get_current_command (is);
   struct CommandListEntry *cle;
   size_t msg_length;
   struct GNUNET_TESTING_CommandBarrierReached *msg;
@@ -97,43 +102,44 @@ barrier_reached_run (void *cls,
   if (NULL == barrier)
   {
     barrier = GNUNET_new (struct GNUNET_TESTING_Barrier);
-    barrier->shadow = GNUNET_YES;
-    barrier->name = brs->label;
+    barrier->name = brs->barrier_name;
     TST_interpreter_add_barrier (is, barrier);
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "barrier %s added locally\n",
+       brs->barrier_name);
   }
   barrier->reached++;
-  if (GNUNET_TESTING_can_barrier_advance (barrier))
+  if (GNUNET_TESTING_barrier_crossable (barrier))
   {
-    //FIXME cmd uninitialized
     GNUNET_assert (NULL != cmd);
     cmd->asynchronous_finish = GNUNET_YES;
     TST_interpreter_finish_attached_cmds (is, barrier->name);
   }
   else if (GNUNET_NO == brs->asynchronous_finish)
   {
-    /** FIXME: This is already fishy as commands in is are an array
-     * It is unclear how this does not end up with a DLL issue.
-     * We should create a dedicated struct to hold this list.
-     */
     cle = GNUNET_new (struct CommandListEntry);
-    cle->command = GNUNET_TESTING_interpreter_get_current_command (is);
+    cle->command = cmd;
     GNUNET_CONTAINER_DLL_insert (barrier->cmds_head,
                                  barrier->cmds_tail,
                                  cle);
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "added cle for %p %s\n",
+         barrier,
+         barrier->name);
   }
-  else
-  {
-    cmd->asynchronous_finish = GNUNET_YES;
-  }
+
   if (GNUNET_NO == brs->running_on_master)
   {
-    name_len = strlen (barrier->name) + 1;
-    msg_length = sizeof(struct GNUNET_TESTING_CommandBarrierReached);
-    msg = GNUNET_new (struct GNUNET_TESTING_CommandBarrierReached);
+    char *terminator = "\0";
+
+    name_len = strlen (barrier->name);
+    msg_length = sizeof(struct GNUNET_TESTING_CommandBarrierReached) + name_len + 1;
+    msg = GNUNET_malloc (msg_length);
     msg->header.size = htons ((uint16_t) msg_length);
     msg->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_REACHED);
-    memcpy (&msg[1], barrier->name, name_len);
     msg->node_number = brs->node_number;
+    memcpy (&msg[1], barrier->name, name_len + 1);
+    memcpy(&msg[name_len + 1],terminator,1);
     brs->write_message ((struct GNUNET_MessageHeader *) msg, msg_length);
   }
 }
@@ -189,7 +195,7 @@ barrier_reached_traits (void *cls,
  *
  * @param label name for command.
  * @param barrier_label The name of the barrier we wait for (if finishing asynchronous) and which will be reached.
- * @param asynchronous_finish If GNUNET_YES this command will not block. Can be NULL.
+ * @param asynchronous_finish If GNUNET_YES this command will not block.
  * @param node_number The global numer of the node the cmd runs on.
  * @param running_on_master Is this cmd running on the master loop.
  * @param write_message Callback to write messages to the master loop.

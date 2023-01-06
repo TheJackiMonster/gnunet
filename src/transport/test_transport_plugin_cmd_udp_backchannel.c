@@ -128,7 +128,7 @@ handle_result (void *cls,
               "Local test exits with status %d\n",
               rv);
 
-  ts->finished_cb ();
+  ts->finished_cb (rv);
   GNUNET_free (ts->testdir);
   GNUNET_free (ts->cfgname);
   GNUNET_TESTING_free_topology (ts->topology);
@@ -178,7 +178,7 @@ all_local_tests_prepared ()
  *
  * @param write_message Callback to send a message to the master loop.
  * @param router_ip Global address of the network namespace.
- * @param node_ip Local address of a node i a network namespace.
+ * @param node_ip The IP address of the node.
  * @param m The number of the node in a network namespace.
  * @param n The number of the network namespace.
  * @param local_m The number of nodes in a network namespace.

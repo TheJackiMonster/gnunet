@@ -356,7 +356,7 @@ barrier_attached (struct NetJailState *ns, const struct
   am = (struct CommandBarrierAttached *) message;
   barrier_name = (const char *) &am[1];
   barrier = TST_interpreter_get_barrier (ns->is, barrier_name);
-  GNUNET_assert (NULL != barrier && GNUNET_NO == barrier->shadow);
+  GNUNET_assert (NULL != barrier);
   node = GNUNET_TESTING_barrier_get_node (barrier, am->node_number);
   if (NULL == node)
   {
@@ -386,13 +386,29 @@ barrier_reached (struct NetJailState *ns, const struct
                                                      *) message;
 
   barrier_name = (const char *) &rm[1];
+  
   barrier = TST_interpreter_get_barrier (ns->is, barrier_name);
-  GNUNET_assert (NULL != barrier && GNUNET_NO == barrier->shadow);
+  GNUNET_assert (NULL != barrier);
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "barrier %s reached %p %u\n",
+       barrier_name,
+       barrier,
+       barrier->reached);
   barrier->reached++;
-  if (GNUNET_TESTING_can_barrier_advance (barrier))
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "%u %p\n",
+           barrier->reached,
+           barrier);
+  if (GNUNET_TESTING_barrier_crossable (barrier))
   {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "%s can be crossed\n",
+       barrier_name);
     TST_interpreter_finish_attached_cmds (ns->is, barrier->name);
   }
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "barrier %s reached finished\n",
+       barrier_name);
 }
 
 
@@ -414,6 +430,7 @@ helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
   struct NetJailState *ns = cls;
   unsigned int total_number = ns->local_m * ns->global_n + ns->known;
   uint16_t message_type = ntohs (message->type);
+  struct GNUNET_TESTING_CommandLocalFinished *lf;
 
   switch (message_type)
   {
@@ -463,8 +480,13 @@ helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
     }
     break;
   case GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_FINISHED:
+    lf = (struct GNUNET_TESTING_CommandLocalFinished *) message;
+
     ns->number_of_local_tests_finished++;
-    if (ns->number_of_local_tests_finished == total_number)
+    if (GNUNET_OK != lf->rv)
+    {
+      GNUNET_TESTING_async_fail (&(ns->ac));
+    } else if (ns->number_of_local_tests_finished == total_number)
     {
       GNUNET_SCHEDULER_cancel (ns->timeout_task);
       GNUNET_TESTING_async_finish (&ns->ac);
@@ -570,11 +592,19 @@ start_helper (struct NetJailState *ns,
   struct GNUNET_TESTING_BarrierListEntry *pos;
   struct GNUNET_TESTING_Barrier *barrier;
   struct GNUNET_TESTING_BarrierList *barriers;
+  unsigned int node_num;
+  char *binary_path;
 
   if (0 == n)
+  {
+    node_num = m;
     script_num = m - 1;
+  }
   else
+  {
+    node_num = (n - 1) * ns->local_m + m + ns->known;
     script_num = n - 1 + (n - 1) * ns->local_m + m + ns->known;
+  }
   pid = getpid ();
 
   GNUNET_asprintf (&m_char, "%u", m);
@@ -613,6 +643,8 @@ start_helper (struct NetJailState *ns,
     GNUNET_TESTING_interpreter_fail (ns->is);
   }
 
+  binary_path = GNUNET_OS_get_libexec_binary_path (HELPER_CMDS_BINARY);
+
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "sysstarted %u peersstarted %u prep %u finished %u %u %u %u\n",
        ns->number_of_testsystems_started,
@@ -626,8 +658,7 @@ start_helper (struct NetJailState *ns,
     char *const script_argv[] = {script_name,
                                  m_char,
                                  n_char,
-                                 GNUNET_OS_get_libexec_binary_path (
-                                   HELPER_CMDS_BINARY),
+                                 binary_path,
                                  global_n_char,
                                  local_m_char,
                                  node_id,
@@ -643,17 +674,14 @@ start_helper (struct NetJailState *ns,
       ns);
     GNUNET_array_append (ns->helper, ns->n_helper, helper);
   }
-
   GNUNET_TESTING_add_netjail_helper (ns->is,
                                      helper);
-
   plugin_name = topology->plugin;
 
   hkey = GNUNET_new (struct GNUNET_ShortHashCode);
-  if (0 == m)
+  if (0 == n)
   {
-
-    GNUNET_CRYPTO_hash (&n, sizeof(n), &hc);
+    GNUNET_CRYPTO_hash (&m, sizeof(m), &hc);
     memcpy (hkey,
             &hc,
             sizeof (*hkey));
@@ -665,11 +693,10 @@ start_helper (struct NetJailState *ns,
       if (NULL != node->plugin)
         plugin_name = node->plugin;
     }
-
   }
   else
   {
-    GNUNET_CRYPTO_hash (&m, sizeof(m), &hc);
+    GNUNET_CRYPTO_hash (&n, sizeof(n), &hc);
     memcpy (hkey,
             &hc,
             sizeof (*hkey));
@@ -678,7 +705,7 @@ start_helper (struct NetJailState *ns,
     {
       namespace = GNUNET_CONTAINER_multishortmap_get (topology->map_namespaces,
                                                       hkey);
-      GNUNET_CRYPTO_hash (&n, sizeof(n), &hc);
+      GNUNET_CRYPTO_hash (&m, sizeof(m), &hc);
       memcpy (hkey,
               &hc,
               sizeof (*hkey));
@@ -694,7 +721,8 @@ start_helper (struct NetJailState *ns,
 
 
   }
-
+  GNUNET_assert (NULL != node);
+  node->node_number = node_num;
   plugin = GNUNET_new (struct TestcasePlugin);
   plugin->api = GNUNET_PLUGIN_load (plugin_name,
                                     NULL);
@@ -704,28 +732,49 @@ start_helper (struct NetJailState *ns,
   for (pos = barriers->head; NULL != pos; pos = pos->next)
   {
     barrier = TST_interpreter_get_barrier (ns->is, pos->barrier_name);
-    if (NULL == barrier || GNUNET_YES == barrier->shadow)
+    if (NULL == barrier)
     {
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "barrier %s added\n",
+       pos->barrier_name);
       barrier = GNUNET_new (struct GNUNET_TESTING_Barrier);
       barrier->name = pos->barrier_name;
+      barrier->shadow = GNUNET_YES;
       TST_interpreter_add_barrier (ns->is, barrier);
+
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "%u %p\n",
+           barrier->reached,
+           barrier);
 
       barrier->nodes = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
     }
-    GNUNET_assert (NULL != node);
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "barrier %p %s node %u added \n",
+         barrier,
+         pos->barrier_name,
+         node->node_number);
     barrier_node = GNUNET_new (struct GNUNET_TESTING_NetjailNode);
     barrier_node->node_number = node->node_number;
     barrier_node->expected_reaches = pos->expected_reaches;
     barrier->expected_reaches = barrier->expected_reaches
                                 + pos->expected_reaches;
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "number_to_be_reached %u\n",
+         barrier->number_to_be_reached);
+    if (GNUNET_YES == barrier->shadow)
+      barrier->number_to_be_reached++;
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "number_to_be_reached %u\n",
+         barrier->number_to_be_reached);
     GNUNET_CRYPTO_hash (&(node->node_number), sizeof(node->node_number), &hc);
     memcpy (&key, &hc, sizeof (key));
     GNUNET_CONTAINER_multishortmap_put (barrier->nodes,
                                         &key,
-                                        node,
+                                        barrier_node,
                                         GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
   }
-  // FIXME Free barriers??
+
   tbc->plugin = plugin;
 
   msg = create_helper_init_msg_ (plugin_name);
@@ -743,8 +792,20 @@ start_helper (struct NetJailState *ns,
                 "Send handle is NULL!\n");
     GNUNET_TESTING_interpreter_fail (ns->is);
   }
+  GNUNET_free (pos);
+  GNUNET_free (binary_path);
   GNUNET_free (hkey);
   GNUNET_free (msg);
+  GNUNET_free (m_char);
+  GNUNET_free (n_char);
+  GNUNET_free (local_m_char);
+  GNUNET_free (global_n_char);
+  GNUNET_free (known_char);
+  GNUNET_free (node_id);
+  GNUNET_free (read_file);
+  GNUNET_free (data_dir);
+  GNUNET_free (script_name);
+  GNUNET_free (barriers);
 }
 
 
@@ -783,6 +844,9 @@ netjail_exec_run (void *cls,
   ns->is = is;
   for (int i = 1; i <= ns->known; i++)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "i %u\n",
+                i);
     start_helper (ns,
                   i,
                   0);
@@ -792,6 +856,10 @@ netjail_exec_run (void *cls,
   {
     for (int j = 1; j <= ns->local_m; j++)
     {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "i %u j %u\n",
+                  i,
+                  j);
       start_helper (ns,
                     j,
                     i);
@@ -818,7 +886,7 @@ netjail_exec_run (void *cls,
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_start_testing_system (
+GNUNET_TESTING_cmd_netjail_start_cmds_helper (
   const char *label,
   struct GNUNET_TESTING_NetjailTopology *topology,
   unsigned int *read_file,

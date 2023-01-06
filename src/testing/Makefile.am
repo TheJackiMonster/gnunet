@@ -33,13 +33,12 @@ libgnunettesting_la_SOURCES = \
   testing_api_cmd_barrier_reached.c \
   testing_api_cmd_end.c \
   testing_api_cmd_finish.c \
-  testing_api_cmd_local_test_finished.c \
   testing_api_cmd_local_test_prepared.c \
   testing_api_cmd_send_peer_ready.c \
   testing_api_cmd_block_until_external_trigger.c \
   testing_api_cmd_netjail_start.c \
-  testing_api_cmd_netjail_start_testsystem.c \
-  testing_api_cmd_netjail_stop_testsystem.c \
+  testing_api_cmd_netjail_start_cmds_helper.c \
+  testing_api_cmd_netjail_stop_cmds_helper.c \
   testing_api_cmd_netjail_stop.c \
   testing.c testing.h \
   testing_api_cmd_system_create.c \

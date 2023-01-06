@@ -30,6 +30,11 @@
 #include "gnunet_testing_netjail_lib.h"
 #include "gnunet_testing_barrier.h"
 
+/**
+ * Generic logging shortcut
+ */
+#define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
+
 struct BarrierState
 {
   /*
@@ -70,13 +75,22 @@ GNUNET_TESTING_send_barrier_attach (struct GNUNET_TESTING_Interpreter *is,
 
 
 unsigned int
-GNUNET_TESTING_can_barrier_advance (struct GNUNET_TESTING_Barrier *barrier)
+GNUNET_TESTING_barrier_crossable (struct GNUNET_TESTING_Barrier *barrier)
 {
   unsigned int expected_reaches = barrier->expected_reaches;
   unsigned int reached = barrier->reached;
   double percentage_to_be_reached = barrier->percentage_to_be_reached;
   unsigned int number_to_be_reached = barrier->number_to_be_reached;
-  double percentage_reached = (double) expected_reaches / reached * 100;
+  double percentage_reached = (double) reached / expected_reaches * 100;
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "%u %f %f %u %u\n",
+       expected_reaches,
+       percentage_to_be_reached,
+       percentage_reached,
+       number_to_be_reached,
+       reached);
+
   if (((0 < percentage_to_be_reached) &&
        (percentage_reached >= percentage_to_be_reached)) ||
       ((0 < number_to_be_reached) && (reached >= number_to_be_reached)))
@@ -173,6 +187,8 @@ GNUNET_TESTING_cmd_barrier_create (const char *label,
   bs->label = label;
   barrier = GNUNET_new (struct GNUNET_TESTING_Barrier);
   barrier->name = label;
+  barrier->percentage_to_be_reached = percentage_to_be_reached;
+  barrier->number_to_be_reached = number_to_be_reached;
   GNUNET_assert ((0 < percentage_to_be_reached && 0 == number_to_be_reached) ||
                  (0 ==  percentage_to_be_reached && 0 < number_to_be_reached));
   bs->barrier = barrier;

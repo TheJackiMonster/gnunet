@@ -61,7 +61,7 @@
 
 #define NODE_BASE_IP "192.168.15."
 
-#define KNOWN_BASE_IP "172.168.151."
+#define KNOWN_BASE_IP "172.16.151."
 
 #define ROUTER_BASE_IP "172.16.150."
 
@@ -213,6 +213,9 @@ do_shutdown (void *cls)
     (void) GNUNET_DISK_file_close (stdout_fd);
   GNUNET_MST_destroy (tokenizer);
   tokenizer = NULL;
+  GNUNET_PLUGIN_unload (plugin->library_name,
+                        NULL);
+  GNUNET_free (plugin);
 }
 
 
@@ -286,16 +289,36 @@ delay_shutdown_cb ()
 }
 
 
-static void
-finished_cb ()
+struct GNUNET_MessageHeader *
+GNUNET_TESTING_send_local_test_finished_msg ()
 {
-  struct GNUNET_MessageHeader *reply;
+  struct GNUNET_TESTING_CommandLocalFinished *reply;
+  size_t msg_length;
 
-  reply = GNUNET_TESTING_send_local_test_finished_msg ();
+  msg_length = sizeof(struct GNUNET_TESTING_CommandLocalFinished);
+  reply = GNUNET_new (struct GNUNET_TESTING_CommandLocalFinished);
+  reply->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_FINISHED);
+  reply->header.size = htons ((uint16_t) msg_length);
+
+  return (struct GNUNET_MessageHeader *) reply;
+}
+
+
+static void
+finished_cb (enum GNUNET_GenericReturnValue rv)
+{
+  struct GNUNET_TESTING_CommandLocalFinished *reply;
+  size_t msg_length;
+
+  msg_length = sizeof(struct GNUNET_TESTING_CommandLocalFinished);
+  reply = GNUNET_new (struct GNUNET_TESTING_CommandLocalFinished);
+  reply->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_FINISHED);
+  reply->header.size = htons ((uint16_t) msg_length);
+  reply->rv = rv;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "message prepared\n");
-  write_message (reply, ntohs (reply->size));
+  write_message ((struct GNUNET_MessageHeader *) reply, msg_length);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "message send\n");
 
@@ -337,10 +360,11 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
   unsigned int namespace_n;
 
   type = ntohs (message->type);
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "Received message type %u\n",
-       type);
   msize = ntohs (message->size);
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "Received message type %u and size %u\n",
+       type,
+       msize);
   if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_INIT == ntohs (message->type))
   {
     msg = (const struct GNUNET_TESTING_CommandHelperInit *) message;
@@ -412,13 +436,16 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
 
     return GNUNET_OK;
   }
-  else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_ADVANCED == ntohs (
+  else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_CROSSABLE == ntohs (
              message->type))
   {
     const char *barrier_name;
-    struct CommandBarrierAdvanced *adm = (struct CommandBarrierAdvanced *) message;
+    struct CommandBarrierCrossable *adm = (struct CommandBarrierCrossable *) message;
 
     barrier_name = (const char *) &adm[1];
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "cross barrier %s\n",
+         barrier_name);
     TST_interpreter_finish_attached_cmds (is, barrier_name);
     return GNUNET_OK;
   }

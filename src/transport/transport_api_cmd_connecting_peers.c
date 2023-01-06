@@ -112,7 +112,7 @@ connect_peers_run (void *cls,
           GNUNET_asprintf (&addr_and_port,
                            "%s:60002",
                            addr);
-        peer = GNUNET_TESTING_get_pub_key (num, tl_system);
+        peer = GNUNET_TESTING_get_peer (num, tl_system);
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                     "validating peer number %u with identity %s and address %s %u %s\n",
                     num,
@@ -160,7 +160,7 @@ notify_connect (struct GNUNET_TESTING_Interpreter *is,
        pos_connection = pos_connection->next)
   {
     num = GNUNET_TESTING_calculate_num (pos_connection, cps->topology);
-    peer_connection = GNUNET_TESTING_get_pub_key (num, cps->tl_system);
+    peer_connection = GNUNET_TESTING_get_peer (num, cps->tl_system);
     if (0 == GNUNET_memcmp (peer,
                             peer_connection))
       cps->con_num_notified++;

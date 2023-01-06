@@ -351,12 +351,12 @@ add_search_string (struct CheckState *cs, const struct
           + cs->topology->nodes_x;
 
   // num = GNUNET_TESTING_calculate_num (pos_connection, cs->topology);
-  peer = GNUNET_TESTING_get_pub_key (num, cs->tl_system);
+  peer = GNUNET_TESTING_get_peer (num, cs->tl_system);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "peer: %s num %u\n",
        GNUNET_i2s (peer),
        num);
-  us = GNUNET_TESTING_get_pub_key (cs->num, cs->tl_system);
+  us = GNUNET_TESTING_get_peer (cs->num, cs->tl_system);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "us: %s cs->num %d\n",
        GNUNET_i2s (us),

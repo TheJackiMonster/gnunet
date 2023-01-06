@@ -72,6 +72,8 @@ stop_peer_run (void *cls,
   }
   if (NULL != sps->th)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Disconnecting from TRANSPORT service\n");
     GNUNET_TRANSPORT_core_disconnect (sps->th);
   }
   if (NULL != sps->ah)

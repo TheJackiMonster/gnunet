@@ -64,6 +64,9 @@ hello_iter_cb (void *cb_cls,
   memcpy (sps->hello, record->value, sps->hello_size);
   sps->hello[sps->hello_size - 1] = '\0';
 
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Our hello %s\n",
+       sps->hello);
   GNUNET_PEERSTORE_iterate_cancel (sps->pic);
   sps->pic = NULL;
   GNUNET_TESTING_async_finish (&sps->ac);

@@ -50,10 +50,9 @@ struct GNUNET_TESTING_NetjailRouter
 
 
 /**
- * FIXME: Naming
  * Enum for the different types of nodes.
  */
-enum GNUNET_TESTING_NODE_TYPE
+enum GNUNET_TESTING_NodeType
 {
   /**
    * Node in a subnet.
@@ -122,7 +121,7 @@ struct GNUNET_TESTING_NodeConnection
   /**
    * The type of the node this connection points to.
    */
-  enum GNUNET_TESTING_NODE_TYPE node_type;
+  enum GNUNET_TESTING_NodeType node_type;
 
   /**
    * The node which establish the connection
@@ -345,7 +344,6 @@ GNUNET_TESTING_calculate_num (struct
                               struct GNUNET_TESTING_NetjailTopology *topology);
 
 /**
- * FIXME: This was also not namespaces.
  * Struct with information for callbacks.
  *
  */
@@ -368,7 +366,6 @@ struct GNUNET_TESTING_BlockState
 };
 
 /**
- * FIXME: This was also not namespaced
  * Struct to hold information for callbacks.
  *
  */
@@ -387,9 +384,9 @@ struct GNUNET_TESTING_LocalPreparedState
 };
 
 /**
- * Create command. FIXME: What?
+ * This command destroys the ressources allocated for the test system setup.
  *
- * @param label name for command.
+ * @param label Name for command.
  * @param create_label Label of the cmd which started the test system.
  * @param write_message Callback to write messages to the master loop.
  * @return command.
@@ -398,15 +395,20 @@ struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_system_destroy (const char *label,
                                    const char *create_label);
 
-//FIXME
+/**
+ * This command is setting up a test environment for a peer to start.
+ *
+ * @param label Name for command.
+ * @param testdir Only the directory name without any path. Temporary
+ *                directory used for all service homes.
+ */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_system_create (const char *label,
                                   const char *testdir);
 
 
 /**
- * FIXME
- * Create command.
+ * This command executes a shell script to setup the netjail environment.
  *
  * @param label name for command.
  * @param topology_config Configuration file for the test topology.
@@ -420,8 +422,7 @@ GNUNET_TESTING_cmd_netjail_start (const char *label,
 
 
 /**
- * FIXME
- * Create command.
+ * This command executes a shell script to remove the netjail environment.
  *
  * @param label name for command.
  * @param topology_config Configuration file for the test topology.
@@ -435,9 +436,8 @@ GNUNET_TESTING_cmd_netjail_stop (const char *label,
 
 
 /**
- * FIXME
- * FIXME Naming?
- * Create command.
+ * This command executes a shell script which starts a helper process. 
+ * This process is running on a netjail node, executing a defined test case.
  *
  * @param label Name for the command.
  * @param topology The complete topology information.
@@ -447,7 +447,7 @@ GNUNET_TESTING_cmd_netjail_stop (const char *label,
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_start_testing_system (
+GNUNET_TESTING_cmd_netjail_start_cmds_helper (
   const char *label,
   struct GNUNET_TESTING_NetjailTopology *topology,
   unsigned int *read_file,
@@ -464,36 +464,17 @@ GNUNET_TESTING_cmd_netjail_start_testing_system (
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_stop_testing_system (
+GNUNET_TESTING_cmd_stop_cmds_helper (
   const char *label,
   const char *helper_start_label,
   struct GNUNET_TESTING_NetjailTopology *topology);
 
-/**
- * Create a GNUNET_CMDS_LOCAL_FINISHED message.
- * FIXME: This is strange as messages are not really used
- * like this. Consider removing.
- *
- * @return The GNUNET_CMDS_LOCAL_FINISHED message.
- */
-struct GNUNET_MessageHeader *
-GNUNET_TESTING_send_local_test_finished_msg ();
-
-
-//FIXME
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_block_until_all_peers_started (
-  const char *label,
-  unsigned int *all_peers_started);
-
 
 /**
- * FIXME
- * Create command.
+ * This command is used to block the loop, until the command is finished by other commands, 
+ * using a trait to get this commands  struct GNUNET_TESTING_AsyncContext.
  *
  * @param label name for command.
- * @param all_peers_started Flag which will be set from outside.
- * @param asynchronous_finish If GNUNET_YES this command will not block.
  * @return command.
  */
 struct GNUNET_TESTING_Command
@@ -501,8 +482,8 @@ GNUNET_TESTING_cmd_block_until_external_trigger (
   const char *label);
 
 /**
- * FIXME
- * Create command.
+ * DEPRECATED
+ * This command sends a GNUNET_MESSAGE_TYPE_CMDS_HELPER_PEER_STARTED message to the master loop.
  *
  * @param label name for command.
  * @param write_message Callback to write messages to the master loop.
@@ -514,21 +495,7 @@ GNUNET_TESTING_cmd_send_peer_ready (const char *label,
 
 
 /**
- * FIXME
- * Create command.
- *
- * @param label name for command.
- * @param write_message Callback to write messages to the master loop.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_local_test_finished (
-  const char *label,
-  GNUNET_TESTING_cmd_helper_write_cb write_message);
-
-/**
- * FIXME
- * Create command.
+ * This command sends a GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_TESTS_PREPARED message to the master loop.
  *
  * @param label name for command.
  * @param write_message Callback to write messages to the master loop.
