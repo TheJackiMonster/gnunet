@@ -1,5 +1,5 @@
-#!/bin/sh
-# 
+#!/bin/bash
+#
 
 
 PREFIX=${PPID:?must run from a parent process}
