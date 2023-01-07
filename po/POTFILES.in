@@ -435,12 +435,11 @@ src/testing/testing_api_cmd_batch.c
 src/testing/testing_api_cmd_block_until_external_trigger.c
 src/testing/testing_api_cmd_end.c
 src/testing/testing_api_cmd_finish.c
-src/testing/testing_api_cmd_local_test_finished.c
 src/testing/testing_api_cmd_local_test_prepared.c
 src/testing/testing_api_cmd_netjail_start.c
-src/testing/testing_api_cmd_netjail_start_testsystem.c
+src/testing/testing_api_cmd_netjail_start_cmds_helper.c
 src/testing/testing_api_cmd_netjail_stop.c
-src/testing/testing_api_cmd_netjail_stop_testsystem.c
+src/testing/testing_api_cmd_netjail_stop_cmds_helper.c
 src/testing/testing_api_cmd_send_peer_ready.c
 src/testing/testing_api_cmd_system_create.c
 src/testing/testing_api_cmd_system_destroy.c
