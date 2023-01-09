@@ -132,7 +132,7 @@ static char *basic_auth_secret;
 /**
  * User of the service
  */
-char cuser[LOGIN_NAME_MAX];
+char cuser[_POSIX_LOGIN_NAME_MAX];
 
 /**
  * Allowed Origins (CORS)
@@ -1207,7 +1207,7 @@ run (void *cls,
         GNUNET_SCHEDULER_shutdown ();
         return;
       }
-      if (0 != getlogin_r (cuser, LOGIN_NAME_MAX))
+      if (0 != getlogin_r (cuser, _POSIX_LOGIN_NAME_MAX))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     "Unable to get user.\n");
