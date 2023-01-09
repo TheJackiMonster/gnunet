@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet
-   Copyright (C) 2021 GNUnet e.V.
+   Copyright (C) 2021, 2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -283,11 +283,17 @@ do_scheduler_notify (void *cls)
               "Resubscribing\n");
   if (NULL == db->rfd)
   {
+    db->resubscribe_backoff
+      = GNUNET_TIME_relative_max (db->resubscribe_backoff,
+                                  GNUNET_TIME_UNIT_SECONDS);
+    db->resubscribe_backoff
+      = GNUNET_TIME_STD_BACKOFF (db->resubscribe_backoff);
     db->event_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
                                                    &do_scheduler_notify,
                                                    db);
     return;
   }
+  db->resubscribe_backoff = GNUNET_TIME_UNIT_SECONDS;
   db->event_task
     = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
                                      db->rfd,
@@ -387,7 +393,7 @@ manage_subscribe (struct GNUNET_PQ_Context *db,
  * @param value the event handler
  * @return #GNUNET_OK to continue to iterate
  */
-static int
+static enum GNUNET_GenericReturnValue
 register_notify (void *cls,
                  const struct GNUNET_ShortHashCode *sh,
                  void *value)
