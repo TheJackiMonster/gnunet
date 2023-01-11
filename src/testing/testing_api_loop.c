@@ -25,7 +25,6 @@
  * @author Marcello Stanisci (GNU Taler testing)
  * @author t3sserakt
  */
-#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
@@ -520,6 +519,7 @@ GNUNET_TESTING_run (const struct GNUNET_TESTING_Command *commands,
   return is;
 }
 
+
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_command_new (void *cls,
                             const char *label,
@@ -542,6 +542,7 @@ GNUNET_TESTING_command_new (void *cls,
   return cmd;
 
 }
+
 
 /**
  * Closure for #loop_run().
@@ -603,6 +604,7 @@ loop_run (void *cls)
                       mp);
 }
 
+
 /**
  * Continuation function from GNUNET_HELPER_send()
  *
@@ -616,6 +618,7 @@ clear_msg (void *cls, int result)
 {
   GNUNET_assert (GNUNET_YES == result);
 }
+
 
 /**
  * Adding a helper handle to the interpreter.
@@ -632,7 +635,7 @@ GNUNET_TESTING_add_netjail_helper (struct GNUNET_TESTING_Interpreter *is,
 
 
 /**
- * Send Message to netjail nodes. 
+ * Send Message to netjail nodes.
  *
  * @param is The interpreter.
  * @param global_node_number The netjail node to inform.
@@ -640,8 +643,8 @@ GNUNET_TESTING_add_netjail_helper (struct GNUNET_TESTING_Interpreter *is,
  */
 void
 send_message_to_netjail (struct GNUNET_TESTING_Interpreter *is,
-                                        unsigned int global_node_number,
-                                        struct GNUNET_MessageHeader *header)
+                         unsigned int global_node_number,
+                         struct GNUNET_MessageHeader *header)
 {
   const struct GNUNET_HELPER_Handle *helper;
 
@@ -657,10 +660,11 @@ send_message_to_netjail (struct GNUNET_TESTING_Interpreter *is,
     NULL);
 }
 
+
 void
 TST_interpreter_send_barrier_crossable (struct GNUNET_TESTING_Interpreter *is,
-                                      const char *barrier_name,
-                                      unsigned int global_node_number)
+                                        const char *barrier_name,
+                                        unsigned int global_node_number)
 {
   struct CommandBarrierCrossable *adm;
   size_t msg_length;
@@ -677,11 +681,10 @@ TST_interpreter_send_barrier_crossable (struct GNUNET_TESTING_Interpreter *is,
   adm->header.size = htons ((uint16_t) msg_length);
   memcpy (&adm[1], barrier_name, name_len);
   send_message_to_netjail (is,
-                                          global_node_number,
-                                          &adm->header);
+                           global_node_number,
+                           &adm->header);
   GNUNET_free (adm);
 }
-
 
 
 int
@@ -699,12 +702,13 @@ free_barrier_node_cb (void *cls,
   if (GNUNET_NO == is->finishing)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "TST_interpreter_send_barrier_crossable\n");
+                "TST_interpreter_send_barrier_crossable\n");
     TST_interpreter_send_barrier_crossable (is,
-                                          barrier->name,
-                                          node->node_number);
+                                            barrier->name,
+                                            node->node_number);
   }
-  GNUNET_assert (GNUNET_YES == GNUNET_CONTAINER_multishortmap_remove (barrier->nodes, key, node));
+  GNUNET_assert (GNUNET_YES == GNUNET_CONTAINER_multishortmap_remove (
+                   barrier->nodes, key, node));
   return GNUNET_YES;
 }
 
@@ -718,7 +722,7 @@ free_barrier_node_cb (void *cls,
   */
 struct GNUNET_TESTING_Barrier *
 TST_interpreter_get_barrier (struct GNUNET_TESTING_Interpreter *is,
-                            const char *barrier_name)
+                             const char *barrier_name)
 {
   struct GNUNET_HashCode hc;
   struct GNUNET_ShortHashCode create_key;
@@ -745,7 +749,7 @@ TST_interpreter_finish_attached_cmds (struct GNUNET_TESTING_Interpreter *is,
   struct CommandListEntry *pos;
   struct FreeBarrierNodeCbCls *free_barrier_node_cb_cls;
   struct GNUNET_TESTING_Barrier *barrier = TST_interpreter_get_barrier (is,
-                                                                       barrier_name);
+                                                                        barrier_name);
 
   while (NULL != barrier && NULL != (pos = barrier->cmds_head))
   {
@@ -756,8 +760,8 @@ TST_interpreter_finish_attached_cmds (struct GNUNET_TESTING_Interpreter *is,
         GNUNET_NO == pos->command->asynchronous_finish)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "command label %s finish\n",
-                pos->command->label);
+                  "command label %s finish\n",
+                  pos->command->label);
       GNUNET_TESTING_async_finish (pos->command->ac);
     }
     else if (GNUNET_NO == pos->command->ac->finished)
@@ -781,7 +785,8 @@ TST_interpreter_finish_attached_cmds (struct GNUNET_TESTING_Interpreter *is,
     free_barrier_node_cb_cls->is = is;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "freeing nodes\n");
-    GNUNET_CONTAINER_multishortmap_iterate (barrier->nodes, free_barrier_node_cb,
+    GNUNET_CONTAINER_multishortmap_iterate (barrier->nodes,
+                                            free_barrier_node_cb,
                                             free_barrier_node_cb_cls);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "nodes freed\n");
@@ -807,7 +812,8 @@ free_barriers_cb (void *cls,
     free_barrier_node_cb_cls = GNUNET_new (struct FreeBarrierNodeCbCls);
     free_barrier_node_cb_cls->barrier = barrier;
     free_barrier_node_cb_cls->is = is;
-    GNUNET_CONTAINER_multishortmap_iterate (barrier->nodes, free_barrier_node_cb,
+    GNUNET_CONTAINER_multishortmap_iterate (barrier->nodes,
+                                            free_barrier_node_cb,
                                             free_barrier_node_cb_cls);
     GNUNET_CONTAINER_multishortmap_destroy (barrier->nodes);
     barrier->nodes = NULL;
@@ -823,6 +829,7 @@ free_barriers_cb (void *cls,
   GNUNET_free (barrier);
   return GNUNET_YES;
 }
+
 
 /**
   * Deleting all barriers create in the context of this interpreter.
@@ -847,7 +854,7 @@ TST_interpreter_delete_barriers (struct GNUNET_TESTING_Interpreter *is)
  */
 void
 TST_interpreter_add_barrier (struct GNUNET_TESTING_Interpreter *is,
-                                        struct GNUNET_TESTING_Barrier *barrier)
+                             struct GNUNET_TESTING_Barrier *barrier)
 {
   struct GNUNET_HashCode hc;
   struct GNUNET_ShortHashCode create_key;
