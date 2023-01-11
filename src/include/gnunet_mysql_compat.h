@@ -42,7 +42,7 @@ extern "C"
 #endif
 
 #ifndef LIBMARIADB
-#if MYSQL_VERSION_ID < 80000
+#if MYSQL_VERSION_ID >= 80000
 #define MYSQL_BOOL bool
 #else
 #define MYSQL_BOOL my_bool /* MySQL < 8 wants this */
