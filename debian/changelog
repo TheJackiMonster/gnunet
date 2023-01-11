@@ -2,13 +2,13 @@ gnunet (0.18.1) unstable; urgency=low
 
   * Packaging latest release.
 
- -- Christian Grothoff <grothoff@gnu.org>  Fri, Nov 4 2022 09:50:12 +0200
+ -- Christian Grothoff <grothoff@gnu.org>  Fri, 04 Nov 2022 09:50:12 +0200
 
 gnunet (0.17.6) unstable; urgency=low
 
   * Packaging latest release.
 
- -- Christian Grothoff <grothoff@gnu.org>  Mon, Sep 26 2022 09:50:12 +0200
+ -- Christian Grothoff <grothoff@gnu.org>  Mon, 26 Sep 2022 09:50:12 +0200
 
 gnunet (0.17.1) unstable; urgency=low
 
