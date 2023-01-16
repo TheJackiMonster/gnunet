@@ -182,8 +182,9 @@ GNUNET_BIO_read_close (struct GNUNET_BIO_ReadHandle *h, char **emsg)
   return err;
 }
 
+
 void
-GNUNET_BIO_read_set_error (struct GNUNET_BIO_ReadHandle *h, const char* emsg)
+GNUNET_BIO_read_set_error (struct GNUNET_BIO_ReadHandle *h, const char*emsg)
 {
   GNUNET_assert (NULL == h->emsg);
   h->emsg = GNUNET_strdup (emsg);
@@ -380,7 +381,6 @@ GNUNET_BIO_read_string (struct GNUNET_BIO_ReadHandle *h,
 }
 
 
-
 /**
  * Read a float.
  *
@@ -553,8 +553,9 @@ GNUNET_BIO_write_open_buffer (void)
  *        if the handle has an error message, the return value is #GNUNET_SYSERR
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
-int
-GNUNET_BIO_write_close (struct GNUNET_BIO_WriteHandle *h, char **emsg)
+enum GNUNET_GenericReturnValue
+GNUNET_BIO_write_close (struct GNUNET_BIO_WriteHandle *h,
+                        char **emsg)
 {
   int err;
 
@@ -567,7 +568,10 @@ GNUNET_BIO_write_close (struct GNUNET_BIO_WriteHandle *h, char **emsg)
   {
   case IO_FILE:
     if (NULL == h->fd)
-      return GNUNET_SYSERR;
+    {
+      err = GNUNET_SYSERR;
+      break;
+    }
     if (GNUNET_OK != GNUNET_BIO_flush (h))
     {
       if (NULL != emsg)
@@ -600,7 +604,7 @@ GNUNET_BIO_write_close (struct GNUNET_BIO_WriteHandle *h, char **emsg)
  * @return #GNUNET_OK upon success.  Upon failure #GNUNET_SYSERR is returned
  *         and the file is closed
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BIO_flush (struct GNUNET_BIO_WriteHandle *h)
 {
   ssize_t ret;
@@ -791,7 +795,6 @@ GNUNET_BIO_write_string (struct GNUNET_BIO_WriteHandle *h,
     return GNUNET_BIO_write (h, what, s, slen - 1);
   return GNUNET_OK;
 }
-
 
 
 /**

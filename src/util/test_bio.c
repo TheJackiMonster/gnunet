@@ -25,7 +25,6 @@
  */
 
 
-
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #define TESTSTRING "testString"
@@ -64,9 +63,14 @@ test_normal_rw (void)
 
   rh = GNUNET_BIO_read_open_file (filename);
   GNUNET_assert (NULL != rh);
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_read_spec_commit (rh, rs));
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_read_close (rh, NULL));
-  GNUNET_assert (0 == strcmp (TESTSTRING, rString));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_BIO_read_spec_commit (rh,
+                                              rs));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_BIO_read_close (rh,
+                                        NULL));
+  GNUNET_assert (0 == strcmp (TESTSTRING,
+                              rString));
   GNUNET_assert (wNum == rNum);
 
   GNUNET_assert (GNUNET_OK == GNUNET_DISK_directory_remove (filename));
@@ -89,7 +93,7 @@ test_normal_rw (void)
   GNUNET_assert (GNUNET_OK == GNUNET_BIO_read_close (rh, NULL));
   GNUNET_assert (0 == strcmp (TESTSTRING, rString));
   GNUNET_assert (wNum == rNum);
-
+  GNUNET_free (rString);
   GNUNET_free (buffer);
 
   return 0;
