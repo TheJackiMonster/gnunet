@@ -1,3 +1,9 @@
+gnunet (0.19.2-1) unstable; urgency=low
+
+  * Importing minor post-release fixes from upstream for Debian package.
+
+ -- Christian Grothoff <grothoff@gnu.org>  Tue, 17 Jan 2023 22:14:18 +0200
+
 gnunet (0.19.2) unstable; urgency=low
 
   * New upstream release, bumping version.
