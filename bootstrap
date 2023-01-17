@@ -40,8 +40,8 @@ check_uncrustify()
 {
     if existence uncrustify; then
         echo "Installing uncrustify hook and configuration"
-        ln -fs contrib/conf/uncrustify.cfg uncrustify.cfg 2> /dev/null
-        ln -fs contrib/conf/uncrustify_precommit .git/hooks/pre-commit 2> /dev/null
+        ln -fs $(pwd)/contrib/conf/uncrustify.cfg uncrustify.cfg 2> /dev/null
+        ln -fs $(pwd)/contrib/conf/uncrustify_precommit .git/hooks/pre-commit 2> /dev/null
     else
         echo "Uncrustify not detected, hook not installed."
         echo "Please install uncrustify if you plan on doing development"
@@ -173,6 +173,12 @@ gana_update()
     echo "GANA finished"
 }
 
+install_hooks()
+{
+  ln -fs $(pwd)/contrib/conf/prepare-commit-msg .git/hooks/prepare-commit-msg 2> /dev/null
+  ln -fs $(pwd)/contrib/conf/commit-msg .git/hooks/commit-msg 2> /dev/null
+}
+
 main()
 {
     cleanup
@@ -182,6 +188,7 @@ main()
     check_uncrustify
     check_yapf
     check_libtool
+    install_hooks
 }
 
 main "$@"

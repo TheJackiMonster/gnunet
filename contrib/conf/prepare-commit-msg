@@ -24,14 +24,16 @@ done
 # ($COMMIT_SOURCE is empty). Otherwise, keep the default message
 # proposed by Git. Possible commit source: message, template,
 # merge, squash or commit.
-if [ $RET = 1 ];
+if [ -z "$COMMIT_SOURCE" ];
 then
-  if [ -z "$COMMIT_SOURCE" ] || [ "message" == "$COMMIT_SOURCE" ];
+  hint=$(cat "$COMMIT_MSG_FILE")
+  echo ": Fixes #" > "$COMMIT_MSG_FILE"
+  echo -e "# Our commit subject format policy is:\n# <subsystem>: <description>\n# Adding 'Issue #1234'/'Fixes #1234' into the description will automatically update/resolve issue #1234 in mantis." >> "$COMMIT_MSG_FILE"
+  if [ $RET = 1 ];
   then
-    hint=$(cat "$COMMIT_MSG_FILE")
-    echo -e "\n# Your commit includes staged changes that indicate an API change which requires a ChangeLog line. This info line will be ignored." > "$COMMIT_MSG_FILE"
+    echo -e "\n# Your commit includes staged changes that indicate an API change which requires a ChangeLog line." >> "$COMMIT_MSG_FILE"
     echo "ChangeLog: " >> "$COMMIT_MSG_FILE"
-    echo "$hint" >> "$COMMIT_MSG_FILE"
   fi
+  echo "$hint" >> "$COMMIT_MSG_FILE"
 fi
 exit 0
