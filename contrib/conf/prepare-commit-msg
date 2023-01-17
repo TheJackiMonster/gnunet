@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# use as .git/hooks/pre-commit
+
+COMMIT_MSG_FILE=$1
+COMMIT_SOURCE=$2
+SHA1=$3
+
+exec 1>&2
+
+RET=0
+changed=$(git diff --cached --name-only)
+
+for f in $changed;
+do
+ # Only headers in include
+ if echo $f | grep \src\/include\/.\*\.h\$  > /dev/null
+ then
+    RET=1
+ fi
+done
+
+# Only add custom message when there is no commit source
+# ($COMMIT_SOURCE is empty). Otherwise, keep the default message
+# proposed by Git. Possible commit source: message, template,
+# merge, squash or commit.
+if [ $RET = 1 ];
+then
+  if [ -z "$COMMIT_SOURCE" ] || [ "message" == "$COMMIT_SOURCE" ];
+  then
+    hint=$(cat "$COMMIT_MSG_FILE")
+    echo -e "\n# Your commit includes staged changes that indicate an API change which requires a ChangeLog line. This info line will be ignored." > "$COMMIT_MSG_FILE"
+    echo "ChangeLog: " >> "$COMMIT_MSG_FILE"
+    echo "$hint" >> "$COMMIT_MSG_FILE"
+  fi
+fi
+exit 0

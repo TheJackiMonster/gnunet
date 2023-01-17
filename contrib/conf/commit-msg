@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# use as .git/hooks/commit-msg
+
+COMMIT_MSG_FILE=$1
+
+exec 1>&2
+
+RET=0
+changed=$(git diff --cached --name-only)
+
+for f in $changed;
+do
+ # Only headers in include
+ if echo $f | grep \src\/include\/.\*\.h\$  > /dev/null
+ then
+   RET=1
+   # Check if it has a ChangeLog line
+   if cat $COMMIT_MSG_FILE | grep \^ChangeLog: > /dev/null
+   then
+       RET=0
+       break
+   fi
+ fi
+done
+
+# If no ChangeLog line found, abort
+if [ $RET = 1 ];
+then
+  echo "Your commit includes staged changes that indicate an API change which requires a ChangeLog line."
+else
+  echo "Your commit does not include API changes"
+fi
+exit $RET
