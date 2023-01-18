@@ -32,7 +32,7 @@ then
   if [ $RET = 1 ];
   then
     echo -e "\n# Your commit includes staged changes that indicate an API change which requires a ChangeLog line." >> "$COMMIT_MSG_FILE"
-    echo "ChangeLog: " >> "$COMMIT_MSG_FILE"
+    echo "NEWS: " >> "$COMMIT_MSG_FILE"
   fi
   echo "$hint" >> "$COMMIT_MSG_FILE"
 fi

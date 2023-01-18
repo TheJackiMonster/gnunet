@@ -16,7 +16,7 @@ do
  then
    RET=1
    # Check if it has a ChangeLog line
-   if cat $COMMIT_MSG_FILE | grep "^ChangeLog:\s*[-,a-zA-Z][a-zA-Z]*" > /dev/null
+   if cat $COMMIT_MSG_FILE | grep -i "^NEWS:\s[-,a-zA-Z][a-zA-Z]*" > /dev/null
    then
        RET=0
        break
