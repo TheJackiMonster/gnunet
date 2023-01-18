@@ -1,7 +1,8 @@
 #!/bin/bash
 #
 
-
+INTERFACE_FORMAT_STRING="%s%06x-%06x"
+PREPREFIX=if
 PREFIX=${PPID:?must run from a parent process}
 
 # running with `sudo` is required to be
@@ -93,7 +94,7 @@ netjail_check_bin() {
 netjail_bridge() {
 	netjail_next_interface
 	local NUM=$RESULT
-	local BRIDGE=$(printf "%06x-%08x" $PREFIX $NUM)
+	local BRIDGE=$(printf $INTERFACE_FORMAT_STRING $PREPREFIX $PREFIX $NUM)
 
 	ip link add $BRIDGE type bridge
 	ip link set dev $BRIDGE up
@@ -104,7 +105,7 @@ netjail_bridge() {
 netjail_bridge_name() {
 	netjail_next_interface
 	local NUM=$RESULT
-	local BRIDGE=$(printf "%06x-%08x" $PREFIX $NUM)
+	local BRIDGE=$(printf $INTERFACE_FORMAT_STRING $PREPREFIX $PREFIX $NUM)
 	
 	RESULT=$BRIDGE
 }
@@ -118,7 +119,7 @@ netjail_bridge_clear() {
 netjail_node() {
 	netjail_next_namespace
 	local NUM=$RESULT
-	local NODE=$(printf "%06x-%08x" $PREFIX $NUM)
+	local NODE=$(printf $INTERFACE_FORMAT_STRING $PREPREFIX $PREFIX $NUM)
 
 	ip netns add $NODE
 	
@@ -128,7 +129,7 @@ netjail_node() {
 netjail_node_name() {
 	netjail_next_namespace
 	local NUM=$RESULT
-	local NODE=$(printf "%06x-%08x" $PREFIX $NUM)
+	local NODE=$(printf $INTERFACE_FORMAT_STRING $PREPREFIX $PREFIX $NUM)
 	
 	RESULT=$NODE
 }
@@ -150,8 +151,8 @@ netjail_node_link_bridge() {
 	netjail_next_interface
 	local NUM_BR=$RESULT
 	
-	local LINK_IF=$(printf "%06x-%08x" $PREFIX $NUM_IF)
-	local LINK_BR=$(printf "%06x-%08x" $PREFIX $NUM_BR)
+	local LINK_IF=$(printf $INTERFACE_FORMAT_STRING $PREPREFIX $PREFIX $NUM_IF)
+	local LINK_BR=$(printf $INTERFACE_FORMAT_STRING $PREPREFIX $PREFIX $NUM_BR)
 
 	ip link add $LINK_IF type veth peer name $LINK_BR
 	ip link set $LINK_IF netns $NODE
@@ -172,7 +173,7 @@ netjail_node_link_bridge_name() {
 	netjail_next_interface
 	local NUM_BR=$RESULT
 	
-	local LINK_BR=$(printf "%06x-%08x" $PREFIX $NUM_BR)
+	local LINK_BR=$(printf $INTERFACE_FORMAT_STRING $PREPREFIX $PREFIX $NUM_BR)
 	
 	RESULT=$LINK_BR
 }
@@ -192,7 +193,7 @@ netjail_node_add_nat() {
   ip netns exec $NODE nft add table nat
   ip netns exec $NODE nft add chain nat postrouting { type nat hook postrouting priority 0 \; }
   ip netns exec $NODE nft add rule ip nat postrouting ip saddr "$ADDRESS/$MASK" counter masquerade
-	# ip netns exec $NODE iptables -t nat -A POSTROUTING -s "$ADDRESS/$MASK" -j MASQUERADE
+  # ip netns exec $NODE iptables -t nat -A POSTROUTING -s "$ADDRESS/$MASK" -j MASQUERADE
 }
 
 netjail_node_add_default() {
