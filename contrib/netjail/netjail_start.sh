@@ -123,6 +123,6 @@ for N in $(seq $GLOBAL_N); do
     fi
     if [ "" != "${R_SCRIPT[$N]}" ]
     then
-        ip netns exec ${ROUTERS[$N]} ./${R_SCRIPT[$N]}
+        ip netns exec ${ROUTERS[$N]} ./${R_SCRIPT[$N]} ${ROUTER_NETS[$N]} 1
     fi
 done
