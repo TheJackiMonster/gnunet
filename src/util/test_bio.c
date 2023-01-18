@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2009 GNUnet e.V.
+     Copyright (C) 2009, 2023 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -17,14 +17,11 @@
 
      SPDX-License-Identifier: AGPL3.0-or-later
  */
-
 /**
  * @file util/test_bio.c
  * @brief testcase for the buffered IO module
  * @author Ji Lu
  */
-
-
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #define TESTSTRING "testString"
@@ -42,24 +39,29 @@ test_normal_rw (void)
   char *rString = NULL;
   int64_t wNum = TESTNUMBER64;
   int64_t rNum = 0;
-
   struct GNUNET_BIO_WriteSpec ws[] = {
-    GNUNET_BIO_write_spec_string ("test-normal-rw-string", TESTSTRING),
-    GNUNET_BIO_write_spec_int64 ("test-normal-rw-int64", &wNum),
+    GNUNET_BIO_write_spec_string ("test-normal-rw-string",
+                                  TESTSTRING),
+    GNUNET_BIO_write_spec_int64 ("test-normal-rw-int64",
+                                 &wNum),
     GNUNET_BIO_write_spec_end (),
   };
-
   struct GNUNET_BIO_ReadSpec rs[] = {
-    GNUNET_BIO_read_spec_string ("test-normal-rw-string", &rString, 200),
-    GNUNET_BIO_read_spec_int64 ("test-normal-rw-int64", &rNum),
+    GNUNET_BIO_read_spec_string ("test-normal-rw-string",
+                                 &rString,
+                                 200),
+    GNUNET_BIO_read_spec_int64 ("test-normal-rw-int64",
+                                &rNum),
     GNUNET_BIO_read_spec_end (),
   };
 
   /* I/O on file */
   wh = GNUNET_BIO_write_open_file (filename);
   GNUNET_assert (NULL != wh);
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_write_spec_commit (wh, ws));
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_write_close (wh, NULL));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_BIO_write_spec_commit (wh, ws));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_BIO_write_close (wh, NULL));
 
   rh = GNUNET_BIO_read_open_file (filename);
   GNUNET_assert (NULL != rh);
@@ -72,26 +74,37 @@ test_normal_rw (void)
   GNUNET_assert (0 == strcmp (TESTSTRING,
                               rString));
   GNUNET_assert (wNum == rNum);
-
-  GNUNET_assert (GNUNET_OK == GNUNET_DISK_directory_remove (filename));
+  GNUNET_free (rString);
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_DISK_directory_remove (filename));
   GNUNET_free (filename);
 
   /* I/O on buffer */
   wh = GNUNET_BIO_write_open_buffer ();
   GNUNET_assert (NULL != wh);
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_write_spec_commit (wh, ws));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_BIO_write_spec_commit (wh,
+                                               ws));
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_BIO_get_buffer_contents (wh,
                                                  NULL,
                                                  &buffer,
                                                  &buffer_size));
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_write_close (wh, NULL));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_BIO_write_close (wh,
+                                         NULL));
 
-  rh = GNUNET_BIO_read_open_buffer (buffer, buffer_size);
+  rh = GNUNET_BIO_read_open_buffer (buffer,
+                                    buffer_size);
   GNUNET_assert (NULL != rh);
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_read_spec_commit (rh, rs));
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_read_close (rh, NULL));
-  GNUNET_assert (0 == strcmp (TESTSTRING, rString));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_BIO_read_spec_commit (rh,
+                                              rs));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_BIO_read_close (rh,
+                                        NULL));
+  GNUNET_assert (0 == strcmp (TESTSTRING,
+                              rString));
   GNUNET_assert (wNum == rNum);
   GNUNET_free (rString);
   GNUNET_free (buffer);
@@ -110,21 +123,26 @@ test_nullstring_rw (void)
 
   wh = GNUNET_BIO_write_open_file (filename);
   GNUNET_assert (NULL != wh);
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_write_string (wh,
-                                                       "test-nullstring-rw",
-                                                       NULL));
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_write_close (wh, NULL));
-
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_BIO_write_string (wh,
+                                          "test-nullstring-rw",
+                                          NULL));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_BIO_write_close (wh,
+                                         NULL));
   rh = GNUNET_BIO_read_open_file (filename);
   GNUNET_assert (NULL != rh);
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_read_string (rh,
-                                                      "test-nullstring-rw",
-                                                      &rString, 200));
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_read_close (rh, NULL));
-
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_BIO_read_string (rh,
+                                         "test-nullstring-rw",
+                                         &rString,
+                                         200));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_BIO_read_close (rh,
+                                        NULL));
   GNUNET_assert (NULL == rString);
-
-  GNUNET_assert (GNUNET_OK == GNUNET_DISK_directory_remove (filename));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_DISK_directory_remove (filename));
   GNUNET_free (filename);
   return 0;
 }
@@ -140,21 +158,26 @@ test_emptystring_rw (void)
 
   wh = GNUNET_BIO_write_open_file (filename);
   GNUNET_assert (NULL != wh);
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_write_string (wh,
-                                                       "test-emptystring-rw",
-                                                       ""));
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_write_close (wh, NULL));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_BIO_write_string (wh,
+                                          "test-emptystring-rw",
+                                          ""));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_BIO_write_close (wh,
+                                         NULL));
 
   rh = GNUNET_BIO_read_open_file (filename);
   GNUNET_assert (NULL != rh);
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_read_string (rh,
-                                                      "test-emptystring-rw",
-                                                      &rString, 200));
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_read_close (rh, NULL));
-
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_BIO_read_string (rh,
+                                         "test-emptystring-rw",
+                                         &rString, 200));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_BIO_read_close (rh,
+                                        NULL));
   GNUNET_free (rString);
-
-  GNUNET_assert (GNUNET_OK == GNUNET_DISK_directory_remove (filename));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_DISK_directory_remove (filename));
   GNUNET_free (filename);
   return 0;
 }
@@ -170,21 +193,25 @@ test_bigstring_rw (void)
 
   wh = GNUNET_BIO_write_open_file (filename);
   GNUNET_assert (NULL != wh);
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_write_string (wh,
-                                                       "test-bigstring-rw",
-                                                       TESTSTRING));
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_write_close (wh, NULL));
-
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_BIO_write_string (wh,
+                                          "test-bigstring-rw",
+                                          TESTSTRING));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_BIO_write_close (wh,
+                                         NULL));
   rh = GNUNET_BIO_read_open_file (filename);
   GNUNET_assert (NULL != rh);
-  GNUNET_assert (GNUNET_SYSERR == GNUNET_BIO_read_string (rh,
-                                                          "test-bigstring-rw",
-                                                          &rString, 1));
-  GNUNET_assert (GNUNET_SYSERR == GNUNET_BIO_read_close (rh, NULL));
-
+  GNUNET_assert (GNUNET_SYSERR ==
+                 GNUNET_BIO_read_string (rh,
+                                         "test-bigstring-rw",
+                                         &rString, 1));
+  GNUNET_assert (GNUNET_SYSERR ==
+                 GNUNET_BIO_read_close (rh,
+                                        NULL));
   GNUNET_assert (NULL == rString);
-
-  GNUNET_assert (GNUNET_OK == GNUNET_DISK_directory_remove (filename));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_DISK_directory_remove (filename));
   GNUNET_free (filename);
   return 0;
 }
@@ -199,11 +226,14 @@ test_directory_r (void)
 
   rh = GNUNET_BIO_read_open_file ("/dev");
   GNUNET_assert (NULL != rh);
-  GNUNET_assert (GNUNET_SYSERR == GNUNET_BIO_read (rh,
-                                                   "test-directory-r",
-                                                   rString,
-                                                   sizeof (rString)));
-  GNUNET_assert (GNUNET_SYSERR == GNUNET_BIO_read_close (rh, NULL));
+  GNUNET_assert (GNUNET_SYSERR ==
+                 GNUNET_BIO_read (rh,
+                                  "test-directory-r",
+                                  rString,
+                                  sizeof (rString)));
+  GNUNET_assert (GNUNET_SYSERR ==
+                 GNUNET_BIO_read_close (rh,
+                                        NULL));
 #endif
   return 0;
 }
@@ -264,13 +294,17 @@ test_fullfile_rw (void)
 
   wh = GNUNET_BIO_write_open_file ("/dev/full");
   GNUNET_assert (NULL != wh);
-  GNUNET_assert (GNUNET_SYSERR == GNUNET_BIO_write_spec_commit (wh, ws));
-  GNUNET_assert (GNUNET_SYSERR == GNUNET_BIO_write_close (wh, NULL));
+  GNUNET_assert (GNUNET_SYSERR ==
+                 GNUNET_BIO_write_spec_commit (wh, ws));
+  GNUNET_assert (GNUNET_SYSERR ==
+                 GNUNET_BIO_write_close (wh, NULL));
 
   rh = GNUNET_BIO_read_open_file ("/dev/null");
   GNUNET_assert (NULL != rh);
-  GNUNET_assert (GNUNET_SYSERR == GNUNET_BIO_read_spec_commit (rh, rs));
-  GNUNET_assert (GNUNET_SYSERR == GNUNET_BIO_read_close (rh, NULL));
+  GNUNET_assert (GNUNET_SYSERR ==
+                 GNUNET_BIO_read_spec_commit (rh, rs));
+  GNUNET_assert (GNUNET_SYSERR ==
+                 GNUNET_BIO_read_close (rh, NULL));
 
   GNUNET_assert (NULL == rString);
 #endif
@@ -288,22 +322,27 @@ test_fakestring_rw (void)
 
   wh = GNUNET_BIO_write_open_file (filename);
   GNUNET_assert (NULL != wh);
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_write_int32 (wh,
-                                                      "test-fakestring-rw-int32",
-                                                      2));
-  GNUNET_assert (GNUNET_OK == GNUNET_BIO_write_close (wh, NULL));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_BIO_write_int32 (wh,
+                                         "test-fakestring-rw-int32",
+                                         2));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_BIO_write_close (wh,
+                                         NULL));
 
   rh = GNUNET_BIO_read_open_file (filename);
   GNUNET_assert (NULL != rh);
   GNUNET_assert (GNUNET_SYSERR ==
                  GNUNET_BIO_read_string (rh,
                                          "test-fakestring-rw-string",
-                                         &rString, 200));
-  GNUNET_assert (GNUNET_SYSERR == GNUNET_BIO_read_close (rh, NULL));
-
+                                         &rString,
+                                         200));
+  GNUNET_assert (GNUNET_SYSERR ==
+                 GNUNET_BIO_read_close (rh,
+                                        NULL));
   GNUNET_assert (NULL == rString);
-
-  GNUNET_assert (GNUNET_OK == GNUNET_DISK_directory_remove (filename));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_DISK_directory_remove (filename));
   GNUNET_free (filename);
   return 0;
 }
