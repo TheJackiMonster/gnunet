@@ -24,8 +24,17 @@ fi
 shift 2
 
 LOCAL_GROUP="192.168.15"
-GLOBAL_GROUP="172.16.150"
-KNOWN_GROUP="172.16.151"
+GLOBAL_GROUP="92.68.150"
+KNOWN_GROUP="92.68.151"
+# Use the IP addresses below instead of the public ones,
+# if the script was not started from within a new namespace
+# created by unshare. The UPNP test case needs public IP
+# addresse for miniupnpd to function.
+# FIXME The ip addresses are used in the c code too. We should
+# introduce a switch indicating if public addresses should be
+# used or not. This info has to be propagated to the c code.
+#GLOBAL_GROUP="172.16.150"
+#KNOWN_GROUP="172.16.151"
 
 if [ $BROADCAST -eq 0  ]; then
    PORT="60002"

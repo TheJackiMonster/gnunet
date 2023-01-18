@@ -61,9 +61,21 @@
 
 #define NODE_BASE_IP "192.168.15."
 
+#define KNOWN_BASE_IP "92.68.151."
+
+#define ROUTER_BASE_IP "92.68.150."
+
+/* Use the IP addresses below instead of the public ones,
+ * if the start script was not started from within a new namespace
+ * created by unshare. The UPNP test case needs public IP
+ * addresse for miniupnpd to function.
+ * FIXME We should introduce a switch indicating if public 
+ * addresses should be used or not. This info has to be 
+ * propagated from the start script to the c code.
 #define KNOWN_BASE_IP "172.16.151."
 
 #define ROUTER_BASE_IP "172.16.150."
+*/
 
 struct GNUNET_SCHEDULER_Task *finished_task;
 
