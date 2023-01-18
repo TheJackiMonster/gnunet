@@ -43,6 +43,12 @@ for N in $(seq $GLOBAL_N); do
     netjail_node_link_bridge_name
     ROUTER_LINKS[$N]=$RESULT
 
+    if [ -d /tmp/netjail_scripts ]
+    then
+        ip netns exec ${ROUTERS[$N]} ./${R_SCRIPT[$N]} ${ROUTER_NETS[$N]} 0
+        rm -rf /tmp/netjail_scripts
+    fi
+
     netjail_node_unlink_bridge ${ROUTER_LINKS[$N]}
     
 	for M in $(seq $LOCAL_M); do
