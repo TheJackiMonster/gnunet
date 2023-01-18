@@ -182,8 +182,9 @@ GNUNET_BIO_read_close (struct GNUNET_BIO_ReadHandle *h, char **emsg)
   return err;
 }
 
+
 void
-GNUNET_BIO_read_set_error (struct GNUNET_BIO_ReadHandle *h, const char* emsg)
+GNUNET_BIO_read_set_error (struct GNUNET_BIO_ReadHandle *h, const char*emsg)
 {
   GNUNET_assert (NULL == h->emsg);
   h->emsg = GNUNET_strdup (emsg);
@@ -380,7 +381,6 @@ GNUNET_BIO_read_string (struct GNUNET_BIO_ReadHandle *h,
 }
 
 
-
 /**
  * Read a float.
  *
@@ -510,13 +510,12 @@ GNUNET_BIO_write_open_file (const char *fn)
   struct GNUNET_DISK_FileHandle *fd;
   struct GNUNET_BIO_WriteHandle *h;
 
-  fd =
-    GNUNET_DISK_file_open (fn,
-                           GNUNET_DISK_OPEN_WRITE
-                           | GNUNET_DISK_OPEN_TRUNCATE
-                           | GNUNET_DISK_OPEN_CREATE,
-                           GNUNET_DISK_PERM_USER_READ
-                           | GNUNET_DISK_PERM_USER_WRITE);
+  fd = GNUNET_DISK_file_open (fn,
+                              GNUNET_DISK_OPEN_WRITE
+                              | GNUNET_DISK_OPEN_TRUNCATE
+                              | GNUNET_DISK_OPEN_CREATE,
+                              GNUNET_DISK_PERM_USER_READ
+                              | GNUNET_DISK_PERM_USER_WRITE);
   if (NULL == fd)
     return NULL;
   h = GNUNET_malloc (sizeof(struct GNUNET_BIO_WriteHandle) + BIO_BUFFER_SIZE);
@@ -553,8 +552,9 @@ GNUNET_BIO_write_open_buffer (void)
  *        if the handle has an error message, the return value is #GNUNET_SYSERR
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
-int
-GNUNET_BIO_write_close (struct GNUNET_BIO_WriteHandle *h, char **emsg)
+enum GNUNET_GenericReturnValue
+GNUNET_BIO_write_close (struct GNUNET_BIO_WriteHandle *h,
+                        char **emsg)
 {
   int err;
 
@@ -567,7 +567,10 @@ GNUNET_BIO_write_close (struct GNUNET_BIO_WriteHandle *h, char **emsg)
   {
   case IO_FILE:
     if (NULL == h->fd)
-      return GNUNET_SYSERR;
+    {
+      err = GNUNET_SYSERR;
+      break;
+    }
     if (GNUNET_OK != GNUNET_BIO_flush (h))
     {
       if (NULL != emsg)
@@ -600,21 +603,23 @@ GNUNET_BIO_write_close (struct GNUNET_BIO_WriteHandle *h, char **emsg)
  * @return #GNUNET_OK upon success.  Upon failure #GNUNET_SYSERR is returned
  *         and the file is closed
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BIO_flush (struct GNUNET_BIO_WriteHandle *h)
 {
   ssize_t ret;
 
   if (IO_FILE != h->type)
     return GNUNET_OK;
-
-  ret = GNUNET_DISK_file_write (h->fd, h->buffer, h->have);
+  ret = GNUNET_DISK_file_write (h->fd,
+                                h->buffer,
+                                h->have);
   if (ret != (ssize_t) h->have)
   {
     GNUNET_DISK_file_close (h->fd);
     h->fd = NULL;
     GNUNET_free (h->emsg);
-    GNUNET_asprintf (&h->emsg, _ ("Unable to flush buffer to file"));
+    GNUNET_asprintf (&h->emsg,
+                     "Unable to flush buffer to file");
     return GNUNET_SYSERR;
   }
   h->have = 0;
@@ -634,7 +639,7 @@ GNUNET_BIO_flush (struct GNUNET_BIO_WriteHandle *h)
  * @param size where to store the size of @e contents
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BIO_get_buffer_contents (struct GNUNET_BIO_WriteHandle *h,
                                 char **emsg,
                                 void **contents,
@@ -644,7 +649,10 @@ GNUNET_BIO_get_buffer_contents (struct GNUNET_BIO_WriteHandle *h,
     return GNUNET_SYSERR;
   if ((NULL == contents) || (NULL == size))
     return GNUNET_SYSERR;
-  int ret = (NULL != h->emsg) ? GNUNET_SYSERR : GNUNET_OK;
+  enum GNUNET_GenericReturnValue ret
+    = (NULL != h->emsg)
+    ? GNUNET_SYSERR
+    : GNUNET_OK;
   if (NULL != emsg)
     *emsg = h->emsg;
   else
@@ -663,7 +671,7 @@ GNUNET_BIO_get_buffer_contents (struct GNUNET_BIO_WriteHandle *h,
  * @param len the number of bytes to write
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
-static int
+static enum GNUNET_GenericReturnValue
 write_to_file (struct GNUNET_BIO_WriteHandle *h,
                const char *what,
                const char *source,
@@ -791,7 +799,6 @@ GNUNET_BIO_write_string (struct GNUNET_BIO_WriteHandle *h,
     return GNUNET_BIO_write (h, what, s, slen - 1);
   return GNUNET_OK;
 }
-
 
 
 /**

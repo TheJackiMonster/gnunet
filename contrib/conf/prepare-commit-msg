@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# use as .git/hooks/pre-commit
+
+COMMIT_MSG_FILE=$1
+COMMIT_SOURCE=$2
+SHA1=$3
+
+exec 1>&2
+
+RET=0
+changed=$(git diff --cached --name-only)
+
+for f in $changed;
+do
+ # Only headers in include
+ if echo $f | grep \src\/include\/.\*\.h\$  > /dev/null
+ then
+    RET=1
+ fi
+done
+
+# Only add custom message when there is no commit source
+# ($COMMIT_SOURCE is empty). Otherwise, keep the default message
+# proposed by Git. Possible commit source: message, template,
+# merge, squash or commit.
+if [ -z "$COMMIT_SOURCE" ];
+then
+  hint=$(cat "$COMMIT_MSG_FILE")
+  echo ": Fixes #" > "$COMMIT_MSG_FILE"
+  echo -e "# Our commit subject format policy is:\n# <subsystem>: <description>\n# Adding 'Issue #1234'/'Fixes #1234' into the description will automatically update/resolve issue #1234 in mantis." >> "$COMMIT_MSG_FILE"
+  if [ $RET = 1 ];
+  then
+    echo -e "\n# Your commit includes staged changes that indicate an API change which requires a ChangeLog line." >> "$COMMIT_MSG_FILE"
+    echo "NEWS: " >> "$COMMIT_MSG_FILE"
+  fi
+  echo "$hint" >> "$COMMIT_MSG_FILE"
+fi
+exit 0

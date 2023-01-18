@@ -90,6 +90,11 @@ struct GNUNET_PQ_Context
   struct GNUNET_NETWORK_Handle *rfd;
 
   /**
+   * How fast should we resubscribe again?
+   */
+  struct GNUNET_TIME_Relative resubscribe_backoff;
+
+  /**
    * Flags controlling the connection.
    */
   enum GNUNET_PQ_Options flags;

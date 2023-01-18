@@ -5,7 +5,7 @@ if test -f ".version"
 then
   VERSION=$(cat .version)
 fi
-if test -d "./.git"
+if [ -e ./.git ]
 then
   VERSION=$(git describe --tags)
   VERSION=${VERSION#v}
