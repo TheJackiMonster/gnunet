@@ -3,7 +3,7 @@ NEW_VERSION=$1
 if [ -z $NEW_VERSION ]; then
     NEW_VERSION="Unreleased"
 fi
-DELTA_SH="contrib/scripts/changelog_delta.sh"
+DELTA_SH="contrib/scripts/news_delta.sh"
 LASTHASH=$(head -n1 NEWS | cut -d " " -f 2 | tr -d \( | tr -d \) | tr -d :)
 
 echo "$NEW_VERSION ($(git rev-parse --short HEAD)):" > NEWS.delta || exit 1
