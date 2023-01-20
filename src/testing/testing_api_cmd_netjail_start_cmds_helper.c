@@ -612,7 +612,8 @@ start_helper (struct NetJailState *ns,
   GNUNET_asprintf (&local_m_char, "%u", ns->local_m);
   GNUNET_asprintf (&global_n_char, "%u",ns->global_n);
   GNUNET_asprintf (&known_char, "%u",ns->known);
-  GNUNET_asprintf (&node_id, "%06x-%08x\n",
+  GNUNET_asprintf (&node_id, "%s%06x-%06x\n",
+                   "if",
                    pid,
                    script_num);
   // GNUNET_asprintf (&topology_data, "'%s'", ns->topology_data);

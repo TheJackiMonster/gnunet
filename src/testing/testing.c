@@ -43,9 +43,21 @@
 
 #define CONNECT_ADDRESS_TEMPLATE "%s-192.168.15.%u"
 
+#define ROUTER_CONNECT_ADDRESS_TEMPLATE "%s-92.68.150.%u"
+
+#define KNOWN_CONNECT_ADDRESS_TEMPLATE "%s-92.68.151.%u"
+
+/* Use the IP addresses below instead of the public ones,
+ * if the start script was not started from within a new namespace
+ * created by unshare. The UPNP test case needs public IP
+ * addresse for miniupnpd to function.
+ * FIXME We should introduce a switch indicating if public 
+ * addresses should be used or not. This info has to be 
+ * propagated from the start script to the c code.
 #define ROUTER_CONNECT_ADDRESS_TEMPLATE "%s-172.16.150.%u"
 
 #define KNOWN_CONNECT_ADDRESS_TEMPLATE "%s-172.16.151.%u"
+*/
 
 #define PREFIX_TCP "tcp"
 
