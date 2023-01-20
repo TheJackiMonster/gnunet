@@ -15,7 +15,7 @@ do
  if echo $f | grep \src\/include\/.\*\.h\$  > /dev/null
  then
    RET=1
-   # Check if it has a ChangeLog line
+   # Check if it has a NEWS line
    if cat $COMMIT_MSG_FILE | grep -i "^NEWS:\s[-,a-zA-Z][a-zA-Z]*" > /dev/null
    then
        RET=0
@@ -24,10 +24,10 @@ do
  fi
 done
 
-# If no ChangeLog line found, abort
+# If no NEWS line found, abort
 if [ $RET = 1 ];
 then
-  echo "Your commit includes staged changes that indicate an API change which requires a ChangeLog line."
+  echo "Your commit includes staged changes that indicate an API change which requires a NEWS line."
 else
   echo "Your commit does not include API changes"
 fi
