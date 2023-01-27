@@ -40,6 +40,13 @@
 #include "gnunet_transport_communication_service.h"
 #include "gnunet_resolver_service.h"
 
+
+/**
+ * How long until we give up on establishing an NAT connection?
+ * Must be > 4 RTT
+ */
+#define NAT_TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 10)
+
 /**
  * How long do we believe our addresses to remain up (before
  * the other peer should revalidate).
@@ -364,8 +371,45 @@ struct TCPFinish
   struct GNUNET_ShortHashCode hmac;
 };
 
+/**
+ * Basically a WELCOME message, but with the purpose
+ * of giving the waiting peer a client handle to use
+ */
+struct TCPNATProbeMessage
+{
+  /**
+   * Type is #GNUNET_MESSAGE_TYPE_TRANSPORT_TCP_NAT_PROBE.
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * Identity of the sender of the message.
+   */
+  struct GNUNET_PeerIdentity clientIdentity;
+};
 
 GNUNET_NETWORK_STRUCT_END
+
+/**
+ * Struct for pending nat reversals.
+ */
+struct PendingReversal
+{
+  /*
+   * Timeout task.
+   */
+  struct GNUNET_SCHEDULER_Task *timeout_task;
+
+  /**
+   * To whom are we like to talk to.
+   */
+  struct GNUNET_PeerIdentity target;
+
+  /**
+   * Address the reversal was send to.
+   */
+  struct sockaddr *in;
+};
 
 /**
  * Struct to use as closure.
@@ -653,6 +697,21 @@ struct ProtoQueue
   struct GNUNET_NETWORK_Handle *sock;
 
   /**
+   * ID of write task for this connection.
+   */
+  struct GNUNET_SCHEDULER_Task *write_task;
+
+  /**
+   * buffer for writing struct TCPNATProbeMessage to network.
+   */
+  char write_buf[sizeof (struct TCPNATProbeMessage)];
+
+  /**
+   * Offset of the buffer?
+   */
+  size_t write_off;
+
+  /**
    * ID of read task for this connection.
    */
   struct GNUNET_SCHEDULER_Task *read_task;
@@ -854,6 +913,11 @@ int shutdown_running = GNUNET_NO;
  * The port the communicator should be assigned to.
  */
 unsigned int bind_port;
+
+/**
+ *  Map of pending reversals.
+ */
+struct GNUNET_CONTAINER_MultiHashMap *pending_reversals;
 
 /**
  * We have been notified that our listen socket has something to
@@ -1568,6 +1632,134 @@ inject_rekey (struct Queue *queue)
   setup_out_cipher (queue);
 }
 
+static int
+pending_reversals_delete_it (void *cls,
+                  const struct GNUNET_HashCode *key,
+                  void *value)
+{
+  (void) cls;
+  struct PendingReversal *pending_reversal = value;
+
+  if (NULL != pending_reversal->timeout_task)
+  {
+    GNUNET_SCHEDULER_cancel (pending_reversal->timeout_task);
+    pending_reversal->timeout_task = NULL;
+  }
+  GNUNET_CONTAINER_multihashmap_remove (pending_reversals,
+                                        key,
+                                        pending_reversal);
+  GNUNET_free (pending_reversal->in);
+  GNUNET_free (pending_reversal);
+  return GNUNET_OK;
+}
+
+
+static void
+check_and_remove_pending_reversal (struct sockaddr *in, sa_family_t sa_family, struct GNUNET_PeerIdentity *sender)
+{
+  if (AF_INET == sa_family)
+      {
+        struct PendingReversal *pending_reversal;
+        struct GNUNET_HashCode key;
+        struct sockaddr_in *natted_address;
+
+        natted_address = GNUNET_memdup (in, sizeof (struct sockaddr));
+        natted_address->sin_port = 0;
+        GNUNET_CRYPTO_hash (natted_address,
+                            sizeof(struct sockaddr),
+                            &key);
+
+        pending_reversal = GNUNET_CONTAINER_multihashmap_get (pending_reversals,
+                                                              &key);
+        if (NULL != pending_reversal && (NULL == sender ||
+                                         0 != memcmp (sender, &pending_reversal->target, sizeof(struct GNUNET_PeerIdentity))))
+        {
+            GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                        "Removing invalid pending reversal for `%s'at `%s'\n",
+                        GNUNET_i2s (&pending_reversal->target),
+                        GNUNET_a2s (in, sizeof (in)));
+                        pending_reversals_delete_it (NULL, &key, pending_reversal);
+        }
+        GNUNET_free (natted_address);
+      }
+}
+
+
+/**
+ * Closes socket and frees memory associated with @a pq.
+ *
+ * @param pq proto queue to free
+ */
+static void
+free_proto_queue (struct ProtoQueue *pq)
+{
+  if (NULL != pq->listen_sock)
+  {
+    GNUNET_break (GNUNET_OK == GNUNET_NETWORK_socket_close (pq->listen_sock));
+    pq->listen_sock = NULL;
+  }
+  if (NULL != pq->read_task)
+  {
+    GNUNET_SCHEDULER_cancel (pq->read_task);
+    pq->read_task = NULL;
+  }
+  if (NULL != pq->write_task)
+  {
+    GNUNET_SCHEDULER_cancel (pq->write_task);
+    pq->write_task = NULL;
+  }
+  check_and_remove_pending_reversal (pq->address, pq->address->sa_family, NULL);
+  GNUNET_NETWORK_socket_close (pq->sock);
+  GNUNET_free (pq->address);
+  GNUNET_CONTAINER_DLL_remove (proto_head, proto_tail, pq);
+  GNUNET_free (pq);
+}
+
+
+/**
+ * We have been notified that our socket is ready to write.
+ * Then reschedule this function to be called again once more is available.
+ *
+ * @param cls a `struct ProtoQueue`
+ */
+static void
+proto_queue_write (void *cls)
+{
+  struct ProtoQueue *pq = cls;
+  ssize_t sent;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "In proto queue write\n");
+  pq->write_task = NULL;
+  if (0 != pq->write_off)
+  {
+    sent = GNUNET_NETWORK_socket_send (pq->sock,
+                                       pq->write_buf,
+                                       pq->write_off);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Sent %lu bytes to TCP queue\n", sent);
+    if ((-1 == sent) && (EAGAIN != errno) && (EINTR != errno))
+    {
+      GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "send");
+      free_proto_queue (pq);
+      return;
+    }
+    if (sent > 0)
+    {
+      size_t usent = (size_t) sent;
+      pq->write_off -= usent;
+      memmove (pq->write_buf,
+               &pq->write_buf[usent],
+               pq->write_off);
+    }
+  }
+  /* do we care to write more? */
+  if ((0 < pq->write_off))
+    pq->write_task =
+      GNUNET_SCHEDULER_add_write_net (GNUNET_TIME_UNIT_FOREVER_REL,
+                                      pq->sock,
+                                      &proto_queue_write,
+                                      pq);
+}
+
 
 /**
  * We have been notified that our socket is ready to write.
@@ -1778,6 +1970,10 @@ try_handle_plaintext (struct Queue *queue)
                                         queue->sock,
                                         &queue_write,
                                         queue);
+    }
+    else if (GNUNET_TRANSPORT_CS_OUTBOUND ==     queue->cs)
+    {
+      check_and_remove_pending_reversal (queue->address, queue->address->sa_family, NULL);
     }
 
     unverified_size = -1;
@@ -2659,180 +2855,6 @@ decrypt_and_check_tc (struct Queue *queue,
 
 
 /**
- * Closes socket and frees memory associated with @a pq.
- *
- * @param pq proto queue to free
- */
-static void
-free_proto_queue (struct ProtoQueue *pq)
-{
-  if (NULL != pq->listen_sock)
-  {
-    GNUNET_break (GNUNET_OK == GNUNET_NETWORK_socket_close (pq->listen_sock));
-    pq->listen_sock = NULL;
-  }
-  GNUNET_NETWORK_socket_close (pq->sock);
-  GNUNET_free (pq->address);
-  GNUNET_CONTAINER_DLL_remove (proto_head, proto_tail, pq);
-  GNUNET_free (pq);
-}
-
-
-/**
- * Read from the socket of the proto queue until we have enough data
- * to upgrade to full queue.
- *
- * @param cls a `struct ProtoQueue`
- */
-static void
-proto_read_kx (void *cls)
-{
-  struct ProtoQueue *pq = cls;
-  ssize_t rcvd;
-  struct GNUNET_TIME_Relative left;
-  struct Queue *queue;
-  struct TCPConfirmation tc;
-
-  pq->read_task = NULL;
-  left = GNUNET_TIME_absolute_get_remaining (pq->timeout);
-  if (0 == left.rel_value_us)
-  {
-    free_proto_queue (pq);
-    return;
-  }
-  rcvd = GNUNET_NETWORK_socket_recv (pq->sock,
-                                     &pq->ibuf[pq->ibuf_off],
-                                     sizeof(pq->ibuf) - pq->ibuf_off);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Received %lu bytes for KX\n", rcvd);
-  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
-                           "transport",
-                           "Received %lu bytes for KX\n", rcvd);
-  if (-1 == rcvd)
-  {
-    if ((EAGAIN != errno) && (EINTR != errno))
-    {
-      GNUNET_log_strerror (GNUNET_ERROR_TYPE_DEBUG, "recv");
-      free_proto_queue (pq);
-      return;
-    }
-    /* try again */
-    pq->read_task =
-      GNUNET_SCHEDULER_add_read_net (left, pq->sock, &proto_read_kx, pq);
-    return;
-  }
-  pq->ibuf_off += rcvd;
-  if (pq->ibuf_off > sizeof(pq->ibuf))
-  {
-    /* read more */
-    pq->read_task =
-      GNUNET_SCHEDULER_add_read_net (left, pq->sock, &proto_read_kx, pq);
-    return;
-  }
-  /* we got all the data, let's find out who we are talking to! */
-  queue = GNUNET_new (struct Queue);
-  setup_in_cipher ((const struct GNUNET_CRYPTO_EcdhePublicKey *) pq->ibuf,
-                   queue);
-  if (GNUNET_OK != decrypt_and_check_tc (queue, &tc, pq->ibuf))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                "Invalid TCP KX received from %s\n",
-                GNUNET_a2s (pq->address, pq->address_len));
-    gcry_cipher_close (queue->in_cipher);
-    GNUNET_free (queue);
-    free_proto_queue (pq);
-    return;
-  }
-  queue->address = pq->address; /* steals reference */
-  queue->address_len = pq->address_len;
-  queue->target = tc.sender;
-  queue->listen_sock = pq->listen_sock;
-  queue->sock = pq->sock;
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "created queue with target %s\n",
-              GNUNET_i2s (&queue->target));
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "start kx proto\n");
-
-  start_initial_kx_out (queue);
-  queue->cs = GNUNET_TRANSPORT_CS_INBOUND;
-  boot_queue (queue);
-  queue->read_task =
-    GNUNET_SCHEDULER_add_read_net (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT,
-                                   queue->sock,
-                                   &queue_read,
-                                   queue);
-  queue->write_task =
-    GNUNET_SCHEDULER_add_write_net (GNUNET_TIME_UNIT_FOREVER_REL,
-                                    queue->sock,
-                                    &queue_write,
-                                    queue);
-  // TODO To early! Move it somewhere else.
-  // send_challenge (tc.challenge, queue);
-  queue->challenge_received = tc.challenge;
-
-  GNUNET_CONTAINER_DLL_remove (proto_head, proto_tail, pq);
-  GNUNET_free (pq);
-}
-
-
-/**
- * We have been notified that our listen socket has something to
- * read. Do the read and reschedule this function to be called again
- * once more is available.
- *
- * @param cls ListenTask with listening socket and task
- */
-static void
-listen_cb (void *cls)
-{
-  struct sockaddr_storage in;
-  socklen_t addrlen;
-  struct GNUNET_NETWORK_Handle *sock;
-  struct ProtoQueue *pq;
-  struct ListenTask *lt;
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "listen_cb\n");
-
-  lt = cls;
-
-  lt->listen_task = NULL;
-  GNUNET_assert (NULL != lt->listen_sock);
-  addrlen = sizeof(in);
-  memset (&in, 0, sizeof(in));
-  sock = GNUNET_NETWORK_socket_accept (lt->listen_sock,
-                                       (struct sockaddr*) &in,
-                                       &addrlen);
-  if ((NULL == sock) && ((EMFILE == errno) || (ENFILE == errno)))
-    return; /* system limit reached, wait until connection goes down */
-  lt->listen_task = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
-                                                   lt->listen_sock,
-                                                   &listen_cb,
-                                                   lt);
-  if ((NULL == sock) && ((EAGAIN == errno) || (ENOBUFS == errno)))
-    return;
-  if (NULL == sock)
-  {
-    GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "accept");
-    return;
-  }
-  pq = GNUNET_new (struct ProtoQueue);
-  pq->address_len = addrlen;
-  pq->address = GNUNET_memdup (&in, addrlen);
-  pq->timeout = GNUNET_TIME_relative_to_absolute (PROTO_QUEUE_TIMEOUT);
-  pq->sock = sock;
-  pq->read_task = GNUNET_SCHEDULER_add_read_net (PROTO_QUEUE_TIMEOUT,
-                                                 pq->sock,
-                                                 &proto_read_kx,
-                                                 pq);
-  GNUNET_CONTAINER_DLL_insert (proto_head, proto_tail, pq);
-}
-
-
-/**
  * Read from the socket of the queue until we have enough data
  * to initialize the decryption logic and can switch to regular
  * reading.
@@ -2930,6 +2952,277 @@ queue_read_kx (void *cls)
 
 
 /**
+ * Read from the socket of the proto queue until we have enough data
+ * to upgrade to full queue.
+ *
+ * @param cls a `struct ProtoQueue`
+ */
+static void
+proto_read_kx (void *cls)
+{
+  struct ProtoQueue *pq = cls;
+  ssize_t rcvd;
+  struct GNUNET_TIME_Relative left;
+  struct Queue *queue;
+  struct TCPConfirmation tc;
+  GNUNET_SCHEDULER_TaskCallback read_task;
+
+  pq->read_task = NULL;
+  left = GNUNET_TIME_absolute_get_remaining (pq->timeout);
+  if (0 == left.rel_value_us)
+  {
+    free_proto_queue (pq);
+    return;
+  }
+  rcvd = GNUNET_NETWORK_socket_recv (pq->sock,
+                                     &pq->ibuf[pq->ibuf_off],
+                                     sizeof(pq->ibuf) - pq->ibuf_off);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Proto received %lu bytes for KX\n", rcvd);
+  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
+                           "transport",
+                           "Proto received %lu bytes for KX\n", rcvd);
+  if (-1 == rcvd)
+  {
+    if ((EAGAIN != errno) && (EINTR != errno))
+    {
+      GNUNET_log_strerror (GNUNET_ERROR_TYPE_DEBUG, "recv");
+      free_proto_queue (pq);
+      return;
+    }
+    /* try again */
+    pq->read_task =
+      GNUNET_SCHEDULER_add_read_net (left, pq->sock, &proto_read_kx, pq);
+    return;
+  }
+  pq->ibuf_off += rcvd;
+  if (sizeof (struct TCPNATProbeMessage) == pq->ibuf_off)
+  {
+    struct TCPNATProbeMessage *pm = (struct TCPNATProbeMessage *) pq->ibuf;
+
+    check_and_remove_pending_reversal (pq->address, pq->address->sa_family, &pm->clientIdentity);
+
+    queue = GNUNET_new (struct Queue);
+    queue->target = pm->clientIdentity;
+    queue->cs = GNUNET_TRANSPORT_CS_OUTBOUND;
+    read_task = &queue_read_kx;
+  }
+  else if (pq->ibuf_off > sizeof(pq->ibuf))
+  {
+    /* read more */
+    pq->read_task =
+      GNUNET_SCHEDULER_add_read_net (left, pq->sock, &proto_read_kx, pq);
+    return;
+  }
+  else
+  {
+    /* we got all the data, let's find out who we are talking to! */
+    queue = GNUNET_new (struct Queue);
+    setup_in_cipher ((const struct GNUNET_CRYPTO_EcdhePublicKey *) pq->ibuf,
+                     queue);
+    if (GNUNET_OK != decrypt_and_check_tc (queue, &tc, pq->ibuf))
+    {
+        GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                    "Invalid TCP KX received from %s\n",
+                    GNUNET_a2s (pq->address, pq->address_len));
+        gcry_cipher_close (queue->in_cipher);
+        GNUNET_free (queue);
+        free_proto_queue (pq);
+        return;
+    }
+    queue->target = tc.sender;
+    queue->cs = GNUNET_TRANSPORT_CS_INBOUND;
+    read_task = &queue_read;
+  }
+  queue->address = pq->address; /* steals reference */
+  queue->address_len = pq->address_len;
+  queue->listen_sock = pq->listen_sock;
+  queue->sock = pq->sock;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "created queue with target %s\n",
+              GNUNET_i2s (&queue->target));
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "start kx proto\n");
+
+  start_initial_kx_out (queue);
+  boot_queue (queue);
+  queue->read_task =
+    GNUNET_SCHEDULER_add_read_net (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT,
+                                   queue->sock,
+                                   read_task,
+                                   queue);
+  queue->write_task =
+    GNUNET_SCHEDULER_add_write_net (GNUNET_TIME_UNIT_FOREVER_REL,
+                                    queue->sock,
+                                    &queue_write,
+                                    queue);
+  // TODO To early! Move it somewhere else.
+  // send_challenge (tc.challenge, queue);
+  queue->challenge_received = tc.challenge;
+
+  GNUNET_CONTAINER_DLL_remove (proto_head, proto_tail, pq);
+  GNUNET_free (pq);
+}
+
+static struct ProtoQueue *
+create_proto_queue (struct GNUNET_NETWORK_Handle *sock,
+                    struct sockaddr *in,
+                    socklen_t addrlen)
+{
+  struct ProtoQueue *pq = GNUNET_new (struct ProtoQueue);
+
+  if (NULL == sock)
+  {
+    //sock = GNUNET_CONNECTION_create_from_sockaddr (AF_INET, addr, addrlen);
+    sock = GNUNET_NETWORK_socket_create (in->sa_family, SOCK_STREAM, 0);
+    if (NULL == sock)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                    "socket(%d) failed: %s",
+                    in->sa_family,
+                    strerror (errno));
+        GNUNET_free (in);
+        return NULL;
+      }
+    if ((GNUNET_OK != GNUNET_NETWORK_socket_connect (sock, in, addrlen)) &&
+        (errno != EINPROGRESS))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                    "connect to `%s' failed: %s",
+                    GNUNET_a2s (in, addrlen),
+                    strerror (errno));
+        GNUNET_NETWORK_socket_close (sock);
+        GNUNET_free (in);
+        return NULL;
+      }
+  }
+  pq->address_len = addrlen;
+  pq->address = in;
+  pq->timeout = GNUNET_TIME_relative_to_absolute (PROTO_QUEUE_TIMEOUT);
+  pq->sock = sock;
+  pq->read_task = GNUNET_SCHEDULER_add_read_net (PROTO_QUEUE_TIMEOUT,
+                                                 pq->sock,
+                                                 &proto_read_kx,
+                                                 pq);
+  GNUNET_CONTAINER_DLL_insert (proto_head, proto_tail, pq);
+
+  return pq;
+}
+
+
+/**
+ * We have been notified that our listen socket has something to
+ * read. Do the read and reschedule this function to be called again
+ * once more is available.
+ *
+ * @param cls ListenTask with listening socket and task
+ */
+static void
+listen_cb (void *cls)
+{
+  struct sockaddr_storage in;
+  socklen_t addrlen;
+  struct GNUNET_NETWORK_Handle *sock;
+  struct ProtoQueue *pq;
+  struct ListenTask *lt;
+  struct sockaddr *in_addr;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "listen_cb\n");
+
+  lt = cls;
+
+  lt->listen_task = NULL;
+  GNUNET_assert (NULL != lt->listen_sock);
+  addrlen = sizeof(in);
+  memset (&in, 0, sizeof(in));
+  sock = GNUNET_NETWORK_socket_accept (lt->listen_sock,
+                                       (struct sockaddr*) &in,
+                                       &addrlen);
+  if ((NULL == sock) && ((EMFILE == errno) || (ENFILE == errno)))
+    return; /* system limit reached, wait until connection goes down */
+  lt->listen_task = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
+                                                   lt->listen_sock,
+                                                   &listen_cb,
+                                                   lt);
+  if ((NULL == sock) && ((EAGAIN == errno) || (ENOBUFS == errno)))
+    return;
+  if (NULL == sock)
+  {
+    GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "accept");
+    return;
+  }
+  in_addr = GNUNET_memdup (&in, addrlen);
+  create_proto_queue (sock, in_addr, addrlen);
+}
+
+
+static void
+try_connection_reversal (void *cls,
+                         const struct sockaddr *addr,
+                         socklen_t addrlen)
+{
+  (void) cls;
+  struct TCPNATProbeMessage pm;
+  struct ProtoQueue *pq;
+  struct sockaddr *in_addr;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "addr->sa_family %d\n",
+                    addr->sa_family);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Try to connect back\n");
+  in_addr = GNUNET_memdup (addr, addrlen);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "in_addr->sa_family %d\n",
+                    in_addr->sa_family);
+  pq = create_proto_queue (NULL, in_addr, addrlen);
+  if (NULL != pq)
+  {
+      pm.header.size = htons (sizeof(struct TCPNATProbeMessage));
+      pm.header.type = htons (GNUNET_MESSAGE_TYPE_TRANSPORT_TCP_NAT_PROBE);
+      pm.clientIdentity = my_identity;
+      memcpy (pq->write_buf, &pm, sizeof(struct TCPNATProbeMessage));
+      pq->write_off = sizeof(struct TCPNATProbeMessage);
+      pq->write_task = GNUNET_SCHEDULER_add_write_net (PROTO_QUEUE_TIMEOUT,
+                                                       pq->sock,
+                                                       &proto_queue_write,
+                                                       pq);
+  }
+  else
+  {
+     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+              "Couldn't create ProtoQueue for sending TCPNATProbeMessage\n");
+  }
+}
+
+
+static void
+pending_reversal_timeout (void *cls)
+{
+  struct sockaddr *in = cls;
+  struct PendingReversal *pending_reversal;
+  struct GNUNET_HashCode key;
+
+  GNUNET_CRYPTO_hash (in,
+                      sizeof(struct sockaddr),
+                      &key);
+  pending_reversal = GNUNET_CONTAINER_multihashmap_get (pending_reversals,
+                                                        &key);
+
+  GNUNET_assert (NULL != pending_reversal);
+
+  GNUNET_CONTAINER_multihashmap_remove (pending_reversals,
+                                        &key,
+                                        pending_reversal);
+  GNUNET_free (pending_reversal->in);
+  GNUNET_free (pending_reversal);
+}
+
+
+/**
  * Function called by the transport service to initialize a
  * message queue given address information about another peer.
  * If and when the communication channel is established, the
@@ -2950,17 +3243,18 @@ queue_read_kx (void *cls)
 static int
 mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
 {
-  struct Queue *queue;
-  const char *path;
   struct sockaddr *in;
   socklen_t in_len = 0;
-  struct GNUNET_NETWORK_Handle *sock;
+  const char *path;
+  struct sockaddr_in *v4;
+  struct sockaddr_in6 *v6;
+  unsigned int is_natd = GNUNET_NO;
+  struct GNUNET_HashCode key;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Connecting to %s\n", address);
-  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
-                           "transport",
-                           "Connecting to %s\n", address);
+              "Connecting to %s at %s\n",
+              GNUNET_i2s (peer),
+              address);
   if (0 != strncmp (address,
                     COMMUNICATOR_ADDRESS_PREFIX "-",
                     strlen (COMMUNICATOR_ADDRESS_PREFIX "-")))
@@ -2982,55 +3276,135 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
               "in %s\n",
               GNUNET_a2s (in, in_len));
 
-  sock = GNUNET_NETWORK_socket_create (in->sa_family, SOCK_STREAM, IPPROTO_TCP);
-  if (NULL == sock)
+  switch (in->sa_family)
+    {
+    case AF_INET:
+      v4 = (struct sockaddr_in *) in;
+      if (0 == v4->sin_port){
+        is_natd = GNUNET_YES;
+        GNUNET_CRYPTO_hash (in,
+                      sizeof(struct sockaddr),
+                      &key);
+        if (GNUNET_YES == GNUNET_CONTAINER_multihashmap_contains (pending_reversals,
+                                                                   &key))
+        {
+          GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                      "There is already a request reversal for `%s'at `%s'\n",
+                      GNUNET_i2s (peer),
+                      address);
+          GNUNET_free (in);
+          return GNUNET_SYSERR;
+        }
+      }
+      break;
+
+    case AF_INET6:
+      v6 = (struct sockaddr_in6 *) in;
+      if (0 == v6->sin6_port)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                      "Request reversal for `%s' at `%s' not possible for an IPv6 address\n",
+                      GNUNET_i2s (peer),
+                      address);
+        GNUNET_free (in);
+        return GNUNET_SYSERR;
+      }
+      break;
+
+    default:
+      GNUNET_assert (0);
+    }
+
+  if (GNUNET_YES == is_natd)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "socket(%d) failed: %s",
-                in->sa_family,
-                strerror (errno));
-    GNUNET_free (in);
-    return GNUNET_SYSERR;
+    struct sockaddr_in local_sa;
+    struct PendingReversal *pending_reversal;
+
+    memset (&local_sa, 0, sizeof(local_sa));
+    local_sa.sin_family = AF_INET;
+    local_sa.sin_port = htons (bind_port);
+    /* We leave sin_address at 0, let the kernel figure it out,
+       even if our bind() is more specific.  (May want to reconsider
+       later.) */
+    if (GNUNET_OK != GNUNET_NAT_request_reversal (nat, &local_sa, v4))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                      "request reversal for `%s' at `%s' failed\n",
+                      GNUNET_i2s (peer),
+                      address);
+      GNUNET_free (in);
+      return GNUNET_SYSERR;
+    }
+    pending_reversal = GNUNET_new (struct PendingReversal);
+    pending_reversal->in = in;
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_CONTAINER_multihashmap_put (pending_reversals,
+                                                      &key,
+                                                      pending_reversal,
+                                                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
+    pending_reversal->target = *peer;
+    pending_reversal->timeout_task = GNUNET_SCHEDULER_add_delayed (NAT_TIMEOUT, &pending_reversal_timeout, in);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+         "Created NAT WAIT connection to `%s' at `%s'\n",
+         GNUNET_i2s (peer),
+         GNUNET_a2s (in, sizeof (struct sockaddr)));
   }
-  if ((GNUNET_OK != GNUNET_NETWORK_socket_connect (sock, in, in_len)) &&
-      (errno != EINPROGRESS))
+  else
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "connect to `%s' failed: %s",
-                address,
-                strerror (errno));
-    GNUNET_NETWORK_socket_close (sock);
-    GNUNET_free (in);
-    return GNUNET_SYSERR;
+    struct GNUNET_NETWORK_Handle *sock;
+    struct Queue *queue;
+
+    sock = GNUNET_NETWORK_socket_create (in->sa_family, SOCK_STREAM, IPPROTO_TCP);
+    if (NULL == sock)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "socket(%d) failed: %s",
+                  in->sa_family,
+                  strerror (errno));
+      GNUNET_free (in);
+      return GNUNET_SYSERR;
+    }
+    if ((GNUNET_OK != GNUNET_NETWORK_socket_connect (sock, in, in_len)) &&
+        (errno != EINPROGRESS))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "connect to `%s' failed: %s",
+                  address,
+                  strerror (errno));
+      GNUNET_NETWORK_socket_close (sock);
+      GNUNET_free (in);
+      return GNUNET_SYSERR;
+    }
+
+    queue = GNUNET_new (struct Queue);
+    queue->target = *peer;
+    queue->address = in;
+    queue->address_len = in_len;
+    queue->sock = sock;
+    queue->cs = GNUNET_TRANSPORT_CS_OUTBOUND;
+    boot_queue (queue);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "booted queue with target %s\n",
+                GNUNET_i2s (&queue->target));
+    // queue->mq_awaits_continue = GNUNET_YES;
+    queue->read_task =
+      GNUNET_SCHEDULER_add_read_net (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT,
+                                     queue->sock,
+                                     &queue_read_kx,
+                                     queue);
+
+
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "start kx mq_init\n");
+
+    start_initial_kx_out (queue);
+    queue->write_task =
+      GNUNET_SCHEDULER_add_write_net (GNUNET_TIME_UNIT_FOREVER_REL,
+                                      queue->sock,
+                                      &queue_write,
+                                      queue);
   }
 
-  queue = GNUNET_new (struct Queue);
-  queue->target = *peer;
-  queue->address = in;
-  queue->address_len = in_len;
-  queue->sock = sock;
-  queue->cs = GNUNET_TRANSPORT_CS_OUTBOUND;
-  boot_queue (queue);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "booted queue with target %s\n",
-              GNUNET_i2s (&queue->target));
-  // queue->mq_awaits_continue = GNUNET_YES;
-  queue->read_task =
-    GNUNET_SCHEDULER_add_read_net (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT,
-                                   queue->sock,
-                                   &queue_read_kx,
-                                   queue);
-
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "start kx mq_init\n");
-
-  start_initial_kx_out (queue);
-  queue->write_task =
-    GNUNET_SCHEDULER_add_write_net (GNUNET_TIME_UNIT_FOREVER_REL,
-                                    queue->sock,
-                                    &queue_write,
-                                    queue);
   return GNUNET_OK;
 }
 
@@ -3062,6 +3436,7 @@ get_lt_delete_it (void *cls,
     GNUNET_break (GNUNET_OK == GNUNET_NETWORK_socket_close (lt->listen_sock));
     lt->listen_sock = NULL;
   }
+  GNUNET_free (lt);
   return GNUNET_OK;
 }
 
@@ -3112,7 +3487,10 @@ do_shutdown (void *cls)
     GNUNET_NAT_unregister (nat);
     nat = NULL;
   }
+  GNUNET_CONTAINER_multihashmap_iterate (pending_reversals, &pending_reversals_delete_it, NULL);
+  GNUNET_CONTAINER_multihashmap_destroy (pending_reversals);
   GNUNET_CONTAINER_multihashmap_iterate (lt_map, &get_lt_delete_it, NULL);
+  GNUNET_CONTAINER_multihashmap_destroy (lt_map);
   GNUNET_CONTAINER_multipeermap_iterate (queue_map, &get_queue_delete_it, NULL);
   GNUNET_CONTAINER_multipeermap_destroy (queue_map);
   if (NULL != ch)
@@ -3454,7 +3832,7 @@ nat_register ()
                              (const struct sockaddr **) saddrs,
                              saddr_lens,
                              &nat_address_cb,
-                             NULL /* FIXME: support reversal: #5529 */,
+                             try_connection_reversal,
                              NULL /* closure */);
   for (i = addrs_lens - 1; i >= 0; i--)
     GNUNET_free (saddrs[i]);
@@ -3554,6 +3932,8 @@ run (void *cls,
   socklen_t addr_len_ipv6;
 
   (void) cls;
+
+  pending_reversals = GNUNET_CONTAINER_multihashmap_create (16, GNUNET_NO);
   memset (&v4,0,sizeof(struct sockaddr_in));
   memset (&v6,0,sizeof(struct sockaddr_in6));
   cfg = c;
@@ -3647,6 +4027,7 @@ run (void *cls,
                                                    GNUNET_TIME_UNIT_MINUTES,
                                                    &init_socket_resolv,
                                                    &port);
+
   GNUNET_free (bindto);
   GNUNET_free (start);
 }

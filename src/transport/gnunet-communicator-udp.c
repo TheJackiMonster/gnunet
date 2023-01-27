@@ -3735,6 +3735,13 @@ do_broadcast (void *cls)
                                                  NULL);
 }
 
+static void
+try_connection_reversal (void *cls,
+                         const struct sockaddr *addr,
+                         socklen_t addrlen)
+{
+  /* FIXME: support reversal: #5529 */
+}
 
 /**
  * Setup communicator and launch network interactions.
@@ -3915,7 +3922,7 @@ run (void *cls,
                              (const struct sockaddr **) &in,
                              &in_len,
                              &nat_address_cb,
-                             NULL /* FIXME: support reversal: #5529 */,
+                             try_connection_reversal,
                              NULL /* closure */);
 }
 
