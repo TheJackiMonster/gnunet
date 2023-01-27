@@ -145,12 +145,12 @@ netjail_node_link_bridge() {
 	local BRIDGE=$2
 	local ADDRESS=$3
 	local MASK=$4
-	
+
 	netjail_next_interface
 	local NUM_IF=$RESULT
 	netjail_next_interface
 	local NUM_BR=$RESULT
-	
+
 	local LINK_IF=$(printf $INTERFACE_FORMAT_STRING $PREPREFIX $PREFIX $NUM_IF)
 	local LINK_BR=$(printf $INTERFACE_FORMAT_STRING $PREPREFIX $PREFIX $NUM_BR)
 
@@ -163,18 +163,18 @@ netjail_node_link_bridge() {
 	ip -n $NODE link set up dev lo
 
 	ip link set $LINK_BR up
-	
-	RESULT=$LINK_BR
+
+	RESULT=$LINK_IF
 }
 
 netjail_node_link_bridge_name() {
-	
+
 	netjail_next_interface
 	netjail_next_interface
 	local NUM_BR=$RESULT
-	
+
 	local LINK_BR=$(printf $INTERFACE_FORMAT_STRING $PREPREFIX $PREFIX $NUM_BR)
-	
+
 	RESULT=$LINK_BR
 }
 
