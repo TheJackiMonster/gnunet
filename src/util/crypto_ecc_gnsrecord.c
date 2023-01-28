@@ -361,7 +361,9 @@ GNUNET_CRYPTO_eddsa_private_key_derive (
   gcry_mpi_release (h);
   gcry_mpi_release (x);
   gcry_mpi_release (n);
+  gcry_mpi_release (h_mod_n);
   gcry_mpi_release (a1);
+  gcry_mpi_release (eight);
   gcry_mpi_release (a2);
   gcry_ctx_release (ctx);
   GNUNET_CRYPTO_mpi_print_unsigned (dc, sizeof(dc), d);
