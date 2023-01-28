@@ -174,6 +174,8 @@ endif
 noinst_PROGRAMS = \
  gnunet-config-diff \
  test_common_logging_dummy \
+ test_scheduler_hogging_cancel \
+ test_scheduler_hogging_priority \
  gnunet-crypto-tvg
 
 if ENABLE_TEST_RUN
@@ -585,6 +587,16 @@ test_scheduler_LDADD = \
 test_scheduler_delay_SOURCES = \
  test_scheduler_delay.c
 test_scheduler_delay_LDADD = \
+ libgnunetutil.la
+
+test_scheduler_hogging_cancel_SOURCES = \
+ test_scheduler_hogging_cancel.c
+test_scheduler_hogging_cancel_LDADD = \
+ libgnunetutil.la
+
+test_scheduler_hogging_priority_SOURCES = \
+ test_scheduler_hogging_priority.c
+test_scheduler_hogging_priority_LDADD = \
  libgnunetutil.la
 
 test_service_SOURCES = \
