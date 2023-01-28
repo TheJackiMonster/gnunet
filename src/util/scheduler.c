@@ -248,6 +248,13 @@ struct GNUNET_SCHEDULER_Task
   struct GNUNET_AsyncScopeSave scope;
 };
 
+/**
+ * Placed at the end of a ready queue to indicate where a scheduler run pass
+ * ends. The next, prev, in_ready_list and priority fields are the only ones
+ * that should be used.
+ */
+static struct GNUNET_SCHEDULER_Task pass_end_marker;
+
 
 /**
  * A struct representing an event the select driver is waiting for
@@ -503,6 +510,27 @@ get_timeout ()
   return timeout;
 }
 
+static void remove_pass_end_marker ()
+{
+  if (pass_end_marker.in_ready_list)
+  {
+    GNUNET_CONTAINER_DLL_remove (ready_head[pass_end_marker.priority],
+                                 ready_tail[pass_end_marker.priority],
+                                 &pass_end_marker);
+    pass_end_marker.in_ready_list = GNUNET_NO;
+  }
+}
+
+static void set_work_priority (enum GNUNET_SCHEDULER_Priority p)
+{
+  remove_pass_end_marker ();
+  GNUNET_CONTAINER_DLL_insert_tail (ready_head[p],
+                                    ready_tail[p],
+                                    &pass_end_marker);
+  pass_end_marker.priority = p;
+  pass_end_marker.in_ready_list = GNUNET_YES;
+  work_priority = p;
+}
 
 /**
  * Put a task that is ready for execution into the ready queue.
@@ -518,7 +546,7 @@ queue_ready_task (struct GNUNET_SCHEDULER_Task *task)
                                     ready_tail[p],
                                     task);
   if (p > work_priority)
-    work_priority = p;
+    set_work_priority (p);
   task->in_ready_list = GNUNET_YES;
   ready_count++;
 }
@@ -752,6 +780,9 @@ GNUNET_SCHEDULER_get_load (enum GNUNET_SCHEDULER_Priority p)
        NULL != pos;
        pos = pos->next)
     ret++;
+  if (pass_end_marker.in_ready_list && pass_end_marker.priority == p)
+    // Don't count the dummy marker
+    ret--;
   return ret;
 }
 
@@ -2050,8 +2081,9 @@ GNUNET_SCHEDULER_do_work (struct GNUNET_SCHEDULER_Handle *sh)
 
     /* process all *existing* tasks at this priority
        level, then yield */
-    last = ready_tail[work_priority];
-    while (NULL != (pos = ready_head[work_priority]))
+    set_work_priority (work_priority);
+    while (NULL != (pos = ready_head[work_priority])
+           && pos != &pass_end_marker)
     {
       GNUNET_CONTAINER_DLL_remove (ready_head[work_priority],
                                    ready_tail[work_priority],
@@ -2121,14 +2153,8 @@ GNUNET_SCHEDULER_do_work (struct GNUNET_SCHEDULER_Handle *sh)
       active_task = NULL;
       dump_backtrace (pos);
       destroy_task (pos);
-      /* pointer 'pos' was free'd, but we can still safely check for
-         pointer equality still. */
-      if (pos == last)
-        break; /* All tasks that _were_ ready when we started were
-                  executed. New tasks may have been added in the
-                  meantime, but we should check with the OS to
-                  be sure no higher-priority actions are pending! */
     }
+    remove_pass_end_marker ();
   }
   shutdown_if_no_lifeness ();
   if (0 == ready_count)

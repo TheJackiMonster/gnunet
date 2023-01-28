@@ -174,8 +174,6 @@ endif
 noinst_PROGRAMS = \
  gnunet-config-diff \
  test_common_logging_dummy \
- test_scheduler_hogging_cancel \
- test_scheduler_hogging_priority \
  gnunet-crypto-tvg
 
 if ENABLE_TEST_RUN
@@ -323,6 +321,8 @@ check_PROGRAMS = \
  test_resolver_api.nc \
  test_scheduler \
  test_scheduler_delay \
+ test_scheduler_hogging_cancel \
+ test_scheduler_hogging_priority \
  test_service \
  test_strings \
  test_strings_to_data \
