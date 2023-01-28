@@ -67,7 +67,7 @@ register_hashcode (struct GNUNET_HashCode *hash)
 
 static void
 iter_hashcodes (struct IBF_Key key,
-                GNUNET_CONTAINER_MulitHashMapIteratorCallback iter,
+                GNUNET_CONTAINER_MultiHashMapIteratorCallback iter,
                 void *cls)
 {
   struct GNUNET_HashCode replicated;

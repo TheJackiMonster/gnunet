@@ -308,7 +308,7 @@ GNUNET_CONTAINER_multihashmap_get (
 int
 GNUNET_CONTAINER_multihashmap_iterate (
   struct GNUNET_CONTAINER_MultiHashMap *map,
-  GNUNET_CONTAINER_MulitHashMapIteratorCallback it,
+  GNUNET_CONTAINER_MultiHashMapIteratorCallback it,
   void *it_cls)
 {
   int count;
@@ -781,7 +781,7 @@ int
 GNUNET_CONTAINER_multihashmap_get_multiple (
   struct GNUNET_CONTAINER_MultiHashMap *map,
   const struct GNUNET_HashCode *key,
-  GNUNET_CONTAINER_MulitHashMapIteratorCallback it,
+  GNUNET_CONTAINER_MultiHashMapIteratorCallback it,
   void *it_cls)
 {
   int count;
@@ -847,7 +847,7 @@ GNUNET_CONTAINER_multihashmap_get_multiple (
 unsigned int
 GNUNET_CONTAINER_multihashmap_get_random (
   const struct GNUNET_CONTAINER_MultiHashMap *map,
-  GNUNET_CONTAINER_MulitHashMapIteratorCallback it,
+  GNUNET_CONTAINER_MultiHashMapIteratorCallback it,
   void *it_cls)
 {
   unsigned int off;
