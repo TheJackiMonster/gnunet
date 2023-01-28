@@ -489,7 +489,7 @@ AC_ARG_ENABLE([gcc-hardening],
   [AS_HELP_STRING([--enable-gcc-hardening], [enable compiler security checks])],
   [AS_IF([test "x$enableval" = "xyes"],
      [CFLAGS="$CFLAGS -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -fstack-protector-all"
-      CFLAGS="$CFLAGS -fwrapv -fPIE -Wstacl-protector"
+      CFLAGS="$CFLAGS -fwrapv -fPIE -Wstack-protector"
       CFLAGS="$CFLAGS --param ssp-buffer-size=1"
       LDFLAGS="$LDFLAGS -pie"])])
 
