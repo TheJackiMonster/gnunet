@@ -78,6 +78,7 @@ run (void *cls, char *const *args, const char *cfgfile,
   rd[1].expiration_time = expiration_abs_shadow.abs_value_us;
   rd[1].record_type = TEST_RECORD_TYPE;
   rd[1].data_size = TEST_RECORD_DATALEN;
+  GNUNET_free (rd[1].data);
   rd[1].data = GNUNET_malloc (TEST_RECORD_DATALEN);
   rd[1].flags = GNUNET_GNSRECORD_RF_SHADOW;
   memset ((char *) rd[1].data, TEST_RECORD_DATA, TEST_RECORD_DATALEN);
@@ -86,6 +87,8 @@ run (void *cls, char *const *args, const char *cfgfile,
                  GNUNET_GNSRECORD_record_get_expiration_time (2,
                                                               rd,
 							      GNUNET_TIME_UNIT_ZERO_ABS).abs_value_us);
+  GNUNET_free (rd[0].data);
+  GNUNET_free (rd[1].data);
   res = 0;
 }
 
