@@ -207,6 +207,7 @@ main (int argc,
              url);
     GNUNET_free (url);
   }
+  GNUNET_HELLO_builder_free (b);
 
   return 0;
 }
