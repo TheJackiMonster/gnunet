@@ -226,13 +226,12 @@ main (int argc, char *const *argv)
     GNUNET_GETOPT_OPTION_END
   };
 
-
   if (GNUNET_OK !=
       GNUNET_STRINGS_get_utf8_args (argc, argv,
                                     &argc, &argv))
     return 2;
   expiration = GNUNET_TIME_UNIT_HOURS;
-  return (GNUNET_OK ==
+  ret = (GNUNET_OK ==
           GNUNET_PROGRAM_run (
             argc,
             argv,
@@ -242,8 +241,10 @@ main (int argc, char *const *argv)
             options,
             &run,
             NULL))
-         ? ret
-         : 1;
+        ? ret
+        : 1;
+  GNUNET_free (argv);
+  return ret;
 }
 
 
