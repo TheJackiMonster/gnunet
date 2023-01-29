@@ -1552,6 +1552,16 @@ check_byzantine_bounds (struct Operation *op)
 }
 
 
+static enum GNUNET_GenericReturnValue
+free_values_iter(void *cls,
+                 const struct GNUNET_HashCode *key,
+                 void *value)
+{
+  GNUNET_free (value);
+  return GNUNET_YES;
+}
+
+
 /* FIXME: the destroy logic is a mess and should be cleaned up! */
 
 /**
@@ -1604,6 +1614,19 @@ _GSS_operation_destroy (struct Operation *op)
                                              NULL);
     GNUNET_CONTAINER_multihashmap32_destroy (op->key_to_element);
     op->key_to_element = NULL;
+  }
+  if (NULL != op->message_control_flow)
+  {
+    GNUNET_CONTAINER_multihashmap_iterate (op->message_control_flow,
+                                           &free_values_iter,
+                                           NULL);
+    GNUNET_CONTAINER_multihashmap_destroy (op->message_control_flow);
+    op->message_control_flow = NULL;
+  }
+  if (NULL != op->inquiries_sent)
+  {
+    GNUNET_CONTAINER_multihashmap_destroy (op->inquiries_sent);
+    op->inquiries_sent = NULL;
   }
   if (NULL != set)
   {
