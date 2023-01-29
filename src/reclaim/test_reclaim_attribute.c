@@ -45,4 +45,5 @@ main (int argc, char *argv[])
   //GNUNET_assert (-1 != deser_len);
   GNUNET_free (ser_data);
   GNUNET_RECLAIM_attribute_list_destroy (al);
+  GNUNET_RECLAIM_attribute_list_destroy (al_two);
 }

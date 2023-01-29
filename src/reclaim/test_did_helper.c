@@ -69,6 +69,7 @@ test_GNUNET_DID_pkey_to_did ()
   char *str_did;
   str_did = DID_pkey_to_did (&test_pkey);
   GNUNET_assert (strcmp ((char *) test_did, str_did) == 0);
+  GNUNET_free (str_did);
 }
 
 void
@@ -93,6 +94,7 @@ test_GNUNET_DID_key_convert_gnunet_to_multibase_base64 ()
   multibase_key = DID_key_convert_gnunet_to_multibase_base64 (&test_pkey);
 
   GNUNET_assert (strcmp (test_multibase_key, multibase_key) == 0);
+  GNUNET_free (multibase_key);
 }
 
 void
@@ -102,6 +104,8 @@ test_GNUNET_DID_pkey_to_did_document ()
   char *did_document_str = DID_pkey_to_did_document (&test_pkey);
   did_document = json_loads (did_document_str, JSON_DECODE_ANY, NULL);
   GNUNET_assert (json_equal (test_did_document, did_document) == 1);
+  json_decref (did_document);
+  GNUNET_free (did_document_str);
 }
 
 int
@@ -128,5 +132,6 @@ main ()
   test_GNUNET_DID_did_to_pkey ();
   test_GNUNET_DID_pkey_to_did_document ();
   test_GNUNET_DID_key_convert_gnunet_to_multibase_base64 ();
+  json_decref (test_did_document);
   return 0;
 }
