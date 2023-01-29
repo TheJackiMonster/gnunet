@@ -85,7 +85,8 @@ salt_key (const struct IBF_Key *k_in,
   uint64_t x = k_in->key_val;
 
   /* rotate ibf key */
-  x = (x >> s) | (x << (64 - s));
+  if (s > 0)
+    x = (x >> s) | (x << (64 - s));
   k_out->key_val = x;
 }
 
