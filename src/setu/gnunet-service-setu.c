@@ -5043,7 +5043,7 @@ handle_client_evaluate (void *cls,
 #endif
 
   /* Advance generation values, so that
-     mutations won't interfer with the running operation. */
+     mutations won't interfere with the running operation. */
   op->set = set;
   op->generation_created = set->current_generation;
   advance_generation (set);

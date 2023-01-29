@@ -118,7 +118,7 @@ do_abort (void *cls)
 /**
  * Callback to be called when the requested peer information is available
  *
- * @param cb_cls the closure from GNUNET_TETSBED_peer_get_information()
+ * @param cb_cls the closure from GNUNET_TESTBED_peer_get_information()
  * @param op the operation this callback corresponds to
  * @param pinfo the result; will be NULL if the operation has failed
  * @param emsg error message if the operation has failed; will be NULL if the

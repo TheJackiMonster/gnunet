@@ -994,7 +994,7 @@ GNUNET_MQ_destroy_notify_cancel (
  * Call the message message handler that was registered
  * for the type of the given message in the given message queue.
  *
- * This function is indented to be used for the implementation
+ * This function is intended to be used for the implementation
  * of message queues.
  *
  * @param mq message queue with the handlers

@@ -792,7 +792,7 @@ free_argv (char **argv)
  * be set locally in the function from its parameteres. If the environmental
  * variable is not found then it defaults to `ssh -o BatchMode=yes -o
  * NoHostAuthenticationForLocalhost=yes -o StrictHostkeyChecking=no -o
- * PasswordAuthentication=noc'
+ * PasswordAuthentication=no'
  *
  * @param port the destination port number
  * @param hostname the hostname of the target host
@@ -872,7 +872,7 @@ gen_rsh_args (const char *port, const char *hostname, const char *username)
 /**
  * Generates the arguments needed for executing the given binary in a remote
  * shell. Builds the arguments from the environmental variable
- * GNUNET_TETSBED_RSH_CMD_SUFFIX. If the environmental variable is not found,
+ * GNUNET_TESTBED_RSH_CMD_SUFFIX. If the environmental variable is not found,
  * only the given binary name will be present in the returned arguments
  *
  * @param append_args the arguments to append after generating the suffix
@@ -1054,7 +1054,7 @@ GNUNET_TESTBED_controller_start (const char *trusted_ip,
   host->locked = GNUNET_YES;
   API_VIOLATION (
     GNUNET_NO == host->controller_started,
-    "Attempting to start a controller on a host which is already started a controller");
+    "Attempting to start a controller on a host on which a controller is already started");
   cp = GNUNET_new (struct GNUNET_TESTBED_ControllerProc);
   if (0 == GNUNET_TESTBED_host_get_id_ (host))
   {
