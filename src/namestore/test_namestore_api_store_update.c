@@ -143,6 +143,7 @@ lookup_success (void *cls,
                                            &rd_new,
                                            &put_cont,
                                            (void *) name);
+    GNUNET_free (rd_new.data);
     update_performed = GNUNET_YES;
   }
   else
@@ -259,6 +260,7 @@ main (int argc,
   }
   GNUNET_DISK_purge_cfg_dir (cfg_name,
                              "GNUNET_TEST_HOME");
+  GNUNET_free (plugin_name);
   GNUNET_free (cfg_name);
   return res;
 }
