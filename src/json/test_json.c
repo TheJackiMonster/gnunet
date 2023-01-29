@@ -141,6 +141,7 @@ test_raw ()
     GNUNET_assert (NULL != j);
     GNUNET_assert (GNUNET_OK == GNUNET_JSON_parse (j, spec, NULL, NULL));
     GNUNET_assert (0 == memcmp (blob, blob2, i));
+    json_decref (j);
   }
   return 0;
 }
@@ -177,6 +178,8 @@ test_rsa ()
   GNUNET_assert (GNUNET_OK == GNUNET_JSON_parse (js, sspec, NULL, NULL));
   GNUNET_break (0 == GNUNET_CRYPTO_rsa_signature_cmp (sig, sig2));
   GNUNET_break (0 == GNUNET_CRYPTO_rsa_public_key_cmp (pub, pub2));
+  json_decref (jp);
+  json_decref (js);
   GNUNET_CRYPTO_rsa_signature_free (sig);
   GNUNET_CRYPTO_rsa_signature_free (sig2);
   GNUNET_CRYPTO_rsa_private_key_free (priv);
@@ -215,6 +218,8 @@ test_boolean ()
   json_object_set_new (json, "b1", json_integer (42));
 
   GNUNET_assert (GNUNET_OK != GNUNET_JSON_parse (json, pspec, NULL, NULL));
+
+  json_decref (json);
 
   return 0;
 }
