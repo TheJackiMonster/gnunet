@@ -608,9 +608,10 @@ handle_iterate_end (void *cls, const struct GNUNET_MessageHeader *msg)
   callback_cls = ic->callback_cls;
   ic->iterating = GNUNET_NO;
   GNUNET_PEERSTORE_iterate_cancel (ic);
+  /* NOTE: set this here and not after callback because callback may free h */
+  h->reconnect_delay = GNUNET_TIME_UNIT_ZERO;
   if (NULL != callback)
     callback (callback_cls, NULL, NULL);
-  h->reconnect_delay = GNUNET_TIME_UNIT_ZERO;
 }
 
 
@@ -781,9 +782,9 @@ handle_watch_record (void *cls, const struct StoreRecordMessage *msg)
     disconnect_and_schedule_reconnect (h);
     return;
   }
+  h->reconnect_delay = GNUNET_TIME_UNIT_ZERO;
   if (NULL != wc->callback)
     wc->callback (wc->callback_cls, record, NULL);
-  h->reconnect_delay = GNUNET_TIME_UNIT_ZERO;
   PEERSTORE_destroy_record (record);
 }
 
