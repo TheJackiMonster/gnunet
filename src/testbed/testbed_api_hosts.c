@@ -1339,6 +1339,7 @@ GNUNET_TESTBED_is_host_habitable (
   if (NULL == h->auxp)
   {
     GNUNET_break (0);  /* Cannot exec SSH? */
+    free_argv (h->helper_argv);
     GNUNET_free (h);
     return NULL;
   }
