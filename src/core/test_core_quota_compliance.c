@@ -530,6 +530,7 @@ process_hello (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received (my) HELLO from transport service\n");
   GNUNET_assert (message != NULL);
+  if (NULL != p->hello) GNUNET_free (p->hello);
   p->hello = GNUNET_malloc (ntohs (message->size));
   GNUNET_memcpy (p->hello, message, ntohs (message->size));
   if ((p == &p1) &&
