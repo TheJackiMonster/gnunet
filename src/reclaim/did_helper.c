@@ -78,7 +78,7 @@ DID_identity_to_did (struct GNUNET_IDENTITY_Ego *ego)
 enum GNUNET_GenericReturnValue
 DID_did_to_pkey (const char *did, struct GNUNET_IDENTITY_PublicKey *pkey)
 {
-  char pkey_str[MAX_DID_SPECIFIC_IDENTIFIER_LENGTH];
+  char pkey_str[MAX_DID_SPECIFIC_IDENTIFIER_LENGTH + 1]; /* 0-term */
 
   if ((1 != (sscanf (did,
                      GNUNET_DID_METHOD_PREFIX "%"
