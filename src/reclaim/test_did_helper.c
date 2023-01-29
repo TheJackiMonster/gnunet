@@ -84,13 +84,13 @@ test_GNUNET_DID_did_to_pkey ()
 }
 
 // void
-// test_GNUNET_DID_key_covert_multibase_base64_to_gnunet ();
+// test_GNUNET_DID_key_convert_multibase_base64_to_gnunet ();
 
 void
-test_GNUNET_DID_key_covert_gnunet_to_multibase_base64 ()
+test_GNUNET_DID_key_convert_gnunet_to_multibase_base64 ()
 {
   char *multibase_key;
-  multibase_key = DID_key_covert_gnunet_to_multibase_base64 (&test_pkey);
+  multibase_key = DID_key_convert_gnunet_to_multibase_base64 (&test_pkey);
 
   GNUNET_assert (strcmp (test_multibase_key, multibase_key) == 0);
 }
@@ -127,6 +127,6 @@ main ()
   test_GNUNET_DID_pkey_to_did ();
   test_GNUNET_DID_did_to_pkey ();
   test_GNUNET_DID_pkey_to_did_document ();
-  test_GNUNET_DID_key_covert_gnunet_to_multibase_base64 ();
+  test_GNUNET_DID_key_convert_gnunet_to_multibase_base64 ();
   return 0;
 }
