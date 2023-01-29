@@ -154,6 +154,7 @@ check2 (void)
                                a1,
                                5));
   GNUNET_assert (5 == a1_len);
+  GNUNET_free (a1);
   return 0;
 }
 
