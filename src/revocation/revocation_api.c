@@ -427,20 +427,18 @@ check_signature_identity (const struct GNUNET_REVOCATION_PowP *pow,
   struct GNUNET_REVOCATION_SignaturePurposePS *spurp;
   unsigned char *sig;
   size_t ksize;
+  int ret;
 
   ksize = GNUNET_IDENTITY_public_key_get_length (key);
   spurp = REV_create_signature_message (pow);
   sig = ((unsigned char*) &pow[1] + ksize);
-  if (GNUNET_OK !=
-      GNUNET_IDENTITY_signature_verify_raw_ (
-        GNUNET_SIGNATURE_PURPOSE_REVOCATION,
-        &spurp->purpose,
-        sig,
-        key))
-  {
-    return GNUNET_SYSERR;
-  }
-  return GNUNET_OK;
+  ret =
+    GNUNET_IDENTITY_signature_verify_raw_ (GNUNET_SIGNATURE_PURPOSE_REVOCATION,
+                                           &spurp->purpose,
+                                           sig,
+                                           key);
+  GNUNET_free (spurp);
+  return ret == GNUNET_OK ? GNUNET_OK : GNUNET_SYSERR;
 }
 
 
@@ -588,6 +586,7 @@ sign_pow_identity (const struct GNUNET_IDENTITY_PrivateKey *key,
   int result = GNUNET_IDENTITY_sign_raw_ (key,
                                           &rp->purpose,
                                           (void*) sig);
+  GNUNET_free (rp);
   if (result == GNUNET_SYSERR)
     return GNUNET_NO;
   else
