@@ -1193,6 +1193,7 @@ run (void *cls,
         GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING,
                                   "write",
                                   basic_auth_file);
+      GNUNET_free (basic_auth_file);
     }
     else
     {
@@ -1205,8 +1206,10 @@ run (void *cls,
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     "Unable to read basic auth secret file.\n");
         GNUNET_SCHEDULER_shutdown ();
+        GNUNET_free (basic_auth_file);
         return;
       }
+      GNUNET_free (basic_auth_file);
       if (0 != getlogin_r (cuser, _POSIX_LOGIN_NAME_MAX))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
