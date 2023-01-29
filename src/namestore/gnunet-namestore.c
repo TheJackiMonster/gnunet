@@ -464,8 +464,10 @@ parse_recordline (const char *line)
                 _ ("Invalid record data for type %s: `%s'.\n"),
                 GNUNET_GNSRECORD_number_to_typename (record.record_type),
                 tok);
+    GNUNET_free (cp);
     return GNUNET_SYSERR;
   }
+  GNUNET_free (cp);
 
   r = GNUNET_malloc (sizeof(struct RecordSetEntry) + record.data_size);
   r->next = *head;
