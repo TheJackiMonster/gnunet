@@ -800,10 +800,7 @@ struct TransportDVBoxMessage
   /**
    * Size this msg had initially. This is needed to calculate the hmac at the target.
    * The header size can not be used for that, because the box size is getting smaller at each hop.
-   */
-  /**
-   * The length of the struct (in bytes, including the length field itself),
-   * in big-endian format.
+   *
    */
   uint16_t orig_size GNUNET_PACKED;
 
@@ -10383,9 +10380,10 @@ suggest_to_connect (const struct GNUNET_PeerIdentity *pid, const char *address)
   }
   /* forward suggestion for queue creation to communicator */
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Request #%u for `%s' communicator to create queue to `%s'\n",
+              "Request #%u for `%s' communicator to create queue to `%s' at `%s'\n",
               (unsigned int) idgen,
               prefix,
+              GNUNET_i2s (pid),
               address);
   GNUNET_free (prefix);
   alen = strlen (address) + 1;
@@ -10661,6 +10659,30 @@ start_dv_learn (void *cls)
 
 
 /**
+ * Get the IP address without the port number.
+ *
+ * @param address The string contains a communicator prefix, IP address and port
+ *        like this 'tcp-92.68.150.1:55452'.
+ * @return String with IP address only.
+ */
+static char *
+get_address_without_port (const char *address)
+{
+  const char *colon;
+  char *colon_rest;
+  size_t colon_rest_length;
+  char *address_without_port;
+
+  colon = strchr (address,':');
+  colon_rest = GNUNET_strndup (address, colon - address);
+  colon_rest_length = strlen (colon_rest);
+  address_without_port = GNUNET_strndup (&colon_rest[4], colon_rest_length - 4);
+  GNUNET_free (colon_rest);
+
+  return address_without_port;
+}
+
+/**
  * A new queue has been created, check if any address validation
  * requests have been waiting for it.
  *
@@ -10676,16 +10698,31 @@ check_validation_request_pending (void *cls,
 {
   struct Queue *q = cls;
   struct ValidationState *vs = value;
+  char *address_without_port_vs;
+  char *address_without_port_q;
+  int success = GNUNET_YES;
 
+  address_without_port_vs = get_address_without_port (vs->address);
+  address_without_port_q = get_address_without_port (q->address);
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Check validation request pending for `%s' at `%s'/`%s' (vs)/(q)\n",
+              GNUNET_i2s (pid),
+              address_without_port_vs,
+              address_without_port_q);
   (void) pid;
   if ((GNUNET_YES == vs->awaiting_queue) &&
-      (0 == strcmp (vs->address, q->address)))
+      (0 == strcmp (address_without_port_vs, address_without_port_q)))
   {
+    
     vs->awaiting_queue = GNUNET_NO;
     validation_transmit_on_queue (q, vs);
-    return GNUNET_NO;
+    success = GNUNET_NO;
   }
-  return GNUNET_OK;
+
+  GNUNET_free (address_without_port_vs);
+  GNUNET_free (address_without_port_q);
+  return success;
 }
 
 

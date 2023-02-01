@@ -760,6 +760,7 @@ endif
 # Only test TNG if we run experimental
 if HAVE_EXPERIMENTAL
 check_SCRIPTS= \
+test_transport_nat_icmp_tcp.sh \
   test_transport_nat_upnp.sh \
   test_transport_simple_send_string.sh \
   test_transport_simple_send.sh \
@@ -1509,6 +1510,7 @@ test_transport_api_slow_ats_LDADD = \
 
 
 EXTRA_DIST = \
+test_transport_nat_icmp_tcp.sh \
 test_transport_nat_upnp.sh \
 test_transport_simple_send_string.sh \
 test_transport_simple_send.sh \

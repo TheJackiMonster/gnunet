@@ -97,6 +97,13 @@ connect_peers_run (void *cls,
                                          pos_prefix->address_prefix);
       if (NULL != addr)
       {
+        char *natted_p = strstr (pos_prefix->address_prefix, "_");
+
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "0 validating peer number %s %s %s\n",
+                    natted_p,
+                    pos_prefix->address_prefix,
+                    addr);
         if (0 == GNUNET_memcmp (pos_prefix->address_prefix, "udp"))
           GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                       "validating memcmp\n");
@@ -108,10 +115,28 @@ connect_peers_run (void *cls,
           GNUNET_asprintf (&addr_and_port,
                            "%s:2086",
                            addr);
-        else
+        else if (NULL == natted_p)
           GNUNET_asprintf (&addr_and_port,
                            "%s:60002",
                            addr);
+        else if (NULL != natted_p)
+        {
+          char *prefix;
+          char *rest;
+          char *rest2;
+          char *address;
+
+          prefix = strtok(addr, "_");
+          rest = strtok(NULL, "_");
+          rest2 = strtok(rest, "-");
+          address = strtok(NULL, "-");
+
+          GNUNET_asprintf (&addr_and_port,
+                           "%s-%s:0",
+                           prefix,
+                           address);
+
+        }
         peer = GNUNET_TESTING_get_peer (num, tl_system);
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                     "validating peer number %u with identity %s and address %s %u %s\n",

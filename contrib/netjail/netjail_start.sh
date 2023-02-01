@@ -52,6 +52,13 @@ for X in $(seq $KNOWN); do
 	KNOWN_NODES[$X]=$RESULT
 	netjail_node_link_bridge ${KNOWN_NODES[$X]} $NETWORK_NET "$KNOWN_GROUP.$X" 16
 	KNOWN_LINKS[$X]=$RESULT
+
+    # Execute echo 1 > /proc/sys/net/netfilter/nf_log_all_netns to make itables log to the host.
+    #ip netns exec ${KNOWN_NODES[$X]} iptables -A INPUT -j LOG --log-prefix '** Known ${KNOWN_NODES[$X]}  **'
+    #ip netns exec ${KNOWN_NODES[$X]} iptables -A OUTPUT -j LOG --log-prefix '** Known ${KNOWN_NODES[$X]}  **'
+    ip netns exec ${KNOWN_NODES[$X]} iptables -A OUTPUT -p icmp -j ACCEPT
+    ip netns exec ${KNOWN_NODES[$X]} iptables -A INPUT -p icmp -j ACCEPT
+    
 done
 
 declare -A NODES
@@ -61,18 +68,36 @@ for N in $(seq $GLOBAL_N); do
 	netjail_node
 	ROUTERS[$N]=$RESULT
 	netjail_node_link_bridge ${ROUTERS[$N]} $NETWORK_NET "$GLOBAL_GROUP.$N" 16
-	NETWORK_LINKS[$N]=$RESULT
+	ROUTER_EXT_IF[$N]=$RESULT
 	netjail_bridge
 	ROUTER_NETS[$N]=$RESULT
-	
+
+    #ip netns exec ${ROUTERS[$N]} iptables -A INPUT -j LOG --log-prefix '** Router ${ROUTERS[$N]}  **'
+    ip netns exec ${ROUTERS[$N]} iptables -A INPUT -p icmp -j ACCEPT
+    ip netns exec ${ROUTERS[$N]} iptables -t nat -A PREROUTING -p icmp -d $GLOBAL_GROUP.$N -j DNAT --to $LOCAL_GROUP.1
+    ip netns exec ${ROUTERS[$N]} iptables -A FORWARD -p icmp -d $LOCAL_GROUP.1  -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
+    #ip netns exec ${ROUTERS[$N]} iptables -A OUTPUT -j LOG --log-prefix '** Router ${ROUTERS[$N]}  **'
+    ip netns exec ${ROUTERS[$N]} iptables -A OUTPUT -p icmp -j ACCEPT
+    
 	for M in $(seq $LOCAL_M); do
 		netjail_node
 		NODES[$N,$M]=$RESULT
 		netjail_node_link_bridge ${NODES[$N,$M]} ${ROUTER_NETS[$N]} "$LOCAL_GROUP.$M" 24
 		NODE_LINKS[$N,$M]=$RESULT
+
+        #ip netns exec ${NODES[$N,$M]} iptables -A INPUT -j LOG --log-prefix '** Node ${NODES[$N,$M]}  **'
+        #ip netns exec ${NODES[$N,$M]} iptables -A OUTPUT -j LOG --log-prefix '** Node ${NODES[$N,$M]}  **'
+        ip netns exec ${NODES[$N,$M]} iptables -A OUTPUT -p icmp -j ACCEPT
+        ip netns exec ${NODES[$N,$M]} iptables -A INPUT -p icmp -j ACCEPT 
 	done
 
 	ROUTER_ADDR="$LOCAL_GROUP.$(($LOCAL_M+1))"
+
+    let X=$KNOWN+1
+    ip netns exec ${ROUTERS[$N]} ip route add "$KNOWN_GROUP.$X" dev ${ROUTER_EXT_IF[$N]}
+    ip netns exec ${ROUTERS[$N]} ip route add default via "$KNOWN_GROUP.$X"
+
+    
 	netjail_node_link_bridge ${ROUTERS[$N]} ${ROUTER_NETS[$N]} $ROUTER_ADDR 24
 	ROUTER_LINKS[$N]=$RESULT
 	
@@ -135,3 +160,8 @@ for N in $(seq $GLOBAL_N); do
         ip netns exec ${ROUTERS[$N]} ./${R_SCRIPT[$N]} ${ROUTER_NETS[$N]} 1
     fi
 done
+
+# We like to have a node acting as a gateway for all router nodes. This is especially needed for sending fake ICMP packets.
+netjail_node
+GATEWAY=$RESULT
+netjail_node_link_bridge $GATEWAY $NETWORK_NET "$KNOWN_GROUP.$X" 16

@@ -63,6 +63,10 @@
 
 #define PREFIX_UDP "udp"
 
+#define PREFIX_TCP_NATTED "tcp_natted"
+
+#define PREFIX_UDP_NATTED "udp_natted"
+
 /**
  * Lowest port used for GNUnet testing.  Should be high enough to not
  * conflict with other applications running on the hosts but be low
@@ -1914,7 +1918,7 @@ get_value (const char *key, const char *line)
  * Every line in the topology configuration starts with a string indicating which 
  * kind of information will be configured with this line. Configuration values following
  * this string are seperated by special sequences of characters. A value might be 
- * a key value pair. A special key is the 'connect' which can appear more than once.
+ * a key value pair. A special key is the 'connect' key which can appear more than once.
  * The value is the information about a connection via some protocol to some other node.
  * This function returns the struct GNUNET_TESTING_NodeConnection which holds the information
  * of the connect value.
@@ -2419,7 +2423,8 @@ GNUNET_TESTING_get_address (struct GNUNET_TESTING_NodeConnection *connection,
   unsigned int node_n;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "node_n: %u\n",
+       "get address prefix: %s node_n: %u\n",
+       prefix,
        connection->node_n);
 
   node = connection->node;
@@ -2443,15 +2448,10 @@ GNUNET_TESTING_get_address (struct GNUNET_TESTING_NodeConnection *connection,
     return NULL;
   }
 
-  if (0 == strcmp (PREFIX_TCP, prefix))
-  {
-
-    GNUNET_asprintf (&addr,
-                     template,
-                     prefix,
-                     node_n);
-  }
-  else if (0 == strcmp (PREFIX_UDP, prefix))
+  if (0 == strcmp (PREFIX_TCP, prefix) ||
+      0 == strcmp (PREFIX_UDP, prefix) ||
+      0 == strcmp (PREFIX_UDP_NATTED, prefix) ||
+      0 == strcmp (PREFIX_TCP_NATTED, prefix))
   {
     GNUNET_asprintf (&addr,
                      template,

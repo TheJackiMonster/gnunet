@@ -1048,21 +1048,10 @@ GNUNET_TRANSPORT_communicator_address_remove (
   struct GNUNET_TRANSPORT_CommunicatorHandle *ch = ai->ch;
 
   send_del_address (ai);
-  if (NULL == ai->prev)
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "prev null\n");
-  if (ch->ai_head == ai)
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "equals head\n");
-  if (NULL == ai->next)
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "next null\n");
-  if (ch->ai_tail == ai)
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "equals tail\n");
   GNUNET_CONTAINER_DLL_remove (ch->ai_head, ch->ai_tail, ai);
   GNUNET_free (ai->address);
   GNUNET_free (ai);
+  ai = NULL;
 }
 
 /**
@@ -1074,9 +1063,13 @@ void
 GNUNET_TRANSPORT_communicator_address_remove_all (
   struct GNUNET_TRANSPORT_CommunicatorHandle *ch)
 {
-  for (struct GNUNET_TRANSPORT_AddressIdentifier *ai = ch->ai_head; NULL != ai;
-       ai = ai->next)
+  struct GNUNET_TRANSPORT_AddressIdentifier *ai = ch->ai_head;
+  while (NULL != ai)
+  {
+    struct GNUNET_TRANSPORT_AddressIdentifier *ai_next = ai->next;
     GNUNET_TRANSPORT_communicator_address_remove (ai);
+    ai = ai_next;
+  }
 }
 
 

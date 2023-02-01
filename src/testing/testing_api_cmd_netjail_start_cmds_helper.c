@@ -489,6 +489,7 @@ helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
     } else if (ns->number_of_local_tests_finished == total_number)
     {
       GNUNET_SCHEDULER_cancel (ns->timeout_task);
+      ns->timeout_task = NULL;
       GNUNET_TESTING_async_finish (&ns->ac);
     }
     break;
@@ -525,7 +526,8 @@ exp_cb (void *cls)
   struct NetJailState *ns = cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Called exp_cb.\n");
-  GNUNET_SCHEDULER_cancel (ns->timeout_task);
+  if (NULL != ns->timeout_task)
+    GNUNET_SCHEDULER_cancel (ns->timeout_task);
   GNUNET_TESTING_async_fail (&(ns->ac));
 }
 

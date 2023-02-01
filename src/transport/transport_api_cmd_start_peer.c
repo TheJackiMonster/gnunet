@@ -244,6 +244,7 @@ start_peer_run (void *cls,
                                          "UNIXPATH",
                                          udp_communicator_unix_path);
 
+
   system_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                           sps->system_label);
   GNUNET_TESTING_get_trait_test_system (system_cmd,
@@ -384,11 +385,12 @@ start_peer_cleanup (void *cls)
     GNUNET_free (sps->handlers);
     sps->handlers = NULL;
   }
-  if (NULL != sps->cfg)
+  //TODO Investigate why this caused problems during shutdown.
+  /*if (NULL != sps->cfg)
   {
     GNUNET_CONFIGURATION_destroy (sps->cfg);
     sps->cfg = NULL;
-  }
+    }*/
   GNUNET_free (sps->cfgname);
   GNUNET_free (sps->node_ip);
   GNUNET_free (sps->system_label);
