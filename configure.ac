@@ -935,6 +935,19 @@ AC_ARG_WITH([mysql],
 AC_SUBST(MYSQL_LDFLAGS)
 AC_SUBST(MYSQL_CPPFLAGS)
 
+# check for my_bool
+AS_IF([test "x$mysql" = "xtrue"],
+  [AC_MSG_CHECKING([for my_bool])
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+     [[#include <mysql/mysql.h>]],
+     [[#ifndef my_bool
+#no my_bool found
+#endif]])],
+      [AC_MSG_RESULT([yes])
+       AC_DEFINE_UNQUOTED([MYSQL_BOOL], [my_bool], [Bool variable for some mysql versions])],
+      [AC_MSG_RESULT([no])
+       AC_DEFINE_UNQUOTED([MYSQL_BOOL], [bool], [Normal boolean value])])])
+
 # additional version checks for mysql
 AS_IF([test "x$mysql" = "xtrue"],
   [AC_MSG_CHECKING([for mysql version])
