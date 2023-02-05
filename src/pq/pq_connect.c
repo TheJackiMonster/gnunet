@@ -166,7 +166,7 @@ GNUNET_PQ_exec_sql (struct GNUNET_PQ_Context *db,
               "Applying SQL file `%s' on database %s\n",
               fn,
               db->config_str);
-  psql = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_ERR,
+  psql = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_NONE,
                                   NULL,
                                   NULL,
                                   NULL,

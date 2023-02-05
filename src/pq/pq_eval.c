@@ -42,19 +42,6 @@
 #define PQ_DIAG_SQLSTATE_SERIALIZATION_FAILURE "40001"
 
 
-/**
- * Check the @a result's error code to see what happened.
- * Also logs errors.
- *
- * @param db database to execute the statement with
- * @param statement_name name of the statement that created @a result
- * @param result result to check
- * @return status code from the result, mapping PQ status
- *         codes to `enum GNUNET_DB_QueryStatus`.  Never
- *         returns positive values as this function does
- *         not look at the result set.
- * @deprecated (low level, let's see if we can do with just the high-level functions)
- */
 enum GNUNET_DB_QueryStatus
 GNUNET_PQ_eval_result (struct GNUNET_PQ_Context *db,
                        const char *statement_name,
@@ -144,22 +131,6 @@ GNUNET_PQ_eval_result (struct GNUNET_PQ_Context *db,
 }
 
 
-/**
- * Execute a named prepared @a statement that is NOT a SELECT
- * statement in @a connection using the given @a params.  Returns the
- * resulting session state.
- *
- * @param db database to execute the statement with
- * @param statement_name name of the statement
- * @param params parameters to give to the statement (#GNUNET_PQ_query_param_end-terminated)
- * @return status code from the result, mapping PQ status
- *         codes to `enum GNUNET_DB_QueryStatus`.  If the
- *         statement was a DELETE or UPDATE statement, the
- *         number of affected rows is returned.; if the
- *         statement was an INSERT statement, and no row
- *         was added due to a UNIQUE violation, we return
- *         zero; if INSERT was successful, we return one.
- */
 enum GNUNET_DB_QueryStatus
 GNUNET_PQ_eval_prepared_non_select (struct GNUNET_PQ_Context *db,
                                     const char *statement_name,
@@ -190,21 +161,6 @@ GNUNET_PQ_eval_prepared_non_select (struct GNUNET_PQ_Context *db,
 }
 
 
-/**
- * Execute a named prepared @a statement that is a SELECT statement
- * which may return multiple results in @a connection using the given
- * @a params.  Call @a rh with the results.  Returns the query
- * status including the number of results given to @a rh (possibly zero).
- * @a rh will not have been called if the return value is negative.
- *
- * @param db database to execute the statement with
- * @param statement_name name of the statement
- * @param params parameters to give to the statement (#GNUNET_PQ_query_param_end-terminated)
- * @param rh function to call with the result set, NULL to ignore
- * @param rh_cls closure to pass to @a rh
- * @return status code from the result, mapping PQ status
- *         codes to `enum GNUNET_DB_QueryStatus`.
- */
 enum GNUNET_DB_QueryStatus
 GNUNET_PQ_eval_prepared_multi_select (struct GNUNET_PQ_Context *db,
                                       const char *statement_name,
@@ -239,21 +195,6 @@ GNUNET_PQ_eval_prepared_multi_select (struct GNUNET_PQ_Context *db,
 }
 
 
-/**
- * Execute a named prepared @a statement that is a SELECT statement
- * which must return a single result in @a connection using the given
- * @a params.  Stores the result (if any) in @a rs, which the caller
- * must then clean up using #GNUNET_PQ_cleanup_result() if the return
- * value was #GNUNET_DB_STATUS_SUCCESS_ONE_RESULT.  Returns the
- * resulting session status.
- *
- * @param db database to execute the statement with
- * @param statement_name name of the statement
- * @param params parameters to give to the statement (#GNUNET_PQ_query_param_end-terminated)
- * @param[in,out] rs result specification to use for storing the result of the query
- * @return status code from the result, mapping PQ status
- *         codes to `enum GNUNET_DB_QueryStatus`.
- */
 enum GNUNET_DB_QueryStatus
 GNUNET_PQ_eval_prepared_singleton_select (
   struct GNUNET_PQ_Context *db,

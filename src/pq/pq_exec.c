@@ -26,12 +26,6 @@
 #include "pq.h"
 
 
-/**
- * Create a `struct GNUNET_PQ_ExecuteStatement` where errors are fatal.
- *
- * @param sql actual SQL statement
- * @return initialized struct
- */
 struct GNUNET_PQ_ExecuteStatement
 GNUNET_PQ_make_execute (const char *sql)
 {
@@ -44,13 +38,6 @@ GNUNET_PQ_make_execute (const char *sql)
 }
 
 
-/**
- * Create a `struct GNUNET_PQ_ExecuteStatement` where errors should
- * be tolerated.
- *
- * @param sql actual SQL statement
- * @return initialized struct
- */
 struct GNUNET_PQ_ExecuteStatement
 GNUNET_PQ_make_try_execute (const char *sql)
 {
