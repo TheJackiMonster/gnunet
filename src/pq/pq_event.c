@@ -525,7 +525,7 @@ GNUNET_PG_get_event_notify_channel (const struct GNUNET_DB_EventHeaderP *es)
   char *end;
 
   end = stpcpy (sql,
-                "NOTIFY X");
+                "X");
   end = es_to_channel (es,
                        end);
   GNUNET_assert (NULL != end);
