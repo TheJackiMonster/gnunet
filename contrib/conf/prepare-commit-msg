@@ -27,7 +27,7 @@ done
 if [ -z "$COMMIT_SOURCE" ];
 then
   hint=$(cat "$COMMIT_MSG_FILE")
-  echo -e "# Our commit subject format policy is:\n# <subsystem>: <description>\n# Adding 'Issue #1234'/'Fixes #1234' into the description will automatically update/resolve issue #1234 in mantis." >> "$COMMIT_MSG_FILE"
+  echo -e "# Our commit subject format policy is:\n# <subsystem>: <description>\n# Adding 'Issue #1234'/'Fixes #1234' into the description will automatically update/resolve issue #1234 in mantis." > "$COMMIT_MSG_FILE"
   if [ $RET = 1 ];
   then
     echo -e "# Your commit includes staged changes that indicate an API change which requires a NEWS line." >> "$COMMIT_MSG_FILE"

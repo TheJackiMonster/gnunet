@@ -935,6 +935,22 @@ AC_ARG_WITH([mysql],
 AC_SUBST(MYSQL_LDFLAGS)
 AC_SUBST(MYSQL_CPPFLAGS)
 
+mysql_bool="bool"
+# check for my_bool
+AS_IF([test "x$mysql" = "xtrue"],
+  [AC_MSG_CHECKING([for my_bool])
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+     [[#include <mysql/mysql.h>]],
+     [[#ifndef my_bool
+#no my_bool found
+#endif]])],
+      [AC_MSG_RESULT([yes])
+       mysql_bool="my_bool"],
+      [AC_MSG_RESULT([no])
+       mysql_bool="bool"])])
+
+AC_SUBST([mysql_bool])
+
 # additional version checks for mysql
 AS_IF([test "x$mysql" = "xtrue"],
   [AC_MSG_CHECKING([for mysql version])
@@ -1329,6 +1345,7 @@ src/identity/Makefile
 src/identity/identity.conf
 src/include/Makefile
 src/include/gnunet_config.h
+src/include/gnunet_mysql_compat.h
 src/integration-tests/Makefile
 src/json/Makefile
 src/hostlist/Makefile
@@ -1410,6 +1427,7 @@ pkgconfig/gnunetfs.pc
 pkgconfig/gnunetgns.pc
 pkgconfig/gnunethello.pc
 pkgconfig/gnunetidentity.pc
+pkgconfig/gnunetmessenger.pc
 pkgconfig/gnunetmicrophone.pc
 pkgconfig/gnunetmysql.pc
 pkgconfig/gnunetnamestore.pc

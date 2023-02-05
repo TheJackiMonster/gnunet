@@ -801,7 +801,8 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
       *end = '\0';
       directive = line + 1;
 
-      if (0 == strcasecmp (directive, "INLINE"))
+      if (0 == strcasecmp (directive,
+                           "INLINE"))
       {
         const char *path = end + 1;
 
@@ -816,7 +817,8 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
                                        source_filename,
                                        nr);
       }
-      else if (0 == strcasecmp (directive, "INLINE-MATCHING"))
+      else if (0 == strcasecmp (directive,
+                                "INLINE-MATCHING"))
       {
         const char *path = end + 1;
 
@@ -831,7 +833,8 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
                                        source_filename,
                                        nr);
       }
-      else if (0 == strcasecmp (directive, "INLINE-SECRET"))
+      else if (0 == strcasecmp (directive,
+                                "INLINE-SECRET"))
       {
         char *secname = end + 1;
         char *secname_end;
@@ -881,7 +884,8 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
       }
       continue;
     }
-    if (('[' == line[0]) && (']' == line[line_size - 1]))
+    if ( ('[' == line[0]) &&
+         (']' == line[line_size - 1]) )
     {
       /* [value] */
       line[line_size - 1] = '\0';
@@ -923,18 +927,24 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
 
       /* remove quotes */
       i = 0;
-      if (('"' == value[0]) && ('"' == value[strlen (value) - 1]))
+      if ( ('"' == value[0]) &&
+           ('"' == value[strlen (value) - 1]) )
       {
         value[strlen (value) - 1] = '\0';
         value++;
       }
-      GNUNET_CONFIGURATION_set_value_string (cfg, section, tag, &value[i]);
+      GNUNET_CONFIGURATION_set_value_string (cfg,
+                                             section,
+                                             tag,
+                                             &value[i]);
       if (cfg->diagnostics)
       {
         set_entry_hint (cfg,
                         section,
                         tag,
-                        source_filename ? source_filename : "<input>",
+                        source_filename
+                        ? source_filename
+                        : "<input>",
                         nr);
       }
       GNUNET_free (tag);

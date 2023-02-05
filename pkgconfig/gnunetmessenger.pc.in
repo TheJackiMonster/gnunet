@@ -4,9 +4,9 @@ libdir=@libdir@
 includedir=@includedir@
 
 Name: GNUnet MESSENGER
-Description: Instant messaging based on the CADET subsystem
-URL: https://gnunet.org
+Description: Provides API to access the GNUnet Messenger subsystem
+URL: http://gnunet.org
 Version: @VERSION@
 Requires:
-Libs: -L${libdir} -lgnunetmessenger_common -lgnunetmessenger
+Libs: -L${libdir} -lgnunetmessenger
 Cflags: -I${includedir}
