@@ -2061,8 +2061,6 @@ GNUNET_SCHEDULER_do_work (struct GNUNET_SCHEDULER_Handle *sh)
   }
   else
   {
-    struct GNUNET_SCHEDULER_Task *last;
-
     /* find out which task priority level we are going to
        process this time */
     max_priority_added = GNUNET_SCHEDULER_PRIORITY_KEEP;
