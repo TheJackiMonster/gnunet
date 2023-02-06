@@ -329,20 +329,18 @@ main (int argc, char *const *argv)
       GNUNET_STRINGS_get_utf8_args (argc, argv,
                                     &argc, &argv))
     return 2;
-  ret = (GNUNET_OK ==
-         GNUNET_PROGRAM_run (
-           argc,
-           argv,
-           "gnunet-dht-get",
-           gettext_noop (
-             "Issue a GET request to the GNUnet DHT, prints results."),
-           options,
-           &run,
-           NULL))
-        ? ret
-        : 1;
-  GNUNET_free (argv);
-  return ret;
+  return (GNUNET_OK ==
+          GNUNET_PROGRAM_run (
+            argc,
+            argv,
+            "gnunet-dht-get",
+            gettext_noop (
+              "Issue a GET request to the GNUnet DHT, prints results."),
+            options,
+            &run,
+            NULL))
+         ? ret
+         : 1;
 }
 
 
