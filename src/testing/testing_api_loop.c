@@ -239,6 +239,81 @@ GNUNET_TESTING_interpreter_lookup_command_all (
 }
 
 
+int
+free_barrier_node_cb (void *cls,
+                      const struct GNUNET_ShortHashCode *key,
+                      void *value)
+{
+  struct FreeBarrierNodeCbCls *free_barrier_node_cb_cls = cls;
+  struct GNUNET_TESTING_NetjailNode *node = value;
+  struct GNUNET_TESTING_Barrier *barrier = free_barrier_node_cb_cls->barrier;
+  struct GNUNET_TESTING_Interpreter *is = free_barrier_node_cb_cls->is;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "free_barrier_node_cb\n");
+  if (GNUNET_NO == is->finishing)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "TST_interpreter_send_barrier_crossable\n");
+    TST_interpreter_send_barrier_crossable (is,
+                                            barrier->name,
+                                            node->node_number);
+  }
+  GNUNET_assert (GNUNET_YES == GNUNET_CONTAINER_multishortmap_remove (
+                   barrier->nodes, key, node));
+  return GNUNET_YES;
+}
+
+
+int
+free_barriers_cb (void *cls,
+                  const struct GNUNET_ShortHashCode *key,
+                  void *value)
+{
+  struct GNUNET_TESTING_Interpreter *is = cls;
+  struct GNUNET_TESTING_Barrier *barrier = value;
+  struct CommandListEntry *pos;
+  struct FreeBarrierNodeCbCls *free_barrier_node_cb_cls;
+
+  if (NULL != barrier->nodes)
+  {
+    free_barrier_node_cb_cls = GNUNET_new (struct FreeBarrierNodeCbCls);
+    free_barrier_node_cb_cls->barrier = barrier;
+    free_barrier_node_cb_cls->is = is;
+    GNUNET_CONTAINER_multishortmap_iterate (barrier->nodes,
+                                            free_barrier_node_cb,
+                                            free_barrier_node_cb_cls);
+    GNUNET_CONTAINER_multishortmap_destroy (barrier->nodes);
+    barrier->nodes = NULL;
+  }
+
+  while (NULL != (pos = barrier->cmds_head))
+  {
+    GNUNET_CONTAINER_DLL_remove (barrier->cmds_head,
+                                 barrier->cmds_tail,
+                                 pos);
+    GNUNET_free (pos);
+  }
+  GNUNET_free (barrier);
+  return GNUNET_YES;
+}
+
+
+/**
+  * Deleting all barriers create in the context of this interpreter.
+  *
+  * @param is The interpreter.
+  */
+static void
+interpreter_delete_barriers (struct GNUNET_TESTING_Interpreter *is)
+{
+  GNUNET_CONTAINER_multishortmap_iterate (is->barriers,
+                                          free_barriers_cb,
+                                          is);
+  GNUNET_CONTAINER_multishortmap_destroy (is->barriers);
+}
+
+
 /**
  * Finish the test run, return the final result.
  *
@@ -285,6 +360,7 @@ finish_test (void *cls)
   GNUNET_free (is->commands);
   is->rc (is->rc_cls,
           is->result);
+  interpreter_delete_barriers (is);
   GNUNET_free (is->helper);
   GNUNET_free (is);
 }
@@ -687,32 +763,6 @@ TST_interpreter_send_barrier_crossable (struct GNUNET_TESTING_Interpreter *is,
 }
 
 
-int
-free_barrier_node_cb (void *cls,
-                      const struct GNUNET_ShortHashCode *key,
-                      void *value)
-{
-  struct FreeBarrierNodeCbCls *free_barrier_node_cb_cls = cls;
-  struct GNUNET_TESTING_NetjailNode *node = value;
-  struct GNUNET_TESTING_Barrier *barrier = free_barrier_node_cb_cls->barrier;
-  struct GNUNET_TESTING_Interpreter *is = free_barrier_node_cb_cls->is;
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "free_barrier_node_cb\n");
-  if (GNUNET_NO == is->finishing)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "TST_interpreter_send_barrier_crossable\n");
-    TST_interpreter_send_barrier_crossable (is,
-                                            barrier->name,
-                                            node->node_number);
-  }
-  GNUNET_assert (GNUNET_YES == GNUNET_CONTAINER_multishortmap_remove (
-                   barrier->nodes, key, node));
-  return GNUNET_YES;
-}
-
-
 /**
   * Getting a barrier from the interpreter.
   *
@@ -794,55 +844,6 @@ TST_interpreter_finish_attached_cmds (struct GNUNET_TESTING_Interpreter *is,
     GNUNET_CONTAINER_multishortmap_destroy (barrier->nodes);
     barrier->nodes = NULL;
   }
-}
-
-
-int
-free_barriers_cb (void *cls,
-                  const struct GNUNET_ShortHashCode *key,
-                  void *value)
-{
-  struct GNUNET_TESTING_Interpreter *is = cls;
-  struct GNUNET_TESTING_Barrier *barrier = value;
-  struct CommandListEntry *pos;
-  struct FreeBarrierNodeCbCls *free_barrier_node_cb_cls;
-
-  if (NULL != barrier->nodes)
-  {
-    free_barrier_node_cb_cls = GNUNET_new (struct FreeBarrierNodeCbCls);
-    free_barrier_node_cb_cls->barrier = barrier;
-    free_barrier_node_cb_cls->is = is;
-    GNUNET_CONTAINER_multishortmap_iterate (barrier->nodes,
-                                            free_barrier_node_cb,
-                                            free_barrier_node_cb_cls);
-    GNUNET_CONTAINER_multishortmap_destroy (barrier->nodes);
-    barrier->nodes = NULL;
-  }
-
-  while (NULL != (pos = barrier->cmds_head))
-  {
-    GNUNET_CONTAINER_DLL_remove (barrier->cmds_head,
-                                 barrier->cmds_tail,
-                                 pos);
-    GNUNET_free (pos);
-  }
-  GNUNET_free (barrier);
-  return GNUNET_YES;
-}
-
-
-/**
-  * Deleting all barriers create in the context of this interpreter.
-  *
-  * @param is The interpreter.
-  */
-void
-TST_interpreter_delete_barriers (struct GNUNET_TESTING_Interpreter *is)
-{
-  GNUNET_CONTAINER_multishortmap_iterate (is->barriers,
-                                          free_barriers_cb,
-                                          is);
-  GNUNET_CONTAINER_multishortmap_destroy (is->barriers);
 }
 
 

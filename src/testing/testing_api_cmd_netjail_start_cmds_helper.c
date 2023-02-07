@@ -217,7 +217,6 @@ static void
 netjail_exec_cleanup (void *cls)
 {
   struct NetJailState *ns = cls;
-  TST_interpreter_delete_barriers (ns->is);
   GNUNET_free (ns);
 }
 

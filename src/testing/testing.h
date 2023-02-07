@@ -327,15 +327,6 @@ GNUNET_TESTING_barrier_get_node (struct GNUNET_TESTING_Barrier *barrier,
 
 
 /**
-  * Deleting all barriers create in the context of this interpreter.
-  *
-  * @param is The interpreter.
-  */
-void
-TST_interpreter_delete_barriers (struct GNUNET_TESTING_Interpreter *is);
-
-
-/**
  * Getting a barrier from the interpreter.
  *
  * @param is The interpreter.

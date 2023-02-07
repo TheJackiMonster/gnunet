@@ -141,7 +141,6 @@ barrier_cleanup (void *cls)
 {
   struct BarrierState *brs = cls;
 
-  GNUNET_free (brs->barrier);
   GNUNET_free (brs);
 }
 
