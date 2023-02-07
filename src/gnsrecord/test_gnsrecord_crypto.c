@@ -143,6 +143,8 @@ test_with_type (struct GNUNET_IDENTITY_PrivateKey *privkey)
                                                  s_name,
                                                  &rd_decrypt_cb,
                                                  NULL));
+  for (int i = 0; i < RECORDS; i++) GNUNET_free(s_rd[i].data);
+  GNUNET_free (s_rd);
   GNUNET_free (block);
 }
 

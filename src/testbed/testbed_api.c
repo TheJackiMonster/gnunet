@@ -1945,7 +1945,7 @@ GNUNET_TESTBED_overlay_write_topology_to_file (
  * want to use this in testing
  *
  * @param trusted_ip the ip address of the controller which will be set as TRUSTED
- *          HOST(all connections form this ip are permitted by the testbed) when
+ *          HOST(all connections from this ip are permitted by the testbed) when
  *          starting testbed controller at host. This can either be a single ip
  *          address or a network address in CIDR notation.
  * @param hostname the hostname of the destination this message is intended for

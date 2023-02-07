@@ -673,6 +673,9 @@ GNUNET_NAT_request_reversal (struct GNUNET_NAT_Handle *nh,
 void
 GNUNET_NAT_unregister (struct GNUNET_NAT_Handle *nh)
 {
+  struct AddrEntry *ae;
+  struct AddrEntry *next;
+
   if (NULL != nh->mq)
   {
     GNUNET_MQ_destroy (nh->mq);
@@ -682,6 +685,14 @@ GNUNET_NAT_unregister (struct GNUNET_NAT_Handle *nh)
   {
     GNUNET_SCHEDULER_cancel (nh->reconnect_task);
     nh->reconnect_task = NULL;
+  }
+  next = nh->ae_head;
+  while (NULL != next)
+  {
+    ae = next;
+    next = next->next;
+    GNUNET_CONTAINER_DLL_remove (nh->ae_head, nh->ae_tail, ae);
+    GNUNET_free (ae);
   }
   GNUNET_free (nh->reg);
   GNUNET_free (nh);

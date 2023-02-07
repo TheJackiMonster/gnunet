@@ -489,7 +489,7 @@ AC_ARG_ENABLE([gcc-hardening],
   [AS_HELP_STRING([--enable-gcc-hardening], [enable compiler security checks])],
   [AS_IF([test "x$enableval" = "xyes"],
      [CFLAGS="$CFLAGS -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -fstack-protector-all"
-      CFLAGS="$CFLAGS -fwrapv -fPIE -Wstacl-protector"
+      CFLAGS="$CFLAGS -fwrapv -fPIE -Wstack-protector"
       CFLAGS="$CFLAGS --param ssp-buffer-size=1"
       LDFLAGS="$LDFLAGS -pie"])])
 
@@ -940,14 +940,12 @@ mysql_bool="bool"
 AS_IF([test "x$mysql" = "xtrue"],
   [AC_MSG_CHECKING([for my_bool])
    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-     [[#include <mysql/mysql.h>]],
-     [[#ifndef my_bool
-#no my_bool found
-#endif]])],
-      [AC_MSG_RESULT([yes])
-       mysql_bool="my_bool"],
+     [[#include <mysql/mysql.h>]
+      [typedef int my_bool;]])], # Hint: this fails if my_bool is defined already
       [AC_MSG_RESULT([no])
-       mysql_bool="bool"])])
+       mysql_bool="bool"],
+      [AC_MSG_RESULT([yes])
+       mysql_bool="my_bool"])])
 
 AC_SUBST([mysql_bool])
 

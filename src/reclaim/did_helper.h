@@ -52,13 +52,13 @@ DID_did_to_pkey (const char *did, struct GNUNET_IDENTITY_PublicKey *pkey);
 //  * @brief Convert a base 64 encoded public key to a GNUNET key
 //  */
 // struct GNUNET_IDENTITY_PublicKey *
-// GNUNET_DID_key_covert_multibase_base64_to_gnunet(char *);
+// GNUNET_DID_key_convert_multibase_base64_to_gnunet(char *);
 
 /**
  * @brief Convert GNUNET key to a base 64 encoded public key
  */
 char *
-DID_key_covert_gnunet_to_multibase_base64 (struct
+DID_key_convert_gnunet_to_multibase_base64 (struct
                                                   GNUNET_IDENTITY_PublicKey *);
 
 /**

@@ -899,6 +899,8 @@ run (void *cls,
   cfg = c;
   revocation_map = GNUNET_CONTAINER_multihashmap_create (16,
                                                          GNUNET_NO);
+  GNUNET_SCHEDULER_add_shutdown (&shutdown_task,
+                                 NULL);
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_number (cfg,
                                              "REVOCATION",
@@ -1001,8 +1003,6 @@ run (void *cls,
   }
   GNUNET_free (fn);
 
-  GNUNET_SCHEDULER_add_shutdown (&shutdown_task,
-                                 NULL);
   peers = GNUNET_CONTAINER_multipeermap_create (128,
                                                 GNUNET_YES);
   /* Connect to core service and register core handlers */

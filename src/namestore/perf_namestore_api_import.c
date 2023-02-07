@@ -397,6 +397,7 @@ main (int argc,
   }
   GNUNET_DISK_purge_cfg_dir (cfg_name,
                              "GNUNET_TEST_HOME");
+  GNUNET_free (plugin_name);
   GNUNET_free (cfg_name);
   return res;
 }

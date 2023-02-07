@@ -102,6 +102,7 @@ TNC_test_plugin (const char *cfg_name)
     GNUNET_asprintf (&cfg_name, file_template, plugin_name); \
     if (! TNC_test_plugin (cfg_name))                                       \
     {                                                                       \
+      GNUNET_free (plugin_name);                                            \
       GNUNET_free (cfg_name);                                               \
       return 77;                                                            \
     }                                                                       \
@@ -119,6 +120,7 @@ TNC_test_plugin (const char *cfg_name)
     GNUNET_asprintf (&cfg_name, "test_namestore_api_%s.conf", plugin_name); \
     if (! TNC_test_plugin (cfg_name))                                       \
     {                                                                       \
+      GNUNET_free (plugin_name);                                            \
       GNUNET_free (cfg_name);                                               \
       return 77;                                                            \
     }                                                                       \

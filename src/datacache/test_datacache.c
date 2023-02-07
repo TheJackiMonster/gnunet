@@ -198,6 +198,7 @@ main (int argc, char *argv[])
     fprintf (stderr,
              "Missed some testcases: %d\n",
              ok);
+  GNUNET_free (plugin_name);
   return ok;
 }
 

@@ -1735,11 +1735,19 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
   ssize_t read;
   size_t key_len;
   size_t kb_read;
+  size_t rp_msg_len;
+  size_t rs_len;
+  size_t rs_off;
+  size_t body_len;
   struct StoreActivity *sa;
   struct RecordSet *rs;
   enum GNUNET_ErrorCode res;
 
   key_len = ntohs (rp_msg->key_len);
+  rp_msg_len = ntohs (rp_msg->gns_header.header.size);
+  body_len = rp_msg_len - sizeof (*rp_msg);
+  rs_off = sizeof (*rp_msg) + key_len;
+  rs_len = rp_msg_len - rs_off;
   if ((GNUNET_SYSERR ==
        GNUNET_IDENTITY_read_private_key_from_buffer (&rp_msg[1],
                                                      key_len,
@@ -1756,7 +1764,7 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
               "Received NAMESTORE_RECORD_STORE message\n");
   rid = ntohl (rp_msg->gns_header.r_id);
   rd_set_count = ntohs (rp_msg->rd_set_count);
-  buf = (const char *) &rp_msg[1] + key_len;
+  buf = (const char *) rp_msg + rs_off;
   for (int i = 0; i < rd_set_count; i++)
   {
     rs = (struct RecordSet *) buf;
@@ -1770,15 +1778,12 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
     }
     buf += read;
   }
-  sa = GNUNET_malloc (sizeof(struct StoreActivity)
-                      + ntohs (rp_msg->gns_header.header.size)
-                      - sizeof (*rp_msg));
+  sa = GNUNET_malloc (sizeof(struct StoreActivity) + rs_len);
   GNUNET_CONTAINER_DLL_insert (sa_head, sa_tail, sa);
   sa->nc = nc;
   sa->rs = (struct RecordSet *) &sa[1];
   sa->rd_set_count = rd_set_count;
-  GNUNET_memcpy (&sa[1], (char *) &rp_msg[1] + key_len,
-                 ntohs (rp_msg->gns_header.header.size) - sizeof (*rp_msg));
+  GNUNET_memcpy (&sa[1], (char *) rp_msg + rs_off, rs_len);
   sa->rid = rid;
   sa->rd_set_pos = 0;
   sa->private_key = zone;

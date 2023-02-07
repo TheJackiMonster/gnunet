@@ -218,7 +218,10 @@ do_cleanup (void *cls)
   if (NULL != identity_handle)
     GNUNET_IDENTITY_disconnect (identity_handle);
   if (NULL != attr_list)
-    GNUNET_free (attr_list);
+  {
+    GNUNET_RECLAIM_attribute_list_destroy (attr_list);
+    attr_list = NULL;
+  }
   if (NULL != attr_to_delete)
     GNUNET_free (attr_to_delete);
   if (NULL == credential_type)

@@ -43,7 +43,6 @@ EXTRA_DIST = \
   find_typedefs.py \
   pydmesg \
   visualize_stats.sh \
-  changelog_delta.sh \
   debug \
   build_cscope.sh \
   lint/lint-man.sh \

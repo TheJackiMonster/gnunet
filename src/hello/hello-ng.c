@@ -169,9 +169,11 @@ GNUNET_HELLO_extract_address (const void *raw,
                                   sig,
                                   public_key))
   {
+    GNUNET_free (data);
     GNUNET_break_op (0);
     return NULL;
   }
+  GNUNET_free (data);
   *mono_time = raw_mono_time;
   *nt = raw_nt;
   return GNUNET_strdup (raw_addr);

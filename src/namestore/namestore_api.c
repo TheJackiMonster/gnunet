@@ -619,11 +619,17 @@ handle_record_result (void *cls, const struct RecordResultMessage *msg)
     }
     if (NULL != ze)
     {
-      if (NULL != ze->proc)
-        ze->proc (ze->proc_cls, &private_key, name, rd_count, rd);
-      if (NULL != ze->proc2)
-        ze->proc2 (ze->proc_cls, &private_key, name,
-                   rd_count, rd, GNUNET_TIME_absolute_ntoh (msg->expire));
+      // Store them here because a callback could free ze
+      GNUNET_NAMESTORE_RecordMonitor proc;
+      GNUNET_NAMESTORE_RecordSetMonitor proc2;
+      void *proc_cls = ze->proc_cls;
+      proc = ze->proc;
+      proc2 = ze->proc2;
+      if (NULL != proc)
+        proc (proc_cls, &private_key, name, rd_count, rd);
+      if (NULL != proc2)
+        proc2 (proc_cls, &private_key, name,
+               rd_count, rd, GNUNET_TIME_absolute_ntoh (msg->expire));
       return;
     }
   }

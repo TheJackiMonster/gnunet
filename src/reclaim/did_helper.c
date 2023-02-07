@@ -78,7 +78,7 @@ DID_identity_to_did (struct GNUNET_IDENTITY_Ego *ego)
 enum GNUNET_GenericReturnValue
 DID_did_to_pkey (const char *did, struct GNUNET_IDENTITY_PublicKey *pkey)
 {
-  char pkey_str[MAX_DID_SPECIFIC_IDENTIFIER_LENGTH];
+  char pkey_str[MAX_DID_SPECIFIC_IDENTIFIER_LENGTH + 1]; /* 0-term */
 
   if ((1 != (sscanf (did,
                      GNUNET_DID_METHOD_PREFIX "%"
@@ -98,7 +98,7 @@ DID_did_to_pkey (const char *did, struct GNUNET_IDENTITY_PublicKey *pkey)
  * @brief Convert a base 64 encoded public key to a GNUNET key
  */
 struct GNUNET_IDENTITY_PublicKey *
-GNUNET_DID_key_covert_multibase_base64_to_gnunet (char *pkey_str)
+GNUNET_DID_key_convert_multibase_base64_to_gnunet (char *pkey_str)
 {
   return NULL;
 }
@@ -107,7 +107,7 @@ GNUNET_DID_key_covert_multibase_base64_to_gnunet (char *pkey_str)
  * @brief Convert GNUNET key to a base 64 encoded public key
  */
 char *
-DID_key_covert_gnunet_to_multibase_base64 (struct
+DID_key_convert_gnunet_to_multibase_base64 (struct
                                            GNUNET_IDENTITY_PublicKey *
                                            pkey)
 {
@@ -154,7 +154,7 @@ DID_pkey_to_did_document (struct GNUNET_IDENTITY_PublicKey *pkey)
   did_str = DID_pkey_to_did (pkey);
   GNUNET_asprintf (&verify_id_str, "%s#key-1", did_str);
 
-  pkey_multibase_str = DID_key_covert_gnunet_to_multibase_base64 (pkey);
+  pkey_multibase_str = DID_key_convert_gnunet_to_multibase_base64 (pkey);
 
   didd_json = json_pack (
     "{s:[ss], s:s, s:[{s:s, s:s, s:s, s:s}], s:[s], s:[s]}",

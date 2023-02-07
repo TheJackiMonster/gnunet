@@ -73,7 +73,7 @@ GNUNET_CRYPTO_hash_from_string2 (const char *enc,
                                  size_t enclen,
                                  struct GNUNET_HashCode *result)
 {
-  char upper_enc[enclen];
+  char upper_enc[enclen+1];
   char *up_ptr = upper_enc;
 
   if (GNUNET_OK != GNUNET_STRINGS_utf8_toupper (enc, up_ptr))

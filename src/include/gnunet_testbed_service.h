@@ -428,7 +428,7 @@ typedef void
  * GNUNET_TESTBED_ControllerStatusCallback()
  *
  * @param trusted_ip the ip address of the controller which will be set as TRUSTED
- *          HOST(all connections form this ip are permitted by the testbed) when
+ *          HOST(all connections from this ip are permitted by the testbed) when
  *          starting testbed controller at host. This can either be a single ip
  *          address or a network address in CIDR notation.
  * @param host the host where the controller has to be started.  CANNOT be NULL.
@@ -752,7 +752,7 @@ struct GNUNET_TESTBED_PeerInformation
  * Callback to be called when the requested peer information is available
  * The peer information in the callback is valid until the operation 'op' is canceled.
  *
- * @param cb_cls the closure from GNUNET_TETSBED_peer_get_information()
+ * @param cb_cls the closure from GNUNET_TESTBED_peer_get_information()
  * @param op the operation this callback corresponds to
  * @param pinfo the result; will be NULL if the operation has failed
  * @param emsg error message if the operation has failed; will be NULL if the

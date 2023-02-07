@@ -218,7 +218,7 @@ struct StrataEstimatorMessage
   /**
    * Size of the local set
    */
-  uint64_t set_size;
+  uint64_t set_size GNUNET_PACKED;
 };
 
 

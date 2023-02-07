@@ -637,11 +637,12 @@ checkvec (const char *operation,
                                                             blinded_len)) )
     {
       GNUNET_free (blinded_data);
+      GNUNET_free (blinded_data_comp);
       GNUNET_free (public_enc_data);
       GNUNET_free (secret_enc_data);
       GNUNET_free (sig_enc_data);
-      GNUNET_free (skey);
-      GNUNET_free (pkey);
+      GNUNET_CRYPTO_rsa_private_key_free (skey);
+      GNUNET_CRYPTO_rsa_public_key_free (pkey);
       GNUNET_break (0);
       return GNUNET_NO;
     }
@@ -650,6 +651,7 @@ checkvec (const char *operation,
     sig = GNUNET_CRYPTO_rsa_unblind (blinded_sig, &bks, pkey);
     GNUNET_assert (GNUNET_YES == GNUNET_CRYPTO_rsa_verify (&message_hash, sig,
                                                            pkey));
+    GNUNET_free(public_enc_data);
     public_enc_len = GNUNET_CRYPTO_rsa_public_key_encode (pkey,
                                                           &public_enc_data);
     sig_enc_length_comp = GNUNET_CRYPTO_rsa_signature_encode (sig,
@@ -658,25 +660,29 @@ checkvec (const char *operation,
     if ( (sig_enc_length != sig_enc_length_comp) ||
          (0 != memcmp (sig_enc_data, sig_enc_data_comp, sig_enc_length) ))
     {
-      GNUNET_free (blinded_sig);
+      GNUNET_CRYPTO_rsa_signature_free (blinded_sig);
       GNUNET_free (blinded_data);
+      GNUNET_free (blinded_data_comp);
       GNUNET_free (public_enc_data);
       GNUNET_free (secret_enc_data);
       GNUNET_free (sig_enc_data);
-      GNUNET_free (skey);
-      GNUNET_free (sig);
-      GNUNET_free (pkey);
+      GNUNET_free (sig_enc_data_comp);
+      GNUNET_CRYPTO_rsa_private_key_free (skey);
+      GNUNET_CRYPTO_rsa_signature_free (sig);
+      GNUNET_CRYPTO_rsa_public_key_free (pkey);
       GNUNET_break (0);
       return GNUNET_NO;
     }
-    GNUNET_free (blinded_sig);
+    GNUNET_CRYPTO_rsa_signature_free (blinded_sig);
     GNUNET_free (blinded_data);
+    GNUNET_free (blinded_data_comp);
     GNUNET_free (public_enc_data);
     GNUNET_free (secret_enc_data);
     GNUNET_free (sig_enc_data);
-    GNUNET_free (sig);
-    GNUNET_free (pkey);
-    GNUNET_free (skey);
+    GNUNET_free (sig_enc_data_comp);
+    GNUNET_CRYPTO_rsa_signature_free (sig);
+    GNUNET_CRYPTO_rsa_public_key_free (pkey);
+    GNUNET_CRYPTO_rsa_private_key_free (skey);
   }
   else if (0 == strcmp (operation, "cs_blind_signing"))
   {
@@ -1009,6 +1015,7 @@ check_vectors ()
         break;
       }
     }
+    json_decref (vecfile);
     return (ret == GNUNET_OK) ? 0 : 1;
   }
 }

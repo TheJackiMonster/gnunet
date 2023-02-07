@@ -401,7 +401,7 @@ enum GNUNET_CONTAINER_MultiHashMapOption
  *         #GNUNET_NO if not.
  */
 typedef enum GNUNET_GenericReturnValue
-(*GNUNET_CONTAINER_MulitHashMapIteratorCallback)(
+(*GNUNET_CONTAINER_MultiHashMapIteratorCallback)(
   void *cls,
   const struct GNUNET_HashCode *key,
   void *value);
@@ -580,7 +580,7 @@ GNUNET_CONTAINER_multihashmap_size (
 int
 GNUNET_CONTAINER_multihashmap_iterate (
   struct GNUNET_CONTAINER_MultiHashMap *map,
-  GNUNET_CONTAINER_MulitHashMapIteratorCallback it,
+  GNUNET_CONTAINER_MultiHashMapIteratorCallback it,
   void *it_cls);
 
 
@@ -650,7 +650,7 @@ int
 GNUNET_CONTAINER_multihashmap_get_multiple (
   struct GNUNET_CONTAINER_MultiHashMap *map,
   const struct GNUNET_HashCode *key,
-  GNUNET_CONTAINER_MulitHashMapIteratorCallback it,
+  GNUNET_CONTAINER_MultiHashMapIteratorCallback it,
   void *it_cls);
 
 
@@ -668,7 +668,7 @@ GNUNET_CONTAINER_multihashmap_get_multiple (
 unsigned int
 GNUNET_CONTAINER_multihashmap_get_random (
   const struct GNUNET_CONTAINER_MultiHashMap *map,
-  GNUNET_CONTAINER_MulitHashMapIteratorCallback it,
+  GNUNET_CONTAINER_MultiHashMapIteratorCallback it,
   void *it_cls);
 
 
@@ -1550,7 +1550,7 @@ struct GNUNET_CONTAINER_MultiHashMap32Iterator;
  *         #GNUNET_NO if not.
  */
 typedef enum GNUNET_GenericReturnValue
-(*GNUNET_CONTAINER_MulitHashMapIterator32Callback)(
+(*GNUNET_CONTAINER_MultiHashMapIterator32Callback)(
   void *cls,
   uint32_t key,
   void *value);
@@ -1621,7 +1621,7 @@ GNUNET_CONTAINER_multihashmap32_get (
 int
 GNUNET_CONTAINER_multihashmap32_iterate (
   struct GNUNET_CONTAINER_MultiHashMap32 *map,
-  GNUNET_CONTAINER_MulitHashMapIterator32Callback it,
+  GNUNET_CONTAINER_MultiHashMapIterator32Callback it,
   void *it_cls);
 
 
@@ -1729,7 +1729,7 @@ int
 GNUNET_CONTAINER_multihashmap32_get_multiple (
   struct GNUNET_CONTAINER_MultiHashMap32 *map,
   uint32_t key,
-  GNUNET_CONTAINER_MulitHashMapIterator32Callback it,
+  GNUNET_CONTAINER_MultiHashMapIterator32Callback it,
   void *it_cls);
 
 

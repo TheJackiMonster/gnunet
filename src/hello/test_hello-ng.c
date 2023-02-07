@@ -31,6 +31,7 @@ main (int argc,
   struct GNUNET_PeerIdentity pid;
   struct GNUNET_TIME_Absolute t = GNUNET_TIME_absolute_get ();
   char *res;
+  char *address;
   size_t res_len;
   enum GNUNET_NetworkType nt;
 
@@ -47,10 +48,13 @@ main (int argc,
   GNUNET_log (GNUNET_ERROR_TYPE_MESSAGE,
               "%s\n", res);
   GNUNET_assert (NULL !=
-                 GNUNET_HELLO_extract_address ((void**) res,
+                 (address =
+                  GNUNET_HELLO_extract_address ((void**) res,
                                                res_len,
                                                &pid,
                                                &nt,
-                                               &t));
+                                                &t)));
+  GNUNET_free (address);
+  GNUNET_free (res);
   return 0;
 }

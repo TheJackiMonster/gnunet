@@ -225,7 +225,7 @@ GNUNET_CONTAINER_multihashmap32_get (
 int
 GNUNET_CONTAINER_multihashmap32_iterate (
   struct GNUNET_CONTAINER_MultiHashMap32 *map,
-  GNUNET_CONTAINER_MulitHashMapIterator32Callback it,
+  GNUNET_CONTAINER_MultiHashMapIterator32Callback it,
   void *it_cls)
 {
   int count;
@@ -491,7 +491,7 @@ int
 GNUNET_CONTAINER_multihashmap32_get_multiple (
   struct GNUNET_CONTAINER_MultiHashMap32 *map,
   uint32_t key,
-  GNUNET_CONTAINER_MulitHashMapIterator32Callback it,
+  GNUNET_CONTAINER_MultiHashMapIterator32Callback it,
   void *it_cls)
 {
   int count;

@@ -114,7 +114,7 @@ GNUNET_CRYPTO_crc16_step (uint32_t sum, const void *buf, size_t len)
   for (; len >= 2; len -= 2)
     sum += *(hdr++);
   if (len == 1)
-    sum += (*hdr) & ntohs (0xFF00);
+    sum += ntohs(*((uint8_t *)hdr) << 8);
   return sum;
 }
 

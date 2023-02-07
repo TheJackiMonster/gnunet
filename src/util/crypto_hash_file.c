@@ -184,6 +184,7 @@ GNUNET_CRYPTO_hash_file (enum GNUNET_SCHEDULER_Priority priority,
   if (GPG_ERR_NO_ERROR != gcry_md_open (&fhc->md, GCRY_MD_SHA512, 0))
   {
     GNUNET_break (0);
+    GNUNET_free (fhc->filename);
     GNUNET_free (fhc);
     return NULL;
   }
@@ -227,6 +228,7 @@ GNUNET_CRYPTO_hash_file_cancel (struct GNUNET_CRYPTO_FileHashContext *fhc)
   GNUNET_free (fhc->filename);
   GNUNET_break (GNUNET_OK ==
                 GNUNET_DISK_file_close (fhc->fh));
+  gcry_md_close (fhc->md);
   GNUNET_free (fhc);
 }
 

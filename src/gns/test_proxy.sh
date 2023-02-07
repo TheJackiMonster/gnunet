@@ -2,7 +2,7 @@
 # This file is in the public domain.
 TEST_DOMAIN="www.test"
 GNUNET_TMP="$(gnunet-config -f -s PATHS -o GNUNET_TMP)"
-PROXY_CACERT="$(gnunet-config -f -c test_gnunet_proxy.conf -s gns-proxy -o PROXY_CACERT)"
+PROXY_CACERT="$(gnunet-config -f -c test_gns_proxy.conf -s gns-proxy -o PROXY_CACERT)"
 
 # Delete old files before starting test
 rm -rf "$GNUNET_TMP/test-gnunet-gns-testing/"

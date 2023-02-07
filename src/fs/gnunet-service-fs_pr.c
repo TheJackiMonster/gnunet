@@ -691,7 +691,7 @@ GSF_iterate_pending_requests_ (GSF_PendingRequestIterator it, void *cls)
 {
   GNUNET_CONTAINER_multihashmap_iterate (
     pr_map,
-    (GNUNET_CONTAINER_MulitHashMapIteratorCallback) it,
+    (GNUNET_CONTAINER_MultiHashMapIteratorCallback) it,
     cls);
 }
 
