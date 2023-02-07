@@ -2985,14 +2985,6 @@ free_fragment_tree (struct PendingMessage *root)
     {
       GNUNET_assert (frag == frag->qe->pm);
       frag->qe->pm = NULL;
-      GNUNET_CONTAINER_DLL_remove (frag->qe->queue->queue_head,
-                                   frag->qe->queue->queue_tail,
-                                   frag->qe);
-      frag->qe->queue->queue_length--;
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Removing QueueEntry MID %lu from queue\n",
-                  frag->qe->mid);
-      GNUNET_free (frag->qe);
     }
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Free frag %p\n",
@@ -3059,16 +3051,6 @@ free_pending_message (struct PendingMessage *pm)
   {
     GNUNET_assert (pm == pm->qe->pm);
     pm->qe->pm = NULL;
-    GNUNET_CONTAINER_DLL_remove (pm->qe->queue->queue_head,
-                                 pm->qe->queue->queue_tail,
-                                 pm->qe);
-    pm->qe->queue->queue_length--;
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Removing QueueEntry MID %lu from queue\n",
-                pm->qe->mid);
-    GNUNET_free (pm->qe);
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "QueueEntry MID freed\n");
   }
   if (NULL != pm->bpm)
   {
