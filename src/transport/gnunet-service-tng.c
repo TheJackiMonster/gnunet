@@ -5099,7 +5099,9 @@ consider_sending_fc (void *cls)
   fc.header.type = htons (GNUNET_MESSAGE_TYPE_TRANSPORT_FLOW_CONTROL);
   fc.header.size = htons (sizeof(fc));
   fc.seq = htonl (vl->fc_seq_gen++);
-  fc.inbound_window_size = GNUNET_htonll (vl->incoming_fc_window_size);
+  fc.inbound_window_size = GNUNET_htonll (vl->incoming_fc_window_size +
+                                          vl->incoming_fc_window_size_used +
+                                          vl->incoming_fc_window_size_loss);
   fc.outbound_sent = GNUNET_htonll (vl->outbound_fc_window_size_used);
   fc.outbound_window_size = GNUNET_htonll (vl->outbound_fc_window_size);
   fc.sender_time = GNUNET_TIME_absolute_hton (monotime);
