@@ -47,7 +47,7 @@ main (int argc,
   size_t data_len;
 
   GNUNET_log_setup ("test-netjail",
-                    "DEBUG",
+                    "INFO",
                     NULL);
 
   if (0 == strcmp ("-s", argv[1]))

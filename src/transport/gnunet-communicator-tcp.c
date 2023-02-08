@@ -1518,9 +1518,8 @@ send_challenge (struct GNUNET_CRYPTO_ChallengeNonceP challenge,
   struct TCPConfirmationAck tca;
   struct TcpHandshakeAckSignature thas;
 
-  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
-                           "transport",
-                           "sending challenge\n");
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+             "sending challenge\n");
 
   tca.header.type = ntohs (
     GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_CONFIRMATION_ACK);
@@ -1546,9 +1545,8 @@ send_challenge (struct GNUNET_CRYPTO_ChallengeNonceP challenge,
                                       &tca,
                                       sizeof(tca)));
   queue->cwrite_off += sizeof(tca);
-  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
-                           "transport",
-                           "sending challenge done\n");
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+               "sending challenge done\n");
 }
 
 
@@ -2111,9 +2109,6 @@ queue_read (void *cls)
                                      BUF_SIZE - queue->cread_off);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received %zd bytes from TCP queue\n", rcvd);
-  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
-                           "transport",
-                           "Received %zd bytes from TCP queue\n", rcvd);
   if (-1 == rcvd)
   {
     if ((EAGAIN != errno) && (EINTR != errno))
@@ -2695,9 +2690,8 @@ transmit_kx (struct Queue *queue,
   queue->challenge = tc.challenge;
   queue->cwrite_off += sizeof(tc);
 
-  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
-                           "transport",
-                           "handshake written\n");
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+             "handshake written\n");
 }
 
 
@@ -2882,10 +2876,6 @@ queue_read_kx (void *cls)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received %lu bytes for KX\n",
               rcvd);
-  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
-                           "transport",
-                           "Received %lu bytes for KX\n",
-                           rcvd);
   if (-1 == rcvd)
   {
     if ((EAGAIN != errno) && (EINTR != errno))
@@ -2979,9 +2969,6 @@ proto_read_kx (void *cls)
                                      sizeof(pq->ibuf) - pq->ibuf_off);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Proto received %lu bytes for KX\n", rcvd);
-  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
-                           "transport",
-                           "Proto received %lu bytes for KX\n", rcvd);
   if (-1 == rcvd)
   {
     if ((EAGAIN != errno) && (EINTR != errno))
@@ -4048,8 +4035,7 @@ main (int argc, char *const *argv)
   };
   int ret;
 
-  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
-                           "transport",
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                            "Starting tcp communicator\n");
   if (GNUNET_OK !=
       GNUNET_STRINGS_get_utf8_args (argc, argv,
