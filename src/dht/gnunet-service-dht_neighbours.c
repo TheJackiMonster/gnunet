@@ -666,7 +666,8 @@ send_find_peer_message (void *cls)
                                     NULL,
                                     0,
                                     "set-seen-size",
-                                    GNUNET_CONTAINER_multipeermap_size (all_connected_peers),
+                                    GNUNET_CONTAINER_multipeermap_size (
+                                      all_connected_peers),
                                     NULL);
     GNUNET_CONTAINER_multipeermap_iterate (all_connected_peers,
                                            &add_known_to_bloom,
@@ -1996,14 +1997,45 @@ handle_dht_p2p_put (void *cls,
                               GNUNET_NO);
     return;
   }
-  if (GNUNET_NO ==
-      GNUNET_BLOCK_check_block (GDS_block_context,
-                                bd.type,
-                                bd.data,
-                                bd.data_size))
   {
-    GNUNET_break_op (0);
-    return;
+    /* Only call 'check_block' if that keeps our CPU load (from
+       the cryptography) below 50% on average */
+    static struct GNUNET_TIME_Relative avg_latency;
+    static struct GNUNET_TIME_Absolute next_time;
+
+    if (GNUNET_TIME_absolute_is_past (next_time))
+    {
+      struct GNUNET_TIME_Absolute now
+        = GNUNET_TIME_absolute_get ();
+      struct GNUNET_TIME_Relative latency;
+      struct GNUNET_TIME_Relative delta;
+
+      if (GNUNET_NO ==
+          GNUNET_BLOCK_check_block (GDS_block_context,
+                                    bd.type,
+                                    bd.data,
+                                    bd.data_size))
+      {
+        GNUNET_break_op (0);
+        return;
+      }
+      latency = GNUNET_TIME_absolute_get_duration (now);
+      /* Use *moving average* to estimate check_block latency */
+      avg_latency
+        = GNUNET_TIME_relative_divide (
+            GNUNET_TIME_relative_add (
+              GNUNET_TIME_relative_multiply (avg_latency,
+                                             7),
+              latency),
+            8);
+      /* average delay = 50% of avg_latency => 50% CPU load from crypto (at most) */
+      delta.rel_value_us
+        = GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_WEAK,
+                                    avg_latency.rel_value_us > 0
+                                        ? avg_latency.rel_value_us
+                                        : 1LLU);
+      next_time = GNUNET_TIME_relative_to_absolute (delta);
+    }
   }
   if (! has_path)
     putlen = 0;
