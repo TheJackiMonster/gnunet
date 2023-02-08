@@ -267,7 +267,8 @@ notify_send_done (void *cls)
 
   n->awaiting_done = GNUNET_NO;
   n->env = NULL;
-  GNUNET_MQ_impl_send_continue (n->mq);
+  if (0 < n->ready_window)
+    GNUNET_MQ_impl_send_continue (n->mq);
 }
 
 
@@ -287,9 +288,10 @@ do_send (struct Neighbour *n)
   GNUNET_MQ_notify_sent (n->env, &notify_send_done, n);
   GNUNET_MQ_send (n->h->mq, n->env);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Passed message of type %u for neighbour `%s' to TRANSPORT.\n",
+       "Passed message of type %u for neighbour `%s' to TRANSPORT. ready_window %u\n",
        ntohs (GNUNET_MQ_env_get_msg (n->env)->type),
-       GNUNET_i2s (&n->id));
+       GNUNET_i2s (&n->id),
+       n->ready_window);
 }
 
 
@@ -496,7 +498,9 @@ handle_send_ok (void *cls, const struct SendOkMessage *okm)
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Receiving SEND_OK message for transmission to %s\n",
        GNUNET_i2s (&okm->peer));
+
   n = neighbour_find (h, &okm->peer);
+
   if (NULL == n)
   {
     /* We should never get a 'SEND_OK' for a peer that we are not
@@ -505,9 +509,23 @@ handle_send_ok (void *cls, const struct SendOkMessage *okm)
     disconnect_and_schedule_reconnect (h);
     return;
   }
-  n->ready_window++;
-  if ((NULL != n->env) && (1 == n->ready_window))
+
+  if ((GNUNET_NO == n->awaiting_done) &&
+      (NULL != n->env) &&
+      (0 == n->ready_window))
+  {
+    n->ready_window++;
     do_send (n);
+    return;
+  }
+  else if ((GNUNET_NO == n->awaiting_done) &&
+           (0 == n->ready_window))
+  {
+    n->ready_window++;
+    GNUNET_MQ_impl_send_continue (n->mq);
+    return;
+  }
+  n->ready_window++;
 }
 
 
