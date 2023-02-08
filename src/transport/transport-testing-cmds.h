@@ -304,6 +304,28 @@ GNUNET_TRANSPORT_cmd_send_simple (const char *label,
                                   struct GNUNET_TESTING_NetjailTopology *
                                   topology);
 
+/**
+ * 
+ *
+ * @param label name for command.
+ * @param start_peer_label Label of the cmd to start a peer.
+ * @param create_label Label of the cmd which started the test system.
+ * @param num Number globally identifying the node.
+ * @param size The size of the test message to send.
+ * @param max_send The number of messages to send.
+ * @param topology The topology for the test setup.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TRANSPORT_cmd_send_simple_performance (const char *label,
+                                  const char *start_peer_label,
+                                  const char *create_label,
+                                  uint32_t num,
+                                  int size,
+                                  int max_send,
+                                  struct GNUNET_TESTING_NetjailTopology *
+                                  topology);
+
 
 /**
  * Create command.

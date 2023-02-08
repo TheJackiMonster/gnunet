@@ -130,6 +130,7 @@ libgnunettransporttesting2_la_SOURCES = \
   transport_api_cmd_start_peer.c \
   transport_api_cmd_stop_peer.c \
   transport_api_cmd_send_simple.c \
+  transport_api_cmd_send_simple_performance.c \
   transport-testing2.c transport-testing2.h \
   transport-testing-cmds.h \
   transport-testing-filenames2.c \
@@ -357,6 +358,7 @@ plugin_LTLIBRARIES = \
   $(HTTPS_SERVER_PLUGIN_LA) \
   $(WLAN_PLUGIN_LA) \
   $(BT_PLUGIN_LA) \
+  libgnunet_test_transport_plugin_cmd_simple_send_performance.la \
   libgnunet_test_transport_plugin_cmd_nat_upnp.la \
   libgnunet_test_transport_plugin_cmd_simple_send.la \
   libgnunet_test_transport_plugin_cmd_simple_send_broadcast.la \
@@ -412,6 +414,23 @@ libgnunet_test_transport_plugin_cmd_simple_send_la_LIBADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(LTLIBINTL)
 libgnunet_test_transport_plugin_cmd_simple_send_la_LDFLAGS = \
+  $(GN_PLUGIN_LDFLAGS)
+
+libgnunet_test_transport_plugin_cmd_simple_send_performance_la_SOURCES = \
+ test_transport_plugin_cmd_simple_send_performance.c
+libgnunet_test_transport_plugin_cmd_simple_send_performance_la_LIBADD = \
+  libgnunettransporttesting2.la \
+  libgnunettransportapplication.la \
+  libgnunettransportcore.la \
+  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/hello/libgnunethello.la \
+  $(top_builddir)/src/ats/libgnunetats.la \
+  $(top_builddir)/src/arm/libgnunetarm.la \
+  $(top_builddir)/src/util/libgnunetutil.la \
+  $(LTLIBINTL)
+libgnunet_test_transport_plugin_cmd_simple_send_performance_la_LDFLAGS = \
   $(GN_PLUGIN_LDFLAGS)
 
 libgnunet_test_transport_plugin_cmd_simple_send_broadcast_la_SOURCES = \
@@ -760,7 +779,8 @@ endif
 # Only test TNG if we run experimental
 if HAVE_EXPERIMENTAL
 check_SCRIPTS= \
-test_transport_nat_icmp_tcp.sh \
+  test_transport_simple_send_performance.sh \
+  test_transport_nat_icmp_tcp.sh \
   test_transport_nat_upnp.sh \
   test_transport_simple_send_string.sh \
   test_transport_simple_send.sh \
@@ -1510,6 +1530,7 @@ test_transport_api_slow_ats_LDADD = \
 
 
 EXTRA_DIST = \
+test_transport_simple_send_performance.sh \
 test_transport_nat_icmp_tcp.sh \
 test_transport_nat_upnp.sh \
 test_transport_simple_send_string.sh \

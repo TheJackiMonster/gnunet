@@ -435,6 +435,25 @@ struct GNUNET_TRANSPORT_TESTING_TestMessage
    */
   uint32_t num GNUNET_PACKED;
 };
+
+struct GNUNET_TRANSPORT_TESTING_PerformanceTestMessage
+{
+  /**
+   * Type is (usually) #GNUNET_TRANSPORT_TESTING_SIMPLE_PERFORMANCE_MTYPE.
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * Time this message was send via transport api.
+   */
+  struct GNUNET_TIME_AbsoluteNBO time_send;
+  
+  /**
+   * Monotonically increasing counter throughout the test.
+   */
+  uint32_t num GNUNET_PACKED;
+};
+
 GNUNET_NETWORK_STRUCT_END
 
 
@@ -774,6 +793,10 @@ GNUNET_TRANSPORT_TESTING_send (
  */
 #define GNUNET_TRANSPORT_TESTING_SIMPLE_MTYPE2 12346
 
+/**
+ * Message type used by #().
+ */
+#define GNUNET_TRANSPORT_TESTING_SIMPLE_PERFORMANCE_MTYPE 12347
 
 /**
  * Type of the closure argument to pass to
