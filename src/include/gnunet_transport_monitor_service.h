@@ -27,7 +27,7 @@
  * @file
  * Monitoring / diagnostics API for the transport service
  *
- * @defgroup transport TRANSPORT service
+ * @defgroup TNG Transport Next Generation service
  * Communication with other peers
  *
  * @see [Documentation](https://gnunet.org/transport-service)

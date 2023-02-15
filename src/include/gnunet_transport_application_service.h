@@ -27,7 +27,7 @@
  * @author Christian Grothoff
  * @author Matthias Wachs
  *
- * @defgroup transport  Transport service
+ * @defgroup TNG Transport Next Generation service
  * @{
  */
 #ifndef GNUNET_TRANSPORT_APPLICATION_SERVICE_H

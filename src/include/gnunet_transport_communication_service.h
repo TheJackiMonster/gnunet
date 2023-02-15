@@ -27,7 +27,7 @@
  * @file
  * API of the transport service towards the communicator processes.
  *
- * @defgroup transport TRANSPORT service
+ * @defgroup TNG Transport Next Generation service
  * Low-level communication with other peers
  *
  * @see [Documentation](https://gnunet.org/transport-service)
