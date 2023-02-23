@@ -499,6 +499,7 @@ src/transport/transport_api_blacklist.c
 src/transport/transport_api_cmd_backchannel_check.c
 src/transport/transport_api_cmd_connecting_peers.c
 src/transport/transport_api_cmd_send_simple.c
+src/transport/transport_api_cmd_send_simple_performance.c
 src/transport/transport_api_cmd_start_peer.c
 src/transport/transport_api_cmd_stop_peer.c
 src/transport/transport_api_core.c
