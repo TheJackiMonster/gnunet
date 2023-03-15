@@ -1,3 +1,9 @@
+gnunet (0.19.3-1) unstable; urgency=low
+
+  * Minor packaging fix.
+
+ -- Florian Dold <dold@taler.net>  Wed, 15 Mar 2023 11:18:08 +0100
+
 gnunet (0.19.3) unstable; urgency=low
 
   * New upstream release, bumping version.
