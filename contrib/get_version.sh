@@ -1,18 +1,18 @@
 #!/bin/sh
 # Gets the version number from git, or from the contents of .version
 VERSION=
-if test -f ".version"
-then
+if test -f ".version"; then
   VERSION=$(cat .version)
 fi
-if [ -e ./.git ]
-then
-  VERSION=$(git describe --tags)
-  VERSION=${VERSION#v}
-  echo $VERSION > .version
+if [ -e ./.git ]; then
+  # With sparse checkouts, we have a .git dir but possibly no tags
+  gitver=$(git describe --tags 2>/dev/null || echo no-git-version)
+  if test "$gitver" != "no-git-version"; then
+    VERSION=${gitver#v}
+    echo "$VERSION" > .version
+  fi
 fi
-if test "x$VERSION" = "x"
-then
+if test "x$VERSION" = "x"; then
   VERSION="unknown"
 fi
 case $1 in
