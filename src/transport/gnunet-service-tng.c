@@ -4438,8 +4438,8 @@ queue_send_msg (struct Queue *queue,
   env = GNUNET_MQ_msg_extra (smt,
                              payload_size,
                              GNUNET_MESSAGE_TYPE_TRANSPORT_SEND_MSG);
-  smt->qid = queue->qid;
-  smt->mid = queue->mid_gen;
+  smt->qid = htonl (queue->qid);
+  smt->mid = GNUNET_htonll (queue->mid_gen);
   smt->receiver = n->pid;
   memcpy (&smt[1], payload, payload_size);
   {
@@ -4447,7 +4447,13 @@ queue_send_msg (struct Queue *queue,
     struct QueueEntry *qe;
 
     qe = GNUNET_new (struct QueueEntry);
-    qe->mid = queue->mid_gen++;
+    qe->mid = queue->mid_gen;
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Create QueueEntry with MID %lu and QID %lu and prefix %s\n",
+                qe->mid,
+                queue->qid,
+                queue->tc->details.communicator.address_prefix);
+    queue->mid_gen++;
     qe->queue = queue;
     if (NULL != pm)
     {
@@ -4460,7 +4466,7 @@ queue_send_msg (struct Queue *queue,
                     "Retransmitting message <%llu> remove pm from qe with MID: %llu \n",
                     pm->logging_uuid,
                     (unsigned long long) pm->qe->mid);
-        // pm->qe->pm = NULL;
+        pm->qe->pm = NULL;
       }
       pm->qe = qe;
     }
@@ -4491,7 +4497,7 @@ queue_send_msg (struct Queue *queue,
       queue->idle = GNUNET_NO;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Sending message MID %lu of type %u (%u) and size %lu with MQ %p\n",
-                smt->mid,
+                GNUNET_ntohll (smt->mid),
                 ntohs (((const struct GNUNET_MessageHeader *) payload)->type),
                 ntohs (smt->header.size),
                 payload_size,
@@ -10075,7 +10081,7 @@ handle_del_queue_message (void *cls,
   {
     struct Neighbour *neighbour = queue->neighbour;
 
-    if ((dqm->qid != queue->qid) ||
+    if ((ntohl (dqm->qid) != queue->qid) ||
         (0 != GNUNET_memcmp (&dqm->receiver, &neighbour->pid)))
       continue;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -10130,13 +10136,13 @@ handle_send_message_ack (void *cls,
     for (struct QueueEntry *qep = queue->queue_head; NULL != qep;
          qep = qep->next)
     {
-      if (qep->mid != sma->mid)
+      if (qep->mid != GNUNET_ntohll (sma->mid) && queue->qid != ntohl (sma->qid))
         continue;
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "QueueEntry MID: %llu on queue QID: %llu, Ack MID: %llu\n",
                   (unsigned long long) qep->mid,
-                  (unsigned long long) queue->qid,
-                  (unsigned long long) sma->mid);
+                  (unsigned long) queue->qid,
+                  GNUNET_ntohll (sma->mid));
       qe = qep;
       if ((NULL != qe->pm) && (qe->pm->qe != qe))
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -10148,8 +10154,9 @@ handle_send_message_ack (void *cls,
   if (NULL == qe)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "No QueueEntry found for Ack MID %llu\n",
-                (unsigned long long) sma->mid);
+                "No QueueEntry found for Ack MID %llu QID: %llu\n",
+                (unsigned long long) GNUNET_ntohll (sma->mid),
+                (unsigned long) ntohl (sma->qid));
     // TODO I guess this can happen, if the Ack from the peer comes before the Ack from the queue.
     /* this should never happen */
     /*GNUNET_break (0);
@@ -10776,7 +10783,7 @@ handle_add_queue_message (void *cls,
        NULL != queue;
        queue = queue->next_client)
   {
-    if (queue->qid != aqm->qid)
+    if (queue->qid != ntohl (aqm->qid))
       continue;
     break;
   }
@@ -10812,14 +10819,14 @@ handle_add_queue_message (void *cls,
                 "New queue %s to %s available with QID %llu and q_len %lu and mtu %u\n",
                 addr,
                 GNUNET_i2s (&aqm->receiver),
-                (unsigned long long) aqm->qid,
+                (unsigned long) ntohl (aqm->qid),
                 GNUNET_ntohll (aqm->q_len),
                 ntohl (aqm->mtu));
     queue = GNUNET_malloc (sizeof(struct Queue) + addr_len);
     queue->tc = tc;
     queue->address = (const char *) &queue[1];
     queue->pd.aged_rtt = GNUNET_TIME_UNIT_FOREVER_REL;
-    queue->qid = aqm->qid;
+    queue->qid = ntohl (aqm->qid);
     queue->neighbour = neighbour;
     if (GNUNET_TRANSPORT_QUEUE_LENGTH_UNLIMITED == GNUNET_ntohll (aqm->q_len))
       queue->unlimited_length = GNUNET_YES;
@@ -10877,14 +10884,14 @@ handle_update_queue_message (void *cls,
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received queue update message for %u with q_len %llu and mtu %u\n",
-              msg->qid,
+              ntohl (msg->qid),
               (unsigned long long) GNUNET_ntohll (msg->q_len),
               ntohl (msg->mtu));
   for (target_queue = tc->details.communicator.queue_head;
        NULL != target_queue;
        target_queue = target_queue->next_client)
   {
-    if (msg->qid == target_queue->qid)
+    if (ntohl (msg->qid) == target_queue->qid)
       break;
   }
   if (NULL == target_queue)
@@ -10905,7 +10912,7 @@ handle_update_queue_message (void *cls,
     target_queue->unlimited_length = GNUNET_YES;
   else
     target_queue->unlimited_length = GNUNET_NO;
-  target_queue->q_capacity = GNUNET_ntohll (msg->q_len);
+  target_queue->q_capacity += GNUNET_ntohll (msg->q_len);
   if (0 < target_queue->q_capacity)
     schedule_transmit_on_queue (GNUNET_TIME_UNIT_ZERO,
                                 target_queue,

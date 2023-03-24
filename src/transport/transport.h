@@ -1022,6 +1022,11 @@ struct GNUNET_TRANSPORT_SendMessageToAck
   uint64_t mid GNUNET_PACKED;
 
   /**
+   * Queue ID for the queue which was used to send the message.
+   */
+  uint32_t qid GNUNET_PACKED;
+
+  /**
    * Receiver identifier.
    */
   struct GNUNET_PeerIdentity receiver;

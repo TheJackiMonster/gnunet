@@ -106,6 +106,11 @@ struct AckPending
    * More-or-less unique ID for the message.
    */
   uint64_t mid;
+
+  /**
+   * Queue ID of the queue which will be used for the message.
+   */
+  uint32_t qid;
 };
 
 
@@ -639,7 +644,8 @@ static void
 send_ack (struct GNUNET_TRANSPORT_CommunicatorHandle *ch,
           int status,
           const struct GNUNET_PeerIdentity *receiver,
-          uint64_t mid)
+          uint64_t mid,
+          uint32_t qid)
 {
   struct GNUNET_MQ_Envelope *env;
   struct GNUNET_TRANSPORT_SendMessageToAck *ack;
@@ -647,6 +653,7 @@ send_ack (struct GNUNET_TRANSPORT_CommunicatorHandle *ch,
   env = GNUNET_MQ_msg (ack, GNUNET_MESSAGE_TYPE_TRANSPORT_SEND_MSG_ACK);
   ack->status = htonl (status);
   ack->mid = mid;
+  ack->qid = qid;
   ack->receiver = *receiver;
   GNUNET_MQ_send (ch->mq, env);
 }
@@ -665,7 +672,7 @@ send_ack_cb (void *cls)
   struct GNUNET_TRANSPORT_CommunicatorHandle *ch = ap->ch;
 
   GNUNET_CONTAINER_DLL_remove (ch->ap_head, ch->ap_tail, ap);
-  send_ack (ch, GNUNET_OK, &ap->receiver, ap->mid);
+  send_ack (ch, GNUNET_OK, &ap->receiver, ap->mid, ap->qid);
   GNUNET_free (ap);
 }
 
@@ -696,13 +703,14 @@ handle_send_msg (void *cls, const struct GNUNET_TRANSPORT_SendMessageTo *smt)
     /* queue is already gone, tell transport this one failed */
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "Transmission failed, queue no longer exists.\n");
-    send_ack (ch, GNUNET_NO, &smt->receiver, smt->mid);
+    send_ack (ch, GNUNET_NO, &smt->receiver, smt->mid, smt->qid);
     return;
   }
   ap = GNUNET_new (struct AckPending);
   ap->ch = ch;
   ap->receiver = smt->receiver;
   ap->mid = smt->mid;
+  ap->qid = smt->qid;
   GNUNET_CONTAINER_DLL_insert (ch->ap_head, ch->ap_tail, ap);
   mh = (const struct GNUNET_MessageHeader *) &smt[1];
   env = GNUNET_MQ_msg_copy (mh);
