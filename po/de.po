@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2023-01-05 22:56+0900\n"
+"POT-Creation-Date: 2023-04-01 10:42+0200\n"
 "PO-Revision-Date: 2015-03-08 16:16+0100\n"
 "Last-Translator: Mario Blättermann <mario.blaettermann@gmail.com>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -35,7 +35,7 @@ msgstr ""
 
 #: src/abd/gnunet-abd.c:558 src/abd/gnunet-service-abd.c:1750
 #: src/namestore/gnunet-namestore-fcfsd.c:1089
-#: src/namestore/gnunet-namestore.c:1957
+#: src/namestore/gnunet-namestore.c:1959
 #, fuzzy, c-format
 msgid "Failed to connect to namestore\n"
 msgstr "Es konnte keine Verbindung mit gnunetd hergestellt werden.\n"
@@ -1973,32 +1973,32 @@ msgstr "Verbindung zum DHT-Dienst ist fehlgeschlagen!\n"
 msgid "Issuing DHT GET with key"
 msgstr ""
 
-#: src/dht/gnunet-dht-get.c:292 src/dht/gnunet-dht-monitor.c:302
-#: src/dht/gnunet-dht-put.c:200
+#: src/dht/gnunet-dht-get.c:293 src/dht/gnunet-dht-monitor.c:302
+#: src/dht/gnunet-dht-put.c:201
 msgid "the query key"
 msgstr ""
 
-#: src/dht/gnunet-dht-get.c:298
+#: src/dht/gnunet-dht-get.c:299
 msgid "how many parallel requests (replicas) to create"
 msgstr ""
 
-#: src/dht/gnunet-dht-get.c:303 src/dht/gnunet-dht-put.c:217
+#: src/dht/gnunet-dht-get.c:304 src/dht/gnunet-dht-put.c:218
 msgid "use DHT's record route option"
 msgstr ""
 
-#: src/dht/gnunet-dht-get.c:309 src/dht/gnunet-dht-monitor.c:308
+#: src/dht/gnunet-dht-get.c:310 src/dht/gnunet-dht-monitor.c:308
 msgid "the type of data to look for"
 msgstr ""
 
-#: src/dht/gnunet-dht-get.c:315
+#: src/dht/gnunet-dht-get.c:316
 msgid "how long to execute this query before giving up?"
 msgstr ""
 
-#: src/dht/gnunet-dht-get.c:321 src/dht/gnunet-dht-put.c:206
+#: src/dht/gnunet-dht-get.c:322 src/dht/gnunet-dht-put.c:207
 msgid "use DHT's demultiplex everywhere option"
 msgstr ""
 
-#: src/dht/gnunet-dht-get.c:338
+#: src/dht/gnunet-dht-get.c:339
 msgid "Issue a GET request to the GNUnet DHT, prints results."
 msgstr ""
 
@@ -2033,23 +2033,23 @@ msgstr "Verbindung zum %s-Dienst ist fehlgeschlagen!\n"
 msgid "Issuing put request for `%s' with data `%s'!\n"
 msgstr ""
 
-#: src/dht/gnunet-dht-put.c:188
+#: src/dht/gnunet-dht-put.c:189
 msgid "the data to insert under the key"
 msgstr ""
 
-#: src/dht/gnunet-dht-put.c:194
+#: src/dht/gnunet-dht-put.c:195
 msgid "how long to store this entry in the dht (in seconds)"
 msgstr ""
 
-#: src/dht/gnunet-dht-put.c:212
+#: src/dht/gnunet-dht-put.c:213
 msgid "how many replicas to create"
 msgstr ""
 
-#: src/dht/gnunet-dht-put.c:223
+#: src/dht/gnunet-dht-put.c:224
 msgid "the type to insert data as"
 msgstr ""
 
-#: src/dht/gnunet-dht-put.c:241
+#: src/dht/gnunet-dht-put.c:242
 msgid "Issue a PUT request to the GNUnet DHT insert DATA under KEY."
 msgstr ""
 
@@ -4708,7 +4708,7 @@ msgstr "`%s' konnte nicht aufgelöst werden: %s\n"
 msgid "No records found for `%s'"
 msgstr "Dienst `%s' konnte nicht ordentlich entladen werden!\n"
 
-#: src/namecache/gnunet-namecache.c:118 src/namestore/gnunet-namestore.c:887
+#: src/namecache/gnunet-namecache.c:118 src/namestore/gnunet-namestore.c:889
 #, c-format
 msgid "\tCorrupt or unsupported record of type %u\n"
 msgstr ""
@@ -4728,7 +4728,7 @@ msgstr "Ungültiger Parameter: `%s'\n"
 msgid "You must specify a name\n"
 msgstr "Sie müssen einen Empfänger angeben!\n"
 
-#: src/namecache/gnunet-namecache.c:213 src/namestore/gnunet-namestore.c:2019
+#: src/namecache/gnunet-namecache.c:213 src/namestore/gnunet-namestore.c:2021
 msgid "name of the record to add/delete/display"
 msgstr ""
 
@@ -4737,7 +4737,7 @@ msgstr ""
 msgid "specifies the public key of the zone to look in"
 msgstr "Die Priorität des Inhalts angeben"
 
-#: src/namecache/gnunet-namecache.c:232 src/namestore/gnunet-namestore.c:2101
+#: src/namecache/gnunet-namecache.c:232 src/namestore/gnunet-namestore.c:2103
 #, fuzzy
 msgid "GNUnet zone manipulation tool"
 msgstr "GNUnet Konfiguration"
@@ -4786,7 +4786,7 @@ msgid "Failed to setup database at `%s'\n"
 msgstr "Es konnte keine Verbindung mit gnunetd hergestellt werden.\n"
 
 #: src/namestore/gnunet-namestore-dbtool.c:87
-#: src/namestore/gnunet-namestore.c:1950
+#: src/namestore/gnunet-namestore.c:1952
 #, c-format
 msgid "Superfluous command line arguments (starting with `%s') ignored\n"
 msgstr ""
@@ -4959,7 +4959,7 @@ msgid "Failed to connect to IDENTITY\n"
 msgstr "Es konnte keine Verbindung mit gnunetd hergestellt werden.\n"
 
 #: src/namestore/gnunet-namestore-zonefile.c:738
-#: src/namestore/gnunet-namestore.c:2086
+#: src/namestore/gnunet-namestore.c:2088
 msgid "name of the ego controlling the zone"
 msgstr ""
 
@@ -4987,207 +4987,207 @@ msgstr "Fehler beim Lesen von »%s«: %s\n"
 msgid "Invalid record data for type %s: `%s'.\n"
 msgstr "Ungültiges Format für IP: »%s«\n"
 
-#: src/namestore/gnunet-namestore.c:666
+#: src/namestore/gnunet-namestore.c:668
 #, c-format
 msgid "Adding record failed: %s\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:684 src/namestore/gnunet-namestore.c:700
+#: src/namestore/gnunet-namestore.c:686 src/namestore/gnunet-namestore.c:702
 #, fuzzy, c-format
 msgid "Deleting record failed: %s\n"
 msgstr "Zustellung der Nachricht `%s' fehlgeschlagen.\n"
 
-#: src/namestore/gnunet-namestore.c:1136
+#: src/namestore/gnunet-namestore.c:1138
 #, c-format
 msgid ""
 "A SOA record exists already under `%s', cannot add a second SOA to the same "
 "zone.\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1257
+#: src/namestore/gnunet-namestore.c:1259
 #, c-format
 msgid "There are no records under label `%s' that could be deleted.\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1300
+#: src/namestore/gnunet-namestore.c:1302
 #, c-format
 msgid ""
 "There are no records under label `%s' that match the request for deletion.\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1325
+#: src/namestore/gnunet-namestore.c:1327
 #, c-format
 msgid "%s\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1354
+#: src/namestore/gnunet-namestore.c:1356
 #, c-format
 msgid "No options given\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1368
+#: src/namestore/gnunet-namestore.c:1370
 #, c-format
 msgid "Recordlines only work with option `%s'\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1377 src/namestore/gnunet-namestore.c:1429
-#: src/namestore/gnunet-namestore.c:1439 src/namestore/gnunet-namestore.c:1449
-#: src/namestore/gnunet-namestore.c:1478 src/namestore/gnunet-namestore.c:1499
-#: src/namestore/gnunet-namestore.c:1526 src/namestore/gnunet-namestore.c:1536
-#: src/namestore/gnunet-namestore.c:1569 src/namestore/gnunet-namestore.c:1594
-#: src/namestore/gnunet-namestore.c:1628 src/namestore/gnunet-namestore.c:1662
-#: src/namestore/gnunet-namestore.c:1685
+#: src/namestore/gnunet-namestore.c:1379 src/namestore/gnunet-namestore.c:1431
+#: src/namestore/gnunet-namestore.c:1441 src/namestore/gnunet-namestore.c:1451
+#: src/namestore/gnunet-namestore.c:1480 src/namestore/gnunet-namestore.c:1501
+#: src/namestore/gnunet-namestore.c:1528 src/namestore/gnunet-namestore.c:1538
+#: src/namestore/gnunet-namestore.c:1571 src/namestore/gnunet-namestore.c:1596
+#: src/namestore/gnunet-namestore.c:1630 src/namestore/gnunet-namestore.c:1664
+#: src/namestore/gnunet-namestore.c:1687
 #, fuzzy, c-format
 msgid "Missing option `%s' for operation `%s'\n"
 msgstr "Unbekannte Operation `%s'\n"
 
-#: src/namestore/gnunet-namestore.c:1379
+#: src/namestore/gnunet-namestore.c:1381
 msgid "name"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1408
+#: src/namestore/gnunet-namestore.c:1410
 #, fuzzy, c-format
 msgid "Invalid nick `%s'\n"
 msgstr "Ungültiger Parameter: `%s'\n"
 
-#: src/namestore/gnunet-namestore.c:1431 src/namestore/gnunet-namestore.c:1441
-#: src/namestore/gnunet-namestore.c:1451 src/namestore/gnunet-namestore.c:1480
-#: src/namestore/gnunet-namestore.c:1501 src/namestore/gnunet-namestore.c:1687
+#: src/namestore/gnunet-namestore.c:1433 src/namestore/gnunet-namestore.c:1443
+#: src/namestore/gnunet-namestore.c:1453 src/namestore/gnunet-namestore.c:1482
+#: src/namestore/gnunet-namestore.c:1503 src/namestore/gnunet-namestore.c:1689
 msgid "add"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1459
+#: src/namestore/gnunet-namestore.c:1461
 #, fuzzy, c-format
 msgid "Unsupported type `%s'\n"
 msgstr "Kommando `%s' wird nicht unterstützt. Vorgang wird abgebrochen.\n"
 
-#: src/namestore/gnunet-namestore.c:1469
+#: src/namestore/gnunet-namestore.c:1471
 #, c-format
 msgid "For DNS record types `SRV', `TLSA' and `OPENPGPKEY'"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1489
+#: src/namestore/gnunet-namestore.c:1491
 #, fuzzy, c-format
 msgid "Value `%s' invalid for record type `%s'\n"
 msgstr "%s: Symbolwert `%s' ist ungültig für %s\n"
 
-#: src/namestore/gnunet-namestore.c:1508 src/namestore/gnunet-namestore.c:1694
+#: src/namestore/gnunet-namestore.c:1510 src/namestore/gnunet-namestore.c:1696
 #, fuzzy, c-format
 msgid "Invalid time format `%s'\n"
 msgstr "Ungültiger Parameter: `%s'\n"
 
-#: src/namestore/gnunet-namestore.c:1528 src/namestore/gnunet-namestore.c:1538
+#: src/namestore/gnunet-namestore.c:1530 src/namestore/gnunet-namestore.c:1540
 msgid "del"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1571
+#: src/namestore/gnunet-namestore.c:1573
 msgid "purge-zone"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1596
+#: src/namestore/gnunet-namestore.c:1598
 msgid "list"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1630
+#: src/namestore/gnunet-namestore.c:1632
 msgid "reverse-pkey"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1640
+#: src/namestore/gnunet-namestore.c:1642
 #, c-format
 msgid "Invalid public key for reverse lookup `%s'\n"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1664
+#: src/namestore/gnunet-namestore.c:1666
 msgid "uri"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1677
+#: src/namestore/gnunet-namestore.c:1679
 #: src/peerinfo-tool/gnunet-peerinfo.c:737
 #, fuzzy, c-format
 msgid "Invalid URI `%s'\n"
 msgstr "Ungültiger Parameter: `%s'\n"
 
-#: src/namestore/gnunet-namestore.c:1965
+#: src/namestore/gnunet-namestore.c:1967
 #, fuzzy, c-format
 msgid "Cannot connect to identity service\n"
 msgstr "Verbindung zu %u.%u.%u.%u:%u fehlgeschlagen: %s\n"
 
-#: src/namestore/gnunet-namestore.c:1984
+#: src/namestore/gnunet-namestore.c:1986
 msgid "add record"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1987
+#: src/namestore/gnunet-namestore.c:1989
 msgid "delete record"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1991
+#: src/namestore/gnunet-namestore.c:1993
 msgid "display records"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:1995
+#: src/namestore/gnunet-namestore.c:1997
 msgid "read commands from stdin"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:2002
+#: src/namestore/gnunet-namestore.c:2004
 msgid ""
 "expiration time for record to use (for adding only), \"never\" is possible"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:2008
+#: src/namestore/gnunet-namestore.c:2010
 msgid "set the desired nick name for the zone"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:2013
+#: src/namestore/gnunet-namestore.c:2015
 msgid "monitor changes in the namestore"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:2023
+#: src/namestore/gnunet-namestore.c:2025
 msgid "Output in recordline format"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:2029
+#: src/namestore/gnunet-namestore.c:2031
 msgid "determine our name for the given KEY"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:2035
+#: src/namestore/gnunet-namestore.c:2037
 msgid "type of the record to add/delete/display"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:2040
+#: src/namestore/gnunet-namestore.c:2042
 msgid "URI to import into our zone"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:2046
+#: src/namestore/gnunet-namestore.c:2048
 msgid "value of the record to add/delete"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:2050
+#: src/namestore/gnunet-namestore.c:2052
 msgid "create or list public record"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:2054
+#: src/namestore/gnunet-namestore.c:2056
 msgid "omit private records"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:2059
+#: src/namestore/gnunet-namestore.c:2061
 msgid "do not filter maintenance records"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:2064
+#: src/namestore/gnunet-namestore.c:2066
 msgid "purge namestore of all orphans"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:2069
+#: src/namestore/gnunet-namestore.c:2071
 msgid ""
 "show private key for orphaned records for recovery using `gnunet-identity -C "
 "-P <key>'. Use in combination with --display"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:2074
+#: src/namestore/gnunet-namestore.c:2076
 msgid "delete all records in specified zone"
 msgstr ""
 
-#: src/namestore/gnunet-namestore.c:2080
+#: src/namestore/gnunet-namestore.c:2082
 msgid ""
 "create shadow record (only valid if all other records of the same type have "
 "expired"
@@ -5546,7 +5546,7 @@ msgid "Show network size estimates from NSE service."
 msgstr ""
 
 #: src/nse/gnunet-service-nse.c:1441
-#: src/revocation/gnunet-service-revocation.c:920 src/util/gnunet-scrypt.c:243
+#: src/revocation/gnunet-service-revocation.c:922 src/util/gnunet-scrypt.c:243
 msgid "Value is too large.\n"
 msgstr ""
 
@@ -5712,16 +5712,16 @@ msgstr ""
 msgid "Could not load database backend `%s'\n"
 msgstr "`%s' konnte nicht aufgelöst werden: %s\n"
 
-#: src/peerstore/peerstore_api.c:603 src/peerstore/peerstore_api.c:651
+#: src/peerstore/peerstore_api.c:603 src/peerstore/peerstore_api.c:652
 msgid "Unexpected iteration response, this should not happen.\n"
 msgstr ""
 
-#: src/peerstore/peerstore_api.c:665
+#: src/peerstore/peerstore_api.c:666
 #, fuzzy
 msgid "Received a malformed response from service."
 msgstr "Beschädigte Antwort auf `%s' von Knoten `%s' empfangen.\n"
 
-#: src/peerstore/peerstore_api.c:779
+#: src/peerstore/peerstore_api.c:780
 msgid "Received a watch result for a non existing watch.\n"
 msgstr ""
 
@@ -5847,86 +5847,86 @@ msgstr ""
 msgid "The time until the DID Document is going to expire (e.g. 5d)"
 msgstr ""
 
-#: src/reclaim/gnunet-reclaim.c:802
+#: src/reclaim/gnunet-reclaim.c:805
 #, fuzzy, c-format
 msgid "Ego is required\n"
 msgstr "Option `%s' macht keinen Sinn ohne die Option `%s'.\n"
 
-#: src/reclaim/gnunet-reclaim.c:809
+#: src/reclaim/gnunet-reclaim.c:812
 #, c-format
 msgid "Attribute value missing!\n"
 msgstr ""
 
-#: src/reclaim/gnunet-reclaim.c:816
+#: src/reclaim/gnunet-reclaim.c:819
 #, fuzzy, c-format
 msgid "Requesting party key is required!\n"
 msgstr "Option `%s' macht keinen Sinn ohne die Option `%s'.\n"
 
-#: src/reclaim/gnunet-reclaim.c:834
+#: src/reclaim/gnunet-reclaim.c:837
 msgid "Add or update an attribute NAME"
 msgstr ""
 
-#: src/reclaim/gnunet-reclaim.c:839
+#: src/reclaim/gnunet-reclaim.c:842
 msgid "Delete the attribute with ID"
 msgstr ""
 
-#: src/reclaim/gnunet-reclaim.c:844
+#: src/reclaim/gnunet-reclaim.c:847
 msgid "The attribute VALUE"
 msgstr ""
 
-#: src/reclaim/gnunet-reclaim.c:849
+#: src/reclaim/gnunet-reclaim.c:852
 msgid "The EGO to use"
 msgstr ""
 
-#: src/reclaim/gnunet-reclaim.c:855
+#: src/reclaim/gnunet-reclaim.c:858
 msgid "Specify the relying party for issue"
 msgstr ""
 
-#: src/reclaim/gnunet-reclaim.c:859
+#: src/reclaim/gnunet-reclaim.c:862
 msgid "List attributes for EGO"
 msgstr ""
 
-#: src/reclaim/gnunet-reclaim.c:863
+#: src/reclaim/gnunet-reclaim.c:866
 msgid "List credentials for EGO"
 msgstr ""
 
-#: src/reclaim/gnunet-reclaim.c:869
+#: src/reclaim/gnunet-reclaim.c:872
 msgid "Credential to use for attribute"
 msgstr ""
 
-#: src/reclaim/gnunet-reclaim.c:874
+#: src/reclaim/gnunet-reclaim.c:877
 msgid "Credential name"
 msgstr ""
 
-#: src/reclaim/gnunet-reclaim.c:880
+#: src/reclaim/gnunet-reclaim.c:883
 msgid "Issue a ticket for a set of attributes separated by comma"
 msgstr ""
 
-#: src/reclaim/gnunet-reclaim.c:885
+#: src/reclaim/gnunet-reclaim.c:888
 msgid "Consume a ticket"
 msgstr ""
 
-#: src/reclaim/gnunet-reclaim.c:890
+#: src/reclaim/gnunet-reclaim.c:893
 msgid "Revoke a ticket"
 msgstr ""
 
-#: src/reclaim/gnunet-reclaim.c:895
+#: src/reclaim/gnunet-reclaim.c:898
 msgid "Type of attribute"
 msgstr ""
 
-#: src/reclaim/gnunet-reclaim.c:900
+#: src/reclaim/gnunet-reclaim.c:903
 msgid "Type of credential"
 msgstr ""
 
-#: src/reclaim/gnunet-reclaim.c:904
+#: src/reclaim/gnunet-reclaim.c:907
 msgid "List tickets of ego"
 msgstr ""
 
-#: src/reclaim/gnunet-reclaim.c:910
+#: src/reclaim/gnunet-reclaim.c:913
 msgid "Expiration interval of the attribute"
 msgstr ""
 
-#: src/reclaim/gnunet-reclaim.c:918
+#: src/reclaim/gnunet-reclaim.c:921
 msgid "re:claimID command line tool"
 msgstr ""
 
@@ -6029,7 +6029,7 @@ msgstr ""
 msgid "Search string `%s' is too long!\n"
 msgstr "Dienst »%s« läuft nicht\n"
 
-#: src/rest/gnunet-rest-server.c:1366
+#: src/rest/gnunet-rest-server.c:1369
 #, fuzzy
 msgid "GNUnet REST server"
 msgstr "GNUnet Netzwerk Topologie tracen."
@@ -6201,7 +6201,7 @@ msgstr "# Klartext PONG Nachrichten empfangen"
 msgid "SET service crashed, terminating revocation service\n"
 msgstr ""
 
-#: src/revocation/gnunet-service-revocation.c:957
+#: src/revocation/gnunet-service-revocation.c:959
 #, fuzzy
 msgid "Could not open revocation database file!"
 msgstr "Knoten `%s' konnte nicht in der Routing Tabelle gefunden werden!\n"
@@ -6319,7 +6319,7 @@ msgid "also profile decryption"
 msgstr ""
 
 #: src/set/gnunet-service-set.c:1915 src/seti/gnunet-service-seti.c:2468
-#: src/setu/gnunet-service-setu.c:5389
+#: src/setu/gnunet-service-setu.c:5412
 #, fuzzy
 msgid "Could not connect to CADET service\n"
 msgstr "Verbindung zum %s-Dienst ist fehlgeschlagen!\n"
@@ -6578,7 +6578,7 @@ msgid ""
 msgstr ""
 
 #: src/testbed/gnunet-daemon-testbed-underlay.c:234 src/testing/list-keys.c:47
-#: src/testing/testing.c:292 src/util/gnunet-ecc.c:319
+#: src/testing/testing.c:308 src/util/gnunet-ecc.c:319
 #, c-format
 msgid "Incorrect hostkey file format: %s\n"
 msgstr ""
@@ -6732,17 +6732,17 @@ msgid ""
 "free topology cannot be more than %u.  Given `%s = %llu'"
 msgstr ""
 
-#: src/testbed/testbed_api_topology.c:1021 src/testing/testing.c:2749
+#: src/testbed/testbed_api_topology.c:1021 src/testing/testing.c:2823
 #, c-format
 msgid "Topology file %s not found\n"
 msgstr ""
 
-#: src/testbed/testbed_api_topology.c:1029 src/testing/testing.c:2757
+#: src/testbed/testbed_api_topology.c:1029 src/testing/testing.c:2831
 #, c-format
 msgid "Topology file %s has no data\n"
 msgstr ""
 
-#: src/testbed/testbed_api_topology.c:1037 src/testing/testing.c:2765
+#: src/testbed/testbed_api_topology.c:1037 src/testing/testing.c:2839
 #, c-format
 msgid "Topology file %s cannot be read\n"
 msgstr ""
@@ -6816,57 +6816,57 @@ msgstr ""
 msgid "list COUNT number of keys"
 msgstr ""
 
-#: src/testing/testing.c:275
+#: src/testing/testing.c:291
 #, c-format
 msgid "Hostkeys file not found: %s\n"
 msgstr ""
 
-#: src/testing/testing.c:727
+#: src/testing/testing.c:743
 #, c-format
 msgid "Key number %u does not exist\n"
 msgstr ""
 
-#: src/testing/testing.c:1201
+#: src/testing/testing.c:1217
 #, c-format
 msgid ""
 "You attempted to create a testbed with more than %u hosts.  Please "
 "precompute more hostkeys first.\n"
 msgstr ""
 
-#: src/testing/testing.c:1210
+#: src/testing/testing.c:1226
 #, fuzzy, c-format
 msgid "Failed to initialize hostkey for peer %u\n"
 msgstr "SQLite Datenbank konnte nicht initialisiert werden.\n"
 
-#: src/testing/testing.c:1220
+#: src/testing/testing.c:1236
 msgid "PRIVATE_KEY option in PEER section missing in configuration\n"
 msgstr ""
 
-#: src/testing/testing.c:1233
+#: src/testing/testing.c:1249
 msgid "Failed to create configuration for peer (not enough free ports?)\n"
 msgstr ""
 
-#: src/testing/testing.c:1249
+#: src/testing/testing.c:1265
 #, fuzzy, c-format
 msgid "Cannot open hostkey file `%s': %s\n"
 msgstr "Konfigurationsdatei `%s' konnte nicht geöffnet werden.\n"
 
-#: src/testing/testing.c:1263
+#: src/testing/testing.c:1279
 #, fuzzy, c-format
 msgid "Failed to write hostkey file for peer %u: %s\n"
 msgstr "Datei wurde als `%s' gespeichert.\n"
 
-#: src/testing/testing.c:1291
+#: src/testing/testing.c:1307
 #, fuzzy, c-format
 msgid "Failed to write configuration file `%s' for peer %u: %s\n"
 msgstr "Fehler beim Speichern der Konfigurationsdatei `%s':"
 
-#: src/testing/testing.c:1397
+#: src/testing/testing.c:1413
 #, c-format
 msgid "Failed to start `%s': %s\n"
 msgstr "»%s« konnte nicht gestartet werden: %s\n"
 
-#: src/testing/testing.c:1648
+#: src/testing/testing.c:1664
 #, c-format
 msgid "Failed to load configuration from %s\n"
 msgstr "Konfiguration konnte nicht aus %s geladen werden\n"
@@ -6942,18 +6942,18 @@ msgstr "# HELLO-Meldungen empfangen"
 msgid "GNUnet topology control"
 msgstr ""
 
-#: src/transport/gnunet-communicator-tcp.c:3347
-#: src/transport/gnunet-communicator-udp.c:3872
-#: src/transport/gnunet-service-tng.c:11372
+#: src/transport/gnunet-communicator-tcp.c:3712
+#: src/transport/gnunet-communicator-udp.c:3879
+#: src/transport/gnunet-service-tng.c:11393
 #: src/transport/gnunet-service-transport.c:2617
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr ""
 
-#: src/transport/gnunet-communicator-tcp.c:3682
+#: src/transport/gnunet-communicator-tcp.c:4049
 msgid "GNUnet TCP communicator"
 msgstr ""
 
-#: src/transport/gnunet-communicator-udp.c:3947
+#: src/transport/gnunet-communicator-udp.c:3954
 msgid "GNUnet UDP communicator"
 msgstr ""
 
@@ -8059,62 +8059,58 @@ msgstr "Konfigurationsdatei `%s' konnte nicht geparst werden.\n"
 msgid "Dropped backchanel message: handler not provided by communicator\n"
 msgstr ""
 
-#: src/util/bio.c:230 src/util/bio.c:238
+#: src/util/bio.c:231 src/util/bio.c:239
 #, fuzzy, c-format
 msgid "Error reading `%s' from file: %s"
 msgstr "Fehler beim Anlegen des Benutzers"
 
-#: src/util/bio.c:240
+#: src/util/bio.c:241
 msgid "End of file"
 msgstr "Dateiende"
 
-#: src/util/bio.c:269
+#: src/util/bio.c:270
 #, fuzzy, c-format
 msgid "Error while reading `%s' from buffer: %s"
 msgstr "Konfigurationsdatei `%s' konnte nicht geöffnet werden.\n"
 
-#: src/util/bio.c:271
+#: src/util/bio.c:272
 msgid "Not enough data left"
 msgstr ""
 
-#: src/util/bio.c:311
+#: src/util/bio.c:312
 #, fuzzy, c-format
 msgid "Invalid handle type while reading `%s'"
 msgstr "Ungültiges Befehlszeilenargument »%s«\n"
 
-#: src/util/bio.c:338 src/util/bio.c:788
+#: src/util/bio.c:339 src/util/bio.c:796
 msgid "string length"
 msgstr ""
 
-#: src/util/bio.c:344
+#: src/util/bio.c:345
 #, fuzzy, c-format
 msgid "%s (while reading `%s')"
 msgstr "Konfigurationsdatei `%s' konnte nicht geöffnet werden.\n"
 
-#: src/util/bio.c:349
+#: src/util/bio.c:350
 #, c-format
 msgid "Error reading length of string `%s'"
 msgstr ""
 
-#: src/util/bio.c:362
+#: src/util/bio.c:363
 #, c-format
 msgid "String `%s' longer than allowed (%u > %lu)"
 msgstr ""
 
-#: src/util/bio.c:617
-msgid "Unable to flush buffer to file"
-msgstr ""
-
-#: src/util/bio.c:679 src/util/bio.c:700
+#: src/util/bio.c:687 src/util/bio.c:708
 #, fuzzy, c-format
 msgid "Error while writing `%s' to file: %s"
 msgstr "Konfigurationsdatei `%s' konnte nicht geöffnet werden.\n"
 
-#: src/util/bio.c:681
+#: src/util/bio.c:689
 msgid "No associated file"
 msgstr ""
 
-#: src/util/bio.c:765
+#: src/util/bio.c:773
 #, fuzzy, c-format
 msgid "Invalid handle type while writing `%s'"
 msgstr "Ungültiger Parameter: `%s'\n"
@@ -8199,58 +8195,58 @@ msgstr ""
 msgid "Bad directive in line %u\n"
 msgstr ""
 
-#: src/util/configuration.c:849
+#: src/util/configuration.c:852
 #, c-format
 msgid "Bad inline-secret directive in line %u\n"
 msgstr ""
 
-#: src/util/configuration.c:871
+#: src/util/configuration.c:874
 #, c-format
 msgid "Unknown or malformed directive '%s' in line %u\n"
 msgstr ""
 
-#: src/util/configuration.c:901
+#: src/util/configuration.c:905
 #, fuzzy, c-format
 msgid "Syntax error while deserializing in line %u (option without section)\n"
 msgstr "Syntaxfehler in Konfigurationsdatei `%s' in Zeile %d.\n"
 
-#: src/util/configuration.c:945
+#: src/util/configuration.c:955
 #, fuzzy, c-format
 msgid "Syntax error while deserializing in line %u\n"
 msgstr "Syntaxfehler in Konfigurationsdatei `%s' in Zeile %d.\n"
 
-#: src/util/configuration.c:1045
+#: src/util/configuration.c:1055
 #, fuzzy, c-format
 msgid "Error while reading file `%s'\n"
 msgstr "Konfigurationsdatei `%s' konnte nicht geöffnet werden.\n"
 
-#: src/util/configuration.c:1058
+#: src/util/configuration.c:1068
 #, fuzzy, c-format
 msgid "Failed to parse configuration file `%s'\n"
 msgstr "Fehler beim Speichern der Konfigurationsdatei `%s':"
 
-#: src/util/configuration.c:1691
+#: src/util/configuration.c:1701
 msgid "Not a valid relative time specification"
 msgstr ""
 
-#: src/util/configuration.c:1761
+#: src/util/configuration.c:1771
 #, c-format
 msgid ""
 "Configuration value '%s' for '%s' in section '%s' is not in set of legal "
 "choices\n"
 msgstr ""
 
-#: src/util/configuration.c:1856
+#: src/util/configuration.c:1866
 #, c-format
 msgid "Recursive expansion suspected, aborting $-expansion for term `%s'\n"
 msgstr ""
 
-#: src/util/configuration.c:1888
+#: src/util/configuration.c:1898
 #, c-format
 msgid "Missing closing `%s' in option `%s'\n"
 msgstr ""
 
-#: src/util/configuration.c:1954
+#: src/util/configuration.c:1964
 #, c-format
 msgid ""
 "Failed to expand `%s' in `%s' as it is neither found in [PATHS] nor defined "
@@ -8541,7 +8537,7 @@ msgstr ""
 msgid "Manipulate GNUnet configuration files"
 msgstr "GNUnet-Konfigurationsdateien bearbeiten"
 
-#: src/util/gnunet-crypto-tvg.c:1528
+#: src/util/gnunet-crypto-tvg.c:1535
 msgid "verify a test vector from stdin"
 msgstr ""
 

@@ -1,3 +1,6 @@
+v0.19.4:
+  - No changes
+
 v0.19.3:
   - We now detect MySQL's strange, version-dependent my_bool type on configure.
   - Add pkg-config definitions for gnunet messenger.
