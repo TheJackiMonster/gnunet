@@ -125,6 +125,11 @@ struct GNUNET_CURL_Job
    * after the job has finished.
    */
   struct curl_slist *job_headers;
+
+  /**
+   * When did we start the job?
+   */
+  struct GNUNET_TIME_Absolute start_time;
 };
 
 
@@ -415,6 +420,7 @@ setup_job (CURL *eh,
     return NULL;
   }
   job = GNUNET_new (struct GNUNET_CURL_Job);
+  job->start_time = GNUNET_TIME_absolute_get ();
   job->job_headers = all_headers;
 
   if ( (CURLE_OK !=
@@ -743,6 +749,7 @@ GNUNET_CURL_perform2 (struct GNUNET_CURL_Context *ctx,
                                                &n_completed)))
   {
     struct GNUNET_CURL_Job *job;
+    struct GNUNET_TIME_Relative duration;
     long response_code;
     void *response;
 
@@ -754,6 +761,7 @@ GNUNET_CURL_perform2 (struct GNUNET_CURL_Context *ctx,
                                       (char **) &job));
     GNUNET_assert (job->ctx == ctx);
     response_code = 0;
+    duration = GNUNET_TIME_absolute_get_duration (job->start_time);
     if (NULL != job->jcc_raw)
     {
       /* RAW mode, no parsing */
@@ -776,6 +784,22 @@ GNUNET_CURL_perform2 (struct GNUNET_CURL_Context *ctx,
                 response_code,
                 response);
       rc (response);
+    }
+    {
+      char *url = NULL;
+
+      if (CURLE_UNKNOWN_OPTION ==
+          curl_easy_getinfo (job->easy_handle,
+                             CURLINFO_EFFECTIVE_URL,
+                             &url))
+        url = "<unknown>";
+      GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                  "HTTP request for `%s' finished with %u after %s\n",
+                  url,
+                  (unsigned int) response_code,
+                  GNUNET_TIME_relative2s (duration,
+                                          true));
+      /* Note: we MUST NOT free 'url' here */
     }
     GNUNET_CURL_job_cancel (job);
   }

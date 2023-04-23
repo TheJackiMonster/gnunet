@@ -170,7 +170,7 @@ struct NotifyContext
  * @param value a `struct GNUNET_DB_EventHandler`
  * @return #GNUNET_OK continue to iterate
  */
-static int
+static enum GNUNET_GenericReturnValue
 do_notify (void *cls,
            const struct GNUNET_ShortHashCode *sh,
            void *value)
