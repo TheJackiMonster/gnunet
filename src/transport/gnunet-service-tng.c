@@ -4488,15 +4488,19 @@ queue_send_msg (struct Queue *queue,
     }
     GNUNET_CONTAINER_DLL_insert (queue->queue_head, queue->queue_tail, qe);
     GNUNET_assert (CT_COMMUNICATOR == queue->tc->type);
-    queue->queue_length++;
-    queue->tc->details.communicator.total_queue_length++;
-    //FIXME Probably this if statement here is completely wrong in this method,
-    // and only fixed a symptom, but not an actual bug.
     if (0 == queue->q_capacity)
     {
+      // Messages without FC or fragments can get here.
+      if (NULL != pm)
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "Message %llu (pm type %u) was not send because queue has no capacity.\n",
+                    pm->logging_uuid,
+                    pm->pmt);
       GNUNET_free (env);
       return;
     }
+    queue->queue_length++;
+    queue->tc->details.communicator.total_queue_length++;
     if (GNUNET_NO == queue->unlimited_length)
       queue->q_capacity--;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
