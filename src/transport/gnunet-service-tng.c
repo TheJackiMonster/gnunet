@@ -2282,6 +2282,10 @@ struct PendingMessage
   uint16_t frag_off;
 
   /**
+   * Are we sending fragments at the moment?
+   */
+  unsigned int frags_in_flight;
+  /**
    * #GNUNET_YES once @e msg_uuid was initialized
    */
   int16_t msg_uuid_set;
@@ -9627,6 +9631,11 @@ struct PendingMessageScoreContext
   int to_early;
 
   /**
+   * There is a pending messages we are sending fragments at the moment.
+   */
+  unsigned int frags_in_flight;
+
+  /**
    * When will we try to transmit the message again for which it was to early to retry.
    */
   struct GNUNET_TIME_Relative to_early_retry_delay;
@@ -9654,6 +9663,8 @@ select_best_pending_from_link (struct PendingMessageScoreContext *sc,
   struct GNUNET_TIME_Absolute now;
 
   now = GNUNET_TIME_absolute_get ();
+  sc->to_early = GNUNET_NO;
+  sc->frags_in_flight = GNUNET_NO;
   for (struct PendingMessage *pos = vl->pending_msg_head; NULL != pos;
        pos = pos->next_vl)
   {
@@ -9669,15 +9680,25 @@ select_best_pending_from_link (struct PendingMessageScoreContext *sc,
     }
     if (pos->next_attempt.abs_value_us > now.abs_value_us)
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "too early for all messages, they are sorted by next_attempt\n");
-      sc->to_early = GNUNET_YES;
-      sc->to_early_retry_delay = GNUNET_TIME_absolute_get_remaining (
-        pos->next_attempt);
-
-      break;   /* too early for all messages, they are sorted by next_attempt */
+      if (GNUNET_YES == pos->frags_in_flight)
+      {
+        sc->frags_in_flight = GNUNET_YES;
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "Fragments in flight for message %llu\n",
+                    pos->logging_uuid);
+      }
+      else
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "Maybe too early, because message are sorted by next_attempt, if there are no fragments in flight.Checked message %llu\n",
+                    pos->logging_uuid);
+        sc->to_early = GNUNET_YES;
+        sc->to_early_retry_delay = GNUNET_TIME_absolute_get_remaining (
+          pos->next_attempt);
+        continue;
+      }
+      // break;   /* too early for all messages, they are sorted by next_attempt */
     }
-    sc->to_early = GNUNET_NO;
     if (NULL != pos->qe)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -9741,7 +9762,7 @@ select_best_pending_from_link (struct PendingMessageScoreContext *sc,
 
     /* Finally, compare to existing 'best' in sc to see if this 'pos' pending
        message would beat it! */
-    if (NULL != sc->best)
+    if (GNUNET_NO == sc->frags_in_flight && NULL != sc->best)
     {
       /* CHECK if pos fits queue BETTER (=smaller) than pm, if not: continue;
          OPTIMIZE-ME: This is a heuristic, which so far has NOT been
