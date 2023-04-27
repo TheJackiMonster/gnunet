@@ -86,7 +86,8 @@ struct Sender
  */
 static int
 check_test (void *cls,
-            const struct GNUNET_TRANSPORT_TESTING_PerformanceTestMessage *message)
+            const struct
+            GNUNET_TRANSPORT_TESTING_PerformanceTestMessage *message)
 {
   return GNUNET_OK;
 }
@@ -99,7 +100,8 @@ check_test (void *cls,
  */
 static void
 handle_test (void *cls,
-             const struct GNUNET_TRANSPORT_TESTING_PerformanceTestMessage *message)
+             const struct
+             GNUNET_TRANSPORT_TESTING_PerformanceTestMessage *message)
 {
   struct GNUNET_PeerIdentity *peer = cls;
   const struct GNUNET_TESTING_AsyncContext *ac;
@@ -131,11 +133,13 @@ handle_test (void *cls,
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "time traveled init %s\n",
-                GNUNET_i2s(peer));
+                GNUNET_i2s (peer));
     sender = GNUNET_new (struct Sender);
     sender->time_first = time_send;
     sender->mean_time = GNUNET_TIME_UNIT_ZERO;
-    GNUNET_assert (GNUNET_OK == GNUNET_CONTAINER_multipeermap_put (senders, peer, sender, GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
+    GNUNET_assert (GNUNET_OK == GNUNET_CONTAINER_multipeermap_put (senders,
+                                                                   peer, sender,
+                                                                   GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
   }
 
   if (GNUNET_TIME_UNIT_ZERO.rel_value_us == sender->mean_time.rel_value_us)
@@ -146,7 +150,8 @@ handle_test (void *cls,
   }
   else
   {
-    double factor = (double) sender->num_received/((double) sender->num_received + 1.0);
+    double factor = (double) sender->num_received
+                    / ((double) sender->num_received + 1.0);
     struct GNUNET_TIME_Relative s1;
     struct GNUNET_TIME_Relative s2;
 
@@ -188,7 +193,7 @@ handle_test (void *cls,
 struct GNUNET_TESTING_BarrierList*
 get_waiting_for_barriers ()
 {
-  struct GNUNET_TESTING_BarrierList* barriers;
+  struct GNUNET_TESTING_BarrierList*barriers;
   struct GNUNET_TESTING_BarrierListEntry *ble;
 
   barriers = GNUNET_new (struct GNUNET_TESTING_BarrierList);
@@ -307,7 +312,7 @@ all_local_tests_prepared ()
  *        the topology configuration.
  * @param read_file If read_file is GNUNET_YES this string is the filename for the topology configuration,
  *        if read_file is GNUNET_NO the string contains the topology configuration.
- * @param finish_cb Callback function which writes a message from the helper process running on a netjail 
+ * @param finish_cb Callback function which writes a message from the helper process running on a netjail
  *                  node to the master process * signaling that the test case running on the netjail node finished.
  * @return Returns the struct GNUNET_TESTING_Interpreter of the command loop running on this netjail node.
  */
@@ -411,19 +416,20 @@ start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
   struct GNUNET_MQ_MessageHandler handlers[] = {
     GNUNET_MQ_hd_var_size (test,
                            GNUNET_TRANSPORT_TESTING_SIMPLE_PERFORMANCE_MTYPE,
-                           struct GNUNET_TRANSPORT_TESTING_PerformanceTestMessage,
+                           struct
+                           GNUNET_TRANSPORT_TESTING_PerformanceTestMessage,
                            ts),
     GNUNET_MQ_handler_end ()
   };
 
   start_peer = GNUNET_TRANSPORT_cmd_start_peer ("start-peer",
-                                   "system-create",
-                                   num,
-                                   node_ip,
-                                   handlers,
-                                   ts->cfgname,
-                                   notify_connect,
-                                   GNUNET_NO);
+                                                "system-create",
+                                                num,
+                                                node_ip,
+                                                handlers,
+                                                ts->cfgname,
+                                                notify_connect,
+                                                GNUNET_NO);
 
   struct GNUNET_TESTING_Command commands[] = {
     GNUNET_TESTING_cmd_system_create ("system-create",
@@ -437,12 +443,12 @@ start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
                                         write_message),
     connect_peers,
     GNUNET_TRANSPORT_cmd_send_simple_performance ("send-simple",
-                                      "start-peer",
-                                      "system-create",
-                                      num,
-                                      MESSAGE_SIZE,
-                                      MAX_RECEIVED,
-                                      topology),
+                                                  "start-peer",
+                                                  "system-create",
+                                                  num,
+                                                  MESSAGE_SIZE,
+                                                  MAX_RECEIVED,
+                                                  topology),
     block_receive,
     GNUNET_TESTING_cmd_barrier_reached ("test-case-finished-reached",
                                         "test-case-finished",
@@ -460,9 +466,9 @@ start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
   ts->write_message = write_message;
 
   is = GNUNET_TESTING_run (commands,
-                      TIMEOUT,
-                      &handle_result,
-                      ts);
+                           TIMEOUT,
+                           &handle_result,
+                           ts);
   return is;
 }
 

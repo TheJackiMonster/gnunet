@@ -80,7 +80,7 @@ struct MQWrapper
    * State of the command.
    */
   struct SendSimplePerfState *sss;
-  
+
   /**
    * Message queue for a peer.
    */
@@ -169,7 +169,7 @@ send_simple_run (void *cls,
   const struct GNUNET_TESTING_Command *peer1_cmd;
   const struct GNUNET_TESTING_Command *system_cmd;
   const struct GNUNET_TESTING_System *tl_system;
-  
+
 
   peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                          sss->start_peer_label);
@@ -190,13 +190,14 @@ send_simple_run (void *cls,
 
 struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_send_simple_performance (const char *label,
-                                  const char *start_peer_label,
-                                  const char *create_label,
-                                  uint32_t num,
-                                  int size,
-                                  int max_send,
-                                  struct GNUNET_TESTING_NetjailTopology *
-                                  topology)
+                                              const char *start_peer_label,
+                                              const char *create_label,
+                                              uint32_t num,
+                                              int size,
+                                              int max_send,
+                                              struct
+                                              GNUNET_TESTING_NetjailTopology *
+                                              topology)
 {
   struct SendSimplePerfState *sss;
   struct GNUNET_TESTING_Command cmd;
@@ -209,11 +210,11 @@ GNUNET_TRANSPORT_cmd_send_simple_performance (const char *label,
   sss->max_send = max_send;
 
   cmd = GNUNET_TESTING_command_new (sss,
-                                     label,
-                                     &send_simple_run,
-                                     &send_simple_cleanup,
-                                     NULL,
-                                     &sss->ac);
+                                    label,
+                                    &send_simple_run,
+                                    &send_simple_cleanup,
+                                    NULL,
+                                    &sss->ac);
   cmd.asynchronous_finish = GNUNET_YES;
   return cmd;
 }

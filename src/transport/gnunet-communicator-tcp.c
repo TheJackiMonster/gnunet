@@ -1513,13 +1513,13 @@ handshake_ack_monotime_cb (void *cls,
  */
 static void
 send_challenge (struct GNUNET_CRYPTO_ChallengeNonceP challenge,
-		struct Queue *queue)
+                struct Queue *queue)
 {
   struct TCPConfirmationAck tca;
   struct TcpHandshakeAckSignature thas;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-             "sending challenge\n");
+              "sending challenge\n");
 
   tca.header.type = ntohs (
     GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_CONFIRMATION_ACK);
@@ -1546,7 +1546,7 @@ send_challenge (struct GNUNET_CRYPTO_ChallengeNonceP challenge,
                                       sizeof(tca)));
   queue->cwrite_off += sizeof(tca);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-               "sending challenge done\n");
+              "sending challenge done\n");
 }
 
 
@@ -1632,8 +1632,8 @@ inject_rekey (struct Queue *queue)
 
 static int
 pending_reversals_delete_it (void *cls,
-                  const struct GNUNET_HashCode *key,
-                  void *value)
+                             const struct GNUNET_HashCode *key,
+                             void *value)
 {
   (void) cls;
   struct PendingReversal *pending_reversal = value;
@@ -1643,9 +1643,10 @@ pending_reversals_delete_it (void *cls,
     GNUNET_SCHEDULER_cancel (pending_reversal->timeout_task);
     pending_reversal->timeout_task = NULL;
   }
-  GNUNET_assert (GNUNET_YES == GNUNET_CONTAINER_multihashmap_remove (pending_reversals,
-                                                         key,
-                                                         pending_reversal));
+  GNUNET_assert (GNUNET_YES == GNUNET_CONTAINER_multihashmap_remove (
+                   pending_reversals,
+                   key,
+                   pending_reversal));
   GNUNET_free (pending_reversal->in);
   GNUNET_free (pending_reversal);
   return GNUNET_OK;
@@ -1653,33 +1654,37 @@ pending_reversals_delete_it (void *cls,
 
 
 static void
-check_and_remove_pending_reversal (struct sockaddr *in, sa_family_t sa_family, struct GNUNET_PeerIdentity *sender)
+check_and_remove_pending_reversal (struct sockaddr *in, sa_family_t sa_family,
+                                   struct GNUNET_PeerIdentity *sender)
 {
   if (AF_INET == sa_family)
-      {
-        struct PendingReversal *pending_reversal;
-        struct GNUNET_HashCode key;
-        struct sockaddr_in *natted_address;
+  {
+    struct PendingReversal *pending_reversal;
+    struct GNUNET_HashCode key;
+    struct sockaddr_in *natted_address;
 
-        natted_address = GNUNET_memdup (in, sizeof (struct sockaddr));
-        natted_address->sin_port = 0;
-        GNUNET_CRYPTO_hash (natted_address,
-                            sizeof(struct sockaddr),
-                            &key);
+    natted_address = GNUNET_memdup (in, sizeof (struct sockaddr));
+    natted_address->sin_port = 0;
+    GNUNET_CRYPTO_hash (natted_address,
+                        sizeof(struct sockaddr),
+                        &key);
 
-        pending_reversal = GNUNET_CONTAINER_multihashmap_get (pending_reversals,
-                                                              &key);
-        if (NULL != pending_reversal && (NULL == sender ||
-                                         0 != memcmp (sender, &pending_reversal->target, sizeof(struct GNUNET_PeerIdentity))))
-        {
-            GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                        "Removing invalid pending reversal for `%s'at `%s'\n",
-                        GNUNET_i2s (&pending_reversal->target),
-                        GNUNET_a2s (in, sizeof (struct sockaddr)));
-                        pending_reversals_delete_it (NULL, &key, pending_reversal);
-        }
-        GNUNET_free (natted_address);
-      }
+    pending_reversal = GNUNET_CONTAINER_multihashmap_get (pending_reversals,
+                                                          &key);
+    if (NULL != pending_reversal && (NULL == sender ||
+                                     0 != memcmp (sender,
+                                                  &pending_reversal->target,
+                                                  sizeof(struct
+                                                         GNUNET_PeerIdentity))))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Removing invalid pending reversal for `%s'at `%s'\n",
+                  GNUNET_i2s (&pending_reversal->target),
+                  GNUNET_a2s (in, sizeof (struct sockaddr)));
+      pending_reversals_delete_it (NULL, &key, pending_reversal);
+    }
+    GNUNET_free (natted_address);
+  }
 }
 
 
@@ -1971,7 +1976,8 @@ try_handle_plaintext (struct Queue *queue)
     }
     else if (GNUNET_TRANSPORT_CS_OUTBOUND ==     queue->cs)
     {
-      check_and_remove_pending_reversal (queue->address, queue->address->sa_family, NULL);
+      check_and_remove_pending_reversal (queue->address,
+                                         queue->address->sa_family, NULL);
     }
 
     unverified_size = -1;
@@ -2691,7 +2697,7 @@ transmit_kx (struct Queue *queue,
   queue->cwrite_off += sizeof(tc);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-             "handshake written\n");
+              "handshake written\n");
 }
 
 
@@ -2987,7 +2993,8 @@ proto_read_kx (void *cls)
   {
     struct TCPNATProbeMessage *pm = (struct TCPNATProbeMessage *) pq->ibuf;
 
-    check_and_remove_pending_reversal (pq->address, pq->address->sa_family, &pm->clientIdentity);
+    check_and_remove_pending_reversal (pq->address, pq->address->sa_family,
+                                       &pm->clientIdentity);
 
     queue = GNUNET_new (struct Queue);
     queue->target = pm->clientIdentity;
@@ -3009,13 +3016,13 @@ proto_read_kx (void *cls)
                      queue);
     if (GNUNET_OK != decrypt_and_check_tc (queue, &tc, pq->ibuf))
     {
-        GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                    "Invalid TCP KX received from %s\n",
-                    GNUNET_a2s (pq->address, pq->address_len));
-        gcry_cipher_close (queue->in_cipher);
-        GNUNET_free (queue);
-        free_proto_queue (pq);
-        return;
+      GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                  "Invalid TCP KX received from %s\n",
+                  GNUNET_a2s (pq->address, pq->address_len));
+      gcry_cipher_close (queue->in_cipher);
+      GNUNET_free (queue);
+      free_proto_queue (pq);
+      return;
     }
     queue->target = tc.sender;
     queue->cs = GNUNET_TRANSPORT_CS_INBOUND;
@@ -3062,29 +3069,29 @@ create_proto_queue (struct GNUNET_NETWORK_Handle *sock,
 
   if (NULL == sock)
   {
-    //sock = GNUNET_CONNECTION_create_from_sockaddr (AF_INET, addr, addrlen);
+    // sock = GNUNET_CONNECTION_create_from_sockaddr (AF_INET, addr, addrlen);
     sock = GNUNET_NETWORK_socket_create (in->sa_family, SOCK_STREAM, 0);
     if (NULL == sock)
-      {
-        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                    "socket(%d) failed: %s",
-                    in->sa_family,
-                    strerror (errno));
-        GNUNET_free (in);
-        GNUNET_free (pq);
-        return NULL;
-      }
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "socket(%d) failed: %s",
+                  in->sa_family,
+                  strerror (errno));
+      GNUNET_free (in);
+      GNUNET_free (pq);
+      return NULL;
+    }
     if ((GNUNET_OK != GNUNET_NETWORK_socket_connect (sock, in, addrlen)) &&
         (errno != EINPROGRESS))
-      {
-        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                    "connect to `%s' failed: %s",
-                    GNUNET_a2s (in, addrlen),
-                    strerror (errno));
-        GNUNET_NETWORK_socket_close (sock);
-        GNUNET_free (in);
-        return NULL;
-      }
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "connect to `%s' failed: %s",
+                  GNUNET_a2s (in, addrlen),
+                  strerror (errno));
+      GNUNET_NETWORK_socket_close (sock);
+      GNUNET_free (in);
+      return NULL;
+    }
   }
   pq->address_len = addrlen;
   pq->address = in;
@@ -3158,31 +3165,31 @@ try_connection_reversal (void *cls,
   struct sockaddr *in_addr;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                    "addr->sa_family %d\n",
-                    addr->sa_family);
+              "addr->sa_family %d\n",
+              addr->sa_family);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Try to connect back\n");
   in_addr = GNUNET_memdup (addr, addrlen);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                    "in_addr->sa_family %d\n",
-                    in_addr->sa_family);
+              "in_addr->sa_family %d\n",
+              in_addr->sa_family);
   pq = create_proto_queue (NULL, in_addr, addrlen);
   if (NULL != pq)
   {
-      pm.header.size = htons (sizeof(struct TCPNATProbeMessage));
-      pm.header.type = htons (GNUNET_MESSAGE_TYPE_TRANSPORT_TCP_NAT_PROBE);
-      pm.clientIdentity = my_identity;
-      memcpy (pq->write_buf, &pm, sizeof(struct TCPNATProbeMessage));
-      pq->write_off = sizeof(struct TCPNATProbeMessage);
-      pq->write_task = GNUNET_SCHEDULER_add_write_net (PROTO_QUEUE_TIMEOUT,
-                                                       pq->sock,
-                                                       &proto_queue_write,
-                                                       pq);
+    pm.header.size = htons (sizeof(struct TCPNATProbeMessage));
+    pm.header.type = htons (GNUNET_MESSAGE_TYPE_TRANSPORT_TCP_NAT_PROBE);
+    pm.clientIdentity = my_identity;
+    memcpy (pq->write_buf, &pm, sizeof(struct TCPNATProbeMessage));
+    pq->write_off = sizeof(struct TCPNATProbeMessage);
+    pq->write_task = GNUNET_SCHEDULER_add_write_net (PROTO_QUEUE_TIMEOUT,
+                                                     pq->sock,
+                                                     &proto_queue_write,
+                                                     pq);
   }
   else
   {
-     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-              "Couldn't create ProtoQueue for sending TCPNATProbeMessage\n");
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Couldn't create ProtoQueue for sending TCPNATProbeMessage\n");
   }
 }
 
@@ -3268,43 +3275,45 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
               GNUNET_a2s (in, in_len));
 
   switch (in->sa_family)
+  {
+  case AF_INET:
+    v4 = (struct sockaddr_in *) in;
+    if (0 == v4->sin_port)
     {
-    case AF_INET:
-      v4 = (struct sockaddr_in *) in;
-      if (0 == v4->sin_port){
-        is_natd = GNUNET_YES;
-        GNUNET_CRYPTO_hash (in,
-                      sizeof(struct sockaddr),
-                      &key);
-        if (GNUNET_YES == GNUNET_CONTAINER_multihashmap_contains (pending_reversals,
-                                                                   &key))
-        {
-          GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                      "There is already a request reversal for `%s'at `%s'\n",
-                      GNUNET_i2s (peer),
-                      address);
-          GNUNET_free (in);
-          return GNUNET_SYSERR;
-        }
-      }
-      break;
-
-    case AF_INET6:
-      v6 = (struct sockaddr_in6 *) in;
-      if (0 == v6->sin6_port)
+      is_natd = GNUNET_YES;
+      GNUNET_CRYPTO_hash (in,
+                          sizeof(struct sockaddr),
+                          &key);
+      if (GNUNET_YES == GNUNET_CONTAINER_multihashmap_contains (
+            pending_reversals,
+            &key))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                      "Request reversal for `%s' at `%s' not possible for an IPv6 address\n",
-                      GNUNET_i2s (peer),
-                      address);
+                    "There is already a request reversal for `%s'at `%s'\n",
+                    GNUNET_i2s (peer),
+                    address);
         GNUNET_free (in);
         return GNUNET_SYSERR;
       }
-      break;
-
-    default:
-      GNUNET_assert (0);
     }
+    break;
+
+  case AF_INET6:
+    v6 = (struct sockaddr_in6 *) in;
+    if (0 == v6->sin6_port)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Request reversal for `%s' at `%s' not possible for an IPv6 address\n",
+                  GNUNET_i2s (peer),
+                  address);
+      GNUNET_free (in);
+      return GNUNET_SYSERR;
+    }
+    break;
+
+  default:
+    GNUNET_assert (0);
+  }
 
   if (GNUNET_YES == is_natd)
   {
@@ -3320,9 +3329,9 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
     if (GNUNET_OK != GNUNET_NAT_request_reversal (nat, &local_sa, v4))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                      "request reversal for `%s' at `%s' failed\n",
-                      GNUNET_i2s (peer),
-                      address);
+                  "request reversal for `%s' at `%s' failed\n",
+                  GNUNET_i2s (peer),
+                  address);
       GNUNET_free (in);
       return GNUNET_SYSERR;
     }
@@ -3334,18 +3343,22 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
                                                       pending_reversal,
                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
     pending_reversal->target = *peer;
-    pending_reversal->timeout_task = GNUNET_SCHEDULER_add_delayed (NAT_TIMEOUT, &pending_reversal_timeout, in);
+    pending_reversal->timeout_task = GNUNET_SCHEDULER_add_delayed (NAT_TIMEOUT,
+                                                                   &
+                                                                   pending_reversal_timeout,
+                                                                   in);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-         "Created NAT WAIT connection to `%s' at `%s'\n",
-         GNUNET_i2s (peer),
-         GNUNET_a2s (in, sizeof (struct sockaddr)));
+                "Created NAT WAIT connection to `%s' at `%s'\n",
+                GNUNET_i2s (peer),
+                GNUNET_a2s (in, sizeof (struct sockaddr)));
   }
   else
   {
     struct GNUNET_NETWORK_Handle *sock;
     struct Queue *queue;
 
-    sock = GNUNET_NETWORK_socket_create (in->sa_family, SOCK_STREAM, IPPROTO_TCP);
+    sock = GNUNET_NETWORK_socket_create (in->sa_family, SOCK_STREAM,
+                                         IPPROTO_TCP);
     if (NULL == sock)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -3478,7 +3491,8 @@ do_shutdown (void *cls)
     GNUNET_NAT_unregister (nat);
     nat = NULL;
   }
-  GNUNET_CONTAINER_multihashmap_iterate (pending_reversals, &pending_reversals_delete_it, NULL);
+  GNUNET_CONTAINER_multihashmap_iterate (pending_reversals,
+                                         &pending_reversals_delete_it, NULL);
   GNUNET_CONTAINER_multihashmap_destroy (pending_reversals);
   GNUNET_CONTAINER_multihashmap_iterate (lt_map, &get_lt_delete_it, NULL);
   GNUNET_CONTAINER_multihashmap_destroy (lt_map);
@@ -4040,7 +4054,7 @@ main (int argc, char *const *argv)
   int ret;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                           "Starting tcp communicator\n");
+              "Starting tcp communicator\n");
   if (GNUNET_OK !=
       GNUNET_STRINGS_get_utf8_args (argc, argv,
                                     &argc, &argv))
