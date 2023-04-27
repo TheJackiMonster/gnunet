@@ -2285,6 +2285,12 @@ struct PendingMessage
    * Are we sending fragments at the moment?
    */
   unsigned int frags_in_flight;
+
+  /**
+   * How many fragments do we have?
+   **/
+  uint16_t frag_count;
+
   /**
    * #GNUNET_YES once @e msg_uuid was initialized
    */
@@ -9524,6 +9530,25 @@ reorder_root_pm (struct PendingMessage *pm,
 }
 
 
+static unsigned int
+check_next_attempt_tree (struct PendingMessage *pm,
+                         struct GNUNET_TIME_Absolute next_attempt)
+{
+  struct PendingMessage *pos;
+
+  pos = pm->head_frag;
+  while (NULL != pos)
+  {
+    if (pos->next_attempt.abs_value_us != next_attempt.abs_value_us ||
+        GNUNET_YES == check_next_attempt_tree (pos, next_attempt))
+      return GNUNET_YES;
+    pos = pos->next_frag;
+  }
+
+  return GNUNET_NO;
+}
+
+
 /**
  * Change the value of the `next_attempt` field of @a pm
  * to @a next_attempt and re-order @a pm in the transmission
@@ -9536,19 +9561,16 @@ static void
 update_pm_next_attempt (struct PendingMessage *pm,
                         struct GNUNET_TIME_Absolute next_attempt)
 {
-
-  // TODO Do we really need a next_attempt value for PendingMessage other than the root Pending Message?
-  pm->next_attempt = next_attempt;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Next attempt for message <%llu> set to %s\n",
-              pm->logging_uuid,
-              GNUNET_STRINGS_absolute_time_to_string (next_attempt));
-
   if (NULL == pm->frag_parent)
   {
+    pm->next_attempt = next_attempt;
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Next attempt for message <%llu> set to %lu\n",
+                pm->logging_uuid,
+                next_attempt.abs_value_us);
     reorder_root_pm (pm, next_attempt);
   }
-  else if ((PMT_RELIABILITY_BOX == pm->pmt) || (PMT_DV_BOX == pm->pmt))
+  else if ((PMT_RELIABILITY_BOX == pm->pmt) || (PMT_DV_BOX == pm->pmt))// || (PMT_FRAGMENT_BOX == pm->pmt))
   {
     struct PendingMessage *root = pm->frag_parent;
 
@@ -9563,28 +9585,59 @@ update_pm_next_attempt (struct PendingMessage *pm,
   }
   else
   {
-    /* re-insert sort in fragment list */
-    struct PendingMessage *fp = pm->frag_parent;
-    struct PendingMessage *pos;
+    struct PendingMessage *root = pm->frag_parent;
 
-    GNUNET_CONTAINER_MDLL_remove (frag, fp->head_frag, fp->tail_frag, pm);
-    pos = fp->tail_frag;
-    while ((NULL != pos) &&
-           (next_attempt.abs_value_us > pos->next_attempt.abs_value_us))
-      pos = pos->prev_frag;
-    GNUNET_CONTAINER_MDLL_insert_after (frag,
-                                        fp->head_frag,
-                                        fp->tail_frag,
-                                        pos,
-                                        pm);
-    if (NULL == pos)
+    while (NULL != root->frag_parent)
+      root = root->frag_parent;
+
+    if (GNUNET_NO == root->frags_in_flight)
     {
-      pos = fp;
-      // Get the root pm
-      while (NULL != pos->frag_parent)
-        pos = pos->frag_parent;
-      pos->next_attempt = next_attempt;
-      reorder_root_pm (pos, next_attempt);
+      root->next_attempt = next_attempt;
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Next attempt for fragmented message <%llu> (<%llu>)set to %lu\n",
+                  pm->logging_uuid,
+                  root->logging_uuid,
+                  next_attempt.abs_value_us);
+    }
+
+    pm->next_attempt = root->next_attempt;
+
+    if (root->bytes_msg == root->frag_off)
+      root->frags_in_flight = check_next_attempt_tree (root,
+                                                       root->next_attempt);
+    else
+      root->frags_in_flight = GNUNET_YES;
+
+    if (GNUNET_NO == root->frags_in_flight)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "We have no fragments in flight for message %llu, reorder root! Next attempt is %lu\n",
+                  root->logging_uuid,
+                  root->next_attempt.abs_value_us);
+      reorder_root_pm (root, root->next_attempt);
+      root->frag_count = 0;
+      root->next_attempt = GNUNET_TIME_UNIT_ZERO_ABS;
+    }
+    else
+    {
+      double factor = (root->frag_count - 1) / root->frag_count;
+      struct GNUNET_TIME_Relative s1;
+      struct GNUNET_TIME_Relative s2;
+      struct GNUNET_TIME_Relative plus_mean =
+        GNUNET_TIME_absolute_get_duration (root->next_attempt);
+      struct GNUNET_TIME_Relative plus = GNUNET_TIME_absolute_get_duration (
+        next_attempt);
+
+      s1 = GNUNET_TIME_relative_multiply (plus_mean,
+                                          factor);
+      s2 = GNUNET_TIME_relative_divide (plus,
+                                        root->frag_count);
+      plus_mean = GNUNET_TIME_relative_add (s1, s2);
+      root->next_attempt = GNUNET_TIME_relative_to_absolute (plus_mean);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "We have fragments in flight for message %llu, do not reorder root! Actual next attempt %lu\n",
+                  root->logging_uuid,
+                  root->next_attempt.abs_value_us);
     }
   }
 }
@@ -10053,6 +10106,34 @@ transmit_on_queue (void *cls)
   else
   {
     struct GNUNET_TIME_Relative wait_duration;
+    unsigned int wait_multiplier;
+
+    if (PMT_FRAGMENT_BOX == pm->pmt)
+    {
+      struct PendingMessage *root;
+
+      root = pm->frag_parent;
+      while (NULL != root->frag_parent)
+        root = root->frag_parent;
+
+      root->frag_count++;
+      wait_multiplier =  (unsigned int) ceil (root->bytes_msg
+                                              / (root->frag_off
+                                                 / root->frag_count)) * 4;
+    }
+    else
+    {
+      // No fragments, we use 4 RTT before retransmitting.
+      wait_multiplier = 4;
+    }
+
+    // Depending on how much pending message the VirtualLink is queueing, we wait longer.
+    // wait_multiplier = wait_multiplier * pm->vl->pending_msg_num;
+
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Wait multiplier %u num pending msg %u\n",
+                wait_multiplier,
+                pm->vl->pending_msg_num);
 
     /* Message not finished, waiting for acknowledgement.
        Update time by which we might retransmit 's' based on queue
@@ -10069,23 +10150,26 @@ transmit_on_queue (void *cls)
         queue->pd.aged_rtt.rel_value_us)
       wait_duration = queue->pd.aged_rtt;
     else
+    {
       wait_duration = DEFAULT_ACK_WAIT_DURATION;
+      wait_multiplier = 4;
+    }
     struct GNUNET_TIME_Absolute next = GNUNET_TIME_relative_to_absolute (
       GNUNET_TIME_relative_multiply (
-        wait_duration, 4));
+        wait_duration, wait_multiplier));
     struct GNUNET_TIME_Relative plus = GNUNET_TIME_relative_multiply (
-      wait_duration, 4);
+      wait_duration, wait_multiplier);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Waiting %s (%s) for ACK until %s\n",
                 GNUNET_STRINGS_relative_time_to_string (
                   GNUNET_TIME_relative_multiply (
-                    queue->pd.aged_rtt, 4), GNUNET_NO),
+                    queue->pd.aged_rtt, wait_multiplier), GNUNET_NO),
                 GNUNET_STRINGS_relative_time_to_string (plus, GNUNET_YES),
                 GNUNET_STRINGS_absolute_time_to_string (next));
     update_pm_next_attempt (pm,
                             GNUNET_TIME_relative_to_absolute (
                               GNUNET_TIME_relative_multiply (wait_duration,
-                                                             4)));
+                                                             wait_multiplier)));
   }
   /* finally, re-schedule queue transmission task itself */
   schedule_transmit_on_queue (GNUNET_TIME_UNIT_ZERO,
