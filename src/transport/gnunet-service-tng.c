@@ -4311,6 +4311,7 @@ handle_client_recv_ok (void *cls, const struct RecvOkMessage *rom)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "CORE ack receiving message, increased CORE recv window to %u\n",
               vl->core_recv_window);
+  GNUNET_SERVICE_client_continue (tc->client);
   if (vl->core_recv_window <= 0)
     return;
   /* resume communicators */
@@ -4319,7 +4320,6 @@ handle_client_recv_ok (void *cls, const struct RecvOkMessage *rom)
     GNUNET_CONTAINER_DLL_remove (vl->cmc_head, vl->cmc_tail, cmc);
     finish_cmc_handling (cmc);
   }
-  GNUNET_SERVICE_client_continue (tc->client);
 }
 
 
