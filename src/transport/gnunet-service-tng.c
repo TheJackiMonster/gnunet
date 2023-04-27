@@ -6415,7 +6415,10 @@ completed_pending_message (struct PendingMessage *pm)
     GNUNET_CONTAINER_MDLL_remove (frag, pos->head_frag, pos->tail_frag, pm);
     free_pending_message (pm);
     /* check if subtree is done */
-    while ((NULL == pos->head_frag) && (pos->frag_off == pos->bytes_msg) &&
+    while ((NULL == pos->head_frag) && (pos->frag_off == (pos->bytes_msg
+                                                          - sizeof(struct
+                                                                   TransportFragmentBoxMessage)))
+           &&
            (NULL != pos->frag_parent))
     {
       pm = pos;
