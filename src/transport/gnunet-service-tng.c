@@ -6481,11 +6481,8 @@ handle_acknowledged (struct PendingAcknowledgement *pa,
   struct GNUNET_TIME_Relative delay;
 
   delay = GNUNET_TIME_absolute_get_duration (pa->transmission_time);
-  if (delay.rel_value_us > ack_delay.rel_value_us)
-    delay = GNUNET_TIME_UNIT_ZERO;
-  else
-    delay = GNUNET_TIME_relative_subtract (delay, ack_delay);
-  if (NULL != pa->queue)
+  delay = GNUNET_TIME_relative_subtract (delay, ack_delay);
+  if (NULL != pa->queue && 1 == pa->num_send)
     update_queue_performance (pa->queue, delay, pa->message_size);
   if (NULL != pa->dvh && 1 == pa->num_send)
     update_dvh_performance (pa->dvh, delay, pa->message_size);
