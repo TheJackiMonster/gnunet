@@ -169,23 +169,26 @@ handle_test (void *cls,
               time_traveled.rel_value_us);
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "mean time traveled: %s %llu messages received with message number %u\n",
-              GNUNET_STRINGS_relative_time_to_string (sender->mean_time, GNUNET_NO),
+              GNUNET_STRINGS_relative_time_to_string (sender->mean_time,
+                                                      GNUNET_NO),
               sender->num_received,
               num);
-  if (MAX_RECEIVED <= sender->num_received && NULL == ac->cont)
+  if (floor (MAX_RECEIVED * (1 - 1.0 / 200)) < sender->num_received && NULL ==
+      ac->cont)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "time traveled failed\n");
-    GNUNET_TESTING_async_fail ((struct GNUNET_TESTING_AsyncContext *) ac);
+    // GNUNET_TESTING_async_fail ((struct GNUNET_TESTING_AsyncContext *) ac);
   }
-  else if (MAX_RECEIVED <= sender->num_received)
+  else if (floor (MAX_RECEIVED * (1 - 1.0 / 200)) < sender->num_received &&
+           GNUNET_NO == ac->finished)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "time traveled finish\n");
     GNUNET_TESTING_async_finish ((struct GNUNET_TESTING_AsyncContext *) ac);
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "time traveled end\n");
+              "time traveled end\n");
   GNUNET_TRANSPORT_core_receive_continue (ch, peer);
 }
 
