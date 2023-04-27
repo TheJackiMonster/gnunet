@@ -9124,7 +9124,9 @@ handle_flow_control (void *cls, const struct TransportFlowControlMessage *fc)
   wnd = GNUNET_ntohll (fc->outbound_window_size);
   random = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK,
                                      UINT32_MAX);
-  if ((GNUNET_YES == vl->confirmed) && ((wnd < vl->incoming_fc_window_size) ||
+  if ((GNUNET_YES == vl->confirmed) && ((wnd < vl->incoming_fc_window_size
+                                         + vl->incoming_fc_window_size_used
+                                         + vl->incoming_fc_window_size_loss) ||
                                         (vl->last_outbound_window_size_received
                                          != wnd) ||
                                         (0 == random
