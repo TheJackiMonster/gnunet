@@ -8745,6 +8745,8 @@ struct CheckKnownChallengeContext
    * Set to a matching validation state, if one was found.
    */
   struct ValidationState *vs;
+
+  char *address_prefix;
 };
 
 
@@ -8766,7 +8768,8 @@ check_known_challenge (void *cls,
   struct ValidationState *vs = value;
 
   (void) pid;
-  if (0 != GNUNET_memcmp (&vs->challenge, ckac->challenge))
+  if (0 != GNUNET_memcmp (&vs->challenge, ckac->challenge) ||
+      NULL == strstr (vs->address, ckac->address_prefix))
     return GNUNET_OK;
   ckac->vs = vs;
   return GNUNET_NO;
@@ -8836,7 +8839,10 @@ handle_validation_response (
   struct CommunicatorMessageContext *cmc = cls;
   struct ValidationState *vs;
   struct CheckKnownChallengeContext ckac = { .challenge = &tvr->challenge,
-                                             .vs = NULL };
+                                             .vs = NULL,
+                                             .address_prefix =
+                                               cmc->tc->details.communicator.
+                                               address_prefix};
   struct GNUNET_TIME_Absolute origin_time;
   struct Queue *q;
   struct Neighbour *n;
