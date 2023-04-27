@@ -1631,6 +1631,11 @@ struct PendingAcknowledgement
    * Number of bytes of the original message (to calculate bandwidth).
    */
   uint16_t message_size;
+
+  /**
+   * How often the PendingMessage was send via the Queue of this PendingAcknowledgement.
+   */
+  unsigned int num_send;
 };
 
 
@@ -4427,6 +4432,7 @@ queue_send_msg (struct Queue *queue,
   struct Neighbour *n = queue->neighbour;
   struct GNUNET_TRANSPORT_SendMessageTo *smt;
   struct GNUNET_MQ_Envelope *env;
+  struct PendingAcknowledgement *pa;
 
   GNUNET_log (
     GNUNET_ERROR_TYPE_DEBUG,
@@ -4495,13 +4501,22 @@ queue_send_msg (struct Queue *queue,
       queue->idle = GNUNET_NO;
     if (0 == queue->q_capacity)
       queue->idle = GNUNET_NO;
+
+    if (NULL != pm && NULL != (pa = pm->pa_head))
+    {
+      while (pm != pa->pm)
+        pa = pa->next_pa;
+      pa->num_send++;
+    }
+      //GNUNET_CONTAINER_multiuuidmap_get (pending_acks, &ack[i].ack_uuid.value);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Sending message MID %lu of type %u (%u) and size %lu with MQ %p\n",
+                "Sending message MID %lu of type %u (%u) and size %lu with MQ %p QID %lu\n",
                 GNUNET_ntohll (smt->mid),
                 ntohs (((const struct GNUNET_MessageHeader *) payload)->type),
                 ntohs (smt->header.size),
                 payload_size,
-                queue->tc->mq);
+                queue->tc->mq,
+                queue->qid);
     GNUNET_MQ_send (queue->tc->mq, env);
   }
 }
@@ -6459,7 +6474,7 @@ handle_acknowledged (struct PendingAcknowledgement *pa,
     delay = GNUNET_TIME_relative_subtract (delay, ack_delay);
   if (NULL != pa->queue)
     update_queue_performance (pa->queue, delay, pa->message_size);
-  if (NULL != pa->dvh)
+  if (NULL != pa->dvh && 1 == pa->num_send)
     update_dvh_performance (pa->dvh, delay, pa->message_size);
   if (NULL != pa->pm)
     completed_pending_message (pa->pm);
