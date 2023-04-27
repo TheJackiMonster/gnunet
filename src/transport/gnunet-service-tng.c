@@ -9332,6 +9332,7 @@ fragment_message (struct Queue *queue,
   struct PendingAcknowledgement *pa;
   struct PendingMessage *ff;
   uint16_t mtu;
+  uint16_t msize;
 
   mtu = (UINT16_MAX == queue->mtu)
         ? UINT16_MAX - sizeof(struct GNUNET_TRANSPORT_SendMessageTo)
@@ -9359,13 +9360,16 @@ fragment_message (struct Queue *queue,
      enough
    */
   ff = pm;
+  msize = ff->bytes_msg;
+
   while (((ff->bytes_msg > mtu) || (pm == ff)) &&
-         (ff->frag_off == ff->bytes_msg) && (NULL != ff->head_frag))
+         (ff->frag_off == msize) && (NULL != ff->head_frag))
   {
     ff = ff->head_frag;   /* descent into fragmented fragments */
+    msize = ff->bytes_msg - sizeof(struct TransportFragmentBoxMessage);
   }
 
-  if (((ff->bytes_msg > mtu) || (pm == ff)) && (ff->frag_off < ff->bytes_msg))
+  if (((ff->bytes_msg > mtu) || (pm == ff)) && (ff->frag_off < msize))
   {
     /* Did not yet calculate all fragments, calculate next fragment */
     struct PendingMessage *frag;
