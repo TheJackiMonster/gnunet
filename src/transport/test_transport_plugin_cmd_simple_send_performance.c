@@ -135,7 +135,7 @@ handle_test (void *cls,
     sender = GNUNET_new (struct Sender);
     sender->time_first = time_send;
     sender->mean_time = GNUNET_TIME_UNIT_ZERO;
-    GNUNET_CONTAINER_multipeermap_put (senders, peer, sender, GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
+    GNUNET_assert (GNUNET_OK == GNUNET_CONTAINER_multipeermap_put (senders, peer, sender, GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
   }
 
   if (GNUNET_TIME_UNIT_ZERO.rel_value_us == sender->mean_time.rel_value_us)
@@ -146,7 +146,7 @@ handle_test (void *cls,
   }
   else
   {
-    double factor = sender->num_received/(sender->num_received + 1);
+    double factor = (double) sender->num_received/((double) sender->num_received + 1.0);
     struct GNUNET_TIME_Relative s1;
     struct GNUNET_TIME_Relative s2;
 

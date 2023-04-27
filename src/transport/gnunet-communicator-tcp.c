@@ -1643,9 +1643,9 @@ pending_reversals_delete_it (void *cls,
     GNUNET_SCHEDULER_cancel (pending_reversal->timeout_task);
     pending_reversal->timeout_task = NULL;
   }
-  GNUNET_CONTAINER_multihashmap_remove (pending_reversals,
-                                        key,
-                                        pending_reversal);
+  GNUNET_assert (GNUNET_YES == GNUNET_CONTAINER_multihashmap_remove (pending_reversals,
+                                                         key,
+                                                         pending_reversal));
   GNUNET_free (pending_reversal->in);
   GNUNET_free (pending_reversal);
   return GNUNET_OK;
@@ -1675,7 +1675,7 @@ check_and_remove_pending_reversal (struct sockaddr *in, sa_family_t sa_family, s
             GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                         "Removing invalid pending reversal for `%s'at `%s'\n",
                         GNUNET_i2s (&pending_reversal->target),
-                        GNUNET_a2s (in, sizeof (in)));
+                        GNUNET_a2s (in, sizeof (struct sockaddr)));
                         pending_reversals_delete_it (NULL, &key, pending_reversal);
         }
         GNUNET_free (natted_address);
@@ -3071,6 +3071,7 @@ create_proto_queue (struct GNUNET_NETWORK_Handle *sock,
                     in->sa_family,
                     strerror (errno));
         GNUNET_free (in);
+        GNUNET_free (pq);
         return NULL;
       }
     if ((GNUNET_OK != GNUNET_NETWORK_socket_connect (sock, in, addrlen)) &&
@@ -3201,9 +3202,12 @@ pending_reversal_timeout (void *cls)
 
   GNUNET_assert (NULL != pending_reversal);
 
-  GNUNET_CONTAINER_multihashmap_remove (pending_reversals,
-                                        &key,
-                                        pending_reversal);
+  if (GNUNET_NO == GNUNET_CONTAINER_multihashmap_remove (pending_reversals,
+                                                         &key,
+                                                         pending_reversal))
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "No pending reversal found for address %s\n",
+                GNUNET_a2s (in, sizeof (struct sockaddr)));
   GNUNET_free (pending_reversal->in);
   GNUNET_free (pending_reversal);
 }
