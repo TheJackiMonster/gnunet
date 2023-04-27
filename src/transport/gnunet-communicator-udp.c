@@ -1993,8 +1993,8 @@ decrypt_box (const struct UDPBox *box,
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Receiver stopped rekeying.\n");
   }
-  else if (GNUNET_NO == box->rekeying)
-    consider_ss_ack (ss, GNUNET_NO);
+  /*else if (GNUNET_NO == box->rekeying)
+    consider_ss_ack (ss, GNUNET_NO);*/
   else
   {
     ss->sender->rekeying = GNUNET_YES;
