@@ -10272,13 +10272,15 @@ handle_send_message_ack (void *cls,
     for (struct QueueEntry *qep = queue->queue_head; NULL != qep;
          qep = qep->next)
     {
-      if (qep->mid != GNUNET_ntohll (sma->mid) && queue->qid != ntohl (sma->qid))
+      if (qep->mid != GNUNET_ntohll (sma->mid) || queue->qid != ntohl (
+            sma->qid))
         continue;
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "QueueEntry MID: %llu on queue QID: %llu, Ack MID: %llu\n",
+                  "QueueEntry MID: %llu on queue QID: %lu, Ack MID: %llu Ack QID %LLU\n",
                   (unsigned long long) qep->mid,
                   (unsigned long) queue->qid,
-                  GNUNET_ntohll (sma->mid));
+                  GNUNET_ntohll (sma->mid),
+                  ntohl (sma->qid));
       qe = qep;
       if ((NULL != qe->pm) && (qe->pm->qe != qe))
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
