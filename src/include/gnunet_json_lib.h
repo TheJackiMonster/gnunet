@@ -246,7 +246,8 @@ GNUNET_JSON_spec_string (const char *name,
 
 
 /**
- * JSON object.
+ * JSON object or array. Reference counter is
+ * incremented.
  *
  * @param name name of the JSON field
  * @param[out] jsonp where to store the JSON found under @a name
@@ -254,6 +255,28 @@ GNUNET_JSON_spec_string (const char *name,
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_json (const char *name,
                        json_t **jsonp);
+
+
+/**
+ * JSON object, reference counter not incremented.
+ *
+ * @param name name of the JSON field
+ * @param[out] jsonp where to store the JSON found under @a name
+ */
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_object_const (const char *name,
+                               const json_t **jsonp);
+
+
+/**
+ * JSON array, reference counter not incremented.
+ *
+ * @param name name of the JSON field
+ * @param[out] jsonp where to store the JSON found under @a name
+ */
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_array_const (const char *name,
+                              const json_t **jsonp);
 
 
 /**

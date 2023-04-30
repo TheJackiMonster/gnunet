@@ -301,9 +301,9 @@ GNUNET_JSON_spec_string (const char *name,
  * @return #GNUNET_OK upon successful parsing; #GNUNET_SYSERR upon error
  */
 static enum GNUNET_GenericReturnValue
-parse_object (void *cls,
-              json_t *root,
-              struct GNUNET_JSON_Specification *spec)
+parse_json (void *cls,
+            json_t *root,
+            struct GNUNET_JSON_Specification *spec)
 {
   if (! (json_is_object (root) || json_is_array (root)))
   {
@@ -323,8 +323,8 @@ parse_object (void *cls,
  * @param[out] spec where to free the data
  */
 static void
-clean_object (void *cls,
-              struct GNUNET_JSON_Specification *spec)
+clean_json (void *cls,
+            struct GNUNET_JSON_Specification *spec)
 {
   json_t **ptr = (json_t **) spec->ptr;
 
@@ -341,8 +341,90 @@ GNUNET_JSON_spec_json (const char *name,
                        json_t **jsonp)
 {
   struct GNUNET_JSON_Specification ret = {
-    .parser = &parse_object,
-    .cleaner = &clean_object,
+    .parser = &parse_json,
+    .cleaner = &clean_json,
+    .cls = NULL,
+    .field = name,
+    .ptr = jsonp,
+    .ptr_size = 0,
+    .size_ptr = NULL
+  };
+
+  *jsonp = NULL;
+  return ret;
+}
+
+
+/**
+ * Parse given JSON object to a JSON object.
+ *
+ * @param cls closure, NULL
+ * @param root the json object representing data
+ * @param[out] spec where to write the data
+ * @return #GNUNET_OK upon successful parsing; #GNUNET_SYSERR upon error
+ */
+static enum GNUNET_GenericReturnValue
+parse_object_const (void *cls,
+                    json_t *root,
+                    struct GNUNET_JSON_Specification *spec)
+{
+  if (! json_is_object (root))
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
+  *(const json_t **) spec->ptr = (const json_t *) root;
+  return GNUNET_OK;
+}
+
+
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_object_const (const char *name,
+                               const json_t **jsonp)
+{
+  struct GNUNET_JSON_Specification ret = {
+    .parser = &parse_object_const,
+    .cls = NULL,
+    .field = name,
+    .ptr = jsonp,
+    .ptr_size = 0,
+    .size_ptr = NULL
+  };
+
+  *jsonp = NULL;
+  return ret;
+}
+
+
+/**
+ * Parse given JSON to a JSON array.
+ *
+ * @param cls closure, NULL
+ * @param root the json object representing data
+ * @param[out] spec where to write the data
+ * @return #GNUNET_OK upon successful parsing; #GNUNET_SYSERR upon error
+ */
+static enum GNUNET_GenericReturnValue
+parse_array_const (void *cls,
+                   json_t *root,
+                   struct GNUNET_JSON_Specification *spec)
+{
+  if (! json_is_array (root))
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
+  *(const json_t **) spec->ptr = (const json_t *) root;
+  return GNUNET_OK;
+}
+
+
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_array_const (const char *name,
+                              const json_t **jsonp)
+{
+  struct GNUNET_JSON_Specification ret = {
+    .parser = &parse_array_const,
     .cls = NULL,
     .field = name,
     .ptr = jsonp,
