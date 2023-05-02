@@ -4522,7 +4522,7 @@ queue_send_msg (struct Queue *queue,
         pa = pa->next_pa;
       pa->num_send++;
     }
-      //GNUNET_CONTAINER_multiuuidmap_get (pending_acks, &ack[i].ack_uuid.value);
+    // GNUNET_CONTAINER_multiuuidmap_get (pending_acks, &ack[i].ack_uuid.value);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Sending message MID %lu of type %u (%u) and size %lu with MQ %p QID %lu\n",
                 GNUNET_ntohll (smt->mid),
@@ -5134,9 +5134,9 @@ consider_sending_fc (void *cls)
   fc.header.type = htons (GNUNET_MESSAGE_TYPE_TRANSPORT_FLOW_CONTROL);
   fc.header.size = htons (sizeof(fc));
   fc.seq = htonl (vl->fc_seq_gen++);
-  fc.inbound_window_size = GNUNET_htonll (vl->incoming_fc_window_size +
-                                          vl->incoming_fc_window_size_used +
-                                          vl->incoming_fc_window_size_loss);
+  fc.inbound_window_size = GNUNET_htonll (vl->incoming_fc_window_size
+                                          + vl->incoming_fc_window_size_used
+                                          + vl->incoming_fc_window_size_loss);
   fc.outbound_sent = GNUNET_htonll (vl->outbound_fc_window_size_used);
   fc.outbound_window_size = GNUNET_htonll (vl->outbound_fc_window_size);
   fc.sender_time = GNUNET_TIME_absolute_hton (monotime);
@@ -10147,9 +10147,8 @@ transmit_on_queue (void *cls)
     // wait_multiplier = wait_multiplier * pm->vl->pending_msg_num;
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Wait multiplier %u num pending msg %u\n",
-                wait_multiplier,
-                pm->vl->pending_msg_num);
+                "Wait multiplier %u\n",
+                wait_multiplier);
 
     /* Message not finished, waiting for acknowledgement.
        Update time by which we might retransmit 's' based on queue
@@ -10843,7 +10842,7 @@ check_validation_request_pending (void *cls,
   if ((GNUNET_YES == vs->awaiting_queue) &&
       (0 == strcmp (address_without_port_vs, address_without_port_q)))
   {
-    
+
     vs->awaiting_queue = GNUNET_NO;
     validation_transmit_on_queue (q, vs);
     success = GNUNET_NO;
