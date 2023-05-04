@@ -663,7 +663,7 @@ GNUNET_CRYPTO_zero_keys (void *buffer, size_t length);
  * Fill block with a random values.
  *
  * @param mode desired quality of the random number
- * @param buffer the buffer to fill
+ * @param[out] buffer the buffer to fill
  * @param length buffer length
  */
 void
@@ -680,7 +680,7 @@ GNUNET_CRYPTO_random_block (enum GNUNET_CRYPTO_Quality mode,
  * here is not a completely random number.
  *
  * @param mode desired quality of the random number
- * @param uuid the value to fill
+ * @param[out] uuid the value to fill
  */
 void
 GNUNET_CRYPTO_random_timeflake (enum GNUNET_CRYPTO_Quality mode,
