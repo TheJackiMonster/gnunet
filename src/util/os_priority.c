@@ -249,13 +249,6 @@ GNUNET_OS_process_kill (struct GNUNET_OS_Process *proc,
 }
 
 
-/**
- * Get the pid of the process in question
- *
- * @param proc the process to get the pid of
- *
- * @return the current process id
- */
 pid_t
 GNUNET_OS_process_get_pid (struct GNUNET_OS_Process *proc)
 {
@@ -263,12 +256,6 @@ GNUNET_OS_process_get_pid (struct GNUNET_OS_Process *proc)
 }
 
 
-/**
- * Cleans up process structure contents (OS-dependent) and deallocates
- * it.
- *
- * @param proc pointer to process structure
- */
 void
 GNUNET_OS_process_destroy (struct GNUNET_OS_Process *proc)
 {
@@ -652,19 +639,6 @@ GNUNET_OS_start_process (enum GNUNET_OS_InheritStdioFlags std_inheritance,
 }
 
 
-/**
- * Start a process.
- *
- * @param std_inheritance a set of GNUNET_OS_INHERIT_STD_* flags controlling which
- *        std handles of the parent are inherited by the child.
- *        pipe_stdin and pipe_stdout take priority over std_inheritance
- *        (when they are non-NULL).
- * @param lsocks array of listen sockets to dup systemd-style (or NULL);
- *         must be NULL on platforms where dup is not supported
- * @param filename name of the binary
- * @param argv NULL-terminated list of arguments to the process
- * @return process ID of the new process, -1 on error
- */
 struct GNUNET_OS_Process *
 GNUNET_OS_start_process_v (enum GNUNET_OS_InheritStdioFlags std_inheritance,
                            const int *lsocks,
@@ -681,23 +655,6 @@ GNUNET_OS_start_process_v (enum GNUNET_OS_InheritStdioFlags std_inheritance,
 }
 
 
-/**
- * Start a process.  This function is similar to the GNUNET_OS_start_process_*
- * except that the filename and arguments can have whole strings which contain
- * the arguments.  These arguments are to be separated by spaces and are parsed
- * in the order they appear.  Arguments containing spaces can be used by
- * quoting them with @em ".
- *
- * @param std_inheritance a set of GNUNET_OS_INHERIT_STD_* flags
- * @param lsocks array of listen sockets to dup systemd-style (or NULL);
- *         must be NULL on platforms where dup is not supported
- * @param filename name of the binary.  It is valid to have the arguments
- *         in this string when they are separated by spaces.
- * @param ... more arguments.  Should be of type `char *`.  It is valid
- *         to have the arguments in these strings when they are separated by
- *         spaces.  The last argument MUST be NULL.
- * @return pointer to process structure of the new process, NULL on error
- */
 struct GNUNET_OS_Process *
 GNUNET_OS_start_process_s (enum GNUNET_OS_InheritStdioFlags std_inheritance,
                            const int *lsocks,
@@ -892,15 +849,6 @@ process_status (struct GNUNET_OS_Process *proc,
 }
 
 
-/**
- * Retrieve the status of a process.
- * Nonblocking version.
- *
- * @param proc process ID
- * @param type status type
- * @param code return code/signal number
- * @return #GNUNET_OK on success, #GNUNET_NO if the process is still running, #GNUNET_SYSERR otherwise
- */
 enum GNUNET_GenericReturnValue
 GNUNET_OS_process_status (struct GNUNET_OS_Process *proc,
                           enum GNUNET_OS_ProcessStatusType *type,
@@ -910,15 +858,6 @@ GNUNET_OS_process_status (struct GNUNET_OS_Process *proc,
 }
 
 
-/**
- * Retrieve the status of a process, waiting on it if dead.
- * Blocking version.
- *
- * @param proc pointer to process structure
- * @param type status type
- * @param code return code/signal number
- * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
- */
 enum GNUNET_GenericReturnValue
 GNUNET_OS_process_wait_status (struct GNUNET_OS_Process *proc,
                                enum GNUNET_OS_ProcessStatusType *type,
@@ -928,17 +867,7 @@ GNUNET_OS_process_wait_status (struct GNUNET_OS_Process *proc,
 }
 
 
-/**
- * Wait for a process to terminate. The return code is discarded.
- * You must not use #GNUNET_OS_process_status() on the same process
- * after calling this function!  This function is blocking and should
- * thus only be used if the child process is known to have terminated
- * or to terminate very soon.
- *
- * @param proc pointer to process structure
- * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
- */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_OS_process_wait (struct GNUNET_OS_Process *proc)
 {
   pid_t pid = proc->pid;
@@ -1007,13 +936,6 @@ struct GNUNET_OS_CommandHandle
 };
 
 
-/**
- * Stop/kill a command.  Must ONLY be called either from
- * the callback after 'NULL' was passed for 'line' *OR*
- * from an independent task (not within the line processor).
- *
- * @param cmd handle to the process
- */
 void
 GNUNET_OS_command_stop (struct GNUNET_OS_CommandHandle *cmd)
 {
