@@ -148,6 +148,21 @@ GNUNET_PQ_query_param_bool (bool b);
 
 
 /**
+ *  Array types (in Postgres) that are supported in GNUnet.
+ */
+enum GNUNET_PQ_ArrayTypes
+{
+  GNUNET_PQ_ARRAY_UNKNOWN, /* Unsupported type */
+  GNUNET_PQ_ARRAY_BOOL,
+  GNUNET_PQ_ARRAY_INT2,
+  GNUNET_PQ_ARRAY_INT4,
+  GNUNET_PQ_ARRAY_INT8,
+  GNUNET_PQ_ARRAY_BYTEA,
+  GNUNET_PQ_ARRAY_VARCHAR,
+  GNUNET_PQ_ARRAY_MAX, /* Must be last */
+};
+
+/**
  * Information for an array argument.
  */
 struct GNUNET_PQ_ArraySpec

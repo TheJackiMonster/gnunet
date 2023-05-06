@@ -98,7 +98,13 @@ struct GNUNET_PQ_Context
    * Flags controlling the connection.
    */
   enum GNUNET_PQ_Options flags;
+
+  /**
+   * Mapping between array types and Oid's, filled at reconnect
+   */
+  Oid arraytype2oid[GNUNET_PQ_ARRAY_MAX];
 };
+
 
 
 /**

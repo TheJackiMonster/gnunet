@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet
-   Copyright (C) 2017, 2019, 2020, 2021 GNUnet e.V.
+   Copyright (C) 2017, 2019, 2020, 2021, 2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -21,6 +21,7 @@
  * @file pq/pq_connect.c
  * @brief functions to connect to libpq (PostGres)
  * @author Christian Grothoff
+ * @author Özgür Kesim
  */
 #include "platform.h"
 #include "pq.h"
@@ -321,6 +322,103 @@ GNUNET_PQ_reconnect_if_down (struct GNUNET_PQ_Context *db)
 }
 
 
+/**
+ * Retrieves the Oid's for the supported array types and sets db->arraytype2oid
+ * on succes.
+ *
+ * @param db Context for the database connection
+ * @return GNUNET_OK on success, GNUNET_SYSERR otherwise
+ */
+static enum GNUNET_GenericReturnValue
+get_array_type_oids (struct GNUNET_PQ_Context *db)
+{
+  PGresult *res;
+  ExecStatusType est;
+  GNUNET_assert (NULL != db);
+
+  /* Initialize to Oid(0) (= unknown) */
+  memset (db->arraytype2oid,
+          0,
+          sizeof(db->arraytype2oid));
+
+  res = PQexec (db->conn,
+                "SELECT"
+                " typname, oid"
+                " FROM pg_type "
+                " WHERE typname like '\\_%';");
+
+  est = PQresultStatus (res);
+  if ( (PGRES_COMMAND_OK != est) &&
+       (PGRES_TUPLES_OK != est))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to run statement to retrieve Oids for array types!\n");
+    return GNUNET_SYSERR;
+  }
+
+  if ( (2 != PQnfields (res)) ||
+       (0 != PQfnumber (res, "typname")) ||
+       (1 != PQfnumber (res, "oid"))
+       )
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Unexpected table retrieved for array types\n");
+    return GNUNET_SYSERR;
+  }
+
+  {
+    int nrows = PQntuples (res);
+    int nfound = 1; /* skip GNUNET_PQ_ARRAY_UNKNOWN */
+
+    for (int r = 0; r < nrows; r++)
+    {
+      enum GNUNET_PQ_ArrayTypes atype = GNUNET_PQ_ARRAY_UNKNOWN;
+      char *typ_s = PQgetvalue (res,r,0);
+      char *oid_s = PQgetvalue (res,r,1);
+      GNUNET_assert (NULL != typ_s);
+      GNUNET_assert (NULL != oid_s);
+
+      if (! strcmp (typ_s,"_bool"))
+        atype = GNUNET_PQ_ARRAY_BOOL;
+      else if (! strcmp (typ_s,"_int2"))
+        atype = GNUNET_PQ_ARRAY_INT2;
+      else if (! strcmp (typ_s,"_int4"))
+        atype = GNUNET_PQ_ARRAY_INT4;
+      else if (! strcmp (typ_s,"_int8"))
+        atype = GNUNET_PQ_ARRAY_INT8;
+      else if (! strcmp (typ_s,"_bytea"))
+        atype = GNUNET_PQ_ARRAY_BYTEA;
+      else if (! strcmp (typ_s,"_varchar"))
+        atype = GNUNET_PQ_ARRAY_VARCHAR;
+      else
+        continue;
+
+      GNUNET_assert (GNUNET_PQ_ARRAY_MAX > atype);
+
+      if ((GNUNET_PQ_ARRAY_UNKNOWN != atype) &&
+          (1 == sscanf (oid_s, "%u", &db->arraytype2oid[atype])))
+      {
+        nfound++;
+        GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                    "OID[%s]: %d\n",
+                    typ_s, db->arraytype2oid[atype]);
+      }
+    }
+
+    if (GNUNET_PQ_ARRAY_MAX != nfound)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Couldn't find all array types, only found %d of %d!\n",
+                  nfound - 1,
+                  GNUNET_PQ_ARRAY_MAX - 1);
+      return GNUNET_SYSERR;
+    }
+  }
+
+  return GNUNET_OK;
+}
+
+
 void
 GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
 {
@@ -411,6 +509,16 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
     }
   }
 
+  /* Retrieve the OIDs for the supported Array types */
+  if (GNUNET_SYSERR == get_array_type_oids (db))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to retrieve OID information for array types!\n");
+    PQfinish (db->conn);
+    db->conn = NULL;
+    return;
+  }
+
   if (NULL != db->auto_suffix)
   {
     PGresult *res;
@@ -450,6 +558,7 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
       return;
     }
   }
+
   if ( (NULL != db->es) &&
        (GNUNET_OK !=
         GNUNET_PQ_exec_statements (db,
