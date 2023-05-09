@@ -1321,6 +1321,9 @@ run (void *cls,
 
   (void) cls;
   (void) service;
+  pthread_mutex_init (&sign_jobs_lock, NULL);
+  pthread_mutex_init (&sign_results_lock, NULL);
+  pthread_cond_init (&sign_jobs_cond, NULL);
   last_put_100 = GNUNET_TIME_absolute_get ();  /* first time! */
   min_relative_record_time
     = GNUNET_TIME_UNIT_FOREVER_REL;
