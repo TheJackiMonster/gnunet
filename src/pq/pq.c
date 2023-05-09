@@ -47,11 +47,11 @@ GNUNET_PQ_exec_prepared (struct GNUNET_PQ_Context *db,
   /* new scope to allow stack allocation without alloca */
   {
     /* Scratch buffer for temporary storage */
-    void *scratch[len];
+    void *scratch[GNUNET_NZL (len)];
     /* Parameter array we are building for the query */
-    void *param_values[len];
-    int param_lengths[len];
-    int param_formats[len];
+    void *param_values[GNUNET_NZL (len)];
+    int param_lengths[GNUNET_NZL (len)];
+    int param_formats[GNUNET_NZL (len)];
     unsigned int off;
     /* How many entries in the scratch buffer are in use? */
     unsigned int soff;
@@ -178,7 +178,7 @@ GNUNET_PQ_extract_result (PGresult *result,
       *spec->result_size = spec->dst_size;
   }
   return GNUNET_OK;
-cleanup:
+  cleanup:
   for (unsigned int j = 0; j < i; j++)
     if (NULL != rs[j].cleaner)
       rs[j].cleaner (rs[j].cls,
