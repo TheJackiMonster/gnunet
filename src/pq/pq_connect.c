@@ -398,7 +398,8 @@ get_array_type_oids (struct GNUNET_PQ_Context *db)
       if ( (GNUNET_PQ_ARRAY_UNKNOWN != atype) &&
            (1 == sscanf (oid_s,
                          "%u%c",
-                         &db->arraytype2oid[atype])))
+                         &db->arraytype2oid[atype],
+                         &dummy)))
       {
         nfound++;
         GNUNET_log (GNUNET_ERROR_TYPE_INFO,

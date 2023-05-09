@@ -51,8 +51,8 @@
  * if the start script was not started from within a new namespace
  * created by unshare. The UPNP test case needs public IP
  * addresse for miniupnpd to function.
- * FIXME We should introduce a switch indicating if public 
- * addresses should be used or not. This info has to be 
+ * FIXME We should introduce a switch indicating if public
+ * addresses should be used or not. This info has to be
  * propagated from the start script to the c code.
 #define ROUTER_CONNECT_ADDRESS_TEMPLATE "%s-172.16.150.%u"
 
@@ -1283,8 +1283,8 @@ GNUNET_TESTING_peer_configure (struct GNUNET_TESTING_System *system,
     goto err_ret;
   }
   GNUNET_DISK_file_close (fd);
-  ss_instances = GNUNET_malloc (sizeof(struct SharedServiceInstance *)
-                                * system->n_shared_services);
+  ss_instances = GNUNET_new_array (system->n_shared_services,
+                                   struct SharedServiceInstance*);
   for (cnt = 0; cnt < system->n_shared_services; cnt++)
   {
     ss = &system->shared_services[cnt];
@@ -1755,7 +1755,7 @@ GNUNET_TESTING_get_testname_from_underscore (const char *argv0)
 
 
 /**
- * Every line in the topology configuration starts with a string indicating which 
+ * Every line in the topology configuration starts with a string indicating which
  * kind of information will be configured with this line. Configuration values following
  * this string are seperated by special sequences of characters. An integer value seperated
  * by ':' is returned by this function.
@@ -1773,7 +1773,7 @@ get_first_value (const char *line)
   char *rest = NULL;
 
   slen = strlen (line) + 1;
-  copy = malloc (slen);
+  copy = GNUNET_malloc (slen);
   memcpy (copy, line, slen);
   token = strtok_r (copy, ":", &rest);
   token = strtok_r (NULL, ":", &rest);
@@ -1801,11 +1801,11 @@ get_key (const char *line)
   char *rest = NULL;
 
   slen = strlen (line) + 1;
-  copy = malloc (slen);
+  copy = GNUNET_malloc (slen);
   memcpy (copy, line, slen);
   token = strtok_r (copy, ":", &rest);
   tlen = strlen (token) + 1;
-  ret = malloc (tlen);
+  ret = GNUNET_malloc (tlen);
   memcpy (ret, token, tlen);
   GNUNET_free (copy);
   return ret;
@@ -1813,7 +1813,7 @@ get_key (const char *line)
 
 
 /**
- * Every line in the topology configuration starts with a string indicating which 
+ * Every line in the topology configuration starts with a string indicating which
  * kind of information will be configured with this line. Configuration values following
  * this string are seperated by special sequences of characters. A string value seperated
  * by ':' is returned by this function.
@@ -1831,7 +1831,7 @@ get_first_string_value (const char *line)
   char *rest = NULL;
 
   slen = strlen (line) + 1;
-  copy = malloc (slen);
+  copy = GNUNET_malloc (slen);
   memcpy (copy, line, slen);
   token = strtok_r (copy, ":", &rest);
   token = strtok_r (NULL, ":", &rest);
@@ -1839,7 +1839,7 @@ get_first_string_value (const char *line)
        "first token %s\n",
        token);
   slen_token = strlen (token);
-  ret = malloc (slen_token + 1);
+  ret = GNUNET_malloc (slen_token + 1);
   memcpy (ret, token, slen_token + 1);
   GNUNET_free (copy);
   return ret;
@@ -1847,9 +1847,9 @@ get_first_string_value (const char *line)
 
 
 /**
- * Every line in the topology configuration starts with a string indicating which 
+ * Every line in the topology configuration starts with a string indicating which
  * kind of information will be configured with this line. Configuration values following
- * this string are seperated by special sequences of characters. A second integer value 
+ * this string are seperated by special sequences of characters. A second integer value
  * seperated by ':' from a first value is returned by this function.
  *
  * @param line The line of configuration.
@@ -1877,9 +1877,9 @@ get_second_value (const char *line)
 
 
 /**
- * Every line in the topology configuration starts with a string indicating which 
+ * Every line in the topology configuration starts with a string indicating which
  * kind of information will be configured with this line. Configuration values following
- * this string are seperated by special sequences of characters. A value might be 
+ * this string are seperated by special sequences of characters. A value might be
  * a key value pair.
  * This function returns the value for a specific key in a configuration line.
  *
@@ -1915,9 +1915,9 @@ get_value (const char *key, const char *line)
 
 
 /**
- * Every line in the topology configuration starts with a string indicating which 
+ * Every line in the topology configuration starts with a string indicating which
  * kind of information will be configured with this line. Configuration values following
- * this string are seperated by special sequences of characters. A value might be 
+ * this string are seperated by special sequences of characters. A value might be
  * a key value pair. A special key is the 'connect' key which can appear more than once.
  * The value is the information about a connection via some protocol to some other node.
  * This function returns the struct GNUNET_TESTING_NodeConnection which holds the information
@@ -2020,19 +2020,19 @@ get_connect_value (const char *line,
 
 
 /**
- * Every line in the topology configuration starts with a string indicating which 
+ * Every line in the topology configuration starts with a string indicating which
  * kind of information will be configured with this line. Configuration values following
- * this string are seperated by special sequences of characters. A value might be 
+ * this string are seperated by special sequences of characters. A value might be
  * a key value pair. A special key is the 'connect' key.
  * The value is the information about a connections via some protocol to other nodes.
- * Each connection itself is a key value pair separated by the character '|' and 
+ * Each connection itself is a key value pair separated by the character '|' and
  * surrounded by the characters '{' and '}'.
  * The struct GNUNET_TESTING_NodeConnection holds the information of each connection value.
- * This function extracts the values of each connection into a DLL of 
+ * This function extracts the values of each connection into a DLL of
  * struct GNUNET_TESTING_NodeConnection which will be added to a node.
  *
  * @param line The line of configuration.
- * @param node The struct GNUNET_TESTING_NetjailNode to which the DLL of 
+ * @param node The struct GNUNET_TESTING_NetjailNode to which the DLL of
  *             struct GNUNET_TESTING_NodeConnection will be added.
  */
 static void
@@ -2165,14 +2165,15 @@ log_topo (const struct GNUNET_TESTING_NetjailTopology *topology)
   return GNUNET_YES;
 }
 
+
 /**
  * This function extracts information about a specific node from the topology.
  *
  * @param num The global index number of the node.
  * @param[out] node_ex A struct GNUNET_TESTING_NetjailNode with information about the node.
- * @param[out] namespace_ex A struct GNUNET_TESTING_NetjailNamespace with information about the namespace 
+ * @param[out] namespace_ex A struct GNUNET_TESTING_NetjailNamespace with information about the namespace
                the node is in or NULL, if the node is a global node.
- * @param[out] node_connections_ex A struct GNUNET_TESTING_NodeConnection with information about the connection 
+ * @param[out] node_connections_ex A struct GNUNET_TESTING_NodeConnection with information about the connection
                of this node to other nodes.
 */
 static void
@@ -2249,6 +2250,7 @@ get_node_info (unsigned int num,
   }
 }
 
+
 /**
  * Get a node from the topology.
  *
@@ -2258,7 +2260,7 @@ get_node_info (unsigned int num,
  */
 struct GNUNET_TESTING_NetjailNode *
 GNUNET_TESTING_get_node (unsigned int num,
-                                struct GNUNET_TESTING_NetjailTopology *topology)
+                         struct GNUNET_TESTING_NetjailTopology *topology)
 {
   struct GNUNET_TESTING_NetjailNode *node;
   struct GNUNET_TESTING_NetjailNamespace *namespace;
@@ -2280,7 +2282,8 @@ GNUNET_TESTING_get_node (unsigned int num,
  */
 struct GNUNET_TESTING_NodeConnection *
 GNUNET_TESTING_get_connections (unsigned int num,
-                                const struct GNUNET_TESTING_NetjailTopology *topology)
+                                const struct
+                                GNUNET_TESTING_NetjailTopology *topology)
 {
   struct GNUNET_TESTING_NetjailNode *node;
   struct GNUNET_TESTING_NetjailNamespace *namespace;
@@ -2304,7 +2307,7 @@ GNUNET_TESTING_get_connections (unsigned int num,
  */
 struct GNUNET_PeerIdentity *
 GNUNET_TESTING_get_peer (unsigned int num,
-                            const struct GNUNET_TESTING_System *tl_system)
+                         const struct GNUNET_TESTING_System *tl_system)
 {
   struct GNUNET_PeerIdentity *peer = GNUNET_new (struct GNUNET_PeerIdentity);
   struct GNUNET_CRYPTO_EddsaPrivateKey *priv_key;
@@ -2466,6 +2469,7 @@ GNUNET_TESTING_get_address (struct GNUNET_TESTING_NodeConnection *connection,
   return addr;
 }
 
+
 /**
  * Get the number of unintentional additional connections the node waits for.
  *
@@ -2501,6 +2505,7 @@ GNUNET_TESTING_get_additional_connects (unsigned int num,
 
   return node->additional_connects;
 }
+
 
 static void
 parse_ac (struct GNUNET_TESTING_NetjailNode *p_node, const char *token)
