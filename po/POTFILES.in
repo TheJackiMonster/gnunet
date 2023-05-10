@@ -447,6 +447,7 @@ src/testing/testing_api_loop.c
 src/testing/testing_api_traits.c
 src/topology/friends.c
 src/topology/gnunet-daemon-topology.c
+src/transport/gnunet-communicator-quic.c
 src/transport/gnunet-communicator-tcp.c
 src/transport/gnunet-communicator-udp.c
 src/transport/gnunet-communicator-unix.c

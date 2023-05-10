@@ -219,7 +219,8 @@ libexec_PROGRAMS = \
  gnunet-service-tng \
  gnunet-communicator-unix \
  gnunet-communicator-udp \
- gnunet-communicator-tcp
+ gnunet-communicator-tcp \
+ gnunet-communicator-quic
 
 
 
@@ -269,6 +270,15 @@ gnunet_communicator_udp_LDADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(LIBGCRYPT_LIBS)
 
+gnunet_communicator_quic_SOURCES = \
+  gnunet-communicator-quic.c
+gnunet_communicator_quic_LDADD = \
+  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/nat/libgnunetnatnew.la \
+  $(top_builddir)/src/nt/libgnunetnt.la \
+  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/util/libgnunetutil.la \
+  $(LIBGCRYPT_LIBS)
 
 gnunet_helper_transport_wlan_SOURCES = \
  gnunet-helper-transport-wlan.c

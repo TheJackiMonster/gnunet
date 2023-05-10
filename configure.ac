@@ -768,13 +768,9 @@ AC_CHECK_LIB([kstat], [kstat_open])
 
 # check for libsodium version >= 1.0.18
 libsodium=0
-AC_CHECK_HEADER([sodium.h],
-  [AC_CHECK_LIB([sodium], [crypto_core_ed25519_scalar_mul],
-                [libsodium=1],
-                [libsodium=0])])
-
-AS_IF([test "x$libsodium" = "x0"],
-      [AC_MSG_ERROR([GNUnet requires libsodium >= 1.0.18])])
+CHECK_WITH_LIB([sodium], [crypto_core_ed25519_scalar_mul], [sodium.h], [HAVE_SODIUM])
+AS_IF([test "x$sodium" = "x0"],
+  [AC_MSG_ERROR([GNUnet requires libsodium >= 1.0.18])])
 
 # check for libextractor
 CHECK_WITH_LIB([extractor],
@@ -879,8 +875,10 @@ AM_ICONV
 
 # check for libunistring
 gl_LIBUNISTRING
-AS_IF([test "x$HAVE_LIBUNISTRING" != "xyes"],
-      [AC_MSG_ERROR([GNUnet requires libunistring])])
+libunistring=0
+CHECK_WITH_LIB([unistring], [u16_strstr], [unistr.h], [HAVE_UNISTRING])
+AS_IF([test "x$unistring" = "x0"],
+  [AC_MSG_ERROR([GNUnet requires unistring])])
 
 # Currently broken on Debian :-(
 # AS_VERSION_COMPARE([$LIBUNISTRING_VERSION], [0.9.1.1],
