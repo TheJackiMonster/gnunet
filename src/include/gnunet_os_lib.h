@@ -18,7 +18,7 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 
-#if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
+#if ! defined (__GNUNET_UTIL_LIB_H_INSIDE__)
 #error "Only <gnunet_util_lib.h> can be included directly."
 #endif
 
@@ -383,14 +383,14 @@ GNUNET_OS_get_suid_binary_path (const struct GNUNET_CONFIGURATION_Handle *cfg,
  * @param addrlen length of the address
  * @return #GNUNET_OK to continue iteration, #GNUNET_SYSERR to abort
  */
-typedef int
-(*GNUNET_OS_NetworkInterfaceProcessor) (void *cls,
-                                        const char *name,
-                                        int isDefault,
-                                        const struct sockaddr *addr,
-                                        const struct sockaddr *broadcast_addr,
-                                        const struct sockaddr *netmask,
-                                        socklen_t addrlen);
+typedef enum GNUNET_GenericReturnValue
+(*GNUNET_OS_NetworkInterfaceProcessor)(void *cls,
+                                       const char *name,
+                                       int isDefault,
+                                       const struct sockaddr *addr,
+                                       const struct sockaddr *broadcast_addr,
+                                       const struct sockaddr *netmask,
+                                       socklen_t addrlen);
 
 
 /**
@@ -612,7 +612,7 @@ GNUNET_OS_command_run (GNUNET_OS_LineProcessor proc,
  * @param code return code/signal number
  * @return #GNUNET_OK on success, #GNUNET_NO if the process is still running, #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_OS_process_status (struct GNUNET_OS_Process *proc,
                           enum GNUNET_OS_ProcessStatusType *type,
                           unsigned long *code);
@@ -628,7 +628,7 @@ GNUNET_OS_process_status (struct GNUNET_OS_Process *proc,
  * @param proc pointer to process structure of the process to wait for
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_OS_process_wait (struct GNUNET_OS_Process *proc);
 
 
@@ -641,7 +641,7 @@ GNUNET_OS_process_wait (struct GNUNET_OS_Process *proc);
  * @param code return code/signal number
  * @return #GNUNET_OK on success, #GNUNET_NO if the process is still running, #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_OS_process_wait_status (struct GNUNET_OS_Process *proc,
                                enum GNUNET_OS_ProcessStatusType *type,
                                unsigned long *code);

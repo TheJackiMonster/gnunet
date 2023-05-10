@@ -431,6 +431,7 @@ GNUNET_DISK_directory_test (const char *fil, int is_readable)
   return GNUNET_YES;
 }
 
+
 /**
  * Check if fil can be accessed using amode.
  *
@@ -901,6 +902,7 @@ GNUNET_DISK_directory_scan (const char *dir_name,
   return count;
 }
 
+
 /**
  * Check for a simple wildcard match.
  * Only asterisks are allowed.
@@ -949,6 +951,7 @@ glob_match (const char *pattern, const char *str)
     }
   }
 }
+
 
 struct GlobClosure
 {
@@ -1583,10 +1586,9 @@ GNUNET_DISK_pipe_detach_end (struct GNUNET_DISK_PipeHandle *p,
 enum GNUNET_GenericReturnValue
 GNUNET_DISK_pipe_close (struct GNUNET_DISK_PipeHandle *p)
 {
-  int ret = GNUNET_OK;
-
-  int read_end_close;
-  int write_end_close;
+  enum GNUNET_GenericReturnValue ret = GNUNET_OK;
+  enum GNUNET_GenericReturnValue read_end_close;
+  enum GNUNET_GenericReturnValue write_end_close;
   int read_end_close_errno;
   int write_end_close_errno;
 
