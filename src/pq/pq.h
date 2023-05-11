@@ -102,9 +102,8 @@ struct GNUNET_PQ_Context
   /**
    * Mapping between array types and Oid's, filled at reconnect
    */
-  Oid arraytype2oid[GNUNET_PQ_ARRAY_MAX];
+  Oid oids[GNUNET_PQ_DATATYPE_MAX];
 };
-
 
 
 /**

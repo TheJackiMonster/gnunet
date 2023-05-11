@@ -22,6 +22,7 @@
  * @brief Tests for Postgres convenience API
  * @author Christian Grothoff <christian@grothoff.org>
  */
+#include "gnunet_common.h"
 #include "platform.h"
 #include "pq.h"
 
@@ -68,9 +69,16 @@ postgres_prepare (struct GNUNET_PQ_Context *db)
                             ",u32"
                             ",u64"
                             ",unn"
+                            ",arr_bool"
+                            ",arr_int2"
+                            ",arr_int4"
+                            ",arr_int8"
+                            ",arr_bytea"
+                            ",arr_varchar"
                             ") VALUES "
                             "($1, $2, $3, $4, $5, $6,"
-                            "$7, $8, $9, $10);"),
+                            "$7, $8, $9, $10,"
+                            "$11, $12, $13, $14, $15, $16);"),
     GNUNET_PQ_make_prepare ("test_select",
                             "SELECT"
                             " pub"
@@ -83,6 +91,12 @@ postgres_prepare (struct GNUNET_PQ_Context *db)
                             ",u32"
                             ",u64"
                             ",unn"
+                            ",arr_bool"
+                            ",arr_int2"
+                            ",arr_int4"
+                            ",arr_int8"
+                            ",arr_bytea"
+                            ",arr_varchar"
                             " FROM test_pq"
                             " ORDER BY abs_time DESC "
                             " LIMIT 1;"),
@@ -127,6 +141,13 @@ run_queries (struct GNUNET_PQ_Context *db)
   uint64_t u64;
   uint64_t u642;
   uint64_t uzzz = 42;
+  struct GNUNET_HashCode ahc[3] = {};
+  const void *aphc[3] = {&ahc[0], &ahc[1], &ahc[2]};
+  bool ab[5] = {true, false, false, true, false};
+  uint16_t ai2[3] = {42, 0x0001, 0xFFFF};
+  uint32_t ai4[3] = {42, 0x00010000, 0xFFFFFFFF};
+  uint64_t ai8[3] = {42, 0x0001000000000000, 0xFFFFFFFFFFFFFFFF};
+  const char *as[] = {"foo", "bar", "buz"};
 
   priv = GNUNET_CRYPTO_rsa_private_key_create (1024);
   pub = GNUNET_CRYPTO_rsa_private_key_get_public (priv);
@@ -136,6 +157,8 @@ run_queries (struct GNUNET_PQ_Context *db)
   u16 = 16;
   u32 = 32;
   u64 = 64;
+  GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_WEAK, ahc, sizeof(ahc));
+
   /* FIXME: test GNUNET_PQ_result_spec_variable_size */
   {
     struct GNUNET_PQ_QueryParam params_insert[] = {
@@ -144,11 +167,20 @@ run_queries (struct GNUNET_PQ_Context *db)
       GNUNET_PQ_query_param_absolute_time (&abs_time),
       GNUNET_PQ_query_param_absolute_time (&forever),
       GNUNET_PQ_query_param_auto_from_type (&hc),
-      GNUNET_PQ_query_param_fixed_size (msg, strlen (msg)),
+      GNUNET_PQ_query_param_string (msg),
       GNUNET_PQ_query_param_uint16 (&u16),
       GNUNET_PQ_query_param_uint32 (&u32),
       GNUNET_PQ_query_param_uint64 (&u64),
       GNUNET_PQ_query_param_null (),
+      GNUNET_PQ_query_param_array_bool (5, ab, db),
+      GNUNET_PQ_query_param_array_uint16 (3, ai2, db),
+      GNUNET_PQ_query_param_array_uint32 (3, ai4, db),
+      GNUNET_PQ_query_param_array_uint64 (3, ai8, db),
+      GNUNET_PQ_query_param_array_bytes_same_size (3,
+                                                   aphc,
+                                                   sizeof(ahc[0]),
+                                                   db),
+      GNUNET_PQ_query_param_array_string (3, as, db),
       GNUNET_PQ_query_param_end
     };
     struct GNUNET_PQ_QueryParam params_select[] = {
@@ -227,7 +259,10 @@ run_queries (struct GNUNET_PQ_Context *db)
     GNUNET_break (got_null);
     GNUNET_PQ_cleanup_result (results_select);
     PQclear (result);
+
+    GNUNET_PQ_cleanup_query_params_closures (params_insert);
   }
+
   GNUNET_CRYPTO_rsa_signature_free (sig);
   GNUNET_CRYPTO_rsa_private_key_free (priv);
   GNUNET_CRYPTO_rsa_public_key_free (pub);
@@ -339,6 +374,12 @@ main (int argc,
                             ",u32 INT4 NOT NULL"
                             ",u64 INT8 NOT NULL"
                             ",unn INT8"
+                            ",arr_bool BOOL[]"
+                            ",arr_int2 INT2[]"
+                            ",arr_int4 INT4[]"
+                            ",arr_int8 INT8[]"
+                            ",arr_bytea BYTEA[]"
+                            ",arr_varchar VARCHAR[]"
                             ")"),
     GNUNET_PQ_EXECUTE_STATEMENT_END
   };

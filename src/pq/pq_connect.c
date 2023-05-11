@@ -337,14 +337,17 @@ get_array_type_oids (struct GNUNET_PQ_Context *db)
 
   GNUNET_assert (NULL != db);
   /* Initialize to Oid(0) (= unknown) */
-  memset (db->arraytype2oid,
+  memset (db->oids,
           0,
-          sizeof(db->arraytype2oid));
+          sizeof(db->oids));
+
   res = PQexec (db->conn,
                 "SELECT"
                 " typname, oid"
                 " FROM pg_type "
-                " WHERE typname LIKE '\\_%';");
+                " WHERE typname in "
+                " ('bool', 'int2', 'int4', 'int8', 'bytea', 'varchar');");
+
   est = PQresultStatus (res);
   if ( (PGRES_COMMAND_OK != est) &&
        (PGRES_TUPLES_OK != est))
@@ -366,54 +369,50 @@ get_array_type_oids (struct GNUNET_PQ_Context *db)
 
   {
     int nrows = PQntuples (res);
-    int nfound = 1; /* skip GNUNET_PQ_ARRAY_UNKNOWN */
+    int nfound = 1; /* skip GNUNET_PQ_DATATYPE_UNKNOWN */
+    char dummy;
 
     for (int r = 0; r < nrows; r++)
     {
-      enum GNUNET_PQ_ArrayTypes atype = GNUNET_PQ_ARRAY_UNKNOWN;
-      const char *typ_s = PQgetvalue (res,r,0);
-      const char *oid_s = PQgetvalue (res,r,1);
-      char dummy;
-
+      enum GNUNET_PQ_DataTypes atype = GNUNET_PQ_DATATYPE_UNKNOWN;
+      char *typ_s = PQgetvalue (res,r,0);
+      char *oid_s = PQgetvalue (res,r,1);
       GNUNET_assert (NULL != typ_s);
       GNUNET_assert (NULL != oid_s);
 
-      if (! strcmp (typ_s, "_bool"))
-        atype = GNUNET_PQ_ARRAY_BOOL;
-      else if (! strcmp (typ_s, "_int2"))
-        atype = GNUNET_PQ_ARRAY_INT2;
-      else if (! strcmp (typ_s, "_int4"))
-        atype = GNUNET_PQ_ARRAY_INT4;
-      else if (! strcmp (typ_s, "_int8"))
-        atype = GNUNET_PQ_ARRAY_INT8;
-      else if (! strcmp (typ_s, "_bytea"))
-        atype = GNUNET_PQ_ARRAY_BYTEA;
-      else if (! strcmp (typ_s, "_varchar"))
-        atype = GNUNET_PQ_ARRAY_VARCHAR;
+      if (! strcmp (typ_s,"bool"))
+        atype = GNUNET_PQ_DATATYPE_BOOL;
+      else if (! strcmp (typ_s,"int2"))
+        atype = GNUNET_PQ_DATATYPE_INT2;
+      else if (! strcmp (typ_s,"int4"))
+        atype = GNUNET_PQ_DATATYPE_INT4;
+      else if (! strcmp (typ_s,"int8"))
+        atype = GNUNET_PQ_DATATYPE_INT8;
+      else if (! strcmp (typ_s,"bytea"))
+        atype = GNUNET_PQ_DATATYPE_BYTEA;
+      else if (! strcmp (typ_s,"varchar"))
+        atype = GNUNET_PQ_DATATYPE_VARCHAR;
       else
         continue;
 
-      GNUNET_assert (GNUNET_PQ_ARRAY_MAX > atype);
+      GNUNET_assert (GNUNET_PQ_DATATYPE_MAX > atype);
 
-      if ( (GNUNET_PQ_ARRAY_UNKNOWN != atype) &&
+      if ( (GNUNET_PQ_DATATYPE_UNKNOWN != atype) &&
            (1 == sscanf (oid_s,
                          "%u%c",
-                         &db->arraytype2oid[atype],
+                         &db->oids[atype],
                          &dummy)))
       {
         nfound++;
-        GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                    "OID[%s]: %d\n",
-                    typ_s,
-                    db->arraytype2oid[atype]);
       }
     }
-    if (GNUNET_PQ_ARRAY_MAX != nfound)
+
+    if (GNUNET_PQ_DATATYPE_MAX != nfound)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Couldn't find all array types, only found %d of %d!\n",
                   nfound - 1,
-                  GNUNET_PQ_ARRAY_MAX - 1);
+                  GNUNET_PQ_DATATYPE_MAX - 1);
       return GNUNET_SYSERR;
     }
   }

@@ -27,8 +27,15 @@
 
 
 #include <libpq-fe.h>
+#include <stdint.h>
 #include "gnunet_util_lib.h"
 #include "gnunet_db_lib.h"
+
+/**
+ * Postgres context.
+ */
+struct GNUNET_PQ_Context;
+
 
 /* ************************* pq_query_helper.c functions ************************ */
 
@@ -58,6 +65,14 @@ typedef int
                              void *scratch[],
                              unsigned int scratch_length);
 
+/**
+ * Function called to cleanup the closure of SQL parameters converter. Will be
+ * called with GNUNET_PQ_query_params_cleanup
+ *
+ * @param cls closure
+ */
+typedef void
+(*GNUNET_PQ_QueryConverter_Cleanup)(void *cls);
 
 /**
  * @brief Description of a DB query parameter.
@@ -71,8 +86,18 @@ struct GNUNET_PQ_QueryParam
 
   /**
    * Closure for @e conv.
+   * The function @conv_cls_cleanup can be set to cleanup the closure.
+   * The cleanup of the closure MUST be triggered manually by a call to
+   * GNUNET_PQ_query_params_cleanup.
    */
   void *conv_cls;
+
+  /**
+   * Function to cleanup the closure @a conv_cls, may be NULL.
+   * The cleanup of the closure MUST be triggered manually by a call to
+   * GNUNET_PQ_query_params_cleanup.
+   */
+  GNUNET_PQ_QueryConverter_Cleanup conv_cls_cleanup;
 
   /**
    * Data or NULL.
@@ -91,6 +116,15 @@ struct GNUNET_PQ_QueryParam
 
 };
 
+/**
+ * Must be called to cleanup memory from closures after the query parameters
+ * have been used as much as needed.
+ *
+ * @param params Array of GNUNET_PQ_QueryParam which must terminate with a GNUNET_PQ_query_param_end
+ */
+void
+GNUNET_PQ_cleanup_query_params_closures (
+  const struct GNUNET_PQ_QueryParam *params);
 
 /**
  * End of query parameter specification.
@@ -150,50 +184,139 @@ GNUNET_PQ_query_param_bool (bool b);
 /**
  *  Array types (in Postgres) that are supported in GNUnet.
  */
-enum GNUNET_PQ_ArrayTypes
+enum GNUNET_PQ_DataTypes
 {
-  GNUNET_PQ_ARRAY_UNKNOWN, /* Unsupported type */
-  GNUNET_PQ_ARRAY_BOOL,
-  GNUNET_PQ_ARRAY_INT2,
-  GNUNET_PQ_ARRAY_INT4,
-  GNUNET_PQ_ARRAY_INT8,
-  GNUNET_PQ_ARRAY_BYTEA,
-  GNUNET_PQ_ARRAY_VARCHAR,
-  GNUNET_PQ_ARRAY_MAX, /* Must be last */
+  GNUNET_PQ_DATATYPE_UNKNOWN, /* Unsupported type */
+  GNUNET_PQ_DATATYPE_BOOL,
+  GNUNET_PQ_DATATYPE_INT2,
+  GNUNET_PQ_DATATYPE_INT4,
+  GNUNET_PQ_DATATYPE_INT8,
+  GNUNET_PQ_DATATYPE_BYTEA,
+  GNUNET_PQ_DATATYPE_VARCHAR,
+  GNUNET_PQ_DATATYPE_MAX, /* Must be last */
 };
 
 /**
- * Information for an array argument.
- */
-struct GNUNET_PQ_ArraySpec
-{
-  /**
-   * Number of dimensions of the array
-   */
-  unsigned int ndims;
-
-  /**
-   * Array of @e ndims lengths of the array
-   */
-  unsigned int *lens;
-
-  /**
-   * One-dimensional array of pointers to conversion functions for the
-   * elements in the array.
-   */
-  const struct GNUNET_PQ_QueryParam *ae;
-
-};
-
-
-/**
- * Generate query parameter for an array.
+ * Generate query parameter for an array of bool in host byte order.
  *
- * @param as array specification
+ * @param num Number of elements in @a elements
+ * @param elements Continuous array of @a num boolean elements
+ * @param db Database context, needed for database-depending encoding of @a elements
+ * @return query parameter to use
  */
 struct GNUNET_PQ_QueryParam
-GNUNET_PQ_query_param_array (const struct GNUNET_PQ_ArraySpec *as);
+GNUNET_PQ_query_param_array_bool (
+  unsigned int num,
+  const bool *elements,
+  const struct GNUNET_PQ_Context *db);
 
+/**
+ * Generate query parameter for an array of uint16_t in host byte order.
+ * Note that the (unsigend) elements are not checked to wrap over INT2_MAX
+ *
+ * @param num Number of elements in @a elements
+ * @param elements Continuous array of @a num uint16 elements
+ * @param db Database context, needed for database-depending encoding of @a elements
+ * @return query parameter to use
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_array_uint16 (
+  unsigned int num,
+  const uint16_t *elements,
+  const struct GNUNET_PQ_Context *db);
+
+/**
+ * Generate query parameter for an array of uint32_t in host byte order.
+ * Note that the (unsigend) elements are not checked to wrap over INT4_MAX
+ *
+ * @param num Number of elements in @a elements
+ * @param elements Continuous Array of @a num uint32_t elements
+ * @param db Database context, needed for database-depending encoding of @a elements
+ * @return query parameter to use
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_array_uint32 (
+  unsigned int num,
+  const uint32_t *elements,
+  const struct GNUNET_PQ_Context *db);
+
+/**
+ * Generate query parameter for an array of uint64 in host byte order.
+ * Note that the (unsigend) elements are not checked to wrap over INT8_MAX
+ *
+ * @param num Number of elements in @a elements
+ * @param elements Continuous array of @a num uint64_t elements
+ * @param db Database context, needed for database-depending encoding of @a elements
+ * @return query parameter to use
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_array_uint64 (
+  unsigned int num,
+  const uint64_t *elements,
+  const struct GNUNET_PQ_Context *db);
+
+/**
+ * Generate query parameter for an array of buffers @a elements, each of
+ * corresponding size given in @a sizes.
+ *
+ * @param num Number of elements in @a elements
+ * @param elements Array of @a num pointers of fixed size buffers of size @a elem_size.
+ * @param sizes Pointer to sizes in bytes of each element in @a elements
+ * @param db Database context, needed for database-depending encoding of @a elements
+ * @return query parameter to use
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_array_bytes (
+  unsigned int num,
+  const void *elements[],
+  const size_t *sizes,
+  const struct GNUNET_PQ_Context *db);
+
+/**
+ * Generate query parameter for an array of buffers @a elements,
+ * each of the same size @a size.
+ *
+ * @param num Number of elements in @a elements
+ * @param elements Array of @a num pointers to of fixed size buffers of size @a elem_size
+ * @param same_size Size in bytes of each element in @a elements
+ * @param db Database context, needed for database-depending encoding of @a elements
+ * @return query parameter to use
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_array_bytes_same_size (
+  unsigned int num,
+  const void *elements[],
+  size_t same_size,
+  const struct GNUNET_PQ_Context *db);
+
+/**
+ * Generate array of equal-sized query parameter with size determined
+ * by variable type from pointers to buffers.
+ *
+ * @param num Number of elements in @a elements
+ * @param elements Continuous array of the query parameter to pass.
+ * @param db Database context, needed for database-depending encoding of @a elements
+ * @return query parameter to use
+ */
+#define GNUNET_PQ_query_param_array_auto_from_type(num, elements, db) \
+  GNUNET_PQ_query_param_array_bytes_same_size ((num), \
+                                               (elements), \
+                                               sizeof(*(elements)), \
+                                               (db))
+
+/**
+ * Generate query parameter for an array of strings
+ *
+ * @param num Number of elements in @a elements
+ * @param elements Array of @a num strings
+ * @param db Database context, needed for database-depending encoding of @a elements
+ * @return query parameter to use
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_array_string (
+  unsigned int num,
+  const char *elements[],
+  const struct GNUNET_PQ_Context *db);
 
 /**
  * Generate fixed-size query parameter with size determined
@@ -632,12 +755,6 @@ GNUNET_PQ_result_spec_uint64 (const char *name,
 
 
 /* ************************* pq.c functions ************************ */
-
-/**
- * Postgres context.
- */
-struct GNUNET_PQ_Context;
-
 
 /**
  * Execute a prepared statement.

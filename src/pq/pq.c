@@ -24,6 +24,7 @@
  * @author Florian Dold
  * @author Christian Grothoff
  */
+#include "gnunet_pq_lib.h"
 #include "platform.h"
 #include "pq.h"
 
@@ -115,6 +116,22 @@ GNUNET_PQ_exec_prepared (struct GNUNET_PQ_Context *db,
       GNUNET_free (scratch[off]);
     return res;
   }
+}
+
+
+void
+GNUNET_PQ_cleanup_query_params_closures (
+  const struct GNUNET_PQ_QueryParam *params)
+{
+  for (unsigned int i = 0; 0 != params[i].num_params; i++)
+  {
+    const struct GNUNET_PQ_QueryParam *x = &params[i];
+
+    if ((NULL != x->conv_cls) &&
+        (NULL != x->conv_cls_cleanup))
+      x->conv_cls_cleanup (x->conv_cls);
+  }
+
 }
 
 
