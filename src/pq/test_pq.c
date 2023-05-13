@@ -142,7 +142,6 @@ run_queries (struct GNUNET_PQ_Context *db)
   uint64_t u642;
   uint64_t uzzz = 42;
   struct GNUNET_HashCode ahc[3] = {};
-  const void *aphc[3] = {&ahc[0], &ahc[1], &ahc[2]};
   bool ab[5] = {true, false, false, true, false};
   uint16_t ai2[3] = {42, 0x0001, 0xFFFF};
   uint32_t ai4[3] = {42, 0x00010000, 0xFFFFFFFF};
@@ -157,7 +156,11 @@ run_queries (struct GNUNET_PQ_Context *db)
   u16 = 16;
   u32 = 32;
   u64 = 64;
-  GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_WEAK, ahc, sizeof(ahc));
+  GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_WEAK,
+                              &ahc[0],
+                              sizeof(ahc[0]));
+  GNUNET_memcpy (&ahc[1], &ahc[0], sizeof(ahc[0]));
+  GNUNET_memcpy (&ahc[2], &ahc[0], sizeof(ahc[0]));
 
   /* FIXME: test GNUNET_PQ_result_spec_variable_size */
   {
@@ -177,10 +180,10 @@ run_queries (struct GNUNET_PQ_Context *db)
       GNUNET_PQ_query_param_array_uint32 (3, ai4, db),
       GNUNET_PQ_query_param_array_uint64 (3, ai8, db),
       GNUNET_PQ_query_param_array_bytes_same_size (3,
-                                                   aphc,
+                                                   ahc,
                                                    sizeof(ahc[0]),
                                                    db),
-      GNUNET_PQ_query_param_array_string (3, as, db),
+      GNUNET_PQ_query_param_array_ptrs_string (3, as, db),
       GNUNET_PQ_query_param_end
     };
     struct GNUNET_PQ_QueryParam params_select[] = {

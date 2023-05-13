@@ -260,7 +260,7 @@ GNUNET_PQ_query_param_array_uint64 (
  * corresponding size given in @a sizes.
  *
  * @param num Number of elements in @a elements
- * @param elements Array of @a num pointers of fixed size buffers of size @a elem_size.
+ * @param elements Continous array of @a num buffers, each of corresponding size given in @a sizes.
  * @param sizes Pointer to sizes in bytes of each element in @a elements
  * @param db Database context, needed for database-depending encoding of @a elements
  * @return query parameter to use
@@ -268,7 +268,7 @@ GNUNET_PQ_query_param_array_uint64 (
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_bytes (
   unsigned int num,
-  const void *elements[],
+  const void *elements,
   const size_t *sizes,
   const struct GNUNET_PQ_Context *db);
 
@@ -277,7 +277,7 @@ GNUNET_PQ_query_param_array_bytes (
  * each of the same size @a size.
  *
  * @param num Number of elements in @a elements
- * @param elements Array of @a num pointers to of fixed size buffers of size @a elem_size
+ * @param elements Continous array of @a num buffers, each with the same size @a same_size
  * @param same_size Size in bytes of each element in @a elements
  * @param db Database context, needed for database-depending encoding of @a elements
  * @return query parameter to use
@@ -285,13 +285,13 @@ GNUNET_PQ_query_param_array_bytes (
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_bytes_same_size (
   unsigned int num,
-  const void *elements[],
+  const void *elements,
   size_t same_size,
   const struct GNUNET_PQ_Context *db);
 
 /**
  * Generate array of equal-sized query parameter with size determined
- * by variable type from pointers to buffers.
+ * by variable type from a pointer to an continuous array.
  *
  * @param num Number of elements in @a elements
  * @param elements Continuous array of the query parameter to pass.
@@ -305,15 +305,64 @@ GNUNET_PQ_query_param_array_bytes_same_size (
                                                (db))
 
 /**
- * Generate query parameter for an array of strings
+ * Generate query parameter for an array of pointers to buffers @a elements,
+ * each of the same size @a size.
  *
  * @param num Number of elements in @a elements
- * @param elements Array of @a num strings
+ * @param elements Array of @a num pointers to buffers, each with the same size @a same_size
+ * @param same_size Size in bytes of each element in @a elements
+ * @param db Database context, needed for database-depending encoding of @a elements
+ * @return query parameter to use
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_array_ptrs_bytes_same_size (
+  unsigned int num,
+  const void *elements[],
+  size_t same_size,
+  const struct GNUNET_PQ_Context *db);
+
+/**
+ * Generate array of equal-sized query parameter with size determined by
+ * variable type from a pointer to an array of pointers to objects of the same
+ * type.
+ *
+ * @param num Number of elements in @a elements
+ * @param elements Continuous array of the query parameter to pass.
+ * @param db Database context, needed for database-depending encoding of @a elements
+ * @return query parameter to use
+ */
+#define GNUNET_PQ_query_param_array_ptrs_auto_from_type(num, elements, db) \
+  GNUNET_PQ_query_param_array_ptrs_bytes_same_size ((num), \
+                                                    (elements), \
+                                                    sizeof(*(elements[0])), \
+                                                    (db))
+
+
+/**
+ * Generate query parameter for an array of strings (continuous)
+ *
+ * @param num Number of elements in @a elements
+ * @param elements Array of @a num continuous strings (zero-terminated each)
  * @param db Database context, needed for database-depending encoding of @a elements
  * @return query parameter to use
  */
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_string (
+  unsigned int num,
+  const char *elements,
+  const struct GNUNET_PQ_Context *db);
+
+
+/**
+ * Generate query parameter for an array of strings (pointers)
+ *
+ * @param num Number of elements in @a elements
+ * @param elements Array of @a num pointer to strings
+ * @param db Database context, needed for database-depending encoding of @a elements
+ * @return query parameter to use
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_array_ptrs_string (
   unsigned int num,
   const char *elements[],
   const struct GNUNET_PQ_Context *db);

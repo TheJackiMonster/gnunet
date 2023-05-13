@@ -22,6 +22,7 @@
  * @brief functions to initialize parameter arrays
  * @author Christian Grothoff
  */
+#include "gnunet_common.h"
 #include "gnunet_pq_lib.h"
 #include "platform.h"
 #include "pq.h"
@@ -587,13 +588,11 @@ struct pq_array_header
   uint32_t lbound;   /* Index value of first element in the DB (default: 1). */
 } __attribute__((packed));
 
-
 /**
  * Closure for the array type handlers.
  *
- * Will contain sizes information for the data.  Either the sizes were given
- * (and handled) by the caller, or we have to calculate the sizes internally
- * (and free them during cleanup).
+ * May contain sizes information for the data, given (and handled) by the
+ * caller.
  */
 struct qconv_array_cls
 {
@@ -610,6 +609,13 @@ struct qconv_array_cls
    * for each element in the array.
    */
   size_t same_size;
+
+  /**
+   * If true, the array parameter to the data pointer to the qconv_array is a
+   * continuous byte array of data, either with @a same_size each or sizes provided bytes
+   * by @a sizes;
+   */
+  bool continuous;
 
   /**
    * Type of the array elements
@@ -637,7 +643,7 @@ qconv_array_cls_cleanup (void *cls)
  * Function called to convert input argument into SQL parameters for arrays
  *
  * Note: the format for the encoding of arrays for libpq is not very well
- * documented.  We peeked into various sources: postgresql and libpqtypes for
+ * documented.  We peeked into various sources (postgresql and libpqtypes) for
  * guidance.
  *
  * @param cls Closure of type struct qconv_array_cls*
@@ -672,6 +678,9 @@ qconv_array (
   size_t *string_lengths = NULL;
   void *elements = NULL;
   bool noerror = true;
+
+  (void) (param_length);
+  (void) (scratch_length);
 
   GNUNET_assert (NULL != meta);
   GNUNET_assert (num < INT_MAX);
@@ -714,14 +723,27 @@ qconv_array (
     }
     else  /* sizes are different per element */
     {
+      /* for an array of strings we need to get their length's first */
       if (is_string_array)
       {
-        /* for an array of strings we need to get their length's first */
-        const char **str = (const char **) data;
         string_lengths = GNUNET_new_array (num, size_t);
 
-        for (unsigned int i = 0; i < num; i++)
-          string_lengths[i] = strlen (str[i]);
+        if (meta->continuous)
+        {
+          const char *ptr = data;
+          for (unsigned int i = 0; i < num; i++)
+          {
+            size_t len = strlen (ptr);
+            string_lengths[i] = len;
+            ptr += len + 1;
+          }
+        }
+        else
+        {
+          const char **str = (const char **) data;
+          for (unsigned int i = 0; i < num; i++)
+            string_lengths[i] = strlen (str[i]);
+        }
 
         sizes = string_lengths;
       }
@@ -795,14 +817,30 @@ qconv_array (
         }
       case GNUNET_PQ_DATATYPE_BYTEA:
         {
-          const void *ptr = ((const void **) data)[i];
+          const void *ptr;
+          if (meta->continuous)
+          {
+            ptr = in;
+            in += sz;
+          }
+          else
+            ptr = ((const void **) data)[i];
+
           GNUNET_memcpy (out, ptr, sz);
           break;
         }
       case GNUNET_PQ_DATATYPE_VARCHAR:
         {
-          const char *str = ((const char **) data)[i];
-          GNUNET_memcpy (out, str, sz);
+          const void *ptr;
+          if (meta->continuous)
+          {
+            ptr = in;
+            in += sz + 1;
+          }
+          else
+            ptr = ((const char **) data)[i];
+
+          GNUNET_memcpy (out, ptr, sz);
           break;
         }
       default:
@@ -830,16 +868,22 @@ qconv_array (
 }
 
 
-struct GNUNET_PQ_QueryParam
-GNUNET_PQ_query_param_array_bool (
+static struct GNUNET_PQ_QueryParam
+query_param_array_generic (
   unsigned int num,
-  const bool *elements,
-  const struct GNUNET_PQ_Context *db)
+  const void *elements,
+  const size_t *sizes,
+  bool continuous,
+  size_t same_size,
+  enum GNUNET_PQ_DataTypes typ,
+  Oid oid)
 {
   struct qconv_array_cls *meta = GNUNET_new (struct qconv_array_cls);
-  meta->typ = GNUNET_PQ_DATATYPE_BOOL;
-  meta->oid = db->oids[GNUNET_PQ_DATATYPE_BOOL];
-  meta->same_size = sizeof(bool);
+  meta->typ = typ;
+  meta->oid = oid;
+  meta->sizes = sizes;
+  meta->same_size = same_size;
+  meta->continuous = continuous;
 
   struct GNUNET_PQ_QueryParam res = {
     .conv = qconv_array,
@@ -851,6 +895,22 @@ GNUNET_PQ_query_param_array_bool (
   };
 
   return res;
+}
+
+
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_array_bool (
+  unsigned int num,
+  const bool *elements,
+  const struct GNUNET_PQ_Context *db)
+{
+  return query_param_array_generic (num,
+                                    elements,
+                                    NULL,
+                                    true,
+                                    sizeof(bool),
+                                    GNUNET_PQ_DATATYPE_BOOL,
+                                    db->oids[GNUNET_PQ_DATATYPE_BOOL]);
 }
 
 
@@ -860,21 +920,13 @@ GNUNET_PQ_query_param_array_uint16 (
   const uint16_t *elements,
   const struct GNUNET_PQ_Context *db)
 {
-  struct qconv_array_cls *meta = GNUNET_new (struct qconv_array_cls);
-  meta->typ = GNUNET_PQ_DATATYPE_INT2;
-  meta->oid = db->oids[GNUNET_PQ_DATATYPE_INT2];
-  meta->same_size = sizeof(uint16_t);
-
-  struct GNUNET_PQ_QueryParam res = {
-    .conv = qconv_array,
-    .conv_cls = meta,
-    .conv_cls_cleanup = qconv_array_cls_cleanup,
-    .data = elements,
-    .size = num,
-    .num_params = 1,
-  };
-
-  return res;
+  return query_param_array_generic (num,
+                                    elements,
+                                    NULL,
+                                    true,
+                                    sizeof(uint16_t),
+                                    GNUNET_PQ_DATATYPE_INT2,
+                                    db->oids[GNUNET_PQ_DATATYPE_INT2]);
 }
 
 
@@ -884,21 +936,13 @@ GNUNET_PQ_query_param_array_uint32 (
   const uint32_t *elements,
   const struct GNUNET_PQ_Context *db)
 {
-  struct qconv_array_cls *meta = GNUNET_new (struct qconv_array_cls);
-  meta->typ = GNUNET_PQ_DATATYPE_INT4;
-  meta->oid = db->oids[GNUNET_PQ_DATATYPE_INT4];
-  meta->same_size = sizeof(uint32_t);
-
-  struct GNUNET_PQ_QueryParam res = {
-    .conv = qconv_array,
-    .conv_cls = meta,
-    .conv_cls_cleanup = qconv_array_cls_cleanup,
-    .data = elements,
-    .size = num,
-    .num_params = 1,
-  };
-
-  return res;
+  return query_param_array_generic (num,
+                                    elements,
+                                    NULL,
+                                    true,
+                                    sizeof(uint32_t),
+                                    GNUNET_PQ_DATATYPE_INT4,
+                                    db->oids[GNUNET_PQ_DATATYPE_INT4]);
 }
 
 
@@ -908,96 +952,113 @@ GNUNET_PQ_query_param_array_uint64 (
   const uint64_t *elements,
   const struct GNUNET_PQ_Context *db)
 {
-  struct qconv_array_cls *meta = GNUNET_new (struct qconv_array_cls);
-  meta->typ = GNUNET_PQ_DATATYPE_INT8;
-  meta->oid = db->oids[GNUNET_PQ_DATATYPE_INT8];
-  meta->same_size = sizeof(uint64_t);
-
-  struct GNUNET_PQ_QueryParam res = {
-    .conv = qconv_array,
-    .conv_cls = meta,
-    .conv_cls_cleanup = qconv_array_cls_cleanup,
-    .data = elements,
-    .size = num,
-    .num_params = 1,
-  };
-
-  return res;
+  return query_param_array_generic (num,
+                                    elements,
+                                    NULL,
+                                    true,
+                                    sizeof(uint64_t),
+                                    GNUNET_PQ_DATATYPE_INT8,
+                                    db->oids[GNUNET_PQ_DATATYPE_INT8]);
 }
 
 
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_bytes (
   unsigned int num,
+  const void *elements,
+  const size_t *sizes,
+  const struct GNUNET_PQ_Context *db)
+{
+  return query_param_array_generic (num,
+                                    elements,
+                                    sizes,
+                                    true,
+                                    0,
+                                    GNUNET_PQ_DATATYPE_BYTEA,
+                                    db->oids[GNUNET_PQ_DATATYPE_BYTEA]);
+}
+
+
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_array_ptrs_bytes (
+  unsigned int num,
   const void *elements[],
   const size_t *sizes,
   const struct GNUNET_PQ_Context *db)
 {
-  struct qconv_array_cls *meta = GNUNET_new (struct qconv_array_cls);
-  meta->typ = GNUNET_PQ_DATATYPE_BYTEA;
-  meta->oid = db->oids[GNUNET_PQ_DATATYPE_BYTEA];
-  meta->sizes = sizes;
-  meta->same_size = 0;
-
-  struct GNUNET_PQ_QueryParam res = {
-    .conv = qconv_array,
-    .conv_cls = meta,
-    .conv_cls_cleanup = qconv_array_cls_cleanup,
-    .data = elements,
-    .size = num,
-    .num_params = 1,
-  };
-
-  return res;
+  return query_param_array_generic (num,
+                                    elements,
+                                    sizes,
+                                    false,
+                                    0,
+                                    GNUNET_PQ_DATATYPE_BYTEA,
+                                    db->oids[GNUNET_PQ_DATATYPE_BYTEA]);
 }
 
 
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_bytes_same_size (
   unsigned int num,
+  const void *elements,
+  size_t same_size,
+  const struct GNUNET_PQ_Context *db)
+{
+  return query_param_array_generic (num,
+                                    elements,
+                                    NULL,
+                                    true,
+                                    same_size,
+                                    GNUNET_PQ_DATATYPE_BYTEA,
+                                    db->oids[GNUNET_PQ_DATATYPE_BYTEA]);
+}
+
+
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_array_ptrs_bytes_same_size (
+  unsigned int num,
   const void *elements[],
   size_t same_size,
   const struct GNUNET_PQ_Context *db)
 {
-  struct qconv_array_cls *meta = GNUNET_new (struct qconv_array_cls);
-  meta->typ = GNUNET_PQ_DATATYPE_BYTEA;
-  meta->oid = db->oids[GNUNET_PQ_DATATYPE_BYTEA];
-  meta->same_size = same_size;
-
-  struct GNUNET_PQ_QueryParam res = {
-    .conv = qconv_array,
-    .conv_cls = meta,
-    .conv_cls_cleanup = qconv_array_cls_cleanup,
-    .data = elements,
-    .size = num,
-    .num_params = 1,
-  };
-
-  return res;
+  return query_param_array_generic (num,
+                                    elements,
+                                    NULL,
+                                    false,
+                                    same_size,
+                                    GNUNET_PQ_DATATYPE_BYTEA,
+                                    db->oids[GNUNET_PQ_DATATYPE_BYTEA]);
 }
 
 
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_string (
   unsigned int num,
+  const char *elements,
+  const struct GNUNET_PQ_Context *db)
+{
+  return query_param_array_generic (num,
+                                    elements,
+                                    NULL,
+                                    true,
+                                    0,
+                                    GNUNET_PQ_DATATYPE_VARCHAR,
+                                    db->oids[GNUNET_PQ_DATATYPE_VARCHAR]);
+}
+
+
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_array_ptrs_string (
+  unsigned int num,
   const char *elements[],
   const struct GNUNET_PQ_Context *db)
 {
-  struct qconv_array_cls *meta = GNUNET_new (struct qconv_array_cls);
-  meta->typ = GNUNET_PQ_DATATYPE_VARCHAR;
-  meta->oid = db->oids[GNUNET_PQ_DATATYPE_VARCHAR];
-  meta->same_size = 0;
-
-  struct GNUNET_PQ_QueryParam res = {
-    .conv = qconv_array,
-    .conv_cls = meta,
-    .conv_cls_cleanup = qconv_array_cls_cleanup,
-    .data = elements,
-    .size = num,
-    .num_params = 1,
-  };
-
-  return res;
+  return query_param_array_generic (num,
+                                    elements,
+                                    NULL,
+                                    false,
+                                    0,
+                                    GNUNET_PQ_DATATYPE_VARCHAR,
+                                    db->oids[GNUNET_PQ_DATATYPE_VARCHAR]);
 }
 
 
