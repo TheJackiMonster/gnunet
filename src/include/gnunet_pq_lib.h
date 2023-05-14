@@ -28,6 +28,7 @@
 
 #include <libpq-fe.h>
 #include <stdint.h>
+#include "gnunet_time_lib.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_db_lib.h"
 
@@ -377,7 +378,83 @@ GNUNET_PQ_query_param_array_ptrs_string (
 #define GNUNET_PQ_query_param_auto_from_type(x) \
   GNUNET_PQ_query_param_fixed_size ((x), sizeof(*(x)))
 
+/**
+ * Generate query parameter for an array of absolute time stamps (continuous)
+ *
+ * @param num Number of elements in @a elements
+ * @param elements Array of @a num absolute timestamps
+ * @return query parameter to use
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_array_abs_time (
+  unsigned int num,
+  const struct GNUNET_TIME_Absolute *elements,
+  const struct GNUNET_PQ_Context *db);
 
+/**
+ * Generate query parameter for an array of absolute time stamps (pointers)
+ *
+ * @param num Number of elements in @a elements
+ * @param elements Array of @a num pointers to absolute timestamps
+ * @return query parameter to use
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_array_ptrs_abs_time (
+  unsigned int num,
+  const struct GNUNET_TIME_Absolute *elements[],
+  const struct GNUNET_PQ_Context *db);
+
+/**
+ * Generate query parameter for an array of relative time stamps (continuous)
+ *
+ * @param num Number of elements in @a elements
+ * @param elements Array of @a num relative timestamps
+ * @return query parameter to use
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_array_rel_time (
+  unsigned int num,
+  const struct GNUNET_TIME_Relative *elements,
+  const struct GNUNET_PQ_Context *db);
+
+/**
+ * Generate query parameter for an array of relative time stamps (pointers)
+ *
+ * @param num Number of elements in @a elements
+ * @param elements Array of @a num pointers to relative timestamps
+ * @return query parameter to use
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_array_ptrs_rel_time (
+  unsigned int num,
+  const struct GNUNET_TIME_Relative *elements[],
+  const struct GNUNET_PQ_Context *db);
+
+/**
+ * Generate query parameter for an array of time stamps (continuous)
+ *
+ * @param num Number of elements in @a elements
+ * @param elements Array of @a num timestamps
+ * @return query parameter to use
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_array_timestamp (
+  unsigned int num,
+  const struct GNUNET_TIME_Timestamp *elements,
+  const struct GNUNET_PQ_Context *db);
+
+/**
+ * Generate query parameter for an array of time stamps (pointers)
+ *
+ * @param num Number of elements in @a elements
+ * @param elements Array of @a num pointers to relative timestamps
+ * @return query parameter to use
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_array_ptrs_timestamp (
+  unsigned int num,
+  const struct GNUNET_TIME_Timestamp *elements[],
+  const struct GNUNET_PQ_Context *db);
 /**
  * Generate query parameter for an RSA public key.  The
  * database must contain a BLOB type in the respective position.

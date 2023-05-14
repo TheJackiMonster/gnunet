@@ -23,6 +23,7 @@
  * @author Christian Grothoff <christian@grothoff.org>
  */
 #include "gnunet_common.h"
+#include "gnunet_time_lib.h"
 #include "platform.h"
 #include "pq.h"
 
@@ -75,10 +76,14 @@ postgres_prepare (struct GNUNET_PQ_Context *db)
                             ",arr_int8"
                             ",arr_bytea"
                             ",arr_varchar"
+                            ",arr_abs_time"
+                            ",arr_rel_time"
+                            ",arr_timestamp"
                             ") VALUES "
                             "($1, $2, $3, $4, $5, $6,"
                             "$7, $8, $9, $10,"
-                            "$11, $12, $13, $14, $15, $16);"),
+                            "$11, $12, $13, $14, $15, $16,"
+                            "$17, $18, $19);"),
     GNUNET_PQ_make_prepare ("test_select",
                             "SELECT"
                             " pub"
@@ -97,6 +102,9 @@ postgres_prepare (struct GNUNET_PQ_Context *db)
                             ",arr_int8"
                             ",arr_bytea"
                             ",arr_varchar"
+                            ",arr_abs_time"
+                            ",arr_rel_time"
+                            ",arr_timestamp"
                             " FROM test_pq"
                             " ORDER BY abs_time DESC "
                             " LIMIT 1;"),
@@ -147,6 +155,13 @@ run_queries (struct GNUNET_PQ_Context *db)
   uint32_t ai4[3] = {42, 0x00010000, 0xFFFFFFFF};
   uint64_t ai8[3] = {42, 0x0001000000000000, 0xFFFFFFFFFFFFFFFF};
   const char *as[] = {"foo", "bar", "buz"};
+  const struct GNUNET_TIME_Absolute ata[2] = {GNUNET_TIME_absolute_get (),
+                                              GNUNET_TIME_absolute_get ()};
+  const struct GNUNET_TIME_Relative atr[2] = {GNUNET_TIME_relative_get_hour_ (),
+                                              GNUNET_TIME_relative_get_minute_ ()};
+  const struct GNUNET_TIME_Timestamp ats[2] = {GNUNET_TIME_timestamp_get (),
+                                               GNUNET_TIME_timestamp_get ()};
+
 
   priv = GNUNET_CRYPTO_rsa_private_key_create (1024);
   pub = GNUNET_CRYPTO_rsa_private_key_get_public (priv);
@@ -184,6 +199,9 @@ run_queries (struct GNUNET_PQ_Context *db)
                                                    sizeof(ahc[0]),
                                                    db),
       GNUNET_PQ_query_param_array_ptrs_string (3, as, db),
+      GNUNET_PQ_query_param_array_abs_time (2, ata, db),
+      GNUNET_PQ_query_param_array_rel_time (2, atr, db),
+      GNUNET_PQ_query_param_array_timestamp (2, ats, db),
       GNUNET_PQ_query_param_end
     };
     struct GNUNET_PQ_QueryParam params_select[] = {
@@ -383,6 +401,9 @@ main (int argc,
                             ",arr_int8 INT8[]"
                             ",arr_bytea BYTEA[]"
                             ",arr_varchar VARCHAR[]"
+                            ",arr_abs_time INT8[]"
+                            ",arr_rel_time INT8[]"
+                            ",arr_timestamp  INT8[]"
                             ")"),
     GNUNET_PQ_EXECUTE_STATEMENT_END
   };
