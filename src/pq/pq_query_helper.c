@@ -782,6 +782,7 @@ qconv_array (
   {
     char *in = (char *) data;
     char *out = elements;
+    size_t nullbyte = (array_of_string == meta->typ) ? 1 : 0;
     struct pq_array_header h = {
       .ndim = htonl (1),        /* We only support one-dimensional arrays */
       .has_null = htonl (0),    /* We do not support NULL entries in arrays */
@@ -793,6 +794,7 @@ qconv_array (
     /* Write header */
     GNUNET_memcpy (out, &h, sizeof(h));
     out += sizeof(h);
+
 
     /* Write elements */
     for (unsigned int i = 0; i < num; i++)
@@ -840,9 +842,7 @@ qconv_array (
           if (meta->continuous)
           {
             ptr = in;
-            in += sz;
-            if (array_of_string == meta->typ)
-              in += 1;    /* NULL-byte */
+            in += sz + nullbyte;
           }
           else
             ptr = ((const void **) data)[i];
@@ -933,7 +933,7 @@ qconv_array (
   param_formats[0] = 1;
   scratch[0] = elements;
 
-  DONE:
+DONE:
   GNUNET_free (string_lengths);
 
   if (noerror)
