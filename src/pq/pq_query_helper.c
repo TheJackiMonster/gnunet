@@ -860,14 +860,12 @@ qconv_array (
           {
           case array_of_abs_time:
             {
-              const struct GNUNET_TIME_Absolute *abs;
+              const struct GNUNET_TIME_Absolute *abs =
+                (const struct GNUNET_TIME_Absolute *) in;
 
-              if (meta->continuous)
-              {
-                abs = (const struct GNUNET_TIME_Absolute *) in;
-                in += sz;
-              }
-              else
+              GNUNET_assert (sizeof(struct GNUNET_TIME_Absolute) == sz);
+
+              if (! meta->continuous)
                 abs = ((const struct GNUNET_TIME_Absolute **) data)[i];
 
               val = abs->abs_value_us;
@@ -875,34 +873,28 @@ qconv_array (
             }
           case array_of_rel_time:
             {
-              const struct GNUNET_TIME_Relative *rel;
+              const struct GNUNET_TIME_Relative *rel =
+                (const struct GNUNET_TIME_Relative *) in;
 
-              if (meta->continuous)
-              {
-                rel = (const struct GNUNET_TIME_Relative *) in;
-                in += sz;
-              }
-              else
+              GNUNET_assert (sizeof(struct GNUNET_TIME_Relative) == sz);
+
+              if (! meta->continuous)
                 rel = ((const struct GNUNET_TIME_Relative **) data)[i];
 
               val = rel->rel_value_us;
-
               break;
             }
           case array_of_timestamp:
             {
-              const struct GNUNET_TIME_Timestamp *ts;
+              const struct GNUNET_TIME_Timestamp *ts =
+                (const struct GNUNET_TIME_Timestamp *) in;
 
-              if (meta->continuous)
-              {
-                ts = (const struct GNUNET_TIME_Timestamp *) in;
-                in += sz;
-              }
-              else
+              GNUNET_assert (sizeof(struct GNUNET_TIME_Timestamp) == sz);
+
+              if (! meta->continuous)
                 ts = ((const struct GNUNET_TIME_Timestamp **) data)[i];
 
               val = ts->abs_time.abs_value_us;
-
               break;
             }
           default:
@@ -915,6 +907,9 @@ qconv_array (
             val = INT64_MAX;
 
           *(uint64_t *) out = GNUNET_htonll (val);
+
+          if (meta->continuous)
+            in += sz;
 
           break;
         }
