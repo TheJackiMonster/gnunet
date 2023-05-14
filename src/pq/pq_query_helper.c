@@ -807,7 +807,7 @@ qconv_array (
       case array_of_bool:
         {
           GNUNET_assert (sizeof(bool) == sz);
-          GNUNET_memcpy (out, in, sz);
+          *(bool *) out = (*(bool *) in);
           in  += sz;
           break;
         }
@@ -833,6 +833,7 @@ qconv_array (
           break;
         }
       case array_of_byte:
+      case array_of_string:
         {
           const void *ptr;
 
@@ -840,6 +841,8 @@ qconv_array (
           {
             ptr = in;
             in += sz;
+            if (array_of_string == meta->typ)
+              in += 1;    /* NULL-byte */
           }
           else
             ptr = ((const void **) data)[i];
@@ -847,74 +850,71 @@ qconv_array (
           GNUNET_memcpy (out, ptr, sz);
           break;
         }
-      case array_of_string:
-        {
-          const void *ptr;
-          if (meta->continuous)
-          {
-            ptr = in;
-            in += sz + 1;
-          }
-          else
-            ptr = ((const char **) data)[i];
-
-          GNUNET_memcpy (out, ptr, sz);
-          break;
-        }
       case array_of_abs_time:
-        {
-          const struct GNUNET_TIME_Absolute *abs;
-
-          if (meta->continuous)
-          {
-            abs = (const struct GNUNET_TIME_Absolute *) in;
-            in += sz;
-          }
-          else
-            abs = ((const struct GNUNET_TIME_Absolute **) data)[i];
-
-          if (abs->abs_value_us > INT64_MAX)
-            *(uint64_t *) out = GNUNET_htonll (INT64_MAX);
-          else
-            *(uint64_t *) out = GNUNET_htonll (abs->abs_value_us);
-
-          break;
-        }
       case array_of_rel_time:
-        {
-          const struct GNUNET_TIME_Relative *rel;
-
-          if (meta->continuous)
-          {
-            rel = (const struct GNUNET_TIME_Relative *) in;
-            in += sz;
-          }
-          else
-            rel = ((const struct GNUNET_TIME_Relative **) data)[i];
-
-          if (rel->rel_value_us > INT64_MAX)
-            *(uint64_t *) out = GNUNET_htonll (INT64_MAX);
-          else
-            *(uint64_t *) out = GNUNET_htonll (rel->rel_value_us);
-
-          break;
-        }
       case array_of_timestamp:
         {
-          const struct GNUNET_TIME_Timestamp *ts;
+          uint64_t val;
 
-          if (meta->continuous)
+          switch (meta->typ)
           {
-            ts = (const struct GNUNET_TIME_Timestamp *) in;
-            in += sz;
-          }
-          else
-            ts = ((const struct GNUNET_TIME_Timestamp **) data)[i];
+          case array_of_abs_time:
+            {
+              const struct GNUNET_TIME_Absolute *abs;
 
-          if (ts->abs_time.abs_value_us > INT64_MAX)
-            *(uint64_t *) out = GNUNET_htonll (INT64_MAX);
-          else
-            *(uint64_t *) out = GNUNET_htonll (ts->abs_time.abs_value_us);
+              if (meta->continuous)
+              {
+                abs = (const struct GNUNET_TIME_Absolute *) in;
+                in += sz;
+              }
+              else
+                abs = ((const struct GNUNET_TIME_Absolute **) data)[i];
+
+              val = abs->abs_value_us;
+              break;
+            }
+          case array_of_rel_time:
+            {
+              const struct GNUNET_TIME_Relative *rel;
+
+              if (meta->continuous)
+              {
+                rel = (const struct GNUNET_TIME_Relative *) in;
+                in += sz;
+              }
+              else
+                rel = ((const struct GNUNET_TIME_Relative **) data)[i];
+
+              val = rel->rel_value_us;
+
+              break;
+            }
+          case array_of_timestamp:
+            {
+              const struct GNUNET_TIME_Timestamp *ts;
+
+              if (meta->continuous)
+              {
+                ts = (const struct GNUNET_TIME_Timestamp *) in;
+                in += sz;
+              }
+              else
+                ts = ((const struct GNUNET_TIME_Timestamp **) data)[i];
+
+              val = ts->abs_time.abs_value_us;
+
+              break;
+            }
+          default:
+            {
+              GNUNET_assert (0);
+            }
+          }
+
+          if (val > INT64_MAX)
+            val = INT64_MAX;
+
+          *(uint64_t *) out = GNUNET_htonll (val);
 
           break;
         }
