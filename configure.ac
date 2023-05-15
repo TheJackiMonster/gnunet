@@ -874,8 +874,6 @@ AC_DEFINE_UNQUOTED([HAVE_ZLIB], [$zlib_ok], [Define to 1 if zlib is available])
 AM_ICONV
 
 # check for libunistring
-gl_LIBUNISTRING
-libunistring=0
 CHECK_WITH_LIB([unistring], [u16_strstr], [unistr.h], [HAVE_UNISTRING])
 AS_IF([test "x$unistring" = "x0"],
   [AC_MSG_ERROR([GNUnet requires unistring])])
