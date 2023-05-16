@@ -131,13 +131,13 @@ GNUNET_PQ_cleanup_query_params_closures (
  * End of query parameter specification.
  */
 #define GNUNET_PQ_query_param_end \
-  {                               \
-    .conv = NULL,                 \
-    .conv_cls = NULL,             \
-    .data = NULL,                 \
-    .size = 0,                    \
-    .num_params = 0               \
-  }
+        {                               \
+          .conv = NULL,                 \
+          .conv_cls = NULL,             \
+          .data = NULL,                 \
+          .size = 0,                    \
+          .num_params = 0               \
+        }
 
 
 /**
@@ -300,10 +300,10 @@ GNUNET_PQ_query_param_array_bytes_same_size (
  * @return query parameter to use
  */
 #define GNUNET_PQ_query_param_array_auto_from_type(num, elements, db) \
-  GNUNET_PQ_query_param_array_bytes_same_size ((num), \
-                                               (elements), \
-                                               sizeof(*(elements)), \
-                                               (db))
+        GNUNET_PQ_query_param_array_bytes_same_size ((num), \
+                                                     (elements), \
+                                                     sizeof(*(elements)), \
+                                                     (db))
 
 /**
  * Generate query parameter for an array of pointers to buffers @a elements,
@@ -333,10 +333,10 @@ GNUNET_PQ_query_param_array_ptrs_bytes_same_size (
  * @return query parameter to use
  */
 #define GNUNET_PQ_query_param_array_ptrs_auto_from_type(num, elements, db) \
-  GNUNET_PQ_query_param_array_ptrs_bytes_same_size ((num), \
-                                                    (elements), \
-                                                    sizeof(*(elements[0])), \
-                                                    (db))
+        GNUNET_PQ_query_param_array_ptrs_bytes_same_size ((num), \
+                                                          (elements), \
+                                                          sizeof(*(elements[0])), \
+                                                          (db))
 
 
 /**
@@ -376,7 +376,7 @@ GNUNET_PQ_query_param_array_ptrs_string (
  * @return query parameter to use
  */
 #define GNUNET_PQ_query_param_auto_from_type(x) \
-  GNUNET_PQ_query_param_fixed_size ((x), sizeof(*(x)))
+        GNUNET_PQ_query_param_fixed_size ((x), sizeof(*(x)))
 
 /**
  * Generate query parameter for an array of absolute time stamps (continuous)
@@ -455,6 +455,7 @@ GNUNET_PQ_query_param_array_ptrs_timestamp (
   unsigned int num,
   const struct GNUNET_TIME_Timestamp *elements[],
   const struct GNUNET_PQ_Context *db);
+
 /**
  * Generate query parameter for an RSA public key.  The
  * database must contain a BLOB type in the respective position.
@@ -615,8 +616,7 @@ struct GNUNET_PQ_ResultSpec
   GNUNET_PQ_ResultConverter conv;
 
   /**
-   * Function to clean up result data, NULL if cleanup is
-   * not necessary.
+   * Function to clean up result data, NULL if cleanup is not necessary.
    */
   GNUNET_PQ_ResultCleanup cleaner;
 
@@ -631,9 +631,9 @@ struct GNUNET_PQ_ResultSpec
   void *dst;
 
   /**
-   * Allowed size for the data, 0 for variable-size
-   * (in this case, the type of @e dst is a `void **`
-   * and we need to allocate a buffer of the right size).
+   * Allowed size for the data, 0 for variable-size (in this case, the type of
+   * @e dst is a `void **` and we need to allocate a buffer of the right
+   * size).
    */
   size_t dst_size;
 
@@ -653,10 +653,8 @@ struct GNUNET_PQ_ResultSpec
   bool is_nullable;
 
   /**
-   * Points to a location where we should store
-   * "true" if the result found is NULL, and
-   * otherwise "false". Only used if @e is_nullable
-   * is true.
+   * Points to a location where we should store "true" if the result found is
+   * NULL, and otherwise "false". Only used if @e is_nullable is true.
    */
   bool *is_null;
 
@@ -669,22 +667,21 @@ struct GNUNET_PQ_ResultSpec
  * @return array last entry for the result specification to use
  */
 #define GNUNET_PQ_result_spec_end         \
-  {                                       \
-    .conv = NULL,                         \
-    .cleaner = NULL,                      \
-    .cls = NULL,                          \
-    .dst = NULL,                          \
-    .dst_size = 0,                        \
-    .fname = NULL,                        \
-    .result_size = NULL,                  \
-    .is_nullable = false,                 \
-    .is_null = NULL                       \
-  }
+        {                                       \
+          .conv = NULL,                         \
+          .cleaner = NULL,                      \
+          .cls = NULL,                          \
+          .dst = NULL,                          \
+          .dst_size = 0,                        \
+          .fname = NULL,                        \
+          .result_size = NULL,                  \
+          .is_nullable = false,                 \
+          .is_null = NULL                       \
+        }
 
 
 /**
- * Allow NULL value to be found in the database
- * for the given value.
+ * Allow NULL value to be found in the database for the given value.
  *
  * @param rs result spec entry to modify
  * @param[out] is_null location set to 'true' if the
@@ -733,7 +730,7 @@ GNUNET_PQ_result_spec_fixed_size (const char *name,
  * @return array entry for the result specification to use
  */
 #define GNUNET_PQ_result_spec_auto_from_type(name, dst) \
-  GNUNET_PQ_result_spec_fixed_size (name, (dst), sizeof(*(dst)))
+        GNUNET_PQ_result_spec_fixed_size (name, (dst), sizeof(*(dst)))
 
 
 /**
@@ -1053,9 +1050,9 @@ struct GNUNET_PQ_PreparedStatement
  * Terminator for prepared statement list.
  */
 #define GNUNET_PQ_PREPARED_STATEMENT_END \
-  {                                      \
-    NULL, NULL                           \
-  }
+        {                                      \
+          NULL, NULL                           \
+        }
 
 
 /**
@@ -1085,8 +1082,9 @@ GNUNET_PQ_prepare_statements (struct GNUNET_PQ_Context *db,
 
 
 /**
- * Request creation of prepared statements @a ps from Postgres, but do not automatically re-prepare the statement
- * if we are disconnected from the database.
+ * Request creation of prepared statements @a ps from Postgres, but do not
+ * automatically re-prepare the statement if we are disconnected from the
+ * database.
  *
  * @param db database to prepare the statements for
  * @param ps #GNUNET_PQ_PREPARED_STATEMENT_END-terminated array of prepared
@@ -1124,9 +1122,9 @@ struct GNUNET_PQ_ExecuteStatement
  * Terminator for executable statement list.
  */
 #define GNUNET_PQ_EXECUTE_STATEMENT_END \
-  {                                     \
-    NULL, GNUNET_SYSERR                 \
-  }
+        {                                     \
+          NULL, GNUNET_SYSERR                 \
+        }
 
 
 /**
@@ -1268,10 +1266,10 @@ GNUNET_PQ_connect2 (const char *config_str,
 
 
 /**
- * Connect to a postgres database using the configuration
- * option "CONFIG" in @a section.  Also ensures that the
- * statements in @a es are executed whenever we (re)connect to the
- * database, and that the prepared statements in @a ps are "ready".
+ * Connect to a postgres database using the configuration option "CONFIG" in
+ * @a section.  Also ensures that the statements in @a es are executed
+ * whenever we (re)connect to the database, and that the prepared statements
+ * in @a ps are "ready".
  *
  * The caller does not have to ensure that @a es and @a ps remain allocated
  * and initialized in memory until #GNUNET_PQ_disconnect() is called, as a copy will be made.
@@ -1299,7 +1297,8 @@ GNUNET_PQ_connect_with_cfg (const struct GNUNET_CONFIGURATION_Handle *cfg,
  * database, and that the prepared statements in @a ps are "ready".
  *
  * The caller does not have to ensure that @a es and @a ps remain allocated
- * and initialized in memory until #GNUNET_PQ_disconnect() is called, as a copy will be made.
+ * and initialized in memory until #GNUNET_PQ_disconnect() is called, as a
+ * copy will be made.
  *
  * @param cfg configuration
  * @param section configuration section to use to get Postgres configuration options
@@ -1380,10 +1379,9 @@ GNUNET_PQ_event_listen_cancel (struct GNUNET_DB_EventHandler *eh);
 /**
  * Notify all that listen on @a es of an event.
  *
- * Unlike many other calls, this function is thread-safe
- * and may be called from threads that are different
- * from the one that setup @a db. However, the @a cb
- * will always be called from the thread that runs
+ * Unlike many other calls, this function is thread-safe and may be called
+ * from threads that are different from the one that setup @a db. However, the
+ * @a cb will always be called from the thread that runs
  * #GNUNET_PQ_event_do_poll() or the GNUnet scheduler.
  *
  * @param db database context to use
@@ -1399,8 +1397,8 @@ GNUNET_PQ_event_notify (struct GNUNET_PQ_Context *db,
 
 
 /**
- * Compute the channel that one should notify upon
- * for the given event specification.
+ * Compute the channel that one should notify upon for the given event
+ * specification.
  *
  * @param es event specification
  * @return channel to notify upon
