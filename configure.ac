@@ -780,6 +780,14 @@ CHECK_WITH_LIB([extractor],
 AS_IF([test "x$extractor" = "x0"],
       [AC_MSG_RESULT([GNU libextractor not found, some features disabled])])
 
+# check for cloudflare-quiche
+CHECK_WITH_LIB([quiche],
+               [quiche_header_info],
+               [quiche.h],
+               [HAVE_QUICHE])
+AS_IF([test "x$quiche" = "x0"],
+      [AC_MSG_RESULT([cloudflare-quiche not found, some features disabled])])
+
 # check for libltdl
 CHECK_WITH_LIB([ltdl], [lt_dlopenext], [ltdl.h], [HAVE_LTDL])
 AS_IF([test "x$ldtl" = "x0"],
