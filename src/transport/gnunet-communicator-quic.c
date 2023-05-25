@@ -49,6 +49,42 @@ static uint16_t my_port;
 static unsigned long long rekey_max_bytes;
 
 /**
+ * Shutdown the UNIX communicator.
+ *
+ * @param cls NULL (always)
+ */
+static void
+do_shutdown (void *cls)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "do_shutdown\n");
+  if (NULL != read_task)
+  {
+    GNUNET_SCHEDULER_cancel (read_task);
+    read_task = NULL;
+  }
+  if (NULL != udp_sock)
+  {
+    GNUNET_break (GNUNET_OK ==
+                  GNUNET_NETWORK_socket_close (udp_sock));
+    udp_sock = NULL;
+  }
+  if (NULL != ch)
+  {
+    GNUNET_TRANSPORT_communicator_disconnect (ch);
+    ch = NULL;
+  }
+  if (NULL != ah)
+  {
+    GNUNET_TRANSPORT_application_done (ah);
+    ah = NULL;
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "do_shutdown finished\n");
+}
+
+
+/**
  * Convert UDP bind specification to a `struct sockaddr *`
  *
  * @param bindto bind specification to convert
@@ -190,12 +226,11 @@ sock_read (void *cls)
   socklen_t salen = sizeof(sa);
   char buf[UINT16_MAX];
   ssize_t rcvd;
-
   (void) cls;
-  read_task = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
-                                             udp_sock,
-                                             &sock_read,
-                                             NULL);
+  // read_task = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
+  //                                            udp_sock,
+  //                                            &sock_read,
+  //                                            NULL);
   rcvd = GNUNET_NETWORK_socket_recvfrom (udp_sock,
                                          buf,
                                          sizeof(buf),
@@ -537,24 +572,26 @@ run (void *cls,
     GNUNET_break (0);
     my_port = 0;
   }
+  GNUNET_SCHEDULER_add_shutdown (&do_shutdown, NULL);
   /* start reading */
   read_task = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
                                              udp_sock,
                                              &sock_read,
                                              NULL);
-  if (NULL == ch)
-  {
-    GNUNET_break (0);
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
-  // ah = GNUNET_TRANSPORT_application_init (cfg);
-  // if (NULL == ah)
+                                            
+  // if (NULL == ch)
   // {
   //   GNUNET_break (0);
   //   GNUNET_SCHEDULER_shutdown ();
   //   return;
   // }
+  ah = GNUNET_TRANSPORT_application_init (cfg);
+  if (NULL == ah)
+  {
+    GNUNET_break (0);
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
   
   /* start broadcasting */
   // if (GNUNET_YES !=
