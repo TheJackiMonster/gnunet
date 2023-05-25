@@ -273,6 +273,8 @@ gnunet_communicator_udp_LDADD = \
 gnunet_communicator_quic_SOURCES = \
   gnunet-communicator-quic.c
 gnunet_communicator_quic_LDADD = \
+  libgnunettransportapplication.la \
+  libgnunettransportcommunicator.la \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/nat/libgnunetnatnew.la \
   $(top_builddir)/src/nt/libgnunetnt.la \
