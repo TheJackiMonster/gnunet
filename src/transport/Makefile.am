@@ -280,6 +280,7 @@ gnunet_communicator_quic_LDADD = \
   $(top_builddir)/src/nt/libgnunetnt.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/util/libgnunetutil.la \
+  -lquiche \
   $(LIBGCRYPT_LIBS)
 
 gnunet_helper_transport_wlan_SOURCES = \
