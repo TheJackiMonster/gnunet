@@ -18,6 +18,10 @@
 #define DEFAULT_REKEY_MAX_BYTES (1024LLU * 1024 * 1024 * 4LLU)
 #define COMMUNICATOR_ADDRESS_PREFIX "quic"
 
+
+// #define STREAM_ID_MAX (UINT64_MAX - (0b11 << 62))
+#define STREAM_ID_MAX UINT64_MAX - 0xC000000000000000
+
 static const struct GNUNET_CONFIGURATION_Handle *cfg;
 static struct GNUNET_TIME_Relative rekey_interval;
 /**
@@ -47,6 +51,30 @@ static struct GNUNET_TRANSPORT_ApplicationHandle *ah;
 static int have_v6_socket;
 static uint16_t my_port;
 static unsigned long long rekey_max_bytes;
+
+/**
+ * @param stream_type ...
+ * Generate a unique stream ID with indicated stream type
+ * quiche library has QUICHE_MAX_CONN_ID_LEN = 20?
+*/
+uint64_t gen_streamid()
+{
+  uint64_t sid;
+  sid = GNUNET_CRYPTO_random_u64(GNUNET_CRYPTO_QUALITY_STRONG, STREAM_ID_MAX);
+  /**
+   * Ensure each peer does NOT reuse one of their own stream ID
+  */
+
+  /**
+   * Modify LSB to represent stream type:
+   * 0x00: client-initiated, bidirectional
+   * 0x01: server-initiated, bidirectional
+   * 0x02: client-initiated, unidirectional
+   * 0x03: server-initiated, unidirectional
+  */
+
+  return sid;
+}
 
 /**
  * Shutdown the UNIX communicator.
@@ -227,24 +255,25 @@ sock_read (void *cls)
   char buf[UINT16_MAX];
   ssize_t rcvd;
   (void) cls;
-  // read_task = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
-  //                                            udp_sock,
-  //                                            &sock_read,
-  //                                            NULL);
+  read_task = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
+                                             udp_sock,
+                                             &sock_read,
+                                             NULL);
   rcvd = GNUNET_NETWORK_socket_recvfrom (udp_sock,
                                          buf,
                                          sizeof(buf),
                                          (struct sockaddr *) &sa,
                                          &salen);
+
+  // ssize_t quic_rcvd = quiche_conn_recv(conn, buf, rcvd, &recv_info)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                "Read %lu bytes\n", rcvd);
-  // if (-1 == rcvd)
-  // {
-  //   GNUNET_log_strerror (GNUNET_ERROR_TYPE_DEBUG, "recv");
-  //   return;
-  // }
-  // GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-  //             "Read %lu bytes\n", rcvd);
+
+  if (-1 == rcvd)
+  {
+    GNUNET_log_strerror (GNUNET_ERROR_TYPE_DEBUG, "recv");
+    return;
+  }
 
   // if (rcvd > sizeof(struct UDPRekey))
   // {
@@ -578,7 +607,7 @@ run (void *cls,
                                              udp_sock,
                                              &sock_read,
                                              NULL);
-                                            
+                                           
   // if (NULL == ch)
   // {
   //   GNUNET_break (0);
@@ -592,7 +621,7 @@ run (void *cls,
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  
+
   /* start broadcasting */
   // if (GNUNET_YES !=
   //     GNUNET_CONFIGURATION_get_value_yesno (cfg,
@@ -606,6 +635,11 @@ run (void *cls,
 int 
 main(int argc, char *const *argv) 
 {
+  /**
+   * Setup QUICHE configuration
+  */
+  quiche_config *quiche_conf = quiche_config_new(QUICHE_PROTOCOL_VERSION);
+
   static const struct GNUNET_GETOPT_CommandLineOption options[] = {
   GNUNET_GETOPT_OPTION_END
   };
