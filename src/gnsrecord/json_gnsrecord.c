@@ -114,9 +114,9 @@ parse_record (json_t *data, struct GNUNET_GNSRECORD_Data *rd)
                                  &shadow);
   if (0 != unpack_state)
   {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "Error gnsdata object has a wrong format: `%s'!\n",
-                  err.text);
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Error gnsdata object has a wrong format: `%s'!\n",
+                err.text);
     unpack_state = json_unpack_ex (data,
                                    &err,
                                    0,
@@ -143,7 +143,9 @@ parse_record (json_t *data, struct GNUNET_GNSRECORD_Data *rd)
       return GNUNET_SYSERR;
     }
     rd->expiration_time = abs_exp.abs_value_us;
-  } else {
+  }
+  else
+  {
     rd->expiration_time = rel_exp.rel_value_us;
   }
   rd->record_type = GNUNET_GNSRECORD_typename_to_number (record_type);
@@ -336,15 +338,17 @@ GNUNET_GNSRECORD_JSON_from_gnsrecord (const char*rname,
                                                   rd[i].data_size);
     record_type_str = GNUNET_GNSRECORD_number_to_typename (rd[i].record_type);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Packing %s %s %lu %d\n",
+                "Packing %s %s %" PRIu64 " %d\n",
                 value_str, record_type_str, rd[i].expiration_time, rd[i].flags);
     record = json_pack ("{s:s,s:s,s:I,s:b,s:b,s:b,s:b}",
                         GNUNET_JSON_GNSRECORD_VALUE,
                         value_str,
                         GNUNET_JSON_GNSRECORD_TYPE,
                         record_type_str,
-                        (rd[i].flags & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION) ?
-                        GNUNET_JSON_GNSRECORD_RELATIVE_EXPIRATION_TIME : GNUNET_JSON_GNSRECORD_ABSOLUTE_EXPIRATION_TIME,
+                        (rd[i].flags
+                         & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION) ?
+                        GNUNET_JSON_GNSRECORD_RELATIVE_EXPIRATION_TIME :
+                        GNUNET_JSON_GNSRECORD_ABSOLUTE_EXPIRATION_TIME,
                         rd[i].expiration_time,
                         GNUNET_JSON_GNSRECORD_FLAG_PRIVATE,
                         rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE,

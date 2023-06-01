@@ -186,20 +186,20 @@
  * the value chosen here might be too aggressively low!
  */
 #define DELAY_WARN_THRESHOLD \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 5)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 5)
 
 /**
  * If a DVBox could not be forwarded after this number of
  * seconds we drop it.
  */
 #define DV_FORWARD_TIMEOUT \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 60)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 60)
 
 /**
  * Default value for how long we wait for reliability ack.
  */
 #define DEFAULT_ACK_WAIT_DURATION \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 1)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 1)
 
 /**
  * We only consider queues as "quality" connections when
@@ -207,53 +207,53 @@
  * the latency of the queue is below this threshold.
  */
 #define DV_QUALITY_RTT_THRESHOLD \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 1)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 1)
 
 /**
  * How long do we consider a DV path valid if we see no
  * further updates on it? Note: the value chosen here might be too low!
  */
 #define DV_PATH_VALIDITY_TIMEOUT \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
 
 /**
  * How long do we cache backchannel (struct Backtalker) information
  * after a backchannel goes inactive?
  */
 #define BACKCHANNEL_INACTIVITY_TIMEOUT \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
 
 /**
  * How long before paths expire would we like to (re)discover DV paths? Should
  * be below #DV_PATH_VALIDITY_TIMEOUT.
  */
 #define DV_PATH_DISCOVERY_FREQUENCY \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 4)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 4)
 
 /**
  * How long are ephemeral keys valid?
  */
 #define EPHEMERAL_VALIDITY \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
 
 /**
  * How long do we keep partially reassembled messages around before giving up?
  */
 #define REASSEMBLY_EXPIRATION \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 4)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 4)
 
 /**
  * What is the fastest rate at which we send challenges *if* we keep learning
  * an address (gossip, DHT, etc.)?
  */
 #define FAST_VALIDATION_CHALLENGE_FREQ \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 1)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 1)
 
 /**
  * What is the slowest rate at which we send challenges?
  */
 #define MAX_VALIDATION_CHALLENGE_FREQ \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_DAYS, 1)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_DAYS, 1)
 
 /**
  * How long until we forget about historic accumulators and thus
@@ -261,7 +261,7 @@
  * active connection experiences without an ACK.
  */
 #define ACK_CUMMULATOR_TIMEOUT \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
 
 /**
  * What is the non-randomized base frequency at which we
@@ -279,13 +279,13 @@
  * When do we forget an invalid address for sure?
  */
 #define MAX_ADDRESS_VALID_UNTIL \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MONTHS, 1)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MONTHS, 1)
 
 /**
  * How long do we consider an address valid if we just checked?
  */
 #define ADDRESS_VALIDATION_LIFETIME \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
 
 /**
  * What is the maximum frequency at which we do address validation?
@@ -3678,7 +3678,8 @@ schedule_transmit_on_queue (struct GNUNET_TIME_Relative delay,
   if (0 == queue->q_capacity)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Transmission throttled due to communicator message queue qid %u has capacity %lu.\n",
+                "Transmission throttled due to communicator message queue qid %u has capacity %"
+                PRIu64 ".\n",
                 queue->qid,
                 queue->q_capacity);
     GNUNET_STATISTICS_update (GST_stats,
@@ -4249,7 +4250,7 @@ finish_cmc_handling_with_continue (struct CommunicatorMessageContext *cmc,
     struct GNUNET_TRANSPORT_IncomingMessageAck *ack;
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Acknowledge message with flow control id %lu\n",
+                "Acknowledge message with flow control id %" PRIu64 "\n",
                 cmc->im.fc_id);
     env = GNUNET_MQ_msg (ack, GNUNET_MESSAGE_TYPE_TRANSPORT_INCOMING_MSG_ACK);
     ack->reserved = htonl (0);
@@ -4465,7 +4466,8 @@ queue_send_msg (struct Queue *queue,
     qe = GNUNET_new (struct QueueEntry);
     qe->mid = queue->mid_gen;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Create QueueEntry with MID %lu and QID %lu and prefix %s\n",
+                "Create QueueEntry with MID %" PRIu64
+                " and QID %u and prefix %s\n",
                 qe->mid,
                 queue->qid,
                 queue->tc->details.communicator.address_prefix);
@@ -4504,7 +4506,7 @@ queue_send_msg (struct Queue *queue,
     if (GNUNET_NO == queue->unlimited_length)
       queue->q_capacity--;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Queue %s with qid %u has capacity %lu\n",
+                "Queue %s with qid %u has capacity %" PRIu64 "\n",
                 queue->address,
                 queue->qid,
                 queue->q_capacity);
@@ -4524,11 +4526,12 @@ queue_send_msg (struct Queue *queue,
     }
     // GNUNET_CONTAINER_multiuuidmap_get (pending_acks, &ack[i].ack_uuid.value);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Sending message MID %lu of type %u (%u) and size %lu with MQ %p QID %lu\n",
+                "Sending message MID %" PRIu64
+                " of type %u (%u) and size %lu with MQ %p QID %u\n",
                 GNUNET_ntohll (smt->mid),
                 ntohs (((const struct GNUNET_MessageHeader *) payload)->type),
                 ntohs (smt->header.size),
-                payload_size,
+                (unsigned long) payload_size,
                 queue->tc->mq,
                 queue->qid);
     GNUNET_MQ_send (queue->tc->mq, env);
@@ -5761,7 +5764,6 @@ finish_handling_raw_message (struct VirtualLink *vl,
 }
 
 
-
 /**
  * Communicator gave us an unencapsulated message to pass as-is to
  * CORE.  Process the request.
@@ -6715,7 +6717,8 @@ path_cleanup_cb (void *cls)
 }
 
 
-static void send_msg_from_cache (struct VirtualLink *vl)
+static void
+send_msg_from_cache (struct VirtualLink *vl)
 {
 
   const struct GNUNET_PeerIdentity target = vl->target;
@@ -8878,7 +8881,7 @@ handle_validation_response (
       (origin_time.abs_value_us > vs->last_challenge_use.abs_value_us))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Diff first use %lu and last use %lu\n",
+                "Diff first use %" PRIu64 " and last use %" PRIu64 "\n",
                 vs->first_challenge_use.abs_value_us - origin_time.abs_value_us,
                 origin_time.abs_value_us - vs->last_challenge_use.abs_value_us);
     GNUNET_break_op (0);
@@ -9041,7 +9044,8 @@ handle_incoming_msg (void *cls,
   cmc->tc = tc;
   cmc->im = *im;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Received message with size %u and flow control id %lu via communicator from peer %s\n",
+              "Received message with size %u and flow control id %" PRIu64
+              " via communicator from peer %s\n",
               ntohs (im->header.size),
               im->fc_id,
               GNUNET_i2s (&im->sender));
@@ -9581,7 +9585,7 @@ update_pm_next_attempt (struct PendingMessage *pm,
   {
     pm->next_attempt = next_attempt;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Next attempt for message <%llu> set to %lu\n",
+                "Next attempt for message <%" PRIu64 "> set to %" PRIu64 "\n",
                 pm->logging_uuid,
                 next_attempt.abs_value_us);
     reorder_root_pm (pm, next_attempt);
@@ -9593,7 +9597,7 @@ update_pm_next_attempt (struct PendingMessage *pm,
     while (NULL != root->frag_parent)
       root = root->frag_parent;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Next attempt for root message <%llu> set to %s\n",
+                "Next attempt for root message <%" PRIu64 "> set to %s\n",
                 root->logging_uuid,
                 GNUNET_STRINGS_absolute_time_to_string (next_attempt));
     root->next_attempt = next_attempt;
@@ -9610,7 +9614,8 @@ update_pm_next_attempt (struct PendingMessage *pm,
     {
       root->next_attempt = next_attempt;
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Next attempt for fragmented message <%llu> (<%llu>)set to %lu\n",
+                  "Next attempt for fragmented message <%" PRIu64 "> (<%" PRIu64
+                  ">)set to %" PRIu64 "\n",
                   pm->logging_uuid,
                   root->logging_uuid,
                   next_attempt.abs_value_us);
@@ -9627,7 +9632,8 @@ update_pm_next_attempt (struct PendingMessage *pm,
     if (GNUNET_NO == root->frags_in_flight)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "We have no fragments in flight for message %llu, reorder root! Next attempt is %lu\n",
+                  "We have no fragments in flight for message %" PRIu64
+                  ", reorder root! Next attempt is %" PRIu64 "\n",
                   root->logging_uuid,
                   root->next_attempt.abs_value_us);
       reorder_root_pm (root, root->next_attempt);
@@ -9651,7 +9657,8 @@ update_pm_next_attempt (struct PendingMessage *pm,
       plus_mean = GNUNET_TIME_relative_add (s1, s2);
       root->next_attempt = GNUNET_TIME_relative_to_absolute (plus_mean);
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "We have fragments in flight for message %llu, do not reorder root! Actual next attempt %lu\n",
+                  "We have fragments in flight for message %" PRIu64
+                  ", do not reorder root! Actual next attempt %" PRIu64 "\n",
                   root->logging_uuid,
                   root->next_attempt.abs_value_us);
     }
@@ -10275,15 +10282,16 @@ handle_send_message_ack (void *cls,
             sma->qid))
         continue;
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "QueueEntry MID: %llu on queue QID: %lu, Ack MID: %llu Ack QID %LLU\n",
-                  (unsigned long long) qep->mid,
-                  (unsigned long) queue->qid,
+                  "QueueEntry MID: %" PRIu64 " on queue QID: %u, Ack MID: %"
+                  PRIu64 " Ack QID %u\n",
+                  qep->mid,
+                  queue->qid,
                   GNUNET_ntohll (sma->mid),
                   ntohl (sma->qid));
       qe = qep;
       if ((NULL != qe->pm) && (qe->pm->qe != qe))
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                    "For pending message %llu we had retransmissions.\n",
+                    "For pending message %" PRIu64 " we had retransmissions.\n",
                     qe->pm->logging_uuid);
       break;
     }
@@ -10291,9 +10299,9 @@ handle_send_message_ack (void *cls,
   if (NULL == qe)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "No QueueEntry found for Ack MID %llu QID: %llu\n",
-                (unsigned long long) GNUNET_ntohll (sma->mid),
-                (unsigned long) ntohl (sma->qid));
+                "No QueueEntry found for Ack MID %" PRIu64 " QID: %u\n",
+                GNUNET_ntohll (sma->mid),
+                ntohl (sma->qid));
     // TODO I guess this can happen, if the Ack from the peer comes before the Ack from the queue.
     /* this should never happen */
     /*GNUNET_break (0);
@@ -10349,7 +10357,8 @@ handle_send_message_ack (void *cls,
   {
     // TODO I guess this will never happen, because the communicator triggers this by updating its queue length itself.
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Transmission rescheduled due to communicator message queue with qid %u has capacity %lu.\n",
+                "Transmission rescheduled due to communicator message queue with qid %u has capacity %"
+                PRIu64 ".\n",
                 qe->queue->qid,
                 qe->queue->q_capacity);
     /* message queue has capacity; only resume this one queue */
@@ -10810,6 +10819,7 @@ get_address_without_port (const char *address)
   return address_without_port;
 }
 
+
 /**
  * A new queue has been created, check if any address validation
  * requests have been waiting for it.
@@ -10955,10 +10965,11 @@ handle_add_queue_message (void *cls,
     addr_len = ntohs (aqm->header.size) - sizeof(*aqm);
     addr = (const char *) &aqm[1];
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "New queue %s to %s available with QID %llu and q_len %lu and mtu %u\n",
+                "New queue %s to %s available with QID %u and q_len %" PRIu64
+                " and mtu %u\n",
                 addr,
                 GNUNET_i2s (&aqm->receiver),
-                (unsigned long) ntohl (aqm->qid),
+                ntohl (aqm->qid),
                 GNUNET_ntohll (aqm->q_len),
                 ntohl (aqm->mtu));
     queue = GNUNET_malloc (sizeof(struct Queue) + addr_len);
@@ -10966,7 +10977,7 @@ handle_add_queue_message (void *cls,
     if (GNUNET_TIME_UNIT_ZERO_ABS.abs_value_us != validated_until.abs_value_us)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "New queue with QID %lu inherit validated until\n",
+                  "New queue with QID %u inherit validated until\n",
                   ntohl (aqm->qid));
       queue->validated_until = validated_until;
     }

@@ -44,6 +44,7 @@
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
+#include <inttypes.h>
 
 #ifdef __clang__
 #undef HAVE_STATIC_ASSERT

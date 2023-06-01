@@ -116,7 +116,7 @@ send_simple_single (void *cls)
   now = GNUNET_TIME_absolute_get ();
   mq_wrapper->num_send++;
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Sending simple test message with size %u number %lu with mq %p max %u\n",
+       "Sending simple test message with size %u number %u with mq %p max %u\n",
        mq_wrapper->sss->size,
        mq_wrapper->num_send,
        mq_wrapper->mq,

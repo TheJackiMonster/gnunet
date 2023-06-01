@@ -492,14 +492,14 @@ interpreter_run (void *cls)
               "Running command `%s'\n",
               cmd->label);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "start time of %p expected 0 is `%lu'\n",
+              "start time of %p expected 0 is `%" PRIu64 "'\n",
               cmd,
               cmd->start_time.abs_value_us);
   cmd->start_time
     = cmd->last_req_time
       = GNUNET_TIME_absolute_get ();
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "start time of %p expected something is `%lu'\n",
+              "start time of %p expected something is `%" PRIu64 "'\n",
               cmd,
               cmd->start_time.abs_value_us);
   cmd->num_tries = 1;

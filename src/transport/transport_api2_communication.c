@@ -546,7 +546,8 @@ handle_incoming_ack (
                       sizeof(struct GNUNET_PeerIdentity))))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Done with message with flow control id %lu for sender %s from sender %s\n",
+                  "Done with message with flow control id %" PRIu64
+                  " for sender %s from sender %s\n",
                   incoming_ack->fc_id,
                   GNUNET_i2s (&fc->sender),
                   GNUNET_i2s (&incoming_ack->sender));
@@ -557,7 +558,8 @@ handle_incoming_ack (
     }
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Message with flow control id %lu from sender %s not found\n",
+              "Message with flow control id %" PRIu64
+              " from sender %s not found\n",
               incoming_ack->fc_id,
               GNUNET_i2s (&incoming_ack->sender));
   GNUNET_break (0);
@@ -928,7 +930,7 @@ GNUNET_TRANSPORT_communicator_receive (
     fc->cb_cls = cb_cls;
     GNUNET_CONTAINER_DLL_insert (ch->fc_head, ch->fc_tail, fc);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Created flow control id %lu for sender %s\n",
+                "Created flow control id %" PRIu64 " for sender %s\n",
                 fc->id,
                 GNUNET_i2s (&fc->sender));
   }
@@ -1043,6 +1045,7 @@ GNUNET_TRANSPORT_communicator_address_add (
   return ai;
 }
 
+
 /**
  * Notify transport service about an address that this communicator no
  * longer provides for this peer.
@@ -1061,6 +1064,7 @@ GNUNET_TRANSPORT_communicator_address_remove (
   GNUNET_free (ai);
   ai = NULL;
 }
+
 
 /**
  * Notify transport service that this communicator no longer provides all its addresses for this peer.

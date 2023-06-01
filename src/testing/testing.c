@@ -1337,7 +1337,7 @@ GNUNET_TESTING_peer_configure (struct GNUNET_TESTING_System *system,
   peer->nports = nports;
   return peer;
 
-  err_ret:
+err_ret:
   GNUNET_free (ss_instances);
   GNUNET_free (ports);
   GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "%s", emsg_);
@@ -2848,7 +2848,7 @@ GNUNET_TESTING_get_topo_from_file (const char *filename)
   }
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "file length %lu\n",
+       "file length %" PRIu64 "\n",
        fs);
   data[fs] = '\0';
 
