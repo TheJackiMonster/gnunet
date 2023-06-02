@@ -67,7 +67,7 @@
  * How often do we scan for changes to our network interfaces?
  */
 #define INTERFACE_SCAN_FREQUENCY \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
 
 /**
  * How long do we believe our addresses to remain up (before
@@ -76,7 +76,7 @@
 #define ADDRESS_VALIDITY_PERIOD GNUNET_TIME_UNIT_HOURS
 
 #define WORKING_QUEUE_INTERVALL \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,1)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,1)
 
 /**
  * AES key size.
@@ -937,22 +937,12 @@ receiver_destroy (struct ReceiverAddress *receiver)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Disconnecting receiver for peer `%s'\n",
               GNUNET_i2s (&receiver->target));
-  /*if (NULL != (mq = receiver->kx_mq))
-  {
-    receiver->kx_mq = NULL;
-    GNUNET_MQ_destroy (mq);
-    }*/
   if (NULL != receiver->kx_qh)
   {
     GNUNET_TRANSPORT_communicator_mq_del (receiver->kx_qh);
     receiver->kx_qh = NULL;
     receiver->kx_mq = NULL;
   }
-  /*if (NULL != (mq = receiver->d_mq))
-  {
-    receiver->d_mq = NULL;
-    GNUNET_MQ_destroy (mq);
-    }*/
   if (NULL != receiver->d_qh)
   {
     GNUNET_TRANSPORT_communicator_mq_del (receiver->d_qh);
@@ -1207,15 +1197,12 @@ check_timeouts (void *cls)
   rt = GNUNET_TIME_UNIT_FOREVER_REL;
   while (NULL != (receiver = GNUNET_CONTAINER_heap_peek (receivers_heap)))
   {
-    /* if (GNUNET_YES != receiver->receiver_destroy_called) */
-    /* { */
     rt = GNUNET_TIME_absolute_get_remaining (receiver->timeout);
     if (0 != rt.rel_value_us)
       break;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Receiver timed out\n");
     receiver_destroy (receiver);
-    // }
   }
   st = GNUNET_TIME_UNIT_FOREVER_REL;
   while (NULL != (sender = GNUNET_CONTAINER_heap_peek (senders_heap)))
@@ -1575,7 +1562,6 @@ add_acks_rekey (struct ReceiverAddress *receiver)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "%u receiver->acks_available 4\n",
               receiver->acks_available);
-  /* add_acks (receiver->ss_rekey, acks_to_add - 3); */
   if (0 != acks_to_add)
   {
     add_acks (receiver->ss_rekey, acks_to_add);
@@ -1607,7 +1593,6 @@ handle_ack (void *cls, const struct GNUNET_PeerIdentity *pid, void *value)
   struct ReceiverAddress *receiver = value;
   uint32_t acks_to_add;
   uint32_t allowed;
-  // int needed_for_rekeying;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "in handle ack with cmac %s\n",
@@ -1662,30 +1647,10 @@ handle_ack (void *cls, const struct GNUNET_PeerIdentity *pid, void *value)
                     receiver->acks_available,
                     ack->acks_available,
                     GNUNET_h2s (&ss->master));
-        // Uncomment this for alternativ 1 of backchannel functionality
         acks_to_add = (allowed - ss->sequence_allowed);
         if ((GNUNET_NO == receiver->rekeying) &&
             (receiver->number_rekeying_kce < 3) )
           acks_to_add = reset_rekey_kces (receiver, acks_to_add);
-        /* if ((GNUNET_NO == receiver->rekeying) && */
-        /*     (receiver->number_rekeying_kce < */
-        /*      3) ) */
-        /* { */
-        /*   needed_for_rekeying = (3 - receiver->number_rekeying_kce); */
-        /*   if (acks_to_add <= needed_for_rekeying) */
-        /*   { */
-        /*     receiver->number_rekeying_kce += acks_to_add; */
-        /*     acks_to_add = 0; */
-        /*   } */
-        /*   else */
-        /*   { */
-        /*     acks_to_add -= (3 - receiver->number_rekeying_kce); */
-        /*     receiver->number_rekeying_kce = 3; */
-        /*   } */
-        /* } */
-        /* GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, */
-        /*             "%u kce for rekeying\n", */
-        /*             receiver->number_rekeying_kce); */
 
         if ((0 != acks_to_add) && (GNUNET_NO == receiver->rekeying))
         {
@@ -1794,7 +1759,6 @@ kce_generate_cb (void *cls)
   }
 
 
-
 }
 
 
@@ -1869,14 +1833,6 @@ consider_ss_ack (struct SharedSecret *ss, int initial)
   if (GNUNET_NO == initial)
     kce_generate (ss, ++ss->sequence_allowed);
 
-  /*if (0 == ss->sender->acks_available)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Generating keys\n");
-    while (ss->active_kce_count < KCN_TARGET)
-      kce_generate (ss, ++ss->sequence_allowed);
-      }*/
-
   if (NULL != kce_task)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "kce_task is not NULL\n");
@@ -1887,7 +1843,7 @@ consider_ss_ack (struct SharedSecret *ss, int initial)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "initial: GNUNET_YES\n");
 
-  if ( kce_task_finished || (GNUNET_NO == initial))
+  if (kce_task_finished || (GNUNET_NO == initial))
   {
     struct UDPAck ack;
     struct SharedSecret *ss_tell;
@@ -1923,9 +1879,7 @@ consider_ss_ack (struct SharedSecret *ss, int initial)
                                   (ss->sender->num_secrets > MAX_SECRETS) ))
   {
 
-    // kce_generate (ss, ++ss->sequence_allowed);
-    // kce_generate (ss, ++ss->sequence_allowed);
-    // TODO This task must be per sender!
+    // TODO This task must be per sender! FIXME: This is a nice todo, but I do not know what must be done here to fix.
     kce_task = GNUNET_SCHEDULER_add_delayed (WORKING_QUEUE_INTERVALL,
                                              kce_generate_cb,
                                              ss);
@@ -1989,12 +1943,9 @@ decrypt_box (const struct UDPBox *box,
   {
     ss->sender->rekeying = GNUNET_NO;
     ss->sender->ss_rekey = NULL;
-    // destroy_all_secrets (ss, GNUNET_NO);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Receiver stopped rekeying.\n");
   }
-  /*else if (GNUNET_NO == box->rekeying)
-    consider_ss_ack (ss, GNUNET_NO);*/
   else
   {
     ss->sender->rekeying = GNUNET_YES;
@@ -2052,23 +2003,11 @@ decrypt_rekey (const struct UDPRekey *rekey,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "decrypted UDPRekey with kid %s\n",
               GNUNET_sh2s (&rekey->kid));
-  /*cmac = (struct GNUNET_HashCode *) out_buf;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Received secret with cmac %s \n",
-              GNUNET_h2s (&cmac));*/
-  // ss_rekey = (struct SharedSecret *) out_buf;
   master = (struct GNUNET_HashCode *) out_buf;
   ss_rekey = GNUNET_new (struct SharedSecret);
   ss_rekey->master = *master;
   calculate_cmac (ss_rekey);
   ss_rekey->sender = sender;
-  // ss_rekey->sequence_used = 0;
-  // ss_rekey->sequence_allowed = 0;
-  /* ss_rekey->active_kce_count = 0; */
-  /* ss_rekey->prev = NULL; */
-  /* ss_rekey->next = NULL; */
-  /* GNUNET_assert (ss_rekey->prev == NULL && sender->ss_head != ss_rekey); */
-  /* GNUNET_assert (ss_rekey->next == NULL && sender->ss_tail != ss_rekey); */
   GNUNET_CONTAINER_DLL_insert (sender->ss_head, sender->ss_tail, ss_rekey);
   sender->ss_rekey = ss_rekey;
   sender->num_secrets++;
@@ -2496,8 +2435,6 @@ sock_read (void *cls)
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Got KX: Receiver doing rekeying.\n");
     }
-    /*if (sender->num_secrets > MAX_SECRETS)
-      secret_destroy (sender->ss_tail);*/
   }
 }
 
@@ -2885,16 +2822,6 @@ send_UDPRekey (struct ReceiverAddress *receiver, struct SharedSecret *ss)
                                   &(receiver->ss_rekey->master),
                                   sizeof(receiver->ss_rekey->master)));
       dpos += sizeof(receiver->ss_rekey->master);
-      /* GNUNET_assert ( */
-      /*   0 == gcry_cipher_encrypt (rekey_out_cipher, &rekey_dgram[dpos], */
-      /*                             /\*sizeof(receiver->ss_rekey->cmac), */
-      /*                             &(receiver->ss_rekey->cmac), */
-      /*                             sizeof(receiver->ss_rekey->cmac))); */
-      /*                             dpos += sizeof(receiver->ss_rekey->cmac);*\/ */
-      /*                             sizeof(receiver->ss_rekey), */
-      /*                             receiver->ss_rekey, */
-      /*                             sizeof(receiver->ss_rekey))); */
-      /* dpos += sizeof(receiver->ss_rekey); */
       do_pad (rekey_out_cipher, &rekey_dgram[dpos], sizeof(rekey_dgram)
               - dpos);
       GNUNET_assert (0 == gcry_cipher_gettag (rekey_out_cipher,
@@ -2975,15 +2902,9 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
                   GNUNET_h2s (&ss->master),
                   ss->sequence_used,
                   ss->sequence_allowed);
-    // Uncomment this for alternativ 1 of backchannel functionality
     if (ss->sequence_used >= ss->sequence_allowed)
-    // Until here for alternativ 1
-    // Uncomment this for alternativ 2 of backchannel functionality
-    // if (0 == ss->sequence_allowed)
-    // Until here for alternativ 2
-    {
       continue;
-    }
+
     char dgram[sizeof(struct UDPBox) + receiver->d_mtu];
     struct UDPBox *box;
     gcry_cipher_hd_t out_cipher;
@@ -3148,17 +3069,6 @@ setup_receiver_mq (struct ReceiverAddress *receiver)
 {
   size_t base_mtu;
 
-  /*if (NULL != receiver->kx_qh)
-    {
-    GNUNET_TRANSPORT_communicator_mq_del (receiver->kx_qh);
-    receiver->kx_qh = NULL;
-    }
-    if (NULL != receiver->d_qh)
-    {
-    GNUNET_TRANSPORT_communicator_mq_del (receiver->d_qh);
-    receiver->d_qh = NULL;
-    }*/
-  // GNUNET_assert (NULL == receiver->mq);
   switch (receiver->address->sa_family)
   {
   case AF_INET:
@@ -3694,7 +3604,8 @@ iface_proc (void *cls,
      * group in the normal IPv6 routing table and using the resulting
      * interface; we do this for each interface, so no need to use
      * zero (anymore...).
-     */bi->mcreq.ipv6mr_interface = s6->sin6_scope_id;
+     */
+    bi->mcreq.ipv6mr_interface = s6->sin6_scope_id;
 
     /* Join the multicast group */
     if (GNUNET_OK != GNUNET_NETWORK_socket_setsockopt (udp_sock,
@@ -3735,13 +3646,17 @@ do_broadcast (void *cls)
                                                  NULL);
 }
 
+
 static void
 try_connection_reversal (void *cls,
                          const struct sockaddr *addr,
                          socklen_t addrlen)
 {
   /* FIXME: support reversal: #5529 */
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "No connection reversal implemented!");
 }
+
 
 /**
  * Setup communicator and launch network interactions.
