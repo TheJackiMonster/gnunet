@@ -172,11 +172,10 @@ run_queries (struct GNUNET_PQ_Context *db)
   u16 = 16;
   u32 = 32;
   u64 = 64;
-  GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_WEAK,
-                              &ahc[0],
-                              sizeof(ahc[0]));
-  GNUNET_memcpy (&ahc[1], &ahc[0], sizeof(ahc[0]));
-  GNUNET_memcpy (&ahc[2], &ahc[0], sizeof(ahc[0]));
+  for (int i = 0; i < 3; i++)
+    GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_WEAK,
+                                &ahc[i],
+                                sizeof(ahc[i]));
 
   /* FIXME: test GNUNET_PQ_result_spec_variable_size */
   {
@@ -343,45 +342,50 @@ run_queries (struct GNUNET_PQ_Context *db)
     GNUNET_break (got_null);
 
     /* Check arrays */
+    GNUNET_break (num_bool == 5);
+    for (size_t i = 0; i < num_bool; i++)
+      GNUNET_break (arr_bools[i] == ab[i]);
+
+    GNUNET_break (num_u16 == 3);
+    for (size_t i = 0; i < num_u16; i++)
+      GNUNET_break (arr_u16[i] == ai2[i]);
+
+    GNUNET_break (num_u32 == 3);
+    for (size_t i = 0; i < num_u32; i++)
+      GNUNET_break (arr_u32[i] == ai4[i]);
+
+    GNUNET_break (num_u64 == 3);
+    for (size_t i = 0; i < num_u64; i++)
+      GNUNET_break (arr_u64[i] == ai8[i]);
+
+    GNUNET_break (num_abs == 2);
+    for (size_t i = 0; i < num_abs; i++)
+      GNUNET_break (arr_abs[i].abs_value_us == ata[i].abs_value_us);
+
+    GNUNET_break (num_rel == 2);
+    for (size_t i = 0; i < num_rel; i++)
+      GNUNET_break (arr_rel[i].rel_value_us == atr[i].rel_value_us);
+
+    GNUNET_break (num_tstmp == 2);
+    for (size_t i = 0; i < num_tstmp; i++)
+      GNUNET_break (arr_tstmp[i].abs_time.abs_value_us ==
+                    ats[i].abs_time.abs_value_us);
+
+    GNUNET_break (num_str == 3);
+    GNUNET_break (0 == strcmp (arr_str, as[0]));
+    GNUNET_break (0 == strcmp (arr_str + 4, as[1]));
+    GNUNET_break (0 == strcmp (arr_str + 8, as[2]));
+
+    GNUNET_break (num_hash == 3);
+    for (size_t i = 0; i < num_hash; i++)
+      GNUNET_break (0 == GNUNET_memcmp (&arr_hash[i], &ahc[i]));
+
+    GNUNET_break (num_buf == 3);
+    for (size_t i = 0; i < num_buf; i++)
     {
-      GNUNET_break (num_bool == 5);
-      GNUNET_break (arr_bools[0]);
-      GNUNET_break (! arr_bools[1]);
-      GNUNET_break (! arr_bools[2]);
-      GNUNET_break (arr_bools[3]);
-      GNUNET_break (! arr_bools[4]);
-
-      GNUNET_break (num_u16 == 3);
-      GNUNET_break (arr_u16[0] == 42);
-      GNUNET_break (arr_u16[1] == 0x0001);
-      GNUNET_break (arr_u16[2] == 0xFFFF);
-
-      GNUNET_break (num_u32 == 3);
-      GNUNET_break (arr_u32[0] == 42);
-      GNUNET_break (arr_u32[1] == 0x00010000);
-      GNUNET_break (arr_u32[2] == 0xFFFFFFFF);
-
-      GNUNET_break (num_u64 == 3);
-      GNUNET_break (arr_u64[0] == 42);
-      GNUNET_break (arr_u64[1] == 0x0001000000000000);
-      GNUNET_break (arr_u64[2] == 0xFFFFFFFFFFFFFFFF);
-
-      GNUNET_break (num_str == 3);
-      GNUNET_break (0 == strcmp (arr_str, "foo"));
-      GNUNET_break (0 == strcmp (arr_str + 4, "bar"));
-      GNUNET_break (0 == strcmp (arr_str + 8, "buzz"));
-
-      GNUNET_break (num_hash == 3);
-      GNUNET_break (0 == GNUNET_memcmp (&arr_hash[0], &arr_hash[1]));
-      GNUNET_break (0 == GNUNET_memcmp (&arr_hash[1], &arr_hash[2]));
-
-      GNUNET_break (num_buf == 3);
-      {
-        char *ptr = arr_buf;
-        GNUNET_break (0 == memcmp (ptr, &ptr[sz_buf[0]], sz_buf[0]));
-        ptr += sz_buf[0];
-        GNUNET_break (0 == memcmp (ptr, &ptr[sz_buf[1]], sz_buf[1]));
-      }
+      GNUNET_break (0 == memcmp (((char *) arr_buf) + i * sizeof(ahc[i]),
+                                 &ahc[i],
+                                 sizeof(ahc[i])));
     }
 
     GNUNET_PQ_cleanup_result (results_select);
