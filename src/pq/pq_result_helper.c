@@ -22,9 +22,12 @@
  * @brief functions to extract result values
  * @author Christian Grothoff
  */
+#include "gnunet_common.h"
+#include "gnunet_time_lib.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_pq_lib.h"
+#include "pq.h"
 
 
 struct GNUNET_PQ_ResultSpec
@@ -1113,6 +1116,532 @@ GNUNET_PQ_result_spec_uint64 (const char *name,
     .fname = name
   };
 
+  return res;
+}
+
+
+/**
+ * Closure for the array result specifications.  Contains type information
+ * for the generic parser extract_array_generic and out-pointers for the results.
+ */
+struct array_result_cls
+{
+  /* Oid of the expected type, must match the oid in the header of the PQResult struct */
+  Oid oid;
+
+  /* Target type */
+  enum array_types typ;
+
+  /* If not 0, defines the expected size of each entry */
+  size_t same_size;
+
+  /* Out-pointer to write the number of elements in the array */
+  size_t *num;
+
+  /* Out-pointer. If @a typ is array_of_byte and @a same_size is 0,
+   * allocate and put the array of @a num sizes here. NULL otherwise */
+  size_t **sizes;
+};
+
+
+/**
+ * Extract data from a Postgres database @a result as array of a specific type
+ * from row @a row.  The type information and optionally additional
+ * out-parameters are given in @a cls which is of type array_result_cls.
+ *
+ * @param cls closure of type array_result_cls
+ * @param result where to extract data from
+ * @param row row to extract data from
+ * @param fname name (or prefix) of the fields to extract from
+ * @param[in,out] dst_size where to store size of result, may be NULL
+ * @param[out] dst where to store the result
+ * @return
+ *   #GNUNET_YES if all results could be extracted
+ *   #GNUNET_SYSERR if a result was invalid (non-existing field or NULL)
+ */
+static enum GNUNET_GenericReturnValue
+extract_array_generic (
+  void *cls,
+  PGresult *result,
+  int row,
+  const char *fname,
+  size_t *dst_size,
+  void *dst)
+{
+  const struct array_result_cls *info = cls;
+  int data_sz;
+  char *data;
+  void *out = NULL;
+  struct pq_array_header header;
+  int col_num;
+
+  GNUNET_assert (NULL != dst);
+  *((void **) dst) = NULL;
+
+  #define FAIL_IF(cond) \
+  do { \
+    if ((cond)) \
+    { \
+      GNUNET_break (! (cond)); \
+      goto FAIL; \
+    } \
+  } while(0)
+
+  col_num = PQfnumber (result, fname);
+  FAIL_IF (0 > col_num);
+
+  data_sz = PQgetlength (result, row, col_num);
+  FAIL_IF (0 > data_sz);
+  FAIL_IF (sizeof(header) > (size_t) data_sz);
+
+  data = PQgetvalue (result, row, col_num);
+  FAIL_IF (NULL == data);
+
+  {
+    struct pq_array_header *h =
+      (struct pq_array_header *) data;
+
+    header.ndim = ntohl (h->ndim);
+    header.has_null = ntohl (h->has_null);
+    header.oid = ntohl (h->oid);
+    header.dim = ntohl (h->dim);
+    header.lbound = ntohl (h->lbound);
+
+    FAIL_IF (1 != header.ndim);
+    FAIL_IF ((0 > header.dim) || (INT_MAX == header.dim));
+    FAIL_IF (0 != header.has_null);
+    FAIL_IF (1 != header.lbound);
+    FAIL_IF (info->oid != header.oid);
+  }
+
+  *info->num = header.dim;
+  switch (info->typ)
+  {
+  case array_of_bool:
+    if (NULL != dst_size)
+      *dst_size = sizeof(bool) * (*info->num);
+    out = GNUNET_new_array (*info->num, bool);
+    break;
+  case array_of_uint16:
+    if (NULL != dst_size)
+      *dst_size = sizeof(uint16_t) * (*info->num);
+    out = GNUNET_new_array (*info->num, uint16_t);
+    break;
+  case array_of_uint32:
+    if (NULL != dst_size)
+      *dst_size = sizeof(uint32_t) * (*info->num);
+    out = GNUNET_new_array (*info->num, uint32_t);
+    break;
+  case array_of_uint64:
+    if (NULL != dst_size)
+      *dst_size = sizeof(uint64_t) * (*info->num);
+    out = GNUNET_new_array (*info->num, uint64_t);
+    break;
+  case array_of_abs_time:
+    if (NULL != dst_size)
+      *dst_size = sizeof(struct GNUNET_TIME_Absolute) * (*info->num);
+    out = GNUNET_new_array (*info->num, struct GNUNET_TIME_Absolute);
+    break;
+  case array_of_rel_time:
+    if (NULL != dst_size)
+      *dst_size = sizeof(struct GNUNET_TIME_Relative) * (*info->num);
+    out = GNUNET_new_array (*info->num, struct GNUNET_TIME_Relative);
+    break;
+  case array_of_timestamp:
+    if (NULL != dst_size)
+      *dst_size = sizeof(struct GNUNET_TIME_Timestamp) * (*info->num);
+    out = GNUNET_new_array (*info->num, struct GNUNET_TIME_Timestamp);
+    break;
+  case array_of_byte:
+    if (0 == info->same_size)
+      *info->sizes = GNUNET_new_array (header.dim, size_t);
+  /* fallthrough */
+  case array_of_string:
+    {
+      size_t total = 0;
+      bool is_string = (array_of_string == info->typ);
+
+      /* first, calculate total size required for allocation */
+      {
+        char *ptr = data + sizeof(header);
+        for (uint32_t i = 0; i < header.dim; i++)
+        {
+          uint32_t sz;
+
+          sz = ntohl (*(uint32_t *) ptr);
+          sz += is_string ? 1 : 0;
+          total += sz;
+          ptr += sizeof(uint32_t);
+          ptr += sz;
+
+          if ((! is_string) &&
+              (0 == info->same_size))
+            (*info->sizes)[i] = sz;
+
+          FAIL_IF ((0 != info->same_size) &&
+                   (sz != info->same_size));
+          FAIL_IF (total < sz);
+        }
+      }
+
+      if (NULL != dst_size)
+        *dst_size = total;
+
+      if (0 < total)
+        out = GNUNET_malloc (total);
+
+      break;
+    }
+  default:
+    FAIL_IF (1 != 0);
+  }
+
+  *((void **) dst) = out;
+
+  /* copy data */
+  {
+    char *in = data + sizeof(header);
+
+    for (uint32_t i = 0; i < header.dim; i++)
+    {
+      size_t sz =  ntohl (*(uint32_t *) in);
+      in += sizeof(uint32_t);
+
+      switch (info->typ)
+      {
+      case array_of_bool:
+        FAIL_IF (sz != sizeof(bool));
+        *(bool *) out = *(bool *) in;
+        break;
+      case array_of_uint16:
+        FAIL_IF (sz != sizeof(uint16_t));
+        *(uint16_t *) out = ntohs (*(uint16_t *) in);
+        break;
+      case array_of_uint32:
+        FAIL_IF (sz != sizeof(uint32_t));
+        *(uint32_t *) out = ntohl (*(uint32_t *) in);
+        break;
+      case array_of_uint64:
+        FAIL_IF (sz != sizeof(uint64_t));
+        *(uint64_t *) out = GNUNET_ntohll (*(uint64_t *) in);
+        break;
+      case array_of_abs_time:
+      case array_of_rel_time:
+      case array_of_timestamp:
+        FAIL_IF (sz != sizeof(uint64_t));
+        {
+          uint64_t val = GNUNET_ntohll (*(uint64_t *) in);
+          switch (info->typ)
+          {
+          case array_of_abs_time:
+            ((struct GNUNET_TIME_Absolute *) out)->abs_value_us = val;
+            break;
+          case array_of_rel_time:
+            ((struct GNUNET_TIME_Relative *) out)->rel_value_us = val;
+            break;
+          case array_of_timestamp:
+            ((struct GNUNET_TIME_Timestamp *) out)->abs_time.abs_value_us = val;
+            break;
+          default:
+            FAIL_IF (1 != 0);
+          }
+        }
+        break;
+      case array_of_byte:
+      case array_of_string:
+        GNUNET_memcpy (out, in, sz);
+        break;
+      default:
+        FAIL_IF (1 != 0);
+      }
+
+      in += sz;
+      out += sz;
+      out += (array_of_string == info->typ) ? 1 : 0;
+    }
+  }
+
+  return GNUNET_OK;
+
+FAIL:
+  GNUNET_free (*(void **) dst);
+  return GNUNET_SYSERR;
+  #undef FAIL_IF
+}
+
+
+/**
+ * Cleanup of the data and closure of an array spec.
+ */
+static void
+array_cleanup (void *cls,
+               void *rd)
+{
+
+  struct array_result_cls *info = cls;
+  void **dst = rd;
+
+  if ((array_of_byte == info->typ) &&
+      (0 == info->same_size) &&
+      (NULL != info->sizes))
+    GNUNET_free (*(info->sizes));
+
+  GNUNET_free (cls);
+  GNUNET_free (*dst);
+  *dst = NULL;
+}
+
+
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_array_bool (
+  const struct GNUNET_PQ_Context *db,
+  const char *name,
+  size_t *num,
+  bool **dst)
+{
+  struct array_result_cls *info =
+    GNUNET_new (struct array_result_cls);
+
+  info->num = num;
+  info->typ = array_of_bool;
+  info->oid = db->oids[GNUNET_PQ_DATATYPE_BOOL];
+
+  struct GNUNET_PQ_ResultSpec res = {
+    .conv = extract_array_generic,
+    .cleaner = array_cleanup,
+    .dst = (void *) dst,
+    .fname = name,
+    .cls = info
+  };
+  return res;
+}
+
+
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_array_uint16 (
+  const struct GNUNET_PQ_Context *db,
+  const char *name,
+  size_t *num,
+  uint16_t **dst)
+{
+  struct array_result_cls *info =
+    GNUNET_new (struct array_result_cls);
+
+  info->num = num;
+  info->typ = array_of_uint16;
+  info->oid = db->oids[GNUNET_PQ_DATATYPE_INT2];
+
+  struct GNUNET_PQ_ResultSpec res = {
+    .conv = extract_array_generic,
+    .cleaner = array_cleanup,
+    .dst = (void *) dst,
+    .fname = name,
+    .cls = info
+  };
+  return res;
+}
+
+
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_array_uint32 (
+  const struct GNUNET_PQ_Context *db,
+  const char *name,
+  size_t *num,
+  uint32_t **dst)
+{
+  struct array_result_cls *info =
+    GNUNET_new (struct array_result_cls);
+
+  info->num = num;
+  info->typ = array_of_uint32;
+  info->oid = db->oids[GNUNET_PQ_DATATYPE_INT4];
+
+  struct GNUNET_PQ_ResultSpec res = {
+    .conv = extract_array_generic,
+    .cleaner = array_cleanup,
+    .dst = (void *) dst,
+    .fname = name,
+    .cls = info
+  };
+  return res;
+}
+
+
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_array_uint64 (
+  const struct GNUNET_PQ_Context *db,
+  const char *name,
+  size_t *num,
+  uint64_t **dst)
+{
+  struct array_result_cls *info =
+    GNUNET_new (struct array_result_cls);
+
+  info->num = num;
+  info->typ = array_of_uint64;
+  info->oid = db->oids[GNUNET_PQ_DATATYPE_INT8];
+
+  struct GNUNET_PQ_ResultSpec res = {
+    .conv = extract_array_generic,
+    .cleaner = array_cleanup,
+    .dst = (void *) dst,
+    .fname = name,
+    .cls = info
+  };
+  return res;
+}
+
+
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_array_abs_time (
+  const struct GNUNET_PQ_Context *db,
+  const char *name,
+  size_t *num,
+  struct GNUNET_TIME_Absolute **dst)
+{
+  struct array_result_cls *info =
+    GNUNET_new (struct array_result_cls);
+
+  info->num = num;
+  info->typ = array_of_abs_time;
+  info->oid = db->oids[GNUNET_PQ_DATATYPE_INT8];
+
+  struct GNUNET_PQ_ResultSpec res = {
+    .conv = extract_array_generic,
+    .cleaner = array_cleanup,
+    .dst = (void *) dst,
+    .fname = name,
+    .cls = info
+  };
+  return res;
+}
+
+
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_array_rel_time (
+  const struct GNUNET_PQ_Context *db,
+  const char *name,
+  size_t *num,
+  struct GNUNET_TIME_Relative **dst)
+{
+  struct array_result_cls *info =
+    GNUNET_new (struct array_result_cls);
+
+  info->num = num;
+  info->typ = array_of_rel_time;
+  info->oid = db->oids[GNUNET_PQ_DATATYPE_INT8];
+
+  struct GNUNET_PQ_ResultSpec res = {
+    .conv = extract_array_generic,
+    .cleaner = array_cleanup,
+    .dst = (void *) dst,
+    .fname = name,
+    .cls = info
+  };
+  return res;
+}
+
+
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_array_timestamp (
+  const struct GNUNET_PQ_Context *db,
+  const char *name,
+  size_t *num,
+  struct GNUNET_TIME_Timestamp **dst)
+{
+  struct array_result_cls *info =
+    GNUNET_new (struct array_result_cls);
+
+  info->num = num;
+  info->typ = array_of_timestamp;
+  info->oid = db->oids[GNUNET_PQ_DATATYPE_INT8];
+
+  struct GNUNET_PQ_ResultSpec res = {
+    .conv = extract_array_generic,
+    .cleaner = array_cleanup,
+    .dst = (void *) dst,
+    .fname = name,
+    .cls = info
+  };
+  return res;
+}
+
+
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_array_variable_size (
+  const struct GNUNET_PQ_Context *db,
+  const char *name,
+  size_t *num,
+  size_t **sizes,
+  void **dst)
+{
+  struct array_result_cls *info =
+    GNUNET_new (struct array_result_cls);
+
+  info->num = num;
+  info->sizes = sizes;
+  info->typ = array_of_byte;
+  info->oid = db->oids[GNUNET_PQ_DATATYPE_BYTEA];
+
+  struct GNUNET_PQ_ResultSpec res = {
+    .conv = extract_array_generic,
+    .cleaner = array_cleanup,
+    .dst = (void *) dst,
+    .fname = name,
+    .cls = info
+  };
+  return res;
+}
+
+
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_array_fixed_size (
+  const struct GNUNET_PQ_Context *db,
+  const char *name,
+  size_t size,
+  size_t *num,
+  void **dst)
+{
+  struct array_result_cls *info =
+    GNUNET_new (struct array_result_cls);
+
+  info->num = num;
+  info->same_size = size;
+  info->typ = array_of_byte;
+  info->oid = db->oids[GNUNET_PQ_DATATYPE_BYTEA];
+
+  struct GNUNET_PQ_ResultSpec res = {
+    .conv = extract_array_generic,
+    .cleaner = array_cleanup,
+    .dst = (void *) dst,
+    .fname = name,
+    .cls = info
+  };
+  return res;
+}
+
+
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_array_string (
+  const struct GNUNET_PQ_Context *db,
+  const char *name,
+  size_t *num,
+  char **dst)
+{
+  struct array_result_cls *info =
+    GNUNET_new (struct array_result_cls);
+
+  info->num = num;
+  info->typ = array_of_string;
+  info->oid = db->oids[GNUNET_PQ_DATATYPE_VARCHAR];
+
+  struct GNUNET_PQ_ResultSpec res = {
+    .conv = extract_array_generic,
+    .cleaner = array_cleanup,
+    .dst = (void *) dst,
+    .fname = name,
+    .cls = info
+  };
   return res;
 }
 
