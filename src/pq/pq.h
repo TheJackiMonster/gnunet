@@ -107,6 +107,39 @@ struct GNUNET_PQ_Context
 
 
 /**
+ * Internal types that are supported as array types.
+ */
+
+enum array_types
+{
+  array_of_bool,
+  array_of_uint16,
+  array_of_uint32,
+  array_of_uint64,
+  array_of_byte,      /* buffers of (char *), (void *), ... */
+  array_of_string,    /* NULL-terminated (char *) */
+  array_of_abs_time,
+  array_of_rel_time,
+  array_of_timestamp,
+  array_of_MAX,       /* must be last */
+};
+
+/**
+ * the header for a postgresql array in binary format. note that this a
+ * simplified special case of the general structure (which contains pointers),
+ * as we only support one-dimensional arrays.
+ */
+struct pq_array_header
+{
+  uint32_t ndim;     /* number of dimensions. we only support ndim = 1 */
+  uint32_t has_null;
+  uint32_t oid;
+  uint32_t dim;      /* size of the array */
+  uint32_t lbound;   /* index value of first element in the db (default: 1). */
+} __attribute__((packed));
+
+
+/**
  * Internal API. Reconnect should re-register notifications
  * after a disconnect.
  *

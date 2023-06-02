@@ -131,13 +131,13 @@ GNUNET_PQ_cleanup_query_params_closures (
  * End of query parameter specification.
  */
 #define GNUNET_PQ_query_param_end \
-        {                               \
-          .conv = NULL,                 \
-          .conv_cls = NULL,             \
-          .data = NULL,                 \
-          .size = 0,                    \
-          .num_params = 0               \
-        }
+  {                               \
+    .conv = NULL,                 \
+    .conv_cls = NULL,             \
+    .data = NULL,                 \
+    .size = 0,                    \
+    .num_params = 0               \
+  }
 
 
 /**
@@ -300,10 +300,10 @@ GNUNET_PQ_query_param_array_bytes_same_size (
  * @return query parameter to use
  */
 #define GNUNET_PQ_query_param_array_auto_from_type(num, elements, db) \
-        GNUNET_PQ_query_param_array_bytes_same_size ((num), \
-                                                     (elements), \
-                                                     sizeof(*(elements)), \
-                                                     (db))
+  GNUNET_PQ_query_param_array_bytes_same_size ((num), \
+                                               (elements), \
+                                               sizeof(*(elements)), \
+                                               (db))
 
 /**
  * Generate query parameter for an array of pointers to buffers @a elements,
@@ -333,10 +333,10 @@ GNUNET_PQ_query_param_array_ptrs_bytes_same_size (
  * @return query parameter to use
  */
 #define GNUNET_PQ_query_param_array_ptrs_auto_from_type(num, elements, db) \
-        GNUNET_PQ_query_param_array_ptrs_bytes_same_size ((num), \
-                                                          (elements), \
-                                                          sizeof(*(elements[0])), \
-                                                          (db))
+  GNUNET_PQ_query_param_array_ptrs_bytes_same_size ((num), \
+                                                    (elements), \
+                                                    sizeof(*(elements[0])), \
+                                                    (db))
 
 
 /**
@@ -376,7 +376,7 @@ GNUNET_PQ_query_param_array_ptrs_string (
  * @return query parameter to use
  */
 #define GNUNET_PQ_query_param_auto_from_type(x) \
-        GNUNET_PQ_query_param_fixed_size ((x), sizeof(*(x)))
+  GNUNET_PQ_query_param_fixed_size ((x), sizeof(*(x)))
 
 /**
  * Generate query parameter for an array of absolute time stamps (continuous)
@@ -667,17 +667,17 @@ struct GNUNET_PQ_ResultSpec
  * @return array last entry for the result specification to use
  */
 #define GNUNET_PQ_result_spec_end         \
-        {                                       \
-          .conv = NULL,                         \
-          .cleaner = NULL,                      \
-          .cls = NULL,                          \
-          .dst = NULL,                          \
-          .dst_size = 0,                        \
-          .fname = NULL,                        \
-          .result_size = NULL,                  \
-          .is_nullable = false,                 \
-          .is_null = NULL                       \
-        }
+  {                                       \
+    .conv = NULL,                         \
+    .cleaner = NULL,                      \
+    .cls = NULL,                          \
+    .dst = NULL,                          \
+    .dst_size = 0,                        \
+    .fname = NULL,                        \
+    .result_size = NULL,                  \
+    .is_nullable = false,                 \
+    .is_null = NULL                       \
+  }
 
 
 /**
@@ -730,7 +730,7 @@ GNUNET_PQ_result_spec_fixed_size (const char *name,
  * @return array entry for the result specification to use
  */
 #define GNUNET_PQ_result_spec_auto_from_type(name, dst) \
-        GNUNET_PQ_result_spec_fixed_size (name, (dst), sizeof(*(dst)))
+  GNUNET_PQ_result_spec_fixed_size (name, (dst), sizeof(*(dst)))
 
 
 /**
@@ -876,6 +876,191 @@ struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_uint64 (const char *name,
                               uint64_t *u64);
 
+/**
+ * array of bool expected.
+ *
+ * @param db Database context, needed for OID lookup for the correct type
+ * @param name name of the field in the table
+ * @param[out] num where to store the number of elements in the array @a bools.
+ * @param[out] bools pointer to where to store the result, an array of @a num bool's. Allocated by the function, MUST be freed with GNUNET_free.
+ * @return array entry for the result specification to use
+ */
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_array_bool (
+  const struct GNUNET_PQ_Context *db,
+  const char *name,
+  size_t *num,
+  bool **bools);
+
+/**
+ * array of uint16_t expected.
+ *
+ * @param db Database context, needed for OID lookup for the correct type
+ * @param name name of the field in the table
+ * @param[out] num where to store the number of elements in the array @a u16s.
+ * @param[out] dst pointer to where to store the an array of @a num uint16_t's. Allocated by the function, MUST be freed with GNUNET_free.
+ * @return array entry for the result specification to use
+ */
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_array_uint16 (
+  const struct GNUNET_PQ_Context *db,
+  const char *name,
+  size_t *num,
+  uint16_t **dst);
+
+/**
+ * array of uint32_t expected.
+ *
+ * @param db Database context, needed for OID lookup for the correct type
+ * @param name name of the field in the table
+ * @param[out] num where to store the number of elements in the array @a u32s.
+ * @param[out] dst pointer to where to store the array of @a num uint32_t's. Allocated by the function, MUST be freed with GNUNET_free.
+ * @return array entry for the result specification to use
+ */
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_array_uint32 (
+  const struct GNUNET_PQ_Context *db,
+  const char *name,
+  size_t *num,
+  uint32_t **dst);
+
+/**
+ * array of uint64_t expected.
+ *
+ * @param db Database context, needed for OID lookup for the correct type
+ * @param name name of the field in the table
+ * @param[out] num where to store the number of elements in the array @a u64s.
+ * @param[out] dst pointer to where to store the array of @a num uint64_t's. Allocated by the function, MUST be freed with GNUNET_free.
+ * @return array entry for the result specification to use
+ */
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_array_uint64 (
+  const struct GNUNET_PQ_Context *db,
+  const char *name,
+  size_t *num,
+  uint64_t **dst);
+
+
+/**
+ * array of absolute time expected.
+ *
+ * @param db Database context, needed for OID lookup for the correct type
+ * @param name name of the field in the table
+ * @param[out] num where to store the number of elements in the array @a u64s.
+ * @param[out] dst pointer to where to store the array of @a num absolute time. Allocated by the function, MUST be freed with GNUNET_free.
+ * @return array entry for the result specification to use
+ */
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_array_abs_time (
+  const struct GNUNET_PQ_Context *db,
+  const char *name,
+  size_t *num,
+  struct GNUNET_TIME_Absolute **dst);
+
+/**
+ * array of relative time expected.
+ *
+ * @param db Database context, needed for OID lookup for the correct type
+ * @param name name of the field in the table
+ * @param[out] num where to store the number of elements in the array @a u64s.
+ * @param[out] dst pointer to where to store the array of @a num relate time. Allocated by the function, MUST be freed with GNUNET_free.
+ * @return array entry for the result specification to use
+ */
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_array_rel_time (
+  const struct GNUNET_PQ_Context *db,
+  const char *name,
+  size_t *num,
+  struct GNUNET_TIME_Relative **dst);
+
+/**
+ * array of relative time expected.
+ *
+ * @param db Database context, needed for OID lookup for the correct type
+ * @param name name of the field in the table
+ * @param[out] num where to store the number of elements in the array @a u64s.
+ * @param[out] dst pointer to where to store the array of @a num timestamps. Allocated by the function, MUST be freed with GNUNET_free.
+ * @return array entry for the result specification to use
+ */
+
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_array_timestamp (
+  const struct GNUNET_PQ_Context *db,
+  const char *name,
+  size_t *num,
+  struct GNUNET_TIME_Timestamp **dst);
+
+/**
+ * Array of variable-size result expected.
+ *
+ * @param db Database context, needed for OID lookup for the correct type
+ * @param name name of the field in the table
+ * @param[out] num where to store the number of elements
+ * @param[out] sizes where to store the @a num size's of byte-buffers in @a dst
+ * @param[out] dst where to store the continuous array of @a num byte-buffers , allocated
+ * @return array entry for the result specification to use
+ */
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_array_variable_size (
+  const struct GNUNET_PQ_Context *db,
+  const char *name,
+  size_t *num,
+  size_t **sizes,
+  void **dst);
+
+
+/**
+ * Array of fixed-size result expected.
+ *
+ * @param db Database context, needed for OID lookup for the correct type
+ * @param name name of the field in the table
+ * @param size number of bytes expected in each element of @a dst
+ * @param[out] num where to store the number of elements
+ * @param[out] dst where to store the results, an continuous array of fixed-size elements
+ * @return array entry for the result specification to use
+ */
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_array_fixed_size (
+  const struct GNUNET_PQ_Context *db,
+  const char *name,
+  size_t size,
+  size_t *num,
+  void **dst);
+
+
+/**
+ * We expect a fixed-size result, with size determined by the type of `* dst`
+ *
+ * @param db Database context, needed for OID lookup for the correct type
+ * @param name name of the field in the table
+ * @param num pointer to where to store the number of elements
+ * @param dst pointer to where to store the results, type fits expected result size
+ * @return array entry for the result specification to use
+ */
+#define GNUNET_PQ_result_spec_auto_array_from_type(db, name, num, dst) \
+  GNUNET_PQ_result_spec_array_fixed_size ( \
+    (db), \
+    (name), \
+    sizeof(*(dst)), \
+    (num), \
+    (void *) &(dst))
+
+
+/**
+ * Array of 0-terminated strings expected.
+ *
+ * @param db Database context, needed for OID lookup for the correct type
+ * @param name name of the field in the table
+ * @param[out] num where to store the number of elements
+ * @param[out] dst where to store the allocated continous array of @a num 0-terminated strings
+ * @return array entry for the result specification to use
+ */
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_array_string (
+  const struct GNUNET_PQ_Context *db,
+  const char *name,
+  size_t *num,
+  char **dst);
 
 /* ************************* pq.c functions ************************ */
 
@@ -1050,9 +1235,9 @@ struct GNUNET_PQ_PreparedStatement
  * Terminator for prepared statement list.
  */
 #define GNUNET_PQ_PREPARED_STATEMENT_END \
-        {                                      \
-          NULL, NULL                           \
-        }
+  {                                      \
+    NULL, NULL                           \
+  }
 
 
 /**
@@ -1122,9 +1307,9 @@ struct GNUNET_PQ_ExecuteStatement
  * Terminator for executable statement list.
  */
 #define GNUNET_PQ_EXECUTE_STATEMENT_END \
-        {                                     \
-          NULL, GNUNET_SYSERR                 \
-        }
+  {                                     \
+    NULL, GNUNET_SYSERR                 \
+  }
 
 
 /**

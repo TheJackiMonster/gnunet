@@ -23,6 +23,7 @@
  * @author Christian Grothoff <christian@grothoff.org>
  */
 #include "gnunet_common.h"
+#include "gnunet_pq_lib.h"
 #include "gnunet_time_lib.h"
 #include "platform.h"
 #include "pq.h"
@@ -154,7 +155,7 @@ run_queries (struct GNUNET_PQ_Context *db)
   uint16_t ai2[3] = {42, 0x0001, 0xFFFF};
   uint32_t ai4[3] = {42, 0x00010000, 0xFFFFFFFF};
   uint64_t ai8[3] = {42, 0x0001000000000000, 0xFFFFFFFFFFFFFFFF};
-  const char *as[] = {"foo", "bar", "buz"};
+  const char *as[] = {"foo", "bar", "buzz"};
   const struct GNUNET_TIME_Absolute ata[2] = {GNUNET_TIME_absolute_get (),
                                               GNUNET_TIME_absolute_get ()};
   const struct GNUNET_TIME_Relative atr[2] = {GNUNET_TIME_relative_get_hour_ (),
@@ -208,6 +209,27 @@ run_queries (struct GNUNET_PQ_Context *db)
       GNUNET_PQ_query_param_end
     };
     bool got_null = false;
+    size_t num_bool;
+    bool *arr_bools;
+    size_t num_u16;
+    uint16_t *arr_u16;
+    size_t num_u32;
+    uint32_t *arr_u32;
+    size_t num_u64;
+    uint64_t *arr_u64;
+    size_t num_abs;
+    struct GNUNET_TIME_Absolute *arr_abs;
+    size_t num_rel;
+    struct GNUNET_TIME_Relative *arr_rel;
+    size_t num_tstmp;
+    struct GNUNET_TIME_Timestamp *arr_tstmp;
+    size_t num_str;
+    char *arr_str;
+    size_t num_hash;
+    struct GNUNET_HashCode *arr_hash;
+    size_t num_buf;
+    void *arr_buf;
+    size_t *sz_buf;
     struct GNUNET_PQ_ResultSpec results_select[] = {
       GNUNET_PQ_result_spec_rsa_public_key ("pub", &pub2),
       GNUNET_PQ_result_spec_rsa_signature ("sig", &sig2),
@@ -221,6 +243,47 @@ run_queries (struct GNUNET_PQ_Context *db)
       GNUNET_PQ_result_spec_allow_null (
         GNUNET_PQ_result_spec_uint64 ("unn", &uzzz),
         &got_null),
+      GNUNET_PQ_result_spec_array_bool (db,
+                                        "arr_bool",
+                                        &num_bool,
+                                        &arr_bools),
+      GNUNET_PQ_result_spec_array_uint16 (db,
+                                          "arr_int2",
+                                          &num_u16,
+                                          &arr_u16),
+      GNUNET_PQ_result_spec_array_uint32 (db,
+                                          "arr_int4",
+                                          &num_u32,
+                                          &arr_u32),
+      GNUNET_PQ_result_spec_array_uint64 (db,
+                                          "arr_int8",
+                                          &num_u64,
+                                          &arr_u64),
+      GNUNET_PQ_result_spec_array_abs_time (db,
+                                            "arr_abs_time",
+                                            &num_abs,
+                                            &arr_abs),
+      GNUNET_PQ_result_spec_array_rel_time (db,
+                                            "arr_rel_time",
+                                            &num_rel,
+                                            &arr_rel),
+      GNUNET_PQ_result_spec_array_timestamp (db,
+                                             "arr_timestamp",
+                                             &num_tstmp,
+                                             &arr_tstmp),
+      GNUNET_PQ_result_spec_auto_array_from_type (db,
+                                                  "arr_bytea",
+                                                  &num_hash,
+                                                  arr_hash),
+      GNUNET_PQ_result_spec_array_variable_size (db,
+                                                 "arr_bytea",
+                                                 &num_buf,
+                                                 &sz_buf,
+                                                 &arr_buf),
+      GNUNET_PQ_result_spec_array_string (db,
+                                          "arr_varchar",
+                                          &num_str,
+                                          &arr_str),
       GNUNET_PQ_result_spec_end
     };
 
@@ -278,6 +341,49 @@ run_queries (struct GNUNET_PQ_Context *db)
     GNUNET_break (64 == u642);
     GNUNET_break (42 == uzzz);
     GNUNET_break (got_null);
+
+    /* Check arrays */
+    {
+      GNUNET_break (num_bool == 5);
+      GNUNET_break (arr_bools[0]);
+      GNUNET_break (! arr_bools[1]);
+      GNUNET_break (! arr_bools[2]);
+      GNUNET_break (arr_bools[3]);
+      GNUNET_break (! arr_bools[4]);
+
+      GNUNET_break (num_u16 == 3);
+      GNUNET_break (arr_u16[0] == 42);
+      GNUNET_break (arr_u16[1] == 0x0001);
+      GNUNET_break (arr_u16[2] == 0xFFFF);
+
+      GNUNET_break (num_u32 == 3);
+      GNUNET_break (arr_u32[0] == 42);
+      GNUNET_break (arr_u32[1] == 0x00010000);
+      GNUNET_break (arr_u32[2] == 0xFFFFFFFF);
+
+      GNUNET_break (num_u64 == 3);
+      GNUNET_break (arr_u64[0] == 42);
+      GNUNET_break (arr_u64[1] == 0x0001000000000000);
+      GNUNET_break (arr_u64[2] == 0xFFFFFFFFFFFFFFFF);
+
+      GNUNET_break (num_str == 3);
+      GNUNET_break (0 == strcmp (arr_str, "foo"));
+      GNUNET_break (0 == strcmp (arr_str + 4, "bar"));
+      GNUNET_break (0 == strcmp (arr_str + 8, "buzz"));
+
+      GNUNET_break (num_hash == 3);
+      GNUNET_break (0 == GNUNET_memcmp (&arr_hash[0], &arr_hash[1]));
+      GNUNET_break (0 == GNUNET_memcmp (&arr_hash[1], &arr_hash[2]));
+
+      GNUNET_break (num_buf == 3);
+      {
+        char *ptr = arr_buf;
+        GNUNET_break (0 == memcmp (ptr, &ptr[sz_buf[0]], sz_buf[0]));
+        ptr += sz_buf[0];
+        GNUNET_break (0 == memcmp (ptr, &ptr[sz_buf[1]], sz_buf[1]));
+      }
+    }
+
     GNUNET_PQ_cleanup_result (results_select);
     PQclear (result);
 
