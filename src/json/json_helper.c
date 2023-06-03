@@ -368,6 +368,8 @@ parse_object_const (void *cls,
                     json_t *root,
                     struct GNUNET_JSON_Specification *spec)
 {
+  if (NULL == root)
+    return GNUNET_OK;
   if (! json_is_object (root))
   {
     GNUNET_break_op (0);
@@ -409,6 +411,8 @@ parse_array_const (void *cls,
                    json_t *root,
                    struct GNUNET_JSON_Specification *spec)
 {
+  if (NULL == root)
+    return GNUNET_OK;
   if (! json_is_array (root))
   {
     GNUNET_break_op (0);
