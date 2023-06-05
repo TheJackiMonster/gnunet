@@ -20,7 +20,14 @@
 
 
 // #define STREAM_ID_MAX (UINT64_MAX - (0b11 << 62))
-#define STREAM_ID_MAX UINT64_MAX - 0xC000000000000000
+// #define STREAM_ID_MAX UINT64_MAX - 0xC000000000000000
+
+/* Currently equivalent to QUICHE_MAX_CONN_ID_LEN */
+#define LOCAL_CONN_ID_LEN 20
+#define MAX_TOKEN_LEN \
+    sizeof("quiche") - 1 + \
+    sizeof(struct sockaddr_storage) + \
+    QUICHE_MAX_CONN_ID_LEN
 
 static const struct GNUNET_CONFIGURATION_Handle *cfg;
 static struct GNUNET_TIME_Relative rekey_interval;
@@ -52,15 +59,24 @@ static int have_v6_socket;
 static uint16_t my_port;
 static unsigned long long rekey_max_bytes;
 
+struct quiche_conn *conn;
+
+struct quic_conn {
+
+    uint8_t cid[LOCAL_CONN_ID_LEN];
+
+    quiche_conn *conn;
+};
+
 /**
  * @param stream_type ...
  * Generate a unique stream ID with indicated stream type
  * quiche library has QUICHE_MAX_CONN_ID_LEN = 20?
 */
-uint64_t gen_streamid()
+static uint64_t gen_streamid()
 {
   uint64_t sid;
-  sid = GNUNET_CRYPTO_random_u64(GNUNET_CRYPTO_QUALITY_STRONG, STREAM_ID_MAX);
+  // sid = GNUNET_CRYPTO_random_u64(GNUNET_CRYPTO_QUALITY_STRONG, STREAM_ID_MAX);
   /**
    * Ensure each peer does NOT reuse one of their own stream ID
   */
@@ -74,6 +90,14 @@ uint64_t gen_streamid()
   */
 
   return sid;
+}
+
+/**
+ * Generate a new connection ID
+*/
+static uint8_t *gen_cid(uint8_t *cid, size_t cid_len)
+{
+  int rand_cid = GNUNET_CRYPTO_random_u32(GNUNET_CRYPTO_QUALITY_STRONG, UINT8_MAX);
 }
 
 /**
@@ -265,7 +289,6 @@ sock_read (void *cls)
                                          (struct sockaddr *) &sa,
                                          &salen);
 
-  // ssize_t quic_rcvd = quiche_conn_recv(conn, buf, rcvd, &recv_info)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                "Read %lu bytes\n", rcvd);
 
@@ -274,6 +297,44 @@ sock_read (void *cls)
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_DEBUG, "recv");
     return;
   }
+  /**
+   * TODO:
+   * - handle connection ID (not stream ID) -> associate incoming packets by connection ID
+   *   with previous connection or generate new connection
+   *
+   * - create structure for individual connections (how many can we have concurrently)
+  */
+  struct quic_conn *tmp_conn;
+
+
+  uint8_t new_cid[LOCAL_CONN_ID_LEN];
+  uint8_t type;
+  uint32_t version;
+
+  uint8_t scid[QUICHE_MAX_CONN_ID_LEN];
+  size_t scid_len = sizeof(scid);
+
+  uint8_t dcid[QUICHE_MAX_CONN_ID_LEN];
+  size_t dcid_len = sizeof(dcid);
+
+  uint8_t odcid[QUICHE_MAX_CONN_ID_LEN];
+  size_t odcid_len = sizeof(odcid);
+
+  uint8_t token[MAX_TOKEN_LEN];
+  size_t token_len = sizeof(token);
+
+  int rc = quiche_header_info(buf, read, LOCAL_CONN_ID_LEN, &version,
+                                    &type, scid, &scid_len, dcid, &dcid_len,
+                                    token, &token_len);
+  if (rc < 0)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "failed to parse quic header: %d", rc);
+  }
+
+  /* look for connection in hashtable */
+
+
+
 
   // if (rcvd > sizeof(struct UDPRekey))
   // {
