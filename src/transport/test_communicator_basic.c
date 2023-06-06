@@ -104,13 +104,13 @@ static unsigned int iterations_left[NUM_PEERS];
 #define TIMEOUT_MULTIPLIER 1
 
 #define DELAY \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,200)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,200)
 
 #define SHORT_BURST_WINDOW \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,2)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,2)
 
 #define LONG_BURST_WINDOW \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,2)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,2)
 
 enum TestPhase
 {
@@ -283,6 +283,7 @@ make_payload (size_t payload_size)
   return payload;
 }
 
+
 static struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *
 get_tc_h (unsigned int peer_nr)
 {
@@ -316,6 +317,7 @@ get_peer_nr_from_tc (struct
     return PEER_B;
 }
 
+
 static unsigned int
 get_peer_nr (void *cls, unsigned int get_the_other_one)
 {
@@ -324,6 +326,7 @@ get_peer_nr (void *cls, unsigned int get_the_other_one)
   else
     return get_the_other_one ? PEER_A : PEER_B;
 }
+
 
 static void
 process_statistics_box_done (void *cls, int success)
@@ -361,6 +364,7 @@ process_statistics_rekey_done (void *cls, int success)
     GNUNET_SCHEDULER_shutdown ();
   }
 }
+
 
 static int
 process_statistics (void *cls,
@@ -407,6 +411,7 @@ process_statistics (void *cls,
   return GNUNET_OK;
 }
 
+
 static void
 short_test (void *cls);
 
@@ -442,6 +447,7 @@ short_test_cb (void *cls)
       TIMEOUT_MULTIPLIER));
 }
 
+
 static void
 short_test (void *cls)
 {
@@ -449,6 +455,7 @@ short_test (void *cls)
                                 &short_test_cb,
                                 cls);
 }
+
 
 static void
 size_test (void *cls)
@@ -484,6 +491,7 @@ size_test (void *cls)
       GNUNET_TIME_UNIT_SECONDS,
       TIMEOUT_MULTIPLIER));
 }
+
 
 static void
 long_test (void *cls);
@@ -527,6 +535,7 @@ long_test (void *cls)
                                 cls);
 }
 
+
 static void
 choose_phase (struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h)
 {
@@ -564,9 +573,9 @@ choose_phase (struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h)
   {
     if ((0 == strcmp ("udp", communicator_name)) && ((0 == strcmp ("rekey",
                                                                    test_name))
-                                                     ||(0 == strcmp (
-                                                          "backchannel",
-                                                          test_name))) )
+                                                     || (0 == strcmp (
+                                                           "backchannel",
+                                                           test_name))) )
     {
       if (NULL != box_stats[peer_nr])
         GNUNET_STATISTICS_get_cancel (box_stats[peer_nr]);
@@ -587,11 +596,11 @@ choose_phase (struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h)
     }
     else
     {
-      if ((GNUNET_NO == bidirect)|| (((PEER_A == peer_nr) &&
-                                      finished[PEER_B]) || ((PEER_B ==
-                                                             peer_nr) &&
-                                                            finished
-                                                            [PEER_A])))
+      if ((GNUNET_NO == bidirect) || (((PEER_A == peer_nr) &&
+                                       finished[PEER_B]) || ((PEER_B ==
+                                                              peer_nr) &&
+                                                             finished
+                                                             [PEER_A])))
       {
         LOG (GNUNET_ERROR_TYPE_DEBUG,
              "Finished\n");
@@ -602,7 +611,9 @@ choose_phase (struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h)
   }
 }
 
-static void finish_phase_long (unsigned int peer_nr)
+
+static void
+finish_phase_long (unsigned int peer_nr)
 {
   static struct GNUNET_TIME_Relative duration;
 
@@ -633,6 +644,7 @@ static void finish_phase_long (unsigned int peer_nr)
   choose_phase (get_tc_h (peer_nr));
 }
 
+
 static void
 finish_phase_short (unsigned int peer_nr)
 {
@@ -662,6 +674,7 @@ finish_phase_short (unsigned int peer_nr)
   choose_phase (get_tc_h (peer_nr));
   // long_test (NULL);
 }
+
 
 static void
 latency_timeout (void *cls)
@@ -733,6 +746,7 @@ latency_timeout (void *cls)
   GNUNET_SCHEDULER_shutdown ();
 }
 
+
 /**
  * @brief Handle opening of queue
  *
@@ -760,7 +774,7 @@ add_queue_cb (void *cls,
        tc_h,
        peer_nr,
        get_peer_nr_from_tc (tc_h));
-  if ((GNUNET_NO == bidirect)&&(0 != strcmp ((char*) cls, cfg_peers_name[0])))
+  if ((GNUNET_NO == bidirect) && (0 != strcmp ((char*) cls, cfg_peers_name[0])))
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Queue available at receiving peer\n");
@@ -832,8 +846,6 @@ update_avg_latency (const char *payload, unsigned int peer_nr)
 }
 
 
-
-
 static void
 load_phase_config ()
 {
@@ -866,7 +878,6 @@ load_phase_config ()
 }
 
 
-
 /**
  * @brief Handle an incoming message
  *
@@ -888,8 +899,8 @@ incoming_message_cb (
 
   peer_nr = get_peer_nr (cls, GNUNET_YES);
 
-  if ((GNUNET_NO == bidirect)&&(0 != strcmp ((char*) cls,
-                                             cfg_peers_name[NUM_PEERS - 1])))
+  if ((GNUNET_NO == bidirect) && (0 != strcmp ((char*) cls,
+                                               cfg_peers_name[NUM_PEERS - 1])))
   {
     LOG (GNUNET_ERROR_TYPE_WARNING,
          "unexpected receiver...\n");
@@ -1016,7 +1027,6 @@ do_shutdown (void *cls)
 }
 
 
-
 /**
  * @brief Main function called by the scheduler
  *
@@ -1044,7 +1054,8 @@ run (void *cls)
       cfg_peers_name[i]);   /* cls */
 
     if ((0 == strcmp ("udp", communicator_name)) && ((0 == strcmp ("rekey",
-                                                                   test_name))||
+                                                                   test_name))
+                                                     ||
                                                      (0 == strcmp (
                                                         "backchannel",
                                                         test_name))) )
@@ -1060,6 +1071,7 @@ run (void *cls)
   GNUNET_SCHEDULER_add_shutdown (&do_shutdown,
                                  NULL);
 }
+
 
 int
 main (int argc,
@@ -1162,7 +1174,7 @@ main (int argc,
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_number (cfg_peers[0],
                                              TEST_SECTION,
-                                             "BURST_ÜACKETS_LONG",
+                                             "BURST_PACKETS_LONG",
                                              &burst_packets_long))
     burst_packets_long = BURST_PACKETS;
   if (GNUNET_OK !=
