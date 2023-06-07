@@ -199,7 +199,7 @@ struct GNUNET_ATS_ConnectivitySuggestHandle;
  * @return ats connectivity handle, NULL on error
  */
 struct GNUNET_ATS_ConnectivityHandle *
-GNUNET_ATS_connectivity_init (const struct GNUNET_CONFIGURATION_Handle *cfg);
+GNUNET_ATS_connectivity_init (const struct GNUNET_CONFIGURATION_Handle *cfg) __attribute__((deprecated));
 
 
 /**
@@ -208,7 +208,7 @@ GNUNET_ATS_connectivity_init (const struct GNUNET_CONFIGURATION_Handle *cfg);
  * @param ch handle to destroy
  */
 void
-GNUNET_ATS_connectivity_done (struct GNUNET_ATS_ConnectivityHandle *ch);
+GNUNET_ATS_connectivity_done (struct GNUNET_ATS_ConnectivityHandle *ch) __attribute__((deprecated));
 
 
 /**
@@ -223,7 +223,7 @@ GNUNET_ATS_connectivity_done (struct GNUNET_ATS_ConnectivityHandle *ch);
 struct GNUNET_ATS_ConnectivitySuggestHandle *
 GNUNET_ATS_connectivity_suggest (struct GNUNET_ATS_ConnectivityHandle *ch,
                                  const struct GNUNET_PeerIdentity *peer,
-                                 uint32_t strength);
+                                 uint32_t strength) __attribute__((deprecated));
 
 
 /**
@@ -233,7 +233,7 @@ GNUNET_ATS_connectivity_suggest (struct GNUNET_ATS_ConnectivityHandle *ch,
  */
 void
 GNUNET_ATS_connectivity_suggest_cancel (struct
-                                        GNUNET_ATS_ConnectivitySuggestHandle *sh);
+                                        GNUNET_ATS_ConnectivitySuggestHandle *sh) __attribute__((deprecated));
 
 
 /* ******************************** Scheduling API ***************************** */
@@ -288,7 +288,7 @@ typedef void
 struct GNUNET_ATS_SchedulingHandle *
 GNUNET_ATS_scheduling_init (const struct GNUNET_CONFIGURATION_Handle *cfg,
                             GNUNET_ATS_AddressSuggestionCallback suggest_cb,
-                            void *suggest_cb_cls);
+                            void *suggest_cb_cls) __attribute__((deprecated));
 
 
 /**
@@ -297,7 +297,7 @@ GNUNET_ATS_scheduling_init (const struct GNUNET_CONFIGURATION_Handle *cfg,
  * @param sh handle to release
  */
 void
-GNUNET_ATS_scheduling_done (struct GNUNET_ATS_SchedulingHandle *sh);
+GNUNET_ATS_scheduling_done (struct GNUNET_ATS_SchedulingHandle *sh) __attribute__((deprecated));
 
 
 /**
@@ -322,7 +322,7 @@ struct GNUNET_ATS_AddressRecord *
 GNUNET_ATS_address_add (struct GNUNET_ATS_SchedulingHandle *sh,
                         const struct GNUNET_HELLO_Address *address,
                         struct GNUNET_ATS_Session *session,
-                        const struct GNUNET_ATS_Properties *prop);
+                        const struct GNUNET_ATS_Properties *prop) __attribute__((deprecated));
 
 
 /**
@@ -333,7 +333,7 @@ GNUNET_ATS_address_add (struct GNUNET_ATS_SchedulingHandle *sh,
  */
 void
 GNUNET_ATS_address_add_session (struct GNUNET_ATS_AddressRecord *ar,
-                                struct GNUNET_ATS_Session *session);
+                                struct GNUNET_ATS_Session *session) __attribute__((deprecated));
 
 
 /**
@@ -350,7 +350,7 @@ GNUNET_ATS_address_add_session (struct GNUNET_ATS_AddressRecord *ar,
  */
 int
 GNUNET_ATS_address_del_session (struct GNUNET_ATS_AddressRecord *ar,
-                                struct GNUNET_ATS_Session *session);
+                                struct GNUNET_ATS_Session *session) __attribute__((deprecated));
 
 
 /**
@@ -368,7 +368,7 @@ GNUNET_ATS_address_del_session (struct GNUNET_ATS_AddressRecord *ar,
  */
 void
 GNUNET_ATS_address_update (struct GNUNET_ATS_AddressRecord *ar,
-                           const struct GNUNET_ATS_Properties *prop);
+                           const struct GNUNET_ATS_Properties *prop) __attribute__((deprecated));
 
 
 /**
@@ -378,7 +378,7 @@ GNUNET_ATS_address_update (struct GNUNET_ATS_AddressRecord *ar,
  *           expired and ATS may no longer use it
  */
 void
-GNUNET_ATS_address_destroy (struct GNUNET_ATS_AddressRecord *ar);
+GNUNET_ATS_address_destroy (struct GNUNET_ATS_AddressRecord *ar) __attribute__((deprecated));
 
 
 /* ******************************** Performance API ***************************** */
@@ -434,7 +434,7 @@ struct GNUNET_ATS_AddressListHandle;
 struct GNUNET_ATS_PerformanceHandle *
 GNUNET_ATS_performance_init (const struct GNUNET_CONFIGURATION_Handle *cfg,
                              GNUNET_ATS_AddressInformationCallback addr_info_cb,
-                             void *addr_info_cb_cls);
+                             void *addr_info_cb_cls) __attribute__((deprecated));
 
 
 /**
@@ -455,7 +455,7 @@ GNUNET_ATS_performance_list_addresses (struct GNUNET_ATS_PerformanceHandle *ph,
                                        int all,
                                        GNUNET_ATS_AddressInformationCallback
                                        infocb,
-                                       void *infocb_cls);
+                                       void *infocb_cls) __attribute__((deprecated));
 
 
 /**
@@ -465,7 +465,7 @@ GNUNET_ATS_performance_list_addresses (struct GNUNET_ATS_PerformanceHandle *ph,
  */
 void
 GNUNET_ATS_performance_list_addresses_cancel (struct
-                                              GNUNET_ATS_AddressListHandle *alh);
+                                              GNUNET_ATS_AddressListHandle *alh) __attribute__((deprecated));
 
 
 /**
@@ -474,7 +474,7 @@ GNUNET_ATS_performance_list_addresses_cancel (struct
  * @param ph handle
  */
 void
-GNUNET_ATS_performance_done (struct GNUNET_ATS_PerformanceHandle *ph);
+GNUNET_ATS_performance_done (struct GNUNET_ATS_PerformanceHandle *ph) __attribute__((deprecated));
 
 
 /**
@@ -519,7 +519,7 @@ GNUNET_ATS_reserve_bandwidth (struct GNUNET_ATS_PerformanceHandle *ph,
                               const struct GNUNET_PeerIdentity *peer,
                               int32_t amount,
                               GNUNET_ATS_ReservationCallback rcb,
-                              void *rcb_cls);
+                              void *rcb_cls) __attribute__((deprecated));
 
 
 /**
@@ -528,7 +528,7 @@ GNUNET_ATS_reserve_bandwidth (struct GNUNET_ATS_PerformanceHandle *ph,
  * @param rc context returned by the original #GNUNET_ATS_reserve_bandwidth() call
  */
 void
-GNUNET_ATS_reserve_bandwidth_cancel (struct GNUNET_ATS_ReservationContext *rc);
+GNUNET_ATS_reserve_bandwidth_cancel (struct GNUNET_ATS_ReservationContext *rc) __attribute__((deprecated));
 
 
 /**
@@ -579,7 +579,7 @@ enum GNUNET_ATS_PreferenceKind
  * @return a string or NULL if invalid
  */
 const char *
-GNUNET_ATS_print_preference_type (enum GNUNET_ATS_PreferenceKind type);
+GNUNET_ATS_print_preference_type (enum GNUNET_ATS_PreferenceKind type) __attribute__((deprecated));
 
 
 /**
@@ -596,7 +596,7 @@ GNUNET_ATS_performance_change_preference (struct
                                           GNUNET_ATS_PerformanceHandle *ph,
                                           const struct
                                           GNUNET_PeerIdentity *peer,
-                                          ...);
+                                          ...) __attribute__((deprecated));
 
 
 /**
@@ -620,7 +620,7 @@ void
 GNUNET_ATS_performance_give_feedback (struct GNUNET_ATS_PerformanceHandle *ph,
                                       const struct GNUNET_PeerIdentity *peer,
                                       const struct GNUNET_TIME_Relative scope,
-                                      ...);
+                                      ...) __attribute__((deprecated));
 
 #endif
 

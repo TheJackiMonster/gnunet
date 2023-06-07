@@ -40,6 +40,7 @@ extern "C"
 
 struct GNUNET_TESTING_Barrier;
 
+
 /**
  * Callback function to write messages from the helper process running on a netjail node to the master process.
  *

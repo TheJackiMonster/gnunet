@@ -146,7 +146,7 @@ struct GNUNET_TRANSPORT_HelloGetHandle *
 GNUNET_TRANSPORT_hello_get (const struct GNUNET_CONFIGURATION_Handle *cfg,
                             enum GNUNET_TRANSPORT_AddressClass ac,
                             GNUNET_TRANSPORT_HelloUpdateCallback rec,
-                            void *rec_cls);
+                            void *rec_cls) __attribute__((deprecated));
 
 
 /**
@@ -155,7 +155,7 @@ GNUNET_TRANSPORT_hello_get (const struct GNUNET_CONFIGURATION_Handle *cfg,
  * @param ghh handle to cancel
  */
 void
-GNUNET_TRANSPORT_hello_get_cancel (struct GNUNET_TRANSPORT_HelloGetHandle *ghh);
+GNUNET_TRANSPORT_hello_get_cancel (struct GNUNET_TRANSPORT_HelloGetHandle *ghh) __attribute__((deprecated));
 
 
 /**
@@ -172,7 +172,7 @@ typedef void (*GNUNET_TRANSPORT_AddressCallback) (
   const struct GNUNET_PeerIdentity *peer,
   const char *address,
   enum GNUNET_NetworkType nt,
-  struct GNUNET_TIME_Absolute expiration);
+  struct GNUNET_TIME_Absolute expiration) __attribute__((deprecated));
 
 
 /**
@@ -187,7 +187,7 @@ typedef void (*GNUNET_TRANSPORT_AddressCallback) (
 int
 GNUNET_TRANSPORT_hello_parse (const struct GNUNET_MessageHeader *hello,
                               GNUNET_TRANSPORT_AddressCallback cb,
-                              void *cb_cls);
+                              void *cb_cls) __attribute__((deprecated));
 
 
 #if 0 /* keep Emacsens' auto-indent happy */

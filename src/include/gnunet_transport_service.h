@@ -60,7 +60,7 @@ extern "C" {
 /**
  * Handle for a #GNUNET_TRANSPORT_offer_hello operation
  */
-struct GNUNET_TRANSPORT_OfferHelloHandle;
+struct GNUNET_TRANSPORT_OfferHelloHandle __attribute__((deprecated));
 
 
 /**
@@ -82,7 +82,7 @@ struct GNUNET_TRANSPORT_OfferHelloHandle *
 GNUNET_TRANSPORT_offer_hello (const struct GNUNET_CONFIGURATION_Handle *cfg,
                               const struct GNUNET_MessageHeader *hello,
                               GNUNET_SCHEDULER_TaskCallback cont,
-                              void *cont_cls);
+                              void *cont_cls) __attribute__((deprecated));
 
 
 /**
@@ -92,7 +92,7 @@ GNUNET_TRANSPORT_offer_hello (const struct GNUNET_CONFIGURATION_Handle *cfg,
  */
 void
 GNUNET_TRANSPORT_offer_hello_cancel (
-  struct GNUNET_TRANSPORT_OfferHelloHandle *ohh);
+  struct GNUNET_TRANSPORT_OfferHelloHandle *ohh) __attribute__((deprecated));
 
 
 /* *********************** Address to String ******************* */
@@ -285,7 +285,7 @@ enum GNUNET_TRANSPORT_PeerState
    * freed (the exception being the cleanup code in #free_neighbour()).
    */
   GNUNET_TRANSPORT_PS_DISCONNECT_FINISHED
-};
+} __attribute__((deprecated));
 
 
 /**
@@ -294,7 +294,7 @@ enum GNUNET_TRANSPORT_PeerState
  * @param state the state
  */
 const char *
-GNUNET_TRANSPORT_ps2s (enum GNUNET_TRANSPORT_PeerState state);
+GNUNET_TRANSPORT_ps2s (enum GNUNET_TRANSPORT_PeerState state) __attribute__((deprecated));
 
 
 /**
@@ -304,13 +304,13 @@ GNUNET_TRANSPORT_ps2s (enum GNUNET_TRANSPORT_PeerState state);
  * @return #GNUNET_YES or #GNUNET_NO
  */
 int
-GNUNET_TRANSPORT_is_connected (enum GNUNET_TRANSPORT_PeerState state);
+GNUNET_TRANSPORT_is_connected (enum GNUNET_TRANSPORT_PeerState state) __attribute__((deprecated));
 
 
 /**
  * Handle for a #GNUNET_TRANSPORT_monitor_peers operation.
  */
-struct GNUNET_TRANSPORT_PeerMonitoringContext;
+struct GNUNET_TRANSPORT_PeerMonitoringContext __attribute__((deprecated));
 
 
 /**
@@ -337,7 +337,7 @@ typedef void
   const struct GNUNET_PeerIdentity *peer,
   const struct GNUNET_HELLO_Address *address,
   enum GNUNET_TRANSPORT_PeerState state,
-  struct GNUNET_TIME_Absolute state_timeout);
+  struct GNUNET_TIME_Absolute state_timeout) __attribute__((deprecated));
 
 
 /**
@@ -373,7 +373,7 @@ GNUNET_TRANSPORT_monitor_peers (
   const struct GNUNET_PeerIdentity *peer,
   int one_shot,
   GNUNET_TRANSPORT_PeerIterateCallback peer_callback,
-  void *peer_callback_cls);
+  void *peer_callback_cls) __attribute__((deprecated)) __attribute__((deprecated));
 
 
 /**
@@ -383,7 +383,7 @@ GNUNET_TRANSPORT_monitor_peers (
  */
 void
 GNUNET_TRANSPORT_monitor_peers_cancel (
-  struct GNUNET_TRANSPORT_PeerMonitoringContext *pic);
+  struct GNUNET_TRANSPORT_PeerMonitoringContext *pic) __attribute__((deprecated)) __attribute__((deprecated));
 
 
 /* *********************** Blacklisting ************************ */
@@ -391,7 +391,7 @@ GNUNET_TRANSPORT_monitor_peers_cancel (
 /**
  * Handle for blacklisting peers.
  */
-struct GNUNET_TRANSPORT_Blacklist;
+struct GNUNET_TRANSPORT_Blacklist __attribute__((deprecated));
 
 
 /**
@@ -404,7 +404,7 @@ struct GNUNET_TRANSPORT_Blacklist;
 typedef int
 (*GNUNET_TRANSPORT_BlacklistCallback) (
   void *cls,
-  const struct GNUNET_PeerIdentity *pid);
+  const struct GNUNET_PeerIdentity *pid) __attribute__((deprecated));
 
 
 /**
@@ -424,7 +424,7 @@ typedef int
 struct GNUNET_TRANSPORT_Blacklist *
 GNUNET_TRANSPORT_blacklist (const struct GNUNET_CONFIGURATION_Handle *cfg,
                             GNUNET_TRANSPORT_BlacklistCallback cb,
-                            void *cb_cls);
+                            void *cb_cls) __attribute__((deprecated));
 
 
 /**
@@ -434,19 +434,19 @@ GNUNET_TRANSPORT_blacklist (const struct GNUNET_CONFIGURATION_Handle *cfg,
  * @param br handle of the request that is to be cancelled
  */
 void
-GNUNET_TRANSPORT_blacklist_cancel (struct GNUNET_TRANSPORT_Blacklist *br);
+GNUNET_TRANSPORT_blacklist_cancel (struct GNUNET_TRANSPORT_Blacklist *br) __attribute__((deprecated));
 
 
 /**
  * Handle for a plugin session state monitor.
  */
-struct GNUNET_TRANSPORT_PluginMonitor;
+struct GNUNET_TRANSPORT_PluginMonitor __attribute__((deprecated));
 
 /**
  * Abstract representation of a plugin's session.
  * Corresponds to the `struct GNUNET_ATS_Session` within the TRANSPORT service.
  */
-struct GNUNET_TRANSPORT_PluginSession;
+struct GNUNET_TRANSPORT_PluginSession __attribute__((deprecated));
 
 
 /**
@@ -480,7 +480,7 @@ enum GNUNET_TRANSPORT_SessionState
    * Last call for each session object.
    */
   GNUNET_TRANSPORT_SS_DONE
-};
+} __attribute__((deprecated));
 
 
 /**
@@ -529,7 +529,7 @@ struct GNUNET_TRANSPORT_SessionInfo
    * Address used by the session.  Can be NULL if none is available.
    */
   const struct GNUNET_HELLO_Address *address;
-};
+} __attribute__((deprecated));
 
 
 /**
@@ -554,7 +554,7 @@ typedef void
   void *cls,
   struct GNUNET_TRANSPORT_PluginSession *session,
   void **session_ctx,
-  const struct GNUNET_TRANSPORT_SessionInfo *info);
+  const struct GNUNET_TRANSPORT_SessionInfo *info) __attribute__((deprecated));
 
 
 /**
@@ -569,7 +569,7 @@ typedef void
 struct GNUNET_TRANSPORT_PluginMonitor *
 GNUNET_TRANSPORT_monitor_plugins (const struct GNUNET_CONFIGURATION_Handle *cfg,
                                   GNUNET_TRANSPORT_SessionMonitorCallback cb,
-                                  void *cb_cls);
+                                  void *cb_cls) __attribute__((deprecated));
 
 
 /**
@@ -581,7 +581,7 @@ GNUNET_TRANSPORT_monitor_plugins (const struct GNUNET_CONFIGURATION_Handle *cfg,
  */
 void
 GNUNET_TRANSPORT_monitor_plugins_cancel (
-  struct GNUNET_TRANSPORT_PluginMonitor *pm);
+  struct GNUNET_TRANSPORT_PluginMonitor *pm) __attribute__((deprecated));
 
 
 /**
@@ -647,7 +647,7 @@ typedef void
 (*GNUNET_TRANSPORT_NotifyExcessBandwidth) (
   void *cls,
   const struct GNUNET_PeerIdentity *neighbour,
-  void *handlers_cls);
+  void *handlers_cls) __attribute__((deprecated));
 
 
 /**
@@ -674,7 +674,7 @@ GNUNET_TRANSPORT_core_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
                                void *cls,
                                GNUNET_TRANSPORT_NotifyConnect nc,
                                GNUNET_TRANSPORT_NotifyDisconnect nd,
-                               GNUNET_TRANSPORT_NotifyExcessBandwidth neb);
+                               GNUNET_TRANSPORT_NotifyExcessBandwidth neb) __attribute__((deprecated));
 
 
 /**

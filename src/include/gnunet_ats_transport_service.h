@@ -171,7 +171,7 @@ GNUNET_ATS_transport_init (const struct GNUNET_CONFIGURATION_Handle *cfg,
                            GNUNET_ATS_AllocationCallback alloc_cb,
                            void *alloc_cb_cls,
                            GNUNET_ATS_SuggestionCallback suggest_cb,
-                           void *suggest_cb_cls);
+                           void *suggest_cb_cls) __attribute__((deprecated));
 
 
 /**
@@ -180,7 +180,7 @@ GNUNET_ATS_transport_init (const struct GNUNET_CONFIGURATION_Handle *cfg,
  * @param ath handle to release
  */
 void
-GNUNET_ATS_transport_done (struct GNUNET_ATS_TransportHandle *ath);
+GNUNET_ATS_transport_done (struct GNUNET_ATS_TransportHandle *ath) __attribute__((deprecated));
 
 
 /**
@@ -208,7 +208,7 @@ GNUNET_ATS_session_add (struct GNUNET_ATS_TransportHandle *ath,
                         const struct GNUNET_PeerIdentity *pid,
                         const char *address,
                         struct GNUNET_ATS_Session *session,
-                        const struct GNUNET_ATS_Properties *prop);
+                        const struct GNUNET_ATS_Properties *prop) __attribute__((deprecated));
 
 
 /**
@@ -220,7 +220,7 @@ GNUNET_ATS_session_add (struct GNUNET_ATS_TransportHandle *ath,
  */
 void
 GNUNET_ATS_session_update (struct GNUNET_ATS_SessionRecord *ar,
-                           const struct GNUNET_ATS_Properties *prop);
+                           const struct GNUNET_ATS_Properties *prop) __attribute__((deprecated));
 
 
 /**
@@ -231,7 +231,7 @@ GNUNET_ATS_session_update (struct GNUNET_ATS_SessionRecord *ar,
  * @param ar session record to drop
  */
 void
-GNUNET_ATS_session_del (struct GNUNET_ATS_SessionRecord *ar);
+GNUNET_ATS_session_del (struct GNUNET_ATS_SessionRecord *ar) __attribute__((deprecated));
 
 
 #endif
