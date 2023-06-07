@@ -40,6 +40,7 @@ extern "C"
 
 struct GNUNET_TESTING_Barrier;
 
+
 /**
  * Callback function to write messages from the helper process running on a netjail node to the master process.
  *
@@ -48,7 +49,7 @@ struct GNUNET_TESTING_Barrier;
  */
 typedef void
 (*GNUNET_TESTING_cmd_helper_write_cb) (struct GNUNET_MessageHeader *message,
-                                size_t msg_length);
+                                       size_t msg_length);
 
 /**
  * Callback function which writes a message from the helper process running on a netjail node to the master process * signaling that the test case running on the netjail node finished.
@@ -70,7 +71,7 @@ typedef void
  *        the topology configuration.
  * @param read_file If read_file is GNUNET_YES this string is the filename for the topology configuration,
  *        if read_file is GNUNET_NO the string contains the topology configuration.
- * @param finish_cb Callback function which writes a message from the helper process running on a netjail 
+ * @param finish_cb Callback function which writes a message from the helper process running on a netjail
  *                  node to the master process * signaling that the test case running on the netjail node finished.
  * @return Returns The struct GNUNET_TESTING_Interpreter of the command loop running on this netjail node.
  */
@@ -84,7 +85,8 @@ typedef struct GNUNET_TESTING_Interpreter *
                                         const char *local_m,
                                         const char *topology_data,
                                         unsigned int *read_file,
-                                        GNUNET_TESTING_cmd_helper_finish_cb finish_cb);
+                                        GNUNET_TESTING_cmd_helper_finish_cb
+                                        finish_cb);
 
 /**
  * DEPRECATED
