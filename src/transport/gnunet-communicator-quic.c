@@ -29,11 +29,13 @@
     sizeof(struct sockaddr_storage) + \
     QUICHE_MAX_CONN_ID_LEN
 
+/**
+ * Map of DCID (uint8_t) -> quic_conn for quickly retrieving connections to other peers.
+ */
+struct GNUNET_CONTAINER_MultiHashMap *conn_map;
+
 static const struct GNUNET_CONFIGURATION_Handle *cfg;
 static struct GNUNET_TIME_Relative rekey_interval;
-/**
- * the socket to transmit data on
-*/
 static struct GNUNET_NETWORK_Handle *udp_sock;
 // static struct GNUNET_STATISTICS_Handle *stats;
 // static struct GNUNET_CONTAINER_MultiPeerMap *senders;
@@ -59,8 +61,10 @@ static int have_v6_socket;
 static uint16_t my_port;
 static unsigned long long rekey_max_bytes;
 
-struct quiche_conn *conn;
-
+/**
+ * QUIC connection object. A connection has a unique SCID/DCID pair. Here we store our SCID
+ * (incoming packet DCID field == outgoing packet SCID field) for a given connection.
+*/
 struct quic_conn {
 
     uint8_t cid[LOCAL_CONN_ID_LEN];
@@ -88,7 +92,6 @@ static uint64_t gen_streamid()
    * 0x02: client-initiated, unidirectional
    * 0x03: server-initiated, unidirectional
   */
-
   return sid;
 }
 
@@ -304,8 +307,7 @@ sock_read (void *cls)
    *
    * - create structure for individual connections (how many can we have concurrently)
   */
-  struct quic_conn *tmp_conn;
-
+  struct quic_conn *conn;
 
   uint8_t new_cid[LOCAL_CONN_ID_LEN];
   uint8_t type;
@@ -332,9 +334,43 @@ sock_read (void *cls)
   }
 
   /* look for connection in hashtable */
+  /* each connection to the peer should have a unique incoming DCID */
+  /* check against a conn SCID */
+  struct GNUNET_HashCode *conn_key;
+  GNUNET_CRYPTO_hash(dcid, sizeof(dcid), conn_key);
+  conn = GNUNET_CONTAINER_multihashmap_get(conn_map, conn_key);
 
+  if (NULL == conn)
+  {
+    /**
+     * create_conn(), error check for problems with creation
+    */
+  }
 
+  /**
+   * TODO: today finish sock_read, make create_conn, get compilation working
+  */
+  char *bindto;
+  socklen_t in_len;
+  if (GNUNET_OK !=
+    GNUNET_CONFIGURATION_get_value_string (cfg,
+                                            COMMUNICATOR_CONFIG_SECTION,
+                                            "BINDTO",
+                                            &bindto))
+  {
+      GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
+                              COMMUNICATOR_CONFIG_SECTION,
+                              "BINDTO");
+      return;
+  }
+  struct sock_addr *recv_sock = udp_address_to_sockaddr(bindto, in_len);
+  quiche_recv_info recv_info = {
+    (struct sockaddr *)&sa,
+    salen,
 
+    recv_sock,
+    in_len,
+  };
 
   // if (rcvd > sizeof(struct UDPRekey))
   // {
@@ -700,6 +736,7 @@ main(int argc, char *const *argv)
    * Setup QUICHE configuration
   */
   quiche_config *quiche_conf = quiche_config_new(QUICHE_PROTOCOL_VERSION);
+  conn_map = GNUNET_CONTAINER_multihashmap_create(2, GNUNET_NO);
 
   static const struct GNUNET_GETOPT_CommandLineOption options[] = {
   GNUNET_GETOPT_OPTION_END
