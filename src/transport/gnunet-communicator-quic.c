@@ -330,7 +330,10 @@ sock_read (void *cls)
                                     token, &token_len);
   if (rc < 0)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "failed to parse quic header: %d", rc);
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "failed to parse quic header: %d\n",
+                rc);
+    return;
   }
 
   /* look for connection in hashtable */
@@ -371,6 +374,27 @@ sock_read (void *cls)
     recv_sock,
     in_len,
   };
+
+  ssize_t process_pkt = quiche_conn_recv(conn, buf, rcvd, &recv_info);
+
+  if (0 > process_pkt)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "quiche failed to process received packet: %zd\n",
+                process_pkt);
+    return;
+  }
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "quiche processed %zd bytes\n", process_pkt);
+
+  /**
+   * Check for connection establishment
+  */
+ if (quiche_conn_is_established(conn))
+ {
+    uint64_t s = 0;
+ }
 
   // if (rcvd > sizeof(struct UDPRekey))
   // {
