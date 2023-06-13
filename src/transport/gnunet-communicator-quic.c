@@ -8,17 +8,16 @@
 #include "gnunet_statistics_service.h"
 #include "gnunet_transport_application_service.h"
 #include "gnunet_transport_communication_service.h"
-
 #include "gnunet_nt_lib.h"
 #include "gnunet_nat_service.h"
 
-
+#include "stdint.h"
+#include "inttypes.h"
 #define DEFAULT_REKEY_TIME_INTERVAL GNUNET_TIME_UNIT_DAYS
 #define COMMUNICATOR_CONFIG_SECTION "communicator-quic"
 #define DEFAULT_REKEY_MAX_BYTES (1024LLU * 1024 * 1024 * 4LLU)
 #define COMMUNICATOR_ADDRESS_PREFIX "quic"
-
-
+#define MAX_DATAGRAM_SIZE 1350
 // #define STREAM_ID_MAX (UINT64_MAX - (0b11 << 62))
 // #define STREAM_ID_MAX UINT64_MAX - 0xC000000000000000
 
@@ -77,7 +76,8 @@ struct quic_conn {
  * Generate a unique stream ID with indicated stream type
  * quiche library has QUICHE_MAX_CONN_ID_LEN = 20?
 */
-static uint64_t gen_streamid()
+static uint64_t
+gen_streamid()
 {
   uint64_t sid;
   // sid = GNUNET_CRYPTO_random_u64(GNUNET_CRYPTO_QUALITY_STRONG, STREAM_ID_MAX);
@@ -98,9 +98,43 @@ static uint64_t gen_streamid()
 /**
  * Generate a new connection ID
 */
-static uint8_t *gen_cid(uint8_t *cid, size_t cid_len)
+static uint8_t*
+gen_cid(uint8_t *cid, size_t cid_len)
 {
+  /**
+   * NOTE: come back and fix
+  */
   int rand_cid = GNUNET_CRYPTO_random_u32(GNUNET_CRYPTO_QUALITY_STRONG, UINT8_MAX);
+}
+
+/**
+ * Given a quiche connection and buffer, recv data from streams and store into buffer
+*/
+static void
+recv_from_streams(quiche_conn *conn, char buf[])
+{
+  uint64_t s = 0;
+  quiche_stream_iter *readable = quiche_conn_readable(conn);
+  while (quiche_stream_iter_next(readable, &s)) {
+    GNUNET_log(GNUNET_ERROR_TYPE_DEBUG,  "stream %" PRIu64 " is readable\n", s);
+    bool fin = false;
+    ssize_t recv_len = quiche_conn_stream_recv(conn, s,
+                                                (uint8_t *) buf, sizeof(buf),
+                                                &fin);
+    if (recv_len < 0) {
+        break;
+    }
+    /**
+     * Received and processed plaintext from peer: send to core/transport service
+    */
+    GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "msg received: %s\n", buf);
+    if (fin) {
+        static const char *resp = "byez\n";
+        quiche_conn_stream_send(conn, s, (uint8_t *) resp,
+                                5, true);
+    }
+  }
+  quiche_stream_iter_free(readable);
 }
 
 /**
@@ -280,6 +314,7 @@ sock_read (void *cls)
   struct sockaddr_in *addr_verify;
   socklen_t salen = sizeof(sa);
   char buf[UINT16_MAX];
+  char out[MAX_DATAGRAM_SIZE];
   ssize_t rcvd;
   (void) cls;
   read_task = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
@@ -343,16 +378,52 @@ sock_read (void *cls)
   GNUNET_CRYPTO_hash(dcid, sizeof(dcid), conn_key);
   conn = GNUNET_CONTAINER_multihashmap_get(conn_map, conn_key);
 
+  /**
+   * New QUIC connection with peer
+  */
   if (NULL == conn)
   {
-    /**
-     * create_conn(), error check for problems with creation
-    */
-  }
+    if (0 == quiche_version_is_supported(version))
+    {
+      GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "quic version negotiation initiated\n");
+      /**
+       * Write a version negotiation packet to "out"
+      */
+      ssize_t written = quiche_negotiate_version(scid, scid_len,
+                                               dcid, dcid_len,
+                                               out, sizeof(out));
+      if (0 > written)
+      {
+        GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "quiche failed to generate version negotiation packet\n");
+      }
+      ssize_t sent = GNUNET_NETWORK_socket_sendto(udp_sock,
+                                                  out,
+                                                  written,
+                                                  (struct sockaddr*) &sa,
+                                                  salen);
+      if (sent != written)
+      {
+        GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "failed to send version negotiation packet to peer\n");
+      }
+      GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "sent %zd bytes to peer during version negotiation\n", sent);
+    }
 
-  /**
-   * TODO: today finish sock_read, make create_conn, get compilation working
-  */
+    if (0 == token_len)
+    {
+      GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "quic stateless retry\n");
+      // mint_token(dcid, dcid_len, &sa, salen,
+      //            token, &token_len);
+
+      // uint8_t new_cid[LOCAL_CONN_ID_LEN];
+      // gen_cid(new_cid, LOCAL_CONN_ID_LEN);
+
+      // ssize_t written = quiche_retry(scid, scid_len,
+      //                                dcid, dcid_len,
+      //                                new_cid, LOCAL_CONN_ID_LEN,
+      //                                token, token_len,
+      //                                version, out, sizeof(out));
+    }
+  } // null connection
   char *bindto;
   socklen_t in_len;
   if (GNUNET_OK !=
@@ -391,11 +462,11 @@ sock_read (void *cls)
   /**
    * Check for connection establishment
   */
- if (quiche_conn_is_established(conn))
- {
-    uint64_t s = 0;
- }
-
+  if (quiche_conn_is_established(conn))
+  {
+    // Check for data on all available streams
+    recv_from_streams(conn, buf);
+  }
   // if (rcvd > sizeof(struct UDPRekey))
   // {
   //   const struct UDPRekey *rekey;
