@@ -109,9 +109,10 @@ gen_cid(uint8_t *cid, size_t cid_len)
 
 /**
  * Given a quiche connection and buffer, recv data from streams and store into buffer
+ * ASSUMES: connection is established to peer
 */
 static void
-recv_from_streams(quiche_conn *conn, char buf[])
+recv_from_streams(quiche_conn *conn, char stream_buf[])
 {
   uint64_t s = 0;
   quiche_stream_iter *readable = quiche_conn_readable(conn);
@@ -119,22 +120,34 @@ recv_from_streams(quiche_conn *conn, char buf[])
     GNUNET_log(GNUNET_ERROR_TYPE_DEBUG,  "stream %" PRIu64 " is readable\n", s);
     bool fin = false;
     ssize_t recv_len = quiche_conn_stream_recv(conn, s,
-                                                (uint8_t *) buf, sizeof(buf),
-                                                &fin);
+                                               stream_buf, sizeof(stream_buf),
+                                               &fin);
     if (recv_len < 0) {
         break;
     }
     /**
      * Received and processed plaintext from peer: send to core/transport service
     */
-    GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "msg received: %s\n", buf);
+    GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "msg received: %s\n", stream_buf);
     if (fin) {
         static const char *resp = "byez\n";
-        quiche_conn_stream_send(conn, s, (uint8_t *) resp,
+        quiche_conn_stream_send(conn, s, resp,
                                 5, true);
     }
   }
   quiche_stream_iter_free(readable);
+}
+
+static void
+mint_token (const uint8_t *dcid, size_t dcid_len,
+            struct sockaddr_storage *addr, socklen_t addr_len,
+            uint8_t *token, size_t *token_len)
+{
+  GNUNET_memcpy(token, "quiche", sizeof("quiche") - 1);
+  GNUNET_memcpy(token + sizeof("quiche") - 1, addr, addr_len);
+  GNUNET_memcpy(token + sizeof("quiche") - 1 + addr_len, dcid, dcid_len);
+
+  *token_len = sizeof("quiche") - 1 + addr_len + dcid_len;
 }
 
 /**
@@ -374,9 +387,9 @@ sock_read (void *cls)
   /* look for connection in hashtable */
   /* each connection to the peer should have a unique incoming DCID */
   /* check against a conn SCID */
-  struct GNUNET_HashCode *conn_key;
-  GNUNET_CRYPTO_hash(dcid, sizeof(dcid), conn_key);
-  conn = GNUNET_CONTAINER_multihashmap_get(conn_map, conn_key);
+  struct GNUNET_HashCode conn_key;
+  GNUNET_CRYPTO_hash(dcid, sizeof(dcid), &conn_key);
+  conn = GNUNET_CONTAINER_multihashmap_get(conn_map, &conn_key);
 
   /**
    * New QUIC connection with peer
@@ -411,18 +424,19 @@ sock_read (void *cls)
     if (0 == token_len)
     {
       GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "quic stateless retry\n");
-      // mint_token(dcid, dcid_len, &sa, salen,
-      //            token, &token_len);
+      mint_token(dcid, dcid_len, &sa, salen,
+                 token, &token_len);
 
-      // uint8_t new_cid[LOCAL_CONN_ID_LEN];
-      // gen_cid(new_cid, LOCAL_CONN_ID_LEN);
+      uint8_t new_cid[LOCAL_CONN_ID_LEN];
+      gen_cid(new_cid, LOCAL_CONN_ID_LEN);
 
-      // ssize_t written = quiche_retry(scid, scid_len,
-      //                                dcid, dcid_len,
-      //                                new_cid, LOCAL_CONN_ID_LEN,
-      //                                token, token_len,
-      //                                version, out, sizeof(out));
+      ssize_t written = quiche_retry(scid, scid_len,
+                                     dcid, dcid_len,
+                                     new_cid, LOCAL_CONN_ID_LEN,
+                                     token, token_len,
+                                     version, out, sizeof(out));
     }
+
   } // null connection
   char *bindto;
   socklen_t in_len;
@@ -465,8 +479,15 @@ sock_read (void *cls)
   if (quiche_conn_is_established(conn))
   {
     // Check for data on all available streams
-    recv_from_streams(conn, buf);
+    char stream_buf[UINT16_MAX];
+    recv_from_streams(conn, stream_buf);
   }
+
+  /**
+   * Connection cleanup, check for closed connections, delete entries, print stats
+  */
+
+
   // if (rcvd > sizeof(struct UDPRekey))
   // {
   //   const struct UDPRekey *rekey;
