@@ -27,7 +27,6 @@
 #include "gnunet-daemon-hostlist_client.h"
 #include "gnunet_hello_lib.h"
 #include "gnunet_statistics_service.h"
-#include "gnunet_transport_service.h"
 #include "gnunet_peerinfo_service.h"
 #include "gnunet-daemon-hostlist.h"
 /* Just included for the right curl.h */

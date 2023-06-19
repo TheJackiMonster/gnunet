@@ -26,14 +26,12 @@
  */
 #include "platform.h"
 #include "gnunet-service-core_kx.h"
-#include "gnunet-service-core.h"
+#include "gnunet_transport_core_service.h"
 #include "gnunet-service-core_sessions.h"
-#include "gnunet_statistics_service.h"
-#include "gnunet_transport_service.h"
+#include "gnunet-service-core.h"
 #include "gnunet_constants.h"
 #include "gnunet_signatures.h"
 #include "gnunet_protocols.h"
-#include "core.h"
 
 /**
  * Enable expensive (and possibly problematic for privacy!) logging of KX.
@@ -1678,28 +1676,6 @@ handle_encrypted (void *cls, const struct EncryptedMessage *m)
 
 
 /**
- * One of our neighbours has excess bandwidth, remember this.
- *
- * @param cls NULL
- * @param pid identity of the peer with excess bandwidth
- * @param connect_cls the `struct Neighbour`
- */
-static void
-handle_transport_notify_excess_bw (void *cls,
-                                   const struct GNUNET_PeerIdentity *pid,
-                                   void *connect_cls)
-{
-  struct GSC_KeyExchangeInfo *kx = connect_cls;
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Peer %s has excess bandwidth available\n",
-              GNUNET_i2s (pid));
-  kx->has_excess_bandwidth = GNUNET_YES;
-  GSC_SESSIONS_solicit (pid);
-}
-
-
-/**
  * Setup the message that links the ephemeral key to our persistent
  * public key and generate the appropriate signature.
  */
@@ -1835,8 +1811,7 @@ GSC_KX_init (struct GNUNET_CRYPTO_EddsaPrivateKey *pk)
                                    handlers,
                                    NULL,
                                    &handle_transport_notify_connect,
-                                   &handle_transport_notify_disconnect,
-                                   &handle_transport_notify_excess_bw);
+                                   &handle_transport_notify_disconnect);
   if (NULL == transport)
   {
     GSC_KX_done ();

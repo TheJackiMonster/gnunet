@@ -36,6 +36,7 @@
 #include "gnunet_util_lib.h"
 #include "cadet.h"
 #include "gnunet_statistics_service.h"
+#include "gnunet_transport_application_service.h"
 #include "gnunet-service-cadet.h"
 #include "gnunet-service-cadet_channel.h"
 #include "gnunet-service-cadet_connection.h"
@@ -45,6 +46,8 @@
 #include "gnunet-service-cadet_tunnels.h"
 #include "gnunet-service-cadet_peer.h"
 #include "gnunet-service-cadet_paths.h"
+#include "gnunet_constants.h"
+
 
 #define LOG(level, ...) GNUNET_log (level, __VA_ARGS__)
 
@@ -116,9 +119,9 @@ const struct GNUNET_CONFIGURATION_Handle *cfg;
 struct GNUNET_STATISTICS_Handle *stats;
 
 /**
- * Handle to communicate with ATS.
+ * Handle to Transport service.
  */
-struct GNUNET_ATS_ConnectivityHandle *ats_ch;
+struct GNUNET_TRANSPORT_ApplicationHandle *transport;
 
 /**
  * Local peer own ID.
@@ -408,10 +411,10 @@ shutdown_rest ()
     GNUNET_CONTAINER_multishortmap_destroy (connections);
     connections = NULL;
   }
-  if (NULL != ats_ch)
+  if (NULL != transport)
   {
-    GNUNET_ATS_connectivity_done (ats_ch);
-    ats_ch = NULL;
+    GNUNET_TRANSPORT_application_done (transport);
+    transport = NULL;
   }
   GCD_shutdown ();
   GCH_shutdown ();
@@ -1278,28 +1281,7 @@ run (void *cls,
   {
     drop_percent = 0;
   }
-  else
-  {
-    LOG (GNUNET_ERROR_TYPE_WARNING, "**************************************\n");
-    LOG (GNUNET_ERROR_TYPE_WARNING, "Cadet is running with DROP enabled.\n");
-    LOG (GNUNET_ERROR_TYPE_WARNING, "This is NOT a good idea!\n");
-    LOG (GNUNET_ERROR_TYPE_WARNING, "Remove DROP_PERCENT from config file.\n");
-    LOG (GNUNET_ERROR_TYPE_WARNING, "**************************************\n");
-  }
-  my_private_key = GNUNET_CRYPTO_eddsa_key_create_from_configuration (c);
-  if (NULL == my_private_key)
-  {
-    GNUNET_break (0);
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
-  GNUNET_CRYPTO_eddsa_key_get_public (my_private_key,
-                                      &my_full_id.public_key);
-  stats = GNUNET_STATISTICS_create ("cadet",
-                                    c);
-  GNUNET_SCHEDULER_add_shutdown (&shutdown_task,
-                                 NULL);
-  ats_ch = GNUNET_ATS_connectivity_init (c);
+  transport = GNUNET_TRANSPORT_application_init (c);
   /* FIXME: optimize code to allow GNUNET_YES here! */
   open_ports = GNUNET_CONTAINER_multihashmap_create (16,
                                                      GNUNET_NO);

@@ -94,11 +94,6 @@ struct GSF_PeerTransmitHandle
   int is_query;
 
   /**
-   * Did we get a reservation already?
-   */
-  int was_reserved;
-
-  /**
    * Priority of this request.
    */
   uint32_t priority;
@@ -210,11 +205,6 @@ struct GSF_ConnectedPeer
   struct GSF_DelayedHandle *delayed_tail;
 
   /**
-   * Context of our GNUNET_ATS_reserve_bandwidth call (or NULL).
-   */
-  struct GNUNET_ATS_ReservationContext *rc;
-
-  /**
    * Task scheduled if we need to retry bandwidth reservation later.
    */
   struct GNUNET_SCHEDULER_Task *rc_delay_task;
@@ -262,12 +252,6 @@ struct GSF_ConnectedPeer
    * Current offset into @e last_request_times ring buffer.
    */
   unsigned int last_request_times_off;
-
-  /**
-   * #GNUNET_YES if we did successfully reserve 32k bandwidth,
-   * #GNUNET_NO if not.
-   */
-  int did_reserve;
 
   /**
    * Handle to the PEERSTORE iterate request for peer respect value
@@ -335,23 +319,6 @@ peer_transmit (struct GSF_ConnectedPeer *cp);
 
 
 /**
- * Function called by core upon success or failure of our bandwidth reservation request.
- *
- * @param cls the `struct GSF_ConnectedPeer` of the peer for which we made the request
- * @param peer identifies the peer
- * @param amount set to the amount that was actually reserved or unreserved;
- *               either the full requested amount or zero (no partial reservations)
- * @param res_delay if the reservation could not be satisfied (amount was 0), how
- *        long should the client wait until re-trying?
- */
-static void
-ats_reserve_callback (void *cls,
-                      const struct GNUNET_PeerIdentity *peer,
-                      int32_t amount,
-                      struct GNUNET_TIME_Relative res_delay);
-
-
-/**
  * If ready (bandwidth reserved), try to schedule transmission via
  * core for the given handle.
  *
@@ -367,32 +334,6 @@ schedule_transmission (struct GSF_PeerTransmitHandle *pth)
   GNUNET_assert (0 != cp->ppd.pid);
   GNUNET_PEER_resolve (cp->ppd.pid, &target);
 
-  if (0 != cp->inc_preference)
-  {
-    GNUNET_ATS_performance_change_preference (GSF_ats,
-                                              &target,
-                                              GNUNET_ATS_PREFERENCE_BANDWIDTH,
-                                              (double) cp->inc_preference,
-                                              GNUNET_ATS_PREFERENCE_END);
-    cp->inc_preference = 0;
-  }
-
-  if ((GNUNET_YES == pth->is_query) &&
-      (GNUNET_YES != pth->was_reserved))
-  {
-    /* query, need reservation */
-    if (GNUNET_YES != cp->did_reserve)
-      return;                   /* not ready */
-    cp->did_reserve = GNUNET_NO;
-    /* reservation already done! */
-    pth->was_reserved = GNUNET_YES;
-    cp->rc = GNUNET_ATS_reserve_bandwidth (GSF_ats,
-                                           &target,
-                                           DBLOCK_SIZE,
-                                           &ats_reserve_callback,
-                                           cp);
-    return;
-  }
   peer_transmit (cp);
 }
 
@@ -434,69 +375,6 @@ peer_transmit (struct GSF_ConnectedPeer *cp)
   {
     GNUNET_assert (pos != pth);
     schedule_transmission (pos);
-  }
-}
-
-
-/**
- * (re)try to reserve bandwidth from the given peer.
- *
- * @param cls the `struct GSF_ConnectedPeer` to reserve from
- */
-static void
-retry_reservation (void *cls)
-{
-  struct GSF_ConnectedPeer *cp = cls;
-  struct GNUNET_PeerIdentity target;
-
-  GNUNET_PEER_resolve (cp->ppd.pid, &target);
-  cp->rc_delay_task = NULL;
-  cp->rc =
-    GNUNET_ATS_reserve_bandwidth (GSF_ats,
-                                  &target,
-                                  DBLOCK_SIZE,
-                                  &ats_reserve_callback, cp);
-}
-
-
-/**
- * Function called by core upon success or failure of our bandwidth reservation request.
- *
- * @param cls the `struct GSF_ConnectedPeer` of the peer for which we made the request
- * @param peer identifies the peer
- * @param amount set to the amount that was actually reserved or unreserved;
- *               either the full requested amount or zero (no partial reservations)
- * @param res_delay if the reservation could not be satisfied (amount was 0), how
- *        long should the client wait until re-trying?
- */
-static void
-ats_reserve_callback (void *cls,
-                      const struct GNUNET_PeerIdentity *peer,
-                      int32_t amount,
-                      struct GNUNET_TIME_Relative res_delay)
-{
-  struct GSF_ConnectedPeer *cp = cls;
-  struct GSF_PeerTransmitHandle *pth;
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Reserved %d bytes / need to wait %s for reservation\n",
-              (int) amount,
-              GNUNET_STRINGS_relative_time_to_string (res_delay, GNUNET_YES));
-  cp->rc = NULL;
-  if (0 == amount)
-  {
-    cp->rc_delay_task =
-      GNUNET_SCHEDULER_add_delayed (res_delay,
-                                    &retry_reservation,
-                                    cp);
-    return;
-  }
-  cp->did_reserve = GNUNET_YES;
-  pth = cp->pth_head;
-  if (NULL != pth)
-  {
-    /* reservation success, try transmission now! */
-    peer_transmit (cp);
   }
 }
 
@@ -584,11 +462,7 @@ GSF_peer_connect_handler (void *cls,
   cp->ppd.peer = peer;
   cp->mq = mq;
   cp->ppd.transmission_delay = GNUNET_LOAD_value_init (GNUNET_TIME_UNIT_ZERO);
-  cp->rc =
-    GNUNET_ATS_reserve_bandwidth (GSF_ats,
-                                  peer,
-                                  DBLOCK_SIZE,
-                                  &ats_reserve_callback, cp);
+
   cp->request_map = GNUNET_CONTAINER_multihashmap_create (128,
                                                           GNUNET_YES);
   GNUNET_break (GNUNET_OK ==
@@ -1498,16 +1372,6 @@ GSF_peer_disconnect_handler (void *cls,
   {
     GNUNET_PEERSTORE_iterate_cancel (cp->respect_iterate_req);
     cp->respect_iterate_req = NULL;
-  }
-  if (NULL != cp->rc)
-  {
-    GNUNET_ATS_reserve_bandwidth_cancel (cp->rc);
-    cp->rc = NULL;
-  }
-  if (NULL != cp->rc_delay_task)
-  {
-    GNUNET_SCHEDULER_cancel (cp->rc_delay_task);
-    cp->rc_delay_task = NULL;
   }
   GNUNET_CONTAINER_multihashmap_iterate (cp->request_map,
                                          &cancel_pending_request,

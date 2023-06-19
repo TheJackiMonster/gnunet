@@ -30,6 +30,7 @@
 #include "gnunet-service-core_kx.h"
 #include "gnunet-service-core_sessions.h"
 #include "gnunet-service-core_typemap.h"
+#include "gnunet_constants.h"
 
 /**
  * How many messages do we queue up at most for any client? This can

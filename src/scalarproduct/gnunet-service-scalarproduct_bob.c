@@ -35,6 +35,7 @@
 #include "gnunet_seti_service.h"
 #include "scalarproduct.h"
 #include "gnunet-service-scalarproduct.h"
+#include "gnunet_constants.h"
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "scalarproduct-bob", __VA_ARGS__)
 

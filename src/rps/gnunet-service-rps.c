@@ -36,6 +36,7 @@
 #include "gnunet-service-rps_sampler.h"
 #include "gnunet-service-rps_custommap.h"
 #include "gnunet-service-rps_view.h"
+#include "gnunet_constants.h"
 
 #include <math.h>
 #include <inttypes.h>

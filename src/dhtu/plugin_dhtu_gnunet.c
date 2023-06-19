@@ -26,40 +26,11 @@
  */
 #include "platform.h"
 #include "gnunet_dhtu_plugin.h"
-#include "gnunet_ats_service.h"
 #include "gnunet_core_service.h"
-#include "gnunet_transport_service.h"
+#include "gnunet_transport_application_service.h"
 #include "gnunet_hello_lib.h"
 #include "gnunet_peerinfo_service.h"
 #include "gnunet_nse_service.h"
-
-
-/**
- * Handle for a HELLO we're offering the transport.
- */
-struct HelloHandle
-{
-  /**
-   * Kept in a DLL.
-   */
-  struct HelloHandle *next;
-
-  /**
-   * Kept in a DLL.
-   */
-  struct HelloHandle *prev;
-
-  /**
-   * Our plugin.
-   */
-  struct Plugin *plugin;
-
-  /**
-   * Offer handle.
-   */
-  struct GNUNET_TRANSPORT_OfferHelloHandle *ohh;
-
-};
 
 
 /**
@@ -110,9 +81,9 @@ struct GNUNET_DHTU_Target
   struct GNUNET_DHTU_PreferenceHandle *ph_tail;
 
   /**
-   * ATS preference handle for this peer, or NULL.
+   * Transport suggest handle.
    */
-  struct GNUNET_ATS_ConnectivitySuggestHandle *csh;
+  struct GNUNET_TRANSPORT_ApplicationSuggestHandle *ash;
 
   /**
    * Identity of this peer.
@@ -173,9 +144,9 @@ struct Plugin
   struct GNUNET_CORE_Handle *core;
 
   /**
-   * Handle to ATS service.
+   * Handle to Transport service.
    */
-  struct GNUNET_ATS_ConnectivityHandle *ats;
+  struct GNUNET_TRANSPORT_ApplicationHandle *transport;
 
   /**
    * Handle to the NSE service.
@@ -188,39 +159,11 @@ struct Plugin
   struct GNUNET_PEERINFO_NotifyContext *nc;
 
   /**
-   * Hellos we are offering to transport.
-   */
-  struct HelloHandle *hh_head;
-
-  /**
-   * Hellos we are offering to transport.
-   */
-  struct HelloHandle *hh_tail;
-
-  /**
    * Identity of this peer.
    */
   struct GNUNET_PeerIdentity my_identity;
 
 };
-
-
-/**
- * Function called once a hello offer is completed.
- *
- * @param cls a `struct HelloHandle`
- */
-static void
-hello_offered_cb (void *cls)
-{
-  struct HelloHandle *hh = cls;
-  struct Plugin *plugin = hh->plugin;
-
-  GNUNET_CONTAINER_DLL_remove (plugin->hh_head,
-                               plugin->hh_tail,
-                               hh);
-  GNUNET_free (hh);
-}
 
 
 #include "../peerinfo-tool/gnunet-peerinfo_plugins.c"
@@ -239,27 +182,12 @@ gnunet_try_connect (void *cls,
                     const char *address)
 {
   struct Plugin *plugin = cls;
-  struct GNUNET_HELLO_Message *hello = NULL;
-  struct HelloHandle *hh;
-  struct GNUNET_CRYPTO_EddsaPublicKey pubkey;
+  enum GNUNET_NetworkType nt = 0;
 
-  (void) pid; /* will be needed with future address URIs */
-  if (GNUNET_OK !=
-      GNUNET_HELLO_parse_uri (address,
-                              &pubkey,
-                              &hello,
-                              &GPI_plugins_find))
-    return;
-  hh = GNUNET_new (struct HelloHandle);
-  hh->plugin = plugin;
-  GNUNET_CONTAINER_DLL_insert (plugin->hh_head,
-                               plugin->hh_tail,
-                               hh);
-  hh->ohh = GNUNET_TRANSPORT_offer_hello (plugin->env->cfg,
-                                          &hello->header,
-                                          &hello_offered_cb,
-                                          hh);
-  GNUNET_free (hello);
+  GNUNET_TRANSPORT_application_validate (plugin->transport,
+                                         pid,
+                                         nt,
+                                         address);
 }
 
 
@@ -277,6 +205,7 @@ gnunet_hold (void *cls,
 {
   struct Plugin *plugin = cls;
   struct GNUNET_DHTU_PreferenceHandle *ph;
+  struct GNUNET_BANDWIDTH_Value32NBO bw;
 
   ph = GNUNET_new (struct GNUNET_DHTU_PreferenceHandle);
   ph->target = target;
@@ -284,12 +213,13 @@ gnunet_hold (void *cls,
                                target->ph_tail,
                                ph);
   target->ph_count++;
-  if (NULL != target->csh)
-    GNUNET_ATS_connectivity_suggest_cancel (target->csh);
-  target->csh
-    = GNUNET_ATS_connectivity_suggest (plugin->ats,
-                                       &target->pid,
-                                       target->ph_count);
+  if (NULL != target->ash)
+    GNUNET_TRANSPORT_application_suggest_cancel (target->ash);
+  target->ash
+    = GNUNET_TRANSPORT_application_suggest (plugin->transport,
+                                            &target->pid,
+                                            GNUNET_MQ_PRIO_BEST_EFFORT,
+                                            bw);
   return ph;
 }
 
@@ -305,21 +235,23 @@ gnunet_drop (struct GNUNET_DHTU_PreferenceHandle *ph)
 {
   struct GNUNET_DHTU_Target *target = ph->target;
   struct Plugin *plugin = target->plugin;
+  struct GNUNET_BANDWIDTH_Value32NBO bw;
 
   GNUNET_CONTAINER_DLL_remove (target->ph_head,
                                target->ph_tail,
                                ph);
   target->ph_count--;
   GNUNET_free (ph);
-  if (NULL != target->csh)
-    GNUNET_ATS_connectivity_suggest_cancel (target->csh);
+  if (NULL != target->ash)
+    GNUNET_TRANSPORT_application_suggest_cancel (target->ash);
   if (0 == target->ph_count)
-    target->csh = NULL;
+    target->ash = NULL;
   else
-    target->csh
-      = GNUNET_ATS_connectivity_suggest (plugin->ats,
-                                         &target->pid,
-                                         target->ph_count);
+    target->ash
+      = GNUNET_TRANSPORT_application_suggest (plugin->transport,
+                                              &target->pid,
+                                              GNUNET_MQ_PRIO_BEST_EFFORT,
+                                              bw);
 }
 
 
@@ -408,8 +340,8 @@ core_disconnect_cb (void *cls,
   struct GNUNET_DHTU_Target *target = peer_cls;
 
   plugin->env->disconnect_cb (target->app_ctx);
-  if (NULL != target->csh)
-    GNUNET_ATS_connectivity_suggest_cancel (target->csh);
+  if (NULL != target->ash)
+    GNUNET_TRANSPORT_application_suggest_cancel (target->ash);
   GNUNET_free (target);
 }
 
@@ -556,14 +488,6 @@ libgnunet_plugin_dhtu_gnunet_done (void *cls)
   struct Plugin *plugin = api->cls;
   struct HelloHandle *hh;
 
-  while (NULL != (hh = plugin->hh_head))
-  {
-    GNUNET_CONTAINER_DLL_remove (plugin->hh_head,
-                                 plugin->hh_tail,
-                                 hh);
-    GNUNET_TRANSPORT_offer_hello_cancel (hh->ohh);
-    GNUNET_free (hh);
-  }
   if (NULL != plugin->nse)
     GNUNET_NSE_disconnect (plugin->nse);
   plugin->env->network_size_cb (plugin->env->cls,
@@ -572,8 +496,8 @@ libgnunet_plugin_dhtu_gnunet_done (void *cls)
                                 0.0);
   if (NULL != plugin->core)
     GNUNET_CORE_disconnect (plugin->core);
-  if (NULL != plugin->ats)
-    GNUNET_ATS_connectivity_done (plugin->ats);
+  if (NULL != plugin->transport)
+    GNUNET_TRANSPORT_application_done (plugin->transport);
   if (NULL != plugin->nc)
     GNUNET_PEERINFO_notify_cancel (plugin->nc);
   GPI_plugins_unload ();
@@ -611,7 +535,7 @@ libgnunet_plugin_dhtu_gnunet_init (void *cls)
   api->hold = &gnunet_hold;
   api->drop = &gnunet_drop;
   api->send = &gnunet_send;
-  plugin->ats = GNUNET_ATS_connectivity_init (env->cfg);
+  plugin->transport = GNUNET_TRANSPORT_application_init (env->cfg);
   plugin->core = GNUNET_CORE_connect (env->cfg,
                                       plugin,
                                       &core_init_cb,
@@ -621,7 +545,7 @@ libgnunet_plugin_dhtu_gnunet_init (void *cls)
   plugin->nse = GNUNET_NSE_connect (env->cfg,
                                     &nse_cb,
                                     plugin);
-  if ( (NULL == plugin->ats) ||
+  if ( (NULL == plugin->transport) ||
        (NULL == plugin->core) ||
        (NULL == plugin->nse) )
   {

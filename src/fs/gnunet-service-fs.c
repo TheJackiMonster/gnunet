@@ -33,7 +33,6 @@
 #include "gnunet_protocols.h"
 #include "gnunet_signatures.h"
 #include "gnunet_statistics_service.h"
-#include "gnunet_transport_service.h"
 #include "gnunet_util_lib.h"
 #include "gnunet-service-fs_cp.h"
 #include "gnunet-service-fs_indexing.h"
@@ -247,11 +246,6 @@ struct GNUNET_LOAD_Value *GSF_rt_entry_lifetime;
  * Initialized to 5s as the initial default.
  */
 struct GNUNET_TIME_Relative GSF_avg_latency = { 500 };
-
-/**
- * Handle to ATS service.
- */
-struct GNUNET_ATS_PerformanceHandle *GSF_ats;
 
 
 /**
@@ -1042,12 +1036,12 @@ hash_for_index_val (void *cls,
                 GNUNET_h2s (&isc->file_id));
 
     const char *emsg = "hash mismatch";
-    const size_t msize = strlen(emsg) + 1;
+    const size_t msize = strlen (emsg) + 1;
 
     env = GNUNET_MQ_msg_extra (msg,
                                msize,
                                GNUNET_MESSAGE_TYPE_FS_INDEX_START_FAILED);
-    memcpy((char*) &msg[1], emsg, msize);
+    memcpy ((char*) &msg[1], emsg, msize);
     GNUNET_MQ_send (lc->mq,
                     env);
     GNUNET_SERVICE_client_continue (lc->client);
@@ -1181,11 +1175,6 @@ shutdown_task (void *cls)
   {
     GNUNET_CORE_disconnect (GSF_core);
     GSF_core = NULL;
-  }
-  if (NULL != GSF_ats)
-  {
-    GNUNET_ATS_performance_done (GSF_ats);
-    GSF_ats = NULL;
   }
   GSF_put_done_ ();
   GSF_push_done_ ();
@@ -1378,9 +1367,7 @@ run (void *cls,
   GSF_plan_init ();
   GSF_pending_request_init_ ();
   GSF_connected_peer_init_ ();
-  GSF_ats = GNUNET_ATS_performance_init (GSF_cfg,
-                                         &update_latencies,
-                                         NULL);
+
   GSF_push_init_ ();
   GSF_put_init_ ();
   if ((GNUNET_OK != GNUNET_FS_indexing_init (cfg,

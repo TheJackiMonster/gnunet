@@ -28,7 +28,6 @@
 
 #include "gnunet_util_lib.h"
 #include "gnunet_statistics_service.h"
-#include "gnunet_transport_service.h"
 #include "gnunet_core_service.h"
 #include "gnunet_block_lib.h"
 #include "gnunet_ats_service.h"

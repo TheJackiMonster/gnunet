@@ -69,6 +69,7 @@ gnunet_service_cadet_LDADD = \
   $(top_builddir)/src/dht/libgnunetdht.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/transport/libgnunettransport.la \
+  $(top_builddir)/src/transport/libgnunettransportapplication.la \
   $(top_builddir)/src/peerinfo/libgnunetpeerinfo.la \
   $(top_builddir)/src/hello/libgnunethello.la \
   $(top_builddir)/src/block/libgnunetblock.la

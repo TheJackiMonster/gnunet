@@ -27,7 +27,6 @@
 #define GNUNET_SERVICE_CORE_TYPEMAP_H
 
 #include "gnunet_util_lib.h"
-#include "gnunet_transport_service.h"
 
 /**
  * Map specifying which message types a peer supports.

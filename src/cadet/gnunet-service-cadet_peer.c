@@ -35,7 +35,7 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_hello_lib.h"
 #include "gnunet_signatures.h"
-#include "gnunet_transport_service.h"
+#include "gnunet_transport_application_service.h"
 #include "gnunet_ats_service.h"
 #include "gnunet_core_service.h"
 #include "gnunet_statistics_service.h"
@@ -194,10 +194,9 @@ struct CadetPeer
   struct GNUNET_TRANSPORT_OfferHelloHandle *hello_offer;
 
   /**
-   * Handle to our ATS request asking ATS to suggest an address
-   * to TRANSPORT for this peer (to establish a direct link).
+   * Transport suggest handle.
    */
-  struct GNUNET_ATS_ConnectivitySuggestHandle *connectivity_suggestion;
+  struct GNUNET_TRANSPORT_ApplicationSuggestHandle *ash;
 
   /**
    * How many messages are in the queue to this peer.
@@ -334,15 +333,11 @@ destroy_peer (void *cls)
   }
   /* FIXME: clean up search_delayedXXX! */
 
-  if (NULL != cp->hello_offer)
+
+  if (NULL != cp->ash)
   {
-    GNUNET_TRANSPORT_offer_hello_cancel (cp->hello_offer);
-    cp->hello_offer = NULL;
-  }
-  if (NULL != cp->connectivity_suggestion)
-  {
-    GNUNET_ATS_connectivity_suggest_cancel (cp->connectivity_suggestion);
-    cp->connectivity_suggestion = NULL;
+    GNUNET_TRANSPORT_application_suggest_cancel (cp->ash);
+    cp->ash = NULL;
   }
   GNUNET_CONTAINER_multishortmap_destroy (cp->connections);
   if (NULL != cp->path_heap)
@@ -375,6 +370,7 @@ static void
 consider_peer_activate (struct CadetPeer *cp)
 {
   uint32_t strength;
+  struct GNUNET_BANDWIDTH_Value32NBO bw;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Updating peer %s activation state (%u connections)%s%s\n",
@@ -392,10 +388,10 @@ consider_peer_activate (struct CadetPeer *cp)
       (NULL == cp->t))
   {
     /* We're just on a path or directly connected; don't bother too much */
-    if (NULL != cp->connectivity_suggestion)
+    if (NULL != cp->ash)
     {
-      GNUNET_ATS_connectivity_suggest_cancel (cp->connectivity_suggestion);
-      cp->connectivity_suggestion = NULL;
+      GNUNET_TRANSPORT_application_suggest_cancel (cp->ash);
+      cp->ash = NULL;
     }
     if (NULL != cp->search_h)
     {
@@ -424,12 +420,13 @@ consider_peer_activate (struct CadetPeer *cp)
 
   /* If we have a tunnel, our urge for connections is much bigger */
   strength = (NULL != cp->t) ? 32 : 1;
-  if (NULL != cp->connectivity_suggestion)
-    GNUNET_ATS_connectivity_suggest_cancel (cp->connectivity_suggestion);
-  cp->connectivity_suggestion
-    = GNUNET_ATS_connectivity_suggest (ats_ch,
-                                       &cp->pid,
-                                       strength);
+  if (NULL != cp->ash)
+    GNUNET_TRANSPORT_application_suggest_cancel (cp->ash);
+  cp->ash
+    = GNUNET_TRANSPORT_application_suggest (transport,
+                                            &cp->pid,
+                                            GNUNET_MQ_PRIO_BEST_EFFORT,
+                                            bw);
 }
 
 
@@ -1308,36 +1305,17 @@ GCP_get_tunnel (struct CadetPeer *cp,
 }
 
 
-/**
- * Hello offer was passed to the transport service. Mark it
- * as done.
- *
- * @param cls the `struct CadetPeer` where the offer completed
- */
-static void
-hello_offer_done (void *cls)
-{
-  struct CadetPeer *cp = cls;
-
-  cp->hello_offer = NULL;
-}
-
-
 void
 GCP_set_hello (struct CadetPeer *cp,
                const struct GNUNET_HELLO_Message *hello)
 {
   struct GNUNET_HELLO_Message *mrg;
+  struct GNUNET_BANDWIDTH_Value32NBO bw;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Got %u byte HELLO for peer %s\n",
        (unsigned int) GNUNET_HELLO_size (hello),
        GCP_2s (cp));
-  if (NULL != cp->hello_offer)
-  {
-    GNUNET_TRANSPORT_offer_hello_cancel (cp->hello_offer);
-    cp->hello_offer = NULL;
-  }
   if (NULL != cp->hello)
   {
     mrg = GNUNET_HELLO_merge (hello,
@@ -1350,11 +1328,13 @@ GCP_set_hello (struct CadetPeer *cp,
     cp->hello = GNUNET_memdup (hello,
                                GNUNET_HELLO_size (hello));
   }
-  cp->hello_offer
-    = GNUNET_TRANSPORT_offer_hello (cfg,
-                                    GNUNET_HELLO_get_header (cp->hello),
-                                    &hello_offer_done,
-                                    cp);
+  if (NULL != cp->ash)
+    GNUNET_TRANSPORT_application_suggest_cancel (cp->ash);
+  cp->ash
+    = GNUNET_TRANSPORT_application_suggest (transport,
+                                            &cp->pid,
+                                            GNUNET_MQ_PRIO_BEST_EFFORT,
+                                            bw);
   /* New HELLO means cp's destruction time may change... */
   consider_peer_destroy (cp);
 }

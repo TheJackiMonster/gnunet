@@ -197,9 +197,9 @@ extern const struct GNUNET_CONFIGURATION_Handle *cfg;
 extern struct GNUNET_STATISTICS_Handle *stats;
 
 /**
- * Handle to communicate with ATS.
+ * Handle to Transport service.
  */
-extern struct GNUNET_ATS_ConnectivityHandle *ats_ch;
+extern struct GNUNET_TRANSPORT_ApplicationHandle *transport;
 
 /**
  * Local peer own ID.

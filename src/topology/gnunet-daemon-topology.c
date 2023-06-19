@@ -44,8 +44,11 @@
 #include "gnunet_protocols.h"
 #include "gnunet_peerinfo_service.h"
 #include "gnunet_statistics_service.h"
-#include "gnunet_transport_service.h"
+#include "gnunet_transport_application_service.h"
 #include "gnunet_ats_service.h"
+
+
+// TODO Remove all occurrencies of friends_only and minimum_friend_count.
 
 
 /**
@@ -105,9 +108,9 @@ struct Peer
   struct GNUNET_SCHEDULER_Task *hello_delay_task;
 
   /**
-   * Handle for our connectivity suggestion for this peer.
+   * Transport suggest handle.
    */
-  struct GNUNET_ATS_ConnectivitySuggestHandle *sh;
+  struct GNUNET_TRANSPORT_ApplicationSuggestHandle *ash;
 
   /**
    * How much would we like to connect to this peer?
@@ -143,9 +146,9 @@ static struct GNUNET_CORE_Handle *handle;
 static struct GNUNET_PEERINFO_Handle *pi;
 
 /**
- * Handle to the ATS service.
- */
-static struct GNUNET_ATS_ConnectivityHandle *ats;
+   * Handle to Transport service.
+   */
+struct GNUNET_TRANSPORT_ApplicationHandle *transport;
 
 /**
  * Identity of this peer.
@@ -163,11 +166,6 @@ static struct GNUNET_CONTAINER_MultiPeerMap *peers;
  * Handle for reporting statistics.
  */
 static struct GNUNET_STATISTICS_Handle *stats;
-
-/**
- * Blacklist (NULL if we have none).
- */
-static struct GNUNET_TRANSPORT_Blacklist *blacklist;
 
 /**
  * Task scheduled to asynchronously reconsider adding/removing
@@ -233,21 +231,6 @@ blacklist_check (void *cls, const struct GNUNET_PeerIdentity *pid)
 
 
 /**
- * Whitelist all peers that we blacklisted; we've passed
- * the minimum number of friends.
- */
-static void
-whitelist_peers ()
-{
-  if (NULL != blacklist)
-  {
-    GNUNET_TRANSPORT_blacklist_cancel (blacklist);
-    blacklist = NULL;
-  }
-}
-
-
-/**
  * Free all resources associated with the given peer.
  *
  * @param cls closure (not used)
@@ -268,10 +251,10 @@ free_peer (void *cls, const struct GNUNET_PeerIdentity *pid, void *value)
     GNUNET_SCHEDULER_cancel (pos->hello_delay_task);
     pos->hello_delay_task = NULL;
   }
-  if (NULL != pos->sh)
+  if (NULL != pos->ash)
   {
-    GNUNET_ATS_connectivity_suggest_cancel (pos->sh);
-    pos->sh = NULL;
+    GNUNET_TRANSPORT_application_suggest_cancel (pos->ash);
+    pos->ash = NULL;
   }
   if (NULL != pos->hello)
   {
@@ -298,6 +281,7 @@ static void
 attempt_connect (struct Peer *pos)
 {
   uint32_t strength;
+  struct GNUNET_BANDWIDTH_Value32NBO bw;
 
   if (0 == GNUNET_memcmp (&my_identity, &pos->pid))
     return; /* This is myself, nothing to do. */
@@ -318,10 +302,10 @@ attempt_connect (struct Peer *pos)
     strength *= 2; /* existing connections preferred */
   if (strength == pos->strength)
     return; /* nothing to do */
-  if (NULL != pos->sh)
+  if (NULL != pos->ash)
   {
-    GNUNET_ATS_connectivity_suggest_cancel (pos->sh);
-    pos->sh = NULL;
+    GNUNET_TRANSPORT_application_suggest_cancel (pos->ash);
+    pos->ash = NULL;
   }
   pos->strength = strength;
   if (0 != strength)
@@ -334,7 +318,10 @@ attempt_connect (struct Peer *pos)
                               gettext_noop ("# connect requests issued to ATS"),
                               1,
                               GNUNET_NO);
-    pos->sh = GNUNET_ATS_connectivity_suggest (ats, &pos->pid, strength);
+    pos->ash = GNUNET_TRANSPORT_application_suggest (transport,
+                                                     &pos->pid,
+                                                     GNUNET_MQ_PRIO_BEST_EFFORT,
+                                                     bw);
   }
 }
 
@@ -592,8 +579,7 @@ connect_notify (void *cls,
   if (pos->is_friend)
   {
     friend_count++;
-    if ((friend_count == minimum_friend_count) && (GNUNET_YES != friends_only))
-      whitelist_peers ();
+
     GNUNET_STATISTICS_set (stats,
                            gettext_noop ("# friends connected"),
                            friend_count,
@@ -683,8 +669,7 @@ disconnect_notify (void *cls,
        (friend_count < minimum_friend_count)) &&
       (NULL == add_task))
     add_task = GNUNET_SCHEDULER_add_now (&add_peer_task, NULL);
-  if ((friend_count < minimum_friend_count) && (NULL == blacklist))
-    blacklist = GNUNET_TRANSPORT_blacklist (cfg, &blacklist_check, NULL);
+
 }
 
 
@@ -1003,24 +988,18 @@ cleaning_task (void *cls)
     GNUNET_CORE_disconnect (handle);
     handle = NULL;
   }
-  whitelist_peers ();
   if (NULL != add_task)
   {
     GNUNET_SCHEDULER_cancel (add_task);
     add_task = NULL;
   }
-  if (NULL != oh)
-  {
-    GNUNET_TRANSPORT_offer_hello_cancel (oh);
-    oh = NULL;
-  }
   GNUNET_CONTAINER_multipeermap_iterate (peers, &free_peer, NULL);
   GNUNET_CONTAINER_multipeermap_destroy (peers);
   peers = NULL;
-  if (NULL != ats)
+  if (NULL != transport)
   {
-    GNUNET_ATS_connectivity_done (ats);
-    ats = NULL;
+    GNUNET_TRANSPORT_application_done (transport);
+    transport = NULL;
   }
   if (NULL != pi)
   {
@@ -1059,14 +1038,8 @@ run (void *cls,
 
   cfg = c;
   stats = GNUNET_STATISTICS_create ("topology", cfg);
-  friends_only =
-    GNUNET_CONFIGURATION_get_value_yesno (cfg, "TOPOLOGY", "FRIENDS-ONLY");
-  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_number (cfg,
-                                                          "TOPOLOGY",
-                                                          "MINIMUM-FRIENDS",
-                                                          &opt))
-    opt = 0;
-  minimum_friend_count = (unsigned int) opt;
+
+  minimum_friend_count = 0;
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_number (cfg,
                                              "TOPOLOGY",
@@ -1081,9 +1054,8 @@ run (void *cls,
               "Topology would like %u connections with at least %u friends\n",
               target_connection_count,
               minimum_friend_count);
-  if ((GNUNET_YES == friends_only) || (minimum_friend_count > 0))
-    blacklist = GNUNET_TRANSPORT_blacklist (cfg, &blacklist_check, NULL);
-  ats = GNUNET_ATS_connectivity_init (cfg);
+
+  transport = GNUNET_TRANSPORT_application_init (cfg);
   pi = GNUNET_PEERINFO_connect (cfg);
   handle = GNUNET_CORE_connect (cfg,
                                 NULL,
