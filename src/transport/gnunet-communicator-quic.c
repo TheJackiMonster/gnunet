@@ -24,9 +24,9 @@
 /* Currently equivalent to QUICHE_MAX_CONN_ID_LEN */
 #define LOCAL_CONN_ID_LEN 20
 #define MAX_TOKEN_LEN \
-    sizeof("quiche") - 1 + \
-    sizeof(struct sockaddr_storage) + \
-    QUICHE_MAX_CONN_ID_LEN
+        sizeof("quiche") - 1 + \
+        sizeof(struct sockaddr_storage) + \
+        QUICHE_MAX_CONN_ID_LEN
 
 /**
  * Map of DCID (uint8_t) -> quic_conn for quickly retrieving connections to other peers.
@@ -64,11 +64,11 @@ static unsigned long long rekey_max_bytes;
  * QUIC connection object. A connection has a unique SCID/DCID pair. Here we store our SCID
  * (incoming packet DCID field == outgoing packet SCID field) for a given connection.
 */
-struct quic_conn {
+struct quic_conn
+{
+  uint8_t cid[LOCAL_CONN_ID_LEN];
 
-    uint8_t cid[LOCAL_CONN_ID_LEN];
-
-    quiche_conn *conn;
+  quiche_conn *conn;
 };
 
 /**
@@ -77,7 +77,7 @@ struct quic_conn {
  * quiche library has QUICHE_MAX_CONN_ID_LEN = 20?
 */
 static uint64_t
-gen_streamid()
+gen_streamid ()
 {
   uint64_t sid;
   // sid = GNUNET_CRYPTO_random_u64(GNUNET_CRYPTO_QUALITY_STRONG, STREAM_ID_MAX);
@@ -95,60 +95,73 @@ gen_streamid()
   return sid;
 }
 
+
 /**
  * Generate a new connection ID
 */
 static uint8_t*
-gen_cid(uint8_t *cid, size_t cid_len)
+gen_cid (uint8_t *cid, size_t cid_len)
 {
   /**
    * NOTE: come back and fix
   */
-  int rand_cid = GNUNET_CRYPTO_random_u32(GNUNET_CRYPTO_QUALITY_STRONG, UINT8_MAX);
+  int rand_cid = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_STRONG,
+                                           UINT8_MAX);
 }
+
 
 /**
  * Given a quiche connection and buffer, recv data from streams and store into buffer
  * ASSUMES: connection is established to peer
 */
 static void
-recv_from_streams(quiche_conn *conn, char stream_buf[])
+recv_from_streams (quiche_conn *conn, char stream_buf[])
 {
   uint64_t s = 0;
-  quiche_stream_iter *readable = quiche_conn_readable(conn);
-  while (quiche_stream_iter_next(readable, &s)) {
-    GNUNET_log(GNUNET_ERROR_TYPE_DEBUG,  "stream %" PRIu64 " is readable\n", s);
+  quiche_stream_iter *readable = quiche_conn_readable (conn);
+  while (quiche_stream_iter_next (readable, &s))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,  "stream %" PRIu64 " is readable\n",
+                s);
     bool fin = false;
-    ssize_t recv_len = quiche_conn_stream_recv(conn, s,
-                                               stream_buf, sizeof(stream_buf),
-                                               &fin);
-    if (recv_len < 0) {
-        break;
+    ssize_t recv_len = quiche_conn_stream_recv (conn, s,
+                                                stream_buf, sizeof(stream_buf),
+                                                &fin);
+    if (recv_len < 0)
+    {
+      break;
     }
     /**
      * Received and processed plaintext from peer: send to core/transport service
+     * TODO: send msg to core, remove response below
     */
-    GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "msg received: %s\n", stream_buf);
-    if (fin) {
-        static const char *resp = "byez\n";
-        quiche_conn_stream_send(conn, s, resp,
-                                5, true);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "msg received: %s\n", stream_buf);
+    if (fin)
+    {
+      static const char *resp = "byez\n";
+      quiche_conn_stream_send (conn, s, resp,
+                               5, true);
     }
   }
-  quiche_stream_iter_free(readable);
+  quiche_stream_iter_free (readable);
 }
 
+
+/**
+ * TODO: review token generation, assure tokens are generated properly
+*/
 static void
 mint_token (const uint8_t *dcid, size_t dcid_len,
             struct sockaddr_storage *addr, socklen_t addr_len,
             uint8_t *token, size_t *token_len)
 {
-  GNUNET_memcpy(token, "quiche", sizeof("quiche") - 1);
-  GNUNET_memcpy(token + sizeof("quiche") - 1, addr, addr_len);
-  GNUNET_memcpy(token + sizeof("quiche") - 1 + addr_len, dcid, dcid_len);
+  GNUNET_memcpy (token, "quiche", sizeof("quiche") - 1);
+  GNUNET_memcpy (token + sizeof("quiche") - 1, addr, addr_len);
+  GNUNET_memcpy (token + sizeof("quiche") - 1 + addr_len, dcid, dcid_len);
 
   *token_len = sizeof("quiche") - 1 + addr_len + dcid_len;
 }
+
 
 /**
  * Shutdown the UNIX communicator.
@@ -320,6 +333,7 @@ udp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
   return NULL;
 }
 
+
 static void
 sock_read (void *cls)
 {
@@ -330,6 +344,25 @@ sock_read (void *cls)
   char out[MAX_DATAGRAM_SIZE];
   ssize_t rcvd;
   (void) cls;
+
+  /**
+   * Get local_addr, in_len for quiche
+  */
+  char *bindto;
+  socklen_t in_len;
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_get_value_string (cfg,
+                                             COMMUNICATOR_CONFIG_SECTION,
+                                             "BINDTO",
+                                             &bindto))
+  {
+    GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
+                               COMMUNICATOR_CONFIG_SECTION,
+                               "BINDTO");
+    return;
+  }
+  struct sock_addr *local_addr = udp_address_to_sockaddr (bindto, in_len);
+
   read_task = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
                                              udp_sock,
                                              &sock_read,
@@ -341,7 +374,7 @@ sock_read (void *cls)
                                          &salen);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-               "Read %lu bytes\n", rcvd);
+              "Read %lu bytes\n", rcvd);
 
   if (-1 == rcvd)
   {
@@ -373,9 +406,9 @@ sock_read (void *cls)
   uint8_t token[MAX_TOKEN_LEN];
   size_t token_len = sizeof(token);
 
-  int rc = quiche_header_info(buf, read, LOCAL_CONN_ID_LEN, &version,
-                                    &type, scid, &scid_len, dcid, &dcid_len,
-                                    token, &token_len);
+  int rc = quiche_header_info (buf, read, LOCAL_CONN_ID_LEN, &version,
+                               &type, scid, &scid_len, dcid, &dcid_len,
+                               token, &token_len);
   if (rc < 0)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -388,79 +421,98 @@ sock_read (void *cls)
   /* each connection to the peer should have a unique incoming DCID */
   /* check against a conn SCID */
   struct GNUNET_HashCode conn_key;
-  GNUNET_CRYPTO_hash(dcid, sizeof(dcid), &conn_key);
-  conn = GNUNET_CONTAINER_multihashmap_get(conn_map, &conn_key);
+  GNUNET_CRYPTO_hash (dcid, sizeof(dcid), &conn_key);
+  conn = GNUNET_CONTAINER_multihashmap_get (conn_map, &conn_key);
 
   /**
    * New QUIC connection with peer
   */
   if (NULL == conn)
   {
-    if (0 == quiche_version_is_supported(version))
+    if (0 == quiche_version_is_supported (version))
     {
-      GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "quic version negotiation initiated\n");
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "quic version negotiation initiated\n");
       /**
        * Write a version negotiation packet to "out"
       */
-      ssize_t written = quiche_negotiate_version(scid, scid_len,
-                                               dcid, dcid_len,
-                                               out, sizeof(out));
+      ssize_t written = quiche_negotiate_version (scid, scid_len,
+                                                  dcid, dcid_len,
+                                                  out, sizeof(out));
       if (0 > written)
       {
-        GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "quiche failed to generate version negotiation packet\n");
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "quiche failed to generate version negotiation packet\n");
       }
-      ssize_t sent = GNUNET_NETWORK_socket_sendto(udp_sock,
-                                                  out,
-                                                  written,
-                                                  (struct sockaddr*) &sa,
-                                                  salen);
+      ssize_t sent = GNUNET_NETWORK_socket_sendto (udp_sock,
+                                                   out,
+                                                   written,
+                                                   (struct sockaddr*) &sa,
+                                                   salen);
       if (sent != written)
       {
-        GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "failed to send version negotiation packet to peer\n");
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "failed to send version negotiation packet to peer\n");
       }
-      GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "sent %zd bytes to peer during version negotiation\n", sent);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "sent %zd bytes to peer during version negotiation\n", sent);
     }
 
     if (0 == token_len)
     {
-      GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "quic stateless retry\n");
-      mint_token(dcid, dcid_len, &sa, salen,
-                 token, &token_len);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "quic stateless retry\n");
+      mint_token (dcid, dcid_len, &sa, salen,
+                  token, &token_len);
 
       uint8_t new_cid[LOCAL_CONN_ID_LEN];
-      gen_cid(new_cid, LOCAL_CONN_ID_LEN);
+      gen_cid (new_cid, LOCAL_CONN_ID_LEN);
 
-      ssize_t written = quiche_retry(scid, scid_len,
-                                     dcid, dcid_len,
-                                     new_cid, LOCAL_CONN_ID_LEN,
-                                     token, token_len,
-                                     version, out, sizeof(out));
+      ssize_t written = quiche_retry (scid, scid_len,
+                                      dcid, dcid_len,
+                                      new_cid, LOCAL_CONN_ID_LEN,
+                                      token, token_len,
+                                      version, out, sizeof(out));
+      if (0 > written)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "quiche failed to write retry packet\n");
+      }
+
+      ssize_t sent = GNUNET_NETWORK_socket_sendto (udp_sock,
+                                                   out,
+                                                   written,
+                                                   (struct sockaddr*) &sa,
+                                                   salen);
+      if (written != sent)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "failed to send retry packet\n");
+      }
+
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "sent %zd bytes\n", sent);
     }
 
+    if (0 == validate_token (token, token_len, (struct sockaddr*) &sa, salen,
+                             odcid, &odcid_len))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "invalid address validation token created\n");
+    }
+
+    conn = create_conn (dcid, dcid_len, odcid, odcid_len,
+                        local_addr, in_len,
+                        (struct sockaddr*) &sa, salen);
+
   } // null connection
-  char *bindto;
-  socklen_t in_len;
-  if (GNUNET_OK !=
-    GNUNET_CONFIGURATION_get_value_string (cfg,
-                                            COMMUNICATOR_CONFIG_SECTION,
-                                            "BINDTO",
-                                            &bindto))
-  {
-      GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
-                              COMMUNICATOR_CONFIG_SECTION,
-                              "BINDTO");
-      return;
-  }
-  struct sock_addr *recv_sock = udp_address_to_sockaddr(bindto, in_len);
+
   quiche_recv_info recv_info = {
-    (struct sockaddr *)&sa,
+    (struct sockaddr *) &sa,
     salen,
 
-    recv_sock,
+    local_addr,
     in_len,
   };
 
-  ssize_t process_pkt = quiche_conn_recv(conn, buf, rcvd, &recv_info);
+  ssize_t process_pkt = quiche_conn_recv (conn, buf, rcvd, &recv_info);
 
   if (0 > process_pkt)
   {
@@ -476,11 +528,11 @@ sock_read (void *cls)
   /**
    * Check for connection establishment
   */
-  if (quiche_conn_is_established(conn))
+  if (quiche_conn_is_established (conn))
   {
     // Check for data on all available streams
     char stream_buf[UINT16_MAX];
-    recv_from_streams(conn, stream_buf);
+    recv_from_streams (conn, stream_buf);
   }
 
   /**
@@ -697,6 +749,7 @@ sock_read (void *cls)
   // }
 }
 
+
 /**
  * Setup communicator and launch network interactions.
  *
@@ -721,58 +774,58 @@ run (void *cls,
   cfg = c;
 
   if (GNUNET_OK !=
-    GNUNET_CONFIGURATION_get_value_string (cfg,
-                                            COMMUNICATOR_CONFIG_SECTION,
-                                            "BINDTO",
-                                            &bindto))
+      GNUNET_CONFIGURATION_get_value_string (cfg,
+                                             COMMUNICATOR_CONFIG_SECTION,
+                                             "BINDTO",
+                                             &bindto))
   {
-      GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
-                              COMMUNICATOR_CONFIG_SECTION,
-                              "BINDTO");
-      return;
+    GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
+                               COMMUNICATOR_CONFIG_SECTION,
+                               "BINDTO");
+    return;
   }
 
   if (GNUNET_OK !=
-    GNUNET_CONFIGURATION_get_value_time (cfg,
-                                          COMMUNICATOR_CONFIG_SECTION,
-                                          "REKEY_INTERVAL",
-                                          &rekey_interval))
-      rekey_interval = DEFAULT_REKEY_TIME_INTERVAL;
+      GNUNET_CONFIGURATION_get_value_time (cfg,
+                                           COMMUNICATOR_CONFIG_SECTION,
+                                           "REKEY_INTERVAL",
+                                           &rekey_interval))
+    rekey_interval = DEFAULT_REKEY_TIME_INTERVAL;
 
   if (GNUNET_OK !=
-    GNUNET_CONFIGURATION_get_value_size (cfg,
-                                          COMMUNICATOR_CONFIG_SECTION,
-                                          "REKEY_MAX_BYTES",
-                                          &rekey_max_bytes))
-      rekey_max_bytes = DEFAULT_REKEY_MAX_BYTES;
+      GNUNET_CONFIGURATION_get_value_size (cfg,
+                                           COMMUNICATOR_CONFIG_SECTION,
+                                           "REKEY_MAX_BYTES",
+                                           &rekey_max_bytes))
+    rekey_max_bytes = DEFAULT_REKEY_MAX_BYTES;
 
   in = udp_address_to_sockaddr (bindto, &in_len);
 
   if (NULL == in)
   {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "Failed to setup UDP socket address with path `%s'\n",
-              bindto);
-      GNUNET_free (bindto);
-      return;
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to setup UDP socket address with path `%s'\n",
+                bindto);
+    GNUNET_free (bindto);
+    return;
   }
   udp_sock =
-  GNUNET_NETWORK_socket_create (in->sa_family,
-                                SOCK_DGRAM,
-                                IPPROTO_UDP);
+    GNUNET_NETWORK_socket_create (in->sa_family,
+                                  SOCK_DGRAM,
+                                  IPPROTO_UDP);
   if (NULL == udp_sock)
   {
-      GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "socket");
-      GNUNET_free (in);
-      GNUNET_free (bindto);
-      return;
+    GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "socket");
+    GNUNET_free (in);
+    GNUNET_free (bindto);
+    return;
   }
   if (AF_INET6 == in->sa_family)
-      have_v6_socket = GNUNET_YES;
+    have_v6_socket = GNUNET_YES;
   if (GNUNET_OK !=
-    GNUNET_NETWORK_socket_bind (udp_sock,
-                                in,
-                                in_len))
+      GNUNET_NETWORK_socket_bind (udp_sock,
+                                  in,
+                                  in_len))
   {
     GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR,
                               "bind",
@@ -820,7 +873,7 @@ run (void *cls,
                                              udp_sock,
                                              &sock_read,
                                              NULL);
-                                           
+
   // if (NULL == ch)
   // {
   //   GNUNET_break (0);
@@ -845,25 +898,28 @@ run (void *cls,
   // }
 }
 
-int 
-main(int argc, char *const *argv) 
+
+int
+main (int argc, char *const *argv)
 {
   /**
    * Setup QUICHE configuration
   */
-  quiche_config *quiche_conf = quiche_config_new(QUICHE_PROTOCOL_VERSION);
-  conn_map = GNUNET_CONTAINER_multihashmap_create(2, GNUNET_NO);
+  quiche_config *quiche_conf = quiche_config_new (QUICHE_PROTOCOL_VERSION);
+
+  quiche_config_verify_peer (quiche_conf, false);
+  conn_map = GNUNET_CONTAINER_multihashmap_create (2, GNUNET_NO);
 
   static const struct GNUNET_GETOPT_CommandLineOption options[] = {
-  GNUNET_GETOPT_OPTION_END
+    GNUNET_GETOPT_OPTION_END
   };
   int ret;
 
   GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
-                          "transport",
-                          "Starting quic communicator\n");
+                           "transport",
+                           "Starting quic communicator\n");
   if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
-      return 2;
+    return 2;
 
   ret = (GNUNET_OK == GNUNET_PROGRAM_run (argc,
                                           argv,
