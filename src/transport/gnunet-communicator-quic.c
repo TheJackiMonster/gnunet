@@ -208,6 +208,37 @@ create_conn (uint8_t *scid, size_t scid_len,
 
 
 /**
+ * Check for closed connections, print stats
+*/
+static void
+check_conn_closed (void *cls,
+                   const struct GNUNET_HashCode *key,
+                   void *value)
+{
+  struct quic_conn *conn = value;
+
+  if (quiche_conn_is_closed (conn))
+  {
+    quiche_stats stats;
+    quiche_path_stats path_stats;
+
+    quiche_conn_stats (conn, &stats);
+    quiche_conn_path_stats (conn, 0, &stats);
+
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "connection closed. quiche stats: sent=%zu, recv=%zu\n",
+                stats.sent, stats.recv);
+    GNUNET_CONTAINER_multihashmap_remove (conn_map, key, value);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "removed closed connection from connection map\n");
+
+    quiche_conn_free (conn->conn);
+    GNUNET_free (conn);
+  }
+}
+
+
+/**
  * Shutdown the UNIX communicator.
  *
  * @param cls NULL (always)
@@ -589,6 +620,7 @@ sock_read (void *cls)
   /**
    * Connection cleanup, check for closed connections, delete entries, print stats
   */
+  GNUNET_CONTAINER_multihashmap_iterate (conn_map, &check_conn_closed, NULL);
 
 
   // if (rcvd > sizeof(struct UDPRekey))
