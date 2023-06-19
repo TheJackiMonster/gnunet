@@ -60,6 +60,7 @@ static int have_v6_socket;
 static uint16_t my_port;
 static unsigned long long rekey_max_bytes;
 
+static quiche_config *config = NULL;
 /**
  * QUIC connection object. A connection has a unique SCID/DCID pair. Here we store our SCID
  * (incoming packet DCID field == outgoing packet SCID field) for a given connection.
@@ -160,6 +161,49 @@ mint_token (const uint8_t *dcid, size_t dcid_len,
   GNUNET_memcpy (token + sizeof("quiche") - 1 + addr_len, dcid, dcid_len);
 
   *token_len = sizeof("quiche") - 1 + addr_len + dcid_len;
+}
+
+
+static struct quic_conn*
+create_conn (uint8_t *scid, size_t scid_len,
+             uint8_t *odcid, size_t odcid_len,
+             struct sockaddr *local_addr,
+             socklen_t local_addr_len,
+             struct sockaddr_storage *peer_addr,
+             socklen_t peer_addr_len)
+{
+  struct quic_conn *conn = GNUNET_malloc (sizeof(struct quic_conn));
+  if (scid_len != LOCAL_CONN_ID_LEN)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "error while creating connection, scid length too short\n");
+  }
+
+  GNUNET_memcpy (conn->cid, scid, LOCAL_CONN_ID_LEN);
+  quiche_conn *q_conn = quiche_accept (conn->cid, LOCAL_CONN_ID_LEN,
+                                       odcid, odcid_len,
+                                       local_addr,
+                                       local_addr_len,
+                                       (struct sockaddr *) peer_addr,
+                                       peer_addr_len,
+                                       config);
+  if (NULL == q_conn)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "quiche failed to create connection\n");
+    return NULL;
+  }
+  conn->conn = q_conn;
+  struct GNUNET_HashCode conn_key;
+  GNUNET_CRYPTO_hash (conn->cid, sizeof(uint8_t *), &conn_key);
+  /**
+   * TODO: use UNIQUE_FAST instead?
+  */
+  GNUNET_CONTAINER_multihashmap_put (conn_map, &conn_key, conn,
+                                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "new quic connection created\n");
+  return conn;
 }
 
 
@@ -429,6 +473,8 @@ sock_read (void *cls)
   */
   if (NULL == conn)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "attempting to create new connection\n");
     if (0 == quiche_version_is_supported (version))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -501,6 +547,11 @@ sock_read (void *cls)
     conn = create_conn (dcid, dcid_len, odcid, odcid_len,
                         local_addr, in_len,
                         (struct sockaddr*) &sa, salen);
+    if (NULL == conn)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "failed to create quic connection with peer\n");
+    }
 
   } // null connection
 
@@ -905,9 +956,9 @@ main (int argc, char *const *argv)
   /**
    * Setup QUICHE configuration
   */
-  quiche_config *quiche_conf = quiche_config_new (QUICHE_PROTOCOL_VERSION);
+  config = quiche_config_new (QUICHE_PROTOCOL_VERSION);
 
-  quiche_config_verify_peer (quiche_conf, false);
+  quiche_config_verify_peer (config, false);
   conn_map = GNUNET_CONTAINER_multihashmap_create (2, GNUNET_NO);
 
   static const struct GNUNET_GETOPT_CommandLineOption options[] = {
