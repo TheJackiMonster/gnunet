@@ -542,22 +542,6 @@ struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_stat (struct GNUNET_TESTING_Timer *timers);
 
 
-/**
- * Command to execute a script. The cmd succeeds when the script exit with 0 and fails,
- * when the script exits with an error code.
- *
- * @param label The label of the cmd.
- * @param script The name of the script.
- * @param script_argv Array with script args.
- * @param script_argv_len Length of the array.
- */
-const struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_exec_bash_script (const char *label,
-                                     const char *script,
-                                     char **script_argv,
-                                     unsigned int script_argv_len);
-
-
 /* *** Generic trait logic for implementing traits ********* */
 
 /**
