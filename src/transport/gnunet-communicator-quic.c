@@ -106,7 +106,8 @@ gen_cid (uint8_t *cid, size_t cid_len)
   /**
    * NOTE: come back and fix
   */
-  int rand_cid = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_STRONG,
+  int rand_cid;
+  rand_cid = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_STRONG,
                                            UINT8_MAX);
 }
 
@@ -119,15 +120,20 @@ static void
 recv_from_streams (quiche_conn *conn, char stream_buf[])
 {
   uint64_t s = 0;
-  quiche_stream_iter *readable = quiche_conn_readable (conn);
+  quiche_stream_iter *readable;
+  bool fin;
+  ssize_t recv_len;
+  static const char *resp = "byez\n";
+  
+  readable = quiche_conn_readable (conn);
   while (quiche_stream_iter_next (readable, &s))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,  "stream %" PRIu64 " is readable\n",
                 s);
-    bool fin = false;
-    ssize_t recv_len = quiche_conn_stream_recv (conn, s,
-                                                stream_buf, sizeof(stream_buf),
-                                                &fin);
+    fin = false;
+    recv_len = quiche_conn_stream_recv (conn, s,
+                                        stream_buf, sizeof(stream_buf),
+                                        &fin);
     if (recv_len < 0)
     {
       break;
@@ -139,7 +145,6 @@ recv_from_streams (quiche_conn *conn, char stream_buf[])
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "msg received: %s\n", stream_buf);
     if (fin)
     {
-      static const char *resp = "byez\n";
       quiche_conn_stream_send (conn, s, resp,
                                5, true);
     }
@@ -172,7 +177,11 @@ create_conn (uint8_t *scid, size_t scid_len,
              struct sockaddr_storage *peer_addr,
              socklen_t peer_addr_len)
 {
-  struct quic_conn *conn = GNUNET_malloc (sizeof(struct quic_conn));
+  struct quic_conn *conn;
+  quiche_conn *q_conn;
+  struct GNUNET_HashCode conn_key;
+
+  conn = GNUNET_malloc (sizeof(struct quic_conn));
   if (scid_len != LOCAL_CONN_ID_LEN)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -180,7 +189,7 @@ create_conn (uint8_t *scid, size_t scid_len,
   }
 
   GNUNET_memcpy (conn->cid, scid, LOCAL_CONN_ID_LEN);
-  quiche_conn *q_conn = quiche_accept (conn->cid, LOCAL_CONN_ID_LEN,
+  q_conn = quiche_accept (conn->cid, LOCAL_CONN_ID_LEN,
                                        odcid, odcid_len,
                                        local_addr,
                                        local_addr_len,
@@ -194,8 +203,7 @@ create_conn (uint8_t *scid, size_t scid_len,
     return NULL;
   }
   conn->conn = q_conn;
-  struct GNUNET_HashCode conn_key;
-  GNUNET_CRYPTO_hash (conn->cid, sizeof(uint8_t *), &conn_key);
+  GNUNET_CRYPTO_hash (conn->cid, sizeof(conn->cid), &conn_key);
   /**
    * TODO: use UNIQUE_FAST instead?
   */
@@ -217,13 +225,13 @@ check_conn_closed (void *cls,
 {
   struct quic_conn *conn = value;
 
-  if (quiche_conn_is_closed (conn))
+  if (quiche_conn_is_closed (conn->conn))
   {
     quiche_stats stats;
     quiche_path_stats path_stats;
 
-    quiche_conn_stats (conn, &stats);
-    quiche_conn_path_stats (conn, 0, &stats);
+    quiche_conn_stats (conn->conn, &stats);
+    quiche_conn_path_stats (conn->conn, 0, &stats);
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "connection closed. quiche stats: sent=%zu, recv=%zu\n",
@@ -420,6 +428,25 @@ sock_read (void *cls)
   ssize_t rcvd;
   (void) cls;
 
+  struct quic_conn *conn;
+  struct GNUNET_HashCode conn_key;
+  ssize_t process_pkt;
+
+  uint8_t new_cid[LOCAL_CONN_ID_LEN];
+  uint8_t type;
+  uint32_t version;
+
+  uint8_t scid[QUICHE_MAX_CONN_ID_LEN];
+  size_t scid_len = sizeof(scid);
+
+  uint8_t dcid[QUICHE_MAX_CONN_ID_LEN];
+  size_t dcid_len = sizeof(dcid);
+
+  uint8_t odcid[QUICHE_MAX_CONN_ID_LEN];
+  size_t odcid_len = sizeof(odcid);
+
+  uint8_t token[MAX_TOKEN_LEN];
+  size_t token_len = sizeof(token);
   /**
    * Get local_addr, in_len for quiche
   */
@@ -463,28 +490,10 @@ sock_read (void *cls)
    *
    * - create structure for individual connections (how many can we have concurrently)
   */
-  struct quic_conn *conn;
-
-  uint8_t new_cid[LOCAL_CONN_ID_LEN];
-  uint8_t type;
-  uint32_t version;
-
-  uint8_t scid[QUICHE_MAX_CONN_ID_LEN];
-  size_t scid_len = sizeof(scid);
-
-  uint8_t dcid[QUICHE_MAX_CONN_ID_LEN];
-  size_t dcid_len = sizeof(dcid);
-
-  uint8_t odcid[QUICHE_MAX_CONN_ID_LEN];
-  size_t odcid_len = sizeof(odcid);
-
-  uint8_t token[MAX_TOKEN_LEN];
-  size_t token_len = sizeof(token);
-
   int rc = quiche_header_info (buf, read, LOCAL_CONN_ID_LEN, &version,
                                &type, scid, &scid_len, dcid, &dcid_len,
                                token, &token_len);
-  if (rc < 0)
+  if (0 > rc)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "failed to parse quic header: %d\n",
@@ -495,7 +504,6 @@ sock_read (void *cls)
   /* look for connection in hashtable */
   /* each connection to the peer should have a unique incoming DCID */
   /* check against a conn SCID */
-  struct GNUNET_HashCode conn_key;
   GNUNET_CRYPTO_hash (dcid, sizeof(dcid), &conn_key);
   conn = GNUNET_CONTAINER_multihashmap_get (conn_map, &conn_key);
 
@@ -594,7 +602,7 @@ sock_read (void *cls)
     in_len,
   };
 
-  ssize_t process_pkt = quiche_conn_recv (conn, buf, rcvd, &recv_info);
+  process_pkt = quiche_conn_recv (conn, buf, rcvd, &recv_info);
 
   if (0 > process_pkt)
   {
@@ -621,215 +629,6 @@ sock_read (void *cls)
    * Connection cleanup, check for closed connections, delete entries, print stats
   */
   GNUNET_CONTAINER_multihashmap_iterate (conn_map, &check_conn_closed, NULL);
-
-
-  // if (rcvd > sizeof(struct UDPRekey))
-  // {
-  //   const struct UDPRekey *rekey;
-  //   const struct UDPBox *box;
-  //   struct KeyCacheEntry *kce;
-  //   struct SenderAddress *sender;
-  //   int do_decrypt = GNUNET_NO;
-
-  //   rekey = (const struct UDPRekey *) buf;
-  //   box = (const struct UDPBox *) buf;
-  //   kce = GNUNET_CONTAINER_multishortmap_get (key_cache, &rekey->kid);
-
-  //   if ((GNUNET_YES == box->rekeying) || (GNUNET_NO == box->rekeying))
-  //     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-  //                 "UDPRekey has rekeying %u\n",
-  //                 box->rekeying);
-  //   else
-  //     do_decrypt = GNUNET_YES;
-
-  //   if ((GNUNET_YES == do_decrypt) && (NULL != kce) && (GNUNET_YES ==
-  //                                                       kce->ss->sender->
-  //                                                       rekeying))
-  //   {
-  //     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-  //                 "UDPRekey with kid %s\n",
-  //                 GNUNET_sh2s (&rekey->kid));
-  //     sender = setup_sender (&rekey->sender, (const struct sockaddr *) &sa,
-  //                            salen);
-
-  //     if (NULL != sender->ss_rekey)
-  //       return;
-
-  //     decrypt_rekey (rekey, (size_t) rcvd, kce, sender);
-  //     return;
-  //   }
-  // }
-
-  // /* first, see if it is a UDPBox */
-  // if (rcvd > sizeof(struct UDPBox))
-  // {
-  //   const struct UDPBox *box;
-  //   struct KeyCacheEntry *kce;
-
-  //   box = (const struct UDPBox *) buf;
-  //   kce = GNUNET_CONTAINER_multishortmap_get (key_cache, &box->kid);
-  //   if (NULL != kce)
-  //   {
-  //     decrypt_box (box, (size_t) rcvd, kce);
-  //     return;
-  //   }
-  // }
-
-  // /* next, check if it is a broadcast */
-  // if (sizeof(struct UDPBroadcast) == rcvd)
-  // {
-  //   const struct UDPBroadcast *ub;
-  //   struct UdpBroadcastSignature uhs;
-  //   struct GNUNET_PeerIdentity sender;
-
-  //   addr_verify = GNUNET_memdup (&sa, salen);
-  //   addr_verify->sin_port = 0;
-  //   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-  //               "received UDPBroadcast from %s\n",
-  //               GNUNET_a2s ((const struct sockaddr *) addr_verify, salen));
-  //   ub = (const struct UDPBroadcast *) buf;
-  //   uhs.purpose.purpose = htonl (
-  //     GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_UDP_BROADCAST);
-  //   uhs.purpose.size = htonl (sizeof(uhs));
-  //   uhs.sender = ub->sender;
-  //   sender = ub->sender;
-  //   if (0 == memcmp (&sender, &my_identity, sizeof (struct
-  //                                                   GNUNET_PeerIdentity)))
-  //   {
-  //     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-  //                 "Received our own broadcast\n");
-  //     GNUNET_free (addr_verify);
-  //     return;
-  //   }
-  //   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-  //               "checking UDPBroadcastSignature for %s\n",
-  //               GNUNET_i2s (&sender));
-  //   GNUNET_CRYPTO_hash ((struct sockaddr *) addr_verify, salen, &uhs.h_address);
-  //   if (GNUNET_OK ==
-  //       GNUNET_CRYPTO_eddsa_verify (
-  //         GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_UDP_BROADCAST,
-  //         &uhs,
-  //         &ub->sender_sig,
-  //         &ub->sender.public_key))
-  //   {
-  //     char *addr_s;
-  //     enum GNUNET_NetworkType nt;
-
-  //     addr_s =
-  //       sockaddr_to_udpaddr_string ((const struct sockaddr *) &sa, salen);
-  //     GNUNET_STATISTICS_update (stats, "# broadcasts received", 1, GNUNET_NO);
-  //     /* use our own mechanism to determine network type */
-  //     nt =
-  //       GNUNET_NT_scanner_get_type (is, (const struct sockaddr *) &sa, salen);
-  //     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-  //                 "validating address %s received from UDPBroadcast\n",
-  //                 GNUNET_i2s (&sender));
-  //     GNUNET_TRANSPORT_application_validate (ah, &sender, nt, addr_s);
-  //     GNUNET_free (addr_s);
-  //     GNUNET_free (addr_verify);
-  //     return;
-  //   }
-  //   else
-  //   {
-  //     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-  //                 "VerifyingPeer %s is verifying UDPBroadcast\n",
-  //                 GNUNET_i2s (&my_identity));
-  //     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-  //                 "Verifying UDPBroadcast from %s failed\n",
-  //                 GNUNET_i2s (&ub->sender));
-  //   }
-  //   GNUNET_free (addr_verify);
-  //   /* continue with KX, mostly for statistics... */
-  // }
-
-
-  // /* finally, test if it is a KX */
-  // if (rcvd < sizeof(struct UDPConfirmation) + sizeof(struct InitialKX))
-  // {
-  //   GNUNET_STATISTICS_update (stats,
-  //                             "# messages dropped (no kid, too small for KX)",
-  //                             1,
-  //                             GNUNET_NO);
-  //   return;
-  // }
-  // GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-  //             "Got KX\n");
-  // {
-  //   const struct InitialKX *kx;
-  //   struct SharedSecret *ss;
-  //   char pbuf[rcvd - sizeof(struct InitialKX)];
-  //   const struct UDPConfirmation *uc;
-  //   struct SenderAddress *sender;
-
-  //   kx = (const struct InitialKX *) buf;
-  //   ss = setup_shared_secret_dec (&kx->ephemeral);
-  //   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-  //               "Before DEC\n");
-
-  //   if (GNUNET_OK != try_decrypt (ss,
-  //                                 kx->gcm_tag,
-  //                                 0,
-  //                                 &buf[sizeof(*kx)],
-  //                                 sizeof(pbuf),
-  //                                 pbuf))
-  //   {
-  //     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-  //                 "Unable to decrypt tag, dropping...\n");
-  //     GNUNET_free (ss);
-  //     GNUNET_STATISTICS_update (
-  //       stats,
-  //       "# messages dropped (no kid, AEAD decryption failed)",
-  //       1,
-  //       GNUNET_NO);
-  //     return;
-  //   }
-  //   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-  //               "Before VERIFY\n");
-
-  //   uc = (const struct UDPConfirmation *) pbuf;
-  //   if (GNUNET_OK != verify_confirmation (&kx->ephemeral, uc))
-  //   {
-  //     GNUNET_break_op (0);
-  //     GNUNET_free (ss);
-  //     GNUNET_STATISTICS_update (stats,
-  //                               "# messages dropped (sender signature invalid)",
-  //                               1,
-  //                               GNUNET_NO);
-  //     return;
-  //   }
-  //   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-  //               "Before SETUP_SENDER\n");
-
-  //   calculate_cmac (ss);
-  //   sender = setup_sender (&uc->sender, (const struct sockaddr *) &sa, salen);
-  //   ss->sender = sender;
-  //   GNUNET_CONTAINER_DLL_insert (sender->ss_head, sender->ss_tail, ss);
-  //   sender->num_secrets++;
-  //   GNUNET_STATISTICS_update (stats, "# Secrets active", 1, GNUNET_NO);
-  //   GNUNET_STATISTICS_update (stats,
-  //                             "# messages decrypted without BOX",
-  //                             1,
-  //                             GNUNET_NO);
-  //   try_handle_plaintext (sender, &uc[1], sizeof(pbuf) - sizeof(*uc));
-  //   if ((GNUNET_NO == kx->rekeying) && (GNUNET_YES == ss->sender->rekeying))
-  //   {
-  //     ss->sender->rekeying = GNUNET_NO;
-  //     sender->ss_rekey = NULL;
-  //     // destroy_all_secrets (ss, GNUNET_NO);
-  //     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-  //                 "Receiver stopped rekeying.\n");
-  //   }
-  //   else if (GNUNET_NO == kx->rekeying)
-  //     consider_ss_ack (ss, GNUNET_YES);
-  //   else
-  //   {
-  //     ss->sender->rekeying = GNUNET_YES;
-  //     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-  //                 "Got KX: Receiver doing rekeying.\n");
-  //   }
-  //   /*if (sender->num_secrets > MAX_SECRETS)
-  //     secret_destroy (sender->ss_tail);*/
-  // }
 }
 
 
