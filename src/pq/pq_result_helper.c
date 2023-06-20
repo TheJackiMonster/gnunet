@@ -1214,43 +1214,45 @@ extract_array_generic (
     FAIL_IF (info->oid != header.oid);
   }
 
-  *info->num = header.dim;
+  if (NULL != info->num)
+    *info->num = header.dim;
+
   switch (info->typ)
   {
   case array_of_bool:
     if (NULL != dst_size)
-      *dst_size = sizeof(bool) * (*info->num);
-    out = GNUNET_new_array (*info->num, bool);
+      *dst_size = sizeof(bool) * (header.dim);
+    out = GNUNET_new_array (header.dim, bool);
     break;
   case array_of_uint16:
     if (NULL != dst_size)
-      *dst_size = sizeof(uint16_t) * (*info->num);
-    out = GNUNET_new_array (*info->num, uint16_t);
+      *dst_size = sizeof(uint16_t) * (header.dim);
+    out = GNUNET_new_array (header.dim, uint16_t);
     break;
   case array_of_uint32:
     if (NULL != dst_size)
-      *dst_size = sizeof(uint32_t) * (*info->num);
-    out = GNUNET_new_array (*info->num, uint32_t);
+      *dst_size = sizeof(uint32_t) * (header.dim);
+    out = GNUNET_new_array (header.dim, uint32_t);
     break;
   case array_of_uint64:
     if (NULL != dst_size)
-      *dst_size = sizeof(uint64_t) * (*info->num);
-    out = GNUNET_new_array (*info->num, uint64_t);
+      *dst_size = sizeof(uint64_t) * (header.dim);
+    out = GNUNET_new_array (header.dim, uint64_t);
     break;
   case array_of_abs_time:
     if (NULL != dst_size)
-      *dst_size = sizeof(struct GNUNET_TIME_Absolute) * (*info->num);
-    out = GNUNET_new_array (*info->num, struct GNUNET_TIME_Absolute);
+      *dst_size = sizeof(struct GNUNET_TIME_Absolute) * (header.dim);
+    out = GNUNET_new_array (header.dim, struct GNUNET_TIME_Absolute);
     break;
   case array_of_rel_time:
     if (NULL != dst_size)
-      *dst_size = sizeof(struct GNUNET_TIME_Relative) * (*info->num);
-    out = GNUNET_new_array (*info->num, struct GNUNET_TIME_Relative);
+      *dst_size = sizeof(struct GNUNET_TIME_Relative) * (header.dim);
+    out = GNUNET_new_array (header.dim, struct GNUNET_TIME_Relative);
     break;
   case array_of_timestamp:
     if (NULL != dst_size)
-      *dst_size = sizeof(struct GNUNET_TIME_Timestamp) * (*info->num);
-    out = GNUNET_new_array (*info->num, struct GNUNET_TIME_Timestamp);
+      *dst_size = sizeof(struct GNUNET_TIME_Timestamp) * (header.dim);
+    out = GNUNET_new_array (header.dim, struct GNUNET_TIME_Timestamp);
     break;
   case array_of_byte:
     if (0 == info->same_size)
