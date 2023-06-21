@@ -28,6 +28,8 @@
         sizeof(struct sockaddr_storage) + \
         QUICHE_MAX_CONN_ID_LEN
 
+#define CID_LEN sizeof(uint8_t) * QUICHE_MAX_CONN_ID_LEN
+#define TOKEN_LEN sizeof(uint8_t) * MAX_TOKEN_LEN
 /**
  * Map of DCID (uint8_t) -> quic_conn for quickly retrieving connections to other peers.
  */
@@ -36,26 +38,9 @@ struct GNUNET_CONTAINER_MultiHashMap *conn_map;
 static const struct GNUNET_CONFIGURATION_Handle *cfg;
 static struct GNUNET_TIME_Relative rekey_interval;
 static struct GNUNET_NETWORK_Handle *udp_sock;
-// static struct GNUNET_STATISTICS_Handle *stats;
-// static struct GNUNET_CONTAINER_MultiPeerMap *senders;
-// static struct GNUNET_CONTAINER_MultiPeerMap *receivers;
-// static struct GNUNET_CONTAINER_Heap *senders_heap;
-// static struct GNUNET_CONTAINER_Heap *receivers_heap;
-// static struct GNUNET_CONTAINER_MultiShortmap *key_cache;
-// static struct GNUNET_NAT_Handle *nat;
-// static struct BroadcastInterface *bi_head;
-// static struct BroadcastInterface *bi_tail;
-// static struct GNUNET_SCHEDULER_Task *broadcast_task;
-// static struct GNUNET_SCHEDULER_Task *timeout_task;
 static struct GNUNET_SCHEDULER_Task *read_task;
 static struct GNUNET_TRANSPORT_CommunicatorHandle *ch;
 static struct GNUNET_TRANSPORT_ApplicationHandle *ah;
-// static struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
-// static struct GNUNET_NT_InterfaceScanner *is;
-// static struct GNUNET_PeerIdentity my_identity;
-// struct SenderAddress;
-// struct ReceiverAddress;
-
 static int have_v6_socket;
 static uint16_t my_port;
 static unsigned long long rekey_max_bytes;
@@ -63,13 +48,35 @@ static unsigned long long rekey_max_bytes;
 static quiche_config *config = NULL;
 /**
  * QUIC connection object. A connection has a unique SCID/DCID pair. Here we store our SCID
- * (incoming packet DCID field == outgoing packet SCID field) for a given connection.
+ * (incoming packet DCID field == outgoing packet SCID field) for a given connection. This
+ * is hashed for each unique quic_conn.
 */
 struct quic_conn
 {
   uint8_t cid[LOCAL_CONN_ID_LEN];
 
   quiche_conn *conn;
+};
+
+/**
+ * QUIC_header is used to store information received from an incoming QUIC packet
+*/
+struct QUIC_header
+{
+  uint8_t type;
+  uint32_t version;
+
+  uint8_t scid[QUICHE_MAX_CONN_ID_LEN];
+  size_t scid_len;
+
+  uint8_t dcid[QUICHE_MAX_CONN_ID_LEN];
+  size_t dcid_len;
+
+  uint8_t odcid[QUICHE_MAX_CONN_ID_LEN];
+  size_t odcid_len;
+
+  uint8_t token[MAX_TOKEN_LEN];
+  size_t token_len;
 };
 
 /**
@@ -108,7 +115,7 @@ gen_cid (uint8_t *cid, size_t cid_len)
   */
   int rand_cid;
   rand_cid = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_STRONG,
-                                           UINT8_MAX);
+                                       UINT8_MAX);
 }
 
 
@@ -124,7 +131,7 @@ recv_from_streams (quiche_conn *conn, char stream_buf[])
   bool fin;
   ssize_t recv_len;
   static const char *resp = "byez\n";
-  
+
   readable = quiche_conn_readable (conn);
   while (quiche_stream_iter_next (readable, &s))
   {
@@ -145,7 +152,7 @@ recv_from_streams (quiche_conn *conn, char stream_buf[])
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "msg received: %s\n", stream_buf);
     if (fin)
     {
-      quiche_conn_stream_send (conn, s, resp,
+      quiche_conn_stream_send (conn, s, (uint8_t *) resp,
                                5, true);
     }
   }
@@ -190,12 +197,12 @@ create_conn (uint8_t *scid, size_t scid_len,
 
   GNUNET_memcpy (conn->cid, scid, LOCAL_CONN_ID_LEN);
   q_conn = quiche_accept (conn->cid, LOCAL_CONN_ID_LEN,
-                                       odcid, odcid_len,
-                                       local_addr,
-                                       local_addr_len,
-                                       (struct sockaddr *) peer_addr,
-                                       peer_addr_len,
-                                       config);
+                          odcid, odcid_len,
+                          local_addr,
+                          local_addr_len,
+                          (struct sockaddr *) peer_addr,
+                          peer_addr_len,
+                          config);
   if (NULL == q_conn)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -432,21 +439,16 @@ sock_read (void *cls)
   struct GNUNET_HashCode conn_key;
   ssize_t process_pkt;
 
+  struct QUIC_header quic_header;
   uint8_t new_cid[LOCAL_CONN_ID_LEN];
-  uint8_t type;
-  uint32_t version;
 
-  uint8_t scid[QUICHE_MAX_CONN_ID_LEN];
-  size_t scid_len = sizeof(scid);
-
-  uint8_t dcid[QUICHE_MAX_CONN_ID_LEN];
-  size_t dcid_len = sizeof(dcid);
-
-  uint8_t odcid[QUICHE_MAX_CONN_ID_LEN];
-  size_t odcid_len = sizeof(odcid);
-
-  uint8_t token[MAX_TOKEN_LEN];
-  size_t token_len = sizeof(token);
+  /**
+   * May be unnecessary if quiche_header_info writes to len fields
+  */
+  quic_header.scid_len = sizeof(quic_header.scid);
+  quic_header.dcid_len = sizeof(quic_header.dcid);
+  quic_header.odcid_len = sizeof(quic_header.odcid);
+  quic_header.token_len = sizeof(quic_header.token);
   /**
    * Get local_addr, in_len for quiche
   */
@@ -483,16 +485,9 @@ sock_read (void *cls)
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_DEBUG, "recv");
     return;
   }
-  /**
-   * TODO:
-   * - handle connection ID (not stream ID) -> associate incoming packets by connection ID
-   *   with previous connection or generate new connection
-   *
-   * - create structure for individual connections (how many can we have concurrently)
-  */
-  int rc = quiche_header_info (buf, read, LOCAL_CONN_ID_LEN, &version,
-                               &type, scid, &scid_len, dcid, &dcid_len,
-                               token, &token_len);
+  int rc = quiche_header_info (buf, read, LOCAL_CONN_ID_LEN, &quic_header.version,
+                               &quic_header.type, quic_header.scid, &quic_header.scid_len, quic_header.dcid, &quic_header.dcid_len,
+                               quic_header.token, &quic_header.token_len);
   if (0 > rc)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -504,7 +499,7 @@ sock_read (void *cls)
   /* look for connection in hashtable */
   /* each connection to the peer should have a unique incoming DCID */
   /* check against a conn SCID */
-  GNUNET_CRYPTO_hash (dcid, sizeof(dcid), &conn_key);
+  GNUNET_CRYPTO_hash (quic_header.dcid, sizeof(quic_header.dcid), &conn_key);
   conn = GNUNET_CONTAINER_multihashmap_get (conn_map, &conn_key);
 
   /**
@@ -514,20 +509,21 @@ sock_read (void *cls)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "attempting to create new connection\n");
-    if (0 == quiche_version_is_supported (version))
+    if (0 == quiche_version_is_supported (quic_header.version))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "quic version negotiation initiated\n");
       /**
        * Write a version negotiation packet to "out"
       */
-      ssize_t written = quiche_negotiate_version (scid, scid_len,
-                                                  dcid, dcid_len,
+      ssize_t written = quiche_negotiate_version (quic_header.scid, quic_header.scid_len,
+                                                  quic_header.dcid, quic_header.dcid_len,
                                                   out, sizeof(out));
       if (0 > written)
       {
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                     "quiche failed to generate version negotiation packet\n");
+        return;
       }
       ssize_t sent = GNUNET_NETWORK_socket_sendto (udp_sock,
                                                    out,
@@ -538,25 +534,27 @@ sock_read (void *cls)
       {
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                     "failed to send version negotiation packet to peer\n");
+        return;
       }
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "sent %zd bytes to peer during version negotiation\n", sent);
+      return;
     }
 
-    if (0 == token_len)
+    if (0 == quic_header.token_len)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "quic stateless retry\n");
-      mint_token (dcid, dcid_len, &sa, salen,
-                  token, &token_len);
+      mint_token (quic_header.dcid, quic_header.dcid_len, &sa, salen,
+                  quic_header.token, &quic_header.token_len);
 
       uint8_t new_cid[LOCAL_CONN_ID_LEN];
       gen_cid (new_cid, LOCAL_CONN_ID_LEN);
 
-      ssize_t written = quiche_retry (scid, scid_len,
-                                      dcid, dcid_len,
+      ssize_t written = quiche_retry (quic_header.scid, quic_header.scid_len,
+                                      quic_header.dcid, quic_header.dcid_len,
                                       new_cid, LOCAL_CONN_ID_LEN,
-                                      token, token_len,
-                                      version, out, sizeof(out));
+                                      quic_header.token, quic_header.token_len,
+                                      quic_header.version, out, sizeof(out));
       if (0 > written)
       {
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -576,14 +574,14 @@ sock_read (void *cls)
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "sent %zd bytes\n", sent);
     }
 
-    if (0 == validate_token (token, token_len, (struct sockaddr*) &sa, salen,
-                             odcid, &odcid_len))
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "invalid address validation token created\n");
-    }
+    // if (0 == validate_token (token, token_len, (struct sockaddr*) &sa, salen,
+    //                          odcid, &odcid_len))
+    // {
+    //   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+    //               "invalid address validation token created\n");
+    // }
 
-    conn = create_conn (dcid, dcid_len, odcid, odcid_len,
+    conn = create_conn (quic_header.dcid, quic_header.dcid_len, quic_header.odcid, quic_header.odcid_len,
                         local_addr, in_len,
                         (struct sockaddr*) &sa, salen);
     if (NULL == conn)
@@ -602,7 +600,7 @@ sock_read (void *cls)
     in_len,
   };
 
-  process_pkt = quiche_conn_recv (conn, buf, rcvd, &recv_info);
+  process_pkt = quiche_conn_recv (conn->conn, buf, rcvd, &recv_info);
 
   if (0 > process_pkt)
   {
@@ -618,11 +616,11 @@ sock_read (void *cls)
   /**
    * Check for connection establishment
   */
-  if (quiche_conn_is_established (conn))
+  if (quiche_conn_is_established (conn->conn))
   {
     // Check for data on all available streams
     char stream_buf[UINT16_MAX];
-    recv_from_streams (conn, stream_buf);
+    recv_from_streams (conn->conn, stream_buf);
   }
 
   /**
