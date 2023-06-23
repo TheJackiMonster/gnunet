@@ -124,7 +124,7 @@ gen_cid (uint8_t *cid, size_t cid_len)
  * ASSUMES: connection is established to peer
 */
 static void
-recv_from_streams (quiche_conn *conn, char stream_buf[])
+recv_from_streams (quiche_conn *conn, char stream_buf[], size_t buf_size)
 {
   uint64_t s = 0;
   quiche_stream_iter *readable;
@@ -139,7 +139,7 @@ recv_from_streams (quiche_conn *conn, char stream_buf[])
                 s);
     fin = false;
     recv_len = quiche_conn_stream_recv (conn, s,
-                                        stream_buf, sizeof(stream_buf),
+                                        (uint8_t *) stream_buf, buf_size,
                                         &fin);
     if (recv_len < 0)
     {
@@ -225,7 +225,7 @@ create_conn (uint8_t *scid, size_t scid_len,
 /**
  * Check for closed connections, print stats
 */
-static void
+static int
 check_conn_closed (void *cls,
                    const struct GNUNET_HashCode *key,
                    void *value)
@@ -238,7 +238,7 @@ check_conn_closed (void *cls,
     quiche_path_stats path_stats;
 
     quiche_conn_stats (conn->conn, &stats);
-    quiche_conn_path_stats (conn->conn, 0, &stats);
+    quiche_conn_path_stats (conn->conn, 0, &path_stats);
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "connection closed. quiche stats: sent=%zu, recv=%zu\n",
@@ -250,6 +250,7 @@ check_conn_closed (void *cls,
     quiche_conn_free (conn->conn);
     GNUNET_free (conn);
   }
+  return GNUNET_OK;
 }
 
 
@@ -430,8 +431,8 @@ sock_read (void *cls)
   struct sockaddr_storage sa;
   struct sockaddr_in *addr_verify;
   socklen_t salen = sizeof(sa);
-  char buf[UINT16_MAX];
-  char out[MAX_DATAGRAM_SIZE];
+  uint8_t buf[UINT16_MAX];
+  uint8_t out[MAX_DATAGRAM_SIZE];
   ssize_t rcvd;
   (void) cls;
 
@@ -465,7 +466,7 @@ sock_read (void *cls)
                                "BINDTO");
     return;
   }
-  struct sock_addr *local_addr = udp_address_to_sockaddr (bindto, in_len);
+  struct sockaddr *local_addr = udp_address_to_sockaddr (bindto, &in_len);
 
   read_task = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
                                              udp_sock,
@@ -485,8 +486,11 @@ sock_read (void *cls)
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_DEBUG, "recv");
     return;
   }
-  int rc = quiche_header_info (buf, read, LOCAL_CONN_ID_LEN, &quic_header.version,
-                               &quic_header.type, quic_header.scid, &quic_header.scid_len, quic_header.dcid, &quic_header.dcid_len,
+  int rc = quiche_header_info (buf, rcvd, LOCAL_CONN_ID_LEN,
+                               &quic_header.version,
+                               &quic_header.type, quic_header.scid,
+                               &quic_header.scid_len, quic_header.dcid,
+                               &quic_header.dcid_len,
                                quic_header.token, &quic_header.token_len);
   if (0 > rc)
   {
@@ -516,8 +520,10 @@ sock_read (void *cls)
       /**
        * Write a version negotiation packet to "out"
       */
-      ssize_t written = quiche_negotiate_version (quic_header.scid, quic_header.scid_len,
-                                                  quic_header.dcid, quic_header.dcid_len,
+      ssize_t written = quiche_negotiate_version (quic_header.scid,
+                                                  quic_header.scid_len,
+                                                  quic_header.dcid,
+                                                  quic_header.dcid_len,
                                                   out, sizeof(out));
       if (0 > written)
       {
@@ -581,9 +587,10 @@ sock_read (void *cls)
     //               "invalid address validation token created\n");
     // }
 
-    conn = create_conn (quic_header.dcid, quic_header.dcid_len, quic_header.odcid, quic_header.odcid_len,
+    conn = create_conn (quic_header.dcid, quic_header.dcid_len,
+                        quic_header.odcid, quic_header.odcid_len,
                         local_addr, in_len,
-                        (struct sockaddr*) &sa, salen);
+                        &sa, salen);
     if (NULL == conn)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -620,7 +627,7 @@ sock_read (void *cls)
   {
     // Check for data on all available streams
     char stream_buf[UINT16_MAX];
-    recv_from_streams (conn->conn, stream_buf);
+    recv_from_streams (conn->conn, stream_buf, UINT16_MAX);
   }
 
   /**
