@@ -1562,6 +1562,19 @@ GNUNET_PQ_event_listen_cancel (struct GNUNET_DB_EventHandler *eh);
 
 
 /**
+ * Poll for events right now. Useful if we may have
+ * triggered an event for ourselves.  Not needed when
+ * using GNUNET_PQ_event_notify(), but useful when
+ * stored procedures may have triggered events.
+ * Does nothing if there are no events.
+ *
+ * @param[in,out] db database to check for events
+ */
+void
+GNUNET_PQ_event_do_poll (struct GNUNET_PQ_Context *db);
+
+
+/**
  * Notify all that listen on @a es of an event.
  *
  * Unlike many other calls, this function is thread-safe and may be called

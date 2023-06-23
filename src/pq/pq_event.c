@@ -185,8 +185,8 @@ do_notify (void *cls,
 }
 
 
-static void
-event_do_poll (struct GNUNET_PQ_Context *db)
+void
+GNUNET_PQ_event_do_poll (struct GNUNET_PQ_Context *db)
 {
   PGnotify *n;
   unsigned int cnt = 0;
@@ -276,7 +276,7 @@ do_scheduler_notify (void *cls)
   db->event_task = NULL;
   if (NULL == db->rfd)
     GNUNET_PQ_reconnect (db);
-  event_do_poll (db);
+  GNUNET_PQ_event_do_poll (db);
   if (NULL != db->event_task)
     return;
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
@@ -577,7 +577,7 @@ GNUNET_PQ_event_notify (struct GNUNET_PQ_Context *db,
                      PQerrorMessage (db->conn));
   }
   PQclear (result);
-  event_do_poll (db);
+  GNUNET_PQ_event_do_poll (db);
 }
 
 
