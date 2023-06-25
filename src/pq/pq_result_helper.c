@@ -22,9 +22,8 @@
  * @brief functions to extract result values
  * @author Christian Grothoff
  */
-#include "gnunet_common.h"
-#include "gnunet_time_lib.h"
 #include "platform.h"
+#include "gnunet_common.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_pq_lib.h"
 #include "pq.h"
@@ -1299,6 +1298,8 @@ extract_array_generic (
   }
 
   *((void **) dst) = out;
+  if (NULL == out)
+    return GNUNET_OK; /* array length must be 0 */
 
   /* copy data */
   {

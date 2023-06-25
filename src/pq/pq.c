@@ -24,8 +24,8 @@
  * @author Florian Dold
  * @author Christian Grothoff
  */
-#include "gnunet_pq_lib.h"
 #include "platform.h"
+#include "gnunet_pq_lib.h"
 #include "pq.h"
 
 
@@ -195,7 +195,7 @@ GNUNET_PQ_extract_result (PGresult *result,
       *spec->result_size = spec->dst_size;
   }
   return GNUNET_OK;
-  cleanup:
+cleanup:
   for (unsigned int j = 0; j < i; j++)
     if (NULL != rs[j].cleaner)
       rs[j].cleaner (rs[j].cls,
