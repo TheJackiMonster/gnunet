@@ -689,7 +689,7 @@ qconv_array (
     /* num * length-field */
     size_t x = sizeof(uint32_t);
     size_t y = x * num;
-    RETURN_UNLESS (y >= num);
+    RETURN_UNLESS ((0 == num) || (y / num == x));
 
     /* size of header */
     total_size  = x = sizeof(struct pq_array_header);
@@ -700,11 +700,11 @@ qconv_array (
     if (same_sized)
     {
       x = num * meta->same_size;
-      RETURN_UNLESS (x >= num);
+      RETURN_UNLESS ((0 == num) || (x / num == meta->same_size));
 
       y = total_size;
       total_size += x;
-      RETURN_UNLESS ((total_size >= y));
+      RETURN_UNLESS (total_size >= y);
     }
     else  /* sizes are different per element */
     {
