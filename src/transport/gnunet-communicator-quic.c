@@ -176,6 +176,40 @@ mint_token (const uint8_t *dcid, size_t dcid_len,
 }
 
 
+static bool
+validate_token (const uint8_t *token, size_t token_len,
+                struct sockaddr_storage *addr, socklen_t addr_len,
+                uint8_t *odcid, size_t *odcid_len)
+{
+  if ((token_len < sizeof("quiche") - 1) ||
+      memcmp (token, "quiche", sizeof("quiche") - 1))
+  {
+    return false;
+  }
+
+  token += sizeof("quiche") - 1;
+  token_len -= sizeof("quiche") - 1;
+
+  if ((token_len < addr_len) || memcmp (token, addr, addr_len))
+  {
+    return false;
+  }
+
+  token += addr_len;
+  token_len -= addr_len;
+
+  if (*odcid_len < token_len)
+  {
+    return false;
+  }
+
+  memcpy (odcid, token, token_len);
+  *odcid_len = token_len;
+
+  return true;
+}
+
+
 static struct quic_conn*
 create_conn (uint8_t *scid, size_t scid_len,
              uint8_t *odcid, size_t odcid_len,
@@ -580,12 +614,13 @@ sock_read (void *cls)
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "sent %zd bytes\n", sent);
     }
 
-    // if (0 == validate_token (token, token_len, (struct sockaddr*) &sa, salen,
-    //                          odcid, &odcid_len))
-    // {
-    //   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-    //               "invalid address validation token created\n");
-    // }
+    if (0 == validate_token (quic_header.token, quic_header.token_len,
+                             &sa, salen,
+                             quic_header.odcid, &quic_header.odcid_len))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "invalid address validation token created\n");
+    }
 
     conn = create_conn (quic_header.dcid, quic_header.dcid_len,
                         quic_header.odcid, quic_header.odcid_len,
