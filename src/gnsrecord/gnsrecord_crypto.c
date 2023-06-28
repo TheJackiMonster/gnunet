@@ -195,6 +195,7 @@ block_get_size_ecdsa (const struct GNUNET_GNSRECORD_Data *rd,
   return len;
 }
 
+
 enum GNUNET_GenericReturnValue
 block_sign_ecdsa (const struct
                   GNUNET_CRYPTO_EcdsaPrivateKey *key,
@@ -400,6 +401,7 @@ block_create_ecdsa (const struct GNUNET_CRYPTO_EcdsaPrivateKey *key,
   return GNUNET_OK;
 }
 
+
 static ssize_t
 block_get_size_eddsa (const struct GNUNET_GNSRECORD_Data *rd,
                       unsigned int rd_count)
@@ -505,6 +507,7 @@ block_create_eddsa (const struct GNUNET_CRYPTO_EddsaPrivateKey *key,
   return GNUNET_OK;
 }
 
+
 ssize_t
 GNUNET_GNSRECORD_block_calculate_size (const struct
                                        GNUNET_IDENTITY_PrivateKey *key,
@@ -530,6 +533,7 @@ GNUNET_GNSRECORD_block_calculate_size (const struct
   return res;
 
 }
+
 
 enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_block_create (const struct GNUNET_IDENTITY_PrivateKey *key,
@@ -655,7 +659,6 @@ block_create2 (const struct GNUNET_IDENTITY_PrivateKey *pkey,
 }
 
 
-
 enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_block_create_unsigned (const struct
                                         GNUNET_IDENTITY_PrivateKey *pkey,
@@ -669,7 +672,6 @@ GNUNET_GNSRECORD_block_create_unsigned (const struct
 }
 
 
-
 enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_block_create2 (const struct GNUNET_IDENTITY_PrivateKey *pkey,
                                 struct GNUNET_TIME_Absolute expire,
@@ -680,6 +682,7 @@ GNUNET_GNSRECORD_block_create2 (const struct GNUNET_IDENTITY_PrivateKey *pkey,
 {
   return block_create2 (pkey, expire, label, rd, rd_count, result, GNUNET_YES);
 }
+
 
 /**
  * Check if a signature is valid.  This API is used by the GNS Block
@@ -1064,8 +1067,8 @@ GNUNET_GNSRECORD_query_from_public_key (const struct
                                            norm_label,
                                            "gns",
                                            &pd.ecdsa_key);
-    GNUNET_CRYPTO_hash (&pd.ecdsa_key,
-                        sizeof (pd.ecdsa_key),
+    GNUNET_CRYPTO_hash (&pd,
+                        GNUNET_IDENTITY_public_key_get_length (&pd),
                         query);
     break;
   case GNUNET_GNSRECORD_TYPE_EDKEY:
@@ -1075,7 +1078,7 @@ GNUNET_GNSRECORD_query_from_public_key (const struct
                                            "gns",
                                            &(pd.eddsa_key));
     GNUNET_CRYPTO_hash (&pd.eddsa_key,
-                        sizeof (pd.eddsa_key),
+                        GNUNET_IDENTITY_public_key_get_length (&pd),
                         query);
     break;
   default:
