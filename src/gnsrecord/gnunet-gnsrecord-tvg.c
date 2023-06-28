@@ -156,7 +156,7 @@ run_pkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char *label)
 
   GNUNET_IDENTITY_key_get_public (&id_priv,
                                   &id_pub);
-  printf ("Zone private key (d, big-endian):\n");
+  printf ("Zone private key (d, little-endian):\n");
   print_bytes_ (&id_priv.ecdsa_key,
                 sizeof (struct GNUNET_CRYPTO_EcdsaPrivateKey), 8, 1);
   printf ("\n");
