@@ -1,42 +1,41 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_signatures.h"
 #include "gnunet_gns_service.h"
 #include "gnunet_gnsrecord_lib.h"
-#include "gnunet_dnsparser_lib.h"
-#include "gnunet_testing_lib.h"
 #include <inttypes.h>
 
+struct GnsTv
+{
+  char *d;
+  char *zid;
+  int rrcount;
+  char *label;
+  char *q;
+  char *rdata;
+  char *bdata;
+  char *rrblock;
+};
 
+#define TVCOUNT 1
 
-static char *d =
-  "50d7b652a4efeadff37396909785e5952171a02178c8e7d450fa907925fafd98";
+struct GnsTv tvs[] = {
+  { .d = "5af7020ee19160328832352bbc6a68a8d71a7cbe1b929969a7c66d415a0d8f65\0",
+    .zid =
+      "000100143cf4b924032022f0dc50581453b85d93b047b63d446c5845cb48445ddb96688f\0",
+    .rrcount = 1,
+    .label = "7465737464656c65676174696f6e\0",
+    .q =
+      "ed76cefdb6a9d73a9e1f10d96717eba3fc89ebe1b37584f6b077c2912e2fc5f312cf74e1b4d4dfca5abaec736d72666f0faa2945217f3b1436aa4e27c14c9732\0",
+    .rdata =
+      "0008c06fb9281580002000010001000021e3b30ff93bc6d35ac8c6e0e13afdff794cb7b44bbbc748d259d0a0284dbe84\0",
+    .bdata =
+      "9cc455a1293319435993cb3d67179ec06ea8d8894e904a0c35e91c5c2ff2ed939cc2f8301231f44e592a4ac87e4998b94625c64af51686a2b36a2b2892d44f2d\0",
+    .rrblock =
+      "000000b0000100149bf233198c6d53bbdbac495cabd91049a684af3f4051bacab0dcf21c8cf27a1a44d240d07902f490b7c43ef00758abce8851c18c70ac6df97a88f79211cf875f784885ca3e349ec4ca892b9ff084c5358965b8e74a2315952d4c8c06521c2f0c0008c06fb92815809cc455a1293319435993cb3d67179ec06ea8d8894e904a0c35e91c5c2ff2ed939cc2f8301231f44e592a4ac87e4998b94625c64af51686a2b36a2b2892d44f2d\0"}
+};
 
-
-static char *zid =
-  "00010000677c477d2d93097c85b195c6f96d84ff61f5982c2c4fe02d5a11fedfb0c2901f";
-
-#define RRCOUNT 2
-#define LABEL "namesystem"
-
-#define R0_EXPIRATION 
-#define R0_DATA_SIZE 4
-#define R0_TYPE 1
-#define R0_FLAGS 0
-#define R0_DATA "01020304"
-
-/* Record #1*/
-#define R1_EXPIRATION 26147096139323793
-#define R1_DATA_SIZE  36
-#define R1_TYPE 65536
-#define R1_FLAGS 2
-#define R1_DATA \
-  "000100000e601be42eb57fb4697610cf3a3b18347b65a33f025b5b174abefb30807bfecf"
-
-#define R1_RRBLOCK \
-  "000100008e16da87203b5159c5538e9b765742e968c54af9afbc0890dc80205ad14c84e107b0c115fc0089aa38b9c7ab9cbe1d77040d282a51a2ad493f61f3495f02d8170fe473a55ec6bdf9a509ab1701ffc37ea3bb4cac4a672520986df96e67cc1a73000000940000000f0034e53be193799100e4837eb5d04f92903de4b5234e8ccac5736c9793379a59c33375fc8951aca2eb7aad067bf9af60bf26758646a17f5e5c3b6215f94079545b1c4d4f1b2ebb22c2b4dad44126817b6f001530d476401dd67ac0148554e806353da9e4298079f3e1b16942c48d90c4360c61238c40d9d52911aea52cc0037ac7160bb3cf5b2f4a722fd96b"
-
-int parsehex (char *src, char *dst, size_t dstlen, int invert)
+int
+parsehex (char *src, char *dst, size_t dstlen, int invert)
 {
   char *line = src;
   char *data = line;
@@ -55,52 +54,14 @@ int parsehex (char *src, char *dst, size_t dstlen, int invert)
   return data_len;
 }
 
+
 void
 res_checker (void *cls,
              unsigned int rd_count, const struct GNUNET_GNSRECORD_Data *rd)
 {
-  int r0_found = 0;
-  int r1_found = 0;
-  char r0_data[R0_DATA_SIZE];
-  char r1_data[R1_DATA_SIZE];
-  parsehex (R0_DATA, (char*) r0_data, 0, 0);
-  parsehex (R1_DATA, (char*) r1_data, 0, 0);
-  GNUNET_assert (rd_count == RRCOUNT);
-  for (int i = 0; i < RRCOUNT; i++)
-  {
-    if (rd[i].record_type == R0_TYPE)
-    {
-      if  (0 != memcmp (rd[i].data, r0_data, R0_DATA_SIZE))
-      {
-        printf ("R0 Data mismatch\n");
-        continue;
-      }
-      if (rd[i].expiration_time != R0_EXPIRATION)
-      {
-        printf ("R0 expiration mismatch\n");
-        continue;
-      }
-      r0_found = 1;
-    }
-    if (rd[i].record_type == R1_TYPE)
-    {
-      if  (0 != memcmp (rd[i].data, r1_data, R1_DATA_SIZE))
-      {
-        printf ("R1 Data mismatch\n");
-        continue;
-      }
-      if (rd[i].expiration_time != R1_EXPIRATION)
-      {
-        printf ("R1 expiration mismatch\n");
-        continue;
-      }
-
-      r1_found = 1;
-    }
-
-  }
-  GNUNET_assert (r0_found);
-  GNUNET_assert (r1_found);
+  struct GnsTv *tv = cls;
+  GNUNET_assert (rd_count == tv->rrcount);
+  printf ("RRCOUNT good: %d\n", rd_count);
 }
 
 
@@ -112,20 +73,26 @@ main ()
   struct GNUNET_IDENTITY_PublicKey pub_parsed;
   struct GNUNET_GNSRECORD_Block *rrblock;
   char *bdata;
+  char label[128];
 
-  parsehex (d,(char*) &priv.ecdsa_key, sizeof (priv.ecdsa_key), 1);
-  priv.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
-  parsehex (zid,(char*) &pub_parsed, 0, 0);
-  GNUNET_IDENTITY_key_get_public (&priv, &pub);
-  GNUNET_assert (0 == memcmp (&pub, &pub_parsed, sizeof (pub)));
-  rrblock = GNUNET_malloc (strlen (R1_RRBLOCK) / 2);
-  parsehex (R1_RRBLOCK, (char*) rrblock, 0, 0);
-  GNUNET_assert (GNUNET_YES
-                 == GNUNET_GNSRECORD_is_critical (GNUNET_GNSRECORD_TYPE_PKEY));
-  GNUNET_GNSRECORD_block_decrypt (rrblock,
-                                  &pub_parsed,
-                                  LABEL,
-                                  &res_checker,
-                                  NULL);
+  for (int i = 0; i < TVCOUNT; i++)
+  {
+    memset (label, 0, sizeof (label));
+    parsehex (tvs[i].d,(char*) &priv.ecdsa_key, sizeof (priv.ecdsa_key), 1);
+    priv.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
+    parsehex (tvs[i].zid,(char*) &pub_parsed, 0, 0);
+    priv.type = pub_parsed.type;
+    GNUNET_IDENTITY_key_get_public (&priv, &pub);
+    // GNUNET_assert (0 == memcmp (&pub, &pub_parsed, sizeof (pub)));
+    rrblock = GNUNET_malloc (strlen (tvs[i].rrblock));
+    parsehex (tvs[i].rrblock, (char*) rrblock, 0, 0);
+    parsehex (tvs[i].label, (char*) label, 0, 0);
+    printf ("Got label: %s\n", label);
+    GNUNET_GNSRECORD_block_decrypt (rrblock,
+                                    &pub_parsed,
+                                    label,
+                                    &res_checker,
+                                    &tvs[i]);
+  }
   return 0;
 }

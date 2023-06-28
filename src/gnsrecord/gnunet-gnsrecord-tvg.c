@@ -94,10 +94,18 @@ print_bytes (void *buf,
 static void
 print_record (const struct GNUNET_GNSRECORD_Data *rd)
 {
+  struct GNUNET_TIME_Relative rt;
+  struct GNUNET_TIME_Absolute at;
   uint16_t flags = htons (rd->flags);
   uint64_t abs_nbo = GNUNET_htonll (rd->expiration_time);
   uint16_t size_nbo = htons (rd->data_size);
   uint32_t type_nbo = htonl (rd->record_type);
+  if (0 != (rd->flags & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION))
+  {
+    rt.rel_value_us = rd->expiration_time;
+    at = GNUNET_TIME_relative_to_absolute (rt);
+    abs_nbo = GNUNET_htonll (at.abs_value_us);
+  }
   printf ("EXPIRATION:\n");
   print_bytes (&abs_nbo, sizeof (abs_nbo), 8);
   printf ("\nDATA_SIZE:\n");
@@ -156,7 +164,8 @@ run_pkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char *label)
   GNUNET_assert (0 < GNUNET_IDENTITY_public_key_get_length (&id_pub));
   print_bytes (&id_pub, GNUNET_IDENTITY_public_key_get_length (&id_pub), 8);
   GNUNET_STRINGS_data_to_string (&id_pub,
-                                 GNUNET_IDENTITY_public_key_get_length (&id_pub),
+                                 GNUNET_IDENTITY_public_key_get_length (
+                                   &id_pub),
                                  ztld,
                                  sizeof (ztld));
   printf ("\n");
@@ -282,7 +291,8 @@ run_edkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char*label)
   GNUNET_assert (0 < GNUNET_IDENTITY_public_key_get_length (&id_pub));
   print_bytes (&id_pub, GNUNET_IDENTITY_public_key_get_length (&id_pub), 8);
   GNUNET_STRINGS_data_to_string (&id_pub,
-                                 GNUNET_IDENTITY_public_key_get_length (&id_pub),
+                                 GNUNET_IDENTITY_public_key_get_length (
+                                   &id_pub),
                                  ztld,
                                  sizeof (ztld));
   printf ("\n");
@@ -381,7 +391,7 @@ run (void *cls,
   struct GNUNET_GNSRECORD_Data rd[3];
   struct GNUNET_TIME_Absolute exp1;
   struct GNUNET_TIME_Absolute exp2;
-  struct GNUNET_TIME_Relative exp3;
+  struct GNUNET_TIME_Absolute exp3;
   size_t pkey_data_size;
   size_t ip_data_size;
   char *pkey_data;
@@ -394,7 +404,7 @@ run (void *cls,
                                          &exp1);
   GNUNET_STRINGS_fancy_time_to_absolute ("3540-05-22 07:55:01",
                                          &exp2);
-  GNUNET_STRINGS_fancy_time_to_relative ("100y",
+  GNUNET_STRINGS_fancy_time_to_absolute ("3333-04-21 06:07:09",
                                          &exp3);
 
 
@@ -429,10 +439,9 @@ run (void *cls,
 
   rd[2].data = "Hello World";
   rd[2].data_size = strlen (rd[2].data);
-  rd[2].expiration_time = exp3.rel_value_us;
+  rd[2].expiration_time = exp3.abs_value_us;
   rd[2].record_type = GNUNET_DNSPARSER_TYPE_TXT;
-  rd[2].flags = GNUNET_GNSRECORD_RF_SUPPLEMENTAL
-                | GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
+  rd[2].flags = GNUNET_GNSRECORD_RF_SUPPLEMENTAL;
 
   run_pkey (&rd_pkey, 1, "testdelegation");
   run_pkey (rd, 3, "\u5929\u4e0b\u7121\u6575");
