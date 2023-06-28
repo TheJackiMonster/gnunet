@@ -80,31 +80,6 @@ struct QUIC_header
 };
 
 /**
- * @param stream_type ...
- * Generate a unique stream ID with indicated stream type
- * quiche library has QUICHE_MAX_CONN_ID_LEN = 20?
-*/
-static uint64_t
-gen_streamid ()
-{
-  uint64_t sid;
-  // sid = GNUNET_CRYPTO_random_u64(GNUNET_CRYPTO_QUALITY_STRONG, STREAM_ID_MAX);
-  /**
-   * Ensure each peer does NOT reuse one of their own stream ID
-  */
-
-  /**
-   * Modify LSB to represent stream type:
-   * 0x00: client-initiated, bidirectional
-   * 0x01: server-initiated, bidirectional
-   * 0x02: client-initiated, unidirectional
-   * 0x03: server-initiated, unidirectional
-  */
-  return sid;
-}
-
-
-/**
  * Given a quiche connection and buffer, recv data from streams and store into buffer
  * ASSUMES: connection is established to peer
 */
@@ -262,7 +237,7 @@ flush_egress (struct quic_conn *conn)
 
     sent = GNUNET_NETWORK_socket_sendto (udp_sock, out, written,
                                          (struct sockaddr *) &send_info.to,
-                                         &send_info.to_len);
+                                         send_info.to_len);
     if (sent != written)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -287,6 +262,7 @@ do_shutdown (void *cls)
               "do_shutdown\n");
 
   GNUNET_CONTAINER_multihashmap_destroy (conn_map);
+  quiche_config_free (config);
 
   if (NULL != read_task)
   {
