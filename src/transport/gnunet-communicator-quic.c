@@ -105,21 +105,6 @@ gen_streamid ()
 
 
 /**
- * Generate a new connection ID
-*/
-static uint8_t*
-gen_cid (uint8_t *cid, size_t cid_len)
-{
-  /**
-   * NOTE: come back and fix
-  */
-  int rand_cid;
-  rand_cid = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_STRONG,
-                                       UINT8_MAX);
-}
-
-
-/**
  * Given a quiche connection and buffer, recv data from streams and store into buffer
  * ASSUMES: connection is established to peer
 */
@@ -256,35 +241,37 @@ create_conn (uint8_t *scid, size_t scid_len,
 }
 
 
-/**
- * Check for closed connections, print stats
-*/
-static int
-check_conn_closed (void *cls,
-                   const struct GNUNET_HashCode *key,
-                   void *value)
+static void
+flush_egress (struct quic_conn *conn)
 {
-  struct quic_conn *conn = value;
+  static uint8_t out[MAX_DATAGRAM_SIZE];
+  quiche_send_info send_info;
 
-  if (quiche_conn_is_closed (conn->conn))
+  ssize_t written;
+  ssize_t sent;
+
+  while (1)
   {
-    quiche_stats stats;
-    quiche_path_stats path_stats;
+    written = quiche_conn_send (conn->conn, out, sizeof(out), &send_info);
 
-    quiche_conn_stats (conn->conn, &stats);
-    quiche_conn_path_stats (conn->conn, 0, &path_stats);
+    if (0 > written)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "quiche failed to create packet\n");
+      return;
+    }
 
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "connection closed. quiche stats: sent=%zu, recv=%zu\n",
-                stats.sent, stats.recv);
-    GNUNET_CONTAINER_multihashmap_remove (conn_map, key, value);
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "removed closed connection from connection map\n");
+    sent = GNUNET_NETWORK_socket_sendto (udp_sock, out, written,
+                                         (struct sockaddr *) &send_info.to,
+                                         &send_info.to_len);
+    if (sent != written)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "quiche failed to send data to peer\n");
+      return;
+    }
 
-    quiche_conn_free (conn->conn);
-    GNUNET_free (conn);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "sent %zd bytes\n", sent);
   }
-  return GNUNET_OK;
 }
 
 
@@ -298,6 +285,9 @@ do_shutdown (void *cls)
 {
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "do_shutdown\n");
+
+  GNUNET_CONTAINER_multihashmap_destroy (conn_map);
+
   if (NULL != read_task)
   {
     GNUNET_SCHEDULER_cancel (read_task);
@@ -588,7 +578,8 @@ sock_read (void *cls)
                   quic_header.token, &quic_header.token_len);
 
       uint8_t new_cid[LOCAL_CONN_ID_LEN];
-      gen_cid (new_cid, LOCAL_CONN_ID_LEN);
+      GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_STRONG, new_cid,
+                                  LOCAL_CONN_ID_LEN);
 
       ssize_t written = quiche_retry (quic_header.scid, quic_header.scid_len,
                                       quic_header.dcid, quic_header.dcid_len,
@@ -668,7 +659,38 @@ sock_read (void *cls)
   /**
    * Connection cleanup, check for closed connections, delete entries, print stats
   */
-  GNUNET_CONTAINER_multihashmap_iterate (conn_map, &check_conn_closed, NULL);
+  /**
+   * TODO: Should we use a list instead of hashmap?
+   * Overhead for hashing function, O(1) retrieval vs O(n) iteration with n=30?
+   *
+   * TODO: Is iteration necessary as in the server example?
+  */
+  quiche_stats stats;
+  quiche_path_stats path_stats;
+
+  flush_egress (conn);
+
+  if (quiche_conn_is_closed (conn->conn))
+  {
+    quiche_conn_stats (conn->conn, &stats);
+    quiche_conn_path_stats (conn->conn, 0, &path_stats);
+
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "connection closed. quiche stats: sent=%zu, recv=%zu\n",
+                stats.sent, stats.recv);
+    if (GNUNET_NO == GNUNET_CONTAINER_multihashmap_remove (conn_map, &conn_key,
+                                                           conn->conn))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "failed to remove quic connection from map\n");
+      return;
+    }
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "removed closed connection from connection map\n");
+
+    quiche_conn_free (conn->conn);
+    GNUNET_free (conn);
+  }
 }
 
 
