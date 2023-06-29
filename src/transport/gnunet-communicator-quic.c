@@ -251,7 +251,7 @@ flush_egress (struct quic_conn *conn)
 
 
 /**
- * Shutdown the UNIX communicator.
+ * Shutdown the QUIC communicator.
  *
  * @param cls NULL (always)
  */
@@ -631,7 +631,6 @@ sock_read (void *cls)
     char stream_buf[UINT16_MAX];
     recv_from_streams (conn->conn, stream_buf, UINT16_MAX);
   }
-
   /**
    * Connection cleanup, check for closed connections, delete entries, print stats
   */
@@ -793,7 +792,14 @@ run (void *cls,
                                              udp_sock,
                                              &sock_read,
                                              NULL);
-
+  // ch = GNUNET_TRANSPORT_communicator_connect (cfg,
+  //                                             COMMUNICATOR_CONFIG_SECTION,
+  //                                             COMMUNICATOR_ADDRESS_PREFIX,
+  //                                             GNUNET_TRANSPORT_CC_UNRELIABLE,
+  //                                             &mq_init,
+  //                                             NULL,
+  //                                             &enc_notify_cb,
+  //                                             NULL);
   // if (NULL == ch)
   // {
   //   GNUNET_break (0);
