@@ -406,11 +406,11 @@ run (void *cls,
   /*
    * Make different expiration times
    */
-  GNUNET_STRINGS_fancy_time_to_absolute ("2048-01-23 10:51:34",
+  GNUNET_STRINGS_fancy_time_to_absolute ("2228-01-23 10:51:34",
                                          &exp1);
-  GNUNET_STRINGS_fancy_time_to_absolute ("3540-05-22 07:55:01",
+  GNUNET_STRINGS_fancy_time_to_absolute ("2540-05-22 07:55:01",
                                          &exp2);
-  GNUNET_STRINGS_fancy_time_to_absolute ("3333-04-21 06:07:09",
+  GNUNET_STRINGS_fancy_time_to_absolute ("2333-04-21 06:07:09",
                                          &exp3);
 
 
@@ -441,7 +441,7 @@ run (void *cls,
   rd[1].data_size = strlen (rd[1].data);
   rd[1].expiration_time = exp2.abs_value_us;
   rd[1].record_type = GNUNET_GNSRECORD_TYPE_NICK;
-  rd[1].flags = GNUNET_GNSRECORD_RF_PRIVATE;
+  rd[1].flags = GNUNET_GNSRECORD_RF_NONE;
 
   rd[2].data = "Hello World";
   rd[2].data_size = strlen (rd[2].data);
