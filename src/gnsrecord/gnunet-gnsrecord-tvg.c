@@ -71,8 +71,13 @@ print_bytes_ (void *buf,
 
   for (i = 0; i < buf_len; i++)
   {
-    if ((0 != i) && (0 != fold) && (i % fold == 0))
-      printf ("\n");
+    if (0 != i)
+    {
+      if ((0 != fold) && (i % fold == 0))
+        printf ("\n");
+      else
+        printf (" ");
+    }
     if (in_be)
       printf ("%02x", ((unsigned char*) buf)[buf_len - 1 - i]);
     else
@@ -100,13 +105,14 @@ print_record (const struct GNUNET_GNSRECORD_Data *rd)
   uint64_t abs_nbo = GNUNET_htonll (rd->expiration_time);
   uint16_t size_nbo = htons (rd->data_size);
   uint32_t type_nbo = htonl (rd->record_type);
+  at.abs_value_us = GNUNET_ntohll (abs_nbo);
   if (0 != (rd->flags & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION))
   {
     rt.rel_value_us = rd->expiration_time;
     at = GNUNET_TIME_relative_to_absolute (rt);
     abs_nbo = GNUNET_htonll (at.abs_value_us);
   }
-  printf ("EXPIRATION:\n");
+  printf ("EXPIRATION: %" PRIu64 " us\n", rd->expiration_time);
   print_bytes (&abs_nbo, sizeof (abs_nbo), 8);
   printf ("\nDATA_SIZE:\n");
   print_bytes (&size_nbo, sizeof (size_nbo), 8);
