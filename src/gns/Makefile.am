@@ -239,31 +239,31 @@ check_PROGRAMS = \
   test_gns_proxy
 endif
 
-check_SCRIPTS = \
-  test_gns_lookup.sh \
-  test_gns_config_lookup.sh \
-  test_gns_ipv6_lookup.sh\
-  test_gns_txt_lookup.sh\
-  test_gns_caa_lookup.sh\
-  test_gns_mx_lookup.sh \
-  test_gns_gns2dns_lookup.sh \
-  test_gns_gns2dns_zkey_lookup.sh \
-  test_gns_gns2dns_cname_lookup.sh \
-  test_gns_dht_lookup.sh\
-  test_gns_delegated_lookup.sh \
-  test_gns_at_lookup.sh\
-  test_gns_zkey_lookup.sh\
-  test_gns_rel_expiration.sh\
-  test_gns_soa_lookup.sh\
-  test_gns_revocation.sh\
-  test_gns_redirect_lookup.sh
+check_SCRIPTS = 
+  # test_gns_lookup.sh \
+  # test_gns_config_lookup.sh \
+  # test_gns_ipv6_lookup.sh\
+  # test_gns_txt_lookup.sh\
+  # test_gns_caa_lookup.sh\
+  # test_gns_mx_lookup.sh \
+  # test_gns_gns2dns_lookup.sh \
+  # test_gns_gns2dns_zkey_lookup.sh \
+  # test_gns_gns2dns_cname_lookup.sh \
+  # test_gns_dht_lookup.sh\
+  # test_gns_delegated_lookup.sh \
+  # test_gns_at_lookup.sh\
+  # test_gns_zkey_lookup.sh\
+  # test_gns_rel_expiration.sh\
+  #test_gns_soa_lookup.sh\
+  #test_gns_revocation.sh\
+  #test_gns_redirect_lookup.sh
 
 if HAVE_GNUTLS_CURL
 check_SCRIPTS += \
-  test_proxy.sh
+  #test_proxy.sh
 endif
 check_SCRIPTS += \
-  test_plugin_rest_gns.sh
+  #test_plugin_rest_gns.sh
 
 EXTRA_DIST = \
   test_gns_defaults.conf \

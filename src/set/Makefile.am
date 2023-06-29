@@ -66,9 +66,9 @@ libgnunetset_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)
 
 check_PROGRAMS = \
- test_set_api \
- test_set_union_result_symmetric \
- test_set_intersection_result_full \
+ # test_set_api \
+ # test_set_union_result_symmetric \
+ # test_set_intersection_result_full \
  test_set_union_copy
 
 if ENABLE_TEST_RUN

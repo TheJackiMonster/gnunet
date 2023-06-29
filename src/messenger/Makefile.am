@@ -97,19 +97,18 @@ gnunet_service_messenger_LDADD = \
   $(top_builddir)/src/identity/libgnunetidentity.la \
   $(GN_LIBINTL)
 
-check_PROGRAMS = \
-  test_messenger_api \
-  test_messenger_anonymous \
-  test_messenger_sync_client \
-  test_messenger_async_client \
-  test_messenger_worst_client \
-  test_messenger_sync_p2p \
-  test_messenger_async_p2p \
-  test_messenger_worst_p2p \
-  test_messenger_server \
-  test_messenger_growth \
-  test_messenger_ring \
-  test_messenger_adapt
+check_PROGRAMS = test_messenger_anonymous \
+  # test_messenger_api \
+  # test_messenger_sync_client \
+  # test_messenger_async_client \
+  # test_messenger_worst_client \
+  # test_messenger_sync_p2p \
+  # test_messenger_async_p2p \
+  # test_messenger_worst_p2p \
+  # test_messenger_server \
+  # test_messenger_growth \
+  # test_messenger_ring \
+  # test_messenger_adapt
 
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;

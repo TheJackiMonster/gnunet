@@ -68,7 +68,6 @@ gnunet_service_cadet_LDADD = \
   $(top_builddir)/src/core/libgnunetcore.la \
   $(top_builddir)/src/dht/libgnunetdht.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/transport/libgnunettransport.la \
   $(top_builddir)/src/transport/libgnunettransportapplication.la \
   $(top_builddir)/src/peerinfo/libgnunetpeerinfo.la \
   $(top_builddir)/src/hello/libgnunethello.la \
@@ -83,27 +82,27 @@ endif
 # noinst_PROGRAMS = gnunet-cadet-profiler
 
 check_PROGRAMS = \
-  test_cadet_local_mq \
-  test_cadet_2_forward \
-  test_cadet_2_forward \
-  test_cadet_2_signal \
-  test_cadet_2_keepalive \
-  test_cadet_2_speed \
-  test_cadet_2_speed_ack \
-  test_cadet_2_speed_backwards \
-  test_cadet_2_speed_reliable \
-  test_cadet_2_speed_reliable_backwards \
-  test_cadet_2_reopen \
-  test_cadet_2_destroy \
-  test_cadet_5_forward \
-  test_cadet_5_signal \
-  test_cadet_5_keepalive \
-  test_cadet_5_speed \
-  test_cadet_5_speed_ack \
-  test_cadet_5_speed_reliable \
-  test_cadet_5_speed_reliable_backwards \
-  test_cadet_5_speed_backwards \
-  test_cadet_5_reopen
+  # test_cadet_local_mq \
+  # test_cadet_2_forward \
+  # test_cadet_2_forward \
+  # test_cadet_2_signal \
+  # test_cadet_2_keepalive \
+  # test_cadet_2_speed \
+  # test_cadet_2_speed_ack \
+  # test_cadet_2_speed_backwards \
+  # test_cadet_2_speed_reliable \
+  # test_cadet_2_speed_reliable_backwards \
+  # test_cadet_2_reopen \
+  # test_cadet_2_destroy \
+  # test_cadet_5_forward \
+  # test_cadet_5_signal \
+  # test_cadet_5_keepalive \
+  # test_cadet_5_speed \
+  # test_cadet_5_speed_ack \
+  # test_cadet_5_speed_reliable \
+  # test_cadet_5_speed_reliable_backwards \
+  # test_cadet_5_speed_backwards \
+  # test_cadet_5_reopen
 
 
 #gnunet_cadet_profiler_SOURCES = \

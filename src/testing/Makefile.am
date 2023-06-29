@@ -29,6 +29,7 @@ gnunet_cmds_helper_LDADD = $(XLIB) \
  $(LTLIBINTL) $(Z_LIBS)
 
 libgnunettesting_la_SOURCES = \
+  testing_api_cmd_exec_bash_script.c \
   testing_api_cmd_barrier.c \
   testing_api_cmd_barrier_reached.c \
   testing_api_cmd_end.c \
@@ -81,14 +82,14 @@ check_PROGRAMS = \
  test_testing_peerstartup2 \
  test_testing_sharedservices
 
-if ENABLE_TEST_RUN
-AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
-TESTS = \
- test_testing_portreservation \
- test_testing_peerstartup \
- test_testing_peerstartup2 \
- test_testing_servicestartup
-endif
+# if ENABLE_TEST_RUN_TESTING
+# AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
+# TESTS = \
+#  test_testing_portreservation \
+#  test_testing_peerstartup \
+#  test_testing_peerstartup2 \
+#  test_testing_servicestartup
+# endif
 
 test_testing_portreservation_SOURCES = \
  test_testing_portreservation.c

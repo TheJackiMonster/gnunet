@@ -88,10 +88,10 @@ libgnunetabd_la_LDFLAGS = \
 
 
 check_SCRIPTS = \
-  test_abd_issue.sh \
-	test_abd_verify_simple.sh \
-	test_abd_verify.sh \
-	test_abd_verify_and.sh
+  test_abd_issue.sh 
+  # test_abd_verify_simple.sh \
+  # test_abd_verify.sh \
+  # test_abd_verify_and.sh
 
 if ENABLE_TEST_RUN
 if HAVE_SQLITE

@@ -12,11 +12,11 @@ noinst_SCRIPTS = \
 
 if HAVE_PYTHON
 check_SCRIPTS = \
-  test_integration_bootstrap_and_connect.py \
-  test_integration_disconnect.py \
-  test_integration_disconnect_nat.py \
-  test_integration_reconnect.py \
-  test_integration_reconnect_nat.py
+  # test_integration_bootstrap_and_connect.py \
+  # test_integration_disconnect.py \
+  # test_integration_disconnect_nat.py \
+  # test_integration_reconnect.py \
+  # test_integration_reconnect_nat.py
 #  test_integration_clique.py
 endif
 

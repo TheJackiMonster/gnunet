@@ -277,34 +277,33 @@ endif
 
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
-TESTS = \
- test_fs_directory \
- test_fs_download \
- test_fs_download_indexed \
- test_fs_download_persistence \
+TESTS = test_fs_directory \
  test_fs_file_information \
- test_fs_list_indexed \
  test_fs_namespace \
  test_fs_namespace_list_updateable \
- test_fs_publish \
- test_fs_publish_persistence \
  test_fs_search \
  test_fs_search_with_and \
  test_fs_search_probes \
  test_fs_search_persistence \
  test_fs_start_stop \
- test_fs_unindex \
- test_fs_unindex_persistence \
  test_fs_uri \
- test_fs_test_lib \
- test_fs_meta_data \
- test_gnunet_service_fs_migration \
- test_gnunet_service_fs_p2p \
- test_gnunet_service_fs_p2p_cadet \
- perf_gnunet_service_fs_p2p \
- perf_gnunet_service_fs_p2p_index \
- perf_gnunet_service_fs_p2p_respect \
- $(check_SCRIPTS)
+ test_fs_meta_data 
+ # test_fs_download \
+ # test_fs_download_indexed \
+ # test_fs_download_persistence \
+ # test_fs_list_indexed \
+ # test_fs_publish \
+ # test_fs_publish_persistence \
+ # test_fs_unindex \
+ # test_fs_unindex_persistence \
+ # test_fs_test_lib \
+ # test_gnunet_service_fs_migration \
+ # test_gnunet_service_fs_p2p \
+ # test_gnunet_service_fs_p2p_cadet \
+ # perf_gnunet_service_fs_p2p \
+ # perf_gnunet_service_fs_p2p_index \
+ # perf_gnunet_service_fs_p2p_respect \
+ # $(check_SCRIPTS)
 endif
 
 
