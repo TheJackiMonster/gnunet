@@ -21,9 +21,10 @@
  * @file pq/pq_result_helper.c
  * @brief functions to extract result values
  * @author Christian Grothoff
+ * @author Özgür Kesim
  */
-#include "gnunet_time_lib.h"
 #include "platform.h"
+#include "gnunet_time_lib.h"
 #include "gnunet_common.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_pq_lib.h"
@@ -1208,7 +1209,7 @@ extract_array_generic (
     header.lbound = ntohl (h->lbound);
 
     FAIL_IF (1 != header.ndim);
-    FAIL_IF ((0 > header.dim) || (INT_MAX == header.dim));
+    FAIL_IF (INT_MAX <= header.dim);
     FAIL_IF (0 != header.has_null);
     FAIL_IF (1 != header.lbound);
     FAIL_IF (info->oid != header.oid);
@@ -1372,8 +1373,8 @@ extract_array_generic (
         if (NULL != dst_size)
           *dst_size = total;
 
-        if (0 < total)
-          out = GNUNET_malloc (total);
+        FAIL_IF (0 == total);
+        out = GNUNET_malloc (total);
 
         *((void **) dst) = out;
 

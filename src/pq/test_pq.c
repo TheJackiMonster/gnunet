@@ -22,10 +22,10 @@
  * @brief Tests for Postgres convenience API
  * @author Christian Grothoff <christian@grothoff.org>
  */
+#include "platform.h"
 #include "gnunet_common.h"
 #include "gnunet_pq_lib.h"
 #include "gnunet_time_lib.h"
-#include "platform.h"
 #include "pq.h"
 
 /**

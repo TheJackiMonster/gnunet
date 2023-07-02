@@ -513,9 +513,7 @@ data_to_ecdsa_value (const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose)
 {
   gcry_sexp_t data;
   int rc;
-
-/* See #5398 */
-#if 1
+  /* Unlike EdDSA, libgcrypt expects a hash for ECDSA. */
   struct GNUNET_HashCode hc;
 
   GNUNET_CRYPTO_hash (purpose, ntohl (purpose->size), &hc);
@@ -529,18 +527,6 @@ data_to_ecdsa_value (const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose)
     LOG_GCRY (GNUNET_ERROR_TYPE_ERROR, "gcry_sexp_build", rc);
     return NULL;
   }
-#else
-  if (0 != (rc = gcry_sexp_build (&data,
-                                  NULL,
-                                  "(data(flags rfc6979)(hash %s %b))",
-                                  "sha512",
-                                  ntohl (purpose->size),
-                                  purpose)))
-  {
-    LOG_GCRY (GNUNET_ERROR_TYPE_ERROR, "gcry_sexp_build", rc);
-    return NULL;
-  }
-#endif
   return data;
 }
 
@@ -593,6 +579,7 @@ GNUNET_CRYPTO_ecdsa_sign_ (
 
   return GNUNET_OK;
 }
+
 
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_sign_raw (
