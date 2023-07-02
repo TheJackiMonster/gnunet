@@ -1077,7 +1077,7 @@ GNUNET_GNSRECORD_query_from_public_key (const struct
                                            norm_label,
                                            "gns",
                                            &(pd.eddsa_key));
-    GNUNET_CRYPTO_hash (&pd.eddsa_key,
+    GNUNET_CRYPTO_hash (&pd,
                         GNUNET_IDENTITY_public_key_get_length (&pd),
                         query);
     break;
