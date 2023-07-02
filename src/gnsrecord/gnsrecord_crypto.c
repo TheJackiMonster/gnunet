@@ -1056,7 +1056,6 @@ GNUNET_GNSRECORD_query_from_public_key (const struct
 {
   char *norm_label;
   struct GNUNET_IDENTITY_PublicKey pd;
-  ssize_t pd_len;
 
   norm_label = GNUNET_GNSRECORD_string_normalize (label);
 
@@ -1068,10 +1067,8 @@ GNUNET_GNSRECORD_query_from_public_key (const struct
                                            norm_label,
                                            "gns",
                                            &pd.ecdsa_key);
-    pd_len = GNUNET_IDENTITY_public_key_get_length (&pd);
-    GNUNET_assert (0 < pd_len);
-    GNUNET_CRYPTO_hash (&pd,
-                        pd_len,
+    GNUNET_CRYPTO_hash (&pd.ecdsa_key,
+                        sizeof (pd.ecdsa_key),
                         query);
     break;
   case GNUNET_GNSRECORD_TYPE_EDKEY:
@@ -1080,10 +1077,8 @@ GNUNET_GNSRECORD_query_from_public_key (const struct
                                            norm_label,
                                            "gns",
                                            &(pd.eddsa_key));
-    pd_len = GNUNET_IDENTITY_public_key_get_length (&pd);
-    GNUNET_assert (0 < pd_len);
-    GNUNET_CRYPTO_hash (&pd,
-                        pd_len,
+    GNUNET_CRYPTO_hash (&pd.eddsa_key,
+                        sizeof (pd.eddsa_key),
                         query);
     break;
   default:
