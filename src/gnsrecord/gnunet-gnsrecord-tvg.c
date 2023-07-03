@@ -444,6 +444,9 @@ run (void *cls,
   struct GNUNET_TIME_Absolute exp1;
   struct GNUNET_TIME_Absolute exp2;
   struct GNUNET_TIME_Absolute exp3;
+  struct GNUNET_TIME_AbsoluteNBO exp1nbo;
+  struct GNUNET_TIME_AbsoluteNBO exp2nbo;
+  struct GNUNET_TIME_AbsoluteNBO exp3nbo;
   size_t pkey_data_size;
   size_t ip_data_size;
   char *pkey_data;
@@ -452,13 +455,12 @@ run (void *cls,
   /*
    * Make different expiration times
    */
-  GNUNET_STRINGS_fancy_time_to_absolute ("2228-01-23 10:51:34",
-                                         &exp1);
-  GNUNET_STRINGS_fancy_time_to_absolute ("2540-05-22 07:55:01",
-                                         &exp2);
-  GNUNET_STRINGS_fancy_time_to_absolute ("2333-04-21 06:07:09",
-                                         &exp3);
-
+  parsehex ("001cee8c10e25980", (char*) &exp1nbo, sizeof (exp1nbo), 0);
+  parsehex ("003ff2aa5408db40", (char*) &exp2nbo, sizeof (exp2nbo), 0);
+  parsehex ("0028bb13ff371940", (char*) &exp3nbo, sizeof (exp3nbo), 0);
+  exp1 = GNUNET_TIME_absolute_ntoh (exp1nbo);
+  exp2 = GNUNET_TIME_absolute_ntoh (exp2nbo);
+  exp3 = GNUNET_TIME_absolute_ntoh (exp3nbo);
 
   memset (&rd_pkey, 0, sizeof (struct GNUNET_GNSRECORD_Data));
   GNUNET_assert (GNUNET_OK == GNUNET_GNSRECORD_string_to_value (
@@ -521,6 +523,8 @@ main (int argc,
                  GNUNET_log_setup ("gnunet-gns-tvg",
                                    "INFO",
                                    NULL));
+  gcry_control (GCRYCTL_SET_DEBUG_FLAGS, 1u, 0);
+  gcry_control (GCRYCTL_SET_VERBOSITY, 99);
   if (GNUNET_OK !=
       GNUNET_PROGRAM_run (argc, argv,
                           "gnunet-gns-tvg",

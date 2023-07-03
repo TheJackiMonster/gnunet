@@ -16,6 +16,10 @@ struct GnsTv
   char *rrblock;
 };
 
+/** The first tests is from the Go implementation.
+ * The second test from GNUnet. But both produce different, verifiable
+ * signatures.
+ */
 struct GnsTv tvs[] = {
   { .d =
       "50 d7 b6 52 a4 ef ea df"
