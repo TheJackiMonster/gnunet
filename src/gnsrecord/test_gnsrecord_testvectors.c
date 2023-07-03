@@ -362,6 +362,8 @@ main ()
   struct GNUNET_IDENTITY_PublicKey pub;
   struct GNUNET_IDENTITY_PublicKey pub_parsed;
   struct GNUNET_GNSRECORD_Block *rrblock;
+  struct GNUNET_HashCode query;
+  struct GNUNET_HashCode expected_query;
   char label[128];
   char rdata[8096];
 
@@ -384,6 +386,11 @@ main ()
     parsehex (tvs[i].rrblock, (char*) rrblock, 0, 0);
     parsehex (tvs[i].label, (char*) label, 0, 0);
     printf ("Got label: %s\n", label);
+    parsehex (tvs[i].q, (char*) &query, 0, 0);
+    GNUNET_GNSRECORD_query_from_public_key (&pub_parsed,
+                                            label,
+                                            &expected_query);
+    GNUNET_assert (0 == GNUNET_memcmp (&query, &expected_query));
     int len = parsehex (tvs[i].rdata, (char*) rdata, 0, 0);
     tvs[i].expected_rd_count = GNUNET_GNSRECORD_records_deserialize_get_size (
       len,
@@ -395,11 +402,11 @@ main ()
                                                          tvs[i].
                                                          expected_rd_count,
                                                          tvs[i].expected_rd));
-    GNUNET_GNSRECORD_block_decrypt (rrblock,
-                                    &pub_parsed,
-                                    label,
-                                    &res_checker,
-                                    &tvs[i]);
+    GNUNET_assert (GNUNET_OK == GNUNET_GNSRECORD_block_decrypt (rrblock,
+                                                                &pub_parsed,
+                                                                label,
+                                                                &res_checker,
+                                                                &tvs[i]));
   }
   return 0;
 }
