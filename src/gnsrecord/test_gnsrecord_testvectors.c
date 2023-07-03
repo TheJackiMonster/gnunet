@@ -16,8 +16,6 @@ struct GnsTv
   char *rrblock;
 };
 
-#define TVCOUNT 4
-
 struct GnsTv tvs[] = {
   { .d =
       "50 d7 b6 52 a4 ef ea df"
@@ -265,8 +263,48 @@ struct GnsTv tvs[] = {
       "fd f3 b5 f7 db 99 e4 47"
       "93 4e 31 66 d1 15 bf 16"
       "63 4e 5f 51 b8 87 fb 70"
-      "3b d4 4a 42 9b d3 32 ab"}
+      "3b d4 4a 42 9b d3 32 ab"},
+  {.d = NULL}
 };
+
+static void
+print_bytes_ (void *buf,
+              size_t buf_len,
+              int fold,
+              int in_be)
+{
+  int i;
+
+  for (i = 0; i < buf_len; i++)
+  {
+    if (0 != i)
+    {
+      if ((0 != fold) && (i % fold == 0))
+        printf ("\n  ");
+      else
+        printf (" ");
+    }
+    else
+    {
+      printf ("  ");
+    }
+    if (in_be)
+      printf ("%02x", ((unsigned char*) buf)[buf_len - 1 - i]);
+    else
+      printf ("%02x", ((unsigned char*) buf)[i]);
+  }
+  printf ("\n");
+}
+
+
+static void
+print_bytes (void *buf,
+             size_t buf_len,
+             int fold)
+{
+  print_bytes_ (buf, buf_len, fold, 0);
+}
+
 
 int
 parsehex (char *src, char *dst, size_t dstlen, int invert)
@@ -327,15 +365,21 @@ main ()
   char label[128];
   char rdata[8096];
 
-  for (int i = 0; i < TVCOUNT; i++)
+  for (int i = 0; NULL != tvs[i].d; i++)
   {
     memset (label, 0, sizeof (label));
-    parsehex (tvs[i].d,(char*) &priv.ecdsa_key, sizeof (priv.ecdsa_key), 1);
-    priv.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
-    parsehex (tvs[i].zid,(char*) &pub_parsed, 0, 0);
+    parsehex (tvs[i].zid,(char*) &pub_parsed, 36, 0);
+    parsehex (tvs[i].d,(char*) &priv.ecdsa_key, sizeof (priv.ecdsa_key),
+              (GNUNET_GNSRECORD_TYPE_PKEY == ntohl (pub_parsed.type)) ? 1 : 0);
     priv.type = pub_parsed.type;
     GNUNET_IDENTITY_key_get_public (&priv, &pub);
-    // GNUNET_assert (0 == memcmp (&pub, &pub_parsed, sizeof (pub)));
+    if (0 != memcmp (&pub, &pub_parsed, GNUNET_IDENTITY_public_key_get_length (
+                       &pub)))
+    {
+      printf ("Wrong pubkey.\n");
+      print_bytes (&pub, 36, 8);
+      print_bytes (&pub_parsed, 36, 8);
+    }
     rrblock = GNUNET_malloc (strlen (tvs[i].rrblock));
     parsehex (tvs[i].rrblock, (char*) rrblock, 0, 0);
     parsehex (tvs[i].label, (char*) label, 0, 0);
