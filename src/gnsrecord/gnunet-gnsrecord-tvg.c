@@ -235,8 +235,25 @@ run_pkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char *label)
                                                              rd,
                                                              rd_count,
                                                              &rrblock));
+  struct GNUNET_CRYPTO_EcdsaPublicKey derived_key;
+  struct GNUNET_CRYPTO_EcdsaPrivateKey *derived_privkey;
+  GNUNET_CRYPTO_ecdsa_public_key_derive (&id_pub.ecdsa_key,
+                                         label,
+                                         "gns",
+                                         &derived_key);
+  derived_privkey = GNUNET_CRYPTO_ecdsa_private_key_derive (&id_priv.ecdsa_key,
+                                                            label,
+                                                            "gns");
+  printf ("ZKDF(zkey):\n");
+  print_bytes (&derived_key, sizeof (derived_key), 8);
+  printf ("\n");
+  printf ("Derived private key (d'):\n");
+  print_bytes (derived_privkey, sizeof (*derived_privkey), 8);
+  printf ("\n");
   size_t bdata_size = ntohl (rrblock->size) - sizeof (struct
                                                       GNUNET_GNSRECORD_Block);
+
+  GNUNET_free (derived_privkey);
 
   bdata = (char*) &(&rrblock->ecdsa_block)[1];
   printf ("BDATA:\n");
@@ -365,8 +382,25 @@ run_edkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char*label)
                                                               rd,
                                                               rd_count,
                                                               &rrblock));
+
+  struct GNUNET_CRYPTO_EddsaPublicKey derived_key;
+  struct GNUNET_CRYPTO_EddsaPrivateScalar derived_privkey;
+  GNUNET_CRYPTO_eddsa_public_key_derive (&id_pub.eddsa_key,
+                                         label,
+                                         "gns",
+                                         &derived_key);
+  GNUNET_CRYPTO_eddsa_private_key_derive (&id_priv.eddsa_key,
+                                          label,
+                                          "gns", &derived_privkey);
+  printf ("ZKDF(zkey):\n");
+  print_bytes (&derived_key, sizeof (derived_key), 8);
+  printf ("\n");
+  printf ("Derived private key (nonce|d'):\n");
+  print_bytes (&derived_privkey, sizeof (&derived_privkey), 8);
+  printf ("\n");
   size_t bdata_size = ntohl (rrblock->size) - sizeof (struct
                                                       GNUNET_GNSRECORD_Block);
+
 
   bdata = (char*) &(&rrblock->eddsa_block)[1];
   printf ("BDATA:\n");
