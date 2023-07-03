@@ -74,9 +74,13 @@ print_bytes_ (void *buf,
     if (0 != i)
     {
       if ((0 != fold) && (i % fold == 0))
-        printf ("\n");
+        printf ("\n  ");
       else
         printf (" ");
+    }
+    else
+    {
+      printf ("  ");
     }
     if (in_be)
       printf ("%02x", ((unsigned char*) buf)[buf_len - 1 - i]);
@@ -395,8 +399,11 @@ run_edkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char*label)
   printf ("ZKDF(zkey):\n");
   print_bytes (&derived_key, sizeof (derived_key), 8);
   printf ("\n");
-  printf ("Derived private key (nonce|d'):\n");
-  print_bytes (&derived_privkey, sizeof (&derived_privkey), 8);
+  printf ("nonce := SHA-256 (dh[32..63] || h):\n");
+  print_bytes (&derived_privkey + 32, sizeof (derived_privkey) - 32, 8);
+  printf ("\n");
+  printf ("Derived private key (d', little-endian):\n");
+  print_bytes (&derived_privkey, sizeof (derived_privkey) - 32, 8);
   printf ("\n");
   size_t bdata_size = ntohl (rrblock->size) - sizeof (struct
                                                       GNUNET_GNSRECORD_Block);
