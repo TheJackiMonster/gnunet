@@ -402,8 +402,12 @@ run_edkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char*label)
   printf ("nonce := SHA-256 (dh[32..63] || h):\n");
   print_bytes (&derived_privkey + 32, sizeof (derived_privkey) - 32, 8);
   printf ("\n");
-  printf ("Derived private key (d', little-endian):\n");
-  print_bytes (&derived_privkey, sizeof (derived_privkey) - 32, 8);
+  char derived_privkeyNBO[32];
+  /* Convert from little endian */
+  for (size_t i = 0; i < 32; i++)
+    derived_privkeyNBO[i] = derived_privkey.s[31 - i];
+  printf ("Derived private key (d', big-endian):\n");
+  print_bytes (derived_privkeyNBO, sizeof (derived_privkeyNBO), 8);
   printf ("\n");
   size_t bdata_size = ntohl (rrblock->size) - sizeof (struct
                                                       GNUNET_GNSRECORD_Block);
