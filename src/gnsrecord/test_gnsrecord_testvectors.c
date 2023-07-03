@@ -40,6 +40,56 @@ struct GnsTv tvs[] = {
       "12 99 40 6b 04 fd 9b 5b"
       "57 91 f8 6c 4b 08 d5 f4",
     .rdata =
+      "00 1c ee 8c 10 e2 59 80"
+      "00 20 00 01 00 01 00 00"
+      "21 e3 b3 0f f9 3b c6 d3"
+      "5a c8 c6 e0 e1 3a fd ff"
+      "79 4c b7 b4 4b bb c7 48"
+      "d2 59 d0 a0 28 4d be 84",
+    .rrblock =
+      "00 00 00 a0 00 01 00 00"
+      "18 2b b6 36 ed a7 9f 79"
+      "57 11 bc 27 08 ad bb 24"
+      "2a 60 44 6a d3 c3 08 03"
+      "12 1d 03 d3 48 b7 ce b6"
+      "0e 17 29 10 c3 07 30 84"
+      "d0 2b 4f 7b 46 ab c8 fd"
+      "f2 0f db e7 62 d5 a0 ac"
+      "77 75 dc a3 50 0a 06 2c"
+      "05 15 fb 6d 44 61 1f ed"
+      "e4 c7 99 aa d0 05 5c 0d"
+      "22 cc 42 11 7b f7 32 78"
+      "bd ad 0d 00 65 2c 2b 17"
+      "00 1c ee 8c 10 e2 59 80"
+      "0c 1e da 5c c0 94 a1 c7"
+      "a8 88 64 9d 25 fa ee bd"
+      "60 da e6 07 3d 57 d8 ae"
+      "8d 45 5f 4f 13 92 c0 74"
+      "e2 6a c6 69 bd ee c2 34"
+      "62 b9 62 95 2c c6 e9 eb"},
+  { .d =
+      "50 d7 b6 52 a4 ef ea df"
+      "f3 73 96 90 97 85 e5 95"
+      "21 71 a0 21 78 c8 e7 d4"
+      "50 fa 90 79 25 fa fd 98",
+    .zid =
+      "00 01 00 00 67 7c 47 7d"
+      "2d 93 09 7c 85 b1 95 c6"
+      "f9 6d 84 ff 61 f5 98 2c"
+      "2c 4f e0 2d 5a 11 fe df"
+      "b0 c2 90 1f",
+    .label = "74 65 73 74 64 65 6c 65"
+             "67 61 74 69 6f 6e",
+    .q =
+      "4a dc 67 c5 ec ee 9f 76"
+      "98 6a bd 71 c2 22 4a 3d"
+      "ce 2e 91 70 26 c9 a0 9d"
+      "fd 44 ce f3 d2 0f 55 a2"
+      "73 32 72 5a 6c 8a fb bb"
+      "b0 f7 ec 9a f1 cc 42 64"
+      "12 99 40 6b 04 fd 9b 5b"
+      "57 91 f8 6c 4b 08 d5 f4",
+    .rdata =
       "00 1c ee 8b 3a 4e b5 80"
       "00 20 00 01 00 01 00 00"
       "21 e3 b3 0f f9 3b c6 d3"
