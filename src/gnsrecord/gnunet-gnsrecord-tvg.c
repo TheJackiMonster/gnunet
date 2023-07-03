@@ -116,17 +116,17 @@ print_record (const struct GNUNET_GNSRECORD_Data *rd)
     at = GNUNET_TIME_relative_to_absolute (rt);
     abs_nbo = GNUNET_htonll (at.abs_value_us);
   }
-  printf ("EXPIRATION: %" PRIu64 " us\n", rd->expiration_time);
+  printf ("  EXPIRATION: %" PRIu64 " us\n", rd->expiration_time);
   print_bytes (&abs_nbo, sizeof (abs_nbo), 8);
-  printf ("\nDATA_SIZE:\n");
+  printf ("\n  DATA_SIZE:\n");
   print_bytes (&size_nbo, sizeof (size_nbo), 8);
-  printf ("\nTYPE:\n");
+  printf ("\n  TYPE:\n");
   print_bytes (&type_nbo, sizeof (type_nbo), 8);
-  printf ("\nFLAGS: ");
+  printf ("\n  FLAGS: ");
   print_bytes ((void*) &flags, sizeof (flags), 8);
   printf ("\n");
   fprintf (stdout,
-           "DATA:\n");
+           "  DATA:\n");
   print_bytes ((char*) rd->data, rd->data_size, 8);
   printf ("\n");
 }
@@ -241,6 +241,7 @@ run_pkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char *label)
                                                              &rrblock));
   struct GNUNET_CRYPTO_EcdsaPublicKey derived_key;
   struct GNUNET_CRYPTO_EcdsaPrivateKey *derived_privkey;
+
   GNUNET_CRYPTO_ecdsa_public_key_derive (&id_pub.ecdsa_key,
                                          label,
                                          "gns",
@@ -251,8 +252,8 @@ run_pkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char *label)
   printf ("ZKDF(zkey):\n");
   print_bytes (&derived_key, sizeof (derived_key), 8);
   printf ("\n");
-  printf ("Derived private key (d'):\n");
-  print_bytes (derived_privkey, sizeof (*derived_privkey), 8);
+  printf ("Derived private key (d', big-endian):\n");
+  print_bytes_ (derived_privkey, sizeof (*derived_privkey), 8, 1);
   printf ("\n");
   size_t bdata_size = ntohl (rrblock->size) - sizeof (struct
                                                       GNUNET_GNSRECORD_Block);
