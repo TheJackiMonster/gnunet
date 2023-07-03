@@ -523,8 +523,8 @@ main (int argc,
                  GNUNET_log_setup ("gnunet-gns-tvg",
                                    "INFO",
                                    NULL));
-  gcry_control (GCRYCTL_SET_DEBUG_FLAGS, 1u, 0);
-  gcry_control (GCRYCTL_SET_VERBOSITY, 99);
+  // gcry_control (GCRYCTL_SET_DEBUG_FLAGS, 1u, 0);
+  // gcry_control (GCRYCTL_SET_VERBOSITY, 99);
   if (GNUNET_OK !=
       GNUNET_PROGRAM_run (argc, argv,
                           "gnunet-gns-tvg",
