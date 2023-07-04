@@ -45,6 +45,9 @@ GNUNET_JSON_pack_ (struct GNUNET_JSON_PackSpec spec[])
   {
     if (NULL == spec[i].object)
     {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "NULL not allowed for `%s'\n",
+                  spec[i].field_name);
       GNUNET_assert (spec[i].allow_null);
     }
     else
