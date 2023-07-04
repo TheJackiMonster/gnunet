@@ -22,10 +22,93 @@ struct GnsTv
   char *nonce;
 };
 
-/** The first tests is from the Go implementation.
- * The second test from GNUnet. But both produce different, verifiable
- * signatures.
- */
+struct RevocationTv
+{
+  char *d;
+  char *zid;
+  char *ztld;
+  char *m;
+  char *proof;
+  int diff;
+  int epochs;
+};
+
+struct RevocationTv rtvs[] = {
+  {
+    .d =
+      "70 ed 98 b9 07 8c 47 f7"
+      "d5 78 3b 26 cc f9 8b 7d"
+      "d5 5f 60 88 d1 53 95 97"
+      "fa 8b f5 5a c0 32 ea 6f",
+    .zid =
+      "00 01 00 00 2c a2 23 e8"
+      "79 ec c4 bb de b5 da 17"
+      "31 92 81 d6 3b 2e 3b 69"
+      "55 f1 c3 77 5c 80 4a 98"
+      "d5 f8 dd aa",
+    .ztld =
+      "000G001CM8HYGYFCRJXXXDET2WRS50EP7CQ3PTANY71QEQ409ACDBY6XN8",
+    .m =
+      "00 00 00 34 00 00 00 03"
+      "00 05 fe b4 6d 86 5c 1c"
+      "00 01 00 00 2c a2 23 e8"
+      "79 ec c4 bb de b5 da 17"
+      "31 92 81 d6 3b 2e 3b 69"
+      "55 f1 c3 77 5c 80 4a 98"
+      "d5 f8 dd aa",
+    .proof =
+      "00 05 fe b4 6d 86 5c 1c"
+      "00 00 39 5d 18 27 c0 00"
+      "e6 6a 57 0b cc d4 b3 93"
+      "e6 6a 57 0b cc d4 b3 ea"
+      "e6 6a 57 0b cc d4 b5 36"
+      "e6 6a 57 0b cc d4 b5 42"
+      "e6 6a 57 0b cc d4 b6 13"
+      "e6 6a 57 0b cc d4 b6 5f"
+      "e6 6a 57 0b cc d4 b6 72"
+      "e6 6a 57 0b cc d4 b7 0a"
+      "e6 6a 57 0b cc d4 b7 1a"
+      "e6 6a 57 0b cc d4 b7 23"
+      "e6 6a 57 0b cc d4 b7 47"
+      "e6 6a 57 0b cc d4 b7 77"
+      "e6 6a 57 0b cc d4 b7 85"
+      "e6 6a 57 0b cc d4 b7 89"
+      "e6 6a 57 0b cc d4 b7 cf"
+      "e6 6a 57 0b cc d4 b7 dc"
+      "e6 6a 57 0b cc d4 b9 3a"
+      "e6 6a 57 0b cc d4 b9 56"
+      "e6 6a 57 0b cc d4 ba 4a"
+      "e6 6a 57 0b cc d4 ba 9d"
+      "e6 6a 57 0b cc d4 bb 28"
+      "e6 6a 57 0b cc d4 bb 5a"
+      "e6 6a 57 0b cc d4 bb 92"
+      "e6 6a 57 0b cc d4 bb a2"
+      "e6 6a 57 0b cc d4 bb d8"
+      "e6 6a 57 0b cc d4 bb e2"
+      "e6 6a 57 0b cc d4 bc 93"
+      "e6 6a 57 0b cc d4 bc 94"
+      "e6 6a 57 0b cc d4 bd 0f"
+      "e6 6a 57 0b cc d4 bd ce"
+      "e6 6a 57 0b cc d4 be 6a"
+      "e6 6a 57 0b cc d4 be 73"
+      "00 01 00 00 2c a2 23 e8"
+      "79 ec c4 bb de b5 da 17"
+      "31 92 81 d6 3b 2e 3b 69"
+      "55 f1 c3 77 5c 80 4a 98"
+      "d5 f8 dd aa 04 4a 87 8a"
+      "15 8b 40 f0 c8 41 d9 f9"
+      "78 cb 13 72 ea ee 51 99"
+      "a3 d8 7e 5e 2b db c7 2a"
+      "6c 8c 73 d0 00 18 1d fc"
+      "39 c3 aa a4 81 66 7b 16"
+      "5b 58 44 e4 50 71 3d 8a"
+      "b6 a3 b2 ba 8f ef 44 7b"
+      "65 07 6a 0f",
+    .diff = 5,
+    .epochs = 2
+  }
+};
+
 struct GnsTv tvs[] = {
   { .d =
       "50 d7 b6 52 a4 ef ea df"
@@ -525,6 +608,8 @@ main ()
   struct GNUNET_HashCode query;
   struct GNUNET_HashCode expected_query;
   struct GNUNET_TIME_Absolute expire;
+  struct GNUNET_TIME_Relative exprel;
+  struct GNUNET_REVOCATION_PowP *pow;
   char label[128];
   char rdata[8096];
   char ztld[128];

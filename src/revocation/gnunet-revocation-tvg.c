@@ -37,6 +37,9 @@
 static char*d_pkey =
   "6fea32c05af58bfa979553d188605fd57d8bf9cc263b78d5f7478c07b998ed70";
 
+static char *d_edkey =
+  "5af7020ee19160328832352bbc6a68a8d71a7cbe1b929969a7c66d415a0d8f65";
+
 int
 parsehex (char *src, char *dst, size_t dstlen, int invert)
 {
@@ -71,9 +74,13 @@ print_bytes_ (void *buf,
     if (0 != i)
     {
       if ((0 != fold) && (i % fold == 0))
-        printf ("\n");
+        printf ("\n  ");
       else
         printf (" ");
+    }
+    else
+    {
+      printf ("  ");
     }
     if (in_be)
       printf ("%02x", ((unsigned char*) buf)[buf_len - 1 - i]);
@@ -93,21 +100,9 @@ print_bytes (void *buf,
 }
 
 
-/**
- * Main function that will be run.
- *
- * @param cls closure
- * @param args remaining command-line arguments
- * @param cfgfile name of the configuration file used (for saving, can be NULL!)
- * @param cfg configuration
- */
 static void
-run (void *cls,
-     char *const *args,
-     const char *cfgfile,
-     const struct GNUNET_CONFIGURATION_Handle *cfg)
+run_with_key (struct GNUNET_IDENTITY_PrivateKey *id_priv)
 {
-  struct GNUNET_IDENTITY_PrivateKey id_priv;
   struct GNUNET_IDENTITY_PublicKey id_pub;
   struct GNUNET_REVOCATION_PowP *pow;
   struct GNUNET_REVOCATION_PowCalculationHandle *ph;
@@ -115,18 +110,13 @@ run (void *cls,
   char ztld[128];
   ssize_t key_len;
 
-  id_priv.type = htonl (GNUNET_IDENTITY_TYPE_ECDSA);
-  GNUNET_CRYPTO_ecdsa_key_create (&id_priv.ecdsa_key);
-  parsehex (d_pkey,(char*) &id_priv.ecdsa_key, sizeof (id_priv.ecdsa_key), 1);
-  GNUNET_IDENTITY_key_get_public (&id_priv,
+  GNUNET_IDENTITY_key_get_public (id_priv,
                                   &id_pub);
   GNUNET_STRINGS_data_to_string (&id_pub,
                                  GNUNET_IDENTITY_public_key_get_length (
                                    &id_pub),
                                  ztld,
                                  sizeof (ztld));
-  fprintf (stdout, "Zone private key (d, big-endian scalar):\n");
-  print_bytes (&id_priv.ecdsa_key, sizeof(id_priv.ecdsa_key), 8);
   fprintf (stdout, "\n");
   fprintf (stdout, "Zone identifier (ztype|zkey):\n");
   key_len = GNUNET_IDENTITY_public_key_get_length (&id_pub);
@@ -137,7 +127,7 @@ run (void *cls,
   fprintf (stdout, "%s\n", ztld);
   fprintf (stdout, "\n");
   pow = GNUNET_malloc (GNUNET_REVOCATION_MAX_PROOF_SIZE);
-  GNUNET_REVOCATION_pow_init (&id_priv,
+  GNUNET_REVOCATION_pow_init (id_priv,
                               pow);
   ph = GNUNET_REVOCATION_pow_start (pow,
                                     TEST_EPOCHS,
@@ -170,6 +160,41 @@ run (void *cls,
                GNUNET_REVOCATION_proof_get_size (pow),
                8);
   GNUNET_free (ph);
+
+}
+
+
+/**
+ * Main function that will be run.
+ *
+ * @param cls closure
+ * @param args remaining command-line arguments
+ * @param cfgfile name of the configuration file used (for saving, can be NULL!)
+ * @param cfg configuration
+ */
+static void
+run (void *cls,
+     char *const *args,
+     const char *cfgfile,
+     const struct GNUNET_CONFIGURATION_Handle *cfg)
+{
+  struct GNUNET_IDENTITY_PrivateKey id_priv;
+
+  id_priv.type = htonl (GNUNET_IDENTITY_TYPE_ECDSA);
+  GNUNET_CRYPTO_ecdsa_key_create (&id_priv.ecdsa_key);
+  parsehex (d_pkey,(char*) &id_priv.ecdsa_key, sizeof (id_priv.ecdsa_key), 1);
+
+  fprintf (stdout, "Zone private key (d, big-endian):\n");
+  print_bytes_ (&id_priv.ecdsa_key, sizeof(id_priv.ecdsa_key), 8, 1);
+  run_with_key (&id_priv);
+  printf ("\n");
+  id_priv.type = htonl (GNUNET_IDENTITY_TYPE_EDDSA);
+  GNUNET_CRYPTO_eddsa_key_create (&id_priv.eddsa_key);
+  parsehex (d_edkey,(char*) &id_priv.eddsa_key, sizeof (id_priv.eddsa_key), 0);
+
+  fprintf (stdout, "Zone private key (d):\n");
+  print_bytes (&id_priv.eddsa_key, sizeof(id_priv.eddsa_key), 8);
+  run_with_key (&id_priv);
 }
 
 
