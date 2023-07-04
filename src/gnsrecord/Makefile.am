@@ -19,7 +19,7 @@ noinst_PROGRAMS = \
 check_PROGRAMS = \
  test_gnsrecord_crypto \
  test_gnsrecord_serialization \
- test_gnsrecord_testvectors \
+ test_gnsrecord_lsd0001testvectors \
  test_gnsrecord_block_expiration \
  perf_gnsrecord_crypto
 
@@ -87,9 +87,9 @@ libgnunet_plugin_gnsrecord_dns_la_LDFLAGS = \
 EXTRA_DIST = \
   $(check_SCRIPTS)
 
-test_gnsrecord_testvectors_SOURCES = \
+test_gnsrecord_lsd0001testvectors_SOURCES = \
  test_gnsrecord_testvectors.c
-test_gnsrecord_testvectors_LDADD = \
+test_gnsrecord_lsd0001testvectors_LDADD = \
   $(top_builddir)/src/testing/libgnunettesting.la \
 	$(top_builddir)/src/identity/libgnunetidentity.la \
   libgnunetgnsrecord.la \
