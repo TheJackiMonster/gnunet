@@ -181,7 +181,6 @@ run (void *cls,
   struct GNUNET_IDENTITY_PrivateKey id_priv;
 
   id_priv.type = htonl (GNUNET_IDENTITY_TYPE_ECDSA);
-  GNUNET_CRYPTO_ecdsa_key_create (&id_priv.ecdsa_key);
   parsehex (d_pkey,(char*) &id_priv.ecdsa_key, sizeof (id_priv.ecdsa_key), 1);
 
   fprintf (stdout, "Zone private key (d, big-endian):\n");
@@ -189,7 +188,6 @@ run (void *cls,
   run_with_key (&id_priv);
   printf ("\n");
   id_priv.type = htonl (GNUNET_IDENTITY_TYPE_EDDSA);
-  GNUNET_CRYPTO_eddsa_key_create (&id_priv.eddsa_key);
   parsehex (d_edkey,(char*) &id_priv.eddsa_key, sizeof (id_priv.eddsa_key), 0);
 
   fprintf (stdout, "Zone private key (d):\n");
