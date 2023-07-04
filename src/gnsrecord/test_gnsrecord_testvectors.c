@@ -4,6 +4,8 @@
 #include "gnunet_gnsrecord_lib.h"
 #include <inttypes.h>
 
+int res;
+
 struct GnsTv
 {
   uint32_t expected_rd_count;
@@ -56,14 +58,14 @@ struct GnsTv tvs[] = {
       "57 11 bc 27 08 ad bb 24"
       "2a 60 44 6a d3 c3 08 03"
       "12 1d 03 d3 48 b7 ce b6"
-      "0e 17 29 10 c3 07 30 84"
-      "d0 2b 4f 7b 46 ab c8 fd"
-      "f2 0f db e7 62 d5 a0 ac"
-      "77 75 dc a3 50 0a 06 2c"
-      "05 15 fb 6d 44 61 1f ed"
-      "e4 c7 99 aa d0 05 5c 0d"
-      "22 cc 42 11 7b f7 32 78"
-      "bd ad 0d 00 65 2c 2b 17"
+      "0a d1 0b c1 3b 40 3b 5b"
+      "25 61 26 b2 14 5a 6f 60"
+      "c5 14 f9 51 ff a7 66 f7"
+      "a3 fd 4b ac 4a 4e 19 90"
+      "05 5c b8 7e 8d 1b fd 19"
+      "aa 09 a4 29 f7 29 e9 f5"
+      "c6 ee c2 47 0a ce e2 22"
+      "07 59 e9 e3 6c 88 6f 35"
       "00 1c ee 8c 10 e2 59 80"
       "0c 1e da 5c c0 94 a1 c7"
       "a8 88 64 9d 25 fa ee bd"
@@ -71,56 +73,6 @@ struct GnsTv tvs[] = {
       "8d 45 5f 4f 13 92 c0 74"
       "e2 6a c6 69 bd ee c2 34"
       "62 b9 62 95 2c c6 e9 eb"},
-  { .d =
-      "50 d7 b6 52 a4 ef ea df"
-      "f3 73 96 90 97 85 e5 95"
-      "21 71 a0 21 78 c8 e7 d4"
-      "50 fa 90 79 25 fa fd 98",
-    .zid =
-      "00 01 00 00 67 7c 47 7d"
-      "2d 93 09 7c 85 b1 95 c6"
-      "f9 6d 84 ff 61 f5 98 2c"
-      "2c 4f e0 2d 5a 11 fe df"
-      "b0 c2 90 1f",
-    .label = "74 65 73 74 64 65 6c 65"
-             "67 61 74 69 6f 6e",
-    .q =
-      "4a dc 67 c5 ec ee 9f 76"
-      "98 6a bd 71 c2 22 4a 3d"
-      "ce 2e 91 70 26 c9 a0 9d"
-      "fd 44 ce f3 d2 0f 55 a2"
-      "73 32 72 5a 6c 8a fb bb"
-      "b0 f7 ec 9a f1 cc 42 64"
-      "12 99 40 6b 04 fd 9b 5b"
-      "57 91 f8 6c 4b 08 d5 f4",
-    .rdata =
-      "00 1c ee 8b 3a 4e b5 80"
-      "00 20 00 01 00 01 00 00"
-      "21 e3 b3 0f f9 3b c6 d3"
-      "5a c8 c6 e0 e1 3a fd ff"
-      "79 4c b7 b4 4b bb c7 48"
-      "d2 59 d0 a0 28 4d be 84",
-    .rrblock =
-      "00 00 00 a0 00 01 00 00"
-      "18 2b b6 36 ed a7 9f 79"
-      "57 11 bc 27 08 ad bb 24"
-      "2a 60 44 6a d3 c3 08 03"
-      "12 1d 03 d3 48 b7 ce b6"
-      "0b af 41 a3 af 96 03 ea"
-      "be 46 0f 8a f6 7f 10 26"
-      "6c 14 90 17 2b 27 18 24"
-      "7f 29 09 99 f0 9f 34 d4"
-      "02 76 47 47 83 ed 63 39"
-      "d4 2c 76 80 b1 b2 ec 40"
-      "46 05 d6 f5 6b b3 f5 e3"
-      "7a 94 6d 4a 14 83 06 03"
-      "00 1c ee 8b 3a 4e b5 80"
-      "6c d1 19 47 8c d9 1c 80"
-      "dc 67 56 f8 96 83 f1 d5"
-      "d7 2e 1a a6 d9 bb 2d 14"
-      "ea 7a 24 9a ce b6 a6 00"
-      "59 f1 e9 d4 15 1b 0e ce"
-      "5f e7 fa 58 63 4d 81 c5"},
   { .d =
       "50 d7 b6 52 a4 ef ea df"
       "f3 73 96 90 97 85 e5 95"
@@ -145,7 +97,7 @@ struct GnsTv tvs[] = {
       "67 78 c7 11 f2 ca 47 d5"
       "5c f0 b5 4d 23 5d a9 77",
     .rdata =
-      "00 1c ee 8b 3a 4e b5 80"
+      "00 1c ee 8c 10 e2 59 80"
       "00 10 00 00 00 00 00 1c"
       "00 00 00 00 00 00 00 00"
       "00 00 00 00 de ad be ef"
@@ -167,31 +119,31 @@ struct GnsTv tvs[] = {
       "ca 11 8d 4f 07 fa 7a ae"
       "55 08 bc f5 12 aa 41 12"
       "14 29 d4 a0 de 9d 05 7e"
-      "04 85 97 8d 22 64 74 a9"
-      "22 fe 78 60 49 89 eb 52"
-      "61 38 0d 16 11 e6 9f 01"
-      "fc e0 d5 6d fc 53 24 c5"
-      "08 2a 6b ef 15 7c 9d 27"
-      "c3 35 4a 39 75 a4 30 98"
-      "d4 2b 5e d6 12 3c f5 41"
-      "c4 7c b4 22 16 4c a9 30"
-      "00 1c ee 8b 3a 4e b5 80"
-      "03 a3 4a e6 1e 07 1c 08"
-      "17 fd d4 57 68 e8 c7 cd"
-      "ab 72 b3 06 61 6e d1 f9"
-      "3f b5 64 e1 63 4c 64 64"
-      "29 20 ac 74 eb cd 97 f8"
-      "1f 8a 93 d4 b0 c8 f7 c2"
-      "0d ff 38 bb 60 b4 ed 9d"
-      "cd 02 d7 e3 9f 4b 89 c2"
-      "95 79 e0 75 dd ba 7b 8d"
-      "ad 4b 9d cd ef 15 57 4c"
-      "f3 50 b6 32 b3 93 a4 90"
-      "fc f4 90 32 be eb 4e 68"
-      "25 72 70 b1 70 6f c6 1f"
-      "d4 a4 c9 95 6c 64 f5 9e"
-      "81 d0 2b 6a 30 f5 8a 48"
-      "23 58 a1 2a ec 3d 0f 2d"},
+      "08 5b d6 5f d4 85 10 51"
+      "ba ce 2a 45 2a fc 8a 7e"
+      "4f 6b 2c 1f 74 f0 20 35"
+      "d9 64 1a cd ba a4 66 e0"
+      "00 ce d6 f2 d2 3b 63 1c"
+      "8e 8a 0b 38 e2 ba e7 9a"
+      "22 ca d8 1d 4c 50 d2 25"
+      "35 8e bc 17 ac 0f 89 9e"
+      "00 1c ee 8c 10 e2 59 80"
+      "d8 c2 8d 2f d6 96 7d 1a"
+      "b7 22 53 f2 10 98 b8 14"
+      "a4 10 be 1f 59 98 de 03"
+      "f5 8f 7e 7c db 7f 08 a6"
+      "16 51 be 4d 0b 6f 8a 61"
+      "df 15 30 44 0b d7 47 dc"
+      "f0 d7 10 4f 6b 8d 24 c2"
+      "ac 9b c1 3d 9c 6f e8 29"
+      "05 25 d2 a6 d0 f8 84 42"
+      "67 a1 57 0e 8e 29 4d c9"
+      "3a 31 9f cf c0 3e a2 70"
+      "17 d6 fd a3 47 b4 a7 94"
+      "97 d7 f6 b1 42 2d 4e dd"
+      "82 1c 19 93 4e 96 c1 aa"
+      "87 76 57 25 d4 94 c7 64"
+      "b1 55 dc 6d 13 26 91 74"},
   { .d =
       "5a f7 02 0e e1 91 60 32"
       "88 32 35 2b bc 6a 68 a8"
@@ -216,7 +168,7 @@ struct GnsTv tvs[] = {
       "a1 57 8c 38 4e c6 1d 44"
       "56 36 a9 4e 88 03 29 e9",
     .rdata =
-      "00 1c ee 8b 3a 4e b5 80"
+      "00 1c ee 8c 10 e2 59 80"
       "00 20 00 01 00 01 00 00"
       "21 e3 b3 0f f9 3b c6 d3"
       "5a c8 c6 e0 e1 3a fd ff"
@@ -228,23 +180,23 @@ struct GnsTv tvs[] = {
       "db ac 49 5c ab d9 10 49"
       "a6 84 af 3f 40 51 ba ca"
       "b0 dc f2 1c 8c f2 7a 1a"
-      "f4 27 a9 98 be 90 91 f3"
-      "bd 44 19 c2 86 06 81 fa"
-      "0f c8 46 5c 35 e2 10 91"
-      "f0 87 fd 8d dc a8 78 51"
-      "53 d6 d9 bd 73 4f 08 9c"
-      "26 b6 52 da ea b4 73 25"
-      "71 e5 d9 2b c9 96 3d ad"
-      "d8 be 55 31 87 26 52 00"
-      "00 1c ee 8b 3a 4e b5 80"
-      "16 c7 0f d2 9a 62 38 9e"
-      "9b 04 9a 09 31 ba ba 46"
-      "a1 73 bb 56 f6 bf 56 16"
-      "18 ba a1 69 0f ae fa 1c"
-      "c4 24 75 55 4d 47 96 98"
-      "39 8d f6 f0 42 0b 9e c2"
-      "6f b0 43 cf 1e fc 34 bd"
-      "2e a0 c6 4a 7d ef d6 ac"},
+      "9f 56 a8 86 ea 73 9d 59"
+      "17 50 8f 9b 75 56 39 f3"
+      "a9 ac fa ed ed ca 7f bf"
+      "a7 94 b1 92 e0 8b f9 ed"
+      "4c 7e c8 59 4c 9f 7b 4e"
+      "19 77 4f f8 38 ec 38 7a"
+      "8f 34 23 da ac 44 9f 59"
+      "db 4e 83 94 3f 90 72 00"
+      "00 1c ee 8c 10 e2 59 80"
+      "57 7c c6 c9 5a 14 e7 04"
+      "09 f2 0b 01 67 e6 36 d0"
+      "10 80 7c 4f 00 37 2d 69"
+      "8c 82 6b d9 2b c2 2b d6"
+      "bb 45 e5 27 7c 01 88 1d"
+      "6a 43 60 68 e4 dd f1 c6"
+      "b7 d1 41 6f af a6 69 7c"
+      "25 ed d9 ea e9 91 67 c3"},
   { .d =
       "5a f7 02 0e e1 91 60 32"
       "88 32 35 2b bc 6a 68 a8"
@@ -269,7 +221,7 @@ struct GnsTv tvs[] = {
       "8f a7 f0 3c 3f ce be 78"
       "d3 f9 d6 40 aa c0 d1 ed",
     .rdata =
-      "00 1c ee 8b 3a 4e b5 80"
+      "00 1c ee 8c 10 e2 59 80"
       "00 10 00 00 00 00 00 1c"
       "00 00 00 00 00 00 00 00"
       "00 00 00 00 de ad be ef"
@@ -291,33 +243,33 @@ struct GnsTv tvs[] = {
       "52 a8 a6 c2 eb 98 48 98"
       "c5 3a cc a0 98 04 70 c6"
       "c8 12 64 cb dd 78 ad 11"
-      "36 47 fb d2 27 cb 62 bf"
-      "bf 28 6a cb 82 fc f3 64"
-      "67 3c dd 18 a7 a7 1e b3"
-      "44 8e 71 72 35 89 a6 4a"
-      "43 59 11 fe 14 f3 26 e9"
-      "48 48 21 16 78 74 19 dd"
-      "ce f6 1a c2 2e 66 7a 0b"
-      "99 4a c4 cb 6d a5 49 05"
-      "00 1c ee 8b 3a 4e b5 80"
-      "8e 45 6d e7 7d 37 2f 82"
-      "f4 0b a0 4c 04 ca ac 4c"
-      "04 f2 8a 2b 5f 34 1d fc"
-      "73 59 8c 18 2a 9e 06 5e"
-      "e1 02 bc 7b a5 f1 cb e2"
-      "48 a3 d4 6e 56 3c 47 1d"
-      "8d 10 0b 36 40 9e 37 31"
-      "89 94 bf fd d4 c8 d0 ff"
-      "68 00 de a3 1b 81 09 b1"
-      "eb fb 21 71 f8 77 b8 6d"
-      "c2 53 1a b2 5e bb 88 62"
-      "7f 93 74 56 d9 d7 a8 75"
-      "e5 f4 98 57 da 14 1c 61"
-      "52 ae 88 d0 6e 9a 47 fb"
-      "fd f3 b5 f7 db 99 e4 47"
-      "93 4e 31 66 d1 15 bf 16"
-      "63 4e 5f 51 b8 87 fb 70"
-      "3b d4 4a 42 9b d3 32 ab"},
+      "75 6d 2c 15 7a d2 ea 4f"
+      "c0 b1 b9 1c 08 03 79 44"
+      "61 d3 de f2 0d d1 63 6c"
+      "fe dc 03 89 c5 49 d1 43"
+      "6c c3 5b 4e 1b f8 89 5a"
+      "64 6b d9 a6 f4 6b 83 48"
+      "1d 9c 0e 91 d4 e1 be bb"
+      "6a 83 52 6f b7 25 2a 06"
+      "00 1c ee 8c 10 e2 59 80"
+      "4e b3 5a 50 d4 0f e1 a4"
+      "29 c7 f4 b2 67 a0 59 de"
+      "4e 2c 8a 89 a5 ed 53 d3"
+      "d4 92 58 59 d2 94 9f 7f"
+      "30 d8 a2 0c aa 96 f8 81"
+      "45 05 2d 1c da 04 12 49"
+      "8f f2 5f f2 81 6e f0 ce"
+      "61 fe 69 9b fa c7 2c 15"
+      "dc 83 0e a9 b0 36 17 1c"
+      "cf ca bb dd a8 de 3c 86"
+      "ed e2 95 70 d0 17 4b 82"
+      "82 09 48 a9 28 b7 f0 0e"
+      "fb 40 1c 10 fe 80 bb bb"
+      "02 76 33 1b f7 f5 1b 8d"
+      "74 57 9c 14 14 f2 2d 50"
+      "1a d2 5a e2 49 f5 bb f2"
+      "a6 c3 72 59 d1 75 e4 40"
+      "b2 94 39 c6 05 19 cb b1"},
   {.d = NULL}
 };
 
@@ -395,16 +347,54 @@ res_checker (void *cls,
              unsigned int rd_count, const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct GnsTv *tv = cls;
-  GNUNET_assert (rd_count == tv->expected_rd_count);
-  printf ("RRCOUNT good: %d\n", rd_count);
+  if (rd_count != tv->expected_rd_count)
+  {
+    printf ("FAIL: Record count expected: %u, was: %u\n", tv->expected_rd_count,
+            rd_count);
+    res = 1;
+    return;
+  }
   for (int i = 0; i < rd_count; i++)
   {
-    GNUNET_assert (rd[i].record_type == tv->expected_rd[i].record_type);
-    GNUNET_assert (rd[i].expiration_time == tv->expected_rd[i].expiration_time);
-    GNUNET_assert (rd[i].flags == tv->expected_rd[i].flags);
-    GNUNET_assert (rd[i].data_size == tv->expected_rd[i].data_size);
-    GNUNET_assert (0 == memcmp (rd[i].data, tv->expected_rd[i].data,
-                                rd[i].data_size));
+    if (rd[i].record_type != tv->expected_rd[i].record_type)
+    {
+      printf ("FAIL: Record type expected: %u, was: %u\n",
+              tv->expected_rd[i].record_type,
+              rd[i].record_type);
+      res = 1;
+      return;
+    }
+    if (rd[i].expiration_time != tv->expected_rd[i].expiration_time)
+    {
+      printf ("FAIL: Expiration expected: %" PRIu64 ", was: %" PRIu64 "\n",
+              tv->expected_rd[i].expiration_time,
+              rd[i].expiration_time);
+      res = 1;
+      return;
+    }
+    if (rd[i].flags != tv->expected_rd[i].flags)
+    {
+      printf ("FAIL: Record flags expected: %u, was: %u\n",
+              tv->expected_rd[i].flags,
+              rd[i].flags);
+      res = 1;
+      return;
+    }
+    if (rd[i].data_size != tv->expected_rd[i].data_size)
+    {
+      printf ("FAIL: Record data size expected: %lu, was: %lu\n",
+              tv->expected_rd[i].data_size,
+              rd[i].data_size);
+      res = 1;
+      return;
+    }
+    if (0 != memcmp (rd[i].data, tv->expected_rd[i].data,
+                     rd[i].data_size))
+    {
+      printf ("FAIL: Record data does not match\n");
+      res = 1;
+      return;
+    }
   }
 }
 
@@ -420,9 +410,11 @@ main ()
   struct GNUNET_HashCode expected_query;
   char label[128];
   char rdata[8096];
+  res = 0;
 
   for (int i = 0; NULL != tvs[i].d; i++)
   {
+    printf ("Test vector #%d\n", i);
     memset (label, 0, sizeof (label));
     parsehex (tvs[i].zid,(char*) &pub_parsed, 36, 0);
     parsehex (tvs[i].d,(char*) &priv.ecdsa_key, sizeof (priv.ecdsa_key),
@@ -439,28 +431,47 @@ main ()
     rrblock = GNUNET_malloc (strlen (tvs[i].rrblock));
     parsehex (tvs[i].rrblock, (char*) rrblock, 0, 0);
     parsehex (tvs[i].label, (char*) label, 0, 0);
-    printf ("Got label: %s\n", label);
     parsehex (tvs[i].q, (char*) &query, 0, 0);
     GNUNET_GNSRECORD_query_from_public_key (&pub_parsed,
                                             label,
                                             &expected_query);
-    GNUNET_assert (0 == GNUNET_memcmp (&query, &expected_query));
+    if (0 != GNUNET_memcmp (&query, &expected_query))
+    {
+      printf ("FAIL: query does not match:");
+      printf ("  expected: %s", GNUNET_h2s (&expected_query));
+      printf (", was: %s\n", GNUNET_h2s (&query));
+      res = 1;
+      goto finish;
+    }
     int len = parsehex (tvs[i].rdata, (char*) rdata, 0, 0);
-    tvs[i].expected_rd_count = GNUNET_GNSRECORD_records_deserialize_get_size (
-      len,
-      rdata);
+    tvs[i].expected_rd_count =
+      GNUNET_GNSRECORD_records_deserialize_get_size (len,
+                                                     rdata);
     GNUNET_assert (tvs[i].expected_rd_count < 2048);
-    GNUNET_assert (GNUNET_OK ==
-                   GNUNET_GNSRECORD_records_deserialize (len,
-                                                         rdata,
-                                                         tvs[i].
-                                                         expected_rd_count,
-                                                         tvs[i].expected_rd));
-    GNUNET_assert (GNUNET_OK == GNUNET_GNSRECORD_block_decrypt (rrblock,
-                                                                &pub_parsed,
-                                                                label,
-                                                                &res_checker,
-                                                                &tvs[i]));
+    if (GNUNET_OK !=
+        GNUNET_GNSRECORD_records_deserialize (len,
+                                              rdata,
+                                              tvs[i].
+                                              expected_rd_count,
+                                              tvs[i].expected_rd))
+    {
+      printf ("FAIL: Deserialization of RDATA failed\n");
+      res = 1;
+      goto finish;
+    }
+    if (GNUNET_OK != GNUNET_GNSRECORD_block_decrypt (rrblock,
+                                                     &pub_parsed,
+                                                     label,
+                                                     &res_checker,
+                                                     &tvs[i]))
+    {
+      printf ("FAIL: Decryption of RRBLOCK failed\n");
+      res = 1;
+    }
+    if (0 != res)
+      break;
+    printf ("Good.\n");
   }
-  return 0;
+finish:
+  return res;
 }
