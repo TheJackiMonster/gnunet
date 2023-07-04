@@ -3,6 +3,7 @@
 #include "gnunet_gns_service.h"
 #include "gnunet_gnsrecord_lib.h"
 #include <inttypes.h>
+#include "gnsrecord_crypto.h"
 
 int res;
 
@@ -12,10 +13,13 @@ struct GnsTv
   struct GNUNET_GNSRECORD_Data expected_rd[2048];
   char *d;
   char *zid;
+  char *ztld;
   char *label;
   char *q;
   char *rdata;
   char *rrblock;
+  char *k;
+  char *nonce;
 };
 
 /** The first tests is from the Go implementation.
@@ -34,6 +38,7 @@ struct GnsTv tvs[] = {
       "f9 6d 84 ff 61 f5 98 2c"
       "2c 4f e0 2d 5a 11 fe df"
       "b0 c2 90 1f",
+    .ztld = "000G0037FH3QTBCK15Y8BCCNRVWPV17ZC7TSGB1C9ZG2TPGHZVFV1GMG3W",
     .label = "74 65 73 74 64 65 6c 65"
              "67 61 74 69 6f 6e",
     .q =
@@ -45,6 +50,14 @@ struct GnsTv tvs[] = {
       "b0 f7 ec 9a f1 cc 42 64"
       "12 99 40 6b 04 fd 9b 5b"
       "57 91 f8 6c 4b 08 d5 f4",
+    .nonce =
+      "e9 0a 00 61 00 1c ee 8c"
+      "10 e2 59 80 00 00 00 01",
+    .k =
+      "86 4e 71 38 ea e7 fd 91"
+      "a3 01 36 89 9c 13 2b 23"
+      "ac eb db 2c ef 43 cb 19"
+      "f6 bf 55 b6 7d b9 b3 b3",
     .rdata =
       "00 1c ee 8c 10 e2 59 80"
       "00 20 00 01 00 01 00 00"
@@ -84,9 +97,18 @@ struct GnsTv tvs[] = {
       "f9 6d 84 ff 61 f5 98 2c"
       "2c 4f e0 2d 5a 11 fe df"
       "b0 c2 90 1f",
+    .ztld = "000G0037FH3QTBCK15Y8BCCNRVWPV17ZC7TSGB1C9ZG2TPGHZVFV1GMG3W",
     .label =
       "e5 a4 a9 e4 b8 8b e7 84"
       "a1 e6 95 b5",
+    .nonce =
+      "ee 96 33 c1 00 1c ee 8c"
+      "10 e2 59 80 00 00 00 01",
+    .k =
+      "fb 3a b5 de 23 bd da e1"
+      "99 7a af 7b 92 c2 d2 71"
+      "51 40 8b 77 af 7a 41 ac"
+      "79 05 7c 4d f5 38 3d 01",
     .q =
       "af f0 ad 6a 44 09 73 68"
       "42 9a c4 76 df a1 f3 4b"
@@ -155,9 +177,19 @@ struct GnsTv tvs[] = {
       "53 b8 5d 93 b0 47 b6 3d"
       "44 6c 58 45 cb 48 44 5d"
       "db 96 68 8f",
+    .ztld = "000G051WYJWJ80S04BRDRM2R2H9VGQCKP13VCFA4DHC4BJT88HEXQ5K8HW",
     .label =
       "74 65 73 74 64 65 6c 65"
       "67 61 74 69 6f 6e",
+    .nonce =
+      "98 13 2e a8 68 59 d3 5c"
+      "88 bf d3 17 fa 99 1b cb"
+      "00 1c ee 8c 10 e2 59 80",
+    .k =
+      "85 c4 29 a9 56 7a a6 33"
+      "41 1a 96 91 e9 09 4c 45"
+      "28 16 72 be 58 60 34 aa"
+      "e4 a2 a2 cc 71 61 59 e2",
     .q =
       "ab aa ba c0 e1 24 94 59"
       "75 98 83 95 aa c0 24 1e"
@@ -208,9 +240,19 @@ struct GnsTv tvs[] = {
       "53 b8 5d 93 b0 47 b6 3d"
       "44 6c 58 45 cb 48 44 5d"
       "db 96 68 8f",
+    .ztld = "000G051WYJWJ80S04BRDRM2R2H9VGQCKP13VCFA4DHC4BJT88HEXQ5K8HW",
     .label =
       "e5 a4 a9 e4 b8 8b e7 84"
       "a1 e6 95 b5",
+    .nonce =
+      "bb 0d 3f 0f bd 22 42 77"
+      "50 da 5d 69 12 16 e6 c9"
+      "00 1c ee 8c 10 e2 59 80",
+    .k =
+      "3d f8 05 bd 66 87 aa 14"
+      "20 96 28 c2 44 b1 11 91"
+      "88 c3 92 56 37 a4 1e 5d"
+      "76 49 6c 29 45 dc 37 7b",
     .q =
       "ba f8 21 77 ee c0 81 e0"
       "74 a7 da 47 ff c6 48 77"
@@ -399,6 +441,80 @@ res_checker (void *cls,
 }
 
 
+enum GNUNET_GenericReturnValue
+check_derivations_edkey (const char*label,
+                         struct GNUNET_TIME_Absolute expire,
+                         struct GNUNET_IDENTITY_PublicKey *pub,
+                         struct GnsTv *tv)
+{
+  unsigned char nonce[crypto_secretbox_NONCEBYTES];
+  unsigned char skey[crypto_secretbox_KEYBYTES];
+  unsigned char nonce_expected[crypto_secretbox_NONCEBYTES];
+  unsigned char skey_expected[crypto_secretbox_KEYBYTES];
+
+
+  parsehex (tv->nonce,(char*) nonce_expected, crypto_secretbox_NONCEBYTES, 0);
+  parsehex (tv->k,(char*) skey_expected, crypto_secretbox_KEYBYTES, 0);
+  GNR_derive_block_xsalsa_key (nonce,
+                               skey,
+                               label,
+                               GNUNET_TIME_absolute_hton (
+                                 expire).abs_value_us__,
+                               &pub->eddsa_key);
+  /* Ignore random 128-bit nonce, can't check this here. Will be checked on
+   * decryption. */
+  if (0 != memcmp (nonce + 16, nonce_expected + 16, sizeof (nonce) - 16))
+  {
+    printf ("FAIL: Failed to derive nonce:\n");
+    print_bytes (nonce, sizeof (nonce), 8);
+    print_bytes (nonce_expected, sizeof (nonce), 8);
+    return GNUNET_NO;
+  }
+  if (0 != memcmp (skey, skey_expected, sizeof (skey)))
+  {
+    printf ("FAIL: Failed to derive secret key\n");
+    return GNUNET_NO;
+  }
+  return GNUNET_OK;
+}
+
+
+enum GNUNET_GenericReturnValue
+check_derivations_pkey (const char*label,
+                        struct GNUNET_TIME_Absolute expire,
+                        struct GNUNET_IDENTITY_PublicKey *pub,
+                        struct GnsTv *tv)
+{
+  unsigned char ctr[GNUNET_CRYPTO_AES_KEY_LENGTH / 2];
+  unsigned char ctr_expected[GNUNET_CRYPTO_AES_KEY_LENGTH / 2];
+  unsigned char skey[GNUNET_CRYPTO_AES_KEY_LENGTH];
+  unsigned char skey_expected[GNUNET_CRYPTO_AES_KEY_LENGTH];
+
+  parsehex (tv->nonce,(char*) ctr_expected, sizeof (ctr), 0);
+  parsehex (tv->k,(char*) skey_expected, sizeof (skey), 0);
+  GNR_derive_block_aes_key (ctr,
+                            skey,
+                            label,
+                            GNUNET_TIME_absolute_hton (
+                              expire).abs_value_us__,
+                            &pub->ecdsa_key);
+
+  /* Ignore random 32-bit nonce, can't check this here. Will be checked on
+   * decryption. */
+  if (0 != memcmp (ctr + 4, ctr_expected + 4, sizeof (ctr) - 4))
+  {
+    printf ("FAIL: Failed to derive nonce\n");
+    return GNUNET_NO;
+  }
+  if (0 != memcmp (skey, skey_expected, sizeof (skey)))
+  {
+    printf ("FAIL: Failed to derive secret key\n");
+    return GNUNET_NO;
+  }
+  return GNUNET_OK;
+}
+
+
 int
 main ()
 {
@@ -408,8 +524,10 @@ main ()
   struct GNUNET_GNSRECORD_Block *rrblock;
   struct GNUNET_HashCode query;
   struct GNUNET_HashCode expected_query;
+  struct GNUNET_TIME_Absolute expire;
   char label[128];
   char rdata[8096];
+  char ztld[128];
   res = 0;
 
   for (int i = 0; NULL != tvs[i].d; i++)
@@ -427,6 +545,19 @@ main ()
       printf ("Wrong pubkey.\n");
       print_bytes (&pub, 36, 8);
       print_bytes (&pub_parsed, 36, 8);
+      res = 1;
+      break;
+    }
+    GNUNET_STRINGS_data_to_string (&pub,
+                                   GNUNET_IDENTITY_public_key_get_length (
+                                     &pub),
+                                   ztld,
+                                   sizeof (ztld));
+    if (0 != strcmp (ztld, tvs[i].ztld))
+    {
+      printf ("Wrong zTLD: expected %s, got %s\n", tvs[i].ztld, ztld);
+      res = 1;
+      break;
     }
     rrblock = GNUNET_malloc (strlen (tvs[i].rrblock));
     parsehex (tvs[i].rrblock, (char*) rrblock, 0, 0);
@@ -441,7 +572,7 @@ main ()
       printf ("  expected: %s", GNUNET_h2s (&expected_query));
       printf (", was: %s\n", GNUNET_h2s (&query));
       res = 1;
-      goto finish;
+      break;
     }
     int len = parsehex (tvs[i].rdata, (char*) rdata, 0, 0);
     tvs[i].expected_rd_count =
@@ -451,13 +582,29 @@ main ()
     if (GNUNET_OK !=
         GNUNET_GNSRECORD_records_deserialize (len,
                                               rdata,
-                                              tvs[i].
-                                              expected_rd_count,
+                                              tvs[i].expected_rd_count,
                                               tvs[i].expected_rd))
     {
       printf ("FAIL: Deserialization of RDATA failed\n");
       res = 1;
-      goto finish;
+      break;
+    }
+    expire = GNUNET_GNSRECORD_record_get_expiration_time (
+      tvs[i].expected_rd_count,
+      tvs[i].expected_rd,
+      GNUNET_TIME_UNIT_ZERO_ABS);
+    if ((GNUNET_GNSRECORD_TYPE_PKEY == ntohl (pub.type)) &&
+        (GNUNET_OK != check_derivations_pkey (label, expire, &pub, &tvs[i])))
+    {
+      res = 1;
+      break;
+    }
+    else if ((GNUNET_GNSRECORD_TYPE_EDKEY == ntohl (pub.type)) &&
+             (GNUNET_OK != check_derivations_edkey (label, expire, &pub,
+                                                    &tvs[i])))
+    {
+      res = 1;
+      break;
     }
     if (GNUNET_OK != GNUNET_GNSRECORD_block_decrypt (rrblock,
                                                      &pub_parsed,
@@ -467,6 +614,7 @@ main ()
     {
       printf ("FAIL: Decryption of RRBLOCK failed\n");
       res = 1;
+      break;
     }
     if (0 != res)
       break;
