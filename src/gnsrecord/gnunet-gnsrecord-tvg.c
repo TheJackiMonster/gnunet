@@ -401,7 +401,7 @@ run_edkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char*label)
   print_bytes (&derived_key, sizeof (derived_key), 8);
   printf ("\n");
   printf ("nonce := SHA-256 (dh[32..63] || h):\n");
-  print_bytes (&derived_privkey + 32, sizeof (derived_privkey) - 32, 8);
+  print_bytes (derived_privkey.s + 32, 32, 8);
   printf ("\n");
   char derived_privkeyNBO[32];
   /* Convert from little endian */
