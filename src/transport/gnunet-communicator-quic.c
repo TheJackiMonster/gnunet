@@ -1,3 +1,4 @@
+#include "gnunet_common.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_core_service.h"
 #include "quiche.h"
@@ -84,6 +85,7 @@ struct ReceiverAddress
 
   /**
    * MTU we allowed transport for this receiver's default queue.
+   * FIXME: You may want to get the MTU from quiche, possibly from quiche_path_stats struct.
    */
   size_t d_mtu;
 
@@ -171,7 +173,7 @@ struct QUIC_header
  * ASSUMES: connection is established to peer
 */
 static void
-recv_from_streams (quiche_conn *conn, char stream_buf[], size_t buf_size)
+recv_from_streams (quiche_conn *conn, char*stream_buf, size_t buf_size)
 {
   uint64_t s = 0;
   quiche_stream_iter *readable;
@@ -223,7 +225,7 @@ mint_token (const uint8_t *dcid, size_t dcid_len,
 }
 
 
-static bool
+static enum GNUNET_GenericReturnValue
 validate_token (const uint8_t *token, size_t token_len,
                 struct sockaddr_storage *addr, socklen_t addr_len,
                 uint8_t *odcid, size_t *odcid_len)
@@ -231,7 +233,7 @@ validate_token (const uint8_t *token, size_t token_len,
   if ((token_len < sizeof("quiche") - 1) ||
       memcmp (token, "quiche", sizeof("quiche") - 1))
   {
-    return false;
+    return GNUNET_NO;
   }
 
   token += sizeof("quiche") - 1;
@@ -239,7 +241,7 @@ validate_token (const uint8_t *token, size_t token_len,
 
   if ((token_len < addr_len) || memcmp (token, addr, addr_len))
   {
-    return false;
+    return GNUNET_NO;
   }
 
   token += addr_len;
@@ -247,13 +249,13 @@ validate_token (const uint8_t *token, size_t token_len,
 
   if (*odcid_len < token_len)
   {
-    return false;
+    return GNUNET_NO;
   }
 
   memcpy (odcid, token, token_len);
   *odcid_len = token_len;
 
-  return true;
+  return GNUNET_OK;
 }
 
 
@@ -269,11 +271,17 @@ create_conn (uint8_t *scid, size_t scid_len,
   quiche_conn *q_conn;
   struct GNUNET_HashCode conn_key;
 
+  /**
+   * FIXME:
+   * GNUnet has a convienience function:
+   * conn = GNUNET_new (struct quic_conn);
+   */
   conn = GNUNET_malloc (sizeof(struct quic_conn));
   if (scid_len != LOCAL_CONN_ID_LEN)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "error while creating connection, scid length too short\n");
+    /* FIXME: Return? Handle error? Warn? */
   }
 
   GNUNET_memcpy (conn->cid, scid, LOCAL_CONN_ID_LEN);
@@ -917,9 +925,9 @@ sock_read (void *cls)
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "sent %zd bytes\n", sent);
     }
 
-    if (0 == validate_token (quic_header.token, quic_header.token_len,
-                             &sa, salen,
-                             quic_header.odcid, &quic_header.odcid_len))
+    if (GNUNET_OK != validate_token (quic_header.token, quic_header.token_len,
+                                     &sa, salen,
+                                     quic_header.odcid, &quic_header.odcid_len))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "invalid address validation token created\n");
