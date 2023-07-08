@@ -42,10 +42,12 @@ static unsigned long long rekey_max_bytes;
 static quiche_config *config = NULL;
 
 /**
- * Information we track per receiving address we have recently been
- * in contact with (encryption to receiver).
+ * Information we track per peer we have recently been in contact with.
+ *
+ * (Since quiche handles crypto, handshakes, etc. we don't differentiate
+ *  between SenderAddress and ReceiverAddress)
  */
-struct ReceiverAddress
+struct PeerAddress
 {
   /**
    * To whom are we talking to.
@@ -79,13 +81,13 @@ struct ReceiverAddress
   struct GNUNET_TRANSPORT_QueueHandle *d_qh;
 
   /**
-   * Timeout for this receiver address.
+   * Timeout for this peer address.
    */
   struct GNUNET_TIME_Absolute timeout;
 
   /**
-   * MTU we allowed transport for this receiver's default queue.
-   * FIXME: You may want to get the MTU from quiche, possibly from quiche_path_stats struct.
+   * MTU we allowed transport for this peer's default queue.
+   * FIXME: MTU from quiche
    */
   size_t d_mtu;
 
@@ -97,7 +99,7 @@ struct ReceiverAddress
   /**
    * receiver_destroy already called on receiver.
    */
-  int receiver_destroy_called;
+  int peer_destroy_called;
 
   /**
    * Entry in sender expiration heap.
@@ -106,19 +108,14 @@ struct ReceiverAddress
 };
 
 /**
- * Receivers (map from peer identity to `struct ReceiverAddress`)
+ * Peers (map from peer identity to `struct PeerAddress`)
  */
-static struct GNUNET_CONTAINER_MultiPeerMap *receivers;
+static struct GNUNET_CONTAINER_MultiPeerMap *peers;
 
 /**
- * Expiration heap for senders (contains `struct SenderAddress`)
+ * Expiration heap for peers (contains `struct PeerAddress`)
  */
-static struct GNUNET_CONTAINER_Heap *senders_heap;
-
-/**
- * Expiration heap for receivers (contains `struct ReceiverAddress`)
- */
-static struct GNUNET_CONTAINER_Heap *receivers_heap;
+static struct GNUNET_CONTAINER_Heap *peers_heap;
 
 /**
  * ID of timeout task
@@ -270,13 +267,7 @@ create_conn (uint8_t *scid, size_t scid_len,
   struct quic_conn *conn;
   quiche_conn *q_conn;
   struct GNUNET_HashCode conn_key;
-
-  /**
-   * FIXME:
-   * GNUnet has a convienience function:
-   * conn = GNUNET_new (struct quic_conn);
-   */
-  conn = GNUNET_malloc (sizeof(struct quic_conn));
+  conn = GNUNET_new (struct quic_conn);
   if (scid_len != LOCAL_CONN_ID_LEN)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -351,39 +342,39 @@ flush_egress (struct quic_conn *conn)
  *
  * @param mq the message queue
  * @param msg the message to send
- * @param impl_state our `struct ReceiverAddress`
+ * @param impl_state our `struct PeerAddress`
  */
 static void
 mq_send_d (struct GNUNET_MQ_Handle *mq,
            const struct GNUNET_MessageHeader *msg,
            void *impl_state)
 {
-  struct ReceiverAddress *receiver = impl_state;
+  struct PeerAddress *peer = impl_state;
   uint16_t msize = ntohs (msg->size);
 
-  GNUNET_assert (mq == receiver->d_mq);
-  if (msize > receiver->d_mtu)
+  GNUNET_assert (mq == peer->d_mq);
+  if (msize > peer->d_mtu)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "msize: %u, mtu: %lu\n",
                 msize,
-                receiver->d_mtu);
+                peer->d_mtu);
     GNUNET_break (0);
-    if (GNUNET_YES != receiver->receiver_destroy_called)
-      receiver_destroy (receiver);
+    if (GNUNET_YES != peer->peer_destroy_called)
+      peer_destroy (peer);
     return;
   }
-  reschedule_receiver_timeout (receiver);
+  reschedule_peer_timeout (peer);
   // if (-1 == GNUNET_NETWORK_socket_sendto (udp_sock,
   //                                         dgram,
   //                                         sizeof(dgram),
-  //                                         receiver->address,
-  //                                         receiver->address_len))
+  //                                         peer->address,
+  //                                         peer->address_len))
   //   GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "send");
   // GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
   //             "Sending UDPBox with payload size %u, %u acks left\n",
   //             msize,
-  //             receiver->acks_available);
+  //             peer->acks_available);
   // GNUNET_MQ_impl_send_continue (mq);
   // return;
 }
@@ -525,18 +516,18 @@ udp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
 
 
 /**
- * Setup the MQ for the @a receiver.  If a queue exists,
+ * Setup the MQ for the @a peer.  If a queue exists,
  * the existing one is destroyed.  Then the MTU is
  * recalculated and a fresh queue is initialized.
  *
- * @param receiver receiver to setup MQ for
+ * @param peer peer to setup MQ for
  */
 static void
-setup_receiver_mq (struct ReceiverAddress *receiver)
+setup_peer_mq (struct PeerAddress *peer)
 {
   size_t base_mtu;
 
-  switch (receiver->address->sa_family)
+  switch (peer->address->sa_family)
   {
   case AF_INET:
     base_mtu = 1480     /* Ethernet MTU, 1500 - Ethernet header - VLAN tag */
@@ -555,30 +546,31 @@ setup_receiver_mq (struct ReceiverAddress *receiver)
     break;
   }
   /* MTU == base_mtu */
-  receiver->d_mtu = base_mtu;
+  peer->d_mtu = base_mtu;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Setting up MQs and QHs\n");
   /* => Effective MTU for CORE will range from 1080 (IPv6 + KX) to
      1404 (IPv4 + Box) bytes, depending on circumstances... */
-  if (NULL == receiver->d_mq)
-    receiver->d_mq = GNUNET_MQ_queue_for_callbacks (&mq_send_d,
-                                                    &mq_destroy_d,
-                                                    &mq_cancel,
-                                                    receiver,
-                                                    NULL,
-                                                    &mq_error,
-                                                    receiver);
-  receiver->d_qh =
+
+  if (NULL == peer->d_mq)
+    peer->d_mq = GNUNET_MQ_queue_for_callbacks (&mq_send_d,
+                                                &mq_destroy_d,
+                                                &mq_cancel,
+                                                receiver,
+                                                NULL,
+                                                &mq_error,
+                                                receiver);
+  peer->d_qh =
     GNUNET_TRANSPORT_communicator_mq_add (ch,
-                                          &receiver->target,
-                                          receiver->foreign_addr,
-                                          receiver->d_mtu,
+                                          &peer->target,
+                                          peer->foreign_addr,
+                                          peer->d_mtu,
                                           GNUNET_TRANSPORT_QUEUE_LENGTH_UNLIMITED,
                                           0, /* Priority */
-                                          receiver->nt,
+                                          peer->nt,
                                           GNUNET_TRANSPORT_CS_OUTBOUND,
-                                          receiver->d_mq);
+                                          peer->d_mq);
 }
 
 
@@ -681,12 +673,32 @@ check_timeouts (void *cls)
  * invalid
  */
 static int
-mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
+mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
+         char *address)
 {
-  struct ReceiverAddress *receiver;
+  struct PeerAddress *peer;
   const char *path;
   struct sockaddr *in;
   socklen_t in_len;
+  uint8_t scid[LOCAL_CONN_ID_LEN];
+
+  struct quic_conn *conn;
+  char *bindto;
+  socklen_t in_len;
+  struct sockaddr *local_addr;
+
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_get_value_string (cfg,
+                                             COMMUNICATOR_CONFIG_SECTION,
+                                             "BINDTO",
+                                             &bindto))
+  {
+    GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
+                               COMMUNICATOR_CONFIG_SECTION,
+                               "BINDTO");
+    return;
+  }
+  local_addr = udp_address_to_sockaddr (bindto, &in_len);
 
   if (0 != strncmp (address,
                     COMMUNICATOR_ADDRESS_PREFIX "-",
@@ -698,31 +710,51 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
   path = &address[strlen (COMMUNICATOR_ADDRESS_PREFIX "-")];
   in = udp_address_to_sockaddr (path, &in_len);
 
-  receiver = GNUNET_new (struct ReceiverAddress);
-  receiver->address = in;
-  receiver->address_len = in_len;
-  receiver->target = *peer;
-  receiver->nt = GNUNET_NT_scanner_get_type (is, in, in_len);
+  peer = GNUNET_new (struct PeerAddress);
+  peer->address = in;
+  peer->address_len = in_len;
+  peer->target = *peer_id;
+  peer->nt = GNUNET_NT_scanner_get_type (is, in, in_len);
   (void) GNUNET_CONTAINER_multipeermap_put (
-    receivers,
-    &receiver->target,
-    receiver,
+    peers,
+    &peer->target,
+    peer,
     GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Added %s to receivers\n",
-              GNUNET_i2s_full (&receiver->target));
-  receiver->timeout =
+              "Added %s to peers\n",
+              GNUNET_i2s_full (&peer->target));
+  peer->timeout =
     GNUNET_TIME_relative_to_absolute (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT);
-  receiver->hn = GNUNET_CONTAINER_heap_insert (receivers_heap,
-                                               receiver,
-                                               receiver->timeout.abs_value_us);
+  peer->hn = GNUNET_CONTAINER_heap_insert (peers_heap,
+                                           peer,
+                                           peer->timeout.abs_value_us);
   GNUNET_STATISTICS_set (stats,
-                         "# receivers active",
-                         GNUNET_CONTAINER_multipeermap_size (receivers),
+                         "# peers active",
+                         GNUNET_CONTAINER_multipeermap_size (peers),
                          GNUNET_NO);
-  receiver->foreign_addr =
-    sockaddr_to_udpaddr_string (receiver->address, receiver->address_len);
-  setup_receiver_mq (receiver);
+  peer->foreign_addr =
+    sockaddr_to_udpaddr_string (peer->address, peer->address_len);
+  /**
+   * Before setting up peer mq, initiate a quic connection to the target (perform handshake w/ quiche)
+  */
+  GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_STRONG, scid,
+                              LOCAL_CONN_ID_LEN);
+  conn = GNUNET_new (struct quic_conn);
+  GNUNET_memcpy (conn->cid, scid, LOCAL_CONN_ID_LEN);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Attempting to perform handshake with peer\n");
+  conn->conn = quiche_connect (peer->foreign_addr, scid, LOCAL_CONN_ID_LEN,
+                               local_addr,
+                               in_len, peer->address, peer->address_len,
+                               config);
+  /**
+   * Insert connection into hashmap
+  */
+  struct GNUNET_HashCode key;
+  GNUNET_CRYPTO_hash (conn->cid, LOCAL_CONN_ID_LEN, &key);
+  GNUNET_CONTAINER_multihashmap_put (conn_map, &key, conn,
+                                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
+  setup_peer_mq (peer);
   if (NULL == timeout_task)
     timeout_task = GNUNET_SCHEDULER_add_now (&check_timeouts, NULL);
   return GNUNET_OK;
@@ -911,7 +943,6 @@ sock_read (void *cls)
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                     "quiche failed to write retry packet\n");
       }
-
       ssize_t sent = GNUNET_NETWORK_socket_sendto (udp_sock,
                                                    out,
                                                    written,
@@ -932,7 +963,6 @@ sock_read (void *cls)
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "invalid address validation token created\n");
     }
-
     conn = create_conn (quic_header.dcid, quic_header.dcid_len,
                         quic_header.odcid, quic_header.odcid_len,
                         local_addr, in_len,
@@ -942,7 +972,6 @@ sock_read (void *cls)
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "failed to create quic connection with peer\n");
     }
-
   } // null connection
 
   quiche_recv_info recv_info = {
@@ -952,9 +981,7 @@ sock_read (void *cls)
     local_addr,
     in_len,
   };
-
   process_pkt = quiche_conn_recv (conn->conn, buf, rcvd, &recv_info);
-
   if (0 > process_pkt)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -962,10 +989,8 @@ sock_read (void *cls)
                 process_pkt);
     return;
   }
-
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "quiche processed %zd bytes\n", process_pkt);
-
   /**
    * Check for connection establishment
   */
