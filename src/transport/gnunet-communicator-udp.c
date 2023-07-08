@@ -2218,222 +2218,228 @@ sock_read (void *cls)
                                              udp_sock,
                                              &sock_read,
                                              NULL);
-  rcvd = GNUNET_NETWORK_socket_recvfrom (udp_sock,
-                                         buf,
-                                         sizeof(buf),
-                                         (struct sockaddr *) &sa,
-                                         &salen);
-  if (-1 == rcvd)
+  while (1)
   {
-    GNUNET_log_strerror (GNUNET_ERROR_TYPE_DEBUG, "recv");
-    return;
-  }
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Read %lu bytes\n", rcvd);
-
-  if (rcvd > sizeof(struct UDPRekey))
-  {
-    const struct UDPRekey *rekey;
-    const struct UDPBox *box;
-    struct KeyCacheEntry *kce;
-    struct SenderAddress *sender;
-    int do_decrypt = GNUNET_NO;
-
-    rekey = (const struct UDPRekey *) buf;
-    box = (const struct UDPBox *) buf;
-    kce = GNUNET_CONTAINER_multishortmap_get (key_cache, &rekey->kid);
-
-    if ((GNUNET_YES == box->rekeying) || (GNUNET_NO == box->rekeying))
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "UDPRekey has rekeying %u\n",
-                  box->rekeying);
-    else
-      do_decrypt = GNUNET_YES;
-
-    if ((GNUNET_YES == do_decrypt) && (NULL != kce) && (GNUNET_YES ==
-                                                        kce->ss->sender->
-                                                        rekeying))
+    rcvd = GNUNET_NETWORK_socket_recvfrom (udp_sock,
+                                           buf,
+                                           sizeof(buf),
+                                           (struct sockaddr *) &sa,
+                                           &salen);
+    if (-1 == rcvd)
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "UDPRekey with kid %s\n",
-                  GNUNET_sh2s (&rekey->kid));
-      sender = setup_sender (&rekey->sender, (const struct sockaddr *) &sa,
-                             salen);
+      if (EAGAIN == errno)
+        break; // We are done reading data
+      GNUNET_log_strerror (GNUNET_ERROR_TYPE_DEBUG, "recv");
+      return;
+    }
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Read %lu bytes\n", rcvd);
 
-      if (NULL != sender->ss_rekey)
+    if (rcvd > sizeof(struct UDPRekey))
+    {
+      const struct UDPRekey *rekey;
+      const struct UDPBox *box;
+      struct KeyCacheEntry *kce;
+      struct SenderAddress *sender;
+      int do_decrypt = GNUNET_NO;
+
+      rekey = (const struct UDPRekey *) buf;
+      box = (const struct UDPBox *) buf;
+      kce = GNUNET_CONTAINER_multishortmap_get (key_cache, &rekey->kid);
+
+      if ((GNUNET_YES == box->rekeying) || (GNUNET_NO == box->rekeying))
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "UDPRekey has rekeying %u\n",
+                    box->rekeying);
+      else
+        do_decrypt = GNUNET_YES;
+
+      if ((GNUNET_YES == do_decrypt) && (NULL != kce) && (GNUNET_YES ==
+                                                          kce->ss->sender->
+                                                          rekeying))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "UDPRekey with kid %s\n",
+                    GNUNET_sh2s (&rekey->kid));
+        sender = setup_sender (&rekey->sender, (const struct sockaddr *) &sa,
+                               salen);
+
+        if (NULL != sender->ss_rekey)
+          return;
+
+        decrypt_rekey (rekey, (size_t) rcvd, kce, sender);
         return;
-
-      decrypt_rekey (rekey, (size_t) rcvd, kce, sender);
-      return;
+      }
     }
-  }
 
-  /* first, see if it is a UDPBox */
-  if (rcvd > sizeof(struct UDPBox))
-  {
-    const struct UDPBox *box;
-    struct KeyCacheEntry *kce;
-
-    box = (const struct UDPBox *) buf;
-    kce = GNUNET_CONTAINER_multishortmap_get (key_cache, &box->kid);
-    if (NULL != kce)
+    /* first, see if it is a UDPBox */
+    if (rcvd > sizeof(struct UDPBox))
     {
-      decrypt_box (box, (size_t) rcvd, kce);
-      return;
+      const struct UDPBox *box;
+      struct KeyCacheEntry *kce;
+
+      box = (const struct UDPBox *) buf;
+      kce = GNUNET_CONTAINER_multishortmap_get (key_cache, &box->kid);
+      if (NULL != kce)
+      {
+        decrypt_box (box, (size_t) rcvd, kce);
+        continue;
+      }
     }
-  }
 
-  /* next, check if it is a broadcast */
-  if (sizeof(struct UDPBroadcast) == rcvd)
-  {
-    const struct UDPBroadcast *ub;
-    struct UdpBroadcastSignature uhs;
-    struct GNUNET_PeerIdentity sender;
-
-    addr_verify = GNUNET_memdup (&sa, salen);
-    addr_verify->sin_port = 0;
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "received UDPBroadcast from %s\n",
-                GNUNET_a2s ((const struct sockaddr *) addr_verify, salen));
-    ub = (const struct UDPBroadcast *) buf;
-    uhs.purpose.purpose = htonl (
-      GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_UDP_BROADCAST);
-    uhs.purpose.size = htonl (sizeof(uhs));
-    uhs.sender = ub->sender;
-    sender = ub->sender;
-    if (0 == memcmp (&sender, &my_identity, sizeof (struct
-                                                    GNUNET_PeerIdentity)))
+    /* next, check if it is a broadcast */
+    if (sizeof(struct UDPBroadcast) == rcvd)
     {
+      const struct UDPBroadcast *ub;
+      struct UdpBroadcastSignature uhs;
+      struct GNUNET_PeerIdentity sender;
+
+      addr_verify = GNUNET_memdup (&sa, salen);
+      addr_verify->sin_port = 0;
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Received our own broadcast\n");
-      GNUNET_free (addr_verify);
-      return;
-    }
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "checking UDPBroadcastSignature for %s\n",
-                GNUNET_i2s (&sender));
-    GNUNET_CRYPTO_hash ((struct sockaddr *) addr_verify, salen, &uhs.h_address);
-    if (GNUNET_OK ==
-        GNUNET_CRYPTO_eddsa_verify (
-          GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_UDP_BROADCAST,
-          &uhs,
-          &ub->sender_sig,
-          &ub->sender.public_key))
-    {
-      char *addr_s;
-      enum GNUNET_NetworkType nt;
-
-      addr_s =
-        sockaddr_to_udpaddr_string ((const struct sockaddr *) &sa, salen);
-      GNUNET_STATISTICS_update (stats, "# broadcasts received", 1, GNUNET_NO);
-      /* use our own mechanism to determine network type */
-      nt =
-        GNUNET_NT_scanner_get_type (is, (const struct sockaddr *) &sa, salen);
+                  "received UDPBroadcast from %s\n",
+                  GNUNET_a2s ((const struct sockaddr *) addr_verify, salen));
+      ub = (const struct UDPBroadcast *) buf;
+      uhs.purpose.purpose = htonl (
+        GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_UDP_BROADCAST);
+      uhs.purpose.size = htonl (sizeof(uhs));
+      uhs.sender = ub->sender;
+      sender = ub->sender;
+      if (0 == memcmp (&sender, &my_identity, sizeof (struct
+                                                      GNUNET_PeerIdentity)))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "Received our own broadcast\n");
+        GNUNET_free (addr_verify);
+        continue;
+      }
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "validating address %s received from UDPBroadcast\n",
+                  "checking UDPBroadcastSignature for %s\n",
                   GNUNET_i2s (&sender));
-      GNUNET_TRANSPORT_application_validate (ah, &sender, nt, addr_s);
-      GNUNET_free (addr_s);
+      GNUNET_CRYPTO_hash ((struct sockaddr *) addr_verify, salen,
+                          &uhs.h_address);
+      if (GNUNET_OK ==
+          GNUNET_CRYPTO_eddsa_verify (
+            GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_UDP_BROADCAST,
+            &uhs,
+            &ub->sender_sig,
+            &ub->sender.public_key))
+      {
+        char *addr_s;
+        enum GNUNET_NetworkType nt;
+
+        addr_s =
+          sockaddr_to_udpaddr_string ((const struct sockaddr *) &sa, salen);
+        GNUNET_STATISTICS_update (stats, "# broadcasts received", 1, GNUNET_NO);
+        /* use our own mechanism to determine network type */
+        nt =
+          GNUNET_NT_scanner_get_type (is, (const struct sockaddr *) &sa, salen);
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "validating address %s received from UDPBroadcast\n",
+                    GNUNET_i2s (&sender));
+        GNUNET_TRANSPORT_application_validate (ah, &sender, nt, addr_s);
+        GNUNET_free (addr_s);
+        GNUNET_free (addr_verify);
+        continue;
+      }
+      else
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                    "VerifyingPeer %s is verifying UDPBroadcast\n",
+                    GNUNET_i2s (&my_identity));
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                    "Verifying UDPBroadcast from %s failed\n",
+                    GNUNET_i2s (&ub->sender));
+      }
       GNUNET_free (addr_verify);
-      return;
+      /* continue with KX, mostly for statistics... */
     }
-    else
+
+
+    /* finally, test if it is a KX */
+    if (rcvd < sizeof(struct UDPConfirmation) + sizeof(struct InitialKX))
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                  "VerifyingPeer %s is verifying UDPBroadcast\n",
-                  GNUNET_i2s (&my_identity));
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                  "Verifying UDPBroadcast from %s failed\n",
-                  GNUNET_i2s (&ub->sender));
-    }
-    GNUNET_free (addr_verify);
-    /* continue with KX, mostly for statistics... */
-  }
-
-
-  /* finally, test if it is a KX */
-  if (rcvd < sizeof(struct UDPConfirmation) + sizeof(struct InitialKX))
-  {
-    GNUNET_STATISTICS_update (stats,
-                              "# messages dropped (no kid, too small for KX)",
-                              1,
-                              GNUNET_NO);
-    return;
-  }
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Got KX\n");
-  {
-    const struct InitialKX *kx;
-    struct SharedSecret *ss;
-    char pbuf[rcvd - sizeof(struct InitialKX)];
-    const struct UDPConfirmation *uc;
-    struct SenderAddress *sender;
-
-    kx = (const struct InitialKX *) buf;
-    ss = setup_shared_secret_dec (&kx->ephemeral);
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Before DEC\n");
-
-    if (GNUNET_OK != try_decrypt (ss,
-                                  kx->gcm_tag,
-                                  0,
-                                  &buf[sizeof(*kx)],
-                                  sizeof(pbuf),
-                                  pbuf))
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Unable to decrypt tag, dropping...\n");
-      GNUNET_free (ss);
-      GNUNET_STATISTICS_update (
-        stats,
-        "# messages dropped (no kid, AEAD decryption failed)",
-        1,
-        GNUNET_NO);
-      return;
-    }
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Before VERIFY\n");
-
-    uc = (const struct UDPConfirmation *) pbuf;
-    if (GNUNET_OK != verify_confirmation (&kx->ephemeral, uc))
-    {
-      GNUNET_break_op (0);
-      GNUNET_free (ss);
       GNUNET_STATISTICS_update (stats,
-                                "# messages dropped (sender signature invalid)",
+                                "# messages dropped (no kid, too small for KX)",
                                 1,
                                 GNUNET_NO);
-      return;
+      continue;
     }
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Before SETUP_SENDER\n");
+                "Got KX\n");
+    {
+      const struct InitialKX *kx;
+      struct SharedSecret *ss;
+      char pbuf[rcvd - sizeof(struct InitialKX)];
+      const struct UDPConfirmation *uc;
+      struct SenderAddress *sender;
 
-    calculate_cmac (ss);
-    sender = setup_sender (&uc->sender, (const struct sockaddr *) &sa, salen);
-    ss->sender = sender;
-    GNUNET_CONTAINER_DLL_insert (sender->ss_head, sender->ss_tail, ss);
-    sender->num_secrets++;
-    GNUNET_STATISTICS_update (stats, "# Secrets active", 1, GNUNET_NO);
-    GNUNET_STATISTICS_update (stats,
-                              "# messages decrypted without BOX",
-                              1,
-                              GNUNET_NO);
-    try_handle_plaintext (sender, &uc[1], sizeof(pbuf) - sizeof(*uc));
-    if ((GNUNET_NO == kx->rekeying) && (GNUNET_YES == ss->sender->rekeying))
-    {
-      ss->sender->rekeying = GNUNET_NO;
-      sender->ss_rekey = NULL;
-      // destroy_all_secrets (ss, GNUNET_NO);
+      kx = (const struct InitialKX *) buf;
+      ss = setup_shared_secret_dec (&kx->ephemeral);
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Receiver stopped rekeying.\n");
-    }
-    else if (GNUNET_NO == kx->rekeying)
-      consider_ss_ack (ss, GNUNET_YES);
-    else
-    {
-      ss->sender->rekeying = GNUNET_YES;
+                  "Before DEC\n");
+
+      if (GNUNET_OK != try_decrypt (ss,
+                                    kx->gcm_tag,
+                                    0,
+                                    &buf[sizeof(*kx)],
+                                    sizeof(pbuf),
+                                    pbuf))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "Unable to decrypt tag, dropping...\n");
+        GNUNET_free (ss);
+        GNUNET_STATISTICS_update (
+          stats,
+          "# messages dropped (no kid, AEAD decryption failed)",
+          1,
+          GNUNET_NO);
+        continue;
+      }
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Got KX: Receiver doing rekeying.\n");
+                  "Before VERIFY\n");
+
+      uc = (const struct UDPConfirmation *) pbuf;
+      if (GNUNET_OK != verify_confirmation (&kx->ephemeral, uc))
+      {
+        GNUNET_break_op (0);
+        GNUNET_free (ss);
+        GNUNET_STATISTICS_update (stats,
+                                  "# messages dropped (sender signature invalid)",
+                                  1,
+                                  GNUNET_NO);
+        continue;
+      }
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Before SETUP_SENDER\n");
+
+      calculate_cmac (ss);
+      sender = setup_sender (&uc->sender, (const struct sockaddr *) &sa, salen);
+      ss->sender = sender;
+      GNUNET_CONTAINER_DLL_insert (sender->ss_head, sender->ss_tail, ss);
+      sender->num_secrets++;
+      GNUNET_STATISTICS_update (stats, "# Secrets active", 1, GNUNET_NO);
+      GNUNET_STATISTICS_update (stats,
+                                "# messages decrypted without BOX",
+                                1,
+                                GNUNET_NO);
+      try_handle_plaintext (sender, &uc[1], sizeof(pbuf) - sizeof(*uc));
+      if ((GNUNET_NO == kx->rekeying) && (GNUNET_YES == ss->sender->rekeying))
+      {
+        ss->sender->rekeying = GNUNET_NO;
+        sender->ss_rekey = NULL;
+        // destroy_all_secrets (ss, GNUNET_NO);
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "Receiver stopped rekeying.\n");
+      }
+      else if (GNUNET_NO == kx->rekeying)
+        consider_ss_ack (ss, GNUNET_YES);
+      else
+      {
+        ss->sender->rekeying = GNUNET_YES;
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "Got KX: Receiver doing rekeying.\n");
+      }
     }
   }
 }
