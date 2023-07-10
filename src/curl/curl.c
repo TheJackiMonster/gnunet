@@ -285,7 +285,7 @@ GNUNET_CURL_enable_async_scope_header (struct GNUNET_CURL_Context *ctx,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CURL_is_valid_scope_id (const char *scope_id)
 {
   if (strlen (scope_id) >= 64)
