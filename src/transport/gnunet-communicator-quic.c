@@ -386,6 +386,7 @@ peer_destroy (struct PeerAddress *peer)
                          GNUNET_NO);
   GNUNET_free (peer->address);
   GNUNET_free (peer->foreign_addr);
+  GNUNET_free (peer->conn);
   GNUNET_free (peer);
 }
 
@@ -908,6 +909,7 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
                                  local_in_len, peer->address, peer->address_len,
                                  config);
 
+
   peer->conn = q_conn;
   /**
    * Insert connection into hashmap
@@ -1162,6 +1164,9 @@ sock_read (void *cls)
     // Check for data on all available streams
     char stream_buf[UINT16_MAX];
     recv_from_streams (conn->conn, stream_buf, UINT16_MAX);
+    /**
+     * TODO: Pass here?
+    */
   }
   /**
    * Connection cleanup, check for closed connections, delete entries, print stats
