@@ -52,7 +52,7 @@
  * the other peer should revalidate).
  */
 #define ADDRESS_VALIDITY_PERIOD \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
 
 /**
  * How many messages do we keep at most in the queue to the
@@ -91,16 +91,16 @@
  * directions.
  */
 #define INITIAL_KX_SIZE                           \
-  (sizeof(struct GNUNET_CRYPTO_EcdhePublicKey)   \
-   + sizeof(struct TCPConfirmation))
+        (sizeof(struct GNUNET_CRYPTO_EcdhePublicKey)   \
+         + sizeof(struct TCPConfirmation))
 
 /**
  * Size of the initial core key exchange messages.
  */
 #define INITIAL_CORE_KX_SIZE          \
-  (sizeof(struct EphemeralKeyMessage)   \
-   + sizeof(struct PingMessage) \
-   + sizeof(struct PongMessage))
+        (sizeof(struct EphemeralKeyMessage)   \
+         + sizeof(struct PingMessage) \
+         + sizeof(struct PongMessage))
 
 /**
  * Address prefix used by the communicator.
@@ -467,12 +467,6 @@ struct Queue
    * each operation.
    */
   struct GNUNET_HashCode out_hmac;
-
-  /**
-   * Our ephemeral key. Stored here temporarily during rekeying / key
-   * generation.
-   */
-  struct GNUNET_CRYPTO_EcdhePrivateKey ephemeral;
 
   /**
    * ID of read task for this connection.
@@ -1357,10 +1351,10 @@ static void
 setup_in_cipher (const struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral,
                  struct Queue *queue)
 {
-  struct GNUNET_HashCode dh;
+  struct GNUNET_HashCode k;
 
-  GNUNET_CRYPTO_eddsa_ecdh (my_private_key, ephemeral, &dh);
-  setup_cipher (&dh, &my_identity, &queue->in_cipher, &queue->in_hmac);
+  GNUNET_CRYPTO_eddsa_kem_decaps (my_private_key, ephemeral, &k);
+  setup_cipher (&k, &my_identity, &queue->in_cipher, &queue->in_hmac);
 }
 
 
@@ -1557,14 +1551,9 @@ send_challenge (struct GNUNET_CRYPTO_ChallengeNonceP challenge,
  * @param queue queue to setup outgoing (encryption) cipher for
  */
 static void
-setup_out_cipher (struct Queue *queue)
+setup_out_cipher (struct Queue *queue, struct GNUNET_HashCode *dh)
 {
-  struct GNUNET_HashCode dh;
-
-  GNUNET_CRYPTO_ecdh_eddsa (&queue->ephemeral, &queue->target.public_key, &dh);
-  /* we don't need the private key anymore, drop it! */
-  memset (&queue->ephemeral, 0, sizeof(queue->ephemeral));
-  setup_cipher (&dh, &queue->target, &queue->out_cipher, &queue->out_hmac);
+  setup_cipher (dh, &queue->target, &queue->out_cipher, &queue->out_hmac);
   queue->rekey_time = GNUNET_TIME_relative_to_absolute (rekey_interval);
   queue->rekey_left_bytes =
     GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_WEAK, REKEY_MAX_BYTES);
@@ -1582,13 +1571,15 @@ inject_rekey (struct Queue *queue)
 {
   struct TCPRekey rekey;
   struct TcpRekeySignature thp;
+  struct GNUNET_HashCode k;
+  struct GNUNET_CRYPTO_EcdhePublicKey c;
 
   GNUNET_assert (0 == queue->pwrite_off);
   memset (&rekey, 0, sizeof(rekey));
-  GNUNET_CRYPTO_ecdhe_key_create (&queue->ephemeral);
+  GNUNET_CRYPTO_eddsa_kem_encaps (&queue->target.public_key, &rekey.ephemeral,
+                                  &k);
   rekey.header.type = ntohs (GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_REKEY);
   rekey.header.size = ntohs (sizeof(rekey));
-  GNUNET_CRYPTO_ecdhe_key_get_public (&queue->ephemeral, &rekey.ephemeral);
   rekey.monotonic_time =
     GNUNET_TIME_absolute_hton (GNUNET_TIME_absolute_get_monotonic (cfg));
   thp.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_REKEY);
@@ -1627,8 +1618,9 @@ inject_rekey (struct Queue *queue)
   queue->cwrite_off += sizeof(rekey);
   /* Setup new cipher for successive messages */
   gcry_cipher_close (queue->out_cipher);
-  setup_out_cipher (queue);
+  setup_out_cipher (queue, &k);
 }
+
 
 static int
 pending_reversals_delete_it (void *cls,
@@ -1829,7 +1821,7 @@ queue_write (void *cls)
   if (((0 == queue->rekey_left_bytes) ||
        (0 == GNUNET_TIME_absolute_get_remaining (
           queue->rekey_time).rel_value_us)) &&
-      (((0 == queue->pwrite_off) || ! we_do_not_need_to_rekey)&&
+      (((0 == queue->pwrite_off) || ! we_do_not_need_to_rekey) &&
        (queue->cwrite_off + sizeof (struct TCPRekey) <= BUF_SIZE)))
   {
     inject_rekey (queue);
@@ -2712,10 +2704,10 @@ static void
 start_initial_kx_out (struct Queue *queue)
 {
   struct GNUNET_CRYPTO_EcdhePublicKey epub;
+  struct GNUNET_HashCode k;
 
-  GNUNET_CRYPTO_ecdhe_key_create (&queue->ephemeral);
-  GNUNET_CRYPTO_ecdhe_key_get_public (&queue->ephemeral, &epub);
-  setup_out_cipher (queue);
+  GNUNET_CRYPTO_eddsa_kem_encaps (&queue->target.public_key, &epub, &k);
+  setup_out_cipher (queue, &k);
   transmit_kx (queue, &epub);
 }
 
@@ -3059,6 +3051,7 @@ proto_read_kx (void *cls)
   GNUNET_CONTAINER_DLL_remove (proto_head, proto_tail, pq);
   GNUNET_free (pq);
 }
+
 
 static struct ProtoQueue *
 create_proto_queue (struct GNUNET_NETWORK_Handle *sock,

@@ -44,7 +44,7 @@
  * @see [Documentation](https://gnunet.org/crypto-api)
  */
 
-#if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
+#if ! defined (__GNUNET_UTIL_LIB_H_INSIDE__)
 #error "Only <gnunet_util_lib.h> can be included directly."
 #endif
 
@@ -846,7 +846,7 @@ GNUNET_CRYPTO_hash_from_string2 (const char *enc,
  * @return #GNUNET_OK on success, #GNUNET_SYSERR if result has the wrong encoding
  */
 #define GNUNET_CRYPTO_hash_from_string(enc, result) \
-  GNUNET_CRYPTO_hash_from_string2 (enc, strlen (enc), result)
+        GNUNET_CRYPTO_hash_from_string2 (enc, strlen (enc), result)
 
 
 /**
@@ -1837,6 +1837,22 @@ GNUNET_CRYPTO_eddsa_ecdh (const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
                           const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
                           struct GNUNET_HashCode *key_material);
 
+/**
+ * @ingroup crypto
+ * Decapsulate a key for a private EdDSA key.
+ * Dual to #GNUNET_CRRYPTO_eddsa_kem_encaps.
+ *
+ * @param priv private key from EdDSA to use for the ECDH (x)
+ * @param c the encapsulated key
+ * @param key_material where to write the key material H(h(x)yG)
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_eddsa_kem_decaps (const struct
+                                GNUNET_CRYPTO_EddsaPrivateKey *priv,
+                                const struct GNUNET_CRYPTO_EcdhePublicKey *c,
+                                struct GNUNET_HashCode *key_material);
+
 
 /**
  * @ingroup crypto
@@ -1868,6 +1884,21 @@ enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_ecdh_eddsa (const struct GNUNET_CRYPTO_EcdhePrivateKey *priv,
                           const struct GNUNET_CRYPTO_EddsaPublicKey *pub,
                           struct GNUNET_HashCode *key_material);
+
+/**
+ * @ingroup crypto
+ * Encapsulate key material for a EdDSA public key.
+ * Dual to #GNUNET_CRRYPTO_eddsa_kem_decaps.
+ *
+ * @param priv private key to use for the ECDH (y)
+ * @param c public key from EdDSA to use for the ECDH (X=h(x)G)
+ * @param key_material where to write the key material H(yX)=H(h(x)yG)
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_eddsa_kem_encaps (const struct GNUNET_CRYPTO_EddsaPublicKey *pub,
+                                struct GNUNET_CRYPTO_EcdhePublicKey *c,
+                                struct GNUNET_HashCode *key_material);
 
 /**
  * @ingroup crypto
@@ -1920,15 +1951,15 @@ GNUNET_CRYPTO_eddsa_sign_ (
  * @param[out] sig where to write the signature
  */
 #define GNUNET_CRYPTO_eddsa_sign(priv,ps,sig) do {                 \
-    /* check size is set correctly */                              \
-    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*ps));    \
-    /* check 'ps' begins with the purpose */                       \
-    GNUNET_static_assert (((void*) (ps)) ==                        \
-                          ((void*) &(ps)->purpose));               \
-    GNUNET_assert (GNUNET_OK ==                                    \
-                   GNUNET_CRYPTO_eddsa_sign_ (priv,                \
-                                              &(ps)->purpose,      \
-                                              sig));               \
+          /* check size is set correctly */                              \
+          GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*ps));    \
+          /* check 'ps' begins with the purpose */                       \
+          GNUNET_static_assert (((void*) (ps)) ==                        \
+                                ((void*) &(ps)->purpose));               \
+          GNUNET_assert (GNUNET_OK ==                                    \
+                         GNUNET_CRYPTO_eddsa_sign_ (priv,                \
+                                                    &(ps)->purpose,      \
+                                                    sig));               \
 } while (0)
 
 
@@ -1982,15 +2013,15 @@ GNUNET_CRYPTO_eddsa_sign_raw (
  * @param[out] sig where to write the signature
  */
 #define GNUNET_CRYPTO_ecdsa_sign(priv,ps,sig) do {                 \
-    /* check size is set correctly */                              \
-    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));  \
-    /* check 'ps' begins with the purpose */                       \
-    GNUNET_static_assert (((void*) (ps)) ==                        \
-                          ((void*) &(ps)->purpose));               \
-    GNUNET_assert (GNUNET_OK ==                                    \
-                   GNUNET_CRYPTO_ecdsa_sign_ (priv,                \
-                                              &(ps)->purpose,      \
-                                              sig));               \
+          /* check size is set correctly */                              \
+          GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));  \
+          /* check 'ps' begins with the purpose */                       \
+          GNUNET_static_assert (((void*) (ps)) ==                        \
+                                ((void*) &(ps)->purpose));               \
+          GNUNET_assert (GNUNET_OK ==                                    \
+                         GNUNET_CRYPTO_ecdsa_sign_ (priv,                \
+                                                    &(ps)->purpose,      \
+                                                    sig));               \
 } while (0)
 
 /**
@@ -2029,15 +2060,15 @@ GNUNET_CRYPTO_edx25519_sign_ (
  * @param[out] sig where to write the signature
  */
 #define GNUNET_CRYPTO_edx25519_sign(priv,ps,sig) do {              \
-    /* check size is set correctly */                              \
-    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));  \
-    /* check 'ps' begins with the purpose */                       \
-    GNUNET_static_assert (((void*) (ps)) ==                        \
-                          ((void*) &(ps)->purpose));               \
-    GNUNET_assert (GNUNET_OK ==                                    \
-                   GNUNET_CRYPTO_edx25519_sign_ (priv,             \
-                                                 &(ps)->purpose,   \
-                                                 sig));            \
+          /* check size is set correctly */                              \
+          GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));  \
+          /* check 'ps' begins with the purpose */                       \
+          GNUNET_static_assert (((void*) (ps)) ==                        \
+                                ((void*) &(ps)->purpose));               \
+          GNUNET_assert (GNUNET_OK ==                                    \
+                         GNUNET_CRYPTO_edx25519_sign_ (priv,             \
+                                                       &(ps)->purpose,   \
+                                                       sig));            \
 } while (0)
 
 

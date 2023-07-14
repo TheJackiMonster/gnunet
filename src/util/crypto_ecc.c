@@ -61,10 +61,11 @@
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-crypto-ecc", __VA_ARGS__)
 
 #define LOG_STRERROR(kind, syscall) \
-  GNUNET_log_from_strerror (kind, "util-crypto-ecc", syscall)
+        GNUNET_log_from_strerror (kind, "util-crypto-ecc", syscall)
 
 #define LOG_STRERROR_FILE(kind, syscall, filename) \
-  GNUNET_log_from_strerror_file (kind, "util-crypto-ecc", syscall, filename)
+        GNUNET_log_from_strerror_file (kind, "util-crypto-ecc", syscall, \
+                                       filename)
 
 /**
  * Log an error message at log-level 'level' that indicates
@@ -72,15 +73,15 @@
  * by gcry_strerror(rc).
  */
 #define LOG_GCRY(level, cmd, rc)                      \
-  do                                                  \
-  {                                                   \
-    LOG (level,                                       \
-         _ ("`%s' failed at %s:%d with error: %s\n"), \
-         cmd,                                         \
-         __FILE__,                                    \
-         __LINE__,                                    \
-         gcry_strerror (rc));                         \
-  } while (0)
+        do                                                  \
+        {                                                   \
+          LOG (level,                                       \
+               _ ("`%s' failed at %s:%d with error: %s\n"), \
+               cmd,                                         \
+               __FILE__,                                    \
+               __LINE__,                                    \
+               gcry_strerror (rc));                         \
+        } while (0)
 
 
 /**
@@ -745,6 +746,16 @@ GNUNET_CRYPTO_eddsa_ecdh (const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
 
 
 enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_eddsa_kem_decaps (const struct
+                                GNUNET_CRYPTO_EddsaPrivateKey *priv,
+                                const struct GNUNET_CRYPTO_EcdhePublicKey *c,
+                                struct GNUNET_HashCode *key_material)
+{
+  return GNUNET_CRYPTO_eddsa_ecdh (priv, c, key_material);
+}
+
+
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_ecdsa_ecdh (const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv,
                           const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
                           struct GNUNET_HashCode *key_material)
@@ -776,6 +787,19 @@ GNUNET_CRYPTO_ecdh_eddsa (const struct GNUNET_CRYPTO_EcdhePrivateKey *priv,
     return GNUNET_SYSERR;
   GNUNET_CRYPTO_hash (p, crypto_scalarmult_BYTES, key_material);
   return GNUNET_OK;
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_eddsa_kem_encaps (const struct GNUNET_CRYPTO_EddsaPublicKey *pub,
+                                struct GNUNET_CRYPTO_EcdhePublicKey *c,
+                                struct GNUNET_HashCode *key_material)
+{
+  struct GNUNET_CRYPTO_EcdhePrivateKey sk;
+
+  GNUNET_CRYPTO_ecdhe_key_create (&sk);
+  GNUNET_CRYPTO_ecdhe_key_get_public (&sk, c);
+  return GNUNET_CRYPTO_ecdh_eddsa (&sk, pub, key_material);
 }
 
 
