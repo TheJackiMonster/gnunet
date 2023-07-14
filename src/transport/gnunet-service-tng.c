@@ -3070,6 +3070,11 @@ free_pending_message (struct PendingMessage *pm)
   if (NULL != pm->bpm)
   {
     free_fragment_tree (pm->bpm);
+    if (NULL != pm->bpm->qe)
+    {
+      struct QueueEntry *qe = pm->bpm->qe;
+      qe->pm = NULL;
+    }
     GNUNET_free (pm->bpm);
   }
 
@@ -4310,7 +4315,7 @@ handle_client_recv_ok (void *cls, const struct RecvOkMessage *rom)
   delta = ntohl (rom->increase_window_delta);
   vl->core_recv_window += delta;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "CORE ack receiving message, increased CORE recv window to %u\n",
+              "CORE ack receiving message, increased CORE recv window to %d\n",
               vl->core_recv_window);
   GNUNET_SERVICE_client_continue (tc->client);
   if (vl->core_recv_window <= 0)
@@ -5749,7 +5754,7 @@ finish_handling_raw_message (struct VirtualLink *vl,
     return;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Delivered message from %s of type %u to CORE recv window %u\n",
+              "Delivered message from %s of type %u to CORE recv window %d\n",
               GNUNET_i2s (&cmc->im.sender),
               ntohs (mh->type),
               vl->core_recv_window);
@@ -10303,9 +10308,10 @@ handle_send_message_ack (void *cls,
                 GNUNET_ntohll (sma->mid),
                 ntohl (sma->qid));
     // TODO I guess this can happen, if the Ack from the peer comes before the Ack from the queue.
+    // Update: Maybe QueueEntry was accidentally freed during freeing PendingMessage.
     /* this should never happen */
-    /*GNUNET_break (0);
-      GNUNET_SERVICE_client_drop (tc->client);*/
+    GNUNET_break (0);
+    //GNUNET_SERVICE_client_drop (tc->client);
     GNUNET_SERVICE_client_continue (tc->client);
     return;
   }
