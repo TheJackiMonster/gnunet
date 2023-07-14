@@ -363,7 +363,25 @@ plugin_LTLIBRARIES = \
   libgnunet_test_transport_plugin_cmd_simple_send.la \
   libgnunet_test_transport_plugin_cmd_simple_send_broadcast.la \
   libgnunet_test_transport_plugin_cmd_simple_send_dv.la \
-  libgnunet_test_transport_plugin_cmd_udp_backchannel.la
+  libgnunet_test_transport_plugin_cmd_udp_backchannel.la \
+  libgnunet_test_transport_plugin_cmd_just_run.la
+
+libgnunet_test_transport_plugin_cmd_just_run_la_SOURCES = \
+ test_transport_plugin_cmd_just_run.c
+libgnunet_test_transport_plugin_cmd_just_run_la_LIBADD = \
+  libgnunettransporttesting2.la \
+  libgnunettransportapplication.la \
+  libgnunettransportcore.la \
+  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/hello/libgnunethello.la \
+  $(top_builddir)/src/ats/libgnunetats.la \
+  $(top_builddir)/src/arm/libgnunetarm.la \
+  $(top_builddir)/src/util/libgnunetutil.la \
+  $(LTLIBINTL)
+libgnunet_test_transport_plugin_cmd_just_run_la_LDFLAGS = \
+  $(GN_PLUGIN_LDFLAGS)
 
 libgnunet_test_transport_plugin_cmd_nat_upnp_la_SOURCES = \
  test_transport_plugin_cmd_nat_upnp.c
@@ -779,6 +797,7 @@ endif
 # Only test TNG if we run experimental
 if HAVE_EXPERIMENTAL
 check_SCRIPTS= \
+  test_transport_start_testcase.sh \
   test_transport_simple_send_performance.sh \
   test_transport_nat_icmp_tcp.sh \
   test_transport_nat_upnp.sh \
@@ -1530,6 +1549,7 @@ test_transport_api_slow_ats_LDADD = \
 
 
 EXTRA_DIST = \
+test_transport_start_testcase.sh \
 test_transport_simple_send_performance.sh \
 test_transport_nat_icmp_tcp.sh \
 test_transport_nat_upnp.sh \
