@@ -73,7 +73,7 @@ GNUNET_CRYPTO_hash_from_string2 (const char *enc,
                                  size_t enclen,
                                  struct GNUNET_HashCode *result)
 {
-  char upper_enc[enclen+1];
+  char upper_enc[enclen + 1];
   char *up_ptr = upper_enc;
 
   if (GNUNET_OK != GNUNET_STRINGS_utf8_toupper (enc, up_ptr))
@@ -142,6 +142,7 @@ GNUNET_CRYPTO_hash_xor (const struct GNUNET_HashCode *a,
 
   GNUNET_static_assert (8 == sizeof (unsigned long long));
   GNUNET_static_assert (0 == sizeof (*a) % sizeof (unsigned long long));
+
   for (int i = sizeof (*result) / sizeof (*llr) - 1; i>=0; i--)
     llr[i] = lla[i] ^ llb[i];
 }
@@ -156,18 +157,18 @@ GNUNET_CRYPTO_hash_to_aes_key (
   GNUNET_assert (GNUNET_YES ==
                  GNUNET_CRYPTO_kdf (
                    skey,
-                   sizeof(struct GNUNET_CRYPTO_SymmetricSessionKey),
+                   sizeof(*skey),
                    "Hash key derivation",
                    strlen ("Hash key derivation"),
-                   hc, sizeof(struct GNUNET_HashCode),
+                   hc, sizeof(*hc),
                    NULL, 0));
   GNUNET_assert (GNUNET_YES ==
                  GNUNET_CRYPTO_kdf (
                    iv,
-                   sizeof(struct GNUNET_CRYPTO_SymmetricInitializationVector),
+                   sizeof(*iv),
                    "Initialization vector derivation",
                    strlen ("Initialization vector derivation"),
-                   hc, sizeof(struct GNUNET_HashCode),
+                   hc, sizeof(*hc),
                    NULL, 0));
 }
 
