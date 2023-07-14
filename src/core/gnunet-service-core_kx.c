@@ -515,10 +515,10 @@ do_encrypt (struct GSC_KeyExchangeInfo *kx,
      so we require manual intervention to get this one... */
 #if DEBUG_KX
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Encrypted %u bytes for `%s' using key %u, IV %u\n",
+              "Encrypted %u bytes for `%s' using key %s, IV %u\n",
               (unsigned int) size,
               GNUNET_i2s (kx->peer),
-              (unsigned int) kx->encrypt_key.crc32,
+              kx->encrypt_key.aes_key,
               GNUNET_CRYPTO_crc32_n (iv, sizeof(iv)));
 #endif
   return GNUNET_OK;
@@ -573,10 +573,10 @@ do_decrypt (struct GSC_KeyExchangeInfo *kx,
      so we require manual intervention to get this one... */
 #if DEBUG_KX
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Decrypted %u bytes from `%s' using key %u, IV %u\n",
+              "Decrypted %u bytes from `%s' using key %s, IV %u\n",
               (unsigned int) size,
               GNUNET_i2s (kx->peer),
-              (unsigned int) kx->decrypt_key.crc32,
+              kx->decrypt_key.aes_key,
               GNUNET_CRYPTO_crc32_n (iv, sizeof(*iv)));
 #endif
   return GNUNET_OK;
@@ -868,6 +868,7 @@ handle_ephemeral_key (void *cls, const struct EphemeralKeyMessage *m)
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Received expired EPHEMERAL_KEY from %s\n",
                 GNUNET_i2s (&m->origin_identity));
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
   }
   if (0 == memcmp (&m->ephemeral_key,
@@ -882,6 +883,7 @@ handle_ephemeral_key (void *cls, const struct EphemeralKeyMessage *m)
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Ignoring duplicate EPHEMERAL_KEY from %s\n",
                 GNUNET_i2s (&m->origin_identity));
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
   }
   if (0 != memcmp (&m->origin_identity,
@@ -893,6 +895,7 @@ handle_ephemeral_key (void *cls, const struct EphemeralKeyMessage *m)
                 GNUNET_i2s (&m->origin_identity),
                 GNUNET_i2s_full (kx->peer));
     GNUNET_break_op (0);
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
   }
   if ((ntohl (m->purpose.size) !=
@@ -917,6 +920,7 @@ handle_ephemeral_key (void *cls, const struct EphemeralKeyMessage *m)
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Received EPHEMERAL_KEY from %s with bad signature\n",
                 GNUNET_i2s (&m->origin_identity));
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
   }
   now = GNUNET_TIME_absolute_get ();
@@ -939,6 +943,7 @@ handle_ephemeral_key (void *cls, const struct EphemeralKeyMessage *m)
                                 "# EPHEMERAL_KEY messages rejected due to time"),
                               1,
                               GNUNET_NO);
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
   }
 #if DEBUG_KX
@@ -1042,6 +1047,7 @@ handle_ephemeral_key (void *cls, const struct EphemeralKeyMessage *m)
     GNUNET_break (0);
     break;
   }
+  GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
 }
 
 
@@ -1076,6 +1082,7 @@ handle_ping (void *cls, const struct PingMessage *m)
                                 "# PING messages dropped (out of order)"),
                               1,
                               GNUNET_NO);
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1090,6 +1097,7 @@ handle_ping (void *cls, const struct PingMessage *m)
                                - ((void *) &m->target - (void *) m)))
   {
     GNUNET_break_op (0);
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
   }
   if (0 !=
@@ -1106,6 +1114,7 @@ handle_ping (void *cls, const struct PingMessage *m)
         "Decryption of PING from peer `%s' failed after rekey (harmless)\n",
         GNUNET_i2s (kx->peer));
     GNUNET_break_op (0);
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
   }
   /* construct PONG */
@@ -1228,6 +1237,7 @@ handle_pong (void *cls, const struct PongMessage *m)
                                 "# PONG messages dropped (connection down)"),
                               1,
                               GNUNET_NO);
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
 
   case GNUNET_CORE_KX_STATE_KEY_SENT:
@@ -1236,6 +1246,7 @@ handle_pong (void *cls, const struct PongMessage *m)
                                 "# PONG messages dropped (out of order)"),
                               1,
                               GNUNET_NO);
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
 
   case GNUNET_CORE_KX_STATE_KEY_RECEIVED:
@@ -1249,6 +1260,7 @@ handle_pong (void *cls, const struct PongMessage *m)
 
   default:
     GNUNET_break (0);
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1269,6 +1281,7 @@ handle_pong (void *cls, const struct PongMessage *m)
                                - ((void *) &m->challenge - (void *) m)))
   {
     GNUNET_break_op (0);
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
   }
   GNUNET_STATISTICS_update (GSC_stats,
@@ -1288,6 +1301,7 @@ handle_pong (void *cls, const struct PongMessage *m)
                 "Received malformed PONG received from `%s' with challenge %u\n",
                 GNUNET_i2s (&t.target),
                 (unsigned int) t.challenge);
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1303,10 +1317,12 @@ handle_pong (void *cls, const struct PongMessage *m)
   {
   case GNUNET_CORE_KX_STATE_DOWN:
     GNUNET_assert (0);  /* should be impossible */
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
 
   case GNUNET_CORE_KX_STATE_KEY_SENT:
     GNUNET_assert (0);  /* should be impossible */
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
 
   case GNUNET_CORE_KX_STATE_KEY_RECEIVED:
@@ -1505,6 +1521,7 @@ handle_encrypted (void *cls, const struct EncryptedMessage *m)
                                 "# DATA message dropped (out of order)"),
                               1,
                               GNUNET_NO);
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
   }
   if (0 ==
@@ -1529,6 +1546,7 @@ handle_encrypted (void *cls, const struct EncryptedMessage *m)
     kx->status = GNUNET_CORE_KX_STATE_KEY_SENT;
     monitor_notify_all (kx);
     send_key (kx);
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
   }
 
@@ -1568,6 +1586,7 @@ handle_encrypted (void *cls, const struct EncryptedMessage *m)
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Failed checksum validation for a message from `%s'\n",
                 GNUNET_i2s (kx->peer));
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
   }
   derive_iv (&iv, &kx->decrypt_key, m->iv_seed, &GSC_my_identity);
@@ -1579,6 +1598,7 @@ handle_encrypted (void *cls, const struct EncryptedMessage *m)
                                size - ENCRYPTED_HEADER_SIZE))
   {
     GNUNET_break_op (0);
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1598,6 +1618,7 @@ handle_encrypted (void *cls, const struct EncryptedMessage *m)
                               gettext_noop ("# bytes dropped (duplicates)"),
                               size,
                               GNUNET_NO);
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
   }
   if ((kx->last_sequence_number_received > snum) &&
@@ -1611,6 +1632,7 @@ handle_encrypted (void *cls, const struct EncryptedMessage *m)
                                 "# bytes dropped (out of sequence)"),
                               size,
                               GNUNET_NO);
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
   }
   if (kx->last_sequence_number_received > snum)
@@ -1626,6 +1648,7 @@ handle_encrypted (void *cls, const struct EncryptedMessage *m)
                                 size,
                                 GNUNET_NO);
       /* duplicate, ignore */
+      GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
       return;
     }
     kx->last_packets_bitmap |= rotbit;
@@ -1656,6 +1679,7 @@ handle_encrypted (void *cls, const struct EncryptedMessage *m)
                                 "# bytes dropped (ancient message)"),
                               size,
                               GNUNET_NO);
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
   }
 
@@ -1672,6 +1696,8 @@ handle_encrypted (void *cls, const struct EncryptedMessage *m)
                               GNUNET_YES,
                               GNUNET_NO))
     GNUNET_break_op (0);
+  
+  GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
 }
 
 

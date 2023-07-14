@@ -402,9 +402,13 @@ mq_cancel_impl (struct GNUNET_MQ_Handle *mq, void *impl_state)
 static void
 peer_mq_error_handler (void *cls, enum GNUNET_MQ_Error error)
 {
-  /* struct Neighbour *n = cls; */
+  struct Neighbour *n = cls;
 
-  GNUNET_break_op (0);
+  if (GNUNET_MQ_ERROR_MALFORMED == error)
+    GNUNET_break_op (0);
+  //TODO Look into bug #7887
+  
+  GNUNET_TRANSPORT_core_receive_continue (n->h, (const struct PeerIdentity *) &n->id);
 }
 
 
