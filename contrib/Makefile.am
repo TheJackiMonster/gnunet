@@ -27,7 +27,8 @@ dist_pkgdata_DATA = \
   netjail/netjail_exec.sh \
   netjail/netjail_start.sh \
   netjail/netjail_stop.sh \
-  netjail/topo.sh
+  netjail/topo.sh \
+  testing-ng/block.sh
 
 INITD_FILES = \
   services/systemd/gnunet-user.service \
@@ -270,5 +271,6 @@ install-data-hook:
 	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_stop.sh'
 	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_exec.sh'
 	chmod o+x '$(DESTDIR)$(pkgdatadir)/topo.sh'
+	chmod o+x '$(DESTDIR)$(pkgdatadir)/block.sh'
 
 ## EOF
