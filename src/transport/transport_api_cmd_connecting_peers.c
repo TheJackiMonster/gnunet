@@ -65,8 +65,21 @@ connect_peers_run (void *cls,
   cps->is = is;
   peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                          cps->start_peer_label);
-  GNUNET_TRANSPORT_get_trait_application_handle (peer1_cmd,
-                                                 &ah);
+  if (GNUNET_YES == cps->wait_for_connect)
+  {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Wait for connect.\n");
+    GNUNET_TRANSPORT_get_trait_application_handle (peer1_cmd,
+                                                   &ah);
+  }
+  else
+  {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Not waiting for connect.\n");
+    GNUNET_TESTING_get_trait_application_handle (peer1_cmd,
+                                                   &ah);
+  }
+
   GNUNET_TRANSPORT_get_trait_broadcast (peer1_cmd,
                                         &broadcast);
 
@@ -139,12 +152,13 @@ connect_peers_run (void *cls,
         }
         peer = GNUNET_TESTING_get_peer (num, tl_system);
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                    "validating peer number %u with identity %s and address %s %u %s\n",
+                    "validating peer number %u with identity %s and address %s %u %s and handle %p\n",
                     num,
                     GNUNET_i2s (peer),
                     addr_and_port,
                     *broadcast,
-                    pos_prefix->address_prefix);
+                    pos_prefix->address_prefix,
+                    ah);
         GNUNET_TRANSPORT_application_validate ((struct
                                                 GNUNET_TRANSPORT_ApplicationHandle
                                                 *) ah,
@@ -252,7 +266,8 @@ GNUNET_TRANSPORT_cmd_connect_peers (const char *label,
                                     uint32_t num,
                                     struct GNUNET_TESTING_NetjailTopology *
                                     topology,
-                                    unsigned int additional_connects)
+                                    unsigned int additional_connects,
+                                    unsigned int wait_for_connect)
 {
   struct ConnectPeersState *cps;
   unsigned int node_additional_connects;
@@ -275,11 +290,20 @@ GNUNET_TRANSPORT_cmd_connect_peers (const char *label,
   cps->topology = topology;
   cps->notify_connect = notify_connect;
   cps->additional_connects = additional_connects;
+  cps->wait_for_connect = wait_for_connect;
 
-  return GNUNET_TESTING_command_new (cps,
-                                     label,
-                                     &connect_peers_run,
-                                     &connect_peers_cleanup,
-                                     &connect_peers_traits,
-                                     &cps->ac);
+  if (GNUNET_YES == wait_for_connect)
+    return GNUNET_TESTING_command_new (cps,
+                                       label,
+                                       &connect_peers_run,
+                                       &connect_peers_cleanup,
+                                       &connect_peers_traits,
+                                       &cps->ac);
+  else
+    return GNUNET_TESTING_command_new (cps,
+                                       label,
+                                       &connect_peers_run,
+                                       &connect_peers_cleanup,
+                                       &connect_peers_traits,
+                                       NULL);
 }

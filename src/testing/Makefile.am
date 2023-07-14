@@ -29,6 +29,7 @@ gnunet_cmds_helper_LDADD = $(XLIB) \
  $(LTLIBINTL) $(Z_LIBS)
 
 libgnunettesting_la_SOURCES = \
+  testing_api_cmd_start_peer.c \
   testing_api_cmd_exec_bash_script.c \
   testing_api_cmd_barrier.c \
   testing_api_cmd_barrier_reached.c \
@@ -50,6 +51,8 @@ libgnunettesting_la_SOURCES = \
 libgnunettesting_la_LIBADD = \
  $(top_builddir)/src/arm/libgnunetarm.la \
  $(top_builddir)/src/util/libgnunetutil.la \
+ $(top_builddir)/src/transport/libgnunettransportapplication.la \
+$(top_builddir)/src/peerstore/libgnunetpeerstore.la \
  $(LTLIBINTL)
 libgnunettesting_la_LDFLAGS = \
  $(GN_LIB_LDFLAGS) \

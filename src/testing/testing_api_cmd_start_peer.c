@@ -25,12 +25,12 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
+#include "testing_cmds.h"
 #include "gnunet_testing_ng_lib.h"
 #include "gnunet_testing_netjail_lib.h"
 #include "gnunet_peerstore_service.h"
 #include "gnunet_transport_core_service.h"
 #include "gnunet_transport_application_service.h"
-#include "transport-testing-cmds.h"
 
 /**
  * Generic logging shortcut
@@ -90,73 +90,6 @@ retrieve_hello (void *cls)
                                        hello_iter_cb,
                                        sps);
 
-}
-
-
-/**
- * Disconnect callback for the connection to the core service.
- *
- */
-static void
-notify_disconnect (void *cls,
-                   const struct GNUNET_PeerIdentity *peer,
-                   void *handler_cls)
-{
-  struct GNUNET_TESTING_StartPeerState *sps = cls;
-
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Peer %s disconnected from peer %u (`%s')\n",
-       GNUNET_i2s (peer),
-       sps->no,
-       GNUNET_i2s (&sps->id));
-
-}
-
-
-/**
- * Connect callback for the connection to the core service.
- *
- */
-static void *
-notify_connect (void *cls,
-                const struct GNUNET_PeerIdentity *peer,
-                struct GNUNET_MQ_Handle *mq)
-{
-  struct GNUNET_TESTING_StartPeerState *sps = cls;
-  struct GNUNET_ShortHashCode *key = GNUNET_new (struct GNUNET_ShortHashCode);
-  struct GNUNET_HashCode hc;
-  struct GNUNET_CRYPTO_EddsaPublicKey public_key = peer->public_key;
-
-  void *ret = (struct GNUNET_PeerIdentity *) peer;
-
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "This Peer %s \n",
-       GNUNET_i2s (&sps->id));
-
-
-  GNUNET_CRYPTO_hash (&public_key, sizeof(public_key), &hc);
-
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Peer %s connected to peer number %u with mq %p\n",
-       GNUNET_i2s (peer),
-       sps->no,
-       mq);
-
-
-  memcpy (key,
-          &hc,
-          sizeof (*key));
-  GNUNET_CONTAINER_multishortmap_put (sps->connected_peers_map,
-                                      key,
-                                      mq,
-                                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
-
-  GNUNET_free (key);
-
-  sps->notify_connect (sps->ac.is,
-                       peer);
-
-  return ret;
 }
 
 
@@ -321,23 +254,6 @@ start_peer_run (void *cls,
        sps->no,
        GNUNET_i2s_full (&sps->id));
 
-  sps->th = GNUNET_TRANSPORT_core_connect (sps->cfg,
-                                           NULL,
-                                           sps->handlers,
-                                           sps,
-                                           &notify_connect,
-                                           &notify_disconnect);
-  if (NULL == sps->th)
-  {
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "Failed to connect to transport service for peer `%s': `%s'\n",
-         sps->cfgname,
-         emsg);
-    GNUNET_free (emsg);
-    GNUNET_TESTING_interpreter_fail (is);
-    return;
-  }
-
   sps->ph = GNUNET_PEERSTORE_connect (sps->cfg);
   if (NULL == sps->ph)
   {
@@ -380,11 +296,6 @@ start_peer_cleanup (void *cls)
 {
   struct GNUNET_TESTING_StartPeerState *sps = cls;
 
-  if (NULL != sps->handlers)
-  {
-    GNUNET_free (sps->handlers);
-    sps->handlers = NULL;
-  }
   //TODO Investigate why this caused problems during shutdown.
   /*if (NULL != sps->cfg)
   {
@@ -420,15 +331,15 @@ start_peer_traits (void *cls,
 
 
   struct GNUNET_TESTING_Trait traits[] = {
-    GNUNET_TRANSPORT_make_trait_application_handle ((const void *) ah),
-    GNUNET_TRANSPORT_make_trait_peer_id ((const void *) id),
-    GNUNET_TRANSPORT_make_trait_connected_peers_map ((const
+    GNUNET_TESTING_make_trait_application_handle ((const void *) ah),
+    GNUNET_TESTING_make_trait_peer_id ((const void *) id),
+    GNUNET_TESTING_make_trait_connected_peers_map ((const
                                                       void *)
                                                      connected_peers_map),
-    GNUNET_TRANSPORT_make_trait_hello ((const void *) hello),
-    GNUNET_TRANSPORT_make_trait_hello_size ((const void *) hello_size),
-    GNUNET_TRANSPORT_make_trait_state ((const void *) sps),
-    GNUNET_TRANSPORT_make_trait_broadcast ((const void *) &sps->broadcast),
+    GNUNET_TESTING_make_trait_hello ((const void *) hello),
+    GNUNET_TESTING_make_trait_hello_size ((const void *) hello_size),
+    GNUNET_TESTING_make_trait_state ((const void *) sps),
+    GNUNET_TESTING_make_trait_broadcast ((const void *) &sps->broadcast),
     GNUNET_TESTING_trait_end ()
   };
 
@@ -440,14 +351,11 @@ start_peer_traits (void *cls,
 
 
 struct GNUNET_TESTING_Command
-GNUNET_TRANSPORT_cmd_start_peer (const char *label,
+GNUNET_TESTING_cmd_start_peer (const char *label,
                                  const char *system_label,
                                  uint32_t no,
                                  const char *node_ip,
-                                 struct GNUNET_MQ_MessageHandler *handlers,
                                  const char *cfgname,
-                                 GNUNET_TRANSPORT_notify_connect_cb
-                                 notify_connect,
                                  unsigned int broadcast)
 {
   struct GNUNET_TESTING_StartPeerState *sps;
@@ -461,19 +369,8 @@ GNUNET_TRANSPORT_cmd_start_peer (const char *label,
   sps->connected_peers_map = connected_peers_map;
   sps->cfgname = GNUNET_strdup (cfgname);
   sps->node_ip = GNUNET_strdup (node_ip);
-  sps->notify_connect = notify_connect;
   sps->broadcast = broadcast;
 
-  if (NULL != handlers)
-  {
-    for (i = 0; NULL != handlers[i].cb; i++)
-      ;
-    sps->handlers = GNUNET_new_array (i + 1,
-                                      struct GNUNET_MQ_MessageHandler);
-    GNUNET_memcpy (sps->handlers,
-                   handlers,
-                   i * sizeof(struct GNUNET_MQ_MessageHandler));
-  }
   return GNUNET_TESTING_command_new (sps,
                                      label,
                                      &start_peer_run,

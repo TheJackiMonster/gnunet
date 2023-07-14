@@ -89,7 +89,7 @@ handle_test (void *cls,
   unsigned int connected;
   struct GNUNET_TESTING_BlockState *bs;
   struct GNUNET_TRANSPORT_CoreHandle *ch;
-  const struct StartPeerState *sps;
+  const struct GNUNET_TESTING_StartPeerState *sps;
 
 
   GNUNET_TRANSPORT_get_trait_state (&start_peer,
@@ -325,7 +325,8 @@ start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
     "system-create",
     num,
     topology,
-    topology->additional_connects);
+    topology->additional_connects,
+    GNUNET_YES);
   local_prepared = GNUNET_TESTING_cmd_local_test_prepared (
     "local-test-prepared",
     write_message);

@@ -286,7 +286,8 @@ start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
                                                       "system-create",
                                                       num,
                                                       topology,
-                                                      0);
+                                                      0,
+                                                      GNUNET_YES);
   local_prepared = GNUNET_TESTING_cmd_local_test_prepared (
     "local-test-prepared",
     write_message);

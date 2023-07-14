@@ -33,175 +33,7 @@ typedef void *
 (*GNUNET_TRANSPORT_notify_connect_cb) (struct GNUNET_TESTING_Interpreter *is,
                                        const struct GNUNET_PeerIdentity *peer);
 
-/**
- * Struct to store information needed in callbacks.
- *
- */
-struct ConnectPeersState
-{
-  /**
-   * Context for our asynchronous completion.
-   */
-  struct GNUNET_TESTING_AsyncContext ac;
 
-  GNUNET_TRANSPORT_notify_connect_cb notify_connect;
-
-  /**
-   * The testing system of this node.
-   */
-  const struct GNUNET_TESTING_System *tl_system;
-
-  // Label of the cmd which started the test system.
-  const char *create_label;
-
-  /**
-   * Number globally identifying the node.
-   *
-   */
-  uint32_t num;
-
-  /**
-   * Label of the cmd to start a peer.
-   *
-   */
-  const char *start_peer_label;
-
-  /**
-   * The topology of the test setup.
-   */
-  struct GNUNET_TESTING_NetjailTopology *topology;
-
-  /**
-   * Connections to other peers.
-   */
-  struct GNUNET_TESTING_NodeConnection *node_connections_head;
-
-  struct GNUNET_TESTING_Interpreter *is;
-
-  /**
-   * Number of connections.
-   */
-  unsigned int con_num;
-
-  /**
-   * Number of additional connects this cmd will wait for not triggered by this cmd.
-   */
-  unsigned int additional_connects;
-
-  /**
- * Number of connections we already have a notification for.
- */
-  unsigned int con_num_notified;
-
-  /**
-   * Number of additional connects this cmd will wait for not triggered by this cmd we already have a notification for.
-   */
-  unsigned int additional_connects_notified;
-};
-
-struct StartPeerState
-{
-  /**
-   * Context for our asynchronous completion.
-   */
-  struct GNUNET_TESTING_AsyncContext ac;
-
-  /**
-   * The ip of a node.
-   */
-  char *node_ip;
-
-  /**
-   * Receive callback
-   */
-  struct GNUNET_MQ_MessageHandler *handlers;
-
-  /**
-   * GNUnet configuration file used to start a peer.
-   */
-  char *cfgname;
-
-  /**
-   * Peer's configuration
-   */
-  struct GNUNET_CONFIGURATION_Handle *cfg;
-
-  /**
-   * struct GNUNET_TESTING_Peer returned by GNUNET_TESTING_peer_configure.
-   */
-  struct GNUNET_TESTING_Peer *peer;
-
-  /**
-   * Peer identity
-   */
-  struct GNUNET_PeerIdentity id;
-
-  /**
-   * Peer's transport service handle
-   */
-  struct GNUNET_TRANSPORT_CoreHandle *th;
-
-  /**
-   * Application handle
-   */
-  struct GNUNET_TRANSPORT_ApplicationHandle *ah;
-
-  /**
-   * Peer's PEERSTORE Handle
-   */
-  struct GNUNET_PEERSTORE_Handle *ph;
-
-  /**
-   * Hello get task
-   */
-  struct GNUNET_SCHEDULER_Task *rh_task;
-
-  /**
-   * Peer's transport get hello handle to retrieve peer's HELLO message
-   */
-  struct GNUNET_PEERSTORE_IterateContext *pic;
-
-  /**
-   * Hello
-   */
-  char *hello;
-
-  /**
-   * Hello size
-   */
-  size_t hello_size;
-
-  /**
-   * The label of the command which was started by calling GNUNET_TESTING_cmd_system_create.
-   */
-  char *system_label;
-
-  /**
-   * An unique number to identify the peer
-   */
-  unsigned int no;
-
-  /**
-   * A map with struct GNUNET_MQ_Handle values for each peer this peer
-   * is connected to.
-   */
-  struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map;
-
-  /**
-   * Test setup for this peer.
-   */
-  const struct GNUNET_TESTING_System *tl_system;
-
-  /**
-   * Callback which is called on neighbour connect events.
-   */
-  GNUNET_TRANSPORT_notify_connect_cb notify_connect;
-
-  /**
-   * Flag indicating, if udp broadcast should be switched on.
-   */
-  enum GNUNET_GenericReturnValue broadcast;
-};
 
 struct TestState
 {
@@ -283,7 +115,8 @@ GNUNET_TRANSPORT_cmd_connect_peers (
   const char *create_label,
   uint32_t num,
   struct GNUNET_TESTING_NetjailTopology *topology,
-  unsigned int additional_connects);
+  unsigned int additional_connects,
+  unsigned int wait_for_connect);
 
 
 /**
@@ -402,7 +235,7 @@ GNUNET_TRANSPORT_cmd_backchannel_check (const char *label,
   op (hello, const char) \
   op (application_handle, const struct GNUNET_TRANSPORT_ApplicationHandle) \
   op (connect_peer_state, const struct ConnectPeersState) \
-  op (state, const struct StartPeerState) \
+  op (state, const struct GNUNET_TESTING_StartPeerState) \
   op (broadcast, const enum GNUNET_GenericReturnValue)
 
 GNUNET_TRANSPORT_SIMPLE_TRAITS (GNUNET_TRANSPORT_MAKE_DECL_SIMPLE_TRAIT)

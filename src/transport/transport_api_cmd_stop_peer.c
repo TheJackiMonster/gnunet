@@ -58,7 +58,7 @@ stop_peer_run (void *cls,
                struct GNUNET_TESTING_Interpreter *is)
 {
   struct StopPeerState *stop_ps = cls;
-  const struct StartPeerState *sps;
+  const struct GNUNET_TESTING_StartPeerState *sps;
   const struct GNUNET_TESTING_Command *start_cmd;
 
   start_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
