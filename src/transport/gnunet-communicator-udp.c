@@ -1397,7 +1397,7 @@ setup_shared_secret_ephemeral (struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral,
 
   GNUNET_CRYPTO_eddsa_kem_encaps (&receiver->target.public_key, ephemeral, &k);
   ss = GNUNET_new (struct SharedSecret);
-  memcpy (&ss->master, k, sizeof (*k));
+  memcpy (&ss->master, &k, sizeof (k));
   calculate_cmac (ss);
   ss->receiver = receiver;
   GNUNET_CONTAINER_DLL_insert (receiver->ss_head, receiver->ss_tail, ss);
