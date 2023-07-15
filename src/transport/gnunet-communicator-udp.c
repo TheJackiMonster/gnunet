@@ -1375,7 +1375,7 @@ setup_shared_secret_dec (const struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral)
   struct SharedSecret *ss;
 
   ss = GNUNET_new (struct SharedSecret);
-  GNUNET_CRYPTO_eddsa_ecdh (my_private_key, ephemeral, &ss->master);
+  GNUNET_CRYPTO_eddsa_kem_decaps (my_private_key, ephemeral, &ss->master);
   return ss;
 }
 
@@ -1388,19 +1388,58 @@ setup_shared_secret_dec (const struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral)
  * @return new shared secret
  */
 static struct SharedSecret *
-setup_shared_secret_enc (const struct GNUNET_CRYPTO_EcdhePrivateKey *ephemeral,
-                         struct ReceiverAddress *receiver, int add_to_receiver)
+setup_shared_secret_from_k (struct GNUNET_HashCode *k,
+                            struct ReceiverAddress *receiver)
 {
   struct SharedSecret *ss;
 
   ss = GNUNET_new (struct SharedSecret);
-  GNUNET_CRYPTO_ecdh_eddsa (ephemeral,
-                            &receiver->target.public_key,
-                            &ss->master);
+  memcpy (&ss->master, k, sizeof (*k));
   calculate_cmac (ss);
   ss->receiver = receiver;
   GNUNET_CONTAINER_DLL_insert (receiver->ss_head, receiver->ss_tail, ss);
   receiver->num_secrets++;
+  GNUNET_STATISTICS_update (stats, "# Secrets active", 1, GNUNET_NO);
+  return ss;
+}
+
+
+/**
+ * Setup shared secret for encryption.
+ *
+ * @param ephemeral ephemeral key we are sending to the other peer
+ * @param[in,out] receiver queue to initialize encryption key for
+ * @return new shared secret
+ */
+static struct SharedSecret *
+setup_shared_secret_ephemeral (struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral,
+                               struct ReceiverAddress *receiver)
+{
+  struct SharedSecret *ss;
+  struct GNUNET_HashCode k;
+
+  GNUNET_CRYPTO_eddsa_kem_encaps (&receiver->target.public_key, ephemeral, &k);
+  ss = setup_shared_secret_from_k (&k, receiver);
+  GNUNET_STATISTICS_update (stats, "# Secrets active", 1, GNUNET_NO);
+  return ss;
+}
+
+
+/**
+ * Setup shared secret for encryption.
+ *
+ * @param ephemeral ephemeral key we are sending to the other peer
+ * @param[in,out] receiver queue to initialize encryption key for
+ * @return new shared secret
+ */
+static struct SharedSecret *
+setup_shared_secret_random (struct ReceiverAddress *receiver)
+{
+  struct SharedSecret *ss;
+  struct GNUNET_HashCode k;
+
+  GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE, &k, sizeof(k));
+  ss = setup_shared_secret_from_k (&k, receiver);
   GNUNET_STATISTICS_update (stats, "# Secrets active", 1, GNUNET_NO);
   return ss;
 }
@@ -2625,11 +2664,11 @@ mq_send_kx (struct GNUNET_MQ_Handle *mq,
   struct UdpHandshakeSignature uhs;
   struct UDPConfirmation uc;
   struct InitialKX kx;
-  struct GNUNET_CRYPTO_EcdhePrivateKey epriv;
   char dgram[receiver->kx_mtu + sizeof(uc) + sizeof(kx)];
   size_t dpos;
   gcry_cipher_hd_t out_cipher;
   struct SharedSecret *ss;
+  struct GNUNET_HashCode k;
 
   GNUNET_assert (mq == receiver->kx_mq);
   if (msize > receiver->kx_mtu)
@@ -2642,9 +2681,8 @@ mq_send_kx (struct GNUNET_MQ_Handle *mq,
   reschedule_receiver_timeout (receiver);
 
   /* setup key material */
-  GNUNET_CRYPTO_ecdhe_key_create (&epriv);
 
-  ss = setup_shared_secret_enc (&epriv, receiver, GNUNET_YES);
+  ss = setup_shared_secret_ephemeral (&uhs.ephemeral, receiver);
 
   if (receiver->num_secrets > MAX_SECRETS)
   {
@@ -2661,7 +2699,6 @@ mq_send_kx (struct GNUNET_MQ_Handle *mq,
   uhs.purpose.size = htonl (sizeof(uhs));
   uhs.sender = my_identity;
   uhs.receiver = receiver->target;
-  GNUNET_CRYPTO_ecdhe_key_get_public (&epriv, &uhs.ephemeral);
   uhs.monotonic_time = uc.monotonic_time;
   GNUNET_CRYPTO_eddsa_sign (my_private_key,
                             &uhs,
@@ -2765,7 +2802,6 @@ send_UDPRekey (struct ReceiverAddress *receiver, struct SharedSecret *ss)
   uint8_t is_acks_available_below = GNUNET_NO;
   uint8_t send_rekey = GNUNET_NO;
   uint16_t not_below;
-  struct GNUNET_CRYPTO_EcdhePrivateKey epriv;
   struct UDPRekey *rekey;
   size_t dpos;
 
@@ -2789,9 +2825,7 @@ send_UDPRekey (struct ReceiverAddress *receiver, struct SharedSecret *ss)
   else if (NULL == receiver->ss_rekey)
   {
     /* setup key material */
-    GNUNET_CRYPTO_ecdhe_key_create (&epriv);
-    receiver->ss_rekey = setup_shared_secret_enc (&epriv, receiver,
-                                                  GNUNET_NO);
+    receiver->ss_rekey = setup_shared_secret_random (receiver);
     receiver->ss_rekey->sequence_allowed = 0;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Setup secret with cmac %s\n",
