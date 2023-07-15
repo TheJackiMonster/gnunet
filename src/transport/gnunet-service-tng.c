@@ -1773,10 +1773,6 @@ struct DistanceVector
    */
   struct GNUNET_CRYPTO_EcdhePublicKey ephemeral_key;
 
-  /**
-   * Our private ephemeral key.
-   */
-  struct GNUNET_CRYPTO_EcdhePrivateKey private_key;
 };
 
 
