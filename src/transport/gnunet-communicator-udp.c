@@ -11,7 +11,7 @@
      WITHOUT ANY WARRANTY; without even the implied warranty of
      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
      Affero General Public License for more details.
-
+ :
      You should have received a copy of the GNU Affero General Public License
      along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -1405,9 +1405,9 @@ setup_shared_secret_from_k (struct GNUNET_HashCode *k,
 
 
 /**
- * Setup shared secret for encryption.
+ * Setup new shared secret for encryption using KEM.
  *
- * @param ephemeral ephemeral key we are sending to the other peer
+ * @param[out] ephemeral ephemeral key to be sent to other peer (encapsulated key from KEM)
  * @param[in,out] receiver queue to initialize encryption key for
  * @return new shared secret
  */
@@ -1426,9 +1426,8 @@ setup_shared_secret_ephemeral (struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral,
 
 
 /**
- * Setup shared secret for encryption.
+ * Setup new random shared secret for encryption.
  *
- * @param ephemeral ephemeral key we are sending to the other peer
  * @param[in,out] receiver queue to initialize encryption key for
  * @return new shared secret
  */
@@ -2668,7 +2667,6 @@ mq_send_kx (struct GNUNET_MQ_Handle *mq,
   size_t dpos;
   gcry_cipher_hd_t out_cipher;
   struct SharedSecret *ss;
-  struct GNUNET_HashCode k;
 
   GNUNET_assert (mq == receiver->kx_mq);
   if (msize > receiver->kx_mtu)
