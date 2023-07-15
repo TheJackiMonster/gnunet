@@ -1376,30 +1376,7 @@ setup_shared_secret_dec (const struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral)
 
   ss = GNUNET_new (struct SharedSecret);
   GNUNET_CRYPTO_eddsa_kem_decaps (my_private_key, ephemeral, &ss->master);
-  return ss;
-}
-
-
-/**
- * Setup shared secret for encryption.
- *
- * @param ephemeral ephemeral key we are sending to the other peer
- * @param[in,out] receiver queue to initialize encryption key for
- * @return new shared secret
- */
-static struct SharedSecret *
-setup_shared_secret_from_k (struct GNUNET_HashCode *k,
-                            struct ReceiverAddress *receiver)
-{
-  struct SharedSecret *ss;
-
-  ss = GNUNET_new (struct SharedSecret);
-  memcpy (&ss->master, k, sizeof (*k));
   calculate_cmac (ss);
-  ss->receiver = receiver;
-  GNUNET_CONTAINER_DLL_insert (receiver->ss_head, receiver->ss_tail, ss);
-  receiver->num_secrets++;
-  GNUNET_STATISTICS_update (stats, "# Secrets active", 1, GNUNET_NO);
   return ss;
 }
 
@@ -1419,26 +1396,12 @@ setup_shared_secret_ephemeral (struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral,
   struct GNUNET_HashCode k;
 
   GNUNET_CRYPTO_eddsa_kem_encaps (&receiver->target.public_key, ephemeral, &k);
-  ss = setup_shared_secret_from_k (&k, receiver);
-  GNUNET_STATISTICS_update (stats, "# Secrets active", 1, GNUNET_NO);
-  return ss;
-}
-
-
-/**
- * Setup new random shared secret for encryption.
- *
- * @param[in,out] receiver queue to initialize encryption key for
- * @return new shared secret
- */
-static struct SharedSecret *
-setup_shared_secret_random (struct ReceiverAddress *receiver)
-{
-  struct SharedSecret *ss;
-  struct GNUNET_HashCode k;
-
-  GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE, &k, sizeof(k));
-  ss = setup_shared_secret_from_k (&k, receiver);
+  ss = GNUNET_new (struct SharedSecret);
+  memcpy (&ss->master, k, sizeof (*k));
+  calculate_cmac (ss);
+  ss->receiver = receiver;
+  GNUNET_CONTAINER_DLL_insert (receiver->ss_head, receiver->ss_tail, ss);
+  receiver->num_secrets++;
   GNUNET_STATISTICS_update (stats, "# Secrets active", 1, GNUNET_NO);
   return ss;
 }
@@ -2009,7 +1972,7 @@ decrypt_rekey (const struct UDPRekey *rekey,
   struct SharedSecret *ss = kce->ss;
   struct SharedSecret *ss_rekey;
   char out_buf[rekey_len - sizeof(*rekey)];
-  struct GNUNET_HashCode *master;
+  struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral_pubkey;
 
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -2041,10 +2004,8 @@ decrypt_rekey (const struct UDPRekey *rekey,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "decrypted UDPRekey with kid %s\n",
               GNUNET_sh2s (&rekey->kid));
-  master = (struct GNUNET_HashCode *) out_buf;
-  ss_rekey = GNUNET_new (struct SharedSecret);
-  ss_rekey->master = *master;
-  calculate_cmac (ss_rekey);
+  ephemeral_pubkey = (struct GNUNET_CRYPTO_EcdhePublicKey *) out_buf;
+  ss_rekey = setup_shared_secret_dec (ephemeral_pubkey);
   ss_rekey->sender = sender;
   GNUNET_CONTAINER_DLL_insert (sender->ss_head, sender->ss_tail, ss_rekey);
   sender->ss_rekey = ss_rekey;
@@ -2801,6 +2762,7 @@ send_UDPRekey (struct ReceiverAddress *receiver, struct SharedSecret *ss)
   uint8_t send_rekey = GNUNET_NO;
   uint16_t not_below;
   struct UDPRekey *rekey;
+  struct GNUNET_CRYPTO_EcdhePublicKey ephemeral_pubkey;
   size_t dpos;
 
   char rekey_dgram[sizeof(struct UDPRekey) + receiver->d_mtu];
@@ -2823,7 +2785,8 @@ send_UDPRekey (struct ReceiverAddress *receiver, struct SharedSecret *ss)
   else if (NULL == receiver->ss_rekey)
   {
     /* setup key material */
-    receiver->ss_rekey = setup_shared_secret_random (receiver);
+    receiver->ss_rekey = setup_shared_secret_ephemeral (&ephemeral_pubkey,
+                                                        receiver);
     receiver->ss_rekey->sequence_allowed = 0;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Setup secret with cmac %s\n",
@@ -2856,10 +2819,10 @@ send_UDPRekey (struct ReceiverAddress *receiver, struct SharedSecret *ss)
 
       GNUNET_assert (
         0 == gcry_cipher_encrypt (rekey_out_cipher, &rekey_dgram[dpos],
-                                  sizeof(receiver->ss_rekey->master),
-                                  &(receiver->ss_rekey->master),
-                                  sizeof(receiver->ss_rekey->master)));
-      dpos += sizeof(receiver->ss_rekey->master);
+                                  sizeof(ephemeral_pubkey),
+                                  &ephemeral_pubkey,
+                                  sizeof(ephemeral_pubkey)));
+      dpos += sizeof(ephemeral_pubkey);
       do_pad (rekey_out_cipher, &rekey_dgram[dpos], sizeof(rekey_dgram)
               - dpos);
       GNUNET_assert (0 == gcry_cipher_gettag (rekey_out_cipher,
@@ -2868,9 +2831,8 @@ send_UDPRekey (struct ReceiverAddress *receiver, struct SharedSecret *ss)
       gcry_cipher_close (rekey_out_cipher);
 
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Sending rekey with kid %s and master %s\n",
-                  GNUNET_sh2s (&rekey->kid),
-                  GNUNET_h2s (&(receiver->ss_rekey->master)));
+                  "Sending rekey with kid %s and new pubkey\n",
+                  GNUNET_sh2s (&rekey->kid));
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Sending rekey with cmac %s\n",
                   GNUNET_h2s (&(receiver->ss_rekey->cmac)));
