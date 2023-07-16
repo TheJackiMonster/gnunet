@@ -762,8 +762,7 @@ GNUNET_IDENTITY_decrypt_old (
  *
  * @param block the block to encrypt
  * @param size the size of the @a block
- * @param pub public key to use for ecdh
- * @param ecc where to write the ecc public key
+ * @param pub public key to encrypt for
  * @param result the output parameter in which to store the encrypted result
  *               can be the same or overlap with @c block
  * @returns the size of the encrypted block, -1 for errors.
@@ -771,11 +770,11 @@ GNUNET_IDENTITY_decrypt_old (
  *          this size should be the same as @c len.
  */
 ssize_t
-GNUNET_IDENTITY_encrypt2 (const void *block,
-                          size_t size,
-                          const struct GNUNET_IDENTITY_PublicKey *pub,
-                          void *result,
-                          size_t result_size);
+GNUNET_IDENTITY_encrypt (const void *block,
+                         size_t size,
+                         const struct GNUNET_IDENTITY_PublicKey *pub,
+                         void *result,
+                         size_t result_size);
 
 
 /**
@@ -792,12 +791,11 @@ GNUNET_IDENTITY_encrypt2 (const void *block,
  *         this size should be the same as @c size.
  */
 ssize_t
-GNUNET_IDENTITY_decrypt2 (
-  const void *block,
-  size_t size,
-  const struct GNUNET_IDENTITY_PrivateKey *priv,
-  void *result,
-  size_t result_size);
+GNUNET_IDENTITY_decrypt (const void *block,
+                         size_t size,
+                         const struct GNUNET_IDENTITY_PrivateKey *priv,
+                         void *result,
+                         size_t result_size);
 
 
 /**

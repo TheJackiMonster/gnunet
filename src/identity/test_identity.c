@@ -264,10 +264,10 @@ create_cb (void *cls,
   ssize_t len;
 
   GNUNET_IDENTITY_key_get_public (pk, &pub);
-  len = GNUNET_IDENTITY_encrypt2 ("test", strlen ("test") + 1, &pub, ct,
-                                  sizeof(ct));
+  len = GNUNET_IDENTITY_encrypt ("test", strlen ("test") + 1, &pub, ct,
+                                 sizeof(ct));
   CHECK (-1 != len);
-  GNUNET_IDENTITY_decrypt2 (ct, len, pk, pt, sizeof (pt));
+  GNUNET_IDENTITY_decrypt (ct, len, pk, pt, sizeof (pt));
   CHECK (-1 != len);
   CHECK (0 == strcmp (pt, "test"));
   op =

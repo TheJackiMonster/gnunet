@@ -1175,11 +1175,11 @@ GNUNET_IDENTITY_encrypt_old (const void *block,
 
 
 ssize_t
-GNUNET_IDENTITY_encrypt2 (const void *pt,
-                          size_t pt_size,
-                          const struct GNUNET_IDENTITY_PublicKey *pub,
-                          void *ct_buf,
-                          size_t ct_size)
+GNUNET_IDENTITY_encrypt (const void *pt,
+                         size_t pt_size,
+                         const struct GNUNET_IDENTITY_PublicKey *pub,
+                         void *ct_buf,
+                         size_t ct_size)
 {
   struct GNUNET_HashCode k;
   struct GNUNET_CRYPTO_FoKemC *kemc = (struct GNUNET_CRYPTO_FoKemC*) ct_buf;
@@ -1214,11 +1214,11 @@ GNUNET_IDENTITY_encrypt2 (const void *pt,
 
 
 ssize_t
-GNUNET_IDENTITY_decrypt2 (const void *ct_buf,
-                          size_t ct_size,
-                          const struct GNUNET_IDENTITY_PrivateKey *priv,
-                          void *pt,
-                          size_t pt_size)
+GNUNET_IDENTITY_decrypt (const void *ct_buf,
+                         size_t ct_size,
+                         const struct GNUNET_IDENTITY_PrivateKey *priv,
+                         void *pt,
+                         size_t pt_size)
 {
   struct GNUNET_HashCode k;
   struct GNUNET_CRYPTO_FoKemC *kemc = (struct GNUNET_CRYPTO_FoKemC*) ct_buf;

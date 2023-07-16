@@ -264,10 +264,10 @@ write_encrypted_message (void)
       GNUNET_SYSERR)
   {
     size_t msg_len = strlen (write_msg) + 1;
-    ssize_t res = GNUNET_IDENTITY_encrypt2 (write_msg,
-                                            msg_len,
-                                            &recipient,
-                                            ct, strlen (write_msg) + 1024);
+    ssize_t res = GNUNET_IDENTITY_encrypt (write_msg,
+                                           msg_len,
+                                           &recipient,
+                                           ct, strlen (write_msg) + 1024);
     if (-1 != res)
     {
       char *serialized_msg;
@@ -309,11 +309,11 @@ read_encrypted_message (struct GNUNET_IDENTITY_Ego *ego)
                                                         deserialized_msg,
                                                         &msg_len))
   {
-    ssize_t res = GNUNET_IDENTITY_decrypt2 (deserialized_msg,
-                                            msg_len,
-                                            GNUNET_IDENTITY_ego_get_private_key (
-                                              ego),
-                                            deserialized_msg, msg_len);
+    ssize_t res = GNUNET_IDENTITY_decrypt (deserialized_msg,
+                                           msg_len,
+                                           GNUNET_IDENTITY_ego_get_private_key (
+                                             ego),
+                                           deserialized_msg, msg_len);
     if (-1 != res)
     {
       deserialized_msg[res - 1] = '\0';
