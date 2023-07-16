@@ -721,11 +721,11 @@ GNUNET_IDENTITY_signature_verify_raw_ (
  *          this size should be the same as @c len.
  */
 ssize_t
-GNUNET_IDENTITY_encrypt (const void *block,
-                         size_t size,
-                         const struct GNUNET_IDENTITY_PublicKey *pub,
-                         struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
-                         void *result);
+GNUNET_IDENTITY_encrypt_old (const void *block,
+                             size_t size,
+                             const struct GNUNET_IDENTITY_PublicKey *pub,
+                             struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
+                             void *result);
 
 
 /**
@@ -743,12 +743,61 @@ GNUNET_IDENTITY_encrypt (const void *block,
  *         this size should be the same as @c size.
  */
 ssize_t
-GNUNET_IDENTITY_decrypt (
+GNUNET_IDENTITY_decrypt_old (
   const void *block,
   size_t size,
   const struct GNUNET_IDENTITY_PrivateKey *priv,
   const struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
   void *result);
+
+/**
+ * Encrypt a block with #GNUNET_IDENTITY_PublicKey and derives a
+ * #GNUNET_CRYPTO_EcdhePublicKey which is required for decryption
+ * using ecdh to derive a symmetric key.
+ *
+ * Note that the result buffer for the ciphertext must be the length of
+ * the message to encrypt plus:
+ * - Length of a struct GNUNET_CRYPTO_FoKemC
+ * - the authentication tag of libsodium, e.g. crypto_secretbox_NONCEBYTES
+ *
+ * @param block the block to encrypt
+ * @param size the size of the @a block
+ * @param pub public key to use for ecdh
+ * @param ecc where to write the ecc public key
+ * @param result the output parameter in which to store the encrypted result
+ *               can be the same or overlap with @c block
+ * @returns the size of the encrypted block, -1 for errors.
+ *          Due to the use of CFB and therefore an effective stream cipher,
+ *          this size should be the same as @c len.
+ */
+ssize_t
+GNUNET_IDENTITY_encrypt2 (const void *block,
+                          size_t size,
+                          const struct GNUNET_IDENTITY_PublicKey *pub,
+                          void *result,
+                          size_t result_size);
+
+
+/**
+ * Decrypt a given block with #GNUNET_IDENTITY_PrivateKey and a given
+ * #GNUNET_CRYPTO_EcdhePublicKey using ecdh to derive a symmetric key.
+ *
+ * @param block the data to decrypt, encoded as returned by encrypt
+ * @param size the size of the @a block to decrypt
+ * @param priv private key to use for ecdh
+ * @param result address to store the result at
+ *               can be the same or overlap with @c block
+ * @return -1 on failure, size of decrypted block on success.
+ *         Due to the use of CFB and therefore an effective stream cipher,
+ *         this size should be the same as @c size.
+ */
+ssize_t
+GNUNET_IDENTITY_decrypt2 (
+  const void *block,
+  size_t size,
+  const struct GNUNET_IDENTITY_PrivateKey *priv,
+  void *result,
+  size_t result_size);
 
 
 /**

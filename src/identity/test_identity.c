@@ -53,15 +53,15 @@ static struct GNUNET_IDENTITY_Operation *op;
 static struct GNUNET_SCHEDULER_Task *endbadly_task;
 
 #define CHECK(cond)     \
-  do                    \
-  {                     \
-    if (! (cond))       \
-    {                   \
-      GNUNET_break (0); \
-      end ();           \
-      return;           \
-    }                   \
-  } while (0)
+        do                    \
+        {                     \
+          if (! (cond))       \
+          {                   \
+            GNUNET_break (0); \
+            end ();           \
+            return;           \
+          }                   \
+        } while (0)
 
 
 /**
@@ -258,6 +258,18 @@ create_cb (void *cls,
 {
   CHECK (NULL != pk);
   CHECK (GNUNET_EC_NONE == ec);
+  struct GNUNET_IDENTITY_PublicKey pub;
+  unsigned char ct[1024];
+  char pt[strlen ("test") + 1];
+  ssize_t len;
+
+  GNUNET_IDENTITY_key_get_public (pk, &pub);
+  len = GNUNET_IDENTITY_encrypt2 ("test", strlen ("test") + 1, &pub, ct,
+                                  sizeof(ct));
+  CHECK (-1 != len);
+  GNUNET_IDENTITY_decrypt2 (ct, len, pk, pt, sizeof (pt));
+  CHECK (-1 != len);
+  CHECK (0 == strcmp (pt, "test"));
   op =
     GNUNET_IDENTITY_rename (h, "test-id", "test", &success_rename_cont, NULL);
 }

@@ -1136,11 +1136,11 @@ GNUNET_IDENTITY_signature_verify_raw_ (uint32_t purpose,
 
 
 ssize_t
-GNUNET_IDENTITY_encrypt (const void *block,
-                         size_t size,
-                         const struct GNUNET_IDENTITY_PublicKey *pub,
-                         struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
-                         void *result)
+GNUNET_IDENTITY_encrypt_old (const void *block,
+                             size_t size,
+                             const struct GNUNET_IDENTITY_PublicKey *pub,
+                             struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
+                             void *result)
 {
   struct GNUNET_CRYPTO_EcdhePrivateKey pk;
   GNUNET_CRYPTO_ecdhe_key_create (&pk);
@@ -1175,11 +1175,90 @@ GNUNET_IDENTITY_encrypt (const void *block,
 
 
 ssize_t
-GNUNET_IDENTITY_decrypt (const void *block,
-                         size_t size,
-                         const struct GNUNET_IDENTITY_PrivateKey *priv,
-                         const struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
-                         void *result)
+GNUNET_IDENTITY_encrypt2 (const void *pt,
+                          size_t pt_size,
+                          const struct GNUNET_IDENTITY_PublicKey *pub,
+                          void *ct_buf,
+                          size_t ct_size)
+{
+  struct GNUNET_HashCode k;
+  struct GNUNET_CRYPTO_FoKemC *kemc = (struct GNUNET_CRYPTO_FoKemC*) ct_buf;
+  unsigned char *encrypted_data = (unsigned char*) &kemc[1];
+  unsigned char nonce[crypto_secretbox_NONCEBYTES];
+  unsigned char key[crypto_secretbox_KEYBYTES];
+
+  switch (ntohl (pub->type))
+  {
+  case GNUNET_IDENTITY_TYPE_ECDSA:
+    if (GNUNET_SYSERR == GNUNET_CRYPTO_ecdsa_fo_kem_encaps (&(pub->ecdsa_key),
+                                                            kemc,
+                                                            &k))
+      return -1;
+    break;
+  case GNUNET_IDENTITY_TYPE_EDDSA:
+    if (GNUNET_SYSERR == GNUNET_CRYPTO_eddsa_fo_kem_encaps (&pub->eddsa_key,
+                                                            kemc,
+                                                            &k))
+      return -1;
+    break;
+  default:
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Unsupported key type\n");
+    return -1;
+  }
+  memcpy (key, &k, crypto_secretbox_KEYBYTES);
+  memcpy (nonce, ((char* ) &k) + crypto_secretbox_KEYBYTES,
+          crypto_secretbox_NONCEBYTES);
+  crypto_secretbox_easy (encrypted_data, pt, pt_size, nonce, key);
+  return pt_size + crypto_secretbox_MACBYTES + sizeof (*kemc);
+}
+
+
+ssize_t
+GNUNET_IDENTITY_decrypt2 (const void *ct_buf,
+                          size_t ct_size,
+                          const struct GNUNET_IDENTITY_PrivateKey *priv,
+                          void *pt,
+                          size_t pt_size)
+{
+  struct GNUNET_HashCode k;
+  struct GNUNET_CRYPTO_FoKemC *kemc = (struct GNUNET_CRYPTO_FoKemC*) ct_buf;
+  unsigned char *encrypted_data = (unsigned char*) &kemc[1];
+  unsigned char nonce[crypto_secretbox_NONCEBYTES];
+  unsigned char key[crypto_secretbox_KEYBYTES];
+
+  switch (ntohl (priv->type))
+  {
+  case GNUNET_IDENTITY_TYPE_ECDSA:
+    if (GNUNET_SYSERR == GNUNET_CRYPTO_ecdsa_fo_kem_decaps (&(priv->ecdsa_key),
+                                                            kemc,
+                                                            &k))
+      return -1;
+    break;
+  case GNUNET_IDENTITY_TYPE_EDDSA:
+    if (GNUNET_SYSERR == GNUNET_CRYPTO_eddsa_fo_kem_decaps (&(priv->eddsa_key),
+                                                            kemc,
+                                                            &k))
+      return -1;
+    break;
+  default:
+    return -1;
+  }
+  memcpy (key, &k, crypto_secretbox_KEYBYTES);
+  memcpy (nonce, ((char* ) &k) + crypto_secretbox_KEYBYTES,
+          crypto_secretbox_NONCEBYTES);
+  if (crypto_secretbox_open_easy (pt, encrypted_data, ct_size - sizeof (*kemc),
+                                  nonce, key))
+    return -1;
+  return ct_size - sizeof (*kemc) - crypto_secretbox_MACBYTES;
+}
+
+
+ssize_t
+GNUNET_IDENTITY_decrypt_old (const void *block,
+                             size_t size,
+                             const struct GNUNET_IDENTITY_PrivateKey *priv,
+                             const struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
+                             void *result)
 {
   struct GNUNET_HashCode hash;
   switch (ntohl (priv->type))

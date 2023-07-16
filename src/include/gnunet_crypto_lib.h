@@ -1853,6 +1853,106 @@ GNUNET_CRYPTO_eddsa_kem_decaps (const struct
                                 const struct GNUNET_CRYPTO_EcdhePublicKey *c,
                                 struct GNUNET_HashCode *key_material);
 
+/**
+ * @ingroup crypto
+ * Encapsulate key material for a EdDSA public key.
+ * Dual to #GNUNET_CRRYPTO_eddsa_kem_decaps.
+ *
+ * @param priv private key to use for the ECDH (y)
+ * @param c public key from EdDSA to use for the ECDH (X=h(x)G)
+ * @param key_material where to write the key material H(yX)=H(h(x)yG)
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_eddsa_kem_encaps (const struct GNUNET_CRYPTO_EddsaPublicKey *pub,
+                                struct GNUNET_CRYPTO_EcdhePublicKey *c,
+                                struct GNUNET_HashCode *key_material);
+
+/**
+ * This is the encapsulated key of our FO-KEM.
+ */
+struct GNUNET_CRYPTO_FoKemC
+{
+  /* The output of the FO-OWTF F(x) */
+  struct GNUNET_HashCode y;
+
+  /* The ephemeral public key from the DH in the KEM */
+  struct GNUNET_CRYPTO_EcdhePublicKey pub;
+};
+
+/**
+ * @ingroup crypto
+ * Encapsulate key material using a CCA-secure KEM.
+ * The KEM is using a OWTF with image oracle constructed from
+ * a Fujusaki-Okamoto transformation using ElGamal (DH plus XOR OTP).
+ * Dual to #GNUNET_CRRYPTO_eddsa_fo_kem_decaps.
+ *
+ * @param pub public key to encapsulated for
+ * @param[out] c the encapsulation
+ * @param[out] key_material the encapsulated key
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_eddsa_fo_kem_encaps (
+  const struct GNUNET_CRYPTO_EddsaPublicKey *pub,
+  struct GNUNET_CRYPTO_FoKemC *c,
+  struct GNUNET_HashCode *key_material);
+
+
+/**
+ * @ingroup crypto
+ * Decapsulate key material using a CCA-secure KEM.
+ * The KEM is using a OWTF with image oracle constructed from
+ * a Fujusaki-Okamoto transformation using ElGamal (DH plus XOR OTP).
+ * Dual to #GNUNET_CRRYPTO_eddsa_fo_kem_encaps.
+ *
+ * @param priv private key this encapsulation is for
+ * @param c the encapsulation
+ * @param[out] key_material the encapsulated key
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_eddsa_fo_kem_decaps (const struct
+                                   GNUNET_CRYPTO_EddsaPrivateKey *priv,
+                                   const struct GNUNET_CRYPTO_FoKemC *c,
+                                   struct GNUNET_HashCode *key_material);
+
+/**
+ * @ingroup crypto
+ * Encapsulate key material using a CCA-secure KEM.
+ * The KEM is using a OWTF with image oracle constructed from
+ * a Fujusaki-Okamoto transformation using ElGamal (DH plus XOR OTP).
+ * Dual to #GNUNET_CRRYPTO_eddsa_fo_kem_decaps.
+ *
+ * @param pub public key to encapsulated for
+ * @param[out] c the encapsulation
+ * @param[out] key_material the encapsulated key
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_ecdsa_fo_kem_encaps (const struct
+                                   GNUNET_CRYPTO_EcdsaPublicKey *pub,
+                                   struct GNUNET_CRYPTO_FoKemC *c,
+                                   struct GNUNET_HashCode *key_material);
+
+
+/**
+ * @ingroup crypto
+ * Decapsulate key material using a CCA-secure KEM.
+ * The KEM is using a OWTF with image oracle constructed from
+ * a Fujusaki-Okamoto transformation using ElGamal (DH plus XOR OTP).
+ * Dual to #GNUNET_CRRYPTO_eddsa_fo_kem_encaps.
+ *
+ * @param priv private key this encapsulation is for
+ * @param c the encapsulation
+ * @param[out] key_material the encapsulated key
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_ecdsa_fo_kem_decaps (const struct
+                                   GNUNET_CRYPTO_EcdsaPrivateKey *priv,
+                                   struct GNUNET_CRYPTO_FoKemC *c,
+                                   struct GNUNET_HashCode *key_material);
 
 /**
  * @ingroup crypto
@@ -1885,20 +1985,6 @@ GNUNET_CRYPTO_ecdh_eddsa (const struct GNUNET_CRYPTO_EcdhePrivateKey *priv,
                           const struct GNUNET_CRYPTO_EddsaPublicKey *pub,
                           struct GNUNET_HashCode *key_material);
 
-/**
- * @ingroup crypto
- * Encapsulate key material for a EdDSA public key.
- * Dual to #GNUNET_CRRYPTO_eddsa_kem_decaps.
- *
- * @param priv private key to use for the ECDH (y)
- * @param c public key from EdDSA to use for the ECDH (X=h(x)G)
- * @param key_material where to write the key material H(yX)=H(h(x)yG)
- * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
- */
-enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_eddsa_kem_encaps (const struct GNUNET_CRYPTO_EddsaPublicKey *pub,
-                                struct GNUNET_CRYPTO_EcdhePublicKey *c,
-                                struct GNUNET_HashCode *key_material);
 
 /**
  * @ingroup crypto
