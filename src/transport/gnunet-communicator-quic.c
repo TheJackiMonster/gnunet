@@ -30,6 +30,10 @@
  * Map of DCID (uint8_t) -> quic_conn for quickly retrieving connections to other peers.
  */
 struct GNUNET_CONTAINER_MultiHashMap *conn_map;
+/**
+ * Map of sockaddr -> struct PeerAddress
+*/
+struct GNUNET_CONTAINER_MultiHashMap *addr_map;
 static const struct GNUNET_CONFIGURATION_Handle *cfg;
 static struct GNUNET_TIME_Relative rekey_interval;
 static struct GNUNET_NETWORK_Handle *udp_sock;
@@ -53,6 +57,11 @@ struct PeerAddress
    * To whom are we talking to.
    */
   struct GNUNET_PeerIdentity target;
+
+  /**
+   * Flag to indicate whether we know the PeerIdentity (target) yet
+  */
+  int id_recvd;
 
   /**
    * Address of the receiver in the human-readable format
@@ -184,6 +193,9 @@ recv_from_streams (quiche_conn *conn, char *stream_buf, size_t buf_size)
   static const char *resp = "byez\n";
 
   readable = quiche_conn_readable (conn);
+  /**
+   * TODO: check for PeerIdentity
+  */
   while (quiche_stream_iter_next (readable, &s))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,  "stream %" PRIu64 " is readable\n",
@@ -277,7 +289,7 @@ create_conn (uint8_t *scid, size_t scid_len,
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "error while creating connection, scid length too short\n");
-    /* FIXME: Return? Handle error? Warn? */
+    return NULL;
   }
 
   GNUNET_memcpy (conn->cid, scid, LOCAL_CONN_ID_LEN);
@@ -291,16 +303,16 @@ create_conn (uint8_t *scid, size_t scid_len,
   if (NULL == q_conn)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "quiche failed to create connection\n");
+                "quiche failed to create connection after call to quiche_accept\n");
     return NULL;
   }
   conn->conn = q_conn;
-  GNUNET_CRYPTO_hash (conn->cid, sizeof(conn->cid), &conn_key);
-  /**
-   * TODO: use UNIQUE_FAST instead?
-  */
-  GNUNET_CONTAINER_multihashmap_put (conn_map, &conn_key, conn,
-                                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
+  // GNUNET_CRYPTO_hash (conn->cid, sizeof(conn->cid), &conn_key);
+  // /**
+  //  * TODO: use UNIQUE_FAST instead?
+  // */
+  // GNUNET_CONTAINER_multihashmap_put (conn_map, &conn_key, conn,
+  //                                    GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "new quic connection created\n");
   return conn;
@@ -384,6 +396,7 @@ peer_destroy (struct PeerAddress *peer)
                          "# peers active",
                          GNUNET_CONTAINER_multipeermap_size (peers),
                          GNUNET_NO);
+  quiche_conn_free(peer->conn->conn);
   GNUNET_free (peer->address);
   GNUNET_free (peer->foreign_addr);
   GNUNET_free (peer->conn);
@@ -977,12 +990,15 @@ sock_read (void *cls)
   ssize_t rcvd;
   (void) cls;
 
-  struct quic_conn *conn;
-  struct GNUNET_HashCode conn_key;
+  // struct quic_conn *conn;
+  // struct GNUNET_HashCode conn_key;
   ssize_t process_pkt;
 
   struct QUIC_header quic_header;
   uint8_t new_cid[LOCAL_CONN_ID_LEN];
+
+  struct PeerAddress *peer;
+  struct GNUNET_HashCode addr_key;
 
   /**
    * May be unnecessary if quiche_header_info writes to len fields
@@ -1027,6 +1043,36 @@ sock_read (void *cls)
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_DEBUG, "recv");
     return;
   }
+  GNUNET_CRYPTO_hash ((struct sockaddr *) &sa, sizeof(struct sockaddr),
+                      &addr_key);
+  peer = GNUNET_CONTAINER_multihashmap_get (addr_map, &addr_key);
+
+  if (NULL == peer)
+  {
+    /**
+     * Create new PeerAddress (receiver) with id_recvd = false
+    */
+    peer = GNUNET_new (struct PeerAddress);
+    peer->address = GNUNET_memdup (&sa, salen);
+    peer->address_len = salen;
+    peer->id_recvd = GNUNET_NO;
+    peer->conn = NULL;
+    peer->foreign_addr = sockaddr_to_udpaddr_string (peer->address,
+                                                     peer->address_len);
+    if (GNUNET_SYSERR == GNUNET_CONTAINER_multihashmap_put (addr_map, &addr_key,
+                                                            peer,
+                                                            GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "tried to add duplicate address into address map\n");
+      return;
+    }
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "adding new peer to address map\n");
+  }
+
+  /**
+   * Parse QUIC info
+  */
   int rc = quiche_header_info (buf, rcvd, LOCAL_CONN_ID_LEN,
                                &quic_header.version,
                                &quic_header.type, quic_header.scid,
@@ -1044,13 +1090,13 @@ sock_read (void *cls)
   /* look for connection in hashtable */
   /* each connection to the peer should have a unique incoming DCID */
   /* check against a conn SCID */
-  GNUNET_CRYPTO_hash (quic_header.dcid, sizeof(quic_header.dcid), &conn_key);
-  conn = GNUNET_CONTAINER_multihashmap_get (conn_map, &conn_key);
+  // GNUNET_CRYPTO_hash (quic_header.dcid, sizeof(quic_header.dcid), &conn_key);
+  // conn = GNUNET_CONTAINER_multihashmap_get (conn_map, &conn_key);
 
   /**
    * New QUIC connection with peer
   */
-  if (NULL == conn)
+  if (NULL == peer->conn)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "attempting to create new connection\n");
@@ -1128,11 +1174,11 @@ sock_read (void *cls)
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "invalid address validation token created\n");
     }
-    conn = create_conn (quic_header.dcid, quic_header.dcid_len,
+    peer->conn = create_conn (quic_header.dcid, quic_header.dcid_len,
                         quic_header.odcid, quic_header.odcid_len,
                         local_addr, in_len,
                         &sa, salen);
-    if (NULL == conn)
+    if (NULL == peer->conn)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "failed to create quic connection with peer\n");
@@ -1146,7 +1192,7 @@ sock_read (void *cls)
     local_addr,
     in_len,
   };
-  process_pkt = quiche_conn_recv (conn->conn, buf, rcvd, &recv_info);
+  process_pkt = quiche_conn_recv (peer->conn->conn, buf, rcvd, &recv_info);
   if (0 > process_pkt)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -1159,18 +1205,12 @@ sock_read (void *cls)
   /**
    * Check for connection establishment
   */
-  if (quiche_conn_is_established (conn->conn))
+  if (quiche_conn_is_established (peer->conn->conn))
   {
     // Check for data on all available streams
     char stream_buf[UINT16_MAX];
-    recv_from_streams (conn->conn, stream_buf, UINT16_MAX);
-    /**
-     * TODO: Pass here?
-    */
+    recv_from_streams (peer->conn->conn, stream_buf, UINT16_MAX);
   }
-  /**
-   * Connection cleanup, check for closed connections, delete entries, print stats
-  */
   /**
    * TODO: Should we use a list instead of hashmap?
    * Overhead for hashing function, O(1) retrieval vs O(n) iteration with n=30?
@@ -1180,28 +1220,17 @@ sock_read (void *cls)
   quiche_stats stats;
   quiche_path_stats path_stats;
 
-  flush_egress (conn);
+  flush_egress (peer->conn);
 
-  if (quiche_conn_is_closed (conn->conn))
+  if (quiche_conn_is_closed (peer->conn->conn))
   {
-    quiche_conn_stats (conn->conn, &stats);
-    quiche_conn_path_stats (conn->conn, 0, &path_stats);
+    quiche_conn_stats (peer->conn->conn, &stats);
+    quiche_conn_path_stats (peer->conn->conn, 0, &path_stats);
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "connection closed. quiche stats: sent=%zu, recv=%zu\n",
                 stats.sent, stats.recv);
-    if (GNUNET_NO == GNUNET_CONTAINER_multihashmap_remove (conn_map, &conn_key,
-                                                           conn->conn))
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "failed to remove quic connection from map\n");
-      return;
-    }
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "removed closed connection from connection map\n");
-
-    quiche_conn_free (conn->conn);
-    GNUNET_free (conn);
+    peer_destroy(peer);
   }
   GNUNET_free (local_addr);
 }
@@ -1373,6 +1402,7 @@ main (int argc, char *const *argv)
 
   quiche_config_verify_peer (config, false);
   conn_map = GNUNET_CONTAINER_multihashmap_create (2, GNUNET_NO);
+  addr_map = GNUNET_CONTAINER_multihashmap_create (2, GNUNET_NO);
 
   static const struct GNUNET_GETOPT_CommandLineOption options[] = {
     GNUNET_GETOPT_OPTION_END
