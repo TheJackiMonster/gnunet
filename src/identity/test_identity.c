@@ -259,16 +259,20 @@ create_cb (void *cls,
   CHECK (NULL != pk);
   CHECK (GNUNET_EC_NONE == ec);
   struct GNUNET_IDENTITY_PublicKey pub;
-  unsigned char ct[1024];
-  char pt[strlen ("test") + 1];
-  ssize_t len;
+  size_t pt_len = strlen ("test") + 1;
+  unsigned char ct[pt_len + GNUNET_IDENTITY_ENCRYPT_OVERHEAD_BYTES];
+  char pt[pt_len];
+  enum GNUNET_GenericReturnValue res;
 
   GNUNET_IDENTITY_key_get_public (pk, &pub);
-  len = GNUNET_IDENTITY_encrypt ("test", strlen ("test") + 1, &pub, ct,
-                                 sizeof(ct));
-  CHECK (-1 != len);
-  GNUNET_IDENTITY_decrypt (ct, len, pk, pt, sizeof (pt));
-  CHECK (-1 != len);
+  res = GNUNET_IDENTITY_encrypt ("test", pt_len, &pub, ct,
+                                 pt_len
+                                 + GNUNET_IDENTITY_ENCRYPT_OVERHEAD_BYTES);
+  CHECK (GNUNET_OK == res);
+  res = GNUNET_IDENTITY_decrypt (ct, pt_len
+                                 + GNUNET_IDENTITY_ENCRYPT_OVERHEAD_BYTES,
+                                 pk, pt, pt_len);
+  CHECK (GNUNET_OK == res);
   CHECK (0 == strcmp (pt, "test"));
   op =
     GNUNET_IDENTITY_rename (h, "test-id", "test", &success_rename_cont, NULL);

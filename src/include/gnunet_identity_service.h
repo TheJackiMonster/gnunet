@@ -45,6 +45,7 @@
 #ifndef GNUNET_IDENTITY_SERVICE_H
 #define GNUNET_IDENTITY_SERVICE_H
 
+#include "gnunet_common.h"
 #ifdef __cplusplus
 extern "C" {
 #if 0 /* keep Emacsens' auto-indent happy */
@@ -750,26 +751,26 @@ GNUNET_IDENTITY_decrypt_old (
   const struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
   void *result);
 
+#define GNUNET_IDENTITY_ENCRYPT_OVERHEAD_BYTES (crypto_secretbox_MACBYTES \
+                                                + sizeof (struct \
+                                                          GNUNET_CRYPTO_FoKemC))
+
 /**
  * Encrypt a block with #GNUNET_IDENTITY_PublicKey and derives a
  * #GNUNET_CRYPTO_EcdhePublicKey which is required for decryption
  * using ecdh to derive a symmetric key.
  *
  * Note that the result buffer for the ciphertext must be the length of
- * the message to encrypt plus:
- * - Length of a struct GNUNET_CRYPTO_FoKemC
- * - the authentication tag of libsodium, e.g. crypto_secretbox_NONCEBYTES
+ * the message to encrypt plus #GNUNET_IDENTITY_ENCRYPT_OVERHEAD_BYTES.
  *
  * @param block the block to encrypt
  * @param size the size of the @a block
  * @param pub public key to encrypt for
  * @param result the output parameter in which to store the encrypted result
  *               can be the same or overlap with @c block
- * @returns the size of the encrypted block, -1 for errors.
- *          Due to the use of CFB and therefore an effective stream cipher,
- *          this size should be the same as @c len.
+ * @returns GNUNET_OK on success.
  */
-ssize_t
+enum GNUNET_GenericReturnValue
 GNUNET_IDENTITY_encrypt (const void *block,
                          size_t size,
                          const struct GNUNET_IDENTITY_PublicKey *pub,
@@ -786,11 +787,9 @@ GNUNET_IDENTITY_encrypt (const void *block,
  * @param priv private key to use for ecdh
  * @param result address to store the result at
  *               can be the same or overlap with @c block
- * @return -1 on failure, size of decrypted block on success.
- *         Due to the use of CFB and therefore an effective stream cipher,
- *         this size should be the same as @c size.
+ * @returns GNUNET_OK on success.
  */
-ssize_t
+enum GNUNET_GenericReturnValue
 GNUNET_IDENTITY_decrypt (const void *block,
                          size_t size,
                          const struct GNUNET_IDENTITY_PrivateKey *priv,

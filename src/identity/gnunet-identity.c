@@ -259,20 +259,20 @@ static void
 write_encrypted_message (void)
 {
   struct GNUNET_IDENTITY_PublicKey recipient;
-  unsigned char ct[strlen (write_msg) + 1024];
+  size_t ct_len = strlen (write_msg) + 1
+                  + GNUNET_IDENTITY_ENCRYPT_OVERHEAD_BYTES;
+  unsigned char ct[ct_len];
   if (GNUNET_IDENTITY_public_key_from_string (pubkey_msg, &recipient) !=
       GNUNET_SYSERR)
   {
     size_t msg_len = strlen (write_msg) + 1;
-    ssize_t res = GNUNET_IDENTITY_encrypt (write_msg,
-                                           msg_len,
-                                           &recipient,
-                                           ct, strlen (write_msg) + 1024);
-    if (-1 != res)
+    if (GNUNET_OK == GNUNET_IDENTITY_encrypt (write_msg,
+                                              msg_len,
+                                              &recipient,
+                                              ct, ct_len))
     {
       char *serialized_msg;
-      serialized_msg = GNUNET_STRINGS_data_to_string_alloc (ct,
-                                                            res);
+      serialized_msg = GNUNET_STRINGS_data_to_string_alloc (ct, ct_len);
       fprintf (stdout,
                "%s\n",
                serialized_msg);
@@ -309,14 +309,13 @@ read_encrypted_message (struct GNUNET_IDENTITY_Ego *ego)
                                                         deserialized_msg,
                                                         &msg_len))
   {
-    ssize_t res = GNUNET_IDENTITY_decrypt (deserialized_msg,
-                                           msg_len,
-                                           GNUNET_IDENTITY_ego_get_private_key (
-                                             ego),
-                                           deserialized_msg, msg_len);
-    if (-1 != res)
+    if (GNUNET_OK == GNUNET_IDENTITY_decrypt (deserialized_msg,
+                                              msg_len,
+                                              GNUNET_IDENTITY_ego_get_private_key (
+                                                ego),
+                                              deserialized_msg, msg_len))
     {
-      deserialized_msg[res - 1] = '\0';
+      deserialized_msg[msg_len - 1] = '\0';
       fprintf (stdout,
                "%s\n",
                deserialized_msg);
