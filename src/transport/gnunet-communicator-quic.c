@@ -396,7 +396,7 @@ peer_destroy (struct PeerAddress *peer)
                          "# peers active",
                          GNUNET_CONTAINER_multipeermap_size (peers),
                          GNUNET_NO);
-  quiche_conn_free(peer->conn->conn);
+  quiche_conn_free (peer->conn->conn);
   GNUNET_free (peer->address);
   GNUNET_free (peer->foreign_addr);
   GNUNET_free (peer->conn);
@@ -1175,9 +1175,9 @@ sock_read (void *cls)
                   "invalid address validation token created\n");
     }
     peer->conn = create_conn (quic_header.dcid, quic_header.dcid_len,
-                        quic_header.odcid, quic_header.odcid_len,
-                        local_addr, in_len,
-                        &sa, salen);
+                              quic_header.odcid, quic_header.odcid_len,
+                              local_addr, in_len,
+                              &sa, salen);
     if (NULL == peer->conn)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -1230,7 +1230,7 @@ sock_read (void *cls)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "connection closed. quiche stats: sent=%zu, recv=%zu\n",
                 stats.sent, stats.recv);
-    peer_destroy(peer);
+    peer_destroy (peer);
   }
   GNUNET_free (local_addr);
 }
