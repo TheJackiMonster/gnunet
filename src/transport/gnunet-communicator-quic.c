@@ -180,28 +180,26 @@ struct QUIC_header
 };
 
 /**
- * Given a quiche connection and buffer, recv data from streams and store into buffer
+ * Given a PeerAddress, receive data from streams after doing connection logic.
  * ASSUMES: connection is established to peer
 */
 static void
-recv_from_streams (quiche_conn *conn, char *stream_buf, size_t buf_size)
+recv_from_streams (struct PeerAddress *peer)
 {
+  char stream_buf[UINT16_MAX];
+  size_t buf_size = UINT16_MAX;
   uint64_t s = 0;
   quiche_stream_iter *readable;
   bool fin;
   ssize_t recv_len;
-  static const char *resp = "byez\n";
 
-  readable = quiche_conn_readable (conn);
-  /**
-   * TODO: check for PeerIdentity
-  */
+  readable = quiche_conn_readable (peer->conn->conn);
   while (quiche_stream_iter_next (readable, &s))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,  "stream %" PRIu64 " is readable\n",
                 s);
     fin = false;
-    recv_len = quiche_conn_stream_recv (conn, s,
+    recv_len = quiche_conn_stream_recv (peer->conn->conn, s,
                                         (uint8_t *) stream_buf, buf_size,
                                         &fin);
     if (recv_len < 0)
@@ -212,11 +210,23 @@ recv_from_streams (quiche_conn *conn, char *stream_buf, size_t buf_size)
      * Received and processed plaintext from peer: send to core/transport service
      * TODO: send msg to core, remove response below
     */
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "msg received: %s\n", stream_buf);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "msg received!\n");
+    if (GNUNET_NO == peer->id_recvd)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "receiving peer identity\n");
+      struct GNUNET_PeerIdentity *pid = (struct
+                                         GNUNET_PeerIdentity *) stream_buf;
+      peer->target = *pid;
+      peer->id_recvd = GNUNET_YES;
+    }
     if (fin)
     {
-      quiche_conn_stream_send (conn, s, (uint8_t *) resp,
-                               5, true);
+      if (0 > quiche_conn_close (peer->conn->conn, true, 0, NULL, 0))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "fin received and quiche failed to close connection to peer\n");
+      }
     }
   }
   quiche_stream_iter_free (readable);
@@ -442,6 +452,8 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
   }
   reschedule_peer_timeout (peer);
 
+  // quiche_conn_stream_send (peer->conn->conn, s, (uint8_t *) resp,
+  //                              5, true);
   // if (-1 == GNUNET_NETWORK_socket_sendto (udp_sock,
   //                                         dgram,
   //                                         sizeof(dgram),
@@ -1087,12 +1099,6 @@ sock_read (void *cls)
     return;
   }
 
-  /* look for connection in hashtable */
-  /* each connection to the peer should have a unique incoming DCID */
-  /* check against a conn SCID */
-  // GNUNET_CRYPTO_hash (quic_header.dcid, sizeof(quic_header.dcid), &conn_key);
-  // conn = GNUNET_CONTAINER_multihashmap_get (conn_map, &conn_key);
-
   /**
    * New QUIC connection with peer
   */
@@ -1208,8 +1214,7 @@ sock_read (void *cls)
   if (quiche_conn_is_established (peer->conn->conn))
   {
     // Check for data on all available streams
-    char stream_buf[UINT16_MAX];
-    recv_from_streams (peer->conn->conn, stream_buf, UINT16_MAX);
+    recv_from_streams (peer);
   }
   /**
    * TODO: Should we use a list instead of hashmap?
