@@ -26,6 +26,13 @@
         QUICHE_MAX_CONN_ID_LEN
 #define CID_LEN sizeof(uint8_t) * QUICHE_MAX_CONN_ID_LEN
 #define TOKEN_LEN sizeof(uint8_t) * MAX_TOKEN_LEN
+/* Generic, bidirectional, client-initiated quic stream id */
+#define STREAMID_BI 4
+/**
+ * How long do we believe our addresses to remain up (before
+ * the other peer should revalidate).
+ */
+#define ADDRESS_VALIDITY_PERIOD GNUNET_TIME_UNIT_HOURS
 /**
  * Map of DCID (uint8_t) -> quic_conn for quickly retrieving connections to other peers.
  */
@@ -188,6 +195,9 @@ recv_from_streams (struct PeerAddress *peer)
 {
   char stream_buf[UINT16_MAX];
   size_t buf_size = UINT16_MAX;
+  char *buf_ptr = stream_buf;
+  struct GNUNET_MessageHeader *hdr;
+
   uint64_t s = 0;
   quiche_stream_iter *readable;
   bool fin;
@@ -207,10 +217,8 @@ recv_from_streams (struct PeerAddress *peer)
       break;
     }
     /**
-     * Received and processed plaintext from peer: send to core/transport service
-     * TODO: send msg to core, remove response below
+     * Initial packet should contain peerid
     */
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "msg received!\n");
     if (GNUNET_NO == peer->id_recvd)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -219,13 +227,22 @@ recv_from_streams (struct PeerAddress *peer)
                                          GNUNET_PeerIdentity *) stream_buf;
       peer->target = *pid;
       peer->id_recvd = GNUNET_YES;
+      buf_ptr += sizeof(struct GNUNET_PeerIdentity);
+      recv_len -= sizeof(struct GNUNET_PeerIdentity);
     }
+    hdr = (struct GNUNET_MessageHeader *) buf_ptr;
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "passing %lu bytes to core\n",
+                recv_len);
+    GNUNET_TRANSPORT_communicator_receive (ch, &peer->target, hdr,
+                                           ADDRESS_VALIDITY_PERIOD, NULL, NULL);
     if (fin)
     {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "fin received, closing connection\n");
       if (0 > quiche_conn_close (peer->conn->conn, true, 0, NULL, 0))
       {
-        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                    "fin received and quiche failed to close connection to peer\n");
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "quiche failed to close connection to peer\n");
       }
     }
   }
@@ -873,6 +890,7 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
   socklen_t local_in_len;
   struct sockaddr *local_addr;
 
+
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_string (cfg,
                                              COMMUNICATOR_CONFIG_SECTION,
@@ -933,9 +951,8 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
                                  local_addr,
                                  local_in_len, peer->address, peer->address_len,
                                  config);
-
-
   peer->conn = q_conn;
+  // quiche_conn_send (peer->conn->conn, )
   /**
    * Insert connection into hashmap
   */
