@@ -219,9 +219,13 @@ libexec_PROGRAMS = \
  gnunet-service-tng \
  gnunet-communicator-unix \
  gnunet-communicator-udp \
- gnunet-communicator-tcp \
+ gnunet-communicator-tcp
+if HAVE_EXPERIMENTAL
+if HAVE_QUICHE
+libexec_PROGRAMS += \
  gnunet-communicator-quic
-
+endif
+endif
 
 
 bin_PROGRAMS = \
@@ -270,6 +274,8 @@ gnunet_communicator_udp_LDADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(LIBGCRYPT_LIBS)
 
+if HAVE_EXPERIMENTAL
+if HAVE_QUICHE
 gnunet_communicator_quic_SOURCES = \
   gnunet-communicator-quic.c
 gnunet_communicator_quic_LDADD = \
@@ -282,6 +288,8 @@ gnunet_communicator_quic_LDADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
   -lquiche \
   $(LIBGCRYPT_LIBS)
+endif
+endif
 
 gnunet_helper_transport_wlan_SOURCES = \
  gnunet-helper-transport-wlan.c
