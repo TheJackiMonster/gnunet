@@ -53,6 +53,16 @@ static unsigned long long rekey_max_bytes;
 static quiche_config *config = NULL;
 
 /**
+ * Our peer identity
+*/
+struct GNUNET_PeerIdentity my_identity;
+
+/**
+ * Our private key.
+ */
+static struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
+
+/**
  * Information we track per peer we have recently been in contact with.
  *
  * (Since quiche handles crypto, handshakes, etc. we don't differentiate
@@ -185,6 +195,12 @@ struct QUIC_header
   uint8_t token[MAX_TOKEN_LEN];
   size_t token_len;
 };
+
+/**
+ * TODOS:
+ *  1. Mandate timeouts
+ *  2. Setup stats handler properly
+*/
 
 /**
  * Given a PeerAddress, receive data from streams after doing connection logic.
@@ -403,9 +419,7 @@ reschedule_peer_timeout (struct PeerAddress *peer)
 static void
 peer_destroy (struct PeerAddress *peer)
 {
-
   peer->peer_destroy_called = GNUNET_YES;
-
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Disconnecting peer for peer `%s'\n",
               GNUNET_i2s (&peer->target));
@@ -428,6 +442,27 @@ peer_destroy (struct PeerAddress *peer)
   GNUNET_free (peer->foreign_addr);
   GNUNET_free (peer->conn);
   GNUNET_free (peer);
+}
+
+
+/**
+ * Iterator over all peers to clean up.
+ *
+ * @param cls NULL
+ * @param target unused
+ * @param value the queue to destroy
+ * @return #GNUNET_OK to continue to iterate
+ */
+static int
+get_peer_delete_it (void *cls,
+                    const struct GNUNET_PeerIdentity *target,
+                    void *value)
+{
+  struct PeerAddress *peer = value;
+  (void) cls;
+  (void) target;
+  peer_destroy (peer);
+  return GNUNET_OK;
 }
 
 
@@ -884,6 +919,7 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
   struct sockaddr *in;
   socklen_t in_len;
   uint8_t scid[LOCAL_CONN_ID_LEN];
+  size_t send_len;
 
   struct quic_conn *q_conn;
   char *bindto;
@@ -919,6 +955,9 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
   peer->address_len = in_len;
   peer->target = *peer_id;
   peer->nt = GNUNET_NT_scanner_get_type (is, in, in_len);
+  /**
+   * TODO: use addr_map
+  */
   (void) GNUNET_CONTAINER_multipeermap_put (
     peers,
     &peer->target,
@@ -952,14 +991,17 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
                                  local_in_len, peer->address, peer->address_len,
                                  config);
   peer->conn = q_conn;
-  // quiche_conn_send (peer->conn->conn, )
+  /**
+   * Send our pid
+  */
+  // quiche_conn_send (peer->conn->conn, );
   /**
    * Insert connection into hashmap
   */
-  struct GNUNET_HashCode key;
-  GNUNET_CRYPTO_hash (q_conn->cid, LOCAL_CONN_ID_LEN, &key);
-  GNUNET_CONTAINER_multihashmap_put (conn_map, &key, q_conn,
-                                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
+  // struct GNUNET_HashCode key;
+  // GNUNET_CRYPTO_hash (q_conn->cid, LOCAL_CONN_ID_LEN, &key);
+  // GNUNET_CONTAINER_multihashmap_put (conn_map, &key, q_conn,
+  //                                    GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
   setup_peer_mq (peer);
   if (NULL == timeout_task)
     timeout_task = GNUNET_SCHEDULER_add_now (&check_timeouts, NULL);
@@ -978,10 +1020,20 @@ do_shutdown (void *cls)
 {
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "do_shutdown\n");
-
-  GNUNET_CONTAINER_multihashmap_destroy (conn_map);
+  GNUNET_CONTAINER_multipeermap_iterate (peers, &get_peer_delete_it, NULL);
+  GNUNET_CONTAINER_multipeermap_destroy (peers);
+  /**
+   * TODO: remove peers, just use addr_map
+  */
+  // GNUNET_CONTAINER_multihashmap_iterate (addr_map, &get_peer_delete_it, NULL);
+  // GNUNET_CONTAINER_multihashmap_destroy (addr_map);
   quiche_config_free (config);
 
+  if (NULL != timeout_task)
+  {
+    GNUNET_SCHEDULER_cancel (timeout_task);
+    timeout_task = NULL;
+  }
   if (NULL != read_task)
   {
     GNUNET_SCHEDULER_cancel (read_task);
@@ -1003,6 +1055,11 @@ do_shutdown (void *cls)
     GNUNET_TRANSPORT_application_done (ah);
     ah = NULL;
   }
+  if (NULL != my_private_key)
+  {
+    GNUNET_free (my_private_key);
+    my_private_key = NULL;
+  }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "do_shutdown finished\n");
 }
@@ -1019,19 +1076,13 @@ sock_read (void *cls)
   ssize_t rcvd;
   (void) cls;
 
-  // struct quic_conn *conn;
-  // struct GNUNET_HashCode conn_key;
   ssize_t process_pkt;
-
   struct QUIC_header quic_header;
   uint8_t new_cid[LOCAL_CONN_ID_LEN];
 
   struct PeerAddress *peer;
   struct GNUNET_HashCode addr_key;
 
-  /**
-   * May be unnecessary if quiche_header_info writes to len fields
-  */
   quic_header.scid_len = sizeof(quic_header.scid);
   quic_header.dcid_len = sizeof(quic_header.dcid);
   quic_header.odcid_len = sizeof(quic_header.odcid);
@@ -1237,7 +1288,7 @@ sock_read (void *cls)
    * TODO: Should we use a list instead of hashmap?
    * Overhead for hashing function, O(1) retrieval vs O(n) iteration with n=30?
    *
-   * TODO: Is iteration necessary as in the server example?
+   * TODO: Is iteration necessary as in the quiche server example?
   */
   quiche_stats stats;
   quiche_path_stats path_stats;
@@ -1376,6 +1427,27 @@ run (void *cls,
     my_port = 0;
   }
   GNUNET_SCHEDULER_add_shutdown (&do_shutdown, NULL);
+  /**
+   * Setup QUICHE configuration
+  */
+  config = quiche_config_new (QUICHE_PROTOCOL_VERSION);
+  quiche_config_verify_peer (config, false);
+  // conn_map = GNUNET_CONTAINER_multihashmap_create (2, GNUNET_NO);
+  addr_map = GNUNET_CONTAINER_multihashmap_create (2, GNUNET_NO);
+  /**
+   * Get our public key for initial packet
+  */
+  my_private_key = GNUNET_CRYPTO_eddsa_key_create_from_configuration (cfg);
+  if (NULL == my_private_key)
+  {
+    GNUNET_log (
+      GNUNET_ERROR_TYPE_ERROR,
+      _ (
+        "Transport service is lacking key configuration settings. Exiting.\n"));
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
+  GNUNET_CRYPTO_eddsa_key_get_public (my_private_key, &my_identity.public_key);
   /* start reading */
   read_task = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
                                              udp_sock,
@@ -1417,15 +1489,6 @@ run (void *cls,
 int
 main (int argc, char *const *argv)
 {
-  /**
-   * Setup QUICHE configuration
-  */
-  config = quiche_config_new (QUICHE_PROTOCOL_VERSION);
-
-  quiche_config_verify_peer (config, false);
-  conn_map = GNUNET_CONTAINER_multihashmap_create (2, GNUNET_NO);
-  addr_map = GNUNET_CONTAINER_multihashmap_create (2, GNUNET_NO);
-
   static const struct GNUNET_GETOPT_CommandLineOption options[] = {
     GNUNET_GETOPT_OPTION_END
   };
