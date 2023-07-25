@@ -28,6 +28,7 @@
 #define TOKEN_LEN sizeof(uint8_t) * MAX_TOKEN_LEN
 /* Generic, bidirectional, client-initiated quic stream id */
 #define STREAMID_BI 4
+#define PEERID_LEN sizeof(struct GNUNET_PeerIdentity)
 /**
  * How long do we believe our addresses to remain up (before
  * the other peer should revalidate).
@@ -377,7 +378,7 @@ flush_egress (struct quic_conn *conn)
 
     if (0 > written)
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "quiche failed to create packet\n");
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "quiche failed to create packet\n");
       return;
     }
 
@@ -386,7 +387,7 @@ flush_egress (struct quic_conn *conn)
                                          send_info.to_len);
     if (sent != written)
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "quiche failed to send data to peer\n");
       return;
     }
@@ -919,13 +920,14 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
   struct sockaddr *in;
   socklen_t in_len;
   uint8_t scid[LOCAL_CONN_ID_LEN];
-  size_t send_len;
+
+  ssize_t send_len;
+  char my_pid[PEERID_LEN];
 
   struct quic_conn *q_conn;
   char *bindto;
   socklen_t local_in_len;
   struct sockaddr *local_addr;
-
 
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_string (cfg,
@@ -990,18 +992,42 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
                                  local_addr,
                                  local_in_len, peer->address, peer->address_len,
                                  config);
+  if (GNUNET_NO == quiche_conn_is_established (q_conn->conn))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to form connection to peer. mq not created\n");
+    return GNUNET_NO;
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Handshake established with peer, sending our peer id\n");
   peer->conn = q_conn;
   /**
    * Send our pid
   */
-  // quiche_conn_send (peer->conn->conn, );
+  GNUNET_memcpy (my_pid, &my_identity, PEERID_LEN);
+  send_len = quiche_conn_stream_send (peer->conn->conn, STREAMID_BI, my_pid,
+                                      PEERID_LEN,
+                                      false);
+  if (0 > send_len)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to write peer identity packet\n");
+    return GNUNET_NO;
+  }
+  flush_egress (peer->conn);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Peer identity sent to peer\n");
   /**
-   * Insert connection into hashmap
+   * Insert peer into hashmap
   */
-  // struct GNUNET_HashCode key;
-  // GNUNET_CRYPTO_hash (q_conn->cid, LOCAL_CONN_ID_LEN, &key);
-  // GNUNET_CONTAINER_multihashmap_put (conn_map, &key, q_conn,
-  //                                    GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
+  struct GNUNET_HashCode key;
+  GNUNET_CRYPTO_hash (peer->address, peer->address_len, &key);
+  if (GNUNET_SYSERR ==  GNUNET_CONTAINER_multihashmap_put (addr_map, &key, peer,
+                                                           GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "tried to add duplicate address into address map\n");
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Added new peer to the addr map\n");
   setup_peer_mq (peer);
   if (NULL == timeout_task)
     timeout_task = GNUNET_SCHEDULER_add_now (&check_timeouts, NULL);
@@ -1123,7 +1149,7 @@ sock_read (void *cls)
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_DEBUG, "recv");
     return;
   }
-  GNUNET_CRYPTO_hash ((struct sockaddr *) &sa, sizeof(struct sockaddr),
+  GNUNET_CRYPTO_hash ((struct sockaddr *) &sa, salen,
                       &addr_key);
   peer = GNUNET_CONTAINER_multihashmap_get (addr_map, &addr_key);
 
@@ -1147,7 +1173,7 @@ sock_read (void *cls)
                   "tried to add duplicate address into address map\n");
       return;
     }
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "adding new peer to address map\n");
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "added new peer to address map\n");
   }
 
   /**
