@@ -238,6 +238,13 @@ recv_from_streams (struct PeerAddress *peer)
     */
     if (GNUNET_NO == peer->id_recvd)
     {
+      if (recv_len < sizeof(struct GNUNET_PeerIdentity))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "message recv len of %zd less than length of peer identity\n",
+                    recv_len);
+        return;
+      }
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "receiving peer identity\n");
       struct GNUNET_PeerIdentity *pid = (struct
@@ -247,8 +254,15 @@ recv_from_streams (struct PeerAddress *peer)
       buf_ptr += sizeof(struct GNUNET_PeerIdentity);
       recv_len -= sizeof(struct GNUNET_PeerIdentity);
     }
+
+    if (recv_len < sizeof(struct GNUNET_MessageHeader))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "message recv len of %zd less than length of message header\n",
+                  recv_len);
+    }
     hdr = (struct GNUNET_MessageHeader *) buf_ptr;
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "passing %lu bytes to core\n",
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "passing %zd bytes to core\n",
                 recv_len);
     GNUNET_TRANSPORT_communicator_receive (ch, &peer->target, hdr,
                                            ADDRESS_VALIDITY_PERIOD, NULL, NULL);
@@ -1214,7 +1228,7 @@ sock_read (void *cls)
                                                   out, sizeof(out));
       if (0 > written)
       {
-        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     "quiche failed to generate version negotiation packet\n");
         return;
       }
@@ -1225,7 +1239,7 @@ sock_read (void *cls)
                                                    salen);
       if (sent != written)
       {
-        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     "failed to send version negotiation packet to peer\n");
         return;
       }
@@ -1251,8 +1265,9 @@ sock_read (void *cls)
                                       quic_header.version, out, sizeof(out));
       if (0 > written)
       {
-        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     "quiche failed to write retry packet\n");
+        return;
       }
       ssize_t sent = GNUNET_NETWORK_socket_sendto (udp_sock,
                                                    out,
@@ -1261,7 +1276,8 @@ sock_read (void *cls)
                                                    salen);
       if (written != sent)
       {
-        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "failed to send retry packet\n");
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "failed to send retry packet\n");
+        return;
       }
 
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "sent %zd bytes\n", sent);
@@ -1271,8 +1287,9 @@ sock_read (void *cls)
                                      &sa, salen,
                                      quic_header.odcid, &quic_header.odcid_len))
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "invalid address validation token created\n");
+      return;
     }
     peer->conn = create_conn (quic_header.dcid, quic_header.dcid_len,
                               quic_header.odcid, quic_header.odcid_len,
@@ -1282,6 +1299,7 @@ sock_read (void *cls)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "failed to create quic connection with peer\n");
+      return;
     }
   } // null connection
 
