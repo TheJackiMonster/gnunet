@@ -254,18 +254,38 @@ recv_from_streams (struct PeerAddress *peer)
       buf_ptr += sizeof(struct GNUNET_PeerIdentity);
       recv_len -= sizeof(struct GNUNET_PeerIdentity);
     }
-
-    if (recv_len < sizeof(struct GNUNET_MessageHeader))
+    /**
+     * Parse messages to pass to communicator
+    */
+    while (recv_len >= sizeof(struct GNUNET_MessageHeader))
+    {
+      hdr = (struct GNUNET_MessageHeader *) buf_ptr;
+      if (ntohs (hdr->size) > recv_len)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "message size stated is greater than length of recvd data!\n");
+        return;
+      }
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "passing %zd bytes to core\n",
+                  recv_len);
+      GNUNET_TRANSPORT_communicator_receive (ch, &peer->target, hdr,
+                                             ADDRESS_VALIDITY_PERIOD, NULL,
+                                             NULL);
+      recv_len -= ntohs (hdr->size);
+      buf_ptr += ntohs (hdr->size);
+    }
+    /**
+     * Check for leftover bytes
+    */
+    if (0 != recv_len)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "message recv len of %zd less than length of message header\n",
                   recv_len);
     }
-    hdr = (struct GNUNET_MessageHeader *) buf_ptr;
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "passing %zd bytes to core\n",
-                recv_len);
-    GNUNET_TRANSPORT_communicator_receive (ch, &peer->target, hdr,
-                                           ADDRESS_VALIDITY_PERIOD, NULL, NULL);
+    /**
+     * fin
+    */
     if (fin)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -966,6 +986,10 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
   path = &address[strlen (COMMUNICATOR_ADDRESS_PREFIX "-")];
   in = udp_address_to_sockaddr (path, &in_len);
 
+  /**
+   * TODO: Check for existing peer (i.e. if we received a message from this address before)
+  */
+
   peer = GNUNET_new (struct PeerAddress);
   peer->address = in;
   peer->address_len = in_len;
@@ -1040,6 +1064,9 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "tried to add duplicate address into address map\n");
+    peer_destroy (peer);
+    GNUNET_free (local_addr);
+    return GNUNET_SYSERR;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Added new peer to the addr map\n");
   setup_peer_mq (peer);
