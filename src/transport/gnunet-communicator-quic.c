@@ -79,7 +79,7 @@ struct PeerAddress
   /**
    * Flag to indicate whether we know the PeerIdentity (target) yet
   */
-  int id_recvd;
+  int id_rcvd;
 
   /**
    * Address of the receiver in the human-readable format
@@ -236,7 +236,7 @@ recv_from_streams (struct PeerAddress *peer)
     /**
      * Initial packet should contain peerid
     */
-    if (GNUNET_NO == peer->id_recvd)
+    if (GNUNET_NO == peer->id_rcvd)
     {
       if (recv_len < sizeof(struct GNUNET_PeerIdentity))
       {
@@ -250,7 +250,7 @@ recv_from_streams (struct PeerAddress *peer)
       struct GNUNET_PeerIdentity *pid = (struct
                                          GNUNET_PeerIdentity *) stream_buf;
       peer->target = *pid;
-      peer->id_recvd = GNUNET_YES;
+      peer->id_rcvd = GNUNET_YES;
       buf_ptr += sizeof(struct GNUNET_PeerIdentity);
       recv_len -= sizeof(struct GNUNET_PeerIdentity);
     }
@@ -263,7 +263,7 @@ recv_from_streams (struct PeerAddress *peer)
       if (ntohs (hdr->size) > recv_len)
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    "message size stated is greater than length of recvd data!\n");
+                    "message size stated is greater than length of rcvd data!\n");
         return;
       }
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "passing %zd bytes to core\n",
@@ -1197,12 +1197,12 @@ sock_read (void *cls)
   if (NULL == peer)
   {
     /**
-     * Create new PeerAddress (receiver) with id_recvd = false
+     * Create new PeerAddress (receiver) with id_rcvd = false
     */
     peer = GNUNET_new (struct PeerAddress);
     peer->address = GNUNET_memdup (&sa, salen);
     peer->address_len = salen;
-    peer->id_recvd = GNUNET_NO;
+    peer->id_rcvd = GNUNET_NO;
     peer->conn = NULL;
     peer->foreign_addr = sockaddr_to_udpaddr_string (peer->address,
                                                      peer->address_len);
