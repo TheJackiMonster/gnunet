@@ -31,12 +31,12 @@
 #include "gnunet_time_lib.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_db_lib.h"
+#include "postgres_ext.h"
 
 /**
  * Postgres context.
  */
 struct GNUNET_PQ_Context;
-
 
 /* ************************* pq_query_helper.c functions ************************ */
 
@@ -196,6 +196,18 @@ enum GNUNET_PQ_DataTypes
   GNUNET_PQ_DATATYPE_VARCHAR,
   GNUNET_PQ_DATATYPE_MAX, /* Must be last */
 };
+
+/**
+ * Returns the oid for a given datatype
+ *
+ * @param db The db-connection
+ * @param typ the Datatype
+ * @return The oid
+ */
+Oid
+GNUNET_PQ_get_oid (
+  const struct GNUNET_PQ_Context *db,
+  enum GNUNET_PQ_DataTypes typ);
 
 /**
  * Generate query parameter for an array of bool in host byte order.

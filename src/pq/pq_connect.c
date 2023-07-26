@@ -420,6 +420,16 @@ get_array_type_oids (struct GNUNET_PQ_Context *db)
 }
 
 
+Oid
+GNUNET_PQ_get_oid (
+  const struct GNUNET_PQ_Context *db,
+  enum GNUNET_PQ_DataTypes typ)
+{
+  GNUNET_assert (GNUNET_PQ_DATATYPE_MAX > typ);
+  return db->oids[typ];
+}
+
+
 void
 GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
 {
