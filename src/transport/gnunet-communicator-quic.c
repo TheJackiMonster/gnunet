@@ -140,11 +140,6 @@ struct PeerAddress
 };
 
 /**
- * Peers (map from peer identity to `struct PeerAddress`)
- */
-static struct GNUNET_CONTAINER_MultiPeerMap *peers;
-
-/**
  * Expiration heap for peers (contains `struct PeerAddress`)
  */
 static struct GNUNET_CONTAINER_Heap *peers_heap;
@@ -361,7 +356,6 @@ create_conn (uint8_t *scid, size_t scid_len,
 {
   struct quic_conn *conn;
   quiche_conn *q_conn;
-  struct GNUNET_HashCode conn_key;
   conn = GNUNET_new (struct quic_conn);
   if (scid_len != LOCAL_CONN_ID_LEN)
   {
@@ -385,13 +379,6 @@ create_conn (uint8_t *scid, size_t scid_len,
     return NULL;
   }
   conn->conn = q_conn;
-  // GNUNET_CRYPTO_hash (conn->cid, sizeof(conn->cid), &conn_key);
-  // /**
-  //  * TODO: use UNIQUE_FAST instead?
-  // */
-  // GNUNET_CONTAINER_multihashmap_put (conn_map, &conn_key, conn,
-  //                                    GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
-
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "new quic connection created\n");
   return conn;
 }
@@ -454,6 +441,8 @@ reschedule_peer_timeout (struct PeerAddress *peer)
 static void
 peer_destroy (struct PeerAddress *peer)
 {
+  struct GNUNET_HashCode addr_key;
+
   peer->peer_destroy_called = GNUNET_YES;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Disconnecting peer for peer `%s'\n",
@@ -463,14 +452,21 @@ peer_destroy (struct PeerAddress *peer)
     GNUNET_TRANSPORT_communicator_mq_del (peer->d_qh);
     peer->d_qh = NULL;
   }
-  GNUNET_assert (GNUNET_YES ==
-                 GNUNET_CONTAINER_multipeermap_remove (peers,
-                                                       &peer->target,
-                                                       peer));
   GNUNET_assert (peer == GNUNET_CONTAINER_heap_remove_node (peer->hn));
+  /**
+   * Remove peer from hashmap
+  */
+  GNUNET_CRYPTO_hash (peer->address, peer->address_len, &addr_key);
+  if (GNUNET_NO == GNUNET_CONTAINER_multihashmap_remove (addr_map, &addr_key,
+                                                         peer))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "tried to remove non-existent peer from addr map\n");
+    return;
+  }
   GNUNET_STATISTICS_set (stats,
                          "# peers active",
-                         GNUNET_CONTAINER_multipeermap_size (peers),
+                         GNUNET_CONTAINER_multihashmap_size (addr_map),
                          GNUNET_NO);
   quiche_conn_free (peer->conn->conn);
   GNUNET_free (peer->address);
@@ -484,18 +480,18 @@ peer_destroy (struct PeerAddress *peer)
  * Iterator over all peers to clean up.
  *
  * @param cls NULL
- * @param target unused
- * @param value the queue to destroy
+ * @param key peer->address
+ * @param value the peer to destroy
  * @return #GNUNET_OK to continue to iterate
  */
 static int
 get_peer_delete_it (void *cls,
-                    const struct GNUNET_PeerIdentity *target,
+                    const struct GNUNET_Hashcode *key,
                     void *value)
 {
   struct PeerAddress *peer = value;
   (void) cls;
-  (void) target;
+  (void) key;
   peer_destroy (peer);
   return GNUNET_OK;
 }
@@ -953,6 +949,7 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
   const char *path;
   struct sockaddr *in;
   socklen_t in_len;
+  struct GNUNET_HashCode addr_key;
   uint8_t scid[LOCAL_CONN_ID_LEN];
 
   ssize_t send_len;
@@ -987,25 +984,21 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
   in = udp_address_to_sockaddr (path, &in_len);
 
   /**
-   * TODO: Check for existing peer (i.e. if we received a message from this address before)
+   * If we already have a queue with this peer, ignore
   */
-
+  GNUNET_CRYPTO_hash (&in, in_len, &addr_key);
+  peer = GNUNET_CONTAINER_multihashmap_get (addr_map, &addr_key);
+  if (NULL != peer)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "ignoring transport service mq request, we already have an mq with this peer (address)\n");
+    return GNUNET_SYSERR;
+  }
   peer = GNUNET_new (struct PeerAddress);
   peer->address = in;
   peer->address_len = in_len;
   peer->target = *peer_id;
   peer->nt = GNUNET_NT_scanner_get_type (is, in, in_len);
-  /**
-   * TODO: use addr_map
-  */
-  (void) GNUNET_CONTAINER_multipeermap_put (
-    peers,
-    &peer->target,
-    peer,
-    GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Added %s to peers\n",
-              GNUNET_i2s_full (&peer->target));
   peer->timeout =
     GNUNET_TIME_relative_to_absolute (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT);
   peer->hn = GNUNET_CONTAINER_heap_insert (peers_heap,
@@ -1013,7 +1006,7 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
                                            peer->timeout.abs_value_us);
   GNUNET_STATISTICS_set (stats,
                          "# peers active",
-                         GNUNET_CONTAINER_multipeermap_size (peers),
+                         GNUNET_CONTAINER_multihashmap_size (addr_map),
                          GNUNET_NO);
   peer->foreign_addr =
     sockaddr_to_udpaddr_string (peer->address, peer->address_len);
@@ -1057,19 +1050,14 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
   /**
    * Insert peer into hashmap
   */
-  struct GNUNET_HashCode key;
-  GNUNET_CRYPTO_hash (peer->address, peer->address_len, &key);
-  if (GNUNET_SYSERR ==  GNUNET_CONTAINER_multihashmap_put (addr_map, &key, peer,
-                                                           GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "tried to add duplicate address into address map\n");
-    peer_destroy (peer);
-    GNUNET_free (local_addr);
-    return GNUNET_SYSERR;
-  }
+  GNUNET_CONTAINER_multihashmap_put (addr_map, &addr_key,
+                                     peer,
+                                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Added new peer to the addr map\n");
   setup_peer_mq (peer);
+  /**
+   * TODO: destroy peers in hashmap
+  */
   if (NULL == timeout_task)
     timeout_task = GNUNET_SCHEDULER_add_now (&check_timeouts, NULL);
   GNUNET_free (local_addr);
@@ -1087,13 +1075,8 @@ do_shutdown (void *cls)
 {
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "do_shutdown\n");
-  GNUNET_CONTAINER_multipeermap_iterate (peers, &get_peer_delete_it, NULL);
-  GNUNET_CONTAINER_multipeermap_destroy (peers);
-  /**
-   * TODO: remove peers, just use addr_map
-  */
-  // GNUNET_CONTAINER_multihashmap_iterate (addr_map, &get_peer_delete_it, NULL);
-  // GNUNET_CONTAINER_multihashmap_destroy (addr_map);
+  GNUNET_CONTAINER_multihashmap_iterate (addr_map, &get_peer_delete_it, NULL);
+  GNUNET_CONTAINER_multihashmap_destroy (addr_map);
   quiche_config_free (config);
 
   if (NULL != timeout_task)
