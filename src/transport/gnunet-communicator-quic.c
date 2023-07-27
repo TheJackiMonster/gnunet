@@ -1055,9 +1055,6 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
                                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Added new peer to the addr map\n");
   setup_peer_mq (peer);
-  /**
-   * TODO: destroy peers in hashmap
-  */
   if (NULL == timeout_task)
     timeout_task = GNUNET_SCHEDULER_add_now (&check_timeouts, NULL);
   GNUNET_free (local_addr);
@@ -1124,7 +1121,6 @@ sock_read (void *cls)
   uint8_t buf[UINT16_MAX];
   uint8_t out[MAX_DATAGRAM_SIZE];
   ssize_t rcvd;
-  (void) cls;
 
   ssize_t process_pkt;
   struct QUIC_header quic_header;
@@ -1133,6 +1129,7 @@ sock_read (void *cls)
   struct PeerAddress *peer;
   struct GNUNET_HashCode addr_key;
 
+  (void) cls;
   quic_header.scid_len = sizeof(quic_header.scid);
   quic_header.dcid_len = sizeof(quic_header.dcid);
   quic_header.odcid_len = sizeof(quic_header.odcid);
@@ -1159,205 +1156,220 @@ sock_read (void *cls)
                                              udp_sock,
                                              &sock_read,
                                              NULL);
-  rcvd = GNUNET_NETWORK_socket_recvfrom (udp_sock,
-                                         buf,
-                                         sizeof(buf),
-                                         (struct sockaddr *) &sa,
-                                         &salen);
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Read %lu bytes\n", rcvd);
-
-  if (-1 == rcvd)
+  while (1)
   {
-    GNUNET_log_strerror (GNUNET_ERROR_TYPE_DEBUG, "recv");
-    return;
-  }
-  GNUNET_CRYPTO_hash ((struct sockaddr *) &sa, salen,
-                      &addr_key);
-  peer = GNUNET_CONTAINER_multihashmap_get (addr_map, &addr_key);
-
-  if (NULL == peer)
-  {
-    /**
-     * Create new PeerAddress (receiver) with id_rcvd = false
-    */
-    peer = GNUNET_new (struct PeerAddress);
-    peer->address = GNUNET_memdup (&sa, salen);
-    peer->address_len = salen;
-    peer->id_rcvd = GNUNET_NO;
-    peer->conn = NULL;
-    peer->foreign_addr = sockaddr_to_udpaddr_string (peer->address,
-                                                     peer->address_len);
-    if (GNUNET_SYSERR == GNUNET_CONTAINER_multihashmap_put (addr_map, &addr_key,
-                                                            peer,
-                                                            GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY))
+    rcvd = GNUNET_NETWORK_socket_recvfrom (udp_sock,
+                                           buf,
+                                           sizeof(buf),
+                                           (struct sockaddr *) &sa,
+                                           &salen);
+    if (-1 == rcvd)
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "tried to add duplicate address into address map\n");
+      if (EAGAIN == errno)
+        break; // We are done reading data
+      GNUNET_log_strerror (GNUNET_ERROR_TYPE_DEBUG, "recv");
       return;
     }
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "added new peer to address map\n");
-  }
 
-  /**
-   * Parse QUIC info
-  */
-  int rc = quiche_header_info (buf, rcvd, LOCAL_CONN_ID_LEN,
-                               &quic_header.version,
-                               &quic_header.type, quic_header.scid,
-                               &quic_header.scid_len, quic_header.dcid,
-                               &quic_header.dcid_len,
-                               quic_header.token, &quic_header.token_len);
-  if (0 > rc)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "failed to parse quic header: %d\n",
-                rc);
-    return;
-  }
-
-  /**
-   * New QUIC connection with peer
-  */
-  if (NULL == peer->conn)
-  {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "attempting to create new connection\n");
-    if (0 == quiche_version_is_supported (quic_header.version))
+                "Read %lu bytes\n", rcvd);
+
+    if (-1 == rcvd)
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "quic version negotiation initiated\n");
-      /**
-       * Write a version negotiation packet to "out"
-      */
-      ssize_t written = quiche_negotiate_version (quic_header.scid,
-                                                  quic_header.scid_len,
-                                                  quic_header.dcid,
-                                                  quic_header.dcid_len,
-                                                  out, sizeof(out));
-      if (0 > written)
-      {
-        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    "quiche failed to generate version negotiation packet\n");
-        return;
-      }
-      ssize_t sent = GNUNET_NETWORK_socket_sendto (udp_sock,
-                                                   out,
-                                                   written,
-                                                   (struct sockaddr*) &sa,
-                                                   salen);
-      if (sent != written)
-      {
-        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    "failed to send version negotiation packet to peer\n");
-        return;
-      }
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "sent %zd bytes to peer during version negotiation\n", sent);
+      GNUNET_log_strerror (GNUNET_ERROR_TYPE_DEBUG, "recv");
       return;
     }
+    GNUNET_CRYPTO_hash ((struct sockaddr *) &sa, salen,
+                        &addr_key);
+    peer = GNUNET_CONTAINER_multihashmap_get (addr_map, &addr_key);
 
-    if (0 == quic_header.token_len)
+    if (NULL == peer)
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "quic stateless retry\n");
-      mint_token (quic_header.dcid, quic_header.dcid_len, &sa, salen,
-                  quic_header.token, &quic_header.token_len);
-
-      uint8_t new_cid[LOCAL_CONN_ID_LEN];
-      GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_STRONG, new_cid,
-                                  LOCAL_CONN_ID_LEN);
-
-      ssize_t written = quiche_retry (quic_header.scid, quic_header.scid_len,
-                                      quic_header.dcid, quic_header.dcid_len,
-                                      new_cid, LOCAL_CONN_ID_LEN,
-                                      quic_header.token, quic_header.token_len,
-                                      quic_header.version, out, sizeof(out));
-      if (0 > written)
+      /**
+       * Create new PeerAddress (receiver) with id_rcvd = false
+      */
+      peer = GNUNET_new (struct PeerAddress);
+      peer->address = GNUNET_memdup (&sa, salen);
+      peer->address_len = salen;
+      peer->id_rcvd = GNUNET_NO;
+      peer->conn = NULL;
+      peer->foreign_addr = sockaddr_to_udpaddr_string (peer->address,
+                                                       peer->address_len);
+      setup_peer_mq (peer);
+      if (GNUNET_SYSERR == GNUNET_CONTAINER_multihashmap_put (addr_map,
+                                                              &addr_key,
+                                                              peer,
+                                                              GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    "quiche failed to write retry packet\n");
+                    "tried to add duplicate address into address map\n");
         return;
       }
-      ssize_t sent = GNUNET_NETWORK_socket_sendto (udp_sock,
-                                                   out,
-                                                   written,
-                                                   (struct sockaddr*) &sa,
-                                                   salen);
-      if (written != sent)
-      {
-        GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "failed to send retry packet\n");
-        return;
-      }
-
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "sent %zd bytes\n", sent);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "added new peer to address map\n");
     }
 
-    if (GNUNET_OK != validate_token (quic_header.token, quic_header.token_len,
-                                     &sa, salen,
-                                     quic_header.odcid, &quic_header.odcid_len))
+    /**
+     * Parse QUIC info
+    */
+    int rc = quiche_header_info (buf, rcvd, LOCAL_CONN_ID_LEN,
+                                 &quic_header.version,
+                                 &quic_header.type, quic_header.scid,
+                                 &quic_header.scid_len, quic_header.dcid,
+                                 &quic_header.dcid_len,
+                                 quic_header.token, &quic_header.token_len);
+    if (0 > rc)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "invalid address validation token created\n");
+                  "failed to parse quic header: %d\n",
+                  rc);
       return;
     }
-    peer->conn = create_conn (quic_header.dcid, quic_header.dcid_len,
-                              quic_header.odcid, quic_header.odcid_len,
-                              local_addr, in_len,
-                              &sa, salen);
+
+    /**
+     * New QUIC connection with peer
+    */
     if (NULL == peer->conn)
     {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "attempting to create new connection\n");
+      if (0 == quiche_version_is_supported (quic_header.version))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "quic version negotiation initiated\n");
+        /**
+         * Write a version negotiation packet to "out"
+        */
+        ssize_t written = quiche_negotiate_version (quic_header.scid,
+                                                    quic_header.scid_len,
+                                                    quic_header.dcid,
+                                                    quic_header.dcid_len,
+                                                    out, sizeof(out));
+        if (0 > written)
+        {
+          GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                      "quiche failed to generate version negotiation packet\n");
+          return;
+        }
+        ssize_t sent = GNUNET_NETWORK_socket_sendto (udp_sock,
+                                                     out,
+                                                     written,
+                                                     (struct sockaddr*) &sa,
+                                                     salen);
+        if (sent != written)
+        {
+          GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                      "failed to send version negotiation packet to peer\n");
+          return;
+        }
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "sent %zd bytes to peer during version negotiation\n",
+                    sent);
+        return;
+      }
+
+      if (0 == quic_header.token_len)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "quic stateless retry\n");
+        mint_token (quic_header.dcid, quic_header.dcid_len, &sa, salen,
+                    quic_header.token, &quic_header.token_len);
+
+        uint8_t new_cid[LOCAL_CONN_ID_LEN];
+        GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_STRONG, new_cid,
+                                    LOCAL_CONN_ID_LEN);
+
+        ssize_t written = quiche_retry (quic_header.scid, quic_header.scid_len,
+                                        quic_header.dcid, quic_header.dcid_len,
+                                        new_cid, LOCAL_CONN_ID_LEN,
+                                        quic_header.token,
+                                        quic_header.token_len,
+                                        quic_header.version, out, sizeof(out));
+        if (0 > written)
+        {
+          GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                      "quiche failed to write retry packet\n");
+          return;
+        }
+        ssize_t sent = GNUNET_NETWORK_socket_sendto (udp_sock,
+                                                     out,
+                                                     written,
+                                                     (struct sockaddr*) &sa,
+                                                     salen);
+        if (written != sent)
+        {
+          GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "failed to send retry packet\n");
+          return;
+        }
+
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "sent %zd bytes\n", sent);
+      }
+
+      if (GNUNET_OK != validate_token (quic_header.token, quic_header.token_len,
+                                       &sa, salen,
+                                       quic_header.odcid,
+                                       &quic_header.odcid_len))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "invalid address validation token created\n");
+        return;
+      }
+      peer->conn = create_conn (quic_header.dcid, quic_header.dcid_len,
+                                quic_header.odcid, quic_header.odcid_len,
+                                local_addr, in_len,
+                                &sa, salen);
+      if (NULL == peer->conn)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "failed to create quic connection with peer\n");
+        return;
+      }
+    } // null connection
+
+    quiche_recv_info recv_info = {
+      (struct sockaddr *) &sa,
+      salen,
+
+      local_addr,
+      in_len,
+    };
+    process_pkt = quiche_conn_recv (peer->conn->conn, buf, rcvd, &recv_info);
+    if (0 > process_pkt)
+    {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "failed to create quic connection with peer\n");
+                  "quiche failed to process received packet: %zd\n",
+                  process_pkt);
       return;
     }
-  } // null connection
-
-  quiche_recv_info recv_info = {
-    (struct sockaddr *) &sa,
-    salen,
-
-    local_addr,
-    in_len,
-  };
-  process_pkt = quiche_conn_recv (peer->conn->conn, buf, rcvd, &recv_info);
-  if (0 > process_pkt)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "quiche failed to process received packet: %zd\n",
-                process_pkt);
-    return;
-  }
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "quiche processed %zd bytes\n", process_pkt);
-  /**
-   * Check for connection establishment
-  */
-  if (quiche_conn_is_established (peer->conn->conn))
-  {
-    // Check for data on all available streams
-    recv_from_streams (peer);
-  }
-  /**
-   * TODO: Should we use a list instead of hashmap?
-   * Overhead for hashing function, O(1) retrieval vs O(n) iteration with n=30?
-   *
-   * TODO: Is iteration necessary as in the quiche server example?
-  */
-  quiche_stats stats;
-  quiche_path_stats path_stats;
-
-  flush_egress (peer->conn);
-
-  if (quiche_conn_is_closed (peer->conn->conn))
-  {
-    quiche_conn_stats (peer->conn->conn, &stats);
-    quiche_conn_path_stats (peer->conn->conn, 0, &path_stats);
-
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "connection closed. quiche stats: sent=%zu, recv=%zu\n",
-                stats.sent, stats.recv);
-    peer_destroy (peer);
+                "quiche processed %zd bytes\n", process_pkt);
+    /**
+     * Check for connection establishment
+    */
+    if (quiche_conn_is_established (peer->conn->conn))
+    {
+      // Check for data on all available streams
+      recv_from_streams (peer);
+    }
+    /**
+     * TODO: Should we use a list instead of hashmap?
+     * Overhead for hashing function, O(1) retrieval vs O(n) iteration with n=30?
+     *
+     * TODO: Is iteration necessary as in the quiche server example?
+    */
+    quiche_stats stats;
+    quiche_path_stats path_stats;
+
+    flush_egress (peer->conn);
+
+    if (quiche_conn_is_closed (peer->conn->conn))
+    {
+      quiche_conn_stats (peer->conn->conn, &stats);
+      quiche_conn_path_stats (peer->conn->conn, 0, &path_stats);
+
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "connection closed. quiche stats: sent=%zu, recv=%zu\n",
+                  stats.sent, stats.recv);
+      peer_destroy (peer);
+    }
   }
   GNUNET_free (local_addr);
 }
