@@ -206,12 +206,12 @@ struct InitialKX
    * HMAC for the following encrypted message, using GCM.  HMAC uses
    * key derived from the handshake with sequence number zero.
    */
-  char gcm_tag[GCM_TAG_SIZE];
+  uint8_t gcm_tag[GCM_TAG_SIZE];
 
   /**
    * A flag indicating, if the sender is doing rekeying.
    */
-  int rekeying;
+  uint16_t rekeying;
 };
 
 
@@ -343,12 +343,12 @@ struct UDPBox
    * wrong, the receiver should check if the message might be a
    * `struct UdpHandshakeSignature`.
    */
-  char gcm_tag[GCM_TAG_SIZE];
+  uint8_t gcm_tag[GCM_TAG_SIZE];
 
   /**
    * A flag indicating, if the sender is doing rekeying.
    */
-  int rekeying;
+  uint16_t rekeying;
 };
 
 /**
@@ -373,7 +373,7 @@ struct UDPRekey
    * wrong, the receiver should check if the message might be a
    * `struct UdpHandshakeSignature`.
    */
-  char gcm_tag[GCM_TAG_SIZE];
+  uint8_t gcm_tag[GCM_TAG_SIZE];
 
   /**
    * Sender's identity
@@ -517,7 +517,7 @@ struct SenderAddress
   /**
    * Flag indicating sender is initiated rekeying for this receiver.
    */
-  int rekeying;
+  uint16_t rekeying;
 
   /**
    * To whom are we talking to.
@@ -623,7 +623,7 @@ struct ReceiverAddress
   /**
    * Flag indicating sender is initiated rekeying for this receiver.
    */
-  int rekeying;
+  uint16_t rekeying;
 
   /**
    * Number of kce we retain for sending the rekeying shared secret.
@@ -1337,7 +1337,7 @@ setup_cipher (const struct GNUNET_HashCode *msec,
  */
 static int
 try_decrypt (const struct SharedSecret *ss,
-             const char tag[GCM_TAG_SIZE],
+             const uint8_t *tag,
              uint32_t serial,
              const char *in_buf,
              size_t in_buf_size,
