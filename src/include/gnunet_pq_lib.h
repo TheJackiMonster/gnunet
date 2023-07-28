@@ -28,6 +28,7 @@
 
 #include <libpq-fe.h>
 #include <stdint.h>
+#include "gnunet_common.h"
 #include "gnunet_time_lib.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_db_lib.h"
@@ -198,7 +199,7 @@ enum GNUNET_PQ_DataTypes
 };
 
 /**
- * Returns the oid for a given datatype
+ * Returns the oid for a given, basic datatype
  *
  * @param db The db-connection
  * @param typ the Datatype
@@ -208,6 +209,38 @@ Oid
 GNUNET_PQ_get_oid (
   const struct GNUNET_PQ_Context *db,
   enum GNUNET_PQ_DataTypes typ);
+
+/**
+ * Returns the oid for a given datatype by name.
+ *
+ * @param db The db-connection
+ * @param name The name of the datatype
+ * @param[out] oid The OID of the datatype.
+ * @return GNUNET_OK when the datatype was found, GNUNET_SYSERR otherwise
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_PQ_get_oid_by_name (
+  struct GNUNET_PQ_Context *db,
+  const char *name,
+  Oid *oid);
+
+
+/**
+ * The header for a postgresql array in binary format. note that this a
+ * simplified special case of the general structure (which contains pointers),
+ * as we only support one-dimensional arrays.
+ *
+ * Note that all values must be in network-byte-order.
+ */
+struct GNUNET_PQ_ArrayHeader_P
+{
+  uint32_t ndim;     /* number of dimensions. we only support ndim = 1 */
+  uint32_t has_null;
+  uint32_t oid;      /* oid of the elements */
+  uint32_t dim;      /* size of the array */
+  uint32_t lbound;   /* index value of first element in the db (default: 1). */
+} __attribute__((packed));
+
 
 /**
  * Generate query parameter for an array of bool in host byte order.

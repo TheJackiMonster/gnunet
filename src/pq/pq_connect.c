@@ -430,6 +430,45 @@ GNUNET_PQ_get_oid (
 }
 
 
+enum GNUNET_GenericReturnValue
+GNUNET_PQ_get_oid_by_name (
+  struct GNUNET_PQ_Context *db,
+  const char *name,
+  Oid *oid)
+{
+  char *typname;
+  enum GNUNET_DB_QueryStatus qs;
+  struct GNUNET_PQ_QueryParam params[] = {
+    GNUNET_PQ_query_param_string (name),
+    GNUNET_PQ_query_param_end
+  };
+  struct GNUNET_PQ_ResultSpec rs[] = {
+    GNUNET_PQ_result_spec_string ("typname",
+                                  &typname),
+    GNUNET_PQ_result_spec_uint32 ("oid",
+                                  oid),
+    GNUNET_PQ_result_spec_end
+  };
+
+  GNUNET_assert (NULL != db);
+
+  /* Initialize to Oid(0) (= unknown) */
+  *oid = 0;
+
+  qs = GNUNET_PQ_eval_prepared_singleton_select (db,
+                                                 "gnunet_pq_get_oid_by_name",
+                                                 params,
+                                                 rs);
+  if (GNUNET_DB_STATUS_SUCCESS_ONE_RESULT != qs)
+    return GNUNET_SYSERR;
+
+  if (0 != strcasecmp (typname, name))
+    return GNUNET_SYSERR;
+
+  return GNUNET_OK;
+}
+
+
 void
 GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
 {
@@ -528,6 +567,33 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
     PQfinish (db->conn);
     db->conn = NULL;
     return;
+  }
+
+  /* Prepare statement for OID lookup by name */
+  {
+    PGresult *res;
+
+    res = PQprepare (db->conn,
+                     "gnunet_pq_get_oid_by_name",
+                     "SELECT"
+                     " typname, oid"
+                     " FROM pg_type"
+                     " WHERE typname = $1"
+                     " LIMIT 1",
+                     1,
+                     NULL);
+    if (PGRES_COMMAND_OK != PQresultStatus (res))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Failed to run SQL statement prepare OID lookups: %s/%s\n",
+                  PQresultErrorMessage (res),
+                  PQerrorMessage (db->conn));
+      PQclear (res);
+      PQfinish (db->conn);
+      db->conn = NULL;
+      return;
+    }
+    PQclear (res);
   }
 
   if (NULL != db->auto_suffix)
