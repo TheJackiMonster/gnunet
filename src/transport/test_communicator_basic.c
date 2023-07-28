@@ -405,7 +405,8 @@ process_statistics (void *cls,
   {
     ret = 2;
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Not enough BOX messages!\n");
+                "Not enough BOX messages! (want: %u, have %llu)\n",
+                6000, value);
     GNUNET_SCHEDULER_shutdown ();
   }
   return GNUNET_OK;

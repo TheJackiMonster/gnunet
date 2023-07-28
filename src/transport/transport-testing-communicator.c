@@ -772,6 +772,7 @@ shutdown_process (struct GNUNET_OS_Process *proc)
   GNUNET_OS_process_destroy (proc);
 }
 
+
 /**
  * @brief Task run at shutdown to kill the statistics process
  *
@@ -784,6 +785,7 @@ shutdown_statistics (void *cls)
   shutdown_process (proc);
 }
 
+
 /**
  * @brief Task run at shutdown to kill the peerstore process
  *
@@ -795,6 +797,7 @@ shutdown_peerstore (void *cls)
   struct GNUNET_OS_Process *proc = cls;
   shutdown_process (proc);
 }
+
 
 /**
  * @brief Task run at shutdown to kill a communicator process
@@ -913,6 +916,7 @@ resolver_start (struct
 
 }
 
+
 /**
  * @brief Start Statistics
  *
@@ -942,6 +946,7 @@ statistics_start (
   GNUNET_free (binary);
 }
 
+
 /**
  * @brief Start Peerstore
  *
@@ -970,6 +975,7 @@ peerstore_start (
   LOG (GNUNET_ERROR_TYPE_INFO, "started Peerstore\n");
   GNUNET_free (binary);
 }
+
 
 /**
  * @brief Start NAT
@@ -1200,7 +1206,7 @@ GNUNET_TRANSPORT_TESTING_transport_communicator_send
                              inbox_size,
                              GNUNET_MESSAGE_TYPE_TRANSPORT_SEND_MSG);
   GNUNET_assert (NULL != env);
-  msg->qid = htonl (tc_queue->qid);
+  msg->qid = tc_queue->qid;
   msg->mid = tc_queue->mid++;
   msg->receiver = tc_queue->peer_id;
   mh = (struct GNUNET_MessageHeader *) &msg[1];
