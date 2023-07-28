@@ -554,6 +554,41 @@ main (int argc,
     GNUNET_PQ_disconnect (db);
     return ret;
   }
+
+  /* ensure oid lookup works */
+  {
+    enum GNUNET_GenericReturnValue ret;
+    Oid oid;
+
+    ret = GNUNET_PQ_get_oid_by_name (db, "int8", &oid);
+
+    if (GNUNET_OK != ret)
+    {
+      fprintf (stderr,
+               "Cannot lookup oid for int8: %s\n",
+               PQerrorMessage (db->conn));
+      GNUNET_break (0);
+      GNUNET_PQ_disconnect (db);
+      return 77; /* signal test was skipped */
+    }
+
+    PQexec (db->conn, "CREATE TYPE foo AS (foo int, bar int);");
+
+    ret = GNUNET_PQ_get_oid_by_name (db, "foo", &oid);
+    if (GNUNET_OK != ret)
+    {
+      fprintf (stderr,
+               "Cannot lookup oid for foo: %s\n",
+               PQerrorMessage (db->conn));
+      GNUNET_break (0);
+      GNUNET_PQ_disconnect (db);
+      return 77; /* signal test was skipped */
+    }
+
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                "got oid %d for type foo\n", oid);
+  }
+
   GNUNET_SCHEDULER_run (&sched_tests,
                         NULL);
   if (0 != ret)
