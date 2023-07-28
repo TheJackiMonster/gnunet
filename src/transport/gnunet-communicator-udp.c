@@ -208,10 +208,6 @@ struct InitialKX
    */
   uint8_t gcm_tag[GCM_TAG_SIZE];
 
-  /**
-   * A flag indicating, if the sender is doing rekeying.
-   */
-  uint16_t rekeying;
 };
 
 
@@ -345,10 +341,6 @@ struct UDPBox
    */
   uint8_t gcm_tag[GCM_TAG_SIZE];
 
-  /**
-   * A flag indicating, if the sender is doing rekeying.
-   */
-  uint16_t rekeying;
 };
 
 /**
@@ -375,10 +367,6 @@ struct UDPRekey
    */
   uint8_t gcm_tag[GCM_TAG_SIZE];
 
-  /**
-   * Sender's identity
-   */
-  struct GNUNET_PeerIdentity sender;
 };
 
 GNUNET_NETWORK_STRUCT_END
@@ -1677,40 +1665,56 @@ handle_ack (void *cls, const struct GNUNET_PeerIdentity *pid, void *value)
  * @param sender peer to process inbound plaintext for
  * @param buf buffer we received
  * @param buf_size number of bytes in @a buf
+ * @return rekey_indication GNUNET_YES if a rekey is signalled
  */
-static void
+static uint16_t
 try_handle_plaintext (struct SenderAddress *sender,
                       const void *buf,
                       size_t buf_size)
 {
-  const struct GNUNET_MessageHeader *hdr =
-    (const struct GNUNET_MessageHeader *) buf;
-  const struct UDPAck *ack = (const struct UDPAck *) buf;
+  const struct GNUNET_MessageHeader *hdr;
+  const struct UDPAck *ack;
+  const char *buf_pos = buf;
+  size_t bytes_remaining = buf_size;
   uint16_t type;
+  uint16_t rekey;
 
+  if (sizeof (uint16_t) > buf_size)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Plaintext too short, dropping...\n");
+    rekey = ntohs (*(uint16_t*) buf);
+    return GNUNET_NO;
+  }
+  bytes_remaining -= sizeof (uint16_t);
+  buf_pos += sizeof (uint16_t);
+  hdr = (struct GNUNET_MessageHeader*) buf_pos;
+  if (sizeof(*hdr) > bytes_remaining)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Plaintext too short, dropping...\n");
+    return rekey; /* no data left */
+  }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "try_handle_plaintext of size %lu (%u %lu) and type %u\n",
-              buf_size,
+              bytes_remaining,
               ntohs (hdr->size),
               sizeof(*hdr),
               ntohs (hdr->type));
-  if (sizeof(*hdr) > buf_size)
-    return; /* not even a header */
-  if (ntohs (hdr->size) > buf_size)
-    return; /* not even a header */
+  if (ntohs (hdr->size) > bytes_remaining)
+    return GNUNET_NO; /* buffer too short for indicated message length */
   type = ntohs (hdr->type);
   switch (type)
   {
   case GNUNET_MESSAGE_TYPE_COMMUNICATOR_UDP_ACK:
     /* lookup master secret by 'cmac', then update sequence_max */
+    ack = (struct UDPAck*) buf_pos;
     GNUNET_CONTAINER_multipeermap_get_multiple (receivers,
                                                 &sender->target,
                                                 &handle_ack,
                                                 (void *) ack);
     /* There could be more messages after the ACK, handle those as well */
-    buf += ntohs (hdr->size);
-    buf_size -= ntohs (hdr->size);
-    pass_plaintext_to_core (sender, buf, buf_size);
+    buf_pos += ntohs (hdr->size);
+    bytes_remaining -= ntohs (hdr->size);
+    pass_plaintext_to_core (sender, buf_pos, bytes_remaining);
     break;
 
   case GNUNET_MESSAGE_TYPE_COMMUNICATOR_UDP_PAD:
@@ -1718,8 +1722,9 @@ try_handle_plaintext (struct SenderAddress *sender,
     break;
 
   default:
-    pass_plaintext_to_core (sender, buf, buf_size);
+    pass_plaintext_to_core (sender, buf_pos, bytes_remaining);
   }
+  return rekey;
 }
 
 
@@ -1911,6 +1916,7 @@ decrypt_box (const struct UDPBox *box,
 {
   struct SharedSecret *ss = kce->ss;
   char out_buf[box_len - sizeof(*box)];
+  uint16_t rekeying;
 
   GNUNET_assert (NULL != ss->sender);
   if (GNUNET_OK != try_decrypt (ss,
@@ -1939,8 +1945,8 @@ decrypt_box (const struct UDPBox *box,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "decrypted UDPBox with kid %s\n",
               GNUNET_sh2s (&box->kid));
-  try_handle_plaintext (ss->sender, out_buf, sizeof(out_buf));
-  if ((GNUNET_NO == box->rekeying) && (GNUNET_YES == ss->sender->rekeying))
+  rekeying = try_handle_plaintext (ss->sender, out_buf, sizeof(out_buf));
+  if ((GNUNET_NO == rekeying) && (GNUNET_YES == ss->sender->rekeying))
   {
     ss->sender->rekeying = GNUNET_NO;
     ss->sender->ss_rekey = NULL;
@@ -1966,19 +1972,19 @@ decrypt_box (const struct UDPBox *box,
 static void
 decrypt_rekey (const struct UDPRekey *rekey,
                size_t rekey_len,
-               struct KeyCacheEntry *kce,
-               struct SenderAddress *sender)
+               struct KeyCacheEntry *kce)
 {
   struct SharedSecret *ss = kce->ss;
   struct SharedSecret *ss_rekey;
   char out_buf[rekey_len - sizeof(*rekey)];
   struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral_pubkey;
-
+  struct SenderAddress *sender;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "decrypt_rekey.\n");
 
   GNUNET_assert (NULL != ss->sender);
+  sender = ss->sender;
   if (GNUNET_OK != try_decrypt (ss,
                                 rekey->gcm_tag,
                                 kce->sequence_number,
@@ -2239,34 +2245,17 @@ sock_read (void *cls)
       const struct UDPRekey *rekey;
       const struct UDPBox *box;
       struct KeyCacheEntry *kce;
-      struct SenderAddress *sender;
       int do_decrypt = GNUNET_NO;
 
       rekey = (const struct UDPRekey *) buf;
-      box = (const struct UDPBox *) buf;
       kce = GNUNET_CONTAINER_multishortmap_get (key_cache, &rekey->kid);
 
-      if ((GNUNET_YES == box->rekeying) || (GNUNET_NO == box->rekeying))
-        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                    "UDPRekey has rekeying %u\n",
-                    box->rekeying);
-      else
-        do_decrypt = GNUNET_YES;
-
-      if ((GNUNET_YES == do_decrypt) && (NULL != kce) && (GNUNET_YES ==
-                                                          kce->ss->sender->
-                                                          rekeying))
+      if ((NULL != kce) && (GNUNET_YES == kce->ss->sender->rekeying))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                     "UDPRekey with kid %s\n",
                     GNUNET_sh2s (&rekey->kid));
-        sender = setup_sender (&rekey->sender, (const struct sockaddr *) &sa,
-                               salen);
-
-        if (NULL != sender->ss_rekey)
-          return;
-
-        decrypt_rekey (rekey, (size_t) rcvd, kce, sender);
+        decrypt_rekey (rekey, (size_t) rcvd, kce);
         return;
       }
     }
@@ -2372,6 +2361,7 @@ sock_read (void *cls)
       char pbuf[rcvd - sizeof(struct InitialKX)];
       const struct UDPConfirmation *uc;
       struct SenderAddress *sender;
+      uint16_t rekeying;
 
       kx = (const struct InitialKX *) buf;
       ss = setup_shared_secret_dec (&kx->ephemeral);
@@ -2422,8 +2412,9 @@ sock_read (void *cls)
                                 "# messages decrypted without BOX",
                                 1,
                                 GNUNET_NO);
-      try_handle_plaintext (sender, &uc[1], sizeof(pbuf) - sizeof(*uc));
-      if ((GNUNET_NO == kx->rekeying) && (GNUNET_YES == ss->sender->rekeying))
+      rekeying = try_handle_plaintext (sender, &uc[1], sizeof(pbuf)
+                                       - sizeof(*uc));
+      if ((GNUNET_NO == rekeying) && (GNUNET_YES == ss->sender->rekeying))
       {
         ss->sender->rekeying = GNUNET_NO;
         sender->ss_rekey = NULL;
@@ -2431,7 +2422,7 @@ sock_read (void *cls)
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                     "Receiver stopped rekeying.\n");
       }
-      else if (GNUNET_NO == kx->rekeying)
+      else if (GNUNET_NO == rekeying)
         consider_ss_ack (ss, GNUNET_YES);
       else
       {
@@ -2627,6 +2618,7 @@ mq_send_kx (struct GNUNET_MQ_Handle *mq,
   char dgram[receiver->kx_mtu + sizeof(uc) + sizeof(kx)];
   size_t dpos;
   gcry_cipher_hd_t out_cipher;
+  uint16_t rekey_nbo;
   struct SharedSecret *ss;
 
   GNUNET_assert (mq == receiver->kx_mq);
@@ -2671,6 +2663,13 @@ mq_send_kx (struct GNUNET_MQ_Handle *mq,
                                            &uc,
                                            sizeof(uc)));
   dpos += sizeof(uc);
+  rekey_nbo = htons (receiver->rekeying);
+  GNUNET_assert (0 == gcry_cipher_encrypt (out_cipher,
+                                           &dgram[dpos],
+                                           sizeof (uint16_t),
+                                           &rekey_nbo,
+                                           sizeof(uint16_t)));
+  dpos += sizeof (uint16_t);
   /* Append encrypted payload to dgram */
   GNUNET_assert (
     0 == gcry_cipher_encrypt (out_cipher, &dgram[dpos], msize, msg, msize));
@@ -2681,10 +2680,6 @@ mq_send_kx (struct GNUNET_MQ_Handle *mq,
   GNUNET_assert (
     0 == gcry_cipher_gettag (out_cipher, kx.gcm_tag, sizeof(kx.gcm_tag)));
   gcry_cipher_close (out_cipher);
-  if (GNUNET_NO == receiver->rekeying)
-    kx.rekeying = GNUNET_NO;
-  else
-    kx.rekeying = GNUNET_YES;
   memcpy (dgram, &kx, sizeof(kx));
   if (-1 == GNUNET_NETWORK_socket_sendto (udp_sock,
                                           dgram,
@@ -2702,7 +2697,7 @@ mq_send_kx (struct GNUNET_MQ_Handle *mq,
 
 
 static void
-check_for_rekeying (struct ReceiverAddress *receiver, struct UDPBox *box)
+check_for_rekeying (struct ReceiverAddress *receiver)
 {
 
   struct GNUNET_TIME_Relative rt;
@@ -2742,13 +2737,6 @@ check_for_rekeying (struct ReceiverAddress *receiver, struct UDPBox *box)
       // destroy_all_secrets (ss, GNUNET_NO);
       receiver->rekeying = GNUNET_YES;
       receiver->rekey_acks_available = receiver->acks_available;
-      box->rekeying = GNUNET_YES;
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Sender started rekeying.\n");
-      if (GNUNET_YES == box->rekeying)
-        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                    "Sending rekeying with kid %s\n",
-                    GNUNET_sh2s (&box->kid));
     }
   }
 }
@@ -2809,7 +2797,6 @@ send_UDPRekey (struct ReceiverAddress *receiver, struct SharedSecret *ss)
     if (NULL != ss)
     {
       rekey = (struct UDPRekey *) rekey_dgram;
-      rekey->sender = my_identity;
       ss->sequence_used++;
       get_kid (&ss->master, ss->sequence_used, &rekey->kid);
       receiver->number_rekeying_kce--;
@@ -2909,6 +2896,7 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
     struct UDPBox *box;
     gcry_cipher_hd_t out_cipher;
     size_t dpos;
+    uint16_t rekey_nbo;
 
     box = (struct UDPBox *) dgram;
     ss->sequence_used++;
@@ -2916,6 +2904,11 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
     setup_cipher (&ss->master, ss->sequence_used, &out_cipher);
     /* Append encrypted payload to dgram */
     dpos = sizeof(struct UDPBox);
+    rekey_nbo = htons (receiver->rekeying);
+    GNUNET_assert (
+      0 == gcry_cipher_encrypt (out_cipher, &dgram[dpos], sizeof (uint16_t),
+                                &rekey_nbo, sizeof (uint16_t)));
+    dpos += sizeof (uint16_t);
     GNUNET_assert (
       0 == gcry_cipher_encrypt (out_cipher, &dgram[dpos], msize, msg, msize));
     dpos += msize;
@@ -2926,11 +2919,6 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
     gcry_cipher_close (out_cipher);
 
     receiver->rekey_send_bytes += sizeof(struct UDPBox) + receiver->d_mtu;
-
-    if (GNUNET_NO == receiver->rekeying)
-      box->rekeying = GNUNET_NO;
-    else
-      box->rekeying = GNUNET_YES;
 
     if (-1 == GNUNET_NETWORK_socket_sendto (udp_sock,
                                             dgram,
@@ -2947,7 +2935,7 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "%u receiver->acks_available 2\n",
                 receiver->acks_available);
-    check_for_rekeying (receiver, box);
+    check_for_rekeying (receiver);
     if (0 == receiver->acks_available - receiver->number_rekeying_kce)
     {
       /* We have no more ACKs */
