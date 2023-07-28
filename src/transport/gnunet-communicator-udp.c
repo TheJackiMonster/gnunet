@@ -93,7 +93,7 @@
  */
 #define GCM_TAG_SIZE (128 / 8)
 
-#define GENERATE_AT_ONCE 2
+#define GENERATE_AT_ONCE 100
 
 /**
  * If we fall below this number of available KCNs,
@@ -1605,7 +1605,7 @@ handle_ack (void *cls, const struct GNUNET_PeerIdentity *pid, void *value)
                   "%u > %u (%u %u) for rekey secrect %s\n", allowed,
                   receiver->ss_rekey->sequence_allowed,
                   receiver->acks_available,
-                  ack->acks_available,
+                  ntohl (ack->acks_available),
                   GNUNET_h2s (&receiver->ss_rekey->master));
 
       receiver->ss_rekey->sequence_allowed = allowed;
@@ -1631,10 +1631,10 @@ handle_ack (void *cls, const struct GNUNET_PeerIdentity *pid, void *value)
       if (allowed > ss->sequence_allowed)
       {
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                    "%u > %u (%u %u) for secrect %s\n", allowed,
+                    "%u > %u (%u %u) for secret %s\n", allowed,
                     ss->sequence_allowed,
                     receiver->acks_available,
-                    ack->acks_available,
+                    ntohl (ack->acks_available),
                     GNUNET_h2s (&ss->master));
         acks_to_add = (allowed - ss->sequence_allowed);
         if ((GNUNET_NO == receiver->rekeying) &&
@@ -1742,7 +1742,8 @@ kce_generate_cb (void *cls)
   {
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Precomputing keys for master %s\n",
+                "Precomputing %u keys for master %s\n",
+                GENERATE_AT_ONCE,
                 GNUNET_h2s (&(ss->master)));
 
     for (int i = 0; i < GENERATE_AT_ONCE; i++)
@@ -1862,10 +1863,11 @@ consider_ss_ack (struct SharedSecret *ss, int initial)
     ack.header.type = htons (GNUNET_MESSAGE_TYPE_COMMUNICATOR_UDP_ACK);
     ack.header.size = htons (sizeof(ack));
     ack.sequence_max = htonl (ss_tell->sequence_allowed);
-    ack.acks_available = ss->sender->acks_available;
+    ack.acks_available = htonl (ss->sender->acks_available);
     ack.cmac = ss_tell->cmac;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Notifying transport of UDPAck %s with initial %u and master %s\n",
+                "Notifying transport of %u acks with UDPAck %s and initial %u and master %s\n",
+                ack.acks_available,
                 GNUNET_i2s_full (&ss_tell->sender->target),
                 initial,
                 GNUNET_h2s (&(ss_tell->master)));
@@ -1879,17 +1881,20 @@ consider_ss_ack (struct SharedSecret *ss, int initial)
       ss->sender->kce_task_finished = GNUNET_NO;
     }
   }
-  else if ((NULL == kce_task) && ((KCN_THRESHOLD >
-                                   ss->sender->acks_available) ||
-                                  (GNUNET_YES == ss->sender->rekeying) ||
-                                  (ss->sender->num_secrets > MAX_SECRETS) ))
+  else if ((NULL == ss->sender->kce_task) && ((KCN_THRESHOLD >
+                                               ss->sender->acks_available) ||
+                                              (GNUNET_YES ==
+                                               ss->sender->rekeying) ||
+                                              (ss->sender->num_secrets >
+                                               MAX_SECRETS) ))
   {
 
     // TODO This task must be per sender! FIXME: This is a nice todo, but I do not know what must be done here to fix.
-    kce_task = GNUNET_SCHEDULER_add_delayed (WORKING_QUEUE_INTERVALL,
-                                             kce_generate_cb,
-                                             ss);
-    kce_task_finished = GNUNET_NO;
+    ss->sender->kce_task = GNUNET_SCHEDULER_add_delayed (
+      WORKING_QUEUE_INTERVALL,
+      kce_generate_cb,
+      ss);
+    ss->sender->kce_task_finished = GNUNET_NO;
 
   }
   else if ((NULL == kce_task_rekey) && (GNUNET_YES ==
@@ -1953,7 +1958,7 @@ decrypt_box (const struct UDPBox *box,
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Receiver stopped rekeying.\n");
   }
-  else
+  else if (GNUNET_YES == rekeying)
   {
     ss->sender->rekeying = GNUNET_YES;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -2270,6 +2275,9 @@ sock_read (void *cls)
       kce = GNUNET_CONTAINER_multishortmap_get (key_cache, &box->kid);
       if (NULL != kce)
       {
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "Found KCE with kid %s\n",
+                    GNUNET_sh2s (&box->kid));
         decrypt_box (box, (size_t) rcvd, kce);
         continue;
       }
@@ -2755,22 +2763,7 @@ send_UDPRekey (struct ReceiverAddress *receiver, struct SharedSecret *ss)
 
   char rekey_dgram[sizeof(struct UDPRekey) + receiver->d_mtu];
 
-  if (NULL != receiver->ss_rekey)
-  {
-    not_below = (receiver->rekey_acks_available
-                 - (receiver->rekey_acks_available % 3)) / 3;
-    is_ss_rekey_sequence_allowed_zero = (0 ==
-                                         receiver->ss_rekey->sequence_allowed);
-    is_acks_available_below = (receiver->acks_available >= not_below);
-    send_rekey = (0 == (receiver->acks_available - not_below) % not_below) &&
-                 is_acks_available_below && is_ss_rekey_sequence_allowed_zero;
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "send_rekey: %u, %u, %u\n",
-                send_rekey,
-                receiver->rekey_acks_available,
-                receiver->acks_available);
-  }
-  else if (NULL == receiver->ss_rekey)
+  if (NULL == receiver->ss_rekey)
   {
     /* setup key material */
     receiver->ss_rekey = setup_shared_secret_ephemeral (&ephemeral_pubkey,
@@ -2783,6 +2776,18 @@ send_UDPRekey (struct ReceiverAddress *receiver, struct SharedSecret *ss)
                 "Setup secret with master %s.\n",
                 GNUNET_h2s (&(receiver->ss_rekey->master)));
   }
+  not_below = (receiver->rekey_acks_available
+               - (receiver->rekey_acks_available % 3)) / 3;
+  is_ss_rekey_sequence_allowed_zero = (0 ==
+                                       receiver->ss_rekey->sequence_allowed);
+  is_acks_available_below = (receiver->acks_available >= not_below);
+  send_rekey = (0 == (receiver->acks_available - not_below) % not_below) &&
+               is_acks_available_below && is_ss_rekey_sequence_allowed_zero;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "send_rekey: %u, %u, %u\n",
+              send_rekey,
+              receiver->rekey_acks_available,
+              receiver->acks_available);
 
   if (send_rekey)
   {
@@ -2952,10 +2957,12 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
                                              sequence_allowed) )
           add_acks_rekey (receiver);
       }
-    }
-    else if ((GNUNET_YES == receiver->rekeying)  )
-    {
-      send_UDPRekey (receiver, ss);
+      else
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "rekeying\n");
+        send_UDPRekey (receiver, ss);
+      }
     }
 
     return;

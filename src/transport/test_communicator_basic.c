@@ -91,7 +91,7 @@ static struct GNUNET_STATISTICS_GetHandle *rekey_stats[NUM_PEERS];
 
 #define ALLOWED_PACKET_LOSS 91
 
-#define BURST_PACKETS 5000
+#define BURST_PACKETS 15000
 
 #define TOTAL_ITERATIONS 1
 
