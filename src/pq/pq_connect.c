@@ -693,6 +693,10 @@ GNUNET_PQ_disconnect (struct GNUNET_PQ_Context *db)
   GNUNET_free (db->load_path);
   GNUNET_free (db->auto_suffix);
   GNUNET_free (db->config_str);
+  GNUNET_free (db->oids.table);
+  db->oids.table = NULL;
+  db->oids.num = 0;
+  db->oids.cap = 0;
   PQfinish (db->conn);
   GNUNET_free (db);
 }
