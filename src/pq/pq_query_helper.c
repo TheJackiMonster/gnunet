@@ -797,8 +797,13 @@ qconv_array (
         }
       case array_of_uint64:
         {
+          uint64_t tmp;
           GNUNET_assert (sizeof(uint64_t) == sz);
-          *(uint64_t *) out = GNUNET_htonll (*(uint64_t *) in);
+
+          tmp = GNUNET_htonll (*(uint64_t *) in);
+          GNUNET_memcpy (out,
+                         &tmp,
+                         sizeof(tmp));
           in  += sz;
           break;
         }
@@ -815,7 +820,9 @@ qconv_array (
           else
             ptr = ((const void **) data)[i];
 
-          GNUNET_memcpy (out, ptr, sz);
+          GNUNET_memcpy (out,
+                         ptr,
+                         sz);
           break;
         }
       case array_of_abs_time:
@@ -874,7 +881,10 @@ qconv_array (
           if (val > INT64_MAX)
             val = INT64_MAX;
 
-          *(uint64_t *) out = GNUNET_htonll (val);
+          val = GNUNET_htonll (val);
+          GNUNET_memcpy (out,
+                         &val,
+                         sizeof(val));
 
           if (meta->continuous)
             in += sz;
