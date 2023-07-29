@@ -102,7 +102,21 @@ struct GNUNET_PQ_Context
   /**
    * Mapping between array types and Oid's, filled at reconnect
    */
-  Oid oids[GNUNET_PQ_DATATYPE_MAX];
+  struct
+  {
+    /* allocated number of elements array @table */
+    unsigned int cap;
+
+    /* number of entries in @table */
+    unsigned int num;
+
+    struct name2oid
+    {
+      const char *name;
+      Oid oid;
+    } *table;
+
+  } oids;
 };
 
 

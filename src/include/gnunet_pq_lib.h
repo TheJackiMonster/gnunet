@@ -132,13 +132,13 @@ GNUNET_PQ_cleanup_query_params_closures (
  * End of query parameter specification.
  */
 #define GNUNET_PQ_query_param_end \
-        {                               \
-          .conv = NULL,                 \
-          .conv_cls = NULL,             \
-          .data = NULL,                 \
-          .size = 0,                    \
-          .num_params = 0               \
-        }
+  {                               \
+    .conv = NULL,                 \
+    .conv_cls = NULL,             \
+    .data = NULL,                 \
+    .size = 0,                    \
+    .num_params = 0               \
+  }
 
 
 /**
@@ -181,34 +181,6 @@ GNUNET_PQ_query_param_string (const char *ptr);
  */
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_bool (bool b);
-
-
-/**
- *  Array types (in Postgres) that are supported in GNUnet.
- */
-enum GNUNET_PQ_DataTypes
-{
-  GNUNET_PQ_DATATYPE_UNKNOWN, /* Unsupported type */
-  GNUNET_PQ_DATATYPE_BOOL,
-  GNUNET_PQ_DATATYPE_INT2,
-  GNUNET_PQ_DATATYPE_INT4,
-  GNUNET_PQ_DATATYPE_INT8,
-  GNUNET_PQ_DATATYPE_BYTEA,
-  GNUNET_PQ_DATATYPE_VARCHAR,
-  GNUNET_PQ_DATATYPE_MAX, /* Must be last */
-};
-
-/**
- * Returns the oid for a given, basic datatype
- *
- * @param db The db-connection
- * @param typ the Datatype
- * @return The oid
- */
-Oid
-GNUNET_PQ_get_oid (
-  const struct GNUNET_PQ_Context *db,
-  enum GNUNET_PQ_DataTypes typ);
 
 /**
  * Returns the oid for a given datatype by name.
@@ -254,7 +226,7 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_bool (
   unsigned int num,
   const bool *elements,
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate query parameter for an array of uint16_t in host byte order.
@@ -269,7 +241,7 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_uint16 (
   unsigned int num,
   const uint16_t *elements,
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate query parameter for an array of uint32_t in host byte order.
@@ -284,7 +256,7 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_uint32 (
   unsigned int num,
   const uint32_t *elements,
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate query parameter for an array of uint64 in host byte order.
@@ -299,7 +271,7 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_uint64 (
   unsigned int num,
   const uint64_t *elements,
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate query parameter for an array of buffers @a elements, each of
@@ -316,7 +288,7 @@ GNUNET_PQ_query_param_array_bytes (
   unsigned int num,
   const void *elements,
   const size_t *sizes,
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate query parameter for an array of buffers @a elements,
@@ -333,7 +305,7 @@ GNUNET_PQ_query_param_array_bytes_same_size (
   unsigned int num,
   const void *elements,
   size_t same_size,
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate array of equal-sized query parameter with size determined
@@ -345,10 +317,10 @@ GNUNET_PQ_query_param_array_bytes_same_size (
  * @return query parameter to use
  */
 #define GNUNET_PQ_query_param_array_auto_from_type(num, elements, db) \
-        GNUNET_PQ_query_param_array_bytes_same_size ((num), \
-                                                     (elements), \
-                                                     sizeof(*(elements)), \
-                                                     (db))
+  GNUNET_PQ_query_param_array_bytes_same_size ((num), \
+                                               (elements), \
+                                               sizeof(*(elements)), \
+                                               (db))
 
 /**
  * Generate query parameter for an array of pointers to buffers @a elements,
@@ -365,7 +337,7 @@ GNUNET_PQ_query_param_array_ptrs_bytes_same_size (
   unsigned int num,
   const void *elements[],
   size_t same_size,
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate array of equal-sized query parameter with size determined by
@@ -378,10 +350,10 @@ GNUNET_PQ_query_param_array_ptrs_bytes_same_size (
  * @return query parameter to use
  */
 #define GNUNET_PQ_query_param_array_ptrs_auto_from_type(num, elements, db) \
-        GNUNET_PQ_query_param_array_ptrs_bytes_same_size ((num), \
-                                                          (elements), \
-                                                          sizeof(*(elements[0])), \
-                                                          (db))
+  GNUNET_PQ_query_param_array_ptrs_bytes_same_size ((num), \
+                                                    (elements), \
+                                                    sizeof(*(elements[0])), \
+                                                    (db))
 
 
 /**
@@ -396,7 +368,7 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_string (
   unsigned int num,
   const char *elements,
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 
 /**
@@ -411,7 +383,7 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_ptrs_string (
   unsigned int num,
   const char *elements[],
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate fixed-size query parameter with size determined
@@ -421,7 +393,7 @@ GNUNET_PQ_query_param_array_ptrs_string (
  * @return query parameter to use
  */
 #define GNUNET_PQ_query_param_auto_from_type(x) \
-        GNUNET_PQ_query_param_fixed_size ((x), sizeof(*(x)))
+  GNUNET_PQ_query_param_fixed_size ((x), sizeof(*(x)))
 
 /**
  * Generate query parameter for an array of absolute time stamps (continuous)
@@ -434,7 +406,7 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_abs_time (
   unsigned int num,
   const struct GNUNET_TIME_Absolute *elements,
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate query parameter for an array of absolute time stamps (pointers)
@@ -447,7 +419,7 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_ptrs_abs_time (
   unsigned int num,
   const struct GNUNET_TIME_Absolute *elements[],
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate query parameter for an array of relative time stamps (continuous)
@@ -460,7 +432,7 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_rel_time (
   unsigned int num,
   const struct GNUNET_TIME_Relative *elements,
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate query parameter for an array of relative time stamps (pointers)
@@ -473,7 +445,7 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_ptrs_rel_time (
   unsigned int num,
   const struct GNUNET_TIME_Relative *elements[],
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate query parameter for an array of time stamps (continuous)
@@ -486,7 +458,7 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_timestamp (
   unsigned int num,
   const struct GNUNET_TIME_Timestamp *elements,
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate query parameter for an array of time stamps (pointers)
@@ -499,7 +471,7 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_ptrs_timestamp (
   unsigned int num,
   const struct GNUNET_TIME_Timestamp *elements[],
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate query parameter for an RSA public key.  The
@@ -712,17 +684,17 @@ struct GNUNET_PQ_ResultSpec
  * @return array last entry for the result specification to use
  */
 #define GNUNET_PQ_result_spec_end         \
-        {                                       \
-          .conv = NULL,                         \
-          .cleaner = NULL,                      \
-          .cls = NULL,                          \
-          .dst = NULL,                          \
-          .dst_size = 0,                        \
-          .fname = NULL,                        \
-          .result_size = NULL,                  \
-          .is_nullable = false,                 \
-          .is_null = NULL                       \
-        }
+  {                                       \
+    .conv = NULL,                         \
+    .cleaner = NULL,                      \
+    .cls = NULL,                          \
+    .dst = NULL,                          \
+    .dst_size = 0,                        \
+    .fname = NULL,                        \
+    .result_size = NULL,                  \
+    .is_nullable = false,                 \
+    .is_null = NULL                       \
+  }
 
 
 /**
@@ -775,7 +747,7 @@ GNUNET_PQ_result_spec_fixed_size (const char *name,
  * @return array entry for the result specification to use
  */
 #define GNUNET_PQ_result_spec_auto_from_type(name, dst) \
-        GNUNET_PQ_result_spec_fixed_size (name, (dst), sizeof(*(dst)))
+  GNUNET_PQ_result_spec_fixed_size (name, (dst), sizeof(*(dst)))
 
 
 /**
@@ -932,7 +904,7 @@ GNUNET_PQ_result_spec_uint64 (const char *name,
  */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_bool (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   bool **bools);
@@ -948,7 +920,7 @@ GNUNET_PQ_result_spec_array_bool (
  */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_uint16 (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   uint16_t **dst);
@@ -964,7 +936,7 @@ GNUNET_PQ_result_spec_array_uint16 (
  */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_uint32 (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   uint32_t **dst);
@@ -980,7 +952,7 @@ GNUNET_PQ_result_spec_array_uint32 (
  */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_uint64 (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   uint64_t **dst);
@@ -997,7 +969,7 @@ GNUNET_PQ_result_spec_array_uint64 (
  */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_abs_time (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   struct GNUNET_TIME_Absolute **dst);
@@ -1013,7 +985,7 @@ GNUNET_PQ_result_spec_array_abs_time (
  */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_rel_time (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   struct GNUNET_TIME_Relative **dst);
@@ -1030,7 +1002,7 @@ GNUNET_PQ_result_spec_array_rel_time (
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_timestamp (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   struct GNUNET_TIME_Timestamp **dst);
@@ -1047,7 +1019,7 @@ GNUNET_PQ_result_spec_array_timestamp (
  */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_variable_size (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   size_t **sizes,
@@ -1066,7 +1038,7 @@ GNUNET_PQ_result_spec_array_variable_size (
  */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_fixed_size (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t size,
   size_t *num,
@@ -1083,12 +1055,12 @@ GNUNET_PQ_result_spec_array_fixed_size (
  * @return array entry for the result specification to use
  */
 #define GNUNET_PQ_result_spec_auto_array_from_type(db, name, num, dst) \
-        GNUNET_PQ_result_spec_array_fixed_size ( \
-          (db), \
-          (name), \
-          sizeof(*(dst)), \
-          (num), \
-          (void *) &(dst))
+  GNUNET_PQ_result_spec_array_fixed_size ( \
+    (db), \
+    (name), \
+    sizeof(*(dst)), \
+    (num), \
+    (void *) &(dst))
 
 
 /**
@@ -1102,7 +1074,7 @@ GNUNET_PQ_result_spec_array_fixed_size (
  */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_string (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   char **dst);
@@ -1280,9 +1252,9 @@ struct GNUNET_PQ_PreparedStatement
  * Terminator for prepared statement list.
  */
 #define GNUNET_PQ_PREPARED_STATEMENT_END \
-        {                                      \
-          NULL, NULL                           \
-        }
+  {                                      \
+    NULL, NULL                           \
+  }
 
 
 /**
@@ -1352,9 +1324,9 @@ struct GNUNET_PQ_ExecuteStatement
  * Terminator for executable statement list.
  */
 #define GNUNET_PQ_EXECUTE_STATEMENT_END \
-        {                                     \
-          NULL, GNUNET_SYSERR                 \
-        }
+  {                                     \
+    NULL, GNUNET_SYSERR                 \
+  }
 
 
 /**
