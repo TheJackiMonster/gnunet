@@ -260,7 +260,7 @@ handle_communicator_backchannel (void *cls,
   }
   /* Find client providing this communicator */
   /* Finally, deliver backchannel message to communicator */
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
+  LOG (GNUNET_ERROR_TYPE_ERROR,
        "Delivering backchannel message of type %u to %s\n",
        ntohs (msg->type),
        target_communicator);
