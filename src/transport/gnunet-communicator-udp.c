@@ -493,6 +493,11 @@ struct SharedSecret
    * Is the kce_task finished?
    */
   int kce_task_finished;
+
+  /**
+   * When KCE finishes, send ACK if GNUNET_YES
+   */
+  int kce_send_ack_on_finish;
 };
 
 
@@ -1590,7 +1595,8 @@ kce_generate_cb (void *cls)
   GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
               "We have enough keys.\n");
   ss->kce_task_finished = GNUNET_YES;
-  consider_ss_ack (ss);
+  if (ss->kce_send_ack_on_finish == GNUNET_YES)
+    consider_ss_ack (ss);
 }
 
 
@@ -1654,6 +1660,7 @@ try_handle_plaintext (struct SenderAddress *sender,
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "We have %u acks available.\n",
                 ss_rekey->sender->acks_available);
+    ss_rekey->kce_send_ack_on_finish = GNUNET_NO;
     ss_rekey->kce_task = GNUNET_SCHEDULER_add_delayed (
       WORKING_QUEUE_INTERVALL,
       kce_generate_cb,
@@ -1960,6 +1967,7 @@ sock_read (void *cls)
           GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                       "Sender has %u ack left which is under threshold.\n",
                       kce->ss->sender->acks_available);
+          kce->ss->kce_send_ack_on_finish = GNUNET_YES;
           kce->ss->kce_task = GNUNET_SCHEDULER_add_delayed (
             WORKING_QUEUE_INTERVALL,
             kce_generate_cb,
@@ -2103,6 +2111,7 @@ sock_read (void *cls)
                                      ss->kce_task_finished))
       {
         // TODO This task must be per sender! FIXME: This is a nice todo, but I do not know what must be done here to fix.
+        ss->kce_send_ack_on_finish = GNUNET_YES;
         ss->kce_task = GNUNET_SCHEDULER_add_delayed (
           WORKING_QUEUE_INTERVALL,
           kce_generate_cb,
@@ -2564,10 +2573,13 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
     setup_cipher (&ss->master, ss->sequence_used, &out_cipher);
     /* Append encrypted payload to dgram */
     dpos = sizeof(struct UDPBox);
-    GNUNET_assert (
-      0 == gcry_cipher_encrypt (out_cipher, &dgram[dpos], sizeof (rekey),
-                                &rekey, sizeof (rekey)));
-    dpos += sizeof (rekey);
+    if (GNUNET_YES == inject_rekey)
+    {
+      GNUNET_assert (
+        0 == gcry_cipher_encrypt (out_cipher, &dgram[dpos], sizeof (rekey),
+                                  &rekey, sizeof (rekey)));
+      dpos += sizeof (rekey);
+    }
     GNUNET_assert (
       0 == gcry_cipher_encrypt (out_cipher, &dgram[dpos], msize, msg, msize));
     dpos += msize;
