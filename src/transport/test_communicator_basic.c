@@ -792,7 +792,7 @@ add_queue_cb (void *cls,
     return;
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Queue established, starting test...\n");
-  if (UINT32_MAX != mtu) /* Message header overhead */
+  if (UINT16_MAX != mtu) /* Message header overhead */
     long_message_size = mtu - sizeof(struct GNUNET_TRANSPORT_SendMessageTo)
                         - sizeof(struct GNUNET_MessageHeader);
   else
