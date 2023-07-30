@@ -382,8 +382,8 @@ GNUNET_PQ_query_param_array_string (
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_ptrs_string (
   unsigned int num,
-  const char *elements[static num],
-  const struct GNUNET_PQ_Context *db);
+  const char *elements[],
+  struct GNUNET_PQ_Context *db);
 
 
 /**

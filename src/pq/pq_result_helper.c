@@ -1697,7 +1697,7 @@ GNUNET_PQ_result_spec_array_string (
   info->typ = array_of_string;
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_PQ_get_oid_by_name (db,
-                                            "varchar",
+                                            "text",
                                             &info->oid));
 
   struct GNUNET_PQ_ResultSpec res = {
