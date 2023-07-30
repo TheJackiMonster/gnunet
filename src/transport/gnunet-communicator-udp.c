@@ -997,19 +997,15 @@ kce_generate (struct SharedSecret *ss, uint32_t seq)
  * @param withoutKce If GNUNET_YES shared secrets with kce will not be destroyed.
  */
 static int
-secret_destroy (struct SharedSecret *ss, int withoutKce)
+secret_destroy (struct SharedSecret *ss)
 {
   struct SenderAddress *sender;
   struct ReceiverAddress *receiver;
   struct KeyCacheEntry *kce;
 
-  if (withoutKce && (ss->sequence_allowed > 0))
-    return GNUNET_NO;
-
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "secret %s destroy %u %u\n",
+              "secret %s destroy %u\n",
               GNUNET_h2s (&ss->master),
-              withoutKce,
               ss->sequence_allowed);
   if (NULL != (sender = ss->sender))
   {
@@ -1369,62 +1365,37 @@ setup_shared_secret_ephemeral (struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral,
 static void
 setup_receiver_mq (struct ReceiverAddress *receiver);
 
+
 /**
- * Destroying all secrets. Depending on parameter we keep those secrets having a kce.
+ * Best effort try to purge some secrets.
+ * Ideally those, not ACKed.
  *
- * @param ss The secret we will not destroy.
- * @param withoutKce If GNUNET_YES shared secrets with kce will not be destroyed.
+ * @param ss_list_tail the oldest secret in the list of interest.
+ * @return GNUNET_YES if any secret was deleted.
  */
-static void
-destroy_all_secrets (struct SharedSecret *ss, int withoutKce)
+static enum GNUNET_GenericReturnValue
+purge_secrets (struct SharedSecret *ss_list_tail)
 {
-  struct SenderAddress *sender;
-  struct ReceiverAddress *receiver;
-  struct SharedSecret *ss_to_destroy;
-  struct SharedSecret *ss_start;
   struct SharedSecret *pos;
-  int at_least_one_destroyed = GNUNET_NO;
+  struct SharedSecret *ss_to_purge;
+  int deleted = 0;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Starting destroy all withoutKce: %u.\n",
-              withoutKce);
-
-  if (NULL != (sender = ss->sender))
-  {
-    ss_start = sender->ss_head;
-  }
-  else if (NULL != (receiver = ss->receiver))
-  {
-    ss_start = receiver->ss_head;
-  }
-  else
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Shared secret has no sender or receiver!\n");
-    return;
-  }
-
-  pos = ss_start;
+  pos = ss_list_tail;
   while (NULL != pos)
   {
-    ss_to_destroy = pos;
-    pos = pos->next;
+    ss_to_purge = pos;
+    pos = pos->prev;
 
-    // FIXME This is broken. the variable gets overwritten and it is unclear
-    // what this is supposed to achieve.
-    if (ss != ss_to_destroy)
-      at_least_one_destroyed = secret_destroy (ss_to_destroy, withoutKce);
-  }
-
-  if ((ss != ss_start) && ! at_least_one_destroyed)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Really destroying all.\n");
-    destroy_all_secrets (ss_start, GNUNET_NO);
+    if ((NULL == ss_to_purge->kce_head) ||
+        (rekey_max_bytes <= ss_to_purge->bytes_sent))
+    {
+      secret_destroy (ss_to_purge);
+      deleted++;
+    }
   }
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Finished destroy all.\n");
+              "Finished purging all.\n");
 }
 
 
@@ -1468,7 +1439,6 @@ add_acks (struct SharedSecret *ss, int acks_to_add)
 
   GNUNET_CONTAINER_DLL_remove (receiver->ss_head, receiver->ss_tail, ss);
   GNUNET_CONTAINER_DLL_insert (receiver->ss_head, receiver->ss_tail, ss);
-  // destroy_all_secrets (ss, GNUNET_YES);
 }
 
 
@@ -1683,6 +1653,14 @@ try_handle_plaintext (struct SenderAddress *sender,
     buf_pos += ntohs (hdr->size);
     bytes_remaining -= ntohs (hdr->size);
     pass_plaintext_to_core (sender, buf_pos, bytes_remaining);
+    if (sender->num_secrets > MAX_SECRETS)
+    {
+      if (GNUNET_NO == purge_secrets (sender->ss_tail))
+      {
+        // No secret purged. Delete oldest.
+        secret_destroy (sender->ss_tail);
+      }
+    }
     break;
   case GNUNET_MESSAGE_TYPE_COMMUNICATOR_UDP_ACK:
     /* lookup master secret by 'cmac', then update sequence_max */
@@ -2138,6 +2116,14 @@ sock_read (void *cls)
                                 1,
                                 GNUNET_NO);
       try_handle_plaintext (sender, &uc[1], sizeof(pbuf) - sizeof(*uc));
+      if (sender->num_secrets > MAX_SECRETS)
+      {
+        if (GNUNET_NO == purge_secrets (sender->ss_tail))
+        {
+          // No secret purged. Delete oldest.
+          secret_destroy (sender->ss_tail);
+        }
+      }
     }
   }
 }
@@ -2333,7 +2319,11 @@ send_msg_with_kx (const struct GNUNET_MessageHeader *msg, struct
 
   if (receiver->num_secrets > MAX_SECRETS)
   {
-    destroy_all_secrets (ss, GNUNET_YES);
+    if (GNUNET_NO == purge_secrets (receiver->ss_tail))
+    {
+      // No secret purged. Delete oldest.
+      secret_destroy (receiver->ss_tail);
+    }
   }
 
   setup_cipher (&ss->master, 0, &out_cipher);
@@ -2468,6 +2458,14 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
   }
   reschedule_receiver_timeout (receiver);
 
+  if (receiver->num_secrets > MAX_SECRETS)
+  {
+    if (GNUNET_NO == purge_secrets (receiver->ss_tail))
+    {
+      // No secret purged. Delete oldest.
+      secret_destroy (receiver->ss_tail);
+    }
+  }
   /* begin "BOX" encryption method, scan for ACKs from tail! */
   for (ss = receiver->ss_tail; NULL != ss; ss = ss->prev)
   {
