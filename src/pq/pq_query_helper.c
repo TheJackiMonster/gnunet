@@ -1083,7 +1083,7 @@ GNUNET_PQ_query_param_array_bytes (
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_ptrs_bytes (
   unsigned int num,
-  const void *elements[],
+  const void *elements[static num],
   const size_t *sizes,
   struct GNUNET_PQ_Context *db)
 {

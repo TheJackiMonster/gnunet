@@ -335,7 +335,7 @@ GNUNET_PQ_query_param_array_bytes_same_size (
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_ptrs_bytes_same_size (
   unsigned int num,
-  const void *elements[],
+  const void *elements[static num],
   size_t same_size,
   struct GNUNET_PQ_Context *db);
 
