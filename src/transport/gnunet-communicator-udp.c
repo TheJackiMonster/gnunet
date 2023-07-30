@@ -484,7 +484,10 @@ struct SharedSecret
    */
   int rekey_initiated;
 
-
+  /**
+   * Also precompute keys despite sufficient acks (for rekey)
+   */
+  int override_available_acks;
 };
 
 
@@ -1580,14 +1583,9 @@ kce_generate_cb (void *cls)
               "Precomputing %u keys for master %s\n",
               GENERATE_AT_ONCE,
               GNUNET_h2s (&(ss->master)));
-  if (KCN_TARGET < ss->sender->acks_available)
-  {
-    ss->sender->kce_task = GNUNET_SCHEDULER_add_delayed (
-      WORKING_QUEUE_INTERVALL,
-      kce_generate_cb,
-      ss);
+  if ((ss->override_available_acks != GNUNET_YES) &&
+      (KCN_TARGET < ss->sender->acks_available))
     return;
-  }
   for (int i = 0; i < GENERATE_AT_ONCE; i++)
     kce_generate (ss, ++ss->sequence_allowed);
 
@@ -1606,6 +1604,7 @@ kce_generate_cb (void *cls)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "We have enough keys (ACKs: %u).\n", ss->sender->acks_available);
   ss->sender->kce_task_finished = GNUNET_YES;
+  ss->override_available_acks = GNUNET_NO;
   if (ss->sender->kce_send_ack_on_finish == GNUNET_YES)
     consider_ss_ack (ss);
 }
@@ -1671,7 +1670,8 @@ try_handle_plaintext (struct SenderAddress *sender,
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "We have %u acks available.\n",
                 ss_rekey->sender->acks_available);
-    ss_rekey->sender->kce_send_ack_on_finish = GNUNET_NO;
+    ss_rekey->sender->kce_send_ack_on_finish = GNUNET_YES;
+    ss_rekey->override_available_acks = GNUNET_YES;
     // FIXME
     ss_rekey->sender->kce_task = GNUNET_SCHEDULER_add_delayed (
       WORKING_QUEUE_INTERVALL,
@@ -2430,84 +2430,6 @@ create_rekey (struct ReceiverAddress *receiver, struct SharedSecret *ss, struct
 }
 
 
-static void
-send_UDPRekey (struct ReceiverAddress *receiver, struct SharedSecret *ss)
-{
-  uint8_t is_ss_rekey_sequence_allowed_zero = GNUNET_NO;
-  uint8_t is_acks_available_below = GNUNET_NO;
-  uint8_t send_rekey = GNUNET_NO;
-  uint16_t not_below;
-  struct UDPBox *box;
-  struct UDPRekey rekey;
-  struct SharedSecret *ss_rekey;
-  size_t dpos;
-
-  char rekey_dgram[sizeof (struct UDPBox) + sizeof(struct UDPRekey)
-                   + receiver->d_mtu];
-  if (GNUNET_YES == ss->rekey_initiated)
-  {
-    return;
-  }
-  ss->rekey_initiated = GNUNET_YES;
-  /* setup key material */
-  ss_rekey = setup_shared_secret_ephemeral (&rekey.ephemeral,
-                                            receiver);
-  ss_rekey->sequence_allowed = 0;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Setup secret with k = %s\n",
-              GNUNET_h2s (&(ss_rekey->master)));
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Setup secret with H(k) = %s\n",
-              GNUNET_h2s (&(ss_rekey->cmac)));
-
-  gcry_cipher_hd_t rekey_out_cipher;
-
-  /* Find suitable secret to encrypt this rekey message */
-  // while (NULL != ss && ss->sequence_used >= ss->sequence_allowed)
-  //  ss = ss->prev;
-
-  box = (struct UDPBox *) rekey_dgram;
-  ss->sequence_used++;
-  get_kid (&ss->master, ss->sequence_used, &box->kid);
-  setup_cipher (&ss->master, ss->sequence_used, &rekey_out_cipher);
-  /* Append encrypted payload to dgram */
-  rekey.header.type = htons (GNUNET_MESSAGE_TYPE_COMMUNICATOR_UDP_REKEY);
-  rekey.header.size = htons (sizeof (struct UDPRekey));
-
-  GNUNET_assert (
-    0 == gcry_cipher_encrypt (rekey_out_cipher, &box[1],
-                              sizeof(struct UDPRekey),
-                              &rekey,
-                              sizeof(struct UDPRekey)));
-  dpos = sizeof(struct UDPRekey) + sizeof (struct UDPBox);
-  do_pad (rekey_out_cipher, &rekey_dgram[dpos], sizeof(rekey_dgram)
-          - dpos);
-  GNUNET_assert (0 == gcry_cipher_gettag (rekey_out_cipher,
-                                          box->gcm_tag,
-                                          sizeof(box->gcm_tag)));
-  gcry_cipher_close (rekey_out_cipher);
-
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "Sending rekey with kid %s and new pubkey\n",
-              GNUNET_sh2s (&box->kid));
-  if (-1 == GNUNET_NETWORK_socket_sendto (udp_sock,
-                                          rekey_dgram,
-                                          sizeof(rekey_dgram),
-                                          receiver->address,
-                                          receiver->address_len))
-    GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "send");
-
-  /* FIXME what is this */
-  receiver->acks_available--;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "%u receiver->acks_available 1\n",
-              receiver->acks_available);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Sending UDPRekey to %s\n", GNUNET_a2s (receiver->address,
-                                                      receiver->address_len));
-}
-
-
 /**
  * Signature of functions implementing the sending functionality of a
  * message queue.
@@ -2523,6 +2445,7 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
 {
   struct ReceiverAddress *receiver = impl_state;
   struct UDPRekey rekey;
+  struct SharedSecret *ss;
   int inject_rekey = GNUNET_NO;
   uint16_t msize = ntohs (msg->size);
 
@@ -2544,7 +2467,7 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
   reschedule_receiver_timeout (receiver);
 
   /* begin "BOX" encryption method, scan for ACKs from tail! */
-  for (struct SharedSecret *ss = receiver->ss_tail; NULL != ss; ss = ss->prev)
+  for (ss = receiver->ss_tail; NULL != ss; ss = ss->prev)
   {
     size_t payload_len = sizeof(struct UDPBox) + receiver->d_mtu;
     if (ss->sequence_used >= ss->sequence_allowed)
@@ -2553,8 +2476,14 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
                   "Skipping ss because no acks to use.\n");
       continue;
     }
-    if (ss->bytes_sent > rekey_max_bytes - sizeof (struct UDPRekey)
-        - receiver->d_mtu)
+    if (ss->bytes_sent >= rekey_max_bytes)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Skipping ss because rekey bytes reached.\n");
+      // FIXME cleanup ss with too many bytes sent!
+      continue;
+    }
+    if (ss->bytes_sent > rekey_max_bytes * 0.7)
     {
       if (ss->rekey_initiated == GNUNET_NO)
       {
