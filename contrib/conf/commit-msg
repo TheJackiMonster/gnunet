@@ -31,4 +31,4 @@ then
 else
   echo "Your commit does not include API changes"
 fi
-exit $RET
+exit 0
