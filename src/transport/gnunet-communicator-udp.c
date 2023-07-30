@@ -1410,6 +1410,8 @@ destroy_all_secrets (struct SharedSecret *ss, int withoutKce)
     ss_to_destroy = pos;
     pos = pos->next;
 
+    // FIXME This is broken. the variable gets overwritten and it is unclear
+    // what this is supposed to achieve.
     if (ss != ss_to_destroy)
       at_least_one_destroyed = secret_destroy (ss_to_destroy, withoutKce);
   }
