@@ -675,14 +675,14 @@ qconv_array (
   same_sized = (0 != meta->same_size);
 
 #define RETURN_UNLESS(cond) \
-  do { \
-    if (! (cond)) \
-    { \
-      GNUNET_break ((cond)); \
-      noerror = false; \
-      goto DONE; \
-    } \
-  } while(0)
+        do { \
+          if (! (cond)) \
+          { \
+            GNUNET_break ((cond)); \
+            noerror = false; \
+            goto DONE; \
+          } \
+        } while (0)
 
   /* Calculate sizes and check bounds */
   {
@@ -939,22 +939,25 @@ query_param_array_generic (
   Oid oid)
 {
   struct qconv_array_cls *meta = GNUNET_new (struct qconv_array_cls);
+
   meta->typ = typ;
   meta->oid = oid;
   meta->sizes = sizes;
   meta->same_size = same_size;
   meta->continuous = continuous;
 
-  struct GNUNET_PQ_QueryParam res = {
-    .conv = qconv_array,
-    .conv_cls = meta,
-    .conv_cls_cleanup = qconv_array_cls_cleanup,
-    .data = elements,
-    .size = num,
-    .num_params = 1,
-  };
+  {
+    struct GNUNET_PQ_QueryParam res = {
+      .conv = qconv_array,
+      .conv_cls = meta,
+      .conv_cls_cleanup = &qconv_array_cls_cleanup,
+      .data = elements,
+      .size = num,
+      .num_params = 1,
+    };
 
-  return res;
+    return res;
+  }
 }
 
 
@@ -962,15 +965,21 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_bool (
   unsigned int num,
   const bool *elements,
-  const struct GNUNET_PQ_Context *db)
+  struct GNUNET_PQ_Context *db)
 {
+  Oid oid;
+
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "bool",
+                                            &oid));
   return query_param_array_generic (num,
                                     true,
                                     elements,
                                     NULL,
                                     sizeof(bool),
                                     array_of_bool,
-                                    db->oids[GNUNET_PQ_DATATYPE_BOOL]);
+                                    oid);
 }
 
 
@@ -978,15 +987,21 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_uint16 (
   unsigned int num,
   const uint16_t *elements,
-  const struct GNUNET_PQ_Context *db)
+  struct GNUNET_PQ_Context *db)
 {
+  Oid oid;
+
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "int2",
+                                            &oid));
   return query_param_array_generic (num,
                                     true,
                                     elements,
                                     NULL,
                                     sizeof(uint16_t),
                                     array_of_uint16,
-                                    db->oids[GNUNET_PQ_DATATYPE_INT2]);
+                                    oid);
 }
 
 
@@ -994,15 +1009,21 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_uint32 (
   unsigned int num,
   const uint32_t *elements,
-  const struct GNUNET_PQ_Context *db)
+  struct GNUNET_PQ_Context *db)
 {
+  Oid oid;
+
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "int4",
+                                            &oid));
   return query_param_array_generic (num,
                                     true,
                                     elements,
                                     NULL,
                                     sizeof(uint32_t),
                                     array_of_uint32,
-                                    db->oids[GNUNET_PQ_DATATYPE_INT4]);
+                                    oid);
 }
 
 
@@ -1010,15 +1031,21 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_uint64 (
   unsigned int num,
   const uint64_t *elements,
-  const struct GNUNET_PQ_Context *db)
+  struct GNUNET_PQ_Context *db)
 {
+  Oid oid;
+
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "int8",
+                                            &oid));
   return query_param_array_generic (num,
                                     true,
                                     elements,
                                     NULL,
                                     sizeof(uint64_t),
                                     array_of_uint64,
-                                    db->oids[GNUNET_PQ_DATATYPE_INT8]);
+                                    oid);
 }
 
 
@@ -1027,15 +1054,21 @@ GNUNET_PQ_query_param_array_bytes (
   unsigned int num,
   const void *elements,
   const size_t *sizes,
-  const struct GNUNET_PQ_Context *db)
+  struct GNUNET_PQ_Context *db)
 {
+  Oid oid;
+
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "bytea",
+                                            &oid));
   return query_param_array_generic (num,
                                     true,
                                     elements,
                                     sizes,
                                     0,
                                     array_of_byte,
-                                    db->oids[GNUNET_PQ_DATATYPE_BYTEA]);
+                                    oid);
 }
 
 
@@ -1044,15 +1077,21 @@ GNUNET_PQ_query_param_array_ptrs_bytes (
   unsigned int num,
   const void *elements[],
   const size_t *sizes,
-  const struct GNUNET_PQ_Context *db)
+  struct GNUNET_PQ_Context *db)
 {
+  Oid oid;
+
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "bytea",
+                                            &oid));
   return query_param_array_generic (num,
                                     false,
                                     elements,
                                     sizes,
                                     0,
                                     array_of_byte,
-                                    db->oids[GNUNET_PQ_DATATYPE_BYTEA]);
+                                    oid);
 }
 
 
@@ -1061,15 +1100,21 @@ GNUNET_PQ_query_param_array_bytes_same_size (
   unsigned int num,
   const void *elements,
   size_t same_size,
-  const struct GNUNET_PQ_Context *db)
+  struct GNUNET_PQ_Context *db)
 {
+  Oid oid;
+
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "bytea",
+                                            &oid));
   return query_param_array_generic (num,
                                     true,
                                     elements,
                                     NULL,
                                     same_size,
                                     array_of_byte,
-                                    db->oids[GNUNET_PQ_DATATYPE_BYTEA]);
+                                    oid);
 }
 
 
@@ -1078,15 +1123,21 @@ GNUNET_PQ_query_param_array_ptrs_bytes_same_size (
   unsigned int num,
   const void *elements[],
   size_t same_size,
-  const struct GNUNET_PQ_Context *db)
+  struct GNUNET_PQ_Context *db)
 {
+  Oid oid;
+
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "bytea",
+                                            &oid));
   return query_param_array_generic (num,
                                     false,
                                     elements,
                                     NULL,
                                     same_size,
                                     array_of_byte,
-                                    db->oids[GNUNET_PQ_DATATYPE_BYTEA]);
+                                    oid);
 }
 
 
@@ -1094,31 +1145,43 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_string (
   unsigned int num,
   const char *elements,
-  const struct GNUNET_PQ_Context *db)
+  struct GNUNET_PQ_Context *db)
 {
+  Oid oid;
+
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "text",
+                                            &oid));
   return query_param_array_generic (num,
                                     true,
                                     elements,
                                     NULL,
                                     0,
                                     array_of_string,
-                                    db->oids[GNUNET_PQ_DATATYPE_VARCHAR]);
+                                    oid);
 }
 
 
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_ptrs_string (
   unsigned int num,
-  const char *elements[],
+  const char *elements[static num],
   const struct GNUNET_PQ_Context *db)
 {
+  Oid oid;
+
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "text",
+                                            &oid));
   return query_param_array_generic (num,
                                     false,
                                     elements,
                                     NULL,
                                     0,
                                     array_of_string,
-                                    db->oids[GNUNET_PQ_DATATYPE_VARCHAR]);
+                                    oid);
 }
 
 
@@ -1126,15 +1189,21 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_abs_time (
   unsigned int num,
   const struct GNUNET_TIME_Absolute *elements,
-  const struct GNUNET_PQ_Context *db)
+  struct GNUNET_PQ_Context *db)
 {
+  Oid oid;
+
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "int8",
+                                            &oid));
   return query_param_array_generic (num,
                                     true,
                                     elements,
                                     NULL,
                                     sizeof(struct GNUNET_TIME_Absolute),
                                     array_of_abs_time,
-                                    db->oids[GNUNET_PQ_DATATYPE_INT8]);
+                                    oid);
 }
 
 
@@ -1142,15 +1211,21 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_ptrs_abs_time (
   unsigned int num,
   const struct GNUNET_TIME_Absolute *elements[],
-  const struct GNUNET_PQ_Context *db)
+  struct GNUNET_PQ_Context *db)
 {
+  Oid oid;
+
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "int8",
+                                            &oid));
   return query_param_array_generic (num,
                                     false,
                                     elements,
                                     NULL,
                                     sizeof(struct GNUNET_TIME_Absolute),
                                     array_of_abs_time,
-                                    db->oids[GNUNET_PQ_DATATYPE_INT8]);
+                                    oid);
 }
 
 
@@ -1158,15 +1233,21 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_rel_time (
   unsigned int num,
   const struct GNUNET_TIME_Relative *elements,
-  const struct GNUNET_PQ_Context *db)
+  struct GNUNET_PQ_Context *db)
 {
+  Oid oid;
+
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "int8",
+                                            &oid));
   return query_param_array_generic (num,
                                     true,
                                     elements,
                                     NULL,
                                     sizeof(struct GNUNET_TIME_Relative),
                                     array_of_abs_time,
-                                    db->oids[GNUNET_PQ_DATATYPE_INT8]);
+                                    oid);
 }
 
 
@@ -1174,15 +1255,21 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_ptrs_rel_time (
   unsigned int num,
   const struct GNUNET_TIME_Relative *elements[],
-  const struct GNUNET_PQ_Context *db)
+  struct GNUNET_PQ_Context *db)
 {
+  Oid oid;
+
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "int8",
+                                            &oid));
   return query_param_array_generic (num,
                                     false,
                                     elements,
                                     NULL,
                                     sizeof(struct GNUNET_TIME_Relative),
                                     array_of_abs_time,
-                                    db->oids[GNUNET_PQ_DATATYPE_INT8]);
+                                    oid);
 }
 
 
@@ -1190,15 +1277,21 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_timestamp (
   unsigned int num,
   const struct GNUNET_TIME_Timestamp *elements,
-  const struct GNUNET_PQ_Context *db)
+  struct GNUNET_PQ_Context *db)
 {
+  Oid oid;
+
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "int8",
+                                            &oid));
   return query_param_array_generic (num,
                                     true,
                                     elements,
                                     NULL,
                                     sizeof(struct GNUNET_TIME_Timestamp),
                                     array_of_timestamp,
-                                    db->oids[GNUNET_PQ_DATATYPE_INT8]);
+                                    oid);
 }
 
 
@@ -1206,15 +1299,21 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_ptrs_timestamp (
   unsigned int num,
   const struct GNUNET_TIME_Timestamp *elements[],
-  const struct GNUNET_PQ_Context *db)
+  struct GNUNET_PQ_Context *db)
 {
+  Oid oid;
+
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "int8",
+                                            &oid));
   return query_param_array_generic (num,
                                     false,
                                     elements,
                                     NULL,
                                     sizeof(struct GNUNET_TIME_Timestamp),
                                     array_of_timestamp,
-                                    db->oids[GNUNET_PQ_DATATYPE_INT8]);
+                                    oid);
 }
 
 

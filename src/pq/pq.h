@@ -100,9 +100,27 @@ struct GNUNET_PQ_Context
   enum GNUNET_PQ_Options flags;
 
   /**
-   * Mapping between array types and Oid's, filled at reconnect
+   * Mapping between array types and Oid's, pre-filled at reconnect.
+   * More entries are captured in via GNUNET_PQ_get_oid_by_name.
    */
-  Oid oids[GNUNET_PQ_DATATYPE_MAX];
+  struct
+  {
+    /* Allocated number of elements array the table */
+    unsigned int cap;
+
+    /* Number of entries in the table */
+    unsigned int num;
+
+    /* The table of (name, oid) pairs.
+     * Note that the names are 'const char *' and the pointers should be point
+     * to the same string throughout the lifetime of the program.*/
+    struct name2oid
+    {
+      const char *name;
+      Oid oid;
+    } *table;
+
+  } oids;
 };
 
 

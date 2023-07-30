@@ -1180,13 +1180,13 @@ extract_array_generic (
   *((void **) dst) = NULL;
 
   #define FAIL_IF(cond) \
-  do { \
-    if ((cond)) \
-    { \
-      GNUNET_break (! (cond)); \
-      goto FAIL; \
-    } \
-  } while(0)
+          do { \
+            if ((cond)) \
+            { \
+              GNUNET_break (! (cond)); \
+              goto FAIL; \
+            } \
+          } while (0)
 
   col_num = PQfnumber (result, fname);
   FAIL_IF (0 > col_num);
@@ -1429,7 +1429,7 @@ array_cleanup (void *cls,
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_bool (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   bool **dst)
@@ -1439,7 +1439,10 @@ GNUNET_PQ_result_spec_array_bool (
 
   info->num = num;
   info->typ = array_of_bool;
-  info->oid = db->oids[GNUNET_PQ_DATATYPE_BOOL];
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "bool",
+                                            &info->oid));
 
   struct GNUNET_PQ_ResultSpec res = {
     .conv = extract_array_generic,
@@ -1454,7 +1457,7 @@ GNUNET_PQ_result_spec_array_bool (
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_uint16 (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   uint16_t **dst)
@@ -1464,7 +1467,10 @@ GNUNET_PQ_result_spec_array_uint16 (
 
   info->num = num;
   info->typ = array_of_uint16;
-  info->oid = db->oids[GNUNET_PQ_DATATYPE_INT2];
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "int2",
+                                            &info->oid));
 
   struct GNUNET_PQ_ResultSpec res = {
     .conv = extract_array_generic,
@@ -1479,7 +1485,7 @@ GNUNET_PQ_result_spec_array_uint16 (
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_uint32 (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   uint32_t **dst)
@@ -1489,7 +1495,10 @@ GNUNET_PQ_result_spec_array_uint32 (
 
   info->num = num;
   info->typ = array_of_uint32;
-  info->oid = db->oids[GNUNET_PQ_DATATYPE_INT4];
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "int4",
+                                            &info->oid));
 
   struct GNUNET_PQ_ResultSpec res = {
     .conv = extract_array_generic,
@@ -1504,7 +1513,7 @@ GNUNET_PQ_result_spec_array_uint32 (
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_uint64 (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   uint64_t **dst)
@@ -1514,7 +1523,10 @@ GNUNET_PQ_result_spec_array_uint64 (
 
   info->num = num;
   info->typ = array_of_uint64;
-  info->oid = db->oids[GNUNET_PQ_DATATYPE_INT8];
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "int8",
+                                            &info->oid));
 
   struct GNUNET_PQ_ResultSpec res = {
     .conv = extract_array_generic,
@@ -1529,7 +1541,7 @@ GNUNET_PQ_result_spec_array_uint64 (
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_abs_time (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   struct GNUNET_TIME_Absolute **dst)
@@ -1539,7 +1551,10 @@ GNUNET_PQ_result_spec_array_abs_time (
 
   info->num = num;
   info->typ = array_of_abs_time;
-  info->oid = db->oids[GNUNET_PQ_DATATYPE_INT8];
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "int8",
+                                            &info->oid));
 
   struct GNUNET_PQ_ResultSpec res = {
     .conv = extract_array_generic,
@@ -1554,7 +1569,7 @@ GNUNET_PQ_result_spec_array_abs_time (
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_rel_time (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   struct GNUNET_TIME_Relative **dst)
@@ -1564,7 +1579,10 @@ GNUNET_PQ_result_spec_array_rel_time (
 
   info->num = num;
   info->typ = array_of_rel_time;
-  info->oid = db->oids[GNUNET_PQ_DATATYPE_INT8];
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "int8",
+                                            &info->oid));
 
   struct GNUNET_PQ_ResultSpec res = {
     .conv = extract_array_generic,
@@ -1579,7 +1597,7 @@ GNUNET_PQ_result_spec_array_rel_time (
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_timestamp (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   struct GNUNET_TIME_Timestamp **dst)
@@ -1589,7 +1607,10 @@ GNUNET_PQ_result_spec_array_timestamp (
 
   info->num = num;
   info->typ = array_of_timestamp;
-  info->oid = db->oids[GNUNET_PQ_DATATYPE_INT8];
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "int8",
+                                            &info->oid));
 
   struct GNUNET_PQ_ResultSpec res = {
     .conv = extract_array_generic,
@@ -1604,7 +1625,7 @@ GNUNET_PQ_result_spec_array_timestamp (
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_variable_size (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   size_t **sizes,
@@ -1616,7 +1637,10 @@ GNUNET_PQ_result_spec_array_variable_size (
   info->num = num;
   info->sizes = sizes;
   info->typ = array_of_byte;
-  info->oid = db->oids[GNUNET_PQ_DATATYPE_BYTEA];
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "bytea",
+                                            &info->oid));
 
   struct GNUNET_PQ_ResultSpec res = {
     .conv = extract_array_generic,
@@ -1631,7 +1655,7 @@ GNUNET_PQ_result_spec_array_variable_size (
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_fixed_size (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t size,
   size_t *num,
@@ -1643,7 +1667,10 @@ GNUNET_PQ_result_spec_array_fixed_size (
   info->num = num;
   info->same_size = size;
   info->typ = array_of_byte;
-  info->oid = db->oids[GNUNET_PQ_DATATYPE_BYTEA];
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "bytea",
+                                            &info->oid));
 
   struct GNUNET_PQ_ResultSpec res = {
     .conv = extract_array_generic,
@@ -1658,7 +1685,7 @@ GNUNET_PQ_result_spec_array_fixed_size (
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_string (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   char **dst)
@@ -1668,7 +1695,10 @@ GNUNET_PQ_result_spec_array_string (
 
   info->num = num;
   info->typ = array_of_string;
-  info->oid = db->oids[GNUNET_PQ_DATATYPE_VARCHAR];
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "varchar",
+                                            &info->oid));
 
   struct GNUNET_PQ_ResultSpec res = {
     .conv = extract_array_generic,
