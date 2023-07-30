@@ -76,7 +76,7 @@ postgres_prepare (struct GNUNET_PQ_Context *db)
                             ",arr_int4"
                             ",arr_int8"
                             ",arr_bytea"
-                            ",arr_varchar"
+                            ",arr_text"
                             ",arr_abs_time"
                             ",arr_rel_time"
                             ",arr_timestamp"
@@ -102,7 +102,7 @@ postgres_prepare (struct GNUNET_PQ_Context *db)
                             ",arr_int4"
                             ",arr_int8"
                             ",arr_bytea"
-                            ",arr_varchar"
+                            ",arr_text"
                             ",arr_abs_time"
                             ",arr_rel_time"
                             ",arr_timestamp"
@@ -280,7 +280,7 @@ run_queries (struct GNUNET_PQ_Context *db)
                                                  &sz_buf,
                                                  &arr_buf),
       GNUNET_PQ_result_spec_array_string (db,
-                                          "arr_varchar",
+                                          "arr_text",
                                           &num_str,
                                           &arr_str),
       GNUNET_PQ_result_spec_end
@@ -510,7 +510,7 @@ main (int argc,
                             ",arr_int4 INT4[]"
                             ",arr_int8 INT8[]"
                             ",arr_bytea BYTEA[]"
-                            ",arr_varchar VARCHAR[]"
+                            ",arr_text TEXT[]"
                             ",arr_abs_time INT8[]"
                             ",arr_rel_time INT8[]"
                             ",arr_timestamp  INT8[]"

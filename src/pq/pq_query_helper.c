@@ -768,8 +768,11 @@ qconv_array (
     for (unsigned int i = 0; i < num; i++)
     {
       size_t sz = same_sized ? meta->same_size : sizes[i];
+      size_t hsz = htonl (sz);
 
-      *(uint32_t *) out = htonl (sz);
+      GNUNET_memcpy (out,
+                     &hsz,
+                     sizeof(hsz));
       out += sizeof(uint32_t);
 
       switch (meta->typ)
@@ -790,8 +793,13 @@ qconv_array (
         }
       case array_of_uint32:
         {
+          uint32_t v;
           GNUNET_assert (sizeof(uint32_t) == sz);
-          *(uint32_t *) out = htonl (*(uint32_t *) in);
+
+          v = htonl (*(uint32_t *) in);
+          GNUNET_memcpy (out,
+                         &v,
+                         sizeof(v));
           in  += sz;
           break;
         }
@@ -1166,8 +1174,8 @@ GNUNET_PQ_query_param_array_string (
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_ptrs_string (
   unsigned int num,
-  const char *elements[static num],
-  const struct GNUNET_PQ_Context *db)
+  const char *elements[],
+  struct GNUNET_PQ_Context *db)
 {
   Oid oid;
 
