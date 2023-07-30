@@ -135,7 +135,7 @@
  * sense. Might make sense to adapt to RTT if we had
  * a good measurement...
  */
-#define MAX_SECRETS 128000
+#define MAX_SECRETS 256
 
 /**
  * Default value for how often we do rekey based on number of bytes transmitted?
@@ -1011,17 +1011,23 @@ secret_destroy (struct SharedSecret *ss)
   {
     GNUNET_CONTAINER_DLL_remove (sender->ss_head, sender->ss_tail, ss);
     sender->num_secrets--;
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "%u sender->num_secrets\n",
+                receiver->num_secrets);
+    if (NULL != ss->sender->kce_task)
+    {
+      GNUNET_SCHEDULER_cancel (ss->sender->kce_task);
+      ss->sender->kce_task = NULL;
+    }
   }
   if (NULL != (receiver = ss->receiver))
   {
     GNUNET_CONTAINER_DLL_remove (receiver->ss_head, receiver->ss_tail, ss);
     receiver->num_secrets--;
-    // Uncomment this for alternativ 1 of backchannel functionality
     receiver->acks_available -= (ss->sequence_allowed - ss->sequence_used);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "%u receiver->acks_available 3\n",
-                receiver->acks_available);
-    // Until here for alternativ 1
+                "%u receiver->num_secrets\n",
+                receiver->num_secrets);
   }
   while (NULL != (kce = ss->kce_head))
     kce_destroy (kce);
@@ -1030,11 +1036,6 @@ secret_destroy (struct SharedSecret *ss)
                          "# KIDs active",
                          GNUNET_CONTAINER_multishortmap_size (key_cache),
                          GNUNET_NO);
-  if (NULL != ss->sender->kce_task)
-  {
-    GNUNET_SCHEDULER_cancel (ss->sender->kce_task);
-    ss->sender->kce_task = NULL;
-  }
   GNUNET_free (ss);
   return GNUNET_YES;
 }
@@ -1380,22 +1381,23 @@ purge_secrets (struct SharedSecret *ss_list_tail)
   struct SharedSecret *ss_to_purge;
   int deleted = 0;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Purging secrets.\n");
   pos = ss_list_tail;
   while (NULL != pos)
   {
     ss_to_purge = pos;
     pos = pos->prev;
 
-    if ((NULL == ss_to_purge->kce_head) ||
-        (rekey_max_bytes <= ss_to_purge->bytes_sent))
+    // FIXME we may also want to purge old unacked.
+    if (rekey_max_bytes <= ss_to_purge->bytes_sent)
     {
       secret_destroy (ss_to_purge);
       deleted++;
     }
   }
-
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Finished purging all.\n");
+              "Finished purging all, deleted %u.\n", deleted);
 }
 
 
