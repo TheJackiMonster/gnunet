@@ -282,6 +282,16 @@ struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle
   void *cb_cls;
 
   /**
+   * Callback to call when message ack received.
+   */
+  GNUNET_SCHEDULER_TaskCallback cont;
+
+  /**
+   * Closure for cont
+   */
+  void *cont_cls;
+
+  /**
    * Backchannel supported
    */
   int bc_enabled;

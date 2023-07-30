@@ -37,8 +37,8 @@
  * - support NAT connection reversal method (#5529)
  * - support other UDP-specific NAT traversal methods (#)
  */
-#include "gnunet_common.h"
 #include "platform.h"
+#include "gnunet_common.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_protocols.h"
 #include "gnunet_signatures.h"
@@ -94,7 +94,7 @@
  */
 #define GCM_TAG_SIZE (128 / 8)
 
-#define GENERATE_AT_ONCE 2
+#define GENERATE_AT_ONCE 16
 
 /**
  * If we fall below this number of available KCNs,
@@ -105,7 +105,7 @@
  * arrive before the sender runs out. So really this
  * should ideally be based on the RTT.
  */
-#define KCN_THRESHOLD 92
+#define KCN_THRESHOLD 96
 
 /**
  * How many KCNs do we keep around *after* we hit
@@ -484,20 +484,7 @@ struct SharedSecret
    */
   int rekey_initiated;
 
-  /**
-   * ID of kce working queue task
-   */
-  struct GNUNET_SCHEDULER_Task *kce_task;
 
-  /**
-   * Is the kce_task finished?
-   */
-  int kce_task_finished;
-
-  /**
-   * When KCE finishes, send ACK if GNUNET_YES
-   */
-  int kce_send_ack_on_finish;
 };
 
 
@@ -563,6 +550,20 @@ struct SenderAddress
    */
   int sender_destroy_called;
 
+  /**
+   * ID of kce working queue task
+   */
+  struct GNUNET_SCHEDULER_Task *kce_task;
+
+  /**
+   * Is the kce_task finished?
+   */
+  int kce_task_finished;
+
+  /**
+   * When KCE finishes, send ACK if GNUNET_YES
+   */
+  int kce_send_ack_on_finish;
 };
 
 
@@ -1030,10 +1031,10 @@ secret_destroy (struct SharedSecret *ss, int withoutKce)
                          "# KIDs active",
                          GNUNET_CONTAINER_multishortmap_size (key_cache),
                          GNUNET_NO);
-  if (NULL != ss->kce_task)
+  if (NULL != ss->sender->kce_task)
   {
-    GNUNET_SCHEDULER_cancel (ss->kce_task);
-    ss->kce_task = NULL;
+    GNUNET_SCHEDULER_cancel (ss->sender->kce_task);
+    ss->sender->kce_task = NULL;
   }
   GNUNET_free (ss);
   return GNUNET_YES;
@@ -1452,7 +1453,7 @@ add_acks (struct SharedSecret *ss, int acks_to_add)
                                              1);
   }
 
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Tell transport we have %u more acks!\n",
               acks_to_add);
 
@@ -1501,25 +1502,25 @@ handle_ack (void *cls, const struct GNUNET_PeerIdentity *pid, void *value)
 
       if (allowed <= ss->sequence_allowed)
       {
-        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                     "Ignoring ack, not giving us increased window\n.");
         return GNUNET_NO;
       }
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "New sequence allows until %u from %u. Acks available to us: %u. For secret %s\n",
-                  allowed,
-                  ss->sequence_allowed,
-                  receiver->acks_available,
-                  GNUNET_h2s (&ss->master));
       acks_to_add = (allowed - ss->sequence_allowed);
       GNUNET_assert (0 != acks_to_add);
       receiver->acks_available += (allowed - ss->sequence_allowed);
       ss->sequence_allowed = allowed;
       add_acks (ss, acks_to_add);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "New sequence allows until %u (+%u). Acks available to us: %u. For secret %s\n",
+                  allowed,
+                  acks_to_add,
+                  receiver->acks_available,
+                  GNUNET_h2s (&ss->master));
       return GNUNET_NO;
     }
   }
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Matching cmac not found for ack!\n");
   return GNUNET_YES;
 }
@@ -1556,7 +1557,7 @@ consider_ss_ack (struct SharedSecret *ss)
   ack.header.size = htons (sizeof(ack));
   ack.sequence_ack = htonl (ss->sequence_allowed);
   ack.cmac = ss->cmac;
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Notifying transport with UDPAck %s, sequence %u and master %s\n",
               GNUNET_i2s_full (&ss->sender->target),
               ss->sequence_allowed,
@@ -1572,30 +1573,40 @@ static void
 kce_generate_cb (void *cls)
 {
   struct SharedSecret *ss = cls;
-
-  ss->kce_task = NULL;
+  static uint64_t kce_last_available = 0;
+  ss->sender->kce_task = NULL;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Precomputing %u keys for master %s\n",
               GENERATE_AT_ONCE,
               GNUNET_h2s (&(ss->master)));
   if (KCN_TARGET < ss->sender->acks_available)
-    return;
-  for (int i = 0; i < GENERATE_AT_ONCE; i++)
-    kce_generate (ss, ++ss->sequence_allowed);
-
-  if (KCN_TARGET > ss->sender->acks_available)
   {
-    ss->kce_task = GNUNET_SCHEDULER_add_delayed (
+    ss->sender->kce_task = GNUNET_SCHEDULER_add_delayed (
       WORKING_QUEUE_INTERVALL,
       kce_generate_cb,
       ss);
     return;
   }
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "We have enough keys.\n");
-  ss->kce_task_finished = GNUNET_YES;
-  if (ss->kce_send_ack_on_finish == GNUNET_YES)
+  for (int i = 0; i < GENERATE_AT_ONCE; i++)
+    kce_generate (ss, ++ss->sequence_allowed);
+
+  /**
+   * As long as we loose over 30% of max acks in reschedule,
+   * We keep generating acks for this ss.
+   */
+  if (KCN_TARGET > ss->sender->acks_available)
+  {
+    ss->sender->kce_task = GNUNET_SCHEDULER_add_delayed (
+      WORKING_QUEUE_INTERVALL,
+      kce_generate_cb,
+      ss);
+    return;
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "We have enough keys (ACKs: %u).\n", ss->sender->acks_available);
+  ss->sender->kce_task_finished = GNUNET_YES;
+  if (ss->sender->kce_send_ack_on_finish == GNUNET_YES)
     consider_ss_ack (ss);
 }
 
@@ -1660,8 +1671,9 @@ try_handle_plaintext (struct SenderAddress *sender,
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "We have %u acks available.\n",
                 ss_rekey->sender->acks_available);
-    ss_rekey->kce_send_ack_on_finish = GNUNET_NO;
-    ss_rekey->kce_task = GNUNET_SCHEDULER_add_delayed (
+    ss_rekey->sender->kce_send_ack_on_finish = GNUNET_NO;
+    // FIXME
+    ss_rekey->sender->kce_task = GNUNET_SCHEDULER_add_delayed (
       WORKING_QUEUE_INTERVALL,
       kce_generate_cb,
       ss_rekey);
@@ -1718,7 +1730,7 @@ decrypt_box (const struct UDPBox *box,
                                 sizeof(out_buf),
                                 out_buf))
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Failed decryption.\n");
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Failed decryption.\n");
     GNUNET_STATISTICS_update (stats,
                               "# Decryption failures with valid KCE",
                               1,
@@ -1727,6 +1739,7 @@ decrypt_box (const struct UDPBox *box,
     return;
   }
   kce_destroy (kce);
+  kce = NULL;
   GNUNET_STATISTICS_update (stats,
                             "# bytes decrypted with BOX",
                             sizeof(out_buf),
@@ -1739,6 +1752,18 @@ decrypt_box (const struct UDPBox *box,
               "decrypted UDPBox with kid %s\n",
               GNUNET_sh2s (&box->kid));
   try_handle_plaintext (ss->sender, out_buf, sizeof(out_buf));
+  if ((KCN_THRESHOLD > ss->sender->acks_available) &&
+      (NULL == ss->sender->kce_task) &&
+      (GNUNET_YES == ss->sender->kce_task_finished))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Sender has %u ack left which is under threshold.\n",
+                ss->sender->acks_available);
+    ss->sender->kce_send_ack_on_finish = GNUNET_YES;
+    ss->sender->kce_task = GNUNET_SCHEDULER_add_now (
+      kce_generate_cb,
+      ss);
+  }
 }
 
 
@@ -1960,19 +1985,6 @@ sock_read (void *cls)
                     "Found KCE with kid %s\n",
                     GNUNET_sh2s (&box->kid));
         decrypt_box (box, (size_t) rcvd, kce);
-        if ((NULL == kce->ss->kce_task) &&
-            (GNUNET_YES == kce->ss->kce_task_finished) &&
-            (kce->ss->sender->acks_available < KCN_THRESHOLD))
-        {
-          GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                      "Sender has %u ack left which is under threshold.\n",
-                      kce->ss->sender->acks_available);
-          kce->ss->kce_send_ack_on_finish = GNUNET_YES;
-          kce->ss->kce_task = GNUNET_SCHEDULER_add_delayed (
-            WORKING_QUEUE_INTERVALL,
-            kce_generate_cb,
-            kce->ss);
-        }
         continue;
       }
     }
@@ -2107,13 +2119,13 @@ sock_read (void *cls)
       sender = setup_sender (&uc->sender, (const struct sockaddr *) &sa, salen);
       ss->sender = sender;
       GNUNET_CONTAINER_DLL_insert (sender->ss_head, sender->ss_tail, ss);
-      if ((NULL == ss->kce_task) && (GNUNET_NO ==
-                                     ss->kce_task_finished))
+      if ((KCN_THRESHOLD > ss->sender->acks_available) &&
+          (NULL == ss->sender->kce_task) &&
+          (GNUNET_NO == ss->sender->kce_task_finished))
       {
         // TODO This task must be per sender! FIXME: This is a nice todo, but I do not know what must be done here to fix.
-        ss->kce_send_ack_on_finish = GNUNET_YES;
-        ss->kce_task = GNUNET_SCHEDULER_add_delayed (
-          WORKING_QUEUE_INTERVALL,
+        ss->sender->kce_send_ack_on_finish = GNUNET_YES;
+        ss->sender->kce_task = GNUNET_SCHEDULER_add_now (
           kce_generate_cb,
           ss);
       }
@@ -2600,13 +2612,14 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
                 msize,
                 receiver->acks_available);
     ss->bytes_sent += sizeof (dgram);
-    GNUNET_MQ_impl_send_continue (mq);
     receiver->acks_available--;
+    GNUNET_MQ_impl_send_continue (mq);
     return;
   }
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "No suitable ss found, sending as KX...\n");
   send_msg_with_kx (msg, receiver);
+  GNUNET_MQ_impl_send_continue (mq);
 }
 
 
