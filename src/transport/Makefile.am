@@ -711,6 +711,7 @@ check_PROGRAMS += \
   test_communicator_basic-unix \
   test_communicator_basic-tcp \
   test_communicator_basic-udp \
+  test_communicator_basic-quic \
   test_communicator_rekey-tcp \
   test_communicator_rekey-udp \
   test_communicator_backchannel-udp \
@@ -789,6 +790,7 @@ TESTS += \
   test_quota_compliance_udp \
   test_communicator_basic-unix \
   test_communicator_basic-tcp \
+  test_communicator_basic-quic \
   test_communicator_basic-udp \
   test_communicator_rekey-tcp \
   test_communicator_rekey-udp \
@@ -949,6 +951,14 @@ test_communicator_basic_tcp_LDADD = \
 test_communicator_basic_udp_SOURCES = \
  test_communicator_basic.c
 test_communicator_basic_udp_LDADD = \
+ libgnunettransporttesting2.la \
+ $(top_builddir)/src/testing/libgnunettesting.la \
+ $(top_builddir)/src/util/libgnunetutil.la \
+ $(top_builddir)/src/statistics/libgnunetstatistics.la
+
+test_communicator_basic_quic_SOURCES = \
+ test_communicator_basic.c
+test_communicator_basic_quic_LDADD = \
  libgnunettransporttesting2.la \
  $(top_builddir)/src/testing/libgnunettesting.la \
  $(top_builddir)/src/util/libgnunetutil.la \
