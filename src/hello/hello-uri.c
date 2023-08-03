@@ -552,7 +552,8 @@ GNUNET_HELLO_builder_from_url (const char *url)
 
 struct GNUNET_MQ_Envelope *
 GNUNET_HELLO_builder_to_env (const struct GNUNET_HELLO_Builder *builder,
-                             const struct GNUNET_CRYPTO_EddsaPrivateKey *priv)
+                             const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
+                             struct GNUNET_TIME_Relative expiration_time)
 {
   struct GNUNET_MQ_Envelope *env;
   struct HelloUriMessage *msg;
@@ -568,7 +569,8 @@ GNUNET_HELLO_builder_to_env (const struct GNUNET_HELLO_Builder *builder,
                  GNUNET_HELLO_builder_to_block (builder,
                                                 priv,
                                                 NULL,
-                                                &blen));
+                                                &blen,
+                                                expiration_time));
   env = GNUNET_MQ_msg_extra (msg,
                              blen,
                              GNUNET_MESSAGE_TYPE_HELLO_URI);
@@ -577,7 +579,8 @@ GNUNET_HELLO_builder_to_env (const struct GNUNET_HELLO_Builder *builder,
                  GNUNET_HELLO_builder_to_block (builder,
                                                 priv,
                                                 &msg[1],
-                                                &blen));
+                                                &blen,
+                                                expiration_time));
   return env;
 }
 
@@ -585,7 +588,8 @@ GNUNET_HELLO_builder_to_env (const struct GNUNET_HELLO_Builder *builder,
 struct GNUNET_MessageHeader *
 GNUNET_HELLO_builder_to_dht_hello_msg (
   const struct GNUNET_HELLO_Builder *builder,
-  const struct GNUNET_CRYPTO_EddsaPrivateKey *priv)
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
+  struct GNUNET_TIME_Relative expiration_time)
 {
   struct DhtHelloMessage *msg;
   size_t blen;
@@ -600,7 +604,8 @@ GNUNET_HELLO_builder_to_dht_hello_msg (
                  GNUNET_HELLO_builder_to_block (builder,
                                                 priv,
                                                 NULL,
-                                                &blen));
+                                                &blen,
+                                                expiration_time));
   GNUNET_assert (blen < UINT16_MAX);
   GNUNET_assert (blen >= sizeof (struct BlockHeader));
   {
@@ -611,7 +616,8 @@ GNUNET_HELLO_builder_to_dht_hello_msg (
                    GNUNET_HELLO_builder_to_block (builder,
                                                   priv,
                                                   buf,
-                                                  &blen));
+                                                  &blen,
+                                                  expiration_time));
     msg = GNUNET_malloc (sizeof (*msg)
                          + blen
                          - sizeof (*block));
@@ -699,7 +705,8 @@ enum GNUNET_GenericReturnValue
 GNUNET_HELLO_builder_to_block (const struct GNUNET_HELLO_Builder *builder,
                                const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
                                void *block,
-                               size_t *block_size)
+                               size_t *block_size,
+                               struct GNUNET_TIME_Relative expiration_time)
 {
   struct BlockHeader bh;
   size_t needed = sizeof (bh);
@@ -720,7 +727,10 @@ GNUNET_HELLO_builder_to_block (const struct GNUNET_HELLO_Builder *builder,
     return GNUNET_NO;
   }
   bh.pid = builder->pid;
-  et = GNUNET_TIME_relative_to_timestamp (GNUNET_HELLO_ADDRESS_EXPIRATION);
+  if (GNUNET_TIME_UNIT_ZERO.rel_value_us == expiration_time.rel_value_us)
+    et = GNUNET_TIME_relative_to_timestamp (GNUNET_HELLO_ADDRESS_EXPIRATION);
+  else
+    et = GNUNET_TIME_relative_to_timestamp (expiration_time);
   bh.expiration_time = GNUNET_TIME_absolute_hton (et.abs_time);
   sign_hello (builder,
               et,

@@ -2183,7 +2183,8 @@ handle_find_my_hello (struct PeerInfo *pi,
                 GNUNET_HELLO_builder_to_block (GDS_my_hello,
                                                &GDS_my_private_key,
                                                NULL,
-                                               &block_size));
+                                               &block_size,
+                                               GNUNET_TIME_UNIT_ZERO));
   {
     char block[block_size];
 
@@ -2191,7 +2192,8 @@ handle_find_my_hello (struct PeerInfo *pi,
         GNUNET_HELLO_builder_to_block (GDS_my_hello,
                                        &GDS_my_private_key,
                                        block,
-                                       &block_size))
+                                       &block_size,
+                                       GNUNET_TIME_UNIT_ZERO))
     {
       GNUNET_STATISTICS_update (GDS_stats,
                                 "# FIND PEER requests ignored due to lack of HELLO",

@@ -236,7 +236,8 @@ broadcast_hello (void *cls)
                                              &broadcast_hello,
                                              NULL);
   hello = GNUNET_HELLO_builder_to_dht_hello_msg (GDS_my_hello,
-                                                 &GDS_my_private_key);
+                                                 &GDS_my_private_key,
+                                                 GNUNET_TIME_UNIT_ZERO);
   if (NULL == hello)
   {
     GNUNET_break (0);

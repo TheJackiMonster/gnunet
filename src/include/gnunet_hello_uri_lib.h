@@ -120,7 +120,8 @@ GNUNET_HELLO_builder_from_url (const char *url);
  */
 struct GNUNET_MQ_Envelope *
 GNUNET_HELLO_builder_to_env (const struct GNUNET_HELLO_Builder *builder,
-                             const struct GNUNET_CRYPTO_EddsaPrivateKey *priv);
+                             const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
+                             struct GNUNET_TIME_Relative expiration_time);
 
 
 /**
@@ -133,7 +134,8 @@ GNUNET_HELLO_builder_to_env (const struct GNUNET_HELLO_Builder *builder,
 struct GNUNET_MessageHeader *
 GNUNET_HELLO_builder_to_dht_hello_msg (
   const struct GNUNET_HELLO_Builder *builder,
-  const struct GNUNET_CRYPTO_EddsaPrivateKey *priv);
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
+  struct GNUNET_TIME_Relative expiration_time);
 
 
 /**
@@ -162,7 +164,8 @@ enum GNUNET_GenericReturnValue
 GNUNET_HELLO_builder_to_block (const struct GNUNET_HELLO_Builder *builder,
                                const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
                                void *block,
-                               size_t *block_size);
+                               size_t *block_size,
+                               struct GNUNET_TIME_Relative expiration_time);
 
 
 /**

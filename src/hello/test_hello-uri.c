@@ -95,19 +95,22 @@ main (int argc,
                    GNUNET_HELLO_builder_to_block (b,
                                                   &priv,
                                                   NULL,
-                                                  &block_size));
+                                                  &block_size,
+                                                  NULL));
     GNUNET_assert (GNUNET_NO ==
                    GNUNET_HELLO_builder_to_block (b,
                                                   &priv,
                                                   NULL,
-                                                  &block_size));
+                                                  &block_size,
+                                                  NULL));
     GNUNET_assert (0 != block_size);
     block = GNUNET_malloc (block_size);
     GNUNET_assert (GNUNET_OK ==
                    GNUNET_HELLO_builder_to_block (b,
                                                   &priv,
                                                   block,
-                                                  &block_size));
+                                                  &block_size,
+                                                  NULL));
     b2 = GNUNET_HELLO_builder_from_block (block,
                                           block_size);
     GNUNET_free (block);
@@ -154,7 +157,8 @@ main (int argc,
     unsigned int found;
 
     env = GNUNET_HELLO_builder_to_env (b,
-                                       &priv);
+                                       &priv,
+                                       NULL);
     b2 = GNUNET_HELLO_builder_from_msg (GNUNET_MQ_env_get_msg (env));
     GNUNET_free (env);
     GNUNET_assert (NULL != b2);
