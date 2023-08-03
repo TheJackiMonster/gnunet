@@ -64,6 +64,11 @@ struct GNUNET_PeerIdentity my_identity;
 static struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
 
 /**
+ * Connection to NAT service.
+ */
+static struct GNUNET_NAT_Handle *nat;
+
+/**
  * Information we track per peer we have recently been in contact with.
  *
  * (Since quiche handles crypto, handshakes, etc. we don't differentiate
@@ -1062,6 +1067,67 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
 }
 
 
+static void
+try_connection_reversal (void *cls,
+                         const struct sockaddr *addr,
+                         socklen_t addrlen)
+{
+  /* FIXME: support reversal: #5529 */
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "No connection reversal implemented!");
+}
+
+
+/**
+ * Signature of the callback passed to #GNUNET_NAT_register() for
+ * a function to call whenever our set of 'valid' addresses changes.
+ *
+ * @param cls closure
+ * @param app_ctx[in,out] location where the app can store stuff
+ *                  on add and retrieve it on remove
+ * @param add_remove #GNUNET_YES to add a new public IP address,
+ *                   #GNUNET_NO to remove a previous (now invalid) one
+ * @param ac address class the address belongs to
+ * @param addr either the previous or the new public IP address
+ * @param addrlen actual length of the @a addr
+ */
+static void
+nat_address_cb (void *cls,
+                void **app_ctx,
+                int add_remove,
+                enum GNUNET_NAT_AddressClass ac,
+                const struct sockaddr *addr,
+                socklen_t addrlen)
+{
+  char *my_addr;
+  struct GNUNET_TRANSPORT_AddressIdentifier *ai;
+
+  if (GNUNET_YES == add_remove)
+  {
+    enum GNUNET_NetworkType nt;
+
+    GNUNET_asprintf (&my_addr,
+                     "%s-%s",
+                     COMMUNICATOR_ADDRESS_PREFIX,
+                     GNUNET_a2s (addr, addrlen));
+    nt = GNUNET_NT_scanner_get_type (is, addr, addrlen);
+    ai =
+      GNUNET_TRANSPORT_communicator_address_add (ch,
+                                                 my_addr,
+                                                 nt,
+                                                 GNUNET_TIME_UNIT_FOREVER_REL);
+    GNUNET_free (my_addr);
+    *app_ctx = ai;
+  }
+  else
+  {
+    ai = *app_ctx;
+    GNUNET_TRANSPORT_communicator_address_remove (ai);
+    *app_ctx = NULL;
+  }
+}
+
+
 /**
  * Shutdown the QUIC communicator.
  *
@@ -1527,6 +1593,15 @@ run (void *cls,
                                               NULL,
                                               &notify_cb,
                                               NULL);
+  nat = GNUNET_NAT_register (cfg,
+                             COMMUNICATOR_CONFIG_SECTION,
+                             IPPROTO_UDP,
+                             1 /* one address */,
+                             (const struct sockaddr **) &in,
+                             &in_len,
+                             &nat_address_cb,
+                             try_connection_reversal,
+                             NULL /* closure */);
   if (NULL == ch)
   {
     GNUNET_break (0);
