@@ -70,6 +70,13 @@ GNUNET_HELLO_builder_new (const struct GNUNET_PeerIdentity *pid);
 
 
 /**
+ * Get the PeerIdentity for this builder.
+ */
+struct GNUNET_PeerIdentity *
+GNUNET_HELLO_builder_get_id (struct GNUNET_HELLO_Builder *builder);
+
+
+/**
  * Release resources of a @a builder.
  *
  * @param[in] builder to free
@@ -108,6 +115,16 @@ GNUNET_HELLO_builder_from_block (const void *block,
  */
 struct GNUNET_HELLO_Builder *
 GNUNET_HELLO_builder_from_url (const char *url);
+
+
+/**
+ * Merge to hello uris.
+ */
+struct GNUNET_MQ_Envelope *
+GNUNET_HELLO_builder_merge_hellos (const struct GNUNET_MessageHeader *msg1,
+                                   const struct GNUNET_MessageHeader *msg2,
+                                   const struct
+                                   GNUNET_CRYPTO_EddsaPrivateKey *priv);
 
 
 /**

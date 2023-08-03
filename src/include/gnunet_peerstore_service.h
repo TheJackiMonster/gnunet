@@ -46,6 +46,10 @@ extern "C" {
 #endif
 #endif
 
+/**
+ * Key used for storing HELLO in the peerstore
+ */
+#define GNUNET_PEERSTORE_HELLO_KEY "peerstore-peer-hello-uri"
 
 /**
  * Key used for storing addresses in URL format in the peerstore
@@ -180,6 +184,33 @@ typedef void (*GNUNET_PEERSTORE_Processor) (
   void *cls,
   const struct GNUNET_PEERSTORE_Record *record,
   const char *emsg);
+
+
+
+/**
+ * Add hello to peerstore.
+ *
+ * @param h handle for peerstore.
+ * @param msg The hello to add.
+ * @param cont The continuation function to execute after storing.
+ * @param cont_cls The continuation function closure.
+ * @return The context for storing.
+ */
+struct GNUNET_PEERSTORE_StoreHelloContext *
+GNUNET_PEERSTORE_hello_add (struct GNUNET_PEERSTORE_Handle *h,
+                            const struct GNUNET_MessageHeader *msg,
+                            const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
+                            GNUNET_PEERSTORE_Continuation cont,
+                            void *cont_cls);
+
+
+/**
+ * Cancel the request to add a hello.
+ *
+ * @param huc The context for storing a hello.
+ */
+void
+GNUNET_PEERSTORE_hello_add_cancel (struct GNUNET_PEERSTORE_StoreHelloContext *huc);
 
 
 /**

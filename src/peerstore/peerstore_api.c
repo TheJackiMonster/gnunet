@@ -25,8 +25,10 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
+#include "gnunet_hello_uri_lib.h"
 #include "peerstore.h"
 #include "peerstore_common.h"
+#include "gnunet_peerstore_service.h"
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "peerstore-api", __VA_ARGS__)
 
@@ -157,6 +159,22 @@ struct GNUNET_PEERSTORE_StoreContext
 };
 
 /**
+ * Closure for store callback when storing hello uris.
+ */
+struct StoreHelloCls
+{
+  /**
+   * The corresponding store context.
+   */
+  struct GNUNET_PEERSTORE_StoreContext *sc;
+
+  /**
+   * The corresponding hello uri add request.
+   */
+  struct GNUNET_PEERSTORE_StoreHelloContext *huc;
+};
+
+/**
  * Context for a iterate request
  */
 struct GNUNET_PEERSTORE_IterateContext
@@ -241,6 +259,62 @@ struct GNUNET_PEERSTORE_WatchContext
    * Hash of the combined key
    */
   struct GNUNET_HashCode keyhash;
+};
+
+/**
+ * Context for a add hello uri request.
+ */
+struct GNUNET_PEERSTORE_StoreHelloContext
+{
+  /**
+   * Peerstore handle.
+   */
+  struct GNUNET_PEERSTORE_Handle *h;
+
+  /**
+   * Function to call with information.
+   */
+  GNUNET_PEERSTORE_Continuation cont;
+
+  /**
+   * Closure for @e callback.
+   */
+  void *cont_cls;
+
+  /**
+   * Head of active STORE requests.
+   */
+  struct GNUNET_PEERSTORE_StoreContext *sc_head;
+
+  /**
+   * Tail of active STORE requests.
+   */
+  struct GNUNET_PEERSTORE_StoreContext *sc_tail;
+
+  /**
+   * Iteration context to iterate through all the stored hellos.
+   */
+  struct GNUNET_PEERSTORE_IterateContext *ic;
+
+  /**
+   * Active watch to be notified about conflicting hello uri add requests.
+   */
+  struct GNUNET_PEERSTORE_WatchContext *wc;
+
+  /**
+   * Hello uri which was request for storing.
+   */
+  const struct GNUNET_MessageHeader *hello;
+
+  /**
+   * Key to sign merged hello.
+   */
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *priv;
+
+  /**
+   * Was this request successful.
+   */
+  int success;
 };
 
 /******************************************************************************/
@@ -934,5 +1008,169 @@ GNUNET_PEERSTORE_watch (struct GNUNET_PEERSTORE_Handle *h,
   return wc;
 }
 
+
+
+
+static void
+merge_success (void *cls, int success)
+{
+  struct StoreHelloCls *shu_cls = cls;
+  struct GNUNET_PEERSTORE_StoreHelloContext *huc = shu_cls->huc;
+  struct GNUNET_PEERSTORE_Handle *h = huc->h;
+
+  if (GNUNET_OK != success)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Storing hello uri failed\n");
+    huc->cont (huc->cont_cls, success);
+    return;
+  }
+  GNUNET_CONTAINER_DLL_remove (huc->sc_head, huc->sc_tail, shu_cls->sc);
+  if (NULL == huc->sc_head)
+  {
+    GNUNET_PEERSTORE_watch_cancel (huc->wc);
+    huc->wc = NULL;
+    huc->cont (huc->cont_cls, GNUNET_OK);
+    huc->success = GNUNET_OK;
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Storing hello uri succeeded!\n");
+    return;
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Got notified during storing hello uri!\n");
+}
+
+
+static void
+store_hello (struct GNUNET_PEERSTORE_StoreHelloContext *huc,
+             const struct GNUNET_MessageHeader *hello)
+{
+  struct GNUNET_PEERSTORE_Handle *h = huc->h;
+  struct GNUNET_HELLO_Builder *builder;
+  struct GNUNET_PeerIdentity *pid;
+  struct GNUNET_PEERSTORE_StoreContext *sc;
+  struct StoreHelloCls *shu_cls = GNUNET_new (struct StoreHelloCls);
+
+  shu_cls->huc = huc;
+  builder = GNUNET_HELLO_builder_from_msg (hello);
+  pid = GNUNET_HELLO_builder_get_id (builder);
+  sc = GNUNET_PEERSTORE_store (h,
+                               "peerstore",
+                               pid,
+                               GNUNET_PEERSTORE_HELLO_KEY,
+                               hello,
+                               sizeof(hello),
+                               GNUNET_TIME_UNIT_FOREVER_ABS,
+                               GNUNET_PEERSTORE_STOREOPTION_REPLACE,
+                               merge_success,
+                               shu_cls);
+  shu_cls->sc = sc;
+  GNUNET_CONTAINER_DLL_insert (huc->sc_head, huc->sc_tail, sc);
+  GNUNET_HELLO_builder_free (builder);
+}
+
+
+static void
+merge_uri  (void *cls,
+           const struct GNUNET_PEERSTORE_Record *record,
+           const char *emsg)
+{
+  struct GNUNET_PEERSTORE_StoreHelloContext *huc = cls;
+  struct GNUNET_PEERSTORE_Handle *h = huc->h;
+  struct GNUNET_PEERSTORE_WatchContext *wc;
+  struct GNUNET_MessageHeader *hello;
+  const struct GNUNET_MessageHeader *merged_hello;
+  struct GNUNET_MQ_Envelope *env;
+  const char *val;
+
+  if (NULL != emsg)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Got failure from PEERSTORE: %s\n",
+                emsg);
+    return;
+  }
+  if (NULL == record)
+    return;
+
+  if (NULL == huc->wc && GNUNET_NO == huc->success)
+  {
+    wc = GNUNET_PEERSTORE_watch (h,
+                                 "peerstore",
+                                 &record->peer,
+                                 GNUNET_PEERSTORE_HELLO_KEY,
+                                 &merge_uri,
+                                 huc);
+    huc->wc = wc;
+  }
+
+  if (NULL != record)
+  {
+    hello = record->value;
+    if ((0 == record->value_size) || ('\0' != val[record->value_size - 1]))
+    {
+      GNUNET_break (0);
+      return;
+    }
+
+    env = GNUNET_HELLO_builder_merge_hellos (huc->hello, hello, huc->priv);
+    merged_hello = GNUNET_MQ_env_get_msg (env);
+    if (NULL != merged_hello)
+      store_hello (huc, merged_hello);
+
+    GNUNET_free (env);
+
+  }
+  else
+  {
+    store_hello (huc, huc->hello);
+  }
+}
+
+
+struct GNUNET_PEERSTORE_StoreHelloContext *
+GNUNET_PEERSTORE_hello_add (struct GNUNET_PEERSTORE_Handle *h,
+                            const struct GNUNET_MessageHeader *msg,
+                            const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
+                            GNUNET_PEERSTORE_Continuation cont,
+                            void *cont_cls)
+{
+  struct GNUNET_HELLO_Builder *builder;
+  struct GNUNET_PEERSTORE_StoreHelloContext *huc;
+  struct GNUNET_PEERSTORE_IterateContext *ic;
+  struct GNUNET_PeerIdentity *pid;
+
+  huc = GNUNET_new (struct GNUNET_PEERSTORE_StoreHelloContext);
+  huc->h = h;
+  huc->cont = cont;
+  huc->cont_cls = cont_cls;
+  huc->hello = msg;
+  huc->priv = priv;
+
+  builder = GNUNET_HELLO_builder_from_msg (msg);
+  pid = GNUNET_HELLO_builder_get_id (builder);
+  ic = GNUNET_PEERSTORE_iterate (h,
+                         "peerstore",
+                         pid,
+                         GNUNET_PEERSTORE_HELLO_KEY,
+                         &merge_uri,
+                         huc);
+  GNUNET_HELLO_builder_free (builder);
+  huc->ic = ic;
+
+  return huc;
+}
+
+void
+GNUNET_PEERSTORE_hello_add_cancel (struct GNUNET_PEERSTORE_StoreHelloContext *huc)
+{
+  struct GNUNET_PEERSTORE_StoreContext *sc;
+
+  GNUNET_PEERSTORE_iterate_cancel (huc->ic);
+  GNUNET_PEERSTORE_watch_cancel (huc->wc);
+  while (NULL != (sc = huc->sc_head))
+      GNUNET_PEERSTORE_store_cancel (sc);
+  GNUNET_free (huc);
+}
 
 /* end of peerstore_api.c */
