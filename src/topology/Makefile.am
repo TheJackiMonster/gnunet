@@ -33,7 +33,7 @@ gnunet_daemon_topology_SOURCES = \
 gnunet_daemon_topology_LDADD = \
   libgnunetfriends.la \
   $(top_builddir)/src/core/libgnunetcore.la \
-  $(top_builddir)/src/peerinfo/libgnunetpeerinfo.la \
+  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/transport/libgnunettransportapplication.la \
   $(top_builddir)/src/ats/libgnunetats.la \

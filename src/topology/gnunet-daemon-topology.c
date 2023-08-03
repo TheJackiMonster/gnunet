@@ -38,11 +38,12 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
+#include "gnunet_hello_uri_lib.h"
 #include "gnunet_friends_lib.h"
 #include "gnunet_constants.h"
 #include "gnunet_core_service.h"
 #include "gnunet_protocols.h"
-#include "gnunet_peerinfo_service.h"
+#include "gnunet_peerstore_service.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_transport_application_service.h"
 #include "gnunet_ats_service.h"
@@ -81,9 +82,9 @@ struct Peer
   struct GNUNET_MQ_Handle *mq;
 
   /**
-   * Pointer to the HELLO message of this peer; can be NULL.
+   * Pointer to the hello uri of this peer; can be NULL.
    */
-  struct GNUNET_HELLO_Message *hello;
+  struct GNUNET_MessageHeader *hello;
 
   /**
    * Bloom filter used to mark which peers already got the HELLO
@@ -125,10 +126,10 @@ struct Peer
 
 
 /**
- * Our peerinfo notification context.  We use notification
+ * Our peerstore notification context.  We use notification
  * to instantly learn about new peers as they are discovered.
  */
-static struct GNUNET_PEERINFO_NotifyContext *peerinfo_notify;
+static struct GNUNET_PEERSTORE_NotifyContext *peerstore_notify;
 
 /**
  * Our configuration.
@@ -141,9 +142,9 @@ static const struct GNUNET_CONFIGURATION_Handle *cfg;
 static struct GNUNET_CORE_Handle *handle;
 
 /**
- * Handle to the PEERINFO service.
+ * Handle to the PEERSTORE service.
  */
-static struct GNUNET_PEERINFO_Handle *pi;
+static struct GNUNET_PEERSTORE_Handle *ps;
 
 /**
    * Handle to Transport service.
@@ -154,6 +155,11 @@ struct GNUNET_TRANSPORT_ApplicationHandle *transport;
  * Identity of this peer.
  */
 static struct GNUNET_PeerIdentity my_identity;
+
+/**
+ * Our private key.
+ */
+static struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
 
 /**
  * All of our friends, all of our current neighbours and all peers for
@@ -318,6 +324,7 @@ attempt_connect (struct Peer *pos)
                               gettext_noop ("# connect requests issued to ATS"),
                               1,
                               GNUNET_NO);
+    //TODO Use strength somehow.
     pos->ash = GNUNET_TRANSPORT_application_suggest (transport,
                                                      &pos->pid,
                                                      GNUNET_MQ_PRIO_BEST_EFFORT,
@@ -336,7 +343,7 @@ attempt_connect (struct Peer *pos)
  */
 static struct Peer *
 make_peer (const struct GNUNET_PeerIdentity *peer,
-           const struct GNUNET_HELLO_Message *hello,
+           const struct GNUNET_MessageHeader *hello,
            int is_friend)
 {
   struct Peer *ret;
@@ -346,8 +353,8 @@ make_peer (const struct GNUNET_PeerIdentity *peer,
   ret->is_friend = is_friend;
   if (NULL != hello)
   {
-    ret->hello = GNUNET_malloc (GNUNET_HELLO_size (hello));
-    GNUNET_memcpy (ret->hello, hello, GNUNET_HELLO_size (hello));
+    ret->hello = GNUNET_malloc (sizeof (hello));
+    GNUNET_memcpy (ret->hello, hello, sizeof (hello));
   }
   GNUNET_break (GNUNET_OK ==
                 GNUNET_CONTAINER_multipeermap_put (
@@ -427,10 +434,16 @@ find_advertisable_hello (void *cls,
   struct GNUNET_HashCode hc;
   size_t hs;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "find_advertisable_hello\n");
   if (pos == fah->peer)
     return GNUNET_YES;
+   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "find_advertisable_hello 2\n");
   if (pos->hello == NULL)
     return GNUNET_YES;
+   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "find_advertisable_hello 3\n");
   rst_time = GNUNET_TIME_absolute_get_remaining (pos->filter_expiration);
   if (0 == rst_time.rel_value_us)
   {
@@ -439,9 +452,11 @@ find_advertisable_hello (void *cls,
     setup_filter (pos);
   }
   fah->next_adv = GNUNET_TIME_relative_min (rst_time, fah->next_adv);
-  hs = GNUNET_HELLO_size (pos->hello);
+  hs = pos->hello->size;
   if (hs > fah->max_size)
     return GNUNET_YES;
+   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "find_advertisable_hello 4\n");
   GNUNET_CRYPTO_hash (&fah->peer->pid,
                       sizeof(struct GNUNET_PeerIdentity),
                       &hc);
@@ -467,6 +482,8 @@ schedule_next_hello (void *cls)
   struct GNUNET_TIME_Relative delay;
   struct GNUNET_HashCode hc;
 
+   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "schedule_next_hello\n");
   pl->hello_delay_task = NULL;
   GNUNET_assert (NULL != pl->mq);
   /* find applicable HELLOs */
@@ -479,15 +496,19 @@ schedule_next_hello (void *cls)
     GNUNET_SCHEDULER_add_delayed (fah.next_adv, &schedule_next_hello, pl);
   if (NULL == fah.result)
     return;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "schedule_next_hello 2\n");
   delay = GNUNET_TIME_absolute_get_remaining (pl->next_hello_allowed);
   if (0 != delay.rel_value_us)
     return;
 
-  want = GNUNET_HELLO_size (fah.result->hello);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "schedule_next_hello 3\n");
+  want = fah.result->hello->size;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Sending HELLO with %u bytes",
               (unsigned int) want);
-  env = GNUNET_MQ_msg_copy (&fah.result->hello->header);
+  env = GNUNET_MQ_msg_copy (fah.result->hello);
   GNUNET_MQ_send (pl->mq, env);
 
   /* avoid sending this one again soon */
@@ -525,6 +546,9 @@ reschedule_hellos (void *cls,
   struct Peer *peer = value;
   struct Peer *skip = cls;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Reschedule for `%s'\n",
+              GNUNET_i2s (&peer->pid));
   if (skip == peer)
     return GNUNET_YES;
   if (NULL == peer->mq)
@@ -534,6 +558,8 @@ reschedule_hellos (void *cls,
     GNUNET_SCHEDULER_cancel (peer->hello_delay_task);
     peer->hello_delay_task = NULL;
   }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Schedule_next_hello\n");
   peer->hello_delay_task =
     GNUNET_SCHEDULER_add_now (&schedule_next_hello, peer);
   return GNUNET_YES;
@@ -678,18 +704,15 @@ disconnect_notify (void *cls,
  *
  * @param cls flag that we will set if we see any addresses
  * @param address the address of the peer
- * @param expiration when will the given address expire
  * @return #GNUNET_SYSERR always, to terminate iteration
  */
-static int
+static void
 address_iterator (void *cls,
-                  const struct GNUNET_HELLO_Address *address,
-                  struct GNUNET_TIME_Absolute expiration)
+                  const char *uri)
 {
   int *flag = cls;
 
   *flag = GNUNET_YES;
-  return GNUNET_SYSERR;
 }
 
 
@@ -700,55 +723,53 @@ address_iterator (void *cls,
  * @param hello the HELLO we got
  */
 static void
-consider_for_advertising (const struct GNUNET_HELLO_Message *hello)
+consider_for_advertising (const struct GNUNET_MessageHeader *hello)
 {
   int have_address;
-  struct GNUNET_PeerIdentity pid;
+  struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (hello);
+  struct GNUNET_PeerIdentity *pid;
   struct GNUNET_TIME_Absolute dt;
-  struct GNUNET_HELLO_Message *nh;
+  struct GNUNET_MQ_Envelope *env;
+  const struct GNUNET_MessageHeader *nh;
   struct Peer *peer;
   uint16_t size;
 
-  if (GNUNET_OK != GNUNET_HELLO_get_id (hello, &pid))
-  {
-    GNUNET_break (0);
-    return;
-  }
-  if (0 == GNUNET_memcmp (&pid, &my_identity))
-    return; /* that's me! */
   have_address = GNUNET_NO;
-  GNUNET_HELLO_iterate_addresses (hello,
-                                  GNUNET_NO,
-                                  &address_iterator,
-                                  &have_address);
+  GNUNET_HELLO_builder_iterate (builder,
+                                pid,
+                                &address_iterator,
+                                &have_address);
   if (GNUNET_NO == have_address)
     return; /* no point in advertising this one... */
-  peer = GNUNET_CONTAINER_multipeermap_get (peers, &pid);
+  if (NULL == pid || 0 == GNUNET_memcmp (pid, &my_identity))
+    return; /* that's me! */
+
+  peer = GNUNET_CONTAINER_multipeermap_get (peers, pid);
   if (NULL == peer)
   {
-    peer = make_peer (&pid, hello, GNUNET_NO);
+    peer = make_peer (pid, hello, GNUNET_NO);
   }
-  else if (NULL != peer->hello)
-  {
-    dt = GNUNET_HELLO_equals (peer->hello, hello, GNUNET_TIME_absolute_get ());
-    if (dt.abs_value_us == GNUNET_TIME_UNIT_FOREVER_ABS.abs_value_us)
-      return;   /* nothing new here */
-  }
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Found HELLO from peer `%s' for advertising\n",
-              GNUNET_i2s (&pid));
+
   if (NULL != peer->hello)
   {
-    nh = GNUNET_HELLO_merge (peer->hello, hello);
+
+    env = GNUNET_HELLO_builder_merge_hellos (hello, peer->hello, my_private_key);
+    nh = GNUNET_MQ_env_get_msg (env);
+    if (NULL == nh)
+      return;
     GNUNET_free (peer->hello);
-    peer->hello = nh;
+    GNUNET_memcpy (peer->hello, nh, sizeof (nh));
+    GNUNET_free (env);
   }
   else
   {
-    size = GNUNET_HELLO_size (hello);
+    size = sizeof (hello);
     peer->hello = GNUNET_malloc (size);
     GNUNET_memcpy (peer->hello, hello, size);
   }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Found HELLO from peer `%s' for advertising\n",
+              GNUNET_i2s (pid));
   if (NULL != peer->filter)
   {
     GNUNET_CONTAINER_bloomfilter_free (peer->filter);
@@ -762,7 +783,7 @@ consider_for_advertising (const struct GNUNET_HELLO_Message *hello)
 
 
 /**
- * PEERINFO calls this function to let us know about a possible peer
+ * PEERSTORE calls this function to let us know about a possible peer
  * that we might want to connect to.
  *
  * @param cls closure (not used)
@@ -773,7 +794,7 @@ consider_for_advertising (const struct GNUNET_HELLO_Message *hello)
 static void
 process_peer (void *cls,
               const struct GNUNET_PeerIdentity *peer,
-              const struct GNUNET_HELLO_Message *hello,
+              const struct GNUNET_MessageHeader *hello,
               const char *err_msg)
 {
   struct Peer *pos;
@@ -781,11 +802,11 @@ process_peer (void *cls,
   if (NULL != err_msg)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                _ ("Error in communication with PEERINFO service: %s\n"),
+                _ ("Error in communication with PEERSTORE service: %s\n"),
                 err_msg);
-    GNUNET_PEERINFO_notify_cancel (peerinfo_notify);
-    peerinfo_notify =
-      GNUNET_PEERINFO_notify (cfg, GNUNET_NO, &process_peer, NULL);
+    GNUNET_PEERSTORE_hello_changed_notify_cancel (peerstore_notify);
+    peerstore_notify =
+      GNUNET_PEERSTORE_hello_changed_notify (ps, GNUNET_NO, &process_peer, NULL);
     return;
   }
   GNUNET_assert (NULL != peer);
@@ -837,8 +858,8 @@ core_init (void *cls, const struct GNUNET_PeerIdentity *my_id)
   }
   my_identity = *my_id;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "I am peer `%s'\n", GNUNET_i2s (my_id));
-  peerinfo_notify =
-    GNUNET_PEERINFO_notify (cfg, GNUNET_NO, &process_peer, NULL);
+  peerstore_notify =
+    GNUNET_PEERSTORE_hello_changed_notify (ps, GNUNET_NO, &process_peer, NULL);
 }
 
 
@@ -916,11 +937,12 @@ read_friends_file (const struct GNUNET_CONFIGURATION_Handle *cfg)
  *         #GNUNET_SYSERR if @a message is invalid
  */
 static int
-check_hello (void *cls, const struct GNUNET_HELLO_Message *message)
+check_hello (void *cls, const struct GNUNET_MessageHeader *message)
 {
-  struct GNUNET_PeerIdentity pid;
+  struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (message);
+  struct GNUNET_PeerIdentity *pid = GNUNET_HELLO_builder_get_id (builder);
 
-  if (GNUNET_OK != GNUNET_HELLO_get_id (message, &pid))
+  if (NULL == pid)
   {
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
@@ -937,21 +959,21 @@ check_hello (void *cls, const struct GNUNET_HELLO_Message *message)
  * @param message the actual HELLO message
  */
 static void
-handle_hello (void *cls, const struct GNUNET_HELLO_Message *message)
+handle_hello (void *cls, const struct GNUNET_MessageHeader *message)
 {
   const struct GNUNET_PeerIdentity *other = cls;
   struct Peer *peer;
-  struct GNUNET_PeerIdentity pid;
+  struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (message);
+  struct GNUNET_PeerIdentity *pid = GNUNET_HELLO_builder_get_id (builder);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received encrypted HELLO from peer `%s'",
               GNUNET_i2s (other));
-  GNUNET_assert (GNUNET_OK == GNUNET_HELLO_get_id (message, &pid));
   GNUNET_STATISTICS_update (stats,
                             gettext_noop ("# HELLO messages received"),
                             1,
                             GNUNET_NO);
-  peer = GNUNET_CONTAINER_multipeermap_get (peers, &pid);
+  peer = GNUNET_CONTAINER_multipeermap_get (peers, pid);
   if (NULL == peer)
   {
     if ((GNUNET_YES == friends_only) || (friend_count < minimum_friend_count))
@@ -965,7 +987,8 @@ handle_hello (void *cls, const struct GNUNET_HELLO_Message *message)
         (friend_count < minimum_friend_count))
       return;
   }
-  (void) GNUNET_PEERINFO_add_peer (pi, message, NULL, NULL);
+  (void) GNUNET_PEERSTORE_hello_add (ps, message, my_private_key, NULL, NULL);
+  GNUNET_HELLO_builder_free (builder);
 }
 
 
@@ -978,10 +1001,10 @@ handle_hello (void *cls, const struct GNUNET_HELLO_Message *message)
 static void
 cleaning_task (void *cls)
 {
-  if (NULL != peerinfo_notify)
+  if (NULL != peerstore_notify)
   {
-    GNUNET_PEERINFO_notify_cancel (peerinfo_notify);
-    peerinfo_notify = NULL;
+    GNUNET_PEERSTORE_hello_changed_notify_cancel (peerstore_notify);
+    peerstore_notify = NULL;
   }
   if (NULL != handle)
   {
@@ -1001,10 +1024,10 @@ cleaning_task (void *cls)
     GNUNET_TRANSPORT_application_done (transport);
     transport = NULL;
   }
-  if (NULL != pi)
+  if (NULL != ps)
   {
-    GNUNET_PEERINFO_disconnect (pi);
-    pi = NULL;
+    GNUNET_PEERSTORE_disconnect (ps, GNUNET_YES);
+    ps = NULL;
   }
   if (NULL != stats)
   {
@@ -1030,13 +1053,15 @@ run (void *cls,
 {
   struct GNUNET_MQ_MessageHandler handlers[] =
   { GNUNET_MQ_hd_var_size (hello,
-                           GNUNET_MESSAGE_TYPE_HELLO,
-                           struct GNUNET_HELLO_Message,
+                           GNUNET_MESSAGE_TYPE_HELLO_URI,
+                           struct GNUNET_MessageHeader,
                            NULL),
     GNUNET_MQ_handler_end () };
   unsigned long long opt;
 
   cfg = c;
+  my_private_key =
+    GNUNET_CRYPTO_eddsa_key_create_from_configuration (cfg);
   stats = GNUNET_STATISTICS_create ("topology", cfg);
 
   minimum_friend_count = 0;
@@ -1056,7 +1081,7 @@ run (void *cls,
               minimum_friend_count);
 
   transport = GNUNET_TRANSPORT_application_init (cfg);
-  pi = GNUNET_PEERINFO_connect (cfg);
+  ps = GNUNET_PEERSTORE_connect (cfg);
   handle = GNUNET_CORE_connect (cfg,
                                 NULL,
                                 &core_init,
