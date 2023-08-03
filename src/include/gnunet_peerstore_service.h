@@ -122,6 +122,11 @@ struct GNUNET_PEERSTORE_Handle;
 struct GNUNET_PEERSTORE_StoreContext;
 
 /**
+ * Context for the info handler.
+ */
+struct GNUNET_PEERSTORE_NotifyContext;
+
+/**
  * Single PEERSTORE record
  */
 struct GNUNET_PEERSTORE_Record
@@ -185,6 +190,48 @@ typedef void (*GNUNET_PEERSTORE_Processor) (
   const struct GNUNET_PEERSTORE_Record *record,
   const char *emsg);
 
+/**
+ * Function called by PEERSTORE when notifying a client about a changed hello.
+ *
+ * @param cls closure
+ * @param hello_uri Hello uri.
+ */
+typedef void (*GNUNET_PEERSTORE_hello_notify_cb) (
+  void *cls,
+  const struct GNUNET_PeerIdentity *peer,
+  const struct GNUNET_MessageHeader *hello,
+  const char *err_msg);
+
+/**
+ * Call a method whenever our known information about peers
+ * changes.  Initially calls the given function for all known
+ * peers and then only signals changes.
+ *
+ * If @a include_friend_only is set to #GNUNET_YES peerinfo will include HELLO
+ * messages which are intended for friend to friend mode and which do not
+ * have to be gossiped. Otherwise these messages are skipped. //FIXME Not implemented atm!
+ *
+ * @param h Handle to the PEERSTORE service
+ * @param include_friend_only include HELLO messages for friends only (not used at the moment)
+ * @param callback the method to call for getting the hello.
+ * @param callback_cls closure for @a callback
+ * @return NULL on error
+ */
+struct GNUNET_PEERSTORE_NotifyContext *
+GNUNET_PEERSTORE_hello_changed_notify (struct GNUNET_PEERSTORE_Handle *h,
+                                       int include_friend_only,
+                                       GNUNET_PEERSTORE_hello_notify_cb callback,
+                                       void *callback_cls);
+
+
+/**
+ * Stop notifying about changes.
+ *
+ * @param nc context to stop notifying
+ */
+void
+GNUNET_PEERSTORE_hello_changed_notify_cancel (struct
+                                              GNUNET_PEERSTORE_NotifyContext *nc);
 
 
 /**
@@ -210,7 +257,8 @@ GNUNET_PEERSTORE_hello_add (struct GNUNET_PEERSTORE_Handle *h,
  * @param huc The context for storing a hello.
  */
 void
-GNUNET_PEERSTORE_hello_add_cancel (struct GNUNET_PEERSTORE_StoreHelloContext *huc);
+GNUNET_PEERSTORE_hello_add_cancel (struct
+                                   GNUNET_PEERSTORE_StoreHelloContext *huc);
 
 
 /**

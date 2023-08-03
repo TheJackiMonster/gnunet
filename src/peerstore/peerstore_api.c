@@ -262,6 +262,37 @@ struct GNUNET_PEERSTORE_WatchContext
 };
 
 /**
+ * Context for the info handler.
+ */
+struct GNUNET_PEERSTORE_NotifyContext
+{
+  /**
+   * Peerstore handle.
+   */
+  struct GNUNET_PEERSTORE_Handle *h;
+
+  /**
+   * Function to call with information.
+   */
+  GNUNET_PEERSTORE_hello_notify_cb callback;
+
+  /**
+   * Closure for @e callback.
+   */
+  void *callback_cls;
+
+  /**
+   * Iteration context to iterate through all the stored hellos.
+   */
+  struct GNUNET_PEERSTORE_IterateContext *ic;
+
+  /**
+   * Is this request canceled.
+   */
+  unsigned int canceled;
+};
+
+/**
  * Context for a add hello uri request.
  */
 struct GNUNET_PEERSTORE_StoreHelloContext
@@ -1009,6 +1040,152 @@ GNUNET_PEERSTORE_watch (struct GNUNET_PEERSTORE_Handle *h,
 }
 
 
+/******************************************************************************/
+/*******************            HELLO FUNCTIONS           *********************/
+/******************************************************************************/
+
+
+static void
+hello_updated (void *cls,
+               const struct GNUNET_PEERSTORE_Record *record,
+               const char *emsg)
+{
+  struct GNUNET_PEERSTORE_NotifyContext *nc = cls;
+  struct GNUNET_PEERSTORE_Handle *h = nc->h;
+  const struct GNUNET_MessageHeader *hello;
+  const char *val;
+
+  if (NULL != emsg)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Got failure from PEERSTORE: %s\n",
+                emsg);
+    nc->callback (nc->callback_cls, NULL, NULL, emsg);
+    return;
+  }
+  hello = record->value;
+  if ((0 == record->value_size) || ('\0' != val[record->value_size - 1]))
+  {
+    GNUNET_break (0);
+    return;
+  }
+  nc->callback (nc->callback_cls, &record->peer, hello, NULL);
+}
+
+
+static void
+watch_cancel (void *cls,
+              const struct GNUNET_PEERSTORE_Record *record,
+              const char *emsg)
+{
+  struct GNUNET_PEERSTORE_NotifyContext *nc = cls;
+  struct GNUNET_PEERSTORE_Handle *h = nc->h;
+  struct GNUNET_HashCode keyhash;
+  struct GNUNET_PEERSTORE_WatchContext *wc;
+
+  if (NULL != record)
+  {
+    PEERSTORE_hash_key ("peerstore", &record->peer, record->key, &keyhash);
+    wc = GNUNET_CONTAINER_multihashmap_get (h->watches, &keyhash);
+    if (NULL != wc)
+      GNUNET_PEERSTORE_watch_cancel (wc);
+  }
+  else
+  {
+    GNUNET_free (nc);
+  }
+}
+
+
+static void
+set_watch (void *cls,
+           const struct GNUNET_PEERSTORE_Record *record,
+           const char *emsg)
+{
+  struct GNUNET_PEERSTORE_NotifyContext *nc = cls;
+  struct GNUNET_PEERSTORE_Handle *h = nc->h;
+  struct GNUNET_PEERSTORE_WatchContext *wc;
+  const struct GNUNET_MessageHeader *hello;
+  const char *val;
+
+  if (NULL != emsg)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Got failure from PEERSTORE: %s\n",
+                emsg);
+    nc->callback (nc->callback_cls, NULL, NULL, emsg);
+    return;
+  }
+  if (NULL == record)
+    return;
+
+  wc = GNUNET_PEERSTORE_watch (h,
+                               "peerstore",
+                               &record->peer,
+                               GNUNET_PEERSTORE_HELLO_KEY,
+                               &hello_updated,
+                               nc);
+  hello = record->value;
+  if ((0 == record->value_size) || ('\0' != val[record->value_size - 1]))
+  {
+    GNUNET_break (0);
+    return;
+  }
+  nc->callback (nc->callback_cls, &record->peer, hello, NULL);
+}
+
+
+struct GNUNET_PEERSTORE_NotifyContext *
+GNUNET_PEERSTORE_hello_changed_notify (struct GNUNET_PEERSTORE_Handle *h,
+                                       int include_friend_only,
+                                       GNUNET_PEERSTORE_hello_notify_cb callback,
+                                       void *callback_cls)
+{
+  struct GNUNET_PEERSTORE_NotifyContext *nc;
+  struct GNUNET_PEERSTORE_IterateContext *ic;
+
+  nc = GNUNET_new (struct GNUNET_PEERSTORE_NotifyContext);
+  nc->callback = callback;
+  nc->callback_cls = callback_cls;
+  nc->h = h;
+
+  ic = GNUNET_PEERSTORE_iterate (h,
+                                 "peerstore",
+                                 NULL,
+                                 GNUNET_PEERSTORE_HELLO_KEY,
+                                 &set_watch,
+                                 nc);
+  nc->ic = ic;
+
+  return nc;
+}
+
+
+/**
+ * Stop notifying about changes.
+ *
+ * @param nc context to stop notifying
+ */
+void
+GNUNET_PEERSTORE_hello_changed_notify_cancel (struct
+                                              GNUNET_PEERSTORE_NotifyContext *nc)
+{
+  struct GNUNET_PEERSTORE_IterateContext *ic;
+  struct GNUNET_PEERSTORE_Handle *h = nc->h;
+
+  if (GNUNET_NO == nc->canceled && NULL != nc->ic)
+  {
+    nc->canceled = GNUNET_YES;
+    GNUNET_PEERSTORE_iterate_cancel (nc->ic);
+    ic = GNUNET_PEERSTORE_iterate (h,
+                                   "peerstore",
+                                   NULL,
+                                   GNUNET_PEERSTORE_HELLO_KEY,
+                                   &watch_cancel,
+                                   nc);
+    nc->ic = ic;
+  }
+}
 
 
 static void
@@ -1037,7 +1214,7 @@ merge_success (void *cls, int success)
     return;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Got notified during storing hello uri!\n");
+              "Got notified during storing hello uri!\n");
 }
 
 
@@ -1072,8 +1249,8 @@ store_hello (struct GNUNET_PEERSTORE_StoreHelloContext *huc,
 
 static void
 merge_uri  (void *cls,
-           const struct GNUNET_PEERSTORE_Record *record,
-           const char *emsg)
+            const struct GNUNET_PEERSTORE_Record *record,
+            const char *emsg)
 {
   struct GNUNET_PEERSTORE_StoreHelloContext *huc = cls;
   struct GNUNET_PEERSTORE_Handle *h = huc->h;
@@ -1150,27 +1327,30 @@ GNUNET_PEERSTORE_hello_add (struct GNUNET_PEERSTORE_Handle *h,
   builder = GNUNET_HELLO_builder_from_msg (msg);
   pid = GNUNET_HELLO_builder_get_id (builder);
   ic = GNUNET_PEERSTORE_iterate (h,
-                         "peerstore",
-                         pid,
-                         GNUNET_PEERSTORE_HELLO_KEY,
-                         &merge_uri,
-                         huc);
+                                 "peerstore",
+                                 pid,
+                                 GNUNET_PEERSTORE_HELLO_KEY,
+                                 &merge_uri,
+                                 huc);
   GNUNET_HELLO_builder_free (builder);
   huc->ic = ic;
 
   return huc;
 }
 
+
 void
-GNUNET_PEERSTORE_hello_add_cancel (struct GNUNET_PEERSTORE_StoreHelloContext *huc)
+GNUNET_PEERSTORE_hello_add_cancel (struct
+                                   GNUNET_PEERSTORE_StoreHelloContext *huc)
 {
   struct GNUNET_PEERSTORE_StoreContext *sc;
 
   GNUNET_PEERSTORE_iterate_cancel (huc->ic);
   GNUNET_PEERSTORE_watch_cancel (huc->wc);
   while (NULL != (sc = huc->sc_head))
-      GNUNET_PEERSTORE_store_cancel (sc);
+    GNUNET_PEERSTORE_store_cancel (sc);
   GNUNET_free (huc);
 }
+
 
 /* end of peerstore_api.c */

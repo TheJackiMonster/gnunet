@@ -44,7 +44,8 @@ libgnunetpeerstore_la_SOURCES = \
   peerstore_api.c \
   peerstore_common.c
 libgnunetpeerstore_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/hello/libgnunethello.la
 libgnunetpeerstore_la_LDFLAGS = \
   $(GN_LIBINTL) \
   $(GN_LIB_LDFLAGS)
