@@ -82,9 +82,9 @@
 
 /**
  * How often do we rekey based on number of bytes transmitted?
- * (additionally randomized).
+ * (additionally randomized). Currently 400 MB
  */
-#define REKEY_MAX_BYTES (1024LLU * 1024 * 1024 * 4LLU)
+#define REKEY_MAX_BYTES (1024LLU * 1024 * 400)
 
 /**
  * Size of the initial key exchange message sent first in both
