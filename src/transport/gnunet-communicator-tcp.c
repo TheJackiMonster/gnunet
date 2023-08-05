@@ -1890,7 +1890,8 @@ try_handle_plaintext (struct Queue *queue)
     return 0; /* not even a header */
   }
 
-  if ((GNUNET_YES != queue->initial_core_kx_done) && (queue->unverified_size > INITIAL_CORE_KX_SIZE))
+  if ((GNUNET_YES != queue->initial_core_kx_done) && (queue->unverified_size >
+                                                      INITIAL_CORE_KX_SIZE))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Already received data of size %lu bigger than KX size %lu!\n",
@@ -1905,7 +1906,7 @@ try_handle_plaintext (struct Queue *queue)
   switch (type)
   {
   case GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_CONFIRMATION_ACK:
-  tca = (const struct TCPConfirmationAck *) queue->pread_buf;
+    tca = (const struct TCPConfirmationAck *) queue->pread_buf;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "start processing ack\n");
     if (sizeof(*tca) > queue->pread_off)
@@ -1978,7 +1979,11 @@ try_handle_plaintext (struct Queue *queue)
                                          queue->address->sa_family, NULL);
     }
 
-    queue->unverified_size = -1;
+    /**
+     * Once we received this ack, we consider this a verified connection.
+     * FIXME: I am not sure this logic is sane here.
+     */
+    queue->initial_core_kx_done = GNUNET_YES;
 
     char *foreign_addr;
 
