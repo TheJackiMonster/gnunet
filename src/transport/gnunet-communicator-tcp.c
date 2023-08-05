@@ -661,6 +661,17 @@ struct Queue
    * Store Context for retrieving the monotonic time send with the handshake ack.
    */
   struct GNUNET_PEERSTORE_StoreContext *handshake_ack_monotime_sc;
+
+  /**
+   * Size of data received without KX challenge played back.
+   */
+  // TODO remove?
+  size_t unverified_size;
+
+  /**
+   * Has the initial (core) handshake already happened?
+   */
+  int initial_core_kx_done;
 };
 
 
@@ -887,11 +898,6 @@ struct ListenTask *lts_tail;
  */
 int addrs_lens;
 
-/**
- * Size of data received without KX challenge played back.
- */
-// TODO remove?
-size_t unverified_size;
 
 /**
  * Database for peer's HELLOs.
@@ -1860,24 +1866,23 @@ queue_write (void *cls)
 static size_t
 try_handle_plaintext (struct Queue *queue)
 {
-  const struct GNUNET_MessageHeader *hdr =
-    (const struct GNUNET_MessageHeader *) queue->pread_buf;
-  const struct TCPConfirmationAck *tca = (const struct
-                                          TCPConfirmationAck *) queue->pread_buf;
-  const struct TCPBox *box = (const struct TCPBox *) queue->pread_buf;
-  const struct TCPRekey *rekey = (const struct TCPRekey *) queue->pread_buf;
-  const struct TCPFinish *fin = (const struct TCPFinish *) queue->pread_buf;
+  const struct GNUNET_MessageHeader *hdr;
+  const struct TCPConfirmationAck *tca;
+  const struct TCPBox *box;
+  const struct TCPRekey *rekey;
+  const struct TCPFinish *fin;
   struct TCPRekey rekeyz;
   struct TCPFinish finz;
   struct GNUNET_ShortHashCode tmac;
   uint16_t type;
-  size_t size = 0; /* make compiler happy */
+  size_t size = 0;
   struct TcpHandshakeAckSignature thas;
   const struct GNUNET_CRYPTO_ChallengeNonceP challenge = queue->challenge;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "try handle plaintext!\n");
 
+  hdr = (const struct GNUNET_MessageHeader *) queue->pread_buf;
   if ((sizeof(*hdr) > queue->pread_off))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1885,11 +1890,11 @@ try_handle_plaintext (struct Queue *queue)
     return 0; /* not even a header */
   }
 
-  if ((-1 != unverified_size) && (unverified_size > INITIAL_CORE_KX_SIZE))
+  if ((GNUNET_YES != queue->initial_core_kx_done) && (queue->unverified_size > INITIAL_CORE_KX_SIZE))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Already received data of size %lu bigger than KX size %lu!\n",
-                unverified_size,
+                queue->unverified_size,
                 INITIAL_CORE_KX_SIZE);
     GNUNET_break_op (0);
     queue_finish (queue);
@@ -1900,6 +1905,7 @@ try_handle_plaintext (struct Queue *queue)
   switch (type)
   {
   case GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_CONFIRMATION_ACK:
+  tca = (const struct TCPConfirmationAck *) queue->pread_buf;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "start processing ack\n");
     if (sizeof(*tca) > queue->pread_off)
@@ -1972,7 +1978,7 @@ try_handle_plaintext (struct Queue *queue)
                                          queue->address->sa_family, NULL);
     }
 
-    unverified_size = -1;
+    queue->unverified_size = -1;
 
     char *foreign_addr;
 
@@ -2012,6 +2018,7 @@ try_handle_plaintext (struct Queue *queue)
     break;
   case GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_BOX:
     /* Special case: header size excludes box itself! */
+    box = (const struct TCPBox *) queue->pread_buf;
     if (ntohs (hdr->size) + sizeof(struct TCPBox) > queue->pread_off)
       return 0;
     calculate_hmac (&queue->in_hmac, &box[1], ntohs (hdr->size), &tmac);
@@ -2028,6 +2035,7 @@ try_handle_plaintext (struct Queue *queue)
     break;
 
   case GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_REKEY:
+    rekey = (const struct TCPRekey *) queue->pread_buf;
     if (sizeof(*rekey) > queue->pread_off)
       return 0;
     if (ntohs (hdr->size) != sizeof(*rekey))
@@ -2052,6 +2060,7 @@ try_handle_plaintext (struct Queue *queue)
     break;
 
   case GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_FINISH:
+    fin = (const struct TCPFinish *) queue->pread_buf;
     if (sizeof(*fin) > queue->pread_off)
       return 0;
     if (ntohs (hdr->size) != sizeof(*fin))
@@ -2083,8 +2092,8 @@ try_handle_plaintext (struct Queue *queue)
     return 0;
   }
   GNUNET_assert (0 != size);
-  if (-1 != unverified_size)
-    unverified_size += size;
+  if (-1 != queue->unverified_size)
+    queue->unverified_size += size;
   return size;
 }
 
