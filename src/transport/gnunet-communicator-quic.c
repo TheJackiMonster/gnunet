@@ -141,13 +141,13 @@ struct PeerAddress
   /**
    * Entry in sender expiration heap.
    */
-  struct GNUNET_CONTAINER_HeapNode *hn;
+  // struct GNUNET_CONTAINER_HeapNode *hn;
 };
 
-/**
- * Expiration heap for peers (contains `struct PeerAddress`)
- */
-static struct GNUNET_CONTAINER_Heap *peers_heap;
+// /**
+//  * Expiration heap for peers (contains `struct PeerAddress`)
+//  */
+// static struct GNUNET_CONTAINER_Heap *peers_heap;
 
 /**
  * ID of timeout task
@@ -433,8 +433,8 @@ reschedule_peer_timeout (struct PeerAddress *peer)
 {
   peer->timeout =
     GNUNET_TIME_relative_to_absolute (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT);
-  GNUNET_CONTAINER_heap_update_cost (peer->hn,
-                                     peer->timeout.abs_value_us);
+  // GNUNET_CONTAINER_heap_update_cost (peer->hn,
+  //                                    peer->timeout.abs_value_us);
 }
 
 
@@ -457,7 +457,7 @@ peer_destroy (struct PeerAddress *peer)
     GNUNET_TRANSPORT_communicator_mq_del (peer->d_qh);
     peer->d_qh = NULL;
   }
-  GNUNET_assert (peer == GNUNET_CONTAINER_heap_remove_node (peer->hn));
+  // GNUNET_assert (peer == GNUNET_CONTAINER_heap_remove_node (peer->hn));
   /**
    * Remove peer from hashmap
   */
@@ -1006,9 +1006,9 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
   peer->nt = GNUNET_NT_scanner_get_type (is, in, in_len);
   peer->timeout =
     GNUNET_TIME_relative_to_absolute (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT);
-  peer->hn = GNUNET_CONTAINER_heap_insert (peers_heap,
-                                           peer,
-                                           peer->timeout.abs_value_us);
+  // peer->hn = GNUNET_CONTAINER_heap_insert (peers_heap,
+  //                                          peer,
+  //                                          peer->timeout.abs_value_us);
   GNUNET_STATISTICS_set (stats,
                          "# peers active",
                          GNUNET_CONTAINER_multihashmap_size (addr_map),
@@ -1593,6 +1593,7 @@ run (void *cls,
                                               NULL,
                                               &notify_cb,
                                               NULL);
+  GNUNET_NT_scanner_init ();
   nat = GNUNET_NAT_register (cfg,
                              COMMUNICATOR_CONFIG_SECTION,
                              IPPROTO_UDP,
