@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -858,29 +858,32 @@ encrypt_message (struct GNUNET_MESSENGER_Message *message,
   fold_short_message (message, &shortened);
 
   const uint16_t length = get_short_message_size (&shortened, GNUNET_YES);
-  const uint16_t padded_length = calc_padded_length (length);
+  const uint16_t padded_length = calc_padded_length (
+    length + GNUNET_IDENTITY_ENCRYPT_OVERHEAD_BYTES
+  );
 
   message->header.kind = GNUNET_MESSENGER_KIND_PRIVATE;
   message->body.privacy.data = GNUNET_malloc (padded_length);
   message->body.privacy.length = padded_length;
+  
+  const uint16_t encoded_length = padded_length - GNUNET_IDENTITY_ENCRYPT_OVERHEAD_BYTES;
 
-  encode_short_message (&shortened, padded_length, message->body.privacy.data);
+  encode_short_message (&shortened, encoded_length, message->body.privacy.data);
 
-  if (padded_length == GNUNET_IDENTITY_encrypt_old (message->body.privacy.data,
-                                                    padded_length, key,
-                                                    &(message->body.privacy.key),
-                                                    message->body.privacy.data))
-  {
-    destroy_message_body (shortened.kind, &(shortened.body));
-    return GNUNET_YES;
-  }
-  else
+  if (GNUNET_OK != GNUNET_IDENTITY_encrypt (message->body.privacy.data,
+                                            encoded_length,
+                                            key,
+                                            message->body.privacy.data,
+                                            padded_length))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Encrypting message failed!\n");
 
     unfold_short_message (&shortened, message);
     return GNUNET_NO;
   }
+  
+  destroy_message_body (shortened.kind, &(shortened.body));
+  return GNUNET_YES;
 }
 
 
@@ -890,22 +893,32 @@ decrypt_message (struct GNUNET_MESSENGER_Message *message,
 {
   GNUNET_assert ((message) && (key));
 
-  if (message->body.privacy.length != GNUNET_IDENTITY_decrypt_old (
-        message->body.privacy.data, message->body.privacy.length,
-        key,
-        &(message->body.privacy.key),
-        message->body.
-        privacy.data))
+  const uint16_t padded_length = message->body.privacy.length;
+
+  if (padded_length < GNUNET_IDENTITY_ENCRYPT_OVERHEAD_BYTES)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Message length too short to decrypt!\n");
+
+    return GNUNET_NO;
+  }
+
+  const uint16_t encoded_length = padded_length - GNUNET_IDENTITY_ENCRYPT_OVERHEAD_BYTES;
+
+  if (GNUNET_OK != GNUNET_IDENTITY_decrypt (message->body.privacy.data,
+                                            padded_length,
+                                            key,
+                                            message->body.privacy.data,
+                                            encoded_length))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Decrypting message failed!\n");
 
     return GNUNET_NO;
   }
-
+  
   struct GNUNET_MESSENGER_ShortMessage shortened;
 
   if (GNUNET_YES != decode_short_message (&shortened,
-                                          message->body.privacy.length,
+                                          encoded_length,
                                           message->body.privacy.data))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -915,7 +928,6 @@ decrypt_message (struct GNUNET_MESSENGER_Message *message,
   }
 
   unfold_short_message (&shortened, message);
-
   return GNUNET_YES;
 }
 
