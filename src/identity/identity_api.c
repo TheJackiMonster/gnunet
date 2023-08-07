@@ -1182,8 +1182,9 @@ GNUNET_IDENTITY_encrypt (const void *pt,
                          size_t ct_size)
 {
   struct GNUNET_HashCode k;
-  struct GNUNET_CRYPTO_FoKemC *kemc = (struct GNUNET_CRYPTO_FoKemC*) ct_buf;
-  unsigned char *encrypted_data = (unsigned char*) &kemc[1];
+  struct GNUNET_CRYPTO_FoKemC kemc;
+  struct GNUNET_CRYPTO_FoKemC *kemc_buf = (struct GNUNET_CRYPTO_FoKemC*) ct_buf;
+  unsigned char *encrypted_data = (unsigned char*) &kemc_buf[1];
   unsigned char nonce[crypto_secretbox_NONCEBYTES];
   unsigned char key[crypto_secretbox_KEYBYTES];
 
@@ -1198,13 +1199,13 @@ GNUNET_IDENTITY_encrypt (const void *pt,
   {
   case GNUNET_IDENTITY_TYPE_ECDSA:
     if (GNUNET_SYSERR == GNUNET_CRYPTO_ecdsa_fo_kem_encaps (&(pub->ecdsa_key),
-                                                            kemc,
+                                                            &kemc,
                                                             &k))
       return GNUNET_SYSERR;
     break;
   case GNUNET_IDENTITY_TYPE_EDDSA:
     if (GNUNET_SYSERR == GNUNET_CRYPTO_eddsa_fo_kem_encaps (&pub->eddsa_key,
-                                                            kemc,
+                                                            &kemc,
                                                             &k))
       return GNUNET_SYSERR;
     break;
@@ -1215,7 +1216,9 @@ GNUNET_IDENTITY_encrypt (const void *pt,
   memcpy (key, &k, crypto_secretbox_KEYBYTES);
   memcpy (nonce, ((char* ) &k) + crypto_secretbox_KEYBYTES,
           crypto_secretbox_NONCEBYTES);
-  crypto_secretbox_easy (encrypted_data, pt, pt_size, nonce, key);
+  if (crypto_secretbox_easy (encrypted_data, pt, pt_size, nonce, key))
+    return GNUNET_SYSERR;
+  memcpy (kemc_buf, &kemc, sizeof (kemc));
   return GNUNET_OK;
 }
 
