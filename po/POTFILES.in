@@ -596,6 +596,7 @@ src/vpn/vpn_api.c
 src/zonemaster/gnunet-service-zonemaster.c
 src/fs/fs_api.h
 src/include/gnunet_json_lib.h
+src/include/gnunet_pq_lib.h
 src/pq/pq.h
 src/testbed/testbed_api.h
 src/testbed/testbed_api_operations.h
