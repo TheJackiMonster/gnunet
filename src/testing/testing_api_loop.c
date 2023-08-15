@@ -611,12 +611,24 @@ GNUNET_TESTING_command_new (void *cls,
     .cleanup = cleanup,
     .traits = traits
   };
-  memset (&cmd.label, 0, sizeof (cmd.label));
+
+  GNUNET_assert (NULL != run);
   if (NULL != label)
-    strncpy (cmd.label, label, GNUNET_TESTING_CMD_MAX_LABEL_LENGTH);
+    strncpy (cmd.label,
+             label,
+             GNUNET_TESTING_CMD_MAX_LABEL_LENGTH);
+  return cmd;
+}
+
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_end (void)
+{
+  struct GNUNET_TESTING_Command cmd = {
+    .run = NULL
+  };
 
   return cmd;
-
 }
 
 
