@@ -614,9 +614,13 @@ GNUNET_TESTING_command_new (void *cls,
 
   GNUNET_assert (NULL != run);
   if (NULL != label)
+  {
+    GNUNET_assert (strlen (label) <=
+                   GNUNET_TESTING_CMD_MAX_LABEL_LENGTH);
     strncpy (cmd.label,
              label,
              GNUNET_TESTING_CMD_MAX_LABEL_LENGTH);
+  }
   return cmd;
 }
 
