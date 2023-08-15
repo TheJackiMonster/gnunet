@@ -93,6 +93,15 @@ extern "C"
 #include "gnunet_child_management_lib.h"
 #include "gnunet_error_codes.h"
 
+
+/**
+ * Stringify operator.
+ *
+ * @param a some expression to stringify. Must NOT be a macro.
+ * @return same expression as a constant string.
+ */
+#define GNUNET_S(a) #a
+
 /**
  * Try to compress the given block of data using libz.  Only returns
  * the compressed block if compression worked and the new block is

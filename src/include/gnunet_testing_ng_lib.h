@@ -31,13 +31,7 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
 
-/**
- * Stringify operator.
- *
- * @param a some expression to stringify. Must NOT be a macro.
- * @return same expression as a constant string.
- */
-#define GNUNET_S(a) #a
+
 
 /**
  * Maximum length of label in command
