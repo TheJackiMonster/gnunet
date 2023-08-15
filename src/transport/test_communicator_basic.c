@@ -104,13 +104,13 @@ static unsigned int iterations_left[NUM_PEERS];
 #define TIMEOUT_MULTIPLIER 1
 
 #define DELAY \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,200)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,200)
 
 #define SHORT_BURST_WINDOW \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,2)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,2)
 
 #define LONG_BURST_WINDOW \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,2)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,2)
 
 enum TestPhase
 {

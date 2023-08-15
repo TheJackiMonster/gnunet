@@ -52,7 +52,7 @@
  * the other peer should revalidate).
  */
 #define ADDRESS_VALIDITY_PERIOD \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
 
 /**
  * How many messages do we keep at most in the queue to the
@@ -91,16 +91,16 @@
  * directions.
  */
 #define INITIAL_KX_SIZE                           \
-        (sizeof(struct GNUNET_CRYPTO_EcdhePublicKey)   \
-         + sizeof(struct TCPConfirmation))
+  (sizeof(struct GNUNET_CRYPTO_EcdhePublicKey)   \
+   + sizeof(struct TCPConfirmation))
 
 /**
  * Size of the initial core key exchange messages.
  */
 #define INITIAL_CORE_KX_SIZE          \
-        (sizeof(struct EphemeralKeyMessage)   \
-         + sizeof(struct PingMessage) \
-         + sizeof(struct PongMessage))
+  (sizeof(struct EphemeralKeyMessage)   \
+   + sizeof(struct PingMessage) \
+   + sizeof(struct PongMessage))
 
 /**
  * Address prefix used by the communicator.

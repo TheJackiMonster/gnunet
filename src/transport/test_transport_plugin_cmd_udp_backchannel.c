@@ -155,6 +155,7 @@ notify_connect (struct GNUNET_TESTING_Interpreter *is,
   return ret;
 }
 
+
 /**
  * Callback to set the flag indicating all peers are prepared to finish. Will be called via the plugin api.
  */
@@ -172,6 +173,7 @@ all_local_tests_prepared ()
     GNUNET_TESTING_async_finish ((struct
                                   GNUNET_TESTING_AsyncContext *) &lfs->ac);
 }
+
 
 /**
  * Function to start a local test case.

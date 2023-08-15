@@ -21,9 +21,9 @@
 /* Currently equivalent to QUICHE_MAX_CONN_ID_LEN */
 #define LOCAL_CONN_ID_LEN 20
 #define MAX_TOKEN_LEN \
-        sizeof("quiche") - 1 + \
-        sizeof(struct sockaddr_storage) + \
-        QUICHE_MAX_CONN_ID_LEN
+  sizeof("quiche") - 1   \
+  + sizeof(struct sockaddr_storage)   \
+  + QUICHE_MAX_CONN_ID_LEN
 #define CID_LEN sizeof(uint8_t) * QUICHE_MAX_CONN_ID_LEN
 #define TOKEN_LEN sizeof(uint8_t) * MAX_TOKEN_LEN
 /* Generic, bidirectional, client-initiated quic stream id */

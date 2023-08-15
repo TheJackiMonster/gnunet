@@ -329,6 +329,7 @@ notify_disconnect (void *cls,
   }
 }
 
+
 static void
 retrieve_hello (void *cls);
 

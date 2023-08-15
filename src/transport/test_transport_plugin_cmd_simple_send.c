@@ -90,7 +90,7 @@ handle_test (void *cls,
 struct GNUNET_TESTING_BarrierList *
 get_waiting_for_barriers ()
 {
-  //No Barrier
+  // No Barrier
   return GNUNET_new (struct GNUNET_TESTING_BarrierList);
 }
 
@@ -326,9 +326,9 @@ start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
   ts->write_message = write_message;
 
   is = GNUNET_TESTING_run (commands,
-                      TIMEOUT,
-                      &handle_result,
-                      ts);
+                           TIMEOUT,
+                           &handle_result,
+                           ts);
   return is;
 }
 

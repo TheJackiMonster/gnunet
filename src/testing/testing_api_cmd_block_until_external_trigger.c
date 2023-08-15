@@ -48,6 +48,7 @@ block_until_all_peers_started_cleanup (void *cls)
   GNUNET_free (bs);
 }
 
+
 static int
 block_until_external_trigger_traits (void *cls,
                                      const void **ret,

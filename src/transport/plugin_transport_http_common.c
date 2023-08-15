@@ -604,7 +604,7 @@ http_common_plugin_address_to_string (const char *plugin,
   if (addr_str[ntohl (address->urlen) - 1] != '\0')
     return NULL;
   GNUNET_asprintf (&res, "%s.%u.%s", plugin, ntohl (address->options),
-                   (char*)&address[1]);
+                   (char*) &address[1]);
   if (strlen (res) + 1 < 500)
   {
     GNUNET_memcpy (rbuf, res, strlen (res) + 1);

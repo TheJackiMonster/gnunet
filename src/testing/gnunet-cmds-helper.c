@@ -69,8 +69,8 @@
  * if the start script was not started from within a new namespace
  * created by unshare. The UPNP test case needs public IP
  * addresse for miniupnpd to function.
- * FIXME We should introduce a switch indicating if public 
- * addresses should be used or not. This info has to be 
+ * FIXME We should introduce a switch indicating if public
+ * addresses should be used or not. This info has to be
  * propagated from the start script to the c code.
 #define KNOWN_BASE_IP "172.16.151."
 
@@ -276,7 +276,8 @@ write_task (void *cls)
  *
  */
 static void
-write_message (struct GNUNET_MessageHeader *message, size_t msg_length)
+write_message (struct GNUNET_MessageHeader *message,
+               size_t msg_length)
 {
   struct WriteContext *wc;
 
@@ -291,6 +292,7 @@ write_message (struct GNUNET_MessageHeader *message, size_t msg_length)
     &write_task,
     wc);
 }
+
 
 static void
 delay_shutdown_cb ()
@@ -333,11 +335,11 @@ finished_cb (enum GNUNET_GenericReturnValue rv)
   write_message ((struct GNUNET_MessageHeader *) reply, msg_length);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "message send\n");
-
+  // FIXME: bad hack, do not write 1s, have continuation after write_message() is done!
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "delaying shutdown\n");
   GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
-                                delay_shutdown_cb,
+                                &delay_shutdown_cb,
                                 NULL);
 }
 
@@ -354,10 +356,10 @@ finished_cb (enum GNUNET_GenericReturnValue rv)
  *    #GNUNET_NO to stop further processing (no error)
  *    #GNUNET_SYSERR to stop further processing with error
  */
-static int
-tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
+static enum GNUNET_GenericReturnValue
+tokenizer_cb (void *cls,
+              const struct GNUNET_MessageHeader *message)
 {
-
   struct NodeIdentifier *ni = cls;
   const struct GNUNET_TESTING_CommandHelperInit *msg;
   struct GNUNET_TESTING_CommandHelperReply *reply;
@@ -377,114 +379,130 @@ tokenizer_cb (void *cls, const struct GNUNET_MessageHeader *message)
        "Received message type %u and size %u\n",
        type,
        msize);
-  if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_INIT == ntohs (message->type))
+  switch (type)
   {
-    msg = (const struct GNUNET_TESTING_CommandHelperInit *) message;
-    plugin_name_size = ntohs (msg->plugin_name_size);
-    if ((sizeof(struct GNUNET_TESTING_CommandHelperInit) + plugin_name_size) > msize)
+  case GNUNET_MESSAGE_TYPE_CMDS_HELPER_INIT:
     {
-      GNUNET_break (0);
-      LOG (GNUNET_ERROR_TYPE_WARNING,
-           "Received unexpected message -- exiting\n");
-      goto error;
+      msg = (const struct GNUNET_TESTING_CommandHelperInit *) message;
+      plugin_name_size = ntohs (msg->plugin_name_size);
+      if ((sizeof(struct GNUNET_TESTING_CommandHelperInit) + plugin_name_size) >
+          msize)
+      {
+        GNUNET_break (0);
+        LOG (GNUNET_ERROR_TYPE_WARNING,
+             "Received unexpected message -- exiting\n");
+        goto error;
+      }
+      plugin_name = GNUNET_malloc (plugin_name_size + 1);
+      GNUNET_strlcpy (plugin_name,
+                      ((char *) &msg[1]),
+                      plugin_name_size + 1);
+
+      binary = GNUNET_OS_get_libexec_binary_path ("gnunet-cmd");
+
+      plugin = GNUNET_new (struct TestcasePlugin);
+      plugin->api = GNUNET_PLUGIN_load (plugin_name,
+                                        NULL);
+      plugin->library_name = GNUNET_strdup (basename (plugin_name));
+
+      plugin->global_n = ni->global_n;
+      plugin->local_m = ni->local_m;
+      plugin->n = ni->n;
+      plugin->m = ni->m;
+
+      GNUNET_asprintf (&router_ip,
+                       ROUTER_BASE_IP "%s",
+                       plugin->n);
+      {
+        char dummy;
+
+        if (1 !=
+            sscanf (plugin->n,
+                    "%u%c",
+                    &namespace_n,
+                    &dummy))
+        {
+          // FIXME: how to handle error nicely?
+          GNUNET_break (0);
+          namespace_n = 0;
+        }
+      }
+
+      if (0 == namespace_n)
+      {
+        LOG (GNUNET_ERROR_TYPE_DEBUG,
+             "known node n: %s\n",
+             plugin->n);
+        GNUNET_asprintf (&node_ip,
+                         KNOWN_BASE_IP "%s",
+                         plugin->m);
+      }
+      else
+      {
+        LOG (GNUNET_ERROR_TYPE_DEBUG,
+             "subnet node n: %s\n",
+             plugin->n);
+        GNUNET_asprintf (&node_ip,
+                         NODE_BASE_IP "%s",
+                         plugin->m);
+      }
+
+      is = plugin->api->start_testcase (&write_message,
+                                        router_ip,
+                                        node_ip,
+                                        plugin->m,
+                                        plugin->n,
+                                        plugin->local_m,
+                                        ni->topology_data,
+                                        ni->read_file,
+                                        &finished_cb);
+      GNUNET_free (node_ip);
+      GNUNET_free (binary);
+      GNUNET_free (router_ip);
+      GNUNET_free (plugin_name);
+
+      msg_length = sizeof(struct GNUNET_TESTING_CommandHelperReply);
+      reply = GNUNET_new (struct GNUNET_TESTING_CommandHelperReply);
+      reply->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_REPLY);
+      reply->header.size = htons ((uint16_t) msg_length);
+      write_message (&reply->header,
+                     msg_length);
+      return GNUNET_OK;
     }
-    plugin_name = GNUNET_malloc (plugin_name_size + 1);
-    GNUNET_strlcpy (plugin_name,
-                    ((char *) &msg[1]),
-                    plugin_name_size + 1);
-
-    binary = GNUNET_OS_get_libexec_binary_path ("gnunet-cmd");
-
-    plugin = GNUNET_new (struct TestcasePlugin);
-    plugin->api = GNUNET_PLUGIN_load (plugin_name,
-                                      NULL);
-    plugin->library_name = GNUNET_strdup (basename (plugin_name));
-
-    plugin->global_n = ni->global_n;
-    plugin->local_m = ni->local_m;
-    plugin->n = ni->n;
-    plugin->m = ni->m;
-
-    router_ip = GNUNET_malloc (strlen (ROUTER_BASE_IP) + strlen (plugin->n)
-                               + 1);
-    strcpy (router_ip, ROUTER_BASE_IP);
-    strcat (router_ip, plugin->n);
-
-    sscanf (plugin->n, "%u", &namespace_n);
-
-    if (0 == namespace_n)
+  case GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_CROSSABLE:
     {
-      LOG (GNUNET_ERROR_TYPE_ERROR,
-           "known node n: %s\n",
-           plugin->n);
-      node_ip = GNUNET_malloc (strlen (KNOWN_BASE_IP) + strlen (plugin->m) + 1);
-      strcat (node_ip, KNOWN_BASE_IP);
+      const char *barrier_name;
+      struct CommandBarrierCrossable *adm = (struct
+                                             CommandBarrierCrossable *) message;
+
+      barrier_name = (const char *) &adm[1];
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
+           "cross barrier %s\n",
+           barrier_name);
+      TST_interpreter_finish_attached_cmds (is,
+                                            barrier_name);
+      return GNUNET_OK;
     }
-    else
+  case GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_PEERS_STARTED:
     {
-      LOG (GNUNET_ERROR_TYPE_ERROR,
-           "subnet node n: %s\n",
-           plugin->n);
-      node_ip = GNUNET_malloc (strlen (NODE_BASE_IP) + strlen (plugin->m) + 1);
-      strcat (node_ip, NODE_BASE_IP);
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
+           "all peers started\n");
+      plugin->api->all_peers_started ();
+      return GNUNET_OK;
     }
-    strcat (node_ip, plugin->m);
-
-    is = plugin->api->start_testcase (&write_message, router_ip, node_ip, plugin->m,
-
-                                 plugin->n, plugin->local_m, ni->topology_data,
-                                 ni->read_file, &finished_cb);
-    GNUNET_free (node_ip);
-    GNUNET_free (binary);
-    GNUNET_free (router_ip);
-    GNUNET_free (plugin_name);
-
-    msg_length = sizeof(struct GNUNET_TESTING_CommandHelperReply);
-    reply = GNUNET_new (struct GNUNET_TESTING_CommandHelperReply);
-    reply->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_REPLY);
-    reply->header.size = htons ((uint16_t) msg_length);
-
-    write_message ((struct GNUNET_MessageHeader *) reply, msg_length);
-
-    return GNUNET_OK;
-  }
-  else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_CROSSABLE == ntohs (
-             message->type))
-  {
-    const char *barrier_name;
-    struct CommandBarrierCrossable *adm = (struct CommandBarrierCrossable *) message;
-
-    barrier_name = (const char *) &adm[1];
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "cross barrier %s\n",
-         barrier_name);
-    TST_interpreter_finish_attached_cmds (is, barrier_name);
-    return GNUNET_OK;
-  }
-  else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_PEERS_STARTED == ntohs (
-             message->type))
-  {
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "all peers started\n");
-    plugin->api->all_peers_started ();
-    return GNUNET_OK;
-  }
-  else if (GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_LOCAL_TESTS_PREPARED == ntohs (
-             message->type))
-  {
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "all local tests prepared\n");
-    plugin->api->all_local_tests_prepared ();
-    return GNUNET_OK;
-  }
-  else
-  {
+  case GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_LOCAL_TESTS_PREPARED:
+    {
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
+           "all local tests prepared\n");
+      plugin->api->all_local_tests_prepared ();
+      return GNUNET_OK;
+    }
+  default:
     LOG (GNUNET_ERROR_TYPE_WARNING, "Received unexpected message -- exiting\n");
     goto error;
   }
 
-
-  error:
+error:
   status = GNUNET_SYSERR;
   LOG (GNUNET_ERROR_TYPE_ERROR,
        "tokenizer shutting down!\n");
@@ -560,14 +578,16 @@ run (void *cls,
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Starting interpreter loop helper...\n");
 
-  tokenizer = GNUNET_MST_create (&tokenizer_cb, ni);
+  tokenizer = GNUNET_MST_create (&tokenizer_cb,
+                                 ni);
   stdin_fd = GNUNET_DISK_get_handle_from_native (stdin);
   stdout_fd = GNUNET_DISK_get_handle_from_native (stdout);
   read_task_id = GNUNET_SCHEDULER_add_read_file (GNUNET_TIME_UNIT_FOREVER_REL,
                                                  stdin_fd,
                                                  &read_task,
                                                  NULL);
-  GNUNET_SCHEDULER_add_shutdown (&do_shutdown, NULL);
+  GNUNET_SCHEDULER_add_shutdown (&do_shutdown,
+                                 NULL);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Interpreter loop helper started.\n");
 }
@@ -605,8 +625,9 @@ main (int argc, char **argv)
 {
   struct NodeIdentifier *ni;
   struct GNUNET_SIGNAL_Context *shc_chld;
-  struct GNUNET_GETOPT_CommandLineOption options[] =
-  { GNUNET_GETOPT_OPTION_END };
+  struct GNUNET_GETOPT_CommandLineOption options[] = {
+    GNUNET_GETOPT_OPTION_END
+  };
   int ret;
   unsigned int sscanf_ret;
   int i;
@@ -667,8 +688,8 @@ main (int argc, char **argv)
     return 1;
   }
   shc_chld =
-    GNUNET_SIGNAL_handler_install (GNUNET_SIGCHLD, &sighandler_child_death);
-
+    GNUNET_SIGNAL_handler_install (GNUNET_SIGCHLD,
+                                   &sighandler_child_death);
   ret = GNUNET_PROGRAM_run (argc,
                             argv,
                             "gnunet-cmds-helper",

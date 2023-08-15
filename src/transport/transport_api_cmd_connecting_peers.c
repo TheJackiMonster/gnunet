@@ -126,10 +126,10 @@ connect_peers_run (void *cls,
           char *rest2;
           char *address;
 
-          prefix = strtok(addr, "_");
-          rest = strtok(NULL, "_");
-          rest2 = strtok(rest, "-");
-          address = strtok(NULL, "-");
+          prefix = strtok (addr, "_");
+          rest = strtok (NULL, "_");
+          rest2 = strtok (rest, "-");
+          address = strtok (NULL, "-");
 
           GNUNET_asprintf (&addr_and_port,
                            "%s-%s:0",
@@ -172,20 +172,23 @@ notify_connect (struct GNUNET_TESTING_Interpreter *is,
   const struct GNUNET_TESTING_Command *cmd;
   struct ConnectPeersState *cps;
   struct GNUNET_PeerIdentity *peer_connection;
-  struct GNUNET_TESTING_NodeConnection *pos_connection;
   unsigned int num;
   unsigned int con_num;
   void *ret = NULL;
 
   cmd = GNUNET_TESTING_interpreter_lookup_command_all (is,
                                                        "connect-peers");
-  cps = cmd->cls;
+  cps = cmd->cls; // WTF? Never go directly into cls of another command! FIXME!
   con_num = cps->con_num_notified;
-  for (pos_connection = cps->node_connections_head; NULL != pos_connection;
+  for (struct GNUNET_TESTING_NodeConnection *pos_connection =
+         cps->node_connections_head;
+       NULL != pos_connection;
        pos_connection = pos_connection->next)
   {
-    num = GNUNET_TESTING_calculate_num (pos_connection, cps->topology);
-    peer_connection = GNUNET_TESTING_get_peer (num, cps->tl_system);
+    num = GNUNET_TESTING_calculate_num (pos_connection,
+                                        cps->topology);
+    peer_connection = GNUNET_TESTING_get_peer (num,
+                                               cps->tl_system);
     if (0 == GNUNET_memcmp (peer,
                             peer_connection))
       cps->con_num_notified++;

@@ -385,7 +385,7 @@ start_peer_cleanup (void *cls)
     GNUNET_free (sps->handlers);
     sps->handlers = NULL;
   }
-  //TODO Investigate why this caused problems during shutdown.
+  // TODO Investigate why this caused problems during shutdown.
   /*if (NULL != sps->cfg)
   {
     GNUNET_CONFIGURATION_destroy (sps->cfg);

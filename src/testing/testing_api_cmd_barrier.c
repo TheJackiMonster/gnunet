@@ -130,6 +130,7 @@ barrier_traits (void *cls,
                                    index);
 }
 
+
 /**
  * Cleanup the state from a "barrier" CMD, and possibly
  * cancel a pending operation thereof.
@@ -143,6 +144,7 @@ barrier_cleanup (void *cls)
 
   GNUNET_free (brs);
 }
+
 
 /**
  * Run the command.
@@ -158,6 +160,7 @@ barrier_run (void *cls,
 
   TST_interpreter_add_barrier (is, brs->barrier);
 }
+
 
 struct GNUNET_TESTING_NetjailNode *
 GNUNET_TESTING_barrier_get_node (struct GNUNET_TESTING_Barrier *barrier,

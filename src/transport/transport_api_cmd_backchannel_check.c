@@ -330,6 +330,7 @@ will_the_other_node_connect_via_udp (
   return GNUNET_NO;
 }
 
+
 static void
 add_search_string (struct CheckState *cs, const struct
                    GNUNET_TESTING_NetjailNode *node)

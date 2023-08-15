@@ -70,7 +70,7 @@ struct GNUNET_TESTING_AsyncContext
   /**
    * Interpreter we are part of.
    */
-  struct GNUNET_TESTING_Interpreter *is;
+  struct GNUNET_TESTING_Interpreter *is; // Why needed? When available?
 
   /**
    * Function to call when done.
@@ -90,14 +90,17 @@ struct GNUNET_TESTING_AsyncContext
   enum GNUNET_GenericReturnValue finished;
 };
 
+
 typedef void
 (*GNUNET_TESTING_CommandRunRoutine)(void *cls,
                                     struct GNUNET_TESTING_Interpreter *is);
 
+
 typedef void
 (*GNUNET_TESTING_CommandCleanupRoutine)(void *cls);
 
-typedef  enum GNUNET_GenericReturnValue
+
+typedef enum GNUNET_GenericReturnValue
 (*GNUNET_TESTING_CommandGetTraits) (void *cls,
                                     const void **ret,
                                     const char *trait,
@@ -240,6 +243,7 @@ struct GNUNET_TESTING_Command
  * @param label label of the command to lookup.
  * @return the command, if it is found, or NULL.
  */
+// FIXME: think harder about whether this is actually needed, likely not.
 const struct GNUNET_TESTING_Command *
 GNUNET_TESTING_interpreter_lookup_future_command (
   struct GNUNET_TESTING_Interpreter *is,
@@ -321,10 +325,13 @@ GNUNET_TESTING_cmd_end (void);
 
 
 /**
- * Turn asynchronous command into non blocking command by setting asynchronous_finish to true.
- * FIXME: what is this API doing? Is it returning a new cmd which is unblocking?
- * Is it modifying cmd?
- * Looking at the code, it both modifying cmd AND returning a copy oO
+ * Turn asynchronous command into non blocking command by setting
+ * asynchronous_finish to true.  Modifies (and then returns) @a cmd simply
+ * setting the bit. By default, most commands are blocking, and by wrapping
+ * the command construction in this function a blocking command can be turned
+ * into an asynchronous command where the interpreter continues after
+ * initiating the asynchronous action. Does nothing if the command is
+ * fundamentally synchronous.
  *
  * @param cmd command to make synchronous.
  * @return a finish-command.

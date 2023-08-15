@@ -186,20 +186,20 @@
  * the value chosen here might be too aggressively low!
  */
 #define DELAY_WARN_THRESHOLD \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 5)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 5)
 
 /**
  * If a DVBox could not be forwarded after this number of
  * seconds we drop it.
  */
 #define DV_FORWARD_TIMEOUT \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 60)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 60)
 
 /**
  * Default value for how long we wait for reliability ack.
  */
 #define DEFAULT_ACK_WAIT_DURATION \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 1)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 1)
 
 /**
  * We only consider queues as "quality" connections when
@@ -207,53 +207,53 @@
  * the latency of the queue is below this threshold.
  */
 #define DV_QUALITY_RTT_THRESHOLD \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 1)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 1)
 
 /**
  * How long do we consider a DV path valid if we see no
  * further updates on it? Note: the value chosen here might be too low!
  */
 #define DV_PATH_VALIDITY_TIMEOUT \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
 
 /**
  * How long do we cache backchannel (struct Backtalker) information
  * after a backchannel goes inactive?
  */
 #define BACKCHANNEL_INACTIVITY_TIMEOUT \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
 
 /**
  * How long before paths expire would we like to (re)discover DV paths? Should
  * be below #DV_PATH_VALIDITY_TIMEOUT.
  */
 #define DV_PATH_DISCOVERY_FREQUENCY \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 4)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 4)
 
 /**
  * How long are ephemeral keys valid?
  */
 #define EPHEMERAL_VALIDITY \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
 
 /**
  * How long do we keep partially reassembled messages around before giving up?
  */
 #define REASSEMBLY_EXPIRATION \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 4)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 4)
 
 /**
  * What is the fastest rate at which we send challenges *if* we keep learning
  * an address (gossip, DHT, etc.)?
  */
 #define FAST_VALIDATION_CHALLENGE_FREQ \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 1)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 1)
 
 /**
  * What is the slowest rate at which we send challenges?
  */
 #define MAX_VALIDATION_CHALLENGE_FREQ \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_DAYS, 1)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_DAYS, 1)
 
 /**
  * How long until we forget about historic accumulators and thus
@@ -261,7 +261,7 @@
  * active connection experiences without an ACK.
  */
 #define ACK_CUMMULATOR_TIMEOUT \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
 
 /**
  * What is the non-randomized base frequency at which we
@@ -279,13 +279,13 @@
  * When do we forget an invalid address for sure?
  */
 #define MAX_ADDRESS_VALID_UNTIL \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MONTHS, 1)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MONTHS, 1)
 
 /**
  * How long do we consider an address valid if we just checked?
  */
 #define ADDRESS_VALIDATION_LIFETIME \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
 
 /**
  * What is the maximum frequency at which we do address validation?
