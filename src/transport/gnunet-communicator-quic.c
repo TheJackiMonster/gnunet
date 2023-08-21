@@ -21,9 +21,9 @@
 /* Currently equivalent to QUICHE_MAX_CONN_ID_LEN */
 #define LOCAL_CONN_ID_LEN 20
 #define MAX_TOKEN_LEN \
-  sizeof("quiche") - 1   \
-  + sizeof(struct sockaddr_storage)   \
-  + QUICHE_MAX_CONN_ID_LEN
+        sizeof("quiche") - 1   \
+        + sizeof(struct sockaddr_storage)   \
+        + QUICHE_MAX_CONN_ID_LEN
 #define CID_LEN sizeof(uint8_t) * QUICHE_MAX_CONN_ID_LEN
 #define TOKEN_LEN sizeof(uint8_t) * MAX_TOKEN_LEN
 /* Generic, bidirectional, client-initiated quic stream id */
@@ -236,7 +236,8 @@ recv_from_streams (struct PeerAddress *peer)
     /**
      * Initial packet should contain peerid
     */
-    if (GNUNET_NO == peer->id_rcvd)
+    if ((GNUNET_YES == quiche_conn_is_established (peer->conn->conn)) &&
+        (GNUNET_NO == peer->id_rcvd))
     {
       if (recv_len < sizeof(struct GNUNET_PeerIdentity))
       {
@@ -402,12 +403,16 @@ flush_egress (struct quic_conn *conn)
   {
     written = quiche_conn_send (conn->conn, out, sizeof(out), &send_info);
 
+    if (QUICHE_ERR_DONE == written)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "done writing quic packets\n");
+      break;
+    }
     if (0 > written)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "quiche failed to create packet\n");
       return;
     }
-
     sent = GNUNET_NETWORK_socket_sendto (udp_sock, out, written,
                                          (struct sockaddr *) &send_info.to,
                                          send_info.to_len);
@@ -417,7 +422,6 @@ flush_egress (struct quic_conn *conn)
                   "quiche failed to send data to peer\n");
       return;
     }
-
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "sent %zd bytes\n", sent);
   }
 }
@@ -1006,9 +1010,6 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
   peer->nt = GNUNET_NT_scanner_get_type (is, in, in_len);
   peer->timeout =
     GNUNET_TIME_relative_to_absolute (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT);
-  // peer->hn = GNUNET_CONTAINER_heap_insert (peers_heap,
-  //                                          peer,
-  //                                          peer->timeout.abs_value_us);
   GNUNET_STATISTICS_set (stats,
                          "# peers active",
                          GNUNET_CONTAINER_multihashmap_size (addr_map),
@@ -1028,6 +1029,7 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
                                  local_addr,
                                  local_in_len, peer->address, peer->address_len,
                                  config);
+  flush_egress (peer->conn);
   if (GNUNET_NO == quiche_conn_is_established (q_conn->conn))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -1407,14 +1409,8 @@ sock_read (void *cls)
     }
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "quiche processed %zd bytes\n", process_pkt);
-    /**
-     * Check for connection establishment
-    */
-    if (quiche_conn_is_established (peer->conn->conn))
-    {
-      // Check for data on all available streams
-      recv_from_streams (peer);
-    }
+    // Check for data on all available streams
+    recv_from_streams (peer);
     /**
      * TODO: Should we use a list instead of hashmap?
      * Overhead for hashing function, O(1) retrieval vs O(n) iteration with n=30?
