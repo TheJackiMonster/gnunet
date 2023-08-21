@@ -1593,7 +1593,7 @@ run (void *cls,
                                               NULL,
                                               &notify_cb,
                                               NULL);
-  GNUNET_NT_scanner_init ();
+  is = GNUNET_NT_scanner_init ();
   nat = GNUNET_NAT_register (cfg,
                              COMMUNICATOR_CONFIG_SECTION,
                              IPPROTO_UDP,
