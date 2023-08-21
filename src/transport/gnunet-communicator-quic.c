@@ -236,8 +236,7 @@ recv_from_streams (struct PeerAddress *peer)
     /**
      * Initial packet should contain peerid
     */
-    if ((GNUNET_YES == quiche_conn_is_established (peer->conn->conn)) &&
-        (GNUNET_NO == peer->id_rcvd))
+    if (GNUNET_NO == peer->id_rcvd)
     {
       if (recv_len < sizeof(struct GNUNET_PeerIdentity))
       {
@@ -402,7 +401,6 @@ flush_egress (struct quic_conn *conn)
   while (1)
   {
     written = quiche_conn_send (conn->conn, out, sizeof(out), &send_info);
-
     if (QUICHE_ERR_DONE == written)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "done writing quic packets\n");
@@ -991,7 +989,6 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
   }
   path = &address[strlen (COMMUNICATOR_ADDRESS_PREFIX "-")];
   in = udp_address_to_sockaddr (path, &in_len);
-
   /**
    * If we already have a queue with this peer, ignore
   */
@@ -1017,12 +1014,20 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
   peer->foreign_addr =
     sockaddr_to_udpaddr_string (peer->address, peer->address_len);
   /**
+   * Insert peer into hashmap
+  */
+  GNUNET_CONTAINER_multihashmap_put (addr_map, &addr_key,
+                                     peer,
+                                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Added new peer to the addr map\n");
+  /**
    * Before setting up peer mq, initiate a quic connection to the target (perform handshake w/ quiche)
   */
   GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_STRONG, scid,
                               LOCAL_CONN_ID_LEN);
   q_conn = GNUNET_new (struct quic_conn);
   GNUNET_memcpy (q_conn->cid, scid, LOCAL_CONN_ID_LEN);
+  peer->conn = q_conn;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Attempting to perform QUIC handshake with peer\n");
   q_conn->conn = quiche_connect (peer->foreign_addr, scid, LOCAL_CONN_ID_LEN,
@@ -1038,7 +1043,6 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Handshake established with peer, sending our peer id\n");
-  peer->conn = q_conn;
   /**
    * Send our pid
   */
@@ -1054,13 +1058,7 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
   }
   flush_egress (peer->conn);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Peer identity sent to peer\n");
-  /**
-   * Insert peer into hashmap
-  */
-  GNUNET_CONTAINER_multihashmap_put (addr_map, &addr_key,
-                                     peer,
-                                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Added new peer to the addr map\n");
+
   setup_peer_mq (peer);
   if (NULL == timeout_task)
     timeout_task = GNUNET_SCHEDULER_add_now (&check_timeouts, NULL);
@@ -1409,8 +1407,11 @@ sock_read (void *cls)
     }
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "quiche processed %zd bytes\n", process_pkt);
-    // Check for data on all available streams
-    recv_from_streams (peer);
+    // Check for data on all available streams if the connection is established
+    if (GNUNET_YES == quiche_conn_is_established (peer->conn->conn))
+    {
+      recv_from_streams (peer);
+    }
     /**
      * TODO: Should we use a list instead of hashmap?
      * Overhead for hashing function, O(1) retrieval vs O(n) iteration with n=30?
