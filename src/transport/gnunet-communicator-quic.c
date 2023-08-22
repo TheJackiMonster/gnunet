@@ -364,8 +364,9 @@ create_conn (uint8_t *scid, size_t scid_len,
   conn = GNUNET_new (struct quic_conn);
   if (scid_len != LOCAL_CONN_ID_LEN)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "error while creating connection, scid length too short\n");
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "error while creating connection, scid length too short: %zu\n",
+                scid_len);
     return NULL;
   }
 
@@ -408,7 +409,9 @@ flush_egress (struct quic_conn *conn)
     }
     if (0 > written)
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "quiche failed to create packet\n");
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "quiche failed to create packet. quiche error: %zd\n",
+                  written);
       return;
     }
     sent = GNUNET_NETWORK_socket_sendto (udp_sock, out, written,
@@ -537,7 +540,11 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
                 peer->d_mtu);
     GNUNET_break (0);
     if (GNUNET_YES != peer->peer_destroy_called)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "peer destroy called, destroying peer\n");
       peer_destroy (peer);
+    }
     return;
   }
   reschedule_peer_timeout (peer);
@@ -989,6 +996,8 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
   }
   path = &address[strlen (COMMUNICATOR_ADDRESS_PREFIX "-")];
   in = udp_address_to_sockaddr (path, &in_len);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "mq_init in_len length before: %d\n",
+              in_len);
   /**
    * If we already have a queue with this peer, ignore
   */
@@ -1019,7 +1028,10 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
   GNUNET_CONTAINER_multihashmap_put (addr_map, &addr_key,
                                      peer,
                                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Added new peer to the addr map\n");
+  struct sockaddr_in *testp = (struct sockaddr_in *) peer->address;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "mq_init added new peer to the addr map. sin_len: %d\n",
+              testp->sin_len);
   /**
    * Before setting up peer mq, initiate a quic connection to the target (perform handshake w/ quiche)
   */
@@ -1035,30 +1047,27 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
                                  local_in_len, peer->address, peer->address_len,
                                  config);
   flush_egress (peer->conn);
-  if (GNUNET_NO == quiche_conn_is_established (q_conn->conn))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Failed to form connection to peer. mq not created\n");
-    return GNUNET_NO;
-  }
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Handshake established with peer, sending our peer id\n");
+  return GNUNET_OK;
+  // GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+  //             "Handshake established with peer, sending our peer id\n");
   /**
-   * Send our pid
+   * Send our pid: do this after connection has been established. TODO: move to sock_read
   */
-  GNUNET_memcpy (my_pid, &my_identity, PEERID_LEN);
-  send_len = quiche_conn_stream_send (peer->conn->conn, STREAMID_BI, my_pid,
-                                      PEERID_LEN,
-                                      false);
-  if (0 > send_len)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Failed to write peer identity packet\n");
-    return GNUNET_NO;
-  }
-  flush_egress (peer->conn);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Peer identity sent to peer\n");
-
+  // GNUNET_memcpy (my_pid, &my_identity, PEERID_LEN);
+  // send_len = quiche_conn_stream_send (peer->conn->conn, STREAMID_BI, my_pid,
+  //                                     PEERID_LEN,
+  //                                     false);
+  // if (0 > send_len)
+  // {
+  //   GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+  //               "Failed to write peer identity packet\n");
+  //   return GNUNET_NO;
+  // }
+  // flush_egress (peer->conn);
+  // GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Peer identity sent to peer\n");
+  /**
+   * TODO: setup peer mq after sending our pid (in sock_read)
+  */
   setup_peer_mq (peer);
   if (NULL == timeout_task)
     timeout_task = GNUNET_SCHEDULER_add_now (&check_timeouts, NULL);
@@ -1271,7 +1280,10 @@ sock_read (void *cls)
                     "tried to add duplicate address into address map\n");
         return;
       }
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "added new peer to address map\n");
+      struct sockaddr_in *testp = (struct sockaddr_in *) peer->address;
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "sock_read added new peer to address map. port: %d\n",
+                  testp->sin_len);
     }
 
     /**
@@ -1367,6 +1379,7 @@ sock_read (void *cls)
         }
 
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "sent %zd bytes\n", sent);
+        continue;
       }
 
       if (GNUNET_OK != validate_token (quic_header.token, quic_header.token_len,
@@ -1561,7 +1574,19 @@ run (void *cls,
   */
   config = quiche_config_new (QUICHE_PROTOCOL_VERSION);
   quiche_config_verify_peer (config, false);
-  // conn_map = GNUNET_CONTAINER_multihashmap_create (2, GNUNET_NO);
+  quiche_config_set_application_protos (config,
+                                        (uint8_t *)
+                                        "\x0ahq-interop\x05hq-29\x05hq-28\x05hq-27\x08http/0.9",
+                                        38);
+  quiche_config_set_max_idle_timeout (config, 5000);
+  quiche_config_set_max_recv_udp_payload_size (config, MAX_DATAGRAM_SIZE);
+  quiche_config_set_max_send_udp_payload_size (config, MAX_DATAGRAM_SIZE);
+  quiche_config_set_initial_max_data (config, 10000000);
+  quiche_config_set_initial_max_stream_data_bidi_local (config, 1000000);
+  quiche_config_set_initial_max_stream_data_uni (config, 1000000);
+  quiche_config_set_initial_max_streams_bidi (config, 100);
+  quiche_config_set_initial_max_streams_uni (config, 100);
+  quiche_config_set_disable_active_migration (config, true);
   addr_map = GNUNET_CONTAINER_multihashmap_create (2, GNUNET_NO);
   /**
    * Get our public key for initial packet
