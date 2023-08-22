@@ -720,9 +720,7 @@ udp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
     {
       v4.sin_family = AF_INET;
       v4.sin_port = htons ((uint16_t) port);
-#if HAVE_SOCKADDR_IN_SIN_LEN
       v4.sin_len = sizeof(struct sockaddr_in);
-#endif
       in = GNUNET_memdup (&v4, sizeof(struct sockaddr_in));
       *sock_len = sizeof(struct sockaddr_in);
       GNUNET_free (cp);
@@ -1001,7 +999,9 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
   /**
    * If we already have a queue with this peer, ignore
   */
-  GNUNET_CRYPTO_hash (&in, in_len, &addr_key);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "address string in mq_init: %s\n",
+              address);
+  GNUNET_CRYPTO_hash (&address, strlen (address), &addr_key);
   peer = GNUNET_CONTAINER_multihashmap_get (addr_map, &addr_key);
   if (NULL != peer)
   {
@@ -1028,6 +1028,7 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
   GNUNET_CONTAINER_multihashmap_put (addr_map, &addr_key,
                                      peer,
                                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "hash: %s\n", GNUNET_h2s (&addr_key));
   struct sockaddr_in *testp = (struct sockaddr_in *) peer->address;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "mq_init added new peer to the addr map. sin_len: %d\n",
@@ -1254,8 +1255,17 @@ sock_read (void *cls)
       GNUNET_log_strerror (GNUNET_ERROR_TYPE_DEBUG, "recv");
       return;
     }
-    GNUNET_CRYPTO_hash ((struct sockaddr *) &sa, salen,
+    /**
+     * FIXME: hash addr, port combination not just port
+    */
+    struct sockaddr_in *testp = (struct sockaddr_in *) &sa;
+    const char *addr_string = sockaddr_to_udpaddr_string ((const struct
+                                                           sockaddr *) &sa,
+                                                          salen);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "address string: %s\n", addr_string);
+    GNUNET_CRYPTO_hash (&addr_string, strlen (addr_string),
                         &addr_key);
+    GNUNET_free (addr_string);
     peer = GNUNET_CONTAINER_multihashmap_get (addr_map, &addr_key);
 
     if (NULL == peer)
@@ -1270,7 +1280,10 @@ sock_read (void *cls)
       peer->conn = NULL;
       peer->foreign_addr = sockaddr_to_udpaddr_string (peer->address,
                                                        peer->address_len);
-      setup_peer_mq (peer);
+      /**
+       * TODO: after connection established
+      */
+      // setup_peer_mq (peer);
       if (GNUNET_SYSERR == GNUNET_CONTAINER_multihashmap_put (addr_map,
                                                               &addr_key,
                                                               peer,
@@ -1280,9 +1293,11 @@ sock_read (void *cls)
                     "tried to add duplicate address into address map\n");
         return;
       }
-      struct sockaddr_in *testp = (struct sockaddr_in *) peer->address;
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "hash: %s\n", GNUNET_h2s (
+                    &addr_key));
+
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "sock_read added new peer to address map. port: %d\n",
+                  "sock_read added new peer to address map. sin_len: %d\n",
                   testp->sin_len);
     }
 
