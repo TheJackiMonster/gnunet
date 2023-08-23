@@ -87,6 +87,11 @@ struct PeerAddress
   int id_rcvd;
 
   /**
+   * Flag to indicate whether we have sent OUR PeerIdentity to this peer
+  */
+  int id_sent;
+
+  /**
    * Address of the receiver in the human-readable format
    * with the #COMMUNICATOR_ADDRESS_PREFIX.
    */
@@ -496,7 +501,7 @@ peer_destroy (struct PeerAddress *peer)
  */
 static int
 get_peer_delete_it (void *cls,
-                    const struct GNUNET_Hashcode *key,
+                    const struct GNUNET_HashCode *key,
                     void *value)
 {
   struct PeerAddress *peer = value;
@@ -964,9 +969,6 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
   struct GNUNET_HashCode addr_key;
   uint8_t scid[LOCAL_CONN_ID_LEN];
 
-  ssize_t send_len;
-  char my_pid[PEERID_LEN];
-
   struct quic_conn *q_conn;
   char *bindto;
   socklen_t local_in_len;
@@ -1001,7 +1003,7 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
   */
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "address string in mq_init: %s\n",
               address);
-  GNUNET_CRYPTO_hash (&address, strlen (address), &addr_key);
+  GNUNET_CRYPTO_hash (address, strlen (address), &addr_key);
   peer = GNUNET_CONTAINER_multihashmap_get (addr_map, &addr_key);
   if (NULL != peer)
   {
@@ -1028,11 +1030,8 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
   GNUNET_CONTAINER_multihashmap_put (addr_map, &addr_key,
                                      peer,
                                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "hash: %s\n", GNUNET_h2s (&addr_key));
-  struct sockaddr_in *testp = (struct sockaddr_in *) peer->address;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "mq_init added new peer to the addr map. sin_len: %d\n",
-              testp->sin_len);
+              "mq_init added new peer to the addr map\n");
   /**
    * Before setting up peer mq, initiate a quic connection to the target (perform handshake w/ quiche)
   */
@@ -1042,38 +1041,19 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
   GNUNET_memcpy (q_conn->cid, scid, LOCAL_CONN_ID_LEN);
   peer->conn = q_conn;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Attempting to perform QUIC handshake with peer\n");
+              "attempting to perform QUIC handshake with peer\n");
   q_conn->conn = quiche_connect (peer->foreign_addr, scid, LOCAL_CONN_ID_LEN,
                                  local_addr,
                                  local_in_len, peer->address, peer->address_len,
                                  config);
   flush_egress (peer->conn);
-  return GNUNET_OK;
-  // GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-  //             "Handshake established with peer, sending our peer id\n");
-  /**
-   * Send our pid: do this after connection has been established. TODO: move to sock_read
-  */
-  // GNUNET_memcpy (my_pid, &my_identity, PEERID_LEN);
-  // send_len = quiche_conn_stream_send (peer->conn->conn, STREAMID_BI, my_pid,
-  //                                     PEERID_LEN,
-  //                                     false);
-  // if (0 > send_len)
-  // {
-  //   GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-  //               "Failed to write peer identity packet\n");
-  //   return GNUNET_NO;
-  // }
-  // flush_egress (peer->conn);
-  // GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Peer identity sent to peer\n");
-  /**
-   * TODO: setup peer mq after sending our pid (in sock_read)
-  */
-  setup_peer_mq (peer);
-  if (NULL == timeout_task)
-    timeout_task = GNUNET_SCHEDULER_add_now (&check_timeouts, NULL);
   GNUNET_free (local_addr);
   return GNUNET_OK;
+  /**
+   * TODO: handle this
+  */
+  // if (NULL == timeout_task)
+  //   timeout_task = GNUNET_SCHEDULER_add_now (&check_timeouts, NULL);
 }
 
 
@@ -1256,14 +1236,12 @@ sock_read (void *cls)
       return;
     }
     /**
-     * FIXME: hash addr, port combination not just port
+     * FIXME: hashing address string vs ip/port
     */
-    struct sockaddr_in *testp = (struct sockaddr_in *) &sa;
     const char *addr_string = sockaddr_to_udpaddr_string ((const struct
                                                            sockaddr *) &sa,
                                                           salen);
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "address string: %s\n", addr_string);
-    GNUNET_CRYPTO_hash (&addr_string, strlen (addr_string),
+    GNUNET_CRYPTO_hash (addr_string, strlen (addr_string),
                         &addr_key);
     GNUNET_free (addr_string);
     peer = GNUNET_CONTAINER_multihashmap_get (addr_map, &addr_key);
@@ -1277,6 +1255,7 @@ sock_read (void *cls)
       peer->address = GNUNET_memdup (&sa, salen);
       peer->address_len = salen;
       peer->id_rcvd = GNUNET_NO;
+      peer->id_sent = GNUNET_NO;
       peer->conn = NULL;
       peer->foreign_addr = sockaddr_to_udpaddr_string (peer->address,
                                                        peer->address_len);
@@ -1293,12 +1272,8 @@ sock_read (void *cls)
                     "tried to add duplicate address into address map\n");
         return;
       }
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "hash: %s\n", GNUNET_h2s (
-                    &addr_key));
-
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "sock_read added new peer to address map. sin_len: %d\n",
-                  testp->sin_len);
+                  "sock_read added new peer to address map\n");
     }
 
     /**
@@ -1425,6 +1400,36 @@ sock_read (void *cls)
       local_addr,
       in_len,
     };
+    /**
+     * Send our PeerIdentity if the connection is established now
+    */
+    if (quiche_conn_is_established (peer->conn->conn) && ! peer->id_sent)
+    {
+      char my_pid[PEERID_LEN];
+      ssize_t send_len;
+
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "handshake established with peer, sending our peer id\n");
+      GNUNET_memcpy (my_pid, &my_identity, PEERID_LEN);
+      // send_len = quiche_conn_stream_send (peer->conn->conn, STREAMID_BI, my_pid,
+      //                                     PEERID_LEN,
+      //                                     true);
+      send_len = quiche_conn_stream_send (peer->conn->conn, STREAMID_BI, "hi",
+                                          2,
+                                          true);
+      if (0 > send_len)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "failed to write peer identity packet. quiche error: %zd\n",
+                    send_len);
+        return;
+      }
+      flush_egress (peer->conn);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "peer identity sent to peer\n");
+      peer->id_sent = GNUNET_YES;
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "setting up peer mq\n");
+      setup_peer_mq (peer);
+    }
     process_pkt = quiche_conn_recv (peer->conn->conn, buf, rcvd, &recv_info);
     if (0 > process_pkt)
     {
@@ -1589,6 +1594,11 @@ run (void *cls,
   */
   config = quiche_config_new (QUICHE_PROTOCOL_VERSION);
   quiche_config_verify_peer (config, false);
+  /**
+   * TODO: configure TLS cert
+  */
+  quiche_config_load_cert_chain_from_pem_file (config, "./cert.crt");
+  quiche_config_load_priv_key_from_pem_file (config, "./cert.key");
   quiche_config_set_application_protos (config,
                                         (uint8_t *)
                                         "\x0ahq-interop\x05hq-29\x05hq-28\x05hq-27\x08http/0.9",
