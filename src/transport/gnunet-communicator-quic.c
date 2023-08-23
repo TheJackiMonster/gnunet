@@ -1411,11 +1411,8 @@ sock_read (void *cls)
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "handshake established with peer, sending our peer id\n");
       GNUNET_memcpy (my_pid, &my_identity, PEERID_LEN);
-      // send_len = quiche_conn_stream_send (peer->conn->conn, STREAMID_BI, my_pid,
-      //                                     PEERID_LEN,
-      //                                     true);
-      send_len = quiche_conn_stream_send (peer->conn->conn, STREAMID_BI, "hi",
-                                          2,
+      send_len = quiche_conn_stream_send (peer->conn->conn, STREAMID_BI, my_pid,
+                                          PEERID_LEN,
                                           true);
       if (0 > send_len)
       {
@@ -1429,6 +1426,9 @@ sock_read (void *cls)
       peer->id_sent = GNUNET_YES;
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "setting up peer mq\n");
       setup_peer_mq (peer);
+      /**
+       * After this, we should be all good to send/recv data
+      */
     }
     process_pkt = quiche_conn_recv (peer->conn->conn, buf, rcvd, &recv_info);
     if (0 > process_pkt)
