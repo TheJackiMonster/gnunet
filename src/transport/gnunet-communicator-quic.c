@@ -28,7 +28,6 @@
 #define TOKEN_LEN sizeof(uint8_t) * MAX_TOKEN_LEN
 /* Generic, bidirectional, client-initiated quic stream id */
 #define STREAMID_BI 4
-#define PEERID_LEN sizeof(struct GNUNET_PeerIdentity)
 /**
  * How long do we believe our addresses to remain up (before
  * the other peer should revalidate).
@@ -90,6 +89,11 @@ struct PeerAddress
    * Flag to indicate whether we have sent OUR PeerIdentity to this peer
   */
   int id_sent;
+
+  /**
+   * Flag to indicate if we are the initiator of the connection
+  */
+  int is_receiver;
 
   /**
    * Address of the receiver in the human-readable format
@@ -239,9 +243,9 @@ recv_from_streams (struct PeerAddress *peer)
       break;
     }
     /**
-     * Initial packet should contain peerid
+     * Initial packet should contain peerid if they are the initiator
     */
-    if (GNUNET_NO == peer->id_rcvd)
+    if (! peer->is_receiver && GNUNET_NO == peer->id_rcvd)
     {
       if (recv_len < sizeof(struct GNUNET_PeerIdentity))
       {
@@ -1015,6 +1019,8 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer_id, const
   peer->address = in;
   peer->address_len = in_len;
   peer->target = *peer_id;
+  peer->id_rcvd = GNUNET_YES;
+  peer->is_receiver = GNUNET_YES;
   peer->nt = GNUNET_NT_scanner_get_type (is, in, in_len);
   peer->timeout =
     GNUNET_TIME_relative_to_absolute (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT);
@@ -1256,6 +1262,7 @@ sock_read (void *cls)
       peer->address_len = salen;
       peer->id_rcvd = GNUNET_NO;
       peer->id_sent = GNUNET_NO;
+      peer->is_receiver = GNUNET_NO;
       peer->conn = NULL;
       peer->foreign_addr = sockaddr_to_udpaddr_string (peer->address,
                                                        peer->address_len);
@@ -1403,16 +1410,16 @@ sock_read (void *cls)
     /**
      * Send our PeerIdentity if the connection is established now
     */
-    if (quiche_conn_is_established (peer->conn->conn) && ! peer->id_sent)
+    if (quiche_conn_is_established (peer->conn->conn) && ! peer->id_sent &&
+        peer->is_receiver)
     {
-      char my_pid[PEERID_LEN];
       ssize_t send_len;
 
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "handshake established with peer, sending our peer id\n");
-      GNUNET_memcpy (my_pid, &my_identity, PEERID_LEN);
-      send_len = quiche_conn_stream_send (peer->conn->conn, STREAMID_BI, my_pid,
-                                          PEERID_LEN,
+      send_len = quiche_conn_stream_send (peer->conn->conn, STREAMID_BI,
+                                          (const uint8_t *) &my_identity,
+                                          sizeof(my_identity),
                                           true);
       if (0 > send_len)
       {
