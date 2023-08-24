@@ -259,6 +259,26 @@ struct GNUNET_PEERSTORE_WatchContext
    * Hash of the combined key
    */
   struct GNUNET_HashCode keyhash;
+
+  /**
+   * The iteration context to deliver the actual values for the key.
+   */
+  struct GNUNET_PEERSTORE_IterateContext *ic;
+
+  /**
+   * The peer we are watching for values.
+   */
+  const struct GNUNET_PeerIdentity *peer;
+
+  /**
+   * The key we like to watch for values.
+   */
+  const char *key;
+
+  /**
+   * The sub system requested the watch.
+   */
+  const char *sub_system;
 };
 
 /**
@@ -982,6 +1002,13 @@ GNUNET_PEERSTORE_watch_cancel (struct GNUNET_PEERSTORE_WatchContext *wc)
   struct StoreKeyHashMessage *hm;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG, "Canceling watch.\n");
+  if (NULL != wc->ic)
+  {
+    GNUNET_PEERSTORE_iterate_cancel (wc->ic);
+    GNUNET_free (wc);
+    return;
+  }
+
   ev = GNUNET_MQ_msg (hm, GNUNET_MESSAGE_TYPE_PEERSTORE_WATCH_CANCEL);
   hm->keyhash = wc->keyhash;
   GNUNET_MQ_send (h->mq, ev);
@@ -992,9 +1019,56 @@ GNUNET_PEERSTORE_watch_cancel (struct GNUNET_PEERSTORE_WatchContext *wc)
 }
 
 
+static void
+watch_iterate (void *cls,
+           const struct GNUNET_PEERSTORE_Record *record,
+           const char *emsg)
+{
+  struct GNUNET_PEERSTORE_WatchContext *wc = cls;
+  struct GNUNET_PEERSTORE_Handle *h = wc->h;
+  struct StoreKeyHashMessage *hm;
+
+  if (NULL != emsg)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Got failure from PEERSTORE: %s\n",
+                emsg);
+    wc->callback (wc->callback_cls, NULL, emsg);
+    return;
+  }
+  if (NULL == record)
+  {
+    struct GNUNET_MQ_Envelope *ev;
+
+    ev = GNUNET_MQ_msg (hm, GNUNET_MESSAGE_TYPE_PEERSTORE_WATCH);
+    PEERSTORE_hash_key (wc->sub_system, wc->peer, wc->key, &hm->keyhash);
+    wc->keyhash = hm->keyhash;
+    if (NULL == h->watches)
+    h->watches = GNUNET_CONTAINER_multihashmap_create (5, GNUNET_NO);
+    GNUNET_assert (GNUNET_OK == GNUNET_CONTAINER_multihashmap_put (
+                                                                   h->watches,
+                                                                   &wc->keyhash,
+                                                                   wc,
+                                                                   GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE));
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Sending a watch request for subsystem `%s', peer `%s', key `%s'.\n",
+         wc->sub_system,
+         GNUNET_i2s (wc->peer),
+         wc->key);
+    GNUNET_MQ_send (h->mq, ev);
+    wc->ic = NULL;
+    return;
+  }
+
+  if (NULL != wc->callback)
+    wc->callback (wc->callback_cls, record, NULL);
+}
+
+
 /**
  * Request watching a given key
- * User will be notified with any new values added to key
+ * User will be notified with any new values added to key,
+ * all existing entries are supplied beforehand.
  *
  * @param h handle to the PEERSTORE service
  * @param sub_system name of sub system
@@ -1012,30 +1086,25 @@ GNUNET_PEERSTORE_watch (struct GNUNET_PEERSTORE_Handle *h,
                         GNUNET_PEERSTORE_Processor callback,
                         void *callback_cls)
 {
-  struct GNUNET_MQ_Envelope *ev;
-  struct StoreKeyHashMessage *hm;
+  struct GNUNET_PEERSTORE_IterateContext *ic;
   struct GNUNET_PEERSTORE_WatchContext *wc;
 
-  ev = GNUNET_MQ_msg (hm, GNUNET_MESSAGE_TYPE_PEERSTORE_WATCH);
-  PEERSTORE_hash_key (sub_system, peer, key, &hm->keyhash);
+  ic = GNUNET_PEERSTORE_iterate (h,
+                                   sub_system,
+                                   peer,
+                                   key,
+                                   &watch_iterate,
+                                   NULL);
+
   wc = GNUNET_new (struct GNUNET_PEERSTORE_WatchContext);
   wc->callback = callback;
   wc->callback_cls = callback_cls;
   wc->h = h;
-  wc->keyhash = hm->keyhash;
-  if (NULL == h->watches)
-    h->watches = GNUNET_CONTAINER_multihashmap_create (5, GNUNET_NO);
-  GNUNET_assert (GNUNET_OK == GNUNET_CONTAINER_multihashmap_put (
-                   h->watches,
-                   &wc->keyhash,
-                   wc,
-                   GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE));
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Sending a watch request for subsystem `%s', peer `%s', key `%s'.\n",
-       sub_system,
-       GNUNET_i2s (peer),
-       key);
-  GNUNET_MQ_send (h->mq, ev);
+  wc->ic = ic;
+  wc->key = key;
+  wc->peer = peer;
+  wc->sub_system = sub_system;
+
   return wc;
 }
 
