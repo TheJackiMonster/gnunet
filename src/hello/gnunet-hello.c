@@ -25,6 +25,8 @@
 #include "platform.h"
 #include "gnunet_protocols.h"
 #include "gnunet_hello_lib.h"
+#include "gnunet_hello_uri_lib.h"
+#include "gnunet_transport_plugin.h"
 
 /**
  * Closure for #add_to_buf().
@@ -45,9 +47,161 @@ struct AddContext
    * Number of bytes added so far.
    */
   size_t ret;
+
+  struct GNUNET_HELLO_Builder *builder;
+};
+
+/**
+ * Entry in doubly-linked list of all of our plugins.
+ */
+struct TransportPlugin
+{
+  /**
+   * This is a doubly-linked list.
+   */
+  struct TransportPlugin *next;
+
+  /**
+   * This is a doubly-linked list.
+   */
+  struct TransportPlugin *prev;
+
+  /**
+   * API of the transport as returned by the plugin's
+   * initialization function.
+   */
+  struct GNUNET_TRANSPORT_PluginFunctions *api;
+
+  /**
+   * Short name for the plugin (e.g. "tcp").
+   */
+  char *short_name;
+
+  /**
+   * Name of the library (e.g. "gnunet_plugin_transport_tcp").
+   */
+  char *lib_name;
+
+  /**
+   * Environment this transport service is using
+   * for this plugin.
+   */
+  struct GNUNET_TRANSPORT_PluginEnvironment env;
 };
 
 static int address_count;
+
+/**
+ * Our private key.
+ */
+static struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
+
+/**
+ * Local peer own ID.
+ */
+struct GNUNET_PeerIdentity my_full_id;
+
+/**
+ * The file with hello in old style which we like to replace with the new one.
+ */
+static char *hello_file;
+
+/**
+ * Head of DLL of all loaded plugins.
+ */
+static struct TransportPlugin *plugins_head;
+
+/**
+ * Head of DLL of all loaded plugins.
+ */
+static struct TransportPlugin *plugins_tail;
+
+static void
+plugins_load (const struct GNUNET_CONFIGURATION_Handle *cfg)
+{
+  struct TransportPlugin *plug;
+  struct TransportPlugin *next;
+  char *libname;
+  char *plugs;
+  char *pos;
+
+  if (NULL != plugins_head)
+    return; /* already loaded */
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_get_value_string (cfg, "TRANSPORT", "PLUGINS",
+                                             &plugs))
+    return;
+  fprintf (stdout,"Starting transport plugins `%s'\n",
+              plugs);
+  for (pos = strtok (plugs, " "); pos != NULL; pos = strtok (NULL, " "))
+  {
+    fprintf (stdout,"Loading `%s' transport plugin\n",
+                pos);
+    GNUNET_asprintf (&libname, "libgnunet_plugin_transport_%s", pos);
+    plug = GNUNET_new (struct TransportPlugin);
+    plug->short_name = GNUNET_strdup (pos);
+    plug->lib_name = libname;
+    plug->env.cfg = cfg;
+    plug->env.cls = plug->short_name;
+    GNUNET_CONTAINER_DLL_insert (plugins_head, plugins_tail, plug);
+  }
+  GNUNET_free (plugs);
+  next = plugins_head;
+  while (next != NULL)
+  {
+    plug = next;
+    next = plug->next;
+    plug->api = GNUNET_PLUGIN_load (plug->lib_name, &plug->env);
+    if (plug->api == NULL)
+    {
+      fprintf (stdout,"Failed to load transport plugin for `%s'\n",
+                  plug->lib_name);
+      GNUNET_CONTAINER_DLL_remove (plugins_head, plugins_tail, plug);
+      GNUNET_free (plug->short_name);
+      GNUNET_free (plug->lib_name);
+      GNUNET_free (plug);
+    }
+  }
+}
+
+
+static int
+add_to_builder (void *cls,
+            const struct GNUNET_HELLO_Address *address,
+            struct GNUNET_TIME_Absolute expiration)
+{
+  struct GNUNET_HELLO_Builder *builder= cls;
+  struct TransportPlugin *pos = plugins_head;
+  const char *addr;
+  char *uri;
+
+  while (NULL != pos)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "short_name: %s transport_name: %s\n",
+                pos->short_name,
+              address->transport_name);
+    if (0 == strcmp (address->transport_name, pos->short_name))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "short_name: %s transport_name: %s are the same\n",
+                  pos->short_name,
+              address->transport_name);
+      addr = strchr (strchr (pos->api->address_to_string (pos, address, address->address_length), '.')+1, '.') + 1;
+    }
+    pos = plugins_head->next;
+  }
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Hello address string: %s\n",
+              addr);
+  GNUNET_asprintf (&uri, "%s://%s", address->transport_name, addr);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Hello address uri string: %s\n",
+              uri);
+  GNUNET_HELLO_builder_add_address (builder,
+                                    uri);
+}
 
 
 /**
@@ -70,6 +224,7 @@ add_to_buf (void *cls,
                                   GNUNET_TIME_UNIT_FOREVER_ABS,
                                   ac->buf,
                                   ac->max);
+
   ac->buf += ret;
   ac->max -= ret;
   ac->ret += ret;
@@ -105,52 +260,71 @@ add_from_hello (void *cls, size_t max, void *buf)
 }
 
 
-int
-main (int argc, char *argv[])
+/**
+ * Main function that will be run without the scheduler.
+ *
+ * @param cls closure
+ * @param args remaining command-line arguments
+ * @param cfgfile name of the configuration file used (for saving, can be NULL!)
+ * @param c configuration
+ */
+static void
+run (void *cls,
+     char *const *args,
+     const char *cfgfile,
+     const struct GNUNET_CONFIGURATION_Handle *c)
 {
   struct GNUNET_DISK_FileHandle *fh;
   struct GNUNET_HELLO_Message *orig;
   struct GNUNET_HELLO_Message *result;
   struct GNUNET_PeerIdentity pid;
   uint64_t fsize;
+  ssize_t size_written;
+  struct GNUNET_HELLO_Builder *builder;
+  char *url;
+  const struct GNUNET_MessageHeader *msg;
+  struct GNUNET_MQ_Envelope *env;
 
+  plugins_load (c);
   address_count = 0;
 
-  GNUNET_log_setup ("gnunet-hello", "INFO", NULL);
-  if (argc != 2)
-  {
-    fprintf (stderr, "%s", _ ("Call with name of HELLO file to modify.\n"));
-    return 1;
-  }
+  my_private_key =
+    GNUNET_CRYPTO_eddsa_key_create_from_configuration (c);
+  GNUNET_CRYPTO_eddsa_key_get_public (my_private_key,
+                                      &my_full_id.public_key);
+  fprintf (stdout,"We are peer %s\n", GNUNET_i2s (&my_full_id));
+
+  GNUNET_log_setup ("gnunet-hello", "DEBUG", NULL);
+
   if (GNUNET_OK !=
-      GNUNET_DISK_file_size (argv[1], &fsize, GNUNET_YES, GNUNET_YES))
+      GNUNET_DISK_file_size (hello_file, &fsize, GNUNET_YES, GNUNET_YES))
   {
     fprintf (stderr,
              _ ("Error accessing file `%s': %s\n"),
-             argv[1],
+             hello_file,
              strerror (errno));
-    return 1;
+    return;
   }
   if (fsize > 65536)
   {
-    fprintf (stderr, _ ("File `%s' is too big to be a HELLO\n"), argv[1]);
-    return 1;
+    fprintf (stderr, _ ("File `%s' is too big to be a HELLO\n"), hello_file);
+    return;
   }
   if (fsize < sizeof(struct GNUNET_MessageHeader))
   {
-    fprintf (stderr, _ ("File `%s' is too small to be a HELLO\n"), argv[1]);
-    return 1;
+    fprintf (stderr, _ ("File `%s' is too small to be a HELLO\n"), hello_file);
+    return;
   }
-  fh = GNUNET_DISK_file_open (argv[1],
+  fh = GNUNET_DISK_file_open (hello_file,
                               GNUNET_DISK_OPEN_READ,
                               GNUNET_DISK_PERM_USER_READ);
   if (NULL == fh)
   {
     fprintf (stderr,
              _ ("Error opening file `%s': %s\n"),
-             argv[1],
+             hello_file,
              strerror (errno));
-    return 1;
+    return;
   }
   {
     char buf[fsize] GNUNET_ALIGN;
@@ -163,8 +337,8 @@ main (int argc, char *argv[])
     {
       fprintf (stderr,
                _ ("Did not find well-formed HELLO in file `%s'\n"),
-               argv[1]);
-      return 1;
+               hello_file);
+      return;
     }
     {
       char *pids;
@@ -173,13 +347,25 @@ main (int argc, char *argv[])
       fprintf (stdout, "Processing HELLO for peer `%s'\n", pids);
       GNUNET_free (pids);
     }
-    result = GNUNET_HELLO_create (&pid.public_key,
-                                  &add_from_hello,
-                                  &orig,
-                                  GNUNET_HELLO_is_friend_only (orig));
-    GNUNET_assert (NULL != result);
+    /* result = GNUNET_HELLO_create (&pid.public_key, */
+    /*                               &add_from_hello, */
+    /*                               &orig, */
+    /*                               GNUNET_HELLO_is_friend_only (orig)); */
+
+    builder = GNUNET_HELLO_builder_new (&pid);
+    GNUNET_assert (
+    NULL ==
+    GNUNET_HELLO_iterate_addresses ((const struct GNUNET_HELLO_Message *) orig, GNUNET_NO, &add_to_builder, builder));
+    url = GNUNET_HELLO_builder_to_url (builder, my_private_key);
+    fprintf (stdout,"url: %s\n", url);
+    env = GNUNET_HELLO_builder_to_env (builder,
+                                 my_private_key,
+                                 GNUNET_TIME_UNIT_ZERO);
+    msg = GNUNET_MQ_env_get_msg (env);
+    //GNUNET_assert (NULL != result);
+    GNUNET_assert (NULL != msg);
     fh =
-      GNUNET_DISK_file_open (argv[1],
+      GNUNET_DISK_file_open (hello_file,
                              GNUNET_DISK_OPEN_WRITE | GNUNET_DISK_OPEN_TRUNCATE,
                              GNUNET_DISK_PERM_USER_READ
                              | GNUNET_DISK_PERM_USER_WRITE);
@@ -187,28 +373,54 @@ main (int argc, char *argv[])
     {
       fprintf (stderr,
                _ ("Error opening file `%s': %s\n"),
-               argv[1],
+               hello_file,
                strerror (errno));
       GNUNET_free (result);
-      return 1;
+      return;
     }
-    fsize = GNUNET_HELLO_size (result);
-    if (fsize != GNUNET_DISK_file_write (fh, result, fsize))
+    //fsize = GNUNET_HELLO_size (result);
+    size_written = GNUNET_DISK_file_write (fh, msg, ntohs (msg->size));
+    if (ntohs (msg->size) != size_written)
     {
       fprintf (stderr,
-               _ ("Error writing HELLO to file `%s': %s\n"),
-               argv[1],
+               _ ("Error writing HELLO to file `%s': %s expected size %u size written %u\n"),
+               hello_file,
                strerror (errno));
       (void) GNUNET_DISK_file_close (fh);
-      return 1;
+      return;
     }
     GNUNET_assert (GNUNET_OK == GNUNET_DISK_file_close (fh));
   }
   fprintf (stderr,
            _ ("Modified %u addresses, wrote %u bytes\n"),
            address_count,
-           (unsigned int) fsize);
-  return 0;
+           (unsigned int) ntohs (msg->size));
+  GNUNET_HELLO_builder_free (builder);
+}
+
+
+int
+main (int argc, char *argv[])
+{
+  struct GNUNET_GETOPT_CommandLineOption options[] =
+  { GNUNET_GETOPT_option_string ('h',
+                               "hello-file",
+                               "HELLO_FILE",
+                               gettext_noop ("Hello file to read"),
+                               &hello_file),
+    GNUNET_GETOPT_OPTION_END };
+  int ret;
+
+  ret = (GNUNET_OK ==
+         GNUNET_PROGRAM_run2 (argc,
+                             argv,
+                             "gnunet-peerinfo",
+                             gettext_noop ("Print information about peers."),
+                             options,
+                             &run,
+                             NULL,
+                             GNUNET_YES));
+  return ret;
 }
 
 
