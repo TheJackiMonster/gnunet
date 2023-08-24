@@ -28,6 +28,7 @@
 #include "peerstore.h"
 #include "gnunet_peerstore_plugin.h"
 #include "peerstore_common.h"
+#include "gnunet_hello_uri_lib.h"
 
 
 /**
@@ -532,6 +533,76 @@ handle_store (void *cls, const struct StoreRecordMessage *srm)
   }
 }
 
+static void
+store_hello_continuation (void *cls, int success)
+{
+  (void *) cls;
+
+  if (GNUNET_OK != success)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Error storing bootstrap hello!\n");
+    GNUNET_break (0);
+  }
+}
+
+
+static int
+hosts_directory_scan_callback (void *cls, const char *fullname)
+{
+  (void *) cls;
+  const char *filename;
+  ssize_t size_total;
+  char buffer[GNUNET_MAX_MESSAGE_SIZE - 1] GNUNET_ALIGN;
+  const struct GNUNET_MessageHeader *hello;
+  struct GNUNET_HELLO_Builder *builder;
+  struct GNUNET_PeerIdentity *pid;
+
+  if (GNUNET_YES != GNUNET_DISK_file_test (fullname))
+    return GNUNET_OK; /* ignore non-files */
+
+  filename = strrchr (fullname, DIR_SEPARATOR);
+  if ((NULL == filename) || (1 > strlen (filename)))
+    filename = fullname;
+  else
+    filename++;
+
+  if (GNUNET_YES != GNUNET_DISK_file_test (filename))
+    return GNUNET_OK;
+  size_total = GNUNET_DISK_fn_read (fullname, buffer, sizeof(buffer));
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Read %d bytes from `%s'\n",
+              (int) size_total,
+              fullname);
+  if ((size_total < 0) ||
+      (((size_t) size_total) < sizeof(struct GNUNET_MessageHeader)))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                _ ("Failed to parse HELLO in file `%s': %s\n"),
+                fullname,
+                "File has invalid size");
+    return GNUNET_OK;
+  }
+  hello = (const struct GNUNET_MessageHeader *) &buffer[0];
+  builder = GNUNET_HELLO_builder_from_msg (hello);
+  pid = GNUNET_HELLO_builder_get_id (builder);
+
+  if (GNUNET_OK != db->store_record (db->cls,
+                                     "peerstore",
+                                     pid,
+                                     "",
+                                     hello,
+                                     sizeof (hello),
+                                     GNUNET_TIME_UNIT_FOREVER_ABS,
+                                     GNUNET_PEERSTORE_STOREOPTION_REPLACE,
+                                     &store_hello_continuation,
+                                     NULL))
+  {
+    GNUNET_break (0);
+  }
+  GNUNET_HELLO_builder_free (builder);
+}
+
 
 /**
  * Peerstore service runner.
@@ -546,10 +617,38 @@ run (void *cls,
      struct GNUNET_SERVICE_Handle *service)
 {
   char *database;
+  int use_included;
+  char *ip;
+  char *peerdir;
 
   in_shutdown = GNUNET_NO;
   num_clients = 0;
   cfg = c;
+  use_included = GNUNET_CONFIGURATION_get_value_yesno (cfg,
+                                                       "peerinfo",
+                                                       "USE_INCLUDED_HELLOS");
+  if (GNUNET_SYSERR == use_included)
+    use_included = GNUNET_NO;
+  if (GNUNET_YES == use_included)
+  {
+    ip = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_DATADIR);
+    GNUNET_asprintf (&peerdir, "%shellos", ip);
+    GNUNET_free (ip);
+
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                _ ("Importing HELLOs from `%s'\n"),
+                peerdir);
+
+    GNUNET_DISK_directory_scan (peerdir,
+                                &hosts_directory_scan_callback,
+                                NULL);
+    GNUNET_free (peerdir);
+  }
+  else
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                _ ("Skipping import of included HELLOs\n"));
+  }
   if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_string (cfg,
                                                           "peerstore",
                                                           "DATABASE",
