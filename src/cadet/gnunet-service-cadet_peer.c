@@ -33,7 +33,7 @@
 #include "platform.h"
 #include "gnunet_time_lib.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_hello_lib.h"
+#include "gnunet_hello_uri_lib.h"
 #include "gnunet_signatures.h"
 #include "gnunet_transport_application_service.h"
 #include "gnunet_ats_service.h"
@@ -186,7 +186,7 @@ struct CadetPeer
   /**
    * Hello message of the peer.
    */
-  struct GNUNET_HELLO_Message *hello;
+  struct GNUNET_MessageHeader *hello;
 
   /**
    * Handle to us offering the HELLO to the transport.
@@ -491,12 +491,15 @@ consider_peer_destroy (struct CadetPeer *cp)
     return; /* still relevant! */
   if (NULL != cp->hello)
   {
+    struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (cp->hello);
+
     /* relevant only until HELLO expires */
-    exp = GNUNET_TIME_absolute_get_remaining (GNUNET_HELLO_get_last_expiration (
-                                                cp->hello));
+    exp = GNUNET_TIME_absolute_get_remaining (GNUNET_HELLO_builder_get_expiration_time (builder,
+                                                                                        cp->hello));
     cp->destroy_task = GNUNET_SCHEDULER_add_delayed (exp,
                                                      &destroy_peer,
                                                      cp);
+    GNUNET_HELLO_builder_free (builder);
     return;
   }
   cp->destroy_task = GNUNET_SCHEDULER_add_delayed (IDLE_PEER_TIMEOUT,
@@ -1307,26 +1310,43 @@ GCP_get_tunnel (struct CadetPeer *cp,
 
 void
 GCP_set_hello (struct CadetPeer *cp,
-               const struct GNUNET_HELLO_Message *hello)
+               const struct GNUNET_MessageHeader *hello)
 {
   struct GNUNET_HELLO_Message *mrg;
   struct GNUNET_BANDWIDTH_Value32NBO bw;
+  uint16_t size = sizeof (hello);
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Got %u byte HELLO for peer %s\n",
-       (unsigned int) GNUNET_HELLO_size (hello),
+       (unsigned int) size,
        GCP_2s (cp));
   if (NULL != cp->hello)
   {
-    mrg = GNUNET_HELLO_merge (hello,
-                              cp->hello);
-    GNUNET_free (cp->hello);
-    cp->hello = mrg;
+    struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
+    struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (hello);
+    struct GNUNET_HELLO_Builder *cp_builder = GNUNET_HELLO_builder_from_msg (cp->hello);
+    struct GNUNET_TIME_Absolute new_hello_exp = GNUNET_HELLO_builder_get_expiration_time (builder,
+                                                                                          hello);
+    struct GNUNET_TIME_Absolute old_hello_exp = GNUNET_HELLO_builder_get_expiration_time (cp_builder,
+                                                                                          cp->hello);
+
+    if (GNUNET_TIME_absolute_cmp (new_hello_exp, > , now) && GNUNET_TIME_absolute_cmp (new_hello_exp, > , old_hello_exp))
+    {
+      GNUNET_free (cp->hello);
+      cp->hello = GNUNET_malloc (size);
+      GNUNET_memcpy (cp->hello, hello, size);
+    }
+    else
+    {
+      return;
+    }
+    GNUNET_HELLO_builder_free (builder);
+    GNUNET_HELLO_builder_free (cp_builder);
   }
   else
   {
     cp->hello = GNUNET_memdup (hello,
-                               GNUNET_HELLO_size (hello));
+                               size);
   }
   if (NULL != cp->ash)
     GNUNET_TRANSPORT_application_suggest_cancel (cp->ash);

@@ -27,7 +27,6 @@
  */
 #include "platform.h"
 #include "gnunet_constants.h"
-#include "gnunet_hello_lib.h"
 #include "gnunet_hello_uri_lib.h"
 #include "gnunet_block_plugin.h"
 #include "gnunet_block_group_lib.h"
@@ -105,13 +104,6 @@ block_plugin_dht_check_query (void *cls,
 {
   switch (type)
   {
-  case GNUNET_BLOCK_TYPE_LEGACY_HELLO:
-    if (0 != xquery_size)
-    {
-      GNUNET_break_op (0);
-      return GNUNET_NO;
-    }
-    return GNUNET_OK;
   case GNUNET_BLOCK_TYPE_DHT_HELLO:
     if (0 != xquery_size)
     {
@@ -143,33 +135,6 @@ block_plugin_dht_check_block (void *cls,
 {
   switch (type)
   {
-  case GNUNET_BLOCK_TYPE_LEGACY_HELLO:
-    {
-      const struct GNUNET_HELLO_Message *hello;
-      struct GNUNET_PeerIdentity pid;
-      const struct GNUNET_MessageHeader *msg;
-
-      if (block_size < sizeof(struct GNUNET_MessageHeader))
-      {
-        GNUNET_break_op (0);
-        return GNUNET_NO;
-      }
-      msg = block;
-      if (block_size != ntohs (msg->size))
-      {
-        GNUNET_break_op (0);
-        return GNUNET_NO;
-      }
-      hello = block;
-      if (GNUNET_OK !=
-          GNUNET_HELLO_get_id (hello,
-                               &pid))
-      {
-        GNUNET_break_op (0);
-        return GNUNET_NO;
-      }
-      return GNUNET_OK;
-    }
   case GNUNET_BLOCK_TYPE_DHT_HELLO:
     {
       struct GNUNET_HELLO_Builder *b;
@@ -228,28 +193,6 @@ block_plugin_dht_check_reply (
 {
   switch (type)
   {
-  case GNUNET_BLOCK_TYPE_LEGACY_HELLO:
-    {
-      /* LEGACY */
-      const struct GNUNET_MessageHeader *msg = reply_block;
-      const struct GNUNET_HELLO_Message *hello = reply_block;
-      struct GNUNET_PeerIdentity pid;
-      struct GNUNET_HashCode phash;
-
-      GNUNET_assert (reply_block_size >= sizeof(struct GNUNET_MessageHeader));
-      GNUNET_assert (reply_block_size == ntohs (msg->size));
-      GNUNET_assert (GNUNET_OK ==
-                     GNUNET_HELLO_get_id (hello,
-                                          &pid));
-      GNUNET_CRYPTO_hash (&pid,
-                          sizeof(pid),
-                          &phash);
-      if (GNUNET_YES ==
-          GNUNET_BLOCK_GROUP_bf_test_and_set (group,
-                                              &phash))
-        return GNUNET_BLOCK_REPLY_OK_DUPLICATE;
-      return GNUNET_BLOCK_REPLY_OK_MORE;
-    }
   case GNUNET_BLOCK_TYPE_DHT_HELLO:
     {
       struct GNUNET_HELLO_Builder *b;
@@ -298,47 +241,6 @@ block_plugin_dht_get_key (void *cls,
 {
   switch (type)
   {
-  case GNUNET_BLOCK_TYPE_LEGACY_HELLO:
-    {
-      /* LEGACY */
-      const struct GNUNET_MessageHeader *msg;
-      const struct GNUNET_HELLO_Message *hello;
-      struct GNUNET_PeerIdentity *pid;
-
-      if (block_size < sizeof(struct GNUNET_MessageHeader))
-      {
-        GNUNET_break_op (0);
-        memset (key,
-                0,
-                sizeof (*key));
-        return GNUNET_OK;
-      }
-      msg = block;
-      if (block_size != ntohs (msg->size))
-      {
-        GNUNET_break_op (0);
-        memset (key,
-                0,
-                sizeof (*key));
-        return GNUNET_OK;
-      }
-      hello = block;
-      memset (key,
-              0,
-              sizeof(*key));
-      pid = (struct GNUNET_PeerIdentity *) key;
-      if (GNUNET_OK !=
-          GNUNET_HELLO_get_id (hello,
-                               pid))
-      {
-        GNUNET_break_op (0);
-        memset (key,
-                0,
-                sizeof (*key));
-        return GNUNET_OK;
-      }
-      return GNUNET_OK;
-    }
   case GNUNET_BLOCK_TYPE_DHT_HELLO:
     {
       struct GNUNET_HELLO_Builder *b;
@@ -377,7 +279,6 @@ void *
 libgnunet_plugin_block_dht_init (void *cls)
 {
   static enum GNUNET_BLOCK_Type types[] = {
-    GNUNET_BLOCK_TYPE_LEGACY_HELLO,
     GNUNET_BLOCK_TYPE_DHT_HELLO,
     GNUNET_BLOCK_TYPE_ANY       /* end of list */
   };

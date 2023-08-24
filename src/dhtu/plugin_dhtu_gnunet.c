@@ -28,10 +28,9 @@
 #include "gnunet_dhtu_plugin.h"
 #include "gnunet_core_service.h"
 #include "gnunet_transport_application_service.h"
-#include "gnunet_hello_lib.h"
-#include "gnunet_peerinfo_service.h"
+#include "gnunet_hello_uri_lib.h"
+#include "gnunet_peerstore_service.h"
 #include "gnunet_nse_service.h"
-
 
 /**
  * Opaque handle that the underlay offers for our address to be used when
@@ -139,6 +138,11 @@ struct Plugin
   struct GNUNET_DHTU_PluginEnvironment *env;
 
   /**
+   * Handle to the PEERSTORE service.
+   */
+  struct GNUNET_PEERSTORE_Handle *peerstore;
+
+  /**
    * Handle to the CORE service.
    */
   struct GNUNET_CORE_Handle *core;
@@ -154,14 +158,20 @@ struct Plugin
   struct GNUNET_NSE_Handle *nse;
 
   /**
-   * Watching for our address to change.
+   * Our peerstore notification context.  We use notification
+   * to instantly learn about new peers as they are discovered.
    */
-  struct GNUNET_PEERINFO_NotifyContext *nc;
+  struct GNUNET_PEERSTORE_NotifyContext *peerstore_notify;
 
   /**
    * Identity of this peer.
    */
   struct GNUNET_PeerIdentity my_identity;
+
+  /**
+   * Our private key.
+   */
+  struct GNUNET_CRYPTO_EddsaPrivateKey *my_priv;
 
 };
 
@@ -361,10 +371,11 @@ core_disconnect_cb (void *cls,
 static void
 peerinfo_cb (void *cls,
              const struct GNUNET_PeerIdentity *peer,
-             const struct GNUNET_HELLO_Message *hello,
-             const char *err_msg)
+             const struct GNUNET_MessageHeader *hello,
+             const char *emsg)
 {
   struct Plugin *plugin = cls;
+  struct GNUNET_HELLO_Builder *builder;
   char *addr;
 
   if (NULL == hello)
@@ -375,8 +386,9 @@ peerinfo_cb (void *cls,
       GNUNET_memcmp (peer,
                      &plugin->my_identity))
     return;
-  addr = GNUNET_HELLO_compose_uri (hello,
-                                   &GPI_plugins_find);
+  builder = GNUNET_HELLO_builder_from_msg (hello);
+  addr = GNUNET_HELLO_builder_to_url (builder,
+                                      plugin->my_priv);
   if (NULL == addr)
     return;
   plugin->env->address_add_cb (plugin->env->cls,
@@ -384,6 +396,7 @@ peerinfo_cb (void *cls,
                                &plugin->src,
                                &plugin->src.app_ctx);
   GNUNET_free (addr);
+  GNUNET_HELLO_Builder_free (builder);
 }
 
 
@@ -400,16 +413,17 @@ peerinfo_cb (void *cls,
  * @param my_identity ID of this peer, NULL if we failed
  */
 static void
-core_init_cb (void *cls,
+ core_init_cb (void *cls,
               const struct GNUNET_PeerIdentity *my_identity)
 {
   struct Plugin *plugin = cls;
 
   plugin->my_identity = *my_identity;
-  plugin->nc = GNUNET_PEERINFO_notify (plugin->env->cfg,
-                                       GNUNET_NO,
-                                       &peerinfo_cb,
-                                       plugin);
+  plugin->peerstore_notify =
+      GNUNET_PEERSTORE_hello_changed_notify (plugin->peerstore,
+                                             GNUNET_NO,
+                                             &peerinfo_cb,
+                                             plugin);
 }
 
 
@@ -498,9 +512,12 @@ libgnunet_plugin_dhtu_gnunet_done (void *cls)
     GNUNET_CORE_disconnect (plugin->core);
   if (NULL != plugin->transport)
     GNUNET_TRANSPORT_application_done (plugin->transport);
-  if (NULL != plugin->nc)
-    GNUNET_PEERINFO_notify_cancel (plugin->nc);
+  if (NULL != plugin->peerstore_notify)
+    GNUNET_PEERSTORE_hello_changed_notify_cancel (plugin->peerstore_notify);
+  if (NULL != plugin->peerstore)
+    GNUNET_PEERSTORE_disconnect (peerstore, GNUNET_YES);
   GPI_plugins_unload ();
+  GNUNET_free (plugin->my_priv);
   GNUNET_free (plugin);
   GNUNET_free (api);
   return NULL;
@@ -527,6 +544,7 @@ libgnunet_plugin_dhtu_gnunet_init (void *cls)
     GNUNET_MQ_handler_end ()
   };
 
+  plugin->my_priv = GNUNET_CRYPTO_eddsa_key_create_from_configuration (env->cfg);
   plugin = GNUNET_new (struct Plugin);
   plugin->env = env;
   api = GNUNET_new (struct GNUNET_DHTU_PluginFunctions);
@@ -535,6 +553,7 @@ libgnunet_plugin_dhtu_gnunet_init (void *cls)
   api->hold = &gnunet_hold;
   api->drop = &gnunet_drop;
   api->send = &gnunet_send;
+  plugin->peerstore = GNUNET_PEERSTORE_connect (env->cfg);
   plugin->transport = GNUNET_TRANSPORT_application_init (env->cfg);
   plugin->core = GNUNET_CORE_connect (env->cfg,
                                       plugin,

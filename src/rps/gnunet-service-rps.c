@@ -28,7 +28,7 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_cadet_service.h"
 #include "gnunet_core_service.h"
-#include "gnunet_peerinfo_service.h"
+#include "gnunet_peerstore_service.h"
 #include "gnunet_nse_service.h"
 #include "gnunet_statistics_service.h"
 #include "rps.h"
@@ -499,14 +499,15 @@ static float beta;
 static struct GNUNET_NSE_Handle *nse;
 
 /**
- * Handler to PEERINFO.
+ * Handle to the PEERSTORE service.
  */
-static struct GNUNET_PEERINFO_Handle *peerinfo_handle;
+static struct GNUNET_PEERSTORE_Handle *peerstore;
 
 /**
- * Handle for cancellation of iteration over peers.
+ * Our peerstore notification context.  We use notification
+ * to instantly learn about new peers as they are discovered.
  */
-static struct GNUNET_PEERINFO_NotifyContext *peerinfo_notify_handle;
+static struct GNUNET_PEERSTORE_NotifyContext *peerstore_notify;
 
 
 #if ENABLE_MALICIOUS
@@ -4697,13 +4698,13 @@ valid_peers_iterator (void *cls,
 void
 process_peerinfo_peers (void *cls,
                         const struct GNUNET_PeerIdentity *peer,
-                        const struct GNUNET_HELLO_Message *hello,
-                        const char *err_msg)
+                        const struct GNUNET_MessageHeader *hello,
+                        const char *emsg)
 {
   struct Sub *sub = cls;
 
   (void) hello;
-  (void) err_msg;
+  (void) emsg;
 
   if (NULL != peer)
   {
@@ -4743,9 +4744,9 @@ shutdown_task (void *cls)
   }
 
   /* Disconnect from other services */
-  GNUNET_PEERINFO_notify_cancel (peerinfo_notify_handle);
-  GNUNET_PEERINFO_disconnect (peerinfo_handle);
-  peerinfo_handle = NULL;
+  GNUNET_PEERSTORE_hello_changed_notify_cancel (peerstore_notify);
+  GNUNET_PEERSTORE_disconnect (peerstore, GNUNET_YES);
+  peerstore = NULL;
   GNUNET_NSE_disconnect (nse);
   if (NULL != map_single_hop)
   {
@@ -4935,7 +4936,7 @@ run (void *cls,
                   round_interval);
 
 
-  peerinfo_handle = GNUNET_PEERINFO_connect (cfg);
+  peerstore = GNUNET_PEERSTORE_connect (cfg);
 
   /* connect to NSE */
   nse = GNUNET_NSE_connect (cfg, nse_callback, NULL);
@@ -4947,10 +4948,10 @@ run (void *cls,
   restore_valid_peers (msub);
   get_valid_peers (msub->valid_peers, valid_peers_iterator, msub);
 
-  peerinfo_notify_handle = GNUNET_PEERINFO_notify (cfg,
-                                                   GNUNET_NO,
-                                                   process_peerinfo_peers,
-                                                   msub);
+  peerstore_notify = GNUNET_PEERSTORE_hello_changed_notify (peerstore,
+                                                            GNUNET_NO,
+                                                            process_peerinfo_peers,
+                                                            msub);
 
   LOG (GNUNET_ERROR_TYPE_INFO, "Ready to receive requests from clients\n");
 

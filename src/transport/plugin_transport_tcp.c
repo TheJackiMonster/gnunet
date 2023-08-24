@@ -1509,7 +1509,7 @@ tcp_nat_port_map_callback (void *cls,
 static const char *
 tcp_plugin_address_to_string (void *cls, const void *addr, size_t addrlen)
 {
-  static char rbuf[INET6_ADDRSTRLEN + 12];
+  static char rbuf[INET6_ADDRSTRLEN + 16];
   char buf[INET6_ADDRSTRLEN];
   const void *sb;
   struct in_addr a4;

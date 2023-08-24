@@ -28,7 +28,7 @@ gnunet_daemon_hostlist_SOURCES = \
 gnunet_daemon_hostlist_LDADD = \
   $(top_builddir)/src/core/libgnunetcore.la \
   $(top_builddir)/src/hello/libgnunethello.la \
-  $(top_builddir)/src/peerinfo/libgnunetpeerinfo.la \
+  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/transport/libgnunettransport.la \
   $(top_builddir)/src/util/libgnunetutil.la \

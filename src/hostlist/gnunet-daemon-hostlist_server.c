@@ -28,8 +28,8 @@
 #include "platform.h"
 #include <microhttpd.h>
 #include "gnunet-daemon-hostlist_server.h"
-#include "gnunet_hello_lib.h"
-#include "gnunet_peerinfo_service.h"
+#include "gnunet_hello_uri_lib.h"
+#include "gnunet_peerstore_service.h"
 #include "gnunet-daemon-hostlist.h"
 #include "gnunet_resolver_service.h"
 #include "gnunet_mhd_compat.h"
@@ -69,9 +69,10 @@ static struct GNUNET_STATISTICS_Handle *stats;
 static struct GNUNET_CORE_Handle *core;
 
 /**
- * Handle to the peerinfo notify service (NULL until we've connected to it).
+ * Our peerstore notification context.  We use notification
+ * to instantly learn about new peers as they are discovered.
  */
-static struct GNUNET_PEERINFO_NotifyContext *notify;
+static struct GNUNET_PEERSTORE_NotifyContext *peerstore_notify;
 
 /**
  * Our primary task for IPv4.
@@ -89,9 +90,9 @@ static struct GNUNET_SCHEDULER_Task *hostlist_task_v6;
 static struct MHD_Response *response;
 
 /**
- * Handle for accessing peerinfo service.
+ * Handle to the PEERSTORE service.
  */
-static struct GNUNET_PEERINFO_Handle *peerinfo;
+static struct GNUNET_PEERSTORE_Handle *peerstore;
 
 /**
  * Set if we are allowed to advertise our hostlist to others.
@@ -112,7 +113,7 @@ struct HostSet
   /**
    * Iterator used to build @e data (NULL when done).
    */
-  struct GNUNET_PEERINFO_IteratorContext *pitr;
+  struct GNUNET_PEERSTORE_IterateContext *pitr;
 
   /**
    * Place where we accumulate all of the HELLO messages.
@@ -179,34 +180,6 @@ finish_response ()
 
 
 /**
- * Set @a cls to #GNUNET_YES (we have an address!).
- *
- * @param cls closure, an `int *`
- * @param address the address (ignored)
- * @param expiration expiration time (call is ignored if this is in the past)
- * @return  #GNUNET_SYSERR to stop iterating (unless expiration has occurred)
- */
-static int
-check_has_addr (void *cls,
-                const struct GNUNET_HELLO_Address *address,
-                struct GNUNET_TIME_Absolute expiration)
-{
-  int *arg = cls;
-
-  if (0 == GNUNET_TIME_absolute_get_remaining (expiration).rel_value_us)
-  {
-    GNUNET_STATISTICS_update (stats,
-                              gettext_noop ("expired addresses encountered"),
-                              1,
-                              GNUNET_YES);
-    return GNUNET_YES;   /* ignore this address */
-  }
-  *arg = GNUNET_YES;
-  return GNUNET_SYSERR;
-}
-
-
-/**
  * Callback that processes each of the known HELLOs for the
  * hostlist response construction.
  *
@@ -217,55 +190,65 @@ check_has_addr (void *cls,
  */
 static void
 host_processor (void *cls,
-                const struct GNUNET_PeerIdentity *peer,
-                const struct GNUNET_HELLO_Message *hello,
-                const char *err_msg)
+                const struct GNUNET_PEERSTORE_Record *record,
+                const char *emsg)
 {
   size_t old;
   size_t s;
-  int has_addr;
-
-  if (NULL != err_msg)
+  struct GNUNET_HELLO_Builder *hello_builder;
+  struct GNUNET_MessageHeader *hello;
+  struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
+  struct GNUNET_TIME_Absolute hello_exp;
+  
+  if (NULL != emsg)
   {
-    GNUNET_assert (NULL == peer);
+    GNUNET_assert (NULL == &record->peer);
     builder->pitr = NULL;
     GNUNET_free (builder->data);
     GNUNET_free (builder);
     builder = NULL;
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                _ ("Error in communication with PEERINFO service: %s\n"),
-                err_msg);
+                _ ("Error in communication with PEERSTORE service: %s\n"),
+                emsg);
     return;
   }
-  if (NULL == peer)
+  if (NULL == record)
   {
     builder->pitr = NULL;
     finish_response ();
     return;
   }
-  if (NULL == hello)
-    return;
-  has_addr = GNUNET_NO;
-  GNUNET_HELLO_iterate_addresses (hello, GNUNET_NO, &check_has_addr, &has_addr);
-  if (GNUNET_NO == has_addr)
+  else
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "HELLO for peer `%4s' has no address, not suitable for hostlist!\n",
-                GNUNET_i2s (peer));
-    GNUNET_STATISTICS_update (stats,
-                              gettext_noop (
-                                "HELLOs without addresses encountered (ignored)"),
-                              1,
-                              GNUNET_NO);
-    return;
+    hello = record->value;
+    if ((0 == record->value_size))
+    {
+      GNUNET_break (0);
+      return;
+    }
+    hello_builder = GNUNET_HELLO_builder_new (&record->peer);
+    hello_exp = GNUNET_HELLO_builder_get_expiration_time (hello_builder, hello);
+    if (GNUNET_TIME_absolute_cmp (hello_exp, < , now))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "HELLO for peer `%4s' has expired address, not suitable for hostlist!\n",
+                  GNUNET_i2s (&record->peer));
+      GNUNET_STATISTICS_update (stats,
+                                gettext_noop (
+                                              "Expired HELLO encountered (ignored)"),
+                                1,
+                                GNUNET_NO);
+      GNUNET_HELLO_builder_free (hello_builder);
+      return;
+    }
   }
   old = builder->size;
-  s = GNUNET_HELLO_size (hello);
+  s = sizeof (hello);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received %u bytes of `%s' from peer `%s' for hostlist.\n",
               (unsigned int) s,
               "HELLO",
-              GNUNET_i2s (peer));
+              GNUNET_i2s (&record->peer));
   if ((old + s >= GNUNET_MAX_MALLOC_CHECKED) ||
       (old + s >= MAX_BYTES_PER_HOSTLISTS))
   {
@@ -275,14 +258,16 @@ host_processor (void *cls,
                                 "bytes not included in hostlist (size limit)"),
                               s,
                               GNUNET_NO);
+    GNUNET_HELLO_builder_free (hello_builder);
     return;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Adding peer `%s' to hostlist (%u bytes)\n",
-              GNUNET_i2s (peer),
+              GNUNET_i2s (&record->peer),
               (unsigned int) s);
   GNUNET_array_grow (builder->data, builder->size, old + s);
   GNUNET_memcpy (&builder->data[old], hello, s);
+  GNUNET_HELLO_builder_free (hello_builder);
 }
 
 
@@ -506,7 +491,7 @@ connect_handler (void *cls,
 
 
 /**
- * PEERINFO calls this function to let us know about a possible peer
+ * PEERSTORE calls this function to let us know about a possible peer
  * that we might want to connect to.
  *
  * @param cls closure (not used)
@@ -517,21 +502,21 @@ connect_handler (void *cls,
 static void
 process_notify (void *cls,
                 const struct GNUNET_PeerIdentity *peer,
-                const struct GNUNET_HELLO_Message *hello,
+                const struct GNUNET_MessageHeader *hello,
                 const char *err_msg)
 {
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Peerinfo is notifying us to rebuild our hostlist\n");
+              "Peerstore is notifying us to rebuild our hostlist\n");
   if (NULL != err_msg)
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                _ ("Error in communication with PEERINFO service: %s\n"),
+                _ ("Error in communication with PEERSTORE service: %s\n"),
                 err_msg);
   if (NULL != builder)
   {
     /* restart re-build already in progress ... */
     if (NULL != builder->pitr)
     {
-      GNUNET_PEERINFO_iterate_cancel (builder->pitr);
+      GNUNET_PEERSTORE_iterate_cancel (builder->pitr);
       builder->pitr = NULL;
     }
     GNUNET_free (builder->data);
@@ -542,9 +527,9 @@ process_notify (void *cls,
   {
     builder = GNUNET_new (struct HostSet);
   }
-  GNUNET_assert (NULL != peerinfo);
+  GNUNET_assert (NULL != peerstore);
   builder->pitr =
-    GNUNET_PEERINFO_iterate (peerinfo, GNUNET_NO, NULL, &host_processor, NULL);
+    GNUNET_PEERSTORE_iterate (peerstore, "hostlist", NULL, GNUNET_PEERSTORE_HELLO_KEY, &host_processor, NULL);
 }
 
 
@@ -667,11 +652,11 @@ GNUNET_HOSTLIST_server_start (const struct GNUNET_CONFIGURATION_Handle *c,
   }
   cfg = c;
   stats = st;
-  peerinfo = GNUNET_PEERINFO_connect (cfg);
-  if (NULL == peerinfo)
+  peerstore = GNUNET_PEERSTORE_connect (cfg);
+  if (NULL == peerstore)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                _ ("Could not access PEERINFO service.  Exiting.\n"));
+                _ ("Could not access PEERSTORE service.  Exiting.\n"));
     return GNUNET_SYSERR;
   }
   if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_number (cfg,
@@ -837,7 +822,7 @@ GNUNET_HOSTLIST_server_start (const struct GNUNET_CONFIGURATION_Handle *c,
     hostlist_task_v4 = prepare_daemon (daemon_handle_v4);
   if (NULL != daemon_handle_v6)
     hostlist_task_v6 = prepare_daemon (daemon_handle_v6);
-  notify = GNUNET_PEERINFO_notify (cfg, GNUNET_NO, &process_notify, NULL);
+  peerstore_notify = GNUNET_PEERSTORE_hello_changed_notify (peerstore, GNUNET_NO, &process_notify, NULL);
   return GNUNET_OK;
 }
 
@@ -874,26 +859,26 @@ GNUNET_HOSTLIST_server_stop ()
     MHD_destroy_response (response);
     response = NULL;
   }
-  if (NULL != notify)
+  if (NULL != peerstore_notify)
   {
-    GNUNET_PEERINFO_notify_cancel (notify);
-    notify = NULL;
+    GNUNET_PEERSTORE_hello_changed_notify_cancel (peerstore_notify);
+    peerstore_notify = NULL;
   }
   if (NULL != builder)
   {
     if (NULL != builder->pitr)
     {
-      GNUNET_PEERINFO_iterate_cancel (builder->pitr);
+      GNUNET_PEERSTORE_iterate_cancel (builder->pitr);
       builder->pitr = NULL;
     }
     GNUNET_free (builder->data);
     GNUNET_free (builder);
     builder = NULL;
   }
-  if (NULL != peerinfo)
+  if (NULL != peerstore)
   {
-    GNUNET_PEERINFO_disconnect (peerinfo);
-    peerinfo = NULL;
+    GNUNET_PEERSTORE_disconnect (peerstore, GNUNET_YES);
+    peerstore = NULL;
   }
   cfg = NULL;
   stats = NULL;

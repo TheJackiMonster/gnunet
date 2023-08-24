@@ -27,7 +27,6 @@
 #include "platform.h"
 #include "gnunet_block_lib.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_hello_lib.h"
 #include "gnunet_hello_uri_lib.h"
 #include "gnunet_dht_service.h"
 #include "gnunet_statistics_service.h"

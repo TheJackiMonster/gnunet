@@ -28,7 +28,7 @@
 #define GNUNET_SERVICE_CADET_PEER_H
 
 #include "gnunet-service-cadet.h"
-#include "gnunet_hello_lib.h"
+#include "gnunet_util_lib.h"
 
 
 /**
@@ -292,7 +292,7 @@ GCP_remove_connection (struct CadetPeer *cp,
  */
 void
 GCP_set_hello (struct CadetPeer *cp,
-               const struct GNUNET_HELLO_Message *hello);
+               const struct GNUNET_MessageHeader *hello);
 
 
 /**

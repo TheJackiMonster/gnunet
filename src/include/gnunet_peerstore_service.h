@@ -246,7 +246,6 @@ GNUNET_PEERSTORE_hello_changed_notify_cancel (struct
 struct GNUNET_PEERSTORE_StoreHelloContext *
 GNUNET_PEERSTORE_hello_add (struct GNUNET_PEERSTORE_Handle *h,
                             const struct GNUNET_MessageHeader *msg,
-                            const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
                             GNUNET_PEERSTORE_Continuation cont,
                             void *cont_cls);
 
@@ -352,7 +351,8 @@ GNUNET_PEERSTORE_iterate_cancel (struct GNUNET_PEERSTORE_IterateContext *ic);
 
 /**
  * Request watching a given key
- * User will be notified with any new values added to key.
+ * User will be notified with any new values added to key,
+ * all existing entries are supplied beforehand.
  *
  * @param h handle to the PEERSTORE service
  * @param sub_system name of sub system

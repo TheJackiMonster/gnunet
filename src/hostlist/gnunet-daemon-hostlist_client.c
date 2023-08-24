@@ -25,9 +25,9 @@
  */
 #include "platform.h"
 #include "gnunet-daemon-hostlist_client.h"
-#include "gnunet_hello_lib.h"
+#include "gnunet_util_lib.h"
 #include "gnunet_statistics_service.h"
-#include "gnunet_peerinfo_service.h"
+#include "gnunet_peerstore_service.h"
 #include "gnunet-daemon-hostlist.h"
 /* Just included for the right curl.h */
 #include "gnunet_curl_lib.h"
@@ -305,9 +305,16 @@ static unsigned int stat_hellos_obtained;
 static unsigned int stat_connection_count;
 
 /**
- * Handle to peerinfo service.
+ * Handle to the PEERSTORE service.
  */
-static struct GNUNET_PEERINFO_Handle *pi;
+static struct GNUNET_PEERSTORE_Handle *peerstore;
+
+
+static void
+shc_cont (void *cls, int success)
+{
+  GNUNET_free (cls);
+}
 
 
 /**
@@ -323,6 +330,7 @@ static size_t
 callback_download (void *ptr, size_t size, size_t nmemb, void *ctx)
 {
   static char download_buffer[GNUNET_MAX_MESSAGE_SIZE - 1];
+  struct GNUNET_PEERSTORE_StoreHelloContext *shc;
   const char *cbuf = ptr;
   const struct GNUNET_MessageHeader *msg;
   size_t total;
@@ -377,7 +385,7 @@ callback_download (void *ptr, size_t size, size_t nmemb, void *ctx)
       GNUNET_assert (left == 0);
       break;
     }
-    if (GNUNET_HELLO_size ((const struct GNUNET_HELLO_Message *) msg) == msize)
+    if (sizeof (msg) == msize)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Received valid `%s' message from hostlist server.\n",
@@ -388,11 +396,10 @@ callback_download (void *ptr, size_t size, size_t nmemb, void *ctx)
         1,
         GNUNET_NO);
       stat_hellos_obtained++;
-      (void)
-      GNUNET_PEERINFO_add_peer (pi,
-                                (const struct GNUNET_HELLO_Message *) msg,
-                                NULL,
-                                NULL);
+      shc = GNUNET_PEERSTORE_hello_add (peerstore,
+                                        msg,
+                                        shc_cont,
+                                        shc);
     }
     else
     {
@@ -1592,7 +1599,7 @@ GNUNET_HOSTLIST_client_start (const struct GNUNET_CONFIGURATION_Handle *c,
   stats = st;
 
   /* Read proxy configuration */
-  pi = GNUNET_PEERINFO_connect (c);
+  peerstore = GNUNET_PEERSTORE_connect (c);
   if (GNUNET_OK ==
       GNUNET_CONFIGURATION_get_value_string (cfg, "HOSTLIST", "PROXY", &proxy))
   {
@@ -1788,10 +1795,10 @@ GNUNET_HOSTLIST_client_stop ()
   proxy_username = NULL;
   GNUNET_free (proxy_password);
   proxy_password = NULL;
-  if (NULL != pi)
+  if (NULL != peerstore)
   {
-    GNUNET_PEERINFO_disconnect (pi);
-    pi = NULL;
+    GNUNET_PEERSTORE_disconnect (peerstore, GNUNET_YES);
+    peerstore = NULL;
   }
   cfg = NULL;
 }

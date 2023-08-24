@@ -40,7 +40,7 @@ extern "C"
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_hello_lib.h"
+#include "gnunet_hello_uri_lib.h"
 
 
 /**
@@ -64,7 +64,7 @@ GCH_shutdown (void);
  *
  * @return Own hello message.
  */
-const struct GNUNET_HELLO_Message *
+const struct GNUNET_MessageHeader *
 GCH_get_mine (void);
 
 

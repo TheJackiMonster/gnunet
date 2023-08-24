@@ -358,11 +358,6 @@ struct GNUNET_PEERSTORE_StoreHelloContext
   const struct GNUNET_MessageHeader *hello;
 
   /**
-   * Key to sign merged hello.
-   */
-  const struct GNUNET_CRYPTO_EddsaPrivateKey *priv;
-
-  /**
    * Was this request successful.
    */
   int success;
@@ -1296,9 +1291,12 @@ store_hello (struct GNUNET_PEERSTORE_StoreHelloContext *huc,
   struct GNUNET_PeerIdentity *pid;
   struct GNUNET_PEERSTORE_StoreContext *sc;
   struct StoreHelloCls *shu_cls = GNUNET_new (struct StoreHelloCls);
+  struct GNUNET_TIME_Absolute hello_exp;
 
   shu_cls->huc = huc;
   builder = GNUNET_HELLO_builder_from_msg (hello);
+  hello_exp = GNUNET_HELLO_builder_get_expiration_time (builder,
+                                                        hello);
   pid = GNUNET_HELLO_builder_get_id (builder);
   sc = GNUNET_PEERSTORE_store (h,
                                "peerstore",
@@ -1306,7 +1304,7 @@ store_hello (struct GNUNET_PEERSTORE_StoreHelloContext *huc,
                                GNUNET_PEERSTORE_HELLO_KEY,
                                hello,
                                sizeof(hello),
-                               GNUNET_TIME_UNIT_FOREVER_ABS,
+                               hello_exp,
                                GNUNET_PEERSTORE_STOREOPTION_REPLACE,
                                merge_success,
                                shu_cls);
@@ -1325,8 +1323,8 @@ merge_uri  (void *cls,
   struct GNUNET_PEERSTORE_Handle *h = huc->h;
   struct GNUNET_PEERSTORE_WatchContext *wc;
   struct GNUNET_MessageHeader *hello;
-  const struct GNUNET_MessageHeader *merged_hello;
-  struct GNUNET_MQ_Envelope *env;
+  struct GNUNET_TIME_Absolute huc_hello_exp_time;
+  struct GNUNET_TIME_Absolute record_hello_exp_time;
   const char *val;
 
   if (NULL != emsg)
@@ -1352,20 +1350,28 @@ merge_uri  (void *cls,
 
   if (NULL != record)
   {
+    struct GNUNET_HELLO_Builder *builder;
+    struct GNUNET_HELLO_Builder *huc_builder;
+
     hello = record->value;
-    if ((0 == record->value_size) || ('\0' != val[record->value_size - 1]))
+    builder = GNUNET_HELLO_builder_from_msg (hello);
+    huc_builder = GNUNET_HELLO_builder_from_msg (huc->hello);
+    if ((0 == record->value_size))
     {
       GNUNET_break (0);
       return;
     }
 
-    env = GNUNET_HELLO_builder_merge_hellos (huc->hello, hello, huc->priv);
-    merged_hello = GNUNET_MQ_env_get_msg (env);
-    if (NULL != merged_hello)
-      store_hello (huc, merged_hello);
+    huc_hello_exp_time = GNUNET_HELLO_builder_get_expiration_time (huc_builder,
+                                                                   huc->hello);
+    record_hello_exp_time = GNUNET_HELLO_builder_get_expiration_time (builder,
+                                                                      hello);
 
-    GNUNET_free (env);
+    if (GNUNET_TIME_absolute_cmp (huc_hello_exp_time, >, record_hello_exp_time))
+      store_hello (huc, huc->hello);
 
+    GNUNET_HELLO_builder_free (builder);
+    GNUNET_HELLO_builder_free (huc_builder);
   }
   else
   {
@@ -1377,23 +1383,26 @@ merge_uri  (void *cls,
 struct GNUNET_PEERSTORE_StoreHelloContext *
 GNUNET_PEERSTORE_hello_add (struct GNUNET_PEERSTORE_Handle *h,
                             const struct GNUNET_MessageHeader *msg,
-                            const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
                             GNUNET_PEERSTORE_Continuation cont,
                             void *cont_cls)
 {
-  struct GNUNET_HELLO_Builder *builder;
+  struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (msg);
   struct GNUNET_PEERSTORE_StoreHelloContext *huc;
   struct GNUNET_PEERSTORE_IterateContext *ic;
   struct GNUNET_PeerIdentity *pid;
+  struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
+  struct GNUNET_TIME_Absolute hello_exp =
+    GNUNET_HELLO_builder_get_expiration_time (builder,
+                                              msg);
+
+  if (GNUNET_TIME_absolute_cmp (hello_exp, <, now))
+    return NULL;
 
   huc = GNUNET_new (struct GNUNET_PEERSTORE_StoreHelloContext);
   huc->h = h;
   huc->cont = cont;
   huc->cont_cls = cont_cls;
   huc->hello = msg;
-  huc->priv = priv;
-
-  builder = GNUNET_HELLO_builder_from_msg (msg);
   pid = GNUNET_HELLO_builder_get_id (builder);
   ic = GNUNET_PEERSTORE_iterate (h,
                                  "peerstore",

@@ -445,91 +445,13 @@ GNUNET_HELLO_builder_from_block (const void *block,
 }
 
 
-static void
-merge_hellos2 (void *cls, const char *address_uri2)
+struct GNUNET_TIME_Absolute
+GNUNET_HELLO_builder_get_expiration_time (struct GNUNET_HELLO_Builder *builder,
+                                          const struct GNUNET_MessageHeader *msg)
 {
-  struct AddressUriMergeResult *aumr = cls;
-  const char *address_uri1 = aumr->address_uri;
+  struct BlockHeader *bh = (struct BlockHeader *) &msg[1];
 
-  if (GNUNET_NO == aumr->found && 0 != GNUNET_memcmp (address_uri1,
-                                                      address_uri2))
-  {
-    aumr->found = GNUNET_YES;
-  }
-}
-
-
-static void
-merge_hellos1 (void *cls, const char *address_uri1)
-{
-  struct AddressUriMergeResult *aumr = cls;
-  struct GNUNET_HELLO_Builder *builder2 = aumr->builder;
-  struct GNUNET_PeerIdentity *peer2 = GNUNET_HELLO_builder_get_id (builder2);
-
-  aumr->address_uri = address_uri1;
-  GNUNET_HELLO_builder_iterate (builder2, peer2, &merge_hellos2, aumr);
-  if (GNUNET_YES == aumr->found)
-  {
-    GNUNET_HELLO_builder_add_address (builder2, address_uri1);
-    aumr->merged = GNUNET_YES;
-  }
-  aumr->found = GNUNET_NO;
-}
-
-
-struct GNUNET_MQ_Envelope *
-GNUNET_HELLO_builder_merge_hellos (const struct GNUNET_MessageHeader *msg1,
-                                   const struct GNUNET_MessageHeader *msg2,
-                                   const struct
-                                   GNUNET_CRYPTO_EddsaPrivateKey *priv)
-{
-  struct HelloUriMessage *hum1 = (struct HelloUriMessage *) msg1;
-  struct BlockHeader *bh1 = (struct BlockHeader *) &msg1[1];
-  struct GNUNET_TIME_Absolute expiration_time1 = GNUNET_TIME_absolute_ntoh (
-    bh1->expiration_time);
-  struct HelloUriMessage *hum2 = (struct HelloUriMessage *) msg2;
-  struct BlockHeader *bh2 = (struct BlockHeader *) &msg2[1];
-  struct GNUNET_TIME_Absolute expiration_time2 = GNUNET_TIME_absolute_ntoh (
-    bh1->expiration_time);
-  struct GNUNET_HELLO_Builder *builder1 = GNUNET_HELLO_builder_from_msg (msg1);
-  struct GNUNET_HELLO_Builder *builder2 = GNUNET_HELLO_builder_from_msg (msg2);
-  struct AddressUriMergeResult *aumr = GNUNET_new (struct
-                                                   AddressUriMergeResult);
-  struct GNUNET_PeerIdentity *peer1 = GNUNET_HELLO_builder_get_id (builder1);
-  struct GNUNET_MQ_Envelope *env;
-  struct GNUNET_TIME_Absolute expiration_time;
-
-  aumr->builder = builder2;
-  GNUNET_HELLO_builder_iterate (builder1, peer1, &merge_hellos1, aumr);
-
-  if (GNUNET_YES == aumr->merged)
-  {
-    if (expiration_time1.abs_value_us < expiration_time2.abs_value_us)
-      expiration_time = expiration_time1;
-    else
-      expiration_time = expiration_time2;
-    env = GNUNET_HELLO_builder_to_env (builder2,
-                                       priv,
-                                       GNUNET_TIME_absolute_get_remaining (
-                                         expiration_time));
-  }
-  else if (expiration_time1.abs_value_us != expiration_time2.abs_value_us)
-  {
-    if (expiration_time1.abs_value_us < expiration_time2.abs_value_us)
-      expiration_time = expiration_time2;
-    else
-      expiration_time = expiration_time1;
-    env = GNUNET_HELLO_builder_to_env (builder2,
-                                       priv,
-                                       GNUNET_TIME_absolute_get_remaining (
-                                         expiration_time));
-  }
-
-  GNUNET_HELLO_builder_free (builder1);
-  GNUNET_HELLO_builder_free (builder2);
-  GNUNET_free (aumr);
-
-  return env;
+  return GNUNET_TIME_absolute_ntoh (bh->expiration_time);
 }
 
 

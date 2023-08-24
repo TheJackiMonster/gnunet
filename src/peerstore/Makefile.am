@@ -38,6 +38,7 @@ gnunet_service_peerstore_SOURCES = \
 gnunet_service_peerstore_CFLAGS = $(AM_CFLAGS)
 gnunet_service_peerstore_LDADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/hello/libgnunethello.la \
   $(GN_LIBINTL)
 
 libgnunetpeerstore_la_SOURCES = \

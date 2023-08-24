@@ -324,7 +324,7 @@ attempt_connect (struct Peer *pos)
                               gettext_noop ("# connect requests issued to ATS"),
                               1,
                               GNUNET_NO);
-    //TODO Use strength somehow.
+    // TODO Use strength somehow.
     pos->ash = GNUNET_TRANSPORT_application_suggest (transport,
                                                      &pos->pid,
                                                      GNUNET_MQ_PRIO_BEST_EFFORT,
@@ -438,11 +438,11 @@ find_advertisable_hello (void *cls,
               "find_advertisable_hello\n");
   if (pos == fah->peer)
     return GNUNET_YES;
-   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "find_advertisable_hello 2\n");
   if (pos->hello == NULL)
     return GNUNET_YES;
-   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "find_advertisable_hello 3\n");
   rst_time = GNUNET_TIME_absolute_get_remaining (pos->filter_expiration);
   if (0 == rst_time.rel_value_us)
@@ -455,7 +455,7 @@ find_advertisable_hello (void *cls,
   hs = pos->hello->size;
   if (hs > fah->max_size)
     return GNUNET_YES;
-   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "find_advertisable_hello 4\n");
   GNUNET_CRYPTO_hash (&fah->peer->pid,
                       sizeof(struct GNUNET_PeerIdentity),
@@ -482,7 +482,7 @@ schedule_next_hello (void *cls)
   struct GNUNET_TIME_Relative delay;
   struct GNUNET_HashCode hc;
 
-   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "schedule_next_hello\n");
   pl->hello_delay_task = NULL;
   GNUNET_assert (NULL != pl->mq);
@@ -752,14 +752,26 @@ consider_for_advertising (const struct GNUNET_MessageHeader *hello)
 
   if (NULL != peer->hello)
   {
+    struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
+    struct GNUNET_TIME_Absolute new_hello_exp = GNUNET_HELLO_builder_get_expiration_time (builder,
+                                                                                          hello);
+    struct GNUNET_HELLO_Builder *peer_builder = GNUNET_HELLO_builder_from_msg (peer->hello);
+    struct GNUNET_TIME_Absolute old_hello_exp = GNUNET_HELLO_builder_get_expiration_time (peer_builder,
+                                                                                          peer->hello);
 
-    env = GNUNET_HELLO_builder_merge_hellos (hello, peer->hello, my_private_key);
-    nh = GNUNET_MQ_env_get_msg (env);
-    if (NULL == nh)
+    if (GNUNET_TIME_absolute_cmp (new_hello_exp, > , now) && GNUNET_TIME_absolute_cmp (new_hello_exp, > , old_hello_exp))
+    {
+      GNUNET_free (peer->hello);
+      size = sizeof (hello);
+      peer->hello = GNUNET_malloc (size);
+      GNUNET_memcpy (peer->hello, hello, size);
+    }
+    else
+    {
       return;
-    GNUNET_free (peer->hello);
-    GNUNET_memcpy (peer->hello, nh, sizeof (nh));
-    GNUNET_free (env);
+    }
+    GNUNET_HELLO_builder_free (builder);
+    GNUNET_HELLO_builder_free (peer_builder);
   }
   else
   {
@@ -806,7 +818,8 @@ process_peer (void *cls,
                 err_msg);
     GNUNET_PEERSTORE_hello_changed_notify_cancel (peerstore_notify);
     peerstore_notify =
-      GNUNET_PEERSTORE_hello_changed_notify (ps, GNUNET_NO, &process_peer, NULL);
+      GNUNET_PEERSTORE_hello_changed_notify (ps, GNUNET_NO, &process_peer,
+                                             NULL);
     return;
   }
   GNUNET_assert (NULL != peer);
@@ -939,7 +952,8 @@ read_friends_file (const struct GNUNET_CONFIGURATION_Handle *cfg)
 static int
 check_hello (void *cls, const struct GNUNET_MessageHeader *message)
 {
-  struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (message);
+  struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (
+    message);
   struct GNUNET_PeerIdentity *pid = GNUNET_HELLO_builder_get_id (builder);
 
   if (NULL == pid)
@@ -948,6 +962,13 @@ check_hello (void *cls, const struct GNUNET_MessageHeader *message)
     return GNUNET_SYSERR;
   }
   return GNUNET_OK;
+}
+
+
+static void
+shc_cont (void *cls, int success)
+{
+  GNUNET_free (cls);
 }
 
 
@@ -961,9 +982,11 @@ check_hello (void *cls, const struct GNUNET_MessageHeader *message)
 static void
 handle_hello (void *cls, const struct GNUNET_MessageHeader *message)
 {
+  struct GNUNET_PEERSTORE_StoreHelloContext *shc;
   const struct GNUNET_PeerIdentity *other = cls;
   struct Peer *peer;
-  struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (message);
+  struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (
+    message);
   struct GNUNET_PeerIdentity *pid = GNUNET_HELLO_builder_get_id (builder);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -987,7 +1010,8 @@ handle_hello (void *cls, const struct GNUNET_MessageHeader *message)
         (friend_count < minimum_friend_count))
       return;
   }
-  (void) GNUNET_PEERSTORE_hello_add (ps, message, my_private_key, NULL, NULL);
+  GNUNET_HELLO_builder_from_msg (message);
+  shc = GNUNET_PEERSTORE_hello_add (ps, message, &shc_cont, shc);
   GNUNET_HELLO_builder_free (builder);
 }
 

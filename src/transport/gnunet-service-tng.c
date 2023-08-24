@@ -78,6 +78,7 @@
 #include "gnunet_transport_monitor_service.h"
 #include "gnunet_peerstore_service.h"
 #include "gnunet_hello_lib.h"
+#include "gnunet_hello_uri_lib.h"
 #include "gnunet_signatures.h"
 #include "transport.h"
 
@@ -2764,6 +2765,11 @@ static const struct GNUNET_CONFIGURATION_Handle *GST_cfg;
  * Our public key.
  */
 static struct GNUNET_PeerIdentity GST_my_identity;
+
+/**
+ * Our HELLO
+ */
+struct GNUNET_HELLO_Builder *GST_my_hello;
 
 /**
  * Our private key.
@@ -5517,6 +5523,13 @@ peerstore_store_own_cb (void *cls, int success)
 }
 
 
+static void
+shc_cont (void *cls, int success)
+{
+  GNUNET_free (cls);
+}
+
+
 /**
  * Ask peerstore to store our address.
  *
@@ -5526,9 +5539,13 @@ static void
 store_pi (void *cls)
 {
   struct AddressListEntry *ale = cls;
+  struct GNUNET_PEERSTORE_StoreHelloContext *shc;
   void *addr;
   size_t addr_len;
   struct GNUNET_TIME_Absolute expiration;
+  enum GNUNET_GenericReturnValue add_result;
+  struct GNUNET_MQ_Envelope *env;
+  const struct GNUNET_MessageHeader *msg = GNUNET_MQ_env_get_msg (env);
 
   ale->st = NULL;
   expiration = GNUNET_TIME_relative_to_absolute (ale->expiration);
@@ -5536,6 +5553,20 @@ store_pi (void *cls)
               "Storing our address `%s' in peerstore until %s!\n",
               ale->address,
               GNUNET_STRINGS_absolute_time_to_string (expiration));
+  add_result = GNUNET_HELLO_builder_add_address (GST_my_hello,
+                                      ale->address);
+  env = GNUNET_HELLO_builder_to_env (GST_my_hello,
+                                     GST_my_private_key,
+                                     GNUNET_TIME_UNIT_ZERO);
+  if (GNUNET_YES == add_result)
+    shc = GNUNET_PEERSTORE_hello_add (peerstore,
+                                msg,
+                                shc_cont,
+                                shc);
+  else if (GNUNET_SYSERR == add_result)
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Error adding address to peerstore hello!\n");
+
   GNUNET_HELLO_sign_address (ale->address,
                              ale->nt,
                              hello_mono_time,
@@ -5553,6 +5584,7 @@ store_pi (void *cls)
                                     &peerstore_store_own_cb,
                                     ale);
   GNUNET_free (addr);
+  GNUNET_free (env);
   if (NULL == ale->sc)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -8733,7 +8765,7 @@ handle_validation_challenge (
   ir->wc = GNUNET_PEERSTORE_watch (peerstore,
                                    "transport",
                                    &ir->pid,
-                                   GNUNET_PEERSTORE_TRANSPORT_URLADDRESS_KEY,
+                                   GNUNET_PEERSTORE_HELLO_KEY,
                                    &handle_hello_for_incoming,
                                    ir);
   ir_total++;
@@ -11259,7 +11291,7 @@ handle_suggest (void *cls, const struct ExpressPreferenceMessage *msg)
   pr->wc = GNUNET_PEERSTORE_watch (peerstore,
                                    "transport",
                                    &pr->pid,
-                                   GNUNET_PEERSTORE_TRANSPORT_URLADDRESS_KEY,
+                                   GNUNET_PEERSTORE_HELLO_KEY,
                                    &handle_hello_for_client,
                                    pr);
   GNUNET_SERVICE_client_continue (tc->client);
@@ -11445,6 +11477,11 @@ do_shutdown (void *cls)
     GNUNET_STATISTICS_destroy (GST_stats, GNUNET_NO);
     GST_stats = NULL;
   }
+  if (NULL != GST_my_hello)
+  {
+    GNUNET_HELLO_builder_free (GST_my_hello);
+    GST_my_hello = NULL;
+  }
   if (NULL != GST_my_private_key)
   {
     GNUNET_free (GST_my_private_key);
@@ -11555,6 +11592,7 @@ run (void *cls,
     GNUNET_CONTAINER_heap_create (GNUNET_CONTAINER_HEAP_ORDER_MIN);
   GST_my_private_key =
     GNUNET_CRYPTO_eddsa_key_create_from_configuration (GST_cfg);
+  GST_my_hello = GNUNET_HELLO_builder_new (&GST_my_identity);
   if (NULL == GST_my_private_key)
   {
     GNUNET_log (

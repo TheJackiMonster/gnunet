@@ -26,9 +26,8 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-
 #include "gnunet_statistics_service.h"
-#include "gnunet_peerinfo_service.h"
+#include "gnunet_peerstore_service.h"
 #include "cadet_protocol.h"
 #include "gnunet-service-cadet.h"
 #include "gnunet-service-cadet_dht.h"
@@ -40,17 +39,18 @@
 /**
  * Hello message of local peer.
  */
-static struct GNUNET_HELLO_Message *mine;
+static struct GNUNET_MessageHeader *mine;
 
 /**
- * Handle to peerinfo service.
+ * Handle to the PEERSTORE service.
  */
-static struct GNUNET_PEERINFO_Handle *peerinfo;
+static struct GNUNET_PEERSTORE_Handle *peerstore;
 
 /**
- * Iterator context.
+ * Our peerstore notification context.  We use notification
+ * to instantly learn about new peers as they are discovered.
  */
-static struct GNUNET_PEERINFO_NotifyContext *nc;
+static struct GNUNET_PEERSTORE_NotifyContext *peerstore_notify;
 
 
 /**
@@ -64,10 +64,11 @@ static struct GNUNET_PEERINFO_NotifyContext *nc;
 static void
 got_hello (void *cls,
            const struct GNUNET_PeerIdentity *id,
-           const struct GNUNET_HELLO_Message *hello,
+           const struct GNUNET_MessageHeader *hello,
            const char *err_msg)
 {
   struct CadetPeer *peer;
+  struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (hello);
 
   if ((NULL == id) ||
       (NULL == hello))
@@ -76,21 +77,23 @@ got_hello (void *cls,
                           &my_full_id))
   {
     GNUNET_free (mine);
-    mine = (struct GNUNET_HELLO_Message *) GNUNET_copy_message (&hello->header);
+    mine = GNUNET_copy_message (hello);
     GCD_hello_update ();
     return;
   }
-
+  
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Hello for %s (%d bytes), expires on %s\n",
        GNUNET_i2s (id),
-       GNUNET_HELLO_size (hello),
+       sizeof (hello),
        GNUNET_STRINGS_absolute_time_to_string (
-         GNUNET_HELLO_get_last_expiration (hello)));
+                                               GNUNET_HELLO_builder_get_expiration_time (builder,
+                                                                                         hello)));
   peer = GCP_get (id,
                   GNUNET_YES);
   GCP_set_hello (peer,
                  hello);
+  GNUNET_HELLO_builder_free (builder);
 }
 
 
@@ -102,12 +105,11 @@ got_hello (void *cls,
 void
 GCH_init (const struct GNUNET_CONFIGURATION_Handle *c)
 {
-  GNUNET_assert (NULL == nc);
-  peerinfo = GNUNET_PEERINFO_connect (c);
-  nc = GNUNET_PEERINFO_notify (c,
-                               GNUNET_NO,
-                               &got_hello,
-                               NULL);
+  GNUNET_assert (NULL == peerstore_notify);
+  peerstore = GNUNET_PEERSTORE_connect (c);
+  peerstore_notify =
+      GNUNET_PEERSTORE_hello_changed_notify (peerstore, GNUNET_NO, &got_hello,
+                                             NULL);
 }
 
 
@@ -117,15 +119,15 @@ GCH_init (const struct GNUNET_CONFIGURATION_Handle *c)
 void
 GCH_shutdown ()
 {
-  if (NULL != nc)
+  if (NULL != peerstore_notify)
   {
-    GNUNET_PEERINFO_notify_cancel (nc);
-    nc = NULL;
+    GNUNET_PEERSTORE_hello_changed_notify_cancel (peerstore_notify);
+    peerstore_notify = NULL;
   }
-  if (NULL != peerinfo)
+  if (NULL != peerstore)
   {
-    GNUNET_PEERINFO_disconnect (peerinfo);
-    peerinfo = NULL;
+    GNUNET_PEERSTORE_disconnect (peerstore, GNUNET_YES);
+    peerstore = NULL;
   }
   if (NULL != mine)
   {
@@ -140,7 +142,7 @@ GCH_shutdown ()
  *
  * @return Own hello message.
  */
-const struct GNUNET_HELLO_Message *
+const struct GNUNET_MessageHeader *
 GCH_get_mine (void)
 {
   return mine;

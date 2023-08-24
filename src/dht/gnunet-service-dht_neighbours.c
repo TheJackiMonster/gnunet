@@ -28,7 +28,6 @@
 #include "gnunet_constants.h"
 #include "gnunet_protocols.h"
 #include "gnunet_signatures.h"
-#include "gnunet_hello_lib.h"
 #include "gnunet_hello_uri_lib.h"
 #include "gnunet-service-dht.h"
 #include "gnunet-service-dht_neighbours.h"
