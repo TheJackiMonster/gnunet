@@ -240,6 +240,8 @@ recv_from_streams (struct PeerAddress *peer)
                                         &fin);
     if (recv_len < 0)
     {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "error while receiving data from stream %" PRIu64 "\n", s);
       break;
     }
     /**
@@ -255,7 +257,7 @@ recv_from_streams (struct PeerAddress *peer)
         return;
       }
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "receiving peer identity\n");
+                  "received peer identity\n");
       struct GNUNET_PeerIdentity *pid = (struct
                                          GNUNET_PeerIdentity *) stream_buf;
       peer->target = *pid;
@@ -272,7 +274,8 @@ recv_from_streams (struct PeerAddress *peer)
       if (ntohs (hdr->size) > recv_len)
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    "message size stated is greater than length of rcvd data!\n");
+                    "message size stated (%d) is greater than length of rcvd data (%zd)!\n",
+                    ntohs (hdr->size), recv_len);
         return;
       }
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "passing %zd bytes to core\n",
@@ -531,9 +534,9 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
 {
   struct PeerAddress *peer = impl_state;
   uint16_t msize = ntohs (msg->size);
-  struct quic_conn *q_conn = peer->conn;
+  ssize_t send_len;
 
-  if (NULL == q_conn->conn)
+  if (NULL == peer->conn->conn)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "peer never established quic connection\n");
@@ -558,20 +561,18 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
   }
   reschedule_peer_timeout (peer);
 
-  // quiche_conn_stream_send (peer->conn->conn, s, (uint8_t *) resp,
-  //                              5, true);
-  // if (-1 == GNUNET_NETWORK_socket_sendto (udp_sock,
-  //                                         dgram,
-  //                                         sizeof(dgram),
-  //                                         peer->address,
-  //                                         peer->address_len))
-  //   GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "send");
-  // GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-  //             "Sending UDPBox with payload size %u, %u acks left\n",
-  //             msize,
-  //             peer->acks_available);
-  // GNUNET_MQ_impl_send_continue (mq);
-  // return;
+  send_len = quiche_conn_stream_send (peer->conn->conn, 4, (uint8_t *) msg,
+                                      msize, false);
+  if (send_len != msize)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "tried to send message and quiche returned %zd", send_len);
+    return;
+  }
+  flush_egress (peer->conn);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "sent a message of %zd bytes\n", send_len);
+  GNUNET_MQ_impl_send_continue (mq);
 }
 
 
@@ -1420,7 +1421,7 @@ sock_read (void *cls)
       send_len = quiche_conn_stream_send (peer->conn->conn, STREAMID_BI,
                                           (const uint8_t *) &my_identity,
                                           sizeof(my_identity),
-                                          true);
+                                          false);
       if (0 > send_len)
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -1615,9 +1616,11 @@ run (void *cls,
   quiche_config_set_max_send_udp_payload_size (config, MAX_DATAGRAM_SIZE);
   quiche_config_set_initial_max_data (config, 10000000);
   quiche_config_set_initial_max_stream_data_bidi_local (config, 1000000);
+  quiche_config_set_initial_max_stream_data_bidi_remote (config, 1000000);
   quiche_config_set_initial_max_stream_data_uni (config, 1000000);
   quiche_config_set_initial_max_streams_bidi (config, 100);
   quiche_config_set_initial_max_streams_uni (config, 100);
+  quiche_config_set_cc_algorithm (config, QUICHE_CC_RENO);
   quiche_config_set_disable_active_migration (config, true);
   addr_map = GNUNET_CONTAINER_multihashmap_create (2, GNUNET_NO);
   /**
