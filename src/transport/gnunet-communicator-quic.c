@@ -1,3 +1,39 @@
+/*
+     This file is part of GNUnet
+     Copyright (C) 2010-2014, 2018, 2019 GNUnet e.V.
+
+     GNUnet is free software: you can redistribute it and/or modify it
+     under the terms of the GNU Affero General Public License as published
+     by the Free Software Foundation, either version 3 of the License,
+     or (at your option) any later version.
+
+     GNUnet is distributed in the hope that it will be useful, but
+     WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Affero General Public License for more details.
+
+     You should have received a copy of the GNU Affero General Public License
+     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+     SPDX-License-Identifier: AGPL3.0-or-later
+ */
+
+/**
+ * @file transport/gnunet-communicator-quic.c
+ * @brief Transport plugin using QUIC.
+ * @author Marshall Stone
+ * @author Martin Schanzenbach
+ *
+ * TODO:
+ * - Automatically generate self-signed x509 certificates and load from config
+ * - Figure out MTU and how we have to handle fragmentation in Quiche.
+ * - Mandate timeouts
+ * - Setup stats handler properly
+ * - Doxygen documentation of methods
+ * - Refactor code shared with UDP and TCP communicator
+ * - Performance testing
+ * - Check for memory leaks with coverity/valgrind
+ */
 #include "gnunet_common.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_core_service.h"
@@ -18,6 +54,8 @@
 #define COMMUNICATOR_ADDRESS_PREFIX "quic"
 #define MAX_DATAGRAM_SIZE 1350
 
+
+/* FIXME: Review all static lengths/contents below. Maybe this can be done smarter */
 /* Currently equivalent to QUICHE_MAX_CONN_ID_LEN */
 #define LOCAL_CONN_ID_LEN 20
 #define MAX_TOKEN_LEN \
@@ -25,31 +63,77 @@
         + sizeof(struct sockaddr_storage)   \
         + QUICHE_MAX_CONN_ID_LEN
 #define CID_LEN sizeof(uint8_t) * QUICHE_MAX_CONN_ID_LEN
-#define TOKEN_LEN sizeof(uint8_t) * MAX_TOKEN_LEN
-/* Generic, bidirectional, client-initiated quic stream id */
+#define TOKEN_LEN sizeof (uint8_t) * MAX_TOKEN_LEN
+
+
+/* FIXME: Why 4?
+   Generic, bidirectional, client-initiated quic stream id */
 #define STREAMID_BI 4
+
 /**
  * How long do we believe our addresses to remain up (before
  * the other peer should revalidate).
  */
 #define ADDRESS_VALIDITY_PERIOD GNUNET_TIME_UNIT_HOURS
+
 /**
  * Map of DCID (uint8_t) -> quic_conn for quickly retrieving connections to other peers.
  */
 struct GNUNET_CONTAINER_MultiHashMap *conn_map;
+
 /**
  * Map of sockaddr -> struct PeerAddress
-*/
+ */
 struct GNUNET_CONTAINER_MultiHashMap *addr_map;
+
+/**
+ * Handle to the config
+ */
 static const struct GNUNET_CONFIGURATION_Handle *cfg;
+
+/**
+ * FIXME undocumented
+ */
 static struct GNUNET_TIME_Relative rekey_interval;
+
+/**
+ * FIXME undocumented
+ */
 static struct GNUNET_NETWORK_Handle *udp_sock;
+
+/**
+ * FIXME undocumented
+ */
 static struct GNUNET_SCHEDULER_Task *read_task;
+
+/**
+ * FIXME undocumented
+ */
 static struct GNUNET_TRANSPORT_CommunicatorHandle *ch;
+
+/**
+ * FIXME undocumented
+ */
 static struct GNUNET_TRANSPORT_ApplicationHandle *ah;
+
+/**
+ * FIXME undocumented
+ */
 static int have_v6_socket;
+
+/**
+ * FIXME undocumented
+ */
 static uint16_t my_port;
+
+/**
+ * FIXME undocumented
+ */
 static unsigned long long rekey_max_bytes;
+
+/**
+ * FIXME undocumented
+ */
 static quiche_config *config = NULL;
 
 /**
@@ -72,6 +156,8 @@ static struct GNUNET_NAT_Handle *nat;
  *
  * (Since quiche handles crypto, handshakes, etc. we don't differentiate
  *  between SenderAddress and ReceiverAddress)
+ * FIXME: But we do a handshake as well. The flag in this struct seems to
+ * indicate this. Update comment!
  */
 struct PeerAddress
 {
@@ -148,12 +234,14 @@ struct PeerAddress
   int peer_destroy_called;
 
   /**
+   * FIXME implementation missing
    * Entry in sender expiration heap.
    */
   // struct GNUNET_CONTAINER_HeapNode *hn;
 };
 
 // /**
+//  * FIXME: Implementation missing
 //  * Expiration heap for peers (contains `struct PeerAddress`)
 //  */
 // static struct GNUNET_CONTAINER_Heap *peers_heap;
@@ -206,11 +294,6 @@ struct QUIC_header
   size_t token_len;
 };
 
-/**
- * TODOS:
- *  1. Mandate timeouts
- *  2. Setup stats handler properly
-*/
 
 /**
  * Given a PeerAddress, receive data from streams after doing connection logic.
@@ -245,8 +328,11 @@ recv_from_streams (struct PeerAddress *peer)
       break;
     }
     /**
+     * FIXME: Do not use implicit booleans. Use GNUNET_YES, GNUNET_NO, GNUNET_SYSERR
+     * and check for that.
+     *
      * Initial packet should contain peerid if they are the initiator
-    */
+     */
     if (! peer->is_receiver && GNUNET_NO == peer->id_rcvd)
     {
       if (recv_len < sizeof(struct GNUNET_PeerIdentity))
@@ -296,8 +382,9 @@ recv_from_streams (struct PeerAddress *peer)
                   recv_len);
     }
     /**
+     * FIXME: comment useless
      * fin
-    */
+     */
     if (fin)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -314,8 +401,8 @@ recv_from_streams (struct PeerAddress *peer)
 
 
 /**
- * TODO: review token generation, assure tokens are generated properly
-*/
+ * FIXME: review token generation, assure tokens are generated properly. doxygen
+ */
 static void
 mint_token (const uint8_t *dcid, size_t dcid_len,
             struct sockaddr_storage *addr, socklen_t addr_len,
@@ -818,7 +905,7 @@ setup_peer_mq (struct PeerAddress *peer)
     GNUNET_TRANSPORT_communicator_mq_add (ch,
                                           &peer->target,
                                           peer->foreign_addr,
-                                          peer->d_mtu,
+                                          1000,
                                           GNUNET_TRANSPORT_QUEUE_LENGTH_UNLIMITED,
                                           0, /* Priority */
                                           peer->nt,
@@ -1243,8 +1330,12 @@ sock_read (void *cls)
       return;
     }
     /**
-     * FIXME: hashing address string vs ip/port
-    */
+     * FIXME: hashing address string vs ip/port. It is not ideal that
+     * we hash the string, instead of the binary representation, but
+     * for now it is certainly less code.
+     * Note that simply hashing the sockaddr does NOT work because the
+     * the struct is not portable.
+     */
     const char *addr_string = sockaddr_to_udpaddr_string ((const struct
                                                            sockaddr *) &sa,
                                                           salen);
@@ -1313,8 +1404,12 @@ sock_read (void *cls)
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                     "quic version negotiation initiated\n");
         /**
+         * FIXME variables are redeclared often. Refactor either
+         * to declare variables once in the beginning or refactor into
+         * method.
+         *
          * Write a version negotiation packet to "out"
-        */
+         */
         ssize_t written = quiche_negotiate_version (quic_header.scid,
                                                     quic_header.scid_len,
                                                     quic_header.dcid,
@@ -1514,20 +1609,6 @@ run (void *cls,
     return;
   }
 
-  // if (GNUNET_OK !=
-  //     GNUNET_CONFIGURATION_get_value_time (cfg,
-  //                                          COMMUNICATOR_CONFIG_SECTION,
-  //                                          "REKEY_INTERVAL",
-  //                                          &rekey_interval))
-  //   rekey_interval = DEFAULT_REKEY_TIME_INTERVAL;
-
-  // if (GNUNET_OK !=
-  //     GNUNET_CONFIGURATION_get_value_size (cfg,
-  //                                          COMMUNICATOR_CONFIG_SECTION,
-  //                                          "REKEY_MAX_BYTES",
-  //                                          &rekey_max_bytes))
-  //   rekey_max_bytes = DEFAULT_REKEY_MAX_BYTES;
-
   in = udp_address_to_sockaddr (bindto, &in_len);
 
   if (NULL == in)
@@ -1612,8 +1693,8 @@ run (void *cls,
                                         "\x0ahq-interop\x05hq-29\x05hq-28\x05hq-27\x08http/0.9",
                                         38);
   quiche_config_set_max_idle_timeout (config, 5000);
-  quiche_config_set_max_recv_udp_payload_size (config, MAX_DATAGRAM_SIZE);
-  quiche_config_set_max_send_udp_payload_size (config, MAX_DATAGRAM_SIZE);
+  quiche_config_set_max_recv_udp_payload_size (config, 1200);
+  quiche_config_set_max_send_udp_payload_size (config, 1200);
   quiche_config_set_initial_max_data (config, 10000000);
   quiche_config_set_initial_max_stream_data_bidi_local (config, 1000000);
   quiche_config_set_initial_max_stream_data_bidi_remote (config, 1000000);
