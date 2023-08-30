@@ -43,10 +43,14 @@
 #include "gnunet_protocols.h"
 #include "gnunet_signatures.h"
 #include "gnunet_constants.h"
+#include "gnunet_pils_service.h"
 #include "gnunet_nat_service.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_transport_application_service.h"
 #include "gnunet_transport_communication_service.h"
+
+/* Shorthand for Logging */
+#define LOG(kind, ...) GNUNET_log_from (kind, "communicator-udp", __VA_ARGS__)
 
 /**
  * How often do we rekey based on time (at least)
@@ -750,6 +754,16 @@ struct BroadcastInterface
    */
   int found;
 };
+
+/**
+ * The initial key material for the peer
+ */
+static unsigned char ikm[256 / 8];
+
+/**
+ * For PILS.
+ */
+static struct GNUNET_PILS_Handle *pils;
 
 /**
  * The rekey interval
@@ -3210,6 +3224,11 @@ do_shutdown (void *cls)
     GNUNET_TRANSPORT_application_done (ah);
     ah = NULL;
   }
+  if (NULL != pils)
+  {
+    GNUNET_PILS_disconnect (pils);
+    pils = NULL;
+  }
   if (NULL != stats)
   {
     GNUNET_STATISTICS_destroy (stats, GNUNET_YES);
@@ -3449,6 +3468,8 @@ iface_proc (void *cls,
 
   (void) cls;
   (void) netmask;
+  if (NULL == my_private_key)
+    return GNUNET_YES;
   if (NULL == addr)
     return GNUNET_YES; /* need to know our address! */
   network = GNUNET_NT_scanner_get_type (is, addr, addrlen);
@@ -3721,6 +3742,165 @@ shutdown_run (struct sockaddr *addrs[2])
 }
 
 
+/**
+ * FIXME: We could alternatively ask PILS for de/encaps, but at a high cost
+ * wrt async RPC calls...
+ *
+ * Get the initial secret key for generating the peer id. This is supposed to be generated at
+ * random once in the lifetime of a peer, so all generated peer ids use the
+ * same initial secret key to optain the same peer id per set of addresses.
+ *
+ * First check whether there's already a initial secret key. If so: return it. If no initial secret key
+ * exists yet, generate at random and store it where it will be found.
+ *
+ * @param initial secret key the memory the initial secret key can be written to.
+ */
+static enum GNUNET_GenericReturnValue
+load_ikm ()
+{
+  char *filename;
+  struct GNUNET_DISK_FileHandle *filehandle;
+  int ret;
+
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_get_value_filename (cfg,
+                                               "pils",
+                                               "SECRET_KEY_FILE",
+                                               &filename))
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "PILS service is lacking initial secret key file configuration setting. Exiting\n");
+    return GNUNET_SYSERR;
+  }
+  if (NULL == filename)
+    return GNUNET_SYSERR;
+  ret = GNUNET_DISK_file_test_read (filename);
+  if (GNUNET_SYSERR == ret)
+    return GNUNET_SYSERR;
+  if (GNUNET_NO == ret)
+  {
+    /* File does not exist - generate a new initial secret key and save it */
+    // TODO consider the case that the file exists and ist not readable
+    GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
+                                ikm,
+                                sizeof ikm);
+    if (GNUNET_OK != GNUNET_DISK_directory_create_for_file (filename))
+    {
+      LOG (GNUNET_ERROR_TYPE_ERROR,
+           "PILS service cannot create dir for saving initial secret key file. Exiting\n");
+      return GNUNET_SYSERR;
+    }
+    filehandle = GNUNET_DISK_file_open (filename,
+                                        GNUNET_DISK_OPEN_WRITE
+                                        | GNUNET_DISK_OPEN_CREATE,
+                                        GNUNET_DISK_PERM_USER_READ   // TODO
+                                        |                            // would
+                                                                     // the
+                                                                     // group
+                                                                     // need
+                                                                     // read
+                                                                     // perm?
+                                        GNUNET_DISK_PERM_USER_WRITE);
+    if (NULL == filehandle)
+    {
+      LOG (GNUNET_ERROR_TYPE_ERROR,
+           "PILS service had an issue with opening the initial secret key file. Exiting\n");
+      GNUNET_DISK_file_close (filehandle);
+      return GNUNET_SYSERR;
+    }
+    ret = GNUNET_DISK_file_write (filehandle,
+                                  ikm,
+                                  sizeof ikm);
+    GNUNET_DISK_file_close (filehandle);
+    if (sizeof ikm != ret)
+    {
+      LOG (GNUNET_ERROR_TYPE_ERROR,
+           "PILS service had an issue with writing the initial secret key to file. Exiting\n")
+      ;
+      return GNUNET_SYSERR;
+    }
+  }
+  else
+  {
+    /* File existes - just read from it */
+    off_t size;
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "PILS is going to read initial secret key from file %s\n",
+         filename);
+    filehandle = GNUNET_DISK_file_open (filename,
+                                        GNUNET_DISK_OPEN_READ,
+                                        GNUNET_DISK_PERM_NONE);
+    if (NULL == filehandle)
+    {
+      LOG (GNUNET_ERROR_TYPE_ERROR,
+           "  Not able to open file\n");
+      return GNUNET_SYSERR;
+    }
+    if (GNUNET_OK != GNUNET_DISK_file_handle_size (filehandle, &size))
+    {
+      LOG (GNUNET_ERROR_TYPE_ERROR,
+           "  File has the wrong size %lu\n",
+           size);
+      GNUNET_DISK_file_close (filehandle);
+      return GNUNET_SYSERR;
+    }
+    if (sizeof ikm != size)
+    {
+      LOG (GNUNET_ERROR_TYPE_ERROR,
+           "  Something is wrong with the file size, expected: %lu size, got: %lu\n",
+           size,
+           sizeof ikm);
+      GNUNET_DISK_file_close (filehandle);
+      return GNUNET_SYSERR;
+    }
+    ret = GNUNET_DISK_file_read (filehandle,
+                                 ikm,
+                                 sizeof ikm);
+    GNUNET_DISK_file_close (filehandle);
+    if (sizeof ikm != ret)
+    {
+      LOG (GNUNET_ERROR_TYPE_ERROR,
+           "  Read initial secret key with wrong size %u, expected %lu\n", ret,
+           sizeof ikm);
+      return GNUNET_SYSERR;
+    }
+
+  }
+  return GNUNET_OK;
+}
+
+
+void
+pid_change_cb (void *cls,
+               const struct GNUNET_HELLO_Parser *parser,
+               const struct GNUNET_HashCode *addr_hash)
+{
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Got PID to derive from `%s':\n",
+       GNUNET_h2s (addr_hash));
+  if (NULL == my_private_key)
+    my_private_key = GNUNET_new (struct GNUNET_CRYPTO_EddsaPrivateKey);
+
+  GNUNET_PILS_derive_pid (sizeof ikm,
+                          (uint8_t*) ikm,
+                          addr_hash,
+                          my_private_key);
+  GNUNET_CRYPTO_eddsa_key_get_public (my_private_key,
+                                      &my_identity.public_key);
+  eddsa_priv_to_hpke_key (my_private_key,
+                          &my_x25519_private_key);
+  /* start broadcasting */
+  if (GNUNET_YES !=
+      GNUNET_CONFIGURATION_get_value_yesno (cfg,
+                                            COMMUNICATOR_CONFIG_SECTION,
+                                            "DISABLE_BROADCAST"))
+  {
+    if (NULL == broadcast_task)
+      broadcast_task = GNUNET_SCHEDULER_add_now (&do_broadcast, NULL);
+  }
+}
+
+
 static void
 run (void *cls,
      char *const *args,
@@ -3855,18 +4035,6 @@ run (void *cls,
   key_cache = GNUNET_CONTAINER_multishortmap_create (1024, GNUNET_YES);
   GNUNET_SCHEDULER_add_shutdown (&do_shutdown, NULL);
   is = GNUNET_NT_scanner_init ();
-  my_private_key = GNUNET_CRYPTO_eddsa_key_create_from_configuration (cfg);
-  if (NULL == my_private_key)
-  {
-    GNUNET_log (
-      GNUNET_ERROR_TYPE_ERROR,
-      _ (
-        "Transport service is lacking key configuration settings. Exiting.\n"));
-    shutdown_run (in);
-    return;
-  }
-  GNUNET_CRYPTO_eddsa_key_get_public (my_private_key, &my_identity.public_key);
-  eddsa_priv_to_hpke_key (my_private_key, &my_x25519_private_key);
   /* start reading */
   if (NULL != default_v4_sock)
     read_v4_task = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
@@ -3912,6 +4080,9 @@ run (void *cls,
   {
     broadcast_task = GNUNET_SCHEDULER_add_now (&do_broadcast, NULL);
   }
+  load_ikm ();
+  pils = GNUNET_PILS_connect (cfg, &pid_change_cb, NULL);
+  GNUNET_assert (NULL != pils);
 
   nat = GNUNET_NAT_register (cfg,
                              COMMUNICATOR_CONFIG_SECTION,

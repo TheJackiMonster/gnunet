@@ -32,6 +32,7 @@
 #include "gnunet_hello_uri_lib.h"
 #include "gnunet_constants.h"
 #include "gnunet_core_service.h"
+#include "gnunet_pils_service.h"
 #include "gnunet_protocols.h"
 #include "gnunet_peerstore_service.h"
 #include "gnunet_statistics_service.h"
@@ -147,6 +148,11 @@ static struct GNUNET_PEERSTORE_Monitor *peerstore_notify;
 static const struct GNUNET_CONFIGURATION_Handle *cfg;
 
 /**
+ * Handle to the PILS service.
+ */
+static struct GNUNET_PILS_Handle *pils;
+
+/**
  * Handle to the CORE service.
  */
 static struct GNUNET_CORE_Handle *handle;
@@ -165,11 +171,6 @@ struct GNUNET_TRANSPORT_ApplicationHandle *transport;
  * Identity of this peer.
  */
 static struct GNUNET_PeerIdentity my_identity;
-
-/**
- * Our private key.
- */
-static struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
 
 /**
  * All of our current neighbours and all peers for
@@ -262,6 +263,9 @@ attempt_connect (struct Peer *pos)
   uint32_t strength;
   struct GNUNET_BANDWIDTH_Value32NBO bw;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Checking if we want to attempt connection to `%s'\n",
+              GNUNET_i2s(&pos->pid));
   if (0 == GNUNET_memcmp (&my_identity, &pos->pid))
     return; /* This is myself, nothing to do. */
   if (connection_count < target_connection_count)
@@ -526,12 +530,14 @@ reschedule_hellos (void *cls,
  * @param cls closure
  * @param peer peer identity this notification is about
  * @param mq message queue for communicating with @a peer
+ * @param class class of the connecting peer
  * @return our `struct Peer` for @a peer
  */
 static void *
 connect_notify (void *cls,
                 const struct GNUNET_PeerIdentity *peer,
-                struct GNUNET_MQ_Handle *mq)
+                struct GNUNET_MQ_Handle *mq,
+                enum GNUNET_CORE_PeerClass class)
 {
   struct Peer *pos;
 
@@ -672,6 +678,10 @@ consider_for_advertising (const struct GNUNET_MessageHeader *hello)
   uint16_t size;
 
   parser = GNUNET_HELLO_parser_from_msg (hello);
+  if (NULL == parser)
+  {
+    return;
+  }
   pid = GNUNET_HELLO_parser_iterate (parser,
                                      &address_iterator,
                                      &num_addresses_new);
@@ -798,6 +808,9 @@ process_peer (void *cls,
     return;
   }
   GNUNET_assert (NULL != record);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Processing HELLO from peerstore from peer `%s'\n",
+              GNUNET_i2s (&record->peer));
   hello = record->value;
   if (NULL == hello)
   {
@@ -848,6 +861,13 @@ start_notify (void *cls)
                                     NULL);
 }
 
+static void
+pid_change_cb (void *cls,
+               const struct GNUNET_HELLO_Parser *parser,
+               const struct GNUNET_HashCode *addr_hash)
+{
+  my_identity = *GNUNET_HELLO_parser_get_id (parser);
+}
 
 /**
  * Function called after #GNUNET_CORE_connect has succeeded
@@ -870,7 +890,7 @@ core_init (void *cls, const struct GNUNET_PeerIdentity *my_id)
   my_identity = *my_id;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "I am peer `%s'\n", GNUNET_i2s (my_id));
   peerstore_notify_task = GNUNET_SCHEDULER_add_delayed (
-    GNUNET_TIME_UNIT_MINUTES,
+    GNUNET_TIME_UNIT_SECONDS,
     start_notify,
     NULL);
 }
@@ -979,7 +999,12 @@ cleaning_task (void *cls)
   {
     GNUNET_SCHEDULER_cancel (peerstore_notify_task);
   }
-  if (NULL != handle)
+  if (NULL != pils)
+  {
+    GNUNET_PILS_disconnect (pils);
+    pils = NULL;
+  }
+   if (NULL != handle)
   {
     GNUNET_CORE_disconnect (handle);
     handle = NULL;
@@ -1007,7 +1032,6 @@ cleaning_task (void *cls)
     GNUNET_STATISTICS_destroy (stats, GNUNET_NO);
     stats = NULL;
   }
-  GNUNET_free (my_private_key);
 }
 
 
@@ -1032,10 +1056,15 @@ run (void *cls,
                            NULL),
     GNUNET_MQ_handler_end () };
   unsigned long long opt;
+  const struct GNUNET_CORE_ServiceInfo service_info =
+  {
+    .service = GNUNET_CORE_SERVICE_TOPOLOGY,
+    .version = { 1, 0 },
+    .version_max = { 1, 0 },
+    .version_min = { 1, 0 },
+  };
 
   cfg = c;
-  my_private_key =
-    GNUNET_CRYPTO_eddsa_key_create_from_configuration (cfg);
   stats = GNUNET_STATISTICS_create ("topology", cfg);
 
   if (GNUNET_OK !=
@@ -1054,8 +1083,18 @@ run (void *cls,
                                 &core_init,
                                 &connect_notify,
                                 &disconnect_notify,
-                                handlers);
+                                handlers,
+                                &service_info);
+  pils = GNUNET_PILS_connect (cfg, &pid_change_cb, NULL);
   GNUNET_SCHEDULER_add_shutdown (&cleaning_task, NULL);
+  if (NULL == pils)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                _ ("Failed to connect to `%s' service.\n"),
+                "pils");
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
   if (NULL == handle)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,

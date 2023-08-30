@@ -190,12 +190,14 @@ handle_advertisement (void *cls,
  * @param cls closure
  * @param peer peer identity this notification is about
  * @param mq queue for sending messages to @a peer
+ * @param class class of the connecting peer
  * @return peer
  */
 static void *
 connect_handler (void *cls,
                  const struct GNUNET_PeerIdentity *peer,
-                 struct GNUNET_MQ_Handle *mq)
+                 struct GNUNET_MQ_Handle *mq,
+                 enum GNUNET_CORE_PeerClass class)
 {
   if (0 == GNUNET_memcmp (&me,
                           peer))
@@ -206,12 +208,14 @@ connect_handler (void *cls,
     GNUNET_assert (NULL ==
                    (*client_ch)(cls,
                                 peer,
-                                mq));
+                                mq,
+                                class));
   if (NULL != server_ch)
     GNUNET_assert (NULL ==
                    (*server_ch)(cls,
                                 peer,
-                                mq));
+                                mq,
+                                class));
   return (void *) peer;
 }
 
@@ -296,6 +300,13 @@ run (void *cls,
   struct GNUNET_MQ_MessageHandler no_learn_handlers[] = {
     GNUNET_MQ_handler_end ()
   };
+  const struct GNUNET_CORE_ServiceInfo service_info =
+  {
+    .service = GNUNET_CORE_SERVICE_HOSTLIST,
+    .version = { 1, 0 },
+    .version_max = { 1, 0 },
+    .version_min = { 1, 0 },
+  };
 
   if ((! bootstrapping) && (! learning)
       && (! provide_hostlist)
@@ -325,7 +336,8 @@ run (void *cls,
                          &core_init,
                          &connect_handler,
                          &disconnect_handler,
-                         learning ? learn_handlers : no_learn_handlers);
+                         learning ? learn_handlers : no_learn_handlers,
+                         &service_info);
 
 
   if (provide_hostlist)

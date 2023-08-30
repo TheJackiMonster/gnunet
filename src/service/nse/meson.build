@@ -42,6 +42,8 @@ executable(
     dependencies: [
         libgnunetnse_dep,
         libgnunetutil_dep,
+        libgnunethello_dep,
+        libgnunetpils_dep,
         libgnunetcore_dep,
         m_dep,
         libgnunetstatistics_dep,

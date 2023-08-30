@@ -44,6 +44,7 @@ install_man(
         'gnunet-nat-auto.1',
         'gnunet-nat-server.1',
         'gnunet-nse.1',
+        'gnunet-pils.1',
         'gnunet-publish.1',
         'gnunet-qr.1',
         'gnunet-reclaim.1',

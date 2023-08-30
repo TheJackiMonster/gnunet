@@ -76,6 +76,7 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_peerstore_service.h"
+#include "gnunet_pils_service.h"
 #include "gnunet_transport_communication_service.h"
 #include "gnunet_nat_service.h"
 #include "gnunet_hello_uri_lib.h"
@@ -180,6 +181,15 @@
  * Maximum number of DV paths we keep simultaneously to the same target.
  */
 #define MAX_DV_PATHS_TO_TARGET 3
+
+/**
+ * Delay between added/removed addresses and PILS
+ * feed call.
+ * Introduced to handle cases with high address churn
+ * across communicators (startup, location change etc)
+ */
+#define PILS_FEED_ADDRESSES_DELAY \
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 3)
 
 /**
  * If a queue delays the next message by more than this number
@@ -2913,17 +2923,12 @@ static const struct GNUNET_CONFIGURATION_Handle *GST_cfg;
 /**
  * Our public key.
  */
-static struct GNUNET_PeerIdentity GST_my_identity;
+static struct GNUNET_PeerIdentity *GST_my_identity;
 
 /**
  * Our HELLO
  */
 struct GNUNET_HELLO_Builder *GST_my_hello;
-
-/**
- * Our private key.
- */
-static struct GNUNET_CRYPTO_EddsaPrivateKey *GST_my_private_key;
 
 /**
  * Map from PIDs to `struct Neighbour` entries.  A peer is
@@ -3006,6 +3011,42 @@ struct GNUNET_NAT_Handle *nh;
 static struct GNUNET_PEERSTORE_Handle *peerstore;
 
 /**
+ * Service that manages our peer id
+ */
+static struct GNUNET_PILS_Handle *pils;
+
+/**
+ * DLL
+ */
+struct PilsRequest
+{
+  /**
+   * DLL
+   */
+  struct PilsRequest *prev;
+
+  /**
+   * DLL
+   */
+  struct PilsRequest *next;
+
+  /**
+   * The pils operation
+   */
+  struct GNUNET_PILS_Operation *op;
+};
+
+/**
+ * PILS Operation DLL
+ */
+static struct PilsRequest *pils_requests_head;
+
+/**
+ * PILS Operation DLL
+ */
+static struct PilsRequest *pils_requests_tail;
+
+/**
  * Task run to initiate DV learning.
  */
 static struct GNUNET_SCHEDULER_Task *dvlearn_task;
@@ -3014,6 +3055,11 @@ static struct GNUNET_SCHEDULER_Task *dvlearn_task;
  * Task to run address validation.
  */
 static struct GNUNET_SCHEDULER_Task *validation_task;
+
+/**
+ * Task to feed addresses to PILS.
+ */
+static struct GNUNET_SCHEDULER_Task *pils_feed_task;
 
 /**
  * List of incoming connections where we are trying
@@ -4310,17 +4356,19 @@ static void
 handle_client_start (void *cls, const struct StartMessage *start)
 {
   struct TransportClient *tc = cls;
-  uint32_t options;
-
-  options = ntohl (start->options);
-  if ((0 != (1 & options)) &&
-      (0 != GNUNET_memcmp (&start->self, &GST_my_identity)))
-  {
-    /* client thinks this is a different peer, reject */
-    GNUNET_break (0);
-    GNUNET_SERVICE_client_drop (tc->client);
-    return;
-  }
+  // uint32_t options;
+  //
+  // FIXME ignore the check of the peer ids for now.
+  //       (also deprecate the old way of obtaining our own peer ID)
+  // options = ntohl (start->options);
+  // if ((0 != (1 & options)) &&
+  //    (0 != GNUNET_memcmp (&start->self, &GST_my_identity)))
+  // {
+  //  /* client thinks this is a different peer, reject */
+  //  GNUNET_break (0);
+  //  GNUNET_SERVICE_client_drop (tc->client);
+  //  return;
+  // }
   if (CT_NONE != tc->type)
   {
     GNUNET_break (0);
@@ -4634,7 +4682,7 @@ handle_communicator_available (
   tc->details.communicator.can_burst = ntohl (cam->can_burst);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Communicator for peer %s with prefix '%s' connected %s\n",
-              GNUNET_i2s (&GST_my_identity),
+              GNUNET_i2s (GST_my_identity),
               tc->details.communicator.address_prefix,
               tc->details.communicator.can_burst ? "can burst" :
               "can not burst");
@@ -4681,6 +4729,32 @@ check_communicator_backchannel (
 }
 
 
+struct SignDvCls
+{
+  struct DistanceVector *dv;
+  struct PilsRequest *req;
+};
+
+
+static void
+sign_dv_cb (void *cls,
+            const struct GNUNET_PeerIdentity *pid,
+            const struct GNUNET_CRYPTO_EddsaSignature *sig)
+{
+  struct SignDvCls *sign_dv_cls = cls;
+  struct DistanceVector *dv = sign_dv_cls->dv;
+  struct PilsRequest *pr = sign_dv_cls->req;
+
+  pr->op = NULL;
+  GNUNET_CONTAINER_DLL_remove (pils_requests_head,
+                               pils_requests_tail,
+                               pr);
+  GNUNET_free (pr);
+
+  dv->sender_sig = *sig;
+}
+
+
 /**
  * Sign ephemeral keys in our @a dv are current.
  *
@@ -4690,6 +4764,7 @@ static void
 sign_ephemeral (struct DistanceVector *dv)
 {
   struct EphemeralConfirmationPS ec;
+  struct SignDvCls *sign_dv_cls;
 
   dv->monotime = GNUNET_TIME_absolute_get_monotonic (GST_cfg);
   dv->ephemeral_validity =
@@ -4699,9 +4774,16 @@ sign_ephemeral (struct DistanceVector *dv)
   ec.ephemeral_key = dv->ephemeral_key;
   ec.sender_monotonic_time = GNUNET_TIME_absolute_hton (dv->monotime);
   ec.purpose.size = htonl (sizeof(ec));
-  GNUNET_CRYPTO_eddsa_sign (GST_my_private_key,
-                            &ec,
-                            &dv->sender_sig);
+  sign_dv_cls = GNUNET_new (struct SignDvCls);
+  sign_dv_cls->req = GNUNET_new (struct PilsRequest);
+  sign_dv_cls->dv = dv;
+  GNUNET_CONTAINER_DLL_insert (pils_requests_head,
+                               pils_requests_tail,
+                               sign_dv_cls->req);
+  sign_dv_cls->req->op = GNUNET_PILS_sign_by_peer_identity (pils,
+                                                            &ec.purpose,
+                                                            sign_dv_cb,
+                                                            sign_dv_cls);
 }
 
 
@@ -5191,7 +5273,7 @@ encapsulate_for_dv (struct DistanceVector *dv,
   // FIXME: Possibly also add return values here. We are processing
   // Input from other peers...
   dv_setup_key_state_from_km (dv->km, &box_hdr.iv, key);
-  payload_hdr.sender = GST_my_identity;
+  payload_hdr.sender = *GST_my_identity;
   payload_hdr.monotonic_time = GNUNET_TIME_absolute_hton (dv->monotime);
   dv_encrypt (key, &payload_hdr, enc, sizeof(payload_hdr));
   dv_encrypt (key,
@@ -5226,7 +5308,7 @@ encapsulate_for_dv (struct DistanceVector *dv,
     {
       char *path;
 
-      path = GNUNET_strdup (GNUNET_i2s (&GST_my_identity));
+      path = GNUNET_strdup (GNUNET_i2s (GST_my_identity));
       for (unsigned int j = 0; j < num_hops; j++)
       {
         char *tmp;
@@ -5869,6 +5951,86 @@ store_pi (void *cls);
 
 
 /**
+ * Helper context struct for HELLO update
+ */
+struct PilsAddressSignContext
+{
+
+  /**
+   * The ale to update
+   */
+  struct AddressListEntry *ale;
+
+  /**
+   * Any pending PILS requests
+   */
+  struct PilsRequest *req;
+
+
+  /**
+   * Signature expiration
+   */
+  struct GNUNET_TIME_Absolute et;
+};
+
+
+static void
+shc_cont (void *cls, int success)
+{
+  struct PilsAddressSignContext *pc = cls;
+
+  GNUNET_assert (NULL == pc->req);
+  if (GNUNET_OK != success)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Failed to store our address `%s' with peerstore\n",
+                pc->ale->address);
+    if (NULL == pc->ale->st)
+    {
+      pc->ale->st = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
+                                                  &store_pi,
+                                                  pc->ale);
+    }
+  }
+  GNUNET_free (pc);
+}
+
+
+/**
+ * Get HELLO signature and create message to store in PEERSTORE
+ */
+static void
+pils_sign_hello_cb (void *cls,
+                    const struct GNUNET_PeerIdentity *pid,
+                    const struct GNUNET_CRYPTO_EddsaSignature *sig)
+{
+  struct PilsAddressSignContext *pc = cls;
+  struct GNUNET_MQ_Envelope *env;
+  const struct GNUNET_MessageHeader *msg;
+
+  pc->req->op = NULL;
+  GNUNET_CONTAINER_DLL_remove (pils_requests_head,
+                               pils_requests_tail,
+                               pc->req);
+  GNUNET_free (pc->req);
+  pc->req = NULL;
+  env = GNUNET_HELLO_builder_to_env (
+    GST_my_hello,
+    pid,
+    sig,
+    pc->et);
+  msg = GNUNET_MQ_env_get_msg (env);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "store_pi 1\n");
+  pc->ale->shc = GNUNET_PEERSTORE_hello_add (peerstore,
+                                             msg,
+                                             shc_cont,
+                                             pc);
+  GNUNET_free (env);
+}
+
+
+/**
  * Function called when peerstore is done storing our address.
  *
  * @param cls a `struct AddressListEntry`
@@ -5877,53 +6039,151 @@ store_pi (void *cls);
 static void
 peerstore_store_own_cb (void *cls, int success)
 {
-  struct AddressListEntry *ale = cls;
+  struct PilsAddressSignContext *pc = cls;
 
-  ale->sc = NULL;
+  pc->ale->sc = NULL;
   if (GNUNET_YES != success)
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Failed to store our own address `%s' in peerstore!\n",
-                ale->address);
+                pc->ale->address);
   else
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Successfully stored our own address `%s' in peerstore!\n",
-                ale->address);
+                pc->ale->address);
   /* refresh period is 1/4 of expiration time, that should be plenty
      without being excessive. */
-  ale->st =
-    GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_relative_divide (ale->expiration,
-                                                               4ULL),
-                                  &store_pi,
-                                  ale);
+  if (NULL == pc->ale->st)
+  {
+    pc->ale->st =
+      GNUNET_SCHEDULER_add_delayed (
+        GNUNET_TIME_relative_divide (pc->ale->expiration,
+                                     4ULL),
+        &store_pi,
+        pc->ale);
+  }
+
+  /* Now we have to update our HELLO! */
+  pc->et = GNUNET_TIME_relative_to_absolute (GNUNET_HELLO_ADDRESS_EXPIRATION);
+  pc->req = GNUNET_new (struct PilsRequest);
+  GNUNET_CONTAINER_DLL_insert (pils_requests_head,
+                               pils_requests_tail,
+                               pc->req);
+  pc->req->op = GNUNET_PILS_sign_hello (pils,
+                                        GST_my_hello,
+                                        pc->et,
+                                        &pils_sign_hello_cb,
+                                        pc);
 }
 
 
+// This function
 static void
-shc_cont (void *cls, int success)
+pils_sign_addr_cb (void *cls,
+                   const struct GNUNET_PeerIdentity *pid,
+                   const struct GNUNET_CRYPTO_EddsaSignature *sig)
 {
-  struct AddressListEntry *ale = cls;
+  struct PilsAddressSignContext *pc = cls;
+  char *sig_str;
+  void *result;
+  size_t result_size;
+
+  pc->req->op = NULL;
+  GNUNET_CONTAINER_DLL_remove (pils_requests_head,
+                               pils_requests_tail,
+                               pc->req);
+  GNUNET_free (pc->req);
+  sig_str = NULL;
+  (void) GNUNET_STRINGS_base64_encode (sig, sizeof(*sig), &sig_str);
+  result_size =
+    1 + GNUNET_asprintf (
+      (char **) &result,
+      "%s;%llu;%u;%s",
+      sig_str,
+      (unsigned long long) pc->et.abs_value_us,
+      (unsigned int) pc->ale->nt,
+      pc->ale->address);
+  GNUNET_free (sig_str);
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Build our HELLO URI `%s'\n",
+              (char*) result);
+
+  pc->ale->signed_address = result;
+  pc->ale->signed_address_len = result_size;
   struct GNUNET_TIME_Absolute expiration;
 
-  expiration = GNUNET_TIME_relative_to_absolute (ale->expiration);
-  ale->sc = GNUNET_PEERSTORE_store (peerstore,
-                                    "transport",
-                                    &GST_my_identity,
-                                    GNUNET_PEERSTORE_TRANSPORT_HELLO_KEY,
-                                    ale->signed_address,
-                                    ale->signed_address_len,
-                                    expiration,
-                                    GNUNET_PEERSTORE_STOREOPTION_MULTIPLE,
-                                    &peerstore_store_own_cb,
-                                    ale);
-  if (NULL == ale->sc)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Failed to store our address `%s' with peerstore\n",
-                ale->address);
-    ale->st = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
-                                            &store_pi,
-                                            ale);
-  }
+  expiration = GNUNET_TIME_relative_to_absolute (pc->ale->expiration);
+  pc->ale->sc = GNUNET_PEERSTORE_store (peerstore,
+                                        "transport",
+                                        GST_my_identity, // FIXME
+                                        GNUNET_PEERSTORE_TRANSPORT_HELLO_KEY,
+                                        result,
+                                        result_size,
+                                        expiration,
+                                        GNUNET_PEERSTORE_STOREOPTION_MULTIPLE,
+                                        &peerstore_store_own_cb,
+                                        pc);
+}
+
+
+/**
+ * Binary block we sign when we sign an address.
+ */
+struct SignedAddress
+{
+  /**
+   * Purpose must be #GNUNET_SIGNATURE_PURPOSE_TRANSPORT_ADDRESS
+   */
+  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+
+  /**
+   * When was the address generated.
+   */
+  struct GNUNET_TIME_AbsoluteNBO mono_time;
+
+  /**
+   * Hash of the address.
+   */
+  struct GNUNET_HashCode addr_hash GNUNET_PACKED;
+};
+
+
+/**
+ * Build address record by signing raw information with private key of the peer
+ * identity.
+ *
+ * @param handle handle to the PILS service
+ * @param address text address at @a communicator to sign
+ * @param nt network type of @a address
+ * @param mono_time monotonic time at which @a address was valid
+ * @param cb callback called once the signature is ready
+ * @param cb_cls closure to the @a cb callback
+ *
+ * @return handle to the operation, NULL on error
+ */
+void
+pils_sign_address (
+  struct AddressListEntry *ale,
+  struct GNUNET_TIME_Absolute mono_time)
+{
+  struct SignedAddress sa;
+  struct PilsAddressSignContext *pc;
+
+  sa.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TRANSPORT_ADDRESS);
+  sa.purpose.size = htonl (sizeof(sa));
+  sa.mono_time = GNUNET_TIME_absolute_hton (mono_time);
+  GNUNET_CRYPTO_hash (ale->address, strlen (ale->address), &sa.addr_hash);
+  pc = GNUNET_new (struct PilsAddressSignContext);
+  pc->ale = ale;
+  pc->et = mono_time;
+  pc->req = GNUNET_new (struct PilsRequest);
+  pc->req->op = GNUNET_PILS_sign_by_peer_identity (pils,
+                                                   &sa.purpose,
+                                                   pils_sign_addr_cb,
+                                                   pc);
+  GNUNET_CONTAINER_DLL_insert (pils_requests_head,
+                               pils_requests_tail,
+                               pc->req);
 }
 
 
@@ -5936,12 +6196,18 @@ static void
 store_pi (void *cls)
 {
   struct AddressListEntry *ale = cls;
-  struct GNUNET_MQ_Envelope *env;
-  const struct GNUNET_MessageHeader *msg;
   const char *dash;
   char *address_uri;
   char *prefix = GNUNET_HELLO_address_to_prefix (ale->address);
   unsigned int add_success;
+
+  if (NULL == GST_my_identity)
+  {
+    ale->st = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_MILLISECONDS,
+                                            &store_pi,
+                                            ale);
+    return;
+  }
 
   dash = strchr (ale->address, '-');
   GNUNET_assert (NULL != dash);
@@ -5975,24 +6241,10 @@ store_pi (void *cls)
                 address_uri);
   }
   // FIXME hello_mono_time used here?? What about expiration in ale?
-  GNUNET_HELLO_sign_address (ale->address,
-                             ale->nt,
-                             hello_mono_time,
-                             GST_my_private_key,
-                             &ale->signed_address,
-                             &ale->signed_address_len);
+  pils_sign_address (ale,
+                     hello_mono_time);
+  // TODO keep track of op and potentially cancle/clean
   GNUNET_free (address_uri);
-  env = GNUNET_HELLO_builder_to_env (GST_my_hello,
-                                     GST_my_private_key,
-                                     GNUNET_TIME_UNIT_ZERO);
-  msg = GNUNET_MQ_env_get_msg (env);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "store_pi 1\n");
-  ale->shc = GNUNET_PEERSTORE_hello_add (peerstore,
-                                         msg,
-                                         shc_cont,
-                                         ale);
-  GNUNET_free (env);
 }
 
 
@@ -6020,10 +6272,29 @@ create_address_entry (struct TransportClient *tc,
               address_without_port,
               ale->address);
   if (0 != strcmp ("127.0.0.1", address_without_port))
+  {
+    if (NULL != ale->st)
+    {
+      GNUNET_SCHEDULER_cancel (ale->st);
+    }
     ale->st = GNUNET_SCHEDULER_add_now (&store_pi, ale);
+  }
   GNUNET_free (address_without_port);
 
   return ale;
+}
+
+
+static void
+feed_addresses_to_pils (void *cls)
+{
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Feeding addresses to PILS\n");
+  pils_feed_task = NULL;
+
+  GNUNET_PILS_feed_addresses (pils,
+                              GST_my_hello);
 }
 
 
@@ -6058,6 +6329,30 @@ handle_add_address (void *cls,
   GNUNET_CONTAINER_DLL_insert (tc->details.communicator.addr_head,
                                tc->details.communicator.addr_tail,
                                ale);
+  {
+    for (struct AddressListEntry *iter = tc->details.communicator.addr_head;
+         (NULL != iter && NULL != iter->next);
+         iter = iter->next)
+    {
+      char *address_uri;
+      char *dash = strchr (ale->address, '-');
+      char *prefix = GNUNET_HELLO_address_to_prefix (ale->address);
+      GNUNET_assert (NULL != dash);
+      dash++;
+      GNUNET_asprintf (&address_uri,
+                       "%s://%s",
+                       prefix,
+                       dash);
+      GNUNET_free (prefix);
+      GNUNET_HELLO_builder_add_address (GST_my_hello, address_uri);
+      GNUNET_free (address_uri);
+    }
+    if (NULL != pils_feed_task)
+      GNUNET_SCHEDULER_cancel (pils_feed_task);
+    pils_feed_task = GNUNET_SCHEDULER_add_delayed (PILS_FEED_ADDRESSES_DELAY,
+                                                   &feed_addresses_to_pils,
+                                                   NULL);
+  }
   GNUNET_SERVICE_client_continue (tc->client);
   GNUNET_free (address);
 }
@@ -6093,6 +6388,13 @@ handle_del_address (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Communicator deleted address `%s'!\n",
                 ale->address);
+    GNUNET_HELLO_builder_del_address (GST_my_hello,
+                                      ale->address);
+    if (NULL != pils_feed_task)
+      GNUNET_SCHEDULER_cancel (pils_feed_task);
+    pils_feed_task = GNUNET_SCHEDULER_add_delayed (PILS_FEED_ADDRESSES_DELAY,
+                                                   &feed_addresses_to_pils,
+                                                   NULL);
     free_address_list_entry (ale);
     GNUNET_SERVICE_client_continue (tc->client);
     return;
@@ -7133,7 +7435,7 @@ handle_backchannel_encapsulation (
                    GNUNET_i2s (&cmc->im.sender));
   GNUNET_asprintf (&self,
                    "%s",
-                   GNUNET_i2s (&GST_my_identity));
+                   GNUNET_i2s (GST_my_identity));
 
   /* Find client providing this communicator */
   for (tc = clients_head; NULL != tc; tc = tc->next)
@@ -7456,7 +7758,7 @@ learn_dv_path (const struct GNUNET_PeerIdentity *path,
     GNUNET_break (0);
     return GNUNET_SYSERR;
   }
-  GNUNET_assert (0 == GNUNET_memcmp (&GST_my_identity, &path[0]));
+  GNUNET_assert (0 == GNUNET_memcmp (GST_my_identity, &path[0]));
   next_hop = lookup_neighbour (&path[1]);
   if (NULL == next_hop)
   {
@@ -7644,13 +7946,67 @@ check_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
       GNUNET_break_op (0);
       return GNUNET_SYSERR;
     }
-    if (0 == GNUNET_memcmp (&GST_my_identity, &hops[i].hop))
+    if (0 == GNUNET_memcmp (GST_my_identity, &hops[i].hop))
     {
       GNUNET_break_op (0);
       return GNUNET_SYSERR;
     }
   }
   return GNUNET_YES;
+}
+
+
+struct SignDhpCls
+{
+  struct DVPathEntryP *dhops;
+  uint16_t nhops;
+  const struct GNUNET_PeerIdentity *next_hop;
+  struct TransportDVLearnMessage *fwd;
+  struct PilsRequest *pr;
+};
+
+
+static void
+sign_dhp_cp (void *cls,
+             const struct GNUNET_PeerIdentity *pid,
+             const struct GNUNET_CRYPTO_EddsaSignature *sig)
+{
+  struct SignDhpCls *sign_dhp_cls = cls;
+  struct VirtualLink *vl;
+  struct DVPathEntryP *dhops = sign_dhp_cls->dhops;
+  uint16_t nhops = sign_dhp_cls->nhops;
+  const struct GNUNET_PeerIdentity *next_hop = sign_dhp_cls->next_hop;
+  struct TransportDVLearnMessage *fwd = sign_dhp_cls->fwd;
+  struct Neighbour *n;
+
+  sign_dhp_cls->pr->op = NULL;
+  GNUNET_CONTAINER_DLL_remove (pils_requests_head,
+                               pils_requests_tail,
+                               sign_dhp_cls->pr);
+  GNUNET_free (sign_dhp_cls->pr);
+  dhops[nhops].hop_sig = *sig;
+
+  /*route_control_message_without_fc (next_hop,
+                                    &fwd->header,
+                                    RMO_UNCONFIRMED_ALLOWED);*/
+  vl = lookup_virtual_link (next_hop);
+  if ((NULL != vl) && (GNUNET_YES == vl->confirmed))
+  {
+    route_control_message_without_fc (vl,
+                                      &fwd->header,
+                                      RMO_UNCONFIRMED_ALLOWED);
+  }
+  else
+  {
+    /* Use route via neighbour */
+    n = lookup_neighbour (next_hop);
+    if (NULL != n)
+      route_via_neighbour (
+        n,
+        &fwd->header,
+        RMO_UNCONFIRMED_ALLOWED);
+  }
+  GNUNET_free (sign_dhp_cls);
 }
 
 
@@ -7673,8 +8029,6 @@ forward_dv_learn (const struct GNUNET_PeerIdentity *next_hop,
                   const struct DVPathEntryP *hops,
                   struct GNUNET_TIME_Absolute in_time)
 {
-  struct Neighbour *n;
-  struct VirtualLink *vl;
   struct DVPathEntryP *dhops;
   char buf[sizeof(struct TransportDVLearnMessage)
            + (nhops + 1) * sizeof(struct DVPathEntryP)] GNUNET_ALIGN;
@@ -7702,7 +8056,7 @@ forward_dv_learn (const struct GNUNET_PeerIdentity *next_hop,
   fwd->monotonic_time = msg->monotonic_time;
   dhops = (struct DVPathEntryP *) &fwd[1];
   GNUNET_memcpy (dhops, hops, sizeof(struct DVPathEntryP) * nhops);
-  dhops[nhops].hop = GST_my_identity;
+  dhops[nhops].hop = *GST_my_identity;
   {
     struct DvHopPS dhp = {
       .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TRANSPORT_DV_HOP),
@@ -7711,29 +8065,20 @@ forward_dv_learn (const struct GNUNET_PeerIdentity *next_hop,
       .succ = *next_hop,
       .challenge = msg->challenge
     };
-    GNUNET_CRYPTO_eddsa_sign (GST_my_private_key,
-                              &dhp,
-                              &dhops[nhops].hop_sig);
-  }
-  /*route_control_message_without_fc (next_hop,
-                                    &fwd->header,
-                                    RMO_UNCONFIRMED_ALLOWED);*/
-  vl = lookup_virtual_link (next_hop);
-  if ((NULL != vl) && (GNUNET_YES == vl->confirmed))
-  {
-    route_control_message_without_fc (vl,
-                                      &fwd->header,
-                                      RMO_UNCONFIRMED_ALLOWED);
-  }
-  else
-  {
-    /* Use route via neighbour */
-    n = lookup_neighbour (next_hop);
-    if (NULL != n)
-      route_via_neighbour (
-        n,
-        &fwd->header,
-        RMO_UNCONFIRMED_ALLOWED);
+    struct SignDhpCls *sign_dhp_cls = GNUNET_new (struct SignDhpCls);
+    sign_dhp_cls->dhops = dhops;
+    sign_dhp_cls->nhops = nhops;
+    sign_dhp_cls->next_hop = next_hop;
+    sign_dhp_cls->fwd = fwd;
+    sign_dhp_cls->pr = GNUNET_new (struct PilsRequest);
+    GNUNET_CONTAINER_DLL_insert (pils_requests_head,
+                                 pils_requests_tail,
+                                 sign_dhp_cls->pr);
+    sign_dhp_cls->pr->op =
+      GNUNET_PILS_sign_by_peer_identity (pils,
+                                         &dhp.purpose,
+                                         sign_dhp_cp,
+                                         sign_dhp_cls);
   }
 }
 
@@ -8136,7 +8481,7 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
                              htonl (GNUNET_SIGNATURE_PURPOSE_TRANSPORT_DV_HOP),
                            .purpose.size = htonl (sizeof(dhp)),
                            .pred = (0 == i) ? dvl->initiator : hops[i - 1].hop,
-                           .succ = (nhops == i + 1) ? GST_my_identity
+                           .succ = (nhops == i + 1) ? *GST_my_identity
                                    : hops[i + 1].hop,
                            .challenge = dvl->challenge };
 
@@ -8187,17 +8532,17 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
                 "Received DVInit via %s%s%s\n",
                 path,
                 bi_hop ? "<->" : "-->",
-                GNUNET_i2s (&GST_my_identity));
+                GNUNET_i2s (GST_my_identity));
     GNUNET_free (path);
   }
   do_fwd = GNUNET_YES;
-  if (0 == GNUNET_memcmp (&GST_my_identity, &dvl->initiator))
+  if (0 == GNUNET_memcmp (GST_my_identity, &dvl->initiator))
   {
     struct GNUNET_PeerIdentity path[nhops + 1];
     struct GNUNET_TIME_Relative network_latency;
 
     /* We initiated this, learn the forward path! */
-    path[0] = GST_my_identity;
+    path[0] = *GST_my_identity;
     path[1] = hops[0].hop;
 
     network_latency = get_network_latency (dvl);
@@ -8231,7 +8576,7 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
     struct GNUNET_TIME_Relative ilat;
     struct GNUNET_TIME_Relative network_latency;
 
-    path[0] = GST_my_identity;
+    path[0] = *GST_my_identity;
     path[1] = hops[nhops - 1].hop;   /* direct neighbour == predecessor! */
     for (unsigned int i = 0; i < nhops; i++)
     {
@@ -8371,7 +8716,7 @@ check_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
   }
   /* This peer must not be on the path */
   for (unsigned int i = 0; i < num_hops; i++)
-    if (0 == GNUNET_memcmp (&hops[i], &GST_my_identity))
+    if (0 == GNUNET_memcmp (&hops[i], GST_my_identity))
     {
       GNUNET_break_op (0);
       return GNUNET_SYSERR;
@@ -8705,117 +9050,37 @@ update_backtalker_monotime (struct Backtalker *b)
 }
 
 
-/**
- * Communicator gave us a DV box.  Process the request.
- *
- * @param cls a `struct CommunicatorMessageContext` (must call
- * #finish_cmc_handling() when done)
- * @param dvb the message that was received
- */
-static void
-handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
+struct DecapsDvBoxCls
 {
-  struct CommunicatorMessageContext *cmc = cls;
-  uint16_t size = ntohs (dvb->header.size) - sizeof(*dvb);
-  uint16_t num_hops = ntohs (dvb->num_hops);
-  const struct GNUNET_PeerIdentity *hops =
-    (const struct GNUNET_PeerIdentity *) &dvb[1];
-  const char *enc_payload = (const char *) &hops[num_hops];
-  uint16_t enc_payload_size =
-    size - (num_hops * sizeof(struct GNUNET_PeerIdentity));
+  struct CommunicatorMessageContext *cmc;
+  const struct TransportDVBoxMessage *dvb;
+  struct PilsRequest *pr;
+};
+
+
+static void
+decaps_dv_box_cb (void *cls, const struct GNUNET_ShortHashCode *km)
+{
+  struct DecapsDvBoxCls *decaps_dv_box_cls = cls;
+  struct CommunicatorMessageContext *cmc = decaps_dv_box_cls->cmc;
+  const struct TransportDVBoxMessage *dvb = dvb;
   struct DVKeyState key;
-  struct GNUNET_HashCode hmac;
   const char *hdr;
   size_t hdr_len;
+  struct GNUNET_HashCode hmac;
 
-  if (GNUNET_EXTRA_LOGGING > 0)
+  decaps_dv_box_cls->pr->op = NULL;
+  GNUNET_CONTAINER_DLL_remove (pils_requests_head,
+                               pils_requests_tail,
+                               decaps_dv_box_cls->pr);
+  GNUNET_free (decaps_dv_box_cls->pr);
+  if (NULL == km)
   {
-    char *path;
-
-    path = GNUNET_strdup (GNUNET_i2s (&GST_my_identity));
-    for (unsigned int i = 0; i < num_hops; i++)
-    {
-      char *tmp;
-
-      GNUNET_asprintf (&tmp, "%s->%s", path, GNUNET_i2s (&hops[i]));
-      GNUNET_free (path);
-      path = tmp;
-    }
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Received DVBox with remaining path %s\n",
-                path);
-    GNUNET_free (path);
-  }
-
-  if (num_hops > 0)
-  {
-    /* We're trying from the end of the hops array, as we may be
-       able to find a shortcut unknown to the origin that way */
-    for (int i = num_hops - 1; i >= 0; i--)
-    {
-      struct Neighbour *n;
-
-      if (0 == GNUNET_memcmp (&hops[i], &GST_my_identity))
-      {
-        GNUNET_break_op (0);
-        finish_cmc_handling (cmc);
-        return;
-      }
-      n = lookup_neighbour (&hops[i]);
-      if (NULL == n)
-        continue;
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Skipping %u/%u hops ahead while routing DV Box\n",
-                  i,
-                  num_hops);
-
-      forward_dv_box (n,
-                      (struct TransportDVBoxMessage *) dvb,
-                      ntohs (dvb->total_hops) + 1,
-                      num_hops - i - 1,    /* number of hops left */
-                      &hops[i + 1],    /* remaining hops */
-                      enc_payload,
-                      enc_payload_size);
-      GNUNET_STATISTICS_update (GST_stats,
-                                "# DV hops skipped routing boxes",
-                                i,
-                                GNUNET_NO);
-      GNUNET_STATISTICS_update (GST_stats,
-                                "# DV boxes routed (total)",
-                                1,
-                                GNUNET_NO);
-      finish_cmc_handling (cmc);
-      return;
-    }
-    /* Woopsie, next hop not in neighbours, drop! */
-    GNUNET_STATISTICS_update (GST_stats,
-                              "# DV Boxes dropped: next hop unknown",
-                              1,
-                              GNUNET_NO);
+    GNUNET_break_op (0);
     finish_cmc_handling (cmc);
     return;
   }
-  /* We are the target. Unbox and handle message. */
-  GNUNET_STATISTICS_update (GST_stats,
-                            "# DV boxes opened (ultimate target)",
-                            1,
-                            GNUNET_NO);
-  cmc->total_hops = ntohs (dvb->total_hops);
-
-  // DH key derivation with received DV, could be garbage.
-  {
-    struct GNUNET_ShortHashCode km;
-
-    if (GNUNET_YES != GNUNET_CRYPTO_eddsa_kem_decaps (GST_my_private_key,
-                                                      &dvb->ephemeral_key,
-                                                      &km))
-    {
-      GNUNET_break_op (0);
-      finish_cmc_handling (cmc);
-      return;
-    }
-    dv_setup_key_state_from_km (&km, &dvb->iv, &key);
-  }
+  dv_setup_key_state_from_km (km, &dvb->iv, &key);
   hdr = (const char *) &dvb[1];
   hdr_len = ntohs (dvb->orig_size) - sizeof(*dvb) - sizeof(struct
                                                            GNUNET_PeerIdentity)
@@ -8903,7 +9168,7 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
       struct EphemeralConfirmationPS ec;
 
       ec.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TRANSPORT_EPHEMERAL);
-      ec.target = GST_my_identity;
+      ec.target = *GST_my_identity;
       ec.ephemeral_key = dvb->ephemeral_key;
       ec.purpose.size =  htonl (sizeof(ec));
       ec.sender_monotonic_time = ppay.monotonic_time;
@@ -8965,6 +9230,119 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
                                         &backtalker_monotime_cb,
                                         b);
   } /* end actual decryption */
+}
+
+
+/**
+ * Communicator gave us a DV box.  Process the request.
+ *
+ * @param cls a `struct CommunicatorMessageContext` (must call
+ * #finish_cmc_handling() when done)
+ * @param dvb the message that was received
+ */
+static void
+handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
+{
+  struct CommunicatorMessageContext *cmc = cls;
+  uint16_t size = ntohs (dvb->header.size) - sizeof(*dvb);
+  uint16_t num_hops = ntohs (dvb->num_hops);
+  const struct GNUNET_PeerIdentity *hops =
+    (const struct GNUNET_PeerIdentity *) &dvb[1];
+  const char *enc_payload = (const char *) &hops[num_hops];
+  uint16_t enc_payload_size =
+    size - (num_hops * sizeof(struct GNUNET_PeerIdentity));
+  struct DecapsDvBoxCls *decaps_dv_box_cls;
+
+  if (GNUNET_EXTRA_LOGGING > 0)
+  {
+    char *path;
+
+    path = GNUNET_strdup (GNUNET_i2s (GST_my_identity));
+    for (unsigned int i = 0; i < num_hops; i++)
+    {
+      char *tmp;
+
+      GNUNET_asprintf (&tmp, "%s->%s", path, GNUNET_i2s (&hops[i]));
+      GNUNET_free (path);
+      path = tmp;
+    }
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Received DVBox with remaining path %s\n",
+                path);
+    GNUNET_free (path);
+  }
+
+  if (num_hops > 0)
+  {
+    /* We're trying from the end of the hops array, as we may be
+       able to find a shortcut unknown to the origin that way */
+    for (int i = num_hops - 1; i >= 0; i--)
+    {
+      struct Neighbour *n;
+
+      if (0 == GNUNET_memcmp (&hops[i], GST_my_identity))
+      {
+        GNUNET_break_op (0);
+        finish_cmc_handling (cmc);
+        return;
+      }
+      n = lookup_neighbour (&hops[i]);
+      if (NULL == n)
+        continue;
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Skipping %u/%u hops ahead while routing DV Box\n",
+                  i,
+                  num_hops);
+
+      forward_dv_box (n,
+                      (struct TransportDVBoxMessage *) dvb,
+                      ntohs (dvb->total_hops) + 1,
+                      num_hops - i - 1,    /* number of hops left */
+                      &hops[i + 1],    /* remaining hops */
+                      enc_payload,
+                      enc_payload_size);
+      GNUNET_STATISTICS_update (GST_stats,
+                                "# DV hops skipped routing boxes",
+                                i,
+                                GNUNET_NO);
+      GNUNET_STATISTICS_update (GST_stats,
+                                "# DV boxes routed (total)",
+                                1,
+                                GNUNET_NO);
+      finish_cmc_handling (cmc);
+      return;
+    }
+    /* Woopsie, next hop not in neighbours, drop! */
+    GNUNET_STATISTICS_update (GST_stats,
+                              "# DV Boxes dropped: next hop unknown",
+                              1,
+                              GNUNET_NO);
+    finish_cmc_handling (cmc);
+    return;
+  }
+  /* We are the target. Unbox and handle message. */
+  GNUNET_STATISTICS_update (GST_stats,
+                            "# DV boxes opened (ultimate target)",
+                            1,
+                            GNUNET_NO);
+  cmc->total_hops = ntohs (dvb->total_hops);
+
+  {
+    // DH key derivation with received DV, could be garbage.
+    decaps_dv_box_cls = GNUNET_new (struct DecapsDvBoxCls);
+    decaps_dv_box_cls->cmc = cmc;
+    decaps_dv_box_cls->dvb = dvb;
+    decaps_dv_box_cls->pr = GNUNET_new (struct PilsRequest);
+
+    GNUNET_CONTAINER_DLL_insert (pils_requests_head,
+                                 pils_requests_tail,
+                                 decaps_dv_box_cls->pr);
+    decaps_dv_box_cls->pr->op = GNUNET_PILS_kem_decaps (pils,
+                                                        &dvb->ephemeral_key,
+                                                        decaps_dv_box_cb,
+                                                        decaps_dv_box_cls);
+  }
+  // TODO keep track of cls and potentially clean
 }
 
 
@@ -9208,7 +9586,7 @@ handle_hello_for_incoming (void *cls,
     return;
   }
   hello = record->value;
-  if (0 == GNUNET_memcmp (&record->peer, &GST_my_identity))
+  if (0 == GNUNET_memcmp (&record->peer, GST_my_identity))
   {
     GNUNET_PEERSTORE_monitor_next (ir->nc, 1);
     return;
@@ -9237,62 +9615,33 @@ hello_for_incoming_sync_cb (void *cls)
 }
 
 
-/**
- * Communicator gave us a transport address validation challenge.  Process the
- * request.
- *
- * @param cls a `struct CommunicatorMessageContext` (must call
- * #finish_cmc_handling() when done)
- * @param tvc the message that was received
- */
-static void
-handle_validation_challenge (
-  void *cls,
-  const struct TransportValidationChallengeMessage *tvc)
+struct SignTValidationCls
 {
-  struct CommunicatorMessageContext *cmc = cls;
+  struct CommunicatorMessageContext *cmc;
   struct TransportValidationResponseMessage tvr;
+  struct PilsRequest *pr;
+};
+
+
+static void
+sign_t_validation_cb (void *cls,
+                      const struct GNUNET_PeerIdentity *pid,
+                      const struct GNUNET_CRYPTO_EddsaSignature *sig)
+{
+  struct SignTValidationCls *sign_t_validation_cls = cls;
+  struct CommunicatorMessageContext *cmc = sign_t_validation_cls->cmc;
+  struct TransportValidationResponseMessage tvr = sign_t_validation_cls->tvr;
   struct VirtualLink *vl;
-  struct GNUNET_TIME_RelativeNBO validity_duration;
-  struct IncomingRequest *ir;
   struct Neighbour *n;
+  struct IncomingRequest *ir;
   struct GNUNET_PeerIdentity sender;
 
-  /* DV-routed messages are not allowed for validation challenges */
-  if (cmc->total_hops > 0)
-  {
-    GNUNET_break_op (0);
-    finish_cmc_handling (cmc);
-    return;
-  }
-  validity_duration = cmc->im.expected_address_validity;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Received address validation challenge %s\n",
-              GNUNET_sh2s (&tvc->challenge.value));
-  /* If we have a virtual link, we use this mechanism to signal the
-     size of the flow control window, and to allow the sender
-     to ask for increases. If for us the virtual link is still down,
-     we will always give a window size of zero. */
-  tvr.header.type =
-    htons (GNUNET_MESSAGE_TYPE_TRANSPORT_ADDRESS_VALIDATION_RESPONSE);
-  tvr.header.size = htons (sizeof(tvr));
-  tvr.reserved = htonl (0);
-  tvr.challenge = tvc->challenge;
-  tvr.origin_time = tvc->sender_time;
-  tvr.validity_duration = validity_duration;
-  {
-    /* create signature */
-    struct TransportValidationPS tvp = {
-      .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TRANSPORT_CHALLENGE),
-      .purpose.size = htonl (sizeof(tvp)),
-      .validity_duration = validity_duration,
-      .challenge = tvc->challenge
-    };
-
-    GNUNET_CRYPTO_eddsa_sign (GST_my_private_key,
-                              &tvp,
-                              &tvr.signature);
-  }
+  sign_t_validation_cls->pr->op = NULL;
+  GNUNET_CONTAINER_DLL_remove (pils_requests_head,
+                               pils_requests_tail,
+                               sign_t_validation_cls->pr);
+  GNUNET_free (sign_t_validation_cls->pr);
+  tvr.signature = *sig;
   sender = cmc->im.sender;
   vl = lookup_virtual_link (&sender);
   if ((NULL != vl) && (GNUNET_YES == vl->confirmed))
@@ -9350,6 +9699,71 @@ handle_validation_challenge (
   /* Bound attempts we do in parallel here, might otherwise get excessive */
   while (ir_total > MAX_INCOMING_REQUEST)
     free_incoming_request (ir_head);
+};
+
+
+/**
+ * Communicator gave us a transport address validation challenge.  Process the
+ * request.
+ *
+ * @param cls a `struct CommunicatorMessageContext` (must call
+ * #finish_cmc_handling() when done)
+ * @param tvc the message that was received
+ */
+static void
+handle_validation_challenge (
+  void *cls,
+  const struct TransportValidationChallengeMessage *tvc)
+{
+  struct CommunicatorMessageContext *cmc = cls;
+  struct TransportValidationResponseMessage tvr;
+  struct GNUNET_TIME_RelativeNBO validity_duration;
+
+  /* DV-routed messages are not allowed for validation challenges */
+  if (cmc->total_hops > 0)
+  {
+    GNUNET_break_op (0);
+    finish_cmc_handling (cmc);
+    return;
+  }
+  validity_duration = cmc->im.expected_address_validity;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Received address validation challenge %s\n",
+              GNUNET_sh2s (&tvc->challenge.value));
+  /* If we have a virtual link, we use this mechanism to signal the
+     size of the flow control window, and to allow the sender
+     to ask for increases. If for us the virtual link is still down,
+     we will always give a window size of zero. */
+  tvr.header.type =
+    htons (GNUNET_MESSAGE_TYPE_TRANSPORT_ADDRESS_VALIDATION_RESPONSE);
+  tvr.header.size = htons (sizeof(tvr));
+  tvr.reserved = htonl (0);
+  tvr.challenge = tvc->challenge;
+  tvr.origin_time = tvc->sender_time;
+  tvr.validity_duration = validity_duration;
+  {
+    /* create signature */
+    struct TransportValidationPS tvp = {
+      .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TRANSPORT_CHALLENGE),
+      .purpose.size = htonl (sizeof(tvp)),
+      .validity_duration = validity_duration,
+      .challenge = tvc->challenge
+    };
+    struct SignTValidationCls *sign_t_validation_cls;
+
+    sign_t_validation_cls = GNUNET_new (struct SignTValidationCls);
+    sign_t_validation_cls->cmc = cmc;
+    sign_t_validation_cls->tvr = tvr;
+    sign_t_validation_cls->pr = GNUNET_new (struct PilsRequest);
+    GNUNET_CONTAINER_DLL_insert (pils_requests_head,
+                                 pils_requests_tail,
+                                 sign_t_validation_cls->pr);
+    sign_t_validation_cls->pr->op =
+      GNUNET_PILS_sign_by_peer_identity (pils,
+                                         &tvp.purpose,
+                                         &sign_t_validation_cb,
+                                         sign_t_validation_cls);
+  }
 }
 
 
@@ -11548,7 +11962,7 @@ lookup_communicator (const char *prefix)
 static void
 suggest_to_connect (const struct GNUNET_PeerIdentity *pid, const char *address)
 {
-  static uint32_t idgen;
+  static uint32_t idgen = 0;
   struct TransportClient *tc;
   char *prefix;
   struct GNUNET_TRANSPORT_CreateQueue *cqm;
@@ -11785,6 +12199,72 @@ check_connection_quality (void *cls,
  * @param cls NULL
  */
 static void
+start_dv_learn (void *cls);
+
+
+struct SignDvInitCls
+{
+  struct TransportDVLearnMessage dvl;
+  struct LearnLaunchEntry *lle;
+  struct QueueQualityContext qqc;
+  struct PilsRequest *pr;
+};
+
+
+static void
+sign_dv_init_cb (void *cls,
+                 const struct GNUNET_PeerIdentity *pid,
+                 const struct GNUNET_CRYPTO_EddsaSignature *sig)
+{
+  struct SignDvInitCls *sign_dv_init_cls = cls;
+  struct TransportDVLearnMessage dvl = sign_dv_init_cls->dvl;
+  struct LearnLaunchEntry *lle = sign_dv_init_cls->lle;
+  struct QueueQualityContext qqc = sign_dv_init_cls->qqc;
+
+  sign_dv_init_cls->pr->op = NULL;
+  GNUNET_CONTAINER_DLL_remove (pils_requests_head,
+                               pils_requests_tail,
+                               sign_dv_init_cls->pr);
+  GNUNET_free (sign_dv_init_cls->pr);
+
+  dvl.init_sig = *sig;
+  dvl.initiator = *GST_my_identity;
+  dvl.challenge = lle->challenge;
+
+  qqc.quality_count = 0;
+  qqc.k = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK, qqc.num_queues);
+  qqc.num_queues = 0;
+  qqc.q = NULL;
+  GNUNET_CONTAINER_multipeermap_iterate (neighbours,
+                                         &check_connection_quality,
+                                         &qqc);
+  GNUNET_assert (NULL != qqc.q);
+
+  /* Do this as close to transmission time as possible! */
+  lle->launch_time = GNUNET_TIME_absolute_get ();
+
+  queue_send_msg (qqc.q, NULL, &dvl, sizeof(dvl));
+  /* reschedule this job, randomizing the time it runs (but no
+     actual backoff!) */
+  dvlearn_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_randomize (
+                                                 DV_LEARN_BASE_FREQUENCY),
+                                               &start_dv_learn,
+                                               NULL);
+}
+
+
+/**
+ * Task run when we CONSIDER initiating a DV learn
+ * process. We first check that sending out a message is
+ * even possible (queues exist), then that it is desirable
+ * (if not, reschedule the task for later), and finally
+ * we may then begin the job.  If there are too many
+ * entries in the #dvlearn_map, we purge the oldest entry
+ * using #lle_tail.
+ *
+ * @param cls NULL
+ */
+static void
 start_dv_learn (void *cls)
 {
   struct LearnLaunchEntry *lle;
@@ -11858,33 +12338,22 @@ start_dv_learn (void *cls)
       .monotonic_time = dvl.monotonic_time,
       .challenge = lle->challenge
     };
+    struct SignDvInitCls *sign_dv_init_cls;
 
-    GNUNET_CRYPTO_eddsa_sign (GST_my_private_key,
-                              &dvip,
-                              &dvl.init_sig);
+    sign_dv_init_cls = GNUNET_new (struct SignDvInitCls);
+    sign_dv_init_cls->dvl = dvl;
+    sign_dv_init_cls->lle = lle;
+    sign_dv_init_cls->qqc = qqc;
+    sign_dv_init_cls->pr = GNUNET_new (struct PilsRequest);
+    GNUNET_CONTAINER_DLL_insert (pils_requests_head,
+                                 pils_requests_tail,
+                                 sign_dv_init_cls->pr);
+    sign_dv_init_cls->pr->op =
+      GNUNET_PILS_sign_by_peer_identity (pils,
+                                         &dvip.purpose,
+                                         sign_dv_init_cb,
+                                         sign_dv_init_cls);
   }
-  dvl.initiator = GST_my_identity;
-  dvl.challenge = lle->challenge;
-
-  qqc.quality_count = 0;
-  qqc.k = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK, qqc.num_queues);
-  qqc.num_queues = 0;
-  qqc.q = NULL;
-  GNUNET_CONTAINER_multipeermap_iterate (neighbours,
-                                         &check_connection_quality,
-                                         &qqc);
-  GNUNET_assert (NULL != qqc.q);
-
-  /* Do this as close to transmission time as possible! */
-  lle->launch_time = GNUNET_TIME_absolute_get ();
-
-  queue_send_msg (qqc.q, NULL, &dvl, sizeof(dvl));
-  /* reschedule this job, randomizing the time it runs (but no
-     actual backoff!) */
-  dvlearn_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_randomize (
-                                                 DV_LEARN_BASE_FREQUENCY),
-                                               &start_dv_learn,
-                                               NULL);
 }
 
 
@@ -12519,7 +12988,7 @@ handle_queue_create_fail (
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Request #%u for communicator to create queue failed\n",
-              (unsigned int) ntohs (cqr->request_id));
+              (unsigned int) ntohl (cqr->request_id));
   GNUNET_STATISTICS_update (GST_stats,
                             "# Suggestions failed in queue creation at communicator",
                             1,
@@ -12619,13 +13088,28 @@ handle_hello_for_client (void *cls,
                 emsg);
     return;
   }
+  if (NULL == GST_my_identity)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "No identity given yet!\n");
+    return;
+  }
   hello = record->value;
-  if (0 == GNUNET_memcmp (&record->peer, &GST_my_identity))
+  if (0 == GNUNET_memcmp (&record->peer, GST_my_identity))
   {
     GNUNET_PEERSTORE_monitor_next (pr->nc, 1);
     return;
   }
   parser = GNUNET_HELLO_parser_from_msg (hello);
+  if (NULL == parser)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "HELLO cannot be parsed!\n");
+    return;
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+              "HELLO for `%s' could be parsed, iterating addresses...!\n",
+              GNUNET_i2s (GNUNET_HELLO_parser_get_id (parser)));
   GNUNET_HELLO_parser_iterate (parser,
                                hello_for_client_cb,
                                NULL);
@@ -12876,6 +13360,7 @@ static void
 do_shutdown (void *cls)
 {
   struct LearnLaunchEntry *lle;
+  struct PilsRequest *pr;
   (void) cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -12908,10 +13393,10 @@ do_shutdown (void *cls)
     GNUNET_HELLO_builder_free (GST_my_hello);
     GST_my_hello = NULL;
   }
-  if (NULL != GST_my_private_key)
+  if (NULL != GST_my_identity)
   {
-    GNUNET_free (GST_my_private_key);
-    GST_my_private_key = NULL;
+    GNUNET_free (GST_my_identity);
+    GST_my_identity = NULL;
   }
   GNUNET_CONTAINER_multipeermap_iterate (ack_cummulators,
                                          &free_ack_cummulator_cb,
@@ -12951,6 +13436,25 @@ do_shutdown (void *cls)
     GNUNET_CONTAINER_DLL_remove (lle_head, lle_tail, lle);
     GNUNET_free (lle);
   }
+  while (NULL != (pr = pils_requests_head))
+  {
+    GNUNET_CONTAINER_DLL_remove (pils_requests_head,
+                                 pils_requests_tail,
+                                 pr);
+    if (NULL != pr->op)
+      GNUNET_PILS_cancel (pr->op);
+    GNUNET_free (pr);
+  }
+  if (NULL != pils_feed_task)
+  {
+    GNUNET_SCHEDULER_cancel (pils_feed_task);
+    pils_feed_task = NULL;
+  }
+  if (NULL != pils)
+  {
+    GNUNET_PILS_disconnect (pils);
+    pils = NULL;
+  }
   if (NULL != peerstore)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -12984,6 +13488,106 @@ shutdown_task (void *cls)
 }
 
 
+struct UpdateHelloFromPidCtx
+{
+  struct GNUNET_PEERSTORE_StoreHelloContext *sc;
+};
+
+static void
+update_hello_from_pid_change_cb (void *cls, int success)
+{
+  struct UpdateHelloFromPidCtx *pc = cls;
+
+  if (GNUNET_OK != success)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Failed to store our new hello with peerstore\n");
+  }
+  GNUNET_free (pc);
+  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+              "Stored our new hello with peerstore\n");
+}
+
+
+void
+print_address_list (void *cls,
+                    const struct GNUNET_PeerIdentity *pid,
+                    const char *uri)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "%s\n", uri);
+}
+
+
+/**
+ * @brief Callback called when pils service updates us with our new peer
+ * identity
+ *
+ * @param cls closure given to #GNUNET_PILS_connect
+ * @param peer_id the new peer id
+ * @param hash The hash of addresses the peer id is based on.
+ *             This hash is also returned by #GNUNET_PILS_feed_address.
+ */
+static void
+pils_pid_change_cb (void *cls,
+                    const struct GNUNET_HELLO_Parser *parser,
+                    const struct GNUNET_HashCode *hash)
+{
+  struct GNUNET_MQ_Envelope *env;
+  const struct GNUNET_MessageHeader *msg;
+  struct UpdateHelloFromPidCtx *sc;
+  struct GNUNET_HELLO_Builder *nbuilder;
+  struct GNUNET_PeerIdentity npid;
+
+  if (NULL == GST_my_identity)
+    GST_my_identity = GNUNET_new (struct GNUNET_PeerIdentity);
+  if (NULL == GST_my_hello)
+    GST_my_hello = GNUNET_HELLO_builder_new ();
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "My current identity is `%s'\n",
+              GNUNET_i2s_full (GST_my_identity));
+  /**
+   * FIXME we may want to have a sanity check here
+   * that verifies that our address list in the builder
+   * is the same as the one in the parser (and hence derived
+   * from the correct set). If it is NOT, then it is very
+   * likely that PILS is behind and will send another update
+   * shortly.
+   * In this case, we may want to hold off and not generate the
+   * new HELLO.
+   */
+  nbuilder = GNUNET_HELLO_builder_from_parser (parser,
+                                               &npid);
+  if (GNUNET_NO ==
+      GNUNET_HELLO_builder_address_list_cmp (GST_my_hello, nbuilder))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "New PID from PILS is derived from address list inconsistend with ours. Ignoring...\n");
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Proposed address list:\n");
+    GNUNET_HELLO_builder_iterate (nbuilder, &print_address_list, NULL);
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Current address list:\n");
+    GNUNET_HELLO_builder_iterate (GST_my_hello, &print_address_list, NULL);
+    GNUNET_HELLO_builder_free (nbuilder);
+    return;
+  }
+  GST_my_hello = nbuilder;
+  memcpy (GST_my_identity, &npid, sizeof npid);
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "My new identity is `%s'\n",
+              GNUNET_i2s_full (GST_my_identity));
+  env = GNUNET_HELLO_parser_to_env (parser);
+  msg = GNUNET_MQ_env_get_msg (env);
+  sc = GNUNET_new (struct UpdateHelloFromPidCtx);
+  sc->sc = GNUNET_PEERSTORE_hello_add (peerstore,
+                                       msg,
+                                       update_hello_from_pid_change_cb,
+                                       sc);
+  GNUNET_free (env);
+}
+
+
 /**
  * Initiate transport service.
  *
@@ -13014,29 +13618,14 @@ run (void *cls,
   revalidation_map = GNUNET_CONTAINER_multihashmap_create (1024, GNUNET_YES);
   validation_heap =
     GNUNET_CONTAINER_heap_create (GNUNET_CONTAINER_HEAP_ORDER_MIN);
-  GST_my_private_key =
-    GNUNET_CRYPTO_eddsa_key_create_from_configuration (GST_cfg);
-  if (NULL == GST_my_private_key)
-  {
-    GNUNET_log (
-      GNUNET_ERROR_TYPE_ERROR,
-      _ (
-        "Transport service is lacking key configuration settings. Exiting.\n"));
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
-  GNUNET_CRYPTO_eddsa_key_get_public (GST_my_private_key,
-                                      &GST_my_identity.public_key);
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              "My identity is `%s'\n",
-              GNUNET_i2s_full (&GST_my_identity));
-  GST_my_hello = GNUNET_HELLO_builder_new (&GST_my_identity);
+  // TODO check for all uses of GST_my_hello that it is not used uninitialized
   use_burst = GNUNET_CONFIGURATION_get_value_yesno (GST_cfg,
                                                     "transport",
                                                     "USE_BURST_NAT");
   if (GNUNET_SYSERR == use_burst)
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Could not configure burst nat use. Default to no.\n");
+  GST_my_hello = GNUNET_HELLO_builder_new ();
   GST_stats = GNUNET_STATISTICS_create ("transport", GST_cfg);
   GNUNET_SCHEDULER_add_shutdown (&shutdown_task, NULL);
   peerstore = GNUNET_PEERSTORE_connect (GST_cfg);
@@ -13050,6 +13639,24 @@ run (void *cls,
                             NULL,
                             NULL);
   if (NULL == peerstore)
+  {
+    GNUNET_break (0);
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
+  GST_my_identity = NULL;
+  pils = GNUNET_PILS_connect (GST_cfg,
+                              pils_pid_change_cb,
+                              NULL);          // FIXME we need to wait for
+  // our first peer id before
+  // we can start the service
+  // completely - PILS in turn
+  // waits for the first
+  // addresses from the
+  // communicators in order to
+  // be able to generate a
+  // peer id
+  if (NULL == pils)
   {
     GNUNET_break (0);
     GNUNET_SCHEDULER_shutdown ();

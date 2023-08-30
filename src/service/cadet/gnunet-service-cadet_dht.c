@@ -26,6 +26,7 @@
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
+#include "gnunet_pils_service.h"
 #include "gnunet_dht_service.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet-service-cadet.h"
@@ -139,13 +140,8 @@ dht_get_id_handler (void *cls, struct GNUNET_TIME_Absolute exp,
 }
 
 
-/**
- * Periodically announce self id in the DHT
- *
- * @param cls closure
- */
 static void
-announce_id (void *cls)
+announce_id (void*cls)
 {
   struct GNUNET_HashCode phash;
   const struct GNUNET_MessageHeader *hello;
@@ -182,7 +178,7 @@ announce_id (void *cls)
   announce_id_task
     = GNUNET_SCHEDULER_add_delayed (next_put,
                                     &announce_id,
-                                    cls);
+                                    NULL);
   GNUNET_STATISTICS_update (stats,
                             "# DHT announce",
                             1,
@@ -193,11 +189,12 @@ announce_id (void *cls)
   GNUNET_memcpy (&phash,
                  &my_full_id,
                  sizeof(my_full_id));
-  if (GNUNET_OK != GNUNET_HELLO_dht_msg_to_block (hello,
-                                                  &my_full_id,
-                                                  &block,
-                                                  &block_size,
-                                                  &expiration))
+  if ((0 == size) ||
+      (GNUNET_OK != GNUNET_HELLO_dht_msg_to_block (hello,
+                                                   &my_full_id,
+                                                   &block,
+                                                   &block_size,
+                                                   &expiration)))
     return;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,

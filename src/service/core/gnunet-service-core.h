@@ -29,7 +29,6 @@
 #include "gnunet_statistics_service.h"
 #include "gnunet_core_service.h"
 #include "core.h"
-#include "gnunet-service-core_typemap.h"
 
 
 /**
@@ -136,13 +135,13 @@ GSC_CLIENTS_reject_request (struct GSC_ClientActiveRequest *car,
  * @param neighbour identity of the neighbour that changed status
  * @param tmap_old previous type map for the neighbour, NULL for connect
  * @param tmap_new updated type map for the neighbour, NULL for disconnect
+ * @param class the class of the neighbour that changed status
  */
 void
 GSC_CLIENTS_notify_client_about_neighbour (
   struct GSC_Client *client,
   const struct GNUNET_PeerIdentity *neighbour,
-  const struct GSC_TypeMap *tmap_old,
-  const struct GSC_TypeMap *tmap_new);
+  enum GNUNET_CORE_PeerClass class);
 
 
 /**
@@ -171,12 +170,21 @@ GSC_CLIENTS_deliver_message (const struct GNUNET_PeerIdentity *sender,
  * @param neighbour identity of the neighbour that changed status
  * @param tmap_old previous type map for the neighbour, NULL for connect
  * @param tmap_new updated type map for the neighbour, NULL for disconnect
+ * @param class the class of the neighbour that changed status
  */
 void
 GSC_CLIENTS_notify_clients_about_neighbour (
   const struct GNUNET_PeerIdentity *neighbour,
-  const struct GSC_TypeMap *tmap_old,
-  const struct GSC_TypeMap *tmap_new);
+  enum GNUNET_CORE_PeerClass class);
+
+
+/**
+ * This function is called from GSC_KX_init() once it got its peer id from
+ * pils.
+ * @param cls closure to the callback
+ */
+void
+GSC_complete_initialization_cb (void);
 
 
 /**
@@ -193,6 +201,11 @@ extern struct GNUNET_STATISTICS_Handle *GSC_stats;
  * Our identity.
  */
 extern struct GNUNET_PeerIdentity GSC_my_identity;
+
+/**
+ * Our peer class
+ */
+static enum GNUNET_CORE_PeerClass GSC_peer_class;
 
 
 #endif

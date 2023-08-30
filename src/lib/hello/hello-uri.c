@@ -44,30 +44,9 @@
 GNUNET_NETWORK_STRUCT_BEGIN
 
 /**
- * Binary block we sign when we sign an address.
- */
-struct SignedAddress
-{
-  /**
-   * Purpose must be #GNUNET_SIGNATURE_PURPOSE_TRANSPORT_ADDRESS
-   */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
-
-  /**
-   * When was the address generated.
-   */
-  struct GNUNET_TIME_AbsoluteNBO mono_time;
-
-  /**
-   * Hash of the address.
-   */
-  struct GNUNET_HashCode addr_hash GNUNET_PACKED;
-};
-
-/**
  * Message signed as part of a HELLO block/URL.
  */
-struct HelloSignaturePurpose
+struct PilsHelloSignaturePurpose
 {
   /**
    * Purpose must be #GNUNET_SIGNATURE_PURPOSE_HELLO
@@ -204,11 +183,6 @@ struct Address
 struct GNUNET_HELLO_Builder
 {
   /**
-   * Public key of the peer.
-   */
-  struct GNUNET_PeerIdentity pid;
-
-  /**
    * Head of the addresses DLL.
    */
   struct Address *a_head;
@@ -287,20 +261,17 @@ struct GNUNET_HELLO_Parser
   struct GNUNET_TIME_Absolute et;
 };
 
-/**
- * Compute @a hash over addresses in @a builder.
- *
- * @param builder the builder to hash addresses of
- * @param[out] hash where to write the hash
- */
+
 static void
-hash_addresses (const struct Address *a_head,
+hash_addresses (const struct Address *addr_start,
                 struct GNUNET_HashCode *hash)
 {
   struct GNUNET_HashContext *hc;
 
   hc = GNUNET_CRYPTO_hash_context_start ();
-  for (const struct Address *a = a_head;
+
+#if HELLO_DETERMINISTIC_PID_DERIVATION
+  for (const struct Address *a = addr_start;
        NULL != a;
        a = a->next)
   {
@@ -312,40 +283,10 @@ hash_addresses (const struct Address *a_head,
                                      a->uri,
                                      a->uri_len);
   }
+#endif
   GNUNET_CRYPTO_hash_context_finish (hc,
                                      hash);
 
-}
-
-
-/**
- * Create HELLO signature.
- *
- * @param builder the builder to use
- * @param et expiration time to sign
- * @param priv key to sign with
- * @param[out] sig where to write the signature
- */
-static void
-sign_hello (const struct GNUNET_HELLO_Builder *builder,
-            struct GNUNET_TIME_Absolute et,
-            const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
-            struct GNUNET_CRYPTO_EddsaSignature *sig)
-{
-  struct HelloSignaturePurpose hsp = {
-    .purpose.size = htonl (sizeof (hsp)),
-    .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_HELLO),
-    .expiration_time = GNUNET_TIME_absolute_hton (et)
-  };
-
-  hash_addresses (builder->a_head,
-                  &hsp.h_addrs);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Address hash is %s\n",
-              GNUNET_h2s_full (&hsp.h_addrs));
-  GNUNET_CRYPTO_eddsa_sign (priv,
-                            &hsp,
-                            sig);
 }
 
 
@@ -363,7 +304,7 @@ verify_hello (const struct GNUNET_HELLO_Parser *parser,
               struct GNUNET_TIME_Absolute et,
               const struct GNUNET_CRYPTO_EddsaSignature *sig)
 {
-  struct HelloSignaturePurpose hsp = {
+  struct PilsHelloSignaturePurpose hsp = {
     .purpose.size = htonl (sizeof (hsp)),
     .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_HELLO),
     .expiration_time = GNUNET_TIME_absolute_hton (et)
@@ -377,7 +318,8 @@ verify_hello (const struct GNUNET_HELLO_Parser *parser,
                                   sig,
                                   &parser->pid.public_key))
   {
-    GNUNET_break_op (0);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "HELLO signature invalid, rejecting.\n");
     return GNUNET_SYSERR;
   }
   if (GNUNET_TIME_absolute_is_past (et))
@@ -398,12 +340,11 @@ parser_new (const struct GNUNET_PeerIdentity *pid)
 
 
 struct GNUNET_HELLO_Builder *
-GNUNET_HELLO_builder_new (const struct GNUNET_PeerIdentity *pid)
+GNUNET_HELLO_builder_new ()
 {
   struct GNUNET_HELLO_Builder *builder;
 
   builder = GNUNET_new (struct GNUNET_HELLO_Builder);
-  builder->pid = *pid;
   return builder;
 }
 
@@ -416,12 +357,15 @@ GNUNET_HELLO_parser_get_id (const struct GNUNET_HELLO_Parser *parser)
 
 
 struct GNUNET_HELLO_Builder *
-GNUNET_HELLO_builder_from_parser (const struct GNUNET_HELLO_Parser *p)
+GNUNET_HELLO_builder_from_parser (const struct GNUNET_HELLO_Parser *p,
+                                  struct GNUNET_PeerIdentity *pid)
 {
   struct GNUNET_HELLO_Builder *builder;
   struct Address *a;
 
-  builder = GNUNET_HELLO_builder_new (&p->pid);
+  builder = GNUNET_HELLO_builder_new ();
+  if (NULL != pid)
+    *pid = p->pid;
   /* check for duplicates */
   for (a = p->a_head;
        NULL != a;
@@ -519,6 +463,23 @@ check_address (const char *address)
   return GNUNET_OK;
 }
 
+
+/**
+ * Alphanumeric sorting for addresses
+ *
+ * @param cls NULL
+ * @param a first address
+ * @param b address to compare first address with
+ * @return result of strcmp on the URI of the addresses
+ */
+int
+static
+cmp_address (void*cls, struct Address *a, struct Address *b)
+{
+  return strcmp (a->uri, b->uri);
+}
+
+
 static enum GNUNET_GenericReturnValue
 parser_add_address (struct GNUNET_HELLO_Parser *parser,
                     const char *address)
@@ -547,9 +508,12 @@ parser_add_address (struct GNUNET_HELLO_Parser *parser,
           address,
           alen);
   a->uri = (const char *) &a[1];
-  GNUNET_CONTAINER_DLL_insert_tail (parser->a_head,
-                                    parser->a_tail,
-                                    a);
+  GNUNET_CONTAINER_DLL_insert_sorted (struct Address,
+                                      cmp_address,
+                                      NULL,
+                                      parser->a_head,
+                                      parser->a_tail,
+                                      a);
   parser->a_length++;
   return GNUNET_OK;
 }
@@ -558,6 +522,17 @@ parser_add_address (struct GNUNET_HELLO_Parser *parser,
 struct GNUNET_HELLO_Parser *
 GNUNET_HELLO_parser_from_block (const void *block,
                                 size_t block_size)
+{
+  return GNUNET_HELLO_parser_from_block_ (block,
+                                          block_size,
+                                          GNUNET_NO);
+}
+
+
+struct GNUNET_HELLO_Parser *
+GNUNET_HELLO_parser_from_block_ (const void *block,
+                                 size_t block_size,
+                                 int noverify)
 {
   const struct BlockHeader *bh = block;
   struct GNUNET_HELLO_Parser *p;
@@ -595,18 +570,21 @@ GNUNET_HELLO_parser_from_block (const void *block,
     block = end;
   }
   {
-    enum GNUNET_GenericReturnValue ret;
     struct GNUNET_TIME_Absolute et;
 
     et = GNUNET_TIME_absolute_ntoh (bh->expiration_time);
-    ret = verify_hello (p,
-                        et,
-                        &bh->sig);
-    GNUNET_break (GNUNET_SYSERR != ret);
-    if (GNUNET_OK != ret)
+    if (GNUNET_YES != noverify)
     {
-      GNUNET_HELLO_parser_free (p);
-      return NULL;
+      enum GNUNET_GenericReturnValue ret;
+      ret = verify_hello (p,
+                          et,
+                          &bh->sig);
+      GNUNET_break_op (GNUNET_SYSERR != ret);
+      if (GNUNET_OK != ret)
+      {
+        GNUNET_HELLO_parser_free (p);
+        return NULL;
+      }
     }
     p->et = GNUNET_TIME_absolute_ntoh (bh->expiration_time);
     p->sig = bh->sig;
@@ -670,9 +648,12 @@ GNUNET_HELLO_builder_add_address (struct GNUNET_HELLO_Builder *builder,
           address,
           alen);
   a->uri = (const char *) &a[1];
-  GNUNET_CONTAINER_DLL_insert_tail (builder->a_head,
-                                    builder->a_tail,
-                                    a);
+  GNUNET_CONTAINER_DLL_insert_sorted (struct Address,
+                                      cmp_address,
+                                      NULL,
+                                      builder->a_head,
+                                      builder->a_tail,
+                                      a);
   builder->a_length++;
   return GNUNET_OK;
 }
@@ -818,124 +799,6 @@ GNUNET_HELLO_parser_from_url (const char *url)
 }
 
 
-struct GNUNET_MessageHeader *
-GNUNET_HELLO_builder_to_dht_hello_msg (
-  const struct GNUNET_HELLO_Builder *builder,
-  const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
-  struct GNUNET_TIME_Relative expiration_time)
-{
-  struct DhtHelloMessage *msg;
-  size_t blen;
-
-  if (builder->a_length > UINT16_MAX)
-  {
-    GNUNET_break (0);
-    return NULL;
-  }
-  blen = 0;
-  GNUNET_assert (GNUNET_NO ==
-                 GNUNET_HELLO_builder_to_block (builder,
-                                                priv,
-                                                NULL,
-                                                &blen,
-                                                expiration_time));
-  GNUNET_assert (blen < UINT16_MAX);
-  GNUNET_assert (blen >= sizeof (struct BlockHeader));
-  {
-    char buf[blen] GNUNET_ALIGN;
-    const struct BlockHeader *block = (const struct BlockHeader *) buf;
-
-    GNUNET_assert (GNUNET_OK ==
-                   GNUNET_HELLO_builder_to_block (builder,
-                                                  priv,
-                                                  buf,
-                                                  &blen,
-                                                  expiration_time));
-    msg = GNUNET_malloc (sizeof (*msg)
-                         + blen
-                         - sizeof (*block));
-    msg->header.type = htons (GNUNET_MESSAGE_TYPE_DHT_P2P_HELLO);
-    msg->header.size = htons (sizeof (*msg)
-                              + blen
-                              - sizeof (*block));
-    memcpy (&msg[1],
-            &block[1],
-            blen - sizeof (*block));
-    msg->sig = block->sig;
-    msg->expiration_time = block->expiration_time;
-  }
-  msg->url_counter = htons ((uint16_t) builder->a_length);
-  return &msg->header;
-}
-
-
-char *
-GNUNET_HELLO_builder_to_url2 (const struct GNUNET_HELLO_Builder *builder,
-                              const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
-                              struct GNUNET_TIME_Relative validity)
-{
-  struct GNUNET_CRYPTO_EddsaSignature sig;
-  struct GNUNET_TIME_Absolute et;
-  char *result;
-  char *pids;
-  char *sigs;
-  const char *sep = "?";
-
-  et = GNUNET_TIME_relative_to_absolute (validity);
-  GNUNET_assert (NULL != priv);
-  sign_hello (builder,
-              et,
-              priv,
-              &sig);
-  pids = GNUNET_STRINGS_data_to_string_alloc (&builder->pid,
-                                              sizeof (builder->pid));
-  sigs = GNUNET_STRINGS_data_to_string_alloc (&sig,
-                                              sizeof (sig));
-  GNUNET_asprintf (&result,
-                   "gnunet://hello/%s/%s/%" PRIu64,
-                   pids,
-                   sigs,
-                   et.abs_value_us);
-  GNUNET_free (sigs);
-  GNUNET_free (pids);
-  for (struct Address *a = builder->a_head;
-       NULL != a;
-       a = a->next)
-  {
-    char *ue;
-    char *tmp;
-    int pfx_len;
-    const char *eou;
-
-    eou = strstr (a->uri,
-                  "://");
-    if (NULL == eou)
-    {
-      GNUNET_break (0);
-      GNUNET_free (result);
-      return NULL;
-    }
-    pfx_len = eou - a->uri;
-    eou += 3;
-    GNUNET_STRINGS_urlencode (a->uri_len - 4 - pfx_len,
-                              eou,
-                              &ue);
-    GNUNET_asprintf (&tmp,
-                     "%s%s%.*s=%s",
-                     result,
-                     sep,
-                     pfx_len,
-                     a->uri,
-                     ue);
-    GNUNET_free (ue);
-    GNUNET_free (result);
-    result = tmp;
-    sep = "&";
-  }
-  return result;
-}
-
-
 char *
 GNUNET_HELLO_parser_to_url (const struct GNUNET_HELLO_Parser *parser)
 {
@@ -990,69 +853,6 @@ GNUNET_HELLO_parser_to_url (const struct GNUNET_HELLO_Parser *parser)
     sep = "&";
   }
   return result;
-}
-
-
-char *
-GNUNET_HELLO_builder_to_url (const struct GNUNET_HELLO_Builder *builder,
-                             const struct GNUNET_CRYPTO_EddsaPrivateKey *priv)
-{
-  return GNUNET_HELLO_builder_to_url2 (builder, priv,
-                                       GNUNET_HELLO_ADDRESS_EXPIRATION);
-}
-
-
-enum GNUNET_GenericReturnValue
-GNUNET_HELLO_builder_to_block (const struct GNUNET_HELLO_Builder *builder,
-                               const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
-                               void *block,
-                               size_t *block_size,
-                               struct GNUNET_TIME_Relative expiration_time)
-{
-  struct BlockHeader bh;
-  size_t needed = sizeof (bh);
-  char *pos;
-  struct GNUNET_TIME_Absolute et;
-
-  GNUNET_assert (NULL != priv);
-  for (struct Address *a = builder->a_head;
-       NULL != a;
-       a = a->next)
-  {
-    GNUNET_assert (needed + a->uri_len > needed);
-    needed += a->uri_len;
-  }
-  if ( (NULL == block) ||
-       (needed < *block_size) )
-  {
-    *block_size = needed;
-    return GNUNET_NO;
-  }
-  bh.pid = builder->pid;
-  if (GNUNET_TIME_UNIT_ZERO.rel_value_us == expiration_time.rel_value_us)
-    et = GNUNET_TIME_relative_to_absolute (GNUNET_HELLO_ADDRESS_EXPIRATION);
-  else
-    et = GNUNET_TIME_relative_to_absolute (expiration_time);
-  bh.expiration_time = GNUNET_TIME_absolute_hton (et);
-  sign_hello (builder,
-              et,
-              priv,
-              &bh.sig);
-  memcpy (block,
-          &bh,
-          sizeof (bh));
-  pos = block + sizeof (bh);
-  for (struct Address *a = builder->a_head;
-       NULL != a;
-       a = a->next)
-  {
-    memcpy (pos,
-            a->uri,
-            a->uri_len);
-    pos += a->uri_len;
-  }
-  *block_size = needed;
-  return GNUNET_OK;
 }
 
 
@@ -1128,51 +928,6 @@ GNUNET_HELLO_parser_to_env (const struct GNUNET_HELLO_Parser *parser)
 }
 
 
-static struct GNUNET_MQ_Envelope *
-GNUNET_HELLO_builder_to_env_ (const struct GNUNET_HELLO_Builder *builder,
-                              const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
-                              struct GNUNET_TIME_Relative expiration_time,
-                              const struct GNUNET_CRYPTO_EddsaSignature *sig)
-{
-  struct GNUNET_MQ_Envelope *env;
-  struct HelloUriMessage *msg;
-  size_t blen;
-
-  if (builder->a_length > UINT16_MAX)
-  {
-    GNUNET_break (0);
-    return NULL;
-  }
-  blen = 0;
-  GNUNET_assert (GNUNET_NO ==
-                 GNUNET_HELLO_builder_to_block (builder,
-                                                priv,
-                                                NULL,
-                                                &blen,
-                                                expiration_time));
-  env = GNUNET_MQ_msg_extra (msg,
-                             blen,
-                             GNUNET_MESSAGE_TYPE_HELLO_URI);
-  msg->url_counter = htons ((uint16_t) builder->a_length);
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_HELLO_builder_to_block (builder,
-                                                priv,
-                                                &msg[1],
-                                                &blen,
-                                                expiration_time));
-  return env;
-}
-
-
-struct GNUNET_MQ_Envelope *
-GNUNET_HELLO_builder_to_env (const struct GNUNET_HELLO_Builder *builder,
-                             const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
-                             struct GNUNET_TIME_Relative expiration_time)
-{
-  return GNUNET_HELLO_builder_to_env_ (builder, priv, expiration_time, NULL);
-}
-
-
 enum GNUNET_GenericReturnValue
 GNUNET_HELLO_builder_del_address (struct GNUNET_HELLO_Builder *builder,
                                   const char *address)
@@ -1194,6 +949,25 @@ GNUNET_HELLO_builder_del_address (struct GNUNET_HELLO_Builder *builder,
   builder->a_length--;
   GNUNET_free (a);
   return GNUNET_OK;
+}
+
+
+void
+GNUNET_HELLO_builder_iterate (const struct GNUNET_HELLO_Builder *builder,
+                              GNUNET_HELLO_UriCallback uc,
+                              void *uc_cls)
+{
+  struct Address *nxt;
+
+  for (struct Address *a = builder->a_head;
+       NULL != a;
+       a = nxt)
+  {
+    nxt = a->next;
+    uc (uc_cls,
+        NULL,
+        a->uri);
+  }
 }
 
 
@@ -1296,42 +1070,281 @@ GNUNET_HELLO_address_to_prefix (const char *address)
 }
 
 
-/**
- * Build address record by signing raw information with private key.
- *
- * @param address text address at @a communicator to sign
- * @param nt network type of @a address
- * @param mono_time monotonic time at which @a address was valid
- * @param private_key signing key to use
- * @param[out] result where to write address record (allocated)
- * @param[out] result_size set to size of @a result
- */
-void
-GNUNET_HELLO_sign_address (
-  const char *address,
-  enum GNUNET_NetworkType nt,
-  struct GNUNET_TIME_Absolute mono_time,
-  const struct GNUNET_CRYPTO_EddsaPrivateKey *private_key,
-  void **result,
-  size_t *result_size)
+enum GNUNET_GenericReturnValue
+GNUNET_HELLO_build_url (const struct GNUNET_HELLO_Builder *builder,
+                        const struct GNUNET_PeerIdentity *pid,
+                        const struct GNUNET_CRYPTO_EddsaSignature *sig,
+                        struct GNUNET_TIME_Absolute expiration,
+                        char **result)
 {
-  struct SignedAddress sa;
-  struct GNUNET_CRYPTO_EddsaSignature sig;
-  char *sig_str;
+  char *pids;
+  char *sigs;
+  const char *sep = "?";
 
-  sa.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TRANSPORT_ADDRESS);
-  sa.purpose.size = htonl (sizeof(sa));
-  sa.mono_time = GNUNET_TIME_absolute_hton (mono_time);
-  GNUNET_CRYPTO_hash (address, strlen (address), &sa.addr_hash);
-  GNUNET_CRYPTO_eddsa_sign (private_key, &sa, &sig);
-  sig_str = NULL;
-  (void) GNUNET_STRINGS_base64_encode (&sig, sizeof(sig), &sig_str);
-  *result_size =
-    1 + GNUNET_asprintf ((char **) result,
-                         "%s;%llu;%u;%s",
-                         sig_str,
-                         (unsigned long long) mono_time.abs_value_us,
-                         (unsigned int) nt,
-                         address);
-  GNUNET_free (sig_str);
+  pids = GNUNET_STRINGS_data_to_string_alloc (pid,
+                                              sizeof (*pid));
+  sigs = GNUNET_STRINGS_data_to_string_alloc (sig,
+                                              sizeof (*sig));
+  GNUNET_asprintf (result,
+                   "gnunet://hello/%s/%s/%" PRIu64,
+                   pids,
+                   sigs,
+                   expiration.abs_value_us);
+  GNUNET_free (sigs);
+  GNUNET_free (pids);
+  for (struct Address *a = builder->a_head;
+       NULL != a;
+       a = a->next)
+  {
+    char *ue;
+    char *tmp;
+    int pfx_len;
+    const char *eou;
+
+    eou = strstr (a->uri,
+                  "://");
+    if (NULL == eou)
+    {
+      GNUNET_break (0);
+      GNUNET_free (*result);
+      return GNUNET_SYSERR;
+    }
+    pfx_len = eou - a->uri;
+    eou += 3;
+    GNUNET_STRINGS_urlencode (a->uri_len - 4 - pfx_len,
+                              eou,
+                              &ue);
+    GNUNET_asprintf (&tmp,
+                     "%s%s%.*s=%s",
+                     *result,
+                     sep,
+                     pfx_len,
+                     a->uri,
+                     ue);
+    GNUNET_free (ue);
+    GNUNET_free (*result);
+    *result = tmp;
+    sep = "&";
+  }
+  return GNUNET_OK;
+}
+
+
+void
+GNUNET_HELLO_builder_hash_addresses (const struct GNUNET_HELLO_Builder *builder,
+                                     struct GNUNET_HashCode *hash)
+{
+  hash_addresses (builder->a_head, hash);
+}
+
+
+struct GNUNET_MQ_Envelope*
+GNUNET_HELLO_builder_to_env (
+  const struct GNUNET_HELLO_Builder *builder,
+  const struct GNUNET_PeerIdentity *pid,
+  const struct GNUNET_CRYPTO_EddsaSignature *hello_sig,
+  struct GNUNET_TIME_Absolute expiration_time)
+{
+  struct GNUNET_MQ_Envelope *env;
+  struct HelloUriMessage *msg;
+  size_t blen;
+
+  if (builder->a_length > UINT16_MAX)
+  {
+    GNUNET_break (0);
+    return NULL;
+  }
+  blen = GNUNET_HELLO_get_builder_to_block_size (builder);
+  env = GNUNET_MQ_msg_extra (msg,
+                             blen,
+                             GNUNET_MESSAGE_TYPE_HELLO_URI);
+  msg->url_counter = htons ((uint16_t) builder->a_length);
+  GNUNET_HELLO_builder_to_block (builder,
+                                 pid,
+                                 hello_sig,
+                                 expiration_time,
+                                 (char*) &msg[1]);
+  return env;
+}
+
+
+struct GNUNET_MessageHeader *
+GNUNET_HELLO_parser_to_dht_hello_msg (const struct GNUNET_HELLO_Parser *parser)
+{
+  struct BlockHeader *block;
+  struct DhtHelloMessage *msg;
+  size_t block_size;
+
+
+  block_size = 0;
+  GNUNET_assert (GNUNET_NO ==
+                 GNUNET_HELLO_parser_to_block (parser,
+                                               NULL,
+                                               &block_size));
+  msg = GNUNET_malloc (sizeof (*msg)
+                       + block_size);
+  if (GNUNET_OK !=
+      GNUNET_HELLO_parser_to_block (parser,
+                                    &msg[1],
+                                    &block_size))
+  {
+    return NULL;
+  }
+  block = (struct BlockHeader*) &msg[1];
+  msg->sig = block->sig;
+  msg->expiration_time = block->expiration_time;
+  memmove (&msg[1],
+           (char*) block + sizeof (*block),
+           block_size - sizeof (*block));
+  msg->header.type = htons (GNUNET_MESSAGE_TYPE_DHT_P2P_HELLO);
+  msg->header.size = htons (sizeof (*msg)
+                            + block_size
+                            - sizeof (*block));
+  msg->url_counter = htons ((uint16_t) parser->a_length);
+  return &msg->header;
+}
+
+
+struct GNUNET_MessageHeader *
+GNUNET_HELLO_builder_to_dht_hello_msg (
+  const struct GNUNET_HELLO_Builder *builder,
+  const struct GNUNET_PeerIdentity *pid,
+  const struct GNUNET_CRYPTO_EddsaSignature *hello_sig,
+  struct GNUNET_TIME_Absolute expiration_time)
+{
+  struct BlockHeader *block;
+  struct DhtHelloMessage *msg;
+  size_t block_size;
+
+
+  block_size = GNUNET_HELLO_get_builder_to_block_size (builder);
+  msg = GNUNET_malloc (sizeof (*msg)
+                       + block_size);
+  block = (struct BlockHeader*) &msg[1];
+  GNUNET_HELLO_builder_to_block (builder,
+                                 pid,
+                                 hello_sig,
+                                 expiration_time,
+                                 (char*) &msg[1]);
+  msg->sig = block->sig;
+  msg->expiration_time = block->expiration_time;
+  memmove (&msg[1],
+           (char*) block + sizeof (*block),
+           block_size - sizeof (*block));
+  msg->header.type = htons (GNUNET_MESSAGE_TYPE_DHT_P2P_HELLO);
+  msg->header.size = htons (sizeof (*msg)
+                            + block_size
+                            - sizeof (*block));
+  msg->url_counter = htons ((uint16_t) builder->a_length);
+  return &msg->header;
+}
+
+
+void
+GNUNET_HELLO_builder_to_block (
+  const struct GNUNET_HELLO_Builder *builder,
+  const struct GNUNET_PeerIdentity *pid,
+  const struct GNUNET_CRYPTO_EddsaSignature *sig,
+  struct GNUNET_TIME_Absolute expiration_time,
+  char *block)
+{
+  struct BlockHeader bh = { 0 };
+  char *pos;
+  struct GNUNET_TIME_Absolute et;
+
+  if (NULL != pid)
+    bh.pid = *pid;
+  if (NULL != sig)
+    bh.sig = *sig;
+  if (GNUNET_TIME_UNIT_ZERO_ABS.abs_value_us == expiration_time.abs_value_us)
+    et = GNUNET_TIME_relative_to_absolute (GNUNET_HELLO_ADDRESS_EXPIRATION);
+  else
+    et = expiration_time;
+  bh.expiration_time = GNUNET_TIME_absolute_hton (et);
+  memcpy (block,
+          &bh,
+          sizeof (bh));
+  pos = block + sizeof (bh);
+  for (struct Address *a = builder->a_head; NULL != a; a = a->next)
+  {
+    memcpy (pos,
+            a->uri,
+            a->uri_len);
+    pos += a->uri_len;
+  }
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_HELLO_builder_to_url2 (const struct GNUNET_HELLO_Builder *builder,
+                              const struct GNUNET_PeerIdentity *pid,
+                              const struct GNUNET_CRYPTO_EddsaSignature *sig,
+                              struct GNUNET_TIME_Absolute validity,
+                              char **result)
+{
+  return GNUNET_HELLO_build_url (builder,
+                                 pid,
+                                 sig,
+                                 validity,
+                                 result);
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_HELLO_builder_to_url (const struct GNUNET_HELLO_Builder *builder,
+                             const struct GNUNET_PeerIdentity *pid,
+                             const struct GNUNET_CRYPTO_EddsaSignature *sig,
+                             char **result)
+{
+  struct GNUNET_TIME_Absolute et;
+
+  et = GNUNET_TIME_relative_to_absolute (GNUNET_HELLO_ADDRESS_EXPIRATION);
+
+  return GNUNET_HELLO_builder_to_url2 (builder,
+                                       pid,
+                                       sig,
+                                       et,
+                                       result);
+}
+
+
+size_t
+GNUNET_HELLO_get_builder_to_block_size (
+  const struct GNUNET_HELLO_Builder *builder)
+{
+  struct BlockHeader bh;
+  size_t needed = sizeof (bh);
+
+  for (struct Address *a = builder->a_head;
+       NULL != a;
+       a = a->next)
+  {
+    GNUNET_assert (needed + a->uri_len > needed);
+    needed += a->uri_len;
+  }
+  return needed;
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_HELLO_builder_address_list_cmp (const struct GNUNET_HELLO_Builder *
+                                       abuilder,
+                                       const struct GNUNET_HELLO_Builder *
+                                       bbuilder)
+{
+  bool found = false;
+  for (struct Address *a = abuilder->a_head; NULL != a; a = a->next)
+  {
+    for (struct Address *b = bbuilder->a_head; NULL != b; b = b->next)
+    {
+      if (0 != strcmp (b->uri, a->uri))
+        continue;
+      found = true;
+      break;
+    }
+    if (!found)
+      return GNUNET_NO;
+    found = false;
+  }
+  return GNUNET_YES;
 }

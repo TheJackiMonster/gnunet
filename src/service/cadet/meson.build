@@ -67,6 +67,7 @@ executable(
         libgnunettransportapplication_dep,
         libgnunetpeerstore_dep,
         libgnunethello_dep,
+        libgnunetpils_dep,
         libgnunetblock_dep,
     ],
     include_directories: [incdir, configuration_inc],

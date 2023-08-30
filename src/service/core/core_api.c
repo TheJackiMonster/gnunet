@@ -141,6 +141,11 @@ struct GNUNET_CORE_Handle
    * Did we ever get INIT?
    */
   int have_init;
+
+  /**
+   * Services info field for the connected service
+   */
+  struct GNUNET_CORE_ServiceInfo service_info;
 };
 
 
@@ -370,10 +375,12 @@ core_mq_error_handler (void *cls, enum GNUNET_MQ_Error error)
  *
  * @param h the core handle
  * @param peer the peer that is connecting to us
+ * @param class class of the connecting peer
  */
 static void
 connect_peer (struct GNUNET_CORE_Handle *h,
-              const struct GNUNET_PeerIdentity *peer)
+              const struct GNUNET_PeerIdentity *peer,
+              enum GNUNET_CORE_PeerClass class)
 {
   struct PeerRecord *pr;
 
@@ -395,7 +402,7 @@ connect_peer (struct GNUNET_CORE_Handle *h,
                                           pr);
   if (NULL != h->connects)
   {
-    pr->client_cls = h->connects (h->cls, &pr->peer, pr->mq);
+    pr->client_cls = h->connects (h->cls, &pr->peer, pr->mq, class);
     GNUNET_MQ_set_handlers_closure (pr->mq, pr->client_cls);
   }
 }
@@ -445,7 +452,7 @@ handle_init_reply (void *cls, const struct InitReplyMessage *m)
     }
   }
   /* fake 'connect to self' */
-  connect_peer (h, &h->me);
+  connect_peer (h, &h->me, m->class);
 }
 
 
@@ -478,7 +485,7 @@ handle_connect_notify (void *cls, const struct ConnectNotifyMessage *cnm)
     reconnect_later (h);
     return;
   }
-  connect_peer (h, &cnm->peer);
+  connect_peer (h, &cnm->peer, cnm->peer_class);
 }
 
 
@@ -693,7 +700,12 @@ GNUNET_CORE_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
                      GNUNET_CORE_StartupCallback init,
                      GNUNET_CORE_ConnectEventHandler connects,
                      GNUNET_CORE_DisconnectEventHandler disconnects,
-                     const struct GNUNET_MQ_MessageHandler *handlers)
+                     /* TODO handler for peerID change */
+                     /* TODO do we need a handler for address change? -
+                      * currently don't think so. I guess pils might be the
+                      * responsible service? */
+                     const struct GNUNET_MQ_MessageHandler *handlers,
+                     struct GNUNET_CORE_ServiceInfo *service_info)
 {
   struct GNUNET_CORE_Handle *h;
 
@@ -706,6 +718,9 @@ GNUNET_CORE_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
   h->peers = GNUNET_CONTAINER_multipeermap_create (128, GNUNET_NO);
   h->handlers = GNUNET_MQ_copy_handlers (handlers);
   h->hcnt = GNUNET_MQ_count_handlers (handlers);
+  // TODO this needs an assertion in the future:
+  // GNUNET_assert (NULL != service_info);
+  h->service_info = *service_info;
   GNUNET_assert (h->hcnt <
                  (GNUNET_MAX_MESSAGE_SIZE - sizeof(struct InitMessage))
                  / sizeof(uint16_t));

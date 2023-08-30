@@ -3141,12 +3141,14 @@ core_init (void *cls,
  *
  * @param cls closure - unused
  * @param peer peer identity this notification is about
+ * @param class class of the connecting peer
  * @return closure given to #core_disconnects as peer_cls
  */
 void *
 core_connects (void *cls,
                const struct GNUNET_PeerIdentity *peer,
-               struct GNUNET_MQ_Handle *mq)
+               struct GNUNET_MQ_Handle *mq,
+               enum GNUNET_CORE_PeerClass class)
 {
   (void) cls;
   (void) mq;
@@ -4878,6 +4880,13 @@ run (void *cls,
   long long unsigned int sampler_size;
   char hash_port_string[] = GNUNET_APPLICATION_PORT_RPS;
   struct GNUNET_HashCode hash;
+  const struct GNUNET_CORE_ServiceInfo service_info =
+  {
+    .service = GNUNET_CORE_SERVICE_RPS,
+    .version = { 1, 0 },
+    .version_max = { 1, 0 },
+    .version_min = { 1, 0 },
+  };
 
   (void) cls;
   (void) service;
@@ -4930,7 +4939,8 @@ run (void *cls,
                                      core_init, /* init */
                                      core_connects, /* connects */
                                      core_disconnects, /* disconnects */
-                                     NULL); /* handlers */
+                                     NULL,
+                                     &service_info); /* handlers */
   GNUNET_assert (NULL != core_handle);
 
 

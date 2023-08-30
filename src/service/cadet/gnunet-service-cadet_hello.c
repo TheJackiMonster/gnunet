@@ -37,6 +37,43 @@
 #define LOG(level, ...) GNUNET_log_from (level, "cadet-hll", __VA_ARGS__)
 
 /**
+ * DLL
+ */
+struct PilsRequest
+{
+  /**
+   * DLL
+   */
+  struct PilsRequest *prev;
+
+  /**
+   * DLL
+   */
+  struct PilsRequest *next;
+
+  /**
+   * The pils operation
+   */
+  struct GNUNET_PILS_Operation *op;
+
+  /**
+   * Address builder
+   */
+  struct GNUNET_HELLO_Builder *builder;
+};
+
+/**
+ * PILS Operation DLL
+ */
+static struct PilsRequest *pils_requests_head;
+
+/**
+ * PILS Operation DLL
+ */
+static struct PilsRequest *pils_requests_tail;
+
+
+/**
  * Hello message of local peer.
  */
 static struct GNUNET_MessageHeader *mine;
@@ -47,10 +84,31 @@ static struct GNUNET_MessageHeader *mine;
 static struct GNUNET_PEERSTORE_Handle *peerstore;
 
 /**
+ * Handle to the PILS service.
+ */
+static struct GNUNET_PILS_Handle *pils;
+
+/**
  * Our peerstore notification context.  We use notification
  * to instantly learn about new peers as they are discovered.
  */
 static struct GNUNET_PEERSTORE_Monitor *peerstore_notify;
+
+
+static void
+sign_hello_cb (void *cls,
+               const struct GNUNET_HELLO_Parser *parser,
+               const struct GNUNET_HashCode *hash)
+{
+
+  GNUNET_free (mine);
+  mine = GNUNET_HELLO_parser_to_dht_hello_msg (parser);
+  LOG (GNUNET_ERROR_TYPE_INFO,
+       "Received new PID information with address hash `%s'\n",
+       GNUNET_h2s (hash));
+  my_full_id = *GNUNET_HELLO_parser_get_id (parser);
+  GCD_hello_update ();
+}
 
 
 /**
@@ -67,8 +125,6 @@ got_hello (void *cls,
            const char *err_msg)
 {
   struct CadetPeer *peer;
-  struct GNUNET_HELLO_Parser *parser;
-  struct GNUNET_HELLO_Builder *builder;
   struct GNUNET_MessageHeader *hello;
 
   if (NULL == record->value)
@@ -80,15 +136,8 @@ got_hello (void *cls,
   if (0 == GNUNET_memcmp (&record->peer,
                           &my_full_id))
   {
-    GNUNET_free (mine);
-    parser = GNUNET_HELLO_parser_from_msg (hello);
-    builder = GNUNET_HELLO_builder_from_parser (parser);
-    mine = GNUNET_HELLO_builder_to_dht_hello_msg (builder,
-                                                  my_private_key,
-                                                  GNUNET_TIME_UNIT_ZERO);
-    GNUNET_HELLO_parser_free (parser);
-    GNUNET_HELLO_builder_free (builder);
-    GCD_hello_update ();
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Ignoring own HELLOs\n");
     GNUNET_PEERSTORE_monitor_next (peerstore_notify, 1);
     return;
   }
@@ -145,6 +194,9 @@ GCH_init (const struct GNUNET_CONFIGURATION_Handle *c)
                                     NULL,
                                     &got_hello,
                                     NULL);
+  pils = GNUNET_PILS_connect (c,
+                              &sign_hello_cb,
+                              NULL);
 }
 
 
@@ -154,6 +206,8 @@ GCH_init (const struct GNUNET_CONFIGURATION_Handle *c)
 void
 GCH_shutdown ()
 {
+  struct PilsRequest *pr;
+
   if (NULL != peerstore_notify)
   {
     GNUNET_PEERSTORE_monitor_stop (peerstore_notify);
@@ -163,6 +217,22 @@ GCH_shutdown ()
   {
     GNUNET_PEERSTORE_disconnect (peerstore);
     peerstore = NULL;
+  }
+  while (NULL != (pr = pils_requests_head))
+  {
+    GNUNET_CONTAINER_DLL_remove (pils_requests_head,
+                                 pils_requests_tail,
+                                 pr);
+    if (NULL != pr->op)
+      GNUNET_PILS_cancel (pr->op);
+    if (NULL != pr->builder)
+      GNUNET_HELLO_builder_free (pr->builder);
+    GNUNET_free (pr);
+  }
+  if (NULL != pils)
+  {
+    GNUNET_PILS_disconnect (pils);
+    pils = NULL;
   }
   if (NULL != mine)
   {
@@ -177,19 +247,9 @@ GCH_shutdown ()
  *
  * @return Own hello message.
  */
-const struct GNUNET_MessageHeader *
-GCH_get_mine (void)
+struct GNUNET_MessageHeader*
+GCH_get_mine ()
 {
-  struct GNUNET_HELLO_Builder *builder;
-
-  if (NULL == mine)
-  {
-    builder = GNUNET_HELLO_builder_new (&my_full_id);
-    mine = GNUNET_HELLO_builder_to_dht_hello_msg (builder,
-                                                  my_private_key,
-                                                  GNUNET_TIME_UNIT_ZERO);
-    GNUNET_HELLO_builder_free (builder);
-  }
   return mine;
 }
 

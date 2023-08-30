@@ -391,45 +391,41 @@ extern "C" {
  */
 #define GNUNET_MESSAGE_TYPE_CORE_MONITOR_NOTIFY 79
 
-/**
- * Encapsulation for an encrypted message between peers.
- */
-#define GNUNET_MESSAGE_TYPE_CORE_ENCRYPTED_MESSAGE 82
 
 /**
- * Check that other peer is alive (challenge).
+ * for more detail on the following messages see https://lsd.gnunet.org/lsd0012/draft-schanzen-cake.html
  */
-#define GNUNET_MESSAGE_TYPE_CORE_PING 83
 
 /**
- * Confirmation that other peer is alive.
+ * First message of the handshake - sent by the initiator
  */
-#define GNUNET_MESSAGE_TYPE_CORE_PONG 84
+#define GNUNET_MESSAGE_TYPE_CORE_INITIATOR_HELLO 80
 
 /**
- * Request by the other peer to terminate the connection.
+ * Reply to the first message from the initiator - first message sent by the
+ * responder
  */
-#define GNUNET_MESSAGE_TYPE_CORE_HANGUP 85
+#define GNUNET_MESSAGE_TYPE_CORE_RESPONDER_HELLO 81
 
 /**
- * gzip-compressed type map of the sender
+ * Third and final message of the handshake, second of the initiator
  */
-#define GNUNET_MESSAGE_TYPE_CORE_COMPRESSED_TYPE_MAP 86
+#define GNUNET_MESSAGE_TYPE_CORE_INITIATOR_DONE 82
 
 /**
- * uncompressed type map of the sender
+ * Encrypted message
  */
-#define GNUNET_MESSAGE_TYPE_CORE_BINARY_TYPE_MAP 87
+#define GNUNET_MESSAGE_TYPE_CORE_ENCRYPTED_MESSAGE_CAKE 83 // TODO rename
 
 /**
- * Session key exchange between peers.
+ * Message updating the keys of the peers
  */
-#define GNUNET_MESSAGE_TYPE_CORE_EPHEMERAL_KEY 88
+#define GNUNET_MESSAGE_TYPE_CORE_KEY_UPDATE 84
 
 /**
- * Other peer confirms having received the type map
+ * Acknowledgement of prior messages
  */
-#define GNUNET_MESSAGE_TYPE_CORE_CONFIRM_TYPE_MAP 89
+#define GNUNET_MESSAGE_TYPE_CORE_ACK 85
 
 
 /*******************************************************************************
@@ -3661,6 +3657,64 @@ extern "C" {
  */
 #define GNUNET_TYPE_BURST_SYNC 1801
 
+
+/*********************************************************************************/
+/*********************************  CORE (cont.)  ********************************/
+/*********************************************************************************/
+/* CORE: message types 1811-1830
+ */
+
+/**
+ * Message exchanged between peers for burst synchronisation.
+ */
+#define GNUNET_MESSAGE_TYPE_CORE_PEER_ID 1811
+
+
+
+/*********************************************************************************/
+/*************************************  PILS  ************************************/
+/*********************************************************************************/
+/* PILS: message types 1830-1850
+ */
+
+/**
+ * Message passing the new peer id from the service to the client.
+ */
+#define GNUNET_MESSAGE_TYPE_PILS_PEER_ID 1831
+
+/**
+ * The client requests data to be signed with the peer identity.
+ */
+#define GNUNET_MESSAGE_TYPE_PILS_SIGN_REQUEST 1832
+
+/**
+ * The service sends the requested signature to the client.
+ */
+#define GNUNET_MESSAGE_TYPE_PILS_SIGN_RESULT 1833
+
+/**
+ * The client (core) provides new addresses to the service,
+ * so the service can generate the new peer id.
+ * (The client does not pass the actual addresses, but rather their hash.)
+ */
+#define GNUNET_MESSAGE_TYPE_PILS_FEED_ADDRESSES 1834
+
+/**
+ * Decaps request.
+ */
+#define GNUNET_MESSAGE_TYPE_PILS_KEM_DECAPS 1835
+
+/**
+ * Decaps result.
+ */
+#define GNUNET_MESSAGE_TYPE_PILS_DECAPS_RESULT 1836
+
+
+/*********************************************************************************/
+/*************************************  FREE  ************************************/
+/*********************************************************************************/
+/* message types 1850-65534
+ */
 
 /**
  * Type used to match 'all' message types.

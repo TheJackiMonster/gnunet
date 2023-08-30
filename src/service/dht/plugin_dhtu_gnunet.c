@@ -327,13 +327,15 @@ gnunet_send (void *cls,
  *
  * @param cls closure
  * @param peer peer identity this notification is about
+ * @param class class of the connecting peer
  * @return closure associated with @a peer. given to mq callbacks and
  *         #GNUNET_CORE_DisconnectEventHandler
  */
 static void *
 core_connect_cb (void *cls,
                  const struct GNUNET_PeerIdentity *peer,
-                 struct GNUNET_MQ_Handle *mq)
+                 struct GNUNET_MQ_Handle *mq,
+                 enum GNUNET_CORE_PeerClass class)
 {
   struct Plugin *plugin = cls;
   struct GNUNET_DHTU_Target *target;
@@ -592,6 +594,13 @@ DHTU_gnunet_init (struct GNUNET_DHTU_PluginEnvironment *env)
                            NULL),
     GNUNET_MQ_handler_end ()
   };
+  const struct GNUNET_CORE_ServiceInfo service_info =
+  {
+    .service = GNUNET_CORE_SERVICE_DHT,
+    .version = { 1, 0 },
+    .version_max = { 1, 0 },
+    .version_min = { 1, 0 },
+  };
 
   plugin = GNUNET_new (struct Plugin);
   plugin->my_priv = GNUNET_CRYPTO_eddsa_key_create_from_configuration (
@@ -610,7 +619,8 @@ DHTU_gnunet_init (struct GNUNET_DHTU_PluginEnvironment *env)
                                       &core_init_cb,
                                       &core_connect_cb,
                                       &core_disconnect_cb,
-                                      handlers);
+                                      handlers,
+                                      &service_info);
   plugin->nse = GNUNET_NSE_connect (env->cfg,
                                     &nse_cb,
                                     plugin);

@@ -5,6 +5,7 @@ executable(
     dependencies: [
         libgnunetutil_dep,
         libgnunethello_dep,
+        libgnunetpils_dep,
         libgnunetpeerstore_dep,
     ],
     include_directories: [incdir, configuration_inc],

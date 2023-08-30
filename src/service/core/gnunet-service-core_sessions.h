@@ -38,30 +38,20 @@
  */
 void
 GSC_SESSIONS_create (const struct GNUNET_PeerIdentity *peer,
-                     struct GSC_KeyExchangeInfo *kx);
+                     struct GSC_KeyExchangeInfo *kx,
+                     enum GNUNET_CORE_PeerClass class);
 
 
 /**
  * The other peer has indicated that it 'lost' the session
  * (KX down), reinitialize the session on our end, in particular
  * this means to restart the typemap transmission.
+ * XXX the typemap does not exist anymore
  *
  * @param peer peer that is now connected
  */
 void
 GSC_SESSIONS_reinit (const struct GNUNET_PeerIdentity *peer);
-
-
-/**
- * The other peer has confirmed receiving our type map,
- * check if it is current and if so, stop retransmitting it.
- *
- * @param peer peer that confirmed the type map
- * @param msg confirmation message we received
- */
-void
-GSC_SESSIONS_confirm_typemap (const struct GNUNET_PeerIdentity *peer,
-                              const struct GNUNET_MessageHeader *msg);
 
 
 /**
@@ -123,47 +113,12 @@ GSC_SESSIONS_transmit (struct GSC_ClientActiveRequest *car,
 
 
 /**
- * Broadcast an updated typemap message to all neighbours.
- * Restarts the retransmissions until the typemaps are confirmed.
- *
- * @param msg message to transmit
- */
-void
-GSC_SESSIONS_broadcast_typemap (const struct GNUNET_MessageHeader *msg);
-
-
-/**
  * We have a new client, notify it about all current sessions.
  *
  * @param client the new client
  */
 void
 GSC_SESSIONS_notify_client_about_sessions (struct GSC_Client *client);
-
-
-/**
- * We've received a typemap message from a peer, update ours.
- * Notifies clients about the session.
- *
- * @param peer peer this is about
- * @param msg typemap update message
- */
-void
-GSC_SESSIONS_set_typemap (const struct GNUNET_PeerIdentity *peer,
-                          const struct GNUNET_MessageHeader *msg);
-
-
-/**
- * The given peer send a message of the specified type.  Make sure the
- * respective bit is set in its type-map and that clients are notified
- * about the session.
- *
- * @param peer peer this is about
- * @param type type of the message
- */
-void
-GSC_SESSIONS_add_to_typemap (const struct GNUNET_PeerIdentity *peer,
-                             uint16_t type);
 
 
 /**

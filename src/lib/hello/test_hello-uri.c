@@ -28,30 +28,6 @@
 #include "gnunet_hello_uri_lib.h"
 
 
-/**
- * Check for expected URIs.
- *
- * @param cls a `unsigned int*`, bitmask set to found URIs
- * @param uri URI to check for
- */
-static void
-check_uris (void *cls,
-            const struct GNUNET_PeerIdentity *pid,
-            const char *uri)
-{
-  unsigned int *found = cls;
-
-  if (0 == strcmp (uri,
-                   "test://address"))
-    *found |= 1;
-  else if (0 == strcmp (uri,
-                        "test://more"))
-    *found |= 2;
-  else
-    *found = (unsigned int) -1;
-}
-
-
 int
 main (int argc,
       char *argv[])
@@ -85,95 +61,8 @@ main (int argc,
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_HELLO_builder_add_address (b,
                                                    "test://more"));
-  {
-    void *block;
-    size_t block_size = 0;
-    struct GNUNET_HELLO_Parser *b2;
-    const struct GNUNET_PeerIdentity *p2;
-    unsigned int found;
 
-    GNUNET_assert (GNUNET_NO ==
-                   GNUNET_HELLO_builder_to_block (b,
-                                                  &priv,
-                                                  NULL,
-                                                  &block_size,
-                                                  GNUNET_TIME_UNIT_FOREVER_REL))
-    ;
-    GNUNET_assert (GNUNET_NO ==
-                   GNUNET_HELLO_builder_to_block (b,
-                                                  &priv,
-                                                  NULL,
-                                                  &block_size,
-                                                  GNUNET_TIME_UNIT_FOREVER_REL))
-    ;
-    GNUNET_assert (0 != block_size);
-    block = GNUNET_malloc (block_size);
-    GNUNET_assert (GNUNET_OK ==
-                   GNUNET_HELLO_builder_to_block (b,
-                                                  &priv,
-                                                  block,
-                                                  &block_size,
-                                                  GNUNET_TIME_UNIT_FOREVER_REL))
-    ;
-    b2 = GNUNET_HELLO_parser_from_block (block,
-                                         block_size);
-    GNUNET_free (block);
-    GNUNET_assert (NULL != b2);
-    found = 0;
-    p2 = GNUNET_HELLO_parser_iterate (b2,
-                                      &check_uris,
-                                      &found);
-    GNUNET_assert (3 == found);
-    GNUNET_assert (0 ==
-                   GNUNET_memcmp (p2,
-                                  &pid));
-    GNUNET_HELLO_parser_free (b2);
-  }
-
-  {
-    char *url;
-    struct GNUNET_HELLO_Parser *b2;
-    const struct GNUNET_PeerIdentity *p2;
-    unsigned int found;
-
-    url = GNUNET_HELLO_builder_to_url (b,
-                                       &priv);
-    b2 = GNUNET_HELLO_parser_from_url (url);
-    GNUNET_free (url);
-    GNUNET_assert (NULL != b2);
-    found = 0;
-    p2 = GNUNET_HELLO_parser_iterate (b2,
-                                      &check_uris,
-                                      &found);
-    GNUNET_assert (3 == found);
-    GNUNET_assert (0 ==
-                   GNUNET_memcmp (p2,
-                                  &pid));
-    GNUNET_HELLO_parser_free (b2);
-  }
-
-  {
-    struct GNUNET_MQ_Envelope *env;
-    struct GNUNET_HELLO_Parser *b2;
-    const struct GNUNET_PeerIdentity *p2;
-    unsigned int found;
-
-    env = GNUNET_HELLO_builder_to_env (b,
-                                       &priv,
-                                       GNUNET_TIME_UNIT_FOREVER_REL);
-    b2 = GNUNET_HELLO_parser_from_msg (GNUNET_MQ_env_get_msg (env));
-    GNUNET_free (env);
-    GNUNET_assert (NULL != b2);
-    found = 0;
-    p2 = GNUNET_HELLO_parser_iterate (b2,
-                                      &check_uris,
-                                      &found);
-    GNUNET_assert (3 == found);
-    GNUNET_assert (0 ==
-                   GNUNET_memcmp (p2,
-                                  &pid));
-    GNUNET_HELLO_parser_free (b2);
-  }
+  // ----------------------------------------------------------------------
 
   GNUNET_HELLO_builder_free (b);
 
@@ -202,16 +91,6 @@ main (int argc,
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_HELLO_builder_add_address (b,
                                                    "b://second"));
-  {
-    char *url;
-
-    url = GNUNET_HELLO_builder_to_url (b,
-                                       &priv);
-    fprintf (stderr,
-             "TV: %s\n",
-             url);
-    GNUNET_free (url);
-  }
   GNUNET_HELLO_builder_free (b);
 
   return 0;

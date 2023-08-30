@@ -30,6 +30,11 @@
 #include "gnunet_testing_lib.h"
 
 
+#define MTYPE 12345
+
+#define NODE_ID_LEN 16
+
+
 /**
  * Struct to store information needed in callbacks.
  */
@@ -121,6 +126,81 @@ struct GNUNET_TESTING_ConnectPeersState
 };
 
 
+struct GNUNET_TESTING_CORE_ConnectState;
+
+
+struct GNUNET_TESTING_CORE_Channel
+{
+  struct GNUNET_TESTING_CORE_Channel *next;
+  struct GNUNET_TESTING_CORE_Channel *prev;
+  struct GNUNET_TESTING_CORE_ConnectState *connect_state;
+  struct GNUNET_MQ_Handle *mq;
+  struct GNUNET_PeerIdentity peer_id;
+};
+
+
+struct GNUNET_TESTING_CORE_Message
+{
+  struct GNUNET_MessageHeader header;
+  // The following will be used for debugging
+  uint64_t id; // id of the message
+  uint64_t batch; // first batch of that peer (for this test 0 or 1)
+  //uint64_t peer; // number of sending peer (for this test 0 or 1)
+  char node_id[NODE_ID_LEN];
+};
+
+
+typedef void *
+(*GNUNET_TESTING_CORE_connect_cb) (
+  void *cls,
+  const struct GNUNET_PeerIdentity *peer_id,
+  struct GNUNET_MQ_Handle *mq);
+
+
+struct GNUNET_TESTING_CORE_ConnectCb
+{
+  GNUNET_TESTING_CORE_connect_cb callback;
+  void *cls;
+};
+
+
+typedef void
+(*GNUNET_TESTING_CORE_handle_msg)(
+  void *cls,
+  struct GNUNET_TESTING_CORE_Channel *channel,
+  const struct GNUNET_TESTING_CORE_Message *msg);
+
+
+struct GNUNET_TESTING_CORE_ConnectState
+{
+  struct GNUNET_CORE_Handle *h;
+  const char* node_id;
+  struct GNUNET_PeerIdentity peer_id;
+  char *arm_service_label;
+  const struct GNUNET_CONFIGURATION_Handle *cfg;
+  enum GNUNET_GenericReturnValue finished;
+
+  /**
+   * Receive callback
+   */
+  GNUNET_TESTING_CORE_handle_msg *recv_handlers;
+  uint32_t recv_handlers_len;
+  void *recv_handlers_cls;
+
+  /**
+   * Connect callback
+   * TODO we probably only need a single one.
+   */
+  struct GNUNET_TESTING_CORE_ConnectCb *connect_cbs;
+  uint32_t connect_cbs_len;
+
+  struct GNUNET_TESTING_CORE_Channel *channels_head;
+  struct GNUNET_TESTING_CORE_Channel *channels_tail;
+
+  struct GNUNET_TESTING_AsyncContext ac;
+};
+
+
 /**
  * FIXME: document properly!
  * Create command
@@ -144,13 +224,34 @@ GNUNET_CORE_cmd_connect_peers (
   unsigned int wait_for_connect,
   struct GNUNET_MQ_MessageHandler *handlers);
 
+const struct GNUNET_TESTING_Command
+GNUNET_TESTING_CORE_cmd_connect (
+  const char *label,
+  const char* node_id,
+  char *arm_service_label);
+
+
+const struct GNUNET_TESTING_Command
+GNUNET_TESTING_CORE_cmd_recv (
+  const char *label,
+  uint64_t num_messages);
+
+
+const struct GNUNET_TESTING_Command
+GNUNET_TESTING_CORE_cmd_send (
+  const char *label,
+  uint64_t num_messages,
+  enum GNUNET_GenericReturnValue await_new_connection);
+
 
 /**
  * Call #op on all simple traits.
  */
 #define GNUNET_CORE_TESTING_SIMPLE_TRAITS(op, prefix)   \
         op (prefix, connect_peer_state, const struct \
-            GNUNET_TESTING_ConnectPeersState)
+            GNUNET_TESTING_ConnectPeersState) \
+        op (prefix, connect, const struct \
+            GNUNET_TESTING_CORE_ConnectState)
 
 GNUNET_CORE_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT,
                                    GNUNET_CORE_TESTING)

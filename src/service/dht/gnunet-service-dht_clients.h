@@ -32,6 +32,7 @@
 #include "gnunet_constants.h"
 #include "gnunet_protocols.h"
 #include "gnunet_hello_uri_lib.h"
+#include "gnunet_pils_service.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet-service-dht.h"
 #include "gnunet-service-dht_datacache.h"

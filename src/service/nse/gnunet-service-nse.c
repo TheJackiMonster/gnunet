@@ -38,10 +38,12 @@
 #include "platform.h"
 #include <math.h>
 #include "gnunet_util_lib.h"
+#include "gnunet_hello_uri_lib.h"
 #include "gnunet_protocols.h"
 #include "gnunet_signatures.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_core_service.h"
+#include "gnunet_pils_service.h"
 #if ENABLE_NSE_HISTOGRAM
 #include "gnunet_testbed_logger_service.h"
 #endif
@@ -70,8 +72,8 @@
  * required. Corking OK.
  */
 #define NSE_PRIORITY                                       \
-  (GNUNET_MQ_PRIO_BACKGROUND | GNUNET_MQ_PREF_UNRELIABLE   \
-   | GNUNET_MQ_PREF_CORK_ALLOWED)
+        (GNUNET_MQ_PRIO_BACKGROUND | GNUNET_MQ_PREF_UNRELIABLE   \
+         | GNUNET_MQ_PREF_CORK_ALLOWED)
 
 #ifdef BSD
 #define log2(a) (log (a) / log (2))
@@ -136,6 +138,16 @@ struct NSEPeerEntry
    * Task scheduled to send message to this peer.
    */
   struct GNUNET_SCHEDULER_Task *transmit_task;
+
+  /**
+   * Message to be sent
+   */
+  uint32_t next_index_to_send;
+
+  /**
+   * PILS Operation
+   */
+  struct GNUNET_PILS_Operation *pils_op;
 
   /**
    * Did we receive or send a message about the previous round
@@ -226,6 +238,11 @@ static const struct GNUNET_CONFIGURATION_Handle *cfg;
  * Handle to the statistics service.
  */
 static struct GNUNET_STATISTICS_Handle *stats;
+
+/**
+ * Handle to the PILS service.
+ */
+static struct GNUNET_PILS_Handle *pils;
 
 /**
  * Handle to the core service.
@@ -569,6 +586,22 @@ get_transmit_delay (int round_offset)
   return GNUNET_TIME_UNIT_FOREVER_REL;
 }
 
+static void
+sign_message_before_send_cb (void *cls,
+                             const struct GNUNET_PeerIdentity *pid,
+                             const struct GNUNET_CRYPTO_EddsaSignature *sig)
+{
+  struct NSEPeerEntry *pe = cls;
+  struct GNUNET_MQ_Envelope *env;
+  struct GNUNET_NSE_FloodMessage *fm;
+
+  pe->pils_op = NULL;
+  fm = &size_estimate_messages[pe->next_index_to_send];
+  fm->signature = *sig;
+  env = GNUNET_MQ_msg_copy (&fm->header);
+  GNUNET_MQ_send (pe->mq, env);
+}
+
 
 /**
  * Task that triggers a NSE P2P transmission.
@@ -580,7 +613,6 @@ transmit_task_cb (void *cls)
 {
   struct NSEPeerEntry *peer_entry = cls;
   unsigned int idx;
-  struct GNUNET_MQ_Envelope *env;
 
   peer_entry->transmit_task = NULL;
   idx = estimate_index;
@@ -628,9 +660,14 @@ transmit_task_cb (void *cls)
   peer_entry->last_transmitted_size =
     ntohl (size_estimate_messages[idx].matching_bits);
 #endif
-  env = GNUNET_MQ_msg_copy (&size_estimate_messages[idx].header);
-  GNUNET_MQ_send (peer_entry->mq, env);
+  peer_entry->next_index_to_send = idx;
+  peer_entry->pils_op = GNUNET_PILS_sign_by_peer_identity (
+    pils,
+    &size_estimate_messages[idx].purpose,
+    &sign_message_before_send_cb,
+    peer_entry);
 }
+
 
 
 /**
@@ -676,13 +713,16 @@ setup_flood_message (unsigned int slot, struct GNUNET_TIME_Absolute ts)
   fm->timestamp = GNUNET_TIME_absolute_hton (ts);
   fm->origin = my_identity;
   fm->proof_of_work = my_proof;
-  if (nse_work_required > 0)
+  /* FIXME: We now sign asyncronuously later per sent message because
+   * of PILS. This is probably inefficient. But it may also cause race
+   * conditions wrt the signature (?)
+   * if (nse_work_required > 0)
     GNUNET_assert (GNUNET_OK ==
                    GNUNET_CRYPTO_eddsa_sign_ (my_private_key,
                                               &fm->purpose,
                                               &fm->signature));
   else
-    memset (&fm->signature, 0, sizeof(fm->signature));
+    memset (&fm->signature, 0, sizeof(fm->signature));*/
 }
 
 
@@ -1158,11 +1198,13 @@ handle_p2p_estimate (void *cls,
  *
  * @param cls closure
  * @param peer peer identity this notification is about
+ * @param class class of the connecting peer
  */
 static void *
 handle_core_connect (void *cls,
                      const struct GNUNET_PeerIdentity *peer,
-                     struct GNUNET_MQ_Handle *mq)
+                     struct GNUNET_MQ_Handle *mq,
+                     enum GNUNET_CORE_PeerClass class)
 {
   struct NSEPeerEntry *peer_entry;
 
@@ -1288,6 +1330,11 @@ shutdown_task (void *cls)
     GNUNET_free (my_private_key);
     my_private_key = NULL;
   }
+  if (NULL != pils)
+  {
+    GNUNET_PILS_disconnect (pils);
+    pils = NULL;
+  }
 #if ENABLE_NSE_HISTOGRAM
   if (NULL != logger_test)
   {
@@ -1307,19 +1354,12 @@ shutdown_task (void *cls)
 }
 
 
-/**
- * Called on core init/fail.
- *
- * @param cls service closure
- * @param identity the public identity of this peer
- */
 static void
-core_init (void *cls, const struct GNUNET_PeerIdentity *identity)
+identity_changed (const struct GNUNET_PeerIdentity *identity)
 {
   struct GNUNET_TIME_Absolute now;
   struct GNUNET_TIME_Absolute prev_time;
 
-  (void) cls;
   if (NULL == identity)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Connection to core FAILED!\n");
@@ -1344,8 +1384,34 @@ core_init (void *cls, const struct GNUNET_PeerIdentity *identity)
     setup_flood_message (estimate_index, current_timestamp);
     estimate_count++;
   }
+  if (NULL != flood_task)
+    GNUNET_SCHEDULER_cancel (flood_task);
   flood_task =
     GNUNET_SCHEDULER_add_at (next_timestamp, &update_flood_message, NULL);
+}
+
+
+static void
+pils_id_change_cb (void *cls,
+                   const struct GNUNET_HELLO_Parser *parser,
+                   const struct GNUNET_HashCode *addr_hash)
+{
+  my_identity = *GNUNET_HELLO_parser_get_id (parser);
+  identity_changed (&my_identity);
+}
+
+
+/**
+ * Called on core init/fail.
+ *
+ * @param cls service closure
+ * @param identity the public identity of this peer
+ */
+static void
+core_init (void *cls, const struct GNUNET_PeerIdentity *identity)
+{
+  (void) cls;
+  identity_changed (identity);
 }
 
 
@@ -1400,6 +1466,13 @@ run (void *cls,
     GNUNET_MQ_handler_end () };
   char *proof;
   struct GNUNET_CRYPTO_EddsaPrivateKey *pk;
+  const struct GNUNET_CORE_ServiceInfo service_info =
+  {
+    .service = GNUNET_CORE_SERVICE_NSE,
+    .version = { 1, 0 },
+    .version_max = { 1, 0 },
+    .version_min = { 1, 0 },
+  };
 
   (void) cls;
   (void) service;
@@ -1502,9 +1575,17 @@ run (void *cls,
                          &core_init, /* Call core_init once connected */
                          &handle_core_connect, /* Handle connects */
                          &handle_core_disconnect, /* Handle disconnects */
-                         core_handlers); /* Register these handlers */
+                         core_handlers, /* Register these handlers */
+                         &service_info );
   if (NULL == core_api)
   {
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
+  pils = GNUNET_PILS_connect (cfg, &pils_id_change_cb, NULL);
+  if (NULL == pils)
+  {
+    GNUNET_break (0);
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
@@ -1551,7 +1632,7 @@ client_disconnect_cb (void *cls,
 /**
  * Define "main" method using service macro.
  */
-GNUNET_SERVICE_MAIN (GNUNET_OS_project_data_gnunet(),
+GNUNET_SERVICE_MAIN (GNUNET_OS_project_data_gnunet (),
                      "nse",
                      GNUNET_SERVICE_OPTION_NONE,
                      &run,

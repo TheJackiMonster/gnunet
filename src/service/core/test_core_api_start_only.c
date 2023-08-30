@@ -48,11 +48,20 @@ static struct GNUNET_SCHEDULER_Task *timeout_task_id;
 
 static int ok;
 
+struct GNUNET_CORE_ServiceInfo service_info =
+{
+  .service = GNUNET_CORE_SERVICE_TEST,
+  .version = { 1, 0 },
+  .version_max = { 1, 0 },
+  .version_min = { 1, 0 },
+};
+
 
 static void *
 connect_notify (void *cls,
                 const struct GNUNET_PeerIdentity *peer,
-                struct GNUNET_MQ_Handle *mq)
+                struct GNUNET_MQ_Handle *mq,
+                enum GNUNET_CORE_PeerClass class)
 {
   return NULL;
 }
@@ -96,7 +105,8 @@ init_notify (void *cls,
                                  &init_notify,
                                  &connect_notify,
                                  &disconnect_notify,
-                                 handlers);
+                                 handlers,
+                                 &service_info);
   }
   else
   {
@@ -174,7 +184,8 @@ run (void *cls,
                                &init_notify,
                                &connect_notify,
                                &disconnect_notify,
-                               handlers);
+                               handlers,
+                               &service_info);
 }
 
 

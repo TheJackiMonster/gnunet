@@ -26,6 +26,32 @@
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
+#include <sodium.h>
+
+static void
+perfHashS ()
+{
+  struct GNUNET_HashCode hc;
+  unsigned int i;
+  char buf[64 * 1024];
+
+  memset (buf, 1, sizeof(buf));
+  for (i = 0; i < 1024; i++)
+    crypto_generichash_blake2b(&hc, sizeof hc, buf, sizeof buf, NULL, 0);
+}
+
+
+static void
+perfHashSmallS ()
+{
+  struct GNUNET_HashCode hc;
+  unsigned int i;
+  char buf[64];
+
+  memset (buf, 1, sizeof(buf));
+  for (i = 0; i < 1024; i++)
+    crypto_generichash_blake2b(&hc, sizeof hc, buf, sizeof buf, NULL, 0);
+}
 
 
 static void
@@ -78,6 +104,19 @@ main (int argc, char *argv[])
 {
   struct GNUNET_TIME_Absolute start;
 
+  start = GNUNET_TIME_absolute_get ();
+  perfHashSmallS ();
+  printf ("S 1024x 64-byte Hash perf took %s\n",
+          GNUNET_STRINGS_relative_time_to_string (
+            GNUNET_TIME_absolute_get_duration (start),
+            GNUNET_YES));
+
+  start = GNUNET_TIME_absolute_get ();
+  perfHashS ();
+  printf ("S 1024x 64k Hash perf took %s\n",
+          GNUNET_STRINGS_relative_time_to_string (
+            GNUNET_TIME_absolute_get_duration (start),
+            GNUNET_YES));
   start = GNUNET_TIME_absolute_get ();
   perfHashSmall ();
   printf ("1024x 64-byte Hash perf took %s\n",

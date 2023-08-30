@@ -76,6 +76,7 @@ struct StartMessage
    * Identity we think we have.  If it does not match, the
    * receiver should print out an error message and disconnect.
    */
+  // TODO remove
   struct GNUNET_PeerIdentity self;
 };
 

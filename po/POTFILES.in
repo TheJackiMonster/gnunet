@@ -283,7 +283,12 @@ src/service/core/gnunet-service-core.c
 src/service/core/gnunet-service-core_kx.c
 src/service/core/gnunet-service-core_sessions.c
 src/service/core/gnunet-service-core_typemap.c
+src/service/core/gnunet_core_underlay_dummy.c
+src/service/core/testing_core_cmd_connect.c
 src/service/core/testing_core_cmd_connecting_peers.c
+src/service/core/testing_core_cmd_recv.c
+src/service/core/testing_core_cmd_send.c
+src/service/core/testing_core_traits.c
 src/service/datacache/datacache.c
 src/service/datastore/datastore_api.c
 src/service/datastore/gnunet-service-datastore.c
@@ -422,6 +427,8 @@ src/service/peerstore/gnunet-service-peerstore.c
 src/service/peerstore/peerstore_api.c
 src/service/peerstore/peerstore_api_monitor.c
 src/service/peerstore/peerstore_common.c
+src/service/pils/gnunet-service-pils.c
+src/service/pils/pils_api.c
 src/service/pt/gnunet-daemon-pt.c
 src/service/reclaim/did_core.c
 src/service/reclaim/did_helper.c

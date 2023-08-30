@@ -47,6 +47,175 @@ extern "C" {
 #include "gnunet_util_lib.h"
 
 /**
+ * Size of the services info field in the cake handshake
+ * TODO
+ */
+#define GNUNET_CORE_SVC_INFO_LEN 64
+
+/**
+ * The peer class gives a hint about the capabilities of a peer. The general
+ * idea is to signal capabilities like connectivity/bandwidth, computational
+ * and storage capabilities and stability in the network.
+ *
+ * TODO
+ *  - this might move out of core to a more generic place
+ *  - for now it is static, but it could in the future also include more
+ *    detailed and dynamic attributes like 'battery-bound', 'behind more
+ *    expensive mobile-bandwidth-connection', ...
+ *  - it is only a general idea and it needs to be seen in the future how this
+ *    will be used. With it's usage it will probably evolve into whatever seems
+ *    to be useful
+ */
+enum GNUNET_CORE_PeerClass
+{
+  /**
+   * The device's capabilities are currently unknown.
+   */
+  GNUNET_CORE_CLASS_UNKNOWN,
+
+  /**
+   * This device is currently unwilling to spend more then the absolutely
+   * necessary ressources.
+   */
+  GNUNET_CORE_CLASS_UNWILLING,
+
+  /**
+   * This is a mobile device. A smartphone or laptop. Could be battery bound,
+   * could be behind a costly mobile broadband connection.
+   */
+  GNUNET_CORE_CLASS_MOBILE,
+
+  /**
+   * This is a desktop computer. Probably on continuous power supply and a
+   * decent, rather stable internet connection. Probably not online 24/7.
+   * Probably behind NAT.
+   */
+  GNUNET_CORE_CLASS_DESKTOP,
+
+  /**
+   * This is a piece of network infrastructure. General computational and
+   * storage capabilities not overly high. Good placement in a network.
+   * Probably online 24/7
+   */
+  GNUNET_CORE_CLASS_ROUTER,
+
+  /**
+   * This is something like a server. Has good computational and storage
+   * capabilities. Has a stable connection with decent bandwidth. Is online
+   * 24/7. Might not be behind NAT.
+   */
+  GNUNET_CORE_CLASS_SERVER
+};
+
+
+/**
+ * Identifiers for services that communicate over CORE.
+ */
+enum GNUNET_CORE_Service
+{
+  /**
+   * Identifier for cadet service
+   */
+  GNUNET_CORE_SERVICE_CADET,
+
+  /**
+   * Identifier for fs (file sharing) service
+   */
+  GNUNET_CORE_SERVICE_FS,
+
+  /**
+   * Identifier for dht (distributed hash table) service
+   */
+  GNUNET_CORE_SERVICE_DHT,
+
+  /**
+   * Identifier for nse (network size estimation) service
+   */
+  GNUNET_CORE_SERVICE_NSE,
+
+  /**
+   * Identifier for revocation service
+   */
+  GNUNET_CORE_SERVICE_REVOCATION,
+
+  /**
+   * Identifier for hostlist service
+   */
+  GNUNET_CORE_SERVICE_HOSTLIST,
+
+  /**
+   * Identifier for topology service
+   */
+  GNUNET_CORE_SERVICE_TOPOLOGY,
+
+  /**
+   * Identifier for rps (random peer sampling) service
+   */
+  GNUNET_CORE_SERVICE_RPS,
+
+  // Note: Services using core need to define their own Identifier here
+
+  /**
+   * Identifier for testing the api
+   */
+  GNUNET_CORE_SERVICE_TEST
+};
+
+/**
+ * A gnunet service version for services above CORE
+ * TODO we might want to be compatible with https://semver.org
+ */
+struct GNUNET_CORE_ServiceVersion
+{
+  /**
+   * Major version number
+   */
+  uint32_t major;
+
+  /**
+   * Minor version number
+   */
+  uint32_t minor;
+
+  /**
+   * Patch level
+   * Will probably not be needed
+   */
+  // uint32_t patch;
+};
+
+
+/**
+ * Gnunet service info - identifying compatibility with a range of version of a
+ * service communicating over CORE.
+ *
+ * Note: This will replace some parts of src/include/gnunet_protocols.h
+ */
+struct GNUNET_CORE_ServiceInfo
+{
+  /**
+   * Identifier of the service on top of CORE
+   */
+  enum GNUNET_CORE_Service service;
+
+  /**
+   * Version of this service implementation
+   */
+  struct GNUNET_CORE_ServiceVersion version;
+
+  /**
+   * Maximal compatible version number of @a service
+   */
+  struct GNUNET_CORE_ServiceVersion version_max;
+
+  /**
+   * Minimal compatible version number of @a service
+   */
+  struct GNUNET_CORE_ServiceVersion version_min;
+};
+
+
+/**
  * Version number of GNUnet-core API.
  */
 #define GNUNET_CORE_VERSION 0x00000001
@@ -56,6 +225,7 @@ extern "C" {
 #define CONG_CRYPTO_ENABLED 0
 
 GNUNET_NETWORK_STRUCT_BEGIN
+
 
 /**
  * Message transmitted with the signed ephemeral key of a peer.  The
@@ -110,7 +280,7 @@ struct EphemeralKeyMessage
 /**
  * We're sending an (encrypted) PING to the other peer to check if it
  * can decrypt.  The other peer should respond with a PONG with the
- * same content, except this time encrypted with the receiver's key.
+ * same content, except this time encrypted with the responder's key.
  */
 struct PingMessage
 {
@@ -186,6 +356,12 @@ struct PongMessage
    * that decryption actually worked.
    */
   struct GNUNET_PeerIdentity target;
+
+  /**
+   * The peer class of the sending peer
+   * TODO is it correct to send an enum like this?
+   */
+  enum GNUNET_CORE_PeerClass peer_class;
 };
 
 #else
@@ -193,7 +369,7 @@ struct PongMessage
 /**
  * We're sending an (encrypted) PING to the other peer to check if it
  * can decrypt.  The other peer should respond with a PONG with the
- * same content, except this time encrypted with the receiver's key.
+ * same content, except this time encrypted with the responder's key.
  */
 struct PingMessage
 {
@@ -250,11 +426,15 @@ struct PongMessage
    * that decryption actually worked.
    */
   struct GNUNET_PeerIdentity target;
+
+  /**
+   * The peer class of the sending peer
+   * TODO is it correct to send an enum like this?
+   */
+  enum GNUNET_CORE_PeerClass peer_class;
 };
 
 #endif
-
-
 
 GNUNET_NETWORK_STRUCT_END
 
@@ -267,15 +447,19 @@ struct GNUNET_CORE_Handle;
 /**
  * Method called whenever a given peer connects.
  *
+ * TODO provide with the service info about connecting peer/service
+ *
  * @param cls closure
  * @param peer peer identity this notification is about
+ * @param class the class of the connecting peer
  * @return closure associated with @a peer. given to mq callbacks and
  *         #GNUNET_CORE_DisconnectEventHandler
  */
 typedef void *(*GNUNET_CORE_ConnectEventHandler) (
   void *cls,
   const struct GNUNET_PeerIdentity *peer,
-  struct GNUNET_MQ_Handle *mq);
+  struct GNUNET_MQ_Handle *mq,
+  enum GNUNET_CORE_PeerClass class);
 
 
 /**
@@ -295,11 +479,12 @@ typedef void (*GNUNET_CORE_DisconnectEventHandler) (
 /**
  * Function called after #GNUNET_CORE_connect has succeeded (or failed
  * for good).  Note that the private key of the peer is intentionally
- * not exposed here; if you need it, your process should try to read
- * the private key file directly (which should work if you are
- * authorized...).  Implementations of this function must not call
+ * not exposed here; if you need to sign something, do this via the
+ * pils service.  Implementations of this function must not call
  * #GNUNET_CORE_disconnect (other than by scheduling a new task to
  * do this later).
+ *
+ * TODO we could potentially also remove the identity argument
  *
  * @param cls closure
  * @param my_identity ID of this peer, NULL if we failed
@@ -330,6 +515,8 @@ typedef void (*GNUNET_CORE_StartupCallback) (
  *                note that the core is allowed to drop notifications about inbound
  *                messages if the client does not process them fast enough (for this
  *                notification type, a bounded queue is used)
+ * @param service_info information about the connecting service and its
+ *                     compatibility with other service versions
  * @return handle to the core service (only useful for disconnect until @a init is called),
  *           NULL on error (in this case, init is never called)
  */
@@ -339,7 +526,8 @@ GNUNET_CORE_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
                      GNUNET_CORE_StartupCallback init,
                      GNUNET_CORE_ConnectEventHandler connects,
                      GNUNET_CORE_DisconnectEventHandler disconnects,
-                     const struct GNUNET_MQ_MessageHandler *handlers);
+                     const struct GNUNET_MQ_MessageHandler *handlers,
+                     struct GNUNET_CORE_ServiceInfo *service_info);
 
 
 /**
@@ -353,6 +541,11 @@ GNUNET_CORE_disconnect (struct GNUNET_CORE_Handle *handle);
 
 /**
  * Obtain the message queue for a connected peer.
+ * Messages may only be queued with #GNUNET_MQ_send once the init callback has
+ * been called for the given handle.
+ *
+ * TODO does this function in this form make sense? it's not used anywhere.
+ * Also it probably should take a hello as argument.
  *
  * @param h the core handle
  * @param pid the identity of the peer
@@ -370,6 +563,8 @@ struct GNUNET_CORE_MonitorHandle;
 
 
 /**
+ * TODO how does this harmonize with CAKE_CRYPTO_ENABLED?
+ *
  * State machine for our P2P encryption handshake.  Everyone starts in
  * #GNUNET_CORE_KX_STATE_DOWN, if we receive the other peer's key
  * (other peer initiated) we start in state
@@ -390,21 +585,39 @@ enum GNUNET_CORE_KxState
   GNUNET_CORE_KX_STATE_DOWN = 0,
 
   /**
-   * We've sent our session key.
+   * We sent the initiator hello.
    */
-  GNUNET_CORE_KX_STATE_KEY_SENT,
+  GNUNET_CORE_KX_STATE_INITIATOR_HELLO_SENT,
 
   /**
-   * We've received the other peers session key.
+   * We are awating the initiator hello.
    */
-  GNUNET_CORE_KX_STATE_KEY_RECEIVED,
+  GNUNET_CORE_KX_STATE_AWAIT_INITIATION,
 
   /**
-   * The other peer has confirmed our session key + PING with a PONG
-   * message encrypted with their session key (which we got).  Key
-   * exchange is done.
+   * We've received the initiator hello.
    */
-  GNUNET_CORE_KX_STATE_UP,
+  GNUNET_CORE_KX_STATE_INITIATOR_HELLO_RECEIVED,
+
+  /**
+   * We sent the responder hello.
+   */
+  GNUNET_CORE_KX_STATE_RESPONDER_HELLO_SENT,
+
+  /**
+   * We've received the initiator hello.
+   */
+  GNUNET_CORE_KX_STATE_RESPONDER_HELLO_RECEIVED,
+
+  /**
+   * We sent initiator done.
+   */
+  GNUNET_CORE_KX_STATE_INITIATOR_DONE,
+
+  /**
+   * We sent responder done.
+   */
+  GNUNET_CORE_KX_STATE_RESPONDER_DONE,
 
   /**
    * We're rekeying (or had a timeout), so we have sent the other peer
@@ -495,6 +708,8 @@ GNUNET_CORE_monitor_stop (struct GNUNET_CORE_MonitorHandle *mh);
  * 'versioned', 'official' API.  This function returns
  * synchronously after looking in the CORE API cache.
  *
+ * FIXME not implemented
+ *
  * @param h the core handle
  * @param pid the identity of the peer to check if it has been connected to us
  * @return #GNUNET_YES if the peer is connected to us; #GNUNET_NO if not
@@ -502,24 +717,6 @@ GNUNET_CORE_monitor_stop (struct GNUNET_CORE_MonitorHandle *mh);
 int
 GNUNET_CORE_is_peer_connected_sync (const struct GNUNET_CORE_Handle *h,
                                     const struct GNUNET_PeerIdentity *pid);
-
-
-/**
- * Create a message queue for sending messages to a peer with CORE.
- * Messages may only be queued with #GNUNET_MQ_send once the init callback has
- * been called for the given handle.
- * There must only be one queue per peer for each core handle.
- * The message queue can only be used to transmit messages,
- * not to receive them.
- *
- * @param h the core handle
- * @param target the target peer for this queue, may not be NULL
- * @return a message queue for sending messages over the core handle
- *         to the target peer
- */
-struct GNUNET_MQ_Handle *
-GNUNET_CORE_mq_create (struct GNUNET_CORE_Handle *h,
-                       const struct GNUNET_PeerIdentity *target);
 
 
 #if 0 /* keep Emacsens' auto-indent happy */

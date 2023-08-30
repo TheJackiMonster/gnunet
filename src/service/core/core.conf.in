@@ -2,6 +2,9 @@
 START_ON_DEMAND = @START_ON_DEMAND@
 HOSTNAME = localhost
 BINARY = gnunet-service-core
+## The device class might go into a more general section than core
+## valid values: UNKNOWN, UNWILLING, MOBILE, DESKTOP, ROUTER, SERVER
+CLASS = UNKNOWN
 ACCEPT_FROM = 127.0.0.1;
 ACCEPT_FROM6 = ::1;
 UNIXPATH = $GNUNET_RUNTIME_DIR/gnunet-service-core.sock

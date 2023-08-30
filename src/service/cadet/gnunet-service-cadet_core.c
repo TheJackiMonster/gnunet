@@ -1216,11 +1216,13 @@ core_init_cb (void *cls, const struct GNUNET_PeerIdentity *my_identity)
  *
  * @param cls closure
  * @param peer peer identity this notification is about
+ * @param class class of the connecting peer
  */
 static void *
 core_connect_cb (void *cls,
                  const struct GNUNET_PeerIdentity *peer,
-                 struct GNUNET_MQ_Handle *mq)
+                 struct GNUNET_MQ_Handle *mq,
+                 enum GNUNET_CORE_PeerClass class)
 {
   struct CadetPeer *cp;
 
@@ -1291,6 +1293,13 @@ GCO_init (const struct GNUNET_CONFIGURATION_Handle *c)
                            struct GNUNET_CADET_TunnelEncryptedMessage,
                            NULL),
     GNUNET_MQ_handler_end () };
+  const struct GNUNET_CORE_ServiceInfo service_info =
+  {
+    .service = GNUNET_CORE_SERVICE_CADET,
+    .version = { 1, 0 },
+    .version_max = { 1, 0 },
+    .version_min = { 1, 0 },
+  };
 
   if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_number (c,
                                                           "CADET",
@@ -1309,7 +1318,8 @@ GCO_init (const struct GNUNET_CONFIGURATION_Handle *c)
                               &core_init_cb,
                               &core_connect_cb,
                               &core_disconnect_cb,
-                              handlers);
+                              handlers,
+                              &service_info);
 }
 
 

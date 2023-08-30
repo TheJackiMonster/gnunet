@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2011, 2012, 2014 GNUnet e.V.
+     Copyright (C) 2011, 2012, 2014, 2025 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -22,12 +22,12 @@
  * @file core/gnunet-core.c
  * @brief Print information about other peers known to CORE.
  * @author Nathan Evans
+ * @author Martin Schanzenbach
  */
 #include "platform.h"
 #include "gnunet_time_lib.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_core_service.h"
-#include "gnunet_util_lib.h"
 
 /**
  * Return code
@@ -40,11 +40,6 @@ static int ret;
 static int monitor_connections;
 
 /**
- * Option -i.
- */
-static int show_pid;
-
-/**
  * Option -s.
  */
 static int show_conns;
@@ -53,16 +48,6 @@ static int show_conns;
  * Handle to the CORE monitor.
  */
 static struct GNUNET_CORE_MonitorHandle *mh;
-
-/**
- * Peer private key
- */
-static struct GNUNET_CRYPTO_EddsaPrivateKey my_private_key;
-
-/**
- * Peer identity
- */
-static struct GNUNET_PeerIdentity my_full_id;
 
 /**
  * Task run in monitor mode when the user presses CTRL-C to abort.
@@ -111,25 +96,37 @@ monitor_cb (void *cls,
 
   switch (state)
   {
+  case GNUNET_CORE_KX_STATE_INITIATOR_HELLO_SENT:
+    state_str = _ ("Hello sent (I)");
+    break;
+
+  case GNUNET_CORE_KX_STATE_AWAIT_INITIATION:
+    state_str = _ ("Awaiting initiation (R)");
+    break;
+
+  case GNUNET_CORE_KX_STATE_INITIATOR_HELLO_RECEIVED:
+    state_str = _ ("Hello received (R)");
+    break;
+
+  case GNUNET_CORE_KX_STATE_RESPONDER_HELLO_SENT:
+    state_str = _ ("Hello sent (R)");
+    break;
+
+  case GNUNET_CORE_KX_STATE_RESPONDER_HELLO_RECEIVED:
+    state_str = _ ("Hello received (I)");
+    break;
+
+  case GNUNET_CORE_KX_STATE_INITIATOR_DONE:
+    state_str = _ ("Connected (I)");
+    break;
+
+  case GNUNET_CORE_KX_STATE_RESPONDER_DONE:
+    state_str = _ ("Connected (R)");
+    break;
+
   case GNUNET_CORE_KX_STATE_DOWN:
     /* should never happen, as we immediately send the key */
-    state_str = _ ("fresh connection");
-    break;
-
-  case GNUNET_CORE_KX_STATE_KEY_SENT:
-    state_str = _ ("key sent");
-    break;
-
-  case GNUNET_CORE_KX_STATE_KEY_RECEIVED:
-    state_str = _ ("key received");
-    break;
-
-  case GNUNET_CORE_KX_STATE_UP:
-    state_str = _ ("connection established");
-    break;
-
-  case GNUNET_CORE_KX_STATE_REKEY_SENT:
-    state_str = _ ("rekeying");
+    state_str = _ ("idle");
     break;
 
   case GNUNET_CORE_KX_PEER_DISCONNECT:
@@ -175,7 +172,6 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
-  char *keyfile;
   (void) cls;
   (void) cfgfile;
 
@@ -184,7 +180,7 @@ run (void *cls,
     fprintf (stderr, _ ("Invalid command line argument `%s'\n"), args[0]);
     return;
   }
-  if (! show_pid && ! show_conns && ! monitor_connections)
+  if (! show_conns && ! monitor_connections)
   {
     fprintf (stderr, "%s", _ ("No argument given.\n"));
     ret = 1;
@@ -192,37 +188,6 @@ run (void *cls,
     return;
   }
   GNUNET_SCHEDULER_add_shutdown (&shutdown_task, NULL);
-  if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_get_value_filename (cfg,
-                                               "PEER",
-                                               "PRIVATE_KEY",
-                                               &keyfile))
-  {
-    GNUNET_log (
-      GNUNET_ERROR_TYPE_ERROR,
-      _ ("Core service is lacking HOSTKEY configuration setting.  Exiting.\n"));
-    GNUNET_SCHEDULER_shutdown ();
-    ret =  1;
-    return;
-  }
-  if (GNUNET_SYSERR ==
-      GNUNET_CRYPTO_eddsa_key_from_file (keyfile,
-                                         GNUNET_YES,
-                                         &my_private_key))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Failed to read peer's private key!\n");
-    GNUNET_SCHEDULER_shutdown ();
-    ret = 1;
-    GNUNET_free (keyfile);
-    return;
-  }
-  GNUNET_free (keyfile);
-  GNUNET_CRYPTO_eddsa_key_get_public (&my_private_key, &my_full_id.public_key);
-  if (show_pid)
-    fprintf (stdout,
-             _ ("Current local peer identity: %s\n"),
-             GNUNET_i2s_full (&my_full_id));
   if (show_conns || monitor_connections)
   {
     if (monitor_connections)
@@ -260,13 +225,6 @@ main (int argc, char *const *argv)
       gettext_noop (
         "provide information about all current connections (continuously)"),
       &monitor_connections),
-    GNUNET_GETOPT_option_flag (
-      'i',
-      "show-identity",
-      gettext_noop (
-        "Show our current peer identity"
-        ),
-      &show_pid),
     GNUNET_GETOPT_option_flag (
       's',
       "connection-status",

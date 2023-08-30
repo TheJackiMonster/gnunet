@@ -59,9 +59,14 @@ extern struct GNUNET_BLOCK_Context *GDS_block_context;
 extern struct GNUNET_STATISTICS_Handle *GDS_stats;
 
 /**
- * Our HELLO builder.
+ * Handle for the pils service.
  */
-extern struct GNUNET_HELLO_Builder *GDS_my_hello;
+extern struct GNUNET_PILS_Handle *GDS_pils;
+
+/**
+ * Our HELLO parser.
+ */
+extern struct GNUNET_HELLO_Parser *GDS_my_hello;
 
 /**
  * Identity of this peer.

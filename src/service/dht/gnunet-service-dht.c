@@ -29,6 +29,7 @@
 #include "gnunet_block_lib.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_hello_uri_lib.h"
+#include "gnunet_pils_service.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet-service-dht.h"
 #include "gnunet-service-dht_datacache.h"
@@ -113,11 +114,42 @@ struct MyAddress
   struct GDS_Underlay *u;
 };
 
+/**
+ * DLL
+ */
+struct PilsRequest
+{
+  /**
+   * DLL
+   */
+  struct PilsRequest *prev;
+
+  /**
+   * DLL
+   */
+  struct PilsRequest *next;
+
+  /**
+   * The pils operation
+   */
+  struct GNUNET_PILS_Operation *op;
+};
+
+/**
+ * PILS Operation DLL
+ */
+static struct PilsRequest *pils_requests_head;
+
+/**
+ * PILS Operation DLL
+ */
+static struct PilsRequest *pils_requests_tail;
+
 
 /**
  * Our HELLO
  */
-struct GNUNET_HELLO_Builder *GDS_my_hello;
+struct GNUNET_HELLO_Parser *GDS_my_hello;
 
 /**
  * Identity of this peer.
@@ -133,11 +165,6 @@ struct GNUNET_HashCode GDS_my_identity_hash;
  * Our private key.
  */
 struct GNUNET_CRYPTO_EddsaPrivateKey GDS_my_private_key;
-
-/**
- * Task broadcasting our HELLO.
- */
-static struct GNUNET_SCHEDULER_Task *hello_task;
 
 /**
  * Handles for the DHT underlays.
@@ -217,34 +244,6 @@ GDS_NSE_get (void)
 
 
 /**
- * Task run periodically to broadcast our HELLO.
- *
- * @param cls NULL
- */
-static void
-broadcast_hello (void *cls)
-{
-  struct GNUNET_MessageHeader *hello;
-
-  (void) cls;
-  /* TODO: randomize! */
-  hello_task = GNUNET_SCHEDULER_add_delayed (HELLO_FREQUENCY,
-                                             &broadcast_hello,
-                                             NULL);
-  hello = GNUNET_HELLO_builder_to_dht_hello_msg (GDS_my_hello,
-                                                 &GDS_my_private_key,
-                                                 GNUNET_TIME_UNIT_ZERO);
-  if (NULL == hello)
-  {
-    GNUNET_break (0);
-    return;
-  }
-  GDS_NEIGHBOURS_broadcast (hello);
-  GNUNET_free (hello);
-}
-
-
-/**
  * Function to call with new addresses of this peer.
  *
  * @param cls the closure
@@ -261,21 +260,10 @@ u_address_add (void *cls,
 {
   struct GDS_Underlay *u = cls;
   struct MyAddress *a;
-  enum GNUNET_GenericReturnValue add_success;
 
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Underlay adds address %s for this peer\n",
               address);
-  if (GNUNET_OK != (add_success = GNUNET_HELLO_builder_add_address (
-                      GDS_my_hello,
-                      address)))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Adding address `%s' from underlay %s\n",
-                address,
-                GNUNET_NO == add_success ? "not done" : "failed");
-    return;
-  }
   a = GNUNET_new (struct MyAddress);
   a->source = source;
   a->url = GNUNET_strdup (address);
@@ -285,10 +273,6 @@ u_address_add (void *cls,
                                a);
   *ctx = a;
 
-  if (NULL != hello_task)
-    GNUNET_SCHEDULER_cancel (hello_task);
-  hello_task = GNUNET_SCHEDULER_add_now (&broadcast_hello,
-                                         NULL);
 }
 
 
@@ -305,17 +289,11 @@ u_address_del (void *ctx)
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Underlay deletes address %s for this peer\n",
               a->url);
-  GNUNET_HELLO_builder_del_address (GDS_my_hello,
-                                    a->url);
   GNUNET_CONTAINER_DLL_remove (a_head,
                                a_tail,
                                a);
   GNUNET_free (a->url);
   GNUNET_free (a);
-  if (NULL != hello_task)
-    GNUNET_SCHEDULER_cancel (hello_task);
-  hello_task = GNUNET_SCHEDULER_add_now (&broadcast_hello,
-                                         NULL);
 }
 
 
@@ -375,6 +353,7 @@ static void
 shutdown_task (void *cls)
 {
   struct GDS_Underlay *u;
+  struct PilsRequest *pr;
 
   while (NULL != (u = u_head))
   {
@@ -415,13 +394,22 @@ shutdown_task (void *cls)
   }
   if (NULL != GDS_my_hello)
   {
-    GNUNET_HELLO_builder_free (GDS_my_hello);
+    GNUNET_HELLO_parser_free (GDS_my_hello);
     GDS_my_hello = NULL;
   }
-  if (NULL != hello_task)
+  while (NULL != (pr = pils_requests_head))
   {
-    GNUNET_SCHEDULER_cancel (hello_task);
-    hello_task = NULL;
+    GNUNET_CONTAINER_DLL_remove (pils_requests_head,
+                                 pils_requests_tail,
+                                 pr);
+    if (NULL != pr->op)
+      GNUNET_PILS_cancel (pr->op);
+    GNUNET_free (pr);
+  }
+  if (NULL != GDS_pils)
+  {
+    GNUNET_PILS_disconnect (GDS_pils);
+    GDS_pils = NULL;
   }
 }
 
@@ -484,6 +472,156 @@ load_underlay (void *cls,
 }
 
 
+static void
+pid_change_cb (void *cls,
+               const struct GNUNET_HELLO_Parser *parser,
+               const struct GNUNET_HashCode *hash)
+{
+  (void) cls;
+  struct GNUNET_MessageHeader *hello;
+
+  GDS_my_identity = *GNUNET_HELLO_parser_get_id(parser);
+  GNUNET_CRYPTO_hash (&GDS_my_identity,
+                      sizeof(struct GNUNET_PeerIdentity),
+                      &GDS_my_identity_hash);
+  //hello = GNUNET_HELLO_parser_to_dht_hello_msg (parser);
+
+  //if (NULL == hello)
+  //{
+  //  GNUNET_break (0);
+  //  return;
+  //}
+  //GDS_NEIGHBOURS_broadcast (hello);
+  //GNUNET_free (hello);
+
+  /* Restart:
+   * When we get a new peer id from pils we probably need to restart
+   * everything.
+   * TODO look for improvements - maybe not everything needs to be restarted
+   */
+  /* First shut down everything:
+   * (Mostly copied from shutdown, but don't shut down pils) */
+  {
+    struct GDS_Underlay *u;
+    struct PilsRequest *pr;
+
+    while (NULL != (u = u_head))
+    {
+      GNUNET_CONTAINER_DLL_remove (u_head,
+                                   u_tail,
+                                   u);
+      if (0 == strcmp (u->name, "gnunet"))
+      {
+        DHTU_gnunet_done (u->dhtu);
+      }
+#ifdef LINUX
+      else if (0 == strcmp (u->name, "ip"))
+      {
+        DHTU_ip_done (u->dhtu);
+      }
+#endif
+      else
+      {
+        GNUNET_assert (0);
+      }
+      GNUNET_free (u->name);
+      GNUNET_free (u);
+    }
+    GDS_NEIGHBOURS_done ();
+    GDS_DATACACHE_done ();
+    GDS_ROUTING_done ();
+    if (NULL != GDS_block_context)
+    {
+      GNUNET_BLOCK_context_destroy (GDS_block_context);
+      GDS_block_context = NULL;
+    }
+    GDS_CLIENTS_stop ();
+    if (NULL != GDS_stats)
+    {
+      GNUNET_STATISTICS_destroy (GDS_stats,
+                                 GNUNET_YES);
+      GDS_stats = NULL;
+    }
+    if (NULL != GDS_my_hello)
+    {
+      GNUNET_HELLO_parser_free (GDS_my_hello);
+      GDS_my_hello = NULL;
+    }
+    while (NULL != (pr = pils_requests_head))
+    {
+      GNUNET_CONTAINER_DLL_remove (pils_requests_head,
+                                   pils_requests_tail,
+                                   pr);
+      if (NULL != pr->op)
+        GNUNET_PILS_cancel (pr->op);
+      GNUNET_free (pr);
+    }
+  }
+  /* Then start everything again:
+   * (taken from the run method) */
+  {
+    { // FIXME remove (accessing the secret key to the peer id directly is
+      //       deprecated after pils)
+      char *keyfile;
+
+      if (GNUNET_OK !=
+          GNUNET_CONFIGURATION_get_value_filename (GDS_cfg,
+                                                   "PEER",
+                                                   "PRIVATE_KEY",
+                                                   &keyfile))
+      {
+        GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
+                                   "PEER",
+                                   "PRIVATE_KEY");
+        GNUNET_SCHEDULER_shutdown ();
+        return;
+      }
+      if (GNUNET_SYSERR ==
+          GNUNET_CRYPTO_eddsa_key_from_file (keyfile,
+                                             GNUNET_YES,
+                                             &GDS_my_private_key))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "Failed to setup peer's private key\n");
+        GNUNET_free (keyfile);
+        GNUNET_SCHEDULER_shutdown ();
+        return;
+      }
+      GNUNET_free (keyfile);
+    }
+    GNUNET_CRYPTO_eddsa_key_get_public (&GDS_my_private_key,
+                                        &GDS_my_identity.public_key);
+    GNUNET_CRYPTO_hash (&GDS_my_identity,
+                        sizeof(struct GNUNET_PeerIdentity),
+                        &GDS_my_identity_hash);
+    GDS_block_context = GNUNET_BLOCK_context_create (GDS_cfg);
+    GDS_stats = GNUNET_STATISTICS_create ("dht",
+                                          GDS_cfg);
+    GDS_CLIENTS_init ();
+    GDS_ROUTING_init ();
+    GDS_DATACACHE_init ();
+    GNUNET_SCHEDULER_add_shutdown (&shutdown_task,
+                                   NULL);
+    if (GNUNET_OK !=
+        GDS_NEIGHBOURS_init ())
+    {
+      GNUNET_SCHEDULER_shutdown ();
+      return;
+    }
+    GNUNET_CONFIGURATION_iterate_sections (GDS_cfg,
+                                           &load_underlay,
+                                           NULL);
+    if (NULL == u_head)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "No DHT underlays configured!\n");
+      GNUNET_SCHEDULER_shutdown ();
+      return;
+    }
+  }
+}
+
+
 /**
  * Process dht requests.
  *
@@ -498,64 +636,10 @@ run (void *cls,
 {
   GDS_cfg = c;
   GDS_service = service;
-  {
-    char *keyfile;
-
-    if (GNUNET_OK !=
-        GNUNET_CONFIGURATION_get_value_filename (GDS_cfg,
-                                                 "PEER",
-                                                 "PRIVATE_KEY",
-                                                 &keyfile))
-    {
-      GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
-                                 "PEER",
-                                 "PRIVATE_KEY");
-      GNUNET_SCHEDULER_shutdown ();
-      return;
-    }
-    if (GNUNET_SYSERR ==
-        GNUNET_CRYPTO_eddsa_key_from_file (keyfile,
-                                           GNUNET_YES,
-                                           &GDS_my_private_key))
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "Failed to setup peer's private key\n");
-      GNUNET_free (keyfile);
-      GNUNET_SCHEDULER_shutdown ();
-      return;
-    }
-    GNUNET_free (keyfile);
-  }
-  GNUNET_CRYPTO_eddsa_key_get_public (&GDS_my_private_key,
-                                      &GDS_my_identity.public_key);
-  GDS_my_hello = GNUNET_HELLO_builder_new (&GDS_my_identity);
-  GNUNET_CRYPTO_hash (&GDS_my_identity,
-                      sizeof(struct GNUNET_PeerIdentity),
-                      &GDS_my_identity_hash);
-  GDS_block_context = GNUNET_BLOCK_context_create (GDS_cfg);
-  GDS_stats = GNUNET_STATISTICS_create ("dht",
-                                        GDS_cfg);
-  GDS_CLIENTS_init ();
-  GDS_ROUTING_init ();
-  GDS_DATACACHE_init ();
-  GNUNET_SCHEDULER_add_shutdown (&shutdown_task,
-                                 NULL);
-  if (GNUNET_OK !=
-      GDS_NEIGHBOURS_init ())
-  {
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
-  GNUNET_CONFIGURATION_iterate_sections (GDS_cfg,
-                                         &load_underlay,
-                                         NULL);
-  if (NULL == u_head)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "No DHT underlays configured!\n");
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
+  GDS_pils = GNUNET_PILS_connect (GDS_cfg, pid_change_cb, NULL);
+  GNUNET_assert (NULL != GDS_pils);
+  /* Wait until we get the first peer id until we actually start other parts of
+   * the service */
 }
 
 

@@ -7,6 +7,7 @@ SUBDIRS = \
 	nat \
 	nat-auto \
 	transport \
+	pils \
 	core \
 	nse \
   hostlist \

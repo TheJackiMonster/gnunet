@@ -222,6 +222,11 @@ struct GNUNET_BLOCK_Context *GDS_block_context;
 struct GNUNET_STATISTICS_Handle *GDS_stats;
 
 /**
+ * Handle for the pils service.
+ */
+struct GNUNET_PILS_Handle *GDS_pils;
+
+/**
  * Handle for the service.
  */
 struct GNUNET_SERVICE_Handle *GDS_service;
@@ -1123,6 +1128,7 @@ GDS_CLIENTS_handle_reply (const struct GNUNET_DATACACHE_Block *bd,
 
 /* **************** HELLO logic ***************** */
 
+
 /**
  * Handler for HELLO GET message. Reply to client
  * with a URL of our HELLO.
@@ -1136,8 +1142,7 @@ handle_dht_local_hello_get (void *cls,
                             const struct GNUNET_MessageHeader *msg)
 {
   struct ClientHandle *ch = cls;
-  char *url = GNUNET_HELLO_builder_to_url (GDS_my_hello,
-                                           &GDS_my_private_key);
+  char *url = GNUNET_HELLO_parser_to_url(GDS_my_hello);
   size_t slen = strlen (url) + 1;
   struct GNUNET_MessageHeader *hdr;
   struct GNUNET_MQ_Envelope *env;
@@ -1631,8 +1636,8 @@ GDS_CLIENTS_stop (void)
  */
 #define GDS_DHT_SERVICE_INIT(name, run)          \
         GNUNET_SERVICE_MAIN \
-        (GNUNET_OS_project_data_gnunet(), \
-         name,                            \
+          (GNUNET_OS_project_data_gnunet (), \
+          name,                            \
           GNUNET_SERVICE_OPTION_NONE, \
           run, \
           &client_connect_cb, \

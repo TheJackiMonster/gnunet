@@ -1262,11 +1262,13 @@ task_hostlist_saving (void *cls)
  * @param cls closure
  * @param peer peer identity this notification is about
  * @param mq message queue for transmissions to @a peer
+ * @param class class of the connecting peer
  */
 static void *
 handler_connect (void *cls,
                  const struct GNUNET_PeerIdentity *peer,
-                 struct GNUNET_MQ_Handle *mq)
+                 struct GNUNET_MQ_Handle *mq,
+                 enum GNUNET_CORE_PeerClass class)
 {
   GNUNET_assert (stat_connection_count < UINT_MAX);
   stat_connection_count++;

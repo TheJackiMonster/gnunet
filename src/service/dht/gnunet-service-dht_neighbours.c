@@ -28,6 +28,7 @@
 #include "gnunet_constants.h"
 #include "gnunet_protocols.h"
 #include "gnunet_hello_uri_lib.h"
+#include "gnunet_pils_service.h"
 #include "gnunet-service-dht.h"
 #include "gnunet-service-dht_neighbours.h"
 #include "gnunet-service-dht_routing.h"
@@ -1942,6 +1943,14 @@ handle_dht_p2p_put (void *cls,
 }
 
 
+struct BlockCls
+{
+  struct PeerInfo *pi;
+  const struct GNUNET_HashCode *query_hash;
+  struct GNUNET_BLOCK_Group *bg;
+};
+
+
 /**
  * We have received a request for a HELLO.  Sends our
  * HELLO back.
@@ -1955,63 +1964,54 @@ handle_find_my_hello (struct PeerInfo *pi,
                       const struct GNUNET_HashCode *query_hash,
                       struct GNUNET_BLOCK_Group *bg)
 {
-  size_t block_size = 0;
+  size_t block_size;
+  char *block;
 
-  /* TODO: consider caching our HELLO block for a bit, to
-     avoid signing too often here... */
-  GNUNET_break (GNUNET_NO ==
-                GNUNET_HELLO_builder_to_block (GDS_my_hello,
-                                               &GDS_my_private_key,
-                                               NULL,
-                                               &block_size,
-                                               GNUNET_TIME_UNIT_ZERO));
+  GNUNET_assert (GNUNET_NO != GNUNET_HELLO_parser_to_block (GDS_my_hello,
+                                                            NULL,
+                                                            &block_size));
+  GNUNET_HELLO_parser_to_block(GDS_my_hello,
+                               &block,
+                               &block_size);
+  if (NULL == GDS_my_hello)
   {
-    char block[block_size];
-
-    if (GNUNET_OK !=
-        GNUNET_HELLO_builder_to_block (GDS_my_hello,
-                                       &GDS_my_private_key,
-                                       block,
-                                       &block_size,
-                                       GNUNET_TIME_UNIT_ZERO))
-    {
-      GNUNET_STATISTICS_update (GDS_stats,
-                                "# FIND PEER requests ignored due to lack of HELLO",
-                                1,
-                                GNUNET_NO);
-    }
-    else if (GNUNET_BLOCK_REPLY_OK_MORE ==
-             GNUNET_BLOCK_check_reply (GDS_block_context,
-                                       GNUNET_BLOCK_TYPE_DHT_HELLO,
-                                       bg,
-                                       &GDS_my_identity_hash,
-                                       NULL, 0,
-                                       block,
-                                       block_size))
-    {
-      struct GNUNET_DATACACHE_Block bd = {
-        .type = GNUNET_BLOCK_TYPE_DHT_HELLO,
-        .expiration_time
-          = GNUNET_TIME_relative_to_absolute (
-              GNUNET_HELLO_ADDRESS_EXPIRATION),
-        .key = GDS_my_identity_hash,
-        .data = block,
-        .data_size = block_size
-      };
-
-      GNUNET_break (GDS_NEIGHBOURS_handle_reply (pi,
-                                                 &bd,
-                                                 query_hash,
-                                                 0, NULL /* get path */));
-    }
-    else
-    {
-      GNUNET_STATISTICS_update (GDS_stats,
-                                "# FIND PEER requests ignored due to Bloomfilter",
-                                1,
-                                GNUNET_NO);
-    }
+    GNUNET_STATISTICS_update (GDS_stats,
+                              "# FIND PEER requests ignored due to lack of HELLO",
+                              1,
+                              GNUNET_NO);
   }
+  else if (GNUNET_BLOCK_REPLY_OK_MORE ==
+           GNUNET_BLOCK_check_reply (GDS_block_context,
+                                     GNUNET_BLOCK_TYPE_DHT_HELLO,
+                                     bg,
+                                     &GDS_my_identity_hash,
+                                     NULL, 0,
+                                     block,
+                                     block_size))
+  {
+    struct GNUNET_DATACACHE_Block bd = {
+      .type = GNUNET_BLOCK_TYPE_DHT_HELLO,
+      .expiration_time
+        = GNUNET_TIME_relative_to_absolute (
+            GNUNET_HELLO_ADDRESS_EXPIRATION),
+      .key = GDS_my_identity_hash,
+      .data = block,
+      .data_size = block_size
+    };
+
+    GNUNET_break (GDS_NEIGHBOURS_handle_reply (pi,
+                                               &bd,
+                                               query_hash,
+                                               0, NULL /* get path */));
+  }
+  else
+  {
+    GNUNET_STATISTICS_update (GDS_stats,
+                              "# FIND PEER requests ignored due to Bloomfilter",
+                              1,
+                              GNUNET_NO);
+  }
+  GNUNET_free (block);
 }
 
 

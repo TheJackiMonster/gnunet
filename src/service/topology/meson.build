@@ -22,6 +22,7 @@ executable(
     install_rpath: rpath_option,
     dependencies: [
         libgnunetutil_dep,
+        libgnunetpils_dep,
         libgnunetcore_dep,
         libgnunetpeerstore_dep,
         libgnunetstatistics_dep,

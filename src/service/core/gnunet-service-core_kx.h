@@ -27,12 +27,241 @@
 #define GNUNET_SERVICE_CORE_KX_H
 
 #include "gnunet_util_lib.h"
-
+#include "gnunet_core_service.h"
 
 /**
  * Information about the status of a key exchange with another peer.
  */
 struct GSC_KeyExchangeInfo;
+
+/** TODO */
+/**
+ * InitiatorHello
+ *   - EphemeralKey
+ *   - InitiatorKemChallenge
+ *   - ResponderPeerIDHash
+ *   - Nonce
+ *   - {PeerID (initiator)}
+ *   - {ServicesInfo}
+ */
+struct InitiatorHello
+{
+  /**
+   * Message type is #GNUNET_MESSAGE_TYPE_CORE_PONG.
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * Ephemeral public edx25519 key.
+   * TODO is this the proper key type?
+   */
+  struct GNUNET_CRYPTO_EcdhePublicKey ephemeral_key;
+
+  /**
+   * Random number to make replay attacks harder.
+   * c_R
+   * TODO better description
+   */
+  struct GNUNET_CRYPTO_HpkeEncapsulation initiator_kem_challenge;
+
+  /**
+   * XChaCha20 nonce
+   */
+  unsigned char nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
+
+  /**
+   * Hash of the responder peer id
+   */
+  struct GNUNET_HashCode hash_responder_peer_id;
+
+  /**
+   * Sender Peer ID
+   *
+   * TODO encrypted
+   */
+  struct GNUNET_PeerIdentity peer_id_sender;
+
+  /**
+   * TODO Services Info - encrypted
+   */
+  unsigned char services_info[GNUNET_CORE_SVC_INFO_LEN];
+
+  /**
+   * The peer class of the sending peer
+   * TODO is it correct to send an enum like this?
+   * TODO part of services info?
+   * TODO encrypted
+   */
+  enum GNUNET_CORE_PeerClass peer_class;
+
+  /**
+   * The following is the additional space needed for the mac.
+   */
+  unsigned char reserved[crypto_aead_xchacha20poly1305_ietf_ABYTES];
+};
+
+/**
+ * The ACK
+ */
+struct ConfirmationAck
+{
+  /**
+   * Message type is #GNUNET_MESSAGE_TYPE_CORE_ACK.
+   */
+  struct GNUNET_MessageHeader header;
+};
+
+/**
+ * ResponderHello
+ *   - HandshakeKemCiphertext
+ *   - Nonce
+ *   - {ServicesInfo}
+ *   - {ResponderKemCiphertext}
+ *   - {Finished}
+ *   - [Application Payload]
+ * TODO services_info and c_I are encrypted toghether, separately from finished,
+ *      both have space for mac/tag afterwards
+ *
+ */
+struct ResponderHello
+{
+  /**
+   * Message type is #GNUNET_MESSAGE_TYPE_CORE_PONG.
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * Random number to make replay attacks harder.
+   * c_e
+   * TODO better description
+   */
+  struct GNUNET_CRYPTO_HpkeEncapsulation ephemeral_kem_challenge;
+
+  /**
+   * XChaCha20 nonce
+   */
+  unsigned char nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
+
+  /**
+   * TODO Services Info - encrypted
+   */
+  unsigned char services_info[GNUNET_CORE_SVC_INFO_LEN];
+
+  /**
+   * Random number to make replay attacks harder.
+   * c_I
+   * encrypted
+   * TODO better description
+   */
+  struct GNUNET_CRYPTO_HpkeEncapsulation responder_kem_challenge;
+
+  /**
+   * The following is the additional space needed for the mac.
+   */
+  unsigned char reserved_0[crypto_aead_xchacha20poly1305_ietf_ABYTES];
+
+  /**
+   * TODO {Finished} - encrypted
+   */
+  struct GNUNET_HashCode finished;
+
+  /**
+   * The following is the additional space needed for the mac.
+   */
+  unsigned char reserved_1[crypto_aead_xchacha20poly1305_ietf_ABYTES];
+
+  /** TODO potentially [Application Payload] */
+};
+
+/**
+ * InitiatorDone
+ *   - InitiatorFinished
+ */
+struct InitiatorDone
+{
+  /**
+   * Message type is #GNUNET_MESSAGE_TYPE_CORE_PONG.
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * XChaCha20 nonce
+   * XXX remove this nonce - only one nonce per handshake for each involved peer - reuse the one from InitiatorHello!
+   */
+  unsigned char nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
+
+  /**
+   * TODO {Finished} - encrypted
+   */
+  struct GNUNET_HashCode finished;
+
+  /**
+   * The following is the additional space needed for the mac.
+   */
+  unsigned char reserved[crypto_aead_xchacha20poly1305_ietf_ABYTES];
+
+  /** TODO potentially [Application Payload] */
+};
+
+/**
+ * EncryptedMessage
+ *   - Epoch
+ *   - Sequence Number
+ *   - Timestamp
+ *   - Tag
+ */
+struct EncryptedMessage_cake
+{
+  /**
+   * Message type is #GNUNET_MESSAGE_TYPE_CORE_PONG.
+   */
+  struct GNUNET_MessageHeader header;
+
+  /** Epoch */
+  uint64_t epoch GNUNET_PACKED;
+
+  /**
+   * Sequence number, in network byte order.  This field
+   * must be the first encrypted/decrypted field
+   * TODO how to define this properly and nicely?
+   */
+  uint64_t sequence_number GNUNET_PACKED;
+
+  /**
+   * Timestamp.  Used to prevent replay of ancient messages
+   * (recent messages are caught with the sequence number).
+   */
+  struct GNUNET_TIME_AbsoluteNBO timestamp;
+
+  /**
+   * The Poly1305 tag of the encrypted message
+   * (which is starting at @e sequence_number),
+   * used to verify message integrity. Everything after this value
+   * (excluding this value itself) will be encrypted and
+   * authenticated.  #ENCRYPTED_HEADER_SIZE must be set to the offset
+   * of the *next* field.
+   */
+  unsigned char tag[crypto_aead_xchacha20poly1305_ietf_ABYTES];
+};
+
+
+/**
+ * KeyUpdate
+ *   - UpdateRequested
+ *   - ServicesInfo
+ *   - <key>
+ */
+struct KeyUpdate
+{
+  /**
+   * Message type is #GNUNET_MESSAGE_TYPE_CORE_PONG.
+   */
+  struct GNUNET_MessageHeader header;
+
+  /** TODO UpdateRequested */
+  /** TODO ServicesInfo */
+  /** TODO Key */
+};
 
 
 /**
@@ -51,11 +280,10 @@ GSC_KX_encrypt_and_transmit (struct GSC_KeyExchangeInfo *kx,
 /**
  * Initialize KX subsystem.
  *
- * @param pk private key to use for the peer
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on failure
  */
 int
-GSC_KX_init (struct GNUNET_CRYPTO_EddsaPrivateKey *pk);
+GSC_KX_init (void);
 
 
 /**

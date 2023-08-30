@@ -612,11 +612,13 @@ transmit_task_cb (void *cls)
  *
  * @param cls closure
  * @param peer peer identity this notification is about
+ * @param class class of the connecting peer
  */
 static void *
 handle_core_connect (void *cls,
                      const struct GNUNET_PeerIdentity *peer,
-                     struct GNUNET_MQ_Handle *mq)
+                     struct GNUNET_MQ_Handle *mq,
+                     enum GNUNET_CORE_PeerClass class)
 {
   struct PeerEntry *peer_entry;
   struct GNUNET_HashCode my_hash;
@@ -880,6 +882,13 @@ run (void *cls,
   struct GNUNET_HashCode hc;
   struct GNUNET_GNSRECORD_PowP *pow;
   const struct GNUNET_CRYPTO_PublicKey *pk;
+  const struct GNUNET_CORE_ServiceInfo service_info =
+  {
+    .service = GNUNET_CORE_SERVICE_REVOCATION,
+    .version = { 1, 0 },
+    .version_max = { 1, 0 },
+    .version_min = { 1, 0 },
+  };
 
   GNUNET_CRYPTO_hash ("revocation-set-union-application-id",
                       strlen ("revocation-set-union-application-id"),
@@ -1009,7 +1018,8 @@ run (void *cls,
                                   &core_init,    /* Call core_init once connected */
                                   &handle_core_connect,  /* Handle connects */
                                   &handle_core_disconnect,       /* Handle disconnects */
-                                  core_handlers);        /* Register these handlers */
+                                  core_handlers,        /* Register these handlers */
+                                  &service_info);
   if (NULL == core_api)
   {
     GNUNET_SCHEDULER_shutdown ();

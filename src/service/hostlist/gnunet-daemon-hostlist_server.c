@@ -184,6 +184,13 @@ build_json_response (const struct HostSet *bu)
   {
     hello = (struct GNUNET_MessageHeader*) (bu->data + offset);
     hparser = GNUNET_HELLO_parser_from_msg (hello);
+    if (NULL == hparser)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "HELLO from host set malformed, skipping...\n");
+      offset += ntohs (hello->size);
+      continue;
+    }
     hello_uri = GNUNET_HELLO_parser_to_url (hparser);
     json_array_append_new (hello_array, json_string (hello_uri));
     GNUNET_free (hello_uri);
@@ -497,12 +504,14 @@ adv_transmit (struct GNUNET_MQ_Handle *mq)
  * @param cls closure
  * @param peer peer identity this notification is about
  * @param mq queue for transmission to @a peer
+ * @param class class of the connecting peer
  * @return NULL (must!)
  */
 static void *
 connect_handler (void *cls,
                  const struct GNUNET_PeerIdentity *peer,
-                 struct GNUNET_MQ_Handle *mq)
+                 struct GNUNET_MQ_Handle *mq,
+                 enum GNUNET_CORE_PeerClass class)
 {
   size_t size;
 

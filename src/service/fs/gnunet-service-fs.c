@@ -1217,6 +1217,13 @@ main_init (const struct GNUNET_CONFIGURATION_Handle *c)
   };
   int anon_p2p_off;
   char *keyfile;
+  const struct GNUNET_CORE_ServiceInfo service_info =
+  {
+    .service = GNUNET_CORE_SERVICE_FS,
+    .version = { 1, 0 },
+    .version_max = { 1, 0 },
+    .version_min = { 1, 0 },
+  };
 
   /* this option is really only for testcases that need to disable
      _anonymous_ file-sharing for some reason */
@@ -1264,7 +1271,8 @@ main_init (const struct GNUNET_CONFIGURATION_Handle *c)
                            &GSF_peer_disconnect_handler,
                            (GNUNET_YES == anon_p2p_off)
                            ? no_p2p_handlers
-                           : p2p_handlers);
+                           : p2p_handlers,
+                           &service_info);
   if (NULL == GSF_core)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,

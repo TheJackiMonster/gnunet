@@ -112,6 +112,12 @@ struct InitReplyMessage
    * Public key of the local peer.
    */
   struct GNUNET_PeerIdentity my_identity;
+
+  /**
+   * Class of the peer
+   * TODO is it correct to send an enum like this?
+   */
+  enum GNUNET_CORE_PeerClass class;
 };
 
 
@@ -135,6 +141,12 @@ struct ConnectNotifyMessage
    * Identity of the connecting peer.
    */
   struct GNUNET_PeerIdentity peer;
+
+  /**
+   * Class of the connecting peer
+   * TODO is it correct to send an enum like this?
+   */
+  enum GNUNET_CORE_PeerClass peer_class;
 };
 
 

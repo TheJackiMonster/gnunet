@@ -775,7 +775,7 @@ GNUNET_TRANSPORT_core_receive_continue (struct GNUNET_TRANSPORT_CoreHandle *ch,
  */
 struct GNUNET_TRANSPORT_CoreHandle *
 GNUNET_TRANSPORT_core_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
-                               const struct GNUNET_PeerIdentity *self,
+                               const struct GNUNET_PeerIdentity *self, // XXX
                                const struct GNUNET_MQ_MessageHandler *handlers,
                                void *cls,
                                GNUNET_TRANSPORT_NotifyConnect nc,

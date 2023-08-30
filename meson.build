@@ -609,6 +609,7 @@ libltversions = [
     ['libgnunetnatauto', '0:0:0'],
     ['libgnunetnat', '2:0:0'],
     ['libgnunetnse', '0:0:0'],
+    ['libgnunetpils', '0:0:0'],
     ['libgnunetpq', '8:0:3'],
     ['libgnunetreclaim', '0:0:0'],
     ['libgnunetregex', '3:1:0'],
@@ -621,7 +622,7 @@ libltversions = [
     ['libgnunetstatistics', '2:0:0'],
     ['libgnunettesting', '3:0:0'],
     ['libgnunettestingarm', '0:0:0'],
-    ['libgnunetcoretesting', '0:0:0'],  # FIXME why is naming scheme wrong here?
+    ['libgnunettestingcore', '0:0:0'],
     ['libgnunettestbed', '0:0:0'],
     ['libgnunettestingmessenger', '0:0:0'],
     ['libgnunettestingtestbed', '0:0:0'],

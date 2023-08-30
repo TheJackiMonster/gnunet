@@ -200,12 +200,14 @@ struct GSF_PeerTransmitHandle;
  * @param cls NULL
  * @param peer identity of peer that connected
  * @param mq message queue for talking to @a peer
+ * @param class peer class of connected peer
  * @return internal handle for the peer
  */
 void *
 GSF_peer_connect_handler (void *cls,
                           const struct GNUNET_PeerIdentity *peer,
-                          struct GNUNET_MQ_Handle *mq);
+                          struct GNUNET_MQ_Handle *mq,
+                          enum GNUNET_CORE_PeerClass class);
 
 
 /**

@@ -1327,6 +1327,8 @@ src/service/nse/Makefile
 src/service/nse/nse.conf
 src/service/peerstore/Makefile
 src/service/peerstore/peerstore.conf
+src/service/pils/Makefile
+src/service/pils/pils.conf
 src/service/pt/Makefile
 src/service/reclaim/Makefile
 src/service/regex/Makefile

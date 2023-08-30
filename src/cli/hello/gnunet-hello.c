@@ -29,6 +29,7 @@
 #include "gnunet_time_lib.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_hello_uri_lib.h"
+#include "gnunet_pils_service.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_peerstore_service.h"
 
@@ -42,6 +43,11 @@ static int ret;
  */
 static struct GNUNET_PEERSTORE_Handle *peerstore_handle;
 
+/*
+ * Handle to PILS service
+ */
+static struct GNUNET_PILS_Handle *pils_handle;
+
 /**
  * PEERSTORE iteration context
  */
@@ -51,16 +57,6 @@ static struct GNUNET_PEERSTORE_IterateContext *iter_ctx;
  * HELLO store context handle
  */
 static struct GNUNET_PEERSTORE_StoreHelloContext *shc;
-
-/**
- * Peer private key
- */
-static struct GNUNET_CRYPTO_EddsaPrivateKey my_private_key;
-
-/**
- * Peer identity
- */
-static struct GNUNET_PeerIdentity my_full_id;
 
 /**
  * HELLO export option -H
@@ -75,7 +71,7 @@ static char *expirationstring;
 /**
  * Expiration time for exported hello
  */
-static struct GNUNET_TIME_Relative hello_validity;
+static struct GNUNET_TIME_Absolute hello_validity;
 
 /**
  * HELLO export/import format option
@@ -91,6 +87,11 @@ static int print_hellos;
  * HELLO import option -I
  */
 static enum GNUNET_GenericReturnValue import_hello;
+
+/**
+ * PILS op
+ */
+struct GNUNET_PILS_Operation *op;
 
 /**
  * Task run in monitor mode when the user presses CTRL-C to abort.
@@ -116,6 +117,13 @@ shutdown_task (void *cls)
     GNUNET_PEERSTORE_disconnect (peerstore_handle);
     peerstore_handle = NULL;
   }
+  if (NULL != op)
+    GNUNET_PILS_cancel (op);
+  if (NULL != pils_handle)
+  {
+    GNUNET_PILS_disconnect (pils_handle);
+    peerstore_handle = NULL;
+  }
 }
 
 
@@ -135,6 +143,74 @@ print_hello_addrs (void *cls,
 
 
   printf ("|- %s\n", uri);
+}
+
+
+static void
+url_resign_cb (void *cls,
+               const struct GNUNET_PeerIdentity *pid,
+               const struct GNUNET_CRYPTO_EddsaSignature *sig)
+{
+  struct GNUNET_HELLO_Builder *builder = cls;
+  char *url;
+
+  GNUNET_HELLO_builder_to_url2 (builder,
+                                pid,
+                                sig,
+                                hello_validity,
+                                &url);
+
+  printf ("%s\n", url);
+  GNUNET_free (url); // TODO is this right?
+}
+
+
+static void
+output_env (const struct GNUNET_MQ_Envelope *env)
+{
+  const struct GNUNET_MessageHeader *msg;
+
+  msg = GNUNET_MQ_env_get_msg (env);
+  fwrite (msg, 1, ntohs (msg->size), stdout);
+}
+
+
+static void
+output_parser (const struct GNUNET_HELLO_Parser *parser)
+{
+  if (GNUNET_NO == binary_output)
+  {
+    char *url;
+    url = GNUNET_HELLO_parser_to_url (parser);
+    printf ("%s\n", url);
+    GNUNET_free (url);
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
+  else
+  {
+    struct GNUNET_MQ_Envelope *env;
+    env = GNUNET_HELLO_parser_to_env (parser);
+    output_env (env);
+    GNUNET_free (env);
+  }
+}
+
+
+static void
+env_resign_cb (void*cls,
+               const struct GNUNET_PeerIdentity *pid,
+               const struct GNUNET_CRYPTO_EddsaSignature *sig)
+{
+  struct GNUNET_HELLO_Builder *builder = cls;
+  struct GNUNET_MQ_Envelope *env;
+
+  env = GNUNET_HELLO_builder_to_env (builder,
+                                     pid,
+                                     sig,
+                                     hello_validity);
+  output_env (env);
+  GNUNET_free (env);
 }
 
 
@@ -162,69 +238,16 @@ hello_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
     return;
   }
   hp = GNUNET_HELLO_parser_from_msg (record->value);
+  if (NULL == hp)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "The HELLO is invalid. Skipping.\n");
+    GNUNET_PEERSTORE_iteration_next (iter_ctx, 1);
+    return;
+  }
   hello_exp = GNUNET_HELLO_get_expiration_time_from_msg (record->value);
   pid = GNUNET_HELLO_parser_get_id (hp);
-  if (export_own_hello)
-  {
-    if (0 == GNUNET_memcmp (&my_full_id,
-                            pid))
-    {
-      struct GNUNET_HELLO_Builder *hb;
-
-      hb = GNUNET_HELLO_builder_from_parser (hp);
-      if (GNUNET_NO == binary_output)
-      {
-        char *url;
-        if (NULL != expirationstring)
-        {
-          url = GNUNET_HELLO_builder_to_url2 (hb,
-                                              &my_private_key,
-                                              hello_validity);
-        }
-        else
-        {
-          url = GNUNET_HELLO_builder_to_url (hb, &my_private_key);
-        }
-        printf ("%s\n", url);
-        GNUNET_free (url);
-        GNUNET_PEERSTORE_iteration_stop (iter_ctx);
-        iter_ctx = NULL;
-        GNUNET_HELLO_parser_free (hp);
-        GNUNET_HELLO_builder_free (hb);
-        GNUNET_SCHEDULER_shutdown ();
-      }
-      else
-      {
-        struct GNUNET_MQ_Envelope *env;
-        struct GNUNET_TIME_Relative validity_tmp;
-        const struct GNUNET_MessageHeader *msg;
-
-        if (NULL != expirationstring)
-        {
-          env = GNUNET_HELLO_builder_to_env (hb,
-                                             &my_private_key,
-                                             hello_validity);
-        }
-        else
-        {
-          validity_tmp = GNUNET_TIME_absolute_get_duration (hello_exp);
-          env = GNUNET_HELLO_builder_to_env (hb,
-                                             &my_private_key,
-                                             validity_tmp);
-        }
-        msg = GNUNET_MQ_env_get_msg (env);
-        fwrite (msg, 1, ntohs (msg->size), stdout);
-        GNUNET_free (env);
-        GNUNET_PEERSTORE_iteration_stop (iter_ctx);
-        iter_ctx = NULL;
-        GNUNET_HELLO_parser_free (hp);
-        GNUNET_HELLO_builder_free (hb);
-        GNUNET_SCHEDULER_shutdown ();
-      }
-      return;
-    }
-  }
-  else if (print_hellos)
+  if (print_hellos)
   {
     printf ("`%s' (expires: %s):\n", GNUNET_i2s (pid),
             GNUNET_STRINGS_absolute_time_to_string (hello_exp));
@@ -249,6 +272,32 @@ hello_store_success (void *cls, int success)
 }
 
 
+static void
+pid_changed_cb (void *cls,
+                const struct GNUNET_HELLO_Parser *parser,
+                const struct GNUNET_HashCode *addr_hash)
+{
+  struct GNUNET_HELLO_Builder *builder;
+  if (! export_own_hello)
+    return;
+
+  if (NULL != expirationstring)
+  {
+    builder = GNUNET_HELLO_builder_from_parser (parser, NULL);
+    op = GNUNET_PILS_sign_hello (
+      pils_handle,
+      builder,
+      hello_validity,
+      (GNUNET_NO == binary_output) ? &env_resign_cb : &url_resign_cb,
+      builder);
+    GNUNET_HELLO_builder_free (builder);
+    return;
+  }
+  output_parser (parser);
+  GNUNET_SCHEDULER_shutdown ();
+}
+
+
 /**
  * Main function that will be run by the scheduler.
  *
@@ -265,6 +314,7 @@ run (void *cls,
 {
   struct GNUNET_HELLO_Parser *hp;
   struct GNUNET_MQ_Envelope *env;
+  struct GNUNET_TIME_Relative hello_validity_rel;
   char *keyfile;
   (void) cls;
   (void) cfgfile;
@@ -297,33 +347,23 @@ run (void *cls,
     ret =  1;
     return;
   }
-  if (GNUNET_SYSERR ==
-      GNUNET_CRYPTO_eddsa_key_from_file (keyfile,
-                                         GNUNET_YES,
-                                         &my_private_key))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Failed to read peer's private key!\n");
-    GNUNET_SCHEDULER_shutdown ();
-    ret = 1;
-    GNUNET_free (keyfile);
-    return;
-  }
-  GNUNET_free (keyfile);
-  GNUNET_CRYPTO_eddsa_key_get_public (&my_private_key, &my_full_id.public_key);
   peerstore_handle = GNUNET_PEERSTORE_connect (cfg);
   GNUNET_assert (NULL != peerstore_handle);
-  hello_validity = GNUNET_TIME_UNIT_DAYS;
+  pils_handle = GNUNET_PILS_connect (cfg, &pid_changed_cb, NULL);
+  GNUNET_assert (NULL != pils_handle);
+  hello_validity_rel = GNUNET_TIME_UNIT_DAYS;
   if (NULL != expirationstring)
   {
     if (GNUNET_OK != GNUNET_STRINGS_fancy_time_to_relative (expirationstring,
-                                                            &hello_validity))
+                                                            &hello_validity_rel)
+        )
     {
       fprintf (stderr, "Invalid expiration time `%s'", expirationstring);
       GNUNET_SCHEDULER_shutdown ();
       return;
     }
   }
+  hello_validity = GNUNET_TIME_relative_to_absolute (hello_validity_rel);
   if (GNUNET_YES == import_hello)
   {
     char buffer[GNUNET_MAX_MESSAGE_SIZE - 1];
@@ -379,13 +419,15 @@ run (void *cls,
     return;
   }
 
-  iter_ctx = GNUNET_PEERSTORE_iteration_start (peerstore_handle,
-                                               "peerstore",
-                                               NULL,
-                                               GNUNET_PEERSTORE_HELLO_KEY,
-                                               &hello_iter,
-                                               NULL);
-
+  if (print_hellos)
+  {
+    iter_ctx = GNUNET_PEERSTORE_iteration_start (peerstore_handle,
+                                                 "peerstore",
+                                                 NULL,
+                                                 GNUNET_PEERSTORE_HELLO_KEY,
+                                                 &hello_iter,
+                                                 NULL);
+  }
 }
 
 

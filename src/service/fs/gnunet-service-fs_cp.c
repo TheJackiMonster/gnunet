@@ -455,7 +455,8 @@ consider_peer_for_forwarding (void *cls,
 void *
 GSF_peer_connect_handler (void *cls,
                           const struct GNUNET_PeerIdentity *peer,
-                          struct GNUNET_MQ_Handle *mq)
+                          struct GNUNET_MQ_Handle *mq,
+                          enum GNUNET_CORE_PeerClass class)
 {
   struct GSF_ConnectedPeer *cp;
 
