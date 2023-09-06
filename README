@@ -82,7 +82,7 @@ Build tools for compiling GNUnet from source:
 - make[*3]
 - pkgconf or pkg-config
 - sphinx
-- sphinx-rtd-theme
+- sphinx-book-theme
 
 Direct dependencies of GNUnet:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
