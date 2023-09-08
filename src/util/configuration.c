@@ -2308,13 +2308,13 @@ GNUNET_CONFIGURATION_remove_value_filename (
         else
           pos[0] = '\0';
       }
-      ret = GNUNET_CONFIGURATION_set_value_string (cfg,
-                                                   section,
-                                                   option,
-                                                   list);
+      GNUNET_CONFIGURATION_set_value_string (cfg,
+                                             section,
+                                             option,
+                                             list);
       GNUNET_free (list);
       GNUNET_free (match);
-      return ret;
+      return GNUNET_OK;
     }
     if (old == '\0')
       break;
