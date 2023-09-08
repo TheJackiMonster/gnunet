@@ -2249,7 +2249,6 @@ GNUNET_CONFIGURATION_remove_value_filename (
   const char *option,
   const char *value)
 {
-  enum GNUNET_GenericReturnValue ret;
   char *list;
   char *pos;
   char *end;
