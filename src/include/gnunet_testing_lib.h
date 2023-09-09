@@ -449,23 +449,6 @@ GNUNET_TESTING_service_run (const char *testdir,
                             void *tm_cls);
 
 
-/**
- * Sometimes we use the binary name to determine which specific
- * test to run.  In those cases, the string after the last "_"
- * in 'argv[0]' specifies a string that determines the configuration
- * file or plugin to use.
- *
- * This function returns the respective substring, taking care
- * of issues such as binaries ending in '.exe' on W32.
- *
- * @param argv0 the name of the binary
- * @return string between the last '_' and the '.exe' (or the end of the string),
- *         NULL if argv0 has no '_'
- */
-char *
-GNUNET_TESTING_get_testname_from_underscore (const char *argv0);
-
-
 #if 0                           /* keep Emacsens' auto-indent happy */
 {
 #endif

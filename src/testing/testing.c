@@ -272,7 +272,7 @@ struct GNUNET_TESTING_Peer
  * @param system the testing system handle
  * @return #GNUNET_OK on success; #GNUNET_SYSERR on error
  */
-static int
+static enum GNUNET_GenericReturnValue
 hostkeys_load (struct GNUNET_TESTING_System *system)
 {
   uint64_t fs;
@@ -505,7 +505,7 @@ cleanup_shared_service_instance (struct SharedServiceInstance *i)
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 start_shared_service_instance (struct SharedServiceInstance *i)
 {
   char *binary;
@@ -1718,39 +1718,6 @@ GNUNET_TESTING_service_run (const char *testdir,
   GNUNET_CONFIGURATION_destroy (cfg);
   GNUNET_TESTING_system_destroy (system, GNUNET_YES);
   return 0;
-}
-
-
-/**
- * Sometimes we use the binary name to determine which specific
- * test to run.  In those cases, the string after the last "_"
- * in 'argv[0]' specifies a string that determines the configuration
- * file or plugin to use.
- *
- * This function returns the respective substring, taking care
- * of issues such as binaries ending in '.exe' on W32.
- *
- * @param argv0 the name of the binary
- * @return string between the last '_' and the '.exe' (or the end of the string),
- *         NULL if argv0 has no '_'
- */
-char *
-GNUNET_TESTING_get_testname_from_underscore (const char *argv0)
-{
-  size_t slen = strlen (argv0) + 1;
-  char sbuf[slen];
-  char *ret;
-  char *dot;
-
-  GNUNET_memcpy (sbuf, argv0, slen);
-  ret = strrchr (sbuf, '_');
-  if (NULL == ret)
-    return NULL;
-  ret++; /* skip underscore */
-  dot = strchr (ret, '.');
-  if (NULL != dot)
-    *dot = '\0';
-  return GNUNET_strdup (ret);
 }
 
 

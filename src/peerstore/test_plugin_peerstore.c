@@ -201,7 +201,7 @@ main (int argc, char *argv[])
   GNUNET_log_setup ("test-plugin-peerstore",
                     "WARNING",
                     NULL);
-  plugin_name = GNUNET_TESTING_get_testname_from_underscore (argv[0]);
+  plugin_name = GNUNET_STRINGS_get_suffix_from_binary_name (argv[0]);
   GNUNET_snprintf (cfg_name,
                    sizeof(cfg_name),
                    "test_plugin_peerstore_%s.conf",
