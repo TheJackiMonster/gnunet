@@ -675,14 +675,14 @@ qconv_array (
   same_sized = (0 != meta->same_size);
 
 #define RETURN_UNLESS(cond) \
-        do { \
-          if (! (cond)) \
-          { \
-            GNUNET_break ((cond)); \
-            noerror = false; \
-            goto DONE; \
-          } \
-        } while (0)
+  do { \
+    if (! (cond)) \
+    { \
+      GNUNET_break ((cond)); \
+      noerror = false; \
+      goto DONE; \
+    } \
+  } while (0)
 
   /* Calculate sizes and check bounds */
   {
@@ -1174,7 +1174,7 @@ GNUNET_PQ_query_param_array_string (
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_ptrs_string (
   unsigned int num,
-  const char *elements[],
+  const char *elements[static num],
   struct GNUNET_PQ_Context *db)
 {
   Oid oid;
