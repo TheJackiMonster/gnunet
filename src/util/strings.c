@@ -1859,11 +1859,18 @@ GNUNET_STRINGS_urlencode (const char *data,
     if (0 == (0x80 & *i8))
     {
       /* traditional ASCII */
-      if (isalnum (*i8) || (*i8 == '-') || (*i8 == '_') || (*i8 == '.') ||
-          (*i8 == '~') )
-        GNUNET_buffer_write (&buf, (const char*) i8, 1);
+      if ( isalnum (*i8) ||
+           (*i8 == '-') ||
+           (*i8 == '_') ||
+           (*i8 == '.') ||
+           (*i8 == '~') )
+        GNUNET_buffer_write (&buf,
+                             (const char*) i8,
+                             1);
       else if (*i8 == ' ')
-        GNUNET_buffer_write (&buf, "+", 1);
+        GNUNET_buffer_write (&buf,
+                             "+",
+                             1);
       else
         GNUNET_buffer_write_fstr (&buf,
                                   "%%%X%X",
@@ -1949,6 +1956,38 @@ GNUNET_STRINGS_urlencode (const char *data,
   }
   *out = GNUNET_buffer_reap_str (&buf);
   return strlen (*out);
+}
+
+
+/**
+ * Sometimes we use the binary name to determine which specific
+ * test to run.  In those cases, the string after the last "_"
+ * in 'argv[0]' specifies a string that determines the configuration
+ * file or plugin to use.
+ *
+ * This function returns the respective substring, taking care
+ * of issues such as binaries ending in '.exe' on W32.
+ *
+ * @param argv0 the name of the binary
+ * @return string between the last '_' and the '.exe' (or the end of the string),
+ *         NULL if argv0 has no '_'
+ */
+char *
+GNUNET_STRINGS_get_suffix_from_binary_name (const char *argv0)
+{
+  const char *ret;
+  const char *dot;
+
+  ret = strrchr (argv0, '_');
+  if (NULL == ret)
+    return NULL;
+  ret++; /* skip underscore */
+  dot = strchr (ret,
+                '.');
+  if (NULL != dot)
+    return GNUNET_strndup (ret,
+                           dot - ret);
+  return GNUNET_strdup (ret);
 }
 
 

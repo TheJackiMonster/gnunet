@@ -1,3 +1,23 @@
+v0.20.0:
+  - GNUNET_TESTING_get_testname_from_underscore renamed to GNUNET_STRINGS_get_suffix_from_binary_name and moved from libgnunettesting to libgnuneutil
+  - Move GNUNET_s into libgnunetutil.
+  - re-introduce compiler annotation for array size in signature
+  - function-signature adjustment due to compiler error
+  - GNUNET_PQ_get_oid removed, GNUNET_PQ_get_oid_by_name improved
+  - Added GNUNET_PQ_get_oid_by_name
+  - added GNUNET_PQ_get_oid()
+  - Added new CCA-secure KEM and use in IDENTITY encryption
+  - Add KEM API to avoid ephemeral private key management
+  - Add new GNUNET_PQ_event_do_poll() API to gnunet_pq_lib.h
+  - Added API to support arrays in query results
+  - Improve PQ API documentation.
+  - API for array types extended for times
+  - API extended for array query types
+  - relevant array-types in queries (not results) in postgresql added
+  - just style fixes, int to enum
+  - initial steps towards support of array-types in posgresql
+  - adds GNUNET_JSON_spec_object_const() and GNUNET_JSON_spec_array_const()
+
 v0.19.4:
   - No changes
 

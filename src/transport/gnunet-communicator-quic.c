@@ -817,7 +817,9 @@ udp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
     {
       v4.sin_family = AF_INET;
       v4.sin_port = htons ((uint16_t) port);
+#if HAVE_SOCKADDR_IN_SIN_LEN
       v4.sin_len = sizeof(struct sockaddr_in);
+#endif
       in = GNUNET_memdup (&v4, sizeof(struct sockaddr_in));
       *sock_len = sizeof(struct sockaddr_in);
       GNUNET_free (cp);

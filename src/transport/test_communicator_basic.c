@@ -1095,7 +1095,7 @@ main (int argc,
   phase[0] = TP_INIT;
   phase[1] = TP_INIT;
   ret = 1;
-  test_name = GNUNET_TESTING_get_testname_from_underscore (argv[0]);
+  test_name = GNUNET_STRINGS_get_suffix_from_binary_name (argv[0]);
   communicator_name = strchr (test_name, '-');
   communicator_name[0] = '\0';
   communicator_name++;

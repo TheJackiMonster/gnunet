@@ -447,6 +447,7 @@ parsehex (char *src, char *dst, size_t dstlen, int invert)
   char *pos = data;
   int i = 0;
   int j = 0;
+  memset (data, 0, strlen (src) + 1);
 
   for (i = 0; i < strlen (src); i++)
   {
