@@ -16,6 +16,7 @@ pcfiles = \
        gnunetgns.pc \
        gnunethello.pc \
        gnunetidentity.pc \
+       gnunetjson.pc \
        gnunetcadet.pc \
        gnunetmessenger.pc \
        gnunetmicrophone.pc \
@@ -59,6 +60,7 @@ EXTRA_DIST = \
        gnunetgns.pc.in \
        gnunethello.pc.in \
        gnunetidentity.pc.in \
+       gnunetjson.pc.in \
        gnunetcadet.pc.in \
        gnunetmessenger.pc.in \
        gnunetmicrophone.pc.in \
