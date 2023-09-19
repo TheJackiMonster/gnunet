@@ -1429,6 +1429,7 @@ pkgconfig/gnunetfs.pc
 pkgconfig/gnunetgns.pc
 pkgconfig/gnunethello.pc
 pkgconfig/gnunetidentity.pc
+pkgconfig/gnunetjson.pc
 pkgconfig/gnunetmessenger.pc
 pkgconfig/gnunetmicrophone.pc
 pkgconfig/gnunetmysql.pc
