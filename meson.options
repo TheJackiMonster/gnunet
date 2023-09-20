@@ -1,3 +1,4 @@
 # Build options
 option('monolith', type : 'boolean', value : false, description: 'Build a single, monolithic libgnunet shlib')
+option('experimental', type : 'boolean', value : false, description: 'Build experimental components')
 

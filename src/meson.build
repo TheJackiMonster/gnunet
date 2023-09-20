@@ -2,6 +2,7 @@ if gnunet_monolith == true
   gnunet_src = []
 endif
 
+subdir('include')
 subdir('util')
 subdir('nt')
 subdir('hello')

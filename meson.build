@@ -1,13 +1,27 @@
 ## EXPERIMENTAL --- WORK IN PROGRESS --- USE AT YOUR OWN PERIL --- ##
-project('gnunet', 'c', license: 'AGPLv3', version: '0.21.0')
+project('gnunet', 'c', license: 'AGPLv3')
+
 compiler = meson.get_compiler('c')
 incdir = include_directories('src/include')
 cdata = configuration_data()
 
+# Version
+r = run_command('sh', 'contrib/get_version.sh', check: true)
+cdata.set('gnunet_version', r.stdout().strip())
+r = run_command('sh', 'contrib/get_version.sh', '--major', check: true)
+cdata.set('gnunet_major_version', r.stdout().strip())
+r = run_command('sh', 'contrib/get_version.sh', '--minor', check: true)
+cdata.set('gnunet_minor_version', r.stdout().strip())
+r = run_command('sh', 'contrib/get_version.sh', '--micro', check: true)
+cdata.set('gnunet_micro_version', r.stdout().strip())
 
 
 # TODO: Set to true to build a single libgnunet
 gnunet_monolith = get_option('monolith')
+cdata.set('enable_experimental', get_option('experimental'))
+
+# FIXME
+cdata.set('extractor', 0)
 
 message('Building on ' + host_machine.system())
 
@@ -21,8 +35,9 @@ cdata.set_quoted('GNUNET_DEFAULT_INTERFACE', 'en0')
 cdata.set_quoted('VCS_VERSION', 'mesonbuild')
 add_project_arguments('-DHAVE_CONFIG_H', language : 'c')
 
+# Linker settings
 # Compiler settings
-  add_project_arguments('-fno-strict-aliasing', language : 'c')
+add_project_arguments('-fno-strict-aliasing', language : 'c')
 if compiler.has_argument('-Wno-address-of-packed-member')
   add_project_arguments('-Wno-address-of-packed-member', language : 'c')
 endif
@@ -31,6 +46,10 @@ if compiler.has_argument('-Wno-tautological-constant-out-of-range-compare')
 endif
 
 
+if host_machine.system() == 'linux'
+  add_project_link_arguments(['-Wl,--unresolved-symbols=report-all'], language : 'c')
+  cdata.set_quoted('GNUNET_DEFAULT_INTERFACE', 'eth0')
+endif
 if host_machine.system() == 'darwin'
   cdata.set_quoted('GNUNET_DEFAULT_INTERFACE', 'en0')
   add_project_arguments('-D_APPLE_C_SOURCE', language : 'c')
@@ -71,10 +90,33 @@ if compiler.has_header('idn2.h')
 endif
 
 
-if compiler.has_function('strnlen', prefix : '#include <string.h>')
-  # function exists, do whatever is required.
-  add_project_arguments('-DHAVE_STRNLEN', language : 'c')
+# GNUTLS DANE
+if compiler.has_header('gnutls/dane.h')
+  add_project_arguments('-DHAVE_GNUTLS_DANE', language : 'c')
 endif
+curl_ssl_check ='''#include <curl/curl.h>
+  int main(int argc, char **argv) {
+    return (CURLSSLSET_OK != curl_global_sslset(CURLSSLBACKEND_GNUTLS, NULL, NULL));
+  }
+'''
+result = compiler.run(curl_ssl_check, name : 'cURL gnutls check',
+                      dependencies: curl_dep)
+cdata.set('curl_gnutls', 0)
+if result.returncode() == 0
+  cdata.set('curl_gnutls', 1)
+endif
+
+
+if compiler.has_function('strnlen', prefix : '#include <string.h>')
+  cdata.set('HAVE_STRNLEN', 1)
+endif
+if compiler.has_function('memset_s')
+  cdata.set('HAVE_MEMSET_S', 1)
+endif
+if compiler.has_function('explicit_bzero')
+  cdata.set('HAVE_EXPLICIT_BZERO', 1)
+endif
+
 
 configure_file(#input: 'gnunet_private_config.h.in',
                output : 'gnunet_private_config.h',
