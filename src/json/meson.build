@@ -11,7 +11,7 @@ if gnunet_monolith == false
           include_directories: [incdir, configuration_inc])
   libgnunetjson_dep = declare_dependency(link_with : libgnunetjson)
 else
-  foreach p : libgnunetjson_src + gnunetservicejson_src
+  foreach p : libgnunetjson_src
     gnunet_src += 'json/' + p
   endforeach
 endif

@@ -11,7 +11,7 @@ if gnunet_monolith == false
           include_directories: [incdir, configuration_inc])
   libgnunetsq_dep = declare_dependency(link_with : libgnunetsq)
 else
-  foreach p : libgnunetsq_src + gnunetservicesq_src
+  foreach p : libgnunetsq_src
     gnunet_src += 'sq/' + p
   endforeach
 endif

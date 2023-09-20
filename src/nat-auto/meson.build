@@ -16,6 +16,6 @@ if gnunet_monolith == false
               include_directories: [incdir, configuration_inc])
 else
   foreach p : libgnunetnatauto_src + gnunetservicenatauto_src
-    gnunet_src += 'natauto/' + p
+    gnunet_src += 'nat-auto/' + p
   endforeach
 endif

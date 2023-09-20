@@ -4,8 +4,10 @@ compiler = meson.get_compiler('c')
 incdir = include_directories('src/include')
 cdata = configuration_data()
 
+
+
 # TODO: Set to true to build a single libgnunet
-gnunet_monolith = false
+gnunet_monolith = get_option('monolith')
 
 message('Building on ' + host_machine.system())
 
@@ -52,6 +54,7 @@ gnunetdeps = [mhd_dep,
               curl_dep,
               json_dep,
               zlib_dep,
+              sqlite_dep,
               unistr_dep, #dependency('libunistring'),
               ltdl_dep, #dependency('ltdl'),
               dependency('libidn2')]

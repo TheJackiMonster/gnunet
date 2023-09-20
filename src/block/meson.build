@@ -13,7 +13,7 @@ if gnunet_monolith == false
           include_directories: [incdir, configuration_inc])
   libgnunetblockgroup_dep = declare_dependency(link_with : libgnunetblockgroup)
 else
-  foreach p : libgnunetblock_src + gnunetserviceblock_src
+  foreach p : libgnunetblock_src + libgnunetblockgroup_src
     gnunet_src += 'block/' + p
   endforeach
 endif

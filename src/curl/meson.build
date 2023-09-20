@@ -8,7 +8,7 @@ if gnunet_monolith == false
           include_directories: [incdir, configuration_inc])
   libgnunetcurl_dep = declare_dependency(link_with : libgnunetcurl)
 else
-  foreach p : libgnunetcurl_src + gnunetservicecurl_src
+  foreach p : libgnunetcurl_src
     gnunet_src += 'curl/' + p
   endforeach
 endif
