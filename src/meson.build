@@ -51,12 +51,12 @@ subdir('cadet')
 subdir('set')
 subdir('seti')
 subdir('setu')
-#subdir('consensus')
+subdir('consensus')
 #subdir('scalarproduct')
-#subdir('revocation')
-#subdir('vpn')
-#subdir('gns')
-#subdir('zonemaster')
+subdir('revocation')
+subdir('vpn')
+subdir('gns')
+subdir('zonemaster')
 ##subdir('$(CONVERSATION_DIR)')
 #subdir('fs')
 #subdir('exit')
@@ -71,5 +71,5 @@ if gnunet_monolith == true
   libgnunet = library('gnunet',
                       gnunet_src,
                       dependencies: gnunetdeps,
-                      include_directories: [incdir, configuration_inc])
+                      include_directories: [incdir, configuration_inc, exitdir])
 endif

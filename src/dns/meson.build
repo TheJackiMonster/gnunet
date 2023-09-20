@@ -14,7 +14,7 @@ if gnunet_monolith == false
   libgnunetdns_dep = declare_dependency(link_with : libgnunetdns)
   libgnunetpluginblockdns = library('gnunet_plugin_block_dns',
           libgnunetpluginblockdns_src,
-          dependencies: libgnunetutil_dep,
+          dependencies: [libgnunetutil_dep, libgnunetblockgroup_dep],
           include_directories: [incdir, configuration_inc])
   libgnunetpluginblockdns_dep = declare_dependency(link_with : libgnunetpluginblockdns)
   executable ('gnunet-service-dns',

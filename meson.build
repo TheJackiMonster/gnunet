@@ -87,6 +87,7 @@ gcrypt_dep = dependency('libgcrypt')
 sodium_dep = dependency('libsodium')
 cc = meson.get_compiler('c')
 m_dep = cc.find_library('m', required : false)
+idn_dep = dependency('libidn2') # FIXME detect libidn as well
 gnunetdeps = [mhd_dep,
               sodium_dep,
               gcrypt_dep,
@@ -96,7 +97,7 @@ gnunetdeps = [mhd_dep,
               sqlite_dep,
               unistr_dep, #dependency('libunistring'),
               ltdl_dep, #dependency('ltdl'),
-              dependency('libidn2')]
+              idn_dep]
 
 add_project_arguments('-DNEED_LIBGCRYPT_VERSION="1.6.0"', language : 'c')
 
