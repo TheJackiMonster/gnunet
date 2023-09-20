@@ -812,9 +812,7 @@ GNUNET_CRYPTO_ecdsa_fo_kem_encaps (const struct
   struct GNUNET_HashCode x;
   struct GNUNET_HashCode ux;
   struct GNUNET_HashCode w;
-  struct GNUNET_HashCode y;
   struct GNUNET_CRYPTO_EcdhePrivateKey sk;
-  enum GNUNET_GenericReturnValue ret;
 
   // This is the input to the FO OWTF
   GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE, &x, sizeof(x));
@@ -847,7 +845,6 @@ GNUNET_CRYPTO_eddsa_fo_kem_encaps (const struct
   struct GNUNET_HashCode x;
   struct GNUNET_HashCode ux;
   struct GNUNET_HashCode w;
-  struct GNUNET_HashCode y;
   struct GNUNET_CRYPTO_EcdhePrivateKey sk;
   enum GNUNET_GenericReturnValue ret;
 
@@ -881,10 +878,8 @@ fo_kem_decaps (const struct GNUNET_HashCode *w,
 {
   struct GNUNET_HashCode x;
   struct GNUNET_HashCode ux;
-  struct GNUNET_HashCode y;
   struct GNUNET_CRYPTO_EcdhePrivateKey sk;
   struct GNUNET_CRYPTO_EcdhePublicKey pub_test;
-  enum GNUNET_GenericReturnValue ret;
 
   // w xor x (one-time pad)
   GNUNET_CRYPTO_hash_xor (w, &c->y, &x);
@@ -915,12 +910,7 @@ GNUNET_CRYPTO_eddsa_fo_kem_decaps (const struct
                                    const struct GNUNET_CRYPTO_FoKemC *c,
                                    struct GNUNET_HashCode *key_material)
 {
-  struct GNUNET_HashCode x;
-  struct GNUNET_HashCode ux;
   struct GNUNET_HashCode w;
-  struct GNUNET_HashCode y;
-  struct GNUNET_CRYPTO_EcdhePrivateKey sk;
-  struct GNUNET_CRYPTO_EcdhePublicKey pub_test;
   enum GNUNET_GenericReturnValue ret;
 
   ret = GNUNET_CRYPTO_eddsa_ecdh (priv, &c->pub, &w);
@@ -936,12 +926,7 @@ GNUNET_CRYPTO_ecdsa_fo_kem_decaps (const struct
                                    struct GNUNET_CRYPTO_FoKemC *c,
                                    struct GNUNET_HashCode *key_material)
 {
-  struct GNUNET_HashCode x;
-  struct GNUNET_HashCode ux;
   struct GNUNET_HashCode w;
-  struct GNUNET_HashCode y;
-  struct GNUNET_CRYPTO_EcdhePrivateKey sk;
-  struct GNUNET_CRYPTO_EcdhePublicKey pub_test;
   enum GNUNET_GenericReturnValue ret;
 
   ret = GNUNET_CRYPTO_ecdsa_ecdh (priv, &c->pub, &w);
