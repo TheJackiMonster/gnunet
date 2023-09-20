@@ -306,8 +306,6 @@ GNUNET_CRYPTO_eddsa_private_key_derive (
   gcry_mpi_t a;
   gcry_mpi_t d;
   gcry_mpi_t L;
-  gcry_mpi_t a1;
-  gcry_mpi_t a2;
   gcry_ctx_t ctx;
 
   /**
