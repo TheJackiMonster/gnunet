@@ -23,6 +23,15 @@ cdata.set('enable_experimental', get_option('experimental'))
 # FIXME
 cdata.set('extractor', 0)
 
+
+# Various checks
+if compiler.has_member ('struct sockaddr_in', 'sin_len', prefix : ['#include <sys/types.h>', '#include <sys/socket.h>', '#include <netinet/in.h>'])
+  add_project_arguments('-DHAVE_SOCKADDR_IN_SIN_LEN', language: 'c')
+endif
+if compiler.has_member ('struct sockaddr_un', 'sun_len', prefix : ['#include <sys/types.h>', '#include <sys/socket.h>', '#include <sys/un.h>'])
+  add_project_arguments('-DHAVE_SOCKADDR_UN_SUN_LEN', language: 'c')
+endif
+
 message('Building on ' + host_machine.system())
 
 # TODO:
@@ -74,9 +83,10 @@ zlib_dep = dependency('zlib')
 mhd_dep = dependency('libmicrohttpd')
 json_dep = compiler.find_library('jansson', required : true)
 gcrypt_dep = dependency('libgcrypt')
+sodium_dep = dependency('libsodium')
 gnunetdeps = [mhd_dep,
+              sodium_dep,
               gcrypt_dep,
-              dependency('libsodium'),
               curl_dep,
               json_dep,
               zlib_dep,
