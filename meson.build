@@ -29,6 +29,13 @@ message('Building on ' + host_machine.system())
 #  - Go through configure.ac and convert all defines/detections
 #  - Compile all libs into a single libgnunet
 
+# Gettext
+i18n = import('i18n')
+
+gettext_package = 'gnunet'
+add_project_arguments('-DGETTEXT_PACKAGE=' + gettext_package, language: 'c')
+subdir('po')
+
 # FIXME lots still missing
 cdata.set_quoted('PACKAGE_VERSION', '0.21.0')
 cdata.set_quoted('GNUNET_DEFAULT_INTERFACE', 'en0')
