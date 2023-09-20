@@ -19,6 +19,23 @@ cdata.set_quoted('GNUNET_DEFAULT_INTERFACE', 'en0')
 cdata.set_quoted('VCS_VERSION', 'mesonbuild')
 add_project_arguments('-DHAVE_CONFIG_H', language : 'c')
 
+# Compiler settings
+  add_project_arguments('-fno-strict-aliasing', language : 'c')
+if compiler.has_argument('-Wno-address-of-packed-member')
+  add_project_arguments('-Wno-address-of-packed-member', language : 'c')
+endif
+if compiler.has_argument('-Wno-tautological-constant-out-of-range-compare')
+  add_project_arguments('-Wno-tautological-constant-out-of-range-compare', language : 'c')
+endif
+
+
+if host_machine.system() == 'darwin'
+  cdata.set_quoted('GNUNET_DEFAULT_INTERFACE', 'en0')
+  add_project_arguments('-D_APPLE_C_SOURCE', language : 'c')
+  add_project_arguments('-D__APPLE_USE_RFC_3542', language : 'c')
+  add_project_arguments('-fno-common', language : 'c')
+endif
+
 
 # FIXME: Not all dependencies here yet
 ltdl_dep = compiler.find_library('ltdl', required : true)
@@ -28,8 +45,9 @@ curl_dep = dependency('libcurl')
 zlib_dep = dependency('zlib')
 mhd_dep = dependency('libmicrohttpd')
 json_dep = compiler.find_library('jansson', required : true)
+gcrypt_dep = dependency('libgcrypt')
 gnunetdeps = [mhd_dep,
-              dependency('libgcrypt'),
+              gcrypt_dep,
               dependency('libsodium'),
               curl_dep,
               json_dep,
