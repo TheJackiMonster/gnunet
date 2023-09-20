@@ -1,5 +1,6 @@
 ## EXPERIMENTAL --- WORK IN PROGRESS --- USE AT YOUR OWN PERIL --- ##
-project('gnunet', 'c', license: 'AGPLv3')
+project('gnunet', 'c', license: 'AGPLv3',
+        version: run_command('sh', 'contrib/get_version.sh', check: true).stdout().strip())
 
 compiler = meson.get_compiler('c')
 incdir = include_directories('src/include')
@@ -84,6 +85,8 @@ mhd_dep = dependency('libmicrohttpd')
 json_dep = compiler.find_library('jansson', required : true)
 gcrypt_dep = dependency('libgcrypt')
 sodium_dep = dependency('libsodium')
+cc = meson.get_compiler('c')
+m_dep = cc.find_library('m', required : false)
 gnunetdeps = [mhd_dep,
               sodium_dep,
               gcrypt_dep,
@@ -99,6 +102,9 @@ add_project_arguments('-DNEED_LIBGCRYPT_VERSION="1.6.0"', language : 'c')
 
 if compiler.has_header('sys/time.h')
   add_project_arguments('-DHAVE_SYS_TIME_H', language : 'c')
+endif
+if compiler.has_header('sys/param.h')
+  add_project_arguments('-DHAVE_SYS_PARAM_H', language : 'c')
 endif
 
 if compiler.has_header('idn2.h')
