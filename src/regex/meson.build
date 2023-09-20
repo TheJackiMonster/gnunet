@@ -27,7 +27,7 @@ if gnunet_monolith == false
                              libgnunetregexblock_dep],
               include_directories: [incdir, configuration_inc])
 else
-  foreach p : libgnunetregex_src + gnunetserviceregex_src
+  foreach p : libgnunetregex_src + libgnunetregexblock_src + gnunetserviceregex_src
     gnunet_src += 'regex/' + p
   endforeach
 endif
