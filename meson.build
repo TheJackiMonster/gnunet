@@ -22,8 +22,8 @@ pkgcfgdir = get_option('datadir')/'gnunet'/'config.d'
 if get_option('monolith')
   add_project_arguments('-DHAVE_GNUNET_MONOLITH', language: 'c')
 endif
+cdata.set('enable_experimental', get_option('experimental'))
 if get_option('experimental')
-  cdata.set('enable_experimental', get_option('experimental'))
   add_project_arguments('-DHAVE_EXPERIMENTAL', language: 'c')
 endif
 
@@ -155,3 +155,4 @@ configuration_inc = include_directories('.')
 
 subdir('src')
 subdir('doc')
+subdir('contrib')
