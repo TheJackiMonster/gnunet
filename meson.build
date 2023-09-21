@@ -2,6 +2,8 @@
 project('gnunet', 'c', license: 'AGPLv3',
         version: run_command('sh', 'contrib/get_version.sh', check: true).stdout().strip())
 
+add_project_arguments('-D_GNU_SOURCE', language : 'c')
+
 cc = meson.get_compiler('c')
 incdir = include_directories('src/include')
 cdata = configuration_data()
