@@ -193,3 +193,5 @@ configuration_inc = include_directories('.')
 subdir('src')
 subdir('doc')
 subdir('contrib')
+
+meson.add_dist_script('meson-dist-script')
