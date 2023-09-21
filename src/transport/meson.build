@@ -55,7 +55,7 @@ if get_option('monolith') == false
                              gcrypt_dep],
               include_directories: [incdir, configuration_inc])
 else
-  foreach p : libgnunettransport_src + libgnunettransportapplication_src + libgnunettransportcore_src + libgnunettransportcommunicator_src + libgnunettransportmonitor_src + gnunetservicetransport_src
+  foreach p : libgnunettransport_src #+ libgnunettransportapplication_src + libgnunettransportcore_src + libgnunettransportcommunicator_src + libgnunettransportmonitor_src + gnunetservicetransport_src
     gnunet_src += 'transport/' + p
   endforeach
 endif
