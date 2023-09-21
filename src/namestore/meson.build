@@ -4,6 +4,12 @@ libgnunetpluginnamestore_sqlite_src = ['plugin_namestore_sqlite.c']
 gnunetnamestore_src = ['gnunet-namestore.c']
 gnunetservicenamestore_src = ['gnunet-service-namestore.c']
 
+configure_file(input : 'namestore.conf.in',
+               output : 'namestore.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
 
 if get_option('monolith') == false
   libgnunetnamestore = library('gnunetnamestore',

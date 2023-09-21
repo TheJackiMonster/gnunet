@@ -2,6 +2,12 @@ libgnunetdatacache_src = ['datacache.c']
 
 libgnunetplugindatacache_sqlite_src = ['plugin_datacache_sqlite.c']
 
+configure_file(input : 'datacache.conf',
+               output : 'datacache.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
 if get_option('monolith') == false
   libgnunetdatacache = library('gnunetdatacache',
           libgnunetdatacache_src,

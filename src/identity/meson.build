@@ -4,6 +4,12 @@ libgnunetidentity_src = ['identity_api.c',
 
 gnunetserviceidentity_src = ['gnunet-service-identity.c']
 
+configure_file(input : 'identity.conf.in',
+               output : 'identity.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
 
 if get_option('monolith') == false
   libgnunetidentity = library('gnunetidentity',

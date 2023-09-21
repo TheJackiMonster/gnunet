@@ -27,6 +27,12 @@ gnunetservicefs_src = ['gnunet-service-fs.c',
                        'gnunet-service-fs_cadet_client.c',
                        'gnunet-service-fs_cadet_server.c']
 
+configure_file(input : 'fs.conf.in',
+               output : 'fs.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
 
 if get_option('monolith') == false
   libgnunetfs = library('gnunetfs',

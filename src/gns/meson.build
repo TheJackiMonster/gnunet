@@ -6,6 +6,13 @@ gnunetservicegns_src = ['gnunet-service-gns.c',
 
 gnunetgnsproxy_src = ['gnunet-gns-proxy.c']
 
+configure_file(input : 'gns.conf.in',
+               output : 'gns.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
+
 if get_option('monolith') == false
   libgnunetgns = library('gnunetgns',
           libgnunetgns_src,

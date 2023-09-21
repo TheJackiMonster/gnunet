@@ -4,6 +4,12 @@ gnunetservicesetu_src = ['gnunet-service-setu.c',
                          'ibf.c',
                          'gnunet-service-setu_strata_estimator.c']
 
+configure_file(input : 'setu.conf.in',
+               output : 'setu.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
 
 if get_option('monolith') == false
   libgnunetsetu = library('gnunetsetu',

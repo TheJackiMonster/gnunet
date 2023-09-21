@@ -2,6 +2,11 @@ libgnunetconsensus_src = ['consensus_api.c']
 
 gnunetserviceconsensus_src = ['gnunet-service-consensus.c']
 
+configure_file(input : 'consensus.conf.in',
+               output : 'consensus.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
 
 if get_option('monolith') == false
   libgnunetconsensus = library('gnunetconsensus',

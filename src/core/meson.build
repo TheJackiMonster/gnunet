@@ -6,6 +6,11 @@ gnunetservicecore_src = ['gnunet-service-core.c',
                         'gnunet-service-core_sessions.c',
                         'gnunet-service-core_typemap.c']
 
+configure_file(input : 'core.conf.in',
+               output : 'core.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
 
 
 if get_option('monolith') == false

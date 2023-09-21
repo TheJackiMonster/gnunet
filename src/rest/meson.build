@@ -2,6 +2,12 @@ libgnunetrest_src = ['rest.c']
 
 gnunetservicerest_src = ['gnunet-rest-server.c']
 
+configure_file(input : 'rest.conf',
+               output : 'rest.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
 
 if get_option('monolith') == false
   libgnunetrest = library('gnunetrest',

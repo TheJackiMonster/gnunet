@@ -3,6 +3,12 @@ libgnunetpeerinfo_src = ['peerinfo_api.c',
 
 gnunetservicepeerinfo_src = ['gnunet-service-peerinfo.c']
 
+configure_file(input : 'peerinfo.conf.in',
+               output : 'peerinfo.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
 
 if get_option('monolith') == false
   libgnunetpeerinfo = library('gnunetpeerinfo',

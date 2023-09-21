@@ -2,6 +2,11 @@ libgnunetdatastore_src = ['datastore_api.c']
 
 gnunetservicedatastore_src = ['gnunet-service-datastore.c']
 
+configure_file(input : 'datastore.conf.in',
+               output : 'datastore.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
 
 if get_option('monolith') == false
   libgnunetdatastore = library('gnunetdatastore',

@@ -68,7 +68,12 @@ if compiler.has_argument('-Wno-tautological-constant-out-of-range-compare')
   add_project_arguments('-Wno-tautological-constant-out-of-range-compare', language : 'c')
 endif
 
+# FIXME static here, were dynamic in configure.ac
 cdata.set('UNIXONLY', '#')
+cdata.set('JAVAPORT', '#')
+cdata.set('START_ON_DEMAND', 'YES')
+
+
 cdata.set_quoted('build_target', host_machine.system())
 if host_machine.system() == 'linux'
   add_project_link_arguments(['-Wl,--unresolved-symbols=report-all'], language : 'c')

@@ -2,6 +2,12 @@ libgnunetstatistics_src = ['statistics_api.c']
 
 gnunetservicestatistics_src = ['gnunet-service-statistics.c']
 
+configure_file(input : 'statistics.conf.in',
+               output : 'statistics.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
 
 if get_option('monolith') == false
   libgnunetstatistics = library('gnunetstatistics',

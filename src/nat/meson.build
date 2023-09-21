@@ -8,6 +8,13 @@ gnunetservicenat_src = ['gnunet-service-nat.c',
                         'gnunet-service-nat_mini.c',
                         'gnunet-service-nat_helper.c']
 
+configure_file(input : 'nat.conf',
+               output : 'nat.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
+
 if get_option('monolith') == false
   libgnunetnat = library('gnunetnat',
           libgnunetnat_src,

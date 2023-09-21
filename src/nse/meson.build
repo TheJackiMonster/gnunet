@@ -2,6 +2,13 @@ libgnunetnse_src = ['nse_api.c']
 
 gnunetservicense_src = ['gnunet-service-nse.c']
 
+configure_file(input : 'nse.conf.in',
+               output : 'nse.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
+
 if get_option('monolith') == false
   libgnunetnse = library('gnunetnse',
           libgnunetnse_src,

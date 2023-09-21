@@ -4,6 +4,12 @@ libgnunetpluginnamecache_sqlite_src = ['plugin_namecache_sqlite.c']
 gnunetnamecache_src = ['gnunet-namecache.c']
 gnunetservicenamecache_src = ['gnunet-service-namecache.c']
 
+configure_file(input : 'namecache.conf.in',
+               output : 'namecache.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
 
 if get_option('monolith') == false
   libgnunetnamecache = library('gnunetnamecache',

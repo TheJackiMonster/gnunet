@@ -2,6 +2,12 @@ libgnunetfriends_src = ['friends.c']
 
 gnunetdaemontopology_src = ['gnunet-daemon-topology.c']
 
+configure_file(input : 'topology.conf',
+               output : 'topology.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
 
 if get_option('monolith') == false
   libgnunetfriends = library('gnunetfriends',

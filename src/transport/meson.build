@@ -15,6 +15,12 @@ gnunetservicetransport_src = ['gnunet-service-tng.c']
 gnunetcommunicatortcp_src = ['gnunet-communicator-tcp.c']
 gnunetcommunicatorudp_src = ['gnunet-communicator-udp.c']
 
+configure_file(input : 'transport.conf.in',
+               output : 'transport.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
 
 if get_option('monolith') == false
   libgnunettransport = library('gnunettransport',

@@ -5,6 +5,11 @@ gnunetservicedns_src = ['gnunet-service-dns.c']
 gnunetdnsredirector_src = ['gnunet-dns-monitor.c']
 gnunetdnsmonitor_src = ['gnunet-dns-redirector.c']
 
+configure_file(input : 'dns.conf.in',
+               output : 'dns.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
 
 if get_option('monolith') == false
   libgnunetdns = library('gnunetdns',

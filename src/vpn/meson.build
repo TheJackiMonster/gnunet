@@ -4,6 +4,13 @@ gnunetservicevpn_src = ['gnunet-service-vpn.c']
 
 exitdir = include_directories('../exit')
 
+configure_file(input : 'vpn.conf.in',
+               output : 'vpn.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
+
 if get_option('monolith') == false
   libgnunetvpn = library('gnunetvpn',
           libgnunetvpn_src,

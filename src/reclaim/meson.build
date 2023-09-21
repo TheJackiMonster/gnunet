@@ -5,6 +5,12 @@ libgnunetreclaim_src = ['reclaim_api.c',
 gnunetservicereclaim_src = ['gnunet-service-reclaim.c',
                         'gnunet-service-reclaim_tickets.c']
 
+configure_file(input : 'reclaim.conf',
+               output : 'reclaim.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
 
 if get_option('monolith') == false
   libgnunetreclaim = library('gnunetreclaim',

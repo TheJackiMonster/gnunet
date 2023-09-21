@@ -2,6 +2,12 @@ gnunetdaemonhostlist_src = ['gnunet-daemon-hostlist.c',
                             'gnunet-daemon-hostlist_server.c',
                             'gnunet-daemon-hostlist_client.c']
 
+configure_file(input : 'hostlist.conf',
+               output : 'hostlist.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
 
 if get_option('monolith') == false
   executable ('gnunet-daemon-hostlist',

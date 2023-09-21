@@ -69,6 +69,13 @@ libgnunetutil_src = ['bandwidth.c',
        'proc_compat.c',
 	     'gnunet_error_codes.c']
 
+configure_file(input : 'util.conf',
+               output : 'util.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
+
 if get_option('monolith') == false
   libgnunetutil = library('gnunetutil',
           libgnunetutil_src,

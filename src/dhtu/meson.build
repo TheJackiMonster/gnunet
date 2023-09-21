@@ -1,6 +1,11 @@
 libgnunetplugindhtuip_src = ['plugin_dhtu_ip.c']
 libgnunetplugindhtugnunet_src = ['plugin_dhtu_gnunet.c']
 
+configure_file(input : 'dhtu.conf',
+               output : 'dhtu.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
 
 if get_option('monolith') == false
   libgnunetplugindhtuip = library('gnunet_plugin_dhtu_ip',

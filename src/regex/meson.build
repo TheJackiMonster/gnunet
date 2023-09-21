@@ -6,6 +6,12 @@ gnunetserviceregex_src = ['gnunet-service-regex.c',
                           'regex_internal_dht.c',
                           'regex_internal.c']
 
+configure_file(input : 'regex.conf.in',
+               output : 'regex.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
 
 if get_option('monolith') == false
   libgnunetregex = library('gnunetregex',

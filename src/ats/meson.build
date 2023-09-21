@@ -13,6 +13,12 @@ gnunetserviceats_src = ['gnunet-service-ats.c',
                         'gnunet-service-ats_scheduling.c',
                         'gnunet-service-ats_reservations.c']
 
+configure_file(input : 'ats.conf.in',
+               output : 'ats.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
 if get_option('monolith') == false
   libgnunetats = library('gnunetats',
           libgnunetats_src,

@@ -2,6 +2,12 @@ libgnunetrevocation_src = ['revocation_api.c']
 
 gnunetservicerevocation_src = ['gnunet-service-revocation.c']
 
+configure_file(input : 'revocation.conf.in',
+               output : 'revocation.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
 
 if get_option('monolith') == false
   libgnunetrevocation = library('gnunetrevocation',

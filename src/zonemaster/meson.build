@@ -1,5 +1,11 @@
 gnunetservicezonemaster_src = ['gnunet-service-zonemaster.c']
 
+configure_file(input : 'zonemaster.conf.in',
+               output : 'zonemaster.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
 
 if get_option('monolith') == false
   executable ('gnunet-service-zonemaster',

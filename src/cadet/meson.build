@@ -17,6 +17,11 @@ gnunetservicecadet_src = ['gnunet-service-cadet.c',
                           'gnunet-service-cadet_paths.c',
                           'gnunet-service-cadet_peer.c']
 
+configure_file(input : 'cadet.conf.in',
+               output : 'cadet.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
 
 if get_option('monolith') == false
   libgnunetcadet = library('gnunetcadet',

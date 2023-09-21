@@ -6,6 +6,12 @@ gnunetservicescalarproduct_src = ['gnunet-service-scalarproduct.c',
                         'gnunet-service-scalarproduct_union_strata_estimator.c',
                         'ibf.c']
 
+configure_file(input : 'scalarproduct.conf.in',
+               output : 'scalarproduct.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
 
 if get_option('monolith') == false
   libgnunetscalarproduct = library('gnunetscalarproduct',

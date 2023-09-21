@@ -3,6 +3,12 @@ libgnunetpeerstore_src = ['peerstore_api.c',
 
 gnunetservicepeerstore_src = ['gnunet-service-peerstore.c']
 
+configure_file(input : 'peerstore.conf.in',
+               output : 'peerstore.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
 
 if get_option('monolith') == false
   libgnunetpeerstore = library('gnunetpeerstore',

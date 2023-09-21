@@ -6,6 +6,12 @@ gnunetserviceset_src = ['gnunet-service-set.c',
                         'gnunet-service-set_union_strata_estimator.c',
                         'ibf.c']
 
+configure_file(input : 'set.conf.in',
+               output : 'set.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
 
 if get_option('monolith') == false
   libgnunetset = library('gnunetset',

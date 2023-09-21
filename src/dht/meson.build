@@ -7,6 +7,11 @@ gnunetservicedht_src = ['gnunet-service-dht.c',
                         'gnunet-service-dht_neighbours.c',
                         'gnunet-service-dht_routing.c']
 
+configure_file(input : 'dht.conf.in',
+               output : 'dht.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
 
 if get_option('monolith') == false
   libgnunetdht = library('gnunetdht',

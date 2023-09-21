@@ -2,6 +2,12 @@ libgnunetseti_src = ['seti_api.c']
 
 gnunetserviceseti_src = ['gnunet-service-seti.c']
 
+configure_file(input : 'seti.conf.in',
+               output : 'seti.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
 
 if get_option('monolith') == false
   libgnunetseti = library('gnunetseti',
