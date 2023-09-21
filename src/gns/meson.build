@@ -15,6 +15,15 @@ if get_option('monolith') == false
           install: true,
           install_dir: get_option('libdir'))
   libgnunetgns_dep = declare_dependency(link_with : libgnunetgns)
+  executable ('gnunet-gns',
+              'gnunet-gns.c',
+              dependencies: [libgnunetgns_dep,
+                             libgnunetgnsrecord_dep,
+                             idn_dep,
+                             libgnunetutil_dep],
+              include_directories: [incdir, configuration_inc],
+              install: true,
+              install_dir: get_option('bindir'))
   executable ('gnunet-service-gns',
               gnunetservicegns_src,
               dependencies: [libgnunetgns_dep,
