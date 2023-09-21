@@ -8,7 +8,7 @@ gnunetservicenat_src = ['gnunet-service-nat.c',
                         'gnunet-service-nat_mini.c',
                         'gnunet-service-nat_helper.c']
 
-configure_file(input : 'nat.conf',
+configure_file(input : 'nat.conf.in',
                output : 'nat.conf',
                configuration : cdata,
                install: true,
