@@ -2,7 +2,7 @@ libgnunetnse_src = ['nse_api.c']
 
 gnunetservicense_src = ['gnunet-service-nse.c']
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetnse = library('gnunetnse',
           libgnunetnse_src,
           dependencies: libgnunetutil_dep,

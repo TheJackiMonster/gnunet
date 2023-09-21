@@ -2,7 +2,7 @@ libgnunetdatacache_src = ['datacache.c']
 
 libgnunetplugindatacache_sqlite_src = ['plugin_datacache_sqlite.c']
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetdatacache = library('gnunetdatacache',
           libgnunetdatacache_src,
           dependencies: [libgnunetutil_dep, libgnunetstatistics_dep],

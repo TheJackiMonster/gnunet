@@ -7,7 +7,7 @@ gnunetserviceregex_src = ['gnunet-service-regex.c',
                           'regex_internal.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetregex = library('gnunetregex',
           libgnunetregex_src,
           dependencies: libgnunetutil_dep,

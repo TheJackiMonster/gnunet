@@ -1,7 +1,7 @@
 libgnunetfragmentation_src = ['fragmentation.c',
                               'defragmentation.c']
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetfragmentation = library('gnunetfragmentation',
           libgnunetfragmentation_src,
           dependencies: [libgnunetutil_dep, libgnunetstatistics_dep],

@@ -3,7 +3,7 @@ libgnunetrevocation_src = ['revocation_api.c']
 gnunetservicerevocation_src = ['gnunet-service-revocation.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetrevocation = library('gnunetrevocation',
           libgnunetrevocation_src,
           dependencies: [libgnunetutil_dep, libgnunetidentity_dep],

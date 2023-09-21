@@ -1,6 +1,6 @@
 libgnunetnt_src = ['nt.c']
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetnt = library('gnunetnt',
           libgnunetnt_src,
           dependencies: libgnunetutil_dep,

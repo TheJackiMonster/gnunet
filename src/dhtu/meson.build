@@ -2,7 +2,7 @@ libgnunetplugindhtuip_src = ['plugin_dhtu_ip.c']
 libgnunetplugindhtugnunet_src = ['plugin_dhtu_gnunet.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetplugindhtuip = library('gnunet_plugin_dhtu_ip',
           libgnunetplugindhtuip_src,
           dependencies: libgnunetutil_dep,

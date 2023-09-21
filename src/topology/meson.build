@@ -3,7 +3,7 @@ libgnunetfriends_src = ['friends.c']
 gnunetdaemontopology_src = ['gnunet-daemon-topology.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetfriends = library('gnunetfriends',
           libgnunetfriends_src,
           dependencies: libgnunetutil_dep,
@@ -21,7 +21,7 @@ if gnunet_monolith == false
                              libgnunethello_dep],
               include_directories: [incdir, configuration_inc])
 else
-  foreach p : libgnunetfriends_src + gnunetdaemontopology_src
+  foreach p : libgnunetfriends_src
     gnunet_src += 'topology/' + p
   endforeach
 endif

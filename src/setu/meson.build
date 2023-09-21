@@ -5,7 +5,7 @@ gnunetservicesetu_src = ['gnunet-service-setu.c',
                          'gnunet-service-setu_strata_estimator.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetsetu = library('gnunetsetu',
           libgnunetsetu_src,
           dependencies: libgnunetutil_dep,

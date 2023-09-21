@@ -7,7 +7,7 @@ gnunetservicescalarproduct_src = ['gnunet-service-scalarproduct.c',
                         'ibf.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetscalarproduct = library('gnunetscalarproduct',
           libgnunetscalarproduct_src,
           dependencies: libgnunetutil_dep,

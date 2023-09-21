@@ -4,7 +4,7 @@ libgnunetgnsrecord_src = ['gnsrecord.c',
                           'gnsrecord_misc.c']
 libgnunetgnsrecordjson_src = ['json_gnsrecord.c']
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetgnsrecord = library('gnunetgnsrecord',
           libgnunetgnsrecord_src,
           dependencies: [libgnunetutil_dep,

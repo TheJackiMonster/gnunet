@@ -7,7 +7,7 @@ gnunetserviceset_src = ['gnunet-service-set.c',
                         'ibf.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetset = library('gnunetset',
           libgnunetset_src,
           dependencies: libgnunetutil_dep,

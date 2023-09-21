@@ -5,7 +5,7 @@ gnunetnamecache_src = ['gnunet-namecache.c']
 gnunetservicenamecache_src = ['gnunet-service-namecache.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetnamecache = library('gnunetnamecache',
           libgnunetnamecache_src,
           dependencies: [libgnunetutil_dep,
@@ -35,7 +35,7 @@ if gnunet_monolith == false
                              libgnunetstatistics_dep],
               include_directories: [incdir, configuration_inc])
 else
-  foreach p : libgnunetnamecache_src + libgnunetpluginnamecache_sqlite_src + gnunetservicenamecache_src + gnunetnamecache_src
+  foreach p : libgnunetnamecache_src + libgnunetpluginnamecache_sqlite_src + gnunetservicenamecache_src
     gnunet_src += 'namecache/' + p
   endforeach
 endif

@@ -4,7 +4,7 @@ libgnunetpeerinfo_src = ['peerinfo_api.c',
 gnunetservicepeerinfo_src = ['gnunet-service-peerinfo.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetpeerinfo = library('gnunetpeerinfo',
           libgnunetpeerinfo_src,
           dependencies: [libgnunetutil_dep, libgnunethello_dep],

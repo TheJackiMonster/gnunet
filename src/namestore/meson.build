@@ -5,7 +5,7 @@ gnunetnamestore_src = ['gnunet-namestore.c']
 gnunetservicenamestore_src = ['gnunet-service-namestore.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetnamestore = library('gnunetnamestore',
           libgnunetnamestore_src,
           dependencies: [libgnunetutil_dep,
@@ -40,7 +40,7 @@ if gnunet_monolith == false
                              libgnunetstatistics_dep],
               include_directories: [incdir, configuration_inc])
 else
-  foreach p : libgnunetnamestore_src + libgnunetpluginnamestore_sqlite_src + gnunetservicenamestore_src + gnunetnamestore_src
+  foreach p : libgnunetnamestore_src + libgnunetpluginnamestore_sqlite_src + gnunetservicenamestore_src
     gnunet_src += 'namestore/' + p
   endforeach
 endif

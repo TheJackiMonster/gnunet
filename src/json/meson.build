@@ -4,7 +4,7 @@ libgnunetjson_src = ['json.c',
                     'json_mhd.c',
                     'json_pack.c']
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetjson = library('gnunetjson',
           libgnunetjson_src,
           dependencies: [libgnunetutil_dep, json_dep, mhd_dep, zlib_dep],

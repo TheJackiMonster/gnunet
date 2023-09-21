@@ -4,7 +4,7 @@ libgnunetnatauto_src = ['nat_auto_api.c',
 gnunetservicenatauto_src = ['gnunet-nat-server.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetnatauto = library('gnunetnatauto',
           libgnunetnatauto_src,
           dependencies: [libgnunetutil_dep, libgnunetnat_dep],

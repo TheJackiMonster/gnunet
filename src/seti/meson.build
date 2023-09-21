@@ -3,7 +3,7 @@ libgnunetseti_src = ['seti_api.c']
 gnunetserviceseti_src = ['gnunet-service-seti.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetseti = library('gnunetseti',
           libgnunetseti_src,
           dependencies: libgnunetutil_dep,

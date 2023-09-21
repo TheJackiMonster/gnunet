@@ -8,7 +8,7 @@ gnunetservicedht_src = ['gnunet-service-dht.c',
                         'gnunet-service-dht_routing.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetdht = library('gnunetdht',
           libgnunetdht_src,
           dependencies: libgnunetutil_dep,

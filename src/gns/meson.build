@@ -5,13 +5,15 @@ gnunetservicegns_src = ['gnunet-service-gns.c',
                         'gnunet-service-gns_interceptor.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetgns = library('gnunetgns',
           libgnunetgns_src,
           dependencies: [libgnunetutil_dep,
                          libgnunetgnsrecord_dep,
                          libgnunetidentity_dep],
-          include_directories: [incdir, configuration_inc])
+          include_directories: [incdir, configuration_inc],
+          install: true,
+          install_dir: get_option('libdir'))
   libgnunetgns_dep = declare_dependency(link_with : libgnunetgns)
   executable ('gnunet-service-gns',
               gnunetservicegns_src,
@@ -28,7 +30,9 @@ if gnunet_monolith == false
                              libgnunetgnsrecord_dep,
                              libgnunetcadet_dep,
                              libgnunetblock_dep],
-              include_directories: [incdir, configuration_inc])
+              include_directories: [incdir, configuration_inc],
+              install: true,
+              install_dir: get_option('libdir') / 'gnunet' / 'libexec')
 else
   foreach p : libgnunetgns_src + gnunetservicegns_src
     gnunet_src += 'gns/' + p

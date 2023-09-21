@@ -8,7 +8,7 @@ gnunetservicenat_src = ['gnunet-service-nat.c',
                         'gnunet-service-nat_mini.c',
                         'gnunet-service-nat_helper.c']
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetnat = library('gnunetnat',
           libgnunetnat_src,
           dependencies: libgnunetutil_dep,

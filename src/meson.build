@@ -1,4 +1,4 @@
-if gnunet_monolith == true
+if get_option('monolith') == true
   gnunet_src = []
 endif
 
@@ -7,7 +7,9 @@ subdir('util')
 subdir('nt')
 subdir('hello')
 subdir('block')
-subdir('arm')
+if get_option('monolith') == false
+  subdir('arm')
+endif
 subdir('statistics')
 #$(TESTING)')
 if json_dep.found()
@@ -16,7 +18,9 @@ endif
 if curl_dep.found()
   subdir('curl')
 endif
-subdir('rest')
+if get_option('monolith') == false
+  subdir('rest')
+endif
 subdir('peerinfo')
 if sqlite_dep.found()
   subdir('sq')
@@ -48,7 +52,7 @@ subdir('namecache')
 subdir('namestore')
 subdir('peerinfo-tool')
 subdir('cadet')
-subdir('set')
+#subdir('set')
 subdir('seti')
 subdir('setu')
 subdir('consensus')
@@ -67,7 +71,7 @@ subdir('zonemaster')
 ##subdir('$(EXP_DIR)')
 #subdir('integration-tests')
 
-if gnunet_monolith == true
+if get_option('monolith')
   libgnunet = library('gnunet',
                       gnunet_src,
                       dependencies: gnunetdeps,

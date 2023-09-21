@@ -4,7 +4,7 @@ libgnunetpeerstore_src = ['peerstore_api.c',
 gnunetservicepeerstore_src = ['gnunet-service-peerstore.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetpeerstore = library('gnunetpeerstore',
           libgnunetpeerstore_src,
           dependencies: libgnunetutil_dep,

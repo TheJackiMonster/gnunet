@@ -6,7 +6,7 @@ libgnunethello_src = ['hello.c',
 gnunethello_src = ['gnunet-hello.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunethello = library('gnunethello',
           libgnunethello_src,
           dependencies: libgnunetutil_dep,
@@ -17,7 +17,7 @@ if gnunet_monolith == false
               dependencies: [libgnunethello_dep, libgnunetutil_dep],
               include_directories: [incdir, configuration_inc])
 else
-  foreach p : libgnunethello_src + gnunethello_src
+  foreach p : libgnunethello_src
     gnunet_src += 'hello/' + p
   endforeach
 endif

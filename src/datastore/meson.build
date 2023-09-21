@@ -3,7 +3,7 @@ libgnunetdatastore_src = ['datastore_api.c']
 gnunetservicedatastore_src = ['gnunet-service-datastore.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetdatastore = library('gnunetdatastore',
           libgnunetdatastore_src,
           dependencies: [libgnunetutil_dep,

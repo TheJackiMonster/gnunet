@@ -16,10 +16,16 @@ cdata.set('gnunet_minor_version', r.stdout().strip())
 r = run_command('sh', 'contrib/get_version.sh', '--micro', check: true)
 cdata.set('gnunet_micro_version', r.stdout().strip())
 
+pkgcfgdir = get_option('datadir')/'gnunet'/'config.d'
 
 # TODO: Set to true to build a single libgnunet
-gnunet_monolith = get_option('monolith')
-cdata.set('enable_experimental', get_option('experimental'))
+if get_option('monolith')
+  add_project_arguments('-DHAVE_GNUNET_MONOLITH', language: 'c')
+endif
+if get_option('experimental')
+  cdata.set('enable_experimental', get_option('experimental'))
+  add_project_arguments('-DHAVE_EXPERIMENTAL', language: 'c')
+endif
 
 # FIXME
 cdata.set('extractor', 0)
@@ -62,7 +68,7 @@ if compiler.has_argument('-Wno-tautological-constant-out-of-range-compare')
   add_project_arguments('-Wno-tautological-constant-out-of-range-compare', language : 'c')
 endif
 
-
+cdata.set('UNIXONLY', '#')
 if host_machine.system() == 'linux'
   add_project_link_arguments(['-Wl,--unresolved-symbols=report-all'], language : 'c')
   cdata.set_quoted('GNUNET_DEFAULT_INTERFACE', 'eth0')

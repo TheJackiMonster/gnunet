@@ -314,6 +314,7 @@ GNUNET_SERVICE_run_ (int argc,
  *  GNUNET_MQ_handler_end ());
  * </code>
  */
+#ifndef HAVE_GNUNET_MONOLITH
 #define GNUNET_SERVICE_MAIN(service_name, service_options, init_cb, connect_cb, \
                             disconnect_cb, cls, ...) \
   int \
@@ -333,7 +334,10 @@ GNUNET_SERVICE_run_ (int argc,
                                 cls, \
                                 mh); \
   }
-
+#else
+#define GNUNET_SERVICE_MAIN(service_name, service_options, init_cb, connect_cb, \
+                            disconnect_cb, cls, ...)
+#endif
 
 /**
  * Suspend accepting connections from the listen socket temporarily.

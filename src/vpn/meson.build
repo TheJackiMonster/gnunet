@@ -4,7 +4,7 @@ gnunetservicevpn_src = ['gnunet-service-vpn.c']
 
 exitdir = include_directories('../exit')
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetvpn = library('gnunetvpn',
           libgnunetvpn_src,
           dependencies: libgnunetutil_dep,

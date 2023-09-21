@@ -3,7 +3,7 @@ gnunetdaemonhostlist_src = ['gnunet-daemon-hostlist.c',
                             'gnunet-daemon-hostlist_client.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   executable ('gnunet-daemon-hostlist',
               gnunetdaemonhostlist_src,
               dependencies: [libgnunetutil_dep,
@@ -16,7 +16,7 @@ if gnunet_monolith == false
                              curl_dep],
               include_directories: [incdir, configuration_inc])
 else
-  foreach p : gnunetdaemonhostlist_src
-    gnunet_src += 'hostlist/' + p
-  endforeach
+  #foreach p : gnunetdaemonhostlist_src
+  #  gnunet_src += 'hostlist/' + p
+  #endforeach
 endif

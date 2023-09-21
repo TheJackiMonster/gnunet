@@ -1,7 +1,7 @@
 gnunetservicezonemaster_src = ['gnunet-service-zonemaster.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   executable ('gnunet-service-zonemaster',
               gnunetservicezonemaster_src,
               dependencies: [

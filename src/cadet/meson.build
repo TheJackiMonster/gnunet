@@ -18,11 +18,13 @@ gnunetservicecadet_src = ['gnunet-service-cadet.c',
                           'gnunet-service-cadet_peer.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetcadet = library('gnunetcadet',
           libgnunetcadet_src,
           dependencies: libgnunetutil_dep,
-          include_directories: [incdir, configuration_inc])
+          include_directories: [incdir, configuration_inc],
+          install: true,
+          install_dir: get_option('libdir'))
   libgnunetcadet_dep = declare_dependency(link_with : libgnunetcadet)
   executable ('gnunet-cadet',
               gnunetservicecadet_src,
@@ -35,7 +37,9 @@ if gnunet_monolith == false
                              libgnunetats_dep,
                              libgnunettransport_dep,
                              libgnunethello_dep],
-              include_directories: [incdir, configuration_inc])
+              include_directories: [incdir, configuration_inc],
+              install: true,
+              install_dir: get_option('bindir'))
   executable ('gnunet-service-cadet',
               gnunetservicecadet_src,
               dependencies: [libgnunetcadet_dep,
@@ -48,9 +52,11 @@ if gnunet_monolith == false
                              libgnunetpeerinfo_dep,
                              libgnunethello_dep,
                              libgnunetblock_dep],
-              include_directories: [incdir, configuration_inc])
+              include_directories: [incdir, configuration_inc],
+              install: true,
+              install_dir: get_option('libdir') / 'gnunet' / 'libexec')
 else
-  foreach p : libgnunetcadet_src + gnunetservicecadet_src + gnunetcadet_src
+  foreach p : libgnunetcadet_src + gnunetservicecadet_src
     gnunet_src += 'cadet/' + p
   endforeach
 endif

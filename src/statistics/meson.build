@@ -3,7 +3,7 @@ libgnunetstatistics_src = ['statistics_api.c']
 gnunetservicestatistics_src = ['gnunet-service-statistics.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetstatistics = library('gnunetstatistics',
           libgnunetstatistics_src,
           dependencies: libgnunetutil_dep,

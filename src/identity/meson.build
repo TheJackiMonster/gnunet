@@ -5,7 +5,7 @@ libgnunetidentity_src = ['identity_api.c',
 gnunetserviceidentity_src = ['gnunet-service-identity.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetidentity = library('gnunetidentity',
           libgnunetidentity_src,
           dependencies: [libgnunetutil_dep, sodium_dep],

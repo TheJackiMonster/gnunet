@@ -69,7 +69,7 @@ libgnunetutil_src = ['bandwidth.c',
        'proc_compat.c',
 	     'gnunet_error_codes.c']
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetutil = library('gnunetutil',
           libgnunetutil_src,
           dependencies: gnunetdeps,

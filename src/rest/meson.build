@@ -3,7 +3,7 @@ libgnunetrest_src = ['rest.c']
 gnunetservicerest_src = ['gnunet-rest-server.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetrest = library('gnunetrest',
           libgnunetrest_src,
           dependencies: [libgnunetutil_dep, mhd_dep],

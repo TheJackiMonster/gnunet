@@ -4,7 +4,7 @@ libgnunetsq_src = ['sq.c',
                    'sq_query_helper.c',
                    'sq_result_helper.c']
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetsq = library('gnunetsq',
           libgnunetsq_src,
           dependencies: [libgnunetutil_dep, sqlite_dep],

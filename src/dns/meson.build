@@ -6,7 +6,7 @@ gnunetdnsredirector_src = ['gnunet-dns-monitor.c']
 gnunetdnsmonitor_src = ['gnunet-dns-redirector.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetdns = library('gnunetdns',
           libgnunetdns_src,
           dependencies: libgnunetutil_dep,
@@ -31,7 +31,7 @@ if gnunet_monolith == false
               dependencies: [libgnunetdns_dep, libgnunetutil_dep, libgnunetdns_dep],
               include_directories: [incdir, configuration_inc])
 else
-  foreach p : libgnunetdns_src + gnunetservicedns_src + gnunetdnsmonitor_src + gnunetdnsredirector_src + libgnunetpluginblockdns_src
+  foreach p : libgnunetdns_src + gnunetservicedns_src + libgnunetpluginblockdns_src
     gnunet_src += 'dns/' + p
   endforeach
 endif

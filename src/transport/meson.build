@@ -16,7 +16,7 @@ gnunetcommunicatortcp_src = ['gnunet-communicator-tcp.c']
 gnunetcommunicatorudp_src = ['gnunet-communicator-udp.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunettransport = library('gnunettransport',
           libgnunettransport_src,
           dependencies: [libgnunetutil_dep, libgnunetats_dep, libgnunethello_dep],

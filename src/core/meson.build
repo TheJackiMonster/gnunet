@@ -8,11 +8,13 @@ gnunetservicecore_src = ['gnunet-service-core.c',
 
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   libgnunetcore = library('gnunetcore',
           libgnunetcore_src,
           dependencies: libgnunetutil_dep,
-          include_directories: [incdir, configuration_inc])
+          include_directories: [incdir, configuration_inc],
+          install: true,
+          install_dir: get_option('libdir'))
   libgnunetcore_dep = declare_dependency(link_with : libgnunetcore)
   executable ('gnunet-service-core',
               gnunetservicecore_src,
@@ -20,7 +22,9 @@ if gnunet_monolith == false
                              libgnunetstatistics_dep,
                              libgnunettransport_dep,
                              zlib_dep],
-              include_directories: [incdir, configuration_inc])
+              include_directories: [incdir, configuration_inc],
+              install: true,
+              install_dir: get_option('libdir') / 'gnunet' / 'libexec')
 else
   foreach p : libgnunetcore_src + gnunetservicecore_src
     gnunet_src += 'core/' + p

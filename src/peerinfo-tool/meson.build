@@ -1,7 +1,7 @@
 gnunetpeerinfotool_src = ['gnunet-peerinfo.c', 'gnunet-peerinfo_plugins.c']
 
 
-if gnunet_monolith == false
+if get_option('monolith') == false
   executable ('gnunet-peerinfo',
               gnunetpeerinfotool_src,
               dependencies: [libgnunetutil_dep,
