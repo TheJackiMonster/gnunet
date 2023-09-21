@@ -4,6 +4,7 @@ gnunetservicegns_src = ['gnunet-service-gns.c',
                         'gnunet-service-gns_resolver.c',
                         'gnunet-service-gns_interceptor.c']
 
+gnunetgnsproxy_src = ['gnunet-gns-proxy.c']
 
 if get_option('monolith') == false
   libgnunetgns = library('gnunetgns',
@@ -24,6 +25,18 @@ if get_option('monolith') == false
               include_directories: [incdir, configuration_inc],
               install: true,
               install_dir: get_option('bindir'))
+  executable ('gnunet-gns-proxy',
+              gnunetgnsproxy_src,
+              dependencies: [libgnunetgns_dep,
+                             libgnunetutil_dep,
+                             mhd_dep,
+                             idn_dep,
+                             curl_dep,
+                             gnutls_dep,
+                             libgnunetidentity_dep],
+              include_directories: [incdir, configuration_inc],
+              install: true,
+              install_dir: get_option('libdir') / 'gnunet' / 'libexec')
   executable ('gnunet-service-gns',
               gnunetservicegns_src,
               dependencies: [libgnunetgns_dep,

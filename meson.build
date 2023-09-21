@@ -69,6 +69,7 @@ if compiler.has_argument('-Wno-tautological-constant-out-of-range-compare')
 endif
 
 cdata.set('UNIXONLY', '#')
+cdata.set_quoted('build_target', host_machine.system())
 if host_machine.system() == 'linux'
   add_project_link_arguments(['-Wl,--unresolved-symbols=report-all'], language : 'c')
   cdata.set_quoted('GNUNET_DEFAULT_INTERFACE', 'eth0')
@@ -90,9 +91,34 @@ zlib_dep = dependency('zlib')
 mhd_dep = dependency('libmicrohttpd')
 json_dep = compiler.find_library('jansson', required : true)
 gcrypt_dep = dependency('libgcrypt')
+gnutls_dep = compiler.find_library('gnutls', required : false)
+if gnutls_dep.found() == false
+  gnutls_dep = compiler.find_library('gnutls-dane', required : true)
+endif
+
 sodium_dep = dependency('libsodium')
 cc = meson.get_compiler('c')
 m_dep = cc.find_library('m', required : false)
+if m_dep.found()
+  add_project_arguments('-DHAVE_LIBM', language : 'c')
+endif
+sock_dep = cc.find_library('socket', required : false)
+if sock_dep.found()
+  add_project_arguments('-DHAVE_LIBSOCKET', language : 'c')
+endif
+gopt_bin = find_program('getopt', '/usr/bin/getopt', required : false)
+if gopt_bin.found()
+  add_project_arguments('-DHAVE_GETOPT_BINARY='+gopt_bin.full_path(), language : 'c')
+endif
+pkgc_bin = find_program('pkg-config', '/usr/bin/pkg-config', required : false)
+if pkgc_bin.found()
+  add_project_arguments('-DHAVE_PKG_CONFIG', language : 'c')
+endif
+ssh_bin = find_program('ssh', '/usr/bin/ssh', required : false)
+if ssh_bin.found()
+  add_project_arguments('-DHAVE_SSH_BINARY', language : 'c')
+endif
+
 idn_dep = dependency('libidn2') # FIXME detect libidn as well
 gnunetdeps = [mhd_dep,
               sodium_dep,
@@ -122,7 +148,11 @@ endif
 
 # GNUTLS DANE
 if compiler.has_header('gnutls/dane.h')
-  add_project_arguments('-DHAVE_GNUTLS_DANE', language : 'c')
+  if compiler.has_function('dane_verify_crt_raw',
+                           prefix: '#include <gnutls/dane.h>',
+                           dependencies: gnutls_dep)
+    add_project_arguments('-DHAVE_GNUTLS_DANE', language : 'c')
+  endif
 endif
 curl_ssl_check ='''#include <curl/curl.h>
   int main(int argc, char **argv) {
@@ -136,7 +166,9 @@ if result.returncode() == 0
   cdata.set('curl_gnutls', 1)
 endif
 
-
+if compiler.has_function('getloadavg') == false
+  error('getloadadv missing')
+endif
 if compiler.has_function('strnlen', prefix : '#include <string.h>')
   cdata.set('HAVE_STRNLEN', 1)
 endif
