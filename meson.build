@@ -2,7 +2,7 @@
 project('gnunet', 'c', license: 'AGPLv3',
         version: run_command('sh', 'contrib/get_version.sh', check: true).stdout().strip())
 
-compiler = meson.get_compiler('c')
+cc = meson.get_compiler('c')
 incdir = include_directories('src/include')
 cdata = configuration_data()
 
@@ -32,10 +32,10 @@ cdata.set('extractor', 0)
 
 
 # Various checks
-if compiler.has_member ('struct sockaddr_in', 'sin_len', prefix : ['#include <sys/types.h>', '#include <sys/socket.h>', '#include <netinet/in.h>'])
+if cc.has_member ('struct sockaddr_in', 'sin_len', prefix : ['#include <sys/types.h>', '#include <sys/socket.h>', '#include <netinet/in.h>'])
   add_project_arguments('-DHAVE_SOCKADDR_IN_SIN_LEN', language: 'c')
 endif
-if compiler.has_member ('struct sockaddr_un', 'sun_len', prefix : ['#include <sys/types.h>', '#include <sys/socket.h>', '#include <sys/un.h>'])
+if cc.has_member ('struct sockaddr_un', 'sun_len', prefix : ['#include <sys/types.h>', '#include <sys/socket.h>', '#include <sys/un.h>'])
   add_project_arguments('-DHAVE_SOCKADDR_UN_SUN_LEN', language: 'c')
 endif
 
@@ -61,10 +61,10 @@ add_project_arguments('-DHAVE_CONFIG_H', language : 'c')
 # Linker settings
 # Compiler settings
 add_project_arguments('-fno-strict-aliasing', language : 'c')
-if compiler.has_argument('-Wno-address-of-packed-member')
+if cc.has_argument('-Wno-address-of-packed-member')
   add_project_arguments('-Wno-address-of-packed-member', language : 'c')
 endif
-if compiler.has_argument('-Wno-tautological-constant-out-of-range-compare')
+if cc.has_argument('-Wno-tautological-constant-out-of-range-compare')
   add_project_arguments('-Wno-tautological-constant-out-of-range-compare', language : 'c')
 endif
 
@@ -88,21 +88,49 @@ endif
 
 
 # FIXME: Not all dependencies here yet
-ltdl_dep = compiler.find_library('ltdl', required : true)
-unistr_dep = compiler.find_library('unistring', required : true)
-sqlite_dep = compiler.find_library('sqlite3', required : true)
-curl_dep = dependency('libcurl')
-zlib_dep = dependency('zlib')
-mhd_dep = dependency('libmicrohttpd')
-json_dep = compiler.find_library('jansson', required : true)
-gcrypt_dep = dependency('libgcrypt')
-gnutls_dep = compiler.find_library('gnutls', required : false)
-if gnutls_dep.found() == false
-  gnutls_dep = compiler.find_library('gnutls-dane', required : true)
+ltdl_dep = dependency ('libltdl', required: false)
+if not ltdl_dep.found()
+  ltdl_dep = cc.find_library('ltdl', required : true)
 endif
-
-sodium_dep = dependency('libsodium')
-cc = meson.get_compiler('c')
+unistr_dep = dependency('libunistring', required : false)
+if not unistr_dep.found()
+  unistr_dep = cc.find_library('unistring', required : true)
+endif
+sqlite_dep = dependency ('sqlite3', required : false)
+if not sqlite_dep.found()
+  sqlite_dep = cc.find_library('sqlite3', required : true)
+endif
+curl_dep = dependency('libcurl', required : false)
+if not curl_dep.found()
+  curl_dep = cc.find_library('curl', required : true)
+endif
+zlib_dep = dependency('zlib', required : false)
+if not zlib_dep.found()
+  zlib_dep = cc.find_library('zlib', required : true)
+endif
+mhd_dep = dependency('libmicrohttpd', required : false)
+if not mhd_dep.found()
+  mhd_dep = cc.find_library('microhttpd', required : true)
+endif
+json_dep = dependency('libjansson', required : false)
+if not json_dep.found()
+  json_dep = cc.find_library('jansson', required : true)
+endif
+gcrypt_dep = dependency('libgcrypt', required : false)
+if not gcrypt_dep.found()
+  gcrypt_dep = cc.find_library('gcrypt', required : true)
+endif
+gnutls_dep = dependency('libgnutls', required : false)
+if not gnutls_dep.found()
+  gnutls_dep = cc.find_library('gnutls', required : false)
+  if not gnutls_dep.found()
+    gnutls_dep = cc.find_library('gnutls-dane', required : true)
+  endif
+endif
+sodium_dep = dependency('libsodium', required : false)
+if not sodium_dep.found()
+  sodium_dep = cc.find_library('sodium', required : true)
+endif
 m_dep = cc.find_library('m', required : false)
 if m_dep.found()
   add_project_arguments('-DHAVE_LIBM', language : 'c')
@@ -138,22 +166,22 @@ gnunetdeps = [mhd_dep,
 
 add_project_arguments('-DNEED_LIBGCRYPT_VERSION="1.6.0"', language : 'c')
 
-if compiler.has_header('sys/time.h')
+if cc.has_header('sys/time.h')
   add_project_arguments('-DHAVE_SYS_TIME_H', language : 'c')
 endif
-if compiler.has_header('sys/param.h')
+if cc.has_header('sys/param.h')
   add_project_arguments('-DHAVE_SYS_PARAM_H', language : 'c')
 endif
 
-if compiler.has_header('idn2.h')
+if cc.has_header('idn2.h')
   add_project_arguments('-DHAVE_LIBIDN2', language : 'c')
   add_project_arguments('-DHAVE_IDN2_H', language : 'c')
 endif
 
 
 # GNUTLS DANE
-if compiler.has_header('gnutls/dane.h')
-  if compiler.has_function('dane_verify_crt_raw',
+if cc.has_header('gnutls/dane.h')
+  if cc.has_function('dane_verify_crt_raw',
                            prefix: '#include <gnutls/dane.h>',
                            dependencies: gnutls_dep)
     add_project_arguments('-DHAVE_GNUTLS_DANE', language : 'c')
@@ -164,23 +192,23 @@ curl_ssl_check ='''#include <curl/curl.h>
     return (CURLSSLSET_OK != curl_global_sslset(CURLSSLBACKEND_GNUTLS, NULL, NULL));
   }
 '''
-result = compiler.run(curl_ssl_check, name : 'cURL gnutls check',
+result = cc.run(curl_ssl_check, name : 'cURL gnutls check',
                       dependencies: curl_dep)
 cdata.set('curl_gnutls', 0)
 if result.returncode() == 0
   cdata.set('curl_gnutls', 1)
 endif
 
-if compiler.has_function('getloadavg') == false
+if cc.has_function('getloadavg') == false
   error('getloadadv missing')
 endif
-if compiler.has_function('strnlen', prefix : '#include <string.h>')
+if cc.has_function('strnlen', prefix : '#include <string.h>')
   cdata.set('HAVE_STRNLEN', 1)
 endif
-if compiler.has_function('memset_s')
+if cc.has_function('memset_s')
   cdata.set('HAVE_MEMSET_S', 1)
 endif
-if compiler.has_function('explicit_bzero')
+if cc.has_function('explicit_bzero')
   cdata.set('HAVE_EXPLICIT_BZERO', 1)
 endif
 
