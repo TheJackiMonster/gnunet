@@ -148,3 +148,4 @@ configure_file(#input: 'gnunet_private_config.h.in',
 configuration_inc = include_directories('.')
 
 subdir('src')
+subdir('doc')
