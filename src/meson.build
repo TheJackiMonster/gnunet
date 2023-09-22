@@ -12,19 +12,13 @@ if get_option('monolith') == false
 endif
 subdir('statistics')
 #$(TESTING)')
-if json_dep.found()
- subdir('json')
-endif
-if curl_dep.found()
-  subdir('curl')
-endif
+subdir('json', if_found : json_dep)
+subdir('curl', if_found : [curl_dep])
 if get_option('monolith') == false
   subdir('rest')
 endif
 subdir('peerinfo')
-if sqlite_dep.found()
-  subdir('sq')
-endif
+subdir('sq', if_found : [sqlite_dep])
 #subdir('$(MYSQL_DIR)')
 #subdir('$(POSTGRES_DIR)')
 subdir('datacache')
@@ -72,9 +66,16 @@ subdir('messenger')
 ##subdir('$(EXP_DIR)')
 #subdir('integration-tests')
 
-if get_option('monolith')
-  libgnunet = library('gnunet',
-                      gnunet_src,
-                      dependencies: gnunetdeps,
-                      include_directories: [incdir, configuration_inc, exitdir])
+if not get_option('monolith')
+  subdir_done()
 endif
+libgnunet = library('gnunet',
+                    gnunet_src,
+                    dependencies: gnunetdeps,
+                    include_directories: [incdir, configuration_inc, exitdir])
+libgnunet_dep = declare_dependency(link_with : libgnunet)
+
+# FIXME here we need to re-enter all that need to link against libgnunet
+# For example: dload plugins
+# We also need a logic that handles this
+# subdir('block')
