@@ -19,6 +19,7 @@ if get_option('monolith') == false
               gnunetservicense_src,
               dependencies: [libgnunetnse_dep, libgnunetutil_dep,
                              libgnunetcore_dep,
+                             m_dep,
                              libgnunetstatistics_dep],
               include_directories: [incdir, configuration_inc])
 else

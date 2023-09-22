@@ -23,6 +23,7 @@ if get_option('monolith') == false
               gnunetserviceset_src,
               dependencies: [libgnunetset_dep,
                              libgnunetutil_dep,
+                             m_dep,
                              libgnunetstatistics_dep,
                              libgnunetcore_dep,
                              libgnunetcadet_dep,

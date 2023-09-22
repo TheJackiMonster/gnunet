@@ -57,6 +57,7 @@ if get_option('monolith') == false
               dependencies: [libgnunettransport_dep, libgnunetutil_dep,
                              libgnunethello_dep,
                              libgnunetpeerstore_dep,
+                             m_dep,
                              libgnunetstatistics_dep,
                              gcrypt_dep],
               include_directories: [incdir, configuration_inc])

@@ -31,6 +31,7 @@ if get_option('monolith') == false
               gnunetservicedht_src,
               dependencies: [libgnunetdht_dep, libgnunetutil_dep,
                              libgnunetblock_dep,
+                             m_dep,
                              libgnunetdatacache_dep,
                              libgnunetstatistics_dep,
                              libgnunetblockgroup_dep,

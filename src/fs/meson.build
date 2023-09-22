@@ -67,6 +67,7 @@ if get_option('monolith') == false
                              libgnunetcore_dep,
                              libgnunetdht_dep,
                              libgnunetidentity_dep,
+                             m_dep,
                              libgnunetats_dep,
                              libgnunetcadet_dep,
                              libgnunetpeerstore_dep,
