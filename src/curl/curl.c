@@ -669,6 +669,8 @@ GNUNET_CURL_download_get_result_ (struct GNUNET_CURL_DownloadBuffer *db,
     GNUNET_break (0);
     *response_code = 0;
   }
+  if (MHD_HTTP_NO_CONTENT == *response_code)
+    return NULL;
   if ((CURLE_OK !=
        curl_easy_getinfo (eh,
                           CURLINFO_CONTENT_TYPE,
@@ -680,14 +682,20 @@ GNUNET_CURL_download_get_result_ (struct GNUNET_CURL_DownloadBuffer *db,
        (but keep response code) */
     if (0 != db->buf_size)
     {
+      char *url;
+
+      if (CURLE_OK !=
+          curl_easy_getinfo (eh,
+                             CURLINFO_EFFECTIVE_URL,
+                             &url))
+        url = "<unknown URL>";
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                  "Expected content type was `application/json', got `%s'\n",
+                  "Request to `%s' was expected to return a body of type `application/json', got `%s'\n",
+                  url,
                   ct);
     }
     return NULL;
   }
-  if (MHD_HTTP_NO_CONTENT == *response_code)
-    return NULL;
   if (0 == *response_code)
   {
     char *url;
