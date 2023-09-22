@@ -679,10 +679,11 @@ GNUNET_CURL_download_get_result_ (struct GNUNET_CURL_DownloadBuffer *db,
     /* No content type or explicitly not JSON, refuse to parse
        (but keep response code) */
     if (0 != db->buf_size)
+    {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                  "Did NOT detect response `%.*s' as JSON\n",
-                  (int) db->buf_size,
-                  (const char *) db->buf);
+                  "Expected content type was `application/json', got `%s'\n",
+                  ct);
+    }
     return NULL;
   }
   if (MHD_HTTP_NO_CONTENT == *response_code)
