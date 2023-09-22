@@ -193,7 +193,8 @@ curl_ssl_check ='''#include <curl/curl.h>
   int main(int argc, char **argv) {
     return (CURLSSLSET_OK != curl_global_sslset(CURLSSLBACKEND_GNUTLS, NULL, NULL));
   }
-'''
+  '''
+
 result = cc.run(curl_ssl_check, name : 'cURL gnutls check',
                       dependencies: curl_dep)
 cdata.set('curl_gnutls', 0)
@@ -219,6 +220,8 @@ configure_file(#input: 'gnunet_private_config.h.in',
                output : 'gnunet_private_config.h',
                configuration : cdata)
 configuration_inc = include_directories('.')
+
+pkg = import('pkgconfig')
 
 subdir('src')
 subdir('doc')

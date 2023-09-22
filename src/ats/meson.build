@@ -19,23 +19,26 @@ configure_file(input : 'ats.conf.in',
                install: true,
                install_dir: pkgcfgdir)
 
-if get_option('monolith') == false
-  libgnunetats = library('gnunetats',
-          libgnunetats_src,
-          dependencies: [libgnunetutil_dep, libgnunethello_dep],
-          include_directories: [incdir, configuration_inc],
-          install: true,
-          install_dir: get_option('libdir'))
-  libgnunetats_dep = declare_dependency(link_with : libgnunetats)
-  executable ('gnunet-service-ats',
-              gnunetserviceats_src,
-              dependencies: [libgnunetats_dep, libgnunetutil_dep,
-                             libgnunetnt_dep, libgnunetstatistics_dep],
-              include_directories: [incdir, configuration_inc],
-              install: true,
-              install_dir: get_option('libdir') / 'gnunet' / 'libexec')
-else
+if get_option('monolith')
   foreach p : libgnunetats_src + gnunetserviceats_src
     gnunet_src += 'ats/' + p
   endforeach
+  subdir_done()
 endif
+
+libgnunetats = library('gnunetats',
+        libgnunetats_src,
+        dependencies: [libgnunetutil_dep, libgnunethello_dep],
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
+pkg.generate(libgnunetats, url : 'https://www.gnunet.org',
+             description : 'Provides API for allocating bandwidth, expressing preferences for certain peers and accessing allocation information')
+libgnunetats_dep = declare_dependency(link_with : libgnunetats)
+executable ('gnunet-service-ats',
+            gnunetserviceats_src,
+            dependencies: [libgnunetats_dep, libgnunetutil_dep,
+                           libgnunetnt_dep, libgnunetstatistics_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir') / 'gnunet' / 'libexec')

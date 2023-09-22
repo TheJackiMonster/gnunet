@@ -13,6 +13,7 @@ libgnunetblock = library('gnunetblock',
         dependencies: libgnunetutil_dep,
         include_directories: [incdir, configuration_inc],
         install: true,
+        soversion: '0.0.0',
         install_dir: get_option('libdir'))
 libgnunetblock_dep = declare_dependency(link_with : libgnunetblock)
 libgnunetblockgroup = library('gnunetblockgroup',
@@ -20,6 +21,7 @@ libgnunetblockgroup = library('gnunetblockgroup',
         dependencies: [libgnunetutil_dep, libgnunetblock_dep],
         include_directories: [incdir, configuration_inc],
         install: true,
+        soversion: '0.0.0',
         install_dir: get_option('libdir'))
 libgnunetblockgroup_dep = declare_dependency(link_with : libgnunetblockgroup)
 plugin_dep = [libgnunetutil_dep, libgnunetblock_dep, libgnunetblockgroup_dep]
@@ -33,6 +35,6 @@ shared_module('gnunet_plugin_block_template',
       ['plugin_block_template.c'],
       dependencies: plugin_dep,
       include_directories: [incdir, configuration_inc],
-      install: true,
+      install: false,
       install_dir: get_option('libdir'))
 
