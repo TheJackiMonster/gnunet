@@ -34,13 +34,16 @@ shared_module('gnunet_plugin_namecache_sqlite',
                        sqlite_dep,
                        libgnunetsq_dep],
         include_directories: [incdir, configuration_inc])
-shared_module('gnunet_plugin_namecache_postgres',
-        ['plugin_namecache_postgres.c'],
-        dependencies: [libgnunetutil_dep,
-                       libgnunetgnsrecord_dep,
-                       pq_dep,
-                       libgnunetpq_dep],
-        include_directories: [incdir, configuration_inc])
+
+if pq_dep.found()
+  shared_module('gnunet_plugin_namecache_postgres',
+          ['plugin_namecache_postgres.c'],
+          dependencies: [libgnunetutil_dep,
+                         libgnunetgnsrecord_dep,
+                         pq_dep,
+                         libgnunetpq_dep],
+          include_directories: [incdir, configuration_inc])
+endif
 
 executable ('gnunet-namecache',
             gnunetnamecache_src,

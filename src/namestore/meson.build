@@ -17,6 +17,7 @@ if get_option('monolith')
   endforeach
   subdir_done()
 endif
+
 libgnunetnamestore = library('gnunetnamestore',
         libgnunetnamestore_src,
         soversion: '0.1.0',
@@ -37,15 +38,19 @@ shared_module('gnunet_plugin_namestore_sqlite',
                        libgnunetstatistics_dep,
                        sqlite_dep],
         include_directories: [incdir, configuration_inc])
-shared_module('gnunet_plugin_namestore_postgres',
-        ['plugin_namestore_postgres.c'],
-        dependencies: [libgnunetutil_dep,
-                       libgnunetgnsrecord_dep,
-                       libgnunetidentity_dep,
-                       libgnunetpq_dep,
-                       libgnunetstatistics_dep,
-                       pq_dep],
-        include_directories: [incdir, configuration_inc])
+
+if pq_dep.found()
+  shared_module('gnunet_plugin_namestore_postgres',
+          ['plugin_namestore_postgres.c'],
+          dependencies: [libgnunetutil_dep,
+                         libgnunetgnsrecord_dep,
+                         libgnunetidentity_dep,
+                         libgnunetpq_dep,
+                         libgnunetstatistics_dep,
+                         pq_dep],
+          include_directories: [incdir, configuration_inc])
+endif
+
 executable ('gnunet-namestore',
             gnunetnamestore_src,
             dependencies: [libgnunetnamestore_dep,

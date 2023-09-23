@@ -35,13 +35,16 @@ shared_module('gnunet_plugin_datastore_sqlite',
                        sqlite_dep,
                        libgnunetsq_dep],
         include_directories: [incdir, configuration_inc])
-shared_module('gnunet_plugin_datastore_postgres',
-        ['plugin_datastore_postgres.c'],
-        dependencies: [libgnunetutil_dep,
-                       libgnunetdatastore_dep,
-                       pq_dep,
-                       libgnunetpq_dep],
-        include_directories: [incdir, configuration_inc])
+
+if pq_dep.found()
+  shared_module('gnunet_plugin_datastore_postgres',
+          ['plugin_datastore_postgres.c'],
+          dependencies: [libgnunetutil_dep,
+                         libgnunetdatastore_dep,
+                         pq_dep,
+                         libgnunetpq_dep],
+          include_directories: [incdir, configuration_inc])
+endif
 
 executable ('gnunet-datastore',
             ['gnunet-datastore.c'],

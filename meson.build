@@ -104,7 +104,7 @@ if not sqlite_dep.found()
 endif
 curl_dep = dependency('libcurl', version: '>=7.85.0', required : false)
 if not curl_dep.found()
-  curl_dep = cc.find_library('curl', version: '>=7.85.0',  required : true)
+  curl_dep = cc.find_library('curl', required : true)
 endif
 zlib_dep = dependency('zlib', required : false)
 if not zlib_dep.found()

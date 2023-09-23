@@ -31,10 +31,12 @@ shared_module('gnunet_plugin_datacache_sqlite',
                        sqlite_dep,
                        libgnunetsq_dep],
         include_directories: [incdir, configuration_inc])
-shared_module('gnunet_plugin_datacache_postgres',
-        ['plugin_datacache_postgres.c'],
-        dependencies: [libgnunetutil_dep,
-                       libgnunetdatacache_dep,
-                       pq_dep,
-                       libgnunetpq_dep],
-        include_directories: [incdir, configuration_inc])
+if pq_dep.found()
+  shared_module('gnunet_plugin_datacache_postgres',
+          ['plugin_datacache_postgres.c'],
+          dependencies: [libgnunetutil_dep,
+                         libgnunetdatacache_dep,
+                         pq_dep,
+                         libgnunetpq_dep],
+          include_directories: [incdir, configuration_inc])
+endif
