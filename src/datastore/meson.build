@@ -27,6 +27,22 @@ libgnunetdatastore = library('gnunetdatastore',
 libgnunetdatastore_dep = declare_dependency(link_with : libgnunetdatastore)
 pkg.generate(libgnunetdatastore, url: 'https://www.gnunet.org',
              description : 'Management API for the datastore for persistent storage to disk')
+
+shared_module('gnunet_plugin_datastore_sqlite',
+        ['plugin_datastore_sqlite.c'],
+        dependencies: [libgnunetutil_dep,
+                       libgnunetdatastore_dep,
+                       sqlite_dep,
+                       libgnunetsq_dep],
+        include_directories: [incdir, configuration_inc])
+shared_module('gnunet_plugin_datastore_postgres',
+        ['plugin_datastore_postgres.c'],
+        dependencies: [libgnunetutil_dep,
+                       libgnunetdatastore_dep,
+                       pq_dep,
+                       libgnunetpq_dep],
+        include_directories: [incdir, configuration_inc])
+
 executable ('gnunet-datastore',
             ['gnunet-datastore.c'],
             dependencies: [libgnunetdatastore_dep,
@@ -41,10 +57,4 @@ executable ('gnunet-service-datastore',
                            libgnunetstatistics_dep,
                            libgnunetdatacache_dep],
             include_directories: [incdir, configuration_inc])
-shared_module('gnunet_plugin_datastore_sqlite',
-        ['plugin_datastore_sqlite.c'],
-        dependencies: [libgnunetutil_dep,
-                       libgnunetdatastore_dep,
-                       sqlite_dep,
-                       libgnunetsq_dep],
-        include_directories: [incdir, configuration_inc])
+

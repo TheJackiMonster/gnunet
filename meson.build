@@ -176,11 +176,13 @@ if ssh_bin.found()
 endif
 
 # Optional dependencies
-mq_dep = dependency('libmysqlclient', required : false)
-if not mq_dep.found()
-  mq_dep = cc.find_library('mysqlclient', required : false)
+
+# FIXME: I think we wanted to retire mysql support
+my_dep = dependency('libmysqlclient', required : false)
+if not my_dep.found()
+  my_dep = cc.find_library('mysqlclient', required : false)
 endif
-if mq_dep.found()
+if my_dep.found()
   add_project_arguments('-DHAVE_MYSQL', language : 'c')
 endif
 pq_dep = dependency('libpq', required : false)

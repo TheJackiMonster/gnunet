@@ -1,7 +1,5 @@
 libgnunetdatacache_src = ['datacache.c']
 
-libgnunetplugindatacache_sqlite_src = ['plugin_datacache_sqlite.c']
-
 configure_file(input : 'datacache.conf',
                output : 'datacache.conf',
                configuration : cdata,
@@ -25,10 +23,18 @@ libgnunetdatacache = library('gnunetdatacache',
 libgnunetdatacache_dep = declare_dependency(link_with : libgnunetdatacache)
 pkg.generate(libgnunetdatacache, url: 'https://www.gnunet.org',
              description : 'Provides datacache API for temporary storage to disk')
+
 shared_module('gnunet_plugin_datacache_sqlite',
-        libgnunetplugindatacache_sqlite_src,
+        ['plugin_datacache_sqlite.c'],
         dependencies: [libgnunetutil_dep,
                        libgnunetdatacache_dep,
                        sqlite_dep,
                        libgnunetsq_dep],
+        include_directories: [incdir, configuration_inc])
+shared_module('gnunet_plugin_datacache_postgres',
+        ['plugin_datacache_postgres.c'],
+        dependencies: [libgnunetutil_dep,
+                       libgnunetdatacache_dep,
+                       pq_dep,
+                       libgnunetpq_dep],
         include_directories: [incdir, configuration_inc])
