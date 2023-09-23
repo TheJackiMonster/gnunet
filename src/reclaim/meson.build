@@ -12,37 +12,41 @@ configure_file(input : 'reclaim.conf',
                install_dir: pkgcfgdir)
 
 
-if get_option('monolith') == false
-  libgnunetreclaim = library('gnunetreclaim',
-          libgnunetreclaim_src,
-          dependencies: [libgnunetutil_dep,
-                         libgnunetidentity_dep],
-          include_directories: [incdir, configuration_inc],
-          install: true,
-          install_dir: get_option('libdir'))
-  libgnunetreclaim_dep = declare_dependency(link_with : libgnunetreclaim)
-  executable ('gnunet-reclaim',
-              'gnunet-reclaim.c',
-              dependencies: [libgnunetreclaim_dep,
-                             libgnunetidentity_dep,
-                             libgnunetutil_dep],
-              include_directories: [incdir, configuration_inc],
-              install: true,
-              install_dir: get_option('bindir'))
-  executable ('gnunet-service-reclaim',
-              gnunetservicereclaim_src,
-              dependencies: [libgnunetreclaim_dep,
-                             libgnunetutil_dep,
-                             libgnunetstatistics_dep,
-                             libgnunetgnsrecord_dep,
-                             libgnunetgns_dep,
-                             libgnunetidentity_dep,
-                             libgnunetnamestore_dep],
-              include_directories: [incdir, configuration_inc],
-              install: true,
-              install_dir: get_option('libdir') / 'gnunet' / 'libexec')
-else
+if get_option('monolith')
   foreach p : libgnunetreclaim_src + gnunetservicereclaim_src
     gnunet_src += 'reclaim/' + p
   endforeach
+  subdir_done()
 endif
+libgnunetreclaim = library('gnunetreclaim',
+        libgnunetreclaim_src,
+        dependencies: [libgnunetutil_dep,
+                       libgnunetidentity_dep],
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
+libgnunetreclaim_dep = declare_dependency(link_with : libgnunetreclaim)
+pkg.generate(libgnunetreclaim, url: 'https://www.gnunet.org',
+             description : 'Provides API to access reclaimID')
+
+executable ('gnunet-reclaim',
+            'gnunet-reclaim.c',
+            dependencies: [libgnunetreclaim_dep,
+                           libgnunetidentity_dep,
+                           libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('bindir'))
+executable ('gnunet-service-reclaim',
+            gnunetservicereclaim_src,
+            dependencies: [libgnunetreclaim_dep,
+                           libgnunetutil_dep,
+                           libgnunetstatistics_dep,
+                           libgnunetgnsrecord_dep,
+                           libgnunetgns_dep,
+                           libgnunetidentity_dep,
+                           libgnunetnamestore_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+

@@ -68,11 +68,6 @@ shared_module('gnunet_plugin_gnsrecord_conversation',
         install: true,
         install_dir: get_option('libdir'))
 
-libgnunetconversation_dep = declare_dependency(link_with : libgnunetconversation)
-pkg.generate(libgnunetconversation, url: 'https://www.gnunet.org',
-             description : 'Provides API to access the GNU Name System')
-
-
 executable ('gnunet-conversation',
             'gnunet-conversation.c',
             dependencies: [libgnunetconversation_dep,

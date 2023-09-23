@@ -9,20 +9,17 @@ configure_file(input : 'hostlist.conf',
                install_dir: pkgcfgdir)
 
 
-if get_option('monolith') == false
-  executable ('gnunet-daemon-hostlist',
-              gnunetdaemonhostlist_src,
-              dependencies: [libgnunetutil_dep,
-                             libgnunetcore_dep,
-                             libgnunethello_dep,
-                             libgnunetpeerinfo_dep,
-                             libgnunetstatistics_dep,
-                             libgnunettransport_dep,
-                             mhd_dep,
-                             curl_dep],
-              include_directories: [incdir, configuration_inc])
-else
-  #foreach p : gnunetdaemonhostlist_src
-  #  gnunet_src += 'hostlist/' + p
-  #endforeach
+if get_option('monolith')
+  subdir_done()
 endif
+executable ('gnunet-daemon-hostlist',
+            gnunetdaemonhostlist_src,
+            dependencies: [libgnunetutil_dep,
+                           libgnunetcore_dep,
+                           libgnunethello_dep,
+                           libgnunetpeerinfo_dep,
+                           libgnunetstatistics_dep,
+                           libgnunettransport_dep,
+                           mhd_dep,
+                           curl_dep],
+            include_directories: [incdir, configuration_inc])
