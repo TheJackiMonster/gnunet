@@ -80,13 +80,16 @@ if get_option('monolith')
   foreach p : libgnunetutil_src
     gnunet_src += 'util/' + p
   endforeach
+  subdir_done()
 endif
 
 libgnunetutil = library('gnunetutil',
         libgnunetutil_src,
         soversion: '15.0.0',
         dependencies: gnunetdeps,
-        include_directories: [incdir, configuration_inc])
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
 libgnunetutil_dep = declare_dependency(link_with : libgnunetutil)
 pkg.generate(libgnunetutil, url: 'https://www.gnunet.org',
              description : 'Provides miscellaneous utility functions and API for GNUnet')

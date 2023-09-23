@@ -7,20 +7,24 @@ configure_file(input : 'zonemaster.conf.in',
                install_dir: pkgcfgdir)
 
 
-if get_option('monolith') == false
-  executable ('gnunet-service-zonemaster',
-              gnunetservicezonemaster_src,
-              dependencies: [
-                             libgnunetutil_dep,
-                             libgnunetdht_dep,
-                             libgnunetidentity_dep,
-                             libgnunetstatistics_dep,
-                             libgnunetnamecache_dep,
-                             libgnunetnamestore_dep,
-                             libgnunetgnsrecord_dep],
-              include_directories: [incdir, configuration_inc])
-else
+if get_option('monolith')
   foreach p : gnunetservicezonemaster_src
     gnunet_src += 'zonemaster/' + p
   endforeach
+  subdir_done()
 endif
+
+executable ('gnunet-service-zonemaster',
+            gnunetservicezonemaster_src,
+            dependencies: [
+                           libgnunetutil_dep,
+                           libgnunetdht_dep,
+                           libgnunetidentity_dep,
+                           libgnunetstatistics_dep,
+                           libgnunetnamecache_dep,
+                           libgnunetnamestore_dep,
+                           libgnunetgnsrecord_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir')/'gnunet'/'libexec')
+

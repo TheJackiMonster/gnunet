@@ -18,8 +18,10 @@ if get_option('monolith')
   endforeach
   subdir_done()
 endif
+
 libgnunetreclaim = library('gnunetreclaim',
         libgnunetreclaim_src,
+        soversion: '0.0.0',
         dependencies: [libgnunetutil_dep,
                        libgnunetidentity_dep],
         include_directories: [incdir, configuration_inc],

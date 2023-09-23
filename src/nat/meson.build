@@ -24,6 +24,7 @@ endif
 
 libgnunetnat = library('gnunetnat',
         libgnunetnat_src,
+        soversion: '2.0.0',
         dependencies: libgnunetutil_dep,
         include_directories: [incdir, configuration_inc],
         install: true,
