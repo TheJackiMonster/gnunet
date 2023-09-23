@@ -23,7 +23,9 @@ libgnunetdatastore = library('gnunetdatastore',
         dependencies: [libgnunetutil_dep,
                        libgnunetstatistics_dep,
                        libgnunetdatacache_dep],
-        include_directories: [incdir, configuration_inc])
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
 libgnunetdatastore_dep = declare_dependency(link_with : libgnunetdatastore)
 pkg.generate(libgnunetdatastore, url: 'https://www.gnunet.org',
              description : 'Management API for the datastore for persistent storage to disk')
@@ -34,7 +36,9 @@ shared_module('gnunet_plugin_datastore_sqlite',
                        libgnunetdatastore_dep,
                        sqlite_dep,
                        libgnunetsq_dep],
-        include_directories: [incdir, configuration_inc])
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir')/'gnunet')
 
 if pq_dep.found()
   shared_module('gnunet_plugin_datastore_postgres',
@@ -43,7 +47,9 @@ if pq_dep.found()
                          libgnunetdatastore_dep,
                          pq_dep,
                          libgnunetpq_dep],
-          include_directories: [incdir, configuration_inc])
+          include_directories: [incdir, configuration_inc],
+          install: true,
+          install_dir: get_option('libdir')/'gnunet')
 endif
 
 executable ('gnunet-datastore',
@@ -52,12 +58,16 @@ executable ('gnunet-datastore',
                            libgnunetutil_dep,
                            libgnunetstatistics_dep,
                            libgnunetdatacache_dep],
-            include_directories: [incdir, configuration_inc])
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('bindir'))
 executable ('gnunet-service-datastore',
             gnunetservicedatastore_src,
             dependencies: [libgnunetdatastore_dep,
                            libgnunetutil_dep,
                            libgnunetstatistics_dep,
                            libgnunetdatacache_dep],
-            include_directories: [incdir, configuration_inc])
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir')/'gnunet'/'libexec')
 

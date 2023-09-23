@@ -24,7 +24,9 @@ libgnunetnamestore = library('gnunetnamestore',
         dependencies: [libgnunetutil_dep,
                        libgnunetgnsrecord_dep,
                        libgnunetidentity_dep],
-        include_directories: [incdir, configuration_inc])
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
 libgnunetnamestore_dep = declare_dependency(link_with : libgnunetnamestore)
 pkg.generate(libgnunetnamestore, url: 'https://www.gnunet.org',
              description : 'Provides API for storing GNS records to a database')
@@ -37,7 +39,9 @@ shared_module('gnunet_plugin_namestore_sqlite',
                        libgnunetsq_dep,
                        libgnunetstatistics_dep,
                        sqlite_dep],
-        include_directories: [incdir, configuration_inc])
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir')/'gnunet')
 
 if pq_dep.found()
   shared_module('gnunet_plugin_namestore_postgres',
@@ -48,7 +52,9 @@ if pq_dep.found()
                          libgnunetpq_dep,
                          libgnunetstatistics_dep,
                          pq_dep],
-          include_directories: [incdir, configuration_inc])
+          include_directories: [incdir, configuration_inc],
+          install: true,
+          install_dir: get_option('libdir')/'gnunet')
 endif
 
 executable ('gnunet-namestore',
@@ -57,7 +63,9 @@ executable ('gnunet-namestore',
                            libgnunetutil_dep,
                            libgnunetgnsrecord_dep,
                            libgnunetidentity_dep],
-            include_directories: [incdir, configuration_inc])
+            include_directories: [incdir, configuration_inc],
+          install: true,
+          install_dir: get_option('bindir'))
 executable ('gnunet-service-namestore',
             gnunetservicenamestore_src,
             dependencies: [libgnunetnamestore_dep,
@@ -66,4 +74,7 @@ executable ('gnunet-service-namestore',
                            libgnunetgnsrecord_dep,
                            libgnunetidentity_dep,
                            libgnunetstatistics_dep],
-            include_directories: [incdir, configuration_inc])
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir')/'gnunet'/'libexec')
+

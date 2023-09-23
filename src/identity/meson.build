@@ -20,7 +20,9 @@ endif
 libgnunetidentity = library('gnunetidentity',
         libgnunetidentity_src,
         dependencies: [libgnunetutil_dep, sodium_dep],
-        include_directories: [incdir, configuration_inc])
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
 libgnunetidentity_dep = declare_dependency(link_with : libgnunetidentity)
 pkg.generate(libgnunetidentity, url: 'https://www.gnunet.org',
              description : 'API to access and organize private keys of the user egos')
@@ -30,11 +32,15 @@ executable ('gnunet-identity',
             dependencies: [libgnunetidentity_dep,
                            libgnunetutil_dep,
                            libgnunetstatistics_dep],
-            include_directories: [incdir, configuration_inc])
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('bindir'))
 executable ('gnunet-service-identity',
             gnunetserviceidentity_src,
             dependencies: [libgnunetidentity_dep,
                            libgnunetutil_dep,
                            libgnunetstatistics_dep],
-            include_directories: [incdir, configuration_inc])
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir')/'gnunet'/'libexec')
 

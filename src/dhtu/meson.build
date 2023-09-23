@@ -16,7 +16,9 @@ endif
 shared_module('gnunet_plugin_dhtu_ip',
           libgnunetplugindhtuip_src,
           dependencies: [libgnunetutil_dep, m_dep],
-          include_directories: [incdir, configuration_inc])
+          include_directories: [incdir, configuration_inc],
+          install: true,
+          install_dir: get_option('libdir')/'gnunet')
 
 shared_module('gnunet_plugin_dhtu_gnunet',
           libgnunetplugindhtugnunet_src,
@@ -28,4 +30,7 @@ shared_module('gnunet_plugin_dhtu_gnunet',
                          libgnunetpeerinfo_dep,
                          libgnunetnse_dep,
                          libgnunettransport_dep],
-          include_directories: [incdir, configuration_inc])
+          include_directories: [incdir, configuration_inc],
+          install: true,
+          install_dir: get_option('libdir')/'gnunet')
+

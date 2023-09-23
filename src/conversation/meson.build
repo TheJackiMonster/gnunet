@@ -66,7 +66,7 @@ shared_module('gnunet_plugin_gnsrecord_conversation',
                        libgnunetidentity_dep],
         include_directories: [incdir, configuration_inc],
         install: true,
-        install_dir: get_option('libdir'))
+        install_dir: get_option('libdir')/'gnunet')
 
 executable ('gnunet-conversation',
             'gnunet-conversation.c',

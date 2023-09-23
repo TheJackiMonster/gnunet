@@ -19,7 +19,9 @@ libgnunetdatacache = library('gnunetdatacache',
         libgnunetdatacache_src,
         soversion: '0.1.0',
         dependencies: [libgnunetutil_dep, libgnunetstatistics_dep],
-        include_directories: [incdir, configuration_inc])
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
 libgnunetdatacache_dep = declare_dependency(link_with : libgnunetdatacache)
 pkg.generate(libgnunetdatacache, url: 'https://www.gnunet.org',
              description : 'Provides datacache API for temporary storage to disk')
@@ -30,7 +32,11 @@ shared_module('gnunet_plugin_datacache_sqlite',
                        libgnunetdatacache_dep,
                        sqlite_dep,
                        libgnunetsq_dep],
-        include_directories: [incdir, configuration_inc])
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir')/'gnunet')
+
+
 if pq_dep.found()
   shared_module('gnunet_plugin_datacache_postgres',
           ['plugin_datacache_postgres.c'],
@@ -38,5 +44,7 @@ if pq_dep.found()
                          libgnunetdatacache_dep,
                          pq_dep,
                          libgnunetpq_dep],
-          include_directories: [incdir, configuration_inc])
+          include_directories: [incdir, configuration_inc],
+          install: true,
+          install_dir: get_option('libdir')/'gnunet')
 endif

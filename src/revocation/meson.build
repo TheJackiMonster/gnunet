@@ -20,7 +20,9 @@ libgnunetrevocation = library('gnunetrevocation',
         libgnunetrevocation_src,
         soversion: '0.0.0',
         dependencies: [libgnunetutil_dep, libgnunetidentity_dep],
-        include_directories: [incdir, configuration_inc])
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
 libgnunetrevocation_dep = declare_dependency(link_with : libgnunetrevocation)
 pkg.generate(libgnunetrevocation, url: 'https://www.gnunet.org',
              description : 'Provides API to perform key revocation in GNUnet')
@@ -32,7 +34,7 @@ shared_module('gnunet_plugin_block_revocation',
                              libgnunetblock_dep],
               include_directories: [incdir, configuration_inc],
               install: true,
-              install_dir: get_option('libdir'))
+              install_dir: get_option('libdir')/'gnunet')
 
 executable ('gnunet-revocation',
             ['gnunet-revocation.c'],

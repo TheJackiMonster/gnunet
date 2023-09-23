@@ -21,7 +21,9 @@ libgnunetdht = library('gnunetdht',
         libgnunetdht_src,
         soversion: '4.0.0',
         dependencies: libgnunetutil_dep,
-        include_directories: [incdir, configuration_inc])
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
 libgnunetdht_dep = declare_dependency(link_with : libgnunetdht)
 pkg.generate(libgnunetdht, url: 'https://www.gnunet.org',
            description : 'Provides API for the R5N distributed hash table')
@@ -34,6 +36,19 @@ shared_module('gnunet_plugin_block_dht',
                        libgnunetblockgroup_dep],
         include_directories: [incdir, configuration_inc])
 
+executable ('gnunet-dht',
+            gnunetservicedht_src,
+            dependencies: [libgnunetdht_dep, libgnunetutil_dep,
+                           libgnunetblock_dep,
+                           m_dep,
+                           libgnunetdatacache_dep,
+                           libgnunetstatistics_dep,
+                           libgnunetblockgroup_dep,
+                           libgnunethello_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('bindir'))
+
 executable ('gnunet-service-dht',
             gnunetservicedht_src,
             dependencies: [libgnunetdht_dep, libgnunetutil_dep,
@@ -43,4 +58,7 @@ executable ('gnunet-service-dht',
                            libgnunetstatistics_dep,
                            libgnunetblockgroup_dep,
                            libgnunethello_dep],
-            include_directories: [incdir, configuration_inc])
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir')/'gnunet'/'libexec')
+

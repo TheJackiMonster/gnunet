@@ -22,7 +22,9 @@ libgnunetnamecache = library('gnunetnamecache',
         soversion: '0.0.0',
         dependencies: [libgnunetutil_dep,
                        libgnunetgnsrecord_dep],
-        include_directories: [incdir, configuration_inc])
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
 libgnunetnamecache_dep = declare_dependency(link_with : libgnunetnamecache)
 pkg.generate(libgnunetnamecache, url: 'https://www.gnunet.org',
              description : 'Provides API for storing GNS records to a cache')
@@ -33,7 +35,9 @@ shared_module('gnunet_plugin_namecache_sqlite',
                        libgnunetgnsrecord_dep,
                        sqlite_dep,
                        libgnunetsq_dep],
-        include_directories: [incdir, configuration_inc])
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir')/'gnunet')
 
 if pq_dep.found()
   shared_module('gnunet_plugin_namecache_postgres',
@@ -42,7 +46,9 @@ if pq_dep.found()
                          libgnunetgnsrecord_dep,
                          pq_dep,
                          libgnunetpq_dep],
-          include_directories: [incdir, configuration_inc])
+          include_directories: [incdir, configuration_inc],
+          install: true,
+          install_dir: get_option('libdir')/'gnunet')
 endif
 
 executable ('gnunet-namecache',
@@ -51,11 +57,16 @@ executable ('gnunet-namecache',
                            libgnunetutil_dep,
                            libgnunetgnsrecord_dep,
                            libgnunetidentity_dep],
-            include_directories: [incdir, configuration_inc])
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('bindir'))
 executable ('gnunet-service-namecache',
             gnunetservicenamecache_src,
             dependencies: [libgnunetnamecache_dep,
                            libgnunetutil_dep,
                            libgnunetgnsrecord_dep,
                            libgnunetstatistics_dep],
-            include_directories: [incdir, configuration_inc])
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir')/'gnunet'/'libexec')
+

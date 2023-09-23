@@ -15,19 +15,28 @@ configure_file(input : 'nat.conf.in',
                install_dir: pkgcfgdir)
 
 
-if get_option('monolith') == false
-  libgnunetnat = library('gnunetnat',
-          libgnunetnat_src,
-          dependencies: libgnunetutil_dep,
-          include_directories: [incdir, configuration_inc])
-  libgnunetnat_dep = declare_dependency(link_with : libgnunetnat)
-  executable ('gnunet-service-nat',
-              gnunetservicenat_src,
-              dependencies: [libgnunetnat_dep, libgnunetutil_dep,
-                             libgnunetstatistics_dep],
-              include_directories: [incdir, configuration_inc])
-else
+if get_option('monolith')
   foreach p : libgnunetnat_src + gnunetservicenat_src
     gnunet_src += 'nat/' + p
   endforeach
+  subdir_done()
 endif
+
+libgnunetnat = library('gnunetnat',
+        libgnunetnat_src,
+        dependencies: libgnunetutil_dep,
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
+libgnunetnat_dep = declare_dependency(link_with : libgnunetnat)
+pkg.generate(libgnunetnat, url: 'https://www.gnunet.org',
+             description : 'Provides API for accessing the NAT service')
+
+executable ('gnunet-service-nat',
+            gnunetservicenat_src,
+            dependencies: [libgnunetnat_dep, libgnunetutil_dep,
+                           libgnunetstatistics_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir')/'gnunet'/'libexec')
+

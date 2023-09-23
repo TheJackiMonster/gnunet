@@ -21,7 +21,9 @@ endif
 libgnunetdns = library('gnunetdns',
         libgnunetdns_src,
         dependencies: libgnunetutil_dep,
-        include_directories: [incdir, configuration_inc])
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
 libgnunetdns_dep = declare_dependency(link_with : libgnunetdns)
 pkg.generate(libgnunetdns, url: 'https://www.gnunet.org',
              description : 'Provides API to access GNUnet\'s DNS service (to intercept and manipulate DNS queries)')
@@ -29,19 +31,27 @@ pkg.generate(libgnunetdns, url: 'https://www.gnunet.org',
 shared_module('gnunet_plugin_block_dns',
         libgnunetpluginblockdns_src,
         dependencies: [libgnunetutil_dep, libgnunetblockgroup_dep],
-        include_directories: [incdir, configuration_inc])
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir')/'gnunet')
 
 executable ('gnunet-service-dns',
             gnunetservicedns_src,
             dependencies: [libgnunetdns_dep, libgnunetutil_dep,
                            libgnunetstatistics_dep],
-            include_directories: [incdir, configuration_inc])
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('bindir'))
 executable ('gnunet-dns-monitor',
             gnunetdnsmonitor_src,
             dependencies: [libgnunetdns_dep, libgnunetutil_dep, libgnunetdns_dep],
-            include_directories: [incdir, configuration_inc])
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir')/'gnunet'/'libexec')
 executable ('gnunet-dns-redirector',
             gnunetdnsredirector_src,
             dependencies: [libgnunetdns_dep, libgnunetutil_dep, libgnunetdns_dep],
-            include_directories: [incdir, configuration_inc])
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir')/'gnunet'/'libexec')
 
