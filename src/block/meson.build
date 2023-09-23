@@ -24,6 +24,7 @@ libgnunetblockgroup = library('gnunetblockgroup',
         soversion: '0.0.0',
         install_dir: get_option('libdir'))
 libgnunetblockgroup_dep = declare_dependency(link_with : libgnunetblockgroup)
+
 plugin_dep = [libgnunetutil_dep, libgnunetblock_dep, libgnunetblockgroup_dep]
 shared_module('gnunet_plugin_block_test',
       ['plugin_block_test.c'],

@@ -76,54 +76,59 @@ configure_file(input : 'util.conf',
                install_dir: pkgcfgdir)
 
 
-if get_option('monolith') == false
-  libgnunetutil = library('gnunetutil',
-          libgnunetutil_src,
-          dependencies: gnunetdeps,
-          include_directories: [incdir, configuration_inc])
-  libgnunetutil_dep = declare_dependency(link_with : libgnunetutil)
-  testcommonalloc = executable ('test_common_allocation',
-              ['test_common_allocation.c'],
-              dependencies: [libgnunetutil_dep, libgnunetutil_dep],
-              include_directories: [incdir, configuration_inc],
-              install: false)
-  test('test_common_allocation', testcommonalloc,
-       workdir: meson.current_source_dir(),
-       suite: ['util', 'util-common'])
-  testcommonlog = executable ('test_common_logging',
-              ['test_common_logging.c'],
-              dependencies: [libgnunetutil_dep, libgnunetutil_dep],
-              include_directories: [incdir, configuration_inc],
-              install: false)
-  test('test_common_logging', testcommonlog,
-       workdir: meson.current_source_dir(),
-       suite: ['util', 'util-common'])
-  testcommonendian = executable ('test_common_endian',
-              ['test_common_endian.c'],
-              dependencies: [libgnunetutil_dep, libgnunetutil_dep],
-              include_directories: [incdir, configuration_inc],
-              install: false)
-  test('test_common_endian', testcommonendian,
-       workdir: meson.current_source_dir(),
-       suite: ['util', 'util-common'])
-  testconf = executable ('test_configuration',
-              ['test_configuration.c'],
-              dependencies: [libgnunetutil_dep, libgnunetutil_dep],
-              include_directories: [incdir, configuration_inc],
-              install: false)
-  test('test_configuration', testconf,
-       workdir: meson.current_source_dir(),
-       suite: ['util', 'util-configuration'])
-  testcontainerbloom = executable ('test_container_bloomfilter',
-              ['test_container_bloomfilter.c'],
-              dependencies: [libgnunetutil_dep, libgnunetutil_dep],
-              include_directories: [incdir, configuration_inc],
-              install: false)
-  test('test_container_bloomfilter', testcontainerbloom,
-       workdir: meson.current_source_dir(),
-       suite: ['util', 'util-container'])
-else
+if get_option('monolith')
   foreach p : libgnunetutil_src
     gnunet_src += 'util/' + p
   endforeach
 endif
+
+libgnunetutil = library('gnunetutil',
+        libgnunetutil_src,
+        soversion: '15.0.0',
+        dependencies: gnunetdeps,
+        include_directories: [incdir, configuration_inc])
+libgnunetutil_dep = declare_dependency(link_with : libgnunetutil)
+pkg.generate(libgnunetutil, url: 'https://www.gnunet.org',
+             description : 'Provides miscellaneous utility functions and API for GNUnet')
+
+
+testcommonalloc = executable ('test_common_allocation',
+            ['test_common_allocation.c'],
+            dependencies: [libgnunetutil_dep, libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+test('test_common_allocation', testcommonalloc,
+     workdir: meson.current_source_dir(),
+     suite: ['util', 'util-common'])
+testcommonlog = executable ('test_common_logging',
+            ['test_common_logging.c'],
+            dependencies: [libgnunetutil_dep, libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+test('test_common_logging', testcommonlog,
+     workdir: meson.current_source_dir(),
+     suite: ['util', 'util-common'])
+testcommonendian = executable ('test_common_endian',
+            ['test_common_endian.c'],
+            dependencies: [libgnunetutil_dep, libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+test('test_common_endian', testcommonendian,
+     workdir: meson.current_source_dir(),
+     suite: ['util', 'util-common'])
+testconf = executable ('test_configuration',
+            ['test_configuration.c'],
+            dependencies: [libgnunetutil_dep, libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+test('test_configuration', testconf,
+     workdir: meson.current_source_dir(),
+     suite: ['util', 'util-configuration'])
+testcontainerbloom = executable ('test_container_bloomfilter',
+            ['test_container_bloomfilter.c'],
+            dependencies: [libgnunetutil_dep, libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+test('test_container_bloomfilter', testcontainerbloom,
+     workdir: meson.current_source_dir(),
+     suite: ['util', 'util-container'])
