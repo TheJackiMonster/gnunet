@@ -22,47 +22,71 @@ configure_file(input : 'transport.conf.in',
                install_dir: pkgcfgdir)
 
 
-if get_option('monolith') == false
-  libgnunettransport = library('gnunettransport',
-          libgnunettransport_src,
-          dependencies: [libgnunetutil_dep, libgnunetats_dep, libgnunethello_dep],
-          include_directories: [incdir, configuration_inc])
-  libgnunettransport_dep = declare_dependency(link_with : libgnunettransport)
-
-  libgnunettransportapplication = library('gnunettransportapplication',
-          libgnunettransportapplication_src,
-          dependencies: libgnunetutil_dep,
-          include_directories: [incdir, configuration_inc])
-  libgnunettransportapplication_dep = declare_dependency(link_with : libgnunettransportapplication)
-
-  libgnunettransportcore = library('gnunettransportcore',
-          libgnunettransportcore_src,
-          dependencies: libgnunetutil_dep,
-          include_directories: [incdir, configuration_inc])
-  libgnunettransportcore_dep = declare_dependency(link_with : libgnunettransportcore)
-
-  libgnunettransportcommunicator = library('gnunettransportcommunicator',
-          libgnunettransportcommunicator_src,
-          dependencies: libgnunetutil_dep,
-          include_directories: [incdir, configuration_inc])
-  libgnunettransportcommunicator_dep = declare_dependency(link_with : libgnunettransportcommunicator)
-
-  libgnunettransportmonitor = library('gnunettransportmonitor',
-          libgnunettransportmonitor_src,
-          dependencies: libgnunetutil_dep,
-          include_directories: [incdir, configuration_inc])
-  libgnunettransportmonitor_dep = declare_dependency(link_with : libgnunettransportmonitor)
-  executable ('gnunet-service-transport',
-              gnunetservicetransport_src,
-              dependencies: [libgnunettransport_dep, libgnunetutil_dep,
-                             libgnunethello_dep,
-                             libgnunetpeerstore_dep,
-                             m_dep,
-                             libgnunetstatistics_dep,
-                             gcrypt_dep],
-              include_directories: [incdir, configuration_inc])
-else
+if get_option('monolith')
   foreach p : libgnunettransport_src #+ libgnunettransportapplication_src + libgnunettransportcore_src + libgnunettransportcommunicator_src + libgnunettransportmonitor_src + gnunetservicetransport_src
     gnunet_src += 'transport/' + p
   endforeach
 endif
+
+libgnunettransport = library('gnunettransport',
+        libgnunettransport_src,
+        dependencies: [libgnunetutil_dep, libgnunetats_dep, libgnunethello_dep],
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
+pkg.generate(libgnunettransport, url: 'https://www.gnunet.org',
+             description : 'Provides API for accessing the transport service')
+libgnunettransport_dep = declare_dependency(link_with : libgnunettransport)
+
+libgnunettransportapplication = library('gnunettransportapplication',
+        libgnunettransportapplication_src,
+        dependencies: libgnunetutil_dep,
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
+pkg.generate(libgnunettransportapplication, url: 'https://www.gnunet.org',
+             description : 'Provides application APIs for accessing the transport service')
+libgnunettransportapplication_dep = declare_dependency(link_with : libgnunettransportapplication)
+
+libgnunettransportcore = library('gnunettransportcore',
+        libgnunettransportcore_src,
+        dependencies: libgnunetutil_dep,
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
+pkg.generate(libgnunettransportcore, url: 'https://www.gnunet.org',
+             description : 'Provides core API for accessing the transport service')
+libgnunettransportcore_dep = declare_dependency(link_with : libgnunettransportcore)
+
+libgnunettransportcommunicator = library('gnunettransportcommunicator',
+        libgnunettransportcommunicator_src,
+        dependencies: libgnunetutil_dep,
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
+pkg.generate(libgnunettransportcommunicator, url: 'https://www.gnunet.org',
+             description : 'Provides communicator API for accessing the transport service')
+libgnunettransportcommunicator_dep = declare_dependency(link_with : libgnunettransportcommunicator)
+
+libgnunettransportmonitor = library('gnunettransportmonitor',
+        libgnunettransportmonitor_src,
+        dependencies: libgnunetutil_dep,
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
+pkg.generate(libgnunettransportmonitor, url: 'https://www.gnunet.org',
+             description : 'Provides monitor API for accessing the transport service')
+libgnunettransportmonitor_dep = declare_dependency(link_with : libgnunettransportmonitor)
+
+executable ('gnunet-service-transport',
+            gnunetservicetransport_src,
+            dependencies: [libgnunettransport_dep, libgnunetutil_dep,
+                           libgnunethello_dep,
+                           libgnunetpeerstore_dep,
+                           m_dep,
+                           libgnunetstatistics_dep,
+                           gcrypt_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+

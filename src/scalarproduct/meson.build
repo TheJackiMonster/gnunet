@@ -13,23 +13,31 @@ configure_file(input : 'scalarproduct.conf.in',
                install_dir: pkgcfgdir)
 
 
-if get_option('monolith') == false
-  libgnunetscalarproduct = library('gnunetscalarproduct',
-          libgnunetscalarproduct_src,
-          dependencies: libgnunetutil_dep,
-          include_directories: [incdir, configuration_inc])
-  libgnunetscalarproduct_dep = declare_dependency(link_with : libgnunetscalarproduct)
-  executable ('gnunet-service-scalarproduct',
-              gnunetservicescalarproduct_src,
-              dependencies: [libgnunetscalarproduct_dep,
-                             libgnunetutil_dep,
-                             libgnunetstatistics_dep,
-                             libgnunetcore_dep,
-                             libgnunetcadet_dep,
-                             libgnunetblock_dep],
-              include_directories: [incdir, configuration_inc])
-else
+if get_option('monolith')
   foreach p : libgnunetscalarproduct_src + gnunetservicescalarproduct_src
     gnunet_src += 'scalarproduct/' + p
   endforeach
+  subdir_done()
 endif
+
+libgnunetscalarproduct = library('gnunetscalarproduct',
+        libgnunetscalarproduct_src,
+        dependencies: libgnunetutil_dep,
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
+pkg.generate(libgnunetscalarproduct, url: 'https://www.gnunet.org',
+             description : 'Provides API for accessing the scalarproduct service')
+libgnunetscalarproduct_dep = declare_dependency(link_with : libgnunetscalarproduct)
+executable ('gnunet-service-scalarproduct',
+            gnunetservicescalarproduct_src,
+            dependencies: [libgnunetscalarproduct_dep,
+                           libgnunetutil_dep,
+                           libgnunetstatistics_dep,
+                           libgnunetcore_dep,
+                           libgnunetcadet_dep,
+                           libgnunetblock_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+
