@@ -26,6 +26,7 @@
  */
 
 
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 
@@ -167,7 +168,7 @@ GNUNET_CONTAINER_heap_peek (const struct GNUNET_CONTAINER_Heap *heap)
  * @return #GNUNET_YES if an element is returned,
  *         #GNUNET_NO  if the heap is empty.
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_heap_peek2 (const struct GNUNET_CONTAINER_Heap *heap,
                              void **element,
                              GNUNET_CONTAINER_HeapCostType *cost)

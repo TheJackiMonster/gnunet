@@ -38,6 +38,7 @@
 #define GNUNET_GNSRECORD_LIB_H
 
 
+#include "gnunet_common.h"
 #include "gnunet_identity_service.h"
 
 #ifdef __cplusplus
@@ -653,7 +654,7 @@ GNUNET_GNSRECORD_block_create2 (const struct GNUNET_IDENTITY_PrivateKey *key,
  * @param block block to verify
  * @return #GNUNET_OK if the signature is valid
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_block_verify (const struct GNUNET_GNSRECORD_Block *block);
 
 
@@ -668,7 +669,7 @@ GNUNET_GNSRECORD_block_verify (const struct GNUNET_GNSRECORD_Block *block);
  * @return #GNUNET_OK on success, #GNUNET_SYSERR if the block was
  *        not well-formed
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_block_decrypt (
   const struct GNUNET_GNSRECORD_Block *block,
   const struct GNUNET_IDENTITY_PublicKey *zone_key, const char *label,
@@ -682,7 +683,7 @@ GNUNET_GNSRECORD_block_decrypt (
  * @param b another record
  * @return #GNUNET_YES if the records are equal, or #GNUNET_NO if not.
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_records_cmp (const struct GNUNET_GNSRECORD_Data *a,
                               const struct GNUNET_GNSRECORD_Data *b);
 

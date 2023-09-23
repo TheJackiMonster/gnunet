@@ -26,6 +26,7 @@
  * @author Christian Grothoff
  */
 
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 
@@ -163,7 +164,7 @@ struct GNUNET_HELPER_Handle
 };
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_HELPER_kill (struct GNUNET_HELPER_Handle *h, int soft_kill)
 {
   struct GNUNET_HELPER_SendHandle *sh;
@@ -203,7 +204,7 @@ GNUNET_HELPER_kill (struct GNUNET_HELPER_Handle *h, int soft_kill)
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_HELPER_wait (struct GNUNET_HELPER_Handle *h)
 {
   struct GNUNET_HELPER_SendHandle *sh;

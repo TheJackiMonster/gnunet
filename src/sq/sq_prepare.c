@@ -22,6 +22,7 @@
  * @brief helper functions for executing SQL statements
  * @author Christian Grothoff
  */
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_sq_lib.h"
 
@@ -46,7 +47,7 @@ GNUNET_SQ_make_prepare (const char *sql,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_SQ_prepare (sqlite3 *dbh,
                    const struct GNUNET_SQ_PrepareStatement *ps)
 {

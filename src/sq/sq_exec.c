@@ -72,7 +72,7 @@ GNUNET_SQ_make_try_execute (const char *sql)
  * @return #GNUNET_OK on success (modulo statements where errors can be ignored)
  *         #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_SQ_exec_statements (sqlite3 *dbh,
                            const struct GNUNET_SQ_ExecuteStatement *es)
 {

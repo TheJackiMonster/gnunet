@@ -26,6 +26,7 @@
  */
 
 
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 
@@ -1050,7 +1051,7 @@ GNUNET_FS_meta_data_deserialize (const char *input, size_t size)
  * @param result the buffer to store a pointer to the (allocated) metadata
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on failure
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_FS_read_meta_data (struct GNUNET_BIO_ReadHandle *h,
                           const char *what,
                           struct GNUNET_FS_MetaData **result)

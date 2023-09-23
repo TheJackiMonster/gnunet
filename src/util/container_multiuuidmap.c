@@ -24,6 +24,7 @@
  */
 
 
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 
@@ -303,7 +304,7 @@ GNUNET_CONTAINER_multiuuidmap_get (
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multiuuidmap_iterate (
   struct GNUNET_CONTAINER_MultiUuidmap *map,
   GNUNET_CONTAINER_MultiUuidmapIteratorCallback it,
@@ -397,7 +398,7 @@ update_next_cache_sme (struct GNUNET_CONTAINER_MultiUuidmap *map,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multiuuidmap_remove (struct GNUNET_CONTAINER_MultiUuidmap *map,
                                       const struct GNUNET_Uuid *key,
                                       const void *value)
@@ -532,7 +533,7 @@ GNUNET_CONTAINER_multiuuidmap_remove_all (
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multiuuidmap_contains (
   const struct GNUNET_CONTAINER_MultiUuidmap *map,
   const struct GNUNET_Uuid *key)
@@ -556,7 +557,7 @@ GNUNET_CONTAINER_multiuuidmap_contains (
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multiuuidmap_contains_value (
   const struct GNUNET_CONTAINER_MultiUuidmap *map,
   const struct GNUNET_Uuid *key,
@@ -639,7 +640,7 @@ grow (struct GNUNET_CONTAINER_MultiUuidmap *map)
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multiuuidmap_put (struct GNUNET_CONTAINER_MultiUuidmap *map,
                                    const struct GNUNET_Uuid *key,
                                    void *value,
@@ -846,7 +847,7 @@ GNUNET_CONTAINER_multiuuidmap_iterator_create (
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multiuuidmap_iterator_next (
   struct GNUNET_CONTAINER_MultiUuidmapIterator *iter,
   struct GNUNET_Uuid *key,

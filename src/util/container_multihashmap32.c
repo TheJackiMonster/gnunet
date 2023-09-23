@@ -26,6 +26,7 @@
  */
 
 
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 
@@ -276,7 +277,7 @@ update_next_cache (struct GNUNET_CONTAINER_MultiHashMap32 *map,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multihashmap32_remove (
   struct GNUNET_CONTAINER_MultiHashMap32 *map,
   uint32_t key,
@@ -354,7 +355,7 @@ GNUNET_CONTAINER_multihashmap32_remove_all (
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multihashmap32_contains (
   const struct GNUNET_CONTAINER_MultiHashMap32 *map,
   uint32_t key)
@@ -372,7 +373,7 @@ GNUNET_CONTAINER_multihashmap32_contains (
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multihashmap32_contains_value (
   const struct GNUNET_CONTAINER_MultiHashMap32 *map,
   uint32_t key,
@@ -445,7 +446,7 @@ grow (struct GNUNET_CONTAINER_MultiHashMap32 *map)
  *         #GNUNET_SYSERR if UNIQUE_ONLY was the option and the
  *                       value already exists
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multihashmap32_put (
   struct GNUNET_CONTAINER_MultiHashMap32 *map,
   uint32_t key,
@@ -560,7 +561,7 @@ GNUNET_CONTAINER_multihashmap32_iterator_create (
  * @return #GNUNET_YES we returned an element,
  *         #GNUNET_NO if we are out of elements
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multihashmap32_iterator_next (
   struct GNUNET_CONTAINER_MultiHashMap32Iterator *iter,
   uint32_t *key,

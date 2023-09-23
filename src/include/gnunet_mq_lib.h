@@ -18,6 +18,7 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 
+#include "gnunet_common.h"
 #if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
 #error "Only <gnunet_util_lib.h> can be included directly."
 #endif
@@ -691,7 +692,7 @@ struct GNUNET_MQ_MessageHandler
  * @return #GNUNET_OK on success, #GNUNET_NO if no handler matched,
  *         #GNUNET_SYSERR if message was rejected by check function
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_MQ_handle_message (const struct GNUNET_MQ_MessageHandler *handlers,
                           const struct GNUNET_MessageHeader *mh);
 

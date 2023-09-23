@@ -102,9 +102,9 @@ sqlite_dep = dependency ('sqlite3', required : false)
 if not sqlite_dep.found()
   sqlite_dep = cc.find_library('sqlite3', required : true)
 endif
-curl_dep = dependency('libcurl', required : false)
+curl_dep = dependency('libcurl', version: '>=7.85.0', required : false)
 if not curl_dep.found()
-  curl_dep = cc.find_library('curl', required : true)
+  curl_dep = cc.find_library('curl', version: '>=7.85.0',  required : true)
 endif
 zlib_dep = dependency('zlib', required : false)
 if not zlib_dep.found()
@@ -133,28 +133,71 @@ sodium_dep = dependency('libsodium', required : false)
 if not sodium_dep.found()
   sodium_dep = cc.find_library('sodium', required : true)
 endif
+
+idn_dep = dependency('libidn2', required : false)
+if not idn_dep.found()
+  idn_dep = cc.find_library('idn2', required : false)
+endif
+if idn_dep.found()
+  add_project_arguments('-DHAVE_LIBIDN2', language : 'c')
+  add_project_arguments('-DHAVE_IDN2_H', language : 'c')
+else
+  idn_dep = dependency('libidn', required : false)
+  if not idn_dep.found()
+    idn_dep = cc.find_library('idn', required : true)
+    add_project_arguments('-DHAVE_LIBIDN', language : 'c')
+    add_project_arguments('-DHAVE_IDN_H', language : 'c')
+  endif
+endif
+
 m_dep = cc.find_library('m', required : false)
 if m_dep.found()
   add_project_arguments('-DHAVE_LIBM', language : 'c')
 endif
+
 sock_dep = cc.find_library('socket', required : false)
 if sock_dep.found()
   add_project_arguments('-DHAVE_LIBSOCKET', language : 'c')
 endif
+
 gopt_bin = find_program('getopt', '/usr/bin/getopt', required : false)
 if gopt_bin.found()
   add_project_arguments('-DHAVE_GETOPT_BINARY='+gopt_bin.full_path(), language : 'c')
 endif
+
 pkgc_bin = find_program('pkg-config', '/usr/bin/pkg-config', required : false)
 if pkgc_bin.found()
   add_project_arguments('-DHAVE_PKG_CONFIG', language : 'c')
 endif
+
 ssh_bin = find_program('ssh', '/usr/bin/ssh', required : false)
 if ssh_bin.found()
   add_project_arguments('-DHAVE_SSH_BINARY', language : 'c')
 endif
 
-idn_dep = dependency('libidn2') # FIXME detect libidn as well
+# Optional dependencies
+mq_dep = dependency('libmysqlclient', required : false)
+if not mq_dep.found()
+  mq_dep = cc.find_library('mysqlclient', required : false)
+endif
+if mq_dep.found()
+  add_project_arguments('-DHAVE_MYSQL', language : 'c')
+endif
+pq_dep = dependency('libpq', required : false)
+if not pq_dep.found()
+  pq_dep = cc.find_library('pq', required : false)
+endif
+if pq_dep.found()
+  add_project_arguments('-DHAVE_POSTGRESQL', language : 'c')
+endif
+zbar_dep = dependency('libzbar', required : false)
+if not zbar_dep.found()
+  zbar_dep = cc.find_library('zbar', required : false)
+endif
+if zbar_dep.found()
+  add_project_arguments('-DHAVE_ZBAR', language : 'c')
+endif
+
 gnunetdeps = [mhd_dep,
               sodium_dep,
               gcrypt_dep,
@@ -173,11 +216,6 @@ if cc.has_header('sys/time.h')
 endif
 if cc.has_header('sys/param.h')
   add_project_arguments('-DHAVE_SYS_PARAM_H', language : 'c')
-endif
-
-if cc.has_header('idn2.h')
-  add_project_arguments('-DHAVE_LIBIDN2', language : 'c')
-  add_project_arguments('-DHAVE_IDN2_H', language : 'c')
 endif
 
 

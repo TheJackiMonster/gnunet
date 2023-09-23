@@ -25,6 +25,7 @@
  * @author Matthias Wachs
  * @author Christian Grothoff
  */
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_constants.h"
@@ -89,7 +90,7 @@ GNUNET_GNSRECORD_z2s (const struct GNUNET_IDENTITY_PublicKey *z)
  * @param b record
  * @return #GNUNET_YES if the records are equal or #GNUNET_NO if they are not
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_records_cmp (const struct GNUNET_GNSRECORD_Data *a,
                               const struct GNUNET_GNSRECORD_Data *b)
 {

@@ -25,6 +25,7 @@
  * @author Christian Grothoff
  */
 
+#include "gnunet_common.h"
 #include "platform.h"
 #include "disk.h"
 
@@ -597,7 +598,7 @@ GNUNET_NETWORK_socket_box_native (int fd)
  * @param address_len length of @a address
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_NETWORK_socket_connect (const struct GNUNET_NETWORK_Handle *desc,
                                const struct sockaddr *address,
                                socklen_t address_len)
@@ -622,7 +623,7 @@ GNUNET_NETWORK_socket_connect (const struct GNUNET_NETWORK_Handle *desc,
  * @param optlen length of @a optval
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_NETWORK_socket_getsockopt (const struct GNUNET_NETWORK_Handle *desc,
                                   int level,
                                   int optname,
@@ -647,7 +648,7 @@ GNUNET_NETWORK_socket_getsockopt (const struct GNUNET_NETWORK_Handle *desc,
  * @param backlog length of the listen queue
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_NETWORK_socket_listen (const struct GNUNET_NETWORK_Handle *desc,
                               int backlog)
 {
@@ -856,7 +857,7 @@ GNUNET_NETWORK_socket_create (int domain,
  * @param how type of shutdown
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_NETWORK_socket_shutdown (struct GNUNET_NETWORK_Handle *desc,
                                 int how)
 {
@@ -877,7 +878,7 @@ GNUNET_NETWORK_socket_shutdown (struct GNUNET_NETWORK_Handle *desc,
  * @param desc socket
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_NETWORK_socket_disable_corking (struct GNUNET_NETWORK_Handle *desc)
 {
   int ret = 0;

@@ -23,6 +23,7 @@
  * @author Christian Grothoff
  */
 
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_configuration_lib.h"
@@ -2491,7 +2492,7 @@ GNUNET_CONFIGURATION_default (void)
  * @param filename name of the configuration file, NULL to load defaults
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_load (struct GNUNET_CONFIGURATION_Handle *cfg,
                            const char *filename)
 {

@@ -2817,7 +2817,7 @@ GNUNET_CRYPTO_rsa_public_key_cmp (const struct GNUNET_CRYPTO_RsaPublicKey *p1,
  * @param[out] buf_size number of bytes stored in @a buf
  * @return #GNUNET_YES if successful, #GNUNET_NO if RSA key is malicious
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_rsa_blind (const struct GNUNET_HashCode *hash,
                          const struct GNUNET_CRYPTO_RsaBlindingKeySecret *bks,
                          struct GNUNET_CRYPTO_RsaPublicKey *pkey,

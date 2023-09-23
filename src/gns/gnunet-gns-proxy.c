@@ -1345,7 +1345,7 @@ create_mhd_response_from_s5r (struct Socks5Request *s5r)
                                    &resp_code));
   GNUNET_break (CURLE_OK ==
                 curl_easy_getinfo (s5r->curl,
-                                   CURLINFO_CONTENT_LENGTH_DOWNLOAD,
+                                   CURLINFO_CONTENT_LENGTH_DOWNLOAD_T,
                                    &content_length));
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Creating MHD response with code %d and size %d for %s%s\n",

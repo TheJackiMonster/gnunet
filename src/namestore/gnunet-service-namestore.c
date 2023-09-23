@@ -1738,14 +1738,12 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
   size_t rp_msg_len;
   size_t rs_len;
   size_t rs_off;
-  size_t body_len;
   struct StoreActivity *sa;
   struct RecordSet *rs;
   enum GNUNET_ErrorCode res;
 
   key_len = ntohs (rp_msg->key_len);
   rp_msg_len = ntohs (rp_msg->gns_header.header.size);
-  body_len = rp_msg_len - sizeof (*rp_msg);
   rs_off = sizeof (*rp_msg) + key_len;
   rs_len = rp_msg_len - rs_off;
   if ((GNUNET_SYSERR ==

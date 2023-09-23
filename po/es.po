@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.9.5a\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2023-04-01 10:42+0200\n"
+"POT-Creation-Date: 2023-09-10 12:56+0200\n"
 "PO-Revision-Date: 2013-02-23 17:50+0100\n"
 "Last-Translator: Miguel Ángel Arruga Vivas <rosen644835@gmail.com>\n"
 "Language-Team: Spanish <es@li.org>\n"
@@ -1626,7 +1626,7 @@ msgstr "Caché de datos de montículo (heap) ejecutándose\n"
 #: src/testbed/generate-underlay-topology.c:48
 #: src/testbed/gnunet-daemon-latency-logger.c:53
 #: src/testbed/gnunet-daemon-testbed-underlay.c:57
-#: src/testbed/testbed_api_hosts.c:72 src/util/crypto_ecc.c:78
+#: src/testbed/testbed_api_hosts.c:72 src/util/crypto_ecc.c:79
 #: src/util/crypto_ecc_setup.c:48 src/util/crypto_mpi.c:41
 #, c-format
 msgid "`%s' failed at %s:%d with error: %s\n"
@@ -4109,13 +4109,13 @@ msgid "Properly base32-encoded public key required"
 msgstr "Tipo requerido\n"
 
 #: src/gns/gnunet-service-gns.c:554
-#: src/zonemaster/gnunet-service-zonemaster.c:1345
+#: src/zonemaster/gnunet-service-zonemaster.c:1348
 #, fuzzy
 msgid "Failed to connect to the namecache!\n"
 msgstr "¡Se produjo un fallo al conectar con el almacén de nombres!\n"
 
 #: src/gns/gnunet-service-gns.c:573
-#: src/zonemaster/gnunet-service-zonemaster.c:1384
+#: src/zonemaster/gnunet-service-zonemaster.c:1387
 msgid "Could not connect to DHT!\n"
 msgstr "¡No se pudo conectar a la DHT!\n"
 
@@ -4740,68 +4740,68 @@ msgstr ""
 msgid "Failed to create ego: %s\n"
 msgstr "Se produjo un fallo al crear la página para «%s»\n"
 
-#: src/identity/gnunet-identity.c:586
+#: src/identity/gnunet-identity.c:540
 msgid "create ego NAME"
 msgstr ""
 
-#: src/identity/gnunet-identity.c:591
+#: src/identity/gnunet-identity.c:545
 #, fuzzy
 msgid "delete ego NAME "
 msgstr "borrar un nombre de espacio de nombres (NAME)"
 
-#: src/identity/gnunet-identity.c:597
+#: src/identity/gnunet-identity.c:551
 msgid ""
 "set the private key for the identity to PRIVATE_KEY (use together with -C)"
 msgstr ""
 
-#: src/identity/gnunet-identity.c:603
+#: src/identity/gnunet-identity.c:557
 msgid ""
 "Read and decrypt message encrypted for the given ego (use together with -e "
 "EGO)"
 msgstr ""
 
-#: src/identity/gnunet-identity.c:609
+#: src/identity/gnunet-identity.c:563
 msgid ""
 "Encrypt and write message for recipient identity PULBIC_KEY, (use together "
 "with -k RECIPIENT_PUBLIC_KEY)"
 msgstr ""
 
-#: src/identity/gnunet-identity.c:614
+#: src/identity/gnunet-identity.c:568
 msgid "generate an EdDSA identity. (use together with -C) EXPERIMENTAL"
 msgstr ""
 
-#: src/identity/gnunet-identity.c:618
+#: src/identity/gnunet-identity.c:572
 #, fuzzy
 msgid "display all egos"
 msgstr "mostrar registros"
 
-#: src/identity/gnunet-identity.c:622
+#: src/identity/gnunet-identity.c:576
 #, fuzzy
 msgid "reduce output"
 msgstr "Sin salida innecesaria"
 
-#: src/identity/gnunet-identity.c:629
+#: src/identity/gnunet-identity.c:583
 msgid ""
 "restrict results to NAME (use together with -d) or read and decrypt a "
 "message for NAME (use together with -R)"
 msgstr ""
 
-#: src/identity/gnunet-identity.c:635
+#: src/identity/gnunet-identity.c:589
 msgid "The public key of the recipient (with -W)"
 msgstr ""
 
 # Miguel: Aquí he dejado monitorización porque esto es
 # del servicio de traducción de direcciones.
-#: src/identity/gnunet-identity.c:639
+#: src/identity/gnunet-identity.c:593
 #, fuzzy
 msgid "run in monitor mode egos"
 msgstr "modo de monitorización"
 
-#: src/identity/gnunet-identity.c:643
+#: src/identity/gnunet-identity.c:597
 msgid "display private keys as well"
 msgstr ""
 
-#: src/identity/gnunet-identity.c:658
+#: src/identity/gnunet-identity.c:612
 msgid "Maintain egos"
 msgstr ""
 
@@ -6942,17 +6942,17 @@ msgid ""
 "free topology cannot be more than %u.  Given `%s = %llu'"
 msgstr ""
 
-#: src/testbed/testbed_api_topology.c:1021 src/testing/testing.c:2823
+#: src/testbed/testbed_api_topology.c:1021 src/testing/testing.c:2795
 #, c-format
 msgid "Topology file %s not found\n"
 msgstr "El fichero de topología %s no fue encontrado\n"
 
-#: src/testbed/testbed_api_topology.c:1029 src/testing/testing.c:2831
+#: src/testbed/testbed_api_topology.c:1029 src/testing/testing.c:2803
 #, c-format
 msgid "Topology file %s has no data\n"
 msgstr "El fichero de topología %s no tiene datos\n"
 
-#: src/testbed/testbed_api_topology.c:1037 src/testing/testing.c:2839
+#: src/testbed/testbed_api_topology.c:1037 src/testing/testing.c:2811
 #, c-format
 msgid "Topology file %s cannot be read\n"
 msgstr "El fichero de topología %s no puede ser leido\n"
@@ -7179,9 +7179,10 @@ msgstr "# mensajes «HELLO» recibidos"
 msgid "GNUnet topology control"
 msgstr ""
 
-#: src/transport/gnunet-communicator-tcp.c:3712
-#: src/transport/gnunet-communicator-udp.c:3879
-#: src/transport/gnunet-service-tng.c:11393
+#: src/transport/gnunet-communicator-quic.c:1718
+#: src/transport/gnunet-communicator-tcp.c:3737
+#: src/transport/gnunet-communicator-udp.c:3363
+#: src/transport/gnunet-service-tng.c:11503
 #: src/transport/gnunet-service-transport.c:2617
 #, fuzzy
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
@@ -7189,12 +7190,17 @@ msgstr ""
 "El servicio de transporte carece de opciones de configuración de clave.  "
 "Saliendo.\n"
 
-#: src/transport/gnunet-communicator-tcp.c:4049
+#: src/transport/gnunet-communicator-quic.c:1788
+#, fuzzy
+msgid "GNUnet QUIC communicator"
+msgstr "Configurador Gtk de GNUnet"
+
+#: src/transport/gnunet-communicator-tcp.c:4074
 #, fuzzy
 msgid "GNUnet TCP communicator"
 msgstr "Configurador Gtk de GNUnet"
 
-#: src/transport/gnunet-communicator-udp.c:3954
+#: src/transport/gnunet-communicator-udp.c:3438
 #, fuzzy
 msgid "GNUnet UDP communicator"
 msgstr "Configurador Gtk de GNUnet"
@@ -8192,7 +8198,7 @@ msgstr "# mensajes WLAN pendientes (con fragmentación)"
 
 #: src/transport/plugin_transport_wlan.c:1195
 #: src/transport/plugin_transport_wlan.c:1287
-#: src/transport/plugin_transport_wlan.c:2325
+#: src/transport/plugin_transport_wlan.c:2326
 #, fuzzy
 msgid "# MAC endpoints allocated"
 msgstr "# MAC de destino WLAN alojadas"
@@ -8217,19 +8223,19 @@ msgstr "# «beacons HELLO» enviados vía WLAN"
 msgid "# DATA messages received"
 msgstr "# Mensajes «GAP PUT» recibidos"
 
-#: src/transport/plugin_transport_wlan.c:1904
+#: src/transport/plugin_transport_wlan.c:1905
 #, fuzzy
 msgid "# DATA messages processed"
 msgstr "# mensajes «DATA» WLAN procesados"
 
-#: src/transport/plugin_transport_wlan.c:2300
+#: src/transport/plugin_transport_wlan.c:2301
 #, c-format
 msgid "Helper binary `%s' not SUID, cannot run WLAN transport\n"
 msgstr ""
 "El ejecutable auxiliar «%s» no tiene activado el bit SUID, no se puede "
 "ejecutar el transporte WLAN\n"
 
-#: src/transport/plugin_transport_wlan.c:2322
+#: src/transport/plugin_transport_wlan.c:2323
 #, fuzzy
 msgid "# sessions allocated"
 msgstr "# sesiones WLAN alojadas"
@@ -8324,7 +8330,7 @@ msgstr ""
 msgid "Service process failed to report status\n"
 msgstr "El proceso del servicio no devolvió un estado\n"
 
-#: src/transport/tcp_service_legacy.c:1253 src/util/disk.c:1219
+#: src/transport/tcp_service_legacy.c:1253 src/util/disk.c:1222
 #: src/util/service.c:1642
 #, c-format
 msgid "Cannot obtain information about user `%s': %s\n"
@@ -8344,7 +8350,7 @@ msgid "do daemonize (detach from terminal)"
 msgstr "demonizar (desasociar del terminal)"
 
 #: src/transport/tcp_service_legacy.c:1397
-#: src/transport/transport-testing-communicator.c:1045 src/util/service.c:2077
+#: src/transport/transport-testing-communicator.c:1056 src/util/service.c:2077
 #: src/util/service.c:2089
 #, fuzzy, c-format
 msgid "Malformed configuration file `%s', exit ...\n"
@@ -8360,7 +8366,7 @@ msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
 msgid "Could not access configuration file `%s'\n"
 msgstr "No se pudo acceder al fichero de configuración «%s»\n"
 
-#: src/transport/transport_api2_communication.c:752
+#: src/transport/transport_api2_communication.c:762
 msgid "Dropped backchanel message: handler not provided by communicator\n"
 msgstr ""
 
@@ -8488,52 +8494,17 @@ msgstr ""
 "La configuración especifica un valor no válido en la opción «%s» de la "
 "sección «%s»: %s\n"
 
-#: src/util/configuration.c:786
-#, c-format
-msgid "Illegal directive in line %u (parsing restricted section %s)\n"
-msgstr ""
-
-#: src/util/configuration.c:796
-#, c-format
-msgid "Bad directive in line %u\n"
-msgstr ""
-
-#: src/util/configuration.c:852
-#, c-format
-msgid "Bad inline-secret directive in line %u\n"
-msgstr ""
-
-#: src/util/configuration.c:874
-#, c-format
-msgid "Unknown or malformed directive '%s' in line %u\n"
-msgstr ""
-
-#: src/util/configuration.c:905
-#, fuzzy, c-format
-msgid "Syntax error while deserializing in line %u (option without section)\n"
-msgstr "Error de sintaxis en la línea %u mientras se deserializaba\n"
-
-#: src/util/configuration.c:955
-#, c-format
-msgid "Syntax error while deserializing in line %u\n"
-msgstr "Error de sintaxis en la línea %u mientras se deserializaba\n"
-
-#: src/util/configuration.c:1055
-#, fuzzy, c-format
-msgid "Error while reading file `%s'\n"
-msgstr "Error decodificando clave %u\n"
-
-#: src/util/configuration.c:1068
+#: src/util/configuration.c:1073
 #, fuzzy, c-format
 msgid "Failed to parse configuration file `%s'\n"
 msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
 
-#: src/util/configuration.c:1701
+#: src/util/configuration.c:1718
 #, fuzzy
 msgid "Not a valid relative time specification"
 msgstr "Tiempo de expiración no válido para la operación «%s»\n"
 
-#: src/util/configuration.c:1771
+#: src/util/configuration.c:1788
 #, c-format
 msgid ""
 "Configuration value '%s' for '%s' in section '%s' is not in set of legal "
@@ -8541,23 +8512,6 @@ msgid ""
 msgstr ""
 "El valor de configuración «%s» para «%s» de la sección «%s» no está dentro "
 "de las opciones legales\n"
-
-#: src/util/configuration.c:1866
-#, c-format
-msgid "Recursive expansion suspected, aborting $-expansion for term `%s'\n"
-msgstr ""
-
-#: src/util/configuration.c:1898
-#, fuzzy, c-format
-msgid "Missing closing `%s' in option `%s'\n"
-msgstr "Falta la opción «%s» para la operación «%s»\n"
-
-#: src/util/configuration.c:1964
-#, c-format
-msgid ""
-"Failed to expand `%s' in `%s' as it is neither found in [PATHS] nor defined "
-"as an environmental variable\n"
-msgstr ""
 
 #: src/util/configuration_helper.c:134
 #, c-format
@@ -8588,12 +8542,12 @@ msgstr ""
 "El tamaño del fichero en disco es incorrecto para este «Bloom "
 "filter» (esperado %llu, tiene %llu)\n"
 
-#: src/util/crypto_ecc.c:567
+#: src/util/crypto_ecc.c:554
 #, c-format
 msgid "ECC signing failed at %s:%d: %s\n"
 msgstr "El firmado ECC falló en %s:%d: %s\n"
 
-#: src/util/crypto_ecc.c:689
+#: src/util/crypto_ecc.c:677
 #, fuzzy, c-format
 msgid "ECDSA signature verification failed at %s:%d: %s\n"
 msgstr "La verificación de la firma RSA fallo en %s:%d: %s\n"
@@ -8618,7 +8572,7 @@ msgstr "El firmado ECC falló en %s:%d: %s\n"
 msgid "RSA signature verification failed at %s:%d: %s\n"
 msgstr "La verificación de la firma RSA fallo en %s:%d: %s\n"
 
-#: src/util/disk.c:842
+#: src/util/disk.c:843
 #, c-format
 msgid "Expected `%s' to be a directory!\n"
 msgstr "¡Se esperaba que «%s» fuera un directorio!\n"
@@ -9609,9 +9563,26 @@ msgstr "Configurar túneles vía VPN."
 msgid "Failed to replicate block in namecache: %s\n"
 msgstr "Se produjo un fallo al crear el espacio de nombres «%s»\n"
 
-#: src/zonemaster/gnunet-service-zonemaster.c:1332
+#: src/zonemaster/gnunet-service-zonemaster.c:1335
 msgid "Failed to connect to the namestore!\n"
 msgstr "¡Se produjo un fallo al conectar con el almacén de nombres!\n"
+
+#, fuzzy, c-format
+#~ msgid ""
+#~ "Syntax error while deserializing in line %u (option without section)\n"
+#~ msgstr "Error de sintaxis en la línea %u mientras se deserializaba\n"
+
+#, c-format
+#~ msgid "Syntax error while deserializing in line %u\n"
+#~ msgstr "Error de sintaxis en la línea %u mientras se deserializaba\n"
+
+#, fuzzy, c-format
+#~ msgid "Error while reading file `%s'\n"
+#~ msgstr "Error decodificando clave %u\n"
+
+#, fuzzy, c-format
+#~ msgid "Missing closing `%s' in option `%s'\n"
+#~ msgstr "Falta la opción «%s» para la operación «%s»\n"
 
 #~ msgid "Postgres database running\n"
 #~ msgstr "Base de datos Postgres ejecutándose\n"

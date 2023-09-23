@@ -24,6 +24,7 @@
  */
 
 
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 
@@ -305,7 +306,7 @@ GNUNET_CONTAINER_multihashmap_get (
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multihashmap_iterate (
   struct GNUNET_CONTAINER_MultiHashMap *map,
   GNUNET_CONTAINER_MultiHashMapIteratorCallback it,
@@ -402,7 +403,7 @@ update_next_cache_sme (struct GNUNET_CONTAINER_MultiHashMap *map,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multihashmap_remove (struct GNUNET_CONTAINER_MultiHashMap *map,
                                       const struct GNUNET_HashCode *key,
                                       const void *value)
@@ -578,7 +579,7 @@ GNUNET_CONTAINER_multihashmap_clear (struct GNUNET_CONTAINER_MultiHashMap *map)
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multihashmap_contains (
   const struct GNUNET_CONTAINER_MultiHashMap *map,
   const struct GNUNET_HashCode *key)
@@ -606,7 +607,7 @@ GNUNET_CONTAINER_multihashmap_contains (
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multihashmap_contains_value (
   const struct GNUNET_CONTAINER_MultiHashMap *map,
   const struct GNUNET_HashCode *key,
@@ -706,7 +707,7 @@ grow (struct GNUNET_CONTAINER_MultiHashMap *map)
  *         #GNUNET_SYSERR if UNIQUE_ONLY was the option and the
  *                       value already exists
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multihashmap_put (struct GNUNET_CONTAINER_MultiHashMap *map,
                                    const struct GNUNET_HashCode *key,
                                    void *value,
@@ -777,7 +778,7 @@ GNUNET_CONTAINER_multihashmap_put (struct GNUNET_CONTAINER_MultiHashMap *map,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multihashmap_get_multiple (
   struct GNUNET_CONTAINER_MultiHashMap *map,
   const struct GNUNET_HashCode *key,
@@ -918,7 +919,7 @@ GNUNET_CONTAINER_multihashmap_iterator_create (
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multihashmap_iterator_next (
   struct GNUNET_CONTAINER_MultiHashMapIterator *iter,
   struct GNUNET_HashCode *key,
