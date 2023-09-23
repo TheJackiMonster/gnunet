@@ -114,7 +114,7 @@ mhd_dep = dependency('libmicrohttpd', required : false)
 if not mhd_dep.found()
   mhd_dep = cc.find_library('microhttpd', required : true)
 endif
-json_dep = dependency('libjansson', required : false)
+json_dep = dependency('jansson', required : false)
 if not json_dep.found()
   json_dep = cc.find_library('jansson', required : true)
 endif
@@ -129,7 +129,7 @@ if not gnutls_dep.found()
     gnutls_dep = cc.find_library('gnutls-dane', required : true)
   endif
 endif
-sodium_dep = dependency('libsodium', required : false)
+sodium_dep = dependency('libsodium', required : false, version: '>=1.0.18')
 if not sodium_dep.found()
   sodium_dep = cc.find_library('sodium', required : true)
 endif
@@ -175,6 +175,10 @@ if ssh_bin.found()
   add_project_arguments('-DHAVE_SSH_BINARY', language : 'c')
 endif
 
+# FIXME we are not doing anything with this right now
+sudo_bin = find_program('sudo', '/usr/bin/sudo', required : false)
+doas_bin = find_program('doas', '/usr/bin/doas', required : false)
+
 # Optional dependencies
 
 # FIXME: I think we wanted to retire mysql support
@@ -200,6 +204,43 @@ if zbar_dep.found()
   add_project_arguments('-DHAVE_ZBAR', language : 'c')
 endif
 
+## FIXME conversation: pulse/gst detection in configure.ac obviously
+## broken. Needs reconsideration. No idea for now.
+pulse_dep = dependency('libpulse', required : false)
+if not pulse_dep.found()
+  pulse_dep = cc.find_library('pulse', required : false)
+endif
+if pulse_dep.found()
+  add_project_arguments('-DHAVE_PULSE', language : 'c')
+endif
+
+opus_dep = dependency('libopus', required : false)
+if not opus_dep.found()
+  opus_dep = cc.find_library('opus', required : false)
+endif
+if opus_dep.found()
+  add_project_arguments('-DHAVE_OPUS', language : 'c')
+endif
+
+ogg_dep = dependency('libogg', required : false)
+if not ogg_dep.found()
+  ogg_dep = cc.find_library('ogg', required : false)
+endif
+if ogg_dep.found()
+  add_project_arguments('-DHAVE_OGG', language : 'c')
+endif
+
+if pulse_dep.found() or ogg_dep.found() or opus_dep.found()
+  gst_dep = dependency('libgst', required : false)
+  if not gst_dep.found()
+    gst_dep = cc.find_library('gstreamer', required : false)
+  endif
+  if gst_dep.found()
+    add_project_arguments('-DHAVE_GST', language : 'c')
+  endif
+endif
+## END conversation
+
 gnunetdeps = [mhd_dep,
               sodium_dep,
               gcrypt_dep,
@@ -213,16 +254,20 @@ gnunetdeps = [mhd_dep,
 
 add_project_arguments('-DNEED_LIBGCRYPT_VERSION="1.6.0"', language : 'c')
 
-if cc.has_header('sys/time.h')
+if cc.check_header('sys/time.h')
   add_project_arguments('-DHAVE_SYS_TIME_H', language : 'c')
 endif
-if cc.has_header('sys/param.h')
+if cc.check_header('sys/param.h')
   add_project_arguments('-DHAVE_SYS_PARAM_H', language : 'c')
 endif
 
+# NSS
+if cc.check_header('nss.h')
+  add_project_arguments('-DHAVE_GLIBCNSS', language : 'c')
+endif
 
 # GNUTLS DANE
-if cc.has_header('gnutls/dane.h')
+if cc.check_header('gnutls/dane.h')
   if cc.has_function('dane_verify_crt_raw',
                            prefix: '#include <gnutls/dane.h>',
                            dependencies: gnutls_dep)

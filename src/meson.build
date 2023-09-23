@@ -56,7 +56,7 @@ subdir('revocation')
 subdir('vpn')
 subdir('gns')
 subdir('zonemaster')
-##subdir('$(CONVERSATION_DIR)')
+#subdir('$(CONVERSATION_DIR)')
 subdir('fs')
 # TODO
 subdir('exit')
