@@ -28,34 +28,40 @@ gnunetservicemessenger_src = ['gnunet-service-messenger.c',
                               'gnunet-service-messenger_room.c',
                               'gnunet-service-messenger_tunnel.c']
 
-if get_option('monolith') == false
-  libgnunetmessenger = library('gnunetmessenger',
-          libgnunetmessenger_src,
-          dependencies: [libgnunetutil_dep,
-                         libgnunetcadet_dep,
-                         libgnunetidentity_dep],
-          include_directories: [incdir, configuration_inc],
-          install: true,
-          install_dir: get_option('libdir'))
-  libgnunetmessenger_dep = declare_dependency(link_with : libgnunetmessenger)
-  executable ('gnunet-messenger',
-              'gnunet-messenger.c',
-              dependencies: [libgnunetmessenger_dep,
-                             libgnunetutil_dep],
-              include_directories: [incdir, configuration_inc],
-              install: true,
-              install_dir: get_option('bindir'))
-  executable ('gnunet-service-messenger',
-              gnunetservicemessenger_src,
-              dependencies: [libgnunetmessenger_dep,
-                             libgnunetutil_dep,
-                             libgnunetidentity_dep,
-                             libgnunetcadet_dep],
-              include_directories: [incdir, configuration_inc],
-              install: true,
-              install_dir: get_option('libdir') / 'gnunet' / 'libexec')
-else
+if get_option('monolith')
   foreach p : libgnunetmessenger_src + gnunetservicemessenger_src
     gnunet_src += 'messenger/' + p
   endforeach
+  subdir_done()
 endif
+
+libgnunetmessenger = library('gnunetmessenger',
+        libgnunetmessenger_src,
+        dependencies: [libgnunetutil_dep,
+                       libgnunetcadet_dep,
+                       libgnunetidentity_dep],
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
+libgnunetmessenger_dep = declare_dependency(link_with : libgnunetmessenger)
+pkg.generate(libgnunetmessenger, url: 'https://www.gnunet.org',
+             description : 'Provides API to access the GNUnet Messenger subsystem')
+
+
+executable ('gnunet-messenger',
+            'gnunet-messenger.c',
+            dependencies: [libgnunetmessenger_dep,
+                           libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('bindir'))
+executable ('gnunet-service-messenger',
+            gnunetservicemessenger_src,
+            dependencies: [libgnunetmessenger_dep,
+                           libgnunetutil_dep,
+                           libgnunetidentity_dep,
+                           libgnunetcadet_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+

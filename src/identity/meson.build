@@ -11,20 +11,30 @@ configure_file(input : 'identity.conf.in',
                install_dir: pkgcfgdir)
 
 
-if get_option('monolith') == false
-  libgnunetidentity = library('gnunetidentity',
-          libgnunetidentity_src,
-          dependencies: [libgnunetutil_dep, sodium_dep],
-          include_directories: [incdir, configuration_inc])
-  libgnunetidentity_dep = declare_dependency(link_with : libgnunetidentity)
-  executable ('gnunet-service-identity',
-              gnunetserviceidentity_src,
-              dependencies: [libgnunetidentity_dep,
-                             libgnunetutil_dep,
-                             libgnunetstatistics_dep],
-              include_directories: [incdir, configuration_inc])
-else
+if get_option('monolith')
   foreach p : libgnunetidentity_src + gnunetserviceidentity_src
     gnunet_src += 'identity/' + p
   endforeach
 endif
+
+libgnunetidentity = library('gnunetidentity',
+        libgnunetidentity_src,
+        dependencies: [libgnunetutil_dep, sodium_dep],
+        include_directories: [incdir, configuration_inc])
+libgnunetidentity_dep = declare_dependency(link_with : libgnunetidentity)
+pkg.generate(libgnunetidentity, url: 'https://www.gnunet.org',
+             description : 'API to access and organize private keys of the user egos')
+
+executable ('gnunet-identity',
+            ['gnunet-identity.c'],
+            dependencies: [libgnunetidentity_dep,
+                           libgnunetutil_dep,
+                           libgnunetstatistics_dep],
+            include_directories: [incdir, configuration_inc])
+executable ('gnunet-service-identity',
+            gnunetserviceidentity_src,
+            dependencies: [libgnunetidentity_dep,
+                           libgnunetutil_dep,
+                           libgnunetstatistics_dep],
+            include_directories: [incdir, configuration_inc])
+

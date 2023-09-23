@@ -37,6 +37,9 @@ libgnunetcadet = library('gnunetcadet',
           soversion: '7.0.0',
           install_dir: get_option('libdir'))
 libgnunetcadet_dep = declare_dependency(link_with : libgnunetcadet)
+pkg.generate(libgnunetcadet, url: 'https://www.gnunet.org',
+             description : 'API for multicast and multi-hop routing between GNUnet peers')
+
 executable ('gnunet-cadet',
             gnunetservicecadet_src,
             dependencies: [libgnunetcadet_dep,

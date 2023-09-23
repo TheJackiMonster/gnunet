@@ -11,32 +11,37 @@ configure_file(input : 'dns.conf.in',
                install: true,
                install_dir: pkgcfgdir)
 
-if get_option('monolith') == false
-  libgnunetdns = library('gnunetdns',
-          libgnunetdns_src,
-          dependencies: libgnunetutil_dep,
-          include_directories: [incdir, configuration_inc])
-  libgnunetdns_dep = declare_dependency(link_with : libgnunetdns)
-  libgnunetpluginblockdns = library('gnunet_plugin_block_dns',
-          libgnunetpluginblockdns_src,
-          dependencies: [libgnunetutil_dep, libgnunetblockgroup_dep],
-          include_directories: [incdir, configuration_inc])
-  libgnunetpluginblockdns_dep = declare_dependency(link_with : libgnunetpluginblockdns)
-  executable ('gnunet-service-dns',
-              gnunetservicedns_src,
-              dependencies: [libgnunetdns_dep, libgnunetutil_dep,
-                             libgnunetstatistics_dep],
-              include_directories: [incdir, configuration_inc])
-  executable ('gnunet-dns-monitor',
-              gnunetdnsmonitor_src,
-              dependencies: [libgnunetdns_dep, libgnunetutil_dep, libgnunetdns_dep],
-              include_directories: [incdir, configuration_inc])
-  executable ('gnunet-dns-redirector',
-              gnunetdnsredirector_src,
-              dependencies: [libgnunetdns_dep, libgnunetutil_dep, libgnunetdns_dep],
-              include_directories: [incdir, configuration_inc])
-else
+if get_option('monolith')
   foreach p : libgnunetdns_src + gnunetservicedns_src + libgnunetpluginblockdns_src
     gnunet_src += 'dns/' + p
   endforeach
+  subdir_done()
 endif
+
+libgnunetdns = library('gnunetdns',
+        libgnunetdns_src,
+        dependencies: libgnunetutil_dep,
+        include_directories: [incdir, configuration_inc])
+libgnunetdns_dep = declare_dependency(link_with : libgnunetdns)
+pkg.generate(libgnunetdns, url: 'https://www.gnunet.org',
+             description : 'Provides API to access GNUnet\'s DNS service (to intercept and manipulate DNS queries)')
+
+shared_module('gnunet_plugin_block_dns',
+        libgnunetpluginblockdns_src,
+        dependencies: [libgnunetutil_dep, libgnunetblockgroup_dep],
+        include_directories: [incdir, configuration_inc])
+
+executable ('gnunet-service-dns',
+            gnunetservicedns_src,
+            dependencies: [libgnunetdns_dep, libgnunetutil_dep,
+                           libgnunetstatistics_dep],
+            include_directories: [incdir, configuration_inc])
+executable ('gnunet-dns-monitor',
+            gnunetdnsmonitor_src,
+            dependencies: [libgnunetdns_dep, libgnunetutil_dep, libgnunetdns_dep],
+            include_directories: [incdir, configuration_inc])
+executable ('gnunet-dns-redirector',
+            gnunetdnsredirector_src,
+            dependencies: [libgnunetdns_dep, libgnunetutil_dep, libgnunetdns_dep],
+            include_directories: [incdir, configuration_inc])
+

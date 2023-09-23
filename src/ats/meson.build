@@ -28,6 +28,7 @@ endif
 
 libgnunetats = library('gnunetats',
         libgnunetats_src,
+        soversion: '4.0.0',
         dependencies: [libgnunetutil_dep, libgnunethello_dep],
         include_directories: [incdir, configuration_inc],
         install: true,
@@ -35,6 +36,18 @@ libgnunetats = library('gnunetats',
 pkg.generate(libgnunetats, url : 'https://www.gnunet.org',
              description : 'Provides API for allocating bandwidth, expressing preferences for certain peers and accessing allocation information')
 libgnunetats_dep = declare_dependency(link_with : libgnunetats)
+
+shared_module('gnunet_plugin_ats_proportional',
+        ['plugin_ats_proportional.c'],
+        dependencies: [libgnunetutil_dep,
+                       libgnunetats_dep,
+                       libgnunetstatistics_dep,
+                       libgnunetnt_dep,
+                       libgnunetstatistics_dep],
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
+
 executable ('gnunet-service-ats',
             gnunetserviceats_src,
             dependencies: [libgnunetats_dep, libgnunetutil_dep,

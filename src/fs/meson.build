@@ -34,50 +34,55 @@ configure_file(input : 'fs.conf.in',
                install_dir: pkgcfgdir)
 
 
-if get_option('monolith') == false
-  libgnunetfs = library('gnunetfs',
-          libgnunetfs_src,
-          dependencies: [libgnunetutil_dep,
-                         libgnunetdatastore_dep,
-                         libgnunetstatistics_dep,
-                         unistr_dep],
-          include_directories: [incdir, configuration_inc],
-          install: true,
-          install_dir: get_option('libdir'))
-  libgnunetfs_dep = declare_dependency(link_with : libgnunetfs)
-  executable ('gnunet-search',
-              'gnunet-search.c',
-              dependencies: [libgnunetfs_dep,
-                             libgnunetutil_dep],
-              include_directories: [incdir, configuration_inc],
-              install: true,
-              install_dir: get_option('bindir'))
-  executable ('gnunet-unindex',
-              'gnunet-unindex.c',
-              dependencies: [libgnunetfs_dep,
-                             libgnunetutil_dep],
-              include_directories: [incdir, configuration_inc],
-              install: true,
-              install_dir: get_option('bindir'))
-  executable ('gnunet-service-fs',
-              gnunetservicefs_src,
-              dependencies: [libgnunetfs_dep,
-                             libgnunetutil_dep,
-                             libgnunetstatistics_dep,
-                             libgnunetcore_dep,
-                             libgnunetdht_dep,
-                             libgnunetidentity_dep,
-                             m_dep,
-                             libgnunetats_dep,
-                             libgnunetcadet_dep,
-                             libgnunetpeerstore_dep,
-                             libgnunetdatastore_dep,
-                             libgnunetblock_dep],
-              include_directories: [incdir, configuration_inc],
-              install: true,
-              install_dir: get_option('libdir') / 'gnunet' / 'libexec')
-else
+if get_option('monolith')
   foreach p : libgnunetfs_src + gnunetservicefs_src
     gnunet_src += 'fs/' + p
   endforeach
 endif
+
+libgnunetfs = library('gnunetfs',
+        libgnunetfs_src,
+        dependencies: [libgnunetutil_dep,
+                       libgnunetdatastore_dep,
+                       libgnunetstatistics_dep,
+                       unistr_dep],
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
+libgnunetfs_dep = declare_dependency(link_with : libgnunetfs)
+pkg.generate(libgnunetfs, url: 'https://www.gnunet.org',
+             description : 'Provides API for GNUnet File-Sharing service')
+
+
+executable ('gnunet-search',
+            'gnunet-search.c',
+            dependencies: [libgnunetfs_dep,
+                           libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('bindir'))
+executable ('gnunet-unindex',
+            'gnunet-unindex.c',
+            dependencies: [libgnunetfs_dep,
+                           libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('bindir'))
+executable ('gnunet-service-fs',
+            gnunetservicefs_src,
+            dependencies: [libgnunetfs_dep,
+                           libgnunetutil_dep,
+                           libgnunetstatistics_dep,
+                           libgnunetcore_dep,
+                           libgnunetdht_dep,
+                           libgnunetidentity_dep,
+                           m_dep,
+                           libgnunetats_dep,
+                           libgnunetcadet_dep,
+                           libgnunetpeerstore_dep,
+                           libgnunetdatastore_dep,
+                           libgnunetblock_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+
