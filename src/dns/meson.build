@@ -20,6 +20,7 @@ endif
 
 libgnunetdns = library('gnunetdns',
         libgnunetdns_src,
+        soversion: '0.0.0',
         dependencies: libgnunetutil_dep,
         include_directories: [incdir, configuration_inc],
         install: true,

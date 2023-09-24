@@ -31,6 +31,7 @@ endif
 
 libgnunettransport = library('gnunettransport',
         libgnunettransport_src,
+        soversion: '2.2.0',
         dependencies: [libgnunetutil_dep, libgnunetats_dep, libgnunethello_dep],
         include_directories: [incdir, configuration_inc],
         install: true,
@@ -41,6 +42,7 @@ libgnunettransport_dep = declare_dependency(link_with : libgnunettransport)
 
 libgnunettransportapplication = library('gnunettransportapplication',
         libgnunettransportapplication_src,
+        soversion: '0.0.0',
         dependencies: libgnunetutil_dep,
         include_directories: [incdir, configuration_inc],
         install: true,
@@ -51,6 +53,7 @@ libgnunettransportapplication_dep = declare_dependency(link_with : libgnunettran
 
 libgnunettransportcore = library('gnunettransportcore',
         libgnunettransportcore_src,
+        soversion: '0.0.0',
         dependencies: libgnunetutil_dep,
         include_directories: [incdir, configuration_inc],
         install: true,
@@ -61,6 +64,7 @@ libgnunettransportcore_dep = declare_dependency(link_with : libgnunettransportco
 
 libgnunettransportcommunicator = library('gnunettransportcommunicator',
         libgnunettransportcommunicator_src,
+        soversion: '0.0.0',
         dependencies: libgnunetutil_dep,
         include_directories: [incdir, configuration_inc],
         install: true,
@@ -71,6 +75,7 @@ libgnunettransportcommunicator_dep = declare_dependency(link_with : libgnunettra
 
 libgnunettransportmonitor = library('gnunettransportmonitor',
         libgnunettransportmonitor_src,
+        soversion: '0.0.0',
         dependencies: libgnunetutil_dep,
         include_directories: [incdir, configuration_inc],
         install: true,

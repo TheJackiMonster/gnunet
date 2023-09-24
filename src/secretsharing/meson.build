@@ -16,6 +16,7 @@ endif
 
 libgnunetsecretsharing = library('gnunetsecretsharing',
         libgnunetsecretsharing_src,
+        soversion: '0.0.0',
         dependencies: [libgnunetutil_dep,
                        libgnunetstatistics_dep,
                        gcrypt_dep,

@@ -20,6 +20,7 @@ endif
 
 libgnunetsetu = library('gnunetsetu',
         libgnunetsetu_src,
+        soversion: '0.0.0',
         dependencies: libgnunetutil_dep,
         include_directories: [incdir, configuration_inc],
         install: true,
