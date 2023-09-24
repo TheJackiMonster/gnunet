@@ -1,4 +1,5 @@
 subdir('conf')
+subdir('scripts')
 
 install_data(['gns'/'def.tex',
               'gns'/'gns-bcd.html',

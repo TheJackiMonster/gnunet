@@ -69,6 +69,8 @@ libgnunetutil_src = ['bandwidth.c',
        'proc_compat.c',
 	     'gnunet_error_codes.c']
 
+gnunetserviceresolver_src = ['gnunet-service-resolver.c']
+
 configure_file(input : 'util.conf',
                output : 'util.conf',
                configuration : cdata,
@@ -143,6 +145,21 @@ executable ('gnunet-config-diff',
             dependencies: [libgnunetutil_dep, libgnunetutil_dep],
             include_directories: [incdir, configuration_inc],
             install: false)
+
+executable ('gnunet-resolver-arm',
+            gnunetserviceresolver_src,
+            dependencies: [libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+executable ('gnunet-timeout',
+            ['gnunet-timeout.c'],
+            dependencies: [libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+
+
 executable ('test_common_logging_dummy',
             ['test_common_logging_dummy.c'],
             dependencies: [libgnunetutil_dep, libgnunetutil_dep],

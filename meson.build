@@ -199,14 +199,6 @@ doas_bin = find_program('doas', '/usr/bin/doas', required : false)
 
 # Optional dependencies
 
-# FIXME: I think we wanted to retire mysql support
-my_dep = dependency('libmysqlclient', required : false)
-if not my_dep.found()
-  my_dep = cc.find_library('mysqlclient', required : false)
-endif
-if my_dep.found()
-  add_project_arguments('-DHAVE_MYSQL', language : 'c')
-endif
 pq_dep = dependency('libpq', required : false)
 if not pq_dep.found()
   pq_dep = cc.find_library('pq', required : false)

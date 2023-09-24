@@ -19,8 +19,6 @@ if get_option('monolith') == false
 endif
 subdir('peerinfo')
 subdir('sq', if_found : [sqlite_dep])
-subdir('mysql', if_found : [my_dep])
-subdir('my', if_found : [my_dep])
 subdir('pq', if_found : [pq_dep])
 subdir('datacache')
 subdir('datastore')
