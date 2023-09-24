@@ -1267,7 +1267,6 @@ src/include/gnunet_config.h
 src/integration-tests/Makefile
 src/json/Makefile
 src/hostlist/Makefile
-src/my/Makefile
 src/namecache/Makefile
 src/namecache/namecache.conf
 src/namestore/Makefile
