@@ -21,7 +21,8 @@ endif
 
 libgnunetreclaim = library('gnunetreclaim',
         libgnunetreclaim_src,
-        soversion: '0.0.0',
+        soversion: '0',
+        version: '0.0.0',
         dependencies: [libgnunetutil_dep,
                        libgnunetidentity_dep],
         include_directories: [incdir, configuration_inc],

@@ -28,7 +28,8 @@ endif
 
 libgnunetats = library('gnunetats',
         libgnunetats_src,
-        soversion: '4.0.0',
+        version: '4.0.0',
+        soversion: '4',
         dependencies: [libgnunetutil_dep, libgnunethello_dep],
         include_directories: [incdir, configuration_inc],
         install: true,

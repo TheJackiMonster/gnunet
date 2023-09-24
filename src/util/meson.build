@@ -87,7 +87,8 @@ endif
 
 libgnunetutil = library('gnunetutil',
         libgnunetutil_src,
-        soversion: '15.0.0',
+        soversion: '15',
+        version: '15.0.0',
         dependencies: gnunetdeps,
         include_directories: [incdir, configuration_inc],
         install: true,

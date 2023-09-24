@@ -19,7 +19,8 @@ if get_option('monolith')
 endif
 libgnunetdatastore = library('gnunetdatastore',
         libgnunetdatastore_src,
-        soversion: '1.0.0',
+        soversion: '1',
+        version: '1.0.0',
         dependencies: [libgnunetutil_dep,
                        libgnunetstatistics_dep,
                        libgnunetdatacache_dep],

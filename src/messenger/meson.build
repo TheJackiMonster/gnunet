@@ -37,7 +37,8 @@ endif
 
 libgnunetmessenger = library('gnunetmessenger',
         libgnunetmessenger_src,
-        soversion: '0.0.0',
+        soversion: '0',
+        version: '0.0.0',
         dependencies: [libgnunetutil_dep,
                        libgnunetcadet_dep,
                        libgnunetidentity_dep],

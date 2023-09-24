@@ -34,7 +34,8 @@ libgnunetcadet = library('gnunetcadet',
           dependencies: libgnunetutil_dep,
           include_directories: [incdir, configuration_inc],
           install: true,
-          soversion: '7.0.0',
+          soversion: '7',
+          version: '7.0.0',
           install_dir: get_option('libdir'))
 libgnunetcadet_dep = declare_dependency(link_with : libgnunetcadet)
 pkg.generate(libgnunetcadet, url: 'https://www.gnunet.org',
