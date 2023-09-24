@@ -28,6 +28,21 @@ cdata.set('enable_experimental', get_option('experimental'))
 if get_option('experimental')
   add_project_arguments('-DHAVE_EXPERIMENTAL', language: 'c')
 endif
+logging_opt = get_option('logging')
+if get_option('logging') == 'yes'
+  add_project_arguments('-DGNUNET_EXTRA_LOGGING=0', language: 'c')
+endif
+if get_option('logging') == 'yes'
+  add_project_arguments('-DGNUNET_EXTRA_LOGGING=0', language: 'c')
+  add_project_arguments('-DGNUNET_CULL_LOGGING=1', language: 'c')
+endif
+if get_option('logging') == 'verbose'
+  add_project_arguments('-DGNUNET_EXTRA_LOGGING=1', language: 'c')
+endif
+if get_option('logging') == 'veryverbose'
+  add_project_arguments('-DGNUNET_EXTRA_LOGGING=2', language: 'c')
+endif
+
 
 # FIXME
 cdata.set('extractor', 0)
@@ -40,8 +55,9 @@ endif
 if cc.has_member ('struct sockaddr_un', 'sun_len', prefix : ['#include <sys/types.h>', '#include <sys/socket.h>', '#include <sys/un.h>'])
   add_project_arguments('-DHAVE_SOCKADDR_UN_SUN_LEN', language: 'c')
 endif
-
-message('Building on ' + host_machine.system())
+if cc.has_member ('struct tm', 'tm_gmtoff', prefix : ['#include <time.h>'])
+  add_project_arguments('-DHAVE_TM_GMTOFF', language: 'c')
+endif
 
 # TODO:
 #  - Go through configure.ac and convert all defines/detections
@@ -78,11 +94,13 @@ cdata.set('START_ON_DEMAND', 'YES')
 
 cdata.set_quoted('build_target', host_machine.system())
 if host_machine.system() == 'linux'
+  add_project_arguments('-DLINUX', language : 'c')
   add_project_link_arguments(['-Wl,--unresolved-symbols=report-all'], language : 'c')
   cdata.set_quoted('GNUNET_DEFAULT_INTERFACE', 'eth0')
 endif
 if host_machine.system() == 'darwin'
   cdata.set_quoted('GNUNET_DEFAULT_INTERFACE', 'en0')
+  add_project_arguments('-DDARWIN', language : 'c')
   add_project_arguments('-D_APPLE_C_SOURCE', language : 'c')
   add_project_arguments('-D__APPLE_USE_RFC_3542', language : 'c')
   add_project_arguments('-fno-common', language : 'c')
@@ -260,6 +278,31 @@ endif
 if cc.check_header('sys/param.h')
   add_project_arguments('-DHAVE_SYS_PARAM_H', language : 'c')
 endif
+
+# TUN
+if cc.check_header('if_tun.h')
+  if cc.has_header_symbol('if_tun.h', 'struct in6_ifreq')
+    add_project_arguments('-DIF_TUN_HDR="if_tun.h"', language : 'c')
+  endif
+endif
+if cc.check_header('linux/if_tun.h')
+  if cc.has_header_symbol('linux/if_tun.h', 'struct in6_ifreq')
+    add_project_arguments('-DIF_TUN_HDR="linux/if_tun.h"', language : 'c')
+  endif
+endif
+if cc.check_header('net/if_tun.h')
+  if cc.has_header_symbol('net/if_tun.h', 'struct in6_ifreq')
+    add_project_arguments('-DIF_TUN_HDR="net/if_tun.h"', language : 'c')
+  endif
+endif
+if cc.check_header('net/tun/if_tun.h')
+  if cc.has_header_symbol('net/tun/if_tun.h', 'struct in6_ifreq')
+    add_project_arguments('-DIF_TUN_HDR="net/tun/if_tun.h"', language : 'c')
+  endif
+endif
+
+
+
 
 # NSS
 if cc.check_header('nss.h')
