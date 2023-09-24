@@ -89,7 +89,6 @@ src/datastore/datastore_api.c
 src/datastore/gnunet-datastore.c
 src/datastore/gnunet-service-datastore.c
 src/datastore/plugin_datastore_heap.c
-src/datastore/plugin_datastore_mysql.c
 src/datastore/plugin_datastore_postgres.c
 src/datastore/plugin_datastore_sqlite.c
 src/datastore/plugin_datastore_template.c
@@ -233,10 +232,6 @@ src/messenger/messenger_api_util.c
 src/messenger/plugin_gnsrecord_messenger.c
 src/messenger/testing_messenger_barrier.c
 src/messenger/testing_messenger_setup.c
-src/my/my.c
-src/my/my_query_helper.c
-src/my/my_result_helper.c
-src/mysql/mysql.c
 src/namecache/gnunet-namecache.c
 src/namecache/gnunet-service-namecache.c
 src/namecache/namecache_api.c
