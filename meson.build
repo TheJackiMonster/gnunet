@@ -29,17 +29,17 @@ if get_option('experimental')
   add_project_arguments('-DHAVE_EXPERIMENTAL', language: 'c')
 endif
 logging_opt = get_option('logging')
-if get_option('logging') == 'yes'
+if logging_opt == 'yes'
   add_project_arguments('-DGNUNET_EXTRA_LOGGING=0', language: 'c')
 endif
-if get_option('logging') == 'yes'
+if logging_opt == 'no'
   add_project_arguments('-DGNUNET_EXTRA_LOGGING=0', language: 'c')
   add_project_arguments('-DGNUNET_CULL_LOGGING=1', language: 'c')
 endif
-if get_option('logging') == 'verbose'
+if logging_opt == 'verbose'
   add_project_arguments('-DGNUNET_EXTRA_LOGGING=1', language: 'c')
 endif
-if get_option('logging') == 'veryverbose'
+if logging_opt == 'veryverbose'
   add_project_arguments('-DGNUNET_EXTRA_LOGGING=2', language: 'c')
 endif
 

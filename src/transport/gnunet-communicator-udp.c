@@ -1372,14 +1372,14 @@ setup_receiver_mq (struct ReceiverAddress *receiver);
  * Ideally those, not ACKed.
  *
  * @param ss_list_tail the oldest secret in the list of interest.
- * @return GNUNET_YES if any secret was deleted.
+ * @return number of deleted secrets.
  */
-static enum GNUNET_GenericReturnValue
+unsigned int
 purge_secrets (struct SharedSecret *ss_list_tail)
 {
   struct SharedSecret *pos;
   struct SharedSecret *ss_to_purge;
-  int deleted = 0;
+  unsigned int deleted = 0;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Purging secrets.\n");
@@ -1398,6 +1398,7 @@ purge_secrets (struct SharedSecret *ss_list_tail)
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Finished purging all, deleted %u.\n", deleted);
+  return deleted;
 }
 
 
@@ -1550,7 +1551,6 @@ static void
 kce_generate_cb (void *cls)
 {
   struct SharedSecret *ss = cls;
-  static uint64_t kce_last_available = 0;
   ss->sender->kce_task = NULL;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1598,7 +1598,6 @@ try_handle_plaintext (struct SenderAddress *sender,
                       size_t buf_size)
 {
   const struct GNUNET_MessageHeader *hdr;
-  const struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral_pubkey;
   const struct UDPAck *ack;
   const struct UDPRekey *rekey;
   struct SharedSecret *ss_rekey;
@@ -1657,7 +1656,7 @@ try_handle_plaintext (struct SenderAddress *sender,
     pass_plaintext_to_core (sender, buf_pos, bytes_remaining);
     if (sender->num_secrets > MAX_SECRETS)
     {
-      if (GNUNET_NO == purge_secrets (sender->ss_tail))
+      if (0 == purge_secrets (sender->ss_tail))
       {
         // No secret purged. Delete oldest.
         secret_destroy (sender->ss_tail);
@@ -1702,7 +1701,6 @@ decrypt_box (const struct UDPBox *box,
 {
   struct SharedSecret *ss = kce->ss;
   char out_buf[box_len - sizeof(*box)];
-  uint16_t rekeying;
 
   GNUNET_assert (NULL != ss->sender);
   if (GNUNET_OK != try_decrypt (ss,
@@ -2120,7 +2118,7 @@ sock_read (void *cls)
       try_handle_plaintext (sender, &uc[1], sizeof(pbuf) - sizeof(*uc));
       if (sender->num_secrets > MAX_SECRETS)
       {
-        if (GNUNET_NO == purge_secrets (sender->ss_tail))
+        if (0 == purge_secrets (sender->ss_tail))
         {
           // No secret purged. Delete oldest.
           secret_destroy (sender->ss_tail);
@@ -2321,7 +2319,7 @@ send_msg_with_kx (const struct GNUNET_MessageHeader *msg, struct
 
   if (receiver->num_secrets > MAX_SECRETS)
   {
-    if (GNUNET_NO == purge_secrets (receiver->ss_tail))
+    if (0 == purge_secrets (receiver->ss_tail))
     {
       // No secret purged. Delete oldest.
       secret_destroy (receiver->ss_tail);
@@ -2401,9 +2399,6 @@ static void
 create_rekey (struct ReceiverAddress *receiver, struct SharedSecret *ss, struct
               UDPRekey *rekey)
 {
-  uint8_t is_ss_rekey_sequence_allowed_zero = GNUNET_NO;
-  uint8_t is_acks_available_below = GNUNET_NO;
-  uint8_t send_rekey = GNUNET_NO;
   struct SharedSecret *ss_rekey;
 
   ss->rekey_initiated = GNUNET_YES;
@@ -2462,7 +2457,7 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
 
   if (receiver->num_secrets > MAX_SECRETS)
   {
-    if (GNUNET_NO == purge_secrets (receiver->ss_tail))
+    if (0 == purge_secrets (receiver->ss_tail))
     {
       // No secret purged. Delete oldest.
       secret_destroy (receiver->ss_tail);
@@ -2490,8 +2485,8 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
       if (ss->rekey_initiated == GNUNET_NO)
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    "Injecting rekey for ss with byte sent %u\n",
-                    ss->bytes_sent);
+                    "Injecting rekey for ss with byte sent %lu\n",
+                    (unsigned long) ss->bytes_sent);
         create_rekey (receiver, ss, &rekey);
         inject_rekey = GNUNET_YES;
         payload_len += sizeof (rekey);
@@ -2539,9 +2534,10 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
                                             receiver->address_len))
       GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "send");
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Sending UDPBox with payload size %u, %u acks left, %u bytes sent\n",
+                "Sending UDPBox with payload size %u, %u acks left, %lu bytes sent\n",
                 msize,
-                receiver->acks_available);
+                receiver->acks_available,
+                (unsigned long) ss->bytes_sent);
     ss->bytes_sent += sizeof (dgram);
     receiver->acks_available--;
     GNUNET_MQ_impl_send_continue (mq);
