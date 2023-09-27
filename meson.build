@@ -280,24 +280,29 @@ if cc.check_header('sys/param.h')
 endif
 
 # TUN
+tun_found = false
 if cc.check_header('if_tun.h')
   if cc.has_header_symbol('if_tun.h', 'struct in6_ifreq')
     add_project_arguments('-DIF_TUN_HDR="if_tun.h"', language : 'c')
+    tun_found = true
   endif
 endif
-if cc.check_header('linux/if_tun.h')
+if not tun_found and cc.check_header('linux/if_tun.h')
   if cc.has_header_symbol('linux/if_tun.h', 'struct in6_ifreq')
     add_project_arguments('-DIF_TUN_HDR="linux/if_tun.h"', language : 'c')
+    tun_found = true
   endif
 endif
-if cc.check_header('net/if_tun.h')
+if not tun_found and cc.check_header('net/if_tun.h')
   if cc.has_header_symbol('net/if_tun.h', 'struct in6_ifreq')
     add_project_arguments('-DIF_TUN_HDR="net/if_tun.h"', language : 'c')
+    tun_found = true
   endif
 endif
-if cc.check_header('net/tun/if_tun.h')
+if not tun_found and cc.check_header('net/tun/if_tun.h')
   if cc.has_header_symbol('net/tun/if_tun.h', 'struct in6_ifreq')
     add_project_arguments('-DIF_TUN_HDR="net/tun/if_tun.h"', language : 'c')
+    tun_found = true
   endif
 endif
 
