@@ -28,6 +28,13 @@ gnunetservicemessenger_src = ['gnunet-service-messenger.c',
                               'gnunet-service-messenger_room.c',
                               'gnunet-service-messenger_tunnel.c']
 
+configure_file(input : 'messenger.conf.in',
+               output : 'messenger.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
+
 if get_option('monolith')
   foreach p : libgnunetmessenger_src + gnunetservicemessenger_src
     gnunet_src += 'messenger/' + p
