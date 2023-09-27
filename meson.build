@@ -272,6 +272,13 @@ if cc.check_header('sys/param.h')
   add_project_arguments('-DHAVE_SYS_PARAM_H', language : 'c')
 endif
 
+# NSS
+have_nss = false
+if cc.check_header('nss.h')
+  have_nss = true
+  add_project_arguments('-DHAVE_GLIBCNSS', language : 'c')
+endif
+
 # TUN
 tun_found = false
 if cc.check_header('if_tun.h')

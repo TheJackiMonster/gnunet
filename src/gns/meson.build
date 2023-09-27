@@ -145,6 +145,6 @@ executable ('gnunet-dns2gns',
             install_dir: get_option('libdir') / 'gnunet' / 'libexec')
 
 
-#if nss_dep.found()
-#  subdir('nss')
-#endif
+if have_nss
+  subdir('nss')
+endif
