@@ -24,7 +24,7 @@ libgnunetseti = library('gnunetseti',
         include_directories: [incdir, configuration_inc],
       install: true,
       install_dir: get_option('libdir'))
-pkg.generate(libgnunetarm, url: 'https://www.gnunet.org',
+pkg.generate(libgnunetseti, url: 'https://www.gnunet.org',
              description : 'Provides API for accessing the set intersection service')
 libgnunetseti_dep = declare_dependency(link_with : libgnunetseti)
 executable ('gnunet-service-seti',

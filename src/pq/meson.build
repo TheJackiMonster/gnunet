@@ -8,7 +8,6 @@ libgnunetpq_src = ['pq.c',
                    'pq_result_helper.c']
 
 if get_option('monolith')
-else
   foreach p : libgnunetpq_src
     gnunet_src += 'pq/' + p
   endforeach
