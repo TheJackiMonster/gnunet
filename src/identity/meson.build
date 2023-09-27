@@ -19,6 +19,8 @@ endif
 
 libgnunetidentity = library('gnunetidentity',
         libgnunetidentity_src,
+        soversion: '1',
+        version: '1.0.0',
         dependencies: [libgnunetutil_dep, sodium_dep],
         include_directories: [incdir, configuration_inc],
         install: true,

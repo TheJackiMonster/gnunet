@@ -13,7 +13,8 @@ libgnunetblock = library('gnunetblock',
         dependencies: libgnunetutil_dep,
         include_directories: [incdir, configuration_inc],
         install: true,
-        soversion: '0.0.0',
+        version: '0.0.0',
+        soversion: '0',
         install_dir: get_option('libdir'))
 libgnunetblock_dep = declare_dependency(link_with : libgnunetblock)
 pkg.generate(libgnunetblock, url: 'https://www.gnunet.org',
@@ -24,7 +25,8 @@ libgnunetblockgroup = library('gnunetblockgroup',
         dependencies: [libgnunetutil_dep, libgnunetblock_dep],
         include_directories: [incdir, configuration_inc],
         install: true,
-        soversion: '0.0.0',
+        version: '0.0.0',
+        soversion: '0',
         install_dir: get_option('libdir'))
 libgnunetblockgroup_dep = declare_dependency(link_with : libgnunetblockgroup)
 

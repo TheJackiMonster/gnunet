@@ -25,10 +25,6 @@ if HAVE_SQLITE
  SQLITE_DIR = sq
 endif
 
-if HAVE_MYSQL
- MYSQL_DIR = mysql my
-endif
-
 if HAVE_POSTGRESQL
  POSTGRES_DIR = pq
 endif
@@ -50,7 +46,6 @@ SUBDIRS = \
   $(REST_DIR) \
   peerinfo \
   $(SQLITE_DIR) \
-  $(MYSQL_DIR) \
   $(POSTGRES_DIR) \
   datacache \
   datastore \

@@ -20,7 +20,6 @@ pcfiles = \
        gnunetcadet.pc \
        gnunetmessenger.pc \
        gnunetmicrophone.pc \
-       gnunetmysql.pc \
        gnunetnamestore.pc \
        gnunetnat.pc \
        gnunetnse.pc \

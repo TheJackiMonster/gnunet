@@ -18,7 +18,8 @@ endif
 
 libgnunetnse = library('gnunetnse',
         libgnunetnse_src,
-        soversion: '0.0.0',
+        soversion: '0',
+        version: '0.0.0',
         dependencies: libgnunetutil_dep,
         include_directories: [incdir, configuration_inc],
         install: true,

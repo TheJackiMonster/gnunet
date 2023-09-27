@@ -19,7 +19,8 @@ endif
 
 libgnunetnamecache = library('gnunetnamecache',
         libgnunetnamecache_src,
-        soversion: '0.0.0',
+        soversion: '0',
+        version: '0.0.0',
         dependencies: [libgnunetutil_dep,
                        libgnunetgnsrecord_dep],
         include_directories: [incdir, configuration_inc],

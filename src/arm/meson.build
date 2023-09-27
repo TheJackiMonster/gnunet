@@ -25,7 +25,8 @@ endif
 libgnunetarm = library('gnunetarm',
         libgnunetarm_src,
         dependencies: libgnunetutil_dep,
-        soversion: '2.0.0',
+        version: '2.0.0',
+        soversion: '2',
         include_directories: [incdir, configuration_inc],
         install: true,
         install_dir: get_option('libdir'))

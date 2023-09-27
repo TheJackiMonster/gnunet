@@ -78,21 +78,20 @@ libgnunet_plugin_block_regex_la_LDFLAGS = \
  $(GN_LIBINTL) \
  $(GN_PLUGIN_LDFLAGS)
 
-if HAVE_MYSQL
-noinst_mysql_progs = \
-  gnunet-regex-simulation-profiler
+# FIXME we phased out mysql. If we want to keep, needs rewrite
+#if HAVE_MYSQL
+#noinst_mysql_progs = \
+#  gnunet-regex-simulation-profiler
 
-gnunet_regex_simulation_profiler_SOURCES = \
-  $(REGEX_INTERNAL) gnunet-regex-simulation-profiler.c
-gnunet_regex_simulation_profiler_LDADD = \
-  libgnunetregexblock.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
-  $(top_builddir)/src/dht/libgnunetdht.la \
-  $(top_builddir)/src/my/libgnunetmy.la \
-  $(top_builddir)/src/mysql/libgnunetmysql.la \
-  $(top_builddir)/src/block/libgnunetblock.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la
-endif
+#gnunet_regex_simulation_profiler_SOURCES = \
+#  $(REGEX_INTERNAL) gnunet-regex-simulation-profiler.c
+#gnunet_regex_simulation_profiler_LDADD = \
+#  libgnunetregexblock.la \
+#  $(top_builddir)/src/util/libgnunetutil.la \
+#  $(top_builddir)/src/dht/libgnunetdht.la \
+#  $(top_builddir)/src/block/libgnunetblock.la \
+#  $(top_builddir)/src/statistics/libgnunetstatistics.la
+#endif
 
 noinst_PROGRAMS = $(noinst_mysql_progs) \
   perf-regex \

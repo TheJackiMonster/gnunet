@@ -14,6 +14,7 @@ libgnunettransportmonitor_src = ['transport_api2_monitor.c']
 gnunetservicetransport_src = ['gnunet-service-tng.c']
 gnunetcommunicatortcp_src = ['gnunet-communicator-tcp.c']
 gnunetcommunicatorudp_src = ['gnunet-communicator-udp.c']
+gnunetcommunicatorunix_src = ['gnunet-communicator-unix.c']
 
 configure_file(input : 'transport.conf.in',
                output : 'transport.conf',
@@ -30,6 +31,8 @@ endif
 
 libgnunettransport = library('gnunettransport',
         libgnunettransport_src,
+        soversion: '2',
+        version: '2.2.0',
         dependencies: [libgnunetutil_dep, libgnunetats_dep, libgnunethello_dep],
         include_directories: [incdir, configuration_inc],
         install: true,
@@ -40,6 +43,8 @@ libgnunettransport_dep = declare_dependency(link_with : libgnunettransport)
 
 libgnunettransportapplication = library('gnunettransportapplication',
         libgnunettransportapplication_src,
+        soversion: '0',
+        version: '0.0.0',
         dependencies: libgnunetutil_dep,
         include_directories: [incdir, configuration_inc],
         install: true,
@@ -50,6 +55,8 @@ libgnunettransportapplication_dep = declare_dependency(link_with : libgnunettran
 
 libgnunettransportcore = library('gnunettransportcore',
         libgnunettransportcore_src,
+        soversion: '0',
+        version: '0.0.0',
         dependencies: libgnunetutil_dep,
         include_directories: [incdir, configuration_inc],
         install: true,
@@ -60,6 +67,8 @@ libgnunettransportcore_dep = declare_dependency(link_with : libgnunettransportco
 
 libgnunettransportcommunicator = library('gnunettransportcommunicator',
         libgnunettransportcommunicator_src,
+        soversion: '0',
+        version: '0.0.0',
         dependencies: libgnunetutil_dep,
         include_directories: [incdir, configuration_inc],
         install: true,
@@ -70,6 +79,8 @@ libgnunettransportcommunicator_dep = declare_dependency(link_with : libgnunettra
 
 libgnunettransportmonitor = library('gnunettransportmonitor',
         libgnunettransportmonitor_src,
+        soversion: '0',
+        version: '0.0.0',
         dependencies: libgnunetutil_dep,
         include_directories: [incdir, configuration_inc],
         install: true,
@@ -86,6 +97,44 @@ executable ('gnunet-service-transport',
                            m_dep,
                            libgnunetstatistics_dep,
                            gcrypt_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+
+executable ('gnunet-communicator-unix',
+            gnunetcommunicatorunix_src,
+            dependencies: [libgnunettransportcommunicator_dep,
+                           libgnunetpeerstore_dep,
+                           libgnunetstatistics_dep,
+                           libgnunetnt_dep,
+                           libgnunetnat_dep,
+                           gcrypt_dep,
+                           libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+executable ('gnunet-communicator-udp',
+            gnunetcommunicatorudp_src,
+            dependencies: [libgnunettransportcommunicator_dep,
+                           libgnunettransportapplication_dep,
+                           libgnunetpeerstore_dep,
+                           libgnunetstatistics_dep,
+                           libgnunetnt_dep,
+                           libgnunetnat_dep,
+                           gcrypt_dep,
+                           libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+executable ('gnunet-communicator-tcp',
+            gnunetcommunicatortcp_src,
+            dependencies: [libgnunettransportcommunicator_dep,
+                           libgnunetpeerstore_dep,
+                           libgnunetstatistics_dep,
+                           libgnunetnt_dep,
+                           libgnunetnat_dep,
+                           gcrypt_dep,
+                           libgnunetutil_dep],
             include_directories: [incdir, configuration_inc],
             install: true,
             install_dir: get_option('libdir') / 'gnunet' / 'libexec')

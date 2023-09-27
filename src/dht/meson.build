@@ -19,7 +19,8 @@ endif
 
 libgnunetdht = library('gnunetdht',
         libgnunetdht_src,
-        soversion: '4.0.0',
+        soversion: '4',
+        version: '4.0.0',
         dependencies: libgnunetutil_dep,
         include_directories: [incdir, configuration_inc],
         install: true,

@@ -20,7 +20,8 @@ endif
 
 libgnunetnamestore = library('gnunetnamestore',
         libgnunetnamestore_src,
-        soversion: '0.1.0',
+        soversion: '0',
+        version: '0.1.0',
         dependencies: [libgnunetutil_dep,
                        libgnunetgnsrecord_dep,
                        libgnunetidentity_dep],

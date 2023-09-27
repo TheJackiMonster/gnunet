@@ -42,7 +42,8 @@ endif
 
 libgnunetfs = library('gnunetfs',
         libgnunetfs_src,
-        soversion: '3.1.1',
+        soversion: '3',
+        version: '3.1.1',
         dependencies: [libgnunetutil_dep,
                        libgnunetdatastore_dep,
                        libgnunetstatistics_dep,

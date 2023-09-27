@@ -1578,7 +1578,6 @@ inject_rekey (struct Queue *queue)
   struct TCPRekey rekey;
   struct TcpRekeySignature thp;
   struct GNUNET_HashCode k;
-  struct GNUNET_CRYPTO_EcdhePublicKey c;
 
   GNUNET_assert (0 == queue->pwrite_off);
   memset (&rekey, 0, sizeof(rekey));
@@ -3127,7 +3126,6 @@ listen_cb (void *cls)
   struct sockaddr_storage in;
   socklen_t addrlen;
   struct GNUNET_NETWORK_Handle *sock;
-  struct ProtoQueue *pq;
   struct ListenTask *lt;
   struct sockaddr *in_addr;
 

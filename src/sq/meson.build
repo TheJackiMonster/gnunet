@@ -13,6 +13,8 @@ endif
 
 libgnunetsq = library('gnunetsq',
         libgnunetsq_src,
+        soversion: '0',
+        version: '0.0.0',
         dependencies: [libgnunetutil_dep, sqlite_dep],
         include_directories: [incdir, configuration_inc],
         install: true,

@@ -23,7 +23,7 @@ libgnunetutil_src = ['bandwidth.c',
        'crypto_cs.c',
        'crypto_ecc.c',
        'crypto_ecc_gnsrecord.c',
-       #'$(DLOG)',
+       'crypto_ecc_dlog.c',
        'crypto_ecc_setup.c',
        'crypto_edx25519.c',
        'crypto_hash.c',
@@ -69,6 +69,8 @@ libgnunetutil_src = ['bandwidth.c',
        'proc_compat.c',
 	     'gnunet_error_codes.c']
 
+gnunetserviceresolver_src = ['gnunet-service-resolver.c']
+
 configure_file(input : 'util.conf',
                output : 'util.conf',
                configuration : cdata,
@@ -85,7 +87,8 @@ endif
 
 libgnunetutil = library('gnunetutil',
         libgnunetutil_src,
-        soversion: '15.0.0',
+        soversion: '15',
+        version: '15.0.0',
         dependencies: gnunetdeps,
         include_directories: [incdir, configuration_inc],
         install: true,
@@ -143,6 +146,21 @@ executable ('gnunet-config-diff',
             dependencies: [libgnunetutil_dep, libgnunetutil_dep],
             include_directories: [incdir, configuration_inc],
             install: false)
+
+executable ('gnunet-resolver-arm',
+            gnunetserviceresolver_src,
+            dependencies: [libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+executable ('gnunet-timeout',
+            ['gnunet-timeout.c'],
+            dependencies: [libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+
+
 executable ('test_common_logging_dummy',
             ['test_common_logging_dummy.c'],
             dependencies: [libgnunetutil_dep, libgnunetutil_dep],
