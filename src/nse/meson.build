@@ -28,6 +28,13 @@ libgnunetnse_dep = declare_dependency(link_with : libgnunetnse)
 pkg.generate(libgnunetnse, url: 'https://www.gnunet.org',
              description : 'Provides API for accessing the NSE service')
 
+executable ('gnunet-nse',
+            ['gnunet-nse.c'],
+            dependencies: [libgnunetnse_dep, m_dep, libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('bindir'))
+
 executable ('gnunet-service-nse',
             gnunetservicense_src,
             dependencies: [libgnunetnse_dep, libgnunetutil_dep,

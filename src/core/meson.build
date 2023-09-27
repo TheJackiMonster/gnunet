@@ -31,6 +31,12 @@ libgnunetcore_dep = declare_dependency(link_with : libgnunetcore)
 pkg.generate(libgnunetcore, url: 'https://www.gnunet.org',
              description : 'Provides API for (encrypted) P2P communication')
 
+executable ('gnunet-core',
+            ['gnunet-core.c'],
+            dependencies: [libgnunetcore_dep, libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
 executable ('gnunet-service-core',
             gnunetservicecore_src,
             dependencies: [libgnunetcore_dep, libgnunetutil_dep,

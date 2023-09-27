@@ -11,7 +11,20 @@ configure_file(input : 'gns.conf.in',
                configuration : cdata,
                install: true,
                install_dir: pkgcfgdir)
+configure_file(input : 'tlds.conf',
+               output : 'tlds.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
 
+configure_file(input : 'gnunet-gns-proxy-setup-ca.in',
+               output : 'gnunet-gns-proxy-setup-ca',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
+install_data('gnunet-gns-proxy-ca.template',
+             install_dir: get_option('datadir')/'gnunet')
 
 if get_option('monolith')
   foreach p : libgnunetgns_src + gnunetservicegns_src

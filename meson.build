@@ -47,6 +47,7 @@ endif
 # FIXME
 cdata.set('extractor', 0)
 
+cdata.set('PKGDATADIRECTORY', get_option('datadir')/'gnunet')
 
 # Various checks
 if cc.has_member ('struct sockaddr_in', 'sin_len', prefix : ['#include <sys/types.h>', '#include <sys/socket.h>', '#include <netinet/in.h>'])
@@ -324,7 +325,7 @@ result = cc.run(curl_ssl_check, name : 'cURL gnutls check',
                       dependencies: curl_dep)
 cdata.set('curl_gnutls', 0)
 if result.returncode() == 0
-  cdata.set('curl_gnutls', 1)
+cdata.set('curl_gnutls', 1)
 endif
 
 if cc.has_function('getloadavg') == false

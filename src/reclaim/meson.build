@@ -1,6 +1,8 @@
 libgnunetreclaim_src = ['reclaim_api.c',
                         'reclaim_attribute.c',
                         'reclaim_credential.c']
+libgnunetdid_src = ['did_helper.c',
+                    'did_core.c']
 
 gnunetservicereclaim_src = ['gnunet-service-reclaim.c',
                         'gnunet-service-reclaim_tickets.c']
@@ -32,9 +34,37 @@ libgnunetreclaim_dep = declare_dependency(link_with : libgnunetreclaim)
 pkg.generate(libgnunetreclaim, url: 'https://www.gnunet.org',
              description : 'Provides API to access reclaimID')
 
+libgnunetdid = library('gnunetdid',
+        libgnunetdid_src,
+        soversion: '0',
+        version: '0.0.0',
+        dependencies: [libgnunetutil_dep,
+                       libgnunetnamestore_dep,
+                       libgnunetgnsrecord_dep,
+                       libgnunetgns_dep,
+                       json_dep,
+                       libgnunetidentity_dep],
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
+libgnunetdid_dep = declare_dependency(link_with : libgnunetdid)
+pkg.generate(libgnunetdid, url: 'https://www.gnunet.org',
+             description : 'Provides API to manipulate DID')
+
 executable ('gnunet-reclaim',
             'gnunet-reclaim.c',
             dependencies: [libgnunetreclaim_dep,
+                           libgnunetidentity_dep,
+                           libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('bindir'))
+executable ('gnunet-did',
+            'gnunet-did.c',
+            dependencies: [libgnunetreclaim_dep,
+                           libgnunetdid_dep,
+                           libgnunetgns_dep,
+                           libgnunetnamestore_dep,
                            libgnunetidentity_dep,
                            libgnunetutil_dep],
             include_directories: [incdir, configuration_inc],
