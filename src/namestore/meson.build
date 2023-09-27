@@ -106,4 +106,18 @@ executable ('gnunet-service-namestore',
             include_directories: [incdir, configuration_inc],
             install: true,
             install_dir: get_option('libdir')/'gnunet'/'libexec')
+executable ('gnunet-namestore-fcfsd',
+            ['gnunet-namestore-fcfsd.c'],
+            dependencies: [libgnunetnamestore_dep,
+                           libgnunetutil_dep,
+                           libgnunetnamecache_dep,
+                           libgnunetgnsrecord_dep,
+                           libgnunetidentity_dep,
+                           mhd_dep,
+                           json_dep,
+                           libgnunetjson_dep,
+                           libgnunetstatistics_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir')/'gnunet'/'libexec')
 

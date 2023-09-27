@@ -55,6 +55,13 @@ libgnunetfs_dep = declare_dependency(link_with : libgnunetfs)
 pkg.generate(libgnunetfs, url: 'https://www.gnunet.org',
              description : 'Provides API for GNUnet File-Sharing service')
 
+shared_module('gnunet_plugin_block_fs',
+              ['plugin_block_fs.c'],
+              dependencies: [libgnunetutil_dep,
+                             libgnunetblockgroup_dep],
+              include_directories: [incdir, configuration_inc],
+              install:true,
+              install_dir: get_option('libdir')/'gnunet')
 
 executable ('gnunet-search',
             'gnunet-search.c',

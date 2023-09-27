@@ -1,7 +1,8 @@
 libgnunetnatauto_src = ['nat_auto_api.c',
                         'nat_auto_api_test.c']
 
-gnunetservicenatauto_src = ['gnunet-nat-server.c']
+gnunetservernat_src = ['gnunet-nat-server.c']
+gnunetservicenatauto_src = ['gnunet-service-nat-auto.c']
 
 configure_file(input : 'nat-auto.conf.in',
                output : 'nat-auto.conf',
@@ -10,7 +11,7 @@ configure_file(input : 'nat-auto.conf.in',
                install_dir: pkgcfgdir)
 
 if get_option('monolith')
-  foreach p : libgnunetnatauto_src + gnunetservicenatauto_src
+  foreach p : libgnunetnatauto_src + gnunetservernatauto_src + gnunetservicenatauto_src
     gnunet_src += 'nat-auto/' + p
   endforeach
   subdir_done()
@@ -32,8 +33,16 @@ executable ('gnunet-nat-auto',
             install: true,
             install_dir: get_option('bindir'))
 executable ('gnunet-nat-server',
-            gnunetservicenatauto_src,
+            gnunetservernat_src,
             dependencies: [libgnunetnatauto_dep, libgnunetutil_dep, libgnunetnat_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir')/'gnunet'/'libexec')
+executable ('gnunet-service-nat-auto',
+            gnunetservicenatauto_src,
+            dependencies: [libgnunetnatauto_dep, libgnunetutil_dep,
+                           libgnunetnat_dep,
+                           libgnunetstatistics_dep],
             include_directories: [incdir, configuration_inc],
             install: true,
             install_dir: get_option('libdir')/'gnunet'/'libexec')

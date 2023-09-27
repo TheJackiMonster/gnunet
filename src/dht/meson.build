@@ -35,7 +35,9 @@ shared_module('gnunet_plugin_block_dht',
                        libgnunethello_dep,
                        libgnunetblock_dep,
                        libgnunetblockgroup_dep],
-        include_directories: [incdir, configuration_inc])
+        include_directories: [incdir, configuration_inc],
+              install:true,
+              install_dir: get_option('libdir')/'gnunet')
 
 executable ('gnunet-dht',
             gnunetservicedht_src,

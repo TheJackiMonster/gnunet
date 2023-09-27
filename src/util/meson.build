@@ -152,7 +152,7 @@ executable ('gnunet-config-diff',
             include_directories: [incdir, configuration_inc],
             install: false)
 
-executable ('gnunet-service-resolver-arm',
+executable ('gnunet-service-resolver',
             gnunetserviceresolver_src,
             dependencies: [libgnunetutil_dep],
             include_directories: [incdir, configuration_inc],

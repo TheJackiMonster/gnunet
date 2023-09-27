@@ -27,6 +27,15 @@ pkg.generate(libgnunetconsensus, url: 'https://www.gnunet.org',
              description : 'Provides API for accessing the consensus service')
 libgnunetarm_dep = declare_dependency(link_with : libgnunetarm)
 libgnunetconsensus_dep = declare_dependency(link_with : libgnunetconsensus)
+
+shared_module('gnunet_plugin_block_consensus',
+              ['plugin_block_consensus.c'],
+              dependencies: [libgnunetutil_dep,
+                             libgnunetblock_dep],
+              include_directories: [incdir, configuration_inc],
+              install:true,
+              install_dir: get_option('libdir')/'gnunet')
+
 executable ('gnunet-service-consensus',
             gnunetserviceconsensus_src,
             dependencies: [libgnunetconsensus_dep,

@@ -33,6 +33,16 @@ libgnunetnat = library('gnunetnat',
 libgnunetnat_dep = declare_dependency(link_with : libgnunetnat)
 pkg.generate(libgnunetnat, url: 'https://www.gnunet.org',
              description : 'Provides API for accessing the NAT service')
+libgnunetnat = library('gnunetnatnew',
+        ['nat_api.c',
+          'nat_api_stun.c'],
+        soversion: '2',
+        version: '2.0.0',
+        dependencies: libgnunetutil_dep,
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
+libgnunetnat_dep = declare_dependency(link_with : libgnunetnat)
 
 executable ('gnunet-nat',
             ['gnunet-nat.c'],
