@@ -48,7 +48,7 @@ endif
 cdata.set('extractor', 0)
 
 cdata.set('PKGDATADIRECTORY', get_option('datadir')/'gnunet')
-
+cdata.set('SYSCONFDIR', get_option('sysconfdir'))
 # Various checks
 if cc.has_member ('struct sockaddr_in', 'sin_len', prefix : ['#include <sys/types.h>', '#include <sys/socket.h>', '#include <netinet/in.h>'])
   add_project_arguments('-DHAVE_SOCKADDR_IN_SIN_LEN', language: 'c')

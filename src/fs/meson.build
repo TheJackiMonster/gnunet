@@ -123,4 +123,12 @@ executable ('gnunet-service-fs',
             include_directories: [incdir, configuration_inc],
             install: true,
             install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+executable ('gnunet-helper-fs-publish',
+            ['gnunet-helper-fs-publish.c'],
+            dependencies: [libgnunetfs_dep,
+                           libgnunetutil_dep,
+                           libgnunetblock_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
 

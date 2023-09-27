@@ -5,7 +5,7 @@ pkgcfgdir= $(pkgdatadir)/config.d/
 
 libexecdir= $(pkglibdir)/libexec/
 
-dist_pkgcfg_DATA = \
+noinst_dist_pkgcfg_DATA = \
   template.conf
 
 if USE_COVERAGE

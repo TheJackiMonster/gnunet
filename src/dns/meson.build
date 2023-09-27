@@ -56,4 +56,10 @@ executable ('gnunet-dns-redirector',
             include_directories: [incdir, configuration_inc],
             install: true,
             install_dir: get_option('libdir')/'gnunet'/'libexec')
+executable ('gnunet-helper-dns',
+            ['gnunet-helper-dns.c'],
+            dependencies: [libgnunetdns_dep, libgnunetutil_dep, libgnunetdns_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir')/'gnunet'/'libexec')
 

@@ -1,5 +1,12 @@
+configure_file(input : 'gnunet.conf.5.in',
+               output : 'gnunet.conf.5',
+               configuration : cdata,
+               install: false,
+               install_dir: get_option('mandir'))
+
 install_man(
-  [# 'gnunet.conf.5', FIXME generated from in file
+  [
+  'gnunet.conf.5',
   'gnunet-arm.1',
   'gnunet-ats.1',
   'gnunet-auto-share.1',

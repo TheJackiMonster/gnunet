@@ -18,6 +18,8 @@ endif
 
 libgnunetnatauto = library('gnunetnatauto',
         libgnunetnatauto_src,
+        soversion: '0',
+        version: '0.0.0',
         dependencies: [libgnunetutil_dep, libgnunetnat_dep],
         include_directories: [incdir, configuration_inc])
 libgnunetnatauto_dep = declare_dependency(link_with : libgnunetnatauto)

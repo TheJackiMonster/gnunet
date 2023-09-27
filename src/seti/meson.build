@@ -27,6 +27,12 @@ libgnunetseti = library('gnunetseti',
 pkg.generate(libgnunetseti, url: 'https://www.gnunet.org',
              description : 'Provides API for accessing the set intersection service')
 libgnunetseti_dep = declare_dependency(link_with : libgnunetseti)
+shared_module('gnunet_plugin_block_seti_test',
+              ['plugin_block_seti_test.c'],
+              dependencies: libgnunetutil_dep,
+              include_directories: [incdir, configuration_inc],
+              install:true,
+              install_dir: get_option('libdir')/'gnunet')
 executable ('gnunet-service-seti',
             gnunetserviceseti_src,
             dependencies: [libgnunetseti_dep,

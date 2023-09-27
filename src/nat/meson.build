@@ -48,4 +48,18 @@ executable ('gnunet-service-nat',
             include_directories: [incdir, configuration_inc],
             install: true,
             install_dir: get_option('libdir')/'gnunet'/'libexec')
+executable ('gnunet-helper-nat-server',
+            ['gnunet-helper-nat-server.c'],
+            dependencies: [libgnunetnat_dep, libgnunetutil_dep,
+                           libgnunetstatistics_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir')/'gnunet'/'libexec')
+executable ('gnunet-helper-nat-client',
+            ['gnunet-helper-nat-client.c'],
+            dependencies: [libgnunetnat_dep, libgnunetutil_dep,
+                           libgnunetstatistics_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir')/'gnunet'/'libexec')
 

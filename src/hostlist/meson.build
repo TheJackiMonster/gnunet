@@ -22,4 +22,6 @@ executable ('gnunet-daemon-hostlist',
                            libgnunettransport_dep,
                            mhd_dep,
                            curl_dep],
-            include_directories: [incdir, configuration_inc])
+            include_directories: [incdir, configuration_inc],
+            install:true,
+            install_dir: get_option('libdir')/'gnunet'/'libexec')

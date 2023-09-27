@@ -1,4 +1,5 @@
 subdir('conf')
+subdir('hellos')
 subdir('scripts')
 
 install_data(['gns'/'def.tex',

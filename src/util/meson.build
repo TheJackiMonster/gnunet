@@ -76,10 +76,15 @@ configure_file(input : 'util.conf',
                configuration : cdata,
                install: true,
                install_dir: pkgcfgdir)
+configure_file(input : 'resolver.conf',
+               output : 'resolver.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
 
 
 if get_option('monolith')
-  foreach p : libgnunetutil_src
+  foreach p : [libgnunetutil_src, gnunetserviceresolver_src]
     gnunet_src += 'util/' + p
   endforeach
   subdir_done()
@@ -147,7 +152,7 @@ executable ('gnunet-config-diff',
             include_directories: [incdir, configuration_inc],
             install: false)
 
-executable ('gnunet-resolver-arm',
+executable ('gnunet-service-resolver-arm',
             gnunetserviceresolver_src,
             dependencies: [libgnunetutil_dep],
             include_directories: [incdir, configuration_inc],

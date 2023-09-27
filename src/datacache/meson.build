@@ -18,7 +18,7 @@ endif
 libgnunetdatacache = library('gnunetdatacache',
         libgnunetdatacache_src,
         soversion: '0',
-        version: '0.1.0',
+        version: '0.0.1',
         dependencies: [libgnunetutil_dep, libgnunetstatistics_dep],
         include_directories: [incdir, configuration_inc],
         install: true,
