@@ -214,6 +214,13 @@ endif
 if zbar_dep.found()
   add_project_arguments('-DHAVE_ZBAR', language : 'c')
 endif
+jose_dep = dependency('libjose', required : false)
+if not jose_dep.found()
+  jose_dep = cc.find_library('jose', required : false)
+endif
+if jose_dep.found()
+  add_project_arguments('-DHAVE_JOSE', language : 'c')
+endif
 
 ## FIXME conversation: pulse/gst detection in configure.ac obviously
 ## broken. Needs reconsideration. No idea for now.

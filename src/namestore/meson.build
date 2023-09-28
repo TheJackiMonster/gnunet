@@ -32,6 +32,22 @@ libgnunetnamestore_dep = declare_dependency(link_with : libgnunetnamestore)
 pkg.generate(libgnunetnamestore, url: 'https://www.gnunet.org',
              description : 'Provides API for storing GNS records to a database')
 
+shared_module('gnunet_plugin_rest_namestore',
+              ['plugin_rest_namestore.c'],
+              dependencies: [libgnunetrest_dep,
+                             libgnunetidentity_dep,
+                             libgnunetgnsrecordjson_dep,
+                             libgnunetgnsrecord_dep,
+                             libgnunetnamestore_dep,
+                             libgnunetjson_dep,
+                             libgnunetutil_dep,
+                             json_dep,
+                             mhd_dep],
+              include_directories: [incdir, configuration_inc],
+              install: true,
+              install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+
+
 shared_module('gnunet_plugin_namestore_sqlite',
         libgnunetpluginnamestore_sqlite_src,
         dependencies: [libgnunetutil_dep,

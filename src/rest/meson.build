@@ -29,6 +29,26 @@ pkg.generate(libgnunetrest, url: 'https://www.gnunet.org',
              description : 'Provides API for accessing the REST service')
 libgnunetrest_dep = declare_dependency(link_with : libgnunetrest)
 
+shared_module('gnunet_plugin_rest_config',
+              ['plugin_rest_config.c'],
+              dependencies: [libgnunetrest_dep,
+                             libgnunetutil_dep,
+                             json_dep,
+                             mhd_dep],
+              include_directories: [incdir, configuration_inc],
+              install: true,
+              install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+shared_module('gnunet_plugin_rest_copying',
+              ['plugin_rest_copying.c'],
+              dependencies: [libgnunetrest_dep,
+                             libgnunetutil_dep,
+                             json_dep,
+                             mhd_dep],
+              include_directories: [incdir, configuration_inc],
+              install: true,
+              install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+
+
 executable ('gnunet-rest-server',
             gnunetservicerest_src,
             dependencies: [libgnunetrest_dep, libgnunetutil_dep, mhd_dep],

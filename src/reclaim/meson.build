@@ -51,6 +51,36 @@ libgnunetdid_dep = declare_dependency(link_with : libgnunetdid)
 pkg.generate(libgnunetdid, url: 'https://www.gnunet.org',
              description : 'Provides API to manipulate DID')
 
+shared_module('gnunet_plugin_rest_reclaim',
+              ['plugin_rest_reclaim.c'],
+              dependencies: [libgnunetrest_dep,
+                             libgnunetidentity_dep,
+                             libgnunetreclaim_dep,
+                             libgnunetjson_dep,
+                             libgnunetutil_dep,
+                             json_dep,
+                             mhd_dep],
+              include_directories: [incdir, configuration_inc],
+              install: true,
+              install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+
+
+shared_module('gnunet_plugin_rest_openid_connect',
+              ['plugin_rest_openid_connect.c', 'oidc_helper.c'],
+              dependencies: [libgnunetrest_dep,
+                             libgnunetreclaim_dep,
+                             libgnunetidentity_dep,
+                             libgnunetgns_dep,
+                             libgnunetutil_dep,
+                             jose_dep,
+                             gcrypt_dep,
+                             json_dep,
+                             mhd_dep],
+              include_directories: [incdir, configuration_inc],
+              install: true,
+              install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+
+
 executable ('gnunet-reclaim',
             'gnunet-reclaim.c',
             dependencies: [libgnunetreclaim_dep,
