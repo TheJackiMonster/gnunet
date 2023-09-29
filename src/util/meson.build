@@ -76,7 +76,7 @@ configure_file(input : 'util.conf',
                configuration : cdata,
                install: true,
                install_dir: pkgcfgdir)
-configure_file(input : 'resolver.conf',
+configure_file(input : 'resolver.conf.in',
                output : 'resolver.conf',
                configuration : cdata,
                install: true,
