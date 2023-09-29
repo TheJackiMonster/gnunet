@@ -35,7 +35,7 @@ executable ('gnunet-service-statistics',
             install: true,
             install_dir: get_option('libdir') / 'gnunet' / 'libexec')
 executable ('gnunet-statistics',
-            gnunetservicestatistics_src,
+            ['gnunet-statistics.c'],
             dependencies: [libgnunetstatistics_dep, libgnunetutil_dep],
             include_directories: [incdir, configuration_inc],
             install: true,

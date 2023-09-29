@@ -1,6 +1,6 @@
 
 install_subdir('handbook/html',
-               install_dir: docdir/'handbook',
+               install_dir: docdir,
                strip_directory: false)
 install_data('handbook/texinfo/gnunet.texi',
              install_dir: get_option('infodir'))
