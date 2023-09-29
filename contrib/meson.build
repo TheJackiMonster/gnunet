@@ -2,6 +2,7 @@ subdir('conf')
 subdir('hellos')
 subdir('scripts')
 
+
 install_data(['gns'/'def.tex',
               'gns'/'gns-bcd.html',
               'gns'/'gns-bcd.tex',
