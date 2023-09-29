@@ -12,7 +12,7 @@ libgnunettestbed_src = [
   'testbed_api_barriers.c'
   ]
 
-configure_file(input : 'testbed.conf',
+configure_file(input : 'testbed.conf.in',
                output : 'testbed.conf',
                configuration : cdata,
                install: true,
