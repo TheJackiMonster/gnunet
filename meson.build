@@ -19,6 +19,10 @@ r = run_command('sh', 'contrib/get_version.sh', '--micro', check: true)
 cdata.set('gnunet_micro_version', r.stdout().strip())
 
 pkgcfgdir = get_option('datadir')/'gnunet'/'config.d'
+docdir = get_option('datadir')/'doc'/'gnunet'
+
+install_emptydir(docdir)
+install_data('README', 'COPYING', install_dir: docdir)
 
 # TODO: Set to true to build a single libgnunet
 if get_option('monolith')
