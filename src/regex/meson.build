@@ -23,7 +23,7 @@ endif
 libgnunetregex = library('gnunetregex',
         libgnunetregex_src,
         soversion: '3',
-        version: '3.1.0',
+        version: '3.0.1',
         dependencies: libgnunetutil_dep,
         include_directories: [incdir, configuration_inc],
         install: true,

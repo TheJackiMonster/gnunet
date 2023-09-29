@@ -23,7 +23,7 @@ configure_file(input : 'transport.conf.in',
                install_dir: pkgcfgdir)
 
 configure_file(input : 'gnunet-transport-certificate-creation.in',
-               output : 'gnuent-transport-certificate-creation',
+               output : 'gnunet-transport-certificate-creation',
                configuration : cdata,
                install: true,
                install_dir: get_option('bindir'))
@@ -32,7 +32,7 @@ configure_file(input : 'communicator-unix.conf',
                output : 'communicator-unix.conf',
                configuration : cdata,
                install: true,
-               install_dir: get_option('bindir'))
+               install_dir: pkgcfgdir)
 
 if get_option('monolith')
   foreach p : libgnunettransport_src #+ libgnunettransportapplication_src + libgnunettransportcore_src + libgnunettransportcommunicator_src + libgnunettransportmonitor_src + gnunetservicetransport_src
@@ -60,8 +60,8 @@ libgnunettransporttesting = library('gnunettransporttesting',
           'transport-testing-main.c',
           'transport-testing-send.c'
           ],
-        soversion: '2',
-        version: '2.2.0',
+        soversion: '0',
+        version: '0.0.0',
         dependencies: [libgnunetutil_dep,
                        libgnunettesting_dep,
                        libgnunettransport_dep,
@@ -136,8 +136,8 @@ libgnunettransporttesting2 = library('gnunettransporttesting2',
           'transport-testing-send2.c',
           'transport-testing-communicator.c',
           ],
-        soversion: '2',
-        version: '2.2.0',
+        soversion: '0',
+        version: '0.0.0',
         dependencies: [libgnunetutil_dep,
                        libgnunettransportapplication_dep,
                        libgnunettransport_dep,

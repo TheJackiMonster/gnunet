@@ -25,7 +25,7 @@ libgnunetcore = library('gnunetcore',
           include_directories: [incdir, configuration_inc],
           install: true,
           soversion: '0',
-          version: '0.1.0',
+          version: '0.0.1',
           install_dir: get_option('libdir'))
 libgnunetcore_dep = declare_dependency(link_with : libgnunetcore)
 pkg.generate(libgnunetcore, url: 'https://www.gnunet.org',
@@ -36,7 +36,8 @@ executable ('gnunet-core',
             dependencies: [libgnunetcore_dep, libgnunetutil_dep],
             include_directories: [incdir, configuration_inc],
             install: true,
-            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+            install_dir: get_option('bindir'))
+
 executable ('gnunet-service-core',
             gnunetservicecore_src,
             dependencies: [libgnunetcore_dep, libgnunetutil_dep,

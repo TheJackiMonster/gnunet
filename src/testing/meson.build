@@ -36,8 +36,8 @@ endif
 
 libgnunettesting = library('gnunettesting',
         libgnunettesting_src,
-        soversion: '0',
-        version: '0.1.0',
+        soversion: '1',
+        version: '1.1.0',
         dependencies: [libgnunetutil_dep,
                        m_dep,
                        libgnunetarm_dep],

@@ -21,7 +21,7 @@ endif
 libgnunetnamestore = library('gnunetnamestore',
         libgnunetnamestore_src,
         soversion: '0',
-        version: '0.1.0',
+        version: '0.0.1',
         dependencies: [libgnunetutil_dep,
                        libgnunetgnsrecord_dep,
                        libgnunetidentity_dep],
@@ -45,7 +45,7 @@ shared_module('gnunet_plugin_rest_namestore',
                              mhd_dep],
               include_directories: [incdir, configuration_inc],
               install: true,
-              install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+              install_dir: get_option('libdir') / 'gnunet')
 
 
 shared_module('gnunet_plugin_namestore_sqlite',

@@ -22,7 +22,9 @@ libgnunetnatauto = library('gnunetnatauto',
         soversion: '0',
         version: '0.0.0',
         dependencies: [libgnunetutil_dep, libgnunetnat_dep],
-        include_directories: [incdir, configuration_inc])
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
 libgnunetnatauto_dep = declare_dependency(link_with : libgnunetnatauto)
 
 executable ('gnunet-nat-auto',
@@ -37,7 +39,7 @@ executable ('gnunet-nat-server',
             dependencies: [libgnunetnatauto_dep, libgnunetutil_dep, libgnunetnat_dep],
             include_directories: [incdir, configuration_inc],
             install: true,
-            install_dir: get_option('libdir')/'gnunet'/'libexec')
+            install_dir: get_option('bindir'))
 executable ('gnunet-service-nat-auto',
             gnunetservicenatauto_src,
             dependencies: [libgnunetnatauto_dep, libgnunetutil_dep,

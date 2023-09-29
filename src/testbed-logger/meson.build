@@ -11,7 +11,7 @@ if get_option('monolith')
   subdir_done()
 endif
 
-libgnunettestbedlogger = library('gnunettestbed',
+libgnunettestbedlogger = library('gnunettestbedlogger',
         libgnunettestbedlogger_src,
         soversion: '0',
         version: '0.0.0',

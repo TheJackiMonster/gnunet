@@ -69,7 +69,7 @@ executable ('gnunet-daemon-testbed-blacklist',
             install:true,
             install_dir: get_option('libdir')/'gnunet'/'libexec')
 
-executable ('gnunet-daemon-underlay',
+executable ('gnunet-daemon-testbed-underlay',
             ['gnunet-daemon-testbed-underlay.c'],
             dependencies: [libgnunetutil_dep,
                            libgnunetcore_dep,
@@ -82,6 +82,14 @@ executable ('gnunet-daemon-underlay',
             install:true,
             install_dir: get_option('libdir')/'gnunet'/'libexec')
 
+executable ('gnunet-testbed-profiler',
+            ['gnunet-testbed-profiler.c'],
+            dependencies: [libgnunetutil_dep,
+                           libgnunetats_dep,
+                           libgnunettestbed_dep],
+            include_directories: [incdir, configuration_inc],
+            install:true,
+            install_dir: get_option('bindir'))
 executable ('gnunet-service-testbed',
             ['gnunet-service-testbed.c',
              'gnunet-service-testbed_links.c',

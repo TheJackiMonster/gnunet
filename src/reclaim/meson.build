@@ -107,7 +107,7 @@ shared_module('gnunet_plugin_rest_openid_connect',
                              mhd_dep],
               include_directories: [incdir, configuration_inc],
               install: true,
-              install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+              install_dir: get_option('libdir') / 'gnunet')
 
 
 executable ('gnunet-reclaim',

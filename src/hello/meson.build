@@ -15,8 +15,8 @@ endif
 
 libgnunethello = library('gnunethello',
         libgnunethello_src,
-        soversion: '1',
-        version: '1.0.1',
+        soversion: '0',
+        version: '0.1.0',
         dependencies: libgnunetutil_dep,
         include_directories: [incdir, configuration_inc],
         install: true,

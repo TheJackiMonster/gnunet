@@ -21,7 +21,7 @@ configure_file(input : 'gnunet-gns-proxy-setup-ca.in',
                output : 'gnunet-gns-proxy-setup-ca',
                configuration : cdata,
                install: true,
-               install_dir: pkgcfgdir)
+               install_dir: get_option('bindir'))
 
 install_data('gnunet-gns-proxy-ca.template',
              install_dir: get_option('datadir')/'gnunet')
@@ -74,7 +74,7 @@ shared_module('gnunet_plugin_rest_gns',
                              mhd_dep],
               include_directories: [incdir, configuration_inc],
               install: true,
-              install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+              install_dir: get_option('libdir') / 'gnunet')
 
 
 executable ('gnunet-gns',

@@ -43,7 +43,7 @@ executable ('gnunet-service-dns',
                            libgnunetstatistics_dep],
             include_directories: [incdir, configuration_inc],
             install: true,
-            install_dir: get_option('bindir'))
+            install_dir: get_option('libdir')/'gnunet'/'libexec')
 executable ('gnunet-dns-monitor',
             gnunetdnsmonitor_src,
             dependencies: [libgnunetdns_dep, libgnunetutil_dep, libgnunetdns_dep],
