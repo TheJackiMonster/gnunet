@@ -55,11 +55,12 @@ executable ('gnunet-service-vpn',
             include_directories: [incdir, configuration_inc, exitdir],
             install: true,
             install_dir: get_option('libdir') / 'gnunet' / 'libexec')
-executable ('gnunet-helper-vpn',
-            ['gnunet-helper-vpn.c'],
-            dependencies: [libgnunetvpn_dep,
-                           libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc, exitdir],
-            install: true,
-            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
-
+if host_machine.system() == 'linux'
+  executable ('gnunet-helper-vpn',
+              ['gnunet-helper-vpn.c'],
+              dependencies: [libgnunetvpn_dep,
+                             libgnunetutil_dep],
+              include_directories: [incdir, configuration_inc, exitdir],
+              install: true,
+              install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+endif

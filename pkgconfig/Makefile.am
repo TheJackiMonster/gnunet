@@ -63,7 +63,6 @@ EXTRA_DIST = \
        gnunetcadet.pc.in \
        gnunetmessenger.pc.in \
        gnunetmicrophone.pc.in \
-       gnunetmysql.pc.in \
        gnunetnamestore.pc.in \
        gnunetnat.pc.in \
        gnunetnse.pc.in \
