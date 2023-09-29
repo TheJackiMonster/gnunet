@@ -22,8 +22,8 @@ configure_file(input : 'transport.conf.in',
                install: true,
                install_dir: pkgcfgdir)
 
-configure_file(input : 'gnunet-transport-certificate-creation',
-               output : 'gnuent-transport-certificate-creation.in',
+configure_file(input : 'gnunet-transport-certificate-creation.in',
+               output : 'gnuent-transport-certificate-creation',
                configuration : cdata,
                install: true,
                install_dir: get_option('bindir'))
