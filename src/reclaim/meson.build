@@ -34,6 +34,13 @@ libgnunetreclaim_dep = declare_dependency(link_with : libgnunetreclaim)
 pkg.generate(libgnunetreclaim, url: 'https://www.gnunet.org',
              description : 'Provides API to access reclaimID')
 
+shared_module('gnunet_plugin_gnsrecord_reclaim',
+              ['plugin_gnsrecord_reclaim.c'],
+              dependencies: [libgnunetutil_dep, libgnunetgnsrecord_dep],
+              include_directories: [incdir, configuration_inc],
+              install: true,
+              install_dir: get_option('libdir')/'gnunet')
+
 libgnunetdid = library('gnunetdid',
         libgnunetdid_src,
         soversion: '0',
@@ -62,7 +69,29 @@ shared_module('gnunet_plugin_rest_reclaim',
                              mhd_dep],
               include_directories: [incdir, configuration_inc],
               install: true,
-              install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+              install_dir: get_option('libdir') / 'gnunet')
+shared_module('gnunet_plugin_reclaim_attribute_basic',
+              ['plugin_reclaim_attribute_basic.c'],
+              dependencies: [libgnunetrest_dep,
+                             libgnunetidentity_dep,
+                             libgnunetreclaim_dep,
+                             libgnunetjson_dep,
+                             libgnunetutil_dep,
+                             json_dep],
+              include_directories: [incdir, configuration_inc],
+              install: true,
+              install_dir: get_option('libdir') / 'gnunet')
+shared_module('gnunet_plugin_reclaim_credential_jwt',
+              ['plugin_reclaim_credential_jwt.c'],
+              dependencies: [libgnunetrest_dep,
+                             libgnunetidentity_dep,
+                             libgnunetreclaim_dep,
+                             libgnunetjson_dep,
+                             libgnunetutil_dep,
+                             json_dep],
+              include_directories: [incdir, configuration_inc],
+              install: true,
+              install_dir: get_option('libdir') / 'gnunet')
 
 
 shared_module('gnunet_plugin_rest_openid_connect',

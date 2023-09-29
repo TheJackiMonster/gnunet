@@ -36,6 +36,13 @@ shared_module('gnunet_plugin_datacache_sqlite',
         include_directories: [incdir, configuration_inc],
         install: true,
         install_dir: get_option('libdir')/'gnunet')
+shared_module('gnunet_plugin_datacache_heap',
+        ['plugin_datacache_heap.c'],
+        dependencies: [libgnunetutil_dep,
+                       libgnunetdatacache_dep],
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir')/'gnunet')
 
 
 if pq_dep.found()

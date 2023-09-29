@@ -102,6 +102,13 @@ libgnunetutil_dep = declare_dependency(link_with : libgnunetutil)
 pkg.generate(libgnunetutil, url: 'https://www.gnunet.org',
              description : 'Provides miscellaneous utility functions and API for GNUnet')
 
+shared_module('gnunet_plugin_utiltest',
+              ['test_plugin_plug.c'],
+              dependencies: [libgnunetutil_dep],
+              include_directories: [incdir, configuration_inc],
+              install: true,
+              install_dir: get_option('libdir')/'gnunet')
+
 executable ('gnunet-base32',
             ['gnunet-base32.c'],
             dependencies: [libgnunetutil_dep, libgnunetutil_dep],

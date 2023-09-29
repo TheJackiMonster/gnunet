@@ -40,6 +40,13 @@ shared_module('gnunet_plugin_datastore_sqlite',
         include_directories: [incdir, configuration_inc],
         install: true,
         install_dir: get_option('libdir')/'gnunet')
+shared_module('gnunet_plugin_datastore_heap',
+        ['plugin_datastore_heap.c'],
+        dependencies: [libgnunetutil_dep,
+                       libgnunetdatacache_dep],
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir')/'gnunet')
 
 if pq_dep.found()
   shared_module('gnunet_plugin_datastore_postgres',
