@@ -22,6 +22,11 @@ configure_file(input : 'transport.conf.in',
                install: true,
                install_dir: pkgcfgdir)
 
+configure_file(input : 'gnunet-transport-certificate-creation',
+               output : 'gnuent-transport-certificate-creation.in',
+               configuration : cdata,
+               install: true,
+               install_dir: get_option('bindir'))
 
 if get_option('monolith')
   foreach p : libgnunettransport_src #+ libgnunettransportapplication_src + libgnunettransportcore_src + libgnunettransportcommunicator_src + libgnunettransportmonitor_src + gnunetservicetransport_src
@@ -188,4 +193,15 @@ executable ('gnunet-communicator-tcp',
             include_directories: [incdir, configuration_inc],
             install: true,
             install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+
+executable ('gnunet-transport',
+            ['gnunet-transport.c'],
+            dependencies: [libgnunettransportcommunicator_dep,
+                           libgnunethello_dep,
+                           libgnunettransport_dep,
+                           libgnunetpeerstore_dep,
+                           libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('bindir'))
 

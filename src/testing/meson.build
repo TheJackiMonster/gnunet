@@ -46,7 +46,7 @@ libgnunettesting = library('gnunettesting',
         install_dir: get_option('libdir'))
 libgnunettesting_dep = declare_dependency(link_with : libgnunettesting)
 pkg.generate(libgnunettesting, url: 'https://www.gnunet.org',
-             description : 'Provides API for storing GNS records to a database')
+             description : 'Provides API for gnunet testing')
 
 executable ('gnunet-testing',
           gnunettesting_src,
@@ -56,4 +56,13 @@ executable ('gnunet-testing',
           include_directories: [incdir, configuration_inc],
         install: true,
         install_dir: get_option('bindir'))
+
+executable ('gnunet-cmds-helper',
+            ['gnunet-cmds-helper.c'],
+            dependencies: [libgnunettesting_dep,
+                           libgnunetutil_dep,
+                           ],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir')/'gnunet'/'libexec')
 
