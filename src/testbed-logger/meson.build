@@ -1,6 +1,6 @@
 libgnunettestbedlogger_src = ['testbed_logger_api.c']
 
-configure_file(input : 'testbed-logger.conf',
+configure_file(input : 'testbed-logger.conf.in',
                output : 'testbed-logger.conf',
                configuration : cdata,
                install: true,
