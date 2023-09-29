@@ -47,7 +47,6 @@ endif
 # FIXME
 cdata.set('extractor', 0)
 
-cdata.set('PREFIX', get_option('prefix'))
 cdata.set('PKGDATADIRECTORY', get_option('datadir')/'gnunet')
 cdata.set('SYSCONFDIR', get_option('sysconfdir'))
 # Various checks

@@ -12,9 +12,13 @@ libgnunettestbed_src = [
   'testbed_api_barriers.c'
   ]
 
+tdata = configuration_data()
+tdata.merge_from(cdata)
+tdata.set_quoted('prefix', get_option('prefix'))
+
 configure_file(input : 'testbed.conf.in',
                output : 'testbed.conf',
-               configuration : cdata,
+               configuration : tdata,
                install: true,
                install_dir: pkgcfgdir)
 
@@ -26,7 +30,7 @@ endif
 libgnunettestbed = library('gnunettestbed',
         libgnunettestbed_src,
         soversion: '0',
-        version: '0.1.0',
+        version: '0.0.0',
         dependencies: [libgnunetutil_dep,
                        m_dep,
                        zlib_dep,
