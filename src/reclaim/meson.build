@@ -52,7 +52,7 @@ pkg.generate(libgnunetdid, url: 'https://www.gnunet.org',
              description : 'Provides API to manipulate DID')
 
 shared_module('gnunet_plugin_rest_reclaim',
-              ['plugin_rest_reclaim.c'],
+              ['plugin_rest_reclaim.c', 'json_reclaim.c'],
               dependencies: [libgnunetrest_dep,
                              libgnunetidentity_dep,
                              libgnunetreclaim_dep,

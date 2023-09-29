@@ -41,6 +41,26 @@ pkg.generate(libgnunettransport, url: 'https://www.gnunet.org',
              description : 'Provides API for accessing the transport service')
 libgnunettransport_dep = declare_dependency(link_with : libgnunettransport)
 
+libgnunettransporttesting = library('gnunettransporttesting',
+        [
+          'transport-testing.c',
+          'transport-testing-filenames.c',
+          'transport-testing-loggers.c',
+          'transport-testing-main.c',
+          'transport-testing-send.c'
+          ],
+        soversion: '2',
+        version: '2.2.0',
+        dependencies: [libgnunetutil_dep,
+                       libgnunettesting_dep,
+                       libgnunettransport_dep,
+                       libgnunetats_dep,
+                       libgnunethello_dep],
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
+
+
 libgnunettransportapplication = library('gnunettransportapplication',
         libgnunettransportapplication_src,
         soversion: '0',
@@ -88,6 +108,36 @@ libgnunettransportmonitor = library('gnunettransportmonitor',
 pkg.generate(libgnunettransportmonitor, url: 'https://www.gnunet.org',
              description : 'Provides monitor API for accessing the transport service')
 libgnunettransportmonitor_dep = declare_dependency(link_with : libgnunettransportmonitor)
+
+libgnunettransporttesting2 = library('gnunettransporttesting2',
+        [
+          'transport_api_traits.c',
+          'transport_api_cmd_connecting_peers.c',
+          'transport_api_cmd_backchannel_check.c',
+          'transport_api_cmd_start_peer.c',
+          'transport_api_cmd_stop_peer.c',
+          'transport_api_cmd_send_simple.c',
+          'transport_api_cmd_send_simple_performance.c',
+          'transport-testing2.c',
+          'transport-testing-filenames2.c',
+          'transport-testing-loggers2.c',
+          'transport-testing-main2.c',
+          'transport-testing-send2.c',
+          'transport-testing-communicator.c',
+          ],
+        soversion: '2',
+        version: '2.2.0',
+        dependencies: [libgnunetutil_dep,
+                       libgnunettransportapplication_dep,
+                       libgnunettransport_dep,
+                       libgnunetpeerstore_dep,
+                       libgnunetats_dep, # FIXME WHY ATS here? Isnt this TNG?
+                       libgnunettesting_dep,
+                       libgnunethello_dep],
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
+
 
 executable ('gnunet-service-transport',
             gnunetservicetransport_src,

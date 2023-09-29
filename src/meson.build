@@ -11,7 +11,7 @@ if get_option('monolith') == false
   subdir('arm')
 endif
 subdir('statistics')
-#$(TESTING)')
+subdir('testing')
 subdir('json', if_found : json_dep)
 subdir('curl', if_found : [curl_dep])
 if get_option('monolith') == false

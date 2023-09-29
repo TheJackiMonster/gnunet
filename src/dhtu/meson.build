@@ -13,6 +13,20 @@ if get_option('monolith')
   endforeach
 endif
 
+libgnunettestingdhtu = library('gnunettestingdhtu',
+        ['testing_dhtu_cmd_send.c'],
+        soversion: '0',
+        version: '0.0.0',
+        dependencies: [
+          libgnunetutil_dep,
+          libgnunetarm_dep,
+          libgnunettesting_dep
+          ],
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir'))
+libgnunettestingdhtu_dep = declare_dependency(link_with : libgnunettestingdhtu)
+
 shared_module('gnunet_plugin_dhtu_ip',
           libgnunetplugindhtuip_src,
           dependencies: [libgnunetutil_dep, m_dep],
