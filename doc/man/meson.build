@@ -1,12 +1,11 @@
 configure_file(input : 'gnunet.conf.5.in',
                output : 'gnunet.conf.5',
                configuration : cdata,
-               install: false,
+               install: true,
                install_dir: get_option('mandir'))
 
 install_man(
   [
-  'gnunet.conf.5',
   'gnunet-arm.1',
   'gnunet-ats.1',
   'gnunet-auto-share.1',
