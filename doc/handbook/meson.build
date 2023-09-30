@@ -19,7 +19,7 @@ else
 endif
 
 if fs.exists('texinfo')
-  install_data('handbook/texinfo/gnunet.info',
+  install_data('texinfo'/'gnunet.info',
                install_dir: get_option('infodir'))
 else
   if sphinx.found()
