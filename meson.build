@@ -9,8 +9,8 @@ incdir = include_directories('src/include')
 cdata = configuration_data()
 
 # Version
-r = run_command('sh', 'contrib/get_version.sh', check: true)
-cdata.set('gnunet_version', r.stdout().strip())
+gnunet_version = run_command('sh', 'contrib/get_version.sh', check: true).stdout().strip()
+cdata.set('gnunet_version', gnunet_version)
 r = run_command('sh', 'contrib/get_version.sh', '--major', check: true)
 cdata.set('gnunet_major_version', r.stdout().strip())
 r = run_command('sh', 'contrib/get_version.sh', '--minor', check: true)

@@ -15,9 +15,9 @@ if get_option('monolith')
 endif
 
 libgnunetpq = library('gnunetpq',
+        libgnunetpq_src,
         soversion: '4',
         version: '4.0.0',
-        libgnunetpq_src,
         dependencies: [libgnunetutil_dep, pq_dep],
         include_directories: [incdir, configuration_inc],
         install: true,
