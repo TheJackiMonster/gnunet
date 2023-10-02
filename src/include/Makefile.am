@@ -133,7 +133,8 @@ gnunetinclude_HEADERS = \
   gnunet_transport_hello_service.h \
   gnunet_transport_manipulation_service.h \
   gnunet_transport_monitor_service.h \
-  gnunet_transport_plugin.h \
+  gnunet_transport_plugin.h  \
+  gnunet_transport_testing_ng_lib.h \
   gnunet_tun_lib.h \
   gnunet_uri_lib.h \
   gnunet_util_lib.h \

@@ -28,69 +28,11 @@
 #include "testing_cmds.h"
 #include "gnunet_testing_ng_lib.h"
 #include "gnunet_testing_netjail_lib.h"
-#include "gnunet_peerstore_service.h"
-#include "gnunet_transport_core_service.h"
-#include "gnunet_transport_application_service.h"
 
 /**
  * Generic logging shortcut
  */
 #define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
-
-
-static void
-retrieve_hello (void *cls);
-
-
-/**
- * Callback delivering the hello of this peer from peerstore.
- *
- */
-static void
-hello_iter_cb (void *cb_cls,
-               const struct GNUNET_PEERSTORE_Record *record,
-               const char *emsg)
-{
-  struct GNUNET_TESTING_StartPeerState *sps = cb_cls;
-  if (NULL == record)
-  {
-    sps->pic = NULL;
-    sps->rh_task = GNUNET_SCHEDULER_add_now (retrieve_hello, sps);
-    return;
-  }
-  // Check record type et al?
-  sps->hello_size = record->value_size;
-  sps->hello = GNUNET_malloc (sps->hello_size);
-  memcpy (sps->hello, record->value, sps->hello_size);
-  sps->hello[sps->hello_size - 1] = '\0';
-
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Our hello %s\n",
-       sps->hello);
-  GNUNET_PEERSTORE_iterate_cancel (sps->pic);
-  sps->pic = NULL;
-  GNUNET_TESTING_async_finish (&sps->ac);
-}
-
-
-/**
- * Function to start the retrieval task to retrieve the hello of this peer
- * from the peerstore.
- *
- */
-static void
-retrieve_hello (void *cls)
-{
-  struct GNUNET_TESTING_StartPeerState *sps = cls;
-  sps->rh_task = NULL;
-  sps->pic = GNUNET_PEERSTORE_iterate (sps->ph,
-                                       "transport",
-                                       &sps->id,
-                                       GNUNET_PEERSTORE_TRANSPORT_HELLO_KEY,
-                                       hello_iter_cb,
-                                       sps);
-
-}
 
 
 /**
@@ -254,30 +196,6 @@ start_peer_run (void *cls,
        sps->no,
        GNUNET_i2s_full (&sps->id));
 
-  sps->ph = GNUNET_PEERSTORE_connect (sps->cfg);
-  if (NULL == sps->ph)
-  {
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "Failed to connect to peerstore service for peer `%s': `%s'\n",
-         sps->cfgname,
-         emsg);
-    GNUNET_free (emsg);
-    GNUNET_TESTING_interpreter_fail (is);
-    return;
-  }
-
-  sps->ah = GNUNET_TRANSPORT_application_init (sps->cfg);
-  if (NULL == sps->ah)
-  {
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "Failed to initialize the TRANSPORT application suggestion client handle for peer `%s': `%s'\n",
-         sps->cfgname,
-         emsg);
-    GNUNET_free (emsg);
-    GNUNET_TESTING_interpreter_fail (is);
-    return;
-  }
-  sps->rh_task = GNUNET_SCHEDULER_add_now (retrieve_hello, sps);
   GNUNET_free (home);
   GNUNET_free (transport_unix_path);
   GNUNET_free (tcp_communicator_unix_path);
@@ -376,5 +294,5 @@ GNUNET_TESTING_cmd_start_peer (const char *label,
                                      &start_peer_run,
                                      &start_peer_cleanup,
                                      &start_peer_traits,
-                                     &sps->ac);
+                                     NULL);
 }

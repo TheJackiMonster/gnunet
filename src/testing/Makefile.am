@@ -14,6 +14,7 @@ dist_pkgcfg_DATA = \
   testing.conf
 
 libexec_PROGRAMS = \
+ test_testing_start_with_config \
   gnunet-cmds-helper
 
 plugindir = $(libdir)/gnunet
@@ -29,6 +30,7 @@ gnunet_cmds_helper_LDADD = $(XLIB) \
  $(LTLIBINTL) $(Z_LIBS)
 
 libgnunettesting_la_SOURCES = \
+  testing_api_cmd_stop_peer.c \
   testing_api_cmd_start_peer.c \
   testing_api_cmd_exec_bash_script.c \
   testing_api_cmd_barrier.c \
@@ -51,8 +53,6 @@ libgnunettesting_la_SOURCES = \
 libgnunettesting_la_LIBADD = \
  $(top_builddir)/src/arm/libgnunetarm.la \
  $(top_builddir)/src/util/libgnunetutil.la \
- $(top_builddir)/src/transport/libgnunettransportapplication.la \
-$(top_builddir)/src/peerstore/libgnunetpeerstore.la \
  $(LTLIBINTL)
 libgnunettesting_la_LDFLAGS = \
  $(GN_LIB_LDFLAGS) \
@@ -93,6 +93,13 @@ check_PROGRAMS = \
 #  test_testing_peerstartup2 \
 #  test_testing_servicestartup
 # endif
+
+test_testing_start_with_config_SOURCES = \
+ test_testing_start_with_config.c
+test_testing_start_with_config_LDADD = \
+ $(top_builddir)/src/testing/libgnunettesting.la \
+ $(top_builddir)/src/util/libgnunetutil.la \
+ $(top_builddir)/src/hello/libgnunethello.la 
 
 test_testing_portreservation_SOURCES = \
  test_testing_portreservation.c
