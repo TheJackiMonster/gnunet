@@ -621,6 +621,95 @@ typedef void *
 (*GNUNET_TESTING_notify_connect_cb) (struct GNUNET_TESTING_Interpreter *is,
                                        const struct GNUNET_PeerIdentity *peer);
 
+/**
+ * Struct to store information needed in callbacks.
+ *
+ */
+struct GNUNET_TESTING_ConnectPeersState
+{
+  /**
+   * Receive callback
+   */
+  struct GNUNET_MQ_MessageHandler *handlers;
+
+  /**
+   * A map with struct GNUNET_MQ_Handle values for each peer this peer
+   * is connected to.
+   */
+  struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map;
+
+  /**
+   * Handle for transport.
+   */
+  struct GNUNET_TRANSPORT_ApplicationHandle *ah;
+
+  /**
+   * Core handle.
+   */
+  struct GNUNET_TRANSPORT_CoreHandle *th;
+
+  /**
+   * Context for our asynchronous completion.
+   */
+  struct GNUNET_TESTING_AsyncContext ac;
+
+  /**
+   * The testing system of this node.
+   */
+  const struct GNUNET_TESTING_System *tl_system;
+
+  // Label of the cmd which started the test system.
+  const char *create_label;
+
+  /**
+   * Number globally identifying the node.
+   *
+   */
+  uint32_t num;
+
+  /**
+   * Label of the cmd to start a peer.
+   *
+   */
+  const char *start_peer_label;
+
+  /**
+   * The topology of the test setup.
+   */
+  struct GNUNET_TESTING_NetjailTopology *topology;
+
+  /**
+   * Connections to other peers.
+   */
+  struct GNUNET_TESTING_NodeConnection *node_connections_head;
+
+  struct GNUNET_TESTING_Interpreter *is;
+
+  /**
+   * Number of connections.
+   */
+  unsigned int con_num;
+
+  /**
+   * Number of additional connects this cmd will wait for not triggered by this cmd.
+   */
+  unsigned int additional_connects;
+
+  /**
+ * Number of connections we already have a notification for.
+ */
+  unsigned int con_num_notified;
+
+  /**
+   * Number of additional connects this cmd will wait for not triggered by this cmd we already have a notification for.
+   */
+  unsigned int additional_connects_notified;
+
+  /**
+   * Flag indicating, whether the command is waiting for peers to connect that are configured to connect.
+   */
+  unsigned int wait_for_connect;
+};
 
 /**
  * Struct to store information needed in callbacks.
@@ -899,7 +988,7 @@ struct GNUNET_TESTING_StartPeerState
   op (hello_size, const size_t) \
   op (hello, const char) \
   op (application_handle, const struct GNUNET_TRANSPORT_ApplicationHandle) \
-  op (connect_peer_state, const struct ConnectPeersState) \
+  op (connect_peer_state, const struct GNUNET_TESTING_ConnectPeersState) \
   op (state, const struct GNUNET_TESTING_StartPeerState) \
   op (broadcast, const enum GNUNET_GenericReturnValue)
 

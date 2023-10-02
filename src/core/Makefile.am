@@ -3,6 +3,8 @@ AM_CPPFLAGS = -I$(top_srcdir)/src/include
 
 pkgcfgdir= $(pkgdatadir)/config.d/
 
+plugindir = $(libdir)/gnunet
+
 libexecdir= $(pkglibdir)/libexec/
 
 pkgcfg_DATA = \
@@ -13,9 +15,15 @@ if USE_COVERAGE
   XLIB = -lgcov
 endif
 
+plugin_LTLIBRARIES = \
+  libgnunet_test_core_plugin_cmd_just_run.la
+
+TESTING_LIBS = \
+  libgnunetcoretesting.la
 
 lib_LTLIBRARIES = \
-  libgnunetcore.la
+  libgnunetcore.la \
+  $(TESTING_LIBS)
 
 libgnunetcore_la_SOURCES = \
   core_api.c core.h \
@@ -26,6 +34,35 @@ libgnunetcore_la_LIBADD = \
 libgnunetcore_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)  \
   -version-info 0:1:0
+
+libgnunet_test_core_plugin_cmd_just_run_la_SOURCES = \
+ test_core_plugin_cmd_just_run.c
+libgnunet_test_core_plugin_cmd_just_run_la_LIBADD = \
+  $(top_builddir)/src/transport/libgnunettransportapplication.la \
+  $(top_builddir)/src/transport/libgnunettransportcore.la \
+  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/core/libgnunetcoretesting.la \
+  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/hello/libgnunethello.la \
+  $(top_builddir)/src/ats/libgnunetats.la \
+  $(top_builddir)/src/arm/libgnunetarm.la \
+  $(top_builddir)/src/util/libgnunetutil.la \
+  $(LTLIBINTL)
+libgnunet_test_core_plugin_cmd_just_run_la_LDFLAGS = \
+  $(GN_PLUGIN_LDFLAGS)
+
+libgnunetcoretesting_la_SOURCES = \
+  core_api_cmd_connecting_peers.c 
+libgnunetcoretesting_la_LIBADD = \
+  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/transport/libgnunettransportapplication.la \
+  $(top_builddir)/src/transport/libgnunettransportcore.la \
+  $(top_builddir)/src/util/libgnunetutil.la
+libgnunetcoretesting_la_LDFLAGS = \
+  $(GN_LIBINTL) \
+  $(GN_LIB_LDFLAGS) \
+  -version-info 0:0:0
 
 
 libexec_PROGRAMS = \
@@ -60,31 +97,17 @@ TESTING_TESTS = \
 
 check_PROGRAMS = \
  test_core_api_start_only \
- test_core_api \
- test_core_api_reliability \
- test_core_quota_compliance_symmetric \
- test_core_quota_compliance_asymmetric_send_limited \
- test_core_quota_compliance_asymmetric_recv_limited \
  $(TESTING_TESTS)
+
+# Only test TNG if we run experimental
+check_SCRIPTS= \
+  test_core_start_testcase.sh
 
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
-TESTS = $(check_PROGRAMS)
+TESTS = $(check_PROGRAMS) \
+ $(check_SCRIPTS)
 endif
-
-test_core_api_SOURCES = \
- test_core_api.c
-test_core_api_LDADD = \
- libgnunetcore.la \
- $(top_builddir)/src/ats/libgnunetats.la \
- $(top_builddir)/src/util/libgnunetutil.la
-
-test_core_api_reliability_SOURCES = \
- test_core_api_reliability.c
-test_core_api_reliability_LDADD = \
- libgnunetcore.la \
- $(top_builddir)/src/ats/libgnunetats.la \
- $(top_builddir)/src/util/libgnunetutil.la
 
 test_core_api_send_to_self_SOURCES = \
  test_core_api_send_to_self.c
@@ -100,31 +123,8 @@ test_core_api_start_only_LDADD = \
  libgnunetcore.la \
  $(top_builddir)/src/util/libgnunetutil.la
 
-test_core_quota_compliance_symmetric_SOURCES = \
- test_core_quota_compliance.c
-test_core_quota_compliance_symmetric_LDADD = \
- libgnunetcore.la \
- $(top_builddir)/src/ats/libgnunetats.la \
- $(top_builddir)/src/util/libgnunetutil.la \
- $(top_builddir)/src/statistics/libgnunetstatistics.la
-
-test_core_quota_compliance_asymmetric_send_limited_SOURCES = \
- test_core_quota_compliance.c
-test_core_quota_compliance_asymmetric_send_limited_LDADD = \
- libgnunetcore.la \
- $(top_builddir)/src/ats/libgnunetats.la \
- $(top_builddir)/src/util/libgnunetutil.la \
- $(top_builddir)/src/statistics/libgnunetstatistics.la
-
-test_core_quota_compliance_asymmetric_recv_limited_SOURCES = \
- test_core_quota_compliance.c
-test_core_quota_compliance_asymmetric_recv_limited_LDADD = \
- libgnunetcore.la \
- $(top_builddir)/src/ats/libgnunetats.la \
- $(top_builddir)/src/util/libgnunetutil.la \
- $(top_builddir)/src/statistics/libgnunetstatistics.la
-
 EXTRA_DIST = \
+  test_core_start_testcase.sh \
   test_core_defaults.conf \
   test_core_api_data.conf \
   test_core_api_peer1.conf \
