@@ -195,11 +195,10 @@ host_processor (void *cls,
 {
   size_t old;
   size_t s;
-  struct GNUNET_HELLO_Builder *hello_builder;
   struct GNUNET_MessageHeader *hello;
   struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
   struct GNUNET_TIME_Absolute hello_exp;
-  
+
   if (NULL != emsg)
   {
     GNUNET_assert (NULL == &record->peer);
@@ -226,19 +225,17 @@ host_processor (void *cls,
       GNUNET_break (0);
       return;
     }
-    hello_builder = GNUNET_HELLO_builder_new (&record->peer);
-    hello_exp = GNUNET_HELLO_builder_get_expiration_time (hello_builder, hello);
-    if (GNUNET_TIME_absolute_cmp (hello_exp, < , now))
+    hello_exp = GNUNET_HELLO_builder_get_expiration_time (hello);
+    if (GNUNET_TIME_absolute_cmp (hello_exp, <, now))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "HELLO for peer `%4s' has expired address, not suitable for hostlist!\n",
                   GNUNET_i2s (&record->peer));
       GNUNET_STATISTICS_update (stats,
                                 gettext_noop (
-                                              "Expired HELLO encountered (ignored)"),
+                                  "Expired HELLO encountered (ignored)"),
                                 1,
                                 GNUNET_NO);
-      GNUNET_HELLO_builder_free (hello_builder);
       return;
     }
   }
@@ -258,7 +255,6 @@ host_processor (void *cls,
                                 "bytes not included in hostlist (size limit)"),
                               s,
                               GNUNET_NO);
-    GNUNET_HELLO_builder_free (hello_builder);
     return;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
@@ -267,7 +263,6 @@ host_processor (void *cls,
               (unsigned int) s);
   GNUNET_array_grow (builder->data, builder->size, old + s);
   GNUNET_memcpy (&builder->data[old], hello, s);
-  GNUNET_HELLO_builder_free (hello_builder);
 }
 
 

@@ -68,7 +68,6 @@ got_hello (void *cls,
            const char *err_msg)
 {
   struct CadetPeer *peer;
-  struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (hello);
 
   if ((NULL == id) ||
       (NULL == hello))
@@ -81,19 +80,17 @@ got_hello (void *cls,
     GCD_hello_update ();
     return;
   }
-  
+
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Hello for %s (%d bytes), expires on %s\n",
        GNUNET_i2s (id),
        sizeof (hello),
        GNUNET_STRINGS_absolute_time_to_string (
-                                               GNUNET_HELLO_builder_get_expiration_time (builder,
-                                                                                         hello)));
+         GNUNET_HELLO_builder_get_expiration_time (hello)));
   peer = GCP_get (id,
                   GNUNET_YES);
   GCP_set_hello (peer,
                  hello);
-  GNUNET_HELLO_builder_free (builder);
 }
 
 
@@ -108,8 +105,8 @@ GCH_init (const struct GNUNET_CONFIGURATION_Handle *c)
   GNUNET_assert (NULL == peerstore_notify);
   peerstore = GNUNET_PEERSTORE_connect (c);
   peerstore_notify =
-      GNUNET_PEERSTORE_hello_changed_notify (peerstore, GNUNET_NO, &got_hello,
-                                             NULL);
+    GNUNET_PEERSTORE_hello_changed_notify (peerstore, GNUNET_NO, &got_hello,
+                                           NULL);
 }
 
 

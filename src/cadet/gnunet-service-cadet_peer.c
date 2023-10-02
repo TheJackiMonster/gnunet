@@ -491,15 +491,13 @@ consider_peer_destroy (struct CadetPeer *cp)
     return; /* still relevant! */
   if (NULL != cp->hello)
   {
-    struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (cp->hello);
-
     /* relevant only until HELLO expires */
-    exp = GNUNET_TIME_absolute_get_remaining (GNUNET_HELLO_builder_get_expiration_time (builder,
-                                                                                        cp->hello));
+    exp = GNUNET_TIME_absolute_get_remaining (
+      GNUNET_HELLO_builder_get_expiration_time (cp
+                                                ->hello));
     cp->destroy_task = GNUNET_SCHEDULER_add_delayed (exp,
                                                      &destroy_peer,
                                                      cp);
-    GNUNET_HELLO_builder_free (builder);
     return;
   }
   cp->destroy_task = GNUNET_SCHEDULER_add_delayed (IDLE_PEER_TIMEOUT,
@@ -1323,14 +1321,15 @@ GCP_set_hello (struct CadetPeer *cp,
   if (NULL != cp->hello)
   {
     struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
-    struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (hello);
-    struct GNUNET_HELLO_Builder *cp_builder = GNUNET_HELLO_builder_from_msg (cp->hello);
-    struct GNUNET_TIME_Absolute new_hello_exp = GNUNET_HELLO_builder_get_expiration_time (builder,
-                                                                                          hello);
-    struct GNUNET_TIME_Absolute old_hello_exp = GNUNET_HELLO_builder_get_expiration_time (cp_builder,
-                                                                                          cp->hello);
+    
+    struct GNUNET_TIME_Absolute new_hello_exp =
+      GNUNET_HELLO_builder_get_expiration_time (hello);
+    struct GNUNET_TIME_Absolute old_hello_exp =
+      GNUNET_HELLO_builder_get_expiration_time (cp
+                                                ->hello);
 
-    if (GNUNET_TIME_absolute_cmp (new_hello_exp, > , now) && GNUNET_TIME_absolute_cmp (new_hello_exp, > , old_hello_exp))
+    if (GNUNET_TIME_absolute_cmp (new_hello_exp, >, now) &&
+        GNUNET_TIME_absolute_cmp (new_hello_exp, >, old_hello_exp))
     {
       GNUNET_free (cp->hello);
       cp->hello = GNUNET_malloc (size);
@@ -1340,8 +1339,6 @@ GCP_set_hello (struct CadetPeer *cp,
     {
       return;
     }
-    GNUNET_HELLO_builder_free (builder);
-    GNUNET_HELLO_builder_free (cp_builder);
   }
   else
   {

@@ -120,13 +120,12 @@ GNUNET_HELLO_builder_from_url (const char *url);
 /**
  * Get the expiration time for this HELLO.
  *
- * @param builder builder to serialize
  * @param  msg The hello msg.
  * @return The expiration time.
  */
 struct GNUNET_TIME_Absolute
-GNUNET_HELLO_builder_get_expiration_time (struct GNUNET_HELLO_Builder *builder,
-                                          const struct GNUNET_MessageHeader *msg);
+GNUNET_HELLO_builder_get_expiration_time (const struct
+                                          GNUNET_MessageHeader *msg);
 
 
 /**
