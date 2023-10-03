@@ -193,11 +193,29 @@ gnunet_try_connect (void *cls,
 {
   struct Plugin *plugin = cls;
   enum GNUNET_NetworkType nt = 0;
-
+  char *addr;
+  const char *eou;
+  int pfx_len;
+  
+  eou = strstr (address,
+                  "://");
+  if (NULL == eou)
+  {
+    GNUNET_break (0);
+    return;
+  }
+  pfx_len = eou - address;
+  eou += 3;
+  GNUNET_asprintf (&addr,
+                   "%.*s-%s",
+                   pfx_len,
+                   address,
+                   eou);
   GNUNET_TRANSPORT_application_validate (plugin->transport,
                                          pid,
                                          nt,
-                                         address);
+                                         addr);
+  GNUNET_free (addr);
 }
 
 
@@ -356,6 +374,22 @@ core_disconnect_cb (void *cls,
 }
 
 
+static void
+add_addr (void *cls,
+          const char *addr)
+{
+  struct Plugin *plugin = cls;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG ,
+              "peerinfo_cb addr %s\n",
+              addr);
+  plugin->env->address_add_cb (plugin->env->cls,
+                               addr,
+                               &plugin->src,
+                               &plugin->src.app_ctx);
+}
+
+
 /**
  * Find the @a hello for our identity and then pass
  * it to the DHT as a URL.  Note that we only
@@ -387,16 +421,11 @@ peerinfo_cb (void *cls,
                      &plugin->my_identity))
     return;
   builder = GNUNET_HELLO_builder_from_msg (hello);
-  addr = GNUNET_HELLO_builder_to_url (builder,
-                                      plugin->my_priv);
-  if (NULL == addr)
-    return;
-  plugin->env->address_add_cb (plugin->env->cls,
-                               addr,
-                               &plugin->src,
-                               &plugin->src.app_ctx);
-  GNUNET_free (addr);
-  GNUNET_HELLO_Builder_free (builder);
+  GNUNET_HELLO_builder_iterate (builder,
+                                (struct GNUNET_PeerIdentity *) peer,
+                                add_addr,
+                                plugin);
+  GNUNET_HELLO_builder_free (builder);
 }
 
 
@@ -515,7 +544,7 @@ libgnunet_plugin_dhtu_gnunet_done (void *cls)
   if (NULL != plugin->peerstore_notify)
     GNUNET_PEERSTORE_hello_changed_notify_cancel (plugin->peerstore_notify);
   if (NULL != plugin->peerstore)
-    GNUNET_PEERSTORE_disconnect (peerstore, GNUNET_YES);
+    GNUNET_PEERSTORE_disconnect (plugin->peerstore, GNUNET_YES);
   GPI_plugins_unload ();
   GNUNET_free (plugin->my_priv);
   GNUNET_free (plugin);

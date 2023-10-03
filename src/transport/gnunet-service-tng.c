@@ -2045,9 +2045,9 @@ struct IncomingRequest
   struct IncomingRequest *prev;
 
   /**
-   * Handle for watching the peerstore for HELLOs for this peer.
+   * Notify context for new HELLOs.
    */
-  struct GNUNET_PEERSTORE_WatchContext *wc;
+  struct GNUNET_PEERSTORE_NotifyContext *nc;
 
   /**
    * Which peer is this about?
@@ -2072,9 +2072,9 @@ struct PeerRequest
   struct TransportClient *tc;
 
   /**
-   * Handle for watching the peerstore for HELLOs for this peer.
+   * Notify context for new HELLOs.
    */
-  struct GNUNET_PEERSTORE_WatchContext *wc;
+  struct GNUNET_PEERSTORE_NotifyContext *nc;
 
   /**
    * What kind of performance preference does this @e tc have?
@@ -2924,8 +2924,8 @@ free_incoming_request (struct IncomingRequest *ir)
   GNUNET_CONTAINER_DLL_remove (ir_head, ir_tail, ir);
   GNUNET_assert (ir_total > 0);
   ir_total--;
-  GNUNET_PEERSTORE_watch_cancel (ir->wc);
-  ir->wc = NULL;
+  GNUNET_PEERSTORE_hello_changed_notify_cancel (ir->nc);
+  ir->nc = NULL;
   GNUNET_free (ir);
 }
 
@@ -3902,8 +3902,8 @@ stop_peer_request (void *cls,
   struct TransportClient *tc = cls;
   struct PeerRequest *pr = value;
 
-  GNUNET_PEERSTORE_watch_cancel (pr->wc);
-  pr->wc = NULL;
+  GNUNET_PEERSTORE_hello_changed_notify_cancel (pr->nc);
+  pr->nc = NULL;
   GNUNET_assert (
     GNUNET_YES ==
     GNUNET_CONTAINER_multipeermap_remove (tc->details.application.requests,
@@ -4021,8 +4021,12 @@ notify_client_connect_info (void *cls,
                             void *value)
 {
   struct TransportClient *tc = cls;
+  struct Neighbour *n = value;
+  struct VirtualLink *vl = n->vl;
 
-  (void) value;
+  if ((NULL == vl) || (GNUNET_NO == vl->confirmed))
+    return GNUNET_OK;
+
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Telling new CORE client about existing connection to %s\n",
               GNUNET_i2s (pid));
@@ -5545,8 +5549,17 @@ store_pi (void *cls)
   struct GNUNET_TIME_Absolute expiration;
   enum GNUNET_GenericReturnValue add_result;
   struct GNUNET_MQ_Envelope *env;
-  const struct GNUNET_MessageHeader *msg = GNUNET_MQ_env_get_msg (env);
+  const struct GNUNET_MessageHeader *msg;
+  const char *dash;
+  char *prefix = GNUNET_HELLO_address_to_prefix (ale->address);
+  char *address_uri;
 
+  dash = strchr (ale->address, '-');
+  dash++;
+  GNUNET_asprintf (&address_uri,
+                     "%s://%s",
+                     prefix,
+                     dash);
   ale->st = NULL;
   expiration = GNUNET_TIME_relative_to_absolute (ale->expiration);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -5554,19 +5567,23 @@ store_pi (void *cls)
               ale->address,
               GNUNET_STRINGS_absolute_time_to_string (expiration));
   add_result = GNUNET_HELLO_builder_add_address (GST_my_hello,
-                                      ale->address);
+                                                 address_uri);
   env = GNUNET_HELLO_builder_to_env (GST_my_hello,
                                      GST_my_private_key,
                                      GNUNET_TIME_UNIT_ZERO);
+  msg = GNUNET_MQ_env_get_msg (env);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "store_pi 1\n");
   if (GNUNET_YES == add_result)
     shc = GNUNET_PEERSTORE_hello_add (peerstore,
-                                msg,
-                                shc_cont,
-                                shc);
+                                      msg,
+                                      shc_cont,
+                                      shc);
   else if (GNUNET_SYSERR == add_result)
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Error adding address to peerstore hello!\n");
-
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "store_pi 2\n");
   GNUNET_HELLO_sign_address (ale->address,
                              ale->nt,
                              hello_mono_time,
@@ -5585,6 +5602,8 @@ store_pi (void *cls)
                                     ale);
   GNUNET_free (addr);
   GNUNET_free (env);
+  GNUNET_free (prefix);
+  GNUNET_free (address_uri);
   if (NULL == ale->sc)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -8633,6 +8652,34 @@ start_address_validation (const struct GNUNET_PeerIdentity *pid,
 }
 
 
+static void
+hello_for_incoming_cb (void *cls,
+                       const char *uri)
+{
+  const struct GNUNET_PeerIdentity *peer = cls;
+  int pfx_len;
+  const char *eou;
+  char *address;
+
+  eou = strstr (uri,
+                "://");
+  pfx_len = eou - uri;
+  eou += 3;
+  GNUNET_asprintf (&address,
+                   "%.*s-%s",
+                   pfx_len,
+                   uri,
+                   eou);
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "helo for client %s\n",
+              address);
+
+  start_address_validation (peer, address);
+  GNUNET_free (address);
+}
+
+
 /**
  * Function called by PEERSTORE for each matching record.
  *
@@ -8642,11 +8689,12 @@ start_address_validation (const struct GNUNET_PeerIdentity *pid,
  */
 static void
 handle_hello_for_incoming (void *cls,
-                           const struct GNUNET_PEERSTORE_Record *record,
+                           const struct GNUNET_PeerIdentity *peer,
+                           const struct GNUNET_MessageHeader *hello,
                            const char *emsg)
 {
   struct IncomingRequest *ir = cls;
-  const char *val;
+  struct GNUNET_HELLO_Builder *builder;
 
   if (NULL != emsg)
   {
@@ -8655,13 +8703,13 @@ handle_hello_for_incoming (void *cls,
                 emsg);
     return;
   }
-  val = record->value;
-  if ((0 == record->value_size) || ('\0' != val[record->value_size - 1]))
-  {
-    GNUNET_break (0);
+  if (0 == GNUNET_memcmp (peer, &GST_my_identity))
     return;
-  }
-  start_address_validation (&ir->pid, (const char *) record->value);
+  builder = GNUNET_HELLO_builder_new (peer);
+  GNUNET_HELLO_builder_iterate (builder,
+                                (struct GNUNET_PeerIdentity *) peer,
+                                hello_for_incoming_cb,
+                                (struct GNUNET_PeerIdentity *) peer);
 }
 
 
@@ -8762,12 +8810,11 @@ handle_validation_challenge (
   ir = GNUNET_new (struct IncomingRequest);
   ir->pid = sender;
   GNUNET_CONTAINER_DLL_insert (ir_head, ir_tail, ir);
-  ir->wc = GNUNET_PEERSTORE_watch (peerstore,
-                                   "transport",
-                                   &ir->pid,
-                                   GNUNET_PEERSTORE_HELLO_KEY,
-                                   &handle_hello_for_incoming,
-                                   ir);
+
+  ir->nc = GNUNET_PEERSTORE_hello_changed_notify (peerstore,
+                                                  GNUNET_NO,
+                                                  &handle_hello_for_incoming,
+                                                  NULL);
   ir_total++;
   /* Bound attempts we do in parallel here, might otherwise get excessive */
   while (ir_total > MAX_INCOMING_REQUEST)
@@ -8789,8 +8836,6 @@ struct CheckKnownChallengeContext
    * Set to a matching validation state, if one was found.
    */
   struct ValidationState *vs;
-
-  char *address_prefix;
 };
 
 
@@ -8812,8 +8857,7 @@ check_known_challenge (void *cls,
   struct ValidationState *vs = value;
 
   (void) pid;
-  if (0 != GNUNET_memcmp (&vs->challenge, ckac->challenge) ||
-      NULL == strstr (vs->address, ckac->address_prefix))
+  if (0 != GNUNET_memcmp (&vs->challenge, ckac->challenge))
     return GNUNET_OK;
   ckac->vs = vs;
   return GNUNET_NO;
@@ -8883,14 +8927,12 @@ handle_validation_response (
   struct CommunicatorMessageContext *cmc = cls;
   struct ValidationState *vs;
   struct CheckKnownChallengeContext ckac = { .challenge = &tvr->challenge,
-                                             .vs = NULL,
-                                             .address_prefix =
-                                               cmc->tc->details.communicator.
-                                               address_prefix};
+                                             .vs = NULL};
   struct GNUNET_TIME_Absolute origin_time;
   struct Queue *q;
   struct Neighbour *n;
   struct VirtualLink *vl;
+  const struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get_monotonic (GST_cfg);
 
   /* check this is one of our challenges */
   (void) GNUNET_CONTAINER_multipeermap_get_multiple (validation_map,
@@ -11210,6 +11252,34 @@ handle_suggest_cancel (void *cls, const struct ExpressPreferenceMessage *msg)
 }
 
 
+static void
+hello_for_client_cb (void *cls,
+                       const char *uri)
+{
+  const struct GNUNET_PeerIdentity *peer = cls;
+  int pfx_len;
+  const char *eou;
+  char *address;
+
+  eou = strstr (uri,
+                "://");
+  pfx_len = eou - uri;
+  eou += 3;
+  GNUNET_asprintf (&address,
+                   "%.*s-%s",
+                   pfx_len,
+                   uri,
+                   eou);
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "hello for client %s\n",
+              address);
+  
+  start_address_validation (peer, address);
+  GNUNET_free (address);
+}
+
+
 /**
  * Function called by PEERSTORE for each matching record.
  *
@@ -11219,11 +11289,13 @@ handle_suggest_cancel (void *cls, const struct ExpressPreferenceMessage *msg)
  */
 static void
 handle_hello_for_client (void *cls,
-                         const struct GNUNET_PEERSTORE_Record *record,
+                         const struct GNUNET_PeerIdentity *peer,
+                         const struct GNUNET_MessageHeader *hello,
                          const char *emsg)
 {
-  struct PeerRequest *pr = cls;
+  (void *) cls;
   const char *val;
+  struct GNUNET_HELLO_Builder *builder;
 
   if (NULL != emsg)
   {
@@ -11232,13 +11304,13 @@ handle_hello_for_client (void *cls,
                 emsg);
     return;
   }
-  val = record->value;
-  if ((0 == record->value_size) || ('\0' != val[record->value_size - 1]))
-  {
-    GNUNET_break (0);
+  if (0 == GNUNET_memcmp (peer, &GST_my_identity))
     return;
-  }
-  start_address_validation (&pr->pid, (const char *) record->value);
+  builder = GNUNET_HELLO_builder_new (peer);
+  GNUNET_HELLO_builder_iterate (builder,
+                                (struct GNUNET_PeerIdentity *) peer,
+                                hello_for_client_cb,
+                                NULL);
 }
 
 
@@ -11288,12 +11360,10 @@ handle_suggest (void *cls, const struct ExpressPreferenceMessage *msg)
     GNUNET_SERVICE_client_drop (tc->client);
     return;
   }
-  pr->wc = GNUNET_PEERSTORE_watch (peerstore,
-                                   "transport",
-                                   &pr->pid,
-                                   GNUNET_PEERSTORE_HELLO_KEY,
-                                   &handle_hello_for_client,
-                                   pr);
+  pr->nc = GNUNET_PEERSTORE_hello_changed_notify (peerstore,
+                                                  GNUNET_NO,
+                                                  &handle_hello_for_client,
+                                                  NULL);
   GNUNET_SERVICE_client_continue (tc->client);
 }
 
@@ -11592,7 +11662,6 @@ run (void *cls,
     GNUNET_CONTAINER_heap_create (GNUNET_CONTAINER_HEAP_ORDER_MIN);
   GST_my_private_key =
     GNUNET_CRYPTO_eddsa_key_create_from_configuration (GST_cfg);
-  GST_my_hello = GNUNET_HELLO_builder_new (&GST_my_identity);
   if (NULL == GST_my_private_key)
   {
     GNUNET_log (
@@ -11607,6 +11676,7 @@ run (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "My identity is `%s'\n",
               GNUNET_i2s_full (&GST_my_identity));
+  GST_my_hello = GNUNET_HELLO_builder_new (&GST_my_identity);
   GST_stats = GNUNET_STATISTICS_create ("transport", GST_cfg);
   GNUNET_SCHEDULER_add_shutdown (&shutdown_task, NULL);
   peerstore = GNUNET_PEERSTORE_connect (GST_cfg);

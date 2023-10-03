@@ -446,12 +446,24 @@ GNUNET_HELLO_builder_from_block (const void *block,
 
 
 struct GNUNET_TIME_Absolute
-GNUNET_HELLO_builder_get_expiration_time (struct GNUNET_HELLO_Builder *builder,
-                                          const struct GNUNET_MessageHeader *msg)
+GNUNET_HELLO_builder_get_expiration_time (const struct
+                                          GNUNET_MessageHeader *msg)
 {
-  struct BlockHeader *bh = (struct BlockHeader *) &msg[1];
+  if (GNUNET_MESSAGE_TYPE_HELLO_URI == ntohs (msg->type))
+  {
+    const struct HelloUriMessage *h = (struct HelloUriMessage *) msg;
+    const struct BlockHeader *bh = (const struct BlockHeader *) &h[1];
 
-  return GNUNET_TIME_absolute_ntoh (bh->expiration_time);
+    return GNUNET_TIME_absolute_ntoh (bh->expiration_time);
+  }
+  else if (GNUNET_MESSAGE_TYPE_DHT_P2P_HELLO == ntohs (msg->type))
+  {
+    const struct DhtHelloMessage *dht_hello = (struct DhtHelloMessage *) msg;
+
+    return GNUNET_TIME_absolute_ntoh (dht_hello->expiration_time);
+  }
+  else
+    GNUNET_break (0);
 }
 
 
