@@ -142,7 +142,7 @@ libgnunettransporttesting2 = library('gnunettransporttesting2',
                        libgnunettransportapplication_dep,
                        libgnunettransport_dep,
                        libgnunetpeerstore_dep,
-                       libgnunetats_dep, # FIXME WHY ATS here? Isnt this TNG?
+                       libgnunetats_dep,
                        libgnunettesting_dep,
                        libgnunethello_dep],
         include_directories: [incdir, configuration_inc],
@@ -222,7 +222,6 @@ libgnunettesttransport_cmd_simplesend = library('gnunet_test_transport_plugin_cm
           libgnunetpeerstore_dep,
           libgnunetstatistics_dep,
           libgnunethello_dep,
-          libgnunetats_dep,
           libgnunetarm_dep,
           libgnunetutil_dep
           ],
@@ -241,7 +240,6 @@ libgnunettesttransport_cmd_simplesendbc = library('gnunet_test_transport_plugin_
           libgnunetpeerstore_dep,
           libgnunetstatistics_dep,
           libgnunethello_dep,
-          libgnunetats_dep,
           libgnunetarm_dep,
           libgnunetutil_dep
           ],
@@ -260,7 +258,6 @@ libgnunettesttransport_cmd_simplesenddv = library('gnunet_test_transport_plugin_
           libgnunetpeerstore_dep,
           libgnunetstatistics_dep,
           libgnunethello_dep,
-          libgnunetats_dep,
           libgnunetarm_dep,
           libgnunetutil_dep
           ],
@@ -279,7 +276,6 @@ libgnunettesttransport_cmd_simplesendperf = library('gnunet_test_transport_plugi
           libgnunetpeerstore_dep,
           libgnunetstatistics_dep,
           libgnunethello_dep,
-          libgnunetats_dep,
           libgnunetarm_dep,
           libgnunetutil_dep
           ],
@@ -298,7 +294,6 @@ libgnunettesttransport_cmd_udpback = library('gnunet_test_transport_plugin_cmd_u
           libgnunetpeerstore_dep,
           libgnunetstatistics_dep,
           libgnunethello_dep,
-          libgnunetats_dep,
           libgnunetarm_dep,
           libgnunetutil_dep
           ],
@@ -317,7 +312,6 @@ libgnunettesttransport_cmd_natupnp = library('gnunet_test_transport_plugin_cmd_n
           libgnunetpeerstore_dep,
           libgnunetstatistics_dep,
           libgnunethello_dep,
-          libgnunetats_dep,
           libgnunetarm_dep,
           libgnunetutil_dep
           ],

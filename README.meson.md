@@ -35,3 +35,9 @@ $ meson compile
 $ meson install
 $ meson dist
 ```
+
+
+## Open issues
+
+  - Tests are always built: https://github.com/mesonbuild/meson/pull/6511
+  - libtool versioning is different from soversion and version in meson
