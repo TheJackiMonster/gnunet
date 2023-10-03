@@ -8626,7 +8626,7 @@ start_address_validation (const struct GNUNET_PeerIdentity *pid,
     }
     return;
   }
-  now = GNUNET_TIME_absolute_get ();
+  now = GNUNET_TIME_absolute_get_monotonic (GST_cfg);
   vs = GNUNET_new (struct ValidationState);
   vs->pid = *pid;
   vs->valid_until =
@@ -9009,6 +9009,19 @@ handle_validation_response (
     vs->validated_until,
     GNUNET_TIME_relative_multiply (vs->validation_rtt,
                                    VALIDATION_RTT_BUFFER_FACTOR));
+  if (GNUNET_TIME_absolute_cmp (vs->first_challenge_use, <, now))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "First challenge use is now %" PRIu64 " %s \n",
+                vs->first_challenge_use.abs_value_us,
+                GNUNET_sh2s (&vs->challenge.value));
+    vs->first_challenge_use = now;
+  }
+  else
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "First challenge use is later %" PRIu64 " %s \n",
+                vs->first_challenge_use.abs_value_us,
+                GNUNET_sh2s (&vs->challenge.value));
   vs->last_challenge_use =
     GNUNET_TIME_UNIT_ZERO_ABS; /* challenge was not yet used */
   update_next_challenge_time (vs, vs->first_challenge_use);
@@ -10650,6 +10663,8 @@ validation_start_cb (void *cls)
 {
   struct ValidationState *vs;
   struct Queue *q;
+  const struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get_monotonic (
+    GST_cfg);
 
   (void) cls;
   validation_task = NULL;
@@ -10673,6 +10688,13 @@ validation_start_cb (void *cls)
                  happen if we're really a lonely peer */
   }
   q = find_queue (&vs->pid, vs->address);
+  if (GNUNET_TIME_absolute_cmp (vs->first_challenge_use, >, now))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "To early to start next address validation for challenge %s\n",
+                GNUNET_sh2s (&vs->challenge.value));
+    return;
+  }
   if (NULL == q)
   {
     vs->awaiting_queue = GNUNET_YES;
