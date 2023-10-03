@@ -877,7 +877,8 @@ GNUNET_OS_process_wait (struct GNUNET_OS_Process *proc)
     ;
   if (pid != ret)
   {
-    LOG_STRERROR (GNUNET_ERROR_TYPE_WARNING, "waitpid");
+    LOG_STRERROR (GNUNET_ERROR_TYPE_WARNING,
+                  "waitpid");
     return GNUNET_SYSERR;
   }
   return GNUNET_OK;

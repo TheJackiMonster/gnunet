@@ -52,6 +52,7 @@
  * @}
  */
 
+#include "gnunet_common.h"
 #if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
 #error "Only <gnunet_util_lib.h> can be included directly."
 #endif
@@ -177,7 +178,7 @@ GNUNET_CONTAINER_bloomfilter_init (const char *data,
  * @param size the size of the given @a data array
  * @return #GNUNET_SYSERR if the data array of the wrong size
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_bloomfilter_get_raw_data (
   const struct GNUNET_CONTAINER_BloomFilter *bf,
   char *data,
@@ -291,7 +292,7 @@ GNUNET_CONTAINER_bloomfilter_clear (struct GNUNET_CONTAINER_BloomFilter *bf);
  * @param size size of @a data
  * @return #GNUNET_OK on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_bloomfilter_or (struct GNUNET_CONTAINER_BloomFilter *bf,
                                  const char *data,
                                  size_t size);
@@ -307,7 +308,7 @@ GNUNET_CONTAINER_bloomfilter_or (struct GNUNET_CONTAINER_BloomFilter *bf,
  * @param to_or the bloomfilter to or-in
  * @return #GNUNET_OK on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_bloomfilter_or2 (
   struct GNUNET_CONTAINER_BloomFilter *bf,
   const struct GNUNET_CONTAINER_BloomFilter *to_or);
@@ -577,7 +578,7 @@ GNUNET_CONTAINER_multihashmap_size (
  * @return the number of key value pairs processed,
  *         #GNUNET_SYSERR if it aborted iteration
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multihashmap_iterate (
   struct GNUNET_CONTAINER_MultiHashMap *map,
   GNUNET_CONTAINER_MultiHashMapIteratorCallback it,
@@ -646,7 +647,7 @@ GNUNET_CONTAINER_multihashmap_iterator_destroy (
  * @return the number of key value pairs processed,
  *         #GNUNET_SYSERR if it aborted iteration
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multihashmap_get_multiple (
   struct GNUNET_CONTAINER_MultiHashMap *map,
   const struct GNUNET_HashCode *key,
@@ -1423,7 +1424,7 @@ GNUNET_CONTAINER_multiuuidmap_size (
  * @return the number of key value pairs processed,
  *         #GNUNET_SYSERR if it aborted iteration
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multiuuidmap_iterate (
   struct GNUNET_CONTAINER_MultiUuidmap *map,
   GNUNET_CONTAINER_MultiUuidmapIteratorCallback it,

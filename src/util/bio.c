@@ -23,6 +23,7 @@
  * @author Christian Grothoff
  */
 
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 
@@ -158,7 +159,7 @@ GNUNET_BIO_read_open_buffer (void *buffer, size_t size)
  *             value is #GNUNET_SYSERR
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BIO_read_close (struct GNUNET_BIO_ReadHandle *h, char **emsg)
 {
   int err;
@@ -287,7 +288,7 @@ read_from_buffer (struct GNUNET_BIO_ReadHandle *h,
  * @param len the number of bytes to read
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on failure
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BIO_read (struct GNUNET_BIO_ReadHandle *h,
                  const char *what,
                  void *result,
@@ -326,7 +327,7 @@ GNUNET_BIO_read (struct GNUNET_BIO_ReadHandle *h,
  * @param max_length maximum allowed length for the string
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on failure
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BIO_read_string (struct GNUNET_BIO_ReadHandle *h,
                         const char *what,
                         char **result,
@@ -388,7 +389,7 @@ GNUNET_BIO_read_string (struct GNUNET_BIO_ReadHandle *h,
  * @param what describes what is being read (for error message creation)
  * @param f address of float to read
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BIO_read_float (struct GNUNET_BIO_ReadHandle *h,
                        const char *what,
                        float *f)
@@ -405,7 +406,7 @@ GNUNET_BIO_read_float (struct GNUNET_BIO_ReadHandle *h,
  * @param what describes what is being read (for error message creation)
  * @param f address of double to read
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BIO_read_double (struct GNUNET_BIO_ReadHandle *h,
                         const char *what,
                         double *f)
@@ -423,7 +424,7 @@ GNUNET_BIO_read_double (struct GNUNET_BIO_ReadHandle *h,
  * @param i where to store the data
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BIO_read_int32 (struct GNUNET_BIO_ReadHandle *h,
                        const char *what,
                        int32_t *i)
@@ -445,7 +446,7 @@ GNUNET_BIO_read_int32 (struct GNUNET_BIO_ReadHandle *h,
  * @param i where to store the data
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BIO_read_int64 (struct GNUNET_BIO_ReadHandle *h,
                        const char *what,
                        int64_t *i)
@@ -748,7 +749,7 @@ write_to_buffer (struct GNUNET_BIO_WriteHandle *h,
  * @param n number of bytes to write
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BIO_write (struct GNUNET_BIO_WriteHandle *h,
                   const char *what,
                   const void *buffer,
@@ -785,7 +786,7 @@ GNUNET_BIO_write (struct GNUNET_BIO_WriteHandle *h,
  * @param s string to write (can be NULL)
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BIO_write_string (struct GNUNET_BIO_WriteHandle *h,
                          const char *what,
                          const char *s)
@@ -808,7 +809,7 @@ GNUNET_BIO_write_string (struct GNUNET_BIO_WriteHandle *h,
  * @param what what is being written (for error message creation)
  * @param f float to write
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BIO_write_float (struct GNUNET_BIO_WriteHandle *h,
                         const char *what,
                         float f)
@@ -825,7 +826,7 @@ GNUNET_BIO_write_float (struct GNUNET_BIO_WriteHandle *h,
  * @param what what is being written (for error message creation)
  * @param f double to write
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BIO_write_double (struct GNUNET_BIO_WriteHandle *h,
                          const char *what,
                          double f)
@@ -843,7 +844,7 @@ GNUNET_BIO_write_double (struct GNUNET_BIO_WriteHandle *h,
  * @param i 32-bit integer to write
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BIO_write_int32 (struct GNUNET_BIO_WriteHandle *h,
                         const char *what,
                         int32_t i)
@@ -863,7 +864,7 @@ GNUNET_BIO_write_int32 (struct GNUNET_BIO_WriteHandle *h,
  * @param i 64-bit integer to write
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BIO_write_int64 (struct GNUNET_BIO_WriteHandle *h,
                         const char *what,
                         int64_t i)
@@ -1104,7 +1105,7 @@ GNUNET_BIO_read_spec_double (const char *what, double *f)
  *        the last element must be #GNUNET_BIO_read_spec_end
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BIO_read_spec_commit (struct GNUNET_BIO_ReadHandle *h,
                              struct GNUNET_BIO_ReadSpec *rs)
 {
@@ -1355,7 +1356,7 @@ GNUNET_BIO_write_spec_double (const char *what, double *f)
  *        the last element must be #GNUNET_BIO_write_spec_end
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_BIO_write_spec_commit (struct GNUNET_BIO_WriteHandle *h,
                               struct GNUNET_BIO_WriteSpec *ws)
 {

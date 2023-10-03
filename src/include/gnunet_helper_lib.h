@@ -38,7 +38,7 @@
  * @{
  */
 
-#if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
+#if ! defined (__GNUNET_UTIL_LIB_H_INSIDE__)
 #error "Only <gnunet_util_lib.h> can be included directly."
 #endif
 
@@ -99,8 +99,9 @@ GNUNET_HELPER_start (int with_control_pipe,
  *          stdin; #GNUNET_NO to signal termination by sending SIGTERM to helper
  * @return #GNUNET_OK on success; #GNUNET_SYSERR on error
  */
-int
-GNUNET_HELPER_kill (struct GNUNET_HELPER_Handle *h, int soft_kill);
+enum GNUNET_GenericReturnValue
+GNUNET_HELPER_kill (struct GNUNET_HELPER_Handle *h,
+                    int soft_kill);
 
 
 /**
@@ -111,7 +112,7 @@ GNUNET_HELPER_kill (struct GNUNET_HELPER_Handle *h, int soft_kill);
  * @param h the helper handle
  * @return #GNUNET_OK on success; #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_HELPER_wait (struct GNUNET_HELPER_Handle *h);
 
 
@@ -144,8 +145,10 @@ GNUNET_HELPER_stop (struct GNUNET_HELPER_Handle *h, int soft_kill);
  *               #GNUNET_NO if helper process died
  *               #GNUNET_SYSERR during GNUNET_HELPER_destroy
  */
-typedef void (*GNUNET_HELPER_Continuation)(void *cls,
-                                           int result);
+typedef void
+(*GNUNET_HELPER_Continuation)(
+  void *cls,
+  enum GNUNET_GenericReturnValue result);
 
 
 /**

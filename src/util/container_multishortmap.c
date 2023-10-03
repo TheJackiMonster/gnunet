@@ -24,6 +24,7 @@
  */
 
 
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 
@@ -640,7 +641,7 @@ grow (struct GNUNET_CONTAINER_MultiShortmap *map)
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multishortmap_put (
   struct GNUNET_CONTAINER_MultiShortmap *map,
   const struct GNUNET_ShortHashCode *key,
@@ -848,7 +849,7 @@ GNUNET_CONTAINER_multishortmap_iterator_create (
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multishortmap_iterator_next (
   struct GNUNET_CONTAINER_MultiShortmapIterator *iter,
   struct GNUNET_ShortHashCode *key,

@@ -92,7 +92,8 @@ barrier_reached_run (void *cls,
 {
   struct BarrierReachedState *brs = cls;
   struct GNUNET_TESTING_Barrier *barrier;
-  struct GNUNET_TESTING_Command *cmd = GNUNET_TESTING_interpreter_get_current_command (is);
+  struct GNUNET_TESTING_Command *cmd =
+    GNUNET_TESTING_interpreter_get_current_command (is);
   struct CommandListEntry *cle;
   size_t msg_length;
   struct GNUNET_TESTING_CommandBarrierReached *msg;
@@ -105,8 +106,8 @@ barrier_reached_run (void *cls,
     barrier->name = brs->barrier_name;
     TST_interpreter_add_barrier (is, barrier);
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "barrier %s added locally\n",
-       brs->barrier_name);
+         "barrier %s added locally\n",
+         brs->barrier_name);
   }
   barrier->reached++;
   if (GNUNET_TESTING_barrier_crossable (barrier))
@@ -133,13 +134,14 @@ barrier_reached_run (void *cls,
     char *terminator = "\0";
 
     name_len = strlen (barrier->name);
-    msg_length = sizeof(struct GNUNET_TESTING_CommandBarrierReached) + name_len + 1;
+    msg_length = sizeof(struct GNUNET_TESTING_CommandBarrierReached)
+                 + name_len + 1;
     msg = GNUNET_malloc (msg_length);
     msg->header.size = htons ((uint16_t) msg_length);
     msg->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_REACHED);
     msg->node_number = brs->node_number;
     memcpy (&msg[1], barrier->name, name_len + 1);
-    memcpy(&msg[name_len + 1],terminator,1);
+    memcpy (&msg[name_len + 1],terminator,1);
     brs->write_message ((struct GNUNET_MessageHeader *) msg, msg_length);
   }
 }

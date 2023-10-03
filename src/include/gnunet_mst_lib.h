@@ -127,7 +127,7 @@ GNUNET_MST_from_buffer (struct GNUNET_MessageStreamTokenizer *mst,
  *         #GNUNET_NO if one_shot was set and we have another message ready
  *         #GNUNET_SYSERR if the data stream is corrupt
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_MST_read (struct GNUNET_MessageStreamTokenizer *mst,
                  struct GNUNET_NETWORK_Handle *sock,
                  int purge,
@@ -145,7 +145,7 @@ GNUNET_MST_read (struct GNUNET_MessageStreamTokenizer *mst,
  *         #GNUNET_NO if one_shot was set and we have another message ready
  *         #GNUNET_SYSERR if the data stream is corrupt
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_MST_next (struct GNUNET_MessageStreamTokenizer *mst,
                  int one_shot);
 

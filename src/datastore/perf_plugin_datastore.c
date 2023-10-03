@@ -550,7 +550,7 @@ main (int argc, char *argv[])
     GNUNET_GETOPT_OPTION_END
   };
 
-  plugin_name = GNUNET_TESTING_get_testname_from_underscore (argv[0]);
+  plugin_name = GNUNET_STRINGS_get_suffix_from_binary_name (argv[0]);
   GNUNET_snprintf (dir_name, sizeof(dir_name), "/tmp/perf-gnunet-datastore-%s",
                    plugin_name);
   GNUNET_DISK_directory_remove (dir_name);

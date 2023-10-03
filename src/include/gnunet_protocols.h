@@ -2352,7 +2352,7 @@ extern "C" {
 /** M<->S<->C: PSYC message which contains a header and one or more message
  * parts. */
 #define GNUNET_MESSAGE_TYPE_PSYC_MESSAGE_HEADER \
-  692 // FIXME: start using this where appropriate
+        692 // FIXME: start using this where appropriate
 
 /** Message part: method */
 #define GNUNET_MESSAGE_TYPE_PSYC_MESSAGE_METHOD 693
@@ -3528,6 +3528,11 @@ extern "C" {
  * UDP communicator padding.
  */
 #define GNUNET_MESSAGE_TYPE_COMMUNICATOR_UDP_PAD 1461
+
+/**
+ * UDP Rekey.
+ */
+#define GNUNET_MESSAGE_TYPE_COMMUNICATOR_UDP_REKEY 1462
 
 /**
  * Next available: 1500

@@ -2432,7 +2432,7 @@ handle_union_p2p_strata_estimator (void *cls,
   if (op->byzantine_upper_bound < op->remote_element_count)
   {
     LOG (GNUNET_ERROR_TYPE_ERROR,
-         "Exceeded configured upper bound <%lu> of element: %u\n",
+         "Exceeded configured upper bound <%"PRIu64"> of element: %u\n",
          op->byzantine_upper_bound,
          op->remote_element_count);
     fail_union_operation (op);

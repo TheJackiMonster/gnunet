@@ -22,11 +22,12 @@
  * @brief helper functions for Sqlite3 DB interactions
  * @author Christian Grothoff
  */
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_sq_lib.h"
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_SQ_bind (sqlite3_stmt *stmt,
                 const struct GNUNET_SQ_QueryParam *params)
 {
@@ -71,7 +72,7 @@ GNUNET_SQ_bind (sqlite3_stmt *stmt,
  *   #GNUNET_OK if all results could be extracted
  *   #GNUNET_SYSERR if a result was invalid (non-existing field)
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_SQ_extract_result (sqlite3_stmt *result,
                           struct GNUNET_SQ_ResultSpec *rs)
 {

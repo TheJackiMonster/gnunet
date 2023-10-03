@@ -1,0 +1,6 @@
+# Build options
+option('monolith', type : 'boolean', value : false, description: 'Build a single, monolithic libgnunet shlib')
+option('testbed', type : 'boolean', value : false, description: 'Build the testbed')
+option('experimental', type : 'boolean', value : false, description: 'Build experimental components')
+option('logging', type : 'string', value: 'yes', description: 'Log setting. Can be set to "yes" (logging, default), "no" (no logging), "verbose" (extra loggin"), veryverbose (even more logging)')
+

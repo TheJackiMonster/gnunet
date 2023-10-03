@@ -1,6 +1,6 @@
 /*
       This file is part of GNUnet
-      Copyright (C) 2021 GNUnet e.V.
+      Copyright (C) 2021-2023 GNUnet e.V.
 
       GNUnet is free software: you can redistribute it and/or modify it
       under the terms of the GNU Affero General Public License as published
@@ -153,6 +153,7 @@ sighandler_child_death (void)
   errno = old_errno; /* restore errno */
 }
 
+
 /**
  * Initializing the signal pipe for child handling.
  */
@@ -193,20 +194,13 @@ child_management_done (void)
 }
 
 
-/**
- * Adding a child process to be monitored by the child management.
- *
- * @param proc The child process to be monitored.
- * @param cb The callback to be called, when the child process completed.
- * @param cb_cls The closure for the callback.
- * @return An handle for the the child being monitored.
- */
 struct GNUNET_ChildWaitHandle *
 GNUNET_wait_child (struct GNUNET_OS_Process *proc,
                    GNUNET_ChildCompletedCallback cb,
                    void *cb_cls)
 {
   struct GNUNET_ChildWaitHandle *cwh;
+  bool may_race = (NULL == sigpipe);
 
   child_management_start ();
   cwh = GNUNET_new (struct GNUNET_ChildWaitHandle);
@@ -225,15 +219,14 @@ GNUNET_wait_child (struct GNUNET_OS_Process *proc,
       &maint_child_death,
       NULL);
   }
+  /* Handle race-condition case where the child terminated just before we
+     installed the signal handler and thus we missed the signal. */
+  if (may_race)
+    sighandler_child_death ();
   return cwh;
 }
 
 
-/**
- * Removing child handle.
- *
- * @param cwh The handle to be removed.
- */
 void
 GNUNET_wait_child_cancel (struct GNUNET_ChildWaitHandle *cwh)
 {

@@ -401,6 +401,7 @@ calculate_score (const struct GNUNET_REVOCATION_PowCalculationHandle *ph)
   return avg;
 }
 
+
 struct GNUNET_REVOCATION_SignaturePurposePS *
 REV_create_signature_message (const struct GNUNET_REVOCATION_PowP *pow)
 {
@@ -412,13 +413,14 @@ REV_create_signature_message (const struct GNUNET_REVOCATION_PowP *pow)
   ksize = GNUNET_IDENTITY_public_key_get_length (pk);
   spurp = GNUNET_malloc (sizeof (*spurp) + ksize);
   spurp->timestamp = pow->timestamp;
-  spurp->purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_REVOCATION);
+  spurp->purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_GNS_REVOCATION);
   spurp->purpose.size = htonl (sizeof(*spurp) + ksize);
   GNUNET_IDENTITY_write_public_key_to_buffer (pk,
                                               (char*) &spurp[1],
                                               ksize);
   return spurp;
 }
+
 
 enum GNUNET_GenericReturnValue
 check_signature_identity (const struct GNUNET_REVOCATION_PowP *pow,
@@ -433,10 +435,11 @@ check_signature_identity (const struct GNUNET_REVOCATION_PowP *pow,
   spurp = REV_create_signature_message (pow);
   sig = ((unsigned char*) &pow[1] + ksize);
   ret =
-    GNUNET_IDENTITY_signature_verify_raw_ (GNUNET_SIGNATURE_PURPOSE_REVOCATION,
-                                           &spurp->purpose,
-                                           sig,
-                                           key);
+    GNUNET_IDENTITY_signature_verify_raw_ (
+      GNUNET_SIGNATURE_PURPOSE_GNS_REVOCATION,
+      &spurp->purpose,
+      sig,
+      key);
   GNUNET_free (spurp);
   return ret == GNUNET_OK ? GNUNET_OK : GNUNET_SYSERR;
 }

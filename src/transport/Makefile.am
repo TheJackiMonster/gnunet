@@ -220,7 +220,12 @@ libexec_PROGRAMS = \
  gnunet-communicator-unix \
  gnunet-communicator-udp \
  gnunet-communicator-tcp
-
+if HAVE_EXPERIMENTAL
+if HAVE_QUICHE
+libexec_PROGRAMS += \
+ gnunet-communicator-quic
+endif
+endif
 
 
 bin_PROGRAMS = \
@@ -269,6 +274,22 @@ gnunet_communicator_udp_LDADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(LIBGCRYPT_LIBS)
 
+if HAVE_EXPERIMENTAL
+if HAVE_QUICHE
+gnunet_communicator_quic_SOURCES = \
+  gnunet-communicator-quic.c
+gnunet_communicator_quic_LDADD = \
+  libgnunettransportapplication.la \
+  libgnunettransportcommunicator.la \
+  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/nat/libgnunetnatnew.la \
+  $(top_builddir)/src/nt/libgnunetnt.la \
+  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/util/libgnunetutil.la \
+  -lquiche \
+  $(LIBGCRYPT_LIBS)
+endif
+endif
 
 gnunet_helper_transport_wlan_SOURCES = \
  gnunet-helper-transport-wlan.c
@@ -690,6 +711,7 @@ check_PROGRAMS += \
   test_communicator_basic-unix \
   test_communicator_basic-tcp \
   test_communicator_basic-udp \
+  test_communicator_basic-quic \
   test_communicator_rekey-tcp \
   test_communicator_rekey-udp \
   test_communicator_backchannel-udp \
@@ -768,6 +790,7 @@ TESTS += \
   test_quota_compliance_udp \
   test_communicator_basic-unix \
   test_communicator_basic-tcp \
+  test_communicator_basic-quic \
   test_communicator_basic-udp \
   test_communicator_rekey-tcp \
   test_communicator_rekey-udp \
@@ -929,6 +952,14 @@ test_communicator_basic_tcp_LDADD = \
 test_communicator_basic_udp_SOURCES = \
  test_communicator_basic.c
 test_communicator_basic_udp_LDADD = \
+ libgnunettransporttesting2.la \
+ $(top_builddir)/src/testing/libgnunettesting.la \
+ $(top_builddir)/src/util/libgnunetutil.la \
+ $(top_builddir)/src/statistics/libgnunetstatistics.la
+
+test_communicator_basic_quic_SOURCES = \
+ test_communicator_basic.c
+test_communicator_basic_quic_LDADD = \
  libgnunettransporttesting2.la \
  $(top_builddir)/src/testing/libgnunettesting.la \
  $(top_builddir)/src/util/libgnunetutil.la \

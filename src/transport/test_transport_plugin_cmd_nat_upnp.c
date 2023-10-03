@@ -90,7 +90,7 @@ handle_test (void *cls,
 struct GNUNET_TESTING_BarrierList*
 get_waiting_for_barriers ()
 {
-  struct GNUNET_TESTING_BarrierList* barriers;
+  struct GNUNET_TESTING_BarrierList*barriers;
   struct GNUNET_TESTING_BarrierListEntry *ble;
 
   barriers = GNUNET_new (struct GNUNET_TESTING_BarrierList);
@@ -209,7 +209,7 @@ all_local_tests_prepared ()
  *        the topology configuration.
  * @param read_file If read_file is GNUNET_YES this string is the filename for the topology configuration,
  *        if read_file is GNUNET_NO the string contains the topology configuration.
- * @param finish_cb Callback function which writes a message from the helper process running on a netjail 
+ * @param finish_cb Callback function which writes a message from the helper process running on a netjail
  *                  node to the master process * signaling that the test case running on the netjail node finished.
  * @return Returns the struct GNUNET_TESTING_Interpreter of the command loop running on this netjail node.
  */
@@ -358,9 +358,9 @@ start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
   ts->write_message = write_message;
 
   is = GNUNET_TESTING_run (commands,
-                      TIMEOUT,
-                      &handle_result,
-                      ts);
+                           TIMEOUT,
+                           &handle_result,
+                           ts);
   return is;
 }
 

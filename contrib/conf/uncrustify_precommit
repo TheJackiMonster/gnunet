@@ -28,8 +28,11 @@ done
 
 if [ $RET = 1 ];
 then
-  echo "Run"
-  echo "uncrustify --replace -c uncrustify.cfg ${crustified}"
-  echo "before committing."
+  echo "================================================================"
+  echo " Your changes are ugly!                                         "
+  echo " Uncrustify your code in your next commit.                      "
+  echo " See https://docs.gnunet.org/developers/style.html#coding-style "
+  echo "================================================================"
 fi
-exit $RET
+# Do not fail
+exit 0

@@ -71,8 +71,17 @@ print_bytes_ (void *buf,
 
   for (i = 0; i < buf_len; i++)
   {
-    if ((0 != i) && (0 != fold) && (i % fold == 0))
-      printf ("\n");
+    if (0 != i)
+    {
+      if ((0 != fold) && (i % fold == 0))
+        printf ("\n  ");
+      else
+        printf (" ");
+    }
+    else
+    {
+      printf ("  ");
+    }
     if (in_be)
       printf ("%02x", ((unsigned char*) buf)[buf_len - 1 - i]);
     else
@@ -94,21 +103,30 @@ print_bytes (void *buf,
 static void
 print_record (const struct GNUNET_GNSRECORD_Data *rd)
 {
+  struct GNUNET_TIME_Relative rt;
+  struct GNUNET_TIME_Absolute at;
   uint16_t flags = htons (rd->flags);
   uint64_t abs_nbo = GNUNET_htonll (rd->expiration_time);
   uint16_t size_nbo = htons (rd->data_size);
   uint32_t type_nbo = htonl (rd->record_type);
-  printf ("EXPIRATION:\n");
+  at.abs_value_us = GNUNET_ntohll (abs_nbo);
+  if (0 != (rd->flags & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION))
+  {
+    rt.rel_value_us = rd->expiration_time;
+    at = GNUNET_TIME_relative_to_absolute (rt);
+    abs_nbo = GNUNET_htonll (at.abs_value_us);
+  }
+  printf ("  EXPIRATION: %" PRIu64 " us\n", rd->expiration_time);
   print_bytes (&abs_nbo, sizeof (abs_nbo), 8);
-  printf ("\nDATA_SIZE:\n");
+  printf ("\n  DATA_SIZE:\n");
   print_bytes (&size_nbo, sizeof (size_nbo), 8);
-  printf ("\nTYPE:\n");
+  printf ("\n  TYPE:\n");
   print_bytes (&type_nbo, sizeof (type_nbo), 8);
-  printf ("\nFLAGS: ");
+  printf ("\n  FLAGS: ");
   print_bytes ((void*) &flags, sizeof (flags), 8);
   printf ("\n");
   fprintf (stdout,
-           "DATA:\n");
+           "  DATA:\n");
   print_bytes ((char*) rd->data, rd->data_size, 8);
   printf ("\n");
 }
@@ -156,7 +174,8 @@ run_pkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char *label)
   GNUNET_assert (0 < GNUNET_IDENTITY_public_key_get_length (&id_pub));
   print_bytes (&id_pub, GNUNET_IDENTITY_public_key_get_length (&id_pub), 8);
   GNUNET_STRINGS_data_to_string (&id_pub,
-                                 GNUNET_IDENTITY_public_key_get_length (&id_pub),
+                                 GNUNET_IDENTITY_public_key_get_length (
+                                   &id_pub),
                                  ztld,
                                  sizeof (ztld));
   printf ("\n");
@@ -220,8 +239,26 @@ run_pkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char *label)
                                                              rd,
                                                              rd_count,
                                                              &rrblock));
+  struct GNUNET_CRYPTO_EcdsaPublicKey derived_key;
+  struct GNUNET_CRYPTO_EcdsaPrivateKey *derived_privkey;
+
+  GNUNET_CRYPTO_ecdsa_public_key_derive (&id_pub.ecdsa_key,
+                                         label,
+                                         "gns",
+                                         &derived_key);
+  derived_privkey = GNUNET_CRYPTO_ecdsa_private_key_derive (&id_priv.ecdsa_key,
+                                                            label,
+                                                            "gns");
+  printf ("ZKDF(zkey):\n");
+  print_bytes (&derived_key, sizeof (derived_key), 8);
+  printf ("\n");
+  printf ("Derived private key (d', big-endian):\n");
+  print_bytes_ (derived_privkey, sizeof (*derived_privkey), 8, 1);
+  printf ("\n");
   size_t bdata_size = ntohl (rrblock->size) - sizeof (struct
                                                       GNUNET_GNSRECORD_Block);
+
+  GNUNET_free (derived_privkey);
 
   bdata = (char*) &(&rrblock->ecdsa_block)[1];
   printf ("BDATA:\n");
@@ -282,7 +319,8 @@ run_edkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char*label)
   GNUNET_assert (0 < GNUNET_IDENTITY_public_key_get_length (&id_pub));
   print_bytes (&id_pub, GNUNET_IDENTITY_public_key_get_length (&id_pub), 8);
   GNUNET_STRINGS_data_to_string (&id_pub,
-                                 GNUNET_IDENTITY_public_key_get_length (&id_pub),
+                                 GNUNET_IDENTITY_public_key_get_length (
+                                   &id_pub),
                                  ztld,
                                  sizeof (ztld));
   printf ("\n");
@@ -349,8 +387,32 @@ run_edkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char*label)
                                                               rd,
                                                               rd_count,
                                                               &rrblock));
+
+  struct GNUNET_CRYPTO_EddsaPublicKey derived_key;
+  struct GNUNET_CRYPTO_EddsaPrivateScalar derived_privkey;
+  GNUNET_CRYPTO_eddsa_public_key_derive (&id_pub.eddsa_key,
+                                         label,
+                                         "gns",
+                                         &derived_key);
+  GNUNET_CRYPTO_eddsa_private_key_derive (&id_priv.eddsa_key,
+                                          label,
+                                          "gns", &derived_privkey);
+  printf ("ZKDF(zkey):\n");
+  print_bytes (&derived_key, sizeof (derived_key), 8);
+  printf ("\n");
+  printf ("nonce := SHA-256 (dh[32..63] || h):\n");
+  print_bytes (derived_privkey.s + 32, 32, 8);
+  printf ("\n");
+  char derived_privkeyNBO[32];
+  /* Convert from little endian */
+  for (size_t i = 0; i < 32; i++)
+    derived_privkeyNBO[i] = derived_privkey.s[31 - i];
+  printf ("Derived private key (d', big-endian):\n");
+  print_bytes (derived_privkeyNBO, sizeof (derived_privkeyNBO), 8);
+  printf ("\n");
   size_t bdata_size = ntohl (rrblock->size) - sizeof (struct
                                                       GNUNET_GNSRECORD_Block);
+
 
   bdata = (char*) &(&rrblock->eddsa_block)[1];
   printf ("BDATA:\n");
@@ -381,7 +443,10 @@ run (void *cls,
   struct GNUNET_GNSRECORD_Data rd[3];
   struct GNUNET_TIME_Absolute exp1;
   struct GNUNET_TIME_Absolute exp2;
-  struct GNUNET_TIME_Relative exp3;
+  struct GNUNET_TIME_Absolute exp3;
+  struct GNUNET_TIME_AbsoluteNBO exp1nbo;
+  struct GNUNET_TIME_AbsoluteNBO exp2nbo;
+  struct GNUNET_TIME_AbsoluteNBO exp3nbo;
   size_t pkey_data_size;
   size_t ip_data_size;
   char *pkey_data;
@@ -390,13 +455,12 @@ run (void *cls,
   /*
    * Make different expiration times
    */
-  GNUNET_STRINGS_fancy_time_to_absolute ("2048-01-23 10:51:34",
-                                         &exp1);
-  GNUNET_STRINGS_fancy_time_to_absolute ("3540-05-22 07:55:01",
-                                         &exp2);
-  GNUNET_STRINGS_fancy_time_to_relative ("100y",
-                                         &exp3);
-
+  parsehex ("001cee8c10e25980", (char*) &exp1nbo, sizeof (exp1nbo), 0);
+  parsehex ("003ff2aa5408db40", (char*) &exp2nbo, sizeof (exp2nbo), 0);
+  parsehex ("0028bb13ff371940", (char*) &exp3nbo, sizeof (exp3nbo), 0);
+  exp1 = GNUNET_TIME_absolute_ntoh (exp1nbo);
+  exp2 = GNUNET_TIME_absolute_ntoh (exp2nbo);
+  exp3 = GNUNET_TIME_absolute_ntoh (exp3nbo);
 
   memset (&rd_pkey, 0, sizeof (struct GNUNET_GNSRECORD_Data));
   GNUNET_assert (GNUNET_OK == GNUNET_GNSRECORD_string_to_value (
@@ -425,14 +489,13 @@ run (void *cls,
   rd[1].data_size = strlen (rd[1].data);
   rd[1].expiration_time = exp2.abs_value_us;
   rd[1].record_type = GNUNET_GNSRECORD_TYPE_NICK;
-  rd[1].flags = GNUNET_GNSRECORD_RF_PRIVATE;
+  rd[1].flags = GNUNET_GNSRECORD_RF_NONE;
 
   rd[2].data = "Hello World";
   rd[2].data_size = strlen (rd[2].data);
-  rd[2].expiration_time = exp3.rel_value_us;
+  rd[2].expiration_time = exp3.abs_value_us;
   rd[2].record_type = GNUNET_DNSPARSER_TYPE_TXT;
-  rd[2].flags = GNUNET_GNSRECORD_RF_SUPPLEMENTAL
-                | GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
+  rd[2].flags = GNUNET_GNSRECORD_RF_SUPPLEMENTAL;
 
   run_pkey (&rd_pkey, 1, "testdelegation");
   run_pkey (rd, 3, "\u5929\u4e0b\u7121\u6575");
@@ -460,6 +523,8 @@ main (int argc,
                  GNUNET_log_setup ("gnunet-gns-tvg",
                                    "INFO",
                                    NULL));
+  // gcry_control (GCRYCTL_SET_DEBUG_FLAGS, 1u, 0);
+  // gcry_control (GCRYCTL_SET_VERBOSITY, 99);
   if (GNUNET_OK !=
       GNUNET_PROGRAM_run (argc, argv,
                           "gnunet-gns-tvg",

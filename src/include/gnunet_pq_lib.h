@@ -28,15 +28,16 @@
 
 #include <libpq-fe.h>
 #include <stdint.h>
+#include "gnunet_common.h"
 #include "gnunet_time_lib.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_db_lib.h"
+#include "postgres_ext.h"
 
 /**
  * Postgres context.
  */
 struct GNUNET_PQ_Context;
-
 
 /* ************************* pq_query_helper.c functions ************************ */
 
@@ -181,21 +182,37 @@ GNUNET_PQ_query_param_string (const char *ptr);
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_bool (bool b);
 
+/**
+ * Returns the oid for a given datatype by name.
+ *
+ * @param db The db-connection
+ * @param name The name of the datatype
+ * @param[out] oid The OID of the datatype.
+ * @return GNUNET_OK when the datatype was found, GNUNET_SYSERR otherwise
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_PQ_get_oid_by_name (
+  struct GNUNET_PQ_Context *db,
+  const char *name,
+  Oid *oid);
+
 
 /**
- *  Array types (in Postgres) that are supported in GNUnet.
+ * The header for a postgresql array in binary format. note that this a
+ * simplified special case of the general structure (which contains pointers),
+ * as we only support one-dimensional arrays.
+ *
+ * Note that all values must be in network-byte-order.
  */
-enum GNUNET_PQ_DataTypes
+struct GNUNET_PQ_ArrayHeader_P
 {
-  GNUNET_PQ_DATATYPE_UNKNOWN, /* Unsupported type */
-  GNUNET_PQ_DATATYPE_BOOL,
-  GNUNET_PQ_DATATYPE_INT2,
-  GNUNET_PQ_DATATYPE_INT4,
-  GNUNET_PQ_DATATYPE_INT8,
-  GNUNET_PQ_DATATYPE_BYTEA,
-  GNUNET_PQ_DATATYPE_VARCHAR,
-  GNUNET_PQ_DATATYPE_MAX, /* Must be last */
-};
+  uint32_t ndim;     /* number of dimensions. we only support ndim = 1 */
+  uint32_t has_null;
+  uint32_t oid;      /* oid of the elements */
+  uint32_t dim;      /* size of the array */
+  uint32_t lbound;   /* index value of first element in the db (default: 1). */
+} __attribute__((packed));
+
 
 /**
  * Generate query parameter for an array of bool in host byte order.
@@ -209,7 +226,7 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_bool (
   unsigned int num,
   const bool *elements,
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate query parameter for an array of uint16_t in host byte order.
@@ -224,7 +241,7 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_uint16 (
   unsigned int num,
   const uint16_t *elements,
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate query parameter for an array of uint32_t in host byte order.
@@ -239,7 +256,7 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_uint32 (
   unsigned int num,
   const uint32_t *elements,
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate query parameter for an array of uint64 in host byte order.
@@ -254,7 +271,7 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_uint64 (
   unsigned int num,
   const uint64_t *elements,
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate query parameter for an array of buffers @a elements, each of
@@ -271,7 +288,7 @@ GNUNET_PQ_query_param_array_bytes (
   unsigned int num,
   const void *elements,
   const size_t *sizes,
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate query parameter for an array of buffers @a elements,
@@ -288,7 +305,7 @@ GNUNET_PQ_query_param_array_bytes_same_size (
   unsigned int num,
   const void *elements,
   size_t same_size,
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate array of equal-sized query parameter with size determined
@@ -318,9 +335,9 @@ GNUNET_PQ_query_param_array_bytes_same_size (
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_ptrs_bytes_same_size (
   unsigned int num,
-  const void *elements[],
+  const void *elements[static num],
   size_t same_size,
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate array of equal-sized query parameter with size determined by
@@ -334,7 +351,7 @@ GNUNET_PQ_query_param_array_ptrs_bytes_same_size (
  */
 #define GNUNET_PQ_query_param_array_ptrs_auto_from_type(num, elements, db) \
   GNUNET_PQ_query_param_array_ptrs_bytes_same_size ((num), \
-                                                    (elements), \
+                                                    (const void **) (elements), \
                                                     sizeof(*(elements[0])), \
                                                     (db))
 
@@ -351,7 +368,7 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_string (
   unsigned int num,
   const char *elements,
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 
 /**
@@ -365,8 +382,9 @@ GNUNET_PQ_query_param_array_string (
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_ptrs_string (
   unsigned int num,
-  const char *elements[],
-  const struct GNUNET_PQ_Context *db);
+  const char *elements[static num],
+  struct GNUNET_PQ_Context *db);
+
 
 /**
  * Generate fixed-size query parameter with size determined
@@ -389,7 +407,7 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_abs_time (
   unsigned int num,
   const struct GNUNET_TIME_Absolute *elements,
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate query parameter for an array of absolute time stamps (pointers)
@@ -402,7 +420,7 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_ptrs_abs_time (
   unsigned int num,
   const struct GNUNET_TIME_Absolute *elements[],
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate query parameter for an array of relative time stamps (continuous)
@@ -415,7 +433,7 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_rel_time (
   unsigned int num,
   const struct GNUNET_TIME_Relative *elements,
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate query parameter for an array of relative time stamps (pointers)
@@ -428,7 +446,7 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_ptrs_rel_time (
   unsigned int num,
   const struct GNUNET_TIME_Relative *elements[],
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate query parameter for an array of time stamps (continuous)
@@ -441,7 +459,7 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_timestamp (
   unsigned int num,
   const struct GNUNET_TIME_Timestamp *elements,
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate query parameter for an array of time stamps (pointers)
@@ -454,7 +472,7 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_array_ptrs_timestamp (
   unsigned int num,
   const struct GNUNET_TIME_Timestamp *elements[],
-  const struct GNUNET_PQ_Context *db);
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate query parameter for an RSA public key.  The
@@ -887,7 +905,7 @@ GNUNET_PQ_result_spec_uint64 (const char *name,
  */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_bool (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   bool **bools);
@@ -903,7 +921,7 @@ GNUNET_PQ_result_spec_array_bool (
  */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_uint16 (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   uint16_t **dst);
@@ -919,7 +937,7 @@ GNUNET_PQ_result_spec_array_uint16 (
  */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_uint32 (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   uint32_t **dst);
@@ -935,7 +953,7 @@ GNUNET_PQ_result_spec_array_uint32 (
  */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_uint64 (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   uint64_t **dst);
@@ -952,7 +970,7 @@ GNUNET_PQ_result_spec_array_uint64 (
  */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_abs_time (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   struct GNUNET_TIME_Absolute **dst);
@@ -968,7 +986,7 @@ GNUNET_PQ_result_spec_array_abs_time (
  */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_rel_time (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   struct GNUNET_TIME_Relative **dst);
@@ -985,7 +1003,7 @@ GNUNET_PQ_result_spec_array_rel_time (
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_timestamp (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   struct GNUNET_TIME_Timestamp **dst);
@@ -1002,7 +1020,7 @@ GNUNET_PQ_result_spec_array_timestamp (
  */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_variable_size (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   size_t **sizes,
@@ -1021,7 +1039,7 @@ GNUNET_PQ_result_spec_array_variable_size (
  */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_fixed_size (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t size,
   size_t *num,
@@ -1057,7 +1075,7 @@ GNUNET_PQ_result_spec_array_fixed_size (
  */
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_string (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   char **dst);
@@ -1559,6 +1577,19 @@ GNUNET_PQ_event_listen (struct GNUNET_PQ_Context *db,
  */
 void
 GNUNET_PQ_event_listen_cancel (struct GNUNET_DB_EventHandler *eh);
+
+
+/**
+ * Poll for events right now. Useful if we may have
+ * triggered an event for ourselves.  Not needed when
+ * using GNUNET_PQ_event_notify(), but useful when
+ * stored procedures may have triggered events.
+ * Does nothing if there are no events.
+ *
+ * @param[in,out] db database to check for events
+ */
+void
+GNUNET_PQ_event_do_poll (struct GNUNET_PQ_Context *db);
 
 
 /**

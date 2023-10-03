@@ -18,7 +18,7 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 
-#if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
+#if ! defined (__GNUNET_UTIL_LIB_H_INSIDE__)
 #error "Only <gnunet_util_lib.h> can be included directly."
 #endif
 
@@ -41,7 +41,7 @@
  * @{
  */
 
-#if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
+#if ! defined (__GNUNET_UTIL_LIB_H_INSIDE__)
 #error "Only <gnunet_util_lib.h> can be included directly."
 #endif
 
@@ -668,6 +668,23 @@ size_t
 GNUNET_strlcpy (char *dst,
                 const char *src,
                 size_t n);
+
+
+/**
+ * Sometimes we use the binary name to determine which specific
+ * test to run.  In those cases, the string after the last "_"
+ * in 'argv[0]' specifies a string that determines the configuration
+ * file or plugin to use.
+ *
+ * This function returns the respective substring, taking care
+ * of issues such as binaries ending in '.exe' on W32.
+ *
+ * @param argv0 the name of the binary
+ * @return string between the last '_' and the '.exe' (or the end of the string),
+ *         NULL if argv0 has no '_'
+ */
+char *
+GNUNET_STRINGS_get_suffix_from_binary_name (const char *argv0);
 
 
 /* ***************** IPv4/IPv6 parsing ****************** */

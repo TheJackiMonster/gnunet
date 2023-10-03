@@ -259,29 +259,23 @@ static void
 write_encrypted_message (void)
 {
   struct GNUNET_IDENTITY_PublicKey recipient;
+  size_t ct_len = strlen (write_msg) + 1
+                  + GNUNET_IDENTITY_ENCRYPT_OVERHEAD_BYTES;
+  unsigned char ct[ct_len];
   if (GNUNET_IDENTITY_public_key_from_string (pubkey_msg, &recipient) !=
       GNUNET_SYSERR)
   {
-    struct GNUNET_CRYPTO_EcdhePublicKey message_key;
     size_t msg_len = strlen (write_msg) + 1;
-    ssize_t res = GNUNET_IDENTITY_encrypt (write_msg,
-                                           msg_len,
-                                           &recipient,
-                                           &message_key,
-                                           write_msg);
-    if (-1 != res)
+    if (GNUNET_OK == GNUNET_IDENTITY_encrypt (write_msg,
+                                              msg_len,
+                                              &recipient,
+                                              ct, ct_len))
     {
-      char *keystr;
       char *serialized_msg;
-      keystr = GNUNET_STRINGS_data_to_string_alloc (&message_key,
-                                                    sizeof(struct
-                                                           GNUNET_CRYPTO_EcdhePublicKey));
-      serialized_msg = GNUNET_STRINGS_data_to_string_alloc (write_msg,
-                                                            msg_len);
+      serialized_msg = GNUNET_STRINGS_data_to_string_alloc (ct, ct_len);
       fprintf (stdout,
-               "%s.%s\n",
-               keystr, serialized_msg);
-      GNUNET_free (keystr);
+               "%s\n",
+               serialized_msg);
       GNUNET_free (serialized_msg);
     }
     else
@@ -307,75 +301,35 @@ write_encrypted_message (void)
 static void
 read_encrypted_message (struct GNUNET_IDENTITY_Ego *ego)
 {
-  // message contains ECDHE key and ciphertext divided by ".", so split up first
-  char delim[2] = ".";
-  char *key_msg = strtok (read_msg, delim);
-  char *cipher;
-  if (NULL == key_msg)
+  char *deserialized_msg;
+  size_t msg_len;
+  if (GNUNET_OK == GNUNET_STRINGS_string_to_data_alloc (read_msg, strlen (
+                                                          read_msg),
+                                                        (void **) &
+                                                        deserialized_msg,
+                                                        &msg_len))
   {
-    fprintf (stderr, "Invalid message format.\n");
-    global_ret = 1;
-    return;
-  }
-  cipher = strtok (NULL, delim);
-  if (NULL == cipher)
-  {
-    fprintf (stderr, "Invalid message format, text missing.\n");
-    global_ret = 1;
-    return;
-  }
-
-  if (NULL != strtok (NULL, delim))
-  {
-    fprintf (stderr,
-             "Invalid message format, expecting only key and cipher components.\n");
-    global_ret = 1;
-    return;
-  }
-
-  struct GNUNET_CRYPTO_EcdhePublicKey message_key;
-  if (GNUNET_OK == GNUNET_STRINGS_string_to_data (key_msg, strlen (
-                                                    key_msg),
-                                                  &message_key,
-                                                  sizeof(message_key)))
-  {
-    char *deserialized_msg;
-    size_t msg_len;
-    if (GNUNET_OK == GNUNET_STRINGS_string_to_data_alloc (cipher, strlen (
-                                                            cipher),
-                                                          (void **) &
-                                                          deserialized_msg,
-                                                          &msg_len))
+    if (GNUNET_OK == GNUNET_IDENTITY_decrypt (deserialized_msg,
+                                              msg_len,
+                                              GNUNET_IDENTITY_ego_get_private_key (
+                                                ego),
+                                              deserialized_msg, msg_len))
     {
-      ssize_t res = GNUNET_IDENTITY_decrypt (deserialized_msg,
-                                             msg_len,
-                                             GNUNET_IDENTITY_ego_get_private_key (
-                                               ego),
-                                             &message_key,
-                                             deserialized_msg);
-      if (-1 != res)
-      {
-        deserialized_msg[res - 1] = '\0';
-        fprintf (stdout,
-                 "%s\n",
-                 deserialized_msg);
-      }
-      else
-      {
-        fprintf (stderr, "Failed to decrypt message.\n");
-        global_ret = 1;
-      }
-      GNUNET_free (deserialized_msg);
+      deserialized_msg[msg_len - 1] = '\0';
+      fprintf (stdout,
+               "%s\n",
+               deserialized_msg);
     }
     else
     {
-      fprintf (stderr, "Invalid message format.\n");
+      fprintf (stderr, "Failed to decrypt message.\n");
       global_ret = 1;
     }
+    GNUNET_free (deserialized_msg);
   }
   else
   {
-    fprintf (stderr, "Invalid message ephemeral key.\n");
+    fprintf (stderr, "Invalid message format.\n");
     global_ret = 1;
   }
 }

@@ -50,6 +50,13 @@ gnunet_revocation_tvg_LDADD = \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
+test_revocation_lsd0001testvectors_SOURCES = \
+ test_revocation_testvectors.c
+test_revocation_lsd0001testvectors_LDADD = \
+  $(top_builddir)/src/testing/libgnunettesting.la \
+	$(top_builddir)/src/identity/libgnunetidentity.la \
+  libgnunetrevocation.la \
+  $(top_builddir)/src/util/libgnunetutil.la
 
 lib_LTLIBRARIES = libgnunetrevocation.la
 
@@ -92,10 +99,11 @@ test_revocation_LDADD = \
  $(top_builddir)/src/testbed/libgnunettestbed.la
 
 check_PROGRAMS = \
- # test_revocation
+ #test_revocation \
+ #test_revocation_lsd0001testvectors
 
 check_SCRIPTS = \
-  # test_local_revocation.py
+ #test_local_revocation.py
 
 if ENABLE_TEST_RUN
  AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;

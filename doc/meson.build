@@ -1,0 +1,2 @@
+subdir('handbook')
+subdir('man')

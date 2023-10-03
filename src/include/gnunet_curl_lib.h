@@ -433,7 +433,7 @@ GNUNET_CURL_enable_async_scope_header (struct GNUNET_CURL_Context *ctx,
  *
  * @returns #GNUNET_YES iff given a valid scope ID
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CURL_is_valid_scope_id (const char *scope_id);
 
 

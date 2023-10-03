@@ -768,13 +768,9 @@ AC_CHECK_LIB([kstat], [kstat_open])
 
 # check for libsodium version >= 1.0.18
 libsodium=0
-AC_CHECK_HEADER([sodium.h],
-  [AC_CHECK_LIB([sodium], [crypto_core_ed25519_scalar_mul],
-                [libsodium=1],
-                [libsodium=0])])
-
-AS_IF([test "x$libsodium" = "x0"],
-      [AC_MSG_ERROR([GNUnet requires libsodium >= 1.0.18])])
+CHECK_WITH_LIB([sodium], [crypto_core_ed25519_scalar_mul], [sodium.h], [HAVE_SODIUM])
+AS_IF([test "x$sodium" = "x0"],
+  [AC_MSG_ERROR([GNUnet requires libsodium >= 1.0.18])])
 
 # check for libextractor
 CHECK_WITH_LIB([extractor],
@@ -783,6 +779,14 @@ CHECK_WITH_LIB([extractor],
                [HAVE_LIBEXTRACTOR])
 AS_IF([test "x$extractor" = "x0"],
       [AC_MSG_RESULT([GNU libextractor not found, some features disabled])])
+
+# check for cloudflare-quiche
+CHECK_WITH_LIB([quiche],
+               [quiche_header_info],
+               [quiche.h],
+               [HAVE_QUICHE])
+AS_IF([test "x$quiche" = "x0"],
+      [AC_MSG_RESULT([cloudflare-quiche not found, some features disabled])])
 
 # check for libltdl
 CHECK_WITH_LIB([ltdl], [lt_dlopenext], [ltdl.h], [HAVE_LTDL])
@@ -878,9 +882,9 @@ AC_DEFINE_UNQUOTED([HAVE_ZLIB], [$zlib_ok], [Define to 1 if zlib is available])
 AM_ICONV
 
 # check for libunistring
-gl_LIBUNISTRING
-AS_IF([test "x$HAVE_LIBUNISTRING" != "xyes"],
-      [AC_MSG_ERROR([GNUnet requires libunistring])])
+CHECK_WITH_LIB([unistring], [u16_strstr], [unistr.h], [HAVE_UNISTRING])
+AS_IF([test "x$unistring" = "x0"],
+  [AC_MSG_ERROR([GNUnet requires unistring])])
 
 # Currently broken on Debian :-(
 # AS_VERSION_COMPARE([$LIBUNISTRING_VERSION], [0.9.1.1],
@@ -899,89 +903,6 @@ AS_IF([test "x$postgres" = "x1"],
 AM_CONDITIONAL([HAVE_POSTGRESQL], [test "x$postgres" = "x1"])
 AC_DEFINE_UNQUOTED([HAVE_POSTGRESQL], [$postgres],
                    [Define to 1 if Postgres is available])
-
-# check for mysql
-SAVE_LDFLAGS="$LDFLAGS"
-SAVE_CPPFLAGS="$CPPFLAGS"
-AC_ARG_WITH([mysql],
-  [AS_HELP_STRING([--with-mysql=PFX], [base of mysql installation])],
-  [AS_CASE([$withval],
-     [no],
-     [],
-     [yes|""],
-     [AC_CHECK_HEADERS([mysql/mysql.h],
-        [AC_CHECK_LIB([mysqlclient], [mysql_init],
-                      [mysql=true], [mysql=false])])],
-     [LDFLAGS="-L$with_mysql/lib -L$with_mysql/lib/mysql $LDFLAGS $ZLIBS"
-      CPPFLAGS="-I$with_mysql/include $CPPFLAGS"
-      AC_CHECK_HEADERS([mysql/mysql.h],
-        [AC_CHECK_LIB([mysqlclient], [mysql_init],
-                      [MYSQL_LDFLAGS="-L$with_mysql/lib -L$with_mysql/lib/mysql"
-                       MYSQL_CPPFLAGS="-I$with_mysql/include"
-                       mysql=true],
-                      [mysql=false])])])],
-   [AS_IF([test -d "/usr/lib64/mysql"],
-      [MYSQL_LIBDIR="/usr/lib64/mysql"],
-      [AS_IF([test -d "/usr/lib/mysql"],
-         [MYSQL_LIBDIR="/usr/lib/mysql"],
-         [MYSQL_LIBDIR="/usr/lib"])])
-    LDFLAGS="-L$MYSQL_LIBDIR $LDFLAGS $ZLIBS"
-    AC_CHECK_LIB([mysqlclient], [mysql_init],
-      [AC_CHECK_HEADERS([mysql/mysql.h],
-         [MYSQL_LDFLAGS="-L$MYSQL_LIBDIR"
-          mysql=true],
-         [mysql=false])],
-      [mysql=false])])
-AC_SUBST(MYSQL_LDFLAGS)
-AC_SUBST(MYSQL_CPPFLAGS)
-
-mysql_bool="bool"
-# check for my_bool
-AS_IF([test "x$mysql" = "xtrue"],
-  [AC_MSG_CHECKING([for my_bool])
-   AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-     [[#include <mysql/mysql.h>]
-      [typedef int my_bool;]])], # Hint: this fails if my_bool is defined already
-      [AC_MSG_RESULT([no])
-       mysql_bool="bool"],
-      [AC_MSG_RESULT([yes])
-       mysql_bool="my_bool"])])
-
-AC_SUBST([mysql_bool])
-
-# additional version checks for mysql
-AS_IF([test "x$mysql" = "xtrue"],
-  [AC_MSG_CHECKING([for mysql version])
-   AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-     [[#include <mysql/mysql.h>]],
-     [[#if (MYSQL_VERSION_ID < 40100)
-#error required at least version 4.1
-#endif]])],
-     [mysql=true],
-     [mysql=false])
-   AS_IF([test "x$mysql" = "xfalse"],
-     [AC_MSG_RESULT([< 4.1])
-      AC_MSG_RESULT([mysql version >= 4.1 required. Will not use MySQL])])
-   AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-     [[#include <mysql/mysql.h>]],
-     [[#if (MYSQL_VERSION_ID < 80000)
-#error needs at least version 8.0
-#endif]])],
-     [mysql8=true],
-     [mysql8=false])])
-
-AS_IF([test "x$mysql" = "xtrue"],
-  [AS_IF([test "x$mysql8" = "xfalse"],
-     [AC_MSG_RESULT([between 4.1 and 8.0])],
-     [AC_MSG_RESULT([> 8.0])
-      AC_DEFINE([HAVE_MYSQL8], [1],
-                [Define to 1 if MySQL is at least version 8])])])
-
-AM_CONDITIONAL([HAVE_MYSQL], [test "x$mysql" = "xtrue"])
-AM_CONDITIONAL([HAVE_MYSQLE], [false])
-
-AS_IF([test "x$sqlite3" = "x0" && test "x$mysql" = "xfalse" && test "x$postgres" = "x0"],
-  [AC_MSG_ERROR([GNUnet requires either SQLite, MySQL/MariaDB or PostgreSQL])])
 
 LDFLAGS="$SAVE_LDFLAGS"
 CPPFLAGS="$SAVE_CPPFLAGS"
@@ -1343,12 +1264,9 @@ src/identity/Makefile
 src/identity/identity.conf
 src/include/Makefile
 src/include/gnunet_config.h
-src/include/gnunet_mysql_compat.h
 src/integration-tests/Makefile
 src/json/Makefile
 src/hostlist/Makefile
-src/my/Makefile
-src/mysql/Makefile
 src/namecache/Makefile
 src/namecache/namecache.conf
 src/namestore/Makefile
@@ -1425,9 +1343,9 @@ pkgconfig/gnunetfs.pc
 pkgconfig/gnunetgns.pc
 pkgconfig/gnunethello.pc
 pkgconfig/gnunetidentity.pc
+pkgconfig/gnunetjson.pc
 pkgconfig/gnunetmessenger.pc
 pkgconfig/gnunetmicrophone.pc
-pkgconfig/gnunetmysql.pc
 pkgconfig/gnunetnamestore.pc
 pkgconfig/gnunetnat.pc
 pkgconfig/gnunetnse.pc
@@ -1569,11 +1487,6 @@ AS_IF([test "x$sqlite3" = "x1"],
    features_msg="sqlite $features_msg"],
   [sqlite_msg="no"])
 
-AS_IF([test "x$mysql" = "xtrue"],
-  [mysql_msg="yes"
-   features_msg="mysql $features_msg"],
-  [mysql_msg="no"])
-
 AS_IF([test "x$postgres" = "x1"],
   [postgres_msg="yes"
    features_msg="postgres $features_msg"],
@@ -1602,7 +1515,6 @@ Build Target:                   ${build_target}
 Default Interface:              ${interface_msg}
 
 sqlite3:                        ${sqlite_msg}
-MySQL:                          ${mysql_msg}
 PostgreSQL:                     ${postgres_msg}
 
 cURL TLS backend:               ${curl_tls_backend}

@@ -123,7 +123,7 @@ struct FreeBarrierNodeCbCls
 };
 
 
-const struct GNUNET_TESTING_Command *
+static const struct GNUNET_TESTING_Command *
 get_command (struct GNUNET_TESTING_Interpreter *is,
              const char *label,
              unsigned int future)
@@ -265,7 +265,7 @@ free_barrier_node_cb (void *cls,
 }
 
 
-int
+static int
 free_barriers_cb (void *cls,
                   const struct GNUNET_ShortHashCode *key,
                   void *value)
@@ -574,14 +574,19 @@ GNUNET_TESTING_run (const struct GNUNET_TESTING_Command *commands,
   is = GNUNET_new (struct GNUNET_TESTING_Interpreter);
   is->rc = rc;
   is->rc_cls = rc_cls;
-  is->barriers = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
+  is->barriers = GNUNET_CONTAINER_multishortmap_create (1,
+                                                        false);
   /* get the number of commands */
   for (i = 0; NULL != commands[i].run; i++)
     ;
   is->cmds_n = i + 1;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Got %u commands\n", i);
-  is->commands = GNUNET_new_array (is->cmds_n,
-                                   struct GNUNET_TESTING_Command);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Got %u commands\n",
+              i);
+  is->commands = GNUNET_malloc_large ( (i + 1)
+                                       * sizeof (struct
+                                                 GNUNET_TESTING_Command));
+  GNUNET_assert (NULL != is->commands);
   memcpy (is->commands,
           commands,
           sizeof (struct GNUNET_TESTING_Command) * i);
@@ -611,12 +616,28 @@ GNUNET_TESTING_command_new (void *cls,
     .cleanup = cleanup,
     .traits = traits
   };
-  memset (&cmd.label, 0, sizeof (cmd.label));
+
+  GNUNET_assert (NULL != run);
   if (NULL != label)
-    strncpy (cmd.label, label, GNUNET_TESTING_CMD_MAX_LABEL_LENGTH);
+  {
+    GNUNET_assert (strlen (label) <=
+                   GNUNET_TESTING_CMD_MAX_LABEL_LENGTH);
+    strncpy (cmd.label,
+             label,
+             GNUNET_TESTING_CMD_MAX_LABEL_LENGTH);
+  }
+  return cmd;
+}
+
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_end (void)
+{
+  struct GNUNET_TESTING_Command cmd = {
+    .run = NULL
+  };
 
   return cmd;
-
 }
 
 
@@ -685,9 +706,9 @@ loop_run (void *cls)
  * Continuation function from GNUNET_HELPER_send()
  *
  * @param cls closure
- * @param result GNUNET_OK on success,
- *               GNUNET_NO if helper process died
- *               GNUNET_SYSERR during GNUNET_HELPER_stop
+ * @param result #GNUNET_OK on success,
+ *               #GNUNET_NO if helper process died
+ *               #GNUNET_SYSERR during GNUNET_HELPER_stop()
  */
 static void
 clear_msg (void *cls, int result)
@@ -745,7 +766,6 @@ TST_interpreter_send_barrier_crossable (struct GNUNET_TESTING_Interpreter *is,
   struct CommandBarrierCrossable *adm;
   size_t msg_length;
   size_t name_len;
-  char *terminator = "\0";
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "send barrier name %s barrier_name\n",
@@ -797,7 +817,6 @@ TST_interpreter_finish_attached_cmds (struct GNUNET_TESTING_Interpreter *is,
                                       const char *barrier_name)
 {
   struct CommandListEntry *pos;
-  struct FreeBarrierNodeCbCls *free_barrier_node_cb_cls;
   struct GNUNET_TESTING_Barrier *barrier = TST_interpreter_get_barrier (is,
                                                                         barrier_name);
 
@@ -830,17 +849,18 @@ TST_interpreter_finish_attached_cmds (struct GNUNET_TESTING_Interpreter *is,
   }
   if (NULL != barrier->nodes)
   {
-    free_barrier_node_cb_cls = GNUNET_new (struct FreeBarrierNodeCbCls);
-    free_barrier_node_cb_cls->barrier = barrier;
-    free_barrier_node_cb_cls->is = is;
+    struct FreeBarrierNodeCbCls free_barrier_node_cb_cls = {
+      .barrier = barrier,
+      .is = is
+    };
+
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "freeing nodes\n");
     GNUNET_CONTAINER_multishortmap_iterate (barrier->nodes,
-                                            free_barrier_node_cb,
-                                            free_barrier_node_cb_cls);
+                                            &free_barrier_node_cb,
+                                            &free_barrier_node_cb_cls);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "nodes freed\n");
-    GNUNET_free (free_barrier_node_cb_cls);
     GNUNET_CONTAINER_multishortmap_destroy (barrier->nodes);
     barrier->nodes = NULL;
   }

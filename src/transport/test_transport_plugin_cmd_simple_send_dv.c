@@ -113,7 +113,7 @@ handle_test (void *cls,
     GNUNET_TESTING_get_trait_async_context (&block_receive,
                                             &ac_block);
 
-    if ( connected == number_received)
+    if (connected == number_received)
     {
       if (NULL != ac_block->is)
       {
@@ -142,7 +142,7 @@ handle_test (void *cls,
 struct GNUNET_TESTING_BarrierList *
 get_waiting_for_barriers ()
 {
-  //No Barrier
+  // No Barrier
   return GNUNET_new (struct GNUNET_TESTING_BarrierList);
 }
 
@@ -201,19 +201,21 @@ notify_connect (struct GNUNET_TESTING_Interpreter *is,
 {
   const struct ConnectPeersState *cps;
   const struct GNUNET_TESTING_Command *cmd;
-  void *ret = NULL;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "notify_connect peer %s\n",
               GNUNET_i2s (peer));
+  // FIXME: modifying future is a bit unclean, not easy to follow logic;
+  // might be better to when reaching the future command to look into
+  // the past...
   cmd = GNUNET_TESTING_interpreter_lookup_command_all (is,
                                                        "connect-peers");
+  // FIXME: check return value!
   GNUNET_TRANSPORT_get_trait_connect_peer_state (cmd,
                                                  &cps);
   cps->notify_connect (is,
                        peer);
-
-  return ret;
+  return NULL;
 }
 
 
@@ -382,9 +384,9 @@ start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
   ts->write_message = write_message;
 
   is = GNUNET_TESTING_run (commands,
-                      TIMEOUT,
-                      &handle_result,
-                      ts);
+                           TIMEOUT,
+                           &handle_result,
+                           ts);
   return is;
 }
 

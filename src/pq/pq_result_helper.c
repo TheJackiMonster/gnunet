@@ -21,10 +21,11 @@
  * @file pq/pq_result_helper.c
  * @brief functions to extract result values
  * @author Christian Grothoff
+ * @author Özgür Kesim
  */
-#include "gnunet_common.h"
-#include "gnunet_time_lib.h"
 #include "platform.h"
+#include "gnunet_time_lib.h"
+#include "gnunet_common.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_pq_lib.h"
 #include "pq.h"
@@ -1179,13 +1180,13 @@ extract_array_generic (
   *((void **) dst) = NULL;
 
   #define FAIL_IF(cond) \
-  do { \
-    if ((cond)) \
-    { \
-      GNUNET_break (! (cond)); \
-      goto FAIL; \
-    } \
-  } while(0)
+          do { \
+            if ((cond)) \
+            { \
+              GNUNET_break (! (cond)); \
+              goto FAIL; \
+            } \
+          } while (0)
 
   col_num = PQfnumber (result, fname);
   FAIL_IF (0 > col_num);
@@ -1208,156 +1209,190 @@ extract_array_generic (
     header.lbound = ntohl (h->lbound);
 
     FAIL_IF (1 != header.ndim);
-    FAIL_IF ((0 > header.dim) || (INT_MAX == header.dim));
+    FAIL_IF (INT_MAX <= header.dim);
     FAIL_IF (0 != header.has_null);
     FAIL_IF (1 != header.lbound);
     FAIL_IF (info->oid != header.oid);
   }
 
-  *info->num = header.dim;
-  switch (info->typ)
-  {
-  case array_of_bool:
-    if (NULL != dst_size)
-      *dst_size = sizeof(bool) * (*info->num);
-    out = GNUNET_new_array (*info->num, bool);
-    break;
-  case array_of_uint16:
-    if (NULL != dst_size)
-      *dst_size = sizeof(uint16_t) * (*info->num);
-    out = GNUNET_new_array (*info->num, uint16_t);
-    break;
-  case array_of_uint32:
-    if (NULL != dst_size)
-      *dst_size = sizeof(uint32_t) * (*info->num);
-    out = GNUNET_new_array (*info->num, uint32_t);
-    break;
-  case array_of_uint64:
-    if (NULL != dst_size)
-      *dst_size = sizeof(uint64_t) * (*info->num);
-    out = GNUNET_new_array (*info->num, uint64_t);
-    break;
-  case array_of_abs_time:
-    if (NULL != dst_size)
-      *dst_size = sizeof(struct GNUNET_TIME_Absolute) * (*info->num);
-    out = GNUNET_new_array (*info->num, struct GNUNET_TIME_Absolute);
-    break;
-  case array_of_rel_time:
-    if (NULL != dst_size)
-      *dst_size = sizeof(struct GNUNET_TIME_Relative) * (*info->num);
-    out = GNUNET_new_array (*info->num, struct GNUNET_TIME_Relative);
-    break;
-  case array_of_timestamp:
-    if (NULL != dst_size)
-      *dst_size = sizeof(struct GNUNET_TIME_Timestamp) * (*info->num);
-    out = GNUNET_new_array (*info->num, struct GNUNET_TIME_Timestamp);
-    break;
-  case array_of_byte:
-    if (0 == info->same_size)
-      *info->sizes = GNUNET_new_array (header.dim, size_t);
-  /* fallthrough */
-  case array_of_string:
-    {
-      size_t total = 0;
-      bool is_string = (array_of_string == info->typ);
+  if (NULL != info->num)
+    *info->num = header.dim;
 
-      /* first, calculate total size required for allocation */
-      {
-        char *ptr = data + sizeof(header);
-        for (uint32_t i = 0; i < header.dim; i++)
-        {
-          uint32_t sz;
-
-          sz = ntohl (*(uint32_t *) ptr);
-          sz += is_string ? 1 : 0;
-          total += sz;
-          ptr += sizeof(uint32_t);
-          ptr += sz;
-
-          if ((! is_string) &&
-              (0 == info->same_size))
-            (*info->sizes)[i] = sz;
-
-          FAIL_IF ((0 != info->same_size) &&
-                   (sz != info->same_size));
-          FAIL_IF (total < sz);
-        }
-      }
-
-      if (NULL != dst_size)
-        *dst_size = total;
-
-      if (0 < total)
-        out = GNUNET_malloc (total);
-
-      break;
-    }
-  default:
-    FAIL_IF (1 != 0);
-  }
-
-  *((void **) dst) = out;
-
-  /* copy data */
   {
     char *in = data + sizeof(header);
 
-    for (uint32_t i = 0; i < header.dim; i++)
+    switch (info->typ)
     {
-      size_t sz =  ntohl (*(uint32_t *) in);
-      in += sizeof(uint32_t);
-
-      switch (info->typ)
+    case array_of_bool:
+      if (NULL != dst_size)
+        *dst_size = sizeof(bool) * (header.dim);
+      out = GNUNET_new_array (header.dim, bool);
+      *((void **) dst) = out;
+      for (uint32_t i = 0; i < header.dim; i++)
       {
-      case array_of_bool:
+        size_t sz =  ntohl (*(uint32_t *) in);
         FAIL_IF (sz != sizeof(bool));
+        in += sizeof(uint32_t);
         *(bool *) out = *(bool *) in;
-        break;
-      case array_of_uint16:
+        in += sz;
+        out += sz;
+      }
+      break;
+
+    case array_of_uint16:
+      if (NULL != dst_size)
+        *dst_size = sizeof(uint16_t) * (header.dim);
+      out = GNUNET_new_array (header.dim, uint16_t);
+      *((void **) dst) = out;
+      for (uint32_t i = 0; i < header.dim; i++)
+      {
+        size_t sz =  ntohl (*(uint32_t *) in);
         FAIL_IF (sz != sizeof(uint16_t));
+        in += sizeof(uint32_t);
         *(uint16_t *) out = ntohs (*(uint16_t *) in);
-        break;
-      case array_of_uint32:
+        in += sz;
+        out += sz;
+      }
+      break;
+
+    case array_of_uint32:
+      if (NULL != dst_size)
+        *dst_size = sizeof(uint32_t) * (header.dim);
+      out = GNUNET_new_array (header.dim, uint32_t);
+      *((void **) dst) = out;
+      for (uint32_t i = 0; i < header.dim; i++)
+      {
+        size_t sz =  ntohl (*(uint32_t *) in);
         FAIL_IF (sz != sizeof(uint32_t));
+        in += sizeof(uint32_t);
         *(uint32_t *) out = ntohl (*(uint32_t *) in);
-        break;
-      case array_of_uint64:
+        in += sz;
+        out += sz;
+      }
+      break;
+
+    case array_of_uint64:
+      if (NULL != dst_size)
+        *dst_size = sizeof(uint64_t) * (header.dim);
+      out = GNUNET_new_array (header.dim, uint64_t);
+      *((void **) dst) = out;
+      for (uint32_t i = 0; i < header.dim; i++)
+      {
+        size_t sz =  ntohl (*(uint32_t *) in);
         FAIL_IF (sz != sizeof(uint64_t));
+        in += sizeof(uint32_t);
         *(uint64_t *) out = GNUNET_ntohll (*(uint64_t *) in);
-        break;
-      case array_of_abs_time:
-      case array_of_rel_time:
-      case array_of_timestamp:
+        in += sz;
+        out += sz;
+      }
+      break;
+
+    case array_of_abs_time:
+      if (NULL != dst_size)
+        *dst_size = sizeof(struct GNUNET_TIME_Absolute) * (header.dim);
+      out = GNUNET_new_array (header.dim, struct GNUNET_TIME_Absolute);
+      *((void **) dst) = out;
+      for (uint32_t i = 0; i < header.dim; i++)
+      {
+        size_t sz =  ntohl (*(uint32_t *) in);
         FAIL_IF (sz != sizeof(uint64_t));
+        in += sizeof(uint32_t);
+        ((struct GNUNET_TIME_Absolute *) out)->abs_value_us =
+          GNUNET_ntohll (*(uint64_t *) in);
+        in += sz;
+        out += sz;
+      }
+      break;
+
+    case array_of_rel_time:
+      if (NULL != dst_size)
+        *dst_size = sizeof(struct GNUNET_TIME_Relative) * (header.dim);
+      out = GNUNET_new_array (header.dim, struct GNUNET_TIME_Relative);
+      *((void **) dst) = out;
+      for (uint32_t i = 0; i < header.dim; i++)
+      {
+        size_t sz =  ntohl (*(uint32_t *) in);
+        FAIL_IF (sz != sizeof(uint64_t));
+        in += sizeof(uint32_t);
+        ((struct GNUNET_TIME_Relative *) out)->rel_value_us =
+          GNUNET_ntohll (*(uint64_t *) in);
+        in += sz;
+        out += sz;
+      }
+      break;
+
+    case array_of_timestamp:
+      if (NULL != dst_size)
+        *dst_size = sizeof(struct GNUNET_TIME_Timestamp) * (header.dim);
+      out = GNUNET_new_array (header.dim, struct GNUNET_TIME_Timestamp);
+      *((void **) dst) = out;
+      for (uint32_t i = 0; i < header.dim; i++)
+      {
+        size_t sz =  ntohl (*(uint32_t *) in);
+        FAIL_IF (sz != sizeof(uint64_t));
+        in += sizeof(uint32_t);
+        ((struct GNUNET_TIME_Timestamp *) out)->abs_time.abs_value_us =
+          GNUNET_ntohll (*(uint64_t *) in);
+        in += sz;
+        out += sz;
+      }
+      break;
+
+    case array_of_byte:
+      if (0 == info->same_size)
+        *info->sizes = GNUNET_new_array (header.dim, size_t);
+    /* fallthrough */
+    case array_of_string:
+      {
+        size_t total = 0;
+        bool is_string = (array_of_string == info->typ);
+
+        /* first, calculate total size required for allocation */
         {
-          uint64_t val = GNUNET_ntohll (*(uint64_t *) in);
-          switch (info->typ)
+          char *ptr = data + sizeof(header);
+          for (uint32_t i = 0; i < header.dim; i++)
           {
-          case array_of_abs_time:
-            ((struct GNUNET_TIME_Absolute *) out)->abs_value_us = val;
-            break;
-          case array_of_rel_time:
-            ((struct GNUNET_TIME_Relative *) out)->rel_value_us = val;
-            break;
-          case array_of_timestamp:
-            ((struct GNUNET_TIME_Timestamp *) out)->abs_time.abs_value_us = val;
-            break;
-          default:
-            FAIL_IF (1 != 0);
+            uint32_t sz;
+
+            sz = ntohl (*(uint32_t *) ptr);
+            sz += is_string ? 1 : 0;
+            total += sz;
+            ptr += sizeof(uint32_t);
+            ptr += sz;
+
+            if ((! is_string) &&
+                (0 == info->same_size))
+              (*info->sizes)[i] = sz;
+
+            FAIL_IF ((0 != info->same_size) &&
+                     (sz != info->same_size));
+            FAIL_IF (total < sz);
           }
         }
-        break;
-      case array_of_byte:
-      case array_of_string:
-        GNUNET_memcpy (out, in, sz);
-        break;
-      default:
-        FAIL_IF (1 != 0);
-      }
 
-      in += sz;
-      out += sz;
-      out += (array_of_string == info->typ) ? 1 : 0;
+        if (NULL != dst_size)
+          *dst_size = total;
+
+        FAIL_IF (0 == total);
+        out = GNUNET_malloc (total);
+
+        *((void **) dst) = out;
+
+        /* copy data */
+        for (uint32_t i = 0; i < header.dim; i++)
+        {
+          size_t sz =  ntohl (*(uint32_t *) in);
+          in += sizeof(uint32_t);
+          GNUNET_memcpy (out, in, sz);
+
+          in += sz;
+          out += sz;
+          out += (array_of_string == info->typ) ? 1 : 0;
+        }
+        break;
+      }
+    default:
+      FAIL_IF (1 != 0);
     }
   }
 
@@ -1394,7 +1429,7 @@ array_cleanup (void *cls,
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_bool (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   bool **dst)
@@ -1404,7 +1439,10 @@ GNUNET_PQ_result_spec_array_bool (
 
   info->num = num;
   info->typ = array_of_bool;
-  info->oid = db->oids[GNUNET_PQ_DATATYPE_BOOL];
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "bool",
+                                            &info->oid));
 
   struct GNUNET_PQ_ResultSpec res = {
     .conv = extract_array_generic,
@@ -1419,7 +1457,7 @@ GNUNET_PQ_result_spec_array_bool (
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_uint16 (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   uint16_t **dst)
@@ -1429,7 +1467,10 @@ GNUNET_PQ_result_spec_array_uint16 (
 
   info->num = num;
   info->typ = array_of_uint16;
-  info->oid = db->oids[GNUNET_PQ_DATATYPE_INT2];
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "int2",
+                                            &info->oid));
 
   struct GNUNET_PQ_ResultSpec res = {
     .conv = extract_array_generic,
@@ -1444,7 +1485,7 @@ GNUNET_PQ_result_spec_array_uint16 (
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_uint32 (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   uint32_t **dst)
@@ -1454,7 +1495,10 @@ GNUNET_PQ_result_spec_array_uint32 (
 
   info->num = num;
   info->typ = array_of_uint32;
-  info->oid = db->oids[GNUNET_PQ_DATATYPE_INT4];
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "int4",
+                                            &info->oid));
 
   struct GNUNET_PQ_ResultSpec res = {
     .conv = extract_array_generic,
@@ -1469,7 +1513,7 @@ GNUNET_PQ_result_spec_array_uint32 (
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_uint64 (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   uint64_t **dst)
@@ -1479,7 +1523,10 @@ GNUNET_PQ_result_spec_array_uint64 (
 
   info->num = num;
   info->typ = array_of_uint64;
-  info->oid = db->oids[GNUNET_PQ_DATATYPE_INT8];
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "int8",
+                                            &info->oid));
 
   struct GNUNET_PQ_ResultSpec res = {
     .conv = extract_array_generic,
@@ -1494,7 +1541,7 @@ GNUNET_PQ_result_spec_array_uint64 (
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_abs_time (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   struct GNUNET_TIME_Absolute **dst)
@@ -1504,7 +1551,10 @@ GNUNET_PQ_result_spec_array_abs_time (
 
   info->num = num;
   info->typ = array_of_abs_time;
-  info->oid = db->oids[GNUNET_PQ_DATATYPE_INT8];
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "int8",
+                                            &info->oid));
 
   struct GNUNET_PQ_ResultSpec res = {
     .conv = extract_array_generic,
@@ -1519,7 +1569,7 @@ GNUNET_PQ_result_spec_array_abs_time (
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_rel_time (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   struct GNUNET_TIME_Relative **dst)
@@ -1529,7 +1579,10 @@ GNUNET_PQ_result_spec_array_rel_time (
 
   info->num = num;
   info->typ = array_of_rel_time;
-  info->oid = db->oids[GNUNET_PQ_DATATYPE_INT8];
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "int8",
+                                            &info->oid));
 
   struct GNUNET_PQ_ResultSpec res = {
     .conv = extract_array_generic,
@@ -1544,7 +1597,7 @@ GNUNET_PQ_result_spec_array_rel_time (
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_timestamp (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   struct GNUNET_TIME_Timestamp **dst)
@@ -1554,7 +1607,10 @@ GNUNET_PQ_result_spec_array_timestamp (
 
   info->num = num;
   info->typ = array_of_timestamp;
-  info->oid = db->oids[GNUNET_PQ_DATATYPE_INT8];
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "int8",
+                                            &info->oid));
 
   struct GNUNET_PQ_ResultSpec res = {
     .conv = extract_array_generic,
@@ -1569,7 +1625,7 @@ GNUNET_PQ_result_spec_array_timestamp (
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_variable_size (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   size_t **sizes,
@@ -1581,7 +1637,10 @@ GNUNET_PQ_result_spec_array_variable_size (
   info->num = num;
   info->sizes = sizes;
   info->typ = array_of_byte;
-  info->oid = db->oids[GNUNET_PQ_DATATYPE_BYTEA];
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "bytea",
+                                            &info->oid));
 
   struct GNUNET_PQ_ResultSpec res = {
     .conv = extract_array_generic,
@@ -1596,7 +1655,7 @@ GNUNET_PQ_result_spec_array_variable_size (
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_fixed_size (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t size,
   size_t *num,
@@ -1608,7 +1667,10 @@ GNUNET_PQ_result_spec_array_fixed_size (
   info->num = num;
   info->same_size = size;
   info->typ = array_of_byte;
-  info->oid = db->oids[GNUNET_PQ_DATATYPE_BYTEA];
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "bytea",
+                                            &info->oid));
 
   struct GNUNET_PQ_ResultSpec res = {
     .conv = extract_array_generic,
@@ -1623,7 +1685,7 @@ GNUNET_PQ_result_spec_array_fixed_size (
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_array_string (
-  const struct GNUNET_PQ_Context *db,
+  struct GNUNET_PQ_Context *db,
   const char *name,
   size_t *num,
   char **dst)
@@ -1633,7 +1695,10 @@ GNUNET_PQ_result_spec_array_string (
 
   info->num = num;
   info->typ = array_of_string;
-  info->oid = db->oids[GNUNET_PQ_DATATYPE_VARCHAR];
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_PQ_get_oid_by_name (db,
+                                            "text",
+                                            &info->oid));
 
   struct GNUNET_PQ_ResultSpec res = {
     .conv = extract_array_generic,

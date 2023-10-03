@@ -82,7 +82,7 @@ Build tools for compiling GNUnet from source:
 - make[*3]
 - pkgconf or pkg-config
 - sphinx
-- sphinx-rtd-theme
+- sphinx-book-theme
 
 Direct dependencies of GNUnet:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -121,7 +121,6 @@ Direct dependencies of GNUnet:
 Dependencies of optional components/functionality:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Database plugins (alternatives to sqlite):
-  * mysql            >= 5.1
   * postgres         >= 9.5
 - Transport plugins:
   * bluez (bluetooth transport)
@@ -315,9 +314,7 @@ traversal).
 
 GNUnet requires the GNU MP library (https://www.gnu.org/software/gmp/)
 and libgcrypt (https://www.gnupg.org/).  You can specify the path to
-libgcrypt by passing "--with-gcrypt=PATH" to configure.  You will also
-need either sqlite (http://www.sqlite.org/), MySQL
-(http://www.mysql.org/) or PostGres (http://www.postgres.org/).
+libgcrypt by passing "--with-gcrypt=PATH" to configure.
 
 If you install from source, you need to install GNU libextractor first
 (download from https://www.gnu.org/software/libextractor/).  We also

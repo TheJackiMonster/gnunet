@@ -8,8 +8,7 @@ BUILDCOMMON_SHLIB_FILES = \
     build-common/sh/lib.sh/existence_python.sh \
     build-common/sh/lib.sh/msg.sh \
     build-common/sh/lib.sh/progname.sh \
-    build-common/sh/lib.sh/version_gnunet.sh \
-    build-common/LICENSE
+    build-common/sh/lib.sh/version_gnunet.sh
 
 BUILDCOMMON_CONF_FILES = \
     build-common/conf/.dir-locals.el \

@@ -187,20 +187,20 @@
  * the value chosen here might be too aggressively low!
  */
 #define DELAY_WARN_THRESHOLD \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 5)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 5)
 
 /**
  * If a DVBox could not be forwarded after this number of
  * seconds we drop it.
  */
 #define DV_FORWARD_TIMEOUT \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 60)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 60)
 
 /**
  * Default value for how long we wait for reliability ack.
  */
 #define DEFAULT_ACK_WAIT_DURATION \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 1)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 1)
 
 /**
  * We only consider queues as "quality" connections when
@@ -208,53 +208,53 @@
  * the latency of the queue is below this threshold.
  */
 #define DV_QUALITY_RTT_THRESHOLD \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 1)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 1)
 
 /**
  * How long do we consider a DV path valid if we see no
  * further updates on it? Note: the value chosen here might be too low!
  */
 #define DV_PATH_VALIDITY_TIMEOUT \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
 
 /**
  * How long do we cache backchannel (struct Backtalker) information
  * after a backchannel goes inactive?
  */
 #define BACKCHANNEL_INACTIVITY_TIMEOUT \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
 
 /**
  * How long before paths expire would we like to (re)discover DV paths? Should
  * be below #DV_PATH_VALIDITY_TIMEOUT.
  */
 #define DV_PATH_DISCOVERY_FREQUENCY \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 4)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 4)
 
 /**
  * How long are ephemeral keys valid?
  */
 #define EPHEMERAL_VALIDITY \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
 
 /**
  * How long do we keep partially reassembled messages around before giving up?
  */
 #define REASSEMBLY_EXPIRATION \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 4)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 4)
 
 /**
  * What is the fastest rate at which we send challenges *if* we keep learning
  * an address (gossip, DHT, etc.)?
  */
 #define FAST_VALIDATION_CHALLENGE_FREQ \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 1)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 1)
 
 /**
  * What is the slowest rate at which we send challenges?
  */
 #define MAX_VALIDATION_CHALLENGE_FREQ \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_DAYS, 1)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_DAYS, 1)
 
 /**
  * How long until we forget about historic accumulators and thus
@@ -262,7 +262,7 @@
  * active connection experiences without an ACK.
  */
 #define ACK_CUMMULATOR_TIMEOUT \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
 
 /**
  * What is the non-randomized base frequency at which we
@@ -280,13 +280,13 @@
  * When do we forget an invalid address for sure?
  */
 #define MAX_ADDRESS_VALID_UNTIL \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MONTHS, 1)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MONTHS, 1)
 
 /**
  * How long do we consider an address valid if we just checked?
  */
 #define ADDRESS_VALIDATION_LIFETIME \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
 
 /**
  * What is the maximum frequency at which we do address validation?
@@ -1774,10 +1774,6 @@ struct DistanceVector
    */
   struct GNUNET_CRYPTO_EcdhePublicKey ephemeral_key;
 
-  /**
-   * Our private ephemeral key.
-   */
-  struct GNUNET_CRYPTO_EcdhePrivateKey private_key;
 };
 
 
@@ -4411,24 +4407,18 @@ check_communicator_backchannel (
 
 
 /**
- * Ensure ephemeral keys in our @a dv are current. If no current one exists,
- * set it up.
+ * Sign ephemeral keys in our @a dv are current.
  *
  * @param[in,out] dv virtual link to update ephemeral for
  */
 static void
-update_ephemeral (struct DistanceVector *dv)
+sign_ephemeral (struct DistanceVector *dv)
 {
   struct EphemeralConfirmationPS ec;
 
-  if (0 !=
-      GNUNET_TIME_absolute_get_remaining (dv->ephemeral_validity).rel_value_us)
-    return;
   dv->monotime = GNUNET_TIME_absolute_get_monotonic (GST_cfg);
   dv->ephemeral_validity =
     GNUNET_TIME_absolute_add (dv->monotime, EPHEMERAL_VALIDITY);
-  GNUNET_CRYPTO_ecdhe_key_create (&dv->private_key);
-  GNUNET_CRYPTO_ecdhe_key_get_public (&dv->private_key, &dv->ephemeral_key);
   ec.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TRANSPORT_EPHEMERAL);
   ec.target = dv->target;
   ec.ephemeral_key = dv->ephemeral_key;
@@ -4681,7 +4671,7 @@ dv_setup_key_state_from_km (const struct GNUNET_HashCode *km,
                             const struct GNUNET_ShortHashCode *iv,
                             struct DVKeyState *key)
 {
-  /* must match #dh_key_derive_eph_pub */
+  /* must match what we defive from decapsulated key */
   GNUNET_assert (GNUNET_YES ==
                  GNUNET_CRYPTO_kdf (&key->material,
                                     sizeof(key->material),
@@ -4706,62 +4696,6 @@ dv_setup_key_state_from_km (const struct GNUNET_HashCode *km,
   gcry_cipher_setctr (key->cipher,
                       &key->material.aes_ctr,
                       sizeof(key->material.aes_ctr));
-}
-
-
-/**
- * Derive backchannel encryption key material from @a priv_ephemeral
- * and @a target and @a iv.
- *
- * @param priv_ephemeral ephemeral private key to use
- * @param target the target peer to encrypt to
- * @param iv unique IV to use
- * @param[out] key set to the key material
- * @return GNUNET_OK on success
- */
-static enum GNUNET_GenericReturnValue
-dh_key_derive_eph_pid (
-  const struct GNUNET_CRYPTO_EcdhePrivateKey *priv_ephemeral,
-  const struct GNUNET_PeerIdentity *target,
-  const struct GNUNET_ShortHashCode *iv,
-  struct DVKeyState *key)
-{
-  struct GNUNET_HashCode km;
-
-  if (GNUNET_YES != GNUNET_CRYPTO_ecdh_eddsa (priv_ephemeral,
-                                              &target->public_key,
-                                              &km))
-    return GNUNET_SYSERR;
-  // FIXME: Possibly also add return values here. We are processing
-  // Input from other peers...
-  dv_setup_key_state_from_km (&km, iv, key);
-  return GNUNET_OK;
-}
-
-
-/**
- * Derive backchannel encryption key material from #GST_my_private_key
- * and @a pub_ephemeral and @a iv.
- *
- * @param priv_ephemeral ephemeral private key to use
- * @param target the target peer to encrypt to
- * @param iv unique IV to use
- * @param[out] key set to the key material
- * @return GNUNET_OK on success
- */
-static enum GNUNET_GenericReturnValue
-dh_key_derive_eph_pub (const struct GNUNET_CRYPTO_EcdhePublicKey *pub_ephemeral,
-                       const struct GNUNET_ShortHashCode *iv,
-                       struct DVKeyState *key)
-{
-  struct GNUNET_HashCode km;
-
-  if (GNUNET_YES != GNUNET_CRYPTO_eddsa_ecdh (GST_my_private_key,
-                                              pub_ephemeral,
-                                              &km))
-    return GNUNET_SYSERR;
-  dv_setup_key_state_from_km (&km, iv, key);
-  return GNUNET_OK;
 }
 
 
@@ -4882,13 +4816,22 @@ encapsulate_for_dv (struct DistanceVector *dv,
   char enc[sizeof(struct TransportDVBoxPayloadP) + enc_body_size] GNUNET_ALIGN;
   struct DVKeyState *key;
   struct GNUNET_TIME_Relative rtt;
+  struct GNUNET_HashCode k;
 
   key = GNUNET_new (struct DVKeyState);
   /* Encrypt payload */
   box_hdr.header.type = htons (GNUNET_MESSAGE_TYPE_TRANSPORT_DV_BOX);
   box_hdr.total_hops = htons (0);
   box_hdr.without_fc = htons (without_fc);
-  update_ephemeral (dv);
+  // update_ephemeral (dv);
+  if (0 ==
+      GNUNET_TIME_absolute_get_remaining (dv->ephemeral_validity).rel_value_us)
+  {
+    GNUNET_CRYPTO_eddsa_kem_encaps (&dv->target.public_key,
+                                    &dv->ephemeral_key,
+                                    &k);
+    sign_ephemeral (dv);
+  }
   box_hdr.ephemeral_key = dv->ephemeral_key;
   payload_hdr.sender_sig = dv->sender_sig;
 
@@ -4896,10 +4839,9 @@ encapsulate_for_dv (struct DistanceVector *dv,
                               &box_hdr.iv,
                               sizeof(box_hdr.iv));
   // We are creating this key, so this must work.
-  GNUNET_assert (GNUNET_OK ==
-                 dh_key_derive_eph_pid (&dv->private_key,
-                                        &dv->target,
-                                        &box_hdr.iv, key));
+  // FIXME: Possibly also add return values here. We are processing
+  // Input from other peers...
+  dv_setup_key_state_from_km (&k, &box_hdr.iv, key);
   payload_hdr.sender = GST_my_identity;
   payload_hdr.monotonic_time = GNUNET_TIME_absolute_hton (dv->monotime);
   dv_encrypt (key, &payload_hdr, enc, sizeof(payload_hdr));
@@ -8322,13 +8264,17 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
   cmc->total_hops = ntohs (dvb->total_hops);
 
   // DH key derivation with received DV, could be garbage.
-  if (GNUNET_OK !=
-      dh_key_derive_eph_pub (&dvb->ephemeral_key, &dvb->iv, &key))
+  struct GNUNET_HashCode km;
+
+  if (GNUNET_YES != GNUNET_CRYPTO_eddsa_kem_decaps (GST_my_private_key,
+                                                    &dvb->ephemeral_key,
+                                                    &km))
   {
     GNUNET_break_op (0);
     finish_cmc_handling (cmc);
     return;
   }
+  dv_setup_key_state_from_km (&km, &dvb->iv, &key);
   hdr = (const char *) &dvb[1];
   hdr_len = ntohs (dvb->orig_size) - sizeof(*dvb) - sizeof(struct
                                                            GNUNET_PeerIdentity)

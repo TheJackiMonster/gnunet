@@ -98,7 +98,7 @@ TNC_test_plugin (const char *cfg_name)
   do                                                                        \
   {                                                                         \
     GNUNET_log_setup (__FILE__, "WARNING", NULL);                           \
-    plugin_name = GNUNET_TESTING_get_testname_from_underscore (argv[0]);    \
+    plugin_name = GNUNET_STRINGS_get_suffix_from_binary_name (argv[0]);    \
     GNUNET_asprintf (&cfg_name, file_template, plugin_name); \
     if (! TNC_test_plugin (cfg_name))                                       \
     {                                                                       \
@@ -116,7 +116,7 @@ TNC_test_plugin (const char *cfg_name)
   do                                                                        \
   {                                                                         \
     GNUNET_log_setup (__FILE__, "WARNING", NULL);                           \
-    plugin_name = GNUNET_TESTING_get_testname_from_underscore (argv[0]);    \
+    plugin_name = GNUNET_STRINGS_get_suffix_from_binary_name (argv[0]);    \
     GNUNET_asprintf (&cfg_name, "test_namestore_api_%s.conf", plugin_name); \
     if (! TNC_test_plugin (cfg_name))                                       \
     {                                                                       \

@@ -293,7 +293,6 @@ send_message_to_locals (
   helper = ns->helper[count - 1];
 
 
-
   struct GNUNET_HELPER_SendHandle *sh = GNUNET_HELPER_send (
     (struct GNUNET_HELPER_Handle *) helper,
     header,
@@ -385,7 +384,7 @@ barrier_reached (struct NetJailState *ns, const struct
                                                      *) message;
 
   barrier_name = (const char *) &rm[1];
-  
+
   barrier = TST_interpreter_get_barrier (ns->is, barrier_name);
   GNUNET_assert (NULL != barrier);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -396,13 +395,13 @@ barrier_reached (struct NetJailState *ns, const struct
   barrier->reached++;
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "%u %p\n",
-           barrier->reached,
-           barrier);
+       barrier->reached,
+       barrier);
   if (GNUNET_TESTING_barrier_crossable (barrier))
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "%s can be crossed\n",
-       barrier_name);
+         "%s can be crossed\n",
+         barrier_name);
     TST_interpreter_finish_attached_cmds (ns->is, barrier->name);
   }
   LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -485,7 +484,8 @@ helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
     if (GNUNET_OK != lf->rv)
     {
       GNUNET_TESTING_async_fail (&(ns->ac));
-    } else if (ns->number_of_local_tests_finished == total_number)
+    }
+    else if (ns->number_of_local_tests_finished == total_number)
     {
       GNUNET_SCHEDULER_cancel (ns->timeout_task);
       ns->timeout_task = NULL;
@@ -507,8 +507,6 @@ helper_mst (void *cls, const struct GNUNET_MessageHeader *message)
        ns->local_m,
        ns->global_n,
        ns->known);
-
-
 
 
   return GNUNET_OK;
@@ -737,22 +735,22 @@ start_helper (struct NetJailState *ns,
     if (NULL == barrier)
     {
       LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "barrier %s added\n",
-       pos->barrier_name);
+           "barrier %s added\n",
+           pos->barrier_name);
       barrier = GNUNET_new (struct GNUNET_TESTING_Barrier);
       barrier->name = pos->barrier_name;
       barrier->shadow = GNUNET_YES;
       TST_interpreter_add_barrier (ns->is, barrier);
 
       LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "%u %p\n",
+           "%u %p\n",
            barrier->reached,
            barrier);
 
       barrier->nodes = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
     }
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "barrier %p %s node %u added \n",
+         "barrier %p %s node %u added \n",
          barrier,
          pos->barrier_name,
          node->node_number);
@@ -859,7 +857,7 @@ netjail_exec_run (void *cls,
     for (int j = 1; j <= ns->local_m; j++)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "i %u j %u\n",
+                  "i %u j %u\n",
                   i,
                   j);
       start_helper (ns,

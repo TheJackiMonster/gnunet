@@ -109,7 +109,8 @@ send_peer_ready_run (void *cls,
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_send_peer_ready (const char *label,
-                                    GNUNET_TESTING_cmd_helper_write_cb write_message)
+                                    GNUNET_TESTING_cmd_helper_write_cb
+                                    write_message)
 {
   struct SendPeerReadyState *sprs;
 

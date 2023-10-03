@@ -22,10 +22,10 @@
  * @brief Tests for Postgres convenience API
  * @author Christian Grothoff <christian@grothoff.org>
  */
+#include "platform.h"
 #include "gnunet_common.h"
 #include "gnunet_pq_lib.h"
 #include "gnunet_time_lib.h"
-#include "platform.h"
 #include "pq.h"
 
 /**
@@ -76,7 +76,7 @@ postgres_prepare (struct GNUNET_PQ_Context *db)
                             ",arr_int4"
                             ",arr_int8"
                             ",arr_bytea"
-                            ",arr_varchar"
+                            ",arr_text"
                             ",arr_abs_time"
                             ",arr_rel_time"
                             ",arr_timestamp"
@@ -102,7 +102,7 @@ postgres_prepare (struct GNUNET_PQ_Context *db)
                             ",arr_int4"
                             ",arr_int8"
                             ",arr_bytea"
-                            ",arr_varchar"
+                            ",arr_text"
                             ",arr_abs_time"
                             ",arr_rel_time"
                             ",arr_timestamp"
@@ -280,7 +280,7 @@ run_queries (struct GNUNET_PQ_Context *db)
                                                  &sz_buf,
                                                  &arr_buf),
       GNUNET_PQ_result_spec_array_string (db,
-                                          "arr_varchar",
+                                          "arr_text",
                                           &num_str,
                                           &arr_str),
       GNUNET_PQ_result_spec_end
@@ -510,7 +510,7 @@ main (int argc,
                             ",arr_int4 INT4[]"
                             ",arr_int8 INT8[]"
                             ",arr_bytea BYTEA[]"
-                            ",arr_varchar VARCHAR[]"
+                            ",arr_text TEXT[]"
                             ",arr_abs_time INT8[]"
                             ",arr_rel_time INT8[]"
                             ",arr_timestamp  INT8[]"
@@ -554,6 +554,41 @@ main (int argc,
     GNUNET_PQ_disconnect (db);
     return ret;
   }
+
+  /* ensure oid lookup works */
+  {
+    enum GNUNET_GenericReturnValue ret;
+    Oid oid;
+
+    ret = GNUNET_PQ_get_oid_by_name (db, "int8", &oid);
+
+    if (GNUNET_OK != ret)
+    {
+      fprintf (stderr,
+               "Cannot lookup oid for int8: %s\n",
+               PQerrorMessage (db->conn));
+      GNUNET_break (0);
+      GNUNET_PQ_disconnect (db);
+      return 77; /* signal test was skipped */
+    }
+
+    PQexec (db->conn, "CREATE TYPE foo AS (foo int, bar int);");
+
+    ret = GNUNET_PQ_get_oid_by_name (db, "foo", &oid);
+    if (GNUNET_OK != ret)
+    {
+      fprintf (stderr,
+               "Cannot lookup oid for foo: %s\n",
+               PQerrorMessage (db->conn));
+      GNUNET_break (0);
+      GNUNET_PQ_disconnect (db);
+      return 77; /* signal test was skipped */
+    }
+
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                "got oid %d for type foo\n", oid);
+  }
+
   GNUNET_SCHEDULER_run (&sched_tests,
                         NULL);
   if (0 != ret)

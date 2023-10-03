@@ -23,6 +23,7 @@
  * @author Christian Grothoff
  */
 
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_configuration_lib.h"
@@ -374,7 +375,7 @@ struct CollectFilesContext
  *  #GNUNET_NO to stop iteration with no error,
  *  #GNUNET_SYSERR to abort iteration with error!
  */
-static int
+static enum GNUNET_GenericReturnValue
 collect_files_cb (void *cls,
                   const char *filename)
 {
@@ -782,8 +783,7 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
       if (NULL != cfg->restrict_section)
       {
         LOG (GNUNET_ERROR_TYPE_WARNING,
-             _ (
-               "Illegal directive in line %u (parsing restricted section %s)\n"),
+             "Illegal directive in line %u (parsing restricted section %s)\n",
              nr,
              cfg->restrict_section);
         ret = GNUNET_SYSERR;
@@ -793,7 +793,7 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
       if (NULL == end)
       {
         LOG (GNUNET_ERROR_TYPE_WARNING,
-             _ ("Bad directive in line %u\n"),
+             "Bad directive in line %u\n",
              nr);
         ret = GNUNET_SYSERR;
         break;
@@ -849,7 +849,7 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
         if (NULL == secname_end)
         {
           LOG (GNUNET_ERROR_TYPE_WARNING,
-               _ ("Bad inline-secret directive in line %u\n"),
+               "Bad inline-secret directive in line %u\n",
                nr);
           ret = GNUNET_SYSERR;
           break;
@@ -871,7 +871,7 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
       else
       {
         LOG (GNUNET_ERROR_TYPE_WARNING,
-             _ ("Unknown or malformed directive '%s' in line %u\n"),
+             "Unknown or malformed directive '%s' in line %u\n",
              directive,
              nr);
         ret = GNUNET_SYSERR;
@@ -901,8 +901,7 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
       if (NULL == section)
       {
         LOG (GNUNET_ERROR_TYPE_WARNING,
-             _ (
-               "Syntax error while deserializing in line %u (option without section)\n"),
+             "Syntax error while deserializing in line %u (option without section)\n",
              nr);
         ret = GNUNET_SYSERR;
         break;
@@ -952,7 +951,7 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
     }
     /* parse error */
     LOG (GNUNET_ERROR_TYPE_WARNING,
-         _ ("Syntax error while deserializing in line %u\n"),
+         "Syntax error while deserializing in line %u\n",
          nr);
     ret = GNUNET_SYSERR;
     break;
@@ -1033,7 +1032,10 @@ GNUNET_CONFIGURATION_parse (struct GNUNET_CONFIGURATION_Handle *cfg,
 
   dirty = cfg->dirty; /* back up value! */
   if (GNUNET_SYSERR ==
-      GNUNET_DISK_file_size (fn, &fs64, GNUNET_YES, GNUNET_YES))
+      GNUNET_DISK_file_size (fn,
+                             &fs64,
+                             GNUNET_YES,
+                             GNUNET_YES))
   {
     LOG (GNUNET_ERROR_TYPE_WARNING,
          "Error while determining the file size of `%s'\n",
@@ -1052,12 +1054,16 @@ GNUNET_CONFIGURATION_parse (struct GNUNET_CONFIGURATION_Handle *cfg,
   sret = GNUNET_DISK_fn_read (fn, mem, fs);
   if ((sret < 0) || (fs != (size_t) sret))
   {
-    LOG (GNUNET_ERROR_TYPE_WARNING, _ ("Error while reading file `%s'\n"), fn);
+    LOG (GNUNET_ERROR_TYPE_WARNING,
+         "Error while reading file `%s'\n",
+         fn);
     GNUNET_free (fn);
     GNUNET_free (mem);
     return GNUNET_SYSERR;
   }
-  LOG (GNUNET_ERROR_TYPE_DEBUG, "Deserializing contents of file `%s'\n", fn);
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Deserializing contents of file `%s'\n",
+       fn);
   ret = GNUNET_CONFIGURATION_deserialize (cfg,
                                           mem,
                                           fs,
@@ -1512,7 +1518,10 @@ copy_entry (void *cls,
 {
   struct GNUNET_CONFIGURATION_Handle *dst = cls;
 
-  GNUNET_CONFIGURATION_set_value_string (dst, section, option, value);
+  GNUNET_CONFIGURATION_set_value_string (dst,
+                                         section,
+                                         option,
+                                         value);
 }
 
 
@@ -1550,7 +1559,10 @@ compare_entries (void *cls,
   if ((NULL != entNew) && (NULL != entNew->val) &&
       (0 == strcmp (entNew->val, value)))
     return;
-  GNUNET_CONFIGURATION_set_value_string (dh->cfgDiff, section, option, value);
+  GNUNET_CONFIGURATION_set_value_string (dh->cfgDiff,
+                                         section,
+                                         option,
+                                         value);
 }
 
 
@@ -1634,8 +1646,14 @@ GNUNET_CONFIGURATION_set_value_number (struct GNUNET_CONFIGURATION_Handle *cfg,
 {
   char s[64];
 
-  GNUNET_snprintf (s, 64, "%llu", number);
-  GNUNET_CONFIGURATION_set_value_string (cfg, section, option, s);
+  GNUNET_snprintf (s,
+                   64,
+                   "%llu",
+                   number);
+  GNUNET_CONFIGURATION_set_value_string (cfg,
+                                         section,
+                                         option,
+                                         s);
 }
 
 
@@ -1862,15 +1880,17 @@ expand_dollar (const struct GNUNET_CONFIGURATION_Handle *cfg,
   if (depth > 128)
   {
     LOG (GNUNET_ERROR_TYPE_WARNING,
-         _ (
-           "Recursive expansion suspected, aborting $-expansion for term `%s'\n"),
+         "Recursive expansion suspected, aborting $-expansion for term `%s'\n",
          orig);
     return orig;
   }
-  LOG (GNUNET_ERROR_TYPE_DEBUG, "Asked to $-expand %s\n", orig);
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Asked to $-expand %s\n",
+       orig);
   if ('$' != orig[0])
   {
-    LOG (GNUNET_ERROR_TYPE_DEBUG, "Doesn't start with $ - not expanding\n");
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Doesn't start with $ - not expanding\n");
     return orig;
   }
   erased_char = 0;
@@ -1895,8 +1915,7 @@ expand_dollar (const struct GNUNET_CONFIGURATION_Handle *cfg,
 
       case '\0':
         LOG (GNUNET_ERROR_TYPE_WARNING,
-             _ ("Missing closing `%s' in option `%s'\n"),
-             "}",
+             "Missing closing `}' in option `%s'\n",
              orig);
         return orig;
 
@@ -1925,8 +1944,10 @@ expand_dollar (const struct GNUNET_CONFIGURATION_Handle *cfg,
     start = &orig[1];
     def = NULL;
     i = 0;
-    while ((orig[i] != '/') && (orig[i] != '\\') && (orig[i] != '\0') &&
-           (orig[i] != ' '))
+    while ( (orig[i] != '/') &&
+            (orig[i] != '\\') &&
+            (orig[i] != '\0') &&
+            (orig[i] != ' ') )
       i++;
     if (orig[i] == '\0')
     {
@@ -1946,12 +1967,17 @@ expand_dollar (const struct GNUNET_CONFIGURATION_Handle *cfg,
        post,
        def);
   if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_get_value_string (cfg, "PATHS", start, &prefix))
+      GNUNET_CONFIGURATION_get_value_string (cfg,
+                                             "PATHS",
+                                             start,
+                                             &prefix))
   {
     if (NULL == (env = getenv (start)))
     {
       /* try default */
-      def = expand_dollar (cfg, def, depth + 1);
+      def = expand_dollar (cfg,
+                           def,
+                           depth + 1);
       env = def;
     }
     if (NULL == env)
@@ -1960,8 +1986,7 @@ expand_dollar (const struct GNUNET_CONFIGURATION_Handle *cfg,
       if (erased_pos)
         *erased_pos = erased_char;
       LOG (GNUNET_ERROR_TYPE_WARNING,
-           _ (
-             "Failed to expand `%s' in `%s' as it is neither found in [PATHS] nor defined as an environmental variable\n"),
+           "Failed to expand `%s' in `%s' as it is neither found in [PATHS] nor defined as an environmental variable\n",
            start,
            orig);
       GNUNET_free (start);
@@ -1969,7 +1994,8 @@ expand_dollar (const struct GNUNET_CONFIGURATION_Handle *cfg,
     }
     prefix = GNUNET_strdup (env);
   }
-  prefix = GNUNET_CONFIGURATION_expand_dollar (cfg, prefix);
+  prefix = GNUNET_CONFIGURATION_expand_dollar (cfg,
+                                               prefix);
   if ((erased_pos) && ('}' != erased_char))
   {
     len = strlen (prefix) + 1;
@@ -2206,7 +2232,10 @@ GNUNET_CONFIGURATION_append_value_filename (
   if (strlen (old) > 0)
     strcat (nw, " ");
   strcat (nw, escaped);
-  GNUNET_CONFIGURATION_set_value_string (cfg, section, option, nw);
+  GNUNET_CONFIGURATION_set_value_string (cfg,
+                                         section,
+                                         option,
+                                         nw);
   GNUNET_free (old);
   GNUNET_free (nw);
   GNUNET_free (escaped);
@@ -2228,7 +2257,10 @@ GNUNET_CONFIGURATION_remove_value_filename (
   char old;
 
   if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_get_value_string (cfg, section, option, &list))
+      GNUNET_CONFIGURATION_get_value_string (cfg,
+                                             section,
+                                             option,
+                                             &list))
     return GNUNET_NO;
   match = escape_name (value);
   pos = list;
@@ -2266,7 +2298,9 @@ GNUNET_CONFIGURATION_remove_value_filename (
     if (0 == strcmp (pos, match))
     {
       if (old != '\0')
-        memmove (pos, &end[1], strlen (&end[1]) + 1);
+        memmove (pos,
+                 &end[1],
+                 strlen (&end[1]) + 1);
       else
       {
         if (pos != list)
@@ -2274,7 +2308,10 @@ GNUNET_CONFIGURATION_remove_value_filename (
         else
           pos[0] = '\0';
       }
-      GNUNET_CONFIGURATION_set_value_string (cfg, section, option, list);
+      GNUNET_CONFIGURATION_set_value_string (cfg,
+                                             section,
+                                             option,
+                                             list);
       GNUNET_free (list);
       GNUNET_free (match);
       return GNUNET_OK;
@@ -2455,7 +2492,7 @@ GNUNET_CONFIGURATION_default (void)
  * @param filename name of the configuration file, NULL to load defaults
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_load (struct GNUNET_CONFIGURATION_Handle *cfg,
                            const char *filename)
 {
@@ -2499,8 +2536,12 @@ GNUNET_CONFIGURATION_load (struct GNUNET_CONFIGURATION_Handle *cfg,
   char *dname = GNUNET_STRINGS_filename_expand (baseconfig);
   GNUNET_free (baseconfig);
 
-  if ((GNUNET_YES == GNUNET_DISK_directory_test (dname, GNUNET_YES)) &&
-      (GNUNET_SYSERR == GNUNET_CONFIGURATION_load_from (cfg, dname)))
+  if ((GNUNET_YES ==
+       GNUNET_DISK_directory_test (dname,
+                                   GNUNET_YES)) &&
+      (GNUNET_SYSERR ==
+       GNUNET_CONFIGURATION_load_from (cfg,
+                                       dname)))
   {
     LOG (GNUNET_ERROR_TYPE_WARNING,
          "Failed to load base configuration from '%s'\n",
@@ -2510,7 +2551,9 @@ GNUNET_CONFIGURATION_load (struct GNUNET_CONFIGURATION_Handle *cfg,
   }
   GNUNET_free (dname);
   if ((NULL != filename) &&
-      (GNUNET_OK != GNUNET_CONFIGURATION_parse (cfg, filename)))
+      (GNUNET_OK !=
+       GNUNET_CONFIGURATION_parse (cfg,
+                                   filename)))
   {
     /* specified configuration not found */
     LOG (GNUNET_ERROR_TYPE_WARNING,
@@ -2519,9 +2562,13 @@ GNUNET_CONFIGURATION_load (struct GNUNET_CONFIGURATION_Handle *cfg,
     return GNUNET_SYSERR;
   }
   if (((GNUNET_YES !=
-        GNUNET_CONFIGURATION_have_value (cfg, "PATHS", "DEFAULTCONFIG"))) &&
+        GNUNET_CONFIGURATION_have_value (cfg,
+                                         "PATHS",
+                                         "DEFAULTCONFIG"))) &&
       (filename != NULL))
-    GNUNET_CONFIGURATION_set_value_string (cfg, "PATHS", "DEFAULTCONFIG",
+    GNUNET_CONFIGURATION_set_value_string (cfg,
+                                           "PATHS",
+                                           "DEFAULTCONFIG",
                                            filename);
   return GNUNET_OK;
 }

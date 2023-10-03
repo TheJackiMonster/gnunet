@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2022 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -50,9 +50,9 @@ extern "C" {
 /**
  * Version number of GNUnet Messenger API.
  *
- * Current version of the Messenger: 0.1
+ * Current version of the Messenger: 0.2
  */
-#define GNUNET_MESSENGER_VERSION 0x00000001
+#define GNUNET_MESSENGER_VERSION 0x00000002
 
 /**
  * Identifier of GNUnet MESSENGER Service.
@@ -462,10 +462,6 @@ struct GNUNET_MESSENGER_MessageFile
  */
 struct GNUNET_MESSENGER_MessagePrivate
 {
-  /**
-   * The ECDH key to decrypt the message.
-   */
-  struct GNUNET_CRYPTO_EcdhePublicKey key;
 
   /**
    * The length of the encrypted message.

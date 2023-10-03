@@ -16,10 +16,10 @@ pcfiles = \
        gnunetgns.pc \
        gnunethello.pc \
        gnunetidentity.pc \
+       gnunetjson.pc \
        gnunetcadet.pc \
        gnunetmessenger.pc \
        gnunetmicrophone.pc \
-       gnunetmysql.pc \
        gnunetnamestore.pc \
        gnunetnat.pc \
        gnunetnse.pc \
@@ -59,10 +59,10 @@ EXTRA_DIST = \
        gnunetgns.pc.in \
        gnunethello.pc.in \
        gnunetidentity.pc.in \
+       gnunetjson.pc.in \
        gnunetcadet.pc.in \
        gnunetmessenger.pc.in \
        gnunetmicrophone.pc.in \
-       gnunetmysql.pc.in \
        gnunetnamestore.pc.in \
        gnunetnat.pc.in \
        gnunetnse.pc.in \

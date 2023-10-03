@@ -87,7 +87,8 @@ gnunet-communicator-unix
 gnunet-service-tng
 gnunet-communicator-tcp
 gnunet-communicator-udp
-test_communicator_unix
-test_communicator_basic_unix
+test_communicator_basic-*
+test_communicator_rekey-*
 test_transport_start_with_config
 test_transport_api2_tcp
+gnunet-communicator-quic

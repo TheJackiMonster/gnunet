@@ -43,6 +43,7 @@ libgnunetidentity_la_LIBADD = \
   $(GN_LIBINTL) $(XLIB)
 libgnunetidentity_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)   \
+  -lsodium \
   -version-info 1:0:0
 
 bin_PROGRAMS = \

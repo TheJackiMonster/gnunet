@@ -235,3 +235,7 @@ INTERFACE = hci0
 # Real hardware, no testing
 TESTMODE = 0
 TESTING_IGNORE_KEYS = ACCEPT_FROM;
+
+
+[communicator-quic]
+BINDTO = 127.0.0.1

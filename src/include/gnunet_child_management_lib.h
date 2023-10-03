@@ -49,8 +49,7 @@ struct GNUNET_ChildWaitHandle;
  * @param cls handle for the callback
  * @param type type of the process
  * @param exit_code status code of the process
- *
-*/
+ */
 typedef void
 (*GNUNET_ChildCompletedCallback)(void *cls,
                                  enum GNUNET_OS_ProcessStatusType type,

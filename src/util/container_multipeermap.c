@@ -385,7 +385,7 @@ update_next_cache_sme (struct GNUNET_CONTAINER_MultiPeerMap *map,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multipeermap_remove (struct GNUNET_CONTAINER_MultiPeerMap *map,
                                       const struct GNUNET_PeerIdentity *key,
                                       const void *value)
@@ -520,7 +520,7 @@ GNUNET_CONTAINER_multipeermap_remove_all (
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multipeermap_contains (
   const struct GNUNET_CONTAINER_MultiPeerMap *map,
   const struct GNUNET_PeerIdentity *key)
@@ -544,7 +544,7 @@ GNUNET_CONTAINER_multipeermap_contains (
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multipeermap_contains_value (
   const struct GNUNET_CONTAINER_MultiPeerMap *map,
   const struct GNUNET_PeerIdentity *key,
@@ -839,7 +839,7 @@ GNUNET_CONTAINER_multipeermap_iterator_create (
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CONTAINER_multipeermap_iterator_next (
   struct GNUNET_CONTAINER_MultiPeerMapIterator *iter,
   struct GNUNET_PeerIdentity *key,

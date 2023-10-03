@@ -90,7 +90,7 @@ handle_test (void *cls,
 struct GNUNET_TESTING_BarrierList *
 get_waiting_for_barriers ()
 {
-  //No Barrier
+  // No Barrier
   return GNUNET_new (struct GNUNET_TESTING_BarrierList);
 }
 
@@ -147,11 +147,10 @@ static void *
 notify_connect (struct GNUNET_TESTING_Interpreter *is,
                 const struct GNUNET_PeerIdentity *peer)
 {
-  const struct GNUNET_TESTING_AsyncContext *ac;
+  struct GNUNET_TESTING_AsyncContext *ac;
   void *ret = NULL;
   const struct GNUNET_TESTING_Command *cmd;
   struct GNUNET_TESTING_BlockState *bs;
-
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "notify_connect\n");
@@ -165,9 +164,9 @@ notify_connect (struct GNUNET_TESTING_Interpreter *is,
                 "notify_connect running\n");
     GNUNET_assert  (NULL != ac);
     if (NULL == ac->cont)
-      GNUNET_TESTING_async_fail ((struct GNUNET_TESTING_AsyncContext *) ac);
+      GNUNET_TESTING_async_fail (ac);
     else
-      GNUNET_TESTING_async_finish ((struct GNUNET_TESTING_AsyncContext *) ac);
+      GNUNET_TESTING_async_finish (ac);
   }
   else
   {
@@ -179,7 +178,7 @@ notify_connect (struct GNUNET_TESTING_Interpreter *is,
          cmd->label);
     GNUNET_TESTING_get_trait_block_state (
       cmd,
-      (const struct GNUNET_TESTING_BlockState  **) &bs);
+      &bs);
 
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "block state %u\n",
@@ -353,9 +352,9 @@ start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
   ts->write_message = write_message;
 
   is = GNUNET_TESTING_run (commands,
-                      TIMEOUT,
-                      &handle_result,
-                      ts);
+                           TIMEOUT,
+                           &handle_result,
+                           ts);
   return is;
 }
 

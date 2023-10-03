@@ -1136,11 +1136,11 @@ GNUNET_IDENTITY_signature_verify_raw_ (uint32_t purpose,
 
 
 ssize_t
-GNUNET_IDENTITY_encrypt (const void *block,
-                         size_t size,
-                         const struct GNUNET_IDENTITY_PublicKey *pub,
-                         struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
-                         void *result)
+GNUNET_IDENTITY_encrypt_old (const void *block,
+                             size_t size,
+                             const struct GNUNET_IDENTITY_PublicKey *pub,
+                             struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
+                             void *result)
 {
   struct GNUNET_CRYPTO_EcdhePrivateKey pk;
   GNUNET_CRYPTO_ecdhe_key_create (&pk);
@@ -1174,12 +1174,109 @@ GNUNET_IDENTITY_encrypt (const void *block,
 }
 
 
-ssize_t
-GNUNET_IDENTITY_decrypt (const void *block,
-                         size_t size,
+enum GNUNET_GenericReturnValue
+GNUNET_IDENTITY_encrypt (const void *pt,
+                         size_t pt_size,
+                         const struct GNUNET_IDENTITY_PublicKey *pub,
+                         void *ct_buf,
+                         size_t ct_size)
+{
+  struct GNUNET_HashCode k;
+  struct GNUNET_CRYPTO_FoKemC kemc;
+  struct GNUNET_CRYPTO_FoKemC *kemc_buf = (struct GNUNET_CRYPTO_FoKemC*) ct_buf;
+  unsigned char *encrypted_data = (unsigned char*) &kemc_buf[1];
+  unsigned char nonce[crypto_secretbox_NONCEBYTES];
+  unsigned char key[crypto_secretbox_KEYBYTES];
+
+  if (ct_size < pt_size + GNUNET_IDENTITY_ENCRYPT_OVERHEAD_BYTES)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Output buffer size for ciphertext too small: Got %lu, want >=%lu\n",
+                ct_size, pt_size + GNUNET_IDENTITY_ENCRYPT_OVERHEAD_BYTES);
+    return GNUNET_SYSERR;
+  }
+  switch (ntohl (pub->type))
+  {
+  case GNUNET_IDENTITY_TYPE_ECDSA:
+    if (GNUNET_SYSERR == GNUNET_CRYPTO_ecdsa_fo_kem_encaps (&(pub->ecdsa_key),
+                                                            &kemc,
+                                                            &k))
+      return GNUNET_SYSERR;
+    break;
+  case GNUNET_IDENTITY_TYPE_EDDSA:
+    if (GNUNET_SYSERR == GNUNET_CRYPTO_eddsa_fo_kem_encaps (&pub->eddsa_key,
+                                                            &kemc,
+                                                            &k))
+      return GNUNET_SYSERR;
+    break;
+  default:
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Unsupported key type\n");
+    return GNUNET_SYSERR;
+  }
+  memcpy (key, &k, crypto_secretbox_KEYBYTES);
+  memcpy (nonce, ((char* ) &k) + crypto_secretbox_KEYBYTES,
+          crypto_secretbox_NONCEBYTES);
+  if (crypto_secretbox_easy (encrypted_data, pt, pt_size, nonce, key))
+    return GNUNET_SYSERR;
+  memcpy (kemc_buf, &kemc, sizeof (kemc));
+  return GNUNET_OK;
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_IDENTITY_decrypt (const void *ct_buf,
+                         size_t ct_size,
                          const struct GNUNET_IDENTITY_PrivateKey *priv,
-                         const struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
-                         void *result)
+                         void *pt,
+                         size_t pt_size)
+{
+  struct GNUNET_HashCode k;
+  struct GNUNET_CRYPTO_FoKemC *kemc = (struct GNUNET_CRYPTO_FoKemC*) ct_buf;
+  unsigned char *encrypted_data = (unsigned char*) &kemc[1];
+  unsigned char nonce[crypto_secretbox_NONCEBYTES];
+  unsigned char key[crypto_secretbox_KEYBYTES];
+  size_t expected_pt_len = ct_size - GNUNET_IDENTITY_ENCRYPT_OVERHEAD_BYTES;
+
+  if (pt_size < expected_pt_len)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Output buffer size for plaintext too small: Got %lu, want >=%lu\n",
+                pt_size, expected_pt_len);
+    return GNUNET_SYSERR;
+  }
+  switch (ntohl (priv->type))
+  {
+  case GNUNET_IDENTITY_TYPE_ECDSA:
+    if (GNUNET_SYSERR == GNUNET_CRYPTO_ecdsa_fo_kem_decaps (&(priv->ecdsa_key),
+                                                            kemc,
+                                                            &k))
+      return GNUNET_SYSERR;
+    break;
+  case GNUNET_IDENTITY_TYPE_EDDSA:
+    if (GNUNET_SYSERR == GNUNET_CRYPTO_eddsa_fo_kem_decaps (&(priv->eddsa_key),
+                                                            kemc,
+                                                            &k))
+      return GNUNET_SYSERR;
+    break;
+  default:
+    return GNUNET_SYSERR;
+  }
+  memcpy (key, &k, crypto_secretbox_KEYBYTES);
+  memcpy (nonce, ((char* ) &k) + crypto_secretbox_KEYBYTES,
+          crypto_secretbox_NONCEBYTES);
+  if (crypto_secretbox_open_easy (pt, encrypted_data, ct_size - sizeof (*kemc),
+                                  nonce, key))
+    return GNUNET_SYSERR;
+  return GNUNET_OK;
+}
+
+
+ssize_t
+GNUNET_IDENTITY_decrypt_old (const void *block,
+                             size_t size,
+                             const struct GNUNET_IDENTITY_PrivateKey *priv,
+                             const struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
+                             void *result)
 {
   struct GNUNET_HashCode hash;
   switch (ntohl (priv->type))

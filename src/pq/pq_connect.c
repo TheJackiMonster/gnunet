@@ -322,97 +322,100 @@ GNUNET_PQ_reconnect_if_down (struct GNUNET_PQ_Context *db)
 }
 
 
-/**
- * Retrieves the Oid's for the supported array types and sets db->arraytype2oid
- * on succes.
- *
- * @param[in,out] db Context for the database connection
- * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
- */
-static enum GNUNET_GenericReturnValue
-get_array_type_oids (struct GNUNET_PQ_Context *db)
+enum GNUNET_GenericReturnValue
+GNUNET_PQ_get_oid_by_name (
+  struct GNUNET_PQ_Context *db,
+  const char *name,
+  Oid *oid)
 {
-  PGresult *res;
-  ExecStatusType est;
-
-  GNUNET_assert (NULL != db);
-  /* Initialize to Oid(0) (= unknown) */
-  memset (db->oids,
-          0,
-          sizeof(db->oids));
-
-  res = PQexec (db->conn,
-                "SELECT"
-                " typname, oid"
-                " FROM pg_type "
-                " WHERE typname in "
-                " ('bool', 'int2', 'int4', 'int8', 'bytea', 'varchar');");
-
-  est = PQresultStatus (res);
-  if ( (PGRES_COMMAND_OK != est) &&
-       (PGRES_TUPLES_OK != est))
+  /* Check if the entry is in the cache already */
+  for (unsigned int i = 0; i < db->oids.num; i++)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Failed to run statement to retrieve Oids for array types!\n");
-    return GNUNET_SYSERR;
-  }
-
-  if ( (2 != PQnfields (res)) ||
-       (0 != PQfnumber (res, "typname")) ||
-       (1 != PQfnumber (res, "oid"))
-       )
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Unexpected table retrieved for array types\n");
-    return GNUNET_SYSERR;
-  }
-
-  {
-    int nrows = PQntuples (res);
-    int nfound = 1; /* skip GNUNET_PQ_DATATYPE_UNKNOWN */
-    char dummy;
-
-    for (int r = 0; r < nrows; r++)
+    /* Pointer comparison */
+    if (name == db->oids.table[i].name)
     {
-      enum GNUNET_PQ_DataTypes atype = GNUNET_PQ_DATATYPE_UNKNOWN;
-      char *typ_s = PQgetvalue (res,r,0);
-      char *oid_s = PQgetvalue (res,r,1);
-      GNUNET_assert (NULL != typ_s);
-      GNUNET_assert (NULL != oid_s);
-
-      if (! strcmp (typ_s,"bool"))
-        atype = GNUNET_PQ_DATATYPE_BOOL;
-      else if (! strcmp (typ_s,"int2"))
-        atype = GNUNET_PQ_DATATYPE_INT2;
-      else if (! strcmp (typ_s,"int4"))
-        atype = GNUNET_PQ_DATATYPE_INT4;
-      else if (! strcmp (typ_s,"int8"))
-        atype = GNUNET_PQ_DATATYPE_INT8;
-      else if (! strcmp (typ_s,"bytea"))
-        atype = GNUNET_PQ_DATATYPE_BYTEA;
-      else if (! strcmp (typ_s,"varchar"))
-        atype = GNUNET_PQ_DATATYPE_VARCHAR;
-      else
-        continue;
-
-      GNUNET_assert (GNUNET_PQ_DATATYPE_MAX > atype);
-
-      if ( (GNUNET_PQ_DATATYPE_UNKNOWN != atype) &&
-           (1 == sscanf (oid_s,
-                         "%u%c",
-                         &db->oids[atype],
-                         &dummy)))
-      {
-        nfound++;
-      }
+      *oid = db->oids.table[i].oid;
+      return GNUNET_OK;
     }
+  }
 
-    if (GNUNET_PQ_DATATYPE_MAX != nfound)
+  /* No entry found in cache, ask database */
+  {
+    enum GNUNET_DB_QueryStatus qs;
+    struct GNUNET_PQ_QueryParam params[] = {
+      GNUNET_PQ_query_param_string (name),
+      GNUNET_PQ_query_param_end
+    };
+    struct GNUNET_PQ_ResultSpec spec[] = {
+      GNUNET_PQ_result_spec_uint32 ("oid",
+                                    oid),
+      GNUNET_PQ_result_spec_end
+    };
+
+    GNUNET_assert (NULL != db);
+
+    qs = GNUNET_PQ_eval_prepared_singleton_select (db,
+                                                   "gnunet_pq_get_oid_by_name",
+                                                   params,
+                                                   spec);
+    if (GNUNET_DB_STATUS_SUCCESS_ONE_RESULT != qs)
+      return GNUNET_SYSERR;
+  }
+
+  /* Add the entry to the cache */
+  if (NULL == db->oids.table)
+  {
+    db->oids.table = GNUNET_new_array (8,
+                                       typeof(*db->oids.table));
+    db->oids.cap = 8;
+    db->oids.num = 0;
+  }
+
+  if (db->oids.cap <= db->oids.num)
+    GNUNET_array_grow (db->oids.table,
+                       db->oids.cap,
+                       db->oids.cap + 8);
+
+  db->oids.table[db->oids.num].name = name;
+  db->oids.table[db->oids.num].oid = *oid;
+  db->oids.num++;
+
+  return GNUNET_OK;
+}
+
+
+/**
+ * Load the initial set of OIDs for the supported
+ * array-datatypes
+ *
+ * @param db The database context
+ * @return GNUNET_OK on success, GNUNET_SYSERR if any of the types couldn't be found
+ */
+static
+enum GNUNET_GenericReturnValue
+load_initial_oids (struct GNUNET_PQ_Context *db)
+{
+  static const char *typnames[] = {
+    "bool",
+    "int2",
+    "int4",
+    "int8",
+    "bytea",
+    "varchar"
+  };
+  Oid oid;
+
+  for (size_t i = 0; i< sizeof(typnames) / sizeof(*typnames); i++)
+  {
+    if (GNUNET_OK !=
+        GNUNET_PQ_get_oid_by_name (db,
+                                   typnames[i],
+                                   &oid))
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "Couldn't find all array types, only found %d of %d!\n",
-                  nfound - 1,
-                  GNUNET_PQ_DATATYPE_MAX - 1);
+      GNUNET_log_from (GNUNET_ERROR_TYPE_ERROR,
+                       "pq",
+                       "Couldn't retrieve OID for type %s\n",
+                       typnames[i]);
       return GNUNET_SYSERR;
     }
   }
@@ -510,8 +513,36 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
     }
   }
 
-  /* Retrieve the OIDs for the supported Array types */
-  if (GNUNET_SYSERR == get_array_type_oids (db))
+  /* Prepare statement for OID lookup by name */
+  {
+    PGresult *res;
+
+    res = PQprepare (db->conn,
+                     "gnunet_pq_get_oid_by_name",
+                     "SELECT"
+                     " typname, oid"
+                     " FROM pg_type"
+                     " WHERE typname = $1"
+                     " LIMIT 1",
+                     1,
+                     NULL);
+    if (PGRES_COMMAND_OK != PQresultStatus (res))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Failed to run SQL statement prepare OID lookups: %s/%s\n",
+                  PQresultErrorMessage (res),
+                  PQerrorMessage (db->conn));
+      PQclear (res);
+      PQfinish (db->conn);
+      db->conn = NULL;
+      return;
+    }
+    PQclear (res);
+  }
+
+  /* Reset the OID-cache and retrieve the OIDs for the supported Array types */
+  db->oids.num = 0;
+  if (GNUNET_SYSERR == load_initial_oids (db))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Failed to retrieve OID information for array types!\n");
@@ -519,6 +550,7 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
     db->conn = NULL;
     return;
   }
+
 
   if (NULL != db->auto_suffix)
   {
@@ -661,6 +693,10 @@ GNUNET_PQ_disconnect (struct GNUNET_PQ_Context *db)
   GNUNET_free (db->load_path);
   GNUNET_free (db->auto_suffix);
   GNUNET_free (db->config_str);
+  GNUNET_free (db->oids.table);
+  db->oids.table = NULL;
+  db->oids.num = 0;
+  db->oids.cap = 0;
   PQfinish (db->conn);
   GNUNET_free (db);
 }
