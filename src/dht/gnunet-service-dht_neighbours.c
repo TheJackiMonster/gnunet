@@ -664,7 +664,7 @@ send_find_peer_message (void *cls)
                                     GNUNET_BLOCK_TYPE_DHT_HELLO,
                                     NULL,
                                     0,
-                                    "set-seen-size",
+                                    "seen-set-size",
                                     GNUNET_CONTAINER_multipeermap_size (
                                       all_connected_peers),
                                     NULL);
