@@ -558,17 +558,29 @@ hosts_directory_scan_callback (void *cls, const char *fullname)
   struct GNUNET_HELLO_Builder *builder;
   struct GNUNET_PeerIdentity *pid;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "1 hosts_directory_scan_callback filename %s\n",
+              fullname);
+
   if (GNUNET_YES != GNUNET_DISK_file_test (fullname))
     return GNUNET_OK; /* ignore non-files */
 
-  filename = strrchr (fullname, DIR_SEPARATOR);
-  if ((NULL == filename) || (1 > strlen (filename)))
-    filename = fullname;
-  else
-    filename++;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "2 hosts_directory_scan_callback filename %s\n",
+              fullname);
+  
+  /* filename = strrchr (fullname, DIR_SEPARATOR); */
+  /* if ((NULL == filename) || (1 > strlen (filename))) */
+  /*   filename = fullname; */
+  /* else */
+  /*   filename++; */
 
-  if (GNUNET_YES != GNUNET_DISK_file_test (filename))
-    return GNUNET_OK;
+  /* GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, */
+  /*             "3 hosts_directory_scan_callback filename %s\n", */
+  /*             filename); */
+  
+  /* if (GNUNET_YES != GNUNET_DISK_file_test (filename)) */
+  /*   return GNUNET_OK; */
   size_total = GNUNET_DISK_fn_read (fullname, buffer, sizeof(buffer));
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Read %d bytes from `%s'\n",
@@ -624,31 +636,7 @@ run (void *cls,
   in_shutdown = GNUNET_NO;
   num_clients = 0;
   cfg = c;
-  use_included = GNUNET_CONFIGURATION_get_value_yesno (cfg,
-                                                       "peerinfo",
-                                                       "USE_INCLUDED_HELLOS");
-  if (GNUNET_SYSERR == use_included)
-    use_included = GNUNET_NO;
-  if (GNUNET_YES == use_included)
-  {
-    ip = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_DATADIR);
-    GNUNET_asprintf (&peerdir, "%shellos", ip);
-    GNUNET_free (ip);
-
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                _ ("Importing HELLOs from `%s'\n"),
-                peerdir);
-
-    GNUNET_DISK_directory_scan (peerdir,
-                                &hosts_directory_scan_callback,
-                                NULL);
-    GNUNET_free (peerdir);
-  }
-  else
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                _ ("Skipping import of included HELLOs\n"));
-  }
+  
   if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_string (cfg,
                                                           "peerstore",
                                                           "DATABASE",
@@ -673,6 +661,33 @@ run (void *cls,
   }
   watchers = GNUNET_CONTAINER_multihashmap_create (10, GNUNET_NO);
   expire_task = GNUNET_SCHEDULER_add_now (&cleanup_expired_records, NULL);
+
+  use_included = GNUNET_CONFIGURATION_get_value_yesno (cfg,
+                                                       "peerstore",
+                                                       "USE_INCLUDED_HELLOS");
+  if (GNUNET_SYSERR == use_included)
+    use_included = GNUNET_NO;
+  if (GNUNET_YES == use_included)
+  {
+    ip = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_DATADIR);
+    GNUNET_asprintf (&peerdir, "%shellos", ip);
+    GNUNET_free (ip);
+
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                _ ("Importing HELLOs from `%s'\n"),
+                peerdir);
+
+    GNUNET_DISK_directory_scan (peerdir,
+                                &hosts_directory_scan_callback,
+                                NULL);
+    GNUNET_free (peerdir);
+  }
+  else
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                _ ("Skipping import of included HELLOs\n"));
+  }
+
   GNUNET_SCHEDULER_add_shutdown (&shutdown_task, NULL);
 }
 
