@@ -5382,7 +5382,8 @@ handle_client_send (void *cls, const struct OutboundMessage *obm)
   pm->bytes_msg = bytes_msg;
   memcpy (&pm[1], obmm, bytes_msg);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Sending %u bytes as <%llu> to %s\n",
+              "Sending message of type %u  with %u bytes as <%llu> to %s\n",
+              ntohs (obmm->type),
               bytes_msg,
               pm->logging_uuid,
               GNUNET_i2s (&obm->peer));
