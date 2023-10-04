@@ -40,36 +40,36 @@ if get_option('monolith')
   endforeach
 endif
 
-libgnunettransport = library('gnunettransport',
-        libgnunettransport_src,
-        soversion: '2',
-        version: '2.2.0',
-        dependencies: [libgnunetutil_dep, libgnunetats_dep, libgnunethello_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
-pkg.generate(libgnunettransport, url: 'https://www.gnunet.org',
-             description : 'Provides API for accessing the transport service')
-libgnunettransport_dep = declare_dependency(link_with : libgnunettransport)
+#libgnunettransport = library('gnunettransport',
+#        libgnunettransport_src,
+#        soversion: '2',
+#        version: '2.2.0',
+#        dependencies: [libgnunetutil_dep, libgnunetats_dep, libgnunethello_dep],
+#        include_directories: [incdir, configuration_inc],
+#        install: true,
+#        install_dir: get_option('libdir'))
+#pkg.generate(libgnunettransport, url: 'https://www.gnunet.org',
+#             description : 'Provides API for accessing the transport service')
+#libgnunettransport_dep = declare_dependency(link_with : libgnunettransport)
 
-libgnunettransporttesting = library('gnunettransporttesting',
-        [
-          'transport-testing.c',
-          'transport-testing-filenames.c',
-          'transport-testing-loggers.c',
-          'transport-testing-main.c',
-          'transport-testing-send.c'
-          ],
-        soversion: '0',
-        version: '0.0.0',
-        dependencies: [libgnunetutil_dep,
-                       libgnunettesting_dep,
-                       libgnunettransport_dep,
-                       libgnunetats_dep,
-                       libgnunethello_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+#libgnunettransporttesting = library('gnunettransporttesting',
+#        [
+#          'transport-testing.c',
+#          'transport-testing-filenames.c',
+#          'transport-testing-loggers.c',
+#          'transport-testing-main.c',
+#          'transport-testing-send.c'
+#          ],
+#        soversion: '0',
+#        version: '0.0.0',
+#        dependencies: [libgnunetutil_dep,
+#                       libgnunettesting_dep,
+#                       libgnunettransport_dep,
+#                       libgnunetats_dep,
+#                       libgnunethello_dep],
+#        include_directories: [incdir, configuration_inc],
+#        install: true,
+#        install_dir: get_option('libdir'))
 
 
 libgnunettransportapplication = library('gnunettransportapplication',
@@ -129,20 +129,19 @@ libgnunettransporttesting2 = library('gnunettransporttesting2',
           'transport_api_cmd_stop_peer.c',
           'transport_api_cmd_send_simple.c',
           'transport_api_cmd_send_simple_performance.c',
-          'transport-testing2.c',
-          'transport-testing-filenames2.c',
-          'transport-testing-loggers2.c',
-          'transport-testing-main2.c',
-          'transport-testing-send2.c',
+          #'transport-testing2.c',
+          #'transport-testing-filenames2.c',
+          #'transport-testing-loggers2.c',
+          #'transport-testing-main2.c',
+          #'transport-testing-send2.c',
           'transport-testing-communicator.c',
           ],
         soversion: '0',
         version: '0.0.0',
         dependencies: [libgnunetutil_dep,
+                       libgnunettransportcore_dep,
                        libgnunettransportapplication_dep,
-                       libgnunettransport_dep,
                        libgnunetpeerstore_dep,
-                       libgnunetats_dep,
                        libgnunettesting_dep,
                        libgnunethello_dep],
         include_directories: [incdir, configuration_inc],
@@ -150,17 +149,17 @@ libgnunettransporttesting2 = library('gnunettransporttesting2',
         install_dir: get_option('libdir'))
 libgnunettransporttesting2_dep = declare_dependency(link_with : libgnunettransporttesting2)
 
-executable ('gnunet-service-transport',
-            gnunetservicetransport_src,
-            dependencies: [libgnunettransport_dep, libgnunetutil_dep,
-                           libgnunethello_dep,
-                           libgnunetpeerstore_dep,
-                           m_dep,
-                           libgnunetstatistics_dep,
-                           gcrypt_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+#executable ('gnunet-service-transport',
+#            gnunetservicetransport_src,
+#            dependencies: [libgnunettransport_dep, libgnunetutil_dep,
+#                           libgnunethello_dep,
+#                           libgnunetpeerstore_dep,
+#                           m_dep,
+#                           libgnunetstatistics_dep,
+#                           gcrypt_dep],
+#            include_directories: [incdir, configuration_inc],
+#            install: true,
+#            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
 
 executable ('gnunet-communicator-unix',
             gnunetcommunicatorunix_src,
@@ -200,23 +199,23 @@ executable ('gnunet-communicator-tcp',
             install: true,
             install_dir: get_option('libdir') / 'gnunet' / 'libexec')
 
-executable ('gnunet-transport',
-            ['gnunet-transport.c'],
-            dependencies: [libgnunettransportcommunicator_dep,
-                           libgnunethello_dep,
-                           libgnunettransport_dep,
-                           libgnunetpeerstore_dep,
-                           libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
+#executable ('gnunet-transport',
+#            ['gnunet-transport.c'],
+#            dependencies: [libgnunettransportcommunicator_dep,
+#                           libgnunethello_dep,
+#                           libgnunettransport_dep,
+#                           libgnunetpeerstore_dep,
+#                           libgnunetutil_dep],
+#            include_directories: [incdir, configuration_inc],
+#            install: true,
+#            install_dir: get_option('bindir'))
 
 libgnunettesttransport_cmd_simplesend = library('gnunet_test_transport_plugin_cmd_simple_send',
     ['test_transport_plugin_cmd_simple_send.c'],
         dependencies: [
           libgnunetutil_dep,
-          libgnunettransporttesting2_dep,
           libgnunettransportapplication_dep,
+          libgnunettransporttesting2_dep,
           libgnunettransportcore_dep,
           libgnunettesting_dep,
           libgnunetpeerstore_dep,
@@ -233,8 +232,8 @@ libgnunettesttransport_cmd_simplesendbc = library('gnunet_test_transport_plugin_
     ['test_transport_plugin_cmd_simple_send_broadcast.c'],
         dependencies: [
           libgnunetutil_dep,
-          libgnunettransporttesting2_dep,
           libgnunettransportapplication_dep,
+          libgnunettransporttesting2_dep,
           libgnunettransportcore_dep,
           libgnunettesting_dep,
           libgnunetpeerstore_dep,
@@ -251,8 +250,8 @@ libgnunettesttransport_cmd_simplesenddv = library('gnunet_test_transport_plugin_
     ['test_transport_plugin_cmd_simple_send_dv.c'],
         dependencies: [
           libgnunetutil_dep,
-          libgnunettransporttesting2_dep,
           libgnunettransportapplication_dep,
+          libgnunettransporttesting2_dep,
           libgnunettransportcore_dep,
           libgnunettesting_dep,
           libgnunetpeerstore_dep,
@@ -269,8 +268,8 @@ libgnunettesttransport_cmd_simplesendperf = library('gnunet_test_transport_plugi
     ['test_transport_plugin_cmd_simple_send_performance.c'],
         dependencies: [
           libgnunetutil_dep,
-          libgnunettransporttesting2_dep,
           libgnunettransportapplication_dep,
+          libgnunettransporttesting2_dep,
           libgnunettransportcore_dep,
           libgnunettesting_dep,
           libgnunetpeerstore_dep,
@@ -305,8 +304,8 @@ libgnunettesttransport_cmd_natupnp = library('gnunet_test_transport_plugin_cmd_n
     ['test_transport_plugin_cmd_nat_upnp.c'],
         dependencies: [
           libgnunetutil_dep,
-          libgnunettransporttesting2_dep,
           libgnunettransportapplication_dep,
+          libgnunettransporttesting2_dep,
           libgnunettransportcore_dep,
           libgnunettesting_dep,
           libgnunetpeerstore_dep,
