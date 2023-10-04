@@ -24,9 +24,8 @@
  * @author Nils Durner
  * @author Christian Grothoff
  */
-
-#include "gnunet_common.h"
 #include "platform.h"
+#include "gnunet_common.h"
 #include "disk.h"
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-network", __VA_ARGS__)

@@ -25,8 +25,6 @@
  * @author Philipp Toelke
  * @author Christian Grothoff
  */
-
-#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 
