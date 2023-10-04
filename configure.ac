@@ -904,7 +904,6 @@ AM_CONDITIONAL([HAVE_POSTGRESQL], [test "x$postgres" = "x1"])
 AC_DEFINE_UNQUOTED([HAVE_POSTGRESQL], [$postgres],
                    [Define to 1 if Postgres is available])
 
-LDFLAGS="$SAVE_LDFLAGS"
 CPPFLAGS="$SAVE_CPPFLAGS"
 
 # check for libmicrohttpd
