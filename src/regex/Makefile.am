@@ -94,8 +94,7 @@ libgnunet_plugin_block_regex_la_LDFLAGS = \
 #endif
 
 noinst_PROGRAMS = $(noinst_mysql_progs) \
-  perf-regex \
-  gnunet-regex-profiler
+  perf-regex
 
 perf_regex_SOURCES = \
   $(REGEX_INTERNAL_TEST) perf-regex.c
@@ -105,19 +104,6 @@ perf_regex_LDADD = -lm \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la
 perf_regex_LDFLAGS = \
-  $(GN_LIBINTL)
-
-gnunet_regex_profiler_SOURCES = \
-  $(REGEX_INTERNAL_TEST) gnunet-regex-profiler.c
-gnunet_regex_profiler_LDADD = -lm \
-  $(top_builddir)/src/arm/libgnunetarm.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/testbed/libgnunettestbed.la \
-  $(top_builddir)/src/dht/libgnunetdht.la \
-  libgnunetregexblock.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/util/libgnunetutil.la
-gnunet_regex_profiler_LDFLAGS = \
   $(GN_LIBINTL)
 
 gnunet_daemon_regexprofiler_SOURCES = \

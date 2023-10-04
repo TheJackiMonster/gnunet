@@ -225,10 +225,10 @@ notify_connect (void *cls,
         GNUNET_SCHEDULER_cancel (cc->tct);
         cc->tct = NULL;
       }
-      if (NULL != cc->ats_sh)
+      if (NULL != cc->ah_sh)
       {
-        GNUNET_ATS_connectivity_suggest_cancel (cc->ats_sh);
-        cc->ats_sh = NULL;
+        GNUNET_TRANSPORT_application_suggest_cancel (cc->ah_sh);
+        cc->ah_sh = NULL;
       }
     }
   }
@@ -268,6 +268,7 @@ notify_disconnect (void *cls,
   int no = 0;
   struct GNUNET_TRANSPORT_TESTING_PeerContext *p2 = NULL;
   struct GNUNET_TRANSPORT_TESTING_ConnectRequest *cc;
+  struct GNUNET_BANDWIDTH_Value32NBO bw;
 
   p2 = find_peer_context (p->tth,
                           peer);
@@ -321,10 +322,11 @@ notify_disconnect (void *cls,
       if (NULL == cc->tct)
         cc->tct = GNUNET_SCHEDULER_add_now (&offer_hello,
                                             cc);
-      if (NULL == cc->ats_sh)
-        cc->ats_sh = GNUNET_ATS_connectivity_suggest (cc->p1->ats,
+      if (NULL == cc->ah_sh)
+        cc->ah_sh = GNUNET_TRANSPORT_application_suggest (cc->p1->ah,
                                                       &p2->id,
-                                                      1);
+                                                      GNUNET_MQ_PRIO_BEST_EFFORT,
+                                                      bw);
     }
   }
 }
@@ -512,11 +514,11 @@ GNUNET_TRANSPORT_TESTING_start_peer (struct
     GNUNET_free (emsg);
     return NULL;
   }
-  p->ats = GNUNET_ATS_connectivity_init (p->cfg);
-  if (NULL == p->ats)
+  p->ah = GNUNET_TRANSPORT_application_init (p->cfg);
+  if (NULL == p->ah)
   {
     LOG (GNUNET_ERROR_TYPE_ERROR,
-         "Failed to connect to ATS service for peer `%s': `%s'\n",
+         "Failed to connect to TNG service for peer `%s': `%s'\n",
          cfgname,
          emsg);
     GNUNET_TRANSPORT_TESTING_stop_peer (p);
@@ -524,9 +526,6 @@ GNUNET_TRANSPORT_TESTING_start_peer (struct
     return NULL;
   }
   p->ph = GNUNET_PEERSTORE_connect (p->cfg);
-  // FIXME Error handling
-  p->ah = GNUNET_TRANSPORT_application_init (p->cfg);
-  GNUNET_assert (NULL != p->ah);
   // FIXME Error handling
   p->rh_task = GNUNET_SCHEDULER_add_now (retrieve_hello, p);
 
@@ -565,10 +564,10 @@ GNUNET_TRANSPORT_TESTING_restart_peer (struct
         (cc->p2 == p))
       GNUNET_TRANSPORT_TESTING_connect_peers_cancel (cc);
   }
-  if (NULL != p->ats)
+  if (NULL != p->ah)
   {
-    GNUNET_ATS_connectivity_done (p->ats);
-    p->ats = NULL;
+    GNUNET_TRANSPORT_application_done (p->ah);
+    p->ah = NULL;
   }
   if (GNUNET_SYSERR ==
       GNUNET_TESTING_peer_stop (p->peer))
@@ -607,7 +606,7 @@ GNUNET_TRANSPORT_TESTING_restart_peer (struct
                                          &notify_connect,
                                          &notify_disconnect);
   GNUNET_assert (NULL != p->th);
-  p->ats = GNUNET_ATS_connectivity_init (p->cfg);
+  p->ah = GNUNET_TRANSPORT_application_init (p->cfg);
   p->pic = GNUNET_PEERSTORE_iterate (p->ph,
                                      "transport",
                                      &p->id,
@@ -653,11 +652,6 @@ GNUNET_TRANSPORT_TESTING_stop_peer (struct
   {
     GNUNET_TRANSPORT_core_disconnect (p->th);
     p->th = NULL;
-  }
-  if (NULL != p->ats)
-  {
-    GNUNET_ATS_connectivity_done (p->ats);
-    p->ats = NULL;
   }
   if (NULL != p->ah)
   {
@@ -794,6 +788,7 @@ GNUNET_TRANSPORT_TESTING_connect_peers (struct
   struct GNUNET_TRANSPORT_TESTING_Handle *tth = p1->tth;
   struct GNUNET_TRANSPORT_TESTING_ConnectRequest *cc;
   struct GNUNET_TRANSPORT_TESTING_ConnectRequest *ccn;
+  struct GNUNET_BANDWIDTH_Value32NBO bw;
 
   ccn = NULL;
   for (cc = tth->cc_head; NULL != cc; cc = cc->next)
@@ -825,9 +820,10 @@ GNUNET_TRANSPORT_TESTING_connect_peers (struct
                                cc);
   cc->tct = GNUNET_SCHEDULER_add_now (&offer_hello,
                                       cc);
-  cc->ats_sh = GNUNET_ATS_connectivity_suggest (cc->p1->ats,
-                                                &p2->id,
-                                                1);
+  cc->ah_sh = GNUNET_TRANSPORT_application_suggest (cc->p1->ah,
+                                                     &p2->id,
+                                                     GNUNET_MQ_PRIO_BEST_EFFORT,
+                                                bw);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "New connect request %p\n",
        cc);
@@ -849,10 +845,10 @@ GNUNET_TRANSPORT_TESTING_connect_peers_cancel (struct
     GNUNET_SCHEDULER_cancel (cc->tct);
     cc->tct = NULL;
   }
-  if (NULL != cc->ats_sh)
+  if (NULL != cc->ah_sh)
   {
-    GNUNET_ATS_connectivity_suggest_cancel (cc->ats_sh);
-    cc->ats_sh = NULL;
+    GNUNET_TRANSPORT_application_suggest_cancel (cc->ah_sh);
+    cc->ah_sh = NULL;
   }
   GNUNET_CONTAINER_DLL_remove (tth->cc_head,
                                tth->cc_tail,

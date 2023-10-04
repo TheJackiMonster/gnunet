@@ -33,7 +33,6 @@ endif
 libgnunet_plugin_dhtu_gnunet_la_SOURCES = \
   plugin_dhtu_gnunet.c
 libgnunet_plugin_dhtu_gnunet_la_LIBADD = \
-  $(top_builddir)/src/ats/libgnunetats.la \
   $(top_builddir)/src/core/libgnunetcore.la \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/transport/libgnunettransportapplication.la \

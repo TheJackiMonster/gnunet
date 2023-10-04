@@ -176,7 +176,7 @@ struct Plugin
 };
 
 
-#include "../peerinfo-tool/gnunet-peerinfo_plugins.c"
+//#include "../peerinfo-tool/gnunet-peerinfo_plugins.c"
 
 
 /**
@@ -196,7 +196,7 @@ gnunet_try_connect (void *cls,
   char *addr;
   const char *eou;
   int pfx_len;
-  
+
   eou = strstr (address,
                   "://");
   if (NULL == eou)
@@ -545,7 +545,7 @@ libgnunet_plugin_dhtu_gnunet_done (void *cls)
     GNUNET_PEERSTORE_hello_changed_notify_cancel (plugin->peerstore_notify);
   if (NULL != plugin->peerstore)
     GNUNET_PEERSTORE_disconnect (plugin->peerstore, GNUNET_YES);
-  GPI_plugins_unload ();
+  //GPI_plugins_unload ();
   GNUNET_free (plugin->my_priv);
   GNUNET_free (plugin);
   GNUNET_free (api);
@@ -602,6 +602,6 @@ libgnunet_plugin_dhtu_gnunet_init (void *cls)
     libgnunet_plugin_dhtu_gnunet_done (plugin);
     return NULL;
   }
-  GPI_plugins_load (env->cfg);
+  //GPI_plugins_load (env->cfg);
   return api;
 }

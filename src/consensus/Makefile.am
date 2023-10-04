@@ -18,8 +18,8 @@ endif
 libexec_PROGRAMS = \
  gnunet-service-consensus
 
-noinst_PROGRAMS = \
- gnunet-consensus-profiler
+#noinst_PROGRAMS = \
+# gnunet-consensus-profiler
 
 if ENABLE_MALICIOUS
 libexec_PROGRAMS += \
@@ -38,14 +38,15 @@ check-python-style:
 lib_LTLIBRARIES = \
   libgnunetconsensus.la
 
-gnunet_consensus_profiler_SOURCES = \
- gnunet-consensus-profiler.c
-gnunet_consensus_profiler_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
-  libgnunetconsensus.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/testbed/libgnunettestbed.la \
-  $(GN_LIBINTL)
+# TNG
+#gnunet_consensus_profiler_SOURCES = \
+# gnunet-consensus-profiler.c
+#gnunet_consensus_profiler_LDADD = \
+#  $(top_builddir)/src/util/libgnunetutil.la \
+#  libgnunetconsensus.la \
+#  $(top_builddir)/src/testing/libgnunettesting.la \
+#  $(top_builddir)/src/testbed/libgnunettestbed.la \
+#  $(GN_LIBINTL)
 
 gnunet_service_consensus_SOURCES = \
  gnunet-service-consensus.c

@@ -30,7 +30,6 @@ gnunet_daemon_hostlist_LDADD = \
   $(top_builddir)/src/hello/libgnunethello.la \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/transport/libgnunettransport.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(GN_LIBMHD) \
   @LIBCURL@ \
@@ -52,25 +51,25 @@ TESTS = \
  $(check_PROGRAMS)
 endif
 
-test_gnunet_daemon_hostlist_SOURCES = \
- test_gnunet_daemon_hostlist.c
-test_gnunet_daemon_hostlist_LDADD = \
-  $(top_builddir)/src/transport/libgnunettransport.la \
-  $(top_builddir)/src/util/libgnunetutil.la
-
-test_gnunet_daemon_hostlist_reconnect_SOURCES = \
- test_gnunet_daemon_hostlist_reconnect.c
-test_gnunet_daemon_hostlist_reconnect_LDADD = \
-  $(top_builddir)/src/transport/libgnunettransport.la \
-  $(top_builddir)/src/util/libgnunetutil.la
-
-test_gnunet_daemon_hostlist_learning_SOURCES = \
- test_gnunet_daemon_hostlist_learning.c
-test_gnunet_daemon_hostlist_learning_LDADD = \
-  $(top_builddir)/src/transport/libgnunettransport.la \
-  $(top_builddir)/src/core/libgnunetcore.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+#test_gnunet_daemon_hostlist_SOURCES = \
+# test_gnunet_daemon_hostlist.c
+#test_gnunet_daemon_hostlist_LDADD = \
+#  $(top_builddir)/src/transport/libgnunettransport.la \
+#  $(top_builddir)/src/util/libgnunetutil.la
+#
+#test_gnunet_daemon_hostlist_reconnect_SOURCES = \
+# test_gnunet_daemon_hostlist_reconnect.c
+#test_gnunet_daemon_hostlist_reconnect_LDADD = \
+#  $(top_builddir)/src/transport/libgnunettransport.la \
+#  $(top_builddir)/src/util/libgnunetutil.la
+#
+#test_gnunet_daemon_hostlist_learning_SOURCES = \
+# test_gnunet_daemon_hostlist_learning.c
+#test_gnunet_daemon_hostlist_learning_LDADD = \
+#  $(top_builddir)/src/transport/libgnunettransport.la \
+#  $(top_builddir)/src/core/libgnunetcore.la \
+#  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+#  $(top_builddir)/src/util/libgnunetutil.la
 
 EXTRA_DIST = \
   test_hostlist_defaults.conf \

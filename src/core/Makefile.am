@@ -45,7 +45,6 @@ libgnunet_test_core_plugin_cmd_just_run_la_LIBADD = \
   $(top_builddir)/src/core/libgnunetcoretesting.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/hello/libgnunethello.la \
-  $(top_builddir)/src/ats/libgnunetats.la \
   $(top_builddir)/src/arm/libgnunetarm.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(LTLIBINTL)

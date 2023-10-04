@@ -1,7 +1,7 @@
 # This Makefile.am is in the public domain
 
 TESTING = testing
-TESTBED = testbed-logger testbed
+#TESTBED = testbed-logger testbed
 
 if HAVE_EXPERIMENTAL
  EXP_DIR = \
@@ -44,21 +44,17 @@ SUBDIRS = \
   $(JSON_DIR) \
   $(CURL_DIR) \
   $(REST_DIR) \
-  peerinfo \
   $(SQLITE_DIR) \
   $(POSTGRES_DIR) \
   datacache \
   datastore \
   template \
   peerstore \
-  ats \
   nat \
   nat-auto \
   fragmentation \
   transport \
-  ats-tool \
   core \
-  $(TESTBED) \
   nse \
   dhtu \
   dht \
@@ -70,7 +66,6 @@ SUBDIRS = \
   gnsrecord \
   namecache \
   namestore \
-  peerinfo-tool \
   cadet \
   set \
   seti \

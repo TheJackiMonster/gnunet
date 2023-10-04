@@ -16,21 +16,22 @@ endif
 libexec_PROGRAMS = \
  gnunet-service-secretsharing
 
-noinst_PROGRAMS = \
- gnunet-secretsharing-profiler
+#noinst_PROGRAMS = \
+# gnunet-secretsharing-profiler
 
 lib_LTLIBRARIES = \
   libgnunetsecretsharing.la
 
 
-gnunet_secretsharing_profiler_SOURCES = \
- gnunet-secretsharing-profiler.c
-gnunet_secretsharing_profiler_LDADD = \
-  libgnunetsecretsharing.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/testbed/libgnunettestbed.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
-  $(GN_LIBINTL)
+# TNG
+#gnunet_secretsharing_profiler_SOURCES = \
+# gnunet-secretsharing-profiler.c
+#gnunet_secretsharing_profiler_LDADD = \
+#  libgnunetsecretsharing.la \
+#  $(top_builddir)/src/testing/libgnunettesting.la \
+#  $(top_builddir)/src/testbed/libgnunettestbed.la \
+#  $(top_builddir)/src/util/libgnunetutil.la \
+#  $(GN_LIBINTL)
 
 gnunet_service_secretsharing_SOURCES = \
  gnunet-service-secretsharing.c \

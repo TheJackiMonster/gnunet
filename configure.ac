@@ -1228,9 +1228,6 @@ po/Makefile.in
 src/Makefile
 src/arm/Makefile
 src/arm/arm.conf
-src/ats/Makefile
-src/ats/ats.conf
-src/ats-tool/Makefile
 src/auction/Makefile
 src/block/Makefile
 src/cadet/Makefile
@@ -1277,9 +1274,6 @@ src/nat-auto/nat-auto.conf
 src/nse/Makefile
 src/nse/nse.conf
 src/nt/Makefile
-src/peerinfo/Makefile
-src/peerinfo/peerinfo.conf
-src/peerinfo-tool/Makefile
 src/peerstore/Makefile
 src/peerstore/peerstore.conf
 src/pq/Makefile
@@ -1326,7 +1320,6 @@ src/messenger/Makefile
 src/messenger/messenger.conf
 pkgconfig/Makefile
 pkgconfig/gnunetarm.pc
-pkgconfig/gnunetats.pc
 pkgconfig/gnunetblock.pc
 pkgconfig/gnunetcadet.pc
 pkgconfig/gnunetconsensus.pc
@@ -1348,7 +1341,6 @@ pkgconfig/gnunetmicrophone.pc
 pkgconfig/gnunetnamestore.pc
 pkgconfig/gnunetnat.pc
 pkgconfig/gnunetnse.pc
-pkgconfig/gnunetpeerinfo.pc
 pkgconfig/gnunetpq.pc
 pkgconfig/gnunetregex.pc
 pkgconfig/gnunetrevocation.pc

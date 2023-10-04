@@ -1,7 +1,6 @@
 # This Makefile.am is in the public domain
 pcfiles = \
        gnunetarm.pc \
-       gnunetats.pc \
        gnunetblock.pc \
        gnunetconsensus.pc \
        gnunetconversation.pc \
@@ -23,7 +22,6 @@ pcfiles = \
        gnunetnamestore.pc \
        gnunetnat.pc \
        gnunetnse.pc \
-       gnunetpeerinfo.pc \
        gnunetregex.pc \
        gnunetrevocation.pc \
        gnunetrps.pc \
@@ -44,7 +42,6 @@ pkgconfig_DATA = $(pcfiles)
 
 EXTRA_DIST = \
        gnunetarm.pc.in \
-       gnunetats.pc.in \
        gnunetblock.pc.in \
        gnunetconsensus.pc.in \
        gnunetconversation.pc.in \
@@ -66,7 +63,6 @@ EXTRA_DIST = \
        gnunetnamestore.pc.in \
        gnunetnat.pc.in \
        gnunetnse.pc.in \
-       gnunetpeerinfo.pc.in \
        gnunetpostgres.pc.in \
        gnunetregex.pc.in \
        gnunetrevocation.pc.in \

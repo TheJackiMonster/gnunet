@@ -85,11 +85,6 @@ struct GNUNET_TRANSPORT_TESTING_PeerContext
   struct GNUNET_TRANSPORT_CoreHandle *th;
 
   /**
-   * Peer's ATS handle.
-   */
-  struct GNUNET_ATS_ConnectivityHandle *ats;
-
-  /**
    * Peer's PEERSTORE Handle
    */
   struct GNUNET_PEERSTORE_Handle *ph;
@@ -197,9 +192,9 @@ struct GNUNET_TRANSPORT_TESTING_ConnectRequest
   struct GNUNET_SCHEDULER_Task *tct;
 
   /**
-   * Handle by which we ask ATS to facilitate the connection.
+   * Handle by which we ask TNG to facilitate the connection.
    */
-  struct GNUNET_ATS_ConnectivitySuggestHandle *ats_sh;
+  struct GNUNET_TRANSPORT_ApplicationSuggestHandle *ah_sh;
 
   /**
    * Function to call upon completion.
@@ -447,7 +442,7 @@ struct GNUNET_TRANSPORT_TESTING_PerformanceTestMessage
    * Time this message was send via transport api.
    */
   struct GNUNET_TIME_AbsoluteNBO time_send;
-  
+
   /**
    * Monotonically increasing counter throughout the test.
    */

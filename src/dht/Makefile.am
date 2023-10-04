@@ -53,8 +53,8 @@ bin_PROGRAMS = \
  gnunet-dht-put \
  gnunet-dht-hello
 
-noinst_PROGRAMS = \
- gnunet-dht-profiler
+#noinst_PROGRAMS = \
+# gnunet-dht-profiler
 
 gnunet_service_dht_SOURCES = \
  gnunet-service-dht.c gnunet-service-dht.h \
@@ -66,9 +66,7 @@ gnunet_service_dht_LDADD = \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/core/libgnunetcore.la \
   $(top_builddir)/src/nse/libgnunetnse.la \
-  $(top_builddir)/src/ats/libgnunetats.la \
-  $(top_builddir)/src/transport/libgnunettransport.la \
-  $(top_builddir)/src/peerinfo/libgnunetpeerinfo.la \
+  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/hello/libgnunethello.la \
   $(top_builddir)/src/block/libgnunetblock.la \
   $(top_builddir)/src/block/libgnunetblockgroup.la \
@@ -110,25 +108,26 @@ gnunet_dht_monitor_LDADD = \
 gnunet_dht_monitor_LDFLAGS = \
   $(GN_LIBINTL)
 
-gnunet_dht_profiler_SOURCES = \
-  gnunet_dht_profiler.c
-gnunet_dht_profiler_LDADD = \
-  libgnunetdht.la \
-  $(top_builddir)/src/core/libgnunetcore.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
- $(top_builddir)/src/testbed/libgnunettestbed.la
-gnunet_dht_profiler_LDFLAGS = \
-  $(GN_LIBINTL)
+# TNG
+#gnunet_dht_profiler_SOURCES = \
+#  gnunet_dht_profiler.c
+#gnunet_dht_profiler_LDADD = \
+#  libgnunetdht.la \
+#  $(top_builddir)/src/core/libgnunetcore.la \
+#  $(top_builddir)/src/util/libgnunetutil.la \
+#  $(top_builddir)/src/testing/libgnunettesting.la \
+# $(top_builddir)/src/testbed/libgnunettestbed.la
+#gnunet_dht_profiler_LDFLAGS = \
+#  $(GN_LIBINTL)
 
-noinst_LIBRARIES = libgnunetdhttest.a
-
-libgnunetdhttest_a_SOURCES = \
-  dht_test_lib.c dht_test_lib.h
-libgnunetdhttest_a_LIBADD = \
- $(top_builddir)/src/util/libgnunetutil.la \
- $(top_builddir)/src/testbed/libgnunettestbed.la \
- libgnunetdht.la
+#noinst_LIBRARIES = libgnunetdhttest.a
+#
+#libgnunetdhttest_a_SOURCES = \
+#  dht_test_lib.c dht_test_lib.h
+#libgnunetdhttest_a_LIBADD = \
+# $(top_builddir)/src/util/libgnunetutil.la \
+# $(top_builddir)/src/testbed/libgnunettestbed.la \
+# libgnunetdht.la
 
 check_PROGRAMS = \
  test_dht_api \
@@ -161,69 +160,7 @@ test_dht_api_LDADD = \
  $(top_builddir)/src/hello/libgnunethello.la \
  libgnunetdht.la
 
-test_dht_twopeer_SOURCES = \
- test_dht_topo.c
-test_dht_twopeer_LDADD = \
- libgnunetdhttest.a \
- $(top_builddir)/src/util/libgnunetutil.la \
- libgnunetdhttest.a \
- $(top_builddir)/src/testbed/libgnunettestbed.la \
- libgnunetdht.la
-
-test_dht_2dtorus_SOURCES = \
- test_dht_topo.c
-test_dht_2dtorus_LDADD = \
- libgnunetdhttest.a \
- $(top_builddir)/src/util/libgnunetutil.la \
- $(top_builddir)/src/testbed/libgnunettestbed.la \
- libgnunetdht.la
-
-test_dht_line_SOURCES = \
- test_dht_topo.c
-test_dht_line_LDADD = \
- libgnunetdhttest.a \
- $(top_builddir)/src/util/libgnunetutil.la \
- $(top_builddir)/src/testbed/libgnunettestbed.la \
- libgnunetdht.la
-
-test_dht_multipeer_SOURCES = \
- test_dht_topo.c
-test_dht_multipeer_LDADD = \
- libgnunetdhttest.a \
- $(top_builddir)/src/util/libgnunetutil.la \
- $(top_builddir)/src/statistics/libgnunetstatistics.la \
- $(top_builddir)/src/testbed/libgnunettestbed.la \
- libgnunetdht.la
-
-test_dht_monitor_SOURCES = \
-  test_dht_monitor.c
-test_dht_monitor_LDADD = \
- libgnunetdhttest.a \
- $(top_builddir)/src/util/libgnunetutil.la \
- $(top_builddir)/src/testbed/libgnunettestbed.la \
- libgnunetdht.la
-
 EXTRA_DIST = \
-  gnunet-service-dht_clients.c \
-  test_dht_api_data.conf \
-  test_dht_api_peer1.conf \
-  test_dht_monitor.conf \
-  test_dht_multipeer.conf \
-  test_dht_2dtorus.conf \
-  test_dht_line.conf \
-  test_dht_tools.conf \
-  test_dht_tools.py.in \
-  test_dht_multipeer_topology.dat \
   dhtu_testbed_connect.sh \
   dhtu_testbed_deploy.conf \
   dhtu_testbed_deploy.sh
-
-if HAVE_PYTHON
-check_SCRIPTS = \
-  test_dht_tools.py
-endif
-
-SUFFIXES = .py.in .py
-.py.in.py:
-	$(AWK) -v bdir="$(bindir)" -v py="$(PYTHON)" -v awkay="$(AWK_BINARY)" -v pfx="$(prefix)" -v prl="$(PERL)" -v sysconfdirectory="$(sysconfdir)" -v pkgdatadirectory="$(pkgdatadir)" -f $(top_srcdir)/bin/dosubst.awk < $(srcdir)/$< > $@
-	chmod +x $@
