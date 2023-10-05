@@ -84,7 +84,7 @@ configure_file(input : 'resolver.conf.in',
 
 
 if get_option('monolith')
-  foreach p : [libgnunetutil_src, gnunetserviceresolver_src]
+  foreach p : libgnunetutil_src + gnunetserviceresolver_src
     gnunet_src += 'util/' + p
   endforeach
   subdir_done()

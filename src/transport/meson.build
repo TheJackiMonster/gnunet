@@ -1,11 +1,3 @@
-libgnunettransport_src = ['transport_api_address_to_string.c',
-                          'transport_api_blacklist.c',
-                          'transport_api_core.c',
-                          'transport_api_hello_get.c',
-                          'transport_api_manipulation.c',
-                          'transport_api_monitor_peers.c',
-                          'transport_api_monitor_plugins.c',
-                          'transport_api_offer_hello.c']
 libgnunettransportapplication_src = ['transport_api2_application.c']
 libgnunettransportcore_src = ['transport_api2_core.c']
 libgnunettransportcommunicator_src = ['transport_api2_communication.c']
@@ -29,9 +21,10 @@ configure_file(input : 'gnunet-transport-certificate-creation.in',
                install_dir: get_option('bindir'))
 
 if get_option('monolith')
-  foreach p : libgnunettransport_src #+ libgnunettransportapplication_src + libgnunettransportcore_src + libgnunettransportcommunicator_src + libgnunettransportmonitor_src + gnunetservicetransport_src
+  foreach p : libgnunettransportapplication_src + libgnunettransportcore_src + libgnunettransportcommunicator_src + libgnunettransportmonitor_src + gnunetservicetransport_src
     gnunet_src += 'transport/' + p
   endforeach
+  subdir_done()
 endif
 
 libgnunettransportapplication = library('gnunettransportapplication',

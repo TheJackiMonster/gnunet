@@ -15,6 +15,7 @@ if get_option('monolith')
   foreach p : libgnunetdht_src + gnunetservicedht_src
     gnunet_src += 'dht/' + p
   endforeach
+  subdir_done()
 endif
 
 libgnunetdht = library('gnunetdht',

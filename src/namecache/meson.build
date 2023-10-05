@@ -11,7 +11,7 @@ configure_file(input : 'namecache.conf.in',
 
 
 if get_option('monolith')
-  foreach p : libgnunetnamecache_src + libgnunetpluginnamecache_sqlite_src + gnunetservicenamecache_src
+  foreach p : libgnunetnamecache_src + gnunetservicenamecache_src
     gnunet_src += 'namecache/' + p
   endforeach
   subdir_done()

@@ -5,6 +5,7 @@ if get_option('monolith')
   foreach p : libgnunetcurl_src
     gnunet_src += 'curl/' + p
   endforeach
+  subdir_done()
 endif
 
 libgnunetcurl = library('gnunetcurl',

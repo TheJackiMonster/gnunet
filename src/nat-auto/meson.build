@@ -11,7 +11,7 @@ configure_file(input : 'nat-auto.conf.in',
                install_dir: pkgcfgdir)
 
 if get_option('monolith')
-  foreach p : libgnunetnatauto_src + gnunetservernatauto_src + gnunetservicenatauto_src
+  foreach p : libgnunetnatauto_src + gnunetservernat_src + gnunetservicenatauto_src
     gnunet_src += 'nat-auto/' + p
   endforeach
   subdir_done()

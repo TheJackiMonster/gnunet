@@ -28,9 +28,9 @@ configure_file(input : 'testing.conf',
 
 
 if get_option('monolith')
-  foreach p : libgnunettesting_src
-    gnunet_src += 'testing/' + p
-  endforeach
+  #  foreach p : libgnunettesting_src
+  #    gnunet_src += 'testing/' + p
+  #  endforeach
   subdir_done()
 endif
 

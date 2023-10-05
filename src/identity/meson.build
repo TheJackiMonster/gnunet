@@ -15,6 +15,7 @@ if get_option('monolith')
   foreach p : libgnunetidentity_src + gnunetserviceidentity_src
     gnunet_src += 'identity/' + p
   endforeach
+  subdir_done()
 endif
 
 libgnunetidentity = library('gnunetidentity',

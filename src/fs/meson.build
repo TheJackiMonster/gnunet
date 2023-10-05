@@ -38,6 +38,7 @@ if get_option('monolith')
   foreach p : libgnunetfs_src + gnunetservicefs_src
     gnunet_src += 'fs/' + p
   endforeach
+  subdir_done()
 endif
 
 libgnunetfs = library('gnunetfs',

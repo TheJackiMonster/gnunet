@@ -27,6 +27,7 @@ if get_option('monolith')
   foreach p : libgnunetcadet_src + gnunetservicecadet_src
     gnunet_src += 'cadet/' + p
   endforeach
+  subdir_done()
 endif
 
 libgnunetcadet = library('gnunetcadet',

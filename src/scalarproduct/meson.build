@@ -13,7 +13,7 @@ configure_file(input : 'scalarproduct.conf.in',
 
 
 if get_option('monolith')
-  foreach p : libgnunetscalarproduct_src + gnunetservicescalarproduct_src
+  foreach p : libgnunetscalarproduct_src + gnunetservicescalarproducta_src + gnunetservicescalarproductb_src + gnunetservicescalarproductecca_src + gnunetservicescalarproducteccb_src
     gnunet_src += 'scalarproduct/' + p
   endforeach
   subdir_done()

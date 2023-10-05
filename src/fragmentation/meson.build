@@ -5,6 +5,7 @@ if get_option('monolith')
   foreach p : libgnunetfragmentation_src
     gnunet_src += 'fragmentation/' + p
   endforeach
+  subdir_done()
 endif
 
 libgnunetfragmentation = library('gnunetfragmentation',

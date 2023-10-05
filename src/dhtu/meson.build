@@ -11,6 +11,7 @@ if get_option('monolith')
   foreach p : libgnunetplugindhtuip_src + libgnunetplugindhtugnunet_src
     gnunet_src += 'dhtu/' + p
   endforeach
+  subdir_done()
 endif
 
 libgnunettestingdhtu = library('gnunettestingdhtu',

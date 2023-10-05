@@ -16,6 +16,7 @@ if get_option('monolith')
   foreach p : libgnunetdatastore_src + gnunetservicedatastore_src
     gnunet_src += 'datastore/' + p
   endforeach
+  subdir_done()
 endif
 libgnunetdatastore = library('gnunetdatastore',
         libgnunetdatastore_src,
