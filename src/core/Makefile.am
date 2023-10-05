@@ -38,11 +38,11 @@ libgnunetcore_la_LDFLAGS = \
 libgnunet_test_core_plugin_cmd_just_run_la_SOURCES = \
  test_core_plugin_cmd_just_run.c
 libgnunet_test_core_plugin_cmd_just_run_la_LIBADD = \
+  libgnunetcoretesting.la \
   $(top_builddir)/src/transport/libgnunettransportapplication.la \
   $(top_builddir)/src/transport/libgnunettransportcore.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
-  $(top_builddir)/src/core/libgnunetcoretesting.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/hello/libgnunethello.la \
   $(top_builddir)/src/arm/libgnunetarm.la \
