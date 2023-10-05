@@ -1120,7 +1120,6 @@ hello_updated (void *cls,
                const char *emsg)
 {
   struct GNUNET_PEERSTORE_NotifyContext *nc = cls;
-  struct GNUNET_PEERSTORE_Handle *h = nc->h;
   const struct GNUNET_MessageHeader *hello;
   struct GNUNET_HELLO_Builder *builder;
 
@@ -1187,9 +1186,6 @@ void
 GNUNET_PEERSTORE_hello_changed_notify_cancel (struct
                                               GNUNET_PEERSTORE_NotifyContext *nc)
 {
-  struct GNUNET_PEERSTORE_IterateContext *ic;
-  struct GNUNET_PEERSTORE_Handle *h = nc->h;
-
   if (NULL != nc->wc)
   {
     GNUNET_PEERSTORE_watch_cancel (nc->wc);
@@ -1203,7 +1199,6 @@ merge_success (void *cls, int success)
 {
   struct StoreHelloCls *shu_cls = cls;
   struct GNUNET_PEERSTORE_StoreHelloContext *huc = shu_cls->huc;
-  struct GNUNET_PEERSTORE_Handle *h = huc->h;
 
   if (GNUNET_OK != success)
   {
@@ -1241,7 +1236,6 @@ store_hello (struct GNUNET_PEERSTORE_StoreHelloContext *huc,
              const struct GNUNET_MessageHeader *hello)
 {
   struct GNUNET_PEERSTORE_Handle *h = huc->h;
-  struct GNUNET_PeerIdentity *pid;
   struct GNUNET_PEERSTORE_StoreContext *sc;
   struct StoreHelloCls *shu_cls = GNUNET_new (struct StoreHelloCls);
   struct GNUNET_TIME_Absolute hello_exp;
@@ -1275,12 +1269,9 @@ merge_uri  (void *cls,
             const char *emsg)
 {
   struct GNUNET_PEERSTORE_StoreHelloContext *huc = cls;
-  struct GNUNET_PEERSTORE_Handle *h = huc->h;
-  struct GNUNET_PEERSTORE_WatchContext *wc;
   struct GNUNET_MessageHeader *hello;
   struct GNUNET_TIME_Absolute huc_hello_exp_time;
   struct GNUNET_TIME_Absolute record_hello_exp_time;
-  const char *val;
 
   if (NULL != emsg)
   {

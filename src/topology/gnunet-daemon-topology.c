@@ -186,11 +186,6 @@ static struct GNUNET_STATISTICS_Handle *stats;
 static struct GNUNET_SCHEDULER_Task *add_task;
 
 /**
- * Active HELLO offering to transport service.
- */
-static struct GNUNET_TRANSPORT_OfferHelloHandle *oh;
-
-/**
  * Flag to disallow non-friend connections (pure F2F mode).
  */
 static int friends_only;
@@ -215,31 +210,6 @@ static unsigned int target_connection_count;
  * Number of friends that we are currently connected to.
  */
 static unsigned int friend_count;
-
-
-/**
- * Function that decides if a connection is acceptable or not.
- * If we have a blacklist, only friends are allowed, so the check
- * is rather simple.
- *
- * @param cls closure
- * @param pid peer to approve or disapprove
- * @return #GNUNET_OK if the connection is allowed
- */
-static int
-blacklist_check (void *cls, const struct GNUNET_PeerIdentity *pid)
-{
-  struct Peer *pos;
-
-  pos = GNUNET_CONTAINER_multipeermap_get (peers, pid);
-  if ((NULL != pos) && (GNUNET_YES == pos->is_friend))
-    return GNUNET_OK;
-  GNUNET_STATISTICS_update (stats,
-                            gettext_noop ("# peers blacklisted"),
-                            1,
-                            GNUNET_NO);
-  return GNUNET_SYSERR;
-}
 
 
 /**
@@ -331,6 +301,7 @@ attempt_connect (struct Peer *pos)
                               1,
                               GNUNET_NO);
     // TODO Use strength somehow.
+    bw.value__ = 0;
     pos->ash = GNUNET_TRANSPORT_application_suggest (transport,
                                                      &pos->pid,
                                                      GNUNET_MQ_PRIO_BEST_EFFORT,
@@ -735,9 +706,6 @@ consider_for_advertising (const struct GNUNET_MessageHeader *hello)
   int num_addresses_new;
   struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (hello);
   struct GNUNET_PeerIdentity *pid = GNUNET_HELLO_builder_get_id (builder);
-  struct GNUNET_TIME_Absolute dt;
-  struct GNUNET_MQ_Envelope *env;
-  const struct GNUNET_MessageHeader *nh;
   struct Peer *peer;
   uint16_t size;
 

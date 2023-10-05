@@ -159,25 +159,6 @@ notify_connect (struct GNUNET_TESTING_Interpreter *is,
 
 
 /**
- * Callback to set the flag indicating all peers are prepared to finish. Will be called via the plugin api.
- */
-static void
-all_local_tests_prepared ()
-{
-  const struct GNUNET_TESTING_LocalPreparedState *lfs;
-
-  GNUNET_TESTING_get_trait_local_prepared_state (&local_prepared,
-                                                 &lfs);
-  GNUNET_assert (NULL != &lfs->ac);
-  if (NULL == lfs->ac.cont)
-    GNUNET_TESTING_async_fail ((struct GNUNET_TESTING_AsyncContext *) &lfs->ac);
-  else
-    GNUNET_TESTING_async_finish ((struct
-                                  GNUNET_TESTING_AsyncContext *) &lfs->ac);
-}
-
-
-/**
  * Function to start a local test case.
  *
  * @param write_message Callback to send a message to the master loop.

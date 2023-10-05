@@ -368,7 +368,6 @@ destroy_peer (void *cls)
 static void
 consider_peer_activate (struct CadetPeer *cp)
 {
-  uint32_t strength;
   struct GNUNET_BANDWIDTH_Value32NBO bw;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -417,10 +416,9 @@ consider_peer_activate (struct CadetPeer *cp)
     }
   }
 
-  /* If we have a tunnel, our urge for connections is much bigger */
-  strength = (NULL != cp->t) ? 32 : 1;
   if (NULL != cp->ash)
     GNUNET_TRANSPORT_application_suggest_cancel (cp->ash);
+  bw.value__ = 0;
   cp->ash
     = GNUNET_TRANSPORT_application_suggest (transport,
                                             &cp->pid,
@@ -1309,9 +1307,8 @@ void
 GCP_set_hello (struct CadetPeer *cp,
                const struct GNUNET_MessageHeader *hello)
 {
-  struct GNUNET_HELLO_Message *mrg;
   struct GNUNET_BANDWIDTH_Value32NBO bw;
-  uint16_t size = sizeof (hello);
+  uint16_t size = ntohs (hello->size);
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Got %u byte HELLO for peer %s\n",
@@ -1346,6 +1343,7 @@ GCP_set_hello (struct CadetPeer *cp,
   }
   if (NULL != cp->ash)
     GNUNET_TRANSPORT_application_suggest_cancel (cp->ash);
+  bw.value__ = 0;
   cp->ash
     = GNUNET_TRANSPORT_application_suggest (transport,
                                             &cp->pid,
