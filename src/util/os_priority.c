@@ -436,7 +436,13 @@ start_process (enum GNUNET_OS_InheritStdioFlags std_inheritance,
   }
 #if DARWIN
   /* see https://web.archive.org/web/20150924082249/gnunet.org/vfork */
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wdeprecated"
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wdeprecated"
   ret = vfork ();
+  #pragma clang diagnostic pop
+  #pragma GCC diagnostic pop
 #else
   ret = fork ();
 #endif
