@@ -1298,10 +1298,6 @@ src/sq/Makefile
 src/statistics/Makefile
 src/statistics/statistics.conf
 src/template/Makefile
-src/testbed/Makefile
-src/testbed/testbed.conf
-src/testbed-logger/Makefile
-src/testbed-logger/testbed-logger.conf
 src/testing/Makefile
 src/topology/Makefile
 src/transport/Makefile
@@ -1349,7 +1345,6 @@ pkgconfig/gnunetscalarproduct.pc
 pkgconfig/gnunetset.pc
 pkgconfig/gnunetspeaker.pc
 pkgconfig/gnunetstatistics.pc
-pkgconfig/gnunettestbed.pc
 pkgconfig/gnunettesting.pc
 pkgconfig/gnunettransport.pc
 pkgconfig/gnunetutil.pc
