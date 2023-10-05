@@ -1203,7 +1203,7 @@ GNUNET_TRANSPORT_TESTING_transport_communicator_send
   if (last_queue != tc_queue)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Selected sending queue changed to %u with length %lu and MTU %u\n",
-                ntohl (tc_queue->qid), tc_queue->q_len, tc_queue->mtu);
+                ntohl (tc_queue->qid), (unsigned long) tc_queue->q_len, tc_queue->mtu);
   GNUNET_assert (NULL != tc_queue);
   last_queue = tc_queue;
   // Uncomment this for alternativ 1 of backchannel functionality
@@ -1215,7 +1215,7 @@ GNUNET_TRANSPORT_TESTING_transport_communicator_send
   if (msg_count % 100 == 0)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Sending %u-th (%lu-th for queue) message on queue %u\n",
-                msg_count, tc_queue->mid, ntohl (tc_queue->qid));
+                msg_count, (unsigned long) tc_queue->mid, ntohl (tc_queue->qid));
   inbox_size = sizeof (struct GNUNET_MessageHeader) + payload_size;
   env = GNUNET_MQ_msg_extra (msg,
                              inbox_size,

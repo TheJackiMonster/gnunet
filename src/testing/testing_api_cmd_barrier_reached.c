@@ -181,7 +181,7 @@ barrier_reached_traits (void *cls,
   struct GNUNET_TESTING_AsyncContext *ac = &brs->ac;
 
   struct GNUNET_TESTING_Trait traits[] = {
-    GNUNET_TESTING_make_trait_async_context ((const void *) ac),
+    GNUNET_TESTING_make_trait_async_context (ac),
     GNUNET_TESTING_trait_end ()
   };
 

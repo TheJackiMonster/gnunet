@@ -407,8 +407,8 @@ peer_mq_error_handler (void *cls, enum GNUNET_MQ_Error error)
   if (GNUNET_MQ_ERROR_MALFORMED == error)
     GNUNET_break_op (0);
   //TODO Look into bug #7887
-  
-  GNUNET_TRANSPORT_core_receive_continue (n->h, (const struct PeerIdentity *) &n->id);
+
+  GNUNET_TRANSPORT_core_receive_continue (n->h, &n->id);
 }
 
 

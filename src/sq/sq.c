@@ -22,7 +22,6 @@
  * @brief helper functions for Sqlite3 DB interactions
  * @author Christian Grothoff
  */
-#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_sq_lib.h"
 

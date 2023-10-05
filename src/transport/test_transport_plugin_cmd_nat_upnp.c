@@ -75,7 +75,7 @@ static void
 handle_test (void *cls,
              const struct GNUNET_TRANSPORT_TESTING_TestMessage *message)
 {
-  const struct GNUNET_TESTING_AsyncContext *ac;
+  struct GNUNET_TESTING_AsyncContext *ac;
 
   GNUNET_TESTING_get_trait_async_context (&block_receive,
                                           &ac);
@@ -108,25 +108,6 @@ get_waiting_for_barriers ()
                                barriers->tail,
                                ble);
   return barriers;
-}
-
-
-/**
- * Callback to set the flag indicating all peers started. Will be called via the plugin api.
- *
- */
-static void
-all_peers_started ()
-{
-  const struct GNUNET_TESTING_AsyncContext *ac;
-
-  GNUNET_TESTING_get_trait_async_context (&block_send,
-                                          &ac);
-  GNUNET_assert  (NULL != ac);
-  if (NULL == ac->cont)
-    GNUNET_TESTING_async_fail ((struct GNUNET_TESTING_AsyncContext *) ac);
-  else
-    GNUNET_TESTING_async_finish ((struct GNUNET_TESTING_AsyncContext *) ac);
 }
 
 

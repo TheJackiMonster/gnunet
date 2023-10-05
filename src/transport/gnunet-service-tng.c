@@ -11243,7 +11243,7 @@ hello_for_client_cb (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "hello for client %s\n",
               address);
-  
+
   start_address_validation (peer, address);
   GNUNET_free (address);
 }
@@ -11262,7 +11262,7 @@ handle_hello_for_client (void *cls,
                          const struct GNUNET_MessageHeader *hello,
                          const char *emsg)
 {
-  (void *) cls;
+  (void) cls;
   const char *val;
   struct GNUNET_HELLO_Builder *builder;
 

@@ -100,7 +100,7 @@ get_waiting_for_barriers ()
 static void
 all_peers_started ()
 {
-  const struct GNUNET_TESTING_AsyncContext *ac;
+  struct GNUNET_TESTING_AsyncContext *ac;
 
   GNUNET_TESTING_get_trait_async_context (&block_send,
                                           &ac);

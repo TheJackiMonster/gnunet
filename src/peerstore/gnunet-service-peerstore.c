@@ -536,7 +536,7 @@ handle_store (void *cls, const struct StoreRecordMessage *srm)
 static void
 store_hello_continuation (void *cls, int success)
 {
-  (void *) cls;
+  (void) cls;
 
   if (GNUNET_OK != success)
   {
@@ -550,7 +550,7 @@ store_hello_continuation (void *cls, int success)
 static int
 hosts_directory_scan_callback (void *cls, const char *fullname)
 {
-  (void *) cls;
+  (void) cls;
   const char *filename;
   ssize_t size_total;
   char buffer[GNUNET_MAX_MESSAGE_SIZE - 1] GNUNET_ALIGN;
@@ -568,7 +568,7 @@ hosts_directory_scan_callback (void *cls, const char *fullname)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "2 hosts_directory_scan_callback filename %s\n",
               fullname);
-  
+
   /* filename = strrchr (fullname, DIR_SEPARATOR); */
   /* if ((NULL == filename) || (1 > strlen (filename))) */
   /*   filename = fullname; */
@@ -578,7 +578,7 @@ hosts_directory_scan_callback (void *cls, const char *fullname)
   /* GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, */
   /*             "3 hosts_directory_scan_callback filename %s\n", */
   /*             filename); */
-  
+
   /* if (GNUNET_YES != GNUNET_DISK_file_test (filename)) */
   /*   return GNUNET_OK; */
   size_total = GNUNET_DISK_fn_read (fullname, buffer, sizeof(buffer));
@@ -604,7 +604,7 @@ hosts_directory_scan_callback (void *cls, const char *fullname)
                                      pid,
                                      "",
                                      hello,
-                                     sizeof (hello),
+                                     size_total,
                                      GNUNET_TIME_UNIT_FOREVER_ABS,
                                      GNUNET_PEERSTORE_STOREOPTION_REPLACE,
                                      &store_hello_continuation,
@@ -613,6 +613,7 @@ hosts_directory_scan_callback (void *cls, const char *fullname)
     GNUNET_break (0);
   }
   GNUNET_HELLO_builder_free (builder);
+  return GNUNET_OK;
 }
 
 
@@ -636,7 +637,7 @@ run (void *cls,
   in_shutdown = GNUNET_NO;
   num_clients = 0;
   cfg = c;
-  
+
   if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_string (cfg,
                                                           "peerstore",
                                                           "DATABASE",

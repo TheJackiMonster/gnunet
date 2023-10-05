@@ -84,7 +84,7 @@ got_hello (void *cls,
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Hello for %s (%d bytes), expires on %s\n",
        GNUNET_i2s (id),
-       sizeof (hello),
+       ntohs (hello->size),
        GNUNET_STRINGS_absolute_time_to_string (
          GNUNET_HELLO_builder_get_expiration_time (hello)));
   peer = GCP_get (id,

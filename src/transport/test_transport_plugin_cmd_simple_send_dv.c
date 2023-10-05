@@ -84,7 +84,7 @@ handle_test (void *cls,
              const struct GNUNET_TRANSPORT_TESTING_TestMessage *message)
 {
   struct GNUNET_PeerIdentity *peer = cls;
-  const struct GNUNET_TESTING_AsyncContext *ac_block;
+  struct GNUNET_TESTING_AsyncContext *ac_block;
   const struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map;
   unsigned int connected;
   struct GNUNET_TESTING_BlockState *bs;
@@ -129,7 +129,7 @@ handle_test (void *cls,
       {
         GNUNET_TESTING_get_trait_block_state (
           &block_receive,
-          (const struct GNUNET_TESTING_BlockState  **) &bs);
+          &bs);
         bs->asynchronous_finish = GNUNET_YES;
       }
 
@@ -154,7 +154,7 @@ get_waiting_for_barriers ()
 static void
 all_peers_started ()
 {
-  const struct GNUNET_TESTING_AsyncContext *ac;
+  struct GNUNET_TESTING_AsyncContext *ac;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received message\n");

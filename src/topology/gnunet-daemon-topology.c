@@ -126,7 +126,7 @@ struct Peer
 
 
 /**
- * The task to delayed start the notification process intially. 
+ * The task to delayed start the notification process intially.
  * We like to give transport some time to give us our hello to distribute it.
  */
 struct GNUNET_SCHEDULER_Task *peerstore_notify_task;
@@ -551,7 +551,7 @@ reschedule_hellos (void *cls,
                    const struct GNUNET_PeerIdentity *pid,
                    void *value)
 {
-  (void *) cls;
+  (void) cls;
   struct Peer *peer = value;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -878,7 +878,7 @@ process_peer (void *cls,
 static void
 start_notify (void *cls)
 {
-  (void *) cls;
+  (void) cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Starting to process new hellos for gossiping.\n");
   peerstore_notify =

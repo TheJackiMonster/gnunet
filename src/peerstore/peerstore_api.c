@@ -1139,7 +1139,7 @@ hello_updated (void *cls,
   hello = record->value;
   builder = GNUNET_HELLO_builder_from_msg (hello);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "hello_updated with expired %s and size %lu for peer %s\n",
+              "hello_updated with expired %s and size %u for peer %s\n",
               GNUNET_STRINGS_absolute_time_to_string (GNUNET_HELLO_builder_get_expiration_time (hello)),
               ntohs (hello->size),
               GNUNET_i2s (&record->peer));
@@ -1355,7 +1355,7 @@ GNUNET_PEERSTORE_hello_add (struct GNUNET_PEERSTORE_Handle *h,
   huc->pid = GNUNET_malloc (pid_size);
   GNUNET_memcpy (huc->pid, pid, pid_size);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Adding hello for peer %s with expiration %s msg size %lu\n",
+       "Adding hello for peer %s with expiration %s msg size %u\n",
        GNUNET_i2s (huc->pid),
        GNUNET_STRINGS_absolute_time_to_string (huc_exp),
        size_msg);
@@ -1376,9 +1376,10 @@ free_store_context(void *cls,
                    const struct GNUNET_PeerIdentity *key,
                    void *value)
 {
-  (void *) cls;
+  (void) cls;
 
   GNUNET_PEERSTORE_store_cancel ((struct GNUNET_PEERSTORE_StoreContext *) value);
+  return GNUNET_YES; // FIXME why is this a map anyway
 }
 
 
@@ -1386,8 +1387,6 @@ void
 GNUNET_PEERSTORE_hello_add_cancel (struct
                                    GNUNET_PEERSTORE_StoreHelloContext *huc)
 {
-  struct GNUNET_PEERSTORE_StoreContext *sc;
-
   GNUNET_PEERSTORE_watch_cancel (huc->wc);
   GNUNET_CONTAINER_multipeermap_iterate (huc->store_context_map,
                                          free_store_context,

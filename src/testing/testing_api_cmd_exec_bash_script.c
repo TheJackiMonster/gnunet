@@ -37,7 +37,7 @@ struct BashScriptState
   struct GNUNET_TESTING_AsyncContext ac;
 
   /**
-   * Callback handed over to the command, which should 
+   * Callback handed over to the command, which should
    * be called upon death or completion of the script.
    */
   GNUNET_ChildCompletedCallback cb;
@@ -55,13 +55,13 @@ struct BashScriptState
    */
   const char *script;
 
-  
+
   /**
    * Arguments for the script
    */
   char **script_argv;
-  
-  /** 
+
+  /**
    * Size of script_argv.
    */
   int argc;
@@ -115,8 +115,7 @@ child_completed_callback (void *cls,
   if (0 == exit_code)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Child succeeded!\n",
-                exit_code);
+                "Child succeeded!\n");
     GNUNET_TESTING_async_finish (&bss->ac);
   }
   else
@@ -141,7 +140,7 @@ exec_bash_script_run (void *cls,
   struct BashScriptState *bss = cls;
   enum GNUNET_GenericReturnValue helper_check;
   char *argv[bss->argc + 2];
-  
+
   char *data_dir;
   char *script_name;
 
@@ -180,7 +179,7 @@ exec_bash_script_run (void *cls,
       argv[i + 1] = bss->script_argv[i];
   }
   argv[bss->argc] = NULL;
-  
+
   bss->start_proc = GNUNET_OS_start_process_vap (GNUNET_OS_INHERIT_STD_ERR,
                                      NULL,
                                      NULL,
@@ -204,7 +203,7 @@ GNUNET_TESTING_cmd_exec_bash_script (const char *label,
 
   bss = GNUNET_new (struct BashScriptState);
   bss->script = script;
-  bss->script_argv = script_argv;
+  bss->script_argv = script_argv; // FIXME this is not just a cast to fix
   bss->argc = argc;
   bss->cb = cb;
 

@@ -9,7 +9,6 @@ endif
 lib_LTLIBRARIES = libgnunethello.la
 
 libgnunethello_la_SOURCES = \
-  hello.c \
   address.c \
   hello-ng.c \
   hello-uri.c
@@ -20,8 +19,8 @@ libgnunethello_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS) \
   -version-info 1:0:1
 
-noinst_PROGRAMS = \
- gnunet-hello
+#noinst_PROGRAMS = \
+# gnunet-hello
 
 check_PROGRAMS = \
  test_hello \
@@ -60,10 +59,11 @@ test_friend_hello_LDADD = \
  libgnunethello.la \
  $(top_builddir)/src/util/libgnunetutil.la
 
-gnunet_hello_SOURCES = \
- gnunet-hello.c
-gnunet_hello_LDADD = \
- libgnunethello.la \
- $(top_builddir)/src/util/libgnunetutil.la
-gnunet_hello_LDFLAGS = \
-  $(GN_LIBINTL)
+# Not TNG ready
+#gnunet_hello_SOURCES = \
+# gnunet-hello.c
+#gnunet_hello_LDADD = \
+# libgnunethello.la \
+# $(top_builddir)/src/util/libgnunetutil.la
+#gnunet_hello_LDFLAGS = \
+#  $(GN_LIBINTL)
