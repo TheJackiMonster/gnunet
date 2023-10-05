@@ -1325,7 +1325,6 @@ pkgconfig/gnunetdatacache.pc
 pkgconfig/gnunetdatastore.pc
 pkgconfig/gnunetdht.pc
 pkgconfig/gnunetdns.pc
-pkgconfig/gnunetenv.pc
 pkgconfig/gnunetfragmentation.pc
 pkgconfig/gnunetfs.pc
 pkgconfig/gnunetgns.pc

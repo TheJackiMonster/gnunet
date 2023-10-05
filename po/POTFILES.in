@@ -532,13 +532,9 @@ src/vpn/gnunet-vpn.c
 src/vpn/vpn_api.c
 src/zonemaster/gnunet-service-zonemaster.c
 src/fs/fs_api.h
-src/include/gnunet_ats_application_service.h
-src/include/gnunet_ats_service.h
-src/include/gnunet_ats_transport_service.h
 src/include/gnunet_json_lib.h
 src/include/gnunet_pq_lib.h
 src/include/gnunet_transport_hello_service.h
-src/include/gnunet_transport_service.h
 src/pq/pq.h
 src/testbed/testbed_api.h
 src/testbed/testbed_api_operations.h

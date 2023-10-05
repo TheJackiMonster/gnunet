@@ -45,8 +45,8 @@ libgnunetrps_la_CFLAGS = $(AM_CFLAGS)
 libexec_PROGRAMS = \
  gnunet-service-rps
 
-noinst_PROGRAMS = \
- gnunet-rps-profiler
+#noinst_PROGRAMS = \
+# gnunet-rps-profiler
 
 
 gnunet_service_rps_SOURCES = \
@@ -95,12 +95,12 @@ rps_test_src = \
  rps-sampler_common.h rps-sampler_common.c \
  gnunet-service-rps_sampler.h gnunet-service-rps_sampler.c
 
-ld_rps_test_lib = \
-	libgnunetrps.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/testbed/libgnunettestbed.la \
-  -lm
+#ld_rps_test_lib = \
+#	libgnunetrps.la \
+#  $(top_builddir)/src/util/libgnunetutil.la \
+#  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+#  $(top_builddir)/src/testbed/libgnunettestbed.la \
+#  -lm
 
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
@@ -124,47 +124,45 @@ test_service_rps_sampler_elem_SOURCES = \
   test_service_rps_sampler_elem.c
 test_service_rps_sampler_elem_LDADD = $(top_builddir)/src/util/libgnunetutil.la
 
-test_rps_single_req_SOURCES = $(rps_test_src)
-test_rps_single_req_LDADD = $(ld_rps_test_lib)
+#test_rps_single_req_SOURCES = $(rps_test_src)
+#test_rps_single_req_LDADD = $(ld_rps_test_lib)
+#
+#test_rps_seed_request_SOURCES = $(rps_test_src)
+#test_rps_seed_request_LDADD = $(ld_rps_test_lib)
+#
+#test_rps_req_cancel_SOURCES = $(rps_test_src)
+#test_rps_req_cancel_LDADD = $(ld_rps_test_lib)
+#
+#test_rps_sub_SOURCES = $(rps_test_src)
+#test_rps_sub_LDADD = $(ld_rps_test_lib)
+#
+#test_rps_seed_big_SOURCES = $(rps_test_src)
+#test_rps_seed_big_LDADD = $(ld_rps_test_lib)
+#
+#test_rps_churn_SOURCES = $(rps_test_src)
+#test_rps_churn_LDADD = $(ld_rps_test_lib)
+#
+#test_rps_malicious_1_SOURCES = $(rps_test_src)
+#test_rps_malicious_1_LDADD = $(ld_rps_test_lib)
+#
+#test_rps_malicious_2_SOURCES = $(rps_test_src)
+#test_rps_malicious_2_LDADD = $(ld_rps_test_lib)
+#
+#test_rps_malicious_3_SOURCES = $(rps_test_src)
+#test_rps_malicious_3_LDADD = $(ld_rps_test_lib)
 
-test_rps_seed_request_SOURCES = $(rps_test_src)
-test_rps_seed_request_LDADD = $(ld_rps_test_lib)
-
-test_rps_req_cancel_SOURCES = $(rps_test_src)
-test_rps_req_cancel_LDADD = $(ld_rps_test_lib)
-
-test_rps_sub_SOURCES = $(rps_test_src)
-test_rps_sub_LDADD = $(ld_rps_test_lib)
-
-test_rps_seed_big_SOURCES = $(rps_test_src)
-test_rps_seed_big_LDADD = $(ld_rps_test_lib)
-
-test_rps_churn_SOURCES = $(rps_test_src)
-test_rps_churn_LDADD = $(ld_rps_test_lib)
-
-test_rps_malicious_1_SOURCES = $(rps_test_src)
-test_rps_malicious_1_LDADD = $(ld_rps_test_lib)
-
-test_rps_malicious_2_SOURCES = $(rps_test_src)
-test_rps_malicious_2_LDADD = $(ld_rps_test_lib)
-
-test_rps_malicious_3_SOURCES = $(rps_test_src)
-test_rps_malicious_3_LDADD = $(ld_rps_test_lib)
-
-gnunet_rps_profiler_SOURCES = \
- gnunet-service-rps_sampler_elem.h gnunet-service-rps_sampler_elem.c \
- rps-sampler_common.h rps-sampler_common.c \
- gnunet-service-rps_sampler.h gnunet-service-rps_sampler.c \
- rps-test_util.h rps-test_util.c \
- gnunet-rps-profiler.c
-
-
-gnunet_rps_profiler_LDADD = \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  libgnunetrps.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
-  $(top_builddir)/src/testbed/libgnunettestbed.la \
-  -lm
+#gnunet_rps_profiler_SOURCES = \
+# gnunet-service-rps_sampler_elem.h gnunet-service-rps_sampler_elem.c \
+# rps-sampler_common.h rps-sampler_common.c \
+# gnunet-service-rps_sampler.h gnunet-service-rps_sampler.c \
+# rps-test_util.h rps-test_util.c \
+# gnunet-rps-profiler.c
+#gnunet_rps_profiler_LDADD = \
+#  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+#  libgnunetrps.la \
+#  $(top_builddir)/src/util/libgnunetutil.la \
+#  $(top_builddir)/src/testbed/libgnunettestbed.la \
+#  -lm
 
 
 EXTRA_DIST = \

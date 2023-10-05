@@ -34,7 +34,6 @@
  *   that does this to create bootstrap HELLOs shipped with
  *   the TGZ.
  */
-#include "gnunet_time_lib.h"
 #include "platform.h"
 #include "gnunet_signatures.h"
 #include "gnunet_hello_uri_lib.h"

@@ -9,7 +9,6 @@ pcfiles = \
        gnunetdatastore.pc \
        gnunetdht.pc \
        gnunetdns.pc \
-       gnunetenv.pc \
        gnunetfragmentation.pc \
        gnunetfs.pc \
        gnunetgns.pc \
@@ -49,7 +48,6 @@ EXTRA_DIST = \
        gnunetdatastore.pc.in \
        gnunetdht.pc.in \
        gnunetdns.pc.in \
-       gnunetenv.pc.in \
        gnunetfragmentation.pc.in \
        gnunetfs.pc.in \
        gnunetgns.pc.in \
