@@ -236,6 +236,13 @@ INTERFACE = hci0
 TESTMODE = 0
 TESTING_IGNORE_KEYS = ACCEPT_FROM;
 
+[communicator-tcp]
+#PREFIX = xterm -geometry 100x85 -T peer1 -e gdb --args
+#PREFIX = valgrind --leak-check=full --track-origins=yes
+BINDTO = 2086
+DISABLE_V6 = NO
+BINARY = gnunet-communicator-tcp
+IMMEDIATE_START = YES
 
 [communicator-quic]
 BINDTO = 127.0.0.1
