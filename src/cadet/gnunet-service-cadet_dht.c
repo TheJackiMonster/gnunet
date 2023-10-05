@@ -119,7 +119,7 @@ dht_get_id_handler (void *cls, struct GNUNET_TIME_Absolute exp,
                     size_t size,
                     const void *data)
 {
-  const struct GNUNET_HELLO_Message *hello = data;
+  const struct GNUNET_MessageHeader *hello = data;
 
   (void) trunc_peer;
   GCPP_try_path_from_dht (get_path,
@@ -127,8 +127,7 @@ dht_get_id_handler (void *cls, struct GNUNET_TIME_Absolute exp,
                           put_path,
                           put_path_length);
   if ((size >= sizeof(struct GNUNET_HELLO_Message)) &&
-      (ntohs (hello->header.size) == size) &&
-      (size == GNUNET_HELLO_size (hello)))
+      (ntohs (hello->size) == size))
   {
     struct CadetPeer *peer;
 
@@ -152,13 +151,13 @@ static void
 announce_id (void *cls)
 {
   struct GNUNET_HashCode phash;
-  const struct GNUNET_HELLO_Message *hello;
+  const struct GNUNET_MessageHeader *hello;
   size_t size;
   struct GNUNET_TIME_Absolute expiration;
   struct GNUNET_TIME_Relative next_put;
 
   hello = GCH_get_mine ();
-  size = (NULL != hello) ? GNUNET_HELLO_size (hello) : 0;
+  size = (NULL != hello) ? ntohs(hello->size) : 0;
   if (0 == size)
   {
     expiration = GNUNET_TIME_absolute_add (GNUNET_TIME_absolute_get (),
@@ -167,7 +166,7 @@ announce_id (void *cls)
   }
   else
   {
-    expiration = GNUNET_HELLO_get_last_expiration (hello);
+    expiration = GNUNET_HELLO_builder_get_expiration_time (hello);
     announce_delay = GNUNET_TIME_UNIT_SECONDS;
   }
 

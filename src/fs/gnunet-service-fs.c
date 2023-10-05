@@ -554,45 +554,6 @@ GSF_test_get_load_too_high_ (uint32_t priority)
 
 
 /**
- * We've received peer performance information. Update
- * our running average for the P2P latency.
- *
- * @param cls closure
- * @param address the address
- * @param active is this address in active use
- * @param bandwidth_out assigned outbound bandwidth for the connection
- * @param bandwidth_in assigned inbound bandwidth for the connection
- * @param prop performance data for the address (as far as known)
- */
-static void
-update_latencies (void *cls,
-                  const struct GNUNET_HELLO_Address *address,
-                  int active,
-                  struct GNUNET_BANDWIDTH_Value32NBO bandwidth_out,
-                  struct GNUNET_BANDWIDTH_Value32NBO bandwidth_in,
-                  const struct GNUNET_ATS_Properties *prop)
-{
-  if (NULL == address)
-  {
-    /* ATS service temporarily disconnected */
-    return;
-  }
-
-  if (GNUNET_YES != active)
-    return;
-  GSF_update_peer_latency_ (&address->peer,
-                            prop->delay);
-  GSF_avg_latency.rel_value_us =
-    (GSF_avg_latency.rel_value_us * 31
-     + GNUNET_MIN (5000, prop->delay.rel_value_us)) / 32;
-  GNUNET_STATISTICS_set (GSF_stats,
-                         gettext_noop ("# running average P2P latency (ms)"),
-                         GSF_avg_latency.rel_value_us / 1000LL,
-                         GNUNET_NO);
-}
-
-
-/**
  * Check P2P "PUT" message.
  *
  * @param cls closure with the `struct GSF_ConnectedPeer`
