@@ -551,7 +551,6 @@ static int
 hosts_directory_scan_callback (void *cls, const char *fullname)
 {
   (void) cls;
-  const char *filename;
   ssize_t size_total;
   char buffer[GNUNET_MAX_MESSAGE_SIZE - 1] GNUNET_ALIGN;
   const struct GNUNET_MessageHeader *hello;
