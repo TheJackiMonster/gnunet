@@ -96,7 +96,7 @@ check_PROGRAMS = \
 test_testing_start_with_config_SOURCES = \
  test_testing_start_with_config.c
 test_testing_start_with_config_LDADD = \
- $(top_builddir)/src/testing/libgnunettesting.la \
+ libgnunettesting.la \
  $(top_builddir)/src/util/libgnunetutil.la \
  $(top_builddir)/src/hello/libgnunethello.la 
 
