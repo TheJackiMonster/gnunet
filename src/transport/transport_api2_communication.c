@@ -27,7 +27,6 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_protocols.h"
 #include "gnunet_transport_communication_service.h"
-#include "gnunet_ats_transport_service.h"
 #include "transport.h"
 
 

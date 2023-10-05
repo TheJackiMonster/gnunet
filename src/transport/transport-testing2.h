@@ -32,7 +32,6 @@
 #include "gnunet_peerstore_service.h"
 #include "gnunet_transport_core_service.h"
 #include "gnunet_transport_application_service.h"
-#include "gnunet_transport_manipulation_service.h"
 #include "gnunet_testing_lib.h"
 
 

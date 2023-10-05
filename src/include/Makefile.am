@@ -17,10 +17,6 @@ gnunetinclude_HEADERS = \
   gnunet_abd_service.h \
   gnunet_applications.h \
   gnunet_arm_service.h \
-  gnunet_ats_service.h \
-  gnunet_ats_application_service.h \
-  gnunet_ats_transport_service.h \
-  gnunet_ats_plugin.h \
   gnunet_bandwidth_lib.h \
   gnunet_bio_lib.h \
   gnunet_dht_block_types.h \
@@ -128,8 +124,6 @@ gnunetinclude_HEADERS = \
   gnunet_transport_communication_service.h \
   gnunet_transport_core_service.h \
   gnunet_transport_hello_service.h \
-  gnunet_transport_manipulation_service.h \
-  gnunet_transport_monitor_service.h \
   gnunet_transport_plugin.h  \
   gnunet_transport_testing_ng_lib.h \
   gnunet_tun_lib.h \

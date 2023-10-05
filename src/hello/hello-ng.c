@@ -28,7 +28,6 @@
 #include "gnunet_hello_lib.h"
 #include "gnunet_protocols.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_ats_service.h"
 
 GNUNET_NETWORK_STRUCT_BEGIN
 /**

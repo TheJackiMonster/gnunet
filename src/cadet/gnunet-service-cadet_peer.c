@@ -36,7 +36,6 @@
 #include "gnunet_hello_uri_lib.h"
 #include "gnunet_signatures.h"
 #include "gnunet_transport_application_service.h"
-#include "gnunet_ats_service.h"
 #include "gnunet_core_service.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet-service-cadet_peer.h"
@@ -1321,7 +1320,7 @@ GCP_set_hello (struct CadetPeer *cp,
   if (NULL != cp->hello)
   {
     struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
-    
+
     struct GNUNET_TIME_Absolute new_hello_exp =
       GNUNET_HELLO_builder_get_expiration_time (hello);
     struct GNUNET_TIME_Absolute old_hello_exp =

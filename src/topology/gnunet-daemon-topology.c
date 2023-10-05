@@ -46,7 +46,6 @@
 #include "gnunet_peerstore_service.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_transport_application_service.h"
-#include "gnunet_ats_service.h"
 
 
 // TODO Remove all occurrencies of friends_only and minimum_friend_count.
