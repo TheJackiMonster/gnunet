@@ -2,7 +2,7 @@
 START_ON_DEMAND = @START_ON_DEMAND@
 @JAVAPORT@PORT = 2091
 HOSTNAME = localhost
-BINARY = gnunet-service-transport
+BINARY = gnunet-service-tng
 # PREFIX = valgrind
 
 # Maximum number of neighbours PER PLUGIN (not in total).
