@@ -109,6 +109,7 @@ if host_machine.system() == 'darwin'
   add_project_arguments('-D_APPLE_C_SOURCE', language : 'c')
   add_project_arguments('-D__APPLE_USE_RFC_3542', language : 'c')
   add_project_arguments('-fno-common', language : 'c')
+  add_project_link_arguments (['-Wl,-no_fixup_chains'], language: 'c')
 endif
 
 

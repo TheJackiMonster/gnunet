@@ -268,7 +268,6 @@ notify_disconnect (void *cls,
   int no = 0;
   struct GNUNET_TRANSPORT_TESTING_PeerContext *p2 = NULL;
   struct GNUNET_TRANSPORT_TESTING_ConnectRequest *cc;
-  struct GNUNET_BANDWIDTH_Value32NBO bw;
 
   p2 = find_peer_context (p->tth,
                           peer);
@@ -324,9 +323,9 @@ notify_disconnect (void *cls,
                                             cc);
       if (NULL == cc->ah_sh)
         cc->ah_sh = GNUNET_TRANSPORT_application_suggest (cc->p1->ah,
-                                                      &p2->id,
-                                                      GNUNET_MQ_PRIO_BEST_EFFORT,
-                                                      bw);
+                                                          &p2->id,
+                                                          GNUNET_MQ_PRIO_BEST_EFFORT,
+                                                          GNUNET_BANDWIDTH_ZERO);
     }
   }
 }
@@ -788,7 +787,6 @@ GNUNET_TRANSPORT_TESTING_connect_peers (struct
   struct GNUNET_TRANSPORT_TESTING_Handle *tth = p1->tth;
   struct GNUNET_TRANSPORT_TESTING_ConnectRequest *cc;
   struct GNUNET_TRANSPORT_TESTING_ConnectRequest *ccn;
-  struct GNUNET_BANDWIDTH_Value32NBO bw;
 
   ccn = NULL;
   for (cc = tth->cc_head; NULL != cc; cc = cc->next)
@@ -821,9 +819,9 @@ GNUNET_TRANSPORT_TESTING_connect_peers (struct
   cc->tct = GNUNET_SCHEDULER_add_now (&offer_hello,
                                       cc);
   cc->ah_sh = GNUNET_TRANSPORT_application_suggest (cc->p1->ah,
-                                                     &p2->id,
-                                                     GNUNET_MQ_PRIO_BEST_EFFORT,
-                                                bw);
+                                                    &p2->id,
+                                                    GNUNET_MQ_PRIO_BEST_EFFORT,
+                                                    GNUNET_BANDWIDTH_ZERO);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "New connect request %p\n",
        cc);

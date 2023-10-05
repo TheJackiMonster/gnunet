@@ -233,7 +233,6 @@ gnunet_hold (void *cls,
 {
   struct Plugin *plugin = cls;
   struct GNUNET_DHTU_PreferenceHandle *ph;
-  struct GNUNET_BANDWIDTH_Value32NBO bw;
 
   ph = GNUNET_new (struct GNUNET_DHTU_PreferenceHandle);
   ph->target = target;
@@ -247,7 +246,7 @@ gnunet_hold (void *cls,
     = GNUNET_TRANSPORT_application_suggest (plugin->transport,
                                             &target->pid,
                                             GNUNET_MQ_PRIO_BEST_EFFORT,
-                                            bw);
+                                            GNUNET_BANDWIDTH_ZERO);
   return ph;
 }
 
@@ -263,7 +262,6 @@ gnunet_drop (struct GNUNET_DHTU_PreferenceHandle *ph)
 {
   struct GNUNET_DHTU_Target *target = ph->target;
   struct Plugin *plugin = target->plugin;
-  struct GNUNET_BANDWIDTH_Value32NBO bw;
 
   GNUNET_CONTAINER_DLL_remove (target->ph_head,
                                target->ph_tail,
@@ -279,7 +277,7 @@ gnunet_drop (struct GNUNET_DHTU_PreferenceHandle *ph)
       = GNUNET_TRANSPORT_application_suggest (plugin->transport,
                                               &target->pid,
                                               GNUNET_MQ_PRIO_BEST_EFFORT,
-                                              bw);
+                                              GNUNET_BANDWIDTH_ZERO);
 }
 
 
@@ -410,7 +408,6 @@ peerinfo_cb (void *cls,
 {
   struct Plugin *plugin = cls;
   struct GNUNET_HELLO_Builder *builder;
-  char *addr;
 
   if (NULL == hello)
     return;
@@ -529,7 +526,6 @@ libgnunet_plugin_dhtu_gnunet_done (void *cls)
 {
   struct GNUNET_DHTU_PluginFunctions *api = cls;
   struct Plugin *plugin = api->cls;
-  struct HelloHandle *hh;
 
   if (NULL != plugin->nse)
     GNUNET_NSE_disconnect (plugin->nse);
@@ -573,8 +569,8 @@ libgnunet_plugin_dhtu_gnunet_init (void *cls)
     GNUNET_MQ_handler_end ()
   };
 
-  plugin->my_priv = GNUNET_CRYPTO_eddsa_key_create_from_configuration (env->cfg);
   plugin = GNUNET_new (struct Plugin);
+  plugin->my_priv = GNUNET_CRYPTO_eddsa_key_create_from_configuration (env->cfg);
   plugin->env = env;
   api = GNUNET_new (struct GNUNET_DHTU_PluginFunctions);
   api->cls = plugin;
