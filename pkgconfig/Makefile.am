@@ -29,7 +29,6 @@ pcfiles = \
        gnunetset.pc \
        gnunetspeaker.pc \
        gnunetstatistics.pc \
-       gnunettestbed.pc \
        gnunettesting.pc \
        gnunettransport.pc \
        gnunetutil.pc \
@@ -71,7 +70,6 @@ EXTRA_DIST = \
        gnunetset.pc.in \
        gnunetspeaker.pc.in \
        gnunetstatistics.pc.in \
-       gnunettestbed.pc.in \
        gnunettesting.pc.in \
        gnunettransport.pc.in \
        gnunetutil.pc.in \
