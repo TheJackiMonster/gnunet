@@ -48,19 +48,19 @@
  * Time interval hostlists are saved to disk
  */
 #define SAVING_INTERVAL \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 30)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 30)
 
 /**
  * Time interval between two hostlist tests
  */
 #define TESTING_INTERVAL \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 3)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 3)
 
 /**
  * Time interval for download dispatcher before a download is re-scheduled
  */
 #define WAITING_INTERVAL \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 1)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 1)
 
 /**
  * Defines concerning the hostlist quality metric
@@ -385,37 +385,19 @@ callback_download (void *ptr, size_t size, size_t nmemb, void *ctx)
       GNUNET_assert (left == 0);
       break;
     }
-    if (sizeof (msg) == msize)
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Received valid `%s' message from hostlist server.\n",
-                  "HELLO");
-      GNUNET_STATISTICS_update (
-        stats,
-        gettext_noop ("# valid HELLOs downloaded from hostlist servers"),
-        1,
-        GNUNET_NO);
-      stat_hellos_obtained++;
-      shc = GNUNET_PEERSTORE_hello_add (peerstore,
-                                        msg,
-                                        shc_cont,
-                                        shc);
-    }
-    else
-    {
-      GNUNET_STATISTICS_update (
-        stats,
-        gettext_noop ("# invalid HELLOs downloaded from hostlist servers"),
-        1,
-        GNUNET_NO);
-      GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                  _ ("Invalid `%s' message received from hostlist at `%s'\n"),
-                  "HELLO",
-                  current_url);
-      stat_bogus_url = GNUNET_YES;
-      stat_hellos_obtained++;
-      return total;
-    }
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Received valid `%s' message from hostlist server.\n",
+                "HELLO");
+    GNUNET_STATISTICS_update (
+      stats,
+      gettext_noop ("# valid HELLOs downloaded from hostlist servers"),
+      1,
+      GNUNET_NO);
+    stat_hellos_obtained++;
+    shc = GNUNET_PEERSTORE_hello_add (peerstore,
+                                      msg,
+                                      shc_cont,
+                                      shc);
     memmove (download_buffer, &download_buffer[msize], download_pos - msize);
     download_pos -= msize;
   }
@@ -542,17 +524,17 @@ download_get_url ()
 
 
 #define CURL_EASY_SETOPT(c, a, b)                   \
-  do                                                \
-  {                                                 \
-    ret = curl_easy_setopt (c, a, b);               \
-    if (CURLE_OK != ret)                            \
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,        \
-                _ ("%s failed at %s:%d: `%s'\n"), \
-                "curl_easy_setopt",               \
-                __FILE__,                         \
-                __LINE__,                         \
-                curl_easy_strerror (ret));        \
-  } while (0)
+        do                                                \
+        {                                                 \
+          ret = curl_easy_setopt (c, a, b);               \
+          if (CURLE_OK != ret)                            \
+          GNUNET_log (GNUNET_ERROR_TYPE_WARNING,        \
+                      _ ("%s failed at %s:%d: `%s'\n"), \
+                      "curl_easy_setopt",               \
+                      __FILE__,                         \
+                      __LINE__,                         \
+                      curl_easy_strerror (ret));        \
+        } while (0)
 
 
 /**

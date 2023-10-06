@@ -240,7 +240,7 @@ host_processor (void *cls,
     }
   }
   old = builder->size;
-  s = sizeof (hello);
+  s = ntohs (hello->size);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received %u bytes of `%s' from peer `%s' for hostlist.\n",
               (unsigned int) s,
