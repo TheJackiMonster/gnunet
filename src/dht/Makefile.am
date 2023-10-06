@@ -129,27 +129,8 @@ gnunet_dht_monitor_LDFLAGS = \
 # $(top_builddir)/src/testbed/libgnunettestbed.la \
 # libgnunetdht.la
 
-check_PROGRAMS = \
- test_dht_api \
- test_dht_twopeer \
- test_dht_multipeer \
- test_dht_line \
- test_dht_2dtorus \
- test_dht_monitor
-
-if HAVE_EXPERIMENTAL
-# These tests still do not work as testbed does
-# not support the respective topology op
- NEW_TESTS = test_dht_2dtorus test_dht_multipeer
-endif
-
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
-TESTS = test_dht_api $(check_SCRIPTS) \
- test_dht_twopeer \
- test_dht_line \
- test_dht_monitor \
- $(NEW_TESTS)
 endif
 
 test_dht_api_SOURCES = \

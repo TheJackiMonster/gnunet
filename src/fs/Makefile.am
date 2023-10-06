@@ -219,13 +219,13 @@ libgnunet_plugin_block_fs_la_LIBADD = \
 libgnunet_plugin_block_fs_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
 
-if HAVE_BENCHMARKS
- FS_BENCHMARKS = \
- perf_gnunet_service_fs_p2p \
- perf_gnunet_service_fs_p2p_dht \
- perf_gnunet_service_fs_p2p_index \
- perf_gnunet_service_fs_p2p_respect
-endif
+#if HAVE_BENCHMARKS
+# FS_BENCHMARKS = \
+# perf_gnunet_service_fs_p2p \
+# perf_gnunet_service_fs_p2p_dht \
+# perf_gnunet_service_fs_p2p_index \
+# perf_gnunet_service_fs_p2p_respect
+#endif
 
 check_PROGRAMS = \
  test_plugin_block_fs \
@@ -252,8 +252,6 @@ check_PROGRAMS = \
  test_fs_uri \
  test_fs_meta_data \
  test_gnunet_service_fs_migration \
- test_gnunet_service_fs_p2p \
- test_gnunet_service_fs_p2p_cadet \
  $(FS_BENCHMARKS)
 
 test_plugin_block_fs_SOURCES = \

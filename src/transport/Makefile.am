@@ -440,8 +440,6 @@ test_delay \
 template_cfg_peer1.conf\
 template_cfg_peer2.conf\
 test_transport_api_data.conf\
-test_transport_api_timeout_tcp_peer1.conf\
-test_transport_api_timeout_tcp_peer2.conf\
 test_transport_api_multi_peer1.conf\
 test_transport_api_multi_peer2.conf\
 test_transport_api_tcp_nat_peer1.conf\

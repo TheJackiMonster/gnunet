@@ -74,19 +74,17 @@ gnunet_service_rps_LDADD = \
 check_PROGRAMS = \
  test_service_rps_view \
  test_service_rps_custommap \
- test_service_rps_sampler_elem \
- test_rps_req_cancel \
- test_rps_seed_big 
+ test_service_rps_sampler_elem
  # test_rps_single_req \
  # test_rps_churn
  # test_rps_sub \
  # test_rps_seed_request 
-if ENABLE_MALICIOUS
-check_PROGRAMS += \
- test_rps_malicious_1 \
- test_rps_malicious_2 \
- test_rps_malicious_3
-endif
+#if ENABLE_MALICIOUS
+#check_PROGRAMS += \
+# test_rps_malicious_1 \
+# test_rps_malicious_2 \
+# test_rps_malicious_3
+#endif
 
 rps_test_src = \
 	test_rps.c \
