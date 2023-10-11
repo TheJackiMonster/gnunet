@@ -189,7 +189,7 @@ endif
 #  $(GN_LIBINTL)
 
 gnunet_service_tng_SOURCES = \
- gnunet-service-tng.c
+ gnunet-service-tng.c transport.h
 gnunet_service_tng_LDADD = \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/hello/libgnunethello.la \

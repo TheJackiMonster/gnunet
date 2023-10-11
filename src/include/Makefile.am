@@ -121,6 +121,7 @@ gnunetinclude_HEADERS = \
   gnunet_time_lib.h \
   gnunet_transport_application_service.h \
   gnunet_transport_communication_service.h \
+  gnunet_transport_monitor_service.h \
   gnunet_transport_core_service.h \
   gnunet_transport_hello_service.h \
   gnunet_transport_testing_ng_lib.h \
