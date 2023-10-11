@@ -55,6 +55,7 @@ libgnunetcoretesting_la_SOURCES = \
   core_api_cmd_connecting_peers.c 
 libgnunetcoretesting_la_LIBADD = \
   $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/arm/libgnunetarm.la \
   $(top_builddir)/src/transport/libgnunettransportapplication.la \
   $(top_builddir)/src/transport/libgnunettransportcore.la \
   $(top_builddir)/src/util/libgnunetutil.la
