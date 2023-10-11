@@ -142,6 +142,7 @@ test_dht_api_LDADD = \
  libgnunetdht.la
 
 EXTRA_DIST = \
+	gnunet-service_dht_clients.c \
   dhtu_testbed_connect.sh \
   dhtu_testbed_deploy.conf \
   dhtu_testbed_deploy.sh
