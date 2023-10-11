@@ -35,6 +35,7 @@ RUN apt-get install -yqq \
                    build-essential \
                    debhelper-compat \
                    devscripts \
+                   git-buildpackage \
    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /workdir
