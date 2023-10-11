@@ -189,7 +189,7 @@ add_to_builder (void *cls,
               address->transport_name);
       addr = strchr (strchr (pos->api->address_to_string (pos, address, address->address_length), '.')+1, '.') + 1;
     }
-    pos = plugins_head->next;
+    pos = pos->next;
   }
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
