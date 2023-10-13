@@ -42,7 +42,6 @@ install_headers(
   'gnunet_dnsstub_lib.h',
   'gnunet_dns_service.h',
   'gnunet_error_codes.h',
-  'gnunet_fragmentation_lib.h',
   'gnunet_friends_lib.h',
   'gnunet_fs_service.h',
   'gnunet_getopt_lib.h',
