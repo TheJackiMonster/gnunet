@@ -18,14 +18,13 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 /**
- * @file nt/nt_api_scanner.c
+ * @file util/nt.c
  * @brief LAN interface scanning to determine IPs in LAN
  * @author Christian Grothoff
  * @author Matthias Wachs
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_nt_lib.h"
 
 /**
  * How frequently do we scan the interfaces for changes to the addresses?

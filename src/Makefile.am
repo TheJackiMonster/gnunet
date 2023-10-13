@@ -34,7 +34,6 @@ REST_DIR = rest
 SUBDIRS = \
   include $(INTLEMU_SUBDIRS) \
   util \
-  nt \
   hello \
   block \
   statistics \

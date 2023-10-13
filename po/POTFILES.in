@@ -254,7 +254,6 @@ src/nse/gnunet-nse-profiler.c
 src/nse/gnunet-nse.c
 src/nse/gnunet-service-nse.c
 src/nse/nse_api.c
-src/nt/nt.c
 src/peerstore/gnunet-peerstore.c
 src/peerstore/gnunet-service-peerstore.c
 src/peerstore/peerstore_api.c
@@ -474,6 +473,7 @@ src/util/mq.c
 src/util/mst.c
 src/util/nc.c
 src/util/network.c
+src/util/nt.c
 src/util/op.c
 src/util/os_installation.c
 src/util/os_network.c

@@ -88,6 +88,7 @@ libgnunetutil_la_SOURCES = \
   mq.c \
   nc.c \
   network.c \
+	nt.c \
   op.c \
   os_installation.c \
   os_network.c \
@@ -333,7 +334,6 @@ check_PROGRAMS = \
  $(BENCHMARKS) \
  test_os_start_process \
  test_common_logging_runtime_loglevels
-
 
 test_child_management_SOURCES = \
   test_child_management.c

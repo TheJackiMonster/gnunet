@@ -1271,7 +1271,6 @@ src/nat-auto/Makefile
 src/nat-auto/nat-auto.conf
 src/nse/Makefile
 src/nse/nse.conf
-src/nt/Makefile
 src/peerstore/Makefile
 src/peerstore/peerstore.conf
 src/pq/Makefile
@@ -1323,7 +1322,6 @@ pkgconfig/gnunetdatacache.pc
 pkgconfig/gnunetdatastore.pc
 pkgconfig/gnunetdht.pc
 pkgconfig/gnunetdns.pc
-pkgconfig/gnunetfragmentation.pc
 pkgconfig/gnunetfs.pc
 pkgconfig/gnunetgns.pc
 pkgconfig/gnunethello.pc
