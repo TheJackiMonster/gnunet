@@ -1,7 +1,6 @@
 # This Makefile.am is in the public domain
 
 TESTING = testing
-#TESTBED = testbed-logger testbed
 
 if HAVE_EXPERIMENTAL
  EXP_DIR = \
@@ -52,7 +51,6 @@ SUBDIRS = \
   peerstore \
   nat \
   nat-auto \
-  fragmentation \
   transport \
   core \
   nse \
@@ -83,5 +81,4 @@ SUBDIRS = \
   secretsharing \
   reclaim \
   messenger \
-  $(EXP_DIR) \
-  integration-tests
+  $(EXP_DIR)

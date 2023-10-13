@@ -1248,7 +1248,6 @@ src/dhtu/Makefile
 src/dns/Makefile
 src/dns/dns.conf
 src/exit/Makefile
-src/fragmentation/Makefile
 src/fs/Makefile
 src/fs/fs.conf
 src/gns/Makefile
@@ -1260,7 +1259,6 @@ src/identity/Makefile
 src/identity/identity.conf
 src/include/Makefile
 src/include/gnunet_config.h
-src/integration-tests/Makefile
 src/json/Makefile
 src/hostlist/Makefile
 src/namecache/Makefile
