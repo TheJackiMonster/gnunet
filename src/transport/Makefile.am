@@ -138,7 +138,6 @@ gnunet_communicator_tcp_LDADD = \
   libgnunettransportcommunicator.la \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/nat/libgnunetnatnew.la \
-  $(top_builddir)/src/nt/libgnunetnt.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(LIBGCRYPT_LIBS)
@@ -149,7 +148,6 @@ gnunet_communicator_udp_LDADD = \
   libgnunettransportapplication.la \
   libgnunettransportcommunicator.la \
   $(top_builddir)/src/nat/libgnunetnatnew.la \
-  $(top_builddir)/src/nt/libgnunetnt.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   $(LIBGCRYPT_LIBS)
@@ -163,7 +161,6 @@ gnunet_communicator_quic_LDADD = \
   libgnunettransportcommunicator.la \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/nat/libgnunetnatnew.la \
-  $(top_builddir)/src/nt/libgnunetnt.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/util/libgnunetutil.la \
   -lquiche \
