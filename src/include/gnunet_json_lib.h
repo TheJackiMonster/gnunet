@@ -291,6 +291,17 @@ GNUNET_JSON_spec_bool (const char *name,
 
 
 /**
+ * double.
+ *
+ * @param name name of the JSON field
+ * @param[out] f where to store the double found under @a name
+ */
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_double (const char *name,
+                         double *f);
+
+
+/**
  * 8-bit integer.
  *
  * @param name name of the JSON field
@@ -700,6 +711,19 @@ GNUNET_JSON_pack_allow_null (struct GNUNET_JSON_PackSpec in);
 struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_bool (const char *name,
                        bool b);
+
+
+/**
+ * Generate packer instruction for a JSON field of type
+ * double.
+ *
+ * @param name name of the field to add to the object
+ * @param f double value
+ * @return json pack specification
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_double (const char *name,
+                         double f);
 
 
 /**

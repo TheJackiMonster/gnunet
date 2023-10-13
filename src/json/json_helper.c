@@ -490,6 +490,49 @@ GNUNET_JSON_spec_bool (const char *name,
 
 
 /**
+ * Parse given JSON object to a double.
+ *
+ * @param cls closure, NULL
+ * @param root the json object representing data
+ * @param[out] spec where to write the data
+ * @return #GNUNET_OK upon successful parsing; #GNUNET_SYSERR upon error
+ */
+static enum GNUNET_GenericReturnValue
+parse_double (void *cls,
+              json_t *root,
+              struct GNUNET_JSON_Specification *spec)
+{
+  double *f = spec->ptr;
+
+  if (! json_is_real (root))
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
+  *f = json_real_value (root);
+  return GNUNET_OK;
+}
+
+
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_double (const char *name,
+                         double *f)
+{
+  struct GNUNET_JSON_Specification ret = {
+    .parser = &parse_double,
+    .cleaner = NULL,
+    .cls = NULL,
+    .field = name,
+    .ptr = f,
+    .ptr_size = sizeof(double),
+    .size_ptr = NULL
+  };
+
+  return ret;
+}
+
+
+/**
  * Parse given JSON object to a uint8_t.
  *
  * @param cls closure, NULL
