@@ -189,6 +189,16 @@ if gopt_bin.found()
   add_project_arguments('-DHAVE_GETOPT_BINARY='+gopt_bin.full_path(), language : 'c')
 endif
 
+ifconfig_bin = find_program('ifconfig', '/usr/sbin/ifconfig', required : false)
+if ifconfig_bin.found()
+  cdata.set_quoted('IFCONFIG', ifconfig_bin.full_path())
+endif
+
+ip_bin = find_program('ip', '/usr/sbin/ip', required : false)
+if ip_bin.found()
+  cdata.set_quoted('PATH_TO_IP', ip_bin.full_path())
+endif
+
 pkgc_bin = find_program('pkg-config', '/usr/bin/pkg-config', required : false)
 if pkgc_bin.found()
   add_project_arguments('-DHAVE_PKG_CONFIG', language : 'c')
