@@ -265,7 +265,7 @@ try_ip (GNUNET_OS_NetworkInterfaceProcessor proc,
   {
     const char *sbin_ip;
 
-#ifdef IFCONFIG
+#ifdef PATH_TO_IP
     if (0 == access (PATH_TO_IP, X_OK))
       sbin_ip = PATH_TO_IP;
     else
