@@ -53,9 +53,6 @@ bin_PROGRAMS = \
  gnunet-dht-put \
  gnunet-dht-hello
 
-#noinst_PROGRAMS = \
-# gnunet-dht-profiler
-
 gnunet_service_dht_SOURCES = \
  gnunet-service-dht.c gnunet-service-dht.h \
  gnunet-service-dht_datacache.c gnunet-service-dht_datacache.h \
@@ -107,27 +104,6 @@ gnunet_dht_monitor_LDADD = \
   $(top_builddir)/src/util/libgnunetutil.la
 gnunet_dht_monitor_LDFLAGS = \
   $(GN_LIBINTL)
-
-# TNG
-#gnunet_dht_profiler_SOURCES = \
-#  gnunet_dht_profiler.c
-#gnunet_dht_profiler_LDADD = \
-#  libgnunetdht.la \
-#  $(top_builddir)/src/core/libgnunetcore.la \
-#  $(top_builddir)/src/util/libgnunetutil.la \
-#  $(top_builddir)/src/testing/libgnunettesting.la \
-# $(top_builddir)/src/testbed/libgnunettestbed.la
-#gnunet_dht_profiler_LDFLAGS = \
-#  $(GN_LIBINTL)
-
-#noinst_LIBRARIES = libgnunetdhttest.a
-#
-#libgnunetdhttest_a_SOURCES = \
-#  dht_test_lib.c dht_test_lib.h
-#libgnunetdhttest_a_LIBADD = \
-# $(top_builddir)/src/util/libgnunetutil.la \
-# $(top_builddir)/src/testbed/libgnunettestbed.la \
-# libgnunetdht.la
 
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;

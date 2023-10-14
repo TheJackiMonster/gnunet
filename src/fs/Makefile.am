@@ -21,8 +21,6 @@ lib_LTLIBRARIES = libgnunetfs.la
 plugin_LTLIBRARIES = \
   libgnunet_plugin_block_fs.la
 
-# noinst_LIBRARIES = libgnunetfstest.a
-
 libgnunetfs_la_SOURCES = \
   fs_api.c fs_api.h fs.h \
   fs_directory.c \
@@ -59,13 +57,6 @@ libgnunetfs_la_LDFLAGS = \
   -version-info 3:1:1
 
 
-#libgnunetfstest_a_SOURCES = \
-#  fs_test_lib.c fs_test_lib.h
-#
-#libgnunetfstest_a_LIBADD = \
-#  $(top_builddir)/src/testing/libgnunettesting.la \
-#  $(top_builddir)/src/testbed/libgnunettestbed.la
-
 libexec_PROGRAMS = \
   gnunet-helper-fs-publish \
   gnunet-service-fs
@@ -93,15 +84,6 @@ if HAVE_LIBEXTRACTOR
 gnunet_directory_LDADD += \
   -lextractor
 endif
-
-# TNG
-#gnunet_fs_profiler_SOURCES = \
-# gnunet-fs-profiler.c
-#gnunet_fs_profiler_LDADD = \
-#  $(top_builddir)/src/testing/libgnunettesting.la \
-#  $(top_builddir)/src/testbed/libgnunettestbed.la \
-#  $(top_builddir)/src/util/libgnunetutil.la \
-#  $(GN_LIBINTL)
 
 gnunet_fs_SOURCES = \
  gnunet-fs.c
@@ -219,14 +201,6 @@ libgnunet_plugin_block_fs_la_LIBADD = \
 libgnunet_plugin_block_fs_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
 
-#if HAVE_BENCHMARKS
-# FS_BENCHMARKS = \
-# perf_gnunet_service_fs_p2p \
-# perf_gnunet_service_fs_p2p_dht \
-# perf_gnunet_service_fs_p2p_index \
-# perf_gnunet_service_fs_p2p_respect
-#endif
-
 check_PROGRAMS = \
  test_plugin_block_fs \
  test_fs_directory \
@@ -284,22 +258,7 @@ TESTS = test_fs_directory \
  test_fs_search_persistence \
  test_fs_start_stop \
  test_fs_uri \
- test_fs_meta_data 
- # test_fs_download \
- # test_fs_download_indexed \
- # test_fs_download_persistence \
- # test_fs_list_indexed \
- # test_fs_publish \
- # test_fs_publish_persistence \
- # test_fs_unindex \
- # test_fs_unindex_persistence \
- # test_fs_test_lib \
- # test_gnunet_service_fs_migration \
- # test_gnunet_service_fs_p2p \
- # test_gnunet_service_fs_p2p_cadet \
- # perf_gnunet_service_fs_p2p \
- # perf_gnunet_service_fs_p2p_index \
- # perf_gnunet_service_fs_p2p_respect \
+ test_fs_meta_data
  # $(check_SCRIPTS)
 endif
 

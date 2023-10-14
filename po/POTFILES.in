@@ -387,7 +387,6 @@ src/testing/testing_api_cmd_system_create.c
 src/testing/testing_api_cmd_system_destroy.c
 src/testing/testing_api_loop.c
 src/testing/testing_api_traits.c
-src/topology/friends.c
 src/topology/gnunet-daemon-topology.c
 src/transport/gnunet-communicator-quic.c
 src/transport/gnunet-communicator-tcp.c
