@@ -278,7 +278,7 @@ endif
 check_SCRIPTS = \
  test_crypto_vectors.sh
 
-check_PROGRAMS = \
+check_PROGRAMS =
  test_bio \
  test_child_management \
  test_client.nc \
