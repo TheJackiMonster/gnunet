@@ -3,7 +3,7 @@ libgnunettransportcore_src = ['transport_api2_core.c']
 libgnunettransportcommunicator_src = ['transport_api2_communication.c']
 libgnunettransportmonitor_src = ['transport_api2_monitor.c']
 
-gnunetservicetransport_src = ['gnunet-service-tng.c']
+gnunetservicetransport_src = ['gnunet-service-transport.c']
 gnunetcommunicatortcp_src = ['gnunet-communicator-tcp.c']
 gnunetcommunicatorudp_src = ['gnunet-communicator-udp.c']
 gnunetcommunicatorunix_src = ['gnunet-communicator-unix.c']
@@ -103,6 +103,19 @@ libgnunettransporttesting2 = library('gnunettransporttesting2',
         install: true,
         install_dir: get_option('libdir'))
 libgnunettransporttesting2_dep = declare_dependency(link_with : libgnunettransporttesting2)
+
+executable ('gnunet-service-transport',
+            gnunetservicetransport_src,
+            dependencies: [libgnunettransportcommunicator_dep,
+                           libgnunetpeerstore_dep,
+                           libgnunetstatistics_dep,
+                           libgnunethello_dep,
+                           libgnunetnat_dep,
+                           gcrypt_dep,
+                           libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
 
 executable ('gnunet-communicator-unix',
             gnunetcommunicatorunix_src,
