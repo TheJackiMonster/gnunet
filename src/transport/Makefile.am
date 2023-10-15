@@ -96,7 +96,7 @@ libgnunettransportmonitor_la_LDFLAGS = \
 
 
 libexec_PROGRAMS = \
- gnunet-service-tng \
+ gnunet-service-transport \
  gnunet-communicator-unix \
  gnunet-communicator-udp \
  gnunet-communicator-tcp
@@ -168,15 +168,6 @@ gnunet_communicator_quic_LDADD = \
 endif
 endif
 
-#gnunet_transport_profiler_SOURCES = \
-# gnunet-transport-profiler.c
-#gnunet_transport_profiler_LDADD = \
-#  libgnunettransport.la \
-#  $(top_builddir)/src/hello/libgnunethello.la \
-#  $(top_builddir)/src/ats/libgnunetats.la \
-#  $(top_builddir)/src/util/libgnunetutil.la \
-#  $(GN_LIBINTL)
-
 #gnunet_transport_SOURCES = \
 # gnunet-transport.c
 #gnunet_transport_LDADD = \
@@ -185,9 +176,9 @@ endif
 #  $(top_builddir)/src/util/libgnunetutil.la \
 #  $(GN_LIBINTL)
 
-gnunet_service_tng_SOURCES = \
- gnunet-service-tng.c transport.h
-gnunet_service_tng_LDADD = \
+gnunet_service_transport_SOURCES = \
+ gnunet-service-transport.c transport.h
+gnunet_service_transport_LDADD = \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/hello/libgnunethello.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
@@ -309,8 +300,6 @@ check_PROGRAMS = \
  test_communicator_backchannel-udp \
  test_communicator_bidirect-tcp
 
-# Only test TNG if we run experimental
-if HAVE_EXPERIMENTAL
 check_SCRIPTS= \
   test_transport_start_testcase.sh \
   test_transport_simple_send_performance.sh \
@@ -322,7 +311,6 @@ check_SCRIPTS= \
   test_transport_udp_backchannel.sh \
   test_transport_simple_send_dv_circle.sh \
   test_transport_simple_send_dv_inverse.sh
-endif
 
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;

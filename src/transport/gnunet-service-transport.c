@@ -18,8 +18,8 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 /**
- * @file transport/gnunet-service-tng.c
- * @brief main for gnunet-service-tng
+ * @file transport/gnunet-service-transport.c
+ * @brief main for gnunet-service-transport
  * @author Christian Grothoff
  *
  * TODO:
