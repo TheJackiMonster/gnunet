@@ -263,14 +263,19 @@ if ogg_dep.found()
   add_project_arguments('-DHAVE_OGG', language : 'c')
 endif
 
-if pulse_dep.found() or ogg_dep.found() or opus_dep.found()
-  gst_dep = dependency('libgst', required : false)
-  if not gst_dep.found()
-    gst_dep = cc.find_library('gstreamer', required : false)
-  endif
-  if gst_dep.found()
-    add_project_arguments('-DHAVE_GST', language : 'c')
-  endif
+gst_dep = dependency('libgst', required : false)
+if not gst_dep.found()
+  gst_dep = cc.find_library('gstreamer', required : false)
+endif
+if gst_dep.found()
+  add_project_arguments('-DHAVE_GST', language : 'c')
+endif
+
+conversation_backend = 'none'
+if pulse_dep.found() and opus_dep.found() and ogg_dep.found()
+  conversation_backend = 'pulse'
+elif gst_dep.found()
+  conversation_backend = 'gst'
 endif
 ## END conversation
 

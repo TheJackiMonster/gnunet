@@ -46,7 +46,9 @@ subdir('revocation')
 subdir('vpn')
 subdir('gns')
 subdir('zonemaster')
-#subdir('$(CONVERSATION_DIR)')
+if conversation_backend != 'none'
+  subdir('conversation')
+endif
 subdir('fs')
 subdir('exit')
 subdir('pt')
