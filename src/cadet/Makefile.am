@@ -75,11 +75,6 @@ gnunet_service_cadet_LDFLAGS = -lrt \
 endif
 
 
-#gnunet_cadet_profiler_SOURCES = \
-#  gnunet-cadet-profiler.c
-#gnunet_cadet_profiler_LDADD = $(ld_cadet_test_lib)
-
-
 test_cadet_local_mq_SOURCES = \
   test_cadet_local_mq.c
 test_cadet_local_mq_LDADD = \
@@ -94,5 +89,4 @@ endif
 
 EXTRA_DIST = \
   cadet.h cadet_protocol.h \
-  test_cadet.conf \
-  test_cadet_drop.conf
+  test_cadet.conf
