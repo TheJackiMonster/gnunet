@@ -39,12 +39,20 @@ executable ('gnunet-arm',
             include_directories: [incdir, configuration_inc],
             install: true,
             install_dir: get_option('bindir'))
+
 executable ('gnunet-service-arm',
             gnunetservicearm_src,
             dependencies: [libgnunetarm_dep, libgnunetutil_dep],
             include_directories: [incdir, configuration_inc],
             install: true,
             install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+
+mockservice = executable ('mockup-service',
+            ['mockup-service.c'],
+            dependencies: [libgnunetarm_dep, libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+
 testarmapi = executable ('test_arm_api',
             testarmapi_src,
             dependencies: [libgnunetarm_dep, libgnunetutil_dep],
@@ -63,9 +71,16 @@ testgnunetservice = executable ('test_gnunet_service',
 configure_file(copy: true,
                input: 'test_arm_api_data.conf',
                output: 'test_arm_api_data.conf')
-test('test_arm_api', testarmapi, workdir: meson.current_source_dir(),
+
+# FIXME: We need to convert the convoluted awk script from Makefile.am here
+#configure_file(copy: true,
+#               input: 'test_gnunet_arm.py.in',
+#               output: 'test_gnunet_arm.py')
+
+test('test_arm_api', testarmapi, workdir: meson.current_build_dir(),
      suite: 'arm')
-# FIXME this test currently times out/fails.
-#test('test_exponential_backoff', testexpbo, workdir: meson.current_source_dir())
-test('test_gnunet_service', testgnunetservice, workdir: meson.current_source_dir(),
+test('test_exponential_backoff', testexpbo, workdir: meson.current_build_dir(),
+  depends: mockservice,
+  timeout: 60, suite: 'arm')
+test('test_gnunet_service_arm', testgnunetservice, workdir: meson.current_build_dir(),
      suite: 'arm')

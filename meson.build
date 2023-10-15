@@ -369,7 +369,12 @@ endif
 if cc.has_function('explicit_bzero')
   cdata.set('HAVE_EXPLICIT_BZERO', 1)
 endif
-
+if cc.has_function('gethostbyname')
+  cdata.set('HAVE_GETHOSTBYNAME', 1)
+endif
+if cc.has_function('gethostbyname2')
+  cdata.set('HAVE_GETHOSTBYNAME2', 1)
+endif
 
 configure_file(#input: 'gnunet_private_config.h.in',
                output : 'gnunet_private_config.h',
