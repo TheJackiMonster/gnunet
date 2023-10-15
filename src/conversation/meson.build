@@ -118,17 +118,76 @@ executable ('gnunet-helper-audio-record',
             install_dir: get_option('libdir') / 'gnunet' / 'libexec')
 
 executable ('gnunet-helper-audio-playback',
-           helperplayback_src,
-            dependencies: [libgnunetconversation_dep,
-                           libgnunetutil_dep,
-                           libgnunetspeaker_dep,
-                           libgnunetmicrophone_dep,
-                           gst_dep,
-                           ogg_dep,
-                           pulse_dep,
-                           opus_dep
-                           ],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+         helperplayback_src,
+          dependencies: [libgnunetconversation_dep,
+                         libgnunetutil_dep,
+                         libgnunetspeaker_dep,
+                         libgnunetmicrophone_dep,
+                         gst_dep,
+                         ogg_dep,
+                         pulse_dep,
+                         opus_dep
+                         ],
+          include_directories: [incdir, configuration_inc],
+          install: true,
+          install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+
+testconvapi = executable ('test_conversation_api',
+         ['test_conversation_api.c'],
+          dependencies: [libgnunetconversation_dep,
+                         libgnunetutil_dep,
+                         libgnunetidentity_dep,
+                         libgnunettesting_dep,
+                         libgnunetgnsrecord_dep,
+                         libgnunetnamestore_dep,
+                         libgnunetspeaker_dep,
+                         libgnunetmicrophone_dep,
+                         ],
+          include_directories: [incdir, configuration_inc],
+          install: true,
+          install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+
+testconvapitwo = executable ('test_conversation_api_twocalls',
+         ['test_conversation_api_twocalls.c'],
+          dependencies: [libgnunetconversation_dep,
+                         libgnunetutil_dep,
+                         libgnunetidentity_dep,
+                         libgnunettesting_dep,
+                         libgnunetgnsrecord_dep,
+                         libgnunetnamestore_dep,
+                         libgnunetspeaker_dep,
+                         libgnunetmicrophone_dep,
+                         ],
+          include_directories: [incdir, configuration_inc],
+          install: true,
+          install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+
+testconvapireject = executable ('test_conversation_api_reject',
+         ['test_conversation_api_reject.c'],
+          dependencies: [libgnunetconversation_dep,
+                         libgnunetutil_dep,
+                         libgnunetidentity_dep,
+                         libgnunettesting_dep,
+                         libgnunetgnsrecord_dep,
+                         libgnunetnamestore_dep,
+                         libgnunetspeaker_dep,
+                         libgnunetmicrophone_dep,
+                         ],
+          include_directories: [incdir, configuration_inc],
+          install: true,
+          install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+
+configure_file(input : 'test_conversation.conf',
+               output : 'test_conversation.conf',
+               copy: true,
+               install: false)
+
+test('test_conversation_api', testconvapi, workdir: meson.current_build_dir(),
+     suite: 'conversation')
+
+test('test_conversation_api_twocalls', testconvapitwo, workdir: meson.current_build_dir(),
+     suite: 'conversation')
+
+test('test_conversation_api_reject', testconvapireject, workdir: meson.current_build_dir(),
+     suite: 'conversation')
 
