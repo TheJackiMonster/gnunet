@@ -18,9 +18,6 @@ endif
 libexec_PROGRAMS = \
  gnunet-service-consensus
 
-#noinst_PROGRAMS = \
-# gnunet-consensus-profiler
-
 if ENABLE_MALICIOUS
 libexec_PROGRAMS += \
  gnunet-service-evil-consensus
@@ -37,16 +34,6 @@ check-python-style:
 
 lib_LTLIBRARIES = \
   libgnunetconsensus.la
-
-# TNG
-#gnunet_consensus_profiler_SOURCES = \
-# gnunet-consensus-profiler.c
-#gnunet_consensus_profiler_LDADD = \
-#  $(top_builddir)/src/util/libgnunetutil.la \
-#  libgnunetconsensus.la \
-#  $(top_builddir)/src/testing/libgnunettesting.la \
-#  $(top_builddir)/src/testbed/libgnunettestbed.la \
-#  $(GN_LIBINTL)
 
 gnunet_service_consensus_SOURCES = \
  gnunet-service-consensus.c
@@ -94,7 +81,7 @@ libgnunet_plugin_block_consensus_la_LDFLAGS = \
 
 
 check_PROGRAMS = \
- # test_consensus_api
+ test_consensus_api
 
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;

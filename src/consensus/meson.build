@@ -46,3 +46,21 @@ executable ('gnunet-service-consensus',
             install: true,
             install_dir: get_option('libdir') / 'gnunet' / 'libexec')
 
+# FIXME do we need evil stuff and ENABLE_MALICIOUS?
+
+testconsensusapi = executable ('test_consensus_api',
+            ['test_consensus_api.c'],
+            dependencies: [libgnunetconsensus_dep,
+                           libgnunetutil_dep,
+                           libgnunettesting_dep],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+
+configure_file(input : 'test_consensus.conf',
+               output : 'test_consensus.conf',
+               configuration : cdata,
+               install: false)
+
+test('test_consensus_api', testconsensusapi,
+  workdir: meson.current_build_dir(),
+  suite: 'consensus')
