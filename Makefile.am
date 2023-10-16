@@ -13,7 +13,7 @@ if DOCUMENTATION
   SUBDIRS += doc
 endif
 
-SUBDIRS += contrib
+SUBDIRS += contrib data scripts
 
 EXTRA_DIST = \
  ABOUT-NLS \

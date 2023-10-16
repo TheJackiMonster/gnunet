@@ -1214,7 +1214,9 @@ AC_CONFIG_FILES([
 Makefile
 bin/Makefile
 contrib/Makefile
-contrib/hellos/Makefile
+data/Makefile
+data/hellos/Makefile
+scripts/Makefile
 contrib/services/Makefile
 contrib/services/openrc/Makefile
 contrib/services/systemd/Makefile
