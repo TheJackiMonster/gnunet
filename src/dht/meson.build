@@ -89,3 +89,18 @@ executable ('gnunet-service-dht',
             install: true,
             install_dir: get_option('libdir')/'gnunet'/'libexec')
 
+configure_file(input : 'test_dht_api_data.conf',
+               output : 'test_dht_api_data.conf',
+               copy: true)
+
+testdht_api = executable ('test_dht_api',
+            ['test_dht_api.c'],
+            dependencies: [libgnunetdht_dep,
+                           libgnunetutil_dep,
+                           libgnunettesting_dep,
+                           libgnunethello_dep],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+
+test('test_dht_api', testdht_api, suite: 'dht',
+     workdir: meson.current_build_dir())
