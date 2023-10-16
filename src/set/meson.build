@@ -14,9 +14,9 @@ configure_file(input : 'set.conf.in',
 
 
 if get_option('monolith')
-  foreach p : libgnunetset_src + gnunetserviceset_src
-    gnunet_src += 'set/' + p
-  endforeach
+  #foreach p : libgnunetset_src + gnunetserviceset_src
+  #  gnunet_src += 'set/' + p
+  #endforeach
   subdir_done()
 endif
 

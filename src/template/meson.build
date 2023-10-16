@@ -7,9 +7,6 @@ configure_file(input : 'template.conf',
                install_dir: pkgcfgdir)
 
 if get_option('monolith')
-  foreach p : libgnunettemplate_src + gnunetservicetemplate_src
-    gnunet_src += 'template/' + p
-  endforeach
   subdir_done()
 endif
 

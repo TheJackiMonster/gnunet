@@ -8,10 +8,11 @@ configure_file(input : 'consensus.conf.in',
                install: true,
                install_dir: pkgcfgdir)
 
+# FIXME needs new seti/setu
 if get_option('monolith')
-  foreach p : libgnunetconsensus_src + gnunetserviceconsensus_src
-    gnunet_src += 'consensus/' + p
-  endforeach
+  #foreach p : libgnunetconsensus_src + gnunetserviceconsensus_src
+  #  gnunet_src += 'consensus/' + p
+  #endforeach
   subdir_done()
 endif
 
