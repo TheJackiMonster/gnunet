@@ -195,7 +195,6 @@ EXTRA_DIST = \
   docker/Dockerfile \
   docker/README.md \
   benchmark/collect.awk \
-  get_version.sh \
   packages/guix/guix.scm \
   indent_pre-commit \
   Makefile.inc \

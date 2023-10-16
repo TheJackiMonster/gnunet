@@ -1,6 +1,6 @@
 ## EXPERIMENTAL --- WORK IN PROGRESS --- USE AT YOUR OWN PERIL --- ##
 project('gnunet', 'c', license: 'AGPLv3',
-        version: run_command('sh', 'contrib/get_version.sh', check: true).stdout().strip())
+        version: run_command('sh', 'scripts/get_version.sh', check: true).stdout().strip())
 
 add_project_arguments('-D_GNU_SOURCE', language : 'c')
 
@@ -9,13 +9,13 @@ incdir = include_directories('src/include')
 cdata = configuration_data()
 
 # Version
-gnunet_version = run_command('sh', 'contrib/get_version.sh', check: true).stdout().strip()
+gnunet_version = run_command('sh', 'scripts/get_version.sh', check: true).stdout().strip()
 cdata.set('gnunet_version', gnunet_version)
-r = run_command('sh', 'contrib/get_version.sh', '--major', check: true)
+r = run_command('sh', 'scripts/get_version.sh', '--major', check: true)
 cdata.set('gnunet_major_version', r.stdout().strip())
-r = run_command('sh', 'contrib/get_version.sh', '--minor', check: true)
+r = run_command('sh', 'scripts/get_version.sh', '--minor', check: true)
 cdata.set('gnunet_minor_version', r.stdout().strip())
-r = run_command('sh', 'contrib/get_version.sh', '--micro', check: true)
+r = run_command('sh', 'scripts/get_version.sh', '--micro', check: true)
 cdata.set('gnunet_micro_version', r.stdout().strip())
 
 pkgcfgdir = get_option('datadir')/'gnunet'/'config.d'

@@ -20,7 +20,7 @@
 #
 #
 AC_PREREQ([2.69])
-AC_INIT([gnunet],[m4_esyscmd_s(sh contrib/get_version.sh)],[bug-gnunet@gnu.org])
+AC_INIT([gnunet],[m4_esyscmd_s(sh scripts/get_version.sh)],[bug-gnunet@gnu.org])
 
 gnunet_version=m4_esyscmd_s(sh contrib/get_version.sh)
 gnunet_major_version=m4_esyscmd_s(sh contrib/get_version.sh --major)
