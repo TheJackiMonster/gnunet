@@ -24,6 +24,22 @@ docdir = get_option('datadir')/'doc'/'gnunet'
 install_emptydir(docdir)
 install_data('README', 'COPYING', install_dir: docdir)
 
+gnunet_user = false
+getent_bin = find_program('getent', '/usr/bin/getent', required : false)
+if getent_bin.found()
+  gnunet_user = true
+  if not run_command('getent', 'passwd', 'gnunet', check: false).returncode() == 0
+    gnunet_user = false
+  endif
+  if not run_command('getent', 'group', 'gnunet', check: false).returncode() == 0
+    gnunet_user = false
+  endif
+  if not run_command('getent', 'group', 'gnunetdns', check: false).returncode() == 0
+    gnunet_user = false
+  endif
+endif
+
+
 # TODO: Set to true to build a single libgnunet
 if get_option('monolith')
   add_project_arguments('-DHAVE_GNUNET_MONOLITH', language: 'c')
@@ -198,6 +214,13 @@ ip_bin = find_program('ip', '/usr/sbin/ip', required : false)
 if ip_bin.found()
   cdata.set_quoted('PATH_TO_IP', ip_bin.full_path())
 endif
+
+iptables_bin = find_program('iptables', '/usr/sbin/iptables', required : false)
+if iptables_bin.found()
+  cdata.set_quoted('IPTABLES', iptables_bin.full_path())
+endif
+
+adduser_bin = find_program('adduser', '/usr/sbin/adduser', required : false)
 
 pkgc_bin = find_program('pkg-config', '/usr/bin/pkg-config', required : false)
 if pkgc_bin.found()
@@ -393,3 +416,29 @@ subdir('doc')
 subdir('contrib')
 
 meson.add_dist_script('meson-dist-script')
+
+summary({'host': host_machine.system(),
+         'prefix': get_option('prefix'),
+         'compiler': cc.get_id(),
+          'libdir': get_option('libdir'),
+          'datadir': get_option('datadir'),
+          'default interface': cdata.get('GNUNET_DEFAULT_INTERFACE'),
+          'PostgreSQL': pq_dep.found(),
+          'curl w/ gnutls': (cdata.get('curl_gnutls') == 1),
+          'ifconfig': ifconfig_bin.found(),
+          'iptables': iptables_bin.found()
+          }, section: 'Detected system')
+
+if not gnunet_user
+message('Please make sure NOW to create a user and group \'gnunet\' and additionally a group \'gnunetdns\'. Make sure that \'/var/lib/gnunet\' is owned (and writable) by user \'gnunet\'')
+message('Each user of GNUnet should be added to the \'gnunet\' group')
+if adduser_bin.found() and not gnunet_user
+    message('''Create the gnunet user and add users to the gnunetdns group, run:
+             # addgroup gnunetdns
+             # adduser --system --disabled-login --home /var/lib/gnunet gnunet''')
+    message('''To add users to the gnunet group, run:
+             # adduser USERNAME gnunet
+             for each of your users, replacing \'USERNAME\' with the respective login name.
+             Users may have to login again for the changes to take effect.''')
+endif
+endif
