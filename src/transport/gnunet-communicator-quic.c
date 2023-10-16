@@ -45,7 +45,6 @@
 #include "gnunet_statistics_service.h"
 #include "gnunet_transport_application_service.h"
 #include "gnunet_transport_communication_service.h"
-#include "gnunet_nt_lib.h"
 #include "gnunet_nat_service.h"
 #include "stdint.h"
 #include "inttypes.h"
