@@ -1,6 +1,6 @@
-[submodule "gana"]
+[submodule "src/gana"]
 	path = src/gana
 	url = git://git.gnunet.org/gana.git
-[submodule "handbook"]
+[submodule "src/handbook"]
 	path = src/handbook
-	url = https://git.gnunet.org/gnunet-handbook
+	url = git://git.gnunet.org/gnunet-handbook.git
