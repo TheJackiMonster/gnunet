@@ -78,16 +78,6 @@ testdc_quota_sqlite = executable ('test_datacache_quota_sqlite',
             include_directories: [incdir, configuration_inc],
             install: false)
 
-#testdc_perf_sqlite = executable ('perf_datacache_sqlite',
-#            ['perf_datacache.c'],
-#            dependencies: [
-#              libgnunetdatacache_dep,
-#              libgnunetutil_dep,
-#              libgnunettesting_dep
-#              ],
-#            include_directories: [incdir, configuration_inc],
-#            install: false)
-
 testdc_heap = executable ('test_datacache_heap',
             ['test_datacache.c'],
             dependencies: [
@@ -108,15 +98,6 @@ testdc_quota_heap = executable ('test_datacache_quota_heap',
             include_directories: [incdir, configuration_inc],
             install: false)
 
-#testdc_perf_heap = executable ('perf_datacache_heap',
-#            ['perf_datacache.c'],
-#            dependencies: [
-#              libgnunetdatacache_dep,
-#              libgnunetutil_dep,
-#              libgnunettesting_dep
-#             ],
-#            include_directories: [incdir, configuration_inc],
-#            install: false)
 
 testdc_pq = executable ('test_datacache_postgres',
             ['test_datacache.c'],
@@ -138,16 +119,6 @@ testdc_quota_pq = executable ('test_datacache_quota_postgres',
             include_directories: [incdir, configuration_inc],
             install: false)
 
-#testdc_perf_pq = executable ('perf_datacache_postgres',
-#            ['perf_datacache.c'],
-#            dependencies: [
-#              libgnunetdatacache_dep,
-#              libgnunetutil_dep,
-#              libgnunettesting_dep
-#              ],
-#            include_directories: [incdir, configuration_inc],
-#            install: false)
-
 configure_file(input : 'test_datacache_data_sqlite.conf',
                output : 'test_datacache_data_sqlite.conf',
                copy: true)
@@ -162,18 +133,11 @@ test('test_datacache_sqlite', testdc_sqlite,
   suite: 'datacache', workdir: meson.current_build_dir())
 test('test_datacache_quota_sqlite', testdc_quota_sqlite,
   suite: 'datacache', workdir: meson.current_build_dir())
-#test('perf_datacache_sqlite', testdc_perf_sqlite,
-#  suite: 'datacache', workdir: meson.current_build_dir())
 test('test_datacache_heap', testdc_heap,
   suite: 'datacache', workdir: meson.current_build_dir())
 test('test_datacache_quota_heap', testdc_quota_heap,
   suite: 'datacache', workdir: meson.current_build_dir())
-#test('perf_datacache_heap', testdc_perf_heap,
-#  suite: 'datacache', workdir: meson.current_build_dir())
 test('test_datacache_postgres', testdc_pq,
   suite: 'datacache', workdir: meson.current_build_dir())
 test('test_datacache_quota_postgres', testdc_quota_pq,
   suite: 'datacache', workdir: meson.current_build_dir())
-#test('perf_datacache_postgres', testdc_perf_pq,
-#  suite: 'datacache', workdir: meson.current_build_dir())
-
