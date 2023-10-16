@@ -184,7 +184,7 @@ EXTRA_DIST = \
   conf/nss/nssswitch.conf \
   testbed_configs/testbed_cluster.conf \
   testbed_configs/testbed_supermuc.conf \
-  guix.README \
+  packages/guix/guix.README \
   web/log.php \
   ci/docker/docker-entrypoint.sh \
   ci/docker/Dockerfile \
@@ -197,7 +197,7 @@ EXTRA_DIST = \
   benchmark/collect.awk \
   get_version.sh \
   gnunet_infrastructure/handbook_pull.sh \
-  guix.scm \
+  packages/guix/guix.scm \
   indent_pre-commit \
   Makefile.inc \
   vagrant/Vagrantfile \
