@@ -72,10 +72,10 @@ endif
 gana: gana-gns gana-gnunet-signatures
 
 gana-gns:
-	@cd $(top_srcdir)/contrib/gana/gnu-name-system-record-types; make; cp gnu_name_system_record_types.h ../../../src/include/
-	@cd $(top_srcdir)/contrib/gana/gnu-name-system-default-tlds; make; cp tlds.conf ../../../src/gns
+	@cd $(top_srcdir)/src/gana/gnu-name-system-record-types; make; cp gnu_name_system_record_types.h ../../../src/include/
+	@cd $(top_srcdir)/src/gana/gnu-name-system-default-tlds; make; cp tlds.conf ../../../src/gns
 
 gana-gnunet-signatures:
-	@cd $(top_srcdir)/contrib/gana/gnunet-signatures; make; cp gnunet_signatures.h ../../../src/include
+	@cd $(top_srcdir)/src/gana/gnunet-signatures; make; cp gnunet_signatures.h ../../../src/include
 
 

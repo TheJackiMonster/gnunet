@@ -107,7 +107,7 @@ sphinx_update()
     echo "Updating handbook..."
     if existence sphinx-build; then
       cwd=$PWD
-      cd contrib/sphinx || exit 1
+      cd src/handbook || exit 1
       if test -e _build; then
         make clean
       fi
@@ -139,7 +139,7 @@ gana_update()
     echo "Updating GANA..."
     if existence recfmt; then
       cwd=$PWD
-      cd contrib/gana || exit 1
+      cd src/gana || exit 1
       # GNS
       echo "Updating GNS record types"
       cd gnu-name-system-record-types && \

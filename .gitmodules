@@ -1,6 +1,6 @@
-[submodule "contrib/gana"]
-	path = contrib/gana
+[submodule "gana"]
+	path = src/gana
 	url = git://git.gnunet.org/gana.git
-[submodule "doc/sphinx"]
-	path = contrib/sphinx
+[submodule "handbook"]
+	path = src/handbook
 	url = https://git.gnunet.org/gnunet-handbook
