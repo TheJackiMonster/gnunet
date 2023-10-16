@@ -18,6 +18,7 @@ if get_option('monolith')
   endforeach
   subdir_done()
 endif
+
 libgnunetdatastore = library('gnunetdatastore',
         libgnunetdatastore_src,
         soversion: '1',
@@ -41,6 +42,7 @@ shared_module('gnunet_plugin_datastore_sqlite',
         include_directories: [incdir, configuration_inc],
         install: true,
         install_dir: get_option('libdir')/'gnunet')
+
 shared_module('gnunet_plugin_datastore_heap',
         ['plugin_datastore_heap.c'],
         dependencies: [libgnunetutil_dep,
@@ -79,4 +81,126 @@ executable ('gnunet-service-datastore',
             include_directories: [incdir, configuration_inc],
             install: true,
             install_dir: get_option('libdir')/'gnunet'/'libexec')
+
+testds_sqlite = executable ('test_store_api_sqlite',
+            ['test_datastore_api.c'],
+            dependencies: [
+              libgnunetdatastore_dep,
+              libgnunetutil_dep,
+              libgnunettesting_dep
+              ],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+
+testds_mgmt_sqlite = executable ('test_datastore_api_management_sqlite',
+            ['test_datastore_api_management.c'],
+            dependencies: [
+              libgnunetdatastore_dep,
+              libgnunetutil_dep,
+              libgnunettesting_dep
+              ],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+
+testds_plugin_sqlite = executable ('test_plugin_datastore_sqlite',
+            ['test_plugin_datastore.c'],
+            dependencies: [
+              libgnunetdatastore_dep,
+              libgnunetutil_dep,
+              libgnunettesting_dep
+              ],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+
+testds_heap = executable ('test_datastore_api_heap',
+            ['test_datastore_api.c'],
+            dependencies: [
+              libgnunetdatastore_dep,
+              libgnunetutil_dep,
+              libgnunettesting_dep
+              ],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+
+testds_mgmt_heap = executable ('test_datastore_api_management_heap',
+            ['test_datastore_api_management.c'],
+            dependencies: [
+              libgnunetdatastore_dep,
+              libgnunetutil_dep,
+              libgnunettesting_dep
+              ],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+
+testds_plugin_heap = executable ('test_plugin_datastore_heap',
+            ['test_plugin_datastore.c'],
+            dependencies: [
+              libgnunetdatastore_dep,
+              libgnunetutil_dep,
+              libgnunettesting_dep
+              ],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+
+testds_pq = executable ('test_datastore_api_postgres',
+            ['test_datastore_api.c'],
+            dependencies: [
+              libgnunetdatastore_dep,
+              libgnunetutil_dep,
+              libgnunettesting_dep
+              ],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+
+testds_plugin_pq = executable ('test_plugin_datastore_postgres',
+            ['test_plugin_datastore.c'],
+            dependencies: [
+              libgnunetdatastore_dep,
+              libgnunetutil_dep,
+              libgnunettesting_dep
+              ],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+
+testds_mgmt_pq = executable ('test_datastore_api_management_postgres',
+            ['test_datastore_api_management.c'],
+            dependencies: [
+              libgnunetdatastore_dep,
+              libgnunetutil_dep,
+              libgnunettesting_dep
+              ],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+
+configure_file(input : 'test_defaults.conf',
+               output : 'test_defaults.conf',
+               copy: true)
+configure_file(input : 'test_datastore_api_data_sqlite.conf',
+               output : 'test_datastore_api_data_sqlite.conf',
+               copy: true)
+configure_file(input : 'test_datastore_api_data_heap.conf',
+               output : 'test_datastore_api_data_heap.conf',
+               copy: true)
+configure_file(input : 'test_datastore_api_data_postgres.conf',
+               output : 'test_datastore_api_data_postgres.conf',
+               copy: true)
+
+test('test_datastore_api_sqlite', testds_sqlite,
+  suite: 'datastore', workdir: meson.current_build_dir())
+test('test_datastore_api_management_sqlite', testds_mgmt_sqlite,
+  suite: 'datastore', workdir: meson.current_build_dir())
+test('test_plugin_datastore_sqlite', testds_plugin_sqlite,
+  suite: 'datastore', workdir: meson.current_build_dir())
+test('test_datastore_api_heap', testds_heap,
+  suite: 'datastore', workdir: meson.current_build_dir())
+test('test_datastore_api_management_heap', testds_mgmt_heap,
+  suite: 'datastore', workdir: meson.current_build_dir())
+test('test_plugin_datastore_heap', testds_plugin_heap,
+  suite: 'datastore', workdir: meson.current_build_dir())
+test('test_datastore_api_postgres', testds_pq,
+  suite: 'datastore', workdir: meson.current_build_dir())
+test('test_datastore_api_management_postgres', testds_mgmt_pq,
+  suite: 'datastore', workdir: meson.current_build_dir())
+test('test_plugin_datastore_postgres', testds_plugin_pq,
+  suite: 'datastore', workdir: meson.current_build_dir())
 
