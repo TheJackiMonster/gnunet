@@ -163,8 +163,13 @@ main (int argc, char *argv[])
   plugin_name = GNUNET_STRINGS_get_suffix_from_binary_name (argv[0]);
   GNUNET_snprintf (cfg_name, sizeof(cfg_name), "perf_datacache_data_%s.conf",
                    plugin_name);
-  GNUNET_PROGRAM_run ((sizeof(xargv) / sizeof(char *)) - 1, xargv,
-                      "perf-datacache", "nohelp", options, &run, NULL);
+  if (GNUNET_OK != GNUNET_PROGRAM_run ((sizeof(xargv) / sizeof(char *)) - 1,
+                                       xargv,
+                                       "perf-datacache", "nohelp", options,
+                                       &run, NULL))
+  {
+    return 1;
+  }
   if ((0 != ok) && (77 != ok))
     fprintf (stderr, "Missed some perfcases: %d\n", ok);
   return ok;

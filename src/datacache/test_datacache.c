@@ -187,13 +187,17 @@ main (int argc, char *argv[])
                    sizeof(cfg_name),
                    "test_datacache_data_%s.conf",
                    plugin_name);
-  GNUNET_PROGRAM_run ((sizeof(xargv) / sizeof(char *)) - 1,
-                      xargv,
-                      "test-datacache",
-                      "nohelp",
-                      options,
-                      &run,
-                      NULL);
+  if (GNUNET_OK != GNUNET_PROGRAM_run ((sizeof(xargv) / sizeof(char *)) - 1,
+                                       xargv,
+                                       "test-datacache",
+                                       "nohelp",
+                                       options,
+                                       &run,
+                                       NULL))
+  {
+    GNUNET_free (plugin_name);
+    return 1;
+  }
   if ((0 != ok) && (77 != ok))
     fprintf (stderr,
              "Missed some testcases: %d\n",
