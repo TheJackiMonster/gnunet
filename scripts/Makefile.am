@@ -9,4 +9,12 @@ dist_pkgdata_DATA = \
   netjail/topo.sh \
   testing-ng/block.sh
 
+install-data-hook:
+	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_core.sh'
+	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_start.sh'
+	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_stop.sh'
+	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_exec.sh'
+	chmod o+x '$(DESTDIR)$(pkgdatadir)/topo.sh'
+	chmod o+x '$(DESTDIR)$(pkgdatadir)/block.sh'
+
 ## EOF

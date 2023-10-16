@@ -240,12 +240,4 @@ xdgdeentrydir = $(datadir)/applications
 dist_xdgdeentry_DATA = \
   xdg-scheme-handler/gnunet-uri.desktop
 
-install-data-hook:
-	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_core.sh'
-	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_start.sh'
-	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_stop.sh'
-	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_exec.sh'
-	chmod o+x '$(DESTDIR)$(pkgdatadir)/topo.sh'
-	chmod o+x '$(DESTDIR)$(pkgdatadir)/block.sh'
-
 ## EOF
