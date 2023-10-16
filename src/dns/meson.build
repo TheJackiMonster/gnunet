@@ -64,4 +64,10 @@ if host_machine.system() == 'linux'
               include_directories: [incdir, configuration_inc],
               install: true,
               install_dir: get_option('libdir')/'gnunet'/'libexec')
+
+  test_dns = configure_file(input : 'test_gnunet_dns.sh',
+                 output : 'test_gnunet_dns.sh',
+                 install: false)
+
+  test('test_gnunet_gns', test_dns, suite: 'dns', workdir: meson.current_build_dir())
 endif
