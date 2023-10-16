@@ -196,7 +196,6 @@ EXTRA_DIST = \
   docker/README.md \
   benchmark/collect.awk \
   packages/guix/guix.scm \
-  indent_pre-commit \
   Makefile.inc \
   vagrant/Vagrantfile \
   vagrant/bootstrap.ubuntu.sh \
