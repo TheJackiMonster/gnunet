@@ -239,7 +239,7 @@ check_PROGRAMS = \
   test_gns_proxy
 endif
 
-check_SCRIPTS = 
+check_SCRIPTS = \
    test_gns_lookup.sh \
    test_gns_config_lookup.sh \
    test_gns_ipv6_lookup.sh\
