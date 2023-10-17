@@ -403,6 +403,13 @@ GNUNET_SERVICE_register_ (
 #endif
 
 /**
+ * Run the mainloop in a monolithic libgnunet.
+ * Must be called such that services are actually launched.
+ */
+void
+GNUNET_SERVICE_main (void);
+
+/**
  * Suspend accepting connections from the listen socket temporarily.
  * Resume activity using #GNUNET_SERVICE_resume.
  *

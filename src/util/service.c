@@ -2143,6 +2143,8 @@ struct ServiceHandleList
 
   struct GNUNET_SERVICE_Handle *sh;
 };
+static struct ServiceHandleList *hll_head = NULL;
+static struct ServiceHandleList *hll_tail = NULL;
 
 int
 GNUNET_SERVICE_register_ (const char *service_name,
@@ -2153,8 +2155,6 @@ GNUNET_SERVICE_register_ (const char *service_name,
                           void *cls,
                           const struct GNUNET_MQ_MessageHandler *handlers)
 {
-  static struct ServiceHandleList *hll_head = NULL;
-  static struct ServiceHandleList *hll_tail = NULL;
   struct ServiceHandleList *hle;
   struct GNUNET_CONFIGURATION_Handle *cfg;
   struct GNUNET_SERVICE_Handle *sh = GNUNET_new (struct GNUNET_SERVICE_Handle);
@@ -2233,6 +2233,25 @@ fail:
   return err ? GNUNET_SYSERR : sh->ret;
 }
 
+static void
+launch_registered_services (void *cls)
+{
+  (void) cls;
+  struct ServiceHandleList *shl;
+
+  for (shl = hll_head; NULL != shl; shl = shl->next)
+  {
+    GNUNET_SCHEDULER_add_now (&service_main, shl->sh);
+  }
+
+  // FIXME sometime we need to cleanup the shl. Shutdown task?
+}
+
+void
+GNUNET_SERVICE_main (void)
+{
+  GNUNET_SCHEDULER_run (&launch_registered_services, NULL);
+}
 
 /**
  * Suspend accepting connections from the listen socket temporarily.
