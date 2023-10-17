@@ -2136,14 +2136,26 @@ shutdown:
   return err ? GNUNET_SYSERR : sh.ret;
 }
 
+
+/* A list of service to be launched when GNUNET_SERVICE_main()
+ * is called
+ */
 struct ServiceHandleList
 {
+  /* DLL */
   struct ServiceHandleList *prev;
+
+  /* DLL */
   struct ServiceHandleList *next;
 
+  /* Handle to the service to launch */
   struct GNUNET_SERVICE_Handle *sh;
 };
+
+/* The service list */
 static struct ServiceHandleList *hll_head = NULL;
+
+/* The service list */
 static struct ServiceHandleList *hll_tail = NULL;
 
 int
@@ -2156,27 +2168,11 @@ GNUNET_SERVICE_register_ (const char *service_name,
                           const struct GNUNET_MQ_MessageHandler *handlers)
 {
   struct ServiceHandleList *hle;
-  struct GNUNET_CONFIGURATION_Handle *cfg;
   struct GNUNET_SERVICE_Handle *sh = GNUNET_new (struct GNUNET_SERVICE_Handle);
-  const char *xdg;
-  char *cfg_filename;
   const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
-  int err;
 
-  err = 1;
-  xdg = getenv ("XDG_CONFIG_HOME");
-  if (NULL != xdg)
-    GNUNET_asprintf (&cfg_filename,
-                     "%s%s%s",
-                     xdg,
-                     DIR_SEPARATOR_STR,
-                     pd->config_file);
-  else
-    cfg_filename = GNUNET_strdup (pd->user_config_file);
   sh->ready_confirm_fd = -1;
   sh->options = options;
-  cfg = GNUNET_CONFIGURATION_create ();
-  sh->cfg = cfg;
   sh->service_init_cb = service_init_cb;
   sh->connect_cb = connect_cb;
   sh->disconnect_cb = disconnect_cb;
@@ -2186,72 +2182,160 @@ GNUNET_SERVICE_register_ (const char *service_name,
                 : GNUNET_MQ_copy_handlers2 (handlers, &return_agpl, NULL);
   sh->service_name = service_name;
   sh->ret = 0;
-  if (GNUNET_YES == GNUNET_DISK_file_test (cfg_filename))
-  {
-    if (GNUNET_SYSERR == GNUNET_CONFIGURATION_load (cfg, cfg_filename))
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  _ ("Malformed configuration file `%s', exit ...\n"),
-                  cfg_filename);
-      goto fail;
-    }
-  }
-  else
-  {
-    if (GNUNET_SYSERR == GNUNET_CONFIGURATION_load (cfg, NULL))
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  _ ("Malformed configuration, exit ...\n"));
-      goto fail;
-    }
-  }
-  if (GNUNET_OK != setup_service (sh))
-    goto fail;
-  if (GNUNET_OK != set_user_id (sh))
-    goto fail;
-  GNUNET_RESOLVER_connect (sh->cfg);
-
-  /* actually run service */
-  err = 0;
   hle = GNUNET_new (struct ServiceHandleList);
   hle->sh = sh;
   GNUNET_CONTAINER_DLL_insert (hll_head, hll_tail, hle);
-  /* shutdown */
-fail:
-  if (-1 != sh->ready_confirm_fd)
-  {
-    if (1 != write (sh->ready_confirm_fd, err ? "I" : "S", 1))
-      LOG_STRERROR (GNUNET_ERROR_TYPE_WARNING, "write");
-    GNUNET_break (0 == close (sh->ready_confirm_fd));
-  }
-  teardown_service (sh);
-  GNUNET_free (sh->handlers);
-  GNUNET_SPEEDUP_stop_ ();
-  GNUNET_CONFIGURATION_destroy (cfg);
-  GNUNET_free (cfg_filename);
-  GNUNET_free (sh);
-  return err ? GNUNET_SYSERR : sh->ret;
+  return GNUNET_OK;
 }
+
+
+static void
+do_registered_services_shutdown (void *cls)
+{
+  struct GNUNET_SERVICE_Handle *sh;
+  struct ServiceHandleList *shl;
+
+  for (shl = hll_head; NULL != shl;)
+  {
+    sh = shl->sh;
+    GNUNET_CONTAINER_DLL_remove (hll_head, hll_tail, shl);
+    GNUNET_free (shl);
+    if (-1 != sh->ready_confirm_fd)
+    {
+      if (1 != write (sh->ready_confirm_fd, "S", 1))
+        LOG_STRERROR (GNUNET_ERROR_TYPE_WARNING, "write");
+      GNUNET_break (0 == close (sh->ready_confirm_fd));
+    }
+    teardown_service (sh);
+    GNUNET_free (sh->handlers);
+    GNUNET_free (sh);
+  }
+}
+
 
 static void
 launch_registered_services (void *cls)
 {
-  (void) cls;
   struct ServiceHandleList *shl;
+  struct GNUNET_CONFIGURATION_Handle *cfg = cls;
 
   for (shl = hll_head; NULL != shl; shl = shl->next)
   {
+    shl->sh->cfg = cfg;
+    if (GNUNET_OK != setup_service (shl->sh))
+      continue;
+    if (GNUNET_OK != set_user_id (shl->sh))
+      continue;
+
     GNUNET_SCHEDULER_add_now (&service_main, shl->sh);
   }
-
-  // FIXME sometime we need to cleanup the shl. Shutdown task?
+  GNUNET_SCHEDULER_add_shutdown (&do_registered_services_shutdown, NULL);
 }
+
 
 void
-GNUNET_SERVICE_main (void)
+GNUNET_SERVICE_main (int argc,
+                     char *const *argv)
 {
-  GNUNET_SCHEDULER_run (&launch_registered_services, NULL);
+  char *cfg_filename;
+  char *opt_cfg_filename;
+  char *logfile;
+  char *loglev;
+  const char *xdg;
+  int do_daemonize;
+  int ret;
+  struct GNUNET_CONFIGURATION_Handle *cfg;
+  const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
+
+  struct GNUNET_GETOPT_CommandLineOption service_options[] = {
+    GNUNET_GETOPT_option_cfgfile (&opt_cfg_filename),
+    GNUNET_GETOPT_option_flag ('d',
+                               "daemonize",
+                               gettext_noop (
+                                 "do daemonize (detach from terminal)"),
+                               &do_daemonize),
+    GNUNET_GETOPT_option_help (NULL),
+    GNUNET_GETOPT_option_loglevel (&loglev),
+    GNUNET_GETOPT_option_logfile (&logfile),
+    GNUNET_GETOPT_option_version (pd->version),
+    GNUNET_GETOPT_OPTION_END
+  };
+  xdg = getenv ("XDG_CONFIG_HOME");
+  if (NULL != xdg)
+    GNUNET_asprintf (&cfg_filename,
+                     "%s%s%s",
+                     xdg,
+                     DIR_SEPARATOR_STR,
+                     pd->config_file);
+  else
+    cfg_filename = GNUNET_strdup (pd->user_config_file);
+  cfg = GNUNET_CONFIGURATION_create ();
+  // FIXME we need to set this up for each service!
+  ret = GNUNET_GETOPT_run ("libgnunet",
+                           service_options,
+                           argc,
+                           argv);
+  if (GNUNET_SYSERR == ret)
+    goto shutdown;
+  if (GNUNET_NO == ret)
+  {
+    goto shutdown;
+  }
+  // FIXME we need to set this up for each service!
+  if (GNUNET_OK != GNUNET_log_setup ("libgnunet",
+                                     loglev,
+                                     logfile))
+  {
+    GNUNET_break (0);
+    goto shutdown;
+  }
+  if (NULL != opt_cfg_filename)
+  {
+    if ((GNUNET_YES != GNUNET_DISK_file_test (opt_cfg_filename)) ||
+        (GNUNET_SYSERR == GNUNET_CONFIGURATION_load (cfg, opt_cfg_filename)))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  _ ("Malformed configuration file `%s', exit ...\n"),
+                  opt_cfg_filename);
+      goto shutdown;
+    }
+  }
+  else
+  {
+    if (GNUNET_YES == GNUNET_DISK_file_test (cfg_filename))
+    {
+      if (GNUNET_SYSERR == GNUNET_CONFIGURATION_load (cfg, cfg_filename))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    _ ("Malformed configuration file `%s', exit ...\n"),
+                    cfg_filename);
+        GNUNET_free (cfg_filename);
+        return;
+      }
+    }
+    else
+    {
+      if (GNUNET_SYSERR == GNUNET_CONFIGURATION_load (cfg, NULL))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    _ ("Malformed configuration, exit ...\n"));
+        GNUNET_free (cfg_filename);
+        return;
+      }
+    }
+  }
+  GNUNET_RESOLVER_connect (cfg);
+
+  GNUNET_SCHEDULER_run (&launch_registered_services, cfg);
+shutdown:
+  GNUNET_SPEEDUP_stop_ ();
+  GNUNET_CONFIGURATION_destroy (cfg);
+  GNUNET_free (logfile);
+  GNUNET_free (loglev);
+  GNUNET_free (cfg_filename);
+  GNUNET_free (opt_cfg_filename);
 }
+
 
 /**
  * Suspend accepting connections from the listen socket temporarily.

@@ -407,7 +407,7 @@ GNUNET_SERVICE_register_ (
  * Must be called such that services are actually launched.
  */
 void
-GNUNET_SERVICE_main (void);
+GNUNET_SERVICE_main (int argc, char *const *argv);
 
 /**
  * Suspend accepting connections from the listen socket temporarily.
