@@ -52,7 +52,7 @@ gnunet_service_set_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/service/core/libgnunetcore.la \
-  $(top_builddir)/src/cadet/libgnunetcadet.la \
+  $(top_builddir)/src/service/cadet/libgnunetcadet.la \
   $(top_builddir)/src/lib/block/libgnunetblock.la \
   libgnunetset.la \
   $(GN_LIBINTL)

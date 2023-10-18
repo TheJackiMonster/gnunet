@@ -4,4 +4,5 @@ SUBDIRS = \
 	statistics \
 	core \
 	nat \
-	nse
+	nse \
+	cadet

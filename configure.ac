@@ -1244,6 +1244,8 @@ src/plugin/gnsrecord/Makefile
 src/service/Makefile
 src/service/arm/Makefile
 src/service/arm/arm.conf
+src/service/cadet/Makefile
+src/service/cadet/cadet.conf
 src/service/core/Makefile
 src/service/core/core.conf
 src/service/identity/Makefile
@@ -1266,6 +1268,7 @@ src/rest-plugin/identity/Makefile
 src/rest-plugin/rest/Makefile
 src/cli/Makefile
 src/cli/arm/Makefile
+src/cli/cadet/Makefile
 src/cli/core/Makefile
 src/cli/nat/Makefile
 src/cli/nse/Makefile
@@ -1278,8 +1281,6 @@ src/contrib/service/abd/abd.conf
 src/contrib/service/auction/Makefile
 src/contrib/service/rps/Makefile
 src/contrib/service/rps/rps.conf
-src/cadet/Makefile
-src/cadet/cadet.conf
 src/consensus/Makefile
 src/consensus/consensus.conf
 src/conversation/Makefile

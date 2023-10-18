@@ -20,9 +20,6 @@ AM_CLFAGS = -g
 libexec_PROGRAMS = \
  gnunet-service-cadet
 
-bin_PROGRAMS = \
- gnunet-cadet
-
 lib_LTLIBRARIES = \
   libgnunetcadet.la
 
@@ -41,14 +38,6 @@ libgnunetcadet_la_LIBADD = \
 libgnunetcadet_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)  \
   -version-info 7:0:0
-
-gnunet_cadet_SOURCES = \
-  gnunet-cadet.c
-gnunet_cadet_LDADD = \
-  libgnunetcadet.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la
-gnunet_cadet_LDFLAGS = \
-  $(GN_LIBINTL)
 
 gnunet_service_cadet_SOURCES = \
  gnunet-service-cadet.c gnunet-service-cadet.h \

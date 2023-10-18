@@ -53,7 +53,7 @@ libgnunetmessenger_la_SOURCES = \
   messenger_api_room.c messenger_api_room.h
 libgnunetmessenger_la_LIBADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/cadet/libgnunetcadet.la \
+  $(top_builddir)/src/service/cadet/libgnunetcadet.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(XLIB) \
   $(LTLIBINTL)
@@ -93,7 +93,7 @@ gnunet_service_messenger_SOURCES = \
 gnunet_service_messenger_LDADD = \
   libgnunetmessenger.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/cadet/libgnunetcadet.la \
+  $(top_builddir)/src/service/cadet/libgnunetcadet.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(GN_LIBINTL)
 

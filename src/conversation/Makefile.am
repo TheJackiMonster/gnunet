@@ -183,7 +183,7 @@ gnunet_service_conversation_LDADD = \
   libgnunetconversation.la \
   libgnunetspeaker.la \
   libgnunetmicrophone.la \
-  $(top_builddir)/src/cadet/libgnunetcadet.la \
+  $(top_builddir)/src/service/cadet/libgnunetcadet.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(INTLLIBS)

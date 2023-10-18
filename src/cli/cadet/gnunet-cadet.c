@@ -27,7 +27,7 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_cadet_service.h"
-#include "cadet.h"
+#include "../../service/cadet/cadet.h" // FIXME Smell: this should not be shared like this.
 
 #define STREAM_BUFFER_SIZE 1024 // Pakets
 

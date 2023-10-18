@@ -9,4 +9,5 @@ SUBDIRS = \
 	core \
 	nse \
 	identity \
-	rest
+	rest \
+	cadet

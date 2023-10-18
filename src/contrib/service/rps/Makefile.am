@@ -62,7 +62,7 @@ gnunet_service_rps_LDADD = \
   libgnunetrps.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
-  $(top_builddir)/src/cadet/libgnunetcadet.la \
+  $(top_builddir)/src/service/cadet/libgnunetcadet.la \
   $(top_builddir)/src/service/nse/libgnunetnse.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/service/core/libgnunetcore.la \

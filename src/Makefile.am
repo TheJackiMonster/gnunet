@@ -28,7 +28,6 @@ SUBDIRS = \
   dns \
   namecache \
   namestore \
-  cadet \
   set \
   seti \
   setu \
