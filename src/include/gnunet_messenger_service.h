@@ -224,7 +224,7 @@ struct GNUNET_MESSENGER_MessageHeader
   /**
    * The signature of the senders private key.
    */
-  struct GNUNET_IDENTITY_Signature signature;
+  struct GNUNET_CRYPTO_Signature signature;
 
   /**
    * The timestamp of the message.
@@ -258,7 +258,7 @@ struct GNUNET_MESSENGER_MessageInfo
   /**
    * The senders key to verify its signatures.
    */
-  struct GNUNET_IDENTITY_PublicKey host_key;
+  struct GNUNET_CRYPTO_PublicKey host_key;
 
   /**
    * The version of GNUnet Messenger API.
@@ -281,7 +281,7 @@ struct GNUNET_MESSENGER_MessageJoin
   /**
    * The senders public key to verify its signatures.
    */
-  struct GNUNET_IDENTITY_PublicKey key;
+  struct GNUNET_CRYPTO_PublicKey key;
 };
 
 /**
@@ -319,7 +319,7 @@ struct GNUNET_MESSENGER_MessageKey
   /**
    * The new public key which replaces the current senders public key.
    */
-  struct GNUNET_IDENTITY_PublicKey key;
+  struct GNUNET_CRYPTO_PublicKey key;
 };
 
 /**
@@ -671,7 +671,7 @@ GNUNET_MESSENGER_set_name (struct GNUNET_MESSENGER_Handle *handle,
  * @param[in] handle Messenger handle to use
  * @return Used ego's public key or NULL
  */
-const struct GNUNET_IDENTITY_PublicKey*
+const struct GNUNET_CRYPTO_PublicKey*
 GNUNET_MESSENGER_get_key (const struct GNUNET_MESSENGER_Handle *handle);
 
 /**
@@ -783,7 +783,7 @@ GNUNET_MESSENGER_contact_get_name (const struct GNUNET_MESSENGER_Contact *contac
  * @param[in] contact Contact handle
  * @return Public key of the ego used by <i>contact</i> or NULL
  */
-const struct GNUNET_IDENTITY_PublicKey*
+const struct GNUNET_CRYPTO_PublicKey*
 GNUNET_MESSENGER_contact_get_key (const struct GNUNET_MESSENGER_Contact *contact);
 
 /**

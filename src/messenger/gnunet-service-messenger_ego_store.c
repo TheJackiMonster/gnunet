@@ -139,7 +139,7 @@ iterate_create_ego (void *cls,
 
 static void
 callback_ego_create (void *cls,
-                     const struct GNUNET_IDENTITY_PrivateKey *key,
+                     const struct GNUNET_CRYPTO_PrivateKey *key,
                      enum GNUNET_ErrorCode ec)
 {
   struct GNUNET_MESSENGER_EgoOperation *element = cls;
@@ -190,7 +190,7 @@ create_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
       store->identity,
       identifier,
       NULL,
-      GNUNET_IDENTITY_TYPE_ECDSA,
+      GNUNET_PUBLIC_KEY_TYPE_ECDSA,
       callback_ego_create,
       element
   );
@@ -310,7 +310,7 @@ lookup_store_ego(struct GNUNET_MESSENGER_EgoStore *store,
 struct GNUNET_MESSENGER_Ego*
 update_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
                   const char *identifier,
-                  const struct GNUNET_IDENTITY_PrivateKey *key)
+                  const struct GNUNET_CRYPTO_PrivateKey *key)
 {
   GNUNET_assert ((store) && (identifier) && (key));
 
@@ -329,7 +329,7 @@ update_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
 
   GNUNET_memcpy(&(ego->priv), key, sizeof(*key));
 
-  if (GNUNET_OK != GNUNET_IDENTITY_key_get_public (key, &(ego->pub)))
+  if (GNUNET_OK != GNUNET_CRYPTO_key_get_public (key, &(ego->pub)))
     GNUNET_log(GNUNET_ERROR_TYPE_WARNING, "Updating invalid ego key failed!\n");
 
   return ego;

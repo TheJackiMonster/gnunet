@@ -18,7 +18,7 @@ lib_LTLIBRARIES = libgnunetarm.la
 libgnunetarm_la_SOURCES = \
   arm_api.c arm_monitor_api.c arm.h
 libgnunetarm_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL) $(XLIB)
 libgnunetarm_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)   \
@@ -38,19 +38,19 @@ gnunet_arm_SOURCES = \
  gnunet-arm.c
 gnunet_arm_LDADD = \
   libgnunetarm.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
 gnunet_service_arm_SOURCES = \
  gnunet-service-arm.c
 gnunet_service_arm_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
 mockup_service_SOURCES = \
   mockup-service.c
  mockup_service_LDADD = \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 mockup_service_LDFLAGS = \
  $(GN_LIBINTL)
 
@@ -74,19 +74,19 @@ test_arm_api_SOURCES = \
  test_arm_api.c
 test_arm_api_LDADD = \
   libgnunetarm.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_exponential_backoff_SOURCES = \
  test_exponential_backoff.c
 test_exponential_backoff_LDADD = \
   libgnunetarm.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_gnunet_service_arm_SOURCES = \
  test_gnunet_service_arm.c
  test_gnunet_service_arm_LDADD = \
   libgnunetarm.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 SUFFIXES = .py.in .py
 .py.in.py:

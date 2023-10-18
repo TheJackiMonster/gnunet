@@ -188,7 +188,7 @@ sign_message (struct GNUNET_MESSENGER_Message *message,
 int
 verify_message (const struct GNUNET_MESSENGER_Message *message,
                 const struct GNUNET_HashCode *hash,
-                const struct GNUNET_IDENTITY_PublicKey *key);
+                const struct GNUNET_CRYPTO_PublicKey *key);
 
 /**
  * Encrypts a <i>message</i> using a given public <i>key</i> and replaces its body
@@ -201,7 +201,7 @@ verify_message (const struct GNUNET_MESSENGER_Message *message,
  */
 int
 encrypt_message (struct GNUNET_MESSENGER_Message *message,
-                 const struct GNUNET_IDENTITY_PublicKey *key);
+                 const struct GNUNET_CRYPTO_PublicKey *key);
 
 /**
  * Decrypts a private <i>message</i> using a given private <i>key</i> and replaces its body
@@ -214,7 +214,7 @@ encrypt_message (struct GNUNET_MESSENGER_Message *message,
  */
 int
 decrypt_message (struct GNUNET_MESSENGER_Message *message,
-                 const struct GNUNET_IDENTITY_PrivateKey *key);
+                 const struct GNUNET_CRYPTO_PrivateKey *key);
 
 #define GNUNET_MESSENGER_PACK_MODE_ENVELOPE 0x1
 #define GNUNET_MESSENGER_PACK_MODE_UNKNOWN 0x0

@@ -60,12 +60,12 @@ struct DelegationChainEntry
   /**
    * The issuer
    */
-  struct GNUNET_IDENTITY_PublicKey issuer_key;
+  struct GNUNET_CRYPTO_PublicKey issuer_key;
 
   /**
    * The subject
    */
-  struct GNUNET_IDENTITY_PublicKey subject_key;
+  struct GNUNET_CRYPTO_PublicKey subject_key;
 
   /**
    * The issued attribute
@@ -165,7 +165,7 @@ struct DelegationSetQueueEntry
   /**
    * Issuer key
    */
-  struct GNUNET_IDENTITY_PublicKey *issuer_key;
+  struct GNUNET_CRYPTO_PublicKey *issuer_key;
 
   /**
    * Queue entries of this set
@@ -266,7 +266,7 @@ struct VerifyRequestHandle
   /**
    * Issuer public key
    */
-  struct GNUNET_IDENTITY_PublicKey issuer_key;
+  struct GNUNET_CRYPTO_PublicKey issuer_key;
 
   /**
    * Issuer attribute
@@ -276,7 +276,7 @@ struct VerifyRequestHandle
   /**
    * Subject public key
    */
-  struct GNUNET_IDENTITY_PublicKey subject_key;
+  struct GNUNET_CRYPTO_PublicKey subject_key;
 
   /**
    * Delegate DLL
@@ -351,10 +351,10 @@ print_deleset (struct DelegationSetQueueEntry *dsentry, char *text)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "%s %s.%s <- %s.%s\n",
               text,
-              GNUNET_IDENTITY_public_key_to_string (
+              GNUNET_CRYPTO_public_key_to_string (
                 &dsentry->delegation_chain_entry->issuer_key),
               dsentry->delegation_chain_entry->issuer_attribute,
-              GNUNET_IDENTITY_public_key_to_string (
+              GNUNET_CRYPTO_public_key_to_string (
                 &dsentry->delegation_chain_entry->subject_key),
               dsentry->delegation_chain_entry->subject_attribute);
 }
@@ -698,7 +698,7 @@ handle_bidirectional_match (struct DelegationSetQueueEntry *actual_entry,
   {
     if (0 != memcmp (&last_entry->delegation_chain_entry->subject_key,
                      &del_entry->delegate->issuer_key,
-                     sizeof (struct GNUNET_IDENTITY_PublicKey)))
+                     sizeof (struct GNUNET_CRYPTO_PublicKey)))
       continue;
     if (0 != strcmp (last_entry->delegation_chain_entry->subject_attribute,
                      del_entry->delegate->issuer_attribute))
@@ -832,10 +832,10 @@ forward_resolution (void *cls,
         {
           GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                       "Entry not relevant, discarding: %s.%s <- %s.%s\n",
-                      GNUNET_IDENTITY_public_key_to_string (
+                      GNUNET_CRYPTO_public_key_to_string (
                         &del->issuer_key),
                       del->issuer_attribute,
-                      GNUNET_IDENTITY_public_key_to_string (
+                      GNUNET_CRYPTO_public_key_to_string (
                         &del->subject_key),
                       del->subject_attribute);
           GNUNET_free (del);
@@ -849,10 +849,10 @@ forward_resolution (void *cls,
 
     // Start: Credential Chain Entry
     // issuer key is subject key, who needs to be contacted to resolve this (forward, therefore subject)
-    ds_entry->issuer_key = GNUNET_new (struct GNUNET_IDENTITY_PublicKey);
+    ds_entry->issuer_key = GNUNET_new (struct GNUNET_CRYPTO_PublicKey);
     GNUNET_memcpy (ds_entry->issuer_key,
                    &del->subject_key,
-                   sizeof (struct GNUNET_IDENTITY_PublicKey));
+                   sizeof (struct GNUNET_CRYPTO_PublicKey));
 
     ds_entry->delegation_chain_entry = GNUNET_new (struct DelegationChainEntry);
     ds_entry->delegation_chain_entry->subject_key = del->subject_key;
@@ -873,7 +873,7 @@ forward_resolution (void *cls,
     // if: issuer key we looking for
     if (0 == memcmp (&del->issuer_key,
                      &vrh->issuer_key,
-                     sizeof (struct GNUNET_IDENTITY_PublicKey)))
+                     sizeof (struct GNUNET_CRYPTO_PublicKey)))
     {
       // if: issuer attr we looking for
       if (0 == strcmp (del->issuer_attribute, vrh->issuer_attribute))
@@ -904,7 +904,7 @@ forward_resolution (void *cls,
           {
             if (0 == memcmp (&del_entry->delegate->issuer_key,
                              &vrh->delegation_chain_head->subject_key,
-                             sizeof (struct GNUNET_IDENTITY_PublicKey)))
+                             sizeof (struct GNUNET_CRYPTO_PublicKey)))
             {
               if (0 == strcmp (del_entry->delegate->issuer_attribute,
                                vrh->delegation_chain_head->subject_attribute))
@@ -932,7 +932,7 @@ forward_resolution (void *cls,
         // key of list entry matches actual key
         if (0 == memcmp (&del_entry->delegation_chain_entry->subject_key,
                          &ds_entry->delegation_chain_entry->issuer_key,
-                         sizeof (struct GNUNET_IDENTITY_PublicKey)))
+                         sizeof (struct GNUNET_CRYPTO_PublicKey)))
         {
           // compare entry subject attributes to this trailer (iss attr + old trailer)
           if (0 == strcmp (del_entry->unresolved_attribute_delegation,
@@ -962,7 +962,7 @@ forward_resolution (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Starting to look up trailer %s in zone %s\n",
                 ds_entry->attr_trailer,
-                GNUNET_IDENTITY_public_key_to_string (&del->issuer_key));
+                GNUNET_CRYPTO_public_key_to_string (&del->issuer_key));
 
     ds_entry->lookup_request =
       GNUNET_GNS_lookup (gns,
@@ -1072,10 +1072,10 @@ backward_resolution (void *cls,
       ds_entry->delegation_chain_entry =
         GNUNET_new (struct DelegationChainEntry);
       ds_entry->delegation_chain_entry->subject_key = set[j].subject_key;
-      ds_entry->issuer_key = GNUNET_new (struct GNUNET_IDENTITY_PublicKey);
+      ds_entry->issuer_key = GNUNET_new (struct GNUNET_CRYPTO_PublicKey);
       GNUNET_memcpy (ds_entry->issuer_key,
                      &set[j].subject_key,
-                     sizeof (struct GNUNET_IDENTITY_PublicKey));
+                     sizeof (struct GNUNET_CRYPTO_PublicKey));
       if (0 < set[j].subject_attribute_len)
         ds_entry->delegation_chain_entry->subject_attribute =
           GNUNET_strdup (set[j].subject_attribute);
@@ -1099,7 +1099,7 @@ backward_resolution (void *cls,
         // If key and attribute match credential: continue and backtrack
         if (0 != memcmp (&set[j].subject_key,
                          &del_pointer->delegate->issuer_key,
-                         sizeof (struct GNUNET_IDENTITY_PublicKey)))
+                         sizeof (struct GNUNET_CRYPTO_PublicKey)))
           continue;
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                     "Checking if %s matches %s\n",
@@ -1181,7 +1181,7 @@ backward_resolution (void *cls,
           // key of list entry matches actual key
           if (0 == memcmp (&del_entry->delegation_chain_entry->issuer_key,
                            &ds_entry->delegation_chain_entry->subject_key,
-                           sizeof (struct GNUNET_IDENTITY_PublicKey)))
+                           sizeof (struct GNUNET_CRYPTO_PublicKey)))
           {
             // compare entry subject attributes to this trailer (iss attr + old trailer)
             if (0 == strcmp (del_entry->attr_trailer,
@@ -1270,7 +1270,7 @@ delegation_chain_bw_resolution_start (void *cls)
   {
     if (0 != memcmp (&del_entry->delegate->issuer_key,
                      &vrh->issuer_key,
-                     sizeof (struct GNUNET_IDENTITY_PublicKey)))
+                     sizeof (struct GNUNET_CRYPTO_PublicKey)))
       continue;
     if (0 !=
         strcmp (del_entry->delegate->issuer_attribute, vrh->issuer_attribute))
@@ -1292,10 +1292,10 @@ delegation_chain_bw_resolution_start (void *cls)
   ds_entry = GNUNET_new (struct DelegationSetQueueEntry);
   GNUNET_CONTAINER_DLL_insert (vrh->dsq_head, vrh->dsq_tail, ds_entry);
   ds_entry->from_bw = true;
-  ds_entry->issuer_key = GNUNET_new (struct GNUNET_IDENTITY_PublicKey);
+  ds_entry->issuer_key = GNUNET_new (struct GNUNET_CRYPTO_PublicKey);
   GNUNET_memcpy (ds_entry->issuer_key,
                  &vrh->issuer_key,
-                 sizeof (struct GNUNET_IDENTITY_PublicKey));
+                 sizeof (struct GNUNET_CRYPTO_PublicKey));
   ds_entry->issuer_attribute = GNUNET_strdup (vrh->issuer_attribute);
 
   ds_entry->delegation_chain_entry = GNUNET_new (struct DelegationChainEntry);
@@ -1352,7 +1352,7 @@ delegation_chain_fw_resolution_start (void *cls)
   {
     if (0 != memcmp (&del_entry->delegate->issuer_key,
                      &vrh->issuer_key,
-                     sizeof (struct GNUNET_IDENTITY_PublicKey)))
+                     sizeof (struct GNUNET_CRYPTO_PublicKey)))
       continue;
     if (0 !=
         strcmp (del_entry->delegate->issuer_attribute, vrh->issuer_attribute))
@@ -1374,17 +1374,17 @@ delegation_chain_fw_resolution_start (void *cls)
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Looking for %s.%s\n",
-                GNUNET_IDENTITY_public_key_to_string (
+                GNUNET_CRYPTO_public_key_to_string (
                   &del_entry->delegate->issuer_key),
                 del_entry->delegate->issuer_attribute);
 
     ds_entry = GNUNET_new (struct DelegationSetQueueEntry);
     GNUNET_CONTAINER_DLL_insert (vrh->dsq_head, vrh->dsq_tail, ds_entry);
     ds_entry->from_bw = false;
-    ds_entry->issuer_key = GNUNET_new (struct GNUNET_IDENTITY_PublicKey);
+    ds_entry->issuer_key = GNUNET_new (struct GNUNET_CRYPTO_PublicKey);
     GNUNET_memcpy (ds_entry->issuer_key,
                    &del_entry->delegate->subject_key,
-                   sizeof (struct GNUNET_IDENTITY_PublicKey));
+                   sizeof (struct GNUNET_CRYPTO_PublicKey));
 
     ds_entry->delegation_chain_entry = GNUNET_new (struct DelegationChainEntry);
     ds_entry->delegation_chain_entry->subject_key =
@@ -1588,7 +1588,7 @@ delegate_collection_finished (void *cls)
 
 static void
 handle_delegate_collection_cb (void *cls,
-                               const struct GNUNET_IDENTITY_PrivateKey *key,
+                               const struct GNUNET_CRYPTO_PrivateKey *key,
                                const char *label,
                                unsigned int rd_count,
                                const struct GNUNET_GNSRECORD_Data *rd)
@@ -1646,7 +1646,7 @@ handle_collect (void *cls, const struct CollectMessage *c_msg)
   vrh->client = client;
   vrh->request_id = c_msg->id;
   vrh->issuer_key = c_msg->issuer_key;
-  GNUNET_IDENTITY_key_get_public (&c_msg->subject_key, &vrh->subject_key);
+  GNUNET_CRYPTO_key_get_public (&c_msg->subject_key, &vrh->subject_key);
   vrh->issuer_attribute = GNUNET_strdup (issuer_attribute);
   vrh->resolution_algo = ntohs (c_msg->resolution_algo);
 

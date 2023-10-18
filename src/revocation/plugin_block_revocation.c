@@ -94,7 +94,7 @@ block_plugin_revocation_check_block (void *cls,
   const struct RevokeMessage *rm = block;
   const struct GNUNET_REVOCATION_PowP *pow
     = (const struct GNUNET_REVOCATION_PowP *) &rm[1];
-  struct GNUNET_IDENTITY_PublicKey pk;
+  struct GNUNET_CRYPTO_PublicKey pk;
   size_t pklen;
   size_t left;
 
@@ -115,7 +115,7 @@ block_plugin_revocation_check_block (void *cls,
   }
   left = block_size - sizeof (*rm) - sizeof (*pow);
   if (GNUNET_SYSERR ==
-      GNUNET_IDENTITY_read_public_key_from_buffer (&pow[1],
+      GNUNET_CRYPTO_read_public_key_from_buffer (&pow[1],
                                                    left,
                                                    &pk,
                                                    &pklen))
@@ -204,7 +204,7 @@ block_plugin_revocation_get_key (void *cls,
   const struct RevokeMessage *rm = block;
   const struct GNUNET_REVOCATION_PowP *pow
     = (const struct GNUNET_REVOCATION_PowP *) &rm[1];
-  struct GNUNET_IDENTITY_PublicKey pk;
+  struct GNUNET_CRYPTO_PublicKey pk;
   size_t pklen;
   size_t left;
 
@@ -224,7 +224,7 @@ block_plugin_revocation_get_key (void *cls,
     return GNUNET_NO;
   }
   left = block_size - sizeof (*rm) - sizeof (*pow);
-  if (GNUNET_SYSERR == GNUNET_IDENTITY_read_public_key_from_buffer (&pow[1],
+  if (GNUNET_SYSERR == GNUNET_CRYPTO_read_public_key_from_buffer (&pow[1],
                                                                     left,
                                                                     &pk,
                                                                     &pklen))

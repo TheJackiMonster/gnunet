@@ -20,7 +20,7 @@ gnunet_rps_SOURCES = \
 
 gnunet_rps_LDADD = \
   libgnunetrps.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(XLIB) $(GN_LIBINTL)
 
 lib_LTLIBRARIES = libgnunetrps.la
@@ -33,7 +33,7 @@ libgnunetrps_la_SOURCES = \
   rps_api.c rps.h
 libgnunetrps_la_LIBADD = \
   $(top_builddir)/src/nse/libgnunetnse.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL) $(XLIB)
 libgnunetrps_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)   \
@@ -60,7 +60,7 @@ gnunet_service_rps_SOURCES = \
 
 gnunet_service_rps_LDADD = \
   libgnunetrps.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/cadet/libgnunetcadet.la \
   $(top_builddir)/src/nse/libgnunetnse.la \
@@ -95,7 +95,7 @@ rps_test_src = \
 
 #ld_rps_test_lib = \
 #	libgnunetrps.la \
-#  $(top_builddir)/src/util/libgnunetutil.la \
+#  $(top_builddir)/src/lib/util/libgnunetutil.la \
 #  $(top_builddir)/src/statistics/libgnunetstatistics.la \
 #  $(top_builddir)/src/testbed/libgnunettestbed.la \
 #  -lm
@@ -108,19 +108,19 @@ endif
 test_service_rps_view_SOURCES = \
   gnunet-service-rps_view.h gnunet-service-rps_view.c \
   test_service_rps_view.c
-test_service_rps_view_LDADD = $(top_builddir)/src/util/libgnunetutil.la
+test_service_rps_view_LDADD = $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_service_rps_custommap_SOURCES = \
   gnunet-service-rps_custommap.h gnunet-service-rps_custommap.c \
   test_service_rps_custommap.c
 test_service_rps_custommap_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_service_rps_sampler_elem_SOURCES = \
   gnunet-service-rps_sampler_elem.h gnunet-service-rps_sampler_elem.c \
   rps-test_util.h rps-test_util.c \
   test_service_rps_sampler_elem.c
-test_service_rps_sampler_elem_LDADD = $(top_builddir)/src/util/libgnunetutil.la
+test_service_rps_sampler_elem_LDADD = $(top_builddir)/src/lib/util/libgnunetutil.la
 
 #test_rps_single_req_SOURCES = $(rps_test_src)
 #test_rps_single_req_LDADD = $(ld_rps_test_lib)
@@ -158,7 +158,7 @@ test_service_rps_sampler_elem_LDADD = $(top_builddir)/src/util/libgnunetutil.la
 #gnunet_rps_profiler_LDADD = \
 #  $(top_builddir)/src/statistics/libgnunetstatistics.la \
 #  libgnunetrps.la \
-#  $(top_builddir)/src/util/libgnunetutil.la \
+#  $(top_builddir)/src/lib/util/libgnunetutil.la \
 #  $(top_builddir)/src/testbed/libgnunettestbed.la \
 #  -lm
 

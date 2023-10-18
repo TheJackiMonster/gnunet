@@ -33,14 +33,14 @@ bin_PROGRAMS = \
 gnunet_helper_vpn_SOURCES = \
   gnunet-helper-vpn.c
 gnunet_helper_vpn_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
 gnunet_service_vpn_SOURCES = \
  gnunet-service-vpn.c
 gnunet_service_vpn_LDADD = \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/cadet/libgnunetcadet.la \
   $(top_builddir)/src/regex/libgnunetregex.la \
   $(GN_LIBINTL)
@@ -51,13 +51,13 @@ gnunet_vpn_SOURCES = \
  gnunet-vpn.c
 gnunet_vpn_LDADD = \
   libgnunetvpn.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
 libgnunetvpn_la_SOURCES = \
  vpn_api.c vpn.h
 libgnunetvpn_la_LIBADD = \
- $(top_builddir)/src/util/libgnunetutil.la $(XLIB)
+ $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIB)
 libgnunetvpn_la_LDFLAGS = \
   $(GN_LIBINTL) \
   $(GN_LIB_LDFLAGS)

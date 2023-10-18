@@ -35,7 +35,7 @@ struct GNUNET_MESSENGER_Contact
   char *name;
   size_t rc;
 
-  struct GNUNET_IDENTITY_PublicKey public_key;
+  struct GNUNET_CRYPTO_PublicKey public_key;
 };
 
 /**
@@ -45,7 +45,7 @@ struct GNUNET_MESSENGER_Contact
  * @return New contact
  */
 struct GNUNET_MESSENGER_Contact*
-create_contact (const struct GNUNET_IDENTITY_PublicKey *key);
+create_contact (const struct GNUNET_CRYPTO_PublicKey *key);
 
 /**
  * Destroys a contact and frees its memory fully.
@@ -80,7 +80,7 @@ set_contact_name (struct GNUNET_MESSENGER_Contact *contact,
  * @param[in] contact Contact
  * @return Public key of the contact
  */
-const struct GNUNET_IDENTITY_PublicKey*
+const struct GNUNET_CRYPTO_PublicKey*
 get_contact_key (const struct GNUNET_MESSENGER_Contact *contact);
 
 /**

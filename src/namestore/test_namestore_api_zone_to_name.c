@@ -41,11 +41,11 @@ static struct GNUNET_NAMESTORE_Handle *nsh;
 
 static struct GNUNET_SCHEDULER_Task *endbadly_task;
 
-static struct GNUNET_IDENTITY_PrivateKey privkey;
+static struct GNUNET_CRYPTO_PrivateKey privkey;
 
-static struct GNUNET_IDENTITY_PublicKey pubkey;
+static struct GNUNET_CRYPTO_PublicKey pubkey;
 
-static struct GNUNET_IDENTITY_PublicKey s_zone_value;
+static struct GNUNET_CRYPTO_PublicKey s_zone_value;
 
 static char *s_name;
 
@@ -91,7 +91,7 @@ end (void *cls)
 
 static void
 zone_to_name_proc (void *cls,
-                   const struct GNUNET_IDENTITY_PrivateKey *zone_key,
+                   const struct GNUNET_CRYPTO_PrivateKey *zone_key,
                    const char *n,
                    unsigned int rd_count,
                    const struct GNUNET_GNSRECORD_Data *rd)
@@ -205,7 +205,7 @@ run (void *cls,
   privkey.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
   GNUNET_CRYPTO_ecdsa_key_create (&privkey.ecdsa_key);
   /* get public key */
-  GNUNET_IDENTITY_key_get_public (&privkey,
+  GNUNET_CRYPTO_key_get_public (&privkey,
                                   &pubkey);
 
   GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_WEAK,

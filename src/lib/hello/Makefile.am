@@ -13,14 +13,11 @@ libgnunethello_la_SOURCES = \
   hello-ng.c \
   hello-uri.c
 libgnunethello_la_LIBADD = \
- $(top_builddir)/src/util/libgnunetutil.la $(XLIB) \
+ $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIB) \
  $(LTLIBINTL)
 libgnunethello_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS) \
   -version-info 1:0:1
-
-#noinst_PROGRAMS = \
-# gnunet-hello
 
 check_PROGRAMS = \
  test_hello \
@@ -37,19 +34,19 @@ test_hello_SOURCES = \
  test_hello.c
 test_hello_LDADD = \
  libgnunethello.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_hello_ng_SOURCES = \
  test_hello-ng.c
 test_hello_ng_LDADD = \
  libgnunethello.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_hello_uri_SOURCES = \
  test_hello-uri.c
 test_hello_uri_LDADD = \
  libgnunethello.la \
- $(top_builddir)/src/util/libgnunetutil.la \
+ $(top_builddir)/src/lib/util/libgnunetutil.la \
  -lgcrypt
 
 
@@ -57,13 +54,4 @@ test_friend_hello_SOURCES = \
  test_friend_hello.c
 test_friend_hello_LDADD = \
  libgnunethello.la \
- $(top_builddir)/src/util/libgnunetutil.la
-
-# Not TNG ready
-#gnunet_hello_SOURCES = \
-# gnunet-hello.c
-#gnunet_hello_LDADD = \
-# libgnunethello.la \
-# $(top_builddir)/src/util/libgnunetutil.la
-#gnunet_hello_LDFLAGS = \
-#  $(GN_LIBINTL)
+ $(top_builddir)/src/lib/util/libgnunetutil.la

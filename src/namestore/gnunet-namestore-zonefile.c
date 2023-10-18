@@ -94,7 +94,7 @@ static struct GNUNET_IDENTITY_EgoLookup *el;
 /**
  * Private key for the our zone.
  */
-static struct GNUNET_IDENTITY_PrivateKey zone_pkey;
+static struct GNUNET_CRYPTO_PrivateKey zone_pkey;
 
 /**
  * Queue entry for the 'add' operation.
@@ -282,7 +282,7 @@ parse_origin (char *token, char *origin)
 }
 
 static void
-origin_create_cb (void *cls, const struct GNUNET_IDENTITY_PrivateKey *pk,
+origin_create_cb (void *cls, const struct GNUNET_CRYPTO_PrivateKey *pk,
                   enum GNUNET_ErrorCode ec)
 {
   id_op = NULL;
@@ -309,7 +309,7 @@ origin_lookup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "$ORIGIN %s does not exist, creating...\n", ego_name);
     id_op = GNUNET_IDENTITY_create (id, ego_name, NULL,
-                                    GNUNET_IDENTITY_TYPE_ECDSA, // FIXME make configurable
+                                    GNUNET_PUBLIC_KEY_TYPE_ECDSA, // FIXME make configurable
                                     origin_create_cb,
                                     NULL);
     return;

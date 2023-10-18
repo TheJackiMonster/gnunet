@@ -250,7 +250,7 @@ handle_query_message (void *cls,
                       const struct QueryMessage *qm)
 {
   struct GNUNET_SERVICE_Client *client = cls;
-  struct GNUNET_IDENTITY_PublicKey zone;
+  struct GNUNET_CRYPTO_PublicKey zone;
   struct GNUNET_MQ_Envelope *env;
   struct QueryResponseMessage *qrm;
   struct GNUNET_HashCode hc;
@@ -260,7 +260,7 @@ handle_query_message (void *cls,
 
   key_len = ntohl (qm->key_len);
   if ((GNUNET_SYSERR ==
-       GNUNET_IDENTITY_read_public_key_from_buffer (&qm[1], key_len,
+       GNUNET_CRYPTO_read_public_key_from_buffer (&qm[1], key_len,
                                                     &zone, &read)) ||
       (read != key_len))
   {
@@ -344,11 +344,11 @@ publicize_rm (const struct RevokeMessage *rm)
   ssize_t pklen;
   const struct GNUNET_REVOCATION_PowP *pow
     = (const struct GNUNET_REVOCATION_PowP *) &rm[1];
-  const struct GNUNET_IDENTITY_PublicKey *pk
-    = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
+  const struct GNUNET_CRYPTO_PublicKey *pk
+    = (const struct GNUNET_CRYPTO_PublicKey *) &pow[1];
 
   /** FIXME yeah this works, but should we have a key length somewhere? */
-  pklen = GNUNET_IDENTITY_public_key_get_length (pk);
+  pklen = GNUNET_CRYPTO_public_key_get_length (pk);
   if (0 > pklen)
   {
     GNUNET_break_op (0);
@@ -879,7 +879,7 @@ run (void *cls,
   uint64_t left;
   struct RevokeMessage *rm;
   struct GNUNET_HashCode hc;
-  const struct GNUNET_IDENTITY_PublicKey *pk;
+  const struct GNUNET_CRYPTO_PublicKey *pk;
 
   GNUNET_CRYPTO_hash ("revocation-set-union-application-id",
                       strlen ("revocation-set-union-application-id"),
@@ -983,8 +983,8 @@ run (void *cls,
     struct GNUNET_REVOCATION_PowP *pow = (struct
                                           GNUNET_REVOCATION_PowP *) &rm[1];
     ssize_t ksize;
-    pk = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
-    ksize = GNUNET_IDENTITY_public_key_get_length (pk);
+    pk = (const struct GNUNET_CRYPTO_PublicKey *) &pow[1];
+    ksize = GNUNET_CRYPTO_public_key_get_length (pk);
     if (0 > ksize)
     {
       GNUNET_break_op (0);

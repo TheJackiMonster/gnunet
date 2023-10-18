@@ -1,13 +1,4 @@
 test_common_logging_dummy
-gnunet-config
-gnunet-config-diff
-gnunet-crypto-tvg
-gnunet-ecc
-gnunet-qr
-gnunet-resolver
-gnunet-scrypt
-gnunet-service-resolver
-gnunet-uri
 test_bio
 test_client.nc
 test_client_unix.nc
@@ -54,7 +45,6 @@ test_os_start_process
 test_peer
 test_plugin
 test_program
-test_resolver_api.nc
 test_scheduler
 test_scheduler_delay
 test_server.nc
@@ -79,11 +69,9 @@ test_hexcoder
 test_regex
 test_tun
 test_uri
-gnunet-timeout
 python27_location
 perf_malloc
 perf_mq
 perf_scheduler
-gnunet-base32
 test_crypto_cs
 test_crypto_ecc

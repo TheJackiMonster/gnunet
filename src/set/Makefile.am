@@ -27,7 +27,7 @@ lib_LTLIBRARIES = \
 gnunet_set_profiler_SOURCES = \
  gnunet-set-profiler.c
 gnunet_set_profiler_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   libgnunetset.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
@@ -38,7 +38,7 @@ gnunet_set_ibf_profiler_SOURCES = \
  gnunet-set-ibf-profiler.c \
  ibf.c
 gnunet_set_ibf_profiler_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
 gnunet_service_set_SOURCES = \
@@ -49,18 +49,18 @@ gnunet_service_set_SOURCES = \
  gnunet-service-set_union_strata_estimator.c gnunet-service-set_union_strata_estimator.h \
  gnunet-service-set_protocol.h
 gnunet_service_set_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/core/libgnunetcore.la \
   $(top_builddir)/src/cadet/libgnunetcadet.la \
-  $(top_builddir)/src/block/libgnunetblock.la \
+  $(top_builddir)/src/lib/block/libgnunetblock.la \
   libgnunetset.la \
   $(GN_LIBINTL)
 
 libgnunetset_la_SOURCES = \
   set_api.c set.h
 libgnunetset_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LTLIBINTL)
 libgnunetset_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)
@@ -79,28 +79,28 @@ endif
 test_set_api_SOURCES = \
  test_set_api.c
 test_set_api_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
   libgnunetset.la
 
 test_set_union_result_symmetric_SOURCES = \
  test_set_union_result_symmetric.c
 test_set_union_result_symmetric_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
   libgnunetset.la
 
 test_set_intersection_result_full_SOURCES = \
  test_set_intersection_result_full.c
 test_set_intersection_result_full_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
   libgnunetset.la
 
 test_set_union_copy_SOURCES = \
  test_set_union_copy.c
 test_set_union_copy_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
   libgnunetset.la
 
@@ -110,9 +110,9 @@ plugin_LTLIBRARIES = \
 libgnunet_plugin_block_set_test_la_SOURCES = \
   plugin_block_set_test.c
 libgnunet_plugin_block_set_test_la_LIBADD = \
-  $(top_builddir)/src/block/libgnunetblock.la \
-  $(top_builddir)/src/block/libgnunetblockgroup.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/block/libgnunetblock.la \
+  $(top_builddir)/src/lib/block/libgnunetblockgroup.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LTLIBINTL)
 libgnunet_plugin_block_set_test_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)

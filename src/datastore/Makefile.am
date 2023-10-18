@@ -29,7 +29,7 @@ libgnunetdatastore_la_SOURCES = \
   datastore_api.c datastore.h
 libgnunetdatastore_la_LIBADD = \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 libgnunetdatastore_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)  \
@@ -45,14 +45,14 @@ gnunet_service_datastore_SOURCES = \
  gnunet-service-datastore.c
 gnunet_service_datastore_LDADD = \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
 gnunet_datastore_SOURCES = \
  gnunet-datastore.c
 gnunet_datastore_LDADD = \
   libgnunetdatastore.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
 
@@ -99,7 +99,7 @@ libgnunet_plugin_datastore_sqlite_la_SOURCES = \
 libgnunet_plugin_datastore_sqlite_la_LIBADD = \
   $(top_builddir)/src/sq/libgnunetsq.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/util/libgnunetutil.la $(XLIBS) -lsqlite3 \
+  $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) -lsqlite3 \
   $(LTLIBINTL)
 libgnunet_plugin_datastore_sqlite_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
@@ -108,7 +108,7 @@ libgnunet_plugin_datastore_sqlite_la_LDFLAGS = \
 libgnunet_plugin_datastore_heap_la_SOURCES = \
   plugin_datastore_heap.c
 libgnunet_plugin_datastore_heap_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la $(XLIBS) \
+  $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) \
   $(LTLIBINTL)
 libgnunet_plugin_datastore_heap_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
@@ -119,7 +119,7 @@ libgnunet_plugin_datastore_postgres_la_SOURCES = \
 libgnunet_plugin_datastore_postgres_la_LIBADD = \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/pq/libgnunetpq.la \
-  $(top_builddir)/src/util/libgnunetutil.la $(XLIBS) -lpq
+  $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) -lpq
 libgnunet_plugin_datastore_postgres_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS) $(POSTGRESQL_LDFLAGS)
 libgnunet_plugin_datastore_postgres_la_CPPFLAGS = \
@@ -129,7 +129,7 @@ libgnunet_plugin_datastore_postgres_la_CPPFLAGS = \
 libgnunet_plugin_datastore_template_la_SOURCES = \
   plugin_datastore_template.c
 libgnunet_plugin_datastore_template_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la $(XLIBS) \
+  $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) \
   $(LTLIBINTL)
 libgnunet_plugin_datastore_template_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
@@ -153,33 +153,33 @@ test_datastore_api_heap_SOURCES = \
 test_datastore_api_heap_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
  libgnunetdatastore.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_datastore_api_management_heap_SOURCES = \
  test_datastore_api_management.c
 test_datastore_api_management_heap_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
  libgnunetdatastore.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 perf_datastore_api_heap_SOURCES = \
  perf_datastore_api.c
 perf_datastore_api_heap_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
  libgnunetdatastore.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 perf_plugin_datastore_heap_SOURCES = \
  perf_plugin_datastore.c
 perf_plugin_datastore_heap_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_plugin_datastore_heap_SOURCES = \
  test_plugin_datastore.c
 test_plugin_datastore_heap_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 
 test_datastore_api_sqlite_SOURCES = \
@@ -187,33 +187,33 @@ test_datastore_api_sqlite_SOURCES = \
 test_datastore_api_sqlite_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
  libgnunetdatastore.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_datastore_api_management_sqlite_SOURCES = \
  test_datastore_api_management.c
 test_datastore_api_management_sqlite_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
  libgnunetdatastore.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 perf_datastore_api_sqlite_SOURCES = \
  perf_datastore_api.c
 perf_datastore_api_sqlite_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
  libgnunetdatastore.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 perf_plugin_datastore_sqlite_SOURCES = \
  perf_plugin_datastore.c
 perf_plugin_datastore_sqlite_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_plugin_datastore_sqlite_SOURCES = \
  test_plugin_datastore.c
 test_plugin_datastore_sqlite_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 
 test_datastore_api_postgres_SOURCES = \
@@ -221,33 +221,33 @@ test_datastore_api_postgres_SOURCES = \
 test_datastore_api_postgres_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
  libgnunetdatastore.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_datastore_api_management_postgres_SOURCES = \
  test_datastore_api_management.c
 test_datastore_api_management_postgres_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
  libgnunetdatastore.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 perf_datastore_api_postgres_SOURCES = \
  perf_datastore_api.c
 perf_datastore_api_postgres_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
  libgnunetdatastore.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_plugin_datastore_postgres_SOURCES = \
  test_plugin_datastore.c
 test_plugin_datastore_postgres_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 perf_plugin_datastore_postgres_SOURCES = \
  perf_plugin_datastore.c
 perf_plugin_datastore_postgres_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 
 EXTRA_DIST = \

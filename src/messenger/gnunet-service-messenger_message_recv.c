@@ -58,7 +58,7 @@ forward_about_members (struct GNUNET_MESSENGER_SrvRoom *room,
 
 static int
 iterate_forward_members (void *cls,
-                         const struct GNUNET_IDENTITY_PublicKey *public_key,
+                         const struct GNUNET_CRYPTO_PublicKey *public_key,
                          struct GNUNET_MESSENGER_MemberSession *session)
 {
   struct GNUNET_MESSENGER_SrvTunnel *tunnel = cls;

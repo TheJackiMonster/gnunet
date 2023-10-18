@@ -45,33 +45,33 @@ gnunet_dns_monitor_SOURCES = \
  gnunet-dns-monitor.c
 gnunet_dns_monitor_LDADD = \
   libgnunetdns.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
 gnunet_zonewalk_SOURCES = \
  gnunet-zonewalk.c
 gnunet_zonewalk_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
 gnunet_dns_redirector_SOURCES = \
  gnunet-dns-redirector.c
 gnunet_dns_redirector_LDADD = \
   libgnunetdns.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
 gnunet_service_dns_SOURCES = \
  gnunet-service-dns.c
 gnunet_service_dns_LDADD = \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
 libgnunetdns_la_SOURCES = \
  dns_api.c dns.h
 libgnunetdns_la_LIBADD = \
- $(top_builddir)/src/util/libgnunetutil.la $(XLIB)
+ $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIB)
 libgnunetdns_la_LDFLAGS = \
   $(GN_LIBINTL) \
   $(GN_LIB_LDFLAGS) \
@@ -80,9 +80,9 @@ libgnunetdns_la_LDFLAGS = \
 libgnunet_plugin_block_dns_la_SOURCES = \
   plugin_block_dns.c
 libgnunet_plugin_block_dns_la_LIBADD = \
-  $(top_builddir)/src/block/libgnunetblockgroup.la \
-  $(top_builddir)/src/block/libgnunetblock.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/block/libgnunetblockgroup.la \
+  $(top_builddir)/src/lib/block/libgnunetblock.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 libgnunet_plugin_block_dns_la_LDFLAGS = \
   $(GN_LIBINTL) \
   $(top_builddir)/src/block/$(GN_PLUGIN_LDFLAGS)

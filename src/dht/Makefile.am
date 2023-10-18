@@ -21,7 +21,7 @@ lib_LTLIBRARIES = \
 libgnunetdht_la_SOURCES = \
   dht_api.c dht.h
 libgnunetdht_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(XLIB) \
   $(LTLIBINTL)
 libgnunetdht_la_LDFLAGS = \
@@ -35,10 +35,10 @@ plugin_LTLIBRARIES = \
 libgnunet_plugin_block_dht_la_SOURCES = \
   plugin_block_dht.c
 libgnunet_plugin_block_dht_la_LIBADD = \
-  $(top_builddir)/src/hello/libgnunethello.la \
-  $(top_builddir)/src/block/libgnunetblock.la \
-  $(top_builddir)/src/block/libgnunetblockgroup.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/hello/libgnunethello.la \
+  $(top_builddir)/src/lib/block/libgnunetblock.la \
+  $(top_builddir)/src/lib/block/libgnunetblockgroup.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LTLIBINTL)
 libgnunet_plugin_block_dht_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
@@ -64,11 +64,11 @@ gnunet_service_dht_LDADD = \
   $(top_builddir)/src/core/libgnunetcore.la \
   $(top_builddir)/src/nse/libgnunetnse.la \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
-  $(top_builddir)/src/hello/libgnunethello.la \
-  $(top_builddir)/src/block/libgnunetblock.la \
-  $(top_builddir)/src/block/libgnunetblockgroup.la \
+  $(top_builddir)/src/lib/hello/libgnunethello.la \
+  $(top_builddir)/src/lib/block/libgnunetblock.la \
+  $(top_builddir)/src/lib/block/libgnunetblockgroup.la \
   $(top_builddir)/src/datacache/libgnunetdatacache.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   -lm
 gnunet_service_dht_LDFLAGS = \
   $(GN_LIBINTL)
@@ -77,7 +77,7 @@ gnunet_dht_get_SOURCES = \
  gnunet-dht-get.c
 gnunet_dht_get_LDADD = \
   libgnunetdht.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 gnunet_dht_get_LDFLAGS = \
   $(GN_LIBINTL)
 
@@ -85,7 +85,7 @@ gnunet_dht_hello_SOURCES = \
  gnunet-dht-hello.c
 gnunet_dht_hello_LDADD = \
   libgnunetdht.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 gnunet_dht_hello_LDFLAGS = \
   $(GN_LIBINTL)
 
@@ -93,7 +93,7 @@ gnunet_dht_put_SOURCES = \
  gnunet-dht-put.c
 gnunet_dht_put_LDADD = \
   libgnunetdht.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 gnunet_dht_put_LDFLAGS = \
   $(GN_LIBINTL)
 
@@ -101,7 +101,7 @@ gnunet_dht_monitor_SOURCES = \
  gnunet-dht-monitor.c
 gnunet_dht_monitor_LDADD = \
   libgnunetdht.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 gnunet_dht_monitor_LDFLAGS = \
   $(GN_LIBINTL)
 
@@ -112,9 +112,9 @@ endif
 test_dht_api_SOURCES = \
  test_dht_api.c
 test_dht_api_LDADD = \
- $(top_builddir)/src/util/libgnunetutil.la \
+ $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(top_builddir)/src/testing/libgnunettesting.la \
- $(top_builddir)/src/hello/libgnunethello.la \
+ $(top_builddir)/src/lib/hello/libgnunethello.la \
  libgnunetdht.la
 
 EXTRA_DIST = \

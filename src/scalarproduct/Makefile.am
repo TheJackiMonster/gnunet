@@ -27,7 +27,7 @@ lib_LTLIBRARIES = \
 gnunet_scalarproduct_SOURCES = \
   gnunet-scalarproduct.c
 gnunet_scalarproduct_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   libgnunetscalarproduct.la \
   $(LIBGCRYPT_LIBS) \
   -lgcrypt \
@@ -37,7 +37,7 @@ gnunet_service_scalarproduct_alice_SOURCES = \
   gnunet-service-scalarproduct.h \
   gnunet-service-scalarproduct_alice.c
 gnunet_service_scalarproduct_alice_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/cadet/libgnunetcadet.la \
   $(top_builddir)/src/seti/libgnunetseti.la \
   $(LIBGCRYPT_LIBS) \
@@ -48,7 +48,7 @@ gnunet_service_scalarproduct_bob_SOURCES = \
   gnunet-service-scalarproduct.h \
   gnunet-service-scalarproduct_bob.c
 gnunet_service_scalarproduct_bob_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/cadet/libgnunetcadet.la \
   $(top_builddir)/src/seti/libgnunetseti.la \
   $(LIBGCRYPT_LIBS) \
@@ -59,7 +59,7 @@ gnunet_service_scalarproduct_ecc_alice_SOURCES = \
   gnunet-service-scalarproduct-ecc.h \
   gnunet-service-scalarproduct-ecc_alice.c
 gnunet_service_scalarproduct_ecc_alice_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/cadet/libgnunetcadet.la \
   $(top_builddir)/src/seti/libgnunetseti.la \
   $(LIBGCRYPT_LIBS) \
@@ -71,7 +71,7 @@ gnunet_service_scalarproduct_ecc_bob_SOURCES = \
   gnunet-service-scalarproduct-ecc.h \
   gnunet-service-scalarproduct-ecc_bob.c
 gnunet_service_scalarproduct_ecc_bob_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/cadet/libgnunetcadet.la \
   $(top_builddir)/src/seti/libgnunetseti.la \
   $(LIBGCRYPT_LIBS) \
@@ -83,7 +83,7 @@ libgnunetscalarproduct_la_SOURCES = \
   scalarproduct_api.c \
   scalarproduct.h
 libgnunetscalarproduct_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(LIBGCRYPT_LIBS) \
   -lgcrypt \
@@ -112,5 +112,5 @@ endif
 test_ecc_scalarproduct_SOURCES = \
  test_ecc_scalarproduct.c
 test_ecc_scalarproduct_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   -lsodium

@@ -65,7 +65,7 @@ static struct GNUNET_SCHEDULER_Task *timeout_task;
 
 static struct GNUNET_SCHEDULER_Task *t;
 
-static struct GNUNET_IDENTITY_PrivateKey privkey;
+static struct GNUNET_CRYPTO_PrivateKey privkey;
 
 static struct GNUNET_NAMESTORE_QueueEntry *qe;
 

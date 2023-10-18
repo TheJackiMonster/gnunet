@@ -160,7 +160,7 @@ handle_revocation_query_response (void *cls,
  */
 struct GNUNET_REVOCATION_Query *
 GNUNET_REVOCATION_query (const struct GNUNET_CONFIGURATION_Handle *cfg,
-                         const struct GNUNET_IDENTITY_PublicKey *key,
+                         const struct GNUNET_CRYPTO_PublicKey *key,
                          GNUNET_REVOCATION_Callback func,
                          void *func_cls)
 {
@@ -189,10 +189,10 @@ GNUNET_REVOCATION_query (const struct GNUNET_CONFIGURATION_Handle *cfg,
   }
   q->func = func;
   q->func_cls = func_cls;
-  key_len = GNUNET_IDENTITY_public_key_get_length (key);
+  key_len = GNUNET_CRYPTO_public_key_get_length (key);
   env = GNUNET_MQ_msg_extra (qm, key_len,
                              GNUNET_MESSAGE_TYPE_REVOCATION_QUERY);
-  GNUNET_IDENTITY_write_public_key_to_buffer (key, &qm[1], key_len);
+  GNUNET_CRYPTO_write_public_key_to_buffer (key, &qm[1], key_len);
   qm->key_len = htonl (key_len);
   GNUNET_MQ_send (q->mq,
                   env);
@@ -406,16 +406,16 @@ struct GNUNET_REVOCATION_SignaturePurposePS *
 REV_create_signature_message (const struct GNUNET_REVOCATION_PowP *pow)
 {
   struct GNUNET_REVOCATION_SignaturePurposePS *spurp;
-  const struct GNUNET_IDENTITY_PublicKey *pk;
+  const struct GNUNET_CRYPTO_PublicKey *pk;
   size_t ksize;
 
-  pk = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
-  ksize = GNUNET_IDENTITY_public_key_get_length (pk);
+  pk = (const struct GNUNET_CRYPTO_PublicKey *) &pow[1];
+  ksize = GNUNET_CRYPTO_public_key_get_length (pk);
   spurp = GNUNET_malloc (sizeof (*spurp) + ksize);
   spurp->timestamp = pow->timestamp;
   spurp->purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_GNS_REVOCATION);
   spurp->purpose.size = htonl (sizeof(*spurp) + ksize);
-  GNUNET_IDENTITY_write_public_key_to_buffer (pk,
+  GNUNET_CRYPTO_write_public_key_to_buffer (pk,
                                               (char*) &spurp[1],
                                               ksize);
   return spurp;
@@ -424,18 +424,18 @@ REV_create_signature_message (const struct GNUNET_REVOCATION_PowP *pow)
 
 enum GNUNET_GenericReturnValue
 check_signature_identity (const struct GNUNET_REVOCATION_PowP *pow,
-                          const struct GNUNET_IDENTITY_PublicKey *key)
+                          const struct GNUNET_CRYPTO_PublicKey *key)
 {
   struct GNUNET_REVOCATION_SignaturePurposePS *spurp;
   unsigned char *sig;
   size_t ksize;
   int ret;
 
-  ksize = GNUNET_IDENTITY_public_key_get_length (key);
+  ksize = GNUNET_CRYPTO_public_key_get_length (key);
   spurp = REV_create_signature_message (pow);
   sig = ((unsigned char*) &pow[1] + ksize);
   ret =
-    GNUNET_IDENTITY_signature_verify_raw_ (
+    GNUNET_CRYPTO_signature_verify_raw_ (
       GNUNET_SIGNATURE_PURPOSE_GNS_REVOCATION,
       &spurp->purpose,
       sig,
@@ -448,9 +448,9 @@ check_signature_identity (const struct GNUNET_REVOCATION_PowP *pow,
 enum GNUNET_GenericReturnValue
 check_signature (const struct GNUNET_REVOCATION_PowP *pow)
 {
-  const struct GNUNET_IDENTITY_PublicKey *pk;
+  const struct GNUNET_CRYPTO_PublicKey *pk;
 
-  pk = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
+  pk = (const struct GNUNET_CRYPTO_PublicKey *) &pow[1];
   return check_signature_identity (pow, pk);
 }
 
@@ -468,7 +468,7 @@ GNUNET_REVOCATION_check_pow (const struct GNUNET_REVOCATION_PowP *pow,
                              unsigned int difficulty,
                              struct GNUNET_TIME_Relative epoch_duration)
 {
-  char buf[sizeof(struct GNUNET_IDENTITY_PublicKey)
+  char buf[sizeof(struct GNUNET_CRYPTO_PublicKey)
            + sizeof (struct GNUNET_TIME_AbsoluteNBO)
            + sizeof (uint64_t)] GNUNET_ALIGN;
   struct GNUNET_HashCode result;
@@ -482,9 +482,9 @@ GNUNET_REVOCATION_check_pow (const struct GNUNET_REVOCATION_PowP *pow,
   unsigned int epochs;
   uint64_t pow_val;
   ssize_t pklen;
-  const struct GNUNET_IDENTITY_PublicKey *pk;
+  const struct GNUNET_CRYPTO_PublicKey *pk;
 
-  pk = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
+  pk = (const struct GNUNET_CRYPTO_PublicKey *) &pow[1];
 
   /**
    * Check if signature valid
@@ -507,7 +507,7 @@ GNUNET_REVOCATION_check_pow (const struct GNUNET_REVOCATION_PowP *pow,
   GNUNET_memcpy (&buf[sizeof(uint64_t)],
                  &pow->timestamp,
                  sizeof (uint64_t));
-  pklen = GNUNET_IDENTITY_public_key_get_length (pk);
+  pklen = GNUNET_CRYPTO_public_key_get_length (pk);
   if (0 > pklen)
   {
     GNUNET_break (0);
@@ -566,12 +566,12 @@ GNUNET_REVOCATION_check_pow (const struct GNUNET_REVOCATION_PowP *pow,
 
 
 enum GNUNET_GenericReturnValue
-sign_pow_identity (const struct GNUNET_IDENTITY_PrivateKey *key,
+sign_pow_identity (const struct GNUNET_CRYPTO_PrivateKey *key,
                    struct GNUNET_REVOCATION_PowP *pow)
 {
   struct GNUNET_TIME_Absolute ts = GNUNET_TIME_absolute_get ();
   struct GNUNET_REVOCATION_SignaturePurposePS *rp;
-  const struct GNUNET_IDENTITY_PublicKey *pk;
+  const struct GNUNET_CRYPTO_PublicKey *pk;
   size_t ksize;
   char *sig;
 
@@ -581,12 +581,12 @@ sign_pow_identity (const struct GNUNET_IDENTITY_PrivateKey *key,
    */
   ts = GNUNET_TIME_absolute_subtract (ts,
                                       GNUNET_TIME_UNIT_WEEKS);
-  pk = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
-  ksize = GNUNET_IDENTITY_public_key_get_length (pk);
+  pk = (const struct GNUNET_CRYPTO_PublicKey *) &pow[1];
+  ksize = GNUNET_CRYPTO_public_key_get_length (pk);
   pow->timestamp = GNUNET_TIME_absolute_hton (ts);
   rp = REV_create_signature_message (pow);
   sig = ((char*) &pow[1]) + ksize;
-  int result = GNUNET_IDENTITY_sign_raw_ (key,
+  int result = GNUNET_CRYPTO_sign_raw_ (key,
                                           &rp->purpose,
                                           (void*) sig);
   GNUNET_free (rp);
@@ -598,13 +598,13 @@ sign_pow_identity (const struct GNUNET_IDENTITY_PrivateKey *key,
 
 
 enum GNUNET_GenericReturnValue
-sign_pow (const struct GNUNET_IDENTITY_PrivateKey *key,
+sign_pow (const struct GNUNET_CRYPTO_PrivateKey *key,
           struct GNUNET_REVOCATION_PowP *pow)
 {
-  struct GNUNET_IDENTITY_PublicKey *pk;
+  struct GNUNET_CRYPTO_PublicKey *pk;
 
-  pk = (struct GNUNET_IDENTITY_PublicKey *) &pow[1];
-  GNUNET_IDENTITY_key_get_public (key, pk);
+  pk = (struct GNUNET_CRYPTO_PublicKey *) &pow[1];
+  GNUNET_CRYPTO_key_get_public (key, pk);
   return sign_pow_identity (key, pow);
 }
 
@@ -616,7 +616,7 @@ sign_pow (const struct GNUNET_IDENTITY_PrivateKey *key,
  * @param[out] pow starting point for PoW calculation (not yet valid)
  */
 void
-GNUNET_REVOCATION_pow_init (const struct GNUNET_IDENTITY_PrivateKey *key,
+GNUNET_REVOCATION_pow_init (const struct GNUNET_CRYPTO_PrivateKey *key,
                             struct GNUNET_REVOCATION_PowP *pow)
 {
   GNUNET_assert (GNUNET_OK == sign_pow (key, pow));
@@ -672,18 +672,18 @@ cmp_pow_value (const void *a, const void *b)
 enum GNUNET_GenericReturnValue
 GNUNET_REVOCATION_pow_round (struct GNUNET_REVOCATION_PowCalculationHandle *pc)
 {
-  char buf[sizeof(struct GNUNET_IDENTITY_PublicKey)
+  char buf[sizeof(struct GNUNET_CRYPTO_PublicKey)
            + sizeof (uint64_t)
            + sizeof (uint64_t)] GNUNET_ALIGN;
   struct GNUNET_HashCode result;
-  const struct GNUNET_IDENTITY_PublicKey *pk;
+  const struct GNUNET_CRYPTO_PublicKey *pk;
   unsigned int zeros;
   int ret;
   uint64_t pow_nbo;
   ssize_t ksize;
 
   pc->current_pow++;
-  pk = (const struct GNUNET_IDENTITY_PublicKey *) &(pc->pow[1]);
+  pk = (const struct GNUNET_CRYPTO_PublicKey *) &(pc->pow[1]);
 
   /**
    * Do not try duplicates
@@ -696,7 +696,7 @@ GNUNET_REVOCATION_pow_round (struct GNUNET_REVOCATION_PowCalculationHandle *pc)
   GNUNET_memcpy (&buf[sizeof(uint64_t)],
                  &pc->pow->timestamp,
                  sizeof (uint64_t));
-  ksize = GNUNET_IDENTITY_public_key_get_length (pk);
+  ksize = GNUNET_CRYPTO_public_key_get_length (pk);
   GNUNET_assert (0 < ksize);
   GNUNET_memcpy (&buf[sizeof(uint64_t) * 2],
                  pk,
@@ -750,13 +750,13 @@ GNUNET_REVOCATION_proof_get_size (const struct GNUNET_REVOCATION_PowP *pow)
 {
   size_t size;
   size_t ksize;
-  const struct GNUNET_IDENTITY_PublicKey *pk;
+  const struct GNUNET_CRYPTO_PublicKey *pk;
 
   size = sizeof (struct GNUNET_REVOCATION_PowP);
-  pk = (const struct GNUNET_IDENTITY_PublicKey *) &pow[1];
-  ksize = GNUNET_IDENTITY_public_key_get_length (pk);
+  pk = (const struct GNUNET_CRYPTO_PublicKey *) &pow[1];
+  ksize = GNUNET_CRYPTO_public_key_get_length (pk);
   size += ksize;
-  size += GNUNET_IDENTITY_signature_get_raw_length_by_type (pk->type);
+  size += GNUNET_CRYPTO_signature_get_raw_length_by_type (pk->type);
   return size;
 }
 

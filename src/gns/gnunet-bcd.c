@@ -364,9 +364,9 @@ create_response (void *cls,
                                                    MHD_GET_ARGUMENT_KIND,
                                                    "gnspng");
 
-  struct GNUNET_IDENTITY_PublicKey pk;
+  struct GNUNET_CRYPTO_PublicKey pk;
   if (NULL == gnskey
-      || GNUNET_OK != GNUNET_IDENTITY_public_key_from_string (gnskey, &pk))
+      || GNUNET_OK != GNUNET_CRYPTO_public_key_from_string (gnskey, &pk))
   {
     return MHD_queue_response (connection,
                                MHD_HTTP_BAD_REQUEST,

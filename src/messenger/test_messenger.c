@@ -117,7 +117,7 @@ on_identity (void *cls,
     return;
   }
 
-  const struct GNUNET_IDENTITY_PublicKey *key = GNUNET_MESSENGER_get_key (handle);
+  const struct GNUNET_CRYPTO_PublicKey *key = GNUNET_MESSENGER_get_key (handle);
 
   if (((!identity_counter) && (key)) || ((identity_counter) && (!key)))
   {

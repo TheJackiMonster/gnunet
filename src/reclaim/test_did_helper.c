@@ -58,8 +58,8 @@ static const char *test_did_document_format_str =
   \"authentication\":[\"#key-1\"],\
   \"assertionMethod\":[\"#key-1\"]}";
 
-static struct GNUNET_IDENTITY_PrivateKey test_skey;
-static struct GNUNET_IDENTITY_PublicKey test_pkey;
+static struct GNUNET_CRYPTO_PrivateKey test_skey;
+static struct GNUNET_CRYPTO_PublicKey test_pkey;
 static struct json_t *test_did_document;
 static char *test_did_document_str;
 
@@ -75,7 +75,7 @@ test_GNUNET_DID_pkey_to_did ()
 void
 test_GNUNET_DID_did_to_pkey ()
 {
-  struct GNUNET_IDENTITY_PublicKey pkey;
+  struct GNUNET_CRYPTO_PublicKey pkey;
   DID_did_to_pkey ((char *) test_did, &pkey);
 
   GNUNET_assert (test_pkey.type = pkey.type);
@@ -112,11 +112,11 @@ int
 main ()
 {
   // Setup key
-  test_skey.type = htonl (GNUNET_IDENTITY_TYPE_EDDSA);
+  test_skey.type = htonl (GNUNET_PUBLIC_KEY_TYPE_EDDSA);
   memcpy (&(test_skey.eddsa_key),
           test_skey_bytes,
           sizeof(struct GNUNET_CRYPTO_EddsaPrivateKey));
-  GNUNET_IDENTITY_key_get_public (&test_skey, &test_pkey);
+  GNUNET_CRYPTO_key_get_public (&test_skey, &test_pkey);
 
   // Setup did document
   GNUNET_asprintf (&test_did_document_str,

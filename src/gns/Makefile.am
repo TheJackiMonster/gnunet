@@ -84,13 +84,13 @@ CLEANFILES = test_gnunet_gns.sh
 libgnunet_plugin_rest_gns_la_SOURCES = \
   plugin_rest_gns.c
 libgnunet_plugin_rest_gns_la_LIBADD = \
-  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/gnsrecord/libgnunetgnsrecordjson.la \
+  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecordjson.la \
   libgnunetgns.la \
   $(top_builddir)/src/rest/libgnunetrest.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/json/libgnunetjson.la \
-  $(top_builddir)/src/util/libgnunetutil.la $(XLIBS) \
+  $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) \
   $(LTLIBINTL) -ljansson $(MHD_LIBS)
 libgnunet_plugin_rest_gns_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
@@ -100,9 +100,9 @@ libgnunet_plugin_rest_gns_la_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
 libgnunet_plugin_gnsrecord_gns_la_SOURCES = \
   plugin_gnsrecord_gns.c
 libgnunet_plugin_gnsrecord_gns_la_LIBADD = \
-  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LTLIBINTL)
 libgnunet_plugin_gnsrecord_gns_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
@@ -112,9 +112,9 @@ gnunet_gns_SOURCES = \
  gnunet-gns.c
 gnunet_gns_LDADD = \
   libgnunetgns.la \
-  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LIBIDN) $(LIBIDN2) \
   $(GN_LIBINTL)
 
@@ -122,16 +122,16 @@ gnunet_gns_benchmark_SOURCES = \
  gnunet-gns-benchmark.c
 gnunet_gns_benchmark_LDADD = \
   libgnunetgns.la \
-  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
 
 gnunet_bcd_SOURCES = \
  gnunet-bcd.c
 gnunet_bcd_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
   $(GN_LIBINTL) $(MHD_LIBS)
 gnunet_bcd_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
@@ -140,9 +140,9 @@ gnunet_bcd_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
 gnunet_dns2gns_SOURCES = \
  gnunet-dns2gns.c
 gnunet_dns2gns_LDADD = \
-  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   libgnunetgns.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(USE_VPN) \
   $(top_builddir)/src/identity/libgnunetidentity.la \
   $(GN_LIBINTL)
@@ -168,7 +168,7 @@ gnunet_gns_proxy_SOURCES = \
 gnunet_gns_proxy_LDADD = $(MHD_LIBS) @LIBCURL@ -lgnutls \
   libgnunetgns.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 if HAVE_GNUTLS_DANE
 gnunet_gns_proxy_LDADD += -lgnutls-dane
@@ -178,7 +178,7 @@ gnunet_gns_proxy_CFLAGS = $(MHD_CFLAGS) @LIBCURL_CPPFLAGS@ $(AM_CFLAGS)
 test_gns_proxy_SOURCES = \
   test_gns_proxy.c
 test_gns_proxy_LDADD = $(MHD_LIBS) @LIBCURL@ -lgnutls \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 test_gns_proxy_CFLAGS = $(MHD_CFLAGS) @LIBCURL_CPPFLAGS@ $(AM_CFLAGS)
 
@@ -187,8 +187,8 @@ test_gns_proxy_CFLAGS = $(MHD_CFLAGS) @LIBCURL_CPPFLAGS@ $(AM_CFLAGS)
 #gnunet_gns_import_LDADD = \
 #  $(top_builddir)/src/identity/libgnunetidentity.la \
 #  $(top_builddir)/src/namestore/libgnunetnamestore.la \
-#  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
-#  $(top_builddir)/src/util/libgnunetutil.la \
+#  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
+#  $(top_builddir)/src/lib/util/libgnunetutil.la \
 #  $(GN_LIBINTL)
 
 
@@ -198,11 +198,11 @@ gnunet_service_gns_SOURCES = \
  gnunet-service-gns_interceptor.c gnunet-service-gns_interceptor.h
 gnunet_service_gns_LDADD = \
   -lm \
-  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/revocation/libgnunetrevocation.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/dns/libgnunetdns.la \
   $(top_builddir)/src/dht/libgnunetdht.la \
   $(top_builddir)/src/namecache/libgnunetnamecache.la \
@@ -214,9 +214,9 @@ libgnunetgns_la_SOURCES = \
  gns_api.c gns_api.h \
  gns_tld_api.c gns.h
 libgnunetgns_la_LIBADD = \
- $(top_builddir)/src/util/libgnunetutil.la $(XLIB) \
+ $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIB) \
  $(top_builddir)/src/identity/libgnunetidentity.la \
- $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la
+ $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la
 libgnunetgns_la_LDFLAGS = \
   $(GN_LIBINTL) \
   $(GN_LIB_LDFLAGS)
@@ -225,11 +225,11 @@ libgnunetgns_la_LDFLAGS = \
 libgnunet_plugin_block_gns_la_SOURCES = \
   plugin_block_gns.c
 libgnunet_plugin_block_gns_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
-  $(top_builddir)/src/block/libgnunetblock.la \
-  $(top_builddir)/src/block/libgnunetblockgroup.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/block/libgnunetblock.la \
+  $(top_builddir)/src/lib/block/libgnunetblockgroup.la \
   $(top_builddir)/src/identity/libgnunetidentity.la  \
-  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la
+  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la
 libgnunet_plugin_block_gns_la_LDFLAGS = \
   $(GN_LIBINTL) \
   $(GN_PLUGIN_LDFLAGS)

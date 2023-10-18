@@ -22,10 +22,10 @@ gnunet_service_zonemaster_SOURCES = \
  gnunet-service-zonemaster.c
 gnunet_service_zonemaster_LDADD = \
   $(top_builddir)/src/dht/libgnunetdht.la \
-  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/identity/libgnunetidentity.la  \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/namecache/libgnunetnamecache.la \
   $(GN_LIBINTL) \

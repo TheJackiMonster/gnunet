@@ -557,7 +557,7 @@ identity_cb (void *cls,
              void **ctx,
              const char *name)
 {
-  const struct GNUNET_IDENTITY_PrivateKey *zone_key;
+  const struct GNUNET_CRYPTO_PrivateKey *zone_key;
   struct GNUNET_GNSRECORD_Data rd;
   char *rd_string;
   char *peername;

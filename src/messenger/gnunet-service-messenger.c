@@ -213,14 +213,14 @@ check_send_message (void *cls,
 
   const uint16_t length = full_length - sizeof(*msg);
   const char *buffer = ((const char*) msg) + sizeof(*msg);
-  struct GNUNET_IDENTITY_PublicKey public_key;
+  struct GNUNET_CRYPTO_PublicKey public_key;
 
 
   size_t key_length = 0;
 
   if ((flags & GNUNET_MESSENGER_FLAG_PRIVATE))
     if (GNUNET_SYSERR ==
-        GNUNET_IDENTITY_read_public_key_from_buffer (buffer, length,
+        GNUNET_CRYPTO_read_public_key_from_buffer (buffer, length,
                                                      &public_key,
                                                      &key_length))
       return GNUNET_NO;
@@ -259,12 +259,12 @@ handle_send_message (void *cls,
   const uint16_t length = ntohs (msg->header.size) - sizeof(*msg);
   size_t key_length = 0;
 
-  struct GNUNET_IDENTITY_PublicKey public_key;
+  struct GNUNET_CRYPTO_PublicKey public_key;
 
   if (flags & GNUNET_MESSENGER_FLAG_PRIVATE)
   {
     GNUNET_assert (GNUNET_SYSERR !=
-                   GNUNET_IDENTITY_read_public_key_from_buffer (buffer,
+                   GNUNET_CRYPTO_read_public_key_from_buffer (buffer,
                                                                 length,
                                                                 &public_key,
                                                                 &key_length));

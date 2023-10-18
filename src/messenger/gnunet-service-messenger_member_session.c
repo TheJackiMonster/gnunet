@@ -33,7 +33,7 @@
 
 struct GNUNET_MESSENGER_MemberSession*
 create_member_session (struct GNUNET_MESSENGER_Member *member,
-                       const struct GNUNET_IDENTITY_PublicKey *pubkey)
+                       const struct GNUNET_CRYPTO_PublicKey *pubkey)
 {
   if ((!member) || (!pubkey) || (!(member->store)))
     return NULL;
@@ -354,7 +354,7 @@ get_member_session_id (const struct GNUNET_MESSENGER_MemberSession* session)
   return get_member_id(session->member);
 }
 
-const struct GNUNET_IDENTITY_PublicKey*
+const struct GNUNET_CRYPTO_PublicKey*
 get_member_session_public_key (const struct GNUNET_MESSENGER_MemberSession* session)
 {
   GNUNET_assert(session);
@@ -536,9 +536,9 @@ load_member_session (struct GNUNET_MESSENGER_Member *member,
     if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_string(cfg, "session", "key", &key_data))
       goto destroy_config;
 
-    struct GNUNET_IDENTITY_PublicKey key;
+    struct GNUNET_CRYPTO_PublicKey key;
 
-    enum GNUNET_GenericReturnValue key_return = GNUNET_IDENTITY_public_key_from_string(key_data, &key);
+    enum GNUNET_GenericReturnValue key_return = GNUNET_CRYPTO_public_key_from_string(key_data, &key);
 
     GNUNET_free(key_data);
 
@@ -625,9 +625,9 @@ load_member_session_next (struct GNUNET_MESSENGER_MemberSession *session,
     if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_string(cfg, "session", "next_key", &key_data))
       goto destroy_config;
 
-    struct GNUNET_IDENTITY_PublicKey next_key;
+    struct GNUNET_CRYPTO_PublicKey next_key;
 
-    enum GNUNET_GenericReturnValue key_return = GNUNET_IDENTITY_public_key_from_string(key_data, &next_key);
+    enum GNUNET_GenericReturnValue key_return = GNUNET_CRYPTO_public_key_from_string(key_data, &next_key);
 
     GNUNET_free(key_data);
 
@@ -710,7 +710,7 @@ save_member_session (struct GNUNET_MESSENGER_MemberSession *session,
 
   struct GNUNET_CONFIGURATION_Handle *cfg = GNUNET_CONFIGURATION_create ();
 
-  char *key_data = GNUNET_IDENTITY_public_key_to_string(get_member_session_public_key(session));
+  char *key_data = GNUNET_CRYPTO_public_key_to_string(get_member_session_public_key(session));
 
   if (key_data)
   {
@@ -732,7 +732,7 @@ save_member_session (struct GNUNET_MESSENGER_MemberSession *session,
       GNUNET_free(next_id_data);
     }
 
-    key_data = GNUNET_IDENTITY_public_key_to_string(get_member_session_public_key(session->next));
+    key_data = GNUNET_CRYPTO_public_key_to_string(get_member_session_public_key(session->next));
 
     if (key_data)
     {

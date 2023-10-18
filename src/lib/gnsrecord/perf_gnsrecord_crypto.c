@@ -73,7 +73,7 @@ run (void *cls,
   struct GNUNET_GNSRECORD_Data *s_rd;
   const char *s_name;
   struct GNUNET_TIME_Absolute start_time;
-  struct GNUNET_IDENTITY_PrivateKey privkey;
+  struct GNUNET_CRYPTO_PrivateKey privkey;
   struct GNUNET_TIME_Absolute expire;
 
   (void) cls;

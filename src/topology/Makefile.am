@@ -23,8 +23,8 @@ gnunet_daemon_topology_LDADD = \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/transport/libgnunettransportapplication.la \
-  $(top_builddir)/src/hello/libgnunethello.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/hello/libgnunethello.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
 
@@ -41,7 +41,7 @@ test_gnunet_daemon_topology_SOURCES = \
 test_gnunet_daemon_topology_LDADD = \
  $(top_builddir)/src/testbed/libgnunettestbed.la \
  $(top_builddir)/src/statistics/libgnunetstatistics.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 EXTRA_DIST = \
  test_gnunet_daemon_topology_data.conf

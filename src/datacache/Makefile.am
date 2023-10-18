@@ -34,7 +34,7 @@ libgnunetdatacache_la_SOURCES = \
   datacache.c
 libgnunetdatacache_la_LIBADD = \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 libgnunetdatacache_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)  \
@@ -57,7 +57,7 @@ libgnunet_plugin_datacache_sqlite_la_SOURCES = \
 libgnunet_plugin_datacache_sqlite_la_LIBADD = \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/sq/libgnunetsq.la \
-  $(top_builddir)/src/util/libgnunetutil.la $(XLIBS) -lsqlite3 \
+  $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) -lsqlite3 \
   $(LTLIBINTL)
 libgnunet_plugin_datacache_sqlite_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
@@ -66,7 +66,7 @@ libgnunet_plugin_datacache_heap_la_SOURCES = \
   plugin_datacache_heap.c
 libgnunet_plugin_datacache_heap_la_LIBADD = \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/util/libgnunetutil.la $(XLIBS) \
+  $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) \
   $(LTLIBINTL)
 libgnunet_plugin_datacache_heap_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
@@ -76,7 +76,7 @@ libgnunet_plugin_datacache_postgres_la_SOURCES = \
 libgnunet_plugin_datacache_postgres_la_LIBADD = \
   $(top_builddir)/src/pq/libgnunetpq.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_PLUGIN_LDFLAGS) -lpq
 libgnunet_plugin_datacache_postgres_la_CPPFLAGS = \
  $(POSTGRESQL_CPPFLAGS) $(AM_CPPFLAGS)
@@ -86,7 +86,7 @@ libgnunet_plugin_datacache_postgres_la_LDFLAGS = \
 libgnunet_plugin_datacache_template_la_SOURCES = \
   plugin_datacache_template.c
 libgnunet_plugin_datacache_template_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la $(XLIBS) \
+  $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) \
   $(LTLIBINTL)
 libgnunet_plugin_datacache_template_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
@@ -126,42 +126,42 @@ test_datacache_sqlite_SOURCES = \
 test_datacache_sqlite_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
  libgnunetdatacache.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_datacache_quota_sqlite_SOURCES = \
  test_datacache_quota.c
 test_datacache_quota_sqlite_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
  libgnunetdatacache.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_datacache_heap_SOURCES = \
  test_datacache.c
 test_datacache_heap_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
  libgnunetdatacache.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_datacache_quota_heap_SOURCES = \
  test_datacache_quota.c
 test_datacache_quota_heap_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
  libgnunetdatacache.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_datacache_postgres_SOURCES = \
  test_datacache.c
 test_datacache_postgres_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
  libgnunetdatacache.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_datacache_quota_postgres_SOURCES = \
  test_datacache_quota.c
 test_datacache_quota_postgres_LDADD = \
  $(top_builddir)/src/testing/libgnunettesting.la \
  libgnunetdatacache.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 EXTRA_DIST = \
  test_datacache_data_sqlite.conf \

@@ -17,7 +17,7 @@ plugin_LTLIBRARIES = \
 libgnunet_plugin_gnsrecord_messenger_la_SOURCES = \
   plugin_gnsrecord_messenger.c
 libgnunet_plugin_gnsrecord_messenger_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LTLIBINTL)
 libgnunet_plugin_gnsrecord_messenger_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
@@ -52,7 +52,7 @@ libgnunetmessenger_la_SOURCES = \
   messenger_api_handle.c messenger_api_handle.h \
   messenger_api_room.c messenger_api_room.h
 libgnunetmessenger_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/cadet/libgnunetcadet.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
   $(XLIB) \
@@ -65,7 +65,7 @@ gnunet_messenger_SOURCES = \
  gnunet-messenger.c
 gnunet_messenger_LDADD = \
  libgnunetmessenger.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 gnunet_messenger_LDFLAGS = \
   $(GN_LIBINTL)
 
@@ -92,7 +92,7 @@ gnunet_service_messenger_SOURCES = \
   gnunet-service-messenger_tunnel.c gnunet-service-messenger_tunnel.h
 gnunet_service_messenger_LDADD = \
   libgnunetmessenger.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/cadet/libgnunetcadet.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
   $(GN_LIBINTL)
@@ -110,14 +110,14 @@ test_messenger_api_SOURCES = \
 test_messenger_api_LDADD = \
   libgnunetmessenger.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_messenger_anonymous_SOURCES = \
   test_messenger_anonymous.c
 test_messenger_anonymous_LDADD = \
   libgnunetmessenger.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 EXTRA_DIST = \
   test_messenger_api.conf

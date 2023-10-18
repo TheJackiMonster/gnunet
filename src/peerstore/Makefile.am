@@ -27,7 +27,7 @@ lib_LTLIBRARIES = \
 gnunet_peerstore_SOURCES = \
  gnunet-peerstore.c
 gnunet_peerstore_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   libgnunetpeerstore.la \
   $(GN_LIBINTL)
 
@@ -37,16 +37,16 @@ gnunet_service_peerstore_SOURCES = \
  peerstore.h
 gnunet_service_peerstore_CFLAGS = $(AM_CFLAGS)
 gnunet_service_peerstore_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
-  $(top_builddir)/src/hello/libgnunethello.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/hello/libgnunethello.la \
   $(GN_LIBINTL)
 
 libgnunetpeerstore_la_SOURCES = \
   peerstore_api.c \
   peerstore_common.c
 libgnunetpeerstore_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
-  $(top_builddir)/src/hello/libgnunethello.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/hello/libgnunethello.la
 libgnunetpeerstore_la_LDFLAGS = \
   $(GN_LIBINTL) \
   $(GN_LIB_LDFLAGS)
@@ -58,7 +58,7 @@ libgnunet_plugin_peerstore_flat_la_SOURCES = \
   plugin_peerstore_flat.c
 libgnunet_plugin_peerstore_flat_la_LIBADD = \
   libgnunetpeerstore.la  \
-  $(top_builddir)/src/util/libgnunetutil.la $(XLIBS) \
+  $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) \
   $(LTLIBINTL)
 libgnunet_plugin_peerstore_flat_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
@@ -72,7 +72,7 @@ libgnunet_plugin_peerstore_sqlite_la_SOURCES = \
 libgnunet_plugin_peerstore_sqlite_la_LIBADD = \
   libgnunetpeerstore.la  \
   $(top_builddir)/src/sq/libgnunetsq.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(XLIBS) -lsqlite3 \
   $(LTLIBINTL)
 libgnunet_plugin_peerstore_sqlite_la_LDFLAGS = \
@@ -87,13 +87,13 @@ test_plugin_peerstore_sqlite_SOURCES = \
   test_plugin_peerstore.c
 test_plugin_peerstore_sqlite_LDADD = \
 	$(top_builddir)/src/testing/libgnunettesting.la \
-	$(top_builddir)/src/util/libgnunetutil.la
+	$(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_plugin_peerstore_flat_SOURCES = \
   test_plugin_peerstore.c
 test_plugin_peerstore_flat_LDADD = \
 	$(top_builddir)/src/testing/libgnunettesting.la \
-	$(top_builddir)/src/util/libgnunetutil.la
+	$(top_builddir)/src/lib/util/libgnunetutil.la
 
 check_PROGRAMS = \
  test_peerstore_api_store \
@@ -119,32 +119,32 @@ test_peerstore_api_store_SOURCES = \
 test_peerstore_api_store_LDADD = \
   libgnunetpeerstore.la  \
   $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_peerstore_api_iterate_SOURCES = \
  test_peerstore_api_iterate.c
 test_peerstore_api_iterate_LDADD = \
   libgnunetpeerstore.la  \
   $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_peerstore_api_watch_SOURCES = \
  test_peerstore_api_watch.c
 test_peerstore_api_watch_LDADD = \
   libgnunetpeerstore.la  \
   $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_peerstore_api_sync_SOURCES = \
  test_peerstore_api_sync.c
 test_peerstore_api_sync_LDADD = \
   libgnunetpeerstore.la  \
   $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 perf_peerstore_store_SOURCES = \
  perf_peerstore_store.c
 perf_peerstore_store_LDADD = \
   libgnunetpeerstore.la  \
   $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la

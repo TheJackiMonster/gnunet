@@ -50,7 +50,7 @@ static char *name;
 /**
  * Public key of the zone to look in.
  */
-static struct GNUNET_IDENTITY_PublicKey pubkey;
+static struct GNUNET_CRYPTO_PublicKey pubkey;
 
 /**
  * Public key of the zone to look in, in ASCII.
@@ -176,7 +176,7 @@ run (void *cls,
   }
 
   if (GNUNET_OK !=
-      GNUNET_IDENTITY_public_key_from_string (pkey, &pubkey))
+      GNUNET_CRYPTO_public_key_from_string (pkey, &pubkey))
   {
     fprintf (stderr, _ ("Invalid public key for zone `%s'\n"), pkey);
     GNUNET_SCHEDULER_shutdown ();

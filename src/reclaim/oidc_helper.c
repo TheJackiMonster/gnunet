@@ -158,7 +158,7 @@ fix_base64 (char *str)
 
 
 static json_t*
-generate_userinfo_json (const struct GNUNET_IDENTITY_PublicKey *sub_key,
+generate_userinfo_json (const struct GNUNET_CRYPTO_PublicKey *sub_key,
                         const struct GNUNET_RECLAIM_AttributeList *attrs,
                         const struct
                         GNUNET_RECLAIM_PresentationList *presentations)
@@ -184,7 +184,7 @@ generate_userinfo_json (const struct GNUNET_IDENTITY_PublicKey *sub_key,
   subject =
     GNUNET_STRINGS_data_to_string_alloc (sub_key,
                                          sizeof(struct
-                                                GNUNET_IDENTITY_PublicKey));
+                                                GNUNET_CRYPTO_PublicKey));
   body = json_object ();
   aggr_names = json_object ();
   aggr_sources = json_object ();
@@ -343,7 +343,7 @@ generate_userinfo_json (const struct GNUNET_IDENTITY_PublicKey *sub_key,
  * @return Userinfo JSON
  */
 char *
-OIDC_generate_userinfo (const struct GNUNET_IDENTITY_PublicKey *sub_key,
+OIDC_generate_userinfo (const struct GNUNET_CRYPTO_PublicKey *sub_key,
                         const struct GNUNET_RECLAIM_AttributeList *attrs,
                         const struct
                         GNUNET_RECLAIM_PresentationList *presentations)
@@ -359,8 +359,8 @@ OIDC_generate_userinfo (const struct GNUNET_IDENTITY_PublicKey *sub_key,
 
 
 char *
-generate_id_token_body (const struct GNUNET_IDENTITY_PublicKey *aud_key,
-                        const struct GNUNET_IDENTITY_PublicKey *sub_key,
+generate_id_token_body (const struct GNUNET_CRYPTO_PublicKey *aud_key,
+                        const struct GNUNET_CRYPTO_PublicKey *sub_key,
                         const struct GNUNET_RECLAIM_AttributeList *attrs,
                         const struct
                         GNUNET_RECLAIM_PresentationList *presentations,
@@ -387,11 +387,11 @@ generate_id_token_body (const struct GNUNET_IDENTITY_PublicKey *aud_key,
   subject =
     GNUNET_STRINGS_data_to_string_alloc (sub_key,
                                          sizeof(struct
-                                                GNUNET_IDENTITY_PublicKey));
+                                                GNUNET_CRYPTO_PublicKey));
   audience =
     GNUNET_STRINGS_data_to_string_alloc (aud_key,
                                          sizeof(struct
-                                                GNUNET_IDENTITY_PublicKey));
+                                                GNUNET_CRYPTO_PublicKey));
 
   // aud REQUIRED public key client_id must be there
   json_object_set_new (body, "aud", json_string (audience));
@@ -424,8 +424,8 @@ generate_id_token_body (const struct GNUNET_IDENTITY_PublicKey *aud_key,
 
 
 char *
-OIDC_generate_id_token_rsa (const struct GNUNET_IDENTITY_PublicKey *aud_key,
-                            const struct GNUNET_IDENTITY_PublicKey *sub_key,
+OIDC_generate_id_token_rsa (const struct GNUNET_CRYPTO_PublicKey *aud_key,
+                            const struct GNUNET_CRYPTO_PublicKey *sub_key,
                             const struct GNUNET_RECLAIM_AttributeList *attrs,
                             const struct
                             GNUNET_RECLAIM_PresentationList *presentations,
@@ -486,8 +486,8 @@ OIDC_generate_id_token_rsa (const struct GNUNET_IDENTITY_PublicKey *aud_key,
  * @return a new base64-encoded JWT string.
  */
 char *
-OIDC_generate_id_token_hmac (const struct GNUNET_IDENTITY_PublicKey *aud_key,
-                             const struct GNUNET_IDENTITY_PublicKey *sub_key,
+OIDC_generate_id_token_hmac (const struct GNUNET_CRYPTO_PublicKey *aud_key,
+                             const struct GNUNET_CRYPTO_PublicKey *sub_key,
                              const struct GNUNET_RECLAIM_AttributeList *attrs,
                              const struct
                              GNUNET_RECLAIM_PresentationList *presentations,
@@ -578,7 +578,7 @@ OIDC_generate_id_token_hmac (const struct GNUNET_IDENTITY_PublicKey *aud_key,
  * @return a new authorization code (caller must free)
  */
 char *
-OIDC_build_authz_code (const struct GNUNET_IDENTITY_PrivateKey *issuer,
+OIDC_build_authz_code (const struct GNUNET_CRYPTO_PrivateKey *issuer,
                        const struct GNUNET_RECLAIM_Ticket *ticket,
                        const struct GNUNET_RECLAIM_AttributeList *attrs,
                        const struct
@@ -671,7 +671,7 @@ OIDC_build_authz_code (const struct GNUNET_IDENTITY_PrivateKey *issuer,
   // Get length
   code_payload_len = sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
                      + payload_len + sizeof(struct
-                                            GNUNET_IDENTITY_Signature);
+                                            GNUNET_CRYPTO_Signature);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Length of data to encode: %lu\n",
               code_payload_len);
@@ -690,9 +690,9 @@ OIDC_build_authz_code (const struct GNUNET_IDENTITY_PrivateKey *issuer,
   buf_ptr += payload_len;
   // Sign and store signature
   if (GNUNET_SYSERR ==
-      GNUNET_IDENTITY_sign_ (issuer,
+      GNUNET_CRYPTO_sign_ (issuer,
                              purpose,
-                             (struct GNUNET_IDENTITY_Signature *)
+                             (struct GNUNET_CRYPTO_Signature *)
                              buf_ptr))
   {
     GNUNET_break (0);
@@ -764,7 +764,7 @@ check_code_challenge (const char *code_challenge,
  * @return GNUNET_OK if successful, else GNUNET_SYSERR
  */
 int
-OIDC_parse_authz_code (const struct GNUNET_IDENTITY_PublicKey *audience,
+OIDC_parse_authz_code (const struct GNUNET_CRYPTO_PublicKey *audience,
                        const char *code,
                        const char *code_verifier,
                        struct GNUNET_RECLAIM_Ticket *ticket,
@@ -780,7 +780,7 @@ OIDC_parse_authz_code (const struct GNUNET_IDENTITY_PublicKey *audience,
   char *presentations_ser;
   char *code_challenge;
   struct GNUNET_CRYPTO_EccSignaturePurpose *purpose;
-  struct GNUNET_IDENTITY_Signature *signature;
+  struct GNUNET_CRYPTO_Signature *signature;
   uint32_t code_challenge_len;
   uint32_t attrs_ser_len;
   uint32_t pres_ser_len;
@@ -796,7 +796,7 @@ OIDC_parse_authz_code (const struct GNUNET_IDENTITY_PublicKey *audience,
                                      (void **) &code_payload);
   if (code_payload_len < sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
       + sizeof(struct OIDC_Parameters)
-      + sizeof(struct GNUNET_IDENTITY_Signature))
+      + sizeof(struct GNUNET_CRYPTO_Signature))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Authorization code malformed\n");
     GNUNET_free (code_payload);
@@ -807,10 +807,10 @@ OIDC_parse_authz_code (const struct GNUNET_IDENTITY_PublicKey *audience,
   plaintext_len = code_payload_len;
   plaintext_len -= sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose);
   ptr = (char *) &purpose[1];
-  plaintext_len -= sizeof(struct GNUNET_IDENTITY_Signature);
+  plaintext_len -= sizeof(struct GNUNET_CRYPTO_Signature);
   plaintext = ptr;
   ptr += plaintext_len;
-  signature = (struct GNUNET_IDENTITY_Signature *) ptr;
+  signature = (struct GNUNET_CRYPTO_Signature *) ptr;
   params = (struct OIDC_Parameters *) plaintext;
 
   // cmp code_challenge code_verifier
@@ -848,7 +848,7 @@ OIDC_parse_authz_code (const struct GNUNET_IDENTITY_PublicKey *audience,
     return GNUNET_SYSERR;
   }
   if (GNUNET_OK !=
-      GNUNET_IDENTITY_signature_verify_ (
+      GNUNET_CRYPTO_signature_verify_ (
         GNUNET_SIGNATURE_PURPOSE_RECLAIM_CODE_SIGN,
         purpose,
         signature,

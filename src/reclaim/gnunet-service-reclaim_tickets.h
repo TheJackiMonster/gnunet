@@ -138,7 +138,7 @@ typedef void (*RECLAIM_TICKETS_TicketResult) (
  */
 typedef void (*RECLAIM_TICKETS_ConsumeCallback) (
   void *cls,
-  const struct GNUNET_IDENTITY_PublicKey *identity,
+  const struct GNUNET_CRYPTO_PublicKey *identity,
   const struct GNUNET_RECLAIM_AttributeList *attributes,
   const struct GNUNET_RECLAIM_PresentationList *presentations,
   int32_t success,
@@ -167,7 +167,7 @@ typedef void (*RECLAIM_TICKETS_RevokeCallback) (void *cls, int32_t success);
  */
 struct RECLAIM_TICKETS_RevokeHandle *
 RECLAIM_TICKETS_revoke (const struct GNUNET_RECLAIM_Ticket *ticket,
-                        const struct GNUNET_IDENTITY_PrivateKey *identity,
+                        const struct GNUNET_CRYPTO_PrivateKey *identity,
                         RECLAIM_TICKETS_RevokeCallback cb,
                         void *cb_cls);
 
@@ -193,7 +193,7 @@ RECLAIM_TICKETS_revoke_cancel (struct RECLAIM_TICKETS_RevokeHandle *rh);
  * @return handle to the operation
  */
 struct RECLAIM_TICKETS_ConsumeHandle *
-RECLAIM_TICKETS_consume (const struct GNUNET_IDENTITY_PrivateKey *id,
+RECLAIM_TICKETS_consume (const struct GNUNET_CRYPTO_PrivateKey *id,
                          const struct GNUNET_RECLAIM_Ticket *ticket,
                          RECLAIM_TICKETS_ConsumeCallback cb,
                          void *cb_cls);
@@ -220,9 +220,9 @@ RECLAIM_TICKETS_consume_cancel (struct RECLAIM_TICKETS_ConsumeHandle *cth);
  * FIXME: Return handle??
  */
 void
-RECLAIM_TICKETS_issue (const struct GNUNET_IDENTITY_PrivateKey *identity,
+RECLAIM_TICKETS_issue (const struct GNUNET_CRYPTO_PrivateKey *identity,
                        const struct GNUNET_RECLAIM_AttributeList *attrs,
-                       const struct GNUNET_IDENTITY_PublicKey *audience,
+                       const struct GNUNET_CRYPTO_PublicKey *audience,
                        RECLAIM_TICKETS_TicketResult cb,
                        void *cb_cls);
 
@@ -255,7 +255,7 @@ RECLAIM_TICKETS_iteration_stop (struct RECLAIM_TICKETS_Iterator *iter);
  */
 struct RECLAIM_TICKETS_Iterator *
 RECLAIM_TICKETS_iteration_start (
-  const struct GNUNET_IDENTITY_PrivateKey *identity,
+  const struct GNUNET_CRYPTO_PrivateKey *identity,
   RECLAIM_TICKETS_TicketIter cb,
   void *cb_cls);
 

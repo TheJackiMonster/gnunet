@@ -60,7 +60,7 @@ extern "C"
  * Maximum length of a revocation
  */
 #define GNUNET_REVOCATION_MAX_PROOF_SIZE sizeof(struct GNUNET_REVOCATION_PowP) +\
-                                         sizeof(struct GNUNET_IDENTITY_PublicKey) +\
+                                         sizeof(struct GNUNET_CRYPTO_PublicKey) +\
                                          1024 //FIXME max sig_len
 
 /**
@@ -152,7 +152,7 @@ typedef void (*GNUNET_REVOCATION_Callback) (void *cls,
  */
 struct GNUNET_REVOCATION_Query *
 GNUNET_REVOCATION_query (const struct GNUNET_CONFIGURATION_Handle *cfg,
-                         const struct GNUNET_IDENTITY_PublicKey *key,
+                         const struct GNUNET_CRYPTO_PublicKey *key,
                          GNUNET_REVOCATION_Callback func, void *func_cls);
 
 
@@ -219,7 +219,7 @@ GNUNET_REVOCATION_check_pow (const struct GNUNET_REVOCATION_PowP *pow,
  * @param pow the pow object to work with in the calculation.
  */
 void
-GNUNET_REVOCATION_pow_init (const struct GNUNET_IDENTITY_PrivateKey *key,
+GNUNET_REVOCATION_pow_init (const struct GNUNET_CRYPTO_PrivateKey *key,
                             struct GNUNET_REVOCATION_PowP *pow);
 
 

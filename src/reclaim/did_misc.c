@@ -33,14 +33,14 @@
 char*
 DID_ego_to_did (struct GNUNET_IDENTITY_Ego *ego)
 {
-  struct GNUNET_IDENTITY_PublicKey pkey; // Get Public key
+  struct GNUNET_CRYPTO_PublicKey pkey; // Get Public key
   char *pkey_str;
   char *did_str;
   size_t pkey_len;
 
   GNUNET_IDENTITY_ego_get_public_key (ego, &pkey);
 
-  pkey_str = GNUNET_IDENTITY_public_key_to_string (&pkey);
+  pkey_str = GNUNET_CRYPTO_public_key_to_string (&pkey);
   GNUNET_asprintf (&did_str, "%s%s",
                    GNUNET_RECLAIM_DID_METHOD_PREFIX,
                    pkey_str);
@@ -51,7 +51,7 @@ DID_ego_to_did (struct GNUNET_IDENTITY_Ego *ego)
 
 enum GNUNET_GenericReturnValue
 DID_public_key_from_did (const char* did,
-                         struct GNUNET_IDENTITY_PublicKey *pk)
+                         struct GNUNET_CRYPTO_PublicKey *pk)
 {
   /* FIXME-MSC: I suggest introducing a
    * #define MAX_DID_LENGTH <something>
@@ -60,7 +60,7 @@ DID_public_key_from_did (const char* did,
   char pkey_str[59];
 
   if ((1 != (sscanf (did, GNUNET_RECLAIM_DID_METHOD_PREFIX"%58s", pkey_str))) ||
-      (GNUNET_OK != GNUNET_IDENTITY_public_key_from_string (pkey_str, pk)))
+      (GNUNET_OK != GNUNET_CRYPTO_public_key_from_string (pkey_str, pk)))
   {
     return GNUNET_SYSERR;
   }

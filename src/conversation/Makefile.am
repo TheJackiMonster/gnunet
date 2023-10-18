@@ -41,7 +41,7 @@ plugin_LTLIBRARIES = \
 libgnunet_plugin_gnsrecord_conversation_la_SOURCES = \
   plugin_gnsrecord_conversation.c
 libgnunet_plugin_gnsrecord_conversation_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LTLIBINTL)
 libgnunet_plugin_gnsrecord_conversation_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
@@ -50,7 +50,7 @@ libgnunet_plugin_gnsrecord_conversation_la_LDFLAGS = \
 libgnunetmicrophone_la_SOURCES = \
   microphone.c
 libgnunetmicrophone_la_LIBADD = \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 libgnunetmicrophone_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)   \
   -version-info 0:0:0
@@ -58,7 +58,7 @@ libgnunetmicrophone_la_LDFLAGS = \
 libgnunetspeaker_la_SOURCES = \
   speaker.c
 libgnunetspeaker_la_LIBADD = \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 libgnunetspeaker_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)   \
   -version-info 0:0:0
@@ -70,10 +70,10 @@ libgnunetconversation_la_SOURCES = \
   conversation.h
 libgnunetconversation_la_LIBADD = \
   $(top_builddir)/src/gns/libgnunetgns.la \
-  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 libgnunetconversation_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)   \
@@ -113,7 +113,7 @@ if BUILD_PULSE_HELPERS
 gnunet_helper_audio_record_SOURCES = \
   gnunet-helper-audio-record.c
 gnunet_helper_audio_record_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   -lpulse  -lopus -logg \
   $(INTLLIBS)
 #gnunet_helper_audio_record_LDFLAGS = \
@@ -122,7 +122,7 @@ gnunet_helper_audio_record_LDADD = \
 gnunet_helper_audio_playback_SOURCES = \
   gnunet-helper-audio-playback.c
 gnunet_helper_audio_playback_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   -lpulse -lopus -logg \
   $(INTLLIBS)
 #gnunet_helper_audio_playback_LDFLAGS = \
@@ -132,7 +132,7 @@ if BUILD_GST_HELPERS
 gnunet_helper_audio_record_SOURCES = \
   gnunet-helper-audio-record-gst.c
 gnunet_helper_audio_record_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GST_LIBS) \
   $(INTLLIBS)
 gnunet_helper_audio_record_LDFLAGS = \
@@ -143,7 +143,7 @@ gnunet_helper_audio_record_CFLAGS = \
 gnunet_helper_audio_playback_SOURCES = \
     gnunet-helper-audio-playback-gst.c
 gnunet_helper_audio_playback_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GST_LIBS) \
   $(INTLLIBS)
 gnunet_helper_audio_playback_LDFLAGS = \
@@ -155,7 +155,7 @@ if BUILD_EXPERIMENTAL_HELPERS
 gnunet_helper_audio_record_SOURCES = \
   gnunet_gst_test.c gnunet_gst.c
 gnunet_helper_audio_record_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GST_LIBS) \
   $(INTLLIBS)
 gnunet_helper_audio_record_LDFLAGS = \
@@ -166,7 +166,7 @@ gnunet_helper_audio_record_CFLAGS = \
 gnunet_helper_audio_playback_SOURCES = \
     gnunet_gst_test.c gnunet_gst.c
 gnunet_helper_audio_playback_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GST_LIBS) \
   $(INTLLIBS)
 gnunet_helper_audio_playback_LDFLAGS = \
@@ -184,7 +184,7 @@ gnunet_service_conversation_LDADD = \
   libgnunetspeaker.la \
   libgnunetmicrophone.la \
   $(top_builddir)/src/cadet/libgnunetcadet.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
   $(INTLLIBS)
 #gnunet_service_conversation_LDFLAGS = \
@@ -197,10 +197,10 @@ gnunet_conversation_LDADD = \
   libgnunetspeaker.la \
   libgnunetconversation.la \
   $(top_builddir)/src/gns/libgnunetgns.la \
-  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(INTLLIBS)
 #gnunet_conversation_LDFLAGS = \
 # 
@@ -210,7 +210,7 @@ gnunet_conversation_test_SOURCES = \
 gnunet_conversation_test_LDADD = \
   libgnunetmicrophone.la \
   libgnunetspeaker.la \
-  $(top_builddir)/src/util/libgnunetutil.la  \
+  $(top_builddir)/src/lib/util/libgnunetutil.la  \
   $(INTLLIBS)
 #gnunet_conversation_test_LDFLAGS = \
 # 
@@ -222,11 +222,11 @@ test_conversation_api_LDADD = \
   libgnunetconversation.la \
   libgnunetspeaker.la \
   libgnunetmicrophone.la \
-  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 test_conversation_api_LDFLAGS = \
   -export-dynamic
 
@@ -236,11 +236,11 @@ test_conversation_api_twocalls_LDADD = \
   libgnunetconversation.la \
   libgnunetspeaker.la \
   libgnunetmicrophone.la \
-  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 test_conversation_api_twocalls_LDFLAGS = \
   -export-dynamic
 
@@ -250,11 +250,11 @@ test_conversation_api_reject_LDADD = \
   libgnunetconversation.la \
   libgnunetspeaker.la \
   libgnunetmicrophone.la \
-  $(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 test_conversation_api_reject_LDFLAGS = \
   -export-dynamic
 

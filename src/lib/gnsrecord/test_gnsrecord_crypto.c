@@ -93,10 +93,10 @@ rd_decrypt_cb (void *cls,
 
 
 static void
-test_with_type (struct GNUNET_IDENTITY_PrivateKey *privkey)
+test_with_type (struct GNUNET_CRYPTO_PrivateKey *privkey)
 {
   struct GNUNET_GNSRECORD_Block *block;
-  struct GNUNET_IDENTITY_PublicKey pubkey;
+  struct GNUNET_CRYPTO_PublicKey pubkey;
   struct GNUNET_HashCode query_pub;
   struct GNUNET_HashCode query_priv;
   struct GNUNET_HashCode query_block;
@@ -104,7 +104,7 @@ test_with_type (struct GNUNET_IDENTITY_PrivateKey *privkey)
 
 
   /* get public key */
-  GNUNET_IDENTITY_key_get_public (privkey,
+  GNUNET_CRYPTO_key_get_public (privkey,
                                   &pubkey);
 
   /* test query derivation */
@@ -155,8 +155,8 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
-  struct GNUNET_IDENTITY_PrivateKey privkey;
-  struct GNUNET_IDENTITY_PrivateKey privkey_ed;
+  struct GNUNET_CRYPTO_PrivateKey privkey;
+  struct GNUNET_CRYPTO_PrivateKey privkey_ed;
   struct GNUNET_TIME_Absolute start;
   struct GNUNET_TIME_Absolute end;
 

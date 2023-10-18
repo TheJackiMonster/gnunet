@@ -124,17 +124,17 @@ get_handle_name (const struct GNUNET_MESSENGER_Handle *handle)
 
 void
 set_handle_key (struct GNUNET_MESSENGER_Handle *handle,
-                const struct GNUNET_IDENTITY_PublicKey *pubkey)
+                const struct GNUNET_CRYPTO_PublicKey *pubkey)
 {
   GNUNET_assert(handle);
 
   if (!handle->pubkey)
-    handle->pubkey = GNUNET_new(struct GNUNET_IDENTITY_PublicKey);
+    handle->pubkey = GNUNET_new(struct GNUNET_CRYPTO_PublicKey);
 
   GNUNET_memcpy(handle->pubkey, pubkey, sizeof(*pubkey));
 }
 
-const struct GNUNET_IDENTITY_PublicKey*
+const struct GNUNET_CRYPTO_PublicKey*
 get_handle_key (const struct GNUNET_MESSENGER_Handle *handle)
 {
   GNUNET_assert(handle);

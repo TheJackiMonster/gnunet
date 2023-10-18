@@ -28,11 +28,6 @@ endif
 DLOG = crypto_ecc_dlog.c
 DLOG_TEST = test_crypto_ecc_dlog
 
-gnunet_config_diff_SOURCES = \
- gnunet-config-diff.c
-gnunet_config_diff_LDADD = \
- libgnunetutil.la
-
 test_common_logging_dummy_SOURCES = \
  test_common_logging_dummy.c
 test_common_logging_dummy_LDADD = \
@@ -73,6 +68,7 @@ libgnunetutil_la_SOURCES = \
   crypto_kdf.c \
   crypto_mpi.c \
   crypto_paillier.c \
+  crypto_pkey.c \
   crypto_pow.c \
   crypto_random.c \
   crypto_rsa.c \
@@ -152,101 +148,14 @@ libgnunetutil_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS) \
   -version-info 15:0:0
 
-GNUNET_ECC = gnunet-ecc
-GNUNET_SCRYPT = gnunet-scrypt
-
 lib_LTLIBRARIES = libgnunetutil.la
 
-libexec_PROGRAMS = \
- gnunet-service-resolver \
- gnunet-timeout
-
-bin_PROGRAMS = \
- gnunet-base32 \
- gnunet-config \
- gnunet-resolver \
- $(GNUNET_ECC) \
- $(GNUNET_SCRYPT) \
- gnunet-uri
-if HAVE_ZBAR
-bin_PROGRAMS += gnunet-qr
-endif
-
 noinst_PROGRAMS = \
- gnunet-config-diff \
- test_common_logging_dummy \
- gnunet-crypto-tvg
+ test_common_logging_dummy
 
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
 TESTS = $(check_PROGRAMS) $(check_SCRIPTS)
-endif
-
-gnunet_timeout_SOURCES = \
- gnunet-timeout.c
-
-gnunet_service_resolver_SOURCES = \
- gnunet-service-resolver.c
-gnunet_service_resolver_LDADD = \
-  libgnunetutil.la \
-  $(GN_LIBINTL)
-if HAVE_GETADDRINFO_A
-gnunet_service_resolver_LDADD += -lanl
-endif
-
-
-gnunet_resolver_SOURCES = \
- gnunet-resolver.c
-gnunet_resolver_LDADD = \
-  libgnunetutil.la \
-  $(GN_LIBINTL)
-
-gnunet_crypto_tvg_SOURCES = \
- gnunet-crypto-tvg.c
-gnunet_crypto_tvg_LDADD = \
-  libgnunetutil.la \
-  $(GN_LIBINTL) -lgcrypt -ljansson
-
-gnunet_ecc_SOURCES = \
- gnunet-ecc.c
-gnunet_ecc_LDADD = \
-  libgnunetutil.la \
-  $(GN_LIBINTL) -lgcrypt
-
-gnunet_base32_SOURCES = \
- gnunet-base32.c
-gnunet_base32_LDADD = \
-  libgnunetutil.la \
-  $(GN_LIBINTL)
-
-gnunet_scrypt_SOURCES = \
- gnunet-scrypt.c
-gnunet_scrypt_LDADD = \
-  libgnunetutil.la \
-  $(GN_LIBINTL) -lgcrypt
-
-
-gnunet_config_SOURCES = \
- gnunet-config.c
-gnunet_config_LDADD = \
-  libgnunetutil.la \
-  $(GN_LIBINTL)
-
-gnunet_uri_SOURCES = \
- gnunet-uri.c
-gnunet_uri_LDADD = \
-  libgnunetutil.la \
-  $(GN_LIBINTL)
-
-
-gnunet_qr_SOURCES = \
-  gnunet-qr.c
-gnunet_qr_LDADD = \
-  libgnunetutil.la \
-  $(GN_LIBINTL)
-gnunet_qr_LDFLAGS= -lzbar
-if HAVE_PNG
-gnunet_qr_LDFLAGS += -lpng
 endif
 
 plugin_LTLIBRARIES = \
@@ -274,9 +183,6 @@ endif
 if HAVE_SSH_KEY
 # SSH_USING_TESTS = test_socks.nc
 endif
-
-check_SCRIPTS = \
- test_crypto_vectors.sh
 
 check_PROGRAMS = \
  test_bio \
@@ -319,7 +225,6 @@ check_PROGRAMS = \
  test_plugin \
  test_program \
  test_regex \
- test_resolver_api.nc \
  test_scheduler \
  test_scheduler_delay \
  test_scheduler_hogging_cancel \
@@ -574,11 +479,6 @@ test_program_SOURCES = \
 test_program_LDADD = \
  libgnunetutil.la
 
-test_resolver_api_nc_SOURCES = \
- test_resolver_api.c
-test_resolver_api_nc_LDADD = \
- libgnunetutil.la
-
 test_scheduler_SOURCES = \
  test_scheduler.c
 test_scheduler_LDADD = \
@@ -688,9 +588,6 @@ EXTRA_DIST = \
   test_client_unix.conf \
   test_configuration_data.conf \
   test_program_data.conf \
-  test_resolver_api_data.conf \
   test_service_data.conf \
   test_speedup_data.conf \
-  child_management_test.sh \
-  test_crypto_vectors.sh \
-  crypto-test-vectors.json
+  child_management_test.sh

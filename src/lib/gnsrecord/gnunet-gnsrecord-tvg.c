@@ -146,10 +146,10 @@ run_pkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char *label)
   struct GNUNET_TIME_Absolute expire;
   struct GNUNET_GNSRECORD_Block *rrblock;
   char *bdata;
-  struct GNUNET_IDENTITY_PrivateKey id_priv;
-  struct GNUNET_IDENTITY_PublicKey id_pub;
-  struct GNUNET_IDENTITY_PrivateKey pkey_data_p;
-  struct GNUNET_IDENTITY_PublicKey pkey_data;
+  struct GNUNET_CRYPTO_PrivateKey id_priv;
+  struct GNUNET_CRYPTO_PublicKey id_pub;
+  struct GNUNET_CRYPTO_PrivateKey pkey_data_p;
+  struct GNUNET_CRYPTO_PublicKey pkey_data;
   struct GNUNET_HashCode query;
   char *rdata;
   char *conv_lbl;
@@ -164,17 +164,17 @@ run_pkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char *label)
             (char*) &id_priv.ecdsa_key,
             sizeof (id_priv.ecdsa_key), 1);
 
-  GNUNET_IDENTITY_key_get_public (&id_priv,
+  GNUNET_CRYPTO_key_get_public (&id_priv,
                                   &id_pub);
   printf ("Zone private key (d, big-endian):\n");
   print_bytes_ (&id_priv.ecdsa_key,
                 sizeof (struct GNUNET_CRYPTO_EcdsaPrivateKey), 8, 1);
   printf ("\n");
   printf ("Zone identifier (ztype|zkey):\n");
-  GNUNET_assert (0 < GNUNET_IDENTITY_public_key_get_length (&id_pub));
-  print_bytes (&id_pub, GNUNET_IDENTITY_public_key_get_length (&id_pub), 8);
+  GNUNET_assert (0 < GNUNET_CRYPTO_public_key_get_length (&id_pub));
+  print_bytes (&id_pub, GNUNET_CRYPTO_public_key_get_length (&id_pub), 8);
   GNUNET_STRINGS_data_to_string (&id_pub,
-                                 GNUNET_IDENTITY_public_key_get_length (
+                                 GNUNET_CRYPTO_public_key_get_length (
                                    &id_pub),
                                  ztld,
                                  sizeof (ztld));
@@ -185,7 +185,7 @@ run_pkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char *label)
 
   pkey_data_p.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
   GNUNET_CRYPTO_ecdsa_key_create (&pkey_data_p.ecdsa_key);
-  GNUNET_IDENTITY_key_get_public (&pkey_data_p,
+  GNUNET_CRYPTO_key_get_public (&pkey_data_p,
                                   &pkey_data);
   conv_lbl = GNUNET_GNSRECORD_string_normalize (label);
   printf ("Label:\n");
@@ -285,10 +285,10 @@ run_edkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char*label)
   struct GNUNET_TIME_Absolute expire;
   struct GNUNET_GNSRECORD_Block *rrblock;
   char *bdata;
-  struct GNUNET_IDENTITY_PrivateKey id_priv;
-  struct GNUNET_IDENTITY_PublicKey id_pub;
-  struct GNUNET_IDENTITY_PrivateKey pkey_data_p;
-  struct GNUNET_IDENTITY_PublicKey pkey_data;
+  struct GNUNET_CRYPTO_PrivateKey id_priv;
+  struct GNUNET_CRYPTO_PublicKey id_pub;
+  struct GNUNET_CRYPTO_PrivateKey pkey_data_p;
+  struct GNUNET_CRYPTO_PublicKey pkey_data;
   struct GNUNET_HashCode query;
   char *rdata;
   char *conv_lbl;
@@ -300,15 +300,15 @@ run_edkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char*label)
 
   id_priv.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
   GNUNET_CRYPTO_ecdsa_key_create (&id_priv.ecdsa_key);
-  GNUNET_IDENTITY_key_get_public (&id_priv,
+  GNUNET_CRYPTO_key_get_public (&id_priv,
                                   &id_pub);
 
-  id_priv.type = htonl (GNUNET_IDENTITY_TYPE_EDDSA);
+  id_priv.type = htonl (GNUNET_PUBLIC_KEY_TYPE_EDDSA);
   GNUNET_CRYPTO_eddsa_key_create (&id_priv.eddsa_key);
   parsehex (d_edkey,
             (char*) &id_priv.eddsa_key,
             sizeof (id_priv.eddsa_key), 0);
-  GNUNET_IDENTITY_key_get_public (&id_priv,
+  GNUNET_CRYPTO_key_get_public (&id_priv,
                                   &id_pub);
   fprintf (stdout,
            "Zone private key (d):\n");
@@ -316,10 +316,10 @@ run_edkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char*label)
                                            GNUNET_CRYPTO_EddsaPrivateKey), 8);
   printf ("\n");
   printf ("Zone identifier (ztype|zkey):\n");
-  GNUNET_assert (0 < GNUNET_IDENTITY_public_key_get_length (&id_pub));
-  print_bytes (&id_pub, GNUNET_IDENTITY_public_key_get_length (&id_pub), 8);
+  GNUNET_assert (0 < GNUNET_CRYPTO_public_key_get_length (&id_pub));
+  print_bytes (&id_pub, GNUNET_CRYPTO_public_key_get_length (&id_pub), 8);
   GNUNET_STRINGS_data_to_string (&id_pub,
-                                 GNUNET_IDENTITY_public_key_get_length (
+                                 GNUNET_CRYPTO_public_key_get_length (
                                    &id_pub),
                                  ztld,
                                  sizeof (ztld));
@@ -330,7 +330,7 @@ run_edkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char*label)
 
   pkey_data_p.type = htonl (GNUNET_GNSRECORD_TYPE_EDKEY);
   GNUNET_CRYPTO_eddsa_key_create (&pkey_data_p.eddsa_key);
-  GNUNET_IDENTITY_key_get_public (&pkey_data_p,
+  GNUNET_CRYPTO_key_get_public (&pkey_data_p,
                                   &pkey_data);
   conv_lbl = GNUNET_GNSRECORD_string_normalize (label);
   printf ("Label:\n");

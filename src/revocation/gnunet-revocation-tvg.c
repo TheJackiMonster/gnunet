@@ -101,25 +101,25 @@ print_bytes (void *buf,
 
 
 static void
-run_with_key (struct GNUNET_IDENTITY_PrivateKey *id_priv)
+run_with_key (struct GNUNET_CRYPTO_PrivateKey *id_priv)
 {
-  struct GNUNET_IDENTITY_PublicKey id_pub;
+  struct GNUNET_CRYPTO_PublicKey id_pub;
   struct GNUNET_REVOCATION_PowP *pow;
   struct GNUNET_REVOCATION_PowCalculationHandle *ph;
   struct GNUNET_TIME_Relative exp;
   char ztld[128];
   ssize_t key_len;
 
-  GNUNET_IDENTITY_key_get_public (id_priv,
+  GNUNET_CRYPTO_key_get_public (id_priv,
                                   &id_pub);
   GNUNET_STRINGS_data_to_string (&id_pub,
-                                 GNUNET_IDENTITY_public_key_get_length (
+                                 GNUNET_CRYPTO_public_key_get_length (
                                    &id_pub),
                                  ztld,
                                  sizeof (ztld));
   fprintf (stdout, "\n");
   fprintf (stdout, "Zone identifier (ztype|zkey):\n");
-  key_len = GNUNET_IDENTITY_public_key_get_length (&id_pub);
+  key_len = GNUNET_CRYPTO_public_key_get_length (&id_pub);
   GNUNET_assert (0 < key_len);
   print_bytes (&id_pub, key_len, 8);
   fprintf (stdout, "\n");
@@ -178,16 +178,16 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
-  struct GNUNET_IDENTITY_PrivateKey id_priv;
+  struct GNUNET_CRYPTO_PrivateKey id_priv;
 
-  id_priv.type = htonl (GNUNET_IDENTITY_TYPE_ECDSA);
+  id_priv.type = htonl (GNUNET_PUBLIC_KEY_TYPE_ECDSA);
   parsehex (d_pkey,(char*) &id_priv.ecdsa_key, sizeof (id_priv.ecdsa_key), 1);
 
   fprintf (stdout, "Zone private key (d, big-endian):\n");
   print_bytes_ (&id_priv.ecdsa_key, sizeof(id_priv.ecdsa_key), 8, 1);
   run_with_key (&id_priv);
   printf ("\n");
-  id_priv.type = htonl (GNUNET_IDENTITY_TYPE_EDDSA);
+  id_priv.type = htonl (GNUNET_PUBLIC_KEY_TYPE_EDDSA);
   parsehex (d_edkey,(char*) &id_priv.eddsa_key, sizeof (id_priv.eddsa_key), 0);
 
   fprintf (stdout, "Zone private key (d):\n");

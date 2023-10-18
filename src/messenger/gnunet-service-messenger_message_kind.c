@@ -84,7 +84,7 @@ create_message_name (const char *name)
 }
 
 struct GNUNET_MESSENGER_Message*
-create_message_key (const struct GNUNET_IDENTITY_PrivateKey *key)
+create_message_key (const struct GNUNET_CRYPTO_PrivateKey *key)
 {
   if (!key)
     return NULL;
@@ -94,7 +94,7 @@ create_message_key (const struct GNUNET_IDENTITY_PrivateKey *key)
   if (!message)
     return NULL;
 
-  GNUNET_IDENTITY_key_get_public (key, &(message->body.key.key));
+  GNUNET_CRYPTO_key_get_public (key, &(message->body.key.key));
   return message;
 }
 

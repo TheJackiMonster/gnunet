@@ -38,8 +38,7 @@ gnunet_gnsrecord_tvg_SOURCES = \
  gnunet-gnsrecord-tvg.c \
  gnsrecord_crypto.h
 gnunet_gnsrecord_tvg_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   libgnunetgnsrecord.la \
   $(GN_LIBINTL)
 
@@ -50,8 +49,7 @@ libgnunetgnsrecord_la_SOURCES = \
   gnsrecord_crypto.c \
   gnsrecord_misc.c
 libgnunetgnsrecord_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LIBGCRYPT_LIBS) \
   -lsodium \
   $(GN_LIBINTL)
@@ -62,27 +60,13 @@ libgnunetgnsrecord_la_LDFLAGS = \
 libgnunetgnsrecordjson_la_SOURCES = \
   json_gnsrecord.c
 libgnunetgnsrecordjson_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   libgnunetgnsrecord.la \
   -ljansson \
   $(GN_LIBINTL)
 libgnunetgnsrecordjson_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)  \
   -version-info 0:0:0
-
-plugin_LTLIBRARIES = \
-  libgnunet_plugin_gnsrecord_dns.la
-
-
-libgnunet_plugin_gnsrecord_dns_la_SOURCES = \
-  plugin_gnsrecord_dns.c
-libgnunet_plugin_gnsrecord_dns_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
-  $(LTLIBINTL)
-libgnunet_plugin_gnsrecord_dns_la_LDFLAGS = \
- $(GN_PLUGIN_LDFLAGS)
-
 
 EXTRA_DIST = \
   $(check_SCRIPTS)
@@ -91,9 +75,8 @@ test_gnsrecord_lsd0001testvectors_SOURCES = \
  test_gnsrecord_testvectors.c
 test_gnsrecord_lsd0001testvectors_LDADD = \
   $(top_builddir)/src/testing/libgnunettesting.la \
-	$(top_builddir)/src/identity/libgnunetidentity.la \
   libgnunetgnsrecord.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 
 test_gnsrecord_serialization_SOURCES = \
@@ -101,29 +84,27 @@ test_gnsrecord_serialization_SOURCES = \
 test_gnsrecord_serialization_LDADD = \
   $(top_builddir)/src/testing/libgnunettesting.la \
   libgnunetgnsrecord.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_gnsrecord_block_expiration_SOURCES = \
  test_gnsrecord_block_expiration.c
 test_gnsrecord_block_expiration_LDADD = \
   $(top_builddir)/src/testing/libgnunettesting.la \
   libgnunetgnsrecord.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 
 test_gnsrecord_crypto_SOURCES = \
  test_gnsrecord_crypto.c
 test_gnsrecord_crypto_LDADD = \
   $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
   libgnunetgnsrecord.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 
 perf_gnsrecord_crypto_SOURCES = \
  perf_gnsrecord_crypto.c
 perf_gnsrecord_crypto_LDADD = \
   $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
   libgnunetgnsrecord.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la

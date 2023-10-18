@@ -25,7 +25,7 @@ lib_LTLIBRARIES = \
 gnunet_cmds_helper_SOURCES = \
   gnunet-cmds-helper.c
 gnunet_cmds_helper_LDADD = $(XLIB) \
- $(top_builddir)/src/util/libgnunetutil.la \
+ $(top_builddir)/src/lib/util/libgnunetutil.la \
  libgnunettesting.la \
  $(LTLIBINTL) $(Z_LIBS)
 
@@ -51,7 +51,7 @@ libgnunettesting_la_SOURCES = \
   testing_api_traits.c
 libgnunettesting_la_LIBADD = \
  $(top_builddir)/src/arm/libgnunetarm.la \
- $(top_builddir)/src/util/libgnunetutil.la \
+ $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(LTLIBINTL)
 libgnunettesting_la_LDFLAGS = \
  $(GN_LIB_LDFLAGS) \
@@ -67,13 +67,13 @@ gnunet_testing_SOURCES = \
  gnunet-testing.c
 gnunet_testing_LDADD = \
  libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la \
+ $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(GN_LIBINTL)
 
 list_keys_SOURCES = \
  list-keys.c
 list_keys_LDADD = \
- $(top_builddir)/src/util/libgnunetutil.la \
+ $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(GN_LIBINTL)
 
 
@@ -97,38 +97,38 @@ test_testing_start_with_config_SOURCES = \
  test_testing_start_with_config.c
 test_testing_start_with_config_LDADD = \
  libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la \
- $(top_builddir)/src/hello/libgnunethello.la 
+ $(top_builddir)/src/lib/util/libgnunetutil.la \
+ $(top_builddir)/src/lib/hello/libgnunethello.la 
 
 test_testing_portreservation_SOURCES = \
  test_testing_portreservation.c
 test_testing_portreservation_LDADD = \
  libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_testing_peerstartup_SOURCES = \
  test_testing_peerstartup.c
 test_testing_peerstartup_LDADD = \
  libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_testing_peerstartup2_SOURCES = \
  test_testing_peerstartup2.c
 test_testing_peerstartup2_LDADD = \
  libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_testing_servicestartup_SOURCES = \
  test_testing_servicestartup.c
 test_testing_servicestartup_LDADD = \
  libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_testing_sharedservices_SOURCES = \
  test_testing_sharedservices.c
 test_testing_sharedservices_LDADD = \
  libgnunettesting.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 
 EXTRA_DIST = \
   test_testing_defaults.conf \

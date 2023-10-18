@@ -172,7 +172,7 @@ struct RequestHandle
   /**
    * Pointer to ego private key
    */
-  struct GNUNET_IDENTITY_PrivateKey priv_key;
+  struct GNUNET_CRYPTO_PrivateKey priv_key;
 
   /**
    * Rest connection
@@ -449,14 +449,14 @@ ticket_collect (void *cls, const struct GNUNET_RECLAIM_Ticket *ticket)
   tmp =
     GNUNET_STRINGS_data_to_string_alloc (&ticket->identity,
                                          sizeof(struct
-                                                GNUNET_IDENTITY_PublicKey));
+                                                GNUNET_CRYPTO_PublicKey));
   value = json_string (tmp);
   json_object_set_new (json_resource, "issuer", value);
   GNUNET_free (tmp);
   tmp =
     GNUNET_STRINGS_data_to_string_alloc (&ticket->audience,
                                          sizeof(struct
-                                                GNUNET_IDENTITY_PublicKey));
+                                                GNUNET_CRYPTO_PublicKey));
   value = json_string (tmp);
   json_object_set_new (json_resource, "audience", value);
   GNUNET_free (tmp);
@@ -474,7 +474,7 @@ add_credential_cont (struct GNUNET_REST_RequestHandle *con_handle,
                      void *cls)
 {
   struct RequestHandle *handle = cls;
-  const struct GNUNET_IDENTITY_PrivateKey *identity_priv;
+  const struct GNUNET_CRYPTO_PrivateKey *identity_priv;
   const char *identity;
   struct EgoEntry *ego_entry;
   struct GNUNET_RECLAIM_Credential *attribute;
@@ -562,7 +562,7 @@ add_credential_cont (struct GNUNET_REST_RequestHandle *con_handle,
  */
 static void
 cred_collect (void *cls,
-              const struct GNUNET_IDENTITY_PublicKey *identity,
+              const struct GNUNET_CRYPTO_PublicKey *identity,
               const struct GNUNET_RECLAIM_Credential *cred)
 {
   struct RequestHandle *handle = cls;
@@ -649,7 +649,7 @@ list_credential_cont (struct GNUNET_REST_RequestHandle *con_handle,
                       void *cls)
 {
   struct RequestHandle *handle = cls;
-  const struct GNUNET_IDENTITY_PrivateKey *priv_key;
+  const struct GNUNET_CRYPTO_PrivateKey *priv_key;
   struct EgoEntry *ego_entry;
   char *identity;
 
@@ -706,7 +706,7 @@ delete_credential_cont (struct GNUNET_REST_RequestHandle *con_handle,
                         void *cls)
 {
   struct RequestHandle *handle = cls;
-  const struct GNUNET_IDENTITY_PrivateKey *priv_key;
+  const struct GNUNET_CRYPTO_PrivateKey *priv_key;
   struct GNUNET_RECLAIM_Credential attr;
   struct EgoEntry *ego_entry;
   char *identity_id_str;
@@ -772,7 +772,7 @@ list_tickets_cont (struct GNUNET_REST_RequestHandle *con_handle,
                    const char *url,
                    void *cls)
 {
-  const struct GNUNET_IDENTITY_PrivateKey *priv_key;
+  const struct GNUNET_CRYPTO_PrivateKey *priv_key;
   struct RequestHandle *handle = cls;
   struct EgoEntry *ego_entry;
   char *identity;
@@ -819,7 +819,7 @@ add_attribute_cont (struct GNUNET_REST_RequestHandle *con_handle,
                     const char *url,
                     void *cls)
 {
-  const struct GNUNET_IDENTITY_PrivateKey *identity_priv;
+  const struct GNUNET_CRYPTO_PrivateKey *identity_priv;
   const char *identity;
   struct RequestHandle *handle = cls;
   struct EgoEntry *ego_entry;
@@ -967,7 +967,7 @@ parse_jwt (const struct GNUNET_RECLAIM_Credential *cred,
  */
 static void
 attr_collect (void *cls,
-              const struct GNUNET_IDENTITY_PublicKey *identity,
+              const struct GNUNET_CRYPTO_PublicKey *identity,
               const struct GNUNET_RECLAIM_Attribute *attr)
 {
   struct RequestHandle *handle = cls;
@@ -1016,7 +1016,7 @@ list_attribute_cont (struct GNUNET_REST_RequestHandle *con_handle,
                      const char *url,
                      void *cls)
 {
-  const struct GNUNET_IDENTITY_PrivateKey *priv_key;
+  const struct GNUNET_CRYPTO_PrivateKey *priv_key;
   struct RequestHandle *handle = cls;
   struct EgoEntry *ego_entry;
   char *identity;
@@ -1070,7 +1070,7 @@ delete_attribute_cont (struct GNUNET_REST_RequestHandle *con_handle,
                        const char *url,
                        void *cls)
 {
-  const struct GNUNET_IDENTITY_PrivateKey *priv_key;
+  const struct GNUNET_CRYPTO_PrivateKey *priv_key;
   struct RequestHandle *handle = cls;
   struct GNUNET_RECLAIM_Attribute attr;
   struct EgoEntry *ego_entry;
@@ -1128,11 +1128,11 @@ revoke_ticket_cont (struct GNUNET_REST_RequestHandle *con_handle,
                     const char *url,
                     void *cls)
 {
-  const struct GNUNET_IDENTITY_PrivateKey *identity_priv;
+  const struct GNUNET_CRYPTO_PrivateKey *identity_priv;
   struct RequestHandle *handle = cls;
   struct EgoEntry *ego_entry;
   struct GNUNET_RECLAIM_Ticket *ticket = NULL;
-  struct GNUNET_IDENTITY_PublicKey tmp_pk;
+  struct GNUNET_CRYPTO_PublicKey tmp_pk;
   char term_data[handle->rest_handle->data_size + 1];
   json_t *data_json;
   json_error_t err;
@@ -1176,7 +1176,7 @@ revoke_ticket_cont (struct GNUNET_REST_RequestHandle *con_handle,
     GNUNET_IDENTITY_ego_get_public_key (ego_entry->ego, &tmp_pk);
     if (0 == memcmp (&ticket->identity,
                      &tmp_pk,
-                     sizeof(struct GNUNET_IDENTITY_PublicKey)))
+                     sizeof(struct GNUNET_CRYPTO_PublicKey)))
       break;
   }
   if (NULL == ego_entry)
@@ -1198,7 +1198,7 @@ revoke_ticket_cont (struct GNUNET_REST_RequestHandle *con_handle,
 
 static void
 consume_cont (void *cls,
-              const struct GNUNET_IDENTITY_PublicKey *identity,
+              const struct GNUNET_CRYPTO_PublicKey *identity,
               const struct GNUNET_RECLAIM_Attribute *attr,
               const struct GNUNET_RECLAIM_Presentation *presentation)
 {
@@ -1235,11 +1235,11 @@ consume_ticket_cont (struct GNUNET_REST_RequestHandle *con_handle,
                      const char *url,
                      void *cls)
 {
-  const struct GNUNET_IDENTITY_PrivateKey *identity_priv;
+  const struct GNUNET_CRYPTO_PrivateKey *identity_priv;
   struct RequestHandle *handle = cls;
   struct EgoEntry *ego_entry;
   struct GNUNET_RECLAIM_Ticket *ticket;
-  struct GNUNET_IDENTITY_PublicKey tmp_pk;
+  struct GNUNET_CRYPTO_PublicKey tmp_pk;
   char term_data[handle->rest_handle->data_size + 1];
   json_t *data_json;
   json_error_t err;
@@ -1279,7 +1279,7 @@ consume_ticket_cont (struct GNUNET_REST_RequestHandle *con_handle,
     GNUNET_IDENTITY_ego_get_public_key (ego_entry->ego, &tmp_pk);
     if (0 == memcmp (&ticket->audience,
                      &tmp_pk,
-                     sizeof(struct GNUNET_IDENTITY_PublicKey)))
+                     sizeof(struct GNUNET_CRYPTO_PublicKey)))
       break;
   }
   if (NULL == ego_entry)
@@ -1362,7 +1362,7 @@ list_ego (void *cls,
           const char *identifier)
 {
   struct EgoEntry *ego_entry;
-  struct GNUNET_IDENTITY_PublicKey pk;
+  struct GNUNET_CRYPTO_PublicKey pk;
 
   if (NULL == ego)
   {
@@ -1373,7 +1373,7 @@ list_ego (void *cls,
   {
     ego_entry = GNUNET_new (struct EgoEntry);
     GNUNET_IDENTITY_ego_get_public_key (ego, &pk);
-    ego_entry->keystring = GNUNET_IDENTITY_public_key_to_string (&pk);
+    ego_entry->keystring = GNUNET_CRYPTO_public_key_to_string (&pk);
     ego_entry->ego = ego;
     ego_entry->identifier = GNUNET_strdup (identifier);
     GNUNET_CONTAINER_DLL_insert_tail (ego_head,
@@ -1399,7 +1399,7 @@ list_ego (void *cls,
       /* Add */
       ego_entry = GNUNET_new (struct EgoEntry);
       GNUNET_IDENTITY_ego_get_public_key (ego, &pk);
-      ego_entry->keystring = GNUNET_IDENTITY_public_key_to_string (&pk);
+      ego_entry->keystring = GNUNET_CRYPTO_public_key_to_string (&pk);
       ego_entry->ego = ego;
       ego_entry->identifier = GNUNET_strdup (identifier);
       GNUNET_CONTAINER_DLL_insert_tail (ego_head,

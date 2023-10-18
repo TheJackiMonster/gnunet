@@ -164,7 +164,7 @@ struct AuthorityChain
     /**
      * The zone of the GNS authority
      */
-    struct GNUNET_IDENTITY_PublicKey gns_authority;
+    struct GNUNET_CRYPTO_PublicKey gns_authority;
 
     struct
     {
@@ -264,7 +264,7 @@ struct GNS_ResolverHandle
   /**
    * The top-level GNS authoritative zone to query
    */
-  struct GNUNET_IDENTITY_PublicKey authority_zone;
+  struct GNUNET_CRYPTO_PublicKey authority_zone;
 
   /**
    * called when resolution phase finishes
@@ -1213,7 +1213,7 @@ handle_gns_redirect_result (struct GNS_ResolverHandle *rh,
   const char *tld;
   struct AuthorityChain *ac;
   int af;
-  struct GNUNET_IDENTITY_PublicKey zone;
+  struct GNUNET_CRYPTO_PublicKey zone;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Handling GNS REDIRECT result `%s'\n",
@@ -1644,7 +1644,7 @@ recursive_pkey_resolution (struct GNS_ResolverHandle *rh,
                            const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct AuthorityChain *ac;
-  struct GNUNET_IDENTITY_PublicKey auth;
+  struct GNUNET_CRYPTO_PublicKey auth;
 
   /* delegation to another zone */
   if (GNUNET_OK != GNUNET_GNSRECORD_identity_from_data (rd->data,
@@ -1703,7 +1703,7 @@ recursive_gns2dns_resolution (struct GNS_ResolverHandle *rh,
     char *n;
     size_t off;
     struct Gns2DnsPending *gp;
-    struct GNUNET_IDENTITY_PublicKey zone;
+    struct GNUNET_CRYPTO_PublicKey zone;
     struct sockaddr_in v4;
     struct sockaddr_in6 v6;
 
@@ -2173,7 +2173,7 @@ handle_gns_resolution_result (void *cls,
       case GNUNET_GNSRECORD_TYPE_PKEY:
       case GNUNET_GNSRECORD_TYPE_EDKEY:
         {
-          struct GNUNET_IDENTITY_PublicKey pubkey;
+          struct GNUNET_CRYPTO_PublicKey pubkey;
           if (rd[i].data_size < sizeof(uint32_t))
           {
             GNUNET_break_op (0);
@@ -2530,7 +2530,7 @@ handle_namecache_block_response (void *cls,
   struct GNS_ResolverHandle *rh = cls;
   struct AuthorityChain *ac = rh->ac_tail;
   const char *label = ac->label;
-  const struct GNUNET_IDENTITY_PublicKey *auth =
+  const struct GNUNET_CRYPTO_PublicKey *auth =
     &ac->authority_info.gns_authority;
   struct GNUNET_HashCode query;
 
@@ -2790,7 +2790,7 @@ start_resolver_lookup (void *cls)
  * @return handle to cancel operation
  */
 struct GNS_ResolverHandle *
-GNS_resolver_lookup (const struct GNUNET_IDENTITY_PublicKey *zone,
+GNS_resolver_lookup (const struct GNUNET_CRYPTO_PublicKey *zone,
                      uint32_t record_type,
                      const char *name,
                      enum GNUNET_GNS_LocalOptions options,

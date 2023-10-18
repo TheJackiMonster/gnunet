@@ -239,9 +239,9 @@ parsehex (char *src, char *dst, size_t dstlen, int invert)
 int
 main ()
 {
-  struct GNUNET_IDENTITY_PrivateKey priv;
-  struct GNUNET_IDENTITY_PublicKey pub;
-  struct GNUNET_IDENTITY_PublicKey pub_parsed;
+  struct GNUNET_CRYPTO_PrivateKey priv;
+  struct GNUNET_CRYPTO_PublicKey pub;
+  struct GNUNET_CRYPTO_PublicKey pub_parsed;
   struct GNUNET_TIME_Relative exprel;
   struct GNUNET_REVOCATION_PowP *pow;
   char m[8096];
@@ -255,8 +255,8 @@ main ()
     parsehex (rtvs[i].d,(char*) &priv.ecdsa_key, sizeof (priv.ecdsa_key),
               (GNUNET_GNSRECORD_TYPE_PKEY == ntohl (pub_parsed.type)) ? 1 : 0);
     priv.type = pub_parsed.type;
-    GNUNET_IDENTITY_key_get_public (&priv, &pub);
-    if (0 != memcmp (&pub, &pub_parsed, GNUNET_IDENTITY_public_key_get_length (
+    GNUNET_CRYPTO_key_get_public (&priv, &pub);
+    if (0 != memcmp (&pub, &pub_parsed, GNUNET_CRYPTO_public_key_get_length (
                        &pub)))
     {
       printf ("Wrong pubkey.\n");
@@ -266,7 +266,7 @@ main ()
       break;
     }
     GNUNET_STRINGS_data_to_string (&pub,
-                                   GNUNET_IDENTITY_public_key_get_length (
+                                   GNUNET_CRYPTO_public_key_get_length (
                                      &pub),
                                    ztld,
                                    sizeof (ztld));

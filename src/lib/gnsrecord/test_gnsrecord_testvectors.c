@@ -528,7 +528,7 @@ res_checker (void *cls,
 enum GNUNET_GenericReturnValue
 check_derivations_edkey (const char*label,
                          struct GNUNET_TIME_Absolute expire,
-                         struct GNUNET_IDENTITY_PublicKey *pub,
+                         struct GNUNET_CRYPTO_PublicKey *pub,
                          struct GnsTv *tv)
 {
   unsigned char nonce[crypto_secretbox_NONCEBYTES];
@@ -566,7 +566,7 @@ check_derivations_edkey (const char*label,
 enum GNUNET_GenericReturnValue
 check_derivations_pkey (const char*label,
                         struct GNUNET_TIME_Absolute expire,
-                        struct GNUNET_IDENTITY_PublicKey *pub,
+                        struct GNUNET_CRYPTO_PublicKey *pub,
                         struct GnsTv *tv)
 {
   unsigned char ctr[GNUNET_CRYPTO_AES_KEY_LENGTH / 2];
@@ -602,9 +602,9 @@ check_derivations_pkey (const char*label,
 int
 main ()
 {
-  struct GNUNET_IDENTITY_PrivateKey priv;
-  struct GNUNET_IDENTITY_PublicKey pub;
-  struct GNUNET_IDENTITY_PublicKey pub_parsed;
+  struct GNUNET_CRYPTO_PrivateKey priv;
+  struct GNUNET_CRYPTO_PublicKey pub;
+  struct GNUNET_CRYPTO_PublicKey pub_parsed;
   struct GNUNET_GNSRECORD_Block *rrblock;
   struct GNUNET_HashCode query;
   struct GNUNET_HashCode expected_query;
@@ -624,8 +624,8 @@ main ()
     parsehex (tvs[i].d,(char*) &priv.ecdsa_key, sizeof (priv.ecdsa_key),
               (GNUNET_GNSRECORD_TYPE_PKEY == ntohl (pub_parsed.type)) ? 1 : 0);
     priv.type = pub_parsed.type;
-    GNUNET_IDENTITY_key_get_public (&priv, &pub);
-    if (0 != memcmp (&pub, &pub_parsed, GNUNET_IDENTITY_public_key_get_length (
+    GNUNET_CRYPTO_key_get_public (&priv, &pub);
+    if (0 != memcmp (&pub, &pub_parsed, GNUNET_CRYPTO_public_key_get_length (
                        &pub)))
     {
       printf ("Wrong pubkey.\n");
@@ -635,7 +635,7 @@ main ()
       break;
     }
     GNUNET_STRINGS_data_to_string (&pub,
-                                   GNUNET_IDENTITY_public_key_get_length (
+                                   GNUNET_CRYPTO_public_key_get_length (
                                      &pub),
                                    ztld,
                                    sizeof (ztld));

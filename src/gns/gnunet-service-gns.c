@@ -122,7 +122,7 @@ struct GNS_TopLevelDomain
   /**
    * Public key associated with the @a tld.
    */
-  struct GNUNET_IDENTITY_PublicKey pkey;
+  struct GNUNET_CRYPTO_PublicKey pkey;
 
   /**
    * Top-level domain as a string, including leading ".".
@@ -176,7 +176,7 @@ static struct GNS_TopLevelDomain *tld_tail;
  */
 int
 GNS_find_tld (const char *tld_str,
-              struct GNUNET_IDENTITY_PublicKey *pkey)
+              struct GNUNET_CRYPTO_PublicKey *pkey)
 {
   if ('\0' == *tld_str)
     return GNUNET_NO;
@@ -420,7 +420,7 @@ handle_lookup (void *cls,
 {
   struct GnsClient *gc = cls;
   struct ClientLookupHandle *clh;
-  struct GNUNET_IDENTITY_PublicKey zone;
+  struct GNUNET_CRYPTO_PublicKey zone;
   const char *name;
   size_t key_len;
   size_t read;
@@ -434,7 +434,7 @@ handle_lookup (void *cls,
   clh->gc = gc;
   clh->request_id = sh_msg->id;
   if ((GNUNET_SYSERR ==
-       GNUNET_IDENTITY_read_public_key_from_buffer (&sh_msg[1],
+       GNUNET_CRYPTO_read_public_key_from_buffer (&sh_msg[1],
                                                     key_len,
                                                     &zone,
                                                     &read)) ||
@@ -498,7 +498,7 @@ read_service_conf (void *cls,
                    const char *option,
                    const char *value)
 {
-  struct GNUNET_IDENTITY_PublicKey pk;
+  struct GNUNET_CRYPTO_PublicKey pk;
   struct GNS_TopLevelDomain *tld;
 
   (void) cls;

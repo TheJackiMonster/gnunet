@@ -70,10 +70,10 @@ generate_free_member_id (struct GNUNET_ShortHashCode *id,
   return GNUNET_NO;
 }
 
-const struct GNUNET_IDENTITY_PublicKey*
+const struct GNUNET_CRYPTO_PublicKey*
 get_anonymous_public_key ()
 {
-  static struct GNUNET_IDENTITY_PublicKey public_key;
+  static struct GNUNET_CRYPTO_PublicKey public_key;
   static struct GNUNET_IDENTITY_Ego* ego = NULL;
 
   if (!ego)

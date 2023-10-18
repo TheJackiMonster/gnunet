@@ -45,7 +45,7 @@ struct GNUNET_MESSENGER_MemberStore
 
 typedef int (*GNUNET_MESSENGER_MemberIteratorCallback) (
     void *cls,
-    const struct GNUNET_IDENTITY_PublicKey *public_key,
+    const struct GNUNET_CRYPTO_PublicKey *public_key,
     struct GNUNET_MESSENGER_MemberSession *session);
 
 /**

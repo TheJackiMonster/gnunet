@@ -33,9 +33,10 @@ REST_DIR = rest
 
 SUBDIRS = \
   include $(INTLEMU_SUBDIRS) \
-  util \
-  hello \
-  block \
+  lib \
+	plugin \
+	service \
+	cli \
   statistics \
   arm \
   $(TESTING) \
@@ -60,7 +61,6 @@ SUBDIRS = \
   regex \
   dns \
   identity \
-  gnsrecord \
   namecache \
   namestore \
   cadet \
