@@ -476,7 +476,7 @@ GNUNET_HELLO_parse_uri (const char *uri,
 
 
 /* NG API */
-#include "gnunet_nt_lib.h"
+#include "gnunet_util_lib.h"
 
 
 /**

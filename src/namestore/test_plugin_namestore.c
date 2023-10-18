@@ -98,14 +98,14 @@ load_plugin (const struct GNUNET_CONFIGURATION_Handle *cfg)
 static void
 test_record (void *cls,
              uint64_t seq,
-             const struct GNUNET_IDENTITY_PrivateKey *private_key,
+             const struct GNUNET_CRYPTO_PrivateKey *private_key,
              const char *label,
              unsigned int rd_count,
              const struct GNUNET_GNSRECORD_Data *rd)
 {
   int *idp = cls;
   int id = *idp;
-  struct GNUNET_IDENTITY_PrivateKey tzone_private_key;
+  struct GNUNET_CRYPTO_PrivateKey tzone_private_key;
   char tname[64];
   unsigned int trd_count = 1 + (id % 1024);
 
@@ -136,7 +136,7 @@ get_record (struct GNUNET_NAMESTORE_PluginFunctions *nsp, int id)
 static void
 put_record (struct GNUNET_NAMESTORE_PluginFunctions *nsp, int id)
 {
-  struct GNUNET_IDENTITY_PrivateKey zone_private_key;
+  struct GNUNET_CRYPTO_PrivateKey zone_private_key;
   char label[64];
   unsigned int rd_count = 1 + (id % 1024);
   struct GNUNET_GNSRECORD_Data rd[GNUNET_NZL (rd_count)];

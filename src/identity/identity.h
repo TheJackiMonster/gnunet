@@ -43,12 +43,12 @@ struct GNUNET_IDENTITY_Ego
   /**
    * The identity key pair
    */
-  struct GNUNET_IDENTITY_PublicKey pub;
+  struct GNUNET_CRYPTO_PublicKey pub;
 
   /**
    * The identity key pair
    */
-  struct GNUNET_IDENTITY_PrivateKey pk;
+  struct GNUNET_CRYPTO_PrivateKey pk;
 
   /**
    * Current name associated with this ego.

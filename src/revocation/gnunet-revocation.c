@@ -323,8 +323,8 @@ calculate_pow (void *cls)
 static void
 ego_callback (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 {
-  struct GNUNET_IDENTITY_PublicKey key;
-  const struct GNUNET_IDENTITY_PrivateKey *privkey;
+  struct GNUNET_CRYPTO_PublicKey key;
+  const struct GNUNET_CRYPTO_PrivateKey *privkey;
   struct GNUNET_REVOCATION_PowCalculationHandle *ph = NULL;
   size_t psize;
 
@@ -343,7 +343,7 @@ ego_callback (void *cls, struct GNUNET_IDENTITY_Ego *ego)
               GNUNET_DISK_fn_read (filename, proof_of_work,
                                    GNUNET_REVOCATION_MAX_PROOF_SIZE))))
   {
-    ssize_t ksize = GNUNET_IDENTITY_public_key_get_length (&key);
+    ssize_t ksize = GNUNET_CRYPTO_public_key_get_length (&key);
     if (0 > ksize)
     {
       fprintf (stderr,
@@ -411,14 +411,14 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *c)
 {
-  struct GNUNET_IDENTITY_PublicKey pk;
+  struct GNUNET_CRYPTO_PublicKey pk;
   size_t psize;
 
   cfg = c;
   if (NULL != test_ego)
   {
     if (GNUNET_OK !=
-        GNUNET_IDENTITY_public_key_from_string (test_ego,
+        GNUNET_CRYPTO_public_key_from_string (test_ego,
                                                 &pk))
     {
       fprintf (stderr, _ ("Public key `%s' malformed\n"), test_ego);

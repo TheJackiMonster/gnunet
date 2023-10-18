@@ -90,7 +90,7 @@ struct GNUNET_NAMESTORE_ZoneMonitor
   /**
    * Monitored zone.
    */
-  struct GNUNET_IDENTITY_PrivateKey zone;
+  struct GNUNET_CRYPTO_PrivateKey zone;
 
   /**
    * Do we first iterate over all existing records?
@@ -211,7 +211,7 @@ static void
 handle_result (void *cls, const struct RecordResultMessage *lrm)
 {
   struct GNUNET_NAMESTORE_ZoneMonitor *zm = cls;
-  struct GNUNET_IDENTITY_PrivateKey private_key;
+  struct GNUNET_CRYPTO_PrivateKey private_key;
   size_t name_len;
   size_t rd_len;
   size_t key_len;
@@ -226,7 +226,7 @@ handle_result (void *cls, const struct RecordResultMessage *lrm)
   name_len = ntohs (lrm->name_len);
   name_tmp = (const char *) &lrm[1] + key_len;
   GNUNET_assert (GNUNET_SYSERR !=
-                 GNUNET_IDENTITY_read_private_key_from_buffer (&lrm[1],
+                 GNUNET_CRYPTO_read_private_key_from_buffer (&lrm[1],
                                                                key_len,
                                                                &private_key,
                                                                &kbytes_read));
@@ -303,7 +303,7 @@ reconnect (struct GNUNET_NAMESTORE_ZoneMonitor *zm)
                              GNUNET_MESSAGE_TYPE_NAMESTORE_MONITOR_START);
   sm->iterate_first = htonl (zm->iterate_first);
   if (0 < zm->key_len)
-    GNUNET_IDENTITY_write_private_key_to_buffer (&zm->zone,
+    GNUNET_CRYPTO_write_private_key_to_buffer (&zm->zone,
                                                &sm[1],
                                                zm->key_len);
   sm->key_len = htons (zm->key_len);
@@ -315,7 +315,7 @@ reconnect (struct GNUNET_NAMESTORE_ZoneMonitor *zm)
 struct GNUNET_NAMESTORE_ZoneMonitor *
 GNUNET_NAMESTORE_zone_monitor_start (
   const struct GNUNET_CONFIGURATION_Handle *cfg,
-  const struct GNUNET_IDENTITY_PrivateKey *zone,
+  const struct GNUNET_CRYPTO_PrivateKey *zone,
   int iterate_first,
   GNUNET_SCHEDULER_TaskCallback error_cb,
   void *error_cb_cls,
@@ -329,7 +329,7 @@ GNUNET_NAMESTORE_zone_monitor_start (
   zm = GNUNET_new (struct GNUNET_NAMESTORE_ZoneMonitor);
   if (NULL != zone)
   {
-    zm->key_len = GNUNET_IDENTITY_private_key_get_length (zone);
+    zm->key_len = GNUNET_CRYPTO_private_key_get_length (zone);
     zm->zone = *zone;
   }
   zm->iterate_first = iterate_first;
@@ -352,7 +352,7 @@ GNUNET_NAMESTORE_zone_monitor_start (
 struct GNUNET_NAMESTORE_ZoneMonitor *
 GNUNET_NAMESTORE_zone_monitor_start2 (
   const struct GNUNET_CONFIGURATION_Handle *cfg,
-  const struct GNUNET_IDENTITY_PrivateKey *zone,
+  const struct GNUNET_CRYPTO_PrivateKey *zone,
   int iterate_first,
   GNUNET_SCHEDULER_TaskCallback error_cb,
   void *error_cb_cls,
@@ -367,7 +367,7 @@ GNUNET_NAMESTORE_zone_monitor_start2 (
   zm = GNUNET_new (struct GNUNET_NAMESTORE_ZoneMonitor);
   if (NULL != zone)
   {
-    zm->key_len = GNUNET_IDENTITY_private_key_get_length (zone);
+    zm->key_len = GNUNET_CRYPTO_private_key_get_length (zone);
     zm->zone = *zone;
   }
   zm->iterate_first = iterate_first;

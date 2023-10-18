@@ -116,7 +116,7 @@ struct CallList
   /**
    * Public key identifying the caller.
    */
-  struct GNUNET_IDENTITY_PublicKey caller_id;
+  struct GNUNET_CRYPTO_PublicKey caller_id;
 
   /**
    * Unique number of the call.
@@ -194,7 +194,7 @@ static char *ego_name;
 /**
  * Public key of active conversation partner (if any).
  */
-static struct GNUNET_IDENTITY_PublicKey peer_key;
+static struct GNUNET_CRYPTO_PublicKey peer_key;
 
 /**
  * Name of active conversation partner (if any).
@@ -244,7 +244,7 @@ static void
 phone_event_handler (void *cls,
                      enum GNUNET_CONVERSATION_PhoneEventCode code,
                      struct GNUNET_CONVERSATION_Caller *caller,
-                     const struct GNUNET_IDENTITY_PublicKey *caller_id)
+                     const struct GNUNET_CRYPTO_PublicKey *caller_id)
 {
   struct CallList *cl;
 

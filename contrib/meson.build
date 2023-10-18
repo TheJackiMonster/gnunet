@@ -1,32 +1,5 @@
 subdir('conf')
-subdir('hellos')
 subdir('scripts')
-
-
-install_data(['gns'/'def.tex',
-              'gns'/'gns-bcd.html',
-              'gns'/'gns-bcd.tex',
-              'gns'/'gns-bcd-forbidden.html',
-              'gns'/'gns-bcd-internal-error.html',
-              'gns'/'gns-bcd-invalid-key.html',
-              'gns'/'gns-bcd-not-found.html',
-              'gns'/'gns-bcd-png.tex',
-              'gns'/'gns-bcd-simple.html',
-              'gns'/'gns-bcd-simple.tex',
-              'fcfsd'/'fcfsd-index.html',
-              'fcfsd'/'fcfsd-forbidden.html',
-              'fcfsd'/'fcfsd-notfound.html',
-              'branding'/'logo'/'gnunet-logo.png',
-              'branding'/'logo'/'gnunet-logo-dark-text.svg',
-              'branding'/'logo'/'gnunet-logo-dark-only-text.svg',
-              'testing_hostkeys.ecc',
-              'netjail'/'netjail_core.sh',
-              'netjail'/'netjail_exec.sh',
-              'netjail'/'netjail_start.sh',
-              'netjail'/'netjail_stop.sh',
-              'netjail'/'topo.sh',
-              ],
-              install_dir: get_option('datadir')/'gnunet')
 
 install_data('xdg-scheme-handler'/'gnunet-uri.desktop',
              install_dir: get_option('datadir')/'applications')

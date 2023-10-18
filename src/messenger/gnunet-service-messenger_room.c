@@ -276,7 +276,7 @@ notify_about_members (struct GNUNET_MESSENGER_MemberNotify *notify,
 
 static int
 iterate_notify_about_members (void *cls,
-                              const struct GNUNET_IDENTITY_PublicKey *public_key,
+                              const struct GNUNET_CRYPTO_PublicKey *public_key,
                               struct GNUNET_MESSENGER_MemberSession *session)
 {
   struct GNUNET_MESSENGER_MemberNotify *notify = cls;
@@ -872,7 +872,7 @@ idle_request_room_messages (void *cls)
 
 void
 solve_srv_room_member_collisions (struct GNUNET_MESSENGER_SrvRoom *room,
-                                  const struct GNUNET_IDENTITY_PublicKey *public_key,
+                                  const struct GNUNET_CRYPTO_PublicKey *public_key,
                                   const struct GNUNET_ShortHashCode *member_id,
                                   struct GNUNET_TIME_Absolute timestamp)
 {
@@ -1057,7 +1057,7 @@ struct GNUNET_MESSENGER_MemberUpdate
 
 static int
 iterate_update_member_sessions (void *cls,
-                                const struct GNUNET_IDENTITY_PublicKey *public_key,
+                                const struct GNUNET_CRYPTO_PublicKey *public_key,
                                 struct GNUNET_MESSENGER_MemberSession *session)
 {
   struct GNUNET_MESSENGER_MemberUpdate *update = cls;
@@ -1248,7 +1248,7 @@ remove_room_member_session (struct GNUNET_MESSENGER_SrvRoom *room,
 
   remove_member_session (session->member, session);
 
-  const struct GNUNET_IDENTITY_PublicKey *public_key = get_member_session_public_key(session);
+  const struct GNUNET_CRYPTO_PublicKey *public_key = get_member_session_public_key(session);
 
   struct GNUNET_HashCode hash;
   GNUNET_CRYPTO_hash(public_key, sizeof(*public_key), &hash);

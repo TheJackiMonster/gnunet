@@ -131,7 +131,7 @@ handle_identity_update (void *cls, const struct UpdateMessage *um)
   size_t kb_read;
   struct GNUNET_HashCode id;
   struct GNUNET_IDENTITY_Ego ego;
-  struct GNUNET_IDENTITY_PrivateKey private_key;
+  struct GNUNET_CRYPTO_PrivateKey private_key;
   const char *tmp;
 
   memset (&ego, 0, sizeof (ego));
@@ -142,7 +142,7 @@ handle_identity_update (void *cls, const struct UpdateMessage *um)
   memset (&private_key, 0, sizeof (private_key));
   key_len = ntohs (um->header.size) - sizeof (*um) - name_len;
   GNUNET_assert (GNUNET_SYSERR !=
-                 GNUNET_IDENTITY_read_private_key_from_buffer (tmp + name_len,
+                 GNUNET_CRYPTO_read_private_key_from_buffer (tmp + name_len,
                                                                key_len,
                                                                &private_key,
                                                                &kb_read));

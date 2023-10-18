@@ -94,7 +94,7 @@ struct Zone
   /**
    * Private key of the zone.
    */
-  struct GNUNET_IDENTITY_PrivateKey key;
+  struct GNUNET_CRYPTO_PrivateKey key;
 };
 
 
@@ -1393,7 +1393,7 @@ ns_lookup_error_cb (void *cls)
  */
 static void
 ns_lookup_result_cb (void *cls,
-                     const struct GNUNET_IDENTITY_PrivateKey *key,
+                     const struct GNUNET_CRYPTO_PrivateKey *key,
                      const char *label,
                      unsigned int rd_count,
                      const struct GNUNET_GNSRECORD_Data *rd)

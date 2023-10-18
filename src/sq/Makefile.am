@@ -16,7 +16,7 @@ libgnunetsq_la_SOURCES = \
   sq_query_helper.c \
   sq_result_helper.c
 libgnunetsq_la_LIBADD = -lsqlite3 \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 libgnunetsq_la_LDFLAGS = \
  $(GN_LIBINTL) \
  $(GN_LIB_LDFLAGS) \
@@ -34,5 +34,5 @@ test_sq_SOURCES = \
   test_sq.c
 test_sq_LDADD = \
   libgnunetsq.la \
-  $(top_builddir)/src/util/libgnunetutil.la  \
+  $(top_builddir)/src/lib/util/libgnunetutil.la  \
   -lsqlite3 $(XLIB)

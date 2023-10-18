@@ -1,34 +1,9 @@
 # This Makefile.am is in the public domain
 AM_CPPFLAGS = -I$(top_srcdir)/src/include -I$(top_builddir)/src/include
 
-SUBDIRS = scripts hellos services
+SUBDIRS = scripts services
 
 include Makefile.inc
-
-dist_pkgdata_DATA = \
-  gns/def.tex \
-  gns/gns-bcd.html \
-  gns/gns-bcd.tex \
-  gns/gns-bcd-forbidden.html \
-  gns/gns-bcd-internal-error.html \
-  gns/gns-bcd-invalid-key.html \
-  gns/gns-bcd-not-found.html \
-  gns/gns-bcd-png.tex \
-  gns/gns-bcd-simple.html \
-  gns/gns-bcd-simple.tex \
-  fcfsd/fcfsd-index.html \
-  fcfsd/fcfsd-forbidden.html \
-  fcfsd/fcfsd-notfound.html \
-  branding/logo/gnunet-logo.png \
-  branding/logo/gnunet-logo-dark-text.svg \
-  branding/logo/gnunet-logo-dark-only-text.svg \
-  testing_hostkeys.ecc \
-  netjail/netjail_core.sh \
-  netjail/netjail_exec.sh \
-  netjail/netjail_start.sh \
-  netjail/netjail_stop.sh \
-  netjail/topo.sh \
-  testing-ng/block.sh
 
 INITD_FILES = \
   services/systemd/gnunet-user.service \
@@ -209,7 +184,7 @@ EXTRA_DIST = \
   conf/nss/nssswitch.conf \
   testbed_configs/testbed_cluster.conf \
   testbed_configs/testbed_supermuc.conf \
-  guix.README \
+  packages/guix/guix.README \
   web/log.php \
   ci/docker/docker-entrypoint.sh \
   ci/docker/Dockerfile \
@@ -220,10 +195,7 @@ EXTRA_DIST = \
   docker/Dockerfile \
   docker/README.md \
   benchmark/collect.awk \
-  get_version.sh \
-  gnunet_infrastructure/handbook_pull.sh \
-  guix.scm \
-  indent_pre-commit \
+  packages/guix/guix.scm \
   Makefile.inc \
   vagrant/Vagrantfile \
   vagrant/bootstrap.ubuntu.sh \
@@ -264,13 +236,5 @@ dist_aclocal_DATA = \
 xdgdeentrydir = $(datadir)/applications
 dist_xdgdeentry_DATA = \
   xdg-scheme-handler/gnunet-uri.desktop
-
-install-data-hook:
-	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_core.sh'
-	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_start.sh'
-	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_stop.sh'
-	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_exec.sh'
-	chmod o+x '$(DESTDIR)$(pkgdatadir)/topo.sh'
-	chmod o+x '$(DESTDIR)$(pkgdatadir)/block.sh'
 
 ## EOF

@@ -40,9 +40,9 @@ static struct GNUNET_NAMESTORE_Handle *nsh2;
 
 static struct GNUNET_SCHEDULER_Task *endbadly_task;
 
-static struct GNUNET_IDENTITY_PrivateKey privkey;
+static struct GNUNET_CRYPTO_PrivateKey privkey;
 
-static struct GNUNET_IDENTITY_PublicKey pubkey;
+static struct GNUNET_CRYPTO_PublicKey pubkey;
 
 static int res;
 
@@ -91,7 +91,7 @@ end (void *cls)
 
 static void
 lookup_it (void *cls,
-           const struct GNUNET_IDENTITY_PrivateKey *zone,
+           const struct GNUNET_CRYPTO_PrivateKey *zone,
            const char *label,
            unsigned int rd_count,
            const struct GNUNET_GNSRECORD_Data *rd)
@@ -138,7 +138,7 @@ fail_cb_lock (void *cls);
 
 static void
 edit_cont_b (void *cls,
-             const struct GNUNET_IDENTITY_PrivateKey *zone,
+             const struct GNUNET_CRYPTO_PrivateKey *zone,
              const char *label,
              unsigned int rd_count,
              const struct GNUNET_GNSRECORD_Data *rd)
@@ -243,7 +243,7 @@ begin_cont_b (void *cls,
 
 static void
 edit_cont (void *cls,
-           const struct GNUNET_IDENTITY_PrivateKey *zone,
+           const struct GNUNET_CRYPTO_PrivateKey *zone,
            const char *label,
            unsigned int rd_count,
            const struct GNUNET_GNSRECORD_Data *rd)
@@ -322,7 +322,7 @@ run (void *cls,
 
   privkey.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
   GNUNET_CRYPTO_ecdsa_key_create (&privkey.ecdsa_key);
-  GNUNET_IDENTITY_key_get_public (&privkey,
+  GNUNET_CRYPTO_key_get_public (&privkey,
                                   &pubkey);
 
   removed = GNUNET_NO;

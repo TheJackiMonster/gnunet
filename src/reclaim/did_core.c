@@ -90,7 +90,7 @@ DID_resolve (const char *did,
              DID_resolve_callback *cont,
              void *cls)
 {
-  struct GNUNET_IDENTITY_PublicKey pkey;
+  struct GNUNET_CRYPTO_PublicKey pkey;
 
   // did, gns_handle and cont must me set
   if ((did == NULL) || (gns_handle == NULL) || (cont == NULL))
@@ -151,13 +151,13 @@ struct DID_create_namestore_lookup_closure
 static void
 DID_create_namestore_lookup_cb (void *cls,
                                 const struct
-                                GNUNET_IDENTITY_PrivateKey *zone,
+                                GNUNET_CRYPTO_PrivateKey *zone,
                                 const char *label,
                                 unsigned int rd_count,
                                 const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct GNUNET_GNSRECORD_Data record_data;
-  struct GNUNET_IDENTITY_PublicKey pkey;
+  struct GNUNET_CRYPTO_PublicKey pkey;
 
   const char *did_document
     = ((struct DID_create_namestore_lookup_closure *) cls)->did_document;
@@ -180,7 +180,7 @@ DID_create_namestore_lookup_cb (void *cls,
   }
   else {
     // Get public key
-    GNUNET_IDENTITY_key_get_public (zone, &pkey);
+    GNUNET_CRYPTO_key_get_public (zone, &pkey);
 
     // If no DID Document is given a default one is created
     if (did_document != NULL)
@@ -225,7 +225,7 @@ DID_create (const struct GNUNET_IDENTITY_Ego *ego,
             DID_action_callback *cont,
             void *cls)
 {
-  struct GNUNET_IDENTITY_PublicKey pkey;
+  struct GNUNET_CRYPTO_PublicKey pkey;
 
   // Ego, namestore_handle and cont must be set
   if ((ego == NULL) || (namestore_handle == NULL) || (cont == NULL))

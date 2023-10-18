@@ -110,7 +110,7 @@ struct RequestData
   /**
    * Key to be associated with the requested name.
    */
-  struct GNUNET_IDENTITY_PublicKey key;
+  struct GNUNET_CRYPTO_PublicKey key;
 };
 
 /**
@@ -136,7 +136,7 @@ static struct GNUNET_IDENTITY_Handle *identity = NULL;
 /**
  * Private key of the zone.
  */
-static const struct GNUNET_IDENTITY_PrivateKey *zone_key = NULL;
+static const struct GNUNET_CRYPTO_PrivateKey *zone_key = NULL;
 
 /**
  * The HTTP daemon.
@@ -389,7 +389,7 @@ search_error_cb (void *cls)
  */
 static void
 search_done_cb (void *cls,
-                const struct GNUNET_IDENTITY_PrivateKey *zone,
+                const struct GNUNET_CRYPTO_PrivateKey *zone,
                 const char *label,
                 unsigned int count,
                 const struct GNUNET_GNSRECORD_Data *d)
@@ -478,7 +478,7 @@ register_done_cb (void *cls,
  */
 static void
 register_do_cb (void *cls,
-                const struct GNUNET_IDENTITY_PrivateKey *key,
+                const struct GNUNET_CRYPTO_PrivateKey *key,
                 const char *label,
                 unsigned int count,
                 const struct GNUNET_GNSRECORD_Data *d)
@@ -577,7 +577,7 @@ iterate_error_cb (void *cls)
  */
 static void
 iterate_do_cb (void *cls,
-               const struct GNUNET_IDENTITY_PrivateKey *key,
+               const struct GNUNET_CRYPTO_PrivateKey *key,
                const char *label,
                unsigned int count,
                const struct GNUNET_GNSRECORD_Data *d)
@@ -838,7 +838,7 @@ create_response (void *cls,
         return MHD_YES;
       }
 
-      if (GNUNET_OK != GNUNET_IDENTITY_public_key_from_string (rd->register_key,
+      if (GNUNET_OK != GNUNET_CRYPTO_public_key_from_string (rd->register_key,
                                                                &(rd->key)))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_WARNING,

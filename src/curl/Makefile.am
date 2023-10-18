@@ -17,7 +17,7 @@ libgnunetcurl_la_SOURCES = \
   curl.c \
   curl_reschedule.c
 libgnunetcurl_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   -ljansson \
   @LIBCURL@ \
   $(XLIB)
@@ -34,5 +34,5 @@ libgnunetcurl_la_CPPFLAGS = \
 #  test_curl.c
 #test_curl_LDADD = \
 #  libgnunetcurl.la \
-#  $(top_builddir)/src/util/libgnunetutil.la \
+#  $(top_builddir)/src/lib/util/libgnunetutil.la \
 #  -ljansson -lcurl

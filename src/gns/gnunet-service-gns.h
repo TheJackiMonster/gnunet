@@ -37,7 +37,7 @@
  */
 int
 GNS_find_tld (const char *tld_str,
-              struct GNUNET_IDENTITY_PublicKey *pkey);
+              struct GNUNET_CRYPTO_PublicKey *pkey);
 
 
 /**

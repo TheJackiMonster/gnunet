@@ -42,12 +42,12 @@
  * TODO: Check if EdDSA
  */
 char*
-DID_pkey_to_did (struct GNUNET_IDENTITY_PublicKey *pkey)
+DID_pkey_to_did (struct GNUNET_CRYPTO_PublicKey *pkey)
 {
   char *pkey_str;
   char *did_str;
 
-  pkey_str = GNUNET_IDENTITY_public_key_to_string (pkey);
+  pkey_str = GNUNET_CRYPTO_public_key_to_string (pkey);
   GNUNET_asprintf (&did_str, "%s%s",
                    GNUNET_DID_METHOD_PREFIX,
                    pkey_str);
@@ -66,7 +66,7 @@ DID_pkey_to_did (struct GNUNET_IDENTITY_PublicKey *pkey)
 char*
 DID_identity_to_did (struct GNUNET_IDENTITY_Ego *ego)
 {
-  struct GNUNET_IDENTITY_PublicKey pkey;
+  struct GNUNET_CRYPTO_PublicKey pkey;
 
   GNUNET_IDENTITY_ego_get_public_key (ego, &pkey);
   return DID_pkey_to_did (&pkey);
@@ -76,7 +76,7 @@ DID_identity_to_did (struct GNUNET_IDENTITY_Ego *ego)
  * @brief Return the public key of a DID
  */
 enum GNUNET_GenericReturnValue
-DID_did_to_pkey (const char *did, struct GNUNET_IDENTITY_PublicKey *pkey)
+DID_did_to_pkey (const char *did, struct GNUNET_CRYPTO_PublicKey *pkey)
 {
   char pkey_str[MAX_DID_SPECIFIC_IDENTIFIER_LENGTH + 1]; /* 0-term */
 
@@ -84,7 +84,7 @@ DID_did_to_pkey (const char *did, struct GNUNET_IDENTITY_PublicKey *pkey)
                      GNUNET_DID_METHOD_PREFIX "%"
                      STR (MAX_DID_SPECIFIC_IDENTIFIER_LENGTH)
                      "s", pkey_str))) ||
-      (GNUNET_OK != GNUNET_IDENTITY_public_key_from_string (pkey_str, pkey)))
+      (GNUNET_OK != GNUNET_CRYPTO_public_key_from_string (pkey_str, pkey)))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Could not decode given DID: %s\n",
                 did);
@@ -97,7 +97,7 @@ DID_did_to_pkey (const char *did, struct GNUNET_IDENTITY_PublicKey *pkey)
 /**
  * @brief Convert a base 64 encoded public key to a GNUNET key
  */
-struct GNUNET_IDENTITY_PublicKey *
+struct GNUNET_CRYPTO_PublicKey *
 GNUNET_DID_key_convert_multibase_base64_to_gnunet (char *pkey_str)
 {
   return NULL;
@@ -108,7 +108,7 @@ GNUNET_DID_key_convert_multibase_base64_to_gnunet (char *pkey_str)
  */
 char *
 DID_key_convert_gnunet_to_multibase_base64 (struct
-                                           GNUNET_IDENTITY_PublicKey *
+                                           GNUNET_CRYPTO_PublicKey *
                                            pkey)
 {
   struct GNUNET_CRYPTO_EddsaPublicKey pubkey = pkey->eddsa_key;
@@ -135,7 +135,7 @@ DID_key_convert_gnunet_to_multibase_base64 (struct
  * @return void* Return pointer to the DID Document
  */
 char *
-DID_pkey_to_did_document (struct GNUNET_IDENTITY_PublicKey *pkey)
+DID_pkey_to_did_document (struct GNUNET_CRYPTO_PublicKey *pkey)
 {
 
   /* FIXME-MSC: This is effectively creating a DID Document default template for
@@ -196,7 +196,7 @@ DID_pkey_to_did_document (struct GNUNET_IDENTITY_PublicKey *pkey)
 char *
 DID_identity_to_did_document (struct GNUNET_IDENTITY_Ego *ego)
 {
-  struct GNUNET_IDENTITY_PublicKey pkey;
+  struct GNUNET_CRYPTO_PublicKey pkey;
 
   GNUNET_IDENTITY_ego_get_public_key (ego, &pkey);
   return DID_pkey_to_did (&pkey);

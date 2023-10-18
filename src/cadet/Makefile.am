@@ -35,7 +35,7 @@ libgnunetcadet_la_SOURCES = \
   cadet_api_list_tunnels.c \
   cadet_api_helper.c
 libgnunetcadet_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(XLIB) \
   $(LTLIBINTL)
 libgnunetcadet_la_LDFLAGS = \
@@ -46,7 +46,7 @@ gnunet_cadet_SOURCES = \
   gnunet-cadet.c
 gnunet_cadet_LDADD = \
   libgnunetcadet.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 gnunet_cadet_LDFLAGS = \
   $(GN_LIBINTL)
 
@@ -61,23 +61,18 @@ gnunet_service_cadet_SOURCES = \
  gnunet-service-cadet_paths.c gnunet-service-cadet_paths.h \
  gnunet-service-cadet_peer.c gnunet-service-cadet_peer.h
 gnunet_service_cadet_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/core/libgnunetcore.la \
   $(top_builddir)/src/dht/libgnunetdht.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/transport/libgnunettransportapplication.la \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
-  $(top_builddir)/src/hello/libgnunethello.la \
-  $(top_builddir)/src/block/libgnunetblock.la
+  $(top_builddir)/src/lib/hello/libgnunethello.la \
+  $(top_builddir)/src/lib/block/libgnunetblock.la
 if LINUX
 gnunet_service_cadet_LDFLAGS = -lrt \
     $(GN_LIBINTL)
 endif
-
-
-#gnunet_cadet_profiler_SOURCES = \
-#  gnunet-cadet-profiler.c
-#gnunet_cadet_profiler_LDADD = $(ld_cadet_test_lib)
 
 
 test_cadet_local_mq_SOURCES = \
@@ -85,7 +80,7 @@ test_cadet_local_mq_SOURCES = \
 test_cadet_local_mq_LDADD = \
   libgnunetcadet.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
@@ -94,5 +89,4 @@ endif
 
 EXTRA_DIST = \
   cadet.h cadet_protocol.h \
-  test_cadet.conf \
-  test_cadet_drop.conf
+  test_cadet.conf

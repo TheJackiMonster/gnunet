@@ -75,7 +75,7 @@ struct GNUNET_IDENTITY_Operation
   /**
    * Private key to return to @e create_cont, or NULL.
    */
-  struct GNUNET_IDENTITY_PrivateKey pk;
+  struct GNUNET_CRYPTO_PrivateKey pk;
 
   /**
    * Continuation to invoke with the result of the transmission for
@@ -162,10 +162,10 @@ GNUNET_IDENTITY_ego_get_anonymous ()
 
   if (setup)
     return &anon;
-  anon.pk.type = htonl (GNUNET_IDENTITY_TYPE_ECDSA);
-  anon.pub.type = htonl (GNUNET_IDENTITY_TYPE_ECDSA);
+  anon.pk.type = htonl (GNUNET_PUBLIC_KEY_TYPE_ECDSA);
+  anon.pub.type = htonl (GNUNET_PUBLIC_KEY_TYPE_ECDSA);
   anon.pk.ecdsa_key = *GNUNET_CRYPTO_ecdsa_key_get_anonymous ();
-  key_len = GNUNET_IDENTITY_private_key_get_length (&anon.pk);
+  key_len = GNUNET_CRYPTO_private_key_get_length (&anon.pk);
   GNUNET_assert (0 < key_len);
   GNUNET_CRYPTO_hash (&anon.pk,
                       key_len,
@@ -174,50 +174,6 @@ GNUNET_IDENTITY_ego_get_anonymous ()
   return &anon;
 }
 
-
-enum GNUNET_GenericReturnValue
-GNUNET_IDENTITY_key_get_public (const struct
-                                GNUNET_IDENTITY_PrivateKey *privkey,
-                                struct GNUNET_IDENTITY_PublicKey *key)
-{
-  key->type = privkey->type;
-  switch (ntohl (privkey->type))
-  {
-  case GNUNET_IDENTITY_TYPE_ECDSA:
-    GNUNET_CRYPTO_ecdsa_key_get_public (&privkey->ecdsa_key,
-                                        &key->ecdsa_key);
-    break;
-  case GNUNET_IDENTITY_TYPE_EDDSA:
-    GNUNET_CRYPTO_eddsa_key_get_public (&privkey->eddsa_key,
-                                        &key->eddsa_key);
-    break;
-  default:
-    GNUNET_break (0);
-    return GNUNET_SYSERR;
-  }
-  return GNUNET_OK;
-}
-
-
-static enum GNUNET_GenericReturnValue
-private_key_create (enum GNUNET_IDENTITY_KeyType ktype,
-                    struct GNUNET_IDENTITY_PrivateKey *key)
-{
-  key->type = htonl (ktype);
-  switch (ktype)
-  {
-  case GNUNET_IDENTITY_TYPE_ECDSA:
-    GNUNET_CRYPTO_ecdsa_key_create (&key->ecdsa_key);
-    break;
-  case GNUNET_IDENTITY_TYPE_EDDSA:
-    GNUNET_CRYPTO_eddsa_key_create (&key->eddsa_key);
-    break;
-  default:
-    GNUNET_break (0);
-    return GNUNET_SYSERR;
-  }
-  return GNUNET_OK;
-}
 
 
 /**
@@ -399,7 +355,7 @@ handle_identity_update (void *cls,
   size_t kb_read;
   struct GNUNET_HashCode id;
   struct GNUNET_IDENTITY_Ego *ego;
-  struct GNUNET_IDENTITY_PrivateKey private_key;
+  struct GNUNET_CRYPTO_PrivateKey private_key;
   const char *tmp;
 
   if (GNUNET_YES == ntohs (um->end_of_list))
@@ -414,13 +370,13 @@ handle_identity_update (void *cls,
   memset (&private_key, 0, sizeof (private_key));
   key_len = ntohs (um->key_len);
   GNUNET_assert (GNUNET_SYSERR !=
-                 GNUNET_IDENTITY_read_private_key_from_buffer (tmp + name_len,
+                 GNUNET_CRYPTO_read_private_key_from_buffer (tmp + name_len,
                                                                key_len,
                                                                &private_key,
                                                                &kb_read));
-  GNUNET_assert (0 <= GNUNET_IDENTITY_private_key_get_length (&private_key));
+  GNUNET_assert (0 <= GNUNET_CRYPTO_private_key_get_length (&private_key));
   GNUNET_CRYPTO_hash (&private_key,
-                      GNUNET_IDENTITY_private_key_get_length (&private_key),
+                      GNUNET_CRYPTO_private_key_get_length (&private_key),
                       &id);
   ego = GNUNET_CONTAINER_multihashmap_get (h->egos,
                                            &id);
@@ -550,18 +506,18 @@ GNUNET_IDENTITY_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
+
 /**
  * Obtain the ECC key associated with a ego.
  *
  * @param ego the ego
  * @return associated ECC key, valid as long as the ego is valid
  */
-const struct GNUNET_IDENTITY_PrivateKey *
+const struct GNUNET_CRYPTO_PrivateKey *
 GNUNET_IDENTITY_ego_get_private_key (const struct GNUNET_IDENTITY_Ego *ego)
 {
   return &ego->pk;
 }
-
 
 /**
  * Get the identifier (public key) of an ego.
@@ -571,26 +527,45 @@ GNUNET_IDENTITY_ego_get_private_key (const struct GNUNET_IDENTITY_Ego *ego)
  */
 void
 GNUNET_IDENTITY_ego_get_public_key (struct GNUNET_IDENTITY_Ego *ego,
-                                    struct GNUNET_IDENTITY_PublicKey *pk)
+                                    struct GNUNET_CRYPTO_PublicKey *pk)
 {
   if (GNUNET_NO == ego->pub_initialized)
   {
-    GNUNET_IDENTITY_key_get_public (&ego->pk, &ego->pub);
+    GNUNET_CRYPTO_key_get_public (&ego->pk, &ego->pub);
     ego->pub_initialized = GNUNET_YES;
   }
   *pk = ego->pub;
 }
 
+static enum GNUNET_GenericReturnValue
+private_key_create (enum GNUNET_CRYPTO_KeyType ktype,
+                    struct GNUNET_CRYPTO_PrivateKey *key)
+{
+  key->type = htonl (ktype);
+  switch (ktype)
+  {
+  case GNUNET_PUBLIC_KEY_TYPE_ECDSA:
+    GNUNET_CRYPTO_ecdsa_key_create (&key->ecdsa_key);
+    break;
+  case GNUNET_PUBLIC_KEY_TYPE_EDDSA:
+    GNUNET_CRYPTO_eddsa_key_create (&key->eddsa_key);
+    break;
+  default:
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
+}
 
 struct GNUNET_IDENTITY_Operation *
 GNUNET_IDENTITY_create (struct GNUNET_IDENTITY_Handle *h,
                         const char *name,
-                        const struct GNUNET_IDENTITY_PrivateKey *privkey,
-                        enum GNUNET_IDENTITY_KeyType ktype,
+                        const struct GNUNET_CRYPTO_PrivateKey *privkey,
+                        enum GNUNET_CRYPTO_KeyType ktype,
                         GNUNET_IDENTITY_CreateContinuation cont,
                         void *cont_cls)
 {
-  struct GNUNET_IDENTITY_PrivateKey private_key;
+  struct GNUNET_CRYPTO_PrivateKey private_key;
   struct GNUNET_IDENTITY_Operation *op;
   struct GNUNET_MQ_Envelope *env;
   struct CreateRequestMessage *crm;
@@ -617,11 +592,11 @@ GNUNET_IDENTITY_create (struct GNUNET_IDENTITY_Handle *h,
   }
   else
     private_key = *privkey;
-  key_len = GNUNET_IDENTITY_private_key_get_length (&private_key);
+  key_len = GNUNET_CRYPTO_private_key_get_length (&private_key);
   env = GNUNET_MQ_msg_extra (crm, slen + key_len,
                              GNUNET_MESSAGE_TYPE_IDENTITY_CREATE);
   crm->name_len = htons (slen);
-  GNUNET_IDENTITY_write_private_key_to_buffer (&private_key,
+  GNUNET_CRYPTO_write_private_key_to_buffer (&private_key,
                                                &crm[1],
                                                key_len);
   crm->key_len = htons (key_len);
@@ -787,573 +762,6 @@ GNUNET_IDENTITY_disconnect (struct GNUNET_IDENTITY_Handle *h)
     h->mq = NULL;
   }
   GNUNET_free (h);
-}
-
-
-static enum GNUNET_GenericReturnValue
-check_key_type (uint32_t type)
-{
-  switch (type)
-  {
-  case GNUNET_IDENTITY_TYPE_ECDSA:
-  case GNUNET_IDENTITY_TYPE_EDDSA:
-    return GNUNET_OK;
-  default:
-    return GNUNET_SYSERR;
-  }
-  return GNUNET_SYSERR;
-}
-
-
-ssize_t
-GNUNET_IDENTITY_private_key_get_length (const struct
-                                        GNUNET_IDENTITY_PrivateKey *key)
-{
-  switch (ntohl (key->type))
-  {
-  case GNUNET_IDENTITY_TYPE_ECDSA:
-    return sizeof (key->type) + sizeof (key->ecdsa_key);
-    break;
-  case GNUNET_IDENTITY_TYPE_EDDSA:
-    return sizeof (key->type) + sizeof (key->eddsa_key);
-    break;
-  default:
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Got key type %u\n", ntohl (key->type));
-    GNUNET_break (0);
-  }
-  return -1;
-}
-
-
-ssize_t
-GNUNET_IDENTITY_public_key_get_length (const struct
-                                       GNUNET_IDENTITY_PublicKey *key)
-{
-  switch (ntohl (key->type))
-  {
-  case GNUNET_IDENTITY_TYPE_ECDSA:
-    return sizeof (key->type) + sizeof (key->ecdsa_key);
-  case GNUNET_IDENTITY_TYPE_EDDSA:
-    return sizeof (key->type) + sizeof (key->eddsa_key);
-  default:
-    GNUNET_break (0);
-  }
-  return -1;
-}
-
-
-ssize_t
-GNUNET_IDENTITY_private_key_length_by_type (enum GNUNET_IDENTITY_KeyType kt)
-{
-  switch (kt)
-  {
-  case GNUNET_IDENTITY_TYPE_ECDSA:
-    return sizeof (struct GNUNET_CRYPTO_EcdsaPrivateKey);
-    break;
-  case GNUNET_IDENTITY_TYPE_EDDSA:
-    return sizeof (struct GNUNET_CRYPTO_EcdsaPrivateKey);
-    break;
-  default:
-    GNUNET_break (0);
-  }
-  return -1;
-}
-
-
-enum GNUNET_GenericReturnValue
-GNUNET_IDENTITY_read_public_key_from_buffer (const void *buffer,
-                                             size_t len,
-                                             struct GNUNET_IDENTITY_PublicKey *
-                                             key,
-                                             size_t *kb_read)
-{
-  if (len < sizeof (key->type))
-    return GNUNET_SYSERR;
-  GNUNET_memcpy (&key->type,
-                 buffer,
-                 sizeof (key->type));
-  ssize_t length = GNUNET_IDENTITY_public_key_get_length (key);
-  if (len < length)
-    return GNUNET_SYSERR;
-  if (length < 0)
-    return GNUNET_SYSERR;
-  GNUNET_memcpy (&key->ecdsa_key,
-                 buffer + sizeof (key->type),
-                 length - sizeof (key->type));
-  *kb_read = length;
-  return GNUNET_OK;
-}
-
-
-ssize_t
-GNUNET_IDENTITY_write_public_key_to_buffer (const struct
-                                            GNUNET_IDENTITY_PublicKey *key,
-                                            void*buffer,
-                                            size_t len)
-{
-  const ssize_t length = GNUNET_IDENTITY_public_key_get_length (key);
-  if (len < length)
-    return -1;
-  if (length < 0)
-    return -2;
-  GNUNET_memcpy (buffer, &(key->type), sizeof (key->type));
-  GNUNET_memcpy (buffer + sizeof (key->type), &(key->ecdsa_key), length
-                 - sizeof (key->type));
-  return length;
-}
-
-
-enum GNUNET_GenericReturnValue
-GNUNET_IDENTITY_read_private_key_from_buffer (const void *buffer,
-                                              size_t len,
-                                              struct
-                                              GNUNET_IDENTITY_PrivateKey *key,
-                                              size_t *kb_read)
-{
-  if (len < sizeof (key->type))
-    return GNUNET_SYSERR;
-  GNUNET_memcpy (&key->type,
-                 buffer,
-                 sizeof (key->type));
-  ssize_t length = GNUNET_IDENTITY_private_key_get_length (key);
-  if (len < length)
-    return GNUNET_SYSERR;
-  if (length < 0)
-    return GNUNET_SYSERR;
-  GNUNET_memcpy (&key->ecdsa_key,
-                 buffer + sizeof (key->type),
-                 length - sizeof (key->type));
-  *kb_read = length;
-  return GNUNET_OK;
-}
-
-
-ssize_t
-GNUNET_IDENTITY_write_private_key_to_buffer (const struct
-                                             GNUNET_IDENTITY_PrivateKey *key,
-                                             void *buffer,
-                                             size_t len)
-{
-  const ssize_t length = GNUNET_IDENTITY_private_key_get_length (key);
-  if (len < length)
-    return -1;
-  if (length < 0)
-    return -2;
-  GNUNET_memcpy (buffer, &(key->type), sizeof (key->type));
-  GNUNET_memcpy (buffer + sizeof (key->type), &(key->ecdsa_key), length
-                 - sizeof (key->type));
-  return length;
-}
-
-
-ssize_t
-GNUNET_IDENTITY_signature_get_length (const struct
-                                      GNUNET_IDENTITY_Signature *sig)
-{
-  switch (ntohl (sig->type))
-  {
-  case GNUNET_IDENTITY_TYPE_ECDSA:
-    return sizeof (sig->type) + sizeof (sig->ecdsa_signature);
-    break;
-  case GNUNET_IDENTITY_TYPE_EDDSA:
-    return sizeof (sig->type) + sizeof (sig->eddsa_signature);
-    break;
-  default:
-    GNUNET_break (0);
-  }
-  return -1;
-}
-
-
-ssize_t
-GNUNET_IDENTITY_signature_get_raw_length_by_type (uint32_t type)
-{
-  switch (ntohl (type))
-  {
-  case GNUNET_IDENTITY_TYPE_ECDSA:
-    return sizeof (struct GNUNET_CRYPTO_EcdsaSignature);
-    break;
-  case GNUNET_IDENTITY_TYPE_EDDSA:
-    return sizeof (struct GNUNET_CRYPTO_EddsaSignature);
-    break;
-  default:
-    GNUNET_break (0);
-  }
-  return -1;
-}
-
-
-ssize_t
-GNUNET_IDENTITY_read_signature_from_buffer (struct
-                                            GNUNET_IDENTITY_Signature *sig,
-                                            const void*buffer,
-                                            size_t len)
-{
-  if (len < sizeof (sig->type))
-    return -1;
-  GNUNET_memcpy (&(sig->type), buffer, sizeof (sig->type));
-  const ssize_t length = GNUNET_IDENTITY_signature_get_length (sig);
-  if (len < length)
-    return -1;
-  if (length < 0)
-    return -2;
-  GNUNET_memcpy (&(sig->ecdsa_signature), buffer + sizeof (sig->type), length
-                 - sizeof (sig->type));
-  return length;
-}
-
-
-ssize_t
-GNUNET_IDENTITY_write_signature_to_buffer (const struct
-                                           GNUNET_IDENTITY_Signature *sig,
-                                           void*buffer,
-                                           size_t len)
-{
-  const ssize_t length = GNUNET_IDENTITY_signature_get_length (sig);
-  if (len < length)
-    return -1;
-  if (length < 0)
-    return -2;
-  GNUNET_memcpy (buffer, &(sig->type), sizeof (sig->type));
-  GNUNET_memcpy (buffer + sizeof (sig->type), &(sig->ecdsa_signature), length
-                 - sizeof (sig->type));
-  return length;
-}
-
-
-enum GNUNET_GenericReturnValue
-GNUNET_IDENTITY_sign_raw_ (const struct
-                           GNUNET_IDENTITY_PrivateKey *priv,
-                           const struct
-                           GNUNET_CRYPTO_EccSignaturePurpose *purpose,
-                           unsigned char *sig)
-{
-  switch (ntohl (priv->type))
-  {
-  case GNUNET_IDENTITY_TYPE_ECDSA:
-    return GNUNET_CRYPTO_ecdsa_sign_ (&(priv->ecdsa_key), purpose,
-                                      (struct
-                                       GNUNET_CRYPTO_EcdsaSignature*) sig);
-    break;
-  case GNUNET_IDENTITY_TYPE_EDDSA:
-    return GNUNET_CRYPTO_eddsa_sign_ (&(priv->eddsa_key), purpose,
-                                      (struct
-                                       GNUNET_CRYPTO_EddsaSignature*) sig);
-    break;
-  default:
-    GNUNET_break (0);
-  }
-
-  return GNUNET_SYSERR;
-}
-
-
-enum GNUNET_GenericReturnValue
-GNUNET_IDENTITY_sign_ (const struct
-                       GNUNET_IDENTITY_PrivateKey *priv,
-                       const struct
-                       GNUNET_CRYPTO_EccSignaturePurpose *purpose,
-                       struct GNUNET_IDENTITY_Signature *sig)
-{
-  sig->type = priv->type;
-  switch (ntohl (priv->type))
-  {
-  case GNUNET_IDENTITY_TYPE_ECDSA:
-    return GNUNET_CRYPTO_ecdsa_sign_ (&(priv->ecdsa_key), purpose,
-                                      &(sig->ecdsa_signature));
-    break;
-  case GNUNET_IDENTITY_TYPE_EDDSA:
-    return GNUNET_CRYPTO_eddsa_sign_ (&(priv->eddsa_key), purpose,
-                                      &(sig->eddsa_signature));
-    break;
-  default:
-    GNUNET_break (0);
-  }
-
-  return GNUNET_SYSERR;
-}
-
-
-enum GNUNET_GenericReturnValue
-GNUNET_IDENTITY_signature_verify_ (uint32_t purpose,
-                                   const struct
-                                   GNUNET_CRYPTO_EccSignaturePurpose *validate,
-                                   const struct GNUNET_IDENTITY_Signature *sig,
-                                   const struct GNUNET_IDENTITY_PublicKey *pub)
-{
-  /* check type matching of 'sig' and 'pub' */
-  GNUNET_assert (ntohl (pub->type) == ntohl (sig->type));
-  switch (ntohl (pub->type))
-  {
-  case GNUNET_IDENTITY_TYPE_ECDSA:
-    return GNUNET_CRYPTO_ecdsa_verify_ (purpose, validate,
-                                        &(sig->ecdsa_signature),
-                                        &(pub->ecdsa_key));
-    break;
-  case GNUNET_IDENTITY_TYPE_EDDSA:
-    return GNUNET_CRYPTO_eddsa_verify_ (purpose, validate,
-                                        &(sig->eddsa_signature),
-                                        &(pub->eddsa_key));
-    break;
-  default:
-    GNUNET_break (0);
-  }
-
-  return GNUNET_SYSERR;
-}
-
-
-enum GNUNET_GenericReturnValue
-GNUNET_IDENTITY_signature_verify_raw_ (uint32_t purpose,
-                                       const struct
-                                       GNUNET_CRYPTO_EccSignaturePurpose *
-                                       validate,
-                                       const unsigned char *sig,
-                                       const struct
-                                       GNUNET_IDENTITY_PublicKey *pub)
-{
-  switch (ntohl (pub->type))
-  {
-  case GNUNET_IDENTITY_TYPE_ECDSA:
-    return GNUNET_CRYPTO_ecdsa_verify_ (purpose, validate,
-                                        (struct
-                                         GNUNET_CRYPTO_EcdsaSignature*) sig,
-                                        &(pub->ecdsa_key));
-    break;
-  case GNUNET_IDENTITY_TYPE_EDDSA:
-    return GNUNET_CRYPTO_eddsa_verify_ (purpose, validate,
-                                        (struct
-                                         GNUNET_CRYPTO_EddsaSignature*) sig,
-                                        &(pub->eddsa_key));
-    break;
-  default:
-    GNUNET_break (0);
-  }
-
-  return GNUNET_SYSERR;
-}
-
-
-ssize_t
-GNUNET_IDENTITY_encrypt_old (const void *block,
-                             size_t size,
-                             const struct GNUNET_IDENTITY_PublicKey *pub,
-                             struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
-                             void *result)
-{
-  struct GNUNET_CRYPTO_EcdhePrivateKey pk;
-  GNUNET_CRYPTO_ecdhe_key_create (&pk);
-  struct GNUNET_HashCode hash;
-  switch (ntohl (pub->type))
-  {
-  case GNUNET_IDENTITY_TYPE_ECDSA:
-    if (GNUNET_SYSERR == GNUNET_CRYPTO_ecdh_ecdsa (&pk, &(pub->ecdsa_key),
-                                                   &hash))
-      return -1;
-    break;
-  case GNUNET_IDENTITY_TYPE_EDDSA:
-    if (GNUNET_SYSERR == GNUNET_CRYPTO_ecdh_eddsa (&pk, &(pub->eddsa_key),
-                                                   &hash))
-      return -1;
-    break;
-  default:
-    return -1;
-  }
-  GNUNET_CRYPTO_ecdhe_key_get_public (&pk, ecc);
-  GNUNET_CRYPTO_ecdhe_key_clear (&pk);
-  struct GNUNET_CRYPTO_SymmetricSessionKey key;
-  struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
-  GNUNET_CRYPTO_hash_to_aes_key (&hash, &key, &iv);
-  GNUNET_CRYPTO_zero_keys (&hash, sizeof(hash));
-  const ssize_t encrypted = GNUNET_CRYPTO_symmetric_encrypt (block, size, &key,
-                                                             &iv, result);
-  GNUNET_CRYPTO_zero_keys (&key, sizeof(key));
-  GNUNET_CRYPTO_zero_keys (&iv, sizeof(iv));
-  return encrypted;
-}
-
-
-enum GNUNET_GenericReturnValue
-GNUNET_IDENTITY_encrypt (const void *pt,
-                         size_t pt_size,
-                         const struct GNUNET_IDENTITY_PublicKey *pub,
-                         void *ct_buf,
-                         size_t ct_size)
-{
-  struct GNUNET_HashCode k;
-  struct GNUNET_CRYPTO_FoKemC kemc;
-  struct GNUNET_CRYPTO_FoKemC *kemc_buf = (struct GNUNET_CRYPTO_FoKemC*) ct_buf;
-  unsigned char *encrypted_data = (unsigned char*) &kemc_buf[1];
-  unsigned char nonce[crypto_secretbox_NONCEBYTES];
-  unsigned char key[crypto_secretbox_KEYBYTES];
-
-  if (ct_size < pt_size + GNUNET_IDENTITY_ENCRYPT_OVERHEAD_BYTES)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Output buffer size for ciphertext too small: Got %lu, want >=%lu\n",
-                ct_size, pt_size + GNUNET_IDENTITY_ENCRYPT_OVERHEAD_BYTES);
-    return GNUNET_SYSERR;
-  }
-  switch (ntohl (pub->type))
-  {
-  case GNUNET_IDENTITY_TYPE_ECDSA:
-    if (GNUNET_SYSERR == GNUNET_CRYPTO_ecdsa_fo_kem_encaps (&(pub->ecdsa_key),
-                                                            &kemc,
-                                                            &k))
-      return GNUNET_SYSERR;
-    break;
-  case GNUNET_IDENTITY_TYPE_EDDSA:
-    if (GNUNET_SYSERR == GNUNET_CRYPTO_eddsa_fo_kem_encaps (&pub->eddsa_key,
-                                                            &kemc,
-                                                            &k))
-      return GNUNET_SYSERR;
-    break;
-  default:
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Unsupported key type\n");
-    return GNUNET_SYSERR;
-  }
-  memcpy (key, &k, crypto_secretbox_KEYBYTES);
-  memcpy (nonce, ((char* ) &k) + crypto_secretbox_KEYBYTES,
-          crypto_secretbox_NONCEBYTES);
-  if (crypto_secretbox_easy (encrypted_data, pt, pt_size, nonce, key))
-    return GNUNET_SYSERR;
-  memcpy (kemc_buf, &kemc, sizeof (kemc));
-  return GNUNET_OK;
-}
-
-
-enum GNUNET_GenericReturnValue
-GNUNET_IDENTITY_decrypt (const void *ct_buf,
-                         size_t ct_size,
-                         const struct GNUNET_IDENTITY_PrivateKey *priv,
-                         void *pt,
-                         size_t pt_size)
-{
-  struct GNUNET_HashCode k;
-  struct GNUNET_CRYPTO_FoKemC *kemc = (struct GNUNET_CRYPTO_FoKemC*) ct_buf;
-  unsigned char *encrypted_data = (unsigned char*) &kemc[1];
-  unsigned char nonce[crypto_secretbox_NONCEBYTES];
-  unsigned char key[crypto_secretbox_KEYBYTES];
-  size_t expected_pt_len = ct_size - GNUNET_IDENTITY_ENCRYPT_OVERHEAD_BYTES;
-
-  if (pt_size < expected_pt_len)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Output buffer size for plaintext too small: Got %lu, want >=%lu\n",
-                pt_size, expected_pt_len);
-    return GNUNET_SYSERR;
-  }
-  switch (ntohl (priv->type))
-  {
-  case GNUNET_IDENTITY_TYPE_ECDSA:
-    if (GNUNET_SYSERR == GNUNET_CRYPTO_ecdsa_fo_kem_decaps (&(priv->ecdsa_key),
-                                                            kemc,
-                                                            &k))
-      return GNUNET_SYSERR;
-    break;
-  case GNUNET_IDENTITY_TYPE_EDDSA:
-    if (GNUNET_SYSERR == GNUNET_CRYPTO_eddsa_fo_kem_decaps (&(priv->eddsa_key),
-                                                            kemc,
-                                                            &k))
-      return GNUNET_SYSERR;
-    break;
-  default:
-    return GNUNET_SYSERR;
-  }
-  memcpy (key, &k, crypto_secretbox_KEYBYTES);
-  memcpy (nonce, ((char* ) &k) + crypto_secretbox_KEYBYTES,
-          crypto_secretbox_NONCEBYTES);
-  if (crypto_secretbox_open_easy (pt, encrypted_data, ct_size - sizeof (*kemc),
-                                  nonce, key))
-    return GNUNET_SYSERR;
-  return GNUNET_OK;
-}
-
-
-ssize_t
-GNUNET_IDENTITY_decrypt_old (const void *block,
-                             size_t size,
-                             const struct GNUNET_IDENTITY_PrivateKey *priv,
-                             const struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
-                             void *result)
-{
-  struct GNUNET_HashCode hash;
-  switch (ntohl (priv->type))
-  {
-  case GNUNET_IDENTITY_TYPE_ECDSA:
-    if (GNUNET_SYSERR == GNUNET_CRYPTO_ecdsa_ecdh (&(priv->ecdsa_key), ecc,
-                                                   &hash))
-      return -1;
-    break;
-  case GNUNET_IDENTITY_TYPE_EDDSA:
-    if (GNUNET_SYSERR == GNUNET_CRYPTO_eddsa_ecdh (&(priv->eddsa_key), ecc,
-                                                   &hash))
-      return -1;
-    break;
-  default:
-    return -1;
-  }
-  struct GNUNET_CRYPTO_SymmetricSessionKey key;
-  struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
-  GNUNET_CRYPTO_hash_to_aes_key (&hash, &key, &iv);
-  GNUNET_CRYPTO_zero_keys (&hash, sizeof(hash));
-  const ssize_t decrypted = GNUNET_CRYPTO_symmetric_decrypt (block, size, &key,
-                                                             &iv, result);
-  GNUNET_CRYPTO_zero_keys (&key, sizeof(key));
-  GNUNET_CRYPTO_zero_keys (&iv, sizeof(iv));
-  return decrypted;
-}
-
-
-char *
-GNUNET_IDENTITY_public_key_to_string (const struct
-                                      GNUNET_IDENTITY_PublicKey *key)
-{
-  size_t size = GNUNET_IDENTITY_public_key_get_length (key);
-  return GNUNET_STRINGS_data_to_string_alloc (key,
-                                              size);
-}
-
-
-char *
-GNUNET_IDENTITY_private_key_to_string (const struct
-                                       GNUNET_IDENTITY_PrivateKey *key)
-{
-  size_t size = GNUNET_IDENTITY_private_key_get_length (key);
-  return GNUNET_STRINGS_data_to_string_alloc (key,
-                                              size);
-}
-
-
-enum GNUNET_GenericReturnValue
-GNUNET_IDENTITY_public_key_from_string (const char *str,
-                                        struct GNUNET_IDENTITY_PublicKey *key)
-{
-  enum GNUNET_GenericReturnValue ret;
-  ret = GNUNET_STRINGS_string_to_data (str,
-                                       strlen (str),
-                                       key,
-                                       sizeof (*key));
-  if (GNUNET_OK != ret)
-    return GNUNET_SYSERR;
-  return check_key_type (ntohl (key->type));
-
-}
-
-
-enum GNUNET_GenericReturnValue
-GNUNET_IDENTITY_private_key_from_string (const char *str,
-                                         struct GNUNET_IDENTITY_PrivateKey *key)
-{
-  enum GNUNET_GenericReturnValue ret;
-  ret = GNUNET_STRINGS_string_to_data (str,
-                                       strlen (str),
-                                       key,
-                                       sizeof (*key));
-  if (GNUNET_OK != ret)
-    return GNUNET_SYSERR;
-  return check_key_type (ntohl (key->type));
 }
 
 

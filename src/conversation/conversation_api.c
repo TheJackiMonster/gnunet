@@ -105,7 +105,7 @@ struct GNUNET_CONVERSATION_Caller
   /**
    * Identity of the person calling us.
    */
-  struct GNUNET_IDENTITY_PublicKey caller_id;
+  struct GNUNET_CRYPTO_PublicKey caller_id;
 
   /**
    * Internal handle to identify the caller with the service.
@@ -192,7 +192,7 @@ struct GNUNET_CONVERSATION_Phone
   /**
    * My GNS zone.
    */
-  struct GNUNET_IDENTITY_PrivateKey my_zone;
+  struct GNUNET_CRYPTO_PrivateKey my_zone;
 
   /**
    * State machine for the phone.
@@ -263,7 +263,7 @@ handle_phone_ring (void *cls,
 {
   struct GNUNET_CONVERSATION_Phone *phone = cls;
   struct GNUNET_CONVERSATION_Caller *caller;
-  struct GNUNET_IDENTITY_PublicKey caller_id;
+  struct GNUNET_CRYPTO_PublicKey caller_id;
   size_t key_len;
   size_t read;
 
@@ -276,7 +276,7 @@ handle_phone_ring (void *cls,
 
   case PS_READY:
     if ((GNUNET_SYSERR ==
-         GNUNET_IDENTITY_read_public_key_from_buffer (&ring[1],
+         GNUNET_CRYPTO_read_public_key_from_buffer (&ring[1],
                                                       key_len,
                                                       &caller_id,
                                                       &read)) ||

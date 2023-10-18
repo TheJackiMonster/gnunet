@@ -18,9 +18,6 @@ endif
 libexec_PROGRAMS = \
  gnunet-service-consensus
 
-#noinst_PROGRAMS = \
-# gnunet-consensus-profiler
-
 if ENABLE_MALICIOUS
 libexec_PROGRAMS += \
  gnunet-service-evil-consensus
@@ -38,20 +35,10 @@ check-python-style:
 lib_LTLIBRARIES = \
   libgnunetconsensus.la
 
-# TNG
-#gnunet_consensus_profiler_SOURCES = \
-# gnunet-consensus-profiler.c
-#gnunet_consensus_profiler_LDADD = \
-#  $(top_builddir)/src/util/libgnunetutil.la \
-#  libgnunetconsensus.la \
-#  $(top_builddir)/src/testing/libgnunettesting.la \
-#  $(top_builddir)/src/testbed/libgnunettestbed.la \
-#  $(GN_LIBINTL)
-
 gnunet_service_consensus_SOURCES = \
  gnunet-service-consensus.c
 gnunet_service_consensus_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/core/libgnunetcore.la \
   $(top_builddir)/src/set/libgnunetset.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
@@ -61,7 +48,7 @@ gnunet_service_evil_consensus_SOURCES = \
  gnunet-service-consensus.c \
  consensus_protocol.h
 gnunet_service_evil_consensus_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/core/libgnunetcore.la \
   $(top_builddir)/src/set/libgnunetset.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
@@ -72,7 +59,7 @@ libgnunetconsensus_la_SOURCES = \
   consensus_api.c \
   consensus.h
 libgnunetconsensus_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LTLIBINTL)
 libgnunetconsensus_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)
@@ -84,9 +71,9 @@ plugin_LTLIBRARIES = \
 libgnunet_plugin_block_consensus_la_SOURCES = \
   plugin_block_consensus.c
 libgnunet_plugin_block_consensus_la_LIBADD = \
-  $(top_builddir)/src/block/libgnunetblock.la \
-  $(top_builddir)/src/block/libgnunetblockgroup.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/block/libgnunetblock.la \
+  $(top_builddir)/src/lib/block/libgnunetblockgroup.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LTLIBINTL)
 libgnunet_plugin_block_consensus_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
@@ -94,7 +81,7 @@ libgnunet_plugin_block_consensus_la_LDFLAGS = \
 
 
 check_PROGRAMS = \
- # test_consensus_api
+ test_consensus_api
 
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
@@ -104,7 +91,7 @@ endif
 test_consensus_api_SOURCES = \
  test_consensus_api.c
 test_consensus_api_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
   libgnunetconsensus.la
 

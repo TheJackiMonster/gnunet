@@ -47,8 +47,6 @@ gnunetinclude_HEADERS = \
   gnunet_dnsstub_lib.h \
   gnunet_dns_service.h \
   gnunet_error_codes.h \
-  gnunet_fragmentation_lib.h \
-  gnunet_friends_lib.h \
   gnunet_fs_service.h \
   gnunet_getopt_lib.h \
   gnunet_gns_service.h \
@@ -121,6 +119,7 @@ gnunetinclude_HEADERS = \
   gnunet_time_lib.h \
   gnunet_transport_application_service.h \
   gnunet_transport_communication_service.h \
+  gnunet_transport_monitor_service.h \
   gnunet_transport_core_service.h \
   gnunet_transport_hello_service.h \
   gnunet_transport_testing_ng_lib.h \

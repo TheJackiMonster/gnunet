@@ -8,10 +8,11 @@ configure_file(input : 'consensus.conf.in',
                install: true,
                install_dir: pkgcfgdir)
 
+# FIXME needs new seti/setu
 if get_option('monolith')
-  foreach p : libgnunetconsensus_src + gnunetserviceconsensus_src
-    gnunet_src += 'consensus/' + p
-  endforeach
+  #foreach p : libgnunetconsensus_src + gnunetserviceconsensus_src
+  #  gnunet_src += 'consensus/' + p
+  #endforeach
   subdir_done()
 endif
 
@@ -46,3 +47,21 @@ executable ('gnunet-service-consensus',
             install: true,
             install_dir: get_option('libdir') / 'gnunet' / 'libexec')
 
+# FIXME do we need evil stuff and ENABLE_MALICIOUS?
+
+testconsensusapi = executable ('test_consensus_api',
+            ['test_consensus_api.c'],
+            dependencies: [libgnunetconsensus_dep,
+                           libgnunetutil_dep,
+                           libgnunettesting_dep],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+
+configure_file(input : 'test_consensus.conf',
+               output : 'test_consensus.conf',
+               configuration : cdata,
+               install: false)
+
+test('test_consensus_api', testconsensusapi,
+  workdir: meson.current_build_dir(),
+  suite: 'consensus')

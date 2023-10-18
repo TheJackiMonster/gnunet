@@ -263,7 +263,7 @@ remove_did_document_namestore_cb (void *cls, enum GNUNET_ErrorCode ec)
 static void
 remove_did_document_ego_lookup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 {
-  const struct GNUNET_IDENTITY_PrivateKey *skey =
+  const struct GNUNET_CRYPTO_PrivateKey *skey =
     GNUNET_IDENTITY_ego_get_private_key (ego);
 
   GNUNET_NAMESTORE_records_store (namestore_handle,
@@ -335,7 +335,7 @@ create_did_cb (enum GNUNET_GenericReturnValue status, void *cls)
  */
 static void
 create_did_ego_create_cb (void *cls,
-                          const struct GNUNET_IDENTITY_PrivateKey *pk,
+                          const struct GNUNET_CRYPTO_PrivateKey *pk,
                           enum GNUNET_ErrorCode ec)
 {
   if (GNUNET_EC_NONE != ec)
@@ -366,7 +366,7 @@ create_did_ego_lockup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
     GNUNET_IDENTITY_create (identity_handle,
                             egoname,
                             NULL,
-                            GNUNET_IDENTITY_TYPE_EDDSA,
+                            GNUNET_PUBLIC_KEY_TYPE_EDDSA,
                             &create_did_ego_create_cb,
                             egoname);
   }

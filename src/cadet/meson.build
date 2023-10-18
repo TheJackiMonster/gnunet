@@ -72,3 +72,16 @@ executable ('gnunet-service-cadet',
             install: true,
             install_dir: get_option('libdir') / 'gnunet' / 'libexec')
 
+testcadetlocalmq = executable ('test_cadet_local_mq',
+            ['test_cadet_local_mq.c'],
+            dependencies: [libgnunetcadet_dep,
+                           libgnunettesting_dep,
+                           libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+configure_file(input : 'test_cadet.conf',
+               output : 'test_cadet.conf',
+               configuration : cdata,
+               install: false)
+test('test_cadet_local_mq', testcadetlocalmq, workdir: meson.current_build_dir(), suite: 'cadet')
+

@@ -24,13 +24,13 @@ noinst_PROGRAMS = \
 gnunet_template_SOURCES = \
  gnunet-template.c
 gnunet_template_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
 gnunet_service_template_SOURCES = \
  gnunet-service-template.c
 gnunet_service_template_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
 
@@ -45,4 +45,4 @@ endif
 test_template_api_SOURCES = \
  test_template_api.c
 test_template_api_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la

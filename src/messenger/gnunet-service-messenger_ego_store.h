@@ -165,7 +165,7 @@ lookup_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
 struct GNUNET_MESSENGER_Ego*
 update_store_ego (struct GNUNET_MESSENGER_EgoStore *store,
                   const char *identifier,
-                  const struct GNUNET_IDENTITY_PrivateKey *key);
+                  const struct GNUNET_CRYPTO_PrivateKey *key);
 
 /**
  * Deletes the registration of an EGO in a <i>store</i> under

@@ -27,7 +27,7 @@
 #include "messenger_api_contact.h"
 
 struct GNUNET_MESSENGER_Contact*
-create_contact (const struct GNUNET_IDENTITY_PublicKey *key)
+create_contact (const struct GNUNET_CRYPTO_PublicKey *key)
 {
   GNUNET_assert(key);
 
@@ -72,7 +72,7 @@ set_contact_name (struct GNUNET_MESSENGER_Contact *contact,
   contact->name = name ? GNUNET_strdup(name) : NULL;
 }
 
-const struct GNUNET_IDENTITY_PublicKey*
+const struct GNUNET_CRYPTO_PublicKey*
 get_contact_key (const struct GNUNET_MESSENGER_Contact *contact)
 {
   GNUNET_assert(contact);

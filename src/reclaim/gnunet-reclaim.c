@@ -152,12 +152,12 @@ static struct GNUNET_RECLAIM_TicketIterator *ticket_iterator;
 /**
  * ego private key
  */
-static const struct GNUNET_IDENTITY_PrivateKey *pkey;
+static const struct GNUNET_CRYPTO_PrivateKey *pkey;
 
 /**
  * rp public key
  */
-static struct GNUNET_IDENTITY_PublicKey rp_key;
+static struct GNUNET_CRYPTO_PublicKey rp_key;
 
 /**
  * Ticket to consume
@@ -264,7 +264,7 @@ store_cont (void *cls, int32_t success, const char *emsg)
 
 static void
 process_attrs (void *cls,
-               const struct GNUNET_IDENTITY_PublicKey *identity,
+               const struct GNUNET_CRYPTO_PublicKey *identity,
                const struct GNUNET_RECLAIM_Attribute *attr,
                const struct GNUNET_RECLAIM_Presentation *presentation)
 {
@@ -349,7 +349,7 @@ ticket_iter (void *cls, const struct GNUNET_RECLAIM_Ticket *ticket)
   aud =
     GNUNET_STRINGS_data_to_string_alloc (&ticket->audience,
                                          sizeof(struct
-                                                GNUNET_IDENTITY_PublicKey));
+                                                GNUNET_CRYPTO_PublicKey));
   ref = GNUNET_STRINGS_data_to_string_alloc (&ticket->rnd, sizeof(ticket->rnd));
   tkt =
     GNUNET_STRINGS_data_to_string_alloc (ticket,
@@ -514,7 +514,7 @@ iter_finished (void *cls)
 
 static void
 iter_cb (void *cls,
-         const struct GNUNET_IDENTITY_PublicKey *identity,
+         const struct GNUNET_CRYPTO_PublicKey *identity,
          const struct GNUNET_RECLAIM_Attribute *attr)
 {
   struct GNUNET_RECLAIM_AttributeListEntry *le;
@@ -657,7 +657,7 @@ cred_iter_finished (void *cls)
 
 static void
 cred_iter_cb (void *cls,
-              const struct GNUNET_IDENTITY_PublicKey *identity,
+              const struct GNUNET_CRYPTO_PublicKey *identity,
               const struct GNUNET_RECLAIM_Credential *cred)
 {
   char *cred_str;
@@ -738,7 +738,7 @@ start_process ()
 
   if ((NULL != rp) &&
       (GNUNET_OK !=
-       GNUNET_IDENTITY_public_key_from_string (rp, &rp_key)) )
+       GNUNET_CRYPTO_public_key_from_string (rp, &rp_key)) )
   {
     fprintf (stderr, "%s is not a public key!\n", rp);
     cleanup_task = GNUNET_SCHEDULER_add_now (&do_cleanup, NULL);

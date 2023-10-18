@@ -48,3 +48,14 @@ shared_module('gnunet_plugin_dhtu_gnunet',
           install: true,
           install_dir: get_option('libdir')/'gnunet')
 
+testdhtu_ip = executable('test_dhtu_ip',
+           ['test_dhtu_ip.c'],
+          dependencies: [libgnunetutil_dep,
+                         libgnunettesting_dep],
+          include_directories: [incdir, configuration_inc],
+          install: false)
+
+test('test_dhtu_ip', testdhtu_ip, suite: 'dhtu',
+     workdir: meson.current_build_dir())
+
+

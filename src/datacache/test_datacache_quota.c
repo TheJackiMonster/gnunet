@@ -68,6 +68,7 @@ run (void *cls,
     fprintf (stderr,
              "%s",
              "Failed to initialize datacache.  Database likely not setup, skipping test.\n");
+    ok = 77;
     return;
   }
   block.expiration_time = GNUNET_TIME_relative_to_absolute (
@@ -175,13 +176,17 @@ main (int argc,
                    sizeof(cfg_name),
                    "test_datacache_data_%s.conf",
                    plugin_name);
-  GNUNET_PROGRAM_run ((sizeof(xargv) / sizeof(char *)) - 1,
-                      xargv,
-                      "test-datacache-quota",
-                      "nohelp",
-                      options,
-                      &run,
-                      NULL);
+  if (GNUNET_OK != GNUNET_PROGRAM_run ((sizeof(xargv) / sizeof(char *)) - 1,
+                                       xargv,
+                                       "test-datacache-quota",
+                                       "nohelp",
+                                       options,
+                                       &run,
+                                       NULL))
+  {
+    GNUNET_free (plugin_name);
+    return 1;
+  }
   if (0 != ok)
     fprintf (stderr,
              "Missed some testcases: %d\n",

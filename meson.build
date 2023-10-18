@@ -1,6 +1,6 @@
 ## EXPERIMENTAL --- WORK IN PROGRESS --- USE AT YOUR OWN PERIL --- ##
 project('gnunet', 'c', license: 'AGPLv3',
-        version: run_command('sh', 'contrib/get_version.sh', check: true).stdout().strip())
+        version: run_command('sh', 'scripts/get_version.sh', check: true).stdout().strip())
 
 add_project_arguments('-D_GNU_SOURCE', language : 'c')
 
@@ -9,13 +9,13 @@ incdir = include_directories('src/include')
 cdata = configuration_data()
 
 # Version
-gnunet_version = run_command('sh', 'contrib/get_version.sh', check: true).stdout().strip()
+gnunet_version = run_command('sh', 'scripts/get_version.sh', check: true).stdout().strip()
 cdata.set('gnunet_version', gnunet_version)
-r = run_command('sh', 'contrib/get_version.sh', '--major', check: true)
+r = run_command('sh', 'scripts/get_version.sh', '--major', check: true)
 cdata.set('gnunet_major_version', r.stdout().strip())
-r = run_command('sh', 'contrib/get_version.sh', '--minor', check: true)
+r = run_command('sh', 'scripts/get_version.sh', '--minor', check: true)
 cdata.set('gnunet_minor_version', r.stdout().strip())
-r = run_command('sh', 'contrib/get_version.sh', '--micro', check: true)
+r = run_command('sh', 'scripts/get_version.sh', '--micro', check: true)
 cdata.set('gnunet_micro_version', r.stdout().strip())
 
 pkgcfgdir = get_option('datadir')/'gnunet'/'config.d'
@@ -23,6 +23,22 @@ docdir = get_option('datadir')/'doc'/'gnunet'
 
 install_emptydir(docdir)
 install_data('README', 'COPYING', install_dir: docdir)
+
+gnunet_user = false
+getent_bin = find_program('getent', '/usr/bin/getent', required : false)
+if getent_bin.found()
+  gnunet_user = true
+  if not run_command('getent', 'passwd', 'gnunet', check: false).returncode() == 0
+    gnunet_user = false
+  endif
+  if not run_command('getent', 'group', 'gnunet', check: false).returncode() == 0
+    gnunet_user = false
+  endif
+  if not run_command('getent', 'group', 'gnunetdns', check: false).returncode() == 0
+    gnunet_user = false
+  endif
+endif
+
 
 # TODO: Set to true to build a single libgnunet
 if get_option('monolith')
@@ -189,6 +205,23 @@ if gopt_bin.found()
   add_project_arguments('-DHAVE_GETOPT_BINARY='+gopt_bin.full_path(), language : 'c')
 endif
 
+ifconfig_bin = find_program('ifconfig', '/usr/sbin/ifconfig', required : false)
+if ifconfig_bin.found()
+  cdata.set_quoted('IFCONFIG', ifconfig_bin.full_path())
+endif
+
+ip_bin = find_program('ip', '/usr/sbin/ip', required : false)
+if ip_bin.found()
+  cdata.set_quoted('PATH_TO_IP', ip_bin.full_path())
+endif
+
+iptables_bin = find_program('iptables', '/usr/sbin/iptables', required : false)
+if iptables_bin.found()
+  cdata.set_quoted('IPTABLES', iptables_bin.full_path())
+endif
+
+adduser_bin = find_program('adduser', '/usr/sbin/adduser', required : false)
+
 pkgc_bin = find_program('pkg-config', '/usr/bin/pkg-config', required : false)
 if pkgc_bin.found()
   add_project_arguments('-DHAVE_PKG_CONFIG', language : 'c')
@@ -253,14 +286,19 @@ if ogg_dep.found()
   add_project_arguments('-DHAVE_OGG', language : 'c')
 endif
 
-if pulse_dep.found() or ogg_dep.found() or opus_dep.found()
-  gst_dep = dependency('libgst', required : false)
-  if not gst_dep.found()
-    gst_dep = cc.find_library('gstreamer', required : false)
-  endif
-  if gst_dep.found()
-    add_project_arguments('-DHAVE_GST', language : 'c')
-  endif
+gst_dep = dependency('libgst', required : false)
+if not gst_dep.found()
+  gst_dep = cc.find_library('gstreamer', required : false)
+endif
+if gst_dep.found()
+  add_project_arguments('-DHAVE_GST', language : 'c')
+endif
+
+conversation_backend = 'none'
+if pulse_dep.found() and opus_dep.found() and ogg_dep.found()
+  conversation_backend = 'pulse'
+elif gst_dep.found()
+  conversation_backend = 'gst'
 endif
 ## END conversation
 
@@ -359,7 +397,12 @@ endif
 if cc.has_function('explicit_bzero')
   cdata.set('HAVE_EXPLICIT_BZERO', 1)
 endif
-
+if cc.has_function('gethostbyname')
+  cdata.set('HAVE_GETHOSTBYNAME', 1)
+endif
+if cc.has_function('gethostbyname2')
+  cdata.set('HAVE_GETHOSTBYNAME2', 1)
+endif
 
 configure_file(#input: 'gnunet_private_config.h.in',
                output : 'gnunet_private_config.h',
@@ -373,3 +416,29 @@ subdir('doc')
 subdir('contrib')
 
 meson.add_dist_script('meson-dist-script')
+
+summary({'host': host_machine.system(),
+         'prefix': get_option('prefix'),
+         'compiler': cc.get_id(),
+          'libdir': get_option('libdir'),
+          'datadir': get_option('datadir'),
+          'default interface': cdata.get('GNUNET_DEFAULT_INTERFACE'),
+          'PostgreSQL': pq_dep.found(),
+          'curl w/ gnutls': (cdata.get('curl_gnutls') == 1),
+          'ifconfig': ifconfig_bin.found(),
+          'iptables': iptables_bin.found()
+          }, section: 'Detected system')
+
+if not gnunet_user
+message('Please make sure NOW to create a user and group \'gnunet\' and additionally a group \'gnunetdns\'. Make sure that \'/var/lib/gnunet\' is owned (and writable) by user \'gnunet\'')
+message('Each user of GNUnet should be added to the \'gnunet\' group')
+if adduser_bin.found() and not gnunet_user
+    message('''Create the gnunet user and add users to the gnunetdns group, run:
+             # addgroup gnunetdns
+             # adduser --system --disabled-login --home /var/lib/gnunet gnunet''')
+    message('''To add users to the gnunet group, run:
+             # adduser USERNAME gnunet
+             for each of your users, replacing \'USERNAME\' with the respective login name.
+             Users may have to login again for the changes to take effect.''')
+endif
+endif

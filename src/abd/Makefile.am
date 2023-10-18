@@ -41,8 +41,8 @@ gnunet_abd_SOURCES = \
  gnunet-abd.c
 gnunet_abd_LDADD = \
   libgnunetabd.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
-	$(top_builddir)/src/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
+	$(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
   $(top_builddir)/src/namestore/libgnunetnamestore.la \
   $(GN_LIBINTL)
@@ -52,7 +52,7 @@ libgnunet_plugin_gnsrecord_abd_la_SOURCES = \
   plugin_gnsrecord_abd.c
 libgnunet_plugin_gnsrecord_abd_la_LIBADD = \
 	libgnunetabd.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
   $(LTLIBINTL)
 libgnunet_plugin_gnsrecord_abd_la_LDFLAGS = \
@@ -64,7 +64,7 @@ gnunet_service_abd_SOURCES = \
  gnunet-service-abd.c
 gnunet_service_abd_LDADD = \
 	libgnunetabd.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
 	$(top_builddir)/src/gns/libgnunetgns.la \
 	$(top_builddir)/src/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
@@ -79,7 +79,7 @@ libgnunetabd_la_SOURCES = \
  delegate_misc.c \
  delegate_misc.h
 libgnunetabd_la_LIBADD = \
- $(top_builddir)/src/util/libgnunetutil.la \
+ $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(top_builddir)/src/identity/libgnunetidentity.la \
  $(XLIB)
 libgnunetabd_la_LDFLAGS = \

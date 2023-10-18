@@ -756,8 +756,8 @@ handle_cadet_ring_message (void *cls, const struct CadetPhoneRingMessage *msg)
   struct GNUNET_MQ_Envelope *env;
   struct ClientPhoneRingMessage *cring;
   struct CadetPhoneRingInfoPS rs;
-  struct GNUNET_IDENTITY_PublicKey identity;
-  struct GNUNET_IDENTITY_Signature sig;
+  struct GNUNET_CRYPTO_PublicKey identity;
+  struct GNUNET_CRYPTO_Signature sig;
   size_t key_len;
   size_t sig_len;
   size_t read;
@@ -771,7 +771,7 @@ handle_cadet_ring_message (void *cls, const struct CadetPhoneRingMessage *msg)
   sig_len = ntohl (msg->sig_len);
 
   if ((GNUNET_SYSERR ==
-       GNUNET_IDENTITY_read_public_key_from_buffer (&msg[1],
+       GNUNET_CRYPTO_read_public_key_from_buffer (&msg[1],
                                                     key_len,
                                                     &identity,
                                                     &read)) ||
@@ -781,11 +781,11 @@ handle_cadet_ring_message (void *cls, const struct CadetPhoneRingMessage *msg)
     destroy_line_cadet_channels (ch);
     return;
   }
-  GNUNET_IDENTITY_read_signature_from_buffer (&sig,
+  GNUNET_CRYPTO_read_signature_from_buffer (&sig,
                                               (char*) &msg[1] + read,
                                               sig_len);
   if (GNUNET_OK !=
-      GNUNET_IDENTITY_signature_verify (
+      GNUNET_CRYPTO_signature_verify (
         GNUNET_SIGNATURE_PURPOSE_CONVERSATION_RING,
         &rs,
         &sig,
@@ -1165,9 +1165,9 @@ handle_client_call_message (void *cls, const struct ClientCallMessage *msg)
   struct GNUNET_MQ_Envelope *e;
   struct CadetPhoneRingMessage *ring;
   struct CadetPhoneRingInfoPS rs;
-  struct GNUNET_IDENTITY_PrivateKey caller_id;
-  struct GNUNET_IDENTITY_PublicKey caller_id_pub;
-  struct GNUNET_IDENTITY_Signature sig;
+  struct GNUNET_CRYPTO_PrivateKey caller_id;
+  struct GNUNET_CRYPTO_PublicKey caller_id_pub;
+  struct GNUNET_CRYPTO_Signature sig;
   ssize_t written;
   size_t key_len;
   size_t pkey_len;
@@ -1183,7 +1183,7 @@ handle_client_call_message (void *cls, const struct ClientCallMessage *msg)
     GNUNET_TIME_absolute_hton (GNUNET_TIME_relative_to_absolute (RING_TIMEOUT));
   key_len = ntohl (msg->key_len);
   if (GNUNET_SYSERR ==
-      GNUNET_IDENTITY_read_private_key_from_buffer (&msg[1],
+      GNUNET_CRYPTO_read_private_key_from_buffer (&msg[1],
                                                     key_len,
                                                     &caller_id,
                                                     &read))
@@ -1205,19 +1205,19 @@ handle_client_call_message (void *cls, const struct ClientCallMessage *msg)
                                              cadet_handlers);
   ch->mq = GNUNET_CADET_get_mq (ch->channel);
   GNUNET_assert (read == key_len);
-  GNUNET_IDENTITY_sign (&caller_id, &rs, &sig);
-  sig_len = GNUNET_IDENTITY_signature_get_length (&sig);
-  GNUNET_IDENTITY_key_get_public (&caller_id, &caller_id_pub);
-  pkey_len = GNUNET_IDENTITY_public_key_get_length (&caller_id_pub);
+  GNUNET_CRYPTO_sign (&caller_id, &rs, &sig);
+  sig_len = GNUNET_CRYPTO_signature_get_length (&sig);
+  GNUNET_CRYPTO_key_get_public (&caller_id, &caller_id_pub);
+  pkey_len = GNUNET_CRYPTO_public_key_get_length (&caller_id_pub);
   e = GNUNET_MQ_msg_extra (ring, pkey_len + sig_len,
                            GNUNET_MESSAGE_TYPE_CONVERSATION_CADET_PHONE_RING);
-  written = GNUNET_IDENTITY_write_public_key_to_buffer (&caller_id_pub,
+  written = GNUNET_CRYPTO_write_public_key_to_buffer (&caller_id_pub,
                                                         &ring[1],
                                                         pkey_len);
   ring->expiration_time = rs.expiration_time;
   ring->key_len = htonl (pkey_len);
   ring->sig_len = htonl (sig_len);
-  GNUNET_IDENTITY_write_signature_to_buffer (&sig,
+  GNUNET_CRYPTO_write_signature_to_buffer (&sig,
                                              (char *) &ring[1] + written,
                                              sig_len);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sending RING message via CADET\n");

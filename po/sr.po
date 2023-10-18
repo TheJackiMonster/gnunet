@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2023-10-06 08:40+0200\n"
+"POT-Creation-Date: 2023-10-16 12:34+0200\n"
 "PO-Revision-Date: 2020-10-23 18:39+0200\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: Serbian <(nothing)>\n"
@@ -167,15 +167,15 @@ msgstr "Нисам успео да уклоним датотеку подеша�
 msgid "Failed to remove servicehome directory %s\n"
 msgstr "Нисам успео да уклоним матични директоријум услуге „%s“\n"
 
-#: src/arm/gnunet-arm.c:229 src/testbed/gnunet-service-testbed_peers.c:1133
+#: src/arm/gnunet-arm.c:229
 msgid "Message was sent successfully"
 msgstr "Порука је успешно послата"
 
-#: src/arm/gnunet-arm.c:232 src/testbed/gnunet-service-testbed_peers.c:1136
+#: src/arm/gnunet-arm.c:232
 msgid "We disconnected from ARM before we could send a request"
 msgstr "Прекинута је веза са АУР-ом пре него ли можемо послати захтев"
 
-#: src/arm/gnunet-arm.c:234 src/testbed/gnunet-service-testbed_peers.c:1138
+#: src/arm/gnunet-arm.c:234
 msgid "Unknown request status"
 msgstr "Стање захтева је непознато"
 
@@ -586,49 +586,6 @@ msgstr "обезбеђује податке о свим парњацима"
 #, fuzzy
 msgid "Provide information about all tunnels"
 msgstr "обезбеђује податке о свим тунелима"
-
-#: src/consensus/gnunet-consensus-profiler.c:530
-#: src/secretsharing/gnunet-secretsharing-profiler.c:624
-msgid "number of peers in consensus"
-msgstr "број парњака у концензусу"
-
-#: src/consensus/gnunet-consensus-profiler.c:537
-#, fuzzy
-msgid ""
-"how many peers (random selection without replacement) receive one value?"
-msgstr "колико парњака прима једну вредност?"
-
-#: src/consensus/gnunet-consensus-profiler.c:543
-#: src/set/gnunet-set-profiler.c:451 src/set/gnunet-set-profiler.c:457
-#: src/set/gnunet-set-profiler.c:480 src/seti/gnunet-seti-profiler.c:441
-#: src/seti/gnunet-seti-profiler.c:446 src/seti/gnunet-seti-profiler.c:451
-#: src/setu/gnunet-setu-profiler.c:442 src/setu/gnunet-setu-profiler.c:448
-#: src/setu/gnunet-setu-profiler.c:471
-msgid "number of values"
-msgstr "број вредности"
-
-#: src/consensus/gnunet-consensus-profiler.c:549
-msgid "consensus timeout"
-msgstr "време истека концензуса"
-
-#: src/consensus/gnunet-consensus-profiler.c:557
-msgid "delay until consensus starts"
-msgstr "застој док не започне концензус"
-
-#: src/consensus/gnunet-consensus-profiler.c:563
-#: src/set/gnunet-set-profiler.c:498 src/seti/gnunet-seti-profiler.c:467
-#: src/setu/gnunet-setu-profiler.c:489
-#, fuzzy
-msgid "write statistics to file"
-msgstr "само исписује вредност статистике"
-
-#: src/consensus/gnunet-consensus-profiler.c:569
-msgid "distribute elements to a static subset of good peers"
-msgstr ""
-
-#: src/consensus/gnunet-consensus-profiler.c:575
-msgid "be more verbose (print received values)"
-msgstr "бива опширнији (исписује примљене вредности)"
 
 #: src/conversation/conversation_api.c:549
 #: src/conversation/conversation_api_call.c:521
@@ -1313,8 +1270,8 @@ msgstr "# бајтови утовара су дешифровани"
 #: src/core/gnunet-service-core_sessions.c:252
 #: src/core/gnunet-service-core_sessions.c:337
 #: src/fs/gnunet-service-fs_cp.c:475 src/fs/gnunet-service-fs_cp.c:1368
-#: src/topology/gnunet-daemon-topology.c:568
-#: src/topology/gnunet-daemon-topology.c:659
+#: src/topology/gnunet-daemon-topology.c:522
+#: src/topology/gnunet-daemon-topology.c:604
 msgid "# peers connected"
 msgstr "# парњаци су повезани"
 
@@ -1351,11 +1308,7 @@ msgstr "Остава података скупине ради\n"
 #: src/datastore/plugin_datastore_sqlite.c:81
 #: src/namecache/plugin_namecache_sqlite.c:54
 #: src/namestore/plugin_namestore_sqlite.c:56
-#: src/peerstore/plugin_peerstore_sqlite.c:54
-#: src/testbed/generate-underlay-topology.c:48
-#: src/testbed/gnunet-daemon-latency-logger.c:53
-#: src/testbed/gnunet-daemon-testbed-underlay.c:57
-#: src/testbed/testbed_api_hosts.c:72 src/util/crypto_ecc.c:79
+#: src/peerstore/plugin_peerstore_sqlite.c:54 src/util/crypto_ecc.c:79
 #: src/util/crypto_ecc_setup.c:48 src/util/crypto_mpi.c:41
 #, c-format
 msgid "`%s' failed at %s:%d with error: %s\n"
@@ -1671,9 +1624,6 @@ msgid "Failed to drop table from database.\n"
 msgstr "Нисам успео да избацим табелу из базе података.\n"
 
 #: src/datastore/plugin_datastore_sqlite.c:87
-#: src/testbed/generate-underlay-topology.c:55
-#: src/testbed/gnunet-daemon-latency-logger.c:56
-#: src/testbed/gnunet-daemon-testbed-underlay.c:60
 #, c-format
 msgid "`%s' failed at %s:%u with error: %s"
 msgstr "„%s“ није успело на %s:%u са грешком: %s"
@@ -1840,7 +1790,7 @@ msgstr "врста за уметање података"
 msgid "Issue a PUT request to the GNUnet DHT insert DATA under KEY."
 msgstr "Издаје захтев СТАВИ у ГНУнет ДХТ уметак ПОДАТАКА под КЉУЧЕМ."
 
-#: src/dht/gnunet_dht_profiler.c:925 src/testbed/gnunet-testbed-profiler.c:253
+#: src/dht/gnunet_dht_profiler.c:925
 #, c-format
 msgid "Exiting as the number of peers is %u\n"
 msgstr "Излазим јер је број парњака %u\n"
@@ -1856,7 +1806,6 @@ msgid "number of PUTs to perform per peer"
 msgstr "број битова за тражење доказивања о раду"
 
 #: src/dht/gnunet_dht_profiler.c:970 src/nse/gnunet-nse-profiler.c:872
-#: src/testbed/gnunet-testbed-profiler.c:302
 msgid "name of the file with the login information for the testbed"
 msgstr "назив датотеке са подацима пријављивања за пробно место"
 
@@ -2173,54 +2122,6 @@ msgstr "Ниједна корисна услуга није укључена.  �
 #: src/exit/gnunet-daemon-exit.c:4114
 msgid "Daemon to run to provide an IP exit node for the VPN"
 msgstr "Демон за покретање за обезбеђивање чвора ИП излаза за ВПН"
-
-#: src/fragmentation/defragmentation.c:272
-msgid "# acknowledgements sent for fragment"
-msgstr "# потврде су послате за делић"
-
-#: src/fragmentation/defragmentation.c:465
-msgid "# fragments received"
-msgstr "# делићи су примљени"
-
-#: src/fragmentation/defragmentation.c:537
-msgid "# duplicate fragments received"
-msgstr "# двоструки делићи су примљени"
-
-#: src/fragmentation/defragmentation.c:555
-msgid "# messages defragmented"
-msgstr "# делићи порука су уједињени"
-
-#: src/fragmentation/fragmentation.c:239
-msgid "# fragments transmitted"
-msgstr "# делићи су пренесени"
-
-#: src/fragmentation/fragmentation.c:244
-msgid "# fragments retransmitted"
-msgstr "# делићи су поново пренесени"
-
-#: src/fragmentation/fragmentation.c:277
-msgid "# fragments wrap arounds"
-msgstr "# делићи се преламају около"
-
-#: src/fragmentation/fragmentation.c:324
-msgid "# messages fragmented"
-msgstr "# поруке су расцепкане"
-
-#: src/fragmentation/fragmentation.c:330
-msgid "# total size of fragmented messages"
-msgstr "# укупна величина расцепканих порука"
-
-#: src/fragmentation/fragmentation.c:458
-msgid "# fragment acknowledgements received"
-msgstr "# потврде делића су примљене"
-
-#: src/fragmentation/fragmentation.c:465
-msgid "# bits removed from fragmentation ACKs"
-msgstr "# битови су уклоњени из АЦК-ова расцепканости"
-
-#: src/fragmentation/fragmentation.c:489
-msgid "# fragmentation transmissions completed"
-msgstr "# преноси расцепканости су завршени"
 
 #: src/fs/fs_api.c:481
 #, c-format
@@ -3190,7 +3091,7 @@ msgstr ""
 "Услузи језгра недостаје поставка подешавања КЉУЧА_ДОМАЋИНА.  Излазим.\n"
 
 #: src/fs/gnunet-service-fs.c:1271 src/hostlist/gnunet-daemon-hostlist.c:343
-#: src/topology/gnunet-daemon-topology.c:1125
+#: src/topology/gnunet-daemon-topology.c:976
 #, c-format
 msgid "Failed to connect to `%s' service.\n"
 msgstr "Нисам успео да се повежем са „%s“ услугом.\n"
@@ -3512,6 +3413,126 @@ msgstr "\t<изворна датотека угнеждена у %u бајта �
 msgid "Failed to serialize metadata `%s'"
 msgstr "Нисам успео да серијализујем НС запис са вредношћу „%s“\n"
 
+#: src/gana/gnunet-error-codes/gnunet_error_codes.c:59
+#: src/util/gnunet_error_codes.c:59
+msgid "No error (success)."
+msgstr ""
+
+#: src/gana/gnunet-error-codes/gnunet_error_codes.c:65
+#: src/util/gnunet_error_codes.c:65
+#, fuzzy
+msgid "Unknown and unspecified error."
+msgstr "%.s Непознат код резултата."
+
+#: src/gana/gnunet-error-codes/gnunet_error_codes.c:71
+#: src/util/gnunet_error_codes.c:71
+#, fuzzy
+msgid "Communication with service failed."
+msgstr "Грешка у комуникацији са услугом ПОДАЦИ_ПАРЊАКА: %s\n"
+
+#: src/gana/gnunet-error-codes/gnunet_error_codes.c:77
+#: src/util/gnunet_error_codes.c:77
+#, fuzzy
+msgid "Ego not found."
+msgstr "Нисам нашао садржај"
+
+#: src/gana/gnunet-error-codes/gnunet_error_codes.c:83
+#: src/util/gnunet_error_codes.c:83
+#, fuzzy
+msgid "Identifier already in use for another ego."
+msgstr "одредник се већ користи за други его"
+
+#: src/gana/gnunet-error-codes/gnunet_error_codes.c:89
+#: src/util/gnunet_error_codes.c:89
+msgid "The given ego is invalid or malformed."
+msgstr ""
+
+#: src/gana/gnunet-error-codes/gnunet_error_codes.c:95
+#: src/util/gnunet_error_codes.c:95
+#, fuzzy
+msgid "Unknown namestore error."
+msgstr "%.s Непознат код резултата."
+
+#: src/gana/gnunet-error-codes/gnunet_error_codes.c:101
+#: src/gana/gnunet-error-codes/gnunet_error_codes.c:119
+#: src/util/gnunet_error_codes.c:101 src/util/gnunet_error_codes.c:119
+#, fuzzy
+msgid "Zone iteration failed."
+msgstr "# Бирање парњака није успело"
+
+#: src/gana/gnunet-error-codes/gnunet_error_codes.c:107
+#: src/util/gnunet_error_codes.c:107
+#, fuzzy
+msgid "Zone not found."
+msgstr "Нисам нашао садржај"
+
+#: src/gana/gnunet-error-codes/gnunet_error_codes.c:113
+#: src/util/gnunet_error_codes.c:113
+#, fuzzy
+msgid "Record not found."
+msgstr "нисам нашао „upnpc“\n"
+
+#: src/gana/gnunet-error-codes/gnunet_error_codes.c:125
+#: src/util/gnunet_error_codes.c:125
+msgid "Zone does not contain any records."
+msgstr ""
+
+#: src/gana/gnunet-error-codes/gnunet_error_codes.c:131
+#: src/util/gnunet_error_codes.c:131
+#, fuzzy
+msgid "Failed to lookup record."
+msgstr "Смештај назива није успео да смести запис\n"
+
+#: src/gana/gnunet-error-codes/gnunet_error_codes.c:137
+#: src/util/gnunet_error_codes.c:137
+#, fuzzy
+msgid "No records given."
+msgstr "Није дат парњак!\n"
+
+#: src/gana/gnunet-error-codes/gnunet_error_codes.c:143
+#: src/util/gnunet_error_codes.c:143
+msgid "Record data invalid."
+msgstr ""
+
+#: src/gana/gnunet-error-codes/gnunet_error_codes.c:149
+#: src/util/gnunet_error_codes.c:149
+#, fuzzy
+msgid "No label given."
+msgstr "Није дат парњак!\n"
+
+#: src/gana/gnunet-error-codes/gnunet_error_codes.c:155
+#: src/util/gnunet_error_codes.c:155
+#, fuzzy
+msgid "No results given."
+msgstr "Нису дате опције\n"
+
+#: src/gana/gnunet-error-codes/gnunet_error_codes.c:161
+#: src/util/gnunet_error_codes.c:161
+#, fuzzy
+msgid "Record already exists."
+msgstr "назив мете већ постоји"
+
+#: src/gana/gnunet-error-codes/gnunet_error_codes.c:167
+#: src/util/gnunet_error_codes.c:167
+msgid "Record size exceeds maximum limit."
+msgstr ""
+
+#: src/gana/gnunet-error-codes/gnunet_error_codes.c:173
+#: src/util/gnunet_error_codes.c:173
+msgid "There was an error in the database backend."
+msgstr ""
+
+#: src/gana/gnunet-error-codes/gnunet_error_codes.c:179
+#: src/util/gnunet_error_codes.c:179
+#, fuzzy
+msgid "Failed to store the given records."
+msgstr "Смештај назива није успео да смести запис\n"
+
+#: src/gana/gnunet-error-codes/gnunet_error_codes.c:185
+#: src/util/gnunet_error_codes.c:185
+msgid "Label invalid or malformed."
+msgstr ""
+
 #: src/gns/gns_tld_api.c:292
 msgid "Expected a base32-encoded public zone key\n"
 msgstr ""
@@ -3598,14 +3619,14 @@ msgid "This program will import some GNS authorities into your GNS namestore."
 msgstr "Овај програм ће увести неке ГНС ауторитете у ваш ГНС смештај назива."
 
 #: src/gns/gnunet-gns-proxy.c:116
-#: src/hostlist/gnunet-daemon-hostlist_client.c:550
-#: src/hostlist/gnunet-daemon-hostlist_client.c:778
-#: src/hostlist/gnunet-daemon-hostlist_client.c:787
-#: src/hostlist/gnunet-daemon-hostlist_client.c:841
-#: src/hostlist/gnunet-daemon-hostlist_client.c:853
-#: src/hostlist/gnunet-daemon-hostlist_client.c:963
-#: src/hostlist/gnunet-daemon-hostlist_client.c:1065
-#: src/hostlist/gnunet-daemon-hostlist_client.c:1073
+#: src/hostlist/gnunet-daemon-hostlist_client.c:532
+#: src/hostlist/gnunet-daemon-hostlist_client.c:760
+#: src/hostlist/gnunet-daemon-hostlist_client.c:769
+#: src/hostlist/gnunet-daemon-hostlist_client.c:823
+#: src/hostlist/gnunet-daemon-hostlist_client.c:835
+#: src/hostlist/gnunet-daemon-hostlist_client.c:945
+#: src/hostlist/gnunet-daemon-hostlist_client.c:1047
+#: src/hostlist/gnunet-daemon-hostlist_client.c:1055
 #, c-format
 msgid "%s failed at %s:%d: `%s'\n"
 msgstr "„%s“ није успело на %s:%d: „%s“\n"
@@ -4097,31 +4118,29 @@ msgid "# bytes downloaded from hostlist servers"
 msgstr "# бајтови су преузети са сервера списка домаћина"
 
 #: src/hostlist/gnunet-daemon-hostlist_client.c:372
-#: src/hostlist/gnunet-daemon-hostlist_client.c:408
 msgid "# invalid HELLOs downloaded from hostlist servers"
 msgstr "# неисправни „HELLO“-и су преузети са сервера списка домаћина"
 
 #: src/hostlist/gnunet-daemon-hostlist_client.c:376
-#: src/hostlist/gnunet-daemon-hostlist_client.c:412
 #, c-format
 msgid "Invalid `%s' message received from hostlist at `%s'\n"
 msgstr "Неисправна „%s“ порука је примљена са списка домаћина на „%s“\n"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:395
+#: src/hostlist/gnunet-daemon-hostlist_client.c:393
 msgid "# valid HELLOs downloaded from hostlist servers"
 msgstr "# исправни „HELLO“-и су преузети са сервера списка домаћина"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:683
-#: src/hostlist/gnunet-daemon-hostlist_client.c:1457
+#: src/hostlist/gnunet-daemon-hostlist_client.c:665
+#: src/hostlist/gnunet-daemon-hostlist_client.c:1439
 msgid "# advertised hostlist URIs"
 msgstr "# рекламиране путање списка домаћина"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:715
+#: src/hostlist/gnunet-daemon-hostlist_client.c:697
 #, c-format
 msgid "# advertised URI `%s' downloaded"
 msgstr "# рекламирана путања „%s“ је преузета"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:758
+#: src/hostlist/gnunet-daemon-hostlist_client.c:740
 #, c-format
 msgid ""
 "Advertised hostlist with URI `%s' could not be downloaded. Advertised URI "
@@ -4130,117 +4149,117 @@ msgstr ""
 "Рекламирани списак домаћина са путањом „%s“ се не може преузети. Рекламирана "
 "путања је одбачена.\n"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:892
+#: src/hostlist/gnunet-daemon-hostlist_client.c:874
 #, c-format
 msgid "Timeout trying to download hostlist from `%s'\n"
 msgstr "Време је истекло у покушају преузимања списка домаћина са „%s“\n"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:907
+#: src/hostlist/gnunet-daemon-hostlist_client.c:889
 #, c-format
 msgid "Download limit of %u bytes exceeded, stopping download\n"
 msgstr ""
 "Ограничење преузимања од %u бајта је премашено, заустављам преузимање\n"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:927
+#: src/hostlist/gnunet-daemon-hostlist_client.c:909
 #, c-format
 msgid "Download of hostlist from `%s' failed: `%s'\n"
 msgstr "Преузимање списка доамаћина са „%s“ није успело: „%s“\n"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:933
+#: src/hostlist/gnunet-daemon-hostlist_client.c:915
 #, c-format
 msgid "Download of hostlist `%s' completed.\n"
 msgstr "Преузимање списка домаћина „%s“ је завршено.\n"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:941
+#: src/hostlist/gnunet-daemon-hostlist_client.c:923
 #, c-format
 msgid "Adding successfully tested hostlist `%s' datastore.\n"
 msgstr "Додаје успешно тестирани смештај података „%s“ списка домаћина.\n"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:997
+#: src/hostlist/gnunet-daemon-hostlist_client.c:979
 #, c-format
 msgid "Bootstrapping using hostlist at `%s'.\n"
 msgstr "Вршим почетно подизање помоћу списка домаћина на „%s“.\n"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:1006
+#: src/hostlist/gnunet-daemon-hostlist_client.c:988
 msgid "# hostlist downloads initiated"
 msgstr "# преузимања списка домаћина су започета"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:1143
-#: src/hostlist/gnunet-daemon-hostlist_client.c:1729
+#: src/hostlist/gnunet-daemon-hostlist_client.c:1125
+#: src/hostlist/gnunet-daemon-hostlist_client.c:1711
 msgid "# milliseconds between hostlist downloads"
 msgstr "# милисекунди између преузимања списка домаћина"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:1153
+#: src/hostlist/gnunet-daemon-hostlist_client.c:1135
 #, c-format
 msgid "Have %u/%u connections.  Will consider downloading hostlist in %s\n"
 msgstr "Имам %u/%u везе.  Размотрићу преузимање списка домаћина за %s\n"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:1211
-#: src/hostlist/gnunet-daemon-hostlist_client.c:1232
+#: src/hostlist/gnunet-daemon-hostlist_client.c:1193
+#: src/hostlist/gnunet-daemon-hostlist_client.c:1214
 msgid "# active connections"
 msgstr "# активних веза"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:1393
+#: src/hostlist/gnunet-daemon-hostlist_client.c:1375
 #, c-format
 msgid "Loading saved hostlist entries from file `%s' \n"
 msgstr "Учитавам сачуване уносе списка домаћина из датотеке „%s“ \n"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:1398
+#: src/hostlist/gnunet-daemon-hostlist_client.c:1380
 #, c-format
 msgid "Hostlist file `%s' does not exist\n"
 msgstr "Датотека списка домаћина „%s“ не постоји\n"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:1409
+#: src/hostlist/gnunet-daemon-hostlist_client.c:1391
 #, c-format
 msgid "Could not open file `%s' for reading to load hostlists: %s\n"
 msgstr ""
 "Не могу да отворим датотеку „%s“ за читање да утоварим спискове домаћина: "
 "%s\n"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:1450
+#: src/hostlist/gnunet-daemon-hostlist_client.c:1432
 #, c-format
 msgid "%u hostlist URIs loaded from file\n"
 msgstr "УРИ-и %u списка домаћина су учитани из датотеке\n"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:1453
+#: src/hostlist/gnunet-daemon-hostlist_client.c:1435
 msgid "# hostlist URIs read from file"
 msgstr "# УРИ-и списка домаћина су учитани из датотеке"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:1504
+#: src/hostlist/gnunet-daemon-hostlist_client.c:1486
 #, c-format
 msgid "Could not open file `%s' for writing to save hostlists: %s\n"
 msgstr ""
 "Не могу да отворим датотеку „%s“ за писање да сачувам спискове домаћина: %s\n"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:1511
+#: src/hostlist/gnunet-daemon-hostlist_client.c:1493
 #, c-format
 msgid "Writing %u hostlist URIs to `%s'\n"
 msgstr "Уписујем УРИ-је %u списка домаћина у „%s“\n"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:1544
-#: src/hostlist/gnunet-daemon-hostlist_client.c:1563
+#: src/hostlist/gnunet-daemon-hostlist_client.c:1526
+#: src/hostlist/gnunet-daemon-hostlist_client.c:1545
 #, c-format
 msgid "Error writing hostlist URIs to file `%s'\n"
 msgstr "Грешка писања УРИ-а списка домаћина у датотеку „%s“\n"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:1557
+#: src/hostlist/gnunet-daemon-hostlist_client.c:1539
 msgid "# hostlist URIs written to file"
 msgstr "# УРИ-и списка домаћина су записани у датотеку"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:1658
+#: src/hostlist/gnunet-daemon-hostlist_client.c:1640
 #, c-format
 msgid "Invalid proxy type: `%s', disabling proxy! Check configuration!\n"
 msgstr ""
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:1687
+#: src/hostlist/gnunet-daemon-hostlist_client.c:1669
 msgid "Learning is enabled on this peer\n"
 msgstr "Учење је укључено на овом парњаку\n"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:1700
+#: src/hostlist/gnunet-daemon-hostlist_client.c:1682
 msgid "Learning is not enabled on this peer\n"
 msgstr "Учење није укључено на овом парњаку\n"
 
-#: src/hostlist/gnunet-daemon-hostlist_client.c:1714
+#: src/hostlist/gnunet-daemon-hostlist_client.c:1696
 #, c-format
 msgid ""
 "Since learning is not enabled on this peer, hostlist file `%s' was removed\n"
@@ -4254,7 +4273,7 @@ msgstr "бајтова у списку домаћина"
 
 #: src/hostlist/gnunet-daemon-hostlist_server.c:210
 #: src/hostlist/gnunet-daemon-hostlist_server.c:507
-#: src/topology/gnunet-daemon-topology.c:811
+#: src/topology/gnunet-daemon-topology.c:747
 #, fuzzy, c-format
 msgid "Error in communication with PEERSTORE service: %s\n"
 msgstr "Грешка у комуникацији са услугом ПОДАЦИ_ПАРЊАКА: %s\n"
@@ -5930,6 +5949,10 @@ msgstr "Повезивање са МЕШОМ није успело\n"
 msgid "Keys given to SCALARPRODUCT not unique!\n"
 msgstr ""
 
+#: src/secretsharing/gnunet-secretsharing-profiler.c:624
+msgid "number of peers in consensus"
+msgstr "број парњака у концензусу"
+
 #: src/secretsharing/gnunet-secretsharing-profiler.c:630
 msgid "dkg start delay"
 msgstr "застој „dkg“ почетка"
@@ -5977,6 +6000,14 @@ msgstr "хеш број"
 msgid "ibf size"
 msgstr "„ibf“ величина"
 
+#: src/set/gnunet-set-profiler.c:451 src/set/gnunet-set-profiler.c:457
+#: src/set/gnunet-set-profiler.c:480 src/seti/gnunet-seti-profiler.c:441
+#: src/seti/gnunet-seti-profiler.c:446 src/seti/gnunet-seti-profiler.c:451
+#: src/setu/gnunet-setu-profiler.c:442 src/setu/gnunet-setu-profiler.c:448
+#: src/setu/gnunet-setu-profiler.c:471
+msgid "number of values"
+msgstr "број вредности"
+
 #: src/set/gnunet-set-profiler.c:462 src/setu/gnunet-setu-profiler.c:453
 msgid "use byzantine mode"
 msgstr ""
@@ -5999,6 +6030,12 @@ msgstr "операција за извршавање"
 #, fuzzy
 msgid "element size"
 msgstr "експеримент за коришћење"
+
+#: src/set/gnunet-set-profiler.c:498 src/seti/gnunet-seti-profiler.c:467
+#: src/setu/gnunet-setu-profiler.c:489
+#, fuzzy
+msgid "write statistics to file"
+msgstr "само исписује вредност статистике"
 
 #: src/seti/gnunet-seti-profiler.c:457
 msgid "return intersection instead of delta"
@@ -6122,317 +6159,6 @@ msgstr "Исписује статистику о ГНУнет радњама."
 msgid "Could not save some persistent statistics\n"
 msgstr "Не могу да сачувам нешто од трајне статистике\n"
 
-#: src/testbed/generate-underlay-topology.c:235
-#, fuzzy
-msgid "Need at least 2 arguments\n"
-msgstr "Потребна су најмање 2 аргумента\n"
-
-#: src/testbed/generate-underlay-topology.c:240
-msgid "Database filename missing\n"
-msgstr "Недостаје назив датотеке базе података\n"
-
-#: src/testbed/generate-underlay-topology.c:247
-msgid "Topology string missing\n"
-msgstr "Ниска размештаја недостаје\n"
-
-#: src/testbed/generate-underlay-topology.c:252
-#, c-format
-msgid "Invalid topology: %s\n"
-msgstr "Неисправан размештај: %s\n"
-
-#: src/testbed/generate-underlay-topology.c:265
-#, c-format
-msgid "An argument is missing for given topology `%s'\n"
-msgstr "Недостаје аргумент за дати размештај „%s“\n"
-
-#: src/testbed/generate-underlay-topology.c:271
-#, c-format
-msgid "Invalid argument `%s' given as topology argument\n"
-msgstr "Неисправан аргумент „%s“ је дат као аргумент размештаја\n"
-
-#: src/testbed/generate-underlay-topology.c:280
-#, c-format
-msgid "Filename argument missing for topology `%s'\n"
-msgstr "Аргумент назива датотеке недостаје за размештај „%s“\n"
-
-#: src/testbed/generate-underlay-topology.c:295
-#, c-format
-msgid "Second argument for topology `%s' is missing\n"
-msgstr "Други аргумент за размештај „%s“ недостаје\n"
-
-#: src/testbed/generate-underlay-topology.c:301
-#, c-format
-msgid "Invalid argument `%s'; expecting unsigned int\n"
-msgstr "Неисправан аргумент „%s“; очекујем цео број без знака\n"
-
-#: src/testbed/generate-underlay-topology.c:366
-#: src/testbed/gnunet-testbed-profiler.c:282
-msgid "create COUNT number of peers"
-msgstr "ствара УКУПНОСТ број парњака"
-
-#: src/testbed/generate-underlay-topology.c:379
-#, fuzzy
-msgid ""
-"Generates SQLite3 database representing a given underlay topology.\n"
-"Usage: gnunet-underlay-topology [OPTIONS] db-filename TOPO [TOPOOPTS]\n"
-"The following options are available for TOPO followed by TOPOOPTS if "
-"applicable:\n"
-"\t LINE\n"
-"\t RING\n"
-"\t RANDOM <num_rnd_links>\n"
-"\t SMALL_WORLD <num_rnd_links>\n"
-"\t SMALL_WORLD_RING <num_rnd_links>\n"
-"\t CLIQUE\n"
-"\t 2D_TORUS\n"
-"\t SCALE_FREE <cap> <m>\n"
-"\t FROM_FILE <filename>\n"
-"TOPOOPTS:\n"
-"\t num_rnd_links: The number of random links\n"
-"\t cap: the maximum number of links a node can have\n"
-"\t m: the number of links a node should have while joining the network\n"
-"\t filename: the path of the file which contains topology information\n"
-"NOTE: the format of the above file is described here: https://www.gnunet.org/"
-"content/topology-file-format\n"
-msgstr ""
-"Ствара СКуЛајт3 базу података која представља дати основни размештај.\n"
-"Коришћење: gnunet-underlay-topology [ОПЦИЈЕ] db-filename TOPO [ТОПООПЦИЈЕ]\n"
-"Следеће опције су доступне за „TOPO“ за којима следе ТОПООПЦИЈЕ ако су "
-"примењиве:\n"
-"\t LINE\n"
-"\t RING\n"
-"\t RANDOM <num_rnd_links>\n"
-"\t SMALL_WORLD <num_rnd_links>\n"
-"\t SMALL_WORLD_RING <num_rnd_links>\n"
-"\t CLIQUE\n"
-"\t 2D_TORUS\n"
-"\t SCALE_FREE <cap> <m>\n"
-"\t FROM_FILE <filename>\n"
-"TOPOOPTS:\n"
-"\t num_rnd_links: Број насумичних веза\n"
-"\t cap: највећи број веза које чвор може да има\n"
-"\t m: број веза које чвор треба да има приликом придруживања мрежи\n"
-"\t filename: путања датотеке која садржи податке о размештају\n"
-"НАПОМЕНА: формат горе поменуте датотеке је описан овде: https://www.gnunet."
-"org/content/topology-file-format\n"
-
-#: src/testbed/gnunet-daemon-latency-logger.c:318
-msgid "Daemon to log latency values of connections to neighbours"
-msgstr "Демон за дневничење вредности кашњења веза са суседима"
-
-#: src/testbed/gnunet-daemon-testbed-blacklist.c:250
-msgid ""
-"Daemon to restrict incoming transport layer connections during testbed "
-"deployments"
-msgstr ""
-"Демон за ограничење долазних веза слоја преноса за време примене пробног "
-"места"
-
-#: src/testbed/gnunet-daemon-testbed-underlay.c:234 src/testing/list-keys.c:47
-#: src/testing/testing.c:308 src/util/gnunet-ecc.c:319
-#, c-format
-msgid "Incorrect hostkey file format: %s\n"
-msgstr "Нетачан формат датотеке кључа домаћина: %s\n"
-
-#: src/testbed/gnunet-daemon-testbed-underlay.c:477
-msgid "Daemon to restrict underlay network in testbed deployments"
-msgstr "Демон за ограничење основне мреже у применама пробног места"
-
-#: src/testbed/gnunet-service-testbed_cpustatus.c:618
-#, c-format
-msgid ""
-"Cannot open %s for writing load statistics.  Not logging load statistics\n"
-msgstr ""
-"Не могу да отворим „%s“ за писање статистике учитавања.  Не записујем у "
-"дневник статистику учитавања\n"
-
-#: src/testbed/gnunet-service-testbed_peers.c:1154
-#, c-format
-msgid "%s is stopped"
-msgstr "„%s“ је заустављен"
-
-#: src/testbed/gnunet-service-testbed_peers.c:1157
-#, c-format
-msgid "%s is starting"
-msgstr "„%s“ се покреће"
-
-#: src/testbed/gnunet-service-testbed_peers.c:1160
-#, c-format
-msgid "%s is stopping"
-msgstr "„%s“ се зауставља"
-
-#: src/testbed/gnunet-service-testbed_peers.c:1163
-#, c-format
-msgid "%s is starting already"
-msgstr "„%s“ се већ покреће"
-
-#: src/testbed/gnunet-service-testbed_peers.c:1166
-#, c-format
-msgid "%s is stopping already"
-msgstr "„%s“ се већ зауставља"
-
-#: src/testbed/gnunet-service-testbed_peers.c:1169
-#, c-format
-msgid "%s is started already"
-msgstr "„%s“ је већ покренут"
-
-#: src/testbed/gnunet-service-testbed_peers.c:1172
-#, c-format
-msgid "%s is stopped already"
-msgstr "„%s“ је већ заустављен"
-
-#: src/testbed/gnunet-service-testbed_peers.c:1175
-#, c-format
-msgid "%s service is not known to ARM"
-msgstr "„%s“ услуга није позната АУР-у"
-
-#: src/testbed/gnunet-service-testbed_peers.c:1178
-#, c-format
-msgid "%s service failed to start"
-msgstr "„%s“ услуга није успела да се покрене"
-
-#: src/testbed/gnunet-service-testbed_peers.c:1181
-#, c-format
-msgid "%s service can't be started because ARM is shutting down"
-msgstr "„%s“ услуга се не може покренути јер се АУР гаси"
-
-#: src/testbed/gnunet-service-testbed_peers.c:1183
-#, c-format
-msgid "%.s Unknown result code."
-msgstr "%.s Непознат код резултата."
-
-#: src/testbed/gnunet-testbed-profiler.c:288
-#, fuzzy
-msgid "tolerate COUNT number of continuous timeout failures"
-msgstr "толерише УКУПНО број непрекидних неуспеха истека времена"
-
-#: src/testbed/gnunet-testbed-profiler.c:293
-msgid ""
-"run profiler in non-interactive mode where upon testbed setup the profiler "
-"does not wait for a keystroke but continues to run until a termination "
-"signal is received"
-msgstr ""
-"покреће профајлера у не-дејственом режиму у коме над поставком пробног места "
-"профајлер не чека на притисак тастера већ наставља да ради све док се не "
-"прими сигнал окончања"
-
-#: src/testbed/testbed_api.c:399
-#, c-format
-msgid "Adding host %u failed with error: %s\n"
-msgstr "Додавање домаћина %u није успело са грешком: %s\n"
-
-#: src/testbed/testbed_api_hosts.c:411
-#, c-format
-msgid "Hosts file %s not found\n"
-msgstr "Нисам нашао датотеку домаћина „%s“\n"
-
-#: src/testbed/testbed_api_hosts.c:420
-#, c-format
-msgid "Hosts file %s has no data\n"
-msgstr "Датотека домаћина „%s“ нема података\n"
-
-#: src/testbed/testbed_api_hosts.c:429
-#, c-format
-msgid "Hosts file %s cannot be read\n"
-msgstr "Не могу да прочитам датотеку домаћина „%s“\n"
-
-#: src/testbed/testbed_api_testbed.c:822
-msgid "Linking controllers failed. Exiting"
-msgstr "Повезивање контролера није успело. Излазим"
-
-#: src/testbed/testbed_api_testbed.c:999
-#, c-format
-msgid "Host registration failed for a host. Error: %s\n"
-msgstr "Регистрација домаћина није успела за домаћина. Грешка: %s\n"
-
-#: src/testbed/testbed_api_testbed.c:1060
-msgid "Controller crash detected. Shutting down.\n"
-msgstr "Урушавање контролера је откривено. Гасим се.\n"
-
-#: src/testbed/testbed_api_testbed.c:1149
-#, c-format
-msgid "Host %s cannot start testbed\n"
-msgstr "Домаћин „%s“ не може да покрене пробно место\n"
-
-#: src/testbed/testbed_api_testbed.c:1153
-msgid "Testbed cannot be started on localhost\n"
-msgstr "Пробно место се не може покренути на локалном домаћину\n"
-
-#: src/testbed/testbed_api_testbed.c:1191
-msgid "Cannot start the master controller"
-msgstr "Не могу да покренем главног контролора"
-
-#: src/testbed/testbed_api_testbed.c:1209
-msgid "Shutting down testbed due to timeout while setup.\n"
-msgstr "Гасим пробно место због истека времена приликом подешавања.\n"
-
-#: src/testbed/testbed_api_testbed.c:1271
-msgid "No hosts loaded. Need at least one host\n"
-msgstr "Ниједан домаћин није учитан. Потребан је барем један домаћин\n"
-
-#: src/testbed/testbed_api_testbed.c:1296
-msgid "Specified topology must be supported by testbed"
-msgstr "Наведени размештај мора бити подржан пробним местом"
-
-#: src/testbed/testbed_api_testbed.c:1352
-#, c-format
-msgid ""
-"Maximum number of edges a peer can have in a scale free topology cannot be "
-"more than %u.  Given `%s = %llu'"
-msgstr ""
-"Највећи број ивица које парњак може имати у слободном размештају лествице не "
-"може бити већи од %u.  Дато је „%s = %llu“"
-
-#: src/testbed/testbed_api_testbed.c:1369
-#, c-format
-msgid ""
-"The number of edges that can established when adding a new node to scale "
-"free topology cannot be more than %u.  Given `%s = %llu'"
-msgstr ""
-"Број ивица које се могу успоставити приликом додавања новог чвора у "
-"слободном размештају лествице не може бити већи од %u.  Дато је „%s = %llu“"
-
-#: src/testbed/testbed_api_topology.c:1021 src/testing/testing.c:2795
-#, c-format
-msgid "Topology file %s not found\n"
-msgstr "Нисам нашао датотеку размештаја „%s“\n"
-
-#: src/testbed/testbed_api_topology.c:1029 src/testing/testing.c:2803
-#, c-format
-msgid "Topology file %s has no data\n"
-msgstr "Датотека размештаја „%s“ нема података\n"
-
-#: src/testbed/testbed_api_topology.c:1037 src/testing/testing.c:2811
-#, c-format
-msgid "Topology file %s cannot be read\n"
-msgstr "Не могу да прочитам датотеку размештаја „%s“\n"
-
-#: src/testbed/testbed_api_topology.c:1059
-#, c-format
-msgid "Failed to read peer index from toology file: %s"
-msgstr "Нисам успео да прочитам индекс парњака из датотеке размештаја: %s"
-
-#: src/testbed/testbed_api_topology.c:1068
-#: src/testbed/testbed_api_topology.c:1093
-#, c-format
-msgid "Value in given topology file: %s out of range\n"
-msgstr "Вредност у датој датотеци размештаја: „%s“ је ван опсега\n"
-
-#: src/testbed/testbed_api_topology.c:1074
-#: src/testbed/testbed_api_topology.c:1099
-#, c-format
-msgid "Failed to read peer index from topology file: %s"
-msgstr "Нисам успео да прочитам индекс парњака из датотеке размештаја: %s"
-
-#: src/testbed/testbed_api_topology.c:1080
-#: src/testbed/testbed_api_topology.c:1105
-msgid "Topology file needs more peers than given ones\n"
-msgstr "Датотеци размештаја је потребно више парњака од једног датог\n"
-
-#: src/testbed/testbed_api_topology.c:1141
-#, fuzzy, c-format
-msgid "Ignoring to connect peer %lu to peer %lu\n"
-msgstr "Занемарујем да повежем парњака %u са парњаком %u\n"
-
 #: src/testing/gnunet-testing.c:185
 #, c-format
 msgid "Could not extract hostkey %u (offset too large?)\n"
@@ -6475,6 +6201,12 @@ msgstr ""
 #: src/testing/gnunet-testing.c:432
 msgid "Command line tool to access the testing library"
 msgstr "Алат линије наредби за приезуп библиотеци тестирања"
+
+#: src/testing/list-keys.c:47 src/testing/testing.c:308
+#: src/util/gnunet-ecc.c:319
+#, c-format
+msgid "Incorrect hostkey file format: %s\n"
+msgstr "Нетачан формат датотеке кључа домаћина: %s\n"
 
 #: src/testing/list-keys.c:92
 msgid "list COUNT number of keys"
@@ -6539,152 +6271,81 @@ msgstr "Нисам успео да покренем „%s“: %s\n"
 msgid "Failed to load configuration from %s\n"
 msgstr "Нисам успео да учитам подешавање за „%s“\n"
 
-#: src/topology/friends.c:118
+#: src/testing/testing.c:2795
 #, c-format
-msgid "Syntax error in FRIENDS file at offset %llu, skipping bytes `%.*s'.\n"
-msgstr ""
-"Грешка синтаксе у датотеци „FRIENDS“ на померају %llu, прескачем бајтове "
-"„%.*s“.\n"
+msgid "Topology file %s not found\n"
+msgstr "Нисам нашао датотеку размештаја „%s“\n"
 
-#: src/topology/friends.c:172
+#: src/testing/testing.c:2803
 #, c-format
-msgid "Directory for file `%s' does not seem to be writable.\n"
-msgstr "Директоријум за датотеку „%s“ не изгледа да је уписив.\n"
+msgid "Topology file %s has no data\n"
+msgstr "Датотека размештаја „%s“ нема података\n"
 
-#: src/topology/gnunet-daemon-topology.c:300
+#: src/testing/testing.c:2811
+#, c-format
+msgid "Topology file %s cannot be read\n"
+msgstr "Не могу да прочитам датотеку размештаја „%s“\n"
+
+#: src/topology/gnunet-daemon-topology.c:257
 #, fuzzy
 msgid "# connect requests issued to ATS"
 msgstr "# захтеви везе су издати преносу"
 
-#: src/topology/gnunet-daemon-topology.c:497
+#: src/topology/gnunet-daemon-topology.c:451
 msgid "# HELLO messages gossipped"
 msgstr "# „HELLO“ поруке су наклопљене"
 
-#: src/topology/gnunet-daemon-topology.c:586
-#: src/topology/gnunet-daemon-topology.c:666
-msgid "# friends connected"
-msgstr "# пријатељи су повезани"
-
-#: src/topology/gnunet-daemon-topology.c:869
+#: src/topology/gnunet-daemon-topology.c:805
 msgid "Failed to connect to core service, can not manage topology!\n"
 msgstr ""
 "Нисам успео да се повежем са услугом језгра, не могу да радим размештајем!\n"
 
-#: src/topology/gnunet-daemon-topology.c:896
-#, c-format
-msgid "Found myself `%s' in friend list (useless, ignored)\n"
-msgstr "Нађох себе „%s“ на списку пријатеља (некорисно, занемарујем)\n"
-
-#: src/topology/gnunet-daemon-topology.c:903
-#, c-format
-msgid "Found friend `%s' in configuration\n"
-msgstr "Нађох пријатеља „%s“ у подешавањима\n"
-
-#: src/topology/gnunet-daemon-topology.c:921
-msgid "Encountered errors parsing friends list!\n"
-msgstr "Наиђох на грешке током обраде списка пријатеља!\n"
-
-#: src/topology/gnunet-daemon-topology.c:924
-msgid "# friends in configuration"
-msgstr "# пријатељи у подешавањима"
-
-#: src/topology/gnunet-daemon-topology.c:932
-msgid ""
-"Fewer friends specified than required by minimum friend count. Will only "
-"connect to friends.\n"
-msgstr ""
-"Наведено је мање пријатеља него што се захтева најмањим бројем пријатеља. "
-"Повезаћу се само са пријатељима.\n"
-
-#: src/topology/gnunet-daemon-topology.c:940
-msgid ""
-"More friendly connections required than target total number of connections.\n"
-msgstr "Захтевано је више пријатељских веза него циљни укупан број веза.\n"
-
-#: src/topology/gnunet-daemon-topology.c:998
+#: src/topology/gnunet-daemon-topology.c:870
 msgid "# HELLO messages received"
 msgstr "# „HELLO“ поруке су примљене"
 
-#: src/topology/gnunet-daemon-topology.c:1154
+#: src/topology/gnunet-daemon-topology.c:1005
 msgid "GNUnet topology control"
 msgstr ""
 
-#: src/transport/gnunet-communicator-quic.c:1718
-#: src/transport/gnunet-communicator-tcp.c:3735
-#: src/transport/gnunet-communicator-udp.c:3359
-#: src/transport/gnunet-service-tng.c:11639
+#: src/transport/gnunet-communicator-quic.c:1717
+#: src/transport/gnunet-communicator-tcp.c:3734
+#: src/transport/gnunet-communicator-udp.c:3358
+#: src/transport/gnunet-service-transport.c:11639
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr "Услузи преноса недостају поставке подешавања кључа. Излазим.\n"
 
-#: src/transport/gnunet-communicator-quic.c:1788
+#: src/transport/gnunet-communicator-quic.c:1787
 msgid "GNUnet QUIC communicator"
 msgstr ""
 
-#: src/transport/gnunet-communicator-tcp.c:4072
+#: src/transport/gnunet-communicator-tcp.c:4071
 msgid "GNUnet TCP communicator"
 msgstr ""
 
-#: src/transport/gnunet-communicator-udp.c:3434
+#: src/transport/gnunet-communicator-udp.c:3433
 msgid "GNUnet UDP communicator"
 msgstr ""
 
-#: src/transport/gnunet-communicator-unix.c:789
+#: src/transport/gnunet-communicator-unix.c:788
 #, fuzzy
 msgid ""
 "Maximum number of UNIX connections exceeded, dropping incoming message\n"
 msgstr "Највећи број веза је %u\n"
 
-#: src/transport/gnunet-communicator-unix.c:1016
+#: src/transport/gnunet-communicator-unix.c:1015
 #, fuzzy
 msgid "UNIX communicator is lacking key configuration settings. Exiting.\n"
 msgstr "„%s“ услузи недостају поставке подешавања кључа (%s).  Излазим.\n"
 
-#: src/transport/gnunet-communicator-unix.c:1061
+#: src/transport/gnunet-communicator-unix.c:1060
 #, c-format
 msgid "Cannot create path to `%s'\n"
 msgstr "Не могу да направим путању до „%s“\n"
 
-#: src/transport/gnunet-communicator-unix.c:1139
+#: src/transport/gnunet-communicator-unix.c:1138
 msgid "GNUnet UNIX domain socket communicator"
 msgstr ""
-
-#: src/transport/gnunet-transport-profiler.c:220
-#, c-format
-msgid "%llu B in %llu ms == %.2f KB/s!\n"
-msgstr ""
-
-#: src/transport/gnunet-transport-profiler.c:577
-msgid "send data to peer"
-msgstr ""
-
-#: src/transport/gnunet-transport-profiler.c:581
-#, fuzzy
-msgid "receive data from peer"
-msgstr "# одговори су примљени за друге парњаке"
-
-#: src/transport/gnunet-transport-profiler.c:586
-msgid "iterations"
-msgstr ""
-
-#: src/transport/gnunet-transport-profiler.c:591
-#, fuzzy
-msgid "number of messages to send"
-msgstr "број парњака у концензусу"
-
-#: src/transport/gnunet-transport-profiler.c:596
-#, fuzzy
-msgid "message size to use"
-msgstr "експеримент за коришћење"
-
-#: src/transport/gnunet-transport-profiler.c:601
-#: src/transport/gnunet-transport.c:1404
-msgid "peer identity"
-msgstr "идентитет парњака"
-
-#: src/transport/gnunet-transport-profiler.c:614
-#: src/transport/gnunet-transport.c:1426
-msgid "Direct access to transport service."
-msgstr "Непосредан приступ услузи преноса."
 
 #: src/transport/gnunet-transport.c:406
 #, c-format
@@ -6823,6 +6484,10 @@ msgstr ""
 msgid "do not resolve hostnames"
 msgstr "не разрешава називе домаћина"
 
+#: src/transport/gnunet-transport.c:1404
+msgid "peer identity"
+msgstr "идентитет парњака"
+
 #: src/transport/gnunet-transport.c:1408
 msgid "monitor plugin sessions"
 msgstr ""
@@ -6830,6 +6495,10 @@ msgstr ""
 #: src/transport/gnunet-transport.c:1414
 msgid "send data for benchmarking to the other peer (until CTRL-C)"
 msgstr "шаље податке за оцењивање другим парњацима (све до КТРЛ-Ц)"
+
+#: src/transport/gnunet-transport.c:1426
+msgid "Direct access to transport service."
+msgstr "Непосредан приступ услузи преноса."
 
 #: src/transport/transport-testing-communicator.c:1055 src/util/service.c:2077
 #: src/util/service.c:2089
@@ -7510,104 +7179,6 @@ msgstr "Није познат руковалац за подсистем „%s�
 msgid "Perform default-actions for GNUnet URIs"
 msgstr "Обавља основне радње за путање ГНУнет-а"
 
-#: src/util/gnunet_error_codes.c:59
-msgid "No error (success)."
-msgstr ""
-
-#: src/util/gnunet_error_codes.c:65
-#, fuzzy
-msgid "Unknown and unspecified error."
-msgstr "%.s Непознат код резултата."
-
-#: src/util/gnunet_error_codes.c:71
-#, fuzzy
-msgid "Communication with service failed."
-msgstr "Грешка у комуникацији са услугом ПОДАЦИ_ПАРЊАКА: %s\n"
-
-#: src/util/gnunet_error_codes.c:77
-#, fuzzy
-msgid "Ego not found."
-msgstr "Нисам нашао садржај"
-
-#: src/util/gnunet_error_codes.c:83
-#, fuzzy
-msgid "Identifier already in use for another ego."
-msgstr "одредник се већ користи за други его"
-
-#: src/util/gnunet_error_codes.c:89
-msgid "The given ego is invalid or malformed."
-msgstr ""
-
-#: src/util/gnunet_error_codes.c:95
-#, fuzzy
-msgid "Unknown namestore error."
-msgstr "%.s Непознат код резултата."
-
-#: src/util/gnunet_error_codes.c:101 src/util/gnunet_error_codes.c:119
-#, fuzzy
-msgid "Zone iteration failed."
-msgstr "# Бирање парњака није успело"
-
-#: src/util/gnunet_error_codes.c:107
-#, fuzzy
-msgid "Zone not found."
-msgstr "Нисам нашао садржај"
-
-#: src/util/gnunet_error_codes.c:113
-#, fuzzy
-msgid "Record not found."
-msgstr "нисам нашао „upnpc“\n"
-
-#: src/util/gnunet_error_codes.c:125
-msgid "Zone does not contain any records."
-msgstr ""
-
-#: src/util/gnunet_error_codes.c:131
-#, fuzzy
-msgid "Failed to lookup record."
-msgstr "Смештај назива није успео да смести запис\n"
-
-#: src/util/gnunet_error_codes.c:137
-#, fuzzy
-msgid "No records given."
-msgstr "Није дат парњак!\n"
-
-#: src/util/gnunet_error_codes.c:143
-msgid "Record data invalid."
-msgstr ""
-
-#: src/util/gnunet_error_codes.c:149
-#, fuzzy
-msgid "No label given."
-msgstr "Није дат парњак!\n"
-
-#: src/util/gnunet_error_codes.c:155
-#, fuzzy
-msgid "No results given."
-msgstr "Нису дате опције\n"
-
-#: src/util/gnunet_error_codes.c:161
-#, fuzzy
-msgid "Record already exists."
-msgstr "назив мете већ постоји"
-
-#: src/util/gnunet_error_codes.c:167
-msgid "Record size exceeds maximum limit."
-msgstr ""
-
-#: src/util/gnunet_error_codes.c:173
-msgid "There was an error in the database backend."
-msgstr ""
-
-#: src/util/gnunet_error_codes.c:179
-#, fuzzy
-msgid "Failed to store the given records."
-msgstr "Смештај назива није успео да смести запис\n"
-
-#: src/util/gnunet_error_codes.c:185
-msgid "Label invalid or malformed."
-msgstr ""
-
 #: src/util/helper.c:304
 #, c-format
 msgid "Error reading from `%s': %s\n"
@@ -8090,6 +7661,348 @@ msgstr "Нисам успео да реплицирам блок у остави
 #: src/zonemaster/gnunet-service-zonemaster.c:1335
 msgid "Failed to connect to the namestore!\n"
 msgstr "Нисам успео да се повежем са смештајем назива!\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "how many peers (random selection without replacement) receive one value?"
+#~ msgstr "колико парњака прима једну вредност?"
+
+#~ msgid "consensus timeout"
+#~ msgstr "време истека концензуса"
+
+#~ msgid "delay until consensus starts"
+#~ msgstr "застој док не започне концензус"
+
+#~ msgid "be more verbose (print received values)"
+#~ msgstr "бива опширнији (исписује примљене вредности)"
+
+#~ msgid "# acknowledgements sent for fragment"
+#~ msgstr "# потврде су послате за делић"
+
+#~ msgid "# fragments received"
+#~ msgstr "# делићи су примљени"
+
+#~ msgid "# duplicate fragments received"
+#~ msgstr "# двоструки делићи су примљени"
+
+#~ msgid "# messages defragmented"
+#~ msgstr "# делићи порука су уједињени"
+
+#~ msgid "# fragments transmitted"
+#~ msgstr "# делићи су пренесени"
+
+#~ msgid "# fragments retransmitted"
+#~ msgstr "# делићи су поново пренесени"
+
+#~ msgid "# fragments wrap arounds"
+#~ msgstr "# делићи се преламају около"
+
+#~ msgid "# messages fragmented"
+#~ msgstr "# поруке су расцепкане"
+
+#~ msgid "# total size of fragmented messages"
+#~ msgstr "# укупна величина расцепканих порука"
+
+#~ msgid "# fragment acknowledgements received"
+#~ msgstr "# потврде делића су примљене"
+
+#~ msgid "# bits removed from fragmentation ACKs"
+#~ msgstr "# битови су уклоњени из АЦК-ова расцепканости"
+
+#~ msgid "# fragmentation transmissions completed"
+#~ msgstr "# преноси расцепканости су завршени"
+
+#, fuzzy
+#~ msgid "Need at least 2 arguments\n"
+#~ msgstr "Потребна су најмање 2 аргумента\n"
+
+#~ msgid "Database filename missing\n"
+#~ msgstr "Недостаје назив датотеке базе података\n"
+
+#~ msgid "Topology string missing\n"
+#~ msgstr "Ниска размештаја недостаје\n"
+
+#, c-format
+#~ msgid "Invalid topology: %s\n"
+#~ msgstr "Неисправан размештај: %s\n"
+
+#, c-format
+#~ msgid "An argument is missing for given topology `%s'\n"
+#~ msgstr "Недостаје аргумент за дати размештај „%s“\n"
+
+#, c-format
+#~ msgid "Invalid argument `%s' given as topology argument\n"
+#~ msgstr "Неисправан аргумент „%s“ је дат као аргумент размештаја\n"
+
+#, c-format
+#~ msgid "Filename argument missing for topology `%s'\n"
+#~ msgstr "Аргумент назива датотеке недостаје за размештај „%s“\n"
+
+#, c-format
+#~ msgid "Second argument for topology `%s' is missing\n"
+#~ msgstr "Други аргумент за размештај „%s“ недостаје\n"
+
+#, c-format
+#~ msgid "Invalid argument `%s'; expecting unsigned int\n"
+#~ msgstr "Неисправан аргумент „%s“; очекујем цео број без знака\n"
+
+#~ msgid "create COUNT number of peers"
+#~ msgstr "ствара УКУПНОСТ број парњака"
+
+#, fuzzy
+#~ msgid ""
+#~ "Generates SQLite3 database representing a given underlay topology.\n"
+#~ "Usage: gnunet-underlay-topology [OPTIONS] db-filename TOPO [TOPOOPTS]\n"
+#~ "The following options are available for TOPO followed by TOPOOPTS if "
+#~ "applicable:\n"
+#~ "\t LINE\n"
+#~ "\t RING\n"
+#~ "\t RANDOM <num_rnd_links>\n"
+#~ "\t SMALL_WORLD <num_rnd_links>\n"
+#~ "\t SMALL_WORLD_RING <num_rnd_links>\n"
+#~ "\t CLIQUE\n"
+#~ "\t 2D_TORUS\n"
+#~ "\t SCALE_FREE <cap> <m>\n"
+#~ "\t FROM_FILE <filename>\n"
+#~ "TOPOOPTS:\n"
+#~ "\t num_rnd_links: The number of random links\n"
+#~ "\t cap: the maximum number of links a node can have\n"
+#~ "\t m: the number of links a node should have while joining the network\n"
+#~ "\t filename: the path of the file which contains topology information\n"
+#~ "NOTE: the format of the above file is described here: https://www.gnunet."
+#~ "org/content/topology-file-format\n"
+#~ msgstr ""
+#~ "Ствара СКуЛајт3 базу података која представља дати основни размештај.\n"
+#~ "Коришћење: gnunet-underlay-topology [ОПЦИЈЕ] db-filename TOPO "
+#~ "[ТОПООПЦИЈЕ]\n"
+#~ "Следеће опције су доступне за „TOPO“ за којима следе ТОПООПЦИЈЕ ако су "
+#~ "примењиве:\n"
+#~ "\t LINE\n"
+#~ "\t RING\n"
+#~ "\t RANDOM <num_rnd_links>\n"
+#~ "\t SMALL_WORLD <num_rnd_links>\n"
+#~ "\t SMALL_WORLD_RING <num_rnd_links>\n"
+#~ "\t CLIQUE\n"
+#~ "\t 2D_TORUS\n"
+#~ "\t SCALE_FREE <cap> <m>\n"
+#~ "\t FROM_FILE <filename>\n"
+#~ "TOPOOPTS:\n"
+#~ "\t num_rnd_links: Број насумичних веза\n"
+#~ "\t cap: највећи број веза које чвор може да има\n"
+#~ "\t m: број веза које чвор треба да има приликом придруживања мрежи\n"
+#~ "\t filename: путања датотеке која садржи податке о размештају\n"
+#~ "НАПОМЕНА: формат горе поменуте датотеке је описан овде: https://www."
+#~ "gnunet.org/content/topology-file-format\n"
+
+#~ msgid "Daemon to log latency values of connections to neighbours"
+#~ msgstr "Демон за дневничење вредности кашњења веза са суседима"
+
+#~ msgid ""
+#~ "Daemon to restrict incoming transport layer connections during testbed "
+#~ "deployments"
+#~ msgstr ""
+#~ "Демон за ограничење долазних веза слоја преноса за време примене пробног "
+#~ "места"
+
+#~ msgid "Daemon to restrict underlay network in testbed deployments"
+#~ msgstr "Демон за ограничење основне мреже у применама пробног места"
+
+#, c-format
+#~ msgid ""
+#~ "Cannot open %s for writing load statistics.  Not logging load statistics\n"
+#~ msgstr ""
+#~ "Не могу да отворим „%s“ за писање статистике учитавања.  Не записујем у "
+#~ "дневник статистику учитавања\n"
+
+#, c-format
+#~ msgid "%s is stopped"
+#~ msgstr "„%s“ је заустављен"
+
+#, c-format
+#~ msgid "%s is starting"
+#~ msgstr "„%s“ се покреће"
+
+#, c-format
+#~ msgid "%s is stopping"
+#~ msgstr "„%s“ се зауставља"
+
+#, c-format
+#~ msgid "%s is starting already"
+#~ msgstr "„%s“ се већ покреће"
+
+#, c-format
+#~ msgid "%s is stopping already"
+#~ msgstr "„%s“ се већ зауставља"
+
+#, c-format
+#~ msgid "%s is started already"
+#~ msgstr "„%s“ је већ покренут"
+
+#, c-format
+#~ msgid "%s is stopped already"
+#~ msgstr "„%s“ је већ заустављен"
+
+#, c-format
+#~ msgid "%s service is not known to ARM"
+#~ msgstr "„%s“ услуга није позната АУР-у"
+
+#, c-format
+#~ msgid "%s service failed to start"
+#~ msgstr "„%s“ услуга није успела да се покрене"
+
+#, c-format
+#~ msgid "%s service can't be started because ARM is shutting down"
+#~ msgstr "„%s“ услуга се не може покренути јер се АУР гаси"
+
+#, c-format
+#~ msgid "%.s Unknown result code."
+#~ msgstr "%.s Непознат код резултата."
+
+#, fuzzy
+#~ msgid "tolerate COUNT number of continuous timeout failures"
+#~ msgstr "толерише УКУПНО број непрекидних неуспеха истека времена"
+
+#~ msgid ""
+#~ "run profiler in non-interactive mode where upon testbed setup the "
+#~ "profiler does not wait for a keystroke but continues to run until a "
+#~ "termination signal is received"
+#~ msgstr ""
+#~ "покреће профајлера у не-дејственом режиму у коме над поставком пробног "
+#~ "места профајлер не чека на притисак тастера већ наставља да ради све док "
+#~ "се не прими сигнал окончања"
+
+#, c-format
+#~ msgid "Adding host %u failed with error: %s\n"
+#~ msgstr "Додавање домаћина %u није успело са грешком: %s\n"
+
+#, c-format
+#~ msgid "Hosts file %s not found\n"
+#~ msgstr "Нисам нашао датотеку домаћина „%s“\n"
+
+#, c-format
+#~ msgid "Hosts file %s has no data\n"
+#~ msgstr "Датотека домаћина „%s“ нема података\n"
+
+#, c-format
+#~ msgid "Hosts file %s cannot be read\n"
+#~ msgstr "Не могу да прочитам датотеку домаћина „%s“\n"
+
+#~ msgid "Linking controllers failed. Exiting"
+#~ msgstr "Повезивање контролера није успело. Излазим"
+
+#, c-format
+#~ msgid "Host registration failed for a host. Error: %s\n"
+#~ msgstr "Регистрација домаћина није успела за домаћина. Грешка: %s\n"
+
+#~ msgid "Controller crash detected. Shutting down.\n"
+#~ msgstr "Урушавање контролера је откривено. Гасим се.\n"
+
+#, c-format
+#~ msgid "Host %s cannot start testbed\n"
+#~ msgstr "Домаћин „%s“ не може да покрене пробно место\n"
+
+#~ msgid "Testbed cannot be started on localhost\n"
+#~ msgstr "Пробно место се не може покренути на локалном домаћину\n"
+
+#~ msgid "Cannot start the master controller"
+#~ msgstr "Не могу да покренем главног контролора"
+
+#~ msgid "Shutting down testbed due to timeout while setup.\n"
+#~ msgstr "Гасим пробно место због истека времена приликом подешавања.\n"
+
+#~ msgid "No hosts loaded. Need at least one host\n"
+#~ msgstr "Ниједан домаћин није учитан. Потребан је барем један домаћин\n"
+
+#~ msgid "Specified topology must be supported by testbed"
+#~ msgstr "Наведени размештај мора бити подржан пробним местом"
+
+#, c-format
+#~ msgid ""
+#~ "Maximum number of edges a peer can have in a scale free topology cannot "
+#~ "be more than %u.  Given `%s = %llu'"
+#~ msgstr ""
+#~ "Највећи број ивица које парњак може имати у слободном размештају лествице "
+#~ "не може бити већи од %u.  Дато је „%s = %llu“"
+
+#, c-format
+#~ msgid ""
+#~ "The number of edges that can established when adding a new node to scale "
+#~ "free topology cannot be more than %u.  Given `%s = %llu'"
+#~ msgstr ""
+#~ "Број ивица које се могу успоставити приликом додавања новог чвора у "
+#~ "слободном размештају лествице не може бити већи од %u.  Дато је „%s = "
+#~ "%llu“"
+
+#, c-format
+#~ msgid "Failed to read peer index from toology file: %s"
+#~ msgstr "Нисам успео да прочитам индекс парњака из датотеке размештаја: %s"
+
+#, c-format
+#~ msgid "Value in given topology file: %s out of range\n"
+#~ msgstr "Вредност у датој датотеци размештаја: „%s“ је ван опсега\n"
+
+#, c-format
+#~ msgid "Failed to read peer index from topology file: %s"
+#~ msgstr "Нисам успео да прочитам индекс парњака из датотеке размештаја: %s"
+
+#~ msgid "Topology file needs more peers than given ones\n"
+#~ msgstr "Датотеци размештаја је потребно више парњака од једног датог\n"
+
+#, fuzzy, c-format
+#~ msgid "Ignoring to connect peer %lu to peer %lu\n"
+#~ msgstr "Занемарујем да повежем парњака %u са парњаком %u\n"
+
+#, c-format
+#~ msgid ""
+#~ "Syntax error in FRIENDS file at offset %llu, skipping bytes `%.*s'.\n"
+#~ msgstr ""
+#~ "Грешка синтаксе у датотеци „FRIENDS“ на померају %llu, прескачем бајтове "
+#~ "„%.*s“.\n"
+
+#, c-format
+#~ msgid "Directory for file `%s' does not seem to be writable.\n"
+#~ msgstr "Директоријум за датотеку „%s“ не изгледа да је уписив.\n"
+
+#~ msgid "# friends connected"
+#~ msgstr "# пријатељи су повезани"
+
+#, c-format
+#~ msgid "Found myself `%s' in friend list (useless, ignored)\n"
+#~ msgstr "Нађох себе „%s“ на списку пријатеља (некорисно, занемарујем)\n"
+
+#, c-format
+#~ msgid "Found friend `%s' in configuration\n"
+#~ msgstr "Нађох пријатеља „%s“ у подешавањима\n"
+
+#~ msgid "Encountered errors parsing friends list!\n"
+#~ msgstr "Наиђох на грешке током обраде списка пријатеља!\n"
+
+#~ msgid "# friends in configuration"
+#~ msgstr "# пријатељи у подешавањима"
+
+#~ msgid ""
+#~ "Fewer friends specified than required by minimum friend count. Will only "
+#~ "connect to friends.\n"
+#~ msgstr ""
+#~ "Наведено је мање пријатеља него што се захтева најмањим бројем пријатеља. "
+#~ "Повезаћу се само са пријатељима.\n"
+
+#~ msgid ""
+#~ "More friendly connections required than target total number of "
+#~ "connections.\n"
+#~ msgstr "Захтевано је више пријатељских веза него циљни укупан број веза.\n"
+
+#, fuzzy
+#~ msgid "receive data from peer"
+#~ msgstr "# одговори су примљени за друге парњаке"
+
+#, fuzzy
+#~ msgid "number of messages to send"
+#~ msgstr "број парњака у концензусу"
+
+#, fuzzy
+#~ msgid "message size to use"
+#~ msgstr "експеримент за коришћење"
 
 #, c-format
 #~ msgid "%u address resolutions had a timeout\n"

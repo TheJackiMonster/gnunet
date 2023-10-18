@@ -44,6 +44,6 @@ DID_ego_to_did (struct GNUNET_IDENTITY_Ego *ego);
  */
 enum GNUNET_GenericReturnValue
 DID_public_key_from_did (const char* did,
-                         struct GNUNET_IDENTITY_PublicKey *pk);
+                         struct GNUNET_CRYPTO_PublicKey *pk);
 
 #endif

@@ -19,7 +19,7 @@
  */
 
 
-#if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
+#if ! defined (__GNUNET_UTIL_LIB_H_INSIDE__)
 #error "Only <gnunet_util_lib.h> can be included directly."
 #endif
 
@@ -203,7 +203,6 @@ GNUNET_SERVICE_start (const char *service_name,
 void
 GNUNET_SERVICE_stop (struct GNUNET_SERVICE_Handle *srv);
 
-
 /**
  * Creates the "main" function for a GNUnet service.  You
  * should almost always use the #GNUNET_SERVICE_MAIN macro
@@ -255,6 +254,56 @@ GNUNET_SERVICE_run_ (int argc,
                      GNUNET_SERVICE_DisconnectHandler disconnect_cb,
                      void *cls,
                      const struct GNUNET_MQ_MessageHandler *handlers);
+
+
+/**
+ * Registers the GNUnet service to be scheduled as part of a monilithic
+ * libgnunet.
+ * You should almost always use the #GNUNET_SERVICE_MAIN macro
+ * instead of calling this function directly.
+ *
+ * The function will launch the service with the name @a service_name
+ * using the @a service_options to configure its shutdown
+ * behavior. Once the service is ready, the @a init_cb will be called
+ * for service-specific initialization.  @a init_cb will be given the
+ * service handler which can be used to control the service's
+ * availability.  When clients connect or disconnect, the respective
+ * @a connect_cb or @a disconnect_cb functions will be called. For
+ * messages received from the clients, the respective @a handlers will
+ * be invoked; for the closure of the handlers we use the return value
+ * from the @a connect_cb invocation of the respective client.
+ *
+ * Each handler MUST call #GNUNET_SERVICE_client_continue() after each
+ * message to receive further messages from this client.  If
+ * #GNUNET_SERVICE_client_continue() is not called within a short
+ * time, a warning will be logged. If delays are expected, services
+ * should call #GNUNET_SERVICE_client_disable_continue_warning() to
+ * disable the warning.
+ *
+ * Clients sending invalid messages (based on @a handlers) will be
+ * dropped. Additionally, clients can be dropped at any time using
+ * #GNUNET_SERVICE_client_drop().
+ *
+ * @param service_name name of the service to run
+ * @param options options controlling shutdown of the service
+ * @param service_init_cb function to call once the service is ready
+ * @param connect_cb function to call whenever a client connects
+ * @param disconnect_cb function to call whenever a client disconnects
+ * @param cls closure argument for @a service_init_cb, @a connect_cb and @a disconnect_cb
+ * @param handlers NULL-terminated array of message handlers for the service,
+ *                 the closure will be set to the value returned by
+ *                 the @a connect_cb for the respective connection
+ * @return 0 on success, non-zero on error
+ */
+int
+GNUNET_SERVICE_register_ (
+  const char *service_name,
+  enum GNUNET_SERVICE_Options options,
+  GNUNET_SERVICE_InitCallback service_init_cb,
+  GNUNET_SERVICE_ConnectHandler connect_cb,
+  GNUNET_SERVICE_DisconnectHandler disconnect_cb,
+  void *cls,
+  const struct GNUNET_MQ_MessageHandler *handlers);
 
 
 /**
@@ -317,27 +366,48 @@ GNUNET_SERVICE_run_ (int argc,
 #ifndef HAVE_GNUNET_MONOLITH
 #define GNUNET_SERVICE_MAIN(service_name, service_options, init_cb, connect_cb, \
                             disconnect_cb, cls, ...) \
-  int \
-  main (int argc, \
-        char *const *argv) \
-  { \
-    struct GNUNET_MQ_MessageHandler mh[] = { \
-      __VA_ARGS__ \
-    };                        \
-    return GNUNET_SERVICE_run_ (argc, \
-                                argv, \
-                                service_name, \
-                                service_options, \
-                                init_cb, \
-                                connect_cb, \
-                                disconnect_cb, \
-                                cls, \
-                                mh); \
-  }
+        int \
+        main (int argc, \
+              char *const *argv) \
+        { \
+          struct GNUNET_MQ_MessageHandler mh[] = { \
+            __VA_ARGS__ \
+          };                        \
+          return GNUNET_SERVICE_run_ (argc, \
+                                      argv, \
+                                      service_name, \
+                                      service_options, \
+                                      init_cb, \
+                                      connect_cb, \
+                                      disconnect_cb, \
+                                      cls, \
+                                      mh); \
+        }
 #else
 #define GNUNET_SERVICE_MAIN(service_name, service_options, init_cb, connect_cb, \
-                            disconnect_cb, cls, ...)
+                            disconnect_cb, cls, ...) \
+        static int __attribute__ ((constructor)) \
+        init (void) \
+        { \
+          struct GNUNET_MQ_MessageHandler mh[] = { \
+            __VA_ARGS__ \
+          };                        \
+          return GNUNET_SERVICE_register_ (service_name, \
+                                           service_options, \
+                                           init_cb, \
+                                           connect_cb, \
+                                           disconnect_cb, \
+                                           cls, \
+                                           mh); \
+        }
 #endif
+
+/**
+ * Run the mainloop in a monolithic libgnunet.
+ * Must be called such that services are actually launched.
+ */
+void
+GNUNET_SERVICE_main (int argc, char *const *argv);
 
 /**
  * Suspend accepting connections from the listen socket temporarily.

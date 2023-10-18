@@ -19,7 +19,7 @@ gnunet_nat_server_SOURCES = \
  gnunet-nat-server.c nat-auto.h
 gnunet_nat_server_LDADD = \
   $(top_builddir)/src/nat/libgnunetnatnew.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 gnunet_nat_server_LDFLAGS = \
   $(GN_LIBINTL)
 
@@ -27,7 +27,7 @@ gnunet_nat_auto_SOURCES = \
   gnunet-nat-auto.c nat-auto.h
 gnunet_nat_auto_LDADD = \
   libgnunetnatauto.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 gnunet_nat_auto_LDFLAGS = \
   $(GN_LIBINTL)
 
@@ -43,7 +43,7 @@ libgnunetnatauto_la_SOURCES = \
   nat_auto_api_test.c
 libgnunetnatauto_la_LIBADD = \
   $(top_builddir)/src/nat/libgnunetnatnew.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL) @EXT_LIBS@
 libgnunetnatauto_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)  \
@@ -52,7 +52,7 @@ libgnunetnatauto_la_LDFLAGS = \
 gnunet_service_nat_auto_SOURCES = \
  gnunet-service-nat-auto.c
 gnunet_service_nat_auto_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/nat/libgnunetnatnew.la \
   $(LIBGCRYPT_LIBS) \

@@ -31,8 +31,8 @@
 
 struct GNUNET_MESSENGER_Ego
 {
-  struct GNUNET_IDENTITY_PrivateKey priv;
-  struct GNUNET_IDENTITY_PublicKey pub;
+  struct GNUNET_CRYPTO_PrivateKey priv;
+  struct GNUNET_CRYPTO_PublicKey pub;
 };
 
 #endif //GNUNET_MESSENGER_API_EGO_H

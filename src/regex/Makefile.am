@@ -34,7 +34,7 @@ gnunet_service_regex_LDADD =  -lm \
  libgnunetregexblock.la \
  $(top_builddir)/src/dht/libgnunetdht.la \
  $(top_builddir)/src/statistics/libgnunetstatistics.la \
- $(top_builddir)/src/util/libgnunetutil.la \
+ $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(GN_LIBINTL)
 
 lib_LTLIBRARIES = \
@@ -44,7 +44,7 @@ lib_LTLIBRARIES = \
 libgnunetregexblock_la_SOURCES = \
   regex_block_lib.c regex_block_lib.h
 libgnunetregexblock_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(XLIB) \
   $(LTLIBINTL)
 libgnunetregexblock_la_LDFLAGS = \
@@ -57,7 +57,7 @@ libgnunetregex_la_SOURCES = \
   regex_api_search.c \
   regex_ipc.h
 libgnunetregex_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 libgnunetregex_la_LDFLAGS = \
   $(GN_LIBINTL) \
   $(GN_LIB_LDFLAGS) \
@@ -71,9 +71,9 @@ libgnunet_plugin_block_regex_la_SOURCES = \
  plugin_block_regex.c
 libgnunet_plugin_block_regex_la_LIBADD = \
  libgnunetregexblock.la \
- $(top_builddir)/src/block/libgnunetblock.la \
- $(top_builddir)/src/block/libgnunetblockgroup.la \
- $(top_builddir)/src/util/libgnunetutil.la
+ $(top_builddir)/src/lib/block/libgnunetblock.la \
+ $(top_builddir)/src/lib/block/libgnunetblockgroup.la \
+ $(top_builddir)/src/lib/util/libgnunetutil.la
 libgnunet_plugin_block_regex_la_LDFLAGS = \
  $(GN_LIBINTL) \
  $(GN_PLUGIN_LDFLAGS)
@@ -87,9 +87,9 @@ libgnunet_plugin_block_regex_la_LDFLAGS = \
 #  $(REGEX_INTERNAL) gnunet-regex-simulation-profiler.c
 #gnunet_regex_simulation_profiler_LDADD = \
 #  libgnunetregexblock.la \
-#  $(top_builddir)/src/util/libgnunetutil.la \
+#  $(top_builddir)/src/lib/util/libgnunetutil.la \
 #  $(top_builddir)/src/dht/libgnunetdht.la \
-#  $(top_builddir)/src/block/libgnunetblock.la \
+#  $(top_builddir)/src/lib/block/libgnunetblock.la \
 #  $(top_builddir)/src/statistics/libgnunetstatistics.la
 #endif
 
@@ -101,7 +101,7 @@ perf_regex_SOURCES = \
 perf_regex_LDADD = -lm \
   $(top_builddir)/src/dht/libgnunetdht.la \
   libgnunetregexblock.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la
 perf_regex_LDFLAGS = \
   $(GN_LIBINTL)
@@ -112,7 +112,7 @@ gnunet_daemon_regexprofiler_LDADD = -lm \
   $(top_builddir)/src/dht/libgnunetdht.la \
   libgnunetregexblock.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 gnunet_daemon_regexprofiler_LDFLAGS = \
   $(GN_LIBINTL)
 
@@ -135,21 +135,21 @@ test_regex_eval_api_LDADD = -lm \
   $(top_builddir)/src/dht/libgnunetdht.la \
   libgnunetregexblock.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_regex_integration_SOURCES = \
   test_regex_integration.c
 test_regex_integration_LDADD = -lm \
   libgnunetregex.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_regex_api_SOURCES = \
   test_regex_api.c
 test_regex_api_LDADD = -lm \
   libgnunetregex.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_regex_iterate_api_SOURCES = \
   $(REGEX_INTERNAL) test_regex_iterate_api.c
@@ -157,7 +157,7 @@ test_regex_iterate_api_LDADD = -lm \
   libgnunetregexblock.la \
   $(top_builddir)/src/dht/libgnunetdht.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_regex_proofs_SOURCES = \
   $(REGEX_INTERNAL_TEST) test_regex_proofs.c
@@ -165,7 +165,7 @@ test_regex_proofs_LDADD = -lm \
   $(top_builddir)/src/dht/libgnunetdht.la \
   libgnunetregexblock.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_regex_graph_api_SOURCES = \
   $(REGEX_INTERNAL_TEST) test_regex_graph_api.c
@@ -173,7 +173,7 @@ test_regex_graph_api_LDADD = -lm \
   $(top_builddir)/src/dht/libgnunetdht.la \
   libgnunetregexblock.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 
 EXTRA_DIST = \

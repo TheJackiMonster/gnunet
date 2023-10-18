@@ -23,32 +23,19 @@
  * @brief code for maintaining the overlay topology
  * @author Christian Grothoff
  *
- * This daemon combines three functions:
- * - suggesting to ATS which peers we might want to connect to
- * - enforcing the F2F restrictions (by blacklisting)
+ * This daemon combines one Function:
  * - gossping HELLOs
  *
- * All three require similar information (who are our friends
- * impacts connectivity suggestions; connectivity suggestions
- * should consider blacklisting; connectivity suggestions
- * should consider available/known HELLOs; gossip requires
- * connectivity data; connectivity suggestions require
- * connectivity data), which is why they are combined in this
- * program.
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_hello_uri_lib.h"
-#include "gnunet_friends_lib.h"
 #include "gnunet_constants.h"
 #include "gnunet_core_service.h"
 #include "gnunet_protocols.h"
 #include "gnunet_peerstore_service.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_transport_application_service.h"
-
-
-// TODO Remove all occurrencies of friends_only and minimum_friend_count.
 
 
 /**
@@ -65,7 +52,7 @@
 
 
 /**
- * Record for neighbours, friends and blacklisted peers.
+ * Record for neighbours and blacklisted peers.
  */
 struct Peer
 {
@@ -117,10 +104,6 @@ struct Peer
    */
   uint32_t strength;
 
-  /**
-   * Is this peer listed here because it is a friend?
-   */
-  int is_friend;
 };
 
 
@@ -168,7 +151,7 @@ static struct GNUNET_PeerIdentity my_identity;
 static struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
 
 /**
- * All of our friends, all of our current neighbours and all peers for
+ * All of our current neighbours and all peers for
  * which we have HELLOs.  So pretty much everyone.  Maps peer identities
  * to `struct Peer *` values.
  */
@@ -186,18 +169,7 @@ static struct GNUNET_STATISTICS_Handle *stats;
 static struct GNUNET_SCHEDULER_Task *add_task;
 
 /**
- * Flag to disallow non-friend connections (pure F2F mode).
- */
-static int friends_only;
-
-/**
- * Minimum number of friends to have in the
- * connection set before we allow non-friends.
- */
-static unsigned int minimum_friend_count;
-
-/**
- * Number of peers (friends and others) that we are currently connected to.
+ * Number of peers that we are currently connected to.
  */
 static unsigned int connection_count;
 
@@ -205,12 +177,6 @@ static unsigned int connection_count;
  * Target number of connections.
  */
 static unsigned int target_connection_count;
-
-/**
- * Number of friends that we are currently connected to.
- */
-static unsigned int friend_count;
-
 
 /**
  * Free all resources associated with the given peer.
@@ -271,15 +237,6 @@ attempt_connect (struct Peer *pos)
     strength = 1;
   else
     strength = 0;
-  if ((friend_count < minimum_friend_count) || (GNUNET_YES == friends_only))
-  {
-    if (pos->is_friend)
-      strength += 10;   /* urgently needed */
-    else
-      strength = 0;   /* disallowed */
-  }
-  if (pos->is_friend)
-    strength *= 2; /* friends always count more */
   if (NULL != pos->mq)
     strength *= 2; /* existing connections preferred */
   if (strength == pos->strength)
@@ -315,19 +272,16 @@ attempt_connect (struct Peer *pos)
  *
  * @param peer identity of the new entry
  * @param hello hello message, can be NULL
- * @param is_friend is the new entry for a friend?
  * @return the new entry
  */
 static struct Peer *
 make_peer (const struct GNUNET_PeerIdentity *peer,
-           const struct GNUNET_MessageHeader *hello,
-           int is_friend)
+           const struct GNUNET_MessageHeader *hello)
 {
   struct Peer *ret;
 
   ret = GNUNET_new (struct Peer);
   ret->pid = *peer;
-  ret->is_friend = is_friend;
   if (NULL != hello)
   {
     ret->hello = GNUNET_malloc (ntohs (hello->size));
@@ -571,22 +525,13 @@ connect_notify (void *cls,
   pos = GNUNET_CONTAINER_multipeermap_get (peers, peer);
   if (NULL == pos)
   {
-    pos = make_peer (peer, NULL, GNUNET_NO);
+    pos = make_peer (peer, NULL);
   }
   else
   {
     GNUNET_assert (NULL == pos->mq);
   }
   pos->mq = mq;
-  if (pos->is_friend)
-  {
-    friend_count++;
-
-    GNUNET_STATISTICS_set (stats,
-                           gettext_noop ("# friends connected"),
-                           friend_count,
-                           GNUNET_NO);
-  }
   reschedule_hellos (NULL, peer, pos);
   return pos;
 }
@@ -659,16 +604,7 @@ disconnect_notify (void *cls,
                          gettext_noop ("# peers connected"),
                          connection_count,
                          GNUNET_NO);
-  if (pos->is_friend)
-  {
-    friend_count--;
-    GNUNET_STATISTICS_set (stats,
-                           gettext_noop ("# friends connected"),
-                           friend_count,
-                           GNUNET_NO);
-  }
-  if (((connection_count < target_connection_count) ||
-       (friend_count < minimum_friend_count)) &&
+  if ((connection_count < target_connection_count) &&
       (NULL == add_task))
     add_task = GNUNET_SCHEDULER_add_now (&add_peer_task, NULL);
 
@@ -733,7 +669,7 @@ consider_for_advertising (const struct GNUNET_MessageHeader *hello)
   peer = GNUNET_CONTAINER_multipeermap_get (peers, pid);
   if (NULL == peer)
   {
-    peer = make_peer (pid, hello, GNUNET_NO);
+    peer = make_peer (pid, hello);
   }
   else if (NULL != peer->hello)
   {
@@ -830,7 +766,7 @@ process_peer (void *cls,
         GNUNET_CONTAINER_bloomfilter_free (pos->filter);
         pos->filter = NULL;
       }
-      if ((NULL == pos->mq) && (GNUNET_NO == pos->is_friend))
+      if (NULL == pos->mq)
         free_peer (NULL, &pos->pid, pos);
     }
     return;
@@ -838,7 +774,7 @@ process_peer (void *cls,
   consider_for_advertising (hello);
   pos = GNUNET_CONTAINER_multipeermap_get (peers, peer);
   if (NULL == pos)
-    pos = make_peer (peer, hello, GNUNET_NO);
+    pos = make_peer (peer, hello);
   attempt_connect (pos);
 }
 
@@ -875,70 +811,6 @@ core_init (void *cls, const struct GNUNET_PeerIdentity *my_id)
   peerstore_notify_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_MINUTES,
                                                         start_notify,
                                                         NULL);
-}
-
-
-/**
- * Process friend found in FRIENDS file.
- *
- * @param cls pointer to an `unsigned int` to be incremented per friend found
- * @param pid identity of the friend
- */
-static void
-handle_friend (void *cls, const struct GNUNET_PeerIdentity *pid)
-{
-  unsigned int *entries_found = cls;
-  struct Peer *fl;
-
-  if (0 == GNUNET_memcmp (pid, &my_identity))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                _ ("Found myself `%s' in friend list (useless, ignored)\n"),
-                GNUNET_i2s (pid));
-    return;
-  }
-  (*entries_found)++;
-  fl = make_peer (pid, NULL, GNUNET_YES);
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              _ ("Found friend `%s' in configuration\n"),
-              GNUNET_i2s (&fl->pid));
-}
-
-
-/**
- * Read the friends file.
- */
-static void
-read_friends_file (const struct GNUNET_CONFIGURATION_Handle *cfg)
-{
-  unsigned int entries_found;
-
-  entries_found = 0;
-  if (GNUNET_OK != GNUNET_FRIENDS_parse (cfg, &handle_friend, &entries_found))
-  {
-    if ((GNUNET_YES == friends_only) || (minimum_friend_count > 0))
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                  _ ("Encountered errors parsing friends list!\n"));
-  }
-  GNUNET_STATISTICS_update (stats,
-                            gettext_noop ("# friends in configuration"),
-                            entries_found,
-                            GNUNET_NO);
-  if ((minimum_friend_count > entries_found) && (GNUNET_NO == friends_only))
-  {
-    GNUNET_log (
-      GNUNET_ERROR_TYPE_WARNING,
-      _ (
-        "Fewer friends specified than required by minimum friend count. Will only connect to friends.\n"));
-  }
-  if ((minimum_friend_count > target_connection_count) &&
-      (GNUNET_NO == friends_only))
-  {
-    GNUNET_log (
-      GNUNET_ERROR_TYPE_WARNING,
-      _ (
-        "More friendly connections required than target total number of connections.\n"));
-  }
 }
 
 
@@ -998,20 +870,6 @@ handle_hello (void *cls, const struct GNUNET_MessageHeader *message)
                             gettext_noop ("# HELLO messages received"),
                             1,
                             GNUNET_NO);
-  peer = GNUNET_CONTAINER_multipeermap_get (peers, pid);
-  if (NULL == peer)
-  {
-    if ((GNUNET_YES == friends_only) || (friend_count < minimum_friend_count))
-      return;
-  }
-  else
-  {
-    if ((GNUNET_YES != peer->is_friend) && (GNUNET_YES == friends_only))
-      return;
-    if ((GNUNET_YES != peer->is_friend) &&
-        (friend_count < minimum_friend_count))
-      return;
-  }
   GNUNET_HELLO_builder_from_msg (message);
   shc = GNUNET_PEERSTORE_hello_add (ps, message, &shc_cont, shc);
   GNUNET_HELLO_builder_free (builder);
@@ -1094,7 +952,6 @@ run (void *cls,
     GNUNET_CRYPTO_eddsa_key_create_from_configuration (cfg);
   stats = GNUNET_STATISTICS_create ("topology", cfg);
 
-  minimum_friend_count = 0;
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_number (cfg,
                                              "TOPOLOGY",
@@ -1104,12 +961,6 @@ run (void *cls,
   target_connection_count = (unsigned int) opt;
   peers = GNUNET_CONTAINER_multipeermap_create (target_connection_count * 2,
                                                 GNUNET_NO);
-  read_friends_file (cfg);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Topology would like %u connections with at least %u friends\n",
-              target_connection_count,
-              minimum_friend_count);
-
   transport = GNUNET_TRANSPORT_application_init (cfg);
   ps = GNUNET_PEERSTORE_connect (cfg);
   handle = GNUNET_CORE_connect (cfg,

@@ -313,7 +313,7 @@ handle_dns_request (void *cls,
 {
   struct GNUNET_DNSPARSER_Packet *p;
   struct InterceptLookupHandle *ilh;
-  struct GNUNET_IDENTITY_PublicKey zone;
+  struct GNUNET_CRYPTO_PublicKey zone;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Hijacked a DNS request. Processing.\n");

@@ -132,7 +132,7 @@ handle_identity_update (void *cls, const struct UpdateMessage *um)
   const char *str;
   size_t key_len;
   size_t kb_read;
-  struct GNUNET_IDENTITY_PrivateKey private_key;
+  struct GNUNET_CRYPTO_PrivateKey private_key;
   const char *tmp;
 
   tmp = (const char*) &um[1];
@@ -142,7 +142,7 @@ handle_identity_update (void *cls, const struct UpdateMessage *um)
   if (0 < key_len)
   {
     GNUNET_assert (GNUNET_SYSERR !=
-                   GNUNET_IDENTITY_read_private_key_from_buffer (tmp + name_len,
+                   GNUNET_CRYPTO_read_private_key_from_buffer (tmp + name_len,
                                                                  key_len,
                                                                  &private_key,
                                                                  &kb_read));

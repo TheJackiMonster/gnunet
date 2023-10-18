@@ -99,6 +99,19 @@ GNUNET_JSON_pack_bool (const char *name,
 
 
 struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_double (const char *name,
+                         double f)
+{
+  struct GNUNET_JSON_PackSpec ps = {
+    .field_name = name,
+    .object = json_real (f)
+  };
+
+  return ps;
+}
+
+
+struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_string (const char *name,
                          const char *s)
 {

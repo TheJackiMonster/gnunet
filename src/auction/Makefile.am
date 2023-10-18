@@ -20,7 +20,7 @@ libexec_PROGRAMS = \
 gnunet_service_auction_SOURCES = \
 	gnunet-service-auction.c
 gnunet_service_auction_LDADD = \
-	$(top_builddir)/src/util/libgnunetutil.la \
+	$(top_builddir)/src/lib/util/libgnunetutil.la \
 	-ljansson \
 	$(GN_LIBINTL)
 
@@ -33,21 +33,21 @@ bin_PROGRAMS = \
 gnunet_auction_create_SOURCES = \
 	gnunet-auction-create.c
 gnunet_auction_create_LDADD = \
-	$(top_builddir)/src/util/libgnunetutil.la \
+	$(top_builddir)/src/lib/util/libgnunetutil.la \
 	-ljansson \
 	$(GN_LIBINTL)
 
 gnunet_auction_info_SOURCES = \
 	gnunet-auction-info.c
 gnunet_auction_info_LDADD = \
-	$(top_builddir)/src/util/libgnunetutil.la \
+	$(top_builddir)/src/lib/util/libgnunetutil.la \
 	-ljansson \
 	$(GN_LIBINTL)
 
 gnunet_auction_join_SOURCES = \
 	gnunet-auction-join.c
 gnunet_auction_join_LDADD = \
-	$(top_builddir)/src/util/libgnunetutil.la \
+	$(top_builddir)/src/lib/util/libgnunetutil.la \
 	-ljansson \
 	$(GN_LIBINTL)
 
@@ -58,7 +58,7 @@ check_PROGRAMS = \
 test_auction_api_SOURCES = \
 	test_auction_api.c
 test_auction_api_LDADD = \
-	$(top_builddir)/src/util/libgnunetutil.la
+	$(top_builddir)/src/lib/util/libgnunetutil.la
 
 
 check_SCRIPTS = \

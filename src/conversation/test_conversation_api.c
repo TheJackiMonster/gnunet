@@ -305,7 +305,7 @@ static void
 phone_event_handler (void *cls,
                      enum GNUNET_CONVERSATION_PhoneEventCode code,
                      struct GNUNET_CONVERSATION_Caller *caller,
-                     const struct GNUNET_IDENTITY_PublicKey *caller_id)
+                     const struct GNUNET_CRYPTO_PublicKey *caller_id)
 {
   static enum GNUNET_CONVERSATION_PhoneEventCode expect =
     GNUNET_CONVERSATION_EC_PHONE_RING;
@@ -385,7 +385,7 @@ call_event_handler (void *cls, enum GNUNET_CONVERSATION_CallEventCode code)
 
 static void
 caller_ego_create_cont (void *cls,
-                        const struct GNUNET_IDENTITY_PrivateKey *pk,
+                        const struct GNUNET_CRYPTO_PrivateKey *pk,
                         enum GNUNET_ErrorCode ec)
 {
   (void) cls;
@@ -402,7 +402,7 @@ namestore_put_cont (void *cls, enum GNUNET_ErrorCode ec)
   GNUNET_assert (GNUNET_EC_NONE == ec);
   GNUNET_assert (NULL == op);
   op = GNUNET_IDENTITY_create (id, "caller-ego", NULL,
-                               GNUNET_IDENTITY_TYPE_ECDSA,
+                               GNUNET_PUBLIC_KEY_TYPE_ECDSA,
                                &caller_ego_create_cont,
                                NULL);
 }
@@ -415,7 +415,7 @@ identity_cb (void *cls,
              const char *name)
 {
   struct GNUNET_GNSRECORD_Data rd;
-  struct GNUNET_IDENTITY_PublicKey pub;
+  struct GNUNET_CRYPTO_PublicKey pub;
 
   (void) cls;
   (void) ctx;
@@ -466,7 +466,7 @@ identity_cb (void *cls,
 
 static void
 phone_ego_create_cont (void *cls,
-                       const struct GNUNET_IDENTITY_PrivateKey *pk,
+                       const struct GNUNET_CRYPTO_PrivateKey *pk,
                        enum GNUNET_ErrorCode ec)
 {
   (void) cls;
@@ -486,7 +486,7 @@ run (void *cls,
   GNUNET_SCHEDULER_add_delayed (TIMEOUT, &end_test, NULL);
   id = GNUNET_IDENTITY_connect (cfg, &identity_cb, NULL);
   op = GNUNET_IDENTITY_create (id, "phone-ego", NULL,
-                               GNUNET_IDENTITY_TYPE_ECDSA,
+                               GNUNET_PUBLIC_KEY_TYPE_ECDSA,
                                &phone_ego_create_cont,
                                NULL);
   ns = GNUNET_NAMESTORE_connect (cfg);

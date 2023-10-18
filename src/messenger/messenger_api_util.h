@@ -58,7 +58,7 @@ generate_free_member_id (struct GNUNET_ShortHashCode *id,
  *
  * @return anonymous public key
  */
-const struct GNUNET_IDENTITY_PublicKey*
+const struct GNUNET_CRYPTO_PublicKey*
 get_anonymous_public_key ();
 
 /**

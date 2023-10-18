@@ -23,7 +23,7 @@ libgnunetjson_la_SOURCES = \
   json_mhd.c \
   json_pack.c
 libgnunetjson_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   -ljansson \
   $(MHD_LIBS) \
   $(XLIB) \
@@ -41,7 +41,7 @@ test_json_SOURCES = \
 test_json_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
 test_json_LDADD = \
   libgnunetjson.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   -ljansson
 
 
@@ -49,7 +49,7 @@ test_json_mhd_SOURCES = \
   test_json_mhd.c
 test_json_mhd_LDADD = \
   libgnunetjson.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   -ljansson \
   $(MHD_LIBS) \
   $(Z_LIBS) \

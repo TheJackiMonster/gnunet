@@ -455,7 +455,7 @@ handle_gns_response (void *cls,
   struct GNUNET_CONVERSATION_Call *call = cls;
   struct GNUNET_MQ_Envelope *e;
   struct ClientCallMessage *ccm;
-  const struct GNUNET_IDENTITY_PrivateKey *caller_id;
+  const struct GNUNET_CRYPTO_PrivateKey *caller_id;
   size_t key_len;
 
   (void) was_gns;
@@ -475,12 +475,12 @@ handle_gns_response (void *cls,
                      rd[i].data,
                      rd[i].data_size);
       caller_id = GNUNET_IDENTITY_ego_get_private_key (call->caller_id);
-      key_len = GNUNET_IDENTITY_private_key_get_length (caller_id);
+      key_len = GNUNET_CRYPTO_private_key_get_length (caller_id);
       e = GNUNET_MQ_msg_extra (ccm, key_len,
                                GNUNET_MESSAGE_TYPE_CONVERSATION_CS_PHONE_CALL);
       ccm->line_port = call->phone_record.line_port;
       ccm->target = call->phone_record.peer;
-      GNUNET_IDENTITY_write_private_key_to_buffer (caller_id,
+      GNUNET_CRYPTO_write_private_key_to_buffer (caller_id,
                                                    &ccm[1], key_len);
       ccm->key_len = htonl (key_len);
       GNUNET_MQ_send (call->mq,

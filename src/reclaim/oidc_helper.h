@@ -61,8 +61,8 @@ enum OIDC_VerificationOptions
  * @return a new base64-encoded JWT string.
  */
 char *
-OIDC_generate_id_token_rsa (const struct GNUNET_IDENTITY_PublicKey *aud_key,
-                            const struct GNUNET_IDENTITY_PublicKey *sub_key,
+OIDC_generate_id_token_rsa (const struct GNUNET_CRYPTO_PublicKey *aud_key,
+                            const struct GNUNET_CRYPTO_PublicKey *sub_key,
                             const struct GNUNET_RECLAIM_AttributeList *attrs,
                             const struct
                             GNUNET_RECLAIM_PresentationList *presentations,
@@ -82,8 +82,8 @@ OIDC_generate_id_token_rsa (const struct GNUNET_IDENTITY_PublicKey *aud_key,
  * @return a new base64-encoded JWT string.
  */
 char*
-OIDC_generate_id_token_hmac (const struct GNUNET_IDENTITY_PublicKey *aud_key,
-                             const struct GNUNET_IDENTITY_PublicKey *sub_key,
+OIDC_generate_id_token_hmac (const struct GNUNET_CRYPTO_PublicKey *aud_key,
+                             const struct GNUNET_CRYPTO_PublicKey *sub_key,
                              const struct GNUNET_RECLAIM_AttributeList *attrs,
                              const struct
                              GNUNET_RECLAIM_PresentationList *presentations,
@@ -105,7 +105,7 @@ OIDC_generate_id_token_hmac (const struct GNUNET_IDENTITY_PublicKey *aud_key,
  * @return a new authorization code (caller must free)
  */
 char*
-OIDC_build_authz_code (const struct GNUNET_IDENTITY_PrivateKey *issuer,
+OIDC_build_authz_code (const struct GNUNET_CRYPTO_PrivateKey *issuer,
                        const struct GNUNET_RECLAIM_Ticket *ticket,
                        const struct GNUNET_RECLAIM_AttributeList *attrs,
                        const struct
@@ -128,7 +128,7 @@ OIDC_build_authz_code (const struct GNUNET_IDENTITY_PrivateKey *issuer,
  * @return GNUNET_OK if successful, else GNUNET_SYSERR
  */
 int
-OIDC_parse_authz_code (const struct GNUNET_IDENTITY_PublicKey *ecdsa_pub,
+OIDC_parse_authz_code (const struct GNUNET_CRYPTO_PublicKey *ecdsa_pub,
                        const char *code,
                        const char *code_verifier,
                        struct GNUNET_RECLAIM_Ticket *ticket,
@@ -188,7 +188,7 @@ OIDC_check_scopes_for_claim_request (const char *scopes,
  * @return Userinfo JSON
  */
 char *
-OIDC_generate_userinfo (const struct GNUNET_IDENTITY_PublicKey *sub_key,
+OIDC_generate_userinfo (const struct GNUNET_CRYPTO_PublicKey *sub_key,
                         const struct GNUNET_RECLAIM_AttributeList *attrs,
                         const struct
                         GNUNET_RECLAIM_PresentationList *presentations);

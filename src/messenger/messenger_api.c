@@ -105,10 +105,10 @@ check_get_key (void *cls,
   const uint16_t length = full_length - sizeof(*msg);
   const char *buffer = ((const char*) msg) + sizeof(*msg);
 
-  struct GNUNET_IDENTITY_PublicKey pubkey;
+  struct GNUNET_CRYPTO_PublicKey pubkey;
   size_t read;
   if (GNUNET_SYSERR ==
-      GNUNET_IDENTITY_read_public_key_from_buffer(buffer, length,
+      GNUNET_CRYPTO_read_public_key_from_buffer(buffer, length,
                                                   &pubkey, &read))
     return GNUNET_NO;
 
@@ -124,14 +124,14 @@ handle_get_key (void *cls,
   const uint16_t length = ntohs (msg->header.size) - sizeof(*msg);
   const char *buffer = ((const char*) msg) + sizeof(*msg);
 
-  struct GNUNET_IDENTITY_PublicKey pubkey;
+  struct GNUNET_CRYPTO_PublicKey pubkey;
   size_t read;
   if (GNUNET_SYSERR ==
-      GNUNET_IDENTITY_read_public_key_from_buffer(buffer, length,
+      GNUNET_CRYPTO_read_public_key_from_buffer(buffer, length,
                                                   &pubkey, &read))
     return;
 
-  char* str = GNUNET_IDENTITY_public_key_to_string (&pubkey);
+  char* str = GNUNET_CRYPTO_public_key_to_string (&pubkey);
   GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Set key of handle: %s\n", str);
   GNUNET_free(str);
 
@@ -534,8 +534,8 @@ GNUNET_MESSENGER_set_name (struct GNUNET_MESSENGER_Handle *handle,
   return GNUNET_YES;
 }
 
-static const struct GNUNET_IDENTITY_PublicKey*
-get_non_anonymous_key (const struct GNUNET_IDENTITY_PublicKey* public_key)
+static const struct GNUNET_CRYPTO_PublicKey*
+get_non_anonymous_key (const struct GNUNET_CRYPTO_PublicKey* public_key)
 {
   if (0 == GNUNET_memcmp(public_key, get_anonymous_public_key()))
     return NULL;
@@ -543,7 +543,7 @@ get_non_anonymous_key (const struct GNUNET_IDENTITY_PublicKey* public_key)
   return public_key;
 }
 
-const struct GNUNET_IDENTITY_PublicKey*
+const struct GNUNET_CRYPTO_PublicKey*
 GNUNET_MESSENGER_get_key (const struct GNUNET_MESSENGER_Handle *handle)
 {
   if (!handle)
@@ -688,7 +688,7 @@ GNUNET_MESSENGER_contact_get_name (const struct GNUNET_MESSENGER_Contact *contac
   return get_contact_name (contact);
 }
 
-const struct GNUNET_IDENTITY_PublicKey*
+const struct GNUNET_CRYPTO_PublicKey*
 GNUNET_MESSENGER_contact_get_key (const struct GNUNET_MESSENGER_Contact *contact)
 {
   if (!contact)
@@ -721,12 +721,12 @@ GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room,
 
   if (contact)
   {
-    const struct GNUNET_IDENTITY_PublicKey *public_key = get_non_anonymous_key (
+    const struct GNUNET_CRYPTO_PublicKey *public_key = get_non_anonymous_key (
         get_contact_key(contact)
     );
 
     if (public_key)
-      key_length = GNUNET_IDENTITY_public_key_get_length(public_key);
+      key_length = GNUNET_CRYPTO_public_key_get_length(public_key);
     else
       key_length = -1;
   }
@@ -759,7 +759,7 @@ GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room,
   char *msg_buffer = buffer + key_length;
 
   if (key_length > 0)
-    GNUNET_IDENTITY_write_public_key_to_buffer(get_contact_key(contact), buffer, key_length);
+    GNUNET_CRYPTO_write_public_key_to_buffer(get_contact_key(contact), buffer, key_length);
 
   encode_message (message, msg_length, msg_buffer, GNUNET_NO);
 

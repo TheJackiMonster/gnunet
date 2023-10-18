@@ -79,7 +79,7 @@ struct MarkedRecord
   /**
    * The zone key
    */
-  struct GNUNET_IDENTITY_PrivateKey key;
+  struct GNUNET_CRYPTO_PrivateKey key;
 };
 
 /**
@@ -116,7 +116,7 @@ static struct GNUNET_NAMESTORE_Handle *ns;
 /**
  * Private key for the our zone.
  */
-static struct GNUNET_IDENTITY_PrivateKey zone_pkey;
+static struct GNUNET_CRYPTO_PrivateKey zone_pkey;
 
 /**
  * Identity service handle
@@ -765,7 +765,7 @@ zone_iteration_error_cb (void *cls)
 
 static void
 collect_zone_records_to_purge (const struct
-                               GNUNET_IDENTITY_PrivateKey *zone_key,
+                               GNUNET_CRYPTO_PrivateKey *zone_key,
                                const char *rname,
                                unsigned int rd_len,
                                const struct GNUNET_GNSRECORD_Data *rd)
@@ -782,7 +782,7 @@ collect_zone_records_to_purge (const struct
 
 
 static void
-collect_orphans (const struct GNUNET_IDENTITY_PrivateKey *zone_key,
+collect_orphans (const struct GNUNET_CRYPTO_PrivateKey *zone_key,
                  const char *rname,
                  unsigned int rd_len,
                  const struct GNUNET_GNSRECORD_Data *rd)
@@ -820,7 +820,7 @@ collect_orphans (const struct GNUNET_IDENTITY_PrivateKey *zone_key,
  * @param rd array of records with data to store
  */
 static void
-display_record (const struct GNUNET_IDENTITY_PrivateKey *zone_key,
+display_record (const struct GNUNET_CRYPTO_PrivateKey *zone_key,
                 const char *rname,
                 unsigned int rd_len,
                 const struct GNUNET_GNSRECORD_Data *rd)
@@ -864,7 +864,7 @@ display_record (const struct GNUNET_IDENTITY_PrivateKey *zone_key,
     return;
   if (! list_orphaned && is_orphaned)
     return;
-  orphaned_str = GNUNET_IDENTITY_private_key_to_string (zone_key);
+  orphaned_str = GNUNET_CRYPTO_private_key_to_string (zone_key);
   fprintf (stdout, "%s.%s:\n", rname, is_orphaned ? orphaned_str :
            ego->identifier);
   GNUNET_free (orphaned_str);
@@ -931,7 +931,7 @@ display_record (const struct GNUNET_IDENTITY_PrivateKey *zone_key,
 
 static void
 purge_zone_iterator (void *cls,
-                     const struct GNUNET_IDENTITY_PrivateKey *zone_key,
+                     const struct GNUNET_CRYPTO_PrivateKey *zone_key,
                      const char *rname,
                      unsigned int rd_len,
                      const struct GNUNET_GNSRECORD_Data *rd,
@@ -947,7 +947,7 @@ purge_zone_iterator (void *cls,
 
 static void
 purge_orphans_iterator (void *cls,
-                        const struct GNUNET_IDENTITY_PrivateKey *zone_key,
+                        const struct GNUNET_CRYPTO_PrivateKey *zone_key,
                         const char *rname,
                         unsigned int rd_len,
                         const struct GNUNET_GNSRECORD_Data *rd,
@@ -972,7 +972,7 @@ purge_orphans_iterator (void *cls,
  */
 static void
 display_record_iterator (void *cls,
-                         const struct GNUNET_IDENTITY_PrivateKey *zone_key,
+                         const struct GNUNET_CRYPTO_PrivateKey *zone_key,
                          const char *rname,
                          unsigned int rd_len,
                          const struct GNUNET_GNSRECORD_Data *rd,
@@ -997,7 +997,7 @@ display_record_iterator (void *cls,
  */
 static void
 display_record_monitor (void *cls,
-                        const struct GNUNET_IDENTITY_PrivateKey *zone_key,
+                        const struct GNUNET_CRYPTO_PrivateKey *zone_key,
                         const char *rname,
                         unsigned int rd_len,
                         const struct GNUNET_GNSRECORD_Data *rd,
@@ -1022,7 +1022,7 @@ display_record_monitor (void *cls,
  */
 static void
 display_record_lookup (void *cls,
-                       const struct GNUNET_IDENTITY_PrivateKey *zone_key,
+                       const struct GNUNET_CRYPTO_PrivateKey *zone_key,
                        const char *rname,
                        unsigned int rd_len,
                        const struct GNUNET_GNSRECORD_Data *rd)
@@ -1102,7 +1102,7 @@ add_error_cb (void *cls)
  */
 static void
 get_existing_record (void *cls,
-                     const struct GNUNET_IDENTITY_PrivateKey *zone_key,
+                     const struct GNUNET_CRYPTO_PrivateKey *zone_key,
                      const char *rec_name,
                      unsigned int rd_count,
                      const struct GNUNET_GNSRECORD_Data *rd)
@@ -1194,7 +1194,7 @@ reverse_error_cb (void *cls)
  */
 static void
 handle_reverse_lookup (void *cls,
-                       const struct GNUNET_IDENTITY_PrivateKey *zone,
+                       const struct GNUNET_CRYPTO_PrivateKey *zone,
                        const char *label,
                        unsigned int rd_count,
                        const struct GNUNET_GNSRECORD_Data *rd)
@@ -1239,7 +1239,7 @@ del_lookup_error_cb (void *cls)
  */
 static void
 del_monitor (void *cls,
-             const struct GNUNET_IDENTITY_PrivateKey *zone,
+             const struct GNUNET_CRYPTO_PrivateKey *zone,
              const char *label,
              unsigned int rd_count,
              const struct GNUNET_GNSRECORD_Data *rd)
@@ -1622,7 +1622,7 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
   }
   if (NULL != reverse_pkey)
   {
-    struct GNUNET_IDENTITY_PublicKey pubkey;
+    struct GNUNET_CRYPTO_PublicKey pubkey;
 
     if (NULL == ego_name)
     {
@@ -1635,7 +1635,7 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
       return;
     }
     if (GNUNET_OK !=
-        GNUNET_IDENTITY_public_key_from_string (reverse_pkey,
+        GNUNET_CRYPTO_public_key_from_string (reverse_pkey,
                                                 &pubkey))
     {
       fprintf (stderr,
@@ -1657,7 +1657,7 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
   {
     char sh[105];
     char sname[64];
-    struct GNUNET_IDENTITY_PublicKey pkey;
+    struct GNUNET_CRYPTO_PublicKey pkey;
     if (NULL == ego_name)
     {
       fprintf (stderr,
@@ -1674,7 +1674,7 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
 
     if ((2 != (sscanf (uri, "gnunet://gns/%58s/%63s", sh, sname))) ||
         (GNUNET_OK !=
-         GNUNET_IDENTITY_public_key_from_string (sh, &pkey)))
+         GNUNET_CRYPTO_public_key_from_string (sh, &pkey)))
     {
       fprintf (stderr, _ ("Invalid URI `%s'\n"), uri);
       ret = 1;
@@ -1700,7 +1700,7 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
     }
     memset (&rd, 0, sizeof(rd));
     rd.data = &pkey;
-    rd.data_size = GNUNET_IDENTITY_public_key_get_length (&pkey);
+    rd.data_size = GNUNET_CRYPTO_public_key_get_length (&pkey);
     rd.record_type = ntohl (pkey.type);
     rd.expiration_time = etime;
     if (GNUNET_YES == etime_is_rel)
@@ -1737,14 +1737,14 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
 
 static int
 get_identity_for_string (const char *str,
-                         struct GNUNET_IDENTITY_PrivateKey *zk)
+                         struct GNUNET_CRYPTO_PrivateKey *zk)
 {
-  const struct GNUNET_IDENTITY_PrivateKey *privkey;
-  struct GNUNET_IDENTITY_PublicKey pubkey;
-  struct GNUNET_IDENTITY_PublicKey ego_pubkey;
+  const struct GNUNET_CRYPTO_PrivateKey *privkey;
+  struct GNUNET_CRYPTO_PublicKey pubkey;
+  struct GNUNET_CRYPTO_PublicKey ego_pubkey;
   struct EgoEntry *ego_entry;
 
-  if (GNUNET_OK == GNUNET_IDENTITY_public_key_from_string (str,
+  if (GNUNET_OK == GNUNET_CRYPTO_public_key_from_string (str,
                                                            &pubkey))
   {
     for (ego_entry = ego_head;
@@ -1777,7 +1777,7 @@ static void
 process_command_stdin ()
 {
   char buf[MAX_LINE_LEN];
-  static struct GNUNET_IDENTITY_PrivateKey next_zone_key;
+  static struct GNUNET_CRYPTO_PrivateKey next_zone_key;
   static char next_name[GNUNET_DNSPARSER_MAX_NAME_LENGTH];
   static int finished = GNUNET_NO;
   static int have_next_zonekey = GNUNET_NO;
@@ -1900,7 +1900,7 @@ id_connect_cb (void *cls,
                void **ctx,
                const char *name)
 {
-  struct GNUNET_IDENTITY_PublicKey pk;
+  struct GNUNET_CRYPTO_PublicKey pk;
   struct EgoEntry *ego_entry;
 
   (void) ctx;

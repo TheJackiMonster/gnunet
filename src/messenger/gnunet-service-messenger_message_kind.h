@@ -82,7 +82,7 @@ create_message_name (const char *name);
  * @return New message
  */
 struct GNUNET_MESSENGER_Message*
-create_message_key (const struct GNUNET_IDENTITY_PrivateKey *key);
+create_message_key (const struct GNUNET_CRYPTO_PrivateKey *key);
 
 /**
  * Creates and allocates a new peer message containing a services peer identity.

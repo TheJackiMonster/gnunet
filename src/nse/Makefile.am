@@ -18,7 +18,7 @@ bin_PROGRAMS = gnunet-nse
 gnunet_nse_SOURCES = gnunet-nse.c
 gnunet_nse_LDADD = \
   libgnunetnse.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(XLIB) $(GN_LIBINTL)
 
 lib_LTLIBRARIES = libgnunetnse.la
@@ -26,7 +26,7 @@ lib_LTLIBRARIES = libgnunetnse.la
 libgnunetnse_la_SOURCES = \
   nse_api.c nse.h
 libgnunetnse_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL) $(XLIB)
 libgnunetnse_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)   \
@@ -44,7 +44,7 @@ libexec_PROGRAMS = \
 # gnunet-nse-profiler.c
 #gnunet_nse_profiler_LDADD = -lm \
 #  libgnunetnse.la \
-#  $(top_builddir)/src/util/libgnunetutil.la \
+#  $(top_builddir)/src/lib/util/libgnunetutil.la \
 #  $(top_builddir)/src/statistics/libgnunetstatistics.la \
 #  $(top_builddir)/src/testing/libgnunettesting.la \
 #  $(top_builddir)/src/testbed/libgnunettestbed.la \
@@ -54,7 +54,7 @@ gnunet_service_nse_SOURCES = \
  gnunet-service-nse.c
 gnunet_service_nse_LDADD = \
   libgnunetnse.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/core/libgnunetcore.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(LIBGCRYPT_LIBS) \
@@ -85,20 +85,20 @@ test_nse_api_SOURCES = \
 test_nse_api_LDADD = \
   libgnunetnse.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_nse_multipeer_SOURCES = \
  test_nse_multipeer.c
 test_nse_multipeer_LDADD = \
   libgnunetnse.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/testbed/libgnunettestbed.la \
   -lm
 
 perf_kdf_SOURCES = \
  perf_kdf.c
 perf_kdf_LDADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LIBGCRYPT_LIBS) \
   -lgcrypt
 

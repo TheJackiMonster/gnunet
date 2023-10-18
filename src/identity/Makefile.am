@@ -26,7 +26,7 @@ libgnunet_plugin_rest_identity_la_SOURCES = \
 libgnunet_plugin_rest_identity_la_LIBADD = \
   libgnunetidentity.la \
   $(top_builddir)/src/rest/libgnunetrest.la \
-  $(top_builddir)/src/util/libgnunetutil.la $(XLIBS) \
+  $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) \
   $(LTLIBINTL) -ljansson $(MHD_LIBS)
 libgnunet_plugin_rest_identity_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
@@ -39,7 +39,7 @@ libgnunetidentity_la_SOURCES = \
   identity_api_suffix_lookup.c \
   identity.h
 libgnunetidentity_la_LIBADD = \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL) $(XLIB)
 libgnunetidentity_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)   \
@@ -57,7 +57,7 @@ gnunet_service_identity_SOURCES = \
 gnunet_service_identity_LDADD = \
   libgnunetidentity.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
 
@@ -66,7 +66,7 @@ gnunet_identity_SOURCES = \
 gnunet_identity_LDADD = \
   libgnunetidentity.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
 check_PROGRAMS = \
@@ -86,7 +86,7 @@ test_identity_SOURCES = \
 test_identity_LDADD = \
   libgnunetidentity.la \
   $(top_builddir)/src/testing/libgnunettesting.la \
-  $(top_builddir)/src/util/libgnunetutil.la
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 EXTRA_DIST = \
   test_identity.conf \

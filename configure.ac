@@ -20,12 +20,12 @@
 #
 #
 AC_PREREQ([2.69])
-AC_INIT([gnunet],[m4_esyscmd_s(sh contrib/get_version.sh)],[bug-gnunet@gnu.org])
+AC_INIT([gnunet],[m4_esyscmd_s(sh scripts/get_version.sh)],[bug-gnunet@gnu.org])
 
-gnunet_version=m4_esyscmd_s(sh contrib/get_version.sh)
-gnunet_major_version=m4_esyscmd_s(sh contrib/get_version.sh --major)
-gnunet_minor_version=m4_esyscmd_s(sh contrib/get_version.sh --minor)
-gnunet_micro_version=m4_esyscmd_s(sh contrib/get_version.sh --micro)
+gnunet_version=m4_esyscmd_s(sh scripts/get_version.sh)
+gnunet_major_version=m4_esyscmd_s(sh scripts/get_version.sh --major)
+gnunet_minor_version=m4_esyscmd_s(sh scripts/get_version.sh --minor)
+gnunet_micro_version=m4_esyscmd_s(sh scripts/get_version.sh --micro)
 
 AC_SUBST([gnunet_version])
 AC_SUBST([gnunet_major_version])
@@ -1214,7 +1214,9 @@ AC_CONFIG_FILES([
 Makefile
 bin/Makefile
 contrib/Makefile
-contrib/hellos/Makefile
+data/Makefile
+data/hellos/Makefile
+scripts/Makefile
 contrib/services/Makefile
 contrib/services/openrc/Makefile
 contrib/services/systemd/Makefile
@@ -1229,7 +1231,11 @@ src/Makefile
 src/arm/Makefile
 src/arm/arm.conf
 src/auction/Makefile
-src/block/Makefile
+src/lib/block/Makefile
+src/lib/gnsrecord/Makefile
+src/plugin/Makefile
+src/plugin/block/Makefile
+src/plugin/gnsrecord/Makefile
 src/cadet/Makefile
 src/cadet/cadet.conf
 src/core/Makefile
@@ -1248,19 +1254,16 @@ src/dhtu/Makefile
 src/dns/Makefile
 src/dns/dns.conf
 src/exit/Makefile
-src/fragmentation/Makefile
 src/fs/Makefile
 src/fs/fs.conf
 src/gns/Makefile
 src/gns/gns.conf
 src/gns/nss/Makefile
-src/gnsrecord/Makefile
-src/hello/Makefile
+src/lib/hello/Makefile
 src/identity/Makefile
 src/identity/identity.conf
 src/include/Makefile
 src/include/gnunet_config.h
-src/integration-tests/Makefile
 src/json/Makefile
 src/hostlist/Makefile
 src/namecache/Makefile
@@ -1273,7 +1276,6 @@ src/nat-auto/Makefile
 src/nat-auto/nat-auto.conf
 src/nse/Makefile
 src/nse/nse.conf
-src/nt/Makefile
 src/peerstore/Makefile
 src/peerstore/peerstore.conf
 src/pq/Makefile
@@ -1302,8 +1304,13 @@ src/testing/Makefile
 src/topology/Makefile
 src/transport/Makefile
 src/transport/transport.conf
-src/util/Makefile
-src/util/resolver.conf
+src/lib/Makefile
+src/lib/util/Makefile
+src/lib/util/resolver.conf
+src/service/Makefile
+src/service/util/Makefile
+src/cli/Makefile
+src/cli/util/Makefile
 src/vpn/Makefile
 src/vpn/vpn.conf
 src/zonemaster/Makefile
@@ -1325,7 +1332,6 @@ pkgconfig/gnunetdatacache.pc
 pkgconfig/gnunetdatastore.pc
 pkgconfig/gnunetdht.pc
 pkgconfig/gnunetdns.pc
-pkgconfig/gnunetfragmentation.pc
 pkgconfig/gnunetfs.pc
 pkgconfig/gnunetgns.pc
 pkgconfig/gnunethello.pc

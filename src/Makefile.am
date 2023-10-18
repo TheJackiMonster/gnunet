@@ -1,7 +1,6 @@
 # This Makefile.am is in the public domain
 
 TESTING = testing
-#TESTBED = testbed-logger testbed
 
 if HAVE_EXPERIMENTAL
  EXP_DIR = \
@@ -34,10 +33,10 @@ REST_DIR = rest
 
 SUBDIRS = \
   include $(INTLEMU_SUBDIRS) \
-  util \
-  nt \
-  hello \
-  block \
+  lib \
+	plugin \
+	service \
+	cli \
   statistics \
   arm \
   $(TESTING) \
@@ -52,7 +51,6 @@ SUBDIRS = \
   peerstore \
   nat \
   nat-auto \
-  fragmentation \
   transport \
   core \
   nse \
@@ -63,7 +61,6 @@ SUBDIRS = \
   regex \
   dns \
   identity \
-  gnsrecord \
   namecache \
   namestore \
   cadet \
@@ -83,5 +80,4 @@ SUBDIRS = \
   secretsharing \
   reclaim \
   messenger \
-  $(EXP_DIR) \
-  integration-tests
+  $(EXP_DIR)
