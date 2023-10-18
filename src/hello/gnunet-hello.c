@@ -360,7 +360,7 @@ run (void *cls,
     fprintf (stdout,"url: %s\n", url);
     env = GNUNET_HELLO_builder_to_env (builder,
                                  my_private_key,
-                                 GNUNET_TIME_UNIT_ZERO);
+                                 GNUNET_TIME_UNIT_FOREVER_REL);
     msg = GNUNET_MQ_env_get_msg (env);
     //GNUNET_assert (NULL != result);
     GNUNET_assert (NULL != msg);
