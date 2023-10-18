@@ -53,7 +53,7 @@ gnunet_revocation_tvg_LDADD = \
 test_revocation_lsd0001testvectors_SOURCES = \
  test_revocation_testvectors.c
 test_revocation_lsd0001testvectors_LDADD = \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
 	$(top_builddir)/src/service/identity/libgnunetidentity.la \
   libgnunetrevocation.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
@@ -83,7 +83,7 @@ gnunet_service_revocation_LDADD = \
   libgnunetrevocation.la \
   $(top_builddir)/src/service/core/libgnunetcore.la \
   $(top_builddir)/src/setu/libgnunetsetu.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la  \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   -lm \

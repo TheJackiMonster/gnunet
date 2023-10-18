@@ -93,7 +93,7 @@ gnunet_service_namecache_SOURCES = \
 gnunet_service_namecache_LDADD = \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   libgnunetnamecache.la \
   $(GN_LIBINTL)
@@ -108,7 +108,7 @@ libgnunet_plugin_namecache_flat_la_SOURCES = \
   plugin_namecache_flat.c
 libgnunet_plugin_namecache_flat_la_LIBADD = \
   libgnunetnamecache.la  \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) \
@@ -121,7 +121,7 @@ libgnunet_plugin_namecache_sqlite_la_SOURCES = \
 libgnunet_plugin_namecache_sqlite_la_LIBADD = \
   libgnunetnamecache.la  \
   $(top_builddir)/src/lib/sq/libgnunetsq.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) -lsqlite3 \
@@ -135,7 +135,7 @@ libgnunet_plugin_namecache_postgres_la_SOURCES = \
 libgnunet_plugin_namecache_postgres_la_LIBADD = \
   libgnunetnamecache.la  \
   $(top_builddir)/src/lib/pq/libgnunetpq.la  \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) -lpq \
@@ -149,26 +149,26 @@ test_namecache_api_cache_block_LDADD = \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   libgnunetnamecache.la \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 
 test_plugin_namecache_flat_SOURCES = \
  test_plugin_namecache.c
 test_plugin_namecache_flat_LDADD = \
- $(top_builddir)/src/lib/testing/libgnunettesting.la \
+ $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_plugin_namecache_sqlite_SOURCES = \
  test_plugin_namecache.c
 test_plugin_namecache_sqlite_LDADD = \
- $(top_builddir)/src/lib/testing/libgnunettesting.la \
+ $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_plugin_namecache_postgres_SOURCES = \
  test_plugin_namecache.c
 test_plugin_namecache_postgres_LDADD = \
- $(top_builddir)/src/lib/testing/libgnunettesting.la \
+ $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 EXTRA_DIST = \

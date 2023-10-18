@@ -109,14 +109,14 @@ test_messenger_api_SOURCES = \
   test_messenger.c
 test_messenger_api_LDADD = \
   libgnunetmessenger.la \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_messenger_anonymous_SOURCES = \
   test_messenger_anonymous.c
 test_messenger_anonymous_LDADD = \
   libgnunetmessenger.la \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 EXTRA_DIST = \

@@ -64,7 +64,7 @@ gnunet_dns_redirector_LDADD = \
 gnunet_service_dns_SOURCES = \
  gnunet-service-dns.c
 gnunet_service_dns_LDADD = \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 

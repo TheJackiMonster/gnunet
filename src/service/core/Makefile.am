@@ -39,11 +39,11 @@ libgnunet_test_core_plugin_cmd_just_run_la_SOURCES = \
  test_core_plugin_cmd_just_run.c
 libgnunet_test_core_plugin_cmd_just_run_la_LIBADD = \
   libgnunetcoretesting.la \
-  $(top_builddir)/src/transport/libgnunettransportapplication.la \
-  $(top_builddir)/src/transport/libgnunettransportcore.la \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
-  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/transport/libgnunettransportapplication.la \
+  $(top_builddir)/src/service/transport/libgnunettransportcore.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
   $(top_builddir)/src/service/arm/libgnunetarm.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
@@ -54,10 +54,10 @@ libgnunet_test_core_plugin_cmd_just_run_la_LDFLAGS = \
 libgnunetcoretesting_la_SOURCES = \
   core_api_cmd_connecting_peers.c 
 libgnunetcoretesting_la_LIBADD = \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/service/arm/libgnunetarm.la \
-  $(top_builddir)/src/transport/libgnunettransportapplication.la \
-  $(top_builddir)/src/transport/libgnunettransportcore.la \
+  $(top_builddir)/src/service/transport/libgnunettransportapplication.la \
+  $(top_builddir)/src/service/transport/libgnunettransportcore.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 libgnunetcoretesting_la_LDFLAGS = \
   $(GN_LIBINTL) \
@@ -74,9 +74,9 @@ gnunet_service_core_SOURCES = \
  gnunet-service-core_sessions.c gnunet-service-core_sessions.h \
  gnunet-service-core_typemap.c gnunet-service-core_typemap.h
 gnunet_service_core_LDADD = \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/transport/libgnunettransportapplication.la \
-  $(top_builddir)/src/transport/libgnunettransportcore.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/transport/libgnunettransportapplication.la \
+  $(top_builddir)/src/service/transport/libgnunettransportcore.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL) $(Z_LIBS)
 
@@ -102,13 +102,13 @@ test_core_api_send_to_self_SOURCES = \
  test_core_api_send_to_self.c
 test_core_api_send_to_self_LDADD = \
  libgnunetcore.la \
- $(top_builddir)/src/lib/testing/libgnunettesting.la \
+ $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_core_api_start_only_SOURCES = \
  test_core_api_start_only.c
 test_core_api_start_only_LDADD = \
- $(top_builddir)/src/lib/testing/libgnunettesting.la \
+ $(top_builddir)/src/service/testing/libgnunettesting.la \
  libgnunetcore.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 

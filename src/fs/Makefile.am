@@ -43,7 +43,7 @@ libgnunetfs_la_SOURCES = \
 
 libgnunetfs_la_LIBADD = \
   $(top_builddir)/src/datastore/libgnunetdatastore.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL) $(XLIB) $(LIBGCRYPT_LIBS) -lunistring
 
@@ -157,7 +157,7 @@ gnunet_daemon_fsprofiler_SOURCES =  \
  gnunet-daemon-fsprofiler.c
 gnunet_daemon_fsprofiler_LDADD = \
   libgnunetfs.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
@@ -176,11 +176,11 @@ gnunet_service_fs_LDADD =  \
  $(top_builddir)/src/dht/libgnunetdht.la \
  $(top_builddir)/src/lib/block/libgnunetblock.la \
  $(top_builddir)/src/datastore/libgnunetdatastore.la \
- $(top_builddir)/src/statistics/libgnunetstatistics.la \
+ $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
  $(top_builddir)/src/cadet/libgnunetcadet.la \
  $(top_builddir)/src/service/core/libgnunetcore.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
- $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
+ $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
  $(GN_LIBINTL) -lm
 
 gnunet_unindex_SOURCES = \
@@ -278,28 +278,28 @@ endif
 test_fs_download_SOURCES = \
  test_fs_download.c
 test_fs_download_LDADD = \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la  \
+  $(top_builddir)/src/service/testing/libgnunettesting.la  \
   libgnunetfs.la  \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_fs_download_indexed_SOURCES = \
  test_fs_download.c
 test_fs_download_indexed_LDADD = \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la  \
+  $(top_builddir)/src/service/testing/libgnunettesting.la  \
   libgnunetfs.la  \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_fs_download_cadet_SOURCES = \
  test_fs_download.c
 test_fs_download_cadet_LDADD = \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la  \
+  $(top_builddir)/src/service/testing/libgnunettesting.la  \
   libgnunetfs.la  \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_fs_download_persistence_SOURCES = \
  test_fs_download_persistence.c
 test_fs_download_persistence_LDADD = \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la  \
+  $(top_builddir)/src/service/testing/libgnunettesting.la  \
   libgnunetfs.la  \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
@@ -324,84 +324,84 @@ test_fs_getopt_LDADD = \
 test_fs_list_indexed_SOURCES = \
  test_fs_list_indexed.c
 test_fs_list_indexed_LDADD = \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
   libgnunetfs.la  \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_fs_namespace_SOURCES = \
  test_fs_namespace.c
 test_fs_namespace_LDADD = \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
   libgnunetfs.la  \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_fs_namespace_list_updateable_SOURCES = \
  test_fs_namespace_list_updateable.c
 test_fs_namespace_list_updateable_LDADD = \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
   libgnunetfs.la  \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_fs_publish_SOURCES = \
  test_fs_publish.c
 test_fs_publish_LDADD = \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
   libgnunetfs.la  \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_fs_publish_persistence_SOURCES = \
  test_fs_publish_persistence.c
 test_fs_publish_persistence_LDADD = \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
   libgnunetfs.la  \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_fs_search_SOURCES = \
  test_fs_search.c
 test_fs_search_LDADD = \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
   libgnunetfs.la	\
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_fs_search_with_and_SOURCES = \
  test_fs_search_with_and.c
 test_fs_search_with_and_LDADD = \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
   libgnunetfs.la	\
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_fs_search_probes_SOURCES = \
  test_fs_search_probes.c
 test_fs_search_probes_LDADD = \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
   libgnunetfs.la	\
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_fs_search_persistence_SOURCES = \
  test_fs_search_persistence.c
 test_fs_search_persistence_LDADD = \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
   libgnunetfs.la	\
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_fs_start_stop_SOURCES = \
  test_fs_start_stop.c
 test_fs_start_stop_LDADD = \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
   libgnunetfs.la  \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_fs_unindex_SOURCES = \
  test_fs_unindex.c
 test_fs_unindex_LDADD = \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
   libgnunetfs.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_fs_unindex_persistence_SOURCES = \
  test_fs_unindex_persistence.c
 test_fs_unindex_persistence_LDADD = \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
   libgnunetfs.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
@@ -455,7 +455,7 @@ test_fs_uri_LDADD = \
 # perf_gnunet_service_fs_p2p.c
 #perf_gnunet_service_fs_p2p_LDADD = \
 #  libgnunetfstest.a \
-#  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+#  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
 #  $(top_builddir)/src/testbed/libgnunettestbed.la \
 #  libgnunetfs.la  \
 #  $(top_builddir)/src/lib/util/libgnunetutil.la
@@ -464,7 +464,7 @@ test_fs_uri_LDADD = \
 # perf_gnunet_service_fs_p2p.c
 #perf_gnunet_service_fs_p2p_index_LDADD = \
 #  libgnunetfstest.a \
-#  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+#  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
 #  $(top_builddir)/src/testbed/libgnunettestbed.la \
 #  libgnunetfs.la  \
 #  $(top_builddir)/src/lib/util/libgnunetutil.la
@@ -473,7 +473,7 @@ test_fs_uri_LDADD = \
 # perf_gnunet_service_fs_p2p.c
 #perf_gnunet_service_fs_p2p_dht_LDADD = \
 #  libgnunetfstest.a \
-#  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+#  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
 #  $(top_builddir)/src/testbed/libgnunettestbed.la \
 #  libgnunetfs.la  \
 #  $(top_builddir)/src/lib/util/libgnunetutil.la
@@ -482,7 +482,7 @@ test_fs_uri_LDADD = \
 # perf_gnunet_service_fs_p2p_respect.c
 #perf_gnunet_service_fs_p2p_respect_LDADD = \
 #  libgnunetfstest.a \
-#  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+#  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
 #  $(top_builddir)/src/testbed/libgnunettestbed.la \
 #  libgnunetfs.la  \
 #  $(top_builddir)/src/lib/util/libgnunetutil.la

@@ -32,7 +32,7 @@ libgnunetrps_la_SOURCES = \
   rps-sampler_client.h rps-sampler_client.c \
   rps_api.c rps.h
 libgnunetrps_la_LIBADD = \
-  $(top_builddir)/src/nse/libgnunetnse.la \
+  $(top_builddir)/src/service/nse/libgnunetnse.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL) $(XLIB)
 libgnunetrps_la_LDFLAGS = \
@@ -61,10 +61,10 @@ gnunet_service_rps_SOURCES = \
 gnunet_service_rps_LDADD = \
   libgnunetrps.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/cadet/libgnunetcadet.la \
-  $(top_builddir)/src/nse/libgnunetnse.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/nse/libgnunetnse.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/service/core/libgnunetcore.la \
   $(LIBGCRYPT_LIBS) \
   -lm -lgcrypt \
@@ -96,7 +96,7 @@ rps_test_src = \
 #ld_rps_test_lib = \
 #	libgnunetrps.la \
 #  $(top_builddir)/src/lib/util/libgnunetutil.la \
-#  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+#  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
 #  $(top_builddir)/src/testbed/libgnunettestbed.la \
 #  -lm
 
@@ -156,7 +156,7 @@ test_service_rps_sampler_elem_LDADD = $(top_builddir)/src/lib/util/libgnunetutil
 # rps-test_util.h rps-test_util.c \
 # gnunet-rps-profiler.c
 #gnunet_rps_profiler_LDADD = \
-#  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+#  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
 #  libgnunetrps.la \
 #  $(top_builddir)/src/lib/util/libgnunetutil.la \
 #  $(top_builddir)/src/testbed/libgnunettestbed.la \

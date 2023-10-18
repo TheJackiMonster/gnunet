@@ -22,9 +22,6 @@ else
 install-exec-hook:
 endif
 
-bin_PROGRAMS = \
- gnunet-nat
-
 libexec_PROGRAMS = \
  $(NATBIN) \
  gnunet-service-nat
@@ -35,15 +32,6 @@ gnunet_helper_nat_server_SOURCES = \
 
 gnunet_helper_nat_client_SOURCES = \
  $(NATCLIENT)
-
-
-gnunet_nat_SOURCES = \
-  gnunet-nat.c nat.h
-gnunet_nat_LDADD = \
-  libgnunetnatnew.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la
-gnunet_nat_LDFLAGS = \
-  $(GN_LIBINTL)
 
 
 if USE_COVERAGE
@@ -72,7 +60,7 @@ gnunet_service_nat_SOURCES = \
  gnunet-service-nat_helper.c gnunet-service-nat_helper.h
 gnunet_service_nat_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(LIBGCRYPT_LIBS) \
   -lgcrypt \
   $(GN_LIBINTL)

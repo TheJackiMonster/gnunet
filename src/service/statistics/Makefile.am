@@ -27,16 +27,6 @@ libgnunetstatistics_la_LDFLAGS = \
 libexec_PROGRAMS = \
  gnunet-service-statistics
 
-bin_PROGRAMS = \
- gnunet-statistics
-
-gnunet_statistics_SOURCES = \
- gnunet-statistics.c
-gnunet_statistics_LDADD = \
-  libgnunetstatistics.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(GN_LIBINTL)
-
 gnunet_service_statistics_SOURCES = \
  gnunet-service-statistics.c
 gnunet_service_statistics_LDADD = \
@@ -79,20 +69,21 @@ test_statistics_api_watch_zero_value_LDADD = \
   libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
-if HAVE_PYTHON
-check_SCRIPTS = \
-  test_gnunet_statistics.py
-endif
-
-SUFFIXES = .py.in .py
-.py.in.py:
-	$(AWK) -v bdir="$(bindir)" -v py="$(PYTHON)" -v awkay="$(AWK_BINARY)" -v pfx="$(prefix)" -v prl="$(PERL)" -v sysconfdirectory="$(sysconfdir)" -v pkgdatadirectory="$(pkgdatadir)" -f $(top_srcdir)/bin/dosubst.awk < $(srcdir)/$< > $@
-	chmod +x $@
-
-test_gnunet_statistics.py: test_gnunet_statistics.py.in Makefile
-	$(AWK) -v bdir="$(bindir)" -v py="$(PYTHON)" -v awkay="$(AWK_BINARY)" -v pfx="$(prefix)" -v prl="$(PERL)" -v sysconfdirectory="$(sysconfdir)" -v pkgdatadirectory="$(pkgdatadir)" -f $(top_srcdir)/bin/dosubst.awk < $(srcdir)/test_gnunet_statistics.py.in > test_gnunet_statistics.py
-	chmod +x test_gnunet_statistics.py
-
-EXTRA_DIST = \
-  test_statistics_api_data.conf \
-  test_gnunet_statistics.py.in
+# Needs to be done with CLI
+#if HAVE_PYTHON
+#check_SCRIPTS = \
+#  test_gnunet_statistics.py
+#endif
+#
+#SUFFIXES = .py.in .py
+#.py.in.py:
+#	$(AWK) -v bdir="$(bindir)" -v py="$(PYTHON)" -v awkay="$(AWK_BINARY)" -v pfx="$(prefix)" -v prl="$(PERL)" -v sysconfdirectory="$(sysconfdir)" -v pkgdatadirectory="$(pkgdatadir)" -f $(top_srcdir)/bin/dosubst.awk < $(srcdir)/$< > $@
+#	chmod +x $@
+#
+#test_gnunet_statistics.py: test_gnunet_statistics.py.in Makefile
+#	$(AWK) -v bdir="$(bindir)" -v py="$(PYTHON)" -v awkay="$(AWK_BINARY)" -v pfx="$(prefix)" -v prl="$(PERL)" -v sysconfdirectory="$(sysconfdir)" -v pkgdatadirectory="$(pkgdatadir)" -f $(top_srcdir)/bin/dosubst.awk < $(srcdir)/test_gnunet_statistics.py.in > test_gnunet_statistics.py
+#	chmod +x test_gnunet_statistics.py
+#
+#EXTRA_DIST = \
+#  test_statistics_api_data.conf \
+#  test_gnunet_statistics.py.in

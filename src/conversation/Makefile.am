@@ -225,7 +225,7 @@ test_conversation_api_LDADD = \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 test_conversation_api_LDFLAGS = \
   -export-dynamic
@@ -239,7 +239,7 @@ test_conversation_api_twocalls_LDADD = \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 test_conversation_api_twocalls_LDFLAGS = \
   -export-dynamic
@@ -253,7 +253,7 @@ test_conversation_api_reject_LDADD = \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 test_conversation_api_reject_LDFLAGS = \
   -export-dynamic

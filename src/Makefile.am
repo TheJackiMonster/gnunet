@@ -17,15 +17,10 @@ SUBDIRS = \
 	rest-plugin \
 	cli \
 	contrib \
-  statistics \
   datacache \
   datastore \
   template \
-  peerstore \
-  nat \
   nat-auto \
-  transport \
-  nse \
   dht \
   hostlist \
   topology \

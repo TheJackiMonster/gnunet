@@ -28,7 +28,7 @@ lib_LTLIBRARIES = \
 # gnunet-secretsharing-profiler.c
 #gnunet_secretsharing_profiler_LDADD = \
 #  libgnunetsecretsharing.la \
-#  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+#  $(top_builddir)/src/service/testing/libgnunettesting.la \
 #  $(top_builddir)/src/testbed/libgnunettestbed.la \
 #  $(top_builddir)/src/lib/util/libgnunetutil.la \
 #  $(GN_LIBINTL)
@@ -67,7 +67,7 @@ test_secretsharing_api_SOURCES = \
  test_secretsharing_api.c
 test_secretsharing_api_LDADD = \
   libgnunetsecretsharing.la \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 EXTRA_DIST = \

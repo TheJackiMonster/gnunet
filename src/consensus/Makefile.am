@@ -41,7 +41,7 @@ gnunet_service_consensus_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/service/core/libgnunetcore.la \
   $(top_builddir)/src/set/libgnunetset.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(GN_LIBINTL)
 
 gnunet_service_evil_consensus_SOURCES = \
@@ -51,7 +51,7 @@ gnunet_service_evil_consensus_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/service/core/libgnunetcore.la \
   $(top_builddir)/src/set/libgnunetset.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(GN_LIBINTL)
 gnunet_service_evil_consensus_CFLAGS = -DEVIL
 
@@ -92,7 +92,7 @@ test_consensus_api_SOURCES = \
  test_consensus_api.c
 test_consensus_api_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
   libgnunetconsensus.la
 
 noinst_SCRIPTS = \

@@ -64,9 +64,9 @@ gnunet_service_cadet_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/service/core/libgnunetcore.la \
   $(top_builddir)/src/dht/libgnunetdht.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/transport/libgnunettransportapplication.la \
-  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/transport/libgnunettransportapplication.la \
+  $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
   $(top_builddir)/src/lib/block/libgnunetblock.la
 if LINUX
@@ -79,7 +79,7 @@ test_cadet_local_mq_SOURCES = \
   test_cadet_local_mq.c
 test_cadet_local_mq_LDADD = \
   libgnunetcadet.la \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 if ENABLE_TEST_RUN

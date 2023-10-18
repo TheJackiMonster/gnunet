@@ -201,7 +201,7 @@ gnunet_service_gns_LDADD = \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/revocation/libgnunetrevocation.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/dns/libgnunetdns.la \
   $(top_builddir)/src/dht/libgnunetdht.la \

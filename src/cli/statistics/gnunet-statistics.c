@@ -27,7 +27,7 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_statistics_service.h"
-#include "statistics.h"
+#include "../../service/statistics/statistics.h"
 
 
 /**

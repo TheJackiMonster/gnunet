@@ -1,4 +1,7 @@
 SUBDIRS = \
 	util \
 	arm \
-	core
+	statistics \
+	core \
+	nat \
+	nse

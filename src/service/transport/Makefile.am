@@ -47,9 +47,9 @@ libgnunettransporttesting2_la_LIBADD = \
   libgnunettransportapplication.la \
   libgnunettransportcore.la \
   $(top_builddir)/src/service/arm/libgnunetarm.la \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
-  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 libgnunettransporttesting2_la_LDFLAGS = \
   $(GN_LIBINTL) \
@@ -129,16 +129,16 @@ gnunet_communicator_unix_SOURCES = \
  gnunet-communicator-unix.c
 gnunet_communicator_unix_LDADD = \
   libgnunettransportcommunicator.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 gnunet_communicator_tcp_SOURCES = \
  gnunet-communicator-tcp.c
 gnunet_communicator_tcp_LDADD = \
   libgnunettransportcommunicator.la \
-  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
-  $(top_builddir)/src/nat/libgnunetnatnew.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/service/nat/libgnunetnatnew.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LIBGCRYPT_LIBS)
 
@@ -147,8 +147,8 @@ gnunet_communicator_udp_SOURCES = \
 gnunet_communicator_udp_LDADD = \
   libgnunettransportapplication.la \
   libgnunettransportcommunicator.la \
-  $(top_builddir)/src/nat/libgnunetnatnew.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/nat/libgnunetnatnew.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LIBGCRYPT_LIBS)
 
@@ -159,9 +159,9 @@ gnunet_communicator_quic_SOURCES = \
 gnunet_communicator_quic_LDADD = \
   libgnunettransportapplication.la \
   libgnunettransportcommunicator.la \
-  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
-  $(top_builddir)/src/nat/libgnunetnatnew.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/service/nat/libgnunetnatnew.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   -lquiche \
   $(LIBGCRYPT_LIBS)
@@ -179,9 +179,9 @@ endif
 gnunet_service_transport_SOURCES = \
  gnunet-service-transport.c transport.h
 gnunet_service_transport_LDADD = \
-  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LIBGCRYPT_LIBS) \
   $(GN_LIBINTL)
@@ -200,9 +200,9 @@ libgnunet_test_transport_plugin_cmd_nat_upnp_la_LIBADD = \
   libgnunettransporttesting2.la \
   libgnunettransportapplication.la \
   libgnunettransportcore.la \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
-  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
   $(top_builddir)/src/service/arm/libgnunetarm.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
@@ -216,9 +216,9 @@ libgnunet_test_transport_plugin_cmd_udp_backchannel_la_LIBADD = \
   libgnunettransporttesting2.la \
   libgnunettransportapplication.la \
   libgnunettransportcore.la \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
-  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
   $(top_builddir)/src/service/arm/libgnunetarm.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
@@ -232,9 +232,9 @@ libgnunet_test_transport_plugin_cmd_simple_send_la_LIBADD = \
   libgnunettransporttesting2.la \
   libgnunettransportapplication.la \
   libgnunettransportcore.la \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
-  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
   $(top_builddir)/src/service/arm/libgnunetarm.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
@@ -248,9 +248,9 @@ libgnunet_test_transport_plugin_cmd_simple_send_performance_la_LIBADD = \
   libgnunettransporttesting2.la \
   libgnunettransportapplication.la \
   libgnunettransportcore.la \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
-  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
   $(top_builddir)/src/service/arm/libgnunetarm.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
@@ -264,9 +264,9 @@ libgnunet_test_transport_plugin_cmd_simple_send_broadcast_la_LIBADD = \
   libgnunettransporttesting2.la \
   libgnunettransportapplication.la \
   libgnunettransportcore.la \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
-  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
   $(top_builddir)/src/service/arm/libgnunetarm.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
@@ -280,9 +280,9 @@ libgnunet_test_transport_plugin_cmd_simple_send_dv_la_LIBADD = \
   libgnunettransporttesting2.la \
   libgnunettransportapplication.la \
   libgnunettransportcore.la \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
-  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
   $(top_builddir)/src/service/arm/libgnunetarm.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
@@ -330,7 +330,7 @@ endif
 test_transport_start_with_config_SOURCES = \
  test_transport_start_with_config.c
 test_transport_start_with_config_LDADD = \
- $(top_builddir)/src/lib/testing/libgnunettesting.la \
+ $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(top_builddir)/src/lib/hello/libgnunethello.la \
  libgnunettransportcore.la \
@@ -340,65 +340,65 @@ test_communicator_basic_unix_SOURCES = \
  test_communicator_basic.c
 test_communicator_basic_unix_LDADD = \
  libgnunettransporttesting2.la \
- $(top_builddir)/src/lib/testing/libgnunettesting.la \
+ $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
- $(top_builddir)/src/statistics/libgnunetstatistics.la
+ $(top_builddir)/src/service/statistics/libgnunetstatistics.la
 
 test_communicator_basic_tcp_SOURCES = \
  test_communicator_basic.c
 test_communicator_basic_tcp_LDADD = \
  libgnunettransporttesting2.la \
- $(top_builddir)/src/lib/testing/libgnunettesting.la \
+ $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
- $(top_builddir)/src/statistics/libgnunetstatistics.la
+ $(top_builddir)/src/service/statistics/libgnunetstatistics.la
 
 test_communicator_basic_udp_SOURCES = \
  test_communicator_basic.c
 test_communicator_basic_udp_LDADD = \
  libgnunettransporttesting2.la \
- $(top_builddir)/src/lib/testing/libgnunettesting.la \
+ $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
- $(top_builddir)/src/statistics/libgnunetstatistics.la
+ $(top_builddir)/src/service/statistics/libgnunetstatistics.la
 
 test_communicator_basic_quic_SOURCES = \
  test_communicator_basic.c
 test_communicator_basic_quic_LDADD = \
  libgnunettransporttesting2.la \
- $(top_builddir)/src/lib/testing/libgnunettesting.la \
+ $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
- $(top_builddir)/src/statistics/libgnunetstatistics.la
+ $(top_builddir)/src/service/statistics/libgnunetstatistics.la
 
 test_communicator_rekey_tcp_SOURCES = \
  test_communicator_basic.c
 test_communicator_rekey_tcp_LDADD = \
  libgnunettransporttesting2.la \
- $(top_builddir)/src/lib/testing/libgnunettesting.la \
+ $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
- $(top_builddir)/src/statistics/libgnunetstatistics.la
+ $(top_builddir)/src/service/statistics/libgnunetstatistics.la
 
 test_communicator_rekey_udp_SOURCES = \
  test_communicator_basic.c
 test_communicator_rekey_udp_LDADD = \
  libgnunettransporttesting2.la \
- $(top_builddir)/src/lib/testing/libgnunettesting.la \
+ $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
- $(top_builddir)/src/statistics/libgnunetstatistics.la
+ $(top_builddir)/src/service/statistics/libgnunetstatistics.la
 
 test_communicator_backchannel_udp_SOURCES = \
  test_communicator_basic.c
 test_communicator_backchannel_udp_LDADD = \
  libgnunettransporttesting2.la \
- $(top_builddir)/src/lib/testing/libgnunettesting.la \
+ $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
- $(top_builddir)/src/statistics/libgnunetstatistics.la
+ $(top_builddir)/src/service/statistics/libgnunetstatistics.la
 
 test_communicator_bidirect_tcp_SOURCES = \
  test_communicator_basic.c
 test_communicator_bidirect_tcp_LDADD = \
  libgnunettransporttesting2.la \
- $(top_builddir)/src/lib/testing/libgnunettesting.la \
+ $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
- $(top_builddir)/src/statistics/libgnunetstatistics.la
+ $(top_builddir)/src/service/statistics/libgnunetstatistics.la
 
 test_transport_api2_tcp_SOURCES = \
  test_transport_api2.c

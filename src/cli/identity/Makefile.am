@@ -17,7 +17,7 @@ gnunet_identity_SOURCES = \
  gnunet-identity.c
 gnunet_identity_LDADD = \
   $(top_builddir)/src/service/libgnunetidentity.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 

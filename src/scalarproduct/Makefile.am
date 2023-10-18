@@ -84,7 +84,7 @@ libgnunetscalarproduct_la_SOURCES = \
   scalarproduct.h
 libgnunetscalarproduct_la_LIBADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(LIBGCRYPT_LIBS) \
   -lgcrypt \
   $(LTLIBINTL)

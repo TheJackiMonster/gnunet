@@ -39,7 +39,7 @@ gnunet_service_identity_SOURCES = \
  gnunet-service-identity.c
 gnunet_service_identity_LDADD = \
   libgnunetidentity.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
@@ -57,7 +57,7 @@ test_identity_SOURCES = \
  test_identity.c
 test_identity_LDADD = \
   libgnunetidentity.la \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 EXTRA_DIST = \

@@ -1,7 +1,12 @@
 SUBDIRS = \
 	util \
+	statistics \
 	arm \
-	core \
+	peerstore \
 	testing \
+	nat \
+	transport \
+	core \
+	nse \
 	identity \
 	rest

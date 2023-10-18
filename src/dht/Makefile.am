@@ -60,10 +60,10 @@ gnunet_service_dht_SOURCES = \
  gnunet-service-dht_routing.c gnunet-service-dht_routing.h
 gnunet_service_dht_LDADD = \
   libgnunetdht.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/service/core/libgnunetcore.la \
-  $(top_builddir)/src/nse/libgnunetnse.la \
-  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/service/nse/libgnunetnse.la \
+  $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
   $(top_builddir)/src/lib/block/libgnunetblock.la \
   $(top_builddir)/src/lib/block/libgnunetblockgroup.la \
@@ -113,7 +113,7 @@ test_dht_api_SOURCES = \
  test_dht_api.c
 test_dht_api_LDADD = \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
- $(top_builddir)/src/lib/testing/libgnunettesting.la \
+ $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/hello/libgnunethello.la \
  libgnunetdht.la
 
