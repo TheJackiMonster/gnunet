@@ -1237,7 +1237,6 @@ src/lib/gnsrecord/Makefile
 src/lib/json/Makefile
 src/lib/pq/Makefile
 src/lib/sq/Makefile
-src/lib/testing/Makefile
 src/plugin/Makefile
 src/plugin/block/Makefile
 src/plugin/dhtu/Makefile
@@ -1250,6 +1249,7 @@ src/service/core/core.conf
 src/service/identity/Makefile
 src/service/identity/identity.conf
 src/service/rest/Makefile
+src/service/testing/Makefile
 src/service/util/Makefile
 src/rest-plugin/Makefile
 src/rest-plugin/identity/Makefile

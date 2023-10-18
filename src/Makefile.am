@@ -12,8 +12,8 @@ endif
 SUBDIRS = \
   include $(INTLEMU_SUBDIRS) \
   lib \
-	plugin \
 	service \
+	plugin \
 	rest-plugin \
 	cli \
 	contrib \
