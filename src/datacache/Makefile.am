@@ -56,7 +56,7 @@ libgnunet_plugin_datacache_sqlite_la_SOURCES = \
   plugin_datacache_sqlite.c
 libgnunet_plugin_datacache_sqlite_la_LIBADD = \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/sq/libgnunetsq.la \
+  $(top_builddir)/src/lib/sq/libgnunetsq.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) -lsqlite3 \
   $(LTLIBINTL)
 libgnunet_plugin_datacache_sqlite_la_LDFLAGS = \
@@ -74,7 +74,7 @@ libgnunet_plugin_datacache_heap_la_LDFLAGS = \
 libgnunet_plugin_datacache_postgres_la_SOURCES = \
   plugin_datacache_postgres.c
 libgnunet_plugin_datacache_postgres_la_LIBADD = \
-  $(top_builddir)/src/pq/libgnunetpq.la \
+  $(top_builddir)/src/lib/pq/libgnunetpq.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_PLUGIN_LDFLAGS) -lpq

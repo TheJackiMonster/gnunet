@@ -1235,6 +1235,8 @@ src/lib/block/Makefile
 src/lib/curl/Makefile
 src/lib/gnsrecord/Makefile
 src/lib/json/Makefile
+src/lib/sq/Makefile
+src/lib/pq/Makefile
 src/plugin/Makefile
 src/plugin/block/Makefile
 src/plugin/gnsrecord/Makefile
@@ -1278,7 +1280,6 @@ src/nse/Makefile
 src/nse/nse.conf
 src/peerstore/Makefile
 src/peerstore/peerstore.conf
-src/pq/Makefile
 src/pt/Makefile
 src/regex/Makefile
 src/regex/regex.conf
@@ -1296,7 +1297,6 @@ src/seti/Makefile
 src/seti/seti.conf
 src/setu/Makefile
 src/setu/setu.conf
-src/sq/Makefile
 src/statistics/Makefile
 src/statistics/statistics.conf
 src/template/Makefile

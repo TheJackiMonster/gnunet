@@ -201,7 +201,7 @@ libgnunet_plugin_namestore_sqlite_la_SOURCES = \
 libgnunet_plugin_namestore_sqlite_la_LIBADD = \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la  \
   $(top_builddir)/src/identity/libgnunetidentity.la \
-  $(top_builddir)/src/sq/libgnunetsq.la \
+  $(top_builddir)/src/lib/sq/libgnunetsq.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) -lsqlite3 \
   $(LTLIBINTL)
@@ -213,7 +213,7 @@ libgnunet_plugin_namestore_postgres_la_SOURCES = \
 libgnunet_plugin_namestore_postgres_la_LIBADD = \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la  \
   $(top_builddir)/src/identity/libgnunetidentity.la \
-  $(top_builddir)/src/pq/libgnunetpq.la  \
+  $(top_builddir)/src/lib/pq/libgnunetpq.la  \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) -lpq \
   $(LTLIBINTL)

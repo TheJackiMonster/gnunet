@@ -97,7 +97,7 @@ noinst_LTLIBRARIES = \
 libgnunet_plugin_datastore_sqlite_la_SOURCES = \
   plugin_datastore_sqlite.c
 libgnunet_plugin_datastore_sqlite_la_LIBADD = \
-  $(top_builddir)/src/sq/libgnunetsq.la \
+  $(top_builddir)/src/lib/sq/libgnunetsq.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) -lsqlite3 \
   $(LTLIBINTL)
@@ -118,7 +118,7 @@ libgnunet_plugin_datastore_postgres_la_SOURCES = \
   plugin_datastore_postgres.c
 libgnunet_plugin_datastore_postgres_la_LIBADD = \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/pq/libgnunetpq.la \
+  $(top_builddir)/src/lib/pq/libgnunetpq.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) -lpq
 libgnunet_plugin_datastore_postgres_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS) $(POSTGRESQL_LDFLAGS)

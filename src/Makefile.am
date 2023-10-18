@@ -17,13 +17,6 @@ CONVERSATION_DIR = conversation
 endif
 endif
 
-if HAVE_SQLITE
- SQLITE_DIR = sq
-endif
-
-if HAVE_POSTGRESQL
- POSTGRES_DIR = pq
-endif
 
 REST_DIR = rest
 
@@ -38,8 +31,6 @@ SUBDIRS = \
   arm \
   $(TESTING) \
   $(REST_DIR) \
-  $(SQLITE_DIR) \
-  $(POSTGRES_DIR) \
   datacache \
   datastore \
   template \

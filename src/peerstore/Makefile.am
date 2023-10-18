@@ -71,7 +71,7 @@ libgnunet_plugin_peerstore_sqlite_la_SOURCES = \
   plugin_peerstore_sqlite.c
 libgnunet_plugin_peerstore_sqlite_la_LIBADD = \
   libgnunetpeerstore.la  \
-  $(top_builddir)/src/sq/libgnunetsq.la \
+  $(top_builddir)/src/lib/sq/libgnunetsq.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(XLIBS) -lsqlite3 \
   $(LTLIBINTL)
