@@ -169,11 +169,6 @@ src/identity/identity_api.c
 src/identity/identity_api_lookup.c
 src/identity/identity_api_suffix_lookup.c
 src/identity/plugin_rest_identity.c
-src/json/json.c
-src/json/json_generator.c
-src/json/json_helper.c
-src/json/json_mhd.c
-src/json/json_pack.c
 src/lib/block/bg_bf.c
 src/lib/block/block.c
 src/lib/curl/curl.c
@@ -188,6 +183,11 @@ src/lib/hello/address.c
 src/lib/hello/hello-ng.c
 src/lib/hello/hello-uri.c
 src/lib/hello/hello.c
+src/lib/json/json.c
+src/lib/json/json_generator.c
+src/lib/json/json_helper.c
+src/lib/json/json_mhd.c
+src/lib/json/json_pack.c
 src/lib/util/bandwidth.c
 src/lib/util/benchmark.c
 src/lib/util/bio.c

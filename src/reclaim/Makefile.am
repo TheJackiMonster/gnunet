@@ -60,7 +60,7 @@ libgnunet_plugin_rest_reclaim_la_SOURCES = \
 libgnunet_plugin_rest_reclaim_la_LIBADD = \
   $(top_builddir)/src/identity/libgnunetidentity.la \
   libgnunetreclaim.la \
-  $(top_builddir)/src/json/libgnunetjson.la \
+  $(top_builddir)/src/lib/json/libgnunetjson.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/rest/libgnunetrest.la \
   $(top_builddir)/src/namestore/libgnunetnamestore.la \
@@ -96,7 +96,7 @@ libgnunet_plugin_rest_pabc_la_SOURCES = \
   pabc_helper.c
 libgnunet_plugin_rest_pabc_la_LIBADD = \
   libgnunetreclaim.la \
-  $(top_builddir)/src/json/libgnunetjson.la \
+  $(top_builddir)/src/lib/json/libgnunetjson.la \
   $(top_builddir)/src/rest/libgnunetrest.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) \
   $(LTLIBINTL) -ljansson -lpabc $(MHD_LIBS)

@@ -1234,6 +1234,7 @@ src/auction/Makefile
 src/lib/block/Makefile
 src/lib/curl/Makefile
 src/lib/gnsrecord/Makefile
+src/lib/json/Makefile
 src/plugin/Makefile
 src/plugin/block/Makefile
 src/plugin/gnsrecord/Makefile
@@ -1264,7 +1265,6 @@ src/identity/Makefile
 src/identity/identity.conf
 src/include/Makefile
 src/include/gnunet_config.h
-src/json/Makefile
 src/hostlist/Makefile
 src/namecache/Makefile
 src/namecache/namecache.conf

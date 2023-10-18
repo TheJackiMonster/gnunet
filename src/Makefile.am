@@ -9,8 +9,6 @@ if HAVE_EXPERIMENTAL
   auction
 endif
 
-JSON_DIR = json
-
 if BUILD_PULSE_HELPERS
 CONVERSATION_DIR = conversation
 else
@@ -39,7 +37,6 @@ SUBDIRS = \
   statistics \
   arm \
   $(TESTING) \
-  $(JSON_DIR) \
   $(REST_DIR) \
   $(SQLITE_DIR) \
   $(POSTGRES_DIR) \

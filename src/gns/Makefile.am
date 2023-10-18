@@ -89,7 +89,7 @@ libgnunet_plugin_rest_gns_la_LIBADD = \
   libgnunetgns.la \
   $(top_builddir)/src/rest/libgnunetrest.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
-  $(top_builddir)/src/json/libgnunetjson.la \
+  $(top_builddir)/src/lib/json/libgnunetjson.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) \
   $(LTLIBINTL) -ljansson $(MHD_LIBS)
 libgnunet_plugin_rest_gns_la_LDFLAGS = \

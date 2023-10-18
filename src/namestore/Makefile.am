@@ -110,7 +110,7 @@ libgnunet_plugin_rest_namestore_la_LIBADD = \
   libgnunetnamestore.la \
   $(top_builddir)/src/rest/libgnunetrest.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
-  $(top_builddir)/src/json/libgnunetjson.la \
+  $(top_builddir)/src/lib/json/libgnunetjson.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecordjson.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) \
@@ -178,7 +178,7 @@ gnunet_namestore_fcfsd_LDADD = $(MHD_LIBS) \
   $(top_builddir)/src/identity/libgnunetidentity.la \
   libgnunetnamestore.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/json/libgnunetjson.la \
+  $(top_builddir)/src/lib/json/libgnunetjson.la \
   $(GN_LIBINTL) -ljansson
 gnunet_namestore_fcfsd_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
 

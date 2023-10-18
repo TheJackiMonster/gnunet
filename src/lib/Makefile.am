@@ -3,4 +3,5 @@ SUBDIRS = \
 	hello \
 	block \
 	gnsrecord \
-	curl
+	curl \
+	json
