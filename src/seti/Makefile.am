@@ -29,7 +29,7 @@ gnunet_seti_profiler_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   libgnunetseti.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(GN_LIBINTL)
 
 
@@ -65,7 +65,7 @@ test_seti_api_SOURCES = \
  test_seti_api.c
 test_seti_api_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   libgnunetseti.la
 
 plugin_LTLIBRARIES = \

@@ -141,14 +141,14 @@ test_regex_integration_SOURCES = \
   test_regex_integration.c
 test_regex_integration_LDADD = -lm \
   libgnunetregex.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_regex_api_SOURCES = \
   test_regex_api.c
 test_regex_api_LDADD = -lm \
   libgnunetregex.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_regex_iterate_api_SOURCES = \

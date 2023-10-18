@@ -1235,8 +1235,9 @@ src/lib/block/Makefile
 src/lib/curl/Makefile
 src/lib/gnsrecord/Makefile
 src/lib/json/Makefile
-src/lib/sq/Makefile
 src/lib/pq/Makefile
+src/lib/sq/Makefile
+src/lib/testing/Makefile
 src/plugin/Makefile
 src/plugin/block/Makefile
 src/plugin/gnsrecord/Makefile
@@ -1300,7 +1301,6 @@ src/setu/setu.conf
 src/statistics/Makefile
 src/statistics/statistics.conf
 src/template/Makefile
-src/testing/Makefile
 src/topology/Makefile
 src/transport/Makefile
 src/transport/transport.conf

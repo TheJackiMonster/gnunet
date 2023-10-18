@@ -149,26 +149,26 @@ test_namecache_api_cache_block_LDADD = \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/identity/libgnunetidentity.la \
   libgnunetnamecache.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 
 test_plugin_namecache_flat_SOURCES = \
  test_plugin_namecache.c
 test_plugin_namecache_flat_LDADD = \
- $(top_builddir)/src/testing/libgnunettesting.la \
+ $(top_builddir)/src/lib/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_plugin_namecache_sqlite_SOURCES = \
  test_plugin_namecache.c
 test_plugin_namecache_sqlite_LDADD = \
- $(top_builddir)/src/testing/libgnunettesting.la \
+ $(top_builddir)/src/lib/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_plugin_namecache_postgres_SOURCES = \
  test_plugin_namecache.c
 test_plugin_namecache_postgres_LDADD = \
- $(top_builddir)/src/testing/libgnunettesting.la \
+ $(top_builddir)/src/lib/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 EXTRA_DIST = \

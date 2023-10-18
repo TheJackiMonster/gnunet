@@ -56,7 +56,7 @@ test_gns_vpn_LDADD = $(MHD_LIBS) @LIBCURL@ \
  $(top_builddir)/src/namestore/libgnunetnamestore.la \
  $(top_builddir)/src/identity/libgnunetidentity.la \
  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
- $(top_builddir)/src/testing/libgnunettesting.la \
+ $(top_builddir)/src/lib/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 test_gns_vpn_CFLAGS = $(MHD_CFLAGS) @LIBCURL_CPPFLAGS@ $(AM_CFLAGS)
 
@@ -64,7 +64,7 @@ test_gnunet_vpn_4_over_SOURCES = \
  test_gnunet_vpn.c
 test_gnunet_vpn_4_over_LDADD = $(MHD_LIBS) @LIBCURL@ \
  $(top_builddir)/src/vpn/libgnunetvpn.la \
- $(top_builddir)/src/testing/libgnunettesting.la \
+ $(top_builddir)/src/lib/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 test_gnunet_vpn_4_over_CFLAGS = $(MHD_CFLAGS) @LIBCURL_CPPFLAGS@ $(AM_CFLAGS)
 
@@ -72,7 +72,7 @@ test_gnunet_vpn_6_over_SOURCES = \
  test_gnunet_vpn.c
 test_gnunet_vpn_6_over_LDADD = $(MHD_LIBS) @LIBCURL@ \
  $(top_builddir)/src/vpn/libgnunetvpn.la \
- $(top_builddir)/src/testing/libgnunettesting.la \
+ $(top_builddir)/src/lib/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 test_gnunet_vpn_6_over_CFLAGS = $(MHD_CFLAGS) @LIBCURL_CPPFLAGS@ $(AM_CFLAGS)
 
@@ -80,7 +80,7 @@ test_gnunet_vpn_4_to_6_SOURCES = \
  test_gnunet_vpn.c
 test_gnunet_vpn_4_to_6_LDADD = $(MHD_LIBS) @LIBCURL@ \
  $(top_builddir)/src/vpn/libgnunetvpn.la \
- $(top_builddir)/src/testing/libgnunettesting.la \
+ $(top_builddir)/src/lib/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 test_gnunet_vpn_4_to_6_CFLAGS = $(MHD_CFLAGS) @LIBCURL_CPPFLAGS@ $(AM_CFLAGS)
 
@@ -88,6 +88,6 @@ test_gnunet_vpn_6_to_4_SOURCES = \
  test_gnunet_vpn.c
 test_gnunet_vpn_6_to_4_LDADD = $(MHD_LIBS) @LIBCURL@ \
  $(top_builddir)/src/vpn/libgnunetvpn.la \
- $(top_builddir)/src/testing/libgnunettesting.la \
+ $(top_builddir)/src/lib/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 test_gnunet_vpn_6_to_4_CFLAGS = $(MHD_CFLAGS) @LIBCURL_CPPFLAGS@ $(AM_CFLAGS)

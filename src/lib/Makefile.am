@@ -10,4 +10,5 @@ SUBDIRS = \
 	curl \
 	json \
 	sq \
-	$(POSTGRES_DIR)
+	$(POSTGRES_DIR) \
+	testing

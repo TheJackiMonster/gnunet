@@ -1,7 +1,5 @@
 # This Makefile.am is in the public domain
 
-TESTING = testing
-
 if HAVE_EXPERIMENTAL
  EXP_DIR = \
   rps \
@@ -29,7 +27,6 @@ SUBDIRS = \
 	cli \
   statistics \
   arm \
-  $(TESTING) \
   $(REST_DIR) \
   datacache \
   datastore \

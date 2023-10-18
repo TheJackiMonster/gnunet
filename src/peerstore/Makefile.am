@@ -86,13 +86,13 @@ plugin_LTLIBRARIES = \
 test_plugin_peerstore_sqlite_SOURCES = \
   test_plugin_peerstore.c
 test_plugin_peerstore_sqlite_LDADD = \
-	$(top_builddir)/src/testing/libgnunettesting.la \
+	$(top_builddir)/src/lib/testing/libgnunettesting.la \
 	$(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_plugin_peerstore_flat_SOURCES = \
   test_plugin_peerstore.c
 test_plugin_peerstore_flat_LDADD = \
-	$(top_builddir)/src/testing/libgnunettesting.la \
+	$(top_builddir)/src/lib/testing/libgnunettesting.la \
 	$(top_builddir)/src/lib/util/libgnunetutil.la
 
 check_PROGRAMS = \
@@ -118,33 +118,33 @@ test_peerstore_api_store_SOURCES = \
  test_peerstore_api_store.c
 test_peerstore_api_store_LDADD = \
   libgnunetpeerstore.la  \
-  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_peerstore_api_iterate_SOURCES = \
  test_peerstore_api_iterate.c
 test_peerstore_api_iterate_LDADD = \
   libgnunetpeerstore.la  \
-  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_peerstore_api_watch_SOURCES = \
  test_peerstore_api_watch.c
 test_peerstore_api_watch_LDADD = \
   libgnunetpeerstore.la  \
-  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_peerstore_api_sync_SOURCES = \
  test_peerstore_api_sync.c
 test_peerstore_api_sync_LDADD = \
   libgnunetpeerstore.la  \
-  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 perf_peerstore_store_SOURCES = \
  perf_peerstore_store.c
 perf_peerstore_store_LDADD = \
   libgnunetpeerstore.la  \
-  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la

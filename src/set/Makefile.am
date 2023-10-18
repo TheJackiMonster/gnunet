@@ -30,7 +30,7 @@ gnunet_set_profiler_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   libgnunetset.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(GN_LIBINTL)
 
 
@@ -80,28 +80,28 @@ test_set_api_SOURCES = \
  test_set_api.c
 test_set_api_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   libgnunetset.la
 
 test_set_union_result_symmetric_SOURCES = \
  test_set_union_result_symmetric.c
 test_set_union_result_symmetric_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   libgnunetset.la
 
 test_set_intersection_result_full_SOURCES = \
  test_set_intersection_result_full.c
 test_set_intersection_result_full_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   libgnunetset.la
 
 test_set_union_copy_SOURCES = \
  test_set_union_copy.c
 test_set_union_copy_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   libgnunetset.la
 
 plugin_LTLIBRARIES = \

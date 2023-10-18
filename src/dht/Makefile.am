@@ -113,7 +113,7 @@ test_dht_api_SOURCES = \
  test_dht_api.c
 test_dht_api_LDADD = \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
- $(top_builddir)/src/testing/libgnunettesting.la \
+ $(top_builddir)/src/lib/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/hello/libgnunethello.la \
  libgnunetdht.la
 

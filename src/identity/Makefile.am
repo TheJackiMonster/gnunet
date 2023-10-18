@@ -85,7 +85,7 @@ test_identity_SOURCES = \
  test_identity.c
 test_identity_LDADD = \
   libgnunetidentity.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 EXTRA_DIST = \

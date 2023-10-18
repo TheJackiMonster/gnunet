@@ -92,7 +92,7 @@ test_consensus_api_SOURCES = \
  test_consensus_api.c
 test_consensus_api_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   libgnunetconsensus.la
 
 noinst_SCRIPTS = \
