@@ -69,6 +69,12 @@ static struct GNUNET_STATISTICS_Handle *stats;
 static struct GNUNET_CORE_Handle *core;
 
 /**
+ * The task to delayed start the notification process intially.
+ * We like to give transport some time to give us our hello to distribute it.
+ */
+struct GNUNET_SCHEDULER_Task *peerstore_notify_task;
+
+/**
  * Our peerstore notification context.  We use notification
  * to instantly learn about new peers as they are discovered.
  */
@@ -605,6 +611,17 @@ prepare_daemon (struct MHD_Daemon *daemon_handle)
 }
 
 
+static void
+start_notify (void *cls)
+{
+  (void) cls;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Starting to process new hellos to add to hostlist.\n");
+  peerstore_notify =
+    GNUNET_PEERSTORE_hello_changed_notify (peerstore, GNUNET_NO, &process_notify, NULL);
+}
+
+
 /**
  * Start server offering our hostlist.
  *
@@ -817,7 +834,9 @@ GNUNET_HOSTLIST_server_start (const struct GNUNET_CONFIGURATION_Handle *c,
     hostlist_task_v4 = prepare_daemon (daemon_handle_v4);
   if (NULL != daemon_handle_v6)
     hostlist_task_v6 = prepare_daemon (daemon_handle_v6);
-  peerstore_notify = GNUNET_PEERSTORE_hello_changed_notify (peerstore, GNUNET_NO, &process_notify, NULL);
+  peerstore_notify_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_MINUTES,
+                                                        start_notify,
+                                                        NULL);
   return GNUNET_OK;
 }
 
@@ -858,6 +877,10 @@ GNUNET_HOSTLIST_server_stop ()
   {
     GNUNET_PEERSTORE_hello_changed_notify_cancel (peerstore_notify);
     peerstore_notify = NULL;
+  }
+  else if (NULL != peerstore_notify_task)
+  {
+    GNUNET_SCHEDULER_cancel (peerstore_notify_task);
   }
   if (NULL != builder)
   {
