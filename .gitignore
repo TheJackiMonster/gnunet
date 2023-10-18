@@ -41,7 +41,7 @@ lynXified.*
 missing
 po/*.gmo
 pkgconfig/*.pc
-src/*/*.conf
+src/**/*.conf
 stamp-h1
 test-driver
 INSTALL

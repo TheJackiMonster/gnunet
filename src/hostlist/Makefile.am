@@ -26,7 +26,7 @@ gnunet_daemon_hostlist_SOURCES = \
  $(HOSTLIST_SERVER_SOURCES)
 
 gnunet_daemon_hostlist_LDADD = \
-  $(top_builddir)/src/core/libgnunetcore.la \
+  $(top_builddir)/src/service/core/libgnunetcore.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
@@ -67,7 +67,7 @@ endif
 # test_gnunet_daemon_hostlist_learning.c
 #test_gnunet_daemon_hostlist_learning_LDADD = \
 #  $(top_builddir)/src/transport/libgnunettransport.la \
-#  $(top_builddir)/src/core/libgnunetcore.la \
+#  $(top_builddir)/src/service/core/libgnunetcore.la \
 #  $(top_builddir)/src/statistics/libgnunetstatistics.la \
 #  $(top_builddir)/src/lib/util/libgnunetutil.la
 

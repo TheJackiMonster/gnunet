@@ -72,7 +72,7 @@ libgnunetconversation_la_LIBADD = \
   $(top_builddir)/src/gns/libgnunetgns.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/namestore/libgnunetnamestore.la \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
+  $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 libgnunetconversation_la_LDFLAGS = \
@@ -185,7 +185,7 @@ gnunet_service_conversation_LDADD = \
   libgnunetmicrophone.la \
   $(top_builddir)/src/cadet/libgnunetcadet.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
+  $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(INTLLIBS)
 #gnunet_service_conversation_LDFLAGS = \
 #  
@@ -199,7 +199,7 @@ gnunet_conversation_LDADD = \
   $(top_builddir)/src/gns/libgnunetgns.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/namestore/libgnunetnamestore.la \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
+  $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(INTLLIBS)
 #gnunet_conversation_LDFLAGS = \
@@ -224,8 +224,8 @@ test_conversation_api_LDADD = \
   libgnunetmicrophone.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/namestore/libgnunetnamestore.la \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/identity/libgnunetidentity.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 test_conversation_api_LDFLAGS = \
   -export-dynamic
@@ -238,8 +238,8 @@ test_conversation_api_twocalls_LDADD = \
   libgnunetmicrophone.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/namestore/libgnunetnamestore.la \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/identity/libgnunetidentity.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 test_conversation_api_twocalls_LDFLAGS = \
   -export-dynamic
@@ -252,8 +252,8 @@ test_conversation_api_reject_LDADD = \
   libgnunetmicrophone.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/namestore/libgnunetnamestore.la \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/identity/libgnunetidentity.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 test_conversation_api_reject_LDFLAGS = \
   -export-dynamic

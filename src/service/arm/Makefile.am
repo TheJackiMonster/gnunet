@@ -25,21 +25,11 @@ libgnunetarm_la_LDFLAGS = \
   -version-info 2:0:0
 
 
-bin_PROGRAMS = \
- gnunet-arm
-
 noinst_PROGRAMS = \
  mockup-service
 
 libexec_PROGRAMS = \
  gnunet-service-arm
-
-gnunet_arm_SOURCES = \
- gnunet-arm.c
-gnunet_arm_LDADD = \
-  libgnunetarm.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(GN_LIBINTL)
 
 gnunet_service_arm_SOURCES = \
  gnunet-service-arm.c
@@ -59,11 +49,6 @@ check_PROGRAMS = \
  test_arm_api \
  test_exponential_backoff \
  test_gnunet_service_arm
-
-if HAVE_PYTHON
-check_SCRIPTS = \
- test_gnunet_arm.py
-endif
 
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
@@ -88,15 +73,5 @@ test_gnunet_service_arm_SOURCES = \
   libgnunetarm.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
-SUFFIXES = .py.in .py
-.py.in.py:
-	$(AWK) -v bdir="$(bindir)" -v py="$(PYTHON)" -v awkay="$(AWK_BINARY)" -v pfx="$(prefix)" -v prl="$(PERL)" -v sysconfdirectory="$(sysconfdir)" -v pkgdatadirectory="$(pkgdatadir)" -f $(top_srcdir)/bin/dosubst.awk < $(srcdir)/$< > $@
-	chmod +x $@
-
-test_gnunet_arm.py: test_gnunet_arm.py.in Makefile
-	$(AWK) -v bdir="$(bindir)" -v py="$(PYTHON)" -v awkay="$(AWK_BINARY)" -v pfx="$(prefix)" -v prl="$(PERL)" -v sysconfdirectory="$(sysconfdir)" -v pkgdatadirectory="$(pkgdatadir)" -f $(top_srcdir)/bin/dosubst.awk < $(srcdir)/test_gnunet_arm.py.in > test_gnunet_arm.py
-	chmod +x test_gnunet_arm.py
-
 EXTRA_DIST = \
-  test_arm_api_data.conf \
-  test_gnunet_arm.py.in
+  test_arm_api_data.conf

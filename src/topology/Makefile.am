@@ -19,7 +19,7 @@ libexec_PROGRAMS = \
 gnunet_daemon_topology_SOURCES = \
  gnunet-daemon-topology.c
 gnunet_daemon_topology_LDADD = \
-  $(top_builddir)/src/core/libgnunetcore.la \
+  $(top_builddir)/src/service/core/libgnunetcore.la \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/transport/libgnunettransportapplication.la \

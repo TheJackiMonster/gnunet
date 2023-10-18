@@ -33,7 +33,7 @@ endif
 libgnunet_plugin_dhtu_gnunet_la_SOURCES = \
   plugin_dhtu_gnunet.c
 libgnunet_plugin_dhtu_gnunet_la_LIBADD = \
-  $(top_builddir)/src/core/libgnunetcore.la \
+  $(top_builddir)/src/service/core/libgnunetcore.la \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/transport/libgnunettransportapplication.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
@@ -51,8 +51,8 @@ lib_LTLIBRARIES = \
 libgnunettestingdhtu_la_SOURCES = \
   testing_dhtu_cmd_send.c
 libgnunettestingdhtu_la_LIBADD = \
- $(top_builddir)/src/testing/libgnunettesting.la \
- $(top_builddir)/src/arm/libgnunetarm.la \
+ $(top_builddir)/src/lib/testing/libgnunettesting.la \
+ $(top_builddir)/src/service/arm/libgnunetarm.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(LTLIBINTL)
 libgnunettestingdhtu_la_LDFLAGS = \
@@ -64,8 +64,8 @@ libgnunettestingdhtu_la_LDFLAGS = \
 test_dhtu_ip_SOURCES = \
  test_dhtu_ip.c
 test_dhtu_ip_LDADD = \
- $(top_builddir)/src/testing/libgnunettesting.la \
- $(top_builddir)/src/arm/libgnunetarm.la \
+ $(top_builddir)/src/lib/testing/libgnunettesting.la \
+ $(top_builddir)/src/service/arm/libgnunetarm.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 check_PROGRAMS = \

@@ -8,8 +8,6 @@ if USE_COVERAGE
   XLIB = -lgcov
 endif
 
-plugin_LTLIBRARIES = libgnunet_plugin_rest_identity.la
-
 pkgcfgdir= $(pkgdatadir)/config.d/
 
 libexecdir= $(pkglibdir)/libexec/
@@ -19,18 +17,6 @@ pkgcfg_DATA = \
 
 lib_LTLIBRARIES = \
   libgnunetidentity.la
-
-
-libgnunet_plugin_rest_identity_la_SOURCES = \
-  plugin_rest_identity.c
-libgnunet_plugin_rest_identity_la_LIBADD = \
-  libgnunetidentity.la \
-  $(top_builddir)/src/rest/libgnunetrest.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) \
-  $(LTLIBINTL) -ljansson $(MHD_LIBS)
-libgnunet_plugin_rest_identity_la_LDFLAGS = \
- $(GN_PLUGIN_LDFLAGS)
-libgnunet_plugin_rest_identity_la_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
 
 
 libgnunetidentity_la_SOURCES = \
@@ -46,9 +32,6 @@ libgnunetidentity_la_LDFLAGS = \
   -lsodium \
   -version-info 1:0:0
 
-bin_PROGRAMS = \
- gnunet-identity
-
 libexec_PROGRAMS = \
  gnunet-service-identity
 
@@ -61,19 +44,8 @@ gnunet_service_identity_LDADD = \
   $(GN_LIBINTL)
 
 
-gnunet_identity_SOURCES = \
- gnunet-identity.c
-gnunet_identity_LDADD = \
-  libgnunetidentity.la \
-  $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(GN_LIBINTL)
-
 check_PROGRAMS = \
  test_identity
-
-check_SCRIPTS = \
-  test_identity_messages.sh
 
 # if ENABLE_TEST_RUN
 # AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
@@ -85,7 +57,7 @@ test_identity_SOURCES = \
  test_identity.c
 test_identity_LDADD = \
   libgnunetidentity.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 EXTRA_DIST = \

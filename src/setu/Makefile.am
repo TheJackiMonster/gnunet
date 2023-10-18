@@ -30,7 +30,7 @@ gnunet_setu_profiler_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   libgnunetsetu.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(GN_LIBINTL)
 
 
@@ -49,7 +49,7 @@ gnunet_service_setu_SOURCES = \
 gnunet_service_setu_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/core/libgnunetcore.la \
+  $(top_builddir)/src/service/core/libgnunetcore.la \
   $(top_builddir)/src/cadet/libgnunetcadet.la \
   $(top_builddir)/src/lib/block/libgnunetblock.la \
   libgnunetsetu.la \
@@ -76,7 +76,7 @@ test_setu_api_SOURCES = \
  test_setu_api.c
 test_setu_api_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   libgnunetsetu.la
 
 
@@ -84,7 +84,7 @@ perf_setu_api_SOURCES = \
  perf_setu_api.c
 perf_setu_api_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   libgnunetsetu.la
 
 

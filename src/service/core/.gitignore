@@ -1,5 +1,5 @@
 gnunet-service-core
-gnunet-core
+core.conf
 test_core_api
 test_core_api_reliability
 test_core_api_send_to_self
