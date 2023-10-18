@@ -1,11 +1,5 @@
 # This Makefile.am is in the public domain
 
-if HAVE_EXPERIMENTAL
- EXP_DIR = \
-  rps \
-  abd \
-  auction
-endif
 
 if BUILD_PULSE_HELPERS
 CONVERSATION_DIR = conversation
@@ -14,7 +8,6 @@ if BUILD_GST_HELPERS
 CONVERSATION_DIR = conversation
 endif
 endif
-
 
 REST_DIR = rest
 
@@ -25,6 +18,7 @@ SUBDIRS = \
 	plugin \
 	service \
 	cli \
+	contrib \
   statistics \
   $(REST_DIR) \
   datacache \
@@ -59,5 +53,4 @@ SUBDIRS = \
   pt \
   secretsharing \
   reclaim \
-  messenger \
-  $(EXP_DIR)
+  messenger

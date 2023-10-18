@@ -1228,7 +1228,6 @@ doc/doxygen/Makefile
 m4/Makefile
 po/Makefile.in
 src/Makefile
-src/auction/Makefile
 src/lib/Makefile
 src/lib/util/Makefile
 src/lib/util/resolver.conf
@@ -1253,6 +1252,13 @@ src/cli/Makefile
 src/cli/arm/Makefile
 src/cli/core/Makefile
 src/cli/util/Makefile
+src/contrib/Makefile
+src/contrib/service/Makefile
+src/contrib/service/abd/Makefile
+src/contrib/service/abd/abd.conf
+src/contrib/service/auction/Makefile
+src/contrib/service/rps/Makefile
+src/contrib/service/rps/rps.conf
 src/cadet/Makefile
 src/cadet/cadet.conf
 src/consensus/Makefile
@@ -1295,8 +1301,6 @@ src/regex/Makefile
 src/regex/regex.conf
 src/revocation/Makefile
 src/revocation/revocation.conf
-src/rps/Makefile
-src/rps/rps.conf
 src/secretsharing/Makefile
 src/secretsharing/secretsharing.conf
 src/scalarproduct/Makefile
@@ -1318,8 +1322,6 @@ src/vpn/vpn.conf
 src/zonemaster/Makefile
 src/zonemaster/zonemaster.conf
 src/rest/Makefile
-src/abd/Makefile
-src/abd/abd.conf
 src/reclaim/Makefile
 src/messenger/Makefile
 src/messenger/messenger.conf
