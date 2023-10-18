@@ -34,7 +34,6 @@ SUBDIRS = \
   nat \
   nat-auto \
   transport \
-  core \
   nse \
   dht \
   hostlist \

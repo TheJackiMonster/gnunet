@@ -68,9 +68,6 @@ libgnunetcoretesting_la_LDFLAGS = \
 libexec_PROGRAMS = \
  gnunet-service-core
 
-bin_PROGRAMS = \
- gnunet-core
-
 gnunet_service_core_SOURCES = \
  gnunet-service-core.c gnunet-service-core.h \
  gnunet-service-core_kx.c gnunet-service-core_kx.h \
@@ -83,14 +80,6 @@ gnunet_service_core_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL) $(Z_LIBS)
 
-
-gnunet_core_SOURCES = \
- gnunet-core.c
-gnunet_core_LDADD = \
-  libgnunetcore.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la
-gnunet_core_LDFLAGS = \
-  $(GN_LIBINTL)
 
 TESTING_TESTS = \
   test_core_api_send_to_self

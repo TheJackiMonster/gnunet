@@ -62,7 +62,7 @@ gnunet_service_cadet_SOURCES = \
  gnunet-service-cadet_peer.c gnunet-service-cadet_peer.h
 gnunet_service_cadet_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/core/libgnunetcore.la \
+  $(top_builddir)/src/service/core/libgnunetcore.la \
   $(top_builddir)/src/dht/libgnunetdht.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/transport/libgnunettransportapplication.la \

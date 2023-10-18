@@ -39,7 +39,7 @@ gnunet_service_consensus_SOURCES = \
  gnunet-service-consensus.c
 gnunet_service_consensus_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/core/libgnunetcore.la \
+  $(top_builddir)/src/service/core/libgnunetcore.la \
   $(top_builddir)/src/set/libgnunetset.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(GN_LIBINTL)
@@ -49,7 +49,7 @@ gnunet_service_evil_consensus_SOURCES = \
  consensus_protocol.h
 gnunet_service_evil_consensus_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/core/libgnunetcore.la \
+  $(top_builddir)/src/service/core/libgnunetcore.la \
   $(top_builddir)/src/set/libgnunetset.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(GN_LIBINTL)

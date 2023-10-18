@@ -55,7 +55,7 @@ gnunet_service_nse_SOURCES = \
 gnunet_service_nse_LDADD = \
   libgnunetnse.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/core/libgnunetcore.la \
+  $(top_builddir)/src/service/core/libgnunetcore.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(LIBGCRYPT_LIBS) \
   -lm -lgcrypt \

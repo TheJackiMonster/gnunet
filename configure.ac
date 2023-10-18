@@ -1246,14 +1246,15 @@ src/plugin/gnsrecord/Makefile
 src/service/Makefile
 src/service/arm/Makefile
 src/service/arm/arm.conf
+src/service/core/Makefile
+src/service/core/core.conf
 src/service/util/Makefile
 src/cli/Makefile
 src/cli/arm/Makefile
+src/cli/core/Makefile
 src/cli/util/Makefile
 src/cadet/Makefile
 src/cadet/cadet.conf
-src/core/Makefile
-src/core/core.conf
 src/consensus/Makefile
 src/consensus/consensus.conf
 src/conversation/Makefile

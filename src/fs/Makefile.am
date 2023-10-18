@@ -178,7 +178,7 @@ gnunet_service_fs_LDADD =  \
  $(top_builddir)/src/datastore/libgnunetdatastore.la \
  $(top_builddir)/src/statistics/libgnunetstatistics.la \
  $(top_builddir)/src/cadet/libgnunetcadet.la \
- $(top_builddir)/src/core/libgnunetcore.la \
+ $(top_builddir)/src/service/core/libgnunetcore.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
  $(GN_LIBINTL) -lm

@@ -28,6 +28,7 @@ src/cadet/gnunet-service-cadet_paths.c
 src/cadet/gnunet-service-cadet_peer.c
 src/cadet/gnunet-service-cadet_tunnels.c
 src/cli/arm/gnunet-arm.c
+src/cli/core/gnunet-core.c
 src/cli/util/gnunet-base32.c
 src/cli/util/gnunet-config-diff.c
 src/cli/util/gnunet-config.c
@@ -55,14 +56,6 @@ src/conversation/gnunet_gst_test.c
 src/conversation/microphone.c
 src/conversation/plugin_gnsrecord_conversation.c
 src/conversation/speaker.c
-src/core/core_api.c
-src/core/core_api_cmd_connecting_peers.c
-src/core/core_api_monitor_peers.c
-src/core/gnunet-core.c
-src/core/gnunet-service-core.c
-src/core/gnunet-service-core_kx.c
-src/core/gnunet-service-core_sessions.c
-src/core/gnunet-service-core_typemap.c
 src/datacache/datacache.c
 src/datacache/plugin_datacache_heap.c
 src/datacache/plugin_datacache_postgres.c
@@ -438,6 +431,13 @@ src/service/arm/arm_api.c
 src/service/arm/arm_monitor_api.c
 src/service/arm/gnunet-service-arm.c
 src/service/arm/mockup-service.c
+src/service/core/core_api.c
+src/service/core/core_api_cmd_connecting_peers.c
+src/service/core/core_api_monitor_peers.c
+src/service/core/gnunet-service-core.c
+src/service/core/gnunet-service-core_kx.c
+src/service/core/gnunet-service-core_sessions.c
+src/service/core/gnunet-service-core_typemap.c
 src/service/util/gnunet-service-resolver.c
 src/set/gnunet-service-set.c
 src/set/gnunet-service-set_intersection.c
