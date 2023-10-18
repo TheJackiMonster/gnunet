@@ -164,7 +164,7 @@ gana_update()
       cd ../gnunet-error-codes && \
          make >/dev/null && \
          cp gnunet_error_codes.h ../../../src/include && \
-         cp gnunet_error_codes.c ../../../src/util || exit 1
+         cp gnunet_error_codes.c ../../../src/lib/util || exit 1
       cd $cwd
     else
       echo "ERROR: No recutils found! Unable to generate recent GANA headers and configs."
