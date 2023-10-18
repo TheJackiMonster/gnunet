@@ -1,3 +1,4 @@
 SUBDIRS = \
 	block \
-	gnsrecord
+	gnsrecord \
+	dhtu

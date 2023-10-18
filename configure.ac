@@ -1240,6 +1240,7 @@ src/lib/sq/Makefile
 src/lib/testing/Makefile
 src/plugin/Makefile
 src/plugin/block/Makefile
+src/plugin/dhtu/Makefile
 src/plugin/gnsrecord/Makefile
 src/cadet/Makefile
 src/cadet/cadet.conf
@@ -1254,7 +1255,6 @@ src/datastore/Makefile
 src/datastore/datastore.conf
 src/dht/Makefile
 src/dht/dht.conf
-src/dhtu/Makefile
 src/dns/Makefile
 src/dns/dns.conf
 src/exit/Makefile

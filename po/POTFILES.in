@@ -92,9 +92,6 @@ src/dht/gnunet-service-dht_neighbours.c
 src/dht/gnunet-service-dht_routing.c
 src/dht/gnunet_dht_profiler.c
 src/dht/plugin_block_dht.c
-src/dhtu/plugin_dhtu_gnunet.c
-src/dhtu/plugin_dhtu_ip.c
-src/dhtu/testing_dhtu_cmd_send.c
 src/dns/dns_api.c
 src/dns/gnunet-dns-monitor.c
 src/dns/gnunet-dns-redirector.c
@@ -372,6 +369,9 @@ src/peerstore/plugin_peerstore_flat.c
 src/peerstore/plugin_peerstore_sqlite.c
 src/plugin/block/plugin_block_template.c
 src/plugin/block/plugin_block_test.c
+src/plugin/dhtu/plugin_dhtu_gnunet.c
+src/plugin/dhtu/plugin_dhtu_ip.c
+src/plugin/dhtu/testing_dhtu_cmd_send.c
 src/plugin/gnsrecord/plugin_gnsrecord_dns.c
 src/pt/gnunet-daemon-pt.c
 src/reclaim/did_core.c

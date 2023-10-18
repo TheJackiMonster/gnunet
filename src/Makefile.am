@@ -37,7 +37,6 @@ SUBDIRS = \
   transport \
   core \
   nse \
-  dhtu \
   dht \
   hostlist \
   topology \
