@@ -17,11 +17,8 @@ SUBDIRS = \
 	rest-plugin \
 	cli \
 	contrib \
-  datacache \
-  datastore \
   template \
   nat-auto \
-  dht \
   hostlist \
   topology \
   regex \

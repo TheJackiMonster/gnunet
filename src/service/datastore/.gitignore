@@ -1,5 +1,4 @@
 gnunet-service-datastore
-gnunet-datastore
 perf_datastore_api_heap
 perf_plugin_datastore_heap
 test_datastore_api_heap

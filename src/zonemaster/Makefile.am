@@ -21,7 +21,7 @@ libexec_PROGRAMS = \
 gnunet_service_zonemaster_SOURCES = \
  gnunet-service-zonemaster.c
 gnunet_service_zonemaster_LDADD = \
-  $(top_builddir)/src/dht/libgnunetdht.la \
+  $(top_builddir)/src/service/dht/libgnunetdht.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la  \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \

@@ -35,9 +35,6 @@ libgnunetdatastore_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)  \
   -version-info 1:0:0
 
-bin_PROGRAMS = \
- gnunet-datastore
-
 libexec_PROGRAMS = \
  gnunet-service-datastore
 
@@ -47,14 +44,6 @@ gnunet_service_datastore_LDADD = \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
-
-gnunet_datastore_SOURCES = \
- gnunet-datastore.c
-gnunet_datastore_LDADD = \
-  libgnunetdatastore.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(GN_LIBINTL)
-
 
 if HAVE_SQLITE
  SQLITE_PLUGIN = libgnunet_plugin_datastore_sqlite.la

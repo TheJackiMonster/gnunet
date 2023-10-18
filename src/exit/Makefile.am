@@ -30,7 +30,7 @@ gnunet_helper_exit_SOURCES = \
 gnunet_daemon_exit_SOURCES = \
  gnunet-daemon-exit.c exit.h
 gnunet_daemon_exit_LDADD = \
-  $(top_builddir)/src/dht/libgnunetdht.la \
+  $(top_builddir)/src/service/dht/libgnunetdht.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/service/cadet/libgnunetcadet.la \

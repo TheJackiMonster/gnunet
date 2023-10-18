@@ -5,4 +5,6 @@ SUBDIRS = \
 	core \
 	nat \
 	nse \
+	datastore \
+	dht \
 	cadet

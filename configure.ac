@@ -1248,6 +1248,11 @@ src/service/cadet/Makefile
 src/service/cadet/cadet.conf
 src/service/core/Makefile
 src/service/core/core.conf
+src/service/datacache/Makefile
+src/service/datastore/Makefile
+src/service/datastore/datastore.conf
+src/service/dht/Makefile
+src/service/dht/dht.conf
 src/service/identity/Makefile
 src/service/identity/identity.conf
 src/service/nat/Makefile
@@ -1270,6 +1275,8 @@ src/cli/Makefile
 src/cli/arm/Makefile
 src/cli/cadet/Makefile
 src/cli/core/Makefile
+src/cli/datastore/Makefile
+src/cli/dht/Makefile
 src/cli/nat/Makefile
 src/cli/nse/Makefile
 src/cli/statistics/Makefile
@@ -1285,11 +1292,6 @@ src/consensus/Makefile
 src/consensus/consensus.conf
 src/conversation/Makefile
 src/conversation/conversation.conf
-src/datacache/Makefile
-src/datastore/Makefile
-src/datastore/datastore.conf
-src/dht/Makefile
-src/dht/dht.conf
 src/dns/Makefile
 src/dns/dns.conf
 src/exit/Makefile

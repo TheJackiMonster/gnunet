@@ -47,12 +47,6 @@ libgnunet_plugin_block_dht_la_LDFLAGS = \
 libexec_PROGRAMS = \
  gnunet-service-dht
 
-bin_PROGRAMS = \
- gnunet-dht-monitor \
- gnunet-dht-get \
- gnunet-dht-put \
- gnunet-dht-hello
-
 gnunet_service_dht_SOURCES = \
  gnunet-service-dht.c gnunet-service-dht.h \
  gnunet-service-dht_datacache.c gnunet-service-dht_datacache.h \
@@ -67,42 +61,10 @@ gnunet_service_dht_LDADD = \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
   $(top_builddir)/src/lib/block/libgnunetblock.la \
   $(top_builddir)/src/lib/block/libgnunetblockgroup.la \
-  $(top_builddir)/src/datacache/libgnunetdatacache.la \
+  $(top_builddir)/src/service/datacache/libgnunetdatacache.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   -lm
 gnunet_service_dht_LDFLAGS = \
-  $(GN_LIBINTL)
-
-gnunet_dht_get_SOURCES = \
- gnunet-dht-get.c
-gnunet_dht_get_LDADD = \
-  libgnunetdht.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la
-gnunet_dht_get_LDFLAGS = \
-  $(GN_LIBINTL)
-
-gnunet_dht_hello_SOURCES = \
- gnunet-dht-hello.c
-gnunet_dht_hello_LDADD = \
-  libgnunetdht.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la
-gnunet_dht_hello_LDFLAGS = \
-  $(GN_LIBINTL)
-
-gnunet_dht_put_SOURCES = \
- gnunet-dht-put.c
-gnunet_dht_put_LDADD = \
-  libgnunetdht.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la
-gnunet_dht_put_LDFLAGS = \
-  $(GN_LIBINTL)
-
-gnunet_dht_monitor_SOURCES = \
- gnunet-dht-monitor.c
-gnunet_dht_monitor_LDADD = \
-  libgnunetdht.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la
-gnunet_dht_monitor_LDFLAGS = \
   $(GN_LIBINTL)
 
 if ENABLE_TEST_RUN

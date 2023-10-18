@@ -42,7 +42,7 @@ libgnunetfs_la_SOURCES = \
   meta_data.c
 
 libgnunetfs_la_LIBADD = \
-  $(top_builddir)/src/datastore/libgnunetdatastore.la \
+  $(top_builddir)/src/service/datastore/libgnunetdatastore.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL) $(XLIB) $(LIBGCRYPT_LIBS) -lunistring
@@ -173,9 +173,9 @@ gnunet_service_fs_SOURCES =  \
  gnunet-service-fs_cadet_server.c
 gnunet_service_fs_LDADD =  \
  libgnunetfs.la \
- $(top_builddir)/src/dht/libgnunetdht.la \
+ $(top_builddir)/src/service/dht/libgnunetdht.la \
  $(top_builddir)/src/lib/block/libgnunetblock.la \
- $(top_builddir)/src/datastore/libgnunetdatastore.la \
+ $(top_builddir)/src/service/datastore/libgnunetdatastore.la \
  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
  $(top_builddir)/src/service/cadet/libgnunetcadet.la \
  $(top_builddir)/src/service/core/libgnunetcore.la \

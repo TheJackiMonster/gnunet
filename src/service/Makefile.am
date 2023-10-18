@@ -10,4 +10,7 @@ SUBDIRS = \
 	nse \
 	identity \
 	rest \
+	datacache \
+	datastore \
+	dht \
 	cadet
