@@ -4,11 +4,6 @@ src/abd/delegate_misc.c
 src/abd/gnunet-abd.c
 src/abd/gnunet-service-abd.c
 src/abd/plugin_gnsrecord_abd.c
-src/arm/arm_api.c
-src/arm/arm_monitor_api.c
-src/arm/gnunet-arm.c
-src/arm/gnunet-service-arm.c
-src/arm/mockup-service.c
 src/auction/gnunet-auction-create.c
 src/auction/gnunet-auction-info.c
 src/auction/gnunet-auction-join.c
@@ -32,6 +27,7 @@ src/cadet/gnunet-service-cadet_hello.c
 src/cadet/gnunet-service-cadet_paths.c
 src/cadet/gnunet-service-cadet_peer.c
 src/cadet/gnunet-service-cadet_tunnels.c
+src/cli/arm/gnunet-arm.c
 src/cli/util/gnunet-base32.c
 src/cli/util/gnunet-config-diff.c
 src/cli/util/gnunet-config.c
@@ -438,6 +434,10 @@ src/secretsharing/gnunet-secretsharing-profiler.c
 src/secretsharing/gnunet-service-secretsharing.c
 src/secretsharing/secretsharing_api.c
 src/secretsharing/secretsharing_common.c
+src/service/arm/arm_api.c
+src/service/arm/arm_monitor_api.c
+src/service/arm/gnunet-service-arm.c
+src/service/arm/mockup-service.c
 src/service/util/gnunet-service-resolver.c
 src/set/gnunet-service-set.c
 src/set/gnunet-service-set_intersection.c

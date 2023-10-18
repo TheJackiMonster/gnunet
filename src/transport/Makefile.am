@@ -46,7 +46,7 @@ libgnunettransporttesting2_la_SOURCES = \
 libgnunettransporttesting2_la_LIBADD = \
   libgnunettransportapplication.la \
   libgnunettransportcore.la \
-  $(top_builddir)/src/arm/libgnunetarm.la \
+  $(top_builddir)/src/service/arm/libgnunetarm.la \
   $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
@@ -204,7 +204,7 @@ libgnunet_test_transport_plugin_cmd_nat_upnp_la_LIBADD = \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
-  $(top_builddir)/src/arm/libgnunetarm.la \
+  $(top_builddir)/src/service/arm/libgnunetarm.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LTLIBINTL)
 libgnunet_test_transport_plugin_cmd_nat_upnp_la_LDFLAGS = \
@@ -220,7 +220,7 @@ libgnunet_test_transport_plugin_cmd_udp_backchannel_la_LIBADD = \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
-  $(top_builddir)/src/arm/libgnunetarm.la \
+  $(top_builddir)/src/service/arm/libgnunetarm.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LTLIBINTL)
 libgnunet_test_transport_plugin_cmd_udp_backchannel_la_LDFLAGS = \
@@ -236,7 +236,7 @@ libgnunet_test_transport_plugin_cmd_simple_send_la_LIBADD = \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
-  $(top_builddir)/src/arm/libgnunetarm.la \
+  $(top_builddir)/src/service/arm/libgnunetarm.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LTLIBINTL)
 libgnunet_test_transport_plugin_cmd_simple_send_la_LDFLAGS = \
@@ -252,7 +252,7 @@ libgnunet_test_transport_plugin_cmd_simple_send_performance_la_LIBADD = \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
-  $(top_builddir)/src/arm/libgnunetarm.la \
+  $(top_builddir)/src/service/arm/libgnunetarm.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LTLIBINTL)
 libgnunet_test_transport_plugin_cmd_simple_send_performance_la_LDFLAGS = \
@@ -268,7 +268,7 @@ libgnunet_test_transport_plugin_cmd_simple_send_broadcast_la_LIBADD = \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
-  $(top_builddir)/src/arm/libgnunetarm.la \
+  $(top_builddir)/src/service/arm/libgnunetarm.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LTLIBINTL)
 libgnunet_test_transport_plugin_cmd_simple_send_broadcast_la_LDFLAGS = \
@@ -284,7 +284,7 @@ libgnunet_test_transport_plugin_cmd_simple_send_dv_la_LIBADD = \
   $(top_builddir)/src/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
-  $(top_builddir)/src/arm/libgnunetarm.la \
+  $(top_builddir)/src/service/arm/libgnunetarm.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LTLIBINTL)
 libgnunet_test_transport_plugin_cmd_simple_send_dv_la_LDFLAGS = \

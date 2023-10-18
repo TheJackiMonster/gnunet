@@ -1,2 +1,3 @@
 SUBDIRS = \
-	util
+	util \
+	arm

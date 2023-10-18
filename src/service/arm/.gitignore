@@ -1,5 +1,5 @@
+arm.conf
 mockup-service
-gnunet-arm
 gnunet-service-arm
 test_arm_api
 test_exponential_backoff

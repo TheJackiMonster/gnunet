@@ -26,7 +26,6 @@ SUBDIRS = \
 	service \
 	cli \
   statistics \
-  arm \
   $(REST_DIR) \
   datacache \
   datastore \

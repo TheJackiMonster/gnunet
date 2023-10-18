@@ -50,7 +50,7 @@ libgnunettesting_la_SOURCES = \
   testing_api_loop.c \
   testing_api_traits.c
 libgnunettesting_la_LIBADD = \
- $(top_builddir)/src/arm/libgnunetarm.la \
+ $(top_builddir)/src/service/arm/libgnunetarm.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(LTLIBINTL)
 libgnunettesting_la_LDFLAGS = \
