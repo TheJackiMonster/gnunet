@@ -2,4 +2,5 @@ SUBDIRS = \
 	util \
 	hello \
 	block \
-	gnsrecord
+	gnsrecord \
+	curl

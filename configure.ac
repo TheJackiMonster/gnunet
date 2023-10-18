@@ -1232,6 +1232,7 @@ src/arm/Makefile
 src/arm/arm.conf
 src/auction/Makefile
 src/lib/block/Makefile
+src/lib/curl/Makefile
 src/lib/gnsrecord/Makefile
 src/plugin/Makefile
 src/plugin/block/Makefile
@@ -1244,7 +1245,6 @@ src/consensus/Makefile
 src/consensus/consensus.conf
 src/conversation/Makefile
 src/conversation/conversation.conf
-src/curl/Makefile
 src/datacache/Makefile
 src/datastore/Makefile
 src/datastore/datastore.conf

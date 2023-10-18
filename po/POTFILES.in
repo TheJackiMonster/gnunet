@@ -67,8 +67,6 @@ src/core/gnunet-service-core.c
 src/core/gnunet-service-core_kx.c
 src/core/gnunet-service-core_sessions.c
 src/core/gnunet-service-core_typemap.c
-src/curl/curl.c
-src/curl/curl_reschedule.c
 src/datacache/datacache.c
 src/datacache/plugin_datacache_heap.c
 src/datacache/plugin_datacache_postgres.c
@@ -178,6 +176,8 @@ src/json/json_mhd.c
 src/json/json_pack.c
 src/lib/block/bg_bf.c
 src/lib/block/block.c
+src/lib/curl/curl.c
+src/lib/curl/curl_reschedule.c
 src/lib/gnsrecord/gnsrecord.c
 src/lib/gnsrecord/gnsrecord_crypto.c
 src/lib/gnsrecord/gnsrecord_misc.c

@@ -10,7 +10,6 @@ if HAVE_EXPERIMENTAL
 endif
 
 JSON_DIR = json
-CURL_DIR = curl
 
 if BUILD_PULSE_HELPERS
 CONVERSATION_DIR = conversation
@@ -41,7 +40,6 @@ SUBDIRS = \
   arm \
   $(TESTING) \
   $(JSON_DIR) \
-  $(CURL_DIR) \
   $(REST_DIR) \
   $(SQLITE_DIR) \
   $(POSTGRES_DIR) \
