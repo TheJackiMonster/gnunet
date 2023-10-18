@@ -189,7 +189,7 @@ add_to_builder (void *cls,
               address->transport_name);
       addr = strchr (strchr (pos->api->address_to_string (pos, address, address->address_length), '.')+1, '.') + 1;
     }
-    pos = plugins_head->next;
+    pos = pos->next;
   }
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -343,7 +343,7 @@ run (void *cls,
     {
       char *pids;
 
-      pids = GNUNET_CRYPTO_eddsa_public_key_to_string (&pid.public_key);
+      pids = GNUNET_CRYPTO_eddsa_public_key_to_string (&my_full_id.public_key);
       fprintf (stdout, "Processing HELLO for peer `%s'\n", pids);
       GNUNET_free (pids);
     }
@@ -352,7 +352,7 @@ run (void *cls,
     /*                               &orig, */
     /*                               GNUNET_HELLO_is_friend_only (orig)); */
 
-    builder = GNUNET_HELLO_builder_new (&pid);
+    builder = GNUNET_HELLO_builder_new (&my_full_id);
     GNUNET_assert (
     NULL ==
     GNUNET_HELLO_iterate_addresses ((const struct GNUNET_HELLO_Message *) orig, GNUNET_NO, &add_to_builder, builder));
