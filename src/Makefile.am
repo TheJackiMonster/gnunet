@@ -9,18 +9,15 @@ CONVERSATION_DIR = conversation
 endif
 endif
 
-REST_DIR = rest
-
-
 SUBDIRS = \
   include $(INTLEMU_SUBDIRS) \
   lib \
 	plugin \
 	service \
+	rest-plugin \
 	cli \
 	contrib \
   statistics \
-  $(REST_DIR) \
   datacache \
   datastore \
   template \
@@ -34,7 +31,6 @@ SUBDIRS = \
   topology \
   regex \
   dns \
-  identity \
   namecache \
   namestore \
   cadet \

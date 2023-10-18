@@ -107,7 +107,7 @@ gnunet_download_LDADD =  \
 gnunet_publish_SOURCES =  \
  gnunet-publish.c
 gnunet_publish_LDADD =  \
- $(top_builddir)/src/identity/libgnunetidentity.la \
+ $(top_builddir)/src/service/identity/libgnunetidentity.la \
  libgnunetfs.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(GN_LIBINTL)

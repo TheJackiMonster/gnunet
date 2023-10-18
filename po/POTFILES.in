@@ -19,6 +19,7 @@ src/cadet/gnunet-service-cadet_peer.c
 src/cadet/gnunet-service-cadet_tunnels.c
 src/cli/arm/gnunet-arm.c
 src/cli/core/gnunet-core.c
+src/cli/identity/gnunet-identity.c
 src/cli/util/gnunet-base32.c
 src/cli/util/gnunet-config-diff.c
 src/cli/util/gnunet-config.c
@@ -160,12 +161,6 @@ src/gns/plugin_rest_gns.c
 src/hostlist/gnunet-daemon-hostlist.c
 src/hostlist/gnunet-daemon-hostlist_client.c
 src/hostlist/gnunet-daemon-hostlist_server.c
-src/identity/gnunet-identity.c
-src/identity/gnunet-service-identity.c
-src/identity/identity_api.c
-src/identity/identity_api_lookup.c
-src/identity/identity_api_suffix_lookup.c
-src/identity/plugin_rest_identity.c
 src/lib/block/bg_bf.c
 src/lib/block/block.c
 src/lib/curl/curl.c
@@ -408,10 +403,9 @@ src/regex/regex_internal_dht.c
 src/regex/regex_test_graph.c
 src/regex/regex_test_lib.c
 src/regex/regex_test_random.c
-src/rest/gnunet-rest-server.c
-src/rest/plugin_rest_config.c
-src/rest/plugin_rest_copying.c
-src/rest/rest.c
+src/rest-plugin/identity/plugin_rest_identity.c
+src/rest-plugin/rest/plugin_rest_config.c
+src/rest-plugin/rest/plugin_rest_copying.c
 src/revocation/gnunet-revocation-tvg.c
 src/revocation/gnunet-revocation.c
 src/revocation/gnunet-service-revocation.c
@@ -438,6 +432,12 @@ src/service/core/gnunet-service-core.c
 src/service/core/gnunet-service-core_kx.c
 src/service/core/gnunet-service-core_sessions.c
 src/service/core/gnunet-service-core_typemap.c
+src/service/identity/gnunet-service-identity.c
+src/service/identity/identity_api.c
+src/service/identity/identity_api_lookup.c
+src/service/identity/identity_api_suffix_lookup.c
+src/service/rest/gnunet-rest-server.c
+src/service/rest/rest.c
 src/service/util/gnunet-service-resolver.c
 src/set/gnunet-service-set.c
 src/set/gnunet-service-set_intersection.c

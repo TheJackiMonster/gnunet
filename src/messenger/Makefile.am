@@ -54,7 +54,7 @@ libgnunetmessenger_la_SOURCES = \
 libgnunetmessenger_la_LIBADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/cadet/libgnunetcadet.la \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
+  $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(XLIB) \
   $(LTLIBINTL)
 libgnunetmessenger_la_LDFLAGS = \
@@ -94,7 +94,7 @@ gnunet_service_messenger_LDADD = \
   libgnunetmessenger.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/cadet/libgnunetcadet.la \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
+  $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(GN_LIBINTL)
 
 check_PROGRAMS = test_messenger_anonymous

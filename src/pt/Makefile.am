@@ -54,7 +54,7 @@ test_gns_vpn_SOURCES = \
  test_gns_vpn.c
 test_gns_vpn_LDADD = $(MHD_LIBS) @LIBCURL@ \
  $(top_builddir)/src/namestore/libgnunetnamestore.la \
- $(top_builddir)/src/identity/libgnunetidentity.la \
+ $(top_builddir)/src/service/identity/libgnunetidentity.la \
  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
  $(top_builddir)/src/lib/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la

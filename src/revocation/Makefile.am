@@ -28,7 +28,7 @@ libgnunet_plugin_block_revocation_la_LIBADD = \
   $(top_builddir)/src/lib/block/libgnunetblockgroup.la \
   $(top_builddir)/src/lib/block/libgnunetblock.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la  \
-  $(top_builddir)/src/identity/libgnunetidentity.la  \
+  $(top_builddir)/src/service/identity/libgnunetidentity.la  \
   $(LTLIBINTL)
 libgnunet_plugin_block_revocation_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
@@ -38,7 +38,7 @@ gnunet_revocation_SOURCES = \
  gnunet-revocation.c
 gnunet_revocation_LDADD = \
   libgnunetrevocation.la \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
+  $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
@@ -46,7 +46,7 @@ gnunet_revocation_tvg_SOURCES = \
  gnunet-revocation-tvg.c
 gnunet_revocation_tvg_LDADD = \
   libgnunetrevocation.la \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
+  $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
@@ -54,7 +54,7 @@ test_revocation_lsd0001testvectors_SOURCES = \
  test_revocation_testvectors.c
 test_revocation_lsd0001testvectors_LDADD = \
   $(top_builddir)/src/lib/testing/libgnunettesting.la \
-	$(top_builddir)/src/identity/libgnunetidentity.la \
+	$(top_builddir)/src/service/identity/libgnunetidentity.la \
   libgnunetrevocation.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
@@ -64,7 +64,7 @@ libgnunetrevocation_la_SOURCES = \
   revocation_api.c revocation.h
 libgnunetrevocation_la_LIBADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
+  $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(LIBGCRYPT_LIBS) \
   $(GN_LIBINTL) $(XLIB) -lgcrypt
 libgnunetrevocation_la_LDFLAGS = \
@@ -84,7 +84,7 @@ gnunet_service_revocation_LDADD = \
   $(top_builddir)/src/service/core/libgnunetcore.la \
   $(top_builddir)/src/setu/libgnunetsetu.la \
   $(top_builddir)/src/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/identity/libgnunetidentity.la  \
+  $(top_builddir)/src/service/identity/libgnunetidentity.la  \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   -lm \
   $(GN_LIBINTL)
@@ -92,7 +92,7 @@ gnunet_service_revocation_LDADD = \
 test_revocation_SOURCES = \
  test_revocation.c
 test_revocation_LDADD = \
- $(top_builddir)/src/identity/libgnunetidentity.la \
+ $(top_builddir)/src/service/identity/libgnunetidentity.la \
  libgnunetrevocation.la \
  $(top_builddir)/src//core/libgnunetcore.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \

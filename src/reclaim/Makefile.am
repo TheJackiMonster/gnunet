@@ -58,11 +58,11 @@ libgnunet_plugin_rest_reclaim_la_SOURCES = \
   json_reclaim.h \
   json_reclaim.c
 libgnunet_plugin_rest_reclaim_la_LIBADD = \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
+  $(top_builddir)/src/service/identity/libgnunetidentity.la \
   libgnunetreclaim.la \
   $(top_builddir)/src/lib/json/libgnunetjson.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/rest/libgnunetrest.la \
+  $(top_builddir)/src/service/rest/libgnunetrest.la \
   $(top_builddir)/src/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) \
   $(LTLIBINTL) -ljansson $(MHD_LIBS)
@@ -76,9 +76,9 @@ libgnunet_plugin_rest_openid_connect_la_SOURCES = \
   oidc_helper.h \
   oidc_helper.c
 libgnunet_plugin_rest_openid_connect_la_LIBADD = \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
+  $(top_builddir)/src/service/identity/libgnunetidentity.la \
   libgnunetreclaim.la \
-  $(top_builddir)/src/rest/libgnunetrest.la \
+  $(top_builddir)/src/service/rest/libgnunetrest.la \
   $(top_builddir)/src/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/gns/libgnunetgns.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
@@ -97,7 +97,7 @@ libgnunet_plugin_rest_pabc_la_SOURCES = \
 libgnunet_plugin_rest_pabc_la_LIBADD = \
   libgnunetreclaim.la \
   $(top_builddir)/src/lib/json/libgnunetjson.la \
-  $(top_builddir)/src/rest/libgnunetrest.la \
+  $(top_builddir)/src/service/rest/libgnunetrest.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) \
   $(LTLIBINTL) -ljansson -lpabc $(MHD_LIBS)
 libgnunet_plugin_rest_pabc_la_LDFLAGS = \
@@ -121,7 +121,7 @@ gnunet_service_reclaim_SOURCES = \
  gnunet-service-reclaim_tickets.h
 gnunet_service_reclaim_LDADD = \
  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
- $(top_builddir)/src/identity/libgnunetidentity.la \
+ $(top_builddir)/src/service/identity/libgnunetidentity.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(top_builddir)/src/namestore/libgnunetnamestore.la \
  $(top_builddir)/src/statistics/libgnunetstatistics.la \
@@ -138,7 +138,7 @@ libgnunetreclaim_la_SOURCES = \
  reclaim_credential.h
 libgnunetreclaim_la_LIBADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
+  $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(GN_LIBINTL) $(XLIB)
 libgnunetreclaim_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)   \
@@ -153,7 +153,7 @@ libgnunetdid_la_LIBADD = \
 	$(top_builddir)/src/lib/util/libgnunetutil.la \
 	$(top_builddir)/src/gns/libgnunetgns.la \
 	$(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-	$(top_builddir)/src/identity/libgnunetidentity.la \
+	$(top_builddir)/src/service/identity/libgnunetidentity.la \
 	$(top_builddir)/src/namestore/libgnunetnamestore.la \
 	-ljansson \
   $(GN_LIBINTL) $(XLIB)
@@ -188,7 +188,7 @@ endif
 libgnunet_plugin_reclaim_credential_jwt_la_SOURCES = \
   plugin_reclaim_credential_jwt.c
 libgnunet_plugin_reclaim_credential_jwt_la_LIBADD = \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
+  $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   libgnunetreclaim.la \
   -ljansson\
@@ -202,7 +202,7 @@ gnunet_reclaim_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/namestore/libgnunetnamestore.la \
   libgnunetreclaim.la \
-  $(top_builddir)/src/identity/libgnunetidentity.la \
+  $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(GN_LIBINTL)
 
 test_reclaim_attribute_SOURCES = \
@@ -218,7 +218,7 @@ gnunet_did_LDADD = \
 	$(top_builddir)/src/lib/util/libgnunetutil.la \
 	$(top_builddir)/src/gns/libgnunetgns.la \
 	$(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-	$(top_builddir)/src/identity/libgnunetidentity.la \
+	$(top_builddir)/src/service/identity/libgnunetidentity.la \
 	$(top_builddir)/src/namestore/libgnunetnamestore.la \
   libgnunetdid.la \
 	-ljansson
@@ -230,7 +230,7 @@ test_did_helper_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
 	$(top_builddir)/src/gns/libgnunetgns.la \
 	$(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-	$(top_builddir)/src/identity/libgnunetidentity.la \
+	$(top_builddir)/src/service/identity/libgnunetidentity.la \
 	$(top_builddir)/src/namestore/libgnunetnamestore.la \
   libgnunetdid.la \
   -ljansson

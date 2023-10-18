@@ -1247,7 +1247,13 @@ src/service/arm/Makefile
 src/service/arm/arm.conf
 src/service/core/Makefile
 src/service/core/core.conf
+src/service/identity/Makefile
+src/service/identity/identity.conf
+src/service/rest/Makefile
 src/service/util/Makefile
+src/rest-plugin/Makefile
+src/rest-plugin/identity/Makefile
+src/rest-plugin/rest/Makefile
 src/cli/Makefile
 src/cli/arm/Makefile
 src/cli/core/Makefile
@@ -1279,8 +1285,6 @@ src/gns/Makefile
 src/gns/gns.conf
 src/gns/nss/Makefile
 src/lib/hello/Makefile
-src/identity/Makefile
-src/identity/identity.conf
 src/include/Makefile
 src/include/gnunet_config.h
 src/hostlist/Makefile
@@ -1321,7 +1325,6 @@ src/vpn/Makefile
 src/vpn/vpn.conf
 src/zonemaster/Makefile
 src/zonemaster/zonemaster.conf
-src/rest/Makefile
 src/reclaim/Makefile
 src/messenger/Makefile
 src/messenger/messenger.conf

@@ -1,4 +1,6 @@
 SUBDIRS = \
 	util \
 	arm \
-	core
+	core \
+	identity \
+	rest
