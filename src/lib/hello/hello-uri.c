@@ -341,8 +341,8 @@ GNUNET_HELLO_builder_new (const struct GNUNET_PeerIdentity *pid)
 }
 
 
-struct GNUNET_PeerIdentity *
-GNUNET_HELLO_builder_get_id (struct GNUNET_HELLO_Builder *builder)
+const struct GNUNET_PeerIdentity *
+GNUNET_HELLO_builder_get_id (const struct GNUNET_HELLO_Builder *builder)
 {
   return &builder->pid;
 }

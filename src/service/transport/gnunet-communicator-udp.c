@@ -1012,7 +1012,7 @@ secret_destroy (struct SharedSecret *ss)
     sender->num_secrets--;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "%u sender->num_secrets\n",
-                receiver->num_secrets);
+                sender->num_secrets);
     if (NULL != ss->sender->kce_task)
     {
       GNUNET_SCHEDULER_cancel (ss->sender->kce_task);

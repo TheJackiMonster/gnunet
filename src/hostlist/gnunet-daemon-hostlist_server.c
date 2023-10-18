@@ -42,6 +42,10 @@
 #define GNUNET_ADV_TIMEOUT \
   GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
 
+/**
+ * Map with hellos we build the hostlist with.
+ */
+struct GNUNET_CONTAINER_MultiPeerMap *hellos;
 
 /**
  * Handle to the HTTP server as provided by libmicrohttpd for IPv6.
@@ -67,6 +71,12 @@ static struct GNUNET_STATISTICS_Handle *stats;
  * Handle to the core service (NULL until we've connected to it).
  */
 static struct GNUNET_CORE_Handle *core;
+
+/**
+ * The task to delayed start the notification process intially.
+ * We like to give transport some time to give us our hello to distribute it.
+ */
+struct GNUNET_SCHEDULER_Task *peerstore_notify_task;
 
 /**
  * Our peerstore notification context.  We use notification
@@ -110,11 +120,6 @@ static char *hostlist_uri;
  */
 struct HostSet
 {
-  /**
-   * Iterator used to build @e data (NULL when done).
-   */
-  struct GNUNET_PEERSTORE_IterateContext *pitr;
-
   /**
    * Place where we accumulate all of the HELLO messages.
    */
@@ -188,64 +193,27 @@ finish_response ()
  * @param hello hello message for the peer (can be NULL)
  * @param err_msg message
  */
-static void
+static enum GNUNET_GenericReturnValue
 host_processor (void *cls,
-                const struct GNUNET_PEERSTORE_Record *record,
-                const char *emsg)
+                const struct GNUNET_PeerIdentity *peer,
+                void *value)
 {
+  (void *) cls;
   size_t old;
   size_t s;
-  struct GNUNET_MessageHeader *hello;
+  struct GNUNET_MessageHeader *hello = value;
   struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
   struct GNUNET_TIME_Absolute hello_exp;
 
-  if (NULL != emsg)
-  {
-    GNUNET_assert (NULL == &record->peer);
-    builder->pitr = NULL;
-    GNUNET_free (builder->data);
-    GNUNET_free (builder);
-    builder = NULL;
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                _ ("Error in communication with PEERSTORE service: %s\n"),
-                emsg);
-    return;
-  }
-  if (NULL == record)
-  {
-    builder->pitr = NULL;
-    finish_response ();
-    return;
-  }
-  else
-  {
-    hello = record->value;
-    if ((0 == record->value_size))
-    {
-      GNUNET_break (0);
-      return;
-    }
-    hello_exp = GNUNET_HELLO_builder_get_expiration_time (hello);
-    if (GNUNET_TIME_absolute_cmp (hello_exp, <, now))
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "HELLO for peer `%4s' has expired address, not suitable for hostlist!\n",
-                  GNUNET_i2s (&record->peer));
-      GNUNET_STATISTICS_update (stats,
-                                gettext_noop (
-                                  "Expired HELLO encountered (ignored)"),
-                                1,
-                                GNUNET_NO);
-      return;
-    }
-  }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "host_processor\n");
   old = builder->size;
   s = ntohs (hello->size);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received %u bytes of `%s' from peer `%s' for hostlist.\n",
               (unsigned int) s,
               "HELLO",
-              GNUNET_i2s (&record->peer));
+              GNUNET_i2s (peer));
   if ((old + s >= GNUNET_MAX_MALLOC_CHECKED) ||
       (old + s >= MAX_BYTES_PER_HOSTLISTS))
   {
@@ -255,14 +223,16 @@ host_processor (void *cls,
                                 "bytes not included in hostlist (size limit)"),
                               s,
                               GNUNET_NO);
-    return;
+    return GNUNET_YES;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Adding peer `%s' to hostlist (%u bytes)\n",
-              GNUNET_i2s (&record->peer),
+              GNUNET_i2s (peer),
               (unsigned int) s);
   GNUNET_array_grow (builder->data, builder->size, old + s);
   GNUNET_memcpy (&builder->data[old], hello, s);
+
+  return GNUNET_YES;
 }
 
 
@@ -500,20 +470,23 @@ process_notify (void *cls,
                 const struct GNUNET_MessageHeader *hello,
                 const char *err_msg)
 {
+  unsigned int map_size;
+  struct GNUNET_MessageHeader *hello_cpy;
+  struct GNUNET_PeerIdentity *peer_cpy;
+
+  map_size = GNUNET_CONTAINER_multipeermap_size (hellos);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Peerstore is notifying us to rebuild our hostlist\n");
+              "Peerstore is notifying us to rebuild our hostlist map size %u\n",
+              map_size);
   if (NULL != err_msg)
+  {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 _ ("Error in communication with PEERSTORE service: %s\n"),
                 err_msg);
+    return;
+  }
   if (NULL != builder)
   {
-    /* restart re-build already in progress ... */
-    if (NULL != builder->pitr)
-    {
-      GNUNET_PEERSTORE_iterate_cancel (builder->pitr);
-      builder->pitr = NULL;
-    }
     GNUNET_free (builder->data);
     builder->size = 0;
     builder->data = NULL;
@@ -522,9 +495,27 @@ process_notify (void *cls,
   {
     builder = GNUNET_new (struct HostSet);
   }
-  GNUNET_assert (NULL != peerstore);
-  builder->pitr =
-    GNUNET_PEERSTORE_iterate (peerstore, "hostlist", NULL, GNUNET_PEERSTORE_HELLO_KEY, &host_processor, NULL);
+
+  peer_cpy = GNUNET_malloc (sizeof (struct GNUNET_PeerIdentity));
+  GNUNET_memcpy (peer_cpy, peer, sizeof (struct GNUNET_PeerIdentity));
+  hello_cpy = GNUNET_malloc (ntohs (hello->size));
+  GNUNET_memcpy (hello_cpy, hello, ntohs (hello->size));
+  GNUNET_assert (GNUNET_YES ==
+                 GNUNET_CONTAINER_multipeermap_put (hellos,
+                                                    peer_cpy,
+                                                    (struct
+                                                     GNUNET_MessageHeader *)
+                                                    hello_cpy,
+                                                    GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE));
+  if (0 != GNUNET_CONTAINER_multipeermap_iterate (hellos,
+                                                  &host_processor,
+                                                  NULL))
+    finish_response ();
+  map_size = GNUNET_CONTAINER_multipeermap_size (hellos);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "1 Peerstore is notifying us to rebuild our hostlist map size %u peer %s\n",
+              map_size,
+              GNUNET_i2s (peer));
 }
 
 
@@ -605,6 +596,19 @@ prepare_daemon (struct MHD_Daemon *daemon_handle)
 }
 
 
+static void
+start_notify (void *cls)
+{
+  (void) cls;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Starting to process new hellos to add to hostlist.\n");
+  peerstore_notify =
+    GNUNET_PEERSTORE_hello_changed_notify (peerstore, GNUNET_NO,
+                                           &process_notify, NULL);
+}
+
+
 /**
  * Start server offering our hostlist.
  *
@@ -634,6 +638,7 @@ GNUNET_HOSTLIST_server_start (const struct GNUNET_CONFIGURATION_Handle *c,
   const struct sockaddr *sa4;
   const struct sockaddr *sa6;
 
+  hellos = GNUNET_CONTAINER_multipeermap_create (16, GNUNET_YES);
   advertising = advertise;
   if (! advertising)
   {
@@ -817,7 +822,9 @@ GNUNET_HOSTLIST_server_start (const struct GNUNET_CONFIGURATION_Handle *c,
     hostlist_task_v4 = prepare_daemon (daemon_handle_v4);
   if (NULL != daemon_handle_v6)
     hostlist_task_v6 = prepare_daemon (daemon_handle_v6);
-  peerstore_notify = GNUNET_PEERSTORE_hello_changed_notify (peerstore, GNUNET_NO, &process_notify, NULL);
+  peerstore_notify_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_MINUTES,
+                                                        start_notify,
+                                                        NULL);
   return GNUNET_OK;
 }
 
@@ -859,13 +866,12 @@ GNUNET_HOSTLIST_server_stop ()
     GNUNET_PEERSTORE_hello_changed_notify_cancel (peerstore_notify);
     peerstore_notify = NULL;
   }
+  else if (NULL != peerstore_notify_task)
+  {
+    GNUNET_SCHEDULER_cancel (peerstore_notify_task);
+  }
   if (NULL != builder)
   {
-    if (NULL != builder->pitr)
-    {
-      GNUNET_PEERSTORE_iterate_cancel (builder->pitr);
-      builder->pitr = NULL;
-    }
     GNUNET_free (builder->data);
     GNUNET_free (builder);
     builder = NULL;

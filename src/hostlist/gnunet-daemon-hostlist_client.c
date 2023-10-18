@@ -313,7 +313,8 @@ static struct GNUNET_PEERSTORE_Handle *peerstore;
 static void
 shc_cont (void *cls, int success)
 {
-  GNUNET_free (cls);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Hostlist entry stored successfully!\n");
 }
 
 

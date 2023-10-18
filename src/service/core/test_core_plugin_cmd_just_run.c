@@ -391,8 +391,20 @@ start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
     write_message);
 
 
-  GNUNET_asprintf (&ts->cfgname,
+  if (1 == m_int)
+  {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "m_int %u should be 1\n");
+    GNUNET_asprintf (&ts->cfgname,
+                     "test_core_just_run_host.conf");
+  }
+  else
+  {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "m_int %u should not be 1\n");
+    GNUNET_asprintf (&ts->cfgname,
                    "test_core_just_run.conf");
+  }
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "plugin cfgname: %s\n",

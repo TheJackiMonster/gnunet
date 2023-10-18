@@ -555,7 +555,7 @@ hosts_directory_scan_callback (void *cls, const char *fullname)
   char buffer[GNUNET_MAX_MESSAGE_SIZE - 1] GNUNET_ALIGN;
   const struct GNUNET_MessageHeader *hello;
   struct GNUNET_HELLO_Builder *builder;
-  struct GNUNET_PeerIdentity *pid;
+  const struct GNUNET_PeerIdentity *pid;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "1 hosts_directory_scan_callback filename %s\n",
@@ -598,14 +598,18 @@ hosts_directory_scan_callback (void *cls, const char *fullname)
   builder = GNUNET_HELLO_builder_from_msg (hello);
   pid = GNUNET_HELLO_builder_get_id (builder);
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "store contrib hello for peer %s\n",
+              GNUNET_i2s (pid));
+  
   if (GNUNET_OK != db->store_record (db->cls,
                                      "peerstore",
                                      pid,
-                                     "",
+                                     GNUNET_PEERSTORE_HELLO_KEY,
                                      hello,
                                      size_total,
                                      GNUNET_TIME_UNIT_FOREVER_ABS,
-                                     GNUNET_PEERSTORE_STOREOPTION_REPLACE,
+                                     GNUNET_PEERSTORE_STOREOPTION_MULTIPLE,
                                      &store_hello_continuation,
                                      NULL))
   {
