@@ -12,4 +12,5 @@ SUBDIRS = \
 	namestore \
 	revocation \
 	vpn \
+	gns \
 	cadet

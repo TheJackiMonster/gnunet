@@ -1240,6 +1240,7 @@ src/lib/sq/Makefile
 src/plugin/Makefile
 src/plugin/block/Makefile
 src/plugin/dhtu/Makefile
+src/plugin/gns/Makefile
 src/plugin/gnsrecord/Makefile
 src/plugin/namecache/Makefile
 src/plugin/namestore/Makefile
@@ -1258,6 +1259,9 @@ src/service/dht/Makefile
 src/service/dht/dht.conf
 src/service/dns/Makefile
 src/service/dns/dns.conf
+src/service/gns/Makefile
+src/service/gns/gns.conf
+src/service/gns/nss/Makefile
 src/service/hostlist/Makefile
 src/service/identity/Makefile
 src/service/identity/identity.conf
@@ -1291,7 +1295,10 @@ src/service/transport/transport.conf
 src/service/util/Makefile
 src/service/vpn/Makefile
 src/service/vpn/vpn.conf
+src/service/zonemaster/Makefile
+src/service/zonemaster/zonemaster.conf
 src/rest-plugin/Makefile
+src/rest-plugin/gns/Makefile
 src/rest-plugin/identity/Makefile
 src/rest-plugin/rest/Makefile
 src/cli/Makefile
@@ -1300,6 +1307,7 @@ src/cli/cadet/Makefile
 src/cli/core/Makefile
 src/cli/datastore/Makefile
 src/cli/dht/Makefile
+src/cli/gns/Makefile
 src/cli/namecache/Makefile
 src/cli/namestore/Makefile
 src/cli/nat/Makefile
@@ -1331,15 +1339,10 @@ src/conversation/conversation.conf
 src/exit/Makefile
 src/fs/Makefile
 src/fs/fs.conf
-src/gns/Makefile
-src/gns/gns.conf
-src/gns/nss/Makefile
 src/lib/hello/Makefile
 src/include/Makefile
 src/include/gnunet_config.h
 src/pt/Makefile
-src/zonemaster/Makefile
-src/zonemaster/zonemaster.conf
 src/reclaim/Makefile
 src/messenger/Makefile
 src/messenger/messenger.conf

@@ -65,7 +65,7 @@ gnunet_service_abd_SOURCES = \
 gnunet_service_abd_LDADD = \
 	libgnunetabd.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-	$(top_builddir)/src/gns/libgnunetgns.la \
+	$(top_builddir)/src/service/gns/libgnunetgns.la \
 	$(top_builddir)/src/service/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \

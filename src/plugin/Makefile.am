@@ -4,4 +4,5 @@ SUBDIRS = \
 	dhtu \
 	namecache \
 	namestore \
-	revocation
+	revocation \
+	gns

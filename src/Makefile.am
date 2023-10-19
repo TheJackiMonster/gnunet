@@ -17,8 +17,6 @@ SUBDIRS = \
 	rest-plugin \
 	cli \
 	contrib \
-  gns \
-  zonemaster \
   $(CONVERSATION_DIR) \
   fs \
   exit \

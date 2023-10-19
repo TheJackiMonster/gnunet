@@ -80,7 +80,7 @@ libgnunet_plugin_rest_openid_connect_la_LIBADD = \
   libgnunetreclaim.la \
   $(top_builddir)/src/service/rest/libgnunetrest.la \
   $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
-  $(top_builddir)/src/gns/libgnunetgns.la \
+  $(top_builddir)/src/service/gns/libgnunetgns.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) \
   $(LTLIBINTL) -ljansson -ljose $(MHD_LIBS) \
@@ -126,7 +126,7 @@ gnunet_service_reclaim_LDADD = \
  $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
  libgnunetreclaim.la \
- $(top_builddir)/src/gns/libgnunetgns.la \
+ $(top_builddir)/src/service/gns/libgnunetgns.la \
  $(GN_LIBINTL)
 
 libgnunetreclaim_la_SOURCES = \
@@ -151,7 +151,7 @@ libgnunetdid_la_SOURCES = \
   did_core.c
 libgnunetdid_la_LIBADD = \
 	$(top_builddir)/src/lib/util/libgnunetutil.la \
-	$(top_builddir)/src/gns/libgnunetgns.la \
+	$(top_builddir)/src/service/gns/libgnunetgns.la \
 	$(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
 	$(top_builddir)/src/service/identity/libgnunetidentity.la \
 	$(top_builddir)/src/service/namestore/libgnunetnamestore.la \
@@ -216,7 +216,7 @@ gnunet_did_SOURCES = \
 	gnunet-did.c
 gnunet_did_LDADD = \
 	$(top_builddir)/src/lib/util/libgnunetutil.la \
-	$(top_builddir)/src/gns/libgnunetgns.la \
+	$(top_builddir)/src/service/gns/libgnunetgns.la \
 	$(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
 	$(top_builddir)/src/service/identity/libgnunetidentity.la \
 	$(top_builddir)/src/service/namestore/libgnunetnamestore.la \
@@ -228,7 +228,7 @@ test_did_helper_SOURCES = \
   test_did_helper.c
 test_did_helper_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-	$(top_builddir)/src/gns/libgnunetgns.la \
+	$(top_builddir)/src/service/gns/libgnunetgns.la \
 	$(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
 	$(top_builddir)/src/service/identity/libgnunetidentity.la \
 	$(top_builddir)/src/service/namestore/libgnunetnamestore.la \

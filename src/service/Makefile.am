@@ -24,5 +24,7 @@ SUBDIRS = \
   setu \
   regex \
   revocation \
-	vpn
+	vpn \
+  gns \
+  zonemaster
 

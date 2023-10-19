@@ -148,7 +148,7 @@ gana_update()
       echo "Creating default TLDs"
       cd ../gnu-name-system-default-tlds && \
          make >/dev/null && \
-         cp tlds.conf ../../../src/gns || exit 1
+         cp tlds.conf ../../../src/service/gns || exit 1
 
       # Signatures
       echo "Updating GNUnet signatures"

@@ -1,3 +1,4 @@
 SUBDIRS = \
 	rest \
-	identity
+	identity \
+	gns

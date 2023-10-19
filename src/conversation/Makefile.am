@@ -69,7 +69,7 @@ libgnunetconversation_la_SOURCES = \
   conversation_api_call.c \
   conversation.h
 libgnunetconversation_la_LIBADD = \
-  $(top_builddir)/src/gns/libgnunetgns.la \
+  $(top_builddir)/src/service/gns/libgnunetgns.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
@@ -196,7 +196,7 @@ gnunet_conversation_LDADD = \
   libgnunetmicrophone.la \
   libgnunetspeaker.la \
   libgnunetconversation.la \
-  $(top_builddir)/src/gns/libgnunetgns.la \
+  $(top_builddir)/src/service/gns/libgnunetgns.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \

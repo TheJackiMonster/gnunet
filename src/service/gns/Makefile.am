@@ -7,9 +7,6 @@ endif
 
 SUBDIRS = . $(NSS_SUBDIR)
 
-pkgdata_DATA = \
-  gnunet-gns-proxy-ca.template
-
 if HAVE_LIBIDN
   LIBIDN= -lidn
 else
@@ -46,9 +43,6 @@ libexec_PROGRAMS = \
   gnunet-service-gns \
   gnunet-dns2gns
 
-bin_PROGRAMS = \
-  gnunet-gns
-
 noinst_PROGRAMS = \
   gnunet-gns-benchmark
 
@@ -59,64 +53,6 @@ endif
 if HAVE_GNUTLS
 libexec_PROGRAMS += gnunet-gns-proxy
 endif
-
-REST_PLUGIN = libgnunet_plugin_rest_gns.la
-
-plugin_LTLIBRARIES = \
-  libgnunet_plugin_block_gns.la \
-  libgnunet_plugin_gnsrecord_gns.la \
-  $(REST_PLUGIN)
-
-
-bin_SCRIPTS = \
-  gnunet-gns-proxy-setup-ca
-
-gnunet-gns-proxy-setup-ca: gnunet-gns-proxy-setup-ca.in Makefile
-	$(AWK) -v bdir="$(bindir)" -v py="$(PYTHON)" -v awkay="$(AWK_BINARY)" -v pfx="$(prefix)" -v prl="$(PERL)" -v sysconfdirectory="$(sysconfdir)" -v pkgdatadirectory="$(pkgdatadir)" -f $(top_srcdir)/bin/dosubst.awk < $(srcdir)/gnunet-gns-proxy-setup-ca.in > gnunet-gns-proxy-setup-ca
-	@chmod +x gnunet-gns-proxy-setup-ca
-
-test_gnunet_gns.sh: test_gnunet_gns.sh.in Makefile
-	$(AWK) -v bdir="$(bindir)" -v py="$(PYTHON)" -v awkay="$(AWK_BINARY)" -v pfx="$(prefix)" -v prl="$(PERL)" -v sysconfdirectory="$(sysconfdir)" -v pkgdatadirectory="$(pkgdatadir)" -f $(top_srcdir)/bin/dosubst.awk < $(srcdir)/test_gnunet_gns.sh.in > test_gnunet_gns.sh
-	@chmod +x test_gnunet_gns.sh
-
-CLEANFILES = test_gnunet_gns.sh
-
-libgnunet_plugin_rest_gns_la_SOURCES = \
-  plugin_rest_gns.c
-libgnunet_plugin_rest_gns_la_LIBADD = \
-  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecordjson.la \
-  libgnunetgns.la \
-  $(top_builddir)/src/service/rest/libgnunetrest.la \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  $(top_builddir)/src/lib/json/libgnunetjson.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) \
-  $(LTLIBINTL) -ljansson $(MHD_LIBS)
-libgnunet_plugin_rest_gns_la_LDFLAGS = \
- $(GN_PLUGIN_LDFLAGS)
-libgnunet_plugin_rest_gns_la_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
-
-
-libgnunet_plugin_gnsrecord_gns_la_SOURCES = \
-  plugin_gnsrecord_gns.c
-libgnunet_plugin_gnsrecord_gns_la_LIBADD = \
-  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(LTLIBINTL)
-libgnunet_plugin_gnsrecord_gns_la_LDFLAGS = \
- $(GN_PLUGIN_LDFLAGS)
-
-
-gnunet_gns_SOURCES = \
- gnunet-gns.c
-gnunet_gns_LDADD = \
-  libgnunetgns.la \
-  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(LIBIDN) $(LIBIDN2) \
-  $(GN_LIBINTL)
 
 gnunet_gns_benchmark_SOURCES = \
  gnunet-gns-benchmark.c
@@ -222,81 +158,19 @@ libgnunetgns_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)
 
 
-libgnunet_plugin_block_gns_la_SOURCES = \
-  plugin_block_gns.c
-libgnunet_plugin_block_gns_la_LIBADD = \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/lib/block/libgnunetblock.la \
-  $(top_builddir)/src/lib/block/libgnunetblockgroup.la \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la  \
-  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la
-libgnunet_plugin_block_gns_la_LDFLAGS = \
-  $(GN_LIBINTL) \
-  $(GN_PLUGIN_LDFLAGS)
-
 if HAVE_GNUTLS
 check_PROGRAMS = \
   test_gns_proxy
 endif
 
-check_SCRIPTS = \
-   test_gns_lookup.sh \
-   test_gns_config_lookup.sh \
-   test_gns_ipv6_lookup.sh\
-   test_gns_txt_lookup.sh\
-   test_gns_caa_lookup.sh\
-   test_gns_mx_lookup.sh \
-   test_gns_gns2dns_lookup.sh \
-   test_gns_gns2dns_zkey_lookup.sh \
-   test_gns_gns2dns_cname_lookup.sh \
-   test_gns_dht_lookup.sh\
-   test_gns_delegated_lookup.sh \
-   test_gns_at_lookup.sh\
-   test_gns_zkey_lookup.sh\
-   test_gns_rel_expiration.sh\
-   test_gns_soa_lookup.sh\
-   test_gns_revocation.sh\
-   test_gns_redirect_lookup.sh
-
 if HAVE_GNUTLS_CURL
-check_SCRIPTS += \
+check_SCRIPTS = \
   test_proxy.sh
 endif
-check_SCRIPTS += \
-  test_plugin_rest_gns.sh
 
 EXTRA_DIST = \
-  test_gns_defaults.conf \
-  test_gns_lookup.conf \
   test_gns_proxy.conf \
-  test_gns_simple_lookup.conf \
-  openssl.cnf \
-  gnunet-gns-proxy-setup-ca.in \
-  zonefiles/J7POEUT41A8PBFS7KVVDRF88GBOU4HK8PSU5QKVLVE3R9T91E99G.zkey \
-  zonefiles/OEFL7A4VEF1B40QLEMTG5D8G1CN6EN16QUSG5R2DT71GRJN34LSG.zkey \
-  zonefiles/test_zonekey \
-  test_gns_lookup.sh \
-  test_gns_config_lookup.sh \
-  test_gns_ipv6_lookup.sh\
-  test_gns_txt_lookup.sh\
-  test_gns_caa_lookup.sh\
-  test_gns_mx_lookup.sh \
-  test_gns_gns2dns_lookup.sh \
-  test_gns_gns2dns_zkey_lookup.sh \
-  test_gns_gns2dns_cname_lookup.sh \
-  test_gns_dht_lookup.sh\
-  test_gns_delegated_lookup.sh \
-  test_gns_at_lookup.sh\
-  test_gns_zkey_lookup.sh\
-  test_gns_rel_expiration.sh\
-  test_gns_soa_lookup.sh\
-  test_gns_revocation.sh\
-  test_gns_redirect_lookup.sh\
-  test_proxy.sh\
-  test_plugin_rest_gns.sh\
-  test_proxy.sh \
-  $(pkgdata_DATA) \
-  test_gnunet_gns.sh.in
+  test_proxy.sh
 
 if ENABLE_TEST_RUN
 if HAVE_SQLITE
