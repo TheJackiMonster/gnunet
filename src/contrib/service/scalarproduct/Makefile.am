@@ -39,7 +39,7 @@ gnunet_service_scalarproduct_alice_SOURCES = \
 gnunet_service_scalarproduct_alice_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/service/cadet/libgnunetcadet.la \
-  $(top_builddir)/src/seti/libgnunetseti.la \
+  $(top_builddir)/src/service/seti/libgnunetseti.la \
   $(LIBGCRYPT_LIBS) \
   -lgcrypt \
   $(GN_LIBINTL)
@@ -50,7 +50,7 @@ gnunet_service_scalarproduct_bob_SOURCES = \
 gnunet_service_scalarproduct_bob_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/service/cadet/libgnunetcadet.la \
-  $(top_builddir)/src/seti/libgnunetseti.la \
+  $(top_builddir)/src/service/seti/libgnunetseti.la \
   $(LIBGCRYPT_LIBS) \
   -lgcrypt \
   $(GN_LIBINTL)
@@ -61,7 +61,7 @@ gnunet_service_scalarproduct_ecc_alice_SOURCES = \
 gnunet_service_scalarproduct_ecc_alice_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/service/cadet/libgnunetcadet.la \
-  $(top_builddir)/src/seti/libgnunetseti.la \
+  $(top_builddir)/src/service/seti/libgnunetseti.la \
   $(LIBGCRYPT_LIBS) \
   -lsodium \
   -lgcrypt \
@@ -73,7 +73,7 @@ gnunet_service_scalarproduct_ecc_bob_SOURCES = \
 gnunet_service_scalarproduct_ecc_bob_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/service/cadet/libgnunetcadet.la \
-  $(top_builddir)/src/seti/libgnunetseti.la \
+  $(top_builddir)/src/service/seti/libgnunetseti.la \
   $(LIBGCRYPT_LIBS) \
   -lsodium \
   -lgcrypt \

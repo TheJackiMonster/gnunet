@@ -19,5 +19,7 @@ SUBDIRS = \
 	dht \
   namecache \
   namestore \
-  regex \
-	cadet
+	cadet \
+  seti \
+  setu \
+  regex

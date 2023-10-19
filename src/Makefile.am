@@ -17,8 +17,6 @@ SUBDIRS = \
 	rest-plugin \
 	cli \
 	contrib \
-  seti \
-  setu \
   revocation \
   vpn \
   gns \

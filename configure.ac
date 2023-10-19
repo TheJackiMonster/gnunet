@@ -1275,6 +1275,10 @@ src/service/peerstore/peerstore.conf
 src/service/regex/Makefile
 src/service/regex/regex.conf
 src/service/rest/Makefile
+src/service/seti/Makefile
+src/service/seti/seti.conf
+src/service/setu/Makefile
+src/service/setu/setu.conf
 src/service/statistics/Makefile
 src/service/statistics/statistics.conf
 src/service/testing/Makefile
@@ -1329,10 +1333,6 @@ src/include/gnunet_config.h
 src/pt/Makefile
 src/revocation/Makefile
 src/revocation/revocation.conf
-src/seti/Makefile
-src/seti/seti.conf
-src/setu/Makefile
-src/setu/setu.conf
 src/vpn/Makefile
 src/vpn/vpn.conf
 src/zonemaster/Makefile
