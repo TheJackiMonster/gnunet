@@ -23,7 +23,7 @@ gnunet_daemon_pt_LDADD = \
   $(top_builddir)/src/vpn/libgnunetvpn.la \
   $(top_builddir)/src/service/cadet/libgnunetcadet.la \
   $(top_builddir)/src/service/dht/libgnunetdht.la \
-  $(top_builddir)/src/dns/libgnunetdns.la \
+  $(top_builddir)/src/service/dns/libgnunetdns.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)

@@ -1253,6 +1253,8 @@ src/service/datastore/Makefile
 src/service/datastore/datastore.conf
 src/service/dht/Makefile
 src/service/dht/dht.conf
+src/service/dns/Makefile
+src/service/dns/dns.conf
 src/service/hostlist/Makefile
 src/service/identity/Makefile
 src/service/identity/identity.conf
@@ -1264,6 +1266,8 @@ src/service/nse/Makefile
 src/service/nse/nse.conf
 src/service/peerstore/Makefile
 src/service/peerstore/peerstore.conf
+src/service/regex/Makefile
+src/service/regex/regex.conf
 src/service/rest/Makefile
 src/service/statistics/Makefile
 src/service/statistics/statistics.conf
@@ -1299,8 +1303,6 @@ src/consensus/Makefile
 src/consensus/consensus.conf
 src/conversation/Makefile
 src/conversation/conversation.conf
-src/dns/Makefile
-src/dns/dns.conf
 src/exit/Makefile
 src/fs/Makefile
 src/fs/fs.conf
@@ -1315,8 +1317,6 @@ src/namecache/namecache.conf
 src/namestore/Makefile
 src/namestore/namestore.conf
 src/pt/Makefile
-src/regex/Makefile
-src/regex/regex.conf
 src/revocation/Makefile
 src/revocation/revocation.conf
 src/secretsharing/Makefile

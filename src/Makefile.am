@@ -17,8 +17,6 @@ SUBDIRS = \
 	rest-plugin \
 	cli \
 	contrib \
-  regex \
-  dns \
   namecache \
   namestore \
   set \

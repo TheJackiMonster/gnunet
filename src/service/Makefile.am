@@ -11,9 +11,11 @@ SUBDIRS = \
 	nse \
   hostlist \
   topology \
+  dns \
 	identity \
 	rest \
 	datacache \
 	datastore \
 	dht \
+  regex \
 	cadet
