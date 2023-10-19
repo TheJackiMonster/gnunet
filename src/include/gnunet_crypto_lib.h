@@ -669,12 +669,24 @@ struct GNUNET_CRYPTO_CsSignature
 
 
 /**
- * Nonce
+ * Nonce for the session, picked by client,
+ * shared with the signer.
  */
-struct GNUNET_CRYPTO_CsNonce
+struct GNUNET_CRYPTO_CsSessionNonce
 {
   /*a nonce*/
-  unsigned char nonce[256 / 8];
+  unsigned char snonce[256 / 8];
+};
+
+
+/**
+ * Nonce for computing blinding factors. Not
+ * shared with the signer.
+ */
+struct GNUNET_CRYPTO_CsBlindingNonce
+{
+  /*a nonce*/
+  unsigned char bnonce[256 / 8];
 };
 
 
@@ -3100,7 +3112,7 @@ GNUNET_CRYPTO_cs_private_key_get_public (
  */
 void
 GNUNET_CRYPTO_cs_r_derive (
-  const struct GNUNET_CRYPTO_CsNonce *nonce,
+  const struct GNUNET_CRYPTO_CsSessionNonce *nonce,
   const char *seed,
   const struct GNUNET_CRYPTO_CsPrivateKey *lts,
   struct GNUNET_CRYPTO_CsRSecret r[2]);
@@ -3121,16 +3133,16 @@ GNUNET_CRYPTO_cs_r_get_public (
 /**
  * Derives new random blinding factors.
  * In original papers blinding factors are generated randomly
- * To provide abort-idempotency, blinding factors need to be derived but still need to be UNPREDICTABLE
+ * To provide abort-idempotency, blinding factors need to be derived but still need to be UNPREDICTABLE.
  * To ensure unpredictability a new nonce has to be used.
- * Uses HKDF internally
+ * Uses HKDF internally.
  *
  * @param blind_seed is the blinding seed to derive blinding factors
  * @param[out] bs array containing the two derived blinding secrets
  */
 void
 GNUNET_CRYPTO_cs_blinding_secrets_derive (
-  const struct GNUNET_CRYPTO_CsNonce *blind_seed,
+  const struct GNUNET_CRYPTO_CsBlindingNonce *blind_seed,
   struct GNUNET_CRYPTO_CsBlindingSecret bs[2]);
 
 
@@ -3146,9 +3158,9 @@ struct GNUNET_CRYPTO_CsBlindedMessage
   struct GNUNET_CRYPTO_CsC c[2];
 
   /**
-   * Public nonce.
+   * Public nonce used to generate the R-values.
    */
-  struct GNUNET_CRYPTO_CsNonce nonce;
+  struct GNUNET_CRYPTO_CsSessionNonce nonce;
 };
 
 
@@ -3663,11 +3675,9 @@ GNUNET_CRYPTO_blind_sign_keys_create (
 union GNUNET_CRYPTO_BlindingSecretP
 {
   /**
-   * Clause Schnorr nonce. FIXME: probably should have
-   * a different type than the nonce we send over the
-   * network!!!
+   * Clause Schnorr nonce. 
    */
-  struct GNUNET_CRYPTO_CsNonce nonce;
+  struct GNUNET_CRYPTO_CsBlindingNonce nonce;
 
   /**
    * Variant for RSA for blind signatures.

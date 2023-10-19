@@ -75,7 +75,7 @@ map_to_scalar_subgroup (struct GNUNET_CRYPTO_Cs25519Scalar *scalar)
 
 
 void
-GNUNET_CRYPTO_cs_r_derive (const struct GNUNET_CRYPTO_CsNonce *nonce,
+GNUNET_CRYPTO_cs_r_derive (const struct GNUNET_CRYPTO_CsSessionNonce *nonce,
                            const char *seed,
                            const struct GNUNET_CRYPTO_CsPrivateKey *lts,
                            struct GNUNET_CRYPTO_CsRSecret r[2])
@@ -84,7 +84,7 @@ GNUNET_CRYPTO_cs_r_derive (const struct GNUNET_CRYPTO_CsNonce *nonce,
     GNUNET_YES ==
     GNUNET_CRYPTO_kdf (
       r,     sizeof (struct GNUNET_CRYPTO_CsRSecret) * 2,
-      seed,   strlen (seed),
+      seed,  strlen (seed),
       lts,   sizeof (*lts),
       nonce, sizeof (*nonce),
       NULL,  0));
@@ -97,14 +97,15 @@ void
 GNUNET_CRYPTO_cs_r_get_public (const struct GNUNET_CRYPTO_CsRSecret *r_priv,
                                struct GNUNET_CRYPTO_CsRPublic *r_pub)
 {
-  GNUNET_assert (0 == crypto_scalarmult_ed25519_base_noclamp (r_pub->point.y,
-                                                              r_priv->scalar.d));
+  GNUNET_assert (0 ==
+                 crypto_scalarmult_ed25519_base_noclamp (r_pub->point.y,
+                                                         r_priv->scalar.d));
 }
 
 
 void
 GNUNET_CRYPTO_cs_blinding_secrets_derive (
-  const struct GNUNET_CRYPTO_CsNonce *blind_seed,
+  const struct GNUNET_CRYPTO_CsBlindingNonce *blind_seed,
   struct GNUNET_CRYPTO_CsBlindingSecret bs[2])
 {
   GNUNET_assert (

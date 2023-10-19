@@ -90,7 +90,7 @@ test_generate_pub (const struct GNUNET_CRYPTO_CsPrivateKey *priv,
 
 
 static void
-test_derive_rsecret (const struct GNUNET_CRYPTO_CsNonce *nonce,
+test_derive_rsecret (const struct GNUNET_CRYPTO_CsSessionNonce *nonce,
                      const struct GNUNET_CRYPTO_CsPrivateKey *priv,
                      struct GNUNET_CRYPTO_CsRSecret r[2])
 {
@@ -169,7 +169,7 @@ test_generate_rpublic (const struct GNUNET_CRYPTO_CsRSecret *r_priv,
 
 
 static void
-test_derive_blindingsecrets (const struct GNUNET_CRYPTO_CsNonce *blind_seed,
+test_derive_blindingsecrets (const struct GNUNET_CRYPTO_CsBlindingNonce *blind_seed,
                              struct GNUNET_CRYPTO_CsBlindingSecret bs[2])
 {
   /* TEST 1
@@ -513,11 +513,11 @@ main (int argc,
   test_generate_pub (&priv,
                      &pub);
 
-  // derive nonce
-  struct GNUNET_CRYPTO_CsNonce nonce;
+  // set nonce
+  struct GNUNET_CRYPTO_CsSessionNonce nonce;
   GNUNET_assert (GNUNET_YES ==
-                 GNUNET_CRYPTO_kdf (nonce.nonce,
-                                    sizeof(nonce.nonce),
+                 GNUNET_CRYPTO_kdf (&nonce,
+                                    sizeof(nonce),
                                     "nonce",
                                     strlen ("nonce"),
                                     "nonce_secret",
@@ -549,11 +549,15 @@ main (int argc,
 
   // generate blinding secrets
   struct GNUNET_CRYPTO_CsBlindingSecret blindingsecrets[2];
+  struct GNUNET_CRYPTO_CsBlindingNonce bnonce;
 
+  memset (&bnonce,
+          42,
+          sizeof (bnonce));
   memset (blindingsecrets,
           42,
           sizeof (blindingsecrets));
-  test_derive_blindingsecrets (&nonce,
+  test_derive_blindingsecrets (&bnonce,
                                blindingsecrets);
 
   // calculate blinded c's
