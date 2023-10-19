@@ -80,7 +80,7 @@
 /**
  * The configuration handle
  */
-const struct GNUNET_CONFIGURATION_Handle *cfg;
+const struct GNUNET_CONFIGURATION_Handle *rcfg;
 
 /**
  * HTTP methods allows for this plugin
@@ -317,7 +317,8 @@ do_error (void *cls)
     handle->response_code = MHD_HTTP_BAD_REQUEST;
   }
   resp = GNUNET_REST_create_response (json_error);
-  GNUNET_assert (MHD_NO != MHD_add_response_header (resp, "Content-Type", "application/json"));
+  GNUNET_assert (MHD_NO != MHD_add_response_header (resp, "Content-Type",
+                                                    "application/json"));
   handle->proc (handle->proc_cls, resp, handle->response_code);
   cleanup_handle (handle);
   GNUNET_free (json_error);
@@ -1316,7 +1317,9 @@ options_cont (struct GNUNET_REST_RequestHandle *con_handle,
 
   // For now, independent of path return all options
   resp = GNUNET_REST_create_response (NULL);
-  GNUNET_assert (MHD_NO != MHD_add_response_header (resp, "Access-Control-Allow-Methods", allow_methods));
+  GNUNET_assert (MHD_NO != MHD_add_response_header (resp,
+                                                    "Access-Control-Allow-Methods",
+                                                    allow_methods));
   handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
   cleanup_handle (handle);
   return;
@@ -1431,10 +1434,10 @@ list_ego (void *cls,
 }
 
 
-static enum GNUNET_GenericReturnValue
-rest_identity_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
-                               GNUNET_REST_ResultProcessor proc,
-                               void *proc_cls)
+enum GNUNET_GenericReturnValue
+REST_reclaim_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
+                              GNUNET_REST_ResultProcessor proc,
+                              void *proc_cls)
 {
   struct RequestHandle *handle = GNUNET_new (struct RequestHandle);
   struct GNUNET_REST_RequestHandlerError err;
@@ -1492,20 +1495,19 @@ rest_identity_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
  * @return NULL on error, otherwise the plugin context
  */
 void *
-libgnunet_plugin_rest_reclaim_init (void *cls)
+REST_reclaim_init (struct GNUNET_CONFIGURATION_Handle *c)
 {
   static struct Plugin plugin;
   struct GNUNET_REST_Plugin *api;
 
-  cfg = cls;
+  rcfg = c;
   if (NULL != plugin.cfg)
     return NULL; /* can only initialize once! */
   memset (&plugin, 0, sizeof(struct Plugin));
-  plugin.cfg = cfg;
+  plugin.cfg = rcfg;
   api = GNUNET_new (struct GNUNET_REST_Plugin);
   api->cls = &plugin;
   api->name = GNUNET_REST_API_NS_RECLAIM;
-  api->process_request = &rest_identity_process_request;
   GNUNET_asprintf (&allow_methods,
                    "%s, %s, %s, %s, %s",
                    MHD_HTTP_METHOD_GET,
@@ -1513,9 +1515,9 @@ libgnunet_plugin_rest_reclaim_init (void *cls)
                    MHD_HTTP_METHOD_PUT,
                    MHD_HTTP_METHOD_DELETE,
                    MHD_HTTP_METHOD_OPTIONS);
-  identity_handle = GNUNET_IDENTITY_connect (cfg, &list_ego, NULL);
+  identity_handle = GNUNET_IDENTITY_connect (rcfg, &list_ego, NULL);
   state = ID_REST_STATE_INIT;
-  idp = GNUNET_RECLAIM_connect (cfg);
+  idp = GNUNET_RECLAIM_connect (rcfg);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               _ ("Identity Provider REST API initialized\n"));
   return api;
@@ -1529,9 +1531,8 @@ libgnunet_plugin_rest_reclaim_init (void *cls)
  * @return always NULL
  */
 void *
-libgnunet_plugin_rest_reclaim_done (void *cls)
+REST_reclaim_done (struct GNUNET_REST_Plugin *api)
 {
-  struct GNUNET_REST_Plugin *api = cls;
   struct Plugin *plugin = api->cls;
   struct RequestHandle *request;
   struct EgoEntry *ego_entry;

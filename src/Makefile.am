@@ -7,6 +7,5 @@ SUBDIRS = \
   lib \
 	plugin \
 	service \
-	rest-plugin \
 	cli \
 	contrib

@@ -1,6 +1,16 @@
 libgnunetrest_src = ['rest.c']
 
-gnunetservicerest_src = ['gnunet-rest-server.c']
+gnunetservicerest_src = ['gnunet-rest-server.c',
+                         'config_plugin.c',
+                         'copying_plugin.c',
+                         'identity_plugin.c',
+                         'namestore_plugin.c',
+                         'gns_plugin.c',
+                         'openid_plugin.c',
+                         'oidc_helper.c',
+                         'json_reclaim.c',
+                         'reclaim_plugin.c',
+                         ]
 
 configure_file(input : 'rest.conf',
                output : 'rest.conf',
@@ -30,7 +40,19 @@ libgnunetrest_dep = declare_dependency(link_with : libgnunetrest)
 
 executable ('gnunet-rest-server',
             gnunetservicerest_src,
-            dependencies: [libgnunetrest_dep, libgnunetutil_dep, mhd_dep],
+            dependencies: [libgnunetrest_dep,
+                           libgnunetutil_dep,
+                           libgnunetidentity_dep,
+                           libgnunetgns_dep,
+                           libgnunetreclaim_dep,
+                           libgnunetnamestore_dep,
+                           libgnunetjson_dep,
+                           libgnunetgnsrecord_dep,
+                           libgnunetgnsrecordjson_dep,
+                           json_dep,
+                           jose_dep,
+                           gcrypt_dep,
+                           mhd_dep],
             include_directories: [incdir, configuration_inc],
             install: true,
             install_dir: get_option('libdir') / 'gnunet' / 'libexec')

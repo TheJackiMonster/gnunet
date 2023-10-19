@@ -31,7 +31,7 @@
 #define GNUNET_REST_API_NS_COPYING "/copying"
 
 #define GNUNET_REST_COPYING_TEXT \
-  "GNU Affero General Public License version 3 or later. See also: <http://www.gnu.org/licenses/>"
+        "GNU Affero General Public License version 3 or later. See also: <http://www.gnu.org/licenses/>"
 
 /**
  * @brief struct returned by the initialization function of the plugin
@@ -40,8 +40,6 @@ struct Plugin
 {
   const struct GNUNET_CONFIGURATION_Handle *cfg;
 };
-
-const struct GNUNET_CONFIGURATION_Handle *cfg;
 
 struct RequestHandle
 {
@@ -159,8 +157,9 @@ options_cont (struct GNUNET_REST_RequestHandle *con_handle,
  * @param proc_cls closure for @a proc
  * @return #GNUNET_OK if request accepted
  */
-static enum GNUNET_GenericReturnValue
-rest_copying_process_request (struct GNUNET_REST_RequestHandle *conndata_handle,
+enum GNUNET_GenericReturnValue
+REST_copying_process_request (void *plugin,
+                              struct GNUNET_REST_RequestHandle *conndata_handle,
                               GNUNET_REST_ResultProcessor proc,
                               void *proc_cls)
 {
@@ -191,22 +190,20 @@ rest_copying_process_request (struct GNUNET_REST_RequestHandle *conndata_handle,
  * @param cls the "struct GNUNET_NAMESTORE_PluginEnvironment*"
  * @return NULL on error, otherwise the plugin context
  */
-void *
-libgnunet_plugin_rest_copying_init (void *cls)
+void*
+REST_copying_init (const struct GNUNET_CONFIGURATION_Handle *c)
 {
   static struct Plugin plugin;
 
-  cfg = cls;
   struct GNUNET_REST_Plugin *api;
 
   if (NULL != plugin.cfg)
     return NULL;                /* can only initialize once! */
   memset (&plugin, 0, sizeof(struct Plugin));
-  plugin.cfg = cfg;
+  plugin.cfg = c;
   api = GNUNET_new (struct GNUNET_REST_Plugin);
   api->cls = &plugin;
   api->name = GNUNET_REST_API_NS_COPYING;
-  api->process_request = &rest_copying_process_request;
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               _ ("COPYING REST API initialized\n"));
   return api;
@@ -219,10 +216,9 @@ libgnunet_plugin_rest_copying_init (void *cls)
  * @param cls the plugin context (as returned by "init")
  * @return always NULL
  */
-void *
-libgnunet_plugin_rest_copying_done (void *cls)
+void
+REST_copying_done (struct GNUNET_REST_Plugin *api)
 {
-  struct GNUNET_REST_Plugin *api = cls;
   struct Plugin *plugin = api->cls;
 
   while (NULL != requests_head)
@@ -231,7 +227,6 @@ libgnunet_plugin_rest_copying_done (void *cls)
   GNUNET_free (api);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "COPYING REST plugin is finished\n");
-  return NULL;
 }
 
 

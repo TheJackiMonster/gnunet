@@ -106,7 +106,7 @@
 /**
  * The configuration handle
  */
-const struct GNUNET_CONFIGURATION_Handle *cfg;
+const struct GNUNET_CONFIGURATION_Handle *id_cfg;
 
 /**
  * HTTP methods allows for this plugin
@@ -921,6 +921,7 @@ ego_delete_name (struct GNUNET_REST_RequestHandle *con_handle,
                                        handle);
 }
 
+
 struct ego_sign_data_cls
 {
   void *data;
@@ -952,10 +953,10 @@ ego_sign_data_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
     return;
   }
 
-  if ( GNUNET_OK != GNUNET_CRYPTO_eddsa_sign_raw (&(ego->pk.eddsa_key),
-                                                  (void *) data,
-                                                  strlen ( (char*) data),
-                                                  &sig))
+  if (GNUNET_OK != GNUNET_CRYPTO_eddsa_sign_raw (&(ego->pk.eddsa_key),
+                                                 (void *) data,
+                                                 strlen ( (char*) data),
+                                                 &sig))
   {
     handle->ec = GNUNET_EC_UNKNOWN;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
@@ -979,6 +980,7 @@ ego_sign_data_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   free (cls);
   GNUNET_SCHEDULER_add_now (&cleanup_handle, handle);
 }
+
 
 /**
  *
@@ -1030,11 +1032,12 @@ ego_sign_data (struct GNUNET_REST_RequestHandle *con_handle,
   cls2->data = (void *) GNUNET_strdup (data);
   cls2->handle = handle;
 
-  GNUNET_IDENTITY_ego_lookup (cfg,
+  GNUNET_IDENTITY_ego_lookup (id_cfg,
                               username,
                               ego_sign_data_cb,
                               cls2);
 }
+
 
 /**
  * Respond to OPTIONS request
@@ -1155,10 +1158,11 @@ list_ego (void *cls,
  * @param proc_cls closure for callback function
  * @return GNUNET_OK if request accepted
  */
-static enum GNUNET_GenericReturnValue
-rest_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
-                      GNUNET_REST_ResultProcessor proc,
-                      void *proc_cls)
+enum GNUNET_GenericReturnValue
+REST_identity_process_request (void* plugin,
+                               struct GNUNET_REST_RequestHandle *rest_handle,
+                               GNUNET_REST_ResultProcessor proc,
+                               void *proc_cls)
 {
   struct RequestHandle *handle = GNUNET_new (struct RequestHandle);
   struct GNUNET_REST_RequestHandlerError err;
@@ -1218,20 +1222,19 @@ rest_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
  * @return NULL on error, otherwise the plugin context
  */
 void *
-libgnunet_plugin_rest_identity_init (void *cls)
+REST_identity_init (const struct GNUNET_CONFIGURATION_Handle *c)
 {
   static struct Plugin plugin;
   struct GNUNET_REST_Plugin *api;
 
-  cfg = cls;
+  id_cfg = c;
   if (NULL != plugin.cfg)
     return NULL; /* can only initialize once! */
   memset (&plugin, 0, sizeof(struct Plugin));
-  plugin.cfg = cfg;
+  plugin.cfg = c;
   api = GNUNET_new (struct GNUNET_REST_Plugin);
   api->cls = &plugin;
   api->name = GNUNET_REST_API_NS_IDENTITY;
-  api->process_request = &rest_process_request;
   GNUNET_asprintf (&allow_methods,
                    "%s, %s, %s, %s, %s",
                    MHD_HTTP_METHOD_GET,
@@ -1240,7 +1243,7 @@ libgnunet_plugin_rest_identity_init (void *cls)
                    MHD_HTTP_METHOD_DELETE,
                    MHD_HTTP_METHOD_OPTIONS);
   state = ID_REST_STATE_INIT;
-  identity_handle = GNUNET_IDENTITY_connect (cfg, &list_ego, NULL);
+  identity_handle = GNUNET_IDENTITY_connect (id_cfg, &list_ego, NULL);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, _ ("Identity REST API initialized\n"));
   return api;
@@ -1253,10 +1256,9 @@ libgnunet_plugin_rest_identity_init (void *cls)
  * @param cls the plugin context (as returned by "init")
  * @return always NULL
  */
-void *
-libgnunet_plugin_rest_identity_done (void *cls)
+void
+REST_identity_done (struct GNUNET_REST_Plugin *api)
 {
-  struct GNUNET_REST_Plugin *api = cls;
   struct Plugin *plugin = api->cls;
   struct EgoEntry *ego_entry;
   struct EgoEntry *ego_tmp;
@@ -1279,7 +1281,6 @@ libgnunet_plugin_rest_identity_done (void *cls)
   GNUNET_free (allow_methods);
   GNUNET_free (api);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Identity REST plugin is finished\n");
-  return NULL;
 }
 
 

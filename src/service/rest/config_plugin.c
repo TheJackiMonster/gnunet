@@ -40,7 +40,7 @@ struct Plugin
   const struct GNUNET_CONFIGURATION_Handle *cfg;
 };
 
-const struct GNUNET_CONFIGURATION_Handle *cfg;
+const struct GNUNET_CONFIGURATION_Handle *config_cfg;
 
 struct RequestHandle
 {
@@ -78,6 +78,7 @@ struct RequestHandle
    * The URL
    */
   char *url;
+
 };
 
 /**
@@ -184,13 +185,13 @@ get_cont (struct GNUNET_REST_RequestHandle *con_handle,
   if (strlen (GNUNET_REST_API_NS_CONFIG) == strlen (handle->url))
   {
     result = json_object ();
-    GNUNET_CONFIGURATION_iterate (cfg, &add_sections, result);
+    GNUNET_CONFIGURATION_iterate (config_cfg, &add_sections, result);
   }
   else
   {
     result = json_object ();
     section = &handle->url[strlen (GNUNET_REST_API_NS_CONFIG) + 1];
-    GNUNET_CONFIGURATION_iterate_section_values (cfg,
+    GNUNET_CONFIGURATION_iterate_section_values (config_cfg,
                                                  section,
                                                  &add_section_contents,
                                                  result);
@@ -243,7 +244,7 @@ set_cont (struct GNUNET_REST_RequestHandle *con_handle,
 {
   struct RequestHandle *handle = cls;
   char term_data[handle->rest_handle->data_size + 1];
-  struct GNUNET_CONFIGURATION_Handle *out = GNUNET_CONFIGURATION_dup (cfg);
+  struct GNUNET_CONFIGURATION_Handle *out = GNUNET_CONFIGURATION_dup (config_cfg);
 
   json_error_t err;
   json_t *data_json;
@@ -330,7 +331,7 @@ set_cont (struct GNUNET_REST_RequestHandle *con_handle,
     cfg_fn = GNUNET_strdup (GNUNET_OS_project_data_get ()->user_config_file);
 
   GNUNET_CONFIGURATION_write (out, cfg_fn);
-  cfg = out;
+  config_cfg = out;
   handle->proc (handle->proc_cls,
                 GNUNET_REST_create_response (NULL),
                 MHD_HTTP_OK);
@@ -361,19 +362,9 @@ options_cont (struct GNUNET_REST_RequestHandle *con_handle,
 }
 
 
-/**
- * Function processing the REST call
- *
- * @param method HTTP method
- * @param url URL of the HTTP request
- * @param data body of the HTTP request (optional)
- * @param data_size length of the body
- * @param proc callback function for the result
- * @param proc_cls closure for @a proc
- * @return #GNUNET_OK if request accepted
- */
-static enum GNUNET_GenericReturnValue
-rest_config_process_request (struct GNUNET_REST_RequestHandle *conndata_handle,
+enum GNUNET_GenericReturnValue
+REST_config_process_request (void *plugin,
+                             struct GNUNET_REST_RequestHandle *conndata_handle,
                              GNUNET_REST_ResultProcessor proc,
                              void *proc_cls)
 {
@@ -383,6 +374,7 @@ rest_config_process_request (struct GNUNET_REST_RequestHandle *conndata_handle,
     { MHD_HTTP_METHOD_OPTIONS, GNUNET_REST_API_NS_CONFIG, &options_cont },
     GNUNET_REST_HANDLER_END
   };
+  (void) plugin;
   struct RequestHandle *handle = GNUNET_new (struct RequestHandle);
   struct GNUNET_REST_RequestHandlerError err;
 
@@ -404,42 +396,9 @@ rest_config_process_request (struct GNUNET_REST_RequestHandle *conndata_handle,
   return GNUNET_YES;
 }
 
-
-/**
- * Entry point for the plugin.
- *
- * @param cls the "struct GNUNET_NAMESTORE_PluginEnvironment*"
- * @return NULL on error, otherwise the plugin context
- */
-void *
-libgnunet_plugin_rest_config_init (void *cls)
+void
+REST_config_done (struct GNUNET_REST_Plugin *api)
 {
-  static struct Plugin plugin;
-
-  cfg = cls;
-  struct GNUNET_REST_Plugin *api;
-
-  memset (&plugin, 0, sizeof(struct Plugin));
-  plugin.cfg = cfg;
-  api = GNUNET_new (struct GNUNET_REST_Plugin);
-  api->cls = &plugin;
-  api->name = GNUNET_REST_API_NS_CONFIG;
-  api->process_request = &rest_config_process_request;
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO, _ ("CONFIG REST API initialized\n"));
-  return api;
-}
-
-
-/**
- * Exit point from the plugin.
- *
- * @param cls the plugin context (as returned by "init")
- * @return always NULL
- */
-void *
-libgnunet_plugin_rest_config_done (void *cls)
-{
-  struct GNUNET_REST_Plugin *api = cls;
   struct Plugin *plugin;
 
   while (NULL != requests_head)
@@ -448,8 +407,32 @@ libgnunet_plugin_rest_config_done (void *cls)
   plugin->cfg = NULL;
   GNUNET_free (api);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "CONFIG REST plugin is finished\n");
-  return NULL;
 }
+
+
+/**
+ * Entry point for the plugin.
+ *
+ * @param cls the "struct GNUNET_NAMESTORE_PluginEnvironment*"
+ * @return NULL on error, otherwise the plugin context
+ */
+void *
+REST_config_init (const struct GNUNET_CONFIGURATION_Handle *c)
+{
+  static struct Plugin plugin;
+
+  config_cfg = c;
+  struct GNUNET_REST_Plugin *api;
+
+  memset (&plugin, 0, sizeof(struct Plugin));
+  plugin.cfg = c;
+  api = GNUNET_new (struct GNUNET_REST_Plugin);
+  api->cls = &plugin;
+  api->name = GNUNET_REST_API_NS_CONFIG;
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO, _ ("CONFIG REST API initialized\n"));
+  return api;
+}
+
 
 
 /* end of plugin_rest_config.c */

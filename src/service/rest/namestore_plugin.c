@@ -57,7 +57,7 @@
 /**
  * The configuration handle
  */
-const struct GNUNET_CONFIGURATION_Handle *cfg;
+const struct GNUNET_CONFIGURATION_Handle *ns_cfg;
 
 /**
  * HTTP methods allows for this plugin
@@ -333,7 +333,7 @@ do_error (void *cls)
   struct MHD_Response *resp;
   json_t *json_error = json_object ();
   char *response;
-  const char* emsg;
+  const char*emsg;
   int response_code;
 
   emsg = GNUNET_ErrorCode_get_hint (handle->ec);
@@ -788,6 +788,7 @@ import_next_cb (void *cls, enum GNUNET_ErrorCode ec)
   handle->rd_set_pos += sent_rds;
 }
 
+
 static void
 bulk_tx_start (void *cls, enum GNUNET_ErrorCode ec)
 {
@@ -920,7 +921,7 @@ namestore_import (struct GNUNET_REST_RequestHandle *con_handle,
   handle->zone_pkey = GNUNET_IDENTITY_ego_get_private_key (ego_entry->ego);
 
   // We need a per-client connection for a transactional bulk import
-  handle->nc = GNUNET_NAMESTORE_connect (cfg);
+  handle->nc = GNUNET_NAMESTORE_connect (ns_cfg);
   if (NULL == handle->nc)
   {
     handle->ec = GNUNET_EC_NAMESTORE_UNKNOWN;
@@ -931,6 +932,7 @@ namestore_import (struct GNUNET_REST_RequestHandle *con_handle,
                                                       &bulk_tx_start,
                                                       handle);
 }
+
 
 /**
  * Handle namestore POST/PUT request
@@ -1238,10 +1240,11 @@ list_ego (void *cls,
  * @param proc_cls closure for callback function
  * @return GNUNET_OK if request accepted
  */
-static enum GNUNET_GenericReturnValue
-rest_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
-                      GNUNET_REST_ResultProcessor proc,
-                      void *proc_cls)
+enum GNUNET_GenericReturnValue
+REST_namestore_process_request (void *plugin,
+                                struct GNUNET_REST_RequestHandle *rest_handle,
+                                GNUNET_REST_ResultProcessor proc,
+                                void *proc_cls)
 {
   struct RequestHandle *handle = GNUNET_new (struct RequestHandle);
   struct GNUNET_REST_RequestHandlerError err;
@@ -1291,20 +1294,19 @@ rest_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
  * @return NULL on error, otherwise the plugin context
  */
 void *
-libgnunet_plugin_rest_namestore_init (void *cls)
+REST_namestore_init (const struct GNUNET_CONFIGURATION_Handle *c)
 {
   static struct Plugin plugin;
   struct GNUNET_REST_Plugin *api;
 
-  cfg = cls;
+  ns_cfg = c;
   if (NULL != plugin.cfg)
     return NULL;   /* can only initialize once! */
   memset (&plugin, 0, sizeof(struct Plugin));
-  plugin.cfg = cfg;
+  plugin.cfg = c;
   api = GNUNET_new (struct GNUNET_REST_Plugin);
   api->cls = &plugin;
   api->name = GNUNET_REST_API_NS_NAMESTORE;
-  api->process_request = &rest_process_request;
   state = ID_REST_STATE_INIT;
   GNUNET_asprintf (&allow_methods,
                    "%s, %s, %s, %s, %s",
@@ -1313,8 +1315,8 @@ libgnunet_plugin_rest_namestore_init (void *cls)
                    MHD_HTTP_METHOD_PUT,
                    MHD_HTTP_METHOD_DELETE,
                    MHD_HTTP_METHOD_OPTIONS);
-  ns_handle = GNUNET_NAMESTORE_connect (cfg);
-  identity_handle = GNUNET_IDENTITY_connect (cfg, &list_ego, NULL);
+  ns_handle = GNUNET_NAMESTORE_connect (ns_cfg);
+  identity_handle = GNUNET_IDENTITY_connect (ns_cfg, &list_ego, NULL);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, _ (
                 "Namestore REST API initialized\n"));
@@ -1328,10 +1330,9 @@ libgnunet_plugin_rest_namestore_init (void *cls)
  * @param cls the plugin context (as returned by "init")
  * @return always NULL
  */
-void *
-libgnunet_plugin_rest_namestore_done (void *cls)
+void
+REST_namestore_done (struct GNUNET_REST_Plugin *api)
 {
-  struct GNUNET_REST_Plugin *api = cls;
   struct Plugin *plugin = api->cls;
   struct RequestHandle *request;
   struct EgoEntry *ego_entry;
@@ -1357,7 +1358,6 @@ libgnunet_plugin_rest_namestore_done (void *cls)
   GNUNET_free (allow_methods);
   GNUNET_free (api);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Namestore REST plugin is finished\n");
-  return NULL;
 }
 
 

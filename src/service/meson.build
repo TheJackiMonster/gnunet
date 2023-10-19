@@ -2,7 +2,6 @@ subdir('util')
 subdir('arm')
 subdir('statistics')
 subdir('testing')
-subdir('rest')
 subdir('datacache')
 subdir('datastore')
 subdir('peerstore')
@@ -31,6 +30,7 @@ subdir('exit')
 subdir('pt')
 subdir('reclaim')
 subdir('messenger')
+subdir('rest')
 
 if not get_option('monolith')
   subdir_done()
@@ -44,6 +44,8 @@ libgnunet = library('gnunet',
                                    libgnunetblock_dep,
                                    libgnunetblockgroup_dep,
                                    libgnunetgnsrecord_dep,
+                                   libgnunetgnsrecordjson_dep,
+                                   jose_dep,
                                    libgnunetcurl_dep],
                     c_args: ['-DHAVE_GNUNET_MONOLITH=1'],
                     include_directories: [incdir, configuration_inc, exitdir])

@@ -13,7 +13,6 @@ SUBDIRS = \
   topology \
   dns \
 	identity \
-	rest \
 	datacache \
 	datastore \
 	dhtu \
@@ -32,5 +31,6 @@ SUBDIRS = \
 	exit \
 	pt \
 	reclaim \
-	messenger
+	messenger \
+	rest
 

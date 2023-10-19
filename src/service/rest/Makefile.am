@@ -25,9 +25,25 @@ EXTRA_DIST = \
  rest.conf
 
 gnunet_rest_server_SOURCES = \
- gnunet-rest-server.c
+ gnunet-rest-server.c \
+ config_plugin.c \
+ copying_plugin.c \
+ identity_plugin.c \
+ namestore_plugin.c \
+ gns_plugin.c \
+ openid_plugin.c \
+ oidc_helper.c \
+ reclaim_plugin.c json_reclaim.c
 gnunet_rest_server_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/json/libgnunetjson.la \
+  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecordjson.la \
+  $(top_builddir)/src/service/identity/libgnunetidentity.la \
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
+  $(top_builddir)/src/service/gns/libgnunetgns.la \
+  $(top_builddir)/src/service/reclaim/libgnunetreclaim.la \
+  libgnunetrest.la \
+	-ljose \
   $(GN_LIBINTL) $(MHD_LIBS)
 gnunet_rest_server_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
 

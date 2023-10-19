@@ -56,7 +56,7 @@
 /**
  * The configuration handle
  */
-const struct GNUNET_CONFIGURATION_Handle *cfg;
+const struct GNUNET_CONFIGURATION_Handle *gns_cfg;
 
 /**
  * HTTP methods allows for this plugin
@@ -221,7 +221,7 @@ do_error (void *cls)
   handle->proc (handle->proc_cls, resp, handle->response_code);
   json_decref (json_error);
   GNUNET_free (response);
-  cleanup_handle(handle);
+  cleanup_handle (handle);
 }
 
 
@@ -265,7 +265,8 @@ handle_gns_response (void *cls,
     return;
   }
 
-  result_obj = GNUNET_GNSRECORD_JSON_from_gnsrecord (handle->name, rd, rd_count);
+  result_obj = GNUNET_GNSRECORD_JSON_from_gnsrecord (handle->name, rd,
+                                                     rd_count);
 
   result = json_dumps (result_obj, 0);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Result %s\n", result);
@@ -381,10 +382,11 @@ options_cont (struct GNUNET_REST_RequestHandle *con_handle,
  * @param proc_cls closure for callback function
  * @return GNUNET_OK if request accepted
  */
-static enum GNUNET_GenericReturnValue
-rest_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
-                      GNUNET_REST_ResultProcessor proc,
-                      void *proc_cls)
+enum GNUNET_GenericReturnValue
+REST_gns_process_request (void *plugin,
+                          struct GNUNET_REST_RequestHandle *rest_handle,
+                          GNUNET_REST_ResultProcessor proc,
+                          void *proc_cls)
 {
   struct RequestHandle *handle = GNUNET_new (struct RequestHandle);
   struct GNUNET_REST_RequestHandlerError err;
@@ -426,18 +428,17 @@ rest_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
  * @return NULL on error, otherwise the plugin context
  */
 void *
-libgnunet_plugin_rest_gns_init (void *cls)
+REST_gns_init (const struct GNUNET_CONFIGURATION_Handle *c)
 {
   static struct Plugin plugin;
   struct GNUNET_REST_Plugin *api;
 
-  cfg = cls;
+  gns_cfg = c;
   memset (&plugin, 0, sizeof(struct Plugin));
-  plugin.cfg = cfg;
+  plugin.cfg = gns_cfg;
   api = GNUNET_new (struct GNUNET_REST_Plugin);
   api->cls = &plugin;
   api->name = GNUNET_REST_API_NS_GNS;
-  api->process_request = &rest_process_request;
   GNUNET_asprintf (&allow_methods,
                    "%s, %s, %s, %s, %s",
                    MHD_HTTP_METHOD_GET,
@@ -445,7 +446,7 @@ libgnunet_plugin_rest_gns_init (void *cls)
                    MHD_HTTP_METHOD_PUT,
                    MHD_HTTP_METHOD_DELETE,
                    MHD_HTTP_METHOD_OPTIONS);
-  gns = GNUNET_GNS_connect (cfg);
+  gns = GNUNET_GNS_connect (gns_cfg);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, _ ("Gns REST API initialized\n"));
   return api;
@@ -459,7 +460,7 @@ libgnunet_plugin_rest_gns_init (void *cls)
  * @return always NULL
  */
 void *
-libgnunet_plugin_rest_gns_done (void *cls)
+REST_gns_done (void *cls)
 {
   struct GNUNET_REST_Plugin *api = cls;
   struct RequestHandle *request;

@@ -242,7 +242,7 @@
  * How long to wait for a consume in userinfo endpoint
  */
 #define CONSUME_TIMEOUT GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_SECONDS,2)
+          GNUNET_TIME_UNIT_SECONDS,2)
 
 /**
  * OIDC ignored parameter array
@@ -268,7 +268,7 @@ struct GNUNET_CONTAINER_MultiHashMap *OIDC_cookie_jar_map;
 /**
  * The configuration handle
  */
-const struct GNUNET_CONFIGURATION_Handle *cfg;
+const struct GNUNET_CONFIGURATION_Handle *oid_cfg;
 
 /**
  * HTTP methods allows for this plugin
@@ -905,6 +905,7 @@ read_jwk_from_file (const char *filename)
   return jwk;
 }
 
+
 /**
  * @brief Write the JWK to file. If unsuccessful emit warning
  *
@@ -927,6 +928,7 @@ write_jwk_to_file (const char *filename,
     return GNUNET_OK;
 }
 
+
 /**
  * @brief Generate a new RSA JSON Web Key
  *
@@ -942,6 +944,7 @@ generate_jwk ()
   return jwk;
 }
 
+
 /**
  * Return the path to the oidc directory path
  *
@@ -954,7 +957,7 @@ get_oidc_dir_path (void *cls)
   struct RequestHandle *handle = cls;
 
   // Read OIDC directory from config
-  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_filename (cfg,
+  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_filename (oid_cfg,
                                                             "reclaim-rest-plugin",
                                                             "oidc_dir",
                                                             &oidc_directory))
@@ -969,6 +972,7 @@ get_oidc_dir_path (void *cls)
 
   return oidc_directory;
 }
+
 
 /**
  * Return the path to the RSA JWK key file
@@ -1004,7 +1008,7 @@ login_redirect (void *cls)
   struct GNUNET_Buffer buf = { 0 };
   struct RequestHandle *handle = cls;
 
-  if (GNUNET_OK == GNUNET_CONFIGURATION_get_value_string (cfg,
+  if (GNUNET_OK == GNUNET_CONFIGURATION_get_value_string (oid_cfg,
                                                           "reclaim-rest-plugin",
                                                           "address",
                                                           &login_base_url))
@@ -1451,8 +1455,8 @@ code_redirect (void *cls)
     {
       if (GNUNET_OK !=
           GNUNET_CRYPTO_public_key_from_string (handle->oidc
-                                                  ->login_identity,
-                                                  &pubkey))
+                                                ->login_identity,
+                                                &pubkey))
       {
         handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_COOKIE);
         handle->edesc =
@@ -1833,7 +1837,7 @@ authorize_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
 
   if (GNUNET_OK !=
       GNUNET_CRYPTO_public_key_from_string (handle->oidc->client_id,
-                                              &handle->oidc->client_pkey))
+                                            &handle->oidc->client_pkey))
   {
     handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_UNAUTHORIZED_CLIENT);
     handle->edesc = GNUNET_strdup ("The client is not authorized to request an "
@@ -1856,7 +1860,8 @@ authorize_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     }
   }
   if (NULL == handle->tld)
-    GNUNET_CONFIGURATION_iterate_section_values (cfg, "gns", tld_iter, handle);
+    GNUNET_CONFIGURATION_iterate_section_values (oid_cfg, "gns", tld_iter,
+                                                 handle);
   if (NULL == handle->tld)
     handle->tld = GNUNET_strdup (handle->oidc->client_id);
   GNUNET_SCHEDULER_add_now (&build_authz_response, handle);
@@ -2085,7 +2090,7 @@ check_authorization (struct RequestHandle *handle,
   }
 
   // check client password
-  if (GNUNET_OK == GNUNET_CONFIGURATION_get_value_string (cfg,
+  if (GNUNET_OK == GNUNET_CONFIGURATION_get_value_string (oid_cfg,
                                                           "reclaim-rest-plugin",
                                                           "OIDC_CLIENT_HMAC_SECRET",
                                                           &expected_pass))
@@ -2277,7 +2282,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     GNUNET_free (code_verifier);
 
   // create jwt
-  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_time (cfg,
+  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_time (oid_cfg,
                                                         "reclaim-rest-plugin",
                                                         "expiration_time",
                                                         &expiration_time))
@@ -2295,7 +2300,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   }
 
   // Check if HMAC or RSA should be used
-  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_string (cfg,
+  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_string (oid_cfg,
                                                           "reclaim-rest-plugin",
                                                           "oidc_json_web_algorithm",
                                                           &jwa))
@@ -2306,7 +2311,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     jwa = JWT_ALG_VALUE_RSA;
   }
 
-  if ( ! strcmp (jwa, JWT_ALG_VALUE_RSA))
+  if (! strcmp (jwa, JWT_ALG_VALUE_RSA))
   {
     // Replace for now
     oidc_jwk_path = get_oidc_jwk_path (cls);
@@ -2341,10 +2346,10 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
                                            (NULL != nonce) ? nonce : NULL,
                                            oidc_jwk);
   }
-  else if ( ! strcmp (jwa, JWT_ALG_VALUE_HMAC))
+  else if (! strcmp (jwa, JWT_ALG_VALUE_HMAC))
   {
     // TODO OPTIONAL acr,amr,azp
-    if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_string (cfg,
+    if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_string (oid_cfg,
                                                             "reclaim-rest-plugin",
                                                             "jwt_secret",
                                                             &jwt_secret))
@@ -2708,6 +2713,7 @@ userinfo_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   GNUNET_free (authorization);
 }
 
+
 /**
  * Responds to /jwks.json
  *
@@ -2762,6 +2768,7 @@ jwks_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   GNUNET_free (oidc_jwk_pub_str);
   cleanup_handle (handle);
 }
+
 
 /**
  * If listing is enabled, prints information about the egos.
@@ -2997,10 +3004,11 @@ oidc_config_cors (struct GNUNET_REST_RequestHandle *con_handle,
 }
 
 
-static enum GNUNET_GenericReturnValue
-rest_identity_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
-                               GNUNET_REST_ResultProcessor proc,
-                               void *proc_cls)
+enum GNUNET_GenericReturnValue
+REST_openid_process_request (void *plugin,
+                             struct GNUNET_REST_RequestHandle *rest_handle,
+                             GNUNET_REST_ResultProcessor proc,
+                             void *proc_cls)
 {
   struct RequestHandle *handle = GNUNET_new (struct RequestHandle);
   struct GNUNET_REST_RequestHandlerError err;
@@ -3056,24 +3064,23 @@ rest_identity_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
    * @return NULL on error, otherwise the plugin context
    */
 void *
-libgnunet_plugin_rest_openid_connect_init (void *cls)
+REST_openid_init (const struct GNUNET_CONFIGURATION_Handle *c)
 {
   static struct Plugin plugin;
   struct GNUNET_REST_Plugin *api;
 
-  cfg = cls;
+  oid_cfg = c;
   if (NULL != plugin.cfg)
     return NULL;     /* can only initialize once! */
   memset (&plugin, 0, sizeof(struct Plugin));
-  plugin.cfg = cfg;
+  plugin.cfg = oid_cfg;
   api = GNUNET_new (struct GNUNET_REST_Plugin);
   api->cls = &plugin;
   api->name = GNUNET_REST_API_NS_OIDC;
-  api->process_request = &rest_identity_process_request;
-  identity_handle = GNUNET_IDENTITY_connect (cfg, &list_ego, NULL);
-  gns_handle = GNUNET_GNS_connect (cfg);
-  idp = GNUNET_RECLAIM_connect (cfg);
-  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_time (cfg,
+  identity_handle = GNUNET_IDENTITY_connect (oid_cfg, &list_ego, NULL);
+  gns_handle = GNUNET_GNS_connect (oid_cfg);
+  idp = GNUNET_RECLAIM_connect (oid_cfg);
+  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_time (oid_cfg,
                                                         "reclaim-rest-plugin",
                                                         "OIDC_USERINFO_CONSUME_TIMEOUT",
                                                         &consume_timeout))
@@ -3112,7 +3119,7 @@ cleanup_hashmap (void *cls, const struct GNUNET_HashCode *key, void *value)
    * @return always NULL
    */
 void *
-libgnunet_plugin_rest_openid_connect_done (void *cls)
+REST_openid_done (void *cls)
 {
   struct GNUNET_REST_Plugin *api = cls;
   struct Plugin *plugin = api->cls;
