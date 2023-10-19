@@ -7,6 +7,9 @@ libexecdir= $(pkglibdir)/libexec/
 
 pkgcfgdir= $(pkgdatadir)/config.d/
 
+pkgcfg_DATA = \
+  resolver.conf
+
 if USE_COVERAGE
   AM_CFLAGS = --coverage -O0
   XLIB = -lgcov

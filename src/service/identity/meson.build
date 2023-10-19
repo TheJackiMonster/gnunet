@@ -15,7 +15,6 @@ if get_option('monolith')
   foreach p : libgnunetidentity_src + gnunetserviceidentity_src
     gnunet_src += 'identity/' + p
   endforeach
-  subdir_done()
 endif
 
 libgnunetidentity = library('gnunetidentity',
@@ -29,26 +28,7 @@ libgnunetidentity = library('gnunetidentity',
 libgnunetidentity_dep = declare_dependency(link_with : libgnunetidentity)
 pkg.generate(libgnunetidentity, url: 'https://www.gnunet.org',
              description : 'API to access and organize private keys of the user egos')
-shared_module('gnunet_plugin_rest_identity',
-              ['plugin_rest_identity.c'],
-              dependencies: [libgnunetrest_dep,
-                             libgnunetidentity_dep,
-                             libgnunetutil_dep,
-                             json_dep,
-                             mhd_dep],
-              include_directories: [incdir, configuration_inc],
-              install: true,
-              install_dir: get_option('libdir') / 'gnunet')
 
-
-executable ('gnunet-identity',
-            ['gnunet-identity.c'],
-            dependencies: [libgnunetidentity_dep,
-                           libgnunetutil_dep,
-                           libgnunetstatistics_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
 executable ('gnunet-service-identity',
             gnunetserviceidentity_src,
             dependencies: [libgnunetidentity_dep,

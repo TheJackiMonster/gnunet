@@ -3,8 +3,6 @@ libgnunetarm_src = ['arm_api.c',
 
 gnunetservicearm_src = ['gnunet-service-arm.c']
 
-gnunetarm_src = ['gnunet-arm.c']
-
 testarmapi_src = ['test_arm_api.c']
 testexpbo_src = ['test_exponential_backoff.c']
 testgnunetservice_src = ['test_gnunet_service_arm.c']
@@ -14,13 +12,6 @@ configure_file(input : 'arm.conf.in',
                configuration : cdata,
                install: true,
                install_dir: pkgcfgdir)
-
-if get_option('monolith')
-  foreach p : libgnunetarm_src + gnunetservicearm_src
-    gnunet_src += 'arm/' + p
-  endforeach
-  subdir_done()
-endif
 
 libgnunetarm = library('gnunetarm',
         libgnunetarm_src,
@@ -33,12 +24,6 @@ libgnunetarm = library('gnunetarm',
 pkg.generate(libgnunetarm, url: 'https://www.gnunet.org',
              description : 'Provides API for accessing the Automated Restart Manager service')
 libgnunetarm_dep = declare_dependency(link_with : libgnunetarm)
-executable ('gnunet-arm',
-            gnunetarm_src,
-            dependencies: [libgnunetarm_dep, libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
 
 executable ('gnunet-service-arm',
             gnunetservicearm_src,

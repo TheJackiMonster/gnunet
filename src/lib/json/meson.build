@@ -4,13 +4,6 @@ libgnunetjson_src = ['json.c',
                     'json_mhd.c',
                     'json_pack.c']
 
-if get_option('monolith')
-  foreach p : libgnunetjson_src
-    gnunet_src += 'json/' + p
-  endforeach
-  subdir_done()
-endif
-
 libgnunetjson = library('gnunetjson',
         libgnunetjson_src,
         soversion: '0',

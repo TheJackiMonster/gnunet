@@ -17,7 +17,6 @@ if get_option('monolith')
   foreach p : libgnunetregex_src + libgnunetregexblock_src + gnunetserviceregex_src
     gnunet_src += 'regex/' + p
   endforeach
-  subdir_done()
 endif
 
 libgnunetregex = library('gnunetregex',

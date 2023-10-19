@@ -19,7 +19,6 @@ if get_option('monolith')
   foreach p : libgnunetnat_src + gnunetservicenat_src
     gnunet_src += 'nat/' + p
   endforeach
-  subdir_done()
 endif
 
 libgnunetnat = library('gnunetnat',
@@ -43,13 +42,6 @@ libgnunetnat = library('gnunetnatnew',
         install: true,
         install_dir: get_option('libdir'))
 libgnunetnat_dep = declare_dependency(link_with : libgnunetnat)
-
-executable ('gnunet-nat',
-            ['gnunet-nat.c'],
-            dependencies: [libgnunetnat_dep, libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
 
 executable ('gnunet-service-nat',
             gnunetservicenat_src,

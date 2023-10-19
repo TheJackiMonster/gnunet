@@ -7,13 +7,6 @@ libgnunetpq_src = ['pq.c',
                    'pq_query_helper.c',
                    'pq_result_helper.c']
 
-if get_option('monolith')
-  foreach p : libgnunetpq_src
-    gnunet_src += 'pq/' + p
-  endforeach
-  subdir_done()
-endif
-
 libgnunetpq = library('gnunetpq',
         libgnunetpq_src,
         soversion: '4',

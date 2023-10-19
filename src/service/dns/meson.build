@@ -15,7 +15,6 @@ if get_option('monolith')
   foreach p : libgnunetdns_src + gnunetservicedns_src + libgnunetpluginblockdns_src
     gnunet_src += 'dns/' + p
   endforeach
-  subdir_done()
 endif
 
 libgnunetdns = library('gnunetdns',

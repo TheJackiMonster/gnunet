@@ -6,16 +6,6 @@ configure_file(input : 'template.conf',
                install: true,
                install_dir: pkgcfgdir)
 
-if get_option('monolith')
-  subdir_done()
-endif
-
-executable ('gnunet-template',
-            ['gnunet-template.c'],
-            dependencies: [libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
 executable ('gnunet-service-template',
             gnunetservicetemplate_src,
             dependencies: [libgnunetutil_dep],

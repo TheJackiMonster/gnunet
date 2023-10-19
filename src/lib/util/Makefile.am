@@ -10,8 +10,6 @@ pkgcfgdir= $(pkgdatadir)/config.d/
 dist_pkgcfg_DATA = \
   util.conf
 
-pkgcfg_DATA = \
-  resolver.conf
 
 TEST_CLIENT_UNIX_NC = test_client_unix.nc
 

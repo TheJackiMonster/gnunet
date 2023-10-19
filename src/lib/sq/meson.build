@@ -4,13 +4,6 @@ libgnunetsq_src = ['sq.c',
                    'sq_query_helper.c',
                    'sq_result_helper.c']
 
-if get_option('monolith')
-  foreach p : libgnunetsq_src
-    gnunet_src += 'sq/' + p
-  endforeach
-  subdir_done()
-endif
-
 libgnunetsq = library('gnunetsq',
         libgnunetsq_src,
         soversion: '0',

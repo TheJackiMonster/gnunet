@@ -15,7 +15,6 @@ if get_option('monolith')
   foreach p : libgnunetdht_src + gnunetservicedht_src
     gnunet_src += 'dht/' + p
   endforeach
-  subdir_done()
 endif
 
 libgnunetdht = library('gnunetdht',
@@ -40,42 +39,6 @@ shared_module('gnunet_plugin_block_dht',
               install:true,
               install_dir: get_option('libdir')/'gnunet')
 
-executable ('gnunet-dht',
-            gnunetservicedht_src,
-            dependencies: [libgnunetdht_dep, libgnunetutil_dep,
-                           libgnunetblock_dep,
-                           m_dep,
-                           libgnunetdatacache_dep,
-                           libgnunetstatistics_dep,
-                           libgnunetblockgroup_dep,
-                           libgnunethello_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
-executable ('gnunet-dht-put',
-            ['gnunet-dht-put.c'],
-            dependencies: [libgnunetdht_dep, libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
-executable ('gnunet-dht-get',
-            ['gnunet-dht-get.c'],
-            dependencies: [libgnunetdht_dep, libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
-executable ('gnunet-dht-monitor',
-            ['gnunet-dht-monitor.c'],
-            dependencies: [libgnunetdht_dep, libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
-executable ('gnunet-dht-hello',
-            ['gnunet-dht-hello.c'],
-            dependencies: [libgnunetdht_dep, libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
 executable ('gnunet-service-dht',
             gnunetservicedht_src,
             dependencies: [libgnunetdht_dep, libgnunetutil_dep,

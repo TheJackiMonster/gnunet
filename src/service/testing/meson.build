@@ -27,13 +27,6 @@ configure_file(input : 'testing.conf',
                install_dir: pkgcfgdir)
 
 
-if get_option('monolith')
-  #  foreach p : libgnunettesting_src
-  #    gnunet_src += 'testing/' + p
-  #  endforeach
-  subdir_done()
-endif
-
 libgnunettesting = library('gnunettesting',
         libgnunettesting_src,
         soversion: '1',

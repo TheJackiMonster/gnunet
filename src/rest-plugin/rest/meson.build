@@ -1,0 +1,18 @@
+shared_module('gnunet_plugin_rest_config',
+              ['plugin_rest_config.c'],
+              dependencies: [libgnunetrest_dep,
+                             libgnunetutil_dep,
+                             json_dep,
+                             mhd_dep],
+              include_directories: [incdir, configuration_inc],
+              install: true,
+              install_dir: get_option('libdir') / 'gnunet')
+shared_module('gnunet_plugin_rest_copying',
+              ['plugin_rest_copying.c'],
+              dependencies: [libgnunetrest_dep,
+                             libgnunetutil_dep,
+                             json_dep,
+                             mhd_dep],
+              include_directories: [incdir, configuration_inc],
+              install: true,
+              install_dir: get_option('libdir') / 'gnunet')

@@ -13,7 +13,6 @@ if get_option('monolith')
   foreach p : libgnunetseti_src + gnunetserviceseti_src
     gnunet_src += 'seti/' + p
   endforeach
-  subdir_done()
 endif
 
 libgnunetseti = library('gnunetseti',

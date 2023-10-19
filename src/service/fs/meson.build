@@ -38,7 +38,6 @@ if get_option('monolith')
   foreach p : libgnunetfs_src + gnunetservicefs_src
     gnunet_src += 'fs/' + p
   endforeach
-  subdir_done()
 endif
 
 libgnunetfs = library('gnunetfs',
@@ -56,64 +55,6 @@ libgnunetfs_dep = declare_dependency(link_with : libgnunetfs)
 pkg.generate(libgnunetfs, url: 'https://www.gnunet.org',
              description : 'Provides API for GNUnet File-Sharing service')
 
-shared_module('gnunet_plugin_block_fs',
-              ['plugin_block_fs.c'],
-              dependencies: [libgnunetutil_dep,
-                             libgnunetblockgroup_dep],
-              include_directories: [incdir, configuration_inc],
-              install:true,
-              install_dir: get_option('libdir')/'gnunet')
-
-executable ('gnunet-search',
-            'gnunet-search.c',
-            dependencies: [libgnunetfs_dep,
-                           libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
-executable ('gnunet-unindex',
-            'gnunet-unindex.c',
-            dependencies: [libgnunetfs_dep,
-                           libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
-executable ('gnunet-auto-share',
-            'gnunet-auto-share.c',
-            dependencies: [libgnunetfs_dep,
-                           libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
-executable ('gnunet-directory',
-            'gnunet-directory.c',
-            dependencies: [libgnunetfs_dep,
-                           libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
-executable ('gnunet-download',
-            'gnunet-download.c',
-            dependencies: [libgnunetfs_dep,
-                           libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
-executable ('gnunet-fs',
-            'gnunet-fs.c',
-            dependencies: [libgnunetfs_dep,
-                           libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
-executable ('gnunet-publish',
-            'gnunet-publish.c',
-            dependencies: [libgnunetfs_dep,
-                           libgnunetidentity_dep,
-                           libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
 executable ('gnunet-service-fs',
             gnunetservicefs_src,
             dependencies: [libgnunetfs_dep,

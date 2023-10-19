@@ -41,9 +41,6 @@ endif
 
 
 # TODO: Set to true to build a single libgnunet
-if get_option('monolith')
-  add_project_arguments('-DHAVE_GNUNET_MONOLITH', language: 'c')
-endif
 cdata.set('enable_experimental', get_option('experimental'))
 if get_option('experimental')
   add_project_arguments('-DHAVE_EXPERIMENTAL', language: 'c')

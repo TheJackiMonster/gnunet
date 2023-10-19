@@ -24,7 +24,6 @@ if get_option('monolith')
   foreach p : libgnunettransportapplication_src + libgnunettransportcore_src + libgnunettransportcommunicator_src + libgnunettransportmonitor_src + gnunetservicetransport_src
     gnunet_src += 'transport/' + p
   endforeach
-  subdir_done()
 endif
 
 libgnunettransportapplication = library('gnunettransportapplication',

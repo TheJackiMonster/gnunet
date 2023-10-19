@@ -39,7 +39,6 @@ if get_option('monolith')
   foreach p : libgnunetmessenger_src + gnunetservicemessenger_src
     gnunet_src += 'messenger/' + p
   endforeach
-  subdir_done()
 endif
 
 libgnunetmessenger = library('gnunetmessenger',
@@ -64,13 +63,6 @@ shared_module('gnunet_plugin_gnsrecord_messenger',
               install: true,
               install_dir: get_option('libdir')/'gnunet')
 
-executable ('gnunet-messenger',
-            'gnunet-messenger.c',
-            dependencies: [libgnunetmessenger_dep,
-                           libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
 executable ('gnunet-service-messenger',
             gnunetservicemessenger_src,
             dependencies: [libgnunetmessenger_dep,

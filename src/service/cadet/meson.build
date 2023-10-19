@@ -27,7 +27,6 @@ if get_option('monolith')
   foreach p : libgnunetcadet_src + gnunetservicecadet_src
     gnunet_src += 'cadet/' + p
   endforeach
-  subdir_done()
 endif
 
 libgnunetcadet = library('gnunetcadet',
@@ -42,20 +41,6 @@ libgnunetcadet_dep = declare_dependency(link_with : libgnunetcadet)
 pkg.generate(libgnunetcadet, url: 'https://www.gnunet.org',
              description : 'API for multicast and multi-hop routing between GNUnet peers')
 
-executable ('gnunet-cadet',
-            gnunetservicecadet_src,
-            dependencies: [libgnunetcadet_dep,
-                           libgnunetutil_dep,
-                           libgnunetcore_dep,
-                           libgnunetdht_dep,
-                           m_dep,
-                           libgnunetstatistics_dep,
-                           libgnunetpeerstore_dep,
-                           libgnunettransportapplication_dep,
-                           libgnunethello_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
 executable ('gnunet-service-cadet',
             gnunetservicecadet_src,
             dependencies: [libgnunetcadet_dep,

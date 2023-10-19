@@ -3,13 +3,6 @@ libgnunethello_src = [#'hello.c',
                       'hello-ng.c',
                       'hello-uri.c']
 
-if get_option('monolith')
-  foreach p : libgnunethello_src
-    gnunet_src += 'hello/' + p
-  endforeach
-  subdir_done()
-endif
-
 libgnunethello = library('gnunethello',
         libgnunethello_src,
         soversion: '0',

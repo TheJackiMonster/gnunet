@@ -16,7 +16,6 @@ if get_option('monolith')
   foreach p : libgnunetdatastore_src + gnunetservicedatastore_src
     gnunet_src += 'datastore/' + p
   endforeach
-  subdir_done()
 endif
 
 libgnunetdatastore = library('gnunetdatastore',
@@ -63,15 +62,6 @@ if pq_dep.found()
           install_dir: get_option('libdir')/'gnunet')
 endif
 
-executable ('gnunet-datastore',
-            ['gnunet-datastore.c'],
-            dependencies: [libgnunetdatastore_dep,
-                           libgnunetutil_dep,
-                           libgnunetstatistics_dep,
-                           libgnunetdatacache_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
 executable ('gnunet-service-datastore',
             gnunetservicedatastore_src,
             dependencies: [libgnunetdatastore_dep,

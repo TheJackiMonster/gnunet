@@ -14,7 +14,6 @@ if get_option('monolith')
   foreach p : libgnunetpeerstore_src + gnunetservicepeerstore_src
     gnunet_src += 'peerstore/' + p
   endforeach
-  subdir_done()
 endif
 
 libgnunetpeerstore = library('gnunetpeerstore',

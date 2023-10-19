@@ -13,7 +13,6 @@ if get_option('monolith')
   foreach p : libgnunetdatacache_src
     gnunet_src += 'datacache/' + p
   endforeach
-  subdir_done()
 endif
 
 libgnunetdatacache = library('gnunetdatacache',

@@ -13,7 +13,6 @@ if get_option('monolith')
   foreach p : libgnunetstatistics_src + gnunetservicestatistics_src
     gnunet_src += 'statistics/' + p
   endforeach
-  subdir_done()
 endif
 
 libgnunetstatistics = library('gnunetstatistics',
@@ -34,11 +33,3 @@ executable ('gnunet-service-statistics',
             include_directories: [incdir, configuration_inc],
             install: true,
             install_dir: get_option('libdir') / 'gnunet' / 'libexec')
-executable ('gnunet-statistics',
-            ['gnunet-statistics.c'],
-            dependencies: [libgnunetstatistics_dep, libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
-
-

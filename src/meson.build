@@ -3,70 +3,9 @@ if get_option('monolith') == true
 endif
 
 subdir('include')
-subdir('util')
-subdir('hello')
-subdir('block')
-if get_option('monolith') == false
-  subdir('arm')
-endif
-subdir('statistics')
-subdir('testing')
-subdir('json', if_found : json_dep)
-subdir('curl', if_found : [curl_dep])
-if get_option('monolith') == false
-  subdir('rest')
-endif
-subdir('sq', if_found : [sqlite_dep])
-subdir('pq', if_found : [pq_dep])
-subdir('datacache')
-subdir('datastore')
-subdir('template')
-subdir('peerstore')
-subdir('nat')
-subdir('nat-auto')
-subdir('transport')
-subdir('core')
-subdir('nse')
-subdir('dhtu')
-subdir('dht')
-subdir('hostlist')
-subdir('regex')
-subdir('dns')
-subdir('identity')
-subdir('gnsrecord')
-subdir('namecache')
-subdir('namestore')
-subdir('cadet')
-subdir('set')
-subdir('seti')
-subdir('setu')
-subdir('consensus')
-subdir('scalarproduct')
-subdir('revocation')
-subdir('vpn')
-subdir('gns')
-subdir('zonemaster')
-if conversation_backend != 'none'
-  subdir('conversation')
-endif
-subdir('fs')
-subdir('exit')
-subdir('pt')
-subdir('secretsharing')
-subdir('reclaim')
-subdir('messenger')
-##subdir('$(EXP_DIR)')
-
-if not get_option('monolith')
-  subdir_done()
-endif
-libgnunet = library('gnunet',
-                    gnunet_src,
-                    dependencies: gnunetdeps,
-                    include_directories: [incdir, configuration_inc, exitdir])
-libgnunet_dep = declare_dependency(link_with : libgnunet)
-
-# FIXME here we need to re-enter all that need to link against libgnunet
-# For example: dload plugins
-# We also need a logic that handles this
-# subdir('block')
+subdir('lib')
+subdir('service')
+subdir('plugin')
+subdir('rest-plugin')
+subdir('cli')
+subdir('contrib')

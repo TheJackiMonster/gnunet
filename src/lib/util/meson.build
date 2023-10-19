@@ -32,6 +32,7 @@ libgnunetutil_src = ['bandwidth.c',
        'crypto_kdf.c',
        'crypto_mpi.c',
        'crypto_paillier.c',
+       'crypto_pkey.c',
        'crypto_pow.c',
        'crypto_random.c',
        'crypto_rsa.c',
@@ -70,26 +71,11 @@ libgnunetutil_src = ['bandwidth.c',
        'proc_compat.c',
 	     'gnunet_error_codes.c']
 
-gnunetserviceresolver_src = ['gnunet-service-resolver.c']
-
 configure_file(input : 'util.conf',
                output : 'util.conf',
                configuration : cdata,
                install: true,
                install_dir: pkgcfgdir)
-configure_file(input : 'resolver.conf.in',
-               output : 'resolver.conf',
-               configuration : cdata,
-               install: true,
-               install_dir: pkgcfgdir)
-
-
-if get_option('monolith')
-  foreach p : libgnunetutil_src + gnunetserviceresolver_src
-    gnunet_src += 'util/' + p
-  endforeach
-  subdir_done()
-endif
 
 libgnunetutil = library('gnunetutil',
         libgnunetutil_src,
@@ -103,85 +89,9 @@ libgnunetutil_dep = declare_dependency(link_with : libgnunetutil)
 pkg.generate(libgnunetutil, url: 'https://www.gnunet.org',
              description : 'Provides miscellaneous utility functions and API for GNUnet')
 
-shared_module('gnunet_plugin_utiltest',
-              ['test_plugin_plug.c'],
-              dependencies: [libgnunetutil_dep],
-              include_directories: [incdir, configuration_inc],
-              install: true,
-              install_dir: get_option('libdir')/'gnunet')
-
-executable ('gnunet-base32',
-            ['gnunet-base32.c'],
-            dependencies: [libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
-executable ('gnunet-config',
-            ['gnunet-config.c'],
-            dependencies: [libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
-executable ('gnunet-resolver',
-            ['gnunet-resolver.c'],
-            dependencies: [libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
-executable ('gnunet-ecc',
-            ['gnunet-ecc.c'],
-            dependencies: [libgnunetutil_dep, gcrypt_dep, m_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
-executable ('gnunet-scrypt',
-            ['gnunet-scrypt.c'],
-            dependencies: [libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
-executable ('gnunet-uri',
-            ['gnunet-uri.c'],
-            dependencies: [libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
-if zbar_dep.found()
-  executable ('gnunet-qr',
-              ['gnunet-qr.c'],
-              dependencies: [zbar_dep, libgnunetutil_dep],
-              include_directories: [incdir, configuration_inc],
-              install: true,
-              install_dir: get_option('bindir'))
-endif
-executable ('gnunet-config-diff',
-            ['gnunet-config-diff.c'],
-            dependencies: [libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: false)
-
-executable ('gnunet-service-resolver',
-            gnunetserviceresolver_src,
-            dependencies: [libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
-executable ('gnunet-timeout',
-            ['gnunet-timeout.c'],
-            dependencies: [libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
-
-
 executable ('test_common_logging_dummy',
             ['test_common_logging_dummy.c'],
             dependencies: [libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: false)
-executable ('gnunet-crypto-tvg',
-            ['gnunet-crypto-tvg.c'],
-            dependencies: [libgnunetutil_dep, json_dep],
             include_directories: [incdir, configuration_inc],
             install: false)
 

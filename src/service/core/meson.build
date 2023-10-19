@@ -17,7 +17,6 @@ if get_option('monolith')
   foreach p : libgnunetcore_src + gnunetservicecore_src
     gnunet_src += 'core/' + p
   endforeach
-  subdir_done()
 endif
 
 libgnunetcore = library('gnunetcore',
@@ -63,13 +62,6 @@ shared_module('gnunet_test_core_plugin_cmd_just_run',
         include_directories: [incdir, configuration_inc],
         install: true,
         install_dir: get_option('libdir')/'gnunet')
-
-executable ('gnunet-core',
-            ['gnunet-core.c'],
-            dependencies: [libgnunetcore_dep, libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
 
 executable ('gnunet-service-core',
             gnunetservicecore_src,
