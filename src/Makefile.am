@@ -17,10 +17,8 @@ SUBDIRS = \
 	rest-plugin \
 	cli \
 	contrib \
-  set \
   seti \
   setu \
-  consensus \
   scalarproduct \
   revocation \
   vpn \
@@ -30,6 +28,5 @@ SUBDIRS = \
   fs \
   exit \
   pt \
-  secretsharing \
   reclaim \
   messenger

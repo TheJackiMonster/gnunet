@@ -7,4 +7,7 @@ endif
 
 SUBDIRS = \
 	template \
+	set \
+	consensus \
+	secretsharing \
 	$(EXP_DIR)

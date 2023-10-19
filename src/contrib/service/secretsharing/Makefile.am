@@ -40,7 +40,7 @@ gnunet_service_secretsharing_SOURCES = \
 gnunet_service_secretsharing_CFLAGS = $(AM_CFLAGS)
 gnunet_service_secretsharing_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/consensus/libgnunetconsensus.la \
+  $(top_builddir)/src/contrib/service/consensus/libgnunetconsensus.la \
   $(LIBGCRYPT_LIBS) \
   $(GN_LIBINTL)
 
