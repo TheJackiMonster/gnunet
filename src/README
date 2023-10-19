@@ -1,0 +1,13 @@
+# Folder layout
+
+  - lib/ : Core libraries. Does not contain any binaries.
+  - service/: Core services. Contains services and daemons.
+  - plugin/: ltlibraries/dlload plugins. DBs, REST, Block etc.
+  - contrib/: Third-party, experimental or currently unmaintained components. Also has lib/service/plugin layout.
+
+# Open issues:
+
+  - Separate folder for daemons after service? daemon/
+  - Separate folder for tests after plugin? test/
+  - Separate folder for configuration? conf/
+  - Possibly move arm and testing into lib and rename it to base/
