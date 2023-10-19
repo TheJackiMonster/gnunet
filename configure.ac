@@ -1306,12 +1306,6 @@ src/service/vpn/Makefile
 src/service/vpn/vpn.conf
 src/service/zonemaster/Makefile
 src/service/zonemaster/zonemaster.conf
-src/rest-plugin/Makefile
-src/rest-plugin/gns/Makefile
-src/rest-plugin/identity/Makefile
-src/rest-plugin/namestore/Makefile
-src/rest-plugin/reclaim/Makefile
-src/rest-plugin/rest/Makefile
 src/cli/Makefile
 src/cli/arm/Makefile
 src/cli/cadet/Makefile
