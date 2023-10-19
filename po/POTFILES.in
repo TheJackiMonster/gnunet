@@ -7,6 +7,8 @@ src/cli/dht/gnunet-dht-hello.c
 src/cli/dht/gnunet-dht-monitor.c
 src/cli/dht/gnunet-dht-put.c
 src/cli/identity/gnunet-identity.c
+src/cli/nat-auto/gnunet-nat-auto.c
+src/cli/nat-auto/gnunet-nat-server.c
 src/cli/nat/gnunet-nat.c
 src/cli/nse/gnunet-nse.c
 src/cli/statistics/gnunet-statistics.c
@@ -281,13 +283,6 @@ src/namestore/plugin_namestore_flat.c
 src/namestore/plugin_namestore_postgres.c
 src/namestore/plugin_namestore_sqlite.c
 src/namestore/plugin_rest_namestore.c
-src/nat-auto/gnunet-nat-auto.c
-src/nat-auto/gnunet-nat-auto_legacy.c
-src/nat-auto/gnunet-nat-server.c
-src/nat-auto/gnunet-service-nat-auto.c
-src/nat-auto/gnunet-service-nat-auto_legacy.c
-src/nat-auto/nat_auto_api.c
-src/nat-auto/nat_auto_api_test.c
 src/plugin/block/plugin_block_template.c
 src/plugin/block/plugin_block_test.c
 src/plugin/dhtu/plugin_dhtu_gnunet.c
@@ -400,6 +395,11 @@ src/service/identity/gnunet-service-identity.c
 src/service/identity/identity_api.c
 src/service/identity/identity_api_lookup.c
 src/service/identity/identity_api_suffix_lookup.c
+src/service/nat-auto/gnunet-nat-auto_legacy.c
+src/service/nat-auto/gnunet-service-nat-auto.c
+src/service/nat-auto/gnunet-service-nat-auto_legacy.c
+src/service/nat-auto/nat_auto_api.c
+src/service/nat-auto/nat_auto_api_test.c
 src/service/nat/gnunet-helper-nat-client.c
 src/service/nat/gnunet-helper-nat-server.c
 src/service/nat/gnunet-service-nat.c

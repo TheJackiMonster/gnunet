@@ -4,6 +4,7 @@ SUBDIRS = \
 	statistics \
 	core \
 	nat \
+	nat-auto \
 	nse \
 	datastore \
 	dht \

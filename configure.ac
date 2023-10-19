@@ -1257,6 +1257,8 @@ src/service/identity/Makefile
 src/service/identity/identity.conf
 src/service/nat/Makefile
 src/service/nat/nat.conf
+src/service/nat-auto/Makefile
+src/service/nat-auto/nat-auto.conf
 src/service/nse/Makefile
 src/service/nse/nse.conf
 src/service/peerstore/Makefile
@@ -1278,6 +1280,7 @@ src/cli/core/Makefile
 src/cli/datastore/Makefile
 src/cli/dht/Makefile
 src/cli/nat/Makefile
+src/cli/nat-auto/Makefile
 src/cli/nse/Makefile
 src/cli/statistics/Makefile
 src/cli/util/Makefile
@@ -1310,8 +1313,6 @@ src/namecache/Makefile
 src/namecache/namecache.conf
 src/namestore/Makefile
 src/namestore/namestore.conf
-src/nat-auto/Makefile
-src/nat-auto/nat-auto.conf
 src/pt/Makefile
 src/regex/Makefile
 src/regex/regex.conf

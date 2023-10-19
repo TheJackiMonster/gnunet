@@ -5,6 +5,7 @@ SUBDIRS = \
 	peerstore \
 	testing \
 	nat \
+	nat-auto \
 	transport \
 	core \
 	nse \

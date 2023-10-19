@@ -27,7 +27,8 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_nat_service.h"
 #include "gnunet_protocols.h"
-#include "nat-auto.h"
+// FIXME can we build this without this header?
+#include "../../service/nat-auto/nat-auto.h"
 
 
 /**
