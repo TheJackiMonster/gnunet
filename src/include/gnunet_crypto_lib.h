@@ -2963,12 +2963,14 @@ GNUNET_CRYPTO_rsa_sign_blinded (const struct GNUNET_CRYPTO_RsaPrivateKey *key,
  * Create and sign a full domain hash of a message.
  *
  * @param key private key to use for the signing
- * @param hash the hash of the message to sign
+ * @param message the message to sign
+ * @param message_size number of bytes in @a message
  * @return NULL on error, including a malicious RSA key, signature on success
  */
 struct GNUNET_CRYPTO_RsaSignature *
 GNUNET_CRYPTO_rsa_sign_fdh (const struct GNUNET_CRYPTO_RsaPrivateKey *key,
-                            const struct GNUNET_HashCode *hash);
+                            const void *message,
+                            size_t message_size);
 
 
 /**

@@ -52,7 +52,7 @@ libgnunetutil_la_SOURCES = \
   container_multiuuidmap.c \
   container_multipeermap.c \
   container_multihashmap32.c \
-  crypto_symmetric.c \
+  crypto_blind_sign.c \
   crypto_crc.c \
   crypto_cs.c \
   crypto_ecc.c \
@@ -70,6 +70,7 @@ libgnunetutil_la_SOURCES = \
   crypto_pow.c \
   crypto_random.c \
   crypto_rsa.c \
+  crypto_symmetric.c \
   disk.c \
   disk.h \
   dnsparser.c \

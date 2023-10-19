@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet
-   Copyright (C) 2014,2016,2019 GNUnet e.V.
+   Copyright (C) 2014,2016,2019, 2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -257,17 +257,17 @@ GNUNET_CRYPTO_cs_calc_blinded_c (
 }
 
 
-unsigned int
+void
 GNUNET_CRYPTO_cs_sign_derive (
   const struct GNUNET_CRYPTO_CsPrivateKey *priv,
   const struct GNUNET_CRYPTO_CsRSecret r[2],
-  const struct GNUNET_CRYPTO_CsC c[2],
-  const struct GNUNET_CRYPTO_CsNonce *nonce,
-  struct GNUNET_CRYPTO_CsBlindS *blinded_signature_scalar)
+  const struct GNUNET_CRYPTO_CsBlindedMessage *bm,
+  struct GNUNET_CRYPTO_CsBlindSignature *cs_blind_sig)
 {
+  struct GNUNET_CRYPTO_Cs25519Scalar c_b_mul_priv;
   uint32_t hkdf_out;
 
-  // derive clause session identifier b (random bit)
+  /* derive clause session identifier b (random bit) */
   GNUNET_assert (GNUNET_YES ==
                  GNUNET_CRYPTO_hkdf (&hkdf_out,
                                      sizeof (hkdf_out),
@@ -277,22 +277,19 @@ GNUNET_CRYPTO_cs_sign_derive (
                                      strlen ("b"),
                                      priv,
                                      sizeof (*priv),
-                                     nonce,
-                                     sizeof (*nonce),
+                                     &bm->nonce,
+                                     sizeof (bm->nonce),
                                      NULL,
                                      0));
-  unsigned int b = hkdf_out % 2;
+  cs_blind_sig->b = hkdf_out % 2;
 
-  // s = r_b + c_b priv
-  struct GNUNET_CRYPTO_Cs25519Scalar c_b_mul_priv;
+  /* s = r_b + c_b * priv */
   crypto_core_ed25519_scalar_mul (c_b_mul_priv.d,
-                                  c[b].scalar.d,
+                                  bm->c[cs_blind_sig->b].scalar.d,
                                   priv->scalar.d);
-  crypto_core_ed25519_scalar_add (blinded_signature_scalar->scalar.d,
-                                  r[b].scalar.d,
+  crypto_core_ed25519_scalar_add (cs_blind_sig->s_scalar.scalar.d,
+                                  r[cs_blind_sig->b].scalar.d,
                                   c_b_mul_priv.d);
-
-  return b;
 }
 
 

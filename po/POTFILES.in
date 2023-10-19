@@ -156,6 +156,7 @@ src/lib/util/container_multihashmap32.c
 src/lib/util/container_multipeermap.c
 src/lib/util/container_multishortmap.c
 src/lib/util/container_multiuuidmap.c
+src/lib/util/crypto_blind_sign.c
 src/lib/util/crypto_crc.c
 src/lib/util/crypto_cs.c
 src/lib/util/crypto_ecc.c
