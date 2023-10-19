@@ -1,4 +1,5 @@
 SUBDIRS = \
 	rest \
 	identity \
-	gns
+	gns \
+	reclaim

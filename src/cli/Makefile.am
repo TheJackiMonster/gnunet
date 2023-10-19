@@ -14,4 +14,5 @@ SUBDIRS = \
 	vpn \
 	gns \
 	fs \
-	cadet
+	cadet \
+	reclaim

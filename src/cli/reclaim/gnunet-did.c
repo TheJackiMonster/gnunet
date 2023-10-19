@@ -39,7 +39,6 @@
 #include "gnunet_identity_service.h"
 #include "gnunet_gns_service.h"
 #include "gnunet_gnsrecord_lib.h"
-#include "did_helper.h"
 #include "did_core.h"
 #include "jansson.h"
 

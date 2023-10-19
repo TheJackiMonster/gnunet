@@ -29,5 +29,6 @@ SUBDIRS = \
   zonemaster \
 	fs \
 	exit \
-	pt
+	pt \
+	reclaim
 

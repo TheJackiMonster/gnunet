@@ -1245,6 +1245,7 @@ src/plugin/gns/Makefile
 src/plugin/gnsrecord/Makefile
 src/plugin/namecache/Makefile
 src/plugin/namestore/Makefile
+src/plugin/reclaim/Makefile
 src/plugin/revocation/Makefile
 src/service/Makefile
 src/service/arm/Makefile
@@ -1282,6 +1283,7 @@ src/service/nse/nse.conf
 src/service/peerstore/Makefile
 src/service/peerstore/peerstore.conf
 src/service/pt/Makefile
+src/service/reclaim/Makefile
 src/service/regex/Makefile
 src/service/regex/regex.conf
 src/service/rest/Makefile
@@ -1305,6 +1307,7 @@ src/service/zonemaster/zonemaster.conf
 src/rest-plugin/Makefile
 src/rest-plugin/gns/Makefile
 src/rest-plugin/identity/Makefile
+src/rest-plugin/reclaim/Makefile
 src/rest-plugin/rest/Makefile
 src/cli/Makefile
 src/cli/arm/Makefile
@@ -1319,6 +1322,7 @@ src/cli/namestore/Makefile
 src/cli/nat/Makefile
 src/cli/nat-auto/Makefile
 src/cli/nse/Makefile
+src/cli/reclaim/Makefile
 src/cli/revocation/Makefile
 src/cli/statistics/Makefile
 src/cli/util/Makefile
@@ -1345,7 +1349,6 @@ src/contrib/cli/template/Makefile
 src/lib/hello/Makefile
 src/include/Makefile
 src/include/gnunet_config.h
-src/reclaim/Makefile
 src/messenger/Makefile
 src/messenger/messenger.conf
 pkgconfig/Makefile

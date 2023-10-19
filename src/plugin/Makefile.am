@@ -6,4 +6,5 @@ SUBDIRS = \
 	namestore \
 	revocation \
 	gns \
-	fs
+	fs \
+	reclaim
