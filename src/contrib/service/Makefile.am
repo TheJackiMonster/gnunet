@@ -10,4 +10,5 @@ SUBDIRS = \
 	set \
 	consensus \
 	secretsharing \
+	scalarproduct \
 	$(EXP_DIR)

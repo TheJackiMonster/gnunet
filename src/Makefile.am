@@ -19,7 +19,6 @@ SUBDIRS = \
 	contrib \
   seti \
   setu \
-  scalarproduct \
   revocation \
   vpn \
   gns \

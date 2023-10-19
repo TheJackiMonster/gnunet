@@ -52,6 +52,12 @@ src/contrib/service/rps/rps-sampler_client.c
 src/contrib/service/rps/rps-sampler_common.c
 src/contrib/service/rps/rps-test_util.c
 src/contrib/service/rps/rps_api.c
+src/contrib/service/scalarproduct/gnunet-scalarproduct.c
+src/contrib/service/scalarproduct/gnunet-service-scalarproduct-ecc_alice.c
+src/contrib/service/scalarproduct/gnunet-service-scalarproduct-ecc_bob.c
+src/contrib/service/scalarproduct/gnunet-service-scalarproduct_alice.c
+src/contrib/service/scalarproduct/gnunet-service-scalarproduct_bob.c
+src/contrib/service/scalarproduct/scalarproduct_api.c
 src/contrib/service/secretsharing/gnunet-secretsharing-profiler.c
 src/contrib/service/secretsharing/gnunet-service-secretsharing.c
 src/contrib/service/secretsharing/secretsharing_api.c
@@ -316,12 +322,6 @@ src/revocation/gnunet-revocation.c
 src/revocation/gnunet-service-revocation.c
 src/revocation/plugin_block_revocation.c
 src/revocation/revocation_api.c
-src/scalarproduct/gnunet-scalarproduct.c
-src/scalarproduct/gnunet-service-scalarproduct-ecc_alice.c
-src/scalarproduct/gnunet-service-scalarproduct-ecc_bob.c
-src/scalarproduct/gnunet-service-scalarproduct_alice.c
-src/scalarproduct/gnunet-service-scalarproduct_bob.c
-src/scalarproduct/scalarproduct_api.c
 src/service/arm/arm_api.c
 src/service/arm/arm_monitor_api.c
 src/service/arm/gnunet-service-arm.c

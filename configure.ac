@@ -1305,6 +1305,8 @@ src/contrib/service/abd/abd.conf
 src/contrib/service/auction/Makefile
 src/contrib/service/consensus/Makefile
 src/contrib/service/consensus/consensus.conf
+src/contrib/service/scalarproduct/Makefile
+src/contrib/service/scalarproduct/scalarproduct.conf
 src/contrib/service/secretsharing/Makefile
 src/contrib/service/secretsharing/secretsharing.conf
 src/contrib/service/set/Makefile
@@ -1327,8 +1329,6 @@ src/include/gnunet_config.h
 src/pt/Makefile
 src/revocation/Makefile
 src/revocation/revocation.conf
-src/scalarproduct/Makefile
-src/scalarproduct/scalarproduct.conf
 src/seti/Makefile
 src/seti/seti.conf
 src/setu/Makefile
