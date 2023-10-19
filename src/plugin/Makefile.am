@@ -2,4 +2,5 @@ SUBDIRS = \
 	block \
 	gnsrecord \
 	dhtu \
-	namecache
+	namecache \
+	namestore

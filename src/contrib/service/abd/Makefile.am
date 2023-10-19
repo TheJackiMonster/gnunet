@@ -44,7 +44,7 @@ gnunet_abd_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
 	$(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  $(top_builddir)/src/namestore/libgnunetnamestore.la \
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
   $(GN_LIBINTL)
 
 
@@ -66,7 +66,7 @@ gnunet_service_abd_LDADD = \
 	libgnunetabd.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
 	$(top_builddir)/src/gns/libgnunetgns.la \
-	$(top_builddir)/src/namestore/libgnunetnamestore.la \
+	$(top_builddir)/src/service/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(GN_LIBINTL)

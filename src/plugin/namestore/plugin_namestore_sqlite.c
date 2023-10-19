@@ -29,7 +29,6 @@
 #include "gnunet_namestore_service.h"
 #include "gnunet_gnsrecord_lib.h"
 #include "gnunet_sq_lib.h"
-#include "namestore.h"
 #include <sqlite3.h>
 
 /**

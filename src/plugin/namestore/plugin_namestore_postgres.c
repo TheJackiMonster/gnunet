@@ -28,7 +28,6 @@
 #include "gnunet_namestore_service.h"
 #include "gnunet_gnsrecord_lib.h"
 #include "gnunet_pq_lib.h"
-#include "namestore.h"
 
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "namestore-postgres", __VA_ARGS__)

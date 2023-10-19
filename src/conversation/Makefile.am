@@ -71,7 +71,7 @@ libgnunetconversation_la_SOURCES = \
 libgnunetconversation_la_LIBADD = \
   $(top_builddir)/src/gns/libgnunetgns.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/namestore/libgnunetnamestore.la \
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
@@ -198,7 +198,7 @@ gnunet_conversation_LDADD = \
   libgnunetconversation.la \
   $(top_builddir)/src/gns/libgnunetgns.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/namestore/libgnunetnamestore.la \
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(INTLLIBS)
@@ -223,7 +223,7 @@ test_conversation_api_LDADD = \
   libgnunetspeaker.la \
   libgnunetmicrophone.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/namestore/libgnunetnamestore.la \
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
@@ -237,7 +237,7 @@ test_conversation_api_twocalls_LDADD = \
   libgnunetspeaker.la \
   libgnunetmicrophone.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/namestore/libgnunetnamestore.la \
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
@@ -251,7 +251,7 @@ test_conversation_api_reject_LDADD = \
   libgnunetspeaker.la \
   libgnunetmicrophone.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/namestore/libgnunetnamestore.la \
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la

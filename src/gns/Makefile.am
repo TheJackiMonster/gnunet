@@ -186,7 +186,7 @@ test_gns_proxy_CFLAGS = $(MHD_CFLAGS) @LIBCURL_CPPFLAGS@ $(AM_CFLAGS)
 #  gnunet-gns-import.c
 #gnunet_gns_import_LDADD = \
 #  $(top_builddir)/src/service/identity/libgnunetidentity.la \
-#  $(top_builddir)/src/namestore/libgnunetnamestore.la \
+#  $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
 #  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
 #  $(top_builddir)/src/lib/util/libgnunetutil.la \
 #  $(GN_LIBINTL)

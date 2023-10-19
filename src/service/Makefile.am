@@ -18,5 +18,6 @@ SUBDIRS = \
 	datastore \
 	dht \
   namecache \
+  namestore \
   regex \
 	cadet

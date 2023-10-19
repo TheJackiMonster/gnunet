@@ -13,9 +13,6 @@ sql_DATA = \
   namestore-0001.sql \
   namestore-drop.sql
 
-pkgcfg_DATA = \
-   namestore.conf
-
 if USE_COVERAGE
   AM_CFLAGS = --coverage -O0
   XLIBS = -lgcov
@@ -81,23 +78,6 @@ endif
 
 REST_PLUGIN = libgnunet_plugin_rest_namestore.la
 
-lib_LTLIBRARIES = \
-  libgnunetnamestore.la
-
-
-libexec_PROGRAMS = \
- gnunet-service-namestore
-
-bin_PROGRAMS = \
- gnunet-namestore \
- gnunet-namestore-dbtool \
- gnunet-namestore-zonefile \
- gnunet-zoneimport
-
-libexec_PROGRAMS += \
- gnunet-namestore-fcfsd
-
-
 plugin_LTLIBRARIES = \
   $(SQLITE_PLUGIN) \
   $(POSTGRES_PLUGIN) \
@@ -107,7 +87,7 @@ plugin_LTLIBRARIES = \
 libgnunet_plugin_rest_namestore_la_SOURCES = \
   plugin_rest_namestore.c
 libgnunet_plugin_rest_namestore_la_LIBADD = \
-  libgnunetnamestore.la \
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/service/rest/libgnunetrest.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/json/libgnunetjson.la \
@@ -118,82 +98,6 @@ libgnunet_plugin_rest_namestore_la_LIBADD = \
 libgnunet_plugin_rest_namestore_la_LDFLAGS = \
  $(GN_PLUGIN_LDFLAGS)
 libgnunet_plugin_rest_namestore_la_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
-
-
-libgnunetnamestore_la_SOURCES = \
-  namestore_api.c \
-  namestore_api_monitor.c \
-  namestore.h
-libgnunetnamestore_la_LIBADD = \
-  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la  \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(GN_LIBINTL)
-libgnunetnamestore_la_LDFLAGS = \
-  $(GN_LIB_LDFLAGS)  \
-  -version-info 0:1:0
-
-gnunet_namestore_zonefile_SOURCES = \
- gnunet-namestore-zonefile.c
-gnunet_namestore_zonefile_LDADD = \
-  libgnunetnamestore.la \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la  \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(GN_LIBINTL)
-
-gnunet_zoneimport_SOURCES = \
- gnunet-zoneimport.c
-gnunet_zoneimport_LDADD = \
-  libgnunetnamestore.la \
-  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(GN_LIBINTL)
-
-gnunet_namestore_SOURCES = \
- gnunet-namestore.c
-gnunet_namestore_LDADD = \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  libgnunetnamestore.la \
-  $(GN_LIBINTL)
-
-gnunet_namestore_dbtool_SOURCES = \
- gnunet-namestore-dbtool.c
-gnunet_namestore_dbtool_LDADD = \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  libgnunetnamestore.la \
-  $(GN_LIBINTL)
-
-
-
-gnunet_namestore_fcfsd_SOURCES = \
- gnunet-namestore-fcfsd.c
-gnunet_namestore_fcfsd_LDADD = $(MHD_LIBS) \
-  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  libgnunetnamestore.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/lib/json/libgnunetjson.la \
-  $(GN_LIBINTL) -ljansson
-gnunet_namestore_fcfsd_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
-
-
-gnunet_service_namestore_SOURCES = \
- gnunet-service-namestore.c
-gnunet_service_namestore_LDADD = \
-  $(top_builddir)/src/service/namecache/libgnunetnamecache.la \
-  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  libgnunetnamestore.la \
-  $(GN_LIBINTL)
-
 
 
 libgnunet_plugin_namestore_sqlite_la_SOURCES = \
@@ -227,7 +131,7 @@ test_namestore_api_store_sqlite_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  libgnunetnamestore.la
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la
 
 test_namestore_api_store_postgres_SOURCES = \
  test_namestore_api_store.c
@@ -236,7 +140,7 @@ test_namestore_api_store_postgres_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  libgnunetnamestore.la
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la
 
 test_namestore_api_store_update_sqlite_SOURCES = \
  test_namestore_api_store_update.c
@@ -246,7 +150,7 @@ test_namestore_api_store_update_sqlite_LDADD = \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/service/namecache/libgnunetnamecache.la \
-  libgnunetnamestore.la
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la
 
 test_namestore_api_store_update_postgres_SOURCES = \
  test_namestore_api_store_update.c
@@ -256,7 +160,7 @@ test_namestore_api_store_update_postgres_LDADD = \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/service/namecache/libgnunetnamecache.la \
-  libgnunetnamestore.la
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la
 
 test_namestore_api_lookup_nick_sqlite_SOURCES = \
  test_namestore_api_lookup_nick.c
@@ -266,7 +170,7 @@ test_namestore_api_lookup_nick_sqlite_LDADD = \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/service/namecache/libgnunetnamecache.la \
-  libgnunetnamestore.la
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la
 
 test_namestore_api_lookup_nick_postgres_SOURCES = \
  test_namestore_api_lookup_nick.c
@@ -276,7 +180,7 @@ test_namestore_api_lookup_nick_postgres_LDADD = \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/service/namecache/libgnunetnamecache.la \
-  libgnunetnamestore.la
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la
 
 test_namestore_api_remove_sqlite_SOURCES = \
  test_namestore_api_remove.c
@@ -285,7 +189,7 @@ test_namestore_api_remove_sqlite_LDADD = \
   $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  libgnunetnamestore.la
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la
 
 test_namestore_api_remove_postgres_SOURCES = \
  test_namestore_api_remove.c
@@ -294,7 +198,7 @@ test_namestore_api_remove_postgres_LDADD = \
   $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  libgnunetnamestore.la
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la
 
 test_namestore_api_remove_not_existing_record_sqlite_SOURCES = \
  test_namestore_api_remove_not_existing_record.c
@@ -303,7 +207,7 @@ test_namestore_api_remove_not_existing_record_sqlite_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  libgnunetnamestore.la
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la
 
 test_namestore_api_remove_not_existing_record_postgres_SOURCES = \
  test_namestore_api_remove_not_existing_record.c
@@ -312,7 +216,7 @@ test_namestore_api_remove_not_existing_record_postgres_LDADD = \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  libgnunetnamestore.la
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la
 
 test_namestore_api_zone_to_name_sqlite_SOURCES = \
  test_namestore_api_zone_to_name.c
@@ -320,7 +224,7 @@ test_namestore_api_zone_to_name_sqlite_LDADD = \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  libgnunetnamestore.la
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la
 
 test_namestore_api_zone_to_name_postgres_SOURCES = \
  test_namestore_api_zone_to_name.c
@@ -328,14 +232,14 @@ test_namestore_api_zone_to_name_postgres_LDADD = \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  libgnunetnamestore.la
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la
 
 test_namestore_api_monitoring_sqlite_SOURCES = \
  test_namestore_api_monitoring.c
 test_namestore_api_monitoring_sqlite_LDADD = \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/service/testing/libgnunettesting.la \
-  libgnunetnamestore.la \
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
@@ -344,7 +248,7 @@ test_namestore_api_monitoring_postgres_SOURCES = \
 test_namestore_api_monitoring_postgres_LDADD = \
   $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  libgnunetnamestore.la \
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
@@ -353,7 +257,7 @@ test_namestore_api_monitoring_existing_sqlite_SOURCES = \
 test_namestore_api_monitoring_existing_sqlite_LDADD = \
   $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  libgnunetnamestore.la \
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
@@ -361,7 +265,7 @@ test_namestore_api_monitoring_existing_postgres_SOURCES = \
  test_namestore_api_monitoring_existing.c
 test_namestore_api_monitoring_existing_postgres_LDADD = \
   $(top_builddir)/src/service/testing/libgnunettesting.la \
-  libgnunetnamestore.la \
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
@@ -371,7 +275,7 @@ test_namestore_api_tx_rollback_sqlite_SOURCES = \
 test_namestore_api_tx_rollback_sqlite_LDADD = \
   $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  libgnunetnamestore.la \
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
@@ -380,7 +284,7 @@ test_namestore_api_tx_rollback_postgres_SOURCES = \
 test_namestore_api_tx_rollback_postgres_LDADD = \
   $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  libgnunetnamestore.la \
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
@@ -390,7 +294,7 @@ test_namestore_api_edit_records_postgres_SOURCES = \
 test_namestore_api_edit_records_postgres_LDADD = \
   $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  libgnunetnamestore.la \
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 endif
@@ -402,7 +306,7 @@ test_namestore_api_zone_iteration_sqlite_LDADD = \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  libgnunetnamestore.la
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la
 
 test_namestore_api_zone_iteration_postgres_SOURCES = \
  test_namestore_api_zone_iteration.c
@@ -411,7 +315,7 @@ test_namestore_api_zone_iteration_postgres_LDADD = \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  libgnunetnamestore.la
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la
 
 perf_namestore_api_zone_iteration_postgres_SOURCES = \
  perf_namestore_api_zone_iteration.c
@@ -420,7 +324,7 @@ perf_namestore_api_zone_iteration_postgres_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  libgnunetnamestore.la
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la
 
 perf_namestore_api_import_sqlite_SOURCES = \
  perf_namestore_api_import.c
@@ -429,7 +333,7 @@ perf_namestore_api_import_sqlite_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  libgnunetnamestore.la
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la
 
 perf_namestore_api_import_postgres_SOURCES = \
  perf_namestore_api_import.c
@@ -438,7 +342,7 @@ perf_namestore_api_import_postgres_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  libgnunetnamestore.la
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la
 
 
 perf_namestore_api_zone_iteration_sqlite_SOURCES = \
@@ -448,7 +352,7 @@ perf_namestore_api_zone_iteration_sqlite_LDADD = \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  libgnunetnamestore.la
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la
 
 test_namestore_api_zone_iteration_nick_sqlite_SOURCES = \
  test_namestore_api_zone_iteration_nick.c
@@ -457,7 +361,7 @@ test_namestore_api_zone_iteration_nick_sqlite_LDADD = \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  libgnunetnamestore.la
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la
 
 test_namestore_api_zone_iteration_nick_postgres_SOURCES = \
  test_namestore_api_zone_iteration_nick.c
@@ -466,7 +370,7 @@ test_namestore_api_zone_iteration_nick_postgres_LDADD = \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  libgnunetnamestore.la
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la
 
 test_namestore_api_zone_iteration_specific_zone_sqlite_SOURCES = \
  test_namestore_api_zone_iteration_specific_zone.c
@@ -475,7 +379,7 @@ test_namestore_api_zone_iteration_specific_zone_sqlite_LDADD = \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  libgnunetnamestore.la
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la
 
 test_namestore_api_zone_iteration_specific_zone_postgres_SOURCES = \
  test_namestore_api_zone_iteration_specific_zone.c
@@ -484,7 +388,7 @@ test_namestore_api_zone_iteration_specific_zone_postgres_LDADD = \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  libgnunetnamestore.la
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la
 
 test_namestore_api_zone_iteration_stop_sqlite_SOURCES = \
  test_namestore_api_zone_iteration_stop.c
@@ -493,7 +397,7 @@ test_namestore_api_zone_iteration_stop_sqlite_LDADD = \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  libgnunetnamestore.la
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la
 
 test_namestore_api_zone_iteration_stop_postgres_SOURCES = \
  test_namestore_api_zone_iteration_stop.c
@@ -502,7 +406,7 @@ test_namestore_api_zone_iteration_stop_postgres_LDADD = \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  libgnunetnamestore.la
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la
 
 test_plugin_namestore_sqlite_SOURCES = \
  test_plugin_namestore.c
@@ -519,13 +423,6 @@ test_plugin_namestore_postgres_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 check_SCRIPTS = \
-  test_namestore_put.sh \
-  test_namestore_put_stdin.sh \
-  test_namestore_lookup.sh \
-  test_namestore_delete.sh \
-  test_namestore_zonefile_import.sh
-
-check_SCRIPTS += \
   test_plugin_rest_namestore.sh
 
 EXTRA_DIST = \
@@ -538,6 +435,5 @@ EXTRA_DIST = \
   test_plugin_namestore_sqlite.conf \
   test_plugin_namestore_postgres.conf \
   test_hostkey \
-  example_zonefile \
   $(check_SCRIPTS) \
   $(sql_DATA)

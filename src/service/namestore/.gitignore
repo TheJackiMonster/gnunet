@@ -1,7 +1,4 @@
 gnunet-service-namestore
-gnunet-namestore
-gnunet-namestore-dbtool
-gnunet-namestore-zonefile
 gnunet-namestore-fcfsd
 test_namestore_api_lookup_nick.nc
 test_namestore_api_lookup_private.nc
@@ -20,7 +17,6 @@ test_namestore_api_zone_iteration_specific_zone.nc
 test_namestore_api_zone_iteration_stop.nc
 test_plugin_namestore_postgres
 test_plugin_namestore_sqlite
-gnunet-zoneimport
 test_namestore_api_lookup_nick_postgres
 test_namestore_api_lookup_nick_sqlite
 test_namestore_api_lookup_private_postgres

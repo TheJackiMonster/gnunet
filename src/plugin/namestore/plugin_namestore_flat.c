@@ -28,7 +28,6 @@
 #include "gnunet_namestore_plugin.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_gnsrecord_lib.h"
-#include "namestore.h"
 
 /**
  * Context for all functions in this plugin.

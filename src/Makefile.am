@@ -17,7 +17,6 @@ SUBDIRS = \
 	rest-plugin \
 	cli \
 	contrib \
-  namestore \
   set \
   seti \
   setu \
