@@ -9,7 +9,7 @@ bin_PROGRAMS = \
  gnunet-nat
 
 gnunet_nat_SOURCES = \
-  gnunet-nat.c nat.h
+  gnunet-nat.c
 gnunet_nat_LDADD = \
   $(top_builddir)/src/service/nat/libgnunetnatnew.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la

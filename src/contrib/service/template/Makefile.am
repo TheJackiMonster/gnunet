@@ -17,15 +17,8 @@ endif
 # libexec_PROGRAMS should be used for gnunet-service-template
 
 noinst_PROGRAMS = \
- gnunet-template \
  gnunet-service-template
 
-
-gnunet_template_SOURCES = \
- gnunet-template.c
-gnunet_template_LDADD = \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(GN_LIBINTL)
 
 gnunet_service_template_SOURCES = \
  gnunet-service-template.c

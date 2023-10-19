@@ -17,7 +17,6 @@ SUBDIRS = \
 	rest-plugin \
 	cli \
 	contrib \
-  template \
   nat-auto \
   hostlist \
   topology \

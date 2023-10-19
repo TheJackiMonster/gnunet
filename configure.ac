@@ -1288,6 +1288,8 @@ src/contrib/service/abd/abd.conf
 src/contrib/service/auction/Makefile
 src/contrib/service/rps/Makefile
 src/contrib/service/rps/rps.conf
+src/contrib/service/template/Makefile
+src/contrib/cli/template/Makefile
 src/consensus/Makefile
 src/consensus/consensus.conf
 src/conversation/Makefile
@@ -1325,7 +1327,6 @@ src/seti/Makefile
 src/seti/seti.conf
 src/setu/Makefile
 src/setu/setu.conf
-src/template/Makefile
 src/topology/Makefile
 src/vpn/Makefile
 src/vpn/vpn.conf

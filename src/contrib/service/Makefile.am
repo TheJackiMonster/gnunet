@@ -6,4 +6,5 @@ if HAVE_EXPERIMENTAL
 endif
 
 SUBDIRS = \
+	template \
 	$(EXP_DIR)

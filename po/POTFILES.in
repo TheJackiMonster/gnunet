@@ -23,6 +23,7 @@ src/cli/util/gnunet-uri.c
 src/consensus/consensus_api.c
 src/consensus/gnunet-service-consensus.c
 src/consensus/plugin_block_consensus.c
+src/contrib/cli/template/gnunet-template.c
 src/contrib/service/abd/abd_api.c
 src/contrib/service/abd/abd_serialization.c
 src/contrib/service/abd/delegate_misc.c
@@ -44,6 +45,7 @@ src/contrib/service/rps/rps-sampler_client.c
 src/contrib/service/rps/rps-sampler_common.c
 src/contrib/service/rps/rps-test_util.c
 src/contrib/service/rps/rps_api.c
+src/contrib/service/template/gnunet-service-template.c
 src/conversation/conversation_api.c
 src/conversation/conversation_api_call.c
 src/conversation/gnunet-conversation-test.c
@@ -123,7 +125,6 @@ src/gns/nss/nss_gns_query.c
 src/gns/plugin_block_gns.c
 src/gns/plugin_gnsrecord_gns.c
 src/gns/plugin_rest_gns.c
-src/hello/gnunet-hello.c
 src/hostlist/gnunet-daemon-hostlist.c
 src/hostlist/gnunet-daemon-hostlist_client.c
 src/hostlist/gnunet-daemon-hostlist_server.c
@@ -489,8 +490,6 @@ src/setu/ibf.c
 src/setu/ibf_sim.c
 src/setu/plugin_block_setu_test.c
 src/setu/setu_api.c
-src/template/gnunet-service-template.c
-src/template/gnunet-template.c
 src/test/dhtu/testing_dhtu_cmd_send.c
 src/test/testing/gnunet-cmds-helper.c
 src/test/testing/gnunet-testing.c
