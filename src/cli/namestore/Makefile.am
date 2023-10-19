@@ -66,6 +66,5 @@ check_SCRIPTS = \
   test_namestore_zonefile_import.sh
 
 EXTRA_DIST = \
-  test_hostkey \
   example_zonefile \
   $(check_SCRIPTS)

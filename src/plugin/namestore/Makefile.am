@@ -434,6 +434,5 @@ EXTRA_DIST = \
   perf_namestore_api_sqlite.conf \
   test_plugin_namestore_sqlite.conf \
   test_plugin_namestore_postgres.conf \
-  test_hostkey \
   $(check_SCRIPTS) \
   $(sql_DATA)

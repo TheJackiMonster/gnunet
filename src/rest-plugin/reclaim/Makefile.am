@@ -68,7 +68,7 @@ endif
 if HAVE_PABC
 libgnunet_plugin_rest_pabc_la_SOURCES = \
   plugin_rest_pabc.c \
-  pabc_helper.c
+  $(top_builddir)/src/plugin/reclaim/pabc_helper.c
 libgnunet_plugin_rest_pabc_la_LIBADD = \
   $(top_builddir)/src/service/reclaim/libgnunetreclaim.la \
   $(top_builddir)/src/lib/json/libgnunetjson.la \

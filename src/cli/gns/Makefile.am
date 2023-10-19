@@ -74,7 +74,6 @@ check_SCRIPTS = \
 EXTRA_DIST = \
   test_gns_defaults.conf \
   test_gns_lookup.conf \
-  test_gns_proxy.conf \
   test_gns_simple_lookup.conf \
   openssl.cnf \
   gnunet-gns-proxy-setup-ca.in \
@@ -98,7 +97,6 @@ EXTRA_DIST = \
   test_gns_soa_lookup.sh\
   test_gns_revocation.sh\
   test_gns_redirect_lookup.sh\
-  test_proxy.sh\
 	$(pkgdata_DATA) \
   test_gnunet_gns.sh.in
 

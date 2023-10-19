@@ -34,10 +34,6 @@ POSTGRES_PLUGIN = libgnunet_plugin_namecache_postgres.la
 POSTGRES_TESTS = test_plugin_namecache_postgres
 endif
 
-# testcases do not even build yet; thus: experimental!
-TESTING_TESTS = \
- test_namecache_api_cache_block
-
 if HAVE_SQLITE
 check_PROGRAMS = \
  $(SQLITE_TESTS) \

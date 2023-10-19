@@ -221,6 +221,7 @@ src/plugin/namestore/plugin_namestore_flat.c
 src/plugin/namestore/plugin_namestore_postgres.c
 src/plugin/namestore/plugin_namestore_sqlite.c
 src/plugin/namestore/plugin_rest_namestore.c
+src/plugin/reclaim/pabc_helper.c
 src/plugin/reclaim/plugin_gnsrecord_reclaim.c
 src/plugin/reclaim/plugin_reclaim_attribute_basic.c
 src/plugin/reclaim/plugin_reclaim_credential_jwt.c
@@ -409,7 +410,6 @@ src/service/reclaim/did_helper.c
 src/service/reclaim/did_misc.c
 src/service/reclaim/gnunet-service-reclaim.c
 src/service/reclaim/gnunet-service-reclaim_tickets.c
-src/service/reclaim/pabc_helper.c
 src/service/reclaim/reclaim_api.c
 src/service/reclaim/reclaim_attribute.c
 src/service/reclaim/reclaim_credential.c

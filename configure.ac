@@ -1230,7 +1230,6 @@ po/Makefile.in
 src/Makefile
 src/lib/Makefile
 src/lib/util/Makefile
-src/lib/util/resolver.conf
 src/lib/block/Makefile
 src/lib/curl/Makefile
 src/lib/gnsrecord/Makefile
@@ -1302,6 +1301,7 @@ src/service/topology/Makefile
 src/service/transport/Makefile
 src/service/transport/transport.conf
 src/service/util/Makefile
+src/service/util/resolver.conf
 src/service/vpn/Makefile
 src/service/vpn/vpn.conf
 src/service/zonemaster/Makefile

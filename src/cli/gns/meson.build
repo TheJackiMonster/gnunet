@@ -46,7 +46,6 @@ testconfigs = [
   'test_gns_lookup.conf',
   'test_gns_lookup_peer1.conf',
   'test_gns_lookup_peer2.conf',
-  'test_gns_proxy.conf',
   'test_gns_simple_lookup.conf'
 ]
 
