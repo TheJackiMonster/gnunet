@@ -83,3 +83,12 @@ GNR_derive_block_xsalsa_key (unsigned char *nonce,
                          uint64_t exp,
                          const struct GNUNET_CRYPTO_EddsaPublicKey *pub);
 
+/**
+ * Create the revocation metadata to sign for a revocation message
+ *
+ * @param pow the PoW to sign
+ * @return the signature purpose
+ */
+struct GNUNET_GNSRECORD_SignaturePurposePS *
+GNR_create_signature_message (const struct GNUNET_GNSRECORD_PowP *pow);
+

@@ -207,9 +207,6 @@ src/lib/util/tun.c
 src/lib/util/uri.c
 src/plugin/block/plugin_block_template.c
 src/plugin/block/plugin_block_test.c
-src/plugin/dhtu/plugin_dhtu_gnunet.c
-src/plugin/dhtu/plugin_dhtu_ip.c
-src/plugin/dhtu/testing_dhtu_cmd_send.c
 src/plugin/fs/plugin_block_fs.c
 src/plugin/gns/plugin_block_gns.c
 src/plugin/gns/plugin_gnsrecord_gns.c
@@ -220,7 +217,6 @@ src/plugin/namecache/plugin_namecache_sqlite.c
 src/plugin/namestore/plugin_namestore_flat.c
 src/plugin/namestore/plugin_namestore_postgres.c
 src/plugin/namestore/plugin_namestore_sqlite.c
-src/plugin/namestore/plugin_rest_namestore.c
 src/plugin/reclaim/pabc_helper.c
 src/plugin/reclaim/plugin_gnsrecord_reclaim.c
 src/plugin/reclaim/plugin_reclaim_attribute_basic.c
@@ -229,6 +225,7 @@ src/plugin/reclaim/plugin_reclaim_credential_pabc.c
 src/plugin/revocation/plugin_block_revocation.c
 src/rest-plugin/gns/plugin_rest_gns.c
 src/rest-plugin/identity/plugin_rest_identity.c
+src/rest-plugin/namestore/plugin_rest_namestore.c
 src/rest-plugin/reclaim/json_reclaim.c
 src/rest-plugin/reclaim/oidc_helper.c
 src/rest-plugin/reclaim/plugin_rest_openid_connect.c
@@ -285,6 +282,9 @@ src/service/dht/gnunet-service-dht_neighbours.c
 src/service/dht/gnunet-service-dht_routing.c
 src/service/dht/gnunet_dht_profiler.c
 src/service/dht/plugin_block_dht.c
+src/service/dhtu/plugin_dhtu_gnunet.c
+src/service/dhtu/plugin_dhtu_ip.c
+src/service/dhtu/testing_dhtu_cmd_send.c
 src/service/dns/dns_api.c
 src/service/dns/gnunet-dns-monitor.c
 src/service/dns/gnunet-dns-redirector.c

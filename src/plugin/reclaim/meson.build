@@ -7,9 +7,7 @@ shared_module('gnunet_plugin_gnsrecord_reclaim',
 
 shared_module('gnunet_plugin_reclaim_attribute_basic',
               ['plugin_reclaim_attribute_basic.c'],
-              dependencies: [libgnunetrest_dep,
-                             libgnunetidentity_dep,
-                             libgnunetreclaim_dep,
+              dependencies: [
                              libgnunetjson_dep,
                              libgnunetutil_dep,
                              json_dep],
@@ -18,9 +16,7 @@ shared_module('gnunet_plugin_reclaim_attribute_basic',
               install_dir: get_option('libdir') / 'gnunet')
 shared_module('gnunet_plugin_reclaim_credential_jwt',
               ['plugin_reclaim_credential_jwt.c'],
-              dependencies: [libgnunetrest_dep,
-                             libgnunetidentity_dep,
-                             libgnunetreclaim_dep,
+              dependencies: [
                              libgnunetjson_dep,
                              libgnunetutil_dep,
                              json_dep],

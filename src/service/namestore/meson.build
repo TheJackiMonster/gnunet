@@ -1,7 +1,5 @@
 libgnunetnamestore_src = ['namestore_api.c', 'namestore_api_monitor.c']
-libgnunetpluginnamestore_sqlite_src = ['plugin_namestore_sqlite.c']
 
-gnunetnamestore_src = ['gnunet-namestore.c']
 gnunetservicenamestore_src = ['gnunet-service-namestore.c']
 
 configure_file(input : 'namestore.conf.in',

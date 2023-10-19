@@ -47,6 +47,7 @@ libgnunetgnsrecord_la_SOURCES = \
   gnsrecord.c \
   gnsrecord_serialization.c \
   gnsrecord_crypto.c \
+  gnsrecord_pow.c \
   gnsrecord_misc.c
 libgnunetgnsrecord_la_LIBADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \

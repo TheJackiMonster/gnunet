@@ -5,8 +5,8 @@
 SUBDIRS = \
   include $(INTLEMU_SUBDIRS) \
   lib \
-	service \
 	plugin \
+	service \
 	rest-plugin \
 	cli \
 	contrib

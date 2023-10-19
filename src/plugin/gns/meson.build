@@ -2,7 +2,7 @@ shared_module('gnunet_plugin_gnsrecord_gns',
         ['plugin_gnsrecord_gns.c'],
         dependencies: [libgnunetutil_dep,
                        libgnunetgnsrecord_dep,
-                       libgnunetidentity_dep],
+                      ],
         include_directories: [incdir, configuration_inc],
         install: true,
         install_dir: get_option('libdir')/'gnunet')

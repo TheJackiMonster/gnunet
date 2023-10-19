@@ -34,7 +34,6 @@ libgnunet_plugin_gnsrecord_gns_la_SOURCES = \
   plugin_gnsrecord_gns.c
 libgnunet_plugin_gnsrecord_gns_la_LIBADD = \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LTLIBINTL)
 libgnunet_plugin_gnsrecord_gns_la_LDFLAGS = \
@@ -47,7 +46,6 @@ libgnunet_plugin_block_gns_la_LIBADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/lib/block/libgnunetblock.la \
   $(top_builddir)/src/lib/block/libgnunetblockgroup.la \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la  \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la
 libgnunet_plugin_block_gns_la_LDFLAGS = \
   $(GN_LIBINTL) \

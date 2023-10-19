@@ -20,7 +20,6 @@ libgnunet_plugin_block_fs_la_SOURCES = \
 libgnunet_plugin_block_fs_la_LIBADD = \
   $(top_builddir)/src/lib/block/libgnunetblockgroup.la \
   $(top_builddir)/src/lib/block/libgnunetblock.la \
-  $(top_builddir)/src/service/fs/libgnunetfs.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LTLIBINTL)
 libgnunet_plugin_block_fs_la_LDFLAGS = \

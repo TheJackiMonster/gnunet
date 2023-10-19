@@ -56,10 +56,7 @@ plugin_LTLIBRARIES = \
 libgnunet_plugin_namecache_flat_la_SOURCES = \
   plugin_namecache_flat.c
 libgnunet_plugin_namecache_flat_la_LIBADD = \
-  $(top_builddir)/src/service/namecache/libgnunetnamecache.la  \
-  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) \
   $(LTLIBINTL)
 libgnunet_plugin_namecache_flat_la_LDFLAGS = \
@@ -68,11 +65,8 @@ libgnunet_plugin_namecache_flat_la_LDFLAGS = \
 libgnunet_plugin_namecache_sqlite_la_SOURCES = \
   plugin_namecache_sqlite.c
 libgnunet_plugin_namecache_sqlite_la_LIBADD = \
-  $(top_builddir)/src/service/namecache/libgnunetnamecache.la  \
   $(top_builddir)/src/lib/sq/libgnunetsq.la \
-  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) -lsqlite3 \
   $(LTLIBINTL)
 libgnunet_plugin_namecache_sqlite_la_LDFLAGS = \
@@ -82,11 +76,8 @@ libgnunet_plugin_namecache_sqlite_la_LDFLAGS = \
 libgnunet_plugin_namecache_postgres_la_SOURCES = \
   plugin_namecache_postgres.c
 libgnunet_plugin_namecache_postgres_la_LIBADD = \
-  $(top_builddir)/src/service/namecache/libgnunetnamecache.la  \
   $(top_builddir)/src/lib/pq/libgnunetpq.la  \
-  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) -lpq \
   $(LTLIBINTL)
 libgnunet_plugin_namecache_postgres_la_LDFLAGS = \

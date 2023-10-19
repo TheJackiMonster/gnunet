@@ -1,5 +1,5 @@
 executable ('gnunet-namestore',
-          gnunetnamestore_src,
+          ['gnunet-namestore.c'],
           dependencies: [libgnunetnamestore_dep,
                          libgnunetutil_dep,
                          libgnunetgnsrecord_dep,

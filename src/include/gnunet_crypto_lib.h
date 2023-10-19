@@ -3637,8 +3637,6 @@ GNUNET_CRYPTO_key_get_public (const struct
                                 GNUNET_CRYPTO_PrivateKey *privkey,
                                 struct GNUNET_CRYPTO_PublicKey *key);
 
-
-
 #if 0 /* keep Emacsens' auto-indent happy */
 {
 #endif

@@ -16,6 +16,7 @@ SUBDIRS = \
 	rest \
 	datacache \
 	datastore \
+	dhtu \
 	dht \
   namecache \
   namestore \

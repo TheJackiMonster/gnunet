@@ -4,8 +4,8 @@ endif
 
 subdir('include')
 subdir('lib')
-subdir('service')
 subdir('plugin')
+subdir('service')
 subdir('rest-plugin')
 subdir('cli')
 subdir('contrib')

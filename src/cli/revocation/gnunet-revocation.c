@@ -24,9 +24,9 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+#include "gnunet_gnsrecord_lib.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_revocation_service.h"
-#include "gnunet_identity_service.h"
 
 /**
  * Pow passes
@@ -101,7 +101,7 @@ static struct GNUNET_SCHEDULER_Task *pow_task;
 /**
  * Proof-of-work object
  */
-static struct GNUNET_REVOCATION_PowP *proof_of_work;
+static struct GNUNET_GNSRECORD_PowP *proof_of_work;
 
 /**
  * Function run if the user aborts with CTRL-C.
@@ -228,7 +228,7 @@ perform_revocation ()
 static void
 sync_pow ()
 {
-  size_t psize = GNUNET_REVOCATION_proof_get_size (proof_of_work);
+  size_t psize = GNUNET_GNSRECORD_proof_get_size (proof_of_work);
   if ((NULL != filename) &&
       (GNUNET_OK !=
        GNUNET_DISK_fn_write (filename,
@@ -248,7 +248,7 @@ sync_pow ()
 static void
 calculate_pow_shutdown (void *cls)
 {
-  struct GNUNET_REVOCATION_PowCalculationHandle *ph = cls;
+  struct GNUNET_GNSRECORD_PowCalculationHandle *ph = cls;
   fprintf (stderr, "%s", _ ("Cancelling calculation.\n"));
   sync_pow ();
   if (NULL != pow_task)
@@ -257,7 +257,7 @@ calculate_pow_shutdown (void *cls)
     pow_task = NULL;
   }
   if (NULL != ph)
-    GNUNET_REVOCATION_pow_stop (ph);
+    GNUNET_GNSRECORD_pow_stop (ph);
 }
 
 
@@ -269,7 +269,7 @@ calculate_pow_shutdown (void *cls)
 static void
 calculate_pow (void *cls)
 {
-  struct GNUNET_REVOCATION_PowCalculationHandle *ph = cls;
+  struct GNUNET_GNSRECORD_PowCalculationHandle *ph = cls;
   size_t psize;
 
   /* store temporary results */
@@ -277,9 +277,9 @@ calculate_pow (void *cls)
   if (0 == (pow_passes % 128))
     sync_pow ();
   /* actually do POW calculation */
-  if (GNUNET_OK == GNUNET_REVOCATION_pow_round (ph))
+  if (GNUNET_OK == GNUNET_GNSRECORD_pow_round (ph))
   {
-    psize = GNUNET_REVOCATION_proof_get_size (proof_of_work);
+    psize = GNUNET_GNSRECORD_proof_get_size (proof_of_work);
     if (NULL != filename)
     {
       (void) GNUNET_DISK_directory_remove (filename);
@@ -325,7 +325,7 @@ ego_callback (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 {
   struct GNUNET_CRYPTO_PublicKey key;
   const struct GNUNET_CRYPTO_PrivateKey *privkey;
-  struct GNUNET_REVOCATION_PowCalculationHandle *ph = NULL;
+  struct GNUNET_GNSRECORD_PowCalculationHandle *ph = NULL;
   size_t psize;
 
   el = NULL;
@@ -337,11 +337,11 @@ ego_callback (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   }
   GNUNET_IDENTITY_ego_get_public_key (ego, &key);
   privkey = GNUNET_IDENTITY_ego_get_private_key (ego);
-  proof_of_work = GNUNET_malloc (GNUNET_REVOCATION_MAX_PROOF_SIZE);
+  proof_of_work = GNUNET_malloc (GNUNET_MAX_POW_SIZE);
   if ((NULL != filename) && (GNUNET_YES == GNUNET_DISK_file_test (filename)) &&
       (0 < (psize =
               GNUNET_DISK_fn_read (filename, proof_of_work,
-                                   GNUNET_REVOCATION_MAX_PROOF_SIZE))))
+                                   GNUNET_MAX_POW_SIZE))))
   {
     ssize_t ksize = GNUNET_CRYPTO_public_key_get_length (&key);
     if (0 > ksize)
@@ -360,9 +360,9 @@ ego_callback (void *cls, struct GNUNET_IDENTITY_Ego *ego)
       return;
     }
     if (GNUNET_YES ==
-        GNUNET_REVOCATION_check_pow (proof_of_work,
-                                     (unsigned int) matching_bits,
-                                     epoch_duration))
+        GNUNET_GNSRECORD_check_pow (proof_of_work,
+                                    (unsigned int) matching_bits,
+                                    epoch_duration))
     {
       fprintf (stderr, "%s", _ ("Revocation certificate ready\n"));
       if (perform)
@@ -377,20 +377,20 @@ ego_callback (void *cls, struct GNUNET_IDENTITY_Ego *ego)
     fprintf (stderr,
              "%s",
              _ ("Continuing calculation where left off...\n"));
-    ph = GNUNET_REVOCATION_pow_start (proof_of_work,
-                                      epochs,
-                                      matching_bits);
+    ph = GNUNET_GNSRECORD_pow_start (proof_of_work,
+                                     epochs,
+                                     matching_bits);
   }
   fprintf (stderr,
            "%s",
            _ ("Revocation certificate not ready, calculating proof of work\n"));
   if (NULL == ph)
   {
-    GNUNET_REVOCATION_pow_init (privkey,
-                                proof_of_work);
-    ph = GNUNET_REVOCATION_pow_start (proof_of_work,
-                                      epochs, /* Epochs */
-                                      matching_bits);
+    GNUNET_GNSRECORD_pow_init (privkey,
+                               proof_of_work);
+    ph = GNUNET_GNSRECORD_pow_start (proof_of_work,
+                                     epochs,  /* Epochs */
+                                     matching_bits);
   }
   pow_task = GNUNET_SCHEDULER_add_now (&calculate_pow, ph);
   GNUNET_SCHEDULER_add_shutdown (&calculate_pow_shutdown, ph);
@@ -419,7 +419,7 @@ run (void *cls,
   {
     if (GNUNET_OK !=
         GNUNET_CRYPTO_public_key_from_string (test_ego,
-                                                &pk))
+                                              &pk))
     {
       fprintf (stderr, _ ("Public key `%s' malformed\n"), test_ego);
       return;
@@ -472,17 +472,17 @@ run (void *cls,
   if ((NULL != filename) && (perform))
   {
     size_t bread;
-    proof_of_work = GNUNET_malloc (GNUNET_REVOCATION_MAX_PROOF_SIZE);
+    proof_of_work = GNUNET_malloc (GNUNET_MAX_POW_SIZE);
     if (0 < (bread = GNUNET_DISK_fn_read (filename,
                                           proof_of_work,
-                                          GNUNET_REVOCATION_MAX_PROOF_SIZE)))
+                                          GNUNET_MAX_POW_SIZE)))
     {
       fprintf (stderr,
                _ ("Failed to read revocation certificate from `%s'\n"),
                filename);
       return;
     }
-    psize = GNUNET_REVOCATION_proof_get_size (proof_of_work);
+    psize = GNUNET_GNSRECORD_proof_get_size (proof_of_work);
     if (bread != psize)
     {
       fprintf (stderr,
@@ -492,14 +492,14 @@ run (void *cls,
     }
     GNUNET_SCHEDULER_add_shutdown (&do_shutdown, NULL);
     if (GNUNET_YES !=
-        GNUNET_REVOCATION_check_pow (proof_of_work,
-                                     (unsigned int) matching_bits,
-                                     epoch_duration))
+        GNUNET_GNSRECORD_check_pow (proof_of_work,
+                                    (unsigned int) matching_bits,
+                                    epoch_duration))
     {
-      struct GNUNET_REVOCATION_PowCalculationHandle *ph;
-      ph = GNUNET_REVOCATION_pow_start (proof_of_work,
-                                        epochs, /* Epochs */
-                                        matching_bits);
+      struct GNUNET_GNSRECORD_PowCalculationHandle *ph;
+      ph = GNUNET_GNSRECORD_pow_start (proof_of_work,
+                                       epochs,  /* Epochs */
+                                       matching_bits);
 
       pow_task = GNUNET_SCHEDULER_add_now (&calculate_pow, ph);
       GNUNET_SCHEDULER_add_shutdown (&calculate_pow_shutdown, ph);

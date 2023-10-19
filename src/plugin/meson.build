@@ -1,5 +1,4 @@
 subdir('block')
-subdir('dhtu')
 subdir('gnsrecord')
 subdir('namecache')
 subdir('namestore')

@@ -1238,7 +1238,6 @@ src/lib/pq/Makefile
 src/lib/sq/Makefile
 src/plugin/Makefile
 src/plugin/block/Makefile
-src/plugin/dhtu/Makefile
 src/plugin/fs/Makefile
 src/plugin/gns/Makefile
 src/plugin/gnsrecord/Makefile
@@ -1258,6 +1257,7 @@ src/service/datastore/Makefile
 src/service/datastore/datastore.conf
 src/service/dht/Makefile
 src/service/dht/dht.conf
+src/service/dhtu/Makefile
 src/service/dns/Makefile
 src/service/dns/dns.conf
 src/service/exit/Makefile
@@ -1309,6 +1309,7 @@ src/service/zonemaster/zonemaster.conf
 src/rest-plugin/Makefile
 src/rest-plugin/gns/Makefile
 src/rest-plugin/identity/Makefile
+src/rest-plugin/namestore/Makefile
 src/rest-plugin/reclaim/Makefile
 src/rest-plugin/rest/Makefile
 src/cli/Makefile
