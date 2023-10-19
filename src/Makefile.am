@@ -10,7 +10,5 @@ SUBDIRS = \
 	rest-plugin \
 	cli \
 	contrib \
-  exit \
-  pt \
   reclaim \
   messenger

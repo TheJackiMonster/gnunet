@@ -98,8 +98,6 @@ src/contrib/service/set/ibf_sim.c
 src/contrib/service/set/plugin_block_set_test.c
 src/contrib/service/set/set_api.c
 src/contrib/service/template/gnunet-service-template.c
-src/exit/gnunet-daemon-exit.c
-src/exit/gnunet-helper-exit.c
 src/gana/gnunet-error-codes/gnunet_error_codes.c
 src/lib/block/bg_bf.c
 src/lib/block/block.c
@@ -253,7 +251,6 @@ src/plugin/namestore/plugin_namestore_postgres.c
 src/plugin/namestore/plugin_namestore_sqlite.c
 src/plugin/namestore/plugin_rest_namestore.c
 src/plugin/revocation/plugin_block_revocation.c
-src/pt/gnunet-daemon-pt.c
 src/reclaim/did_core.c
 src/reclaim/did_helper.c
 src/reclaim/did_misc.c
@@ -334,6 +331,8 @@ src/service/dns/gnunet-helper-dns.c
 src/service/dns/gnunet-service-dns.c
 src/service/dns/gnunet-zonewalk.c
 src/service/dns/plugin_block_dns.c
+src/service/exit/gnunet-daemon-exit.c
+src/service/exit/gnunet-helper-exit.c
 src/service/fs/fs_api.c
 src/service/fs/fs_directory.c
 src/service/fs/fs_dirmetascan.c
@@ -413,6 +412,7 @@ src/service/peerstore/peerstore_api.c
 src/service/peerstore/peerstore_common.c
 src/service/peerstore/plugin_peerstore_flat.c
 src/service/peerstore/plugin_peerstore_sqlite.c
+src/service/pt/gnunet-daemon-pt.c
 src/service/regex/gnunet-daemon-regexprofiler.c
 src/service/regex/gnunet-regex-profiler.c
 src/service/regex/gnunet-regex-simulation-profiler.c

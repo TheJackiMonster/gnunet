@@ -1260,6 +1260,7 @@ src/service/dht/Makefile
 src/service/dht/dht.conf
 src/service/dns/Makefile
 src/service/dns/dns.conf
+src/service/exit/Makefile
 src/service/fs/Makefile
 src/service/fs/fs.conf
 src/service/gns/Makefile
@@ -1280,6 +1281,7 @@ src/service/nse/Makefile
 src/service/nse/nse.conf
 src/service/peerstore/Makefile
 src/service/peerstore/peerstore.conf
+src/service/pt/Makefile
 src/service/regex/Makefile
 src/service/regex/regex.conf
 src/service/rest/Makefile
@@ -1340,11 +1342,9 @@ src/contrib/service/rps/Makefile
 src/contrib/service/rps/rps.conf
 src/contrib/service/template/Makefile
 src/contrib/cli/template/Makefile
-src/exit/Makefile
 src/lib/hello/Makefile
 src/include/Makefile
 src/include/gnunet_config.h
-src/pt/Makefile
 src/reclaim/Makefile
 src/messenger/Makefile
 src/messenger/messenger.conf

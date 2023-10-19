@@ -42,7 +42,7 @@ gnunet_service_vpn_LDADD = \
   $(top_builddir)/src/service/regex/libgnunetregex.la \
   $(GN_LIBINTL)
 gnunet_service_vpn_CFLAGS = \
-  -I$(top_srcdir)/src/exit $(CFLAGS)
+  -I$(top_srcdir)/src/service/exit $(CFLAGS)
 
 libgnunetvpn_la_SOURCES = \
  vpn_api.c vpn.h

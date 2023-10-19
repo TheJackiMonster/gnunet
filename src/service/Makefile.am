@@ -27,5 +27,7 @@ SUBDIRS = \
 	vpn \
   gns \
   zonemaster \
-	fs
+	fs \
+	exit \
+	pt
 
