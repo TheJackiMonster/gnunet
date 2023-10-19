@@ -34,9 +34,6 @@ libexec_PROGRAMS = \
  gnunet-service-messenger \
  $(EXP_LIBEXEC)
 
-bin_PROGRAMS = \
- gnunet-messenger
-
 lib_LTLIBRARIES = \
   libgnunetmessenger.la \
   $(EXP_LIB)
@@ -60,14 +57,6 @@ libgnunetmessenger_la_LIBADD = \
 libgnunetmessenger_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)  \
   -version-info 0:0:0
-
-gnunet_messenger_SOURCES = \
- gnunet-messenger.c
-gnunet_messenger_LDADD = \
- libgnunetmessenger.la \
- $(top_builddir)/src/lib/util/libgnunetutil.la
-gnunet_messenger_LDFLAGS = \
-  $(GN_LIBINTL)
 
 gnunet_service_messenger_SOURCES = \
   gnunet-service-messenger.c gnunet-service-messenger.h \

@@ -15,4 +15,5 @@ SUBDIRS = \
 	gns \
 	fs \
 	cadet \
-	reclaim
+	reclaim \
+	messenger

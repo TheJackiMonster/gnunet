@@ -1270,6 +1270,8 @@ src/service/gns/nss/Makefile
 src/service/hostlist/Makefile
 src/service/identity/Makefile
 src/service/identity/identity.conf
+src/service/messenger/Makefile
+src/service/messenger/messenger.conf
 src/service/namecache/Makefile
 src/service/namecache/namecache.conf
 src/service/namestore/Makefile
@@ -1317,6 +1319,7 @@ src/cli/datastore/Makefile
 src/cli/dht/Makefile
 src/cli/fs/Makefile
 src/cli/gns/Makefile
+src/cli/messenger/Makefile
 src/cli/namecache/Makefile
 src/cli/namestore/Makefile
 src/cli/nat/Makefile
@@ -1349,8 +1352,6 @@ src/contrib/cli/template/Makefile
 src/lib/hello/Makefile
 src/include/Makefile
 src/include/gnunet_config.h
-src/messenger/Makefile
-src/messenger/messenger.conf
 pkgconfig/Makefile
 pkgconfig/gnunetarm.pc
 pkgconfig/gnunetblock.pc

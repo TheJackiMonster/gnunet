@@ -30,5 +30,6 @@ SUBDIRS = \
 	fs \
 	exit \
 	pt \
-	reclaim
+	reclaim \
+	messenger
 

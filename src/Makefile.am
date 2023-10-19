@@ -9,5 +9,4 @@ SUBDIRS = \
 	plugin \
 	rest-plugin \
 	cli \
-	contrib \
-  messenger
+	contrib
