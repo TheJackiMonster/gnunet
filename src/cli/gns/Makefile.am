@@ -8,6 +8,18 @@ if USE_COVERAGE
   AM_CFLAGS = --coverage -O0
 endif
 
+if HAVE_LIBIDN
+  LIBIDN= -lidn
+else
+  LIBIDN=
+endif
+
+if HAVE_LIBIDN2
+  LIBIDN2= -lidn2
+else
+  LIBIDN2=
+endif
+
 pkgcfgdir = $(pkgdatadir)/config.d/
 
 libexecdir= $(pkglibdir)/libexec/
