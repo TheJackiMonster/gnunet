@@ -28,7 +28,6 @@
 #include "gnunet_namecache_service.h"
 #include "gnunet_gnsrecord_lib.h"
 #include "gnunet_pq_lib.h"
-#include "namecache.h"
 
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "namecache-postgres", __VA_ARGS__)

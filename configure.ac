@@ -1241,6 +1241,7 @@ src/plugin/Makefile
 src/plugin/block/Makefile
 src/plugin/dhtu/Makefile
 src/plugin/gnsrecord/Makefile
+src/plugin/namecache/Makefile
 src/service/Makefile
 src/service/arm/Makefile
 src/service/arm/arm.conf
@@ -1258,6 +1259,8 @@ src/service/dns/dns.conf
 src/service/hostlist/Makefile
 src/service/identity/Makefile
 src/service/identity/identity.conf
+src/service/namecache/Makefile
+src/service/namecache/namecache.conf
 src/service/nat/Makefile
 src/service/nat/nat.conf
 src/service/nat-auto/Makefile
@@ -1285,6 +1288,7 @@ src/cli/cadet/Makefile
 src/cli/core/Makefile
 src/cli/datastore/Makefile
 src/cli/dht/Makefile
+src/cli/namecache/Makefile
 src/cli/nat/Makefile
 src/cli/nat-auto/Makefile
 src/cli/nse/Makefile
@@ -1312,8 +1316,6 @@ src/gns/nss/Makefile
 src/lib/hello/Makefile
 src/include/Makefile
 src/include/gnunet_config.h
-src/namecache/Makefile
-src/namecache/namecache.conf
 src/namestore/Makefile
 src/namestore/namestore.conf
 src/pt/Makefile

@@ -8,4 +8,5 @@ SUBDIRS = \
 	nse \
 	datastore \
 	dht \
+	namecache \
 	cadet

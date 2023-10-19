@@ -186,7 +186,7 @@ gnunet_namestore_fcfsd_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
 gnunet_service_namestore_SOURCES = \
  gnunet-service-namestore.c
 gnunet_service_namestore_LDADD = \
-  $(top_builddir)/src/namecache/libgnunetnamecache.la \
+  $(top_builddir)/src/service/namecache/libgnunetnamecache.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
@@ -245,7 +245,7 @@ test_namestore_api_store_update_sqlite_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/namecache/libgnunetnamecache.la \
+  $(top_builddir)/src/service/namecache/libgnunetnamecache.la \
   libgnunetnamestore.la
 
 test_namestore_api_store_update_postgres_SOURCES = \
@@ -255,7 +255,7 @@ test_namestore_api_store_update_postgres_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/namecache/libgnunetnamecache.la \
+  $(top_builddir)/src/service/namecache/libgnunetnamecache.la \
   libgnunetnamestore.la
 
 test_namestore_api_lookup_nick_sqlite_SOURCES = \
@@ -265,7 +265,7 @@ test_namestore_api_lookup_nick_sqlite_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/namecache/libgnunetnamecache.la \
+  $(top_builddir)/src/service/namecache/libgnunetnamecache.la \
   libgnunetnamestore.la
 
 test_namestore_api_lookup_nick_postgres_SOURCES = \
@@ -275,7 +275,7 @@ test_namestore_api_lookup_nick_postgres_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/namecache/libgnunetnamecache.la \
+  $(top_builddir)/src/service/namecache/libgnunetnamecache.la \
   libgnunetnamestore.la
 
 test_namestore_api_remove_sqlite_SOURCES = \

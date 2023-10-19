@@ -7,6 +7,7 @@ src/cli/dht/gnunet-dht-hello.c
 src/cli/dht/gnunet-dht-monitor.c
 src/cli/dht/gnunet-dht-put.c
 src/cli/identity/gnunet-identity.c
+src/cli/namecache/gnunet-namecache.c
 src/cli/nat-auto/gnunet-nat-auto.c
 src/cli/nat-auto/gnunet-nat-server.c
 src/cli/nat/gnunet-nat.c
@@ -255,12 +256,6 @@ src/messenger/messenger_api_util.c
 src/messenger/plugin_gnsrecord_messenger.c
 src/messenger/testing_messenger_barrier.c
 src/messenger/testing_messenger_setup.c
-src/namecache/gnunet-namecache.c
-src/namecache/gnunet-service-namecache.c
-src/namecache/namecache_api.c
-src/namecache/plugin_namecache_flat.c
-src/namecache/plugin_namecache_postgres.c
-src/namecache/plugin_namecache_sqlite.c
 src/namestore/gnunet-namestore-dbtool.c
 src/namestore/gnunet-namestore-fcfsd.c
 src/namestore/gnunet-namestore-zonefile.c
@@ -279,6 +274,9 @@ src/plugin/dhtu/plugin_dhtu_gnunet.c
 src/plugin/dhtu/plugin_dhtu_ip.c
 src/plugin/dhtu/testing_dhtu_cmd_send.c
 src/plugin/gnsrecord/plugin_gnsrecord_dns.c
+src/plugin/namecache/plugin_namecache_flat.c
+src/plugin/namecache/plugin_namecache_postgres.c
+src/plugin/namecache/plugin_namecache_sqlite.c
 src/pt/gnunet-daemon-pt.c
 src/reclaim/did_core.c
 src/reclaim/did_helper.c
@@ -381,6 +379,8 @@ src/service/identity/gnunet-service-identity.c
 src/service/identity/identity_api.c
 src/service/identity/identity_api_lookup.c
 src/service/identity/identity_api_suffix_lookup.c
+src/service/namecache/gnunet-service-namecache.c
+src/service/namecache/namecache_api.c
 src/service/nat-auto/gnunet-nat-auto_legacy.c
 src/service/nat-auto/gnunet-service-nat-auto.c
 src/service/nat-auto/gnunet-service-nat-auto_legacy.c

@@ -27,6 +27,6 @@ gnunet_service_zonemaster_LDADD = \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/namestore/libgnunetnamestore.la \
-  $(top_builddir)/src/namecache/libgnunetnamecache.la \
+  $(top_builddir)/src/service/namecache/libgnunetnamecache.la \
   $(GN_LIBINTL) \
   -lpthread

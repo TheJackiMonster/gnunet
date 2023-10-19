@@ -28,7 +28,6 @@
 #include "gnunet_namecache_plugin.h"
 #include "gnunet_namecache_service.h"
 #include "gnunet_gnsrecord_lib.h"
-#include "namecache.h"
 #include <sqlite3.h>
 
 /**
