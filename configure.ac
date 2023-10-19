@@ -1324,6 +1324,8 @@ src/contrib/service/abd/abd.conf
 src/contrib/service/auction/Makefile
 src/contrib/service/consensus/Makefile
 src/contrib/service/consensus/consensus.conf
+src/contrib/service/conversation/Makefile
+src/contrib/service/conversation/conversation.conf
 src/contrib/service/scalarproduct/Makefile
 src/contrib/service/scalarproduct/scalarproduct.conf
 src/contrib/service/secretsharing/Makefile
@@ -1334,8 +1336,6 @@ src/contrib/service/rps/Makefile
 src/contrib/service/rps/rps.conf
 src/contrib/service/template/Makefile
 src/contrib/cli/template/Makefile
-src/conversation/Makefile
-src/conversation/conversation.conf
 src/exit/Makefile
 src/fs/Makefile
 src/fs/fs.conf

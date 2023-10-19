@@ -1,13 +1,6 @@
 # This Makefile.am is in the public domain
 
 
-if BUILD_PULSE_HELPERS
-CONVERSATION_DIR = conversation
-else
-if BUILD_GST_HELPERS
-CONVERSATION_DIR = conversation
-endif
-endif
 
 SUBDIRS = \
   include $(INTLEMU_SUBDIRS) \
@@ -17,7 +10,6 @@ SUBDIRS = \
 	rest-plugin \
 	cli \
 	contrib \
-  $(CONVERSATION_DIR) \
   fs \
   exit \
   pt \
