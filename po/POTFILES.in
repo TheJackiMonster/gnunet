@@ -29,6 +29,7 @@ src/cli/util/gnunet-resolver.c
 src/cli/util/gnunet-scrypt.c
 src/cli/util/gnunet-timeout.c
 src/cli/util/gnunet-uri.c
+src/cli/vpn/gnunet-vpn.c
 src/contrib/cli/template/gnunet-template.c
 src/contrib/service/abd/abd_api.c
 src/contrib/service/abd/abd_serialization.c
@@ -491,10 +492,9 @@ src/service/transport/transport_api_cmd_start_peer.c
 src/service/transport/transport_api_cmd_stop_peer.c
 src/service/transport/transport_api_traits.c
 src/service/util/gnunet-service-resolver.c
-src/vpn/gnunet-helper-vpn.c
-src/vpn/gnunet-service-vpn.c
-src/vpn/gnunet-vpn.c
-src/vpn/vpn_api.c
+src/service/vpn/gnunet-helper-vpn.c
+src/service/vpn/gnunet-service-vpn.c
+src/service/vpn/vpn_api.c
 src/zonemaster/gnunet-service-zonemaster.c
 src/fs/fs_api.h
 src/include/gnunet_json_lib.h

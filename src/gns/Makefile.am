@@ -22,7 +22,7 @@ else
   LIBIDN2=
 endif
 
-USE_VPN = $(top_builddir)/src/vpn/libgnunetvpn.la
+USE_VPN = $(top_builddir)/src/service/vpn/libgnunetvpn.la
 
 if USE_COVERAGE
   AM_CFLAGS = --coverage -O0

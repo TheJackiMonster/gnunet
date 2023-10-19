@@ -1289,6 +1289,8 @@ src/service/topology/Makefile
 src/service/transport/Makefile
 src/service/transport/transport.conf
 src/service/util/Makefile
+src/service/vpn/Makefile
+src/service/vpn/vpn.conf
 src/rest-plugin/Makefile
 src/rest-plugin/identity/Makefile
 src/rest-plugin/rest/Makefile
@@ -1306,6 +1308,7 @@ src/cli/nse/Makefile
 src/cli/revocation/Makefile
 src/cli/statistics/Makefile
 src/cli/util/Makefile
+src/cli/vpn/Makefile
 src/contrib/Makefile
 src/contrib/service/Makefile
 src/contrib/service/abd/Makefile
@@ -1335,8 +1338,6 @@ src/lib/hello/Makefile
 src/include/Makefile
 src/include/gnunet_config.h
 src/pt/Makefile
-src/vpn/Makefile
-src/vpn/vpn.conf
 src/zonemaster/Makefile
 src/zonemaster/zonemaster.conf
 src/reclaim/Makefile

@@ -11,4 +11,5 @@ SUBDIRS = \
 	namecache \
 	namestore \
 	revocation \
+	vpn \
 	cadet

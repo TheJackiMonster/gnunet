@@ -23,5 +23,6 @@ SUBDIRS = \
   seti \
   setu \
   regex \
-  revocation
+  revocation \
+	vpn
 

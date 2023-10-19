@@ -27,9 +27,6 @@ libexec_PROGRAMS = \
   $(VPNBIN) \
   gnunet-service-vpn
 
-bin_PROGRAMS = \
-  gnunet-vpn
-
 gnunet_helper_vpn_SOURCES = \
   gnunet-helper-vpn.c
 gnunet_helper_vpn_LDADD = \
@@ -46,13 +43,6 @@ gnunet_service_vpn_LDADD = \
   $(GN_LIBINTL)
 gnunet_service_vpn_CFLAGS = \
   -I$(top_srcdir)/src/exit $(CFLAGS)
-
-gnunet_vpn_SOURCES = \
- gnunet-vpn.c
-gnunet_vpn_LDADD = \
-  libgnunetvpn.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(GN_LIBINTL)
 
 libgnunetvpn_la_SOURCES = \
  vpn_api.c vpn.h

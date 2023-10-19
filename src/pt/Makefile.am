@@ -20,7 +20,7 @@ libexec_PROGRAMS = \
 gnunet_daemon_pt_SOURCES = \
  gnunet-daemon-pt.c
 gnunet_daemon_pt_LDADD = \
-  $(top_builddir)/src/vpn/libgnunetvpn.la \
+  $(top_builddir)/src/service/vpn/libgnunetvpn.la \
   $(top_builddir)/src/service/cadet/libgnunetcadet.la \
   $(top_builddir)/src/service/dht/libgnunetdht.la \
   $(top_builddir)/src/service/dns/libgnunetdns.la \
@@ -63,7 +63,7 @@ test_gns_vpn_CFLAGS = $(MHD_CFLAGS) @LIBCURL_CPPFLAGS@ $(AM_CFLAGS)
 test_gnunet_vpn_4_over_SOURCES = \
  test_gnunet_vpn.c
 test_gnunet_vpn_4_over_LDADD = $(MHD_LIBS) @LIBCURL@ \
- $(top_builddir)/src/vpn/libgnunetvpn.la \
+ $(top_builddir)/src/service/vpn/libgnunetvpn.la \
  $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 test_gnunet_vpn_4_over_CFLAGS = $(MHD_CFLAGS) @LIBCURL_CPPFLAGS@ $(AM_CFLAGS)
@@ -71,7 +71,7 @@ test_gnunet_vpn_4_over_CFLAGS = $(MHD_CFLAGS) @LIBCURL_CPPFLAGS@ $(AM_CFLAGS)
 test_gnunet_vpn_6_over_SOURCES = \
  test_gnunet_vpn.c
 test_gnunet_vpn_6_over_LDADD = $(MHD_LIBS) @LIBCURL@ \
- $(top_builddir)/src/vpn/libgnunetvpn.la \
+ $(top_builddir)/src/service/vpn/libgnunetvpn.la \
  $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 test_gnunet_vpn_6_over_CFLAGS = $(MHD_CFLAGS) @LIBCURL_CPPFLAGS@ $(AM_CFLAGS)
@@ -79,7 +79,7 @@ test_gnunet_vpn_6_over_CFLAGS = $(MHD_CFLAGS) @LIBCURL_CPPFLAGS@ $(AM_CFLAGS)
 test_gnunet_vpn_4_to_6_SOURCES = \
  test_gnunet_vpn.c
 test_gnunet_vpn_4_to_6_LDADD = $(MHD_LIBS) @LIBCURL@ \
- $(top_builddir)/src/vpn/libgnunetvpn.la \
+ $(top_builddir)/src/service/vpn/libgnunetvpn.la \
  $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 test_gnunet_vpn_4_to_6_CFLAGS = $(MHD_CFLAGS) @LIBCURL_CPPFLAGS@ $(AM_CFLAGS)
@@ -87,7 +87,7 @@ test_gnunet_vpn_4_to_6_CFLAGS = $(MHD_CFLAGS) @LIBCURL_CPPFLAGS@ $(AM_CFLAGS)
 test_gnunet_vpn_6_to_4_SOURCES = \
  test_gnunet_vpn.c
 test_gnunet_vpn_6_to_4_LDADD = $(MHD_LIBS) @LIBCURL@ \
- $(top_builddir)/src/vpn/libgnunetvpn.la \
+ $(top_builddir)/src/service/vpn/libgnunetvpn.la \
  $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 test_gnunet_vpn_6_to_4_CFLAGS = $(MHD_CFLAGS) @LIBCURL_CPPFLAGS@ $(AM_CFLAGS)

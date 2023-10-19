@@ -17,7 +17,6 @@ SUBDIRS = \
 	rest-plugin \
 	cli \
 	contrib \
-  vpn \
   gns \
   zonemaster \
   $(CONVERSATION_DIR) \
