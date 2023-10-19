@@ -28,7 +28,8 @@
 #include "gnunet_signatures.h"
 #include "gnunet_revocation_service.h"
 #include "gnunet_testing_lib.h"
-#include "revocation.h"
+// FIXME try to avoid this include somehow
+#include "../../service/revocation/revocation.h"
 #include <inttypes.h>
 
 #define TEST_EPOCHS 2

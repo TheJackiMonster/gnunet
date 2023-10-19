@@ -3,4 +3,5 @@ SUBDIRS = \
 	gnsrecord \
 	dhtu \
 	namecache \
-	namestore
+	namestore \
+	revocation

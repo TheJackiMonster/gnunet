@@ -22,4 +22,6 @@ SUBDIRS = \
 	cadet \
   seti \
   setu \
-  regex
+  regex \
+  revocation
+

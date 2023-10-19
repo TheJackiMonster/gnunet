@@ -16,6 +16,8 @@ src/cli/nat-auto/gnunet-nat-auto.c
 src/cli/nat-auto/gnunet-nat-server.c
 src/cli/nat/gnunet-nat.c
 src/cli/nse/gnunet-nse.c
+src/cli/revocation/gnunet-revocation-tvg.c
+src/cli/revocation/gnunet-revocation.c
 src/cli/statistics/gnunet-statistics.c
 src/cli/util/gnunet-base32.c
 src/cli/util/gnunet-config-diff.c
@@ -293,6 +295,7 @@ src/plugin/namestore/plugin_namestore_flat.c
 src/plugin/namestore/plugin_namestore_postgres.c
 src/plugin/namestore/plugin_namestore_sqlite.c
 src/plugin/namestore/plugin_rest_namestore.c
+src/plugin/revocation/plugin_block_revocation.c
 src/pt/gnunet-daemon-pt.c
 src/reclaim/did_core.c
 src/reclaim/did_helper.c
@@ -317,11 +320,6 @@ src/reclaim/reclaim_credential.c
 src/rest-plugin/identity/plugin_rest_identity.c
 src/rest-plugin/rest/plugin_rest_config.c
 src/rest-plugin/rest/plugin_rest_copying.c
-src/revocation/gnunet-revocation-tvg.c
-src/revocation/gnunet-revocation.c
-src/revocation/gnunet-service-revocation.c
-src/revocation/plugin_block_revocation.c
-src/revocation/revocation_api.c
 src/service/arm/arm_api.c
 src/service/arm/arm_monitor_api.c
 src/service/arm/gnunet-service-arm.c
@@ -430,6 +428,8 @@ src/service/regex/regex_test_lib.c
 src/service/regex/regex_test_random.c
 src/service/rest/gnunet-rest-server.c
 src/service/rest/rest.c
+src/service/revocation/gnunet-service-revocation.c
+src/service/revocation/revocation_api.c
 src/service/seti/gnunet-service-seti.c
 src/service/seti/gnunet-seti-profiler.c
 src/service/seti/plugin_block_seti_test.c

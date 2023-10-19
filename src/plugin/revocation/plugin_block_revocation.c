@@ -28,7 +28,8 @@
 #include "gnunet_signatures.h"
 #include "gnunet_block_plugin.h"
 #include "gnunet_block_group_lib.h"
-#include "revocation.h"
+// FIXME try to avoid this include somehow
+#include "../../service/revocation/revocation.h"
 #include "gnunet_revocation_service.h"
 
 #define DEBUG_REVOCATION GNUNET_EXTRA_LOGGING

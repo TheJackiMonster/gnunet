@@ -1243,6 +1243,7 @@ src/plugin/dhtu/Makefile
 src/plugin/gnsrecord/Makefile
 src/plugin/namecache/Makefile
 src/plugin/namestore/Makefile
+src/plugin/revocation/Makefile
 src/service/Makefile
 src/service/arm/Makefile
 src/service/arm/arm.conf
@@ -1275,6 +1276,8 @@ src/service/peerstore/peerstore.conf
 src/service/regex/Makefile
 src/service/regex/regex.conf
 src/service/rest/Makefile
+src/service/revocation/Makefile
+src/service/revocation/revocation.conf
 src/service/seti/Makefile
 src/service/seti/seti.conf
 src/service/setu/Makefile
@@ -1300,6 +1303,7 @@ src/cli/namestore/Makefile
 src/cli/nat/Makefile
 src/cli/nat-auto/Makefile
 src/cli/nse/Makefile
+src/cli/revocation/Makefile
 src/cli/statistics/Makefile
 src/cli/util/Makefile
 src/contrib/Makefile
@@ -1331,8 +1335,6 @@ src/lib/hello/Makefile
 src/include/Makefile
 src/include/gnunet_config.h
 src/pt/Makefile
-src/revocation/Makefile
-src/revocation/revocation.conf
 src/vpn/Makefile
 src/vpn/vpn.conf
 src/zonemaster/Makefile

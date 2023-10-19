@@ -10,4 +10,5 @@ SUBDIRS = \
 	dht \
 	namecache \
 	namestore \
+	revocation \
 	cadet

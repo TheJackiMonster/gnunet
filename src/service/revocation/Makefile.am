@@ -15,41 +15,6 @@ libexecdir= $(pkglibdir)/libexec/
 pkgcfg_DATA = \
   revocation.conf
 
-bin_PROGRAMS = \
- gnunet-revocation
-
-plugin_LTLIBRARIES = \
-  libgnunet_plugin_block_revocation.la
-
-libgnunet_plugin_block_revocation_la_SOURCES = \
-  plugin_block_revocation.c
-libgnunet_plugin_block_revocation_la_LIBADD = \
-  libgnunetrevocation.la \
-  $(top_builddir)/src/lib/block/libgnunetblockgroup.la \
-  $(top_builddir)/src/lib/block/libgnunetblock.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la  \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la  \
-  $(LTLIBINTL)
-libgnunet_plugin_block_revocation_la_LDFLAGS = \
- $(GN_PLUGIN_LDFLAGS)
-
-
-gnunet_revocation_SOURCES = \
- gnunet-revocation.c
-gnunet_revocation_LDADD = \
-  libgnunetrevocation.la \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(GN_LIBINTL)
-
-gnunet_revocation_tvg_SOURCES = \
- gnunet-revocation-tvg.c
-gnunet_revocation_tvg_LDADD = \
-  libgnunetrevocation.la \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(GN_LIBINTL)
-
 test_revocation_lsd0001testvectors_SOURCES = \
  test_revocation_testvectors.c
 test_revocation_lsd0001testvectors_LDADD = \
@@ -73,9 +38,6 @@ libgnunetrevocation_la_LDFLAGS = \
 
 libexec_PROGRAMS = \
  gnunet-service-revocation
-
-noinst_PROGRAMS = \
- gnunet-revocation-tvg
 
 gnunet_service_revocation_SOURCES = \
  gnunet-service-revocation.c
@@ -102,9 +64,6 @@ check_PROGRAMS = \
  #test_revocation \
  #test_revocation_lsd0001testvectors
 
-check_SCRIPTS = \
- #test_local_revocation.py
-
 if ENABLE_TEST_RUN
  AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
  TESTS = \
@@ -112,9 +71,4 @@ if ENABLE_TEST_RUN
  $(check_PROGRAMS)
 endif
 
-test_local_revocation.py: test_local_revocation.py.in Makefile
-	$(AWK) -v bdir="$(bindir)" -v py="$(PYTHON)" -v awkay="$(AWK_BINARY)" -v pfx="$(prefix)" -v prl="$(PERL)" -v sysconfdirectory="$(sysconfdir)" -v pkgdatadirectory="$(pkgdatadir)" -f $(top_srcdir)/bin/dosubst.awk < $(srcdir)/test_local_revocation.py.in > test_local_revocation.py
-	chmod +x test_local_revocation.py
-
-EXTRA_DIST = test_revocation.conf \
-	test_local_revocation.py.in
+EXTRA_DIST = test_revocation.conf

@@ -17,7 +17,6 @@ SUBDIRS = \
 	rest-plugin \
 	cli \
 	contrib \
-  revocation \
   vpn \
   gns \
   zonemaster \
