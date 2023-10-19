@@ -1253,6 +1253,7 @@ src/service/datastore/Makefile
 src/service/datastore/datastore.conf
 src/service/dht/Makefile
 src/service/dht/dht.conf
+src/service/hostlist/Makefile
 src/service/identity/Makefile
 src/service/identity/identity.conf
 src/service/nat/Makefile
@@ -1267,6 +1268,7 @@ src/service/rest/Makefile
 src/service/statistics/Makefile
 src/service/statistics/statistics.conf
 src/service/testing/Makefile
+src/service/topology/Makefile
 src/service/transport/Makefile
 src/service/transport/transport.conf
 src/service/util/Makefile
@@ -1308,7 +1310,6 @@ src/gns/nss/Makefile
 src/lib/hello/Makefile
 src/include/Makefile
 src/include/gnunet_config.h
-src/hostlist/Makefile
 src/namecache/Makefile
 src/namecache/namecache.conf
 src/namestore/Makefile
@@ -1328,7 +1329,6 @@ src/seti/Makefile
 src/seti/seti.conf
 src/setu/Makefile
 src/setu/setu.conf
-src/topology/Makefile
 src/vpn/Makefile
 src/vpn/vpn.conf
 src/zonemaster/Makefile

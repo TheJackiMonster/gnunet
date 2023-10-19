@@ -127,9 +127,6 @@ src/gns/nss/nss_gns_query.c
 src/gns/plugin_block_gns.c
 src/gns/plugin_gnsrecord_gns.c
 src/gns/plugin_rest_gns.c
-src/hostlist/gnunet-daemon-hostlist.c
-src/hostlist/gnunet-daemon-hostlist_client.c
-src/hostlist/gnunet-daemon-hostlist_server.c
 src/lib/block/bg_bf.c
 src/lib/block/block.c
 src/lib/curl/curl.c
@@ -391,6 +388,9 @@ src/service/dht/gnunet-service-dht_neighbours.c
 src/service/dht/gnunet-service-dht_routing.c
 src/service/dht/gnunet_dht_profiler.c
 src/service/dht/plugin_block_dht.c
+src/service/hostlist/gnunet-daemon-hostlist.c
+src/service/hostlist/gnunet-daemon-hostlist_client.c
+src/service/hostlist/gnunet-daemon-hostlist_server.c
 src/service/identity/gnunet-service-identity.c
 src/service/identity/identity_api.c
 src/service/identity/identity_api_lookup.c
@@ -444,6 +444,7 @@ src/service/testing/testing_api_cmd_system_create.c
 src/service/testing/testing_api_cmd_system_destroy.c
 src/service/testing/testing_api_loop.c
 src/service/testing/testing_api_traits.c
+src/service/topology/gnunet-daemon-topology.c
 src/service/transport/gnunet-communicator-quic.c
 src/service/transport/gnunet-communicator-tcp.c
 src/service/transport/gnunet-communicator-udp.c
@@ -513,7 +514,6 @@ src/test/testing/testing_api_cmd_system_create.c
 src/test/testing/testing_api_cmd_system_destroy.c
 src/test/testing/testing_api_loop.c
 src/test/testing/testing_api_traits.c
-src/topology/gnunet-daemon-topology.c
 src/vpn/gnunet-helper-vpn.c
 src/vpn/gnunet-service-vpn.c
 src/vpn/gnunet-vpn.c

@@ -9,6 +9,8 @@ SUBDIRS = \
 	transport \
 	core \
 	nse \
+  hostlist \
+  topology \
 	identity \
 	rest \
 	datacache \

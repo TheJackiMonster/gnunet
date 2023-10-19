@@ -17,8 +17,6 @@ SUBDIRS = \
 	rest-plugin \
 	cli \
 	contrib \
-  hostlist \
-  topology \
   regex \
   dns \
   namecache \
