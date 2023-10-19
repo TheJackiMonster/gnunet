@@ -1,13 +1,6 @@
-gnunet-unindex
-gnunet-auto-share
 gnunet-daemon-fsprofiler
-gnunet-directory
-gnunet-download
-gnunet-fs
 gnunet-fs-profiler
 gnunet-helper-fs-publish
-gnunet-publish
-gnunet-search
 gnunet-service-fs
 test_fs_directory
 test_fs_download

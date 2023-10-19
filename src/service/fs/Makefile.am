@@ -13,13 +13,7 @@ libexecdir= $(pkglibdir)/libexec/
 pkgcfg_DATA = \
   fs.conf
 
-plugindir = $(libdir)/gnunet
-
-
 lib_LTLIBRARIES = libgnunetfs.la
-
-plugin_LTLIBRARIES = \
-  libgnunet_plugin_block_fs.la
 
 libgnunetfs_la_SOURCES = \
   fs_api.c fs_api.h fs.h \
@@ -64,70 +58,6 @@ libexec_PROGRAMS = \
 noinst_PROGRAMS = \
   gnunet-daemon-fsprofiler
 
-bin_PROGRAMS = \
-  gnunet-auto-share \
-  gnunet-directory \
-  gnunet-download \
-  gnunet-publish \
-  gnunet-search \
-  gnunet-fs \
-  gnunet-unindex
-
-gnunet_directory_SOURCES = \
- gnunet-directory.c
-gnunet_directory_LDADD = \
-  libgnunetfs.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(GN_LIBINTL)
-
-if HAVE_LIBEXTRACTOR
-gnunet_directory_LDADD += \
-  -lextractor
-endif
-
-gnunet_fs_SOURCES = \
- gnunet-fs.c
-gnunet_fs_LDADD = \
-  libgnunetfs.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(GN_LIBINTL)
-
-if HAVE_LIBEXTRACTOR
-gnunet_fs_LDADD += \
-  -lextractor
-endif
-
-gnunet_download_SOURCES =  \
- gnunet-download.c
-gnunet_download_LDADD =  \
- libgnunetfs.la \
- $(top_builddir)/src/lib/util/libgnunetutil.la \
- $(GN_LIBINTL)
-
-gnunet_publish_SOURCES =  \
- gnunet-publish.c
-gnunet_publish_LDADD =  \
- $(top_builddir)/src/service/identity/libgnunetidentity.la \
- libgnunetfs.la \
- $(top_builddir)/src/lib/util/libgnunetutil.la \
- $(GN_LIBINTL)
-
-if HAVE_LIBEXTRACTOR
-gnunet_publish_LDADD += \
-  -lextractor
-endif
-
-gnunet_auto_share_SOURCES =  \
- gnunet-auto-share.c
-gnunet_auto_share_LDADD =  \
- $(top_builddir)/src/lib/util/libgnunetutil.la \
- $(GN_LIBINTL)
-
-if HAVE_LIBEXTRACTOR
-gnunet_auto_share_LDADD += \
-  -lextractor
-endif
-
 gnunet_helper_fs_publish_SOURCES =  \
  gnunet-helper-fs-publish.c
 gnunet_helper_fs_publish_LDADD =  \
@@ -139,19 +69,6 @@ if HAVE_LIBEXTRACTOR
 gnunet_helper_fs_publish_LDADD += \
   -lextractor
 endif
-
-gnunet_search_SOURCES = \
- gnunet-search.c
-gnunet_search_LDADD = \
-  libgnunetfs.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(GN_LIBINTL)
-
-if HAVE_LIBEXTRACTOR
-gnunet_search_LDADD += \
-  -lextractor
-endif
-
 
 gnunet_daemon_fsprofiler_SOURCES =  \
  gnunet-daemon-fsprofiler.c
@@ -183,26 +100,7 @@ gnunet_service_fs_LDADD =  \
  $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
  $(GN_LIBINTL) -lm
 
-gnunet_unindex_SOURCES = \
- gnunet-unindex.c
-gnunet_unindex_LDADD = \
-  libgnunetfs.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(GN_LIBINTL)
-
-libgnunet_plugin_block_fs_la_SOURCES = \
-  plugin_block_fs.c
-libgnunet_plugin_block_fs_la_LIBADD = \
-  $(top_builddir)/src/lib/block/libgnunetblockgroup.la \
-  $(top_builddir)/src/lib/block/libgnunetblock.la \
-  libgnunetfs.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(LTLIBINTL)
-libgnunet_plugin_block_fs_la_LDFLAGS = \
- $(GN_PLUGIN_LDFLAGS)
-
 check_PROGRAMS = \
- test_plugin_block_fs \
  test_fs_directory \
  test_fs_download \
  test_fs_download_cadet \
@@ -228,24 +126,6 @@ check_PROGRAMS = \
  test_gnunet_service_fs_migration \
  $(FS_BENCHMARKS)
 
-test_plugin_block_fs_SOURCES = \
- test_plugin_block_fs.c
-test_plugin_block_fs_LDADD = \
- $(top_builddir)/src/lib/block/libgnunetblock.la \
- $(top_builddir)/src/lib/util/libgnunetutil.la
-
-if HAVE_PYTHON
-check_SCRIPTS = \
- test_gnunet_fs_rec.py \
- test_gnunet_fs_idx.py
-
-if HAVE_LIBEXTRACTOR
-check_SCRIPTS += \
- test_gnunet_fs_psd.py
-endif
-endif
-
-
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
 TESTS = test_fs_directory \
@@ -259,7 +139,6 @@ TESTS = test_fs_directory \
  test_fs_start_stop \
  test_fs_uri \
  test_fs_meta_data
- # $(check_SCRIPTS)
 endif
 
 
@@ -487,23 +366,6 @@ test_fs_uri_LDADD = \
 #  libgnunetfs.la  \
 #  $(top_builddir)/src/lib/util/libgnunetutil.la
 
-test_gnunet_fs_psd.py: test_gnunet_fs_psd.py.in Makefile
-	$(AWK) -v bdir="$(bindir)" -v py="$(PYTHON)" -v awkay="$(AWK_BINARY)" -v pfx="$(prefix)" -v prl="$(PERL)" -v sysconfdirectory="$(sysconfdir)" -v pkgdatadirectory="$(pkgdatadir)" -f $(top_srcdir)/bin/dosubst.awk < $(srcdir)/test_gnunet_fs_psd.py.in > test_gnunet_fs_psd.py
-	chmod +x test_gnunet_fs_psd.py
-
-test_gnunet_fs_rec.py: test_gnunet_fs_rec.py.in Makefile
-	$(AWK) -v bdir="$(bindir)" -v py="$(PYTHON)" -v awkay="$(AWK_BINARY)" -v pfx="$(prefix)" -v prl="$(PERL)" -v sysconfdirectory="$(sysconfdir)" -v pkgdatadirectory="$(pkgdatadir)" -f $(top_srcdir)/bin/dosubst.awk < $(srcdir)/test_gnunet_fs_rec.py.in > test_gnunet_fs_rec.py
-	chmod +x test_gnunet_fs_rec.py
-
-test_gnunet_fs_ns.py: test_gnunet_fs_ns.py.in Makefile
-	$(AWK) -v bdir="$(bindir)" -v py="$(PYTHON)" -v awkay="$(AWK_BINARY)" -v pfx="$(prefix)" -v prl="$(PERL)" -v sysconfdirectory="$(sysconfdir)" -v pkgdatadirectory="$(pkgdatadir)" -f $(top_srcdir)/bin/dosubst.awk < $(srcdir)/test_gnunet_fs_ns.py.in > test_gnunet_fs_ns.py
-	chmod +x test_gnunet_fs_ns.py
-
-test_gnunet_fs_idx.py: test_gnunet_fs_idx.py.in Makefile
-	$(AWK) -v bdir="$(bindir)" -v py="$(PYTHON)" -v awkay="$(AWK_BINARY)" -v pfx="$(prefix)" -v prl="$(PERL)" -v sysconfdirectory="$(sysconfdir)" -v pkgdatadirectory="$(pkgdatadir)" -f $(top_srcdir)/bin/dosubst.awk < $(srcdir)/test_gnunet_fs_idx.py.in > test_gnunet_fs_idx.py
-	chmod +x test_gnunet_fs_idx.py
-
-
 EXTRA_DIST = \
   fs_test_lib_data.conf \
   perf_gnunet_service_fs_p2p.conf \
@@ -517,15 +379,7 @@ EXTRA_DIST = \
   test_fs_publish_data.conf \
   test_fs_search_data.conf \
   test_fs_unindex_data.conf \
-  test_gnunet_fs_idx_data.conf \
-  test_gnunet_fs_psd_data.conf \
-  test_gnunet_fs_rec_data.conf \
   test_gnunet_fs_rec_data.tgz \
-  test_gnunet_fs_psd.py.in \
-  test_gnunet_fs_rec.py.in \
-  test_gnunet_fs_idx.py.in \
   test_gnunet_service_fs_migration_data.conf \
   test_gnunet_service_fs_p2p_cadet.conf \
   test_pseudonym_data.conf
-
-CLEANFILES = $(check_SCRIPTS)

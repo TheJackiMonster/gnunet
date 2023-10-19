@@ -13,4 +13,5 @@ SUBDIRS = \
 	revocation \
 	vpn \
 	gns \
+	fs \
 	cadet

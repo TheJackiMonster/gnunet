@@ -10,7 +10,6 @@ SUBDIRS = \
 	rest-plugin \
 	cli \
 	contrib \
-  fs \
   exit \
   pt \
   reclaim \

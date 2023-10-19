@@ -1240,6 +1240,7 @@ src/lib/sq/Makefile
 src/plugin/Makefile
 src/plugin/block/Makefile
 src/plugin/dhtu/Makefile
+src/plugin/fs/Makefile
 src/plugin/gns/Makefile
 src/plugin/gnsrecord/Makefile
 src/plugin/namecache/Makefile
@@ -1259,6 +1260,8 @@ src/service/dht/Makefile
 src/service/dht/dht.conf
 src/service/dns/Makefile
 src/service/dns/dns.conf
+src/service/fs/Makefile
+src/service/fs/fs.conf
 src/service/gns/Makefile
 src/service/gns/gns.conf
 src/service/gns/nss/Makefile
@@ -1307,6 +1310,7 @@ src/cli/cadet/Makefile
 src/cli/core/Makefile
 src/cli/datastore/Makefile
 src/cli/dht/Makefile
+src/cli/fs/Makefile
 src/cli/gns/Makefile
 src/cli/namecache/Makefile
 src/cli/namestore/Makefile
@@ -1337,8 +1341,6 @@ src/contrib/service/rps/rps.conf
 src/contrib/service/template/Makefile
 src/contrib/cli/template/Makefile
 src/exit/Makefile
-src/fs/Makefile
-src/fs/fs.conf
 src/lib/hello/Makefile
 src/include/Makefile
 src/include/gnunet_config.h

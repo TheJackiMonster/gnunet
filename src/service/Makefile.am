@@ -26,5 +26,6 @@ SUBDIRS = \
   revocation \
 	vpn \
   gns \
-  zonemaster
+  zonemaster \
+	fs
 

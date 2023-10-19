@@ -5,4 +5,5 @@ SUBDIRS = \
 	namecache \
 	namestore \
 	revocation \
-	gns
+	gns \
+	fs
