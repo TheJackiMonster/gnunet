@@ -1,5 +1,7 @@
 subdir('block')
 subdir('gnsrecord')
+subdir('datacache')
+subdir('datastore')
 subdir('namecache')
 subdir('namestore')
 subdir('revocation')

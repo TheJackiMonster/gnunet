@@ -1,6 +1,8 @@
 SUBDIRS = \
 	block \
 	gnsrecord \
+	datacache \
+	datastore \
 	namecache \
 	namestore \
 	revocation \

@@ -1238,6 +1238,8 @@ src/lib/pq/Makefile
 src/lib/sq/Makefile
 src/plugin/Makefile
 src/plugin/block/Makefile
+src/plugin/datacache/Makefile
+src/plugin/datastore/Makefile
 src/plugin/fs/Makefile
 src/plugin/gns/Makefile
 src/plugin/gnsrecord/Makefile
