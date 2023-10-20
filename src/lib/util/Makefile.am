@@ -198,7 +198,7 @@ check_PROGRAMS = \
  test_container_multihashmap32 \
  test_container_multipeermap \
  test_container_heap \
- test_crypto_symmetric \
+ test_crypto_blind \
  test_crypto_crc \
  test_crypto_cs \
  test_crypto_ecdsa \
@@ -215,6 +215,7 @@ check_PROGRAMS = \
  test_crypto_paillier \
  test_crypto_random \
  test_crypto_rsa \
+ test_crypto_symmetric \
  test_disk \
  test_getopt \
  test_hexcoder \
@@ -345,6 +346,11 @@ test_container_multipeermap_LDADD = \
 test_container_heap_SOURCES = \
  test_container_heap.c
 test_container_heap_LDADD = \
+ libgnunetutil.la
+
+test_crypto_blind_SOURCES = \
+ test_crypto_blind.c
+test_crypto_blind_LDADD = \
  libgnunetutil.la
 
 test_crypto_symmetric_SOURCES = \

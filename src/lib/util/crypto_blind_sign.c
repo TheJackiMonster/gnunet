@@ -135,6 +135,38 @@ GNUNET_CRYPTO_blinded_sig_decref (
 }
 
 
+void
+GNUNET_CRYPTO_blinded_message_decref (
+  struct GNUNET_CRYPTO_BlindedMessage *bm)
+{
+  GNUNET_assert (bm->rc > 0);
+  bm->rc--;
+  if (0 != bm->rc)
+    return;
+  switch (bm->cipher)
+  {
+  case GNUNET_CRYPTO_BSA_INVALID:
+    GNUNET_break (0);
+    break;
+  case GNUNET_CRYPTO_BSA_RSA:
+    GNUNET_free (bm->details.rsa_blinded_message.blinded_msg);
+    break;
+  case GNUNET_CRYPTO_BSA_CS:
+    break;
+  }
+  GNUNET_free (bm);
+}
+
+
+struct GNUNET_CRYPTO_BlindedMessage *
+GNUNET_CRYPTO_blinded_message_incref (
+  struct GNUNET_CRYPTO_BlindedMessage *bm)
+{
+  bm->rc++;
+  return bm;
+}
+
+
 struct GNUNET_CRYPTO_BlindSignPublicKey *
 GNUNET_CRYPTO_bsign_pub_incref (struct GNUNET_CRYPTO_BlindSignPublicKey *bsign_pub)
 {
@@ -217,7 +249,7 @@ GNUNET_CRYPTO_ub_sig_cmp (
 
 
 int
-GNUNET_blind_sig_cmp (
+GNUNET_CRYPTO_blind_sig_cmp (
   const struct GNUNET_CRYPTO_BlindedSignature *sig1,
   const struct GNUNET_CRYPTO_BlindedSignature *sig2)
 {
@@ -271,20 +303,43 @@ GNUNET_CRYPTO_blinded_message_cmp (
 
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_blind_sign_keys_create (
-  struct GNUNET_CRYPTO_BlindSignPrivateKey **denom_priv,
-  struct GNUNET_CRYPTO_BlindSignPublicKey **denom_pub,
+  struct GNUNET_CRYPTO_BlindSignPrivateKey **bsign_priv,
+  struct GNUNET_CRYPTO_BlindSignPublicKey **bsign_pub,
   enum GNUNET_CRYPTO_BlindSignatureAlgorithm cipher,
   ...)
 {
+  enum GNUNET_GenericReturnValue ret;
+  va_list ap;
+
+  va_start (ap,
+            cipher);
+  ret = GNUNET_CRYPTO_blind_sign_keys_create_va (bsign_priv,
+                                                 bsign_pub,
+                                                 cipher,
+                                                 ap);
+  va_end (ap);
+  return ret;
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_blind_sign_keys_create_va (
+  struct GNUNET_CRYPTO_BlindSignPrivateKey **bsign_priv,
+  struct GNUNET_CRYPTO_BlindSignPublicKey **bsign_pub,
+  enum GNUNET_CRYPTO_BlindSignatureAlgorithm cipher,
+  va_list ap)
+  {
   struct GNUNET_CRYPTO_BlindSignPrivateKey *priv;
   struct GNUNET_CRYPTO_BlindSignPublicKey *pub;
 
   priv = GNUNET_new (struct GNUNET_CRYPTO_BlindSignPrivateKey);
   priv->rc = 1;
   priv->cipher = cipher;
+  *bsign_priv = priv;
   pub = GNUNET_new (struct GNUNET_CRYPTO_BlindSignPublicKey);
   pub->rc = 1;
   pub->cipher = cipher;
+  *bsign_pub = pub;
   switch (cipher)
   {
   case GNUNET_CRYPTO_BSA_INVALID:
@@ -292,14 +347,10 @@ GNUNET_CRYPTO_blind_sign_keys_create (
     break;
   case GNUNET_CRYPTO_BSA_RSA:
     {
-      va_list ap;
       unsigned int bits;
 
-      va_start (ap,
-                cipher);
       bits = va_arg (ap,
                      unsigned int);
-      va_end (ap);
       if (bits < 512)
       {
         GNUNET_break (0);
@@ -331,8 +382,8 @@ GNUNET_CRYPTO_blind_sign_keys_create (
   }
   GNUNET_free (priv);
   GNUNET_free (pub);
-  *denom_priv = NULL;
-  *denom_pub = NULL;
+  *bsign_priv = NULL;
+  *bsign_pub = NULL;
   return GNUNET_SYSERR;
 }
 

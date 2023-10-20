@@ -53,8 +53,9 @@ GNUNET_CRYPTO_cs_private_key_get_public (
   const struct GNUNET_CRYPTO_CsPrivateKey *priv,
   struct GNUNET_CRYPTO_CsPublicKey *pub)
 {
-  GNUNET_assert (0 == crypto_scalarmult_ed25519_base_noclamp (pub->point.y,
-                                                              priv->scalar.d));
+  GNUNET_assert (0 ==
+                 crypto_scalarmult_ed25519_base_noclamp (pub->point.y,
+                                                         priv->scalar.d));
 }
 
 
@@ -209,7 +210,8 @@ calc_r_dash (const struct GNUNET_CRYPTO_CsBlindingSecret *bs,
 {
   // R'i = Ri + alpha i*G + beta i*pub
   struct GNUNET_CRYPTO_Cs25519Point alpha_mul_base;
-  GNUNET_assert (0 == crypto_scalarmult_ed25519_base_noclamp (
+  GNUNET_assert (0 ==
+                 crypto_scalarmult_ed25519_base_noclamp (
                    alpha_mul_base.y,
                    bs->alpha.d));
   struct GNUNET_CRYPTO_Cs25519Point beta_mul_pub;
@@ -323,7 +325,8 @@ GNUNET_CRYPTO_cs_verify (const struct GNUNET_CRYPTO_CsSignature *sig,
 
   // s'G ?= R' + c' pub
   struct GNUNET_CRYPTO_Cs25519Point sig_scal_mul_base;
-  GNUNET_assert (0 == crypto_scalarmult_ed25519_base_noclamp (
+  GNUNET_assert (0 ==
+                 crypto_scalarmult_ed25519_base_noclamp (
                    sig_scal_mul_base.y,
                    sig->s_scalar.scalar.d));
   struct GNUNET_CRYPTO_Cs25519Point c_dash_mul_pub;

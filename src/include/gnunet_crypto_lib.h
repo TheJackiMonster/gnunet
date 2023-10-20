@@ -3557,6 +3557,27 @@ GNUNET_CRYPTO_blinded_sig_decref (
 
 
 /**
+ * Decrement reference counter of a @a bm, and free it if it reaches zero.
+ *
+ * @param[in] bm blinded message to free
+ */
+void
+GNUNET_CRYPTO_blinded_message_decref (
+  struct GNUNET_CRYPTO_BlindedMessage *bm);
+
+
+/**
+ * Increment reference counter of the given @a bm.
+ *
+ * @param[in,out] bm blinded message to increment reference counter for
+ * @return alias of @a bm with RC incremented
+ */
+struct GNUNET_CRYPTO_BlindedMessage *
+GNUNET_CRYPTO_blinded_message_incref (
+  struct GNUNET_CRYPTO_BlindedMessage *bm);
+
+
+/**
  * Increment reference counter of the given @a bsign_pub.
  *
  * @param[in,out] bsign_pub public key to increment reference counter for
@@ -3630,7 +3651,7 @@ GNUNET_CRYPTO_ub_sig_cmp (const struct GNUNET_CRYPTO_UnblindedSignature *sig1,
  * @return 0 if the keys are equal, otherwise -1 or 1
  */
 int
-GNUNET_blind_sig_cmp (
+GNUNET_CRYPTO_blind_sig_cmp (
   const struct GNUNET_CRYPTO_BlindedSignature *sig1,
   const struct GNUNET_CRYPTO_BlindedSignature *sig2);
 
@@ -3655,18 +3676,39 @@ GNUNET_CRYPTO_blinded_message_cmp (
  * argument with the number of bits for 'n' (e.g. 2048) must
  * be passed.
  *
- * @param[out] denom_priv where to write the private key with RC 1
- * @param[out] denom_pub where to write the public key with RC 1
+ * @param[out] bsign_priv where to write the private key with RC 1
+ * @param[out] bsign_pub where to write the public key with RC 1
  * @param cipher which type of cipher to use
  * @param ... RSA key size (eg. 2048/3072/4096)
- * @return #GNUNET_OK on success, #GNUNET_NO if parameters were invalid
+ * @return #GNUNET_OK on success, #GNUNET_NO if parameterst were invalid
  */
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_blind_sign_keys_create (
-  struct GNUNET_CRYPTO_BlindSignPrivateKey **denom_priv,
-  struct GNUNET_CRYPTO_BlindSignPublicKey **denom_pub,
+  struct GNUNET_CRYPTO_BlindSignPrivateKey **bsign_priv,
+  struct GNUNET_CRYPTO_BlindSignPublicKey **bsign_pub,
   enum GNUNET_CRYPTO_BlindSignatureAlgorithm cipher,
   ...);
+
+
+/**
+ * Initialize public-private key pair for blind signatures.
+ *
+ * For #GNUNET_CRYPTO_BSA_RSA, an additional "unsigned int"
+ * argument with the number of bits for 'n' (e.g. 2048) must
+ * be passed.
+ *
+ * @param[out] bsign_priv where to write the private key with RC 1
+ * @param[out] bsign_pub where to write the public key with RC 1
+ * @param cipher which type of cipher to use
+ * @param ap RSA key size (eg. 2048/3072/4096)
+ * @return #GNUNET_OK on success, #GNUNET_NO if parameterst were invalid
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_blind_sign_keys_create_va (
+  struct GNUNET_CRYPTO_BlindSignPrivateKey **bsign_priv,
+  struct GNUNET_CRYPTO_BlindSignPublicKey **bsign_pub,
+  enum GNUNET_CRYPTO_BlindSignatureAlgorithm cipher,
+  va_list ap);
 
 
 /**
@@ -3675,7 +3717,7 @@ GNUNET_CRYPTO_blind_sign_keys_create (
 union GNUNET_CRYPTO_BlindingSecretP
 {
   /**
-   * Clause Schnorr nonce. 
+   * Clause Schnorr nonce.
    */
   struct GNUNET_CRYPTO_CsBlindingNonce nonce;
 
