@@ -222,6 +222,7 @@ src/plugin/fs/plugin_block_fs.c
 src/plugin/gns/plugin_block_gns.c
 src/plugin/gns/plugin_gnsrecord_gns.c
 src/plugin/gnsrecord/plugin_gnsrecord_dns.c
+src/plugin/messenger/plugin_gnsrecord_messenger.c
 src/plugin/namecache/plugin_namecache_flat.c
 src/plugin/namecache/plugin_namecache_postgres.c
 src/plugin/namecache/plugin_namecache_sqlite.c
@@ -369,7 +370,6 @@ src/service/messenger/messenger_api_list_tunnels.c
 src/service/messenger/messenger_api_message.c
 src/service/messenger/messenger_api_room.c
 src/service/messenger/messenger_api_util.c
-src/service/messenger/plugin_gnsrecord_messenger.c
 src/service/messenger/testing_messenger_barrier.c
 src/service/messenger/testing_messenger_setup.c
 src/service/namecache/gnunet-service-namecache.c

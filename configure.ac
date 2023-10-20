@@ -1253,6 +1253,7 @@ src/plugin/regex/Makefile
 src/plugin/revocation/Makefile
 src/plugin/seti/Makefile
 src/plugin/setu/Makefile
+src/plugin/messenger/Makefile
 src/service/Makefile
 src/service/arm/Makefile
 src/service/arm/arm.conf

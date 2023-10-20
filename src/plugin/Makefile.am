@@ -12,4 +12,5 @@ SUBDIRS = \
 	regex \
 	gns \
 	fs \
-	reclaim
+	reclaim \
+	messenger

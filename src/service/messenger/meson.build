@@ -55,14 +55,6 @@ libgnunetmessenger_dep = declare_dependency(link_with : libgnunetmessenger)
 pkg.generate(libgnunetmessenger, url: 'https://www.gnunet.org',
              description : 'Provides API to access the GNUnet Messenger subsystem')
 
-shared_module('gnunet_plugin_gnsrecord_messenger',
-              ['plugin_gnsrecord_messenger.c'],
-              dependencies: [libgnunetutil_dep, libgnunetgnsrecord_dep,
-                             libgnunetmessenger_dep],
-              include_directories: [incdir, configuration_inc],
-              install: true,
-              install_dir: get_option('libdir')/'gnunet')
-
 executable ('gnunet-service-messenger',
             gnunetservicemessenger_src,
             dependencies: [libgnunetmessenger_dep,
