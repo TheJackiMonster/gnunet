@@ -1,4 +1,7 @@
 libgnunettesting_src = [
+                        'testing_api_cmd_stop_peer.c',
+                        'testing_api_cmd_start_peer.c',
+                        'testing_api_cmd_exec_bash_script.c',
                         'testing_api_cmd_barrier.c',
                         'testing_api_cmd_barrier_reached.c',
                         'testing_api_cmd_finish.c',

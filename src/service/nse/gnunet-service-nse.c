@@ -1573,7 +1573,7 @@ GNUNET_SERVICE_MAIN ("nse",
  * MINIMIZE heap size (way below 128k) since this process doesn't need much.
  */
 void __attribute__ ((constructor))
-GNUNET_ARM_memory_init ()
+GNUNET_NSE_memory_init ()
 {
   mallopt (M_TRIM_THRESHOLD, 4 * 1024);
   mallopt (M_TOP_PAD, 1 * 1024);

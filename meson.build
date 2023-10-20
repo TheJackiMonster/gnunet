@@ -28,13 +28,13 @@ gnunet_user = false
 getent_bin = find_program('getent', '/usr/bin/getent', required : false)
 if getent_bin.found()
   gnunet_user = true
-  if not run_command('getent', 'passwd', 'gnunet', check: false).returncode() == 0
+  if run_command('getent', 'passwd', 'gnunet', check: false).returncode() != 0
     gnunet_user = false
   endif
-  if not run_command('getent', 'group', 'gnunet', check: false).returncode() == 0
+  if run_command('getent', 'group', 'gnunet', check: false).returncode() != 0
     gnunet_user = false
   endif
-  if not run_command('getent', 'group', 'gnunetdns', check: false).returncode() == 0
+  if run_command('getent', 'group', 'gnunetdns', check: false).returncode() != 0
     gnunet_user = false
   endif
 endif

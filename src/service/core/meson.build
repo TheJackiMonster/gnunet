@@ -50,6 +50,7 @@ libgnunetcoretesting_dep = declare_dependency(link_with : libgnunetcoretesting)
 shared_module('gnunet_test_core_plugin_cmd_just_run',
         ['test_core_plugin_cmd_just_run.c'],
         dependencies: [libgnunetutil_dep,
+                       libgnunettesting_dep,
                        libgnunetcoretesting_dep,
                        libgnunettransportcore_dep,
                        libgnunettransportapplication_dep,
