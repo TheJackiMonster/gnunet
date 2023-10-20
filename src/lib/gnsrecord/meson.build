@@ -1,6 +1,7 @@
 libgnunetgnsrecord_src = ['gnsrecord.c',
                           'gnsrecord_serialization.c',
                           'gnsrecord_crypto.c',
+                          'gnsrecord_pow.c',
                           'gnsrecord_misc.c']
 libgnunetgnsrecordjson_src = ['json_gnsrecord.c']
 

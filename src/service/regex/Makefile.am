@@ -31,26 +31,14 @@ REGEX_INTERNAL_TEST = \
 gnunet_service_regex_SOURCES =  \
  $(REGEX_INTERNAL) gnunet-service-regex.c
 gnunet_service_regex_LDADD =  -lm \
- libgnunetregexblock.la \
+ $(top_builddir)/src/plugin/regex/libgnunetregexblock.la \
  $(top_builddir)/src/service/dht/libgnunetdht.la \
  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(GN_LIBINTL)
 
 lib_LTLIBRARIES = \
-  libgnunetregexblock.la \
   libgnunetregex.la
-
-libgnunetregexblock_la_SOURCES = \
-  regex_block_lib.c regex_block_lib.h
-libgnunetregexblock_la_LIBADD = \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(XLIB) \
-  $(LTLIBINTL)
-libgnunetregexblock_la_LDFLAGS = \
-  $(GN_LIB_LDFLAGS)  \
-  -version-info 1:0:0
-
 
 libgnunetregex_la_SOURCES = \
   regex_api_announce.c \
@@ -63,20 +51,6 @@ libgnunetregex_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS) \
    -version-info 3:1:0
 
-
-plugin_LTLIBRARIES = \
- libgnunet_plugin_block_regex.la
-
-libgnunet_plugin_block_regex_la_SOURCES = \
- plugin_block_regex.c
-libgnunet_plugin_block_regex_la_LIBADD = \
- libgnunetregexblock.la \
- $(top_builddir)/src/lib/block/libgnunetblock.la \
- $(top_builddir)/src/lib/block/libgnunetblockgroup.la \
- $(top_builddir)/src/lib/util/libgnunetutil.la
-libgnunet_plugin_block_regex_la_LDFLAGS = \
- $(GN_LIBINTL) \
- $(GN_PLUGIN_LDFLAGS)
 
 # FIXME we phased out mysql. If we want to keep, needs rewrite
 #if HAVE_MYSQL
@@ -100,7 +74,7 @@ perf_regex_SOURCES = \
   $(REGEX_INTERNAL_TEST) perf-regex.c
 perf_regex_LDADD = -lm \
   $(top_builddir)/src/service/dht/libgnunetdht.la \
-  libgnunetregexblock.la \
+  $(top_builddir)/src/plugin/regex/libgnunetregexblock.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la
 perf_regex_LDFLAGS = \
@@ -110,7 +84,7 @@ gnunet_daemon_regexprofiler_SOURCES = \
   $(REGEX_INTERNAL_TEST) gnunet-daemon-regexprofiler.c
 gnunet_daemon_regexprofiler_LDADD = -lm \
   $(top_builddir)/src/service/dht/libgnunetdht.la \
-  libgnunetregexblock.la \
+  $(top_builddir)/src/plugin/regex/libgnunetregexblock.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 gnunet_daemon_regexprofiler_LDFLAGS = \
@@ -133,7 +107,7 @@ test_regex_eval_api_SOURCES = \
   $(REGEX_INTERNAL_TEST) test_regex_eval_api.c
 test_regex_eval_api_LDADD = -lm \
   $(top_builddir)/src/service/dht/libgnunetdht.la \
-  libgnunetregexblock.la \
+  $(top_builddir)/src/plugin/regex/libgnunetregexblock.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
@@ -154,7 +128,7 @@ test_regex_api_LDADD = -lm \
 test_regex_iterate_api_SOURCES = \
   $(REGEX_INTERNAL) test_regex_iterate_api.c
 test_regex_iterate_api_LDADD = -lm \
-  libgnunetregexblock.la \
+  $(top_builddir)/src/plugin/regex/libgnunetregexblock.la \
   $(top_builddir)/src/service/dht/libgnunetdht.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
@@ -163,7 +137,7 @@ test_regex_proofs_SOURCES = \
   $(REGEX_INTERNAL_TEST) test_regex_proofs.c
 test_regex_proofs_LDADD = -lm \
   $(top_builddir)/src/service/dht/libgnunetdht.la \
-  libgnunetregexblock.la \
+  $(top_builddir)/src/plugin/regex/libgnunetregexblock.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
@@ -171,7 +145,7 @@ test_regex_graph_api_SOURCES = \
   $(REGEX_INTERNAL_TEST) test_regex_graph_api.c
 test_regex_graph_api_LDADD = -lm \
   $(top_builddir)/src/service/dht/libgnunetdht.la \
-  libgnunetregexblock.la \
+  $(top_builddir)/src/plugin/regex/libgnunetregexblock.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 

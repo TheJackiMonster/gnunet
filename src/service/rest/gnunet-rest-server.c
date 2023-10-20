@@ -29,6 +29,16 @@
 #include "gnunet_rest_plugin.h"
 #include "gnunet_mhd_compat.h"
 
+#include "config_plugin.h"
+#include "copying_plugin.h"
+#include "identity_plugin.h"
+#include "namestore_plugin.h"
+#include "gns_plugin.h"
+#ifdef HAVE_JOSE
+#include "openid_plugin.h"
+#endif
+#include "reclaim_plugin.h"
+
 /**
  * Default Socks5 listen port.
  */
@@ -54,7 +64,7 @@
  * After how long do we clean up unused MHD SSL/TLS instances?
  */
 #define MHD_CACHE_TIMEOUT \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
 
 #define GN_REST_STATE_INIT 0
 #define GN_REST_STATE_PROCESSING 1
@@ -178,7 +188,12 @@ struct PluginListEntry
   /**
    * The plugin
    */
-  struct GNUNET_REST_Plugin *plugin;
+  void *plugin;
+
+  /**
+   * Request function
+   */
+  GNUNET_REST_ProcessingFunction process_request;
 };
 
 /**
@@ -240,6 +255,21 @@ static struct AcceptedRequest *req_list_head;
  */
 static struct AcceptedRequest *req_list_tail;
 
+
+/**
+ * plugins
+ */
+
+struct GNUNET_REST_Plugin *config_plugin;
+struct GNUNET_REST_Plugin *copying_plugin;
+struct GNUNET_REST_Plugin *identity_plugin;
+struct GNUNET_REST_Plugin *namestore_plugin;
+struct GNUNET_REST_Plugin *gns_plugin;
+#ifdef HAVE_JOSE
+struct GNUNET_REST_Plugin *openid_plugin;
+#endif
+struct GNUNET_REST_Plugin *reclaim_plugin;
+
 /* ************************* Global helpers ********************* */
 
 
@@ -294,6 +324,7 @@ cleanup_url_map (void *cls, const struct GNUNET_HashCode *key, void *value)
   return GNUNET_YES;
 }
 
+
 static void
 cleanup_handle (struct MhdConnectionHandle *handle)
 {
@@ -323,6 +354,7 @@ cleanup_handle (struct MhdConnectionHandle *handle)
   GNUNET_free (handle);
 }
 
+
 static void
 cleanup_ar (struct AcceptedRequest *ar)
 {
@@ -334,7 +366,8 @@ cleanup_ar (struct AcceptedRequest *ar)
   {
     GNUNET_NETWORK_socket_free_memory_only_ (ar->sock);
   }
-  else {
+  else
+  {
     GNUNET_NETWORK_socket_close (ar->sock);
   }
   ar->sock = NULL;
@@ -343,6 +376,7 @@ cleanup_ar (struct AcceptedRequest *ar)
                                ar);
   GNUNET_free (ar);
 }
+
 
 static int
 header_iterator (void *cls,
@@ -561,9 +595,10 @@ create_response (void *cls,
     con_handle->state = GN_REST_STATE_PROCESSING;
     for (ple = plugins_head; NULL != ple; ple = ple->next)
     {
-      if (GNUNET_YES == ple->plugin->process_request (rest_conndata_handle,
-                                                      &plugin_callback,
-                                                      con_handle))
+      if (GNUNET_YES == ple->process_request (ple->plugin,
+                                              rest_conndata_handle,
+                                              &plugin_callback,
+                                              con_handle))
         break; /* Request handled */
     }
     if (NULL == ple)
@@ -603,8 +638,8 @@ create_response (void *cls,
                          strlen ("chrome-extension://"))))
       {
         GNUNET_assert (MHD_NO != MHD_add_response_header (con_handle->response,
-                                 MHD_HTTP_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN,
-                                 origin));
+                                                          MHD_HTTP_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN,
+                                                          origin));
       }
     }
     if (NULL != allow_origins)
@@ -615,9 +650,10 @@ create_response (void *cls,
       {
         if (0 == strncmp (allow_origin, origin, strlen (allow_origin)))
         {
-          GNUNET_assert (MHD_NO != MHD_add_response_header (con_handle->response,
-                                   MHD_HTTP_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN,
-                                   allow_origin));
+          GNUNET_assert (MHD_NO != MHD_add_response_header (
+                           con_handle->response,
+                           MHD_HTTP_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN,
+                           allow_origin));
           break;
         }
         allow_origin = strtok (NULL, ",");
@@ -628,14 +664,14 @@ create_response (void *cls,
   if (NULL != allow_credentials)
   {
     GNUNET_assert (MHD_NO != MHD_add_response_header (con_handle->response,
-                             "Access-Control-Allow-Credentials",
-                             allow_credentials));
+                                                      "Access-Control-Allow-Credentials",
+                                                      allow_credentials));
   }
   if (NULL != allow_headers)
   {
     GNUNET_assert (MHD_NO != MHD_add_response_header (con_handle->response,
-                             "Access-Control-Allow-Headers",
-                             allow_headers));
+                                                      "Access-Control-Allow-Headers",
+                                                      allow_headers));
   }
   run_mhd_now ();
   {
@@ -757,6 +793,7 @@ schedule_httpd ()
     GNUNET_NETWORK_fdset_destroy (wws);
 }
 
+
 /**
  * Function called when MHD first processes an incoming connection.
  * Gives us the respective URI information.
@@ -791,7 +828,6 @@ mhd_log_callback (void *cls,
 }
 
 
-
 /**
  * Function called when MHD decides that we are done with a connection.
  *
@@ -822,6 +858,7 @@ mhd_completed_cb (void *cls,
   ar->socket_with_mhd = GNUNET_YES;
   *con_cls = NULL;
 }
+
 
 /**
  * Function called when MHD connection is opened or closed.
@@ -884,7 +921,6 @@ mhd_connection_cb (void *cls,
     GNUNET_break (0);
   }
 }
-
 
 
 /**
@@ -977,10 +1013,17 @@ do_shutdown (void *cls)
     GNUNET_CONTAINER_DLL_remove (plugins_head,
                                  plugins_tail,
                                  ple);
-    GNUNET_PLUGIN_unload (ple->libname, ple->plugin);
     GNUNET_free (ple->libname);
     GNUNET_free (ple);
   }
+  REST_config_done (config_plugin);
+  REST_copying_done (copying_plugin);
+  REST_identity_done (identity_plugin);
+  REST_gns_done (gns_plugin);
+#ifdef HAVE_JOSE
+  REST_openid_done (openid_plugin);
+#endif
+  REST_reclaim_done (reclaim_plugin);
   GNUNET_log (GNUNET_ERROR_TYPE_INFO, "Shutting down...\n");
   kill_httpd ();
   GNUNET_free (allow_credentials);
@@ -1065,28 +1108,30 @@ bind_v6 ()
  * @param libname the name of the library loaded
  * @param lib_ret the object returned by the plugin initializer
  */
-static void
-load_plugin (void *cls, const char *libname, void *lib_ret)
+static enum GNUNET_GenericReturnValue
+setup_plugin (const char *name,
+              GNUNET_REST_ProcessingFunction proc,
+              void *plugin_cls)
 {
-  struct GNUNET_REST_Plugin *plugin = lib_ret;
   struct PluginListEntry *ple;
 
-  if (NULL == lib_ret)
+  if (NULL == plugin_cls)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Could not load plugin `%s'\n",
-                libname);
-    return;
+                "Could not load plugin\n");
+    return GNUNET_SYSERR;
   }
-  GNUNET_assert (1 < strlen (plugin->name));
-  GNUNET_assert ('/' == *plugin->name);
+  GNUNET_assert (1 < strlen (name));
+  GNUNET_assert ('/' == *name);
   ple = GNUNET_new (struct PluginListEntry);
-  ple->libname = GNUNET_strdup (libname);
-  ple->plugin = plugin;
+  ple->libname = GNUNET_strdup (name);
+  ple->plugin = plugin_cls;
+  ple->process_request = proc;
   GNUNET_CONTAINER_DLL_insert (plugins_head,
                                plugins_tail,
                                ple);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Loaded plugin `%s'\n", libname);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Loaded plugin `%s'\n", name);
+  return GNUNET_OK;
 }
 
 
@@ -1201,7 +1246,8 @@ run (void *cls,
       memset (basic_auth_secret_tmp, 0, 16);
       if (GNUNET_SYSERR == GNUNET_DISK_fn_read (basic_auth_file,
                                                 basic_auth_secret_tmp,
-                                                sizeof (basic_auth_secret_tmp) - 1))
+                                                sizeof (basic_auth_secret_tmp)
+                                                - 1))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     "Unable to read basic auth secret file.\n");
@@ -1330,12 +1376,45 @@ run (void *cls,
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-/* Load plugins */
-  GNUNET_PLUGIN_load_all_in_context (GNUNET_OS_project_data_default (),
-                                     "libgnunet_plugin_rest",
-                                     (void *) cfg,
-                                     &load_plugin,
-                                     NULL);
+  /* Load plugins */
+  // FIXME: Use per-plugin rest plugin structs
+  struct GNUNET_REST_Plugin *config_plugin = REST_config_init (cfg);
+  if (GNUNET_OK != setup_plugin (config_plugin->name, &REST_config_process_request, config_plugin))
+  {
+    GNUNET_SCHEDULER_shutdown ();
+  }
+  struct GNUNET_REST_Plugin *copying_plugin = REST_copying_init (cfg);
+  if (GNUNET_OK != setup_plugin (copying_plugin->name, &REST_copying_process_request, copying_plugin))
+  {
+    GNUNET_SCHEDULER_shutdown ();
+  }
+  struct GNUNET_REST_Plugin *identity_plugin = REST_identity_init (cfg);
+  if (GNUNET_OK != setup_plugin (identity_plugin->name, &REST_identity_process_request, identity_plugin))
+  {
+    GNUNET_SCHEDULER_shutdown ();
+  }
+  struct GNUNET_REST_Plugin *namestore_plugin = REST_namestore_init (cfg);
+  if (GNUNET_OK != setup_plugin (namestore_plugin->name, &REST_namestore_process_request, namestore_plugin))
+  {
+    GNUNET_SCHEDULER_shutdown ();
+  }
+  struct GNUNET_REST_Plugin *gns_plugin = REST_gns_init (cfg);
+  if (GNUNET_OK != setup_plugin (gns_plugin->name, &REST_gns_process_request, gns_plugin))
+  {
+    GNUNET_SCHEDULER_shutdown ();
+  }
+#ifdef HAVE_JOSE
+  struct GNUNET_REST_Plugin *openid_plugin = REST_openid_init (cfg);
+  if (GNUNET_OK != setup_plugin (openid_plugin->name, &REST_openid_process_request, openid_plugin))
+  {
+    GNUNET_SCHEDULER_shutdown ();
+  }
+#endif
+  struct GNUNET_REST_Plugin *reclaim_plugin = REST_reclaim_init (cfg);
+  if (GNUNET_OK != setup_plugin (reclaim_plugin->name, &REST_reclaim_process_request, reclaim_plugin))
+  {
+    GNUNET_SCHEDULER_shutdown ();
+  }
   GNUNET_SCHEDULER_add_shutdown (&do_shutdown, NULL);
 }
 

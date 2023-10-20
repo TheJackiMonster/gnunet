@@ -76,37 +76,16 @@ TESTS = \
   $(check_SCRIPTS)
 endif
 
-REST_PLUGIN = libgnunet_plugin_rest_namestore.la
-
 plugin_LTLIBRARIES = \
   $(SQLITE_PLUGIN) \
-  $(POSTGRES_PLUGIN) \
-  $(REST_PLUGIN)
-
-
-libgnunet_plugin_rest_namestore_la_SOURCES = \
-  plugin_rest_namestore.c
-libgnunet_plugin_rest_namestore_la_LIBADD = \
-  $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
-  $(top_builddir)/src/service/rest/libgnunetrest.la \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  $(top_builddir)/src/lib/json/libgnunetjson.la \
-  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecordjson.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) \
-  $(LTLIBINTL) -ljansson $(MHD_LIBS)
-libgnunet_plugin_rest_namestore_la_LDFLAGS = \
- $(GN_PLUGIN_LDFLAGS)
-libgnunet_plugin_rest_namestore_la_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
+  $(POSTGRES_PLUGIN)
 
 
 libgnunet_plugin_namestore_sqlite_la_SOURCES = \
   plugin_namestore_sqlite.c
 libgnunet_plugin_namestore_sqlite_la_LIBADD = \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la  \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/sq/libgnunetsq.la \
-  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) -lsqlite3 \
   $(LTLIBINTL)
 libgnunet_plugin_namestore_sqlite_la_LDFLAGS = \
@@ -116,9 +95,7 @@ libgnunet_plugin_namestore_postgres_la_SOURCES = \
   plugin_namestore_postgres.c
 libgnunet_plugin_namestore_postgres_la_LIBADD = \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la  \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/pq/libgnunetpq.la  \
-  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) -lpq \
   $(LTLIBINTL)
 libgnunet_plugin_namestore_postgres_la_LDFLAGS = \
@@ -422,9 +399,6 @@ test_plugin_namestore_postgres_LDADD = \
   $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
-check_SCRIPTS = \
-  test_plugin_rest_namestore.sh
-
 EXTRA_DIST = \
   test_common.c \
   test_namestore_api.conf \
@@ -434,5 +408,4 @@ EXTRA_DIST = \
   perf_namestore_api_sqlite.conf \
   test_plugin_namestore_sqlite.conf \
   test_plugin_namestore_postgres.conf \
-  $(check_SCRIPTS) \
   $(sql_DATA)

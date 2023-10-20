@@ -29,16 +29,6 @@ libgnunetdht_dep = declare_dependency(link_with : libgnunetdht)
 pkg.generate(libgnunetdht, url: 'https://www.gnunet.org',
            description : 'Provides API for the R5N distributed hash table')
 
-shared_module('gnunet_plugin_block_dht',
-        ['plugin_block_dht.c'],
-        dependencies: [libgnunetutil_dep,
-                       libgnunethello_dep,
-                       libgnunetblock_dep,
-                       libgnunetblockgroup_dep],
-        include_directories: [incdir, configuration_inc],
-              install:true,
-              install_dir: get_option('libdir')/'gnunet')
-
 executable ('gnunet-service-dht',
             gnunetservicedht_src,
             dependencies: [libgnunetdht_dep, libgnunetutil_dep,

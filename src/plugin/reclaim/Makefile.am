@@ -59,11 +59,11 @@ endif
 
 
 libgnunet_plugin_reclaim_credential_jwt_la_SOURCES = \
-  plugin_reclaim_credential_jwt.c
+  plugin_reclaim_credential_jwt.c \
+	$(top_builddir)/src/service/reclaim/reclaim_attribute.c \
+	$(top_builddir)/src/service/reclaim/reclaim_credential.c
 libgnunet_plugin_reclaim_credential_jwt_la_LIBADD = \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/service/reclaim/libgnunetreclaim.la \
   -ljansson\
   $(LTLIBINTL)
 libgnunet_plugin_reclaim_credential_jwt_la_LDFLAGS = \

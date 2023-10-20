@@ -20,6 +20,7 @@ gnunet_revocation_SOURCES = \
 gnunet_revocation_LDADD = \
   $(top_builddir)/src/service/revocation/libgnunetrevocation.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
+  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 
@@ -27,7 +28,7 @@ gnunet_revocation_tvg_SOURCES = \
  gnunet-revocation-tvg.c
 gnunet_revocation_tvg_LDADD = \
   $(top_builddir)/src/service/revocation/libgnunetrevocation.la \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la \
+  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
 

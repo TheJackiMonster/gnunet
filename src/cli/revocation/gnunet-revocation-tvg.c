@@ -29,7 +29,7 @@
 #include "gnunet_revocation_service.h"
 #include "gnunet_testing_lib.h"
 // FIXME try to avoid this include somehow
-#include "../../service/revocation/revocation.h"
+#include "../../lib/gnsrecord/gnsrecord_crypto.h"
 #include <inttypes.h>
 
 #define TEST_EPOCHS 2
@@ -105,8 +105,8 @@ static void
 run_with_key (struct GNUNET_CRYPTO_PrivateKey *id_priv)
 {
   struct GNUNET_CRYPTO_PublicKey id_pub;
-  struct GNUNET_REVOCATION_PowP *pow;
-  struct GNUNET_REVOCATION_PowCalculationHandle *ph;
+  struct GNUNET_GNSRECORD_PowP *pow;
+  struct GNUNET_GNSRECORD_PowCalculationHandle *ph;
   struct GNUNET_TIME_Relative exp;
   char ztld[128];
   ssize_t key_len;
@@ -127,10 +127,10 @@ run_with_key (struct GNUNET_CRYPTO_PrivateKey *id_priv)
   fprintf (stdout, "Encoded zone identifier (zkl = zTLD):\n");
   fprintf (stdout, "%s\n", ztld);
   fprintf (stdout, "\n");
-  pow = GNUNET_malloc (GNUNET_REVOCATION_MAX_PROOF_SIZE);
-  GNUNET_REVOCATION_pow_init (id_priv,
+  pow = GNUNET_malloc (GNUNET_MAX_POW_SIZE);
+  GNUNET_GNSRECORD_pow_init (id_priv,
                               pow);
-  ph = GNUNET_REVOCATION_pow_start (pow,
+  ph = GNUNET_GNSRECORD_pow_start (pow,
                                     TEST_EPOCHS,
                                     TEST_DIFFICULTY);
   fprintf (stdout, "Difficulty (%d base difficulty + %d epochs): %d\n\n",
@@ -138,12 +138,12 @@ run_with_key (struct GNUNET_CRYPTO_PrivateKey *id_priv)
            TEST_EPOCHS,
            TEST_DIFFICULTY + TEST_EPOCHS);
   uint64_t pow_passes = 0;
-  while (GNUNET_YES != GNUNET_REVOCATION_pow_round (ph))
+  while (GNUNET_YES != GNUNET_GNSRECORD_pow_round (ph))
   {
     pow_passes++;
   }
-  struct GNUNET_REVOCATION_SignaturePurposePS *purp;
-  purp = REV_create_signature_message (pow);
+  struct GNUNET_GNSRECORD_SignaturePurposePS *purp;
+  purp = GNR_create_signature_message (pow);
   fprintf (stdout, "Signed message:\n");
   print_bytes (purp,
                ntohl (purp->purpose.size),
@@ -153,12 +153,12 @@ run_with_key (struct GNUNET_CRYPTO_PrivateKey *id_priv)
 
   exp = GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_YEARS,
                                        TEST_EPOCHS);
-  GNUNET_assert (GNUNET_OK == GNUNET_REVOCATION_check_pow (pow,
+  GNUNET_assert (GNUNET_OK == GNUNET_GNSRECORD_check_pow (pow,
                                                            TEST_DIFFICULTY,
                                                            exp));
   fprintf (stdout, "Proof:\n");
   print_bytes (pow,
-               GNUNET_REVOCATION_proof_get_size (pow),
+               GNUNET_GNSRECORD_proof_get_size (pow),
                8);
   GNUNET_free (ph);
 

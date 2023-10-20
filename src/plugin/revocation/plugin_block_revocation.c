@@ -27,8 +27,8 @@
 #include "platform.h"
 #include "gnunet_signatures.h"
 #include "gnunet_block_plugin.h"
+#include "gnunet_gnsrecord_lib.h"
 #include "gnunet_block_group_lib.h"
-// FIXME try to avoid this include somehow
 #include "../../service/revocation/revocation.h"
 #include "gnunet_revocation_service.h"
 
@@ -93,8 +93,8 @@ block_plugin_revocation_check_block (void *cls,
 {
   struct InternalContext *ic = cls;
   const struct RevokeMessage *rm = block;
-  const struct GNUNET_REVOCATION_PowP *pow
-    = (const struct GNUNET_REVOCATION_PowP *) &rm[1];
+  const struct GNUNET_GNSRECORD_PowP *pow
+    = (const struct GNUNET_GNSRECORD_PowP *) &rm[1];
   struct GNUNET_CRYPTO_PublicKey pk;
   size_t pklen;
   size_t left;
@@ -117,9 +117,9 @@ block_plugin_revocation_check_block (void *cls,
   left = block_size - sizeof (*rm) - sizeof (*pow);
   if (GNUNET_SYSERR ==
       GNUNET_CRYPTO_read_public_key_from_buffer (&pow[1],
-                                                   left,
-                                                   &pk,
-                                                   &pklen))
+                                                 left,
+                                                 &pk,
+                                                 &pklen))
   {
     GNUNET_break_op (0);
     return GNUNET_NO;
@@ -130,9 +130,9 @@ block_plugin_revocation_check_block (void *cls,
     return GNUNET_NO;
   }
   if (GNUNET_YES !=
-      GNUNET_REVOCATION_check_pow (pow,
-                                   ic->matching_bits,
-                                   ic->epoch_duration))
+      GNUNET_GNSRECORD_check_pow (pow,
+                                  ic->matching_bits,
+                                  ic->epoch_duration))
   {
     GNUNET_break_op (0);
     return GNUNET_NO;
@@ -203,8 +203,8 @@ block_plugin_revocation_get_key (void *cls,
                                  struct GNUNET_HashCode *key)
 {
   const struct RevokeMessage *rm = block;
-  const struct GNUNET_REVOCATION_PowP *pow
-    = (const struct GNUNET_REVOCATION_PowP *) &rm[1];
+  const struct GNUNET_GNSRECORD_PowP *pow
+    = (const struct GNUNET_GNSRECORD_PowP *) &rm[1];
   struct GNUNET_CRYPTO_PublicKey pk;
   size_t pklen;
   size_t left;
@@ -226,9 +226,9 @@ block_plugin_revocation_get_key (void *cls,
   }
   left = block_size - sizeof (*rm) - sizeof (*pow);
   if (GNUNET_SYSERR == GNUNET_CRYPTO_read_public_key_from_buffer (&pow[1],
-                                                                    left,
-                                                                    &pk,
-                                                                    &pklen))
+                                                                  left,
+                                                                  &pk,
+                                                                  &pklen))
   {
     GNUNET_break_op (0);
     return GNUNET_NO;

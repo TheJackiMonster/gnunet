@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2023-10-19 16:42+0200\n"
+"POT-Creation-Date: 2023-10-20 10:06+0200\n"
 "PO-Revision-Date: 2020-10-23 18:39+0200\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: Serbian <(nothing)>\n"
@@ -2233,7 +2233,7 @@ msgid "Loading hostkey from `%s' failed.\n"
 msgstr "Учитавање кључа домаћина из „%s“ није успело.\n"
 
 #: src/cli/util/gnunet-scrypt.c:243 src/service/nse/gnunet-service-nse.c:1441
-#: src/service/revocation/gnunet-service-revocation.c:922
+#: src/service/revocation/gnunet-service-revocation.c:924
 msgid "Value is too large.\n"
 msgstr "Вредност је превелика.\n"
 
@@ -3601,12 +3601,12 @@ msgstr ""
 
 #: src/lib/util/crypto_ecc.c:79 src/lib/util/crypto_ecc_setup.c:48
 #: src/lib/util/crypto_mpi.c:41
+#: src/plugin/datacache/plugin_datacache_sqlite.c:128
+#: src/plugin/datacache/plugin_datacache_sqlite.c:150
+#: src/plugin/datastore/plugin_datastore_sqlite.c:63
+#: src/plugin/datastore/plugin_datastore_sqlite.c:81
 #: src/plugin/namecache/plugin_namecache_sqlite.c:53
 #: src/plugin/namestore/plugin_namestore_sqlite.c:55
-#: src/service/datacache/plugin_datacache_sqlite.c:128
-#: src/service/datacache/plugin_datacache_sqlite.c:150
-#: src/service/datastore/plugin_datastore_sqlite.c:63
-#: src/service/datastore/plugin_datastore_sqlite.c:81
 #: src/service/peerstore/plugin_peerstore_sqlite.c:54
 #, c-format
 msgid "`%s' failed at %s:%d with error: %s\n"
@@ -4181,6 +4181,85 @@ msgid ""
 "Failed to setup monotonic time file `%s', cannot assure monotonic time!\n"
 msgstr ""
 
+#: src/plugin/datacache/plugin_datacache_heap.c:492
+msgid "Heap datacache running\n"
+msgstr "Остава података скупине ради\n"
+
+#: src/plugin/datacache/plugin_datacache_sqlite.c:1035
+#: src/plugin/datastore/plugin_datastore_sqlite.c:532
+#: src/plugin/namecache/plugin_namecache_sqlite.c:236
+#: src/plugin/namestore/plugin_namestore_sqlite.c:227
+msgid "Tried to close sqlite without finalizing all prepared statements.\n"
+msgstr "Покушај да затворим скулајт без довршавања свих спремљених изјава.\n"
+
+#: src/plugin/datastore/plugin_datastore_heap.c:895
+msgid "Heap database running\n"
+msgstr "База података скупине ради\n"
+
+#: src/plugin/datastore/plugin_datastore_postgres.c:238
+#: src/plugin/datastore/plugin_datastore_postgres.c:850
+msgid "Postgresql exec failure"
+msgstr ""
+
+#: src/plugin/datastore/plugin_datastore_postgres.c:811
+msgid "Failed to drop table from database.\n"
+msgstr "Нисам успео да избацим табелу из базе података.\n"
+
+#: src/plugin/datastore/plugin_datastore_sqlite.c:87
+#, c-format
+msgid "`%s' failed at %s:%u with error: %s"
+msgstr "„%s“ није успело на %s:%u са грешком: %s"
+
+#: src/plugin/datastore/plugin_datastore_sqlite.c:311
+#: src/plugin/namecache/plugin_namecache_sqlite.c:179
+#: src/plugin/namestore/plugin_namestore_sqlite.c:893
+#: src/service/peerstore/plugin_peerstore_sqlite.c:540
+#, c-format
+msgid "Unable to initialize SQLite: %s.\n"
+msgstr "Не могу да покренем СКуЛајт: %s.\n"
+
+#: src/plugin/datastore/plugin_datastore_sqlite.c:634
+msgid "sqlite bind failure"
+msgstr ""
+
+#: src/plugin/datastore/plugin_datastore_sqlite.c:675
+#, fuzzy
+msgid "Data too large"
+msgstr "Вредност је превелика.\n"
+
+#: src/plugin/datastore/plugin_datastore_sqlite.c:1252
+msgid "sqlite version to old to determine size, assuming zero\n"
+msgstr "скулајт издање је престаро за одређивање величине, подразумевам нулу\n"
+
+#: src/plugin/datastore/plugin_datastore_sqlite.c:1267
+#: src/plugin/datastore/plugin_datastore_sqlite.c:1280
+#, fuzzy
+msgid "error preparing statement\n"
+msgstr "Нисам успео да припремим стање „%s“\n"
+
+#: src/plugin/datastore/plugin_datastore_sqlite.c:1288
+#, fuzzy
+msgid "error stepping\n"
+msgstr "„%s“ се зауставља"
+
+#: src/plugin/datastore/plugin_datastore_sqlite.c:1296
+#, c-format
+msgid ""
+"Using sqlite page utilization to estimate payload (%llu pages of size %llu "
+"bytes)\n"
+msgstr ""
+"Користим страницу коришћења скулајта да проценим утовар (%llu странице "
+"величине %llu бајта)\n"
+
+#: src/plugin/datastore/plugin_datastore_sqlite.c:1338
+#: src/plugin/namecache/plugin_namecache_sqlite.c:563
+msgid "Sqlite database running\n"
+msgstr "База података Скулајта ради\n"
+
+#: src/plugin/datastore/plugin_datastore_template.c:252
+msgid "Template database running\n"
+msgstr "База података шаблона ради\n"
+
 #: src/plugin/gns/plugin_gnsrecord_gns.c:137
 msgid "This is a memento of an older block for internal maintenance."
 msgstr ""
@@ -4313,31 +4392,11 @@ msgstr "Нисам успео да прочитам датотеку"
 msgid "flat plugin running\n"
 msgstr ""
 
-#: src/plugin/namecache/plugin_namecache_sqlite.c:179
-#: src/plugin/namestore/plugin_namestore_sqlite.c:893
-#: src/service/datastore/plugin_datastore_sqlite.c:311
-#: src/service/peerstore/plugin_peerstore_sqlite.c:540
-#, c-format
-msgid "Unable to initialize SQLite: %s.\n"
-msgstr "Не могу да покренем СКуЛајт: %s.\n"
-
 #: src/plugin/namecache/plugin_namecache_sqlite.c:189
 #: src/plugin/namecache/plugin_namecache_sqlite.c:203
 #, fuzzy, c-format
 msgid "Failed to setup database at `%s'\n"
 msgstr "Нисам успео да покренем „%s“ на „%s“\n"
-
-#: src/plugin/namecache/plugin_namecache_sqlite.c:236
-#: src/plugin/namestore/plugin_namestore_sqlite.c:227
-#: src/service/datacache/plugin_datacache_sqlite.c:1035
-#: src/service/datastore/plugin_datastore_sqlite.c:532
-msgid "Tried to close sqlite without finalizing all prepared statements.\n"
-msgstr "Покушај да затворим скулајт без довршавања свих спремљених изјава.\n"
-
-#: src/plugin/namecache/plugin_namecache_sqlite.c:563
-#: src/service/datastore/plugin_datastore_sqlite.c:1338
-msgid "Sqlite database running\n"
-msgstr "База података Скулајта ради\n"
 
 #: src/plugin/namestore/plugin_namestore_flat.c:194
 #, c-format
@@ -4364,37 +4423,6 @@ msgstr "Нисам успео да покренем „%s“ на „%s“\n"
 #, fuzzy
 msgid "SQlite database running\n"
 msgstr "База података Скулајта ради\n"
-
-#: src/plugin/namestore/plugin_rest_namestore.c:1320
-#, fuzzy
-msgid "Namestore REST API initialized\n"
-msgstr "Меш је покренут\n"
-
-#: src/rest-plugin/gns/plugin_rest_gns.c:450
-#, fuzzy
-msgid "Gns REST API initialized\n"
-msgstr "Меш је покренут\n"
-
-#: src/rest-plugin/identity/plugin_rest_identity.c:1245
-msgid "Identity REST API initialized\n"
-msgstr ""
-
-#: src/rest-plugin/reclaim/plugin_rest_openid_connect.c:3095
-msgid "OpenID Connect REST API initialized\n"
-msgstr ""
-
-#: src/rest-plugin/reclaim/plugin_rest_pabc.c:637
-#: src/rest-plugin/reclaim/plugin_rest_reclaim.c:1520
-msgid "Identity Provider REST API initialized\n"
-msgstr ""
-
-#: src/rest-plugin/rest/plugin_rest_config.c:428
-msgid "CONFIG REST API initialized\n"
-msgstr ""
-
-#: src/rest-plugin/rest/plugin_rest_copying.c:211
-msgid "COPYING REST API initialized\n"
-msgstr ""
 
 #: src/service/arm/gnunet-service-arm.c:391
 #, c-format
@@ -4675,10 +4703,6 @@ msgstr "# мапе врсте су примљене"
 msgid "# updates to my type map"
 msgstr "# ажурирања за моју мапу врсте"
 
-#: src/service/datacache/plugin_datacache_heap.c:492
-msgid "Heap datacache running\n"
-msgstr "Остава података скупине ради\n"
-
 #: src/service/datastore/datastore_api.c:340
 #, fuzzy
 msgid "DATASTORE disconnected"
@@ -4894,61 +4918,6 @@ msgstr "Нисам успео да уклоним лажну датотеку б
 #: src/service/datastore/gnunet-service-datastore.c:1573
 msgid "Failed to initialize bloomfilter.\n"
 msgstr "Нисам успео да покренем блумфилтер.\n"
-
-#: src/service/datastore/plugin_datastore_heap.c:895
-msgid "Heap database running\n"
-msgstr "База података скупине ради\n"
-
-#: src/service/datastore/plugin_datastore_postgres.c:238
-#: src/service/datastore/plugin_datastore_postgres.c:850
-msgid "Postgresql exec failure"
-msgstr ""
-
-#: src/service/datastore/plugin_datastore_postgres.c:811
-msgid "Failed to drop table from database.\n"
-msgstr "Нисам успео да избацим табелу из базе података.\n"
-
-#: src/service/datastore/plugin_datastore_sqlite.c:87
-#, c-format
-msgid "`%s' failed at %s:%u with error: %s"
-msgstr "„%s“ није успело на %s:%u са грешком: %s"
-
-#: src/service/datastore/plugin_datastore_sqlite.c:634
-msgid "sqlite bind failure"
-msgstr ""
-
-#: src/service/datastore/plugin_datastore_sqlite.c:675
-#, fuzzy
-msgid "Data too large"
-msgstr "Вредност је превелика.\n"
-
-#: src/service/datastore/plugin_datastore_sqlite.c:1252
-msgid "sqlite version to old to determine size, assuming zero\n"
-msgstr "скулајт издање је престаро за одређивање величине, подразумевам нулу\n"
-
-#: src/service/datastore/plugin_datastore_sqlite.c:1267
-#: src/service/datastore/plugin_datastore_sqlite.c:1280
-#, fuzzy
-msgid "error preparing statement\n"
-msgstr "Нисам успео да припремим стање „%s“\n"
-
-#: src/service/datastore/plugin_datastore_sqlite.c:1288
-#, fuzzy
-msgid "error stepping\n"
-msgstr "„%s“ се зауставља"
-
-#: src/service/datastore/plugin_datastore_sqlite.c:1296
-#, c-format
-msgid ""
-"Using sqlite page utilization to estimate payload (%llu pages of size %llu "
-"bytes)\n"
-msgstr ""
-"Користим страницу коришћења скулајта да проценим утовар (%llu странице "
-"величине %llu бајта)\n"
-
-#: src/service/datastore/plugin_datastore_template.c:252
-msgid "Template database running\n"
-msgstr "База података шаблона ради\n"
 
 #: src/service/dht/gnunet_dht_profiler.c:925
 #, c-format
@@ -5764,7 +5733,7 @@ msgstr ""
 
 #: src/service/fs/gnunet-service-fs.c:1271
 #: src/service/hostlist/gnunet-daemon-hostlist.c:343
-#: src/service/topology/gnunet-daemon-topology.c:976
+#: src/service/topology/gnunet-daemon-topology.c:966
 #, c-format
 msgid "Failed to connect to `%s' service.\n"
 msgstr "Нисам успео да се повежем са „%s“ услугом.\n"
@@ -6220,7 +6189,7 @@ msgid "Failed to start HTTPS server for `%s'\n"
 msgstr "Нисам успео да покренем ХТТПС сервер за „%s“\n"
 
 #: src/service/gns/gnunet-gns-proxy.c:2919
-#: src/service/rest/gnunet-rest-server.c:957
+#: src/service/rest/gnunet-rest-server.c:993
 msgid "Failed to pass client to MHD\n"
 msgstr "Нисам успео да проследим клијента МХД-у\n"
 
@@ -6578,7 +6547,7 @@ msgid "# hostlist advertisements send"
 msgstr "# рекламе списка домаћина су послате"
 
 #: src/service/hostlist/gnunet-daemon-hostlist_server.c:484
-#: src/service/topology/gnunet-daemon-topology.c:747
+#: src/service/topology/gnunet-daemon-topology.c:738
 #, fuzzy, c-format
 msgid "Error in communication with PEERSTORE service: %s\n"
 msgstr "Грешка у комуникацији са услугом ПОДАЦИ_ПАРЊАКА: %s\n"
@@ -7225,41 +7194,71 @@ msgstr "Регуларни израз „%s“ је превелик!\n"
 msgid "Search string `%s' is too long!\n"
 msgstr "Регуларни израз „%s“ је превелик!\n"
 
-#: src/service/rest/gnunet-rest-server.c:1369
+#: src/service/rest/config_plugin.c:432
+msgid "CONFIG REST API initialized\n"
+msgstr ""
+
+#: src/service/rest/copying_plugin.c:208
+msgid "COPYING REST API initialized\n"
+msgstr ""
+
+#: src/service/rest/gns_plugin.c:451
+#, fuzzy
+msgid "Gns REST API initialized\n"
+msgstr "Меш је покренут\n"
+
+#: src/service/rest/gnunet-rest-server.c:1448
 #, fuzzy
 msgid "GNUnet REST server"
 msgstr "Алат ГНУнет ГНС решавача"
 
-#: src/service/revocation/gnunet-service-revocation.c:539
+#: src/service/rest/identity_plugin.c:1248
+msgid "Identity REST API initialized\n"
+msgstr ""
+
+#: src/service/rest/namestore_plugin.c:1322
+#, fuzzy
+msgid "Namestore REST API initialized\n"
+msgstr "Меш је покренут\n"
+
+#: src/service/rest/openid_plugin.c:3102
+msgid "OpenID Connect REST API initialized\n"
+msgstr ""
+
+#: src/service/rest/pabc_plugin.c:637 src/service/rest/reclaim_plugin.c:1522
+msgid "Identity Provider REST API initialized\n"
+msgstr ""
+
+#: src/service/revocation/gnunet-service-revocation.c:541
 #, fuzzy
 msgid "# unsupported revocations received via set union"
 msgstr "Двоструки опзив је примљен од парњака. Занемарено.\n"
 
-#: src/service/revocation/gnunet-service-revocation.c:549
+#: src/service/revocation/gnunet-service-revocation.c:551
 #, fuzzy
 msgid "# revocation messages received via set union"
 msgstr "# поруке ПОДАТАКА су примљене путем блутута"
 
-#: src/service/revocation/gnunet-service-revocation.c:554
+#: src/service/revocation/gnunet-service-revocation.c:556
 #, c-format
 msgid "Error computing revocation set union with %s\n"
 msgstr "Грешка прорачуна уније скупа опозивања са %s\n"
 
-#: src/service/revocation/gnunet-service-revocation.c:558
+#: src/service/revocation/gnunet-service-revocation.c:560
 #, fuzzy
 msgid "# revocation set unions failed"
 msgstr "# Бирање парњака није успело"
 
-#: src/service/revocation/gnunet-service-revocation.c:566
+#: src/service/revocation/gnunet-service-revocation.c:568
 #, fuzzy
 msgid "# revocation set unions completed"
 msgstr "# преноси расцепканости су завршени"
 
-#: src/service/revocation/gnunet-service-revocation.c:604
+#: src/service/revocation/gnunet-service-revocation.c:606
 msgid "SET service crashed, terminating revocation service\n"
 msgstr "Услуга ПОСТАВИ се урушила, окончавам услугу опозивања\n"
 
-#: src/service/revocation/gnunet-service-revocation.c:959
+#: src/service/revocation/gnunet-service-revocation.c:961
 msgid "Could not open revocation database file!"
 msgstr "Не могу да отворим датотеку базе података опозивања!"
 
@@ -7411,16 +7410,16 @@ msgstr "# захтеви везе су издати преносу"
 msgid "# HELLO messages gossipped"
 msgstr "# „HELLO“ поруке су наклопљене"
 
-#: src/service/topology/gnunet-daemon-topology.c:805
+#: src/service/topology/gnunet-daemon-topology.c:796
 msgid "Failed to connect to core service, can not manage topology!\n"
 msgstr ""
 "Нисам успео да се повежем са услугом језгра, не могу да радим размештајем!\n"
 
-#: src/service/topology/gnunet-daemon-topology.c:870
+#: src/service/topology/gnunet-daemon-topology.c:859
 msgid "# HELLO messages received"
 msgstr "# „HELLO“ поруке су примљене"
 
-#: src/service/topology/gnunet-daemon-topology.c:1005
+#: src/service/topology/gnunet-daemon-topology.c:995
 msgid "GNUnet topology control"
 msgstr ""
 

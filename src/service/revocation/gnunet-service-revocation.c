@@ -38,6 +38,7 @@
 #include "platform.h"
 #include <math.h>
 #include "gnunet_util_lib.h"
+#include "gnunet_gnsrecord_lib.h"
 #include "gnunet_block_lib.h"
 #include "gnunet_constants.h"
 #include "gnunet_protocols.h"
@@ -172,13 +173,13 @@ new_peer_entry (const struct GNUNET_PeerIdentity *peer)
 static enum GNUNET_GenericReturnValue
 verify_revoke_message (const struct RevokeMessage *rm)
 {
-  const struct GNUNET_REVOCATION_PowP *pow
-    = (const struct GNUNET_REVOCATION_PowP *) &rm[1];
+  const struct GNUNET_GNSRECORD_PowP *pow
+    = (const struct GNUNET_GNSRECORD_PowP *) &rm[1];
 
   if (GNUNET_YES !=
-      GNUNET_REVOCATION_check_pow (pow,
-                                   (unsigned int) revocation_work_required,
-                                   epoch_duration))
+      GNUNET_GNSRECORD_check_pow (pow,
+                                  (unsigned int) revocation_work_required,
+                                  epoch_duration))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Proof of work invalid!\n");
@@ -221,6 +222,7 @@ client_disconnect_cb (void *cls,
   GNUNET_assert (client == app_cls);
 }
 
+
 static int
 check_query_message (void *cls,
                      const struct QueryMessage *qm)
@@ -261,7 +263,7 @@ handle_query_message (void *cls,
   key_len = ntohl (qm->key_len);
   if ((GNUNET_SYSERR ==
        GNUNET_CRYPTO_read_public_key_from_buffer (&qm[1], key_len,
-                                                    &zone, &read)) ||
+                                                  &zone, &read)) ||
       (read != key_len))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -342,8 +344,8 @@ publicize_rm (const struct RevokeMessage *rm)
   struct GNUNET_HashCode hc;
   struct GNUNET_SETU_Element e;
   ssize_t pklen;
-  const struct GNUNET_REVOCATION_PowP *pow
-    = (const struct GNUNET_REVOCATION_PowP *) &rm[1];
+  const struct GNUNET_GNSRECORD_PowP *pow
+    = (const struct GNUNET_GNSRECORD_PowP *) &rm[1];
   const struct GNUNET_CRYPTO_PublicKey *pk
     = (const struct GNUNET_CRYPTO_PublicKey *) &pow[1];
 
@@ -980,8 +982,8 @@ run (void *cls,
       GNUNET_free (fn);
       return;
     }
-    struct GNUNET_REVOCATION_PowP *pow = (struct
-                                          GNUNET_REVOCATION_PowP *) &rm[1];
+    struct GNUNET_GNSRECORD_PowP *pow = (struct
+                                         GNUNET_GNSRECORD_PowP *) &rm[1];
     ssize_t ksize;
     pk = (const struct GNUNET_CRYPTO_PublicKey *) &pow[1];
     ksize = GNUNET_CRYPTO_public_key_get_length (pk);

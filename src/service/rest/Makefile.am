@@ -24,10 +24,35 @@ libexec_PROGRAMS = \
 EXTRA_DIST = \
  rest.conf
 
+if HAVE_JOSE
+OPENID_PLUGIN = \
+ openid_plugin.c \
+ oidc_helper.c
+OPENID_JOSE_LIBS = -ljose
+endif
+
 gnunet_rest_server_SOURCES = \
- gnunet-rest-server.c
+ gnunet-rest-server.c \
+ config_plugin.c \
+ copying_plugin.c \
+ identity_plugin.c \
+ namestore_plugin.c \
+ gns_plugin.c \
+ $(OPENID_PLUGIN) \
+ reclaim_plugin.c json_reclaim.c
 gnunet_rest_server_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
+  $(top_builddir)/src/lib/json/libgnunetjson.la \
+  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecordjson.la \
+  $(top_builddir)/src/service/identity/libgnunetidentity.la \
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
+  $(top_builddir)/src/service/gns/libgnunetgns.la \
+  $(top_builddir)/src/service/reclaim/libgnunetreclaim.la \
+  libgnunetrest.la \
+	$(OPENID_JOSE_LIBS) \
+	-ljansson \
+	$(LIBGCRYPT_LIBS) \
   $(GN_LIBINTL) $(MHD_LIBS)
 gnunet_rest_server_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
 

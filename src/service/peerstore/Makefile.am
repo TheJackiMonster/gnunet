@@ -51,63 +51,15 @@ libgnunetpeerstore_la_LDFLAGS = \
   $(GN_LIBINTL) \
   $(GN_LIB_LDFLAGS)
 
-if HAVE_EXPERIMENTAL
-FLAT_PLUGIN = libgnunet_plugin_peerstore_flat.la
-FLAT_TESTS = test_plugin_peerstore_flat
-libgnunet_plugin_peerstore_flat_la_SOURCES = \
-  plugin_peerstore_flat.c
-libgnunet_plugin_peerstore_flat_la_LIBADD = \
-  libgnunetpeerstore.la  \
-  $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) \
-  $(LTLIBINTL)
-libgnunet_plugin_peerstore_flat_la_LDFLAGS = \
- $(GN_PLUGIN_LDFLAGS)
-endif
-
-if HAVE_SQLITE
-SQLITE_PLUGIN = libgnunet_plugin_peerstore_sqlite.la
-SQLITE_TESTS = test_plugin_peerstore_sqlite
-libgnunet_plugin_peerstore_sqlite_la_SOURCES = \
-  plugin_peerstore_sqlite.c
-libgnunet_plugin_peerstore_sqlite_la_LIBADD = \
-  libgnunetpeerstore.la  \
-  $(top_builddir)/src/lib/sq/libgnunetsq.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(XLIBS) -lsqlite3 \
-  $(LTLIBINTL)
-libgnunet_plugin_peerstore_sqlite_la_LDFLAGS = \
- $(GN_PLUGIN_LDFLAGS)
-endif
-
-plugin_LTLIBRARIES = \
-  $(SQLITE_PLUGIN) \
-	$(FLAT_PLUGIN)
-
-test_plugin_peerstore_sqlite_SOURCES = \
-  test_plugin_peerstore.c
-test_plugin_peerstore_sqlite_LDADD = \
-	$(top_builddir)/src/service/testing/libgnunettesting.la \
-	$(top_builddir)/src/lib/util/libgnunetutil.la
-
-test_plugin_peerstore_flat_SOURCES = \
-  test_plugin_peerstore.c
-test_plugin_peerstore_flat_LDADD = \
-	$(top_builddir)/src/service/testing/libgnunettesting.la \
-	$(top_builddir)/src/lib/util/libgnunetutil.la
-
 check_PROGRAMS = \
  test_peerstore_api_store \
  test_peerstore_api_iterate \
  test_peerstore_api_watch \
  test_peerstore_api_sync \
- perf_peerstore_store \
- $(SQLITE_TESTS) \
- $(FLAT_TESTS)
+ perf_peerstore_store
 
 EXTRA_DIST = \
- test_peerstore_api_data.conf \
- test_plugin_peerstore_flat.conf \
- test_plugin_peerstore_sqlite.conf
+ test_peerstore_api_data.conf
 
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;

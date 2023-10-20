@@ -1,10 +1,16 @@
 SUBDIRS = \
 	block \
+	dns \
 	gnsrecord \
-	dhtu \
+	peerstore \
+	datacache \
+	datastore \
 	namecache \
 	namestore \
+	dht \
 	revocation \
+	regex \
 	gns \
 	fs \
-	reclaim
+	reclaim \
+	messenger

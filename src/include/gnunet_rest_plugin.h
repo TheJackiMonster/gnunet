@@ -63,24 +63,13 @@ struct GNUNET_REST_Plugin
    * e.g. http://hostname:port/name
    */
   char *name;
-
-  /**
-   * Function to process a REST call
-   *
-   * @param method the HTTP method called
-   * @param url the relative url accessed
-   * @param data the REST data (can be NULL)
-   * @param data_size the length of the data
-   * @param proc the callback for result
-   * @param proc_cls closure for callback
-   * @return GNUNET_YES if the request was processed
-   */
-  enum GNUNET_GenericReturnValue (*process_request)(
-    struct GNUNET_REST_RequestHandle *handle,
-    GNUNET_REST_ResultProcessor proc,
-    void *proc_cls);
 };
 
+typedef enum GNUNET_GenericReturnValue (*GNUNET_REST_ProcessingFunction)(
+  void *plugin,
+  struct GNUNET_REST_RequestHandle *handle,
+  GNUNET_REST_ResultProcessor proc,
+  void *proc_cls);
 
 #if 0                           /* keep Emacsens' auto-indent happy */
 {

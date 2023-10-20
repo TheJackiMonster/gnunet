@@ -22,6 +22,7 @@
 #define GNUNET_REVOCATION_SERVICE_H_
 
 
+#include "gnunet_gnsrecord_lib.h"
 #include "gnunet_identity_service.h"
 
 /**
@@ -56,71 +57,6 @@ extern "C"
  */
 #define GNUNET_REVOCATION_VERSION 0x00000001
 
-/**
- * Maximum length of a revocation
- */
-#define GNUNET_REVOCATION_MAX_PROOF_SIZE sizeof(struct GNUNET_REVOCATION_PowP) +\
-                                         sizeof(struct GNUNET_CRYPTO_PublicKey) +\
-                                         1024 //FIXME max sig_len
-
-/**
- * The proof-of-work narrowing factor.
- * The number of PoWs that are calculates as part of revocation.
- */
-#define POW_COUNT 32
-
-
-GNUNET_NETWORK_STRUCT_BEGIN
-
-/**
- * Struct for a proof of work as part of the revocation.
- */
-struct GNUNET_REVOCATION_PowP
-{
-  /**
-   * The timestamp of the revocation
-   */
-  struct GNUNET_TIME_AbsoluteNBO timestamp;
-
-  /**
-   * The TTL of this revocation (purely informational)
-   */
-  struct GNUNET_TIME_RelativeNBO ttl;
-
-  /**
-   * The PoWs
-   */
-  uint64_t pow[POW_COUNT] GNUNET_PACKED;
-
-  /** followed by the public key type, the key and a signature **/
-};
-
-
-/**
- * The signature object we use for the PoW
- */
-struct GNUNET_REVOCATION_SignaturePurposePS
-{
-  /**
-   * The signature purpose
-   */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
-
-  /**
-   * The timestamp of the revocation
-   */
-  struct GNUNET_TIME_AbsoluteNBO timestamp;
-
-  /** Followed by the zone public key type and key **/
-};
-
-GNUNET_NETWORK_STRUCT_END
-
-
-/**
- * Handle to a running proof-of-work calculation.
- */
-struct GNUNET_REVOCATION_PowCalculationHandle;
 
 /**
  * Handle for the key revocation query.
@@ -176,7 +112,7 @@ struct GNUNET_REVOCATION_Handle;
  *
  * @param cfg the configuration to use
  * @param pow proof of work to use (should have been created by
- *            iteratively calling #GNUNET_REVOCATION_pow_round)
+ *            iteratively calling #GNUNET_CRYPTO_pow_round)
  * @param func function to call with the result of the check
  *             (called with `is_valid` being #GNUNET_NO if
  *              the revocation worked).
@@ -185,7 +121,7 @@ struct GNUNET_REVOCATION_Handle;
  */
 struct GNUNET_REVOCATION_Handle *
 GNUNET_REVOCATION_revoke (const struct GNUNET_CONFIGURATION_Handle *cfg,
-                          const struct GNUNET_REVOCATION_PowP *pow,
+                          const struct GNUNET_GNSRECORD_PowP *pow,
                           GNUNET_REVOCATION_Callback func, void *func_cls);
 
 
@@ -198,68 +134,6 @@ void
 GNUNET_REVOCATION_revoke_cancel (struct GNUNET_REVOCATION_Handle *h);
 
 
-/**
- * Check if the given proof-of-work is valid.
- *
- * @param pow proof of work
- * @param matching_bits how many bits must match (configuration)
- * @param epoch_duration length of single epoch in configuration
- * @return #GNUNET_YES if the @a pow is acceptable, #GNUNET_NO if not
- */
-enum GNUNET_GenericReturnValue
-GNUNET_REVOCATION_check_pow (const struct GNUNET_REVOCATION_PowP *pow,
-                             unsigned int matching_bits,
-                             struct GNUNET_TIME_Relative epoch_duration);
-
-
-/**
- * Initializes a fresh PoW computation.
- *
- * @param key the key to calculate the PoW for.
- * @param pow the pow object to work with in the calculation.
- */
-void
-GNUNET_REVOCATION_pow_init (const struct GNUNET_CRYPTO_PrivateKey *key,
-                            struct GNUNET_REVOCATION_PowP *pow);
-
-
-/**
- * Starts a proof-of-work calculation given the pow object as well as
- * target epochs and difficulty.
- *
- * @param pow the PoW to based calculations on.
- * @param epochs the number of epochs for which the PoW must be valid.
- * @param difficulty the base difficulty of the PoW.
- * @return a handle for use in PoW rounds
- */
-struct GNUNET_REVOCATION_PowCalculationHandle*
-GNUNET_REVOCATION_pow_start (struct GNUNET_REVOCATION_PowP *pow,
-                             int epochs,
-                             unsigned int difficulty);
-
-
-/**
- * Calculate a single round in the key revocation PoW.
- *
- * @param pc handle to the PoW, initially called with NULL.
- * @return GNUNET_YES if the @a pow is acceptable, GNUNET_NO if not
- */
-enum GNUNET_GenericReturnValue
-GNUNET_REVOCATION_pow_round (struct GNUNET_REVOCATION_PowCalculationHandle *pc);
-
-
-/**
- * Stop a PoW calculation
- *
- * @param pc the calculation to clean up
- * @return #GNUNET_YES if pow valid, #GNUNET_NO if pow was set but is not
- * valid
- */
-void
-GNUNET_REVOCATION_pow_stop (struct GNUNET_REVOCATION_PowCalculationHandle *pc);
-
-size_t
-GNUNET_REVOCATION_proof_get_size (const struct GNUNET_REVOCATION_PowP *pow);
 
 
 #if 0                           /* keep Emacsens' auto-indent happy */
