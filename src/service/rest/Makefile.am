@@ -44,6 +44,7 @@ gnunet_rest_server_LDADD = \
   $(top_builddir)/src/service/reclaim/libgnunetreclaim.la \
   libgnunetrest.la \
 	-ljose \
+	-ljansson \
 	$(LIBGCRYPT_LIBS) \
   $(GN_LIBINTL) $(MHD_LIBS)
 gnunet_rest_server_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
