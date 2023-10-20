@@ -34,7 +34,9 @@
 #include "identity_plugin.h"
 #include "namestore_plugin.h"
 #include "gns_plugin.h"
+#ifdef HAVE_JOSE
 #include "openid_plugin.h"
+#endif
 #include "reclaim_plugin.h"
 
 /**
@@ -263,7 +265,9 @@ struct GNUNET_REST_Plugin *copying_plugin;
 struct GNUNET_REST_Plugin *identity_plugin;
 struct GNUNET_REST_Plugin *namestore_plugin;
 struct GNUNET_REST_Plugin *gns_plugin;
+#ifdef HAVE_JOSE
 struct GNUNET_REST_Plugin *openid_plugin;
+#endif
 struct GNUNET_REST_Plugin *reclaim_plugin;
 
 /* ************************* Global helpers ********************* */
@@ -1016,7 +1020,9 @@ do_shutdown (void *cls)
   REST_copying_done (copying_plugin);
   REST_identity_done (identity_plugin);
   REST_gns_done (gns_plugin);
+#ifdef HAVE_JOSE
   REST_openid_done (openid_plugin);
+#endif
   REST_reclaim_done (reclaim_plugin);
   GNUNET_log (GNUNET_ERROR_TYPE_INFO, "Shutting down...\n");
   kill_httpd ();
@@ -1397,11 +1403,13 @@ run (void *cls,
   {
     GNUNET_SCHEDULER_shutdown ();
   }
+#ifdef HAVE_JOSE
   struct GNUNET_REST_Plugin *openid_plugin = REST_openid_init (cfg);
   if (GNUNET_OK != setup_plugin (openid_plugin->name, &REST_openid_process_request, openid_plugin))
   {
     GNUNET_SCHEDULER_shutdown ();
   }
+#endif
   struct GNUNET_REST_Plugin *reclaim_plugin = REST_reclaim_init (cfg);
   if (GNUNET_OK != setup_plugin (reclaim_plugin->name, &REST_reclaim_process_request, reclaim_plugin))
   {
