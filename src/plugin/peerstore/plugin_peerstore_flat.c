@@ -27,7 +27,7 @@
 #include "platform.h"
 #include "gnunet_peerstore_plugin.h"
 #include "gnunet_peerstore_service.h"
-#include "peerstore.h"
+#include "../../service/peerstore/peerstore.h"
 
 /**
  * Context for all functions in this plugin.

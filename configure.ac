@@ -1240,11 +1240,13 @@ src/plugin/Makefile
 src/plugin/block/Makefile
 src/plugin/datacache/Makefile
 src/plugin/datastore/Makefile
+src/plugin/dht/Makefile
 src/plugin/fs/Makefile
 src/plugin/gns/Makefile
 src/plugin/gnsrecord/Makefile
 src/plugin/namecache/Makefile
 src/plugin/namestore/Makefile
+src/plugin/peerstore/Makefile
 src/plugin/reclaim/Makefile
 src/plugin/revocation/Makefile
 src/service/Makefile

@@ -216,6 +216,7 @@ src/plugin/datastore/plugin_datastore_heap.c
 src/plugin/datastore/plugin_datastore_postgres.c
 src/plugin/datastore/plugin_datastore_sqlite.c
 src/plugin/datastore/plugin_datastore_template.c
+src/plugin/dht/plugin_block_dht.c
 src/plugin/fs/plugin_block_fs.c
 src/plugin/gns/plugin_block_gns.c
 src/plugin/gns/plugin_gnsrecord_gns.c
@@ -226,6 +227,8 @@ src/plugin/namecache/plugin_namecache_sqlite.c
 src/plugin/namestore/plugin_namestore_flat.c
 src/plugin/namestore/plugin_namestore_postgres.c
 src/plugin/namestore/plugin_namestore_sqlite.c
+src/plugin/peerstore/plugin_peerstore_flat.c
+src/plugin/peerstore/plugin_peerstore_sqlite.c
 src/plugin/reclaim/pabc_helper.c
 src/plugin/reclaim/plugin_gnsrecord_reclaim.c
 src/plugin/reclaim/plugin_reclaim_attribute_basic.c
@@ -272,7 +275,6 @@ src/service/dht/gnunet-service-dht_datacache.c
 src/service/dht/gnunet-service-dht_neighbours.c
 src/service/dht/gnunet-service-dht_routing.c
 src/service/dht/gnunet_dht_profiler.c
-src/service/dht/plugin_block_dht.c
 src/service/dhtu/plugin_dhtu_gnunet.c
 src/service/dhtu/plugin_dhtu_ip.c
 src/service/dhtu/testing_dhtu_cmd_send.c
@@ -393,8 +395,6 @@ src/service/peerstore/gnunet-peerstore.c
 src/service/peerstore/gnunet-service-peerstore.c
 src/service/peerstore/peerstore_api.c
 src/service/peerstore/peerstore_common.c
-src/service/peerstore/plugin_peerstore_flat.c
-src/service/peerstore/plugin_peerstore_sqlite.c
 src/service/pt/gnunet-daemon-pt.c
 src/service/reclaim/did_core.c
 src/service/reclaim/did_helper.c

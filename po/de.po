@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2023-10-19 16:42+0200\n"
+"POT-Creation-Date: 2023-10-20 10:06+0200\n"
 "PO-Revision-Date: 2015-03-08 16:16+0100\n"
 "Last-Translator: Mario Blättermann <mario.blaettermann@gmail.com>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -2215,7 +2215,7 @@ msgid "Loading hostkey from `%s' failed.\n"
 msgstr "Das Parsen des Hello von `%s' schlug fehl.\n"
 
 #: src/cli/util/gnunet-scrypt.c:243 src/service/nse/gnunet-service-nse.c:1441
-#: src/service/revocation/gnunet-service-revocation.c:922
+#: src/service/revocation/gnunet-service-revocation.c:924
 msgid "Value is too large.\n"
 msgstr ""
 
@@ -3560,12 +3560,12 @@ msgstr ""
 
 #: src/lib/util/crypto_ecc.c:79 src/lib/util/crypto_ecc_setup.c:48
 #: src/lib/util/crypto_mpi.c:41
+#: src/plugin/datacache/plugin_datacache_sqlite.c:128
+#: src/plugin/datacache/plugin_datacache_sqlite.c:150
+#: src/plugin/datastore/plugin_datastore_sqlite.c:63
+#: src/plugin/datastore/plugin_datastore_sqlite.c:81
 #: src/plugin/namecache/plugin_namecache_sqlite.c:53
 #: src/plugin/namestore/plugin_namestore_sqlite.c:55
-#: src/service/datacache/plugin_datacache_sqlite.c:128
-#: src/service/datacache/plugin_datacache_sqlite.c:150
-#: src/service/datastore/plugin_datastore_sqlite.c:63
-#: src/service/datastore/plugin_datastore_sqlite.c:81
 #: src/service/peerstore/plugin_peerstore_sqlite.c:54
 #, c-format
 msgid "`%s' failed at %s:%d with error: %s\n"
@@ -4135,6 +4135,84 @@ msgid ""
 "Failed to setup monotonic time file `%s', cannot assure monotonic time!\n"
 msgstr ""
 
+#: src/plugin/datacache/plugin_datacache_heap.c:492
+msgid "Heap datacache running\n"
+msgstr ""
+
+#: src/plugin/datacache/plugin_datacache_sqlite.c:1035
+#: src/plugin/datastore/plugin_datastore_sqlite.c:532
+#: src/plugin/namecache/plugin_namecache_sqlite.c:236
+#: src/plugin/namestore/plugin_namestore_sqlite.c:227
+msgid "Tried to close sqlite without finalizing all prepared statements.\n"
+msgstr ""
+
+#: src/plugin/datastore/plugin_datastore_heap.c:895
+msgid "Heap database running\n"
+msgstr "Heap-Datenbank läuft\n"
+
+#: src/plugin/datastore/plugin_datastore_postgres.c:238
+#: src/plugin/datastore/plugin_datastore_postgres.c:850
+msgid "Postgresql exec failure"
+msgstr ""
+
+#: src/plugin/datastore/plugin_datastore_postgres.c:811
+#, fuzzy
+msgid "Failed to drop table from database.\n"
+msgstr "Fehler beim Binden an UDP Port %d.\n"
+
+#: src/plugin/datastore/plugin_datastore_sqlite.c:87
+#, fuzzy, c-format
+msgid "`%s' failed at %s:%u with error: %s"
+msgstr "`%s' schlug bei %s:%d mit dem Fehler %s fehl\n"
+
+#: src/plugin/datastore/plugin_datastore_sqlite.c:311
+#: src/plugin/namecache/plugin_namecache_sqlite.c:179
+#: src/plugin/namestore/plugin_namestore_sqlite.c:893
+#: src/service/peerstore/plugin_peerstore_sqlite.c:540
+#, c-format
+msgid "Unable to initialize SQLite: %s.\n"
+msgstr "SQLite-Datenbank konnte nicht initialisiert werden: %s.\n"
+
+#: src/plugin/datastore/plugin_datastore_sqlite.c:634
+msgid "sqlite bind failure"
+msgstr ""
+
+#: src/plugin/datastore/plugin_datastore_sqlite.c:675
+#, fuzzy
+msgid "Data too large"
+msgstr "Anzahl der Werte"
+
+#: src/plugin/datastore/plugin_datastore_sqlite.c:1252
+msgid "sqlite version to old to determine size, assuming zero\n"
+msgstr ""
+
+#: src/plugin/datastore/plugin_datastore_sqlite.c:1267
+#: src/plugin/datastore/plugin_datastore_sqlite.c:1280
+#, fuzzy
+msgid "error preparing statement\n"
+msgstr "Fehler beim Anlegen des Tunnels\n"
+
+#: src/plugin/datastore/plugin_datastore_sqlite.c:1288
+#, fuzzy
+msgid "error stepping\n"
+msgstr "%s wird gestoppt"
+
+#: src/plugin/datastore/plugin_datastore_sqlite.c:1296
+#, c-format
+msgid ""
+"Using sqlite page utilization to estimate payload (%llu pages of size %llu "
+"bytes)\n"
+msgstr ""
+
+#: src/plugin/datastore/plugin_datastore_sqlite.c:1338
+#: src/plugin/namecache/plugin_namecache_sqlite.c:563
+msgid "Sqlite database running\n"
+msgstr "Sqlite-Datenbank läuft\n"
+
+#: src/plugin/datastore/plugin_datastore_template.c:252
+msgid "Template database running\n"
+msgstr ""
+
 #: src/plugin/gns/plugin_gnsrecord_gns.c:137
 msgid "This is a memento of an older block for internal maintenance."
 msgstr ""
@@ -4267,31 +4345,11 @@ msgstr "Zustellung der Nachricht `%s' fehlgeschlagen.\n"
 msgid "flat plugin running\n"
 msgstr "Sqlite-Datenbank läuft\n"
 
-#: src/plugin/namecache/plugin_namecache_sqlite.c:179
-#: src/plugin/namestore/plugin_namestore_sqlite.c:893
-#: src/service/datastore/plugin_datastore_sqlite.c:311
-#: src/service/peerstore/plugin_peerstore_sqlite.c:540
-#, c-format
-msgid "Unable to initialize SQLite: %s.\n"
-msgstr "SQLite-Datenbank konnte nicht initialisiert werden: %s.\n"
-
 #: src/plugin/namecache/plugin_namecache_sqlite.c:189
 #: src/plugin/namecache/plugin_namecache_sqlite.c:203
 #, fuzzy, c-format
 msgid "Failed to setup database at `%s'\n"
 msgstr "Es konnte keine Verbindung mit gnunetd hergestellt werden.\n"
-
-#: src/plugin/namecache/plugin_namecache_sqlite.c:236
-#: src/plugin/namestore/plugin_namestore_sqlite.c:227
-#: src/service/datacache/plugin_datacache_sqlite.c:1035
-#: src/service/datastore/plugin_datastore_sqlite.c:532
-msgid "Tried to close sqlite without finalizing all prepared statements.\n"
-msgstr ""
-
-#: src/plugin/namecache/plugin_namecache_sqlite.c:563
-#: src/service/datastore/plugin_datastore_sqlite.c:1338
-msgid "Sqlite database running\n"
-msgstr "Sqlite-Datenbank läuft\n"
 
 #: src/plugin/namestore/plugin_namestore_flat.c:194
 #, c-format
@@ -4318,41 +4376,6 @@ msgstr "Es konnte keine Verbindung mit gnunetd hergestellt werden.\n"
 #, fuzzy
 msgid "SQlite database running\n"
 msgstr "Sqlite-Datenbank läuft\n"
-
-#: src/plugin/namestore/plugin_rest_namestore.c:1320
-#, fuzzy
-msgid "Namestore REST API initialized\n"
-msgstr " Verbindung fehlgeschlagen\n"
-
-#: src/rest-plugin/gns/plugin_rest_gns.c:450
-#, fuzzy
-msgid "Gns REST API initialized\n"
-msgstr " Verbindung fehlgeschlagen\n"
-
-#: src/rest-plugin/identity/plugin_rest_identity.c:1245
-msgid "Identity REST API initialized\n"
-msgstr ""
-
-#: src/rest-plugin/reclaim/plugin_rest_openid_connect.c:3095
-#, fuzzy
-msgid "OpenID Connect REST API initialized\n"
-msgstr " Verbindung fehlgeschlagen\n"
-
-#: src/rest-plugin/reclaim/plugin_rest_pabc.c:637
-#: src/rest-plugin/reclaim/plugin_rest_reclaim.c:1520
-#, fuzzy
-msgid "Identity Provider REST API initialized\n"
-msgstr " Verbindung fehlgeschlagen\n"
-
-#: src/rest-plugin/rest/plugin_rest_config.c:428
-#, fuzzy
-msgid "CONFIG REST API initialized\n"
-msgstr " Verbindung fehlgeschlagen\n"
-
-#: src/rest-plugin/rest/plugin_rest_copying.c:211
-#, fuzzy
-msgid "COPYING REST API initialized\n"
-msgstr " Verbindung fehlgeschlagen\n"
 
 #: src/service/arm/gnunet-service-arm.c:391
 #, c-format
@@ -4641,10 +4664,6 @@ msgstr "# Bytes empfangen über TCP"
 msgid "# updates to my type map"
 msgstr ""
 
-#: src/service/datacache/plugin_datacache_heap.c:492
-msgid "Heap datacache running\n"
-msgstr ""
-
 #: src/service/datastore/datastore_api.c:340
 #, fuzzy
 msgid "DATASTORE disconnected"
@@ -4861,60 +4880,6 @@ msgstr "Datei wurde als `%s' gespeichert.\n"
 #: src/service/datastore/gnunet-service-datastore.c:1573
 msgid "Failed to initialize bloomfilter.\n"
 msgstr "Bloomfilter konnte nicht initialisiert werden.\n"
-
-#: src/service/datastore/plugin_datastore_heap.c:895
-msgid "Heap database running\n"
-msgstr "Heap-Datenbank läuft\n"
-
-#: src/service/datastore/plugin_datastore_postgres.c:238
-#: src/service/datastore/plugin_datastore_postgres.c:850
-msgid "Postgresql exec failure"
-msgstr ""
-
-#: src/service/datastore/plugin_datastore_postgres.c:811
-#, fuzzy
-msgid "Failed to drop table from database.\n"
-msgstr "Fehler beim Binden an UDP Port %d.\n"
-
-#: src/service/datastore/plugin_datastore_sqlite.c:87
-#, fuzzy, c-format
-msgid "`%s' failed at %s:%u with error: %s"
-msgstr "`%s' schlug bei %s:%d mit dem Fehler %s fehl\n"
-
-#: src/service/datastore/plugin_datastore_sqlite.c:634
-msgid "sqlite bind failure"
-msgstr ""
-
-#: src/service/datastore/plugin_datastore_sqlite.c:675
-#, fuzzy
-msgid "Data too large"
-msgstr "Anzahl der Werte"
-
-#: src/service/datastore/plugin_datastore_sqlite.c:1252
-msgid "sqlite version to old to determine size, assuming zero\n"
-msgstr ""
-
-#: src/service/datastore/plugin_datastore_sqlite.c:1267
-#: src/service/datastore/plugin_datastore_sqlite.c:1280
-#, fuzzy
-msgid "error preparing statement\n"
-msgstr "Fehler beim Anlegen des Tunnels\n"
-
-#: src/service/datastore/plugin_datastore_sqlite.c:1288
-#, fuzzy
-msgid "error stepping\n"
-msgstr "%s wird gestoppt"
-
-#: src/service/datastore/plugin_datastore_sqlite.c:1296
-#, c-format
-msgid ""
-"Using sqlite page utilization to estimate payload (%llu pages of size %llu "
-"bytes)\n"
-msgstr ""
-
-#: src/service/datastore/plugin_datastore_template.c:252
-msgid "Template database running\n"
-msgstr ""
 
 #: src/service/dht/gnunet_dht_profiler.c:925
 #, c-format
@@ -5718,7 +5683,7 @@ msgstr "GNUnet Konfiguration"
 
 #: src/service/fs/gnunet-service-fs.c:1271
 #: src/service/hostlist/gnunet-daemon-hostlist.c:343
-#: src/service/topology/gnunet-daemon-topology.c:976
+#: src/service/topology/gnunet-daemon-topology.c:966
 #, fuzzy, c-format
 msgid "Failed to connect to `%s' service.\n"
 msgstr "`%s' Dienst konnte nicht initialisiert werden.\n"
@@ -6184,7 +6149,7 @@ msgid "Failed to start HTTPS server for `%s'\n"
 msgstr "Der Transportdienst auf Port %d konnte nicht gestartet werden.\n"
 
 #: src/service/gns/gnunet-gns-proxy.c:2919
-#: src/service/rest/gnunet-rest-server.c:957
+#: src/service/rest/gnunet-rest-server.c:993
 #, fuzzy
 msgid "Failed to pass client to MHD\n"
 msgstr "Fehler beim Starten der Collection.\n"
@@ -6544,7 +6509,7 @@ msgid "# hostlist advertisements send"
 msgstr "# Bekanntmachungen von anderen übertragen"
 
 #: src/service/hostlist/gnunet-daemon-hostlist_server.c:484
-#: src/service/topology/gnunet-daemon-topology.c:747
+#: src/service/topology/gnunet-daemon-topology.c:738
 #, fuzzy, c-format
 msgid "Error in communication with PEERSTORE service: %s\n"
 msgstr "Informationen über andere GNUnet Knoten ausgeben."
@@ -7189,40 +7154,74 @@ msgstr ""
 msgid "Search string `%s' is too long!\n"
 msgstr "Dienst »%s« läuft nicht\n"
 
-#: src/service/rest/gnunet-rest-server.c:1369
+#: src/service/rest/config_plugin.c:432
+#, fuzzy
+msgid "CONFIG REST API initialized\n"
+msgstr " Verbindung fehlgeschlagen\n"
+
+#: src/service/rest/copying_plugin.c:208
+#, fuzzy
+msgid "COPYING REST API initialized\n"
+msgstr " Verbindung fehlgeschlagen\n"
+
+#: src/service/rest/gns_plugin.c:451
+#, fuzzy
+msgid "Gns REST API initialized\n"
+msgstr " Verbindung fehlgeschlagen\n"
+
+#: src/service/rest/gnunet-rest-server.c:1448
 #, fuzzy
 msgid "GNUnet REST server"
 msgstr "GNUnet Netzwerk Topologie tracen."
 
-#: src/service/revocation/gnunet-service-revocation.c:539
+#: src/service/rest/identity_plugin.c:1248
+msgid "Identity REST API initialized\n"
+msgstr ""
+
+#: src/service/rest/namestore_plugin.c:1322
+#, fuzzy
+msgid "Namestore REST API initialized\n"
+msgstr " Verbindung fehlgeschlagen\n"
+
+#: src/service/rest/openid_plugin.c:3102
+#, fuzzy
+msgid "OpenID Connect REST API initialized\n"
+msgstr " Verbindung fehlgeschlagen\n"
+
+#: src/service/rest/pabc_plugin.c:637 src/service/rest/reclaim_plugin.c:1522
+#, fuzzy
+msgid "Identity Provider REST API initialized\n"
+msgstr " Verbindung fehlgeschlagen\n"
+
+#: src/service/revocation/gnunet-service-revocation.c:541
 msgid "# unsupported revocations received via set union"
 msgstr ""
 
-#: src/service/revocation/gnunet-service-revocation.c:549
+#: src/service/revocation/gnunet-service-revocation.c:551
 #, fuzzy
 msgid "# revocation messages received via set union"
 msgstr "# verschlüsselter PING Nachrichten empfangen"
 
-#: src/service/revocation/gnunet-service-revocation.c:554
+#: src/service/revocation/gnunet-service-revocation.c:556
 #, c-format
 msgid "Error computing revocation set union with %s\n"
 msgstr ""
 
-#: src/service/revocation/gnunet-service-revocation.c:558
+#: src/service/revocation/gnunet-service-revocation.c:560
 #, fuzzy
 msgid "# revocation set unions failed"
 msgstr " Verbindung fehlgeschlagen\n"
 
-#: src/service/revocation/gnunet-service-revocation.c:566
+#: src/service/revocation/gnunet-service-revocation.c:568
 #, fuzzy
 msgid "# revocation set unions completed"
 msgstr "# Klartext PONG Nachrichten empfangen"
 
-#: src/service/revocation/gnunet-service-revocation.c:604
+#: src/service/revocation/gnunet-service-revocation.c:606
 msgid "SET service crashed, terminating revocation service\n"
 msgstr ""
 
-#: src/service/revocation/gnunet-service-revocation.c:959
+#: src/service/revocation/gnunet-service-revocation.c:961
 #, fuzzy
 msgid "Could not open revocation database file!"
 msgstr "Knoten `%s' konnte nicht in der Routing Tabelle gefunden werden!\n"
@@ -7367,15 +7366,15 @@ msgstr "# geschlossener Verbindungen (HANGUP gesendet)"
 msgid "# HELLO messages gossipped"
 msgstr "# ausgehender Nachrichten verworfen"
 
-#: src/service/topology/gnunet-daemon-topology.c:805
+#: src/service/topology/gnunet-daemon-topology.c:796
 msgid "Failed to connect to core service, can not manage topology!\n"
 msgstr ""
 
-#: src/service/topology/gnunet-daemon-topology.c:870
+#: src/service/topology/gnunet-daemon-topology.c:859
 msgid "# HELLO messages received"
 msgstr "# HELLO-Meldungen empfangen"
 
-#: src/service/topology/gnunet-daemon-topology.c:1005
+#: src/service/topology/gnunet-daemon-topology.c:995
 msgid "GNUnet topology control"
 msgstr ""
 

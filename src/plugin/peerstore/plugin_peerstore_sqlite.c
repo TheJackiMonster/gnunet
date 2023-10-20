@@ -29,7 +29,7 @@
 #include "gnunet_peerstore_plugin.h"
 #include "gnunet_peerstore_service.h"
 #include "gnunet_sq_lib.h"
-#include "peerstore.h"
+#include "../../service/peerstore/peerstore.h"
 #include <sqlite3.h>
 
 /**
