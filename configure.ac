@@ -1251,6 +1251,8 @@ src/plugin/peerstore/Makefile
 src/plugin/reclaim/Makefile
 src/plugin/regex/Makefile
 src/plugin/revocation/Makefile
+src/plugin/seti/Makefile
+src/plugin/setu/Makefile
 src/service/Makefile
 src/service/arm/Makefile
 src/service/arm/arm.conf

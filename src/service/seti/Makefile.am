@@ -68,19 +68,5 @@ test_seti_api_LDADD = \
   $(top_builddir)/src/service/testing/libgnunettesting.la \
   libgnunetseti.la
 
-plugin_LTLIBRARIES = \
-  libgnunet_plugin_block_seti_test.la
-
-libgnunet_plugin_block_seti_test_la_SOURCES = \
-  plugin_block_seti_test.c
-libgnunet_plugin_block_seti_test_la_LIBADD = \
-  $(top_builddir)/src/lib/block/libgnunetblock.la \
-  $(top_builddir)/src/lib/block/libgnunetblockgroup.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(LTLIBINTL)
-libgnunet_plugin_block_seti_test_la_LDFLAGS = \
- $(GN_PLUGIN_LDFLAGS)
-
-
 EXTRA_DIST = \
   test_seti.conf

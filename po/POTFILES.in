@@ -238,6 +238,8 @@ src/plugin/reclaim/plugin_reclaim_credential_pabc.c
 src/plugin/regex/plugin_block_regex.c
 src/plugin/regex/regex_block_lib.c
 src/plugin/revocation/plugin_block_revocation.c
+src/plugin/seti/plugin_block_seti_test.c
+src/plugin/setu/plugin_block_setu_test.c
 src/service/arm/arm_api.c
 src/service/arm/arm_monitor_api.c
 src/service/arm/gnunet-service-arm.c
@@ -434,7 +436,6 @@ src/service/revocation/gnunet-service-revocation.c
 src/service/revocation/revocation_api.c
 src/service/seti/gnunet-service-seti.c
 src/service/seti/gnunet-seti-profiler.c
-src/service/seti/plugin_block_seti_test.c
 src/service/seti/seti_api.c
 src/service/setu/gnunet-service-setu.c
 src/service/setu/gnunet-service-setu_strata_estimator.c
@@ -442,7 +443,6 @@ src/service/setu/gnunet-setu-ibf-profiler.c
 src/service/setu/gnunet-setu-profiler.c
 src/service/setu/ibf.c
 src/service/setu/ibf_sim.c
-src/service/setu/plugin_block_setu_test.c
 src/service/setu/setu_api.c
 src/service/statistics/gnunet-service-statistics.c
 src/service/statistics/statistics_api.c
