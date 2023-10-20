@@ -29,7 +29,7 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_dht_service.h"
 #include "gnunet_statistics_service.h"
-#include "regex_block_lib.h"
+#include "../../plugin/regex/regex_block_lib.h"
 
 #ifdef __cplusplus
 extern "C"

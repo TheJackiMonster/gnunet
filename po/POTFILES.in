@@ -217,6 +217,7 @@ src/plugin/datastore/plugin_datastore_postgres.c
 src/plugin/datastore/plugin_datastore_sqlite.c
 src/plugin/datastore/plugin_datastore_template.c
 src/plugin/dht/plugin_block_dht.c
+src/plugin/dns/plugin_block_dns.c
 src/plugin/fs/plugin_block_fs.c
 src/plugin/gns/plugin_block_gns.c
 src/plugin/gns/plugin_gnsrecord_gns.c
@@ -234,6 +235,8 @@ src/plugin/reclaim/plugin_gnsrecord_reclaim.c
 src/plugin/reclaim/plugin_reclaim_attribute_basic.c
 src/plugin/reclaim/plugin_reclaim_credential_jwt.c
 src/plugin/reclaim/plugin_reclaim_credential_pabc.c
+src/plugin/regex/plugin_block_regex.c
+src/plugin/regex/regex_block_lib.c
 src/plugin/revocation/plugin_block_revocation.c
 src/service/arm/arm_api.c
 src/service/arm/arm_monitor_api.c
@@ -284,7 +287,6 @@ src/service/dns/gnunet-dns-redirector.c
 src/service/dns/gnunet-helper-dns.c
 src/service/dns/gnunet-service-dns.c
 src/service/dns/gnunet-zonewalk.c
-src/service/dns/plugin_block_dns.c
 src/service/exit/gnunet-daemon-exit.c
 src/service/exit/gnunet-helper-exit.c
 src/service/fs/fs_api.c
@@ -409,10 +411,8 @@ src/service/regex/gnunet-regex-profiler.c
 src/service/regex/gnunet-regex-simulation-profiler.c
 src/service/regex/gnunet-service-regex.c
 src/service/regex/perf-regex.c
-src/service/regex/plugin_block_regex.c
 src/service/regex/regex_api_announce.c
 src/service/regex/regex_api_search.c
-src/service/regex/regex_block_lib.c
 src/service/regex/regex_internal.c
 src/service/regex/regex_internal_dht.c
 src/service/regex/regex_test_graph.c

@@ -29,9 +29,6 @@ noinst_PROGRAMS = \
   gnunet-dns-redirector \
   gnunet-zonewalk
 
-plugin_LTLIBRARIES = \
-  libgnunet_plugin_block_dns.la
-
 if LINUX
 check_SCRIPTS = \
  test_gnunet_dns.sh
@@ -76,17 +73,6 @@ libgnunetdns_la_LDFLAGS = \
   $(GN_LIBINTL) \
   $(GN_LIB_LDFLAGS) \
   -version-info 0:0:0
-
-libgnunet_plugin_block_dns_la_SOURCES = \
-  plugin_block_dns.c
-libgnunet_plugin_block_dns_la_LIBADD = \
-  $(top_builddir)/src/lib/block/libgnunetblockgroup.la \
-  $(top_builddir)/src/lib/block/libgnunetblock.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la
-libgnunet_plugin_block_dns_la_LDFLAGS = \
-  $(GN_LIBINTL) \
-  $(top_builddir)/src/block/$(GN_PLUGIN_LDFLAGS)
-
 
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;

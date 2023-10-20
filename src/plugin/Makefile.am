@@ -1,5 +1,6 @@
 SUBDIRS = \
 	block \
+	dns \
 	gnsrecord \
 	peerstore \
 	datacache \
@@ -8,6 +9,7 @@ SUBDIRS = \
 	namestore \
 	dht \
 	revocation \
+	regex \
 	gns \
 	fs \
 	reclaim
