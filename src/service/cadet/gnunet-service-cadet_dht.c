@@ -120,7 +120,7 @@ dht_get_id_handler (void *cls, struct GNUNET_TIME_Absolute exp,
                     const void *data)
 {
   const struct GNUNET_MessageHeader *hello = data;
-  const struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (hello);
+  struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (hello);
 
   GNUNET_assert (NULL != builder);
   (void) trunc_peer;
