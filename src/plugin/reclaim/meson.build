@@ -15,7 +15,9 @@ shared_module('gnunet_plugin_reclaim_attribute_basic',
               install: true,
               install_dir: get_option('libdir') / 'gnunet')
 shared_module('gnunet_plugin_reclaim_credential_jwt',
-              ['plugin_reclaim_credential_jwt.c'],
+              ['plugin_reclaim_credential_jwt.c',
+                '../../service/reclaim/reclaim_attribute.c',
+                '../../service/reclaim/reclaim_credential.c'],
               dependencies: [
                              libgnunetjson_dep,
                              libgnunetutil_dep,
