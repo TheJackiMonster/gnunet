@@ -2378,9 +2378,24 @@ struct AddressListEntry
   struct TransportClient *tc;
 
   /**
+   * Store hello handle
+   */
+  struct GNUNET_PEERSTORE_StoreHelloContext *shc;
+
+  /**
    * The actual address.
    */
   const char *address;
+
+  /**
+   * Signed address
+   */
+  void *signed_address;
+
+  /**
+   * Signed address length
+   */
+  size_t signed_address_len;
 
   /**
    * Current context for storing this address in the peerstore.
@@ -5479,7 +5494,21 @@ peerstore_store_own_cb (void *cls, int success)
 static void
 shc_cont (void *cls, int success)
 {
-  GNUNET_free (cls);
+  struct AddressListEntry *ale = cls;
+  struct GNUNET_TIME_Absolute expiration;
+  expiration = GNUNET_TIME_relative_to_absolute (ale->expiration);
+  ale->sc = GNUNET_PEERSTORE_store (peerstore,
+                                    "transport",
+                                    &GST_my_identity,
+                                    GNUNET_PEERSTORE_TRANSPORT_HELLO_KEY,
+                                    ale->signed_address,
+                                    ale->signed_address_len,
+                                    expiration,
+                                    GNUNET_PEERSTORE_STOREOPTION_MULTIPLE,
+                                    &peerstore_store_own_cb,
+                                    ale);
+  GNUNET_free (ale->signed_address);
+  GNUNET_free (ale);
 }
 
 
@@ -5492,16 +5521,11 @@ static void
 store_pi (void *cls)
 {
   struct AddressListEntry *ale = cls;
-  struct GNUNET_PEERSTORE_StoreHelloContext *shc;
-  void *addr;
-  size_t addr_len;
-  struct GNUNET_TIME_Absolute expiration;
-  enum GNUNET_GenericReturnValue add_result;
   struct GNUNET_MQ_Envelope *env;
   const struct GNUNET_MessageHeader *msg;
   const char *dash;
-  char *prefix = GNUNET_HELLO_address_to_prefix (ale->address);
   char *address_uri;
+  char *prefix = GNUNET_HELLO_address_to_prefix (ale->address);
 
   dash = strchr (ale->address, '-');
   dash++;
@@ -5509,58 +5533,42 @@ store_pi (void *cls)
                    "%s://%s",
                    prefix,
                    dash);
+  GNUNET_free (prefix);
   ale->st = NULL;
-  expiration = GNUNET_TIME_relative_to_absolute (ale->expiration);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Storing our address `%s' in peerstore until %s!\n",
               ale->address,
-              GNUNET_STRINGS_absolute_time_to_string (expiration));
-  add_result = GNUNET_HELLO_builder_add_address (GST_my_hello,
-                                                 address_uri);
+              GNUNET_STRINGS_absolute_time_to_string (hello_mono_time));
+  if (GNUNET_OK != GNUNET_HELLO_builder_add_address (GST_my_hello,
+                                                     address_uri))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Address `%s' invalid\n",
+                address_uri);
+    GNUNET_free (address_uri);
+    ale->st =
+      GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS, &store_pi, ale);
+    return;
+  }
+  // FIXME hello_mono_time used here?? What about expiration in ale?
+  GNUNET_HELLO_sign_address (ale->address,
+                             ale->nt,
+                             hello_mono_time,
+                             GST_my_private_key,
+                             &ale->signed_address,
+                             &ale->signed_address_len);
+  GNUNET_free (address_uri);
   env = GNUNET_HELLO_builder_to_env (GST_my_hello,
                                      GST_my_private_key,
                                      GNUNET_TIME_UNIT_ZERO);
   msg = GNUNET_MQ_env_get_msg (env);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "store_pi 1\n");
-  if (GNUNET_YES == add_result)
-    shc = GNUNET_PEERSTORE_hello_add (peerstore,
-                                      msg,
-                                      shc_cont,
-                                      shc);
-  else if (GNUNET_SYSERR == add_result)
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Error adding address to peerstore hello!\n");
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "store_pi 2\n");
-  GNUNET_HELLO_sign_address (ale->address,
-                             ale->nt,
-                             hello_mono_time,
-                             GST_my_private_key,
-                             &addr,
-                             &addr_len);
-  ale->sc = GNUNET_PEERSTORE_store (peerstore,
-                                    "transport",
-                                    &GST_my_identity,
-                                    GNUNET_PEERSTORE_TRANSPORT_HELLO_KEY,
-                                    addr,
-                                    addr_len,
-                                    expiration,
-                                    GNUNET_PEERSTORE_STOREOPTION_MULTIPLE,
-                                    &peerstore_store_own_cb,
-                                    ale);
-  GNUNET_free (addr);
+  ale->shc = GNUNET_PEERSTORE_hello_add (peerstore,
+                                         msg,
+                                         shc_cont,
+                                         ale);
   GNUNET_free (env);
-  GNUNET_free (prefix);
-  GNUNET_free (address_uri);
-  if (NULL == ale->sc)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Failed to store our address `%s' with peerstore\n",
-                ale->address);
-    ale->st =
-      GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS, &store_pi, ale);
-  }
 }
 
 
