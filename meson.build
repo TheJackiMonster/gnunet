@@ -400,6 +400,15 @@ endif
 if cc.has_function('gethostbyname2')
   cdata.set('HAVE_GETHOSTBYNAME2', 1)
 endif
+if cc.has_function('getifaddrs')
+  cdata.set('HAVE_GETIFADDRS', 1)
+endif
+if cc.has_function('freeifaddrs')
+  cdata.set('HAVE_FREEIFADDRS', 1)
+endif
+if cc.check_header('ifaddrs.h')
+  add_project_arguments('-DHAVE_IFADDRS_H', language : 'c')
+endif
 
 configure_file(#input: 'gnunet_private_config.h.in',
                output : 'gnunet_private_config.h',
