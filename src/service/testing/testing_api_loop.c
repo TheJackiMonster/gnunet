@@ -738,7 +738,7 @@ GNUNET_TESTING_add_netjail_helper (struct GNUNET_TESTING_Interpreter *is,
  * @param global_node_number The netjail node to inform.
  * @param header The message to send.
  */
-void
+static void
 send_message_to_netjail (struct GNUNET_TESTING_Interpreter *is,
                          unsigned int global_node_number,
                          struct GNUNET_MessageHeader *header)
@@ -749,6 +749,10 @@ send_message_to_netjail (struct GNUNET_TESTING_Interpreter *is,
               "send message of type %u to locals\n",
               ntohs (header->type));
   helper = is->helper[global_node_number - 1];
+  /**
+     FIXME: This should probably be put into a linked list
+     inside is and cleaned up at some point.
+  */
   struct GNUNET_HELPER_SendHandle *sh = GNUNET_HELPER_send (
     (struct GNUNET_HELPER_Handle *) helper,
     header,
