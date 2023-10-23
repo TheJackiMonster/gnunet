@@ -258,6 +258,35 @@ GNUNET_HELLO_dht_msg_to_block (const struct GNUNET_MessageHeader *hello,
                                struct GNUNET_TIME_Absolute *block_expiration);
 
 
+/**
+ * Given an address as a string, extract the prefix that identifies
+ * the communicator offering transmissions to that address.
+ *
+ * @param address a peer's address
+ * @return NULL if the address is mal-formed, otherwise the prefix
+ */
+char *
+GNUNET_HELLO_address_to_prefix (const char *address);
+
+/**
+ * Build address record by signing raw information with private key.
+ *
+ * @param address text address to sign
+ * @param nt network type of @a address
+ * @param mono_time when was @a address valid
+ * @param private_key signing key to use
+ * @param[out] result where to write address record (allocated)
+ * @param[out] result_size set to size of @a result
+ */
+void
+GNUNET_HELLO_sign_address (
+  const char *address,
+  enum GNUNET_NetworkType nt,
+  struct GNUNET_TIME_Absolute mono_time,
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *private_key,
+  void **result,
+  size_t *result_size);
+
 #if 0 /* keep Emacsens' auto-indent happy */
 {
 #endif

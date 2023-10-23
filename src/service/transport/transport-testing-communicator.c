@@ -29,7 +29,6 @@
 #include "gnunet_protocols.h"
 #include "gnunet_constants.h"
 #include "transport-testing-communicator.h"
-#include "gnunet_hello_lib.h"
 #include "gnunet_signatures.h"
 #include "transport.h"
 #include <inttypes.h>

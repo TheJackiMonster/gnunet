@@ -26,7 +26,6 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_hello_lib.h"
 #include "gnunet_testing_lib.h"
 #include "gnunet_dht_service.h"
 

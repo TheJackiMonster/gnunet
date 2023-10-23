@@ -247,15 +247,6 @@ notify_connect (void *cls,
 }
 
 
-/**
- * Offer the current HELLO of P2 to P1.
- *
- * @param cls our `struct GNUNET_TRANSPORT_TESTING_ConnectRequest`
- */
-static void
-offer_hello (void *cls);
-
-
 static void
 notify_disconnect (void *cls,
                    const struct GNUNET_PeerIdentity *peer,
@@ -318,9 +309,6 @@ notify_disconnect (void *cls,
     {
       cc->connected = GNUNET_NO;
       /* start trying to connect */
-      if (NULL == cc->tct)
-        cc->tct = GNUNET_SCHEDULER_add_now (&offer_hello,
-                                            cc);
       if (NULL == cc->ah_sh)
         cc->ah_sh = GNUNET_TRANSPORT_application_suggest (cc->p1->ah,
                                                           &p2->id,
@@ -725,45 +713,6 @@ GNUNET_TRANSPORT_TESTING_stop_peer (struct
    }*/
 
 
-static void
-offer_hello (void *cls)
-{
-  struct GNUNET_TRANSPORT_TESTING_ConnectRequest *cc = cls;
-  struct GNUNET_TRANSPORT_TESTING_PeerContext *p1 = cc->p1;
-  struct GNUNET_TRANSPORT_TESTING_PeerContext *p2 = cc->p2;
-  struct GNUNET_TIME_Absolute t;
-  enum GNUNET_NetworkType nt = 0;
-  char *addr;
-
-  cc->tct = NULL;
-  {
-    char *p2_s = GNUNET_strdup (GNUNET_i2s (&p2->id));
-
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "Asking peer %u (`%s') to connect peer %u (`%s'), providing HELLO with %s\n",
-         p1->no,
-         GNUNET_i2s (&p1->id),
-         p2->no,
-         p2_s,
-         p2->hello);
-    GNUNET_free (p2_s);
-  }
-
-  addr = GNUNET_HELLO_extract_address (p2->hello,
-                                       p2->hello_size,
-                                       &p2->id,
-                                       &nt,
-                                       &t);
-  GNUNET_assert (NULL != addr);
-  GNUNET_assert (NULL != p1->hello);
-  GNUNET_TRANSPORT_application_validate (p1->ah,
-                                         &p2->id,
-                                         nt,
-                                         addr);
-  GNUNET_free (addr);
-}
-
-
 /**
  * Initiate a connection from p1 to p2 by offering p1 p2's HELLO message
  *
@@ -816,8 +765,6 @@ GNUNET_TRANSPORT_TESTING_connect_peers (struct
   GNUNET_CONTAINER_DLL_insert (tth->cc_head,
                                tth->cc_tail,
                                cc);
-  cc->tct = GNUNET_SCHEDULER_add_now (&offer_hello,
-                                      cc);
   cc->ah_sh = GNUNET_TRANSPORT_application_suggest (cc->p1->ah,
                                                     &p2->id,
                                                     GNUNET_MQ_PRIO_BEST_EFFORT,

@@ -44,6 +44,27 @@
 GNUNET_NETWORK_STRUCT_BEGIN
 
 /**
+ * Binary block we sign when we sign an address.
+ */
+struct SignedAddress
+{
+  /**
+   * Purpose must be #GNUNET_SIGNATURE_PURPOSE_TRANSPORT_ADDRESS
+   */
+  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+
+  /**
+   * When was the address generated.
+   */
+  struct GNUNET_TIME_AbsoluteNBO mono_time;
+
+  /**
+   * Hash of the address.
+   */
+  struct GNUNET_HashCode addr_hash GNUNET_PACKED;
+};
+
+/**
  * Message signed as part of a HELLO block/URL.
  */
 struct HelloSignaturePurpose
@@ -961,4 +982,64 @@ GNUNET_HELLO_dht_msg_to_block (const struct GNUNET_MessageHeader *hello,
     return GNUNET_SYSERR;
   }
   return ret;
+}
+
+
+/**
+ * Given an address as a string, extract the prefix that identifies
+ * the communicator offering transmissions to that address.
+ *
+ * @param address a peer's address
+ * @return NULL if the address is mal-formed, otherwise the prefix
+ */
+char *
+GNUNET_HELLO_address_to_prefix (const char *address)
+{
+  const char *dash;
+
+  dash = strchr (address, '-');
+  if (NULL == dash)
+    return NULL;
+  return GNUNET_strndup (address, dash - address);
+}
+
+
+/**
+ * Build address record by signing raw information with private key.
+ *
+ * @param address text address at @a communicator to sign
+ * @param nt network type of @a address
+ * @param mono_time monotonic time at which @a address was valid
+ * @param private_key signing key to use
+ * @param[out] result where to write address record (allocated)
+ * @param[out] result_size set to size of @a result
+ */
+void
+GNUNET_HELLO_sign_address (
+  const char *address,
+  enum GNUNET_NetworkType nt,
+  struct GNUNET_TIME_Absolute mono_time,
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *private_key,
+  void **result,
+  size_t *result_size)
+{
+  struct SignedAddress sa;
+  struct GNUNET_CRYPTO_EddsaSignature sig;
+  char *sig_str;
+
+  sa.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TRANSPORT_ADDRESS);
+  sa.purpose.size = htonl (sizeof(sa));
+  sa.mono_time = GNUNET_TIME_absolute_hton (mono_time);
+  GNUNET_CRYPTO_hash (address, strlen (address), &sa.addr_hash);
+  GNUNET_CRYPTO_eddsa_sign (private_key, &sa, &sig);
+  sig_str = NULL;
+  (void) GNUNET_STRINGS_base64_encode (&sig, sizeof(sig), &sig_str);
+  *result_size =
+    1 + GNUNET_asprintf ((char **) result,
+                         "%s;%llu;%u;%s",
+                         sig_str,
+                         (unsigned long long) mono_time.abs_value_us,
+                         (unsigned int) nt,
+                         address);
+  GNUNET_free (sig_str);
 }
