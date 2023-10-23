@@ -679,6 +679,7 @@ start_helper (struct NetJailState *ns,
   plugin_name = topology->plugin;
 
   hkey = GNUNET_new (struct GNUNET_ShortHashCode);
+  node = NULL;
   if (0 == n)
   {
     GNUNET_CRYPTO_hash (&m, sizeof(m), &hc);

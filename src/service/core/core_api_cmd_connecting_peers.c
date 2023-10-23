@@ -135,12 +135,11 @@ connect_peers_run (void *cls,
         {
           char *prefix;
           char *rest;
-          char *rest2;
           char *address;
 
           prefix = strtok (addr, "_");
           rest = strtok (NULL, "_");
-          rest2 = strtok (rest, "-");
+          strtok (rest, "-");
           address = strtok (NULL, "-");
 
           GNUNET_asprintf (&addr_and_port,

@@ -36,7 +36,7 @@ static int ok;
 /**
  * Name of plugin under test.
  */
-static const char *plugin_name;
+static char *plugin_name;
 
 
 static enum GNUNET_GenericReturnValue
