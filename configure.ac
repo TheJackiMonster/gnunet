@@ -1352,6 +1352,7 @@ src/contrib/service/set/set.conf
 src/contrib/service/rps/Makefile
 src/contrib/service/rps/rps.conf
 src/contrib/service/template/Makefile
+src/contrib/cli/Makefile
 src/contrib/cli/template/Makefile
 src/lib/hello/Makefile
 src/include/Makefile

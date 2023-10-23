@@ -1,2 +1,3 @@
 SUBDIRS = \
-	service
+	service \
+	cli
