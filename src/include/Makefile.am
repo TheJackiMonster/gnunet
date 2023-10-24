@@ -54,7 +54,6 @@ gnunetinclude_HEADERS = \
   gnunet_gnsrecord_json_lib.h \
   gnunet_gnsrecord_plugin.h \
   gnu_name_system_record_types.h \
-  gnunet_hello_lib.h \
   gnunet_hello_uri_lib.h \
   gnunet_helper_lib.h \
   gnunet_identity_service.h \
@@ -121,7 +120,6 @@ gnunetinclude_HEADERS = \
   gnunet_transport_communication_service.h \
   gnunet_transport_monitor_service.h \
   gnunet_transport_core_service.h \
-  gnunet_transport_hello_service.h \
   gnunet_transport_testing_ng_lib.h \
   gnunet_tun_lib.h \
   gnunet_uri_lib.h \

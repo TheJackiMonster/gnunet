@@ -24,7 +24,6 @@
  */
 #include "platform.h"
 #include "gnunet_protocols.h"
-#include "gnunet_hello_lib.h"
 #include "gnunet_hello_uri_lib.h"
 #include "gnunet_transport_plugin.h"
 

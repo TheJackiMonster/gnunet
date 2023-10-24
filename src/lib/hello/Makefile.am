@@ -9,8 +9,6 @@ endif
 lib_LTLIBRARIES = libgnunethello.la
 
 libgnunethello_la_SOURCES = \
-  address.c \
-  hello-ng.c \
   hello-uri.c
 libgnunethello_la_LIBADD = \
  $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIB) \

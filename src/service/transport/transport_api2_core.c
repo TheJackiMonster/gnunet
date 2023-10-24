@@ -27,7 +27,6 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_constants.h"
 #include "gnunet_arm_service.h"
-#include "gnunet_hello_lib.h"
 #include "gnunet_protocols.h"
 #include "gnunet_transport_core_service.h"
 #include "transport.h"

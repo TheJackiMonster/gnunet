@@ -77,7 +77,6 @@
 #include "gnunet_statistics_service.h"
 #include "gnunet_transport_monitor_service.h"
 #include "gnunet_peerstore_service.h"
-#include "gnunet_hello_lib.h"
 #include "gnunet_hello_uri_lib.h"
 #include "gnunet_signatures.h"
 #include "transport.h"

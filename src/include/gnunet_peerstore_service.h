@@ -179,6 +179,63 @@ typedef void (*GNUNET_PEERSTORE_Continuation) (void *cls, int success);
 
 
 /**
+ * Context for a add hello uri request.
+ */
+struct GNUNET_PEERSTORE_StoreHelloContext
+{
+  /**
+   * Kept (also) in a DLL.
+   */
+  struct GNUNET_PEERSTORE_StoreHelloContext *prev;
+
+  /**
+   * Kept (also) in a DLL.
+   */
+  struct GNUNET_PEERSTORE_StoreHelloContext *next;
+
+  /**
+   * Peerstore handle.
+   */
+  struct GNUNET_PEERSTORE_Handle *h;
+
+  /**
+   * Function to call with information.
+   */
+  GNUNET_PEERSTORE_Continuation cont;
+
+  /**
+   * Closure for @e callback.
+   */
+  void *cont_cls;
+
+  /**
+   * Map with all store contexts started during adding hello.
+   */
+  struct GNUNET_CONTAINER_MultiPeerMap *store_context_map;
+
+  /**
+   * Active watch to be notified about conflicting hello uri add requests.
+   */
+  struct GNUNET_PEERSTORE_WatchContext *wc;
+
+  /**
+   * Hello uri which was request for storing.
+   */
+  struct GNUNET_MessageHeader *hello;
+
+  /**
+   * The peer id for the hello.
+   */
+  struct GNUNET_PeerIdentity *pid;
+
+  /**
+   * Was this request successful.
+   */
+  int success;
+};
+
+
+/**
  * Function called by PEERSTORE for each matching record.
  *
  * @param cls closure
