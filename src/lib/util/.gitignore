@@ -75,3 +75,6 @@ perf_mq
 perf_scheduler
 test_crypto_cs
 test_crypto_ecc
+test_child_management
+test_scheduler_hogging_cancel
+test_scheduler_hogging_priority

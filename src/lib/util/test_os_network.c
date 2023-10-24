@@ -44,22 +44,23 @@ proc (void *cls,
   char buf[INET6_ADDRSTRLEN];
   const char *protocol;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_MESSAGE, "hiho\n");
   if (NULL == addr)
     return GNUNET_OK;
   if (addrlen == sizeof(struct sockaddr_in))
     protocol = "IPv4";
   else
     protocol = "IPv6";
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
               "%s Address `%s'\n",
               protocol,
               GNUNET_a2s ((const struct sockaddr *) addr,
                           addrlen));
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
               "Netmask `%s'\n",
               GNUNET_a2s ((const struct sockaddr *) netmask,
                           addrlen));
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
               "`%s'\n",
               GNUNET_a2s ((const struct sockaddr *) broadcast_addr,
                           addrlen));

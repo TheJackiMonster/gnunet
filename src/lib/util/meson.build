@@ -89,11 +89,29 @@ libgnunetutil_dep = declare_dependency(link_with : libgnunetutil)
 pkg.generate(libgnunetutil, url: 'https://www.gnunet.org',
              description : 'Provides miscellaneous utility functions and API for GNUnet')
 
-executable ('test_common_logging_dummy',
+logging_dummy = executable ('test_common_logging_dummy',
             ['test_common_logging_dummy.c'],
             dependencies: [libgnunetutil_dep],
             include_directories: [incdir, configuration_inc],
             install: false)
+configure_file(input : 'test_client_data.conf',
+               output : 'test_client_data.conf',
+               copy: true)
+configure_file(input : 'test_speedup_data.conf',
+               output : 'test_speedup_data.conf',
+               copy: true)
+configure_file(input : 'test_program_data.conf',
+               output : 'test_program_data.conf',
+               copy: true)
+configure_file(input : 'test_service_data.conf',
+               output : 'test_service_data.conf',
+               copy: true)
+configure_file(input : 'test_configuration_data.conf',
+               output : 'test_configuration_data.conf',
+               copy: true)
+configure_file(input : 'child_management_test.sh',
+               output : 'child_management_test.sh',
+               copy: true)
 
 test_bio = executable ('test_bio',
             ['test_bio.c'],
@@ -101,7 +119,7 @@ test_bio = executable ('test_bio',
             include_directories: [incdir, configuration_inc],
             install: false)
 test('test_bio', test_bio,
-     workdir: meson.current_source_dir(),
+     workdir: meson.current_build_dir(),
      suite: ['util', 'util-bio'])
 test_child_management = executable ('test_child_management',
             ['test_child_management.c'],
@@ -109,7 +127,7 @@ test_child_management = executable ('test_child_management',
             include_directories: [incdir, configuration_inc],
             install: false)
 test('test_child_management', test_child_management,
-     workdir: meson.current_source_dir(),
+     workdir: meson.current_build_dir(),
      suite: ['util', 'util-child'])
 
 # test_client.nc
@@ -121,7 +139,7 @@ testcommonalloc = executable ('test_common_allocation',
             include_directories: [incdir, configuration_inc],
             install: false)
 test('test_common_allocation', testcommonalloc,
-     workdir: meson.current_source_dir(),
+     workdir: meson.current_build_dir(),
      suite: ['util', 'util-common'])
 
 testcommonlog = executable ('test_common_logging',
@@ -131,7 +149,7 @@ testcommonlog = executable ('test_common_logging',
             include_directories: [incdir, configuration_inc],
             install: false)
 test('test_common_logging', testcommonlog,
-     workdir: meson.current_source_dir(),
+     workdir: meson.current_build_dir(),
      suite: ['util', 'util-common'])
 testcommonendian = executable ('test_common_endian',
             ['test_common_endian.c'],
@@ -140,7 +158,7 @@ testcommonendian = executable ('test_common_endian',
             include_directories: [incdir, configuration_inc],
             install: false)
 test('test_common_endian', testcommonendian,
-     workdir: meson.current_source_dir(),
+     workdir: meson.current_build_dir(),
      suite: ['util', 'util-common'])
 testconf = executable ('test_configuration',
             ['test_configuration.c'],
@@ -149,7 +167,7 @@ testconf = executable ('test_configuration',
             include_directories: [incdir, configuration_inc],
             install: false)
 test('test_configuration', testconf,
-     workdir: meson.current_source_dir(),
+     workdir: meson.current_build_dir(),
      suite: ['util', 'util-configuration'])
 testcontainerbloom = executable ('test_container_bloomfilter',
             ['test_container_bloomfilter.c'],
@@ -158,7 +176,7 @@ testcontainerbloom = executable ('test_container_bloomfilter',
             build_by_default: false,
             install: false)
 test('test_container_bloomfilter', testcontainerbloom,
-     workdir: meson.current_source_dir(),
+     workdir: meson.current_build_dir(),
      suite: ['util', 'util-container'])
 
 testcontainerdll = executable ('test_container_dll',
@@ -168,7 +186,7 @@ testcontainerdll = executable ('test_container_dll',
             build_by_default: false,
             install: false)
 test('test_container_dll', testcontainerdll,
-     workdir: meson.current_source_dir(),
+     workdir: meson.current_build_dir(),
      suite: ['util', 'util-container'])
 
 testcontainermhm = executable ('test_container_multihashmap',
@@ -178,7 +196,7 @@ testcontainermhm = executable ('test_container_multihashmap',
             build_by_default: false,
             install: false)
 test('test_container_multihashmap', testcontainermhm,
-     workdir: meson.current_source_dir(),
+     workdir: meson.current_build_dir(),
      suite: ['util', 'util-container'])
 
 testcontainermhm32 = executable ('test_container_multihashmap32',
@@ -188,7 +206,7 @@ testcontainermhm32 = executable ('test_container_multihashmap32',
             build_by_default: false,
             install: false)
 test('test_container_multihashmap32', testcontainermhm32,
-     workdir: meson.current_source_dir(),
+     workdir: meson.current_build_dir(),
      suite: ['util', 'util-container'])
 
 testcontainermpm = executable ('test_container_multipeermap',
@@ -198,7 +216,7 @@ testcontainermpm = executable ('test_container_multipeermap',
             build_by_default: false,
             install: false)
 test('test_container_multipeermap', testcontainermpm,
-     workdir: meson.current_source_dir(),
+     workdir: meson.current_build_dir(),
      suite: ['util', 'util-container'])
 
 testcontainerheap = executable ('test_container_heap',
@@ -208,7 +226,7 @@ testcontainerheap = executable ('test_container_heap',
             build_by_default: false,
             install: false)
 test('test_container_heap', testcontainerheap,
-     workdir: meson.current_source_dir(),
+     workdir: meson.current_build_dir(),
      suite: ['util', 'util-container'])
 
 testcrypto_symmetric = executable ('test_crypto_symmetric',
@@ -218,7 +236,7 @@ testcrypto_symmetric = executable ('test_crypto_symmetric',
             build_by_default: false,
             install: false)
 test('test_crypto_symmetric', testcrypto_symmetric,
-     workdir: meson.current_source_dir(),
+     workdir: meson.current_build_dir(),
      suite: ['util', 'util-crypto'])
 
 testcrypto_crc = executable ('test_crypto_crc',
@@ -228,7 +246,7 @@ testcrypto_crc = executable ('test_crypto_crc',
             build_by_default: false,
             install: false)
 test('test_crypto_crc', testcrypto_crc,
-     workdir: meson.current_source_dir(),
+     workdir: meson.current_build_dir(),
      suite: ['util', 'util-crypto'])
 
 testcrypto_cs = executable ('test_crypto_cs',
@@ -238,7 +256,7 @@ testcrypto_cs = executable ('test_crypto_cs',
             build_by_default: false,
             install: false)
 test('test_crypto_cs', testcrypto_cs,
-     workdir: meson.current_source_dir(),
+     workdir: meson.current_build_dir(),
      suite: ['util', 'util-crypto'])
 
 testcrypto_ecdsa = executable ('test_crypto_ecdsa',
@@ -248,7 +266,7 @@ testcrypto_ecdsa = executable ('test_crypto_ecdsa',
             build_by_default: false,
             install: false)
 test('test_crypto_ecdsa', testcrypto_ecdsa,
-     workdir: meson.current_source_dir(),
+     workdir: meson.current_build_dir(),
      suite: ['util', 'util-crypto'])
 
 testcrypto_eddsa = executable ('test_crypto_eddsa',
@@ -258,7 +276,7 @@ testcrypto_eddsa = executable ('test_crypto_eddsa',
           build_by_default: false,
           install: false)
 test('test_crypto_eddsa', testcrypto_eddsa,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-crypto'])
 
 testcrypto_ecdh_eddsa = executable ('test_crypto_ecdh_eddsa',
@@ -268,7 +286,7 @@ testcrypto_ecdh_eddsa = executable ('test_crypto_ecdh_eddsa',
           build_by_default: false,
           install: false)
 test('test_crypto_ecdh_eddsa', testcrypto_ecdh_eddsa,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-crypto'])
 
 testcrypto_ecdh_ecdsa = executable ('test_crypto_ecdh_ecdsa',
@@ -278,7 +296,7 @@ testcrypto_ecdh_ecdsa = executable ('test_crypto_ecdh_ecdsa',
           build_by_default: false,
           install: false)
 test('test_crypto_ecdh_ecdsa', testcrypto_ecdh_ecdsa,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-crypto'])
 
 testcrypto_edx25519 = executable ('test_crypto_edx25519',
@@ -288,7 +306,7 @@ testcrypto_edx25519 = executable ('test_crypto_edx25519',
           build_by_default: false,
           install: false)
 test('test_crypto_edx25519', testcrypto_edx25519,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-crypto'])
 
 testcrypto_ecc_dlog = executable ('test_crypto_ecc_dlog',
@@ -298,7 +316,7 @@ testcrypto_ecc_dlog = executable ('test_crypto_ecc_dlog',
           build_by_default: false,
           install: false)
 test('test_crypto_ecc_dlog', testcrypto_ecc_dlog,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-crypto'])
 
 testcrypto_hash = executable ('test_crypto_hash',
@@ -308,7 +326,7 @@ testcrypto_hash = executable ('test_crypto_hash',
           build_by_default: false,
           install: false)
 test('test_crypto_hash', testcrypto_hash,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-crypto'])
 
 testcrypto_hash_context = executable ('test_crypto_hash_context',
@@ -318,7 +336,7 @@ testcrypto_hash_context = executable ('test_crypto_hash_context',
           build_by_default: false,
           install: false)
 test('test_crypto_hash_context', testcrypto_hash_context,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-crypto'])
 
 testcrypto_hkdf = executable ('test_crypto_hkdf',
@@ -328,7 +346,7 @@ testcrypto_hkdf = executable ('test_crypto_hkdf',
           build_by_default: false,
           install: false)
 test('test_crypto_hkdf', testcrypto_hkdf,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-crypto'])
 
 testcrypto_kdf = executable ('test_crypto_kdf',
@@ -338,7 +356,7 @@ testcrypto_kdf = executable ('test_crypto_kdf',
           build_by_default: false,
           install: false)
 test('test_crypto_kdf', testcrypto_kdf,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-crypto'])
 
 testcrypto_paillier = executable ('test_crypto_paillier',
@@ -348,7 +366,7 @@ testcrypto_paillier = executable ('test_crypto_paillier',
           build_by_default: false,
           install: false)
 test('test_crypto_paillier', testcrypto_paillier,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-crypto'])
 
 testcrypto_random = executable ('test_crypto_random',
@@ -358,7 +376,7 @@ testcrypto_random = executable ('test_crypto_random',
           build_by_default: false,
           install: false)
 test('test_crypto_random', testcrypto_random,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-crypto'])
 
 testcrypto_rsa = executable ('test_crypto_rsa',
@@ -368,7 +386,7 @@ testcrypto_rsa = executable ('test_crypto_rsa',
           build_by_default: false,
           install: false)
 test('test_crypto_rsa', testcrypto_rsa,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-crypto'])
 
 testdisk = executable ('test_disk',
@@ -378,7 +396,7 @@ testdisk = executable ('test_disk',
           build_by_default: false,
           install: false)
 test('test_disk', testdisk,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-misc'])
 
 testgetopt = executable ('test_getopt',
@@ -388,7 +406,7 @@ testgetopt = executable ('test_getopt',
           build_by_default: false,
           install: false)
 test('test_getopt', testgetopt,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-misc'])
 
 testhexcoder = executable ('test_hexcoder',
@@ -398,7 +416,7 @@ testhexcoder = executable ('test_hexcoder',
           build_by_default: false,
           install: false)
 test('test_hexcoder', testhexcoder,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-misc'])
 
 testmq = executable ('test_mq',
@@ -408,7 +426,7 @@ testmq = executable ('test_mq',
           build_by_default: false,
           install: false)
 test('test_mq', testmq,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-misc'])
 
 testos_network = executable ('test_os_network',
@@ -418,7 +436,7 @@ testos_network = executable ('test_os_network',
           build_by_default: false,
           install: false)
 test('test_os_network', testos_network,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-os'])
 
 testpeer = executable ('test_peer',
@@ -428,9 +446,15 @@ testpeer = executable ('test_peer',
           build_by_default: false,
           install: false)
 test('test_peer', testpeer,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-misc'])
 
+testplugin_plug = shared_module ('gnunet_plugin_utiltest',
+          ['test_plugin_plug.c'],
+          dependencies: [libgnunetutil_dep],
+          include_directories: [incdir, configuration_inc],
+          build_by_default: false,
+          install: false)
 testplugin = executable ('test_plugin',
           ['test_plugin.c'],
           dependencies: [libgnunetutil_dep],
@@ -438,7 +462,8 @@ testplugin = executable ('test_plugin',
           build_by_default: false,
           install: false)
 test('test_plugin', testplugin,
-   workdir: meson.current_source_dir(),
+   depends: [testplugin_plug],
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-misc'])
 
 testprogram = executable ('test_program',
@@ -448,7 +473,7 @@ testprogram = executable ('test_program',
           build_by_default: false,
           install: false)
 test('test_program', testprogram,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-misc'])
 
 testregex = executable ('test_regex',
@@ -458,7 +483,7 @@ testregex = executable ('test_regex',
           build_by_default: false,
           install: false)
 test('test_regex', testregex,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-misc'])
 
 # test_resolver_api.nc
@@ -470,7 +495,7 @@ testscheduler = executable ('test_scheduler',
           build_by_default: false,
           install: false)
 test('test_scheduler', testscheduler,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-scheduler'])
 
 testscheduler_delay = executable ('test_scheduler_delay',
@@ -480,7 +505,7 @@ testscheduler_delay = executable ('test_scheduler_delay',
           build_by_default: false,
           install: false)
 test('test_scheduler_delay', testscheduler_delay,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-scheduler'])
 
 testscheduler_hogging_cancel = executable ('test_scheduler_hogging_cancel',
@@ -490,7 +515,7 @@ testscheduler_hogging_cancel = executable ('test_scheduler_hogging_cancel',
           build_by_default: false,
           install: false)
 test('test_scheduler_hogging_cancel', testscheduler_hogging_cancel,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-scheduler'])
 
 testscheduler_hogging_prio = executable ('test_scheduler_hogging_priority',
@@ -500,7 +525,7 @@ testscheduler_hogging_prio = executable ('test_scheduler_hogging_priority',
           build_by_default: false,
           install: false)
 test('test_scheduler_hogging_priority', testscheduler_hogging_prio,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-scheduler'])
 
 testservice = executable ('test_service',
@@ -510,7 +535,7 @@ testservice = executable ('test_service',
           build_by_default: false,
           install: false)
 test('test_service', testservice,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-misc'])
 
 teststrings = executable ('test_strings',
@@ -520,7 +545,7 @@ teststrings = executable ('test_strings',
           build_by_default: false,
           install: false)
 test('test_strings', teststrings,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-strings'])
 
 teststrings_todata = executable ('test_strings_to_data',
@@ -530,7 +555,7 @@ teststrings_todata = executable ('test_strings_to_data',
           build_by_default: false,
           install: false)
 test('test_strings_to_data', teststrings_todata,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-strings'])
 
 testspeedup = executable ('test_speedup',
@@ -540,7 +565,7 @@ testspeedup = executable ('test_speedup',
           build_by_default: false,
           install: false)
 test('test_speedup', testspeedup,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-misc'])
 
 testtime = executable ('test_time',
@@ -550,7 +575,7 @@ testtime = executable ('test_time',
           build_by_default: false,
           install: false)
 test('test_time', testtime,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-misc'])
 
 testtun = executable ('test_tun',
@@ -560,7 +585,7 @@ testtun = executable ('test_tun',
           build_by_default: false,
           install: false)
 test('test_tun', testtun,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-misc'])
 
 testuri = executable ('test_uri',
@@ -570,7 +595,7 @@ testuri = executable ('test_uri',
           build_by_default: false,
           install: false)
 test('test_uri', testuri,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-misc'])
 
 # FIXME Benchmarks
@@ -582,7 +607,7 @@ testos_start_process = executable ('test_os_start_process',
           build_by_default: false,
           install: false)
 test('test_os_start_process', testos_start_process,
-   workdir: meson.current_source_dir(),
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-os'])
 
 testcommon_logging_runtime = executable ('test_common_logging_runtime_loglevels',
@@ -592,7 +617,8 @@ testcommon_logging_runtime = executable ('test_common_logging_runtime_loglevels'
           build_by_default: false,
           install: false)
 test('test_common_logging_runtime_loglevels', testcommon_logging_runtime,
-   workdir: meson.current_source_dir(),
+   depends: [logging_dummy],
+   workdir: meson.current_build_dir(),
    suite: ['util', 'util-common'])
 
 

@@ -27,19 +27,27 @@ EXTRA_DIST = \
 if HAVE_JOSE
 OPENID_PLUGIN = \
  openid_plugin.c \
- oidc_helper.c
+ openid_plugin.h \
+ oidc_helper.c \
+ oidc_helper.h
 OPENID_JOSE_LIBS = -ljose
 endif
 
 gnunet_rest_server_SOURCES = \
  gnunet-rest-server.c \
  config_plugin.c \
+ config_plugin.h \
  copying_plugin.c \
+ copying_plugin.h \
  identity_plugin.c \
+ identity_plugin.h \
  namestore_plugin.c \
+ namestore_plugin.h \
  gns_plugin.c \
+ gns_plugin.h \
  $(OPENID_PLUGIN) \
- reclaim_plugin.c json_reclaim.c
+ reclaim_plugin.c json_reclaim.c \
+ reclaim_plugin.h json_reclaim.h
 gnunet_rest_server_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/lib/json/libgnunetjson.la \

@@ -36,7 +36,7 @@ static int ok;
 /**
  * Name of plugin under test.
  */
-static const char *plugin_name;
+static char *plugin_name;
 
 /**
  * Quota is 1 MB.  Each iteration of the test puts in about 1 MB of

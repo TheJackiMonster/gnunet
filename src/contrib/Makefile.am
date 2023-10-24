@@ -1,4 +1,3 @@
 SUBDIRS = \
-	#lib \
-	#plugin \
-	service
+	service \
+	cli

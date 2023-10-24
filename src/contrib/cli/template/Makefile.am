@@ -13,8 +13,9 @@ noinst_PROGRAMS = \
  gnunet-template
 
 
-gnunet_service_template_SOURCES = \
- gnunet-service-template.c
-gnunet_service_template_LDADD = \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
+gnunet_template_SOURCES = \
+ gnunet-template.c
+gnunet_template_LDADD = \
+  $(top_builddir)/src/lib/util/libgnunetutil.la
+gnunet_template_LDFLAGS = \
   $(GN_LIBINTL)

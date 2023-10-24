@@ -279,7 +279,6 @@ GNUNET_TESTING_cmd_start_peer (const char *label,
   struct GNUNET_TESTING_StartPeerState *sps;
   struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map =
     GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
-  unsigned int i;
 
   sps = GNUNET_new (struct GNUNET_TESTING_StartPeerState);
   sps->no = no;

@@ -139,7 +139,7 @@ callback_found_message (void *cls,
                         const struct GNUNET_MESSENGER_Message *message,
                         const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_MESSENGER_SrvTunnel *tunnel = tunnel;
+  struct GNUNET_MESSENGER_SrvTunnel *tunnel = cls;
 
   if (!message)
   {

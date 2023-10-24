@@ -8,6 +8,8 @@ SUBDIRS = \
 	namecache \
 	namestore \
 	dht \
+	setu \
+	seti \
 	revocation \
 	regex \
 	gns \

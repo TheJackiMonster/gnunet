@@ -1040,19 +1040,17 @@ GNUNET_PEERSTORE_watch (struct GNUNET_PEERSTORE_Handle *h,
                         GNUNET_PEERSTORE_Processor callback,
                         void *callback_cls)
 {
-  struct GNUNET_PEERSTORE_IterateContext *ic;
   struct GNUNET_PEERSTORE_WatchContext *wc;
 
   wc = GNUNET_new (struct GNUNET_PEERSTORE_WatchContext);
   wc->callback = callback;
   wc->callback_cls = callback_cls;
   wc->h = h;
-  wc->ic = ic;
   wc->key = key;
   wc->peer = peer;
   wc->sub_system = sub_system;
 
-  ic = GNUNET_PEERSTORE_iterate (h,
+  wc->ic = GNUNET_PEERSTORE_iterate (h,
                                  sub_system,
                                  peer,
                                  key,
@@ -1075,7 +1073,6 @@ hello_updated (void *cls,
 {
   struct GNUNET_PEERSTORE_NotifyContext *nc = cls;
   const struct GNUNET_MessageHeader *hello;
-  struct GNUNET_HELLO_Builder *builder;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "hello_updated\n");
@@ -1090,7 +1087,6 @@ hello_updated (void *cls,
   if (NULL == record)
     return;
   hello = record->value;
-  builder = GNUNET_HELLO_builder_from_msg (hello);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "hello_updated with expired %s and size %u for peer %s\n",
               GNUNET_STRINGS_absolute_time_to_string (GNUNET_HELLO_builder_get_expiration_time (hello)),

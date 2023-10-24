@@ -30,7 +30,7 @@ libgnunetnatauto_la_LDFLAGS = \
   -version-info 0:0:0
 
 gnunet_service_nat_auto_SOURCES = \
- gnunet-service-nat-auto.c
+ gnunet-service-nat-auto.c nat-auto.h
 gnunet_service_nat_auto_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \

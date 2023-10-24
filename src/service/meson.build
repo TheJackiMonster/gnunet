@@ -1,3 +1,9 @@
+# We collect all sources for the 'big' libgnunet when traversing
+# the subdirectories.
+if get_option('monolith')
+  gnunet_src = []
+endif
+
 subdir('util')
 subdir('arm')
 subdir('statistics')
@@ -35,6 +41,11 @@ subdir('rest')
 if not get_option('monolith')
   subdir_done()
 endif
+
+# Compile the 'big' libgnunet shared library.
+# It must be compiled with HAVE_GNUNET_MONOLITH to enable
+# the correct service macros that do not inject main() functions
+# to services.
 libgnunet = library('gnunet',
                     gnunet_src,
                     dependencies: [gnunetdeps,
@@ -47,6 +58,7 @@ libgnunet = library('gnunet',
                                    libgnunetgnsrecord_dep,
                                    libgnunetgnsrecordjson_dep,
                                    jose_dep,
+                                   m_dep,
                                    libgnunetcurl_dep],
                     c_args: ['-DHAVE_GNUNET_MONOLITH=1'],
                     include_directories: [incdir, configuration_inc, exitdir])

@@ -56,8 +56,6 @@ static struct GNUNET_TESTING_Command start_peer;
 
 static struct GNUNET_TESTING_Interpreter *is;
 
-static struct GNUNET_CONTAINER_MultiPeerMap *senders;
-
 struct TestState
 {
   /**
@@ -133,16 +131,6 @@ get_waiting_for_barriers ()
 
 
 /**
- * Callback to set the flag indicating all peers started. Will be called via the plugin api.
- *
- */
-static void
-all_peers_started ()
-{
-}
-
-
-/**
  * Function called with the final result of the test.
  *
  * @param cls the `struct MainParams`
@@ -166,130 +154,12 @@ handle_result (void *cls,
 }
 
 
-/**
- * Callback from start peer cmd for signaling a peer got connected.
- *
- *
-static void *
-notify_connect (struct GNUNET_TESTING_Interpreter *is,
-                const struct GNUNET_PeerIdentity *peer)
-{
-  const struct ConnectPeersState *cps;
-  const struct GNUNET_TESTING_Command *cmd;
-
-  cmd = GNUNET_TESTING_interpreter_lookup_command (is,
-                                                   "connect-peers");
-  GNUNET_TRANSPORT_get_trait_connect_peer_state (cmd,
-                                                 &cps);
-  void *ret = NULL;
-
-  cps->notify_connect (is,
-                       peer);
-  return ret;
-  }*/
-
-
-/**
- * Callback to set the flag indicating all peers are prepared to finish. Will be called via the plugin api.
- */
-static void
-all_local_tests_prepared ()
-{
-  const struct GNUNET_TESTING_LocalPreparedState *lfs;
-
-  GNUNET_TESTING_get_trait_local_prepared_state (&local_prepared,
-                                                 &lfs);
-  GNUNET_assert (NULL != &lfs->ac);
-  if (NULL == lfs->ac.cont)
-    GNUNET_TESTING_async_fail ((struct GNUNET_TESTING_AsyncContext *) &lfs->ac);
-  else
-    GNUNET_TESTING_async_finish ((struct
-                                  GNUNET_TESTING_AsyncContext *) &lfs->ac);
-}
-
-
 static void
 child_completed_callback (void *cls,
                           enum GNUNET_OS_ProcessStatusType type,
                           long unsigned int exit_code)
 {
 
-}
-
-
-/**
- * Function called to check a message being
- * received.
- *
- */
-static int
-check_encrypted (void *cls, struct GNUNET_MessageHeader *header)
-{
-  return GNUNET_OK;
-}
-
-
-static void
-core_receive_continue (struct GNUNET_PeerIdentity *peer)
-{
-  const struct GNUNET_TESTING_StartPeerState *sps;
-
-  GNUNET_TESTING_get_trait_state (&start_peer,
-                                    &sps);
-
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Executing core receive continue\n");
-
-  GNUNET_TRANSPORT_core_receive_continue (sps->th, peer);
-}
-
-
-/*static void
-handle_core (void *cls, struct GNUNET_MessageHeader *header)
-{
-  struct GNUNET_PeerIdentity *peer = cls;
-
-  core_receive_continue (peer);
-  }*/
-
-
-/**
- * Function called to handle a message being received.
- *
- */
-static void
-handle_encrypted (void *cls, struct GNUNET_MessageHeader *header)
-{
-  struct GNUNET_PeerIdentity *peer = cls;
-
-  core_receive_continue (peer);
-}
-
-
-static void
-handle_ephemeral_key (void *cls, struct GNUNET_MessageHeader *header)
-{
-  struct GNUNET_PeerIdentity *peer = cls;
-
-  core_receive_continue (peer);
-}
-
-
-static void
-handle_ping (void *cls, struct GNUNET_MessageHeader *header)
-{
-  struct GNUNET_PeerIdentity *peer = cls;
-
-  core_receive_continue (peer);
-}
-
-
-static void
-handle_pong (void *cls, struct GNUNET_MessageHeader *header)
-{
-  struct GNUNET_PeerIdentity *peer = cls;
-
-  core_receive_continue (peer);
 }
 
 
@@ -393,15 +263,11 @@ start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
 
   if (1 == m_int)
   {
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "m_int %u should be 1\n");
     GNUNET_asprintf (&ts->cfgname,
                      "test_core_just_run_host.conf");
   }
   else
   {
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "m_int %u should not be 1\n");
     GNUNET_asprintf (&ts->cfgname,
                    "test_core_just_run.conf");
   }

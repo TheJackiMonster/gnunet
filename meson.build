@@ -28,13 +28,13 @@ gnunet_user = false
 getent_bin = find_program('getent', '/usr/bin/getent', required : false)
 if getent_bin.found()
   gnunet_user = true
-  if not run_command('getent', 'passwd', 'gnunet', check: false).returncode() == 0
+  if run_command('getent', 'passwd', 'gnunet', check: false).returncode() != 0
     gnunet_user = false
   endif
-  if not run_command('getent', 'group', 'gnunet', check: false).returncode() == 0
+  if run_command('getent', 'group', 'gnunet', check: false).returncode() != 0
     gnunet_user = false
   endif
-  if not run_command('getent', 'group', 'gnunetdns', check: false).returncode() == 0
+  if run_command('getent', 'group', 'gnunetdns', check: false).returncode() != 0
     gnunet_user = false
   endif
 endif
@@ -399,6 +399,15 @@ if cc.has_function('gethostbyname')
 endif
 if cc.has_function('gethostbyname2')
   cdata.set('HAVE_GETHOSTBYNAME2', 1)
+endif
+if cc.has_function('getifaddrs')
+  cdata.set('HAVE_GETIFADDRS', 1)
+endif
+if cc.has_function('freeifaddrs')
+  cdata.set('HAVE_FREEIFADDRS', 1)
+endif
+if cc.check_header('ifaddrs.h')
+  add_project_arguments('-DHAVE_IFADDRS_H', language : 'c')
 endif
 
 configure_file(#input: 'gnunet_private_config.h.in',
