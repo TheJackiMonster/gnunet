@@ -34,7 +34,7 @@
 #include "identity_plugin.h"
 #include "namestore_plugin.h"
 #include "gns_plugin.h"
-#ifdef HAVE_JOSE
+#if HAVE_JOSE
 #include "openid_plugin.h"
 #endif
 #include "reclaim_plugin.h"
@@ -265,7 +265,7 @@ struct GNUNET_REST_Plugin *copying_plugin;
 struct GNUNET_REST_Plugin *identity_plugin;
 struct GNUNET_REST_Plugin *namestore_plugin;
 struct GNUNET_REST_Plugin *gns_plugin;
-#ifdef HAVE_JOSE
+#if HAVE_JOSE
 struct GNUNET_REST_Plugin *openid_plugin;
 #endif
 struct GNUNET_REST_Plugin *reclaim_plugin;
@@ -1020,7 +1020,7 @@ do_shutdown (void *cls)
   REST_copying_done (copying_plugin);
   REST_identity_done (identity_plugin);
   REST_gns_done (gns_plugin);
-#ifdef HAVE_JOSE
+#if HAVE_JOSE
   REST_openid_done (openid_plugin);
 #endif
   REST_reclaim_done (reclaim_plugin);
@@ -1403,7 +1403,7 @@ run (void *cls,
   {
     GNUNET_SCHEDULER_shutdown ();
   }
-#ifdef HAVE_JOSE
+#if HAVE_JOSE
   struct GNUNET_REST_Plugin *openid_plugin = REST_openid_init (cfg);
   if (GNUNET_OK != setup_plugin (openid_plugin->name, &REST_openid_process_request, openid_plugin))
   {

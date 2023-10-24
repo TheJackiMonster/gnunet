@@ -6,11 +6,13 @@ gnunetservicerest_src = ['gnunet-rest-server.c',
                          'identity_plugin.c',
                          'namestore_plugin.c',
                          'gns_plugin.c',
-                         'openid_plugin.c',
-                         'oidc_helper.c',
                          'json_reclaim.c',
                          'reclaim_plugin.c',
                          ]
+
+if jose_dep.found()
+  gnunetservicerest_src += ['oidc_helper.c', 'openid_plugin.c']
+endif
 
 configure_file(input : 'rest.conf',
                output : 'rest.conf',
