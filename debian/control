@@ -98,6 +98,7 @@ Depends:
  libextractor-dev (>=1:0.6.3),
  libgcrypt20-dev (>=1.6),
  libmicrohttpd-dev (>=0.9.71),
+ libsodium-dev (>=1.0.11),
  ${misc:Depends}
 Description: GNU's framework for secure peer-to-peer networking (development)
  GNUnet is a framework for secure peer-to-peer networking that does not use any
