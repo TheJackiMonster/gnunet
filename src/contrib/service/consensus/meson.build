@@ -13,7 +13,6 @@ if get_option('monolith')
   #foreach p : libgnunetconsensus_src + gnunetserviceconsensus_src
   #  gnunet_src += 'consensus/' + p
   #endforeach
-  subdir_done()
 endif
 
 libgnunetconsensus = shared_library('gnunetconsensus',

@@ -13,7 +13,6 @@ if get_option('monolith')
   foreach p : libgnunetfriends_src
     gnunet_src += 'topology/' + p
   endforeach
-  subdir_done()
 endif
 
 libgnunetfriends = library('gnunetfriends',

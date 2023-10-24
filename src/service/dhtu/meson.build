@@ -11,7 +11,6 @@ if get_option('monolith')
   foreach p : libgnunetplugindhtuip_src + libgnunetplugindhtugnunet_src
     gnunet_src += 'dhtu/' + p
   endforeach
-  subdir_done()
 endif
 
 libgnunettestingdhtu = library('gnunettestingdhtu',
@@ -42,6 +41,7 @@ shared_module('gnunet_plugin_dhtu_gnunet',
                          libgnunetcore_dep,
                          libgnunethello_dep,
                          libgnunetpeerstore_dep,
+                         libgnunettransportapplication_dep,
                          libgnunetnse_dep,
                          ],
           include_directories: [incdir, configuration_inc],

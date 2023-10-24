@@ -31,6 +31,7 @@
 #include "transport-testing-communicator.h"
 #include "gnunet_signatures.h"
 #include "transport.h"
+#include "gnunet_hello_uri_lib.h"
 #include <inttypes.h>
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "transport-testing2", __VA_ARGS__)

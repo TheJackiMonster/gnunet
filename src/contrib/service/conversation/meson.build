@@ -15,7 +15,6 @@ if get_option('monolith')
   foreach p : libgnunetconversation_src + gnunetserviceconversation_src
     gnunet_src += 'conversation/' + p
   endforeach
-  subdir_done()
 endif
 
 libgnunetmicrophone = library('gnunetmicrophone',

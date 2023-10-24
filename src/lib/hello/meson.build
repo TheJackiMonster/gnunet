@@ -1,7 +1,4 @@
-libgnunethello_src = [#'hello.c',
-                      'address.c',
-                      'hello-ng.c',
-                      'hello-uri.c']
+libgnunethello_src = ['hello-uri.c']
 
 libgnunethello = library('gnunethello',
         libgnunethello_src,
