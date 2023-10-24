@@ -2889,6 +2889,16 @@ static struct GNUNET_TIME_Absolute hello_mono_time;
 static int in_shutdown;
 
 /**
+ * Head of the linkd list to store the store context for hellos.
+ */
+static struct GNUNET_PEERSTORE_StoreHelloContext *shc_head;
+
+/**
+ * Tail of the linkd list to store the store context for hellos.
+ */
+static struct GNUNET_PEERSTORE_StoreHelloContext *shc_tail;
+
+/**
  * Get an offset into the transmission history buffer for `struct
  * PerformanceData`.  Note that the caller must perform the required
  * modulo #GOODPUT_AGING_SLOTS operation before indexing into the
@@ -5472,7 +5482,14 @@ peerstore_store_own_cb (void *cls, int success)
 static void
 shc_cont (void *cls, int success)
 {
-  GNUNET_free (cls);
+  (void *) cls;
+
+  if (GNUNET_YES == success)
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Hello stored successfully!\n");
+  else
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Error storing hello!\n");
 }
 
 
@@ -5517,10 +5534,13 @@ store_pi (void *cls)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "store_pi 1\n");
   if (GNUNET_YES == add_result)
+  {  
     shc = GNUNET_PEERSTORE_hello_add (peerstore,
                                       msg,
                                       shc_cont,
-                                      shc);
+                                      NULL);
+    GNUNET_CONTAINER_DLL_insert (shc_head, shc_tail, shc);
+  }
   else if (GNUNET_SYSERR == add_result)
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Error adding address to peerstore hello!\n");
@@ -11494,9 +11514,16 @@ static void
 do_shutdown (void *cls)
 {
   struct LearnLaunchEntry *lle;
+  struct GNUNET_PEERSTORE_StoreHelloContext *pos;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "shutdown logic\n");
+  while (NULL != (pos = shc_head))
+  {
+    GNUNET_CONTAINER_DLL_remove (shc_head, shc_tail, pos);
+    GNUNET_PEERSTORE_hello_add_cancel (pos);
+  }
+
   (void) cls;
   GNUNET_CONTAINER_multipeermap_iterate (neighbours,
                                          &free_neighbour_cb, NULL);

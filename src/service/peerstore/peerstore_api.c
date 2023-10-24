@@ -312,52 +312,6 @@ struct GNUNET_PEERSTORE_NotifyContext
   unsigned int canceled;
 };
 
-/**
- * Context for a add hello uri request.
- */
-struct GNUNET_PEERSTORE_StoreHelloContext
-{
-  /**
-   * Peerstore handle.
-   */
-  struct GNUNET_PEERSTORE_Handle *h;
-
-  /**
-   * Function to call with information.
-   */
-  GNUNET_PEERSTORE_Continuation cont;
-
-  /**
-   * Closure for @e callback.
-   */
-  void *cont_cls;
-
-  /**
-   * Map with all store contexts started during adding hello.
-   */
-  struct GNUNET_CONTAINER_MultiPeerMap *store_context_map;
-
-  /**
-   * Active watch to be notified about conflicting hello uri add requests.
-   */
-  struct GNUNET_PEERSTORE_WatchContext *wc;
-
-  /**
-   * Hello uri which was request for storing.
-   */
-  struct GNUNET_MessageHeader *hello;
-
-  /**
-   * The peer id for the hello.
-   */
-  struct GNUNET_PeerIdentity *pid;
-
-  /**
-   * Was this request successful.
-   */
-  int success;
-};
-
 /******************************************************************************/
 /*******************             DECLARATIONS             *********************/
 /******************************************************************************/
@@ -1319,7 +1273,7 @@ GNUNET_PEERSTORE_hello_add (struct GNUNET_PEERSTORE_Handle *h,
 {
   struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (msg);
   struct GNUNET_PEERSTORE_StoreHelloContext *huc;
-  struct GNUNET_PeerIdentity *pid;
+  const struct GNUNET_PeerIdentity *pid;
   struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
   struct GNUNET_TIME_Absolute hello_exp =
     GNUNET_HELLO_builder_get_expiration_time (msg);

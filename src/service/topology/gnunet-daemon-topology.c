@@ -179,6 +179,16 @@ static unsigned int connection_count;
 static unsigned int target_connection_count;
 
 /**
+ * Head of the linkd list to store the store context for hellos.
+ */
+static struct GNUNET_PEERSTORE_StoreHelloContext *shc_head;
+
+/**
+ * Tail of the linkd list to store the store context for hellos.
+ */
+static struct GNUNET_PEERSTORE_StoreHelloContext *shc_tail;
+
+/**
  * Free all resources associated with the given peer.
  *
  * @param cls closure (not used)
@@ -833,7 +843,14 @@ check_hello (void *cls, const struct GNUNET_MessageHeader *message)
 static void
 shc_cont (void *cls, int success)
 {
-  GNUNET_free (cls);
+  (void *) cls;
+
+  if (GNUNET_YES == success)
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Hello stored successfully!\n");
+  else
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Error storing hello!\n");
 }
 
 
@@ -860,8 +877,8 @@ handle_hello (void *cls, const struct GNUNET_MessageHeader *message)
                             1,
                             GNUNET_NO);
   GNUNET_HELLO_builder_from_msg (message);
-  // FIXME this is not working shc uninitialized
-  shc = GNUNET_PEERSTORE_hello_add (ps, message, &shc_cont, shc);
+  shc = GNUNET_PEERSTORE_hello_add (ps, message, &shc_cont, NULL);
+  GNUNET_CONTAINER_DLL_insert (shc_head, shc_tail, shc);
   GNUNET_HELLO_builder_free (builder);
 }
 
@@ -875,6 +892,14 @@ handle_hello (void *cls, const struct GNUNET_MessageHeader *message)
 static void
 cleaning_task (void *cls)
 {
+  struct GNUNET_PEERSTORE_StoreHelloContext *pos;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Topology shutdown\n");
+  while (NULL != (pos = shc_head))
+  {
+    GNUNET_CONTAINER_DLL_remove (shc_head, shc_tail, pos);
+    GNUNET_PEERSTORE_hello_add_cancel (pos);
+  }
   if (NULL != peerstore_notify)
   {
     GNUNET_PEERSTORE_hello_changed_notify_cancel (peerstore_notify);

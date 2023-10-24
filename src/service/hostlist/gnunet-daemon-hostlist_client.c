@@ -230,6 +230,16 @@ static struct GNUNET_SCHEDULER_Task *ti_testing_intervall_task;
 static struct GNUNET_TIME_Absolute end_time;
 
 /**
+ * Head of the linkd list to store the store context for hellos.
+ */
+static struct GNUNET_PEERSTORE_StoreHelloContext *shc_head;
+
+/**
+ * Tail of the linkd list to store the store context for hellos.
+ */
+static struct GNUNET_PEERSTORE_StoreHelloContext *shc_tail;
+
+/**
  * Head of the linked list used to store hostlists
  */
 static struct Hostlist *linked_list_head;
@@ -313,8 +323,14 @@ static struct GNUNET_PEERSTORE_Handle *peerstore;
 static void
 shc_cont (void *cls, int success)
 {
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Hostlist entry stored successfully!\n");
+  (void *) cls;
+
+  if (GNUNET_YES == success)
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Hostlist entry stored successfully!\n");
+  else
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Error storing hostlist entry!\n");
 }
 
 
@@ -398,7 +414,8 @@ callback_download (void *ptr, size_t size, size_t nmemb, void *ctx)
     shc = GNUNET_PEERSTORE_hello_add (peerstore,
                                       msg,
                                       shc_cont,
-                                      shc);
+                                      NULL);
+    GNUNET_CONTAINER_DLL_insert (shc_head, shc_tail, shc);
     memmove (download_buffer, &download_buffer[msize], download_pos - msize);
     download_pos -= msize;
   }
@@ -1735,7 +1752,14 @@ GNUNET_HOSTLIST_client_start (const struct GNUNET_CONFIGURATION_Handle *c,
 void
 GNUNET_HOSTLIST_client_stop ()
 {
+  struct GNUNET_PEERSTORE_StoreHelloContext *pos;
+  
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Hostlist client shutdown\n");
+  while (NULL != (pos = shc_head))
+  {
+    GNUNET_CONTAINER_DLL_remove (shc_head, shc_tail, pos);
+    GNUNET_PEERSTORE_hello_add_cancel (pos);
+  }
   if (NULL != sget)
   {
     GNUNET_STATISTICS_get_cancel (sget);
