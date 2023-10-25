@@ -415,7 +415,8 @@ callback_download (void *ptr, size_t size, size_t nmemb, void *ctx)
                                       msg,
                                       shc_cont,
                                       NULL);
-    GNUNET_CONTAINER_DLL_insert (shc_head, shc_tail, shc);
+    if (NULL != shc)
+      GNUNET_CONTAINER_DLL_insert (shc_head, shc_tail, shc);
     memmove (download_buffer, &download_buffer[msize], download_pos - msize);
     download_pos -= msize;
   }
@@ -1753,7 +1754,7 @@ void
 GNUNET_HOSTLIST_client_stop ()
 {
   struct GNUNET_PEERSTORE_StoreHelloContext *pos;
-  
+
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Hostlist client shutdown\n");
   while (NULL != (pos = shc_head))
   {
