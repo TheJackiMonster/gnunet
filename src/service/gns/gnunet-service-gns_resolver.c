@@ -1085,6 +1085,22 @@ dns_result_parser (void *cls,
         rd[i - skip].data_size = buf_off - buf_start;
         rd[i - skip].data = &buf[buf_start];
         break;
+      
+      case GNUNET_DNSPARSER_TYPE_URI:
+        buf_start = buf_off;
+        if (GNUNET_OK !=
+            GNUNET_DNSPARSER_builder_add_uri (buf,
+                                              sizeof(buf),
+                                              &buf_off,
+                                              rec->data.uri))
+        {
+          GNUNET_break (0);
+          skip++;
+          continue;
+        }
+        rd[i - skip].data_size = buf_off - buf_start;
+        rd[i - skip].data = &buf[buf_start];
+        break;
 
       default:
         GNUNET_log (GNUNET_ERROR_TYPE_INFO,
@@ -2167,6 +2183,45 @@ handle_gns_resolution_result (void *cls,
           }
           if (NULL != srv)
             GNUNET_DNSPARSER_free_srv (srv);
+        }
+        break;
+
+      case GNUNET_DNSPARSER_TYPE_URI:
+        {
+          struct GNUNET_DNSPARSER_UriRecord *uri;
+
+          off = 0;
+          uri = GNUNET_DNSPARSER_parse_uri (rd[i].data,
+                                            rd[i].data_size,
+                                            &off);
+          if ((NULL == uri) ||
+              (off != rd[i].data_size))
+          {
+            GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    _ ("Failed to deserialize URI record with target\n"));
+            GNUNET_break_op (0);      /* record not well-formed */
+          }
+          else
+          {
+            scratch_start = scratch_off;
+            if (GNUNET_OK !=
+                GNUNET_DNSPARSER_builder_add_uri (scratch,
+                                                  sizeof(scratch),
+                                                  &scratch_off,
+                                                  uri))
+            {
+              GNUNET_break (0);
+            }
+            else
+            {
+              GNUNET_assert (rd_off < rd_count);
+              rd_new[rd_off].data = &scratch[scratch_start];
+              rd_new[rd_off].data_size = scratch_off - scratch_start;
+              rd_off++;
+            }
+          }
+          if (NULL != uri)
+            GNUNET_DNSPARSER_free_uri (uri);
         }
         break;
 

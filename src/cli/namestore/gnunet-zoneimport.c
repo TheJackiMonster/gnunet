@@ -876,6 +876,17 @@ process_record (void *cls, const struct GNUNET_DNSPARSER_Record *rec)
     }
     break;
 
+  case GNUNET_DNSPARSER_TYPE_URI:
+    if (GNUNET_OK ==
+        GNUNET_DNSPARSER_builder_add_uri (dst, dst_len, &off, rec->data.uri))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Converting URI record for `%s'\n",
+                  rec->name);
+      add_record (req, rec->type, expiration_time, dst, off);
+    }
+    break;
+
   case GNUNET_DNSPARSER_TYPE_PTR:
     if (GNUNET_OK == GNUNET_DNSPARSER_builder_add_name (dst,
                                                         dst_len,

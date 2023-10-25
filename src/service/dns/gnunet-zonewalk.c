@@ -214,6 +214,15 @@ process_record (struct Request *req,
              rec->data.srv->weight,
              rec->data.srv->port);
     break;
+  
+  case GNUNET_DNSPARSER_TYPE_URI:
+    fprintf (stdout,
+             "%s URI \"%s\" %u %u\n",
+             req->hostname,
+             rec->data.uri->target,
+             rec->data.uri->priority,
+             rec->data.uri->weight);
+    break;
 
   case GNUNET_DNSPARSER_TYPE_PTR:
     fprintf (stdout,
@@ -247,7 +256,6 @@ process_record (struct Request *req,
   case GNUNET_DNSPARSER_TYPE_RP:
   case GNUNET_DNSPARSER_TYPE_TKEY:
   case GNUNET_DNSPARSER_TYPE_TSIG:
-  case GNUNET_DNSPARSER_TYPE_URI:
   case GNUNET_DNSPARSER_TYPE_TA:
 
   /* DNSSEC */
@@ -265,6 +273,7 @@ process_record (struct Request *req,
   case GNUNET_DNSPARSER_TYPE_SSHFP:
   case GNUNET_DNSPARSER_TYPE_IPSECKEY:
   case GNUNET_DNSPARSER_TYPE_TLSA:
+  case GNUNET_DNSPARSER_TYPE_SMIMEA:
   case GNUNET_DNSPARSER_TYPE_OPENPGPKEY:
 
   /* obsolete records */

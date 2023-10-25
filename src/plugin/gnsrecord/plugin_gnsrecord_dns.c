@@ -207,7 +207,30 @@ dns_value_to_string (void *cls,
       GNUNET_DNSPARSER_free_srv (srv);
       return result;
     }
+  
+  case GNUNET_DNSPARSER_TYPE_URI: {   // RFC7553
+      struct GNUNET_DNSPARSER_UriRecord *uri;
+      size_t off;
 
+      off = 0;
+      uri = GNUNET_DNSPARSER_parse_uri (data, data_size, &off);
+      if ((NULL == uri) || (off != data_size))
+      {
+        GNUNET_break_op (0);
+        if (NULL != uri)
+          GNUNET_DNSPARSER_free_uri (uri);
+        return NULL;
+      }
+      GNUNET_asprintf (&result,
+                       "%d %d \"%s\"",
+                       uri->priority,
+                       uri->weight,
+                       uri->target);
+      GNUNET_DNSPARSER_free_uri (uri);
+      return result;
+  }
+
+  case GNUNET_DNSPARSER_TYPE_SMIMEA:
   case GNUNET_DNSPARSER_TYPE_TLSA: {
       const struct GNUNET_TUN_DnsTlsaRecord *tlsa;
       char *tlsa_str;
@@ -627,6 +650,43 @@ dns_string_to_value (void *cls,
       return GNUNET_OK;
     }
 
+  case GNUNET_DNSPARSER_TYPE_URI: {
+      struct GNUNET_DNSPARSER_UriRecord uri;
+      char target[strlen(s)];
+      unsigned int priority;
+      unsigned int weight;
+      size_t off;
+
+      if (3 != sscanf (s, "%u %u \"%s", &priority, &weight, &target)) // only \" bevor %s becuse %s will consume the ending " of the presentation of the URI record
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    _ ("Unable to parse URI record `%s'\n"),
+                    s);
+        return GNUNET_SYSERR;
+      }
+      target[strlen(target)-1] = '\0'; // Removing the last " of the presentation of the URI record
+
+      uri.priority = (uint16_t) priority;
+      uri.weight = (uint16_t) weight;
+      uri.target = target;
+      off = 0;
+
+      char uribuf[sizeof(struct GNUNET_TUN_DnsUriRecord) + strlen(target) + 1]; 
+
+      if (GNUNET_OK !=
+          GNUNET_DNSPARSER_builder_add_uri (uribuf, sizeof(uribuf), &off, &uri))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    _ ("Failed to serialize URI record with target `%s'\n"),
+                    target);
+        return GNUNET_SYSERR;
+      }
+      *data_size = off;
+      *data = GNUNET_malloc (off);
+      GNUNET_memcpy (*data, uribuf, off);
+      return GNUNET_OK;
+    }
+
   case GNUNET_DNSPARSER_TYPE_TXT:
     *data = GNUNET_strdup (s);
     *data_size = strlen (s);
@@ -645,6 +705,7 @@ dns_string_to_value (void *cls,
     GNUNET_memcpy (*data, &value_aaaa, sizeof(value_aaaa));
     return GNUNET_OK;
 
+  case GNUNET_DNSPARSER_TYPE_SMIMEA:
   case GNUNET_DNSPARSER_TYPE_TLSA: {
       unsigned int usage;
       unsigned int selector;
@@ -656,7 +717,7 @@ dns_string_to_value (void *cls,
                        hex))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    _ ("Unable to parse TLSA record string `%s'\n"),
+                    _ ("Unable to parse TLSA/SMIMEA record string `%s'\n"),
                     s);
         *data_size = 0;
         return GNUNET_SYSERR;
@@ -670,7 +731,7 @@ dns_string_to_value (void *cls,
       if (strlen (hex) / 2 != GNUNET_DNSPARSER_hex_to_bin (hex, &tlsa[1]))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    _ ("Unable to parse TLSA record string `%s'\n"),
+                    _ ("Unable to parse TLSA/SMIMEA record string `%s'\n"),
                     s);
         GNUNET_free (*data);
         *data = NULL;
@@ -727,7 +788,9 @@ static struct
                  { "TXT", GNUNET_DNSPARSER_TYPE_TXT },
                  { "AAAA", GNUNET_DNSPARSER_TYPE_AAAA },
                  { "SRV", GNUNET_DNSPARSER_TYPE_SRV },
+                 { "URI", GNUNET_DNSPARSER_TYPE_URI },
                  { "TLSA", GNUNET_DNSPARSER_TYPE_TLSA },
+                 { "SMIMEA", GNUNET_DNSPARSER_TYPE_SMIMEA },
                  { "CERT", GNUNET_DNSPARSER_TYPE_CERT },
                  { "CAA", GNUNET_DNSPARSER_TYPE_CAA },
                  { NULL, UINT32_MAX } };

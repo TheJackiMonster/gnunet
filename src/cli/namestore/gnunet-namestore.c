@@ -1465,10 +1465,11 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
     }
     if ((GNUNET_DNSPARSER_TYPE_SRV == type) ||
         (GNUNET_DNSPARSER_TYPE_TLSA == type) ||
+        (GNUNET_DNSPARSER_TYPE_SMIMEA == type) ||
         (GNUNET_DNSPARSER_TYPE_OPENPGPKEY == type))
     {
       fprintf (stderr,
-               _ ("For DNS record types `SRV', `TLSA' and `OPENPGPKEY'"));
+               _ ("For DNS record types `SRV', `TLSA', `SMIMEA' and `OPENPGPKEY'"));
       fprintf (stderr, ", please use a `BOX' record instead\n");
       ret = 1;
       finish_command ();

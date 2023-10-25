@@ -84,6 +84,7 @@
 #define GNUNET_DNSPARSER_TYPE_NSEC3 50
 #define GNUNET_DNSPARSER_TYPE_NSEC3PARAM 51
 #define GNUNET_DNSPARSER_TYPE_TLSA 52
+#define GNUNET_DNSPARSER_TYPE_SMIMEA 53
 #define GNUNET_DNSPARSER_TYPE_HIP 55
 #define GNUNET_DNSPARSER_TYPE_CDS 59
 #define GNUNET_DNSPARSER_TYPE_CDNSKEY 60
@@ -174,6 +175,33 @@ struct GNUNET_DNSPARSER_SrvRecord
    * TCP or UDP port of the service.
    */
   uint16_t port;
+};
+
+
+/**
+ * Information from URI records (RFC 7553).
+ */
+struct GNUNET_DNSPARSER_UriRecord
+{
+  /**
+   * URI of the target,
+   * where the URI is as specified in RFC 3986.
+   */
+  char *target;
+
+  /**
+   * Preference for this entry (lower value is higher preference).  Clients
+   * will contact hosts from the lowest-priority group first and fall back
+   * to higher priorities if the low-priority entries are unavailable.
+   */
+  uint16_t priority;
+
+  /**
+   * Relative weight for records with the same priority.  Clients will use
+   * the hosts of the same (lowest) priority with a probability proportional
+   * to the weight given.
+   */
+  uint16_t weight;
 };
 
 
@@ -479,6 +507,11 @@ struct GNUNET_DNSPARSER_Record
     struct GNUNET_DNSPARSER_SrvRecord *srv;
 
     /**
+     * URI data for URI records.
+     */
+    struct GNUNET_DNSPARSER_UriRecord *uri;
+
+    /**
      * Raw data for all other types.
      */
     struct GNUNET_DNSPARSER_RawRecord raw;
@@ -743,6 +776,25 @@ GNUNET_DNSPARSER_builder_add_srv (char *dst,
                                   size_t *off,
                                   const struct GNUNET_DNSPARSER_SrvRecord *srv);
 
+
+/**
+ * Add an URI record to the UDP packet at the given location.
+ *
+ * @param dst where to write the URI record
+ * @param dst_len number of bytes in @a dst
+ * @param off pointer to offset where to write the URI information (increment by bytes used)
+ *            can also change if there was an error
+ * @param uri URI information to write
+ * @return #GNUNET_SYSERR if @a uri is invalid
+ *         #GNUNET_NO if @a uri did not fit
+ *         #GNUNET_OK if @a uri was added to @a dst
+ */
+int
+GNUNET_DNSPARSER_builder_add_uri (char *dst,
+                                  size_t dst_len,
+                                  size_t *off,
+                                  const struct GNUNET_DNSPARSER_UriRecord *uri);
+
 /* ***************** low-level parsing API ******************** */
 
 /**
@@ -853,6 +905,21 @@ GNUNET_DNSPARSER_parse_srv (const char *udp_payload,
                             size_t udp_payload_length,
                             size_t *off);
 
+
+/**
+ * Parse a DNS URI record.
+ *
+ * @param udp_payload reference to UDP packet
+ * @param udp_payload_length length of @a udp_payload
+ * @param off pointer to the offset of the query to parse in the URI record (to be
+ *                    incremented by the size of the record), unchanged on error
+ * @return the parsed URI record, NULL on error
+ */
+struct GNUNET_DNSPARSER_UriRecord *
+GNUNET_DNSPARSER_parse_uri (const char *udp_payload,
+                            size_t udp_payload_length,
+                            size_t *off);
+
 /* ***************** low-level duplication API ******************** */
 
 /**
@@ -909,6 +976,16 @@ GNUNET_DNSPARSER_duplicate_srv_record (const struct
                                        GNUNET_DNSPARSER_SrvRecord *r);
 
 
+/**
+ * Duplicate (deep-copy) the given DNS record
+ *
+ * @param r the record
+ * @return the newly allocated record
+ */
+struct GNUNET_DNSPARSER_UriRecord *
+GNUNET_DNSPARSER_duplicate_uri_record (const struct
+                                       GNUNET_DNSPARSER_UriRecord *r);
+
 /* ***************** low-level deallocation API ******************** */
 
 /**
@@ -936,6 +1013,15 @@ GNUNET_DNSPARSER_free_mx (struct GNUNET_DNSPARSER_MxRecord *mx);
  */
 void
 GNUNET_DNSPARSER_free_srv (struct GNUNET_DNSPARSER_SrvRecord *srv);
+
+
+/**
+ * Free URI information record.
+ *
+ * @param uri record to free
+ */
+void
+GNUNET_DNSPARSER_free_uri (struct GNUNET_DNSPARSER_UriRecord *uri);
 
 
 /**
