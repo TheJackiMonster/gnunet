@@ -3158,9 +3158,19 @@ struct GNUNET_CRYPTO_CsBlindedMessage
   struct GNUNET_CRYPTO_CsC c[2];
 
   /**
-   * Public nonce used to generate the R-values.
+   * Nonce used in initial request.
    */
   struct GNUNET_CRYPTO_CsSessionNonce nonce;
+
+};
+
+
+/**
+ * Pair of Public R values for Cs denominations
+ */
+struct GNUNET_CRYPTO_CSPublicRPairP
+{
+  struct GNUNET_CRYPTO_CsRPublic r_pub[2];
 };
 
 
@@ -3174,9 +3184,8 @@ struct GNUNET_CRYPTO_CsBlindedMessage
  * @param msg the message to blind in preparation for signing
  * @param msg_len length of message msg
  * @param[out] blinded_c array of the two blinded c's
- * @param[out] blinded_r_pub array of the two blinded R
+ * @param[out] r_pub_blind array of the two blinded R
  */
-// FIXME: function signature can probably be improved...
 void
 GNUNET_CRYPTO_cs_calc_blinded_c (
   const struct GNUNET_CRYPTO_CsBlindingSecret bs[2],
@@ -3185,7 +3194,7 @@ GNUNET_CRYPTO_cs_calc_blinded_c (
   const void *msg,
   size_t msg_len,
   struct GNUNET_CRYPTO_CsC blinded_c[2],
-  struct GNUNET_CRYPTO_CsRPublic blinded_r_pub[2]);
+  struct GNUNET_CRYPTO_CSPublicRPairP *r_pub_blind);
 
 
 /**
@@ -3471,15 +3480,6 @@ struct GNUNET_CRYPTO_BlindedMessage
 
 
 /**
- * Pair of Public R values for Cs denominations
- */
-struct GNUNET_CRYPTO_CSPublicRPairP
-{
-  struct GNUNET_CRYPTO_CsRPublic r_pub[2];
-};
-
-
-/**
  * Secret r for Cs denominations
  */
 struct GNUNET_CRYPTO_CSPrivateRPairP
@@ -3517,6 +3517,35 @@ struct GNUNET_CRYPTO_BlindingInputValues
   } details;
 
 };
+
+
+/**
+ * Nonce used to deterministiacally derive input values
+ * used in multi-round blind signature protocols.
+ */
+union GNUNET_CRYPTO_BlindSessionNonce
+{
+  /**
+   * Nonce used when signing with CS.
+   */
+  struct GNUNET_CRYPTO_CsSessionNonce cs_nonce;
+};
+
+
+/**
+ * Compute blinding input values for a given @a nonce and
+ * @a salt.
+ *
+ * @param bsign_priv private key to compute input values for
+ * @param nonce session nonce to derive input values from
+ * @param salt salt to include in derivation logic
+ * @return blinding input values 
+ */
+struct GNUNET_CRYPTO_BlindingInputValues *
+GNUNET_CRYPTO_get_blinding_input_values (
+  const struct GNUNET_CRYPTO_BlindSignPrivateKey *bsign_priv,
+  const union GNUNET_CRYPTO_BlindSessionNonce *nonce,
+  const char *salt);
 
 
 /**
@@ -3585,8 +3614,6 @@ GNUNET_CRYPTO_blinded_message_incref (
  */
 struct GNUNET_CRYPTO_BlindSignPublicKey *
 GNUNET_CRYPTO_bsign_pub_incref (struct GNUNET_CRYPTO_BlindSignPublicKey *bsign_pub);
-
-
 /**
  * Increment reference counter of the given @a bsign_priv.
  *
@@ -3733,6 +3760,8 @@ union GNUNET_CRYPTO_BlindingSecretP
  *
  * @param bsign_pub public key to blind for
  * @param bks blinding secret to use
+ * @param nonce nonce used to obtain @a alg_values
+ *        can be NULL if input values are not used for the cipher
  * @param message message to sign
  * @param message_size number of bytes in @a message
  * @param alg_values algorithm specific values to blind the @a message
@@ -3742,6 +3771,7 @@ struct GNUNET_CRYPTO_BlindedMessage *
 GNUNET_CRYPTO_message_blind_to_sign (
   const struct GNUNET_CRYPTO_BlindSignPublicKey *bsign_pub,
   const union GNUNET_CRYPTO_BlindingSecretP *bks,
+  const union GNUNET_CRYPTO_BlindSessionNonce *nonce,
   const void *message,
   size_t message_size,
   const struct GNUNET_CRYPTO_BlindingInputValues *alg_values);
@@ -3751,7 +3781,8 @@ GNUNET_CRYPTO_message_blind_to_sign (
  * Create blind signature.
  *
  * @param bsign_priv private key to use for signing
- * @param salt salt value to use for the HKDF
+ * @param salt salt value to use for the HKDF,
+ *        can be NULL if input values are not used for the cipher
  * @param blinded_message the already blinded message to sign
  * @return blind signature with RC=1, NULL on failure
  */

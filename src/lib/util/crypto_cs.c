@@ -158,8 +158,12 @@ cs_full_domain_hash (const struct GNUNET_CRYPTO_CsRPublic *r_dash,
   // SHA-512 hash of R' and message
   size_t r_m_concat_len = sizeof(struct GNUNET_CRYPTO_CsRPublic) + msg_len;
   char r_m_concat[r_m_concat_len];
-  memcpy (r_m_concat, r_dash, sizeof(struct GNUNET_CRYPTO_CsRPublic));
-  memcpy (r_m_concat + sizeof(struct GNUNET_CRYPTO_CsRPublic), msg, msg_len);
+  memcpy (r_m_concat,
+          r_dash,
+          sizeof(struct GNUNET_CRYPTO_CsRPublic));
+  memcpy (r_m_concat + sizeof(struct GNUNET_CRYPTO_CsRPublic),
+          msg,
+          msg_len);
   struct GNUNET_HashCode prehash;
 
   GNUNET_CRYPTO_hash (r_m_concat,
@@ -215,18 +219,21 @@ calc_r_dash (const struct GNUNET_CRYPTO_CsBlindingSecret *bs,
                    alpha_mul_base.y,
                    bs->alpha.d));
   struct GNUNET_CRYPTO_Cs25519Point beta_mul_pub;
-  GNUNET_assert (0 == crypto_scalarmult_ed25519_noclamp (beta_mul_pub.y,
-                                                         bs->beta.d,
-                                                         pub->point.y));
+  GNUNET_assert (0 ==
+                 crypto_scalarmult_ed25519_noclamp (
+                   beta_mul_pub.y,
+                   bs->beta.d,
+                   pub->point.y));
   struct GNUNET_CRYPTO_Cs25519Point alpha_mul_base_plus_beta_mul_pub;
   GNUNET_assert (0 == crypto_core_ed25519_add (
                    alpha_mul_base_plus_beta_mul_pub.y,
                    alpha_mul_base.y,
                    beta_mul_pub.y));
-  GNUNET_assert (0 == crypto_core_ed25519_add (blinded_r_pub->point.y,
-                                               r_pub->point.y,
-                                               alpha_mul_base_plus_beta_mul_pub.
-                                               y));
+  GNUNET_assert (0 ==
+                 crypto_core_ed25519_add (
+                   blinded_r_pub->point.y,
+                   r_pub->point.y,
+                   alpha_mul_base_plus_beta_mul_pub.y));
 }
 
 
@@ -238,19 +245,33 @@ GNUNET_CRYPTO_cs_calc_blinded_c (
   const void *msg,
   size_t msg_len,
   struct GNUNET_CRYPTO_CsC blinded_c[2],
-  struct GNUNET_CRYPTO_CsRPublic blinded_r_pub[2])
+  struct GNUNET_CRYPTO_CSPublicRPairP *r_pub_blind)
 {
-  // for i 0/1: R'i = Ri + alpha i*G + beta i*pub
-  calc_r_dash (&bs[0], &r_pub[0], pub, &blinded_r_pub[0]);
-  calc_r_dash (&bs[1], &r_pub[1], pub, &blinded_r_pub[1]);
+  /* for i 0/1: R'i = Ri + alpha i*G + beta i*pub */
+  calc_r_dash (&bs[0],
+               &r_pub[0],
+               pub,
+               &r_pub_blind->r_pub[0]);
+  calc_r_dash (&bs[1],
+               &r_pub[1],
+               pub,
+               &r_pub_blind->r_pub[1]);
 
-  // for i 0/1: c'i = H(R'i, msg)
+  /* for i 0/1: c'i = H(R'i, msg) */
   struct GNUNET_CRYPTO_CsC c_dash_0;
   struct GNUNET_CRYPTO_CsC c_dash_1;
-  cs_full_domain_hash (&blinded_r_pub[0], msg, msg_len, pub, &c_dash_0);
-  cs_full_domain_hash (&blinded_r_pub[1], msg, msg_len, pub, &c_dash_1);
+  cs_full_domain_hash (&r_pub_blind->r_pub[0],
+                       msg,
+                       msg_len,
+                       pub,
+                       &c_dash_0);
+  cs_full_domain_hash (&r_pub_blind->r_pub[1],
+                       msg,
+                       msg_len,
+                       pub,
+                       &c_dash_1);
 
-  // for i 0/1: ci = c'i + beta i mod p
+  /* for i 0/1: ci = c'i + beta i mod p */
   crypto_core_ed25519_scalar_add (blinded_c[0].scalar.d,
                                   c_dash_0.scalar.d,
                                   bs[0].beta.d);

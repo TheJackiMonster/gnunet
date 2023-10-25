@@ -216,7 +216,7 @@ test_calc_blindedc (const struct GNUNET_CRYPTO_CsBlindingSecret bs[2],
                     const void *msg,
                     size_t msg_len,
                     struct GNUNET_CRYPTO_CsC blinded_cs[2],
-                    struct GNUNET_CRYPTO_CsRPublic blinded_r_pub[2])
+                    struct GNUNET_CRYPTO_CSPublicRPairP *blinded_r_pub)
 {
   /* TEST 1
    * Check that the blinded c's and blinded r's
@@ -227,10 +227,8 @@ test_calc_blindedc (const struct GNUNET_CRYPTO_CsBlindingSecret bs[2],
           &blinded_cs[0],
           sizeof(struct GNUNET_CRYPTO_CsC) * 2);
 
-  struct GNUNET_CRYPTO_CsRPublic other_blinded_r_pub[2];
-  memcpy (&other_blinded_r_pub[0],
-          &blinded_r_pub[0],
-          sizeof(struct GNUNET_CRYPTO_CsRPublic) * 2);
+  struct GNUNET_CRYPTO_CSPublicRPairP other_blinded_pub;
+  other_blinded_pub = *blinded_r_pub;
 
   GNUNET_CRYPTO_cs_calc_blinded_c (bs,
                                    r_pub,
@@ -243,9 +241,9 @@ test_calc_blindedc (const struct GNUNET_CRYPTO_CsBlindingSecret bs[2],
   GNUNET_assert (0 != memcmp (&other_blinded_c[0],
                               &blinded_cs[0],
                               sizeof(struct GNUNET_CRYPTO_CsC) * 2));
-  GNUNET_assert (0 != memcmp (&other_blinded_r_pub[0],
-                              &blinded_r_pub[0],
-                              sizeof(struct GNUNET_CRYPTO_CsRPublic) * 2));
+  GNUNET_assert (0 !=
+                 GNUNET_memcmp (&other_blinded_pub,
+                                blinded_r_pub));
 
   /* TEST 2
    * Check if R' - aG -bX = R for b = 0
@@ -270,7 +268,7 @@ test_calc_blindedc (const struct GNUNET_CRYPTO_CsBlindingSecret bs[2],
     GNUNET_assert (0 ==
                    crypto_core_ed25519_sub (
                      r_min_aG.y,
-                     blinded_r_pub[b].point.y,
+                     blinded_r_pub->r_pub[b].point.y,
                      aG.y));
     GNUNET_assert (0 == crypto_core_ed25519_sub (
                      res.point.y,
@@ -289,10 +287,10 @@ test_calc_blindedc (const struct GNUNET_CRYPTO_CsBlindingSecret bs[2],
    */
   GNUNET_assert (1 ==
                  crypto_core_ed25519_is_valid_point (
-                   blinded_r_pub[0].point.y));
+                   blinded_r_pub->r_pub[0].point.y));
   GNUNET_assert (1 ==
                  crypto_core_ed25519_is_valid_point (
-                   blinded_r_pub[1].point.y));
+                   blinded_r_pub->r_pub[1].point.y));
 
   /* TEST 4
    * Check if function gives the same result for the same input.
@@ -300,9 +298,7 @@ test_calc_blindedc (const struct GNUNET_CRYPTO_CsBlindingSecret bs[2],
   memcpy (&other_blinded_c[0],
           &blinded_cs[0],
           sizeof(struct GNUNET_CRYPTO_CsC) * 2);
-  memcpy (&other_blinded_r_pub[0],
-          &blinded_r_pub[0],
-          sizeof(struct GNUNET_CRYPTO_CsRPublic) * 2);
+  other_blinded_pub = *blinded_r_pub;
 
   for (unsigned int i = 0; i<ITER; i++)
   {
@@ -313,12 +309,13 @@ test_calc_blindedc (const struct GNUNET_CRYPTO_CsBlindingSecret bs[2],
                                      msg_len,
                                      blinded_cs,
                                      blinded_r_pub);
-    GNUNET_assert (0 == memcmp (&other_blinded_c[0],
-                                &blinded_cs[0],
-                                sizeof(struct GNUNET_CRYPTO_CsC) * 2));
-    GNUNET_assert (0 == memcmp (&other_blinded_r_pub[0],
-                                &blinded_r_pub[0],
-                                sizeof(struct GNUNET_CRYPTO_CsRPublic) * 2));
+    GNUNET_assert (0 ==
+                   memcmp (&other_blinded_c[0],
+                           &blinded_cs[0],
+                           sizeof(struct GNUNET_CRYPTO_CsC) * 2));
+    GNUNET_assert (0 ==
+                   GNUNET_memcmp (&other_blinded_pub,
+                                  blinded_r_pub));
   }
 }
 
@@ -563,12 +560,12 @@ main (int argc,
   // calculate blinded c's
   struct GNUNET_CRYPTO_CsBlindedMessage bm; 
   struct GNUNET_CRYPTO_CsC blinded_cs[2];
-  struct GNUNET_CRYPTO_CsRPublic blinded_r_pubs[2];
+  struct GNUNET_CRYPTO_CSPublicRPairP blinded_r_pubs;
 
   memset (blinded_cs,
           42,
           sizeof (blinded_cs));
-  memset (blinded_r_pubs,
+  memset (&blinded_r_pubs,
           42,
           sizeof (blinded_r_pubs));
   test_calc_blindedc (blindingsecrets,
@@ -577,7 +574,7 @@ main (int argc,
                       message,
                       message_len,
                       blinded_cs,
-                      blinded_r_pubs);
+                      &blinded_r_pubs);
 
   // ---------- actions performed by signer
   // sign blinded c's and get b and s in return
@@ -614,7 +611,7 @@ main (int argc,
 
   // verify unblinded signature
   struct GNUNET_CRYPTO_CsSignature signature;
-  signature.r_point = blinded_r_pubs[blinded_s.b];
+  signature.r_point = blinded_r_pubs.r_pub[blinded_s.b];
   signature.s_scalar = sig_scalar;
   test_verify (&signature,
                &pub,

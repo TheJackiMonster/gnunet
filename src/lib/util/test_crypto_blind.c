@@ -34,13 +34,12 @@ main (int argc,
 {
   struct GNUNET_CRYPTO_BlindSignPrivateKey *priv;
   struct GNUNET_CRYPTO_BlindSignPublicKey *pub;
-  struct GNUNET_CRYPTO_BlindingInputValues biv;
+  struct GNUNET_CRYPTO_BlindingInputValues *biv;
   struct GNUNET_CRYPTO_BlindedMessage *bm;
   struct GNUNET_CRYPTO_BlindedSignature *bsig;
   struct GNUNET_CRYPTO_UnblindedSignature *sig;
   union GNUNET_CRYPTO_BlindingSecretP bsec;
-  struct GNUNET_CRYPTO_CsSessionNonce nonce;
-  struct GNUNET_CRYPTO_CsRSecret cspriv[2];
+  union GNUNET_CRYPTO_BlindSessionNonce nonce;
 
   GNUNET_log_setup ("test-crypto-blind",
                     "WARNING",
@@ -55,21 +54,15 @@ main (int argc,
                  GNUNET_CRYPTO_blind_sign_keys_create (&priv,
                                                        &pub,
                                                        GNUNET_CRYPTO_BSA_CS));
-  biv.cipher  = GNUNET_CRYPTO_BSA_CS;
-  GNUNET_CRYPTO_cs_r_derive (&nonce,
-                             "salt",
-                             &priv->details.cs_private_key,
-                             cspriv);
-  GNUNET_CRYPTO_cs_r_get_public (&cspriv[0],
-                                 &biv.details.cs_values.r_pub[0]);
-  GNUNET_CRYPTO_cs_r_get_public (&cspriv[1],
-                                 &biv.details.cs_values.r_pub[1]);
+  biv = GNUNET_CRYPTO_get_blinding_input_values (priv,
+                                                 &nonce,
+                                                 "salt");
   bm = GNUNET_CRYPTO_message_blind_to_sign (pub,
                                             &bsec,
+                                            &nonce,
                                             "hello",
                                             5,
-                                            &biv);
-  bm->details.cs_blinded_message.nonce = nonce; // FIXME: ugly!
+                                            biv);
   bsig = GNUNET_CRYPTO_blind_sign (priv,
                                    "salt",
                                    bm);
@@ -77,7 +70,7 @@ main (int argc,
                                          &bsec,
                                          "hello",
                                          5,
-                                         &biv,
+                                         biv,
                                          pub);
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_CRYPTO_blind_sig_verify (pub,

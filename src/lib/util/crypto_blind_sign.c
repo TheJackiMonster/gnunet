@@ -388,10 +388,51 @@ GNUNET_CRYPTO_blind_sign_keys_create_va (
 }
 
 
+struct GNUNET_CRYPTO_BlindingInputValues *
+GNUNET_CRYPTO_get_blinding_input_values (
+  const struct GNUNET_CRYPTO_BlindSignPrivateKey *bsign_priv,
+  const union GNUNET_CRYPTO_BlindSessionNonce *nonce,
+  const char *salt)
+{
+  struct GNUNET_CRYPTO_BlindingInputValues *biv;
+
+  biv = GNUNET_new (struct GNUNET_CRYPTO_BlindingInputValues);
+  biv->cipher = bsign_priv->cipher;
+  biv->rc = 1;
+  switch (bsign_priv->cipher)
+  {
+  case GNUNET_CRYPTO_BSA_INVALID:
+    GNUNET_break (0);
+    GNUNET_free (biv);
+    return NULL;
+  case GNUNET_CRYPTO_BSA_RSA:
+    return biv;
+  case GNUNET_CRYPTO_BSA_CS:
+    {
+      struct GNUNET_CRYPTO_CsRSecret cspriv[2];
+
+      GNUNET_CRYPTO_cs_r_derive (&nonce->cs_nonce,
+                                 salt,
+                                 &bsign_priv->details.cs_private_key,
+                                 cspriv);
+      GNUNET_CRYPTO_cs_r_get_public (&cspriv[0],
+                                     &biv->details.cs_values.r_pub[0]);
+      GNUNET_CRYPTO_cs_r_get_public (&cspriv[1],
+                                     &biv->details.cs_values.r_pub[1]);
+      return biv;
+    }
+  }
+  GNUNET_break (0);
+  GNUNET_free (biv);
+  return NULL;
+}
+
+
 struct GNUNET_CRYPTO_BlindedMessage *
 GNUNET_CRYPTO_message_blind_to_sign (
   const struct GNUNET_CRYPTO_BlindSignPublicKey *bsign_pub,
   const union GNUNET_CRYPTO_BlindingSecretP *bks,
+  const union GNUNET_CRYPTO_BlindSessionNonce *nonce,
   const void *message,
   size_t message_size,
   const struct GNUNET_CRYPTO_BlindingInputValues *alg_values)
@@ -426,6 +467,12 @@ GNUNET_CRYPTO_message_blind_to_sign (
       struct GNUNET_CRYPTO_CSPublicRPairP blinded_r_pub;
       struct GNUNET_CRYPTO_CsBlindingSecret bs[2];
 
+      if (NULL == nonce)
+      {
+        GNUNET_break_op (0);
+        GNUNET_free (bm);
+        return NULL;
+      }
       GNUNET_CRYPTO_cs_blinding_secrets_derive (&bks->nonce,
                                                 bs);
       GNUNET_CRYPTO_cs_calc_blinded_c (
@@ -435,10 +482,9 @@ GNUNET_CRYPTO_message_blind_to_sign (
         message,
         message_size,
         bm->details.cs_blinded_message.c,
-        blinded_r_pub.r_pub);
+        &blinded_r_pub);
+      bm->details.cs_blinded_message.nonce = nonce->cs_nonce;
       (void) blinded_r_pub;
-      // FIXME: bs->details.cs_blinded_message.nonce
-      // is NOT initialized here. Not elegant!
       return bm;
     }
   }
@@ -562,7 +608,7 @@ GNUNET_CRYPTO_blind_sig_unblind (
         message,
         message_size,
         c,
-        r_pub_blind.r_pub);
+        &r_pub_blind);
       b = blinded_sig->details.blinded_cs_answer.b;
       ub_sig->details.cs_signature.r_point
         = r_pub_blind.r_pub[b];
