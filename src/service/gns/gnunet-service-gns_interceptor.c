@@ -251,8 +251,16 @@ reply_to_dns (void *cls, uint32_t rd_count,
           break;
 
         case GNUNET_DNSPARSER_TYPE_URI:
-          /* FIXME: URI is not yet supported */
-          skip_answers++;
+          additional_records[i - skip_additional].data.uri
+            = GNUNET_DNSPARSER_parse_uri (rd[i].data,
+                                           rd[i].data_size,
+                                           &off);
+          if ((off != rd[i].data_size) ||
+              (NULL == additional_records[i].data.uri))
+          {
+            GNUNET_break_op (0);
+            skip_additional++;
+          }
           break;
 
         default:
