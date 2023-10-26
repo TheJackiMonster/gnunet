@@ -35,7 +35,7 @@
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-program", __VA_ARGS__)
 
 #define LOG_STRERROR_FILE(kind, syscall, filename) \
-  GNUNET_log_from_strerror_file (kind, "util-program", syscall, filename)
+        GNUNET_log_from_strerror_file (kind, "util-program", syscall, filename)
 
 /**
  * Context for the command.
@@ -414,6 +414,7 @@ GNUNET_PROGRAM_run (int argc,
                               task_cls,
                               GNUNET_NO);
 }
+
 
 /* A list of daemons to be launched when GNUNET_main()
  * is called

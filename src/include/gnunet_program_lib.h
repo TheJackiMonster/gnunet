@@ -18,7 +18,7 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 
-#if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
+#if ! defined (__GNUNET_UTIL_LIB_H_INSIDE__)
 #error "Only <gnunet_util_lib.h> can be included directly."
 #endif
 
@@ -136,16 +136,17 @@ GNUNET_DAEMON_register (const char *daemon_name,
           int ret; \
           struct GNUNET_GETOPT_CommandLineOption options[] = { \
             GNUNET_GETOPT_OPTION_END \
-          };\
-          if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv)) \
-    return 2; \
-            ret =  GNUNET_PROGRAM_run (argc, \
-                                       argv, \
-                                       daemon_name, \
-                                       daemon_help, \
-                                       options, \
-                                       init_cb, \
-                                       NULL); \
+          }; \
+          if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, \
+                                                         &argv)) \
+          return 2; \
+          ret =  GNUNET_PROGRAM_run (argc, \
+                                     argv, \
+                                     daemon_name, \
+                                     daemon_help, \
+                                     options, \
+                                     init_cb, \
+                                     NULL); \
           GNUNET_free_nz ((void*) argv); \
           return ret; \
         }
@@ -159,7 +160,6 @@ GNUNET_DAEMON_register (const char *daemon_name,
                                          init_cb); \
         }
 #endif
-
 
 
 #if 0                           /* keep Emacsens' auto-indent happy */

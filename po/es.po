@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.9.5a\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2023-10-20 10:06+0200\n"
+"POT-Creation-Date: 2023-10-25 09:55+0200\n"
 "PO-Revision-Date: 2013-02-23 17:50+0100\n"
 "Last-Translator: Miguel Ángel Arruga Vivas <rosen644835@gmail.com>\n"
 "Language-Team: Spanish <es@li.org>\n"
@@ -3352,87 +3352,49 @@ msgstr ""
 msgid "Mutually exclusive records."
 msgstr ""
 
-#: src/lib/hello/gnunet-hello.c:303
+#: src/lib/hello/gnunet-hello.c:302
 #, c-format
 msgid "Error accessing file `%s': %s\n"
 msgstr "Error accediendo al fichero «%s»: %s\n"
 
-#: src/lib/hello/gnunet-hello.c:310
+#: src/lib/hello/gnunet-hello.c:309
 #, c-format
 msgid "File `%s' is too big to be a HELLO\n"
 msgstr "El fichero «%s» es demasiado grande para ser un «HELLO»\n"
 
-#: src/lib/hello/gnunet-hello.c:315
+#: src/lib/hello/gnunet-hello.c:314
 #, c-format
 msgid "File `%s' is too small to be a HELLO\n"
 msgstr "El fichero «%s» es demasiado pequeño para ser un «HELLO»\n"
 
-#: src/lib/hello/gnunet-hello.c:324 src/lib/hello/gnunet-hello.c:375
+#: src/lib/hello/gnunet-hello.c:323 src/lib/hello/gnunet-hello.c:374
 #, c-format
 msgid "Error opening file `%s': %s\n"
 msgstr "Error abriendo fichero «%s»: %s\n"
 
-#: src/lib/hello/gnunet-hello.c:339
+#: src/lib/hello/gnunet-hello.c:338
 #, c-format
 msgid "Did not find well-formed HELLO in file `%s'\n"
 msgstr "No se encontró un «HELLO» bien formado en el fichero «%s»\n"
 
-#: src/lib/hello/gnunet-hello.c:386
+#: src/lib/hello/gnunet-hello.c:385
 #, fuzzy, c-format
 msgid "Error writing HELLO to file `%s': %s expected size %u size written %u\n"
 msgstr "Error escribiendo «HELLO» al fichero «%s»: %s\n"
 
-#: src/lib/hello/gnunet-hello.c:395
+#: src/lib/hello/gnunet-hello.c:394
 #, c-format
 msgid "Modified %u addresses, wrote %u bytes\n"
 msgstr ""
 
-#: src/lib/hello/gnunet-hello.c:409
+#: src/lib/hello/gnunet-hello.c:408
 #, fuzzy
 msgid "Hello file to read"
 msgstr "fichero pem para usar como autoridad de certificación (CA)"
 
-#: src/lib/hello/gnunet-hello.c:418
+#: src/lib/hello/gnunet-hello.c:417
 msgid "Print information about peers."
 msgstr "Imprimir información sobre los pares."
-
-#: src/lib/hello/hello.c:1089
-msgid "Failed to parse HELLO message: missing expiration time\n"
-msgstr ""
-"Se produjo un fallo al procesar un mensaje «HELLO»: falta el tiempo de "
-"expiración\n"
-
-#: src/lib/hello/hello.c:1099
-msgid "Failed to parse HELLO message: invalid expiration time\n"
-msgstr ""
-"Se produjo un fallo al procesar un mensaje «HELLO»: tiempo de expiración no "
-"válido\n"
-
-#: src/lib/hello/hello.c:1109
-msgid "Failed to parse HELLO message: malformed\n"
-msgstr "Se produjo un fallo al procesar un mensaje «HELLO»: mal formado\n"
-
-#: src/lib/hello/hello.c:1121
-msgid "Failed to parse HELLO message: missing transport plugin\n"
-msgstr ""
-"Se produjo un fallo al procesar un mensaje «HELLO»: falta el módulo de "
-"transporte\n"
-
-#: src/lib/hello/hello.c:1139
-#, fuzzy, c-format
-msgid "Plugin `%s' not found, skipping address\n"
-msgstr "Módulo «%s» no encontrado\n"
-
-#: src/lib/hello/hello.c:1147
-#, c-format
-msgid "Plugin `%s' does not support URIs yet\n"
-msgstr "El módulo «%s» no soporta URI todavía\n"
-
-#: src/lib/hello/hello.c:1162
-#, c-format
-msgid "Failed to parse `%s' as an address for plugin `%s'\n"
-msgstr ""
-"Se produjo un fallo al procesar «%s» como una dirección para el módulo «%s»\n"
 
 #: src/lib/json/json.c:130
 #, fuzzy, c-format
@@ -3646,7 +3608,7 @@ msgstr ""
 #: src/plugin/datastore/plugin_datastore_sqlite.c:81
 #: src/plugin/namecache/plugin_namecache_sqlite.c:53
 #: src/plugin/namestore/plugin_namestore_sqlite.c:55
-#: src/service/peerstore/plugin_peerstore_sqlite.c:54
+#: src/plugin/peerstore/plugin_peerstore_sqlite.c:54
 #, c-format
 msgid "`%s' failed at %s:%d with error: %s\n"
 msgstr "«%s» falló en %s: %d con el error: %s\n"
@@ -4275,7 +4237,7 @@ msgstr "«%s» falló en %s:%u con el error: %s"
 #: src/plugin/datastore/plugin_datastore_sqlite.c:311
 #: src/plugin/namecache/plugin_namecache_sqlite.c:179
 #: src/plugin/namestore/plugin_namestore_sqlite.c:893
-#: src/service/peerstore/plugin_peerstore_sqlite.c:540
+#: src/plugin/peerstore/plugin_peerstore_sqlite.c:540
 #, c-format
 msgid "Unable to initialize SQLite: %s.\n"
 msgstr "Imposible inicializar SQLite: %s.\n"
@@ -4443,25 +4405,37 @@ msgstr "No se pudo procesar la cadena de registro TLSA «%s»\n"
 msgid "Unable to parse CAA record string `%s'\n"
 msgstr "No se pudo procesar la cadena de registro TLSA «%s»\n"
 
+#: src/plugin/messenger/plugin_gnsrecord_messenger.c:136
+#: src/plugin/messenger/plugin_gnsrecord_messenger.c:151
+#, fuzzy, c-format
+msgid "Unable to parse MESSENGER_ROOM_ENTRY record `%s'\n"
+msgstr "No se pudo procesar el registro SOA «%s»\n"
+
+#: src/plugin/messenger/plugin_gnsrecord_messenger.c:172
+#: src/plugin/messenger/plugin_gnsrecord_messenger.c:187
+#, fuzzy, c-format
+msgid "Unable to parse MESSENGER_ROOM_DETAILS record `%s'\n"
+msgstr "No se pudo procesar el registro SOA «%s»\n"
+
 #: src/plugin/namecache/plugin_namecache_flat.c:117
 #: src/plugin/namecache/plugin_namecache_flat.c:252
 #: src/plugin/namestore/plugin_namestore_flat.c:175
 #: src/plugin/namestore/plugin_namestore_flat.c:423
-#: src/service/peerstore/plugin_peerstore_flat.c:380
-#: src/service/peerstore/plugin_peerstore_flat.c:542
+#: src/plugin/peerstore/plugin_peerstore_flat.c:380
+#: src/plugin/peerstore/plugin_peerstore_flat.c:542
 #, fuzzy, c-format
 msgid "Unable to initialize file: %s.\n"
 msgstr "Imposible inicializar SQLite: %s.\n"
 
 #: src/plugin/namecache/plugin_namecache_flat.c:128
 #: src/plugin/namestore/plugin_namestore_flat.c:186
-#: src/service/peerstore/plugin_peerstore_flat.c:395
+#: src/plugin/peerstore/plugin_peerstore_flat.c:395
 #, fuzzy, c-format
 msgid "Unable to get filesize: %s.\n"
 msgstr "Se produjo un fallo al crear los índices\n"
 
 #: src/plugin/namecache/plugin_namecache_flat.c:147
-#: src/service/peerstore/plugin_peerstore_flat.c:407
+#: src/plugin/peerstore/plugin_peerstore_flat.c:407
 #, fuzzy, c-format
 msgid "Unable to read file: %s.\n"
 msgstr "Se produjo un fallo al crear los índices\n"
@@ -4502,6 +4476,25 @@ msgstr "Se produjo un fallo al inciar «%s» en «%s»\n"
 #, fuzzy
 msgid "SQlite database running\n"
 msgstr "Base de datos sqlite ejecutándose\n"
+
+#: src/plugin/peerstore/plugin_peerstore_sqlite.c:458
+#, fuzzy, c-format
+msgid ""
+"Error executing SQL query: %s\n"
+"  %s\n"
+msgstr "Error abriendo fichero «%s»: %s\n"
+
+#: src/plugin/peerstore/plugin_peerstore_sqlite.c:493
+#, fuzzy, c-format
+msgid ""
+"Error preparing SQL query: %s\n"
+"  %s\n"
+msgstr "Error leyendo de «%s»: %s\n"
+
+#: src/plugin/peerstore/plugin_peerstore_sqlite.c:575
+#, fuzzy, c-format
+msgid "Unable to create indices: %s.\n"
+msgstr "Se produjo un fallo al crear los índices\n"
 
 #: src/service/arm/gnunet-service-arm.c:391
 #, c-format
@@ -4763,8 +4756,8 @@ msgstr "# bytes de «payload» descifrados"
 #: src/service/core/gnunet-service-core_sessions.c:337
 #: src/service/fs/gnunet-service-fs_cp.c:475
 #: src/service/fs/gnunet-service-fs_cp.c:1368
-#: src/service/topology/gnunet-daemon-topology.c:522
-#: src/service/topology/gnunet-daemon-topology.c:604
+#: src/service/topology/gnunet-daemon-topology.c:532
+#: src/service/topology/gnunet-daemon-topology.c:614
 msgid "# peers connected"
 msgstr "# pares conectados"
 
@@ -5858,7 +5851,7 @@ msgstr ""
 
 #: src/service/fs/gnunet-service-fs.c:1271
 #: src/service/hostlist/gnunet-daemon-hostlist.c:343
-#: src/service/topology/gnunet-daemon-topology.c:966
+#: src/service/topology/gnunet-daemon-topology.c:991
 #, c-format
 msgid "Failed to connect to `%s' service.\n"
 msgstr "Se produjo un fallo al conectar con el servicio «%s».\n"
@@ -6246,14 +6239,14 @@ msgid "This program will import some GNS authorities into your GNS namestore."
 msgstr ""
 
 #: src/service/gns/gnunet-gns-proxy.c:116
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:533
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:761
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:770
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:824
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:836
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:946
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1048
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1056
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:550
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:778
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:787
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:841
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:853
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:963
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1065
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1073
 #, c-format
 msgid "%s failed at %s:%d: `%s'\n"
 msgstr "%s falló en %s:%d: «%s».\n"
@@ -6482,34 +6475,34 @@ msgstr "proveer un servidor de listas de máquinas"
 msgid "GNUnet hostlist server and client"
 msgstr "Servidor y cliente GNUnet de listas de máquinas"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:351
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:367
 msgid "# bytes downloaded from hostlist servers"
 msgstr "# bytes descargados de servidores de listas de máquinas"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:373
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:389
 msgid "# invalid HELLOs downloaded from hostlist servers"
 msgstr "# «HELLO» no válidos descargados de servidores de listas de máquinas"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:377
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:393
 #, c-format
 msgid "Invalid `%s' message received from hostlist at `%s'\n"
 msgstr "Mensaje «%s» no válido recibido de la lista de máquinas en «%s»\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:394
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:410
 msgid "# valid HELLOs downloaded from hostlist servers"
 msgstr "# «HELLO» válidos descargados de servidores de listas de máquinas"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:666
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1440
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:683
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1457
 msgid "# advertised hostlist URIs"
 msgstr "# URI de listas de máquinas anunciadas"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:698
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:715
 #, c-format
 msgid "# advertised URI `%s' downloaded"
 msgstr "# URI anunciadas «%s» descargadas"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:741
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:758
 #, c-format
 msgid ""
 "Advertised hostlist with URI `%s' could not be downloaded. Advertised URI "
@@ -6518,119 +6511,119 @@ msgstr ""
 "Lista de máquinas anunciada con la URI «%s» no pudo ser descargada. La URI "
 "anunciada es descartada.\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:875
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:892
 #, c-format
 msgid "Timeout trying to download hostlist from `%s'\n"
 msgstr ""
 "Finalizado el plazo mientras se intentaba bajar lista de máquinas de «%s»\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:890
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:907
 #, c-format
 msgid "Download limit of %u bytes exceeded, stopping download\n"
 msgstr "Límite de descarga de %u bytes superado, parando descarga\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:910
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:927
 #, c-format
 msgid "Download of hostlist from `%s' failed: `%s'\n"
 msgstr "Descarga de lista de máquinas de «%s» fallida: «%s»\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:916
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:933
 #, c-format
 msgid "Download of hostlist `%s' completed.\n"
 msgstr "Descarga de lista de máquinas «%s» completada.\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:924
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:941
 #, c-format
 msgid "Adding successfully tested hostlist `%s' datastore.\n"
 msgstr "Añadiendo el almacén de datos de la lista de máquinas probada «%s».\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:980
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:997
 #, c-format
 msgid "Bootstrapping using hostlist at `%s'.\n"
 msgstr "Inicializando usando lista de máquinas en «%s».\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:989
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1006
 msgid "# hostlist downloads initiated"
 msgstr "# descargas de listas de máquinas iniciadas"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1126
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1712
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1143
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1729
 msgid "# milliseconds between hostlist downloads"
 msgstr "# milisegundos entre descargas de listas de máquinas"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1136
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1153
 #, c-format
 msgid "Have %u/%u connections.  Will consider downloading hostlist in %s\n"
 msgstr ""
 "Hay %u/%u conexiones.  Se considerará descargar una lista de máquinas en %s\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1194
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1215
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1211
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1232
 msgid "# active connections"
 msgstr "# conexiones activas"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1376
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1393
 #, c-format
 msgid "Loading saved hostlist entries from file `%s' \n"
 msgstr "Cargando entradas guardadas de listas de máquinas del fichero «%s»\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1381
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1398
 #, c-format
 msgid "Hostlist file `%s' does not exist\n"
 msgstr "El fichero de listas de máquinas «%s» no existe\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1392
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1409
 #, c-format
 msgid "Could not open file `%s' for reading to load hostlists: %s\n"
 msgstr ""
 "No se pudo abrir el fichero «%s» en modo lectura para cargar las listas de "
 "máquinas: %s\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1433
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1450
 #, c-format
 msgid "%u hostlist URIs loaded from file\n"
 msgstr "%u URI de listas de máquinas cargadas del fichero\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1436
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1453
 msgid "# hostlist URIs read from file"
 msgstr "# URI de listas de máquinas leídas de fichero"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1487
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1504
 #, c-format
 msgid "Could not open file `%s' for writing to save hostlists: %s\n"
 msgstr ""
 "No se pudo abrir el fichero «%s» en modo escritura para almacenar las listas "
 "de máquinas: %s\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1494
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1511
 #, c-format
 msgid "Writing %u hostlist URIs to `%s'\n"
 msgstr "Escribiendo %u URI de listas de máquinas a «%s»\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1527
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1546
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1544
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1563
 #, c-format
 msgid "Error writing hostlist URIs to file `%s'\n"
 msgstr "Error escribiendo URI de listas de máquinas al fichero «%s»\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1540
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1557
 msgid "# hostlist URIs written to file"
 msgstr "# URI de listas de máquinas escritas a fichero"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1641
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1658
 #, c-format
 msgid "Invalid proxy type: `%s', disabling proxy! Check configuration!\n"
 msgstr ""
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1670
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1687
 msgid "Learning is enabled on this peer\n"
 msgstr "El aprendizaje está habilitado en este par\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1683
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1700
 msgid "Learning is not enabled on this peer\n"
 msgstr "El aprendizaje no está habilitado en este par\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1697
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1714
 #, c-format
 msgid ""
 "Since learning is not enabled on this peer, hostlist file `%s' was removed\n"
@@ -6687,7 +6680,7 @@ msgid "# hostlist advertisements send"
 msgstr "# anuncios de listas de máquinas enviados"
 
 #: src/service/hostlist/gnunet-daemon-hostlist_server.c:484
-#: src/service/topology/gnunet-daemon-topology.c:738
+#: src/service/topology/gnunet-daemon-topology.c:748
 #, fuzzy, c-format
 msgid "Error in communication with PEERSTORE service: %s\n"
 msgstr ""
@@ -6763,18 +6756,6 @@ msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
 #, fuzzy, c-format
 msgid "Failed to create directory `%s' for storing egos\n"
 msgstr "Se produjo un fallo al leer el directorio «%s»\n"
-
-#: src/service/messenger/plugin_gnsrecord_messenger.c:136
-#: src/service/messenger/plugin_gnsrecord_messenger.c:151
-#, fuzzy, c-format
-msgid "Unable to parse MESSENGER_ROOM_ENTRY record `%s'\n"
-msgstr "No se pudo procesar el registro SOA «%s»\n"
-
-#: src/service/messenger/plugin_gnsrecord_messenger.c:172
-#: src/service/messenger/plugin_gnsrecord_messenger.c:187
-#, fuzzy, c-format
-msgid "Unable to parse MESSENGER_ROOM_DETAILS record `%s'\n"
-msgstr "No se pudo procesar el registro SOA «%s»\n"
 
 #: src/service/namecache/namecache_api.c:283
 #, fuzzy
@@ -7166,39 +7147,20 @@ msgstr "Importando HELLO de «%s»\n"
 msgid "Skipping import of included HELLOs\n"
 msgstr ""
 
-#: src/service/peerstore/peerstore_api.c:718
-#: src/service/peerstore/peerstore_api.c:767
+#: src/service/peerstore/peerstore_api.c:672
+#: src/service/peerstore/peerstore_api.c:721
 #, fuzzy
 msgid "Unexpected iteration response, this should not happen.\n"
 msgstr "El formato de salida es desconocido, ésto no debería pasar.\n"
 
-#: src/service/peerstore/peerstore_api.c:781
+#: src/service/peerstore/peerstore_api.c:735
 #, fuzzy
 msgid "Received a malformed response from service."
 msgstr "Recibida petición DNS mal formada de %s\n"
 
-#: src/service/peerstore/peerstore_api.c:895
+#: src/service/peerstore/peerstore_api.c:849
 msgid "Received a watch result for a non existing watch.\n"
 msgstr ""
-
-#: src/service/peerstore/plugin_peerstore_sqlite.c:458
-#, fuzzy, c-format
-msgid ""
-"Error executing SQL query: %s\n"
-"  %s\n"
-msgstr "Error abriendo fichero «%s»: %s\n"
-
-#: src/service/peerstore/plugin_peerstore_sqlite.c:493
-#, fuzzy, c-format
-msgid ""
-"Error preparing SQL query: %s\n"
-"  %s\n"
-msgstr "Error leyendo de «%s»: %s\n"
-
-#: src/service/peerstore/plugin_peerstore_sqlite.c:575
-#, fuzzy, c-format
-msgid "Unable to create indices: %s.\n"
-msgstr "Se produjo un fallo al crear los índices\n"
 
 #: src/service/pt/gnunet-daemon-pt.c:416
 msgid "Failed to pack DNS request.  Dropping.\n"
@@ -7580,34 +7542,34 @@ msgstr "El fichero de topología %s no tiene datos\n"
 msgid "Topology file %s cannot be read\n"
 msgstr "El fichero de topología %s no puede ser leido\n"
 
-#: src/service/topology/gnunet-daemon-topology.c:257
+#: src/service/topology/gnunet-daemon-topology.c:267
 #, fuzzy
 msgid "# connect requests issued to ATS"
 msgstr "# peticiones de conexión requeridas al servicio de transporte"
 
 # gossiped??
-#: src/service/topology/gnunet-daemon-topology.c:451
+#: src/service/topology/gnunet-daemon-topology.c:461
 msgid "# HELLO messages gossipped"
 msgstr "# Mensajes «HELLO» rumoreados"
 
-#: src/service/topology/gnunet-daemon-topology.c:796
+#: src/service/topology/gnunet-daemon-topology.c:806
 msgid "Failed to connect to core service, can not manage topology!\n"
 msgstr ""
 "¡Se produjo un fallo al conectar con el servicio principal, no se puede "
 "gestionar la topología!\n"
 
-#: src/service/topology/gnunet-daemon-topology.c:859
+#: src/service/topology/gnunet-daemon-topology.c:876
 msgid "# HELLO messages received"
 msgstr "# mensajes «HELLO» recibidos"
 
-#: src/service/topology/gnunet-daemon-topology.c:995
+#: src/service/topology/gnunet-daemon-topology.c:1020
 msgid "GNUnet topology control"
 msgstr ""
 
 #: src/service/transport/gnunet-communicator-quic.c:1717
 #: src/service/transport/gnunet-communicator-tcp.c:3734
 #: src/service/transport/gnunet-communicator-udp.c:3358
-#: src/service/transport/gnunet-service-transport.c:11639
+#: src/service/transport/gnunet-service-transport.c:11663
 #, fuzzy
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr ""
@@ -7943,6 +7905,38 @@ msgstr "Se produjo un fallo al crear el espacio de nombres «%s»\n"
 #: src/service/zonemaster/gnunet-service-zonemaster.c:1335
 msgid "Failed to connect to the namestore!\n"
 msgstr "¡Se produjo un fallo al conectar con el almacén de nombres!\n"
+
+#~ msgid "Failed to parse HELLO message: missing expiration time\n"
+#~ msgstr ""
+#~ "Se produjo un fallo al procesar un mensaje «HELLO»: falta el tiempo de "
+#~ "expiración\n"
+
+#~ msgid "Failed to parse HELLO message: invalid expiration time\n"
+#~ msgstr ""
+#~ "Se produjo un fallo al procesar un mensaje «HELLO»: tiempo de expiración "
+#~ "no válido\n"
+
+#~ msgid "Failed to parse HELLO message: malformed\n"
+#~ msgstr "Se produjo un fallo al procesar un mensaje «HELLO»: mal formado\n"
+
+#~ msgid "Failed to parse HELLO message: missing transport plugin\n"
+#~ msgstr ""
+#~ "Se produjo un fallo al procesar un mensaje «HELLO»: falta el módulo de "
+#~ "transporte\n"
+
+#, fuzzy, c-format
+#~ msgid "Plugin `%s' not found, skipping address\n"
+#~ msgstr "Módulo «%s» no encontrado\n"
+
+#, c-format
+#~ msgid "Plugin `%s' does not support URIs yet\n"
+#~ msgstr "El módulo «%s» no soporta URI todavía\n"
+
+#, c-format
+#~ msgid "Failed to parse `%s' as an address for plugin `%s'\n"
+#~ msgstr ""
+#~ "Se produjo un fallo al procesar «%s» como una dirección para el módulo "
+#~ "«%s»\n"
 
 #, fuzzy
 #~ msgid "Expired HELLO encountered (ignored)"
