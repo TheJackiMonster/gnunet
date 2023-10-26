@@ -99,7 +99,7 @@ GNUNET_CRYPTO_unblinded_sig_decref (struct GNUNET_CRYPTO_UnblindedSignature *ub_
     break;
   case GNUNET_CRYPTO_BSA_CS:
     ub_sig->cipher = GNUNET_CRYPTO_BSA_INVALID;
-    return;
+    break;
   }
   GNUNET_free (ub_sig);
 }
