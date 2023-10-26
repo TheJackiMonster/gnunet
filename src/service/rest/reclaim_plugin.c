@@ -1435,7 +1435,8 @@ list_ego (void *cls,
 
 
 enum GNUNET_GenericReturnValue
-REST_reclaim_process_request (struct GNUNET_REST_RequestHandle *rest_handle,
+REST_reclaim_process_request (void *plugin,
+                              struct GNUNET_REST_RequestHandle *rest_handle,
                               GNUNET_REST_ResultProcessor proc,
                               void *proc_cls)
 {
