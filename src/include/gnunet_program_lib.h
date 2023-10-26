@@ -122,6 +122,45 @@ GNUNET_PROGRAM_run (int argc,
                     GNUNET_PROGRAM_Main task,
                     void *task_cls);
 
+enum GNUNET_GenericReturnValue
+GNUNET_DAEMON_register (const char *daemon_name,
+                        const char *daemon_desc,
+                        GNUNET_PROGRAM_Main task);
+
+#ifndef HAVE_GNUNET_MONOLITH
+#define GNUNET_DAEMON_MAIN(daemon_name, daemon_help, init_cb) \
+        int \
+        main (int argc, \
+              char *const *argv) \
+        { \
+          int ret; \
+          struct GNUNET_GETOPT_CommandLineOption options[] = { \
+            GNUNET_GETOPT_OPTION_END \
+          };\
+          if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv)) \
+    return 2; \
+            ret =  GNUNET_PROGRAM_run (argc, \
+                                       argv, \
+                                       daemon_name, \
+                                       daemon_help, \
+                                       options, \
+                                       init_cb, \
+                                       NULL); \
+          GNUNET_free_nz ((void*) argv); \
+          return ret; \
+        }
+#else
+#define GNUNET_DAEMON_MAIN(daemon_name, daemon_help, init_cb) \
+        static int __attribute__ ((constructor)) \
+        init (void) \
+        { \
+          return GNUNET_DAEMON_register (daemon_name, \
+                                         daemon_help, \
+                                         init_cb); \
+        }
+#endif
+
+
 
 #if 0                           /* keep Emacsens' auto-indent happy */
 {

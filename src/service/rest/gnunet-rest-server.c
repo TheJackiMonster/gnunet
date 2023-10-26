@@ -1028,6 +1028,7 @@ do_shutdown (void *cls)
   kill_httpd ();
   GNUNET_free (allow_credentials);
   GNUNET_free (allow_headers);
+  MHD_destroy_response (failure_response);
 }
 
 
@@ -1145,10 +1146,10 @@ setup_plugin (const char *name,
  */
 static void
 run (void *cls,
-     char *const *args,
-     const char *cfgfile,
-     const struct GNUNET_CONFIGURATION_Handle *c)
+     const struct GNUNET_CONFIGURATION_Handle *c,
+     struct GNUNET_SERVICE_Handle *service)
 {
+  static const char *err_page = "{}";
   char *addr_str;
   char *basic_auth_file;
   uint64_t secret;
@@ -1156,6 +1157,9 @@ run (void *cls,
   cfg = c;
   plugins_head = NULL;
   plugins_tail = NULL;
+  failure_response = MHD_create_response_from_buffer (strlen (err_page),
+                                                      (void *) err_page,
+                                                      MHD_RESPMEM_PERSISTENT);
   /* Get port to bind to */
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_number (cfg, "rest", "HTTP_PORT", &port))
@@ -1419,42 +1423,6 @@ run (void *cls,
 }
 
 
-/**
- *
- * The main function for gnunet-rest-service
- *
- * @param argc number of arguments from the cli
- * @param argv command line arguments
- * @return 0 ok, 1 on error
- *
- */
-int
-main (int argc, char *const *argv)
-{
-  struct GNUNET_GETOPT_CommandLineOption options[] =
-  { GNUNET_GETOPT_OPTION_END };
-  static const char *err_page = "{}";
-  int ret;
-
-  if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
-    return 2;
-  GNUNET_log_setup ("gnunet-rest-server", "WARNING", NULL);
-  failure_response = MHD_create_response_from_buffer (strlen (err_page),
-                                                      (void *) err_page,
-                                                      MHD_RESPMEM_PERSISTENT);
-  ret = (GNUNET_OK == GNUNET_PROGRAM_run (argc,
-                                          argv,
-                                          "gnunet-rest-server",
-                                          _ ("GNUnet REST server"),
-                                          options,
-                                          &run,
-                                          NULL))
-        ? 0
-        : 1;
-  MHD_destroy_response (failure_response);
-  GNUNET_free_nz ((char *) argv);
-  return ret;
-}
-
+GNUNET_DAEMON_MAIN("rest", _("GNUnet REST service"), &run)
 
 /* end of gnunet-rest-server.c */

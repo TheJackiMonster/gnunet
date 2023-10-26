@@ -415,5 +415,39 @@ GNUNET_PROGRAM_run (int argc,
                               GNUNET_NO);
 }
 
+/* A list of daemons to be launched when GNUNET_main()
+ * is called
+ */
+struct DaemonHandleList
+{
+  /* DLL */
+  struct DaemonHandleList *prev;
+
+  /* DLL */
+  struct DaemonHandleList *next;
+
+  /* Program to launch */
+  GNUNET_PROGRAM_Main d;
+};
+
+/* The daemon list */
+static struct DaemonHandleList *hll_head = NULL;
+
+/* The daemon list */
+static struct DaemonHandleList *hll_tail = NULL;
+
+enum GNUNET_GenericReturnValue
+GNUNET_DAEMON_register (const char *daemon_name,
+                        const char *daemon_help,
+                        GNUNET_PROGRAM_Main task)
+{
+  struct DaemonHandleList *hle;
+
+  hle = GNUNET_new (struct DaemonHandleList);
+  hle->d = task;
+  GNUNET_CONTAINER_DLL_insert (hll_head, hll_tail, hle);
+  return GNUNET_OK;
+}
+
 
 /* end of program.c */
