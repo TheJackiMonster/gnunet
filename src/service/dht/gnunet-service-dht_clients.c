@@ -1203,7 +1203,7 @@ handle_dht_local_hello_offer (void *cls,
   struct ClientHandle *ch = cls;
   const char *url = (const char *) &msg[1];
   struct GNUNET_HELLO_Builder *b;
-  struct GNUNET_PeerIdentity pid;
+  struct GNUNET_PeerIdentity *pid;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Local client provided HELLO URL %s\n",
@@ -1216,10 +1216,12 @@ handle_dht_local_hello_offer (void *cls,
     return;
   }
   GNUNET_SERVICE_client_continue (ch->client);
+  pid = GNUNET_new (struct GNUNET_PeerIdentity);
   GNUNET_HELLO_builder_iterate (b,
-                                &pid,
+                                pid,
                                 &GDS_try_connect,
-                                &pid);
+                                pid);
+  GNUNET_free (pid);
   GNUNET_HELLO_builder_free (b);
 }
 

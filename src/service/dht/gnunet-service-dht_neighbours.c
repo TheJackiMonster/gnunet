@@ -1300,7 +1300,7 @@ get_target_peers (const struct GNUNET_HashCode *key,
 static void
 hello_check (const struct GNUNET_DATACACHE_Block *bd)
 {
-  struct GNUNET_PeerIdentity pid;
+  struct GNUNET_PeerIdentity *pid;
   struct GNUNET_HELLO_Builder *b;
 
   if (GNUNET_BLOCK_TYPE_DHT_HELLO != bd->type)
@@ -1309,10 +1309,14 @@ hello_check (const struct GNUNET_DATACACHE_Block *bd)
   b = GNUNET_HELLO_builder_from_block (bd->data,
                                        bd->data_size);
   if (GNUNET_YES != disable_try_connect)
+  {
+    pid = GNUNET_new (struct GNUNET_PeerIdentity);
     GNUNET_HELLO_builder_iterate (b,
-                                  &pid,
+                                  pid,
                                   &GDS_try_connect,
-                                  &pid);
+                                  pid);
+    GNUNET_free (pid);
+  }
   GNUNET_HELLO_builder_free (b);
 }
 
