@@ -8655,6 +8655,7 @@ handle_hello_for_incoming (void *cls,
                            const char *emsg)
 {
   struct GNUNET_HELLO_Builder *builder;
+  struct GNUNET_PeerIdentity *pid;
 
   if (NULL != emsg)
   {
@@ -8665,11 +8666,14 @@ handle_hello_for_incoming (void *cls,
   }
   if (0 == GNUNET_memcmp (peer, &GST_my_identity))
     return;
-  builder = GNUNET_HELLO_builder_new (peer);
+  builder = GNUNET_HELLO_builder_from_msg (hello);
+  pid = GNUNET_new (struct GNUNET_PeerIdentity);
   GNUNET_HELLO_builder_iterate (builder,
                                 (struct GNUNET_PeerIdentity *) peer,
                                 hello_for_incoming_cb,
                                 (struct GNUNET_PeerIdentity *) peer);
+  GNUNET_free (pid);
+  GNUNET_HELLO_builder_free (builder);
 }
 
 
@@ -11289,6 +11293,7 @@ handle_hello_for_client (void *cls,
 {
   (void) cls;
   struct GNUNET_HELLO_Builder *builder;
+  struct GNUNET_PeerIdentity *pid;
 
   if (NULL != emsg)
   {
@@ -11299,11 +11304,14 @@ handle_hello_for_client (void *cls,
   }
   if (0 == GNUNET_memcmp (peer, &GST_my_identity))
     return;
-  builder = GNUNET_HELLO_builder_new (peer);
+  builder = GNUNET_HELLO_builder_from_msg (hello);
+  pid = GNUNET_new (struct GNUNET_PeerIdentity);
   GNUNET_HELLO_builder_iterate (builder,
                                 (struct GNUNET_PeerIdentity *) peer,
                                 hello_for_client_cb,
                                 NULL);
+  GNUNET_free (pid);
+  GNUNET_HELLO_builder_free (builder);
 }
 
 
