@@ -153,6 +153,8 @@ announce_id (void *cls)
   struct GNUNET_HashCode phash;
   const struct GNUNET_MessageHeader *hello;
   size_t size;
+  size_t block_size;
+  void *block;
   struct GNUNET_TIME_Absolute expiration;
   struct GNUNET_TIME_Relative next_put;
 
@@ -194,17 +196,24 @@ announce_id (void *cls)
   GNUNET_memcpy (&phash,
                  &my_full_id,
                  sizeof(my_full_id));
+  if (GNUNET_OK != GNUNET_HELLO_dht_msg_to_block (hello,
+                                                  &my_full_id,
+                                                  &block,
+                                                  &block_size,
+                                                  &expiration))
+    return;
+
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Announcing my HELLO (%lu bytes) in the DHT\n",
-       (unsigned long) size);
+       (unsigned long) block_size);
   GNUNET_DHT_put (dht_handle,    /* DHT handle */
                   &phash,       /* Key to use */
                   dht_replication_level,     /* Replication level */
                   GNUNET_DHT_RO_RECORD_ROUTE
                   | GNUNET_DHT_RO_DEMULTIPLEX_EVERYWHERE,    /* DHT options */
                   GNUNET_BLOCK_TYPE_DHT_HELLO,       /* Block type */
-                  size,  /* Size of the data */
-                  (const char *) hello, /* Data itself */
+                  block_size,  /* Size of the data */
+                  (const char *) block, /* Data itself */
                   expiration,  /* Data expiration */
                   NULL,         /* Continuation */
                   NULL);        /* Continuation closure */
