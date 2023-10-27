@@ -665,30 +665,44 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
     pe = getprotobyname (proto_name);
     if (NULL == pe)
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                  _ ("Protocol `%s' unknown, skipping labels.\n"),
-                  proto_name);
-      GNUNET_free (proto_name);
-      GNUNET_free (srv_name);
-      return ret;
+      if (strcmp(proto_name, "trust") == 0){
+        pe = GNUNET_new(struct protoent);
+        pe->p_name = "trust";
+        pe->p_proto = 242;
+      } else {
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                    _ ("Protocol `%s' unknown, skipping labels.\n"),
+                    proto_name);
+        GNUNET_free (proto_name);
+        GNUNET_free (srv_name);
+        return ret;
+      }
     }
     se = getservbyname (srv_name,
                         proto_name);
     if (NULL == se)
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                  _ (
-                    "Service `%s' unknown for protocol `%s', trying as number.\n"),
-                  srv_name,
-                  proto_name);
-      if (1 != sscanf (srv_name, "%u", &rh->service))
-      {
+      if(strcmp(proto_name,"trust") == 0 && (strcmp(srv_name,"trustlist") == 0 || strcmp(srv_name,"scheme") == 0)){
+        if(strcmp(srv_name,"trustlist") == 0) {
+          rh->service = 1002;
+        } else if (strcmp(srv_name,"scheme") == 0) {
+          rh->service = 1003;
+        }
+      } else {
         GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                    _ ("Service `%s' not a port, skipping service labels.\n"),
-                    srv_name);
-        GNUNET_free (proto_name);
-        GNUNET_free (srv_name);
-        return ret;
+                    _ (
+                      "Service `%s' unknown for protocol `%s', trying as number.\n"),
+                    srv_name,
+                    proto_name);
+        if (1 != sscanf (srv_name, "%u", &rh->service))
+        {
+          GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                      _ ("Service `%s' not a port, skipping service labels.\n"),
+                      srv_name);
+          GNUNET_free (proto_name);
+          GNUNET_free (srv_name);
+          return ret;
+        }
       }
     }
     else
