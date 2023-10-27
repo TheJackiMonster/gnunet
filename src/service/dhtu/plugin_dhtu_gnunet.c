@@ -408,6 +408,7 @@ peerinfo_cb (void *cls,
 {
   struct Plugin *plugin = cls;
   struct GNUNET_HELLO_Builder *builder;
+  struct GNUNET_PeerIdentity pid;
 
   if (NULL == hello)
     return;
@@ -419,7 +420,7 @@ peerinfo_cb (void *cls,
     return;
   builder = GNUNET_HELLO_builder_from_msg (hello);
   GNUNET_HELLO_builder_iterate (builder,
-                                (struct GNUNET_PeerIdentity *) peer,
+                                &pid,
                                 add_addr,
                                 plugin);
   GNUNET_HELLO_builder_free (builder);

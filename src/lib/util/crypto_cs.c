@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet
-   Copyright (C) 2014,2016,2019 GNUnet e.V.
+   Copyright (C) 2014,2016,2019, 2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -53,8 +53,9 @@ GNUNET_CRYPTO_cs_private_key_get_public (
   const struct GNUNET_CRYPTO_CsPrivateKey *priv,
   struct GNUNET_CRYPTO_CsPublicKey *pub)
 {
-  GNUNET_assert (0 == crypto_scalarmult_ed25519_base_noclamp (pub->point.y,
-                                                              priv->scalar.d));
+  GNUNET_assert (0 ==
+                 crypto_scalarmult_ed25519_base_noclamp (pub->point.y,
+                                                         priv->scalar.d));
 }
 
 
@@ -75,7 +76,7 @@ map_to_scalar_subgroup (struct GNUNET_CRYPTO_Cs25519Scalar *scalar)
 
 
 void
-GNUNET_CRYPTO_cs_r_derive (const struct GNUNET_CRYPTO_CsNonce *nonce,
+GNUNET_CRYPTO_cs_r_derive (const struct GNUNET_CRYPTO_CsSessionNonce *nonce,
                            const char *seed,
                            const struct GNUNET_CRYPTO_CsPrivateKey *lts,
                            struct GNUNET_CRYPTO_CsRSecret r[2])
@@ -84,7 +85,7 @@ GNUNET_CRYPTO_cs_r_derive (const struct GNUNET_CRYPTO_CsNonce *nonce,
     GNUNET_YES ==
     GNUNET_CRYPTO_kdf (
       r,     sizeof (struct GNUNET_CRYPTO_CsRSecret) * 2,
-      seed,   strlen (seed),
+      seed,  strlen (seed),
       lts,   sizeof (*lts),
       nonce, sizeof (*nonce),
       NULL,  0));
@@ -97,14 +98,15 @@ void
 GNUNET_CRYPTO_cs_r_get_public (const struct GNUNET_CRYPTO_CsRSecret *r_priv,
                                struct GNUNET_CRYPTO_CsRPublic *r_pub)
 {
-  GNUNET_assert (0 == crypto_scalarmult_ed25519_base_noclamp (r_pub->point.y,
-                                                              r_priv->scalar.d));
+  GNUNET_assert (0 ==
+                 crypto_scalarmult_ed25519_base_noclamp (r_pub->point.y,
+                                                         r_priv->scalar.d));
 }
 
 
 void
 GNUNET_CRYPTO_cs_blinding_secrets_derive (
-  const struct GNUNET_CRYPTO_CsNonce *blind_seed,
+  const struct GNUNET_CRYPTO_CsBlindingNonce *blind_seed,
   struct GNUNET_CRYPTO_CsBlindingSecret bs[2])
 {
   GNUNET_assert (
@@ -156,8 +158,12 @@ cs_full_domain_hash (const struct GNUNET_CRYPTO_CsRPublic *r_dash,
   // SHA-512 hash of R' and message
   size_t r_m_concat_len = sizeof(struct GNUNET_CRYPTO_CsRPublic) + msg_len;
   char r_m_concat[r_m_concat_len];
-  memcpy (r_m_concat, r_dash, sizeof(struct GNUNET_CRYPTO_CsRPublic));
-  memcpy (r_m_concat + sizeof(struct GNUNET_CRYPTO_CsRPublic), msg, msg_len);
+  memcpy (r_m_concat,
+          r_dash,
+          sizeof(struct GNUNET_CRYPTO_CsRPublic));
+  memcpy (r_m_concat + sizeof(struct GNUNET_CRYPTO_CsRPublic),
+          msg,
+          msg_len);
   struct GNUNET_HashCode prehash;
 
   GNUNET_CRYPTO_hash (r_m_concat,
@@ -208,22 +214,26 @@ calc_r_dash (const struct GNUNET_CRYPTO_CsBlindingSecret *bs,
 {
   // R'i = Ri + alpha i*G + beta i*pub
   struct GNUNET_CRYPTO_Cs25519Point alpha_mul_base;
-  GNUNET_assert (0 == crypto_scalarmult_ed25519_base_noclamp (
+  GNUNET_assert (0 ==
+                 crypto_scalarmult_ed25519_base_noclamp (
                    alpha_mul_base.y,
                    bs->alpha.d));
   struct GNUNET_CRYPTO_Cs25519Point beta_mul_pub;
-  GNUNET_assert (0 == crypto_scalarmult_ed25519_noclamp (beta_mul_pub.y,
-                                                         bs->beta.d,
-                                                         pub->point.y));
+  GNUNET_assert (0 ==
+                 crypto_scalarmult_ed25519_noclamp (
+                   beta_mul_pub.y,
+                   bs->beta.d,
+                   pub->point.y));
   struct GNUNET_CRYPTO_Cs25519Point alpha_mul_base_plus_beta_mul_pub;
   GNUNET_assert (0 == crypto_core_ed25519_add (
                    alpha_mul_base_plus_beta_mul_pub.y,
                    alpha_mul_base.y,
                    beta_mul_pub.y));
-  GNUNET_assert (0 == crypto_core_ed25519_add (blinded_r_pub->point.y,
-                                               r_pub->point.y,
-                                               alpha_mul_base_plus_beta_mul_pub.
-                                               y));
+  GNUNET_assert (0 ==
+                 crypto_core_ed25519_add (
+                   blinded_r_pub->point.y,
+                   r_pub->point.y,
+                   alpha_mul_base_plus_beta_mul_pub.y));
 }
 
 
@@ -235,19 +245,33 @@ GNUNET_CRYPTO_cs_calc_blinded_c (
   const void *msg,
   size_t msg_len,
   struct GNUNET_CRYPTO_CsC blinded_c[2],
-  struct GNUNET_CRYPTO_CsRPublic blinded_r_pub[2])
+  struct GNUNET_CRYPTO_CSPublicRPairP *r_pub_blind)
 {
-  // for i 0/1: R'i = Ri + alpha i*G + beta i*pub
-  calc_r_dash (&bs[0], &r_pub[0], pub, &blinded_r_pub[0]);
-  calc_r_dash (&bs[1], &r_pub[1], pub, &blinded_r_pub[1]);
+  /* for i 0/1: R'i = Ri + alpha i*G + beta i*pub */
+  calc_r_dash (&bs[0],
+               &r_pub[0],
+               pub,
+               &r_pub_blind->r_pub[0]);
+  calc_r_dash (&bs[1],
+               &r_pub[1],
+               pub,
+               &r_pub_blind->r_pub[1]);
 
-  // for i 0/1: c'i = H(R'i, msg)
+  /* for i 0/1: c'i = H(R'i, msg) */
   struct GNUNET_CRYPTO_CsC c_dash_0;
   struct GNUNET_CRYPTO_CsC c_dash_1;
-  cs_full_domain_hash (&blinded_r_pub[0], msg, msg_len, pub, &c_dash_0);
-  cs_full_domain_hash (&blinded_r_pub[1], msg, msg_len, pub, &c_dash_1);
+  cs_full_domain_hash (&r_pub_blind->r_pub[0],
+                       msg,
+                       msg_len,
+                       pub,
+                       &c_dash_0);
+  cs_full_domain_hash (&r_pub_blind->r_pub[1],
+                       msg,
+                       msg_len,
+                       pub,
+                       &c_dash_1);
 
-  // for i 0/1: ci = c'i + beta i mod p
+  /* for i 0/1: ci = c'i + beta i mod p */
   crypto_core_ed25519_scalar_add (blinded_c[0].scalar.d,
                                   c_dash_0.scalar.d,
                                   bs[0].beta.d);
@@ -257,17 +281,17 @@ GNUNET_CRYPTO_cs_calc_blinded_c (
 }
 
 
-unsigned int
+void
 GNUNET_CRYPTO_cs_sign_derive (
   const struct GNUNET_CRYPTO_CsPrivateKey *priv,
   const struct GNUNET_CRYPTO_CsRSecret r[2],
-  const struct GNUNET_CRYPTO_CsC c[2],
-  const struct GNUNET_CRYPTO_CsNonce *nonce,
-  struct GNUNET_CRYPTO_CsBlindS *blinded_signature_scalar)
+  const struct GNUNET_CRYPTO_CsBlindedMessage *bm,
+  struct GNUNET_CRYPTO_CsBlindSignature *cs_blind_sig)
 {
+  struct GNUNET_CRYPTO_Cs25519Scalar c_b_mul_priv;
   uint32_t hkdf_out;
 
-  // derive clause session identifier b (random bit)
+  /* derive clause session identifier b (random bit) */
   GNUNET_assert (GNUNET_YES ==
                  GNUNET_CRYPTO_hkdf (&hkdf_out,
                                      sizeof (hkdf_out),
@@ -277,22 +301,19 @@ GNUNET_CRYPTO_cs_sign_derive (
                                      strlen ("b"),
                                      priv,
                                      sizeof (*priv),
-                                     nonce,
-                                     sizeof (*nonce),
+                                     &bm->nonce,
+                                     sizeof (bm->nonce),
                                      NULL,
                                      0));
-  unsigned int b = hkdf_out % 2;
+  cs_blind_sig->b = hkdf_out % 2;
 
-  // s = r_b + c_b priv
-  struct GNUNET_CRYPTO_Cs25519Scalar c_b_mul_priv;
+  /* s = r_b + c_b * priv */
   crypto_core_ed25519_scalar_mul (c_b_mul_priv.d,
-                                  c[b].scalar.d,
+                                  bm->c[cs_blind_sig->b].scalar.d,
                                   priv->scalar.d);
-  crypto_core_ed25519_scalar_add (blinded_signature_scalar->scalar.d,
-                                  r[b].scalar.d,
+  crypto_core_ed25519_scalar_add (cs_blind_sig->s_scalar.scalar.d,
+                                  r[cs_blind_sig->b].scalar.d,
                                   c_b_mul_priv.d);
-
-  return b;
 }
 
 
@@ -325,7 +346,8 @@ GNUNET_CRYPTO_cs_verify (const struct GNUNET_CRYPTO_CsSignature *sig,
 
   // s'G ?= R' + c' pub
   struct GNUNET_CRYPTO_Cs25519Point sig_scal_mul_base;
-  GNUNET_assert (0 == crypto_scalarmult_ed25519_base_noclamp (
+  GNUNET_assert (0 ==
+                 crypto_scalarmult_ed25519_base_noclamp (
                    sig_scal_mul_base.y,
                    sig->s_scalar.scalar.d));
   struct GNUNET_CRYPTO_Cs25519Point c_dash_mul_pub;

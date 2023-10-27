@@ -530,9 +530,12 @@ checkvec (const char *operation,
       return GNUNET_NO;
     }
 
-    GNUNET_CRYPTO_ecdh_eddsa (&priv_ecdhe, &pub_eddsa, &key_material_comp);
+    GNUNET_CRYPTO_ecdh_eddsa (&priv_ecdhe,
+                              &pub_eddsa,
+                              &key_material_comp);
 
-    if (0 != GNUNET_memcmp (&key_material, &key_material_comp))
+    if (0 != GNUNET_memcmp (&key_material,
+                            &key_material_comp))
     {
       GNUNET_break (0);
       return GNUNET_NO;
@@ -546,10 +549,8 @@ checkvec (const char *operation,
     struct GNUNET_CRYPTO_RsaBlindingKeySecret bks;
     struct GNUNET_CRYPTO_RsaSignature *blinded_sig;
     struct GNUNET_CRYPTO_RsaSignature *sig;
-    void *blinded_data;
-    size_t blinded_len;
-    void *blinded_data_comp;
-    size_t blinded_len_comp;
+    struct GNUNET_CRYPTO_RsaBlindedMessage bm;
+    struct GNUNET_CRYPTO_RsaBlindedMessage bm_comp;
     void *public_enc_data;
     size_t public_enc_len;
     void *secret_enc_data;
@@ -559,60 +560,63 @@ checkvec (const char *operation,
     void *sig_enc_data_comp;
     size_t sig_enc_length_comp;
 
-    if (GNUNET_OK != expect_data_fixed (vec,
-                                        "message_hash",
-                                        &message_hash,
-                                        sizeof (message_hash)))
+    if (GNUNET_OK !=
+        expect_data_fixed (vec,
+                           "message_hash",
+                           &message_hash,
+                           sizeof (message_hash)))
     {
       GNUNET_break (0);
       return GNUNET_SYSERR;
     }
 
-    if (GNUNET_OK != expect_data_fixed (vec,
-                                        "blinding_key_secret",
-                                        &bks,
-                                        sizeof (bks)))
+    if (GNUNET_OK !=
+        expect_data_fixed (vec,
+                           "blinding_key_secret",
+                           &bks,
+                           sizeof (bks)))
     {
       GNUNET_break (0);
       return GNUNET_SYSERR;
     }
 
-    if (GNUNET_OK != expect_data_dynamic (vec,
-                                          "blinded_message",
-                                          &blinded_data,
-                                          &blinded_len))
+    if (GNUNET_OK !=
+        expect_data_dynamic (vec,
+                             "blinded_message",
+                             &bm.blinded_msg,
+                             &bm.blinded_msg_size))
     {
       GNUNET_break (0);
       return GNUNET_SYSERR;
     }
-
-    if (GNUNET_OK != expect_data_dynamic (vec,
-                                          "rsa_public_key",
-                                          &public_enc_data,
-                                          &public_enc_len))
+    if (GNUNET_OK !=
+        expect_data_dynamic (vec,
+                             "rsa_public_key",
+                             &public_enc_data,
+                             &public_enc_len))
     {
-      GNUNET_free (blinded_data);
+      GNUNET_CRYPTO_rsa_blinded_message_free (&bm);
       GNUNET_break (0);
       return GNUNET_SYSERR;
     }
-
-    if (GNUNET_OK != expect_data_dynamic (vec,
-                                          "rsa_private_key",
-                                          &secret_enc_data,
-                                          &secret_enc_len))
+    if (GNUNET_OK !=
+        expect_data_dynamic (vec,
+                             "rsa_private_key",
+                             &secret_enc_data,
+                             &secret_enc_len))
     {
-      GNUNET_free (blinded_data);
+      GNUNET_CRYPTO_rsa_blinded_message_free (&bm);
       GNUNET_free (public_enc_data);
       GNUNET_break (0);
       return GNUNET_SYSERR;
     }
-
-    if (GNUNET_OK != expect_data_dynamic (vec,
-                                          "sig",
-                                          &sig_enc_data,
-                                          &sig_enc_length))
+    if (GNUNET_OK !=
+        expect_data_dynamic (vec,
+                             "sig",
+                             &sig_enc_data,
+                             &sig_enc_length))
     {
-      GNUNET_free (blinded_data);
+      GNUNET_CRYPTO_rsa_blinded_message_free (&bm);
       GNUNET_free (public_enc_data);
       GNUNET_free (secret_enc_data);
       GNUNET_break (0);
@@ -628,16 +632,18 @@ checkvec (const char *operation,
 
     GNUNET_assert (GNUNET_YES ==
                    GNUNET_CRYPTO_rsa_blind (&message_hash,
+                                            sizeof (message_hash),
                                             &bks,
                                             pkey,
-                                            &blinded_data_comp,
-                                            &blinded_len_comp));
-    if ( (blinded_len != blinded_len_comp) || (0 != memcmp (blinded_data,
-                                                            blinded_data_comp,
-                                                            blinded_len)) )
+                                            &bm_comp));
+    if ( (bm.blinded_msg_size !=
+          bm_comp.blinded_msg_size) ||
+         (0 != memcmp (bm.blinded_msg,
+                       bm_comp.blinded_msg,
+                       bm.blinded_msg_size)) )
     {
-      GNUNET_free (blinded_data);
-      GNUNET_free (blinded_data_comp);
+      GNUNET_CRYPTO_rsa_blinded_message_free (&bm);
+      GNUNET_CRYPTO_rsa_blinded_message_free (&bm_comp);
       GNUNET_free (public_enc_data);
       GNUNET_free (secret_enc_data);
       GNUNET_free (sig_enc_data);
@@ -646,12 +652,17 @@ checkvec (const char *operation,
       GNUNET_break (0);
       return GNUNET_NO;
     }
-    blinded_sig = GNUNET_CRYPTO_rsa_sign_blinded (skey, blinded_data,
-                                                  blinded_len);
-    sig = GNUNET_CRYPTO_rsa_unblind (blinded_sig, &bks, pkey);
-    GNUNET_assert (GNUNET_YES == GNUNET_CRYPTO_rsa_verify (&message_hash, sig,
-                                                           pkey));
-    GNUNET_free(public_enc_data);
+    blinded_sig = GNUNET_CRYPTO_rsa_sign_blinded (skey,
+                                                  &bm);
+    sig = GNUNET_CRYPTO_rsa_unblind (blinded_sig,
+                                     &bks,
+                                     pkey);
+    GNUNET_assert (GNUNET_YES ==
+                   GNUNET_CRYPTO_rsa_verify (&message_hash,
+                                             sizeof (message_hash),
+                                             sig,
+                                             pkey));
+    GNUNET_free (public_enc_data);
     public_enc_len = GNUNET_CRYPTO_rsa_public_key_encode (pkey,
                                                           &public_enc_data);
     sig_enc_length_comp = GNUNET_CRYPTO_rsa_signature_encode (sig,
@@ -661,8 +672,8 @@ checkvec (const char *operation,
          (0 != memcmp (sig_enc_data, sig_enc_data_comp, sig_enc_length) ))
     {
       GNUNET_CRYPTO_rsa_signature_free (blinded_sig);
-      GNUNET_free (blinded_data);
-      GNUNET_free (blinded_data_comp);
+      GNUNET_CRYPTO_rsa_blinded_message_free (&bm);
+      GNUNET_CRYPTO_rsa_blinded_message_free (&bm_comp);
       GNUNET_free (public_enc_data);
       GNUNET_free (secret_enc_data);
       GNUNET_free (sig_enc_data);
@@ -674,8 +685,8 @@ checkvec (const char *operation,
       return GNUNET_NO;
     }
     GNUNET_CRYPTO_rsa_signature_free (blinded_sig);
-    GNUNET_free (blinded_data);
-    GNUNET_free (blinded_data_comp);
+    GNUNET_CRYPTO_rsa_blinded_message_free (&bm);
+    GNUNET_CRYPTO_rsa_blinded_message_free (&bm_comp);
     GNUNET_free (public_enc_data);
     GNUNET_free (secret_enc_data);
     GNUNET_free (sig_enc_data);
@@ -691,12 +702,13 @@ checkvec (const char *operation,
     struct GNUNET_CRYPTO_CsBlindingSecret bs[2];
     struct GNUNET_CRYPTO_CsRSecret r_priv[2];
     struct GNUNET_CRYPTO_CsRPublic r_pub[2];
-    struct GNUNET_CRYPTO_CsRPublic r_pub_blind[2];
+    struct GNUNET_CRYPTO_CSPublicRPairP r_pub_blind;
     struct GNUNET_CRYPTO_CsC c[2];
     struct GNUNET_CRYPTO_CsS signature_scalar;
     struct GNUNET_CRYPTO_CsBlindS blinded_s;
     struct GNUNET_CRYPTO_CsSignature sig;
-    struct GNUNET_CRYPTO_CsNonce nonce;
+    struct GNUNET_CRYPTO_CsSessionNonce snonce;
+    struct GNUNET_CRYPTO_CsBlindingNonce bnonce;
     struct GNUNET_HashCode message_hash;
     unsigned int b;
 
@@ -717,26 +729,35 @@ checkvec (const char *operation,
       return GNUNET_SYSERR;
     }
 
-    if (GNUNET_OK != expect_data_fixed (vec,
-                                        "cs_private_key",
-                                        &priv,
-                                        sizeof (priv)))
+    if (GNUNET_OK !=
+        expect_data_fixed (vec,
+                           "cs_private_key",
+                           &priv,
+                           sizeof (priv)))
     {
       GNUNET_break (0);
       return GNUNET_SYSERR;
     }
-    if (GNUNET_OK != expect_data_fixed (vec,
-                                        "cs_nonce",
-                                        &nonce,
-                                        sizeof (nonce)))
+    if (GNUNET_OK !=
+        expect_data_fixed (vec,
+                           "cs_nonce",
+                           &snonce,
+                           sizeof (snonce)))
     {
       GNUNET_break (0);
       return GNUNET_SYSERR;
     }
-    if (GNUNET_OK != expect_data_fixed (vec,
-                                        "cs_r_priv_0",
-                                        &r_priv[0],
-                                        sizeof (r_priv[0])))
+    /* historically, the tvg used the same nonce for
+       both, which is HORRIBLE for production, but
+       maybe OK for TVG... */
+    memcpy (&bnonce,
+            &snonce,
+            sizeof (snonce));
+    if (GNUNET_OK !=
+        expect_data_fixed (vec,
+                           "cs_r_priv_0",
+                           &r_priv[0],
+                           sizeof (r_priv[0])))
     {
       GNUNET_break (0);
       return GNUNET_SYSERR;
@@ -790,34 +811,38 @@ checkvec (const char *operation,
       GNUNET_break (0);
       return GNUNET_SYSERR;
     }
-    if (GNUNET_OK != expect_data_fixed (vec,
-                                        "cs_bs_beta_1",
-                                        &bs[1].beta,
-                                        sizeof (bs[1].beta)))
+    if (GNUNET_OK !=
+        expect_data_fixed (vec,
+                           "cs_bs_beta_1",
+                           &bs[1].beta,
+                           sizeof (bs[1].beta)))
     {
       GNUNET_break (0);
       return GNUNET_SYSERR;
     }
-    if (GNUNET_OK != expect_data_fixed (vec,
-                                        "cs_r_pub_blind_0",
-                                        &r_pub_blind[0],
-                                        sizeof (r_pub_blind[0])))
+    if (GNUNET_OK !=
+        expect_data_fixed (vec,
+                           "cs_r_pub_blind_0",
+                           &r_pub_blind.r_pub[0],
+                           sizeof (r_pub_blind.r_pub[0])))
     {
       GNUNET_break (0);
       return GNUNET_SYSERR;
     }
-    if (GNUNET_OK != expect_data_fixed (vec,
-                                        "cs_r_pub_blind_1",
-                                        &r_pub_blind[1],
-                                        sizeof (r_pub_blind[1])))
+    if (GNUNET_OK !=
+        expect_data_fixed (vec,
+                           "cs_r_pub_blind_1",
+                           &r_pub_blind.r_pub[1],
+                           sizeof (r_pub_blind.r_pub[1])))
     {
       GNUNET_break (0);
       return GNUNET_SYSERR;
     }
-    if (GNUNET_OK != expect_data_fixed (vec,
-                                        "cs_c_0",
-                                        &c[0],
-                                        sizeof (c[0])))
+    if (GNUNET_OK !=
+        expect_data_fixed (vec,
+                           "cs_c_0",
+                           &c[0],
+                           sizeof (c[0])))
     {
       GNUNET_break (0);
       return GNUNET_SYSERR;
@@ -874,14 +899,12 @@ checkvec (const char *operation,
     struct GNUNET_CRYPTO_CsRPublic r_pub_comp[2];
     struct GNUNET_CRYPTO_CsBlindingSecret bs_comp[2];
     struct GNUNET_CRYPTO_CsC c_comp[2];
-    struct GNUNET_CRYPTO_CsRPublic r_pub_blind_comp[2];
-    struct GNUNET_CRYPTO_CsBlindS blinded_s_comp;
+    struct GNUNET_CRYPTO_CSPublicRPairP r_pub_blind_comp;
+    struct GNUNET_CRYPTO_CsBlindSignature blinded_s_comp;
     struct GNUNET_CRYPTO_CsS signature_scalar_comp;
     struct GNUNET_CRYPTO_CsSignature sig_comp;
-    unsigned int b_comp;
 
-
-    GNUNET_CRYPTO_cs_r_derive (&nonce,
+    GNUNET_CRYPTO_cs_r_derive (&snonce,
                                "rw",
                                &priv,
                                r_priv_comp);
@@ -896,51 +919,59 @@ checkvec (const char *operation,
                                 &r_pub,
                                 sizeof(struct GNUNET_CRYPTO_CsRPublic) * 2));
 
-    GNUNET_CRYPTO_cs_blinding_secrets_derive (&nonce,
+    GNUNET_CRYPTO_cs_blinding_secrets_derive (&bnonce,
                                               bs_comp);
-    GNUNET_assert (0 == memcmp (&bs_comp,
-                                &bs,
-                                sizeof(struct GNUNET_CRYPTO_CsBlindingSecret)
-                                * 2));
+    GNUNET_assert (0 ==
+                   memcmp (&bs_comp,
+                           &bs,
+                           sizeof(struct GNUNET_CRYPTO_CsBlindingSecret)
+                           * 2));
     GNUNET_CRYPTO_cs_calc_blinded_c (bs_comp,
                                      r_pub_comp,
                                      &pub,
                                      &message_hash,
                                      sizeof(message_hash),
                                      c_comp,
-                                     r_pub_blind_comp);
-    GNUNET_assert (0 == memcmp (&c_comp,
-                                &c,
-                                sizeof(struct GNUNET_CRYPTO_CsC) * 2));
-    GNUNET_assert (0 == memcmp (&r_pub_blind_comp,
-                                &r_pub_blind,
-                                sizeof(struct GNUNET_CRYPTO_CsRPublic) * 2));
-    b_comp = GNUNET_CRYPTO_cs_sign_derive (&priv,
-                                           r_priv_comp,
-                                           c_comp,
-                                           &nonce,
-                                           &blinded_s_comp);
-    GNUNET_assert (0 == memcmp (&blinded_s_comp,
-                                &blinded_s,
-                                sizeof(blinded_s)));
-    GNUNET_assert (0 == memcmp (&b_comp,
-                                &b,
-                                sizeof(b)));
-    GNUNET_CRYPTO_cs_unblind (&blinded_s_comp,
-                              &bs_comp[b_comp],
+                                     &r_pub_blind_comp);
+    GNUNET_assert (0 ==
+                   memcmp (&c_comp,
+                           &c,
+                           sizeof(struct GNUNET_CRYPTO_CsC) * 2));
+    GNUNET_assert (0 ==
+                   GNUNET_memcmp (&r_pub_blind_comp,
+                                  &r_pub_blind));
+    {
+      struct GNUNET_CRYPTO_CsBlindedMessage bm = {
+        .c[0] = c_comp[0],
+        .c[1] = c_comp[1],
+        .nonce = snonce
+      };
+
+      GNUNET_CRYPTO_cs_sign_derive (&priv,
+                                    r_priv_comp,
+                                    &bm,
+                                    &blinded_s_comp);
+    }
+    GNUNET_assert (0 ==
+                   GNUNET_memcmp (&blinded_s_comp.s_scalar,
+                                  &blinded_s));
+    GNUNET_assert (b == blinded_s_comp.b);
+    GNUNET_CRYPTO_cs_unblind (&blinded_s_comp.s_scalar,
+                              &bs_comp[b],
                               &signature_scalar_comp);
-    GNUNET_assert (0 == memcmp (&signature_scalar_comp,
-                                &signature_scalar,
-                                sizeof(signature_scalar_comp)));
-    sig_comp.r_point = r_pub_blind_comp[b_comp];
+    GNUNET_assert (0 ==
+                   GNUNET_memcmp (&signature_scalar_comp,
+                                  &signature_scalar));
+    sig_comp.r_point = r_pub_blind_comp.r_pub[b];
     sig_comp.s_scalar = signature_scalar_comp;
     GNUNET_assert (0 == memcmp (&sig_comp,
                                 &sig,
                                 sizeof(sig_comp)));
-    if (GNUNET_OK != GNUNET_CRYPTO_cs_verify (&sig_comp,
-                                              &pub,
-                                              &message_hash,
-                                              sizeof(message_hash)))
+    if (GNUNET_OK !=
+        GNUNET_CRYPTO_cs_verify (&sig_comp,
+                                 &pub,
+                                 &message_hash,
+                                 sizeof(message_hash)))
     {
       GNUNET_break (0);
       return GNUNET_SYSERR;
@@ -993,7 +1024,7 @@ check_vectors ()
     /* array is a JSON array */
     size_t index;
     json_t *value;
-    int ret;
+    enum GNUNET_GenericReturnValue ret = GNUNET_OK;
 
     json_array_foreach (vectors, index, value) {
       const char *op = json_string_value (json_object_get (value,
@@ -1261,8 +1292,7 @@ output_vectors ()
     struct GNUNET_CRYPTO_RsaBlindingKeySecret bks;
     struct GNUNET_CRYPTO_RsaSignature *blinded_sig;
     struct GNUNET_CRYPTO_RsaSignature *sig;
-    void *blinded_data;
-    size_t blinded_len;
+    struct GNUNET_CRYPTO_RsaBlindedMessage bm;
     void *public_enc_data;
     size_t public_enc_len;
     void *secret_enc_data;
@@ -1283,23 +1313,29 @@ output_vectors ()
                                         GNUNET_CRYPTO_RsaBlindingKeySecret));
     GNUNET_assert (GNUNET_YES ==
                    GNUNET_CRYPTO_rsa_blind (&message_hash,
+                                            sizeof (message_hash),
                                             &bks,
                                             pkey,
-                                            &blinded_data,
-                                            &blinded_len));
-    blinded_sig = GNUNET_CRYPTO_rsa_sign_blinded (skey, blinded_data,
-                                                  blinded_len);
-    sig = GNUNET_CRYPTO_rsa_unblind (blinded_sig, &bks, pkey);
-    GNUNET_assert (GNUNET_YES == GNUNET_CRYPTO_rsa_verify (&message_hash, sig,
-                                                           pkey));
+                                            &bm));
+    blinded_sig = GNUNET_CRYPTO_rsa_sign_blinded (skey,
+                                                  &bm);
+    sig = GNUNET_CRYPTO_rsa_unblind (blinded_sig,
+                                     &bks,
+                                     pkey);
+    GNUNET_assert (GNUNET_YES ==
+                   GNUNET_CRYPTO_rsa_verify (&message_hash,
+                                             sizeof (message_hash),
+                                             sig,
+                                             pkey));
     public_enc_len = GNUNET_CRYPTO_rsa_public_key_encode (pkey,
                                                           &public_enc_data);
     secret_enc_len = GNUNET_CRYPTO_rsa_private_key_encode (skey,
                                                            &secret_enc_data);
-    blinded_sig_enc_length = GNUNET_CRYPTO_rsa_signature_encode (blinded_sig,
-                                                                 &
-                                                                 blinded_sig_enc_data);
-    sig_enc_length = GNUNET_CRYPTO_rsa_signature_encode (sig, &sig_enc_data);
+    blinded_sig_enc_length
+      = GNUNET_CRYPTO_rsa_signature_encode (blinded_sig,
+                                            &blinded_sig_enc_data);
+    sig_enc_length = GNUNET_CRYPTO_rsa_signature_encode (sig,
+                                                         &sig_enc_data);
     d2j (vec,
          "message_hash",
          &message_hash,
@@ -1318,8 +1354,8 @@ output_vectors ()
          sizeof (struct GNUNET_CRYPTO_RsaBlindingKeySecret));
     d2j (vec,
          "blinded_message",
-         blinded_data,
-         blinded_len);
+         bm.blinded_msg,
+         bm.blinded_msg_size);
     d2j (vec,
          "blinded_sig",
          blinded_sig_enc_data,
@@ -1333,7 +1369,7 @@ output_vectors ()
     GNUNET_CRYPTO_rsa_signature_free (sig);
     GNUNET_CRYPTO_rsa_signature_free (blinded_sig);
     GNUNET_free (public_enc_data);
-    GNUNET_free (blinded_data);
+    GNUNET_CRYPTO_rsa_blinded_message_free (&bm);
     GNUNET_free (sig_enc_data);
     GNUNET_free (blinded_sig_enc_data);
     GNUNET_free (secret_enc_data);
@@ -1347,13 +1383,13 @@ output_vectors ()
     struct GNUNET_CRYPTO_CsBlindingSecret bs[2];
     struct GNUNET_CRYPTO_CsRSecret r_priv[2];
     struct GNUNET_CRYPTO_CsRPublic r_pub[2];
-    struct GNUNET_CRYPTO_CsRPublic r_pub_blind[2];
+    struct GNUNET_CRYPTO_CSPublicRPairP r_pub_blind;
     struct GNUNET_CRYPTO_CsC c[2];
     struct GNUNET_CRYPTO_CsS signature_scalar;
-    struct GNUNET_CRYPTO_CsBlindS blinded_s;
+    struct GNUNET_CRYPTO_CsBlindSignature blinded_s;
     struct GNUNET_CRYPTO_CsSignature sig;
-    struct GNUNET_CRYPTO_CsNonce nonce;
-    unsigned int b;
+    struct GNUNET_CRYPTO_CsSessionNonce snonce;
+    struct GNUNET_CRYPTO_CsBlindingNonce bnonce;
     struct GNUNET_HashCode message_hash;
 
     GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_WEAK,
@@ -1361,19 +1397,26 @@ output_vectors ()
                                 sizeof (struct GNUNET_HashCode));
 
     GNUNET_CRYPTO_cs_private_key_generate (&priv);
-    GNUNET_CRYPTO_cs_private_key_get_public (&priv, &pub);
-
-    GNUNET_assert (GNUNET_YES == GNUNET_CRYPTO_hkdf (nonce.nonce,
-                                                     sizeof(nonce.nonce),
-                                                     GCRY_MD_SHA512,
-                                                     GCRY_MD_SHA256,
-                                                     "nonce",
-                                                     strlen ("nonce"),
-                                                     "nonce_secret",
-                                                     strlen ("nonce_secret"),
-                                                     NULL,
-                                                     0));
-    GNUNET_CRYPTO_cs_r_derive (&nonce,
+    GNUNET_CRYPTO_cs_private_key_get_public (&priv,
+                                             &pub);
+    GNUNET_assert (GNUNET_YES ==
+                   GNUNET_CRYPTO_hkdf (&snonce,
+                                       sizeof(snonce),
+                                       GCRY_MD_SHA512,
+                                       GCRY_MD_SHA256,
+                                       "nonce",
+                                       strlen ("nonce"),
+                                       "nonce_secret",
+                                       strlen ("nonce_secret"),
+                                       NULL,
+                                       0));
+    /* NOTE: historically, we made the bad choice of
+       making both nonces the same. Maybe barely OK
+       for the TGV, not good for production! */
+    memcpy (&bnonce,
+            &snonce,
+            sizeof (snonce));
+    GNUNET_CRYPTO_cs_r_derive (&snonce,
                                "rw",
                                &priv,
                                r_priv);
@@ -1381,7 +1424,7 @@ output_vectors ()
                                    &r_pub[0]);
     GNUNET_CRYPTO_cs_r_get_public (&r_priv[1],
                                    &r_pub[1]);
-    GNUNET_CRYPTO_cs_blinding_secrets_derive (&nonce,
+    GNUNET_CRYPTO_cs_blinding_secrets_derive (&bnonce,
                                               bs);
     GNUNET_CRYPTO_cs_calc_blinded_c (bs,
                                      r_pub,
@@ -1389,19 +1432,29 @@ output_vectors ()
                                      &message_hash,
                                      sizeof(message_hash),
                                      c,
-                                     r_pub_blind);
-    b = GNUNET_CRYPTO_cs_sign_derive (&priv,
-                                      r_priv,
-                                      c,
-                                      &nonce,
-                                      &blinded_s);
-    GNUNET_CRYPTO_cs_unblind (&blinded_s, &bs[b], &signature_scalar);
-    sig.r_point = r_pub_blind[b];
+                                     &r_pub_blind);
+    {
+      struct GNUNET_CRYPTO_CsBlindedMessage bm = {
+        .c[0] = c[0],
+        .c[1] = c[1],
+        .nonce = snonce
+      };
+
+      GNUNET_CRYPTO_cs_sign_derive (&priv,
+                                    r_priv,
+                                    &bm,
+                                    &blinded_s);
+    }
+    GNUNET_CRYPTO_cs_unblind (&blinded_s.s_scalar,
+                              &bs[blinded_s.b],
+                              &signature_scalar);
+    sig.r_point = r_pub_blind.r_pub[blinded_s.b];
     sig.s_scalar = signature_scalar;
-    if (GNUNET_OK != GNUNET_CRYPTO_cs_verify (&sig,
-                                              &pub,
-                                              &message_hash,
-                                              sizeof(message_hash)))
+    if (GNUNET_OK !=
+        GNUNET_CRYPTO_cs_verify (&sig,
+                                 &pub,
+                                 &message_hash,
+                                 sizeof(message_hash)))
     {
       GNUNET_break (0);
       return GNUNET_SYSERR;
@@ -1420,8 +1473,8 @@ output_vectors ()
          sizeof(priv));
     d2j (vec,
          "cs_nonce",
-         &nonce,
-         sizeof(nonce));
+         &snonce,
+         sizeof(snonce));
     d2j (vec,
          "cs_r_priv_0",
          &r_priv[0],
@@ -1456,12 +1509,12 @@ output_vectors ()
          sizeof(bs[1].beta));
     d2j (vec,
          "cs_r_pub_blind_0",
-         &r_pub_blind[0],
-         sizeof(r_pub_blind[0]));
+         &r_pub_blind.r_pub[0],
+         sizeof(r_pub_blind.r_pub[0]));
     d2j (vec,
          "cs_r_pub_blind_1",
-         &r_pub_blind[1],
-         sizeof(r_pub_blind[1]));
+         &r_pub_blind.r_pub[1],
+         sizeof(r_pub_blind.r_pub[1]));
     d2j (vec,
          "cs_c_0",
          &c[0],
@@ -1476,16 +1529,16 @@ output_vectors ()
          sizeof(blinded_s));
     d2j (vec,
          "cs_b",
-         &b,
-         sizeof(b));
+         &blinded_s.b,
+         sizeof(blinded_s.b));
     d2j (vec,
          "cs_sig_s",
          &signature_scalar,
          sizeof(signature_scalar));
     d2j (vec,
          "cs_sig_R",
-         &r_pub_blind[b],
-         sizeof(r_pub_blind[b]));
+         &r_pub_blind.r_pub[blinded_s.b],
+         sizeof(r_pub_blind.r_pub[blinded_s.b]));
   }
 
   json_dumpf (vecfile, stdout, JSON_INDENT (2));

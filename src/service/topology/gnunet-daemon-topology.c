@@ -843,7 +843,7 @@ check_hello (void *cls, const struct GNUNET_MessageHeader *message)
 static void
 shc_cont (void *cls, int success)
 {
-  (void *) cls;
+  struct GNUNET_PEERSTORE_StoreHelloContextClosure *shc_cls =  cls;
 
   if (GNUNET_YES == success)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -851,6 +851,7 @@ shc_cont (void *cls, int success)
   else
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Error storing hello!\n");
+  GNUNET_CONTAINER_DLL_remove (shc_head, shc_tail, shc_cls->shc);
 }
 
 
@@ -865,6 +866,7 @@ static void
 handle_hello (void *cls, const struct GNUNET_MessageHeader *message)
 {
   struct GNUNET_PEERSTORE_StoreHelloContext *shc;
+  struct GNUNET_PEERSTORE_StoreHelloContextClosure *shc_cls;
   const struct GNUNET_PeerIdentity *other = cls;
   struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (
     message);
@@ -877,8 +879,13 @@ handle_hello (void *cls, const struct GNUNET_MessageHeader *message)
                             1,
                             GNUNET_NO);
   GNUNET_HELLO_builder_from_msg (message);
-  shc = GNUNET_PEERSTORE_hello_add (ps, message, &shc_cont, NULL);
-  GNUNET_CONTAINER_DLL_insert (shc_head, shc_tail, shc);
+  shc_cls = GNUNET_new (struct GNUNET_PEERSTORE_StoreHelloContextClosure);
+  shc = GNUNET_PEERSTORE_hello_add (ps, message, &shc_cont, shc_cls);
+  if (NULL != shc)
+  {
+    shc_cls->shc = shc;
+    GNUNET_CONTAINER_DLL_insert (shc_head, shc_tail, shc);
+  }
   GNUNET_HELLO_builder_free (builder);
 }
 

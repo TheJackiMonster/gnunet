@@ -234,6 +234,16 @@ struct GNUNET_PEERSTORE_StoreHelloContext
   int success;
 };
 
+/**
+ * Closure to hold a GNUNET_PEERSTORE_StoreHelloContext.
+ */
+struct GNUNET_PEERSTORE_StoreHelloContextClosure
+{
+  /**
+   * The GNUNET_PEERSTORE_StoreHelloContext to hold.
+   */
+  struct GNUNET_PEERSTORE_StoreHelloContext *shc;
+};
 
 /**
  * Function called by PEERSTORE for each matching record.
