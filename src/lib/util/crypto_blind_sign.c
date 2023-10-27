@@ -23,7 +23,33 @@
 
 
 void
-GNUNET_CRYPTO_blind_sign_priv_decref (struct GNUNET_CRYPTO_BlindSignPrivateKey *bsign_priv)
+GNUNET_CRYPTO_blinding_input_values_decref (
+  struct GNUNET_CRYPTO_BlindingInputValues *bm)
+{
+  GNUNET_assert (bm->rc > 0);
+  bm->rc--;
+  if (0 != bm->rc)
+    return;
+  switch (bm->cipher)
+  {
+  case GNUNET_CRYPTO_BSA_INVALID:
+    GNUNET_break (0);
+    break;
+  case GNUNET_CRYPTO_BSA_RSA:
+    bm->cipher = GNUNET_CRYPTO_BSA_INVALID;
+    break;
+  case GNUNET_CRYPTO_BSA_CS:
+    bm->cipher = GNUNET_CRYPTO_BSA_INVALID;
+    break;
+  }
+  GNUNET_free (bm);
+}
+
+
+void
+GNUNET_CRYPTO_blind_sign_priv_decref (struct
+                                      GNUNET_CRYPTO_BlindSignPrivateKey *
+                                      bsign_priv)
 {
   GNUNET_assert (bsign_priv->rc > 0);
   bsign_priv->rc--;
@@ -51,7 +77,8 @@ GNUNET_CRYPTO_blind_sign_priv_decref (struct GNUNET_CRYPTO_BlindSignPrivateKey *
 
 
 void
-GNUNET_CRYPTO_blind_sign_pub_decref (struct GNUNET_CRYPTO_BlindSignPublicKey *bsign_pub)
+GNUNET_CRYPTO_blind_sign_pub_decref (struct
+                                     GNUNET_CRYPTO_BlindSignPublicKey *bsign_pub)
 {
   GNUNET_assert (bsign_pub->rc > 0);
   bsign_pub->rc--;
@@ -78,7 +105,8 @@ GNUNET_CRYPTO_blind_sign_pub_decref (struct GNUNET_CRYPTO_BlindSignPublicKey *bs
 
 
 void
-GNUNET_CRYPTO_unblinded_sig_decref (struct GNUNET_CRYPTO_UnblindedSignature *ub_sig)
+GNUNET_CRYPTO_unblinded_sig_decref (struct
+                                    GNUNET_CRYPTO_UnblindedSignature *ub_sig)
 {
   GNUNET_assert (ub_sig->rc > 0);
   ub_sig->rc--;
@@ -167,8 +195,18 @@ GNUNET_CRYPTO_blinded_message_incref (
 }
 
 
+struct GNUNET_CRYPTO_BlindingInputValues *
+GNUNET_CRYPTO_blinding_input_values_incref (
+  struct GNUNET_CRYPTO_BlindingInputValues *bm)
+{
+  bm->rc++;
+  return bm;
+}
+
+
 struct GNUNET_CRYPTO_BlindSignPublicKey *
-GNUNET_CRYPTO_bsign_pub_incref (struct GNUNET_CRYPTO_BlindSignPublicKey *bsign_pub)
+GNUNET_CRYPTO_bsign_pub_incref (
+  struct GNUNET_CRYPTO_BlindSignPublicKey *bsign_pub)
 {
   bsign_pub->rc++;
   return bsign_pub;
@@ -176,7 +214,8 @@ GNUNET_CRYPTO_bsign_pub_incref (struct GNUNET_CRYPTO_BlindSignPublicKey *bsign_p
 
 
 struct GNUNET_CRYPTO_BlindSignPrivateKey *
-GNUNET_CRYPTO_bsign_priv_incref (struct GNUNET_CRYPTO_BlindSignPrivateKey *bsign_priv)
+GNUNET_CRYPTO_bsign_priv_incref (
+  struct GNUNET_CRYPTO_BlindSignPrivateKey *bsign_priv)
 {
   bsign_priv->rc++;
   return bsign_priv;
@@ -328,7 +367,7 @@ GNUNET_CRYPTO_blind_sign_keys_create_va (
   struct GNUNET_CRYPTO_BlindSignPublicKey **bsign_pub,
   enum GNUNET_CRYPTO_BlindSignatureAlgorithm cipher,
   va_list ap)
-  {
+{
   struct GNUNET_CRYPTO_BlindSignPrivateKey *priv;
   struct GNUNET_CRYPTO_BlindSignPublicKey *pub;
 
@@ -557,9 +596,10 @@ GNUNET_CRYPTO_blind_sig_unblind (
   const void *message,
   size_t message_size,
   const struct GNUNET_CRYPTO_BlindingInputValues *alg_values,
-  const struct GNUNET_CRYPTO_BlindSignPublicKey *bsign_pub){
+  const struct GNUNET_CRYPTO_BlindSignPublicKey *bsign_pub)
+{
   struct GNUNET_CRYPTO_UnblindedSignature *ub_sig;
-  
+
   if (blinded_sig->cipher != bsign_pub->cipher)
   {
     GNUNET_break (0);
@@ -612,9 +652,10 @@ GNUNET_CRYPTO_blind_sig_unblind (
       b = blinded_sig->details.blinded_cs_answer.b;
       ub_sig->details.cs_signature.r_point
         = r_pub_blind.r_pub[b];
-      GNUNET_CRYPTO_cs_unblind (&blinded_sig->details.blinded_cs_answer.s_scalar,
-                                &bs[b],
-                                &ub_sig->details.cs_signature.s_scalar);
+      GNUNET_CRYPTO_cs_unblind (
+        &blinded_sig->details.blinded_cs_answer.s_scalar,
+        &bs[b],
+        &ub_sig->details.cs_signature.s_scalar);
       return ub_sig;
     }
   }
