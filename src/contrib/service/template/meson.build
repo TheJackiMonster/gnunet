@@ -18,4 +18,4 @@ testtemplateapi = executable ('test_template_api',
             include_directories: [incdir, configuration_inc],
             install: false)
 test('test_template_api', testtemplateapi, workdir: meson.current_source_dir(),
-     suite: 'template')
+     suite: ['template', 'contrib'])

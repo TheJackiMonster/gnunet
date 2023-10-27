@@ -182,11 +182,11 @@ configure_file(input : 'test_conversation.conf',
                install: false)
 
 test('test_conversation_api', testconvapi, workdir: meson.current_build_dir(),
-     suite: 'conversation')
+     suite: ['conversation', 'contrib'])
 
 test('test_conversation_api_twocalls', testconvapitwo, workdir: meson.current_build_dir(),
-     suite: 'conversation')
+     suite: ['conversation', 'contrib'])
 
 test('test_conversation_api_reject', testconvapireject, workdir: meson.current_build_dir(),
-     suite: 'conversation')
+     suite: ['conversation', 'contrib'])
 
