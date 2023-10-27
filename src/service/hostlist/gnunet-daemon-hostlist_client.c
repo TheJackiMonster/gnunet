@@ -323,7 +323,7 @@ static struct GNUNET_PEERSTORE_Handle *peerstore;
 static void
 shc_cont (void *cls, int success)
 {
-  (void *) cls;
+  struct GNUNET_PEERSTORE_StoreHelloContextClosure *shc_cls =  cls;
 
   if (GNUNET_YES == success)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -331,6 +331,7 @@ shc_cont (void *cls, int success)
   else
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Error storing hostlist entry!\n");
+  GNUNET_CONTAINER_DLL_remove (shc_head, shc_tail, shc_cls->shc);
 }
 
 
@@ -348,6 +349,7 @@ callback_download (void *ptr, size_t size, size_t nmemb, void *ctx)
 {
   static char download_buffer[GNUNET_MAX_MESSAGE_SIZE - 1];
   struct GNUNET_PEERSTORE_StoreHelloContext *shc;
+  struct GNUNET_PEERSTORE_StoreHelloContextClosure *shc_cls;
   const char *cbuf = ptr;
   const struct GNUNET_MessageHeader *msg;
   size_t total;
@@ -411,11 +413,16 @@ callback_download (void *ptr, size_t size, size_t nmemb, void *ctx)
       1,
       GNUNET_NO);
     stat_hellos_obtained++;
+    shc_cls = GNUNET_new (struct GNUNET_PEERSTORE_StoreHelloContextClosure);
     shc = GNUNET_PEERSTORE_hello_add (peerstore,
                                       msg,
                                       shc_cont,
-                                      NULL);
-    GNUNET_CONTAINER_DLL_insert (shc_head, shc_tail, shc);
+                                      shc_cls);
+    if (NULL != shc)
+    {
+      shc_cls->shc = shc;
+      GNUNET_CONTAINER_DLL_insert (shc_head, shc_tail, shc);
+    }
     memmove (download_buffer, &download_buffer[msize], download_pos - msize);
     download_pos -= msize;
   }
