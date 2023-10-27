@@ -171,7 +171,7 @@ test_rsa ()
   priv = GNUNET_CRYPTO_rsa_private_key_create (1024);
   pub = GNUNET_CRYPTO_rsa_private_key_get_public (priv);
   memset (&msg, 42, sizeof(msg));
-  sig = GNUNET_CRYPTO_rsa_sign_fdh (priv, &msg);
+  sig = GNUNET_CRYPTO_rsa_sign_fdh (priv, &msg, sizeof (msg));
   GNUNET_assert (NULL != (jp = GNUNET_JSON_from_rsa_public_key (pub)));
   GNUNET_assert (NULL != (js = GNUNET_JSON_from_rsa_signature (sig)));
   GNUNET_assert (GNUNET_OK == GNUNET_JSON_parse (jp, pspec, NULL, NULL));
