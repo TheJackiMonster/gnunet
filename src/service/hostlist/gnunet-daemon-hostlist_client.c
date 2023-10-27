@@ -1760,7 +1760,7 @@ void
 GNUNET_HOSTLIST_client_stop ()
 {
   struct GNUNET_PEERSTORE_StoreHelloContext *pos;
-  
+
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Hostlist client shutdown\n");
   while (NULL != (pos = shc_head))
   {

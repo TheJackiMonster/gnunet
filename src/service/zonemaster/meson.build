@@ -11,7 +11,6 @@ if get_option('monolith')
   foreach p : gnunetservicezonemaster_src
     gnunet_src += 'zonemaster/' + p
   endforeach
-  subdir_done()
 endif
 
 executable ('gnunet-service-zonemaster',

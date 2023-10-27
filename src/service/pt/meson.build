@@ -5,10 +5,6 @@ configure_file(input : 'pt.conf',
                install_dir: pkgcfgdir)
 
 
-if get_option('monolith')
-  subdir_done()
-endif
-
 executable ('gnunet-daemon-pt',
             ['gnunet-daemon-pt.c'],
             dependencies: [libgnunetdns_dep,

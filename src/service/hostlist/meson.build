@@ -9,9 +9,6 @@ configure_file(input : 'hostlist.conf',
                install_dir: pkgcfgdir)
 
 
-if get_option('monolith')
-  subdir_done()
-endif
 executable ('gnunet-daemon-hostlist',
             gnunetdaemonhostlist_src,
             dependencies: [libgnunetutil_dep,

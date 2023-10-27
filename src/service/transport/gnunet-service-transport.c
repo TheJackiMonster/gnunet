@@ -3892,6 +3892,8 @@ free_address_list_entry (struct AddressListEntry *ale)
     GNUNET_SCHEDULER_cancel (ale->st);
     ale->st = NULL;
   }
+  if (NULL != ale->signed_address)
+    GNUNET_free (ale->signed_address);
   GNUNET_free (ale);
 }
 
@@ -5506,8 +5508,6 @@ shc_cont (void *cls, int success)
                                     GNUNET_PEERSTORE_STOREOPTION_MULTIPLE,
                                     &peerstore_store_own_cb,
                                     ale);
-  GNUNET_free (ale->signed_address);
-  GNUNET_free (ale);
 }
 
 

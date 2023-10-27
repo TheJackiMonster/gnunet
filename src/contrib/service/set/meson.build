@@ -13,13 +13,6 @@ configure_file(input : 'set.conf.in',
                install_dir: pkgcfgdir)
 
 
-if get_option('monolith')
-  #foreach p : libgnunetset_src + gnunetserviceset_src
-  #  gnunet_src += 'set/' + p
-  #endforeach
-  subdir_done()
-endif
-
 libgnunetset = library('gnunetset',
         libgnunetset_src,
         soversion: '0',

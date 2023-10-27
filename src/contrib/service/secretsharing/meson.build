@@ -13,7 +13,6 @@ if get_option('monolith')
   #foreach p : libgnunetsecretsharing_src + gnunetservicesecretsharing_src
   #  gnunet_src += 'secretsharing/' + p
   #endforeach
-  subdir_done()
 endif
 
 libgnunetsecretsharing = library('gnunetsecretsharing',

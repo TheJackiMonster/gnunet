@@ -1,7 +1,5 @@
 subdir('util')
-if get_option('monolith') == false
-  subdir('arm')
-endif
+subdir('arm')
 subdir('statistics')
 subdir('datastore')
 subdir('nat')

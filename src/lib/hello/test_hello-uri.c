@@ -22,6 +22,7 @@
  * @brief test for helper library for handling URI-based HELLOs
  * @author Christian Grothoff
  */
+#include "gnunet_time_lib.h"
 #include "platform.h"
 #include "gnunet_signatures.h"
 #include "gnunet_hello_uri_lib.h"
@@ -96,13 +97,13 @@ main (int argc,
                                                   &priv,
                                                   NULL,
                                                   &block_size,
-                                                  NULL));
+                                                  GNUNET_TIME_UNIT_FOREVER_REL));
     GNUNET_assert (GNUNET_NO ==
                    GNUNET_HELLO_builder_to_block (b,
                                                   &priv,
                                                   NULL,
                                                   &block_size,
-                                                  NULL));
+                                                  GNUNET_TIME_UNIT_FOREVER_REL));
     GNUNET_assert (0 != block_size);
     block = GNUNET_malloc (block_size);
     GNUNET_assert (GNUNET_OK ==
@@ -110,7 +111,7 @@ main (int argc,
                                                   &priv,
                                                   block,
                                                   &block_size,
-                                                  NULL));
+                                                  GNUNET_TIME_UNIT_FOREVER_REL));
     b2 = GNUNET_HELLO_builder_from_block (block,
                                           block_size);
     GNUNET_free (block);
@@ -158,7 +159,7 @@ main (int argc,
 
     env = GNUNET_HELLO_builder_to_env (b,
                                        &priv,
-                                       NULL);
+                                       GNUNET_TIME_UNIT_FOREVER_REL);
     b2 = GNUNET_HELLO_builder_from_msg (GNUNET_MQ_env_get_msg (env));
     GNUNET_free (env);
     GNUNET_assert (NULL != b2);
