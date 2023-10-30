@@ -8669,7 +8669,7 @@ handle_hello_for_incoming (void *cls,
   builder = GNUNET_HELLO_builder_from_msg (hello);
   pid = GNUNET_new (struct GNUNET_PeerIdentity);
   GNUNET_HELLO_builder_iterate (builder,
-                                (struct GNUNET_PeerIdentity *) peer,
+                                pid,
                                 hello_for_incoming_cb,
                                 (struct GNUNET_PeerIdentity *) peer);
   GNUNET_free (pid);
@@ -11307,9 +11307,9 @@ handle_hello_for_client (void *cls,
   builder = GNUNET_HELLO_builder_from_msg (hello);
   pid = GNUNET_new (struct GNUNET_PeerIdentity);
   GNUNET_HELLO_builder_iterate (builder,
-                                (struct GNUNET_PeerIdentity *) peer,
+                                pid,
                                 hello_for_client_cb,
-                                NULL);
+                                (struct GNUNET_PeerIdentity *) peer);
   GNUNET_free (pid);
   GNUNET_HELLO_builder_free (builder);
 }
