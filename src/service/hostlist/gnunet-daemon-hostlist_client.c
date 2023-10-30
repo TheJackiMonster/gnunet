@@ -332,6 +332,7 @@ shc_cont (void *cls, int success)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Error storing hostlist entry!\n");
   GNUNET_CONTAINER_DLL_remove (shc_head, shc_tail, shc_cls->shc);
+  GNUNET_free (shc_cls);
 }
 
 
@@ -423,6 +424,8 @@ callback_download (void *ptr, size_t size, size_t nmemb, void *ctx)
       shc_cls->shc = shc;
       GNUNET_CONTAINER_DLL_insert (shc_head, shc_tail, shc);
     }
+    else
+      GNUNET_free (shc_cls);
     memmove (download_buffer, &download_buffer[msize], download_pos - msize);
     download_pos -= msize;
   }

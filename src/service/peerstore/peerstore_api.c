@@ -1150,6 +1150,7 @@ merge_success (void *cls, int success)
   struct StoreHelloCls *shu_cls = cls;
   struct GNUNET_PEERSTORE_StoreHelloContext *huc = shu_cls->huc;
 
+  GNUNET_CONTAINER_multipeermap_remove (huc->store_context_map, huc->pid, shu_cls->sc);
   if (GNUNET_OK != success)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -1158,9 +1159,9 @@ merge_success (void *cls, int success)
     GNUNET_free (huc->hello);
     GNUNET_free (huc->pid);
     GNUNET_free (huc);
+    GNUNET_free (shu_cls);
     return;
   }
-  GNUNET_CONTAINER_multipeermap_remove (huc->store_context_map, huc->pid, shu_cls->sc);
   if (0 == GNUNET_CONTAINER_multipeermap_size (huc->store_context_map))
   {
     GNUNET_PEERSTORE_watch_cancel (huc->wc);
@@ -1173,11 +1174,13 @@ merge_success (void *cls, int success)
     GNUNET_free (huc->hello);
     GNUNET_free (huc->pid);
     GNUNET_free (huc);
+    GNUNET_free (shu_cls);
     return;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Got notified during storing hello uri for peer %s!\n",
               GNUNET_i2s (huc->pid));
+  GNUNET_free (shu_cls);
 }
 
 

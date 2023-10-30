@@ -852,6 +852,7 @@ shc_cont (void *cls, int success)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Error storing hello!\n");
   GNUNET_CONTAINER_DLL_remove (shc_head, shc_tail, shc_cls->shc);
+  GNUNET_free (shc_cls);
 }
 
 
@@ -886,6 +887,8 @@ handle_hello (void *cls, const struct GNUNET_MessageHeader *message)
     shc_cls->shc = shc;
     GNUNET_CONTAINER_DLL_insert (shc_head, shc_tail, shc);
   }
+  else
+    GNUNET_free (shc_cls);
   GNUNET_HELLO_builder_free (builder);
 }
 
