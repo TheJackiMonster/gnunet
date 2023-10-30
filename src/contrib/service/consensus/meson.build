@@ -63,4 +63,4 @@ configure_file(input : 'test_consensus.conf',
 
 test('test_consensus_api', testconsensusapi,
   workdir: meson.current_build_dir(),
-  suite: 'consensus')
+  suite: ['consensus', 'contrib'])

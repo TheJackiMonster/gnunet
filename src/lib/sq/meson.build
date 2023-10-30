@@ -15,4 +15,16 @@ libgnunetsq = library('gnunetsq',
 pkg.generate(libgnunetsq, url: 'https://www.gnunet.org',
              description : 'Provides API for accessing the SQ service')
 libgnunetsq_dep = declare_dependency(link_with : libgnunetsq)
+testsq = executable ('test_sq',
+          ['test_sq.c'],
+          dependencies: [libgnunetutil_dep,
+                         sqlite_dep,
+                         libgnunetsq_dep],
+          include_directories: [incdir, configuration_inc],
+          build_by_default: false,
+          install: false)
+test('test_sq', testsq,
+   workdir: meson.current_build_dir(),
+   suite: ['sq'])
+
 

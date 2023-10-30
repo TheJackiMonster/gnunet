@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet
-   Copyright (C) 2014,2016,2019 GNUnet e.V.
+   Copyright (C) 2014,2016,2019,2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -178,9 +178,9 @@ GNUNET_CRYPTO_rsa_private_key_free (struct GNUNET_CRYPTO_RsaPrivateKey *key)
 
 
 size_t
-GNUNET_CRYPTO_rsa_private_key_encode (const struct
-                                      GNUNET_CRYPTO_RsaPrivateKey *key,
-                                      void **buffer)
+GNUNET_CRYPTO_rsa_private_key_encode (
+  const struct GNUNET_CRYPTO_RsaPrivateKey *key,
+  void **buffer)
 {
   size_t n;
   char *b;
@@ -745,24 +745,33 @@ numeric_mpi_alloc_n_print (gcry_mpi_t v,
  *   https://eprint.iacr.org/2001/002.pdf
  *   http://www.di.ens.fr/~pointche/Documents/Papers/2001_fcA.pdf
  *
- * @param hash initial hash of the message to sign
+ * @param message the message to sign
+ * @param message_size number of bytes in @a message
  * @param pkey the public key of the signer
  * @param rsize If not NULL, the number of bytes actually stored in buffer
  * @return MPI value set to the FDH, NULL if RSA key is malicious
  */
 static gcry_mpi_t
 rsa_full_domain_hash (const struct GNUNET_CRYPTO_RsaPublicKey *pkey,
-                      const struct GNUNET_HashCode *hash)
+                      const void *message,
+                      size_t message_size)
 {
-  gcry_mpi_t r, n;
+  gcry_mpi_t r;
+  gcry_mpi_t n;
   void *xts;
   size_t xts_len;
   int ok;
 
   /* Extract the composite n from the RSA public key */
-  GNUNET_assert (0 == key_from_sexp (&n, pkey->sexp, "rsa", "n"));
+  GNUNET_assert (0 ==
+                 key_from_sexp (&n,
+                                pkey->sexp,
+                                "rsa",
+                                "n"));
   /* Assert that it at least looks like an RSA key */
-  GNUNET_assert (0 == gcry_mpi_get_flag (n, GCRYMPI_FLAG_OPAQUE));
+  GNUNET_assert (0 ==
+                 gcry_mpi_get_flag (n,
+                                    GCRYMPI_FLAG_OPAQUE));
 
   /* We key with the public denomination key as a homage to RSA-PSS by  *
   * Mihir Bellare and Phillip Rogaway.  Doing this lowers the degree   *
@@ -774,7 +783,7 @@ rsa_full_domain_hash (const struct GNUNET_CRYPTO_RsaPublicKey *pkey,
   GNUNET_CRYPTO_kdf_mod_mpi (&r,
                              n,
                              xts, xts_len,
-                             hash, sizeof(*hash),
+                             message, message_size,
                              "RSA-FDA FTpsW!");
   GNUNET_free (xts);
   ok = rsa_gcd_validate (r, n);
@@ -786,12 +795,20 @@ rsa_full_domain_hash (const struct GNUNET_CRYPTO_RsaPublicKey *pkey,
 }
 
 
+void
+GNUNET_CRYPTO_rsa_blinded_message_free (
+  struct GNUNET_CRYPTO_RsaBlindedMessage *bm)
+{
+  GNUNET_free (bm->blinded_msg);
+}
+
+
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_rsa_blind (const struct GNUNET_HashCode *hash,
+GNUNET_CRYPTO_rsa_blind (const void *message,
+                         size_t message_size,
                          const struct GNUNET_CRYPTO_RsaBlindingKeySecret *bks,
                          struct GNUNET_CRYPTO_RsaPublicKey *pkey,
-                         void **buf,
-                         size_t *buf_size)
+                         struct GNUNET_CRYPTO_RsaBlindedMessage *bm)
 {
   struct RsaBlindingKey *bkey;
   gcry_mpi_t data;
@@ -801,31 +818,36 @@ GNUNET_CRYPTO_rsa_blind (const struct GNUNET_HashCode *hash,
   int ret;
 
   BENCHMARK_START (rsa_blind);
-
-  GNUNET_assert (buf != NULL);
-  GNUNET_assert (buf_size != NULL);
-  ret = key_from_sexp (ne, pkey->sexp, "public-key", "ne");
+  ret = key_from_sexp (ne,
+                       pkey->sexp,
+                       "public-key",
+                       "ne");
   if (0 != ret)
-    ret = key_from_sexp (ne, pkey->sexp, "rsa", "ne");
+    ret = key_from_sexp (ne,
+                         pkey->sexp,
+                         "rsa",
+                         "ne");
   if (0 != ret)
   {
     GNUNET_break (0);
-    *buf = NULL;
-    *buf_size = 0;
+    bm->blinded_msg = NULL;
+    bm->blinded_msg_size = 0;
+    BENCHMARK_END (rsa_blind);
     return GNUNET_NO;
   }
 
-  data = rsa_full_domain_hash (pkey, hash);
+  data = rsa_full_domain_hash (pkey,
+                               message,
+                               message_size);
   if (NULL == data)
     goto rsa_gcd_validate_failure;
-
-  bkey = rsa_blinding_key_derive (pkey, bks);
+  bkey = rsa_blinding_key_derive (pkey,
+                                  bks);
   if (NULL == bkey)
   {
     gcry_mpi_release (data);
     goto rsa_gcd_validate_failure;
   }
-
   r_e = gcry_mpi_new (0);
   gcry_mpi_powm (r_e,
                  bkey->r,
@@ -842,12 +864,12 @@ GNUNET_CRYPTO_rsa_blind (const struct GNUNET_HashCode *hash,
   gcry_mpi_release (r_e);
   rsa_blinding_key_free (bkey);
 
-  *buf_size = numeric_mpi_alloc_n_print (data_r_e,
-                                         (char **) buf);
+  bm->blinded_msg_size
+    = numeric_mpi_alloc_n_print (data_r_e,
+                                 (char **) &bm->blinded_msg);
   gcry_mpi_release (data_r_e);
 
   BENCHMARK_END (rsa_blind);
-
   return GNUNET_YES;
 
 rsa_gcd_validate_failure:
@@ -855,8 +877,9 @@ rsa_gcd_validate_failure:
   /* GNUNET_break_op (0); */
   gcry_mpi_release (ne[0]);
   gcry_mpi_release (ne[1]);
-  *buf = NULL;
-  *buf_size = 0;
+  bm->blinded_msg = NULL;
+  bm->blinded_msg_size = 0;
+  BENCHMARK_END (rsa_blind);
   return GNUNET_NO;
 }
 
@@ -945,22 +968,20 @@ rsa_sign_mpi (const struct GNUNET_CRYPTO_RsaPrivateKey *key,
 
 struct GNUNET_CRYPTO_RsaSignature *
 GNUNET_CRYPTO_rsa_sign_blinded (const struct GNUNET_CRYPTO_RsaPrivateKey *key,
-                                const void *msg,
-                                size_t msg_len)
+                                const struct GNUNET_CRYPTO_RsaBlindedMessage *bm)
 {
   gcry_mpi_t v = NULL;
   struct GNUNET_CRYPTO_RsaSignature *sig;
 
   BENCHMARK_START (rsa_sign_blinded);
-
   GNUNET_assert (0 ==
                  gcry_mpi_scan (&v,
                                 GCRYMPI_FMT_USG,
-                                msg,
-                                msg_len,
+                                bm->blinded_msg,
+                                bm->blinded_msg_size,
                                 NULL));
-
-  sig = rsa_sign_mpi (key, v);
+  sig = rsa_sign_mpi (key,
+                      v);
   gcry_mpi_release (v);
   BENCHMARK_END (rsa_sign_blinded);
   return sig;
@@ -969,14 +990,17 @@ GNUNET_CRYPTO_rsa_sign_blinded (const struct GNUNET_CRYPTO_RsaPrivateKey *key,
 
 struct GNUNET_CRYPTO_RsaSignature *
 GNUNET_CRYPTO_rsa_sign_fdh (const struct GNUNET_CRYPTO_RsaPrivateKey *key,
-                            const struct GNUNET_HashCode *hash)
+                            const void *message,
+                            size_t message_size)
 {
   struct GNUNET_CRYPTO_RsaPublicKey *pkey;
   gcry_mpi_t v = NULL;
   struct GNUNET_CRYPTO_RsaSignature *sig;
 
   pkey = GNUNET_CRYPTO_rsa_private_key_get_public (key);
-  v = rsa_full_domain_hash (pkey, hash);
+  v = rsa_full_domain_hash (pkey,
+                            message,
+                            message_size);
   GNUNET_CRYPTO_rsa_public_key_free (pkey);
   if (NULL == v)   /* rsa_gcd_validate failed meaning */
     return NULL;   /* our *own* RSA key is malicious. */
@@ -1172,7 +1196,8 @@ GNUNET_CRYPTO_rsa_unblind (const struct GNUNET_CRYPTO_RsaSignature *sig,
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_rsa_verify (const struct GNUNET_HashCode *hash,
+GNUNET_CRYPTO_rsa_verify (const void *message,
+                          size_t message_size,
                           const struct GNUNET_CRYPTO_RsaSignature *sig,
                           const struct GNUNET_CRYPTO_RsaPublicKey *pkey)
 {
@@ -1182,7 +1207,9 @@ GNUNET_CRYPTO_rsa_verify (const struct GNUNET_HashCode *hash,
 
   BENCHMARK_START (rsa_verify);
 
-  r = rsa_full_domain_hash (pkey, hash);
+  r = rsa_full_domain_hash (pkey,
+                            message,
+                            message_size);
   if (NULL == r)
   {
     GNUNET_break_op (0);
@@ -1260,4 +1287,4 @@ GNUNET_CRYPTO_rsa_signature_dup (const struct GNUNET_CRYPTO_RsaSignature *sig)
 }
 
 
-/* end of util/rsa.c */
+/* end of crypto_rsa.c */

@@ -16,3 +16,17 @@ libgnunetpq = library('gnunetpq',
         install: true,
         install_dir: get_option('libdir'))
 libgnunetpq_dep = declare_dependency(link_with : libgnunetpq)
+
+testpq = executable ('test_pq',
+          ['test_pq.c'],
+          dependencies: [libgnunetutil_dep,
+                         pq_dep,
+                         libgnunetpq_dep],
+          include_directories: [incdir, configuration_inc],
+          build_by_default: false,
+          install: false)
+test('test_pq', testpq,
+   workdir: meson.current_build_dir(),
+   suite: ['pq'])
+
+

@@ -45,9 +45,8 @@ eval (unsigned int len)
   struct GNUNET_CRYPTO_RsaBlindingKeySecret bsec[10];
   unsigned int i;
   char sbuf[128];
-  void *bbuf;
-  size_t bbuf_len;
   struct GNUNET_HashCode hc;
+  struct GNUNET_CRYPTO_RsaBlindedMessage bm;
 
   start = GNUNET_TIME_absolute_get ();
   for (i = 0; i < 10; i++)
@@ -95,17 +94,17 @@ eval (unsigned int len)
   for (i = 0; i < 10; i++)
   {
     GNUNET_CRYPTO_rsa_blind (&hc,
+                             sizeof (hc),
                              &bsec[i],
                              public_key,
-                             &bbuf,
-                             &bbuf_len);
-    GNUNET_free (bbuf);
+                             &bm);
+    GNUNET_CRYPTO_rsa_blinded_message_free (&bm);
   }
   printf ("10x %u-blinding took %s\n",
           len,
           GNUNET_STRINGS_relative_time_to_string (
             GNUNET_TIME_absolute_get_duration (start),
-            GNUNET_YES));
+            true));
   GNUNET_snprintf (sbuf,
                    sizeof(sbuf),
                    "RSA %u-blinding",
@@ -116,16 +115,15 @@ eval (unsigned int len)
                        + GNUNET_TIME_absolute_get_duration
                          (start).rel_value_us / 1000LL), "ops/ms");
   GNUNET_CRYPTO_rsa_blind (&hc,
+                           sizeof (hc),
                            &bsec[0],
                            public_key,
-                           &bbuf,
-                           &bbuf_len);
+                           &bm);
   start = GNUNET_TIME_absolute_get ();
   for (i = 0; i < 10; i++)
   {
     sig = GNUNET_CRYPTO_rsa_sign_blinded (private_key,
-                                          bbuf,
-                                          bbuf_len);
+                                          &bm);
     GNUNET_CRYPTO_rsa_signature_free (sig);
   }
   printf ("10x %u-signing took %s\n",
@@ -143,8 +141,7 @@ eval (unsigned int len)
                        + GNUNET_TIME_absolute_get_duration
                          (start).rel_value_us / 1000LL), "ops/ms");
   sig = GNUNET_CRYPTO_rsa_sign_blinded (private_key,
-                                        bbuf,
-                                        bbuf_len);
+                                        &bm);
   start = GNUNET_TIME_absolute_get ();
   for (i = 0; i < 10; i++)
   {
@@ -157,7 +154,7 @@ eval (unsigned int len)
           len,
           GNUNET_STRINGS_relative_time_to_string (
             GNUNET_TIME_absolute_get_duration (start),
-            GNUNET_YES));
+            true));
   GNUNET_snprintf (sbuf,
                    sizeof(sbuf),
                    "RSA %u-unblinding",
@@ -175,6 +172,7 @@ eval (unsigned int len)
   {
     GNUNET_assert (GNUNET_OK ==
                    GNUNET_CRYPTO_rsa_verify (&hc,
+                                             sizeof (hc),
                                              rsig,
                                              public_key));
   }
@@ -195,7 +193,7 @@ eval (unsigned int len)
   GNUNET_CRYPTO_rsa_signature_free (sig);
   GNUNET_CRYPTO_rsa_public_key_free (public_key);
   GNUNET_CRYPTO_rsa_private_key_free (private_key);
-  GNUNET_free (bbuf);
+  GNUNET_CRYPTO_rsa_blinded_message_free (&bm);
 }
 
 

@@ -113,11 +113,9 @@ src/lib/gnsrecord/gnsrecord_pow.c
 src/lib/gnsrecord/gnsrecord_serialization.c
 src/lib/gnsrecord/gnunet-gnsrecord-tvg.c
 src/lib/gnsrecord/json_gnsrecord.c
-src/lib/hello/address.c
 src/lib/hello/gnunet-hello.c
 src/lib/hello/hello-ng.c
 src/lib/hello/hello-uri.c
-src/lib/hello/hello.c
 src/lib/json/json.c
 src/lib/json/json_generator.c
 src/lib/json/json_helper.c
@@ -156,6 +154,7 @@ src/lib/util/container_multihashmap32.c
 src/lib/util/container_multipeermap.c
 src/lib/util/container_multishortmap.c
 src/lib/util/container_multiuuidmap.c
+src/lib/util/crypto_blind_sign.c
 src/lib/util/crypto_crc.c
 src/lib/util/crypto_cs.c
 src/lib/util/crypto_ecc.c
@@ -499,6 +498,5 @@ src/service/vpn/vpn_api.c
 src/service/zonemaster/gnunet-service-zonemaster.c
 src/include/gnunet_json_lib.h
 src/include/gnunet_pq_lib.h
-src/include/gnunet_transport_hello_service.h
 src/lib/pq/pq.h
 src/service/fs/fs_api.h
