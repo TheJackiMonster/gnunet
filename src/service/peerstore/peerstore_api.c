@@ -1150,7 +1150,10 @@ merge_success (void *cls, int success)
   struct StoreHelloCls *shu_cls = cls;
   struct GNUNET_PEERSTORE_StoreHelloContext *huc = shu_cls->huc;
 
-  GNUNET_CONTAINER_multipeermap_remove (huc->store_context_map, huc->pid, shu_cls->sc);
+  if (GNUNET_NO == GNUNET_CONTAINER_multipeermap_remove (huc->store_context_map, huc->pid, shu_cls->sc))
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "There was no store context to be removed after storing hello for peer %s\n",
+                GNUNET_i2s (huc->pid));
   if (GNUNET_OK != success)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
