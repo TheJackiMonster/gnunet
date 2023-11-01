@@ -1011,6 +1011,8 @@ watch_iterate (void *cls,
     wc->ic = NULL;
     if (NULL != wc->callback)
       wc->callback (wc->callback_cls, record, NULL);
+    if (NULL == wc->peer)
+      GNUNET_free_nz ((void *) peer);
     return;
   }
 
