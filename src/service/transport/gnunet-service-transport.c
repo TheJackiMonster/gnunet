@@ -5530,6 +5530,7 @@ store_pi (void *cls)
   char *prefix = GNUNET_HELLO_address_to_prefix (ale->address);
 
   dash = strchr (ale->address, '-');
+  GNUNET_assert (NULL != dash);
   dash++;
   GNUNET_asprintf (&address_uri,
                    "%s://%s",
