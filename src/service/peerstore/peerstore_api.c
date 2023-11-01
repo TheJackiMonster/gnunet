@@ -1208,10 +1208,10 @@ store_hello (struct GNUNET_PEERSTORE_StoreHelloContext *huc,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "store_hello with expiration %s\n",
               GNUNET_STRINGS_absolute_time_to_string (hello_exp));
-  GNUNET_CONTAINER_multipeermap_put (huc->store_context_map,
-                                     huc->pid,
-                                     sc,
-                                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
+  GNUNET_assert (GNUNET_SYSERR != GNUNET_CONTAINER_multipeermap_put (huc->store_context_map,
+                                                                     huc->pid,
+                                                                     sc,
+                                                                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE));
   shu_cls->sc = sc;
 }
 
