@@ -1776,7 +1776,7 @@ struct DistanceVector
   /**
    * Master secret for the setup of the Key material for the backchannel. 
    */
-  struct GNUNET_HashCode km;
+  struct GNUNET_HashCode *km;
 };
 
 
@@ -3417,6 +3417,7 @@ free_dv_route (struct DistanceVector *dv)
       GNUNET_SCHEDULER_cancel (dv->timeout_task);
       dv->timeout_task = NULL;
     }
+    GNUNET_free (dv->km);
     GNUNET_free (dv);
   }
 }
@@ -4839,6 +4840,7 @@ encapsulate_for_dv (struct DistanceVector *dv,
   char enc[sizeof(struct TransportDVBoxPayloadP) + enc_body_size] GNUNET_ALIGN;
   struct DVKeyState *key;
   struct GNUNET_TIME_Relative rtt;
+  struct GNUNET_HashCode km;
 
   key = GNUNET_new (struct DVKeyState);
   /* Encrypt payload */
@@ -4851,7 +4853,9 @@ encapsulate_for_dv (struct DistanceVector *dv,
   {
     GNUNET_CRYPTO_eddsa_kem_encaps (&dv->target.public_key,
                                     &dv->ephemeral_key,
-                                    &dv->km);
+                                    &km);
+    dv->km = GNUNET_new (struct GNUNET_HashCode);
+    GNUNET_memcpy (dv->km, &km, sizeof(struct GNUNET_HashCode));
     sign_ephemeral (dv);
   }
   box_hdr.ephemeral_key = dv->ephemeral_key;
@@ -4863,7 +4867,7 @@ encapsulate_for_dv (struct DistanceVector *dv,
   // We are creating this key, so this must work.
   // FIXME: Possibly also add return values here. We are processing
   // Input from other peers...
-  dv_setup_key_state_from_km (&dv->km, &box_hdr.iv, key);
+  dv_setup_key_state_from_km (dv->km, &box_hdr.iv, key);
   payload_hdr.sender = GST_my_identity;
   payload_hdr.monotonic_time = GNUNET_TIME_absolute_hton (dv->monotime);
   dv_encrypt (key, &payload_hdr, enc, sizeof(payload_hdr));
