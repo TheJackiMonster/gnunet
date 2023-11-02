@@ -6786,6 +6786,7 @@ send_msg_from_cache (struct VirtualLink *vl)
                     (unsigned int) ntohs (mh->size));
         finish_handling_raw_message (vl, mh, cmc, GNUNET_NO);
         GNUNET_free (mh);
+        GNUNET_free (rbe);
       }
       else
       {
