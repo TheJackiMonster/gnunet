@@ -8,6 +8,7 @@ SUBDIRS = \
 	nse \
 	datastore \
 	dht \
+	identity \
 	namecache \
 	namestore \
 	revocation \
