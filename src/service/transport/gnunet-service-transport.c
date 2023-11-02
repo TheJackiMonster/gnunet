@@ -3084,8 +3084,14 @@ free_pending_message (struct PendingMessage *pm)
   free_fragment_tree (pm);
   if (NULL != pm->qe)
   {
+    struct QueueEntry *qe = pm->qe;
+
     GNUNET_assert (pm == pm->qe->pm);
     pm->qe->pm = NULL;
+    GNUNET_CONTAINER_DLL_remove (qe->queue->queue_head,
+                               qe->queue->queue_tail,
+                               qe);
+    GNUNET_free (qe);
   }
   if (NULL != pm->bpm)
   {
@@ -3093,7 +3099,12 @@ free_pending_message (struct PendingMessage *pm)
     if (NULL != pm->bpm->qe)
     {
       struct QueueEntry *qe = pm->bpm->qe;
+
       qe->pm = NULL;
+      GNUNET_CONTAINER_DLL_remove (qe->queue->queue_head,
+                               qe->queue->queue_tail,
+                               qe);
+      GNUNET_free (qe);
     }
     GNUNET_free (pm->bpm);
   }
@@ -6475,12 +6486,6 @@ completed_pending_message (struct PendingMessage *pm)
                 pm->logging_uuid);
     if (NULL != pm->frag_parent)
     {
-      if (NULL != pm->bpm)
-      {
-        GNUNET_free (pm->bpm);
-        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                    "Freed bpm\n");
-      }
       pos = pm->frag_parent;
       free_pending_message (pm);
       pos->bpm = NULL;
@@ -10378,7 +10383,7 @@ handle_send_message_ack (void *cls,
     // TODO I guess this can happen, if the Ack from the peer comes before the Ack from the queue.
     // Update: Maybe QueueEntry was accidentally freed during freeing PendingMessage.
     /* this should never happen */
-    GNUNET_break (0);
+    // GNUNET_break (0);
     // GNUNET_SERVICE_client_drop (tc->client);
     GNUNET_SERVICE_client_continue (tc->client);
     return;
