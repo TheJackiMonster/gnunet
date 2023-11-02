@@ -648,8 +648,8 @@ address_iterator (void *cls,
 static void
 consider_for_advertising (const struct GNUNET_MessageHeader *hello)
 {
-  int num_addresses_old;
-  int num_addresses_new;
+  int num_addresses_old = 0;
+  int num_addresses_new = 0;
   struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (hello);
   struct GNUNET_PeerIdentity pid;
   struct Peer *peer;
