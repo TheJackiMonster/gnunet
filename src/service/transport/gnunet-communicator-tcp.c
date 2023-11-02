@@ -3095,6 +3095,7 @@ create_proto_queue (struct GNUNET_NETWORK_Handle *sock,
                   strerror (errno));
       GNUNET_NETWORK_socket_close (sock);
       GNUNET_free (in);
+      GNUNET_free (pq);
       return NULL;
     }
   }
