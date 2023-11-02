@@ -16,7 +16,7 @@ bin_PROGRAMS = \
 gnunet_identity_SOURCES = \
  gnunet-identity.c
 gnunet_identity_LDADD = \
-  $(top_builddir)/src/service/libgnunetidentity.la \
+  $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
@@ -32,5 +32,4 @@ check_SCRIPTS = \
 
 EXTRA_DIST = \
   test_identity_messages.sh
-
 
