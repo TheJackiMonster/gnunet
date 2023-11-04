@@ -1,5 +1,3 @@
-libgnunetfriends_src = ['friends.c']
-
 gnunetdaemontopology_src = ['gnunet-daemon-topology.c']
 
 configure_file(input : 'topology.conf',
@@ -10,26 +8,15 @@ configure_file(input : 'topology.conf',
 
 
 if get_option('monolith')
-  foreach p : libgnunetfriends_src
-    gnunet_src += 'topology/' + p
-  endforeach
+  # FIXME add daemon when new daemon macro is ported/ready for it.
+  #foreach p : libgnunetfriends_src
+  #  gnunet_src += 'topology/' + p
+  #endforeach
 endif
-
-libgnunetfriends = library('gnunetfriends',
-        libgnunetfriends_src,
-        soversion: '0',
-        version: '0.0.0',
-        dependencies: libgnunetutil_dep,
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
-pkg.generate(libgnunetfriends, url: 'https://www.gnunet.org',
-             description : 'Provides API for accessing the friends service')
-libgnunetfriends_dep = declare_dependency(link_with : libgnunetfriends)
 
 executable ('gnunet-daemon-topology',
             gnunetdaemontopology_src,
-            dependencies: [libgnunetfriends_dep,
+            dependencies: [
                            libgnunetutil_dep,
                            libgnunetcore_dep,
                            libgnunetpeerstore_dep,

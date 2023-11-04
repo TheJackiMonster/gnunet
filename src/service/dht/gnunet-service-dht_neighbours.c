@@ -1300,7 +1300,6 @@ get_target_peers (const struct GNUNET_HashCode *key,
 static void
 hello_check (const struct GNUNET_DATACACHE_Block *bd)
 {
-  const struct GNUNET_PeerIdentity *pid;
   struct GNUNET_HELLO_Builder *b;
 
   if (GNUNET_BLOCK_TYPE_DHT_HELLO != bd->type)

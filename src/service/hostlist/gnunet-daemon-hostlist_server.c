@@ -198,12 +198,10 @@ host_processor (void *cls,
                 const struct GNUNET_PeerIdentity *peer,
                 void *value)
 {
-  (void *) cls;
+  (void) cls;
   size_t old;
   size_t s;
   struct GNUNET_MessageHeader *hello = value;
-  struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
-  struct GNUNET_TIME_Absolute hello_exp;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "host_processor\n");

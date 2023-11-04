@@ -42,13 +42,13 @@
  * At what frequency do we sent HELLOs to a peer?
  */
 #define HELLO_ADVERTISEMENT_MIN_FREQUENCY \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
 
 /**
  * After what time period do we expire the HELLO Bloom filter?
  */
 #define HELLO_ADVERTISEMENT_MIN_REPEAT_FREQUENCY \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
 
 
 /**
@@ -630,12 +630,14 @@ disconnect_notify (void *cls,
  */
 static void
 address_iterator (void *cls,
+                  const struct GNUNET_PeerIdentity *pid,
                   const char *uri)
 {
+  (void) pid;
   int *flag = cls;
 
   *flag = *flag + 1;
-  //*flag = GNUNET_YES;
+  // *flag = GNUNET_YES;
 }
 
 
@@ -651,26 +653,25 @@ consider_for_advertising (const struct GNUNET_MessageHeader *hello)
   int num_addresses_old = 0;
   int num_addresses_new = 0;
   struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (hello);
-  struct GNUNET_PeerIdentity pid;
+  const struct GNUNET_PeerIdentity *pid;
   struct Peer *peer;
   uint16_t size;
 
-  GNUNET_HELLO_builder_iterate (builder,
-                                &pid,
-                                &address_iterator,
-                                &num_addresses_new);
+  pid = GNUNET_HELLO_builder_iterate (builder,
+                                      &address_iterator,
+                                      &num_addresses_new);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "consider 0 for %s\n",
-              GNUNET_i2s (&pid));
+              GNUNET_i2s (pid));
   if (0 == num_addresses_new)
   {
     GNUNET_HELLO_builder_free (builder);
     return; /* no point in advertising this one... */
   }
-  peer = GNUNET_CONTAINER_multipeermap_get (peers, &pid);
+  peer = GNUNET_CONTAINER_multipeermap_get (peers, pid);
   if (NULL == peer)
   {
-    peer = make_peer (&pid, hello);
+    peer = make_peer (pid, hello);
   }
   else if (NULL != peer->hello)
   {
@@ -679,11 +680,10 @@ consider_for_advertising (const struct GNUNET_MessageHeader *hello)
       GNUNET_HELLO_builder_get_expiration_time (hello);
     struct GNUNET_TIME_Absolute old_hello_exp =
       GNUNET_HELLO_builder_get_expiration_time (peer->hello);
-    struct GNUNET_HELLO_Builder *builder_old = GNUNET_HELLO_builder_from_msg (peer->hello);
-    struct GNUNET_PeerIdentity pid_old;
+    struct GNUNET_HELLO_Builder *builder_old = GNUNET_HELLO_builder_from_msg (
+      peer->hello);
 
     GNUNET_HELLO_builder_iterate (builder_old,
-                                  &pid_old,
                                   &address_iterator,
                                   &num_addresses_old);
     if (GNUNET_TIME_absolute_cmp (new_hello_exp, >, now) &&
@@ -711,7 +711,7 @@ consider_for_advertising (const struct GNUNET_MessageHeader *hello)
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Found HELLO from peer `%s' for advertising\n",
-              GNUNET_i2s (&pid));
+              GNUNET_i2s (pid));
   if (NULL != peer->filter)
   {
     GNUNET_CONTAINER_bloomfilter_free (peer->filter);
@@ -779,15 +779,18 @@ process_peer (void *cls,
   attempt_connect (pos);
 }
 
+
 static void
 start_notify (void *cls)
 {
   (void) cls;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Starting to process new hellos for gossiping.\n");
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Starting to process new hellos for gossiping.\n");
   peerstore_notify =
     GNUNET_PEERSTORE_hello_changed_notify (ps, GNUNET_NO, &process_peer, NULL);
 }
+
 
 /**
  * Function called after #GNUNET_CORE_connect has succeeded
@@ -809,9 +812,10 @@ core_init (void *cls, const struct GNUNET_PeerIdentity *my_id)
   }
   my_identity = *my_id;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "I am peer `%s'\n", GNUNET_i2s (my_id));
-  peerstore_notify_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_MINUTES,
-                                                        start_notify,
-                                                        NULL);
+  peerstore_notify_task = GNUNET_SCHEDULER_add_delayed (
+    GNUNET_TIME_UNIT_MINUTES,
+    start_notify,
+    NULL);
 }
 
 
