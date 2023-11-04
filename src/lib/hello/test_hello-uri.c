@@ -37,6 +37,7 @@
  */
 static void
 check_uris (void *cls,
+            const struct GNUNET_PeerIdentity *pid,
             const char *uri)
 {
   unsigned int *found = cls;
@@ -89,7 +90,7 @@ main (int argc,
     void *block;
     size_t block_size = 0;
     struct GNUNET_HELLO_Builder *b2;
-    struct GNUNET_PeerIdentity p2;
+    const struct GNUNET_PeerIdentity *p2;
     unsigned int found;
 
     GNUNET_assert (GNUNET_NO ==
@@ -117,13 +118,12 @@ main (int argc,
     GNUNET_free (block);
     GNUNET_assert (NULL != b2);
     found = 0;
-    GNUNET_HELLO_builder_iterate (b2,
-                                  &p2,
-                                  &check_uris,
-                                  &found);
+    p2 = GNUNET_HELLO_builder_iterate (b2,
+                                       &check_uris,
+                                       &found);
     GNUNET_assert (3 == found);
     GNUNET_assert (0 ==
-                   GNUNET_memcmp (&p2,
+                   GNUNET_memcmp (p2,
                                   &pid));
     GNUNET_HELLO_builder_free (b2);
   }
@@ -131,7 +131,7 @@ main (int argc,
   {
     char *url;
     struct GNUNET_HELLO_Builder *b2;
-    struct GNUNET_PeerIdentity p2;
+    const struct GNUNET_PeerIdentity *p2;
     unsigned int found;
 
     url = GNUNET_HELLO_builder_to_url (b,
@@ -140,13 +140,12 @@ main (int argc,
     GNUNET_free (url);
     GNUNET_assert (NULL != b2);
     found = 0;
-    GNUNET_HELLO_builder_iterate (b2,
-                                  &p2,
-                                  &check_uris,
-                                  &found);
+    p2 = GNUNET_HELLO_builder_iterate (b2,
+                                       &check_uris,
+                                       &found);
     GNUNET_assert (3 == found);
     GNUNET_assert (0 ==
-                   GNUNET_memcmp (&p2,
+                   GNUNET_memcmp (p2,
                                   &pid));
     GNUNET_HELLO_builder_free (b2);
   }
@@ -154,7 +153,7 @@ main (int argc,
   {
     struct GNUNET_MQ_Envelope *env;
     struct GNUNET_HELLO_Builder *b2;
-    struct GNUNET_PeerIdentity p2;
+    const struct GNUNET_PeerIdentity *p2;
     unsigned int found;
 
     env = GNUNET_HELLO_builder_to_env (b,
@@ -164,13 +163,12 @@ main (int argc,
     GNUNET_free (env);
     GNUNET_assert (NULL != b2);
     found = 0;
-    GNUNET_HELLO_builder_iterate (b2,
-                                  &p2,
-                                  &check_uris,
-                                  &found);
+    p2 = GNUNET_HELLO_builder_iterate (b2,
+                                       &check_uris,
+                                       &found);
     GNUNET_assert (3 == found);
     GNUNET_assert (0 ==
-                   GNUNET_memcmp (&p2,
+                   GNUNET_memcmp (p2,
                                   &pid));
     GNUNET_HELLO_builder_free (b2);
   }

@@ -27,6 +27,7 @@
 #include "platform.h"
 #include "gnunet_constants.h"
 #include "gnunet_protocols.h"
+#include "gnunet_hello_uri_lib.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet-service-dht.h"
 #include "gnunet-service-dht_datacache.h"
@@ -1203,7 +1204,6 @@ handle_dht_local_hello_offer (void *cls,
   struct ClientHandle *ch = cls;
   const char *url = (const char *) &msg[1];
   struct GNUNET_HELLO_Builder *b;
-  struct GNUNET_PeerIdentity *pid;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Local client provided HELLO URL %s\n",
@@ -1216,12 +1216,9 @@ handle_dht_local_hello_offer (void *cls,
     return;
   }
   GNUNET_SERVICE_client_continue (ch->client);
-  pid = GNUNET_new (struct GNUNET_PeerIdentity);
   GNUNET_HELLO_builder_iterate (b,
-                                pid,
                                 &GDS_try_connect,
-                                pid);
-  GNUNET_free (pid);
+                                NULL);
   GNUNET_HELLO_builder_free (b);
 }
 

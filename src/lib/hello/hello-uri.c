@@ -905,25 +905,25 @@ GNUNET_HELLO_builder_del_address (struct GNUNET_HELLO_Builder *builder,
 }
 
 
-void
+const struct GNUNET_PeerIdentity*
 GNUNET_HELLO_builder_iterate (const struct GNUNET_HELLO_Builder *builder,
-                              struct GNUNET_PeerIdentity *pid,
                               GNUNET_HELLO_UriCallback uc,
                               void *uc_cls)
 {
   struct Address *nxt;
 
-  *pid = builder->pid;
   if (NULL == uc)
-    return;
+    return &builder->pid;
   for (struct Address *a = builder->a_head;
        NULL != a;
        a = nxt)
   {
     nxt = a->next;
     uc (uc_cls,
+        &builder->pid,
         a->uri);
   }
+  return &builder->pid;
 }
 
 

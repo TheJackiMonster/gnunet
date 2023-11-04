@@ -1774,7 +1774,7 @@ struct DistanceVector
   struct GNUNET_CRYPTO_EcdhePublicKey ephemeral_key;
 
   /**
-   * Master secret for the setup of the Key material for the backchannel. 
+   * Master secret for the setup of the Key material for the backchannel.
    */
   struct GNUNET_HashCode *km;
 };
@@ -3089,8 +3089,8 @@ free_pending_message (struct PendingMessage *pm)
     GNUNET_assert (pm == pm->qe->pm);
     pm->qe->pm = NULL;
     GNUNET_CONTAINER_DLL_remove (qe->queue->queue_head,
-                               qe->queue->queue_tail,
-                               qe);
+                                 qe->queue->queue_tail,
+                                 qe);
     GNUNET_free (qe);
   }
   if (NULL != pm->bpm)
@@ -3102,8 +3102,8 @@ free_pending_message (struct PendingMessage *pm)
 
       qe->pm = NULL;
       GNUNET_CONTAINER_DLL_remove (qe->queue->queue_head,
-                               qe->queue->queue_tail,
-                               qe);
+                                   qe->queue->queue_tail,
+                                   qe);
       GNUNET_free (qe);
     }
     GNUNET_free (pm->bpm);
@@ -8629,9 +8629,10 @@ start_address_validation (const struct GNUNET_PeerIdentity *pid,
 
 static void
 hello_for_incoming_cb (void *cls,
+                       const struct GNUNET_PeerIdentity *pid,
                        const char *uri)
 {
-  const struct GNUNET_PeerIdentity *peer = cls;
+  (void) cls;
   int pfx_len;
   const char *eou;
   char *address;
@@ -8650,7 +8651,7 @@ hello_for_incoming_cb (void *cls,
               "helo for client %s\n",
               address);
 
-  start_address_validation (peer, address);
+  start_address_validation (pid, address);
   GNUNET_free (address);
 }
 
@@ -8681,9 +8682,8 @@ handle_hello_for_incoming (void *cls,
     return;
   builder = GNUNET_HELLO_builder_from_msg (hello);
   GNUNET_HELLO_builder_iterate (builder,
-                                (struct GNUNET_PeerIdentity *) peer,
                                 hello_for_incoming_cb,
-                                (struct GNUNET_PeerIdentity *) peer);
+                                NULL);
   GNUNET_HELLO_builder_free (builder);
 }
 
@@ -11263,9 +11263,10 @@ handle_suggest_cancel (void *cls, const struct ExpressPreferenceMessage *msg)
 
 static void
 hello_for_client_cb (void *cls,
+                     const struct GNUNET_PeerIdentity *pid,
                      const char *uri)
 {
-  const struct GNUNET_PeerIdentity *peer = cls;
+  (void) cls;
   int pfx_len;
   const char *eou;
   char *address;
@@ -11284,7 +11285,7 @@ hello_for_client_cb (void *cls,
               "hello for client %s\n",
               address);
 
-  start_address_validation (peer, address);
+  start_address_validation (pid, address);
   GNUNET_free (address);
 }
 
@@ -11316,9 +11317,8 @@ handle_hello_for_client (void *cls,
     return;
   builder = GNUNET_HELLO_builder_from_msg (hello);
   GNUNET_HELLO_builder_iterate (builder,
-                                (struct GNUNET_PeerIdentity *) peer,
                                 hello_for_client_cb,
-                                (struct GNUNET_PeerIdentity *) peer);
+                                NULL);
   GNUNET_HELLO_builder_free (builder);
 }
 
