@@ -220,6 +220,7 @@ GNUNET_HELLO_builder_del_address (struct GNUNET_HELLO_Builder *builder,
  */
 typedef void
 (*GNUNET_HELLO_UriCallback) (void *cls,
+                             const struct GNUNET_PeerIdentity* pid,
                              const char *uri);
 
 
@@ -227,13 +228,12 @@ typedef void
  * Iterate over URIs in a builder.
  *
  * @param builder builder to iterate over
- * @param[out] pid set to the peer the @a builder is for
  * @param uc callback invoked for each URI, can be NULL
  * @param uc_cls closure for @a addrgen
+ * @return pid of the peer the @a builder is for, can be NULL
  */
-void
+const struct GNUNET_PeerIdentity *
 GNUNET_HELLO_builder_iterate (const struct GNUNET_HELLO_Builder *builder,
-                              struct GNUNET_PeerIdentity *pid,
                               GNUNET_HELLO_UriCallback uc,
                               void *uc_cls);
 

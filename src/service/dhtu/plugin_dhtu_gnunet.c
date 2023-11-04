@@ -374,6 +374,7 @@ core_disconnect_cb (void *cls,
 
 static void
 add_addr (void *cls,
+          const struct GNUNET_PeerIdentity *pid,
           const char *addr)
 {
   struct Plugin *plugin = cls;
@@ -408,7 +409,6 @@ peerinfo_cb (void *cls,
 {
   struct Plugin *plugin = cls;
   struct GNUNET_HELLO_Builder *builder;
-  struct GNUNET_PeerIdentity pid;
 
   if (NULL == hello)
     return;
@@ -420,7 +420,6 @@ peerinfo_cb (void *cls,
     return;
   builder = GNUNET_HELLO_builder_from_msg (hello);
   GNUNET_HELLO_builder_iterate (builder,
-                                &pid,
                                 add_addr,
                                 plugin);
   GNUNET_HELLO_builder_free (builder);

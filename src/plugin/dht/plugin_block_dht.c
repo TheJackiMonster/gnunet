@@ -138,7 +138,7 @@ block_plugin_dht_check_block (void *cls,
   case GNUNET_BLOCK_TYPE_DHT_HELLO:
     {
       struct GNUNET_HELLO_Builder *b;
-      struct GNUNET_PeerIdentity pid;
+      const struct GNUNET_PeerIdentity *pid;
       struct GNUNET_HashCode h_pid;
 
       b = GNUNET_HELLO_builder_from_block (block,
@@ -148,11 +148,10 @@ block_plugin_dht_check_block (void *cls,
         GNUNET_break (0);
         return GNUNET_NO;
       }
-      GNUNET_HELLO_builder_iterate (b,
-                                    &pid,
-                                    NULL, NULL);
-      GNUNET_CRYPTO_hash (&pid,
-                          sizeof (pid),
+      pid = GNUNET_HELLO_builder_iterate (b,
+                                          NULL, NULL);
+      GNUNET_CRYPTO_hash (pid,
+                          sizeof (*pid),
                           &h_pid);
       GNUNET_HELLO_builder_free (b);
       return GNUNET_OK;
@@ -196,17 +195,16 @@ block_plugin_dht_check_reply (
   case GNUNET_BLOCK_TYPE_DHT_HELLO:
     {
       struct GNUNET_HELLO_Builder *b;
-      struct GNUNET_PeerIdentity pid;
+      const struct GNUNET_PeerIdentity *pid;
       struct GNUNET_HashCode h_pid;
 
       b = GNUNET_HELLO_builder_from_block (reply_block,
                                            reply_block_size);
       GNUNET_assert (NULL != b);
-      GNUNET_HELLO_builder_iterate (b,
-                                    &pid,
-                                    NULL, NULL);
-      GNUNET_CRYPTO_hash (&pid,
-                          sizeof (pid),
+      pid = GNUNET_HELLO_builder_iterate (b,
+                                          NULL, NULL);
+      GNUNET_CRYPTO_hash (pid,
+                          sizeof (*pid),
                           &h_pid);
       GNUNET_HELLO_builder_free (b);
       if (GNUNET_YES ==
@@ -244,7 +242,7 @@ block_plugin_dht_get_key (void *cls,
   case GNUNET_BLOCK_TYPE_DHT_HELLO:
     {
       struct GNUNET_HELLO_Builder *b;
-      struct GNUNET_PeerIdentity pid;
+      const struct GNUNET_PeerIdentity *pid;
 
       b = GNUNET_HELLO_builder_from_block (block,
                                            block_size);
@@ -256,11 +254,10 @@ block_plugin_dht_get_key (void *cls,
                 sizeof (*key));
         return GNUNET_OK;
       }
-      GNUNET_HELLO_builder_iterate (b,
-                                    &pid,
-                                    NULL, NULL);
-      GNUNET_CRYPTO_hash (&pid,
-                          sizeof (pid),
+      pid = GNUNET_HELLO_builder_iterate (b,
+                                          NULL, NULL);
+      GNUNET_CRYPTO_hash (pid,
+                          sizeof (*pid),
                           key);
       GNUNET_HELLO_builder_free (b);
       return GNUNET_OK;

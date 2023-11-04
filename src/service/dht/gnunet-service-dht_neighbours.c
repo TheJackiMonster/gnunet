@@ -76,7 +76,7 @@
  * requests when we are 'perfectly' connected.
  */
 #define DHT_MINIMUM_FIND_PEER_INTERVAL GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_MINUTES, 2)
+          GNUNET_TIME_UNIT_MINUTES, 2)
 
 
 /**
@@ -89,7 +89,7 @@
  * is half of the number given here.
  */
 #define DHT_AVG_FIND_PEER_INTERVAL GNUNET_TIME_relative_multiply (    \
-    GNUNET_TIME_UNIT_SECONDS, 6)
+          GNUNET_TIME_UNIT_SECONDS, 6)
 
 /**
  * How long at most to wait for transmission of a GET request to another peer?
@@ -1300,7 +1300,7 @@ get_target_peers (const struct GNUNET_HashCode *key,
 static void
 hello_check (const struct GNUNET_DATACACHE_Block *bd)
 {
-  struct GNUNET_PeerIdentity *pid;
+  const struct GNUNET_PeerIdentity *pid;
   struct GNUNET_HELLO_Builder *b;
 
   if (GNUNET_BLOCK_TYPE_DHT_HELLO != bd->type)
@@ -1310,12 +1310,9 @@ hello_check (const struct GNUNET_DATACACHE_Block *bd)
                                        bd->data_size);
   if (GNUNET_YES != disable_try_connect)
   {
-    pid = GNUNET_new (struct GNUNET_PeerIdentity);
     GNUNET_HELLO_builder_iterate (b,
-                                  pid,
                                   &GDS_try_connect,
-                                  pid);
-    GNUNET_free (pid);
+                                  NULL);
   }
   GNUNET_HELLO_builder_free (b);
 }
@@ -2888,9 +2885,10 @@ GDS_u_receive (void *cls,
  */
 void
 GDS_try_connect (void *cls,
+                 const struct GNUNET_PeerIdentity *pid,
                  const char *uri)
 {
-  const struct GNUNET_PeerIdentity *pid = cls;
+  (void) cls;
   struct GNUNET_HashCode phash;
   int peer_bucket;
   struct PeerBucket *bucket;
