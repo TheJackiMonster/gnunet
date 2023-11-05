@@ -60,6 +60,7 @@ libgnunetutil_la_SOURCES = \
   $(DLOG) \
   crypto_ecc_setup.c \
   crypto_edx25519.c \
+  crypto_elligator.c \
   crypto_hash.c \
   crypto_hash_file.c \
   crypto_hkdf.c \
@@ -207,6 +208,7 @@ check_PROGRAMS = \
  test_crypto_ecdh_eddsa \
  test_crypto_ecdh_ecdsa \
  test_crypto_edx25519 \
+ test_crypto_elligator \
  $(DLOG_TEST) \
  test_crypto_hash \
  test_crypto_hash_context \
@@ -384,6 +386,12 @@ test_crypto_eddsa_LDADD = \
 test_crypto_edx25519_SOURCES = \
  test_crypto_edx25519.c
 test_crypto_edx25519_LDADD = \
+ libgnunetutil.la \
+ $(LIBGCRYPT_LIBS)
+
+ test_crypto_elligator_SOURCES = \
+ test_crypto_elligator.c
+test_crypto_elligator_LDADD = \
  libgnunetutil.la \
  $(LIBGCRYPT_LIBS)
 

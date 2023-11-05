@@ -349,6 +349,18 @@ struct GNUNET_CRYPTO_Edx25519Signature
 };
 
 /**
+ * Elligator representative (always for Curve25519)
+ */
+struct GNUNET_CRYPTO_ElligatorRepresentative
+{
+  /**
+   * Represents an element of Curve25519 finite field.
+   * Always smaller than 2 ^ 254 - 10 -> Needs to be serialized into a random-looking byte stream before transmission.
+   */
+  unsigned char r[256 / 8];
+};
+
+/**
  * Key type for the generic public key union
  */
 enum GNUNET_CRYPTO_KeyType
@@ -2651,6 +2663,91 @@ GNUNET_CRYPTO_edx25519_public_key_derive (
   const void *seed,
   size_t seedsize,
   struct GNUNET_CRYPTO_Edx25519PublicKey *result);
+
+/**
+ * Note: Included in header for testing purposes. GNUNET_CRYPTO_ecdhe_elligator_decoding will be the correct API for the direct map.
+ * TODO: Make static.
+ * @ingroup crypto
+ * Encodes an element of the underlying finite field, so called representative, of Curve25519 to a point on the curve
+ * This transformation is deterministic
+ *
+ * @param representative element of the finite field
+ * @param point destination for the calculated point on the curve
+ * @param high_y destination set to "True" if corresponding y-coordinate is > 2 ^ 254 - 10
+ */
+bool
+GNUNET_CRYPTO_ecdhe_elligator_direct_map (uint8_t *point, bool *high_y,
+                                          uint8_t *representative);
+
+
+/**
+ * @ingroup crypto
+ * Clears the most significant bit and second most significant bit to the serialized representaive before applying elligator direct map.
+ *
+ * @param serialized_representative serialized version of an element of Curves25519's finite field
+ * @param point destination for the calculated point on the curve
+ * @param high_y destination set to "True" if corresponding y-coordinate is > 2 ^ 254 - 10
+ */
+bool
+GNUNET_CRYPTO_ecdhe_elligator_decoding (struct
+                                        GNUNET_CRYPTO_EcdhePublicKey *point,
+                                        bool *high_y,
+                                        struct
+                                        GNUNET_CRYPTO_ElligatorRepresentative *
+                                        seriliazed_representative);
+
+/**
+ * @ingroup crypto
+ * Encodes a point on Curve25519 to a an element of the underlying finite field
+ * This transformation is deterministic
+ *
+ * @param point a point on the curve
+ * @param high_y encodes if y-coordinate is > 2 ^254 - 10, which determines the representative value out of two
+ * @param representative destination for the calculated element of the finite field
+ */
+bool
+GNUNET_CRYPTO_ecdhe_elligator_inverse_map (uint8_t *representative, const
+                                           uint8_t *point,
+                                           bool high_y);
+
+
+/**
+* Initializes the elligator library
+* THis function is thread safe
+*/
+void
+GNUNET_CRYPTO_ecdhe_elligator_initialize (void);
+
+/**
+ * @ingroup crypto
+ * Generates a valid public key for elligator's inverse map by adding a lower order point to a prime order point.
+ *
+ * @param pub valid public key for elligator inverse map
+ * @param pk private key for generating valid public key
+ */
+int
+  GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (unsigned char
+                                                     pub[
+                                                       crypto_scalarmult_SCALARBYTES
+                                                     ],
+                                                     struct
+                                                     GNUNET_CRYPTO_EcdhePrivateKey
+                                                     *pk);
+
+
+/**
+ * @ingroup crypto
+ * Generates a private key for Curve25519 and the elligator representative of the corresponding public key
+ *
+ * @param repr representative of the public key
+ * @param pk Curve25519 private key
+ */
+int
+GNUNET_CRYPTO_ecdhe_elligator_key_create (struct
+                                          GNUNET_CRYPTO_ElligatorRepresentative
+                                          *repr,
+                                          struct GNUNET_CRYPTO_EcdhePrivateKey
+                                          *pk);
 
 
 /**

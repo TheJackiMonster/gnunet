@@ -178,6 +178,10 @@ gcrypt_dep = dependency('libgcrypt', required : false)
 if not gcrypt_dep.found()
   gcrypt_dep = cc.find_library('gcrypt', required : true)
 endif
+lgmp_dep = dependency('libgmp', required : false)
+if not lgmp_dep.found()
+  lgmp_dep = cc.find_library('gmp', required : true)
+endif
 gnutls_dep = dependency('libgnutls', required : false)
 if not gnutls_dep.found()
   gnutls_dep = cc.find_library('gnutls', required : false)

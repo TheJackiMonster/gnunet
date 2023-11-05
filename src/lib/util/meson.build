@@ -27,6 +27,7 @@ libgnunetutil_src = ['bandwidth.c',
        'crypto_ecc_dlog.c',
        'crypto_ecc_setup.c',
        'crypto_edx25519.c',
+       'crypto_elligator.c',
        'crypto_hash.c',
        'crypto_hash_file.c',
        'crypto_hkdf.c',
@@ -328,6 +329,16 @@ testcrypto_ecc_dlog = executable ('test_crypto_ecc_dlog',
                                   build_by_default: false,
                                   install: false)
 test('test_crypto_ecc_dlog', testcrypto_ecc_dlog,
+     workdir: meson.current_build_dir(),
+     suite: ['util', 'util-crypto'])
+
+testcrypto_elligator = executable ('test_crypto_elligator',
+            ['test_crypto_elligator.c'],
+            dependencies: [gcrypt_dep, libgnunetutil_dep, lgmp_dep, sodium_dep],
+            include_directories: [incdir, configuration_inc],
+            build_by_default: false,
+            install: false)
+test('test_crypto_elligator', testcrypto_elligator,
      workdir: meson.current_build_dir(),
      suite: ['util', 'util-crypto'])
 
