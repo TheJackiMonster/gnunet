@@ -609,8 +609,6 @@ main ()
   struct GNUNET_HashCode query;
   struct GNUNET_HashCode expected_query;
   struct GNUNET_TIME_Absolute expire;
-  struct GNUNET_TIME_Relative exprel;
-  struct GNUNET_REVOCATION_PowP *pow;
   char label[128];
   char rdata[8096];
   char ztld[128];
@@ -706,6 +704,5 @@ main ()
       break;
     printf ("Good.\n");
   }
-finish:
   return res;
 }
