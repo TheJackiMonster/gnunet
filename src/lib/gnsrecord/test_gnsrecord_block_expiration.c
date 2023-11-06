@@ -49,6 +49,8 @@ run (void *cls, char *const *args, const char *cfgfile,
   struct GNUNET_GNSRECORD_Data rd[2];
   struct GNUNET_TIME_Absolute expiration_abs;
   struct GNUNET_TIME_Absolute expiration_abs_shadow;
+  char *tmp_data0;
+  char *tmp_data1;
 
   expiration_abs.abs_value_us = GNUNET_TIME_absolute_get ().abs_value_us
                                 + GNUNET_TIME_UNIT_SECONDS.rel_value_us;
@@ -59,14 +61,16 @@ run (void *cls, char *const *args, const char *cfgfile,
   rd[0].expiration_time = expiration_abs.abs_value_us;
   rd[0].record_type = TEST_RECORD_TYPE;
   rd[0].data_size = TEST_RECORD_DATALEN;
-  rd[0].data = GNUNET_malloc (TEST_RECORD_DATALEN);
+  tmp_data0 = GNUNET_malloc (TEST_RECORD_DATALEN);
+  rd[0].data = tmp_data0;
   rd[0].flags = GNUNET_GNSRECORD_RF_NONE;
   memset ((char *) rd[0].data, TEST_RECORD_DATA, TEST_RECORD_DATALEN);
 
   rd[1].expiration_time = expiration_abs.abs_value_us;
   rd[1].record_type = TEST_RECORD_TYPE;
   rd[1].data_size = TEST_RECORD_DATALEN;
-  rd[1].data = GNUNET_malloc (TEST_RECORD_DATALEN);
+  tmp_data1 = GNUNET_malloc (TEST_RECORD_DATALEN);
+  rd[1].data = tmp_data1;
   rd[1].flags = GNUNET_GNSRECORD_RF_NONE;
   memset ((char *) rd[1].data, TEST_RECORD_DATA, TEST_RECORD_DATALEN);
 
@@ -78,7 +82,7 @@ run (void *cls, char *const *args, const char *cfgfile,
   rd[1].expiration_time = expiration_abs_shadow.abs_value_us;
   rd[1].record_type = TEST_RECORD_TYPE;
   rd[1].data_size = TEST_RECORD_DATALEN;
-  GNUNET_free (rd[1].data);
+  GNUNET_free (tmp_data1);
   rd[1].data = GNUNET_malloc (TEST_RECORD_DATALEN);
   rd[1].flags = GNUNET_GNSRECORD_RF_SHADOW;
   memset ((char *) rd[1].data, TEST_RECORD_DATA, TEST_RECORD_DATALEN);
@@ -87,8 +91,8 @@ run (void *cls, char *const *args, const char *cfgfile,
                  GNUNET_GNSRECORD_record_get_expiration_time (2,
                                                               rd,
 							      GNUNET_TIME_UNIT_ZERO_ABS).abs_value_us);
-  GNUNET_free (rd[0].data);
-  GNUNET_free (rd[1].data);
+  GNUNET_free (tmp_data0);
+  GNUNET_free (tmp_data1);
   res = 0;
 }
 
