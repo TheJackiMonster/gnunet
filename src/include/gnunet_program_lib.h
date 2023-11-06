@@ -139,7 +139,7 @@ GNUNET_DAEMON_register (const char *daemon_name,
           }; \
           if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, \
                                                          &argv)) \
-          return 2; \
+            return 2; \
           ret =  GNUNET_PROGRAM_run (argc, \
                                      argv, \
                                      daemon_name, \

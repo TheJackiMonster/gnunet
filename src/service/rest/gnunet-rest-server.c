@@ -1146,8 +1146,9 @@ setup_plugin (const char *name,
  */
 static void
 run (void *cls,
-     const struct GNUNET_CONFIGURATION_Handle *c,
-     struct GNUNET_SERVICE_Handle *service)
+     char *const *args,
+     const char *cfgfile,
+     const struct GNUNET_CONFIGURATION_Handle *c)
 {
   static const char *err_page = "{}";
   char *addr_str;
@@ -1383,39 +1384,48 @@ run (void *cls,
   /* Load plugins */
   // FIXME: Use per-plugin rest plugin structs
   struct GNUNET_REST_Plugin *config_plugin = REST_config_init (cfg);
-  if (GNUNET_OK != setup_plugin (config_plugin->name, &REST_config_process_request, config_plugin))
+  if (GNUNET_OK != setup_plugin (config_plugin->name,
+                                 &REST_config_process_request, config_plugin))
   {
     GNUNET_SCHEDULER_shutdown ();
   }
   struct GNUNET_REST_Plugin *copying_plugin = REST_copying_init (cfg);
-  if (GNUNET_OK != setup_plugin (copying_plugin->name, &REST_copying_process_request, copying_plugin))
+  if (GNUNET_OK != setup_plugin (copying_plugin->name,
+                                 &REST_copying_process_request, copying_plugin))
   {
     GNUNET_SCHEDULER_shutdown ();
   }
   struct GNUNET_REST_Plugin *identity_plugin = REST_identity_init (cfg);
-  if (GNUNET_OK != setup_plugin (identity_plugin->name, &REST_identity_process_request, identity_plugin))
+  if (GNUNET_OK != setup_plugin (identity_plugin->name,
+                                 &REST_identity_process_request,
+                                 identity_plugin))
   {
     GNUNET_SCHEDULER_shutdown ();
   }
   struct GNUNET_REST_Plugin *namestore_plugin = REST_namestore_init (cfg);
-  if (GNUNET_OK != setup_plugin (namestore_plugin->name, &REST_namestore_process_request, namestore_plugin))
+  if (GNUNET_OK != setup_plugin (namestore_plugin->name,
+                                 &REST_namestore_process_request,
+                                 namestore_plugin))
   {
     GNUNET_SCHEDULER_shutdown ();
   }
   struct GNUNET_REST_Plugin *gns_plugin = REST_gns_init (cfg);
-  if (GNUNET_OK != setup_plugin (gns_plugin->name, &REST_gns_process_request, gns_plugin))
+  if (GNUNET_OK != setup_plugin (gns_plugin->name, &REST_gns_process_request,
+                                 gns_plugin))
   {
     GNUNET_SCHEDULER_shutdown ();
   }
 #if HAVE_JOSE
   struct GNUNET_REST_Plugin *openid_plugin = REST_openid_init (cfg);
-  if (GNUNET_OK != setup_plugin (openid_plugin->name, &REST_openid_process_request, openid_plugin))
+  if (GNUNET_OK != setup_plugin (openid_plugin->name,
+                                 &REST_openid_process_request, openid_plugin))
   {
     GNUNET_SCHEDULER_shutdown ();
   }
 #endif
   struct GNUNET_REST_Plugin *reclaim_plugin = REST_reclaim_init (cfg);
-  if (GNUNET_OK != setup_plugin (reclaim_plugin->name, &REST_reclaim_process_request, reclaim_plugin))
+  if (GNUNET_OK != setup_plugin (reclaim_plugin->name,
+                                 &REST_reclaim_process_request, reclaim_plugin))
   {
     GNUNET_SCHEDULER_shutdown ();
   }
@@ -1423,6 +1433,6 @@ run (void *cls,
 }
 
 
-GNUNET_DAEMON_MAIN("rest", _("GNUnet REST service"), &run)
+GNUNET_DAEMON_MAIN ("rest", _ ("GNUnet REST service"), &run)
 
 /* end of gnunet-rest-server.c */
