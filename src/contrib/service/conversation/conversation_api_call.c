@@ -627,7 +627,7 @@ GNUNET_CONVERSATION_call_start (const struct GNUNET_CONFIGURATION_Handle *cfg,
   call->gns_lookup = GNUNET_GNS_lookup_with_tld (call->gns,
                                                  call->callee,
                                                  GNUNET_GNSRECORD_TYPE_PHONE,
-                                                 GNUNET_NO,
+                                                 GNUNET_GNS_LO_DEFAULT,
                                                  &handle_gns_response,
                                                  call);
   if (NULL == call->gns_lookup)
