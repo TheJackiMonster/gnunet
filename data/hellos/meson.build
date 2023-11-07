@@ -1,2 +1,2 @@
-install_data('Y924NSHMMZ1N1SQCE5TXF93ED6S6JY311K0QT86G9WJC68F6XVZ0',
+install_data('EFBZMC2ME19SE00QCSF6X4405EQ2NPBG2XKRA1FEM6S3WRQ6N4H0',
              install_dir: get_option('datadir')/'gnunet'/'hellos')
