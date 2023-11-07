@@ -13,7 +13,7 @@ cd "${MESON_DIST_ROOT}"
 echo "Updating handbook..."
 if existence sphinx-build; then
   cwd=$PWD
-  cd src/handbook || exit 1
+  cd contrib/handbook || exit 1
   if test -e _build; then
     make clean
   fi
