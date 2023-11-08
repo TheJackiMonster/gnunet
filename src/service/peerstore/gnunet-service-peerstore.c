@@ -596,12 +596,18 @@ hosts_directory_scan_callback (void *cls, const char *fullname)
   }
   hello = (const struct GNUNET_MessageHeader *) &buffer[0];
   builder = GNUNET_HELLO_builder_from_msg (hello);
+  if (NULL == builder)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Unable to parse HELLO message\n");
+    return GNUNET_OK;
+  }
   pid = GNUNET_HELLO_builder_get_id (builder);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "store contrib hello for peer %s\n",
               GNUNET_i2s (pid));
-  
+
   if (GNUNET_OK != db->store_record (db->cls,
                                      "peerstore",
                                      pid,
