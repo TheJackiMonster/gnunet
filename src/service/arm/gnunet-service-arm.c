@@ -1120,7 +1120,7 @@ create_listen_socket (struct sockaddr *sa,
     GNUNET_free (sa);
     return;
   }
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               _ ("ARM now monitors connections to service `%s' at `%s'\n"),
               sl->name,
               GNUNET_a2s (sa, addr_len));
