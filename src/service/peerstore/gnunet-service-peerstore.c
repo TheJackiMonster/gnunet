@@ -157,7 +157,7 @@ static void
 expire_records_continuation (void *cls, int success)
 {
   if (success > 0)
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO, "%d records expired.\n", success);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "%d records expired.\n", success);
   GNUNET_assert (NULL == expire_task);
   expire_task = GNUNET_SCHEDULER_add_delayed (
     GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,
@@ -508,7 +508,7 @@ handle_store (void *cls, const struct StoreRecordMessage *srm)
 
   record = PEERSTORE_parse_record_message (srm);
   GNUNET_log (
-    GNUNET_ERROR_TYPE_INFO,
+    GNUNET_ERROR_TYPE_DEBUG,
     "Received a store request. Sub system `%s' Peer `%s Key `%s' Options: %u.\n",
     record->sub_system,
     GNUNET_i2s (&record->peer),
