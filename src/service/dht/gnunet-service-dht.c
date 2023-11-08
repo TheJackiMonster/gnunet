@@ -264,10 +264,21 @@ u_address_add (void *cls,
 {
   struct GDS_Underlay *u = cls;
   struct MyAddress *a;
+  unsigned int add_success;
 
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Underlay adds address %s for this peer\n",
               address);
+  add_success != GNUNET_HELLO_builder_add_address (GDS_my_hello,
+                                                   address);
+  if (GNUNET_OK != add_success)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Adding address `%s' from underlay %s\n",
+                address,
+                GNUNET_NO == add_success ? "not done" : "failed");
+    return;
+  }
   a = GNUNET_new (struct MyAddress);
   a->source = source;
   a->url = GNUNET_strdup (address);
@@ -276,8 +287,7 @@ u_address_add (void *cls,
                                a_tail,
                                a);
   *ctx = a;
-  GNUNET_HELLO_builder_add_address (GDS_my_hello,
-                                    address);
+  
   if (NULL != hello_task)
     GNUNET_SCHEDULER_cancel (hello_task);
   hello_task = GNUNET_SCHEDULER_add_now (&broadcast_hello,

@@ -5526,6 +5526,15 @@ shc_cont (void *cls, int success)
                                     GNUNET_PEERSTORE_STOREOPTION_MULTIPLE,
                                     &peerstore_store_own_cb,
                                     ale);
+  if (NULL == ale->sc)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Failed to store our address `%s' with peerstore\n",
+                ale->address);
+    ale->st = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
+                                            &store_pi,
+                                            ale);
+   }
 }
 
 
@@ -5543,6 +5552,7 @@ store_pi (void *cls)
   const char *dash;
   char *address_uri;
   char *prefix = GNUNET_HELLO_address_to_prefix (ale->address);
+  unsigned int add_success;
 
   dash = strchr (ale->address, '-');
   GNUNET_assert (NULL != dash);
@@ -5557,15 +5567,15 @@ store_pi (void *cls)
               "Storing our address `%s' in peerstore until %s!\n",
               ale->address,
               GNUNET_STRINGS_absolute_time_to_string (hello_mono_time));
-  if (GNUNET_OK != GNUNET_HELLO_builder_add_address (GST_my_hello,
-                                                     address_uri))
+  add_success = GNUNET_HELLO_builder_add_address (GST_my_hello,
+                                                  address_uri);
+  if (GNUNET_OK != add_success)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Address `%s' invalid\n",
-                address_uri);
+                "Storing our address `%s' %s\n",
+                address_uri,
+                GNUNET_NO == add_success ? "not done" : "failed");
     GNUNET_free (address_uri);
-    ale->st =
-      GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS, &store_pi, ale);
     return;
   }
   // FIXME hello_mono_time used here?? What about expiration in ale?
