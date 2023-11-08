@@ -65,7 +65,6 @@ configure_file(copy: true,
                output: 'test_namestore_api_sqlite.conf')
 
 namestoreapitestnames = [
-  'test_namestore_api_edit_records',
   'test_namestore_api_lookup_nick',
   'test_namestore_api_monitoring',
   'test_namestore_api_monitoring_existing',
@@ -80,6 +79,10 @@ namestoreapitestnames = [
   'test_namestore_api_zone_iteration_stop',
   'test_namestore_api_zone_to_name'
   ]
+
+if get_option('experimental')
+  namestoreapitestnames +='test_namestore_api_edit_records'
+endif
 
 foreach tn : namestoreapitestnames
   t = executable (tn + '_sqlite',
