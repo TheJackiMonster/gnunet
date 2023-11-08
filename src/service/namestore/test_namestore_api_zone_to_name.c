@@ -241,7 +241,7 @@ int
 main (int argc,
       char *argv[])
 {
-  const char *plugin_name;
+  char *plugin_name;
   char *cfg_name;
 
   (void) argc;

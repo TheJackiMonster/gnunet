@@ -143,7 +143,7 @@ lookup_success (void *cls,
                                            &rd_new,
                                            &put_cont,
                                            (void *) name);
-    GNUNET_free (rd_new.data);
+    GNUNET_free_nz ((void*) rd_new.data);
     update_performed = GNUNET_YES;
   }
   else
@@ -168,8 +168,6 @@ static void
 put_cont (void *cls,
           enum GNUNET_ErrorCode ec)
 {
-  struct GNUNET_HashCode derived_hash;
-
   nsqe = NULL;
   GNUNET_assert (NULL != cls);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -238,7 +236,7 @@ int
 main (int argc,
       char *argv[])
 {
-  const char *plugin_name;
+  char *plugin_name;
   char *cfg_name;
 
   SETUP_CFG (plugin_name, cfg_name);

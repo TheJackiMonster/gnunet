@@ -382,7 +382,7 @@ int
 main (int argc,
       char *argv[])
 {
-  const char *plugin_name;
+  char *plugin_name;
   char *cfg_name;
 
   SETUP_CFG2 ("perf_namestore_api_%s.conf", plugin_name, cfg_name);
