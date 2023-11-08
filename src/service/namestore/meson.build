@@ -55,3 +55,59 @@ executable ('gnunet-namestore-fcfsd',
             install: true,
             install_dir: get_option('libdir')/'gnunet'/'libexec')
 
+
+configure_file(copy: true,
+               input: 'test_namestore_api.conf',
+               output: 'test_namestore_api.conf')
+
+configure_file(copy: true,
+               input: 'test_namestore_api_sqlite.conf',
+               output: 'test_namestore_api_sqlite.conf')
+
+namestoreapitestnames = [
+  'test_namestore_api_edit_records',
+  'test_namestore_api_lookup_nick',
+  'test_namestore_api_monitoring',
+  'test_namestore_api_monitoring_existing',
+  'test_namestore_api_remove',
+  'test_namestore_api_remove_not_existing_record',
+  'test_namestore_api_store',
+  'test_namestore_api_store_update',
+  'test_namestore_api_tx_rollback',
+  'test_namestore_api_zone_iteration',
+  'test_namestore_api_zone_iteration_nick',
+  'test_namestore_api_zone_iteration_specific_zone',
+  'test_namestore_api_zone_iteration_stop',
+  'test_namestore_api_zone_to_name'
+  ]
+
+foreach tn : namestoreapitestnames
+  t = executable (tn + '_sqlite',
+            [tn + '.c'],
+            dependencies: [
+              libgnunettesting_dep,
+              libgnunetutil_dep,
+              libgnunetgnsrecord_dep,
+              libgnunetidentity_dep,
+              libgnunetnamestore_dep],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+  test(tn + '_sqlite', t, workdir: meson.current_build_dir(),
+     suite: 'namestore')
+  if pq_dep.found()
+    t_pq = executable (tn + '_postgres',
+              [tn + '.c'],
+              dependencies: [
+                libgnunettesting_dep,
+                libgnunetutil_dep,
+                libgnunetgnsrecord_dep,
+                libgnunetidentity_dep,
+                libgnunetnamestore_dep],
+              include_directories: [incdir, configuration_inc],
+              install: false)
+    test(tn + '_postgres', t, workdir: meson.current_build_dir(),
+       suite: 'namestore')
+  endif
+endforeach
+
+# FIXME perf tests missing

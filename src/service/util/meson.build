@@ -19,3 +19,16 @@ executable ('gnunet-service-resolver',
             include_directories: [incdir, configuration_inc],
             install: true,
             install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+
+testresolverapi = executable ('test_resolver_api',
+            ['test_resolver_api.c'],
+            dependencies: [libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+configure_file(copy: true,
+               input: 'test_resolver_api_data.conf',
+               output: 'test_resolver_api_data.conf')
+
+test('test_resolver_api', testresolverapi, workdir: meson.current_build_dir(),
+     suite: 'resolver')
+

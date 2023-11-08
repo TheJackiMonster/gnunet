@@ -25,7 +25,6 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_namestore_plugin.h"
-#include "gnunet_testing_lib.h"
 
 #define TEST_RECORD_TYPE GNUNET_DNSPARSER_TYPE_TXT
 

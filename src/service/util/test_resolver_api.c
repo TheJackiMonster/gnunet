@@ -25,7 +25,7 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_resolver_service.h"
-#include "resolver.h"
+#include "../lib/util/resolver.h"
 
 
 static int disable_rootserver_check;

@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2013, 2018 GNUnet e.V.
+     Copyright (C) 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -18,16 +18,18 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 /**
- * @file namestore/perf_namestore_api_zone_iteration.c
- * @brief testcase for zone iteration functionality: iterate all zones
- * @author Christian Grothoff
+ * @file namestore/perf_namestore_api_import.c
+ * @brief testcase for namestore: Import a lot of records
+ * @author Martin Schanzenbach
  */
 #include "platform.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_testing_lib.h"
-#include "namestore.h"
+#include "../service/namestore/namestore.h"
 
 #define TEST_RECORD_TYPE GNUNET_DNSPARSER_TYPE_TXT
+
+#define TEST_RECORD_COUNT 10000
 
 /**
  * A #BENCHMARK_SIZE of 1000 takes less than a minute on a reasonably
@@ -65,19 +67,17 @@ static struct GNUNET_SCHEDULER_Task *t;
 
 static struct GNUNET_CRYPTO_PrivateKey privkey;
 
-static struct GNUNET_NAMESTORE_ZoneIterator *zi;
-
 static struct GNUNET_NAMESTORE_QueueEntry *qe;
 
 static int res;
 
-static unsigned int off;
-
-static unsigned int left_until_next;
-
-static uint8_t seen[1 + BENCHMARK_SIZE / 8];
-
 static struct GNUNET_TIME_Absolute start;
+
+struct GNUNET_NAMESTORE_RecordInfo ri[TEST_RECORD_COUNT];
+
+int single_put_pos;
+
+static int bulk_count = 0;
 
 
 /**
@@ -93,11 +93,6 @@ end (void *cls)
   {
     GNUNET_NAMESTORE_cancel (qe);
     qe = NULL;
-  }
-  if (NULL != zi)
-  {
-    GNUNET_NAMESTORE_zone_iteration_stop (zi);
-    zi = NULL;
   }
   if (NULL != nsh)
   {
@@ -151,122 +146,14 @@ create_record (unsigned int count)
 
 
 static void
-zone_end (void *cls)
+publish_records_single (void *cls);
+
+static void
+commit_cont (void *cls,
+             enum GNUNET_ErrorCode ec)
 {
   struct GNUNET_TIME_Relative delay;
 
-  zi = NULL;
-  delay = GNUNET_TIME_absolute_get_duration (start);
-  fprintf (stdout,
-           "Iterating over %u records took %s\n",
-           off,
-           GNUNET_STRINGS_relative_time_to_string (delay,
-                                                   GNUNET_YES));
-  if (BENCHMARK_SIZE == off)
-  {
-    res = 0;
-  }
-  else
-  {
-    GNUNET_break (0);
-    res = 1;
-  }
-  GNUNET_SCHEDULER_shutdown ();
-}
-
-
-static void
-fail_cb (void *cls)
-{
-  zi = NULL;
-  res = 2;
-  GNUNET_break (0);
-  GNUNET_SCHEDULER_shutdown ();
-}
-
-
-static void
-zone_proc (void *cls,
-           const struct GNUNET_CRYPTO_PrivateKey *zone,
-           const char *label,
-           unsigned int rd_count,
-           const struct GNUNET_GNSRECORD_Data *rd)
-{
-  struct GNUNET_GNSRECORD_Data *wrd;
-  unsigned int xoff;
-
-  GNUNET_assert (NULL != zone);
-  if (1 != sscanf (label,
-                   "l%u",
-                   &xoff))
-  {
-    res = 3;
-    GNUNET_break (0);
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
-  if ((xoff > BENCHMARK_SIZE) ||
-      (0 != (seen[xoff / 8] & (1U << (xoff % 8)))))
-  {
-    res = 3;
-    GNUNET_break (0);
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
-  seen[xoff / 8] |= (1U << (xoff % 8));
-  wrd = create_record (xoff % MAX_REC_SIZE);
-  if ((rd->record_type != wrd->record_type) ||
-      (rd->data_size != wrd->data_size) ||
-      (rd->flags != wrd->flags))
-  {
-    res = 4;
-    GNUNET_break (0);
-    GNUNET_SCHEDULER_shutdown ();
-    GNUNET_free (wrd);
-    return;
-  }
-  if (0 != memcmp (rd->data,
-                   wrd->data,
-                   wrd->data_size))
-  {
-    res = 4;
-    GNUNET_break (0);
-    GNUNET_SCHEDULER_shutdown ();
-    GNUNET_free (wrd);
-    return;
-  }
-  GNUNET_free (wrd);
-  if (0 != GNUNET_memcmp (zone,
-                          &privkey))
-  {
-    res = 5;
-    GNUNET_break (0);
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
-  off++;
-  left_until_next--;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Obtained record %u, expecting %u more until asking for more explicitly\n",
-              off,
-              left_until_next);
-  if (0 == left_until_next)
-  {
-    left_until_next = BLOCK_SIZE;
-    GNUNET_NAMESTORE_zone_iterator_next (zi,
-                                         left_until_next);
-  }
-}
-
-
-static void
-publish_record (void *cls);
-
-
-static void
-put_cont (void *cls,
-          enum GNUNET_ErrorCode ec)
-{
   (void) cls;
   qe = NULL;
   if (GNUNET_EC_NONE != ec)
@@ -275,55 +162,189 @@ put_cont (void *cls,
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  t = GNUNET_SCHEDULER_add_now (&publish_record,
+  single_put_pos++;
+  delay = GNUNET_TIME_absolute_get_duration (start);
+  fprintf (stdout,
+           "BULK-TX: Publishing %u records took %s\n",
+           TEST_RECORD_COUNT,
+           GNUNET_STRINGS_relative_time_to_string (delay,
+                                                   GNUNET_YES));
+  res = 0;
+  GNUNET_SCHEDULER_shutdown ();
+}
+
+static void
+publish_records_bulk_tx (void *cls);
+
+
+static void
+put_cont_bulk_tx (void *cls,
+                  enum GNUNET_ErrorCode ec)
+{
+  qe = NULL;
+  if (GNUNET_EC_NONE != ec)
+  {
+    GNUNET_break (0);
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
+  if (bulk_count == TEST_RECORD_COUNT)
+  {
+    qe = GNUNET_NAMESTORE_transaction_commit (nsh, commit_cont, NULL);
+    return;
+  }
+  t = GNUNET_SCHEDULER_add_now (&publish_records_bulk_tx, NULL);
+}
+
+
+static void
+publish_records_bulk_tx (void *cls)
+{
+  unsigned int sent_rds;
+  t = NULL;
+  qe = GNUNET_NAMESTORE_records_store2 (nsh,
+                                        &privkey,
+                                        TEST_RECORD_COUNT - bulk_count,
+                                        &ri[bulk_count],
+                                        &sent_rds,
+                                        &put_cont_bulk_tx,
+                                        NULL);
+  bulk_count += sent_rds;
+  GNUNET_assert (sent_rds != 0);
+}
+
+
+static void
+begin_cont (void *cls,
+            enum GNUNET_ErrorCode ec)
+{
+  unsigned int sent_rds;
+  qe = GNUNET_NAMESTORE_records_store2 (nsh,
+                                        &privkey,
+                                        TEST_RECORD_COUNT - bulk_count,
+                                        &ri[bulk_count],
+                                        &sent_rds,
+                                        &put_cont_bulk_tx,
+                                        NULL);
+  bulk_count += sent_rds;
+  GNUNET_assert (sent_rds != 0);
+}
+
+static void
+publish_records_bulk (void *cls);
+
+static void
+put_cont_bulk (void *cls,
+               enum GNUNET_ErrorCode ec)
+{
+  struct GNUNET_TIME_Relative delay;
+
+  (void) cls;
+  qe = NULL;
+  if (GNUNET_EC_NONE != ec)
+  {
+    GNUNET_break (0);
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
+
+  if (bulk_count == TEST_RECORD_COUNT)
+  {
+    delay = GNUNET_TIME_absolute_get_duration (start);
+    fprintf (stdout,
+             "BULK: Publishing %u records took %s\n",
+             TEST_RECORD_COUNT,
+             GNUNET_STRINGS_relative_time_to_string (delay,
+                                                     GNUNET_YES));
+    start = GNUNET_TIME_absolute_get ();
+    bulk_count = 0;
+    qe = GNUNET_NAMESTORE_transaction_begin (nsh, begin_cont, NULL);
+    return;
+  }
+  (void) cls;
+  qe = NULL;
+  if (GNUNET_EC_NONE != ec)
+  {
+    GNUNET_break (0);
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
+  t = GNUNET_SCHEDULER_add_now (&publish_records_bulk, NULL);
+}
+
+static void
+publish_records_bulk (void *cls)
+{
+  static unsigned int sent_rds = 0;
+  (void) cls;
+  t = NULL;
+  qe = GNUNET_NAMESTORE_records_store2 (nsh,
+                                        &privkey,
+                                        TEST_RECORD_COUNT - bulk_count,
+                                        &ri[bulk_count],
+                                        &sent_rds,
+                                        &put_cont_bulk,
+                                        NULL);
+  bulk_count += sent_rds;
+  GNUNET_assert (sent_rds != 0);
+}
+
+
+static void
+put_cont_single (void *cls,
+                 enum GNUNET_ErrorCode ec)
+{
+  struct GNUNET_TIME_Relative delay;
+  (void) cls;
+  qe = NULL;
+  if (GNUNET_EC_NONE != ec)
+  {
+    GNUNET_break (0);
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
+  single_put_pos++;
+  if (single_put_pos == TEST_RECORD_COUNT)
+  {
+    delay = GNUNET_TIME_absolute_get_duration (start);
+    fprintf (stdout,
+             "SINGLE: Publishing %u records took %s\n",
+             TEST_RECORD_COUNT,
+             GNUNET_STRINGS_relative_time_to_string (delay,
+                                                     GNUNET_YES));
+    start = GNUNET_TIME_absolute_get ();
+    t = GNUNET_SCHEDULER_add_now (&publish_records_bulk, NULL);
+    return;
+  }
+  t = GNUNET_SCHEDULER_add_now (&publish_records_single,
                                 NULL);
 }
 
 
 static void
-publish_record (void *cls)
+publish_records_single (void *cls)
 {
-  struct GNUNET_GNSRECORD_Data *rd;
-  char *label;
+  struct GNUNET_TIME_Relative delay;
 
   (void) cls;
   t = NULL;
-  if (BENCHMARK_SIZE == off)
+  if (single_put_pos == TEST_RECORD_COUNT)
   {
-    struct GNUNET_TIME_Relative delay;
-
     delay = GNUNET_TIME_absolute_get_duration (start);
     fprintf (stdout,
-             "Inserting %u records took %s\n",
-             off,
+             "Publishing %u records took %s\n",
+             TEST_RECORD_COUNT,
              GNUNET_STRINGS_relative_time_to_string (delay,
                                                      GNUNET_YES));
-    start = GNUNET_TIME_absolute_get ();
-    off = 0;
-    left_until_next = 1;
-    zi = GNUNET_NAMESTORE_zone_iteration_start (nsh,
-                                                NULL,
-                                                &fail_cb,
-                                                NULL,
-                                                &zone_proc,
-                                                NULL,
-                                                &zone_end,
-                                                NULL);
-    GNUNET_assert (NULL != zi);
-    return;
+    GNUNET_SCHEDULER_add_now (&publish_records_bulk, NULL);
   }
-  rd = create_record ((++off) % MAX_REC_SIZE);
-  GNUNET_asprintf (&label,
-                   "l%u",
-                   off);
   qe = GNUNET_NAMESTORE_records_store (nsh,
                                        &privkey,
-                                       label,
-                                       1, rd,
-                                       &put_cont,
+                                       ri[single_put_pos].a_label,
+                                       ri[single_put_pos].a_rd_count,
+                                       ri[single_put_pos].a_rd,
+                                       &put_cont_single,
                                        NULL);
-  GNUNET_free (label);
-  GNUNET_free (rd);
 }
 
 
@@ -332,6 +353,13 @@ run (void *cls,
      const struct GNUNET_CONFIGURATION_Handle *cfg,
      struct GNUNET_TESTING_Peer *peer)
 {
+
+  for (int i = 0; i < TEST_RECORD_COUNT; i++)
+  {
+    ri[i].a_rd = create_record (1);
+    ri[i].a_rd_count = 1;
+    GNUNET_asprintf ((char**) &ri[i].a_label, "label_%d", i);
+  }
   GNUNET_SCHEDULER_add_shutdown (&end,
                                  NULL);
   timeout_task = GNUNET_SCHEDULER_add_delayed (TIMEOUT,
@@ -342,7 +370,7 @@ run (void *cls,
   privkey.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
   GNUNET_CRYPTO_ecdsa_key_create (&privkey.ecdsa_key);
   start = GNUNET_TIME_absolute_get ();
-  t = GNUNET_SCHEDULER_add_now (&publish_record,
+  t = GNUNET_SCHEDULER_add_now (&publish_records_single,
                                 NULL);
 }
 
@@ -357,10 +385,10 @@ main (int argc,
   const char *plugin_name;
   char *cfg_name;
 
-  SETUP_CFG (plugin_name, cfg_name);
+  SETUP_CFG2 ("perf_namestore_api_%s.conf", plugin_name, cfg_name);
   res = 1;
   if (0 !=
-      GNUNET_TESTING_peer_run ("perf-namestore-api-zone-iteration",
+      GNUNET_TESTING_peer_run ("perf-namestore-api-import",
                                cfg_name,
                                &run,
                                NULL))
