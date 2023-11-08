@@ -1,5 +1,6 @@
 [peerstore]
-START_ON_DEMAND = @START_ON_DEMAND@
+IMMEDIATE_START = YES
+USE_INCLUDED_HELLOS = YES
 @JAVAPORT@PORT = 2110
 HOSTNAME = localhost
 BINARY = gnunet-service-peerstore
