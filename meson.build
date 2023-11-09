@@ -420,6 +420,7 @@ pkg = import('pkgconfig')
 subdir('src')
 subdir('doc')
 subdir('contrib')
+subdir('data')
 
 meson.add_dist_script('meson-dist-script')
 

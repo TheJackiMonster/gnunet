@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2013 GNUnet e.V.
+     Copyright (C) 2022 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -18,8 +18,8 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 /**
- * @file namestore/test_namestore_api.c
- * @brief testcase for namestore_api.c to: remove record
+ * @file namestore/test_namestore_api_tx_rollback.c
+ * @brief testcase for namestore_api_tx_rollback.c to: rollback changes in TX
  */
 #include "platform.h"
 #include "gnunet_namestore_service.h"
@@ -86,6 +86,22 @@ end (void *cls)
   res = 0;
 }
 
+static void
+lookup_it (void *cls,
+           const struct GNUNET_CRYPTO_PrivateKey *zone,
+           const char *label,
+           unsigned int rd_count,
+           const struct GNUNET_GNSRECORD_Data *rd)
+{
+  GNUNET_assert (0 == rd_count);
+  GNUNET_SCHEDULER_add_now (&end, NULL);
+}
+
+static void
+fail_cb (void *cls)
+{
+  GNUNET_assert (0);
+}
 
 static void
 remove_cont (void *cls,
@@ -95,7 +111,7 @@ remove_cont (void *cls,
   if (GNUNET_EC_NONE != ec)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                _ ("Records could not be removed: `%s'\n"),
+                _ ("Unable to roll back: `%s'\n"),
                 GNUNET_ErrorCode_get_hint (ec));
     if (NULL != endbadly_task)
       GNUNET_SCHEDULER_cancel (endbadly_task);
@@ -104,11 +120,18 @@ remove_cont (void *cls,
     return;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              "Records were removed, perform lookup\n");
+              "Rolled back, perform lookup\n");
   removed = GNUNET_YES;
   if (NULL != endbadly_task)
     GNUNET_SCHEDULER_cancel (endbadly_task);
-  GNUNET_SCHEDULER_add_now (&end, NULL);
+  /* FIXME not actually doing lookup here */
+  nsqe = GNUNET_NAMESTORE_records_lookup (nsh,
+                                          &privkey,
+                                          (char*) cls,
+                                          &fail_cb,
+                                          NULL,
+                                          &lookup_it,
+                                          NULL);
 }
 
 
@@ -136,25 +159,18 @@ put_cont (void *cls,
               "Name store added record for `%s': %s\n",
               name,
               (GNUNET_EC_NONE == ec) ? "SUCCESS" : "FAIL");
-  nsqe = GNUNET_NAMESTORE_records_store (nsh,
-                                         &privkey,
-                                         name,
-                                         0, NULL,
-                                         &remove_cont, (void *) name);
+  nsqe = GNUNET_NAMESTORE_transaction_rollback (nsh, remove_cont,
+                                                (void *) name);
 }
 
-
 static void
-run (void *cls,
-     const struct GNUNET_CONFIGURATION_Handle *cfg,
-     struct GNUNET_TESTING_Peer *peer)
+begin_cont (void *cls,
+            enum GNUNET_ErrorCode ec)
 {
   struct GNUNET_GNSRECORD_Data rd;
-  const char *name = "dummy";
+  const char *name = cls;
 
-  endbadly_task = GNUNET_SCHEDULER_add_delayed (TIMEOUT,
-                                                &endbadly,
-                                                NULL);
+  GNUNET_assert (GNUNET_EC_NONE == ec);
   privkey.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
   GNUNET_CRYPTO_ecdsa_key_create (&privkey.ecdsa_key);
   GNUNET_CRYPTO_key_get_public (&privkey,
@@ -162,17 +178,14 @@ run (void *cls,
 
   removed = GNUNET_NO;
 
-  rd.expiration_time = GNUNET_TIME_UNIT_MINUTES.rel_value_us;
+  rd.expiration_time = GNUNET_TIME_absolute_get ().abs_value_us;
   rd.record_type = TEST_RECORD_TYPE;
   rd.data_size = TEST_RECORD_DATALEN;
   rd.data = GNUNET_malloc (TEST_RECORD_DATALEN);
-  rd.flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
+  rd.flags = 0;
   memset ((char *) rd.data,
           'a',
           TEST_RECORD_DATALEN);
-
-  nsh = GNUNET_NAMESTORE_connect (cfg);
-  GNUNET_break (NULL != nsh);
   nsqe = GNUNET_NAMESTORE_records_store (nsh,
                                          &privkey,
                                          name,
@@ -180,12 +193,44 @@ run (void *cls,
                                          &rd,
                                          &put_cont,
                                          (void *) name);
-  if (NULL == nsqe)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                _ ("Namestore cannot store no block\n"));
-  }
+  GNUNET_assert (NULL != nsqe);
   GNUNET_free_nz ((void *) rd.data);
+}
+
+static void
+run (void *cls,
+     const struct GNUNET_CONFIGURATION_Handle *cfg,
+     struct GNUNET_TESTING_Peer *peer)
+{
+  const char *name = "dummy";
+
+  endbadly_task = GNUNET_SCHEDULER_add_delayed (TIMEOUT,
+                                                &endbadly,
+                                                NULL);
+  nsh = GNUNET_NAMESTORE_connect (cfg);
+  GNUNET_break (NULL != nsh);
+  nsqe = GNUNET_NAMESTORE_transaction_begin (nsh, begin_cont, (void *) name);
+  /*nsqe = GNUNET_NAMESTORE_transaction_commit (nsh, commit_cont);
+  nsqe = GNUNET_NAMESTORE_transaction_rollback (nsh, rollback_cont); Must also happen on disconnect
+  nsqe = GNUNET_NAMESTORE_records_edit (nsh,
+                                        &privkey,
+                                        name,
+                                        1,
+                                        &rd,
+                                        &edit_cont,
+                                        (void *) name);
+  nsqe = GNUNET_NAMESTORE_records_insert_bulk (nsh,
+                                               count,
+                                               &rd,
+                                               &
+  nsqe = GNUNET_NAMESTORE_records_store (nsh,
+                                         &privkey,
+                                         name,
+                                         1,
+                                         &rd,
+                                         &put_cont,
+                                         (void *) name);*/
+  GNUNET_assert (NULL != nsqe);
 }
 
 
@@ -195,7 +240,7 @@ run (void *cls,
 int
 main (int argc, char *argv[])
 {
-  const char *plugin_name;
+  char *plugin_name;
   char *cfg_name;
 
   SETUP_CFG (plugin_name, cfg_name);

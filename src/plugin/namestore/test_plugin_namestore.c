@@ -25,7 +25,6 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_namestore_plugin.h"
-#include "gnunet_testing_lib.h"
 
 #define TEST_RECORD_TYPE GNUNET_DNSPARSER_TYPE_TXT
 
@@ -36,7 +35,7 @@ static int ok;
  */
 static const char *plugin_name;
 
-
+#ifndef DARWIN // #5582
 /**
  * Function called when the service shuts down.  Unloads our namestore
  * plugin.
@@ -52,7 +51,7 @@ unload_plugin (struct GNUNET_NAMESTORE_PluginFunctions *api)
   GNUNET_break (NULL == GNUNET_PLUGIN_unload (libname, api));
   GNUNET_free (libname);
 }
-
+#endif
 
 /**
  * Load the namestore plugin.

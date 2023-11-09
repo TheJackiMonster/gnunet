@@ -143,7 +143,7 @@ lookup_success (void *cls,
                                            &rd_new,
                                            &put_cont,
                                            (void *) name);
-    GNUNET_free (rd_new.data);
+    GNUNET_free_nz ((void*) rd_new.data);
     update_performed = GNUNET_YES;
   }
   else
@@ -168,22 +168,12 @@ static void
 put_cont (void *cls,
           enum GNUNET_ErrorCode ec)
 {
-  const char *name = cls;
-  struct GNUNET_HashCode derived_hash;
-
   nsqe = NULL;
   GNUNET_assert (NULL != cls);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Name store added record for `%s': %s\n",
               name,
               (GNUNET_EC_NONE == ec) ? "SUCCESS" : "FAIL");
-  /* Create derived hash */
-  GNUNET_GNSRECORD_query_from_private_key (&privkey,
-                                           name,
-                                           &derived_hash);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Looking in namestore for `%s'\n",
-              GNUNET_h2s (&derived_hash));
   nsqe = GNUNET_NAMESTORE_records_lookup (nsh,
                                           &privkey,
                                           name,
@@ -222,6 +212,7 @@ run (void *cls,
 
   nsh = GNUNET_NAMESTORE_connect (cfg);
   GNUNET_break (NULL != nsh);
+
   nsqe = GNUNET_NAMESTORE_records_store (nsh,
                                          &privkey,
                                          name,
@@ -245,13 +236,13 @@ int
 main (int argc,
       char *argv[])
 {
-  const char *plugin_name;
+  char *plugin_name;
   char *cfg_name;
 
   SETUP_CFG (plugin_name, cfg_name);
   res = 1;
   if (0 !=
-      GNUNET_TESTING_peer_run ("test--store-update",
+      GNUNET_TESTING_peer_run ("test-namestore-store-update",
                                cfg_name,
                                &run,
                                NULL))

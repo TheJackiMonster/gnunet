@@ -24,7 +24,7 @@
 #include "platform.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_testing_lib.h"
-#include "namestore.h"
+#include "../service/namestore/namestore.h"
 
 #define TEST_RECORD_TYPE GNUNET_DNSPARSER_TYPE_TXT
 
@@ -368,7 +368,7 @@ int
 main (int argc,
       char *argv[])
 {
-  const char *plugin_name;
+  char *plugin_name;
   char *cfg_name;
 
   SETUP_CFG (plugin_name, cfg_name);

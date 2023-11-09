@@ -157,7 +157,7 @@ static void
 expire_records_continuation (void *cls, int success)
 {
   if (success > 0)
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO, "%d records expired.\n", success);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "%d records expired.\n", success);
   GNUNET_assert (NULL == expire_task);
   expire_task = GNUNET_SCHEDULER_add_delayed (
     GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,
@@ -508,7 +508,7 @@ handle_store (void *cls, const struct StoreRecordMessage *srm)
 
   record = PEERSTORE_parse_record_message (srm);
   GNUNET_log (
-    GNUNET_ERROR_TYPE_INFO,
+    GNUNET_ERROR_TYPE_DEBUG,
     "Received a store request. Sub system `%s' Peer `%s Key `%s' Options: %u.\n",
     record->sub_system,
     GNUNET_i2s (&record->peer),
@@ -596,12 +596,18 @@ hosts_directory_scan_callback (void *cls, const char *fullname)
   }
   hello = (const struct GNUNET_MessageHeader *) &buffer[0];
   builder = GNUNET_HELLO_builder_from_msg (hello);
+  if (NULL == builder)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Unable to parse HELLO message\n");
+    return GNUNET_OK;
+  }
   pid = GNUNET_HELLO_builder_get_id (builder);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "store contrib hello for peer %s\n",
               GNUNET_i2s (pid));
-  
+
   if (GNUNET_OK != db->store_record (db->cls,
                                      "peerstore",
                                      pid,

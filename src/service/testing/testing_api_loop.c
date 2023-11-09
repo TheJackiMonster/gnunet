@@ -45,6 +45,11 @@ struct GNUNET_TESTING_Interpreter
   const struct GNUNET_HELPER_Handle **helper;
 
   /**
+   * Handle to a send op
+   */
+  struct GNUNET_HELPER_SendHandle *send_handle;
+
+  /**
    * Size of the array helper.
    *
    */
@@ -356,6 +361,11 @@ finish_test (void *cls)
   {
     GNUNET_SCHEDULER_cancel (is->timeout_task);
     is->timeout_task = NULL;
+  }
+  if (NULL != is->send_handle)
+  {
+    GNUNET_HELPER_send_cancel (is->send_handle);
+    is->send_handle = NULL;
   }
   GNUNET_free (is->commands);
   is->rc (is->rc_cls,
@@ -731,37 +741,6 @@ GNUNET_TESTING_add_netjail_helper (struct GNUNET_TESTING_Interpreter *is,
 }
 
 
-/**
- * Send Message to netjail nodes.
- *
- * @param is The interpreter.
- * @param global_node_number The netjail node to inform.
- * @param header The message to send.
- */
-static void
-send_message_to_netjail (struct GNUNET_TESTING_Interpreter *is,
-                         unsigned int global_node_number,
-                         struct GNUNET_MessageHeader *header)
-{
-  const struct GNUNET_HELPER_Handle *helper;
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "send message of type %u to locals\n",
-              ntohs (header->type));
-  helper = is->helper[global_node_number - 1];
-  /**
-     FIXME: This should probably be put into a linked list
-     inside is and cleaned up at some point.
-  */
-  struct GNUNET_HELPER_SendHandle *sh = GNUNET_HELPER_send (
-    (struct GNUNET_HELPER_Handle *) helper,
-    header,
-    GNUNET_NO,
-    &clear_msg,
-    NULL);
-}
-
-
 void
 TST_interpreter_send_barrier_crossable (struct GNUNET_TESTING_Interpreter *is,
                                         const char *barrier_name,
@@ -780,9 +759,19 @@ TST_interpreter_send_barrier_crossable (struct GNUNET_TESTING_Interpreter *is,
   adm->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_CROSSABLE);
   adm->header.size = htons ((uint16_t) msg_length);
   memcpy (&adm[1], barrier_name, name_len);
-  send_message_to_netjail (is,
-                           global_node_number,
-                           &adm->header);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "send message of type %u to locals\n",
+              ntohs (adm->header.type));
+  /**
+     FIXME: This should probably be put into a linked list
+     inside is and cleaned up at some point.
+  */
+  is->send_handle = GNUNET_HELPER_send (
+    (struct GNUNET_HELPER_Handle *) is->helper[global_node_number - 1],
+    &adm->header,
+    GNUNET_NO,
+    &clear_msg,
+    NULL);
   GNUNET_free (adm);
 }
 
