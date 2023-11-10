@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2022 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -26,9 +26,73 @@
 #include "platform.h"
 #include "gnunet-service-messenger_message_send.h"
 
+#include "gnunet-service-messenger_handle.h"
 #include "gnunet-service-messenger_member.h"
 #include "gnunet-service-messenger_member_session.h"
 #include "gnunet-service-messenger_operation.h"
+#include "gnunet-service-messenger_room.h"
+
+struct GNUNET_MESSENGER_MemberNotify
+{
+  struct GNUNET_MESSENGER_SrvRoom *room;
+  struct GNUNET_MESSENGER_SrvHandle *handle;
+  struct GNUNET_MESSENGER_MemberSession *session;
+};
+
+static void
+notify_about_members (struct GNUNET_MESSENGER_MemberNotify *notify,
+                      struct GNUNET_MESSENGER_MemberSession *session,
+                      struct GNUNET_CONTAINER_MultiHashMap *map,
+                      int check_permission)
+{
+  if (session->prev)
+    notify_about_members (notify, session->prev, map, GNUNET_YES);
+
+  struct GNUNET_MESSENGER_MessageStore *message_store = get_srv_room_message_store(notify->room);
+  struct GNUNET_MESSENGER_ListMessage *element;
+
+  for (element = session->messages.head; element; element = element->next)
+  {
+    if (GNUNET_YES == GNUNET_CONTAINER_multihashmap_contains(map, &(element->hash)))
+      continue;
+
+    if ((GNUNET_YES == check_permission) &&
+        (GNUNET_YES != check_member_session_history(notify->session, &(element->hash), GNUNET_NO)))
+      continue;
+
+    if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put(map, &(element->hash), NULL,
+                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
+      GNUNET_log(GNUNET_ERROR_TYPE_WARNING, "Notification of session message could be duplicated!\n");
+
+    const struct GNUNET_MESSENGER_Message *message = get_store_message(message_store, &(element->hash));
+
+    if ((!message) || (GNUNET_YES == is_peer_message (message)))
+      continue;
+
+    struct GNUNET_MESSENGER_SenderSession sender;
+    sender.member = session;
+
+    notify_srv_handle_message (notify->handle, notify->room, &sender, message, &(element->hash));
+  }
+}
+
+static int
+iterate_notify_about_members (void *cls,
+                              const struct GNUNET_IDENTITY_PublicKey *public_key,
+                              struct GNUNET_MESSENGER_MemberSession *session)
+{
+  struct GNUNET_MESSENGER_MemberNotify *notify = cls;
+
+  if ((notify->session == session) || (GNUNET_YES == is_member_session_completed(session)))
+    return GNUNET_YES;
+
+  struct GNUNET_CONTAINER_MultiHashMap *map = GNUNET_CONTAINER_multihashmap_create(4, GNUNET_NO);
+
+  notify_about_members (notify, session, map, GNUNET_NO);
+
+  GNUNET_CONTAINER_multihashmap_destroy(map);
+  return GNUNET_YES;
+}
 
 void
 send_message_join (struct GNUNET_MESSENGER_SrvRoom *room,
@@ -36,7 +100,38 @@ send_message_join (struct GNUNET_MESSENGER_SrvRoom *room,
                    const struct GNUNET_MESSENGER_Message *message,
                    const struct GNUNET_HashCode *hash)
 {
+  set_srv_handle_key(handle, &(message->body.join.key));
+
+  struct GNUNET_MESSENGER_MemberStore *member_store = get_srv_room_member_store(room);
+  struct GNUNET_MESSENGER_Member *member = add_store_member(member_store, &(message->header.sender_id));
+
+  struct GNUNET_MESSENGER_MemberSession *session = get_member_session_of (member, message, hash);
+
+  if (!session)
+  {
+    GNUNET_log(GNUNET_ERROR_TYPE_WARNING, "A valid session is required to join a room!\n");
+    goto skip_member_notification;
+  }
+
+  struct GNUNET_MESSENGER_MemberNotify notify;
+
+  notify.room = room;
+  notify.handle = handle;
+  notify.session = session;
+
+  iterate_store_members(get_srv_room_member_store(room), iterate_notify_about_members, &notify);
+
+skip_member_notification:
   check_srv_room_peer_status(room, NULL);
+}
+
+void
+send_message_key (struct GNUNET_MESSENGER_SrvRoom *room,
+                  struct GNUNET_MESSENGER_SrvHandle *handle,
+                  const struct GNUNET_MESSENGER_Message *message,
+                  const struct GNUNET_HashCode *hash)
+{
+  set_srv_handle_key(handle, &(message->body.key.key));
 }
 
 void

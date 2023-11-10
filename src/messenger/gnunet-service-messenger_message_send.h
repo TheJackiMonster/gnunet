@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -29,10 +29,9 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 
-#include "gnunet-service-messenger_message_kind.h"
-
 #include "gnunet-service-messenger_tunnel.h"
 #include "messenger_api_message.h"
+#include "messenger_api_message_kind.h"
 
 /**
  * Handles a sent join message to ensure growth of the decentralized room structure.
@@ -48,6 +47,20 @@ send_message_join (struct GNUNET_MESSENGER_SrvRoom *room,
                    struct GNUNET_MESSENGER_SrvHandle *handle,
                    const struct GNUNET_MESSENGER_Message *message,
                    const struct GNUNET_HashCode *hash);
+
+/**
+ * Handles a sent key message to ensure changes to the public key of the sending handle.
+ *
+ * @param[in,out] room Room of the message
+ * @param[in,out] handle Sending handle
+ * @param[in] message KEY-Message
+ * @param[in] hash Hash of the message
+ */
+void
+send_message_key (struct GNUNET_MESSENGER_SrvRoom *room,
+                  struct GNUNET_MESSENGER_SrvHandle *handle,
+                  const struct GNUNET_MESSENGER_Message *message,
+                  const struct GNUNET_HashCode *hash);
 
 /**
  * Handles a sent peer message to update the rooms peer message of this service.

@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2022 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -25,8 +25,8 @@
 
 #include "platform.h"
 #include "gnunet-service-messenger_service.h"
-#include "gnunet-service-messenger_message_kind.h"
 #include "gnunet-service-messenger.h"
+#include "messenger_api_message_kind.h"
 
 static void
 callback_shutdown_service (void *cls)
@@ -54,6 +54,7 @@ create_service (const struct GNUNET_CONFIGURATION_Handle *config,
 
   service->shutdown = GNUNET_SCHEDULER_add_shutdown (&callback_shutdown_service, service);
 
+  service->peer = NULL;
   service->dir = NULL;
 
   if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_filename (service->config,
@@ -78,13 +79,11 @@ create_service (const struct GNUNET_CONFIGURATION_Handle *config,
 
   service->cadet = GNUNET_CADET_connect (service->config);
 
-  init_ego_store(get_service_ego_store(service), service->config);
-
   init_list_handles (&(service->handles));
 
   service->rooms = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
 
-  init_contact_store(get_service_contact_store(service));
+  init_contact_store (get_service_contact_store (service));
 
   return service;
 }
@@ -111,13 +110,12 @@ destroy_service (struct GNUNET_MESSENGER_Service *service)
     service->shutdown = NULL;
   }
 
-  clear_ego_store(get_service_ego_store(service));
   clear_list_handles (&(service->handles));
 
   GNUNET_CONTAINER_multihashmap_iterate (service->rooms, iterate_destroy_rooms, NULL);
   GNUNET_CONTAINER_multihashmap_destroy (service->rooms);
 
-  clear_contact_store(get_service_contact_store(service));
+  clear_contact_store (get_service_contact_store (service));
 
   if (service->cadet)
   {
@@ -133,17 +131,16 @@ destroy_service (struct GNUNET_MESSENGER_Service *service)
     service->dir = NULL;
   }
 
+  if (service->peer)
+  {
+    GNUNET_free(service->peer);
+
+    service->peer = NULL;
+  }
+
   GNUNET_SERVICE_shutdown (service->service);
 
   GNUNET_free(service);
-}
-
-struct GNUNET_MESSENGER_EgoStore*
-get_service_ego_store (struct GNUNET_MESSENGER_Service *service)
-{
-  GNUNET_assert(service);
-
-  return &(service->ego_store);
 }
 
 struct GNUNET_MESSENGER_ContactStore*
@@ -184,12 +181,27 @@ remove_service_handle (struct GNUNET_MESSENGER_Service *service,
 }
 
 int
-get_service_peer_identity (const struct GNUNET_MESSENGER_Service *service,
+get_service_peer_identity (struct GNUNET_MESSENGER_Service *service,
                            struct GNUNET_PeerIdentity *peer)
 {
   GNUNET_assert((service) && (peer));
 
-  return GNUNET_CRYPTO_get_peer_identity (service->config, peer);
+  if (service->peer)
+  {
+    GNUNET_memcpy(peer, service->peer, sizeof(struct GNUNET_PeerIdentity));
+    return GNUNET_OK;
+  }
+
+  int result = GNUNET_CRYPTO_get_peer_identity(service->config, peer);
+
+  if (GNUNET_OK != result)
+    return result;
+
+  if (!service->peer)
+    service->peer = GNUNET_new(struct GNUNET_PeerIdentity);
+
+  GNUNET_memcpy(service->peer, peer, sizeof(struct GNUNET_PeerIdentity));
+  return result;
 }
 
 struct GNUNET_MESSENGER_SrvRoom*
@@ -272,8 +284,6 @@ close_service_room (struct GNUNET_MESSENGER_Service *service,
   if (!room)
     return GNUNET_NO;
 
-  send_srv_room_message (room, handle, create_message_leave ());
-
   const struct GNUNET_ShortHashCode *id = get_srv_handle_member_id (handle, key);
 
   GNUNET_assert(id);
@@ -304,7 +314,7 @@ close_service_room (struct GNUNET_MESSENGER_Service *service,
 void
 handle_service_message (struct GNUNET_MESSENGER_Service *service,
                         struct GNUNET_MESSENGER_SrvRoom *room,
-                        const struct GNUNET_MESSENGER_MemberSession *session,
+                        const struct GNUNET_MESSENGER_SenderSession *session,
                         const struct GNUNET_MESSENGER_Message *message,
                         const struct GNUNET_HashCode *hash)
 {

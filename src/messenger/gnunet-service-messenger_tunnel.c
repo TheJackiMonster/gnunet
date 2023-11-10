@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2022 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -150,7 +150,6 @@ update_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
 
 extern void
 callback_room_handle_message (struct GNUNET_MESSENGER_SrvRoom *room,
-                              struct GNUNET_MESSENGER_SrvHandle *handle,
                               const struct GNUNET_MESSENGER_Message *message,
                               const struct GNUNET_HashCode *hash);
 
@@ -223,7 +222,7 @@ handle_tunnel_message (void *cls, const struct GNUNET_MessageHeader *header)
   if (GNUNET_YES == forward_message)
   {
     forward_srv_room_message (tunnel->room, tunnel, &message, &hash);
-    callback_room_handle_message (tunnel->room, NULL, &message, &hash);
+    callback_room_handle_message (tunnel->room, &message, &hash);
   }
 
 receive_done:
@@ -349,7 +348,7 @@ forward_tunnel_message (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
   GNUNET_assert((tunnel) && (message) && (hash));
 
   struct GNUNET_MESSENGER_Message *copy = copy_message(message);
-  struct GNUNET_MQ_Envelope *env = pack_message (copy, NULL, NULL, GNUNET_MESSENGER_PACK_MODE_ENVELOPE);
+  struct GNUNET_MQ_Envelope *env = pack_message (copy, NULL, NULL, GNUNET_MESSENGER_PACK_MODE_ENVELOPE, NULL);
 
   destroy_message(copy);
 

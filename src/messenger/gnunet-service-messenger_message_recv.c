@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2022 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -26,6 +26,7 @@
 #include "platform.h"
 #include "gnunet-service-messenger_message_recv.h"
 
+#include "gnunet-service-messenger_message_kind.h"
 #include "gnunet-service-messenger_operation.h"
 
 static void
@@ -92,14 +93,27 @@ recv_message_info (struct GNUNET_MESSENGER_SrvRoom *room,
     return GNUNET_NO;
 
   if (room->host)
-  {
-    const struct GNUNET_MESSENGER_Ego *ego = get_srv_handle_ego(room->host);
-
-    send_tunnel_message (tunnel, room->host, create_message_info(ego));
-  }
+    send_tunnel_message (tunnel, room->host, create_message_info (room->service));
 
   struct GNUNET_PeerIdentity peer;
   get_tunnel_peer_identity(tunnel, &peer);
+
+  if (GNUNET_YES != contains_list_tunnels(&(room->basement), &peer))
+  {
+    struct GNUNET_MESSENGER_MessageStore *message_store = get_srv_room_message_store(room);
+
+    struct GNUNET_MESSENGER_ListTunnel *element;
+    for (element = room->basement.head; element; element = element->next)
+    {
+      if (!element->hash)
+        continue;
+
+      const struct GNUNET_MESSENGER_Message *message = get_store_message(message_store, element->hash);
+
+      if (message)
+        forward_tunnel_message(tunnel, message, element->hash);
+    }
+  }
 
   if (GNUNET_YES != contains_list_tunnels(&(room->basement), &peer))
   {
@@ -109,7 +123,6 @@ recv_message_info (struct GNUNET_MESSENGER_SrvRoom *room,
   }
 
   check_srv_room_peer_status(room, tunnel);
-
   return GNUNET_NO;
 }
 
@@ -130,6 +143,7 @@ recv_message_peer (struct GNUNET_MESSENGER_SrvRoom *room,
     GNUNET_memcpy(tunnel->peer_message, &hash, sizeof(hash));
   }
 
+  update_to_list_tunnels(&(room->basement), &(message->body.peer.peer), hash);
   return GNUNET_YES;
 }
 
@@ -176,7 +190,7 @@ recv_message_request (struct GNUNET_MESSENGER_SrvRoom *room,
 
   struct GNUNET_MESSENGER_MemberSession *session = get_member_session_of(member, message, hash);
 
-  if ((!session) || (GNUNET_YES != check_member_session_history(session, hash, GNUNET_NO)))
+  if ((!session) || (GNUNET_YES != check_member_session_history(session, &(message->body.request.hash), GNUNET_NO)))
     return GNUNET_NO;
 
   if (GNUNET_NO == request_srv_room_message(room, &(message->body.request.hash), session, callback_found_message, tunnel))

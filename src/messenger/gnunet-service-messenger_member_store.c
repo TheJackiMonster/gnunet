@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2022 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -204,8 +204,12 @@ struct GNUNET_MESSENGER_Member*
 get_store_member_of (struct GNUNET_MESSENGER_MemberStore *store,
                      const struct GNUNET_MESSENGER_Message *message)
 {
-  if ((GNUNET_MESSENGER_KIND_INFO == message->header.kind) ||
-      (GNUNET_MESSENGER_KIND_JOIN == message->header.kind))
+  GNUNET_assert((store) && (message));
+
+  if (GNUNET_YES == is_peer_message(message))
+    return NULL;
+
+  if (GNUNET_MESSENGER_KIND_JOIN == message->header.kind)
     return add_store_member(store, &(message->header.sender_id));
   else
     return get_store_member(store, &(message->header.sender_id));

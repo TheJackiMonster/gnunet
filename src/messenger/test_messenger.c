@@ -45,13 +45,22 @@ static int status = 1;
 
 static struct GNUNET_SCHEDULER_Task *die_task = NULL;
 static struct GNUNET_SCHEDULER_Task *op_task = NULL;
+static struct GNUNET_SCHEDULER_Task *it_task = NULL;
 
 struct GNUNET_MESSENGER_Handle *messenger = NULL;
+
+static struct GNUNET_IDENTITY_PrivateKey identity;
 
 static void
 end (void *cls)
 {
   die_task = NULL;
+
+  if (it_task)
+  {
+    GNUNET_SCHEDULER_cancel (it_task);
+    it_task = NULL;
+  }
 
   if (op_task)
   {
@@ -100,9 +109,11 @@ static int identity_counter = 0;
  * @param handle Handle of messenger service
  */
 static void
-on_identity (void *cls,
-             struct GNUNET_MESSENGER_Handle *handle)
+on_iteration (void *cls)
 {
+  struct GNUNET_MESSENGER_Handle *handle = cls;
+  it_task = NULL;
+
   if (op_task)
   {
     GNUNET_SCHEDULER_cancel (op_task);
@@ -111,7 +122,7 @@ on_identity (void *cls,
 
   const char *name = GNUNET_MESSENGER_get_name (handle);
 
-  if (0 != strcmp (name, TESTER_NAME))
+  if ((!name) || (0 != strcmp (name, TESTER_NAME)))
   {
     op_task = GNUNET_SCHEDULER_add_now (&end_operation, "name");
     return;
@@ -119,7 +130,10 @@ on_identity (void *cls,
 
   const struct GNUNET_IDENTITY_PublicKey *key = GNUNET_MESSENGER_get_key (handle);
 
-  if (((!identity_counter) && (key)) || ((identity_counter) && (!key)))
+  struct GNUNET_IDENTITY_PublicKey pubkey;
+  GNUNET_IDENTITY_key_get_public(&identity, &pubkey);
+
+  if (((!identity_counter) && (key)) || ((identity_counter) && ((!key) || (0 != GNUNET_memcmp (key, &pubkey)))))
   {
     op_task = GNUNET_SCHEDULER_add_now (&end_operation, "key");
     return;
@@ -139,8 +153,10 @@ on_identity (void *cls,
     return;
   }
 
-  GNUNET_MESSENGER_update (messenger);
+  GNUNET_MESSENGER_set_key (handle, &identity);
   identity_counter++;
+
+  it_task = GNUNET_SCHEDULER_add_now (&on_iteration, handle);
 }
 
 /**
@@ -160,7 +176,13 @@ run (void *cls,
   identity_counter = 0;
 
   op_task = GNUNET_SCHEDULER_add_delayed (BASE_TIMEOUT, &end_operation, "connect");
-  messenger = GNUNET_MESSENGER_connect (cfg, TESTER_NAME, &on_identity, NULL, NULL, NULL);
+  messenger = GNUNET_MESSENGER_connect (cfg, TESTER_NAME, NULL, NULL, NULL);
+
+  identity.type = htonl (GNUNET_IDENTITY_TYPE_ECDSA);
+  GNUNET_CRYPTO_ecdsa_key_create (&(identity.ecdsa_key));
+
+  if (messenger)
+    it_task = GNUNET_SCHEDULER_add_now (&on_iteration, messenger);
 }
 
 /**

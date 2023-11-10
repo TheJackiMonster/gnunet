@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2001-2013 GNUnet e.V.
+     Copyright (C) 2001-2023 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -1642,6 +1642,39 @@ GNUNET_CRYPTO_eddsa_setup_hostkey (const char *cfg_name);
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_get_peer_identity (const struct GNUNET_CONFIGURATION_Handle *cfg,
                                  struct GNUNET_PeerIdentity *dst);
+
+
+/**
+ * @ingroup crypto
+ * Sign a given block with a specific purpose using the host's peer identity.
+ *
+ * @param cfg configuration to use
+ * @param purpose what to sign (size, purpose)
+ * @param sig where to write the signature
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR if the identity
+ *         could not be retrieved
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_sign_by_peer_identity (const struct GNUNET_CONFIGURATION_Handle *cfg,
+                                     const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
+                                     struct GNUNET_CRYPTO_EddsaSignature *sig);
+
+
+/**
+ * @ingroup crypto
+ * Verify a given signature with a peer's identity.
+ *
+ * @param purpose what is the purpose that the signature should have?
+ * @param validate block to validate (size, purpose, data)
+ * @param sig signature that is being validated
+ * @param identity the peer's identity to verify
+ * @return #GNUNET_OK if ok, #GNUNET_SYSERR if invalid
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_verify_peer_identity (uint32_t purpose,
+                                    const struct GNUNET_CRYPTO_EccSignaturePurpose * validate,
+                                    const struct GNUNET_CRYPTO_EddsaSignature *sig,
+                                    const struct GNUNET_PeerIdentity *identity);
 
 
 /**

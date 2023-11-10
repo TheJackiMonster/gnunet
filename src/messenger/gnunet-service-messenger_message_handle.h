@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -29,24 +29,23 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 
-#include "gnunet-service-messenger_message_kind.h"
-
-#include "gnunet-service-messenger_member_session.h"
+#include "gnunet-service-messenger_sender_session.h"
 #include "gnunet-service-messenger_tunnel.h"
 #include "messenger_api_message.h"
+#include "messenger_api_message_kind.h"
 
 /**
  * Handles a received or sent join message to make changes of current member information.
  * (add matching member and clear member info)
  *
  * @param[in,out] room Room of the message
- * @param[in,out] session Member session
+ * @param[in,out] session Sender session
  * @param[in] message JOIN-Message
  * @param[in] hash Hash of the message
  */
 void
 handle_message_join (struct GNUNET_MESSENGER_SrvRoom *room,
-                     struct GNUNET_MESSENGER_MemberSession *session,
+                     struct GNUNET_MESSENGER_SenderSession *session,
                      const struct GNUNET_MESSENGER_Message *message,
                      const struct GNUNET_HashCode *hash);
 
@@ -55,13 +54,13 @@ handle_message_join (struct GNUNET_MESSENGER_SrvRoom *room,
  * (remove matching member and clear member info)
  *
  * @param[in,out] room Room of the message
- * @param[in,out] session Member session
+ * @param[in,out] session Sender session
  * @param[in] message LEAVE-Message
  * @param[in] hash Hash of the message
  */
 void
 handle_message_leave (struct GNUNET_MESSENGER_SrvRoom *room,
-                      struct GNUNET_MESSENGER_MemberSession *session,
+                      struct GNUNET_MESSENGER_SenderSession *session,
                       const struct GNUNET_MESSENGER_Message *message,
                       const struct GNUNET_HashCode *hash);
 
@@ -70,13 +69,13 @@ handle_message_leave (struct GNUNET_MESSENGER_SrvRoom *room,
  * (change name of matching member)
  *
  * @param[in,out] room Room of the message
- * @param[in,out] session Member session
+ * @param[in,out] session Sender session
  * @param[in] message NAME-Message
  * @param[in] hash Hash of the message
  */
 void
 handle_message_name (struct GNUNET_MESSENGER_SrvRoom *room,
-                     struct GNUNET_MESSENGER_MemberSession *session,
+                     struct GNUNET_MESSENGER_SenderSession *session,
                      const struct GNUNET_MESSENGER_Message *message,
                      const struct GNUNET_HashCode *hash);
 
@@ -85,13 +84,13 @@ handle_message_name (struct GNUNET_MESSENGER_SrvRoom *room,
  * (move the member in the contacts and change its key)
  *
  * @param[in,out] room Room of the message
- * @param[in,out] session Member session
+ * @param[in,out] session Sender session
  * @param[in] message KEY-Message
  * @param[in] hash Hash of the message
  */
 void
 handle_message_key (struct GNUNET_MESSENGER_SrvRoom *room,
-                    struct GNUNET_MESSENGER_MemberSession *session,
+                    struct GNUNET_MESSENGER_SenderSession *session,
                     const struct GNUNET_MESSENGER_Message *message,
                     const struct GNUNET_HashCode *hash);
 
@@ -100,13 +99,13 @@ handle_message_key (struct GNUNET_MESSENGER_SrvRoom *room,
  * (add a new peer to the basement and restructure connections based on updated list of peers)
  *
  * @param[in,out] room Room of the message
- * @param[in,out] session Member session
+ * @param[in,out] session Sender session
  * @param[in] message PEER-Message
  * @param[in] hash Hash of the message
  */
 void
 handle_message_peer (struct GNUNET_MESSENGER_SrvRoom *room,
-                     struct GNUNET_MESSENGER_MemberSession *session,
+                     struct GNUNET_MESSENGER_SenderSession *session,
                      const struct GNUNET_MESSENGER_Message *message,
                      const struct GNUNET_HashCode *hash);
 
@@ -115,13 +114,13 @@ handle_message_peer (struct GNUNET_MESSENGER_SrvRoom *room,
  * (change id of matching member)
  *
  * @param[in,out] room Room of the message
- * @param[in,out] session Member session
+ * @param[in,out] session Sender session
  * @param[in] message ID-Message
  * @param[in] hash Hash of the message
  */
 void
 handle_message_id (struct GNUNET_MESSENGER_SrvRoom *room,
-                   struct GNUNET_MESSENGER_MemberSession *session,
+                   struct GNUNET_MESSENGER_SenderSession *session,
                    const struct GNUNET_MESSENGER_Message *message,
                    const struct GNUNET_HashCode *hash);
 
@@ -130,13 +129,13 @@ handle_message_id (struct GNUNET_MESSENGER_SrvRoom *room,
  * (remove a peer from the basement and restructure connections based on updated list of peers)
  *
  * @param[in,out] room Room of the message
- * @param[in,out] session Member session
+ * @param[in,out] session Sender session
  * @param[in] message MISS-Message
  * @param[in] hash Hash of the message
  */
 void
 handle_message_miss (struct GNUNET_MESSENGER_SrvRoom *room,
-                     struct GNUNET_MESSENGER_MemberSession *session,
+                     struct GNUNET_MESSENGER_SenderSession *session,
                      const struct GNUNET_MESSENGER_Message *message,
                      const struct GNUNET_HashCode *hash);
 
@@ -145,13 +144,13 @@ handle_message_miss (struct GNUNET_MESSENGER_SrvRoom *room,
  * (remove a message from the store of a room under a given delay)
  *
  * @param[in,out] room Room of the message
- * @param[in,out] session Member session
+ * @param[in,out] session Sender session
  * @param[in] message DELETE-Message
  * @param[in] hash Hash of the message
  */
 void
 handle_message_delete (struct GNUNET_MESSENGER_SrvRoom *room,
-                       struct GNUNET_MESSENGER_MemberSession *session,
+                       struct GNUNET_MESSENGER_SenderSession *session,
                        const struct GNUNET_MESSENGER_Message *message,
                        const struct GNUNET_HashCode *hash);
 

@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -118,7 +118,9 @@ get_store_member (const struct GNUNET_MESSENGER_MemberStore *store,
 
 /**
  * Returns the member of a <i>store</i> using a sender id of a given <i>message</i>.
- * If the member does not provide a matching session, NULL gets returned.
+ *
+ * If the message is a peer message or the member does not provide a matching session,
+ * NULL gets returned.
  *
  * @param[in,out] store Member store
  * @param[in] message Message

@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -32,8 +32,6 @@
 #include "gnunet_signatures.h"
 
 #include "gnunet_messenger_service.h"
-
-#include "messenger_api_ego.h"
 
 #define GNUNET_MESSENGER_MAX_MESSAGE_SIZE (GNUNET_MAX_MESSAGE_SIZE - GNUNET_MIN_MESSAGE_SIZE)
 
@@ -166,14 +164,31 @@ hash_message (const struct GNUNET_MESSENGER_Message *message,
  * @param[in] length Length of buffer
  * @param[out] buffer Buffer
  * @param[in] hash Hash of message
- * @param[in] ego EGO
+ * @param[in] key Private key of EGO
  */
 void
 sign_message (struct GNUNET_MESSENGER_Message *message,
               uint16_t length,
               char *buffer,
               const struct GNUNET_HashCode *hash,
-              const struct GNUNET_MESSENGER_Ego *ego);
+              const struct GNUNET_IDENTITY_PrivateKey *key);
+
+/**
+ * Signs the <i>hash</i> of a <i>message</i> with the peer identity of a given <i>config</i>
+ * and writes the signature into the <i>buffer</i> as well.
+ *
+ * @param[in,out] message Message
+ * @param[in] length Length of buffer
+ * @param[out] buffer Buffer
+ * @param[in] hash Hash of message
+ * @param[in] cfg Peer configuration
+ */
+void
+sign_message_by_peer (struct GNUNET_MESSENGER_Message *message,
+                      uint16_t length,
+                      char *buffer,
+                      const struct GNUNET_HashCode *hash,
+                      const struct GNUNET_CONFIGURATION_Handle* cfg);
 
 /**
  * Verifies the signature of a given <i>message</i> and its <i>hash</i> with a specific
@@ -189,6 +204,21 @@ int
 verify_message (const struct GNUNET_MESSENGER_Message *message,
                 const struct GNUNET_HashCode *hash,
                 const struct GNUNET_IDENTITY_PublicKey *key);
+
+/**
+ * Verifies the signature of a given <i>message</i> and its <i>hash</i> with a specific
+ * peer's <i>identity</i>. The function returns #GNUNET_OK if the signature was valid,
+ * otherwise #GNUNET_SYSERR.
+ *
+ * @param[in] message Message
+ * @param[in] hash Hash of message
+ * @param[in] identity Peer identity
+ * @return #GNUNET_OK on success, otherwise #GNUNET_SYSERR
+ */
+int
+verify_message_by_peer (const struct GNUNET_MESSENGER_Message *message,
+                        const struct GNUNET_HashCode *hash,
+                        const struct GNUNET_PeerIdentity *identity);
 
 /**
  * Encrypts a <i>message</i> using a given public <i>key</i> and replaces its body
@@ -216,33 +246,69 @@ int
 decrypt_message (struct GNUNET_MESSENGER_Message *message,
                  const struct GNUNET_IDENTITY_PrivateKey *key);
 
+typedef void (*GNUNET_MESSENGER_SignFunction)(
+  const void *cls,
+  struct GNUNET_MESSENGER_Message *message,
+  uint16_t length,
+  char *buffer,
+  const struct GNUNET_HashCode *hash
+);
+
 #define GNUNET_MESSENGER_PACK_MODE_ENVELOPE 0x1
 #define GNUNET_MESSENGER_PACK_MODE_UNKNOWN 0x0
 
 /**
  * Encodes the <i>message</i> to pack it into a newly allocated envelope if <i>mode</i>
  * is equal to #GNUNET_MESSENGER_PACK_MODE_ENVELOPE. Independent of the mode the message
- * will be hashed if <i>hash</i> is not NULL and it will be signed if the <i>ego</i> is
- * not NULL.
+ * will be hashed if <i>hash</i> is not NULL and it will be signed if the <i>sign</i>
+ * function is not NULL.
  *
  * @param[out] message Message
  * @param[out] hash Hash of message
- * @param[in] ego EGO to sign
+ * @param[in] sign Function to sign
  * @param[in] mode Mode of packing
+ * @param[in,out] cls Closure for signing
  * @return Envelope or NULL
  */
 struct GNUNET_MQ_Envelope*
 pack_message (struct GNUNET_MESSENGER_Message *message,
               struct GNUNET_HashCode *hash,
-              const struct GNUNET_MESSENGER_Ego *ego,
-              int mode);
+              const GNUNET_MESSENGER_SignFunction sign,
+              int mode,
+              const void *cls);
 
 /**
- * Returns if a specific kind of message should be sent by a client. The function returns
+ * Returns whether a specific kind of message can be sent by the service without usage of a
+ * clients EGO. The function returns #GNUNET_YES if the kind of message can be signed
+ * via a peer's identity, otherwise #GNUNET_NO.
+ *
+ * @param[in] message Message
+ * @return #GNUNET_YES if sending is allowed, #GNUNET_NO otherwise
+ */
+int
+is_peer_message (const struct GNUNET_MESSENGER_Message *message);
+
+/**
+ * Returns whether a specific kind of message contains service critical information. That kind
+ * of information should not be encrypted via private messages for example to guarantee the
+ * service to work properly. The function returns #GNUNET_YES if the kind of message needs to
+ * be transferred accessible to all peers and their running service. It returns #GNUNET_NO
+ * if the message can be encrypted to specific subgroups of members without issues. If the kind
+ * of message is unknown it returns #GNUNET_SYSERR.
+ *
+ * @param[in] message Message
+ * @return #GNUNET_YES if encrypting is disallowed, #GNUNET_NO or #GNUNET_SYSERR otherwise
+ */
+int
+is_service_message (const struct GNUNET_MESSENGER_Message *message);
+
+/**
+ * Returns whether a specific kind of message should be sent by a client. The function returns
  * #GNUNET_YES or #GNUNET_NO for recommendations and #GNUNET_SYSERR for specific kinds
  * of messages which should not be sent manually at all.
  *
  * @param[in] message Message
+ * @return #GNUNET_YES if sending is allowed, #GNUNET_NO or #GNUNET_SYSERR otherwise
  */
 int
 filter_message_sending (const struct GNUNET_MESSENGER_Message *message);

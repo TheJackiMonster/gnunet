@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2021--2022 GNUnet e.V.
+   Copyright (C) 2021--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -384,13 +384,17 @@ int verify_member_session_as_sender (const struct GNUNET_MESSENGER_MemberSession
 {
   GNUNET_assert((session) && (message) && (hash));
 
-  if (GNUNET_YES == is_member_session_completed(session))
+  if (GNUNET_YES == is_member_session_completed (session))
     return GNUNET_SYSERR;
 
-  if (0 != GNUNET_memcmp(get_member_session_id(session), &(message->header.sender_id)))
+  if (0 != GNUNET_memcmp (get_member_session_id (session), &(message->header.sender_id)))
     return GNUNET_SYSERR;
 
-  return verify_message(message, hash, get_member_session_public_key(session));
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Check message (%s) using key: %s\n",
+              GNUNET_h2s (hash),
+              GNUNET_IDENTITY_public_key_to_string (get_member_session_public_key (session)));
+
+  return verify_message (message, hash, get_member_session_public_key (session));
 }
 
 int

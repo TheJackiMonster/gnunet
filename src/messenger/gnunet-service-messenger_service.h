@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -31,13 +31,12 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_identity_service.h"
 
-#include "gnunet-service-messenger_ego_store.h"
 #include "gnunet-service-messenger_list_handles.h"
 
 #include "messenger_api_contact_store.h"
-#include "gnunet-service-messenger_room.h"
 
-#include "gnunet-service-messenger_member_session.h"
+#include "gnunet-service-messenger_room.h"
+#include "gnunet-service-messenger_sender_session.h"
 
 struct GNUNET_MESSENGER_Service
 {
@@ -46,11 +45,11 @@ struct GNUNET_MESSENGER_Service
 
   struct GNUNET_SCHEDULER_Task *shutdown;
 
+  struct GNUNET_PeerIdentity *peer;
   char *dir;
 
   struct GNUNET_CADET_Handle *cadet;
 
-  struct GNUNET_MESSENGER_EgoStore ego_store;
   struct GNUNET_MESSENGER_ContactStore contact_store;
 
   struct GNUNET_MESSENGER_ListHandles handles;
@@ -76,15 +75,6 @@ create_service (const struct GNUNET_CONFIGURATION_Handle *config,
  */
 void
 destroy_service (struct GNUNET_MESSENGER_Service *service);
-
-/**
- * Returns the used EGO-store of a given <i>service</i>.
- *
- * @param[in,out] service Service
- * @return EGO-store
- */
-struct GNUNET_MESSENGER_EgoStore*
-get_service_ego_store (struct GNUNET_MESSENGER_Service *service);
 
 /**
  * Returns the used contact store of a given <i>service</i>.
@@ -120,12 +110,12 @@ remove_service_handle (struct GNUNET_MESSENGER_Service *service,
  * Tries to write the peer identity of the peer running a <i>service</i> on to the <i>peer</i>
  * parameter. The functions returns #GNUNET_OK on success, otherwise #GNUNET_SYSERR.
  *
- * @param[in] service Service
+ * @param[in,out] service Service
  * @param[out] peer Peer identity
  * @return #GNUNET_OK on success, otherwise #GNUNET_SYSERR
  */
 int
-get_service_peer_identity (const struct GNUNET_MESSENGER_Service *service,
+get_service_peer_identity (struct GNUNET_MESSENGER_Service *service,
                            struct GNUNET_PeerIdentity *peer);
 
 /**
@@ -196,14 +186,14 @@ close_service_room (struct GNUNET_MESSENGER_Service *service,
  *
  * @param[in,out] service Service
  * @param[in,out] room Room
- * @param[in] session Member session
+ * @param[in] session Sender session
  * @param[in] message Message
  * @param[in] hash Hash of message
  */
 void
 handle_service_message (struct GNUNET_MESSENGER_Service *service,
                         struct GNUNET_MESSENGER_SrvRoom *room,
-                        const struct GNUNET_MESSENGER_MemberSession *session,
+                        const struct GNUNET_MESSENGER_SenderSession *session,
                         const struct GNUNET_MESSENGER_Message *message,
                         const struct GNUNET_HashCode *hash);
 

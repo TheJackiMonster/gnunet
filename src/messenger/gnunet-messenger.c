@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -29,6 +29,7 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_messenger_service.h"
 
+const struct GNUNET_CONFIGURATION_Handle *config;
 struct GNUNET_MESSENGER_Handle *messenger;
 
 /**
@@ -54,6 +55,8 @@ on_message (void *cls,
   if (!sender_name)
     sender_name = "anonymous";
 
+  printf ("[%s ->", GNUNET_h2s(&(message->header.previous)));
+  printf (" %s]", GNUNET_h2s(hash));
   printf ("[%s] ", GNUNET_sh2s(&(message->header.sender_id)));
 
   if (flags & GNUNET_MESSENGER_FLAG_PRIVATE)
@@ -97,9 +100,26 @@ on_message (void *cls,
       break;
     }
   }
+
+  if ((GNUNET_MESSENGER_KIND_JOIN == message->header.kind) && (flags & GNUNET_MESSENGER_FLAG_SENT))
+  {
+    const char* name = GNUNET_MESSENGER_get_name (messenger);
+
+    if (!name)
+      return;
+
+    struct GNUNET_MESSENGER_Message response;
+    response.header.kind = GNUNET_MESSENGER_KIND_NAME;
+    response.body.name.name = GNUNET_strdup (name);
+
+    GNUNET_MESSENGER_send_message (room, &response, NULL);
+
+    GNUNET_free (response.body.name.name);
+  }
 }
 
 struct GNUNET_SCHEDULER_Task *read_task;
+struct GNUNET_IDENTITY_EgoLookup *ego_lookup;
 
 /**
  * Task to shut down this application.
@@ -119,6 +139,9 @@ shutdown_hook (void *cls)
 
   if (messenger)
     GNUNET_MESSENGER_disconnect (messenger);
+  
+  if (ego_lookup)
+    GNUNET_IDENTITY_ego_lookup_cancel (ego_lookup);
 }
 
 static void
@@ -276,17 +299,25 @@ on_identity (void *cls,
     GNUNET_SCHEDULER_shutdown ();
   else
   {
-    struct GNUNET_MESSENGER_Message message;
-    message.header.kind = GNUNET_MESSENGER_KIND_NAME;
-    message.body.name.name = GNUNET_strdup(name);
-
-    GNUNET_MESSENGER_send_message (room, &message, NULL);
-    GNUNET_free(message.body.name.name);
-
     GNUNET_SCHEDULER_add_delayed_with_priority (GNUNET_TIME_relative_get_zero_ (), GNUNET_SCHEDULER_PRIORITY_IDLE, idle,
                                                 room);
   }
 }
+
+static void
+on_ego_lookup (void *cls,
+               struct GNUNET_IDENTITY_Ego *ego)
+{
+  ego_lookup = NULL;
+
+  const struct GNUNET_IDENTITY_PrivateKey *key;
+  key = ego ? GNUNET_IDENTITY_ego_get_private_key (ego) : NULL;
+
+  messenger = GNUNET_MESSENGER_connect (config, ego_name, key, &on_message, NULL);
+
+  on_identity (NULL, messenger);
+}
+
 
 /**
  * Main function that will be run by the scheduler.
@@ -302,9 +333,23 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
-  messenger = GNUNET_MESSENGER_connect (cfg, ego_name, &on_identity, NULL, &on_message, NULL);
+  config = cfg;
+
+  if (ego_name)
+  {
+    ego_lookup = GNUNET_IDENTITY_ego_lookup (cfg, ego_name, &on_ego_lookup, NULL);
+    messenger = NULL;
+  }
+  else
+  {
+    ego_lookup = NULL;
+    messenger = GNUNET_MESSENGER_connect (cfg, NULL, NULL, &on_message, NULL);
+  }
 
   shutdown_task = GNUNET_SCHEDULER_add_shutdown (shutdown_hook, NULL);
+
+  if (messenger)
+    on_identity (NULL, messenger);
 }
 
 /**

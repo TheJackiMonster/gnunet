@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -34,7 +34,6 @@
 #include "gnunet_messenger_service.h"
 
 #include "messenger_api_contact_store.h"
-#include "messenger_api_room.h"
 
 struct GNUNET_MESSENGER_Handle
 {
@@ -42,13 +41,11 @@ struct GNUNET_MESSENGER_Handle
 
   struct GNUNET_MQ_Handle *mq;
 
-  GNUNET_MESSENGER_IdentityCallback identity_callback;
-  void *identity_cls;
-
   GNUNET_MESSENGER_MessageCallback msg_callback;
   void *msg_cls;
 
   char *name;
+  struct GNUNET_IDENTITY_PrivateKey *key;
   struct GNUNET_IDENTITY_PublicKey *pubkey;
 
   struct GNUNET_TIME_Relative reconnect_time;
@@ -70,8 +67,6 @@ struct GNUNET_MESSENGER_Handle
  */
 struct GNUNET_MESSENGER_Handle*
 create_handle (const struct GNUNET_CONFIGURATION_Handle *cfg,
-               GNUNET_MESSENGER_IdentityCallback identity_callback,
-               void *identity_cls,
                GNUNET_MESSENGER_MessageCallback msg_callback,
                void *msg_cls);
 
@@ -103,14 +98,23 @@ const char*
 get_handle_name (const struct GNUNET_MESSENGER_Handle *handle);
 
 /**
- * Sets the public key of a given <i>handle</i> to a specific public key.
+ * Sets the keypair of a given <i>handle</i> to the keypair of a specific private <i>key</i>.
  *
  * @param[in,out] handle Handle
- * @param[in] pubkey Public key
+ * @param[in] key Private key or NULL
  */
 void
 set_handle_key (struct GNUNET_MESSENGER_Handle *handle,
-                const struct GNUNET_IDENTITY_PublicKey *pubkey);
+                const struct GNUNET_IDENTITY_PrivateKey *key);
+
+/**
+ * Returns the private key of a given <i>handle</i>.
+ *
+ * @param[in] handle Handle
+ * @return Private key of the handle
+ */
+const struct GNUNET_IDENTITY_PrivateKey*
+get_handle_key (const struct GNUNET_MESSENGER_Handle *handle);
 
 /**
  * Returns the public key of a given <i>handle</i>.
@@ -119,7 +123,7 @@ set_handle_key (struct GNUNET_MESSENGER_Handle *handle,
  * @return Public key of the handle
  */
 const struct GNUNET_IDENTITY_PublicKey*
-get_handle_key (const struct GNUNET_MESSENGER_Handle *handle);
+get_handle_pubkey (const struct GNUNET_MESSENGER_Handle *handle);
 
 /**
  * Returns the used contact store of a given <i>handle</i>.
@@ -174,5 +178,16 @@ entry_handle_room_at (struct GNUNET_MESSENGER_Handle *handle,
 void
 close_handle_room (struct GNUNET_MESSENGER_Handle *handle,
                    const struct GNUNET_HashCode *key);
+
+/**
+ * Returns the room known to a <i>handle</i> identified by a given <i>key</i>.
+ *
+ * @param[in,out] handle handle Handle
+ * @param[in] key Key of room
+ * @return Room or NULL
+ */
+struct GNUNET_MESSENGER_Room*
+get_handle_room (struct GNUNET_MESSENGER_Handle *handle,
+                 const struct GNUNET_HashCode *key);
 
 #endif //GNUNET_MESSENGER_API_HANDLE_H

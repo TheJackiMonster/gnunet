@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -39,13 +39,18 @@ create_room (struct GNUNET_MESSENGER_Handle *handle,
   room->handle = handle;
   GNUNET_memcpy(&(room->key), key, sizeof(*key));
 
+  memset(&(room->last_message), 0, sizeof(room->last_message));
+
   room->opened = GNUNET_NO;
-  room->contact_id = NULL;
+  room->use_handle_name = GNUNET_YES;
+  room->sender_id = NULL;
 
   init_list_tunnels (&(room->entries));
 
   room->messages = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
   room->members = GNUNET_CONTAINER_multishortmap_create (8, GNUNET_NO);
+
+  init_queue_messages (&(room->queue));
 
   return room;
 }
@@ -68,6 +73,7 @@ destroy_room (struct GNUNET_MESSENGER_Room *room)
 {
   GNUNET_assert(room);
 
+  clear_queue_messages(&(room->queue));
   clear_list_tunnels (&(room->entries));
 
   if (room->messages)
@@ -80,10 +86,55 @@ destroy_room (struct GNUNET_MESSENGER_Room *room)
   if (room->members)
     GNUNET_CONTAINER_multishortmap_destroy (room->members);
 
-  if (room->contact_id)
-    GNUNET_free(room->contact_id);
+  if (room->sender_id)
+    GNUNET_free(room->sender_id);
 
   GNUNET_free(room);
+}
+
+enum GNUNET_GenericReturnValue
+is_room_available (const struct GNUNET_MESSENGER_Room *room)
+{
+  GNUNET_assert (room);
+
+  if (!get_room_sender_id(room))
+    return GNUNET_NO;
+
+  if ((GNUNET_YES == room->opened) || (room->entries.head))
+    return GNUNET_YES;
+  else
+    return GNUNET_NO;
+}
+
+const struct GNUNET_ShortHashCode*
+get_room_sender_id (const struct GNUNET_MESSENGER_Room *room)
+{
+  GNUNET_assert (room);
+
+  return room->sender_id;
+}
+
+void
+set_room_sender_id (struct GNUNET_MESSENGER_Room *room,
+                    const struct GNUNET_ShortHashCode *id)
+{
+  GNUNET_assert (room);
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Set member id for room: %s\n", GNUNET_h2s (&(room->key)));
+
+  if (!id)
+  {
+    if (room->sender_id)
+      GNUNET_free (room->sender_id);
+
+    room->sender_id = NULL;
+    return;
+  }
+
+  if (!room->sender_id)
+    room->sender_id = GNUNET_new (struct GNUNET_ShortHashCode);
+
+  GNUNET_memcpy (room->sender_id, id, sizeof(struct GNUNET_ShortHashCode));
 }
 
 const struct GNUNET_MESSENGER_Message*
@@ -146,9 +197,6 @@ handle_leave_message (struct GNUNET_MESSENGER_Room *room,
       (GNUNET_YES != GNUNET_CONTAINER_multishortmap_remove(room->members, &(message->header.sender_id), sender)))
     return;
 
-  struct GNUNET_HashCode context;
-  get_context_from_member(&(room->key), &(message->header.sender_id), &context);
-
   if (GNUNET_YES == decrease_contact_rc(sender))
     GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "A contact does not share any room with you anymore!\n");
 }
@@ -157,8 +205,19 @@ static void
 handle_name_message (struct GNUNET_MESSENGER_Room *room,
                      struct GNUNET_MESSENGER_Contact *sender,
                      const struct GNUNET_MESSENGER_Message *message,
-                     const struct GNUNET_HashCode *hash)
+                     const struct GNUNET_HashCode *hash,
+                     enum GNUNET_MESSENGER_MessageFlags flags)
 {
+  if (GNUNET_MESSENGER_FLAG_SENT & flags)
+  {
+    GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Set rule for using handle name in room: %s\n", GNUNET_h2s (&(room->key)));
+
+    const char* handle_name = get_handle_name (room->handle);
+
+    if ((handle_name) && (0 == strcmp (handle_name, message->body.name.name)))
+      room->use_handle_name = GNUNET_YES;
+  }
+
   if (!sender)
     return;
 
@@ -186,8 +245,12 @@ static void
 handle_id_message (struct GNUNET_MESSENGER_Room *room,
                    struct GNUNET_MESSENGER_Contact *sender,
                    const struct GNUNET_MESSENGER_Message *message,
-                   const struct GNUNET_HashCode *hash)
+                   const struct GNUNET_HashCode *hash,
+                   enum GNUNET_MESSENGER_MessageFlags flags)
 {
+  if (GNUNET_MESSENGER_FLAG_SENT & flags)
+    set_room_sender_id (room, &(message->body.id.id));
+
   if ((!sender) ||
       (GNUNET_YES != GNUNET_CONTAINER_multishortmap_remove(room->members, &(message->header.sender_id), sender)) ||
       (GNUNET_OK != GNUNET_CONTAINER_multishortmap_put(room->members, &(message->body.id.id), sender,
@@ -207,9 +270,10 @@ static void
 handle_miss_message (struct GNUNET_MESSENGER_Room *room,
                      struct GNUNET_MESSENGER_Contact *sender,
                      const struct GNUNET_MESSENGER_Message *message,
-                     const struct GNUNET_HashCode *hash)
+                     const struct GNUNET_HashCode *hash,
+                     enum GNUNET_MESSENGER_MessageFlags flags)
 {
-  if ((room->contact_id) && (0 == GNUNET_memcmp(&(message->header.sender_id), room->contact_id)))
+  if (GNUNET_MESSENGER_FLAG_SENT & flags)
   {
     struct GNUNET_MESSENGER_ListTunnel *match = find_list_tunnels (&(room->entries), &(message->body.miss.peer), NULL);
 
@@ -240,7 +304,8 @@ struct GNUNET_MESSENGER_Contact*
 handle_room_message (struct GNUNET_MESSENGER_Room *room,
                      struct GNUNET_MESSENGER_Contact *sender,
                      const struct GNUNET_MESSENGER_Message *message,
-                     const struct GNUNET_HashCode *hash)
+                     const struct GNUNET_HashCode *hash,
+                     enum GNUNET_MESSENGER_MessageFlags flags)
 {
   if (GNUNET_NO != GNUNET_CONTAINER_multihashmap_contains (room->messages, hash))
     return sender;
@@ -254,16 +319,16 @@ handle_room_message (struct GNUNET_MESSENGER_Room *room,
     handle_leave_message (room, sender, message, hash);
     break;
   case GNUNET_MESSENGER_KIND_NAME:
-    handle_name_message (room, sender, message, hash);
+    handle_name_message (room, sender, message, hash, flags);
     break;
   case GNUNET_MESSENGER_KIND_KEY:
     handle_key_message (room, sender, message, hash);
     break;
   case GNUNET_MESSENGER_KIND_ID:
-    handle_id_message (room, sender, message, hash);
+    handle_id_message (room, sender, message, hash, flags);
     break;
   case GNUNET_MESSENGER_KIND_MISS:
-    handle_miss_message (room, sender, message, hash);
+    handle_miss_message (room, sender, message, hash, flags);
     break;
   case GNUNET_MESSENGER_KIND_DELETE:
     handle_delete_message (room, sender, message, hash);
@@ -287,6 +352,7 @@ handle_room_message (struct GNUNET_MESSENGER_Room *room,
     GNUNET_free(entry);
   }
 
+  GNUNET_memcpy (&(room->last_message), hash, sizeof(room->last_message));
   return sender;
 }
 

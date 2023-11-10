@@ -43,6 +43,7 @@ static int status = 1;
 
 static struct GNUNET_SCHEDULER_Task *die_task = NULL;
 static struct GNUNET_SCHEDULER_Task *op_task = NULL;
+static struct GNUNET_SCHEDULER_Task *it_task = NULL;
 
 struct GNUNET_MESSENGER_Handle *messenger = NULL;
 
@@ -50,6 +51,12 @@ static void
 end (void *cls)
 {
   die_task = NULL;
+
+  if (it_task)
+  {
+    GNUNET_SCHEDULER_cancel (it_task);
+    it_task = NULL;
+  }
 
   if (op_task)
   {
@@ -96,9 +103,12 @@ end_operation (void *cls)
  * @param handle Handle of messenger service
  */
 static void
-on_identity (void *cls,
-             struct GNUNET_MESSENGER_Handle *handle)
+on_iteration (void *cls)
 {
+  struct GNUNET_MESSENGER_Handle *handle = cls;
+
+  it_task = NULL;
+
   if (op_task)
   {
     GNUNET_SCHEDULER_cancel (op_task);
@@ -113,7 +123,10 @@ on_identity (void *cls,
     return;
   }
 
-  if (GNUNET_SYSERR != GNUNET_MESSENGER_update (handle))
+  struct GNUNET_IDENTITY_PrivateKey zero;
+  memset (&zero, 0, sizeof (zero));
+
+  if (GNUNET_SYSERR != GNUNET_MESSENGER_set_key (handle, &zero))
   {
     op_task = GNUNET_SCHEDULER_add_now (&end_operation, "update-fail");
     return;
@@ -152,7 +165,10 @@ run (void *cls,
   die_task = GNUNET_SCHEDULER_add_delayed (TOTAL_TIMEOUT, &end_badly, NULL);
 
   op_task = GNUNET_SCHEDULER_add_delayed (BASE_TIMEOUT, &end_operation, "connect");
-  messenger = GNUNET_MESSENGER_connect (cfg, NULL, &on_identity, NULL, NULL, NULL);
+  messenger = GNUNET_MESSENGER_connect (cfg, NULL, NULL, NULL, NULL);
+
+  if (messenger)
+    it_task = GNUNET_SCHEDULER_add_now (&on_iteration, messenger);
 }
 
 /**

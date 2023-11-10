@@ -53,7 +53,7 @@ struct test_peer {
   struct GNUNET_MESSENGER_Handle *handle;
   struct GNUNET_MESSENGER_Room *room;
 
-  unsigned int peer_messages;
+  struct GNUNET_CONTAINER_MultiPeerMap *map;
 
   const char *message;
 };
@@ -78,7 +78,6 @@ static void
 shutdown_cb (void *cls)
 {
   struct test_properties *properties = cls;
-
 
   for (unsigned int i = 0; i < properties->num_peer; i++)
   {
@@ -109,6 +108,9 @@ shutdown_cb (void *cls)
     if (peer->handle)
       GNUNET_MESSENGER_disconnect (peer->handle);
 
+    if (peer->map)
+      GNUNET_CONTAINER_multipeermap_destroy (peer->map);
+
     peer->handle = NULL;
   }
 
@@ -123,8 +125,6 @@ shutdown_cb (void *cls)
 
   properties->barrier = NULL;
 }
-
-
 
 static void
 end_cb (void *cls)
@@ -281,11 +281,13 @@ on_message (void *cls,
            GNUNET_h2s(hash));
 
   if (GNUNET_MESSENGER_KIND_PEER == message->header.kind)
-    peer->peer_messages++;
+    GNUNET_CONTAINER_multipeermap_put (peer->map, &(message->body.peer.peer), NULL,
+                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_REPLACE);
 
-  if (peer->props->num_hosts == peer->peer_messages)
+  const uint32_t num_peers = GNUNET_CONTAINER_multipeermap_size (peer->map);
+  if (peer->props->num_hosts == num_peers)
     peer->wait = GNUNET_wait_barrier (peer->props->barrier, &barrier2_wait_cb, peer);
-  else if (peer->props->num_hosts < peer->peer_messages)
+  else if (peer->props->num_hosts < num_peers)
   {
     if (peer->wait)
       GNUNET_cancel_wait_barrier(peer->wait);
@@ -377,7 +379,7 @@ on_peer (void *cb_cls,
     return;
   }
 
-  peer->handle = GNUNET_MESSENGER_connect (pinfo->result.cfg, TEST_NAME, NULL, NULL, &on_message, peer);
+  peer->handle = GNUNET_MESSENGER_connect (pinfo->result.cfg, TEST_NAME, NULL, &on_message, peer);
 
   GNUNET_assert(GNUNET_OK == GNUNET_CRYPTO_get_peer_identity(
       pinfo->result.cfg, &(peer->peer_id)
@@ -427,6 +429,8 @@ run (void *cls,
 
   peer->peer = event->details.peer_start.peer;
   peer->op = GNUNET_TESTBED_peer_get_information (peer->peer, GNUNET_TESTBED_PIT_CONFIGURATION, on_peer, peer);
+
+  peer->map = GNUNET_CONTAINER_multipeermap_create(peer->props->num_hosts, GNUNET_NO);
 }
 
 static void

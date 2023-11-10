@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -290,6 +290,9 @@ iterate_save_messages (void *cls,
       (save_message_store_attribute_failed(save->storage, storage.entry.offset)) ||
       (save_message_store_attribute_failed(save->storage, storage.entry.length)))
     return GNUNET_YES;
+
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Storing message with hash: %s\n",
+		  GNUNET_h2s (&(storage.hash)));
 
   char *buffer = GNUNET_malloc(storage.entry.length);
 

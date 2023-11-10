@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -41,13 +41,7 @@ clear_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels)
   GNUNET_assert(tunnels);
 
   struct GNUNET_MESSENGER_ListTunnel *element;
-
-  for (element = tunnels->head; element; element = tunnels->head)
-  {
-    GNUNET_CONTAINER_DLL_remove(tunnels->head, tunnels->tail, element);
-    GNUNET_PEER_change_rc (element->peer, -1);
-    GNUNET_free(element);
-  }
+  for (element = tunnels->head; element; element = remove_from_list_tunnels(tunnels, element))
 
   tunnels->head = NULL;
   tunnels->tail = NULL;
@@ -63,13 +57,15 @@ compare_list_tunnels (void *cls,
 
 void
 add_to_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
-                     const struct GNUNET_PeerIdentity *peer)
+                     const struct GNUNET_PeerIdentity *peer,
+                     const struct GNUNET_HashCode *hash)
 {
   GNUNET_assert((tunnels) && (peer));
 
   struct GNUNET_MESSENGER_ListTunnel *element = GNUNET_new(struct GNUNET_MESSENGER_ListTunnel);
 
   element->peer = GNUNET_PEER_intern (peer);
+  element->hash = hash ? GNUNET_memdup(hash, sizeof(struct GNUNET_HashCode)) : NULL;
 
   GNUNET_CONTAINER_DLL_insert_sorted(struct GNUNET_MESSENGER_ListTunnel, compare_list_tunnels, NULL, tunnels->head,
                                      tunnels->tail, element);
@@ -102,6 +98,31 @@ find_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
   return NULL;
 }
 
+void
+update_to_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
+                        const struct GNUNET_PeerIdentity *peer,
+                        const struct GNUNET_HashCode *hash)
+{
+  GNUNET_assert((tunnels) && (peer));
+
+  struct GNUNET_MESSENGER_ListTunnel* element = find_list_tunnels(tunnels, peer, NULL);
+  if (!element)
+    return;
+
+  if (element->hash)
+  {
+    if (hash)
+      GNUNET_memcpy(element->hash, hash, sizeof(struct GNUNET_HashCode));
+    else
+    {
+      GNUNET_free(element->hash);
+      element->hash = NULL;
+    }
+  }
+  else if (hash)
+    element->hash = GNUNET_memdup(hash, sizeof(struct GNUNET_HashCode));
+}
+
 int
 contains_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
                        const struct GNUNET_PeerIdentity *peer)
@@ -119,7 +140,12 @@ remove_from_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
 
   struct GNUNET_MESSENGER_ListTunnel *next = element->next;
 
-  GNUNET_CONTAINER_DLL_remove(tunnels->head, tunnels->tail, element);
+  if ((tunnels->head) && (tunnels->tail))
+    GNUNET_CONTAINER_DLL_remove(tunnels->head, tunnels->tail, element);
+
+  if (element->hash)
+    GNUNET_free(element->hash);
+
   GNUNET_PEER_change_rc (element->peer, -1);
   GNUNET_free(element);
 
@@ -155,7 +181,7 @@ load_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
     if (len != sizeof(peer))
       break;
 
-    add_to_list_tunnels(tunnels, &peer);
+    add_to_list_tunnels(tunnels, &peer, NULL);
   } while (len == sizeof(peer));
 
   GNUNET_DISK_file_close(handle);

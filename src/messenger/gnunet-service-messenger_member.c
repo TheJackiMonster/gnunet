@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -331,9 +331,7 @@ get_member_session_of (struct GNUNET_MESSENGER_Member *member,
   GNUNET_assert ((member) && (message) && (hash) &&
                  (0 == GNUNET_memcmp(&(member->id), &(message->header.sender_id))));
 
-  if (GNUNET_MESSENGER_KIND_INFO == message->header.kind)
-    return try_member_session(member, &(message->body.info.host_key));
-  else if (GNUNET_MESSENGER_KIND_JOIN == message->header.kind)
+  if (GNUNET_MESSENGER_KIND_JOIN == message->header.kind)
     return try_member_session(member, &(message->body.join.key));
 
   struct GNUNET_MESSENGER_ClosureSearchSession search;

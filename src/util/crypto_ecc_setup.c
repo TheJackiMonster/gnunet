@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2012, 2013, 2015, 2020 GNUnet e.V.
+     Copyright (C) 2012, 2013, 2015, 2020, 2023 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -286,6 +286,34 @@ GNUNET_CRYPTO_get_peer_identity (const struct GNUNET_CONFIGURATION_Handle *cfg,
                                       &dst->public_key);
   GNUNET_free (priv);
   return GNUNET_OK;
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_sign_by_peer_identity (const struct GNUNET_CONFIGURATION_Handle *cfg,
+                                     const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
+                                     struct GNUNET_CRYPTO_EddsaSignature *sig)
+{
+  struct GNUNET_CRYPTO_EddsaPrivateKey *priv;
+
+  if (NULL == (priv = GNUNET_CRYPTO_eddsa_key_create_from_configuration (cfg)))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                _ ("Could not load peer's private key\n"));
+    return GNUNET_SYSERR;
+  }
+
+  return GNUNET_CRYPTO_eddsa_sign_ (priv, purpose, sig);
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_verify_peer_identity (uint32_t purpose,
+                                    const struct GNUNET_CRYPTO_EccSignaturePurpose * validate,
+                                    const struct GNUNET_CRYPTO_EddsaSignature *sig,
+                                    const struct GNUNET_PeerIdentity *identity)
+{
+  return GNUNET_CRYPTO_eddsa_verify_ (purpose, validate, sig, &identity->public_key);
 }
 
 

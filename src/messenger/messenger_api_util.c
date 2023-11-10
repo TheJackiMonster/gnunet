@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -70,6 +70,13 @@ generate_free_member_id (struct GNUNET_ShortHashCode *id,
   return GNUNET_NO;
 }
 
+const struct GNUNET_IDENTITY_PrivateKey*
+get_anonymous_private_key ()
+{
+  const struct GNUNET_IDENTITY_Ego* ego = GNUNET_IDENTITY_ego_get_anonymous();
+  return GNUNET_IDENTITY_ego_get_private_key(ego);
+}
+
 const struct GNUNET_IDENTITY_PublicKey*
 get_anonymous_public_key ()
 {
@@ -100,4 +107,11 @@ convert_messenger_key_to_port(const struct GNUNET_HashCode *key,
   }
 
   GNUNET_CRYPTO_hash_sum(key, &version, port);
+}
+
+void
+convert_peer_identity_to_id(const struct GNUNET_PeerIdentity *identity,
+                            struct GNUNET_ShortHashCode *id)
+{
+  GNUNET_memcpy(id, identity, sizeof(struct GNUNET_ShortHashCode));
 }
