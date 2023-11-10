@@ -59,7 +59,7 @@ struct BashScriptState
   /**
    * Arguments for the script
    */
-  char **script_argv;
+  char *const*script_argv;
 
   /**
    * Size of script_argv.
@@ -196,8 +196,8 @@ const struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_exec_bash_script (const char *label,
                                      const char *script,
                                      char *const script_argv[],
-				     int argc,
-				     GNUNET_ChildCompletedCallback cb)
+                                     int argc,
+                                     GNUNET_ChildCompletedCallback cb)
 {
   struct BashScriptState *bss;
 
@@ -208,7 +208,7 @@ GNUNET_TESTING_cmd_exec_bash_script (const char *label,
   bss->cb = cb;
 
   return GNUNET_TESTING_command_new (bss,
-				     label,
+                                     label,
                                      &exec_bash_script_run,
                                      &exec_bash_script_cleanup,
                                      NULL,
