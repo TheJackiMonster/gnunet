@@ -168,7 +168,8 @@ run_queries (struct GNUNET_PQ_Context *db)
   pub = GNUNET_CRYPTO_rsa_private_key_get_public (priv);
   memset (&hmsg, 42, sizeof(hmsg));
   sig = GNUNET_CRYPTO_rsa_sign_fdh (priv,
-                                    &hmsg);
+                                    &hmsg,
+                                    sizeof (hmsg));
   u16 = 16;
   u32 = 32;
   u64 = 64;
