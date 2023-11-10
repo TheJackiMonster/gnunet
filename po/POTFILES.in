@@ -228,6 +228,9 @@ src/messenger/messenger_api_contact_store.c
 src/messenger/messenger_api_handle.c
 src/messenger/messenger_api_list_tunnels.c
 src/messenger/messenger_api_message.c
+src/messenger/messenger_api_message_kind.c
+src/messenger/messenger_api_peer_store.c
+src/messenger/messenger_api_queue_messages.c
 src/messenger/messenger_api_room.c
 src/messenger/messenger_api_util.c
 src/messenger/plugin_gnsrecord_messenger.c

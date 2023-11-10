@@ -94,7 +94,7 @@ struct GNUNET_MESSENGER_RoomEntryRecord
 
 GNUNET_NETWORK_STRUCT_END
 
-GNUNET_NETWORK_STRUCT_BEGIN
+  GNUNET_NETWORK_STRUCT_BEGIN
 
 /**
  * A room details record specifies a custom name for a given room and
@@ -105,7 +105,7 @@ struct GNUNET_MESSENGER_RoomDetailsRecord
   /**
    * The custom name for the room.
    */
-  char name [256];
+  char name[256];
 
   /**
    * The flags of the room.
@@ -575,8 +575,10 @@ enum GNUNET_MESSENGER_MessageFlags
 typedef void
 (*GNUNET_MESSENGER_MessageCallback) (void *cls,
                                      struct GNUNET_MESSENGER_Room *room,
-                                     const struct GNUNET_MESSENGER_Contact *sender,
-                                     const struct GNUNET_MESSENGER_Message *message,
+                                     const struct
+                                     GNUNET_MESSENGER_Contact *sender,
+                                     const struct
+                                     GNUNET_MESSENGER_Message *message,
                                      const struct GNUNET_HashCode *hash,
                                      enum GNUNET_MESSENGER_MessageFlags flags);
 
@@ -589,9 +591,10 @@ typedef void
  * @param[in] contact Contact handle
  */
 typedef int
-(*GNUNET_MESSENGER_MemberCallback) (void* cls,
+(*GNUNET_MESSENGER_MemberCallback) (void *cls,
                                     struct GNUNET_MESSENGER_Room *room,
-                                    const struct GNUNET_MESSENGER_Contact *contact);
+                                    const struct
+                                    GNUNET_MESSENGER_Contact *contact);
 
 /**
  * Set up a handle for the messenger related functions and connects to all necessary services. It will use the
@@ -763,7 +766,8 @@ GNUNET_MESSENGER_get_sender (const struct GNUNET_MESSENGER_Room *room,
  * @return Name of <i>contact</i> or NULL
  */
 const char*
-GNUNET_MESSENGER_contact_get_name (const struct GNUNET_MESSENGER_Contact *contact);
+GNUNET_MESSENGER_contact_get_name (const struct
+                                   GNUNET_MESSENGER_Contact *contact);
 
 /**
  * Get the public key used by the <i>contact</i> or NULL if the anonymous key was used.
@@ -772,7 +776,8 @@ GNUNET_MESSENGER_contact_get_name (const struct GNUNET_MESSENGER_Contact *contac
  * @return Public key used by <i>contact</i> or NULL
  */
 const struct GNUNET_IDENTITY_PublicKey*
-GNUNET_MESSENGER_contact_get_key (const struct GNUNET_MESSENGER_Contact *contact);
+GNUNET_MESSENGER_contact_get_key (const struct
+                                  GNUNET_MESSENGER_Contact *contact);
 
 /**
  * Send a <i>message</i> into a <i>room</i>. If you opened the <i>room</i> all entered members will receive the
@@ -795,7 +800,7 @@ GNUNET_MESSENGER_contact_get_key (const struct GNUNET_MESSENGER_Contact *contact
 void
 GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room,
                                struct GNUNET_MESSENGER_Message *message,
-                               const struct GNUNET_MESSENGER_Contact* contact);
+                               const struct GNUNET_MESSENGER_Contact *contact);
 
 /**
  * Get the message in a <i>room</i> identified by its <i>hash</i>.
@@ -821,7 +826,7 @@ GNUNET_MESSENGER_get_message (const struct GNUNET_MESSENGER_Room *room,
 int
 GNUNET_MESSENGER_iterate_members (struct GNUNET_MESSENGER_Room *room,
                                   GNUNET_MESSENGER_MemberCallback callback,
-                                  void* cls);
+                                  void *cls);
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {

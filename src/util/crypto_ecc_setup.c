@@ -290,8 +290,10 @@ GNUNET_CRYPTO_get_peer_identity (const struct GNUNET_CONFIGURATION_Handle *cfg,
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_sign_by_peer_identity (const struct GNUNET_CONFIGURATION_Handle *cfg,
-                                     const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
+GNUNET_CRYPTO_sign_by_peer_identity (const struct
+                                     GNUNET_CONFIGURATION_Handle *cfg,
+                                     const struct
+                                     GNUNET_CRYPTO_EccSignaturePurpose *purpose,
                                      struct GNUNET_CRYPTO_EddsaSignature *sig)
 {
   struct GNUNET_CRYPTO_EddsaPrivateKey *priv;
@@ -309,11 +311,14 @@ GNUNET_CRYPTO_sign_by_peer_identity (const struct GNUNET_CONFIGURATION_Handle *c
 
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_verify_peer_identity (uint32_t purpose,
-                                    const struct GNUNET_CRYPTO_EccSignaturePurpose * validate,
-                                    const struct GNUNET_CRYPTO_EddsaSignature *sig,
+                                    const struct
+                                    GNUNET_CRYPTO_EccSignaturePurpose *validate,
+                                    const struct
+                                    GNUNET_CRYPTO_EddsaSignature *sig,
                                     const struct GNUNET_PeerIdentity *identity)
 {
-  return GNUNET_CRYPTO_eddsa_verify_ (purpose, validate, sig, &identity->public_key);
+  return GNUNET_CRYPTO_eddsa_verify_ (purpose, validate, sig,
+                                      &identity->public_key);
 }
 
 
