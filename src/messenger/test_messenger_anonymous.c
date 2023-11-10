@@ -123,15 +123,6 @@ on_iteration (void *cls)
     return;
   }
 
-  struct GNUNET_IDENTITY_PrivateKey zero;
-  memset (&zero, 0, sizeof (zero));
-
-  if (GNUNET_SYSERR != GNUNET_MESSENGER_set_key (handle, &zero))
-  {
-    op_task = GNUNET_SCHEDULER_add_now (&end_operation, "update-fail");
-    return;
-  }
-
   const struct GNUNET_IDENTITY_PublicKey *key = GNUNET_MESSENGER_get_key (handle);
 
   if (key)

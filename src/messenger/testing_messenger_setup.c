@@ -284,8 +284,10 @@ on_message (void *cls,
     GNUNET_CONTAINER_multipeermap_put (peer->map, &(message->body.peer.peer), NULL,
                                        GNUNET_CONTAINER_MULTIHASHMAPOPTION_REPLACE);
 
+  const int members = GNUNET_MESSENGER_iterate_members(peer->room, NULL, NULL);
+
   const uint32_t num_peers = GNUNET_CONTAINER_multipeermap_size (peer->map);
-  if (peer->props->num_hosts == num_peers)
+  if ((members == peer->props->num_peer) && (peer->props->num_hosts == num_peers))
     peer->wait = GNUNET_wait_barrier (peer->props->barrier, &barrier2_wait_cb, peer);
   else if (peer->props->num_hosts < num_peers)
   {

@@ -557,8 +557,8 @@ check_srv_room_peer_status (struct GNUNET_MESSENGER_SrvRoom *room,
     return;
   }
 
-  if (room->host)
-    send_srv_room_message (room, room->host, create_message_peer (room->service));
+  if (tunnel)
+    forward_tunnel_message(tunnel, message, room->peer_message);
 }
 
 void
@@ -770,8 +770,7 @@ callback_verify_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
 
   if (GNUNET_TIME_relative_get_zero_().rel_value_us != GNUNET_TIME_absolute_get_difference(timestamp, last).rel_value_us)
   {
-    GNUNET_log(GNUNET_ERROR_TYPE_ERROR, "Message error: Timestamp does not check out!\n");
-    return GNUNET_SYSERR;
+    GNUNET_log(GNUNET_ERROR_TYPE_WARNING, "Message warning: Timestamp does not check out!\n");
   }
 
 skip_time_comparison:
