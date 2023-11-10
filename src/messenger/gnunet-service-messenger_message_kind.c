@@ -31,12 +31,13 @@
 struct GNUNET_MESSENGER_Message*
 create_message_info (struct GNUNET_MESSENGER_Service *service)
 {
-  if (!service)
+  if (! service)
     return NULL;
 
-  struct GNUNET_MESSENGER_Message *message = create_message (GNUNET_MESSENGER_KIND_INFO);
+  struct GNUNET_MESSENGER_Message *message = create_message (
+    GNUNET_MESSENGER_KIND_INFO);
 
-  if (!message)
+  if (! message)
     return NULL;
 
   message->body.info.messenger_version = GNUNET_MESSENGER_VERSION;
@@ -44,18 +45,21 @@ create_message_info (struct GNUNET_MESSENGER_Service *service)
   return message;
 }
 
+
 struct GNUNET_MESSENGER_Message*
 create_message_peer (struct GNUNET_MESSENGER_Service *service)
 {
-  if (!service)
+  if (! service)
     return NULL;
 
-  struct GNUNET_MESSENGER_Message *message = create_message (GNUNET_MESSENGER_KIND_PEER);
+  struct GNUNET_MESSENGER_Message *message = create_message (
+    GNUNET_MESSENGER_KIND_PEER);
 
-  if (!message)
+  if (! message)
     return NULL;
 
-  if (GNUNET_OK == get_service_peer_identity (service, &(message->body.peer.peer)))
+  if (GNUNET_OK == get_service_peer_identity (service,
+                                              &(message->body.peer.peer)))
     return message;
   else
   {
@@ -64,36 +68,42 @@ create_message_peer (struct GNUNET_MESSENGER_Service *service)
   }
 }
 
+
 struct GNUNET_MESSENGER_Message*
 create_message_miss (const struct GNUNET_PeerIdentity *peer)
 {
-  if (!peer)
+  if (! peer)
     return NULL;
 
-  struct GNUNET_MESSENGER_Message *message = create_message (GNUNET_MESSENGER_KIND_MISS);
+  struct GNUNET_MESSENGER_Message *message = create_message (
+    GNUNET_MESSENGER_KIND_MISS);
 
-  if (!message)
+  if (! message)
   {
     return NULL;
   }
 
-  GNUNET_memcpy(&(message->body.miss.peer), peer, sizeof(struct GNUNET_PeerIdentity));
+  GNUNET_memcpy (&(message->body.miss.peer), peer, sizeof(struct
+                                                          GNUNET_PeerIdentity));
 
   return message;
 }
 
+
 struct GNUNET_MESSENGER_Message*
 create_message_merge (const struct GNUNET_HashCode *previous)
 {
-  if (!previous)
+  if (! previous)
     return NULL;
 
-  struct GNUNET_MESSENGER_Message *message = create_message (GNUNET_MESSENGER_KIND_MERGE);
+  struct GNUNET_MESSENGER_Message *message = create_message (
+    GNUNET_MESSENGER_KIND_MERGE);
 
-  if (!message)
+  if (! message)
     return NULL;
 
-  GNUNET_memcpy(&(message->body.merge.previous), previous, sizeof(struct GNUNET_HashCode));
+  GNUNET_memcpy (&(message->body.merge.previous), previous, sizeof(struct
+                                                                   GNUNET_HashCode));
 
   return message;
 }

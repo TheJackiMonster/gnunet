@@ -34,6 +34,7 @@ init_queue_messages (struct GNUNET_MESSENGER_QueueMessages *messages)
   messages->tail = NULL;
 }
 
+
 void
 clear_queue_messages (struct GNUNET_MESSENGER_QueueMessages *messages)
 {
@@ -55,6 +56,7 @@ clear_queue_messages (struct GNUNET_MESSENGER_QueueMessages *messages)
   messages->tail = NULL;
 }
 
+
 void
 enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
                      const struct GNUNET_IDENTITY_PrivateKey *sender,
@@ -62,9 +64,10 @@ enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
 {
   GNUNET_assert ((messages) && (message));
 
-  struct GNUNET_MESSENGER_QueueMessage *element = GNUNET_new (struct GNUNET_MESSENGER_QueueMessage);
+  struct GNUNET_MESSENGER_QueueMessage *element = GNUNET_new (struct
+                                                              GNUNET_MESSENGER_QueueMessage);
 
-  if (!element)
+  if (! element)
     return;
 
   element->message = copy_message (message);
@@ -72,7 +75,7 @@ enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
   if (sender)
     GNUNET_memcpy (&(element->sender), sender, sizeof (element->sender));
 
-  if (!element->message)
+  if (! element->message)
   {
     GNUNET_free (element);
     return;
@@ -80,6 +83,7 @@ enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
 
   GNUNET_CONTAINER_DLL_insert_tail (messages->head, messages->tail, element);
 }
+
 
 struct GNUNET_MESSENGER_Message*
 dequeue_from_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
@@ -89,7 +93,7 @@ dequeue_from_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
 
   struct GNUNET_MESSENGER_QueueMessage *element = messages->head;
 
-  if (!element)
+  if (! element)
     return NULL;
 
   struct GNUNET_MESSENGER_Message *message = element->message;

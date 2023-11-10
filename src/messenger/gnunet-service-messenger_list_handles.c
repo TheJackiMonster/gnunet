@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2022 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -31,48 +31,52 @@
 void
 init_list_handles (struct GNUNET_MESSENGER_ListHandles *handles)
 {
-  GNUNET_assert(handles);
+  GNUNET_assert (handles);
 
   handles->head = NULL;
   handles->tail = NULL;
 }
 
+
 void
 clear_list_handles (struct GNUNET_MESSENGER_ListHandles *handles)
 {
-  GNUNET_assert(handles);
+  GNUNET_assert (handles);
 
   while (handles->head)
   {
     struct GNUNET_MESSENGER_ListHandle *element = handles->head;
 
-    GNUNET_CONTAINER_DLL_remove(handles->head, handles->tail, element);
+    GNUNET_CONTAINER_DLL_remove (handles->head, handles->tail, element);
     destroy_srv_handle (element->handle);
-    GNUNET_free(element);
+    GNUNET_free (element);
   }
 
   handles->head = NULL;
   handles->tail = NULL;
 }
 
+
 void
 add_list_handle (struct GNUNET_MESSENGER_ListHandles *handles,
                  struct GNUNET_MESSENGER_SrvHandle *handle)
 {
-  GNUNET_assert((handles) && (handle));
+  GNUNET_assert ((handles) && (handle));
 
-  struct GNUNET_MESSENGER_ListHandle *element = GNUNET_new(struct GNUNET_MESSENGER_ListHandle);
+  struct GNUNET_MESSENGER_ListHandle *element = GNUNET_new (struct
+                                                            GNUNET_MESSENGER_ListHandle);
 
   element->handle = handle;
 
-  GNUNET_CONTAINER_DLL_insert_tail(handles->head, handles->tail, element);
+  GNUNET_CONTAINER_DLL_insert_tail (handles->head, handles->tail, element);
 }
+
 
 int
 remove_list_handle (struct GNUNET_MESSENGER_ListHandles *handles,
                     struct GNUNET_MESSENGER_SrvHandle *handle)
 {
-  GNUNET_assert((handles) && (handle));
+  GNUNET_assert ((handles) && (handle));
 
   struct GNUNET_MESSENGER_ListHandle *element;
 
@@ -80,25 +84,28 @@ remove_list_handle (struct GNUNET_MESSENGER_ListHandles *handles,
     if (element->handle == handle)
       break;
 
-  if (!element)
+  if (! element)
     return GNUNET_NO;
 
-  GNUNET_CONTAINER_DLL_remove(handles->head, handles->tail, element);
-  GNUNET_free(element);
+  GNUNET_CONTAINER_DLL_remove (handles->head, handles->tail, element);
+  GNUNET_free (element);
 
   return GNUNET_YES;
 }
+
 
 struct GNUNET_MESSENGER_SrvHandle*
 find_list_handle_by_member (const struct GNUNET_MESSENGER_ListHandles *handles,
                             const struct GNUNET_HashCode *key)
 {
-  GNUNET_assert((handles) && (key));
+  GNUNET_assert ((handles) && (key));
 
   struct GNUNET_MESSENGER_ListHandle *element;
 
   for (element = handles->head; element; element = element->next)
-    if (get_srv_handle_member_id ((struct GNUNET_MESSENGER_SrvHandle*) element->handle, key))
+    if (get_srv_handle_member_id ((struct
+                                   GNUNET_MESSENGER_SrvHandle*) element->handle,
+                                  key))
       return element->handle;
 
   return NULL;

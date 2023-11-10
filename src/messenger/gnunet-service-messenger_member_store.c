@@ -37,8 +37,9 @@ init_member_store (struct GNUNET_MESSENGER_MemberStore *store,
   GNUNET_assert ((store) && (room));
 
   store->room = room;
-  store->members = GNUNET_CONTAINER_multishortmap_create(8, GNUNET_NO);
+  store->members = GNUNET_CONTAINER_multishortmap_create (8, GNUNET_NO);
 }
+
 
 static int
 iterate_destroy_members (void *cls,
@@ -46,16 +47,18 @@ iterate_destroy_members (void *cls,
                          void *value)
 {
   struct GNUNET_MESSENGER_Member *member = value;
-  destroy_member(member);
+  destroy_member (member);
   return GNUNET_YES;
 }
+
 
 void
 clear_member_store (struct GNUNET_MESSENGER_MemberStore *store)
 {
   GNUNET_assert ((store) && (store->members));
 
-  GNUNET_CONTAINER_multishortmap_iterate (store->members, iterate_destroy_members, NULL);
+  GNUNET_CONTAINER_multishortmap_iterate (store->members,
+                                          iterate_destroy_members, NULL);
   GNUNET_CONTAINER_multishortmap_destroy (store->members);
 }
 
@@ -67,16 +70,19 @@ get_member_contact_store (struct GNUNET_MESSENGER_MemberStore *store)
 
   struct GNUNET_MESSENGER_SrvRoom *room = store->room;
 
-  return get_service_contact_store(room->service);
+  return get_service_contact_store (room->service);
 }
+
 
 const struct GNUNET_HashCode*
 get_member_store_key (const struct GNUNET_MESSENGER_MemberStore *store)
 {
   GNUNET_assert (store);
 
-  return get_srv_room_key((const struct GNUNET_MESSENGER_SrvRoom*) store->room);
+  return get_srv_room_key ((const struct
+                            GNUNET_MESSENGER_SrvRoom*) store->room);
 }
+
 
 static int
 callback_scan_for_members (void *cls,
@@ -90,13 +96,14 @@ callback_scan_for_members (void *cls,
 
     GNUNET_asprintf (&directory, "%s%c", filename, DIR_SEPARATOR);
 
-    load_member(store, directory);
+    load_member (store, directory);
 
-    GNUNET_free(directory);
+    GNUNET_free (directory);
   }
 
   return GNUNET_OK;
 }
+
 
 static int
 iterate_load_next_member_sessions (void *cls,
@@ -107,18 +114,20 @@ iterate_load_next_member_sessions (void *cls,
 
   struct GNUNET_MESSENGER_Member *member = value;
 
-  if (!member)
+  if (! member)
     return GNUNET_YES;
 
   char *member_dir;
-  GNUNET_asprintf (&member_dir, "%s%s%c", sync_dir, GNUNET_sh2s(id), DIR_SEPARATOR);
+  GNUNET_asprintf (&member_dir, "%s%s%c", sync_dir, GNUNET_sh2s (id),
+                   DIR_SEPARATOR);
 
   if (GNUNET_YES == GNUNET_DISK_directory_test (member_dir, GNUNET_YES))
     load_member_next_sessions (member, member_dir);
 
-  GNUNET_free(member_dir);
+  GNUNET_free (member_dir);
   return GNUNET_YES;
 }
+
 
 static int
 iterate_sync_member_contacts (void *cls,
@@ -127,12 +136,13 @@ iterate_sync_member_contacts (void *cls,
 {
   struct GNUNET_MESSENGER_Member *member = value;
 
-  if (!member)
+  if (! member)
     return GNUNET_YES;
 
   sync_member_contacts (member);
   return GNUNET_YES;
 }
+
 
 void
 load_member_store (struct GNUNET_MESSENGER_MemberStore *store,
@@ -146,11 +156,15 @@ load_member_store (struct GNUNET_MESSENGER_MemberStore *store,
   if (GNUNET_OK == GNUNET_DISK_directory_test (scan_dir, GNUNET_YES))
     GNUNET_DISK_directory_scan (scan_dir, callback_scan_for_members, store);
 
-  GNUNET_CONTAINER_multishortmap_iterate(store->members, iterate_load_next_member_sessions, scan_dir);
-  GNUNET_CONTAINER_multishortmap_iterate(store->members, iterate_sync_member_contacts, NULL);
+  GNUNET_CONTAINER_multishortmap_iterate (store->members,
+                                          iterate_load_next_member_sessions,
+                                          scan_dir);
+  GNUNET_CONTAINER_multishortmap_iterate (store->members,
+                                          iterate_sync_member_contacts, NULL);
 
-  GNUNET_free(scan_dir);
+  GNUNET_free (scan_dir);
 }
+
 
 static int
 iterate_save_members (void *cls,
@@ -161,19 +175,21 @@ iterate_save_members (void *cls,
 
   struct GNUNET_MESSENGER_Member *member = value;
 
-  if (!member)
+  if (! member)
     return GNUNET_YES;
 
   char *member_dir;
-  GNUNET_asprintf (&member_dir, "%s%s%c", save_dir, GNUNET_sh2s(id), DIR_SEPARATOR);
+  GNUNET_asprintf (&member_dir, "%s%s%c", save_dir, GNUNET_sh2s (id),
+                   DIR_SEPARATOR);
 
   if ((GNUNET_YES == GNUNET_DISK_directory_test (member_dir, GNUNET_NO)) ||
       (GNUNET_OK == GNUNET_DISK_directory_create (member_dir)))
-    save_member(member, member_dir);
+    save_member (member, member_dir);
 
-  GNUNET_free(member_dir);
+  GNUNET_free (member_dir);
   return GNUNET_YES;
 }
+
 
 void
 save_member_store (struct GNUNET_MESSENGER_MemberStore *store,
@@ -181,15 +197,17 @@ save_member_store (struct GNUNET_MESSENGER_MemberStore *store,
 {
   GNUNET_assert ((store) && (directory));
 
-  char* save_dir;
+  char *save_dir;
   GNUNET_asprintf (&save_dir, "%s%s%c", directory, "members", DIR_SEPARATOR);
 
   if ((GNUNET_YES == GNUNET_DISK_directory_test (save_dir, GNUNET_NO)) ||
       (GNUNET_OK == GNUNET_DISK_directory_create (save_dir)))
-    GNUNET_CONTAINER_multishortmap_iterate(store->members, iterate_save_members, save_dir);
+    GNUNET_CONTAINER_multishortmap_iterate (store->members,
+                                            iterate_save_members, save_dir);
 
-  GNUNET_free(save_dir);
+  GNUNET_free (save_dir);
 }
+
 
 struct GNUNET_MESSENGER_Member*
 get_store_member (const struct GNUNET_MESSENGER_MemberStore *store,
@@ -200,20 +218,22 @@ get_store_member (const struct GNUNET_MESSENGER_MemberStore *store,
   return GNUNET_CONTAINER_multishortmap_get (store->members, id);
 }
 
+
 struct GNUNET_MESSENGER_Member*
 get_store_member_of (struct GNUNET_MESSENGER_MemberStore *store,
                      const struct GNUNET_MESSENGER_Message *message)
 {
-  GNUNET_assert((store) && (message));
+  GNUNET_assert ((store) && (message));
 
-  if (GNUNET_YES == is_peer_message(message))
+  if (GNUNET_YES == is_peer_message (message))
     return NULL;
 
   if (GNUNET_MESSENGER_KIND_JOIN == message->header.kind)
-    return add_store_member(store, &(message->header.sender_id));
+    return add_store_member (store, &(message->header.sender_id));
   else
-    return get_store_member(store, &(message->header.sender_id));
+    return get_store_member (store, &(message->header.sender_id));
 }
+
 
 struct GNUNET_MESSENGER_Member*
 add_store_member (struct GNUNET_MESSENGER_MemberStore *store,
@@ -221,27 +241,32 @@ add_store_member (struct GNUNET_MESSENGER_MemberStore *store,
 {
   GNUNET_assert ((store) && (store->members));
 
-  struct GNUNET_MESSENGER_Member *member = id? get_store_member(store, id) : NULL;
+  struct GNUNET_MESSENGER_Member *member = id? get_store_member (store, id) :
+                                           NULL;
 
   if (member)
     return member;
 
-  member = create_member(store, id);
+  member = create_member (store, id);
 
-  if (!member)
+  if (! member)
     return NULL;
 
-  if (GNUNET_OK != GNUNET_CONTAINER_multishortmap_put (store->members, get_member_id(member), member,
+  if (GNUNET_OK != GNUNET_CONTAINER_multishortmap_put (store->members,
+                                                       get_member_id (member),
+                                                       member,
                                                        GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
   {
-    destroy_member(member);
+    destroy_member (member);
     return NULL;
   }
 
   return member;
 }
 
-struct GNUNET_MESSENGER_ClosureIterateMembers {
+
+struct GNUNET_MESSENGER_ClosureIterateMembers
+{
   GNUNET_MESSENGER_MemberIteratorCallback it;
   void *cls;
 };
@@ -254,13 +279,14 @@ iterate_store_members_it (void *cls,
   struct GNUNET_MESSENGER_ClosureIterateMembers *iterate = cls;
   struct GNUNET_MESSENGER_Member *member = value;
 
-  return iterate_member_sessions(member, iterate->it, iterate->cls);
+  return iterate_member_sessions (member, iterate->it, iterate->cls);
 }
+
 
 int
 iterate_store_members (struct GNUNET_MESSENGER_MemberStore *store,
                        GNUNET_MESSENGER_MemberIteratorCallback it,
-                       void* cls)
+                       void *cls)
 {
   GNUNET_assert ((store) && (store->members) && (it));
 
@@ -269,5 +295,7 @@ iterate_store_members (struct GNUNET_MESSENGER_MemberStore *store,
   iterate.it = it;
   iterate.cls = cls;
 
-  return GNUNET_CONTAINER_multishortmap_iterate(store->members, iterate_store_members_it, &iterate);
+  return GNUNET_CONTAINER_multishortmap_iterate (store->members,
+                                                 iterate_store_members_it,
+                                                 &iterate);
 }

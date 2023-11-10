@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2021 GNUnet e.V.
+   Copyright (C) 2021, 2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -34,7 +34,7 @@ struct test_configuration
 };
 
 int
-GNUNET_run_messenger_setup (const char* test_name,
+GNUNET_run_messenger_setup (const char *test_name,
                             const struct test_configuration *cfg);
 
 #endif /* GNUNET_TESTING_MESSENGER_SETUP_H_ */

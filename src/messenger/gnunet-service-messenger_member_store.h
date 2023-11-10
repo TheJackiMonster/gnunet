@@ -44,9 +44,9 @@ struct GNUNET_MESSENGER_MemberStore
 };
 
 typedef int (*GNUNET_MESSENGER_MemberIteratorCallback) (
-    void *cls,
-    const struct GNUNET_IDENTITY_PublicKey *public_key,
-    struct GNUNET_MESSENGER_MemberSession *session);
+  void *cls,
+  const struct GNUNET_IDENTITY_PublicKey *public_key,
+  struct GNUNET_MESSENGER_MemberSession *session);
 
 /**
  * Initializes a member <i>store</i> as fully empty connected to a <i>room</i>.
@@ -154,6 +154,6 @@ add_store_member (struct GNUNET_MESSENGER_MemberStore *store,
 int
 iterate_store_members (struct GNUNET_MESSENGER_MemberStore *store,
                        GNUNET_MESSENGER_MemberIteratorCallback it,
-                       void* cls);
+                       void *cls);
 
 #endif //GNUNET_SERVICE_MESSENGER_MEMBER_STORE_H

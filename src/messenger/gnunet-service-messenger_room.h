@@ -45,13 +45,13 @@
 #include "gnunet-service-messenger_operation_store.h"
 
 #define GNUNET_MESSENGER_IDLE_DELAY GNUNET_TIME_relative_multiply \
-  (GNUNET_TIME_relative_get_second_ (), 5)
+          (GNUNET_TIME_relative_get_second_ (), 5)
 
 #define GNUNET_MESSENGER_REQUEST_DELAY GNUNET_TIME_relative_multiply \
-  (GNUNET_TIME_relative_get_minute_ (), 5)
+          (GNUNET_TIME_relative_get_minute_ (), 5)
 
 #define GNUNET_MESSENGER_MERGE_DELAY GNUNET_TIME_relative_multiply \
-  (GNUNET_TIME_relative_get_second_ (), 30)
+          (GNUNET_TIME_relative_get_second_ (), 30)
 
 struct GNUNET_MESSENGER_SrvTunnel;
 struct GNUNET_MESSENGER_MemberSession;
@@ -89,7 +89,7 @@ struct GNUNET_MESSENGER_SrvRoom
  */
 struct GNUNET_MESSENGER_SrvRoom*
 create_srv_room (struct GNUNET_MESSENGER_SrvHandle *handle,
-             const struct GNUNET_HashCode *key);
+                 const struct GNUNET_HashCode *key);
 
 /**
  * Destroys a room and frees its memory fully.
@@ -102,7 +102,7 @@ create_srv_room (struct GNUNET_MESSENGER_SrvHandle *handle,
  */
 void
 destroy_srv_room (struct GNUNET_MESSENGER_SrvRoom *room,
-              int deletion);
+                  int deletion);
 
 /**
  * Returns the used peer store of a given <i>room</i>.
@@ -307,11 +307,11 @@ get_srv_room_tunnel (const struct GNUNET_MESSENGER_SrvRoom *room,
  * @param[in] hash Hash of message
  */
 typedef void (GNUNET_MESSENGER_MessageRequestCallback) (
-    void *cls,
-    struct GNUNET_MESSENGER_SrvRoom *room,
-    const struct GNUNET_MESSENGER_Message *message,
-    const struct GNUNET_HashCode *hash
-);
+  void *cls,
+  struct GNUNET_MESSENGER_SrvRoom *room,
+  const struct GNUNET_MESSENGER_Message *message,
+  const struct GNUNET_HashCode *hash
+  );
 
 /**
  * Requests a message from a <i>room</i> identified by a given <i>hash</i>. If the message is found,
@@ -333,7 +333,7 @@ request_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
                           const struct GNUNET_HashCode *hash,
                           const struct GNUNET_MESSENGER_MemberSession *session,
                           GNUNET_MESSENGER_MessageRequestCallback callback,
-                          void* cls);
+                          void *cls);
 
 /**
  * Checks for potential collisions with member ids and solves them changing active handles ids if they
@@ -346,7 +346,8 @@ request_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
  */
 void
 solve_srv_room_member_collisions (struct GNUNET_MESSENGER_SrvRoom *room,
-                                  const struct GNUNET_IDENTITY_PublicKey *public_key,
+                                  const struct
+                                  GNUNET_IDENTITY_PublicKey *public_key,
                                   const struct GNUNET_ShortHashCode *member_id,
                                   struct GNUNET_TIME_Absolute timestamp);
 

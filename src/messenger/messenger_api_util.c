@@ -35,29 +35,34 @@ callback_close_channel (void *cls)
     GNUNET_CADET_channel_destroy (channel);
 }
 
+
 void
 delayed_disconnect_channel (struct GNUNET_CADET_Channel *channel)
 {
-  GNUNET_assert(channel);
+  GNUNET_assert (channel);
 
   GNUNET_SCHEDULER_add_delayed_with_priority (GNUNET_TIME_relative_get_zero_ (),
                                               GNUNET_SCHEDULER_PRIORITY_URGENT,
                                               callback_close_channel, channel);
 }
 
+
 int
 generate_free_member_id (struct GNUNET_ShortHashCode *id,
                          const struct GNUNET_CONTAINER_MultiShortmap *members)
 {
-  GNUNET_assert(id);
+  GNUNET_assert (id);
 
-  size_t counter = 1 + (members ? GNUNET_CONTAINER_multishortmap_size (members) : 0);
+  size_t counter = 1 + (members ? GNUNET_CONTAINER_multishortmap_size (
+                          members) : 0);
 
   do
   {
-    GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_STRONG, id, sizeof(struct GNUNET_ShortHashCode));
+    GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_STRONG, id, sizeof(struct
+                                                                         GNUNET_ShortHashCode));
 
-    if ((members) && (GNUNET_YES == GNUNET_CONTAINER_multishortmap_contains (members, id)))
+    if ((members) && (GNUNET_YES == GNUNET_CONTAINER_multishortmap_contains (
+                        members, id)))
       counter--;
     else
       break;
@@ -70,48 +75,53 @@ generate_free_member_id (struct GNUNET_ShortHashCode *id,
   return GNUNET_NO;
 }
 
+
 const struct GNUNET_IDENTITY_PrivateKey*
 get_anonymous_private_key ()
 {
-  const struct GNUNET_IDENTITY_Ego* ego = GNUNET_IDENTITY_ego_get_anonymous();
-  return GNUNET_IDENTITY_ego_get_private_key(ego);
+  const struct GNUNET_IDENTITY_Ego *ego = GNUNET_IDENTITY_ego_get_anonymous ();
+  return GNUNET_IDENTITY_ego_get_private_key (ego);
 }
+
 
 const struct GNUNET_IDENTITY_PublicKey*
 get_anonymous_public_key ()
 {
   static struct GNUNET_IDENTITY_PublicKey public_key;
-  static struct GNUNET_IDENTITY_Ego* ego = NULL;
+  static struct GNUNET_IDENTITY_Ego *ego = NULL;
 
-  if (!ego)
+  if (! ego)
   {
-    ego = GNUNET_IDENTITY_ego_get_anonymous();
-    GNUNET_IDENTITY_ego_get_public_key(ego, &public_key);
+    ego = GNUNET_IDENTITY_ego_get_anonymous ();
+    GNUNET_IDENTITY_ego_get_public_key (ego, &public_key);
   }
 
   return &public_key;
 }
 
+
 void
-convert_messenger_key_to_port(const struct GNUNET_HashCode *key,
-                              struct GNUNET_HashCode *port)
+convert_messenger_key_to_port (const struct GNUNET_HashCode *key,
+                               struct GNUNET_HashCode *port)
 {
   static uint32_t version_value = 0;
   static struct GNUNET_HashCode version;
 
-  if (!version_value) {
+  if (! version_value)
+  {
     version_value = (uint32_t) (GNUNET_MESSENGER_VERSION);
     version_value = ((version_value >> 16) & 0xFFFF);
-    version_value = GNUNET_htole32(version_value);
-    GNUNET_CRYPTO_hash(&version_value, sizeof(version_value), &version);
+    version_value = GNUNET_htole32 (version_value);
+    GNUNET_CRYPTO_hash (&version_value, sizeof(version_value), &version);
   }
 
-  GNUNET_CRYPTO_hash_sum(key, &version, port);
+  GNUNET_CRYPTO_hash_sum (key, &version, port);
 }
 
+
 void
-convert_peer_identity_to_id(const struct GNUNET_PeerIdentity *identity,
-                            struct GNUNET_ShortHashCode *id)
+convert_peer_identity_to_id (const struct GNUNET_PeerIdentity *identity,
+                             struct GNUNET_ShortHashCode *id)
 {
-  GNUNET_memcpy(id, identity, sizeof(struct GNUNET_ShortHashCode));
+  GNUNET_memcpy (id, identity, sizeof(struct GNUNET_ShortHashCode));
 }

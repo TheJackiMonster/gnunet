@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2021 GNUnet e.V.
+   Copyright (C) 2021, 2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -35,7 +35,7 @@ struct GNUNET_BarrierHandle
   struct GNUNET_BarrierWaitHandle *head;
   struct GNUNET_BarrierWaitHandle *tail;
 
-  struct GNUNET_SCHEDULER_Task* task;
+  struct GNUNET_SCHEDULER_Task *task;
 };
 
 struct GNUNET_BarrierHandle*
@@ -46,9 +46,10 @@ GNUNET_init_barrier (unsigned int requirement,
   if (0 == requirement)
     return NULL;
 
-  struct GNUNET_BarrierHandle *barrier = GNUNET_new(struct GNUNET_BarrierHandle);
+  struct GNUNET_BarrierHandle *barrier = GNUNET_new (struct
+                                                     GNUNET_BarrierHandle);
 
-  if (!barrier)
+  if (! barrier)
     return NULL;
 
   barrier->requirement = requirement;
@@ -61,6 +62,7 @@ GNUNET_init_barrier (unsigned int requirement,
   return barrier;
 }
 
+
 static void
 exit_status (struct GNUNET_BarrierHandle *barrier,
              int status);
@@ -71,20 +73,23 @@ cancel_barrier (void *cls)
   exit_status ((struct GNUNET_BarrierHandle*) cls, GNUNET_SYSERR);
 }
 
+
 static void
 complete_barrier (void *cls)
 {
   exit_status ((struct GNUNET_BarrierHandle*) cls, GNUNET_OK);
 }
 
+
 void
 GNUNET_cancel_barrier (struct GNUNET_BarrierHandle *barrier)
 {
-  if ((!barrier) || (barrier->task))
+  if ((! barrier) || (barrier->task))
     return;
 
-  barrier->task = GNUNET_SCHEDULER_add_now(cancel_barrier, barrier);
+  barrier->task = GNUNET_SCHEDULER_add_now (cancel_barrier, barrier);
 }
+
 
 struct GNUNET_BarrierWaitHandle
 {
@@ -107,31 +112,33 @@ exit_status (struct GNUNET_BarrierHandle *barrier,
     struct GNUNET_BarrierWaitHandle *current = waiting;
 
     if (current->cb)
-      current->cb(current->cls, current, status);
+      current->cb (current->cls, current, status);
 
     waiting = waiting->next;
 
-    GNUNET_CONTAINER_DLL_remove(barrier->head, barrier->tail, current);
-    GNUNET_free(current);
+    GNUNET_CONTAINER_DLL_remove (barrier->head, barrier->tail, current);
+    GNUNET_free (current);
   }
 
   if (barrier->cb)
-    barrier->cb(barrier->cls, barrier, status);
+    barrier->cb (barrier->cls, barrier, status);
 
-  GNUNET_free(barrier);
+  GNUNET_free (barrier);
 }
+
 
 struct GNUNET_BarrierWaitHandle*
 GNUNET_wait_barrier (struct GNUNET_BarrierHandle *barrier,
                      GNUNET_BarrierWaitStatusCallback cb,
                      void *cb_cls)
 {
-  if ((!barrier) || (0 == barrier->requirement))
+  if ((! barrier) || (0 == barrier->requirement))
     return NULL;
 
-  struct GNUNET_BarrierWaitHandle *waiting = GNUNET_new(struct GNUNET_BarrierWaitHandle);
+  struct GNUNET_BarrierWaitHandle *waiting = GNUNET_new (struct
+                                                         GNUNET_BarrierWaitHandle);
 
-  if (!waiting)
+  if (! waiting)
     return NULL;
 
   waiting->cb = cb;
@@ -140,34 +147,35 @@ GNUNET_wait_barrier (struct GNUNET_BarrierHandle *barrier,
   waiting->next = NULL;
   waiting->barrier = barrier;
 
-  GNUNET_CONTAINER_DLL_insert_tail(barrier->head, barrier->tail, waiting);
+  GNUNET_CONTAINER_DLL_insert_tail (barrier->head, barrier->tail, waiting);
   barrier->requirement--;
 
-  if ((barrier->requirement == 0) && (!barrier->task))
-    barrier->task = GNUNET_SCHEDULER_add_now(complete_barrier, barrier);
+  if ((barrier->requirement == 0) && (! barrier->task))
+    barrier->task = GNUNET_SCHEDULER_add_now (complete_barrier, barrier);
 
   return waiting;
 }
 
+
 void
 GNUNET_cancel_wait_barrier (struct GNUNET_BarrierWaitHandle *waiting)
 {
-  if (!waiting)
+  if (! waiting)
     return;
 
   struct GNUNET_BarrierHandle *barrier = waiting->barrier;
 
-  if (!barrier)
+  if (! barrier)
     return;
 
   if ((barrier->requirement == 0) && (barrier->task))
   {
-    GNUNET_SCHEDULER_cancel(barrier->task);
+    GNUNET_SCHEDULER_cancel (barrier->task);
     barrier->task = NULL;
   }
 
   barrier->requirement++;
-  GNUNET_CONTAINER_DLL_remove(barrier->head, barrier->tail, waiting);
+  GNUNET_CONTAINER_DLL_remove (barrier->head, barrier->tail, waiting);
 
-  GNUNET_free(waiting);
+  GNUNET_free (waiting);
 }

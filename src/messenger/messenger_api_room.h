@@ -36,9 +36,10 @@
 #include "messenger_api_message.h"
 #include "messenger_api_queue_messages.h"
 
-struct GNUNET_MESSENGER_RoomMessageEntry {
-  struct GNUNET_MESSENGER_Contact* sender;
-  struct GNUNET_MESSENGER_Message* message;
+struct GNUNET_MESSENGER_RoomMessageEntry
+{
+  struct GNUNET_MESSENGER_Contact *sender;
+  struct GNUNET_MESSENGER_Message *message;
 };
 
 struct GNUNET_MESSENGER_Room
@@ -165,7 +166,7 @@ handle_room_message (struct GNUNET_MESSENGER_Room *room,
 int
 iterate_room_members (struct GNUNET_MESSENGER_Room *room,
                       GNUNET_MESSENGER_MemberCallback callback,
-                      void* cls);
+                      void *cls);
 
 /**
  * Checks through all members of a given <i>room</i> if a specific <i>contact</i> is found and

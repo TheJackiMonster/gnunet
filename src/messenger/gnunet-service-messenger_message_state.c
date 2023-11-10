@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -29,35 +29,38 @@
 void
 init_message_state (struct GNUNET_MESSENGER_MessageState *state)
 {
-  GNUNET_assert(state);
+  GNUNET_assert (state);
 
   init_list_messages (&(state->last_messages));
 }
 
+
 void
 clear_message_state (struct GNUNET_MESSENGER_MessageState *state)
 {
-  GNUNET_assert(state);
+  GNUNET_assert (state);
 
   clear_list_messages (&(state->last_messages));
 }
+
 
 void
 get_message_state_chain_hash (const struct GNUNET_MESSENGER_MessageState *state,
                               struct GNUNET_HashCode *hash)
 {
-  GNUNET_assert((state) && (hash));
+  GNUNET_assert ((state) && (hash));
 
   if (state->last_messages.head)
-    GNUNET_memcpy(hash, &(state->last_messages.head->hash), sizeof(*hash));
+    GNUNET_memcpy (hash, &(state->last_messages.head->hash), sizeof(*hash));
   else
     memset (hash, 0, sizeof(*hash));
 }
 
+
 const struct GNUNET_HashCode*
 get_message_state_merge_hash (const struct GNUNET_MESSENGER_MessageState *state)
 {
-  GNUNET_assert(state);
+  GNUNET_assert (state);
 
   if (state->last_messages.head == state->last_messages.tail)
     return NULL;
@@ -65,13 +68,14 @@ get_message_state_merge_hash (const struct GNUNET_MESSENGER_MessageState *state)
   return &(state->last_messages.tail->hash);
 }
 
+
 void
 update_message_state (struct GNUNET_MESSENGER_MessageState *state,
                       int requested,
                       const struct GNUNET_MESSENGER_Message *message,
                       const struct GNUNET_HashCode *hash)
 {
-  GNUNET_assert((state) && (message) && (hash));
+  GNUNET_assert ((state) && (message) && (hash));
 
   if ((GNUNET_YES == requested) ||
       (GNUNET_MESSENGER_KIND_INFO == message->header.kind) ||
@@ -79,36 +83,38 @@ update_message_state (struct GNUNET_MESSENGER_MessageState *state,
     return;
 
   if (GNUNET_MESSENGER_KIND_MERGE == message->header.kind)
-    remove_from_list_messages(&(state->last_messages), &(message->body.merge.previous));
-  remove_from_list_messages(&(state->last_messages), &(message->header.previous));
+    remove_from_list_messages (&(state->last_messages),
+                               &(message->body.merge.previous));
+  remove_from_list_messages (&(state->last_messages),
+                             &(message->header.previous));
 
   add_to_list_messages (&(state->last_messages), hash);
 }
+
 
 void
 load_message_state (struct GNUNET_MESSENGER_MessageState *state,
                     const char *path)
 {
-  GNUNET_assert((state) && (path));
+  GNUNET_assert ((state) && (path));
 
   char *last_messages_file;
   GNUNET_asprintf (&last_messages_file, "%s%s", path, "last_messages.list");
 
-  load_list_messages(&(state->last_messages), last_messages_file);
-  GNUNET_free(last_messages_file);
+  load_list_messages (&(state->last_messages), last_messages_file);
+  GNUNET_free (last_messages_file);
 }
+
 
 void
 save_message_state (const struct GNUNET_MESSENGER_MessageState *state,
                     const char *path)
 {
-  GNUNET_assert((state) && (path));
+  GNUNET_assert ((state) && (path));
 
   char *last_messages_file;
   GNUNET_asprintf (&last_messages_file, "%s%s", path, "last_messages.list");
 
-  save_list_messages(&(state->last_messages), last_messages_file);
-  GNUNET_free(last_messages_file);
+  save_list_messages (&(state->last_messages), last_messages_file);
+  GNUNET_free (last_messages_file);
 }
-
-

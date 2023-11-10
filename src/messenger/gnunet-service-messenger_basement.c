@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -29,7 +29,7 @@
 size_t
 count_of_tunnels (const struct GNUNET_MESSENGER_ListTunnels *tunnels)
 {
-  GNUNET_assert(tunnels);
+  GNUNET_assert (tunnels);
 
   const struct GNUNET_MESSENGER_ListTunnel *element;
   size_t count = 0;
@@ -39,6 +39,7 @@ count_of_tunnels (const struct GNUNET_MESSENGER_ListTunnels *tunnels)
 
   return count;
 }
+
 
 int
 should_connect_tunnel_to (size_t count,
@@ -50,6 +51,7 @@ should_connect_tunnel_to (size_t count,
 
   return GNUNET_NO;
 }
+
 
 int
 required_connection_between (size_t count,

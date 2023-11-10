@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -39,7 +39,8 @@
 
 struct test_properties;
 
-struct test_peer {
+struct test_peer
+{
   struct test_properties *props;
   unsigned int num;
 
@@ -58,7 +59,8 @@ struct test_peer {
   const char *message;
 };
 
-struct test_properties {
+struct test_properties
+{
   const struct test_configuration *cfg;
 
   unsigned int num_hosts;
@@ -83,10 +85,10 @@ shutdown_cb (void *cls)
   {
     struct test_peer *peer = &properties->peers[i];
 
-    GNUNET_assert(peer != NULL);
+    GNUNET_assert (peer != NULL);
 
     if (peer->op_task)
-      GNUNET_SCHEDULER_cancel(peer->op_task);
+      GNUNET_SCHEDULER_cancel (peer->op_task);
 
     peer->op_task = NULL;
 
@@ -96,7 +98,7 @@ shutdown_cb (void *cls)
     peer->op = NULL;
 
     if (peer->wait)
-      GNUNET_cancel_wait_barrier(peer->wait);
+      GNUNET_cancel_wait_barrier (peer->wait);
 
     peer->wait = NULL;
 
@@ -115,23 +117,24 @@ shutdown_cb (void *cls)
   }
 
   if (properties->die_task)
-    GNUNET_SCHEDULER_cancel(properties->die_task);
+    GNUNET_SCHEDULER_cancel (properties->die_task);
 
   properties->die_task = NULL;
   properties->end_task = NULL;
 
   if (properties->barrier)
-    GNUNET_cancel_barrier(properties->barrier);
+    GNUNET_cancel_barrier (properties->barrier);
 
   properties->barrier = NULL;
 }
+
 
 static void
 end_cb (void *cls)
 {
   struct test_properties *properties = cls;
 
-  GNUNET_assert(properties != NULL);
+  GNUNET_assert (properties != NULL);
 
   properties->die_task = NULL;
 
@@ -141,15 +144,17 @@ end_cb (void *cls)
   {
     struct test_peer *peer = &properties->peers[i];
 
-    GNUNET_assert(peer != NULL);
+    GNUNET_assert (peer != NULL);
 
-    const int members = GNUNET_MESSENGER_iterate_members(peer->room, NULL, NULL);
+    const int members = GNUNET_MESSENGER_iterate_members (peer->room, NULL,
+                                                          NULL);
 
     GNUNET_assert (members >= 0);
 
     if (peer->props->num_peer != (unsigned int) members)
     {
-      fprintf (stderr, "Testcase failed (members: %d/%u).\n", members, peer->props->num_peer);
+      fprintf (stderr, "Testcase failed (members: %d/%u).\n", members,
+               peer->props->num_peer);
       status = 1;
       break;
     }
@@ -160,12 +165,13 @@ end_cb (void *cls)
   properties->status = status;
 }
 
+
 static void
 end_badly_cb (void *cls)
 {
   struct test_properties *properties = cls;
 
-  GNUNET_assert(properties != NULL);
+  GNUNET_assert (properties != NULL);
 
   fprintf (stderr, "Testcase failed (timeout).\n");
 
@@ -174,12 +180,13 @@ end_badly_cb (void *cls)
   properties->status = 1;
 }
 
+
 static void
 end_operation_cb (void *cls)
 {
   struct test_peer *peer = cls;
 
-  GNUNET_assert(peer != NULL);
+  GNUNET_assert (peer != NULL);
 
   peer->op_task = NULL;
 
@@ -188,12 +195,13 @@ end_operation_cb (void *cls)
   GNUNET_SCHEDULER_shutdown ();
 }
 
+
 static void
 end_error_cb (void *cls)
 {
   struct test_peer *peer = cls;
 
-  GNUNET_assert(peer != NULL);
+  GNUNET_assert (peer != NULL);
 
   peer->op_task = NULL;
 
@@ -203,6 +211,7 @@ end_error_cb (void *cls)
   GNUNET_SCHEDULER_shutdown ();
 }
 
+
 static void
 barrier2_wait_cb (void *cls,
                   struct GNUNET_BarrierWaitHandle *waiting,
@@ -210,11 +219,12 @@ barrier2_wait_cb (void *cls,
 {
   struct test_peer *peer = cls;
 
-  GNUNET_assert(peer != NULL);
+  GNUNET_assert (peer != NULL);
 
   if (peer->wait == waiting)
     peer->wait = NULL;
 }
+
 
 static void
 barrier_wait_cb (void *cls,
@@ -223,7 +233,7 @@ barrier_wait_cb (void *cls,
 {
   struct test_peer *peer = cls;
 
-  GNUNET_assert(peer != NULL);
+  GNUNET_assert (peer != NULL);
 
   if (peer->wait == waiting)
     peer->wait = NULL;
@@ -233,7 +243,8 @@ barrier_wait_cb (void *cls,
     unsigned int door = peer->props->cfg->doors[peer->num - 1];
 
     if (door == 0)
-      door = GNUNET_CRYPTO_random_u32(GNUNET_CRYPTO_QUALITY_WEAK, peer->props->cfg->count);
+      door = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK,
+                                       peer->props->cfg->count);
     else
       door = door - 1;
 
@@ -241,16 +252,19 @@ barrier_wait_cb (void *cls,
     GNUNET_CRYPTO_hash (TEST_ROOM, sizeof(TEST_ROOM), &hash);
 
     struct GNUNET_MESSENGER_Room *room;
-    room = GNUNET_MESSENGER_enter_room(peer->handle, &(peer->props->peers[door].peer_id), &hash);
+    room = GNUNET_MESSENGER_enter_room (peer->handle,
+                                        &(peer->props->peers[door].peer_id),
+                                        &hash);
 
     if (peer->room)
-      GNUNET_assert(room == peer->room);
+      GNUNET_assert (room == peer->room);
     else
-      GNUNET_assert(room != NULL);
+      GNUNET_assert (room != NULL);
 
     peer->room = room;
   }
 }
+
 
 /**
  * Function called whenever a message is received or sent.
@@ -272,44 +286,48 @@ on_message (void *cls,
 {
   struct test_peer *peer = cls;
 
-  GNUNET_assert(peer != NULL);
+  GNUNET_assert (peer != NULL);
 
   fprintf (stderr, "Peer: %s; [%s] Message: %s (%s)\n",
-           GNUNET_i2s(&(peer->peer_id)),
-           GNUNET_sh2s(&(message->header.sender_id)),
-           GNUNET_MESSENGER_name_of_kind(message->header.kind),
-           GNUNET_h2s(hash));
+           GNUNET_i2s (&(peer->peer_id)),
+           GNUNET_sh2s (&(message->header.sender_id)),
+           GNUNET_MESSENGER_name_of_kind (message->header.kind),
+           GNUNET_h2s (hash));
 
   if (GNUNET_MESSENGER_KIND_PEER == message->header.kind)
-    GNUNET_CONTAINER_multipeermap_put (peer->map, &(message->body.peer.peer), NULL,
+    GNUNET_CONTAINER_multipeermap_put (peer->map, &(message->body.peer.peer),
+                                       NULL,
                                        GNUNET_CONTAINER_MULTIHASHMAPOPTION_REPLACE);
 
-  const int members = GNUNET_MESSENGER_iterate_members(peer->room, NULL, NULL);
+  const int members = GNUNET_MESSENGER_iterate_members (peer->room, NULL, NULL);
 
   const uint32_t num_peers = GNUNET_CONTAINER_multipeermap_size (peer->map);
-  if ((members == peer->props->num_peer) && (peer->props->num_hosts == num_peers))
-    peer->wait = GNUNET_wait_barrier (peer->props->barrier, &barrier2_wait_cb, peer);
+  if ((members == peer->props->num_peer) && (peer->props->num_hosts ==
+                                             num_peers))
+    peer->wait = GNUNET_wait_barrier (peer->props->barrier, &barrier2_wait_cb,
+                                      peer);
   else if (peer->props->num_hosts < num_peers)
   {
     if (peer->wait)
-      GNUNET_cancel_wait_barrier(peer->wait);
+      GNUNET_cancel_wait_barrier (peer->wait);
 
     peer->wait = NULL;
 
     if (peer->op_task)
-      GNUNET_SCHEDULER_cancel(peer->op_task);
+      GNUNET_SCHEDULER_cancel (peer->op_task);
 
     peer->message = "peer";
     peer->op_task = GNUNET_SCHEDULER_add_now (&end_operation_cb, peer);
   }
 }
 
+
 static void
 second_stage (void *cls)
 {
   struct test_peer *peer = cls;
 
-  GNUNET_assert(peer != NULL);
+  GNUNET_assert (peer != NULL);
 
   peer->op_task = NULL;
 
@@ -322,9 +340,9 @@ second_stage (void *cls)
     room = GNUNET_MESSENGER_open_room (peer->handle, &hash);
 
     if (peer->room)
-      GNUNET_assert(room == peer->room);
+      GNUNET_assert (room == peer->room);
     else
-      GNUNET_assert(room != NULL);
+      GNUNET_assert (room != NULL);
 
     peer->room = room;
   }
@@ -334,21 +352,25 @@ second_stage (void *cls)
     unsigned int door = peer->props->cfg->doors[peer->num - 1];
 
     if (door == 0)
-      door = GNUNET_CRYPTO_random_u32(GNUNET_CRYPTO_QUALITY_WEAK, peer->props->cfg->count);
+      door = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK,
+                                       peer->props->cfg->count);
     else
       door = door - 1;
 
     struct GNUNET_MESSENGER_Room *room;
-    room = GNUNET_MESSENGER_enter_room(peer->handle, &(peer->props->peers[door].peer_id), &hash);
+    room = GNUNET_MESSENGER_enter_room (peer->handle,
+                                        &(peer->props->peers[door].peer_id),
+                                        &hash);
 
     if (peer->room)
-      GNUNET_assert(room == peer->room);
+      GNUNET_assert (room == peer->room);
     else
-      GNUNET_assert(room != NULL);
+      GNUNET_assert (room != NULL);
 
     peer->room = room;
   }
 }
+
 
 static void
 on_peer (void *cb_cls,
@@ -358,16 +380,16 @@ on_peer (void *cb_cls,
 {
   struct test_peer *peer = cb_cls;
 
-  GNUNET_assert(peer != NULL);
+  GNUNET_assert (peer != NULL);
 
   if (emsg)
   {
-    peer->message = GNUNET_strdup(emsg);
+    peer->message = GNUNET_strdup (emsg);
     peer->op_task = GNUNET_SCHEDULER_add_now (&end_error_cb, peer);
     return;
   }
 
-  if (!pinfo)
+  if (! pinfo)
   {
     peer->message = "info";
     peer->op_task = GNUNET_SCHEDULER_add_now (&end_operation_cb, peer);
@@ -381,11 +403,12 @@ on_peer (void *cb_cls,
     return;
   }
 
-  peer->handle = GNUNET_MESSENGER_connect (pinfo->result.cfg, TEST_NAME, NULL, &on_message, peer);
+  peer->handle = GNUNET_MESSENGER_connect (pinfo->result.cfg, TEST_NAME, NULL,
+                                           &on_message, peer);
 
-  GNUNET_assert(GNUNET_OK == GNUNET_CRYPTO_get_peer_identity(
-      pinfo->result.cfg, &(peer->peer_id)
-  ));
+  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_get_peer_identity (
+                   pinfo->result.cfg, &(peer->peer_id)
+                   ));
 
   if (0 != (peer->props->cfg->stages[peer->num - 1] & 0x01))
   {
@@ -394,13 +417,15 @@ on_peer (void *cb_cls,
 
     peer->room = GNUNET_MESSENGER_open_room (peer->handle, &hash);
 
-    GNUNET_assert(peer->room != NULL);
+    GNUNET_assert (peer->room != NULL);
   }
   else
     peer->room = NULL;
 
-  peer->wait = GNUNET_wait_barrier (peer->props->barrier, &barrier_wait_cb, peer);
+  peer->wait = GNUNET_wait_barrier (peer->props->barrier, &barrier_wait_cb,
+                                    peer);
 }
+
 
 /**
  * Main function for a peer of the testcase.
@@ -414,7 +439,7 @@ run (void *cls,
 {
   struct test_properties *properties = cls;
 
-  GNUNET_assert(properties != NULL);
+  GNUNET_assert (properties != NULL);
 
   if (GNUNET_TESTBED_ET_PEER_START != event->type)
   {
@@ -430,10 +455,14 @@ run (void *cls,
   peer->num = properties->num_peer;
 
   peer->peer = event->details.peer_start.peer;
-  peer->op = GNUNET_TESTBED_peer_get_information (peer->peer, GNUNET_TESTBED_PIT_CONFIGURATION, on_peer, peer);
+  peer->op = GNUNET_TESTBED_peer_get_information (peer->peer,
+                                                  GNUNET_TESTBED_PIT_CONFIGURATION,
+                                                  on_peer, peer);
 
-  peer->map = GNUNET_CONTAINER_multipeermap_create(peer->props->num_hosts, GNUNET_NO);
+  peer->map = GNUNET_CONTAINER_multipeermap_create (peer->props->num_hosts,
+                                                    GNUNET_NO);
 }
+
 
 static void
 barrier2_cb (void *cls,
@@ -442,7 +471,7 @@ barrier2_cb (void *cls,
 {
   struct test_properties *properties = cls;
 
-  GNUNET_assert(properties != NULL);
+  GNUNET_assert (properties != NULL);
 
   if (properties->barrier == barrier)
     properties->barrier = NULL;
@@ -457,14 +486,16 @@ barrier2_cb (void *cls,
   else if (GNUNET_OK == status)
   {
     if (properties->die_task)
-      GNUNET_SCHEDULER_cancel(properties->die_task);
+      GNUNET_SCHEDULER_cancel (properties->die_task);
 
     properties->die_task = GNUNET_SCHEDULER_add_delayed (
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, properties->cfg->count),
-        &end_cb, properties
-    );
+      GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,
+                                     properties->cfg->count),
+      &end_cb, properties
+      );
   }
 }
+
 
 static void
 barrier_cb (void *cls,
@@ -473,11 +504,11 @@ barrier_cb (void *cls,
 {
   struct test_properties *properties = cls;
 
-  GNUNET_assert(properties != NULL);
+  GNUNET_assert (properties != NULL);
 
   if (properties->barrier == barrier)
     properties->barrier = NULL;
-  else if (!properties->barrier)
+  else if (! properties->barrier)
     return;
 
   if (properties->num_peer != properties->cfg->count)
@@ -497,12 +528,16 @@ barrier_cb (void *cls,
   }
   else if (GNUNET_OK == status)
   {
-    properties->barrier = GNUNET_init_barrier (properties->num_peer, &barrier2_cb, properties);
+    properties->barrier = GNUNET_init_barrier (properties->num_peer,
+                                               &barrier2_cb, properties);
 
     for (unsigned int i = 0; i < properties->num_peer; i++)
-      properties->peers[i].op_task = GNUNET_SCHEDULER_add_now (&second_stage, &(properties->peers[i]));
+      properties->peers[i].op_task = GNUNET_SCHEDULER_add_now (&second_stage,
+                                                               &(properties->
+                                                                 peers[i]));
   }
 }
+
 
 static void
 init (void *cls,
@@ -514,40 +549,46 @@ init (void *cls,
 {
   struct test_properties *properties = cls;
 
-  GNUNET_assert(properties != NULL);
+  GNUNET_assert (properties != NULL);
 
-  properties->end_task = GNUNET_SCHEDULER_add_shutdown(&shutdown_cb, properties);
+  properties->end_task = GNUNET_SCHEDULER_add_shutdown (&shutdown_cb,
+                                                        properties);
   properties->die_task = GNUNET_SCHEDULER_add_delayed (
-      GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, properties->cfg->count * 5),
-      &end_badly_cb, properties
-  );
+    GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,
+                                   properties->cfg->count * 5),
+    &end_badly_cb, properties
+    );
 }
 
+
 int
-GNUNET_run_messenger_setup (const char* test_name,
+GNUNET_run_messenger_setup (const char *test_name,
                             const struct test_configuration *cfg)
 {
   struct test_properties properties;
-  memset(&properties, 0, sizeof(properties));
+  memset (&properties, 0, sizeof(properties));
 
   properties.cfg = cfg;
-  properties.peers = GNUNET_new_array(cfg->count, struct test_peer);
+  properties.peers = GNUNET_new_array (cfg->count, struct test_peer);
 
   for (unsigned int i = 0; i < cfg->count; i++)
     if (0 != (cfg->stages[i] & 0x11))
       properties.num_hosts++;
 
   properties.status = 1;
-  properties.barrier = GNUNET_init_barrier (cfg->count, &barrier_cb, &properties);
+  properties.barrier = GNUNET_init_barrier (cfg->count, &barrier_cb,
+                                            &properties);
 
-  if (GNUNET_OK != GNUNET_TESTBED_test_run (test_name, "test_messenger_api.conf",
+  if (GNUNET_OK != GNUNET_TESTBED_test_run (test_name,
+                                            "test_messenger_api.conf",
                                             cfg->count,
-                                            (1LL << GNUNET_TESTBED_ET_PEER_START),
+                                            (1LL <<
+                                             GNUNET_TESTBED_ET_PEER_START),
                                             &run, &properties,
                                             &init, &properties))
     return 1;
 
-  GNUNET_free(properties.peers);
+  GNUNET_free (properties.peers);
 
   return properties.status;
 }

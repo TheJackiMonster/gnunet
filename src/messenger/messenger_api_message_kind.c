@@ -31,17 +31,19 @@
 struct GNUNET_MESSENGER_Message*
 create_message_join (const struct GNUNET_IDENTITY_PrivateKey *key)
 {
-  if (!key)
+  if (! key)
     return NULL;
 
-  struct GNUNET_MESSENGER_Message *message = create_message (GNUNET_MESSENGER_KIND_JOIN);
+  struct GNUNET_MESSENGER_Message *message = create_message (
+    GNUNET_MESSENGER_KIND_JOIN);
 
-  if (!message)
+  if (! message)
     return NULL;
 
   GNUNET_IDENTITY_key_get_public (key, &(message->body.join.key));
   return message;
 }
+
 
 struct GNUNET_MESSENGER_Message*
 create_message_leave ()
@@ -49,56 +51,64 @@ create_message_leave ()
   return create_message (GNUNET_MESSENGER_KIND_LEAVE);
 }
 
+
 struct GNUNET_MESSENGER_Message*
 create_message_name (const char *name)
 {
-  if (!name)
+  if (! name)
     return NULL;
 
-  struct GNUNET_MESSENGER_Message *message = create_message (GNUNET_MESSENGER_KIND_NAME);
+  struct GNUNET_MESSENGER_Message *message = create_message (
+    GNUNET_MESSENGER_KIND_NAME);
 
-  if (!message)
+  if (! message)
     return NULL;
 
-  message->body.name.name = GNUNET_strdup(name);
+  message->body.name.name = GNUNET_strdup (name);
   return message;
 }
+
 
 struct GNUNET_MESSENGER_Message*
 create_message_key (const struct GNUNET_IDENTITY_PrivateKey *key)
 {
-  if (!key)
+  if (! key)
     return NULL;
 
-  struct GNUNET_MESSENGER_Message *message = create_message (GNUNET_MESSENGER_KIND_KEY);
+  struct GNUNET_MESSENGER_Message *message = create_message (
+    GNUNET_MESSENGER_KIND_KEY);
 
-  if (!message)
+  if (! message)
     return NULL;
 
   GNUNET_IDENTITY_key_get_public (key, &(message->body.key.key));
   return message;
 }
 
+
 struct GNUNET_MESSENGER_Message*
 create_message_id (const struct GNUNET_ShortHashCode *unique_id)
 {
-  if (!unique_id)
+  if (! unique_id)
     return NULL;
 
-  struct GNUNET_MESSENGER_Message *message = create_message (GNUNET_MESSENGER_KIND_ID);
+  struct GNUNET_MESSENGER_Message *message = create_message (
+    GNUNET_MESSENGER_KIND_ID);
 
-  if (!message)
+  if (! message)
     return NULL;
 
-  GNUNET_memcpy(&(message->body.id.id), unique_id, sizeof(struct GNUNET_ShortHashCode));
+  GNUNET_memcpy (&(message->body.id.id), unique_id, sizeof(struct
+                                                           GNUNET_ShortHashCode));
 
   return message;
 }
 
+
 struct GNUNET_MESSENGER_Message*
 create_message_request (const struct GNUNET_HashCode *hash)
 {
-  if (!hash)
+  if (! hash)
     return NULL;
 
   struct GNUNET_HashCode zero;
@@ -107,62 +117,73 @@ create_message_request (const struct GNUNET_HashCode *hash)
   if (0 == GNUNET_CRYPTO_hash_cmp (hash, &zero))
     return NULL;
 
-  struct GNUNET_MESSENGER_Message *message = create_message (GNUNET_MESSENGER_KIND_REQUEST);
+  struct GNUNET_MESSENGER_Message *message = create_message (
+    GNUNET_MESSENGER_KIND_REQUEST);
 
-  if (!message)
+  if (! message)
     return NULL;
 
-  GNUNET_memcpy(&(message->body.request.hash), hash, sizeof(struct GNUNET_HashCode));
+  GNUNET_memcpy (&(message->body.request.hash), hash, sizeof(struct
+                                                             GNUNET_HashCode));
 
   return message;
 }
+
 
 struct GNUNET_MESSENGER_Message*
 create_message_invite (const struct GNUNET_PeerIdentity *door,
                        const struct GNUNET_HashCode *key)
 {
-  if ((!door) || (!key))
+  if ((! door) || (! key))
     return NULL;
 
-  struct GNUNET_MESSENGER_Message *message = create_message (GNUNET_MESSENGER_KIND_INVITE);
+  struct GNUNET_MESSENGER_Message *message = create_message (
+    GNUNET_MESSENGER_KIND_INVITE);
 
-  if (!message)
+  if (! message)
     return NULL;
 
-  GNUNET_memcpy(&(message->body.invite.door), door, sizeof(struct GNUNET_PeerIdentity));
-  GNUNET_memcpy(&(message->body.invite.key), key, sizeof(struct GNUNET_HashCode));
+  GNUNET_memcpy (&(message->body.invite.door), door, sizeof(struct
+                                                            GNUNET_PeerIdentity));
+  GNUNET_memcpy (&(message->body.invite.key), key, sizeof(struct
+                                                          GNUNET_HashCode));
 
   return message;
 }
+
 
 struct GNUNET_MESSENGER_Message*
 create_message_text (const char *text)
 {
-  if (!text)
+  if (! text)
     return NULL;
 
-  struct GNUNET_MESSENGER_Message *message = create_message (GNUNET_MESSENGER_KIND_TEXT);
+  struct GNUNET_MESSENGER_Message *message = create_message (
+    GNUNET_MESSENGER_KIND_TEXT);
 
-  if (!message)
+  if (! message)
     return NULL;
 
-  message->body.text.text = GNUNET_strdup(text);
+  message->body.text.text = GNUNET_strdup (text);
   return message;
 }
+
 
 struct GNUNET_MESSENGER_Message*
 create_message_delete (const struct GNUNET_HashCode *hash,
                        const struct GNUNET_TIME_Relative delay)
 {
-  if (!hash)
+  if (! hash)
     return NULL;
 
-  struct GNUNET_MESSENGER_Message *message = create_message (GNUNET_MESSENGER_KIND_DELETE);
+  struct GNUNET_MESSENGER_Message *message = create_message (
+    GNUNET_MESSENGER_KIND_DELETE);
 
-  if (!message)
+  if (! message)
     return NULL;
 
-  GNUNET_memcpy(&(message->body.deletion.hash), hash, sizeof(struct GNUNET_HashCode));
+  GNUNET_memcpy (&(message->body.deletion.hash), hash, sizeof(struct
+                                                              GNUNET_HashCode));
   message->body.deletion.delay = GNUNET_TIME_relative_hton (delay);
 
   return message;

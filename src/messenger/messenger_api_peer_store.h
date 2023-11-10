@@ -78,7 +78,7 @@ get_store_peer_of (struct GNUNET_MESSENGER_PeerStore *store,
  */
 void
 update_store_peer (struct GNUNET_MESSENGER_PeerStore *store,
-                   const struct GNUNET_PeerIdentity* peer);
+                   const struct GNUNET_PeerIdentity *peer);
 
 /**
  * Removes a <i>peer</i> identity from the <i>store</i> entirely.

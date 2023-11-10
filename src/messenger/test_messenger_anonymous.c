@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -73,6 +73,7 @@ end (void *cls)
   status = 0;
 }
 
+
 static void
 end_badly (void *cls)
 {
@@ -82,12 +83,15 @@ end_badly (void *cls)
   status = 1;
 }
 
+
 static void
 end_operation (void *cls)
 {
   op_task = NULL;
 
-  fprintf (stderr, "Testcase failed (operation: '%s').\n", cls ? (const char*) cls : "unknown");
+  fprintf (stderr, "Testcase failed (operation: '%s').\n", cls ? (const
+                                                                  char*) cls :
+           "unknown");
 
   if (die_task)
     GNUNET_SCHEDULER_cancel (die_task);
@@ -95,6 +99,7 @@ end_operation (void *cls)
   end (NULL);
   status = 1;
 }
+
 
 /**
  * Function called when an identity is retrieved.
@@ -123,7 +128,8 @@ on_iteration (void *cls)
     return;
   }
 
-  const struct GNUNET_IDENTITY_PublicKey *key = GNUNET_MESSENGER_get_key (handle);
+  const struct GNUNET_IDENTITY_PublicKey *key = GNUNET_MESSENGER_get_key (
+    handle);
 
   if (key)
   {
@@ -141,6 +147,7 @@ on_iteration (void *cls)
   die_task = GNUNET_SCHEDULER_add_now (&end, NULL);
 }
 
+
 /**
  * Main function for testcase.
  *
@@ -155,12 +162,14 @@ run (void *cls,
 {
   die_task = GNUNET_SCHEDULER_add_delayed (TOTAL_TIMEOUT, &end_badly, NULL);
 
-  op_task = GNUNET_SCHEDULER_add_delayed (BASE_TIMEOUT, &end_operation, "connect");
+  op_task = GNUNET_SCHEDULER_add_delayed (BASE_TIMEOUT, &end_operation,
+                                          "connect");
   messenger = GNUNET_MESSENGER_connect (cfg, NULL, NULL, NULL, NULL);
 
   if (messenger)
     it_task = GNUNET_SCHEDULER_add_now (&on_iteration, messenger);
 }
+
 
 /**
  * The main function.
@@ -173,7 +182,8 @@ int
 main (int argc,
       char **argv)
 {
-  if (0 != GNUNET_TESTING_peer_run ("test-messenger", "test_messenger_api.conf", &run, NULL))
+  if (0 != GNUNET_TESTING_peer_run ("test-messenger", "test_messenger_api.conf",
+                                    &run, NULL))
     return 1;
 
   return status;

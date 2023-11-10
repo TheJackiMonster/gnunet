@@ -52,12 +52,12 @@ on_message (void *cls,
 {
   const char *sender_name = GNUNET_MESSENGER_contact_get_name (sender);
 
-  if (!sender_name)
+  if (! sender_name)
     sender_name = "anonymous";
 
-  printf ("[%s ->", GNUNET_h2s(&(message->header.previous)));
-  printf (" %s]", GNUNET_h2s(hash));
-  printf ("[%s] ", GNUNET_sh2s(&(message->header.sender_id)));
+  printf ("[%s ->", GNUNET_h2s (&(message->header.previous)));
+  printf (" %s]", GNUNET_h2s (hash));
+  printf ("[%s] ", GNUNET_sh2s (&(message->header.sender_id)));
 
   if (flags & GNUNET_MESSENGER_FLAG_PRIVATE)
     printf ("*");
@@ -71,7 +71,8 @@ on_message (void *cls,
     }
   case GNUNET_MESSENGER_KIND_NAME:
     {
-      printf ("* '%s' gets renamed to '%s'\n", sender_name, message->body.name.name);
+      printf ("* '%s' gets renamed to '%s'\n", sender_name,
+              message->body.name.name);
       break;
     }
   case GNUNET_MESSENGER_KIND_LEAVE:
@@ -81,7 +82,8 @@ on_message (void *cls,
     }
   case GNUNET_MESSENGER_KIND_PEER:
     {
-      printf ("* '%s' opened the room on: %s\n", sender_name, GNUNET_i2s_full (&(message->body.peer.peer)));
+      printf ("* '%s' opened the room on: %s\n", sender_name,
+              GNUNET_i2s_full (&(message->body.peer.peer)));
       break;
     }
   case GNUNET_MESSENGER_KIND_TEXT:
@@ -96,16 +98,18 @@ on_message (void *cls,
     }
   default:
     {
-      printf ("~ message: %s\n", GNUNET_MESSENGER_name_of_kind(message->header.kind));
+      printf ("~ message: %s\n",
+              GNUNET_MESSENGER_name_of_kind (message->header.kind));
       break;
     }
   }
 
-  if ((GNUNET_MESSENGER_KIND_JOIN == message->header.kind) && (flags & GNUNET_MESSENGER_FLAG_SENT))
+  if ((GNUNET_MESSENGER_KIND_JOIN == message->header.kind) &&
+      (flags & GNUNET_MESSENGER_FLAG_SENT))
   {
-    const char* name = GNUNET_MESSENGER_get_name (messenger);
+    const char *name = GNUNET_MESSENGER_get_name (messenger);
 
-    if (!name)
+    if (! name)
       return;
 
     struct GNUNET_MESSENGER_Message response;
@@ -117,6 +121,7 @@ on_message (void *cls,
     GNUNET_free (response.body.name.name);
   }
 }
+
 
 struct GNUNET_SCHEDULER_Task *read_task;
 struct GNUNET_IDENTITY_EgoLookup *ego_lookup;
@@ -139,10 +144,11 @@ shutdown_hook (void *cls)
 
   if (messenger)
     GNUNET_MESSENGER_disconnect (messenger);
-  
+
   if (ego_lookup)
     GNUNET_IDENTITY_ego_lookup_cancel (ego_lookup);
 }
+
 
 static void
 listen_stdio (void *cls);
@@ -156,11 +162,12 @@ iterate_send_private_message (void *cls,
 {
   struct GNUNET_MESSENGER_Message *message = cls;
 
-  if (GNUNET_MESSENGER_contact_get_key(contact))
+  if (GNUNET_MESSENGER_contact_get_key (contact))
     GNUNET_MESSENGER_send_message (room, message, contact);
 
   return GNUNET_YES;
 }
+
 
 int private_mode;
 
@@ -197,12 +204,14 @@ read_stdio (void *cls)
   message.body.text.text = buffer;
 
   if (GNUNET_YES == private_mode)
-    GNUNET_MESSENGER_iterate_members(room, iterate_send_private_message, &message);
+    GNUNET_MESSENGER_iterate_members (room, iterate_send_private_message,
+                                      &message);
   else
     GNUNET_MESSENGER_send_message (room, &message, NULL);
 
   read_task = GNUNET_SCHEDULER_add_now (listen_stdio, cls);
 }
+
 
 /**
  * Wait for input on STDIO and send it out over the #ch.
@@ -225,6 +234,7 @@ listen_stdio (void *cls)
   GNUNET_NETWORK_fdset_destroy (rs);
 }
 
+
 /**
  * Initial task to startup application.
  *
@@ -239,6 +249,7 @@ idle (void *cls)
 
   read_task = GNUNET_SCHEDULER_add_now (listen_stdio, room);
 }
+
 
 char *door_id;
 char *ego_name;
@@ -266,12 +277,16 @@ on_identity (void *cls,
   struct GNUNET_PeerIdentity *door = NULL;
 
   if ((door_id) &&
-      (GNUNET_OK == GNUNET_CRYPTO_eddsa_public_key_from_string (door_id, strlen (door_id), &(door_peer.public_key))))
+      (GNUNET_OK == GNUNET_CRYPTO_eddsa_public_key_from_string (door_id,
+                                                                strlen (
+                                                                  door_id),
+                                                                &(door_peer.
+                                                                  public_key))))
     door = &door_peer;
 
   const char *name = GNUNET_MESSENGER_get_name (handle);
 
-  if (!name)
+  if (! name)
     name = "anonymous";
 
   printf ("* Welcome to the messenger, '%s'!\n", name);
@@ -295,14 +310,17 @@ on_identity (void *cls,
 
   shutdown_task = GNUNET_SCHEDULER_add_shutdown (shutdown_hook, room);
 
-  if (!room)
+  if (! room)
     GNUNET_SCHEDULER_shutdown ();
   else
   {
-    GNUNET_SCHEDULER_add_delayed_with_priority (GNUNET_TIME_relative_get_zero_ (), GNUNET_SCHEDULER_PRIORITY_IDLE, idle,
-                                                room);
+    GNUNET_SCHEDULER_add_delayed_with_priority (
+      GNUNET_TIME_relative_get_zero_ (),
+      GNUNET_SCHEDULER_PRIORITY_IDLE,
+      idle, room);
   }
 }
+
 
 static void
 on_ego_lookup (void *cls,
@@ -313,7 +331,8 @@ on_ego_lookup (void *cls,
   const struct GNUNET_IDENTITY_PrivateKey *key;
   key = ego ? GNUNET_IDENTITY_ego_get_private_key (ego) : NULL;
 
-  messenger = GNUNET_MESSENGER_connect (config, ego_name, key, &on_message, NULL);
+  messenger = GNUNET_MESSENGER_connect (config, ego_name, key, &on_message,
+                                        NULL);
 
   on_identity (NULL, messenger);
 }
@@ -329,7 +348,7 @@ on_ego_lookup (void *cls,
  */
 static void
 run (void *cls,
-     char *const*args,
+     char *const *args,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
@@ -337,7 +356,8 @@ run (void *cls,
 
   if (ego_name)
   {
-    ego_lookup = GNUNET_IDENTITY_ego_lookup (cfg, ego_name, &on_ego_lookup, NULL);
+    ego_lookup = GNUNET_IDENTITY_ego_lookup (cfg, ego_name, &on_ego_lookup,
+                                             NULL);
     messenger = NULL;
   }
   else
@@ -352,6 +372,7 @@ run (void *cls,
     on_identity (NULL, messenger);
 }
 
+
 /**
  * The main function to obtain messenger information.
  *
@@ -363,17 +384,26 @@ int
 main (int argc,
       char **argv)
 {
-  const char *description = "Open and connect to rooms using the MESSENGER to chat.";
+  const char *description =
+    "Open and connect to rooms using the MESSENGER to chat.";
 
-  struct GNUNET_GETOPT_CommandLineOption options[] =
-  {
-    GNUNET_GETOPT_option_string ('d', "door", "PEERIDENTITY", "peer identity to entry into the room", &door_id),
-    GNUNET_GETOPT_option_string ('e', "ego", "IDENTITY", "identity to use for messaging", &ego_name),
-    GNUNET_GETOPT_option_string ('r', "room", "ROOMKEY", "key of the room to connect to", &room_key),
-    GNUNET_GETOPT_option_flag ('p', "private", "flag to enable private mode", &private_mode),
+  struct GNUNET_GETOPT_CommandLineOption options[] = {
+    GNUNET_GETOPT_option_string ('d', "door", "PEERIDENTITY",
+                                 "peer identity to entry into the room",
+                                 &door_id),
+    GNUNET_GETOPT_option_string ('e', "ego", "IDENTITY",
+                                 "identity to use for messaging",
+                                 &ego_name),
+    GNUNET_GETOPT_option_string ('r', "room", "ROOMKEY",
+                                 "key of the room to connect to",
+                                 &room_key),
+    GNUNET_GETOPT_option_flag ('p', "private", "flag to enable private mode",
+                               &private_mode),
     GNUNET_GETOPT_OPTION_END
   };
 
-  return (GNUNET_OK == GNUNET_PROGRAM_run (argc, argv, "gnunet-messenger\0", gettext_noop(description), options, &run,
-  NULL) ? EXIT_SUCCESS : EXIT_FAILURE);
+  return (GNUNET_OK == GNUNET_PROGRAM_run (argc, argv, "gnunet-messenger\0",
+                                           gettext_noop (description), options,
+                                           &run,
+                                           NULL) ? EXIT_SUCCESS : EXIT_FAILURE);
 }

@@ -97,8 +97,8 @@ get_srv_handle_key (const struct GNUNET_MESSENGER_SrvHandle *handle);
  */
 void
 get_srv_handle_data_subdir (const struct GNUNET_MESSENGER_SrvHandle *handle,
-                        const char *name,
-                        char **dir);
+                            const char *name,
+                            char **dir);
 
 /**
  * Returns the member id of a given <i>handle</i> in a specific <i>room</i>.

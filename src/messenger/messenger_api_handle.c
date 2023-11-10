@@ -34,9 +34,10 @@ create_handle (const struct GNUNET_CONFIGURATION_Handle *cfg,
                GNUNET_MESSENGER_MessageCallback msg_callback,
                void *msg_cls)
 {
-  GNUNET_assert(cfg);
+  GNUNET_assert (cfg);
 
-  struct GNUNET_MESSENGER_Handle *handle = GNUNET_new(struct GNUNET_MESSENGER_Handle);
+  struct GNUNET_MESSENGER_Handle *handle = GNUNET_new (struct
+                                                       GNUNET_MESSENGER_Handle);
 
   handle->cfg = cfg;
   handle->mq = NULL;
@@ -53,10 +54,11 @@ create_handle (const struct GNUNET_CONFIGURATION_Handle *cfg,
 
   handle->rooms = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
 
-  init_contact_store(get_handle_contact_store(handle));
+  init_contact_store (get_handle_contact_store (handle));
 
   return handle;
 }
+
 
 static int
 iterate_destroy_room (void *cls,
@@ -70,10 +72,11 @@ iterate_destroy_room (void *cls,
   return GNUNET_YES;
 }
 
+
 void
 destroy_handle (struct GNUNET_MESSENGER_Handle *handle)
 {
-  GNUNET_assert(handle);
+  GNUNET_assert (handle);
 
   if (handle->reconnect_task)
     GNUNET_SCHEDULER_cancel (handle->reconnect_task);
@@ -82,25 +85,27 @@ destroy_handle (struct GNUNET_MESSENGER_Handle *handle)
     GNUNET_MQ_destroy (handle->mq);
 
   if (handle->name)
-    GNUNET_free(handle->name);
+    GNUNET_free (handle->name);
 
   if (handle->key)
-    GNUNET_free(handle->key);
+    GNUNET_free (handle->key);
 
   if (handle->pubkey)
-    GNUNET_free(handle->pubkey);
+    GNUNET_free (handle->pubkey);
 
   if (handle->rooms)
   {
-    GNUNET_CONTAINER_multihashmap_iterate (handle->rooms, iterate_destroy_room, NULL);
+    GNUNET_CONTAINER_multihashmap_iterate (handle->rooms, iterate_destroy_room,
+                                           NULL);
 
     GNUNET_CONTAINER_multihashmap_destroy (handle->rooms);
   }
 
-  clear_contact_store(get_handle_contact_store(handle));
+  clear_contact_store (get_handle_contact_store (handle));
 
-  GNUNET_free(handle);
+  GNUNET_free (handle);
 }
+
 
 void
 set_handle_name (struct GNUNET_MESSENGER_Handle *handle,
@@ -114,13 +119,15 @@ set_handle_name (struct GNUNET_MESSENGER_Handle *handle,
   handle->name = name ? GNUNET_strdup (name) : NULL;
 }
 
+
 const char*
 get_handle_name (const struct GNUNET_MESSENGER_Handle *handle)
 {
-  GNUNET_assert(handle);
+  GNUNET_assert (handle);
 
   return handle->name;
 }
+
 
 void
 set_handle_key (struct GNUNET_MESSENGER_Handle *handle,
@@ -128,7 +135,7 @@ set_handle_key (struct GNUNET_MESSENGER_Handle *handle,
 {
   GNUNET_assert (handle);
 
-  if (!key)
+  if (! key)
   {
     if (handle->key)
       GNUNET_free (handle->key);
@@ -141,31 +148,33 @@ set_handle_key (struct GNUNET_MESSENGER_Handle *handle,
     return;
   }
 
-  if (!handle->key)
+  if (! handle->key)
     handle->key = GNUNET_new (struct GNUNET_IDENTITY_PrivateKey);
 
-  if (!handle->pubkey)
+  if (! handle->pubkey)
     handle->pubkey = GNUNET_new (struct GNUNET_IDENTITY_PublicKey);
 
   GNUNET_memcpy (handle->key, key, sizeof(*key));
   GNUNET_IDENTITY_key_get_public (key, handle->pubkey);
 }
 
+
 const struct GNUNET_IDENTITY_PrivateKey*
 get_handle_key (const struct GNUNET_MESSENGER_Handle *handle)
 {
-  GNUNET_assert(handle);
+  GNUNET_assert (handle);
 
   if (handle->key)
     return handle->key;
 
-  return get_anonymous_private_key();
+  return get_anonymous_private_key ();
 }
+
 
 const struct GNUNET_IDENTITY_PublicKey*
 get_handle_pubkey (const struct GNUNET_MESSENGER_Handle *handle)
 {
-  GNUNET_assert(handle);
+  GNUNET_assert (handle);
 
   if (handle->pubkey)
     return handle->pubkey;
@@ -173,28 +182,31 @@ get_handle_pubkey (const struct GNUNET_MESSENGER_Handle *handle)
   return get_anonymous_public_key ();
 }
 
+
 struct GNUNET_MESSENGER_ContactStore*
 get_handle_contact_store (struct GNUNET_MESSENGER_Handle *handle)
 {
-  GNUNET_assert(handle);
+  GNUNET_assert (handle);
 
   return &(handle->contact_store);
 }
+
 
 struct GNUNET_MESSENGER_Contact*
 get_handle_contact (struct GNUNET_MESSENGER_Handle *handle,
                     const struct GNUNET_HashCode *key)
 {
-  GNUNET_assert((handle) && (key));
+  GNUNET_assert ((handle) && (key));
 
-  struct GNUNET_MESSENGER_Room *room = GNUNET_CONTAINER_multihashmap_get (handle->rooms, key);
+  struct GNUNET_MESSENGER_Room *room = GNUNET_CONTAINER_multihashmap_get (
+    handle->rooms, key);
 
-  if (!room)
+  if (! room)
     return NULL;
 
   const struct GNUNET_ShortHashCode *contact_id = get_room_sender_id (room);
 
-  if (!contact_id)
+  if (! contact_id)
     return NULL;
 
   struct GNUNET_HashCode context;
@@ -204,48 +216,56 @@ get_handle_contact (struct GNUNET_MESSENGER_Handle *handle,
                             get_handle_pubkey (handle));
 }
 
+
 void
 open_handle_room (struct GNUNET_MESSENGER_Handle *handle,
                   const struct GNUNET_HashCode *key)
 {
-  GNUNET_assert((handle) && (key));
+  GNUNET_assert ((handle) && (key));
 
-  struct GNUNET_MESSENGER_Room *room = GNUNET_CONTAINER_multihashmap_get (handle->rooms, key);
+  struct GNUNET_MESSENGER_Room *room = GNUNET_CONTAINER_multihashmap_get (
+    handle->rooms, key);
 
   if (room)
     room->opened = GNUNET_YES;
 }
+
 
 void
 entry_handle_room_at (struct GNUNET_MESSENGER_Handle *handle,
                       const struct GNUNET_PeerIdentity *door,
                       const struct GNUNET_HashCode *key)
 {
-  GNUNET_assert((handle) && (door) && (key));
+  GNUNET_assert ((handle) && (door) && (key));
 
-  struct GNUNET_MESSENGER_Room *room = GNUNET_CONTAINER_multihashmap_get (handle->rooms, key);
+  struct GNUNET_MESSENGER_Room *room = GNUNET_CONTAINER_multihashmap_get (
+    handle->rooms, key);
 
   if (room)
     add_to_list_tunnels (&(room->entries), door, NULL);
 }
 
+
 void
 close_handle_room (struct GNUNET_MESSENGER_Handle *handle,
                    const struct GNUNET_HashCode *key)
 {
-  GNUNET_assert((handle) && (key));
+  GNUNET_assert ((handle) && (key));
 
-  struct GNUNET_MESSENGER_Room *room = GNUNET_CONTAINER_multihashmap_get (handle->rooms, key);
+  struct GNUNET_MESSENGER_Room *room = GNUNET_CONTAINER_multihashmap_get (
+    handle->rooms, key);
 
-  if ((room) && (GNUNET_YES == GNUNET_CONTAINER_multihashmap_remove (handle->rooms, key, room)))
+  if ((room) && (GNUNET_YES == GNUNET_CONTAINER_multihashmap_remove (
+                   handle->rooms, key, room)))
     destroy_room (room);
 }
+
 
 struct GNUNET_MESSENGER_Room*
 get_handle_room (struct GNUNET_MESSENGER_Handle *handle,
                  const struct GNUNET_HashCode *key)
 {
-  GNUNET_assert((handle) && (key));
+  GNUNET_assert ((handle) && (key));
 
   return GNUNET_CONTAINER_multihashmap_get (handle->rooms, key);
 }

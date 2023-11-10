@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -48,7 +48,8 @@ get_message_state_chain_hash (const struct GNUNET_MESSENGER_MessageState *state,
                               struct GNUNET_HashCode *hash);
 
 const struct GNUNET_HashCode*
-get_message_state_merge_hash (const struct GNUNET_MESSENGER_MessageState *state);
+get_message_state_merge_hash (const struct
+                              GNUNET_MESSENGER_MessageState *state);
 
 void
 update_message_state (struct GNUNET_MESSENGER_MessageState *state,

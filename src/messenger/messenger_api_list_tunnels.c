@@ -29,23 +29,26 @@
 void
 init_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels)
 {
-  GNUNET_assert(tunnels);
+  GNUNET_assert (tunnels);
 
   tunnels->head = NULL;
   tunnels->tail = NULL;
 }
+
 
 void
 clear_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels)
 {
-  GNUNET_assert(tunnels);
+  GNUNET_assert (tunnels);
 
   struct GNUNET_MESSENGER_ListTunnel *element;
-  for (element = tunnels->head; element; element = remove_from_list_tunnels(tunnels, element))
+  for (element = tunnels->head; element; element = remove_from_list_tunnels (
+         tunnels, element))
 
-  tunnels->head = NULL;
+    tunnels->head = NULL;
   tunnels->tail = NULL;
 }
+
 
 static int
 compare_list_tunnels (void *cls,
@@ -55,28 +58,33 @@ compare_list_tunnels (void *cls,
   return ((int) element0->peer) - ((int) element1->peer);
 }
 
+
 void
 add_to_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
                      const struct GNUNET_PeerIdentity *peer,
                      const struct GNUNET_HashCode *hash)
 {
-  GNUNET_assert((tunnels) && (peer));
+  GNUNET_assert ((tunnels) && (peer));
 
-  struct GNUNET_MESSENGER_ListTunnel *element = GNUNET_new(struct GNUNET_MESSENGER_ListTunnel);
+  struct GNUNET_MESSENGER_ListTunnel *element = GNUNET_new (struct
+                                                            GNUNET_MESSENGER_ListTunnel);
 
   element->peer = GNUNET_PEER_intern (peer);
-  element->hash = hash ? GNUNET_memdup(hash, sizeof(struct GNUNET_HashCode)) : NULL;
+  element->hash = hash ? GNUNET_memdup (hash, sizeof(struct GNUNET_HashCode)) :
+                  NULL;
 
-  GNUNET_CONTAINER_DLL_insert_sorted(struct GNUNET_MESSENGER_ListTunnel, compare_list_tunnels, NULL, tunnels->head,
-                                     tunnels->tail, element);
+  GNUNET_CONTAINER_DLL_insert_sorted (struct GNUNET_MESSENGER_ListTunnel,
+                                      compare_list_tunnels, NULL, tunnels->head,
+                                      tunnels->tail, element);
 }
+
 
 struct GNUNET_MESSENGER_ListTunnel*
 find_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
                    const struct GNUNET_PeerIdentity *peer,
                    size_t *index)
 {
-  GNUNET_assert((tunnels) && (peer));
+  GNUNET_assert ((tunnels) && (peer));
 
   struct GNUNET_MESSENGER_ListTunnel *element;
   struct GNUNET_PeerIdentity pid;
@@ -88,7 +96,7 @@ find_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
   {
     GNUNET_PEER_resolve (element->peer, &pid);
 
-    if (0 == GNUNET_memcmp(&pid, peer))
+    if (0 == GNUNET_memcmp (&pid, peer))
       return element;
 
     if (index)
@@ -98,111 +106,121 @@ find_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
   return NULL;
 }
 
+
 void
 update_to_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
                         const struct GNUNET_PeerIdentity *peer,
                         const struct GNUNET_HashCode *hash)
 {
-  GNUNET_assert((tunnels) && (peer));
+  GNUNET_assert ((tunnels) && (peer));
 
-  struct GNUNET_MESSENGER_ListTunnel* element = find_list_tunnels(tunnels, peer, NULL);
-  if (!element)
+  struct GNUNET_MESSENGER_ListTunnel *element = find_list_tunnels (tunnels,
+                                                                   peer,
+                                                                   NULL);
+  if (! element)
     return;
 
   if (element->hash)
   {
     if (hash)
-      GNUNET_memcpy(element->hash, hash, sizeof(struct GNUNET_HashCode));
+      GNUNET_memcpy (element->hash, hash, sizeof(struct GNUNET_HashCode));
     else
     {
-      GNUNET_free(element->hash);
+      GNUNET_free (element->hash);
       element->hash = NULL;
     }
   }
   else if (hash)
-    element->hash = GNUNET_memdup(hash, sizeof(struct GNUNET_HashCode));
+    element->hash = GNUNET_memdup (hash, sizeof(struct GNUNET_HashCode));
 }
+
 
 int
 contains_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
                        const struct GNUNET_PeerIdentity *peer)
 {
-  GNUNET_assert((tunnels) && (peer));
+  GNUNET_assert ((tunnels) && (peer));
 
-  return find_list_tunnels (tunnels, peer, NULL) != NULL ? GNUNET_YES : GNUNET_NO;
+  return find_list_tunnels (tunnels, peer, NULL) != NULL ? GNUNET_YES :
+         GNUNET_NO;
 }
+
 
 struct GNUNET_MESSENGER_ListTunnel*
 remove_from_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
                           struct GNUNET_MESSENGER_ListTunnel *element)
 {
-  GNUNET_assert((tunnels) && (element));
+  GNUNET_assert ((tunnels) && (element));
 
   struct GNUNET_MESSENGER_ListTunnel *next = element->next;
 
   if ((tunnels->head) && (tunnels->tail))
-    GNUNET_CONTAINER_DLL_remove(tunnels->head, tunnels->tail, element);
+    GNUNET_CONTAINER_DLL_remove (tunnels->head, tunnels->tail, element);
 
   if (element->hash)
-    GNUNET_free(element->hash);
+    GNUNET_free (element->hash);
 
   GNUNET_PEER_change_rc (element->peer, -1);
-  GNUNET_free(element);
+  GNUNET_free (element);
 
   return next;
 }
+
 
 void
 load_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
                    const char *path)
 {
-  GNUNET_assert((tunnels) && (path));
+  GNUNET_assert ((tunnels) && (path));
 
   if (GNUNET_YES != GNUNET_DISK_file_test (path))
     return;
 
-  enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ | GNUNET_DISK_PERM_USER_WRITE);
+  enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ
+                                                   | GNUNET_DISK_PERM_USER_WRITE);
 
-  struct GNUNET_DISK_FileHandle *handle = GNUNET_DISK_file_open(
-      path, GNUNET_DISK_OPEN_READ, permission
-  );
+  struct GNUNET_DISK_FileHandle *handle = GNUNET_DISK_file_open (
+    path, GNUNET_DISK_OPEN_READ, permission
+    );
 
-  if (!handle)
+  if (! handle)
     return;
 
-  GNUNET_DISK_file_seek(handle, 0, GNUNET_DISK_SEEK_SET);
+  GNUNET_DISK_file_seek (handle, 0, GNUNET_DISK_SEEK_SET);
 
   struct GNUNET_PeerIdentity peer;
   ssize_t len;
 
   do {
-    len = GNUNET_DISK_file_read(handle, &peer, sizeof(peer));
+    len = GNUNET_DISK_file_read (handle, &peer, sizeof(peer));
 
     if (len != sizeof(peer))
       break;
 
-    add_to_list_tunnels(tunnels, &peer, NULL);
+    add_to_list_tunnels (tunnels, &peer, NULL);
   } while (len == sizeof(peer));
 
-  GNUNET_DISK_file_close(handle);
+  GNUNET_DISK_file_close (handle);
 }
+
 
 void
 save_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
                    const char *path)
 {
-  GNUNET_assert((tunnels) && (path));
+  GNUNET_assert ((tunnels) && (path));
 
-  enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ | GNUNET_DISK_PERM_USER_WRITE);
+  enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ
+                                                   | GNUNET_DISK_PERM_USER_WRITE);
 
-  struct GNUNET_DISK_FileHandle *handle = GNUNET_DISK_file_open(
-      path, GNUNET_DISK_OPEN_CREATE | GNUNET_DISK_OPEN_WRITE, permission
-  );
+  struct GNUNET_DISK_FileHandle *handle = GNUNET_DISK_file_open (
+    path, GNUNET_DISK_OPEN_CREATE | GNUNET_DISK_OPEN_WRITE, permission
+    );
 
-  if (!handle)
+  if (! handle)
     return;
 
-  GNUNET_DISK_file_seek(handle, 0, GNUNET_DISK_SEEK_SET);
+  GNUNET_DISK_file_seek (handle, 0, GNUNET_DISK_SEEK_SET);
 
   struct GNUNET_MESSENGER_ListTunnel *element;
   struct GNUNET_PeerIdentity pid;
@@ -211,9 +229,9 @@ save_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
   {
     GNUNET_PEER_resolve (element->peer, &pid);
 
-    GNUNET_DISK_file_write(handle, &pid, sizeof(pid));
+    GNUNET_DISK_file_write (handle, &pid, sizeof(pid));
   }
 
-  GNUNET_DISK_file_sync(handle);
-  GNUNET_DISK_file_close(handle);
+  GNUNET_DISK_file_sync (handle);
+  GNUNET_DISK_file_close (handle);
 }

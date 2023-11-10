@@ -33,7 +33,8 @@
 
 #include "gnunet_messenger_service.h"
 
-#define GNUNET_MESSENGER_MAX_MESSAGE_SIZE (GNUNET_MAX_MESSAGE_SIZE - GNUNET_MIN_MESSAGE_SIZE)
+#define GNUNET_MESSENGER_MAX_MESSAGE_SIZE (GNUNET_MAX_MESSAGE_SIZE \
+                                           - GNUNET_MIN_MESSAGE_SIZE)
 
 #define GNUNET_MESSENGER_PADDING_MIN (sizeof(uint16_t) + sizeof(char))
 #define GNUNET_MESSENGER_PADDING_LEVEL0 (512)
@@ -188,7 +189,7 @@ sign_message_by_peer (struct GNUNET_MESSENGER_Message *message,
                       uint16_t length,
                       char *buffer,
                       const struct GNUNET_HashCode *hash,
-                      const struct GNUNET_CONFIGURATION_Handle* cfg);
+                      const struct GNUNET_CONFIGURATION_Handle *cfg);
 
 /**
  * Verifies the signature of a given <i>message</i> and its <i>hash</i> with a specific
@@ -252,7 +253,7 @@ typedef void (*GNUNET_MESSENGER_SignFunction)(
   uint16_t length,
   char *buffer,
   const struct GNUNET_HashCode *hash
-);
+  );
 
 #define GNUNET_MESSENGER_PACK_MODE_ENVELOPE 0x1
 #define GNUNET_MESSENGER_PACK_MODE_UNKNOWN 0x0

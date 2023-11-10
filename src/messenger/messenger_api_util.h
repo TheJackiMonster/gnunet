@@ -81,8 +81,8 @@ get_anonymous_public_key ();
  * @param[out] port CADET service port
  */
 void
-convert_messenger_key_to_port(const struct GNUNET_HashCode *key,
-                              struct GNUNET_HashCode *port);
+convert_messenger_key_to_port (const struct GNUNET_HashCode *key,
+                               struct GNUNET_HashCode *port);
 
 /**
  * Converts a peers identity to a short hash code which can be used
@@ -92,7 +92,7 @@ convert_messenger_key_to_port(const struct GNUNET_HashCode *key,
  * @param[out] id Short peer id
  */
 void
-convert_peer_identity_to_id(const struct GNUNET_PeerIdentity *identity,
-                            struct GNUNET_ShortHashCode *id);
+convert_peer_identity_to_id (const struct GNUNET_PeerIdentity *identity,
+                             struct GNUNET_ShortHashCode *id);
 
 #endif //GNUNET_SERVICE_MESSENGER_UTIL_H

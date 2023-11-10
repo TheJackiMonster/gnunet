@@ -37,9 +37,10 @@ struct GNUNET_MESSENGER_SrvTunnel*
 create_tunnel (struct GNUNET_MESSENGER_SrvRoom *room,
                const struct GNUNET_PeerIdentity *door)
 {
-  GNUNET_assert((room) && (door));
+  GNUNET_assert ((room) && (door));
 
-  struct GNUNET_MESSENGER_SrvTunnel *tunnel = GNUNET_new(struct GNUNET_MESSENGER_SrvTunnel);
+  struct GNUNET_MESSENGER_SrvTunnel *tunnel = GNUNET_new (struct
+                                                          GNUNET_MESSENGER_SrvTunnel);
 
   tunnel->room = room;
   tunnel->channel = NULL;
@@ -50,15 +51,16 @@ create_tunnel (struct GNUNET_MESSENGER_SrvRoom *room,
 
   tunnel->peer_message = NULL;
 
-  init_message_state(&(tunnel->state));
+  init_message_state (&(tunnel->state));
 
   return tunnel;
 }
 
+
 void
 destroy_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel)
 {
-  GNUNET_assert(tunnel);
+  GNUNET_assert (tunnel);
 
   if (tunnel->channel)
     GNUNET_CADET_channel_destroy (tunnel->channel);
@@ -66,24 +68,26 @@ destroy_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel)
   GNUNET_PEER_change_rc (tunnel->peer, -1);
 
   if (tunnel->peer_message)
-    GNUNET_free(tunnel->peer_message);
+    GNUNET_free (tunnel->peer_message);
 
-  clear_message_state(&(tunnel->state));
+  clear_message_state (&(tunnel->state));
 
-  GNUNET_free(tunnel);
+  GNUNET_free (tunnel);
 }
+
 
 void
 bind_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
              struct GNUNET_CADET_Channel *channel)
 {
-  GNUNET_assert(tunnel);
+  GNUNET_assert (tunnel);
 
   if (tunnel->channel)
     delayed_disconnect_channel (tunnel->channel);
 
   tunnel->channel = channel;
 }
+
 
 extern void
 callback_room_disconnect (struct GNUNET_MESSENGER_SrvRoom *room,
@@ -103,6 +107,7 @@ callback_tunnel_disconnect (void *cls,
   }
 }
 
+
 extern int
 callback_verify_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
                               void *cls,
@@ -115,7 +120,7 @@ check_tunnel_message (void *cls,
 {
   struct GNUNET_MESSENGER_SrvTunnel *tunnel = cls;
 
-  if (!tunnel)
+  if (! tunnel)
     return GNUNET_SYSERR;
 
   const uint16_t length = ntohs (header->size) - sizeof(*header);
@@ -123,17 +128,20 @@ check_tunnel_message (void *cls,
 
   struct GNUNET_MESSENGER_Message message;
 
-  if (length < get_message_kind_size(GNUNET_MESSENGER_KIND_UNKNOWN, GNUNET_YES))
+  if (length < get_message_kind_size (GNUNET_MESSENGER_KIND_UNKNOWN,
+                                      GNUNET_YES))
   {
-    GNUNET_log(GNUNET_ERROR_TYPE_WARNING, "Tunnel error: Message too short! (%d)\n", length);
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Tunnel error: Message too short! (%d)\n", length);
     return GNUNET_SYSERR;
   }
 
   uint16_t padding = 0;
 
-  if (GNUNET_YES != decode_message (&message, length, buffer, GNUNET_YES, &padding))
+  if (GNUNET_YES != decode_message (&message, length, buffer, GNUNET_YES,
+                                    &padding))
   {
-    GNUNET_log(GNUNET_ERROR_TYPE_WARNING, "Tunnel error: Decoding failed!\n");
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Tunnel error: Decoding failed!\n");
     return GNUNET_SYSERR;
   }
 
@@ -142,6 +150,7 @@ check_tunnel_message (void *cls,
 
   return callback_verify_room_message (tunnel->room, cls, &message, &hash);
 }
+
 
 extern int
 update_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
@@ -157,26 +166,31 @@ static void
 update_tunnel_last_message (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
                             const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_MESSENGER_OperationStore *operation_store = get_srv_room_operation_store(tunnel->room);
+  struct GNUNET_MESSENGER_OperationStore *operation_store =
+    get_srv_room_operation_store (tunnel->room);
 
-  const int requested = (GNUNET_MESSENGER_OP_REQUEST == get_store_operation_type(operation_store, hash)?
-      GNUNET_YES : GNUNET_NO
-  );
+  const int requested = (GNUNET_MESSENGER_OP_REQUEST ==
+                         get_store_operation_type (operation_store, hash)?
+                         GNUNET_YES : GNUNET_NO
+                         );
 
-  struct GNUNET_MESSENGER_MessageStore *message_store = get_srv_room_message_store(tunnel->room);
+  struct GNUNET_MESSENGER_MessageStore *message_store =
+    get_srv_room_message_store (tunnel->room);
 
-  const struct GNUNET_MESSENGER_Message *message = get_store_message(message_store, hash);
+  const struct GNUNET_MESSENGER_Message *message = get_store_message (
+    message_store, hash);
 
   if (message)
-    update_message_state(&(tunnel->state), requested, message, hash);
+    update_message_state (&(tunnel->state), requested, message, hash);
 }
+
 
 void
 handle_tunnel_message (void *cls, const struct GNUNET_MessageHeader *header)
 {
   struct GNUNET_MESSENGER_SrvTunnel *tunnel = cls;
 
-  if (!tunnel)
+  if (! tunnel)
     return;
 
   const uint16_t length = ntohs (header->size) - sizeof(*header);
@@ -190,12 +204,12 @@ handle_tunnel_message (void *cls, const struct GNUNET_MessageHeader *header)
   decode_message (&message, length, buffer, GNUNET_YES, &padding);
   hash_message (&message, length - padding, buffer, &hash);
 
-  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Got message of kind: %s!\n",
-             GNUNET_MESSENGER_name_of_kind(message.header.kind));
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Got message of kind: %s!\n",
+              GNUNET_MESSENGER_name_of_kind (message.header.kind));
 
   const int new_message = update_room_message (
-      tunnel->room, copy_message (&message), &hash
-  );
+    tunnel->room, copy_message (&message), &hash
+    );
 
   if (GNUNET_YES != new_message)
     goto receive_done;
@@ -213,7 +227,8 @@ handle_tunnel_message (void *cls, const struct GNUNET_MessageHeader *header)
     forward_message = recv_message_peer (tunnel->room, tunnel, &message, &hash);
     break;
   case GNUNET_MESSENGER_KIND_REQUEST:
-    forward_message = recv_message_request (tunnel->room, tunnel, &message, &hash);
+    forward_message = recv_message_request (tunnel->room, tunnel, &message,
+                                            &hash);
     break;
   default:
     break;
@@ -226,15 +241,16 @@ handle_tunnel_message (void *cls, const struct GNUNET_MessageHeader *header)
   }
 
 receive_done:
-  cleanup_message(&message);
+  cleanup_message (&message);
 
   GNUNET_CADET_receive_done (tunnel->channel);
 }
 
+
 int
 connect_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel)
 {
-  GNUNET_assert(tunnel);
+  GNUNET_assert (tunnel);
 
   if (tunnel->channel)
     return GNUNET_NO;
@@ -244,21 +260,28 @@ connect_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel)
   struct GNUNET_CADET_Handle *cadet = get_srv_room_cadet (tunnel->room);
   const struct GNUNET_HashCode *key = get_srv_room_key (tunnel->room);
 
-  struct GNUNET_MQ_MessageHandler handlers[] = { GNUNET_MQ_hd_var_size(tunnel_message, GNUNET_MESSAGE_TYPE_CADET_CLI,
-                                                                       struct GNUNET_MessageHeader, NULL),
-                                                 GNUNET_MQ_handler_end() };
+  struct GNUNET_MQ_MessageHandler handlers[] = { GNUNET_MQ_hd_var_size (
+                                                   tunnel_message,
+                                                   GNUNET_MESSAGE_TYPE_CADET_CLI,
+                                                   struct
+                                                   GNUNET_MessageHeader, NULL),
+                                                 GNUNET_MQ_handler_end () };
 
   struct GNUNET_HashCode port;
-  convert_messenger_key_to_port(key, &port);
-  tunnel->channel = GNUNET_CADET_channel_create (cadet, tunnel, door, &port, NULL, callback_tunnel_disconnect, handlers);
+  convert_messenger_key_to_port (key, &port);
+  tunnel->channel = GNUNET_CADET_channel_create (cadet, tunnel, door, &port,
+                                                 NULL,
+                                                 callback_tunnel_disconnect,
+                                                 handlers);
 
   return GNUNET_YES;
 }
 
+
 void
 disconnect_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel)
 {
-  GNUNET_assert(tunnel);
+  GNUNET_assert (tunnel);
 
   if (tunnel->channel)
   {
@@ -268,13 +291,15 @@ disconnect_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel)
   }
 }
 
+
 int
 is_tunnel_connected (const struct GNUNET_MESSENGER_SrvTunnel *tunnel)
 {
-  GNUNET_assert(tunnel);
+  GNUNET_assert (tunnel);
 
   return (tunnel->channel ? GNUNET_YES : GNUNET_NO);
 }
+
 
 struct GNUNET_MESSENGER_MessageSent
 {
@@ -290,21 +315,23 @@ callback_tunnel_sent (void *cls)
   if (sent->tunnel)
     update_tunnel_last_message (sent->tunnel, &(sent->hash));
 
-  GNUNET_free(sent);
+  GNUNET_free (sent);
 }
+
 
 void
 send_tunnel_envelope (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
                       struct GNUNET_MQ_Envelope *env,
                       const struct GNUNET_HashCode *hash)
 {
-  GNUNET_assert((tunnel) && (env) && (hash));
+  GNUNET_assert ((tunnel) && (env) && (hash));
 
   struct GNUNET_MQ_Handle *mq = GNUNET_CADET_get_mq (tunnel->channel);
 
-  struct GNUNET_MESSENGER_MessageSent *sent = GNUNET_new(struct GNUNET_MESSENGER_MessageSent);
+  struct GNUNET_MESSENGER_MessageSent *sent = GNUNET_new (struct
+                                                          GNUNET_MESSENGER_MessageSent);
 
-  GNUNET_memcpy(&(sent->hash), hash, sizeof(struct GNUNET_HashCode));
+  GNUNET_memcpy (&(sent->hash), hash, sizeof(struct GNUNET_HashCode));
 
   sent->tunnel = tunnel;
 
@@ -312,85 +339,93 @@ send_tunnel_envelope (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
   GNUNET_MQ_send (mq, env);
 }
 
+
 int
 send_tunnel_message (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
                      void *handle,
                      struct GNUNET_MESSENGER_Message *message)
 {
-  GNUNET_assert((tunnel) && (handle));
+  GNUNET_assert ((tunnel) && (handle));
 
-  if (!message)
+  if (! message)
     return GNUNET_NO;
 
   struct GNUNET_HashCode hash;
   struct GNUNET_MQ_Envelope *env = pack_srv_room_message (
-      tunnel->room, (struct GNUNET_MESSENGER_SrvHandle*) handle,
-      message, &hash, GNUNET_MESSENGER_PACK_MODE_ENVELOPE
-  );
+    tunnel->room, (struct GNUNET_MESSENGER_SrvHandle*) handle,
+    message, &hash, GNUNET_MESSENGER_PACK_MODE_ENVELOPE
+    );
 
-  destroy_message(message);
+  destroy_message (message);
 
-  if (!env)
+  if (! env)
     return GNUNET_NO;
 
-  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Sending tunnel message: %s\n",
-             GNUNET_h2s(&hash));
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sending tunnel message: %s\n",
+              GNUNET_h2s (&hash));
 
   send_tunnel_envelope (tunnel, env, &hash);
   return GNUNET_YES;
 }
+
 
 void
 forward_tunnel_message (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
                         const struct GNUNET_MESSENGER_Message *message,
                         const struct GNUNET_HashCode *hash)
 {
-  GNUNET_assert((tunnel) && (message) && (hash));
+  GNUNET_assert ((tunnel) && (message) && (hash));
 
-  struct GNUNET_MESSENGER_Message *copy = copy_message(message);
-  struct GNUNET_MQ_Envelope *env = pack_message (copy, NULL, NULL, GNUNET_MESSENGER_PACK_MODE_ENVELOPE, NULL);
+  struct GNUNET_MESSENGER_Message *copy = copy_message (message);
+  struct GNUNET_MQ_Envelope *env = pack_message (copy, NULL, NULL,
+                                                 GNUNET_MESSENGER_PACK_MODE_ENVELOPE,
+                                                 NULL);
 
-  destroy_message(copy);
+  destroy_message (copy);
 
-  if (!env)
+  if (! env)
     return;
 
-  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Forwarding tunnel message: %s\n",
-             GNUNET_h2s(hash));
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Forwarding tunnel message: %s\n",
+              GNUNET_h2s (hash));
 
   send_tunnel_envelope (tunnel, env, hash);
 }
 
+
 const struct GNUNET_HashCode*
 get_tunnel_peer_message (const struct GNUNET_MESSENGER_SrvTunnel *tunnel)
 {
-  GNUNET_assert(tunnel);
+  GNUNET_assert (tunnel);
 
   return tunnel->peer_message;
 }
+
 
 void
 get_tunnel_peer_identity (const struct GNUNET_MESSENGER_SrvTunnel *tunnel,
                           struct GNUNET_PeerIdentity *peer)
 {
-  GNUNET_assert(tunnel);
+  GNUNET_assert (tunnel);
 
-  GNUNET_PEER_resolve(tunnel->peer, peer);
+  GNUNET_PEER_resolve (tunnel->peer, peer);
 }
+
 
 uint32_t
 get_tunnel_messenger_version (const struct GNUNET_MESSENGER_SrvTunnel *tunnel)
 {
-  GNUNET_assert(tunnel);
+  GNUNET_assert (tunnel);
 
   return tunnel->messenger_version;
 }
+
 
 int
 update_tunnel_messenger_version (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
                                  uint32_t version)
 {
-  GNUNET_assert(tunnel);
+  GNUNET_assert (tunnel);
 
   if (version != GNUNET_MESSENGER_VERSION)
     return GNUNET_SYSERR;

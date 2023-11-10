@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -77,6 +77,7 @@ end (void *cls)
   status = 0;
 }
 
+
 static void
 end_badly (void *cls)
 {
@@ -86,12 +87,15 @@ end_badly (void *cls)
   status = 1;
 }
 
+
 static void
 end_operation (void *cls)
 {
   op_task = NULL;
 
-  fprintf (stderr, "Testcase failed (operation: '%s').\n", cls ? (const char*) cls : "unknown");
+  fprintf (stderr, "Testcase failed (operation: '%s').\n", cls ? (const
+                                                                  char*) cls :
+           "unknown");
 
   if (die_task)
     GNUNET_SCHEDULER_cancel (die_task);
@@ -99,6 +103,7 @@ end_operation (void *cls)
   end (NULL);
   status = 1;
 }
+
 
 static int identity_counter = 0;
 
@@ -122,18 +127,23 @@ on_iteration (void *cls)
 
   const char *name = GNUNET_MESSENGER_get_name (handle);
 
-  if ((!name) || (0 != strcmp (name, TESTER_NAME)))
+  if ((! name) || (0 != strcmp (name, TESTER_NAME)))
   {
     op_task = GNUNET_SCHEDULER_add_now (&end_operation, "name");
     return;
   }
 
-  const struct GNUNET_IDENTITY_PublicKey *key = GNUNET_MESSENGER_get_key (handle);
+  const struct GNUNET_IDENTITY_PublicKey *key = GNUNET_MESSENGER_get_key (
+    handle);
 
   struct GNUNET_IDENTITY_PublicKey pubkey;
-  GNUNET_IDENTITY_key_get_public(&identity, &pubkey);
+  GNUNET_IDENTITY_key_get_public (&identity, &pubkey);
 
-  if (((!identity_counter) && (key)) || ((identity_counter) && ((!key) || (0 != GNUNET_memcmp (key, &pubkey)))))
+  if (((! identity_counter) && (key)) || ((identity_counter) && ((! key) ||
+                                                                 (0 !=
+                                                                  GNUNET_memcmp (
+                                                                    key,
+                                                                    &pubkey)))))
   {
     op_task = GNUNET_SCHEDULER_add_now (&end_operation, "key");
     return;
@@ -159,6 +169,7 @@ on_iteration (void *cls)
   it_task = GNUNET_SCHEDULER_add_now (&on_iteration, handle);
 }
 
+
 /**
  * Main function for testcase.
  *
@@ -175,7 +186,8 @@ run (void *cls,
 
   identity_counter = 0;
 
-  op_task = GNUNET_SCHEDULER_add_delayed (BASE_TIMEOUT, &end_operation, "connect");
+  op_task = GNUNET_SCHEDULER_add_delayed (BASE_TIMEOUT, &end_operation,
+                                          "connect");
   messenger = GNUNET_MESSENGER_connect (cfg, TESTER_NAME, NULL, NULL, NULL);
 
   identity.type = htonl (GNUNET_IDENTITY_TYPE_ECDSA);
@@ -184,6 +196,7 @@ run (void *cls,
   if (messenger)
     it_task = GNUNET_SCHEDULER_add_now (&on_iteration, messenger);
 }
+
 
 /**
  * The main function.
@@ -196,7 +209,8 @@ int
 main (int argc,
       char **argv)
 {
-  if (0 != GNUNET_TESTING_peer_run ("test-messenger", "test_messenger_api.conf", &run, NULL))
+  if (0 != GNUNET_TESTING_peer_run ("test-messenger", "test_messenger_api.conf",
+                                    &run, NULL))
     return 1;
 
   return status;

@@ -31,8 +31,10 @@
 
 #include "gnunet-service-messenger_member_session.h"
 
-struct GNUNET_MESSENGER_SenderSession {
-  union {
+struct GNUNET_MESSENGER_SenderSession
+{
+  union
+  {
     struct GNUNET_MESSENGER_MemberSession *member;
     struct GNUNET_PeerIdentity *peer;
   };

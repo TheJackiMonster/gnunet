@@ -31,11 +31,14 @@ handle_member_session_switch (struct GNUNET_MESSENGER_MemberSession *session,
                               const struct GNUNET_MESSENGER_Message *message,
                               const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_MESSENGER_MemberSession *next = switch_member_session(session, message, hash);
+  struct GNUNET_MESSENGER_MemberSession *next = switch_member_session (session,
+                                                                       message,
+                                                                       hash);
 
   if (next != session)
-    add_member_session(next->member, next);
+    add_member_session (next->member, next);
 }
+
 
 void
 handle_message_join (struct GNUNET_MESSENGER_SrvRoom *room,
@@ -43,19 +46,21 @@ handle_message_join (struct GNUNET_MESSENGER_SrvRoom *room,
                      const struct GNUNET_MESSENGER_Message *message,
                      const struct GNUNET_HashCode *hash)
 {
-  GNUNET_log(GNUNET_ERROR_TYPE_INFO, "Member (%s) joins room (%s).\n",
-             GNUNET_sh2s (&(message->header.sender_id)), GNUNET_h2s(get_srv_room_key(room)));
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO, "Member (%s) joins room (%s).\n",
+              GNUNET_sh2s (&(message->header.sender_id)), GNUNET_h2s (
+                get_srv_room_key (room)));
 
-  if (GNUNET_OK != reset_member_session(session->member, hash))
-    GNUNET_log(GNUNET_ERROR_TYPE_ERROR, "Resetting member session failed!\n");
+  if (GNUNET_OK != reset_member_session (session->member, hash))
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Resetting member session failed!\n");
 
   solve_srv_room_member_collisions (
-      room,
-      &(message->body.join.key),
-      &(message->header.sender_id),
-      GNUNET_TIME_absolute_ntoh(message->header.timestamp)
-  );
+    room,
+    &(message->body.join.key),
+    &(message->header.sender_id),
+    GNUNET_TIME_absolute_ntoh (message->header.timestamp)
+    );
 }
+
 
 void
 handle_message_leave (struct GNUNET_MESSENGER_SrvRoom *room,
@@ -63,11 +68,13 @@ handle_message_leave (struct GNUNET_MESSENGER_SrvRoom *room,
                       const struct GNUNET_MESSENGER_Message *message,
                       const struct GNUNET_HashCode *hash)
 {
-  GNUNET_log(GNUNET_ERROR_TYPE_INFO, "Member (%s) leaves room (%s).\n",
-             GNUNET_sh2s (&(message->header.sender_id)), GNUNET_h2s(get_srv_room_key(room)));
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO, "Member (%s) leaves room (%s).\n",
+              GNUNET_sh2s (&(message->header.sender_id)), GNUNET_h2s (
+                get_srv_room_key (room)));
 
-  close_member_session(session->member);
+  close_member_session (session->member);
 }
+
 
 void
 handle_message_name (struct GNUNET_MESSENGER_SrvRoom *room,
@@ -75,13 +82,15 @@ handle_message_name (struct GNUNET_MESSENGER_SrvRoom *room,
                      const struct GNUNET_MESSENGER_Message *message,
                      const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_MESSENGER_Contact *contact = get_member_session_contact(session->member);
+  struct GNUNET_MESSENGER_Contact *contact = get_member_session_contact (
+    session->member);
 
-  if (!contact)
+  if (! contact)
     return;
 
   set_contact_name (contact, message->body.name.name);
 }
+
 
 void
 handle_message_key (struct GNUNET_MESSENGER_SrvRoom *room,
@@ -92,6 +101,7 @@ handle_message_key (struct GNUNET_MESSENGER_SrvRoom *room,
   handle_member_session_switch (session->member, message, hash);
 }
 
+
 void
 handle_message_peer (struct GNUNET_MESSENGER_SrvRoom *room,
                      struct GNUNET_MESSENGER_SenderSession *session,
@@ -100,15 +110,17 @@ handle_message_peer (struct GNUNET_MESSENGER_SrvRoom *room,
 {
   struct GNUNET_MESSENGER_PeerStore *store = get_srv_room_peer_store (room);
 
-  if (0 == GNUNET_memcmp(session->peer, &(message->body.peer.peer)))
-    update_store_peer(store, &(message->body.peer.peer));
+  if (0 == GNUNET_memcmp (session->peer, &(message->body.peer.peer)))
+    update_store_peer (store, &(message->body.peer.peer));
 
-  if (GNUNET_NO == contains_list_tunnels (&(room->basement), &(message->body.peer.peer)))
+  if (GNUNET_NO == contains_list_tunnels (&(room->basement),
+                                          &(message->body.peer.peer)))
     add_to_list_tunnels (&(room->basement), &(message->body.peer.peer), hash);
 
   if (room->peer_message)
     rebuild_srv_room_basement_structure (room);
 }
+
 
 void
 handle_message_id (struct GNUNET_MESSENGER_SrvRoom *room,
@@ -119,12 +131,13 @@ handle_message_id (struct GNUNET_MESSENGER_SrvRoom *room,
   handle_member_session_switch (session->member, message, hash);
 
   solve_srv_room_member_collisions (
-      room,
-      get_member_session_public_key(session->member),
-      &(message->body.id.id),
-      GNUNET_TIME_absolute_ntoh(message->header.timestamp)
-  );
+    room,
+    get_member_session_public_key (session->member),
+    &(message->body.id.id),
+    GNUNET_TIME_absolute_ntoh (message->header.timestamp)
+    );
 }
+
 
 void
 handle_message_miss (struct GNUNET_MESSENGER_SrvRoom *room,
@@ -134,12 +147,13 @@ handle_message_miss (struct GNUNET_MESSENGER_SrvRoom *room,
 {
   struct GNUNET_MESSENGER_PeerStore *store = get_srv_room_peer_store (room);
 
-  if (0 == GNUNET_memcmp(session->peer, &(message->body.miss.peer)))
-    remove_store_peer(store, &(message->body.miss.peer));
+  if (0 == GNUNET_memcmp (session->peer, &(message->body.miss.peer)))
+    remove_store_peer (store, &(message->body.miss.peer));
 
-  struct GNUNET_MESSENGER_ListTunnel *element = find_list_tunnels (&(room->basement), &(message->body.miss.peer), NULL);
+  struct GNUNET_MESSENGER_ListTunnel *element = find_list_tunnels (
+    &(room->basement), &(message->body.miss.peer), NULL);
 
-  if (!element)
+  if (! element)
     return;
 
   remove_from_list_tunnels (&(room->basement), element);
@@ -148,17 +162,22 @@ handle_message_miss (struct GNUNET_MESSENGER_SrvRoom *room,
     rebuild_srv_room_basement_structure (room);
 }
 
+
 void
 handle_message_delete (struct GNUNET_MESSENGER_SrvRoom *room,
                        struct GNUNET_MESSENGER_SenderSession *session,
                        const struct GNUNET_MESSENGER_Message *message,
                        const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_TIME_Relative delay = GNUNET_TIME_relative_ntoh (message->body.deletion.delay);
-  struct GNUNET_TIME_Absolute action = GNUNET_TIME_absolute_ntoh (message->header.timestamp);
+  struct GNUNET_TIME_Relative delay = GNUNET_TIME_relative_ntoh (
+    message->body.deletion.delay);
+  struct GNUNET_TIME_Absolute action = GNUNET_TIME_absolute_ntoh (
+    message->header.timestamp);
 
   action = GNUNET_TIME_absolute_add (action, delay);
-  delay = GNUNET_TIME_absolute_get_difference (GNUNET_TIME_absolute_get (), action);
+  delay = GNUNET_TIME_absolute_get_difference (GNUNET_TIME_absolute_get (),
+                                               action);
 
-  delete_srv_room_message (room, session->member, &(message->body.deletion.hash), delay);
+  delete_srv_room_message (room, session->member,
+                           &(message->body.deletion.hash), delay);
 }
