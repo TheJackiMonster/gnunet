@@ -389,7 +389,7 @@ GNUNET_STRINGS_conv (const char *input,
   ret[encoded_string_length] = '\0';
   free (encoded_string);
   return ret;
-  fail:
+fail:
   LOG (GNUNET_ERROR_TYPE_WARNING,
        _ ("Character sets requested were `%s'->`%s'\n"),
        "UTF-8",
@@ -444,6 +444,7 @@ GNUNET_STRINGS_utf8_normalize (const char *input)
   free (tmp);
   return output;
 }
+
 
 enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_utf8_tolower (const char *input,
@@ -1608,7 +1609,7 @@ GNUNET_STRINGS_base64_encode (const void *in,
                               size_t len,
                               char **output)
 {
-  const char *data = in;
+  const unsigned char *data = in;
   size_t ret;
   char *opt;
 
@@ -1660,7 +1661,9 @@ GNUNET_STRINGS_base64url_encode (const void *in,
   char *enc;
   size_t pos;
 
-  GNUNET_STRINGS_base64_encode (in, len, output);
+  GNUNET_STRINGS_base64_encode (in,
+                                len,
+                                output);
   enc = *output;
   /* Replace with correct characters for base64url */
   pos = 0;
@@ -1691,23 +1694,25 @@ GNUNET_STRINGS_base64url_encode (const void *in,
    : ((a) == '+') ? 62 : ((a) == '/') ? 63 : -1)
 
 
+#define CHECK_CRLF                                                \
+  while ( (data[i] == '\r') || (data[i] == '\n') )                \
+  {                                                               \
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG | GNUNET_ERROR_TYPE_BULK, \
+                "ignoring CR/LF\n");                              \
+    i++;                                                          \
+    if (i >= len) {                                               \
+      goto END;                                                   \
+    }                                                             \
+  }
+
+
 size_t
 GNUNET_STRINGS_base64_decode (const char *data,
                               size_t len,
                               void **out)
 {
-  char *output;
+  unsigned char *output;
   size_t ret = 0;
-
-#define CHECK_CRLF                                                \
-  while (data[i] == '\r' || data[i] == '\n')                      \
-  {                                                               \
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG | GNUNET_ERROR_TYPE_BULK, \
-                "ignoring CR/LF\n");                              \
-    i++;                                                          \
-    if (i >= len)                                                 \
-    goto END;                                                   \
-  }
 
   GNUNET_assert (len / 3 < SIZE_MAX);
   output = GNUNET_malloc ((len * 3 / 4) + 8);
@@ -1716,16 +1721,16 @@ GNUNET_STRINGS_base64_decode (const char *data,
               (int) len);
   for (size_t i = 0; i < len; ++i)
   {
-    char c;
-    char c1;
+    unsigned char c;
+    unsigned char c1;
 
     CHECK_CRLF;
     if (FILLCHAR == data[i])
       break;
-    c = (char) cvtfind (data[i]);
+    c = (unsigned char) cvtfind (data[i]);
     ++i;
     CHECK_CRLF;
-    c1 = (char) cvtfind (data[i]);
+    c1 = (unsigned char) cvtfind (data[i]);
     c = (c << 2) | ((c1 >> 4) & 0x3);
     output[ret++] = c;
     if (++i < len)
@@ -1734,7 +1739,7 @@ GNUNET_STRINGS_base64_decode (const char *data,
       c = data[i];
       if (FILLCHAR == c)
         break;
-      c = (char) cvtfind (c);
+      c = (unsigned char) cvtfind (c);
       c1 = ((c1 << 4) & 0xf0) | ((c >> 2) & 0xf);
       output[ret++] = c1;
     }
@@ -1745,15 +1750,18 @@ GNUNET_STRINGS_base64_decode (const char *data,
       if (FILLCHAR == c1)
         break;
 
-      c1 = (char) cvtfind (c1);
+      c1 = (unsigned char) cvtfind (c1);
       c = ((c << 6) & 0xc0) | c1;
       output[ret++] = c;
     }
   }
-  END:
+END:
   *out = output;
   return ret;
 }
+
+
+#undef CHECK_CRLF
 
 
 size_t
@@ -1768,9 +1776,10 @@ GNUNET_STRINGS_base64url_decode (const char *data,
   /* make enough space for padding */
   GNUNET_assert (len < SIZE_MAX - 3);
   s = GNUNET_malloc (len + 3);
-  memcpy (s, data, len);
-
-  for (int i = 0; i < strlen (s); i++)
+  memcpy (s,
+          data,
+          len);
+  for (size_t i = 0; i < strlen (s); i++)
   {
     if (s[i] == '-')
       s[i] = '+';
@@ -1796,7 +1805,9 @@ GNUNET_STRINGS_base64url_decode (const char *data,
     GNUNET_assert (0);
     break;
   }
-  ret = GNUNET_STRINGS_base64_decode (s, len, out);
+  ret = GNUNET_STRINGS_base64_decode (s,
+                                      len,
+                                      out);
   GNUNET_free (s);
   return ret;
 }
@@ -1825,7 +1836,9 @@ GNUNET_STRINGS_urldecode (const char *data,
         GNUNET_free (*out);
         return 0;
       }
-      if (1 != sscanf (rpos + 1, "%2x", &num))
+      if (1 != sscanf (rpos + 1,
+                       "%2x",
+                       &num))
         break;
       *wpos = (char) ((unsigned char) num);
       wpos++;
@@ -1859,11 +1872,11 @@ GNUNET_STRINGS_urlencode (const char *data,
     if (0 == (0x80 & *i8))
     {
       /* traditional ASCII */
-      if ( isalnum (*i8) ||
-           (*i8 == '-') ||
-           (*i8 == '_') ||
-           (*i8 == '.') ||
-           (*i8 == '~') )
+      if (isalnum (*i8) ||
+          (*i8 == '-') ||
+          (*i8 == '_') ||
+          (*i8 == '.') ||
+          (*i8 == '~') )
         GNUNET_buffer_write (&buf,
                              (const char*) i8,
                              1);
