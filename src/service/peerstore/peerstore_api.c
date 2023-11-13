@@ -1207,7 +1207,7 @@ store_hello (struct GNUNET_PEERSTORE_StoreHelloContext *huc,
                                hello,
                                ntohs (hello->size),
                                hello_exp,
-                               GNUNET_PEERSTORE_STOREOPTION_MULTIPLE,
+                               GNUNET_PEERSTORE_STOREOPTION_REPLACE,
                                merge_success,
                                shu_cls);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1220,7 +1220,8 @@ store_hello (struct GNUNET_PEERSTORE_StoreHelloContext *huc,
   shu_cls->sc = sc;
 }
 
-
+//TODO Find a better name for the function. We do not merge, but replace, if there is a storing process
+//     during another store process with a newer hello.
 static void
 merge_uri  (void *cls,
             const struct GNUNET_PEERSTORE_Record *record,
