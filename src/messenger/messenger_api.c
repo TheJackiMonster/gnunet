@@ -638,8 +638,8 @@ enqueue_message_to_room (struct GNUNET_MESSENGER_Room *room,
 
   if (GNUNET_YES == is_room_available (room))
   {
-    dequeue_messages_from_room (room);
     send_message_to_room (room, message, key);
+    dequeue_messages_from_room (room);
   }
   else
     enqueue_to_messages (&(room->queue), key, message);
