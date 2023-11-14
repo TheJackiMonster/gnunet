@@ -20,12 +20,12 @@
 #
 #
 AC_PREREQ([2.69])
-AC_INIT([gnunet],[m4_esyscmd_s(sh contrib/get_version.sh)],[bug-gnunet@gnu.org])
+AC_INIT([gnunet],[m4_esyscmd_s(sh scripts/get_version.sh)],[bug-gnunet@gnu.org])
 
-gnunet_version=m4_esyscmd_s(sh contrib/get_version.sh)
-gnunet_major_version=m4_esyscmd_s(sh contrib/get_version.sh --major)
-gnunet_minor_version=m4_esyscmd_s(sh contrib/get_version.sh --minor)
-gnunet_micro_version=m4_esyscmd_s(sh contrib/get_version.sh --micro)
+gnunet_version=m4_esyscmd_s(sh scripts/get_version.sh)
+gnunet_major_version=m4_esyscmd_s(sh scripts/get_version.sh --major)
+gnunet_minor_version=m4_esyscmd_s(sh scripts/get_version.sh --minor)
+gnunet_micro_version=m4_esyscmd_s(sh scripts/get_version.sh --micro)
 
 AC_SUBST([gnunet_version])
 AC_SUBST([gnunet_major_version])
@@ -904,90 +904,6 @@ AM_CONDITIONAL([HAVE_POSTGRESQL], [test "x$postgres" = "x1"])
 AC_DEFINE_UNQUOTED([HAVE_POSTGRESQL], [$postgres],
                    [Define to 1 if Postgres is available])
 
-# check for mysql
-SAVE_LDFLAGS="$LDFLAGS"
-SAVE_CPPFLAGS="$CPPFLAGS"
-AC_ARG_WITH([mysql],
-  [AS_HELP_STRING([--with-mysql=PFX], [base of mysql installation])],
-  [AS_CASE([$withval],
-     [no],
-     [],
-     [yes|""],
-     [AC_CHECK_HEADERS([mysql/mysql.h],
-        [AC_CHECK_LIB([mysqlclient], [mysql_init],
-                      [mysql=true], [mysql=false])])],
-     [LDFLAGS="-L$with_mysql/lib -L$with_mysql/lib/mysql $LDFLAGS $ZLIBS"
-      CPPFLAGS="-I$with_mysql/include $CPPFLAGS"
-      AC_CHECK_HEADERS([mysql/mysql.h],
-        [AC_CHECK_LIB([mysqlclient], [mysql_init],
-                      [MYSQL_LDFLAGS="-L$with_mysql/lib -L$with_mysql/lib/mysql"
-                       MYSQL_CPPFLAGS="-I$with_mysql/include"
-                       mysql=true],
-                      [mysql=false])])])],
-   [AS_IF([test -d "/usr/lib64/mysql"],
-      [MYSQL_LIBDIR="/usr/lib64/mysql"],
-      [AS_IF([test -d "/usr/lib/mysql"],
-         [MYSQL_LIBDIR="/usr/lib/mysql"],
-         [MYSQL_LIBDIR="/usr/lib"])])
-    LDFLAGS="-L$MYSQL_LIBDIR $LDFLAGS $ZLIBS"
-    AC_CHECK_LIB([mysqlclient], [mysql_init],
-      [AC_CHECK_HEADERS([mysql/mysql.h],
-         [MYSQL_LDFLAGS="-L$MYSQL_LIBDIR"
-          mysql=true],
-         [mysql=false])],
-      [mysql=false])])
-AC_SUBST(MYSQL_LDFLAGS)
-AC_SUBST(MYSQL_CPPFLAGS)
-
-mysql_bool="bool"
-# check for my_bool
-AS_IF([test "x$mysql" = "xtrue"],
-  [AC_MSG_CHECKING([for my_bool])
-   AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-     [[#include <mysql/mysql.h>]
-      [typedef int my_bool;]])], # Hint: this fails if my_bool is defined already
-      [AC_MSG_RESULT([no])
-       mysql_bool="bool"],
-      [AC_MSG_RESULT([yes])
-       mysql_bool="my_bool"])])
-
-AC_SUBST([mysql_bool])
-
-# additional version checks for mysql
-AS_IF([test "x$mysql" = "xtrue"],
-  [AC_MSG_CHECKING([for mysql version])
-   AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-     [[#include <mysql/mysql.h>]],
-     [[#if (MYSQL_VERSION_ID < 40100)
-#error required at least version 4.1
-#endif]])],
-     [mysql=true],
-     [mysql=false])
-   AS_IF([test "x$mysql" = "xfalse"],
-     [AC_MSG_RESULT([< 4.1])
-      AC_MSG_RESULT([mysql version >= 4.1 required. Will not use MySQL])])
-   AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-     [[#include <mysql/mysql.h>]],
-     [[#if (MYSQL_VERSION_ID < 80000)
-#error needs at least version 8.0
-#endif]])],
-     [mysql8=true],
-     [mysql8=false])])
-
-AS_IF([test "x$mysql" = "xtrue"],
-  [AS_IF([test "x$mysql8" = "xfalse"],
-     [AC_MSG_RESULT([between 4.1 and 8.0])],
-     [AC_MSG_RESULT([> 8.0])
-      AC_DEFINE([HAVE_MYSQL8], [1],
-                [Define to 1 if MySQL is at least version 8])])])
-
-AM_CONDITIONAL([HAVE_MYSQL], [test "x$mysql" = "xtrue"])
-AM_CONDITIONAL([HAVE_MYSQLE], [false])
-
-AS_IF([test "x$sqlite3" = "x0" && test "x$mysql" = "xfalse" && test "x$postgres" = "x0"],
-  [AC_MSG_ERROR([GNUnet requires either SQLite, MySQL/MariaDB or PostgreSQL])])
-
-LDFLAGS="$SAVE_LDFLAGS"
 CPPFLAGS="$SAVE_CPPFLAGS"
 
 # check for libmicrohttpd
@@ -1298,7 +1214,9 @@ AC_CONFIG_FILES([
 Makefile
 bin/Makefile
 contrib/Makefile
-contrib/hellos/Makefile
+data/Makefile
+data/hellos/Makefile
+scripts/Makefile
 contrib/services/Makefile
 contrib/services/openrc/Makefile
 contrib/services/systemd/Makefile
@@ -1310,110 +1228,138 @@ doc/doxygen/Makefile
 m4/Makefile
 po/Makefile.in
 src/Makefile
-src/arm/Makefile
-src/arm/arm.conf
-src/ats/Makefile
-src/ats/ats.conf
-src/ats-tool/Makefile
-src/auction/Makefile
-src/block/Makefile
-src/cadet/Makefile
-src/cadet/cadet.conf
-src/core/Makefile
-src/core/core.conf
-src/consensus/Makefile
-src/consensus/consensus.conf
-src/conversation/Makefile
-src/conversation/conversation.conf
-src/curl/Makefile
-src/datacache/Makefile
-src/datastore/Makefile
-src/datastore/datastore.conf
-src/dht/Makefile
-src/dht/dht.conf
-src/dhtu/Makefile
-src/dns/Makefile
-src/dns/dns.conf
-src/exit/Makefile
-src/fragmentation/Makefile
-src/fs/Makefile
-src/fs/fs.conf
-src/gns/Makefile
-src/gns/gns.conf
-src/gns/nss/Makefile
-src/gnsrecord/Makefile
-src/hello/Makefile
-src/identity/Makefile
-src/identity/identity.conf
+src/lib/Makefile
+src/lib/util/Makefile
+src/lib/block/Makefile
+src/lib/curl/Makefile
+src/lib/gnsrecord/Makefile
+src/lib/json/Makefile
+src/lib/pq/Makefile
+src/lib/sq/Makefile
+src/plugin/Makefile
+src/plugin/block/Makefile
+src/plugin/datacache/Makefile
+src/plugin/datastore/Makefile
+src/plugin/dht/Makefile
+src/plugin/dns/Makefile
+src/plugin/fs/Makefile
+src/plugin/gns/Makefile
+src/plugin/gnsrecord/Makefile
+src/plugin/namecache/Makefile
+src/plugin/namestore/Makefile
+src/plugin/peerstore/Makefile
+src/plugin/reclaim/Makefile
+src/plugin/regex/Makefile
+src/plugin/revocation/Makefile
+src/plugin/seti/Makefile
+src/plugin/setu/Makefile
+src/plugin/messenger/Makefile
+src/service/Makefile
+src/service/arm/Makefile
+src/service/arm/arm.conf
+src/service/cadet/Makefile
+src/service/cadet/cadet.conf
+src/service/core/Makefile
+src/service/core/core.conf
+src/service/datacache/Makefile
+src/service/datastore/Makefile
+src/service/datastore/datastore.conf
+src/service/dht/Makefile
+src/service/dht/dht.conf
+src/service/dhtu/Makefile
+src/service/dns/Makefile
+src/service/dns/dns.conf
+src/service/exit/Makefile
+src/service/fs/Makefile
+src/service/fs/fs.conf
+src/service/gns/Makefile
+src/service/gns/gns.conf
+src/service/gns/nss/Makefile
+src/service/hostlist/Makefile
+src/service/identity/Makefile
+src/service/identity/identity.conf
+src/service/messenger/Makefile
+src/service/messenger/messenger.conf
+src/service/namecache/Makefile
+src/service/namecache/namecache.conf
+src/service/namestore/Makefile
+src/service/namestore/namestore.conf
+src/service/nat/Makefile
+src/service/nat/nat.conf
+src/service/nat-auto/Makefile
+src/service/nat-auto/nat-auto.conf
+src/service/nse/Makefile
+src/service/nse/nse.conf
+src/service/peerstore/Makefile
+src/service/peerstore/peerstore.conf
+src/service/pt/Makefile
+src/service/reclaim/Makefile
+src/service/regex/Makefile
+src/service/regex/regex.conf
+src/service/rest/Makefile
+src/service/revocation/Makefile
+src/service/revocation/revocation.conf
+src/service/seti/Makefile
+src/service/seti/seti.conf
+src/service/setu/Makefile
+src/service/setu/setu.conf
+src/service/statistics/Makefile
+src/service/statistics/statistics.conf
+src/service/testing/Makefile
+src/service/topology/Makefile
+src/service/transport/Makefile
+src/service/transport/transport.conf
+src/service/util/Makefile
+src/service/util/resolver.conf
+src/service/vpn/Makefile
+src/service/vpn/vpn.conf
+src/service/zonemaster/Makefile
+src/service/zonemaster/zonemaster.conf
+src/cli/Makefile
+src/cli/arm/Makefile
+src/cli/cadet/Makefile
+src/cli/core/Makefile
+src/cli/datastore/Makefile
+src/cli/dht/Makefile
+src/cli/fs/Makefile
+src/cli/gns/Makefile
+src/cli/identity/Makefile
+src/cli/messenger/Makefile
+src/cli/namecache/Makefile
+src/cli/namestore/Makefile
+src/cli/nat/Makefile
+src/cli/nat-auto/Makefile
+src/cli/nse/Makefile
+src/cli/reclaim/Makefile
+src/cli/revocation/Makefile
+src/cli/statistics/Makefile
+src/cli/util/Makefile
+src/cli/vpn/Makefile
+src/contrib/Makefile
+src/contrib/service/Makefile
+src/contrib/service/abd/Makefile
+src/contrib/service/abd/abd.conf
+src/contrib/service/auction/Makefile
+src/contrib/service/consensus/Makefile
+src/contrib/service/consensus/consensus.conf
+src/contrib/service/conversation/Makefile
+src/contrib/service/conversation/conversation.conf
+src/contrib/service/scalarproduct/Makefile
+src/contrib/service/scalarproduct/scalarproduct.conf
+src/contrib/service/secretsharing/Makefile
+src/contrib/service/secretsharing/secretsharing.conf
+src/contrib/service/set/Makefile
+src/contrib/service/set/set.conf
+src/contrib/service/rps/Makefile
+src/contrib/service/rps/rps.conf
+src/contrib/service/template/Makefile
+src/contrib/cli/Makefile
+src/contrib/cli/template/Makefile
+src/lib/hello/Makefile
 src/include/Makefile
 src/include/gnunet_config.h
-src/include/gnunet_mysql_compat.h
-src/integration-tests/Makefile
-src/json/Makefile
-src/hostlist/Makefile
-src/my/Makefile
-src/mysql/Makefile
-src/namecache/Makefile
-src/namecache/namecache.conf
-src/namestore/Makefile
-src/namestore/namestore.conf
-src/nat/Makefile
-src/nat/nat.conf
-src/nat-auto/Makefile
-src/nat-auto/nat-auto.conf
-src/nse/Makefile
-src/nse/nse.conf
-src/nt/Makefile
-src/peerinfo/Makefile
-src/peerinfo/peerinfo.conf
-src/peerinfo-tool/Makefile
-src/peerstore/Makefile
-src/peerstore/peerstore.conf
-src/pq/Makefile
-src/pt/Makefile
-src/regex/Makefile
-src/regex/regex.conf
-src/revocation/Makefile
-src/revocation/revocation.conf
-src/rps/Makefile
-src/rps/rps.conf
-src/secretsharing/Makefile
-src/secretsharing/secretsharing.conf
-src/scalarproduct/Makefile
-src/scalarproduct/scalarproduct.conf
-src/set/Makefile
-src/set/set.conf
-src/seti/Makefile
-src/seti/seti.conf
-src/setu/Makefile
-src/setu/setu.conf
-src/sq/Makefile
-src/statistics/Makefile
-src/statistics/statistics.conf
-src/template/Makefile
-src/testbed/Makefile
-src/testbed/testbed.conf
-src/testbed-logger/Makefile
-src/testbed-logger/testbed-logger.conf
-src/testing/Makefile
-src/topology/Makefile
-src/transport/Makefile
-src/transport/transport.conf
-src/util/Makefile
-src/util/resolver.conf
-src/vpn/Makefile
-src/vpn/vpn.conf
-src/zonemaster/Makefile
-src/zonemaster/zonemaster.conf
-src/rest/Makefile
-src/abd/Makefile
-src/abd/abd.conf
-src/reclaim/Makefile
-src/messenger/Makefile
-src/messenger/messenger.conf
 pkgconfig/Makefile
 pkgconfig/gnunetarm.pc
-pkgconfig/gnunetats.pc
 pkgconfig/gnunetblock.pc
 pkgconfig/gnunetcadet.pc
 pkgconfig/gnunetconsensus.pc
@@ -1423,19 +1369,16 @@ pkgconfig/gnunetdatacache.pc
 pkgconfig/gnunetdatastore.pc
 pkgconfig/gnunetdht.pc
 pkgconfig/gnunetdns.pc
-pkgconfig/gnunetenv.pc
-pkgconfig/gnunetfragmentation.pc
 pkgconfig/gnunetfs.pc
 pkgconfig/gnunetgns.pc
 pkgconfig/gnunethello.pc
 pkgconfig/gnunetidentity.pc
+pkgconfig/gnunetjson.pc
 pkgconfig/gnunetmessenger.pc
 pkgconfig/gnunetmicrophone.pc
-pkgconfig/gnunetmysql.pc
 pkgconfig/gnunetnamestore.pc
 pkgconfig/gnunetnat.pc
 pkgconfig/gnunetnse.pc
-pkgconfig/gnunetpeerinfo.pc
 pkgconfig/gnunetpq.pc
 pkgconfig/gnunetregex.pc
 pkgconfig/gnunetrevocation.pc
@@ -1444,7 +1387,6 @@ pkgconfig/gnunetscalarproduct.pc
 pkgconfig/gnunetset.pc
 pkgconfig/gnunetspeaker.pc
 pkgconfig/gnunetstatistics.pc
-pkgconfig/gnunettestbed.pc
 pkgconfig/gnunettesting.pc
 pkgconfig/gnunettransport.pc
 pkgconfig/gnunetutil.pc
@@ -1573,11 +1515,6 @@ AS_IF([test "x$sqlite3" = "x1"],
    features_msg="sqlite $features_msg"],
   [sqlite_msg="no"])
 
-AS_IF([test "x$mysql" = "xtrue"],
-  [mysql_msg="yes"
-   features_msg="mysql $features_msg"],
-  [mysql_msg="no"])
-
 AS_IF([test "x$postgres" = "x1"],
   [postgres_msg="yes"
    features_msg="postgres $features_msg"],
@@ -1606,7 +1543,6 @@ Build Target:                   ${build_target}
 Default Interface:              ${interface_msg}
 
 sqlite3:                        ${sqlite_msg}
-MySQL:                          ${mysql_msg}
 PostgreSQL:                     ${postgres_msg}
 
 cURL TLS backend:               ${curl_tls_backend}

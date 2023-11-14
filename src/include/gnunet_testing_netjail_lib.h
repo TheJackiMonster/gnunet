@@ -343,6 +343,7 @@ GNUNET_TESTING_calculate_num (struct
                               GNUNET_TESTING_NodeConnection *node_connection,
                               struct GNUNET_TESTING_NetjailTopology *topology);
 
+
 /**
  * Struct with information for callbacks.
  *
@@ -505,6 +506,26 @@ struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_local_test_prepared (const char *label,
                                         GNUNET_TESTING_cmd_helper_write_cb
                                         write_message);
+
+
+/**
+ * Create command.
+ *
+ * @param label name for command.
+ * @param system_label Label of the cmd to setup a test environment.
+ * @param no Decimal number representing the last byte of the IP address of this peer.
+ * @param node_ip The IP address of this node.
+ * @param cfgname Configuration file name for this peer.
+ * @param broadcast Flag indicating, if broadcast should be switched on.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_start_peer (const char *label,
+                                 const char *system_label,
+                                 uint32_t no,
+                                 const char *node_ip,
+                                 const char *cfgname,
+                                 unsigned int broadcast);
 
 
 /* ***** Netjail trait support ***** */

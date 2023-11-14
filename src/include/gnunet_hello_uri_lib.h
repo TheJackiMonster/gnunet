@@ -70,6 +70,13 @@ GNUNET_HELLO_builder_new (const struct GNUNET_PeerIdentity *pid);
 
 
 /**
+ * Get the PeerIdentity for this builder.
+ */
+const struct GNUNET_PeerIdentity *
+GNUNET_HELLO_builder_get_id (const struct GNUNET_HELLO_Builder *builder);
+
+
+/**
  * Release resources of a @a builder.
  *
  * @param[in] builder to free
@@ -111,6 +118,17 @@ GNUNET_HELLO_builder_from_url (const char *url);
 
 
 /**
+ * Get the expiration time for this HELLO.
+ *
+ * @param  msg The hello msg.
+ * @return The expiration time.
+ */
+struct GNUNET_TIME_Absolute
+GNUNET_HELLO_builder_get_expiration_time (const struct
+                                          GNUNET_MessageHeader *msg);
+
+
+/**
  * Generate envelope with GNUnet HELLO message (including
  * peer ID) from a @a builder
  *
@@ -120,7 +138,8 @@ GNUNET_HELLO_builder_from_url (const char *url);
  */
 struct GNUNET_MQ_Envelope *
 GNUNET_HELLO_builder_to_env (const struct GNUNET_HELLO_Builder *builder,
-                             const struct GNUNET_CRYPTO_EddsaPrivateKey *priv);
+                             const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
+                             struct GNUNET_TIME_Relative expiration_time);
 
 
 /**
@@ -133,7 +152,8 @@ GNUNET_HELLO_builder_to_env (const struct GNUNET_HELLO_Builder *builder,
 struct GNUNET_MessageHeader *
 GNUNET_HELLO_builder_to_dht_hello_msg (
   const struct GNUNET_HELLO_Builder *builder,
-  const struct GNUNET_CRYPTO_EddsaPrivateKey *priv);
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
+  struct GNUNET_TIME_Relative expiration_time);
 
 
 /**
@@ -162,7 +182,8 @@ enum GNUNET_GenericReturnValue
 GNUNET_HELLO_builder_to_block (const struct GNUNET_HELLO_Builder *builder,
                                const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
                                void *block,
-                               size_t *block_size);
+                               size_t *block_size,
+                               struct GNUNET_TIME_Relative expiration_time);
 
 
 /**
@@ -199,6 +220,7 @@ GNUNET_HELLO_builder_del_address (struct GNUNET_HELLO_Builder *builder,
  */
 typedef void
 (*GNUNET_HELLO_UriCallback) (void *cls,
+                             const struct GNUNET_PeerIdentity* pid,
                              const char *uri);
 
 
@@ -206,13 +228,12 @@ typedef void
  * Iterate over URIs in a builder.
  *
  * @param builder builder to iterate over
- * @param[out] pid set to the peer the @a builder is for
  * @param uc callback invoked for each URI, can be NULL
  * @param uc_cls closure for @a addrgen
+ * @return pid of the peer the @a builder is for, can be NULL
  */
-void
+const struct GNUNET_PeerIdentity *
 GNUNET_HELLO_builder_iterate (const struct GNUNET_HELLO_Builder *builder,
-                              struct GNUNET_PeerIdentity *pid,
                               GNUNET_HELLO_UriCallback uc,
                               void *uc_cls);
 
@@ -236,6 +257,35 @@ GNUNET_HELLO_dht_msg_to_block (const struct GNUNET_MessageHeader *hello,
                                size_t *block_size,
                                struct GNUNET_TIME_Absolute *block_expiration);
 
+
+/**
+ * Given an address as a string, extract the prefix that identifies
+ * the communicator offering transmissions to that address.
+ *
+ * @param address a peer's address
+ * @return NULL if the address is mal-formed, otherwise the prefix
+ */
+char *
+GNUNET_HELLO_address_to_prefix (const char *address);
+
+/**
+ * Build address record by signing raw information with private key.
+ *
+ * @param address text address to sign
+ * @param nt network type of @a address
+ * @param mono_time when was @a address valid
+ * @param private_key signing key to use
+ * @param[out] result where to write address record (allocated)
+ * @param[out] result_size set to size of @a result
+ */
+void
+GNUNET_HELLO_sign_address (
+  const char *address,
+  enum GNUNET_NetworkType nt,
+  struct GNUNET_TIME_Absolute mono_time,
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *private_key,
+  void **result,
+  size_t *result_size);
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {

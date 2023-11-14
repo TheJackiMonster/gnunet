@@ -45,7 +45,6 @@ extern "C" {
 
 
 #include "gnunet_util_lib.h"
-#include "gnunet_transport_service.h"
 
 /**
  * Version number of GNUnet-core API.

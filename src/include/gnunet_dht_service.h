@@ -43,7 +43,6 @@
 
 #include "gnunet_util_lib.h"
 #include "gnunet_block_lib.h"
-#include "gnunet_hello_lib.h"
 
 #ifdef __cplusplus
 extern "C"

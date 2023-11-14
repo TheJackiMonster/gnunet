@@ -47,7 +47,6 @@ extern "C" {
 
 
 #include "gnunet_util_lib.h"
-#include "gnunet_nt_lib.h"
 
 /**
  * Version number of the transport communication API.
@@ -139,7 +138,7 @@ typedef void (*GNUNET_TRANSPORT_CommunicatorNotify) (
  * Connect to the transport service.
  *
  * @param cfg configuration to use
- * @param config_section_name section of the configuration to use for 
+ * @param config_section_name section of the configuration to use for
  *                            options
  * @param addr_prefix address prefix for addresses supported by this
  *        communicator, could be NULL for incoming-only communicators

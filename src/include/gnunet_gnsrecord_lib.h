@@ -38,6 +38,7 @@
 #define GNUNET_GNSRECORD_LIB_H
 
 
+#include "gnunet_common.h"
 #include "gnunet_identity_service.h"
 
 #ifdef __cplusplus
@@ -338,7 +339,7 @@ struct GNUNET_GNSRECORD_ReverseRecord
   /**
    * The public key of the namespace the is delegating to our namespace
    */
-  struct GNUNET_IDENTITY_PublicKey pkey;
+  struct GNUNET_CRYPTO_PublicKey pkey;
 
   /**
    * The expiration time of the delegation
@@ -493,7 +494,7 @@ GNUNET_GNSRECORD_string_normalize (const char *src);
  * #GNUNET_GNSRECORD_z2s.
  */
 const char *
-GNUNET_GNSRECORD_z2s (const struct GNUNET_IDENTITY_PublicKey *z);
+GNUNET_GNSRECORD_z2s (const struct GNUNET_CRYPTO_PublicKey *z);
 
 
 /**
@@ -507,7 +508,7 @@ GNUNET_GNSRECORD_z2s (const struct GNUNET_IDENTITY_PublicKey *z);
  *         key in an encoding suitable for DNS labels.
  */
 const char *
-GNUNET_GNSRECORD_pkey_to_zkey (const struct GNUNET_IDENTITY_PublicKey *pkey);
+GNUNET_GNSRECORD_pkey_to_zkey (const struct GNUNET_CRYPTO_PublicKey *pkey);
 
 
 /**
@@ -521,7 +522,7 @@ GNUNET_GNSRECORD_pkey_to_zkey (const struct GNUNET_IDENTITY_PublicKey *pkey);
  */
 int
 GNUNET_GNSRECORD_zkey_to_pkey (const char *zkey,
-                               struct GNUNET_IDENTITY_PublicKey *pkey);
+                               struct GNUNET_CRYPTO_PublicKey *pkey);
 
 
 /**
@@ -533,7 +534,7 @@ GNUNET_GNSRECORD_zkey_to_pkey (const char *zkey,
  */
 void
 GNUNET_GNSRECORD_query_from_private_key (
-  const struct GNUNET_IDENTITY_PrivateKey *zone, const char *label,
+  const struct GNUNET_CRYPTO_PrivateKey *zone, const char *label,
   struct GNUNET_HashCode *query);
 
 
@@ -547,7 +548,7 @@ GNUNET_GNSRECORD_query_from_private_key (
  */
 void
 GNUNET_GNSRECORD_query_from_public_key (
-  const struct GNUNET_IDENTITY_PublicKey *pub, const char *label,
+  const struct GNUNET_CRYPTO_PublicKey *pub, const char *label,
   struct GNUNET_HashCode *query);
 
 
@@ -561,7 +562,7 @@ GNUNET_GNSRECORD_query_from_public_key (
  */
 ssize_t
 GNUNET_GNSRECORD_block_calculate_size (const struct
-                                       GNUNET_IDENTITY_PrivateKey *key,
+                                       GNUNET_CRYPTO_PrivateKey *key,
                                        const struct GNUNET_GNSRECORD_Data *rd,
                                        unsigned int rd_count);
 
@@ -575,7 +576,7 @@ GNUNET_GNSRECORD_block_calculate_size (const struct
  */
 enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_block_sign (const struct
-                             GNUNET_IDENTITY_PrivateKey *key,
+                             GNUNET_CRYPTO_PrivateKey *key,
                              const char *label,
                              struct GNUNET_GNSRECORD_Block *block);
 
@@ -591,7 +592,7 @@ GNUNET_GNSRECORD_block_sign (const struct
  * @return GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_GNSRECORD_block_create (const struct GNUNET_IDENTITY_PrivateKey *key,
+GNUNET_GNSRECORD_block_create (const struct GNUNET_CRYPTO_PrivateKey *key,
                                struct GNUNET_TIME_Absolute expire,
                                const char *label,
                                const struct GNUNET_GNSRECORD_Data *rd,
@@ -616,7 +617,7 @@ GNUNET_GNSRECORD_block_create (const struct GNUNET_IDENTITY_PrivateKey *key,
  */
 enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_block_create_unsigned (const struct
-                                        GNUNET_IDENTITY_PrivateKey *key,
+                                        GNUNET_CRYPTO_PrivateKey *key,
                                         struct GNUNET_TIME_Absolute expire,
                                         const char *label,
                                         const struct GNUNET_GNSRECORD_Data *rd,
@@ -638,7 +639,7 @@ GNUNET_GNSRECORD_block_create_unsigned (const struct
  * @return GNUNET_OK on success.
  */
 enum GNUNET_GenericReturnValue
-GNUNET_GNSRECORD_block_create2 (const struct GNUNET_IDENTITY_PrivateKey *key,
+GNUNET_GNSRECORD_block_create2 (const struct GNUNET_CRYPTO_PrivateKey *key,
                                 struct GNUNET_TIME_Absolute expire,
                                 const char *label,
                                 const struct GNUNET_GNSRECORD_Data *rd,
@@ -653,7 +654,7 @@ GNUNET_GNSRECORD_block_create2 (const struct GNUNET_IDENTITY_PrivateKey *key,
  * @param block block to verify
  * @return #GNUNET_OK if the signature is valid
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_block_verify (const struct GNUNET_GNSRECORD_Block *block);
 
 
@@ -668,10 +669,10 @@ GNUNET_GNSRECORD_block_verify (const struct GNUNET_GNSRECORD_Block *block);
  * @return #GNUNET_OK on success, #GNUNET_SYSERR if the block was
  *        not well-formed
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_block_decrypt (
   const struct GNUNET_GNSRECORD_Block *block,
-  const struct GNUNET_IDENTITY_PublicKey *zone_key, const char *label,
+  const struct GNUNET_CRYPTO_PublicKey *zone_key, const char *label,
   GNUNET_GNSRECORD_RecordCallback proc, void *proc_cls);
 
 
@@ -682,7 +683,7 @@ GNUNET_GNSRECORD_block_decrypt (
  * @param b another record
  * @return #GNUNET_YES if the records are equal, or #GNUNET_NO if not.
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_records_cmp (const struct GNUNET_GNSRECORD_Data *a,
                               const struct GNUNET_GNSRECORD_Data *b);
 
@@ -751,7 +752,7 @@ enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_identity_from_data (const char *data,
                                      size_t data_size,
                                      uint32_t type,
-                                     struct GNUNET_IDENTITY_PublicKey *key);
+                                     struct GNUNET_CRYPTO_PublicKey *key);
 
 
 /**
@@ -765,7 +766,7 @@ GNUNET_GNSRECORD_identity_from_data (const char *data,
  */
 enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_data_from_identity (const struct
-                                     GNUNET_IDENTITY_PublicKey *key,
+                                     GNUNET_CRYPTO_PublicKey *key,
                                      char **data,
                                      size_t *data_size,
                                      uint32_t *type);
@@ -827,6 +828,135 @@ GNUNET_GNSRECORD_normalize_record_set (const char *label,
  */
 enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_label_check (const char*label, char **emsg);
+
+/**
+ * Maximum length of a revocation
+ */
+#define GNUNET_MAX_POW_SIZE sizeof(struct GNUNET_GNSRECORD_PowP) +\
+                                         sizeof(struct GNUNET_CRYPTO_PublicKey) +\
+                                         1024 //FIXME max sig_len
+
+/**
+ * The proof-of-work narrowing factor.
+ * The number of PoWs that are calculates as part of revocation.
+ */
+#define POW_COUNT 32
+
+
+GNUNET_NETWORK_STRUCT_BEGIN
+
+/**
+ * Struct for a proof of work as part of the revocation.
+ */
+struct GNUNET_GNSRECORD_PowP
+{
+  /**
+   * The timestamp of the revocation
+   */
+  struct GNUNET_TIME_AbsoluteNBO timestamp;
+
+  /**
+   * The TTL of this revocation (purely informational)
+   */
+  struct GNUNET_TIME_RelativeNBO ttl;
+
+  /**
+   * The PoWs
+   */
+  uint64_t pow[POW_COUNT] GNUNET_PACKED;
+
+  /** followed by the public key type, the key and a signature **/
+};
+
+
+/**
+ * The signature object we use for the PoW
+ */
+struct GNUNET_GNSRECORD_SignaturePurposePS
+{
+  /**
+   * The signature purpose
+   */
+  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+
+  /**
+   * The timestamp of the revocation
+   */
+  struct GNUNET_TIME_AbsoluteNBO timestamp;
+
+  /** Followed by the zone public key type and key **/
+};
+
+GNUNET_NETWORK_STRUCT_END
+
+
+/**
+ * Handle to a running proof-of-work calculation.
+ */
+struct GNUNET_GNSRECORD_PowCalculationHandle;
+
+
+/**
+ * Check if the given proof-of-work is valid.
+ *
+ * @param pow proof of work
+ * @param matching_bits how many bits must match (configuration)
+ * @param epoch_duration length of single epoch in configuration
+ * @return #GNUNET_YES if the @a pow is acceptable, #GNUNET_NO if not
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_check_pow (const struct GNUNET_GNSRECORD_PowP *pow,
+                             unsigned int matching_bits,
+                             struct GNUNET_TIME_Relative epoch_duration);
+
+
+/**
+ * Initializes a fresh PoW computation.
+ *
+ * @param key the key to calculate the PoW for.
+ * @param pow the pow object to work with in the calculation.
+ */
+void
+GNUNET_GNSRECORD_pow_init (const struct GNUNET_CRYPTO_PrivateKey *key,
+                            struct GNUNET_GNSRECORD_PowP *pow);
+
+
+/**
+ * Starts a proof-of-work calculation given the pow object as well as
+ * target epochs and difficulty.
+ *
+ * @param pow the PoW to based calculations on.
+ * @param epochs the number of epochs for which the PoW must be valid.
+ * @param difficulty the base difficulty of the PoW.
+ * @return a handle for use in PoW rounds
+ */
+struct GNUNET_GNSRECORD_PowCalculationHandle*
+GNUNET_GNSRECORD_pow_start (struct GNUNET_GNSRECORD_PowP *pow,
+                             int epochs,
+                             unsigned int difficulty);
+
+
+/**
+ * Calculate a single round in the key revocation PoW.
+ *
+ * @param pc handle to the PoW, initially called with NULL.
+ * @return GNUNET_YES if the @a pow is acceptable, GNUNET_NO if not
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_GNSRECORD_pow_round (struct GNUNET_GNSRECORD_PowCalculationHandle *pc);
+
+size_t
+GNUNET_GNSRECORD_proof_get_size (const struct GNUNET_GNSRECORD_PowP *pow);
+
+/**
+ * Stop a PoW calculation
+ *
+ * @param pc the calculation to clean up
+ * @return #GNUNET_YES if pow valid, #GNUNET_NO if pow was set but is not
+ * valid
+ */
+void
+GNUNET_GNSRECORD_pow_stop (struct GNUNET_GNSRECORD_PowCalculationHandle *pc);
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {

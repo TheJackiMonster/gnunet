@@ -1,0 +1,5 @@
+#subdir('lib')
+subdir('service')
+#subdir('plugin')
+#subdir('rest-plugin')
+subdir('cli')

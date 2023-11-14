@@ -17,10 +17,6 @@ gnunetinclude_HEADERS = \
   gnunet_abd_service.h \
   gnunet_applications.h \
   gnunet_arm_service.h \
-  gnunet_ats_service.h \
-  gnunet_ats_application_service.h \
-  gnunet_ats_transport_service.h \
-  gnunet_ats_plugin.h \
   gnunet_bandwidth_lib.h \
   gnunet_bio_lib.h \
   gnunet_dht_block_types.h \
@@ -51,8 +47,6 @@ gnunetinclude_HEADERS = \
   gnunet_dnsstub_lib.h \
   gnunet_dns_service.h \
   gnunet_error_codes.h \
-  gnunet_fragmentation_lib.h \
-  gnunet_friends_lib.h \
   gnunet_fs_service.h \
   gnunet_getopt_lib.h \
   gnunet_gns_service.h \
@@ -60,7 +54,6 @@ gnunetinclude_HEADERS = \
   gnunet_gnsrecord_json_lib.h \
   gnunet_gnsrecord_plugin.h \
   gnu_name_system_record_types.h \
-  gnunet_hello_lib.h \
   gnunet_hello_uri_lib.h \
   gnunet_helper_lib.h \
   gnunet_identity_service.h \
@@ -75,9 +68,6 @@ gnunetinclude_HEADERS = \
   gnunet_microphone_lib.h \
   gnunet_mst_lib.h \
   gnunet_mq_lib.h \
-  gnunet_my_lib.h \
-  gnunet_mysql_compat.h \
-  gnunet_mysql_lib.h \
   gnunet_namecache_plugin.h \
   gnunet_namecache_service.h \
   gnunet_namestore_plugin.h \
@@ -126,14 +116,11 @@ gnunetinclude_HEADERS = \
   gnunet_testing_ng_lib.h \
   gnunet_testing_netjail_lib.h \
   gnunet_time_lib.h \
-  gnunet_transport_service.h \
   gnunet_transport_application_service.h \
   gnunet_transport_communication_service.h \
-  gnunet_transport_core_service.h \
-  gnunet_transport_hello_service.h \
-  gnunet_transport_manipulation_service.h \
   gnunet_transport_monitor_service.h \
-  gnunet_transport_plugin.h \
+  gnunet_transport_core_service.h \
+  gnunet_transport_testing_ng_lib.h \
   gnunet_tun_lib.h \
   gnunet_uri_lib.h \
   gnunet_util_lib.h \

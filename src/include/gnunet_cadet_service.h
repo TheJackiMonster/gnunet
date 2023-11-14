@@ -47,7 +47,6 @@ extern "C" {
 
 
 #include "gnunet_util_lib.h"
-#include "gnunet_transport_service.h"
 
 /**
  * Version number of GNUnet-cadet API.
@@ -636,4 +635,3 @@ GNUNET_CADET_list_tunnels_cancel (struct GNUNET_CADET_ListTunnels *lt);
 /** @} */ /* end of group addition */
 
 /* end of gnunet_cadet_service.h */
-

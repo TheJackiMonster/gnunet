@@ -348,6 +348,105 @@ struct GNUNET_CRYPTO_Edx25519Signature
   unsigned char s[256 / 8];
 };
 
+/**
+ * Key type for the generic public key union
+ */
+enum GNUNET_CRYPTO_KeyType
+{
+  /**
+   * The identity type. The value is the same as the
+   * PKEY record type.
+   */
+  GNUNET_PUBLIC_KEY_TYPE_ECDSA = 65536,
+
+  /**
+   * EDDSA identity. The value is the same as the EDKEY
+   * record type.
+   */
+  GNUNET_PUBLIC_KEY_TYPE_EDDSA = 65556
+};
+
+/**
+ * A private key for an identity as per LSD0001.
+ * Note that these types are NOT packed and MUST NOT be used in RPC
+ * messages. Use the respective serialization functions.
+ */
+struct GNUNET_CRYPTO_PrivateKey
+{
+  /**
+   * Type of public key.
+   * Defined by the GNS zone type value.
+   * In NBO.
+   */
+  uint32_t type;
+
+  union
+  {
+    /**
+     * An ECDSA identity key.
+     */
+    struct GNUNET_CRYPTO_EcdsaPrivateKey ecdsa_key;
+
+    /**
+     * AN EdDSA identtiy key
+     */
+    struct GNUNET_CRYPTO_EddsaPrivateKey eddsa_key;
+  };
+};
+
+
+/**
+ * An identity key as per LSD0001.
+ */
+struct GNUNET_CRYPTO_PublicKey
+{
+  /**
+   * Type of public key.
+   * Defined by the GNS zone type value.
+   * In NBO.
+   */
+  uint32_t type;
+
+  union
+  {
+    /**
+     * An ECDSA identity key.
+     */
+    struct GNUNET_CRYPTO_EcdsaPublicKey ecdsa_key;
+
+    /**
+     * AN EdDSA identtiy key
+     */
+    struct GNUNET_CRYPTO_EddsaPublicKey eddsa_key;
+  };
+};
+
+
+/**
+ * An identity signature as per LSD0001.
+ */
+struct GNUNET_CRYPTO_Signature
+{
+  /**
+   * Type of signature.
+   * Defined by the GNS zone type value.
+   * In NBO.
+   */
+  uint32_t type;
+
+  union
+  {
+    /**
+     * An ECDSA signature
+     */
+    struct GNUNET_CRYPTO_EcdsaSignature ecdsa_signature;
+
+    /**
+     * AN EdDSA signature
+     */
+    struct GNUNET_CRYPTO_EddsaSignature eddsa_signature;
+  };
+};
 
 /**
  * @brief type for session keys
@@ -561,17 +660,33 @@ struct GNUNET_CRYPTO_CsSignature
    * Schnorr signatures are composed of a scalar s and a curve point
    */
   struct GNUNET_CRYPTO_CsS s_scalar;
+
+  /**
+   * Curve point of the Schnorr signature.
+   */
   struct GNUNET_CRYPTO_CsRPublic r_point;
 };
 
 
 /**
- * Nonce
+ * Nonce for the session, picked by client,
+ * shared with the signer.
  */
-struct GNUNET_CRYPTO_CsNonce
+struct GNUNET_CRYPTO_CsSessionNonce
 {
   /*a nonce*/
-  unsigned char nonce[256 / 8];
+  unsigned char snonce[256 / 8];
+};
+
+
+/**
+ * Nonce for computing blinding factors. Not
+ * shared with the signer.
+ */
+struct GNUNET_CRYPTO_CsBlindingNonce
+{
+  /*a nonce*/
+  unsigned char bnonce[256 / 8];
 };
 
 
@@ -846,7 +961,7 @@ GNUNET_CRYPTO_hash_from_string2 (const char *enc,
  * @return #GNUNET_OK on success, #GNUNET_SYSERR if result has the wrong encoding
  */
 #define GNUNET_CRYPTO_hash_from_string(enc, result) \
-        GNUNET_CRYPTO_hash_from_string2 (enc, strlen (enc), result)
+  GNUNET_CRYPTO_hash_from_string2 (enc, strlen (enc), result)
 
 
 /**
@@ -2074,15 +2189,15 @@ GNUNET_CRYPTO_eddsa_sign_ (
  * @param[out] sig where to write the signature
  */
 #define GNUNET_CRYPTO_eddsa_sign(priv,ps,sig) do {                 \
-          /* check size is set correctly */                              \
-          GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*ps));    \
-          /* check 'ps' begins with the purpose */                       \
-          GNUNET_static_assert (((void*) (ps)) ==                        \
-                                ((void*) &(ps)->purpose));               \
-          GNUNET_assert (GNUNET_OK ==                                    \
-                         GNUNET_CRYPTO_eddsa_sign_ (priv,                \
-                                                    &(ps)->purpose,      \
-                                                    sig));               \
+    /* check size is set correctly */                              \
+    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*ps));    \
+    /* check 'ps' begins with the purpose */                       \
+    GNUNET_static_assert (((void*) (ps)) ==                        \
+                          ((void*) &(ps)->purpose));               \
+    GNUNET_assert (GNUNET_OK ==                                    \
+                   GNUNET_CRYPTO_eddsa_sign_ (priv,                \
+                                              &(ps)->purpose,      \
+                                              sig));               \
 } while (0)
 
 
@@ -2136,15 +2251,15 @@ GNUNET_CRYPTO_eddsa_sign_raw (
  * @param[out] sig where to write the signature
  */
 #define GNUNET_CRYPTO_ecdsa_sign(priv,ps,sig) do {                 \
-          /* check size is set correctly */                              \
-          GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));  \
-          /* check 'ps' begins with the purpose */                       \
-          GNUNET_static_assert (((void*) (ps)) ==                        \
-                                ((void*) &(ps)->purpose));               \
-          GNUNET_assert (GNUNET_OK ==                                    \
-                         GNUNET_CRYPTO_ecdsa_sign_ (priv,                \
-                                                    &(ps)->purpose,      \
-                                                    sig));               \
+    /* check size is set correctly */                              \
+    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));  \
+    /* check 'ps' begins with the purpose */                       \
+    GNUNET_static_assert (((void*) (ps)) ==                        \
+                          ((void*) &(ps)->purpose));               \
+    GNUNET_assert (GNUNET_OK ==                                    \
+                   GNUNET_CRYPTO_ecdsa_sign_ (priv,                \
+                                              &(ps)->purpose,      \
+                                              sig));               \
 } while (0)
 
 /**
@@ -2183,15 +2298,15 @@ GNUNET_CRYPTO_edx25519_sign_ (
  * @param[out] sig where to write the signature
  */
 #define GNUNET_CRYPTO_edx25519_sign(priv,ps,sig) do {              \
-          /* check size is set correctly */                              \
-          GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));  \
-          /* check 'ps' begins with the purpose */                       \
-          GNUNET_static_assert (((void*) (ps)) ==                        \
-                                ((void*) &(ps)->purpose));               \
-          GNUNET_assert (GNUNET_OK ==                                    \
-                         GNUNET_CRYPTO_edx25519_sign_ (priv,             \
-                                                       &(ps)->purpose,   \
-                                                       sig));            \
+    /* check size is set correctly */                              \
+    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));  \
+    /* check 'ps' begins with the purpose */                       \
+    GNUNET_static_assert (((void*) (ps)) ==                        \
+                          ((void*) &(ps)->purpose));               \
+    GNUNET_assert (GNUNET_OK ==                                    \
+                   GNUNET_CRYPTO_edx25519_sign_ (priv,             \
+                                                 &(ps)->purpose,   \
+                                                 sig));            \
 } while (0)
 
 
@@ -2739,8 +2854,9 @@ GNUNET_CRYPTO_rsa_private_key_get_public (
  * @param hc where to store the hash code
  */
 void
-GNUNET_CRYPTO_rsa_public_key_hash (const struct GNUNET_CRYPTO_RsaPublicKey *key,
-                                   struct GNUNET_HashCode *hc);
+GNUNET_CRYPTO_rsa_public_key_hash (
+  const struct GNUNET_CRYPTO_RsaPublicKey *key,
+  struct GNUNET_HashCode *hc);
 
 
 /**
@@ -2845,53 +2961,83 @@ GNUNET_CRYPTO_rsa_public_key_cmp (const struct GNUNET_CRYPTO_RsaPublicKey *p1,
 
 
 /**
+ * @brief RSA Parameters to create blinded signature
+ */
+struct GNUNET_CRYPTO_RsaBlindedMessage
+{
+  /**
+   * Blinded message to be signed
+   * Note: is malloc()'ed!
+   */
+  void *blinded_msg;
+
+  /**
+   * Size of the @e blinded_msg to be signed.
+   */
+  size_t blinded_msg_size;
+};
+
+
+/**
  * Blinds the given message with the given blinding key
  *
- * @param hash hash of the message to sign
+ * @param message the message to sign
+ * @param message_size number of bytes in @a message
  * @param bks the blinding key
  * @param pkey the public key of the signer
- * @param[out] buf set to a buffer with the blinded message to be signed
- * @param[out] buf_size number of bytes stored in @a buf
+ * @param[out] bm set to the blinded message
  * @return #GNUNET_YES if successful, #GNUNET_NO if RSA key is malicious
  */
-int
-GNUNET_CRYPTO_rsa_blind (const struct GNUNET_HashCode *hash,
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_rsa_blind (const void *message,
+                         size_t message_size,
                          const struct GNUNET_CRYPTO_RsaBlindingKeySecret *bks,
                          struct GNUNET_CRYPTO_RsaPublicKey *pkey,
-                         void **buf,
-                         size_t *buf_size);
+                         struct GNUNET_CRYPTO_RsaBlindedMessage *bm);
 
 
 /**
  * Sign a blinded value, which must be a full domain hash of a message.
  *
  * @param key private key to use for the signing
- * @param msg the (blinded) message to sign
- * @param msg_len number of bytes in @a msg to sign
+ * @param bm the (blinded) message to sign
  * @return NULL on error, signature on success
  */
 struct GNUNET_CRYPTO_RsaSignature *
 GNUNET_CRYPTO_rsa_sign_blinded (const struct GNUNET_CRYPTO_RsaPrivateKey *key,
-                                const void *msg,
-                                size_t msg_len);
+                                const struct
+                                GNUNET_CRYPTO_RsaBlindedMessage *bm);
 
 
 /**
  * Create and sign a full domain hash of a message.
  *
  * @param key private key to use for the signing
- * @param hash the hash of the message to sign
+ * @param message the message to sign
+ * @param message_size number of bytes in @a message
  * @return NULL on error, including a malicious RSA key, signature on success
  */
 struct GNUNET_CRYPTO_RsaSignature *
 GNUNET_CRYPTO_rsa_sign_fdh (const struct GNUNET_CRYPTO_RsaPrivateKey *key,
-                            const struct GNUNET_HashCode *hash);
+                            const void *message,
+                            size_t message_size);
+
+
+/**
+ * Free memory occupied by blinded message. Only frees contents, not
+ * @a bm itself.
+ *
+ * @param[in] bm memory to free
+ */
+void
+GNUNET_CRYPTO_rsa_blinded_message_free (
+  struct GNUNET_CRYPTO_RsaBlindedMessage *bm);
 
 
 /**
  * Free memory occupied by signature.
  *
- * @param sig memory to free
+ * @param[in] sig memory to free
  */
 void
 GNUNET_CRYPTO_rsa_signature_free (struct GNUNET_CRYPTO_RsaSignature *sig);
@@ -2919,8 +3065,9 @@ GNUNET_CRYPTO_rsa_signature_encode (
  * @return NULL on error
  */
 struct GNUNET_CRYPTO_RsaSignature *
-GNUNET_CRYPTO_rsa_signature_decode (const void *buf,
-                                    size_t buf_size);
+GNUNET_CRYPTO_rsa_signature_decode (
+  const void *buf,
+  size_t buf_size);
 
 
 /**
@@ -2930,7 +3077,8 @@ GNUNET_CRYPTO_rsa_signature_decode (const void *buf,
  * @return the duplicate key; NULL upon error
  */
 struct GNUNET_CRYPTO_RsaSignature *
-GNUNET_CRYPTO_rsa_signature_dup (const struct GNUNET_CRYPTO_RsaSignature *sig);
+GNUNET_CRYPTO_rsa_signature_dup (
+  const struct GNUNET_CRYPTO_RsaSignature *sig);
 
 
 /**
@@ -2953,13 +3101,15 @@ GNUNET_CRYPTO_rsa_unblind (const struct GNUNET_CRYPTO_RsaSignature *sig,
  * Verify whether the given hash corresponds to the given signature and the
  * signature is valid with respect to the given public key.
  *
- * @param hash the message to verify to match the @a sig
+ * @param message the message to sign
+ * @param message_size number of bytes in @a message
  * @param sig signature that is being validated
  * @param public_key public key of the signer
  * @returns #GNUNET_YES if ok, #GNUNET_NO if RSA key is malicious, #GNUNET_SYSERR if signature
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_rsa_verify (const struct GNUNET_HashCode *hash,
+GNUNET_CRYPTO_rsa_verify (const void *message,
+                          size_t message_size,
                           const struct GNUNET_CRYPTO_RsaSignature *sig,
                           const struct GNUNET_CRYPTO_RsaPublicKey *public_key);
 
@@ -2999,10 +3149,11 @@ GNUNET_CRYPTO_cs_private_key_get_public (
  * @param[out] r array containing derived secrets r0 and r1
  */
 void
-GNUNET_CRYPTO_cs_r_derive (const struct GNUNET_CRYPTO_CsNonce *nonce,
-                           const char *seed,
-                           const struct GNUNET_CRYPTO_CsPrivateKey *lts,
-                           struct GNUNET_CRYPTO_CsRSecret r[2]);
+GNUNET_CRYPTO_cs_r_derive (
+  const struct GNUNET_CRYPTO_CsSessionNonce *nonce,
+  const char *seed,
+  const struct GNUNET_CRYPTO_CsPrivateKey *lts,
+  struct GNUNET_CRYPTO_CsRSecret r[2]);
 
 
 /**
@@ -3012,27 +3163,57 @@ GNUNET_CRYPTO_cs_r_derive (const struct GNUNET_CRYPTO_CsNonce *nonce,
  * @param[out] r_pub where to write the public key
  */
 void
-GNUNET_CRYPTO_cs_r_get_public (const struct GNUNET_CRYPTO_CsRSecret *r_priv,
-                               struct GNUNET_CRYPTO_CsRPublic *r_pub);
+GNUNET_CRYPTO_cs_r_get_public (
+  const struct GNUNET_CRYPTO_CsRSecret *r_priv,
+  struct GNUNET_CRYPTO_CsRPublic *r_pub);
+
 
 /**
  * Derives new random blinding factors.
  * In original papers blinding factors are generated randomly
- * To provide abort-idempotency, blinding factors need to be derived but still need to be UNPREDICTABLE
+ * To provide abort-idempotency, blinding factors need to be derived but still need to be UNPREDICTABLE.
  * To ensure unpredictability a new nonce has to be used.
- * Uses HKDF internally
+ * Uses HKDF internally.
  *
  * @param blind_seed is the blinding seed to derive blinding factors
  * @param[out] bs array containing the two derived blinding secrets
  */
 void
 GNUNET_CRYPTO_cs_blinding_secrets_derive (
-  const struct GNUNET_CRYPTO_CsNonce *blind_seed,
+  const struct GNUNET_CRYPTO_CsBlindingNonce *blind_seed,
   struct GNUNET_CRYPTO_CsBlindingSecret bs[2]);
 
 
 /**
- * Calculate two blinded c's
+ * @brief CS Parameters derived from the message
+ * during blinding to create blinded signature
+ */
+struct GNUNET_CRYPTO_CsBlindedMessage
+{
+  /**
+   * The Clause Schnorr c_0 and c_1 containing the blinded message
+   */
+  struct GNUNET_CRYPTO_CsC c[2];
+
+  /**
+   * Nonce used in initial request.
+   */
+  struct GNUNET_CRYPTO_CsSessionNonce nonce;
+
+};
+
+
+/**
+ * Pair of Public R values for Cs denominations
+ */
+struct GNUNET_CRYPTO_CSPublicRPairP
+{
+  struct GNUNET_CRYPTO_CsRPublic r_pub[2];
+};
+
+
+/**
+ * Calculate two blinded c's.
  * Comment: One would be insecure due to Wagner's algorithm solving ROS
  *
  * @param bs array of the two blinding factor structs each containing alpha and beta
@@ -3041,7 +3222,7 @@ GNUNET_CRYPTO_cs_blinding_secrets_derive (
  * @param msg the message to blind in preparation for signing
  * @param msg_len length of message msg
  * @param[out] blinded_c array of the two blinded c's
- * @param[out] blinded_r_pub array of the two blinded R
+ * @param[out] r_pub_blind array of the two blinded R
  */
 void
 GNUNET_CRYPTO_cs_calc_blinded_c (
@@ -3051,32 +3232,49 @@ GNUNET_CRYPTO_cs_calc_blinded_c (
   const void *msg,
   size_t msg_len,
   struct GNUNET_CRYPTO_CsC blinded_c[2],
-  struct GNUNET_CRYPTO_CsRPublic blinded_r_pub[2]);
+  struct GNUNET_CRYPTO_CSPublicRPairP *r_pub_blind);
 
 
 /**
- * Sign a blinded c
- * This function derives b from a nonce and a longterm secret
- * In original papers b is generated randomly
+ * The Sign Answer for Clause Blind Schnorr signature.
+ * The sign operation returns a parameter @param b and the signature
+ * scalar @param s_scalar.
+ */
+struct GNUNET_CRYPTO_CsBlindSignature
+{
+  /**
+   * To make ROS problem harder, the signer chooses an unpredictable b and
+   * only calculates signature of c_b
+   */
+  unsigned int b;
+
+  /**
+   * The blinded s scalar calculated from c_b
+   */
+  struct GNUNET_CRYPTO_CsBlindS s_scalar;
+};
+
+
+/**
+ * Sign a blinded @a c.
+ * This function derives b from a nonce and a longterm secret.
+ * In the original papers b is generated randomly.
  * To provide abort-idempotency, b needs to be derived but still need to be UNPREDICTABLE.
- * To ensure unpredictability a new nonce has to be used for every signature
- * HKDF is used internally for derivation
- * r0 and r1 can be derived prior by using GNUNET_CRYPTO_cs_r_derive
+ * To ensure unpredictability a new nonce has to be used for every signature.
+ * HKDF is used internally for derivation.
+ * r0 and r1 can be derived prior by using GNUNET_CRYPTO_cs_r_derive.
  *
  * @param priv private key to use for the signing and as LTS in HKDF
- * @param r array of the two secret nonce from the signer
- * @param c array of the two blinded c to sign c_b
- * @param nonce is a random nonce
- * @param[out] blinded_signature_scalar where to write the signature
- * @return 0 or 1 for b (see Clause Blind Signature Scheme)
+ * @param r array of the two secret inputs from the signer
+ * @param bm blinded message, including array of the two blinded c to sign c_b and the random nonce
+ * @param[out] cs_blind_sig where to write the blind signature
  */
-unsigned int
+void
 GNUNET_CRYPTO_cs_sign_derive (
   const struct GNUNET_CRYPTO_CsPrivateKey *priv,
   const struct GNUNET_CRYPTO_CsRSecret r[2],
-  const struct GNUNET_CRYPTO_CsC c[2],
-  const struct GNUNET_CRYPTO_CsNonce *nonce,
-  struct GNUNET_CRYPTO_CsBlindS *blinded_signature_scalar);
+  const struct GNUNET_CRYPTO_CsBlindedMessage *bm,
+  struct GNUNET_CRYPTO_CsBlindSignature *cs_blind_sig);
 
 
 /**
@@ -3104,11 +3302,1065 @@ GNUNET_CRYPTO_cs_unblind (
  * @returns #GNUNET_YES on success, #GNUNET_SYSERR if signature invalid
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_cs_verify (const struct GNUNET_CRYPTO_CsSignature *sig,
-                         const struct GNUNET_CRYPTO_CsPublicKey *pub,
-                         const void *msg,
-                         size_t msg_len);
+GNUNET_CRYPTO_cs_verify (
+  const struct GNUNET_CRYPTO_CsSignature *sig,
+  const struct GNUNET_CRYPTO_CsPublicKey *pub,
+  const void *msg,
+  size_t msg_len);
 
+
+/**
+ * Types of public keys used for blind signatures.
+ */
+enum GNUNET_CRYPTO_BlindSignatureAlgorithm
+{
+
+  /**
+   * Invalid type of signature.
+   */
+  GNUNET_CRYPTO_BSA_INVALID = 0,
+
+  /**
+   * RSA blind signature.
+   */
+  GNUNET_CRYPTO_BSA_RSA = 1,
+
+  /**
+   * Clause Blind Schnorr signature.
+   */
+  GNUNET_CRYPTO_BSA_CS = 2
+};
+
+
+/**
+ * @brief Type of (unblinded) signatures.
+ */
+struct GNUNET_CRYPTO_UnblindedSignature
+{
+
+  /**
+   * Type of the signature.
+   */
+  enum GNUNET_CRYPTO_BlindSignatureAlgorithm cipher;
+
+  /**
+   * Reference counter.
+   */
+  unsigned int rc;
+
+  /**
+   * Details, depending on @e cipher.
+   */
+  union
+  {
+    /**
+     * If we use #GNUNET_CRYPTO_BSA_CS in @a cipher.
+     */
+    struct GNUNET_CRYPTO_CsSignature cs_signature;
+
+    /**
+     * If we use #GNUNET_CRYPTO_BSA_RSA in @a cipher.
+     */
+    struct GNUNET_CRYPTO_RsaSignature *rsa_signature;
+
+  } details;
+
+};
+
+
+/**
+ * @brief Type for *blinded* signatures.
+ * Must be unblinded before it becomes valid.
+ */
+struct GNUNET_CRYPTO_BlindedSignature
+{
+
+  /**
+   * Type of the signature.
+   */
+  enum GNUNET_CRYPTO_BlindSignatureAlgorithm cipher;
+
+  /**
+   * Reference counter.
+   */
+  unsigned int rc;
+
+  /**
+   * Details, depending on @e cipher.
+   */
+  union
+  {
+    /**
+     * If we use #GNUNET_CRYPTO_BSA_CS in @a cipher.
+     * At this point only the blinded s scalar is used.
+     * The final signature consisting of r,s is built after unblinding.
+     */
+    struct GNUNET_CRYPTO_CsBlindSignature blinded_cs_answer;
+
+    /**
+     * If we use #GNUNET_CRYPTO_BSA_RSA in @a cipher.
+     */
+    struct GNUNET_CRYPTO_RsaSignature *blinded_rsa_signature;
+
+  } details;
+
+};
+
+
+/**
+ * @brief Type of public signing keys for blind signatures.
+ */
+struct GNUNET_CRYPTO_BlindSignPublicKey
+{
+
+  /**
+   * Type of the public key.
+   */
+  enum GNUNET_CRYPTO_BlindSignatureAlgorithm cipher;
+
+  /**
+   * Reference counter.
+   */
+  unsigned int rc;
+
+  /**
+   * Hash of the public key.
+   */
+  struct GNUNET_HashCode pub_key_hash;
+
+  /**
+   * Details, depending on @e cipher.
+   */
+  union
+  {
+    /**
+     * If we use #GNUNET_CRYPTO_BSA_CS in @a cipher.
+     */
+    struct GNUNET_CRYPTO_CsPublicKey cs_public_key;
+
+    /**
+     * If we use #GNUNET_CRYPTO_BSA_RSA in @a cipher.
+     */
+    struct GNUNET_CRYPTO_RsaPublicKey *rsa_public_key;
+
+  } details;
+};
+
+
+/**
+ * @brief Type of private signing keys for blind signing.
+ */
+struct GNUNET_CRYPTO_BlindSignPrivateKey
+{
+
+  /**
+   * Type of the public key.
+   */
+  enum GNUNET_CRYPTO_BlindSignatureAlgorithm cipher;
+
+  /**
+   * Reference counter.
+   */
+  unsigned int rc;
+
+  /**
+   * Details, depending on @e cipher.
+   */
+  union
+  {
+    /**
+     * If we use #GNUNET_CRYPTO_BSA_CS in @a cipher.
+     */
+    struct GNUNET_CRYPTO_CsPrivateKey cs_private_key;
+
+    /**
+     * If we use #GNUNET_CRYPTO_BSA_RSA in @a cipher.
+     */
+    struct GNUNET_CRYPTO_RsaPrivateKey *rsa_private_key;
+
+  } details;
+};
+
+
+/**
+ * @brief Blinded message ready for blind signing.
+ */
+struct GNUNET_CRYPTO_BlindedMessage
+{
+  /**
+   * Type of the sign blinded message
+   */
+  enum GNUNET_CRYPTO_BlindSignatureAlgorithm cipher;
+
+  /**
+   * Reference counter.
+   */
+  unsigned int rc;
+
+  /**
+   * Details, depending on @e cipher.
+   */
+  union
+  {
+    /**
+     * If we use #GNUNET_CRYPTO_BSA_CS in @a cipher.
+     */
+    struct GNUNET_CRYPTO_CsBlindedMessage cs_blinded_message;
+
+    /**
+     * If we use #GNUNET_CRYPTO_BSA_RSA in @a cipher.
+     */
+    struct GNUNET_CRYPTO_RsaBlindedMessage rsa_blinded_message;
+
+  } details;
+};
+
+
+/**
+ * Secret r for Cs denominations
+ */
+struct GNUNET_CRYPTO_CSPrivateRPairP
+{
+  struct GNUNET_CRYPTO_CsRSecret r[2];
+};
+
+
+/**
+ * @brief Input needed for blinding a message.
+ */
+struct GNUNET_CRYPTO_BlindingInputValues
+{
+
+  /**
+   * Type of the signature.
+   */
+  enum GNUNET_CRYPTO_BlindSignatureAlgorithm cipher;
+
+  /**
+   * Reference counter.
+   */
+  unsigned int rc;
+
+  /**
+   * Details, depending on @e cipher.
+   */
+  union
+  {
+    /**
+     * If we use #GNUNET_CRYPTO_BSA_CS in @a cipher.
+     */
+    struct GNUNET_CRYPTO_CSPublicRPairP cs_values;
+
+  } details;
+
+};
+
+
+/**
+ * Nonce used to deterministiacally derive input values
+ * used in multi-round blind signature protocols.
+ */
+union GNUNET_CRYPTO_BlindSessionNonce
+{
+  /**
+   * Nonce used when signing with CS.
+   */
+  struct GNUNET_CRYPTO_CsSessionNonce cs_nonce;
+};
+
+
+/**
+ * Compute blinding input values for a given @a nonce and
+ * @a salt.
+ *
+ * @param bsign_priv private key to compute input values for
+ * @param nonce session nonce to derive input values from
+ * @param salt salt to include in derivation logic
+ * @return blinding input values
+ */
+struct GNUNET_CRYPTO_BlindingInputValues *
+GNUNET_CRYPTO_get_blinding_input_values (
+  const struct GNUNET_CRYPTO_BlindSignPrivateKey *bsign_priv,
+  const union GNUNET_CRYPTO_BlindSessionNonce *nonce,
+  const char *salt);
+
+
+/**
+ * Decrement reference counter of a @a bsign_pub, and free it if it reaches zero.
+ *
+ * @param[in] bsign_pub key to free
+ */
+void
+GNUNET_CRYPTO_blind_sign_pub_decref (
+  struct GNUNET_CRYPTO_BlindSignPublicKey *bsign_pub);
+
+
+/**
+ * Decrement reference counter of a @a bsign_priv, and free it if it reaches zero.
+ *
+ * @param[in] bsign_priv key to free
+ */
+void
+GNUNET_CRYPTO_blind_sign_priv_decref (
+  struct GNUNET_CRYPTO_BlindSignPrivateKey *bsign_priv);
+
+
+/**
+ * Decrement reference counter of a @a ub_sig, and free it if it reaches zero.
+ *
+ * @param[in] ub_sig signature to free
+ */
+void
+GNUNET_CRYPTO_unblinded_sig_decref (
+  struct GNUNET_CRYPTO_UnblindedSignature *ub_sig);
+
+
+/**
+ * Decrement reference counter of a @a blind_sig, and free it if it reaches zero.
+ *
+ * @param[in] blind_sig signature to free
+ */
+void
+GNUNET_CRYPTO_blinded_sig_decref (
+  struct GNUNET_CRYPTO_BlindedSignature *blind_sig);
+
+
+/**
+ * Decrement reference counter of a @a bm, and free it if it reaches zero.
+ *
+ * @param[in] bm blinded message to free
+ */
+void
+GNUNET_CRYPTO_blinded_message_decref (
+  struct GNUNET_CRYPTO_BlindedMessage *bm);
+
+
+/**
+ * Increment reference counter of the given @a bm.
+ *
+ * @param[in,out] bm blinded message to increment reference counter for
+ * @return alias of @a bm with RC incremented
+ */
+struct GNUNET_CRYPTO_BlindedMessage *
+GNUNET_CRYPTO_blinded_message_incref (
+  struct GNUNET_CRYPTO_BlindedMessage *bm);
+
+
+/**
+ * Increment reference counter of the given @a bi.
+ *
+ * @param[in,out] bi blinding input values to increment reference counter for
+ * @return alias of @a bi with RC incremented
+ */
+struct GNUNET_CRYPTO_BlindingInputValues *
+GNUNET_CRYPTO_blinding_input_values_incref (
+  struct GNUNET_CRYPTO_BlindingInputValues *bm);
+
+
+/**
+ * Decrement reference counter of the given @a bi, and free it if it reaches
+ * zero.
+ *
+ * @param[in,out] bi blinding input values to decrement reference counter for
+ */
+void
+GNUNET_CRYPTO_blinding_input_values_decref (
+  struct GNUNET_CRYPTO_BlindingInputValues *bm);
+
+
+/**
+ * Increment reference counter of the given @a bsign_pub.
+ *
+ * @param[in,out] bsign_pub public key to increment reference counter for
+ * @return alias of @a bsign_pub with RC incremented
+ */
+struct GNUNET_CRYPTO_BlindSignPublicKey *
+GNUNET_CRYPTO_bsign_pub_incref (
+  struct GNUNET_CRYPTO_BlindSignPublicKey *bsign_pub);
+
+
+/**
+ * Increment reference counter of the given @a bsign_priv.
+ *
+ * @param[in,out] bsign_priv private key to increment reference counter for
+ * @return alias of @a bsign_priv with RC incremented
+ */
+struct GNUNET_CRYPTO_BlindSignPrivateKey *
+GNUNET_CRYPTO_bsign_priv_incref (
+  struct GNUNET_CRYPTO_BlindSignPrivateKey *bsign_priv);
+
+
+/**
+ * Increment reference counter of the given @a ub_sig.
+ *
+ * @param[in,out] ub_sig signature to increment reference counter for
+ * @return alias of @a ub_sig with RC incremented
+ */
+struct GNUNET_CRYPTO_UnblindedSignature *
+GNUNET_CRYPTO_ub_sig_incref (struct GNUNET_CRYPTO_UnblindedSignature *ub_sig);
+
+
+/**
+ * Increment reference counter of the given @a blind_sig.
+ *
+ * @param[in,out] blind_sig signature to increment reference counter for
+ * @return alias of @a blind_sig with RC incremented
+ */
+struct GNUNET_CRYPTO_BlindedSignature *
+GNUNET_CRYPTO_blind_sig_incref (
+  struct GNUNET_CRYPTO_BlindedSignature *blind_sig);
+
+
+/**
+ * Compare two denomination public keys.
+ *
+ * @param bp1 first key
+ * @param bp2 second key
+ * @return 0 if the keys are equal, otherwise -1 or 1
+ */
+int
+GNUNET_CRYPTO_bsign_pub_cmp (
+  const struct GNUNET_CRYPTO_BlindSignPublicKey *bp1,
+  const struct GNUNET_CRYPTO_BlindSignPublicKey *bp2);
+
+
+/**
+ * Compare two denomination signatures.
+ *
+ * @param sig1 first signature
+ * @param sig2 second signature
+ * @return 0 if the keys are equal, otherwise -1 or 1
+ */
+int
+GNUNET_CRYPTO_ub_sig_cmp (const struct GNUNET_CRYPTO_UnblindedSignature *sig1,
+                          const struct GNUNET_CRYPTO_UnblindedSignature *sig2);
+
+
+/**
+ * Compare two blinded denomination signatures.
+ *
+ * @param sig1 first signature
+ * @param sig2 second signature
+ * @return 0 if the keys are equal, otherwise -1 or 1
+ */
+int
+GNUNET_CRYPTO_blind_sig_cmp (
+  const struct GNUNET_CRYPTO_BlindedSignature *sig1,
+  const struct GNUNET_CRYPTO_BlindedSignature *sig2);
+
+
+/**
+ * Compare two blinded messages.
+ *
+ * @param bp1 first blinded message
+ * @param bp2 second blinded message
+ * @return 0 if the keys are equal, otherwise -1 or 1
+ */
+int
+GNUNET_CRYPTO_blinded_message_cmp (
+  const struct GNUNET_CRYPTO_BlindedMessage *bp1,
+  const struct GNUNET_CRYPTO_BlindedMessage *bp2);
+
+
+/**
+ * Initialize public-private key pair for blind signatures.
+ *
+ * For #GNUNET_CRYPTO_BSA_RSA, an additional "unsigned int"
+ * argument with the number of bits for 'n' (e.g. 2048) must
+ * be passed.
+ *
+ * @param[out] bsign_priv where to write the private key with RC 1
+ * @param[out] bsign_pub where to write the public key with RC 1
+ * @param cipher which type of cipher to use
+ * @param ... RSA key size (eg. 2048/3072/4096)
+ * @return #GNUNET_OK on success, #GNUNET_NO if parameterst were invalid
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_blind_sign_keys_create (
+  struct GNUNET_CRYPTO_BlindSignPrivateKey **bsign_priv,
+  struct GNUNET_CRYPTO_BlindSignPublicKey **bsign_pub,
+  enum GNUNET_CRYPTO_BlindSignatureAlgorithm cipher,
+  ...);
+
+
+/**
+ * Initialize public-private key pair for blind signatures.
+ *
+ * For #GNUNET_CRYPTO_BSA_RSA, an additional "unsigned int"
+ * argument with the number of bits for 'n' (e.g. 2048) must
+ * be passed.
+ *
+ * @param[out] bsign_priv where to write the private key with RC 1
+ * @param[out] bsign_pub where to write the public key with RC 1
+ * @param cipher which type of cipher to use
+ * @param ap RSA key size (eg. 2048/3072/4096)
+ * @return #GNUNET_OK on success, #GNUNET_NO if parameterst were invalid
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_blind_sign_keys_create_va (
+  struct GNUNET_CRYPTO_BlindSignPrivateKey **bsign_priv,
+  struct GNUNET_CRYPTO_BlindSignPublicKey **bsign_pub,
+  enum GNUNET_CRYPTO_BlindSignatureAlgorithm cipher,
+  va_list ap);
+
+
+/**
+ * @brief Type of blinding secrets.  Must be exactly 32 bytes (DB).
+ */
+union GNUNET_CRYPTO_BlindingSecretP
+{
+  /**
+   * Clause Schnorr nonce.
+   */
+  struct GNUNET_CRYPTO_CsBlindingNonce nonce;
+
+  /**
+   * Variant for RSA for blind signatures.
+   */
+  struct GNUNET_CRYPTO_RsaBlindingKeySecret rsa_bks;
+};
+
+
+/**
+ * Blind message for blind signing with @a dk using blinding secret @a coin_bks.
+ *
+ * @param bsign_pub public key to blind for
+ * @param bks blinding secret to use
+ * @param nonce nonce used to obtain @a alg_values
+ *        can be NULL if input values are not used for the cipher
+ * @param message message to sign
+ * @param message_size number of bytes in @a message
+ * @param alg_values algorithm specific values to blind the @a message
+ * @return blinded message to give to signer, NULL on error
+ */
+struct GNUNET_CRYPTO_BlindedMessage *
+GNUNET_CRYPTO_message_blind_to_sign (
+  const struct GNUNET_CRYPTO_BlindSignPublicKey *bsign_pub,
+  const union GNUNET_CRYPTO_BlindingSecretP *bks,
+  const union GNUNET_CRYPTO_BlindSessionNonce *nonce,
+  const void *message,
+  size_t message_size,
+  const struct GNUNET_CRYPTO_BlindingInputValues *alg_values);
+
+
+/**
+ * Create blind signature.
+ *
+ * @param bsign_priv private key to use for signing
+ * @param salt salt value to use for the HKDF,
+ *        can be NULL if input values are not used for the cipher
+ * @param blinded_message the already blinded message to sign
+ * @return blind signature with RC=1, NULL on failure
+ */
+struct GNUNET_CRYPTO_BlindedSignature *
+GNUNET_CRYPTO_blind_sign (
+  const struct GNUNET_CRYPTO_BlindSignPrivateKey *bsign_priv,
+  const char *salt,
+  const struct GNUNET_CRYPTO_BlindedMessage *blinded_message);
+
+
+/**
+ * Unblind blind signature.
+ *
+ * @param blinded_sig the blind signature
+ * @param bks blinding secret to use
+ * @param message message that was supposedly signed
+ * @param message_size number of bytes in @a message
+ * @param alg_values algorithm specific values
+ * @param bsign_pub public key used for signing
+ * @return unblinded signature with RC=1, NULL on error
+ */
+struct GNUNET_CRYPTO_UnblindedSignature *
+GNUNET_CRYPTO_blind_sig_unblind (
+  const struct GNUNET_CRYPTO_BlindedSignature *blinded_sig,
+  const union GNUNET_CRYPTO_BlindingSecretP *bks,
+  const void *message,
+  size_t message_size,
+  const struct GNUNET_CRYPTO_BlindingInputValues *alg_values,
+  const struct GNUNET_CRYPTO_BlindSignPublicKey *bsign_pub);
+
+
+/**
+ * Verify signature made blindly.
+ *
+ * @param bsign_pub public key
+ * @param ub_sig signature made blindly with the private key
+ * @param message message that was supposedly signed
+ * @param message_size number of bytes in @a message
+ * @return #GNUNET_OK if the signature is valid
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_blind_sig_verify (
+  const struct GNUNET_CRYPTO_BlindSignPublicKey *bsign_pub,
+  const struct GNUNET_CRYPTO_UnblindedSignature *ub_sig,
+  const void *message,
+  size_t message_size);
+
+
+/**
+ * Get the compacted length of a #GNUNET_CRYPTO_PublicKey.
+ * Compacted means that it returns the minimum number of bytes this
+ * key is long, as opposed to the union structure inside
+ * #GNUNET_CRYPTO_PublicKey.
+ * Useful for compact serializations.
+ *
+ * @param key the key.
+ * @return -1 on error, else the compacted length of the key.
+ */
+ssize_t
+GNUNET_CRYPTO_public_key_get_length (const struct
+                                     GNUNET_CRYPTO_PublicKey *key);
+
+/**
+ * Reads a #GNUNET_CRYPTO_PublicKey from a compact buffer.
+ * The buffer has to contain at least the compacted length of
+ * a #GNUNET_CRYPTO_PublicKey in bytes.
+ * If the buffer is too small, the function returns -1 as error.
+ * If the buffer does not contain a valid key, it returns -2 as error.
+ *
+ * @param buffer the buffer
+ * @param len the length of buffer
+ * @param key the key
+ * @param the amount of bytes read from the buffer
+ * @return #GNUNET_SYSERR on error
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_read_public_key_from_buffer (
+  const void *buffer,
+  size_t len,
+  struct GNUNET_CRYPTO_PublicKey *key,
+  size_t *read);
+
+/**
+ * Get the compacted length of a #GNUNET_CRYPTO_PrivateKey.
+ * Compacted means that it returns the minimum number of bytes this
+ * key is long, as opposed to the union structure inside
+ * #GNUNET_CRYPTO_PrivateKey.
+ * Useful for compact serializations.
+ *
+ * @param key the key.
+ * @return -1 on error, else the compacted length of the key.
+ */
+ssize_t
+GNUNET_CRYPTO_private_key_get_length (
+  const struct GNUNET_CRYPTO_PrivateKey *key);
+
+
+/**
+ * Writes a #GNUNET_CRYPTO_PublicKey to a compact buffer.
+ * The buffer requires space for at least the compacted length of
+ * a #GNUNET_CRYPTO_PublicKey in bytes.
+ * If the buffer is too small, the function returns -1 as error.
+ * If the key is not valid, it returns -2 as error.
+ *
+ * @param key the key
+ * @param buffer the buffer
+ * @param len the length of buffer
+ * @return -1 or -2 on error, else the amount of bytes written to the buffer
+ */
+ssize_t
+GNUNET_CRYPTO_write_public_key_to_buffer (const struct
+                                          GNUNET_CRYPTO_PublicKey *key,
+                                          void*buffer,
+                                          size_t len);
+
+
+/**
+ * Reads a #GNUNET_CRYPTO_PrivateKey from a compact buffer.
+ * The buffer has to contain at least the compacted length of
+ * a #GNUNET_CRYPTO_PrivateKey in bytes.
+ * If the buffer is too small, the function returns GNUNET_SYSERR as error.
+ *
+ * @param buffer the buffer
+ * @param len the length of buffer
+ * @param key the key
+ * @param the amount of bytes read from the buffer
+ * @return #GNUNET_SYSERR on error
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_read_private_key_from_buffer (
+  const void*buffer,
+  size_t len,
+  struct GNUNET_CRYPTO_PrivateKey *key,
+  size_t *read);
+
+
+/**
+ * Writes a #GNUNET_CRYPTO_PrivateKey to a compact buffer.
+ * The buffer requires space for at least the compacted length of
+ * a #GNUNET_CRYPTO_PrivateKey in bytes.
+ * If the buffer is too small, the function returns -1 as error.
+ * If the key is not valid, it returns -2 as error.
+ *
+ * @param key the key
+ * @param buffer the buffer
+ * @param len the length of buffer
+ * @return -1 or -2 on error, else the amount of bytes written to the buffer
+ */
+ssize_t
+GNUNET_CRYPTO_write_private_key_to_buffer (
+  const struct GNUNET_CRYPTO_PrivateKey *key,
+  void*buffer,
+  size_t len);
+
+
+/**
+ * Get the compacted length of a #GNUNET_CRYPTO_Signature.
+ * Compacted means that it returns the minimum number of bytes this
+ * signature is long, as opposed to the union structure inside
+ * #GNUNET_CRYPTO_Signature.
+ * Useful for compact serializations.
+ *
+ * @param sig the signature.
+ * @return -1 on error, else the compacted length of the signature.
+ */
+ssize_t
+GNUNET_CRYPTO_signature_get_length (
+  const struct GNUNET_CRYPTO_Signature *sig);
+
+
+/**
+ * Get the compacted length of a signature by type.
+ * Compacted means that it returns the minimum number of bytes this
+ * signature is long, as opposed to the union structure inside
+ * #GNUNET_CRYPTO_Signature.
+ * Useful for compact serializations.
+ *
+ * @param sig the signature.
+ * @return -1 on error, else the compacted length of the signature.
+ */
+ssize_t
+GNUNET_CRYPTO_signature_get_raw_length_by_type (uint32_t type);
+
+
+/**
+ * Reads a #GNUNET_CRYPTO_Signature from a compact buffer.
+ * The buffer has to contain at least the compacted length of
+ * a #GNUNET_CRYPTO_Signature in bytes.
+ * If the buffer is too small, the function returns -1 as error.
+ * If the buffer does not contain a valid key, it returns -2 as error.
+ *
+ * @param sig the signature
+ * @param buffer the buffer
+ * @param len the length of buffer
+ * @return -1 or -2 on error, else the amount of bytes read from the buffer
+ */
+ssize_t
+GNUNET_CRYPTO_read_signature_from_buffer (
+  struct GNUNET_CRYPTO_Signature *sig,
+  const void*buffer,
+  size_t len);
+
+
+/**
+ * Writes a #GNUNET_CRYPTO_Signature to a compact buffer.
+ * The buffer requires space for at least the compacted length of
+ * a #GNUNET_CRYPTO_Signature in bytes.
+ * If the buffer is too small, the function returns -1 as error.
+ * If the key is not valid, it returns -2 as error.
+ *
+ * @param sig the signature
+ * @param buffer the buffer
+ * @param len the length of buffer
+ * @return -1 or -2 on error, else the amount of bytes written to the buffer
+ */
+ssize_t
+GNUNET_CRYPTO_write_signature_to_buffer (
+  const struct GNUNET_CRYPTO_Signature *sig,
+  void*buffer,
+  size_t len);
+
+
+/**
+ * @brief Sign a given block.
+ *
+ * The @a purpose data is the beginning of the data of which the signature is
+ * to be created. The `size` field in @a purpose must correctly indicate the
+ * number of bytes of the data structure, including its header. If possible,
+ * use #GNUNET_CRYPTO_sign() instead of this function.
+ *
+ * @param priv private key to use for the signing
+ * @param purpose what to sign (size, purpose)
+ * @param[out] sig where to write the signature
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_sign_ (
+  const struct GNUNET_CRYPTO_PrivateKey *priv,
+  const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
+  struct GNUNET_CRYPTO_Signature *sig);
+
+/**
+ * @brief Sign a given block.
+ *
+ * The @a purpose data is the beginning of the data of which the signature is
+ * to be created. The `size` field in @a purpose must correctly indicate the
+ * number of bytes of the data structure, including its header.
+ * The signature payload and length depends on the key type.
+ *
+ * @param priv private key to use for the signing
+ * @param purpose what to sign (size, purpose)
+ * @param[out] sig where to write the signature
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_sign_raw_ (
+  const struct GNUNET_CRYPTO_PrivateKey *priv,
+  const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
+  unsigned char *sig);
+
+
+/**
+ * @brief Sign a given block with #GNUNET_CRYPTO_PrivateKey.
+ *
+ * The @a ps data must be a fixed-size struct for which the signature is to be
+ * created. The `size` field in @a ps->purpose must correctly indicate the
+ * number of bytes of the data structure, including its header.
+ *
+ * @param priv private key to use for the signing
+ * @param ps packed struct with what to sign, MUST begin with a purpose
+ * @param[out] sig where to write the signature
+ */
+#define GNUNET_CRYPTO_sign(priv,ps,sig) do {                \
+    /* check size is set correctly */                                     \
+    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));         \
+    /* check 'ps' begins with the purpose */                              \
+    GNUNET_static_assert (((void*) (ps)) ==                               \
+                          ((void*) &(ps)->purpose));                      \
+    GNUNET_assert (GNUNET_OK ==                                           \
+                   GNUNET_CRYPTO_sign_ (priv,               \
+                                        &(ps)->purpose,             \
+                                        sig));                      \
+} while (0)
+
+
+/**
+ * @brief Verify a given signature.
+ *
+ * The @a validate data is the beginning of the data of which the signature
+ * is to be verified. The `size` field in @a validate must correctly indicate
+ * the number of bytes of the data structure, including its header.  If @a
+ * purpose does not match the purpose given in @a validate (the latter must be
+ * in big endian), signature verification fails.  If possible,
+ * use #GNUNET_CRYPTO_signature_verify() instead of this function (only if @a validate
+ * is not fixed-size, you must use this function directly).
+ *
+ * @param purpose what is the purpose that the signature should have?
+ * @param validate block to validate (size, purpose, data)
+ * @param sig signature that is being validated
+ * @param pub public key of the signer
+ * @returns #GNUNET_OK if ok, #GNUNET_SYSERR if invalid
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_signature_verify_ (
+  uint32_t purpose,
+  const struct GNUNET_CRYPTO_EccSignaturePurpose *validate,
+  const struct GNUNET_CRYPTO_Signature *sig,
+  const struct GNUNET_CRYPTO_PublicKey *pub);
+
+/**
+ * @brief Verify a given signature.
+ *
+ * The @a validate data is the beginning of the data of which the signature
+ * is to be verified. The `size` field in @a validate must correctly indicate
+ * the number of bytes of the data structure, including its header.  If @a
+ * purpose does not match the purpose given in @a validate (the latter must be
+ * in big endian), signature verification fails.
+ *
+ * @param purpose what is the purpose that the signature should have?
+ * @param validate block to validate (size, purpose, data)
+ * @param sig signature that is being validated
+ * @param pub public key of the signer
+ * @returns #GNUNET_OK if ok, #GNUNET_SYSERR if invalid
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_signature_verify_raw_ (
+  uint32_t purpose,
+  const struct GNUNET_CRYPTO_EccSignaturePurpose *validate,
+  const unsigned char *sig,
+  const struct GNUNET_CRYPTO_PublicKey *pub);
+
+
+/**
+ * @brief Verify a given signature with #GNUNET_CRYPTO_PublicKey.
+ *
+ * The @a ps data must be a fixed-size struct for which the signature is to be
+ * created. The `size` field in @a ps->purpose must correctly indicate the
+ * number of bytes of the data structure, including its header.
+ *
+ * @param purp purpose of the signature, must match 'ps->purpose.purpose'
+ *              (except in host byte order)
+ * @param ps packed struct with what to sign, MUST begin with a purpose
+ * @param sig where to read the signature from
+ * @param pub public key to use for the verifying
+ */
+#define GNUNET_CRYPTO_signature_verify(purp,ps,sig,pub) ({             \
+    /* check size is set correctly */                                     \
+    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));         \
+    /* check 'ps' begins with the purpose */                              \
+    GNUNET_static_assert (((void*) (ps)) ==                               \
+                          ((void*) &(ps)->purpose));                      \
+    GNUNET_CRYPTO_signature_verify_ (purp,                              \
+                                     &(ps)->purpose,                    \
+                                     sig,                               \
+                                     pub);                              \
+  })
+
+
+/**
+ * Encrypt a block with #GNUNET_CRYPTO_PublicKey and derives a
+ * #GNUNET_CRYPTO_EcdhePublicKey which is required for decryption
+ * using ecdh to derive a symmetric key.
+ *
+ * @param block the block to encrypt
+ * @param size the size of the @a block
+ * @param pub public key to use for ecdh
+ * @param ecc where to write the ecc public key
+ * @param result the output parameter in which to store the encrypted result
+ *               can be the same or overlap with @c block
+ * @returns the size of the encrypted block, -1 for errors.
+ *          Due to the use of CFB and therefore an effective stream cipher,
+ *          this size should be the same as @c len.
+ */
+ssize_t
+GNUNET_CRYPTO_encrypt_old (const void *block,
+                           size_t size,
+                           const struct GNUNET_CRYPTO_PublicKey *pub,
+                           struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
+                           void *result);
+
+
+/**
+ * Decrypt a given block with #GNUNET_CRYPTO_PrivateKey and a given
+ * #GNUNET_CRYPTO_EcdhePublicKey using ecdh to derive a symmetric key.
+ *
+ * @param block the data to decrypt, encoded as returned by encrypt
+ * @param size the size of the @a block to decrypt
+ * @param priv private key to use for ecdh
+ * @param ecc the ecc public key
+ * @param result address to store the result at
+ *               can be the same or overlap with @c block
+ * @return -1 on failure, size of decrypted block on success.
+ *         Due to the use of CFB and therefore an effective stream cipher,
+ *         this size should be the same as @c size.
+ */
+ssize_t
+GNUNET_CRYPTO_decrypt_old (
+  const void *block,
+  size_t size,
+  const struct GNUNET_CRYPTO_PrivateKey *priv,
+  const struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
+  void *result);
+
+#define GNUNET_CRYPTO_ENCRYPT_OVERHEAD_BYTES (crypto_secretbox_MACBYTES \
+                                              + sizeof (struct \
+                                                        GNUNET_CRYPTO_FoKemC))
+
+/**
+ * Encrypt a block with #GNUNET_CRYPTO_PublicKey and derives a
+ * #GNUNET_CRYPTO_EcdhePublicKey which is required for decryption
+ * using ecdh to derive a symmetric key.
+ *
+ * Note that the result buffer for the ciphertext must be the length of
+ * the message to encrypt plus #GNUNET_CRYPTO_ENCRYPT_OVERHEAD_BYTES.
+ *
+ * @param block the block to encrypt
+ * @param size the size of the @a block
+ * @param pub public key to encrypt for
+ * @param result the output parameter in which to store the encrypted result
+ *               can be the same or overlap with @c block
+ * @returns GNUNET_OK on success.
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_encrypt (const void *block,
+                       size_t size,
+                       const struct GNUNET_CRYPTO_PublicKey *pub,
+                       void *result,
+                       size_t result_size);
+
+
+/**
+ * Decrypt a given block with #GNUNET_CRYPTO_PrivateKey and a given
+ * #GNUNET_CRYPTO_EcdhePublicKey using ecdh to derive a symmetric key.
+ *
+ * @param block the data to decrypt, encoded as returned by encrypt
+ * @param size the size of the @a block to decrypt
+ * @param priv private key to use for ecdh
+ * @param result address to store the result at
+ *               can be the same or overlap with @c block
+ * @returns GNUNET_OK on success.
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_decrypt (const void *block,
+                       size_t size,
+                       const struct GNUNET_CRYPTO_PrivateKey *priv,
+                       void *result,
+                       size_t result_size);
+
+
+/**
+ * Creates a (Base32) string representation of the public key.
+ * The resulting string encodes a compacted representation of the key.
+ * See also #GNUNET_CRYPTO_key_get_length.
+ *
+ * @param key the key.
+ * @return the string representation of the key, or NULL on error.
+ */
+char *
+GNUNET_CRYPTO_public_key_to_string (
+  const struct GNUNET_CRYPTO_PublicKey *key);
+
+
+/**
+ * Creates a (Base32) string representation of the private key.
+ * The resulting string encodes a compacted representation of the key.
+ * See also #GNUNET_CRYPTO_key_get_length.
+ *
+ * @param key the key.
+ * @return the string representation of the key, or NULL on error.
+ */
+char *
+GNUNET_CRYPTO_private_key_to_string (
+  const struct GNUNET_CRYPTO_PrivateKey *key);
+
+
+/**
+ * Parses a (Base32) string representation of the public key.
+ * See also #GNUNET_CRYPTO_public_key_to_string.
+ *
+ * @param str the encoded key.
+ * @param key where to write the key.
+ * @return GNUNET_SYSERR on error.
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_public_key_from_string (const char*str,
+                                      struct GNUNET_CRYPTO_PublicKey *key);
+
+
+/**
+ * Parses a (Base32) string representation of the private key.
+ * See also #GNUNET_CRYPTO_private_key_to_string.
+ *
+ * @param str the encoded key.
+ * @param key where to write the key.
+ * @return GNUNET_SYSERR on error.
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_private_key_from_string (const char*str,
+                                       struct GNUNET_CRYPTO_PrivateKey *key);
+
+
+/**
+ * Retrieves the public key representation of a private key.
+ *
+ * @param privkey the private key.
+ * @param key the public key result.
+ * @return GNUNET_SYSERR on error.
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_key_get_public (const struct
+                              GNUNET_CRYPTO_PrivateKey *privkey,
+                              struct GNUNET_CRYPTO_PublicKey *key);
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {

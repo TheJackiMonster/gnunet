@@ -1,0 +1,14 @@
+[peerstore]
+IMMEDIATE_START = YES
+USE_INCLUDED_HELLOS = YES
+@JAVAPORT@PORT = 2110
+HOSTNAME = localhost
+BINARY = gnunet-service-peerstore
+UNIXPATH = $GNUNET_RUNTIME_DIR/gnunet-service-peerstore.sock
+UNIX_MATCH_UID = NO
+UNIX_MATCH_GID = YES
+DATABASE = sqlite
+
+[peerstore-sqlite]
+FILENAME = $GNUNET_DATA_HOME/peerstore/sqlite.db
+

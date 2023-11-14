@@ -1,0 +1,451 @@
+## EXPERIMENTAL --- WORK IN PROGRESS --- USE AT YOUR OWN PERIL --- ##
+project('gnunet', 'c', license: 'AGPLv3',
+        version: run_command('sh', 'scripts/get_version.sh', check: true).stdout().strip())
+
+add_project_arguments('-D_GNU_SOURCE', language : 'c')
+
+cc = meson.get_compiler('c')
+incdir = include_directories('src/include')
+cdata = configuration_data()
+
+# Version
+gnunet_version = run_command('sh', 'scripts/get_version.sh', check: true).stdout().strip()
+cdata.set('gnunet_version', gnunet_version)
+r = run_command('sh', 'scripts/get_version.sh', '--major', check: true)
+cdata.set('gnunet_major_version', r.stdout().strip())
+r = run_command('sh', 'scripts/get_version.sh', '--minor', check: true)
+cdata.set('gnunet_minor_version', r.stdout().strip())
+r = run_command('sh', 'scripts/get_version.sh', '--micro', check: true)
+cdata.set('gnunet_micro_version', r.stdout().strip())
+
+pkgcfgdir = get_option('datadir')/'gnunet'/'config.d'
+docdir = get_option('datadir')/'doc'/'gnunet'
+
+install_emptydir(docdir)
+install_data('README', 'COPYING', install_dir: docdir)
+
+gnunet_user = false
+getent_bin = find_program('getent', '/usr/bin/getent', required : false)
+if getent_bin.found()
+  gnunet_user = true
+  if run_command('getent', 'passwd', 'gnunet', check: false).returncode() != 0
+    gnunet_user = false
+  endif
+  if run_command('getent', 'group', 'gnunet', check: false).returncode() != 0
+    gnunet_user = false
+  endif
+  if run_command('getent', 'group', 'gnunetdns', check: false).returncode() != 0
+    gnunet_user = false
+  endif
+endif
+
+
+# TODO: Set to true to build a single libgnunet
+cdata.set('enable_experimental', get_option('experimental'))
+if get_option('experimental')
+  add_project_arguments('-DHAVE_EXPERIMENTAL', language: 'c')
+endif
+logging_opt = get_option('logging')
+if logging_opt == 'yes'
+  add_project_arguments('-DGNUNET_EXTRA_LOGGING=0', language: 'c')
+endif
+if logging_opt == 'no'
+  add_project_arguments('-DGNUNET_EXTRA_LOGGING=0', language: 'c')
+  add_project_arguments('-DGNUNET_CULL_LOGGING=1', language: 'c')
+endif
+if logging_opt == 'verbose'
+  add_project_arguments('-DGNUNET_EXTRA_LOGGING=1', language: 'c')
+endif
+if logging_opt == 'veryverbose'
+  add_project_arguments('-DGNUNET_EXTRA_LOGGING=2', language: 'c')
+endif
+
+
+# FIXME
+cdata.set('extractor', 0)
+
+cdata.set('PKGDATADIRECTORY', get_option('datadir')/'gnunet')
+cdata.set('SYSCONFDIR', get_option('sysconfdir'))
+# Various checks
+if cc.has_member ('struct sockaddr_in', 'sin_len', prefix : ['#include <sys/types.h>', '#include <sys/socket.h>', '#include <netinet/in.h>'])
+  add_project_arguments('-DHAVE_SOCKADDR_IN_SIN_LEN', language: 'c')
+endif
+if cc.has_member ('struct sockaddr_un', 'sun_len', prefix : ['#include <sys/types.h>', '#include <sys/socket.h>', '#include <sys/un.h>'])
+  add_project_arguments('-DHAVE_SOCKADDR_UN_SUN_LEN', language: 'c')
+endif
+if cc.has_member ('struct tm', 'tm_gmtoff', prefix : ['#include <time.h>'])
+  add_project_arguments('-DHAVE_TM_GMTOFF', language: 'c')
+endif
+
+# TODO:
+#  - Go through configure.ac and convert all defines/detections
+#  - Compile all libs into a single libgnunet
+
+# Gettext
+i18n = import('i18n')
+
+gettext_package = 'gnunet'
+add_project_arguments('-DGETTEXT_PACKAGE=' + gettext_package, language: 'c')
+subdir('po')
+
+# FIXME lots still missing
+cdata.set_quoted('PACKAGE_VERSION', '0.21.0')
+cdata.set_quoted('GNUNET_DEFAULT_INTERFACE', 'en0')
+cdata.set_quoted('VCS_VERSION', 'mesonbuild')
+add_project_arguments('-DHAVE_CONFIG_H', language : 'c')
+
+# Linker settings
+# Compiler settings
+add_project_arguments('-fno-strict-aliasing', language : 'c')
+if cc.has_argument('-Wno-address-of-packed-member')
+  add_project_arguments('-Wno-address-of-packed-member', language : 'c')
+endif
+if cc.has_argument('-Wno-tautological-constant-out-of-range-compare')
+  add_project_arguments('-Wno-tautological-constant-out-of-range-compare', language : 'c')
+endif
+
+# FIXME static here, were dynamic in configure.ac
+cdata.set('UNIXONLY', '#')
+cdata.set('JAVAPORT', '#')
+cdata.set('START_ON_DEMAND', 'YES')
+
+
+cdata.set_quoted('build_target', host_machine.system())
+if host_machine.system() == 'linux'
+  add_project_arguments('-DLINUX', language : 'c')
+  add_project_link_arguments(['-Wl,--unresolved-symbols=report-all'], language : 'c')
+  cdata.set_quoted('GNUNET_DEFAULT_INTERFACE', 'eth0')
+endif
+if host_machine.system() == 'darwin'
+  cdata.set_quoted('GNUNET_DEFAULT_INTERFACE', 'en0')
+  add_project_arguments('-DDARWIN', language : 'c')
+  add_project_arguments('-D_APPLE_C_SOURCE', language : 'c')
+  add_project_arguments('-D__APPLE_USE_RFC_3542', language : 'c')
+  add_project_arguments('-fno-common', language : 'c')
+  add_project_link_arguments (['-Wl,-no_fixup_chains'], language: 'c')
+endif
+
+
+# FIXME: Not all dependencies here yet
+ltdl_dep = dependency ('libltdl', required: false)
+if not ltdl_dep.found()
+  ltdl_dep = cc.find_library('ltdl', required : true)
+endif
+unistr_dep = dependency('libunistring', required : false)
+if not unistr_dep.found()
+  unistr_dep = cc.find_library('unistring', required : true)
+endif
+sqlite_dep = dependency ('sqlite3', required : false)
+if not sqlite_dep.found()
+  sqlite_dep = cc.find_library('sqlite3', required : true)
+endif
+curl_dep = dependency('libcurl', version: '>=7.85.0', required : false)
+if not curl_dep.found()
+  curl_dep = cc.find_library('curl', required : true)
+endif
+zlib_dep = dependency('zlib', required : false)
+if not zlib_dep.found()
+  zlib_dep = cc.find_library('zlib', required : true)
+endif
+mhd_dep = dependency('libmicrohttpd', required : false)
+if not mhd_dep.found()
+  mhd_dep = cc.find_library('microhttpd', required : true)
+endif
+json_dep = dependency('jansson', required : false)
+if not json_dep.found()
+  json_dep = cc.find_library('jansson', required : true)
+endif
+gcrypt_dep = dependency('libgcrypt', required : false)
+if not gcrypt_dep.found()
+  gcrypt_dep = cc.find_library('gcrypt', required : true)
+endif
+gnutls_dep = dependency('libgnutls', required : false)
+if not gnutls_dep.found()
+  gnutls_dep = cc.find_library('gnutls', required : false)
+  if not gnutls_dep.found()
+    gnutls_dep = cc.find_library('gnutls-dane', required : true)
+  endif
+endif
+sodium_dep = dependency('libsodium', required : false, version: '>=1.0.18')
+if not sodium_dep.found()
+  sodium_dep = cc.find_library('sodium', required : true)
+endif
+
+idn_dep = dependency('libidn2', required : false)
+if not idn_dep.found()
+  idn_dep = cc.find_library('idn2', required : false)
+endif
+if idn_dep.found()
+  add_project_arguments('-DHAVE_LIBIDN2', language : 'c')
+  add_project_arguments('-DHAVE_IDN2_H', language : 'c')
+else
+  idn_dep = dependency('libidn', required : false)
+  if not idn_dep.found()
+    idn_dep = cc.find_library('idn', required : true)
+    add_project_arguments('-DHAVE_LIBIDN', language : 'c')
+    add_project_arguments('-DHAVE_IDN_H', language : 'c')
+  endif
+endif
+
+m_dep = cc.find_library('m', required : false)
+if m_dep.found()
+  add_project_arguments('-DHAVE_LIBM', language : 'c')
+endif
+
+sock_dep = cc.find_library('socket', required : false)
+if sock_dep.found()
+  add_project_arguments('-DHAVE_LIBSOCKET', language : 'c')
+endif
+
+gopt_bin = find_program('getopt', '/usr/bin/getopt', required : false)
+if gopt_bin.found()
+  add_project_arguments('-DHAVE_GETOPT_BINARY='+gopt_bin.full_path(), language : 'c')
+endif
+
+ifconfig_bin = find_program('ifconfig', '/usr/sbin/ifconfig', required : false)
+if ifconfig_bin.found()
+  cdata.set_quoted('IFCONFIG', ifconfig_bin.full_path())
+endif
+
+ip_bin = find_program('ip', '/usr/sbin/ip', required : false)
+if ip_bin.found()
+  cdata.set_quoted('PATH_TO_IP', ip_bin.full_path())
+endif
+
+iptables_bin = find_program('iptables', '/usr/sbin/iptables', required : false)
+if iptables_bin.found()
+  cdata.set_quoted('IPTABLES', iptables_bin.full_path())
+endif
+
+adduser_bin = find_program('adduser', '/usr/sbin/adduser', required : false)
+
+pkgc_bin = find_program('pkg-config', '/usr/bin/pkg-config', required : false)
+if pkgc_bin.found()
+  add_project_arguments('-DHAVE_PKG_CONFIG', language : 'c')
+endif
+
+ssh_bin = find_program('ssh', '/usr/bin/ssh', required : false)
+if ssh_bin.found()
+  add_project_arguments('-DHAVE_SSH_BINARY', language : 'c')
+endif
+
+# FIXME we are not doing anything with this right now
+sudo_bin = find_program('sudo', '/usr/bin/sudo', required : false)
+doas_bin = find_program('doas', '/usr/bin/doas', required : false)
+
+# Optional dependencies
+
+pq_dep = dependency('libpq', required : false)
+if not pq_dep.found()
+  pq_dep = cc.find_library('pq', required : false)
+endif
+if pq_dep.found()
+  add_project_arguments('-DHAVE_POSTGRESQL', language : 'c')
+endif
+zbar_dep = dependency('libzbar', required : false)
+if not zbar_dep.found()
+  zbar_dep = cc.find_library('zbar', required : false)
+endif
+if zbar_dep.found()
+  add_project_arguments('-DHAVE_ZBAR', language : 'c')
+endif
+jose_dep = dependency('libjose', required : false)
+if not jose_dep.found()
+  jose_dep = cc.find_library('jose', required : false)
+endif
+if jose_dep.found()
+  add_project_arguments('-DHAVE_JOSE', language : 'c')
+endif
+
+## FIXME conversation: pulse/gst detection in configure.ac obviously
+## broken. Needs reconsideration. No idea for now.
+pulse_dep = dependency('libpulse', required : false)
+if not pulse_dep.found()
+  pulse_dep = cc.find_library('pulse', required : false)
+endif
+if pulse_dep.found()
+  add_project_arguments('-DHAVE_PULSE', language : 'c')
+endif
+
+opus_dep = dependency('libopus', required : false)
+if not opus_dep.found()
+  opus_dep = cc.find_library('opus', required : false)
+endif
+if opus_dep.found()
+  add_project_arguments('-DHAVE_OPUS', language : 'c')
+endif
+
+ogg_dep = dependency('libogg', required : false)
+if not ogg_dep.found()
+  ogg_dep = cc.find_library('ogg', required : false)
+endif
+if ogg_dep.found()
+  add_project_arguments('-DHAVE_OGG', language : 'c')
+endif
+
+gst_dep = dependency('libgst', required : false)
+if not gst_dep.found()
+  gst_dep = cc.find_library('gstreamer', required : false)
+endif
+if gst_dep.found()
+  add_project_arguments('-DHAVE_GST', language : 'c')
+endif
+
+conversation_backend = 'none'
+if pulse_dep.found() and opus_dep.found() and ogg_dep.found()
+  conversation_backend = 'pulse'
+elif gst_dep.found()
+  conversation_backend = 'gst'
+endif
+## END conversation
+
+gnunetdeps = [mhd_dep,
+              sodium_dep,
+              gcrypt_dep,
+              curl_dep,
+              json_dep,
+              zlib_dep,
+              sqlite_dep,
+              unistr_dep, #dependency('libunistring'),
+              ltdl_dep, #dependency('ltdl'),
+              idn_dep]
+
+add_project_arguments('-DNEED_LIBGCRYPT_VERSION="1.6.0"', language : 'c')
+
+if cc.check_header('sys/time.h')
+  add_project_arguments('-DHAVE_SYS_TIME_H', language : 'c')
+endif
+if cc.check_header('sys/param.h')
+  add_project_arguments('-DHAVE_SYS_PARAM_H', language : 'c')
+endif
+
+# NSS
+have_nss = false
+if cc.check_header('nss.h')
+  have_nss = true
+  add_project_arguments('-DHAVE_GLIBCNSS', language : 'c')
+endif
+
+# TUN
+tun_found = false
+if cc.check_header('if_tun.h')
+  if cc.has_header_symbol('if_tun.h', 'struct in6_ifreq')
+    add_project_arguments('-DIF_TUN_HDR="if_tun.h"', language : 'c')
+    tun_found = true
+  endif
+endif
+if not tun_found and cc.check_header('linux/if_tun.h')
+  if cc.has_header_symbol('linux/if_tun.h', 'struct in6_ifreq')
+    add_project_arguments('-DIF_TUN_HDR="linux/if_tun.h"', language : 'c')
+    tun_found = true
+  endif
+endif
+if not tun_found and cc.check_header('net/if_tun.h')
+  if cc.has_header_symbol('net/if_tun.h', 'struct in6_ifreq')
+    add_project_arguments('-DIF_TUN_HDR="net/if_tun.h"', language : 'c')
+    tun_found = true
+  endif
+endif
+if not tun_found and cc.check_header('net/tun/if_tun.h')
+  if cc.has_header_symbol('net/tun/if_tun.h', 'struct in6_ifreq')
+    add_project_arguments('-DIF_TUN_HDR="net/tun/if_tun.h"', language : 'c')
+    tun_found = true
+  endif
+endif
+
+
+
+
+# NSS
+if cc.check_header('nss.h')
+  add_project_arguments('-DHAVE_GLIBCNSS', language : 'c')
+endif
+
+# GNUTLS DANE
+if cc.check_header('gnutls/dane.h')
+  if cc.has_function('dane_verify_crt_raw',
+                           prefix: '#include <gnutls/dane.h>',
+                           dependencies: gnutls_dep)
+    add_project_arguments('-DHAVE_GNUTLS_DANE', language : 'c')
+  endif
+endif
+curl_ssl_check ='''#include <curl/curl.h>
+  int main(int argc, char **argv) {
+    return (CURLSSLSET_OK != curl_global_sslset(CURLSSLBACKEND_GNUTLS, NULL, NULL));
+  }
+  '''
+
+result = cc.run(curl_ssl_check, name : 'cURL gnutls check',
+                      dependencies: curl_dep)
+cdata.set('curl_gnutls', 0)
+if result.returncode() == 0
+cdata.set('curl_gnutls', 1)
+endif
+
+if cc.has_function('getloadavg') == false
+  error('getloadadv missing')
+endif
+if cc.has_function('strnlen', prefix : '#include <string.h>')
+  cdata.set('HAVE_STRNLEN', 1)
+endif
+if cc.has_function('memset_s')
+  cdata.set('HAVE_MEMSET_S', 1)
+endif
+if cc.has_function('explicit_bzero')
+  cdata.set('HAVE_EXPLICIT_BZERO', 1)
+endif
+if cc.has_function('gethostbyname')
+  cdata.set('HAVE_GETHOSTBYNAME', 1)
+endif
+if cc.has_function('gethostbyname2')
+  cdata.set('HAVE_GETHOSTBYNAME2', 1)
+endif
+if cc.has_function('getifaddrs')
+  cdata.set('HAVE_GETIFADDRS', 1)
+endif
+if cc.has_function('freeifaddrs')
+  cdata.set('HAVE_FREEIFADDRS', 1)
+endif
+if cc.check_header('ifaddrs.h')
+  add_project_arguments('-DHAVE_IFADDRS_H', language : 'c')
+endif
+
+configure_file(#input: 'gnunet_private_config.h.in',
+               output : 'gnunet_private_config.h',
+               configuration : cdata)
+configuration_inc = include_directories('.')
+
+pkg = import('pkgconfig')
+
+subdir('src')
+subdir('doc')
+subdir('contrib')
+subdir('data')
+
+meson.add_dist_script('meson-dist-script')
+
+summary({'host': host_machine.system(),
+         'prefix': get_option('prefix'),
+         'compiler': cc.get_id(),
+          'libdir': get_option('libdir'),
+          'datadir': get_option('datadir'),
+          'default interface': cdata.get('GNUNET_DEFAULT_INTERFACE'),
+          'PostgreSQL': pq_dep.found(),
+          'curl w/ gnutls': (cdata.get('curl_gnutls') == 1),
+          'ifconfig': ifconfig_bin.found(),
+          'iptables': iptables_bin.found()
+          }, section: 'Detected system')
+
+if not gnunet_user
+message('Please make sure NOW to create a user and group \'gnunet\' and additionally a group \'gnunetdns\'. Make sure that \'/var/lib/gnunet\' is owned (and writable) by user \'gnunet\'')
+message('Each user of GNUnet should be added to the \'gnunet\' group')
+if adduser_bin.found() and not gnunet_user
+    message('''Create the gnunet user and add users to the gnunetdns group, run:
+             # addgroup gnunetdns
+             # adduser --system --disabled-login --home /var/lib/gnunet gnunet''')
+    message('''To add users to the gnunet group, run:
+             # adduser USERNAME gnunet
+             for each of your users, replacing \'USERNAME\' with the respective login name.
+             Users may have to login again for the changes to take effect.''')
+endif
+endif

@@ -39,6 +39,7 @@
 #ifndef GNUNET_NETWORK_LIB_H
 #define GNUNET_NETWORK_LIB_H
 
+#include "gnunet_common.h"
 #ifdef __cplusplus
 extern "C"
 {
@@ -157,7 +158,7 @@ GNUNET_NETWORK_socket_box_native (int fd);
  * @param doBlock blocking mode
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_NETWORK_socket_set_blocking (struct GNUNET_NETWORK_Handle *fd,
                                     int doBlock);
 

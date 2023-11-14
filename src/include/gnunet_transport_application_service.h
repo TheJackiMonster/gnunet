@@ -19,7 +19,7 @@
  */
 /**
  * @addtogroup Backbone
- * @{ 
+ * @{
  *
  * @file
  * Bandwidth allocation API for applications to interact with
@@ -36,7 +36,6 @@
 
 #include "gnunet_constants.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_nt_lib.h"
 #include "gnunet_testing_lib.h"
 #include "gnunet_testing_ng_lib.h"
 

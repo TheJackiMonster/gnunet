@@ -1,0 +1,8 @@
+subdir('util')
+subdir('hello')
+subdir('block')
+subdir('json', if_found : json_dep)
+subdir('curl', if_found : [curl_dep])
+subdir('sq', if_found : [sqlite_dep])
+subdir('pq', if_found : [pq_dep])
+subdir('gnsrecord')

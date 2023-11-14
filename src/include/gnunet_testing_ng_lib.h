@@ -31,7 +31,13 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
 
-
+/**
+ * Stringify operator.
+ *
+ * @param a some expression to stringify. Must NOT be a macro.
+ * @return same expression as a constant string.
+ */
+#define GNUNET_S(a) #a
 
 /**
  * Maximum length of label in command
@@ -520,6 +526,20 @@ struct GNUNET_TESTING_Timer
   unsigned int num_retries;
 };
 
+/**
+ * Command to execute a script synchronously.
+ *
+ * @param label Label of the command.
+ * @param script The name of the script.
+ * @param script_argv The arguments of the script. 
+*/
+const struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_exec_bash_script (const char *label,
+                                     const char *script,
+                                     char *const script_argv[],
+                                     int argc,
+                                     GNUNET_ChildCompletedCallback cb);
+
 
 /**
  * Retrieve peer identity from the test system with the unique node id.
@@ -530,7 +550,7 @@ struct GNUNET_TESTING_Timer
  */
 struct GNUNET_PeerIdentity *
 GNUNET_TESTING_get_peer (unsigned int num,
-                            const struct GNUNET_TESTING_System *tl_system);
+                         const struct GNUNET_TESTING_System *tl_system);
 
 
 /**
@@ -546,12 +566,12 @@ GNUNET_TESTING_cmd_stat (struct GNUNET_TESTING_Timer *timers);
 /* *** Generic trait logic for implementing traits ********* */
 
 /**
- * A struct GNUNET_TESTING_Trait can be used to exchange data between cmds. 
+ * A struct GNUNET_TESTING_Trait can be used to exchange data between cmds.
  *
  * Therefor the cmd which like to provide data to other cmds has to implement
- * the trait function, where an array of traits is defined with the help of the 
+ * the trait function, where an array of traits is defined with the help of the
  * GNUNET_TESTING_make_trait_ macro. The data can be retrieved with the help of the
- * GNUNET_TESTING_get_trait_ macro. Traits name and type must be defined to make 
+ * GNUNET_TESTING_get_trait_ macro. Traits name and type must be defined to make
  * use of the macros.
  */
 struct GNUNET_TESTING_Trait
@@ -602,6 +622,277 @@ GNUNET_TESTING_get_trait (const struct GNUNET_TESTING_Trait *traits,
 
 
 /* ****** Specific traits supported by this component ******* */
+
+
+typedef void *
+(*GNUNET_TESTING_notify_connect_cb) (struct GNUNET_TESTING_Interpreter *is,
+                                       const struct GNUNET_PeerIdentity *peer);
+
+/**
+ * Struct to store information needed in callbacks.
+ *
+ */
+struct GNUNET_TESTING_ConnectPeersState
+{
+  /**
+   * Receive callback
+   */
+  struct GNUNET_MQ_MessageHandler *handlers;
+
+  /**
+   * A map with struct GNUNET_MQ_Handle values for each peer this peer
+   * is connected to.
+   */
+  struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map;
+
+  /**
+   * Handle for transport.
+   */
+  struct GNUNET_TRANSPORT_ApplicationHandle *ah;
+
+  /**
+   * Core handle.
+   */
+  struct GNUNET_TRANSPORT_CoreHandle *th;
+
+  /**
+   * Context for our asynchronous completion.
+   */
+  struct GNUNET_TESTING_AsyncContext ac;
+
+  /**
+   * The testing system of this node.
+   */
+  const struct GNUNET_TESTING_System *tl_system;
+
+  // Label of the cmd which started the test system.
+  const char *create_label;
+
+  /**
+   * Number globally identifying the node.
+   *
+   */
+  uint32_t num;
+
+  /**
+   * Label of the cmd to start a peer.
+   *
+   */
+  const char *start_peer_label;
+
+  /**
+   * The topology of the test setup.
+   */
+  struct GNUNET_TESTING_NetjailTopology *topology;
+
+  /**
+   * Connections to other peers.
+   */
+  struct GNUNET_TESTING_NodeConnection *node_connections_head;
+
+  struct GNUNET_TESTING_Interpreter *is;
+
+  /**
+   * Number of connections.
+   */
+  unsigned int con_num;
+
+  /**
+   * Number of additional connects this cmd will wait for not triggered by this cmd.
+   */
+  unsigned int additional_connects;
+
+  /**
+ * Number of connections we already have a notification for.
+ */
+  unsigned int con_num_notified;
+
+  /**
+   * Number of additional connects this cmd will wait for not triggered by this cmd we already have a notification for.
+   */
+  unsigned int additional_connects_notified;
+
+  /**
+   * Flag indicating, whether the command is waiting for peers to connect that are configured to connect.
+   */
+  unsigned int wait_for_connect;
+};
+
+/**
+ * Struct to store information needed in callbacks.
+ *
+ */
+struct ConnectPeersState
+{
+  /**
+   * Context for our asynchronous completion.
+   */
+  struct GNUNET_TESTING_AsyncContext ac;
+
+  GNUNET_TESTING_notify_connect_cb notify_connect;
+
+  /**
+   * The testing system of this node.
+   */
+  const struct GNUNET_TESTING_System *tl_system;
+
+  // Label of the cmd which started the test system.
+  const char *create_label;
+
+  /**
+   * Number globally identifying the node.
+   *
+   */
+  uint32_t num;
+
+  /**
+   * Label of the cmd to start a peer.
+   *
+   */
+  const char *start_peer_label;
+
+  /**
+   * The topology of the test setup.
+   */
+  struct GNUNET_TESTING_NetjailTopology *topology;
+
+  /**
+   * Connections to other peers.
+   */
+  struct GNUNET_TESTING_NodeConnection *node_connections_head;
+
+  struct GNUNET_TESTING_Interpreter *is;
+
+  /**
+   * Number of connections.
+   */
+  unsigned int con_num;
+
+  /**
+   * Number of additional connects this cmd will wait for not triggered by this cmd.
+   */
+  unsigned int additional_connects;
+
+  /**
+ * Number of connections we already have a notification for.
+ */
+  unsigned int con_num_notified;
+
+  /**
+   * Number of additional connects this cmd will wait for not triggered by this cmd we already have a notification for.
+   */
+  unsigned int additional_connects_notified;
+
+  /**
+   * Flag indicating, whether the command is waiting for peers to connect that are configured to connect.
+   */
+  unsigned int wait_for_connect;
+};
+
+
+struct GNUNET_TESTING_StartPeerState
+{
+  /**
+   * Context for our asynchronous completion.
+   */
+  struct GNUNET_TESTING_AsyncContext ac;
+
+  /**
+   * The ip of a node.
+   */
+  char *node_ip;
+
+  /**
+   * Receive callback
+   */
+  struct GNUNET_MQ_MessageHandler *handlers;
+
+  /**
+   * GNUnet configuration file used to start a peer.
+   */
+  char *cfgname;
+
+  /**
+   * Peer's configuration
+   */
+  struct GNUNET_CONFIGURATION_Handle *cfg;
+
+  /**
+   * struct GNUNET_TESTING_Peer returned by GNUNET_TESTING_peer_configure.
+   */
+  struct GNUNET_TESTING_Peer *peer;
+
+  /**
+   * Peer identity
+   */
+  struct GNUNET_PeerIdentity id;
+
+  /**
+   * Peer's transport service handle
+   */
+  struct GNUNET_TRANSPORT_CoreHandle *th;
+
+  /**
+   * Application handle
+   */
+  struct GNUNET_TRANSPORT_ApplicationHandle *ah;
+
+  /**
+   * Peer's PEERSTORE Handle
+   */
+  struct GNUNET_PEERSTORE_Handle *ph;
+
+  /**
+   * Hello get task
+   */
+  struct GNUNET_SCHEDULER_Task *rh_task;
+
+  /**
+   * Peer's transport get hello handle to retrieve peer's HELLO message
+   */
+  struct GNUNET_PEERSTORE_IterateContext *pic;
+
+  /**
+   * Hello
+   */
+  char *hello;
+
+  /**
+   * Hello size
+   */
+  size_t hello_size;
+
+  /**
+   * The label of the command which was started by calling GNUNET_TESTING_cmd_system_create.
+   */
+  char *system_label;
+
+  /**
+   * An unique number to identify the peer
+   */
+  unsigned int no;
+
+  /**
+   * A map with struct GNUNET_MQ_Handle values for each peer this peer
+   * is connected to.
+   */
+  struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map;
+
+  /**
+   * Test setup for this peer.
+   */
+  const struct GNUNET_TESTING_System *tl_system;
+
+  /**
+   * Callback which is called on neighbour connect events.
+   */
+  GNUNET_TESTING_notify_connect_cb notify_connect;
+
+  /**
+   * Flag indicating, if udp broadcast should be switched on.
+   */
+  enum GNUNET_GenericReturnValue broadcast;
+};
 
 
 /**
@@ -698,7 +989,15 @@ GNUNET_TESTING_get_trait (const struct GNUNET_TESTING_Trait *traits,
  */
 #define GNUNET_TESTING_SIMPLE_TRAITS(op) \
   op (batch_cmds, struct GNUNET_TESTING_Command *) \
-  op (process, struct GNUNET_OS_Process *)
+  op (process, struct GNUNET_OS_Process *) \
+  op (peer_id, const struct GNUNET_PeerIdentity) \
+  op (connected_peers_map, const struct GNUNET_CONTAINER_MultiShortmap) \
+  op (hello_size, const size_t) \
+  op (hello, const char) \
+  op (application_handle, const struct GNUNET_TRANSPORT_ApplicationHandle) \
+  op (connect_peer_state, const struct GNUNET_TESTING_ConnectPeersState) \
+  op (state, const struct GNUNET_TESTING_StartPeerState) \
+  op (broadcast, const enum GNUNET_GenericReturnValue)
 
 
 /**

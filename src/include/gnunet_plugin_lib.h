@@ -70,7 +70,7 @@ typedef void *
  * @param library_name name of the plugin to test if it is installed
  * @return #GNUNET_YES if the plugin exists, #GNUNET_NO if not
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_PLUGIN_test (const char *library_name);
 
 

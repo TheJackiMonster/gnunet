@@ -107,7 +107,7 @@ sphinx_update()
     echo "Updating handbook..."
     if existence sphinx-build; then
       cwd=$PWD
-      cd contrib/sphinx || exit 1
+      cd contrib/handbook || exit 1
       if test -e _build; then
         make clean
       fi
@@ -148,7 +148,7 @@ gana_update()
       echo "Creating default TLDs"
       cd ../gnu-name-system-default-tlds && \
          make >/dev/null && \
-         cp tlds.conf ../../../src/gns || exit 1
+         cp tlds.conf ../../../src/service/gns || exit 1
 
       # Signatures
       echo "Updating GNUnet signatures"
@@ -164,7 +164,7 @@ gana_update()
       cd ../gnunet-error-codes && \
          make >/dev/null && \
          cp gnunet_error_codes.h ../../../src/include && \
-         cp gnunet_error_codes.c ../../../src/util || exit 1
+         cp gnunet_error_codes.c ../../../src/lib/util || exit 1
       cd $cwd
     else
       echo "ERROR: No recutils found! Unable to generate recent GANA headers and configs."

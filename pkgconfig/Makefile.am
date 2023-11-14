@@ -1,7 +1,6 @@
 # This Makefile.am is in the public domain
 pcfiles = \
        gnunetarm.pc \
-       gnunetats.pc \
        gnunetblock.pc \
        gnunetconsensus.pc \
        gnunetconversation.pc \
@@ -10,20 +9,17 @@ pcfiles = \
        gnunetdatastore.pc \
        gnunetdht.pc \
        gnunetdns.pc \
-       gnunetenv.pc \
-       gnunetfragmentation.pc \
        gnunetfs.pc \
        gnunetgns.pc \
        gnunethello.pc \
        gnunetidentity.pc \
+       gnunetjson.pc \
        gnunetcadet.pc \
        gnunetmessenger.pc \
        gnunetmicrophone.pc \
-       gnunetmysql.pc \
        gnunetnamestore.pc \
        gnunetnat.pc \
        gnunetnse.pc \
-       gnunetpeerinfo.pc \
        gnunetregex.pc \
        gnunetrevocation.pc \
        gnunetrps.pc \
@@ -31,7 +27,6 @@ pcfiles = \
        gnunetset.pc \
        gnunetspeaker.pc \
        gnunetstatistics.pc \
-       gnunettestbed.pc \
        gnunettesting.pc \
        gnunettransport.pc \
        gnunetutil.pc \
@@ -44,7 +39,6 @@ pkgconfig_DATA = $(pcfiles)
 
 EXTRA_DIST = \
        gnunetarm.pc.in \
-       gnunetats.pc.in \
        gnunetblock.pc.in \
        gnunetconsensus.pc.in \
        gnunetconversation.pc.in \
@@ -53,20 +47,17 @@ EXTRA_DIST = \
        gnunetdatastore.pc.in \
        gnunetdht.pc.in \
        gnunetdns.pc.in \
-       gnunetenv.pc.in \
-       gnunetfragmentation.pc.in \
        gnunetfs.pc.in \
        gnunetgns.pc.in \
        gnunethello.pc.in \
        gnunetidentity.pc.in \
+       gnunetjson.pc.in \
        gnunetcadet.pc.in \
        gnunetmessenger.pc.in \
        gnunetmicrophone.pc.in \
-       gnunetmysql.pc.in \
        gnunetnamestore.pc.in \
        gnunetnat.pc.in \
        gnunetnse.pc.in \
-       gnunetpeerinfo.pc.in \
        gnunetpostgres.pc.in \
        gnunetregex.pc.in \
        gnunetrevocation.pc.in \
@@ -75,7 +66,6 @@ EXTRA_DIST = \
        gnunetset.pc.in \
        gnunetspeaker.pc.in \
        gnunetstatistics.pc.in \
-       gnunettestbed.pc.in \
        gnunettesting.pc.in \
        gnunettransport.pc.in \
        gnunetutil.pc.in \
