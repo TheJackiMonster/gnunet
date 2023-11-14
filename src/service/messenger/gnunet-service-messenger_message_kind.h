@@ -33,7 +33,6 @@
 
 #include "messenger_api_message.h"
 #include "gnunet-service-messenger_service.h"
-#include "messenger_api_ego.h"
 
 /**
  * Creates and allocates a new info message containing the hosts service peer identity and version.
