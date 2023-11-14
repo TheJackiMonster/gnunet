@@ -3091,6 +3091,7 @@ free_pending_message (struct PendingMessage *pm)
     GNUNET_CONTAINER_DLL_remove (qe->queue->queue_head,
                                  qe->queue->queue_tail,
                                  qe);
+    qe->queue->queue_length--;
     GNUNET_free (qe);
   }
   if (NULL != pm->bpm)
@@ -3104,6 +3105,7 @@ free_pending_message (struct PendingMessage *pm)
       GNUNET_CONTAINER_DLL_remove (qe->queue->queue_head,
                                    qe->queue->queue_tail,
                                    qe);
+      qe->queue->queue_length--;
       GNUNET_free (qe);
     }
     GNUNET_free (pm->bpm);
