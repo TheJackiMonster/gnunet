@@ -36,6 +36,8 @@ init_contact_store (struct GNUNET_MESSENGER_ContactStore *store)
 
   store->anonymous = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
   store->contacts = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
+
+  store->counter = 0;
 }
 
 
@@ -136,7 +138,7 @@ get_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
     return contact;
   }
 
-  contact = create_contact (pubkey);
+  contact = create_contact (pubkey, ++(store->counter));
 
   if (GNUNET_OK == GNUNET_CONTAINER_multihashmap_put (map, &hash, contact,
                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))

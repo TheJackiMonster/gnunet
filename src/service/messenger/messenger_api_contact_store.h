@@ -36,6 +36,8 @@ struct GNUNET_MESSENGER_ContactStore
 {
   struct GNUNET_CONTAINER_MultiHashMap *anonymous;
   struct GNUNET_CONTAINER_MultiHashMap *contacts;
+
+  size_t counter;
 };
 
 /**

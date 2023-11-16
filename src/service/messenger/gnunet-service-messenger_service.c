@@ -228,6 +228,72 @@ get_service_room (const struct GNUNET_MESSENGER_Service *service,
 }
 
 
+struct HandleInitializationClosure
+{
+  struct GNUNET_MESSENGER_SrvHandle *handle;
+  struct GNUNET_MESSENGER_SrvRoom *room;
+  const struct GNUNET_CRYPTO_PublicKey *pubkey;
+};
+
+static int
+find_member_session_in_room (void *cls,
+                             const struct GNUNET_CRYPTO_PublicKey *public_key,
+                             struct GNUNET_MESSENGER_MemberSession *session)
+{
+  struct HandleInitializationClosure *init = cls;
+
+  if (! public_key)
+    return GNUNET_YES;
+
+  const struct GNUNET_CRYPTO_PublicKey *pubkey = get_srv_handle_key (
+    init->handle);
+
+  if (0 != GNUNET_memcmp (pubkey, public_key))
+    return GNUNET_YES;
+
+  const struct GNUNET_ShortHashCode *id = get_member_session_id (session);
+
+  if (! id)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Initialitation: Missing member id!");
+    return GNUNET_NO;
+  }
+
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Initialitation: Matching member found (%s)!\n",
+              GNUNET_sh2s (id));
+
+  change_srv_handle_member_id (init->handle, get_srv_room_key(init->room), id);
+  return GNUNET_NO;
+}
+
+
+static void
+initialize_service_handle (struct GNUNET_MESSENGER_SrvHandle *handle,
+                           struct GNUNET_MESSENGER_SrvRoom *room)
+{
+  GNUNET_assert ((handle) && (room));
+
+  struct GNUNET_MESSENGER_MemberStore *store = get_srv_room_member_store (room);
+  if (! store)
+    return;
+
+  const struct GNUNET_CRYPTO_PublicKey *pubkey = get_srv_handle_key (handle);
+  if ((! pubkey) || (0 == GNUNET_memcmp (pubkey, get_anonymous_public_key ())))
+    return;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Initialize member id of handle via matching member in room!\n");
+
+  struct HandleInitializationClosure init;
+  init.handle = handle;
+  init.room = room;
+  init.pubkey = pubkey;
+
+  iterate_store_members (store, find_member_session_in_room, &init);
+}
+
+
 int
 open_service_room (struct GNUNET_MESSENGER_Service *service,
                    struct GNUNET_MESSENGER_SrvHandle *handle,
@@ -238,9 +304,13 @@ open_service_room (struct GNUNET_MESSENGER_Service *service,
   struct GNUNET_MESSENGER_SrvRoom *room = get_service_room (service, key);
 
   if (room)
+  {
+    initialize_service_handle (handle, room);
     return open_srv_room (room, handle);
+  }
 
   room = create_srv_room (handle, key);
+  initialize_service_handle (handle, room);
 
   if ((GNUNET_YES == open_srv_room (room, handle)) &&
       (GNUNET_OK == GNUNET_CONTAINER_multihashmap_put (service->rooms,
@@ -265,6 +335,8 @@ entry_service_room (struct GNUNET_MESSENGER_Service *service,
 
   if (room)
   {
+    initialize_service_handle (handle, room);
+
     if (GNUNET_YES == enter_srv_room_at (room, handle, door))
       return GNUNET_YES;
     else
@@ -272,6 +344,7 @@ entry_service_room (struct GNUNET_MESSENGER_Service *service,
   }
 
   room = create_srv_room (handle, key);
+  initialize_service_handle (handle, room);
 
   if ((GNUNET_YES == enter_srv_room_at (room, handle, door)) &&
       (GNUNET_OK == GNUNET_CONTAINER_multihashmap_put (service->rooms,

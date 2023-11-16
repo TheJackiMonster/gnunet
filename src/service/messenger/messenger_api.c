@@ -1027,6 +1027,17 @@ GNUNET_MESSENGER_contact_get_key (const struct
 }
 
 
+size_t
+GNUNET_MESSENGER_contact_get_id (const struct
+                                 GNUNET_MESSENGER_Contact *contact)
+{
+  if (! contact)
+    return 0;
+
+  return get_contact_id(contact);
+}
+
+
 void
 GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room,
                                struct GNUNET_MESSENGER_Message *message,

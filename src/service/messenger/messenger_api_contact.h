@@ -34,6 +34,7 @@ struct GNUNET_MESSENGER_Contact
 {
   char *name;
   size_t rc;
+  size_t id;
 
   struct GNUNET_CRYPTO_PublicKey public_key;
 };
@@ -42,10 +43,12 @@ struct GNUNET_MESSENGER_Contact
  * Creates and allocates a new contact with a given public <i>key</i> from an EGO.
  *
  * @param[in] key Public key
+ * @param[in] unique_id Locally unique identifier
  * @return New contact
  */
 struct GNUNET_MESSENGER_Contact*
-create_contact (const struct GNUNET_CRYPTO_PublicKey *key);
+create_contact (const struct GNUNET_CRYPTO_PublicKey *key,
+                size_t unique_id);
 
 /**
  * Destroys a contact and frees its memory fully.
@@ -100,6 +103,15 @@ increase_contact_rc (struct GNUNET_MESSENGER_Contact *contact);
  */
 int
 decrease_contact_rc (struct GNUNET_MESSENGER_Contact *contact);
+
+/**
+ * Returns the locally unique identifier of a given <i>contact</i>.
+ *
+ * @param[in] contact contact Contact
+ * @return Locally unique identifier of contact
+ */
+size_t
+get_contact_id (const struct GNUNET_MESSENGER_Contact *contact);
 
 /**
  * Calculates the context <i>hash</i> of a member in a room and returns it.

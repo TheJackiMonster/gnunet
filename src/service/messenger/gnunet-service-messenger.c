@@ -114,7 +114,7 @@ initialize_handle_via_key (struct GNUNET_MESSENGER_SrvHandle *handle,
                   "Initialization failed while reading invalid key!\n");
   }
   else
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO, "Initialization is missing key!\n");
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Initialization is missing key!\n");
 }
 
 
