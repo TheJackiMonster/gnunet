@@ -254,7 +254,7 @@ join_room (struct GNUNET_MESSENGER_SrvRoom *room,
     return GNUNET_NO;
 
   enum GNUNET_GenericReturnValue reset;
-  if ((!id) || (0 != GNUNET_memcmp(id, member_id)))
+  if ((! id) || (0 != GNUNET_memcmp (id, member_id)))
     reset = GNUNET_YES;
   else
     reset = GNUNET_NO;

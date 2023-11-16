@@ -263,7 +263,7 @@ find_member_session_in_room (void *cls,
               "Initialitation: Matching member found (%s)!\n",
               GNUNET_sh2s (id));
 
-  change_srv_handle_member_id (init->handle, get_srv_room_key(init->room), id);
+  change_srv_handle_member_id (init->handle, get_srv_room_key (init->room), id);
   return GNUNET_NO;
 }
 

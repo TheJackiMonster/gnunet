@@ -276,7 +276,8 @@ sync_srv_handle_messages (struct GNUNET_MESSENGER_SrvHandle *handle,
 {
   GNUNET_assert ((handle) && (key) && (prev) && (hash));
 
-  struct GNUNET_MESSENGER_SrvRoom *room = get_service_room (handle->service, key);
+  struct GNUNET_MESSENGER_SrvRoom *room = get_service_room (handle->service,
+                                                            key);
 
   if ((! room) || (! get_srv_handle_member_id (handle, key)))
   {

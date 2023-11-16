@@ -140,8 +140,8 @@ handle_room_open (void *cls,
   if (GNUNET_YES == open_srv_handle_room (msg_client->handle, &(msg->key)))
   {
     struct GNUNET_HashCode prev;
-    sync_srv_handle_messages(msg_client->handle, &(msg->key), &(msg->previous),
-                             &prev);
+    sync_srv_handle_messages (msg_client->handle, &(msg->key), &(msg->previous),
+                              &prev);
 
     const struct GNUNET_ShortHashCode *member_id = get_srv_handle_member_id (
       msg_client->handle, &(msg->key));
@@ -154,7 +154,7 @@ handle_room_open (void *cls,
 
     env = GNUNET_MQ_msg (response, GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_OPEN);
     GNUNET_memcpy (&(response->key), &(msg->key), sizeof(response->key));
-    GNUNET_memcpy(&(response->previous), &prev, sizeof(response->previous));
+    GNUNET_memcpy (&(response->previous), &prev, sizeof(response->previous));
     GNUNET_MQ_send (msg_client->handle->mq, env);
   }
   else
@@ -188,8 +188,8 @@ handle_room_entry (void *cls,
                                            &(msg->key)))
   {
     struct GNUNET_HashCode prev;
-    sync_srv_handle_messages(msg_client->handle, &(msg->key), &(msg->previous),
-                             &prev);
+    sync_srv_handle_messages (msg_client->handle, &(msg->key), &(msg->previous),
+                              &prev);
 
     const struct GNUNET_ShortHashCode *member_id = get_srv_handle_member_id (
       msg_client->handle, &(msg->key));
@@ -203,7 +203,7 @@ handle_room_entry (void *cls,
     env = GNUNET_MQ_msg (response, GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_ENTRY);
     GNUNET_memcpy (&(response->door), &(msg->door), sizeof(response->door));
     GNUNET_memcpy (&(response->key), &(msg->key), sizeof(response->key));
-    GNUNET_memcpy(&(response->previous), &prev, sizeof(response->previous));
+    GNUNET_memcpy (&(response->previous), &prev, sizeof(response->previous));
     GNUNET_MQ_send (msg_client->handle->mq, env);
   }
   else
@@ -234,7 +234,8 @@ handle_room_close (void *cls,
 
     env = GNUNET_MQ_msg (response, GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_CLOSE);
     GNUNET_memcpy (&(response->key), &(msg->key), sizeof(response->key));
-    GNUNET_memcpy (&(response->previous), &(msg->previous), sizeof(response->previous));
+    GNUNET_memcpy (&(response->previous), &(msg->previous),
+                   sizeof(response->previous));
     GNUNET_MQ_send (msg_client->handle->mq, env);
   }
   else
@@ -243,6 +244,7 @@ handle_room_close (void *cls,
 
   GNUNET_SERVICE_client_continue (msg_client->client);
 }
+
 
 static void
 handle_room_sync (void *cls,
@@ -254,8 +256,8 @@ handle_room_sync (void *cls,
                 &(msg->key)));
 
   struct GNUNET_HashCode prev;
-  sync_srv_handle_messages(msg_client->handle, &(msg->key), &(msg->previous),
-                           &prev);
+  sync_srv_handle_messages (msg_client->handle, &(msg->key), &(msg->previous),
+                            &prev);
 
   struct GNUNET_MESSENGER_RoomMessage *response;
   struct GNUNET_MQ_Envelope *env;

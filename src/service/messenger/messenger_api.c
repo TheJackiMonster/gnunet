@@ -97,7 +97,7 @@ handle_room_open (void *cls,
   if (! room)
     return;
 
-  GNUNET_memcpy(&(room->last_message), prev, sizeof(room->last_message));
+  GNUNET_memcpy (&(room->last_message), prev, sizeof(room->last_message));
 
   dequeue_messages_from_room (room);
 }
@@ -122,7 +122,7 @@ handle_room_entry (void *cls,
   if (! room)
     return;
 
-  GNUNET_memcpy(&(room->last_message), prev, sizeof(room->last_message));
+  GNUNET_memcpy (&(room->last_message), prev, sizeof(room->last_message));
 
   dequeue_messages_from_room (room);
 }
@@ -140,7 +140,7 @@ handle_room_close (void *cls,
   struct GNUNET_MESSENGER_Room *room = get_handle_room (handle, key);
 
   if (room)
-    GNUNET_memcpy(&(room->last_message), prev, sizeof(room->last_message));
+    GNUNET_memcpy (&(room->last_message), prev, sizeof(room->last_message));
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Closed room: %s\n", GNUNET_h2s (key));
 
@@ -159,10 +159,10 @@ handle_room_sync (void *cls,
 
   struct GNUNET_MESSENGER_Room *room = get_handle_room (handle, key);
 
-  if (!room)
+  if (! room)
     return;
 
-  GNUNET_memcpy(&(room->last_message), prev, sizeof(room->last_message));
+  GNUNET_memcpy (&(room->last_message), prev, sizeof(room->last_message));
 
   room->wait_for_sync = GNUNET_NO;
 
@@ -384,7 +384,8 @@ send_open_room (struct GNUNET_MESSENGER_Handle *handle,
   env = GNUNET_MQ_msg_extra (msg, len > 0 ? len : 0,
                              GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_OPEN);
   GNUNET_memcpy (&(msg->key), &(room->key), sizeof(msg->key));
-  GNUNET_memcpy(&(msg->previous), &(room->last_message), sizeof(msg->previous));
+  GNUNET_memcpy (&(msg->previous), &(room->last_message),
+                 sizeof(msg->previous));
 
   char *msg_buffer = ((char*) msg) + sizeof(*msg);
 
@@ -416,7 +417,8 @@ send_enter_room (struct GNUNET_MESSENGER_Handle *handle,
                              GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_ENTRY);
   GNUNET_memcpy (&(msg->door), door, sizeof(*door));
   GNUNET_memcpy (&(msg->key), &(room->key), sizeof(msg->key));
-  GNUNET_memcpy(&(msg->previous), &(room->last_message), sizeof(msg->previous));
+  GNUNET_memcpy (&(msg->previous), &(room->last_message),
+                 sizeof(msg->previous));
 
   char *msg_buffer = ((char*) msg) + sizeof(*msg);
 
@@ -440,7 +442,8 @@ send_close_room (struct GNUNET_MESSENGER_Handle *handle,
   env = GNUNET_MQ_msg (msg, GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_CLOSE);
 
   GNUNET_memcpy (&(msg->key), &(room->key), sizeof(msg->key));
-  GNUNET_memcpy(&(msg->previous), &(room->last_message), sizeof(msg->previous));
+  GNUNET_memcpy (&(msg->previous), &(room->last_message),
+                 sizeof(msg->previous));
 
   GNUNET_MQ_send (handle->mq, env);
 }
@@ -461,7 +464,8 @@ send_sync_room (struct GNUNET_MESSENGER_Handle *handle,
   env = GNUNET_MQ_msg (msg, GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_SYNC);
 
   GNUNET_memcpy (&(msg->key), &(room->key), sizeof(msg->key));
-  GNUNET_memcpy(&(msg->previous), &(room->last_message), sizeof(msg->previous));
+  GNUNET_memcpy (&(msg->previous), &(room->last_message),
+                 sizeof(msg->previous));
 
   GNUNET_MQ_send (handle->mq, env);
 }
@@ -1034,7 +1038,7 @@ GNUNET_MESSENGER_contact_get_id (const struct
   if (! contact)
     return 0;
 
-  return get_contact_id(contact);
+  return get_contact_id (contact);
 }
 
 

@@ -128,7 +128,7 @@ get_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
     if (0 != GNUNET_memcmp (pubkey, get_contact_key (contact)))
     {
       char *str = GNUNET_CRYPTO_public_key_to_string (get_contact_key (
-                                                          contact));
+                                                        contact));
       GNUNET_log (GNUNET_ERROR_TYPE_INVALID,
                   "Contact in store uses wrong key: %s\n", str);
       GNUNET_free (str);

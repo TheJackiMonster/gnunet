@@ -390,32 +390,32 @@ calc_padded_length (uint16_t length)
 #define min(x, y) (x < y? x : y)
 
 #define encode_step_ext(dst, offset, src, size) do { \
-  GNUNET_memcpy (dst + offset, src, size);           \
-  offset += size;                                    \
+          GNUNET_memcpy (dst + offset, src, size);           \
+          offset += size;                                    \
 } while (0)
 
 #define encode_step(dst, offset, src) do {          \
-  encode_step_ext (dst, offset, src, sizeof(*src)); \
+          encode_step_ext (dst, offset, src, sizeof(*src)); \
 } while (0)
 
 #define encode_step_key(dst, offset, src, length) do {        \
-  ssize_t result = GNUNET_CRYPTO_write_public_key_to_buffer ( \
-    src, dst + offset, length - offset                        \
-  );                                                          \
-  if (result < 0)                                             \
-    GNUNET_break (0);                                         \
-  else                                                        \
-    offset += result;                                         \
+          ssize_t result = GNUNET_CRYPTO_write_public_key_to_buffer ( \
+            src, dst + offset, length - offset                        \
+            );                                                          \
+          if (result < 0)                                             \
+          GNUNET_break (0);                                         \
+          else                                                        \
+          offset += result;                                         \
 } while (0)
 
 #define encode_step_signature(dst, offset, src, length) do { \
-  ssize_t result = GNUNET_CRYPTO_write_signature_to_buffer ( \
-    src, dst + offset, length - offset                       \
-  );                                                         \
-  if (result < 0)                                            \
-    GNUNET_break (0);                                        \
-  else                                                       \
-    offset += result;                                        \
+          ssize_t result = GNUNET_CRYPTO_write_signature_to_buffer ( \
+            src, dst + offset, length - offset                       \
+            );                                                         \
+          if (result < 0)                                            \
+          GNUNET_break (0);                                        \
+          else                                                       \
+          offset += result;                                        \
 } while (0)
 
 static void
@@ -564,30 +564,30 @@ encode_short_message (const struct GNUNET_MESSENGER_ShortMessage *message,
 
 
 #define decode_step_ext(src, offset, dst, size) do { \
-  GNUNET_memcpy (dst, src + offset, size);           \
-  offset += size;                                    \
+          GNUNET_memcpy (dst, src + offset, size);           \
+          offset += size;                                    \
 } while (0)
 
 #define decode_step(src, offset, dst) do {          \
-  decode_step_ext (src, offset, dst, sizeof(*dst)); \
+          decode_step_ext (src, offset, dst, sizeof(*dst)); \
 } while (0)
 
 #define decode_step_malloc(src, offset, dst, size, zero) do { \
-  dst = GNUNET_malloc (size + zero);                          \
-  if (zero) dst[size] = 0;                                    \
-    decode_step_ext (src, offset, dst, size);                 \
+          dst = GNUNET_malloc (size + zero);                          \
+          if (zero) dst[size] = 0;                                    \
+          decode_step_ext (src, offset, dst, size);                 \
 } while (0)
 
 #define decode_step_key(src, offset, dst, length) do {   \
-  enum GNUNET_GenericReturnValue result;                 \
-  size_t read;                                           \
-  result = GNUNET_CRYPTO_read_public_key_from_buffer (   \
-    src + offset, length - offset, dst, &read            \
-  );                                                     \
-  if (GNUNET_SYSERR == result)                           \
-    GNUNET_break (0);                                    \
-  else                                                   \
-    offset += read;                                      \
+          enum GNUNET_GenericReturnValue result;                 \
+          size_t read;                                           \
+          result = GNUNET_CRYPTO_read_public_key_from_buffer (   \
+            src + offset, length - offset, dst, &read            \
+            );                                                     \
+          if (GNUNET_SYSERR == result)                           \
+          GNUNET_break (0);                                    \
+          else                                                   \
+          offset += read;                                      \
 } while (0)
 
 static uint16_t
@@ -698,7 +698,7 @@ decode_message (struct GNUNET_MESSENGER_Message *message,
   {
     ssize_t result = GNUNET_CRYPTO_read_signature_from_buffer (
       &(message->header.signature), buffer, length - offset
-    );
+      );
 
     if (result < 0)
       return GNUNET_NO;
