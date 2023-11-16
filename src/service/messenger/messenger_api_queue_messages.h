@@ -64,16 +64,19 @@ void
 clear_queue_messages (struct GNUNET_MESSENGER_QueueMessages *messages);
 
 /**
- * Adds a specific <i>message</i> to the end of the queue.
+ * Adds a specific <i>message</i> to the end or the beginning of
+ * the queue depending on its <i>priority</i>.
  *
  * @param[in,out] messages Queue of messages
  * @param[in] sender Private sender key
  * @param[in] message Message
+ * @param[in] priority Whether the message has priority
  */
 void
 enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
                      const struct GNUNET_CRYPTO_PrivateKey *sender,
-                     const struct GNUNET_MESSENGER_Message *message);
+                     const struct GNUNET_MESSENGER_Message *message,
+                     enum GNUNET_GenericReturnValue priority);
 
 /**
  * Remove the message from the front of the queue and returns it.

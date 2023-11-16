@@ -51,6 +51,7 @@ struct GNUNET_MESSENGER_Room
 
   enum GNUNET_GenericReturnValue opened;
   enum GNUNET_GenericReturnValue use_handle_name;
+  enum GNUNET_GenericReturnValue wait_for_sync;
 
   struct GNUNET_ShortHashCode *sender_id;
 

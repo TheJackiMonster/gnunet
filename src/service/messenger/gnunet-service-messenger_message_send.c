@@ -80,7 +80,7 @@ notify_about_members (struct GNUNET_MESSENGER_MemberNotify *notify,
     sender.member = session;
 
     notify_srv_handle_message (notify->handle, notify->room, &sender, message,
-                               &(element->hash));
+                               &(element->hash), GNUNET_NO);
   }
 }
 

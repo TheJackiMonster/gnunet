@@ -238,7 +238,8 @@ callback_room_connect (void *cls,
 static int
 join_room (struct GNUNET_MESSENGER_SrvRoom *room,
            struct GNUNET_MESSENGER_SrvHandle *handle,
-           struct GNUNET_MESSENGER_Member *member)
+           struct GNUNET_MESSENGER_Member *member,
+           const struct GNUNET_ShortHashCode *id)
 {
   GNUNET_assert ((room) && (handle) && (member));
 
@@ -252,7 +253,13 @@ join_room (struct GNUNET_MESSENGER_SrvRoom *room,
                                                 member_id))
     return GNUNET_NO;
 
-  notify_srv_handle_member_id (handle, room, member_id, GNUNET_YES);
+  enum GNUNET_GenericReturnValue reset;
+  if ((!id) || (0 != GNUNET_memcmp(id, member_id)))
+    reset = GNUNET_YES;
+  else
+    reset = GNUNET_NO;
+
+  notify_srv_handle_member_id (handle, room, member_id, reset);
   return GNUNET_YES;
 }
 
@@ -269,7 +276,7 @@ join_room_locally (struct GNUNET_MESSENGER_SrvRoom *room,
   struct GNUNET_MESSENGER_Member *member = add_store_member (member_store,
                                                              member_id);
 
-  if (GNUNET_NO == join_room (room, handle, member))
+  if (GNUNET_NO == join_room (room, handle, member, member_id))
     return GNUNET_NO;
 
   return GNUNET_YES;
@@ -329,7 +336,8 @@ open_srv_room (struct GNUNET_MESSENGER_SrvRoom *room,
   struct GNUNET_MESSENGER_Member *member = add_store_member (member_store,
                                                              member_id);
 
-  if ((GNUNET_NO == join_room (room, handle, member)) && (room->port))
+  if ((GNUNET_NO == join_room (room, handle, member, member_id)) &&
+      (room->port))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "You could not join the room, therefore it keeps closed!\n");
@@ -507,10 +515,6 @@ send_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
   if (! message)
     return GNUNET_NO;
 
-  if (GNUNET_YES == is_message_session_bound (message))
-    merge_srv_room_last_messages (room, handle);
-
-
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Sending message from handle in room: %s (%s)\n",
               GNUNET_h2s (&(room->key)),
@@ -625,6 +629,10 @@ merge_srv_room_last_messages (struct GNUNET_MESSENGER_SrvRoom *room,
 
   if (! handle)
     return;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Merging messages by handle in room: %s\n",
+              GNUNET_h2s (&(room->key)));
 
   const struct GNUNET_HashCode *hash;
 

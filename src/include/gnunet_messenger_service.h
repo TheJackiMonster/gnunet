@@ -557,6 +557,11 @@ enum GNUNET_MESSENGER_MessageFlags
    * The peer flag. The flag indicates that the message was sent by a peer and not a member.
    */
   GNUNET_MESSENGER_FLAG_PEER = 4,
+
+  /**
+   * The recent flag. The flag indicates that the message was recently handled by the service.
+   */
+  GNUNET_MESSENGER_FLAG_RECENT = 8,
 };
 
 /**

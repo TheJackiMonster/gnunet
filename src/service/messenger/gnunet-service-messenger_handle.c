@@ -342,6 +342,27 @@ close_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
 }
 
 
+void
+sync_srv_handle_messages (struct GNUNET_MESSENGER_SrvHandle *handle,
+                          const struct GNUNET_HashCode *key,
+                          const struct GNUNET_HashCode *prev,
+                          struct GNUNET_HashCode *hash)
+{
+  GNUNET_assert ((handle) && (key) && (prev) && (hash));
+
+  struct GNUNET_MESSENGER_SrvRoom *room = get_service_room (handle->service, key);
+
+  if ((! room) || (! get_srv_handle_member_id (handle, key)))
+  {
+    GNUNET_memcpy (hash, prev, sizeof(*hash));
+    return;
+  }
+
+  merge_srv_room_last_messages (room, handle);
+  get_message_state_chain_hash (&(room->state), hash);
+}
+
+
 int
 send_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
                          const struct GNUNET_HashCode *key,
@@ -435,7 +456,8 @@ notify_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
                            struct GNUNET_MESSENGER_SrvRoom *room,
                            const struct GNUNET_MESSENGER_SenderSession *session,
                            const struct GNUNET_MESSENGER_Message *message,
-                           const struct GNUNET_HashCode *hash)
+                           const struct GNUNET_HashCode *hash,
+                           enum GNUNET_GenericReturnValue recent)
 {
   GNUNET_assert ((handle) && (room) && (session) && (message) && (hash));
 
@@ -489,6 +511,9 @@ notify_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
     msg->flags |= (uint32_t) GNUNET_MESSENGER_FLAG_PEER;
   else if (get_handle_member_session (handle, room, key) == session->member)
     msg->flags |= (uint32_t) GNUNET_MESSENGER_FLAG_SENT;
+
+  if (GNUNET_YES == recent)
+    msg->flags |= (uint32_t) GNUNET_MESSENGER_FLAG_RECENT;
 
   char *buffer = ((char*) msg) + sizeof(*msg);
   encode_message (message, length, buffer, GNUNET_YES);

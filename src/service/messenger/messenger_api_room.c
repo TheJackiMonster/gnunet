@@ -44,6 +44,8 @@ create_room (struct GNUNET_MESSENGER_Handle *handle,
 
   room->opened = GNUNET_NO;
   room->use_handle_name = GNUNET_YES;
+  room->wait_for_sync = GNUNET_NO;
+
   room->sender_id = NULL;
 
   init_list_tunnels (&(room->entries));
@@ -404,7 +406,9 @@ handle_room_message (struct GNUNET_MESSENGER_Room *room,
     GNUNET_free (entry);
   }
 
-  GNUNET_memcpy (&(room->last_message), hash, sizeof(room->last_message));
+  if (flags & GNUNET_MESSENGER_FLAG_RECENT)
+    GNUNET_memcpy (&(room->last_message), hash, sizeof(room->last_message));
+
   return sender;
 }
 

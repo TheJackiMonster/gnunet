@@ -60,7 +60,8 @@ clear_queue_messages (struct GNUNET_MESSENGER_QueueMessages *messages)
 void
 enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
                      const struct GNUNET_CRYPTO_PrivateKey *sender,
-                     const struct GNUNET_MESSENGER_Message *message)
+                     const struct GNUNET_MESSENGER_Message *message,
+                     enum GNUNET_GenericReturnValue priority)
 {
   GNUNET_assert ((messages) && (message));
 
@@ -81,7 +82,10 @@ enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
     return;
   }
 
-  GNUNET_CONTAINER_DLL_insert_tail (messages->head, messages->tail, element);
+  if (GNUNET_YES == priority)
+    GNUNET_CONTAINER_DLL_insert (messages->head, messages->tail, element);
+  else
+    GNUNET_CONTAINER_DLL_insert_tail (messages->head, messages->tail, element);
 }
 
 

@@ -81,6 +81,7 @@ struct GNUNET_MESSENGER_RoomMessage
 
   struct GNUNET_PeerIdentity door;
   struct GNUNET_HashCode key;
+  struct GNUNET_HashCode previous;
 };
 
 /**

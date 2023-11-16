@@ -348,7 +348,8 @@ handle_service_message (struct GNUNET_MESSENGER_Service *service,
 
   while (element)
   {
-    notify_srv_handle_message (element->handle, room, session, message, hash);
+    notify_srv_handle_message (element->handle, room, session, message, hash,
+                               GNUNET_YES);
     element = element->next;
   }
 }
