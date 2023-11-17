@@ -3092,6 +3092,7 @@ free_pending_message (struct PendingMessage *pm)
                                  qe->queue->queue_tail,
                                  qe);
     qe->queue->queue_length--;
+    tc->details.communicator.total_queue_length--;
     GNUNET_free (qe);
   }
   if (NULL != pm->bpm)
@@ -3106,6 +3107,7 @@ free_pending_message (struct PendingMessage *pm)
                                    qe->queue->queue_tail,
                                    qe);
       qe->queue->queue_length--;
+      tc->details.communicator.total_queue_length--;
       GNUNET_free (qe);
     }
     GNUNET_free (pm->bpm);
