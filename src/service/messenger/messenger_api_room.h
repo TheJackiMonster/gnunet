@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -34,10 +34,12 @@
 #include "messenger_api_list_tunnels.h"
 #include "messenger_api_contact.h"
 #include "messenger_api_message.h"
+#include "messenger_api_queue_messages.h"
 
-struct GNUNET_MESSENGER_RoomMessageEntry {
-  struct GNUNET_MESSENGER_Contact* sender;
-  struct GNUNET_MESSENGER_Message* message;
+struct GNUNET_MESSENGER_RoomMessageEntry
+{
+  struct GNUNET_MESSENGER_Contact *sender;
+  struct GNUNET_MESSENGER_Message *message;
 };
 
 struct GNUNET_MESSENGER_Room
@@ -45,14 +47,20 @@ struct GNUNET_MESSENGER_Room
   struct GNUNET_MESSENGER_Handle *handle;
   struct GNUNET_HashCode key;
 
-  int opened;
+  struct GNUNET_HashCode last_message;
 
-  struct GNUNET_ShortHashCode *contact_id;
+  enum GNUNET_GenericReturnValue opened;
+  enum GNUNET_GenericReturnValue use_handle_name;
+  enum GNUNET_GenericReturnValue wait_for_sync;
+
+  struct GNUNET_ShortHashCode *sender_id;
 
   struct GNUNET_MESSENGER_ListTunnels entries;
 
   struct GNUNET_CONTAINER_MultiHashMap *messages;
   struct GNUNET_CONTAINER_MultiShortmap *members;
+
+  struct GNUNET_MESSENGER_QueueMessages queue;
 };
 
 /**
@@ -73,6 +81,34 @@ create_room (struct GNUNET_MESSENGER_Handle *handle,
  */
 void
 destroy_room (struct GNUNET_MESSENGER_Room *room);
+
+/**
+ * Checks whether a room is available to send messages.
+ *
+ * @param[in] room Room
+ * @return GNUNET_YES if the room is available, otherwise GNUNET_NO
+ */
+enum GNUNET_GenericReturnValue
+is_room_available (const struct GNUNET_MESSENGER_Room *room);
+
+/**
+ * Returns the member id of the <i>room</i>'s sender.
+ *
+ * @param[in] room Room
+ * @return Member id or NULL
+ */
+const struct GNUNET_ShortHashCode*
+get_room_sender_id (const struct GNUNET_MESSENGER_Room *room);
+
+/**
+ * Sets the member id of the <i>room</i>'s sender to a specific <i>id</i> or NULL.
+ *
+ * @param[in,out] room Room
+ * @param[in] id Member id or NULL
+ */
+void
+set_room_sender_id (struct GNUNET_MESSENGER_Room *room,
+                    const struct GNUNET_ShortHashCode *id);
 
 /**
  * Returns a message locally stored from a map for a given <i>hash</i> in a <i>room</i>. If no matching
@@ -109,13 +145,15 @@ get_room_sender (const struct GNUNET_MESSENGER_Room *room,
  * @param[in,out] sender Contact of sender
  * @param[in] message Message
  * @param[in] hash Hash of message
+ * @param[in] flags Flags of message
  * @return Contact of sender
  */
 struct GNUNET_MESSENGER_Contact*
 handle_room_message (struct GNUNET_MESSENGER_Room *room,
                      struct GNUNET_MESSENGER_Contact *sender,
                      const struct GNUNET_MESSENGER_Message *message,
-                     const struct GNUNET_HashCode *hash);
+                     const struct GNUNET_HashCode *hash,
+                     enum GNUNET_MESSENGER_MessageFlags flags);
 
 /**
  * Iterates through all members of a given <i>room</i> to forward each of them to a selected
@@ -129,7 +167,7 @@ handle_room_message (struct GNUNET_MESSENGER_Room *room,
 int
 iterate_room_members (struct GNUNET_MESSENGER_Room *room,
                       GNUNET_MESSENGER_MemberCallback callback,
-                      void* cls);
+                      void *cls);
 
 /**
  * Checks through all members of a given <i>room</i> if a specific <i>contact</i> is found and

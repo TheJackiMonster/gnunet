@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2013 GNUnet e.V.
+     Copyright (C) 2013--2023 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -107,6 +107,16 @@ GNUNET_IDENTITY_ego_get_anonymous (void);
 void
 GNUNET_IDENTITY_ego_get_public_key (struct GNUNET_IDENTITY_Ego *ego,
                                     struct GNUNET_CRYPTO_PublicKey *pk);
+
+
+/**
+ * Obtain the name associated with an ego.
+ *
+ * @param ego the ego
+ * @return associated name, valid as long as the ego is valid
+ */
+const char*
+GNUNET_IDENTITY_ego_get_name (const struct GNUNET_IDENTITY_Ego *ego);
 
 
 /**

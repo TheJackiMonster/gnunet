@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -27,71 +27,80 @@
 #include "messenger_api_contact.h"
 
 struct GNUNET_MESSENGER_Contact*
-create_contact (const struct GNUNET_CRYPTO_PublicKey *key)
+create_contact (const struct GNUNET_CRYPTO_PublicKey *key,
+                size_t unique_id)
 {
-  GNUNET_assert(key);
+  GNUNET_assert (key);
 
-  struct GNUNET_MESSENGER_Contact *contact = GNUNET_new(struct GNUNET_MESSENGER_Contact);
+  struct GNUNET_MESSENGER_Contact *contact = GNUNET_new (struct
+                                                         GNUNET_MESSENGER_Contact);
 
   contact->name = NULL;
   contact->rc = 0;
+  contact->id = unique_id;
 
-  GNUNET_memcpy(&(contact->public_key), key, sizeof(contact->public_key));
+  GNUNET_memcpy (&(contact->public_key), key, sizeof(contact->public_key));
 
   return contact;
 }
 
+
 void
 destroy_contact (struct GNUNET_MESSENGER_Contact *contact)
 {
-  GNUNET_assert(contact);
+  GNUNET_assert (contact);
 
   if (contact->name)
-    GNUNET_free(contact->name);
+    GNUNET_free (contact->name);
 
-  GNUNET_free(contact);
+  GNUNET_free (contact);
 }
+
 
 const char*
 get_contact_name (const struct GNUNET_MESSENGER_Contact *contact)
 {
-  GNUNET_assert(contact);
+  GNUNET_assert (contact);
 
   return contact->name;
 }
+
 
 void
 set_contact_name (struct GNUNET_MESSENGER_Contact *contact,
                   const char *name)
 {
-  GNUNET_assert(contact);
+  GNUNET_assert (contact);
 
   if (contact->name)
-    GNUNET_free(contact->name);
+    GNUNET_free (contact->name);
 
-  contact->name = name ? GNUNET_strdup(name) : NULL;
+  contact->name = name ? GNUNET_strdup (name) : NULL;
 }
+
 
 const struct GNUNET_CRYPTO_PublicKey*
 get_contact_key (const struct GNUNET_MESSENGER_Contact *contact)
 {
-  GNUNET_assert(contact);
+  GNUNET_assert (contact);
 
   return &(contact->public_key);
 }
 
+
 void
 increase_contact_rc (struct GNUNET_MESSENGER_Contact *contact)
 {
-  GNUNET_assert(contact);
+  GNUNET_assert (contact);
 
   contact->rc++;
 }
 
+
 int
 decrease_contact_rc (struct GNUNET_MESSENGER_Contact *contact)
 {
-  GNUNET_assert(contact);
+  GNUNET_assert (contact);
 
   if (contact->rc > 0)
     contact->rc--;
@@ -99,12 +108,22 @@ decrease_contact_rc (struct GNUNET_MESSENGER_Contact *contact)
   return contact->rc ? GNUNET_NO : GNUNET_YES;
 }
 
+
+size_t
+get_contact_id (const struct GNUNET_MESSENGER_Contact *contact)
+{
+  GNUNET_assert (contact);
+
+  return contact->id;
+}
+
+
 void
 get_context_from_member (const struct GNUNET_HashCode *key,
                          const struct GNUNET_ShortHashCode *id,
                          struct GNUNET_HashCode *context)
 {
-  GNUNET_assert((key) && (id) && (context));
+  GNUNET_assert ((key) && (id) && (context));
 
   GNUNET_CRYPTO_hash (id, sizeof(*id), context);
   GNUNET_CRYPTO_hash_xor (key, context, context);

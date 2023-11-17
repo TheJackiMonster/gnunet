@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -53,6 +53,15 @@ generate_free_member_id (struct GNUNET_ShortHashCode *id,
                          const struct GNUNET_CONTAINER_MultiShortmap *members);
 
 /**
+ * Returns the private identity key of #GNUNET_IDENTITY_ego_get_anonymous() without
+ * recalculating it every time.
+ *
+ * @return anonymous private key
+ */
+const struct GNUNET_CRYPTO_PrivateKey*
+get_anonymous_private_key ();
+
+/**
  * Returns the public identity key of #GNUNET_IDENTITY_ego_get_anonymous() without
  * recalculating it every time.
  *
@@ -72,7 +81,18 @@ get_anonymous_public_key ();
  * @param[out] port CADET service port
  */
 void
-convert_messenger_key_to_port(const struct GNUNET_HashCode *key,
-                              struct GNUNET_HashCode *port);
+convert_messenger_key_to_port (const struct GNUNET_HashCode *key,
+                               struct GNUNET_HashCode *port);
+
+/**
+ * Converts a peers identity to a short hash code which can be used
+ * as id to refer to a peer via sender id as attached in messages.
+ *
+ * @param[in] identity Peer identity
+ * @param[out] id Short peer id
+ */
+void
+convert_peer_identity_to_id (const struct GNUNET_PeerIdentity *identity,
+                             struct GNUNET_ShortHashCode *id);
 
 #endif //GNUNET_SERVICE_MESSENGER_UTIL_H

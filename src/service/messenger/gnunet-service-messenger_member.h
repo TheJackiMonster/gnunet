@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -175,6 +175,6 @@ remove_member_session (struct GNUNET_MESSENGER_Member *member,
 int
 iterate_member_sessions (struct GNUNET_MESSENGER_Member *member,
                          GNUNET_MESSENGER_MemberIteratorCallback it,
-                         void* cls);
+                         void *cls);
 
 #endif //GNUNET_SERVICE_MESSENGER_MEMBER_H

@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2022 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -32,9 +32,8 @@
 #include "gnunet_identity_service.h"
 
 #include "gnunet-service-messenger_service.h"
-#include "gnunet-service-messenger_member_session.h"
+#include "gnunet-service-messenger_sender_session.h"
 
-#include "messenger_api_ego.h"
 #include "messenger_api_message.h"
 
 struct GNUNET_MESSENGER_SrvHandle
@@ -42,11 +41,12 @@ struct GNUNET_MESSENGER_SrvHandle
   struct GNUNET_MESSENGER_Service *service;
   struct GNUNET_MQ_Handle *mq;
 
-  char *name;
-
-  const struct GNUNET_MESSENGER_Ego *ego;
+  struct GNUNET_CRYPTO_PublicKey *key;
 
   struct GNUNET_CONTAINER_MultiHashMap *member_ids;
+  struct GNUNET_CONTAINER_MultiHashMap *next_ids;
+
+  struct GNUNET_SCHEDULER_Task *notify;
 };
 
 /**
@@ -69,6 +69,25 @@ void
 destroy_srv_handle (struct GNUNET_MESSENGER_SrvHandle *handle);
 
 /**
+ * Sets the public key from the EGO of a given <i>handle</i>.
+ *
+ * @param[out] handle Handle
+ * @param[in] key Public key of EGO
+ */
+void
+set_srv_handle_key (struct GNUNET_MESSENGER_SrvHandle *handle,
+                    const struct GNUNET_CRYPTO_PublicKey *key);
+
+/**
+ * Returns the public key from the EGO of a given <i>handle</i>.
+ *
+ * @param[in] handle Handle
+ * @return Public key of handles EGO
+ */
+const struct GNUNET_CRYPTO_PublicKey*
+get_srv_handle_key (const struct GNUNET_MESSENGER_SrvHandle *handle);
+
+/**
  * Writes the path of the directory for a given <i>handle</i> using a specific <i>name</i> to the parameter
  * <i>dir</i>. This directory will be used to store data regarding the handle and its messages.
  *
@@ -78,8 +97,8 @@ destroy_srv_handle (struct GNUNET_MESSENGER_SrvHandle *handle);
  */
 void
 get_srv_handle_data_subdir (const struct GNUNET_MESSENGER_SrvHandle *handle,
-                        const char *name,
-                        char **dir);
+                            const char *name,
+                            char **dir);
 
 /**
  * Returns the member id of a given <i>handle</i> in a specific <i>room</i>.
@@ -109,57 +128,6 @@ int
 change_srv_handle_member_id (struct GNUNET_MESSENGER_SrvHandle *handle,
                              const struct GNUNET_HashCode *key,
                              const struct GNUNET_ShortHashCode *unique_id);
-
-/**
- * Sets the EGO used by a given <i>handle</i>.
- *
- * @param[in,out] handle Handle
- * @param[in] ego EGO key pair
- */
-void
-set_srv_handle_ego (struct GNUNET_MESSENGER_SrvHandle *handle,
-                    const struct GNUNET_MESSENGER_Ego *ego);
-
-/**
- * Returns the EGO used by a given <i>handle</i>.
- *
- * @param[in] handle Handle
- * @return EGO key pair
- */
-const struct GNUNET_MESSENGER_Ego*
-get_srv_handle_ego (const struct GNUNET_MESSENGER_SrvHandle *handle);
-
-/**
- * Tries to set the name and EGO key of a <i>handle</i> initially by looking up a specific <i>name</i>.
- *
- * @param[in,out] handle Handle
- * @param[in] name Name (optionally: valid EGO name)
- */
-void
-setup_srv_handle_name (struct GNUNET_MESSENGER_SrvHandle *handle,
-                       const char *name);
-
-/**
- * Tries to change the key pair of an EGO of a <i>handle</i> under the same name and informs all rooms
- * about the change automatically.
- *
- * @param[in,out] handle Handle
- */
-void
-update_srv_handle (struct GNUNET_MESSENGER_SrvHandle *handle);
-
-/**
- * Tries to rename the handle which implies renaming the EGO its using and moving all related data into
- * the directory fitting to the changed <i>name</i>.
- *
- * The client connected to the <i>handle</i> will be informed afterwards automatically.
- *
- * @param[in,out] handle Handle
- * @param[in] name New name
- */
-void
-set_srv_handle_name (struct GNUNET_MESSENGER_SrvHandle *handle,
-                     const char *name);
 
 /**
  * Makes a given <i>handle</i> a member of the room using a specific <i>key</i> and opens the
@@ -200,6 +168,23 @@ close_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
                        const struct GNUNET_HashCode *key);
 
 /**
+ * Returns the latest merged hash from a room of a given <i>handle</i> using a specific <i>key</i>
+ * and the handles own latest known <i>hash</i> of a message. If the room does not contain other
+ * messages being accessible to the handle and older than the provided hash, the function returns
+ * the originally provided hash as fallback.
+ *
+ * @param[in,out] handle Handle
+ * @param[in] key Key of a room
+ * @param[in] prev Known hash of a message
+ * @param[out] hash Hash of the latest merged message in a room available to the handle
+ */
+void
+sync_srv_handle_messages (struct GNUNET_MESSENGER_SrvHandle *handle,
+                          const struct GNUNET_HashCode *key,
+                          const struct GNUNET_HashCode *prev,
+                          struct GNUNET_HashCode *hash);
+
+/**
  * Sends a <i>message</i> from a given <i>handle</i> to the room using a specific <i>key</i>.
  *
  * @param[in,out] handle Handle
@@ -217,33 +202,31 @@ send_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
  *
  * @param[in,out] handle Handle
  * @param[in] room Room of the message
- * @param[in] session Member session
+ * @param[in] session Sender session
  * @param[in] message Message
  * @param[in] hash Hash of message
+ * @param[in] recent Whether the message was recently handled
  */
 void
 notify_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
                            struct GNUNET_MESSENGER_SrvRoom *room,
-                           const struct GNUNET_MESSENGER_MemberSession *session,
+                           const struct GNUNET_MESSENGER_SenderSession *session,
                            const struct GNUNET_MESSENGER_Message *message,
-                           const struct GNUNET_HashCode *hash);
+                           const struct GNUNET_HashCode *hash,
+                           enum GNUNET_GenericReturnValue recent);
 
 /**
- * Loads member ids and other potential configuration from a given <i>handle</i> which
- * depends on the given name the <i>handle</i> uses.
+ * Notifies the handle that a new member id needs to be used.
  *
- * @param[out] handle Handle
+ * @param[in,out] handle Handle
+ * @param[in] room Room of the member
+ * @param[in] member_id Member id
+ * @param[in] reset Reset member session with join message
  */
 void
-load_srv_handle_configuration (struct GNUNET_MESSENGER_SrvHandle *handle);
-
-/**
- * Saves member ids and other potential configuration from a given <i>handle</i> which
- * depends on the given name the <i>handle</i> uses.
- *
- * @param[in] handle Handle
- */
-void
-save_srv_handle_configuration (struct GNUNET_MESSENGER_SrvHandle *handle);
+notify_srv_handle_member_id (struct GNUNET_MESSENGER_SrvHandle *handle,
+                             struct GNUNET_MESSENGER_SrvRoom *room,
+                             const struct GNUNET_ShortHashCode *member_id,
+                             enum GNUNET_GenericReturnValue reset);
 
 #endif //GNUNET_SERVICE_MESSENGER_HANDLE_H

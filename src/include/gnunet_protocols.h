@@ -3580,6 +3580,8 @@ extern "C" {
 
 #define GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_GET_MESSAGE 1616
 
+#define GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_SYNC 1617
+
 /*********************************************************************************/
 
 /*********************************************************************************/

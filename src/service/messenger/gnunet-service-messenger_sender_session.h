@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -19,20 +19,25 @@
  */
 /**
  * @author Tobias Frisch
- * @file src/messenger/messenger_api_ego.h
+ * @file src/messenger/gnunet-service-messenger_sender_session.h
  * @brief GNUnet MESSENGER service
  */
 
-#ifndef GNUNET_MESSENGER_API_EGO_H
-#define GNUNET_MESSENGER_API_EGO_H
+#ifndef GNUNET_SERVICE_MESSENGER_SENDER_SESSION_H
+#define GNUNET_SERVICE_MESSENGER_SENDER_SESSION_H
 
 #include "platform.h"
-#include "gnunet_identity_service.h"
+#include "gnunet_util_lib.h"
 
-struct GNUNET_MESSENGER_Ego
+#include "gnunet-service-messenger_member_session.h"
+
+struct GNUNET_MESSENGER_SenderSession
 {
-  struct GNUNET_CRYPTO_PrivateKey priv;
-  struct GNUNET_CRYPTO_PublicKey pub;
+  union
+  {
+    struct GNUNET_MESSENGER_MemberSession *member;
+    struct GNUNET_PeerIdentity *peer;
+  };
 };
 
-#endif //GNUNET_MESSENGER_API_EGO_H
+#endif /* GNUNET_SERVICE_MESSENGER_SENDER_SESSION_H */

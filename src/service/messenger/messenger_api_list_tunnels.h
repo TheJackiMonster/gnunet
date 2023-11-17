@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -35,6 +35,7 @@ struct GNUNET_MESSENGER_ListTunnel
   struct GNUNET_MESSENGER_ListTunnel *next;
 
   GNUNET_PEER_Id peer;
+  struct GNUNET_HashCode *hash;
 };
 
 struct GNUNET_MESSENGER_ListTunnels
@@ -62,12 +63,16 @@ clear_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels);
 /**
  * Adds a specific <i>peer</i> from a tunnel to the end of the list.
  *
+ * Optionally adds the <i>hash</i> of the peer message from the specific <i>peer</i>.
+ *
  * @param[in,out] tunnels List of peer identities
  * @param[in] peer Peer identity of tunnel
+ * @param[in] hash Hash of peer message or NULL
  */
 void
 add_to_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
-                     const struct GNUNET_PeerIdentity *peer);
+                     const struct GNUNET_PeerIdentity *peer,
+                     const struct GNUNET_HashCode *hash);
 
 /**
  * Searches linearly through the list of tunnels peer identities for matching a
@@ -88,6 +93,22 @@ struct GNUNET_MESSENGER_ListTunnel*
 find_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
                    const struct GNUNET_PeerIdentity *peer,
                    size_t *index);
+
+/**
+ * Updates a specific <i>peer</i> from a tunnel in the list.
+ *
+ * This function exists to add the <i>hash</i> of a newer peer message
+ * from the specific <i>peer</i> to the list element. It can also remove
+ * the hash when NULL is provided as new <i>hash</i> value.
+ *
+ * @param[in,out] tunnels List of peer identities
+ * @param[in] peer Peer identity of tunnel
+ * @param[in] hash Hash of peer message or NULL
+ */
+void
+update_to_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
+                        const struct GNUNET_PeerIdentity *peer,
+                        const struct GNUNET_HashCode *hash);
 
 /**
  * Tests linearly if the list of tunnels peer identities contains a specific

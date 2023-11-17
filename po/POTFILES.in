@@ -342,7 +342,6 @@ src/service/identity/identity_api_lookup.c
 src/service/identity/identity_api_suffix_lookup.c
 src/service/messenger/gnunet-service-messenger.c
 src/service/messenger/gnunet-service-messenger_basement.c
-src/service/messenger/gnunet-service-messenger_ego_store.c
 src/service/messenger/gnunet-service-messenger_handle.c
 src/service/messenger/gnunet-service-messenger_list_handles.c
 src/service/messenger/gnunet-service-messenger_list_messages.c
@@ -366,10 +365,11 @@ src/service/messenger/messenger_api_contact_store.c
 src/service/messenger/messenger_api_handle.c
 src/service/messenger/messenger_api_list_tunnels.c
 src/service/messenger/messenger_api_message.c
+src/service/messenger/messenger_api_message_kind.c
+src/service/messenger/messenger_api_peer_store.c
+src/service/messenger/messenger_api_queue_messages.c
 src/service/messenger/messenger_api_room.c
 src/service/messenger/messenger_api_util.c
-src/service/messenger/testing_messenger_barrier.c
-src/service/messenger/testing_messenger_setup.c
 src/service/namecache/gnunet-service-namecache.c
 src/service/namecache/namecache_api.c
 src/service/namestore/gnunet-namestore-fcfsd.c

@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -43,6 +43,7 @@ static int status = 1;
 
 static struct GNUNET_SCHEDULER_Task *die_task = NULL;
 static struct GNUNET_SCHEDULER_Task *op_task = NULL;
+static struct GNUNET_SCHEDULER_Task *it_task = NULL;
 
 struct GNUNET_MESSENGER_Handle *messenger = NULL;
 
@@ -50,6 +51,12 @@ static void
 end (void *cls)
 {
   die_task = NULL;
+
+  if (it_task)
+  {
+    GNUNET_SCHEDULER_cancel (it_task);
+    it_task = NULL;
+  }
 
   if (op_task)
   {
@@ -66,6 +73,7 @@ end (void *cls)
   status = 0;
 }
 
+
 static void
 end_badly (void *cls)
 {
@@ -75,12 +83,15 @@ end_badly (void *cls)
   status = 1;
 }
 
+
 static void
 end_operation (void *cls)
 {
   op_task = NULL;
 
-  fprintf (stderr, "Testcase failed (operation: '%s').\n", cls ? (const char*) cls : "unknown");
+  fprintf (stderr, "Testcase failed (operation: '%s').\n", cls ? (const
+                                                                  char*) cls :
+           "unknown");
 
   if (die_task)
     GNUNET_SCHEDULER_cancel (die_task);
@@ -89,6 +100,7 @@ end_operation (void *cls)
   status = 1;
 }
 
+
 /**
  * Function called when an identity is retrieved.
  *
@@ -96,9 +108,12 @@ end_operation (void *cls)
  * @param handle Handle of messenger service
  */
 static void
-on_identity (void *cls,
-             struct GNUNET_MESSENGER_Handle *handle)
+on_iteration (void *cls)
 {
+  struct GNUNET_MESSENGER_Handle *handle = cls;
+
+  it_task = NULL;
+
   if (op_task)
   {
     GNUNET_SCHEDULER_cancel (op_task);
@@ -113,13 +128,8 @@ on_identity (void *cls,
     return;
   }
 
-  if (GNUNET_SYSERR != GNUNET_MESSENGER_update (handle))
-  {
-    op_task = GNUNET_SCHEDULER_add_now (&end_operation, "update-fail");
-    return;
-  }
-
-  const struct GNUNET_CRYPTO_PublicKey *key = GNUNET_MESSENGER_get_key (handle);
+  const struct GNUNET_CRYPTO_PublicKey *key = GNUNET_MESSENGER_get_key (
+    handle);
 
   if (key)
   {
@@ -137,6 +147,7 @@ on_identity (void *cls,
   die_task = GNUNET_SCHEDULER_add_now (&end, NULL);
 }
 
+
 /**
  * Main function for testcase.
  *
@@ -151,9 +162,14 @@ run (void *cls,
 {
   die_task = GNUNET_SCHEDULER_add_delayed (TOTAL_TIMEOUT, &end_badly, NULL);
 
-  op_task = GNUNET_SCHEDULER_add_delayed (BASE_TIMEOUT, &end_operation, "connect");
-  messenger = GNUNET_MESSENGER_connect (cfg, NULL, &on_identity, NULL, NULL, NULL);
+  op_task = GNUNET_SCHEDULER_add_delayed (BASE_TIMEOUT, &end_operation,
+                                          "connect");
+  messenger = GNUNET_MESSENGER_connect (cfg, NULL, NULL, NULL, NULL);
+
+  if (messenger)
+    it_task = GNUNET_SCHEDULER_add_now (&on_iteration, messenger);
 }
+
 
 /**
  * The main function.
@@ -166,7 +182,8 @@ int
 main (int argc,
       char **argv)
 {
-  if (0 != GNUNET_TESTING_peer_run ("test-messenger", "test_messenger_api.conf", &run, NULL))
+  if (0 != GNUNET_TESTING_peer_run ("test-messenger", "test_messenger_api.conf",
+                                    &run, NULL))
     return 1;
 
   return status;

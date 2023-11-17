@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2021 GNUnet e.V.
+   Copyright (C) 2021, 2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -31,29 +31,32 @@
 struct GNUNET_MESSENGER_Operation*
 create_operation (const struct GNUNET_HashCode *hash)
 {
-  GNUNET_assert(hash);
+  GNUNET_assert (hash);
 
-  struct GNUNET_MESSENGER_Operation *op = GNUNET_new(struct GNUNET_MESSENGER_Operation);
+  struct GNUNET_MESSENGER_Operation *op = GNUNET_new (struct
+                                                      GNUNET_MESSENGER_Operation);
 
   op->type = GNUNET_MESSENGER_OP_UNKNOWN;
-  GNUNET_memcpy(&(op->hash), hash, sizeof(*hash));
-  op->timestamp = GNUNET_TIME_absolute_get_zero_();
+  GNUNET_memcpy (&(op->hash), hash, sizeof(*hash));
+  op->timestamp = GNUNET_TIME_absolute_get_zero_ ();
   op->store = NULL;
   op->task = NULL;
 
   return op;
 }
 
+
 void
 destroy_operation (struct GNUNET_MESSENGER_Operation *op)
 {
-  GNUNET_assert(op);
+  GNUNET_assert (op);
 
   if (op->task)
-    GNUNET_SCHEDULER_cancel(op->task);
+    GNUNET_SCHEDULER_cancel (op->task);
 
-  GNUNET_free(op);
+  GNUNET_free (op);
 }
+
 
 static void
 callback_operation (void *cls);
@@ -62,25 +65,28 @@ struct GNUNET_MESSENGER_Operation*
 load_operation (struct GNUNET_MESSENGER_OperationStore *store,
                 const char *path)
 {
-  GNUNET_assert((store) && (path));
+  GNUNET_assert ((store) && (path));
 
-  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Load operation configuration: %s\n", path);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Load operation configuration: %s\n",
+              path);
 
   struct GNUNET_CONFIGURATION_Handle *cfg = GNUNET_CONFIGURATION_create ();
-  struct GNUNET_MESSENGER_Operation* op = NULL;
+  struct GNUNET_MESSENGER_Operation *op = NULL;
 
-  if (GNUNET_OK != GNUNET_CONFIGURATION_parse(cfg, path))
+  if (GNUNET_OK != GNUNET_CONFIGURATION_parse (cfg, path))
     goto destroy_config;
 
   struct GNUNET_HashCode hash;
 
-  if (GNUNET_OK != GNUNET_CONFIGURATION_get_data (cfg, "operation", "hash", &hash, sizeof(hash)))
+  if (GNUNET_OK != GNUNET_CONFIGURATION_get_data (cfg, "operation", "hash",
+                                                  &hash, sizeof(hash)))
     goto destroy_config;
 
-  op = create_operation(&hash);
+  op = create_operation (&hash);
 
   unsigned long long type_number;
-  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_number(cfg, "operation", "type", &type_number))
+  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_number (cfg, "operation",
+                                                          "type", &type_number))
     switch (type_number)
     {
     case GNUNET_MESSENGER_OP_REQUEST:
@@ -97,21 +103,25 @@ load_operation (struct GNUNET_MESSENGER_OperationStore *store,
     }
 
   if ((GNUNET_MESSENGER_OP_UNKNOWN == op->type) ||
-      (GNUNET_OK != GNUNET_CONFIGURATION_get_data (cfg, "operation", "timestamp", &(op->timestamp), sizeof(op->timestamp))))
+      (GNUNET_OK != GNUNET_CONFIGURATION_get_data (cfg, "operation",
+                                                   "timestamp",
+                                                   &(op->timestamp),
+                                                   sizeof(op->timestamp))))
   {
-    destroy_operation(op);
+    destroy_operation (op);
     op = NULL;
     goto destroy_config;
   }
 
-  const struct GNUNET_TIME_Relative delay = GNUNET_TIME_absolute_get_remaining(op->timestamp);
+  const struct GNUNET_TIME_Relative delay = GNUNET_TIME_absolute_get_remaining (
+    op->timestamp);
 
-  op->task = GNUNET_SCHEDULER_add_delayed_with_priority(
-      delay,
-      GNUNET_SCHEDULER_PRIORITY_BACKGROUND,
-      callback_operation,
-      op
-  );
+  op->task = GNUNET_SCHEDULER_add_delayed_with_priority (
+    delay,
+    GNUNET_SCHEDULER_PRIORITY_BACKGROUND,
+    callback_operation,
+    op
+    );
 
   op->store = store;
 
@@ -121,41 +131,47 @@ destroy_config:
   return op;
 }
 
+
 void
 save_operation (const struct GNUNET_MESSENGER_Operation *op,
                 const char *path)
 {
-  GNUNET_assert((path) && (op));
+  GNUNET_assert ((path) && (op));
 
-  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Save operation configuration: %s\n", path);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Save operation configuration: %s\n",
+              path);
 
   struct GNUNET_CONFIGURATION_Handle *cfg = GNUNET_CONFIGURATION_create ();
 
   char *hash_data;
-  hash_data = GNUNET_STRINGS_data_to_string_alloc (&(op->hash), sizeof(op->hash));
+  hash_data = GNUNET_STRINGS_data_to_string_alloc (&(op->hash),
+                                                   sizeof(op->hash));
 
   if (hash_data)
   {
     GNUNET_CONFIGURATION_set_value_string (cfg, "operation", "hash", hash_data);
 
-    GNUNET_free(hash_data);
+    GNUNET_free (hash_data);
   }
 
-  GNUNET_CONFIGURATION_set_value_number(cfg, "operation", "type", op->type);
+  GNUNET_CONFIGURATION_set_value_number (cfg, "operation", "type", op->type);
 
   char *timestamp_data;
-  timestamp_data = GNUNET_STRINGS_data_to_string_alloc (&(op->timestamp), sizeof(op->timestamp));
+  timestamp_data = GNUNET_STRINGS_data_to_string_alloc (&(op->timestamp),
+                                                        sizeof(op->timestamp));
 
   if (timestamp_data)
   {
-    GNUNET_CONFIGURATION_set_value_string (cfg, "operation", "timestamp", timestamp_data);
+    GNUNET_CONFIGURATION_set_value_string (cfg, "operation", "timestamp",
+                                           timestamp_data);
 
-    GNUNET_free(timestamp_data);
+    GNUNET_free (timestamp_data);
   }
 
   GNUNET_CONFIGURATION_write (cfg, path);
   GNUNET_CONFIGURATION_destroy (cfg);
 }
+
 
 extern void
 callback_store_operation (struct GNUNET_MESSENGER_OperationStore *store,
@@ -172,28 +188,29 @@ callback_operation (void *cls)
   callback_store_operation (op->store, op->type, &(op->hash));
 }
 
+
 int
 start_operation (struct GNUNET_MESSENGER_Operation *op,
                  enum GNUNET_MESSENGER_OperationType type,
                  struct GNUNET_MESSENGER_OperationStore *store,
                  struct GNUNET_TIME_Relative delay)
 {
-  GNUNET_assert((op) && (store));
+  GNUNET_assert ((op) && (store));
 
   if (op->task)
     return GNUNET_SYSERR;
 
-  const struct GNUNET_TIME_Absolute timestamp = GNUNET_TIME_absolute_add(
-      GNUNET_TIME_absolute_get(),
-      delay
-  );
+  const struct GNUNET_TIME_Absolute timestamp = GNUNET_TIME_absolute_add (
+    GNUNET_TIME_absolute_get (),
+    delay
+    );
 
-  op->task = GNUNET_SCHEDULER_add_delayed_with_priority(
-      delay,
-      GNUNET_SCHEDULER_PRIORITY_BACKGROUND,
-      callback_operation,
-      op
-  );
+  op->task = GNUNET_SCHEDULER_add_delayed_with_priority (
+    delay,
+    GNUNET_SCHEDULER_PRIORITY_BACKGROUND,
+    callback_operation,
+    op
+    );
 
   op->type = type;
   op->timestamp = timestamp;
@@ -202,19 +219,20 @@ start_operation (struct GNUNET_MESSENGER_Operation *op,
   return GNUNET_OK;
 }
 
+
 int
 stop_operation (struct GNUNET_MESSENGER_Operation *op)
 {
-  GNUNET_assert(op);
+  GNUNET_assert (op);
 
-  if (!op->task)
+  if (! op->task)
     return GNUNET_SYSERR;
 
-  GNUNET_SCHEDULER_cancel(op->task);
+  GNUNET_SCHEDULER_cancel (op->task);
   op->task = NULL;
 
   op->type = GNUNET_MESSENGER_OP_UNKNOWN;
-  op->timestamp = GNUNET_TIME_absolute_get_zero_();
+  op->timestamp = GNUNET_TIME_absolute_get_zero_ ();
   op->store = NULL;
 
   return GNUNET_OK;

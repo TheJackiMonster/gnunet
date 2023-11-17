@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -36,6 +36,8 @@ struct GNUNET_MESSENGER_ContactStore
 {
   struct GNUNET_CONTAINER_MultiHashMap *anonymous;
   struct GNUNET_CONTAINER_MultiHashMap *contacts;
+
+  size_t counter;
 };
 
 /**
@@ -105,7 +107,7 @@ get_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
  */
 void
 update_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
-                      struct GNUNET_MESSENGER_Contact* contact,
+                      struct GNUNET_MESSENGER_Contact *contact,
                       const struct GNUNET_HashCode *context,
                       const struct GNUNET_HashCode *next_context,
                       const struct GNUNET_CRYPTO_PublicKey *pubkey);
@@ -120,7 +122,7 @@ update_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
  */
 void
 remove_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
-                      struct GNUNET_MESSENGER_Contact* contact,
+                      struct GNUNET_MESSENGER_Contact *contact,
                       const struct GNUNET_HashCode *context);
 
 #endif //GNUNET_MESSENGER_API_CONTACT_STORE_H

@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2021 GNUnet e.V.
+   Copyright (C) 2021, 2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -33,11 +33,12 @@ void
 init_operation_store (struct GNUNET_MESSENGER_OperationStore *store,
                       struct GNUNET_MESSENGER_SrvRoom *room)
 {
-  GNUNET_assert((store) && (room));
+  GNUNET_assert ((store) && (room));
 
   store->room = room;
-  store->operations = GNUNET_CONTAINER_multihashmap_create(8, GNUNET_NO);
+  store->operations = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
 }
+
 
 static int
 iterate_destroy_operations (void *cls,
@@ -46,19 +47,22 @@ iterate_destroy_operations (void *cls,
 {
   struct GNUNET_MESSENGER_Operation *op = value;
 
-  destroy_operation(op);
+  destroy_operation (op);
 
   return GNUNET_YES;
 }
 
+
 void
 clear_operation_store (struct GNUNET_MESSENGER_OperationStore *store)
 {
-  GNUNET_assert(store);
+  GNUNET_assert (store);
 
-  GNUNET_CONTAINER_multihashmap_iterate (store->operations, iterate_destroy_operations, NULL);
-  GNUNET_CONTAINER_multihashmap_destroy(store->operations);
+  GNUNET_CONTAINER_multihashmap_iterate (store->operations,
+                                         iterate_destroy_operations, NULL);
+  GNUNET_CONTAINER_multihashmap_destroy (store->operations);
 }
+
 
 static int
 callback_scan_for_operations (void *cls,
@@ -69,21 +73,23 @@ callback_scan_for_operations (void *cls,
   if (GNUNET_YES != GNUNET_DISK_file_test (filename))
     return GNUNET_OK;
 
-  if ((strlen(filename) <= 4) || (0 != strcmp(filename + strlen(filename) - 4, ".cfg")))
+  if ((strlen (filename) <= 4) || (0 != strcmp (filename + strlen (filename)
+                                                - 4, ".cfg")))
     return GNUNET_OK;
 
-  struct GNUNET_MESSENGER_Operation *op = load_operation(store, filename);
+  struct GNUNET_MESSENGER_Operation *op = load_operation (store, filename);
 
-  if ((op) && (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put(
-      store->operations,
-      &(op->hash), op,
-      GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST)))
+  if ((op) && (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (
+                 store->operations,
+                 &(op->hash), op,
+                 GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST)))
   {
-    destroy_operation(op);
+    destroy_operation (op);
   }
 
   return GNUNET_OK;
 }
+
 
 void
 load_operation_store (struct GNUNET_MESSENGER_OperationStore *store,
@@ -91,14 +97,15 @@ load_operation_store (struct GNUNET_MESSENGER_OperationStore *store,
 {
   GNUNET_assert ((store) && (directory));
 
-  char* load_dir;
+  char *load_dir;
   GNUNET_asprintf (&load_dir, "%s%s%c", directory, "operations", DIR_SEPARATOR);
 
   if (GNUNET_OK == GNUNET_DISK_directory_test (load_dir, GNUNET_YES))
     GNUNET_DISK_directory_scan (load_dir, callback_scan_for_operations, store);
 
-  GNUNET_free(load_dir);
+  GNUNET_free (load_dir);
 }
+
 
 static int
 iterate_save_operations (void *cls,
@@ -109,16 +116,17 @@ iterate_save_operations (void *cls,
 
   struct GNUNET_MESSENGER_Operation *op = value;
 
-  if (!op)
+  if (! op)
     return GNUNET_YES;
 
   char *op_dir;
-  GNUNET_asprintf (&op_dir, "%s%s.cfg", save_dir, GNUNET_h2s(key));
-  save_operation(op, op_dir);
+  GNUNET_asprintf (&op_dir, "%s%s.cfg", save_dir, GNUNET_h2s (key));
+  save_operation (op, op_dir);
 
-  GNUNET_free(op_dir);
+  GNUNET_free (op_dir);
   return GNUNET_YES;
 }
+
 
 void
 save_operation_store (const struct GNUNET_MESSENGER_OperationStore *store,
@@ -126,29 +134,33 @@ save_operation_store (const struct GNUNET_MESSENGER_OperationStore *store,
 {
   GNUNET_assert ((store) && (directory));
 
-  char* save_dir;
+  char *save_dir;
   GNUNET_asprintf (&save_dir, "%s%s%c", directory, "operations", DIR_SEPARATOR);
 
   if ((GNUNET_YES == GNUNET_DISK_directory_test (save_dir, GNUNET_NO)) ||
       (GNUNET_OK == GNUNET_DISK_directory_create (save_dir)))
-    GNUNET_CONTAINER_multihashmap_iterate (store->operations, iterate_save_operations, save_dir);
+    GNUNET_CONTAINER_multihashmap_iterate (store->operations,
+                                           iterate_save_operations, save_dir);
 
-  GNUNET_free(save_dir);
+  GNUNET_free (save_dir);
 }
+
 
 enum GNUNET_MESSENGER_OperationType
 get_store_operation_type (const struct GNUNET_MESSENGER_OperationStore *store,
                           const struct GNUNET_HashCode *hash)
 {
-  GNUNET_assert((store) && (hash));
+  GNUNET_assert ((store) && (hash));
 
-  struct GNUNET_MESSENGER_Operation *op = GNUNET_CONTAINER_multihashmap_get(store->operations, hash);
+  struct GNUNET_MESSENGER_Operation *op = GNUNET_CONTAINER_multihashmap_get (
+    store->operations, hash);
 
-  if (!op)
+  if (! op)
     return GNUNET_MESSENGER_OP_UNKNOWN;
 
   return op->type;
 }
+
 
 int
 use_store_operation (struct GNUNET_MESSENGER_OperationStore *store,
@@ -156,18 +168,21 @@ use_store_operation (struct GNUNET_MESSENGER_OperationStore *store,
                      enum GNUNET_MESSENGER_OperationType type,
                      struct GNUNET_TIME_Relative delay)
 {
-  GNUNET_assert((store) && (hash));
+  GNUNET_assert ((store) && (hash));
 
-  struct GNUNET_MESSENGER_Operation *op = GNUNET_CONTAINER_multihashmap_get(store->operations, hash);
+  struct GNUNET_MESSENGER_Operation *op = GNUNET_CONTAINER_multihashmap_get (
+    store->operations, hash);
 
   if (op)
     goto use_op;
 
-  op = create_operation(hash);
+  op = create_operation (hash);
 
-  if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put(store->operations, hash, op, GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
+  if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (store->operations, hash,
+                                                      op,
+                                                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
   {
-    destroy_operation(op);
+    destroy_operation (op);
 
     return GNUNET_SYSERR;
   }
@@ -177,28 +192,33 @@ use_op:
       (type == GNUNET_MESSENGER_OP_DELETE))
     stop_operation (op);
 
-  return start_operation(op, type, store, delay);
+  return start_operation (op, type, store, delay);
 }
+
 
 void
 cancel_store_operation (struct GNUNET_MESSENGER_OperationStore *store,
                         const struct GNUNET_HashCode *hash)
 {
-  GNUNET_assert((store) && (hash));
+  GNUNET_assert ((store) && (hash));
 
-  struct GNUNET_MESSENGER_Operation *op = GNUNET_CONTAINER_multihashmap_get(store->operations, hash);
+  struct GNUNET_MESSENGER_Operation *op = GNUNET_CONTAINER_multihashmap_get (
+    store->operations, hash);
 
-  if (!op)
+  if (! op)
     return;
 
-  stop_operation(op);
+  stop_operation (op);
 
-  if (GNUNET_YES != GNUNET_CONTAINER_multihashmap_remove(store->operations, hash, op))
-    GNUNET_log(GNUNET_ERROR_TYPE_WARNING, "Canceled operation could not be removed: %s\n",
-               GNUNET_h2s(hash));
+  if (GNUNET_YES != GNUNET_CONTAINER_multihashmap_remove (store->operations,
+                                                          hash, op))
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Canceled operation could not be removed: %s\n",
+                GNUNET_h2s (hash));
 
-  destroy_operation(op);
+  destroy_operation (op);
 }
+
 
 extern void
 callback_room_deletion (struct GNUNET_MESSENGER_SrvRoom *room,
@@ -213,10 +233,10 @@ callback_store_operation (struct GNUNET_MESSENGER_OperationStore *store,
                           enum GNUNET_MESSENGER_OperationType type,
                           const struct GNUNET_HashCode *hash)
 {
-  GNUNET_assert((store) && (hash));
+  GNUNET_assert ((store) && (hash));
 
   struct GNUNET_HashCode op_hash;
-  GNUNET_memcpy(&op_hash, hash, sizeof(op_hash));
+  GNUNET_memcpy (&op_hash, hash, sizeof(op_hash));
   cancel_store_operation (store, &op_hash);
 
   struct GNUNET_MESSENGER_SrvRoom *room = store->room;

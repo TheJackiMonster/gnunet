@@ -42,7 +42,6 @@ extern "C" {
 #include "gnunet_common.h"
 #include "gnunet_configuration_lib.h"
 #include "gnunet_identity_service.h"
-#include "gnunet_protocols.h"
 #include "gnunet_scheduler_lib.h"
 #include "gnunet_time_lib.h"
 #include "gnunet_util_lib.h"
@@ -50,9 +49,9 @@ extern "C" {
 /**
  * Version number of GNUnet Messenger API.
  *
- * Current version of the Messenger: 0.2
+ * Current version of the Messenger: 0.3
  */
-#define GNUNET_MESSENGER_VERSION 0x00000002
+#define GNUNET_MESSENGER_VERSION 0x00000003
 
 /**
  * Identifier of GNUnet MESSENGER Service.
@@ -95,7 +94,7 @@ struct GNUNET_MESSENGER_RoomEntryRecord
 
 GNUNET_NETWORK_STRUCT_END
 
-GNUNET_NETWORK_STRUCT_BEGIN
+  GNUNET_NETWORK_STRUCT_BEGIN
 
 /**
  * A room details record specifies a custom name for a given room and
@@ -106,7 +105,7 @@ struct GNUNET_MESSENGER_RoomDetailsRecord
   /**
    * The custom name for the room.
    */
-  char name [256];
+  char name[256];
 
   /**
    * The flags of the room.
@@ -255,11 +254,6 @@ struct GNUNET_MESSENGER_MessageHeader
  */
 struct GNUNET_MESSENGER_MessageInfo
 {
-  /**
-   * The senders key to verify its signatures.
-   */
-  struct GNUNET_CRYPTO_PublicKey host_key;
-
   /**
    * The version of GNUnet Messenger API.
    *
@@ -462,6 +456,10 @@ struct GNUNET_MESSENGER_MessageFile
  */
 struct GNUNET_MESSENGER_MessagePrivate
 {
+  /**
+   * The ECDH key to decrypt the message.
+   */
+  struct GNUNET_CRYPTO_EcdhePublicKey key;
 
   /**
    * The length of the encrypted message.
@@ -554,18 +552,17 @@ enum GNUNET_MESSENGER_MessageFlags
    * The private flag. The flag indicates that the message was privately encrypted.
    */
   GNUNET_MESSENGER_FLAG_PRIVATE = 2,
-};
 
-/**
- * Method called whenever the EGO of a <i>handle</i> changes or if the first connection fails
- * to load a valid EGO and the anonymous key pair will be used instead.
- *
- * @param[in/out] cls Closure from #GNUNET_MESSENGER_connect
- * @param[in/out] handle Messenger handle
- */
-typedef void
-(*GNUNET_MESSENGER_IdentityCallback) (void *cls,
-                                      struct GNUNET_MESSENGER_Handle *handle);
+  /**
+   * The peer flag. The flag indicates that the message was sent by a peer and not a member.
+   */
+  GNUNET_MESSENGER_FLAG_PEER = 4,
+
+  /**
+   * The recent flag. The flag indicates that the message was recently handled by the service.
+   */
+  GNUNET_MESSENGER_FLAG_RECENT = 8,
+};
 
 /**
  * Method called whenever a message is sent or received from a <i>room</i>.
@@ -583,8 +580,10 @@ typedef void
 typedef void
 (*GNUNET_MESSENGER_MessageCallback) (void *cls,
                                      struct GNUNET_MESSENGER_Room *room,
-                                     const struct GNUNET_MESSENGER_Contact *sender,
-                                     const struct GNUNET_MESSENGER_Message *message,
+                                     const struct
+                                     GNUNET_MESSENGER_Contact *sender,
+                                     const struct
+                                     GNUNET_MESSENGER_Message *message,
                                      const struct GNUNET_HashCode *hash,
                                      enum GNUNET_MESSENGER_MessageFlags flags);
 
@@ -597,18 +596,18 @@ typedef void
  * @param[in] contact Contact handle
  */
 typedef int
-(*GNUNET_MESSENGER_MemberCallback) (void* cls,
+(*GNUNET_MESSENGER_MemberCallback) (void *cls,
                                     struct GNUNET_MESSENGER_Room *room,
-                                    const struct GNUNET_MESSENGER_Contact *contact);
+                                    const struct
+                                    GNUNET_MESSENGER_Contact *contact);
 
 /**
- * Set up a handle for the messenger related functions and connects to all necessary services. It will look up the ego
- * key identified by its <i>name</i> and use it for signing all messages from the handle.
+ * Set up a handle for the messenger related functions and connects to all necessary services. It will use the
+ * a custom name in combination of a private key provided for signing all messages from the handle.
  *
  * @param[in] cfg Configuration to use
- * @param[in] name Name to look up an ego or NULL to stay anonymous
- * @param[in] identity_callback Function called when the EGO of the handle changes
- * @param[in,out] identity_cls Closure for the <i>identity_callback</i> handler
+ * @param[in] name Name or NULL
+ * @param[in] key Private key or NULL to stay anonymous
  * @param[in] msg_callback Function called when a new message is sent or received
  * @param[in,out] msg_cls Closure for the <i>msg_callback</i> handler
  * @return Messenger handle to use, NULL on error
@@ -616,24 +615,9 @@ typedef int
 struct GNUNET_MESSENGER_Handle*
 GNUNET_MESSENGER_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
                           const char *name,
-                          GNUNET_MESSENGER_IdentityCallback identity_callback,
-                          void *identity_cls,
+                          const struct GNUNET_CRYPTO_PrivateKey *key,
                           GNUNET_MESSENGER_MessageCallback msg_callback,
                           void *msg_cls);
-
-/**
- * Update a handle of the messenger to use a different ego key and replace the old one with a newly generated one. All
- * participated rooms get informed about the key renewal. The handle requires a set name for this function to work and
- * it needs to be unused by other egos.
- *
- * Keep in mind that this will fully delete the old ego key (if any is used) even if any other service wants to use it
- * as default.
- *
- * @param[in,out] handle Messenger handle to use
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on failure
- */
-int
-GNUNET_MESSENGER_update (struct GNUNET_MESSENGER_Handle *handle);
 
 /**
  * Disconnect all of the messengers used services and clears up its used memory.
@@ -653,9 +637,8 @@ const char*
 GNUNET_MESSENGER_get_name (const struct GNUNET_MESSENGER_Handle *handle);
 
 /**
- * Set the name for the messenger. This will rename the currently used ego and move all stored files related to the current
- * name to its new directory. If anything fails during this process the function returns #GNUNET_NO and the name for
- * the messenger won't change as specified.
+ * Set the name for the messenger handle and sends messages renaming your contact in currently
+ * open rooms.
  *
  * @param[in,out] handle Messenger handle to use
  * @param[in] name Name for the messenger to change to
@@ -669,10 +652,23 @@ GNUNET_MESSENGER_set_name (struct GNUNET_MESSENGER_Handle *handle,
  * Get the public key used by the messenger or NULL if the anonymous key was used.
  *
  * @param[in] handle Messenger handle to use
- * @return Used ego's public key or NULL
+ * @return Used public key or NULL
  */
 const struct GNUNET_CRYPTO_PublicKey*
 GNUNET_MESSENGER_get_key (const struct GNUNET_MESSENGER_Handle *handle);
+
+/**
+ * Set the private key used by the messenger or NULL if the anonymous key should be
+ * used instead. The currently used key will be replaced and the change will get signed
+ * accordingly to be verified by all contacts.
+ *
+ * @param[in,out] handle Messenger handle to use
+ * @param[in] key Private key to change to or NULL
+ * @return #GNUNET_YES on success, #GNUNET_NO on failure and #GNUNET_SYSERR if <i>handle</i> is NULL
+ */
+int
+GNUNET_MESSENGER_set_key (struct GNUNET_MESSENGER_Handle *handle,
+                          const struct GNUNET_CRYPTO_PrivateKey *key);
 
 /**
  * Open a room to send and receive messages. The room will use the specified <i>key</i> as port for the underlying cadet
@@ -775,16 +771,26 @@ GNUNET_MESSENGER_get_sender (const struct GNUNET_MESSENGER_Room *room,
  * @return Name of <i>contact</i> or NULL
  */
 const char*
-GNUNET_MESSENGER_contact_get_name (const struct GNUNET_MESSENGER_Contact *contact);
+GNUNET_MESSENGER_contact_get_name (const struct
+                                   GNUNET_MESSENGER_Contact *contact);
 
 /**
  * Get the public key used by the <i>contact</i> or NULL if the anonymous key was used.
  *
  * @param[in] contact Contact handle
- * @return Public key of the ego used by <i>contact</i> or NULL
+ * @return Public key used by <i>contact</i> or NULL
  */
 const struct GNUNET_CRYPTO_PublicKey*
 GNUNET_MESSENGER_contact_get_key (const struct GNUNET_MESSENGER_Contact *contact);
+
+/**
+ * Get the locally unique id of the <i>contact</i>.
+ *
+ * @param[in] contact Contact handle
+ * @return Locally unique contact id or zero
+ */
+size_t
+GNUNET_MESSENGER_contact_get_id (const struct GNUNET_MESSENGER_Contact *contact);
 
 /**
  * Send a <i>message</i> into a <i>room</i>. If you opened the <i>room</i> all entered members will receive the
@@ -801,13 +807,13 @@ GNUNET_MESSENGER_contact_get_key (const struct GNUNET_MESSENGER_Contact *contact
  * Sending a message to all members in a given room can be done by providing NULL as contact.
  *
  * @param[in,out] room Room handle
- * @param[in] message New message to send
+ * @param[in,out] message New message to send
  * @param[in] contact Contact or NULL
  */
 void
 GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room,
-                               const struct GNUNET_MESSENGER_Message *message,
-                               const struct GNUNET_MESSENGER_Contact* contact);
+                               struct GNUNET_MESSENGER_Message *message,
+                               const struct GNUNET_MESSENGER_Contact *contact);
 
 /**
  * Get the message in a <i>room</i> identified by its <i>hash</i>.
@@ -833,7 +839,7 @@ GNUNET_MESSENGER_get_message (const struct GNUNET_MESSENGER_Room *room,
 int
 GNUNET_MESSENGER_iterate_members (struct GNUNET_MESSENGER_Room *room,
                                   GNUNET_MESSENGER_MemberCallback callback,
-                                  void* cls);
+                                  void *cls);
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {

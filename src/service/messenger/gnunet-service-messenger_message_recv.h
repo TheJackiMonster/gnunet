@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -28,8 +28,6 @@
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
-
-#include "gnunet-service-messenger_message_kind.h"
 
 #include "gnunet-service-messenger_member_session.h"
 #include "gnunet-service-messenger_tunnel.h"
