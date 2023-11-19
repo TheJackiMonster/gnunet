@@ -580,6 +580,46 @@ timeout_resolution (void *cls)
 
 
 /**
+ * Function called to receive the protocol number for a service.
+ * 
+ * @param name name of the protocol
+*/
+static struct protoent *
+resolver_getprotobyname(const char *name) {
+  struct protoent *pe = getprotobyname(name);
+  if (pe == NULL && strcmp(name, "trust") == 0) {
+    pe = GNUNET_new(struct protoent);
+    pe->p_name = "trust";
+    pe->p_proto = 242;
+  }
+  return pe;
+}
+
+
+/**
+ * Function called to receive the port number for a service.
+ * 
+ * @param name name of the service
+ * @param proto name of the protocol
+*/
+static struct servent *resolver_getservbyname(const char *name, const char *proto){
+  struct servent *se = getservbyname(name, proto);
+  if (se == NULL && strcmp(proto, "trust") == 0) {
+    if (strcmp(name, "trustlist") == 0) {
+      se = GNUNET_new(struct servent);
+      se->s_name = "trustlist";
+      se->s_port = htons(1002);
+    } else if (strcmp(name, "scheme") == 0) {
+      se = GNUNET_new(struct servent);
+      se->s_name = "scheme";
+      se->s_port = htons(1003);
+    }
+  }
+  return se;
+}
+
+
+/**
  * Get the next, rightmost label from the name that we are trying to resolve,
  * and update the resolution position accordingly.  Labels usually consist
  * of up to 63 characters without a period ("."); however, we use a special
@@ -662,47 +702,33 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
                                  rh->name_resolution_pos - (dot - rh->name)
                                  - 2);
     rh->name_resolution_pos = 0;
-    pe = getprotobyname (proto_name);
+    pe = resolver_getprotobyname (proto_name);
     if (NULL == pe)
     {
-      if (strcmp(proto_name, "trust") == 0){
-        pe = GNUNET_new(struct protoent);
-        pe->p_name = "trust";
-        pe->p_proto = 242;
-      } else {
-        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                    _ ("Protocol `%s' unknown, skipping labels.\n"),
-                    proto_name);
-        GNUNET_free (proto_name);
-        GNUNET_free (srv_name);
-        return ret;
-      }
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  _ ("Protocol `%s' unknown, skipping labels.\n"),
+                  proto_name);
+      GNUNET_free (proto_name);
+      GNUNET_free (srv_name);
+      return ret;
     }
-    se = getservbyname (srv_name,
+    se = resolver_getservbyname (srv_name,
                         proto_name);
     if (NULL == se)
     {
-      if(strcmp(proto_name,"trust") == 0 && (strcmp(srv_name,"trustlist") == 0 || strcmp(srv_name,"scheme") == 0)){
-        if(strcmp(srv_name,"trustlist") == 0) {
-          rh->service = 1002;
-        } else if (strcmp(srv_name,"scheme") == 0) {
-          rh->service = 1003;
-        }
-      } else {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  _ (
+                    "Service `%s' unknown for protocol `%s', trying as number.\n"),
+                  srv_name,
+                  proto_name);
+      if (1 != sscanf (srv_name, "%u", &rh->service))
+      {
         GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                    _ (
-                      "Service `%s' unknown for protocol `%s', trying as number.\n"),
-                    srv_name,
-                    proto_name);
-        if (1 != sscanf (srv_name, "%u", &rh->service))
-        {
-          GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                      _ ("Service `%s' not a port, skipping service labels.\n"),
-                      srv_name);
-          GNUNET_free (proto_name);
-          GNUNET_free (srv_name);
-          return ret;
-        }
+                    _ ("Service `%s' not a port, skipping service labels.\n"),
+                    srv_name);
+        GNUNET_free (proto_name);
+        GNUNET_free (srv_name);
+        return ret;
       }
     }
     else
