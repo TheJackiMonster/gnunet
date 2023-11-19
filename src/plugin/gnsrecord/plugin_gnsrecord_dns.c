@@ -671,6 +671,15 @@ dns_string_to_value (void *cls,
       uri.target = target;
       off = 0;
 
+      // TODO add more precise uri checking (RFC3986)
+      if (strstr(target, &":") == NULL || target[0] == 58 || target[strlen(target)-1] == 58)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    _ ("Failed to serialize URI record with target `%s'\n"),
+                    target);
+        return GNUNET_SYSERR;
+      }
+
       char uribuf[sizeof(struct GNUNET_TUN_DnsUriRecord) + strlen(target) + 1]; 
 
       if (GNUNET_OK !=
