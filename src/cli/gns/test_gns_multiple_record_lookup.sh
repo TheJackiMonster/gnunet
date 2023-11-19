@@ -45,15 +45,12 @@ PKEY=`$DO_TIMEOUT gnunet-identity -V -C $OTHER_EGO -c test_gns_lookup_peer2.conf
 # stdin and do them _all_ *atomically*. Then we would not need to do this.
 
 gnunet-arm -c test_gns_lookup_peer2.conf -k zonemaster
-gnunet-arm -c test_gns_lookup_peer2.conf -k zonemaster-monitor
 
 gnunet-namestore -p -z $OTHER_EGO -a -n $LABEL -t A -V $TEST_IP -e 3600s -c test_gns_lookup_peer2.conf
 gnunet-namestore -p -z $OTHER_EGO -a -n $LABEL -t AAAA -V $TEST_IPV6 -e 3600s -c test_gns_lookup_peer2.conf
 gnunet-namestore -D -z $OTHER_EGO -n $LABEL
 
 gnunet-arm -c test_gns_lookup_peer2.conf -i zonemaster
-gnunet-arm -c test_gns_lookup_peer2.conf -i zonemaster-monitor
-
 
 gnunet-arm -s -c test_gns_lookup_peer1.conf
 
