@@ -3264,7 +3264,7 @@ GNUNET_FS_start (const struct GNUNET_CONFIGURATION_Handle *cfg,
     GNUNET_TIME_UNIT_MINUTES; /* conservative starting point */
   va_start (ap, flags);
   while (GNUNET_FS_OPTIONS_END !=
-         (opt = GNUNET_VA_ARG_ENUM (ap, GNUNET_FS_OPTIONS)))
+         (opt = ((enum GNUNET_FS_OPTIONS) va_arg (ap, int))))
   {
     switch (opt)
     {
