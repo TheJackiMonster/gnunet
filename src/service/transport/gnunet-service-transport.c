@@ -9230,7 +9230,9 @@ handle_flow_control (void *cls, const struct TransportFlowControlMessage *fc)
                 random % FC_NO_CHANGE_REPLY_PROBABILITY);
     consider_sending_fc (vl);
   }
-  if ((wnd == vl->incoming_fc_window_size) &&
+  if ((wnd == vl->incoming_fc_window_size
+       + vl->incoming_fc_window_size_used
+       + vl->incoming_fc_window_size_loss) &&
       (vl->last_outbound_window_size_received == wnd) &&
       (NULL != vl->fc_retransmit_task))
   {
