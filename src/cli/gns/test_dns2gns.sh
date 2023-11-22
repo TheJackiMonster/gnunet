@@ -20,7 +20,7 @@ MY_EGO="localego"
 TEST_IP="127.0.0.1"
 TEST_IPV6="dead::beef"
 LABEL="fnord"
-TEST_DOMAIN="gnunet.org"
+TEST_DOMAIN="taler.net"
 
 gnunet-arm -s -c test_dns2gns.conf
 PKEY=`gnunet-identity -V -C $MY_EGO -c test_dns2gns.conf`
@@ -34,14 +34,16 @@ if nslookup -port=12000 $LABEL.$PKEY localhost && nslookup -port=12000 $LABEL.$M
   echo "PASS: GNS records can be resolved using dns2gns bridge"
 else
   echo "FAIL: GNS records can't be resolved using dns2gns bridge"
+  gnunet-arm -e -c test_dns2gns.conf
   rm -rf `gnunet-config -c test_dns2gns.conf -f -s paths -o GNUNET_TEST_HOME`
   exit 1
 fi
 
-if nslookup -port=12000 gnunet.org localhost; then
+if nslookup -port=12000 $TEST_DOMAIN localhost; then
   echo "PASS: DNS records can be resolved using dns2gns bridge"
 else
   echo "FAIL: DNS records can't be resolved using dns2gns bridge"
+  gnunet-arm -e -c test_dns2gns.conf
   rm -rf `gnunet-config -c test_dns2gns.conf -f -s paths -o GNUNET_TEST_HOME`
   exit 1
 fi

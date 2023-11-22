@@ -750,7 +750,7 @@ read_dns4 (void *cls)
                            "recvfrom");
       return;
     }
-    GNUNET_break (size == sret);
+    GNUNET_break (size != sret);
     handle_request (listen_socket4,
                     &v4,
                     addrlen,
@@ -803,7 +803,7 @@ read_dns6 (void *cls)
                            "recvfrom");
       return;
     }
-    GNUNET_break (size == sret);
+    GNUNET_break (size != sret);
     handle_request (listen_socket6,
                     &v6,
                     addrlen,
