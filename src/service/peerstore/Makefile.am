@@ -14,22 +14,11 @@ if USE_COVERAGE
   AM_CFLAGS = -fprofile-arcs -ftest-coverage
 endif
 
-# This program does not do anything.
-noinst_PROGRAMS = \
- gnunet-peerstore
-
 libexec_PROGRAMS = \
  gnunet-service-peerstore
 
 lib_LTLIBRARIES = \
  libgnunetpeerstore.la
-
-gnunet_peerstore_SOURCES = \
- gnunet-peerstore.c
-gnunet_peerstore_LDADD = \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  libgnunetpeerstore.la \
-  $(GN_LIBINTL)
 
 gnunet_service_peerstore_SOURCES = \
  gnunet-service-peerstore.c \
