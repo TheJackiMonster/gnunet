@@ -649,7 +649,7 @@ GNUNET_TRANSPORT_TESTING_stop_peer (struct
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Disconnecting from PEERSTORE service\n");
-    GNUNET_PEERSTORE_disconnect (p->ph, GNUNET_NO);
+    GNUNET_PEERSTORE_disconnect (p->ph);
     p->ph = NULL;
   }
 

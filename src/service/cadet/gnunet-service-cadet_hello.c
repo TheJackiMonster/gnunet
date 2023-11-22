@@ -128,7 +128,7 @@ GCH_shutdown ()
   }
   if (NULL != peerstore)
   {
-    GNUNET_PEERSTORE_disconnect (peerstore, GNUNET_YES);
+    GNUNET_PEERSTORE_disconnect (peerstore);
     peerstore = NULL;
   }
   if (NULL != mine)

@@ -1610,8 +1610,7 @@ GSF_connected_peer_done_ ()
   fr_task = NULL;
   GNUNET_CONTAINER_multipeermap_destroy (cp_map);
   cp_map = NULL;
-  GNUNET_PEERSTORE_disconnect (peerstore,
-                               GNUNET_YES);
+  GNUNET_PEERSTORE_disconnect (peerstore);
 }
 
 

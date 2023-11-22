@@ -337,15 +337,13 @@ GNUNET_PEERSTORE_connect (const struct GNUNET_CONFIGURATION_Handle *cfg);
 
 
 /**
- * Disconnect from the PEERSTORE service. Any pending ITERATE and WATCH requests
- * will be canceled.
- * Any pending STORE requests will depend on @e snyc_first flag.
+ * Disconnect from the PEERSTORE service. Any pending ITERATE and WATCH and
+ * STORE requests will be canceled.
  *
  * @param h handle to disconnect
- * @param sync_first send any pending STORE requests before disconnecting
  */
 void
-GNUNET_PEERSTORE_disconnect (struct GNUNET_PEERSTORE_Handle *h, int sync_first);
+GNUNET_PEERSTORE_disconnect (struct GNUNET_PEERSTORE_Handle *h);
 
 
 /**

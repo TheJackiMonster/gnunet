@@ -3526,7 +3526,7 @@ do_shutdown (void *cls)
   }
   if (NULL != peerstore)
   {
-    GNUNET_PEERSTORE_disconnect (peerstore, GNUNET_NO);
+    GNUNET_PEERSTORE_disconnect (peerstore);
     peerstore = NULL;
   }
   if (NULL != resolve_request_handle)

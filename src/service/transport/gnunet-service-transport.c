@@ -11620,7 +11620,7 @@ do_shutdown (void *cls)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Disconnecting from PEERSTORE service\n");
-    GNUNET_PEERSTORE_disconnect (peerstore, GNUNET_NO);
+    GNUNET_PEERSTORE_disconnect (peerstore);
     peerstore = NULL;
   }
   GNUNET_CONTAINER_multishortmap_destroy (dvlearn_map);
