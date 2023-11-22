@@ -1327,6 +1327,7 @@ src/cli/identity/Makefile
 src/cli/messenger/Makefile
 src/cli/namecache/Makefile
 src/cli/namestore/Makefile
+src/cli/peerstore/Makefile
 src/cli/nat/Makefile
 src/cli/nat-auto/Makefile
 src/cli/nse/Makefile

@@ -110,8 +110,7 @@ iterate_cb (void *cls,
     it = NULL;
     if (0 == ok)
     {
-      GNUNET_PEERSTORE_disconnect (h,
-                                   GNUNET_NO);
+      GNUNET_PEERSTORE_disconnect (h);
       if (NULL != to)
       {
         GNUNET_SCHEDULER_cancel (to);
