@@ -26,18 +26,71 @@ DISCLAIMER: This is a work in progress. The meson build system will be maintaine
 
 ## Use
 
+To compile run:
 
 ```
 $ meson setup $builddir
 $ cd $builddir
-$ meson configure -Dprefix=$string -Dexperimental=$bool -Dmonolith=$bool
+$ meson configure -Dprefix=$PFX -Dexperimental=$BOOL
 $ meson compile
+```
+
+to install:
+
+```
 $ meson install
+```
+
+to make tarball (runs tests unless specified to skip):
+
+```
 $ meson dist
 ```
 
+to uninstall:
+
+```
+$ ninja uninstall
+```
+
+## Test
+
+You can run the tests as:
+
+```
+$ meson test
+```
+
+you can run individual tests as:
+
+```
+$ meson test $TESTNAME
+```
+
+for example:
+
+
+```
+$ meson test test_gnsrecord_crypto
+```
+
+you can run test suites for components as:
+
+
+```
+$ meson test --suite util
+```
+
+performance tests are not included by default.
+To also have performance tests available use the ```full``` setup:
+
+```
+$ meson test --setup full
+```
+
+You can use this switch also when running suites or individual tests.
 
 ## Open issues
 
-  - Tests are always built: https://github.com/mesonbuild/meson/pull/6511
+  - All tests are always built: https://github.com/mesonbuild/meson/pull/6511
   - libtool versioning is different from soversion and version in meson
