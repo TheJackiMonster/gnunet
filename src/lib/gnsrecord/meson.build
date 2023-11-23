@@ -68,7 +68,7 @@ testgnsrecrd_test_exp = executable ('test_gnsrecord_block_expiration',
 
 test('perf_gnsrecord_crypto', testgnsrecrd_perf_crypto,
    workdir: meson.current_build_dir(),
-   suite: ['gnsrecord'])
+   suite: ['gnsrecord', 'perf'])
 test('test_gnsrecord_crypto', testgnsrecrd_test_crypto,
    workdir: meson.current_build_dir(),
    suite: ['gnsrecord'])

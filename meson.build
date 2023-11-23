@@ -424,6 +424,9 @@ subdir('data')
 
 meson.add_dist_script('meson-dist-script')
 
+add_test_setup('default', exclude_suites: ['perf'], is_default: true)
+add_test_setup('full', is_default: false)
+
 summary({'host': host_machine.system(),
          'prefix': get_option('prefix'),
          'compiler': cc.get_id(),

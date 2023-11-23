@@ -598,8 +598,6 @@ test('test_uri', testuri,
    workdir: meson.current_build_dir(),
    suite: ['util', 'util-misc'])
 
-# FIXME Benchmarks
-
 testos_start_process = executable ('test_os_start_process',
           ['test_os_start_process.c'],
           dependencies: [libgnunetutil_dep],
@@ -621,4 +619,27 @@ test('test_common_logging_runtime_loglevels', testcommon_logging_runtime,
    workdir: meson.current_build_dir(),
    suite: ['util', 'util-common'])
 
+testutil_perf = [
+  'perf_crypto_asymmetric',
+  # 'perf_crypto_cs', FIXME FTBFS
+  'perf_crypto_ecc_dlog',
+  'perf_crypto_hash',
+  'perf_crypto_paillier',
+  'perf_crypto_rsa',
+  'perf_crypto_symmetric',
+  'perf_malloc',
+  'perf_mq',
+  'perf_scheduler',
+]
 
+foreach t : testutil_perf
+
+  test_filename = t + '.sh'
+  testbin = executable(t, [t + '.c'],
+    dependencies: [libgnunetutil_dep, gcrypt_dep, sodium_dep],
+    include_directories: [incdir, configuration_inc],
+    build_by_default: false,
+    install: false)
+  test(t, testbin, suite: ['util', 'perf'],
+    workdir: meson.current_build_dir())
+endforeach
