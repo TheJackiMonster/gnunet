@@ -10991,7 +10991,7 @@ neighbour_dv_monotime_cb (void *cls,
     n->dv_monotime_available = GNUNET_YES;
     return;
   }
-  if (sizeof(*mtbe) != record->value_size)
+  if (0 == record->value_size)
   {
     GNUNET_break (0);
     return;
