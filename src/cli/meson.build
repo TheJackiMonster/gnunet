@@ -1,6 +1,7 @@
 subdir('util')
 subdir('arm')
 subdir('statistics')
+subdir('peerstore')
 subdir('datastore')
 subdir('nat')
 subdir('nat-auto')

@@ -45,7 +45,7 @@ shutdown_task (void *cls)
 {
   if (NULL != peerstore_handle)
   {
-    GNUNET_PEERSTORE_disconnect (peerstore_handle, GNUNET_YES);
+    GNUNET_PEERSTORE_disconnect (peerstore_handle);
     peerstore_handle = NULL;
   }
 }

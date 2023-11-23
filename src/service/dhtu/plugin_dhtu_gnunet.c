@@ -540,7 +540,7 @@ libgnunet_plugin_dhtu_gnunet_done (void *cls)
   if (NULL != plugin->peerstore_notify)
     GNUNET_PEERSTORE_hello_changed_notify_cancel (plugin->peerstore_notify);
   if (NULL != plugin->peerstore)
-    GNUNET_PEERSTORE_disconnect (plugin->peerstore, GNUNET_YES);
+    GNUNET_PEERSTORE_disconnect (plugin->peerstore);
   //GPI_plugins_unload ();
   GNUNET_free (plugin->my_priv);
   GNUNET_free (plugin);

@@ -25,6 +25,7 @@ src/cli/nat-auto/gnunet-nat-auto.c
 src/cli/nat-auto/gnunet-nat-server.c
 src/cli/nat/gnunet-nat.c
 src/cli/nse/gnunet-nse.c
+src/cli/peerstore/gnunet-peerstore.c
 src/cli/reclaim/gnunet-did.c
 src/cli/reclaim/gnunet-reclaim.c
 src/cli/revocation/gnunet-revocation-tvg.c
@@ -393,7 +394,6 @@ src/service/nat/nat_api_stun.c
 src/service/nse/gnunet-nse-profiler.c
 src/service/nse/gnunet-service-nse.c
 src/service/nse/nse_api.c
-src/service/peerstore/gnunet-peerstore.c
 src/service/peerstore/gnunet-service-peerstore.c
 src/service/peerstore/peerstore_api.c
 src/service/peerstore/peerstore_common.c

@@ -943,7 +943,7 @@ cleaning_task (void *cls)
   }
   if (NULL != ps)
   {
-    GNUNET_PEERSTORE_disconnect (ps, GNUNET_YES);
+    GNUNET_PEERSTORE_disconnect (ps);
     ps = NULL;
   }
   if (NULL != stats)

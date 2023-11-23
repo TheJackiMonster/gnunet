@@ -4745,7 +4745,7 @@ shutdown_task (void *cls)
 
   /* Disconnect from other services */
   GNUNET_PEERSTORE_hello_changed_notify_cancel (peerstore_notify);
-  GNUNET_PEERSTORE_disconnect (peerstore, GNUNET_YES);
+  GNUNET_PEERSTORE_disconnect (peerstore);
   peerstore = NULL;
   GNUNET_NSE_disconnect (nse);
   if (NULL != map_single_hop)

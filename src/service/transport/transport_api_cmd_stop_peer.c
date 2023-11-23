@@ -84,7 +84,7 @@ stop_peer_run (void *cls,
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Disconnecting from PEERSTORE service\n");
-    GNUNET_PEERSTORE_disconnect (sps->ph, GNUNET_NO);
+    GNUNET_PEERSTORE_disconnect (sps->ph);
   }
   if (NULL != sps->peer)
   {

@@ -146,12 +146,6 @@ enum GNUNET_GenericReturnValue
 #endif
 
 /**
- * wrap va_arg for enums
- */
-#define GNUNET_VA_ARG_ENUM(va, X) ((enum X) va_arg (va, int))
-
-
-/**
  * @ingroup logging
  * define #GNUNET_EXTRA_LOGGING if using this header outside the GNUnet source
  * tree where gnunet_config.h is unavailable

@@ -1814,7 +1814,7 @@ GNUNET_HOSTLIST_client_stop ()
   proxy_password = NULL;
   if (NULL != peerstore)
   {
-    GNUNET_PEERSTORE_disconnect (peerstore, GNUNET_YES);
+    GNUNET_PEERSTORE_disconnect (peerstore);
     peerstore = NULL;
   }
   cfg = NULL;
