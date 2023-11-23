@@ -96,6 +96,7 @@ foreach tn : namestoreapitestnames
             include_directories: [incdir, configuration_inc],
             install: false)
   test(tn + '_sqlite', t, workdir: meson.current_build_dir(),
+    is_parallel: false,
      suite: 'namestore')
   if pq_dep.found()
     t_pq = executable (tn + '_postgres',
@@ -109,6 +110,7 @@ foreach tn : namestoreapitestnames
               include_directories: [incdir, configuration_inc],
               install: false)
     test(tn + '_postgres', t, workdir: meson.current_build_dir(),
+    is_parallel: false,
        suite: 'namestore')
   endif
 endforeach

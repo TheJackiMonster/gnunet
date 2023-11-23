@@ -1,21 +1,21 @@
 configure_file(input : 'gnunet-gns-proxy-setup-ca.in',
-               output : 'gnunet-gns-proxy-setup-ca',
-               configuration : cdata,
-               install: true,
-               install_dir: get_option('bindir'))
+  output : 'gnunet-gns-proxy-setup-ca',
+  configuration : cdata,
+  install: true,
+  install_dir: get_option('bindir'))
 
 install_data('gnunet-gns-proxy-ca.template',
-             install_dir: get_option('datadir')/'gnunet')
+  install_dir: get_option('datadir')/'gnunet')
 
 executable ('gnunet-gns',
-            'gnunet-gns.c',
-            dependencies: [libgnunetgns_dep,
-                           libgnunetgnsrecord_dep,
-                           idn_dep,
-                           libgnunetutil_dep],
-            include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('bindir'))
+  'gnunet-gns.c',
+  dependencies: [libgnunetgns_dep,
+    libgnunetgnsrecord_dep,
+    idn_dep,
+    libgnunetutil_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('bindir'))
 
 testgns = [
   'test_dns2gns',
@@ -37,7 +37,7 @@ testgns = [
   'test_gns_soa_lookup',
   'test_gns_txt_lookup',
   'test_gns_zkey_lookup',
-]
+  ]
 
 testconfigs = [
   'test_dns2gns.conf',
@@ -46,7 +46,7 @@ testconfigs = [
   'test_gns_lookup_peer1.conf',
   'test_gns_lookup_peer2.conf',
   'test_gns_simple_lookup.conf'
-]
+  ]
 
 foreach f : testconfigs
   configure_file(input: f, output: f, copy: true)
@@ -56,8 +56,8 @@ foreach t : testgns
 
   test_filename = t + '.sh'
   test_file = configure_file(input : test_filename,
-               output : test_filename,
-               copy: true)
+    output : test_filename,
+    copy: true)
 
   test(t, test_file, suite: 'gns', workdir: meson.current_build_dir(), is_parallel: false)
 endforeach
