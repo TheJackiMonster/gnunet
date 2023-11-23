@@ -37,3 +37,58 @@ executable ('gnunet-service-peerstore',
             install: true,
             install_dir: get_option('libdir') / 'gnunet' / 'libexec')
 
+testpeerstore_api_iterate = executable ('test_peerstore_api_iterate',
+            ['test_peerstore_api_iterate.c'],
+            dependencies: [
+              libgnunetpeerstore_dep,
+              libgnunettesting_dep,
+              libgnunetutil_dep
+              ],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+
+testpeerstore_api_store = executable ('test_peerstore_api_store',
+            ['test_peerstore_api_store.c'],
+            dependencies: [
+              libgnunetpeerstore_dep,
+              libgnunetutil_dep,
+              libgnunettesting_dep,
+              ],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+
+testpeerstore_api_watch = executable ('test_peerstore_api_watch',
+            ['test_peerstore_api_watch.c'],
+            dependencies: [
+              libgnunetpeerstore_dep,
+              libgnunetutil_dep,
+              libgnunettesting_dep,
+              ],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+testpeerstore_api_perf = executable ('perf_peerstore_store',
+            ['perf_peerstore_store.c'],
+            dependencies: [
+              libgnunetpeerstore_dep,
+              libgnunetutil_dep,
+              libgnunettesting_dep,
+              ],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+
+configure_file(input : 'test_peerstore_api_data.conf',
+               output : 'test_peerstore_api_data.conf',
+               copy: true)
+
+test('test_peerstore_api_store', testpeerstore_api_store,
+  suite: 'peerstore', workdir: meson.current_build_dir())
+test('test_peerstore_api_watch', testpeerstore_api_watch,
+  suite: 'peerstore', workdir: meson.current_build_dir())
+test('test_peerstore_api_iterate', testpeerstore_api_iterate,
+  suite: 'peerstore', workdir: meson.current_build_dir())
+test('perf_peerstore_store', testpeerstore_api_perf,
+  suite: 'peerstore', workdir: meson.current_build_dir())
+
+
+
+

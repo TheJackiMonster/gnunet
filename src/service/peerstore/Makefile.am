@@ -44,7 +44,6 @@ check_PROGRAMS = \
  test_peerstore_api_store \
  test_peerstore_api_iterate \
  test_peerstore_api_watch \
- test_peerstore_api_sync \
  perf_peerstore_store
 
 EXTRA_DIST = \
@@ -72,13 +71,6 @@ test_peerstore_api_iterate_LDADD = \
 test_peerstore_api_watch_SOURCES = \
  test_peerstore_api_watch.c
 test_peerstore_api_watch_LDADD = \
-  libgnunetpeerstore.la  \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la
-
-test_peerstore_api_sync_SOURCES = \
- test_peerstore_api_sync.c
-test_peerstore_api_sync_LDADD = \
   libgnunetpeerstore.la  \
   $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la

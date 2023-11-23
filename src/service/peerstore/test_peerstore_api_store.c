@@ -21,6 +21,7 @@
  * @file peerstore/test_peerstore_api_store.c
  * @brief testcase for peerstore store operation
  */
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_peerstore_service.h"
 #include "gnunet_testing_lib.h"
@@ -41,6 +42,13 @@ static int count = 0;
 
 
 static void
+finish (void *cls)
+{
+  GNUNET_PEERSTORE_disconnect (h);
+  GNUNET_SCHEDULER_shutdown ();
+}
+
+static void
 test3_cont2 (void *cls,
              const struct GNUNET_PEERSTORE_Record *record,
              const char *emsg)
@@ -57,8 +65,7 @@ test3_cont2 (void *cls,
   }
   GNUNET_assert (count == 1);
   ok = 0;
-  GNUNET_PEERSTORE_disconnect (h, GNUNET_YES);
-  GNUNET_SCHEDULER_shutdown ();
+  GNUNET_SCHEDULER_add_now (&finish, NULL);
 }
 
 
@@ -158,7 +165,10 @@ test1_cont2 (void *cls,
              const char *emsg)
 {
   if (NULL != emsg)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Error received: %s\n", emsg);
     return;
+  }
   if (NULL != record)
   {
     GNUNET_assert ((strlen (val1) + 1) == record->value_size);
@@ -175,6 +185,7 @@ test1_cont2 (void *cls,
 static void
 test1_cont (void *cls, int success)
 {
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Store done, ret=%d...\n", success);
   if (GNUNET_YES != success)
     return;
   count = 0;
@@ -193,6 +204,7 @@ test1_cont (void *cls, int success)
 static void
 test1 ()
 {
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "test1 start\n");
   GNUNET_PEERSTORE_store (h,
                           subsystem,
                           &pid,

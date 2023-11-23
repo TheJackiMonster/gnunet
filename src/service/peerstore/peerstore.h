@@ -30,6 +30,7 @@
 
 
 GNUNET_NETWORK_STRUCT_BEGIN
+
 /**
  * Message carrying a PEERSTORE record message
  */
@@ -74,6 +75,11 @@ struct StoreRecordMessage
   uint16_t value_size GNUNET_PACKED;
 
   /**
+   * Request id.
+   */
+  uint32_t rid GNUNET_PACKED;
+
+  /**
    * Options, needed only in case of a
    * store operation
    */
@@ -82,6 +88,28 @@ struct StoreRecordMessage
   /* Followed by key and value */
 };
 
+/**
+ * Message carrying a PEERSTORE result message
+ */
+struct PeerstoreResultMessage
+{
+  /**
+   * GNUnet message header
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * Request id.
+   */
+  uint32_t rid GNUNET_PACKED;
+
+  /**
+   * Options, needed only in case of a
+   * store operation
+   */
+  uint32_t result GNUNET_PACKED;
+
+};
 
 /**
  * Message carrying record key hash
@@ -94,14 +122,15 @@ struct StoreKeyHashMessage
   struct GNUNET_MessageHeader header;
 
   /**
-   * Always 0, for alignment.
+   * Request id.
    */
-  uint32_t reserved GNUNET_PACKED;
+  uint32_t rid GNUNET_PACKED;
 
   /**
    * Hash of a record key
    */
   struct GNUNET_HashCode keyhash;
+
 };
 
 GNUNET_NETWORK_STRUCT_END

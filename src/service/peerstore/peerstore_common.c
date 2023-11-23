@@ -59,21 +59,9 @@ PEERSTORE_hash_key (const char *sub_system,
 }
 
 
-/**
- * Creates a MQ envelope for a single record
- *
- * @param sub_system sub system string
- * @param peer Peer identity (can be NULL)
- * @param key record key string (can be NULL)
- * @param value record value BLOB (can be NULL)
- * @param value_size record value size in bytes (set to 0 if value is NULL)
- * @param expiry time after which the record expires
- * @param options options specific to the storage operation
- * @param msg_type message type to be set in header
- * @return pointer to record message struct
- */
 struct GNUNET_MQ_Envelope *
-PEERSTORE_create_record_mq_envelope (const char *sub_system,
+PEERSTORE_create_record_mq_envelope (uint32_t rid,
+                                     const char *sub_system,
                                      const struct GNUNET_PeerIdentity *peer,
                                      const char *key,
                                      const void *value,
@@ -106,6 +94,7 @@ PEERSTORE_create_record_mq_envelope (const char *sub_system,
     srm->peer_set = htons (GNUNET_YES);
     srm->peer = *peer;
   }
+  srm->rid = rid;
   srm->sub_system_size = htons (ss_size);
   srm->value_size = htons (value_size);
   srm->options = htonl (options);

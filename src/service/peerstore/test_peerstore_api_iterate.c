@@ -21,6 +21,7 @@
  * @file peerstore/test_peerstore_api_iterate.c
  * @brief testcase for peerstore iteration operation
  */
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
@@ -40,6 +41,13 @@ static char *k3 = "test_peerstore_api_iterate_key3";
 static char *val = "test_peerstore_api_iterate_val";
 static int count = 0;
 
+static void
+finish (void *cls)
+{
+  GNUNET_PEERSTORE_disconnect (h);
+  GNUNET_SCHEDULER_shutdown ();
+}
+
 
 static void
 iter3_cb (void *cls,
@@ -58,8 +66,7 @@ iter3_cb (void *cls,
   }
   GNUNET_assert (count == 3);
   ok = 0;
-  GNUNET_PEERSTORE_disconnect (h);
-  GNUNET_SCHEDULER_shutdown ();
+  GNUNET_SCHEDULER_add_now (&finish, NULL);
 }
 
 
@@ -104,6 +111,7 @@ iter1_cb (void *cls,
     count++;
     return;
   }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "%u is count\n", count);
   GNUNET_assert (count == 1);
   count = 0;
   ic = GNUNET_PEERSTORE_iterate (h,
@@ -116,6 +124,50 @@ iter1_cb (void *cls,
 
 
 static void
+store_cont (void *cls, int success)
+{
+  GNUNET_assert (GNUNET_OK == success);
+  if (0 == count)
+  {
+    GNUNET_PEERSTORE_store (h,
+                            ss,
+                            &p1,
+                            k2,
+                            val,
+                            strlen (val) + 1,
+                            GNUNET_TIME_UNIT_FOREVER_ABS,
+                            GNUNET_PEERSTORE_STOREOPTION_REPLACE,
+                            &store_cont,
+                            NULL);
+  }
+  else if (1 == count)
+  {
+    GNUNET_PEERSTORE_store (h,
+                            ss,
+                            &p2,
+                            k3,
+                            val,
+                            strlen (val) + 1,
+                            GNUNET_TIME_UNIT_FOREVER_ABS,
+                            GNUNET_PEERSTORE_STOREOPTION_REPLACE,
+                            &store_cont,
+                            NULL);
+  }
+  else
+  {
+    count = 0;
+    ic = GNUNET_PEERSTORE_iterate (h,
+                                   ss,
+                                   &p1,
+                                   k1,
+                                   &iter1_cb, NULL);
+    return;
+  }
+  count++;
+}
+
+
+static void
 run (void *cls,
      const struct GNUNET_CONFIGURATION_Handle *cfg,
      struct GNUNET_TESTING_Peer *peer)
@@ -124,6 +176,7 @@ run (void *cls,
   GNUNET_assert (NULL != h);
   memset (&p1, 1, sizeof(p1));
   memset (&p2, 2, sizeof(p2));
+  count = 0;
   GNUNET_PEERSTORE_store (h,
                           ss,
                           &p1,
@@ -132,33 +185,8 @@ run (void *cls,
                           strlen (val) + 1,
                           GNUNET_TIME_UNIT_FOREVER_ABS,
                           GNUNET_PEERSTORE_STOREOPTION_REPLACE,
-                          NULL,
+                          &store_cont,
                           NULL);
-  GNUNET_PEERSTORE_store (h,
-                          ss,
-                          &p1,
-                          k2,
-                          val,
-                          strlen (val) + 1,
-                          GNUNET_TIME_UNIT_FOREVER_ABS,
-                          GNUNET_PEERSTORE_STOREOPTION_REPLACE,
-                          NULL,
-                          NULL);
-  GNUNET_PEERSTORE_store (h,
-                          ss,
-                          &p2,
-                          k3,
-                          val,
-                          strlen (val) + 1,
-                          GNUNET_TIME_UNIT_FOREVER_ABS,
-                          GNUNET_PEERSTORE_STOREOPTION_REPLACE,
-                          NULL,
-                          NULL);
-  ic = GNUNET_PEERSTORE_iterate (h,
-                                 ss,
-                                 &p1,
-                                 k1,
-                                 &iter1_cb, NULL);
 }
 
 

@@ -2628,6 +2628,12 @@ extern "C" {
  */
 #define GNUNET_MESSAGE_TYPE_PEERSTORE_WATCH_CANCEL 826
 
+/**
+ * Store result message
+ */
+#define GNUNET_MESSAGE_TYPE_PEERSTORE_STORE_RESULT 827
+
+
 /*******************************************************************************
  * SOCIAL message types
  ******************************************************************************/

@@ -40,6 +40,7 @@ PEERSTORE_hash_key (const char *sub_system,
 /**
  * Creates a MQ envelope for a single record
  *
+ * @param rid request ID
  * @param sub_system sub system string
  * @param peer Peer identity (can be NULL)
  * @param key record key string (can be NULL)
@@ -51,7 +52,8 @@ PEERSTORE_hash_key (const char *sub_system,
  * @return pointer to record message struct
  */
 struct GNUNET_MQ_Envelope *
-PEERSTORE_create_record_mq_envelope (const char *sub_system,
+PEERSTORE_create_record_mq_envelope (uint32_t rid,
+                                     const char *sub_system,
                                      const struct GNUNET_PeerIdentity *peer,
                                      const char *key,
                                      const void *value,

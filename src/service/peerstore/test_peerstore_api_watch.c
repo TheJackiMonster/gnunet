@@ -21,6 +21,8 @@
  * @file peerstore/test_peerstore_api_watch.c
  * @brief testcase for peerstore watch functionality
  */
+#include "gnunet_common.h"
+#include "gnunet_time_lib.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
@@ -31,46 +33,28 @@ static int ok = 1;
 
 static struct GNUNET_PEERSTORE_Handle *h;
 
+static struct GNUNET_PEERSTORE_WatchContext *wc;
+
 static char *ss = "test_peerstore_api_watch";
 
 static char *k = "test_peerstore_api_watch_key";
 
 static char *val = "test_peerstore_api_watch_val";
 
+static struct GNUNET_PeerIdentity p;
 
 static void
-watch_cb (void *cls,
-          const struct GNUNET_PEERSTORE_Record *record,
-          const char *emsg)
+finish (void *cls)
 {
-  GNUNET_assert (NULL == emsg);
-  GNUNET_assert (0 == strcmp (val,
-                              (char *) record->value));
-  ok = 0;
-  GNUNET_PEERSTORE_disconnect (h,
-                               GNUNET_NO);
+  GNUNET_PEERSTORE_watch_cancel (wc);
+  GNUNET_PEERSTORE_disconnect (h);
   GNUNET_SCHEDULER_shutdown ();
 }
 
 
 static void
-run (void *cls,
-     const struct GNUNET_CONFIGURATION_Handle *cfg,
-     struct GNUNET_TESTING_Peer *peer)
+cont (void *cls)
 {
-  struct GNUNET_PeerIdentity p;
-
-  h = GNUNET_PEERSTORE_connect (cfg);
-  GNUNET_assert (NULL != h);
-  memset (&p,
-          4,
-          sizeof(p));
-  GNUNET_PEERSTORE_watch (h,
-                          ss,
-                          &p,
-                          k,
-                          &watch_cb,
-                          NULL);
   GNUNET_PEERSTORE_store (h,
                           ss,
                           &p,
@@ -81,6 +65,59 @@ run (void *cls,
                           GNUNET_PEERSTORE_STOREOPTION_REPLACE,
                           NULL,
                           NULL);
+}
+
+
+static int initial_iteration = GNUNET_YES;
+
+static void
+watch_cb (void *cls,
+          const struct GNUNET_PEERSTORE_Record *record,
+          const char *emsg)
+{
+  GNUNET_assert (NULL == emsg);
+  if (GNUNET_YES == initial_iteration)
+  {
+    if (NULL != record)
+    {
+      GNUNET_break (0);
+      return; // Ignore this record, FIXME: Test unclean
+    }
+    GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS, &cont, NULL);
+    initial_iteration = GNUNET_NO;
+    return;
+  }
+  if (NULL == record)
+  {
+    GNUNET_break (0);
+    return;
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received record: %s\n",
+              (char*) record->value);
+  GNUNET_assert (0 == strcmp (val,
+                              (char *) record->value));
+  ok = 0;
+  GNUNET_SCHEDULER_add_now (&finish, NULL);
+}
+
+
+static void
+run (void *cls,
+     const struct GNUNET_CONFIGURATION_Handle *cfg,
+     struct GNUNET_TESTING_Peer *peer)
+{
+
+  h = GNUNET_PEERSTORE_connect (cfg);
+  GNUNET_assert (NULL != h);
+  memset (&p,
+          4,
+          sizeof(p));
+  wc = GNUNET_PEERSTORE_watch (h,
+                               ss,
+                               &p,
+                               k,
+                               &watch_cb,
+                               NULL);
 }
 
 
