@@ -10277,10 +10277,7 @@ transmit_on_queue (void *cls)
     struct GNUNET_TIME_Relative plus = GNUNET_TIME_relative_multiply (
       wait_duration, wait_multiplier);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Waiting %s (%s) for ACK until %s\n",
-                GNUNET_STRINGS_relative_time_to_string (
-                  GNUNET_TIME_relative_multiply (
-                    queue->pd.aged_rtt, wait_multiplier), GNUNET_NO),
+                "Waiting %s for ACK until %s\n",
                 GNUNET_STRINGS_relative_time_to_string (plus, GNUNET_YES),
                 GNUNET_STRINGS_absolute_time_to_string (next));
     update_pm_next_attempt (pm,
@@ -10994,7 +10991,7 @@ neighbour_dv_monotime_cb (void *cls,
     n->dv_monotime_available = GNUNET_YES;
     return;
   }
-  if (sizeof(*mtbe) != record->value_size)
+  if (0 == record->value_size)
   {
     GNUNET_break (0);
     return;
