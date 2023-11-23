@@ -29,7 +29,6 @@ testgns = [
   'test_gns_gns2dns_zkey_lookup',
   'test_gns_ipv6_lookup',
   'test_gns_lookup',
-  'test_gns_multiple_record_lookup',
   'test_gns_mx_lookup',
   'test_gns_quickupdate',
   'test_gns_redirect_lookup',

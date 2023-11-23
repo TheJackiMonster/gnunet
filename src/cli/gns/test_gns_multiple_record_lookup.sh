@@ -22,7 +22,6 @@ fi
 
 rm -rf `gnunet-config -c test_gns_lookup_peer1.conf -f -s paths -o GNUNET_TEST_HOME`
 rm -rf `gnunet-config -c test_gns_lookup_peer2.conf -f -s paths -o GNUNET_TEST_HOME`
-MY_EGO="localego"
 OTHER_EGO="remoteego"
 
 TEST_IP="127.0.0.1"
@@ -30,7 +29,8 @@ TEST_IPV6="dead::beef"
 LABEL="fnord"
 
 gnunet-arm -s -c test_gns_lookup_peer2.conf
-PKEY=`$DO_TIMEOUT gnunet-identity -V -C $OTHER_EGO -c test_gns_lookup_peer2.conf`
+gnunet-identity -C $OTHER_EGO -c test_gns_lookup_peer2.conf
+PKEY=`$DO_TIMEOUT gnunet-identity -d -c test_gns_lookup_peer2.conf | grep $OTHER_EGO | awk '{print $3}'`
 
 # Note: if zonemaster is kept running, it MAY publish the "A" record in the
 # DHT immediately and then _LATER_ also the "AAAA" record. But as then there
@@ -48,7 +48,7 @@ gnunet-arm -c test_gns_lookup_peer2.conf -k zonemaster
 
 gnunet-namestore -p -z $OTHER_EGO -a -n $LABEL -t A -V $TEST_IP -e 3600s -c test_gns_lookup_peer2.conf
 gnunet-namestore -p -z $OTHER_EGO -a -n $LABEL -t AAAA -V $TEST_IPV6 -e 3600s -c test_gns_lookup_peer2.conf
-gnunet-namestore -D -z $OTHER_EGO -n $LABEL
+gnunet-namestore -D -z $OTHER_EGO -n $LABEL -c test_gns_lookup_peer2.conf
 
 gnunet-arm -c test_gns_lookup_peer2.conf -i zonemaster
 
@@ -59,9 +59,13 @@ RESP=`$DO_TIMEOUT gnunet-gns --raw -u $LABEL.$PKEY -t ANY -c test_gns_lookup_pee
 RESP1=`$DO_TIMEOUT gnunet-gns --raw -u $LABEL.$PKEY -t A -c test_gns_lookup_peer1.conf`
 RESP2=`$DO_TIMEOUT gnunet-gns --raw -u $LABEL.$PKEY -t AAAA -c test_gns_lookup_peer1.conf`
 
+echo "$LABEL.$PKEY"
+echo $RESP $RESP1 $RESP2
 
 gnunet-arm -e -c test_gns_lookup_peer1.conf
 gnunet-arm -e -c test_gns_lookup_peer2.conf
+
+gnunet-config -c test_gns_lookup_peer1.conf -f -s paths -o GNUNET_TEST_HOME
 
 rm -rf `gnunet-config -c test_gns_lookup_peer1.conf -f -s paths -o GNUNET_TEST_HOME`
 rm -rf `gnunet-config -c test_gns_lookup_peer2.conf -f -s paths -o GNUNET_TEST_HOME`
