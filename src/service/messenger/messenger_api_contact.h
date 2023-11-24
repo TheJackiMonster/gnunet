@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -40,7 +40,7 @@ struct GNUNET_MESSENGER_Contact
 };
 
 /**
- * Creates and allocates a new contact with a given public <i>key</i> from an EGO.
+ * Creates and allocates a new contact with a given public <i>key</i>.
  *
  * @param[in] key Public key
  * @param[in] unique_id Locally unique identifier

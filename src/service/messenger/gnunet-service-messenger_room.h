@@ -174,7 +174,7 @@ enter_srv_room_at (struct GNUNET_MESSENGER_SrvRoom *room,
 /**
  * Packs a <i>message</i> depending on the selected <i>mode</i> into a newly allocated envelope. It will set the
  * timestamp of the message, the sender id and the previous messages hash automatically before packing. The message
- * will be signed by the handles EGO.
+ * will be signed by the handles private key.
  *
  * If the optional <i>hash</i> parameter is a valid pointer, its value will be overridden by the signed messages hash.
  *
@@ -340,7 +340,7 @@ request_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
  * use an already used member id (comparing public key and timestamp).
  *
  * @param[in,out] room Room
- * @param[in] public_key Public key of EGO
+ * @param[in] public_key Public key
  * @param[in] member_id Member ID
  * @param[in] timestamp Timestamp
  */

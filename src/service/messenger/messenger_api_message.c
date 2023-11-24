@@ -1109,7 +1109,7 @@ int
 filter_message_sending (const struct GNUNET_MESSENGER_Message *message)
 {
   if (GNUNET_YES == is_peer_message (message))
-    return GNUNET_SYSERR; // Requires signature of peer rather than ego!
+    return GNUNET_SYSERR; // Requires signature of peer rather than member!
 
   switch (message->header.kind)
   {

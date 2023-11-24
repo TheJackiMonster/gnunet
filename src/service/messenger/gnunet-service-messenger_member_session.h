@@ -63,7 +63,7 @@ struct GNUNET_MESSENGER_MemberSession
  * If the creation fails, NULL gets returned.
  *
  * @param[in,out] member Member
- * @param[in] pubkey Public key of EGO
+ * @param[in] pubkey Public key
  * @return New member session
  */
 struct GNUNET_MESSENGER_MemberSession*
@@ -171,10 +171,10 @@ const struct GNUNET_ShortHashCode*
 get_member_session_id (const struct GNUNET_MESSENGER_MemberSession *session);
 
 /**
- * Returns the public key from an EGO of a given member <i>session</i>.
+ * Returns the public key of a given member <i>session</i>.
  *
  * @param[in] session Member session
- * @return Public key of EGO
+ * @return Public key
  */
 const struct GNUNET_CRYPTO_PublicKey*
 get_member_session_public_key (const struct

@@ -86,7 +86,7 @@ get_store_contact_raw (struct GNUNET_MESSENGER_ContactStore *store,
  *
  * @param[in,out] store Contact store
  * @param[in] context Member context
- * @param[in] pubkey Public key of EGO
+ * @param[in] pubkey Public key
  */
 struct GNUNET_MESSENGER_Contact*
 get_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
@@ -103,7 +103,7 @@ get_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
  * @param[in,out] contact Contact
  * @param[in] context Member context
  * @param[in] next_context Member context
- * @param[in] pubkey Public key of EGO
+ * @param[in] pubkey Public key
  */
 void
 update_store_contact (struct GNUNET_MESSENGER_ContactStore *store,

@@ -120,7 +120,7 @@ sync_member_contacts (struct GNUNET_MESSENGER_Member *member);
  * If the member does not provide a session with the given key, NULL gets returned.
  *
  * @param[in] member Member
- * @param[in] public_key Public key of EGO
+ * @param[in] public_key Public key
  * @return Member session
  */
 struct GNUNET_MESSENGER_MemberSession*

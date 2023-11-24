@@ -158,14 +158,14 @@ hash_message (const struct GNUNET_MESSENGER_Message *message,
               struct GNUNET_HashCode *hash);
 
 /**
- * Signs the <i>hash</i> of a <i>message</i> with a given <i>ego</i> and writes the signature
- * into the <i>buffer</i> as well.
+ * Signs the <i>hash</i> of a <i>message</i> with a given private <i>key</i> and writes
+ * the signature into the <i>buffer</i> as well.
  *
  * @param[in,out] message Message
  * @param[in] length Length of buffer
  * @param[out] buffer Buffer
  * @param[in] hash Hash of message
- * @param[in] key Private key of EGO
+ * @param[in] key Private key
  */
 void
 sign_message (struct GNUNET_MESSENGER_Message *message,
@@ -198,7 +198,7 @@ sign_message_by_peer (struct GNUNET_MESSENGER_Message *message,
  *
  * @param[in] message Message
  * @param[in] hash Hash of message
- * @param[in] key Public key of EGO
+ * @param[in] key Public key
  * @return #GNUNET_OK on success, otherwise #GNUNET_SYSERR
  */
 int
@@ -227,7 +227,7 @@ verify_message_by_peer (const struct GNUNET_MESSENGER_Message *message,
  * #GNUNET_YES if the operation succeeded, otherwise #GNUNET_NO.
  *
  * @param[in,out] message Message
- * @param[in] key Public key of EGO
+ * @param[in] key Public key
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
 int
@@ -240,7 +240,7 @@ encrypt_message (struct GNUNET_MESSENGER_Message *message,
  * operation succeeded, otherwise #GNUNET_NO.
  *
  * @param[in,out] message Message
- * @param[in] key Private key of EGO
+ * @param[in] key Private key
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
 int
@@ -280,7 +280,7 @@ pack_message (struct GNUNET_MESSENGER_Message *message,
 
 /**
  * Returns whether a specific kind of message can be sent by the service without usage of a
- * clients EGO. The function returns #GNUNET_YES if the kind of message can be signed
+ * clients private key. The function returns #GNUNET_YES if the kind of message can be signed
  * via a peer's identity, otherwise #GNUNET_NO.
  *
  * @param[in] message Message
