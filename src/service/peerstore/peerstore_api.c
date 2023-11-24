@@ -1105,6 +1105,7 @@ GNUNET_PEERSTORE_hello_changed_notify_cancel (struct
     GNUNET_PEERSTORE_watch_cancel (nc->wc);
     nc->wc = NULL;
   }
+  GNUNET_free (nc);
 }
 
 
