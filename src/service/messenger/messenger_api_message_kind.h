@@ -35,10 +35,10 @@
 #include "gnunet-service-messenger_service.h"
 
 /**
- * Creates and allocates a new join message containing the clients EGO public <i>key</i>.
+ * Creates and allocates a new join message containing the clients public <i>key</i>.
  * (all values are stored as copy)
  *
- * @param[in] key Private key of EGO
+ * @param[in] key Private key
  * @return New message
  */
 struct GNUNET_MESSENGER_Message*
@@ -66,7 +66,7 @@ create_message_name (const char *name);
  * Creates and allocates a new key message containing the public <i>key</i> to change to derived
  * from its private counterpart. (all values are stored as copy)
  *
- * @param[in] key Private key of EGO
+ * @param[in] key Private key
  * @return New message
  */
 struct GNUNET_MESSENGER_Message*

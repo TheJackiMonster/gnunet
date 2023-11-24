@@ -1109,7 +1109,7 @@ int
 filter_message_sending (const struct GNUNET_MESSENGER_Message *message)
 {
   if (GNUNET_YES == is_peer_message (message))
-    return GNUNET_SYSERR; // Requires signature of peer rather than ego!
+    return GNUNET_SYSERR; // Requires signature of peer rather than member!
 
   switch (message->header.kind)
   {
@@ -1122,7 +1122,7 @@ filter_message_sending (const struct GNUNET_MESSENGER_Message *message)
   case GNUNET_MESSENGER_KIND_NAME:
     return GNUNET_YES;
   case GNUNET_MESSENGER_KIND_KEY:
-    return GNUNET_NO; // Use #GNUNET_MESSENGER_set_key_by_ego(...) instead!
+    return GNUNET_NO; // Use #GNUNET_MESSENGER_set_key(...) instead!
   case GNUNET_MESSENGER_KIND_PEER:
     return GNUNET_SYSERR; // Use #GNUNET_MESSENGER_open_room(...) instead!
   case GNUNET_MESSENGER_KIND_ID:
@@ -1132,7 +1132,7 @@ filter_message_sending (const struct GNUNET_MESSENGER_Message *message)
   case GNUNET_MESSENGER_KIND_MERGE:
     return GNUNET_SYSERR; // Reserved for peers only!
   case GNUNET_MESSENGER_KIND_REQUEST:
-    return GNUNET_YES;
+    return GNUNET_NO; // Use #GNUNET_MESSENGER_get_message(...) instead!
   case GNUNET_MESSENGER_KIND_INVITE:
     return GNUNET_YES;
   case GNUNET_MESSENGER_KIND_TEXT:

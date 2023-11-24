@@ -41,7 +41,7 @@ struct GNUNET_MESSENGER_CreateMessage
 };
 
 /**
- * Message to update the handle (its EGO key) for a client
+ * Message to update the handle (its public key) for a client
  */
 struct GNUNET_MESSENGER_UpdateMessage
 {

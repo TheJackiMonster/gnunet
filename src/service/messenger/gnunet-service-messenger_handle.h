@@ -69,20 +69,20 @@ void
 destroy_srv_handle (struct GNUNET_MESSENGER_SrvHandle *handle);
 
 /**
- * Sets the public key from the EGO of a given <i>handle</i>.
+ * Sets the public key of a given <i>handle</i>.
  *
  * @param[out] handle Handle
- * @param[in] key Public key of EGO
+ * @param[in] key Public key
  */
 void
 set_srv_handle_key (struct GNUNET_MESSENGER_SrvHandle *handle,
                     const struct GNUNET_CRYPTO_PublicKey *key);
 
 /**
- * Returns the public key from the EGO of a given <i>handle</i>.
+ * Returns the public key of a given <i>handle</i>.
  *
  * @param[in] handle Handle
- * @return Public key of handles EGO
+ * @return Public key of handle
  */
 const struct GNUNET_CRYPTO_PublicKey*
 get_srv_handle_key (const struct GNUNET_MESSENGER_SrvHandle *handle);
