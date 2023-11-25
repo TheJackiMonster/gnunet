@@ -494,22 +494,13 @@ store_record_continuation (void *cls, int success)
   struct PeerstoreResultMessage *msg;
   struct GNUNET_MQ_Envelope *env;
 
-  if (GNUNET_OK == success)
-  {
-
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Found a watcher to update.\n");
-    env = GNUNET_MQ_msg (msg, GNUNET_MESSAGE_TYPE_PEERSTORE_STORE_RESULT);
-    msg->rid = src->rid;
-    msg->result = htonl (success);
-    GNUNET_MQ_send (GNUNET_SERVICE_client_get_mq (src->client), env);
-    watch_notifier (src->record);
-    GNUNET_SERVICE_client_continue (src->client);
-  }
-  else
-  {
-    GNUNET_break (0);
-    GNUNET_SERVICE_client_drop (src->record->client);
-  }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Found a watcher to update.\n");
+  env = GNUNET_MQ_msg (msg, GNUNET_MESSAGE_TYPE_PEERSTORE_STORE_RESULT);
+  msg->rid = src->rid;
+  msg->result = htonl (success);
+  GNUNET_MQ_send (GNUNET_SERVICE_client_get_mq (src->client), env);
+  watch_notifier (src->record);
+  GNUNET_SERVICE_client_continue (src->client);
   PEERSTORE_destroy_record (src->record);
   GNUNET_free (src);
 }
