@@ -21,9 +21,16 @@ libexec_PROGRAMS = \
  gnunet-service-messenger \
  $(EXP_LIBEXEC)
 
+plugin_LTLIBRARIES = \
+  libgnunet_test_messenger_plugin_cmd_simple_join.la
+
+TESTING_LIBS = \
+  libgnunetmessengertesting.la
+
 lib_LTLIBRARIES = \
   libgnunetmessenger.la \
-  $(EXP_LIB)
+  $(EXP_LIB) \
+  $(TESTING_LIBS)
 
 libgnunetmessenger_la_SOURCES = \
   messenger_api.c \
@@ -46,6 +53,40 @@ libgnunetmessenger_la_LIBADD = \
 libgnunetmessenger_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)  \
   -version-info 0:0:0
+
+libgnunetmessengertesting_la_SOURCES = \
+  messenger_api_cmd_join_room.c \
+  messenger_api_cmd_start_service.c \
+  messenger_api_cmd_stop_service.c \
+  messenger_api_traits.c \
+  messenger-testing.c messenger-testing.h
+libgnunetmessengertesting_la_LIBADD = \
+  libgnunetmessenger.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la
+libgnunetmessengertesting_la_LDFLAGS = \
+  $(GN_LIBINTL) \
+  $(GN_LIB_LDFLAGS) \
+  -version-info 0:0:0
+
+libgnunet_test_messenger_plugin_cmd_simple_join_la_SOURCES = \
+  test_messenger_plugin_cmd_simple_join.c
+libgnunet_test_messenger_plugin_cmd_simple_join_la_LIBADD = \
+  libgnunetmessenger.la \
+  libgnunetmessengertesting.la \
+  $(top_builddir)/src/service/core/libgnunetcore.la \
+  $(top_builddir)/src/service/core/libgnunetcoretesting.la \
+  $(top_builddir)/src/service/transport/libgnunettransportapplication.la \
+  $(top_builddir)/src/service/transport/libgnunettransportcore.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/lib/hello/libgnunethello.la \
+  $(top_builddir)/src/service/arm/libgnunetarm.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
+  $(LTLIBINTL)
+libgnunet_test_messenger_plugin_cmd_simple_join_la_LDFLAGS = \
+  $(GN_PLUGIN_LDFLAGS)
 
 gnunet_service_messenger_SOURCES = \
   gnunet-service-messenger.c gnunet-service-messenger.h \
@@ -79,10 +120,13 @@ check_PROGRAMS = \
   test_messenger_api \
   test_messenger_anonymous
 
+check_SCRIPTS= \
+  test_messenger_start_testcase.sh
+
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
-TESTS = \
- $(check_PROGRAMS)
+TESTS = $(check_PROGRAMS) \
+  $(check_SCRIPTS)
 endif
 
 test_messenger_api_SOURCES = \
@@ -100,4 +144,6 @@ test_messenger_anonymous_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 EXTRA_DIST = \
+  test_messenger_simple_join_topo.conf \
+  test_messenger_start_testcase.sh \
   test_messenger_api.conf
