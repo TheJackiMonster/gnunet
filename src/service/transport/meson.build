@@ -259,6 +259,11 @@ libgnunettesttransport_cmd_natupnp = library('gnunet_test_transport_plugin_cmd_n
                                              include_directories: [incdir, configuration_inc],
                                              install: true,
                                              install_dir: get_option('libdir')/'gnunet')
+
+configure_file(input : 'test_transport_defaults.conf',
+               output : 'test_transport_defaults.conf',
+               copy: true)
+
 foreach p : ['unix', 'tcp', 'udp']
   configure_file(input : 'test_communicator_'+p+'_basic_peer1.conf',
                  output : 'test_communicator_'+p+'_basic_peer1.conf',
