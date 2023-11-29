@@ -172,7 +172,7 @@ notify_connect (struct GNUNET_TESTING_Interpreter *is,
                                                             "connect-peers");
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "block state %s\n",
-         cmd->label);
+         cmd->label.value);
     GNUNET_TESTING_get_trait_block_state (
       cmd,
       &bs);
