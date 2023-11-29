@@ -1,6 +1,6 @@
 /*
       This file is part of GNUnet
-      Copyright (C) 2021 GNUnet e.V.
+      Copyright (C) 2021, 2023 GNUnet e.V.
 
       GNUnet is free software: you can redistribute it and/or modify it
       under the terms of the GNU Affero General Public License as published
@@ -89,15 +89,38 @@ struct GNUNET_TESTING_AsyncContext
 };
 
 
+/**
+ * Signature of a function used to start executing a command
+ * of a test.
+ *
+ * @param cls closure
+ * @param is interpreter running the command
+ */
 typedef void
 (*GNUNET_TESTING_CommandRunRoutine)(void *cls,
                                     struct GNUNET_TESTING_Interpreter *is);
 
 
+/**
+ * Signature of a function used to clean up resources allocated
+ * by a command.
+ *
+ * @param cls closure
+ */
 typedef void
 (*GNUNET_TESTING_CommandCleanupRoutine)(void *cls);
 
 
+/**
+ * Signature of a function used to extract traits exposed by a
+ * command.
+ *
+ * @param cls closure
+ * @param[out] ret where to return the trait data
+ * @param trait name of the trait to return
+ * @param index index of the trait (for traits that are indexed)
+ * @return #GNUNET_OK on success
+ */
 typedef enum GNUNET_GenericReturnValue
 (*GNUNET_TESTING_CommandGetTraits) (void *cls,
                                     const void **ret,
@@ -425,7 +448,7 @@ GNUNET_TESTING_main (struct GNUNET_TESTING_Command *commands,
  * FIXME: Unused function.
  *
  * @param command The command to check.
- * @return GNUNET_NO if the command is not running, GNUNET_YES if it is running.
+ * @return #GNUNET_NO if the command is not running, #GNUNET_YES if it is running.
  */
 enum GNUNET_GenericReturnValue
 GNUNET_TESTING_running (const struct GNUNET_TESTING_Command *command);
@@ -436,7 +459,7 @@ GNUNET_TESTING_running (const struct GNUNET_TESTING_Command *command);
  * FIXME: Unused function
  *
  * @param command The command to check.
- * @return GNUNET_NO if the command is not finished, GNUNET_YES if it is finished.
+ * @return #GNUNET_NO if the command is not finished, #GNUNET_YES if it is finished.
  */
 enum GNUNET_GenericReturnValue
 GNUNET_TESTING_finished (const struct GNUNET_TESTING_Command *command);
@@ -487,7 +510,6 @@ GNUNET_TESTING_cmd_batch (const char *label,
 
 /**
  * Performance counter.
- * // FIXME: this might not belong here!
  */
 struct GNUNET_TESTING_Timer
 {
@@ -548,7 +570,7 @@ GNUNET_TESTING_get_peer (unsigned int num,
 /**
  * Obtain performance data from the interpreter.
  *
- * @param timers what commands (by label) to obtain runtimes for
+ * @param[in,out] timers what commands (by label) to obtain runtimes for
  * @return the command
  */
 struct GNUNET_TESTING_Command
@@ -618,7 +640,7 @@ GNUNET_TESTING_get_trait (const struct GNUNET_TESTING_Trait *traits,
 
 typedef void *
 (*GNUNET_TESTING_notify_connect_cb) (struct GNUNET_TESTING_Interpreter *is,
-                                       const struct GNUNET_PeerIdentity *peer);
+                                     const struct GNUNET_PeerIdentity *peer);
 
 /**
  * Struct to store information needed in callbacks.
