@@ -148,10 +148,10 @@ GNUNET_CORE_cmd_connect_peers (
 /**
  * Call #op on all simple traits.
  */
-#define GNUNET_CORE_TESTING_SIMPLE_TRAITS(op) \
-  op (connect_peer_state, const struct GNUNET_TESTING_ConnectPeersState) 
+#define GNUNET_CORE_TESTING_SIMPLE_TRAITS(op, prefix)   \
+  op (prefix, connect_peer_state, const struct GNUNET_TESTING_ConnectPeersState) 
 
-GNUNET_CORE_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT)
+GNUNET_CORE_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT, GNUNET_CORE_TESTING)
 
 
 

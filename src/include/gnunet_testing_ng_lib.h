@@ -89,27 +89,27 @@ GNUNET_TESTING_cmd_exec_bash_script (const char *label,
 /**
  * Call #op on all simple traits.
  */
-#define GNUNET_TESTING_SIMPLE_TRAITS(op) \
-  op (process, struct GNUNET_OS_Process *) 
+#define GNUNET_TESTING_SIMPLE_TRAITS(op, prefix)       \
+  op (prefix, process, struct GNUNET_OS_Process *) 
 
 
-GNUNET_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT)
+GNUNET_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT, GNUNET_TESTING)
 
 /**
  * Call #op on all indexed traits.
  */
-#define GNUNET_TESTING_INDEXED_TRAITS(op)            \
-  op (uint32, const uint32_t) \
-  op (uint64, const uint64_t) \
-  op (int64, const int64_t) \
-  op (uint, const unsigned int) \
-  op (string, const char) \
-  op (uuid, const struct GNUNET_Uuid) \
-  op (time, const struct GNUNET_TIME_Absolute) \
-  op (absolute_time, const struct GNUNET_TIME_Absolute) \
-  op (relative_time, const struct GNUNET_TIME_Relative)
+#define GNUNET_TESTING_INDEXED_TRAITS(op, prefix)               \
+  op (prefix, uint32, const uint32_t)                           \
+  op (prefix, uint64, const uint64_t)                           \
+  op (prefix, int64, const int64_t)                             \
+  op (prefix, uint, const unsigned int)                         \
+  op (prefix, string, const char)                               \
+  op (prefix, uuid, const struct GNUNET_Uuid)                   \
+  op (prefix, time, const struct GNUNET_TIME_Absolute)          \
+  op (prefix, absolute_time, const struct GNUNET_TIME_Absolute) \
+  op (prefix, relative_time, const struct GNUNET_TIME_Relative)
 
-GNUNET_TESTING_INDEXED_TRAITS (GNUNET_TESTING_MAKE_DECL_INDEXED_TRAIT)
+GNUNET_TESTING_INDEXED_TRAITS (GNUNET_TESTING_MAKE_DECL_INDEXED_TRAIT, GNUNET_TESTING)
 
 
 #endif

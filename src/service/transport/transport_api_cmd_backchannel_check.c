@@ -417,8 +417,8 @@ backchannel_check_run (void *cls,
 
   peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                          cs->start_peer_label);
-  GNUNET_TESTING_get_trait_application_handle (peer1_cmd,
-                                               &ah);
+  GNUNET_TRANSPORT_TESTING_get_trait_application_handle (peer1_cmd,
+                                                         &ah);
 
   system_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                           cs->create_label);

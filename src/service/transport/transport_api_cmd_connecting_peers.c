@@ -67,19 +67,19 @@ connect_peers_run (void *cls,
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Wait for connect.\n");
-    GNUNET_TESTING_get_trait_application_handle (peer1_cmd,
-                                                 &ah);
+    GNUNET_TRANSPORT_TESTING_get_trait_application_handle (peer1_cmd,
+                                                           &ah);
   }
   else
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Not waiting for connect.\n");
-    GNUNET_TESTING_get_trait_application_handle (peer1_cmd,
-                                                   &ah);
+    GNUNET_TRANSPORT_TESTING_get_trait_application_handle (peer1_cmd,
+                                                           &ah);
   }
 
-  GNUNET_TESTING_get_trait_broadcast (peer1_cmd,
-                                      &broadcast);
+  GNUNET_TRANSPORT_TESTING_get_trait_broadcast (peer1_cmd,
+                                                &broadcast);
 
   system_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                           cps->create_label);
@@ -249,7 +249,7 @@ connect_peers_traits (void *cls,
 {
   struct ConnectPeersState *cps = cls;
   struct GNUNET_TESTING_Trait traits[] = {
-    GNUNET_TESTING_make_trait_connect_peer_state ((const void *) cps),
+    GNUNET_TRANSPORT_TESTING_make_trait_connect_peer_state ((const void *) cps),
     GNUNET_TESTING_trait_end ()
   };
   return GNUNET_TESTING_get_trait (traits,
@@ -310,4 +310,4 @@ GNUNET_TRANSPORT_cmd_connect_peers (const char *label,
 
 
 // FIXME: likely not ideally placed here, move to its own file
-GNUNET_TRANSPORT_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT)
+GNUNET_TRANSPORT_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT, GNUNET_TRANSPORT_TESTING)

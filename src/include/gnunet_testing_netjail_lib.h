@@ -520,11 +520,11 @@ GNUNET_TESTING_cmd_local_test_prepared (const char *label,
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_start_peer (const char *label,
-                                 const char *system_label,
-                                 uint32_t no,
-                                 const char *node_ip,
-                                 const char *cfgname,
-                                 unsigned int broadcast);
+                               const char *system_label,
+                               uint32_t no,
+                               const char *node_ip,
+                               const char *cfgname,
+                               unsigned int broadcast);
 
 
 /* ***** Netjail trait support ***** */
@@ -533,14 +533,14 @@ GNUNET_TESTING_cmd_start_peer (const char *label,
 /**
  * Call #op on all simple traits.
  */
-#define GNUNET_TESTING_SIMPLE_NETJAIL_TRAITS(op) \
-  op (test_system, const struct GNUNET_TESTING_System) \
-  op (async_context, struct GNUNET_TESTING_AsyncContext) \
-  op (helper_handles, const struct GNUNET_HELPER_Handle *) \
-  op (local_prepared_state, const struct GNUNET_TESTING_LocalPreparedState) \
-  op (block_state, struct GNUNET_TESTING_BlockState)
+#define GNUNET_TESTING_SIMPLE_NETJAIL_TRAITS(op, prefix)                            \
+  op (prefix, test_system, const struct GNUNET_TESTING_System)                      \
+  op (prefix, async_context, struct GNUNET_TESTING_AsyncContext)                    \
+  op (prefix, helper_handles, const struct GNUNET_HELPER_Handle *)                  \
+  op (prefix, local_prepared_state, const struct GNUNET_TESTING_LocalPreparedState) \
+  op (prefix, block_state, struct GNUNET_TESTING_BlockState)
 
-GNUNET_TESTING_SIMPLE_NETJAIL_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT)
+GNUNET_TESTING_SIMPLE_NETJAIL_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT, GNUNET_TESTING)
 
 
 #endif
