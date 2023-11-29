@@ -63,9 +63,9 @@ connect_peers_run (void *cls,
   cps->is = is;
   peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                          cps->start_peer_label);
-  GNUNET_TESTING_get_trait_broadcast (peer1_cmd,
+  GNUNET_TRANSPORT_TESTING_get_trait_broadcast (peer1_cmd,
                                         &broadcast);
-  GNUNET_TESTING_get_trait_state (peer1_cmd,
+  GNUNET_TRANSPORT_TESTING_get_trait_state (peer1_cmd,
                                     &sps);
 
   system_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
@@ -198,7 +198,7 @@ connect_peers_traits (void *cls,
 {
   struct GNUNET_TESTING_ConnectPeersState *cps = cls;
   struct GNUNET_TESTING_Trait traits[] = {
-    GNUNET_TESTING_make_trait_connect_peer_state ((const void *) cps),
+    GNUNET_CORE_TESTING_make_trait_connect_peer_state ((const void *) cps),
     GNUNET_TESTING_trait_end ()
   };
   return GNUNET_TESTING_get_trait (traits,
@@ -274,5 +274,5 @@ GNUNET_CORE_cmd_connect_peers (
 
 
 // FIXME: likely not ideally placed here, move to its own file
-GNUNET_CORE_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT)
+GNUNET_CORE_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT, GNUNET_CORE_TESTING)
 

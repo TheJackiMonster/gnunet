@@ -263,10 +263,10 @@ GNUNET_TRANSPORT_cmd_backchannel_check (const char *label,
 /**
  * Call #op on all simple traits.
  */
-#define GNUNET_TRANSPORT_SIMPLE_TRAITS(op) \
-  op (connect_peer_state, const struct ConnectPeersState) 
+#define GNUNET_TRANSPORT_SIMPLE_TRAITS(op, prefix)                 \
+  op (prefix, connect_peer_state, const struct ConnectPeersState) 
 
-GNUNET_TRANSPORT_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT)
+GNUNET_TRANSPORT_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT, GNUNET_TRANSPORT_TESTING)
 
 
 #endif

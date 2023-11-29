@@ -196,16 +196,16 @@ GNUNET_TESTING_get_peer (unsigned int num,
 /**
  * Call #op on all simple traits.
  */
-#define GNUNET_TRANSPORT_TESTING_SIMPLE_TRAITS(op) \
-  op (connected_peers_map, const struct GNUNET_CONTAINER_MultiShortmap) \
-  op (peer_id, const struct GNUNET_PeerIdentity) \
-  op (hello_size, const size_t) \
-  op (hello, const char) \
-  op (application_handle, const struct GNUNET_TRANSPORT_ApplicationHandle) \
-  op (state, const struct GNUNET_TESTING_StartPeerState) \
-  op (broadcast, const enum GNUNET_GenericReturnValue)
+#define GNUNET_TRANSPORT_TESTING_SIMPLE_TRAITS(op, prefix)                         \
+  op (prefix, connected_peers_map, const struct GNUNET_CONTAINER_MultiShortmap)    \
+  op (prefix, peer_id, const struct GNUNET_PeerIdentity)                           \
+  op (prefix, hello_size, const size_t)                                            \
+  op (prefix, hello, const char)                                                   \
+  op (prefix, application_handle, const struct GNUNET_TRANSPORT_ApplicationHandle) \
+  op (prefix, state, const struct GNUNET_TESTING_StartPeerState)                   \
+  op (prefix, broadcast, const enum GNUNET_GenericReturnValue)
 
 
-GNUNET_TRANSPORT_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT)
+GNUNET_TRANSPORT_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT, GNUNET_TRANSPORT_TESTING)
 
 #endif
