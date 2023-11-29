@@ -263,37 +263,24 @@ GNUNET_TESTING_cmd_batch_set_current_ (const struct GNUNET_TESTING_Command *cmd,
  * the cmd representing the barrier is finished.
  *
  * @param barrier The barrier in question.
- * @return GNUNET_YES if we can cross the barrier, GNUNET_NO if not.
+ * @return true if we can cross the barrier, false if not.
  */
-unsigned int
-GNUNET_TESTING_barrier_crossable (struct GNUNET_TESTING_Barrier *barrier);
+bool
+GNUNET_TESTING_barrier_crossable_ (struct GNUNET_TESTING_Barrier *barrier);
 
 
 /**
- * Send Message to a netjail node that a barrier can be crossed.
- *
- * @param is The interpreter loop.
- * @param barrier_name The name of the barrier to cross.
- * @param global_node_number The global number of the node to inform.
- */
-void
-TST_interpreter_send_barrier_crossable (struct GNUNET_TESTING_Interpreter *is,
-                                     const char *barrier_name,
-                                     unsigned int global_node_number);
-
-
-/**
- * Finish all "barrier reached" comands attached to this barrier.
+ * Finish all "barrier reached" commands attached to this barrier.
  *
  * @param barrier The barrier in question.
  */
 void
-TST_interpreter_finish_attached_cmds (struct GNUNET_TESTING_Interpreter *is,
-                                     const char *barrier_name);
+GNUNET_TESTING_finish_barrier_ (struct GNUNET_TESTING_Interpreter *is,
+                                const char *barrier_name);
 
 
 /**
- * Send Message to master loop that cmds being attached to a barrier.
+ * Send message to master loop that cmds being attached to a barrier.
  * FIXME: Unused function
  *
  * @param is The interpreter loop.
@@ -303,11 +290,11 @@ TST_interpreter_finish_attached_cmds (struct GNUNET_TESTING_Interpreter *is,
  * @param write_message Callback to write messages to the master loop.
  */
 void
-GNUNET_TESTING_send_barrier_attach (struct GNUNET_TESTING_Interpreter *is,
-                                     char *barrier_name,
-                                    unsigned int global_node_number,
-                                    unsigned int expected_reaches,
-                                    GNUNET_TESTING_cmd_helper_write_cb write_message);
+GNUNET_TESTING_send_barrier_attach_ (struct GNUNET_TESTING_Interpreter *is,
+                                     const char *barrier_name,
+                                     unsigned int global_node_number,
+                                     unsigned int expected_reaches,
+                                     GNUNET_TESTING_cmd_helper_write_cb write_message);
 
 
 /**
@@ -334,8 +321,8 @@ GNUNET_TESTING_barrier_get_node (struct GNUNET_TESTING_Barrier *barrier,
  * @return The barrier.
  */
 struct GNUNET_TESTING_Barrier *
-TST_interpreter_get_barrier (struct GNUNET_TESTING_Interpreter *is,
-                            const char *barrier_name);
+GNUNET_TESTING_get_barrier_ (struct GNUNET_TESTING_Interpreter *is,
+                             const char *barrier_name);
 
 
 /**
@@ -345,8 +332,8 @@ TST_interpreter_get_barrier (struct GNUNET_TESTING_Interpreter *is,
  * @param barrier The barrier to add.
  */
 void
-TST_interpreter_add_barrier (struct GNUNET_TESTING_Interpreter *is,
-                                        struct GNUNET_TESTING_Barrier *barrier);
+GNUNET_TESTING_add_barrier_ (struct GNUNET_TESTING_Interpreter *is,
+                             struct GNUNET_TESTING_Barrier *barrier);
 
 
 #endif

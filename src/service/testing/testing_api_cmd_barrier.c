@@ -35,28 +35,31 @@
  */
 #define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
 
+
 struct BarrierState
 {
-  /*
-   * Our barrier.
+  /**
+   * Our barrier, set to NULL once the barrier is active.
    */
   struct GNUNET_TESTING_Barrier *barrier;
 
-  /*
- * Our label.
- */
+  /**
+   * Our label.
+   */
   const char *label;
 };
 
+
 // FIXME Unused function
 void
-GNUNET_TESTING_send_barrier_attach (struct GNUNET_TESTING_Interpreter *is,
-                                    char *barrier_name,
-                                    unsigned int global_node_number,
-                                    unsigned int expected_reaches,
-                                    GNUNET_TESTING_cmd_helper_write_cb
-                                    write_message)
+GNUNET_TESTING_send_barrier_attach_ (
+  struct GNUNET_TESTING_Interpreter *is,
+  const char *barrier_name,
+  unsigned int global_node_number,
+  unsigned int expected_reaches,
+  GNUNET_TESTING_cmd_helper_write_cb write_message)
 {
+  // FIXME: avoid useless malloc!
   struct CommandBarrierAttached *atm = GNUNET_new (struct
                                                    CommandBarrierAttached);
   size_t msg_length = sizeof(struct CommandBarrierAttached);
@@ -74,8 +77,8 @@ GNUNET_TESTING_send_barrier_attach (struct GNUNET_TESTING_Interpreter *is,
 }
 
 
-unsigned int
-GNUNET_TESTING_barrier_crossable (struct GNUNET_TESTING_Barrier *barrier)
+bool
+GNUNET_TESTING_barrier_crossable_ (struct GNUNET_TESTING_Barrier *barrier)
 {
   unsigned int expected_reaches = barrier->expected_reaches;
   unsigned int reached = barrier->reached;
@@ -91,16 +94,10 @@ GNUNET_TESTING_barrier_crossable (struct GNUNET_TESTING_Barrier *barrier)
        number_to_be_reached,
        reached);
 
-  if (((0 < percentage_to_be_reached) &&
-       (percentage_reached >= percentage_to_be_reached)) ||
-      ((0 < number_to_be_reached) && (reached >= number_to_be_reached)))
-  {
-    return GNUNET_YES;
-  }
-  else
-  {
-    return GNUNET_NO;
-  }
+  return ( ( (0 < percentage_to_be_reached) &&
+             (percentage_reached >= percentage_to_be_reached) ) ||
+           ( (0 < number_to_be_reached) &&
+             (reached >= number_to_be_reached) ) );
 }
 
 
@@ -123,7 +120,6 @@ barrier_traits (void *cls,
     GNUNET_TESTING_trait_end ()
   };
 
-  /* Always return current command.  */
   return GNUNET_TESTING_get_trait (traits,
                                    ret,
                                    trait,
@@ -142,6 +138,7 @@ barrier_cleanup (void *cls)
 {
   struct BarrierState *brs = cls;
 
+  GNUNET_free (brs->barrier);
   GNUNET_free (brs);
 }
 
@@ -158,7 +155,9 @@ barrier_run (void *cls,
 {
   struct BarrierState *brs = cls;
 
-  TST_interpreter_add_barrier (is, brs->barrier);
+  GNUNET_TESTING_add_barrier_ (is,
+                               brs->barrier);
+  brs->barrier = NULL;
 }
 
 
@@ -169,11 +168,14 @@ GNUNET_TESTING_barrier_get_node (struct GNUNET_TESTING_Barrier *barrier,
   struct GNUNET_HashCode hc;
   struct GNUNET_ShortHashCode key;
 
-  GNUNET_CRYPTO_hash (&(node_number), sizeof(node_number), &hc);
+  GNUNET_CRYPTO_hash (&node_number,
+                      sizeof(node_number),
+                      &hc);
   memcpy (&key,
           &hc,
           sizeof (key));
-  return GNUNET_CONTAINER_multishortmap_get (barrier->nodes, &key);
+  return GNUNET_CONTAINER_multishortmap_get (barrier->nodes,
+                                             &key);
 }
 
 
@@ -191,8 +193,10 @@ GNUNET_TESTING_cmd_barrier_create (const char *label,
   barrier->name = label;
   barrier->percentage_to_be_reached = percentage_to_be_reached;
   barrier->number_to_be_reached = number_to_be_reached;
-  GNUNET_assert ((0 < percentage_to_be_reached && 0 == number_to_be_reached) ||
-                 (0 ==  percentage_to_be_reached && 0 < number_to_be_reached));
+  GNUNET_assert ((0 < percentage_to_be_reached &&
+                  0 == number_to_be_reached) ||
+                 (0 ==  percentage_to_be_reached &&
+                  0 < number_to_be_reached));
   bs->barrier = barrier;
   return GNUNET_TESTING_command_new (bs, label,
                                      &barrier_run,

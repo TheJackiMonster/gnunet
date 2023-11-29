@@ -41,7 +41,7 @@ struct BatchState
   /**
    * Our label.
    */
-  const char *label;
+  struct GNUNET_TESTING_CommandLabel label;
 
   /**
    * Internal command pointer.
@@ -65,14 +65,14 @@ batch_run (void *cls,
   if (NULL != bs->batch[bs->batch_ip].run)
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "Running batched command: %s\n",
-                bs->batch[bs->batch_ip].label);
+                bs->batch[bs->batch_ip].label.value);
 
   /* hit end command, leap to next top-level command.  */
   if (NULL == bs->batch[bs->batch_ip].run)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "Exiting from batch: %s\n",
-                bs->label);
+                bs->label.value);
     return;
   }
   bs->batch[bs->batch_ip].start_time
@@ -159,7 +159,8 @@ GNUNET_TESTING_cmd_batch (const char *label,
   unsigned int i;
 
   bs = GNUNET_new (struct BatchState);
-  bs->label = label;
+  GNUNET_TESTING_set_label (&bs->label,
+                            label);
   /* Get number of commands.  */
   for (i = 0; NULL != batch[i].run; i++)
     /* noop */
@@ -170,7 +171,8 @@ GNUNET_TESTING_cmd_batch (const char *label,
   memcpy (bs->batch,
           batch,
           sizeof (struct GNUNET_TESTING_Command) * i);
-  return GNUNET_TESTING_command_new (bs, label,
+  return GNUNET_TESTING_command_new (bs,
+                                     label,
                                      &batch_run,
                                      &batch_cleanup,
                                      &batch_traits, NULL);
@@ -216,8 +218,6 @@ GNUNET_TESTING_cmd_batch_set_current_ (const struct GNUNET_TESTING_Command *cmd,
 
   /* sanity checks */
   GNUNET_assert (GNUNET_TESTING_cmd_is_batch_ (cmd));
-  for (unsigned int i = 0; i < new_ip; i++)
-    GNUNET_assert (NULL != bs->batch[i].label);
   /* actual logic */
   bs->batch_ip = new_ip;
 }

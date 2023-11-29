@@ -29,10 +29,15 @@
 
 #include "gnunet_testing_plugin.h"
 
+
+struct GNUNET_TESTING_Barrier;
+
+
 #define GNUNET_TESTING_BARRIER_MAX 32
 
 /**
  * An entry for a barrier list
+ * FIXME: why is this in the public API!??!
  */
 struct GNUNET_TESTING_BarrierListEntry
 {
@@ -53,6 +58,7 @@ struct GNUNET_TESTING_BarrierListEntry
 
 /**
  * A list to hold barriers provided by plugins
+ * FIXME: why is this in the public API!??!
  */
 struct GNUNET_TESTING_BarrierList
 {
@@ -87,6 +93,7 @@ GNUNET_TESTING_cmd_barrier_create (
  double percentage_to_be_reached,
  unsigned int number_to_be_reached);
 
+
 /**
  * If this command is executed the the process is signaling the master process
  * that it reached a barrier. If this command is synchronous it will block.
@@ -96,7 +103,7 @@ GNUNET_TESTING_cmd_barrier_create (
  *
  * @param label name for command.
  * @param barrier_label The name of the barrier we waited for and which was reached.
- * @param asynchronous_finish If GNUNET_YES this command will not block.
+ * @param asynchronous_finish If #GNUNET_YES this command will not block.
  * @param node_number The global number of the node the cmd runs on.
  * @param running_on_master Is this cmd running on the master loop?
  * @param write_message Callback to write messages to the master loop.
@@ -106,10 +113,10 @@ struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_barrier_reached (
   const char *label,
   const char *barrier_label,
-  unsigned int asynchronous_finish,
+  unsigned int asynchronous_finish, /* FIXME: why not a bool? */
   unsigned int node_number,
-  unsigned int running_on_master,
-  GNUNET_TESTING_cmd_helper_write_cb write_message);
+  unsigned int running_on_master, /* FIXME: why not a bool? */
+  GNUNET_TESTING_cmd_helper_write_cb write_message); /* FIXME: no 'cls' closure argument!? */
 
 #endif
 /* end of testing_barrier.h */

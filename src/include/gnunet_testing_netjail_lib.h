@@ -30,7 +30,6 @@
 #include "gnunet_testing_ng_lib.h"
 #include "gnunet_testing_plugin.h"
 
-struct GNUNET_TESTING_AsyncContext;
 
 /**
  * Router of a netjail subnet.
@@ -542,5 +541,6 @@ GNUNET_TESTING_cmd_start_peer (const char *label,
   op (block_state, struct GNUNET_TESTING_BlockState)
 
 GNUNET_TESTING_SIMPLE_NETJAIL_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT)
+
 
 #endif

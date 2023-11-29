@@ -33,6 +33,7 @@ gnunetinclude_HEADERS = \
   gnunet_container_lib.h \
   gnunet_conversation_service.h \
   gnunet_core_service.h \
+  gnunet_core_testing_lib.h \
   gnunet_crypto_lib.h \
   gnunet_curl_lib.h \
   gnunet_datacache_lib.h \
@@ -114,6 +115,7 @@ gnunetinclude_HEADERS = \
   gnunet_testing_lib.h \
   gnunet_testing_plugin.h \
   gnunet_testing_ng_lib.h \
+  gnunet_testing_loop_lib.h \
   gnunet_testing_netjail_lib.h \
   gnunet_time_lib.h \
   gnunet_transport_application_service.h \

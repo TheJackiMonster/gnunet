@@ -24,8 +24,8 @@
  * @author Christian Grothoff
  * @author Nathan Evans
  */
-#include "gnunet_common.h"
 #include "platform.h"
+#include "gnunet_common.h"
 #include "gnunet_block_lib.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_hello_uri_lib.h"

@@ -88,11 +88,6 @@ send_run (void *cls,
 {
   struct SendState *ss = cls;
 
-#if 0
-  other_cmd = GNUNET_TESTING_interpreter_lookup_command (ss->other_label);
-  GNUNET_TESTING_get_trait_XXX (other_cmd,
-                                &data);
-#endif
   GNUNET_TESTING_async_finish (&ss->ac);
 }
 
@@ -112,8 +107,9 @@ GNUNET_TESTING_DHTU_cmd_send (const char *label)
       .cleanup = &send_cleanup,
       .traits = &send_traits
     };
-    strncpy (cmd.label, label, GNUNET_TESTING_CMD_MAX_LABEL_LENGTH);
-
+    
+    GNUNET_TESTING_set_label (&cmd.label,
+                              label);
     return cmd;
   }
 }

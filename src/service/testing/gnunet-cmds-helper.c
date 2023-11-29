@@ -479,8 +479,8 @@ tokenizer_cb (void *cls,
       LOG (GNUNET_ERROR_TYPE_DEBUG,
            "cross barrier %s\n",
            barrier_name);
-      TST_interpreter_finish_attached_cmds (is,
-                                            barrier_name);
+      GNUNET_TESTING_finish_barrier_ (is,
+                                      barrier_name);
       return GNUNET_OK;
     }
   case GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_PEERS_STARTED:

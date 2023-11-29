@@ -26,8 +26,84 @@
  */
 #ifndef TRANSPORT_TESTING_CMDS_H
 #define TRANSPORT_TESTING_CMDS_H
+
 #include "gnunet_testing_ng_lib.h"
-#include "gnunet_testing_plugin.h"
+#include "gnunet_transport_testing_ng_lib.h"
+
+
+/**
+ * Struct to store information needed in callbacks.
+ *
+ */
+// FIXME: breaks naming conventions! Needed public?
+struct ConnectPeersState
+{
+  /**
+   * Context for our asynchronous completion.
+   */
+  struct GNUNET_TESTING_AsyncContext ac;
+
+  GNUNET_TESTING_notify_connect_cb notify_connect;
+
+  /**
+   * The testing system of this node.
+   */
+  const struct GNUNET_TESTING_System *tl_system;
+
+  // Label of the cmd which started the test system.
+  const char *create_label;
+
+  /**
+   * Number globally identifying the node.
+   *
+   */
+  uint32_t num;
+
+  /**
+   * Label of the cmd to start a peer.
+   *
+   */
+  const char *start_peer_label;
+
+  /**
+   * The topology of the test setup.
+   */
+  struct GNUNET_TESTING_NetjailTopology *topology;
+
+  /**
+   * Connections to other peers.
+   */
+  struct GNUNET_TESTING_NodeConnection *node_connections_head;
+
+  struct GNUNET_TESTING_Interpreter *is;
+
+  /**
+   * Number of connections.
+   */
+  unsigned int con_num;
+
+  /**
+   * Number of additional connects this cmd will wait for not triggered by this cmd.
+   */
+  unsigned int additional_connects;
+
+  /**
+ * Number of connections we already have a notification for.
+ */
+  unsigned int con_num_notified;
+
+  /**
+   * Number of additional connects this cmd will wait for not triggered by this cmd we already have a notification for.
+   */
+  unsigned int additional_connects_notified;
+
+  /**
+   * Flag indicating, whether the command is waiting for peers to connect that are configured to connect.
+   */
+  unsigned int wait_for_connect;
+};
+
+
 
 typedef void *
 (*GNUNET_TRANSPORT_notify_connect_cb) (struct GNUNET_TESTING_Interpreter *is,
@@ -183,62 +259,14 @@ GNUNET_TRANSPORT_cmd_backchannel_check (const char *label,
                                         topology);
 
 
-/**
- * Create headers for a trait with name @a name for
- * statically allocated data of type @a type.
- */
-#define GNUNET_TRANSPORT_MAKE_DECL_SIMPLE_TRAIT(name,type)   \
-  enum GNUNET_GenericReturnValue                          \
-    GNUNET_TRANSPORT_get_trait_ ## name (                    \
-    const struct GNUNET_TESTING_Command *cmd,              \
-    type **ret);                                          \
-  struct GNUNET_TESTING_Trait                              \
-    GNUNET_TRANSPORT_make_trait_ ## name (                   \
-    type * value);
-
-
-/**
- * Create C implementation for a trait with name @a name for statically
- * allocated data of type @a type.
- */
-#define GNUNET_TRANSPORT_MAKE_IMPL_SIMPLE_TRAIT(name,type)  \
-  enum GNUNET_GenericReturnValue                         \
-    GNUNET_TRANSPORT_get_trait_ ## name (                   \
-    const struct GNUNET_TESTING_Command *cmd,             \
-    type **ret)                                          \
-  {                                                      \
-    if (NULL == cmd->traits) return GNUNET_SYSERR;       \
-    return cmd->traits (cmd->cls,                        \
-                        (const void **) ret,             \
-                        GNUNET_S (name),                  \
-                        0);                              \
-  }                                                      \
-  struct GNUNET_TESTING_Trait                             \
-    GNUNET_TRANSPORT_make_trait_ ## name (                  \
-    type * value)                                        \
-  {                                                      \
-    struct GNUNET_TESTING_Trait ret = {                   \
-      .trait_name = GNUNET_S (name),                      \
-      .ptr = (const void *) value                        \
-    };                                                   \
-    return ret;                                          \
-  }
-
 
 /**
  * Call #op on all simple traits.
  */
 #define GNUNET_TRANSPORT_SIMPLE_TRAITS(op) \
-  op (peer_id, const struct GNUNET_PeerIdentity) \
-  op (connected_peers_map, const struct GNUNET_CONTAINER_MultiShortmap) \
-  op (hello_size, const size_t) \
-  op (hello, const char) \
-  op (application_handle, const struct GNUNET_TRANSPORT_ApplicationHandle) \
-  op (connect_peer_state, const struct ConnectPeersState) \
-  op (state, const struct GNUNET_TESTING_StartPeerState) \
-  op (broadcast, const enum GNUNET_GenericReturnValue)
+  op (connect_peer_state, const struct ConnectPeersState) 
 
-GNUNET_TRANSPORT_SIMPLE_TRAITS (GNUNET_TRANSPORT_MAKE_DECL_SIMPLE_TRAIT)
+GNUNET_TRANSPORT_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT)
 
 
 #endif

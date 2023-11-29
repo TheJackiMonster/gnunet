@@ -25,9 +25,10 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "testing_cmds.h"
+#include "transport-testing-cmds.h"
 #include "gnunet_testing_ng_lib.h"
-#include "gnunet_testing_netjail_lib.h"
+#include "gnunet_transport_testing_ng_lib.h"
+
 
 /**
  * Generic logging shortcut
@@ -246,8 +247,6 @@ start_peer_traits (void *cls,
     sps->connected_peers_map;
   char *hello = sps->hello;
   size_t hello_size = sps->hello_size;
-
-
   struct GNUNET_TESTING_Trait traits[] = {
     GNUNET_TESTING_make_trait_application_handle ((const void *) ah),
     GNUNET_TESTING_make_trait_peer_id ((const void *) id),

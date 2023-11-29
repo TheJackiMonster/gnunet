@@ -136,8 +136,8 @@ GNUNET_TESTING_interpreter_get_current_command (
  * @param helper The helper handle.
  */
 void
-GNUNET_TESTING_add_netjail_helper (struct GNUNET_TESTING_Interpreter *is,
-                                   const struct GNUNET_HELPER_Handle *helper);
+GNUNET_TESTING_add_netjail_helper_ (struct GNUNET_TESTING_Interpreter *is,
+                                    const struct GNUNET_HELPER_Handle *helper);
 
 #endif
 /* end of testing_cmds.h */
