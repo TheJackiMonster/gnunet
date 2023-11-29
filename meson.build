@@ -424,8 +424,10 @@ subdir('data')
 
 meson.add_dist_script('meson-dist-script')
 
-add_test_setup('default', env: ['GNUNET_PREFIX='/get_option('libdir')], exclude_suites: ['perf'], is_default: true)
-add_test_setup('full',  env: ['GNUNET_PREFIX='/get_option('libdir')], is_default: false)
+gnunet_prefix = get_option('prefix')/get_option('libdir')
+
+add_test_setup('default', env: ['GNUNET_PREFIX='+gnunet_prefix], exclude_suites: ['perf'], is_default: true)
+add_test_setup('full',  env: ['GNUNET_PREFIX='+gnunet_prefix], is_default: false)
 
 summary({'host': host_machine.system(),
          'prefix': get_option('prefix'),

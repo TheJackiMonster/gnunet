@@ -35,6 +35,7 @@ libgnunetcoretesting = library('gnunetcoretesting',
           ['core_api_cmd_connecting_peers.c'],
           dependencies: [
             libgnunetutil_dep,
+            libgnunettransporttesting2_dep,
             libgnunettesting_dep,
             libgnunetarm_dep,
             libgnunettransportapplication_dep,

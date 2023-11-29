@@ -27,7 +27,6 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "transport-testing-communicator.h"
-#include "gnunet_ats_transport_service.h"
 #include "gnunet_signatures.h"
 #include "gnunet_testing_lib.h"
 #include "transport.h"
@@ -103,14 +102,14 @@ static unsigned int iterations_left[NUM_PEERS];
 
 #define TIMEOUT_MULTIPLIER 1
 
-#define DELAY \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,200)
+#define DEFAULT_DELAY \
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,200)
 
 #define SHORT_BURST_WINDOW \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,2)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,2)
 
 #define LONG_BURST_WINDOW \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,2)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,2)
 
 enum TestPhase
 {
@@ -374,7 +373,7 @@ process_statistics (void *cls,
                     int is_persistent)
 {
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Statistic: Name %s and value %lu\n",
+              "Statistic: Name %s and value %" PRIu64 "\n",
               name,
               value);
   if ((0 == strcmp ("rekey", test_name)) && (0 == strcmp (
@@ -846,7 +845,8 @@ update_avg_latency (const char *payload, unsigned int peer_nr)
                             + latency.rel_value_us)
                            / num_received;
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Latency of received packet by peer %u: %s with avg latency %lu\n",
+       "Latency of received packet by peer %u: %s with avg latency %" PRIu64
+       "\n",
        peer_nr,
        GNUNET_STRINGS_relative_time_to_string (latency,
                                                GNUNET_YES),
@@ -1191,7 +1191,7 @@ main (int argc,
                                              TEST_SECTION,
                                              "DELAY_SHORT",
                                              &delay_short_value))
-    delay_short = DELAY;
+    delay_short = DEFAULT_DELAY;
   else
     GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,
                                    delay_short_value);
@@ -1200,7 +1200,7 @@ main (int argc,
                                              TEST_SECTION,
                                              "DELAY_SHORT",
                                              &delay_long_value))
-    delay_long = DELAY;
+    delay_long = DEFAULT_DELAY;
   else
     GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,
                                    delay_long_value);
