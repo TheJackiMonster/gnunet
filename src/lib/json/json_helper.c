@@ -279,12 +279,8 @@ GNUNET_JSON_spec_string (const char *name,
 {
   struct GNUNET_JSON_Specification ret = {
     .parser = &parse_string,
-    .cleaner = NULL,
-    .cls = NULL,
-    .field = name,
-    .ptr = strptr,
-    .ptr_size = 0,
-    .size_ptr = NULL
+     .field = name,
+    .ptr = strptr
   };
 
   *strptr = NULL;
