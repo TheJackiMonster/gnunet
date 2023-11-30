@@ -170,6 +170,10 @@ sodium_dep = dependency('libsodium', required : false, version: '>=1.0.18')
 if not sodium_dep.found()
   sodium_dep = cc.find_library('sodium', required : true)
 endif
+quic_dep = dependency('libquiche', required : false)
+if not quic_dep.found()
+  quic_dep = cc.find_library('quiche', required : false)
+endif
 
 idn_dep = dependency('libidn2', required : false)
 if not idn_dep.found()

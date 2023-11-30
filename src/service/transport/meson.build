@@ -151,6 +151,20 @@ executable ('gnunet-communicator-tcp',
             include_directories: [incdir, configuration_inc],
             install: true,
             install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+if quic_dep.found() and get_option('experimental')
+executable ('gnunet-communicator-quic',
+            gnunetcommunicatortcp_src,
+            dependencies: [libgnunettransportcommunicator_dep,
+                           libgnunetpeerstore_dep,
+                           libgnunetstatistics_dep,
+                           libgnunetnat_dep,
+                           gcrypt_dep,
+                           quic_dep,
+                           libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+endif
 
 libgnunettesttransport_cmd_simplesend = library('gnunet_test_transport_plugin_cmd_simple_send',
                                                 ['test_transport_plugin_cmd_simple_send.c'],
@@ -264,7 +278,7 @@ configure_file(input : 'test_transport_defaults.conf',
                output : 'test_transport_defaults.conf',
                copy: true)
 
-foreach p : ['unix', 'tcp', 'udp']
+foreach p : ['unix', 'tcp', 'udp', 'quic']
   configure_file(input : 'test_communicator_'+p+'_basic_peer1.conf',
                  output : 'test_communicator_'+p+'_basic_peer1.conf',
                  copy: true)
@@ -272,6 +286,29 @@ foreach p : ['unix', 'tcp', 'udp']
                  output : 'test_communicator_'+p+'_basic_peer2.conf',
                  copy: true)
 endforeach
+
+foreach p : ['tcp', 'udp']
+  configure_file(input : 'test_communicator_'+p+'_rekey_peer1.conf',
+                 output : 'test_communicator_'+p+'_rekey_peer1.conf',
+                 copy: true)
+  configure_file(input : 'test_communicator_'+p+'_rekey_peer2.conf',
+                 output : 'test_communicator_'+p+'_rekey_peer2.conf',
+                 copy: true)
+endforeach
+
+configure_file(input : 'test_communicator_udp_backchannel_peer1.conf',
+               output : 'test_communicator_udp_backchannel_peer1.conf',
+               copy: true)
+configure_file(input : 'test_communicator_udp_backchannel_peer2.conf',
+               output : 'test_communicator_udp_backchannel_peer2.conf',
+               copy: true)
+
+configure_file(input : 'test_communicator_tcp_bidirect_peer1.conf',
+               output : 'test_communicator_tcp_bidirect_peer1.conf',
+               copy: true)
+configure_file(input : 'test_communicator_tcp_bidirect_peer2.conf',
+               output : 'test_communicator_tcp_bidirect_peer2.conf',
+               copy: true)
 
 testcommunicator_basic_unix = executable('test_communicator_basic-unix',
                                          ['test_communicator_basic.c'],
@@ -321,9 +358,118 @@ testcommunicator_basic_udp = executable('test_communicator_basic-udp',
                                         ],
                                         include_directories: [incdir, configuration_inc],
                                         install: false)
+if quic_dep.found() and get_option('experimental')
+  testcommunicator_basic_quic = executable('test_communicator_basic-quic',
+                                           ['test_communicator_basic.c'],
+                                           dependencies: [
+                                             libgnunetutil_dep,
+                                             libgnunettransportapplication_dep,
+                                             libgnunettransporttesting2_dep,
+                                             libgnunettransportcore_dep,
+                                             libgnunettesting_dep,
+                                             libgnunetpeerstore_dep,
+                                             libgnunetstatistics_dep,
+                                             libgnunethello_dep,
+                                             libgnunetarm_dep,
+                                             libgnunetutil_dep
+                                           ],
+                                           include_directories: [incdir, configuration_inc],
+                                           install: false)
+endif
+
+testcommunicator_rekey_tcp = executable('test_communicator_rekey-tcp',
+                                        ['test_communicator_basic.c'],
+                                        dependencies: [
+                                          libgnunetutil_dep,
+                                          libgnunettransportapplication_dep,
+                                          libgnunettransporttesting2_dep,
+                                          libgnunettransportcore_dep,
+                                          libgnunettesting_dep,
+                                          libgnunetpeerstore_dep,
+                                          libgnunetstatistics_dep,
+                                          libgnunethello_dep,
+                                          libgnunetarm_dep,
+                                          libgnunetutil_dep
+                                        ],
+                                        include_directories: [incdir, configuration_inc],
+                                        install: false)
+
+testcommunicator_rekey_udp = executable('test_communicator_rekey-udp',
+                                        ['test_communicator_basic.c'],
+                                        dependencies: [
+                                          libgnunetutil_dep,
+                                          libgnunettransportapplication_dep,
+                                          libgnunettransporttesting2_dep,
+                                          libgnunettransportcore_dep,
+                                          libgnunettesting_dep,
+                                          libgnunetpeerstore_dep,
+                                          libgnunetstatistics_dep,
+                                          libgnunethello_dep,
+                                          libgnunetarm_dep,
+                                          libgnunetutil_dep
+                                        ],
+                                        include_directories: [incdir, configuration_inc],
+                                        install: false)
+
+testcommunicator_backchannel_udp = executable('test_communicator_backchannel-udp',
+                                              ['test_communicator_basic.c'],
+                                              dependencies: [
+                                                libgnunetutil_dep,
+                                                libgnunettransportapplication_dep,
+                                                libgnunettransporttesting2_dep,
+                                                libgnunettransportcore_dep,
+                                                libgnunettesting_dep,
+                                                libgnunetpeerstore_dep,
+                                                libgnunetstatistics_dep,
+                                                libgnunethello_dep,
+                                                libgnunetarm_dep,
+                                                libgnunetutil_dep
+                                              ],
+                                              include_directories: [incdir, configuration_inc],
+                                              install: false)
+
+testcommunicator_bidirect_tcp = executable('test_communicator_bidirect-tcp',
+                                           ['test_communicator_basic.c'],
+                                           dependencies: [
+                                             libgnunetutil_dep,
+                                             libgnunettransportapplication_dep,
+                                             libgnunettransporttesting2_dep,
+                                             libgnunettransportcore_dep,
+                                             libgnunettesting_dep,
+                                             libgnunetpeerstore_dep,
+                                             libgnunetstatistics_dep,
+                                             libgnunethello_dep,
+                                             libgnunetarm_dep,
+                                             libgnunetutil_dep
+                                           ],
+                                           include_directories: [incdir, configuration_inc],
+                                           install: false)
 
 
+testtransport_test_names = [
+    'test_transport_start_testcase',
+    'test_transport_simple_send_performance',
+    'test_transport_nat_icmp_tcp',
+    'test_transport_nat_upnp',
+    'test_transport_simple_send_string',
+    'test_transport_simple_send',
+    'test_transport_simple_send_broadcast',
+    'test_transport_udp_backchannel',
+    'test_transport_simple_send_dv_circle',
+    'test_transport_simple_send_dv_inverse'
+  ]
 
+foreach t : testtransport_test_names
+
+  test_filename = t + '.sh'
+  test_file = configure_file(input : test_filename,
+                             output : test_filename,
+                             copy: true)
+
+  if host_machine.system() != 'darwin'
+    test(t, test_file, suite: 'transport', workdir: meson.current_build_dir(), is_parallel: false)
+  endif
+endforeach
 
 test('test_communicator_basic-unix', testcommunicator_basic_unix,
      workdir: meson.current_build_dir(),
@@ -334,20 +480,20 @@ test('test_communicator_basic-tcp', testcommunicator_basic_tcp,
 test('test_communicator_basic-udp', testcommunicator_basic_udp,
      workdir: meson.current_build_dir(),
      suite: ['transport', 'communicator'])
-#if quic_dep.found()
-#  test('test_communicator_basic-quic', testcommunicator_basic_quic,
-#       workdir: meson.current_build_dir(),
-#       suite: ['transport', 'communicator'])
-#endif
-#test('test_communicator_rekey-tcp', testcommunicator_rekey_tcp,
-#     workdir: meson.current_build_dir(),
-#     suite: ['transport', 'communicator'])
-#test('test_communicator_rekey-udp', testcommunicator_rekey_udp,
-#     workdir: meson.current_build_dir(),
-#     suite: ['transport', 'communicator'])
-#test('test_communicator_backchannel-udp', testcommunicator_backchannel_udp,
-#     workdir: meson.current_build_dir(),
-#     suite: ['transport', 'communicator'])
-#test('test_communicator_bidirect-tcp', testcommunicator_bidirect_tcp,
-#     workdir: meson.current_build_dir(),
-#     suite: ['transport', 'communicator'])
+if quic_dep.found() and get_option('experimental')
+  test('test_communicator_basic-quic', testcommunicator_basic_quic,
+       workdir: meson.current_build_dir(),
+       suite: ['transport', 'communicator'])
+endif
+test('test_communicator_rekey-tcp', testcommunicator_rekey_tcp,
+     workdir: meson.current_build_dir(),
+     suite: ['transport', 'communicator'])
+test('test_communicator_rekey-udp', testcommunicator_rekey_udp,
+     workdir: meson.current_build_dir(),
+     suite: ['transport', 'communicator'])
+test('test_communicator_backchannel-udp', testcommunicator_backchannel_udp,
+     workdir: meson.current_build_dir(),
+     suite: ['transport', 'communicator'])
+test('test_communicator_bidirect-tcp', testcommunicator_bidirect_tcp,
+     workdir: meson.current_build_dir(),
+     suite: ['transport', 'communicator'])
