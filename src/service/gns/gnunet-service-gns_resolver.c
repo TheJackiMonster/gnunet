@@ -581,14 +581,16 @@ timeout_resolution (void *cls)
 
 /**
  * Function called to receive the protocol number for a service.
- * 
+ *
  * @param name name of the protocol
 */
 static struct protoent *
-resolver_getprotobyname(const char *name) {
-  struct protoent *pe = getprotobyname(name);
-  if (pe == NULL && strcmp(name, "trust") == 0) {
-    pe = GNUNET_new(struct protoent);
+resolver_getprotobyname (const char *name)
+{
+  struct protoent *pe = getprotobyname (name);
+  if (pe == NULL && strcmp (name, "trust") == 0)
+  {
+    pe = GNUNET_new (struct protoent);
     pe->p_name = "trust";
     pe->p_proto = 242;
   }
@@ -598,21 +600,27 @@ resolver_getprotobyname(const char *name) {
 
 /**
  * Function called to receive the port number for a service.
- * 
+ *
  * @param name name of the service
  * @param proto name of the protocol
 */
-static struct servent *resolver_getservbyname(const char *name, const char *proto){
-  struct servent *se = getservbyname(name, proto);
-  if (se == NULL && strcmp(proto, "trust") == 0) {
-    if (strcmp(name, "trustlist") == 0) {
-      se = GNUNET_new(struct servent);
+static struct servent *
+resolver_getservbyname (const char *name, const char *proto)
+{
+  struct servent *se = getservbyname (name, proto);
+  if (se == NULL && strcmp (proto, "trust") == 0)
+  {
+    if (strcmp (name, "trustlist") == 0)
+    {
+      se = GNUNET_new (struct servent);
       se->s_name = "trustlist";
-      se->s_port = htons(1002);
-    } else if (strcmp(name, "scheme") == 0) {
-      se = GNUNET_new(struct servent);
+      se->s_port = htons (1002);
+    }
+    else if (strcmp (name, "scheme") == 0)
+    {
+      se = GNUNET_new (struct servent);
       se->s_name = "scheme";
-      se->s_port = htons(1003);
+      se->s_port = htons (1003);
     }
   }
   return se;
@@ -713,7 +721,7 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
       return ret;
     }
     se = resolver_getservbyname (srv_name,
-                        proto_name);
+                                 proto_name);
     if (NULL == se)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -1125,7 +1133,7 @@ dns_result_parser (void *cls,
         rd[i - skip].data_size = buf_off - buf_start;
         rd[i - skip].data = &buf[buf_start];
         break;
-      
+
       case GNUNET_DNSPARSER_TYPE_URI:
         buf_start = buf_off;
         if (GNUNET_OK !=
@@ -2046,7 +2054,10 @@ handle_gns_resolution_result (void *cls,
       if ((0 != rh->protocol) &&
           (0 != rh->service) &&
           (GNUNET_GNSRECORD_TYPE_BOX != rd[i].record_type))
-        continue;     /* we _only_ care about boxed records */
+        if (GNUNET_GNSRECORD_TYPE_PKEY != rd[i].record_type &&
+            GNUNET_GNSRECORD_TYPE_EDKEY != rd[i].record_type)
+          continue;
+      /* we _only_ care about boxed records */
 
       GNUNET_assert (rd_off < rd_count);
       rd_new[rd_off] = rd[i];
@@ -2238,7 +2249,7 @@ handle_gns_resolution_result (void *cls,
               (off != rd[i].data_size))
           {
             GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    _ ("Failed to deserialize URI record with target\n"));
+                        _ ("Failed to deserialize URI record with target\n"));
             GNUNET_break_op (0);      /* record not well-formed */
           }
           else
