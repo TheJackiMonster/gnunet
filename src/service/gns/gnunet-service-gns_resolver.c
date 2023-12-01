@@ -49,6 +49,8 @@
 #include "gns.h"
 #include "gnunet-service-gns.h"
 #include "gnunet-service-gns_resolver.h"
+#include "gnu_name_system_protocols.h"
+#include "gnu_name_system_service_ports.h"
 
 
 /**
@@ -588,11 +590,14 @@ static struct protoent *
 resolver_getprotobyname (const char *name)
 {
   struct protoent *pe = getprotobyname (name);
-  if (pe == NULL && strcmp (name, "trust") == 0)
+  if (pe == NULL)
   {
+    uint16_t proto = GNUNET_GNS_protocol_name_to_number (name);
+    if (proto == 0)
+      return NULL;
     pe = GNUNET_new (struct protoent);
-    pe->p_name = "trust";
-    pe->p_proto = 242;
+    pe->p_name = name;
+    pe->p_proto = proto;
   }
   return pe;
 }
@@ -608,20 +613,14 @@ static struct servent *
 resolver_getservbyname (const char *name, const char *proto)
 {
   struct servent *se = getservbyname (name, proto);
-  if (se == NULL && strcmp (proto, "trust") == 0)
+  if (se == NULL)
   {
-    if (strcmp (name, "trustlist") == 0)
-    {
-      se = GNUNET_new (struct servent);
-      se->s_name = "trustlist";
-      se->s_port = htons (1002);
-    }
-    else if (strcmp (name, "scheme") == 0)
-    {
-      se = GNUNET_new (struct servent);
-      se->s_name = "scheme";
-      se->s_port = htons (1003);
-    }
+    uint16_t port = GNUNET_GNS_service_port_name_to_number (name);
+    if (port == 0)
+      return NULL;
+    se = GNUNET_new (struct servent);
+    se->s_name = name;
+    se->s_port = htons (port);
   }
   return se;
 }
