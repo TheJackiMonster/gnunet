@@ -24,8 +24,6 @@
  * @brief reclaim tickets
  *
  */
-#include "platform.h"
-#include <inttypes.h>
 #include "gnunet-service-reclaim_tickets.h"
 
 
@@ -451,13 +449,13 @@ process_tickets (void *cls)
       rd[i].data = &ae->new_id;
     }
   }
-  rvk->ns_qe = GNUNET_NAMESTORE_records_store (nsh,
-                                               &rvk->identity,
-                                               le->label,
-                                               le->rd_count,
-                                               rd,
-                                               &ticket_processed,
-                                               rvk);
+  rvk->ns_qe = GNUNET_NAMESTORE_record_set_store (nsh,
+                                                  &rvk->identity,
+                                                  le->label,
+                                                  le->rd_count,
+                                                  rd,
+                                                  &ticket_processed,
+                                                  rvk);
   GNUNET_free (le->label);
   GNUNET_free (le->data);
   GNUNET_free (le);
@@ -645,13 +643,13 @@ move_attr_finished (void *cls, enum GNUNET_ErrorCode ec)
                                                sizeof(rvk->move_attr->old_id));
   GNUNET_assert (NULL != label);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Removing attribute %s\n", label);
-  rvk->ns_qe = GNUNET_NAMESTORE_records_store (nsh,
-                                               &rvk->identity,
-                                               label,
-                                               0,
-                                               NULL,
-                                               &del_attr_finished,
-                                               rvk);
+  rvk->ns_qe = GNUNET_NAMESTORE_record_set_store (nsh,
+                                                  &rvk->identity,
+                                                  label,
+                                                  0,
+                                                  NULL,
+                                                  &del_attr_finished,
+                                                  rvk);
   GNUNET_free (label);
 }
 
@@ -744,17 +742,18 @@ rvk_move_attr_cb (void *cls,
                   new_label);
       GNUNET_free (credential);
     }
-    else {
+    else
+    {
       memcpy (&new_rd[i], &rd[i], sizeof (struct GNUNET_GNSRECORD_Data));
     }
   }
-  rvk->ns_qe = GNUNET_NAMESTORE_records_store (nsh,
-                                               &rvk->identity,
-                                               new_label,
-                                               rd_count,
-                                               new_rd,
-                                               &move_attr_finished,
-                                               rvk);
+  rvk->ns_qe = GNUNET_NAMESTORE_record_set_store (nsh,
+                                                  &rvk->identity,
+                                                  new_label,
+                                                  rd_count,
+                                                  new_rd,
+                                                  &move_attr_finished,
+                                                  rvk);
   GNUNET_free (new_label);
   GNUNET_free (attr_data);
 }
@@ -870,13 +869,13 @@ revoke_attrs_cb (void *cls,
   }
 
   /** Remove attribute references **/
-  rvk->ns_qe = GNUNET_NAMESTORE_records_store (nsh,
-                                               &rvk->identity,
-                                               label,
-                                               0,
-                                               NULL,
-                                               &remove_ticket_cont,
-                                               rvk);
+  rvk->ns_qe = GNUNET_NAMESTORE_record_set_store (nsh,
+                                                  &rvk->identity,
+                                                  label,
+                                                  0,
+                                                  NULL,
+                                                  &remove_ticket_cont,
+                                                  rvk);
 }
 
 
@@ -1399,19 +1398,19 @@ issue_ticket (struct TicketIssueHandle *ih)
                                          sizeof(ih->ticket.rnd));
   struct GNUNET_CRYPTO_PublicKey pub;
   GNUNET_CRYPTO_key_get_public (&ih->identity,
-                                  &pub);
+                                &pub);
   char *str = GNUNET_CRYPTO_public_key_to_string (&pub);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Storing AuthZ information under %s in %s\n", label, str);
   GNUNET_free (str);
   // Publish record
-  ih->ns_qe = GNUNET_NAMESTORE_records_store (nsh,
-                                              &ih->identity,
-                                              label,
-                                              i,
-                                              attrs_record,
-                                              &store_ticket_issue_cont,
-                                              ih);
+  ih->ns_qe = GNUNET_NAMESTORE_record_set_store (nsh,
+                                                 &ih->identity,
+                                                 label,
+                                                 i,
+                                                 attrs_record,
+                                                 &store_ticket_issue_cont,
+                                                 ih);
   for (j = 0; j < i; j++)
   {
     if (attrs_record[j].record_type

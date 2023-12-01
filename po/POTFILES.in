@@ -102,7 +102,6 @@ src/contrib/service/set/ibf_sim.c
 src/contrib/service/set/plugin_block_set_test.c
 src/contrib/service/set/set_api.c
 src/contrib/service/template/gnunet-service-template.c
-src/gana/gnunet-error-codes/gnunet_error_codes.c
 src/lib/block/bg_bf.c
 src/lib/block/block.c
 src/lib/curl/curl.c
@@ -461,8 +460,6 @@ src/service/testing/testing_api_cmd_netjail_start_cmds_helper.c
 src/service/testing/testing_api_cmd_netjail_stop.c
 src/service/testing/testing_api_cmd_netjail_stop_cmds_helper.c
 src/service/testing/testing_api_cmd_send_peer_ready.c
-src/service/testing/testing_api_cmd_start_peer.c
-src/service/testing/testing_api_cmd_stop_peer.c
 src/service/testing/testing_api_cmd_system_create.c
 src/service/testing/testing_api_cmd_system_destroy.c
 src/service/testing/testing_api_loop.c
@@ -474,6 +471,8 @@ src/service/transport/gnunet-communicator-udp.c
 src/service/transport/gnunet-communicator-unix.c
 src/service/transport/gnunet-service-transport.c
 src/service/transport/gnunet-transport.c
+src/service/transport/testing_api_cmd_start_peer.c
+src/service/transport/testing_api_cmd_stop_peer.c
 src/service/transport/transport-testing-communicator.c
 src/service/transport/transport-testing-filenames2.c
 src/service/transport/transport-testing-loggers2.c

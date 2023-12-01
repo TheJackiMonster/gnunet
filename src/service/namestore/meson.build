@@ -72,12 +72,12 @@ namestoreapitestnames = [
   'test_namestore_api_remove_not_existing_record',
   'test_namestore_api_store',
   'test_namestore_api_store_update',
-  'test_namestore_api_tx_rollback',
   'test_namestore_api_zone_iteration',
   'test_namestore_api_zone_iteration_nick',
   'test_namestore_api_zone_iteration_specific_zone',
   'test_namestore_api_zone_iteration_stop',
-  'test_namestore_api_zone_to_name'
+  'test_namestore_api_zone_to_name',
+  'test_namestore_api_edit_records'
   ]
 
 if get_option('experimental')

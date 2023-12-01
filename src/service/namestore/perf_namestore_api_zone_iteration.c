@@ -22,10 +22,8 @@
  * @brief testcase for zone iteration functionality: iterate all zones
  * @author Christian Grothoff
  */
-#include "platform.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_testing_lib.h"
-#include "../service/namestore/namestore.h"
 
 #define TEST_RECORD_TYPE GNUNET_DNSPARSER_TYPE_TXT
 
@@ -316,12 +314,12 @@ publish_record (void *cls)
   GNUNET_asprintf (&label,
                    "l%u",
                    off);
-  qe = GNUNET_NAMESTORE_records_store (nsh,
-                                       &privkey,
-                                       label,
-                                       1, rd,
-                                       &put_cont,
-                                       NULL);
+  qe = GNUNET_NAMESTORE_record_set_store (nsh,
+                                          &privkey,
+                                          label,
+                                          1, rd,
+                                          &put_cont,
+                                          NULL);
   GNUNET_free (label);
   GNUNET_free (rd);
 }

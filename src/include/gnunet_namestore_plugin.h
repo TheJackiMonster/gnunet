@@ -53,6 +53,7 @@ extern "C"
  * @param cls closure
  * @param serial unique serial number of the record, MUST NOT BE ZERO,
  *               and must be monotonically increasing while iterating
+ * @param editor_hint content of the editor field when record was read (may be NULL)
  * @param zone_key private key of the zone
  * @param label name that is being mapped (at most 255 characters long)
  * @param rd_count number of entries in @a rd array
@@ -61,6 +62,7 @@ extern "C"
 typedef void
 (*GNUNET_NAMESTORE_RecordIterator) (void *cls,
                                     uint64_t serial,
+                                    const char *editor_hint,
                                     const struct
                                     GNUNET_CRYPTO_PrivateKey *private_key,
                                     const char *label,
@@ -158,42 +160,13 @@ struct GNUNET_NAMESTORE_PluginFunctions
   /** Transaction-based API draft **/
 
   /**
-   * Start a transaction in the database
-   *
-   * @param cls closure (internal context for the plugin)
-   * @param emsg message. On error, string will be allocated and must be freed.
-   * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
-   */
-  enum GNUNET_GenericReturnValue
-  (*transaction_begin)(void *cls, char **emsg);
-
-  /**
-   * Abort and roll back a transaction in the database
-   *
-   * @param cls closure (internal context for the plugin)
-   * @param emsg message. On error, string will be allocated and must be freed.
-   * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
-   */
-  enum GNUNET_GenericReturnValue
-  (*transaction_rollback)(void *cls, char **emsg);
-
-  /**
-   * Commit a transaction in the database
-   *
-   * @param cls closure (internal context for the plugin)
-   * @param emsg message. On error, string will be allocated and must be freed.
-   * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
-   */
-  enum GNUNET_GenericReturnValue
-  (*transaction_commit)(void *cls, char **emsg);
-
-  /**
-   * Edit records in the datastore for which we are the authority.
-   * Should be called within a transaction (after begin) and maps
-   * to a SELECT ... FOR UPDATE in PQ.
+   * Edit records in the namestore.
+   * This modifies the editor hint, an advisory lock entry.
+   * The record iterator will be called with the old editor hint (if any).
    *
    * @param cls closure (internal context for the plugin)
    * @param zone private key of the zone
+   * @param editor_hint the new value for the advisory lock field
    * @param label name of the record in the zone
    * @param iter function to call with the result
    * @param iter_cls closure for @a iter
@@ -201,6 +174,7 @@ struct GNUNET_NAMESTORE_PluginFunctions
    */
   enum GNUNET_GenericReturnValue
   (*edit_records)(void *cls,
+                  const char *editor_hint,
                   const struct GNUNET_CRYPTO_PrivateKey *zone,
                   const char *label,
                   GNUNET_NAMESTORE_RecordIterator iter,

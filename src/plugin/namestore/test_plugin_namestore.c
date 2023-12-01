@@ -22,7 +22,6 @@
  * @brief Test for the namestore plugins
  * @author Christian Grothoff
  */
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_namestore_plugin.h"
 
@@ -97,6 +96,7 @@ load_plugin (const struct GNUNET_CONFIGURATION_Handle *cfg)
 static void
 test_record (void *cls,
              uint64_t seq,
+             const char *editor_hint,
              const struct GNUNET_CRYPTO_PrivateKey *private_key,
              const char *label,
              unsigned int rd_count,

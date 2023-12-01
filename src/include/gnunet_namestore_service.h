@@ -44,9 +44,7 @@
 
 #include "gnunet_error_codes.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_block_lib.h"
 #include "gnunet_gnsrecord_lib.h"
-#include "gnunet_identity_service.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -142,6 +140,9 @@ typedef void
  * keep up with the changes, calling @a cont will be delayed until the
  * monitors do keep up.
  *
+ * This always overwrites the record set and unsets any advisory
+ * lock inrrespective of the currently set editor hint/advisory lock value.
+ *
  * @param h handle to the namestore
  * @param pkey private key of the zone
  * @param label name that is being mapped
@@ -152,13 +153,13 @@ typedef void
  * @return handle to abort the request
  */
 struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_records_store (struct GNUNET_NAMESTORE_Handle *h,
-                                const struct GNUNET_CRYPTO_PrivateKey *pkey,
-                                const char *label,
-                                unsigned int rd_count,
-                                const struct GNUNET_GNSRECORD_Data *rd,
-                                GNUNET_NAMESTORE_ContinuationWithStatus cont,
-                                void *cont_cls);
+GNUNET_NAMESTORE_record_set_store (struct GNUNET_NAMESTORE_Handle *h,
+                                   const struct GNUNET_CRYPTO_PrivateKey *pkey,
+                                   const char *label,
+                                   unsigned int rd_count,
+                                   const struct GNUNET_GNSRECORD_Data *rd,
+                                   GNUNET_NAMESTORE_ContinuationWithStatus cont,
+                                   void *cont_cls);
 
 /**
  * Store one or more record sets in the namestore. If any item is already present,
@@ -175,6 +176,9 @@ GNUNET_NAMESTORE_records_store (struct GNUNET_NAMESTORE_Handle *h,
  * cause @a cont to be called immediately before the commit and before
  * notification of monitors.
  *
+ * This always overwrites the record set and unsets any advisory
+ * lock inrrespective of the currently set editor hint/advisory lock value.
+ *
  * @param h handle to the namestore
  * @param pkey private key of the zone
  * @param rd_set_count the number of record sets
@@ -185,7 +189,7 @@ GNUNET_NAMESTORE_records_store (struct GNUNET_NAMESTORE_Handle *h,
  * @return handle to abort the request
  */
 struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_records_store2 (
+GNUNET_NAMESTORE_records_store (
   struct GNUNET_NAMESTORE_Handle *h,
   const struct GNUNET_CRYPTO_PrivateKey *pkey,
   unsigned int rd_set_count,
@@ -216,16 +220,14 @@ GNUNET_NAMESTORE_records_store2 (
  * @return handle to abort the request
  */
 struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_records_store_ (struct GNUNET_NAMESTORE_Handle *h,
-                                 const struct GNUNET_CRYPTO_PrivateKey *pkey,
-                                 const char *label,
-                                 unsigned int rd_count,
-                                 const struct GNUNET_GNSRECORD_Data *rd,
-                                 int is_zonemaster,
-                                 GNUNET_NAMESTORE_ContinuationWithStatus cont,
-                                 void *cont_cls);
-
-
+GNUNET_NAMESTORE_record_set_store_ (struct GNUNET_NAMESTORE_Handle *h,
+                                    const struct GNUNET_CRYPTO_PrivateKey *pkey,
+                                    const char *label,
+                                    unsigned int rd_count,
+                                    const struct GNUNET_GNSRECORD_Data *rd,
+                                    int is_zonemaster,
+                                    GNUNET_NAMESTORE_ContinuationWithStatus cont,
+                                    void *cont_cls);
 
 
 /**
@@ -244,6 +246,23 @@ typedef void
                                    const char *label,
                                    unsigned int rd_count,
                                    const struct GNUNET_GNSRECORD_Data *rd);
+/**
+ * Process a record that was stored in the namestore.
+ *
+ * @param cls closure
+ * @param ec the error code. #GNUNET_EC_NONE on success.
+ * @param rd_count number of entries in @a rd array, 0 if label was deleted
+ * @param rd array of records with data to store
+ * @param editor_hint the advisory lock value that was replaced. NULL of not advisory lock
+                      was set or if lock was equal to provided editor hint.
+ */
+typedef void
+(*GNUNET_NAMESTORE_EditRecordSetBeginCallback) (void *cls,
+                                                enum GNUNET_ErrorCode ec,
+                                                unsigned int rd_count,
+                                                const struct
+                                                GNUNET_GNSRECORD_Data *rd,
+                                                const char *editor_hint);
 
 /**
  * Process a record set that was stored in the namestore.
@@ -316,7 +335,6 @@ GNUNET_NAMESTORE_records_lookup2 (struct GNUNET_NAMESTORE_Handle *h,
                                   GNUNET_NAMESTORE_RecordMonitor rm,
                                   void *rm_cls,
                                   enum GNUNET_GNSRECORD_Filter filter);
-
 
 
 /**
@@ -435,7 +453,6 @@ GNUNET_NAMESTORE_zone_iteration_start2 (struct GNUNET_NAMESTORE_Handle *h,
                                         GNUNET_SCHEDULER_TaskCallback finish_cb,
                                         void *finish_cb_cls,
                                         enum GNUNET_GNSRECORD_Filter filter);
-
 
 
 /**
@@ -592,57 +609,62 @@ GNUNET_NAMESTORE_zone_monitor_stop (struct GNUNET_NAMESTORE_ZoneMonitor *zm);
  */
 
 /**
- * Begin a namestore transaction.
+ * This function is used to initiate the editing
+ * of a record set under #label.
+ * It will set the editor hint of the record set to #editor_hint.
+ * The editor hint serves as an advisory lock that is used in
+ * #GNUNET_NAMESTORE_EdtirRecordSetBeginCallback if #editor_hint
+ * differs from the currently set advisory lock in the database.
  *
  * @param h handle to the namestore
- * @param cont function to call on result
- * @param cont_cls closure for @a cont
- * @return handle to abort the request
+ * @param pkey the private key of the zone to edit
+ * @param label the label of the record set to edit
+ * @param editor_hint the editor hint to set as advisory lock
+ * @param error_cb the error callback
+ * @param error_cb_cls closure to #error_cb
+ * @param edit_cb the #GNUNET_NAMESTORE_EditRecordSetBeginCallback
+ * @param edit_cb_cls closure to #edit_cb
+ * @return handle to the operation
  */
 struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_transaction_begin (struct GNUNET_NAMESTORE_Handle *h,
-                                    GNUNET_NAMESTORE_ContinuationWithStatus
-                                    cont,
-                                    void *cont_cls);
+GNUNET_NAMESTORE_record_set_edit_begin (struct GNUNET_NAMESTORE_Handle *h,
+                                        const struct
+                                        GNUNET_CRYPTO_PrivateKey *pkey,
+                                        const char *label,
+                                        const char *editor_hint,
+                                        GNUNET_NAMESTORE_EditRecordSetBeginCallback
+                                        edit_cb,
+                                        void *edit_cb_cls);
 
 /**
- * Begin rollback all actions in a transaction.
- * Reverts all actions performed since #GNUNET_NAMESTORE_transaction_begin
+ * If the current advisory lock is set to the provided editor hint,
+ * this API cancels the editing of a record set and unsets the advisory lock in database.
+ * Optionally, a new editor hint can be provided: For example,
+ * the value that was returned in in the callback to
+ * #GNUNET_NAMESTORE_record_set_edit_begin.
+ *
+ * If provided editor hint does not match the current advisory lock,
+ * this function is not doing anything (NOP).
  *
  * @param h handle to the namestore
- * @param cont function to call on result
- * @param cont_cls closure for @a cont
- * @return handle to abort the request
+ * @param pkey the private key of the zone to edit
+ * @param label the label of the record set to edit
+ * @param editor_hint the editor hint to set as advisory lock
+ * @param editor_hint_replacement the editor hint to set as advisory lock instead of clearing it
+ * @param finished_cb the callback called when cancelled
+ * @param finished_cb_cls closure to #finished_cb
+ * @return handle to the operation
  */
 struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_transaction_rollback (struct GNUNET_NAMESTORE_Handle *h,
-                                       GNUNET_NAMESTORE_ContinuationWithStatus
-                                       cont,
-                                       void *cont_cls);
-/**
- * Commit a namestore transaction.
- * Saves all actions performed since #GNUNET_NAMESTORE_transaction_begin
- *
- * @param h handle to the namestore
- * @param cont function to call on result
- * @param cont_cls closure for @a cont
- * @return handle to abort the request
- */
-struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_transaction_commit (struct GNUNET_NAMESTORE_Handle *h,
-                                     GNUNET_NAMESTORE_ContinuationWithStatus
-                                     cont,
-                                     void *cont_cls);
-
-struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_records_edit (
-  struct GNUNET_NAMESTORE_Handle *h,
-  const struct GNUNET_CRYPTO_PrivateKey *pkey,
-  const char *label,
-  GNUNET_SCHEDULER_TaskCallback error_cb,
-  void *error_cb_cls,
-  GNUNET_NAMESTORE_RecordMonitor rm,
-  void *rm_cls);
+GNUNET_NAMESTORE_record_set_edit_cancel (struct GNUNET_NAMESTORE_Handle *h,
+                                         const struct
+                                         GNUNET_CRYPTO_PrivateKey *pkey,
+                                         const char *label,
+                                         const char *editor_hint,
+                                         const char *editor_hint_replacement,
+                                         GNUNET_SCHEDULER_TaskCallback
+                                         finished_cb,
+                                         void *finished_cls);
 
 #if 0                           /* keep Emacsens' auto-indent happy */
 {

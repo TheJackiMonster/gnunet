@@ -26,7 +26,6 @@
 
 #include "platform.h"
 #include "gnunet_namestore_plugin.h"
-#include "gnunet_namestore_service.h"
 #include "gnunet_gnsrecord_lib.h"
 #include "gnunet_sq_lib.h"
 #include <sqlite3.h>
@@ -50,13 +49,13 @@
  * with the message given by strerror(errno).
  */
 #define LOG_SQLITE(db, level, cmd) do { \
-    GNUNET_log_from (level,                                             \
-                     "namestore-sqlite", _ (                            \
-                       "`%s' failed at %s:%d with error: %s\n"), \
-                     cmd,                                               \
-                     __FILE__, __LINE__,                                \
-                     sqlite3_errmsg (                                   \
-                       db->dbh));                         \
+          GNUNET_log_from (level,                                             \
+                           "namestore-sqlite", _ (                            \
+                             "`%s' failed at %s:%d with error: %s\n"), \
+                           cmd,                                               \
+                           __FILE__, __LINE__,                                \
+                           sqlite3_errmsg (                                   \
+                             db->dbh));                         \
 } while (0)
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "namestore-sqlite", __VA_ARGS__)
@@ -142,32 +141,35 @@ database_prepare (struct Plugin *plugin)
   };
   struct GNUNET_SQ_PrepareStatement ps[] = {
     GNUNET_SQ_make_prepare ("INSERT INTO ns098records "
-                            "(zone_private_key,pkey,rvalue,record_count,record_data,label)"
-                            " VALUES (?, ?, ?, ?, ?, ?)",
+                            "(zone_private_key,pkey,rvalue,record_count,record_data,"
+                            "label,editor_hint)"
+                            " VALUES (?, ?, ?, ?, ?, ?, '')",
                             &plugin->store_records),
     GNUNET_SQ_make_prepare ("DELETE FROM ns098records "
                             "WHERE zone_private_key=? AND label=?",
                             &plugin->delete_records),
-    GNUNET_SQ_make_prepare ("SELECT uid,record_count,record_data,label"
+    GNUNET_SQ_make_prepare ("SELECT uid,record_count,record_data,label,editor_hint"
                             " FROM ns098records"
                             " WHERE zone_private_key=? AND pkey=?",
                             &plugin->zone_to_name),
-    GNUNET_SQ_make_prepare ("SELECT uid,record_count,record_data,label"
+    GNUNET_SQ_make_prepare ("SELECT uid,record_count,record_data,label,editor_hint"
                             " FROM ns098records"
                             " WHERE zone_private_key=? AND uid > ?"
                             " ORDER BY uid ASC"
                             " LIMIT ?",
                             &plugin->iterate_zone),
     GNUNET_SQ_make_prepare (
-      "SELECT uid,record_count,record_data,label,zone_private_key"
+      "SELECT uid,record_count,record_data,label,editor_hint,zone_private_key"
       " FROM ns098records"
       " WHERE uid > ?"
       " ORDER BY uid ASC"
       " LIMIT ?",
       &plugin->iterate_all_zones),
-    GNUNET_SQ_make_prepare ("SELECT uid,record_count,record_data,label"
-                            " FROM ns098records"
-                            " WHERE zone_private_key=? AND label=?",
+    GNUNET_SQ_make_prepare ("UPDATE ns098records"
+                            " SET editor_hint=?"
+                            " FROM ns098records AS old_ns098records"
+                            " WHERE ns098records.zone_private_key=? AND ns098records.label=?"
+                            " RETURNING ns098records.uid,ns098records.record_count,ns098records.record_data,ns098records.label,editor_hint ",
                             &plugin->lookup_label),
     GNUNET_SQ_PREPARE_END
   };
@@ -460,6 +462,7 @@ get_records_and_call_iterator (struct Plugin *plugin,
       size_t data_size;
       void *data;
       char *label;
+      char *editor_hint;
       struct GNUNET_CRYPTO_PrivateKey zk;
       struct GNUNET_SQ_ResultSpec rs[] = {
         GNUNET_SQ_result_spec_uint64 (&seq),
@@ -467,6 +470,7 @@ get_records_and_call_iterator (struct Plugin *plugin,
         GNUNET_SQ_result_spec_variable_size (&data,
                                              &data_size),
         GNUNET_SQ_result_spec_string (&label),
+        GNUNET_SQ_result_spec_string (&editor_hint),
         GNUNET_SQ_result_spec_end
       };
       struct GNUNET_SQ_ResultSpec rsx[] = {
@@ -475,6 +479,7 @@ get_records_and_call_iterator (struct Plugin *plugin,
         GNUNET_SQ_result_spec_variable_size (&data,
                                              &data_size),
         GNUNET_SQ_result_spec_string (&label),
+        GNUNET_SQ_result_spec_string (&editor_hint),
         GNUNET_SQ_result_spec_auto_from_type (&zk),
         GNUNET_SQ_result_spec_end
       };
@@ -514,6 +519,7 @@ get_records_and_call_iterator (struct Plugin *plugin,
           if (NULL != iter)
             iter (iter_cls,
                   seq,
+                  editor_hint,
                   &zk,
                   label,
                   record_count,
@@ -540,16 +546,18 @@ get_records_and_call_iterator (struct Plugin *plugin,
  * @return #GNUNET_OK on success, #GNUNET_NO for no results, else #GNUNET_SYSERR
  */
 static enum GNUNET_GenericReturnValue
-namestore_sqlite_lookup_records (void *cls,
-                                 const struct
-                                 GNUNET_CRYPTO_PrivateKey *zone,
-                                 const char *label,
-                                 GNUNET_NAMESTORE_RecordIterator iter,
-                                 void *iter_cls)
+lookup_records (void *cls,
+                const struct
+                GNUNET_CRYPTO_PrivateKey *zone,
+                const char *label,
+                GNUNET_NAMESTORE_RecordIterator iter,
+                void *iter_cls,
+                const char *editor_hint)
 {
   struct Plugin *plugin = cls;
   GNUNET_assert (GNUNET_OK == database_prepare (plugin));
   struct GNUNET_SQ_QueryParam params[] = {
+    GNUNET_SQ_query_param_string (editor_hint),
     GNUNET_SQ_query_param_auto_from_type (zone),
     GNUNET_SQ_query_param_string (label),
     GNUNET_SQ_query_param_end
@@ -576,6 +584,51 @@ namestore_sqlite_lookup_records (void *cls,
                                         1,
                                         iter,
                                         iter_cls);
+}
+
+
+/**
+ * Lookup records in the datastore for which we are the authority.
+ *
+ * @param cls closure (internal context for the plugin)
+ * @param zone private key of the zone
+ * @param label name of the record in the zone
+ * @param iter function to call with the result
+ * @param iter_cls closure for @a iter
+ * @return #GNUNET_OK on success, #GNUNET_NO for no results, else #GNUNET_SYSERR
+ */
+static enum GNUNET_GenericReturnValue
+namestore_sqlite_lookup_records (void *cls,
+                                 const struct
+                                 GNUNET_CRYPTO_PrivateKey *zone,
+                                 const char *label,
+                                 GNUNET_NAMESTORE_RecordIterator iter,
+                                 void *iter_cls)
+{
+  return lookup_records (cls, zone, label, iter, iter_cls, "");
+}
+
+
+/**
+ * Lookup records in the datastore for which we are the authority.
+ *
+ * @param cls closure (internal context for the plugin)
+ * @param zone private key of the zone
+ * @param label name of the record in the zone
+ * @param iter function to call with the result
+ * @param iter_cls closure for @a iter
+ * @return #GNUNET_OK on success, #GNUNET_NO for no results, else #GNUNET_SYSERR
+ */
+static enum GNUNET_GenericReturnValue
+namestore_sqlite_edit_records (void *cls,
+                               const char *editor_hint,
+                               const struct
+                               GNUNET_CRYPTO_PrivateKey *zone,
+                               const char *label,
+                               GNUNET_NAMESTORE_RecordIterator iter,
+                               void *iter_cls)
+{
+  return lookup_records (cls, zone, label, iter, iter_cls, editor_hint);
 }
 
 
@@ -698,92 +751,6 @@ namestore_sqlite_zone_to_name (void *cls,
 }
 
 
-/**
- * Begin a transaction for a client.
- * This locks the database. SQLite is unable to discern between different
- * rows with a specific zone key but the API looks like this anyway.
- * https://www.sqlite.org/lang_transaction.html
- *
- * @param cls closure (internal context for the plugin)
- * @param emsg error message set of return code is #GNUNET_SYSERR
- * @return #GNUNET_YES on success, #GNUNET_SYSERR if transaction cannot be started.
- */
-static enum GNUNET_GenericReturnValue
-namestore_sqlite_transaction_begin (void *cls,
-                                    char **emsg)
-{
-  struct Plugin *plugin = cls;
-  int rc;
-  char *sqlEmsg;
-
-  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
-  rc = sqlite3_exec (plugin->dbh, "BEGIN IMMEDIATE TRANSACTION;",
-                     NULL, NULL, &sqlEmsg);
-  if (SQLITE_OK != rc)
-  {
-    *emsg = GNUNET_strdup (sqlEmsg);
-    sqlite3_free (sqlEmsg);
-  }
-  return (SQLITE_OK != rc) ? GNUNET_SYSERR : GNUNET_YES;
-}
-
-
-/**
- * Commit a transaction for a client.
- * This releases the lock on the database.
- *
- * @param cls closure (internal context for the plugin)
- * @param emsg error message set of return code is #GNUNET_SYSERR
- * @return #GNUNET_YES on success, #GNUNET_SYSERR if transaction cannot be started.
- */
-static enum GNUNET_GenericReturnValue
-namestore_sqlite_transaction_rollback (void *cls,
-                                       char **emsg)
-{
-  struct Plugin *plugin = cls;
-  int rc;
-  char *sqlEmsg;
-
-  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
-  rc = sqlite3_exec (plugin->dbh, "ROLLBACK;",
-                     NULL, NULL, &sqlEmsg);
-  if (SQLITE_OK != rc)
-  {
-    *emsg = GNUNET_strdup (sqlEmsg);
-    sqlite3_free (sqlEmsg);
-  }
-  return (SQLITE_OK != rc) ? GNUNET_SYSERR : GNUNET_YES;
-}
-
-
-/**
- * Roll back a transaction for a client.
- * This releases the lock on the database.
- *
- * @param cls closure (internal context for the plugin)
- * @param emsg error message set of return code is #GNUNET_SYSERR
- * @return #GNUNET_YES on success, #GNUNET_SYSERR if transaction cannot be started.
- */
-static enum GNUNET_GenericReturnValue
-namestore_sqlite_transaction_commit (void *cls,
-                                     char **emsg)
-{
-  struct Plugin *plugin = cls;
-  int rc;
-  char *sqlEmsg;
-
-  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
-  rc = sqlite3_exec (plugin->dbh, "END TRANSACTION;",
-                     NULL, NULL, &sqlEmsg);
-  if (SQLITE_OK != rc)
-  {
-    *emsg = GNUNET_strdup (sqlEmsg);
-    sqlite3_free (sqlEmsg);
-  }
-  return (SQLITE_OK != rc) ? GNUNET_SYSERR : GNUNET_YES;
-}
-
-
 static enum GNUNET_GenericReturnValue
 namestore_sqlite_create_tables (void *cls)
 {
@@ -804,7 +771,8 @@ namestore_sqlite_create_tables (void *cls)
                             " rvalue INT8 NOT NULL,"
                             " record_count INT NOT NULL,"
                             " record_data BLOB NOT NULL,"
-                            " label TEXT NOT NULL"
+                            " label TEXT NOT NULL,"
+                            " editor_hint TEXT NOT NULL"
                             ")"),
     GNUNET_SQ_make_try_execute ("CREATE INDEX ir_pkey_reverse "
                                 "ON ns098records (zone_private_key,pkey)"),
@@ -940,17 +908,9 @@ libgnunet_plugin_namestore_sqlite_init (void *cls)
   api->iterate_records = &namestore_sqlite_iterate_records;
   api->zone_to_name = &namestore_sqlite_zone_to_name;
   api->lookup_records = &namestore_sqlite_lookup_records;
-  api->transaction_begin = &namestore_sqlite_transaction_begin;
-  api->transaction_commit = &namestore_sqlite_transaction_commit;
-  api->transaction_rollback = &namestore_sqlite_transaction_rollback;
   api->create_tables = &namestore_sqlite_create_tables;
   api->drop_tables = &namestore_sqlite_drop_tables;
-  /**
-   * NOTE: Since SQlite does not support SELECT ... FOR UPDATE this is
-   * just an alias to lookup_records. The BEGIN IMMEDIATE mechanic currently
-   * implicitly ensures this API behaves as it should
-   */
-  api->edit_records = &namestore_sqlite_lookup_records;
+  api->edit_records = &namestore_sqlite_edit_records;
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        _ ("SQlite database running\n"));
   return api;

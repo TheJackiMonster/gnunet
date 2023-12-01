@@ -108,7 +108,7 @@ run (void *cls,
      struct GNUNET_TESTING_Peer *peer)
 {
   struct GNUNET_GNSRECORD_Data rd;
-  const char *name = "dummy.dummy.gnunet";
+  const char *name = "dummy";
 
   endbadly_task = GNUNET_SCHEDULER_add_delayed (TIMEOUT,
                                                 &endbadly, NULL);
@@ -126,13 +126,13 @@ run (void *cls,
 
   nsh = GNUNET_NAMESTORE_connect (cfg);
   GNUNET_break (NULL != nsh);
-  nsqe = GNUNET_NAMESTORE_records_store (nsh,
-                                         &privkey,
-                                         name,
-                                         1,
-                                         &rd,
-                                         &put_cont,
-                                         (void *) name);
+  nsqe = GNUNET_NAMESTORE_record_set_store (nsh,
+                                            &privkey,
+                                            name,
+                                            1,
+                                            &rd,
+                                            &put_cont,
+                                            (void *) name);
   if (NULL == nsqe)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,

@@ -110,10 +110,10 @@ struct RecordStoreMessage
 /**
  * Response to a record storage request.
  */
-struct RecordStoreResponseMessage
+struct NamestoreResponseMessage
 {
   /**
-   * Type will be #GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_STORE_RESPONSE
+   * Type will be #GNUNET_MESSAGE_TYPE_NAMESTORE_GENERIC_RESPONSE
    */
   struct GNUNET_NAMESTORE_Header gns_header;
 
@@ -122,6 +122,42 @@ struct RecordStoreResponseMessage
    */
   uint32_t ec GNUNET_PACKED;
 
+};
+
+/**
+ * Response to RecordSetEditMessage.
+ */
+struct EditRecordSetResponseMessage
+{
+  /**
+   * Type will be #GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_SET_EDIT_RESPONSE
+   */
+  struct GNUNET_NAMESTORE_Header gns_header;
+
+  /**
+   * Length of the editor hint
+   */
+  uint16_t editor_hint_len GNUNET_PACKED;
+
+  /**
+   * Reserved
+   */
+  uint16_t ec GNUNET_PACKED;
+
+  /**
+   * Length of serialized record data
+   */
+  uint16_t rd_len GNUNET_PACKED;
+
+  /**
+   * Number of records contained
+   */
+  uint16_t rd_count GNUNET_PACKED;
+
+  /**
+   * Followed by editor hint
+   * Followed by record set
+   */
 };
 
 
@@ -141,9 +177,9 @@ struct LabelLookupMessage
   uint16_t label_len GNUNET_PACKED;
 
   /**
-   * GNUNET_YES if this lookup corresponds to an edit request
+   * Unused
    */
-  uint16_t is_edit_request GNUNET_PACKED;
+  uint16_t unused GNUNET_PACKED;
 
   /**
    * The record filter
@@ -158,6 +194,82 @@ struct LabelLookupMessage
   /* followed by:
    * the private zone key
    * name with length name_len
+   */
+};
+
+/**
+ * Edit a record set and set editor hint/advisory lock.
+ */
+struct EditRecordSetMessage
+{
+  /**
+   * Type will be #GNUNET_MESSAGE_TYPE_NAMESTORE_EDIT_RECORD_SET
+   */
+  struct GNUNET_NAMESTORE_Header gns_header;
+
+  /**
+   * Length of the name
+   */
+  uint16_t label_len GNUNET_PACKED;
+
+  /**
+   * Unused
+   */
+  uint16_t editor_hint_len GNUNET_PACKED;
+
+  /**
+   * Unused
+   */
+  uint16_t reserved GNUNET_PACKED;
+
+  /**
+   * Length of the zone key
+   */
+  uint16_t key_len GNUNET_PACKED;
+
+  /* followed by:
+   * the private zone key
+   * label with length label_len
+   * editor hint with length editor_hint_len
+   */
+};
+
+
+/**
+ * Edit a record set and set editor hint/advisory lock.
+ */
+struct EditRecordSetCancelMessage
+{
+  /**
+   * Type will be #GNUNET_MESSAGE_TYPE_NAMESTORE_EDIT_RECORD_SET_CANCEL
+   */
+  struct GNUNET_NAMESTORE_Header gns_header;
+
+  /**
+   * Length of the name
+   */
+  uint16_t label_len GNUNET_PACKED;
+
+  /**
+   * Unused
+   */
+  uint16_t editor_hint_len GNUNET_PACKED;
+
+  /**
+   * Unused
+   */
+  uint16_t editor_hint_replacement_len GNUNET_PACKED;
+
+  /**
+   * Length of the zone key
+   */
+  uint16_t key_len GNUNET_PACKED;
+
+  /* followed by:
+   * the private zone key
+   * label with length label_len
+   * editor hint with length editor_hint_len
+   * replacement editor hint with length editor_hint_replacement_len
    */
 };
 

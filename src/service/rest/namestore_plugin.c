@@ -27,7 +27,6 @@
 #include "platform.h"
 #include "gnunet_error_codes.h"
 #include "gnunet_rest_plugin.h"
-#include "gnunet_gns_service.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_identity_service.h"
 #include "gnunet_rest_lib.h"
@@ -709,40 +708,19 @@ ns_lookup_cb (void *cls,
   }
   for (j = 0; j < handle->rd_count; j++)
     rd_new[i + j] = handle->rd[j];
-  handle->ns_qe = GNUNET_NAMESTORE_records_store (ns_handle,
-                                                  handle->zone_pkey,
-                                                  handle->record_name,
-                                                  i + j,
-                                                  rd_new,
-                                                  &create_finished,
-                                                  handle);
+  handle->ns_qe = GNUNET_NAMESTORE_record_set_store (ns_handle,
+                                                     handle->zone_pkey,
+                                                     handle->record_name,
+                                                     i + j,
+                                                     rd_new,
+                                                     &create_finished,
+                                                     handle);
   if (NULL == handle->ns_qe)
   {
     handle->ec = GNUNET_EC_NAMESTORE_UNKNOWN;
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
-}
-
-
-static void
-bulk_tx_commit_cb (void *cls, enum GNUNET_ErrorCode ec)
-{
-  struct RequestHandle *handle = cls;
-  struct MHD_Response *resp;
-
-  handle->ns_qe = NULL;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Commit finished (%d)\n", ec);
-  handle->ec = ec;
-  if (GNUNET_EC_NONE != ec)
-  {
-    GNUNET_SCHEDULER_add_now (&do_error, handle);
-    return;
-  }
-  resp = GNUNET_REST_create_response (NULL);
-  handle->proc (handle->proc_cls, resp, MHD_HTTP_NO_CONTENT);
-  GNUNET_SCHEDULER_add_now (&cleanup_handle, handle);
 }
 
 
@@ -763,22 +741,33 @@ import_next_cb (void *cls, enum GNUNET_ErrorCode ec)
   unsigned int remaining = handle->rd_set_count - handle->rd_set_pos;
   if (0 == remaining)
   {
-    handle->ns_qe = GNUNET_NAMESTORE_transaction_commit (handle->nc,
-                                                         &bulk_tx_commit_cb,
-                                                         handle);
+    struct MHD_Response *resp;
+
+    handle->ns_qe = NULL;
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Commit finished (%d)\n", ec);
+    handle->ec = ec;
+    if (GNUNET_EC_NONE != ec)
+    {
+      GNUNET_SCHEDULER_add_now (&do_error, handle);
+      return;
+    }
+    resp = GNUNET_REST_create_response (NULL);
+    handle->proc (handle->proc_cls, resp, MHD_HTTP_NO_CONTENT);
+    GNUNET_SCHEDULER_add_now (&cleanup_handle, handle);
     return;
   }
   unsigned int sent_rds = 0;
   // Find the smallest set of records we can send with our message size
   // restriction of 16 bit
-  handle->ns_qe = GNUNET_NAMESTORE_records_store2 (handle->nc,
-                                                   handle->zone_pkey,
-                                                   remaining,
-                                                   &handle->ri[handle->
-                                                               rd_set_pos],
-                                                   &sent_rds,
-                                                   &import_next_cb,
-                                                   handle);
+  handle->ns_qe = GNUNET_NAMESTORE_records_store (handle->nc,
+                                                  handle->zone_pkey,
+                                                  remaining,
+                                                  &handle->ri[handle->
+                                                              rd_set_pos],
+                                                  &sent_rds,
+                                                  &import_next_cb,
+                                                  handle);
   if ((NULL == handle->ns_qe) && (0 == sent_rds))
   {
     handle->ec = GNUNET_EC_NAMESTORE_UNKNOWN;
@@ -790,20 +779,13 @@ import_next_cb (void *cls, enum GNUNET_ErrorCode ec)
 
 
 static void
-bulk_tx_start (void *cls, enum GNUNET_ErrorCode ec)
+bulk_tx_start (struct RequestHandle *handle)
 {
-  struct RequestHandle *handle = cls;
   json_t *data_js;
   json_error_t err;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Transaction started...\n");
-  handle->ec = ec;
-  if (GNUNET_EC_NONE != ec)
-  {
-    GNUNET_SCHEDULER_add_now (&do_error, handle);
-    return;
-  }
   if (0 >= handle->rest_handle->data_size)
   {
     handle->ec = GNUNET_EC_NAMESTORE_NO_RECORDS_GIVEN;
@@ -866,13 +848,13 @@ bulk_tx_start (void *cls, enum GNUNET_ErrorCode ec)
   unsigned int sent_rds = 0;
   // Find the smallest set of records we can send with our message size
   // restriction of 16 bit
-  handle->ns_qe = GNUNET_NAMESTORE_records_store2 (handle->nc,
-                                                   handle->zone_pkey,
-                                                   handle->rd_set_count,
-                                                   handle->ri,
-                                                   &sent_rds,
-                                                   &import_next_cb,
-                                                   handle);
+  handle->ns_qe = GNUNET_NAMESTORE_records_store (handle->nc,
+                                                  handle->zone_pkey,
+                                                  handle->rd_set_count,
+                                                  handle->ri,
+                                                  &sent_rds,
+                                                  &import_next_cb,
+                                                  handle);
   if ((NULL == handle->ns_qe) && (0 == sent_rds))
   {
     handle->ec = GNUNET_EC_NAMESTORE_UNKNOWN;
@@ -928,9 +910,7 @@ namestore_import (struct GNUNET_REST_RequestHandle *con_handle,
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
-  handle->ns_qe = GNUNET_NAMESTORE_transaction_begin (handle->nc,
-                                                      &bulk_tx_start,
-                                                      handle);
+  bulk_tx_start (handle);
 }
 
 
@@ -1104,13 +1084,13 @@ namestore_delete (struct GNUNET_REST_RequestHandle *con_handle,
   }
 
   handle->record_name = GNUNET_strdup (labelname + 1);
-  handle->ns_qe = GNUNET_NAMESTORE_records_store (ns_handle,
-                                                  handle->zone_pkey,
-                                                  handle->record_name,
-                                                  0,
-                                                  NULL,
-                                                  &del_finished,
-                                                  handle);
+  handle->ns_qe = GNUNET_NAMESTORE_record_set_store (ns_handle,
+                                                     handle->zone_pkey,
+                                                     handle->record_name,
+                                                     0,
+                                                     NULL,
+                                                     &del_finished,
+                                                     handle);
   if (NULL == handle->ns_qe)
   {
     handle->ec = GNUNET_EC_NAMESTORE_UNKNOWN;

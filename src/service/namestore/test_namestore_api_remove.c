@@ -136,11 +136,11 @@ put_cont (void *cls,
               "Name store added record for `%s': %s\n",
               name,
               (GNUNET_EC_NONE == ec) ? "SUCCESS" : "FAIL");
-  nsqe = GNUNET_NAMESTORE_records_store (nsh,
-                                         &privkey,
-                                         name,
-                                         0, NULL,
-                                         &remove_cont, (void *) name);
+  nsqe = GNUNET_NAMESTORE_record_set_store (nsh,
+                                            &privkey,
+                                            name,
+                                            0, NULL,
+                                            &remove_cont, (void *) name);
 }
 
 
@@ -158,7 +158,7 @@ run (void *cls,
   privkey.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
   GNUNET_CRYPTO_ecdsa_key_create (&privkey.ecdsa_key);
   GNUNET_CRYPTO_key_get_public (&privkey,
-                                  &pubkey);
+                                &pubkey);
 
   removed = GNUNET_NO;
 
@@ -173,13 +173,13 @@ run (void *cls,
 
   nsh = GNUNET_NAMESTORE_connect (cfg);
   GNUNET_break (NULL != nsh);
-  nsqe = GNUNET_NAMESTORE_records_store (nsh,
-                                         &privkey,
-                                         name,
-                                         1,
-                                         &rd,
-                                         &put_cont,
-                                         (void *) name);
+  nsqe = GNUNET_NAMESTORE_record_set_store (nsh,
+                                            &privkey,
+                                            name,
+                                            1,
+                                            &rd,
+                                            &put_cont,
+                                            (void *) name);
   if (NULL == nsqe)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,

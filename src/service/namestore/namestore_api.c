@@ -26,13 +26,9 @@
  * @author Christian Grothoff
  */
 
-#include "platform.h"
+#include "gnunet_protocols.h"
 #include "gnunet_error_codes.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_constants.h"
-#include "gnunet_arm_service.h"
-#include "gnunet_signatures.h"
-#include "gnunet_gns_service.h"
 #include "gnunet_namestore_service.h"
 #include "namestore.h"
 
@@ -85,6 +81,11 @@ struct GNUNET_NAMESTORE_QueueEntry
    * Function to call with the records we get back; or NULL.
    */
   GNUNET_NAMESTORE_RecordSetMonitor proc2;
+
+  /**
+   * Function to call with the records we get back including optional editor hint.
+   */
+  GNUNET_NAMESTORE_EditRecordSetBeginCallback edit_proc;
 
   /**
    * Closure for @e proc.
@@ -355,16 +356,17 @@ check_rd (size_t rd_len, const void *rd_buf, unsigned int rd_count)
   return GNUNET_OK;
 }
 
+
 /**
  * Handle an incoming message of type
- * #GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_STORE_RESPONSE
+ * #GNUNET_MESSAGE_TYPE_NAMESTORE_GENERIC_RESPONSE
  *
  * @param cls
  * @param msg the message we received
  */
 static void
-handle_record_store_response (void *cls,
-                              const struct RecordStoreResponseMessage *msg)
+handle_generic_response (void *cls,
+                         const struct NamestoreResponseMessage *msg)
 {
   struct GNUNET_NAMESTORE_Handle *h = cls;
   struct GNUNET_NAMESTORE_QueueEntry *qe;
@@ -469,9 +471,9 @@ handle_lookup_result (void *cls, const struct LabelLookupResponseMessage *msg)
   key_len = ntohs (msg->key_len);
   GNUNET_assert (GNUNET_SYSERR !=
                  GNUNET_CRYPTO_read_private_key_from_buffer (&msg[1],
-                                                               key_len,
-                                                               &private_key,
-                                                               &kbytes_read));
+                                                             key_len,
+                                                             &private_key,
+                                                             &kbytes_read));
   GNUNET_assert (kbytes_read == key_len);
   name = (const char *) &msg[1] + key_len;
   if (GNUNET_NO == found)
@@ -507,6 +509,93 @@ handle_lookup_result (void *cls, const struct LabelLookupResponseMessage *msg)
                 (rd_count > 0) ? rd : NULL);
   }
   free_qe (qe);
+}
+
+
+/**
+ * Handle an incoming message of type
+ * #GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_SET_EDIT_RESPONSE
+ *
+ * @param cls
+ * @param msg the message we received
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
+ */
+static int
+check_edit_record_set_response (void *cls, const struct
+                                EditRecordSetResponseMessage *msg)
+{
+  const char *editor_hint;
+  size_t msg_len;
+  size_t editor_hint_len;
+  size_t rd_len;
+
+  (void) cls;
+  rd_len = ntohs (msg->rd_len);
+  msg_len = ntohs (msg->gns_header.header.size);
+  editor_hint_len = ntohs (msg->editor_hint_len);
+  if (msg_len != sizeof(struct EditRecordSetResponseMessage) + editor_hint_len
+      + rd_len)
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  editor_hint = (const char *) &msg[1];
+  if ((0 == editor_hint_len) || ('\0' != editor_hint[editor_hint_len - 1]))
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  return check_rd (rd_len, &editor_hint[editor_hint_len], ntohs (
+                     msg->rd_count));
+}
+
+
+/**
+ * Handle an incoming message of type
+ * #GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_SET_EDIT_RESPONSE
+ *
+ * @param cls
+ * @param msg the message we received
+ */
+static void
+handle_edit_record_set_response (void *cls, const struct
+                                 EditRecordSetResponseMessage *msg)
+{
+  struct GNUNET_NAMESTORE_Handle *h = cls;
+  struct GNUNET_NAMESTORE_QueueEntry *qe;
+  const char *editor_hint;
+  const char *rd_tmp;
+  size_t rd_len;
+  size_t editor_hint_len;
+  unsigned int rd_count;
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG, "Received EDIT_RECORD_SET_RESPONSE\n");
+  rd_len = ntohs (msg->rd_len);
+  rd_count = ntohs (msg->rd_count);
+  editor_hint_len = ntohs (msg->editor_hint_len);
+  qe = find_qe (h, ntohl (msg->gns_header.r_id));
+  if (NULL == qe)
+    return; /* rid not found */
+  editor_hint = (const char *) &msg[1];
+  rd_tmp = &editor_hint[editor_hint_len];
+  {
+    struct GNUNET_GNSRECORD_Data rd[rd_count];
+
+    GNUNET_assert (
+      GNUNET_OK ==
+      GNUNET_GNSRECORD_records_deserialize (rd_len, rd_tmp, rd_count, rd));
+    if (0 == editor_hint_len)
+      editor_hint = NULL;
+    if (NULL != qe->edit_proc)
+      qe->edit_proc (qe->proc_cls,
+                     ntohs (msg->ec),
+                     rd_count,
+                     (rd_count > 0) ? rd : NULL,
+                     editor_hint);
+    free_qe (qe);
+    return;
+  }
+  GNUNET_assert (0);
 }
 
 
@@ -593,9 +682,9 @@ handle_record_result (void *cls, const struct RecordResultMessage *msg)
   name = (const char *) &msg[1] + key_len;
   GNUNET_assert (GNUNET_SYSERR !=
                  GNUNET_CRYPTO_read_private_key_from_buffer (&msg[1],
-                                                               key_len,
-                                                               &private_key,
-                                                               &kbytes_read));
+                                                             key_len,
+                                                             &private_key,
+                                                             &kbytes_read));
   GNUNET_assert (kbytes_read == key_len);
   rd_tmp = &name[name_len];
   {
@@ -674,25 +763,6 @@ handle_record_result_end (void *cls, const struct GNUNET_NAMESTORE_Header *msg)
   free_ze (ze);
 }
 
-static void
-handle_tx_control_result (void *cls,
-                          const struct TxControlResultMessage *msg)
-{
-  struct GNUNET_NAMESTORE_Handle *h = cls;
-  struct GNUNET_NAMESTORE_QueueEntry *qe;
-  enum GNUNET_ErrorCode res;
-
-  qe = find_qe (h, ntohl (msg->gns_header.r_id));
-  res = ntohs (msg->ec);
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Received TX_CONTROL_RESULT with result %d\n",
-       res);
-  if (NULL == qe)
-    return;
-  if (NULL != qe->cont)
-    qe->cont (qe->cont_cls, res);
-  free_qe (qe);
-}
 
 /**
  * Handle an incoming message of type
@@ -769,9 +839,9 @@ handle_zone_to_name_response (void *cls,
   key_len = ntohs (msg->key_len);
   GNUNET_assert (GNUNET_SYSERR !=
                  GNUNET_CRYPTO_read_private_key_from_buffer (&msg[1],
-                                                               key_len,
-                                                               &zone,
-                                                               &kbytes_read));
+                                                             key_len,
+                                                             &zone,
+                                                             &kbytes_read));
   GNUNET_assert (kbytes_read == key_len);
   switch (res)
   {
@@ -849,9 +919,9 @@ static void
 reconnect (struct GNUNET_NAMESTORE_Handle *h)
 {
   struct GNUNET_MQ_MessageHandler handlers[] =
-  { GNUNET_MQ_hd_fixed_size (record_store_response,
-                             GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_STORE_RESPONSE,
-                             struct RecordStoreResponseMessage,
+  { GNUNET_MQ_hd_fixed_size (generic_response,
+                             GNUNET_MESSAGE_TYPE_NAMESTORE_GENERIC_RESPONSE,
+                             struct NamestoreResponseMessage,
                              h),
     GNUNET_MQ_hd_var_size (zone_to_name_response,
                            GNUNET_MESSAGE_TYPE_NAMESTORE_ZONE_TO_NAME_RESPONSE,
@@ -869,10 +939,10 @@ reconnect (struct GNUNET_NAMESTORE_Handle *h)
                            GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_LOOKUP_RESPONSE,
                            struct LabelLookupResponseMessage,
                            h),
-    GNUNET_MQ_hd_fixed_size (tx_control_result,
-                             GNUNET_MESSAGE_TYPE_NAMESTORE_TX_CONTROL_RESULT,
-                             struct TxControlResultMessage,
-                             h),
+    GNUNET_MQ_hd_var_size (edit_record_set_response,
+                           GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_SET_EDIT_RESPONSE,
+                           struct EditRecordSetResponseMessage,
+                           h),
     GNUNET_MQ_handler_end () };
   struct GNUNET_NAMESTORE_ZoneIterator *it;
   struct GNUNET_NAMESTORE_QueueEntry *qe;
@@ -1048,7 +1118,7 @@ warn_delay (void *cls)
 
 
 struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_records_store (
+GNUNET_NAMESTORE_record_set_store (
   struct GNUNET_NAMESTORE_Handle *h,
   const struct GNUNET_CRYPTO_PrivateKey *pkey,
   const char *label,
@@ -1062,12 +1132,13 @@ GNUNET_NAMESTORE_records_store (
   ri.a_label = label;
   ri.a_rd_count = rd_count;
   ri.a_rd = (struct GNUNET_GNSRECORD_Data *) rd;
-  return GNUNET_NAMESTORE_records_store2 (h, pkey, 1, &ri, &rds_sent,
-                                          cont, cont_cls);
+  return GNUNET_NAMESTORE_records_store (h, pkey, 1, &ri, &rds_sent,
+                                         cont, cont_cls);
 }
 
+
 struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_records_store2 (
+GNUNET_NAMESTORE_records_store (
   struct GNUNET_NAMESTORE_Handle *h,
   const struct GNUNET_CRYPTO_PrivateKey *pkey,
   unsigned int rd_set_count,
@@ -1147,8 +1218,8 @@ GNUNET_NAMESTORE_records_store2 (
   msg->key_len = htons (key_len);
   msg->rd_set_count = htons ((uint16_t) (*rds_sent));
   GNUNET_CRYPTO_write_private_key_to_buffer (pkey,
-                                               &msg[1],
-                                               key_len);
+                                             &msg[1],
+                                             key_len);
   rd_set = (struct RecordSet*) (((char*) &msg[1]) + key_len);
   for (int i = 0; i < *rds_sent; i++)
   {
@@ -1201,7 +1272,6 @@ records_lookup (
   void *error_cb_cls,
   GNUNET_NAMESTORE_RecordMonitor rm,
   void *rm_cls,
-  int is_edit_request,
   enum GNUNET_GNSRECORD_Filter filter)
 {
   struct GNUNET_NAMESTORE_QueueEntry *qe;
@@ -1231,11 +1301,10 @@ records_lookup (
                              GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_LOOKUP);
   msg->gns_header.r_id = htonl (qe->op_id);
   GNUNET_CRYPTO_write_private_key_to_buffer (pkey,
-                                               &msg[1],
-                                               key_len);
+                                             &msg[1],
+                                             key_len);
 
   msg->key_len = htons (key_len);
-  msg->is_edit_request = htons (is_edit_request);
   msg->label_len = htons (label_len);
   msg->filter = htons (filter);
   GNUNET_memcpy (((char*) &msg[1]) + key_len, label, label_len);
@@ -1245,6 +1314,7 @@ records_lookup (
     GNUNET_MQ_send (h->mq, env);
   return qe;
 }
+
 
 struct GNUNET_NAMESTORE_QueueEntry *
 GNUNET_NAMESTORE_records_lookup (
@@ -1258,9 +1328,10 @@ GNUNET_NAMESTORE_records_lookup (
 {
   return records_lookup (h, pkey, label,
                          error_cb, error_cb_cls,
-                         rm, rm_cls, GNUNET_NO, GNUNET_GNSRECORD_FILTER_NONE);
+                         rm, rm_cls, GNUNET_GNSRECORD_FILTER_NONE);
 
 }
+
 
 struct GNUNET_NAMESTORE_QueueEntry *
 GNUNET_NAMESTORE_records_lookup2 (
@@ -1275,25 +1346,10 @@ GNUNET_NAMESTORE_records_lookup2 (
 {
   return records_lookup (h, pkey, label,
                          error_cb, error_cb_cls,
-                         rm, rm_cls, GNUNET_NO, filter);
+                         rm, rm_cls, filter);
 
 }
 
-
-struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_records_edit (
-  struct GNUNET_NAMESTORE_Handle *h,
-  const struct GNUNET_CRYPTO_PrivateKey *pkey,
-  const char *label,
-  GNUNET_SCHEDULER_TaskCallback error_cb,
-  void *error_cb_cls,
-  GNUNET_NAMESTORE_RecordMonitor rm,
-  void *rm_cls)
-{
-  return records_lookup (h, pkey, label,
-                         error_cb, error_cb_cls,
-                         rm, rm_cls, GNUNET_YES, GNUNET_GNSRECORD_FILTER_NONE);
-}
 
 struct GNUNET_NAMESTORE_QueueEntry *
 GNUNET_NAMESTORE_zone_to_name (
@@ -1331,8 +1387,8 @@ GNUNET_NAMESTORE_zone_to_name (
   msg->pkey_len = htons (pkey_len);
   GNUNET_CRYPTO_write_private_key_to_buffer (zone, &msg[1], key_len);
   GNUNET_CRYPTO_write_public_key_to_buffer (value_zone,
-                                              (char*) &msg[1] + key_len,
-                                              pkey_len);
+                                            (char*) &msg[1] + key_len,
+                                            pkey_len);
   if (NULL == h->mq)
     qe->env = env;
   else
@@ -1388,6 +1444,7 @@ GNUNET_NAMESTORE_zone_iteration_start (
     GNUNET_MQ_send (h->mq, env);
   return it;
 }
+
 
 struct GNUNET_NAMESTORE_ZoneIterator *
 GNUNET_NAMESTORE_zone_iteration_start2 (
@@ -1494,69 +1551,123 @@ GNUNET_NAMESTORE_cancel (struct GNUNET_NAMESTORE_QueueEntry *qe)
   free_qe (qe);
 }
 
+
 /**
  * New API draft. Experimental
  */
 
-static struct GNUNET_NAMESTORE_QueueEntry *
-send_transaction_control_msg (struct GNUNET_NAMESTORE_Handle *h,
-                              GNUNET_NAMESTORE_ContinuationWithStatus cont,
-                              void *cont_cls,
-                              enum GNUNET_NAMESTORE_TxControl ctrl)
+struct GNUNET_NAMESTORE_QueueEntry *
+GNUNET_NAMESTORE_record_set_edit_begin (struct GNUNET_NAMESTORE_Handle *h,
+                                        const struct
+                                        GNUNET_CRYPTO_PrivateKey *pkey,
+                                        const char *label,
+                                        const char *editor_hint,
+                                        GNUNET_NAMESTORE_EditRecordSetBeginCallback
+                                        edit_cb,
+                                        void *edit_cb_cls)
 {
   struct GNUNET_NAMESTORE_QueueEntry *qe;
   struct GNUNET_MQ_Envelope *env;
-  struct TxControlMessage *msg;
-  uint32_t rid;
+  struct EditRecordSetMessage *msg;
+  size_t label_len;
+  size_t key_len;
+  size_t editor_hint_len;
 
-  rid = get_op_id (h);
+  if (1 == (label_len = strlen (label) + 1))
+  {
+    GNUNET_break (0);
+    return NULL;
+  }
+  GNUNET_assert (editor_hint != NULL);
+  editor_hint_len = strlen (editor_hint) + 1;
   qe = GNUNET_new (struct GNUNET_NAMESTORE_QueueEntry);
   qe->h = h;
-  qe->cont = cont;
-  qe->cont_cls = cont_cls;
-  qe->op_id = rid;
+  qe->edit_proc = edit_cb;
+  qe->proc_cls = edit_cb_cls;
+  qe->op_id = get_op_id (h);
   GNUNET_CONTAINER_DLL_insert_tail (h->op_head, h->op_tail, qe);
 
-  env = GNUNET_MQ_msg (msg, GNUNET_MESSAGE_TYPE_NAMESTORE_TX_CONTROL);
-  msg->gns_header.r_id = htonl (rid);
-  msg->control = htons (ctrl);
+  key_len = GNUNET_CRYPTO_private_key_get_length (pkey);
+  env = GNUNET_MQ_msg_extra (msg,
+                             label_len +  key_len + editor_hint_len,
+                             GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_SET_EDIT);
+  msg->gns_header.r_id = htonl (qe->op_id);
+  GNUNET_CRYPTO_write_private_key_to_buffer (pkey,
+                                             &msg[1],
+                                             key_len);
+
+  msg->key_len = htons (key_len);
+  msg->label_len = htons (label_len);
+  msg->editor_hint_len = htons (editor_hint_len);
+  GNUNET_memcpy (((char*) &msg[1]) + key_len, label, label_len);
+  GNUNET_memcpy (((char*) &msg[1]) + key_len + label_len, editor_hint,
+                 editor_hint_len);
   if (NULL == h->mq)
     qe->env = env;
   else
     GNUNET_MQ_send (h->mq, env);
   return qe;
-  GNUNET_break (0);
-  return NULL;
-}
-
-struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_transaction_begin (struct GNUNET_NAMESTORE_Handle *h,
-                                    GNUNET_NAMESTORE_ContinuationWithStatus cont,
-                                    void *cont_cls)
-{
-  return send_transaction_control_msg (h, cont, cont_cls,
-                                       GNUNET_NAMESTORE_TX_BEGIN);
-}
-
-struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_transaction_commit (struct GNUNET_NAMESTORE_Handle *h,
-                                     GNUNET_NAMESTORE_ContinuationWithStatus
-                                     cont,
-                                     void *cont_cls)
-{
-  return send_transaction_control_msg (h, cont, cont_cls,
-                                       GNUNET_NAMESTORE_TX_COMMIT);
 }
 
 
 struct GNUNET_NAMESTORE_QueueEntry *
-GNUNET_NAMESTORE_transaction_rollback (struct GNUNET_NAMESTORE_Handle *h,
-                                       GNUNET_NAMESTORE_ContinuationWithStatus
-                                       cont,
-                                       void *cont_cls)
+GNUNET_NAMESTORE_record_set_edit_cancel (struct GNUNET_NAMESTORE_Handle *h,
+                                         const struct
+                                         GNUNET_CRYPTO_PrivateKey *pkey,
+                                         const char *label,
+                                         const char *editor_hint,
+                                         const char *editor_hint_replacement,
+                                         GNUNET_SCHEDULER_TaskCallback
+                                         finished_cb,
+                                         void *finished_cls)
 {
-  return send_transaction_control_msg (h, cont, cont_cls,
-                                       GNUNET_NAMESTORE_TX_ROLLBACK);
+  struct GNUNET_NAMESTORE_QueueEntry *qe;
+  struct GNUNET_MQ_Envelope *env;
+  struct EditRecordSetCancelMessage *msg;
+  size_t label_len;
+  size_t key_len;
+  size_t editor_hint_len;
+  size_t editor_hint_replacement_len;
+
+  if (1 == (label_len = strlen (label) + 1))
+  {
+    GNUNET_break (0);
+    return NULL;
+  }
+  GNUNET_assert (editor_hint != NULL);
+  editor_hint_len = strlen (editor_hint) + 1;
+  GNUNET_assert (editor_hint != NULL);
+  editor_hint_replacement_len = strlen (editor_hint_replacement) + 1;
+  qe = GNUNET_new (struct GNUNET_NAMESTORE_QueueEntry);
+  qe->h = h;
+  qe->op_id = get_op_id (h);
+  GNUNET_CONTAINER_DLL_insert_tail (h->op_head, h->op_tail, qe);
+
+  key_len = GNUNET_CRYPTO_private_key_get_length (pkey);
+  env = GNUNET_MQ_msg_extra (msg,
+                             label_len +  key_len + editor_hint_len
+                             + editor_hint_replacement_len,
+                             GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_SET_EDIT_CANCEL);
+  msg->gns_header.r_id = htonl (qe->op_id);
+  GNUNET_CRYPTO_write_private_key_to_buffer (pkey,
+                                             &msg[1],
+                                             key_len);
+
+  msg->key_len = htons (key_len);
+  msg->label_len = htons (label_len);
+  msg->editor_hint_len = htons (editor_hint_len);
+  msg->editor_hint_replacement_len = htons (editor_hint_replacement_len);
+  GNUNET_memcpy (((char*) &msg[1]) + key_len, label, label_len);
+  GNUNET_memcpy (((char*) &msg[1]) + key_len + label_len, editor_hint,
+                 editor_hint_len);
+  GNUNET_memcpy (((char*) &msg[1]) + key_len + label_len + editor_hint_len,
+                 editor_hint_replacement,
+                 editor_hint_replacement_len);
+  if (NULL == h->mq)
+    qe->env = env;
+  else
+    GNUNET_MQ_send (h->mq, env);
+  return qe;
 }
 
 

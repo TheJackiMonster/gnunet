@@ -76,10 +76,10 @@ SQLITE_TESTS = \
  test_namestore_api_zone_iteration_stop_sqlite \
  test_namestore_api_monitoring_existing_sqlite \
  test_namestore_api_zone_to_name_sqlite \
+ test_namestore_api_edit_records_sqlite \
  perf_namestore_api_zone_iteration_sqlite \
  perf_namestore_api_import_sqlite \
- perf_namestore_api_import_postgres \
- test_namestore_api_tx_rollback_sqlite
+ perf_namestore_api_import_postgres
 endif
 
 
@@ -97,8 +97,7 @@ POSTGRES_TESTS = \
  test_namestore_api_zone_iteration_stop_postgres \
  test_namestore_api_monitoring_existing_postgres \
  test_namestore_api_zone_to_name_postgres \
- perf_namestore_api_zone_iteration_postgres \
- test_namestore_api_tx_rollback_postgres
+ perf_namestore_api_zone_iteration_postgres
 if HAVE_EXPERIMENTAL
 POSTGRES_TESTS += test_namestore_api_edit_records_postgres
 endif
@@ -261,24 +260,6 @@ test_namestore_api_monitoring_existing_postgres_LDADD = \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
-test_namestore_api_tx_rollback_sqlite_SOURCES = \
- test_namestore_api_tx_rollback.c
-test_namestore_api_tx_rollback_sqlite_LDADD = \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
-  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la
-
-test_namestore_api_tx_rollback_postgres_SOURCES = \
- test_namestore_api_tx_rollback.c
-test_namestore_api_tx_rollback_postgres_LDADD = \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
-  $(top_builddir)/src/service/identity/libgnunetidentity.la \
-  $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
-  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la
-
 if HAVE_EXPERIMENTAL
 test_namestore_api_edit_records_postgres_SOURCES = \
  test_namestore_api_edit_records.c
@@ -289,6 +270,15 @@ test_namestore_api_edit_records_postgres_LDADD = \
   $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 endif
+
+test_namestore_api_edit_records_sqlite_SOURCES = \
+ test_namestore_api_edit_records.c
+test_namestore_api_edit_records_sqlite_LDADD = \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/identity/libgnunetidentity.la \
+  $(top_builddir)/src/service/namestore/libgnunetnamestore.la \
+  $(top_builddir)/src/lib/gnsrecord/libgnunetgnsrecord.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_namestore_api_zone_iteration_sqlite_SOURCES = \
  test_namestore_api_zone_iteration.c

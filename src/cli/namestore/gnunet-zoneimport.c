@@ -22,7 +22,6 @@
  * @brief import a DNS zone for publication in GNS, incremental
  * @author Christian Grothoff
  */
-#include "platform.h"
 #include <gnunet_util_lib.h>
 #include <gnunet_gnsrecord_lib.h>
 #include <gnunet_namestore_service.h>
@@ -55,7 +54,7 @@
  * How long do we wait at least between series of requests?
  */
 #define SERIES_DELAY \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS, 10)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS, 10)
 
 /**
  * How long do DNS records have to last at least after being imported?
@@ -1160,13 +1159,13 @@ process_result (void *cls,
       rd[off++] = rec->grd;
     pending_rs++;
     req->op_start_time = GNUNET_TIME_absolute_get ();
-    req->qe = GNUNET_NAMESTORE_records_store (ns,
-                                              &req->zone->key,
-                                              get_label (req),
-                                              rd_count,
-                                              rd,
-                                              &store_completed_cb,
-                                              req);
+    req->qe = GNUNET_NAMESTORE_record_set_store (ns,
+                                                 &req->zone->key,
+                                                 get_label (req),
+                                                 rd_count,
+                                                 rd,
+                                                 &store_completed_cb,
+                                                 req);
     GNUNET_assert (NULL != req->qe);
   }
   insert_sorted (req);
