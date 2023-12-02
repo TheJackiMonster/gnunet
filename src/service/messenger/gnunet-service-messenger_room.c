@@ -1254,9 +1254,6 @@ callback_room_handle_message (struct GNUNET_MESSENGER_SrvRoom *room,
   case GNUNET_MESSENGER_KIND_LEAVE:
     handle_message_leave (room, &session, message, hash);
     break;
-  case GNUNET_MESSENGER_KIND_NAME:
-    handle_message_name (room, &session, message, hash);
-    break;
   case GNUNET_MESSENGER_KIND_KEY:
     handle_message_key (room, &session, message, hash);
     break;

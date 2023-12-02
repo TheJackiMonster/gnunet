@@ -65,21 +65,6 @@ handle_message_leave (struct GNUNET_MESSENGER_SrvRoom *room,
                       const struct GNUNET_HashCode *hash);
 
 /**
- * Handles a received or sent name message to rename a current member.
- * (change name of matching member)
- *
- * @param[in,out] room Room of the message
- * @param[in,out] session Sender session
- * @param[in] message NAME-Message
- * @param[in] hash Hash of the message
- */
-void
-handle_message_name (struct GNUNET_MESSENGER_SrvRoom *room,
-                     struct GNUNET_MESSENGER_SenderSession *session,
-                     const struct GNUNET_MESSENGER_Message *message,
-                     const struct GNUNET_HashCode *hash);
-
-/**
  * Handles a received or sent key message to change the key of a member and rearrange the contacts accordingly.
  * (move the member in the contacts and change its key)
  *

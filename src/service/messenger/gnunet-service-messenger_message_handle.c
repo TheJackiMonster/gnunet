@@ -77,22 +77,6 @@ handle_message_leave (struct GNUNET_MESSENGER_SrvRoom *room,
 
 
 void
-handle_message_name (struct GNUNET_MESSENGER_SrvRoom *room,
-                     struct GNUNET_MESSENGER_SenderSession *session,
-                     const struct GNUNET_MESSENGER_Message *message,
-                     const struct GNUNET_HashCode *hash)
-{
-  struct GNUNET_MESSENGER_Contact *contact = get_member_session_contact (
-    session->member);
-
-  if (! contact)
-    return;
-
-  set_contact_name (contact, message->body.name.name);
-}
-
-
-void
 handle_message_key (struct GNUNET_MESSENGER_SrvRoom *room,
                     struct GNUNET_MESSENGER_SenderSession *session,
                     const struct GNUNET_MESSENGER_Message *message,
