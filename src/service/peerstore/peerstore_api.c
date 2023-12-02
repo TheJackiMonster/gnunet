@@ -672,9 +672,8 @@ handle_iterate_result (void *cls, const struct StoreRecordMessage *msg)
       break;
   if (NULL == ic)
   {
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         _ ("Unexpected iteration response, this should not happen.\n"));
-    disconnect_and_schedule_reconnect (h);
+    LOG (GNUNET_ERROR_TYPE_WARNING,
+         _ ("Unexpected iteration response, no iterating client found, discarding message.\n"));
     return;
   }
   if (NULL == ic->callback)
