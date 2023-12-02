@@ -23,6 +23,7 @@
  * @brief postgres-based namestore backend
  * @author Christian Grothoff
  */
+#include "gnunet_db_lib.h"
 #include "gnunet_namestore_plugin.h"
 #include "gnunet_gnsrecord_lib.h"
 #include "gnunet_pq_lib.h"
@@ -145,13 +146,12 @@ database_prepare (struct Plugin *plugin)
       GNUNET_PQ_make_prepare ("edit_set",
                               "UPDATE namestore.ns098records"
                               " SET editor_hint=$3"
-                              " FROM ns098records AS old_ns098records"
+                              " FROM namestore.ns098records AS old_ns098records"
                               " WHERE ns098records.zone_private_key=$1 AND ns098records.label=$2"
                               " RETURNING ns098records.seq,ns098records.record_count,ns098records.record_data,ns098records.label,old_ns098records.editor_hint "),
       GNUNET_PQ_make_prepare ("clear_editor_hint",
                               "UPDATE namestore.ns098records"
                               " SET editor_hint=$4"
-                              " FROM namestore.ns098records"
                               " WHERE zone_private_key=$1 AND label=$2 AND editor_hint=$3"),
       GNUNET_PQ_PREPARED_STATEMENT_END
     };
@@ -459,25 +459,21 @@ parse_result_call_iterator (void *cls,
  * @param label name of the record in the zone
  * @param iter function to call with the result
  * @param iter_cls closure for @a iter
- * @param method the method to use "lookup_record" or "edit_set"
  * @return #GNUNET_OK on success, #GNUNET_NO for no results, else #GNUNET_SYSERR
  */
 static enum GNUNET_GenericReturnValue
-lookup_records (void *cls,
-                const struct
-                GNUNET_CRYPTO_PrivateKey *zone,
-                const char *label,
-                GNUNET_NAMESTORE_RecordIterator iter,
-                void *iter_cls,
-                const char *method,
-                const char *editor_hint)
+namestore_postgres_lookup_records (void *cls,
+                                   const struct
+                                   GNUNET_CRYPTO_PrivateKey *zone,
+                                   const char *label,
+                                   GNUNET_NAMESTORE_RecordIterator iter,
+                                   void *iter_cls)
 {
   struct Plugin *plugin = cls;
   GNUNET_assert (GNUNET_OK == database_prepare (plugin));
   struct GNUNET_PQ_QueryParam params[] = {
     GNUNET_PQ_query_param_auto_from_type (zone),
     GNUNET_PQ_query_param_string (label),
-    GNUNET_PQ_query_param_string (editor_hint),
     GNUNET_PQ_query_param_end
   };
   struct ParserContext pc;
@@ -492,7 +488,7 @@ lookup_records (void *cls,
   pc.iter_cls = iter_cls;
   pc.zone_key = zone;
   res = GNUNET_PQ_eval_prepared_multi_select (plugin->dbh,
-                                              method,
+                                              "lookup_label",
                                               params,
                                               &parse_result_call_iterator,
                                               &pc);
@@ -501,28 +497,6 @@ lookup_records (void *cls,
   if (GNUNET_DB_STATUS_SUCCESS_NO_RESULTS == res)
     return GNUNET_NO;
   return GNUNET_OK;
-}
-
-
-/**
- * Lookup records in the datastore for which we are the authority.
- *
- * @param cls closure (internal context for the plugin)
- * @param zone private key of the zone
- * @param label name of the record in the zone
- * @param iter function to call with the result
- * @param iter_cls closure for @a iter
- * @return #GNUNET_OK on success, #GNUNET_NO for no results, else #GNUNET_SYSERR
- */
-static enum GNUNET_GenericReturnValue
-namestore_postgres_lookup_records (void *cls,
-                                   const struct
-                                   GNUNET_CRYPTO_PrivateKey *zone,
-                                   const char *label,
-                                   GNUNET_NAMESTORE_RecordIterator iter,
-                                   void *iter_cls)
-{
-  return lookup_records (cls, zone, label, iter, iter_cls, "lookup_label", "");
 }
 
 
@@ -564,7 +538,8 @@ namestore_postgres_clear_editor_hint (void *cls,
     res = GNUNET_PQ_eval_prepared_non_select (plugin->dbh,
                                               "clear_editor_hint",
                                               params);
-    if (GNUNET_DB_STATUS_SUCCESS_ONE_RESULT != res)
+    if ((GNUNET_DB_STATUS_SUCCESS_NO_RESULTS != res) &&
+        (GNUNET_DB_STATUS_SUCCESS_ONE_RESULT != res))
       return GNUNET_SYSERR;
   }
   return GNUNET_OK;
@@ -590,8 +565,35 @@ namestore_postgres_edit_records (void *cls,
                                  GNUNET_NAMESTORE_RecordIterator iter,
                                  void *iter_cls)
 {
-  return lookup_records (cls, zone, label, iter, iter_cls, "edit_set",
-                         (NULL == editor_hint) ? "" : editor_hint);
+  struct Plugin *plugin = cls;
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
+  struct GNUNET_PQ_QueryParam params[] = {
+    GNUNET_PQ_query_param_auto_from_type (zone),
+    GNUNET_PQ_query_param_string (label),
+    GNUNET_PQ_query_param_string (editor_hint),
+    GNUNET_PQ_query_param_end
+  };
+  struct ParserContext pc;
+  enum GNUNET_DB_QueryStatus res;
+
+  if (NULL == zone)
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  pc.iter = iter;
+  pc.iter_cls = iter_cls;
+  pc.zone_key = zone;
+  res = GNUNET_PQ_eval_prepared_multi_select (plugin->dbh,
+                                              "edit_set",
+                                              params,
+                                              &parse_result_call_iterator,
+                                              &pc);
+  if (res < 0)
+    return GNUNET_SYSERR;
+  if (GNUNET_DB_STATUS_SUCCESS_NO_RESULTS == res)
+    return GNUNET_NO;
+  return GNUNET_OK;
 }
 
 

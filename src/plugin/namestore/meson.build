@@ -14,6 +14,18 @@ configure_file(copy: true,
                input: 'test_plugin_namestore_sqlite.conf',
                output: 'test_plugin_namestore_sqlite.conf')
 
+configure_file(input : 'namestore-0001.sql',
+               output : 'namestore-0001.sql',
+               configuration : cdata,
+               install: true,
+               install_dir: get_option('datadir')/'gnunet'/'sql')
+
+configure_file(input : 'namestore-drop.sql',
+               output : 'namestore-drop.sql',
+               configuration : cdata,
+               install: true,
+               install_dir: get_option('datadir')/'gnunet'/'sql')
+
 if pq_dep.found()
   shared_module('gnunet_plugin_namestore_postgres',
           ['plugin_namestore_postgres.c'],

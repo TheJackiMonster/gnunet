@@ -64,6 +64,10 @@ configure_file(copy: true,
                input: 'test_namestore_api_sqlite.conf',
                output: 'test_namestore_api_sqlite.conf')
 
+configure_file(copy: true,
+               input: 'test_namestore_api_postgres.conf',
+               output: 'test_namestore_api_postgres.conf')
+
 namestoreapitestnames = [
   'test_namestore_api_lookup_nick',
   'test_namestore_api_monitoring',
@@ -109,7 +113,7 @@ foreach tn : namestoreapitestnames
                 libgnunetnamestore_dep],
               include_directories: [incdir, configuration_inc],
               install: false)
-    test(tn + '_postgres', t, workdir: meson.current_build_dir(),
+    test(tn + '_postgres', t_pq, workdir: meson.current_build_dir(),
     is_parallel: false,
        suite: 'namestore')
   endif

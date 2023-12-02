@@ -1,3 +1,6 @@
+perf_namestore_api_zone_iteration_postgres
+perf_namestore_api_zone_iteration_sqlite
+test_namestore_api_edit_records_sqlite
 gnunet-service-namestore
 gnunet-namestore-fcfsd
 test_namestore_api_lookup_nick.nc
