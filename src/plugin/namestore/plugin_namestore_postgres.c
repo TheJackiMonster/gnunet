@@ -144,9 +144,15 @@ database_prepare (struct Plugin *plugin)
                               "FROM namestore.ns098records WHERE zone_private_key=$1 AND label=$2"),
       GNUNET_PQ_make_prepare ("edit_set",
                               "UPDATE namestore.ns098records"
-                              "SET editor_hint=$3"
-                              "WHERE zone_private_key=$1 AND label=$2"
-                              "RETURNING seq,record_count,record_data,label,editor_hint "),
+                              " SET editor_hint=$3"
+                              " FROM ns098records AS old_ns098records"
+                              " WHERE ns098records.zone_private_key=$1 AND ns098records.label=$2"
+                              " RETURNING ns098records.seq,ns098records.record_count,ns098records.record_data,ns098records.label,old_ns098records.editor_hint "),
+      GNUNET_PQ_make_prepare ("clear_editor_hint",
+                              "UPDATE namestore.ns098records"
+                              " SET editor_hint=$4"
+                              " FROM namestore.ns098records"
+                              " WHERE zone_private_key=$1 AND label=$2 AND editor_hint=$3"),
       GNUNET_PQ_PREPARED_STATEMENT_END
     };
 
@@ -521,6 +527,51 @@ namestore_postgres_lookup_records (void *cls,
 
 
 /**
+ *
+ * @param cls closure (internal context for the plugin)
+ * @param zone private key of the zone
+ * @param label name of the record in the zone
+ * @param iter function to call with the result
+ * @param iter_cls closure for @a iter
+ * @return #GNUNET_OK on success, #GNUNET_NO for no results, else #GNUNET_SYSERR
+ */
+static int
+namestore_postgres_clear_editor_hint (void *cls,
+                                      const char *editor_hint,
+                                      const char *editor_hint_replacement,
+                                      const struct
+                                      GNUNET_CRYPTO_PrivateKey *zone,
+                                      const char *label)
+{
+
+  struct Plugin *plugin = cls;
+  struct GNUNET_CRYPTO_PublicKey pkey;
+
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
+  memset (&pkey,
+          0,
+          sizeof(pkey));
+  {
+    struct GNUNET_PQ_QueryParam params[] = {
+      GNUNET_PQ_query_param_auto_from_type (zone),
+      GNUNET_PQ_query_param_string (label),
+      GNUNET_PQ_query_param_string (editor_hint),
+      GNUNET_PQ_query_param_string (editor_hint_replacement),
+      GNUNET_PQ_query_param_end
+    };
+    enum GNUNET_DB_QueryStatus res;
+
+    res = GNUNET_PQ_eval_prepared_non_select (plugin->dbh,
+                                              "clear_editor_hint",
+                                              params);
+    if (GNUNET_DB_STATUS_SUCCESS_ONE_RESULT != res)
+      return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
+}
+
+
+/**
  * Edit records in the datastore for which we are the authority.
  *
  * @param cls closure (internal context for the plugin)
@@ -701,6 +752,7 @@ libgnunet_plugin_namestore_postgres_init (void *cls)
   api->zone_to_name = &namestore_postgres_zone_to_name;
   api->lookup_records = &namestore_postgres_lookup_records;
   api->edit_records = &namestore_postgres_edit_records;
+  api->clear_editor_hint = &namestore_postgres_clear_editor_hint;
   LOG (GNUNET_ERROR_TYPE_INFO,
        "Postgres namestore plugin running\n");
   return api;

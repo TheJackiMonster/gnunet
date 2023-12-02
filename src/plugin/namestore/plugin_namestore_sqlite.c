@@ -112,6 +112,11 @@ struct Plugin
    * Precompiled SQL to lookup records based on label.
    */
   sqlite3_stmt *lookup_label;
+
+  /**
+   * Precompiled SQL to clear editor hint.
+   */
+  sqlite3_stmt *editor_hint_clear;
 };
 
 
@@ -148,16 +153,18 @@ database_prepare (struct Plugin *plugin)
     GNUNET_SQ_make_prepare ("DELETE FROM ns098records "
                             "WHERE zone_private_key=? AND label=?",
                             &plugin->delete_records),
-    GNUNET_SQ_make_prepare ("SELECT uid,record_count,record_data,label,editor_hint"
-                            " FROM ns098records"
-                            " WHERE zone_private_key=? AND pkey=?",
-                            &plugin->zone_to_name),
-    GNUNET_SQ_make_prepare ("SELECT uid,record_count,record_data,label,editor_hint"
-                            " FROM ns098records"
-                            " WHERE zone_private_key=? AND uid > ?"
-                            " ORDER BY uid ASC"
-                            " LIMIT ?",
-                            &plugin->iterate_zone),
+    GNUNET_SQ_make_prepare (
+      "SELECT uid,record_count,record_data,label,editor_hint"
+      " FROM ns098records"
+      " WHERE zone_private_key=? AND pkey=?",
+      &plugin->zone_to_name),
+    GNUNET_SQ_make_prepare (
+      "SELECT uid,record_count,record_data,label,editor_hint"
+      " FROM ns098records"
+      " WHERE zone_private_key=? AND uid > ?"
+      " ORDER BY uid ASC"
+      " LIMIT ?",
+      &plugin->iterate_zone),
     GNUNET_SQ_make_prepare (
       "SELECT uid,record_count,record_data,label,editor_hint,zone_private_key"
       " FROM ns098records"
@@ -171,6 +178,11 @@ database_prepare (struct Plugin *plugin)
                             " WHERE ns098records.zone_private_key=? AND ns098records.label=?"
                             " RETURNING ns098records.uid,ns098records.record_count,ns098records.record_data,ns098records.label,editor_hint ",
                             &plugin->lookup_label),
+    GNUNET_SQ_make_prepare ("UPDATE ns098records"
+                            " SET editor_hint=?"
+                            " FROM ns098records AS old_ns098records"
+                            " WHERE ns098records.zone_private_key=? AND ns098records.label=? AND ns098records.editor_hint=?",
+                            &plugin->editor_hint_clear),
     GNUNET_SQ_PREPARE_END
   };
 
@@ -221,6 +233,8 @@ database_shutdown (struct Plugin *plugin)
     sqlite3_finalize (plugin->zone_to_name);
   if (NULL != plugin->lookup_label)
     sqlite3_finalize (plugin->lookup_label);
+  if (NULL != plugin->editor_hint_clear)
+    sqlite3_finalize (plugin->editor_hint_clear);
   result = sqlite3_close (plugin->dbh);
   if (result == SQLITE_BUSY)
   {
@@ -610,6 +624,79 @@ namestore_sqlite_lookup_records (void *cls,
 
 
 /**
+ * Clear editor hint.
+ *
+ * @param cls closure (internal context for the plugin)
+ * @param zone private key of the zone
+ * @param label name of the record in the zone
+ * @param editor_hint editor hint to clear
+ * @param editor_hint_repl editor hint to replace the old with (optional)
+ * @param iter function to call with the result
+ * @param iter_cls closure for @a iter
+ * @return #GNUNET_OK on success, #GNUNET_NO for no results, else #GNUNET_SYSERR
+ */
+static enum GNUNET_GenericReturnValue
+namestore_sqlite_editor_hint_clear (void *cls,
+                                    const char *editor_hint,
+                                    const char *editor_hint_replacement,
+                                    const struct
+                                    GNUNET_CRYPTO_PrivateKey *zone,
+                                    const char *label)
+{
+  struct Plugin *plugin = cls;
+  int n;
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
+  struct GNUNET_SQ_QueryParam params[] = {
+    GNUNET_SQ_query_param_string ((NULL == editor_hint_replacement) ? "":
+                                  editor_hint_replacement),
+    GNUNET_SQ_query_param_auto_from_type (zone),
+    GNUNET_SQ_query_param_string (label),
+    GNUNET_SQ_query_param_string (editor_hint),
+    GNUNET_SQ_query_param_end
+  };
+
+  if (NULL == zone)
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  if (GNUNET_OK !=
+      GNUNET_SQ_bind (plugin->editor_hint_clear,
+                      params))
+  {
+    LOG_SQLITE (plugin, GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
+                "sqlite3_bind_XXXX");
+    GNUNET_SQ_reset (plugin->dbh,
+                     plugin->editor_hint_clear);
+    return GNUNET_SYSERR;
+  }
+  n = sqlite3_step (plugin->editor_hint_clear);
+  GNUNET_SQ_reset (plugin->dbh,
+                   plugin->store_records);
+  switch (n)
+  {
+  case SQLITE_DONE:
+    GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG,
+                     "sqlite",
+                     "Editor hint cleared\n");
+    return GNUNET_OK;
+
+  case SQLITE_BUSY:
+    LOG_SQLITE (plugin,
+                GNUNET_ERROR_TYPE_WARNING | GNUNET_ERROR_TYPE_BULK,
+                "sqlite3_step");
+    return GNUNET_NO;
+
+  default:
+    LOG_SQLITE (plugin,
+                GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
+                "sqlite3_step");
+    return GNUNET_SYSERR;
+  }
+}
+
+
+/**
  * Lookup records in the datastore for which we are the authority.
  *
  * @param cls closure (internal context for the plugin)
@@ -911,6 +998,7 @@ libgnunet_plugin_namestore_sqlite_init (void *cls)
   api->create_tables = &namestore_sqlite_create_tables;
   api->drop_tables = &namestore_sqlite_drop_tables;
   api->edit_records = &namestore_sqlite_edit_records;
+  api->clear_editor_hint = &namestore_sqlite_editor_hint_clear;
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        _ ("SQlite database running\n"));
   return api;

@@ -375,8 +375,8 @@ handle_generic_response (void *cls,
   qe = find_qe (h, ntohl (msg->gns_header.r_id));
   res = ntohl (msg->ec);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Received RECORD_STORE_RESPONSE with result %d\n",
-       res);
+       "Received GENERIC_RESPONSE with result %s\n",
+       GNUNET_ErrorCode_get_hint(res));
   if (NULL == qe)
     return;
   if (NULL != qe->cont)
@@ -1617,8 +1617,7 @@ GNUNET_NAMESTORE_record_set_edit_cancel (struct GNUNET_NAMESTORE_Handle *h,
                                          const char *label,
                                          const char *editor_hint,
                                          const char *editor_hint_replacement,
-                                         GNUNET_SCHEDULER_TaskCallback
-                                         finished_cb,
+                                         GNUNET_NAMESTORE_ContinuationWithStatus finished_cb,
                                          void *finished_cls)
 {
   struct GNUNET_NAMESTORE_QueueEntry *qe;
@@ -1641,6 +1640,8 @@ GNUNET_NAMESTORE_record_set_edit_cancel (struct GNUNET_NAMESTORE_Handle *h,
   qe = GNUNET_new (struct GNUNET_NAMESTORE_QueueEntry);
   qe->h = h;
   qe->op_id = get_op_id (h);
+  qe->cont = finished_cb;
+  qe->cont_cls = finished_cls;
   GNUNET_CONTAINER_DLL_insert_tail (h->op_head, h->op_tail, qe);
 
   key_len = GNUNET_CRYPTO_private_key_get_length (pkey);

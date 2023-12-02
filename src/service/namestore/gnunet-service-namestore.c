@@ -1275,7 +1275,7 @@ check_edit_record_set (void *cls, const struct EditRecordSetMessage *er_msg)
   key_len = ntohs (er_msg->key_len);
   src_size = ntohs (er_msg->gns_header.header.size);
   if (name_len + editor_hint_len + key_len != src_size - sizeof(struct
-                                                                LabelLookupMessage))
+                                                                EditRecordSetMessage))
   {
     GNUNET_break (0);
     return GNUNET_SYSERR;
@@ -1285,10 +1285,10 @@ check_edit_record_set (void *cls, const struct EditRecordSetMessage *er_msg)
 
 
 /**
- * Handles a #GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_LOOKUP message
+ * Handles a #GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_SET_EDIT message
  *
  * @param cls client sending the message
- * @param ll_msg message of type `struct LabelLookupMessage`
+ * @param ll_msg message of type `struct EditRecordSetMessage`
  */
 static void
 handle_edit_record_set (void *cls, const struct EditRecordSetMessage *er_msg)
@@ -1376,6 +1376,119 @@ handle_edit_record_set (void *cls, const struct EditRecordSetMessage *er_msg)
                  rlc.rd_ser_len);
   GNUNET_MQ_send (nc->mq, env);
   GNUNET_free (rlc.res_rd);
+  GNUNET_free (conv_name);
+}
+
+
+/**
+ * Handles a #GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_SET_EDIT_CANCEL message
+ *
+ * @param cls client sending the message
+ * @param er_msg message of type `struct EditRecordSetMessage`
+ * @return #GNUNET_OK if @a er_msg is well-formed
+ */
+static int
+check_edit_record_set_cancel (void *cls, const struct
+                              EditRecordSetCancelMessage *er_msg)
+{
+  uint16_t name_len;
+  uint16_t editor_hint_len;
+  uint16_t editor_hint_repl_len;
+  size_t src_size;
+  size_t key_len;
+
+  (void) cls;
+  name_len = ntohs (er_msg->label_len);
+  editor_hint_len = ntohs (er_msg->editor_hint_len);
+  editor_hint_repl_len = ntohs (er_msg->editor_hint_len);
+  key_len = ntohs (er_msg->key_len);
+  src_size = ntohs (er_msg->gns_header.header.size);
+  if (name_len + editor_hint_len + editor_hint_repl_len + key_len != src_size
+      - sizeof(struct
+               EditRecordSetCancelMessage))
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
+}
+
+
+/**
+ * Handles a #GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_SET_EDIT_CANCEL message
+ *
+ * @param cls client sending the message
+ * @param ll_msg message of type `struct EditRecordSetCancelMessage`
+ */
+static void
+handle_edit_record_set_cancel (void *cls, const struct
+                               EditRecordSetCancelMessage *er_msg)
+{
+  struct GNUNET_CRYPTO_PrivateKey zone;
+  struct NamestoreClient *nc = cls;
+  struct GNUNET_MQ_Envelope *env;
+  struct NamestoreResponseMessage *rer_msg;
+  const char *name_tmp;
+  const char *editor_hint;
+  const char *editor_hint_repl;
+  char *conv_name;
+  uint16_t name_len;
+  uint16_t editor_hint_len;
+  int res;
+  size_t key_len;
+  size_t kb_read;
+
+  key_len = ntohs (er_msg->key_len);
+  name_len = ntohs (er_msg->label_len);
+  editor_hint_len = ntohs (er_msg->editor_hint_len);
+  if ((GNUNET_SYSERR ==
+       GNUNET_CRYPTO_read_private_key_from_buffer (&er_msg[1],
+                                                   key_len,
+                                                   &zone,
+                                                   &kb_read)) ||
+      (kb_read != key_len))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Error reading private key\n");
+    GNUNET_SERVICE_client_drop (nc->client);
+    return;
+  }
+  name_tmp = (const char *) &er_msg[1] + key_len;
+  editor_hint = (const char *) name_tmp + name_len;
+  editor_hint_repl = (const char *) name_tmp + name_len + editor_hint_len;
+  GNUNET_SERVICE_client_continue (nc->client);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Received NAMESTORE_RECORD_SET_EDIT message for name `%s'\n",
+              name_tmp);
+
+  conv_name = GNUNET_GNSRECORD_string_normalize (name_tmp);
+  if (NULL == conv_name)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Error converting name `%s'\n",
+                name_tmp);
+    GNUNET_SERVICE_client_drop (nc->client);
+    return;
+  }
+  name_len = strlen (conv_name) + 1;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Clearing editor hint\n");
+  res = nc->GSN_database->clear_editor_hint (nc->GSN_database->cls,
+                                             editor_hint,
+                                             editor_hint_repl,
+                                             &zone,
+                                             conv_name);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Clearing editor hint %s\n", (GNUNET_SYSERR == res) ? "failed." :
+              "successful.");
+
+  env =
+    GNUNET_MQ_msg (rer_msg,
+                   GNUNET_MESSAGE_TYPE_NAMESTORE_GENERIC_RESPONSE);
+  rer_msg->gns_header.r_id = er_msg->gns_header.r_id;
+  rer_msg->ec = htons ((GNUNET_OK == res) ? GNUNET_EC_NONE :
+                       GNUNET_EC_NAMESTORE_BACKEND_FAILED);
+  GNUNET_MQ_send (nc->mq, env);
   GNUNET_free (conv_name);
 }
 
@@ -2673,6 +2786,10 @@ GNUNET_SERVICE_MAIN (
   GNUNET_MQ_hd_var_size (edit_record_set,
                          GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_SET_EDIT,
                          struct EditRecordSetMessage,
+                         NULL),
+  GNUNET_MQ_hd_var_size (edit_record_set_cancel,
+                         GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_SET_EDIT_CANCEL,
+                         struct EditRecordSetCancelMessage,
                          NULL),
   GNUNET_MQ_hd_var_size (record_lookup,
                          GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_LOOKUP,

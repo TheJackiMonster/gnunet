@@ -662,7 +662,7 @@ GNUNET_NAMESTORE_record_set_edit_cancel (struct GNUNET_NAMESTORE_Handle *h,
                                          const char *label,
                                          const char *editor_hint,
                                          const char *editor_hint_replacement,
-                                         GNUNET_SCHEDULER_TaskCallback
+                                         GNUNET_NAMESTORE_ContinuationWithStatus
                                          finished_cb,
                                          void *finished_cls);
 

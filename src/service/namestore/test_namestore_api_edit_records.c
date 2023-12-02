@@ -21,7 +21,9 @@
  * @file namestore/test_namestore_api_edit_records.c
  * @brief testcase for namestore_api.c: Multiple clients work with record set.
  */
+#include "gnunet_error_codes.h"
 #include "gnunet_namestore_service.h"
+#include "gnunet_scheduler_lib.h"
 #include "gnunet_testing_lib.h"
 
 #define TEST_RECORD_TYPE GNUNET_DNSPARSER_TYPE_TXT
@@ -91,6 +93,15 @@ end (void *cls)
     GNUNET_SCHEDULER_cancel (endbadly_task);
   cleanup ();
   res = 0;
+  GNUNET_SCHEDULER_shutdown ();
+}
+
+
+static void
+cancel_done (void *cls, enum GNUNET_ErrorCode ec)
+{
+  GNUNET_assert (GNUNET_EC_NONE == ec);
+  GNUNET_SCHEDULER_add_now (&end, NULL);
 }
 
 
@@ -102,11 +113,12 @@ begin_cont_b (void *cls,
               GNUNET_GNSRECORD_Data *rd,
               const char *editor_hint)
 {
-  const char *name = cls;
+  char *name = cls;
 
   GNUNET_assert (GNUNET_EC_NONE == ec);
   GNUNET_assert (0 != strcmp (editor_hint, "B"));
-  GNUNET_SCHEDULER_add_now (&end, NULL);
+  nsqe = GNUNET_NAMESTORE_record_set_edit_cancel (nsh2, &privkey, name, "A",
+                                                  "B", &cancel_done, name);
 }
 
 
@@ -118,7 +130,7 @@ begin_cont (void *cls,
             GNUNET_GNSRECORD_Data *rd,
             const char *editor_hint)
 {
-  const char *name = cls;
+  char *name = cls;
 
   GNUNET_assert (GNUNET_EC_NONE == ec);
   GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -135,7 +147,7 @@ static void
 preload_cont (void *cls,
               enum GNUNET_ErrorCode ec)
 {
-  const char *name = cls;
+  char *name = cls;
 
   GNUNET_assert (NULL != cls);
   nsqe = NULL;
@@ -168,7 +180,7 @@ run (void *cls,
      struct GNUNET_TESTING_Peer *peer)
 {
   struct GNUNET_GNSRECORD_Data rd;
-  const char *name = "dummy";
+  char *name = "dummy";
 
   endbadly_task = GNUNET_SCHEDULER_add_delayed (TIMEOUT,
                                                 &endbadly,

@@ -181,6 +181,28 @@ struct GNUNET_NAMESTORE_PluginFunctions
                   void *iter_cls);
 
   /**
+   * This clears the editor hint, unless it does not match the
+   * given editor hint, in which case this is a NOP.
+   * If a replacement hint is given, it hint is not cleared, but
+   * set to the replacement.
+   *
+   * @param cls closure (internal context for the plugin)
+   * @param zone private key of the zone
+   * @param editor_hint the new value for the advisory lock field
+   * @param editor_hint_replacement an optional value to use instead of a clear
+   * @param label name of the record in the zone
+   * @param iter function to call with the result
+   * @param iter_cls closure for @a iter
+   * @return #GNUNET_OK on success, #GNUNET_NO for no results, else #GNUNET_SYSERR
+   */
+  enum GNUNET_GenericReturnValue
+  (*clear_editor_hint)(void *cls,
+                  const char *editor_hint,
+                  const char *editor_hint_replacement,
+                  const struct GNUNET_CRYPTO_PrivateKey *zone,
+                       const char *label);
+
+  /**
    * Setup the database.
    *
    * @param cls closure (internal context for the plugin)
