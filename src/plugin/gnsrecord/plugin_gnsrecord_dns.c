@@ -672,9 +672,9 @@ dns_string_to_value (void *cls,
       off = 0;
 
       // TODO add more precise uri checking (RFC3986)
-      if (strstr (target, ":") == NULL || target[0] == 58 || target[strlen (
-                                                                      target)
-                                                                    - 1] == 58)
+      if (strstr (target, ":") == NULL ||
+          target[0] == 58 ||
+          target[strlen (target) - 1] == 58)
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     _ ("Failed to serialize URI record with target `%s'\n"),
