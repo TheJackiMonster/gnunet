@@ -596,7 +596,7 @@ resolver_getprotobyname (const char *name)
     if (proto == 0)
       return NULL;
     pe = GNUNET_new (struct protoent);
-    pe->p_name = name;
+    pe->p_name = GNUNET_strdup (name);
     pe->p_proto = proto;
   }
   return pe;
@@ -619,7 +619,7 @@ resolver_getservbyname (const char *name, const char *proto)
     if (port == 0)
       return NULL;
     se = GNUNET_new (struct servent);
-    se->s_name = name;
+    se->s_name = GNUNET_strdup (name);
     se->s_port = htons (port);
   }
   return se;
@@ -735,6 +735,7 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
                     srv_name);
         GNUNET_free (proto_name);
         GNUNET_free (srv_name);
+        GNUNET_free (pe);
         return ret;
       }
     }
@@ -745,6 +746,8 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
     rh->protocol = pe->p_proto;
     GNUNET_free (proto_name);
     GNUNET_free (srv_name);
+    GNUNET_free (se);
+    GNUNET_free (pe);
   }
   return ret;
 }
