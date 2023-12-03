@@ -1260,7 +1260,8 @@ GNUNET_DNSPARSER_builder_add_uri (char *dst,
   (*off) += sizeof(sd);
   strncpy(&dst[*off], uri->target, dst_len - sizeof(struct GNUNET_TUN_DnsUriRecord) - 1);
   (*off) += strlen(uri->target);
-  dst[*off++] = '\0'; 
+  dst[*off] = '\0';
+  *off++;
   return GNUNET_OK;
 }
 
