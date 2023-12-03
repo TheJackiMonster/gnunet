@@ -735,6 +735,7 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
                     srv_name);
         GNUNET_free (proto_name);
         GNUNET_free (srv_name);
+        GNUNET_free (pe->p_name);
         GNUNET_free (pe);
         return ret;
       }
@@ -742,11 +743,13 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
     else
     {
       rh->service = ntohs (se->s_port);
+      GNUNET_free (se);
+      GNUNET_free (se->s_name);
     }
     rh->protocol = pe->p_proto;
     GNUNET_free (proto_name);
     GNUNET_free (srv_name);
-    GNUNET_free (se);
+    GNUNET_free (pe->p_name);
     GNUNET_free (pe);
   }
   return ret;
