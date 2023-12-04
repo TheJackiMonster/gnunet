@@ -31,6 +31,7 @@
 #include "gnunet_transport_core_service.h"
 #include "gnunet_testing_barrier.h"
 #include "gnunet_core_service.h"
+#include "gnunet_core_testing_lib.h"
 #include "gnunet_transport_testing_ng_lib.h"
 #include "messenger-testing-cmds.h"
 

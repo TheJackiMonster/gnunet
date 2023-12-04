@@ -63,6 +63,7 @@ libgnunetmessengertesting_la_SOURCES = \
 libgnunetmessengertesting_la_LIBADD = \
   libgnunetmessenger.la \
   $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/transport/libgnunettransporttesting2.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 libgnunetmessengertesting_la_LDFLAGS = \
   $(GN_LIBINTL) \

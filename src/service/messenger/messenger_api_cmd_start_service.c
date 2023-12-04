@@ -27,6 +27,7 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
 #include "gnunet_testing_netjail_lib.h"
+#include "gnunet_transport_testing_ng_lib.h"
 #include "gnunet_messenger_service.h"
 #include "messenger-testing-cmds.h"
 
@@ -80,7 +81,7 @@ start_service_run (void *cls,
                                                         sss->peer_label);
 
   const struct GNUNET_TESTING_StartPeerState *sps;
-  GNUNET_TESTING_get_trait_state (peer_cmd, &sps);
+  GNUNET_TRANSPORT_TESTING_get_trait_state(peer_cmd, &sps);
 
   const struct GNUNET_TESTING_Command *system_cmd;
   system_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
