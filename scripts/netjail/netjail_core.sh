@@ -15,6 +15,8 @@ export RESULT=
 export NAMESPACE_NUM=0
 export INTERFACE_NUM=0
 
+IPT=iptables-nft
+
 netjail_next_namespace() {
 	local NUM=$NAMESPACE_NUM
 	NAMESPACE_NUM=$(($NAMESPACE_NUM + 1))
@@ -193,7 +195,7 @@ netjail_node_add_nat() {
   ip netns exec $NODE nft add table nat
   ip netns exec $NODE nft add chain nat postrouting { type nat hook postrouting priority 0 \; }
   ip netns exec $NODE nft add rule ip nat postrouting ip saddr "$ADDRESS/$MASK" counter masquerade
-  # ip netns exec $NODE iptables -t nat -A POSTROUTING -s "$ADDRESS/$MASK" -j MASQUERADE
+  # ip netns exec $NODE $IPT -t nat -A POSTROUTING -s "$ADDRESS/$MASK" -j MASQUERADE
 }
 
 netjail_node_add_default() {

@@ -47,6 +47,8 @@ echo "Start [local: $LOCAL_GROUP.0/24, global: $GLOBAL_GROUP.0/16]"
 netjail_bridge
 NETWORK_NET=$RESULT
 
+IPT=iptables-nft
+
 for X in $(seq $KNOWN); do
 	netjail_node
 	KNOWN_NODES[$X]=$RESULT
@@ -54,10 +56,10 @@ for X in $(seq $KNOWN); do
 	KNOWN_LINKS[$X]=$RESULT
 
     # Execute echo 1 > /proc/sys/net/netfilter/nf_log_all_netns to make itables log to the host.
-    #ip netns exec ${KNOWN_NODES[$X]} iptables -A INPUT -j LOG --log-prefix '** Known ${KNOWN_NODES[$X]}  **'
-    #ip netns exec ${KNOWN_NODES[$X]} iptables -A OUTPUT -j LOG --log-prefix '** Known ${KNOWN_NODES[$X]}  **'
-    ip netns exec ${KNOWN_NODES[$X]} iptables -A OUTPUT -p icmp -j ACCEPT
-    ip netns exec ${KNOWN_NODES[$X]} iptables -A INPUT -p icmp -j ACCEPT
+    #ip netns exec ${KNOWN_NODES[$X]} $IPT -A INPUT -j LOG --log-prefix '** Known ${KNOWN_NODES[$X]}  **'
+    #ip netns exec ${KNOWN_NODES[$X]} $IPT -A OUTPUT -j LOG --log-prefix '** Known ${KNOWN_NODES[$X]}  **'
+    ip netns exec ${KNOWN_NODES[$X]} $IPT -A OUTPUT -p icmp -j ACCEPT
+    ip netns exec ${KNOWN_NODES[$X]} $IPT -A INPUT -p icmp -j ACCEPT
     
 done
 
@@ -72,12 +74,12 @@ for N in $(seq $GLOBAL_N); do
 	netjail_bridge
 	ROUTER_NETS[$N]=$RESULT
 
-    #ip netns exec ${ROUTERS[$N]} iptables -A INPUT -j LOG --log-prefix '** Router ${ROUTERS[$N]}  **'
-    ip netns exec ${ROUTERS[$N]} iptables -A INPUT -p icmp -j ACCEPT
-    ip netns exec ${ROUTERS[$N]} iptables -t nat -A PREROUTING -p icmp -d $GLOBAL_GROUP.$N -j DNAT --to $LOCAL_GROUP.1
-    ip netns exec ${ROUTERS[$N]} iptables -A FORWARD -p icmp -d $LOCAL_GROUP.1  -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
-    #ip netns exec ${ROUTERS[$N]} iptables -A OUTPUT -j LOG --log-prefix '** Router ${ROUTERS[$N]}  **'
-    ip netns exec ${ROUTERS[$N]} iptables -A OUTPUT -p icmp -j ACCEPT
+    #ip netns exec ${ROUTERS[$N]} $IPT -A INPUT -j LOG --log-prefix '** Router ${ROUTERS[$N]}  **'
+    ip netns exec ${ROUTERS[$N]} $IPT -A INPUT -p icmp -j ACCEPT
+    ip netns exec ${ROUTERS[$N]} $IPT -t nat -A PREROUTING -p icmp -d $GLOBAL_GROUP.$N -j DNAT --to $LOCAL_GROUP.1
+    ip netns exec ${ROUTERS[$N]} $IPT -A FORWARD -p icmp -d $LOCAL_GROUP.1  -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
+    #ip netns exec ${ROUTERS[$N]} $IPT -A OUTPUT -j LOG --log-prefix '** Router ${ROUTERS[$N]}  **'
+    ip netns exec ${ROUTERS[$N]} $IPT -A OUTPUT -p icmp -j ACCEPT
     
 	for M in $(seq $LOCAL_M); do
 		netjail_node
@@ -85,10 +87,10 @@ for N in $(seq $GLOBAL_N); do
 		netjail_node_link_bridge ${NODES[$N,$M]} ${ROUTER_NETS[$N]} "$LOCAL_GROUP.$M" 24
 		NODE_LINKS[$N,$M]=$RESULT
 
-        #ip netns exec ${NODES[$N,$M]} iptables -A INPUT -j LOG --log-prefix '** Node ${NODES[$N,$M]}  **'
-        #ip netns exec ${NODES[$N,$M]} iptables -A OUTPUT -j LOG --log-prefix '** Node ${NODES[$N,$M]}  **'
-        ip netns exec ${NODES[$N,$M]} iptables -A OUTPUT -p icmp -j ACCEPT
-        ip netns exec ${NODES[$N,$M]} iptables -A INPUT -p icmp -j ACCEPT 
+        #ip netns exec ${NODES[$N,$M]} $IPT -A INPUT -j LOG --log-prefix '** Node ${NODES[$N,$M]}  **'
+        #ip netns exec ${NODES[$N,$M]} $IPT -A OUTPUT -j LOG --log-prefix '** Node ${NODES[$N,$M]}  **'
+        ip netns exec ${NODES[$N,$M]} $IPT -A OUTPUT -p icmp -j ACCEPT
+        ip netns exec ${NODES[$N,$M]} $IPT -A INPUT -p icmp -j ACCEPT 
 	done
 
 	ROUTER_ADDR="$LOCAL_GROUP.$(($LOCAL_M+1))"
@@ -114,7 +116,7 @@ for N in $(seq $GLOBAL_N); do
         #ip netns exec ${ROUTERS[$N]} nft add rule ip nat prerouting ip daddr $GLOBAL_GROUP.$N tcp dport 60002 counter dnat to $LOCAL_GROUP.1
         #ip netns exec ${ROUTERS[$N]} nft add rule ip filter FORWARD ip daddr $LOCAL_GROUP.1 ct state new,related,established  counter accept
         if [ "0" == "${R_TCP_ALLOWED_NUMBER[$N]}" ]; then
-            ip netns exec ${ROUTERS[$N]} iptables -t nat -A PREROUTING -p tcp -d $GLOBAL_GROUP.$N --dport 60002 -j DNAT --to $LOCAL_GROUP.1
+            ip netns exec ${ROUTERS[$N]} $IPT -t nat -A PREROUTING -p tcp -d $GLOBAL_GROUP.$N --dport 60002 -j DNAT --to $LOCAL_GROUP.1
         else
             delimiter=","
             sources=$GLOBAL_GROUP."${R_TCP_ALLOWED[$N,1,1]}"
@@ -128,16 +130,16 @@ for N in $(seq $GLOBAL_N); do
                done
             fi
             echo $sources
-            ip netns exec ${ROUTERS[$N]} iptables -t nat -A PREROUTING -p tcp -s $sources -d $GLOBAL_GROUP.$N --dport 60002 -j DNAT --to $LOCAL_GROUP.1
+            ip netns exec ${ROUTERS[$N]} $IPT -t nat -A PREROUTING -p tcp -s $sources -d $GLOBAL_GROUP.$N --dport 60002 -j DNAT --to $LOCAL_GROUP.1
         fi
-        ip netns exec ${ROUTERS[$N]} iptables -A FORWARD -d $LOCAL_GROUP.1  -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
+        ip netns exec ${ROUTERS[$N]} $IPT -A FORWARD -d $LOCAL_GROUP.1  -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
     fi
     if [ "1" == "${R_UDP[$N]}" ]
     then
         #ip netns exec ${ROUTERS[$N]} nft add rule ip nat prerouting ip daddr $GLOBAL_GROUP.$N udp dport $PORT counter dnat to $LOCAL_GROUP.1
         #ip netns exec ${ROUTERS[$N]} nft add rule ip filter FORWARD ip daddr $LOCAL_GROUP.1 ct state new,related,established  counter accept
         if [ "0" == "${R_UDP_ALLOWED_NUMBER[$N]}" ]; then
-            ip netns exec ${ROUTERS[$N]} iptables -t nat -A PREROUTING -p udp -d $GLOBAL_GROUP.$N --dport $PORT -j DNAT --to $LOCAL_GROUP.1
+            ip netns exec ${ROUTERS[$N]} $IPT -t nat -A PREROUTING -p udp -d $GLOBAL_GROUP.$N --dport $PORT -j DNAT --to $LOCAL_GROUP.1
         else
             delimiter=","
             sources=$GLOBAL_GROUP."${R_UDP_ALLOWED[$N,1,1]}"
@@ -151,9 +153,9 @@ for N in $(seq $GLOBAL_N); do
                done
             fi
             echo $sources
-            ip netns exec ${ROUTERS[$N]} iptables -t nat -A PREROUTING -p udp -s $GLOBAL_GROUP.$sources -d $GLOBAL_GROUP.$N --dport $PORT -j DNAT --to $LOCAL_GROUP.1
+            ip netns exec ${ROUTERS[$N]} $IPT -t nat -A PREROUTING -p udp -s $GLOBAL_GROUP.$sources -d $GLOBAL_GROUP.$N --dport $PORT -j DNAT --to $LOCAL_GROUP.1
         fi
-        ip netns exec ${ROUTERS[$N]} iptables -A FORWARD -d $LOCAL_GROUP.1  -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
+        ip netns exec ${ROUTERS[$N]} $IPT -A FORWARD -d $LOCAL_GROUP.1  -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
     fi
     if [ "" != "${R_SCRIPT[$N]}" ]
     then
