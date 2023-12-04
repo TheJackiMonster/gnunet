@@ -41,11 +41,11 @@ libgnunet_test_core_plugin_cmd_just_run_la_LIBADD = \
   libgnunetcoretesting.la \
   $(top_builddir)/src/service/transport/libgnunettransportapplication.la \
   $(top_builddir)/src/service/transport/libgnunettransportcore.la \
+  $(top_builddir)/src/lib/hello/libgnunethello.la \
+  $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/service/transport/libgnunettransporttesting2.la \
   $(top_builddir)/src/service/testing/libgnunettesting.la \
-  $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/lib/hello/libgnunethello.la \
   $(top_builddir)/src/service/arm/libgnunetarm.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LTLIBINTL)
@@ -59,6 +59,8 @@ libgnunetcoretesting_la_LIBADD = \
   $(top_builddir)/src/service/arm/libgnunetarm.la \
   $(top_builddir)/src/service/transport/libgnunettransportapplication.la \
   $(top_builddir)/src/service/transport/libgnunettransporttesting2.la \
+  $(top_builddir)/src/lib/hello/libgnunethello.la \
+  $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/service/transport/libgnunettransportcore.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 libgnunetcoretesting_la_LDFLAGS = \
