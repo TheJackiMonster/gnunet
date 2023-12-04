@@ -51,7 +51,7 @@
  * the other peer should revalidate).
  */
 #define ADDRESS_VALIDITY_PERIOD \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 4)
 
 /**
  * How many messages do we keep at most in the queue to the
@@ -90,16 +90,16 @@
  * directions.
  */
 #define INITIAL_KX_SIZE                           \
-  (sizeof(struct GNUNET_CRYPTO_EcdhePublicKey)   \
-   + sizeof(struct TCPConfirmation))
+        (sizeof(struct GNUNET_CRYPTO_EcdhePublicKey)   \
+         + sizeof(struct TCPConfirmation))
 
 /**
  * Size of the initial core key exchange messages.
  */
 #define INITIAL_CORE_KX_SIZE          \
-  (sizeof(struct EphemeralKeyMessage)   \
-   + sizeof(struct PingMessage) \
-   + sizeof(struct PongMessage))
+        (sizeof(struct EphemeralKeyMessage)   \
+         + sizeof(struct PingMessage) \
+         + sizeof(struct PongMessage))
 
 /**
  * Address prefix used by the communicator.
@@ -2884,8 +2884,9 @@ queue_read_kx (void *cls)
                                      &queue->cread_buf[queue->cread_off],
                                      BUF_SIZE - queue->cread_off);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Received %lu bytes for KX\n",
-              rcvd);
+              "Received %lu bytes to write in buffer of size %lu for KX from queue %p (expires in %"
+              PRIu64 ")\n",
+              rcvd, BUF_SIZE - queue->cread_off, queue, left.rel_value_us);
   if (-1 == rcvd)
   {
     if ((EAGAIN != errno) && (EINTR != errno))
@@ -2898,10 +2899,21 @@ queue_read_kx (void *cls)
       GNUNET_SCHEDULER_add_read_net (left, queue->sock, &queue_read_kx, queue);
     return;
   }
+  if (0 == rcvd)
+  {
+    /* Orderly shutdown of connection */
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Socket for queue %p seems to have been closed\n", queue);
+    queue_destroy (queue);
+    return;
+  }
   queue->cread_off += rcvd;
   if (queue->cread_off < INITIAL_KX_SIZE)
   {
     /* read more */
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                "%lu/%lu bytes of KX read. Rescheduling...\n",
+                queue->cread_off, INITIAL_KX_SIZE);
     queue->read_task =
       GNUNET_SCHEDULER_add_read_net (left, queue->sock, &queue_read_kx, queue);
     return;
