@@ -9,4 +9,8 @@ if [ -f /proc/sys/kernel/unprivileged_userns_clone ]; then
     exit 78
   fi
 fi
-exec unshare -r -nmU bash -c "mount -t tmpfs --make-rshared tmpfs /run/netns; /usr/local/lib/gnunet/libexec/test_testing_start_with_config $conf"
+START_WITH_CONFIG=/usr/local/lib/gnunet/libexec/test_testing_start_with_config
+if [ ! -f /usr/local/lib/gnunet/libexec/test_testing_start_with_config ]; then
+  START_WITH_CONFIG=/usr/lib/gnunet/libexec/test_testing_start_with_config
+fi
+exec unshare -r -nmU bash -c "mount -t tmpfs --make-rshared tmpfs /run/netns; $START_WITH_CONFIG $conf"
