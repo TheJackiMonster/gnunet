@@ -154,10 +154,8 @@ notify_connect (struct GNUNET_TESTING_Interpreter *is,
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "notify_connect\n");
-
   GNUNET_TESTING_get_trait_async_context (&connect_peers,
                                           &ac);
-
   if (NULL != ac->is)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -172,10 +170,9 @@ notify_connect (struct GNUNET_TESTING_Interpreter *is,
   {
     cmd = GNUNET_TESTING_interpreter_lookup_future_command (is,
                                                             "connect-peers");
-
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "block state %s\n",
-         cmd->label);
+         cmd->label.value);
     GNUNET_TESTING_get_trait_block_state (
       cmd,
       &bs);

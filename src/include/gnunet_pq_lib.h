@@ -339,6 +339,7 @@ GNUNET_PQ_query_param_array_ptrs_bytes_same_size (
   size_t same_size,
   struct GNUNET_PQ_Context *db);
 
+
 /**
  * Generate array of equal-sized query parameter with size determined by
  * variable type from a pointer to an array of pointers to objects of the same

@@ -101,7 +101,7 @@ put_cont (void *cls,
 static void
 lookup_success (void *cls,
                 const struct GNUNET_CRYPTO_PrivateKey *zone,
-                const char* label,
+                const char*label,
                 unsigned int rd_count,
                 const struct GNUNET_GNSRECORD_Data *rd)
 {
@@ -136,13 +136,13 @@ lookup_success (void *cls,
             TEST_RECORD_DATA2,
             TEST_RECORD_DATALEN2);
 
-    nsqe = GNUNET_NAMESTORE_records_store (nsh,
-                                           &privkey,
-                                           name,
-                                           1,
-                                           &rd_new,
-                                           &put_cont,
-                                           (void *) name);
+    nsqe = GNUNET_NAMESTORE_record_set_store (nsh,
+                                              &privkey,
+                                              name,
+                                              1,
+                                              &rd_new,
+                                              &put_cont,
+                                              (void *) name);
     GNUNET_free_nz ((void*) rd_new.data);
     update_performed = GNUNET_YES;
   }
@@ -179,7 +179,7 @@ put_cont (void *cls,
                                           name,
                                           &endbadly,
                                           (void *) name,
-                                          & lookup_success,
+                                          &lookup_success,
                                           (void *) name);
 }
 
@@ -213,13 +213,13 @@ run (void *cls,
   nsh = GNUNET_NAMESTORE_connect (cfg);
   GNUNET_break (NULL != nsh);
 
-  nsqe = GNUNET_NAMESTORE_records_store (nsh,
-                                         &privkey,
-                                         name,
-                                         1,
-                                         &rd,
-                                         &put_cont,
-                                         (void *) name);
+  nsqe = GNUNET_NAMESTORE_record_set_store (nsh,
+                                            &privkey,
+                                            name,
+                                            1,
+                                            &rd,
+                                            &put_cont,
+                                            (void *) name);
   if (NULL == nsqe)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,

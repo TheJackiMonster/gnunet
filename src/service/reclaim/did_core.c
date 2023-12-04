@@ -27,7 +27,6 @@
 // TODO: DID documents do not have an expiration date. Still we add one
 // TODO: Store DID document with empty label and own type (maybe DID-Document or JSON??)
 
-#include "platform.h"
 #include "did_core.h"
 
 struct DID_resolve_return
@@ -66,7 +65,8 @@ DID_resolve_gns_lookup_cb (
   void *cls_did_resolve_cb = ((struct DID_resolve_return *) cls)->cls;
   free (cls);
 
-  for (int i = 0; i < rd_count; i++) {
+  for (int i = 0; i < rd_count; i++)
+  {
     if (rd[i].record_type != GNUNET_GNSRECORD_TYPE_DID_DOCUMENT)
       continue;
     did_document = (char *) rd[i].data;
@@ -76,6 +76,7 @@ DID_resolve_gns_lookup_cb (
   cb (GNUNET_NO, "DID Document is not a DID_DOCUMENT record\n",
       cls_did_resolve_cb);
 }
+
 
 /**
  * @brief Resolve a DID.
@@ -116,6 +117,7 @@ DID_resolve (const char *did,
   return GNUNET_OK;
 }
 
+
 // ------------------------------------------------ //
 // -------------------- Create -------------------- //
 // ------------------------------------------------ //
@@ -139,6 +141,7 @@ DID_create_did_store_cb (void *cls,
     cb (GNUNET_NO, (void *) cls_did_create_cb);
   }
 }
+
 
 struct DID_create_namestore_lookup_closure
 {
@@ -178,7 +181,8 @@ DID_create_namestore_lookup_cb (void *cls,
     printf ("Ego already has a DID Document. Abort.\n");
     cls_record_store_cb->cb (GNUNET_NO, cls_record_store_cb->cls);
   }
-  else {
+  else
+  {
     // Get public key
     GNUNET_CRYPTO_key_get_public (zone, &pkey);
 
@@ -197,15 +201,16 @@ DID_create_namestore_lookup_cb (void *cls,
     record_data.flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
 
     // Store record
-    GNUNET_NAMESTORE_records_store (namestore_handle,
-                                    zone,
-                                    DID_DOCUMENT_LABEL,
-                                    1, // FIXME what if GNUNET_GNS_EMPTY_LABEL_AT has records
-                                    &record_data,
-                                    &DID_create_did_store_cb,
-                                    (void *) cls_record_store_cb);
+    GNUNET_NAMESTORE_record_set_store (namestore_handle,
+                                       zone,
+                                       DID_DOCUMENT_LABEL,
+                                       1, // FIXME what if GNUNET_GNS_EMPTY_LABEL_AT has records
+                                       &record_data,
+                                       &DID_create_did_store_cb,
+                                       (void *) cls_record_store_cb);
   }
 }
+
 
 /**
  * @brief Creates a DID and saves DID Document in Namestore.

@@ -23,7 +23,6 @@
  */
 #include "platform.h"
 #include "gnunet_namestore_service.h"
-#include "gnunet_gns_service.h"
 #include "gnunet_testing_lib.h"
 
 #define TEST_RECORD_TYPE GNUNET_DNSPARSER_TYPE_TXT
@@ -269,11 +268,11 @@ nick_cont (void *cls, enum GNUNET_ErrorCode ec)
   rd_orig.flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
   memset ((char *) rd_orig.data, 'a', TEST_RECORD_DATALEN);
 
-  nsqe = GNUNET_NAMESTORE_records_store (nsh, &privkey,
-                                         name,
-                                         1,
-                                         &rd_orig,
-                                         &put_cont, (void *) name);
+  nsqe = GNUNET_NAMESTORE_record_set_store (nsh, &privkey,
+                                            name,
+                                            1,
+                                            &rd_orig,
+                                            &put_cont, (void *) name);
 }
 
 
@@ -290,7 +289,7 @@ run (void *cls,
   privkey.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
   GNUNET_CRYPTO_ecdsa_key_create (&privkey.ecdsa_key);
   GNUNET_CRYPTO_key_get_public (&privkey,
-                                      &pubkey);
+                                &pubkey);
 
   nsh = GNUNET_NAMESTORE_connect (cfg);
   GNUNET_break (NULL != nsh);
@@ -301,13 +300,13 @@ run (void *cls,
   rd.record_type = GNUNET_GNSRECORD_TYPE_NICK;
   rd.expiration_time = GNUNET_TIME_UNIT_FOREVER_ABS.abs_value_us;
   rd.flags |= GNUNET_GNSRECORD_RF_PRIVATE;
-  nsqe = GNUNET_NAMESTORE_records_store (nsh,
-                                         &privkey,
-                                         GNUNET_GNS_EMPTY_LABEL_AT,
-                                         1,
-                                         &rd,
-                                         &nick_cont,
-                                         (void *) name);
+  nsqe = GNUNET_NAMESTORE_record_set_store (nsh,
+                                            &privkey,
+                                            GNUNET_GNS_EMPTY_LABEL_AT,
+                                            1,
+                                            &rd,
+                                            &nick_cont,
+                                            (void *) name);
 
   if (NULL == nsqe)
   {

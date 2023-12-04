@@ -170,6 +170,10 @@ sodium_dep = dependency('libsodium', required : false, version: '>=1.0.18')
 if not sodium_dep.found()
   sodium_dep = cc.find_library('sodium', required : true)
 endif
+quic_dep = dependency('libquiche', required : false)
+if not quic_dep.found()
+  quic_dep = cc.find_library('quiche', required : false)
+endif
 
 idn_dep = dependency('libidn2', required : false)
 if not idn_dep.found()
@@ -364,8 +368,8 @@ endif
 # GNUTLS DANE
 if cc.check_header('gnutls/dane.h')
   if cc.has_function('dane_verify_crt_raw',
-                           prefix: '#include <gnutls/dane.h>',
-                           dependencies: gnutls_dep)
+                     prefix: '#include <gnutls/dane.h>',
+                     dependencies: gnutls_dep)
     add_project_arguments('-DHAVE_GNUTLS_DANE', language : 'c')
   endif
 endif
@@ -376,10 +380,10 @@ curl_ssl_check ='''#include <curl/curl.h>
   '''
 
 result = cc.run(curl_ssl_check, name : 'cURL gnutls check',
-                      dependencies: curl_dep)
+                dependencies: curl_dep)
 cdata.set('curl_gnutls', 0)
 if result.returncode() == 0
-cdata.set('curl_gnutls', 1)
+  cdata.set('curl_gnutls', 1)
 endif
 
 if cc.has_function('getloadavg') == false
@@ -411,8 +415,8 @@ if cc.check_header('ifaddrs.h')
 endif
 
 configure_file(#input: 'gnunet_private_config.h.in',
-               output : 'gnunet_private_config.h',
-               configuration : cdata)
+  output : 'gnunet_private_config.h',
+  configuration : cdata)
 configuration_inc = include_directories('.')
 
 pkg = import('pkgconfig')
@@ -424,31 +428,33 @@ subdir('data')
 
 meson.add_dist_script('meson-dist-script')
 
-add_test_setup('default', exclude_suites: ['perf'], is_default: true)
-add_test_setup('full', is_default: false)
+gnunet_prefix = get_option('prefix')/get_option('libdir')
+
+add_test_setup('default', env: ['GNUNET_PREFIX='+gnunet_prefix], exclude_suites: ['perf'], is_default: true)
+add_test_setup('full',  env: ['GNUNET_PREFIX='+gnunet_prefix], is_default: false)
 
 summary({'host': host_machine.system(),
          'prefix': get_option('prefix'),
          'compiler': cc.get_id(),
-          'libdir': get_option('libdir'),
-          'datadir': get_option('datadir'),
-          'default interface': cdata.get('GNUNET_DEFAULT_INTERFACE'),
-          'PostgreSQL': pq_dep.found(),
-          'curl w/ gnutls': (cdata.get('curl_gnutls') == 1),
-          'ifconfig': ifconfig_bin.found(),
-          'iptables': iptables_bin.found()
-          }, section: 'Detected system')
+         'libdir': get_option('libdir'),
+         'datadir': get_option('datadir'),
+         'default interface': cdata.get('GNUNET_DEFAULT_INTERFACE'),
+         'PostgreSQL': pq_dep.found(),
+         'curl w/ gnutls': (cdata.get('curl_gnutls') == 1),
+         'ifconfig': ifconfig_bin.found(),
+         'iptables': iptables_bin.found()
+        }, section: 'Detected system')
 
 if not gnunet_user
-message('Please make sure NOW to create a user and group \'gnunet\' and additionally a group \'gnunetdns\'. Make sure that \'/var/lib/gnunet\' is owned (and writable) by user \'gnunet\'')
-message('Each user of GNUnet should be added to the \'gnunet\' group')
-if adduser_bin.found() and not gnunet_user
+  message('Please make sure NOW to create a user and group \'gnunet\' and additionally a group \'gnunetdns\'. Make sure that \'/var/lib/gnunet\' is owned (and writable) by user \'gnunet\'')
+  message('Each user of GNUnet should be added to the \'gnunet\' group')
+  if adduser_bin.found() and not gnunet_user
     message('''Create the gnunet user and add users to the gnunetdns group, run:
-             # addgroup gnunetdns
-             # adduser --system --disabled-login --home /var/lib/gnunet gnunet''')
+    # addgroup gnunetdns
+    # adduser --system --disabled-login --home /var/lib/gnunet gnunet''')
     message('''To add users to the gnunet group, run:
              # adduser USERNAME gnunet
              for each of your users, replacing \'USERNAME\' with the respective login name.
              Users may have to login again for the changes to take effect.''')
-endif
+  endif
 endif

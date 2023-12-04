@@ -38,8 +38,6 @@ extern "C"
 #endif
 #endif
 
-struct GNUNET_TESTING_Barrier;
-
 
 /**
  * Callback function to write messages from the helper process running on a netjail node to the master process.
@@ -56,6 +54,7 @@ typedef void
  */
 typedef void
 (*GNUNET_TESTING_cmd_helper_finish_cb) ();
+
 
 /**
  * Function to be implemented for each test case plugin which starts the test case on a netjail node.
@@ -76,17 +75,17 @@ typedef void
  * @return Returns The struct GNUNET_TESTING_Interpreter of the command loop running on this netjail node.
  */
 typedef struct GNUNET_TESTING_Interpreter *
-(*GNUNET_TESTING_PLUGIN_StartTestCase) (GNUNET_TESTING_cmd_helper_write_cb
-                                        write_message,
-                                        const char *router_ip,
-                                        const char *node_ip,
-                                        const char *n,
-                                        const char *m,
-                                        const char *local_m,
-                                        const char *topology_data,
-                                        unsigned int *read_file,
-                                        GNUNET_TESTING_cmd_helper_finish_cb
-                                        finish_cb);
+(*GNUNET_TESTING_PLUGIN_StartTestCase) (
+  GNUNET_TESTING_cmd_helper_write_cb write_message,
+  const char *router_ip,
+  const char *node_ip,
+  const char *n,
+  const char *m,
+  const char *local_m,
+  const char *topology_data,
+  unsigned int *read_file,
+  GNUNET_TESTING_cmd_helper_finish_cb
+  finish_cb);
 
 /**
  * DEPRECATED
@@ -104,15 +103,18 @@ typedef void
  * GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_LOCAL_TESTS_PREPARED. This will finish the blocking command
  * GNUNET_TESTING_cmd_local_test_prepared which was execute right after the command
  * GNUNET_TRANSPORT_cmd_connect_peers.
+ * FIXME: do not use ALL CAPS
  */
 typedef void
 (*GNUNET_TESTING_PLUGIN_ALL_LOCAL_TESTS_PREPARED) ();
+
 
 /**
  * This function returns a struct GNUNET_TESTING_BarrierList, which is a list of all barriers
  * this test case will wait for.
  *
  * @return A struct GNUNET_TESTING_BarrierList.
+ * FIXME: do not use ALL CAPS
  */
 typedef struct GNUNET_TESTING_BarrierList*
 (*GNUNET_TESTING_PLUGIN_GET_WAITING_FOR_BARRIERS) (void);

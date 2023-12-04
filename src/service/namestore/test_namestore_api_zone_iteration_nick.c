@@ -23,7 +23,6 @@
  */
 #include "platform.h"
 #include "gnunet_namestore_service.h"
-#include "gnunet_gns_service.h"
 #include "gnunet_testing_lib.h"
 #include "../service/namestore/namestore.h"
 
@@ -282,16 +281,16 @@ nick_2_cont (void *cls,
 
   GNUNET_asprintf (&s_name_1, "dummy1");
   s_rd_1 = create_record (1);
-  GNUNET_NAMESTORE_records_store (nsh, &privkey, s_name_1,
-                                  1, s_rd_1,
-                                  &put_cont, NULL);
+  GNUNET_NAMESTORE_record_set_store (nsh, &privkey, s_name_1,
+                                     1, s_rd_1,
+                                     &put_cont, NULL);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Created record 2 \n");
   GNUNET_asprintf (&s_name_2, "dummy2");
   s_rd_2 = create_record (1);
-  GNUNET_NAMESTORE_records_store (nsh, &privkey, s_name_2,
-                                  1, s_rd_2, &put_cont, NULL);
+  GNUNET_NAMESTORE_record_set_store (nsh, &privkey, s_name_2,
+                                     1, s_rd_2, &put_cont, NULL);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Created record 3\n");
@@ -299,9 +298,9 @@ nick_2_cont (void *cls,
   /* name in different zone */
   GNUNET_asprintf (&s_name_3, "dummy3");
   s_rd_3 = create_record (1);
-  GNUNET_NAMESTORE_records_store (nsh, &privkey2, s_name_3,
-                                  1, s_rd_3,
-                                  &put_cont, NULL);
+  GNUNET_NAMESTORE_record_set_store (nsh, &privkey2, s_name_3,
+                                     1, s_rd_3,
+                                     &put_cont, NULL);
 }
 
 
@@ -319,13 +318,13 @@ nick_1_cont (void *cls, enum GNUNET_ErrorCode ec)
   rd.record_type = GNUNET_GNSRECORD_TYPE_NICK;
   rd.expiration_time = GNUNET_TIME_UNIT_FOREVER_ABS.abs_value_us;
   rd.flags |= GNUNET_GNSRECORD_RF_PRIVATE;
-  nsqe = GNUNET_NAMESTORE_records_store (nsh,
-                                         &privkey2,
-                                         GNUNET_GNS_EMPTY_LABEL_AT,
-                                         1,
-                                         &rd,
-                                         &nick_2_cont,
-                                         &privkey2);
+  nsqe = GNUNET_NAMESTORE_record_set_store (nsh,
+                                            &privkey2,
+                                            GNUNET_GNS_EMPTY_LABEL_AT,
+                                            1,
+                                            &rd,
+                                            &nick_2_cont,
+                                            &privkey2);
 
   if (NULL == nsqe)
   {
@@ -387,13 +386,13 @@ empty_zone_end (void *cls)
   rd.record_type = GNUNET_GNSRECORD_TYPE_NICK;
   rd.expiration_time = GNUNET_TIME_UNIT_FOREVER_ABS.abs_value_us;
   rd.flags |= GNUNET_GNSRECORD_RF_PRIVATE;
-  nsqe = GNUNET_NAMESTORE_records_store (nsh,
-                                         &privkey,
-                                         GNUNET_GNS_EMPTY_LABEL_AT,
-                                         1,
-                                         &rd,
-                                         &nick_1_cont,
-                                         NULL);
+  nsqe = GNUNET_NAMESTORE_record_set_store (nsh,
+                                            &privkey,
+                                            GNUNET_GNS_EMPTY_LABEL_AT,
+                                            1,
+                                            &rd,
+                                            &nick_1_cont,
+                                            NULL);
   if (NULL == nsqe)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,

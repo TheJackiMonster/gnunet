@@ -1,5 +1,5 @@
 # This file is part of GNUnet.
-# (C) 2001--2022 GNUnet e.V.
+# (C) 2001--2023 GNUnet e.V.
 #
 # GNUnet is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Affero General Public License as published

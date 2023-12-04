@@ -35,6 +35,7 @@ CREATE TABLE ns098records (
   record_count INTEGER NOT NULL DEFAULT 0,
   record_data BYTEA NOT NULL DEFAULT '',
   label TEXT NOT NULL DEFAULT '',
+  editor_hint TEXT NOT NULL DEFAULT '',
   CONSTRAINT zl UNIQUE (zone_private_key,label));
 
 CREATE INDEX IF NOT EXISTS ir_pkey_reverse 

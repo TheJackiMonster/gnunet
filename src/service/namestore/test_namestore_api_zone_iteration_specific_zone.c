@@ -25,7 +25,6 @@
 #include "platform.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_testing_lib.h"
-#include "../service/namestore/namestore.h"
 
 #define TEST_RECORD_TYPE GNUNET_DNSPARSER_TYPE_TXT
 
@@ -348,26 +347,26 @@ empty_zone_proc_end (void *cls)
   GNUNET_asprintf (&s_name_1,
                    "dummy1");
   s_rd_1 = create_record (1);
-  GNUNET_NAMESTORE_records_store (nsh,
-                                  &privkey,
-                                  s_name_1,
-                                  1,
-                                  s_rd_1,
-                                  &put_cont,
-                                  NULL);
+  GNUNET_NAMESTORE_record_set_store (nsh,
+                                     &privkey,
+                                     s_name_1,
+                                     1,
+                                     s_rd_1,
+                                     &put_cont,
+                                     NULL);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Created record 2 \n");
   GNUNET_asprintf (&s_name_2,
                    "dummy2");
   s_rd_2 = create_record (1);
-  GNUNET_NAMESTORE_records_store (nsh,
-                                  &privkey,
-                                  s_name_2,
-                                  1,
-                                  s_rd_2,
-                                  &put_cont,
-                                  NULL);
+  GNUNET_NAMESTORE_record_set_store (nsh,
+                                     &privkey,
+                                     s_name_2,
+                                     1,
+                                     s_rd_2,
+                                     &put_cont,
+                                     NULL);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Created record 3\n");
@@ -376,12 +375,12 @@ empty_zone_proc_end (void *cls)
   GNUNET_asprintf (&s_name_3,
                    "dummy3");
   s_rd_3 = create_record (1);
-  GNUNET_NAMESTORE_records_store (nsh,
-                                  &privkey2,
-                                  s_name_3,
-                                  1, s_rd_3,
-                                  &put_cont,
-                                  NULL);
+  GNUNET_NAMESTORE_record_set_store (nsh,
+                                     &privkey2,
+                                     s_name_3,
+                                     1, s_rd_3,
+                                     &put_cont,
+                                     NULL);
 }
 
 

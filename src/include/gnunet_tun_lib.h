@@ -550,6 +550,29 @@ struct GNUNET_TUN_DnsSrvRecord
 
 
 /**
+ * Payload of DNS URI record (header).
+ */
+struct GNUNET_TUN_DnsUriRecord
+{
+  /**
+   * Preference for this entry (lower value is higher preference).  Clients
+   * will contact hosts from the lowest-priority group first and fall back
+   * to higher priorities if the low-priority entries are unavailable. (NBO)
+   */
+  uint16_t prio GNUNET_PACKED;
+
+  /**
+   * Relative weight for records with the same priority.  Clients will use
+   * the hosts of the same (lowest) priority with a probability proportional
+   * to the weight given. (NBO)
+   */
+  uint16_t weight GNUNET_PACKED;
+
+  /* followed by 'target' name */
+};
+
+
+/**
  * Payload of DNS CERT record.
  */
 struct GNUNET_TUN_DnsCertRecord

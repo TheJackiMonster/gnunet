@@ -21,8 +21,9 @@
  * @file namestore/test_namestore_api_edit_records.c
  * @brief testcase for namestore_api.c: Multiple clients work with record set.
  */
-#include "platform.h"
+#include "gnunet_error_codes.h"
 #include "gnunet_namestore_service.h"
+#include "gnunet_scheduler_lib.h"
 #include "gnunet_testing_lib.h"
 
 #define TEST_RECORD_TYPE GNUNET_DNSPARSER_TYPE_TXT
@@ -50,8 +51,6 @@ static int removed;
 
 static struct GNUNET_NAMESTORE_QueueEntry *nsqe;
 
-static int nonce = 0;
-
 static void
 cleanup ()
 {
@@ -59,6 +58,11 @@ cleanup ()
   {
     GNUNET_NAMESTORE_disconnect (nsh);
     nsh = NULL;
+  }
+  if (NULL != nsh2)
+  {
+    GNUNET_NAMESTORE_disconnect (nsh2);
+    nsh2 = NULL;
   }
   GNUNET_SCHEDULER_shutdown ();
 }
@@ -85,200 +89,65 @@ endbadly (void *cls)
 static void
 end (void *cls)
 {
-  cleanup ();
-  res = 0;
-}
-
-static void
-lookup_it (void *cls,
-           const struct GNUNET_CRYPTO_PrivateKey *zone,
-           const char *label,
-           unsigned int rd_count,
-           const struct GNUNET_GNSRECORD_Data *rd)
-{
-  GNUNET_assert (0 == rd_count);
-  GNUNET_SCHEDULER_add_now (&end, NULL);
-}
-
-static void
-fail_cb (void *cls)
-{
   if (endbadly_task != NULL)
     GNUNET_SCHEDULER_cancel (endbadly_task);
-  endbadly_task = GNUNET_SCHEDULER_add_now (&endbadly, NULL);
-  return;
+  cleanup ();
+  res = 0;
+  GNUNET_SCHEDULER_shutdown ();
 }
 
+
 static void
-remove_cont (void *cls,
-             enum GNUNET_ErrorCode ec)
+cancel_done (void *cls, enum GNUNET_ErrorCode ec)
 {
-  nsqe = NULL;
-  if (GNUNET_EC_NONE != ec)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                _ ("Unable to roll back: `%s'\n"),
-                GNUNET_ErrorCode_get_hint (ec));
-    if (NULL != endbadly_task)
-      GNUNET_SCHEDULER_cancel (endbadly_task);
-    endbadly_task = GNUNET_SCHEDULER_add_now (&endbadly,
-                                              NULL);
-    return;
-  }
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              "Rolled back, perform lookup\n");
-  removed = GNUNET_YES;
-  if (NULL != endbadly_task)
-    GNUNET_SCHEDULER_cancel (endbadly_task);
+  GNUNET_assert (GNUNET_EC_NONE == ec);
   GNUNET_SCHEDULER_add_now (&end, NULL);
-}
-
-static void
-fail_cb_lock (void *cls);
-
-static void
-edit_cont_b (void *cls,
-             const struct GNUNET_CRYPTO_PrivateKey *zone,
-             const char *label,
-             unsigned int rd_count,
-             const struct GNUNET_GNSRECORD_Data *rd)
-{
-  const char *name = cls;
-  /**
-   * We should probably never get here right at first.
-   * We may want to change the blocking of nsh2 so that we do get this
-   * eventually instead of the error callback above when locked.
-   */
-  if (0 == nonce)
-  {
-    if (endbadly_task != NULL)
-      GNUNET_SCHEDULER_cancel (endbadly_task);
-    endbadly_task = GNUNET_SCHEDULER_add_now (&endbadly, NULL);
-    return;
-
-  }
-  /* Abort transaction for B */
-  nsqe = GNUNET_NAMESTORE_transaction_rollback (nsh2, remove_cont,
-                                                (void *) name);
-}
-
-
-static void
-commit_cont_a (void *cls,
-               enum GNUNET_ErrorCode ec)
-{
-  const char *name = cls;
-
-  GNUNET_assert (NULL != cls);
-  nsqe = NULL;
-  if (GNUNET_EC_NONE != ec)
-  {
-    GNUNET_break (0);
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Namestore could not store record: `%s'\n",
-                GNUNET_ErrorCode_get_hint (ec));
-    if (endbadly_task != NULL)
-      GNUNET_SCHEDULER_cancel (endbadly_task);
-    endbadly_task = GNUNET_SCHEDULER_add_now (&endbadly, NULL);
-    return;
-  }
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Name store added record for `%s': %s\n",
-              name,
-              (GNUNET_EC_NONE == ec) ? "SUCCESS" : "FAIL");
-  /**
-   * Try again for B
-   */
-  nsqe = GNUNET_NAMESTORE_records_edit (nsh2,
-                                        &privkey,
-                                        name,
-                                        &fail_cb_lock,
-                                        (void *) name,
-                                        &edit_cont_b,
-                                        (void *) name);
-
-  GNUNET_assert (NULL != nsqe);
-}
-
-static void
-fail_cb_lock (void *cls)
-{
-  const char *name = cls;
-  if (1 == nonce)
-  {
-    if (endbadly_task != NULL)
-      GNUNET_SCHEDULER_cancel (endbadly_task);
-    endbadly_task = GNUNET_SCHEDULER_add_now (&endbadly, NULL);
-    return;
-  }
-  nonce = 1;
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              "Failed to aquire additional lock\n");
-  /* Now, we stop the transaction for B */
-  nsqe = GNUNET_NAMESTORE_transaction_commit (nsh, commit_cont_a,
-                                              (void *) name);
 }
 
 
 static void
 begin_cont_b (void *cls,
-              enum GNUNET_ErrorCode ec)
+              enum GNUNET_ErrorCode ec,
+              unsigned int rd_count,
+              const struct
+              GNUNET_GNSRECORD_Data *rd,
+              const char *editor_hint)
 {
-  const char *name = cls;
+  char *name = cls;
 
   GNUNET_assert (GNUNET_EC_NONE == ec);
-  /** Now, we expect this to "hang" let's see how this behaves in practice. */
-  nsqe = GNUNET_NAMESTORE_records_edit (nsh2,
-                                        &privkey,
-                                        name,
-                                        &fail_cb_lock,
-                                        (void *) name,
-                                        &edit_cont_b,
-                                        (void *) name);
-
-  GNUNET_assert (NULL != nsqe);
-}
-
-
-static void
-edit_cont (void *cls,
-           const struct GNUNET_CRYPTO_PrivateKey *zone,
-           const char *label,
-           unsigned int rd_count,
-           const struct GNUNET_GNSRECORD_Data *rd)
-{
-  const char *name = cls;
-
-  GNUNET_assert (1 == rd_count);
-  /* Now, we start a transaction for B */
-  nsqe = GNUNET_NAMESTORE_transaction_begin (nsh2, begin_cont_b, (void *) name);
+  GNUNET_assert (0 != strcmp (editor_hint, "B"));
+  nsqe = GNUNET_NAMESTORE_record_set_edit_cancel (nsh2, &privkey, name, "A",
+                                                  "B", &cancel_done, name);
 }
 
 
 static void
 begin_cont (void *cls,
-            enum GNUNET_ErrorCode ec)
+            enum GNUNET_ErrorCode ec,
+            unsigned int rd_count,
+            const struct
+            GNUNET_GNSRECORD_Data *rd,
+            const char *editor_hint)
 {
-  const char *name = cls;
+  char *name = cls;
 
   GNUNET_assert (GNUNET_EC_NONE == ec);
-  nsqe = GNUNET_NAMESTORE_records_edit (nsh,
-                                        &privkey,
-                                        name,
-                                        &fail_cb,
-                                        (void *) name,
-                                        &edit_cont,
-                                        (void *) name);
-
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+              "records: `%u'\n",
+              rd_count);
+  GNUNET_assert (1 == rd_count);
+  nsqe = GNUNET_NAMESTORE_record_set_edit_begin (nsh2, &privkey, name, "B",
+                                                 &begin_cont_b, name);
   GNUNET_assert (NULL != nsqe);
 }
+
 
 static void
 preload_cont (void *cls,
               enum GNUNET_ErrorCode ec)
 {
-  const char *name = cls;
+  char *name = cls;
 
   GNUNET_assert (NULL != cls);
   nsqe = NULL;
@@ -299,7 +168,8 @@ preload_cont (void *cls,
               name,
               (GNUNET_EC_NONE == ec) ? "SUCCESS" : "FAIL");
   /* We start transaction for A */
-  nsqe = GNUNET_NAMESTORE_transaction_begin (nsh, begin_cont, (void *) name);
+  nsqe = GNUNET_NAMESTORE_record_set_edit_begin (nsh, &privkey, name, "A",
+                                                 &begin_cont, name);
 
 }
 
@@ -310,7 +180,7 @@ run (void *cls,
      struct GNUNET_TESTING_Peer *peer)
 {
   struct GNUNET_GNSRECORD_Data rd;
-  const char *name = "dummy";
+  char *name = "dummy";
 
   endbadly_task = GNUNET_SCHEDULER_add_delayed (TIMEOUT,
                                                 &endbadly,
@@ -323,11 +193,12 @@ run (void *cls,
   privkey.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
   GNUNET_CRYPTO_ecdsa_key_create (&privkey.ecdsa_key);
   GNUNET_CRYPTO_key_get_public (&privkey,
-                                  &pubkey);
+                                &pubkey);
 
   removed = GNUNET_NO;
 
-  rd.expiration_time = GNUNET_TIME_absolute_get ().abs_value_us;
+  rd.expiration_time = GNUNET_TIME_absolute_get ().abs_value_us
+                       + GNUNET_TIME_UNIT_DAYS.rel_value_us;
   rd.record_type = TEST_RECORD_TYPE;
   rd.data_size = TEST_RECORD_DATALEN;
   rd.data = GNUNET_malloc (TEST_RECORD_DATALEN);
@@ -335,36 +206,15 @@ run (void *cls,
   memset ((char *) rd.data,
           'a',
           TEST_RECORD_DATALEN);
-  nsqe = GNUNET_NAMESTORE_records_store (nsh,
-                                         &privkey,
-                                         name,
-                                         1,
-                                         &rd,
-                                         &preload_cont,
-                                         (void *) name);
+  nsqe = GNUNET_NAMESTORE_record_set_store (nsh,
+                                            &privkey,
+                                            name,
+                                            1,
+                                            &rd,
+                                            &preload_cont,
+                                            (void *) name);
   GNUNET_assert (NULL != nsqe);
   GNUNET_free_nz ((void *) rd.data);
-
-  /*nsqe = GNUNET_NAMESTORE_transaction_commit (nsh, commit_cont);
-  nsqe = GNUNET_NAMESTORE_transaction_rollback (nsh, rollback_cont); Must also happen on disconnect
-  nsqe = GNUNET_NAMESTORE_records_edit (nsh,
-                                        &privkey,
-                                        name,
-                                        1,
-                                        &rd,
-                                        &edit_cont,
-                                        (void *) name);
-  nsqe = GNUNET_NAMESTORE_records_insert_bulk (nsh,
-                                               count,
-                                               &rd,
-                                               &
-  nsqe = GNUNET_NAMESTORE_records_store (nsh,
-                                         &privkey,
-                                         name,
-                                         1,
-                                         &rd,
-                                         &put_cont,
-                                         (void *) name);*/
   GNUNET_assert (NULL != nsqe);
 }
 

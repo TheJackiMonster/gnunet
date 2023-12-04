@@ -91,12 +91,11 @@ handle_test (void *cls,
   struct GNUNET_TRANSPORT_CoreHandle *ch;
   const struct GNUNET_TESTING_StartPeerState *sps;
 
-
-  GNUNET_TRANSPORT_get_trait_state (&start_peer,
-                                    &sps);
+  GNUNET_TRANSPORT_TESTING_get_trait_state (&start_peer,
+                                            &sps);
   ch = sps->th;
-  GNUNET_TRANSPORT_get_trait_connected_peers_map (&start_peer,
-                                                  &connected_peers_map);
+  GNUNET_TRANSPORT_TESTING_get_trait_connected_peers_map (&start_peer,
+                                                          &connected_peers_map);
 
   if (NULL != connected_peers_map)
   {
@@ -211,8 +210,8 @@ notify_connect (struct GNUNET_TESTING_Interpreter *is,
   cmd = GNUNET_TESTING_interpreter_lookup_command_all (is,
                                                        "connect-peers");
   // FIXME: check return value!
-  GNUNET_TRANSPORT_get_trait_connect_peer_state (cmd,
-                                                 &cps);
+  GNUNET_TRANSPORT_TESTING_get_trait_connect_peer_state (cmd,
+                                                         &cps);
   cps->notify_connect (is,
                        peer);
   return NULL;

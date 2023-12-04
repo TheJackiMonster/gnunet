@@ -84,6 +84,8 @@ get_type (uint16_t type)
   case GNUNET_DNSPARSER_TYPE_AAAA: return "AAAA";
 
   case GNUNET_DNSPARSER_TYPE_SRV: return "SRV";
+
+  case GNUNET_DNSPARSER_TYPE_URI: return "URI";
   }
   GNUNET_snprintf (buf, sizeof(buf), "%u", (unsigned int) type);
   return buf;
@@ -210,6 +212,21 @@ display_record (const struct GNUNET_DNSPARSER_Record *record)
       format = tmp;
     }
     break;
+  
+  case GNUNET_DNSPARSER_TYPE_URI:
+    if (NULL == record->data.uri)
+      format = "<invalid>";
+    else
+    {
+      GNUNET_asprintf (&tmp,
+                       "priority %u, weight = %u, target = \"%s\"",
+                       (unsigned int) record->data.uri->priority,
+                       (unsigned int) record->data.uri->weight,
+                       record->data.uri->target);
+      format = tmp;
+    }
+    break;
+
 
   case GNUNET_DNSPARSER_TYPE_TXT:
     GNUNET_asprintf (&tmp,

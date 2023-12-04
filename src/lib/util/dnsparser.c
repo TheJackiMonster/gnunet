@@ -146,6 +146,21 @@ GNUNET_DNSPARSER_free_srv (struct GNUNET_DNSPARSER_SrvRecord *srv)
 
 
 /**
+ * Free URI information record.
+ *
+ * @param uri record to free
+ */
+void
+GNUNET_DNSPARSER_free_uri (struct GNUNET_DNSPARSER_UriRecord *uri)
+{
+  if (NULL == uri)
+    return;
+  GNUNET_free (uri->target);
+  GNUNET_free (uri);
+}
+
+
+/**
  * Free MX information record.
  *
  * @param mx record to free
@@ -181,6 +196,10 @@ GNUNET_DNSPARSER_free_record (struct GNUNET_DNSPARSER_Record *r)
 
   case GNUNET_DNSPARSER_TYPE_SRV:
     GNUNET_DNSPARSER_free_srv (r->data.srv);
+    break;
+
+  case GNUNET_DNSPARSER_TYPE_URI:
+    GNUNET_DNSPARSER_free_uri (r->data.uri);
     break;
 
   case GNUNET_DNSPARSER_TYPE_CERT:
@@ -506,6 +525,46 @@ GNUNET_DNSPARSER_parse_srv (const char *udp_payload,
 
 
 /**
+ * Parse a DNS URI record.
+ *
+ * @param udp_payload reference to UDP packet
+ * @param udp_payload_length length of @a udp_payload
+ * @param off pointer to the offset of the query to parse in the URI record (to be
+ *                    incremented by the size of the record), unchanged on error
+ * @return the parsed URI record, NULL on error
+ */
+struct GNUNET_DNSPARSER_UriRecord *
+GNUNET_DNSPARSER_parse_uri (const char *udp_payload,
+                            size_t udp_payload_length,
+                            size_t *off)
+{
+  struct GNUNET_DNSPARSER_UriRecord *uri;
+  struct GNUNET_TUN_DnsUriRecord uri_bin;
+  size_t old_off;
+
+  old_off = *off;
+  if (*off + sizeof(struct GNUNET_TUN_DnsUriRecord) > udp_payload_length)
+    return NULL;
+  GNUNET_memcpy (&uri_bin,
+                 &udp_payload[*off],
+                 sizeof(struct GNUNET_TUN_DnsUriRecord));
+  (*off) += sizeof(struct GNUNET_TUN_DnsUriRecord);
+  uri = GNUNET_new (struct GNUNET_DNSPARSER_UriRecord);
+  uri->priority = ntohs (uri_bin.prio);
+  uri->weight = ntohs (uri_bin.weight);
+  int len =  GNUNET_asprintf(&(uri->target), "%.*s", udp_payload_length - sizeof(struct GNUNET_TUN_DnsUriRecord), &udp_payload[*off]);
+  (*off) += len;
+  if (NULL == uri->target) // || GNUNET_STRINGS_parse_uri(uri->target, NULL, NULL) == GNUNET_NO)
+  {
+    GNUNET_DNSPARSER_free_uri (uri);
+    *off = old_off;
+    return NULL;
+  }
+  return uri;
+}
+
+
+/**
  * Parse a DNS CERT record.
  *
  * @param udp_payload reference to UDP packet
@@ -627,6 +686,16 @@ GNUNET_DNSPARSER_parse_record (const char *udp_payload,
     r->data.srv =
       GNUNET_DNSPARSER_parse_srv (udp_payload, udp_payload_length, off);
     if ((NULL == r->data.srv) || (old_off + data_len != *off))
+    {
+      GNUNET_break_op (0);
+      return GNUNET_SYSERR;
+    }
+    return GNUNET_OK;
+
+  case GNUNET_DNSPARSER_TYPE_URI:
+    r->data.uri =
+      GNUNET_DNSPARSER_parse_uri (udp_payload, udp_payload_length, off);
+    if ((NULL == r->data.uri) || (old_off + data_len != *off))
     {
       GNUNET_break_op (0);
       return GNUNET_SYSERR;
@@ -768,6 +837,11 @@ GNUNET_DNSPARSER_duplicate_record (const struct GNUNET_DNSPARSER_Record *r)
       break;
     }
 
+  case GNUNET_DNSPARSER_TYPE_URI: {
+      dup->data.uri = GNUNET_DNSPARSER_duplicate_uri_record (r->data.uri);
+      break;
+    }
+
   default: {
       dup->data.raw.data = GNUNET_memdup (r->data.raw.data,
                                           r->data.raw.data_len);
@@ -839,6 +913,23 @@ GNUNET_DNSPARSER_duplicate_srv_record (
   const struct GNUNET_DNSPARSER_SrvRecord *r)
 {
   struct GNUNET_DNSPARSER_SrvRecord *dup = GNUNET_memdup (r, sizeof(*r));
+
+  dup->target = GNUNET_strdup (r->target);
+  return dup;
+}
+
+
+/**
+ * Duplicate (deep-copy) the given DNS record
+ *
+ * @param r the record
+ * @return the newly allocated record
+ */
+struct GNUNET_DNSPARSER_UriRecord *
+GNUNET_DNSPARSER_duplicate_uri_record (
+  const struct GNUNET_DNSPARSER_UriRecord *r)
+{
+  struct GNUNET_DNSPARSER_UriRecord *dup = GNUNET_memdup (r, sizeof(*r));
 
   dup->target = GNUNET_strdup (r->target);
   return dup;
@@ -1141,6 +1232,40 @@ GNUNET_DNSPARSER_builder_add_srv (char *dst,
 
 
 /**
+ * Add an URI record to the UDP packet at the given location.
+ *
+ * @param dst where to write the URI record
+ * @param dst_len number of bytes in @a dst
+ * @param off pointer to offset where to write the URI information (increment by bytes used)
+ *            can also change if there was an error
+ * @param uri URI information to write
+ * @return #GNUNET_SYSERR if @a uri is invalid
+ *         #GNUNET_NO if @a uri did not fit
+ *         #GNUNET_OK if @a uri was added to @a dst
+ */
+int
+GNUNET_DNSPARSER_builder_add_uri (char *dst,
+                                  size_t dst_len,
+                                  size_t *off,
+                                  const struct GNUNET_DNSPARSER_UriRecord *uri)
+{
+  struct GNUNET_TUN_DnsUriRecord sd;
+  int ret;
+
+  if (*off + sizeof(struct GNUNET_TUN_DnsUriRecord) > dst_len)
+    return GNUNET_NO;
+  sd.prio = htons (uri->priority);
+  sd.weight = htons (uri->weight);
+  GNUNET_memcpy (&dst[*off], &sd, sizeof(sd));
+  (*off) += sizeof(sd);
+  strncpy(&dst[*off], uri->target, dst_len - sizeof(struct GNUNET_TUN_DnsUriRecord) - 1);
+  (*off) += strlen(uri->target);
+  dst[*off++] = '\0'; 
+  return GNUNET_OK;
+}
+
+
+/**
  * Add a DNS record to the UDP packet at the given location.
  *
  * @param dst where to write the query
@@ -1203,6 +1328,11 @@ add_record (char *dst,
   case GNUNET_DNSPARSER_TYPE_SRV:
     ret =
       GNUNET_DNSPARSER_builder_add_srv (dst, dst_len, &pos, record->data.srv);
+    break;
+
+  case GNUNET_DNSPARSER_TYPE_URI:
+    ret =
+      GNUNET_DNSPARSER_builder_add_uri (dst, dst_len, &pos, record->data.uri);
     break;
 
   default:

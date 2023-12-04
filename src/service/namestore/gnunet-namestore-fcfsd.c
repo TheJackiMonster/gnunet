@@ -533,13 +533,13 @@ register_do_cb (void *cls,
   gd.expiration_time = record_exp.rel_value_us;
   gd.flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
 
-  rd->searching = GNUNET_NAMESTORE_records_store (namestore,
-                                                  zone_key,
-                                                  rd->register_name,
-                                                  1,
-                                                  &gd,
-                                                  &register_done_cb,
-                                                  rd);
+  rd->searching = GNUNET_NAMESTORE_record_set_store (namestore,
+                                                     zone_key,
+                                                     rd->register_name,
+                                                     1,
+                                                     &gd,
+                                                     &register_done_cb,
+                                                     rd);
 
   GNUNET_free (gdraw);
 }
@@ -839,7 +839,7 @@ create_response (void *cls,
       }
 
       if (GNUNET_OK != GNUNET_CRYPTO_public_key_from_string (rd->register_key,
-                                                               &(rd->key)))
+                                                             &(rd->key)))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                     _ ("Unable to parse key %s\n"),
@@ -1066,7 +1066,7 @@ run_service (void *cls,
                                                         &record_exp))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                _("No expiration specified for records.\n"));
+                _ ("No expiration specified for records.\n"));
     GNUNET_SCHEDULER_shutdown ();
     return;
   }

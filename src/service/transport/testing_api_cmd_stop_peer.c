@@ -26,7 +26,7 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
-#include "gnunet_testing_netjail_lib.h"
+#include "gnunet_transport_testing_ng_lib.h"
 
 /**
  * Generic logging shortcut
@@ -59,8 +59,8 @@ stop_peer_run (void *cls,
 
   start_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                          stop_ps->start_label);
-  GNUNET_TESTING_get_trait_state (start_cmd,
-                                    &sps);
+  GNUNET_TRANSPORT_TESTING_get_trait_state (start_cmd,
+                                            &sps);
   
   if (NULL != sps->peer)
   {

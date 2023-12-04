@@ -114,8 +114,8 @@ handle_test (void *cls,
   const struct GNUNET_TESTING_StartPeerState *sps;
 
 
-  GNUNET_TRANSPORT_get_trait_state (&start_peer,
-                                    &sps);
+  GNUNET_TRANSPORT_TESTING_get_trait_state (&start_peer,
+                                  &sps);
   ch = sps->th;
   num = ntohl (message->num);
   GNUNET_TESTING_get_trait_async_context (&block_receive,
@@ -254,8 +254,8 @@ notify_connect (struct GNUNET_TESTING_Interpreter *is,
 
   cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                    "connect-peers");
-  GNUNET_TRANSPORT_get_trait_connect_peer_state (cmd,
-                                                 &cps);
+  GNUNET_TRANSPORT_TESTING_get_trait_connect_peer_state (cmd,
+                                               &cps);
   void *ret = NULL;
 
   cps->notify_connect (is,

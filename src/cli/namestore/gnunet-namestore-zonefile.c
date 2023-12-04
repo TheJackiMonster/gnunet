@@ -184,21 +184,6 @@ do_shutdown (void *cls)
 }
 
 static void
-tx_end (void *cls, enum GNUNET_ErrorCode ec)
-{
-  ns_qe = NULL;
-  if (GNUNET_EC_NONE != ec)
-  {
-    fprintf (stderr,
-             _ ("Ego `%s' not known to identity service\n"),
-             ego_name);
-    GNUNET_SCHEDULER_shutdown ();
-    ret = -1;
-  }
-  GNUNET_SCHEDULER_shutdown ();
-}
-
-static void
 parse (void *cls);
 
 static char*
@@ -602,7 +587,7 @@ parse (void *cls)
   }
   if (rd_count > 0)
   {
-    ns_qe = GNUNET_NAMESTORE_records_store (ns,
+    ns_qe = GNUNET_NAMESTORE_record_set_store (ns,
                                             &zone_pkey,
                                             lastname,
                                             rd_count,
@@ -642,26 +627,9 @@ parse (void *cls)
   }
   printf ("Published %u records sets with total %u records\n",
           published_sets, published_records);
-  ns_qe = GNUNET_NAMESTORE_transaction_commit (ns,
-                                               &tx_end,
-                                               NULL);
+  GNUNET_SCHEDULER_shutdown ();
 }
 
-static void
-tx_start (void *cls, enum GNUNET_ErrorCode ec)
-{
-  ns_qe = NULL;
-  if (GNUNET_EC_NONE != ec)
-  {
-    fprintf (stderr,
-             _ ("Ego `%s' not known to identity service\n"),
-             ego_name);
-    GNUNET_SCHEDULER_shutdown ();
-    ret = -1;
-    return;
-  }
-  parse_task = GNUNET_SCHEDULER_add_now (&parse, NULL);
-}
 
 static void
 identity_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
@@ -684,9 +652,7 @@ identity_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   zone_pkey = *GNUNET_IDENTITY_ego_get_private_key (ego);
   sprintf (origin, "%s.", ego_name);
   state = ZS_ORIGIN_SET;
-  ns_qe = GNUNET_NAMESTORE_transaction_begin (ns,
-                                              &tx_start,
-                                              NULL);
+  parse_task = GNUNET_SCHEDULER_add_now (&parse, NULL);
 }
 
 

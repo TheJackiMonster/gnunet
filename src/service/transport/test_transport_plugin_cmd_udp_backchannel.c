@@ -146,8 +146,8 @@ notify_connect (struct GNUNET_TESTING_Interpreter *is,
 {
   const struct ConnectPeersState *cps;
 
-  GNUNET_TRANSPORT_get_trait_connect_peer_state (&connect_peers,
-                                                 &cps);
+  GNUNET_TRANSPORT_TESTING_get_trait_connect_peer_state (&connect_peers,
+                                                         &cps);
   void *ret = NULL;
 
   cps->notify_connect (is,

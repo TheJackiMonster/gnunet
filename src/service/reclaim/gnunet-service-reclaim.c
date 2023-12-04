@@ -23,15 +23,12 @@
  * @brief reclaim Service
  *
  */
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet-service-reclaim_tickets.h"
-#include "gnunet_constants.h"
 #include "gnunet_gnsrecord_lib.h"
 #include "gnunet_protocols.h"
 #include "gnunet_reclaim_lib.h"
 #include "gnunet_reclaim_service.h"
-#include "gnunet_signatures.h"
 #include "reclaim.h"
 
 
@@ -784,7 +781,7 @@ handle_issue_ticket_message (void *cls, const struct IssueTicketMessage *im)
   buf = (char *) &im[1];
   if ((GNUNET_SYSERR ==
        GNUNET_CRYPTO_read_private_key_from_buffer (buf, key_len,
-                                                     &identity, &read)) ||
+                                                   &identity, &read)) ||
       (read != key_len))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -796,7 +793,7 @@ handle_issue_ticket_message (void *cls, const struct IssueTicketMessage *im)
   pkey_len = ntohs (im->pkey_len);
   if ((GNUNET_SYSERR ==
        GNUNET_CRYPTO_read_public_key_from_buffer (buf, pkey_len,
-                                                    &rp, &read)) ||
+                                                  &rp, &read)) ||
       (read != pkey_len))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -902,7 +899,7 @@ handle_revoke_ticket_message (void *cls, const struct RevokeTicketMessage *rm)
   buf = (char *) &rm[1];
   if ((GNUNET_SYSERR ==
        GNUNET_CRYPTO_read_private_key_from_buffer (buf, key_len,
-                                                     &identity, &read)) ||
+                                                   &identity, &read)) ||
       (read != key_len))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -978,8 +975,8 @@ consume_result_cb (void *cls,
   crm->result = htons (success);
   data_tmp = (char *) &crm[1];
   written = GNUNET_CRYPTO_write_public_key_to_buffer (identity,
-                                                        data_tmp,
-                                                        key_len);
+                                                      data_tmp,
+                                                      key_len);
   GNUNET_assert (0 <= written);
   data_tmp += written;
   GNUNET_RECLAIM_attribute_list_serialize (attrs, data_tmp);
@@ -1037,7 +1034,7 @@ handle_consume_ticket_message (void *cls, const struct ConsumeTicketMessage *cm)
   buf = (char *) &cm[1];
   if ((GNUNET_SYSERR ==
        GNUNET_CRYPTO_read_private_key_from_buffer (buf, key_len,
-                                                     &identity, &read)) ||
+                                                   &identity, &read)) ||
       (read != key_len))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -1142,13 +1139,13 @@ attr_store_task (void *cls)
   rd[0].record_type = GNUNET_GNSRECORD_TYPE_RECLAIM_ATTRIBUTE;
   rd[0].flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
   rd[0].expiration_time = ash->exp.rel_value_us;
-  ash->ns_qe = GNUNET_NAMESTORE_records_store (nsh,
-                                               &ash->identity,
-                                               label,
-                                               1,
-                                               rd,
-                                               &attr_store_cont,
-                                               ash);
+  ash->ns_qe = GNUNET_NAMESTORE_record_set_store (nsh,
+                                                  &ash->identity,
+                                                  label,
+                                                  1,
+                                                  rd,
+                                                  &attr_store_cont,
+                                                  ash);
   GNUNET_free (buf);
   GNUNET_free (label);
 }
@@ -1201,7 +1198,7 @@ handle_attribute_store_message (void *cls,
   buf = (char *) &sam[1];
   if ((GNUNET_SYSERR ==
        GNUNET_CRYPTO_read_private_key_from_buffer (buf, key_len,
-                                                     &identity, &read)) ||
+                                                   &identity, &read)) ||
       (read != key_len))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -1314,13 +1311,13 @@ cred_add_cb (void *cls,
   rd_new[0].record_type = GNUNET_GNSRECORD_TYPE_RECLAIM_CREDENTIAL;
   rd_new[0].flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
   rd_new[0].expiration_time = ash->exp.rel_value_us;
-  ash->ns_qe = GNUNET_NAMESTORE_records_store (nsh,
-                                               &ash->identity,
-                                               label,
-                                               1,
-                                               rd_new,
-                                               &cred_store_cont,
-                                               ash);
+  ash->ns_qe = GNUNET_NAMESTORE_record_set_store (nsh,
+                                                  &ash->identity,
+                                                  label,
+                                                  1,
+                                                  rd_new,
+                                                  &cred_store_cont,
+                                                  ash);
   GNUNET_free (buf);
   return;
 }
@@ -1402,7 +1399,7 @@ handle_credential_store_message (void *cls,
   buf = (char *) &sam[1];
   if ((GNUNET_SYSERR ==
        GNUNET_CRYPTO_read_private_key_from_buffer (buf, key_len,
-                                                     &identity, &read)) ||
+                                                   &identity, &read)) ||
       (read != key_len))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -1641,13 +1638,13 @@ update_tickets (void *cls)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Updating ticket with %d entries (%d before)...\n",
               j, i);
-  adh->ns_qe = GNUNET_NAMESTORE_records_store (nsh,
-                                               &adh->identity,
-                                               le->label,
-                                               j,
-                                               rd_new,
-                                               &ticket_updated,
-                                               adh);
+  adh->ns_qe = GNUNET_NAMESTORE_record_set_store (nsh,
+                                                  &adh->identity,
+                                                  le->label,
+                                                  j,
+                                                  rd_new,
+                                                  &ticket_updated,
+                                                  adh);
   GNUNET_free (le->label);
   GNUNET_free (le->data);
   GNUNET_free (le);
@@ -1727,13 +1724,13 @@ purge_attributes (void *cls)
     = GNUNET_STRINGS_data_to_string_alloc (&ale->attribute->id,
                                            sizeof(ale->attribute->id));
 
-  adh->ns_qe = GNUNET_NAMESTORE_records_store (nsh,
-                                               &adh->identity,
-                                               label,
-                                               0,
-                                               NULL,
-                                               &offending_attr_delete_cont,
-                                               adh);
+  adh->ns_qe = GNUNET_NAMESTORE_record_set_store (nsh,
+                                                  &adh->identity,
+                                                  label,
+                                                  0,
+                                                  NULL,
+                                                  &offending_attr_delete_cont,
+                                                  adh);
   GNUNET_CONTAINER_DLL_remove (adh->existing_attributes->list_head,
                                adh->existing_attributes->list_tail,
                                ale);
@@ -1873,7 +1870,7 @@ handle_attribute_delete_message (void *cls,
   buf = (char *) &dam[1];
   if ((GNUNET_SYSERR ==
        GNUNET_CRYPTO_read_private_key_from_buffer (buf, key_len,
-                                                     &identity, &read)) ||
+                                                   &identity, &read)) ||
       (read != key_len))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -1896,13 +1893,13 @@ handle_attribute_delete_message (void *cls,
   GNUNET_SERVICE_client_continue (idp->client);
   adh->client = idp;
   GNUNET_CONTAINER_DLL_insert (idp->delete_op_head, idp->delete_op_tail, adh);
-  adh->ns_qe = GNUNET_NAMESTORE_records_store (nsh,
-                                               &adh->identity,
-                                               adh->label,
-                                               0,
-                                               NULL,
-                                               &attr_delete_cont,
-                                               adh);
+  adh->ns_qe = GNUNET_NAMESTORE_record_set_store (nsh,
+                                                  &adh->identity,
+                                                  adh->label,
+                                                  0,
+                                                  NULL,
+                                                  &attr_delete_cont,
+                                                  adh);
 }
 
 
@@ -1980,7 +1977,7 @@ handle_credential_delete_message (void *cls,
   buf = (char *) &dam[1];
   if ((GNUNET_SYSERR ==
        GNUNET_CRYPTO_read_private_key_from_buffer (buf, key_len,
-                                                     &identity, &read)) ||
+                                                   &identity, &read)) ||
       (read != key_len))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -2002,13 +1999,13 @@ handle_credential_delete_message (void *cls,
   GNUNET_SERVICE_client_continue (idp->client);
   adh->client = idp;
   GNUNET_CONTAINER_DLL_insert (idp->delete_op_head, idp->delete_op_tail, adh);
-  adh->ns_qe = GNUNET_NAMESTORE_records_store (nsh,
-                                               &adh->identity,
-                                               adh->label,
-                                               0,
-                                               NULL,
-                                               &cred_delete_cont,
-                                               adh);
+  adh->ns_qe = GNUNET_NAMESTORE_record_set_store (nsh,
+                                                  &adh->identity,
+                                                  adh->label,
+                                                  0,
+                                                  NULL,
+                                                  &cred_delete_cont,
+                                                  adh);
 }
 
 
@@ -2101,8 +2098,8 @@ attr_iter_cb (void *cls,
   data_tmp = (char *) &arm[1];
   arm->pkey_len = htons (key_len);
   written = GNUNET_CRYPTO_write_public_key_to_buffer (&identity,
-                                                        data_tmp,
-                                                        key_len);
+                                                      data_tmp,
+                                                      key_len);
   GNUNET_assert (0 <= written);
   data_tmp += written;
   GNUNET_memcpy (data_tmp, rd->data, rd->data_size);
@@ -2129,6 +2126,7 @@ check_iteration_start (
   return GNUNET_OK;
 }
 
+
 /**
  * Iterate over zone to get attributes
  *
@@ -2150,9 +2148,9 @@ handle_iteration_start (void *cls,
   key_len = ntohs (ais_msg->key_len);
   if ((GNUNET_SYSERR ==
        GNUNET_CRYPTO_read_private_key_from_buffer (&ais_msg[1],
-                                                     key_len,
-                                                     &identity,
-                                                     &read)) ||
+                                                   key_len,
+                                                   &identity,
+                                                   &read)) ||
       (read != key_len))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -2331,13 +2329,14 @@ cred_iter_cb (void *cls,
   arm->key_len = htons (key_len);
   data_tmp = (char *) &arm[1];
   written = GNUNET_CRYPTO_write_public_key_to_buffer (&identity,
-                                                        data_tmp,
-                                                        key_len);
+                                                      data_tmp,
+                                                      key_len);
   GNUNET_assert (written >= 0);
   data_tmp += written;
   GNUNET_memcpy (data_tmp, rd->data, rd->data_size);
   GNUNET_MQ_send (ai->client->mq, env);
 }
+
 
 static enum GNUNET_GenericReturnValue
 check_credential_iteration_start (
@@ -2381,9 +2380,9 @@ handle_credential_iteration_start (void *cls,
   key_len = ntohs (ais_msg->key_len);
   if ((GNUNET_SYSERR ==
        GNUNET_CRYPTO_read_private_key_from_buffer (&ais_msg[1],
-                                                     key_len,
-                                                     &identity,
-                                                     &read)) ||
+                                                   key_len,
+                                                   &identity,
+                                                   &read)) ||
       (read != key_len))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -2524,6 +2523,7 @@ ticket_iter_cb (void *cls, struct GNUNET_RECLAIM_Ticket *ticket)
     GNUNET_free (ti);
 }
 
+
 static enum GNUNET_GenericReturnValue
 check_ticket_iteration_start (
   void *cls,
@@ -2542,6 +2542,7 @@ check_ticket_iteration_start (
   }
   return GNUNET_OK;
 }
+
 
 /**
  * Client requests a ticket iteration
@@ -2565,9 +2566,9 @@ handle_ticket_iteration_start (
   key_len = ntohs (tis_msg->key_len);
   if ((GNUNET_SYSERR ==
        GNUNET_CRYPTO_read_private_key_from_buffer (&tis_msg[1],
-                                                     key_len,
-                                                     &identity,
-                                                     &read)) ||
+                                                   key_len,
+                                                   &identity,
+                                                   &read)) ||
       (read != key_len))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,

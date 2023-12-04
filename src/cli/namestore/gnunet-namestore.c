@@ -38,7 +38,7 @@
  * (per record).
  */
 #define WARN_RELATIVE_EXPIRATION_LIMIT GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_MINUTES, 15)
+          GNUNET_TIME_UNIT_MINUTES, 15)
 
 /**
  * Entry in record set for bulk processing.
@@ -479,6 +479,7 @@ parse_recordline (const char *line)
   return GNUNET_OK;
 }
 
+
 static void
 reset_handles (void)
 {
@@ -588,7 +589,6 @@ reset_handles (void)
 }
 
 
-
 /**
  * Task run on shutdown.  Cleans up everything.
  *
@@ -626,18 +626,6 @@ do_shutdown (void *cls)
   }
 }
 
-static void
-commit_cb (void *cls, enum GNUNET_ErrorCode ec)
-{
-  ns_qe = NULL;
-  if (GNUNET_EC_NONE != ec)
-  {
-    fprintf (stderr, "Failed to commit to namestore: `%s'\n",
-             GNUNET_ErrorCode_get_hint (ec));
-    ret = 1;
-  }
-  GNUNET_SCHEDULER_shutdown ();
-}
 
 static void
 process_command_stdin ();
@@ -652,7 +640,7 @@ finish_command (void)
     process_command_stdin ();
     return;
   }
-  ns_qe = GNUNET_NAMESTORE_transaction_commit (ns, &commit_cb, NULL);
+  GNUNET_SCHEDULER_shutdown ();
 }
 
 
@@ -689,6 +677,7 @@ del_continuation (void *cls, enum GNUNET_ErrorCode ec)
   finish_command ();
 }
 
+
 static void
 purge_next_record (void *cls);
 
@@ -722,15 +711,16 @@ purge_next_record (void *cls)
   GNUNET_CONTAINER_DLL_remove (marked_head,
                                marked_tail,
                                mrec);
-  del_qe = GNUNET_NAMESTORE_records_store (ns,
-                                           &mrec->key,
-                                           mrec->name,
-                                           0, NULL,
-                                           &marked_deleted,
-                                           NULL);
+  del_qe = GNUNET_NAMESTORE_record_set_store (ns,
+                                              &mrec->key,
+                                              mrec->name,
+                                              0, NULL,
+                                              &marked_deleted,
+                                              NULL);
   GNUNET_free (mrec->name);
   GNUNET_free (mrec);
 }
+
 
 /**
  * Function called when we are done with a zone iteration.
@@ -762,6 +752,7 @@ zone_iteration_error_cb (void *cls)
   ret = 1;
   finish_command ();
 }
+
 
 static void
 collect_zone_records_to_purge (const struct
@@ -811,6 +802,7 @@ collect_orphans (const struct GNUNET_CRYPTO_PrivateKey *zone_key,
                                  orphan);
   }
 }
+
 
 /**
  * Process a record that was stored in the namestore.
@@ -928,6 +920,7 @@ display_record (const struct GNUNET_CRYPTO_PrivateKey *zone_key,
   }
   // fprintf (stdout, "%s", "\n");
 }
+
 
 static void
 purge_zone_iterator (void *cls,
@@ -1160,13 +1153,13 @@ get_existing_record (void *cls,
   else if (GNUNET_NO != etime_is_rel)
     rde->expiration_time = GNUNET_TIME_UNIT_FOREVER_ABS.abs_value_us;
   GNUNET_assert (NULL != name);
-  add_qe = GNUNET_NAMESTORE_records_store (ns,
-                                           &zone_pkey,
-                                           name,
-                                           rd_count + 1,
-                                           rde,
-                                           &add_continuation,
-                                           &add_qe);
+  add_qe = GNUNET_NAMESTORE_record_set_store (ns,
+                                              &zone_pkey,
+                                              name,
+                                              rd_count + 1,
+                                              rde,
+                                              &add_continuation,
+                                              &add_qe);
 }
 
 
@@ -1265,7 +1258,7 @@ del_monitor (void *cls,
   if ((NULL == value) && (NULL == typestring))
   {
     /* delete everything */
-    del_qe = GNUNET_NAMESTORE_records_store (ns,
+    del_qe = GNUNET_NAMESTORE_record_set_store (ns,
                                              &zone_pkey,
                                              name,
                                              0,
@@ -1305,7 +1298,7 @@ del_monitor (void *cls,
     return;
   }
   /* delete everything but what we copied to 'rdx' */
-  del_qe = GNUNET_NAMESTORE_records_store (ns,
+  del_qe = GNUNET_NAMESTORE_record_set_store (ns,
                                            &zone_pkey,
                                            name,
                                            rd_left,
@@ -1393,7 +1386,7 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
       rd[rd_count] = e->record;
       rd_count++;
     }
-    set_qe = GNUNET_NAMESTORE_records_store (ns,
+    set_qe = GNUNET_NAMESTORE_record_set_store (ns,
                                              &zone_pkey,
                                              name,
                                              rd_count,
@@ -1465,10 +1458,11 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
     }
     if ((GNUNET_DNSPARSER_TYPE_SRV == type) ||
         (GNUNET_DNSPARSER_TYPE_TLSA == type) ||
+        (GNUNET_DNSPARSER_TYPE_SMIMEA == type) ||
         (GNUNET_DNSPARSER_TYPE_OPENPGPKEY == type))
     {
       fprintf (stderr,
-               _ ("For DNS record types `SRV', `TLSA' and `OPENPGPKEY'"));
+               _ ("For DNS record types `SRV', `TLSA', `SMIMEA' and `OPENPGPKEY'"));
       fprintf (stderr, ", please use a `BOX' record instead\n");
       ret = 1;
       finish_command ();
@@ -1636,7 +1630,7 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
     }
     if (GNUNET_OK !=
         GNUNET_CRYPTO_public_key_from_string (reverse_pkey,
-                                                &pubkey))
+                                              &pubkey))
     {
       fprintf (stderr,
                _ ("Invalid public key for reverse lookup `%s'\n"),
@@ -1707,7 +1701,7 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
       rd.flags |= GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
     if (1 == is_shadow)
       rd.flags |= GNUNET_GNSRECORD_RF_SHADOW;
-    add_qe_uri = GNUNET_NAMESTORE_records_store (ns,
+    add_qe_uri = GNUNET_NAMESTORE_record_set_store (ns,
                                                  &zone_pkey,
                                                  sname,
                                                  1,
@@ -1731,6 +1725,7 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
   }
 }
 
+
 #define MAX_LINE_LEN 4086
 
 #define MAX_ARGS 20
@@ -1745,7 +1740,7 @@ get_identity_for_string (const char *str,
   struct EgoEntry *ego_entry;
 
   if (GNUNET_OK == GNUNET_CRYPTO_public_key_from_string (str,
-                                                           &pubkey))
+                                                         &pubkey))
   {
     for (ego_entry = ego_head;
          NULL != ego_entry; ego_entry = ego_entry->next)
@@ -1772,6 +1767,7 @@ get_identity_for_string (const char *str,
   }
   return GNUNET_NO;
 }
+
 
 static void
 process_command_stdin ()
@@ -1810,7 +1806,7 @@ process_command_stdin ()
       if (NULL == tmp)
       {
         fprintf (stderr, "Error parsing name `%s'\n", next_name);
-        ns_qe = GNUNET_NAMESTORE_transaction_commit (ns, &commit_cb, NULL);
+        GNUNET_SCHEDULER_shutdown();
         ret = 1;
         return;
       }
@@ -1856,29 +1852,8 @@ process_command_stdin ()
       fprintf (stderr, "Warning, encountered recordline without zone\n");
     }
   }
-  ns_qe = GNUNET_NAMESTORE_transaction_commit (ns, &commit_cb, NULL);
+  GNUNET_SCHEDULER_shutdown();
   return;
-}
-
-
-static void
-begin_cb (void *cls, enum GNUNET_ErrorCode ec)
-{
-  ns_qe = NULL;
-  if (GNUNET_EC_NONE != ec)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Failed to start transaction: %s\n",
-                GNUNET_ErrorCode_get_hint (ec));
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
-  if (read_from_stdin)
-  {
-    process_command_stdin ();
-    return;
-  }
-  run_with_zone_pkey (cfg);
 }
 
 
@@ -1921,11 +1896,13 @@ id_connect_cb (void *cls,
   }
   if (NULL != ego)
     return;
-  ns_qe = GNUNET_NAMESTORE_transaction_begin (ns, &begin_cb, (void *) cfg);
+  if (read_from_stdin)
+  {
+    process_command_stdin ();
+    return;
+  }
+  run_with_zone_pkey (cfg);
 }
-
-
-
 
 
 /**
@@ -1968,7 +1945,6 @@ run (void *cls,
     GNUNET_SCHEDULER_shutdown ();
   }
 }
-
 
 
 /**

@@ -1327,7 +1327,7 @@ extern "C" {
 /**
  * Service to client: result of store operation.
  */
-#define GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_STORE_RESPONSE 436
+#define GNUNET_MESSAGE_TYPE_NAMESTORE_GENERIC_RESPONSE 436
 
 /**
  * Client to service: lookup label
@@ -3631,20 +3631,19 @@ extern "C" {
  */
 
 /**
- * Message type for Begin, Commit or Rollback
+ * Message type for start of record edit with advisory lock
  */
-#define GNUNET_MESSAGE_TYPE_NAMESTORE_TX_CONTROL 1750
+#define GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_SET_EDIT 1750
 
 /**
- * Return status message for control message
+ * Return record set to edit with previous editor hint/advisory lock
  */
-#define GNUNET_MESSAGE_TYPE_NAMESTORE_TX_CONTROL_RESULT 1751
+#define GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_SET_EDIT_RESPONSE 1751
 
 /**
- * Open and lock records for editing message
+ * Message type for cancellation/reset of editor hint/advisory lock
  */
-#define GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_EDIT 1752
-
+#define GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_SET_EDIT_CANCEL 1752
 
 /**
  * Type used to match 'all' message types.

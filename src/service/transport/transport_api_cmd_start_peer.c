@@ -420,15 +420,15 @@ start_peer_traits (void *cls,
 
 
   struct GNUNET_TESTING_Trait traits[] = {
-    GNUNET_TRANSPORT_make_trait_application_handle ((const void *) ah),
-    GNUNET_TRANSPORT_make_trait_peer_id ((const void *) id),
-    GNUNET_TRANSPORT_make_trait_connected_peers_map ((const
+    GNUNET_TRANSPORT_TESTING_make_trait_application_handle ((const void *) ah),
+    GNUNET_TRANSPORT_TESTING_make_trait_peer_id ((const void *) id),
+    GNUNET_TRANSPORT_TESTING_make_trait_connected_peers_map ((const
                                                       void *)
                                                      connected_peers_map),
-    GNUNET_TRANSPORT_make_trait_hello ((const void *) hello),
-    GNUNET_TRANSPORT_make_trait_hello_size ((const void *) hello_size),
-    GNUNET_TRANSPORT_make_trait_state ((const void *) sps),
-    GNUNET_TRANSPORT_make_trait_broadcast ((const void *) &sps->broadcast),
+    GNUNET_TRANSPORT_TESTING_make_trait_hello ((const void *) hello),
+    GNUNET_TRANSPORT_TESTING_make_trait_hello_size ((const void *) hello_size),
+    GNUNET_TRANSPORT_TESTING_make_trait_state ((const void *) sps),
+    GNUNET_TRANSPORT_TESTING_make_trait_broadcast ((const void *) &sps->broadcast),
     GNUNET_TESTING_trait_end ()
   };
 

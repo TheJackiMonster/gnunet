@@ -21,10 +21,8 @@
  * @file namestore/test_namestore_api_zone_to_name.c
  * @brief testcase for zone to name translation
  */
-#include "platform.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_testing_lib.h"
-#include "../service/namestore/namestore.h"
 
 #define TEST_RECORD_TYPE GNUNET_DNSPARSER_TYPE_TXT
 
@@ -206,7 +204,7 @@ run (void *cls,
   GNUNET_CRYPTO_ecdsa_key_create (&privkey.ecdsa_key);
   /* get public key */
   GNUNET_CRYPTO_key_get_public (&privkey,
-                                  &pubkey);
+                                &pubkey);
 
   GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_WEAK,
                               &s_zone_value,
@@ -223,13 +221,13 @@ run (void *cls,
 
     nsh = GNUNET_NAMESTORE_connect (cfg);
     GNUNET_break (NULL != nsh);
-    GNUNET_NAMESTORE_records_store (nsh,
-                                    &privkey,
-                                    s_name,
-                                    1,
-                                    &rd,
-                                    &put_cont,
-                                    s_name);
+    GNUNET_NAMESTORE_record_set_store (nsh,
+                                       &privkey,
+                                       s_name,
+                                       1,
+                                       &rd,
+                                       &put_cont,
+                                       s_name);
   }
 }
 

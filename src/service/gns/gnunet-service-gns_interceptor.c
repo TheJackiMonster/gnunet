@@ -168,6 +168,11 @@ reply_to_dns (void *cls, uint32_t rd_count,
           skip_answers++;
           break;
 
+        case GNUNET_DNSPARSER_TYPE_URI:
+          /* FIXME: URI is not yet supported */
+          skip_answers++;
+          break;
+
         case GNUNET_DNSPARSER_TYPE_MX:
           answer_records[i - skip_answers].data.mx
             = GNUNET_DNSPARSER_parse_mx (rd[i].data,
@@ -243,6 +248,19 @@ reply_to_dns (void *cls, uint32_t rd_count,
         case GNUNET_DNSPARSER_TYPE_SRV:
           /* FIXME: SRV is not yet supported */
           skip_answers++;
+          break;
+
+        case GNUNET_DNSPARSER_TYPE_URI:
+          additional_records[i - skip_additional].data.uri
+            = GNUNET_DNSPARSER_parse_uri (rd[i].data,
+                                           rd[i].data_size,
+                                           &off);
+          if ((off != rd[i].data_size) ||
+              (NULL == additional_records[i].data.uri))
+          {
+            GNUNET_break_op (0);
+            skip_additional++;
+          }
           break;
 
         default:

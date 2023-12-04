@@ -580,6 +580,54 @@ timeout_resolution (void *cls)
 
 
 /**
+ * Function called to receive the protocol number for a service.
+ *
+ * @param name name of the protocol
+*/
+static struct protoent *
+resolver_getprotobyname (const char *name)
+{
+  struct protoent *pe = getprotobyname (name);
+  if (pe == NULL && strcmp (name, "trust") == 0)
+  {
+    pe = GNUNET_new (struct protoent);
+    pe->p_name = "trust";
+    pe->p_proto = 242;
+  }
+  return pe;
+}
+
+
+/**
+ * Function called to receive the port number for a service.
+ *
+ * @param name name of the service
+ * @param proto name of the protocol
+*/
+static struct servent *
+resolver_getservbyname (const char *name, const char *proto)
+{
+  struct servent *se = getservbyname (name, proto);
+  if (se == NULL && strcmp (proto, "trust") == 0)
+  {
+    if (strcmp (name, "trustlist") == 0)
+    {
+      se = GNUNET_new (struct servent);
+      se->s_name = "trustlist";
+      se->s_port = htons (1002);
+    }
+    else if (strcmp (name, "scheme") == 0)
+    {
+      se = GNUNET_new (struct servent);
+      se->s_name = "scheme";
+      se->s_port = htons (1003);
+    }
+  }
+  return se;
+}
+
+
+/**
  * Get the next, rightmost label from the name that we are trying to resolve,
  * and update the resolution position accordingly.  Labels usually consist
  * of up to 63 characters without a period ("."); however, we use a special
@@ -662,7 +710,7 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
                                  rh->name_resolution_pos - (dot - rh->name)
                                  - 2);
     rh->name_resolution_pos = 0;
-    pe = getprotobyname (proto_name);
+    pe = resolver_getprotobyname (proto_name);
     if (NULL == pe)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -672,8 +720,8 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
       GNUNET_free (srv_name);
       return ret;
     }
-    se = getservbyname (srv_name,
-                        proto_name);
+    se = resolver_getservbyname (srv_name,
+                                 proto_name);
     if (NULL == se)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -1077,6 +1125,22 @@ dns_result_parser (void *cls,
                                               sizeof(buf),
                                               &buf_off,
                                               rec->data.srv))
+        {
+          GNUNET_break (0);
+          skip++;
+          continue;
+        }
+        rd[i - skip].data_size = buf_off - buf_start;
+        rd[i - skip].data = &buf[buf_start];
+        break;
+
+      case GNUNET_DNSPARSER_TYPE_URI:
+        buf_start = buf_off;
+        if (GNUNET_OK !=
+            GNUNET_DNSPARSER_builder_add_uri (buf,
+                                              sizeof(buf),
+                                              &buf_off,
+                                              rec->data.uri))
         {
           GNUNET_break (0);
           skip++;
@@ -1990,7 +2054,10 @@ handle_gns_resolution_result (void *cls,
       if ((0 != rh->protocol) &&
           (0 != rh->service) &&
           (GNUNET_GNSRECORD_TYPE_BOX != rd[i].record_type))
-        continue;     /* we _only_ care about boxed records */
+        if (GNUNET_GNSRECORD_TYPE_PKEY != rd[i].record_type &&
+            GNUNET_GNSRECORD_TYPE_EDKEY != rd[i].record_type)
+          continue;
+      /* we _only_ care about boxed records */
 
       GNUNET_assert (rd_off < rd_count);
       rd_new[rd_off] = rd[i];
@@ -2167,6 +2234,45 @@ handle_gns_resolution_result (void *cls,
           }
           if (NULL != srv)
             GNUNET_DNSPARSER_free_srv (srv);
+        }
+        break;
+
+      case GNUNET_DNSPARSER_TYPE_URI:
+        {
+          struct GNUNET_DNSPARSER_UriRecord *uri;
+
+          off = 0;
+          uri = GNUNET_DNSPARSER_parse_uri (rd[i].data,
+                                            rd[i].data_size,
+                                            &off);
+          if ((NULL == uri) ||
+              (off != rd[i].data_size))
+          {
+            GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                        _ ("Failed to deserialize URI record with target\n"));
+            GNUNET_break_op (0);      /* record not well-formed */
+          }
+          else
+          {
+            scratch_start = scratch_off;
+            if (GNUNET_OK !=
+                GNUNET_DNSPARSER_builder_add_uri (scratch,
+                                                  sizeof(scratch),
+                                                  &scratch_off,
+                                                  uri))
+            {
+              GNUNET_break (0);
+            }
+            else
+            {
+              GNUNET_assert (rd_off < rd_count);
+              rd_new[rd_off].data = &scratch[scratch_start];
+              rd_new[rd_off].data_size = scratch_off - scratch_start;
+              rd_off++;
+            }
+          }
+          if (NULL != uri)
+            GNUNET_DNSPARSER_free_uri (uri);
         }
         break;
 

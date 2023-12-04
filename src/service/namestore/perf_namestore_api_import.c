@@ -22,10 +22,8 @@
  * @brief testcase for namestore: Import a lot of records
  * @author Martin Schanzenbach
  */
-#include "platform.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_testing_lib.h"
-#include "../service/namestore/namestore.h"
 
 #define TEST_RECORD_TYPE GNUNET_DNSPARSER_TYPE_TXT
 
@@ -149,31 +147,6 @@ static void
 publish_records_single (void *cls);
 
 static void
-commit_cont (void *cls,
-             enum GNUNET_ErrorCode ec)
-{
-  struct GNUNET_TIME_Relative delay;
-
-  (void) cls;
-  qe = NULL;
-  if (GNUNET_EC_NONE != ec)
-  {
-    GNUNET_break (0);
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
-  single_put_pos++;
-  delay = GNUNET_TIME_absolute_get_duration (start);
-  fprintf (stdout,
-           "BULK-TX: Publishing %u records took %s\n",
-           TEST_RECORD_COUNT,
-           GNUNET_STRINGS_relative_time_to_string (delay,
-                                                   GNUNET_YES));
-  res = 0;
-  GNUNET_SCHEDULER_shutdown ();
-}
-
-static void
 publish_records_bulk_tx (void *cls);
 
 
@@ -181,6 +154,7 @@ static void
 put_cont_bulk_tx (void *cls,
                   enum GNUNET_ErrorCode ec)
 {
+  struct GNUNET_TIME_Relative delay;
   qe = NULL;
   if (GNUNET_EC_NONE != ec)
   {
@@ -190,7 +164,15 @@ put_cont_bulk_tx (void *cls,
   }
   if (bulk_count == TEST_RECORD_COUNT)
   {
-    qe = GNUNET_NAMESTORE_transaction_commit (nsh, commit_cont, NULL);
+    single_put_pos++;
+    delay = GNUNET_TIME_absolute_get_duration (start);
+    fprintf (stdout,
+             "BULK-TX: Publishing %u records took %s\n",
+             TEST_RECORD_COUNT,
+             GNUNET_STRINGS_relative_time_to_string (delay,
+                                                     GNUNET_YES));
+    res = 0;
+    GNUNET_SCHEDULER_shutdown ();
     return;
   }
   t = GNUNET_SCHEDULER_add_now (&publish_records_bulk_tx, NULL);
@@ -202,33 +184,17 @@ publish_records_bulk_tx (void *cls)
 {
   unsigned int sent_rds;
   t = NULL;
-  qe = GNUNET_NAMESTORE_records_store2 (nsh,
-                                        &privkey,
-                                        TEST_RECORD_COUNT - bulk_count,
-                                        &ri[bulk_count],
-                                        &sent_rds,
-                                        &put_cont_bulk_tx,
-                                        NULL);
+  qe = GNUNET_NAMESTORE_records_store (nsh,
+                                       &privkey,
+                                       TEST_RECORD_COUNT - bulk_count,
+                                       &ri[bulk_count],
+                                       &sent_rds,
+                                       &put_cont_bulk_tx,
+                                       NULL);
   bulk_count += sent_rds;
   GNUNET_assert (sent_rds != 0);
 }
 
-
-static void
-begin_cont (void *cls,
-            enum GNUNET_ErrorCode ec)
-{
-  unsigned int sent_rds;
-  qe = GNUNET_NAMESTORE_records_store2 (nsh,
-                                        &privkey,
-                                        TEST_RECORD_COUNT - bulk_count,
-                                        &ri[bulk_count],
-                                        &sent_rds,
-                                        &put_cont_bulk_tx,
-                                        NULL);
-  bulk_count += sent_rds;
-  GNUNET_assert (sent_rds != 0);
-}
 
 static void
 publish_records_bulk (void *cls);
@@ -238,6 +204,7 @@ put_cont_bulk (void *cls,
                enum GNUNET_ErrorCode ec)
 {
   struct GNUNET_TIME_Relative delay;
+  unsigned int sent_rds;
 
   (void) cls;
   qe = NULL;
@@ -258,7 +225,15 @@ put_cont_bulk (void *cls,
                                                      GNUNET_YES));
     start = GNUNET_TIME_absolute_get ();
     bulk_count = 0;
-    qe = GNUNET_NAMESTORE_transaction_begin (nsh, begin_cont, NULL);
+    qe = GNUNET_NAMESTORE_records_store (nsh,
+                                         &privkey,
+                                         TEST_RECORD_COUNT - bulk_count,
+                                         &ri[bulk_count],
+                                         &sent_rds,
+                                         &put_cont_bulk_tx,
+                                         NULL);
+    bulk_count += sent_rds;
+    GNUNET_assert (sent_rds != 0);
     return;
   }
   (void) cls;
@@ -272,19 +247,20 @@ put_cont_bulk (void *cls,
   t = GNUNET_SCHEDULER_add_now (&publish_records_bulk, NULL);
 }
 
+
 static void
 publish_records_bulk (void *cls)
 {
   static unsigned int sent_rds = 0;
   (void) cls;
   t = NULL;
-  qe = GNUNET_NAMESTORE_records_store2 (nsh,
-                                        &privkey,
-                                        TEST_RECORD_COUNT - bulk_count,
-                                        &ri[bulk_count],
-                                        &sent_rds,
-                                        &put_cont_bulk,
-                                        NULL);
+  qe = GNUNET_NAMESTORE_records_store (nsh,
+                                       &privkey,
+                                       TEST_RECORD_COUNT - bulk_count,
+                                       &ri[bulk_count],
+                                       &sent_rds,
+                                       &put_cont_bulk,
+                                       NULL);
   bulk_count += sent_rds;
   GNUNET_assert (sent_rds != 0);
 }
@@ -338,13 +314,13 @@ publish_records_single (void *cls)
                                                      GNUNET_YES));
     GNUNET_SCHEDULER_add_now (&publish_records_bulk, NULL);
   }
-  qe = GNUNET_NAMESTORE_records_store (nsh,
-                                       &privkey,
-                                       ri[single_put_pos].a_label,
-                                       ri[single_put_pos].a_rd_count,
-                                       ri[single_put_pos].a_rd,
-                                       &put_cont_single,
-                                       NULL);
+  qe = GNUNET_NAMESTORE_record_set_store (nsh,
+                                          &privkey,
+                                          ri[single_put_pos].a_label,
+                                          ri[single_put_pos].a_rd_count,
+                                          ri[single_put_pos].a_rd,
+                                          &put_cont_single,
+                                          NULL);
 }
 
 

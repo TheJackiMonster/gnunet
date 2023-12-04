@@ -99,22 +99,22 @@ barrier_reached_run (void *cls,
   struct GNUNET_TESTING_CommandBarrierReached *msg;
   size_t name_len;
 
-  barrier = TST_interpreter_get_barrier (is, brs->barrier_name);
+  barrier = GNUNET_TESTING_get_barrier_ (is,
+                                         brs->barrier_name);
   if (NULL == barrier)
   {
     barrier = GNUNET_new (struct GNUNET_TESTING_Barrier);
     barrier->name = brs->barrier_name;
-    TST_interpreter_add_barrier (is, barrier);
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "barrier %s added locally\n",
-         brs->barrier_name);
+    GNUNET_TESTING_add_barrier_ (is,
+                                 barrier);
   }
   barrier->reached++;
-  if (GNUNET_TESTING_barrier_crossable (barrier))
+  if (GNUNET_TESTING_barrier_crossable_ (barrier))
   {
     GNUNET_assert (NULL != cmd);
     cmd->asynchronous_finish = GNUNET_YES;
-    TST_interpreter_finish_attached_cmds (is, barrier->name);
+    GNUNET_TESTING_finish_barrier_ (is,
+                                    barrier->name);
   }
   else if (GNUNET_NO == brs->asynchronous_finish)
   {

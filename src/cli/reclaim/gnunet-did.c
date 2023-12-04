@@ -33,14 +33,12 @@
  * @brief DID Method Wrapper
  *
  */
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_identity_service.h"
 #include "gnunet_gns_service.h"
 #include "gnunet_gnsrecord_lib.h"
 #include "did_core.h"
-#include "jansson.h"
 
 #define GNUNET_DID_DEFAULT_DID_DOCUMENT_EXPIRATION_TIME "1d"
 
@@ -265,7 +263,7 @@ remove_did_document_ego_lookup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   const struct GNUNET_CRYPTO_PrivateKey *skey =
     GNUNET_IDENTITY_ego_get_private_key (ego);
 
-  GNUNET_NAMESTORE_records_store (namestore_handle,
+  GNUNET_NAMESTORE_record_set_store (namestore_handle,
                                   skey,
                                   GNUNET_GNS_EMPTY_LABEL_AT,
                                   0,

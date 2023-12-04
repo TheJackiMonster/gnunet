@@ -19,14 +19,14 @@
  */
 
 /**
- * @file testing_api_cmd_start_peer.c
+ * @file core_api_cmd_connecting_peers.c
  * @brief cmd to start a peer.
  * @author t3sserakt
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_testing_ng_lib.h"
-#include "gnunet_testing_netjail_lib.h"
+#include "gnunet_core_testing_lib.h"
+#include "gnunet_transport_testing_ng_lib.h"
 #include "gnunet_transport_application_service.h"
 #include "gnunet_transport_core_service.h"
 
@@ -63,9 +63,9 @@ connect_peers_run (void *cls,
   cps->is = is;
   peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                          cps->start_peer_label);
-  GNUNET_TESTING_get_trait_broadcast (peer1_cmd,
+  GNUNET_TRANSPORT_TESTING_get_trait_broadcast (peer1_cmd,
                                         &broadcast);
-  GNUNET_TESTING_get_trait_state (peer1_cmd,
+  GNUNET_TRANSPORT_TESTING_get_trait_state (peer1_cmd,
                                     &sps);
 
   system_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
@@ -198,7 +198,7 @@ connect_peers_traits (void *cls,
 {
   struct GNUNET_TESTING_ConnectPeersState *cps = cls;
   struct GNUNET_TESTING_Trait traits[] = {
-    GNUNET_TESTING_make_trait_connect_peer_state ((const void *) cps),
+    GNUNET_CORE_TESTING_make_trait_connect_peer_state ((const void *) cps),
     GNUNET_TESTING_trait_end ()
   };
   return GNUNET_TESTING_get_trait (traits,
@@ -209,15 +209,15 @@ connect_peers_traits (void *cls,
 
 
 struct GNUNET_TESTING_Command
-GNUNET_CORE_cmd_connect_peers (const char *label,
-                                    const char *start_peer_label,
-                                    const char *create_label,
-                                    uint32_t num,
-                                    struct GNUNET_TESTING_NetjailTopology *
-                                    topology,
-                                    unsigned int additional_connects,
-                                    unsigned int wait_for_connect,
-                                    struct GNUNET_MQ_MessageHandler *handlers)
+GNUNET_CORE_cmd_connect_peers (
+  const char *label,
+  const char *start_peer_label,
+  const char *create_label,
+  uint32_t num,
+  struct GNUNET_TESTING_NetjailTopology *topology,
+  unsigned int additional_connects,
+  unsigned int wait_for_connect,
+  struct GNUNET_MQ_MessageHandler *handlers)
 {
   struct GNUNET_TESTING_ConnectPeersState *cps;
   unsigned int node_additional_connects;
@@ -271,3 +271,8 @@ GNUNET_CORE_cmd_connect_peers (const char *label,
                                        &connect_peers_traits,
                                        NULL);
 }
+
+
+// FIXME: likely not ideally placed here, move to its own file
+GNUNET_CORE_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT, GNUNET_CORE_TESTING)
+
