@@ -98,6 +98,12 @@ extern "C" {
 
 
 /**
+ * SBox record
+ */
+#define GNUNET_GNSRECORD_TYPE_SBOX 65547
+
+
+/**
  * For ABD policies
  */
 #define GNUNET_GNSRECORD_TYPE_DELEGATE 65548

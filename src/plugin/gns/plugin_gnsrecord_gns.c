@@ -132,6 +132,36 @@ gns_value_to_string (void *cls,
       GNUNET_free (ival);
       return box_str;
     }
+  case GNUNET_GNSRECORD_TYPE_SBOX: {
+      struct GNUNET_GNSRECORD_SBoxRecord box;
+      uint32_t rt;
+      char *box_str;
+      char *ival;
+      char *prefix;
+
+      cdata = data;
+      if (data_size < sizeof(struct GNUNET_GNSRECORD_SBoxRecord))
+        return NULL; /* malformed */
+      GNUNET_memcpy (&box, data, sizeof(box));
+      rt = ntohl (box.record_type);
+
+      prefix = GNUNET_strdup (&cdata[sizeof(box)]);
+      ival = GNUNET_GNSRECORD_value_to_string (rt, &cdata[sizeof(box)
+                                                          + strlen (prefix)
+                                                          + 1],
+                                               data_size - sizeof(box)
+                                               - strlen (prefix) - 1);
+      if (NULL == ival)
+        return NULL; /* malformed */
+      GNUNET_asprintf (&box_str,
+                       "%s %u %s",
+                       prefix,
+                       (unsigned int) rt,
+                       ival);
+      GNUNET_free (prefix);
+      GNUNET_free (ival);
+      return box_str;
+    }
   case GNUNET_GNSRECORD_TYPE_TOMBSTONE: {
       return GNUNET_strdup (_ (
                               "This is a memento of an older block for internal maintenance."));
@@ -302,6 +332,76 @@ gns_string_to_value (void *cls,
       GNUNET_free (bval);
       return GNUNET_OK;
     }
+  case GNUNET_GNSRECORD_TYPE_SBOX: {
+      struct GNUNET_GNSRECORD_SBoxRecord *box;
+      size_t rest;
+      char *prefix;
+      unsigned int protocol;
+      unsigned int record_type;
+      void *bval;
+      size_t bval_size;
+      prefix = GNUNET_malloc (strlen (s)); // TODO The allocated memory is bigger than needed
+      size_t prefix_size;
+      if (2 != sscanf (s, "%s %u ", prefix, &record_type))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    _ ("Unable to parse SBOX record string `%s'\n"),
+                    s);
+        return GNUNET_SYSERR;
+      }
+      if (prefix == NULL)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    _ (
+                      "Unable to parse SBOX record string `%s', no prefix found\n"),
+                    s);
+        return GNUNET_SYSERR;
+      }
+      char *last_underscore = strrchr (prefix, (int) '_');
+      if (last_underscore == NULL)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    _ (
+                      "Unable to parse SBOX record string `%s', no underscore fund\n"),
+                    prefix);
+        return GNUNET_SYSERR;
+      }
+      char *dot_in_last_prefix = strchr (last_underscore, '.');
+      if (dot_in_last_prefix != NULL)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    _ (
+                      "Unable to parse SBOX record string `%s', the last label does not have an underscore\n"),
+                    prefix);
+        return GNUNET_SYSERR;
+      }
+      if (prefix < last_underscore && last_underscore[-1] != '.')
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    _ (
+                      "Unable to parse SBOX record string `%s', the last label does not start with an underscore\n"),
+                    prefix);
+        return GNUNET_SYSERR;
+      }
+      rest = snprintf (NULL, 0, "%s %u ", prefix, record_type);
+      if (GNUNET_OK != GNUNET_GNSRECORD_string_to_value (record_type,
+                                                         &s[rest],
+                                                         &bval,
+                                                         &bval_size))
+        return GNUNET_SYSERR;
+      prefix_size = strlen (prefix) + 1; // with NULL terminator
+      *data_size = sizeof(struct GNUNET_GNSRECORD_SBoxRecord) + prefix_size
+                   + bval_size;
+      void *p = *data = box = GNUNET_malloc (*data_size);
+      box->record_type = htonl (record_type);
+      p += sizeof(struct GNUNET_GNSRECORD_SBoxRecord);
+      GNUNET_memcpy (p, prefix, prefix_size);
+      p += prefix_size;
+      GNUNET_memcpy (p, bval, bval_size);
+      GNUNET_free (bval);
+      GNUNET_free (prefix);
+      return GNUNET_OK;
+    }
   case GNUNET_GNSRECORD_TYPE_TOMBSTONE: {
       *data_size = 0;
       *data = NULL;
@@ -330,6 +430,7 @@ static struct
   { "VPN", GNUNET_GNSRECORD_TYPE_VPN },
   { "GNS2DNS", GNUNET_GNSRECORD_TYPE_GNS2DNS },
   { "BOX", GNUNET_GNSRECORD_TYPE_BOX },
+  { "SBOX", GNUNET_GNSRECORD_TYPE_SBOX },
   { "REDIRECT", GNUNET_GNSRECORD_TYPE_REDIRECT },
   /* Tombstones should never be added manually
                     * so this makes sense, kind of */
