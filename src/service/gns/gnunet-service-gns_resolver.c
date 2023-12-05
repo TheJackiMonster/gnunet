@@ -627,7 +627,7 @@ resolver_getservbyname (const char *name, const char *proto)
  * and update the resolution position accordingly.  Labels usually consist
  * of up to 63 characters without a period ("."); however, we use a special
  * convention to support resource records where the domain name
- * includes a label starting with '_'. The syntax (see RFC 8552) here is 
+ * includes a label starting with '_'. The syntax (see RFC 8552) here is
  * "someLabel._Label.Name" and in this special case we include the "someLabel._Label" in the rightmost label.
  * Thus, for "_443._tcp.foo.bar" we first return the label "bar" and then
  * the label "_443._tcp.foo".  The special case is detected by the
@@ -3083,7 +3083,8 @@ GNS_resolver_lookup_cancel (struct GNS_ResolverHandle *rh)
                                  dr);
     GNUNET_free (dr);
   }
-  if (NULL != rh->prefix) {
+  if (NULL != rh->prefix)
+  {
     GNUNET_free (rh->prefix);
     rh->prefix = NULL;
   }
