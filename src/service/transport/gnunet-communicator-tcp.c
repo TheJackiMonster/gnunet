@@ -2133,8 +2133,15 @@ queue_read (void *cls)
       GNUNET_SCHEDULER_add_read_net (left, queue->sock, &queue_read, queue);
     return;
   }
-  if (0 != rcvd)
-    reschedule_queue_timeout (queue);
+  if (0 == rcvd)
+  {
+    /* Orderly shutdown of connection */
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Socket for queue %p seems to have been closed\n", queue);
+    queue_destroy (queue);
+    return;
+  }
+  reschedule_queue_timeout (queue);
   queue->cread_off += rcvd;
   while ((queue->pread_off < sizeof(queue->pread_buf)) &&
          (queue->cread_off > 0))
@@ -3002,6 +3009,14 @@ proto_read_kx (void *cls)
     /* try again */
     pq->read_task =
       GNUNET_SCHEDULER_add_read_net (left, pq->sock, &proto_read_kx, pq);
+    return;
+  }
+  if (0 == rcvd)
+  {
+    /* Orderly shutdown of connection */
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Socket for proto queue %p seems to have been closed\n", queue);
+    free_proto_queue (pq);
     return;
   }
   pq->ibuf_off += rcvd;
