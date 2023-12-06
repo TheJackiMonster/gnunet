@@ -121,6 +121,10 @@ enum GNUNET_GNSRECORD_Flags
    */
   GNUNET_GNSRECORD_RF_SUPPLEMENTAL = 1 << (15 - 13),
 
+  /**
+   * Maintenance records. E.g. TOMBSTONEs
+   */
+  GNUNET_GNSRECORD_RF_MAINTENANCE = 1 << (15 - 2),
 
   /**
    * This expiration time of the record is a relative time (not an absolute time). Used in GNUnet implementation.
