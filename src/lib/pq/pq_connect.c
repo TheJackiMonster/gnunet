@@ -454,7 +454,8 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
   PQsetNoticeProcessor (db->conn,
                         &pq_notice_processor_cb,
                         db);
-  if (NULL != db->load_path)
+  if ( (NULL != db->load_path) &&
+       (NULL != db->auto_suffix) )
   {
     PGresult *res;
     ExecStatusType est;
@@ -550,7 +551,6 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
     db->conn = NULL;
     return;
   }
-
 
   if (NULL != db->auto_suffix)
   {
