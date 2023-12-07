@@ -20,13 +20,13 @@ TEST_A="139.134.54.9"
 MY_EGO="myego"
 LABEL="testsbox"
 HASH="c93f1e400f26708f98cb19d936620da35eec8f72e57f9eec01c1afd6"
-SERVICE_TEXT="_tcp"
+PROTOCOL_TEXT="_smimecert"
 gnunet-arm -s -c test_gns_lookup.conf
 gnunet-identity -C $MY_EGO -c test_gns_lookup.conf
-gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t SBOX -V "$HASH.$SERVICE_TEXT 1 $TEST_A" -e never -c test_gns_lookup.conf
+gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t SBOX -V "$HASH.$PROTOCOL_TEXT 1 $TEST_A" -e never -c test_gns_lookup.conf
 sleep 0.5
-RES_A=`$DO_TIMEOUT gnunet-gns --raw -u $HASH.$SERVICE_TEXT.$LABEL.$MY_EGO -t A -c test_gns_lookup.conf`
-gnunet-namestore -z $MY_EGO -d -n $LABEL -t SBOX -V "$HASH.$SERVICE_TEXT 1 $TEST_A" -e never -c test_gns_lookup.conf
+RES_A=`$DO_TIMEOUT gnunet-gns --raw -u $HASH.$PROTOCOL_TEXT.$LABEL.$MY_EGO -t A -c test_gns_lookup.conf`
+gnunet-namestore -z $MY_EGO -d -n $LABEL -t SBOX -V "$HASH.$PROTOCOL_TEXT 1 $TEST_A" -e never -c test_gns_lookup.conf
 gnunet-identity -D $MY_EGO -c test_gns_lookup.conf
 gnunet-arm -e -c test_gns_lookup.conf
 rm -rf `gnunet-config -c test_gns_lookup.conf -f -s paths -o GNUNET_TEST_HOME`
