@@ -626,15 +626,16 @@ resolver_getservbyname (const char *name, const char *proto)
  * Get the next, rightmost label from the name that we are trying to resolve,
  * and update the resolution position accordingly.  Labels usually consist
  * of up to 63 characters without a period ("."); however, we use a special
- * convention to support SRV and TLSA records where the domain name
- * includes an encoding for a service and protocol in the name.  The
- * syntax (see RFC 2782) here is "_Service._Proto.Name" and in this
- * special case we include the "_Service._Proto" in the rightmost label.
+ * convention to support resource records where the domain name
+ * includes a label starting with '_'. The syntax (see RFC 8552) here is 
+ * "someLabel._Label.Name" and in this special case we include the "someLabel._Label" in the rightmost label.
  * Thus, for "_443._tcp.foo.bar" we first return the label "bar" and then
  * the label "_443._tcp.foo".  The special case is detected by the
- * presence of labels beginning with an underscore.  Whenever a label
- * begins with an underscore, it is combined with the label to its right
- * (and the "." is preserved).
+ * presence of one label beginning with an underscore.  The rightmost label
+ * beginning with an underscore, is combined with the label to its right
+ * (and the "." is preserved). If the label is in the syntax of
+ * "_PORT._PROTOCOL" (e.g. "_443._tcp") we also extract the port and protocol.
+ * In this implementation, the more specific case is handled first.
  *
  * @param rh handle to the resolution operation to get the next label from
  * @return NULL if there are no more labels
@@ -2384,7 +2385,7 @@ handle_gns_resolution_result (void *cls,
         }
       case GNUNET_GNSRECORD_TYPE_SBOX:
         {
-          /* unbox SMIMEA/OPENPGPKEY records if a specific one was requested */
+          /* unbox SBOX records if a specific one was requested */
           if ((rh->prefix != NULL) &&
               (rd[i].data_size >= sizeof(struct GNUNET_GNSRECORD_SBoxRecord)))
           {
@@ -2428,6 +2429,9 @@ handle_gns_resolution_result (void *cls,
         break;
       }       /* end: switch */
     }     /* end: for rd_count */
+
+    GNUNET_free (rh->prefix);
+    rh->prefix = NULL;
 
     /* yes, we are done, return result */
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -3078,6 +3082,10 @@ GNS_resolver_lookup_cancel (struct GNS_ResolverHandle *rh)
                                  rh->dns_result_tail,
                                  dr);
     GNUNET_free (dr);
+  }
+  if (NULL != rh->prefix) {
+    GNUNET_free (rh->prefix);
+    rh->prefix = NULL;
   }
   GNUNET_free (rh->leho);
   GNUNET_free (rh->name);
