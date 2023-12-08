@@ -60,6 +60,7 @@ libgnunet = library('gnunet',
                                    libgnunetgnsrecordjson_dep,
                                    jose_dep,
                                    m_dep,
+                                   pthread_dep,
                                    libgnunetcurl_dep],
                     c_args: ['-DHAVE_GNUNET_MONOLITH=1'],
                     include_directories: [incdir, configuration_inc, exitdir])
