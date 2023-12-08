@@ -85,7 +85,7 @@ notify_about_members (struct GNUNET_MESSENGER_MemberNotify *notify,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_notify_about_members (void *cls,
                               const struct
                               GNUNET_CRYPTO_PublicKey *public_key,

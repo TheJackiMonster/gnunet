@@ -135,7 +135,7 @@ update_to_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 contains_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
                        const struct GNUNET_PeerIdentity *peer)
 {

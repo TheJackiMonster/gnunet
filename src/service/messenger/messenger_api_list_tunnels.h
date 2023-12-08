@@ -118,7 +118,7 @@ update_to_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
  * @param[in] peer Peer identity of tunnel
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
-int
+enum GNUNET_GenericReturnValue
 contains_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
                        const struct GNUNET_PeerIdentity *peer);
 

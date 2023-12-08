@@ -213,7 +213,7 @@ handle_member_id (void *cls,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 check_recv_message (void *cls,
                     const struct GNUNET_MESSENGER_RecvMessage *msg)
 {
@@ -471,7 +471,7 @@ send_sync_room (struct GNUNET_MESSENGER_Handle *handle,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_reset_room (void *cls,
                     const struct GNUNET_HashCode *key,
                     void *value)
@@ -516,7 +516,7 @@ callback_reconnect (void *cls)
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_close_room (void *cls,
                     const struct GNUNET_HashCode *key,
                     void *value)
@@ -758,7 +758,7 @@ GNUNET_MESSENGER_get_name (const struct GNUNET_MESSENGER_Handle *handle)
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_send_name_to_room (void *cls,
                            struct GNUNET_MESSENGER_Room *room,
                            const struct GNUNET_MESSENGER_Contact *contact)
@@ -784,7 +784,7 @@ iterate_send_name_to_room (void *cls,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_MESSENGER_set_name (struct GNUNET_MESSENGER_Handle *handle,
                            const char *name)
 {
@@ -817,7 +817,7 @@ GNUNET_MESSENGER_get_key (const struct GNUNET_MESSENGER_Handle *handle)
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_send_key_to_room (void *cls,
                           struct GNUNET_MESSENGER_Room *room,
                           const struct GNUNET_MESSENGER_Contact *contact)
@@ -835,7 +835,7 @@ iterate_send_key_to_room (void *cls,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 GNUNET_MESSENGER_set_key (struct GNUNET_MESSENGER_Handle *handle,
                           const struct GNUNET_CRYPTO_PrivateKey *key)
 {
@@ -942,7 +942,7 @@ struct GNUNET_MESSENGER_RoomFind
   void *cls;
 };
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_find_room (void *cls,
                    const struct GNUNET_HashCode *key,
                    void *value)

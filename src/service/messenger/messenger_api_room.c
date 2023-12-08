@@ -59,7 +59,7 @@ create_room (struct GNUNET_MESSENGER_Handle *handle,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_destroy_message (void *cls,
                          const struct GNUNET_HashCode *key,
                          void *value)
@@ -420,7 +420,7 @@ struct GNUNET_MESSENGER_MemberCall
   void *cls;
 };
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_local_members (void *cls,
                        const struct GNUNET_ShortHashCode *key,
                        void *value)
@@ -462,7 +462,7 @@ struct GNUNET_MESSENGER_MemberFind
   enum GNUNET_GenericReturnValue result;
 };
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_find_member (void *cls,
                      const struct GNUNET_ShortHashCode *key,
                      void *value)
@@ -480,7 +480,7 @@ iterate_find_member (void *cls,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 find_room_member (const struct GNUNET_MESSENGER_Room *room,
                   const struct GNUNET_MESSENGER_Contact *contact)
 {

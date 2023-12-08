@@ -177,7 +177,7 @@ iterate_room_members (struct GNUNET_MESSENGER_Room *room,
  * @param[in] contact
  * @return #GNUNET_YES if found, otherwise #GNUNET_NO
  */
-int
+enum GNUNET_GenericReturnValue
 find_room_member (const struct GNUNET_MESSENGER_Room *room,
                   const struct GNUNET_MESSENGER_Contact *contact);
 

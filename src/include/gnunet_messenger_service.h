@@ -595,7 +595,7 @@ typedef void
  * @param[in] room Room handle
  * @param[in] contact Contact handle
  */
-typedef int
+typedef enum GNUNET_GenericReturnValue
 (*GNUNET_MESSENGER_MemberCallback) (void *cls,
                                     struct GNUNET_MESSENGER_Room *room,
                                     const struct
@@ -644,7 +644,7 @@ GNUNET_MESSENGER_get_name (const struct GNUNET_MESSENGER_Handle *handle);
  * @param[in] name Name for the messenger to change to
  * @return #GNUNET_YES on success, #GNUNET_NO on failure and #GNUNET_SYSERR if <i>handle</i> is NULL
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_MESSENGER_set_name (struct GNUNET_MESSENGER_Handle *handle,
                            const char *name);
 
@@ -666,7 +666,7 @@ GNUNET_MESSENGER_get_key (const struct GNUNET_MESSENGER_Handle *handle);
  * @param[in] key Private key to change to or NULL
  * @return #GNUNET_YES on success, #GNUNET_NO on failure and #GNUNET_SYSERR if <i>handle</i> is NULL
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_MESSENGER_set_key (struct GNUNET_MESSENGER_Handle *handle,
                           const struct GNUNET_CRYPTO_PrivateKey *key);
 

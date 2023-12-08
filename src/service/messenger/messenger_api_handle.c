@@ -60,7 +60,7 @@ create_handle (const struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_destroy_room (void *cls,
                       const struct GNUNET_HashCode *key,
                       void *value)

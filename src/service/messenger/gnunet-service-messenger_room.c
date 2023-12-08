@@ -85,7 +85,7 @@ create_srv_room (struct GNUNET_MESSENGER_SrvHandle *handle,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_destroy_tunnels (void *cls,
                          const struct GNUNET_PeerIdentity *key,
                          void *value)
@@ -179,7 +179,7 @@ get_srv_room_operation_store (struct GNUNET_MESSENGER_SrvRoom *room)
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 send_room_info (struct GNUNET_MESSENGER_SrvRoom *room,
                 struct GNUNET_MESSENGER_SrvHandle *handle,
                 struct GNUNET_MESSENGER_SrvTunnel *tunnel)

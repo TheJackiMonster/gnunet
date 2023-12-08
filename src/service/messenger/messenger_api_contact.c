@@ -97,7 +97,7 @@ increase_contact_rc (struct GNUNET_MESSENGER_Contact *contact)
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 decrease_contact_rc (struct GNUNET_MESSENGER_Contact *contact)
 {
   GNUNET_assert (contact);

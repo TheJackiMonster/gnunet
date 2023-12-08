@@ -63,7 +63,7 @@ handle_destroy (void *cls,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 check_room_initial_key (const struct GNUNET_MESSENGER_RoomMessage *msg)
 {
   const uint16_t full_length = ntohs (msg->header.size);
@@ -118,7 +118,7 @@ initialize_handle_via_key (struct GNUNET_MESSENGER_SrvHandle *handle,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 check_room_open (void *cls,
                  const struct GNUNET_MESSENGER_RoomMessage *msg)
 {
@@ -165,7 +165,7 @@ handle_room_open (void *cls,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 check_room_entry (void *cls,
                   const struct GNUNET_MESSENGER_RoomMessage *msg)
 {
@@ -271,7 +271,7 @@ handle_room_sync (void *cls,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 check_send_message (void *cls,
                     const struct GNUNET_MESSENGER_SendMessage *msg)
 {

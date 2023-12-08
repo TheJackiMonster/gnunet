@@ -101,7 +101,7 @@ increase_contact_rc (struct GNUNET_MESSENGER_Contact *contact);
  * @param[in,out] contact Contact
  * @return #GNUNET_YES or #GNUNET_NO depending on the reference counter
  */
-int
+enum GNUNET_GenericReturnValue
 decrease_contact_rc (struct GNUNET_MESSENGER_Contact *contact);
 
 /**

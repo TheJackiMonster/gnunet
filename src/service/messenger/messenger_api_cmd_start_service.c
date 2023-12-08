@@ -115,7 +115,7 @@ start_service_cleanup (void *cls)
   GNUNET_free (sss);
 }
 
-static int
+static enum GNUNET_GenericReturnValue
 start_service_traits (void *cls,
                       const void **ret,
                       const char *trait,

@@ -41,7 +41,7 @@ init_contact_store (struct GNUNET_MESSENGER_ContactStore *store)
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_destroy_contacts (void *cls,
                           const struct GNUNET_HashCode *key,
                           void *value)

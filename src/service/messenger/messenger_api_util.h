@@ -48,7 +48,7 @@ delayed_disconnect_channel (struct GNUNET_CADET_Channel *channel);
  * @param[in] members Map of member ids
  * @return #GNUNET_YES on success, #GNUNET_NO on failure
  */
-int
+enum GNUNET_GenericReturnValue
 generate_free_member_id (struct GNUNET_ShortHashCode *id,
                          const struct GNUNET_CONTAINER_MultiShortmap *members);
 

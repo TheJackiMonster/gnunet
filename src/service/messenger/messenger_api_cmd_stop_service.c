@@ -34,7 +34,7 @@ struct GNUNET_MESSENGER_StopServiceState
   char *service_label;
 };
 
-static int
+static enum GNUNET_GenericReturnValue
 cleanup_rooms_cb (void *cls,
                   const struct GNUNET_HashCode *key,
                   void *value)

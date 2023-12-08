@@ -40,7 +40,7 @@ init_operation_store (struct GNUNET_MESSENGER_OperationStore *store,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_destroy_operations (void *cls,
                             const struct GNUNET_HashCode *key,
                             void *value)
