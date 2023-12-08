@@ -221,6 +221,11 @@ else
   endif
 endif
 
+pthread_dep = cc.find_library('pthread', required : false)
+if pthread_dep.found()
+  add_project_arguments('-DHAVE_PTHREAD', language : 'c')
+endif
+
 m_dep = cc.find_library('m', required : false)
 if m_dep.found()
   add_project_arguments('-DHAVE_LIBM', language : 'c')
