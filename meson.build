@@ -145,7 +145,7 @@ if not sqlite_dep.found()
   }
   '''
   if cc.run(sqlite_version_check, name : 'sqlite version check',
-                dependencies: sqlite_dep).returncode() != 0
+            dependencies: sqlite_dep).returncode() != 0
     error('Sqlite version >= 3.35.0 requried')
   endif
 endif
@@ -158,9 +158,9 @@ if not curl_dep.found()
     }
   '''
   if cc.run(curl_version_check, name : 'cURL version check',
-    dependencies: curl_dep).returncode() != 0
-  error('cURL version >=7.85.0 required')
-endif
+            dependencies: curl_dep).returncode() != 0
+    error('cURL version >=7.85.0 required')
+  endif
 endif
 zlib_dep = dependency('zlib', required : false)
 if not zlib_dep.found()
@@ -188,6 +188,17 @@ endif
 sodium_dep = dependency('libsodium', required : false, version: '>=1.0.18')
 if not sodium_dep.found()
   sodium_dep = cc.find_library('sodium', required : true)
+  sodium_version_check ='''#include <sodium.h>
+  int main(int argc, char **argv) {
+    return ((SODIUM_LIBRARY_VERSION_MAJOR > 10) ||
+            ((SODIUM_LIBRARY_VERSION_MAJOR == 10) &&
+             (SODIUM_LIBRARY_VERSION_MINOR >= 3))) ? 0 : 1;
+    }
+  '''
+  if cc.run(sodium_version_check, name : 'sodium version check',
+            dependencies: sodium_dep).returncode() != 0
+    error('libsodium version >=1.0.18 required')
+  endif
 endif
 quic_dep = dependency('libquiche', required : false)
 if not quic_dep.found()
@@ -323,15 +334,15 @@ endif
 ## END conversation
 
 gnunetdeps = [mhd_dep,
-  sodium_dep,
-  gcrypt_dep,
-  curl_dep,
-  json_dep,
-  zlib_dep,
-  sqlite_dep,
-  unistr_dep, #dependency('libunistring'),
-  ltdl_dep, #dependency('ltdl'),
-  idn_dep]
+              sodium_dep,
+              gcrypt_dep,
+              curl_dep,
+              json_dep,
+              zlib_dep,
+              sqlite_dep,
+              unistr_dep, #dependency('libunistring'),
+              ltdl_dep, #dependency('ltdl'),
+              idn_dep]
 
 add_project_arguments('-DNEED_LIBGCRYPT_VERSION="1.6.0"', language : 'c')
 
@@ -387,10 +398,10 @@ endif
 # GNUTLS DANE
 if cc.check_header('gnutls/dane.h')
   if cc.has_function('dane_verify_crt_raw',
-    prefix: '#include <gnutls/dane.h>',
-    dependencies: gnutls_dep)
-  add_project_arguments('-DHAVE_GNUTLS_DANE', language : 'c')
-endif
+                     prefix: '#include <gnutls/dane.h>',
+                     dependencies: gnutls_dep)
+    add_project_arguments('-DHAVE_GNUTLS_DANE', language : 'c')
+  endif
 endif
 curl_ssl_check ='''#include <curl/curl.h>
   int main(int argc, char **argv) {
@@ -399,7 +410,7 @@ curl_ssl_check ='''#include <curl/curl.h>
   '''
 
 result = cc.run(curl_ssl_check, name : 'cURL gnutls check',
-  dependencies: curl_dep)
+                dependencies: curl_dep)
 cdata.set('curl_gnutls', 0)
 if result.returncode() == 0
   cdata.set('curl_gnutls', 1)
@@ -453,24 +464,24 @@ add_test_setup('default', env: ['GNUNET_PREFIX='+gnunet_prefix], exclude_suites:
 add_test_setup('full',  env: ['GNUNET_PREFIX='+gnunet_prefix], is_default: false)
 
 summary({'host': host_machine.system(),
-  'prefix': get_option('prefix'),
-  'compiler': cc.get_id(),
-  'libdir': get_option('libdir'),
-  'datadir': get_option('datadir'),
-  'default interface': cdata.get('GNUNET_DEFAULT_INTERFACE'),
-  'PostgreSQL': pq_dep.found(),
-  'curl w/ gnutls': (cdata.get('curl_gnutls') == 1),
-  'ifconfig': ifconfig_bin.found(),
-  'iptables': iptables_bin.found()
-  }, section: 'Detected system')
+         'prefix': get_option('prefix'),
+         'compiler': cc.get_id(),
+         'libdir': get_option('libdir'),
+         'datadir': get_option('datadir'),
+         'default interface': cdata.get('GNUNET_DEFAULT_INTERFACE'),
+         'PostgreSQL': pq_dep.found(),
+         'curl w/ gnutls': (cdata.get('curl_gnutls') == 1),
+         'ifconfig': ifconfig_bin.found(),
+         'iptables': iptables_bin.found()
+        }, section: 'Detected system')
 
 if not gnunet_user
   message('Please make sure NOW to create a user and group \'gnunet\' and additionally a group \'gnunetdns\'. Make sure that \'/var/lib/gnunet\' is owned (and writable) by user \'gnunet\'')
   message('Each user of GNUnet should be added to the \'gnunet\' group')
   if adduser_bin.found() and not gnunet_user
     message('''Create the gnunet user and add users to the gnunetdns group, run:
-      # addgroup gnunetdns
-      # adduser --system --disabled-login --home /var/lib/gnunet gnunet''')
+    # addgroup gnunetdns
+    # adduser --system --disabled-login --home /var/lib/gnunet gnunet''')
     message('''To add users to the gnunet group, run:
       # adduser USERNAME gnunet
       for each of your users, replacing \'USERNAME\' with the respective login name.
