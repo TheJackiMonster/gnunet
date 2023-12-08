@@ -55,6 +55,8 @@ gnunetinclude_HEADERS = \
   gnunet_gnsrecord_json_lib.h \
   gnunet_gnsrecord_plugin.h \
   gnu_name_system_record_types.h \
+  gnu_name_system_protocols.h \
+  gnu_name_system_service_ports.h \
   gnunet_hello_uri_lib.h \
   gnunet_helper_lib.h \
   gnunet_identity_service.h \
