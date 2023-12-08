@@ -338,17 +338,6 @@ elif gst_dep.found()
 endif
 ## END conversation
 
-gnunetdeps = [mhd_dep,
-              sodium_dep,
-              gcrypt_dep,
-              curl_dep,
-              json_dep,
-              zlib_dep,
-              sqlite_dep,
-              unistr_dep, #dependency('libunistring'),
-              ltdl_dep, #dependency('ltdl'),
-              idn_dep]
-
 add_project_arguments('-DNEED_LIBGCRYPT_VERSION="1.6.0"', language : 'c')
 
 if cc.check_header('sys/time.h')
