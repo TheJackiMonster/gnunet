@@ -43,7 +43,7 @@
  * @param[in] hash Hash of the message
  * @return #GNUNET_NO to not forward the message
  */
-int
+enum GNUNET_GenericReturnValue
 recv_message_info (struct GNUNET_MESSENGER_SrvRoom *room,
                    struct GNUNET_MESSENGER_SrvTunnel *tunnel,
                    const struct GNUNET_MESSENGER_Message *message,
@@ -59,7 +59,7 @@ recv_message_info (struct GNUNET_MESSENGER_SrvRoom *room,
  * @param[in] hash Hash of the message
  * @return #GNUNET_YES to forward the message
  */
-int
+enum GNUNET_GenericReturnValue
 recv_message_peer (struct GNUNET_MESSENGER_SrvRoom *room,
                    struct GNUNET_MESSENGER_SrvTunnel *tunnel,
                    const struct GNUNET_MESSENGER_Message *message,
@@ -76,7 +76,7 @@ recv_message_peer (struct GNUNET_MESSENGER_SrvRoom *room,
  * @param[in] hash Hash of the message
  * @return #GNUNET_YES or #GNUNET_NO depending on required forwarding
  */
-int
+enum GNUNET_GenericReturnValue
 recv_message_request (struct GNUNET_MESSENGER_SrvRoom *room,
                       struct GNUNET_MESSENGER_SrvTunnel *tunnel,
                       const struct GNUNET_MESSENGER_Message *message,

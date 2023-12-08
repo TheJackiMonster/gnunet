@@ -153,7 +153,7 @@ destroy_message (struct GNUNET_MESSENGER_Message *message)
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 is_message_session_bound (const struct GNUNET_MESSENGER_Message *message)
 {
   GNUNET_assert (message);
@@ -253,7 +253,7 @@ typedef uint32_t kind_t;
 
 uint16_t
 get_message_kind_size (enum GNUNET_MESSENGER_MessageKind kind,
-                       int include_header)
+                       enum GNUNET_GenericReturnValue include_header)
 {
   uint16_t length = 0;
 
@@ -306,7 +306,7 @@ get_message_body_size (enum GNUNET_MESSENGER_MessageKind kind,
 
 uint16_t
 get_message_size (const struct GNUNET_MESSENGER_Message *message,
-                  int include_header)
+                  enum GNUNET_GenericReturnValue include_header)
 {
   GNUNET_assert (message);
 
@@ -325,7 +325,7 @@ get_message_size (const struct GNUNET_MESSENGER_Message *message,
 
 static uint16_t
 get_short_message_size (const struct GNUNET_MESSENGER_ShortMessage *message,
-                        int include_body)
+                        enum GNUNET_GenericReturnValue include_body)
 {
   const uint16_t minimum_size = sizeof(struct GNUNET_HashCode) + sizeof(kind_t);
 
@@ -345,7 +345,7 @@ calc_usual_padding ()
   uint16_t padding = 0;
   uint16_t kind_size;
 
-  for (int i = 0; i <= GNUNET_MESSENGER_KIND_MAX; i++)
+  for (unsigned int i = 0; i <= GNUNET_MESSENGER_KIND_MAX; i++)
   {
     kind_size = get_message_kind_size ((enum GNUNET_MESSENGER_MessageKind) i,
                                        GNUNET_YES);
@@ -513,7 +513,7 @@ void
 encode_message (const struct GNUNET_MESSENGER_Message *message,
                 uint16_t length,
                 char *buffer,
-                int include_header)
+                enum GNUNET_GenericReturnValue include_header)
 {
   GNUNET_assert ((message) && (buffer));
 
@@ -678,11 +678,11 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 decode_message (struct GNUNET_MESSENGER_Message *message,
                 uint16_t length,
                 const char *buffer,
-                int include_header,
+                enum GNUNET_GenericReturnValue include_header,
                 uint16_t *padding)
 {
   GNUNET_assert (
@@ -740,7 +740,7 @@ decode_message (struct GNUNET_MESSENGER_Message *message,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 decode_short_message (struct GNUNET_MESSENGER_ShortMessage *message,
                       uint16_t length,
                       const char *buffer)
@@ -853,7 +853,7 @@ sign_message_by_peer (struct GNUNET_MESSENGER_Message *message,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 verify_message (const struct GNUNET_MESSENGER_Message *message,
                 const struct GNUNET_HashCode *hash,
                 const struct GNUNET_CRYPTO_PublicKey *key)
@@ -876,7 +876,7 @@ verify_message (const struct GNUNET_MESSENGER_Message *message,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 verify_message_by_peer (const struct GNUNET_MESSENGER_Message *message,
                         const struct GNUNET_HashCode *hash,
                         const struct GNUNET_PeerIdentity *identity)
@@ -900,7 +900,7 @@ verify_message_by_peer (const struct GNUNET_MESSENGER_Message *message,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 encrypt_message (struct GNUNET_MESSENGER_Message *message,
                  const struct GNUNET_CRYPTO_PublicKey *key)
 {
@@ -945,7 +945,7 @@ encrypt_message (struct GNUNET_MESSENGER_Message *message,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 decrypt_message (struct GNUNET_MESSENGER_Message *message,
                  const struct GNUNET_CRYPTO_PrivateKey *key)
 {
@@ -997,7 +997,7 @@ struct GNUNET_MQ_Envelope*
 pack_message (struct GNUNET_MESSENGER_Message *message,
               struct GNUNET_HashCode *hash,
               const GNUNET_MESSENGER_SignFunction sign,
-              int mode,
+              enum GNUNET_MESSENGER_PackMode mode,
               const void *cls)
 {
   GNUNET_assert (message);
@@ -1045,7 +1045,7 @@ pack_message (struct GNUNET_MESSENGER_Message *message,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 is_peer_message (const struct GNUNET_MESSENGER_Message *message)
 {
   switch (message->header.kind)
@@ -1061,7 +1061,7 @@ is_peer_message (const struct GNUNET_MESSENGER_Message *message)
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 is_service_message (const struct GNUNET_MESSENGER_Message *message)
 {
   if (GNUNET_YES == is_peer_message (message))
@@ -1105,7 +1105,7 @@ is_service_message (const struct GNUNET_MESSENGER_Message *message)
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 filter_message_sending (const struct GNUNET_MESSENGER_Message *message)
 {
   if (GNUNET_YES == is_peer_message (message))

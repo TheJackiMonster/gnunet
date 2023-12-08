@@ -12,3 +12,5 @@ UNIX_MATCH_GID = YES
 
 # Directory to store messages and contacts
 MESSENGER_DIR = $GNUNET_DATA_HOME/messenger/
+MESSENGER_AUTO_ROUTING = YES
+MESSENGER_MIN_ROUTERS = 3

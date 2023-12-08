@@ -48,6 +48,9 @@ struct GNUNET_MESSENGER_Service
   struct GNUNET_PeerIdentity *peer;
   char *dir;
 
+  enum GNUNET_GenericReturnValue auto_routing;
+  unsigned long long min_routers;
+
   struct GNUNET_CADET_Handle *cadet;
 
   struct GNUNET_MESSENGER_ContactStore contact_store;
@@ -114,7 +117,7 @@ remove_service_handle (struct GNUNET_MESSENGER_Service *service,
  * @param[out] peer Peer identity
  * @return #GNUNET_OK on success, otherwise #GNUNET_SYSERR
  */
-int
+enum GNUNET_GenericReturnValue
 get_service_peer_identity (struct GNUNET_MESSENGER_Service *service,
                            struct GNUNET_PeerIdentity *peer);
 
@@ -139,7 +142,7 @@ get_service_room (const struct GNUNET_MESSENGER_Service *service,
  * @param[in] key Key of room
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
-int
+enum GNUNET_GenericReturnValue
 open_service_room (struct GNUNET_MESSENGER_Service *service,
                    struct GNUNET_MESSENGER_SrvHandle *handle,
                    const struct GNUNET_HashCode *key);
@@ -157,7 +160,7 @@ open_service_room (struct GNUNET_MESSENGER_Service *service,
  * @param[in] key Key of room
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
-int
+enum GNUNET_GenericReturnValue
 entry_service_room (struct GNUNET_MESSENGER_Service *service,
                     struct GNUNET_MESSENGER_SrvHandle *handle,
                     const struct GNUNET_PeerIdentity *door,
@@ -175,7 +178,7 @@ entry_service_room (struct GNUNET_MESSENGER_Service *service,
  * @param[in] key Key of room
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
-int
+enum GNUNET_GenericReturnValue
 close_service_room (struct GNUNET_MESSENGER_Service *service,
                     struct GNUNET_MESSENGER_SrvHandle *handle,
                     const struct GNUNET_HashCode *key);

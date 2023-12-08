@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -83,7 +83,7 @@ bind_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
  * @param[in,out] tunnel Tunnel
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
-int
+enum GNUNET_GenericReturnValue
 connect_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel);
 
 /**
@@ -101,7 +101,7 @@ disconnect_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel);
  * @param[in] tunnel Tunnel
  * @return #GNUNET_YES or #GNUNET_NO
  */
-int
+enum GNUNET_GenericReturnValue
 is_tunnel_connected (const struct GNUNET_MESSENGER_SrvTunnel *tunnel);
 
 /**
@@ -127,7 +127,7 @@ send_tunnel_envelope (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
  * @param[in,out] message Message
  * @return #GNUNET_YES on success, GNUNET_NO otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 send_tunnel_message (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
                      void *handle,
                      struct GNUNET_MESSENGER_Message *message);
@@ -185,8 +185,9 @@ get_tunnel_messenger_version (const struct GNUNET_MESSENGER_SrvTunnel *tunnel);
  *
  * @param[in,out] tunnel Tunnel
  * @param[in] version Version of messenger
+ * @result #GNUNET_OK on success, otherwise #GNUNET_SYSERR
  */
-int
+enum GNUNET_GenericReturnValue
 update_tunnel_messenger_version (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
                                  uint32_t version);
 

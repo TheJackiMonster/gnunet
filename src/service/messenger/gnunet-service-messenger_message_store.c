@@ -43,7 +43,7 @@ init_message_store (struct GNUNET_MESSENGER_MessageStore *store)
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_destroy_entries (void *cls,
                          const struct GNUNET_HashCode *key,
                          void *value)
@@ -56,7 +56,7 @@ iterate_destroy_entries (void *cls,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_destroy_messages (void *cls,
                           const struct GNUNET_HashCode *key,
                           void *value)
@@ -69,7 +69,7 @@ iterate_destroy_messages (void *cls,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_destroy_links (void *cls,
                        const struct GNUNET_HashCode *key,
                        void *value)
@@ -279,7 +279,7 @@ struct GNUNET_MESSENGER_ClosureMessageSave
   struct GNUNET_DISK_FileHandle *storage;
 };
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_save_entries (void *cls,
                       const struct GNUNET_HashCode *key,
                       void *value)
@@ -297,7 +297,7 @@ iterate_save_entries (void *cls,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_save_messages (void *cls,
                        const struct GNUNET_HashCode *key,
                        void *value)
@@ -340,7 +340,7 @@ iterate_save_messages (void *cls,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_save_links (void *cls,
                     const struct GNUNET_HashCode *key,
                     void *value)
@@ -451,7 +451,7 @@ close_entries:
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 contains_store_message (const struct GNUNET_MESSENGER_MessageStore *store,
                         const struct GNUNET_HashCode *hash)
 {
@@ -504,8 +504,9 @@ get_store_message (struct GNUNET_MESSENGER_MessageStore *store,
 
   message = create_message (GNUNET_MESSENGER_KIND_UNKNOWN);
 
-  const int decoding = decode_message (message, entry->length, buffer,
-                                       GNUNET_YES, NULL);
+  enum GNUNET_GenericReturnValue decoding;
+  decoding = decode_message (message, entry->length, buffer,
+                             GNUNET_YES, NULL);
 
   struct GNUNET_HashCode check;
   hash_message (message, entry->length, buffer, &check);
@@ -541,7 +542,7 @@ free_buffer:
 const struct GNUNET_MESSENGER_MessageLink*
 get_store_message_link (struct GNUNET_MESSENGER_MessageStore *store,
                         const struct GNUNET_HashCode *hash,
-                        int deleted_only)
+                        enum GNUNET_GenericReturnValue deleted_only)
 {
   if (deleted_only)
     goto get_link;
@@ -574,7 +575,7 @@ get_link:
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 put_store_message (struct GNUNET_MESSENGER_MessageStore *store,
                    const struct GNUNET_HashCode *hash,
                    struct GNUNET_MESSENGER_Message *message)
@@ -613,7 +614,7 @@ add_link (struct GNUNET_MESSENGER_MessageStore *store,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 delete_store_message (struct GNUNET_MESSENGER_MessageStore *store,
                       const struct GNUNET_HashCode *hash)
 {

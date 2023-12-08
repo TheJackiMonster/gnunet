@@ -45,6 +45,7 @@ struct GNUNET_MESSENGER_SrvHandle
 
   struct GNUNET_CONTAINER_MultiHashMap *member_ids;
   struct GNUNET_CONTAINER_MultiHashMap *next_ids;
+  struct GNUNET_CONTAINER_MultiHashMap *routing;
 
   struct GNUNET_SCHEDULER_Task *notify;
 };
@@ -124,7 +125,7 @@ get_srv_handle_member_id (const struct GNUNET_MESSENGER_SrvHandle *handle,
  * @param[in] unique_id Unique member id
  * @return GNUNET_OK on success, otherwise GNUNET_SYSERR
  */
-int
+enum GNUNET_GenericReturnValue
 change_srv_handle_member_id (struct GNUNET_MESSENGER_SrvHandle *handle,
                              const struct GNUNET_HashCode *key,
                              const struct GNUNET_ShortHashCode *unique_id);
@@ -137,7 +138,7 @@ change_srv_handle_member_id (struct GNUNET_MESSENGER_SrvHandle *handle,
  * @param[in] key Key of a room
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
-int
+enum GNUNET_GenericReturnValue
 open_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
                       const struct GNUNET_HashCode *key);
 
@@ -150,7 +151,7 @@ open_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
  * @param[in] key Key of a room
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
-int
+enum GNUNET_GenericReturnValue
 entry_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
                        const struct GNUNET_PeerIdentity *door,
                        const struct GNUNET_HashCode *key);
@@ -163,9 +164,11 @@ entry_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
  * @param[in] key Key of a room
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
-int
+enum GNUNET_GenericReturnValue
 close_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
                        const struct GNUNET_HashCode *key);
+
+
 
 /**
  * Returns the latest merged hash from a room of a given <i>handle</i> using a specific <i>key</i>
@@ -192,7 +195,7 @@ sync_srv_handle_messages (struct GNUNET_MESSENGER_SrvHandle *handle,
  * @param[in] message Message
  * @return #GNUNET_YES on success, #GNUNET_NO or #GNUNET_SYSERR otherwise.
  */
-int
+enum GNUNET_GenericReturnValue
 send_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
                          const struct GNUNET_HashCode *key,
                          const struct GNUNET_MESSENGER_Message *message);

@@ -41,7 +41,7 @@ count_of_tunnels (const struct GNUNET_MESSENGER_ListTunnels *tunnels)
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 should_connect_tunnel_to (size_t count,
                           size_t src,
                           size_t dst)
@@ -53,7 +53,7 @@ should_connect_tunnel_to (size_t count,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 required_connection_between (size_t count,
                              size_t src,
                              size_t dst)

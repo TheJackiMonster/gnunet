@@ -50,6 +50,7 @@ create_srv_handle (struct GNUNET_MESSENGER_Service *service,
 
   handle->member_ids = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
   handle->next_ids = GNUNET_CONTAINER_multihashmap_create (4, GNUNET_NO);
+  handle->routing = GNUNET_CONTAINER_multihashmap_create (4, GNUNET_NO);
 
   handle->notify = NULL;
 
@@ -57,13 +58,12 @@ create_srv_handle (struct GNUNET_MESSENGER_Service *service,
 }
 
 
-int
-iterate_free_member_ids (void *cls,
-                         const struct GNUNET_HashCode *key,
-                         void *value)
+static enum GNUNET_GenericReturnValue
+iterate_free_values (void *cls,
+                     const struct GNUNET_HashCode *key,
+                     void *value)
 {
   GNUNET_free (value);
-
   return GNUNET_YES;
 }
 
@@ -77,12 +77,13 @@ destroy_srv_handle (struct GNUNET_MESSENGER_SrvHandle *handle)
     GNUNET_SCHEDULER_cancel (handle->notify);
 
   GNUNET_CONTAINER_multihashmap_iterate (handle->next_ids,
-                                         iterate_free_member_ids, NULL);
+                                         iterate_free_values, NULL);
   GNUNET_CONTAINER_multihashmap_iterate (handle->member_ids,
-                                         iterate_free_member_ids, NULL);
+                                         iterate_free_values, NULL);
 
   GNUNET_CONTAINER_multihashmap_destroy (handle->next_ids);
   GNUNET_CONTAINER_multihashmap_destroy (handle->member_ids);
+  GNUNET_CONTAINER_multihashmap_destroy (handle->routing);
 
   GNUNET_free (handle);
 }
@@ -132,7 +133,7 @@ get_srv_handle_data_subdir (const struct GNUNET_MESSENGER_SrvHandle *handle,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 create_handle_member_id (const struct GNUNET_MESSENGER_SrvHandle *handle,
                          const struct GNUNET_HashCode *key)
 {
@@ -173,7 +174,7 @@ get_srv_handle_member_id (const struct GNUNET_MESSENGER_SrvHandle *handle,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 change_srv_handle_member_id (struct GNUNET_MESSENGER_SrvHandle *handle,
                              const struct GNUNET_HashCode *key,
                              const struct GNUNET_ShortHashCode *unique_id)
@@ -213,22 +214,28 @@ change_srv_handle_member_id (struct GNUNET_MESSENGER_SrvHandle *handle,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 open_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
                       const struct GNUNET_HashCode *key)
 {
   GNUNET_assert ((handle) && (key));
 
-  if ((! get_srv_handle_member_id (handle, key)) && (GNUNET_YES !=
-                                                     create_handle_member_id (
-                                                       handle, key)))
+  if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (handle->routing,
+                                                      key,
+                                                      NULL,
+                                                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_REPLACE))
+    return GNUNET_NO;
+
+  if ((! get_srv_handle_member_id (handle, key)) &&
+      (GNUNET_YES != create_handle_member_id (handle,
+                                              key)))
     return GNUNET_NO;
 
   return open_service_room (handle->service, handle, key);
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 entry_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
                        const struct GNUNET_PeerIdentity *door,
                        const struct GNUNET_HashCode *key)
@@ -244,14 +251,14 @@ entry_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 close_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
                        const struct GNUNET_HashCode *key)
 {
   GNUNET_assert ((handle) && (key));
 
   GNUNET_CONTAINER_multihashmap_get_multiple (handle->next_ids, key,
-                                              iterate_free_member_ids, NULL);
+                                              iterate_free_values, NULL);
   GNUNET_CONTAINER_multihashmap_remove_all (handle->next_ids, key);
 
   if ((handle->notify) && (0 == GNUNET_CONTAINER_multihashmap_size (
@@ -264,7 +271,14 @@ close_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
   if (! get_srv_handle_member_id (handle, key))
     return GNUNET_NO;
 
-  return close_service_room (handle->service, handle, key);
+  enum GNUNET_GenericReturnValue result;
+  result = close_service_room (handle->service, handle, key);
+
+  if (GNUNET_YES != result)
+    return result;
+
+  GNUNET_CONTAINER_multihashmap_remove_all (handle->routing, key);
+  return result;
 }
 
 
@@ -290,7 +304,7 @@ sync_srv_handle_messages (struct GNUNET_MESSENGER_SrvHandle *handle,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 send_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
                          const struct GNUNET_HashCode *key,
                          const struct GNUNET_MESSENGER_Message *message)
@@ -449,7 +463,7 @@ notify_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_next_member_ids (void *cls,
                          const struct GNUNET_HashCode *key,
                          void *value)

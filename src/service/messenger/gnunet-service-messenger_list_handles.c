@@ -72,7 +72,7 @@ add_list_handle (struct GNUNET_MESSENGER_ListHandles *handles,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 remove_list_handle (struct GNUNET_MESSENGER_ListHandles *handles,
                     struct GNUNET_MESSENGER_SrvHandle *handle)
 {

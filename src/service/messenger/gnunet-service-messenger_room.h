@@ -102,7 +102,7 @@ create_srv_room (struct GNUNET_MESSENGER_SrvHandle *handle,
  */
 void
 destroy_srv_room (struct GNUNET_MESSENGER_SrvRoom *room,
-                  int deletion);
+                  enum GNUNET_GenericReturnValue deletion);
 
 /**
  * Returns the used peer store of a given <i>room</i>.
@@ -152,7 +152,7 @@ get_srv_room_operation_store (struct GNUNET_MESSENGER_SrvRoom *room);
  * @param[in,out] handle Handle
  * @return #GNUNET_YES on success, #GNUNET_NO on failure.
  */
-int
+enum GNUNET_GenericReturnValue
 open_srv_room (struct GNUNET_MESSENGER_SrvRoom *room,
                struct GNUNET_MESSENGER_SrvHandle *handle);
 
@@ -166,7 +166,7 @@ open_srv_room (struct GNUNET_MESSENGER_SrvRoom *room,
  * @param[in] door Peer identity
  * @return #GNUNET_YES on success, #GNUNET_NO on failure.
  */
-int
+enum GNUNET_GenericReturnValue
 enter_srv_room_at (struct GNUNET_MESSENGER_SrvRoom *room,
                    struct GNUNET_MESSENGER_SrvHandle *handle,
                    const struct GNUNET_PeerIdentity *door);
@@ -193,7 +193,7 @@ pack_srv_room_message (const struct GNUNET_MESSENGER_SrvRoom *room,
                        const struct GNUNET_MESSENGER_SrvHandle *handle,
                        struct GNUNET_MESSENGER_Message *message,
                        struct GNUNET_HashCode *hash,
-                       int mode);
+                       enum GNUNET_MESSENGER_PackMode mode);
 
 /**
  * Sends a <i>message</i> from a given <i>handle</i> into a <i>room</i>. The <i>hash</i> parameter will be
@@ -210,7 +210,7 @@ pack_srv_room_message (const struct GNUNET_MESSENGER_SrvRoom *room,
  * @param[in,out] message Message
  * @return #GNUNET_YES on success, #GNUNET_NO or #GNUNET_SYSERR otherwise.
  */
-int
+enum GNUNET_GenericReturnValue
 send_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
                        struct GNUNET_MESSENGER_SrvHandle *handle,
                        struct GNUNET_MESSENGER_Message *message);
@@ -262,7 +262,7 @@ merge_srv_room_last_messages (struct GNUNET_MESSENGER_SrvRoom *room,
  * @param[in] delay Delay of deletion
  * @return #GNUNET_YES on success, #GNUNET_NO if permission gets denied, #GNUNET_SYSERR on operation failure
  */
-int
+enum GNUNET_GenericReturnValue
 delete_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
                          struct GNUNET_MESSENGER_MemberSession *session,
                          const struct GNUNET_HashCode *hash,
@@ -328,7 +328,7 @@ typedef void (GNUNET_MESSENGER_MessageRequestCallback) (
  * @param[in] cls Closure for the <i>callback</i>
  * @return #GNUNET_YES if the request could be processed, otherwise #GNUNET_NO
  */
-int
+enum GNUNET_GenericReturnValue
 request_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
                           const struct GNUNET_HashCode *hash,
                           const struct GNUNET_MESSENGER_MemberSession *session,

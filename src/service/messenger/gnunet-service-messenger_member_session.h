@@ -52,8 +52,8 @@ struct GNUNET_MESSENGER_MemberSession
 
   struct GNUNET_TIME_Absolute start;
 
-  int closed;
-  int completed;
+  enum GNUNET_GenericReturnValue closed;
+  enum GNUNET_GenericReturnValue completed;
 };
 
 /**
@@ -105,7 +105,7 @@ destroy_member_session (struct GNUNET_MESSENGER_MemberSession *session);
  * @param[in] hash Hash of initial message (JOIN message!)
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 reset_member_session (struct GNUNET_MESSENGER_MemberSession *session,
                       const struct GNUNET_HashCode *hash);
 
@@ -127,7 +127,7 @@ close_member_session (struct GNUNET_MESSENGER_MemberSession *session);
  * @param[in] session Member session
  * @return #GNUNET_YES or #GNUNET_NO
  */
-int
+enum GNUNET_GenericReturnValue
 is_member_session_closed (const struct GNUNET_MESSENGER_MemberSession *session);
 
 /**
@@ -139,7 +139,7 @@ is_member_session_closed (const struct GNUNET_MESSENGER_MemberSession *session);
  * @param[in] session Member session
  * @return #GNUNET_YES or #GNUNET_NO
  */
-int
+enum GNUNET_GenericReturnValue
 is_member_session_completed (const struct
                              GNUNET_MESSENGER_MemberSession *session);
 
@@ -211,7 +211,7 @@ get_member_session_contact (struct GNUNET_MESSENGER_MemberSession *session);
  * @param[in] hash Hash of message
  * @return #GNUNET_OK on success, otherwise #GNUNET_SYSERR
  */
-int
+enum GNUNET_GenericReturnValue
 verify_member_session_as_sender (const struct
                                  GNUNET_MESSENGER_MemberSession *session,
                                  const struct GNUNET_MESSENGER_Message *message,
@@ -227,11 +227,11 @@ verify_member_session_as_sender (const struct
  * @param[in] ownership Ownership flag
  * @return #GNUNET_YES if found, otherwise #GNUNET_NO
  */
-int
+enum GNUNET_GenericReturnValue
 check_member_session_history (const struct
                               GNUNET_MESSENGER_MemberSession *session,
                               const struct GNUNET_HashCode *hash,
-                              int ownership);
+                              enum GNUNET_GenericReturnValue ownership);
 
 /**
  * Adds a given <i>message</i> to the history of a <i>session</i> using the messages

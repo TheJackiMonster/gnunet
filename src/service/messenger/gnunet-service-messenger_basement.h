@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -47,7 +47,7 @@ count_of_tunnels (const struct GNUNET_MESSENGER_ListTunnels *tunnels);
  * @param[in] dst Destination index
  * @return #GNUNET_YES or #GNUNET_NO based on topologic requirement
  */
-int
+enum GNUNET_GenericReturnValue
 should_connect_tunnel_to (size_t count,
                           size_t src,
                           size_t dst);
@@ -62,7 +62,7 @@ should_connect_tunnel_to (size_t count,
  * @param[in] dst Destination index
  * @return #GNUNET_YES or #GNUNET_NO based on topologic requirement
  */
-int
+enum GNUNET_GenericReturnValue
 required_connection_between (size_t count,
                              size_t src,
                              size_t dst);

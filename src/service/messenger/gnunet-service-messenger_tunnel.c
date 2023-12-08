@@ -108,13 +108,13 @@ callback_tunnel_disconnect (void *cls,
 }
 
 
-extern int
+extern enum GNUNET_GenericReturnValue
 callback_verify_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
                               void *cls,
                               struct GNUNET_MESSENGER_Message *message,
                               struct GNUNET_HashCode *hash);
 
-int
+enum GNUNET_GenericReturnValue
 check_tunnel_message (void *cls,
                       const struct GNUNET_MessageHeader *header)
 {
@@ -152,7 +152,7 @@ check_tunnel_message (void *cls,
 }
 
 
-extern int
+extern enum GNUNET_GenericReturnValue
 update_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
                      struct GNUNET_MESSENGER_Message *message,
                      const struct GNUNET_HashCode *hash);
@@ -169,10 +169,10 @@ update_tunnel_last_message (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
   struct GNUNET_MESSENGER_OperationStore *operation_store =
     get_srv_room_operation_store (tunnel->room);
 
-  const int requested = (GNUNET_MESSENGER_OP_REQUEST ==
-                         get_store_operation_type (operation_store, hash)?
-                         GNUNET_YES : GNUNET_NO
-                         );
+  enum GNUNET_GenericReturnValue requested;
+  requested = (GNUNET_MESSENGER_OP_REQUEST ==
+      get_store_operation_type (operation_store, hash)?
+          GNUNET_YES : GNUNET_NO);
 
   struct GNUNET_MESSENGER_MessageStore *message_store =
     get_srv_room_message_store (tunnel->room);
@@ -207,16 +207,17 @@ handle_tunnel_message (void *cls, const struct GNUNET_MessageHeader *header)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Got message of kind: %s!\n",
               GNUNET_MESSENGER_name_of_kind (message.header.kind));
 
-  const int new_message = update_room_message (
-    tunnel->room, copy_message (&message), &hash
-    );
+  enum GNUNET_GenericReturnValue new_message;
+  new_message = update_room_message (tunnel->room,
+                                     copy_message (&message),
+                                     &hash);
 
   if (GNUNET_YES != new_message)
     goto receive_done;
 
   update_tunnel_last_message (tunnel, &hash);
 
-  int forward_message = GNUNET_YES;
+  enum GNUNET_GenericReturnValue forward_message = GNUNET_YES;
 
   switch (message.header.kind)
   {
@@ -247,7 +248,7 @@ receive_done:
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 connect_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel)
 {
   GNUNET_assert (tunnel);
@@ -292,7 +293,7 @@ disconnect_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel)
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 is_tunnel_connected (const struct GNUNET_MESSENGER_SrvTunnel *tunnel)
 {
   GNUNET_assert (tunnel);
@@ -340,7 +341,7 @@ send_tunnel_envelope (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 send_tunnel_message (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
                      void *handle,
                      struct GNUNET_MESSENGER_Message *message)
@@ -421,7 +422,7 @@ get_tunnel_messenger_version (const struct GNUNET_MESSENGER_SrvTunnel *tunnel)
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 update_tunnel_messenger_version (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
                                  uint32_t version)
 {

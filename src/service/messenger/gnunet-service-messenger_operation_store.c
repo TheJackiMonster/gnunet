@@ -64,7 +64,7 @@ clear_operation_store (struct GNUNET_MESSENGER_OperationStore *store)
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 callback_scan_for_operations (void *cls,
                               const char *filename)
 {
@@ -107,7 +107,7 @@ load_operation_store (struct GNUNET_MESSENGER_OperationStore *store,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_save_operations (void *cls,
                          const struct GNUNET_HashCode *key,
                          void *value)
@@ -162,7 +162,7 @@ get_store_operation_type (const struct GNUNET_MESSENGER_OperationStore *store,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 use_store_operation (struct GNUNET_MESSENGER_OperationStore *store,
                      const struct GNUNET_HashCode *hash,
                      enum GNUNET_MESSENGER_OperationType type,

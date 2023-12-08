@@ -43,7 +43,7 @@ static void
 notify_about_members (struct GNUNET_MESSENGER_MemberNotify *notify,
                       struct GNUNET_MESSENGER_MemberSession *session,
                       struct GNUNET_CONTAINER_MultiHashMap *map,
-                      int check_permission)
+                      enum GNUNET_GenericReturnValue check_permission)
 {
   if (session->prev)
     notify_about_members (notify, session->prev, map, GNUNET_YES);

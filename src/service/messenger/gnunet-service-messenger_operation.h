@@ -112,7 +112,7 @@ save_operation (const struct GNUNET_MESSENGER_Operation *op,
  * @param[in] delay Delay
  * @return #GNUNET_OK on success, otherwise #GNUNET_SYSERR
  */
-int
+enum GNUNET_GenericReturnValue
 start_operation (struct GNUNET_MESSENGER_Operation *op,
                  enum GNUNET_MESSENGER_OperationType type,
                  struct GNUNET_MESSENGER_OperationStore *store,
@@ -124,7 +124,7 @@ start_operation (struct GNUNET_MESSENGER_Operation *op,
  *
  * @return #GNUNET_OK on success, otherwise #GNUNET_SYSERR
  */
-int
+enum GNUNET_GenericReturnValue
 stop_operation (struct GNUNET_MESSENGER_Operation *op);
 
 #endif //GNUNET_SERVICE_MESSENGER_OPERATION_H

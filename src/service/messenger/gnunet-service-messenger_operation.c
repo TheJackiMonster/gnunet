@@ -189,7 +189,7 @@ callback_operation (void *cls)
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 start_operation (struct GNUNET_MESSENGER_Operation *op,
                  enum GNUNET_MESSENGER_OperationType type,
                  struct GNUNET_MESSENGER_OperationStore *store,
@@ -220,7 +220,7 @@ start_operation (struct GNUNET_MESSENGER_Operation *op,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 stop_operation (struct GNUNET_MESSENGER_Operation *op)
 {
   GNUNET_assert (op);

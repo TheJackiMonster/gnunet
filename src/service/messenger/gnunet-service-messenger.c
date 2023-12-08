@@ -294,7 +294,8 @@ check_send_message (void *cls,
                                     NULL))
     return GNUNET_NO;
 
-  const int allowed = filter_message_sending (&message);
+  enum GNUNET_GenericReturnValue allowed;
+  allowed = filter_message_sending (&message);
 
   cleanup_message (&message);
   return GNUNET_SYSERR != allowed? GNUNET_OK : GNUNET_NO;

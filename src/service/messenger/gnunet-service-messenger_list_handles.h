@@ -79,7 +79,7 @@ add_list_handle (struct GNUNET_MESSENGER_ListHandles *handles,
  * @param[in,out] handle Handle
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
-int
+enum GNUNET_GenericReturnValue
 remove_list_handle (struct GNUNET_MESSENGER_ListHandles *handles,
                     struct GNUNET_MESSENGER_SrvHandle *handle);
 

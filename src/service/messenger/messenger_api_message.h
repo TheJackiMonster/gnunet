@@ -81,7 +81,7 @@ destroy_message (struct GNUNET_MESSENGER_Message *message);
  * @param[in] message Message
  * @return #GNUNET_YES or #GNUNET_NO
  */
-int
+enum GNUNET_GenericReturnValue
 is_message_session_bound (const struct GNUNET_MESSENGER_Message *message);
 
 /**
@@ -93,7 +93,7 @@ is_message_session_bound (const struct GNUNET_MESSENGER_Message *message);
  */
 uint16_t
 get_message_kind_size (enum GNUNET_MESSENGER_MessageKind kind,
-                       int include_header);
+                       enum GNUNET_GenericReturnValue include_header);
 
 /**
  * Returns the exact size in bytes to encode a given <i>message</i>.
@@ -104,7 +104,7 @@ get_message_kind_size (enum GNUNET_MESSENGER_MessageKind kind,
  */
 uint16_t
 get_message_size (const struct GNUNET_MESSENGER_Message *message,
-                  int include_header);
+                  enum GNUNET_GenericReturnValue include_header);
 
 /**
  * Encodes a given <i>message</i> into a <i>buffer</i> of a maximal <i>length</i> in bytes.
@@ -118,7 +118,7 @@ void
 encode_message (const struct GNUNET_MESSENGER_Message *message,
                 uint16_t length,
                 char *buffer,
-                int include_header);
+                enum GNUNET_GenericReturnValue include_header);
 
 /**
  * Decodes a <i>message</i> from a given <i>buffer</i> of a maximal <i>length</i> in bytes.
@@ -135,11 +135,11 @@ encode_message (const struct GNUNET_MESSENGER_Message *message,
  * @param[out] padding Padding
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
-int
+enum GNUNET_GenericReturnValue
 decode_message (struct GNUNET_MESSENGER_Message *message,
                 uint16_t length,
                 const char *buffer,
-                int include_header,
+                enum GNUNET_GenericReturnValue include_header,
                 uint16_t *padding);
 
 /**
@@ -201,7 +201,7 @@ sign_message_by_peer (struct GNUNET_MESSENGER_Message *message,
  * @param[in] key Public key
  * @return #GNUNET_OK on success, otherwise #GNUNET_SYSERR
  */
-int
+enum GNUNET_GenericReturnValue
 verify_message (const struct GNUNET_MESSENGER_Message *message,
                 const struct GNUNET_HashCode *hash,
                 const struct GNUNET_CRYPTO_PublicKey *key);
@@ -216,7 +216,7 @@ verify_message (const struct GNUNET_MESSENGER_Message *message,
  * @param[in] identity Peer identity
  * @return #GNUNET_OK on success, otherwise #GNUNET_SYSERR
  */
-int
+enum GNUNET_GenericReturnValue
 verify_message_by_peer (const struct GNUNET_MESSENGER_Message *message,
                         const struct GNUNET_HashCode *hash,
                         const struct GNUNET_PeerIdentity *identity);
@@ -230,7 +230,7 @@ verify_message_by_peer (const struct GNUNET_MESSENGER_Message *message,
  * @param[in] key Public key
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
-int
+enum GNUNET_GenericReturnValue
 encrypt_message (struct GNUNET_MESSENGER_Message *message,
                  const struct GNUNET_CRYPTO_PublicKey *key);
 
@@ -243,7 +243,7 @@ encrypt_message (struct GNUNET_MESSENGER_Message *message,
  * @param[in] key Private key
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
-int
+enum GNUNET_GenericReturnValue
 decrypt_message (struct GNUNET_MESSENGER_Message *message,
                  const struct GNUNET_CRYPTO_PrivateKey *key);
 
@@ -255,8 +255,11 @@ typedef void (*GNUNET_MESSENGER_SignFunction)(
   const struct GNUNET_HashCode *hash
   );
 
-#define GNUNET_MESSENGER_PACK_MODE_ENVELOPE 0x1
-#define GNUNET_MESSENGER_PACK_MODE_UNKNOWN 0x0
+enum GNUNET_MESSENGER_PackMode
+{
+  GNUNET_MESSENGER_PACK_MODE_ENVELOPE = 0x1,
+  GNUNET_MESSENGER_PACK_MODE_UNKNOWN = 0x0,
+};
 
 /**
  * Encodes the <i>message</i> to pack it into a newly allocated envelope if <i>mode</i>
@@ -275,7 +278,7 @@ struct GNUNET_MQ_Envelope*
 pack_message (struct GNUNET_MESSENGER_Message *message,
               struct GNUNET_HashCode *hash,
               const GNUNET_MESSENGER_SignFunction sign,
-              int mode,
+              enum GNUNET_MESSENGER_PackMode mode,
               const void *cls);
 
 /**
@@ -286,7 +289,7 @@ pack_message (struct GNUNET_MESSENGER_Message *message,
  * @param[in] message Message
  * @return #GNUNET_YES if sending is allowed, #GNUNET_NO otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 is_peer_message (const struct GNUNET_MESSENGER_Message *message);
 
 /**
@@ -300,7 +303,7 @@ is_peer_message (const struct GNUNET_MESSENGER_Message *message);
  * @param[in] message Message
  * @return #GNUNET_YES if encrypting is disallowed, #GNUNET_NO or #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 is_service_message (const struct GNUNET_MESSENGER_Message *message);
 
 /**
@@ -311,7 +314,7 @@ is_service_message (const struct GNUNET_MESSENGER_Message *message);
  * @param[in] message Message
  * @return #GNUNET_YES if sending is allowed, #GNUNET_NO or #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 filter_message_sending (const struct GNUNET_MESSENGER_Message *message);
 
 #endif //GNUNET_MESSENGER_API_MESSAGE_H

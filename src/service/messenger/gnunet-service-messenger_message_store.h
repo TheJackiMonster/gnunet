@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -53,8 +53,8 @@ struct GNUNET_MESSENGER_MessageStore
   struct GNUNET_CONTAINER_MultiHashMap *messages;
   struct GNUNET_CONTAINER_MultiHashMap *links;
 
-  int rewrite_entries;
-  int write_links;
+  enum GNUNET_GenericReturnValue rewrite_entries;
+  enum GNUNET_GenericReturnValue write_links;
 };
 
 /**
@@ -103,7 +103,7 @@ save_message_store (struct GNUNET_MESSENGER_MessageStore *store,
  * @param[in] hash Hash of message
  * @return #GNUNET_YES on match, otherwise #GNUNET_NO
  */
-int
+enum GNUNET_GenericReturnValue
 contains_store_message (const struct GNUNET_MESSENGER_MessageStore *store,
                         const struct GNUNET_HashCode *hash);
 
@@ -138,7 +138,7 @@ get_store_message (struct GNUNET_MESSENGER_MessageStore *store,
 const struct GNUNET_MESSENGER_MessageLink*
 get_store_message_link (struct GNUNET_MESSENGER_MessageStore *store,
                         const struct GNUNET_HashCode *hash,
-                        int deleted_only);
+                        enum GNUNET_GenericReturnValue deleted_only);
 
 /**
  * Stores a message into the message store. The result indicates if the operation was successful.
@@ -148,7 +148,7 @@ get_store_message_link (struct GNUNET_MESSENGER_MessageStore *store,
  * @param[in,out] message Message
  * @return #GNUNET_OK on success, otherwise #GNUNET_NO
  */
-int
+enum GNUNET_GenericReturnValue
 put_store_message (struct GNUNET_MESSENGER_MessageStore *store,
                    const struct GNUNET_HashCode *hash,
                    struct GNUNET_MESSENGER_Message *message);
@@ -161,7 +161,7 @@ put_store_message (struct GNUNET_MESSENGER_MessageStore *store,
  * @param[in] hash Hash of message
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on failure
  */
-int
+enum GNUNET_GenericReturnValue
 delete_store_message (struct GNUNET_MESSENGER_MessageStore *store,
                       const struct GNUNET_HashCode *hash);
 

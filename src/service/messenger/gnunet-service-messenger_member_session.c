@@ -173,7 +173,7 @@ completion:
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_copy_history (void *cls,
                       const struct GNUNET_HashCode *key,
                       void *value)
@@ -287,7 +287,7 @@ destroy_member_session (struct GNUNET_MESSENGER_MemberSession *session)
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 reset_member_session (struct GNUNET_MESSENGER_MemberSession *session,
                       const struct GNUNET_HashCode *hash)
 {
@@ -332,7 +332,7 @@ close_member_session (struct GNUNET_MESSENGER_MemberSession *session)
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 is_member_session_closed (const struct GNUNET_MESSENGER_MemberSession *session)
 {
   GNUNET_assert (session);
@@ -341,7 +341,7 @@ is_member_session_closed (const struct GNUNET_MESSENGER_MemberSession *session)
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 is_member_session_completed (const struct
                              GNUNET_MESSENGER_MemberSession *session)
 {
@@ -410,7 +410,7 @@ get_member_session_contact (struct GNUNET_MESSENGER_MemberSession *session)
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 verify_member_session_as_sender (const struct
                                  GNUNET_MESSENGER_MemberSession *session,
                                  const struct GNUNET_MESSENGER_Message *message,
@@ -435,10 +435,11 @@ verify_member_session_as_sender (const struct
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 check_member_session_history (const struct
                               GNUNET_MESSENGER_MemberSession *session,
-                              const struct GNUNET_HashCode *hash, int ownership)
+                              const struct GNUNET_HashCode *hash,
+                              enum GNUNET_GenericReturnValue ownership)
 {
   GNUNET_assert ((session) && (hash));
 
@@ -452,7 +453,8 @@ check_member_session_history (const struct
 
 static void
 update_member_chain_history (struct GNUNET_MESSENGER_MemberSession *session,
-                             const struct GNUNET_HashCode *hash, int ownership)
+                             const struct GNUNET_HashCode *hash,
+                             enum GNUNET_GenericReturnValue ownership)
 {
   GNUNET_assert ((session) && (hash));
 
@@ -546,7 +548,7 @@ load_member_session_history (struct GNUNET_MESSENGER_MemberSession *session,
   struct GNUNET_MESSENGER_MemberSessionHistoryEntry entry;
   ssize_t len;
 
-  int status;
+  enum GNUNET_GenericReturnValue status;
 
   do {
     len = GNUNET_DISK_file_read (handle, &(entry.hash), sizeof(entry.hash));
@@ -734,7 +736,7 @@ free_config:
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_save_member_session_history_hentries (void *cls,
                                               const struct GNUNET_HashCode *key,
                                               void *value)

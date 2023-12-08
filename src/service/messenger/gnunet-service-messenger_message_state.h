@@ -53,7 +53,7 @@ get_message_state_merge_hash (const struct
 
 void
 update_message_state (struct GNUNET_MESSENGER_MessageState *state,
-                      int requested,
+                      enum GNUNET_GenericReturnValue requested,
                       const struct GNUNET_MESSENGER_Message *message,
                       const struct GNUNET_HashCode *hash);
 

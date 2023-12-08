@@ -83,6 +83,16 @@ create_service (const struct GNUNET_CONFIGURATION_Handle *config,
     }
   }
 
+  service->auto_routing = GNUNET_CONFIGURATION_get_value_yesno (service->config,
+                                                                GNUNET_MESSENGER_SERVICE_NAME,
+                                                                "MESSENGER_AUTO_ROUTING");
+
+  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_number (service->config,
+                                                          GNUNET_MESSENGER_SERVICE_NAME,
+                                                          "MESSENGER_MIN_ROUTERS",
+                                                          &(service->min_routers)))
+    service->min_routers = 0;
+
   service->cadet = GNUNET_CADET_connect (service->config);
 
   init_list_handles (&(service->handles));
@@ -95,7 +105,7 @@ create_service (const struct GNUNET_CONFIGURATION_Handle *config,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_destroy_rooms (void *cls,
                        const struct GNUNET_HashCode *key,
                        void *value)
@@ -193,7 +203,7 @@ remove_service_handle (struct GNUNET_MESSENGER_Service *service,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 get_service_peer_identity (struct GNUNET_MESSENGER_Service *service,
                            struct GNUNET_PeerIdentity *peer)
 {
@@ -205,7 +215,8 @@ get_service_peer_identity (struct GNUNET_MESSENGER_Service *service,
     return GNUNET_OK;
   }
 
-  int result = GNUNET_CRYPTO_get_peer_identity (service->config, peer);
+  enum GNUNET_GenericReturnValue result;
+  result = GNUNET_CRYPTO_get_peer_identity (service->config, peer);
 
   if (GNUNET_OK != result)
     return result;
@@ -235,7 +246,7 @@ struct HandleInitializationClosure
   const struct GNUNET_CRYPTO_PublicKey *pubkey;
 };
 
-static int
+static enum GNUNET_GenericReturnValue
 find_member_session_in_room (void *cls,
                              const struct GNUNET_CRYPTO_PublicKey *public_key,
                              struct GNUNET_MESSENGER_MemberSession *session)
@@ -294,7 +305,7 @@ initialize_service_handle (struct GNUNET_MESSENGER_SrvHandle *handle,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 open_service_room (struct GNUNET_MESSENGER_Service *service,
                    struct GNUNET_MESSENGER_SrvHandle *handle,
                    const struct GNUNET_HashCode *key)
@@ -323,7 +334,7 @@ open_service_room (struct GNUNET_MESSENGER_Service *service,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 entry_service_room (struct GNUNET_MESSENGER_Service *service,
                     struct GNUNET_MESSENGER_SrvHandle *handle,
                     const struct GNUNET_PeerIdentity *door,
@@ -362,7 +373,7 @@ entry_service_room (struct GNUNET_MESSENGER_Service *service,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 close_service_room (struct GNUNET_MESSENGER_Service *service,
                     struct GNUNET_MESSENGER_SrvHandle *handle,
                     const struct GNUNET_HashCode *key)

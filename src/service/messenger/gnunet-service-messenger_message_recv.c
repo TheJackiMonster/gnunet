@@ -63,7 +63,7 @@ forward_about_members (struct GNUNET_MESSENGER_SrvRoom *room,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_forward_members (void *cls,
                          const struct GNUNET_CRYPTO_PublicKey *public_key,
                          struct GNUNET_MESSENGER_MemberSession *session)
@@ -83,7 +83,7 @@ iterate_forward_members (void *cls,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 recv_message_info (struct GNUNET_MESSENGER_SrvRoom *room,
                    struct GNUNET_MESSENGER_SrvTunnel *tunnel,
                    const struct GNUNET_MESSENGER_Message *message,
@@ -141,7 +141,7 @@ recv_message_info (struct GNUNET_MESSENGER_SrvRoom *room,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 recv_message_peer (struct GNUNET_MESSENGER_SrvRoom *room,
                    struct GNUNET_MESSENGER_SrvTunnel *tunnel,
                    const struct GNUNET_MESSENGER_Message *message,
@@ -192,7 +192,7 @@ callback_found_message (void *cls,
  * Function returns GNUNET_NO to drop forwarding the request.
  * It will only be forwarded if it can't be answered!
  */
-int
+enum GNUNET_GenericReturnValue
 recv_message_request (struct GNUNET_MESSENGER_SrvRoom *room,
                       struct GNUNET_MESSENGER_SrvTunnel *tunnel,
                       const struct GNUNET_MESSENGER_Message *message,

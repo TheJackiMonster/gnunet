@@ -459,7 +459,7 @@ iterate_room_members (struct GNUNET_MESSENGER_Room *room,
 struct GNUNET_MESSENGER_MemberFind
 {
   const struct GNUNET_MESSENGER_Contact *contact;
-  int result;
+  enum GNUNET_GenericReturnValue result;
 };
 
 static int

@@ -41,7 +41,7 @@ init_member_store (struct GNUNET_MESSENGER_MemberStore *store,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_destroy_members (void *cls,
                          const struct GNUNET_ShortHashCode *key,
                          void *value)
@@ -84,7 +84,7 @@ get_member_store_key (const struct GNUNET_MESSENGER_MemberStore *store)
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 callback_scan_for_members (void *cls,
                            const char *filename)
 {
@@ -105,7 +105,7 @@ callback_scan_for_members (void *cls,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_load_next_member_sessions (void *cls,
                                    const struct GNUNET_ShortHashCode *id,
                                    void *value)
@@ -129,7 +129,7 @@ iterate_load_next_member_sessions (void *cls,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_sync_member_contacts (void *cls,
                               const struct GNUNET_ShortHashCode *id,
                               void *value)
@@ -166,7 +166,7 @@ load_member_store (struct GNUNET_MESSENGER_MemberStore *store,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_save_members (void *cls,
                       const struct GNUNET_ShortHashCode *id,
                       void *value)

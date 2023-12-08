@@ -101,7 +101,7 @@ handle_room_messages (struct GNUNET_MESSENGER_SrvRoom *room);
 
 void
 destroy_srv_room (struct GNUNET_MESSENGER_SrvRoom *room,
-                  int deletion)
+                  enum GNUNET_GenericReturnValue deletion)
 {
   GNUNET_assert (room);
 
@@ -235,7 +235,7 @@ callback_room_connect (void *cls,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 join_room (struct GNUNET_MESSENGER_SrvRoom *room,
            struct GNUNET_MESSENGER_SrvHandle *handle,
            struct GNUNET_MESSENGER_Member *member,
@@ -264,7 +264,7 @@ join_room (struct GNUNET_MESSENGER_SrvRoom *room,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 join_room_locally (struct GNUNET_MESSENGER_SrvRoom *room,
                    struct GNUNET_MESSENGER_SrvHandle *handle)
 {
@@ -283,7 +283,7 @@ join_room_locally (struct GNUNET_MESSENGER_SrvRoom *room,
 }
 
 
-extern int
+extern enum GNUNET_GenericReturnValue
 check_tunnel_message (void *cls,
                       const struct GNUNET_MessageHeader *header);
 
@@ -295,7 +295,7 @@ extern void
 callback_tunnel_disconnect (void *cls,
                             const struct GNUNET_CADET_Channel *channel);
 
-int
+enum GNUNET_GenericReturnValue
 open_srv_room (struct GNUNET_MESSENGER_SrvRoom *room,
                struct GNUNET_MESSENGER_SrvHandle *handle)
 {
@@ -356,7 +356,7 @@ open_srv_room (struct GNUNET_MESSENGER_SrvRoom *room,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 enter_srv_room_at (struct GNUNET_MESSENGER_SrvRoom *room,
                    struct GNUNET_MESSENGER_SrvHandle *handle,
                    const struct GNUNET_PeerIdentity *door)
@@ -420,7 +420,7 @@ pack_srv_room_message (const struct GNUNET_MESSENGER_SrvRoom *room,
                        const struct GNUNET_MESSENGER_SrvHandle *handle,
                        struct GNUNET_MESSENGER_Message *message,
                        struct GNUNET_HashCode *hash,
-                       int mode)
+                       enum GNUNET_MESSENGER_PackMode mode)
 {
   GNUNET_assert ((room) && (handle) && (message) && (hash));
 
@@ -454,10 +454,10 @@ struct GNUNET_MESSENGER_ClosureSendRoom
   struct GNUNET_MESSENGER_SrvTunnel *exclude;
   struct GNUNET_MESSENGER_Message *message;
   struct GNUNET_HashCode *hash;
-  int packed;
+  enum GNUNET_GenericReturnValue packed;
 };
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_send_room_message (void *cls,
                            const struct GNUNET_PeerIdentity *key,
                            void *value)
@@ -495,7 +495,7 @@ iterate_send_room_message (void *cls,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 update_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
                      struct GNUNET_MESSENGER_Message *message,
                      const struct GNUNET_HashCode *hash);
@@ -505,7 +505,7 @@ callback_room_handle_message (struct GNUNET_MESSENGER_SrvRoom *room,
                               const struct GNUNET_MESSENGER_Message *message,
                               const struct GNUNET_HashCode *hash);
 
-int
+enum GNUNET_GenericReturnValue
 send_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
                        struct GNUNET_MESSENGER_SrvHandle *handle,
                        struct GNUNET_MESSENGER_Message *message)
@@ -537,7 +537,8 @@ send_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
     pack_srv_room_message (room, handle, message, &hash,
                            GNUNET_MESSENGER_PACK_MODE_UNKNOWN);
 
-  const int new_message = update_room_message (room, message, &hash);
+  enum GNUNET_GenericReturnValue new_message;
+  new_message = update_room_message (room, message, &hash);
 
   if (GNUNET_YES != new_message)
     return GNUNET_SYSERR;
@@ -672,7 +673,7 @@ callback_room_merge (struct GNUNET_MESSENGER_SrvRoom *room,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 delete_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
                          struct GNUNET_MESSENGER_MemberSession *session,
                          const struct GNUNET_HashCode *hash,
@@ -752,7 +753,7 @@ get_srv_room_tunnel (const struct GNUNET_MESSENGER_SrvRoom *room,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 request_room_message_step (struct GNUNET_MESSENGER_SrvRoom *room,
                            const struct GNUNET_HashCode *hash,
                            const struct GNUNET_MESSENGER_MemberSession *session,
@@ -769,8 +770,9 @@ request_room_message_step (struct GNUNET_MESSENGER_SrvRoom *room,
   if (! link)
     goto forward;
 
-  int result = request_room_message_step (room, &(link->first), session,
-                                          callback, cls);
+  enum GNUNET_GenericReturnValue result;
+  result = request_room_message_step (room, &(link->first), session,
+                                      callback, cls);
 
   if ((GNUNET_YES == link->multiple) &&
       (GNUNET_YES == request_room_message_step (room, &(link->second), session,
@@ -796,7 +798,7 @@ forward:
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 request_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
                           const struct GNUNET_HashCode *hash,
                           const struct GNUNET_MESSENGER_MemberSession *session,
@@ -805,7 +807,8 @@ request_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
 {
   GNUNET_assert ((room) && (hash));
 
-  int result = request_room_message_step (room, hash, session, callback, cls);
+  enum GNUNET_GenericReturnValue result;
+  result = request_room_message_step (room, hash, session, callback, cls);
 
   if ((GNUNET_NO == result) && (callback))
     callback (cls, room, NULL, hash);
@@ -838,7 +841,7 @@ callback_room_disconnect (struct GNUNET_MESSENGER_SrvRoom *room,
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 callback_verify_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
                               void *cls,
                               struct GNUNET_MESSENGER_Message *message,
@@ -973,11 +976,13 @@ rebuild_srv_room_basement_structure (struct GNUNET_MESSENGER_SrvRoom *room)
   struct GNUNET_PeerIdentity peer;
   size_t src;
 
-  if ((GNUNET_OK != get_service_peer_identity (room->service, &peer)) ||
-      (! find_list_tunnels (&(room->basement), &peer, &src)))
+  if (GNUNET_OK != get_service_peer_identity (room->service, &peer))
     return;
 
   size_t count = count_of_tunnels (&(room->basement));
+
+  if (! find_list_tunnels (&(room->basement), &peer, &src))
+    return;
 
   struct GNUNET_MESSENGER_ListTunnel *element = room->basement.head;
   struct GNUNET_MESSENGER_SrvTunnel *tunnel;
@@ -1068,7 +1073,7 @@ finish_handling:
 }
 
 
-int
+enum GNUNET_GenericReturnValue
 update_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
                      struct GNUNET_MESSENGER_Message *message,
                      const struct GNUNET_HashCode *hash)
@@ -1078,10 +1083,10 @@ update_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
   struct GNUNET_MESSENGER_OperationStore *operation_store =
     get_srv_room_operation_store (room);
 
-  const int requested = (GNUNET_MESSENGER_OP_REQUEST ==
-                         get_store_operation_type (operation_store, hash)?
-                         GNUNET_YES : GNUNET_NO
-                         );
+  enum GNUNET_GenericReturnValue requested;
+  requested = (GNUNET_MESSENGER_OP_REQUEST ==
+      get_store_operation_type (operation_store, hash)?
+          GNUNET_YES : GNUNET_NO);
 
   if (GNUNET_YES == requested)
     cancel_store_operation (operation_store, hash);
@@ -1144,7 +1149,7 @@ struct GNUNET_MESSENGER_MemberUpdate
   struct GNUNET_MESSENGER_MemberSessionCompletion *tail;
 };
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_update_member_sessions (void *cls,
                                 const struct
                                 GNUNET_CRYPTO_PublicKey *public_key,
@@ -1242,7 +1247,8 @@ callback_room_handle_message (struct GNUNET_MESSENGER_SrvRoom *room,
     GNUNET_free (element);
   }
 
-  const int start_handle = room->handling.head ? GNUNET_NO : GNUNET_YES;
+  enum GNUNET_GenericReturnValue start_handle;
+  start_handle = room->handling.head ? GNUNET_NO : GNUNET_YES;
 
   add_to_list_messages (&(room->handling), hash);
 

@@ -54,7 +54,7 @@ create_member (struct GNUNET_MESSENGER_MemberStore *store,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_destroy_session (void *cls,
                          const struct GNUNET_HashCode *key,
                          void *value)
@@ -87,7 +87,7 @@ get_member_id (const struct GNUNET_MESSENGER_Member *member)
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 callback_scan_for_sessions (void *cls,
                             const char *filename)
 {
@@ -157,7 +157,7 @@ free_config:
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_load_next_session (void *cls,
                            const struct GNUNET_HashCode *key,
                            void *value)
@@ -194,7 +194,7 @@ load_member_next_sessions (const struct GNUNET_MESSENGER_Member *member,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_save_session (void *cls,
                       const struct GNUNET_HashCode *key,
                       void *value)
@@ -273,7 +273,7 @@ sync_session_contact_from_next (struct GNUNET_MESSENGER_MemberSession *session,
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_sync_session_contact (void *cls,
                               const struct GNUNET_HashCode *key,
                               void *value)
@@ -318,7 +318,7 @@ struct GNUNET_MESSENGER_ClosureSearchSession
   struct GNUNET_MESSENGER_MemberSession *match;
 };
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_search_session (void *cls,
                         const struct GNUNET_HashCode *key,
                         void *value)
@@ -429,7 +429,7 @@ struct GNUNET_MESSENGER_ClosureIterateSessions
   void *cls;
 };
 
-static int
+static enum GNUNET_GenericReturnValue
 iterate_member_sessions_it (void *cls,
                             const struct GNUNET_HashCode *key,
                             void *value)
