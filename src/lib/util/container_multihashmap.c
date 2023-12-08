@@ -305,7 +305,7 @@ GNUNET_CONTAINER_multihashmap_get (
 }
 
 
-enum GNUNET_GenericReturnValue
+int
 GNUNET_CONTAINER_multihashmap_iterate (
   struct GNUNET_CONTAINER_MultiHashMap *map,
   GNUNET_CONTAINER_MultiHashMapIteratorCallback it,

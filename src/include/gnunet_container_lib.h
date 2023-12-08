@@ -578,7 +578,7 @@ GNUNET_CONTAINER_multihashmap_size (
  * @return the number of key value pairs processed,
  *         #GNUNET_SYSERR if it aborted iteration
  */
-enum GNUNET_GenericReturnValue
+int
 GNUNET_CONTAINER_multihashmap_iterate (
   struct GNUNET_CONTAINER_MultiHashMap *map,
   GNUNET_CONTAINER_MultiHashMapIteratorCallback it,
