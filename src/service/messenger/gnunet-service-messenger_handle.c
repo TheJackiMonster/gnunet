@@ -282,6 +282,16 @@ close_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
 }
 
 
+enum GNUNET_GenericReturnValue
+is_srv_handle_routing (const struct GNUNET_MESSENGER_SrvHandle *handle,
+                       const struct GNUNET_HashCode *key)
+{
+  GNUNET_assert ((handle) && (key));
+
+  return GNUNET_CONTAINER_multihashmap_contains (handle->routing, key);
+}
+
+
 void
 sync_srv_handle_messages (struct GNUNET_MESSENGER_SrvHandle *handle,
                           const struct GNUNET_HashCode *key,

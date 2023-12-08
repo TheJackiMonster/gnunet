@@ -168,6 +168,18 @@ enum GNUNET_GenericReturnValue
 close_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
                        const struct GNUNET_HashCode *key);
 
+/**
+ * Returns whether a given <i>handle</i> has enabled routing for a room using a specific <i>key</i>
+ * by opening that room.
+ *
+ * @param[in] handle Handle
+ * @param[in] key Key of a room
+ * @return #GNUNET_YES is routing is enabled, otherwise #GNUNET_NO
+ */
+enum GNUNET_GenericReturnValue
+is_srv_handle_routing (const struct GNUNET_MESSENGER_SrvHandle *handle,
+                       const struct GNUNET_HashCode *key);
+
 
 
 /**
