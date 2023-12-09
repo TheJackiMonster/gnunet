@@ -1192,6 +1192,11 @@ struct CommunicatorMessageContext
    * FIXME: make use of this in ACK handling!
    */
   uint16_t total_hops;
+
+  /**
+   * Did we already call GNUNET_SERVICE_client_continue?
+   */
+  unsigned int continue_send;
 };
 
 
@@ -4354,7 +4359,7 @@ handle_client_recv_ok (void *cls, const struct RecvOkMessage *rom)
   while (NULL != (cmc = vl->cmc_tail))
   {
     GNUNET_CONTAINER_DLL_remove (vl->cmc_head, vl->cmc_tail, cmc);
-    finish_cmc_handling (cmc);
+    finish_cmc_handling_with_continue (cmc, GNUNET_YES == cmc->continue_send ? GNUNET_NO : GNUNET_YES);
   }
 }
 
@@ -5889,6 +5894,7 @@ handle_raw_message (void *cls, const struct GNUNET_MessageHeader *mh)
                 (unsigned int) ntohs (mh->size));
     finish_cmc_handling (cmc);*/
     GNUNET_SERVICE_client_continue (cmc->tc->client);
+    cmc->continue_send = GNUNET_YES;
     // GNUNET_free (cmc);
     return;
   }
