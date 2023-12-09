@@ -437,7 +437,7 @@ identity_cb (void *cls,
     GNUNET_assert (rd.record_type == GNUNET_GNSRECORD_TYPE_PHONE);
     rd.expiration_time = UINT64_MAX;
     qe =
-      GNUNET_NAMESTORE_records_store (ns,
+      GNUNET_NAMESTORE_record_set_store (ns,
                                       GNUNET_IDENTITY_ego_get_private_key (ego),
                                       "phone" /* GNS label */,
                                       1,
