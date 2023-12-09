@@ -3693,7 +3693,9 @@ schedule_transmit_on_queue (struct GNUNET_TIME_Relative delay,
       COMMUNICATOR_TOTAL_QUEUE_LIMIT)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Transmission throttled due to communicator queue limit\n");
+                "Transmission on queue %s (QID %u) throttled due to communicator queue limit\n",
+                queue->address,
+                queue->qid);
     GNUNET_STATISTICS_update (
       GST_stats,
       "# Transmission throttled due to communicator queue limit",
@@ -3705,7 +3707,9 @@ schedule_transmit_on_queue (struct GNUNET_TIME_Relative delay,
   if (queue->queue_length >= QUEUE_LENGTH_LIMIT)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Transmission throttled due to communicator queue length limit\n");
+                "Transmission on queue %s (QID %u) throttled due to communicator queue length limit\n",
+                queue->address,
+                queue->qid);
     GNUNET_STATISTICS_update (GST_stats,
                               "# Transmission throttled due to queue queue limit",
                               1,
@@ -3716,8 +3720,9 @@ schedule_transmit_on_queue (struct GNUNET_TIME_Relative delay,
   if (0 == queue->q_capacity)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Transmission throttled due to communicator message queue qid %u has capacity %"
+                "Transmission on queue %s (QID %u) throttled due to communicator message  has capacity %"
                 PRIu64 ".\n",
+                queue->address,
                 queue->qid,
                 queue->q_capacity);
     GNUNET_STATISTICS_update (GST_stats,
@@ -4569,13 +4574,15 @@ queue_send_msg (struct Queue *queue,
     // GNUNET_CONTAINER_multiuuidmap_get (pending_acks, &ack[i].ack_uuid.value);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Sending message MID %" PRIu64
-                " of type %u (%u) and size %lu with MQ %p QID %u\n",
+                " of type %u (%u) and size %lu with MQ %p queue %s (QID %u) pending %" PRIu64 "\n",
                 GNUNET_ntohll (smt->mid),
                 ntohs (((const struct GNUNET_MessageHeader *) payload)->type),
                 ntohs (smt->header.size),
                 (unsigned long) payload_size,
                 queue->tc->mq,
-                queue->qid);
+                queue->address,
+                queue->qid,
+                (NULL == pm) ? 0 : pm->logging_uuid);
     GNUNET_MQ_send (queue->tc->mq, env);
   }
 }
@@ -5871,10 +5878,12 @@ handle_raw_message (void *cls, const struct GNUNET_MessageHeader *mh)
     // cmc_copy->mh = (const struct GNUNET_MessageHeader *) mh_copy;
     cmc->mh = (const struct GNUNET_MessageHeader *) mh_copy;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Storing message for %s and type %u (%u) in ring buffer\n",
+                "Storing message for %s and type %u (%u) in ring buffer head %u is full %u\n",
                 GNUNET_i2s (&cmc->im.sender),
                 (unsigned int) ntohs (mh->type),
-                (unsigned int) ntohs (mh_copy->type));
+                (unsigned int) ntohs (mh_copy->type),
+                ring_buffer_head,
+                is_ring_buffer_full);
     if (RING_BUFFER_SIZE - 1 == ring_buffer_head)
     {
       ring_buffer_head = 0;
@@ -5885,7 +5894,8 @@ handle_raw_message (void *cls, const struct GNUNET_MessageHeader *mh)
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "%u items stored in ring buffer\n",
-                ring_buffer_head);
+                GNUNET_YES == is_ring_buffer_full ? RING_BUFFER_SIZE :
+                        ring_buffer_head);
 
     /*GNUNET_break_op (0);
     GNUNET_STATISTICS_update (GST_stats,
@@ -6197,13 +6207,13 @@ handle_fragment_box (void *cls, const struct TransportFragmentBoxMessage *fb)
     else
       rc->msg_missing = 0;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Received fragment with size %u at offset %u/%u %u bytes missing from %s for NEW message %u\n",
+                "Received fragment with size %u at offset %u/%u %u bytes missing from %s for NEW message %" PRIu64 "\n",
                 fsize,
                 ntohs (fb->frag_off),
                 msize,
                 rc->msg_missing,
                 GNUNET_i2s (&cmc->im.sender),
-                (unsigned int) fb->msg_uuid.uuid);
+                fb->msg_uuid.uuid);
   }
   else
   {
@@ -6794,9 +6804,11 @@ send_msg_from_cache (struct VirtualLink *vl)
       im = cmc->im;
       // mh = cmc->mh;
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Sending to ring buffer target %s using vl target %s\n",
+                  "Sending message of type %u to ring buffer target %s using vl target %s index %u\n",
+                  mh->type,
                   GNUNET_i2s (&im.sender),
-                  GNUNET_i2s2 (&target));
+                  GNUNET_i2s2 (&target),
+                  (i + tail) % RING_BUFFER_SIZE);
       if (0 == GNUNET_memcmp (&target, &im.sender))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -10420,8 +10432,9 @@ handle_send_message_ack (void *cls,
   qe->queue->queue_length--;
   tc->details.communicator.total_queue_length--;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Received ACK on queue %s to peer %s (new length: %u/%u)\n",
+              "Received ACK on queue %s (QID %u) to peer %s (new length: %u/%u)\n",
               qe->queue->address,
+              qe->queue->qid,
               GNUNET_i2s (&qe->queue->neighbour->pid),
               qe->queue->queue_length,
               tc->details.communicator.total_queue_length);
