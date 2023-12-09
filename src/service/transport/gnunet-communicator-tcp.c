@@ -3004,6 +3004,14 @@ proto_read_kx (void *cls)
       GNUNET_SCHEDULER_add_read_net (left, pq->sock, &proto_read_kx, pq);
     return;
   }
+  if (0 == rcvd)
+  {
+    /* Orderly shutdown of connection */
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Socket for proto queue %p seems to have been closed\n", pq);
+    free_proto_queue (pq);
+    return;
+  }
   pq->ibuf_off += rcvd;
   if (sizeof (struct TCPNATProbeMessage) == pq->ibuf_off)
   {
