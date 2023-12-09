@@ -4524,7 +4524,6 @@ queue_send_msg (struct Queue *queue,
       }
       pm->qe = qe;
     }
-    GNUNET_CONTAINER_DLL_insert (queue->queue_head, queue->queue_tail, qe);
     GNUNET_assert (CT_COMMUNICATOR == queue->tc->type);
     if (0 == queue->q_capacity)
     {
@@ -4536,8 +4535,10 @@ queue_send_msg (struct Queue *queue,
                     pm->logging_uuid,
                     pm->pmt);
       GNUNET_free (env);
+      GNUNET_free (qe);
       return;
     }
+    GNUNET_CONTAINER_DLL_insert (queue->queue_head, queue->queue_tail, qe);
     queue->queue_length++;
     queue->tc->details.communicator.total_queue_length++;
     if (GNUNET_NO == queue->unlimited_length)
