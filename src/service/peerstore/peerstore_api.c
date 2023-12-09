@@ -366,7 +366,7 @@ disconnect (struct GNUNET_PEERSTORE_Handle *h)
 {
   if (NULL != h->watches)
   {
-    GNUNET_assert (0 == GNUNET_CONTAINER_multihashmap_size (h->watches));
+    GNUNET_assert (0 != GNUNET_CONTAINER_multihashmap_size (h->watches));
     GNUNET_CONTAINER_multihashmap_destroy (h->watches);
   }
   GNUNET_assert (NULL == h->iterate_head);
