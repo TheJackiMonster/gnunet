@@ -207,7 +207,7 @@ dns_value_to_string (void *cls,
       GNUNET_DNSPARSER_free_srv (srv);
       return result;
     }
-  
+
   case GNUNET_DNSPARSER_TYPE_URI: {   // RFC7553
       struct GNUNET_DNSPARSER_UriRecord *uri;
       size_t off;
@@ -228,7 +228,7 @@ dns_value_to_string (void *cls,
                        uri->target);
       GNUNET_DNSPARSER_free_uri (uri);
       return result;
-  }
+    }
 
   case GNUNET_DNSPARSER_TYPE_SMIMEA:
   case GNUNET_DNSPARSER_TYPE_TLSA: {
@@ -652,19 +652,19 @@ dns_string_to_value (void *cls,
 
   case GNUNET_DNSPARSER_TYPE_URI: {
       struct GNUNET_DNSPARSER_UriRecord uri;
-      char target[strlen(s)];
+      char target[strlen (s)];
       unsigned int priority;
       unsigned int weight;
       size_t off;
 
-      if (3 != sscanf (s, "%u %u \"%s", &priority, &weight, &target)) // only \" bevor %s becuse %s will consume the ending " of the presentation of the URI record
+      if (3 != sscanf (s, "%u %u \"%s", &priority, &weight, &target[0])) // only \" befor %s because %s will consume the ending " of the presentation of the URI record
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     _ ("Unable to parse URI record `%s'\n"),
                     s);
         return GNUNET_SYSERR;
       }
-      target[strlen(target)-1] = '\0'; // Removing the last " of the presentation of the URI record
+      target[strlen (target) - 1] = '\0'; // Removing the last " of the presentation of the URI record
 
       uri.priority = (uint16_t) priority;
       uri.weight = (uint16_t) weight;
@@ -672,7 +672,9 @@ dns_string_to_value (void *cls,
       off = 0;
 
       // TODO add more precise uri checking (RFC3986)
-      if (strstr(target, &":") == NULL || target[0] == 58 || target[strlen(target)-1] == 58)
+      if (strstr (target, ":") == NULL ||
+          target[0] == 58 ||
+          target[strlen (target) - 1] == 58)
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     _ ("Failed to serialize URI record with target `%s'\n"),
@@ -680,7 +682,7 @@ dns_string_to_value (void *cls,
         return GNUNET_SYSERR;
       }
 
-      char uribuf[sizeof(struct GNUNET_TUN_DnsUriRecord) + strlen(target) + 1]; 
+      char uribuf[sizeof(struct GNUNET_TUN_DnsUriRecord) + strlen (target) + 1];
 
       if (GNUNET_OK !=
           GNUNET_DNSPARSER_builder_add_uri (uribuf, sizeof(uribuf), &off, &uri))
@@ -849,6 +851,7 @@ dns_is_critical (void *cls, uint32_t type)
 {
   return GNUNET_NO;
 }
+
 
 /**
  * Entry point for the plugin.

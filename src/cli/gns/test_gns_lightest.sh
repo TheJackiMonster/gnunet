@@ -28,12 +28,12 @@ TEST_PTR="$SCHEME.$TRUST.$LABEL.$MY_EGO"
 TEST_PTR2="$TRUSTLIST.$TRUST.$LABEL.$MY_EGO"
 gnunet-arm -s -c test_gns_lookup.conf
 gnunet-identity -C $MY_EGO -c test_gns_lookup.conf
-gnunet-namestore -p -z $MY_EGO -a -n $PTR_LABEL -t BOX -V "242 1003 12 $TEST_PTR" -e never -c test_gns_lookup.conf
-gnunet-namestore -p -z $MY_EGO -a -n $PTR_LABEL -t BOX -V "242 1002 12 $TEST_PTR2" -e never -c test_gns_lookup.conf
-gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t BOX -V "242 1003 256 $TEST_URI" -e never -c test_gns_lookup.conf
-gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t BOX -V "242 1003 53 $TEST_SMIMEA" -e never -c test_gns_lookup.conf
-gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t BOX -V "242 1002 256 $TEST_URI" -e never -c test_gns_lookup.conf
-gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t BOX -V "242 1002 53 $TEST_SMIMEA" -e never -c test_gns_lookup.conf
+gnunet-namestore -p -z $MY_EGO -a -n $PTR_LABEL -t BOX -V "49152 49152 12 $TEST_PTR" -e never -c test_gns_lookup.conf
+gnunet-namestore -p -z $MY_EGO -a -n $PTR_LABEL -t BOX -V "49152 49153 12 $TEST_PTR2" -e never -c test_gns_lookup.conf
+gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t BOX -V "49152 49152 256 $TEST_URI" -e never -c test_gns_lookup.conf
+gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t BOX -V "49152 49152 53 $TEST_SMIMEA" -e never -c test_gns_lookup.conf
+gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t BOX -V "49152 49153 256 $TEST_URI" -e never -c test_gns_lookup.conf
+gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t BOX -V "49152 49153 53 $TEST_SMIMEA" -e never -c test_gns_lookup.conf
 sleep 0.5
 PTR_SCHEME=`$DO_TIMEOUT gnunet-gns --raw -u $SCHEME.$TRUST.$PTR_LABEL.$MY_EGO -t PTR -c test_gns_lookup.conf`
 PTR_TRUSTLIST=`$DO_TIMEOUT gnunet-gns --raw -u $TRUSTLIST.$TRUST.$PTR_LABEL.$MY_EGO -t PTR -c test_gns_lookup.conf`
@@ -104,9 +104,9 @@ else
   echo "Resolved to proper SMIMEA, got '$RES_SMIMEA_TRUSTLIST'."
 fi
 
-gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t BOX -V "242 1003 256 10 1 \"thisisnotavaliduri\"" -e never -c test_gns_lookup.conf
+gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t BOX -V "49152 49152 256 10 1 \"thisisnotavaliduri\"" -e never -c test_gns_lookup.conf
 status=$?
-gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t BOX -V "242 1003 256 10 1 mailto:thisrecordismilformed@test.com" -e never -c test_gns_lookup.conf
+gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t BOX -V "49152 49152 256 10 1 mailto:thisrecordismalformed@test.com" -e never -c test_gns_lookup.conf
 status2=$?
 
 if [ "$status" = "0" ]

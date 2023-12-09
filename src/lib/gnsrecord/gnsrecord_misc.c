@@ -258,7 +258,7 @@ GNUNET_GNSRECORD_zkey_to_pkey (const char *zkey,
 {
   if (GNUNET_OK !=
       GNUNET_CRYPTO_public_key_from_string (zkey,
-                                              pkey))
+                                            pkey))
     return GNUNET_SYSERR;
   return GNUNET_OK;
 }
@@ -444,11 +444,10 @@ GNUNET_GNSRECORD_normalize_record_set (const char *label,
                   "Filtering expired record...\n");
       continue;    /* record already expired, skip it */
     }
-    /* Ignore the tombstone unless filter permits explicitly.
+    /* Ignore the maintenance record (e.g. tombstone) unless filter permits explicitly.
     * Remember expiration time. */
-    if (GNUNET_GNSRECORD_TYPE_TOMBSTONE == rd[i].record_type)
+    if (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_MAINTENANCE))
     {
-      minimum_expiration.abs_value_us = rd[i].expiration_time;
       if (0 != (filter & GNUNET_GNSRECORD_FILTER_INCLUDE_MAINTENANCE))
       {
         rd_public[rd_count_tmp] = rd[i];

@@ -209,6 +209,11 @@ static int is_public;
 static int is_shadow;
 
 /**
+ * Is record a maintenance record (#GNUNET_GNSRECORD_RF_MAINTENANCE)
+ */
+static int is_maintenance;
+
+/**
  * Filter private records
  */
 static int omit_private;
@@ -585,6 +590,7 @@ reset_handles (void)
   list = 0;
   is_public = 0;
   is_shadow = 0;
+  is_maintenance = 0;
   purge_zone = 0;
 }
 
@@ -908,13 +914,16 @@ display_record (const struct GNUNET_CRYPTO_PrivateKey *zone_key,
                s);
     else
       fprintf (stdout,
-               "\t%s: %s (%s)\t%s\t%s\n",
+               "\t%s: %s (%s)\t%s\t%s\t%s\n",
                typestr,
                s,
                ets,
                (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE)) ? "PRIVATE"
              : "PUBLIC",
                (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_SHADOW)) ? "SHADOW"
+               : "",
+               (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_MAINTENANCE)) ?
+               "MAINTENANCE"
              : "");
     GNUNET_free (s);
   }
@@ -1145,6 +1154,8 @@ get_existing_record (void *cls,
   rde->record_type = type;
   if (1 == is_shadow)
     rde->flags |= GNUNET_GNSRECORD_RF_SHADOW;
+  if (1 == is_maintenance)
+    rde->flags |= GNUNET_GNSRECORD_RF_MAINTENANCE;
   if (1 != is_public)
     rde->flags |= GNUNET_GNSRECORD_RF_PRIVATE;
   rde->expiration_time = etime;
@@ -1259,12 +1270,12 @@ del_monitor (void *cls,
   {
     /* delete everything */
     del_qe = GNUNET_NAMESTORE_record_set_store (ns,
-                                             &zone_pkey,
-                                             name,
-                                             0,
-                                             NULL,
-                                             &del_continuation,
-                                             NULL);
+                                                &zone_pkey,
+                                                name,
+                                                0,
+                                                NULL,
+                                                &del_continuation,
+                                                NULL);
     return;
   }
   rd_left = 0;
@@ -1299,12 +1310,12 @@ del_monitor (void *cls,
   }
   /* delete everything but what we copied to 'rdx' */
   del_qe = GNUNET_NAMESTORE_record_set_store (ns,
-                                           &zone_pkey,
-                                           name,
-                                           rd_left,
-                                           rdx,
-                                           &del_continuation,
-                                           NULL);
+                                              &zone_pkey,
+                                              name,
+                                              rd_left,
+                                              rdx,
+                                              &del_continuation,
+                                              NULL);
 }
 
 
@@ -1387,12 +1398,12 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
       rd_count++;
     }
     set_qe = GNUNET_NAMESTORE_record_set_store (ns,
-                                             &zone_pkey,
-                                             name,
-                                             rd_count,
-                                             rd,
-                                             &replace_cont,
-                                             NULL);
+                                                &zone_pkey,
+                                                name,
+                                                rd_count,
+                                                rd,
+                                                &replace_cont,
+                                                NULL);
     GNUNET_free (rd);
     return;
   }
@@ -1462,7 +1473,8 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
         (GNUNET_DNSPARSER_TYPE_OPENPGPKEY == type))
     {
       fprintf (stderr,
-               _ ("For DNS record types `SRV', `TLSA', `SMIMEA' and `OPENPGPKEY'"));
+               _ (
+                 "For DNS record types `SRV', `TLSA', `SMIMEA' and `OPENPGPKEY'"));
       fprintf (stderr, ", please use a `BOX' record instead\n");
       ret = 1;
       finish_command ();
@@ -1536,13 +1548,14 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
       finish_command ();
       return;
     }
-    del_qe = GNUNET_NAMESTORE_records_lookup (ns,
-                                              &zone_pkey,
-                                              name,
-                                              &del_lookup_error_cb,
-                                              NULL,
-                                              &del_monitor,
-                                              NULL);
+    del_qe = GNUNET_NAMESTORE_records_lookup2 (ns,
+                                               &zone_pkey,
+                                               name,
+                                               &del_lookup_error_cb,
+                                               NULL,
+                                               &del_monitor,
+                                               NULL,
+                                               filter_flags);
   }
   if (purge_orphaned)
   {
@@ -1701,13 +1714,15 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
       rd.flags |= GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
     if (1 == is_shadow)
       rd.flags |= GNUNET_GNSRECORD_RF_SHADOW;
+    if (1 == is_maintenance)
+      rd.flags |= GNUNET_GNSRECORD_RF_MAINTENANCE;
     add_qe_uri = GNUNET_NAMESTORE_record_set_store (ns,
-                                                 &zone_pkey,
-                                                 sname,
-                                                 1,
-                                                 &rd,
-                                                 &add_continuation,
-                                                 &add_qe_uri);
+                                                    &zone_pkey,
+                                                    sname,
+                                                    1,
+                                                    &rd,
+                                                    &add_continuation,
+                                                    &add_qe_uri);
   }
   if (monitor)
   {
@@ -1806,7 +1821,7 @@ process_command_stdin ()
       if (NULL == tmp)
       {
         fprintf (stderr, "Error parsing name `%s'\n", next_name);
-        GNUNET_SCHEDULER_shutdown();
+        GNUNET_SCHEDULER_shutdown ();
         ret = 1;
         return;
       }
@@ -1852,7 +1867,7 @@ process_command_stdin ()
       fprintf (stderr, "Warning, encountered recordline without zone\n");
     }
   }
-  GNUNET_SCHEDULER_shutdown();
+  GNUNET_SCHEDULER_shutdown ();
   return;
 }
 
@@ -2055,8 +2070,14 @@ main (int argc, char *const *argv)
       's',
       "shadow",
       gettext_noop (
-        "create shadow record (only valid if all other records of the same type have expired"),
+        "create shadow record (only valid if all other records of the same type have expired)"),
       &is_shadow),
+    GNUNET_GETOPT_option_flag (
+      'M',
+      "maintenance",
+      gettext_noop (
+        "create maintenance record (e.g TOMBSTONEs)"),
+      &is_maintenance),
     GNUNET_GETOPT_option_string ('z',
                                  "zone",
                                  "EGO",
@@ -2071,6 +2092,7 @@ main (int argc, char *const *argv)
 
   is_public = -1;
   is_shadow = -1;
+  is_maintenance = -1;
   GNUNET_log_setup ("gnunet-namestore", "WARNING", NULL);
   if (GNUNET_OK !=
       (lret = GNUNET_PROGRAM_run (argc,

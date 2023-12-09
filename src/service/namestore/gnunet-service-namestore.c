@@ -1832,7 +1832,7 @@ store_record_set (struct NamestoreClient *nc,
                                                  rd_nf,
                                                  &rd_nf_count,
                                                  &new_block_exp,
-                                                 GNUNET_GNSRECORD_FILTER_NONE,
+                                                 GNUNET_GNSRECORD_FILTER_INCLUDE_MAINTENANCE,
                                                  &emsg))
       {
         GNUNET_free (conv_name);
@@ -1859,7 +1859,7 @@ store_record_set (struct NamestoreClient *nc,
           lctx.exp.abs_value_us;
         rd_nf[rd_nf_count].data = NULL;
         rd_nf[rd_nf_count].data_size = 0;
-        rd_nf[rd_nf_count].flags = GNUNET_GNSRECORD_RF_PRIVATE;
+        rd_nf[rd_nf_count].flags = GNUNET_GNSRECORD_RF_PRIVATE | GNUNET_GNSRECORD_RF_MAINTENANCE;
         rd_nf_count++;
       }
       if ((0 == strcmp (GNUNET_GNS_EMPTY_LABEL_AT, conv_name)) &&

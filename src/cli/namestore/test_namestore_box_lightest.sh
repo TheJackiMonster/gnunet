@@ -16,8 +16,8 @@ fi
 
 rm -rf `$LOCATION -c $CONFIGURATION -s PATHS -o GNUNET_HOME`
 TEST_RECORD_NAME_DNS="trust"
-TEST_RECORD_VALUE_SMIMEA="1002 242 53 0 0 1 d2abde240d7cd3ee6b4b28c54df034b97983a1d16e8a410e4561cb106618e971"
-TEST_RECORD_VALUE_URI='1003 242 256 10 10 "http://lightest.nletlabs.nl/"'
+TEST_RECORD_VALUE_SMIMEA="49152 49153 53 0 0 1 d2abde240d7cd3ee6b4b28c54df034b97983a1d16e8a410e4561cb106618e971"
+TEST_RECORD_VALUE_URI="49152 49152 256 10 10 \"http://lightest.nletlabs.nl/\""
 which timeout &> /dev/null && DO_TIMEOUT="timeout 5"
 
 function start_peer
@@ -35,7 +35,7 @@ function stop_peer
 
 start_peer
 # Create a public SMIMEA record
-gnunet-namestore -p -z testego -a -n $TEST_RECORD_NAME_DNS -t A -V $TEST_RECORD_VALUE_SMIMEA -e never -c $CONFIGURATION
+gnunet-namestore -p -z testego -a -n $TEST_RECORD_NAME_DNS -t BOX -V "$TEST_RECORD_VALUE_SMIMEA" -e never -c $CONFIGURATION
 NAMESTORE_RES=$?
 
 if [ $NAMESTORE_RES = 0 ]
@@ -48,7 +48,7 @@ else
 fi
 
 # Create a public URI record
-gnunet-namestore -p -z testego -a -n $TEST_RECORD_NAME_DNS -t A -V $TEST_RECORD_VALUE_URI -e never -c $CONFIGURATION
+gnunet-namestore -p -z testego -a -n $TEST_RECORD_NAME_DNS -t BOX -V "$TEST_RECORD_VALUE_URI" -e never -c $CONFIGURATION
 NAMESTORE_RES=$?
 
 if [ $NAMESTORE_RES = 0 ]

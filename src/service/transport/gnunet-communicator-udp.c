@@ -67,7 +67,7 @@
  * How often do we scan for changes to our network interfaces?
  */
 #define INTERFACE_SCAN_FREQUENCY \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
 
 /**
  * How long do we believe our addresses to remain up (before
@@ -76,7 +76,7 @@
 #define ADDRESS_VALIDITY_PERIOD GNUNET_TIME_UNIT_HOURS
 
 #define WORKING_QUEUE_INTERVALL \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,1)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,1)
 
 /**
  * AES key size.
@@ -1957,6 +1957,13 @@ sock_read (void *cls)
     }
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Read %lu bytes\n", rcvd);
+    if (0 == rcvd)
+    {
+      GNUNET_break_op (0);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Read 0 bytes from UDP socket\n");
+      return;
+    }
 
     /* first, see if it is a UDPBox */
     if (rcvd > sizeof(struct UDPBox))

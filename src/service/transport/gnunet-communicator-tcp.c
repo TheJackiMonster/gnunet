@@ -1097,21 +1097,6 @@ queue_finish (struct Queue *queue)
 
 
 /**
- * Increment queue timeout due to activity.  We do not immediately
- * notify the monitor here as that might generate excessive
- * signalling.
- *
- * @param queue queue for which the timeout should be rescheduled
- */
-static void
-reschedule_queue_timeout (struct Queue *queue)
-{
-  queue->timeout =
-    GNUNET_TIME_relative_to_absolute (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT);
-}
-
-
-/**
  * Queue read task. If we hit the timeout, disconnect it
  *
  * @param cls the `struct Queue *` to disconnect
@@ -1152,7 +1137,9 @@ core_read_finished_cb (void *cls, int success)
   }
   else if (GNUNET_YES != queue->destroyed)
   {
-    reschedule_queue_timeout (queue);
+    queue->timeout =
+      GNUNET_TIME_relative_to_absolute (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT
+                                        );
     /* possibly unchoke reading, now that CORE made progress */
     if (NULL == queue->read_task)
       queue->read_task =
@@ -1231,7 +1218,8 @@ setup_cipher (const struct GNUNET_HashCode *dh,
   char ctr[128 / 8];
 
   GNUNET_assert (0 == gcry_cipher_open (cipher,
-                                        GCRY_CIPHER_AES256 /* low level: go for speed */,
+                                        GCRY_CIPHER_AES256 /* low level: go for speed */
+                                        ,
                                         GCRY_CIPHER_MODE_CTR,
                                         0 /* flags */));
   GNUNET_assert (GNUNET_YES == GNUNET_CRYPTO_kdf (key,
@@ -1793,7 +1781,9 @@ queue_write (void *cls)
       memmove (queue->cwrite_buf,
                &queue->cwrite_buf[usent],
                queue->cwrite_off);
-      reschedule_queue_timeout (queue);
+      queue->timeout =
+        GNUNET_TIME_relative_to_absolute (
+          GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT);
     }
   }
   /* can we encrypt more? (always encrypt full messages, needed
@@ -1910,7 +1900,8 @@ try_handle_plaintext (struct Queue *queue)
     if (sizeof(*tca) > queue->pread_off)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Handling plaintext size of tca greater than pread offset.\n");
+                  "Handling plaintext size of tca greater than pread offset.\n")
+      ;
       return 0;
     }
     if (ntohs (hdr->size) != sizeof(*tca))
@@ -1953,7 +1944,8 @@ try_handle_plaintext (struct Queue *queue)
 
     queue->handshake_ack_monotime_get = GNUNET_PEERSTORE_iterate (peerstore,
                                                                   "transport_tcp_communicator",
-                                                                  &queue->target,
+                                                                  &queue->target
+                                                                  ,
                                                                   GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE_ACK,
                                                                   &
                                                                   handshake_ack_monotime_cb,
@@ -2133,8 +2125,16 @@ queue_read (void *cls)
       GNUNET_SCHEDULER_add_read_net (left, queue->sock, &queue_read, queue);
     return;
   }
-  if (0 != rcvd)
-    reschedule_queue_timeout (queue);
+  if (0 == rcvd)
+  {
+    /* Orderly shutdown of connection */
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Socket for queue %p seems to have been closed\n", queue);
+    queue_destroy (queue);
+    return;
+  }
+  queue->timeout =
+    GNUNET_TIME_relative_to_absolute (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT);
   queue->cread_off += rcvd;
   while ((queue->pread_off < sizeof(queue->pread_buf)) &&
          (queue->cread_off > 0))
@@ -2226,7 +2226,7 @@ tcp_address_to_sockaddr_numeric_v6 (socklen_t *sock_len,
   v6.sin6_family = AF_INET6;
   v6.sin6_port = htons ((uint16_t) port);
 #if HAVE_SOCKADDR_IN_SIN_LEN
-  v6.sin6_len = sizeof(sizeof(struct sockaddr_in6));
+  v6.sin6_len = sizeof(struct sockaddr_in6);
 #endif
   v6.sin6_flowinfo = 0;
   v6.sin6_scope_id = 0;
@@ -2947,7 +2947,8 @@ queue_read_kx (void *cls)
                                     queue);
 
   /* update queue timeout */
-  reschedule_queue_timeout (queue);
+  queue->timeout =
+    GNUNET_TIME_relative_to_absolute (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT);
   /* prepare to continue with regular read task immediately */
   memmove (queue->cread_buf,
            &queue->cread_buf[INITIAL_KX_SIZE],
