@@ -5851,6 +5851,12 @@ handle_raw_message (void *cls, const struct GNUNET_MessageHeader *mh)
 
     rbe->mh = mh_copy;
 
+    if (GNUNET_YES == is_ring_buffer_full)
+    {
+      struct RingBufferEntry *rbe_old = ring_buffer[ring_buffer_head];
+      GNUNET_free (rbe_old->mh);
+      GNUNET_free (rbe_old);
+    }
     ring_buffer[ring_buffer_head] = rbe;// cmc_copy;
     // cmc_copy->mh = (const struct GNUNET_MessageHeader *) mh_copy;
     cmc->mh = (const struct GNUNET_MessageHeader *) mh_copy;
@@ -6765,7 +6771,7 @@ send_msg_from_cache (struct VirtualLink *vl)
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Sending from ring buffer, which has %u items\n",
-                ring_buffer_head);
+                head);
 
     ring_buffer_head = 0;
     for (unsigned int i = 0; i < head; i++)
@@ -6821,7 +6827,7 @@ send_msg_from_cache (struct VirtualLink *vl)
                 ring_buffer_head);
   }
 
-  if ((GNUNET_YES == is_ring_buffer_full) || (0 < ring_buffer_dv_head))
+  if ((GNUNET_YES == is_ring_buffer_dv_full) || (0 < ring_buffer_dv_head))
   {
     struct PendingMessage *ring_buffer_dv_copy[RING_BUFFER_SIZE];
     struct PendingMessage *pm;
@@ -6834,7 +6840,7 @@ send_msg_from_cache (struct VirtualLink *vl)
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Sending from ring buffer dv, which has %u items\n",
-                ring_buffer_dv_head);
+                head);
 
     ring_buffer_dv_head = 0;
     for (unsigned int i = 0; i < head; i++)
@@ -7970,6 +7976,12 @@ forward_dv_box (struct Neighbour *next_hop,
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "The virtual link is not ready for forwarding a DV Box with payload, storing PendingMessage in ring buffer.\n");
 
+      if (NULL != ring_buffer_dv[ring_buffer_dv_head])
+      {
+        struct PendingMessage *pm_old = ring_buffer_dv[ring_buffer_dv_head];
+
+        GNUNET_free (pm_old);
+      }
       ring_buffer_dv[ring_buffer_dv_head] = pm;
       if (RING_BUFFER_SIZE - 1 == ring_buffer_dv_head)
       {
@@ -7981,7 +7993,8 @@ forward_dv_box (struct Neighbour *next_hop,
 
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "%u items stored in DV ring buffer\n",
-                  ring_buffer_dv_head);
+                  GNUNET_YES == is_ring_buffer_dv_full ? RING_BUFFER_SIZE :
+                        ring_buffer_dv_head);
     }
   }
 }
