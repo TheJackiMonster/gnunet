@@ -3680,6 +3680,10 @@ schedule_transmit_on_queue (struct GNUNET_TIME_Relative delay,
                             struct Queue *queue,
                             enum GNUNET_SCHEDULER_Priority p)
 {
+  struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
+
+  if (queue->validated_until.abs_value_us < now.abs_value_us)
+    return;
   if (check_for_queue_with_higher_prio (queue,
                                         queue->tc->details.communicator.
                                         queue_head))
@@ -11126,8 +11130,9 @@ handle_add_queue_message (void *cls,
                                               &check_validation_request_pending,
                                               queue);
   /* look for traffic for this queue */
-  schedule_transmit_on_queue (GNUNET_TIME_UNIT_ZERO,
-                              queue, GNUNET_SCHEDULER_PRIORITY_DEFAULT);
+  //TODO Check whether this makes any sense at all.
+  /*schedule_transmit_on_queue (GNUNET_TIME_UNIT_ZERO,
+    queue, GNUNET_SCHEDULER_PRIORITY_DEFAULT);*/
   /* might be our first queue, try launching DV learning */
   if (NULL == dvlearn_task)
     dvlearn_task = GNUNET_SCHEDULER_add_now (&start_dv_learn, NULL);
