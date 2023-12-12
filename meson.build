@@ -135,13 +135,32 @@ unistr_dep = dependency('libunistring', required : false)
 if not unistr_dep.found()
   unistr_dep = cc.find_library('unistring', required : true)
 endif
-sqlite_dep = dependency ('sqlite3', required : false)
+sqlite_dep = dependency ('sqlite3', version: '>=3.35.0', required : false)
+# FIXME for fallbacks, we need to manually check version
 if not sqlite_dep.found()
   sqlite_dep = cc.find_library('sqlite3', required : true)
+  sqlite_version_check ='''#include <sqlite3.h>
+  int main(int argc, char **argv) {
+    return (SQLITE_VERSION_NUMBER >= 3035000) ? 0 : 1;
+  }
+  '''
+  if cc.run(sqlite_version_check, name : 'sqlite version check',
+            dependencies: sqlite_dep).returncode() != 0
+    error('Sqlite version >= 3.35.0 requried')
+  endif
 endif
 curl_dep = dependency('libcurl', version: '>=7.85.0', required : false)
 if not curl_dep.found()
   curl_dep = cc.find_library('curl', required : true)
+  curl_version_check ='''#include <curl/curl.h>
+  int main(int argc, char **argv) {
+    return (LIBCURL_VERSION_NUM >= 0x075500) ? 0 : 1;
+    }
+  '''
+  if cc.run(curl_version_check, name : 'cURL version check',
+            dependencies: curl_dep).returncode() != 0
+    error('cURL version >=7.85.0 required')
+  endif
 endif
 zlib_dep = dependency('zlib', required : false)
 if not zlib_dep.found()
@@ -169,6 +188,17 @@ endif
 sodium_dep = dependency('libsodium', required : false, version: '>=1.0.18')
 if not sodium_dep.found()
   sodium_dep = cc.find_library('sodium', required : true)
+  sodium_version_check ='''#include <sodium.h>
+  int main(int argc, char **argv) {
+    return ((SODIUM_LIBRARY_VERSION_MAJOR > 10) ||
+            ((SODIUM_LIBRARY_VERSION_MAJOR == 10) &&
+             (SODIUM_LIBRARY_VERSION_MINOR >= 3))) ? 0 : 1;
+    }
+  '''
+  if cc.run(sodium_version_check, name : 'sodium version check',
+            dependencies: sodium_dep).returncode() != 0
+    error('libsodium version >=1.0.18 required')
+  endif
 endif
 quic_dep = dependency('libquiche', required : false)
 if not quic_dep.found()
@@ -189,6 +219,11 @@ else
     add_project_arguments('-DHAVE_LIBIDN', language : 'c')
     add_project_arguments('-DHAVE_IDN_H', language : 'c')
   endif
+endif
+
+pthread_dep = cc.find_library('pthread', required : false)
+if pthread_dep.found()
+  add_project_arguments('-DHAVE_PTHREAD', language : 'c')
 endif
 
 m_dep = cc.find_library('m', required : false)
@@ -303,17 +338,6 @@ elif gst_dep.found()
 endif
 ## END conversation
 
-gnunetdeps = [mhd_dep,
-              sodium_dep,
-              gcrypt_dep,
-              curl_dep,
-              json_dep,
-              zlib_dep,
-              sqlite_dep,
-              unistr_dep, #dependency('libunistring'),
-              ltdl_dep, #dependency('ltdl'),
-              idn_dep]
-
 add_project_arguments('-DNEED_LIBGCRYPT_VERSION="1.6.0"', language : 'c')
 
 if cc.check_header('sys/time.h')
@@ -376,7 +400,7 @@ endif
 curl_ssl_check ='''#include <curl/curl.h>
   int main(int argc, char **argv) {
     return (CURLSSLSET_OK != curl_global_sslset(CURLSSLBACKEND_GNUTLS, NULL, NULL));
-  }
+    }
   '''
 
 result = cc.run(curl_ssl_check, name : 'cURL gnutls check',
@@ -453,8 +477,8 @@ if not gnunet_user
     # addgroup gnunetdns
     # adduser --system --disabled-login --home /var/lib/gnunet gnunet''')
     message('''To add users to the gnunet group, run:
-             # adduser USERNAME gnunet
-             for each of your users, replacing \'USERNAME\' with the respective login name.
-             Users may have to login again for the changes to take effect.''')
+      # adduser USERNAME gnunet
+      for each of your users, replacing \'USERNAME\' with the respective login name.
+      Users may have to login again for the changes to take effect.''')
   endif
 endif

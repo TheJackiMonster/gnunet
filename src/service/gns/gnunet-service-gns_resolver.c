@@ -49,6 +49,8 @@
 #include "gns.h"
 #include "gnunet-service-gns.h"
 #include "gnunet-service-gns_resolver.h"
+#include "gnu_name_system_protocols.h"
+#include "gnu_name_system_service_ports.h"
 
 
 /**
@@ -584,17 +586,15 @@ timeout_resolution (void *cls)
  *
  * @param name name of the protocol
 */
-static struct protoent *
+static int
 resolver_getprotobyname (const char *name)
 {
   struct protoent *pe = getprotobyname (name);
-  if (pe == NULL && strcmp (name, "trust") == 0)
+  if (pe == NULL)
   {
-    pe = GNUNET_new (struct protoent);
-    pe->p_name = "trust";
-    pe->p_proto = 242;
+    return GNUNET_GNS_protocol_name_to_number (name);
   }
-  return pe;
+  return pe->p_proto;
 }
 
 
@@ -604,26 +604,15 @@ resolver_getprotobyname (const char *name)
  * @param name name of the service
  * @param proto name of the protocol
 */
-static struct servent *
+static int
 resolver_getservbyname (const char *name, const char *proto)
 {
   struct servent *se = getservbyname (name, proto);
-  if (se == NULL && strcmp (proto, "trust") == 0)
+  if (se == NULL)
   {
-    if (strcmp (name, "trustlist") == 0)
-    {
-      se = GNUNET_new (struct servent);
-      se->s_name = "trustlist";
-      se->s_port = htons (1002);
-    }
-    else if (strcmp (name, "scheme") == 0)
-    {
-      se = GNUNET_new (struct servent);
-      se->s_name = "scheme";
-      se->s_port = htons (1003);
-    }
+    return htons (GNUNET_GNS_service_port_name_to_number (name));
   }
-  return se;
+  return se->s_port;
 }
 
 
@@ -653,8 +642,8 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
   char *ret;
   char *srv_name;
   char *proto_name;
-  struct protoent *pe;
-  struct servent *se;
+  int protocol;
+  int service;
 
   if (0 == rh->name_resolution_pos)
     return NULL;
@@ -710,8 +699,8 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
                                  rh->name_resolution_pos - (dot - rh->name)
                                  - 2);
     rh->name_resolution_pos = 0;
-    pe = resolver_getprotobyname (proto_name);
-    if (NULL == pe)
+    protocol = resolver_getprotobyname (proto_name);
+    if (0 == protocol)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                   _ ("Protocol `%s' unknown, skipping labels.\n"),
@@ -720,9 +709,9 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
       GNUNET_free (srv_name);
       return ret;
     }
-    se = resolver_getservbyname (srv_name,
-                                 proto_name);
-    if (NULL == se)
+    service = resolver_getservbyname (srv_name,
+                                      proto_name);
+    if (0 == service)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                   _ (
@@ -741,9 +730,9 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
     }
     else
     {
-      rh->service = ntohs (se->s_port);
+      rh->service = ntohs (service);
     }
-    rh->protocol = pe->p_proto;
+    rh->protocol = protocol;
     GNUNET_free (proto_name);
     GNUNET_free (srv_name);
   }

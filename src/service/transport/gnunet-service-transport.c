@@ -1192,6 +1192,11 @@ struct CommunicatorMessageContext
    * FIXME: make use of this in ACK handling!
    */
   uint16_t total_hops;
+
+  /**
+   * Did we already call GNUNET_SERVICE_client_continue?
+   */
+  unsigned int continue_send;
 };
 
 
@@ -3088,12 +3093,6 @@ free_pending_message (struct PendingMessage *pm)
 
     GNUNET_assert (pm == pm->qe->pm);
     pm->qe->pm = NULL;
-    GNUNET_CONTAINER_DLL_remove (qe->queue->queue_head,
-                                 qe->queue->queue_tail,
-                                 qe);
-    qe->queue->queue_length--;
-    qe->queue->tc->details.communicator.total_queue_length--;
-    GNUNET_free (qe);
   }
   if (NULL != pm->bpm)
   {
@@ -3103,12 +3102,6 @@ free_pending_message (struct PendingMessage *pm)
       struct QueueEntry *qe = pm->bpm->qe;
 
       qe->pm = NULL;
-      GNUNET_CONTAINER_DLL_remove (qe->queue->queue_head,
-                                   qe->queue->queue_tail,
-                                   qe);
-      qe->queue->queue_length--;
-      qe->queue->tc->details.communicator.total_queue_length--;
-      GNUNET_free (qe);
     }
     GNUNET_free (pm->bpm);
   }
@@ -3687,6 +3680,10 @@ schedule_transmit_on_queue (struct GNUNET_TIME_Relative delay,
                             struct Queue *queue,
                             enum GNUNET_SCHEDULER_Priority p)
 {
+  struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
+
+  if (queue->validated_until.abs_value_us < now.abs_value_us)
+    return;
   if (check_for_queue_with_higher_prio (queue,
                                         queue->tc->details.communicator.
                                         queue_head))
@@ -3696,7 +3693,9 @@ schedule_transmit_on_queue (struct GNUNET_TIME_Relative delay,
       COMMUNICATOR_TOTAL_QUEUE_LIMIT)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Transmission throttled due to communicator queue limit\n");
+                "Transmission on queue %s (QID %u) throttled due to communicator queue limit\n",
+                queue->address,
+                queue->qid);
     GNUNET_STATISTICS_update (
       GST_stats,
       "# Transmission throttled due to communicator queue limit",
@@ -3708,7 +3707,9 @@ schedule_transmit_on_queue (struct GNUNET_TIME_Relative delay,
   if (queue->queue_length >= QUEUE_LENGTH_LIMIT)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Transmission throttled due to communicator queue length limit\n");
+                "Transmission on queue %s (QID %u) throttled due to communicator queue length limit\n",
+                queue->address,
+                queue->qid);
     GNUNET_STATISTICS_update (GST_stats,
                               "# Transmission throttled due to queue queue limit",
                               1,
@@ -3719,8 +3720,9 @@ schedule_transmit_on_queue (struct GNUNET_TIME_Relative delay,
   if (0 == queue->q_capacity)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Transmission throttled due to communicator message queue qid %u has capacity %"
+                "Transmission on queue %s (QID %u) throttled due to communicator message  has capacity %"
                 PRIu64 ".\n",
+                queue->address,
                 queue->qid,
                 queue->q_capacity);
     GNUNET_STATISTICS_update (GST_stats,
@@ -4366,7 +4368,7 @@ handle_client_recv_ok (void *cls, const struct RecvOkMessage *rom)
   while (NULL != (cmc = vl->cmc_tail))
   {
     GNUNET_CONTAINER_DLL_remove (vl->cmc_head, vl->cmc_tail, cmc);
-    finish_cmc_handling (cmc);
+    finish_cmc_handling_with_continue (cmc, GNUNET_YES == cmc->continue_send ? GNUNET_NO : GNUNET_YES);
   }
 }
 
@@ -4531,7 +4533,6 @@ queue_send_msg (struct Queue *queue,
       }
       pm->qe = qe;
     }
-    GNUNET_CONTAINER_DLL_insert (queue->queue_head, queue->queue_tail, qe);
     GNUNET_assert (CT_COMMUNICATOR == queue->tc->type);
     if (0 == queue->q_capacity)
     {
@@ -4543,8 +4544,10 @@ queue_send_msg (struct Queue *queue,
                     pm->logging_uuid,
                     pm->pmt);
       GNUNET_free (env);
+      GNUNET_free (qe);
       return;
     }
+    GNUNET_CONTAINER_DLL_insert (queue->queue_head, queue->queue_tail, qe);
     queue->queue_length++;
     queue->tc->details.communicator.total_queue_length++;
     if (GNUNET_NO == queue->unlimited_length)
@@ -4571,13 +4574,15 @@ queue_send_msg (struct Queue *queue,
     // GNUNET_CONTAINER_multiuuidmap_get (pending_acks, &ack[i].ack_uuid.value);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Sending message MID %" PRIu64
-                " of type %u (%u) and size %lu with MQ %p QID %u\n",
+                " of type %u (%u) and size %lu with MQ %p queue %s (QID %u) pending %" PRIu64 "\n",
                 GNUNET_ntohll (smt->mid),
                 ntohs (((const struct GNUNET_MessageHeader *) payload)->type),
                 ntohs (smt->header.size),
                 (unsigned long) payload_size,
                 queue->tc->mq,
-                queue->qid);
+                queue->address,
+                queue->qid,
+                (NULL == pm) ? 0 : pm->logging_uuid);
     GNUNET_MQ_send (queue->tc->mq, env);
   }
 }
@@ -5863,14 +5868,22 @@ handle_raw_message (void *cls, const struct GNUNET_MessageHeader *mh)
 
     rbe->mh = mh_copy;
 
+    if (GNUNET_YES == is_ring_buffer_full)
+    {
+      struct RingBufferEntry *rbe_old = ring_buffer[ring_buffer_head];
+      GNUNET_free (rbe_old->mh);
+      GNUNET_free (rbe_old);
+    }
     ring_buffer[ring_buffer_head] = rbe;// cmc_copy;
     // cmc_copy->mh = (const struct GNUNET_MessageHeader *) mh_copy;
     cmc->mh = (const struct GNUNET_MessageHeader *) mh_copy;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Storing message for %s and type %u (%u) in ring buffer\n",
+                "Storing message for %s and type %u (%u) in ring buffer head %u is full %u\n",
                 GNUNET_i2s (&cmc->im.sender),
                 (unsigned int) ntohs (mh->type),
-                (unsigned int) ntohs (mh_copy->type));
+                (unsigned int) ntohs (mh_copy->type),
+                ring_buffer_head,
+                is_ring_buffer_full);
     if (RING_BUFFER_SIZE - 1 == ring_buffer_head)
     {
       ring_buffer_head = 0;
@@ -5881,7 +5894,8 @@ handle_raw_message (void *cls, const struct GNUNET_MessageHeader *mh)
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "%u items stored in ring buffer\n",
-                ring_buffer_head);
+                GNUNET_YES == is_ring_buffer_full ? RING_BUFFER_SIZE :
+                        ring_buffer_head);
 
     /*GNUNET_break_op (0);
     GNUNET_STATISTICS_update (GST_stats,
@@ -5895,6 +5909,7 @@ handle_raw_message (void *cls, const struct GNUNET_MessageHeader *mh)
                 (unsigned int) ntohs (mh->size));
     finish_cmc_handling (cmc);*/
     GNUNET_SERVICE_client_continue (cmc->tc->client);
+    cmc->continue_send = GNUNET_YES;
     // GNUNET_free (cmc);
     return;
   }
@@ -6192,13 +6207,13 @@ handle_fragment_box (void *cls, const struct TransportFragmentBoxMessage *fb)
     else
       rc->msg_missing = 0;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Received fragment with size %u at offset %u/%u %u bytes missing from %s for NEW message %u\n",
+                "Received fragment with size %u at offset %u/%u %u bytes missing from %s for NEW message %" PRIu64 "\n",
                 fsize,
                 ntohs (fb->frag_off),
                 msize,
                 rc->msg_missing,
                 GNUNET_i2s (&cmc->im.sender),
-                (unsigned int) fb->msg_uuid.uuid);
+                fb->msg_uuid.uuid);
   }
   else
   {
@@ -6777,7 +6792,7 @@ send_msg_from_cache (struct VirtualLink *vl)
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Sending from ring buffer, which has %u items\n",
-                ring_buffer_head);
+                head);
 
     ring_buffer_head = 0;
     for (unsigned int i = 0; i < head; i++)
@@ -6789,9 +6804,11 @@ send_msg_from_cache (struct VirtualLink *vl)
       im = cmc->im;
       // mh = cmc->mh;
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Sending to ring buffer target %s using vl target %s\n",
+                  "Sending message of type %u to ring buffer target %s using vl target %s index %u\n",
+                  mh->type,
                   GNUNET_i2s (&im.sender),
-                  GNUNET_i2s2 (&target));
+                  GNUNET_i2s2 (&target),
+                  (i + tail) % RING_BUFFER_SIZE);
       if (0 == GNUNET_memcmp (&target, &im.sender))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -6833,7 +6850,7 @@ send_msg_from_cache (struct VirtualLink *vl)
                 ring_buffer_head);
   }
 
-  if ((GNUNET_YES == is_ring_buffer_full) || (0 < ring_buffer_dv_head))
+  if ((GNUNET_YES == is_ring_buffer_dv_full) || (0 < ring_buffer_dv_head))
   {
     struct PendingMessage *ring_buffer_dv_copy[RING_BUFFER_SIZE];
     struct PendingMessage *pm;
@@ -6846,7 +6863,7 @@ send_msg_from_cache (struct VirtualLink *vl)
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Sending from ring buffer dv, which has %u items\n",
-                ring_buffer_dv_head);
+                head);
 
     ring_buffer_dv_head = 0;
     for (unsigned int i = 0; i < head; i++)
@@ -7982,6 +7999,12 @@ forward_dv_box (struct Neighbour *next_hop,
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "The virtual link is not ready for forwarding a DV Box with payload, storing PendingMessage in ring buffer.\n");
 
+      if (NULL != ring_buffer_dv[ring_buffer_dv_head])
+      {
+        struct PendingMessage *pm_old = ring_buffer_dv[ring_buffer_dv_head];
+
+        GNUNET_free (pm_old);
+      }
       ring_buffer_dv[ring_buffer_dv_head] = pm;
       if (RING_BUFFER_SIZE - 1 == ring_buffer_dv_head)
       {
@@ -7993,7 +8016,8 @@ forward_dv_box (struct Neighbour *next_hop,
 
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "%u items stored in DV ring buffer\n",
-                  ring_buffer_dv_head);
+                  GNUNET_YES == is_ring_buffer_dv_full ? RING_BUFFER_SIZE :
+                        ring_buffer_dv_head);
     }
   }
 }
@@ -9734,8 +9758,8 @@ update_pm_next_attempt (struct PendingMessage *pm,
       struct GNUNET_TIME_Relative s1;
       struct GNUNET_TIME_Relative s2;
       struct GNUNET_TIME_Relative plus_mean =
-        GNUNET_TIME_absolute_get_duration (root->next_attempt);
-      struct GNUNET_TIME_Relative plus = GNUNET_TIME_absolute_get_duration (
+        GNUNET_TIME_absolute_get_remaining (root->next_attempt);
+      struct GNUNET_TIME_Relative plus = GNUNET_TIME_absolute_get_remaining (
         next_attempt);
 
       s1 = GNUNET_TIME_relative_multiply (plus_mean,
@@ -10408,8 +10432,9 @@ handle_send_message_ack (void *cls,
   qe->queue->queue_length--;
   tc->details.communicator.total_queue_length--;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Received ACK on queue %s to peer %s (new length: %u/%u)\n",
+              "Received ACK on queue %s (QID %u) to peer %s (new length: %u/%u)\n",
               qe->queue->address,
+              qe->queue->qid,
               GNUNET_i2s (&qe->queue->neighbour->pid),
               qe->queue->queue_length,
               tc->details.communicator.total_queue_length);
@@ -11118,8 +11143,9 @@ handle_add_queue_message (void *cls,
                                               &check_validation_request_pending,
                                               queue);
   /* look for traffic for this queue */
-  schedule_transmit_on_queue (GNUNET_TIME_UNIT_ZERO,
-                              queue, GNUNET_SCHEDULER_PRIORITY_DEFAULT);
+  //TODO Check whether this makes any sense at all.
+  /*schedule_transmit_on_queue (GNUNET_TIME_UNIT_ZERO,
+    queue, GNUNET_SCHEDULER_PRIORITY_DEFAULT);*/
   /* might be our first queue, try launching DV learning */
   if (NULL == dvlearn_task)
     dvlearn_task = GNUNET_SCHEDULER_add_now (&start_dv_learn, NULL);

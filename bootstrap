@@ -149,6 +149,14 @@ gana_update()
       cd ../gnu-name-system-default-tlds && \
          make >/dev/null && \
          cp tlds.conf ../../../src/service/gns || exit 1
+      echo "Creating default GNS protocol numbers"
+      cd ../gns-protocol-numbers && \
+         make >/dev/null && \
+         cp gnu_name_system_protocols.h ../../../src/include/ || exit 1
+      echo "Creating default GNS service port nummbers"
+      cd ../gns-service-port-numbers && \
+         make >/dev/null && \
+         cp gnu_name_system_service_ports.h ../../../src/include/ || exit 1
 
       # Signatures
       echo "Updating GNUnet signatures"

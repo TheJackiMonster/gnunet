@@ -110,7 +110,7 @@ Direct dependencies of GNUnet:
                                      X.509 certificate
                                      for gnunet-gns-proxy-setup-ca)
 - libltdl            >= 2.2         (part of GNU libtool)
-- sqlite           >= 3.8           (default database, required)
+- sqlite             >= 3.35.0      (default database, required)
 - which                             (contrib/apparmor(?), gnunet-bugreport,
                                      and possibly more)
 - zlib

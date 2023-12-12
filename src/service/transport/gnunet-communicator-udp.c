@@ -67,7 +67,7 @@
  * How often do we scan for changes to our network interfaces?
  */
 #define INTERFACE_SCAN_FREQUENCY \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
 
 /**
  * How long do we believe our addresses to remain up (before
@@ -76,7 +76,7 @@
 #define ADDRESS_VALIDITY_PERIOD GNUNET_TIME_UNIT_HOURS
 
 #define WORKING_QUEUE_INTERVALL \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,1)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,1)
 
 /**
  * AES key size.
@@ -1942,13 +1942,28 @@ sock_read (void *cls)
                                            &salen);
     if (-1 == rcvd)
     {
+      struct sockaddr *addr = (struct sockaddr*) &sa;
+
       if (EAGAIN == errno)
         break; // We are done reading data
-      GNUNET_log_strerror (GNUNET_ERROR_TYPE_DEBUG, "recv");
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+              "Failed to recv from %s family %d failed sock %p\n",
+              GNUNET_a2s ((struct sockaddr*) &sa,
+                          sizeof (addr)),
+              addr->sa_family,
+              udp_sock);
+      GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "recv");
       return;
     }
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Read %lu bytes\n", rcvd);
+    if (0 == rcvd)
+    {
+      GNUNET_break_op (0);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Read 0 bytes from UDP socket\n");
+      return;
+    }
 
     /* first, see if it is a UDPBox */
     if (rcvd > sizeof(struct UDPBox))
@@ -2292,7 +2307,8 @@ do_pad (gcry_cipher_hd_t out_cipher, char *dgram, size_t pad_size)
 
 static void
 send_msg_with_kx (const struct GNUNET_MessageHeader *msg, struct
-                  ReceiverAddress *receiver)
+                  ReceiverAddress *receiver,
+                  struct GNUNET_MQ_Handle *mq)
 {
   uint16_t msize = ntohs (msg->size);
   struct UdpHandshakeSignature uhs;
@@ -2364,12 +2380,25 @@ send_msg_with_kx (const struct GNUNET_MessageHeader *msg, struct
                                           sizeof(dgram),
                                           receiver->address,
                                           receiver->address_len))
+  {
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "send");
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+              "Sending KX with payload size %u to %s family %d failed sock %p\n",
+              msize,
+              GNUNET_a2s (receiver->address,
+                          receiver->address_len),
+                receiver->address->sa_family,
+              udp_sock);
+    GNUNET_MQ_impl_send_continue (mq);
+    receiver_destroy (receiver);
+    return;
+  }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Sending KX with payload size %u to %s\n",
               msize,
               GNUNET_a2s (receiver->address,
                           receiver->address_len));
+  GNUNET_MQ_impl_send_continue (mq);
 }
 
 
@@ -2389,8 +2418,7 @@ mq_send_kx (struct GNUNET_MQ_Handle *mq,
   struct ReceiverAddress *receiver = impl_state;
 
   GNUNET_assert (mq == receiver->kx_mq);
-  send_msg_with_kx (msg, receiver);
-  GNUNET_MQ_impl_send_continue (mq);
+  send_msg_with_kx (msg, receiver, mq);
 }
 
 
@@ -2441,7 +2469,7 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
   if ((msize > receiver->d_mtu) ||
       (0 == receiver->acks_available))
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "msize: %u, mtu: %lu, acks: %u\n",
                 msize,
                 receiver->d_mtu,
@@ -2531,7 +2559,17 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
                                             payload_len, // FIXME why always send sizeof dgram?
                                             receiver->address,
                                             receiver->address_len))
+    {
       GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "send");
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Sending UDPBox to %s family %d failed sock %p failed\n",
+                GNUNET_a2s (receiver->address,
+                          receiver->address_len),
+                receiver->address->sa_family,
+                udp_sock);
+      receiver_destroy (receiver);
+      return;
+    }
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Sending UDPBox with payload size %u, %u acks left, %lu bytes sent\n",
                 msize,
@@ -2544,8 +2582,7 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "No suitable ss found, sending as KX...\n");
-  send_msg_with_kx (msg, receiver);
-  GNUNET_MQ_impl_send_continue (mq);
+  send_msg_with_kx (msg, receiver, mq);
 }
 
 
@@ -3286,6 +3323,11 @@ run (void *cls,
   if (NULL == udp_sock)
   {
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "socket");
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to create socket for %s family %d\n",
+                GNUNET_a2s (in,
+                            in_len),
+                in->sa_family);
     GNUNET_free (in);
     GNUNET_free (bindto);
     return;
@@ -3300,6 +3342,12 @@ run (void *cls,
     GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR,
                               "bind",
                               bindto);
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to bind socket for %s family %d sock %p\n",
+                GNUNET_a2s (in,
+                            in_len),
+                in->sa_family,
+                udp_sock);
     GNUNET_NETWORK_socket_close (udp_sock);
     udp_sock = NULL;
     GNUNET_free (in);
@@ -3321,11 +3369,12 @@ run (void *cls,
   GNUNET_free (bindto);
   in = (struct sockaddr *) &in_sto;
   in_len = sto_len;
-  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
+  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_INFO,
                            "transport",
-                           "Bound to `%s'\n",
+                           "Bound to `%s' sock %p\n",
                            GNUNET_a2s ((const struct sockaddr *) &in_sto,
-                                       sto_len));
+                                       sto_len),
+                           udp_sock);
   switch (in->sa_family)
   {
   case AF_INET:
