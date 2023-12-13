@@ -143,7 +143,6 @@ EXTRA_DIST = \
   apparmor/gnunet-namestore-gtk \
   apparmor/gnunet-service-testbed-logger \
   apparmor/gnunet-peerstore \
-  apparmor/gnunet-namestore-fcfsd \
   apparmor/gnunet-core \
   apparmor/gnunet-gns-import.sh \
   apparmor/gnunet-gns-proxy \
