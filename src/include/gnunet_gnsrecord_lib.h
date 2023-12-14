@@ -331,6 +331,31 @@ struct GNUNET_GNSRECORD_BoxRecord
   /* followed by the 'original' record */
 };
 
+
+/**
+ * Record type used to box up SMIMEA records.  For example, a
+ * SMIMEA record for "c93f1e400f26708f98cb19d936620da35eec8f72e57
+ * f9eec01c1afd6._smimecert.foo.gnu" will be stored under
+ * "foo.gnu" as a SBOX record with the local-path of the associated
+ * e-mails hash turnicated to 28 octets encoded as hex and protocol _smimecert
+ * and record_type "SMIMEA".  When a BOX record is received, GNS
+ * unboxes it if the name contained "hash._PROTO", otherwise GNS
+ * leaves it untouched.  This is done to ensure that SMIMEA
+ * records do not require a separate network request, thus making SMIMEA
+ * records inseparable from the "main" A/AAAA/VPN/etc. records.
+ */
+struct GNUNET_GNSRECORD_SBoxRecord
+{
+  /**
+   * GNS record type of the boxed record. In NBO.
+   */
+  uint32_t record_type GNUNET_PACKED;
+
+  /* followed by the zero terminated hostname prefix */
+  /* followed by the 'original' record */
+};
+
+
 /**
  * Record type used internally to keep track of reverse mappings into a
  * namespace.
@@ -836,9 +861,9 @@ GNUNET_GNSRECORD_label_check (const char*label, char **emsg);
 /**
  * Maximum length of a revocation
  */
-#define GNUNET_MAX_POW_SIZE sizeof(struct GNUNET_GNSRECORD_PowP) +\
-                                         sizeof(struct GNUNET_CRYPTO_PublicKey) +\
-                                         1024 //FIXME max sig_len
+#define GNUNET_MAX_POW_SIZE sizeof(struct GNUNET_GNSRECORD_PowP)  \
+  + sizeof(struct GNUNET_CRYPTO_PublicKey)  \
+  + 1024                                      // FIXME max sig_len
 
 /**
  * The proof-of-work narrowing factor.
@@ -910,8 +935,8 @@ struct GNUNET_GNSRECORD_PowCalculationHandle;
  */
 enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_check_pow (const struct GNUNET_GNSRECORD_PowP *pow,
-                             unsigned int matching_bits,
-                             struct GNUNET_TIME_Relative epoch_duration);
+                            unsigned int matching_bits,
+                            struct GNUNET_TIME_Relative epoch_duration);
 
 
 /**
@@ -922,7 +947,7 @@ GNUNET_GNSRECORD_check_pow (const struct GNUNET_GNSRECORD_PowP *pow,
  */
 void
 GNUNET_GNSRECORD_pow_init (const struct GNUNET_CRYPTO_PrivateKey *key,
-                            struct GNUNET_GNSRECORD_PowP *pow);
+                           struct GNUNET_GNSRECORD_PowP *pow);
 
 
 /**
@@ -936,8 +961,8 @@ GNUNET_GNSRECORD_pow_init (const struct GNUNET_CRYPTO_PrivateKey *key,
  */
 struct GNUNET_GNSRECORD_PowCalculationHandle*
 GNUNET_GNSRECORD_pow_start (struct GNUNET_GNSRECORD_PowP *pow,
-                             int epochs,
-                             unsigned int difficulty);
+                            int epochs,
+                            unsigned int difficulty);
 
 
 /**

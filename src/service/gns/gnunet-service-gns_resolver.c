@@ -369,6 +369,12 @@ struct GNS_ResolverHandle
   int service;
 
   /**
+   * For SMIMEA,OPENPGPKEY... records. NULL if no _ prefix was given.
+   */
+  char *prefix;
+
+
+  /**
    * Desired type for the resolution.
    */
   int record_type;
@@ -620,15 +626,16 @@ resolver_getservbyname (const char *name, const char *proto)
  * Get the next, rightmost label from the name that we are trying to resolve,
  * and update the resolution position accordingly.  Labels usually consist
  * of up to 63 characters without a period ("."); however, we use a special
- * convention to support SRV and TLSA records where the domain name
- * includes an encoding for a service and protocol in the name.  The
- * syntax (see RFC 2782) here is "_Service._Proto.Name" and in this
- * special case we include the "_Service._Proto" in the rightmost label.
+ * convention to support resource records where the domain name
+ * includes a label starting with '_'. The syntax (see RFC 8552) here is
+ * "someLabel._Label.Name" and in this special case we include the "someLabel._Label" in the rightmost label.
  * Thus, for "_443._tcp.foo.bar" we first return the label "bar" and then
  * the label "_443._tcp.foo".  The special case is detected by the
- * presence of labels beginning with an underscore.  Whenever a label
- * begins with an underscore, it is combined with the label to its right
- * (and the "." is preserved).
+ * presence of one label beginning with an underscore.  The rightmost label
+ * beginning with an underscore, is combined with the label to its right
+ * (and the "." is preserved). If the label is in the syntax of
+ * "_PORT._PROTOCOL" (e.g. "_443._tcp") we also extract the port and protocol.
+ * In this implementation, the more specific case is handled first.
  *
  * @param rh handle to the resolution operation to get the next label from
  * @return NULL if there are no more labels
@@ -657,14 +664,13 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
     rp = rh->name;
     rh->name_resolution_pos = 0;
   }
-  else if (('_' == dot[1]) &&
-           ('_' == rh->name[0]) &&
-           (dot == memchr (rh->name, (int) '.', rh->name_resolution_pos)))
+  else if ('_' == dot[1])
   {
     /**
      * Do not advance a label. This seems to be a name only consisting
-     * of a BOX indicator (_443,_tcp).
-     * Which means, it is a BOX under the empty label.
+     * of a prefix. Indicating a BOX record (_443,_tcp)
+     * Or some version of an SBOX record (HEX,_smimeacert)
+     * Which means, it is a BOX/SBOX under the empty label.
      * leaving name_resolution_pos as is and returning empty label.
      */
     rp = GNUNET_GNS_EMPTY_LABEL_AT;
@@ -679,8 +685,9 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
   }
   rh->protocol = 0;
   rh->service = 0;
+  rh->prefix = NULL;
   ret = GNUNET_strndup (rp, len);
-  /* If we have labels starting with underscore with label on
+  /** If we have labels starting with underscore with label on
    * the right (SRV/DANE/BOX case), determine port/protocol;
    * The format of `rh->name` must be "_PORT._PROTOCOL".
    */
@@ -703,10 +710,12 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
     if (0 == protocol)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                  _ ("Protocol `%s' unknown, skipping labels.\n"),
+                  _ (
+                    "Protocol `%s' unknown, skipping labels as BOX retain as SBOX.\n"),
                   proto_name);
       GNUNET_free (proto_name);
       GNUNET_free (srv_name);
+      rh->prefix = GNUNET_strndup (rh->name, strlen (rh->name) - len - 1);
       return ret;
     }
     service = resolver_getservbyname (srv_name,
@@ -721,10 +730,12 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
       if (1 != sscanf (srv_name, "%u", &rh->service))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                    _ ("Service `%s' not a port, skipping service labels.\n"),
+                    _ (
+                      "Service `%s' not a port, skipping service labels as BOX retain as SBOX.\n"),
                     srv_name);
         GNUNET_free (proto_name);
         GNUNET_free (srv_name);
+        rh->prefix = GNUNET_strndup (rh->name, strlen (rh->name) - len - 1);
         return ret;
       }
     }
@@ -735,6 +746,20 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
     rh->protocol = protocol;
     GNUNET_free (proto_name);
     GNUNET_free (srv_name);
+  }
+  /**
+  * If we have labels starting with underscore with label on
+  * the right, copy prefix to rh->prefix;
+  * The format of `rh->name` must be "*._label",
+  * where label is a string without '.'.
+  */
+  if ((NULL != (dot = memrchr (rh->name,
+                               (int) '.',
+                               rh->name_resolution_pos)) && '_' == dot[1]) ||
+      '_' == rh->name[0])
+  {
+    rh->name_resolution_pos = 0;
+    rh->prefix = GNUNET_strndup (rh->name, strlen (rh->name) - len - 1);
   }
   return ret;
 }
@@ -2040,9 +2065,10 @@ handle_gns_resolution_result (void *cls,
     for (unsigned int i = 0; i < rd_count; i++)
     {
       GNUNET_assert (rd_off <= i);
-      if ((0 != rh->protocol) &&
-          (0 != rh->service) &&
-          (GNUNET_GNSRECORD_TYPE_BOX != rd[i].record_type))
+      if ((((0 != rh->protocol) &&
+            (0 != rh->service)) || (NULL != rh->prefix)) &&
+          (GNUNET_GNSRECORD_TYPE_BOX != rd[i].record_type &&
+           GNUNET_GNSRECORD_TYPE_SBOX != rd[i].record_type))
         if (GNUNET_GNSRECORD_TYPE_PKEY != rd[i].record_type &&
             GNUNET_GNSRECORD_TYPE_EDKEY != rd[i].record_type)
           continue;
@@ -2357,12 +2383,55 @@ handle_gns_resolution_result (void *cls,
           }
           break;
         }
+      case GNUNET_GNSRECORD_TYPE_SBOX:
+        {
+          /* unbox SBOX records if a specific one was requested */
+          if ((rh->prefix != NULL) &&
+              (rd[i].data_size >= sizeof(struct GNUNET_GNSRECORD_SBoxRecord)))
+          {
+            const struct GNUNET_GNSRECORD_SBoxRecord *box;
 
+            box = rd[i].data;
+            char *prefix = GNUNET_strdup (&box[1]);
+            size_t prefix_len = strlen (prefix) + 1;
+            GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                        "Got SBOX record, checking if prefixes match... %s vs %s\n",
+                        prefix, rh->prefix);
+            if (strcmp (rh->prefix, prefix) == 0)
+            {
+              /* Box matches, unbox! */
+              GNUNET_assert (rd_off < rd_count);
+              rd_new[rd_off].record_type = ntohl (box->record_type);
+              rd_new[rd_off].data_size -= sizeof(struct
+                                                 GNUNET_GNSRECORD_SBoxRecord)
+                                          + prefix_len;
+              rd_new[rd_off].data = &rd[i].data[sizeof(struct
+                                                       GNUNET_GNSRECORD_SBoxRecord)
+                                                + prefix_len];
+              rd_off++;
+            }
+            GNUNET_free (prefix);
+          }
+          else
+          {
+            GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                        _ (
+                          "GNS no specific protocol/service specified, preserve all SBOX `%s')\n"),
+                        rh->name);
+            /* no specific protocol/service specified, preserve all SBOX
+               records (for modern, GNS-enabled applications) */
+            rd_off++;
+          }
+          break;
+        }
       default:
         rd_off++;
         break;
       }       /* end: switch */
     }     /* end: for rd_count */
+
+    GNUNET_free (rh->prefix);
+    rh->prefix = NULL;
 
     /* yes, we are done, return result */
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -3013,6 +3082,11 @@ GNS_resolver_lookup_cancel (struct GNS_ResolverHandle *rh)
                                  rh->dns_result_tail,
                                  dr);
     GNUNET_free (dr);
+  }
+  if (NULL != rh->prefix)
+  {
+    GNUNET_free (rh->prefix);
+    rh->prefix = NULL;
   }
   GNUNET_free (rh->leho);
   GNUNET_free (rh->name);
