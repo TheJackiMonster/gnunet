@@ -705,7 +705,6 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
     proto_name = GNUNET_strndup (&dot[2],
                                  rh->name_resolution_pos - (dot - rh->name)
                                  - 2);
-    rh->name_resolution_pos = 0;
     protocol = resolver_getprotobyname (proto_name);
     if (0 == protocol)
     {
@@ -715,7 +714,8 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
                   proto_name);
       GNUNET_free (proto_name);
       GNUNET_free (srv_name);
-      rh->prefix = GNUNET_strndup (rh->name, strlen (rh->name) - len - 1);
+      rh->prefix = GNUNET_strndup (rh->name, rh->name_resolution_pos);
+      rh->name_resolution_pos = 0;
       return ret;
     }
     service = resolver_getservbyname (srv_name,
@@ -735,7 +735,8 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
                     srv_name);
         GNUNET_free (proto_name);
         GNUNET_free (srv_name);
-        rh->prefix = GNUNET_strndup (rh->name, strlen (rh->name) - len - 1);
+        rh->prefix = GNUNET_strndup (rh->name, rh->name_resolution_pos);
+        rh->name_resolution_pos = 0;
         return ret;
       }
     }
@@ -758,8 +759,8 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
                                rh->name_resolution_pos)) && '_' == dot[1]) ||
       '_' == rh->name[0])
   {
+    rh->prefix = GNUNET_strndup (rh->name, rh->name_resolution_pos);
     rh->name_resolution_pos = 0;
-    rh->prefix = GNUNET_strndup (rh->name, strlen (rh->name) - len - 1);
   }
   return ret;
 }

@@ -26,6 +26,7 @@ PREFIX4="abcdefghijklmnopqrstuvwxyz.abcdefghijklmnopqrstuvwxyz._abc"
 PREFIX5="abc.abc._abc.abc"
 PREFIX6="abc.abc._abc.abc._abc"
 PREFIX7="abc.abc._abc.abc._abc.abc"
+PREFIX8="_at"
 gnunet-arm -s -c test_gns_lookup.conf
 gnunet-identity -C $MY_EGO -c test_gns_lookup.conf
 gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t SBOX -V "$PREFIX1 1 $TEST_A" -e never -c test_gns_lookup.conf
@@ -35,6 +36,7 @@ gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t SBOX -V "$PREFIX4 1 $TEST_A" -e n
 gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t SBOX -V "$PREFIX5 1 $TEST_A" -e never -c test_gns_lookup.conf
 gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t SBOX -V "$PREFIX6 1 $TEST_A" -e never -c test_gns_lookup.conf
 gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t SBOX -V "$PREFIX7 1 $TEST_A" -e never -c test_gns_lookup.conf
+gnunet-namestore -p -z $MY_EGO -a -n '@' -t SBOX -V "$PREFIX8 1 $TEST_A" -e never -c test_gns_lookup.conf
 sleep 0.5
 RES_A1=`$DO_TIMEOUT gnunet-gns --raw -u $PREFIX1.$LABEL.$MY_EGO -t A -c test_gns_lookup.conf`
 RES_A2=`$DO_TIMEOUT gnunet-gns --raw -u $PREFIX2.$LABEL.$MY_EGO -t A -c test_gns_lookup.conf`
@@ -43,6 +45,7 @@ RES_A4=`$DO_TIMEOUT gnunet-gns --raw -u $PREFIX4.$LABEL.$MY_EGO -t A -c test_gns
 RES_A5=`$DO_TIMEOUT gnunet-gns --raw -u $PREFIX5.$LABEL.$MY_EGO -t A -c test_gns_lookup.conf`
 RES_A6=`$DO_TIMEOUT gnunet-gns --raw -u $PREFIX6.$LABEL.$MY_EGO -t A -c test_gns_lookup.conf`
 RES_A7=`$DO_TIMEOUT gnunet-gns --raw -u $PREFIX7.$LABEL.$MY_EGO -t A -c test_gns_lookup.conf`
+RES_A8=`$DO_TIMEOUT gnunet-gns --raw -u $PREFIX8.$MY_EGO -t A -c test_gns_lookup.conf`
 gnunet-namestore -z $MY_EGO -d -n $LABEL -t SBOX -V "$PREFIX1 1 $TEST_A" -e never -c test_gns_lookup.conf
 gnunet-namestore -z $MY_EGO -d -n $LABEL -t SBOX -V "$PREFIX2 1 $TEST_A" -e never -c test_gns_lookup.conf
 gnunet-namestore -z $MY_EGO -d -n $LABEL -t SBOX -V "$PREFIX3 1 $TEST_A" -e never -c test_gns_lookup.conf
@@ -50,6 +53,7 @@ gnunet-namestore -z $MY_EGO -d -n $LABEL -t SBOX -V "$PREFIX4 1 $TEST_A" -e neve
 gnunet-namestore -z $MY_EGO -d -n $LABEL -t SBOX -V "$PREFIX5 1 $TEST_A" -e never -c test_gns_lookup.conf
 gnunet-namestore -z $MY_EGO -d -n $LABEL -t SBOX -V "$PREFIX6 1 $TEST_A" -e never -c test_gns_lookup.conf
 gnunet-namestore -z $MY_EGO -d -n $LABEL -t SBOX -V "$PREFIX7 1 $TEST_A" -e never -c test_gns_lookup.conf
+gnunet-namestore -z $MY_EGO -d -n '@' -t SBOX -V "$PREFIX8 1 $TEST_A" -e never -c test_gns_lookup.conf
 gnunet-identity -D $MY_EGO -c test_gns_lookup.conf
 gnunet-arm -e -c test_gns_lookup.conf
 rm -rf `gnunet-config -c test_gns_lookup.conf -f -s paths -o GNUNET_TEST_HOME`
@@ -108,4 +112,12 @@ then
   exit 1
 else
   exit 0
+fi
+
+if [ "$RES_A8" = "$TEST_A" ]
+then
+  exit 0
+else
+  echo "Failed to resolve to proper A, got '$RES_A8'."
+  exit 1
 fi
