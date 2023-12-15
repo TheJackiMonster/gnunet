@@ -619,6 +619,17 @@ GNUNET_TIME_absolute_subtract (struct GNUNET_TIME_Absolute start,
  * Multiply relative time by a given factor.
  *
  * @param rel some duration
+ * @param factor double to multiply with
+ * @return FOREVER if rel=FOREVER or on overflow; otherwise rel*factor
+ */
+struct GNUNET_TIME_Relative
+GNUNET_TIME_relative_multiply_double (struct GNUNET_TIME_Relative rel,
+                                      double factor);
+
+/**
+ * Multiply relative time by a given factor.
+ *
+ * @param rel some duration
  * @param factor integer to multiply with
  * @return FOREVER if rel=FOREVER or on overflow; otherwise rel*factor
  */
