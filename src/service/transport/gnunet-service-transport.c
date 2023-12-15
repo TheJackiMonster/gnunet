@@ -6835,7 +6835,7 @@ send_msg_from_cache (struct VirtualLink *vl)
       }
       else
       {
-        ring_buffer_copy[i] = rbe;
+        ring_buffer_copy[ring_buffer_head] = rbe;
         ring_buffer_head++;
       }
     }
@@ -6902,7 +6902,7 @@ send_msg_from_cache (struct VirtualLink *vl)
       }
       else
       {
-        ring_buffer_dv_copy[i] = pm;
+        ring_buffer_dv_copy[ring_buffer_dv_head] = pm;
         ring_buffer_dv_head++;
       }
     }
