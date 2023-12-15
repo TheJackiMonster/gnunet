@@ -373,7 +373,6 @@ src/service/messenger/messenger_api_room.c
 src/service/messenger/messenger_api_util.c
 src/service/namecache/gnunet-service-namecache.c
 src/service/namecache/namecache_api.c
-src/service/namestore/gnunet-namestore-fcfsd.c
 src/service/namestore/gnunet-service-namestore.c
 src/service/namestore/namestore_api.c
 src/service/namestore/namestore_api_monitor.c

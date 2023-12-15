@@ -36,7 +36,6 @@ install_man(
   'gnunet-messenger.1',
   'gnunet-namecache.1',
   'gnunet-namestore.1',
-  'gnunet-namestore-fcfsd.1',
   'gnunet-namestore-dbtool.1',
   'gnunet-namestore-zonefile.1',
   'gnunet-nat.1',
