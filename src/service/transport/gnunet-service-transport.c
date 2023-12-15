@@ -3068,6 +3068,15 @@ free_pending_message (struct PendingMessage *pm)
                                   vl->pending_msg_tail,
                                   pm);
   }
+  else if (NULL != pm->frag_parent)
+  {
+    struct PendingMessage *root = pm->frag_parent;
+
+    while (NULL != root->frag_parent)
+      root = root->frag_parent;
+
+    root->frag_count--;
+  }
   while (NULL != (pa = pm->pa_head))
   {
     if (NULL == pa)
@@ -9498,6 +9507,7 @@ fragment_message (struct Queue *queue,
     uint16_t fragsize;
     uint16_t msize;
     uint16_t xoff = 0;
+    pm->frag_count++;
 
     orig = (const char *) &ff[1];
     msize = ff->bytes_msg;
@@ -10257,7 +10267,6 @@ transmit_on_queue (void *cls)
       while (NULL != root->frag_parent)
         root = root->frag_parent;
 
-      root->frag_count++;
       wait_multiplier =  (unsigned int) ceil ((double) root->bytes_msg
                                               / ((double) root->frag_off
                                                  / (double) root->frag_count))
