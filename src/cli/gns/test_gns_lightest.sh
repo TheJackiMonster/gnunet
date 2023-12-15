@@ -16,6 +16,7 @@ fi
 
 rm -rf `gnunet-config -c test_gns_lookup.conf -f -s paths -o GNUNET_TEST_HOME`
 which timeout > /dev/null 2>&1 && DO_TIMEOUT="timeout 30"
+START_EGO="startego"
 MY_EGO="test-lightest"
 LABEL="test-scheme"
 PTR_LABEL="test-ptr"
@@ -24,19 +25,22 @@ TEST_SMIMEA="3 0 1 f7e8e4e554fb7c7a8f6f360e0ca2f59d466c8f9539a25963f5ed37e905f0c
 SCHEME="_scheme"
 TRUST="_trust"
 TRUSTLIST="_trustlist"
-TEST_PTR="$SCHEME.$TRUST.$LABEL.$MY_EGO"
-TEST_PTR2="$TRUSTLIST.$TRUST.$LABEL.$MY_EGO"
+TEST_PTR="$SCHEME.$TRUST.$LABEL.$MY_EGO.$START_EGO"
+TEST_PTR2="$TRUSTLIST.$TRUST.$LABEL.$MY_EGO.$START_EGO"
 gnunet-arm -s -c test_gns_lookup.conf
 gnunet-identity -C $MY_EGO -c test_gns_lookup.conf
+gnunet-identity -C $START_EGO -c test_gns_lookup.conf
+PKEY=`gnunet-identity -d -e $MY_EGO -q -c test_gns_lookup.conf`
 gnunet-namestore -p -z $MY_EGO -a -n $PTR_LABEL -t BOX -V "49152 49152 12 $TEST_PTR" -e never -c test_gns_lookup.conf
 gnunet-namestore -p -z $MY_EGO -a -n $PTR_LABEL -t BOX -V "49152 49153 12 $TEST_PTR2" -e never -c test_gns_lookup.conf
 gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t BOX -V "49152 49152 256 $TEST_URI" -e never -c test_gns_lookup.conf
 gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t BOX -V "49152 49152 53 $TEST_SMIMEA" -e never -c test_gns_lookup.conf
 gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t BOX -V "49152 49153 256 $TEST_URI" -e never -c test_gns_lookup.conf
 gnunet-namestore -p -z $MY_EGO -a -n $LABEL -t BOX -V "49152 49153 53 $TEST_SMIMEA" -e never -c test_gns_lookup.conf
+gnunet-namestore -p -z $START_EGO -a -n $MY_EGO -t PKEY -V "$PKEY" -e never -c test_gns_lookup.conf
 sleep 0.5
-PTR_SCHEME=`$DO_TIMEOUT gnunet-gns --raw -u $SCHEME.$TRUST.$PTR_LABEL.$MY_EGO -t PTR -c test_gns_lookup.conf`
-PTR_TRUSTLIST=`$DO_TIMEOUT gnunet-gns --raw -u $TRUSTLIST.$TRUST.$PTR_LABEL.$MY_EGO -t PTR -c test_gns_lookup.conf`
+PTR_SCHEME=`$DO_TIMEOUT gnunet-gns --raw -u $SCHEME.$TRUST.$PTR_LABEL.$MY_EGO.$START_EGO -t PTR -c test_gns_lookup.conf`
+PTR_TRUSTLIST=`$DO_TIMEOUT gnunet-gns --raw -u $TRUSTLIST.$TRUST.$PTR_LABEL.$MY_EGO.$START_EGO -t PTR -c test_gns_lookup.conf`
 
 SUCCESS=0
 if [ "$PTR_SCHEME" != "$TEST_PTR" ]
@@ -128,7 +132,9 @@ fi
 
 
 gnunet-namestore -z $MY_EGO -X -c test_gns_lookup.conf
+gnunet-namestore -z $START_EGO -X -c test_gns_lookup.conf
 gnunet-identity -D $MY_EGO -c test_gns_lookup.conf
+gnunet-identity -D $START_EGO -c test_gns_lookup.conf
 gnunet-arm -e -c test_gns_lookup.conf
 rm -rf `gnunet-config -c test_gns_lookup.conf -f -s paths -o GNUNET_TEST_HOME`
 
