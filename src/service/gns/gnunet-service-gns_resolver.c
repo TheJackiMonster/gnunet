@@ -751,13 +751,15 @@ resolver_lookup_get_next_label (struct GNS_ResolverHandle *rh)
   /**
   * If we have labels starting with underscore with label on
   * the right, copy prefix to rh->prefix;
-  * The format of `rh->name` must be "*._label",
-  * where label is a string without '.'.
+  * The format of `rh->name` must be "*._label" or "_label",
+  * where label is a string without '.'
   */
   if ((NULL != (dot = memrchr (rh->name,
                                (int) '.',
                                rh->name_resolution_pos)) && '_' == dot[1]) ||
-      '_' == rh->name[0])
+      ((NULL == memrchr (rh->name,
+                         (int) '.',
+                         rh->name_resolution_pos)) && '_' == rh->name[0]))
   {
     rh->prefix = GNUNET_strndup (rh->name, rh->name_resolution_pos);
     rh->name_resolution_pos = 0;
@@ -2393,7 +2395,8 @@ handle_gns_resolution_result (void *cls,
             const struct GNUNET_GNSRECORD_SBoxRecord *box;
 
             box = rd[i].data;
-            char *prefix = GNUNET_strdup (&box[1]);
+            const char *prefix = rd[i].data + sizeof(struct
+                                              GNUNET_GNSRECORD_SBoxRecord);
             size_t prefix_len = strlen (prefix) + 1;
             GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                         "Got SBOX record, checking if prefixes match... %s vs %s\n",
@@ -2406,12 +2409,11 @@ handle_gns_resolution_result (void *cls,
               rd_new[rd_off].data_size -= sizeof(struct
                                                  GNUNET_GNSRECORD_SBoxRecord)
                                           + prefix_len;
-              rd_new[rd_off].data = &rd[i].data[sizeof(struct
-                                                       GNUNET_GNSRECORD_SBoxRecord)
-                                                + prefix_len];
+              rd_new[rd_off].data = rd[i].data
+                                    + sizeof(struct GNUNET_GNSRECORD_SBoxRecord)
+                                    + prefix_len;
               rd_off++;
             }
-            GNUNET_free (prefix);
           }
           else
           {
