@@ -2396,7 +2396,7 @@ handle_gns_resolution_result (void *cls,
 
             box = rd[i].data;
             const char *prefix = rd[i].data + sizeof(struct
-                                              GNUNET_GNSRECORD_SBoxRecord);
+                                                     GNUNET_GNSRECORD_SBoxRecord);
             size_t prefix_len = strlen (prefix) + 1;
             GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                         "Got SBOX record, checking if prefixes match... %s vs %s\n",

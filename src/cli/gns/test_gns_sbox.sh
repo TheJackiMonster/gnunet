@@ -50,9 +50,7 @@ gnunet-namestore -z $MY_EGO -d -n $LABEL -t SBOX -V "$PREFIX1 1 $TEST_A" -e neve
 gnunet-namestore -z $MY_EGO -d -n $LABEL -t SBOX -V "$PREFIX2 1 $TEST_A" -e never -c test_gns_lookup.conf
 gnunet-namestore -z $MY_EGO -d -n $LABEL -t SBOX -V "$PREFIX3 1 $TEST_A" -e never -c test_gns_lookup.conf
 gnunet-namestore -z $MY_EGO -d -n $LABEL -t SBOX -V "$PREFIX4 1 $TEST_A" -e never -c test_gns_lookup.conf
-gnunet-namestore -z $MY_EGO -d -n $LABEL -t SBOX -V "$PREFIX5 1 $TEST_A" -e never -c test_gns_lookup.conf
 gnunet-namestore -z $MY_EGO -d -n $LABEL -t SBOX -V "$PREFIX6 1 $TEST_A" -e never -c test_gns_lookup.conf
-gnunet-namestore -z $MY_EGO -d -n $LABEL -t SBOX -V "$PREFIX7 1 $TEST_A" -e never -c test_gns_lookup.conf
 gnunet-namestore -z $MY_EGO -d -n '@' -t SBOX -V "$PREFIX8 1 $TEST_A" -e never -c test_gns_lookup.conf
 gnunet-identity -D $MY_EGO -c test_gns_lookup.conf
 gnunet-arm -e -c test_gns_lookup.conf

@@ -24,7 +24,6 @@ gnunet-arm -s -c test_gns_lookup.conf
 gnunet-identity -C $MY_EGO -c test_gns_lookup.conf
 gnunet-namestore -p -z $MY_EGO -a -n '@' -t SBOX -V "$HASH.$PROTOCOL_TEXT 1 $TEST_A" -e never -c test_gns_lookup.conf
 sleep 0.5
-gnunet-namestore -D -c test_gns_lookup.conf
 RES_A=`$DO_TIMEOUT gnunet-gns --raw -u $HASH.$PROTOCOL_TEXT.$MY_EGO -t A -c test_gns_lookup.conf`
 gnunet-namestore -z $MY_EGO -d -n '@' -t SBOX -V "$HASH.$PROTOCOL_TEXT 1 $TEST_A" -e never -c test_gns_lookup.conf
 gnunet-identity -D $MY_EGO -c test_gns_lookup.conf
