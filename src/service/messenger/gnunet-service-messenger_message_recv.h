@@ -66,6 +66,22 @@ recv_message_peer (struct GNUNET_MESSENGER_SrvRoom *room,
                    const struct GNUNET_HashCode *hash);
 
 /**
+ * Handles a received miss message to react to activity in the basement of a room.
+ * (the miss message can cause automatic opening of the room)
+ *
+ * @param[in,out] room Room of the message
+ * @param[in,out] tunnel Receiving connection
+ * @param[in] message MISS-Message
+ * @param[in] hash Hash of the message
+ * @return #GNUNET_YES to forward the message
+ */
+enum GNUNET_GenericReturnValue
+recv_message_miss (struct GNUNET_MESSENGER_SrvRoom *room,
+                   struct GNUNET_MESSENGER_SrvTunnel *tunnel,
+                   const struct GNUNET_MESSENGER_Message *message,
+                   const struct GNUNET_HashCode *hash);
+
+/**
  * Handles a received request message by checking for the requested message and forwarding it back
  * if the message was found.
  * (this can also cause this peer to send a new request instead of only forwarding the received one)

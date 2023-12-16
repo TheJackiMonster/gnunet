@@ -31,7 +31,6 @@
 
 #include "gnunet-service-messenger_tunnel.h"
 #include "messenger_api_message.h"
-#include "messenger_api_message_kind.h"
 
 /**
  * Handles a sent join message to ensure growth of the decentralized room structure.
@@ -98,7 +97,7 @@ send_message_id (struct GNUNET_MESSENGER_SrvRoom *room,
  *
  * @param[in,out] room Room of the message
  * @param[in,out] handle Sending handle
- * @param[in] message PEER-Message
+ * @param[in] message REQUEST-Message
  * @param[in] hash Hash of the message
  */
 void
