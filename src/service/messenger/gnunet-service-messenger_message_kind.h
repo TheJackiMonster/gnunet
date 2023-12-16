@@ -75,5 +75,16 @@ create_message_miss (const struct GNUNET_PeerIdentity *peer);
 struct GNUNET_MESSENGER_Message*
 create_message_merge (const struct GNUNET_HashCode *previous);
 
+/**
+ * Creates and allocates a new connection message containing the amount of the peer's connections
+ * in a given <i>room</i> as well as flags from the peer about its connections.
+ * (all values are stored as copy)
+ *
+ * @param[in] room Room
+ * @return New message
+ */
+struct GNUNET_MESSENGER_Message*
+create_message_connection (const struct GNUNET_MESSENGER_SrvRoom *room);
+
 
 #endif //GNUNET_SERVICE_MESSENGER_MESSAGE_KIND_H

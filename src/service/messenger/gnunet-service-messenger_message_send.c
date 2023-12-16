@@ -29,6 +29,7 @@
 #include "gnunet-service-messenger_handle.h"
 #include "gnunet-service-messenger_member.h"
 #include "gnunet-service-messenger_member_session.h"
+#include "gnunet-service-messenger_message_kind.h"
 #include "gnunet-service-messenger_operation.h"
 #include "gnunet-service-messenger_room.h"
 
@@ -165,6 +166,8 @@ send_message_peer (struct GNUNET_MESSENGER_SrvRoom *room,
     room->peer_message = GNUNET_new (struct GNUNET_HashCode);
 
   GNUNET_memcpy (room->peer_message, hash, sizeof(struct GNUNET_HashCode));
+
+  send_srv_room_message (room, room->host, create_message_connection (room));
 }
 
 

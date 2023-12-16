@@ -165,3 +165,20 @@ handle_message_delete (struct GNUNET_MESSENGER_SrvRoom *room,
   delete_srv_room_message (room, session->member,
                            &(message->body.deletion.hash), delay);
 }
+
+
+void
+handle_message_connection (struct GNUNET_MESSENGER_SrvRoom *room,
+                           struct GNUNET_MESSENGER_SenderSession *session,
+                           const struct GNUNET_MESSENGER_Message *message,
+                           const struct GNUNET_HashCode *hash)
+{
+  struct GNUNET_MESSENGER_ListTunnel *element = find_list_tunnels (
+    &(room->basement), session->peer, NULL);
+
+  if (! element)
+    return;
+
+  memcpy (&(element->connection), &(message->body.connection),
+          sizeof (struct GNUNET_MESSENGER_MessageConnection));
+}

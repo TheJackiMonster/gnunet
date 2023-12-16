@@ -361,6 +361,24 @@ void
 rebuild_srv_room_basement_structure (struct GNUNET_MESSENGER_SrvRoom *room);
 
 /**
+ * Returns the amount of active tunnels of a given <i>room</i>.
+ *
+ * @param[in] room Room
+ * @return Amount of tunnels
+ */
+uint32_t
+get_srv_room_amount_of_tunnels (const struct GNUNET_MESSENGER_SrvRoom *room);
+
+/**
+ * Returns connection flags about connection information of a given <i>room</i> and the service managing it.
+ *
+ * @param[in] room Room
+ * @return Connection flags
+ */
+uint32_t
+get_srv_room_connection_flags (const struct GNUNET_MESSENGER_SrvRoom *room);
+
+/**
  * Loads the local configuration for a given <i>room</i> of a service which contains the last messages hash
  * and the ruleset for general access of new members.
  *

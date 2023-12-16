@@ -107,3 +107,22 @@ create_message_merge (const struct GNUNET_HashCode *previous)
 
   return message;
 }
+
+
+struct GNUNET_MESSENGER_Message*
+create_message_connection (const struct GNUNET_MESSENGER_SrvRoom *room)
+{
+  if (! room)
+    return NULL;
+
+  struct GNUNET_MESSENGER_Message *message = create_message (
+    GNUNET_MESSENGER_KIND_CONNECTION);
+
+  if (! message)
+    return NULL;
+
+  message->body.connection.amount = get_srv_room_amount_of_tunnels (room);
+  message->body.connection.flags = get_srv_room_connection_flags (room);
+
+  return message;
+}

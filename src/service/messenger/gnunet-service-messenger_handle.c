@@ -67,6 +67,15 @@ iterate_free_values (void *cls,
   return GNUNET_YES;
 }
 
+static enum GNUNET_GenericReturnValue
+iterate_close_rooms (void *cls,
+                     const struct GNUNET_HashCode *key,
+                     void *value)
+{
+  struct GNUNET_MESSENGER_SrvHandle *handle = cls;
+  close_service_room (handle->service, handle, key);
+  return GNUNET_YES;
+}
 
 void
 destroy_srv_handle (struct GNUNET_MESSENGER_SrvHandle *handle)
@@ -80,6 +89,12 @@ destroy_srv_handle (struct GNUNET_MESSENGER_SrvHandle *handle)
                                          iterate_free_values, NULL);
   GNUNET_CONTAINER_multihashmap_iterate (handle->member_ids,
                                          iterate_free_values, NULL);
+
+  GNUNET_CONTAINER_multihashmap_clear (handle->next_ids);
+  GNUNET_CONTAINER_multihashmap_clear (handle->member_ids);
+
+  GNUNET_CONTAINER_multihashmap_iterate (handle->routing,
+                                         iterate_close_rooms, handle);
 
   GNUNET_CONTAINER_multihashmap_destroy (handle->next_ids);
   GNUNET_CONTAINER_multihashmap_destroy (handle->member_ids);

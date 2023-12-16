@@ -97,6 +97,9 @@ iterate_destroy_tunnels (void *cls,
 
 
 static void
+close_srv_room (struct GNUNET_MESSENGER_SrvRoom *room);
+
+static void
 handle_room_messages (struct GNUNET_MESSENGER_SrvRoom *room);
 
 void
@@ -111,8 +114,7 @@ destroy_srv_room (struct GNUNET_MESSENGER_SrvRoom *room,
     room->idle = NULL;
   }
 
-  if (room->port)
-    GNUNET_CADET_close_port (room->port);
+  close_srv_room (room);
 
   GNUNET_CONTAINER_multipeermap_iterate (room->tunnels, iterate_destroy_tunnels,
                                          NULL);
@@ -295,14 +297,23 @@ extern void
 callback_tunnel_disconnect (void *cls,
                             const struct GNUNET_CADET_Channel *channel);
 
+
 enum GNUNET_GenericReturnValue
 open_srv_room (struct GNUNET_MESSENGER_SrvRoom *room,
                struct GNUNET_MESSENGER_SrvHandle *handle)
 {
-  GNUNET_assert ((room) && (handle));
+  GNUNET_assert (room);
+
+  if (handle)
+    room->host = handle;
 
   if (room->port)
+  {
+    if (! handle)
+      return GNUNET_YES;
+
     return join_room_locally (room, handle);
+  }
 
   struct GNUNET_CADET_Handle *cadet = get_srv_room_cadet (room);
   const struct GNUNET_HashCode *key = get_srv_room_key (room);
@@ -328,6 +339,9 @@ open_srv_room (struct GNUNET_MESSENGER_SrvRoom *room,
                 "Port of room (%s) could not be opened!\n",
                 GNUNET_h2s (get_srv_room_key (room)));
 
+  if (! handle)
+    goto complete_opening;
+
   const struct GNUNET_ShortHashCode *member_id = get_srv_handle_member_id (
     handle, get_srv_room_key (room));
 
@@ -342,17 +356,34 @@ open_srv_room (struct GNUNET_MESSENGER_SrvRoom *room,
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "You could not join the room, therefore it keeps closed!\n");
 
-    GNUNET_CADET_close_port (room->port);
-    room->port = NULL;
-
+    close_srv_room (room);
     return GNUNET_NO;
   }
 
+complete_opening:
   if (! room->port)
     return GNUNET_NO;
 
   return send_srv_room_message (room, handle, create_message_peer (
                                   room->service));
+}
+
+
+static void
+close_srv_room (struct GNUNET_MESSENGER_SrvRoom *room)
+{
+  GNUNET_assert (room);
+
+  if (! room->port)
+    return;
+
+  struct GNUNET_PeerIdentity peer;
+  if ((room->peer_message) &&
+      (GNUNET_OK == get_service_peer_identity (room->service, &peer)))
+    send_srv_room_message (room, room->host, create_message_miss (&peer));
+
+  GNUNET_CADET_close_port (room->port);
+  room->port = NULL;
 }
 
 
@@ -984,6 +1015,16 @@ rebuild_srv_room_basement_structure (struct GNUNET_MESSENGER_SrvRoom *room)
   if (! find_list_tunnels (&(room->basement), &peer, &src))
     return;
 
+  if ((count > room->service->min_routers) &&
+      (GNUNET_NO == is_srv_handle_routing (room->host, &(room->key))) &&
+      (GNUNET_OK == verify_list_tunnels_flag_token (&(room->basement),
+                                                    &peer,
+                                                    GNUNET_MESSENGER_FLAG_CONNECTION_AUTO)))
+  {
+    close_srv_room (room);
+    return;
+  }
+
   struct GNUNET_MESSENGER_ListTunnel *element = room->basement.head;
   struct GNUNET_MESSENGER_SrvTunnel *tunnel;
 
@@ -1015,6 +1056,29 @@ rebuild_srv_room_basement_structure (struct GNUNET_MESSENGER_SrvRoom *room)
     element = element->next;
     dst++;
   }
+}
+
+
+uint32_t
+get_srv_room_amount_of_tunnels (const struct GNUNET_MESSENGER_SrvRoom *room)
+{
+  GNUNET_assert (room);
+
+  return GNUNET_CONTAINER_multipeermap_size (room->tunnels);
+}
+
+
+uint32_t
+get_srv_room_connection_flags (const struct GNUNET_MESSENGER_SrvRoom *room)
+{
+  GNUNET_assert (room);
+
+  uint32_t flags = GNUNET_MESSENGER_FLAG_CONNECTION_NONE;
+
+  if (GNUNET_YES == room->service->auto_routing)
+    flags |= GNUNET_MESSENGER_FLAG_CONNECTION_AUTO;
+
+  return flags;
 }
 
 
@@ -1274,6 +1338,9 @@ callback_room_handle_message (struct GNUNET_MESSENGER_SrvRoom *room,
     break;
   case GNUNET_MESSENGER_KIND_DELETE:
     handle_message_delete (room, &session, message, hash);
+    break;
+  case GNUNET_MESSENGER_KIND_CONNECTION:
+    handle_message_connection (room, &session, message, hash);
     break;
   default:
     break;

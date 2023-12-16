@@ -42,10 +42,10 @@ clear_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels)
   GNUNET_assert (tunnels);
 
   struct GNUNET_MESSENGER_ListTunnel *element;
-  for (element = tunnels->head; element; element = remove_from_list_tunnels (
-         tunnels, element))
+  for (element = tunnels->head; element;
+      element = remove_from_list_tunnels (tunnels, element))
 
-    tunnels->head = NULL;
+  tunnels->head = NULL;
   tunnels->tail = NULL;
 }
 
@@ -55,7 +55,12 @@ compare_list_tunnels (void *cls,
                       struct GNUNET_MESSENGER_ListTunnel *element0,
                       struct GNUNET_MESSENGER_ListTunnel *element1)
 {
-  return ((int) element0->peer) - ((int) element1->peer);
+  struct GNUNET_PeerIdentity peer0, peer1;
+
+  GNUNET_PEER_resolve (element0->peer, &peer0);
+  GNUNET_PEER_resolve (element1->peer, &peer1);
+
+  return GNUNET_memcmp (&peer0, &peer1);
 }
 
 
@@ -70,8 +75,10 @@ add_to_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
                                                             GNUNET_MESSENGER_ListTunnel);
 
   element->peer = GNUNET_PEER_intern (peer);
-  element->hash = hash ? GNUNET_memdup (hash, sizeof(struct GNUNET_HashCode)) :
+  element->hash = hash ? GNUNET_memdup (hash, sizeof (struct GNUNET_HashCode)) :
                   NULL;
+
+  memset (&(element->connection), 0, sizeof (element->connection));
 
   GNUNET_CONTAINER_DLL_insert_sorted (struct GNUNET_MESSENGER_ListTunnel,
                                       compare_list_tunnels, NULL, tunnels->head,
@@ -104,6 +111,31 @@ find_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
   }
 
   return NULL;
+}
+
+
+enum GNUNET_GenericReturnValue
+verify_list_tunnels_flag_token (const struct GNUNET_MESSENGER_ListTunnels *tunnels,
+                                const struct GNUNET_PeerIdentity *peer,
+                                enum GNUNET_MESSENGER_ConnectionFlags flag)
+{
+  GNUNET_assert ((tunnels) && (peer) && (flag));
+
+  struct GNUNET_MESSENGER_ListTunnel *element;
+  struct GNUNET_PeerIdentity pid;
+
+  for (element = tunnels->head; element; element = element->next)
+  {
+    if (element->connection.flags & flag != flag)
+      continue;
+
+    GNUNET_PEER_resolve (element->peer, &pid);
+
+    if (0 == GNUNET_memcmp (&pid, peer))
+      return GNUNET_OK;
+  }
+
+  return GNUNET_SYSERR;
 }
 
 

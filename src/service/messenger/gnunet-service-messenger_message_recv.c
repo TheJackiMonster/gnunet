@@ -163,6 +163,22 @@ recv_message_peer (struct GNUNET_MESSENGER_SrvRoom *room,
 }
 
 
+enum GNUNET_GenericReturnValue
+recv_message_miss (struct GNUNET_MESSENGER_SrvRoom *room,
+                   struct GNUNET_MESSENGER_SrvTunnel *tunnel,
+                   const struct GNUNET_MESSENGER_Message *message,
+                   const struct GNUNET_HashCode *hash)
+{
+  struct GNUNET_MESSENGER_Service *service = room->service;
+
+  if ((GNUNET_YES == service->auto_routing) &&
+      (service->min_routers > count_of_tunnels (&(room->basement))))
+    open_srv_room (room, NULL);
+
+  return GNUNET_YES;
+}
+
+
 static void
 callback_found_message (void *cls,
                         struct GNUNET_MESSENGER_SrvRoom *room,

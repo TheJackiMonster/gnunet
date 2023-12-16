@@ -227,6 +227,9 @@ handle_tunnel_message (void *cls, const struct GNUNET_MessageHeader *header)
   case GNUNET_MESSENGER_KIND_PEER:
     forward_message = recv_message_peer (tunnel->room, tunnel, &message, &hash);
     break;
+  case GNUNET_MESSENGER_KIND_MISS:
+    forward_message = recv_message_miss (tunnel->room, tunnel, &message, &hash);
+    break;
   case GNUNET_MESSENGER_KIND_REQUEST:
     forward_message = recv_message_request (tunnel->room, tunnel, &message,
                                             &hash);

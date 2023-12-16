@@ -196,6 +196,11 @@ enum GNUNET_MESSENGER_MessageKind
   GNUNET_MESSENGER_KIND_DELETE = 15,
 
   /**
+   * The connection kind. The message contains a #GNUNET_MESSENGER_MessageConnection body.
+   */
+  GNUNET_MESSENGER_KIND_CONNECTION = 16,
+
+  /**
    * The unknown kind. The message contains an unknown body.
    */
   GNUNET_MESSENGER_KIND_UNKNOWN = 0
@@ -492,6 +497,25 @@ struct GNUNET_MESSENGER_MessageDelete
 };
 
 /**
+ * A connection message body
+ * This allows to tell others about connection information about a peer.
+ *
+ * Message-body-size: 8 bytes
+ */
+struct GNUNET_MESSENGER_MessageConnection
+{
+  /**
+   * The amount of connections of a peer.
+   */
+  uint32_t amount;
+
+  /**
+   * The flags about the connections of a peer.
+   */
+  uint32_t flags;
+};
+
+/**
  * The unified body of a #GNUNET_MESSENGER_Message.
  */
 struct GNUNET_MESSENGER_MessageBody
@@ -513,6 +537,7 @@ struct GNUNET_MESSENGER_MessageBody
     struct GNUNET_MESSENGER_MessageFile file;
     struct GNUNET_MESSENGER_MessagePrivate privacy;
     struct GNUNET_MESSENGER_MessageDelete deletion;
+    struct GNUNET_MESSENGER_MessageConnection connection;
   };
 };
 
@@ -533,7 +558,7 @@ struct GNUNET_MESSENGER_Message
 };
 
 /**
- * Enum for the different supported flags used by message handling
+ * Enum for the different supported flags used by message handling.
  * Compatible flags can be OR'ed together.
  */
 enum GNUNET_MESSENGER_MessageFlags
@@ -562,6 +587,23 @@ enum GNUNET_MESSENGER_MessageFlags
    * The recent flag. The flag indicates that the message was recently handled by the service.
    */
   GNUNET_MESSENGER_FLAG_RECENT = 8,
+};
+
+/**
+ * Enum for the different supported flags used to specify connection handling.
+ * Compatible flags can be OR'ed together.
+ */
+enum GNUNET_MESSENGER_ConnectionFlags
+{
+  /**
+   * The none flag. The flag indicates that the connection is not affected by any modifications.
+   */
+  GNUNET_MESSENGER_FLAG_CONNECTION_NONE = 0,/**< GNUNET_MESSENGER_FLAG_CONNECTION_NONE */
+
+  /**
+   * The auto flag. The flag indicates that a peer will automatically handle routing.
+   */
+  GNUNET_MESSENGER_FLAG_CONNECTION_AUTO = 1,/**< GNUNET_MESSENGER_FLAG_CONNECTION_AUTO */
 };
 
 /**
