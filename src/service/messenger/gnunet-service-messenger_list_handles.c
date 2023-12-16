@@ -101,12 +101,16 @@ find_list_handle_by_member (const struct GNUNET_MESSENGER_ListHandles *handles,
   GNUNET_assert ((handles) && (key));
 
   struct GNUNET_MESSENGER_ListHandle *element;
+  struct GNUNET_MESSENGER_SrvHandle *handle = NULL;
 
   for (element = handles->head; element; element = element->next)
-    if (get_srv_handle_member_id ((struct
-                                   GNUNET_MESSENGER_SrvHandle*) element->handle,
-                                  key))
-      return element->handle;
+  {
+    if (get_srv_handle_member_id (element->handle, key))
+      handle = element->handle;
 
-  return NULL;
+    if ((handle) && (GNUNET_YES == is_srv_handle_routing (handle, key)))
+      break;
+  }
+
+  return handle;
 }

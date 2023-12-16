@@ -26,7 +26,7 @@
 #include "platform.h"
 #include "gnunet-service-messenger_service.h"
 #include "gnunet-service-messenger.h"
-#include "messenger_api_message_kind.h"
+#include "gnunet-service-messenger_message_kind.h"
 
 static void
 callback_shutdown_service (void *cls)
@@ -413,7 +413,12 @@ close_service_room (struct GNUNET_MESSENGER_Service *service,
   }
 
   if (room->host == handle)
+  {
     room->host = member_handle;
+
+    if (room->peer_message)
+      send_srv_room_message (room, room->host, create_message_connection (room));
+  }
 
   return GNUNET_YES;
 }

@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2021 GNUnet e.V.
+   Copyright (C) 2020--2023 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -85,13 +85,14 @@ remove_list_handle (struct GNUNET_MESSENGER_ListHandles *handles,
 
 /**
  * Searches linearly through the list of <i>handles</i> for members of a specific room
- * which is identified by a given <i>key</i>.
+ * which is identified by a given <i>key</i>. The handle returned will be one that has
+ * enabled routing for the room if possible.
  *
  * If no handle is found which is a current member, NULL gets returned.
  *
  * @param[in] handles List of handles
  * @param[in] key Common key of a room
- * @return First handle which is a current member
+ * @return A handle which is a current member
  */
 struct GNUNET_MESSENGER_SrvHandle*
 find_list_handle_by_member (const struct GNUNET_MESSENGER_ListHandles *handles,
