@@ -2292,6 +2292,11 @@ struct PendingMessage
   uint32_t frags_in_flight;
 
   /**
+   * The round we are (re)-sending fragments.
+   */
+  uint32_t frags_in_flight_round;
+
+  /**
    * How many fragments do we have?
    **/
   uint16_t frag_count;
@@ -3067,6 +3072,15 @@ free_pending_message (struct PendingMessage *pm)
                                   vl->pending_msg_head,
                                   vl->pending_msg_tail,
                                   pm);
+  }
+  else if (NULL != pm->frag_parent)
+  {
+    struct PendingMessage *root = pm->frag_parent;
+
+    while (NULL != root->frag_parent)
+      root = root->frag_parent;
+
+    root->frag_count--;
   }
   while (NULL != (pa = pm->pa_head))
   {
@@ -6821,7 +6835,7 @@ send_msg_from_cache (struct VirtualLink *vl)
       }
       else
       {
-        ring_buffer_copy[i] = rbe;
+        ring_buffer_copy[ring_buffer_head] = rbe;
         ring_buffer_head++;
       }
     }
@@ -6888,7 +6902,7 @@ send_msg_from_cache (struct VirtualLink *vl)
       }
       else
       {
-        ring_buffer_dv_copy[i] = pm;
+        ring_buffer_dv_copy[ring_buffer_dv_head] = pm;
         ring_buffer_dv_head++;
       }
     }
@@ -9498,6 +9512,7 @@ fragment_message (struct Queue *queue,
     uint16_t fragsize;
     uint16_t msize;
     uint16_t xoff = 0;
+    pm->frag_count++;
 
     orig = (const char *) &ff[1];
     msize = ff->bytes_msg;
@@ -9662,16 +9677,15 @@ reorder_root_pm (struct PendingMessage *pm,
 
 
 static unsigned int
-check_next_attempt_tree (struct PendingMessage *pm,
-                         struct GNUNET_TIME_Absolute next_attempt)
+check_next_attempt_tree (struct PendingMessage *pm)
 {
   struct PendingMessage *pos;
 
   pos = pm->head_frag;
   while (NULL != pos)
   {
-    if (pos->next_attempt.abs_value_us != next_attempt.abs_value_us ||
-        GNUNET_YES == check_next_attempt_tree (pos, next_attempt))
+    if (pos->frags_in_flight_round != pm->frags_in_flight_round ||
+        GNUNET_YES == check_next_attempt_tree (pos))
       return GNUNET_YES;
     pos = pos->next_frag;
   }
@@ -9733,10 +9747,10 @@ update_pm_next_attempt (struct PendingMessage *pm,
     }
 
     pm->next_attempt = root->next_attempt;
+    pm->frags_in_flight_round = root->frags_in_flight_round;
 
     if (root->bytes_msg == root->frag_off)
-      root->frags_in_flight = check_next_attempt_tree (root,
-                                                       root->next_attempt);
+      root->frags_in_flight = check_next_attempt_tree (root);
     else
       root->frags_in_flight = GNUNET_YES;
 
@@ -10257,7 +10271,6 @@ transmit_on_queue (void *cls)
       while (NULL != root->frag_parent)
         root = root->frag_parent;
 
-      root->frag_count++;
       wait_multiplier =  (unsigned int) ceil ((double) root->bytes_msg
                                               / ((double) root->frag_off
                                                  / (double) root->frag_count))
@@ -10302,7 +10315,7 @@ transmit_on_queue (void *cls)
       wait_duration, wait_multiplier);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Waiting %s for ACK until %s\n",
-                GNUNET_STRINGS_relative_time_to_string (plus, GNUNET_YES),
+                GNUNET_STRINGS_relative_time_to_string (plus, GNUNET_NO),
                 GNUNET_STRINGS_absolute_time_to_string (next));
     update_pm_next_attempt (pm,
                             GNUNET_TIME_relative_to_absolute (

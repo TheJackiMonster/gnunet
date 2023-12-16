@@ -501,7 +501,7 @@ GNUNET_TIME_relative_multiply (struct GNUNET_TIME_Relative rel,
 
 
 struct GNUNET_TIME_Relative
-relative_multiply_double (struct GNUNET_TIME_Relative rel,
+GNUNET_TIME_relative_multiply_double (struct GNUNET_TIME_Relative rel,
                           double factor)
 {
   struct GNUNET_TIME_Relative out;
@@ -833,7 +833,7 @@ GNUNET_TIME_randomized_backoff (struct GNUNET_TIME_Relative rt,
   double r = (rand () % 500) / 1000.0;
   struct GNUNET_TIME_Relative t;
 
-  t = relative_multiply_double (
+  t = GNUNET_TIME_relative_multiply_double (
     GNUNET_TIME_relative_max (GNUNET_TIME_UNIT_MILLISECONDS, rt),
     2 + r);
   return GNUNET_TIME_relative_min (threshold, t);
@@ -852,7 +852,7 @@ GNUNET_TIME_randomize (struct GNUNET_TIME_Relative r)
 {
   double d = ((rand () % 1001) + 500) / 1000.0;
 
-  return relative_multiply_double (r, d);
+  return GNUNET_TIME_relative_multiply_double (r, d);
 }
 
 
