@@ -385,14 +385,16 @@ close_service_room (struct GNUNET_MESSENGER_Service *service,
   if (! room)
     return GNUNET_NO;
 
-  const struct GNUNET_ShortHashCode *id = get_srv_handle_member_id (handle,
-                                                                    key);
+  struct GNUNET_ShortHashCode *id = (struct GNUNET_ShortHashCode*) (
+      GNUNET_CONTAINER_multihashmap_get (handle->member_ids, key));
 
   GNUNET_assert (id);
 
   if (GNUNET_YES != GNUNET_CONTAINER_multihashmap_remove (handle->member_ids,
                                                           key, id))
     return GNUNET_NO;
+
+  GNUNET_free (id);
 
   struct GNUNET_MESSENGER_SrvHandle *member_handle = (struct
                                                       GNUNET_MESSENGER_SrvHandle
