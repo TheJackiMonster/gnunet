@@ -83,6 +83,10 @@ create_service (const struct GNUNET_CONFIGURATION_Handle *config,
     }
   }
 
+  service->auto_connecting = GNUNET_CONFIGURATION_get_value_yesno (service->config,
+                                                                   GNUNET_MESSENGER_SERVICE_NAME,
+                                                                   "MESSENGER_AUTO_CONNECTING");
+
   service->auto_routing = GNUNET_CONFIGURATION_get_value_yesno (service->config,
                                                                 GNUNET_MESSENGER_SERVICE_NAME,
                                                                 "MESSENGER_AUTO_ROUTING");

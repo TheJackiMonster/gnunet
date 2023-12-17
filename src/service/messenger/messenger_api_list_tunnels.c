@@ -114,6 +114,27 @@ find_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
 }
 
 
+struct GNUNET_MESSENGER_ListTunnel*
+find_list_tunnels_alternate (struct GNUNET_MESSENGER_ListTunnels *tunnels,
+                             const struct GNUNET_PeerIdentity *peer)
+{
+  GNUNET_assert ((tunnels) && (peer));
+
+  struct GNUNET_MESSENGER_ListTunnel *element;
+  struct GNUNET_PeerIdentity pid;
+
+  for (element = tunnels->head; element; element = element->next)
+  {
+    GNUNET_PEER_resolve (element->peer, &pid);
+
+    if (0 != GNUNET_memcmp (&pid, peer))
+      return element;
+  }
+
+  return NULL;
+}
+
+
 enum GNUNET_GenericReturnValue
 verify_list_tunnels_flag_token (const struct GNUNET_MESSENGER_ListTunnels *tunnels,
                                 const struct GNUNET_PeerIdentity *peer,

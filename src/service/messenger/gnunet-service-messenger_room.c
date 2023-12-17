@@ -869,6 +869,19 @@ callback_room_disconnect (struct GNUNET_MESSENGER_SrvRoom *room,
 
   if (GNUNET_YES == contains_list_tunnels (&(room->basement), &identity))
     send_srv_room_message (room, room->host, create_message_miss (&identity));
+
+  if ((0 < GNUNET_CONTAINER_multipeermap_size (room->tunnels)) ||
+      (GNUNET_NO == room->service->auto_connecting))
+    return;
+
+  struct GNUNET_MESSENGER_ListTunnel *element;
+  element = find_list_tunnels_alternate (&(room->basement), &identity);
+
+  if (!element)
+    return;
+
+  GNUNET_PEER_resolve (element->peer, &identity);
+  enter_srv_room_at (room, room->host, &identity);
 }
 
 

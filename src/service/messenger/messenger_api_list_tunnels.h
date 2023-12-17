@@ -98,6 +98,19 @@ find_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
                    size_t *index);
 
 /**
+ * Searches linearly through the list of tunnels peer identities for matching
+ * against a specific <i>peer</i> identity and returns an element of the list
+ * which does not match it.
+ *
+ * @param[in,out] tunnels List of tunnels
+ * @param[in] peer Peer identity of tunnel
+ * @return Element in the list with unmatching peer identity
+ */
+struct GNUNET_MESSENGER_ListTunnel*
+find_list_tunnels_alternate (struct GNUNET_MESSENGER_ListTunnels *tunnels,
+                             const struct GNUNET_PeerIdentity *peer);
+
+/**
  * Verifies that a specific tunnel selected by its <i>peer</i> identity in a
  * list of <i>tunnels</i> is the first in order with a given connection <i>flag</i>.
  *

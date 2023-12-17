@@ -48,6 +48,7 @@ struct GNUNET_MESSENGER_Service
   struct GNUNET_PeerIdentity *peer;
   char *dir;
 
+  enum GNUNET_GenericReturnValue auto_connecting;
   enum GNUNET_GenericReturnValue auto_routing;
   unsigned long long min_routers;
 
