@@ -77,6 +77,7 @@ libgnunet_test_messenger_plugin_cmd_simple_join_la_LIBADD = \
   libgnunetmessengertesting.la \
   $(top_builddir)/src/service/core/libgnunetcore.la \
   $(top_builddir)/src/service/core/libgnunetcoretesting.la \
+  $(top_builddir)/src/service/transport/libgnunettransporttesting2.la \
   $(top_builddir)/src/service/transport/libgnunettransportapplication.la \
   $(top_builddir)/src/service/transport/libgnunettransportcore.la \
   $(top_builddir)/src/service/testing/libgnunettesting.la \

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.8.0a\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2023-11-07 14:13+0100\n"
+"POT-Creation-Date: 2023-12-18 14:10+0100\n"
 "PO-Revision-Date: 2008-09-10 22:05+0930\n"
 "Last-Translator: Clytie Siddall <clytie@riverland.net.au>\n"
 "Language-Team: Vietnamese <vi-VN@googlegroups.com>\n"
@@ -1090,7 +1090,7 @@ msgstr ""
 msgid "`%s' is not a valid DNS domain name\n"
 msgstr "« %s » không sẵn sàng.\n"
 
-#: src/cli/gns/gnunet-gns.c:266 src/lib/util/dnsparser.c:254
+#: src/cli/gns/gnunet-gns.c:266 src/lib/util/dnsparser.c:273
 #, fuzzy, c-format
 msgid "Failed to convert DNS IDNA name `%s' to UTF-8: %s\n"
 msgstr "Lỗi mở tập tin ghi sự kiện « %s »: %s\n"
@@ -1208,7 +1208,7 @@ msgid "No records found for `%s'"
 msgstr "Vẫn còn không tìm thấy đồng đẳng trong « %s ».\n"
 
 #: src/cli/namecache/gnunet-namecache.c:118
-#: src/cli/namestore/gnunet-namestore.c:889
+#: src/cli/namestore/gnunet-namestore.c:887
 #, c-format
 msgid "\tCorrupt or unsupported record of type %u\n"
 msgstr ""
@@ -1229,7 +1229,7 @@ msgid "You must specify a name\n"
 msgstr "Phải ghi rõ tên hiệu\n"
 
 #: src/cli/namecache/gnunet-namecache.c:213
-#: src/cli/namestore/gnunet-namestore.c:2021
+#: src/cli/namestore/gnunet-namestore.c:2012
 msgid "name of the record to add/delete/display"
 msgstr ""
 
@@ -1239,13 +1239,13 @@ msgid "specifies the public key of the zone to look in"
 msgstr "xác định mức ưu tiên của nội dung"
 
 #: src/cli/namecache/gnunet-namecache.c:232
-#: src/cli/namestore/gnunet-namestore.c:2103
+#: src/cli/namestore/gnunet-namestore.c:2101
 #, fuzzy
 msgid "GNUnet zone manipulation tool"
 msgstr "Cấu hình GNUnet"
 
 #: src/cli/namestore/gnunet-namestore-dbtool.c:87
-#: src/cli/namestore/gnunet-namestore.c:1952
+#: src/cli/namestore/gnunet-namestore.c:1944
 #, c-format
 msgid "Superfluous command line arguments (starting with `%s') ignored\n"
 msgstr ""
@@ -1263,330 +1263,331 @@ msgid "the namestore plugin to work with, e.g. 'sqlite'"
 msgstr ""
 
 #: src/cli/namestore/gnunet-namestore-dbtool.c:189
-#: src/cli/namestore/gnunet-namestore-zonefile.c:753
+#: src/cli/namestore/gnunet-namestore-zonefile.c:719
 #, fuzzy
 msgid "GNUnet namestore database manipulation tool"
 msgstr "Cấu hình GNUnet"
 
-#: src/cli/namestore/gnunet-namestore-zonefile.c:193
-#: src/cli/namestore/gnunet-namestore-zonefile.c:657
-#: src/cli/namestore/gnunet-namestore-zonefile.c:676
+#: src/cli/namestore/gnunet-namestore-zonefile.c:314
+#, fuzzy, c-format
+msgid "Failed to store records...\n"
+msgstr "Lỗi bắt đầu thu thập.\n"
+
+#: src/cli/namestore/gnunet-namestore-zonefile.c:424
+#: src/cli/namestore/gnunet-namestore-zonefile.c:456
+#, fuzzy, c-format
+msgid "Name `%s' is too long\n"
+msgstr "« %s » không phải là một tập tin.\n"
+
+#: src/cli/namestore/gnunet-namestore-zonefile.c:483
+#, fuzzy, c-format
+msgid "Failed to parse $TTL\n"
+msgstr "Tập tin « %s » có URI: %s\n"
+
+#: src/cli/namestore/gnunet-namestore-zonefile.c:494
+#, fuzzy, c-format
+msgid "Failed to parse $ORIGIN from %s\n"
+msgstr "Tập tin « %s » có URI: %s\n"
+
+#: src/cli/namestore/gnunet-namestore-zonefile.c:505
+#, c-format
+msgid "You must provide $ORIGIN in your zonefile or via arguments (--zone)!\n"
+msgstr ""
+
+#: src/cli/namestore/gnunet-namestore-zonefile.c:514
+#, c-format
+msgid "Only %u records per unique name supported.\n"
+msgstr ""
+
+#: src/cli/namestore/gnunet-namestore-zonefile.c:576
+#, fuzzy, c-format
+msgid "Data `%s' invalid\n"
+msgstr "Định dạng của biệt hiệu « %s » là không hợp lệ.\n"
+
+#: src/cli/namestore/gnunet-namestore-zonefile.c:644
 #: src/contrib/service/abd/gnunet-abd.c:392
 #, c-format
 msgid "Ego `%s' not known to identity service\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore-zonefile.c:329
-#, fuzzy, c-format
-msgid "Failed to store records...\n"
-msgstr "Lỗi bắt đầu thu thập.\n"
-
-#: src/cli/namestore/gnunet-namestore-zonefile.c:439
-#: src/cli/namestore/gnunet-namestore-zonefile.c:471
-#, fuzzy, c-format
-msgid "Name `%s' is too long\n"
-msgstr "« %s » không phải là một tập tin.\n"
-
-#: src/cli/namestore/gnunet-namestore-zonefile.c:498
-#, fuzzy, c-format
-msgid "Failed to parse $TTL\n"
-msgstr "Tập tin « %s » có URI: %s\n"
-
-#: src/cli/namestore/gnunet-namestore-zonefile.c:509
-#, fuzzy, c-format
-msgid "Failed to parse $ORIGIN from %s\n"
-msgstr "Tập tin « %s » có URI: %s\n"
-
-#: src/cli/namestore/gnunet-namestore-zonefile.c:520
-#, c-format
-msgid "You must provide $ORIGIN in your zonefile or via arguments (--zone)!\n"
-msgstr ""
-
-#: src/cli/namestore/gnunet-namestore-zonefile.c:529
-#, c-format
-msgid "Only %u records per unique name supported.\n"
-msgstr ""
-
-#: src/cli/namestore/gnunet-namestore-zonefile.c:591
-#, fuzzy, c-format
-msgid "Data `%s' invalid\n"
-msgstr "Định dạng của biệt hiệu « %s » là không hợp lệ.\n"
-
-#: src/cli/namestore/gnunet-namestore-zonefile.c:705
+#: src/cli/namestore/gnunet-namestore-zonefile.c:671
 #, fuzzy, c-format
 msgid "Failed to connect to NAMESTORE\n"
 msgstr "Lỗi kết nối đến gnunetd.\n"
 
-#: src/cli/namestore/gnunet-namestore-zonefile.c:712
+#: src/cli/namestore/gnunet-namestore-zonefile.c:678
 #, fuzzy, c-format
 msgid "Failed to connect to IDENTITY\n"
 msgstr "Lỗi kết nối đến gnunetd.\n"
 
-#: src/cli/namestore/gnunet-namestore-zonefile.c:738
-#: src/cli/namestore/gnunet-namestore.c:2088
+#: src/cli/namestore/gnunet-namestore-zonefile.c:704
+#: src/cli/namestore/gnunet-namestore.c:2085
 msgid "name of the ego controlling the zone"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:411
+#: src/cli/namestore/gnunet-namestore.c:416
 #, fuzzy, c-format
 msgid "Missing entries in record line `%s'.\n"
 msgstr "Không thể nạp phần bổ sung truyền tải « %s »\n"
 
-#: src/cli/namestore/gnunet-namestore.c:419
+#: src/cli/namestore/gnunet-namestore.c:424
 #, fuzzy, c-format
 msgid "Unknown record type `%s'\n"
 msgstr "Không rõ câu lệnh « %s ».\n"
 
-#: src/cli/namestore/gnunet-namestore.c:427
-#: src/cli/namestore/gnunet-namestore.c:442
+#: src/cli/namestore/gnunet-namestore.c:432
+#: src/cli/namestore/gnunet-namestore.c:447
 msgid "Empty record line argument is not allowed.\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:434
+#: src/cli/namestore/gnunet-namestore.c:439
 #, fuzzy, c-format
 msgid "Error parsing expiration time %s.\n"
 msgstr "Gặp lỗi khi lưu cấu hình."
 
-#: src/cli/namestore/gnunet-namestore.c:464
+#: src/cli/namestore/gnunet-namestore.c:469
 #, fuzzy, c-format
 msgid "Invalid record data for type %s: `%s'.\n"
 msgstr "Địa chỉ IP định dạng sai: %s\n"
 
-#: src/cli/namestore/gnunet-namestore.c:668
+#: src/cli/namestore/gnunet-namestore.c:662
 #, fuzzy, c-format
 msgid "Adding record failed: %s\n"
 msgstr "Gặp lỗi khi tải lên tập tin: %s\n"
 
-#: src/cli/namestore/gnunet-namestore.c:686
-#: src/cli/namestore/gnunet-namestore.c:702
+#: src/cli/namestore/gnunet-namestore.c:680
+#: src/cli/namestore/gnunet-namestore.c:697
 #, fuzzy, c-format
 msgid "Deleting record failed: %s\n"
 msgstr "Gặp lỗi khi tải lên tập tin: %s\n"
 
-#: src/cli/namestore/gnunet-namestore.c:1138
+#: src/cli/namestore/gnunet-namestore.c:1140
 #, c-format
 msgid ""
 "A SOA record exists already under `%s', cannot add a second SOA to the same "
 "zone.\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1259
+#: src/cli/namestore/gnunet-namestore.c:1263
 #, c-format
 msgid "There are no records under label `%s' that could be deleted.\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1302
+#: src/cli/namestore/gnunet-namestore.c:1306
 #, c-format
 msgid ""
 "There are no records under label `%s' that match the request for deletion.\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1327
+#: src/cli/namestore/gnunet-namestore.c:1331
 #, c-format
 msgid "%s\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1356
+#: src/cli/namestore/gnunet-namestore.c:1360
 #, fuzzy, c-format
 msgid "No options given\n"
 msgstr "chưa đưa ra tên"
 
-#: src/cli/namestore/gnunet-namestore.c:1370
+#: src/cli/namestore/gnunet-namestore.c:1374
 #, c-format
 msgid "Recordlines only work with option `%s'\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1379
-#: src/cli/namestore/gnunet-namestore.c:1431
-#: src/cli/namestore/gnunet-namestore.c:1441
-#: src/cli/namestore/gnunet-namestore.c:1451
-#: src/cli/namestore/gnunet-namestore.c:1480
-#: src/cli/namestore/gnunet-namestore.c:1501
-#: src/cli/namestore/gnunet-namestore.c:1528
-#: src/cli/namestore/gnunet-namestore.c:1538
-#: src/cli/namestore/gnunet-namestore.c:1571
-#: src/cli/namestore/gnunet-namestore.c:1596
-#: src/cli/namestore/gnunet-namestore.c:1630
-#: src/cli/namestore/gnunet-namestore.c:1664
-#: src/cli/namestore/gnunet-namestore.c:1687
+#: src/cli/namestore/gnunet-namestore.c:1383
+#: src/cli/namestore/gnunet-namestore.c:1435
+#: src/cli/namestore/gnunet-namestore.c:1445
+#: src/cli/namestore/gnunet-namestore.c:1455
+#: src/cli/namestore/gnunet-namestore.c:1486
+#: src/cli/namestore/gnunet-namestore.c:1507
+#: src/cli/namestore/gnunet-namestore.c:1534
+#: src/cli/namestore/gnunet-namestore.c:1544
+#: src/cli/namestore/gnunet-namestore.c:1578
+#: src/cli/namestore/gnunet-namestore.c:1603
+#: src/cli/namestore/gnunet-namestore.c:1637
+#: src/cli/namestore/gnunet-namestore.c:1671
+#: src/cli/namestore/gnunet-namestore.c:1694
 #, fuzzy, c-format
 msgid "Missing option `%s' for operation `%s'\n"
 msgstr "Giá trị cấu hình « %s » cho « %s » trong phần « %s » nên là con số\n"
 
-#: src/cli/namestore/gnunet-namestore.c:1381
+#: src/cli/namestore/gnunet-namestore.c:1385
 #, fuzzy
 msgid "name"
 msgstr "không-tên"
 
-#: src/cli/namestore/gnunet-namestore.c:1410
+#: src/cli/namestore/gnunet-namestore.c:1414
 #, fuzzy, c-format
 msgid "Invalid nick `%s'\n"
 msgstr "Dữ liệu nhập không hợp lệ.\n"
 
-#: src/cli/namestore/gnunet-namestore.c:1433
-#: src/cli/namestore/gnunet-namestore.c:1443
-#: src/cli/namestore/gnunet-namestore.c:1453
-#: src/cli/namestore/gnunet-namestore.c:1482
-#: src/cli/namestore/gnunet-namestore.c:1503
-#: src/cli/namestore/gnunet-namestore.c:1689
+#: src/cli/namestore/gnunet-namestore.c:1437
+#: src/cli/namestore/gnunet-namestore.c:1447
+#: src/cli/namestore/gnunet-namestore.c:1457
+#: src/cli/namestore/gnunet-namestore.c:1488
+#: src/cli/namestore/gnunet-namestore.c:1509
+#: src/cli/namestore/gnunet-namestore.c:1696
 msgid "add"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1461
+#: src/cli/namestore/gnunet-namestore.c:1465
 #, fuzzy, c-format
 msgid "Unsupported type `%s'\n"
 msgstr "Lệnh không được hỗ trợ « %s ». Đang hủy bỏ.\n"
 
-#: src/cli/namestore/gnunet-namestore.c:1471
+#: src/cli/namestore/gnunet-namestore.c:1477
 #, c-format
-msgid "For DNS record types `SRV', `TLSA' and `OPENPGPKEY'"
+msgid "For DNS record types `SRV', `TLSA', `SMIMEA' and `OPENPGPKEY'"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1491
+#: src/cli/namestore/gnunet-namestore.c:1497
 #, c-format
 msgid "Value `%s' invalid for record type `%s'\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1510
-#: src/cli/namestore/gnunet-namestore.c:1696
+#: src/cli/namestore/gnunet-namestore.c:1516
+#: src/cli/namestore/gnunet-namestore.c:1703
 #, fuzzy, c-format
 msgid "Invalid time format `%s'\n"
 msgstr "Địa chỉ IP định dạng sai: %s\n"
 
-#: src/cli/namestore/gnunet-namestore.c:1530
-#: src/cli/namestore/gnunet-namestore.c:1540
+#: src/cli/namestore/gnunet-namestore.c:1536
+#: src/cli/namestore/gnunet-namestore.c:1546
 msgid "del"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1573
+#: src/cli/namestore/gnunet-namestore.c:1580
 msgid "purge-zone"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1598
+#: src/cli/namestore/gnunet-namestore.c:1605
 msgid "list"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1632
+#: src/cli/namestore/gnunet-namestore.c:1639
 msgid "reverse-pkey"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1642
+#: src/cli/namestore/gnunet-namestore.c:1649
 #, fuzzy, c-format
 msgid "Invalid public key for reverse lookup `%s'\n"
 msgstr "Đối số không hợp lệ cho « %s ».\n"
 
-#: src/cli/namestore/gnunet-namestore.c:1666
+#: src/cli/namestore/gnunet-namestore.c:1673
 msgid "uri"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1679
+#: src/cli/namestore/gnunet-namestore.c:1686
 #, fuzzy, c-format
 msgid "Invalid URI `%s'\n"
 msgstr "Dữ liệu nhập không hợp lệ.\n"
 
-#: src/cli/namestore/gnunet-namestore.c:1959
+#: src/cli/namestore/gnunet-namestore.c:1951
 #: src/contrib/service/abd/gnunet-abd.c:558
 #: src/contrib/service/abd/gnunet-service-abd.c:1750
-#: src/service/namestore/gnunet-namestore-fcfsd.c:1089
 #, fuzzy, c-format
 msgid "Failed to connect to namestore\n"
 msgstr "Không kết nối được đến trình nền gnunetd."
 
-#: src/cli/namestore/gnunet-namestore.c:1967
+#: src/cli/namestore/gnunet-namestore.c:1959
 #, fuzzy, c-format
 msgid "Cannot connect to identity service\n"
 msgstr "Không thể kết nối tới %s:%u: %s\n"
 
-#: src/cli/namestore/gnunet-namestore.c:1986
+#: src/cli/namestore/gnunet-namestore.c:1977
 msgid "add record"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1989
+#: src/cli/namestore/gnunet-namestore.c:1980
 msgid "delete record"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1993
+#: src/cli/namestore/gnunet-namestore.c:1984
 msgid "display records"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1997
+#: src/cli/namestore/gnunet-namestore.c:1988
 msgid "read commands from stdin"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2004
+#: src/cli/namestore/gnunet-namestore.c:1995
 msgid ""
 "expiration time for record to use (for adding only), \"never\" is possible"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2010
+#: src/cli/namestore/gnunet-namestore.c:2001
 #, fuzzy
 msgid "set the desired nick name for the zone"
 msgstr "In ra thông tin về các đồng đẳng GNUnet."
 
-#: src/cli/namestore/gnunet-namestore.c:2015
+#: src/cli/namestore/gnunet-namestore.c:2006
 #, fuzzy
 msgid "monitor changes in the namestore"
 msgstr "Không kết nối được đến trình nền gnunetd."
 
-#: src/cli/namestore/gnunet-namestore.c:2025
+#: src/cli/namestore/gnunet-namestore.c:2016
 #, fuzzy
 msgid "Output in recordline format"
 msgstr "kết xuất theo định dạng gnuplot"
 
-#: src/cli/namestore/gnunet-namestore.c:2031
+#: src/cli/namestore/gnunet-namestore.c:2022
 #, fuzzy
 msgid "determine our name for the given KEY"
 msgstr "In ra thông tin về các đồng đẳng GNUnet."
 
-#: src/cli/namestore/gnunet-namestore.c:2037
+#: src/cli/namestore/gnunet-namestore.c:2028
 msgid "type of the record to add/delete/display"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2042
+#: src/cli/namestore/gnunet-namestore.c:2033
 msgid "URI to import into our zone"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2048
+#: src/cli/namestore/gnunet-namestore.c:2039
 msgid "value of the record to add/delete"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2052
+#: src/cli/namestore/gnunet-namestore.c:2043
 msgid "create or list public record"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2056
+#: src/cli/namestore/gnunet-namestore.c:2047
 msgid "omit private records"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2061
+#: src/cli/namestore/gnunet-namestore.c:2052
 msgid "do not filter maintenance records"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2066
+#: src/cli/namestore/gnunet-namestore.c:2057
 msgid "purge namestore of all orphans"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2071
+#: src/cli/namestore/gnunet-namestore.c:2062
 msgid ""
 "show private key for orphaned records for recovery using `gnunet-identity -C "
 "-P <key>'. Use in combination with --display"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2076
+#: src/cli/namestore/gnunet-namestore.c:2067
 msgid "delete all records in specified zone"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2082
+#: src/cli/namestore/gnunet-namestore.c:2073
 msgid ""
 "create shadow record (only valid if all other records of the same type have "
-"expired"
+"expired)"
 msgstr ""
 
-#: src/cli/namestore/gnunet-zoneimport.c:1835
+#: src/cli/namestore/gnunet-namestore.c:2079
+msgid "create maintenance record (e.g TOMBSTONEs)"
+msgstr ""
+
+#: src/cli/namestore/gnunet-zoneimport.c:1845
 msgid "size to use for the main hash map"
 msgstr ""
 
-#: src/cli/namestore/gnunet-zoneimport.c:1841
+#: src/cli/namestore/gnunet-zoneimport.c:1851
 msgid "minimum expiration time we assume for imported records"
 msgstr ""
 
@@ -1664,43 +1665,47 @@ msgstr ""
 msgid "Show network size estimates from NSE service."
 msgstr "# các yêu cầu get (lấy) dht được nhận"
 
-#: src/cli/reclaim/gnunet-did.c:586
+#: src/cli/peerstore/gnunet-peerstore.c:92
+msgid "peerstore"
+msgstr ""
+
+#: src/cli/reclaim/gnunet-did.c:584
 msgid "Create a DID Document and display its DID"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:591
+#: src/cli/reclaim/gnunet-did.c:589
 msgid "Get the DID Document associated with the given DID"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:596
+#: src/cli/reclaim/gnunet-did.c:594
 msgid "Remove the DID"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:600
+#: src/cli/reclaim/gnunet-did.c:598
 msgid "Replace the DID Document."
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:604
+#: src/cli/reclaim/gnunet-did.c:602
 msgid "Show the DID for a given ego"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:608
+#: src/cli/reclaim/gnunet-did.c:606
 msgid "Show egos with DIDs"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:614
+#: src/cli/reclaim/gnunet-did.c:612
 msgid "The Decentralized Identity (DID)"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:620
+#: src/cli/reclaim/gnunet-did.c:618
 msgid "The DID Document to store in GNUNET"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:625
+#: src/cli/reclaim/gnunet-did.c:623
 msgid "The name of the EGO"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:631
+#: src/cli/reclaim/gnunet-did.c:629
 msgid "The time until the DID Document is going to expire (e.g. 5d)"
 msgstr ""
 
@@ -3177,32 +3182,32 @@ msgstr ""
 msgid "Label  contains `.' which is not allowed\n"
 msgstr ""
 
-#: src/lib/gnsrecord/gnsrecord_misc.c:479
+#: src/lib/gnsrecord/gnsrecord_misc.c:478
 msgid "Zone delegation record not allowed in apex."
 msgstr ""
 
-#: src/lib/gnsrecord/gnsrecord_misc.c:487
+#: src/lib/gnsrecord/gnsrecord_misc.c:486
 msgid "Zone delegation record set contains mutually exclusive records."
 msgstr ""
 
-#: src/lib/gnsrecord/gnsrecord_misc.c:497
+#: src/lib/gnsrecord/gnsrecord_misc.c:496
 msgid "Multiple REDIRECT records."
 msgstr ""
 
-#: src/lib/gnsrecord/gnsrecord_misc.c:506
-#: src/lib/gnsrecord/gnsrecord_misc.c:532
+#: src/lib/gnsrecord/gnsrecord_misc.c:505
+#: src/lib/gnsrecord/gnsrecord_misc.c:531
 msgid "Redirection record set contains mutually exclusive records."
 msgstr ""
 
-#: src/lib/gnsrecord/gnsrecord_misc.c:513
+#: src/lib/gnsrecord/gnsrecord_misc.c:512
 msgid "Redirection records not allowed in apex."
 msgstr ""
 
-#: src/lib/gnsrecord/gnsrecord_misc.c:524
+#: src/lib/gnsrecord/gnsrecord_misc.c:523
 msgid "Redirection records not allowed in apex.."
 msgstr ""
 
-#: src/lib/gnsrecord/gnsrecord_misc.c:546
+#: src/lib/gnsrecord/gnsrecord_misc.c:545
 msgid "Mutually exclusive records."
 msgstr ""
 
@@ -3458,7 +3463,7 @@ msgstr ""
 #: src/plugin/datastore/plugin_datastore_sqlite.c:63
 #: src/plugin/datastore/plugin_datastore_sqlite.c:81
 #: src/plugin/namecache/plugin_namecache_sqlite.c:53
-#: src/plugin/namestore/plugin_namestore_sqlite.c:55
+#: src/plugin/namestore/plugin_namestore_sqlite.c:54
 #: src/plugin/peerstore/plugin_peerstore_sqlite.c:54
 #, c-format
 msgid "`%s' failed at %s:%d with error: %s\n"
@@ -3474,7 +3479,7 @@ msgstr "%s bị lỗi tại %s:%d: « %s »\n"
 msgid "ECDSA signature verification failed at %s:%d: %s\n"
 msgstr "Lỗi thẩm tra chữ ký RSA tại %s:%d: %s\n"
 
-#: src/lib/util/crypto_ecc_setup.c:282
+#: src/lib/util/crypto_ecc_setup.c:282 src/lib/util/crypto_ecc_setup.c:304
 #, fuzzy
 msgid "Could not load peer's private key\n"
 msgstr "Không thể truy cập đến tập tin gnunet-directory « %s »\n"
@@ -3504,7 +3509,7 @@ msgstr "Mong đợi « %s » là một thư mục.\n"
 msgid "Cannot obtain information about user `%s': %s\n"
 msgstr "Không thể lấy thông tin về người dùng « %s »: %s\n"
 
-#: src/lib/util/dnsparser.c:910
+#: src/lib/util/dnsparser.c:1003
 #, fuzzy, c-format
 msgid "Failed to convert UTF-8 name `%s' to DNS IDNA format: %s\n"
 msgstr "Lỗi mở tập tin ghi sự kiện « %s »: %s\n"
@@ -4045,68 +4050,68 @@ msgstr ""
 msgid "Character sets requested were `%s'->`%s'\n"
 msgstr ""
 
-#: src/lib/util/strings.c:513
+#: src/lib/util/strings.c:514
 msgid "Failed to expand `$HOME': environment variable `HOME' not set"
 msgstr ""
 "Lỗi mở rộng biến môi trường « $HOME »: chưa đặt biến môi trường « HOME »"
 
-#: src/lib/util/strings.c:1049
+#: src/lib/util/strings.c:1050
 msgid "IPv6 address did not start with `['\n"
 msgstr ""
 
-#: src/lib/util/strings.c:1057
+#: src/lib/util/strings.c:1058
 msgid "IPv6 address did contain ':' to separate port number\n"
 msgstr ""
 
-#: src/lib/util/strings.c:1064
+#: src/lib/util/strings.c:1065
 msgid "IPv6 address did contain ']' before ':' to separate port number\n"
 msgstr ""
 
-#: src/lib/util/strings.c:1072
+#: src/lib/util/strings.c:1073
 msgid "IPv6 address did contain a valid port number after the last ':'\n"
 msgstr ""
 
-#: src/lib/util/strings.c:1081
+#: src/lib/util/strings.c:1082
 #, fuzzy, c-format
 msgid "Invalid IPv6 address `%s': %s\n"
 msgstr "Mức ưu tiên tiến trình không hợp lê « %s ».\n"
 
-#: src/lib/util/strings.c:1263 src/lib/util/strings.c:1274
+#: src/lib/util/strings.c:1264 src/lib/util/strings.c:1275
 msgid "Port not in range\n"
 msgstr ""
 
-#: src/lib/util/strings.c:1283
+#: src/lib/util/strings.c:1284
 #, fuzzy, c-format
 msgid "Malformed port policy `%s'\n"
 msgstr "Lỗi bắt đầu thu thập.\n"
 
-#: src/lib/util/strings.c:1354 src/lib/util/strings.c:1383
-#: src/lib/util/strings.c:1430 src/lib/util/strings.c:1450
+#: src/lib/util/strings.c:1355 src/lib/util/strings.c:1384
+#: src/lib/util/strings.c:1431 src/lib/util/strings.c:1451
 #, c-format
 msgid "Invalid format for IP: `%s'\n"
 msgstr "Địa chỉ IP định dạng sai: %s\n"
 
-#: src/lib/util/strings.c:1408
+#: src/lib/util/strings.c:1409
 #, c-format
 msgid "Invalid network notation ('/%d' is not legal in IPv4 CIDR)."
 msgstr "Ký hiệu mạng sai (« /%d » không hợp lệ trong CIDR IPv4)."
 
-#: src/lib/util/strings.c:1459
+#: src/lib/util/strings.c:1460
 #, fuzzy, c-format
 msgid "Invalid format: `%s'\n"
 msgstr "Địa chỉ IP định dạng sai: %s\n"
 
-#: src/lib/util/strings.c:1501
+#: src/lib/util/strings.c:1502
 #, c-format
 msgid "Invalid network notation (does not end with ';': `%s')\n"
 msgstr "Ký hiệu mạng sai (không kết thúc với « ; »: « %s »)\n"
 
-#: src/lib/util/strings.c:1551
+#: src/lib/util/strings.c:1552
 #, fuzzy, c-format
 msgid "Wrong format `%s' for netmask\n"
 msgstr "Mặt nạ mạng có định dạng sai « %s »: %s\n"
 
-#: src/lib/util/strings.c:1582
+#: src/lib/util/strings.c:1583
 #, fuzzy, c-format
 msgid "Wrong format `%s' for network\n"
 msgstr "Mạng có định dạng sai « %s »: %s\n"
@@ -4130,7 +4135,7 @@ msgstr "kho dữ liệu sqlite"
 #: src/plugin/datacache/plugin_datacache_sqlite.c:1035
 #: src/plugin/datastore/plugin_datastore_sqlite.c:532
 #: src/plugin/namecache/plugin_namecache_sqlite.c:236
-#: src/plugin/namestore/plugin_namestore_sqlite.c:227
+#: src/plugin/namestore/plugin_namestore_sqlite.c:243
 msgid "Tried to close sqlite without finalizing all prepared statements.\n"
 msgstr ""
 
@@ -4158,7 +4163,7 @@ msgstr "« %s » bị lỗi tại %s:%d với lỗi: %s"
 
 #: src/plugin/datastore/plugin_datastore_sqlite.c:311
 #: src/plugin/namecache/plugin_namecache_sqlite.c:179
-#: src/plugin/namestore/plugin_namestore_sqlite.c:893
+#: src/plugin/namestore/plugin_namestore_sqlite.c:948
 #: src/plugin/peerstore/plugin_peerstore_sqlite.c:540
 #, c-format
 msgid "Unable to initialize SQLite: %s.\n"
@@ -4205,126 +4210,149 @@ msgstr "kho dữ liệu sqlite"
 msgid "Template database running\n"
 msgstr ""
 
-#: src/plugin/gns/plugin_gnsrecord_gns.c:137
+#: src/plugin/gns/plugin_gnsrecord_gns.c:167
 msgid "This is a memento of an older block for internal maintenance."
 msgstr ""
 
-#: src/plugin/gns/plugin_gnsrecord_gns.c:176
+#: src/plugin/gns/plugin_gnsrecord_gns.c:206
 #, fuzzy, c-format
 msgid "Unable to parse zone key record `%s'\n"
 msgstr "Lỗi đọc danh sách bạn bè từ « %s »\n"
 
-#: src/plugin/gns/plugin_gnsrecord_gns.c:190
+#: src/plugin/gns/plugin_gnsrecord_gns.c:220
 msgid "Record type does not match parsed record type\n"
 msgstr ""
 
-#: src/plugin/gns/plugin_gnsrecord_gns.c:213
+#: src/plugin/gns/plugin_gnsrecord_gns.c:243
 #, fuzzy, c-format
 msgid "Unable to parse GNS2DNS record `%s'\n"
 msgstr "Lỗi đọc danh sách bạn bè từ « %s »\n"
 
-#: src/plugin/gns/plugin_gnsrecord_gns.c:230
+#: src/plugin/gns/plugin_gnsrecord_gns.c:260
 #, fuzzy, c-format
 msgid "Failed to serialize GNS2DNS record with value `%s': Not a DNS name.\n"
 msgstr "Không thể truy cập đến tập tin gnunet-directory « %s »\n"
 
-#: src/plugin/gns/plugin_gnsrecord_gns.c:254
+#: src/plugin/gns/plugin_gnsrecord_gns.c:284
 #, fuzzy, c-format
 msgid "Unable to parse VPN record string `%s'\n"
 msgstr "Lỗi đọc danh sách bạn bè từ « %s »\n"
 
-#: src/plugin/gns/plugin_gnsrecord_gns.c:286
+#: src/plugin/gns/plugin_gnsrecord_gns.c:316
 #, fuzzy, c-format
 msgid "Unable to parse BOX record string `%s'\n"
 msgstr "Lỗi đọc danh sách bạn bè từ « %s »\n"
 
-#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:366
+#: src/plugin/gns/plugin_gnsrecord_gns.c:349
+#, fuzzy, c-format
+msgid "Unable to parse SBOX record string `%s'\n"
+msgstr "Lỗi đọc danh sách bạn bè từ « %s »\n"
+
+#: src/plugin/gns/plugin_gnsrecord_gns.c:366
+#, c-format
+msgid ""
+"Unable to parse SBOX record string `%s', the rightmost label `%s' does not "
+"start with an underscore\n"
+msgstr ""
+
+#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:389
 #, fuzzy, c-format
 msgid "Unable to parse IPv4 address `%s'\n"
 msgstr "Mức ưu tiên tiến trình không hợp lê « %s ».\n"
 
-#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:384
+#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:407
 #, fuzzy, c-format
 msgid "Failed to serialize NS record with value `%s'\n"
 msgstr "Không thể truy cập đến tập tin gnunet-directory « %s »\n"
 
-#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:405
+#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:428
 #, fuzzy, c-format
 msgid "Failed to serialize CNAME record with value `%s'\n"
 msgstr "Không thể truy cập đến tập tin gnunet-directory « %s »\n"
 
-#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:479
+#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:502
 #, fuzzy, c-format
 msgid "Failed to serialize CERT record with %u bytes\n"
 msgstr "Không thể truy cập đến tập tin gnunet-directory « %s »\n"
 
-#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:515
+#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:538
 #, fuzzy, c-format
 msgid "Unable to parse SOA record `%s'\n"
 msgstr "Lỗi đọc danh sách bạn bè từ « %s »\n"
 
-#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:532
+#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:555
 #, fuzzy, c-format
 msgid "Failed to serialize SOA record with mname `%s' and rname `%s'\n"
 msgstr "Không thể truy cập đến tập tin gnunet-directory « %s »\n"
 
-#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:552
+#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:575
 #, fuzzy, c-format
 msgid "Failed to serialize PTR record with value `%s'\n"
 msgstr "Không thể truy cập đến tập tin gnunet-directory « %s »\n"
 
-#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:572
+#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:595
 #, fuzzy, c-format
 msgid "Unable to parse MX record `%s'\n"
 msgstr "Lỗi đọc danh sách bạn bè từ « %s »\n"
 
-#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:584
+#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:607
 #, fuzzy, c-format
 msgid "Failed to serialize MX record with hostname `%s'\n"
 msgstr "Không thể truy cập đến tập tin gnunet-directory « %s »\n"
 
-#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:607
+#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:630
 #, fuzzy, c-format
 msgid "Unable to parse SRV record `%s'\n"
 msgstr "Lỗi đọc danh sách bạn bè từ « %s »\n"
 
-#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:620
+#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:643
 #, fuzzy, c-format
 msgid "Failed to serialize SRV record with target `%s'\n"
 msgstr "Không thể truy cập đến tập tin gnunet-directory « %s »\n"
 
-#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:639
+#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:663
+#, fuzzy, c-format
+msgid "Unable to parse URI record `%s'\n"
+msgstr "Lỗi đọc danh sách bạn bè từ « %s »\n"
+
+#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:680
+#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:691
+#, fuzzy, c-format
+msgid "Failed to serialize URI record with target `%s'\n"
+msgstr "Không thể truy cập đến tập tin gnunet-directory « %s »\n"
+
+#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:710
 #, fuzzy, c-format
 msgid "Unable to parse IPv6 address `%s'\n"
 msgstr "Mức ưu tiên tiến trình không hợp lê « %s ».\n"
 
-#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:659
-#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:673
+#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:731
+#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:745
 #, fuzzy, c-format
-msgid "Unable to parse TLSA record string `%s'\n"
+msgid "Unable to parse TLSA/SMIMEA record string `%s'\n"
 msgstr "Lỗi đọc danh sách bạn bè từ « %s »\n"
 
-#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:692
+#: src/plugin/gnsrecord/plugin_gnsrecord_dns.c:764
 #, fuzzy, c-format
 msgid "Unable to parse CAA record string `%s'\n"
 msgstr "Lỗi đọc danh sách bạn bè từ « %s »\n"
 
-#: src/plugin/messenger/plugin_gnsrecord_messenger.c:136
-#: src/plugin/messenger/plugin_gnsrecord_messenger.c:151
+#: src/plugin/messenger/plugin_gnsrecord_messenger.c:142
+#: src/plugin/messenger/plugin_gnsrecord_messenger.c:158
 #, fuzzy, c-format
 msgid "Unable to parse MESSENGER_ROOM_ENTRY record `%s'\n"
 msgstr "Lỗi đọc danh sách bạn bè từ « %s »\n"
 
-#: src/plugin/messenger/plugin_gnsrecord_messenger.c:172
-#: src/plugin/messenger/plugin_gnsrecord_messenger.c:187
+#: src/plugin/messenger/plugin_gnsrecord_messenger.c:179
+#: src/plugin/messenger/plugin_gnsrecord_messenger.c:194
 #, fuzzy, c-format
 msgid "Unable to parse MESSENGER_ROOM_DETAILS record `%s'\n"
 msgstr "Lỗi đọc danh sách bạn bè từ « %s »\n"
 
 #: src/plugin/namecache/plugin_namecache_flat.c:117
 #: src/plugin/namecache/plugin_namecache_flat.c:252
-#: src/plugin/namestore/plugin_namestore_flat.c:175
-#: src/plugin/namestore/plugin_namestore_flat.c:423
+#: src/plugin/namestore/plugin_namestore_flat.c:174
+#: src/plugin/namestore/plugin_namestore_flat.c:422
 #: src/plugin/peerstore/plugin_peerstore_flat.c:380
 #: src/plugin/peerstore/plugin_peerstore_flat.c:542
 #, fuzzy, c-format
@@ -4332,7 +4360,7 @@ msgid "Unable to initialize file: %s.\n"
 msgstr "Không thể sơ khởi SQLite: %s.\n"
 
 #: src/plugin/namecache/plugin_namecache_flat.c:128
-#: src/plugin/namestore/plugin_namestore_flat.c:186
+#: src/plugin/namestore/plugin_namestore_flat.c:185
 #: src/plugin/peerstore/plugin_peerstore_flat.c:395
 #, fuzzy, c-format
 msgid "Unable to get filesize: %s.\n"
@@ -4355,28 +4383,28 @@ msgstr "kho dữ liệu sqlite"
 msgid "Failed to setup database at `%s'\n"
 msgstr "Lỗi chạy %s: %s %d\n"
 
-#: src/plugin/namestore/plugin_namestore_flat.c:194
+#: src/plugin/namestore/plugin_namestore_flat.c:193
 #, c-format
 msgid "File too big to map: %llu bytes.\n"
 msgstr ""
 
-#: src/plugin/namestore/plugin_namestore_flat.c:218
+#: src/plugin/namestore/plugin_namestore_flat.c:217
 #, c-format
 msgid "Namestore database file `%s' malformed\n"
 msgstr ""
 
-#: src/plugin/namestore/plugin_namestore_flat.c:791
+#: src/plugin/namestore/plugin_namestore_flat.c:790
 #, fuzzy
 msgid "Flat file database running\n"
 msgstr "kho dữ liệu sqlite"
 
-#: src/plugin/namestore/plugin_namestore_sqlite.c:180
-#: src/plugin/namestore/plugin_namestore_sqlite.c:190
+#: src/plugin/namestore/plugin_namestore_sqlite.c:194
+#: src/plugin/namestore/plugin_namestore_sqlite.c:204
 #, fuzzy, c-format
 msgid "Failed to setup database with: `%s'\n"
 msgstr "Lỗi chạy %s: %s %d\n"
 
-#: src/plugin/namestore/plugin_namestore_sqlite.c:955
+#: src/plugin/namestore/plugin_namestore_sqlite.c:1003
 #, fuzzy
 msgid "SQlite database running\n"
 msgstr "kho dữ liệu sqlite"
@@ -4964,12 +4992,12 @@ msgstr ""
 msgid "Measure quality and performance of the DHT service."
 msgstr "Không thể truy cập đến dịch vụ"
 
-#: src/service/dns/gnunet-dns-monitor.c:370
-#: src/service/dns/gnunet-dns-monitor.c:375
+#: src/service/dns/gnunet-dns-monitor.c:387
+#: src/service/dns/gnunet-dns-monitor.c:392
 msgid "only monitor DNS queries"
 msgstr ""
 
-#: src/service/dns/gnunet-dns-monitor.c:387
+#: src/service/dns/gnunet-dns-monitor.c:404
 msgid "Monitor DNS queries."
 msgstr ""
 
@@ -6044,13 +6072,11 @@ msgid "Invalid port number %u\n"
 msgstr "Đối số không hợp lệ cho « %s ».\n"
 
 #: src/service/gns/gnunet-bcd.c:614
-#: src/service/namestore/gnunet-namestore-fcfsd.c:1122
 #, fuzzy
 msgid "Unable to set up the daemon\n"
 msgstr "Không thể tạo tài khoản người dùng cho trình nền."
 
 #: src/service/gns/gnunet-bcd.c:637
-#: src/service/namestore/gnunet-namestore-fcfsd.c:985
 #, fuzzy
 msgid "Failed to start HTTP server\n"
 msgstr "Lỗi bắt đầu thu thập.\n"
@@ -6254,75 +6280,86 @@ msgstr "Không kết nối được đến trình nền gnunetd."
 msgid "Could not connect to DHT!\n"
 msgstr "Không thể kết nối tới %s:%u: %s\n"
 
-#: src/service/gns/gnunet-service-gns_interceptor.c:278
+#: src/service/gns/gnunet-service-gns_interceptor.c:296
 #, fuzzy
 msgid "Error converting GNS response to DNS response!\n"
 msgstr "Gặp lỗi khi chuyển đổi các đối số sang URI.\n"
 
-#: src/service/gns/gnunet-service-gns_interceptor.c:379
+#: src/service/gns/gnunet-service-gns_interceptor.c:397
 #, fuzzy
 msgid "Failed to connect to the DNS service!\n"
 msgstr "Lỗi kết nối đến gnunetd.\n"
 
-#: src/service/gns/gnunet-service-gns_resolver.c:669
+#: src/service/gns/gnunet-service-gns_resolver.c:713
 #, c-format
-msgid "Protocol `%s' unknown, skipping labels.\n"
+msgid "Protocol `%s' unknown, skipping labels as BOX retain as SBOX.\n"
 msgstr ""
 
-#: src/service/gns/gnunet-service-gns_resolver.c:681
+#: src/service/gns/gnunet-service-gns_resolver.c:727
 #, c-format
 msgid "Service `%s' unknown for protocol `%s', trying as number.\n"
 msgstr ""
 
-#: src/service/gns/gnunet-service-gns_resolver.c:687
+#: src/service/gns/gnunet-service-gns_resolver.c:734
 #, c-format
-msgid "Service `%s' not a port, skipping service labels.\n"
+msgid ""
+"Service `%s' not a port, skipping service labels as BOX retain as SBOX.\n"
 msgstr ""
 
-#: src/service/gns/gnunet-service-gns_resolver.c:900
+#: src/service/gns/gnunet-service-gns_resolver.c:965
 #, fuzzy
 msgid "Failed to parse DNS response\n"
 msgstr "Lỗi mở tập tin ghi sự kiện « %s »: %s\n"
 
-#: src/service/gns/gnunet-service-gns_resolver.c:1091
+#: src/service/gns/gnunet-service-gns_resolver.c:1172
 #, c-format
 msgid "Skipping record of unsupported type %d\n"
 msgstr ""
 
-#: src/service/gns/gnunet-service-gns_resolver.c:1867
+#: src/service/gns/gnunet-service-gns_resolver.c:1948
 #, c-format
 msgid "Name `%s' cannot be converted to IDNA."
 msgstr ""
 
-#: src/service/gns/gnunet-service-gns_resolver.c:1882
+#: src/service/gns/gnunet-service-gns_resolver.c:1963
 #, c-format
 msgid "GNS lookup resulted in DNS name that is too long (`%s')\n"
 msgstr ""
 
-#: src/service/gns/gnunet-service-gns_resolver.c:1915
+#: src/service/gns/gnunet-service-gns_resolver.c:1996
 #, fuzzy, c-format
 msgid "GNS lookup failed (zero records found for `%s')\n"
 msgstr "Vẫn còn không tìm thấy đồng đẳng trong « %s ».\n"
 
-#: src/service/gns/gnunet-service-gns_resolver.c:2317
+#: src/service/gns/gnunet-service-gns_resolver.c:2270
+#, fuzzy
+msgid "Failed to deserialize URI record with target\n"
+msgstr "Không thể truy cập đến tập tin gnunet-directory « %s »\n"
+
+#: src/service/gns/gnunet-service-gns_resolver.c:2422
+#, c-format
+msgid "GNS no specific protocol/service specified, preserve all SBOX `%s')\n"
+msgstr ""
+
+#: src/service/gns/gnunet-service-gns_resolver.c:2484
 msgid "Unable to process critical delegation record\n"
 msgstr ""
 
-#: src/service/gns/gnunet-service-gns_resolver.c:2322
+#: src/service/gns/gnunet-service-gns_resolver.c:2489
 msgid "GNS lookup recursion failed (no delegation record found)\n"
 msgstr ""
 
-#: src/service/gns/gnunet-service-gns_resolver.c:2345
+#: src/service/gns/gnunet-service-gns_resolver.c:2512
 #, fuzzy, c-format
 msgid "Failed to cache GNS resolution: %s\n"
 msgstr "Lỗi mở tập tin ghi sự kiện « %s »: %s\n"
 
-#: src/service/gns/gnunet-service-gns_resolver.c:2512
+#: src/service/gns/gnunet-service-gns_resolver.c:2679
 #, c-format
 msgid "GNS namecache returned empty result for `%s'\n"
 msgstr ""
 
-#: src/service/gns/gnunet-service-gns_resolver.c:2660
+#: src/service/gns/gnunet-service-gns_resolver.c:2827
 #, c-format
 msgid "Zone %s was revoked, resolution fails\n"
 msgstr ""
@@ -6644,110 +6681,6 @@ msgstr ""
 msgid "Error communicating with namecache service"
 msgstr "Cổng để liên lạc với giao diện người dùng GNUnet"
 
-#: src/service/namestore/gnunet-namestore-fcfsd.c:373
-#, fuzzy
-msgid "can not search the namestore"
-msgstr "Không kết nối được đến trình nền gnunetd."
-
-#: src/service/namestore/gnunet-namestore-fcfsd.c:427
-#: src/service/namestore/gnunet-namestore-fcfsd.c:561
-#, fuzzy
-msgid "unable to scan namestore"
-msgstr "Không kết nối được đến trình nền gnunetd."
-
-#: src/service/namestore/gnunet-namestore-fcfsd.c:447
-#, fuzzy, c-format
-msgid "Failed to create record for `%s': %s\n"
-msgstr "Không thể truy cập đến tập tin gnunet-directory « %s »\n"
-
-#: src/service/namestore/gnunet-namestore-fcfsd.c:460
-#, fuzzy
-msgid "no errors"
-msgstr "Lỗi không rõ"
-
-#: src/service/namestore/gnunet-namestore-fcfsd.c:496
-#, fuzzy, c-format
-msgid "The requested key `%s' exists as `%s'\n"
-msgstr "Đã tạo mục nhập « %s » trong không gian tên « %s »\n"
-
-#: src/service/namestore/gnunet-namestore-fcfsd.c:503
-msgid "key exists"
-msgstr ""
-
-#: src/service/namestore/gnunet-namestore-fcfsd.c:520
-#, fuzzy
-msgid "Error creating record data\n"
-msgstr "=\tLỗi đọc thư mục.\n"
-
-#: src/service/namestore/gnunet-namestore-fcfsd.c:524
-#, fuzzy
-msgid "unable to store record"
-msgstr "Lỗi bắt đầu thu thập.\n"
-
-#: src/service/namestore/gnunet-namestore-fcfsd.c:595
-#, c-format
-msgid "Requested name `%s' exists with `%u' records\n"
-msgstr ""
-
-#: src/service/namestore/gnunet-namestore-fcfsd.c:601
-msgid "name exists\n"
-msgstr ""
-
-#: src/service/namestore/gnunet-namestore-fcfsd.c:787
-msgid "unable to process submitted data"
-msgstr ""
-
-#: src/service/namestore/gnunet-namestore-fcfsd.c:798
-msgid "the submitted data is invalid"
-msgstr ""
-
-#: src/service/namestore/gnunet-namestore-fcfsd.c:817
-#, fuzzy
-msgid "invalid parameters"
-msgstr "Đối số không hợp lệ cho « %s ».\n"
-
-#: src/service/namestore/gnunet-namestore-fcfsd.c:834
-#, fuzzy
-msgid "invalid name"
-msgstr "Đối số không hợp lệ cho « %s ».\n"
-
-#: src/service/namestore/gnunet-namestore-fcfsd.c:845
-#, fuzzy, c-format
-msgid "Unable to parse key %s\n"
-msgstr "Lỗi đọc danh sách bạn bè từ « %s »\n"
-
-#: src/service/namestore/gnunet-namestore-fcfsd.c:849
-#, fuzzy
-msgid "unable to parse key"
-msgstr "Lỗi đọc danh sách bạn bè từ « %s »\n"
-
-#: src/service/namestore/gnunet-namestore-fcfsd.c:960
-msgid "No ego configured for `fcfsd` subsystem\n"
-msgstr ""
-
-#: src/service/namestore/gnunet-namestore-fcfsd.c:1069
-#, fuzzy
-msgid "No expiration specified for records.\n"
-msgstr "Chưa xác định giao diện nên dùng mặc định.\n"
-
-#: src/service/namestore/gnunet-namestore-fcfsd.c:1080
-#, fuzzy
-msgid "No port specified, using default value\n"
-msgstr "Tập tin cấu hình « %s » đã được ghi.\n"
-
-#: src/service/namestore/gnunet-namestore-fcfsd.c:1098
-#, fuzzy
-msgid "Failed to connect to identity\n"
-msgstr "Lỗi kết nối đến gnunetd.\n"
-
-#: src/service/namestore/gnunet-namestore-fcfsd.c:1145
-msgid "name of the zone managed by FCFSD"
-msgstr ""
-
-#: src/service/namestore/gnunet-namestore-fcfsd.c:1154
-msgid "GNU Name System First-Come-First-Served name registration service"
-msgstr ""
-
 #: src/service/nat-auto/gnunet-nat-auto_legacy.c:377
 #: src/service/nat-auto/gnunet-service-nat-auto_legacy.c:685
 #: src/service/nat-auto/nat_auto_api_test.c:383
@@ -6987,41 +6920,48 @@ msgstr ""
 msgid "Measure quality and performance of the NSE service."
 msgstr "Không thể truy cập đến dịch vụ"
 
-#: src/service/peerstore/gnunet-peerstore.c:92
-msgid "peerstore"
-msgstr ""
-
-#: src/service/peerstore/gnunet-service-peerstore.c:592
+#: src/service/peerstore/gnunet-service-peerstore.c:636
 #, fuzzy, c-format
 msgid "Failed to parse HELLO in file `%s': %s\n"
 msgstr "Lỗi đọc danh sách bạn bè từ « %s »\n"
 
-#: src/service/peerstore/gnunet-service-peerstore.c:661
+#: src/service/peerstore/gnunet-service-peerstore.c:711
 #, fuzzy, c-format
 msgid "Could not load database backend `%s'\n"
 msgstr "Không thể đọc danh sách bạn bè « %s »\n"
 
-#: src/service/peerstore/gnunet-service-peerstore.c:681
+#: src/service/peerstore/gnunet-service-peerstore.c:731
 #, c-format
 msgid "Importing HELLOs from `%s'\n"
 msgstr ""
 
-#: src/service/peerstore/gnunet-service-peerstore.c:692
+#: src/service/peerstore/gnunet-service-peerstore.c:742
 msgid "Skipping import of included HELLOs\n"
 msgstr ""
 
-#: src/service/peerstore/peerstore_api.c:672
-#: src/service/peerstore/peerstore_api.c:721
+#: src/service/peerstore/peerstore_api.c:599
 #, fuzzy
-msgid "Unexpected iteration response, this should not happen.\n"
+msgid "Unexpected store response.\n"
+msgstr "Gặp sự kiện bất thường: %d\n"
+
+#: src/service/peerstore/peerstore_api.c:631
+#, fuzzy
+msgid "Unexpected iteration response.\n"
 msgstr "Định dạng kết xuất không rõ, điều này không nên xảy ra.\n"
 
-#: src/service/peerstore/peerstore_api.c:735
+#: src/service/peerstore/peerstore_api.c:676
+#, fuzzy
+msgid ""
+"Unexpected iteration response, no iterating client found, discarding "
+"message.\n"
+msgstr "Định dạng kết xuất không rõ, điều này không nên xảy ra.\n"
+
+#: src/service/peerstore/peerstore_api.c:686
 #, fuzzy
 msgid "Received a malformed response from service."
 msgstr "Nhận yêu cầu định tuyến\n"
 
-#: src/service/peerstore/peerstore_api.c:849
+#: src/service/peerstore/peerstore_api.c:797
 msgid "Received a watch result for a non existing watch.\n"
 msgstr ""
 
@@ -7209,7 +7149,7 @@ msgstr "Bản ghi lỗi GNUnet"
 msgid "Identity REST API initialized\n"
 msgstr "Lỗi sơ khởi lõi.\n"
 
-#: src/service/rest/namestore_plugin.c:1322
+#: src/service/rest/namestore_plugin.c:1302
 #, fuzzy
 msgid "Namestore REST API initialized\n"
 msgstr "Lỗi sơ khởi lõi.\n"
@@ -7415,9 +7355,9 @@ msgid "GNUnet topology control"
 msgstr ""
 
 #: src/service/transport/gnunet-communicator-quic.c:1717
-#: src/service/transport/gnunet-communicator-tcp.c:3735
-#: src/service/transport/gnunet-communicator-udp.c:3358
-#: src/service/transport/gnunet-service-transport.c:11679
+#: src/service/transport/gnunet-communicator-tcp.c:3756
+#: src/service/transport/gnunet-communicator-udp.c:3407
+#: src/service/transport/gnunet-service-transport.c:11731
 #, fuzzy
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr "Lưu cấu hình ngay bây giờ không?"
@@ -7426,11 +7366,11 @@ msgstr "Lưu cấu hình ngay bây giờ không?"
 msgid "GNUnet QUIC communicator"
 msgstr ""
 
-#: src/service/transport/gnunet-communicator-tcp.c:4072
+#: src/service/transport/gnunet-communicator-tcp.c:4093
 msgid "GNUnet TCP communicator"
 msgstr ""
 
-#: src/service/transport/gnunet-communicator-udp.c:3433
+#: src/service/transport/gnunet-communicator-udp.c:3482
 msgid "GNUnet UDP communicator"
 msgstr ""
 
@@ -7612,7 +7552,7 @@ msgstr ""
 msgid "Direct access to transport service."
 msgstr "Lỗi kết nối đến gnunetd.\n"
 
-#: src/service/transport/transport_api2_communication.c:761
+#: src/service/transport/transport_api2_communication.c:765
 msgid "Dropped backchanel message: handler not provided by communicator\n"
 msgstr ""
 
@@ -7742,6 +7682,62 @@ msgstr "Lỗi cập nhật dữ liệu cho mô-đun « %s »\n"
 #, fuzzy
 msgid "Failed to connect to the namestore!\n"
 msgstr "Không kết nối được đến trình nền gnunetd."
+
+#, fuzzy
+#~ msgid "can not search the namestore"
+#~ msgstr "Không kết nối được đến trình nền gnunetd."
+
+#, fuzzy
+#~ msgid "unable to scan namestore"
+#~ msgstr "Không kết nối được đến trình nền gnunetd."
+
+#, fuzzy, c-format
+#~ msgid "Failed to create record for `%s': %s\n"
+#~ msgstr "Không thể truy cập đến tập tin gnunet-directory « %s »\n"
+
+#, fuzzy
+#~ msgid "no errors"
+#~ msgstr "Lỗi không rõ"
+
+#, fuzzy, c-format
+#~ msgid "The requested key `%s' exists as `%s'\n"
+#~ msgstr "Đã tạo mục nhập « %s » trong không gian tên « %s »\n"
+
+#, fuzzy
+#~ msgid "Error creating record data\n"
+#~ msgstr "=\tLỗi đọc thư mục.\n"
+
+#, fuzzy
+#~ msgid "unable to store record"
+#~ msgstr "Lỗi bắt đầu thu thập.\n"
+
+#, fuzzy
+#~ msgid "invalid parameters"
+#~ msgstr "Đối số không hợp lệ cho « %s ».\n"
+
+#, fuzzy
+#~ msgid "invalid name"
+#~ msgstr "Đối số không hợp lệ cho « %s ».\n"
+
+#, fuzzy, c-format
+#~ msgid "Unable to parse key %s\n"
+#~ msgstr "Lỗi đọc danh sách bạn bè từ « %s »\n"
+
+#, fuzzy
+#~ msgid "unable to parse key"
+#~ msgstr "Lỗi đọc danh sách bạn bè từ « %s »\n"
+
+#, fuzzy
+#~ msgid "No expiration specified for records.\n"
+#~ msgstr "Chưa xác định giao diện nên dùng mặc định.\n"
+
+#, fuzzy
+#~ msgid "No port specified, using default value\n"
+#~ msgstr "Tập tin cấu hình « %s » đã được ghi.\n"
+
+#, fuzzy
+#~ msgid "Failed to connect to identity\n"
+#~ msgstr "Lỗi kết nối đến gnunetd.\n"
 
 #, fuzzy
 #~ msgid "Failed to parse HELLO message: missing expiration time\n"
