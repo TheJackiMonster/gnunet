@@ -360,7 +360,11 @@ src/service/messenger/gnunet-service-messenger_operation_store.c
 src/service/messenger/gnunet-service-messenger_room.c
 src/service/messenger/gnunet-service-messenger_service.c
 src/service/messenger/gnunet-service-messenger_tunnel.c
+src/service/messenger/messenger-testing.c
 src/service/messenger/messenger_api.c
+src/service/messenger/messenger_api_cmd_join_room.c
+src/service/messenger/messenger_api_cmd_start_service.c
+src/service/messenger/messenger_api_cmd_stop_service.c
 src/service/messenger/messenger_api_contact.c
 src/service/messenger/messenger_api_contact_store.c
 src/service/messenger/messenger_api_handle.c
@@ -370,6 +374,7 @@ src/service/messenger/messenger_api_message_kind.c
 src/service/messenger/messenger_api_peer_store.c
 src/service/messenger/messenger_api_queue_messages.c
 src/service/messenger/messenger_api_room.c
+src/service/messenger/messenger_api_traits.c
 src/service/messenger/messenger_api_util.c
 src/service/namecache/gnunet-service-namecache.c
 src/service/namecache/namecache_api.c

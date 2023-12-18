@@ -187,6 +187,12 @@ extern "C" {
 #define GNUNET_GNSRECORD_TYPE_DID_DOCUMENT 65561
 
 
+/**
+ * Private metadata for a delegation registration
+ */
+#define GNUNET_GNSRECORD_TYPE_GNS_REGISTRAR_METADATA 4294901760
+
+
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {
