@@ -146,6 +146,5 @@ test_messenger_anonymous_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 EXTRA_DIST = \
-  test_messenger_simple_join_topo.conf \
   test_messenger_start_testcase.sh \
   test_messenger_api.conf
