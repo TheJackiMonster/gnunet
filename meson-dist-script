@@ -3,4 +3,4 @@
 set -eu
 
 cd "${MESON_DIST_ROOT}"
-. bin/update_sphinx.sh
+. ./bin/sphinx_update.sh
