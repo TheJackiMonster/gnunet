@@ -15,7 +15,7 @@ then
 fi
 
 rm -rf `gnunet-config -c test_gns_lookup.conf -f -s paths -o GNUNET_TEST_HOME`
-which timeout > /dev/null 2>&1 && DO_TIMEOUT="timeout 30"
+which timeout > /dev/null 2>&1 && DO_TIMEOUT="timeout 7"
 TEST_A="139.134.54.9"
 MY_EGO="myego"
 LABEL="testsbox"
