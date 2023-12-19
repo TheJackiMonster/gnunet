@@ -75,8 +75,6 @@ check_libtool()
 {
     echo "checking for libtoolize / libtool... "
 
-    . "scripts/gana_update.sh" || exit 1
-    . "scripts/sphinx_update.sh" || exit 1
     if existence libtool || \
        existence libtoolize || \
        existence glibtoolize || \
@@ -86,7 +84,6 @@ check_libtool()
         echo "*** No libtoolize (libtool) or libtool or meson found, please install it ***" >&2;
         exit 1
     fi
-    . "scripts/pogen.sh" || exit 1
 }
 
 submodules()
@@ -111,13 +108,35 @@ install_hooks()
   ln -fs $(pwd)/contrib/conf/commit-msg .git/hooks/commit-msg 2> /dev/null
 }
 
+create_handbook()
+{
+    . "scripts/sphinx_update.sh" || exit 1
+}
+
+pogen()
+{
+    . "scripts/pogen.sh" || exit 1
+}
+
+update_gana()
+{
+    . "scripts/gana_update.sh" || exit 1
+}
+
 main()
 {
     cleanup
     submodules
     check_uncrustify
     check_yapf
-    check_libtool
+    create_handbook
+    update_gana
+    if [ "$@" = "meson" ]; then
+      echo "Skipping autoreconf"
+    else
+      check_libtool
+    fi
+    pogen
     install_hooks
 }
 
