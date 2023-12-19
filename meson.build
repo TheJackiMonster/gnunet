@@ -445,7 +445,7 @@ configuration_inc = include_directories('.')
 
 pkg = import('pkgconfig')
 
-subdir('bin')
+subdir('scripts')
 subdir('src')
 subdir('doc')
 subdir('contrib')
