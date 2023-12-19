@@ -7,8 +7,8 @@ install_data([
               ],
               install_dir: get_option('datadir')/'gnunet')
 
-install_data('xdg-scheme-handler'/'gnunet-uri.desktop',
-             install_dir: get_option('datadir')/'applications')
+#install_data('xdg-scheme-handler'/'gnunet-uri.desktop',
+#             install_dir: get_option('datadir')/'applications')
 
 binfiles = [
   'dosubst.awk',
