@@ -1212,7 +1212,6 @@ AC_DEFINE_UNQUOTED([VCS_VERSION], [$vcs_version],
 
 AC_CONFIG_FILES([
 Makefile
-bin/Makefile
 contrib/Makefile
 data/Makefile
 data/hellos/Makefile
