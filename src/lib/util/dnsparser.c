@@ -552,8 +552,8 @@ GNUNET_DNSPARSER_parse_uri (const char *udp_payload,
   uri = GNUNET_new (struct GNUNET_DNSPARSER_UriRecord);
   uri->priority = ntohs (uri_bin.prio);
   uri->weight = ntohs (uri_bin.weight);
-  int len =  GNUNET_asprintf (&(uri->target), "%.*s", udp_payload_length
-                              - sizeof(struct GNUNET_TUN_DnsUriRecord),
+  int max_len = udp_payload_length - sizeof(struct GNUNET_TUN_DnsUriRecord);
+  int len =  GNUNET_asprintf (&(uri->target), "%.*s", max_len,
                               &udp_payload[*off]);
   (*off) += len;
   if (NULL == uri->target)
@@ -1252,7 +1252,6 @@ GNUNET_DNSPARSER_builder_add_uri (char *dst,
                                   const struct GNUNET_DNSPARSER_UriRecord *uri)
 {
   struct GNUNET_TUN_DnsUriRecord sd;
-  int ret;
 
   if (*off + sizeof(struct GNUNET_TUN_DnsUriRecord) > dst_len)
     return GNUNET_NO;

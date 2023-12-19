@@ -337,7 +337,6 @@ gns_string_to_value (void *cls,
       size_t rest;
       char *prefix;
       char *underscore_prefix;
-      unsigned int protocol;
       unsigned int record_type;
       void *bval;
       size_t bval_size;
