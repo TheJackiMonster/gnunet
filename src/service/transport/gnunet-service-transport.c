@@ -8742,12 +8742,21 @@ start_address_validation (const struct GNUNET_PeerIdentity *pid,
 }
 
 
+static struct Queue *
+find_queue (const struct GNUNET_PeerIdentity *pid, const char *address);
+
+
+static void
+suggest_to_connect (const struct GNUNET_PeerIdentity *pid, const char *address);
+
+
 static void
 hello_for_incoming_cb (void *cls,
                        const struct GNUNET_PeerIdentity *pid,
                        const char *uri)
 {
   (void) cls;
+  struct Queue *q;
   int pfx_len;
   const char *eou;
   char *address;
@@ -8765,8 +8774,13 @@ hello_for_incoming_cb (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "helo for client %s\n",
               address);
-
-  start_address_validation (pid, address);
+  q = find_queue (pid, address);
+  if (NULL == q)
+  {
+    suggest_to_connect (pid, address);
+  }
+  else
+    start_address_validation (pid, address);
   GNUNET_free (address);
 }
 
@@ -11222,11 +11236,17 @@ handle_add_queue_message (void *cls,
   queue->cs = (enum GNUNET_TRANSPORT_ConnectionStatus) ntohl (aqm->cs);
   queue->idle = GNUNET_YES;
   /* check if valdiations are waiting for the queue */
-  (void)
-  GNUNET_CONTAINER_multipeermap_get_multiple (validation_map,
-                                              &aqm->receiver,
-                                              &check_validation_request_pending,
-                                              queue);
+  if (GNUNET_YES == GNUNET_CONTAINER_multipeermap_contains (validation_map,
+                                          &aqm->receiver))
+  {
+    if (GNUNET_SYSERR != GNUNET_CONTAINER_multipeermap_get_multiple (validation_map,
+                                                  &aqm->receiver,
+                                                  &check_validation_request_pending,
+                                                                     queue))
+      start_address_validation (&aqm->receiver, queue->address);
+  }
+  else
+    start_address_validation (&aqm->receiver, queue->address);
   /* look for traffic for this queue */
   //TODO Check whether this makes any sense at all.
   /*schedule_transmit_on_queue (GNUNET_TIME_UNIT_ZERO,
@@ -11391,6 +11411,7 @@ hello_for_client_cb (void *cls,
                      const char *uri)
 {
   (void) cls;
+  struct Queue *q;
   int pfx_len;
   const char *eou;
   char *address;
@@ -11409,7 +11430,13 @@ hello_for_client_cb (void *cls,
               "hello for client %s\n",
               address);
 
-  start_address_validation (pid, address);
+  q = find_queue (pid, address);
+  if (NULL == q)
+  {
+    suggest_to_connect (pid, address);
+  }
+  else
+    start_address_validation (pid, address);
   GNUNET_free (address);
 }
 
@@ -11531,8 +11558,15 @@ handle_request_hello_validation (void *cls,
                                  const struct RequestHelloValidationMessage *m)
 {
   struct TransportClient *tc = cls;
+  struct Queue *q;
 
-  start_address_validation (&m->peer, (const char *) &m[1]);
+  q = find_queue (&m->peer, (const char *) &m[1]);
+  if (NULL == q)
+  {
+    suggest_to_connect (&m->peer, (const char *) &m[1]);
+  }
+  else
+    start_address_validation (&m->peer, (const char *) &m[1]);
   GNUNET_SERVICE_client_continue (tc->client);
 }
 
