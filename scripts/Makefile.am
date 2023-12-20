@@ -10,7 +10,14 @@ dist_pkgdata_DATA = \
   testing-ng/block.sh
 
 EXTRA_DIST = \
-  get_version.sh
+  get_version.sh \
+	dosubst.awk \
+	gana_update.sh \
+	grephdr.sh \
+	grepsrc.sh \
+	pogen.sh \
+	rename.sh \
+	sphinx_update.sh
 
 install-data-hook:
 	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_core.sh'

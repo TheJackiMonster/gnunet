@@ -72,11 +72,11 @@ CLEANFILES = \
 SUFFIXES = .py.in .py
 
 .py.in.py:
-	$(AWK) -v py="$(PYTHON)" -f $(top_srcdir)/bin/dosubst.awk < $< > $@
+	$(AWK) -v py="$(PYTHON)" -f $(top_srcdir)/scripts/dosubst.awk < $< > $@
 	chmod +x $@
 
 if HAVE_AWK
 check-texinfo.awk: check-texinfo.awk.in Makefile
-	$(AWK) -v awkay="$(AWK_BINARY)" -f $(top_srcdir)/bin/dosubst.awk < $(srcdir)/check-texinfo.awk.in > check-texinfo.awk
+	$(AWK) -v awkay="$(AWK_BINARY)" -f $(top_srcdir)/scripts/dosubst.awk < $(srcdir)/check-texinfo.awk.in > check-texinfo.awk
 	chmod +x check-texinfo.awk
 endif

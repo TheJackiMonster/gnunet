@@ -4,11 +4,11 @@ AM_CPPFLAGS = -I$(top_srcdir)/src/include -I$(top_builddir)/src/include
 SUFFIXES = .in
 
 gnunet-logread: gnunet-logread.in Makefile
-	$(AWK) -v prl="$(PERL)" -v pfx="$(prefix)" -f $(top_srcdir)/bin/dosubst.awk < $(srcdir)/gnunet-logread.in > gnunet-logread
+	$(AWK) -v prl="$(PERL)" -v pfx="$(prefix)" -f $(top_srcdir)/scripts/dosubst.awk < $(srcdir)/gnunet-logread.in > gnunet-logread
 	chmod +x gnunet-logread
 
 gnunet-logread-ipc-sdedit: gnunet-logread-ipc-sdedit.in Makefile
-	$(AWK) -v prl="$(PERL)" -f $(top_srcdir)/bin/dosubst.awk < $(srcdir)/gnunet-logread-ipc-sdedit.in > gnunet-logread-ipc-sdedit
+	$(AWK) -v prl="$(PERL)" -f $(top_srcdir)/scripts/dosubst.awk < $(srcdir)/gnunet-logread-ipc-sdedit.in > gnunet-logread-ipc-sdedit
 	chmod +x gnunet-logread-ipc-sdedit
 
 CLEANFILES=	\

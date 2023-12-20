@@ -7,6 +7,22 @@ install_data([
               ],
               install_dir: get_option('datadir')/'gnunet')
 
-install_data('xdg-scheme-handler'/'gnunet-uri.desktop',
-             install_dir: get_option('datadir')/'applications')
+#install_data('xdg-scheme-handler'/'gnunet-uri.desktop',
+#             install_dir: get_option('datadir')/'applications')
+
+binfiles = [
+  'dosubst.awk',
+  'grephdr.sh',
+  'grepsrc.sh',
+  'pogen.sh',
+  'rename.sh',
+  'gana_update.sh',
+  'sphinx_update.sh',
+  ]
+
+foreach f : binfiles
+  configure_file(input : f,
+    output : f,
+    copy: true)
+endforeach
 

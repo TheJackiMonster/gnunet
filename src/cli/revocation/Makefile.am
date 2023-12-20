@@ -46,7 +46,7 @@ if ENABLE_TEST_RUN
 endif
 
 test_local_revocation.py: test_local_revocation.py.in Makefile
-	$(AWK) -v bdir="$(bindir)" -v py="$(PYTHON)" -v awkay="$(AWK_BINARY)" -v pfx="$(prefix)" -v prl="$(PERL)" -v sysconfdirectory="$(sysconfdir)" -v pkgdatadirectory="$(pkgdatadir)" -f $(top_srcdir)/bin/dosubst.awk < $(srcdir)/test_local_revocation.py.in > test_local_revocation.py
+	$(AWK) -v bdir="$(bindir)" -v py="$(PYTHON)" -v awkay="$(AWK_BINARY)" -v pfx="$(prefix)" -v prl="$(PERL)" -v sysconfdirectory="$(sysconfdir)" -v pkgdatadirectory="$(pkgdatadir)" -f $(top_srcdir)/scripts/dosubst.awk < $(srcdir)/test_local_revocation.py.in > test_local_revocation.py
 	chmod +x test_local_revocation.py
 
 EXTRA_DIST = test_local_revocation.py.in

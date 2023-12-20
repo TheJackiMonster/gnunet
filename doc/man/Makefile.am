@@ -1,7 +1,7 @@
 # This Makefile.am is in the public domain
 
 gnunet.conf.5: gnunet.conf.5.in Makefile
-	$(AWK) -v bdir="$(bindir)" -v py="$(PYTHON)" -v awkay="$(AWK_BINARY)" -v pfx="$(prefix)" -v prl="$(PERL)" -v sysconfdirectory="$(sysconfdir)" -v pkgdatadirectory="$(pkgdatadir)" -f $(top_srcdir)/bin/dosubst.awk < $(srcdir)/gnunet.conf.5.in > $(srcdir)/gnunet.conf.5
+	$(AWK) -v bdir="$(bindir)" -v py="$(PYTHON)" -v awkay="$(AWK_BINARY)" -v pfx="$(prefix)" -v prl="$(PERL)" -v sysconfdirectory="$(sysconfdir)" -v pkgdatadirectory="$(pkgdatadir)" -f $(top_srcdir)/scripts/dosubst.awk < $(srcdir)/gnunet.conf.5.in > $(srcdir)/gnunet.conf.5
 
 CLEANFILES = gnunet.conf.5
 
@@ -14,7 +14,7 @@ if HAVE_MANDOC
 # I want and that the alternatives are depressing and
 # nonfunctional.
 produce_html.sh: produce_html.sh.in Makefile
-	$(AWK) -v bdir="$(bindir)" -v py="$(PYTHON)" -v awkay="$(AWK_BINARY)" -v pfx="$(prefix)" -v prl="$(PERL)" -v sysconfdirectory="$(sysconfdir)" -v pkgdatadirectory="$(pkgdatadir)" -f $(top_srcdir)/bin/dosubst.awk < $(srcdir)/produce_html.sh.in > produce_html.sh
+	$(AWK) -v bdir="$(bindir)" -v py="$(PYTHON)" -v awkay="$(AWK_BINARY)" -v pfx="$(prefix)" -v prl="$(PERL)" -v sysconfdirectory="$(sysconfdir)" -v pkgdatadirectory="$(pkgdatadir)" -f $(top_srcdir)/scripts/dosubst.awk < $(srcdir)/produce_html.sh.in > produce_html.sh
 	@chmod +x produce_html.sh
 
 CLEANFILES += produce_html.sh

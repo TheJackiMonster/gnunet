@@ -69,10 +69,6 @@ namestoreapitestnames = [
   'test_namestore_api_edit_records'
   ]
 
-if get_option('experimental')
-  namestoreapitestnames +='test_namestore_api_edit_records'
-endif
-
 foreach tn : namestoreapitestnames
   t = executable (tn + '_sqlite',
             [tn + '.c'],
