@@ -37,6 +37,9 @@ testgns = [
   'test_gns_soa_lookup',
   'test_gns_txt_lookup',
   'test_gns_zkey_lookup',
+  'test_gns_sbox_simple',
+  'test_gns_sbox',
+  'test_gns_box_sbox',
   ]
 
 testconfigs = [
