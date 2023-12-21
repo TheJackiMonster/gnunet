@@ -2,9 +2,12 @@ configure_file(input : 'gnunet-gns-proxy-setup-ca.in',
   output : 'gnunet-gns-proxy-setup-ca',
   configuration : cdata,
   install: true,
+  install_mode: 'rwxr-xr-x',
   install_dir: get_option('bindir'))
 
 install_data('gnunet-gns-proxy-ca.template',
+  install_dir: get_option('datadir')/'gnunet')
+install_data('openssl.cnf',
   install_dir: get_option('datadir')/'gnunet')
 
 executable ('gnunet-gns',
