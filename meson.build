@@ -322,19 +322,26 @@ if ogg_dep.found()
   add_project_arguments('-DHAVE_OGG', language : 'c')
 endif
 
-gst_dep = dependency('libgst', required : false)
-if not gst_dep.found()
-  gst_dep = cc.find_library('gstreamer', required : false)
-endif
-if gst_dep.found()
-  add_project_arguments('-DHAVE_GST', language : 'c')
-endif
-
 conversation_backend = 'none'
 if pulse_dep.found() and opus_dep.found() and ogg_dep.found()
   conversation_backend = 'pulse'
-elif gst_dep.found()
-  conversation_backend = 'gst'
+else
+  gst_dep = dependency('gstreamer-1.0', required : false)
+  if not gst_dep.found()
+    gst_dep = cc.find_library('gstreamer-1.0', required : false)
+  endif
+  gst_app_dep = dependency('gstreamer-app-1.0', required : false)
+  if not gst_app_dep.found()
+    gst_app_dep = cc.find_library('gstreamer-app-1.0', required : false)
+  endif
+  gst_audio_dep = dependency('gstreamer-audio-1.0', required : false)
+  if not gst_audio_dep.found()
+    gst_audio_dep = cc.find_library('gstreamer-audio-1.0', required : false)
+  endif
+  if gst_dep.found() and gst_app_dep.found() and gst_audio_dep.found()
+    add_project_arguments('-DHAVE_GST', language : 'c')
+    conversation_backend = 'gst'
+  endif
 endif
 ## END conversation
 
@@ -392,10 +399,10 @@ endif
 # GNUTLS DANE
 if cc.check_header('gnutls/dane.h')
   if cc.has_function('dane_verify_crt_raw',
-                     prefix: '#include <gnutls/dane.h>',
-                     dependencies: gnutls_dep)
-    add_project_arguments('-DHAVE_GNUTLS_DANE', language : 'c')
-  endif
+    prefix: '#include <gnutls/dane.h>',
+    dependencies: gnutls_dep)
+  add_project_arguments('-DHAVE_GNUTLS_DANE', language : 'c')
+endif
 endif
 curl_ssl_check ='''#include <curl/curl.h>
   int main(int argc, char **argv) {
@@ -404,7 +411,7 @@ curl_ssl_check ='''#include <curl/curl.h>
   '''
 
 result = cc.run(curl_ssl_check, name : 'cURL gnutls check',
-                dependencies: curl_dep)
+  dependencies: curl_dep)
 cdata.set('curl_gnutls', 0)
 if result.returncode() == 0
   cdata.set('curl_gnutls', 1)
@@ -459,27 +466,27 @@ add_test_setup('default', env: ['GNUNET_PREFIX='+gnunet_prefix], exclude_suites:
 add_test_setup('full',  env: ['GNUNET_PREFIX='+gnunet_prefix], is_default: false)
 
 summary({'host': host_machine.system(),
-         'prefix': get_option('prefix'),
-         'compiler': cc.get_id(),
-         'libdir': get_option('libdir'),
-         'datadir': get_option('datadir'),
-         'default interface': cdata.get('GNUNET_DEFAULT_INTERFACE'),
-         'PostgreSQL': pq_dep.found(),
-         'curl w/ gnutls': (cdata.get('curl_gnutls') == 1),
-         'ifconfig': ifconfig_bin.found(),
-         'iptables': iptables_bin.found()
-        }, section: 'Detected system')
+  'prefix': get_option('prefix'),
+  'compiler': cc.get_id(),
+  'libdir': get_option('libdir'),
+  'datadir': get_option('datadir'),
+  'default interface': cdata.get('GNUNET_DEFAULT_INTERFACE'),
+  'PostgreSQL': pq_dep.found(),
+  'curl w/ gnutls': (cdata.get('curl_gnutls') == 1),
+  'ifconfig': ifconfig_bin.found(),
+  'iptables': iptables_bin.found()
+  }, section: 'Detected system')
 
 if not gnunet_user
   message('Please make sure NOW to create a user and group \'gnunet\' and additionally a group \'gnunetdns\'. Make sure that \'/var/lib/gnunet\' is owned (and writable) by user \'gnunet\'')
   message('Each user of GNUnet should be added to the \'gnunet\' group')
   if adduser_bin.found() and not gnunet_user
     message('''Create the gnunet user and add users to the gnunetdns group, run:
-    # addgroup gnunetdns
-    # adduser --system --disabled-login --home /var/lib/gnunet gnunet''')
-    message('''To add users to the gnunet group, run:
-      # adduser USERNAME gnunet
-      for each of your users, replacing \'USERNAME\' with the respective login name.
-      Users may have to login again for the changes to take effect.''')
-  endif
-endif
+      # addgroup gnunetdns
+      # adduser --system --disabled-login --home /var/lib/gnunet gnunet''')
+      message('''To add users to the gnunet group, run:
+        # adduser USERNAME gnunet
+        for each of your users, replacing \'USERNAME\' with the respective login name.
+        Users may have to login again for the changes to take effect.''')
+        endif
+        endif
