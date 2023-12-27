@@ -82,6 +82,16 @@ executable ('gnunet-conversation',
             install: true,
             install_dir: get_option('bindir'))
 
+executable ('gnunet-conversation-test',
+            'gnunet-conversation-test.c',
+            dependencies: [libgnunetconversation_dep,
+                           libgnunetspeaker_dep,
+                           libgnunetmicrophone_dep,
+                           libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('bindir'))
+
 executable ('gnunet-service-conversation',
             gnunetserviceconversation_src,
             dependencies: [libgnunetconversation_dep,
