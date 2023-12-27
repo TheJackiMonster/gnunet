@@ -84,7 +84,6 @@ gnunetinclude_HEADERS = \
   gnunet_op_lib.h \
   gnunet_os_lib.h \
   gnunet_peer_lib.h \
-  gnunet_peerinfo_service.h \
   gnunet_peerstore_plugin.h \
   gnunet_peerstore_service.h \
   gnunet_plugin_lib.h \

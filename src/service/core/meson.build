@@ -63,8 +63,7 @@ shared_module('gnunet_test_core_plugin_cmd_just_run',
                        libgnunetarm_dep
                        ],
         include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir')/'gnunet')
+        install: false)
 
 executable ('gnunet-service-core',
             gnunetservicecore_src,

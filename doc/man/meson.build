@@ -8,7 +8,6 @@ install_man(
   [
   five,
   'gnunet-arm.1',
-  'gnunet-ats.1',
   'gnunet-auto-share.1',
   'gnunet-base32.1',
   'gnunet-bcd.1',
@@ -42,7 +41,6 @@ install_man(
   'gnunet-nat-auto.1',
   'gnunet-nat-server.1',
   'gnunet-nse.1',
-  'gnunet-peerinfo.1',
   'gnunet-publish.1',
   'gnunet-qr.1',
   'gnunet-reclaim.1',
@@ -52,7 +50,6 @@ install_man(
   'gnunet-scrypt.1',
   'gnunet-search.1',
   'gnunet-statistics.1',
-  'gnunet-testbed-profiler.1',
   'gnunet-testing.1',
   'gnunet-testing-run-service.1',
   'gnunet-timeout.1',
