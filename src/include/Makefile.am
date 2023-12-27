@@ -110,8 +110,6 @@ gnunetinclude_HEADERS = \
   gnunet_sq_lib.h \
   gnunet_statistics_service.h \
   gnunet_strings_lib.h \
-  gnunet_testbed_service.h \
-  gnunet_testbed_logger_service.h \
   gnunet_testing_barrier.h \
   gnunet_testing_lib.h \
   gnunet_testing_plugin.h \
