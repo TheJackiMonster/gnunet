@@ -13,3 +13,6 @@ else
   cp -r ${HANDBOOK_BOOTSTRAP}/html ${MESON_DIST_ROOT}/handbook/ || exit 1
   cp -r ${HANDBOOK_BOOTSTRAP}/texinfo ${MESON_DIST_ROOT}/handbook/ || exit 1
 fi
+
+# Remove contrib handbook build before dist
+rm -rf ${HANDBOOK_BOOTSTRAP}
