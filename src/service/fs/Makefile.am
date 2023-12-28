@@ -118,7 +118,6 @@ check_PROGRAMS = \
  test_fs_search_probes \
  test_fs_search_persistence \
  test_fs_start_stop \
- test_fs_test_lib \
  test_fs_unindex \
  test_fs_unindex_persistence \
  test_fs_uri \
@@ -298,13 +297,6 @@ test_fs_uri_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 # TNG
-#test_fs_test_lib_SOURCES = \
-# test_fs_test_lib.c
-#test_fs_test_lib_LDADD = \
-#  libgnunetfstest.a \
-#  $(top_builddir)/src/testbed/libgnunettestbed.la \
-#  libgnunetfs.la  \
-#  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 #test_gnunet_service_fs_p2p_SOURCES = \
 # test_gnunet_service_fs_p2p.c
@@ -367,7 +359,6 @@ test_fs_uri_LDADD = \
 #  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 EXTRA_DIST = \
-  fs_test_lib_data.conf \
   perf_gnunet_service_fs_p2p.conf \
   test_fs_data.conf \
   test_fs_defaults.conf \

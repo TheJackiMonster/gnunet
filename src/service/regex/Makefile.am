@@ -52,21 +52,6 @@ libgnunetregex_la_LDFLAGS = \
    -version-info 3:1:0
 
 
-# FIXME we phased out mysql. If we want to keep, needs rewrite
-#if HAVE_MYSQL
-#noinst_mysql_progs = \
-#  gnunet-regex-simulation-profiler
-
-#gnunet_regex_simulation_profiler_SOURCES = \
-#  $(REGEX_INTERNAL) gnunet-regex-simulation-profiler.c
-#gnunet_regex_simulation_profiler_LDADD = \
-#  libgnunetregexblock.la \
-#  $(top_builddir)/src/lib/util/libgnunetutil.la \
-#  $(top_builddir)/src/service/dht/libgnunetdht.la \
-#  $(top_builddir)/src/lib/block/libgnunetblock.la \
-#  $(top_builddir)/src/service/statistics/libgnunetstatistics.la
-#endif
-
 noinst_PROGRAMS = $(noinst_mysql_progs) \
   perf-regex
 
@@ -151,5 +136,4 @@ test_regex_graph_api_LDADD = -lm \
 
 
 EXTRA_DIST = \
-  regex_simulation_profiler_test.conf \
   test_regex_api_data.conf
