@@ -9,10 +9,12 @@ then
   echo "Handbook not found, did you run bootstrap? Trying to compile now..."
   cd "${MESON_DIST_ROOT}"
   . ./scripts/sphinx_update.sh || exit 1
+  rm -rf ${MESON_DIST_ROOT}/contrib/handbook/_build
 else
   cp -r ${HANDBOOK_BOOTSTRAP}/html ${MESON_DIST_ROOT}/handbook/ || exit 1
   cp -r ${HANDBOOK_BOOTSTRAP}/texinfo ${MESON_DIST_ROOT}/handbook/ || exit 1
 fi
 
-# Remove contrib handbook build before dist
-rm -rf ${HANDBOOK_BOOTSTRAP}
+# Do not dist old handbook
+rm -rf ${MESON_DIST_ROOT}/doc/old
+
