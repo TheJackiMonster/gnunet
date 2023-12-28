@@ -15,24 +15,13 @@ if USE_COVERAGE
 endif
 
 noinst_PROGRAMS = \
- gnunet-set-ibf-profiler \
- gnunet-set-profiler
+ gnunet-set-ibf-profiler
 
 libexec_PROGRAMS = \
  gnunet-service-set
 
 lib_LTLIBRARIES = \
   libgnunetset.la
-
-gnunet_set_profiler_SOURCES = \
- gnunet-set-profiler.c
-gnunet_set_profiler_LDADD = \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
-  libgnunetset.la \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
-  $(GN_LIBINTL)
-
 
 gnunet_set_ibf_profiler_SOURCES = \
  gnunet-set-ibf-profiler.c \
