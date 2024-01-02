@@ -24,6 +24,7 @@
  */
 
 #include "messenger_api_message.h"
+#include "gnunet_messenger_service.h"
 
 struct GNUNET_MESSENGER_MessageSignature
 {
@@ -243,6 +244,9 @@ get_message_body_kind_size (enum GNUNET_MESSENGER_MessageKind kind)
   case GNUNET_MESSENGER_KIND_CONNECTION:
     length += member_size (struct GNUNET_MESSENGER_Message, body.connection.amount);
     length += member_size (struct GNUNET_MESSENGER_Message, body.connection.flags);
+    break;
+  case GNUNET_MESSENGER_KIND_TICKET:
+    length += member_size (struct GNUNET_MESSENGER_Message, body.ticket.identifier);
     break;
   default:
     break;
@@ -497,6 +501,9 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
     encode_step (buffer, offset, &value0);
     encode_step (buffer, offset, &value1);
     break;
+  case GNUNET_MESSENGER_KIND_TICKET:
+    encode_step (buffer, offset, &(body->ticket.identifier));
+    break;
   default:
     break;
   }
@@ -685,6 +692,9 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
 
     body->connection.amount = GNUNET_be32toh (value0);
     body->connection.flags = GNUNET_be32toh (value1);
+    break;
+  case GNUNET_MESSENGER_KIND_TICKET:
+    decode_step (buffer, offset, &(body->ticket.identifier));
     break;
   default:
     *kind = GNUNET_MESSENGER_KIND_UNKNOWN;
@@ -1119,6 +1129,8 @@ is_service_message (const struct GNUNET_MESSENGER_Message *message)
     return GNUNET_YES; // Deletion should not apply individually! (inefficieny)
   case GNUNET_MESSENGER_KIND_CONNECTION:
     return GNUNET_YES; // Reserved for connection handling only!
+  case GNUNET_MESSENGER_KIND_TICKET:
+    return GNUNET_NO;
   default:
     return GNUNET_SYSERR;
   }
@@ -1165,6 +1177,8 @@ filter_message_sending (const struct GNUNET_MESSENGER_Message *message)
     return GNUNET_YES;
   case GNUNET_MESSENGER_KIND_CONNECTION:
     return GNUNET_SYSERR; // Reserved for connection handling only!
+  case GNUNET_MESSENGER_KIND_TICKET:
+    return GNUNET_YES;
   default:
     return GNUNET_SYSERR;
   }

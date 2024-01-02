@@ -27,6 +27,7 @@
 #define GNUNET_SERVICE_MESSENGER_MESSAGE_KIND_H
 
 #include "gnunet_messenger_service.h"
+#include "gnunet_reclaim_lib.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_identity_service.h"
 #include "gnunet_time_lib.h"
@@ -116,7 +117,8 @@ struct GNUNET_MESSENGER_Message*
 create_message_text (const char *text);
 
 /**
- * Creates and allocates a new delete message containing the <i>hash</i> of a message to delete after a specific <i>delay</i>.
+ * Creates and allocates a new delete message containing the <i>hash</i> of a message to delete 
+ * after a specific <i>delay</i>.
  * (all values are stored as copy)
  *
  * @param[in] hash Hash of message
@@ -126,5 +128,16 @@ create_message_text (const char *text);
 struct GNUNET_MESSENGER_Message*
 create_message_delete (const struct GNUNET_HashCode *hash,
                        const struct GNUNET_TIME_Relative delay);
+
+/**
+ * Creates and allocates a new ticket message containing the <i>identifier</i> of a ticket to 
+ * exchange it with a given audience.
+ * (all values are stored as copy)
+ *
+ * @param[in] identifier Identifier of ticket
+ * @return New message
+ */
+struct GNUNET_MESSENGER_Message*
+create_message_ticket (const struct GNUNET_RECLAIM_Identifier *identifier);
 
 #endif //GNUNET_SERVICE_MESSENGER_MESSAGE_KIND_H

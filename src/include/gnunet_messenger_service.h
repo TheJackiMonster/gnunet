@@ -42,6 +42,7 @@ extern "C" {
 #include "gnunet_common.h"
 #include "gnunet_configuration_lib.h"
 #include "gnunet_identity_service.h"
+#include "gnunet_reclaim_lib.h"
 #include "gnunet_scheduler_lib.h"
 #include "gnunet_time_lib.h"
 #include "gnunet_util_lib.h"
@@ -199,6 +200,11 @@ enum GNUNET_MESSENGER_MessageKind
    * The connection kind. The message contains a #GNUNET_MESSENGER_MessageConnection body.
    */
   GNUNET_MESSENGER_KIND_CONNECTION = 16,
+
+  /**
+   * The ticket kind. The message contains a #GNUNET_MESSENGER_MessageTicket body.
+   */
+  GNUNET_MESSENGER_KIND_TICKET = 17,
 
   /**
    * The unknown kind. The message contains an unknown body.
@@ -516,6 +522,20 @@ struct GNUNET_MESSENGER_MessageConnection
 };
 
 /**
+ * A ticket message body
+ * This allows to exchange ticket identifiers with an audience.
+ *
+ * Message-body-size: 32 bytes
+ */
+struct GNUNET_MESSENGER_MessageTicket
+{
+  /**
+   * The identifier of a RECLAIM ticket.
+   */
+  struct GNUNET_RECLAIM_Identifier identifier;
+};
+
+/**
  * The unified body of a #GNUNET_MESSENGER_Message.
  */
 struct GNUNET_MESSENGER_MessageBody
@@ -538,6 +558,7 @@ struct GNUNET_MESSENGER_MessageBody
     struct GNUNET_MESSENGER_MessagePrivate privacy;
     struct GNUNET_MESSENGER_MessageDelete deletion;
     struct GNUNET_MESSENGER_MessageConnection connection;
+    struct GNUNET_MESSENGER_MessageTicket ticket;
   };
 };
 
