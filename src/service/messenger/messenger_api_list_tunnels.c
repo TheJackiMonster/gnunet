@@ -147,7 +147,7 @@ verify_list_tunnels_flag_token (const struct GNUNET_MESSENGER_ListTunnels *tunne
 
   for (element = tunnels->head; element; element = element->next)
   {
-    if (element->connection.flags & flag != flag)
+    if ((element->connection.flags & flag) != flag)
       continue;
 
     GNUNET_PEER_resolve (element->peer, &pid);
