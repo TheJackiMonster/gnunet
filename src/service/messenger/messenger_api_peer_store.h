@@ -26,7 +26,6 @@
 #ifndef GNUNET_MESSENGER_API_PEER_STORE_H
 #define GNUNET_MESSENGER_API_PEER_STORE_H
 
-#include "platform.h"
 #include "gnunet_util_lib.h"
 
 struct GNUNET_MESSENGER_Message;

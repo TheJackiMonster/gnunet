@@ -26,7 +26,6 @@
 
 #include "messenger-testing.h"
 
-#include "platform.h"
 #include "gnunet_util_lib.h"
 
 struct GNUNET_MESSENGER_TestStage

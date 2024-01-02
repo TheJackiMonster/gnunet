@@ -26,7 +26,6 @@
 #ifndef GNUNET_SERVICE_MESSENGER_OPERATION_STORE_H
 #define GNUNET_SERVICE_MESSENGER_OPERATION_STORE_H
 
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_time_lib.h"
 

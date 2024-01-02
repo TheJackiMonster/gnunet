@@ -23,7 +23,6 @@
  * @brief GNUnet MESSENGER service
  */
 
-#include "platform.h"
 #include "gnunet-service-messenger_basement.h"
 
 size_t

@@ -23,7 +23,6 @@
  * @brief messenger api: client and service implementation of GNUnet MESSENGER service
  */
 
-#include "platform.h"
 #include "messenger_api_list_tunnels.h"
 
 void

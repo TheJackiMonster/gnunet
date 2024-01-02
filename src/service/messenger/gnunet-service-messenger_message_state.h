@@ -26,7 +26,6 @@
 #ifndef GNUNET_SERVICE_MESSENGER_MESSAGE_STATE_H
 #define GNUNET_SERVICE_MESSENGER_MESSAGE_STATE_H
 
-#include "platform.h"
 #include "gnunet_util_lib.h"
 
 #include "messenger_api_message.h"

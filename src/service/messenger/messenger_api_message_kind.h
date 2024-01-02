@@ -26,7 +26,7 @@
 #ifndef GNUNET_SERVICE_MESSENGER_MESSAGE_KIND_H
 #define GNUNET_SERVICE_MESSENGER_MESSAGE_KIND_H
 
-#include "platform.h"
+#include "gnunet_messenger_service.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_identity_service.h"
 #include "gnunet_time_lib.h"

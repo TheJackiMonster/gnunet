@@ -23,7 +23,7 @@
  * @brief testing lib for messenger service
  * @author Tobias Frisch
  */
-#include "platform.h"
+
 #include "gnunet_testing_ng_lib.h"
 #include "gnunet_testing_netjail_lib.h"
 #include "messenger-testing-cmds.h"

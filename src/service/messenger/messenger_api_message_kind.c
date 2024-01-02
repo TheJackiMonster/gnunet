@@ -25,7 +25,6 @@
 
 #include "messenger_api_message_kind.h"
 
-#include "platform.h"
 #include "messenger_api_util.h"
 
 struct GNUNET_MESSENGER_Message*

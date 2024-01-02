@@ -26,7 +26,6 @@
 #ifndef GNUNET_SERVICE_MESSENGER_MESSAGE_SEND_H
 #define GNUNET_SERVICE_MESSENGER_MESSAGE_SEND_H
 
-#include "platform.h"
 #include "gnunet_util_lib.h"
 
 #include "gnunet-service-messenger_tunnel.h"
