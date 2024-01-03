@@ -23,11 +23,14 @@
  * @brief messenger api: client implementation of GNUnet MESSENGER service
  */
 
+#include "gnunet_common.h"
 #include "gnunet_identity_service.h"
 #include "gnunet_messenger_service.h"
 
 #include "gnunet-service-messenger.h"
 
+#include "gnunet_reclaim_service.h"
+#include "messenger_api_contact.h"
 #include "messenger_api_handle.h"
 #include "messenger_api_message.h"
 #include "messenger_api_message_kind.h"
@@ -1041,28 +1044,11 @@ GNUNET_MESSENGER_contact_get_id (const struct
 }
 
 
-void
-GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room,
+static void
+send_message_to_room_with_key (struct GNUNET_MESSENGER_Room *room,
                                struct GNUNET_MESSENGER_Message *message,
-                               const struct GNUNET_MESSENGER_Contact *contact)
+                               const struct GNUNET_CRYPTO_PublicKey *public_key)
 {
-  if ((! room) || (! message))
-    return;
-
-  switch (filter_message_sending (message))
-  {
-  case GNUNET_SYSERR:
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Sending message aborted: This kind of message is reserved for the service!\n");
-    return;
-  case GNUNET_NO:
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Sending message aborted: This kind of message could cause issues!\n");
-    return;
-  default:
-    break;
-  }
-
   char *original_name;
   char *changed_name = NULL;
 
@@ -1084,19 +1070,8 @@ GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room,
   }
 
 skip_naming:
-  if (contact)
+  if (public_key)
   {
-    const struct GNUNET_CRYPTO_PublicKey *public_key = get_non_anonymous_key (
-      get_contact_key (contact)
-      );
-
-    if (! public_key)
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                  "Sending message aborted: Invalid key!\n");
-      goto reset_naming;
-    }
-
     struct GNUNET_MESSENGER_Message *original = message;
     message = copy_message (original);
 
@@ -1122,6 +1097,50 @@ reset_naming:
     return;
 
   message->body.name.name = original_name;
+}
+
+
+void
+GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room,
+                               struct GNUNET_MESSENGER_Message *message,
+                               const struct GNUNET_MESSENGER_Contact *contact)
+{
+  if ((! room) || (! message))
+    return;
+
+  switch (filter_message_sending (message))
+  {
+  case GNUNET_SYSERR:
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Sending message aborted: This kind of message is reserved for the service!\n");
+    return;
+  case GNUNET_NO:
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Sending message aborted: This kind of message could cause issues!\n");
+    return;
+  default:
+    break;
+  }
+
+  const struct GNUNET_CRYPTO_PublicKey *public_key;
+
+  if (contact)
+  {
+    public_key = get_non_anonymous_key (
+      get_contact_key (contact)
+      );
+
+    if (! public_key)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Sending message aborted: Invalid key!\n");
+      return;
+    }
+  }
+  else
+    public_key = NULL;
+
+  send_message_to_room_with_key (room, message, public_key);
 }
 
 
@@ -1159,4 +1178,80 @@ GNUNET_MESSENGER_iterate_members (struct GNUNET_MESSENGER_Room *room,
     return GNUNET_SYSERR;
 
   return iterate_room_members (room, callback, cls);
+}
+
+
+struct GNUNET_MESSENGER_CheckTicket
+{
+  const struct GNUNET_CRYPTO_PublicKey *audience;
+  enum GNUNET_GenericReturnValue result;
+};
+
+
+static enum GNUNET_GenericReturnValue
+check_ticket_audience (void *cls,
+                       struct GNUNET_MESSENGER_Room *room,
+                       const struct GNUNET_MESSENGER_Contact *contact)
+{
+  struct GNUNET_MESSENGER_CheckTicket *check = cls;
+
+  const struct GNUNET_CRYPTO_PublicKey *key;
+  key = get_contact_key(contact);
+
+  if (0 == GNUNET_memcmp(key, check->audience))
+  {
+    check->result = GNUNET_YES;
+    return GNUNET_NO;
+  }
+
+  return GNUNET_YES;
+}
+
+
+void
+GNUNET_MESSENGER_send_ticket (struct GNUNET_MESSENGER_Room *room,
+                              const struct GNUNET_RECLAIM_Ticket *ticket)
+{
+  if ((! room) || (! ticket))
+    return;
+
+  const struct GNUNET_CRYPTO_PublicKey *pubkey;
+  pubkey = get_handle_pubkey(room->handle);
+
+  if (0 != GNUNET_memcmp(pubkey, &(ticket->identity)))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Sending ticket aborted: Invalid identity!\n");
+    return;
+  }
+
+  struct GNUNET_MESSENGER_CheckTicket check;
+  check.audience = &(ticket->audience);
+  check.result = GNUNET_NO;
+
+  const int members = iterate_room_members (
+    room, 
+    check_ticket_audience, 
+    &check);
+  
+  if ((! members) || (GNUNET_YES != check.result))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Sending ticket aborted: Audience not found!\n");
+    return;
+  }
+
+  struct GNUNET_MESSENGER_Message *message = create_message_ticket(
+    &(ticket->rnd)
+  );
+
+  if (! message)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Sending ticket aborted: Message creation failed!\n");
+    return;
+  }
+
+  send_message_to_room_with_key (room, message, &(ticket->audience));
+  destroy_message (message);
 }

@@ -43,6 +43,7 @@ extern "C" {
 #include "gnunet_configuration_lib.h"
 #include "gnunet_identity_service.h"
 #include "gnunet_reclaim_lib.h"
+#include "gnunet_reclaim_service.h"
 #include "gnunet_scheduler_lib.h"
 #include "gnunet_time_lib.h"
 #include "gnunet_util_lib.h"
@@ -903,6 +904,22 @@ int
 GNUNET_MESSENGER_iterate_members (struct GNUNET_MESSENGER_Room *room,
                                   GNUNET_MESSENGER_MemberCallback callback,
                                   void *cls);
+
+/**
+ * Send a <i>ticket</i> into a <i>room</i>. The ticket will automatically be converted
+ * into a message to be sent only to its audience as a private message.
+ *
+ * A ticket can only be sent with this function if its issuer's public key is the one
+ * being used by the messenger. The audience's public key is not allowed to be the
+ * anonymous public key. The room needs to contain a member using the audience's public
+ * key.
+ *
+ * @param[in,out] room Room handle
+ * @param[in] ticket Ticket to send
+ */
+void
+GNUNET_MESSENGER_send_ticket (struct GNUNET_MESSENGER_Room *room,
+                              const struct GNUNET_RECLAIM_Ticket *ticket);
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {
