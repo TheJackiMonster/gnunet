@@ -1380,6 +1380,7 @@ pkgconfig/gnunetnamestore.pc
 pkgconfig/gnunetnat.pc
 pkgconfig/gnunetnse.pc
 pkgconfig/gnunetpq.pc
+pkgconfig/gnunetreclaim.pc
 pkgconfig/gnunetregex.pc
 pkgconfig/gnunetrevocation.pc
 pkgconfig/gnunetrps.pc
