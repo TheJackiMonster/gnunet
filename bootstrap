@@ -131,7 +131,7 @@ main()
     check_yapf
     create_handbook
     update_gana
-    if [ "$@" = "meson" ]; then
+    if [ "$1" = "meson" ]; then
       echo "Skipping autoreconf"
     else
       check_libtool
