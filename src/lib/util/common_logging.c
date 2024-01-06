@@ -348,7 +348,7 @@ GNUNET_b2s (const void *buf,
  * @param tm timestamp for which we should setup logging
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-static int
+static enum GNUNET_GenericReturnValue
 setup_log_file (const struct tm *tm)
 {
   static char last_fn[PATH_MAX + 1];
@@ -725,7 +725,7 @@ parse_all_definitions ()
  * @param logfile which file to write log messages to (can be NULL)
  * @return #GNUNET_OK on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_log_setup (const char *comp,
                   const char *loglevel,
                   const char *logfile)
@@ -737,7 +737,10 @@ GNUNET_log_setup (const char *comp,
   parse_all_definitions ();
 #endif
   GNUNET_free (component);
-  GNUNET_asprintf (&component, "%s-%d", comp, getpid ());
+  GNUNET_asprintf (&component,
+                   "%s-%d",
+                   comp,
+                   getpid ());
   GNUNET_free (component_nopid);
   component_nopid = GNUNET_strdup (comp);
 
