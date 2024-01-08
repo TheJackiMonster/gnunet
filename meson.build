@@ -321,27 +321,25 @@ endif
 if ogg_dep.found()
   add_project_arguments('-DHAVE_OGG', language : 'c')
 endif
+gst_dep = dependency('gstreamer-1.0', required : false)
+if not gst_dep.found()
+  gst_dep = cc.find_library('gstreamer-1.0', required : false)
+endif
+gst_app_dep = dependency('gstreamer-app-1.0', required : false)
+if not gst_app_dep.found()
+  gst_app_dep = cc.find_library('gstreamer-app-1.0', required : false)
+endif
+gst_audio_dep = dependency('gstreamer-audio-1.0', required : false)
+if not gst_audio_dep.found()
+  gst_audio_dep = cc.find_library('gstreamer-audio-1.0', required : false)
+endif
 
 conversation_backend = 'none'
 if pulse_dep.found() and opus_dep.found() and ogg_dep.found()
   conversation_backend = 'pulse'
-else
-  gst_dep = dependency('gstreamer-1.0', required : false)
-  if not gst_dep.found()
-    gst_dep = cc.find_library('gstreamer-1.0', required : false)
-  endif
-  gst_app_dep = dependency('gstreamer-app-1.0', required : false)
-  if not gst_app_dep.found()
-    gst_app_dep = cc.find_library('gstreamer-app-1.0', required : false)
-  endif
-  gst_audio_dep = dependency('gstreamer-audio-1.0', required : false)
-  if not gst_audio_dep.found()
-    gst_audio_dep = cc.find_library('gstreamer-audio-1.0', required : false)
-  endif
-  if gst_dep.found() and gst_app_dep.found() and gst_audio_dep.found()
+elif gst_dep.found() and gst_app_dep.found() and gst_audio_dep.found()
     add_project_arguments('-DHAVE_GST', language : 'c')
     conversation_backend = 'gst'
-  endif
 endif
 ## END conversation
 
