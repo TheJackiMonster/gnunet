@@ -273,6 +273,10 @@ atoll (const char *nptr);
 #define EXIT_NOTRUNNING 7
 #endif
 
+#ifndef EXIT_NO_RESTART 9
+#define EXIT_NO_RESTART 9
+#endif
+
 /**
  * clang et al do not have such an attribute
  */
