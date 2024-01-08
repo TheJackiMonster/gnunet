@@ -121,7 +121,7 @@ conversation_string_to_value (void *cls,
   case GNUNET_GNSRECORD_TYPE_PHONE:
     {
       struct GNUNET_CONVERSATION_PhoneRecord *pr;
-      char line_port[103];
+      char line_port[104];
       const char *dash;
       struct GNUNET_PeerIdentity peer;
 
