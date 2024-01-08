@@ -273,7 +273,7 @@ atoll (const char *nptr);
 #define EXIT_NOTRUNNING 7
 #endif
 
-#ifndef EXIT_NO_RESTART 9
+#ifndef EXIT_NO_RESTART
 #define EXIT_NO_RESTART 9
 #endif
 
