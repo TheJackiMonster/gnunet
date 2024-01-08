@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2021--2023 GNUnet e.V.
+   Copyright (C) 2021--2024 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -126,7 +126,7 @@ messenger_string_to_value (void *cls,
   {
   case GNUNET_GNSRECORD_TYPE_MESSENGER_ROOM_ENTRY:
     {
-      char key[103];
+      char key[104];
       const char *dash;
       struct GNUNET_PeerIdentity door;
 
@@ -168,7 +168,7 @@ messenger_string_to_value (void *cls,
     }
   case GNUNET_GNSRECORD_TYPE_MESSENGER_ROOM_DETAILS:
     {
-      char flags[7];
+      char flags[8];
       const char *dash;
 
       if ((NULL == (dash = strchr (s, '-'))) ||
