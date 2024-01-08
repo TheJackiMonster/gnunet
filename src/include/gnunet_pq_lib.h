@@ -1621,7 +1621,7 @@ GNUNET_PQ_event_notify (struct GNUNET_PQ_Context *db,
  * @return channel to notify upon
  */
 char *
-GNUNET_PG_get_event_notify_channel (const struct GNUNET_DB_EventHeaderP *es);
+GNUNET_PQ_get_event_notify_channel (const struct GNUNET_DB_EventHeaderP *es);
 
 
 /**

@@ -519,7 +519,7 @@ GNUNET_PQ_event_listen_cancel (struct GNUNET_DB_EventHandler *eh)
 
 
 char *
-GNUNET_PG_get_event_notify_channel (const struct GNUNET_DB_EventHeaderP *es)
+GNUNET_PQ_get_event_notify_channel (const struct GNUNET_DB_EventHeaderP *es)
 {
   char sql[16 + 64 + 8];
   char *end;
