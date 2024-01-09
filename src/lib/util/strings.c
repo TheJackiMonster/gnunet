@@ -1031,70 +1031,77 @@ GNUNET_STRINGS_check_filename (const char *filename,
 
 enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_to_address_ipv6 (const char *zt_addr,
-                                uint16_t addrlen,
+                                size_t addrlen,
                                 struct sockaddr_in6 *r_buf)
 {
-  char zbuf[addrlen + 1];
-  int ret;
-  char *port_colon;
-  unsigned int port;
-  char dummy[2];
-
   if (addrlen < 6)
     return GNUNET_SYSERR;
-  GNUNET_memcpy (zbuf, zt_addr, addrlen);
-  if ('[' != zbuf[0])
+  if (addrlen > 512)
+    return GNUNET_SYSERR; /* sanity check to protect zbuf allocation,
+                             actual limit is not precise */
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                _ ("IPv6 address did not start with `['\n"));
-    return GNUNET_SYSERR;
-  }
-  zbuf[addrlen] = '\0';
-  port_colon = strrchr (zbuf, ':');
-  if (NULL == port_colon)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                _ ("IPv6 address did contain ':' to separate port number\n"));
-    return GNUNET_SYSERR;
-  }
-  if (']' != *(port_colon - 1))
-  {
-    GNUNET_log (
-      GNUNET_ERROR_TYPE_WARNING,
-      _ ("IPv6 address did contain ']' before ':' to separate port number\n"));
-    return GNUNET_SYSERR;
-  }
-  ret = sscanf (port_colon, ":%u%1s", &port, dummy);
-  if ((1 != ret) || (port > 65535))
-  {
-    GNUNET_log (
-      GNUNET_ERROR_TYPE_WARNING,
-      _ ("IPv6 address did contain a valid port number after the last ':'\n"));
-    return GNUNET_SYSERR;
-  }
-  *(port_colon - 1) = '\0';
-  memset (r_buf, 0, sizeof(struct sockaddr_in6));
-  ret = inet_pton (AF_INET6, &zbuf[1], &r_buf->sin6_addr);
-  if (ret <= 0)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                _ ("Invalid IPv6 address `%s': %s\n"),
-                &zbuf[1],
-                strerror (errno));
-    return GNUNET_SYSERR;
-  }
-  r_buf->sin6_port = htons (port);
-  r_buf->sin6_family = AF_INET6;
+    char zbuf[addrlen + 1];
+    int ret;
+    char *port_colon;
+    unsigned int port;
+    char dummy[2];
+
+    GNUNET_memcpy (zbuf, zt_addr, addrlen);
+    if ('[' != zbuf[0])
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  _ ("IPv6 address did not start with `['\n"));
+      return GNUNET_SYSERR;
+    }
+    zbuf[addrlen] = '\0';
+    port_colon = strrchr (zbuf, ':');
+    if (NULL == port_colon)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  _ ("IPv6 address did contain ':' to separate port number\n"));
+      return GNUNET_SYSERR;
+    }
+    if (']' != *(port_colon - 1))
+    {
+      GNUNET_log (
+        GNUNET_ERROR_TYPE_WARNING,
+        _ (
+          "IPv6 address did contain ']' before ':' to separate port number\n"));
+      return GNUNET_SYSERR;
+    }
+    ret = sscanf (port_colon, ":%u%1s", &port, dummy);
+    if ((1 != ret) || (port > 65535))
+    {
+      GNUNET_log (
+        GNUNET_ERROR_TYPE_WARNING,
+        _ (
+          "IPv6 address did contain a valid port number after the last ':'\n"));
+      return GNUNET_SYSERR;
+    }
+    *(port_colon - 1) = '\0';
+    memset (r_buf, 0, sizeof(struct sockaddr_in6));
+    ret = inet_pton (AF_INET6, &zbuf[1], &r_buf->sin6_addr);
+    if (ret <= 0)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  _ ("Invalid IPv6 address `%s': %s\n"),
+                  &zbuf[1],
+                  strerror (errno));
+      return GNUNET_SYSERR;
+    }
+    r_buf->sin6_port = htons (port);
+    r_buf->sin6_family = AF_INET6;
 #if HAVE_SOCKADDR_IN_SIN_LEN
-  r_buf->sin6_len = (u_char) sizeof(struct sockaddr_in6);
+    r_buf->sin6_len = (u_char) sizeof(struct sockaddr_in6);
 #endif
-  return GNUNET_OK;
+    return GNUNET_OK;
+  }
 }
 
 
 enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_to_address_ipv4 (const char *zt_addr,
-                                uint16_t addrlen,
+                                size_t addrlen,
                                 struct sockaddr_in *r_buf)
 {
   unsigned int temps[4];

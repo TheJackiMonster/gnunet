@@ -578,7 +578,7 @@ GNUNET_STRINGS_check_filename (const char *filename,
  */
 enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_to_address_ipv6 (const char *zt_addr,
-                                uint16_t addrlen,
+                                size_t addrlen,
                                 struct sockaddr_in6 *r_buf);
 
 
@@ -594,7 +594,7 @@ GNUNET_STRINGS_to_address_ipv6 (const char *zt_addr,
  */
 enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_to_address_ipv4 (const char *zt_addr,
-                                uint16_t addrlen,
+                                size_t addrlen,
                                 struct sockaddr_in *r_buf);
 
 
