@@ -945,9 +945,8 @@ GNUNET_STRINGS_parse_uri (const char *path,
     return GNUNET_NO;
   if (scheme_part)
   {
-    *scheme_part = GNUNET_malloc (post_scheme_part - path + 1);
-    GNUNET_memcpy (*scheme_part, path, post_scheme_part - path);
-    (*scheme_part)[post_scheme_part - path] = '\0';
+    *scheme_part = GNUNET_strndup (path,
+                                   post_scheme_part - path);
   }
   if (path_part)
     *path_part = post_scheme_part;
