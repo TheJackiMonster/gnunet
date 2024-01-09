@@ -1478,20 +1478,13 @@ GNUNET_STRINGS_parse_ipv4_policy (const char *routeListX)
 struct GNUNET_STRINGS_IPv6NetworkPolicy *
 GNUNET_STRINGS_parse_ipv6_policy (const char *routeListX)
 {
-  unsigned int count;
-  unsigned int i;
-  unsigned int len;
-  unsigned int pos;
-  int start;
-  int slash;
+  size_t count;
+  size_t len;
+  size_t pos;
   int ret;
   char *routeList;
   struct GNUNET_STRINGS_IPv6NetworkPolicy *result;
-  unsigned int bits;
   unsigned int off;
-  int save;
-  int colon;
-  char dummy[2];
 
   if (NULL == routeListX)
     return NULL;
@@ -1500,8 +1493,8 @@ GNUNET_STRINGS_parse_ipv6_policy (const char *routeListX)
     return NULL;
   routeList = GNUNET_strdup (routeListX);
   count = 0;
-  for (i = 0; i < len; i++)
-    if (';' == routeList[i])
+  for (size_t j = 0; j < len; j++)
+    if (';' == routeList[j])
       count++;
   if (';' != routeList[len - 1])
   {
@@ -1511,27 +1504,34 @@ GNUNET_STRINGS_parse_ipv6_policy (const char *routeListX)
     GNUNET_free (routeList);
     return NULL;
   }
-
-  result = GNUNET_malloc (sizeof(struct GNUNET_STRINGS_IPv6NetworkPolicy)
-                          * (count + 1));
-  i = 0;
+  GNUNET_assert (count < UINT_MAX);
+  result = GNUNET_new_array (count + 1,
+                             struct GNUNET_STRINGS_IPv6NetworkPolicy);
   pos = 0;
-  while (i < count)
+  for (size_t i = 0; i < count; i++)
   {
+    size_t start;
+    size_t slash;
+
     start = pos;
     while (';' != routeList[pos])
       pos++;
     slash = pos;
-    while ((slash >= start) && (routeList[slash] != '/'))
+    while ( (slash >= start) &&
+            (routeList[slash] != '/') )
       slash--;
 
     if (slash < start)
     {
-      memset (&result[i].netmask, 0xFF, sizeof(struct in6_addr));
+      memset (&result[i].netmask,
+              0xFF,
+              sizeof(struct in6_addr));
       slash = pos;
     }
     else
     {
+      size_t colon;
+
       routeList[pos] = '\0';
       for (colon = pos; ':' != routeList[colon]; colon--)
         if ('/' == routeList[colon])
@@ -1540,19 +1540,28 @@ GNUNET_STRINGS_parse_ipv6_policy (const char *routeListX)
       {
         routeList[colon] = '\0';
         if (GNUNET_OK !=
-            parse_port_policy (&routeList[colon + 1], &result[i].pp))
+            parse_port_policy (&routeList[colon + 1],
+                               &result[i].pp))
         {
           GNUNET_free (result);
           GNUNET_free (routeList);
           return NULL;
         }
       }
-      ret = inet_pton (AF_INET6, &routeList[slash + 1], &result[i].netmask);
+      ret = inet_pton (AF_INET6,
+                       &routeList[slash + 1],
+                       &result[i].netmask);
       if (ret <= 0)
       {
-        save = errno;
-        if ((1 != sscanf (&routeList[slash + 1], "%u%1s", &bits, dummy)) ||
-            (bits > 128))
+        char dummy;
+        unsigned int bits;
+        int save = errno;
+
+        if ( (1 != sscanf (&routeList[slash + 1],
+                           "%u%c",
+                           &bits,
+                           &dummy)) ||
+             (bits > 128) )
         {
           if (0 == ret)
             LOG (GNUNET_ERROR_TYPE_WARNING,
@@ -1561,7 +1570,8 @@ GNUNET_STRINGS_parse_ipv6_policy (const char *routeListX)
           else
           {
             errno = save;
-            LOG_STRERROR (GNUNET_ERROR_TYPE_WARNING, "inet_pton");
+            LOG_STRERROR (GNUNET_ERROR_TYPE_WARNING,
+                          "inet_pton");
           }
           GNUNET_free (result);
           GNUNET_free (routeList);
@@ -1582,7 +1592,9 @@ GNUNET_STRINGS_parse_ipv6_policy (const char *routeListX)
       }
     }
     routeList[slash] = '\0';
-    ret = inet_pton (AF_INET6, &routeList[start], &result[i].network);
+    ret = inet_pton (AF_INET6,
+                     &routeList[start],
+                     &result[i].network);
     if (ret <= 0)
     {
       if (0 == ret)
@@ -1590,13 +1602,13 @@ GNUNET_STRINGS_parse_ipv6_policy (const char *routeListX)
              _ ("Wrong format `%s' for network\n"),
              &routeList[slash + 1]);
       else
-        LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR, "inet_pton");
+        LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR,
+                      "inet_pton");
       GNUNET_free (result);
       GNUNET_free (routeList);
       return NULL;
     }
     pos++;
-    i++;
   }
   GNUNET_free (routeList);
   return result;
