@@ -1621,7 +1621,7 @@ GNUNET_STRINGS_base64_encode (const void *in,
   char *opt;
 
   ret = 0;
-  GNUNET_assert (len < SIZE_MAX / 4 * 3);
+  GNUNET_assert (len < SIZE_MAX / 4);
   opt = GNUNET_malloc (2 + (len * 4 / 3) + 8);
   for (size_t i = 0; i < len; ++i)
   {
