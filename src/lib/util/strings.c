@@ -1297,19 +1297,12 @@ parse_port_policy (const char *port_policy,
 struct GNUNET_STRINGS_IPv4NetworkPolicy *
 GNUNET_STRINGS_parse_ipv4_policy (const char *routeListX)
 {
-  unsigned int count;
-  unsigned int i;
-  unsigned int j;
-  unsigned int len;
-  int cnt;
-  unsigned int pos;
+  size_t count;
+  size_t len;
+  size_t pos;
   unsigned int temps[8];
-  int slash;
   struct GNUNET_STRINGS_IPv4NetworkPolicy *result;
-  int colon;
-  int end;
   char *routeList;
-  char dummy[2];
 
   if (NULL == routeListX)
     return NULL;
@@ -1318,15 +1311,19 @@ GNUNET_STRINGS_parse_ipv4_policy (const char *routeListX)
     return NULL;
   routeList = GNUNET_strdup (routeListX);
   count = 0;
-  for (i = 0; i < len; i++)
+  for (size_t i = 0; i < len; i++)
     if (routeList[i] == ';')
       count++;
-  result = GNUNET_malloc (sizeof(struct GNUNET_STRINGS_IPv4NetworkPolicy)
-                          * (count + 1));
-  i = 0;
+  GNUNET_assert (count < SIZE_MAX);
+  result = GNUNET_new_array (count + 1,
+                             struct GNUNET_STRINGS_IPv4NetworkPolicy);
   pos = 0;
-  while (i < count)
+  for (size_t i = 0; i < count; i++)
   {
+    size_t colon;
+    size_t end;
+    char dummy;
+
     for (colon = pos; ':' != routeList[colon]; colon++)
       if ((';' == routeList[colon]) || ('\0' == routeList[colon]))
         break;
@@ -1342,20 +1339,20 @@ GNUNET_STRINGS_parse_ipv4_policy (const char *routeListX)
       if (GNUNET_OK != parse_port_policy (&routeList[colon + 1], &result[i].pp))
         break;
     }
-    cnt = sscanf (&routeList[pos],
-                  "%u.%u.%u.%u/%u.%u.%u.%u%1s",
-                  &temps[0],
-                  &temps[1],
-                  &temps[2],
-                  &temps[3],
-                  &temps[4],
-                  &temps[5],
-                  &temps[6],
-                  &temps[7],
-                  dummy);
-    if (8 == cnt)
+    if (8 ==
+        sscanf (&routeList[pos],
+                "%u.%u.%u.%u/%u.%u.%u.%u%c",
+                &temps[0],
+                &temps[1],
+                &temps[2],
+                &temps[3],
+                &temps[4],
+                &temps[5],
+                &temps[6],
+                &temps[7],
+                &dummy))
     {
-      for (j = 0; j < 8; j++)
+      for (unsigned int j = 0; j < 8; j++)
         if (temps[j] > 0xFF)
         {
           LOG (GNUNET_ERROR_TYPE_WARNING,
@@ -1370,68 +1367,72 @@ GNUNET_STRINGS_parse_ipv4_policy (const char *routeListX)
       result[i].netmask.s_addr = htonl ((temps[4] << 24) + (temps[5] << 16)
                                         + (temps[6] << 8) + temps[7]);
       pos = end + 1;
-      i++;
       continue;
     }
+
     /* try second notation */
-    cnt = sscanf (&routeList[pos],
-                  "%u.%u.%u.%u/%u%1s",
+    {
+      unsigned int slash;
+
+      if (5 ==
+          sscanf (&routeList[pos],
+                  "%u.%u.%u.%u/%u%c",
                   &temps[0],
                   &temps[1],
                   &temps[2],
                   &temps[3],
                   &slash,
-                  dummy);
-    if (5 == cnt)
-    {
-      for (j = 0; j < 4; j++)
-        if (temps[j] > 0xFF)
+                  &dummy))
+      {
+        for (unsigned int j = 0; j < 4; j++)
+          if (temps[j] > 0xFF)
+          {
+            LOG (GNUNET_ERROR_TYPE_WARNING,
+                 _ ("Invalid format for IP: `%s'\n"),
+                 &routeList[pos]);
+            GNUNET_free (result);
+            GNUNET_free (routeList);
+            return NULL;
+          }
+        result[i].network.s_addr = htonl ((temps[0] << 24) + (temps[1] << 16)
+                                          + (temps[2] << 8) + temps[3]);
+        if (slash <= 32)
+        {
+          result[i].netmask.s_addr = 0;
+          while (slash > 0)
+          {
+            result[i].netmask.s_addr =
+              (result[i].netmask.s_addr >> 1) + 0x80000000;
+            slash--;
+          }
+          result[i].netmask.s_addr = htonl (result[i].netmask.s_addr);
+          pos = end + 1;
+          continue;
+        }
+        else
         {
           LOG (GNUNET_ERROR_TYPE_WARNING,
-               _ ("Invalid format for IP: `%s'\n"),
-               &routeList[pos]);
+               _ (
+                 "Invalid network notation ('/%d' is not legal in IPv4 CIDR)."),
+               slash);
           GNUNET_free (result);
           GNUNET_free (routeList);
-          return NULL;
+          return NULL;     /* error */
         }
-      result[i].network.s_addr = htonl ((temps[0] << 24) + (temps[1] << 16)
-                                        + (temps[2] << 8) + temps[3]);
-      if ((slash <= 32) && (slash >= 0))
-      {
-        result[i].netmask.s_addr = 0;
-        while (slash > 0)
-        {
-          result[i].netmask.s_addr =
-            (result[i].netmask.s_addr >> 1) + 0x80000000;
-          slash--;
-        }
-        result[i].netmask.s_addr = htonl (result[i].netmask.s_addr);
-        pos = end + 1;
-        i++;
-        continue;
-      }
-      else
-      {
-        LOG (GNUNET_ERROR_TYPE_WARNING,
-             _ ("Invalid network notation ('/%d' is not legal in IPv4 CIDR)."),
-             slash);
-        GNUNET_free (result);
-        GNUNET_free (routeList);
-        return NULL;       /* error */
       }
     }
+
     /* try third notation */
-    slash = 32;
-    cnt = sscanf (&routeList[pos],
-                  "%u.%u.%u.%u%1s",
-                  &temps[0],
-                  &temps[1],
-                  &temps[2],
-                  &temps[3],
-                  dummy);
-    if (4 == cnt)
+    if (4 ==
+        sscanf (&routeList[pos],
+                "%u.%u.%u.%u%c",
+                &temps[0],
+                &temps[1],
+                &temps[2],
+                &temps[3],
+                &dummy))
     {
-      for (j = 0; j < 4; j++)
+      for (unsigned int j = 0; j < 4; j++)
         if (temps[j] > 0xFF)
         {
           LOG (GNUNET_ERROR_TYPE_WARNING,
@@ -1443,15 +1444,8 @@ GNUNET_STRINGS_parse_ipv4_policy (const char *routeListX)
         }
       result[i].network.s_addr = htonl ((temps[0] << 24) + (temps[1] << 16)
                                         + (temps[2] << 8) + temps[3]);
-      result[i].netmask.s_addr = 0;
-      while (slash > 0)
-      {
-        result[i].netmask.s_addr = (result[i].netmask.s_addr >> 1) + 0x80000000;
-        slash--;
-      }
-      result[i].netmask.s_addr = htonl (result[i].netmask.s_addr);
+      result[i].netmask.s_addr = htonl (0xffffffff); /* yeah, the htonl is useless */
       pos = end + 1;
-      i++;
       continue;
     }
     LOG (GNUNET_ERROR_TYPE_WARNING,
