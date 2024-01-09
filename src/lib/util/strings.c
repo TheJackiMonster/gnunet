@@ -1151,25 +1151,21 @@ GNUNET_STRINGS_parse_socket_addr (const char *addr,
                                   uint8_t *af,
                                   struct sockaddr **sa)
 {
-  char *cp = GNUNET_strdup (addr);
-
   *af = AF_UNSPEC;
   if ('[' == *addr)
   {
     /* IPv6 */
     *sa = GNUNET_malloc (sizeof(struct sockaddr_in6));
     if (GNUNET_OK !=
-        GNUNET_STRINGS_to_address_ipv6 (cp,
-                                        strlen (cp),
+        GNUNET_STRINGS_to_address_ipv6 (addr,
+                                        strlen (addr),
                                         (struct sockaddr_in6 *) *sa))
     {
       GNUNET_free (*sa);
       *sa = NULL;
-      GNUNET_free (cp);
       return 0;
     }
     *af = AF_INET6;
-    GNUNET_free (cp);
     return sizeof(struct sockaddr_in6);
   }
   else
@@ -1177,17 +1173,15 @@ GNUNET_STRINGS_parse_socket_addr (const char *addr,
     /* IPv4 */
     *sa = GNUNET_malloc (sizeof(struct sockaddr_in));
     if (GNUNET_OK !=
-        GNUNET_STRINGS_to_address_ipv4 (cp,
-                                        strlen (cp),
+        GNUNET_STRINGS_to_address_ipv4 (addr,
+                                        strlen (addr),
                                         (struct sockaddr_in *) *sa))
     {
       GNUNET_free (*sa);
       *sa = NULL;
-      GNUNET_free (cp);
       return 0;
     }
     *af = AF_INET;
-    GNUNET_free (cp);
     return sizeof(struct sockaddr_in);
   }
 }
