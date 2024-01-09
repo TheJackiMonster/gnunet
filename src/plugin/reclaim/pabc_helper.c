@@ -145,7 +145,9 @@ PABC_load_public_parameters (struct pabc_context *const ctx,
   if (pp_name == NULL)
     return GNUNET_SYSERR;
 
-  GNUNET_STRINGS_urlencode (pp_name, strlen (pp_name), &pp_filename);
+  GNUNET_STRINGS_urlencode (strlen (pp_name),
+                            pp_name,
+                            &pp_filename);
   if (GNUNET_YES != GNUNET_DISK_directory_test (pdir, GNUNET_YES))
   {
     GNUNET_free (pp_filename);
@@ -177,7 +179,9 @@ PABC_write_public_parameters (char const *const pp_name,
   enum pabc_status status;
   struct pabc_context *ctx = NULL;
 
-  GNUNET_STRINGS_urlencode (pp_name, strlen (pp_name), &pp_filename);
+  GNUNET_STRINGS_urlencode (strlen (pp_name),
+                            pp_name,
+                            &pp_filename);
   PABC_ASSERT (pabc_new_ctx (&ctx));
   // store in json file
   status = pabc_encode_public_parameters (ctx, pp, &json);
@@ -258,7 +262,9 @@ PABC_write_usr_ctx (char const *const usr_name,
     return GNUNET_SYSERR;
   }
 
-  GNUNET_STRINGS_urlencode (pp_name, strlen (pp_name), &pp_filename);
+  GNUNET_STRINGS_urlencode (strlen (pp_name),
+                            pp_name,
+                            &pp_filename);
   status = pabc_encode_user_ctx (ctx, pp, usr_ctx, &json);
   if (PABC_OK != status)
   {
@@ -329,7 +335,9 @@ PABC_read_usr_ctx (char const *const usr_name,
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "No user context given.\n");
     return GNUNET_SYSERR;
   }
-  GNUNET_STRINGS_urlencode (pp_name, strlen (pp_name), &pp_filename);
+  GNUNET_STRINGS_urlencode (strlen (pp_name),
+                            pp_name,
+                            &pp_filename);
 
   size_t fname_size = strlen (get_pabcdir ()) + 1 + strlen (usr_name) + 1
                       + strlen (pp_filename) + strlen (PABC_USR_EXT) + 1;

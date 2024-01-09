@@ -1860,15 +1860,23 @@ GNUNET_STRINGS_urldecode (const char *data,
 
 
 size_t
-GNUNET_STRINGS_urlencode (const char *data,
-                          size_t len,
+GNUNET_STRINGS_urlencode (size_t len,
+                          const char data[static len],
                           char **out)
 {
   struct GNUNET_Buffer buf = { 0 };
   const uint8_t *i8 = (uint8_t *) data;
+  const uint8_t *end = (uint8_t *) (data + len);
 
-  while (0 != *i8)
+  while (end != i8)
   {
+    if (0 == *i8)
+    {
+      /* invalid UTF-8 (or bad @a len): fail */
+      GNUNET_break (0);
+      GNUNET_buffer_clear (&buf);
+      return 0;
+    }
     if (0 == (0x80 & *i8))
     {
       /* traditional ASCII */
@@ -1900,6 +1908,14 @@ GNUNET_STRINGS_urlencode (const char *data,
                                 *i8 >> 4,
                                 *i8 & 15);
       i8++;
+      if ( (end == i8) ||
+           (0 == *i8) )
+      {
+        /* invalid UTF-8 (or bad @a len): fail */
+        GNUNET_break (0);
+        GNUNET_buffer_clear (&buf);
+        return 0;
+      }
       GNUNET_buffer_write_fstr (&buf,
                                 "%%%X%X",
                                 *i8 >> 4,
@@ -1912,6 +1928,14 @@ GNUNET_STRINGS_urlencode (const char *data,
       /* 3-byte value, percent-encode */
       for (unsigned int i = 0; i<3; i++)
       {
+        if ( (end == i8) ||
+             (0 == *i8) )
+        {
+          /* invalid UTF-8 (or bad @a len): fail */
+          GNUNET_break (0);
+          GNUNET_buffer_clear (&buf);
+          return 0;
+        }
         GNUNET_buffer_write_fstr (&buf,
                                   "%%%X%X",
                                   *i8 >> 4,
@@ -1925,6 +1949,14 @@ GNUNET_STRINGS_urlencode (const char *data,
       /* 4-byte value, percent-encode */
       for (unsigned int i = 0; i<4; i++)
       {
+        if ( (end == i8) ||
+             (0 == *i8) )
+        {
+          /* invalid UTF-8 (or bad @a len): fail */
+          GNUNET_break (0);
+          GNUNET_buffer_clear (&buf);
+          return 0;
+        }
         GNUNET_buffer_write_fstr (&buf,
                                   "%%%X%X",
                                   *i8 >> 4,
@@ -1939,6 +1971,14 @@ GNUNET_STRINGS_urlencode (const char *data,
       /* 5-byte value, percent-encode (outside of UTF-8 modern standard, but so what) */
       for (unsigned int i = 0; i<5; i++)
       {
+        if ( (end == i8) ||
+             (0 == *i8) )
+        {
+          /* invalid UTF-8 (or bad @a len): fail */
+          GNUNET_break (0);
+          GNUNET_buffer_clear (&buf);
+          return 0;
+        }
         GNUNET_buffer_write_fstr (&buf,
                                   "%%%X%X",
                                   *i8 >> 4,
@@ -1954,6 +1994,14 @@ GNUNET_STRINGS_urlencode (const char *data,
       /* 6-byte value, percent-encode (outside of UTF-8 modern standard, but so what) */
       for (unsigned int i = 0; i<6; i++)
       {
+        if ( (end == i8) ||
+             (0 == *i8) )
+        {
+          /* invalid UTF-8 (or bad @a len): fail */
+          GNUNET_break (0);
+          GNUNET_buffer_clear (&buf);
+          return 0;
+        }
         GNUNET_buffer_write_fstr (&buf,
                                   "%%%X%X",
                                   *i8 >> 4,

@@ -417,8 +417,8 @@ GNUNET_STRINGS_base64_encode (const void *in,
  * @return the size of the output
  */
 size_t
-GNUNET_STRINGS_urlencode (const char *data,
-                          size_t len,
+GNUNET_STRINGS_urlencode (size_t len,
+                          const char data[static len],
                           char **out);
 
 

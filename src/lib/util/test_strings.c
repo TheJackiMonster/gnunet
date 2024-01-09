@@ -149,16 +149,16 @@ main (int argc, char *argv[])
                  GNUNET_STRINGS_fancy_time_to_relative ("15 m", &rtx));
   GNUNET_assert (rt.rel_value_us == rtx.rel_value_us);
 
-  GNUNET_assert (0 != GNUNET_STRINGS_urlencode (URLENCODE_TEST_VECTOR_PLAIN,
-                                                strlen (
+  GNUNET_assert (0 != GNUNET_STRINGS_urlencode (strlen (
                                                   URLENCODE_TEST_VECTOR_PLAIN),
+                                                URLENCODE_TEST_VECTOR_PLAIN,
                                                 &b));
   WANT (URLENCODE_TEST_VECTOR_ENCODED, b);
   GNUNET_free (b);
   GNUNET_assert (0 !=
-                 GNUNET_STRINGS_urldecode (URLENCODE_TEST_VECTOR_ENCODED,
-                                           strlen (
+                 GNUNET_STRINGS_urldecode (strlen (
                                              URLENCODE_TEST_VECTOR_ENCODED),
+                                           URLENCODE_TEST_VECTOR_ENCODED,
                                            &b));
   WANT (URLENCODE_TEST_VECTOR_PLAIN, b);
   GNUNET_free (b);
