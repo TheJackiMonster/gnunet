@@ -1797,7 +1797,7 @@ do_rekey (void *cls)
 {
   struct GSC_KeyExchangeInfo *pos;
 
-  (void *) cls;
+  (void) cls;
   if (NULL != rekey_task)
   {
     GNUNET_SCHEDULER_cancel (rekey_task);

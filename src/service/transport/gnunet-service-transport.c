@@ -9126,7 +9126,7 @@ revalidate_map_it (
   const struct GNUNET_HashCode *key,
   void *value)
 {
-  (void *) cls;
+  (void) cls;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Key in revalidate map  %s \n",
                 GNUNET_h2s (key));

@@ -165,7 +165,7 @@ handle_test (void *cls,
   sender->num_received++;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "time traveled: %llu\n",
+              "time traveled: %lu\n",
               time_traveled.rel_value_us);
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "mean time traveled: %s %llu messages received with message number %u\n",
