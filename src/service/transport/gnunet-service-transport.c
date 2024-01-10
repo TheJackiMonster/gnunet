@@ -2660,6 +2660,16 @@ struct ValidationState
   struct GNUNET_CRYPTO_ChallengeNonceP challenge;
 
   /**
+   * Hascode key to store state in a map.
+   */
+  struct GNUNET_HashCode hc;
+
+  /**
+   * Task to revalidate this address.
+   */
+  struct GNUNET_SCHEDULER_Task *revalidation_task;
+
+  /**
    * Claimed address of the peer.
    */
   char *address;
@@ -2851,6 +2861,12 @@ static struct GNUNET_CONTAINER_MultiPeerMap *dv_routes;
  * addresses we are aware of and their validity state.
  */
 static struct GNUNET_CONTAINER_MultiPeerMap *validation_map;
+
+/**
+ * Map from addresses to `struct ValidationState` entries describing
+ * addresses we are aware of and their validity state.
+ */
+static struct GNUNET_CONTAINER_MultiHashMap *revalidation_map;
 
 /**
  * Map from PIDs to `struct VirtualLink` entries describing
@@ -3275,6 +3291,25 @@ free_virtual_link (struct VirtualLink *vl)
 static void
 free_validation_state (struct ValidationState *vs)
 {
+  struct GNUNET_HashCode hkey;
+  struct GNUNET_HashCode hc;
+
+  if (NULL != vs->revalidation_task)
+  {
+    GNUNET_SCHEDULER_cancel (vs->revalidation_task);
+    vs->revalidation_task = NULL;
+  }
+  /*memcpy (&hkey,
+          &hc,
+          sizeof (hkey));*/
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Remove key %s for address %s map size %u contains %u during freeing state\n",
+              GNUNET_h2s (&vs->hc),
+              vs->address,
+              GNUNET_CONTAINER_multihashmap_size (revalidation_map),
+              GNUNET_CONTAINER_multihashmap_contains (revalidation_map,
+                                                      &vs->hc));
+  GNUNET_CONTAINER_multihashmap_remove (revalidation_map, &vs->hc, vs);
   GNUNET_assert (
     GNUNET_YES ==
     GNUNET_CONTAINER_multipeermap_remove (validation_map, &vs->pid, vs));
@@ -8773,6 +8808,7 @@ start_address_validation (const struct GNUNET_PeerIdentity *pid,
                               &vs->challenge,
                               sizeof(vs->challenge));
   vs->address = GNUNET_strdup (address);
+  GNUNET_CRYPTO_hash (vs->address, strlen(vs->address), &vs->hc);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Starting address validation `%s' of peer %s using challenge %s\n",
               address,
@@ -9060,6 +9096,43 @@ find_queue (const struct GNUNET_PeerIdentity *pid, const char *address)
   return NULL;
 }
 
+static void
+validation_transmit_on_queue (struct Queue *q, struct ValidationState *vs);
+
+static void
+revalidation_start_cb (void *cls)
+{
+  struct ValidationState *vs = cls;
+  struct Queue *q;
+  struct GNUNET_TIME_Absolute now;
+
+  vs->revalidation_task = NULL;
+  q = find_queue (&vs->pid, vs->address);
+  if (NULL == q)
+  {
+    now = GNUNET_TIME_absolute_get ();
+    vs->awaiting_queue = GNUNET_YES;
+    suggest_to_connect (&vs->pid, vs->address);
+    update_next_challenge_time (vs, now);
+  }
+  else
+    validation_transmit_on_queue (q, vs);
+}
+
+
+static enum GNUNET_GenericReturnValue
+revalidate_map_it (
+  void *cls,
+  const struct GNUNET_HashCode *key,
+  void *value)
+{
+  (void *) cls;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Key in revalidate map  %s \n",
+                GNUNET_h2s (key));
+  return GNUNET_YES;
+}
+
 
 /**
  * Communicator gave us a transport address validation response.  Process the
@@ -9181,6 +9254,29 @@ handle_validation_response (
               GNUNET_sh2s (&tvr->challenge.value),
               GNUNET_i2s (&cmc->im.sender),
               GNUNET_STRINGS_absolute_time_to_string (vs->valid_until));
+  /*memcpy (&hkey,
+          &hc,
+          sizeof (hkey));*/
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Key %s for address %s map size %u contains %u\n",
+              GNUNET_h2s (&vs->hc),
+              vs->address,
+              GNUNET_CONTAINER_multihashmap_size (revalidation_map),
+              GNUNET_CONTAINER_multihashmap_contains (revalidation_map,
+                                                      &vs->hc));
+  GNUNET_assert (GNUNET_YES ==
+                 GNUNET_CONTAINER_multihashmap_put (
+                   revalidation_map,
+                   &vs->hc,
+                   vs,
+                   GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
+  GNUNET_CONTAINER_multihashmap_iterate (revalidation_map,
+                                         revalidate_map_it,
+                                         NULL);
+  vs->revalidation_task =
+    GNUNET_SCHEDULER_add_at (GNUNET_TIME_absolute_subtract (vs->next_challenge,
+                                                            GNUNET_TIME_UNIT_MINUTES),
+                                                            &revalidation_start_cb, vs);
   vs->sc = GNUNET_PEERSTORE_store (peerstore,
                                    "transport",
                                    &cmc->im.sender,
@@ -10806,7 +10902,26 @@ static void
 validation_transmit_on_queue (struct Queue *q, struct ValidationState *vs)
 {
   struct TransportValidationChallengeMessage tvc;
+  struct GNUNET_HashCode hkey;
+  struct GNUNET_HashCode hc;
   struct GNUNET_TIME_Absolute monotonic_time;
+
+  if (NULL != vs->revalidation_task)
+  {
+    GNUNET_SCHEDULER_cancel (vs->revalidation_task);
+    vs->revalidation_task = NULL;
+  }
+  /*memcpy (&hkey,
+          &hc,
+          sizeof (hkey));*/
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Remove key %s for address %s map size %u contains %u\n",
+              GNUNET_h2s (&vs->hc),
+              vs->address,
+              GNUNET_CONTAINER_multihashmap_size (revalidation_map),
+              GNUNET_CONTAINER_multihashmap_contains (revalidation_map,
+                                                      &vs->hc));
+  GNUNET_CONTAINER_multihashmap_remove (revalidation_map, &vs->hc, vs);
 
   monotonic_time  = GNUNET_TIME_absolute_get_monotonic (GST_cfg);
   if (GNUNET_TIME_UNIT_ZERO_ABS.abs_value_us == vs->last_challenge_use.abs_value_us)
@@ -11801,6 +11916,8 @@ do_shutdown (void *cls)
                                          NULL);
   GNUNET_CONTAINER_multipeermap_destroy (validation_map);
   validation_map = NULL;
+  GNUNET_CONTAINER_multihashmap_destroy (revalidation_map);
+  revalidation_map = NULL;
   while (NULL != ir_head)
     free_incoming_request (ir_head);
   GNUNET_assert (0 == ir_total);
@@ -11876,6 +11993,7 @@ run (void *cls,
   dvlearn_map = GNUNET_CONTAINER_multishortmap_create (2 * MAX_DV_LEARN_PENDING,
                                                        GNUNET_YES);
   validation_map = GNUNET_CONTAINER_multipeermap_create (1024, GNUNET_YES);
+  revalidation_map = GNUNET_CONTAINER_multihashmap_create (1024, GNUNET_YES);
   validation_heap =
     GNUNET_CONTAINER_heap_create (GNUNET_CONTAINER_HEAP_ORDER_MIN);
   GST_my_private_key =
