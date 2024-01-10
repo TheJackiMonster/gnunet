@@ -4102,6 +4102,34 @@ notify_client_connect_info (void *cls,
 
 
 /**
+ * Send ACK to communicator (if requested) and free @a cmc.
+ *
+ * @param cmc context for which we are done handling the message
+ */
+static void
+finish_cmc_handling_with_continue (struct CommunicatorMessageContext *cmc,
+                                   unsigned
+                                   int continue_client);
+
+static enum GNUNET_GenericReturnValue
+resume_communicators(void *cls,
+                     const struct GNUNET_PeerIdentity *pid,
+                     void *value)
+{
+  struct VirtualLink *vl = value;
+  struct CommunicatorMessageContext *cmc;
+
+  /* resume communicators */
+  while (NULL != (cmc = vl->cmc_tail))
+  {
+    GNUNET_CONTAINER_DLL_remove (vl->cmc_head, vl->cmc_tail, cmc);
+    finish_cmc_handling_with_continue (cmc, GNUNET_YES == cmc->continue_send ? GNUNET_NO : GNUNET_YES);
+  }
+  return GNUNET_OK;
+}
+
+
+/**
  * Initialize a "CORE" client.  We got a start message from this
  * client, so add it to the list of clients for broadcasting of
  * inbound messages.
@@ -4137,6 +4165,9 @@ handle_client_start (void *cls, const struct StartMessage *start)
   GNUNET_CONTAINER_multipeermap_iterate (neighbours,
                                          &notify_client_connect_info,
                                          tc);
+  GNUNET_CONTAINER_multipeermap_iterate (links,
+                                         &resume_communicators,
+                                         NULL);
   GNUNET_SERVICE_client_continue (tc->client);
 }
 
