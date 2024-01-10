@@ -1176,6 +1176,7 @@ handle_ping (void *cls, const struct PingMessage *m)
                             1,
                             GNUNET_NO);
   GNUNET_MQ_send (kx->mq, env);
+  GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
 }
 
 
@@ -1402,6 +1403,7 @@ handle_pong (void *cls, const struct PongMessage *m)
     GNUNET_break (0);
     break;
   }
+  GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
 }
 
 
