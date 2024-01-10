@@ -4542,21 +4542,36 @@ free_timedout_queue_entry (void *cls)
   struct TransportClient *tc = cls;
   struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "freeing timedout queue entries\n");
+
+  tc->details.communicator.free_queue_entry_task = NULL;
   for (struct Queue *queue = tc->details.communicator.queue_head; NULL != queue;
        queue = queue->next_client)
   {
-    for (struct QueueEntry *qep = queue->queue_head; NULL != qep;
-      qep = qep->next)
+    struct QueueEntry *qep = queue->queue_head;
+
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "checking QID %u for timedout queue entries\n",
+                queue->qid);
+    while (NULL != qep)
     {
-      struct GNUNET_TIME_Relative diff = GNUNET_TIME_absolute_get_difference (qep->creation_timestamp, now);
+      struct QueueEntry *pos = qep;
+      
+      qep = qep->next;
+      struct GNUNET_TIME_Relative diff = GNUNET_TIME_absolute_get_difference (pos->creation_timestamp, now);
+
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "diff to now %s \n",
+                  GNUNET_TIME_relative2s (diff, GNUNET_NO));
       if (GNUNET_TIME_relative_cmp (QUEUE_ENTRY_TIMEOUT, < , diff))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Freeing timed out QueueEntry with MID %" PRIu64
                 " and QID %u\n",
-                qep->mid,
+                pos->mid,
                 queue->qid);
-        free_queue_entry(qep, tc);
+        free_queue_entry(pos, tc);
       }
     }
   }
