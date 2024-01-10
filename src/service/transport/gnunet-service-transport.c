@@ -9898,8 +9898,7 @@ update_pm_next_attempt (struct PendingMessage *pm,
         GNUNET_TIME_absolute_get_remaining (root->next_attempt);
       struct GNUNET_TIME_Relative plus = GNUNET_TIME_absolute_get_remaining (
         next_attempt);
-
-      s1 = GNUNET_TIME_relative_multiply (plus_mean,
+      s1 = GNUNET_TIME_relative_multiply_double (plus_mean,
                                           factor);
       s2 = GNUNET_TIME_relative_divide (plus,
                                         root->frag_count);
