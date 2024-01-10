@@ -71,6 +71,7 @@ libgnunetmessengertesting_la_LDFLAGS = \
   -version-info 0:0:0
 
 libgnunet_test_messenger_plugin_cmd_simple_join_la_SOURCES = \
+  messenger-testing-cmds.h \
   test_messenger_plugin_cmd_simple_join.c
 libgnunet_test_messenger_plugin_cmd_simple_join_la_LIBADD = \
   libgnunetmessenger.la \

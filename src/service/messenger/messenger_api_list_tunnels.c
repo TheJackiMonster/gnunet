@@ -23,7 +23,6 @@
  * @brief messenger api: client and service implementation of GNUnet MESSENGER service
  */
 
-#include "platform.h"
 #include "messenger_api_list_tunnels.h"
 
 void
@@ -147,7 +146,7 @@ verify_list_tunnels_flag_token (const struct GNUNET_MESSENGER_ListTunnels *tunne
 
   for (element = tunnels->head; element; element = element->next)
   {
-    if (element->connection.flags & flag != flag)
+    if ((element->connection.flags & flag) != flag)
       continue;
 
     GNUNET_PEER_resolve (element->peer, &pid);

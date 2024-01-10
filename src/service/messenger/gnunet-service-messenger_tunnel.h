@@ -26,7 +26,6 @@
 #ifndef GNUNET_SERVICE_MESSENGER_TUNNEL_H
 #define GNUNET_SERVICE_MESSENGER_TUNNEL_H
 
-#include "platform.h"
 #include "gnunet_cadet_service.h"
 #include "gnunet_util_lib.h"
 

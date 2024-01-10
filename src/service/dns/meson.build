@@ -39,14 +39,13 @@ executable ('gnunet-dns-monitor',
             gnunetdnsmonitor_src,
             dependencies: [libgnunetdns_dep, libgnunetutil_dep, libgnunetdns_dep],
             include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('libdir')/'gnunet'/'libexec')
+            install: false)
+
 executable ('gnunet-dns-redirector',
             gnunetdnsredirector_src,
             dependencies: [libgnunetdns_dep, libgnunetutil_dep, libgnunetdns_dep],
             include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('libdir')/'gnunet'/'libexec')
+            install: false)
 
 if host_machine.system() == 'linux'
   executable ('gnunet-helper-dns',

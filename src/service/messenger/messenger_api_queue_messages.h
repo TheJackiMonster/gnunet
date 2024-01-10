@@ -26,7 +26,6 @@
 #ifndef GNUNET_MESSENGER_API_QUEUE_MESSAGES_H
 #define GNUNET_MESSENGER_API_QUEUE_MESSAGES_H
 
-#include "platform.h"
 #include "gnunet_identity_service.h"
 #include "gnunet_util_lib.h"
 

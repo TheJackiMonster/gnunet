@@ -34,8 +34,7 @@ GNUNET_JSON_from_data (const void *data,
   char *buf;
   json_t *json;
 
-  if ((size * 8 + 4) / 5 + 1 >=
-      GNUNET_MAX_MALLOC_CHECKED)
+  if (size >= ( (GNUNET_MAX_MALLOC_CHECKED - 1) * 5) - 4 / 8)
   {
     GNUNET_break (0);
     return NULL;
@@ -57,8 +56,7 @@ GNUNET_JSON_from_data64 (const void *data,
   json_t *json;
   size_t len;
 
-  if ((size * 8 + 5) / 6 + 1 >=
-      GNUNET_MAX_MALLOC_CHECKED)
+  if (size >= ( ( (GNUNET_MAX_MALLOC_CHECKED - 1) * 6) - 5) / 8)
   {
     GNUNET_break (0);
     return NULL;

@@ -23,8 +23,8 @@
  * @brief messenger api: client and service implementation of GNUnet MESSENGER service
  */
 
-#include "platform.h"
 #include "messenger_api_message.h"
+#include "gnunet_messenger_service.h"
 
 struct GNUNET_MESSENGER_MessageSignature
 {
@@ -241,6 +241,13 @@ get_message_body_kind_size (enum GNUNET_MESSENGER_MessageKind kind)
     length += member_size (struct GNUNET_MESSENGER_Message,
                            body.deletion.delay);
     break;
+  case GNUNET_MESSENGER_KIND_CONNECTION:
+    length += member_size (struct GNUNET_MESSENGER_Message, body.connection.amount);
+    length += member_size (struct GNUNET_MESSENGER_Message, body.connection.flags);
+    break;
+  case GNUNET_MESSENGER_KIND_TICKET:
+    length += member_size (struct GNUNET_MESSENGER_Message, body.ticket.identifier);
+    break;
   default:
     break;
   }
@@ -425,13 +432,13 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
                      char *buffer,
                      uint16_t offset)
 {
-  uint32_t version;
+  uint32_t value0, value1;
   switch (kind)
   {
   case GNUNET_MESSENGER_KIND_INFO:
-    version = GNUNET_htobe32 (body->info.messenger_version);
+    value0 = GNUNET_htobe32 (body->info.messenger_version);
 
-    encode_step (buffer, offset, &version);
+    encode_step (buffer, offset, &value0);
     break;
   case GNUNET_MESSENGER_KIND_JOIN:
     encode_step_key (buffer, offset, &(body->join.key), length);
@@ -486,6 +493,16 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
   case GNUNET_MESSENGER_KIND_DELETE:
     encode_step (buffer, offset, &(body->deletion.hash));
     encode_step (buffer, offset, &(body->deletion.delay));
+    break;
+  case GNUNET_MESSENGER_KIND_CONNECTION:
+    value0 = GNUNET_htobe32 (body->connection.amount);
+    value1 = GNUNET_htobe32 (body->connection.flags);
+
+    encode_step (buffer, offset, &value0);
+    encode_step (buffer, offset, &value1);
+    break;
+  case GNUNET_MESSENGER_KIND_TICKET:
+    encode_step (buffer, offset, &(body->ticket.identifier));
     break;
   default:
     break;
@@ -611,13 +628,13 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
 
   length -= padding;
 
-  uint32_t version;
+  uint32_t value0, value1;
   switch (*kind)
   {
   case GNUNET_MESSENGER_KIND_INFO: {
-      decode_step (buffer, offset, &version);
+      decode_step (buffer, offset, &value0);
 
-      body->info.messenger_version = GNUNET_be32toh (version);
+      body->info.messenger_version = GNUNET_be32toh (value0);
       break;
     } case GNUNET_MESSENGER_KIND_JOIN: {
       decode_step_key (buffer, offset, &(body->join.key), length);
@@ -668,6 +685,16 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
   case GNUNET_MESSENGER_KIND_DELETE:
     decode_step (buffer, offset, &(body->deletion.hash));
     decode_step (buffer, offset, &(body->deletion.delay));
+    break;
+  case GNUNET_MESSENGER_KIND_CONNECTION:
+    decode_step (buffer, offset, &value0);
+    decode_step (buffer, offset, &value1);
+
+    body->connection.amount = GNUNET_be32toh (value0);
+    body->connection.flags = GNUNET_be32toh (value1);
+    break;
+  case GNUNET_MESSENGER_KIND_TICKET:
+    decode_step (buffer, offset, &(body->ticket.identifier));
     break;
   default:
     *kind = GNUNET_MESSENGER_KIND_UNKNOWN;
@@ -1054,6 +1081,7 @@ is_peer_message (const struct GNUNET_MESSENGER_Message *message)
   case GNUNET_MESSENGER_KIND_PEER:
   case GNUNET_MESSENGER_KIND_MISS:
   case GNUNET_MESSENGER_KIND_MERGE:
+  case GNUNET_MESSENGER_KIND_CONNECTION:
     return GNUNET_YES;
   default:
     return GNUNET_NO;
@@ -1099,6 +1127,10 @@ is_service_message (const struct GNUNET_MESSENGER_Message *message)
     return GNUNET_YES; // Prevent duplicate encryption breaking all access!
   case GNUNET_MESSENGER_KIND_DELETE:
     return GNUNET_YES; // Deletion should not apply individually! (inefficieny)
+  case GNUNET_MESSENGER_KIND_CONNECTION:
+    return GNUNET_YES; // Reserved for connection handling only!
+  case GNUNET_MESSENGER_KIND_TICKET:
+    return GNUNET_NO;
   default:
     return GNUNET_SYSERR;
   }
@@ -1142,6 +1174,10 @@ filter_message_sending (const struct GNUNET_MESSENGER_Message *message)
   case GNUNET_MESSENGER_KIND_PRIVATE:
     return GNUNET_NO; // Use #GNUNET_MESSENGER_send_message(...) with a contact instead!
   case GNUNET_MESSENGER_KIND_DELETE:
+    return GNUNET_YES;
+  case GNUNET_MESSENGER_KIND_CONNECTION:
+    return GNUNET_SYSERR; // Reserved for connection handling only!
+  case GNUNET_MESSENGER_KIND_TICKET:
     return GNUNET_YES;
   default:
     return GNUNET_SYSERR;

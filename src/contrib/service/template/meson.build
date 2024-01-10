@@ -3,15 +3,13 @@ gnunetservicetemplate_src = ['gnunet-service-template.c']
 configure_file(input : 'template.conf',
                output : 'template.conf',
                configuration : cdata,
-               install: true,
-               install_dir: pkgcfgdir)
+               install: false)
 
 executable ('gnunet-service-template',
             gnunetservicetemplate_src,
             dependencies: [libgnunetutil_dep],
             include_directories: [incdir, configuration_inc],
-            install: true,
-            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+            install: false)
 testtemplateapi = executable ('test_template_api',
             ['test_template_api.c'],
             dependencies: [libgnunetutil_dep],

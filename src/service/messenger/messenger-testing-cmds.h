@@ -25,6 +25,7 @@
  */
 #ifndef MESSENGER_TESTING_CMDS_H
 #define MESSENGER_TESTING_CMDS_H
+
 #include "gnunet_testing_ng_lib.h"
 #include "gnunet_testing_plugin.h"
 

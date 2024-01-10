@@ -417,8 +417,8 @@ GNUNET_STRINGS_base64_encode (const void *in,
  * @return the size of the output
  */
 size_t
-GNUNET_STRINGS_urlencode (const char *data,
-                          size_t len,
+GNUNET_STRINGS_urlencode (size_t len,
+                          const char data[static len],
                           char **out);
 
 
@@ -578,7 +578,7 @@ GNUNET_STRINGS_check_filename (const char *filename,
  */
 enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_to_address_ipv6 (const char *zt_addr,
-                                uint16_t addrlen,
+                                size_t addrlen,
                                 struct sockaddr_in6 *r_buf);
 
 
@@ -594,7 +594,7 @@ GNUNET_STRINGS_to_address_ipv6 (const char *zt_addr,
  */
 enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_to_address_ipv4 (const char *zt_addr,
-                                uint16_t addrlen,
+                                size_t addrlen,
                                 struct sockaddr_in *r_buf);
 
 

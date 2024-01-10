@@ -20,6 +20,7 @@ pcfiles = \
        gnunetnamestore.pc \
        gnunetnat.pc \
        gnunetnse.pc \
+       gnunetreclaim.pc \
        gnunetregex.pc \
        gnunetrevocation.pc \
        gnunetrps.pc \
@@ -59,6 +60,7 @@ EXTRA_DIST = \
        gnunetnat.pc.in \
        gnunetnse.pc.in \
        gnunetpostgres.pc.in \
+       gnunetreclaim.pc.in \
        gnunetregex.pc.in \
        gnunetrevocation.pc.in \
        gnunetrps.pc.in \

@@ -45,10 +45,6 @@ libgnunetrps_la_CFLAGS = $(AM_CFLAGS)
 libexec_PROGRAMS = \
  gnunet-service-rps
 
-#noinst_PROGRAMS = \
-# gnunet-rps-profiler
-
-
 gnunet_service_rps_SOURCES = \
  gnunet-service-rps_sampler_elem.h gnunet-service-rps_sampler_elem.c \
  rps-sampler_common.h rps-sampler_common.c \
@@ -148,20 +144,6 @@ test_service_rps_sampler_elem_LDADD = $(top_builddir)/src/lib/util/libgnunetutil
 #
 #test_rps_malicious_3_SOURCES = $(rps_test_src)
 #test_rps_malicious_3_LDADD = $(ld_rps_test_lib)
-
-#gnunet_rps_profiler_SOURCES = \
-# gnunet-service-rps_sampler_elem.h gnunet-service-rps_sampler_elem.c \
-# rps-sampler_common.h rps-sampler_common.c \
-# gnunet-service-rps_sampler.h gnunet-service-rps_sampler.c \
-# rps-test_util.h rps-test_util.c \
-# gnunet-rps-profiler.c
-#gnunet_rps_profiler_LDADD = \
-#  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
-#  libgnunetrps.la \
-#  $(top_builddir)/src/lib/util/libgnunetutil.la \
-#  $(top_builddir)/src/testbed/libgnunettestbed.la \
-#  -lm
-
 
 EXTRA_DIST = \
   test_rps.conf

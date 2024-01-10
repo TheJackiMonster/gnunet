@@ -242,7 +242,7 @@
  * How long to wait for a consume in userinfo endpoint
  */
 #define CONSUME_TIMEOUT GNUNET_TIME_relative_multiply ( \
-          GNUNET_TIME_UNIT_SECONDS,2)
+    GNUNET_TIME_UNIT_SECONDS,2)
 
 /**
  * OIDC ignored parameter array
@@ -1022,16 +1022,16 @@ login_redirect (void *cls)
                               "&%s=%s",
                               OIDC_CLIENT_ID_KEY,
                               handle->oidc->client_id);
-    GNUNET_STRINGS_urlencode (handle->oidc->redirect_uri,
-                              strlen (handle->oidc->redirect_uri),
+    GNUNET_STRINGS_urlencode (strlen (handle->oidc->redirect_uri),
+                              handle->oidc->redirect_uri,
                               &tmp);
     GNUNET_buffer_write_fstr (&buf,
                               "&%s=%s",
                               OIDC_REDIRECT_URI_KEY,
                               tmp);
     GNUNET_free (tmp);
-    GNUNET_STRINGS_urlencode (handle->oidc->scope,
-                              strlen (handle->oidc->scope),
+    GNUNET_STRINGS_urlencode (strlen (handle->oidc->scope),
+                              handle->oidc->scope,
                               &tmp);
     GNUNET_buffer_write_fstr (&buf,
                               "&%s=%s",
@@ -1040,8 +1040,8 @@ login_redirect (void *cls)
     GNUNET_free (tmp);
     if (NULL != handle->oidc->state)
     {
-      GNUNET_STRINGS_urlencode (handle->oidc->state,
-                                strlen (handle->oidc->state),
+      GNUNET_STRINGS_urlencode (strlen (handle->oidc->state),
+                                handle->oidc->state,
                                 &tmp);
       GNUNET_buffer_write_fstr (&buf,
                                 "&%s=%s",
@@ -1065,8 +1065,8 @@ login_redirect (void *cls)
     }
     if (NULL != handle->oidc->claims)
     {
-      GNUNET_STRINGS_urlencode (handle->oidc->claims,
-                                strlen (handle->oidc->claims),
+      GNUNET_STRINGS_urlencode (strlen (handle->oidc->claims),
+                                handle->oidc->claims,
                                 &tmp);
       GNUNET_buffer_write_fstr (&buf,
                                 "&%s=%s",

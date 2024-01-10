@@ -23,7 +23,7 @@
  * @brief cmd to stop a messenger service.
  * @author Tobias Frisch
  */
-#include "platform.h"
+
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_ng_lib.h"
 #include "gnunet_messenger_service.h"

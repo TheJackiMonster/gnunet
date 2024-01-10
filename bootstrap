@@ -96,8 +96,7 @@ submodules()
     if ! git --version >/dev/null; then
         echo "git not installed, skipping submodule update"
     else
-        git submodule update --init --recursive && \
-        git submodule sync --recursive
+        git submodule update --init --force --remote
     fi
 }
 
@@ -131,7 +130,7 @@ main()
     check_yapf
     create_handbook
     update_gana
-    if [ "$@" = "meson" ]; then
+    if [ "$1" = "meson" ]; then
       echo "Skipping autoreconf"
     else
       check_libtool

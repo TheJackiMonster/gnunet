@@ -84,7 +84,6 @@ gnunetinclude_HEADERS = \
   gnunet_op_lib.h \
   gnunet_os_lib.h \
   gnunet_peer_lib.h \
-  gnunet_peerinfo_service.h \
   gnunet_peerstore_plugin.h \
   gnunet_peerstore_service.h \
   gnunet_plugin_lib.h \
@@ -111,8 +110,6 @@ gnunetinclude_HEADERS = \
   gnunet_sq_lib.h \
   gnunet_statistics_service.h \
   gnunet_strings_lib.h \
-  gnunet_testbed_service.h \
-  gnunet_testbed_logger_service.h \
   gnunet_testing_barrier.h \
   gnunet_testing_lib.h \
   gnunet_testing_plugin.h \

@@ -70,7 +70,6 @@ src/contrib/service/conversation/gnunet_gst_test.c
 src/contrib/service/conversation/microphone.c
 src/contrib/service/conversation/plugin_gnsrecord_conversation.c
 src/contrib/service/conversation/speaker.c
-src/contrib/service/rps/gnunet-rps-profiler.c
 src/contrib/service/rps/gnunet-rps.c
 src/contrib/service/rps/gnunet-service-rps.c
 src/contrib/service/rps/gnunet-service-rps_custommap.c
@@ -87,7 +86,6 @@ src/contrib/service/scalarproduct/gnunet-service-scalarproduct-ecc_bob.c
 src/contrib/service/scalarproduct/gnunet-service-scalarproduct_alice.c
 src/contrib/service/scalarproduct/gnunet-service-scalarproduct_bob.c
 src/contrib/service/scalarproduct/scalarproduct_api.c
-src/contrib/service/secretsharing/gnunet-secretsharing-profiler.c
 src/contrib/service/secretsharing/gnunet-service-secretsharing.c
 src/contrib/service/secretsharing/secretsharing_api.c
 src/contrib/service/secretsharing/secretsharing_common.c
@@ -96,7 +94,6 @@ src/contrib/service/set/gnunet-service-set_intersection.c
 src/contrib/service/set/gnunet-service-set_union.c
 src/contrib/service/set/gnunet-service-set_union_strata_estimator.c
 src/contrib/service/set/gnunet-set-ibf-profiler.c
-src/contrib/service/set/gnunet-set-profiler.c
 src/contrib/service/set/ibf.c
 src/contrib/service/set/ibf_sim.c
 src/contrib/service/set/plugin_block_set_test.c
@@ -251,7 +248,6 @@ src/service/cadet/cadet_api_get_path.c
 src/service/cadet/cadet_api_helper.c
 src/service/cadet/cadet_api_list_peers.c
 src/service/cadet/cadet_api_list_tunnels.c
-src/service/cadet/cadet_test_lib.c
 src/service/cadet/desirability_table.c
 src/service/cadet/gnunet-service-cadet.c
 src/service/cadet/gnunet-service-cadet_channel.c
@@ -273,7 +269,6 @@ src/service/datacache/datacache.c
 src/service/datastore/datastore_api.c
 src/service/datastore/gnunet-service-datastore.c
 src/service/dht/dht_api.c
-src/service/dht/dht_test_lib.c
 src/service/dht/gnunet-service-dht.c
 src/service/dht/gnunet-service-dht_clients.c
 src/service/dht/gnunet-service-dht_datacache.c
@@ -305,7 +300,6 @@ src/service/fs/fs_publish_ksk.c
 src/service/fs/fs_publish_ublock.c
 src/service/fs/fs_search.c
 src/service/fs/fs_sharetree.c
-src/service/fs/fs_test_lib.c
 src/service/fs/fs_tree.c
 src/service/fs/fs_unindex.c
 src/service/fs/fs_uri.c
@@ -395,7 +389,6 @@ src/service/nat/gnunet-service-nat_mini.c
 src/service/nat/gnunet-service-nat_stun.c
 src/service/nat/nat_api.c
 src/service/nat/nat_api_stun.c
-src/service/nse/gnunet-nse-profiler.c
 src/service/nse/gnunet-service-nse.c
 src/service/nse/nse_api.c
 src/service/peerstore/gnunet-service-peerstore.c
@@ -412,7 +405,6 @@ src/service/reclaim/reclaim_attribute.c
 src/service/reclaim/reclaim_credential.c
 src/service/regex/gnunet-daemon-regexprofiler.c
 src/service/regex/gnunet-regex-profiler.c
-src/service/regex/gnunet-regex-simulation-profiler.c
 src/service/regex/gnunet-service-regex.c
 src/service/regex/perf-regex.c
 src/service/regex/regex_api_announce.c
@@ -437,12 +429,10 @@ src/service/rest/rest.c
 src/service/revocation/gnunet-service-revocation.c
 src/service/revocation/revocation_api.c
 src/service/seti/gnunet-service-seti.c
-src/service/seti/gnunet-seti-profiler.c
 src/service/seti/seti_api.c
 src/service/setu/gnunet-service-setu.c
 src/service/setu/gnunet-service-setu_strata_estimator.c
 src/service/setu/gnunet-setu-ibf-profiler.c
-src/service/setu/gnunet-setu-profiler.c
 src/service/setu/ibf.c
 src/service/setu/ibf_sim.c
 src/service/setu/setu_api.c

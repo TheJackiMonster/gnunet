@@ -17,21 +17,8 @@ endif
 libexec_PROGRAMS = \
  gnunet-service-seti
 
-noinst_PROGRAMS = \
- gnunet-seti-profiler
-
 lib_LTLIBRARIES = \
   libgnunetseti.la
-
-gnunet_seti_profiler_SOURCES = \
- gnunet-seti-profiler.c
-gnunet_seti_profiler_LDADD = \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
-  libgnunetseti.la \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
-  $(GN_LIBINTL)
-
 
 gnunet_service_seti_SOURCES = \
  gnunet-service-seti.c \

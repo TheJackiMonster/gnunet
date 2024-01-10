@@ -26,7 +26,6 @@
 #ifndef GNUNET_SERVICE_MESSENGER_MESSAGE_RECV_H
 #define GNUNET_SERVICE_MESSENGER_MESSAGE_RECV_H
 
-#include "platform.h"
 #include "gnunet_util_lib.h"
 
 #include "gnunet-service-messenger_member_session.h"

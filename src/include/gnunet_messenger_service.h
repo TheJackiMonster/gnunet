@@ -42,6 +42,8 @@ extern "C" {
 #include "gnunet_common.h"
 #include "gnunet_configuration_lib.h"
 #include "gnunet_identity_service.h"
+#include "gnunet_reclaim_lib.h"
+#include "gnunet_reclaim_service.h"
 #include "gnunet_scheduler_lib.h"
 #include "gnunet_time_lib.h"
 #include "gnunet_util_lib.h"
@@ -199,6 +201,11 @@ enum GNUNET_MESSENGER_MessageKind
    * The connection kind. The message contains a #GNUNET_MESSENGER_MessageConnection body.
    */
   GNUNET_MESSENGER_KIND_CONNECTION = 16,
+
+  /**
+   * The ticket kind. The message contains a #GNUNET_MESSENGER_MessageTicket body.
+   */
+  GNUNET_MESSENGER_KIND_TICKET = 17,
 
   /**
    * The unknown kind. The message contains an unknown body.
@@ -516,6 +523,20 @@ struct GNUNET_MESSENGER_MessageConnection
 };
 
 /**
+ * A ticket message body
+ * This allows to exchange ticket identifiers with an audience.
+ *
+ * Message-body-size: 32 bytes
+ */
+struct GNUNET_MESSENGER_MessageTicket
+{
+  /**
+   * The identifier of a RECLAIM ticket.
+   */
+  struct GNUNET_RECLAIM_Identifier identifier;
+};
+
+/**
  * The unified body of a #GNUNET_MESSENGER_Message.
  */
 struct GNUNET_MESSENGER_MessageBody
@@ -538,6 +559,7 @@ struct GNUNET_MESSENGER_MessageBody
     struct GNUNET_MESSENGER_MessagePrivate privacy;
     struct GNUNET_MESSENGER_MessageDelete deletion;
     struct GNUNET_MESSENGER_MessageConnection connection;
+    struct GNUNET_MESSENGER_MessageTicket ticket;
   };
 };
 
@@ -882,6 +904,22 @@ int
 GNUNET_MESSENGER_iterate_members (struct GNUNET_MESSENGER_Room *room,
                                   GNUNET_MESSENGER_MemberCallback callback,
                                   void *cls);
+
+/**
+ * Send a <i>ticket</i> into a <i>room</i>. The ticket will automatically be converted
+ * into a message to be sent only to its audience as a private message.
+ *
+ * A ticket can only be sent with this function if its issuer's public key is the one
+ * being used by the messenger. The audience's public key is not allowed to be the
+ * anonymous public key. The room needs to contain a member using the audience's public
+ * key.
+ *
+ * @param[in,out] room Room handle
+ * @param[in] ticket Ticket to send
+ */
+void
+GNUNET_MESSENGER_send_ticket (struct GNUNET_MESSENGER_Room *room,
+                              const struct GNUNET_RECLAIM_Ticket *ticket);
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {

@@ -28,20 +28,6 @@ libgnunetnse_la_LDFLAGS = \
 libexec_PROGRAMS = \
  gnunet-service-nse
 
-#noinst_PROGRAMS = \
-# gnunet-nse-profiler
-
-# FIXME no testbed in TNG
-#gnunet_nse_profiler_SOURCES = \
-# gnunet-nse-profiler.c
-#gnunet_nse_profiler_LDADD = -lm \
-#  libgnunetnse.la \
-#  $(top_builddir)/src/lib/util/libgnunetutil.la \
-#  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
-#  $(top_builddir)/src/service/testing/libgnunettesting.la \
-#  $(top_builddir)/src/testbed/libgnunettestbed.la \
-#  $(GN_LIBINTL)
-
 gnunet_service_nse_SOURCES = \
  gnunet-service-nse.c
 gnunet_service_nse_LDADD = \

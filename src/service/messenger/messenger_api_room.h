@@ -26,7 +26,6 @@
 #ifndef GNUNET_MESSENGER_API_ROOM_H
 #define GNUNET_MESSENGER_API_ROOM_H
 
-#include "platform.h"
 #include "gnunet_util_lib.h"
 
 #include "gnunet_messenger_service.h"

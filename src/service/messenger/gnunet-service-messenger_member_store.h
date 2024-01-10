@@ -26,7 +26,6 @@
 #ifndef GNUNET_SERVICE_MESSENGER_MEMBER_STORE_H
 #define GNUNET_SERVICE_MESSENGER_MEMBER_STORE_H
 
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_identity_service.h"
 #include "messenger_api_message.h"

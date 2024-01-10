@@ -348,7 +348,7 @@ GNUNET_b2s (const void *buf,
  * @param tm timestamp for which we should setup logging
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-static int
+static enum GNUNET_GenericReturnValue
 setup_log_file (const struct tm *tm)
 {
   static char last_fn[PATH_MAX + 1];
@@ -725,7 +725,7 @@ parse_all_definitions ()
  * @param logfile which file to write log messages to (can be NULL)
  * @return #GNUNET_OK on success
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_log_setup (const char *comp,
                   const char *loglevel,
                   const char *logfile)
@@ -737,7 +737,10 @@ GNUNET_log_setup (const char *comp,
   parse_all_definitions ();
 #endif
   GNUNET_free (component);
-  GNUNET_asprintf (&component, "%s-%d", comp, getpid ());
+  GNUNET_asprintf (&component,
+                   "%s-%d",
+                   comp,
+                   getpid ());
   GNUNET_free (component_nopid);
   component_nopid = GNUNET_strdup (comp);
 
@@ -768,7 +771,8 @@ GNUNET_log_setup (const char *comp,
 
 
 void
-GNUNET_logger_add (GNUNET_Logger logger, void *logger_cls)
+GNUNET_logger_add (GNUNET_Logger logger,
+                   void *logger_cls)
 {
   struct CustomLogger *entry;
 
@@ -781,7 +785,8 @@ GNUNET_logger_add (GNUNET_Logger logger, void *logger_cls)
 
 
 void
-GNUNET_logger_remove (GNUNET_Logger logger, void *logger_cls)
+GNUNET_logger_remove (GNUNET_Logger logger,
+                      void *logger_cls)
 {
   struct CustomLogger *pos;
   struct CustomLogger *prev;
@@ -817,7 +822,20 @@ output_message (enum GNUNET_ErrorType kind,
                 const char *datestr,
                 const char *msg)
 {
+  static int have_journald = -1;
   struct CustomLogger *pos;
+
+  if (-1 == have_journald)
+  {
+    /* systemd after version 231 sets this environment
+       variable if we are logging to journald. In this
+       case, skip outputting our component name, PID
+       and timestamp as journald already adds those. (#8032) */
+    if (NULL != getenv ("JOURNAL_STREAM"))
+      have_journald = 1;
+    else
+      have_journald = 0;
+  }
 
   /* only use the standard logger if no custom loggers are present */
   if ((NULL != GNUNET_stderr) && (NULL == loggers))
@@ -831,7 +849,8 @@ output_message (enum GNUNET_ErrorType kind,
        * interactively, yet the same message shouldn't look
        * this way if the output is going to logfiles or robots
        * instead.
-       */fprintf (GNUNET_stderr, "* %s", msg);
+       */
+      fprintf (GNUNET_stderr, "* %s", msg);
     }
     else if (GNUNET_YES == current_async_scope.have_scope)
     {
@@ -847,22 +866,35 @@ output_message (enum GNUNET_ErrorType kind,
       GNUNET_assert (NULL != end);
       *end = '\0';
       skip_log = 0;
-      fprintf (GNUNET_stderr,
-               "%s %s(%s) %s %s",
-               datestr,
-               comp,
-               id_buf,
-               GNUNET_error_type_to_string (kind),
-               msg);
+      if (have_journald)
+        fprintf (GNUNET_stderr,
+                 "(%s) %s %s",
+                 id_buf,
+                 GNUNET_error_type_to_string (kind),
+                 msg);
+      else
+        fprintf (GNUNET_stderr,
+                 "%s %s(%s) %s %s",
+                 datestr,
+                 comp,
+                 id_buf,
+                 GNUNET_error_type_to_string (kind),
+                 msg);
     }
     else
     {
-      fprintf (GNUNET_stderr,
-               "%s %s %s %s",
-               datestr,
-               comp,
-               GNUNET_error_type_to_string (kind),
-               msg);
+      if (have_journald)
+        fprintf (GNUNET_stderr,
+                 "%s %s",
+                 GNUNET_error_type_to_string (kind),
+                 msg);
+      else
+        fprintf (GNUNET_stderr,
+                 "%s %s %s %s",
+                 datestr,
+                 comp,
+                 GNUNET_error_type_to_string (kind),
+                 msg);
     }
     fflush (GNUNET_stderr);
   }

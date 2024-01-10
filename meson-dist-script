@@ -2,5 +2,19 @@
 
 set -eu
 
-cd "${MESON_DIST_ROOT}"
-. ./scripts/sphinx_update.sh
+HANDBOOK_BOOTSTRAP=${MESON_SOURCE_ROOT}/contrib/handbook/_build
+
+if [ ! -d ${HANDBOOK_BOOTSTRAP}/html ] || [ ! -d ${HANDBOOK_BOOTSTRAP}/texinfo ]
+then
+  echo "Handbook not found, did you run bootstrap? Trying to compile now..."
+  cd "${MESON_DIST_ROOT}"
+  . ./scripts/sphinx_update.sh || exit 1
+  rm -rf ${MESON_DIST_ROOT}/contrib/handbook/_build
+else
+  cp -r ${HANDBOOK_BOOTSTRAP}/html ${MESON_DIST_ROOT}/handbook/ || exit 1
+  cp -r ${HANDBOOK_BOOTSTRAP}/texinfo ${MESON_DIST_ROOT}/handbook/ || exit 1
+fi
+
+# Do not dist old handbook
+rm -rf ${MESON_DIST_ROOT}/doc/old
+

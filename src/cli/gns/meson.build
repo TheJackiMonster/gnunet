@@ -2,9 +2,12 @@ configure_file(input : 'gnunet-gns-proxy-setup-ca.in',
   output : 'gnunet-gns-proxy-setup-ca',
   configuration : cdata,
   install: true,
+  install_mode: 'rwxr-xr-x',
   install_dir: get_option('bindir'))
 
 install_data('gnunet-gns-proxy-ca.template',
+  install_dir: get_option('datadir')/'gnunet')
+install_data('openssl.cnf',
   install_dir: get_option('datadir')/'gnunet')
 
 executable ('gnunet-gns',
@@ -37,6 +40,9 @@ testgns = [
   'test_gns_soa_lookup',
   'test_gns_txt_lookup',
   'test_gns_zkey_lookup',
+  'test_gns_sbox_simple',
+  'test_gns_sbox',
+  'test_gns_box_sbox',
   ]
 
 testconfigs = [

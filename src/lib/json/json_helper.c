@@ -55,7 +55,7 @@ parse_fixed_data (void *cls,
                   struct GNUNET_JSON_Specification *spec)
 {
   const char *enc;
-  unsigned int len;
+  size_t len;
 
   if (NULL == (enc = json_string_value (root)))
   {
@@ -63,6 +63,11 @@ parse_fixed_data (void *cls,
     return GNUNET_SYSERR;
   }
   len = strlen (enc);
+  if (len >= SIZE_MAX / 5)
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
   if (((len * 5) / 8) != spec->ptr_size)
   {
     GNUNET_break_op (0);
@@ -279,7 +284,7 @@ GNUNET_JSON_spec_string (const char *name,
 {
   struct GNUNET_JSON_Specification ret = {
     .parser = &parse_string,
-     .field = name,
+    .field = name,
     .ptr = strptr
   };
 

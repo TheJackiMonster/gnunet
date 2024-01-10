@@ -759,8 +759,8 @@ GNUNET_HELLO_builder_to_url (const struct GNUNET_HELLO_Builder *builder,
     }
     pfx_len = eou - a->uri;
     eou += 3;
-    GNUNET_STRINGS_urlencode (eou,
-                              a->uri_len - 4 - pfx_len,
+    GNUNET_STRINGS_urlencode (a->uri_len - 4 - pfx_len,
+                              eou,
                               &ue);
     GNUNET_asprintf (&tmp,
                      "%s%s%.*s=%s",

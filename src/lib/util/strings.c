@@ -945,9 +945,8 @@ GNUNET_STRINGS_parse_uri (const char *path,
     return GNUNET_NO;
   if (scheme_part)
   {
-    *scheme_part = GNUNET_malloc (post_scheme_part - path + 1);
-    GNUNET_memcpy (*scheme_part, path, post_scheme_part - path);
-    (*scheme_part)[post_scheme_part - path] = '\0';
+    *scheme_part = GNUNET_strndup (path,
+                                   post_scheme_part - path);
   }
   if (path_part)
     *path_part = post_scheme_part;
@@ -1032,70 +1031,77 @@ GNUNET_STRINGS_check_filename (const char *filename,
 
 enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_to_address_ipv6 (const char *zt_addr,
-                                uint16_t addrlen,
+                                size_t addrlen,
                                 struct sockaddr_in6 *r_buf)
 {
-  char zbuf[addrlen + 1];
-  int ret;
-  char *port_colon;
-  unsigned int port;
-  char dummy[2];
-
   if (addrlen < 6)
     return GNUNET_SYSERR;
-  GNUNET_memcpy (zbuf, zt_addr, addrlen);
-  if ('[' != zbuf[0])
+  if (addrlen > 512)
+    return GNUNET_SYSERR; /* sanity check to protect zbuf allocation,
+                             actual limit is not precise */
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                _ ("IPv6 address did not start with `['\n"));
-    return GNUNET_SYSERR;
-  }
-  zbuf[addrlen] = '\0';
-  port_colon = strrchr (zbuf, ':');
-  if (NULL == port_colon)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                _ ("IPv6 address did contain ':' to separate port number\n"));
-    return GNUNET_SYSERR;
-  }
-  if (']' != *(port_colon - 1))
-  {
-    GNUNET_log (
-      GNUNET_ERROR_TYPE_WARNING,
-      _ ("IPv6 address did contain ']' before ':' to separate port number\n"));
-    return GNUNET_SYSERR;
-  }
-  ret = sscanf (port_colon, ":%u%1s", &port, dummy);
-  if ((1 != ret) || (port > 65535))
-  {
-    GNUNET_log (
-      GNUNET_ERROR_TYPE_WARNING,
-      _ ("IPv6 address did contain a valid port number after the last ':'\n"));
-    return GNUNET_SYSERR;
-  }
-  *(port_colon - 1) = '\0';
-  memset (r_buf, 0, sizeof(struct sockaddr_in6));
-  ret = inet_pton (AF_INET6, &zbuf[1], &r_buf->sin6_addr);
-  if (ret <= 0)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                _ ("Invalid IPv6 address `%s': %s\n"),
-                &zbuf[1],
-                strerror (errno));
-    return GNUNET_SYSERR;
-  }
-  r_buf->sin6_port = htons (port);
-  r_buf->sin6_family = AF_INET6;
+    char zbuf[addrlen + 1];
+    int ret;
+    char *port_colon;
+    unsigned int port;
+    char dummy[2];
+
+    GNUNET_memcpy (zbuf, zt_addr, addrlen);
+    if ('[' != zbuf[0])
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  _ ("IPv6 address did not start with `['\n"));
+      return GNUNET_SYSERR;
+    }
+    zbuf[addrlen] = '\0';
+    port_colon = strrchr (zbuf, ':');
+    if (NULL == port_colon)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  _ ("IPv6 address did contain ':' to separate port number\n"));
+      return GNUNET_SYSERR;
+    }
+    if (']' != *(port_colon - 1))
+    {
+      GNUNET_log (
+        GNUNET_ERROR_TYPE_WARNING,
+        _ (
+          "IPv6 address did contain ']' before ':' to separate port number\n"));
+      return GNUNET_SYSERR;
+    }
+    ret = sscanf (port_colon, ":%u%1s", &port, dummy);
+    if ((1 != ret) || (port > 65535))
+    {
+      GNUNET_log (
+        GNUNET_ERROR_TYPE_WARNING,
+        _ (
+          "IPv6 address did contain a valid port number after the last ':'\n"));
+      return GNUNET_SYSERR;
+    }
+    *(port_colon - 1) = '\0';
+    memset (r_buf, 0, sizeof(struct sockaddr_in6));
+    ret = inet_pton (AF_INET6, &zbuf[1], &r_buf->sin6_addr);
+    if (ret <= 0)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  _ ("Invalid IPv6 address `%s': %s\n"),
+                  &zbuf[1],
+                  strerror (errno));
+      return GNUNET_SYSERR;
+    }
+    r_buf->sin6_port = htons (port);
+    r_buf->sin6_family = AF_INET6;
 #if HAVE_SOCKADDR_IN_SIN_LEN
-  r_buf->sin6_len = (u_char) sizeof(struct sockaddr_in6);
+    r_buf->sin6_len = (u_char) sizeof(struct sockaddr_in6);
 #endif
-  return GNUNET_OK;
+    return GNUNET_OK;
+  }
 }
 
 
 enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_to_address_ipv4 (const char *zt_addr,
-                                uint16_t addrlen,
+                                size_t addrlen,
                                 struct sockaddr_in *r_buf)
 {
   unsigned int temps[4];
@@ -1151,25 +1157,21 @@ GNUNET_STRINGS_parse_socket_addr (const char *addr,
                                   uint8_t *af,
                                   struct sockaddr **sa)
 {
-  char *cp = GNUNET_strdup (addr);
-
   *af = AF_UNSPEC;
   if ('[' == *addr)
   {
     /* IPv6 */
     *sa = GNUNET_malloc (sizeof(struct sockaddr_in6));
     if (GNUNET_OK !=
-        GNUNET_STRINGS_to_address_ipv6 (cp,
-                                        strlen (cp),
+        GNUNET_STRINGS_to_address_ipv6 (addr,
+                                        strlen (addr),
                                         (struct sockaddr_in6 *) *sa))
     {
       GNUNET_free (*sa);
       *sa = NULL;
-      GNUNET_free (cp);
       return 0;
     }
     *af = AF_INET6;
-    GNUNET_free (cp);
     return sizeof(struct sockaddr_in6);
   }
   else
@@ -1177,17 +1179,15 @@ GNUNET_STRINGS_parse_socket_addr (const char *addr,
     /* IPv4 */
     *sa = GNUNET_malloc (sizeof(struct sockaddr_in));
     if (GNUNET_OK !=
-        GNUNET_STRINGS_to_address_ipv4 (cp,
-                                        strlen (cp),
+        GNUNET_STRINGS_to_address_ipv4 (addr,
+                                        strlen (addr),
                                         (struct sockaddr_in *) *sa))
     {
       GNUNET_free (*sa);
       *sa = NULL;
-      GNUNET_free (cp);
       return 0;
     }
     *af = AF_INET;
-    GNUNET_free (cp);
     return sizeof(struct sockaddr_in);
   }
 }
@@ -1198,14 +1198,21 @@ GNUNET_STRINGS_parse_socket_addr (const char *addr,
  * freed with a single call to GNUNET_free();
  */
 static char *const *
-_make_continuous_arg_copy (int argc, char *const *argv)
+_make_continuous_arg_copy (int argc,
+                           char *const *argv)
 {
   size_t argvsize = 0;
   char **new_argv;
   char *p;
 
   for (int i = 0; i < argc; i++)
+  {
+    size_t ail = strlen (argv[i]);
+
+    GNUNET_assert (SIZE_MAX - 1 - sizeof (char *) > argvsize);
+    GNUNET_assert (SIZE_MAX - ail > argvsize + 1 + sizeof (char*));
     argvsize += strlen (argv[i]) + 1 + sizeof(char *);
+  }
   new_argv = GNUNET_malloc (argvsize + sizeof(char *));
   p = (char *) &new_argv[argc + 1];
   for (int i = 0; i < argc; i++)
@@ -1290,19 +1297,12 @@ parse_port_policy (const char *port_policy,
 struct GNUNET_STRINGS_IPv4NetworkPolicy *
 GNUNET_STRINGS_parse_ipv4_policy (const char *routeListX)
 {
-  unsigned int count;
-  unsigned int i;
-  unsigned int j;
-  unsigned int len;
-  int cnt;
-  unsigned int pos;
+  size_t count;
+  size_t len;
+  size_t pos;
   unsigned int temps[8];
-  int slash;
   struct GNUNET_STRINGS_IPv4NetworkPolicy *result;
-  int colon;
-  int end;
   char *routeList;
-  char dummy[2];
 
   if (NULL == routeListX)
     return NULL;
@@ -1311,15 +1311,19 @@ GNUNET_STRINGS_parse_ipv4_policy (const char *routeListX)
     return NULL;
   routeList = GNUNET_strdup (routeListX);
   count = 0;
-  for (i = 0; i < len; i++)
+  for (size_t i = 0; i < len; i++)
     if (routeList[i] == ';')
       count++;
-  result = GNUNET_malloc (sizeof(struct GNUNET_STRINGS_IPv4NetworkPolicy)
-                          * (count + 1));
-  i = 0;
+  GNUNET_assert (count < SIZE_MAX);
+  result = GNUNET_new_array (count + 1,
+                             struct GNUNET_STRINGS_IPv4NetworkPolicy);
   pos = 0;
-  while (i < count)
+  for (size_t i = 0; i < count; i++)
   {
+    size_t colon;
+    size_t end;
+    char dummy;
+
     for (colon = pos; ':' != routeList[colon]; colon++)
       if ((';' == routeList[colon]) || ('\0' == routeList[colon]))
         break;
@@ -1335,20 +1339,20 @@ GNUNET_STRINGS_parse_ipv4_policy (const char *routeListX)
       if (GNUNET_OK != parse_port_policy (&routeList[colon + 1], &result[i].pp))
         break;
     }
-    cnt = sscanf (&routeList[pos],
-                  "%u.%u.%u.%u/%u.%u.%u.%u%1s",
-                  &temps[0],
-                  &temps[1],
-                  &temps[2],
-                  &temps[3],
-                  &temps[4],
-                  &temps[5],
-                  &temps[6],
-                  &temps[7],
-                  dummy);
-    if (8 == cnt)
+    if (8 ==
+        sscanf (&routeList[pos],
+                "%u.%u.%u.%u/%u.%u.%u.%u%c",
+                &temps[0],
+                &temps[1],
+                &temps[2],
+                &temps[3],
+                &temps[4],
+                &temps[5],
+                &temps[6],
+                &temps[7],
+                &dummy))
     {
-      for (j = 0; j < 8; j++)
+      for (unsigned int j = 0; j < 8; j++)
         if (temps[j] > 0xFF)
         {
           LOG (GNUNET_ERROR_TYPE_WARNING,
@@ -1363,68 +1367,72 @@ GNUNET_STRINGS_parse_ipv4_policy (const char *routeListX)
       result[i].netmask.s_addr = htonl ((temps[4] << 24) + (temps[5] << 16)
                                         + (temps[6] << 8) + temps[7]);
       pos = end + 1;
-      i++;
       continue;
     }
+
     /* try second notation */
-    cnt = sscanf (&routeList[pos],
-                  "%u.%u.%u.%u/%u%1s",
+    {
+      unsigned int slash;
+
+      if (5 ==
+          sscanf (&routeList[pos],
+                  "%u.%u.%u.%u/%u%c",
                   &temps[0],
                   &temps[1],
                   &temps[2],
                   &temps[3],
                   &slash,
-                  dummy);
-    if (5 == cnt)
-    {
-      for (j = 0; j < 4; j++)
-        if (temps[j] > 0xFF)
+                  &dummy))
+      {
+        for (unsigned int j = 0; j < 4; j++)
+          if (temps[j] > 0xFF)
+          {
+            LOG (GNUNET_ERROR_TYPE_WARNING,
+                 _ ("Invalid format for IP: `%s'\n"),
+                 &routeList[pos]);
+            GNUNET_free (result);
+            GNUNET_free (routeList);
+            return NULL;
+          }
+        result[i].network.s_addr = htonl ((temps[0] << 24) + (temps[1] << 16)
+                                          + (temps[2] << 8) + temps[3]);
+        if (slash <= 32)
+        {
+          result[i].netmask.s_addr = 0;
+          while (slash > 0)
+          {
+            result[i].netmask.s_addr =
+              (result[i].netmask.s_addr >> 1) + 0x80000000;
+            slash--;
+          }
+          result[i].netmask.s_addr = htonl (result[i].netmask.s_addr);
+          pos = end + 1;
+          continue;
+        }
+        else
         {
           LOG (GNUNET_ERROR_TYPE_WARNING,
-               _ ("Invalid format for IP: `%s'\n"),
-               &routeList[pos]);
+               _ (
+                 "Invalid network notation ('/%d' is not legal in IPv4 CIDR)."),
+               slash);
           GNUNET_free (result);
           GNUNET_free (routeList);
-          return NULL;
+          return NULL;     /* error */
         }
-      result[i].network.s_addr = htonl ((temps[0] << 24) + (temps[1] << 16)
-                                        + (temps[2] << 8) + temps[3]);
-      if ((slash <= 32) && (slash >= 0))
-      {
-        result[i].netmask.s_addr = 0;
-        while (slash > 0)
-        {
-          result[i].netmask.s_addr =
-            (result[i].netmask.s_addr >> 1) + 0x80000000;
-          slash--;
-        }
-        result[i].netmask.s_addr = htonl (result[i].netmask.s_addr);
-        pos = end + 1;
-        i++;
-        continue;
-      }
-      else
-      {
-        LOG (GNUNET_ERROR_TYPE_WARNING,
-             _ ("Invalid network notation ('/%d' is not legal in IPv4 CIDR)."),
-             slash);
-        GNUNET_free (result);
-        GNUNET_free (routeList);
-        return NULL;       /* error */
       }
     }
+
     /* try third notation */
-    slash = 32;
-    cnt = sscanf (&routeList[pos],
-                  "%u.%u.%u.%u%1s",
-                  &temps[0],
-                  &temps[1],
-                  &temps[2],
-                  &temps[3],
-                  dummy);
-    if (4 == cnt)
+    if (4 ==
+        sscanf (&routeList[pos],
+                "%u.%u.%u.%u%c",
+                &temps[0],
+                &temps[1],
+                &temps[2],
+                &temps[3],
+                &dummy))
     {
-      for (j = 0; j < 4; j++)
+      for (unsigned int j = 0; j < 4; j++)
         if (temps[j] > 0xFF)
         {
           LOG (GNUNET_ERROR_TYPE_WARNING,
@@ -1436,15 +1444,8 @@ GNUNET_STRINGS_parse_ipv4_policy (const char *routeListX)
         }
       result[i].network.s_addr = htonl ((temps[0] << 24) + (temps[1] << 16)
                                         + (temps[2] << 8) + temps[3]);
-      result[i].netmask.s_addr = 0;
-      while (slash > 0)
-      {
-        result[i].netmask.s_addr = (result[i].netmask.s_addr >> 1) + 0x80000000;
-        slash--;
-      }
-      result[i].netmask.s_addr = htonl (result[i].netmask.s_addr);
+      result[i].netmask.s_addr = htonl (0xffffffff); /* yeah, the htonl is useless */
       pos = end + 1;
-      i++;
       continue;
     }
     LOG (GNUNET_ERROR_TYPE_WARNING,
@@ -1471,20 +1472,13 @@ GNUNET_STRINGS_parse_ipv4_policy (const char *routeListX)
 struct GNUNET_STRINGS_IPv6NetworkPolicy *
 GNUNET_STRINGS_parse_ipv6_policy (const char *routeListX)
 {
-  unsigned int count;
-  unsigned int i;
-  unsigned int len;
-  unsigned int pos;
-  int start;
-  int slash;
+  size_t count;
+  size_t len;
+  size_t pos;
   int ret;
   char *routeList;
   struct GNUNET_STRINGS_IPv6NetworkPolicy *result;
-  unsigned int bits;
   unsigned int off;
-  int save;
-  int colon;
-  char dummy[2];
 
   if (NULL == routeListX)
     return NULL;
@@ -1493,8 +1487,8 @@ GNUNET_STRINGS_parse_ipv6_policy (const char *routeListX)
     return NULL;
   routeList = GNUNET_strdup (routeListX);
   count = 0;
-  for (i = 0; i < len; i++)
-    if (';' == routeList[i])
+  for (size_t j = 0; j < len; j++)
+    if (';' == routeList[j])
       count++;
   if (';' != routeList[len - 1])
   {
@@ -1504,27 +1498,34 @@ GNUNET_STRINGS_parse_ipv6_policy (const char *routeListX)
     GNUNET_free (routeList);
     return NULL;
   }
-
-  result = GNUNET_malloc (sizeof(struct GNUNET_STRINGS_IPv6NetworkPolicy)
-                          * (count + 1));
-  i = 0;
+  GNUNET_assert (count < UINT_MAX);
+  result = GNUNET_new_array (count + 1,
+                             struct GNUNET_STRINGS_IPv6NetworkPolicy);
   pos = 0;
-  while (i < count)
+  for (size_t i = 0; i < count; i++)
   {
+    size_t start;
+    size_t slash;
+
     start = pos;
     while (';' != routeList[pos])
       pos++;
     slash = pos;
-    while ((slash >= start) && (routeList[slash] != '/'))
+    while ( (slash >= start) &&
+            (routeList[slash] != '/') )
       slash--;
 
     if (slash < start)
     {
-      memset (&result[i].netmask, 0xFF, sizeof(struct in6_addr));
+      memset (&result[i].netmask,
+              0xFF,
+              sizeof(struct in6_addr));
       slash = pos;
     }
     else
     {
+      size_t colon;
+
       routeList[pos] = '\0';
       for (colon = pos; ':' != routeList[colon]; colon--)
         if ('/' == routeList[colon])
@@ -1533,19 +1534,28 @@ GNUNET_STRINGS_parse_ipv6_policy (const char *routeListX)
       {
         routeList[colon] = '\0';
         if (GNUNET_OK !=
-            parse_port_policy (&routeList[colon + 1], &result[i].pp))
+            parse_port_policy (&routeList[colon + 1],
+                               &result[i].pp))
         {
           GNUNET_free (result);
           GNUNET_free (routeList);
           return NULL;
         }
       }
-      ret = inet_pton (AF_INET6, &routeList[slash + 1], &result[i].netmask);
+      ret = inet_pton (AF_INET6,
+                       &routeList[slash + 1],
+                       &result[i].netmask);
       if (ret <= 0)
       {
-        save = errno;
-        if ((1 != sscanf (&routeList[slash + 1], "%u%1s", &bits, dummy)) ||
-            (bits > 128))
+        char dummy;
+        unsigned int bits;
+        int save = errno;
+
+        if ( (1 != sscanf (&routeList[slash + 1],
+                           "%u%c",
+                           &bits,
+                           &dummy)) ||
+             (bits > 128) )
         {
           if (0 == ret)
             LOG (GNUNET_ERROR_TYPE_WARNING,
@@ -1554,7 +1564,8 @@ GNUNET_STRINGS_parse_ipv6_policy (const char *routeListX)
           else
           {
             errno = save;
-            LOG_STRERROR (GNUNET_ERROR_TYPE_WARNING, "inet_pton");
+            LOG_STRERROR (GNUNET_ERROR_TYPE_WARNING,
+                          "inet_pton");
           }
           GNUNET_free (result);
           GNUNET_free (routeList);
@@ -1575,7 +1586,9 @@ GNUNET_STRINGS_parse_ipv6_policy (const char *routeListX)
       }
     }
     routeList[slash] = '\0';
-    ret = inet_pton (AF_INET6, &routeList[start], &result[i].network);
+    ret = inet_pton (AF_INET6,
+                     &routeList[start],
+                     &result[i].network);
     if (ret <= 0)
     {
       if (0 == ret)
@@ -1583,13 +1596,13 @@ GNUNET_STRINGS_parse_ipv6_policy (const char *routeListX)
              _ ("Wrong format `%s' for network\n"),
              &routeList[slash + 1]);
       else
-        LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR, "inet_pton");
+        LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR,
+                      "inet_pton");
       GNUNET_free (result);
       GNUNET_free (routeList);
       return NULL;
     }
     pos++;
-    i++;
   }
   GNUNET_free (routeList);
   return result;
@@ -1614,7 +1627,7 @@ GNUNET_STRINGS_base64_encode (const void *in,
   char *opt;
 
   ret = 0;
-  GNUNET_assert (len < SIZE_MAX / 4 * 3);
+  GNUNET_assert (len < SIZE_MAX / 4);
   opt = GNUNET_malloc (2 + (len * 4 / 3) + 8);
   for (size_t i = 0; i < len; ++i)
   {
@@ -1860,15 +1873,23 @@ GNUNET_STRINGS_urldecode (const char *data,
 
 
 size_t
-GNUNET_STRINGS_urlencode (const char *data,
-                          size_t len,
+GNUNET_STRINGS_urlencode (size_t len,
+                          const char data[static len],
                           char **out)
 {
   struct GNUNET_Buffer buf = { 0 };
   const uint8_t *i8 = (uint8_t *) data;
+  const uint8_t *end = (uint8_t *) (data + len);
 
-  while (0 != *i8)
+  while (end != i8)
   {
+    if (0 == *i8)
+    {
+      /* invalid UTF-8 (or bad @a len): fail */
+      GNUNET_break (0);
+      GNUNET_buffer_clear (&buf);
+      return 0;
+    }
     if (0 == (0x80 & *i8))
     {
       /* traditional ASCII */
@@ -1900,6 +1921,14 @@ GNUNET_STRINGS_urlencode (const char *data,
                                 *i8 >> 4,
                                 *i8 & 15);
       i8++;
+      if ( (end == i8) ||
+           (0 == *i8) )
+      {
+        /* invalid UTF-8 (or bad @a len): fail */
+        GNUNET_break (0);
+        GNUNET_buffer_clear (&buf);
+        return 0;
+      }
       GNUNET_buffer_write_fstr (&buf,
                                 "%%%X%X",
                                 *i8 >> 4,
@@ -1912,6 +1941,14 @@ GNUNET_STRINGS_urlencode (const char *data,
       /* 3-byte value, percent-encode */
       for (unsigned int i = 0; i<3; i++)
       {
+        if ( (end == i8) ||
+             (0 == *i8) )
+        {
+          /* invalid UTF-8 (or bad @a len): fail */
+          GNUNET_break (0);
+          GNUNET_buffer_clear (&buf);
+          return 0;
+        }
         GNUNET_buffer_write_fstr (&buf,
                                   "%%%X%X",
                                   *i8 >> 4,
@@ -1925,6 +1962,14 @@ GNUNET_STRINGS_urlencode (const char *data,
       /* 4-byte value, percent-encode */
       for (unsigned int i = 0; i<4; i++)
       {
+        if ( (end == i8) ||
+             (0 == *i8) )
+        {
+          /* invalid UTF-8 (or bad @a len): fail */
+          GNUNET_break (0);
+          GNUNET_buffer_clear (&buf);
+          return 0;
+        }
         GNUNET_buffer_write_fstr (&buf,
                                   "%%%X%X",
                                   *i8 >> 4,
@@ -1939,6 +1984,14 @@ GNUNET_STRINGS_urlencode (const char *data,
       /* 5-byte value, percent-encode (outside of UTF-8 modern standard, but so what) */
       for (unsigned int i = 0; i<5; i++)
       {
+        if ( (end == i8) ||
+             (0 == *i8) )
+        {
+          /* invalid UTF-8 (or bad @a len): fail */
+          GNUNET_break (0);
+          GNUNET_buffer_clear (&buf);
+          return 0;
+        }
         GNUNET_buffer_write_fstr (&buf,
                                   "%%%X%X",
                                   *i8 >> 4,
@@ -1954,6 +2007,14 @@ GNUNET_STRINGS_urlencode (const char *data,
       /* 6-byte value, percent-encode (outside of UTF-8 modern standard, but so what) */
       for (unsigned int i = 0; i<6; i++)
       {
+        if ( (end == i8) ||
+             (0 == *i8) )
+        {
+          /* invalid UTF-8 (or bad @a len): fail */
+          GNUNET_break (0);
+          GNUNET_buffer_clear (&buf);
+          return 0;
+        }
         GNUNET_buffer_write_fstr (&buf,
                                   "%%%X%X",
                                   *i8 >> 4,

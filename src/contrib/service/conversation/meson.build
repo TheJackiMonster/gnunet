@@ -82,6 +82,16 @@ executable ('gnunet-conversation',
             install: true,
             install_dir: get_option('bindir'))
 
+executable ('gnunet-conversation-test',
+            'gnunet-conversation-test.c',
+            dependencies: [libgnunetconversation_dep,
+                           libgnunetspeaker_dep,
+                           libgnunetmicrophone_dep,
+                           libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('bindir'))
+
 executable ('gnunet-service-conversation',
             gnunetserviceconversation_src,
             dependencies: [libgnunetconversation_dep,
@@ -108,6 +118,8 @@ executable ('gnunet-helper-audio-record',
                            libgnunetspeaker_dep,
                            libgnunetmicrophone_dep,
                            gst_dep,
+                           gst_app_dep,
+                           gst_audio_dep,
                            ogg_dep,
                            pulse_dep,
                            opus_dep
@@ -123,6 +135,8 @@ executable ('gnunet-helper-audio-playback',
                          libgnunetspeaker_dep,
                          libgnunetmicrophone_dep,
                          gst_dep,
+                         gst_app_dep,
+                         gst_audio_dep,
                          ogg_dep,
                          pulse_dep,
                          opus_dep
@@ -143,8 +157,7 @@ testconvapi = executable ('test_conversation_api',
                          libgnunetmicrophone_dep,
                          ],
           include_directories: [incdir, configuration_inc],
-          install: true,
-          install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+          install: false)
 
 testconvapitwo = executable ('test_conversation_api_twocalls',
          ['test_conversation_api_twocalls.c'],
@@ -158,8 +171,7 @@ testconvapitwo = executable ('test_conversation_api_twocalls',
                          libgnunetmicrophone_dep,
                          ],
           include_directories: [incdir, configuration_inc],
-          install: true,
-          install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+          install: false)
 
 testconvapireject = executable ('test_conversation_api_reject',
          ['test_conversation_api_reject.c'],
@@ -173,8 +185,7 @@ testconvapireject = executable ('test_conversation_api_reject',
                          libgnunetmicrophone_dep,
                          ],
           include_directories: [incdir, configuration_inc],
-          install: true,
-          install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+          install: false)
 
 configure_file(input : 'test_conversation.conf',
                output : 'test_conversation.conf',

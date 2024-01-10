@@ -80,7 +80,12 @@ CMakeLists.txt
 CMakeFiles.txt
 
 # Prevent cache files from IDEA from being commited
+.cproject
+.project
+.settings/
 .idea/
+.vscode/
+.vimrc
 src/util/test_child_management
 gnunet_config.h
 gnunet_config.h.in

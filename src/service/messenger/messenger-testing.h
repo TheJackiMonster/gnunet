@@ -23,6 +23,7 @@
  * @brief testing lib for messenger service
  * @author Tobias Frisch
  */
+
 #ifndef MESSENGER_TESTING_H
 #define MESSENGER_TESTING_H
 

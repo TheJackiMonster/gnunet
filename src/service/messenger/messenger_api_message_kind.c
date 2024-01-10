@@ -25,7 +25,6 @@
 
 #include "messenger_api_message_kind.h"
 
-#include "platform.h"
 #include "messenger_api_util.h"
 
 struct GNUNET_MESSENGER_Message*
@@ -186,5 +185,23 @@ create_message_delete (const struct GNUNET_HashCode *hash,
                                                               GNUNET_HashCode));
   message->body.deletion.delay = GNUNET_TIME_relative_hton (delay);
 
+  return message;
+}
+
+struct GNUNET_MESSENGER_Message*
+create_message_ticket (const struct GNUNET_RECLAIM_Identifier *identifier)
+{
+  if (! identifier)
+    return NULL;
+
+  struct GNUNET_MESSENGER_Message *message = create_message (
+    GNUNET_MESSENGER_KIND_TICKET);
+  
+  if (! message)
+    return NULL;
+
+  GNUNET_memcpy (&(message->body.ticket.identifier), identifier, 
+    sizeof(struct GNUNET_RECLAIM_Identifier));
+  
   return message;
 }

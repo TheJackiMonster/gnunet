@@ -45,7 +45,7 @@ struct GNUNET_GNS_ServicePort
 
 struct GNUNET_GNS_ServicePort GNUNET_GNS_ServicePorts[] = {
   /**
-   * LIGHTest trust policy scheme
+   * Used by Trust Scheme Authorities to publish information about Trust Schemes (LIGHTest)
    */
   {
     .name = "scheme",
@@ -53,10 +53,10 @@ struct GNUNET_GNS_ServicePort GNUNET_GNS_ServicePorts[] = {
   },
 
   /**
-   * LIGHTest trust policy trustlist
+   * Used Trust Translation Authorities to publish information about Trust Translations (LIGHTest)
    */
   {
-    .name = "trustlist",
+    .name = "translation",
     .port = 49153
   },
 
