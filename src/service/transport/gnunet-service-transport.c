@@ -3093,7 +3093,7 @@ free_pending_message (struct PendingMessage *pm)
   {
     struct PendingMessage *root = pm->frag_parent;
 
-    while (NULL != root->frag_parent)
+    while (NULL != root->frag_parent && PMT_DV_BOX != root->pmt)
       root = root->frag_parent;
 
     root->frag_count--;
@@ -9809,7 +9809,7 @@ update_pm_next_attempt (struct PendingMessage *pm,
   {
     struct PendingMessage *root = pm->frag_parent;
 
-    while (NULL != root->frag_parent)
+    while (NULL != root->frag_parent && PMT_DV_BOX != root->pmt)
       root = root->frag_parent;
 
     if (GNUNET_NO == root->frags_in_flight)
@@ -10345,7 +10345,7 @@ transmit_on_queue (void *cls)
       struct PendingMessage *root;
 
       root = pm->frag_parent;
-      while (NULL != root->frag_parent)
+      while (NULL != root->frag_parent && PMT_DV_BOX != root->pmt)
         root = root->frag_parent;
 
       wait_multiplier =  (unsigned int) ceil ((double) root->bytes_msg
