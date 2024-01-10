@@ -63,11 +63,11 @@ libgnunetmessengertesting_la_SOURCES = \
 libgnunetmessengertesting_la_LIBADD = \
   libgnunetmessenger.la \
   $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/cadet/libgnunetcadet.la \
   $(top_builddir)/src/service/transport/libgnunettransporttesting2.la \
   $(top_builddir)/src/service/transport/libgnunettransportapplication.la \
   $(top_builddir)/src/service/transport/libgnunettransportcore.la \
   $(top_builddir)/src/service/core/libgnunetcore.la \
-  $(top_builddir)/src/service/cadet/libgnunetcadet.la \
   $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/service/arm/libgnunetarm.la \
@@ -84,6 +84,7 @@ libgnunet_test_messenger_plugin_cmd_simple_join_la_SOURCES = \
 libgnunet_test_messenger_plugin_cmd_simple_join_la_LIBADD = \
   libgnunetmessenger.la \
   libgnunetmessengertesting.la \
+  $(top_builddir)/src/service/cadet/libgnunetcadet.la \
   $(top_builddir)/src/service/core/libgnunetcore.la \
   $(top_builddir)/src/service/core/libgnunetcoretesting.la \
   $(top_builddir)/src/service/transport/libgnunettransporttesting2.la \
@@ -91,6 +92,7 @@ libgnunet_test_messenger_plugin_cmd_simple_join_la_LIBADD = \
   $(top_builddir)/src/service/transport/libgnunettransportcore.la \
   $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
   $(top_builddir)/src/service/arm/libgnunetarm.la \
