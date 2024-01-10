@@ -10806,8 +10806,14 @@ static void
 validation_transmit_on_queue (struct Queue *q, struct ValidationState *vs)
 {
   struct TransportValidationChallengeMessage tvc;
+  struct GNUNET_TIME_Absolute monotonic_time;
 
-  vs->last_challenge_use = GNUNET_TIME_absolute_get_monotonic (GST_cfg);
+  monotonic_time  = GNUNET_TIME_absolute_get_monotonic (GST_cfg);
+  if (GNUNET_TIME_UNIT_ZERO_ABS.abs_value_us == vs->last_challenge_use.abs_value_us)
+  {
+    vs->first_challenge_use = monotonic_time;
+  }
+  vs->last_challenge_use = monotonic_time;
   tvc.header.type =
     htons (GNUNET_MESSAGE_TYPE_TRANSPORT_ADDRESS_VALIDATION_CHALLENGE);
   tvc.header.size = htons (sizeof(tvc));
