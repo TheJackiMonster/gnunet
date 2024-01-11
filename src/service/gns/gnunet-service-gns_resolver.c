@@ -2397,7 +2397,16 @@ handle_gns_resolution_result (void *cls,
             box = rd[i].data;
             const char *prefix = rd[i].data + sizeof(struct
                                                      GNUNET_GNSRECORD_SBoxRecord);
-            size_t prefix_len = strlen (prefix) + 1;
+            size_t prefix_len = strnlen (prefix, rd[i].data_size - sizeof(struct
+                                                                          GNUNET_GNSRECORD_SBoxRecord))
+                                + 1;
+            if (prefix_len - 1 >= rd[i].data_size - sizeof(struct
+                                                           GNUNET_GNSRECORD_SBoxRecord))
+            {
+              GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                          "SBOX record with invalid prefix length, maybe not null-terminated\n");
+              continue;
+            }
             GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                         "Got SBOX record, checking if prefixes match... %s vs %s\n",
                         prefix, rh->prefix);
