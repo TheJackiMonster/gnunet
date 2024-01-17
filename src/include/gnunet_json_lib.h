@@ -142,7 +142,13 @@ GNUNET_JSON_parse (const json_t *root,
 
 /**
  * Frees all elements allocated during a #GNUNET_JSON_parse()
- * operation.
+ * operation.  Convenience function to be called if cleaning
+ * up all heap-allocated data from a #GNUNET_JSON_parse() is
+ * desired. The function does not have to be called if no data
+ * was heap-allocated (e.g. only integers, strings and fixed-sized
+ * data was used), or if the application calls the respective
+ * code to free the heap (not always #GNUNET_free(), depends
+ * on the data type!) on the returned heap-allocated data itself.
  *
  * @param spec specification of the parse operation
  */

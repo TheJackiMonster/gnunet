@@ -96,7 +96,7 @@ test_testing_start_with_config_SOURCES = \
 test_testing_start_with_config_LDADD = \
  libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
- $(top_builddir)/src/lib/hello/libgnunethello.la 
+ $(top_builddir)/src/lib/hello/libgnunethello.la
 
 test_testing_portreservation_SOURCES = \
  test_testing_portreservation.c
