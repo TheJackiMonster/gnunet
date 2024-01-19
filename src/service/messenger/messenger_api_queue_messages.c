@@ -25,6 +25,7 @@
 
 #include "messenger_api_queue_messages.h"
 
+#include "gnunet_messenger_service.h"
 #include "messenger_api_message.h"
 
 void
@@ -51,6 +52,9 @@ clear_queue_messages (struct GNUNET_MESSENGER_QueueMessages *messages)
     if (element->message)
       destroy_message (element->message);
 
+    if (element->transcript)
+      destroy_message (element->transcript);
+
     GNUNET_free (element);
   }
 
@@ -62,7 +66,8 @@ clear_queue_messages (struct GNUNET_MESSENGER_QueueMessages *messages)
 void
 enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
                      const struct GNUNET_CRYPTO_PrivateKey *sender,
-                     const struct GNUNET_MESSENGER_Message *message,
+                     struct GNUNET_MESSENGER_Message *message,
+                     struct GNUNET_MESSENGER_Message *transcript,
                      enum GNUNET_GenericReturnValue priority)
 {
   GNUNET_assert ((messages) && (message));
@@ -73,7 +78,8 @@ enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
   if (! element)
     return;
 
-  element->message = copy_message (message);
+  element->message = message;
+  element->transcript = transcript;
 
   if (sender)
     GNUNET_memcpy (&(element->sender), sender, sizeof (element->sender));
@@ -93,16 +99,25 @@ enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
 
 struct GNUNET_MESSENGER_Message*
 dequeue_from_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
-                       struct GNUNET_CRYPTO_PrivateKey *sender)
+                       struct GNUNET_CRYPTO_PrivateKey *sender,
+                       struct GNUNET_MESSENGER_Message **transcript)
 {
   GNUNET_assert (messages);
 
   struct GNUNET_MESSENGER_QueueMessage *element = messages->head;
 
   if (! element)
+  {
+    if (transcript)
+      *transcript = NULL;
+
     return NULL;
+  }
 
   struct GNUNET_MESSENGER_Message *message = element->message;
+
+  if (transcript)
+    *transcript = element->transcript;
 
   GNUNET_CONTAINER_DLL_remove (messages->head, messages->tail, element);
 

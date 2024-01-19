@@ -936,7 +936,7 @@ GNUNET_MESSENGER_contact_get_id (const struct GNUNET_MESSENGER_Contact *contact)
  */
 void
 GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room,
-                               struct GNUNET_MESSENGER_Message *message,
+                               const struct GNUNET_MESSENGER_Message *message,
                                const struct GNUNET_MESSENGER_Contact *contact);
 
 /**

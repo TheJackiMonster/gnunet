@@ -34,7 +34,9 @@ struct GNUNET_MESSENGER_QueueMessage
   struct GNUNET_MESSENGER_QueueMessage *next;
 
   struct GNUNET_CRYPTO_PrivateKey sender;
+  
   struct GNUNET_MESSENGER_Message *message;
+  struct GNUNET_MESSENGER_Message *transcript;
 };
 
 struct GNUNET_MESSENGER_QueueMessages
@@ -66,12 +68,14 @@ clear_queue_messages (struct GNUNET_MESSENGER_QueueMessages *messages);
  * @param[in,out] messages Queue of messages
  * @param[in] sender Private sender key
  * @param[in] message Message
+ * @param[in] transcript Message transcript
  * @param[in] priority Whether the message has priority
  */
 void
 enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
                      const struct GNUNET_CRYPTO_PrivateKey *sender,
-                     const struct GNUNET_MESSENGER_Message *message,
+                     struct GNUNET_MESSENGER_Message *message,
+                     struct GNUNET_MESSENGER_Message *transcript,
                      enum GNUNET_GenericReturnValue priority);
 
 /**
@@ -79,10 +83,12 @@ enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
  *
  * @param[in,out] messages Queue of messages
  * @param[out] sender Private sender key
+ * @param[out] transcript Message transcript
  * @return Message from front or NULL
  */
 struct GNUNET_MESSENGER_Message*
 dequeue_from_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
-                       struct GNUNET_CRYPTO_PrivateKey *sender);
+                       struct GNUNET_CRYPTO_PrivateKey *sender,
+                       struct GNUNET_MESSENGER_Message **transcript);
 
 #endif //GNUNET_MESSENGER_API_QUEUE_MESSAGES_H

@@ -182,7 +182,8 @@ handle_room_sync (void *cls,
 
 static void
 enqueue_message_to_room (struct GNUNET_MESSENGER_Room *room,
-                         struct GNUNET_MESSENGER_Message *message);
+                         struct GNUNET_MESSENGER_Message *message,
+                         struct GNUNET_MESSENGER_Message *transcript);
 
 static void
 handle_member_id (void *cls,
@@ -218,8 +219,7 @@ handle_member_id (void *cls,
   if (! message)
     return;
 
-  enqueue_message_to_room (room, message);
-  destroy_message (message);
+  enqueue_message_to_room (room, message, NULL);
 }
 
 
@@ -367,8 +367,7 @@ handle_miss_message (void *cls,
   if (! message)
     return;
 
-  enqueue_message_to_room (room, message);
-  destroy_message (message);
+  enqueue_message_to_room (room, message, NULL);
 }
 
 
@@ -664,6 +663,7 @@ GNUNET_MESSENGER_disconnect (struct GNUNET_MESSENGER_Handle *handle)
 static void
 send_message_to_room (struct GNUNET_MESSENGER_Room *room,
                       struct GNUNET_MESSENGER_Message *message,
+                      struct GNUNET_MESSENGER_Message *transcript,
                       const struct GNUNET_CRYPTO_PrivateKey *key)
 {
   const struct GNUNET_ShortHashCode *sender_id = get_room_sender_id (room);
@@ -697,6 +697,9 @@ send_message_to_room (struct GNUNET_MESSENGER_Room *room,
   hash_message (message, msg_length, msg_buffer, &hash);
   sign_message (message, msg_length, msg_buffer, &hash, key);
 
+  if (transcript)
+    GNUNET_memcpy (&(transcript->body.transcript.hash), &hash, sizeof(hash));
+
   GNUNET_memcpy (&(room->last_message), &hash, sizeof(room->last_message));
 
   GNUNET_MQ_send (room->handle->mq, env);
@@ -708,7 +711,8 @@ send_message_to_room (struct GNUNET_MESSENGER_Room *room,
 
 static void
 enqueue_message_to_room (struct GNUNET_MESSENGER_Room *room,
-                         struct GNUNET_MESSENGER_Message *message)
+                         struct GNUNET_MESSENGER_Message *message,
+                         struct GNUNET_MESSENGER_Message *transcript)
 {
   const struct GNUNET_CRYPTO_PrivateKey *key = get_handle_key (room->handle);
   enum GNUNET_GenericReturnValue priority;
@@ -723,7 +727,7 @@ enqueue_message_to_room (struct GNUNET_MESSENGER_Room *room,
     break;
   }
 
-  enqueue_to_messages (&(room->queue), key, message, priority);
+  enqueue_to_messages (&(room->queue), key, message, transcript, priority);
 
   if (GNUNET_YES != is_room_available (room))
     return;
@@ -739,6 +743,8 @@ static enum GNUNET_GenericReturnValue
 dequeue_messages_from_room (struct GNUNET_MESSENGER_Room *room)
 {
   struct GNUNET_MESSENGER_Message *message = NULL;
+  struct GNUNET_MESSENGER_Message *transcript = NULL;
+  struct GNUNET_CRYPTO_PublicKey pubkey;
   struct GNUNET_CRYPTO_PrivateKey key;
 
   if (GNUNET_YES != is_room_available (room))
@@ -748,10 +754,31 @@ dequeue_messages_from_room (struct GNUNET_MESSENGER_Room *room)
     if (message)
       destroy_message (message);
 
-    message = dequeue_from_messages (&(room->queue), &key);
+    message = dequeue_from_messages (&(room->queue), &key, &transcript);
 
-    if (message)
-      send_message_to_room (room, message, &key);
+    if (!message)
+    {
+      message = transcript;
+      continue;
+    }
+    
+    send_message_to_room (room, message, transcript, &key);
+
+    if (!transcript)
+      continue;
+
+    GNUNET_CRYPTO_key_get_public(&key, &pubkey);
+    
+    if (GNUNET_YES == encrypt_message(transcript, &pubkey))
+      send_message_to_room (room, transcript, NULL, &key);
+    else
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Sending transcript aborted: Encryption failed!\n");
+
+      destroy_message (transcript);
+    }
+
   } while (message);
 
   return GNUNET_YES;
@@ -788,8 +815,7 @@ iterate_send_name_to_room (void *cls,
   if (! message)
     return GNUNET_NO;
 
-  enqueue_message_to_room (room, message);
-  destroy_message (message);
+  enqueue_message_to_room (room, message, NULL);
   return GNUNET_YES;
 }
 
@@ -839,8 +865,7 @@ iterate_send_key_to_room (void *cls,
   if (! message)
     return GNUNET_NO;
 
-  enqueue_message_to_room (room, message);
-  destroy_message (message);
+  enqueue_message_to_room (room, message, NULL);
   return GNUNET_YES;
 }
 
@@ -937,10 +962,7 @@ GNUNET_MESSENGER_close_room (struct GNUNET_MESSENGER_Room *room)
   struct GNUNET_MESSENGER_Message *message = create_message_leave ();
 
   if (message)
-  {
-    enqueue_message_to_room (room, message);
-    destroy_message (message);
-  }
+    enqueue_message_to_room (room, message, NULL);
 }
 
 
@@ -1057,8 +1079,9 @@ send_message_to_room_with_key (struct GNUNET_MESSENGER_Room *room,
                                struct GNUNET_MESSENGER_Message *message,
                                const struct GNUNET_CRYPTO_PublicKey *public_key)
 {
+  struct GNUNET_MESSENGER_Message *transcript = NULL;
+
   char *original_name;
-  char *changed_name = NULL;
 
   if (GNUNET_MESSENGER_KIND_NAME != message->header.kind)
     goto skip_naming;
@@ -1073,44 +1096,37 @@ send_message_to_room_with_key (struct GNUNET_MESSENGER_Room *room,
   if ((handle_name) && (GNUNET_YES == room->use_handle_name) &&
       ((! original_name) || (0 == strlen (original_name))))
   {
-    changed_name = GNUNET_strdup (handle_name);
-    message->body.name.name = changed_name;
+    if (original_name)
+      GNUNET_free (original_name);
+
+    message->body.name.name = GNUNET_strdup (handle_name);
   }
 
 skip_naming:
   if (public_key)
   {
-    struct GNUNET_MESSENGER_Message *original = message;
-    message = copy_message (original);
+    transcript = transcribe_message (message, public_key);
 
     if (GNUNET_YES != encrypt_message (message, public_key))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Sending message aborted: Encryption failed!\n");
+      
+      if (transcript)
+        destroy_message(transcript);
 
       destroy_message (message);
-      message = original;
-
-      goto reset_naming;
+      return;
     }
   }
 
-  enqueue_message_to_room (room, message);
-
-reset_naming:
-  if (changed_name)
-    GNUNET_free (changed_name);
-
-  if (GNUNET_MESSENGER_KIND_NAME != message->header.kind)
-    return;
-
-  message->body.name.name = original_name;
+  enqueue_message_to_room (room, message, transcript);
 }
 
 
 void
 GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room,
-                               struct GNUNET_MESSENGER_Message *message,
+                               const struct GNUNET_MESSENGER_Message *message,
                                const struct GNUNET_MESSENGER_Contact *contact)
 {
   if ((! room) || (! message))
@@ -1148,7 +1164,7 @@ GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room,
   else
     public_key = NULL;
 
-  send_message_to_room_with_key (room, message, public_key);
+  send_message_to_room_with_key (room, copy_message(message), public_key);
 }
 
 
@@ -1261,5 +1277,4 @@ GNUNET_MESSENGER_send_ticket (struct GNUNET_MESSENGER_Room *room,
   }
 
   send_message_to_room_with_key (room, message, &(ticket->audience));
-  destroy_message (message);
 }

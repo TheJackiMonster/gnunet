@@ -244,6 +244,18 @@ enum GNUNET_GenericReturnValue
 decrypt_message (struct GNUNET_MESSENGER_Message *message,
                  const struct GNUNET_CRYPTO_PrivateKey *key);
 
+/**
+ * Transcribes a <i>message</i> as a new transcript message using a given public
+ * <i>key</i> from the receipient of the encrypted message content.
+ *
+ * @param[in] message Message
+ * @param[in] key Public key
+ * @return Message transcript
+ */
+struct GNUNET_MESSENGER_Message*
+transcribe_message (const struct GNUNET_MESSENGER_Message *message,
+                    const struct GNUNET_CRYPTO_PublicKey *key);
+
 typedef void (*GNUNET_MESSENGER_SignFunction)(
   const void *cls,
   struct GNUNET_MESSENGER_Message *message,

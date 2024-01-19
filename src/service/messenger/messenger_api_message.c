@@ -25,6 +25,7 @@
 
 #include "messenger_api_message.h"
 
+#include "gnunet_common.h"
 #include "gnunet_messenger_service.h"
 #include "gnunet_signatures.h"
 
@@ -1085,6 +1086,39 @@ decrypt_message (struct GNUNET_MESSENGER_Message *message,
 }
 
 
+struct GNUNET_MESSENGER_Message*
+transcribe_message (const struct GNUNET_MESSENGER_Message *message,
+                    const struct GNUNET_CRYPTO_PublicKey *key)
+{
+  GNUNET_assert ((message) && (key));
+
+  struct GNUNET_MESSENGER_Message *transcript = create_message(
+    GNUNET_MESSENGER_KIND_TRANSCRIPT);
+
+  if (!transcript)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Transcribing message failed!\n");
+    return NULL;
+  }
+  
+  GNUNET_memcpy(&(transcript->body.transcript.key), key, sizeof(transcript->body.transcript.key));
+
+  struct GNUNET_MESSENGER_ShortMessage shortened;
+
+  fold_short_message (message, &shortened);
+
+  const uint16_t data_length = get_short_message_size (
+    &shortened, GNUNET_YES);
+
+  transcript->body.transcript.data = GNUNET_malloc (data_length);
+  transcript->body.transcript.length = data_length;
+
+  encode_short_message (&shortened, data_length, transcript->body.transcript.data);
+
+  return transcript;
+}
+
+
 struct GNUNET_MQ_Envelope*
 pack_message (struct GNUNET_MESSENGER_Message *message,
               struct GNUNET_HashCode *hash,
@@ -1197,7 +1231,7 @@ is_service_message (const struct GNUNET_MESSENGER_Message *message)
   case GNUNET_MESSENGER_KIND_TICKET:
     return GNUNET_NO;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
-    return GNUNET_YES; // Allow access to self encrypted messages!
+    return GNUNET_NO;
   case GNUNET_MESSENGER_KIND_TAG:
     return GNUNET_NO;
   default:
