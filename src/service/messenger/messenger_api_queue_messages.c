@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2023 GNUnet e.V.
+   Copyright (C) 2023--2024 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -24,6 +24,8 @@
  */
 
 #include "messenger_api_queue_messages.h"
+
+#include "messenger_api_message.h"
 
 void
 init_queue_messages (struct GNUNET_MESSENGER_QueueMessages *messages)

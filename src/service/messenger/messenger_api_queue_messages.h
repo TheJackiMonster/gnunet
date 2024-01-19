@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2023 GNUnet e.V.
+   Copyright (C) 2023--2024 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -26,10 +26,7 @@
 #ifndef GNUNET_MESSENGER_API_QUEUE_MESSAGES_H
 #define GNUNET_MESSENGER_API_QUEUE_MESSAGES_H
 
-#include "gnunet_identity_service.h"
 #include "gnunet_util_lib.h"
-
-#include "messenger_api_message.h"
 
 struct GNUNET_MESSENGER_QueueMessage
 {

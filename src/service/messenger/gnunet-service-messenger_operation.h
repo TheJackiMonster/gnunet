@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2021, 2023 GNUnet e.V.
+   Copyright (C) 2021--2024 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -26,7 +26,6 @@
 #ifndef GNUNET_SERVICE_MESSENGER_OPERATION_H
 #define GNUNET_SERVICE_MESSENGER_OPERATION_H
 
-#include "gnunet_configuration_lib.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_scheduler_lib.h"
 #include "gnunet_time_lib.h"

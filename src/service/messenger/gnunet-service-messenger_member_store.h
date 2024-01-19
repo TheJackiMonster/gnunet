@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2023 GNUnet e.V.
+   Copyright (C) 2020--2024 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -27,8 +27,8 @@
 #define GNUNET_SERVICE_MESSENGER_MEMBER_STORE_H
 
 #include "gnunet_util_lib.h"
-#include "gnunet_identity_service.h"
-#include "messenger_api_message.h"
+
+#include "gnunet_messenger_service.h"
 
 struct GNUNET_MESSENGER_SrvRoom;
 

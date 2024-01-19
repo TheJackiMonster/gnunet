@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2023 GNUnet e.V.
+   Copyright (C) 2020--2024 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -25,7 +25,7 @@
 
 #include "messenger_api_message_kind.h"
 
-#include "messenger_api_util.h"
+#include "messenger_api_message.h"
 
 struct GNUNET_MESSENGER_Message*
 create_message_join (const struct GNUNET_CRYPTO_PrivateKey *key)

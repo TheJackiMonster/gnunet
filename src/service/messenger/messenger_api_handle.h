@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2023 GNUnet e.V.
+   Copyright (C) 2020--2024 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -26,9 +26,7 @@
 #ifndef GNUNET_MESSENGER_API_HANDLE_H
 #define GNUNET_MESSENGER_API_HANDLE_H
 
-#include "gnunet_cadet_service.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_identity_service.h"
 
 #include "gnunet_messenger_service.h"
 

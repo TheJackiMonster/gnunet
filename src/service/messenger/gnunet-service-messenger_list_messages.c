@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2023 GNUnet e.V.
+   Copyright (C) 2020--2024 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -24,6 +24,8 @@
  */
 
 #include "gnunet-service-messenger_list_messages.h"
+
+#include "gnunet_util_lib.h"
 
 void
 init_list_messages (struct GNUNET_MESSENGER_ListMessages *messages)
