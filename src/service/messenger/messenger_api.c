@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2023 GNUnet e.V.
+   Copyright (C) 2020--2024 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -24,7 +24,7 @@
  */
 
 #include "gnunet_common.h"
-#include "gnunet_identity_service.h"
+#include "gnunet_core_service.h"
 #include "gnunet_messenger_service.h"
 
 #include "gnunet-service-messenger.h"
@@ -72,6 +72,14 @@ GNUNET_MESSENGER_name_of_kind (enum GNUNET_MESSENGER_MessageKind kind)
     return "PRIVATE";
   case GNUNET_MESSENGER_KIND_DELETE:
     return "DELETE";
+  case GNUNET_MESSENGER_KIND_CONNECTION:
+    return "CONNECTION";
+  case GNUNET_MESSENGER_KIND_TICKET:
+    return "TICKET";
+  case GNUNET_MESSENGER_KIND_TRANSCRIPT:
+    return "TRANSCRIPT";
+  case GNUNET_MESSENGER_KIND_TAG:
+    return "TAG";
   default:
     return "UNKNOWN";
   }

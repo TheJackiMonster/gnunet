@@ -208,6 +208,16 @@ enum GNUNET_MESSENGER_MessageKind
   GNUNET_MESSENGER_KIND_TICKET = 17,
 
   /**
+   * The transcript kind. The message contains a #GNUNET_MESSENGER_MessageTranscript body.
+   */
+  GNUNET_MESSENGER_KIND_TRANSCRIPT = 18,
+
+  /**
+   * The tag kind. The message contains a #GNUNET_MESSENGER_MessageTag body.
+   */
+  GNUNET_MESSENGER_KIND_TAG = 19,
+
+  /**
    * The unknown kind. The message contains an unknown body.
    */
   GNUNET_MESSENGER_KIND_UNKNOWN = 0
@@ -537,6 +547,54 @@ struct GNUNET_MESSENGER_MessageTicket
 };
 
 /**
+ * A transcript message body
+ * This allows reading the content of a sent private message.
+ *
+ * Message-body-size: 68+
+ */
+struct GNUNET_MESSENGER_MessageTranscript
+{
+  /**
+   * The hash of the original message.
+   */
+  struct GNUNET_HashCode hash;
+
+  /**
+   * The key from the recipient of the original message.
+   */
+  struct GNUNET_CRYPTO_PublicKey key;
+
+  /**
+   * The length of the transcribed message.
+   */
+  uint16_t length;
+
+  /**
+   * The data of the transcribed message.
+   */
+  char *data;
+};
+
+/**
+ * A tag message body
+ * This allows tagging a message with a custom tag.
+ *
+ * Message-body-size: 32+
+ */
+struct GNUNET_MESSENGER_MessageTag
+{
+  /**
+   * The hash of the message to tag.
+   */
+  struct GNUNET_HashCode hash;
+
+  /**
+   * The custom tag.
+   */
+  char *tag;
+};
+
+/**
  * The unified body of a #GNUNET_MESSENGER_Message.
  */
 struct GNUNET_MESSENGER_MessageBody
@@ -560,6 +618,8 @@ struct GNUNET_MESSENGER_MessageBody
     struct GNUNET_MESSENGER_MessageDelete deletion;
     struct GNUNET_MESSENGER_MessageConnection connection;
     struct GNUNET_MESSENGER_MessageTicket ticket;
+    struct GNUNET_MESSENGER_MessageTranscript transcript;
+    struct GNUNET_MESSENGER_MessageTag tag;
   };
 };
 
