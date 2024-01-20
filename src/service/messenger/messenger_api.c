@@ -326,18 +326,30 @@ handle_recv_message (void *cls,
   
   struct GNUNET_MESSENGER_Contact *recipient = NULL;
 
-  if (private_message)
+  if (!private_message)
+    goto skip_recipient;
+
+  const struct GNUNET_CRYPTO_PublicKey *recipient_key;
+
+  if (GNUNET_MESSENGER_KIND_TRANSCRIPT == private_message->header.kind)
   {
-    const struct GNUNET_CRYPTO_PublicKey *recipient_key;
+    struct GNUNET_MESSENGER_Message *transcript;
 
-    if (GNUNET_MESSENGER_KIND_TRANSCRIPT == private_message->header.kind)
-      recipient_key = &(private_message->body.transcript.key);
-    else
-      recipient_key = get_handle_pubkey(handle);
+    recipient_key = &(private_message->body.transcript.key);
+    transcript = read_transcript_message(private_message);
 
-    recipient = get_store_contact(store, context, recipient_key);
+    if (transcript)
+    {
+      destroy_message(private_message);
+      private_message = transcript;
+    }
   }
+  else
+    recipient_key = get_handle_pubkey(handle);
 
+  recipient = get_store_contact(store, context, recipient_key);
+
+skip_recipient:
   contact = handle_room_message (room, contact, private_message ?
                                   private_message : &message, hash, flags);
 

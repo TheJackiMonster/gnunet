@@ -256,6 +256,15 @@ struct GNUNET_MESSENGER_Message*
 transcribe_message (const struct GNUNET_MESSENGER_Message *message,
                     const struct GNUNET_CRYPTO_PublicKey *key);
 
+/**
+ * Read the original message from a message <i>transcript</i>.
+ *
+ * @param[in] transcript Message transcript
+ * @return Original message
+ */
+struct GNUNET_MESSENGER_Message*
+read_transcript_message (const struct GNUNET_MESSENGER_Message *transcript);
+
 typedef void (*GNUNET_MESSENGER_SignFunction)(
   const void *cls,
   struct GNUNET_MESSENGER_Message *message,
