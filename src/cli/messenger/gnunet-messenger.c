@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2023 GNUnet e.V.
+   Copyright (C) 2020--2024 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -46,21 +46,26 @@ void
 on_message (void *cls,
             struct GNUNET_MESSENGER_Room *room,
             const struct GNUNET_MESSENGER_Contact *sender,
+            const struct GNUNET_MESSENGER_Contact *recipient,
             const struct GNUNET_MESSENGER_Message *message,
             const struct GNUNET_HashCode *hash,
             enum GNUNET_MESSENGER_MessageFlags flags)
 {
   const char *sender_name = GNUNET_MESSENGER_contact_get_name (sender);
+  const char *recipient_name = GNUNET_MESSENGER_contact_get_name (recipient);
 
   if (! sender_name)
     sender_name = "anonymous";
+
+  if (! recipient_name)
+    recipient_name = "anonymous";
 
   printf ("[%s ->", GNUNET_h2s (&(message->header.previous)));
   printf (" %s]", GNUNET_h2s (hash));
   printf ("[%s] ", GNUNET_sh2s (&(message->header.sender_id)));
 
   if (flags & GNUNET_MESSENGER_FLAG_PRIVATE)
-    printf ("*");
+    printf ("*( '%s' ) ", recipient_name);
 
   switch (message->header.kind)
   {

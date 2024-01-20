@@ -31,6 +31,7 @@
 
 #include "gnunet_reclaim_service.h"
 #include "messenger_api_contact.h"
+#include "messenger_api_contact_store.h"
 #include "messenger_api_handle.h"
 #include "messenger_api_message.h"
 #include "messenger_api_message_kind.h"
@@ -305,33 +306,49 @@ handle_recv_message (void *cls,
 
   struct GNUNET_MESSENGER_Room *room = get_handle_room (handle, key);
 
-  if (room)
+  if (!room)
   {
-    struct GNUNET_MESSENGER_ContactStore *store = get_handle_contact_store (
-      handle);
-
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Raw contact from sender and context: (%s : %s)\n",
-                GNUNET_h2s (sender), GNUNET_h2s_full (context));
-
-    struct GNUNET_MESSENGER_Contact *contact = get_store_contact_raw (
-      store, context, sender
-      );
-
-    contact = handle_room_message (room, contact, private_message ?
-                                   private_message : &message, hash, flags);
-
-    const struct GNUNET_MESSENGER_Message *stored_message = get_room_message (
-      room, hash);
-
-    if (handle->msg_callback)
-      handle->msg_callback (handle->msg_cls, room, contact, stored_message,
-                            hash, flags);
-  }
-  else
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Unknown room for this client: %s\n",
                 GNUNET_h2s (key));
+    
+    goto skip_message;
+  }
 
+  struct GNUNET_MESSENGER_ContactStore *store = get_handle_contact_store (
+    handle);
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Raw contact from sender and context: (%s : %s)\n",
+              GNUNET_h2s (sender), GNUNET_h2s_full (context));
+
+  struct GNUNET_MESSENGER_Contact *contact = get_store_contact_raw (
+    store, context, sender);
+  
+  struct GNUNET_MESSENGER_Contact *recipient = NULL;
+
+  if (private_message)
+  {
+    const struct GNUNET_CRYPTO_PublicKey *recipient_key;
+
+    if (GNUNET_MESSENGER_KIND_TRANSCRIPT == private_message->header.kind)
+      recipient_key = &(private_message->body.transcript.key);
+    else
+      recipient_key = get_handle_pubkey(handle);
+
+    recipient = get_store_contact(store, context, recipient_key);
+  }
+
+  contact = handle_room_message (room, contact, private_message ?
+                                  private_message : &message, hash, flags);
+
+  const struct GNUNET_MESSENGER_Message *stored_message = get_room_message (
+    room, hash);
+
+  if (handle->msg_callback)
+    handle->msg_callback (handle->msg_cls, room, contact, recipient,
+                          stored_message, hash, flags);
+
+skip_message:
   cleanup_message (&message);
 
   if (private_message)

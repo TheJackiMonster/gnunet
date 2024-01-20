@@ -246,7 +246,7 @@ decrypt_message (struct GNUNET_MESSENGER_Message *message,
 
 /**
  * Transcribes a <i>message</i> as a new transcript message using a given public
- * <i>key</i> from the receipient of the encrypted message content.
+ * <i>key</i> from the recipient of the encrypted message content.
  *
  * @param[in] message Message
  * @param[in] key Public key

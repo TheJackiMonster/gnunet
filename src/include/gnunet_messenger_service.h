@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2023 GNUnet e.V.
+   Copyright (C) 2020--2024 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -697,6 +697,7 @@ enum GNUNET_MESSENGER_ConnectionFlags
  * @param[in/out] cls Closure from #GNUNET_MESSENGER_connect
  * @param[in] room Room handle
  * @param[in] sender Sender of message
+ * @param[in] recipient Recipient of message
  * @param[in] message Newly received or sent message
  * @param[in] hash Hash identifying the message
  * @param[in] flags Flags of the message
@@ -706,6 +707,8 @@ typedef void
                                      struct GNUNET_MESSENGER_Room *room,
                                      const struct
                                      GNUNET_MESSENGER_Contact *sender,
+                                     const struct
+                                     GNUNET_MESSENGER_Contact *recipient,
                                      const struct
                                      GNUNET_MESSENGER_Message *message,
                                      const struct GNUNET_HashCode *hash,
