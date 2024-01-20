@@ -1120,6 +1120,7 @@ send_message_to_room_with_key (struct GNUNET_MESSENGER_Room *room,
                                const struct GNUNET_CRYPTO_PublicKey *public_key)
 {
   struct GNUNET_MESSENGER_Message *transcript = NULL;
+  const struct GNUNET_CRYPTO_PublicKey *pubkey;
 
   char *original_name;
 
@@ -1143,23 +1144,27 @@ send_message_to_room_with_key (struct GNUNET_MESSENGER_Room *room,
   }
 
 skip_naming:
-  if (public_key)
-  {
+  if (!public_key)
+    goto skip_encryption;
+
+  pubkey = get_handle_pubkey (room->handle);
+
+  if (0 != GNUNET_memcmp(pubkey, public_key))
     transcript = transcribe_message (message, public_key);
 
-    if (GNUNET_YES != encrypt_message (message, public_key))
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "Sending message aborted: Encryption failed!\n");
-      
-      if (transcript)
-        destroy_message(transcript);
+  if (GNUNET_YES != encrypt_message (message, public_key))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Sending message aborted: Encryption failed!\n");
+    
+    if (transcript)
+      destroy_message(transcript);
 
-      destroy_message (message);
-      return;
-    }
+    destroy_message (message);
+    return;
   }
 
+skip_encryption:
   enqueue_message_to_room (room, message, transcript);
 }
 
@@ -1260,9 +1265,9 @@ check_ticket_audience (void *cls,
   struct GNUNET_MESSENGER_CheckTicket *check = cls;
 
   const struct GNUNET_CRYPTO_PublicKey *key;
-  key = get_contact_key(contact);
+  key = get_non_anonymous_key (get_contact_key (contact));
 
-  if (0 == GNUNET_memcmp(key, check->audience))
+  if ((key) && (0 == GNUNET_memcmp(key, check->audience)))
   {
     check->result = GNUNET_YES;
     return GNUNET_NO;
@@ -1280,7 +1285,7 @@ GNUNET_MESSENGER_send_ticket (struct GNUNET_MESSENGER_Room *room,
     return;
 
   const struct GNUNET_CRYPTO_PublicKey *pubkey;
-  pubkey = get_handle_pubkey(room->handle);
+  pubkey = get_handle_pubkey (room->handle);
 
   if (0 != GNUNET_memcmp(pubkey, &(ticket->identity)))
   {
@@ -1305,7 +1310,7 @@ GNUNET_MESSENGER_send_ticket (struct GNUNET_MESSENGER_Room *room,
     return;
   }
 
-  struct GNUNET_MESSENGER_Message *message = create_message_ticket(
+  struct GNUNET_MESSENGER_Message *message = create_message_ticket (
     &(ticket->rnd)
   );
 
