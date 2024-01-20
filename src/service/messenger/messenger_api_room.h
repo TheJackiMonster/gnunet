@@ -37,6 +37,7 @@
 struct GNUNET_MESSENGER_RoomMessageEntry
 {
   struct GNUNET_MESSENGER_Contact *sender;
+  struct GNUNET_MESSENGER_Contact *recipient;
   struct GNUNET_MESSENGER_Message *message;
 };
 
@@ -133,6 +134,18 @@ get_room_sender (const struct GNUNET_MESSENGER_Room *room,
                  const struct GNUNET_HashCode *hash);
 
 /**
+ * Returns a messages recipient locally stored from a map for a given <i>hash</i> in a <i>room</i>. If no
+ * matching message is found or the message has not been privately received, NULL gets returned.
+ *
+ * @param[in] room Room
+ * @param[in] hash Hash of message
+ * @return Contact of recipient or NULL
+ */
+struct GNUNET_MESSENGER_Contact*
+get_room_recipient (const struct GNUNET_MESSENGER_Room *room,
+                    const struct GNUNET_HashCode *hash);
+
+/**
  * Handles a <i>message</i> with a given <i>hash</i> in a <i>room</i> for the client API to update
  * members and its information. The function also stores the message in map locally for access afterwards.
  *
@@ -141,6 +154,7 @@ get_room_sender (const struct GNUNET_MESSENGER_Room *room,
  *
  * @param[in,out] room Room
  * @param[in,out] sender Contact of sender
+ * @param[in,out] recipient Contact of recipient
  * @param[in] message Message
  * @param[in] hash Hash of message
  * @param[in] flags Flags of message
@@ -149,6 +163,7 @@ get_room_sender (const struct GNUNET_MESSENGER_Room *room,
 struct GNUNET_MESSENGER_Contact*
 handle_room_message (struct GNUNET_MESSENGER_Room *room,
                      struct GNUNET_MESSENGER_Contact *sender,
+                     struct GNUNET_MESSENGER_Contact *recipient,
                      const struct GNUNET_MESSENGER_Message *message,
                      const struct GNUNET_HashCode *hash,
                      enum GNUNET_MESSENGER_MessageFlags flags);

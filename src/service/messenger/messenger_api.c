@@ -350,8 +350,8 @@ handle_recv_message (void *cls,
   recipient = get_store_contact(store, context, recipient_key);
 
 skip_recipient:
-  contact = handle_room_message (room, contact, private_message ?
-                                  private_message : &message, hash, flags);
+  contact = handle_room_message (room, contact, recipient, private_message ?
+                                 private_message : &message, hash, flags);
 
   const struct GNUNET_MESSENGER_Message *stored_message = get_room_message (
     room, hash);
@@ -1067,6 +1067,17 @@ GNUNET_MESSENGER_get_sender (const struct GNUNET_MESSENGER_Room *room,
     return NULL;
 
   return get_room_sender (room, hash);
+}
+
+
+const struct GNUNET_MESSENGER_Contact*
+GNUNET_MESSENGER_get_recipient (const struct GNUNET_MESSENGER_Room *room,
+                                const struct GNUNET_HashCode *hash)
+{
+  if ((! room) || (! hash))
+    return NULL;
+
+  return get_room_recipient (room, hash);
 }
 
 

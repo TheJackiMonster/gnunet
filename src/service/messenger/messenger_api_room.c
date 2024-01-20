@@ -178,6 +178,21 @@ get_room_sender (const struct GNUNET_MESSENGER_Room *room,
 }
 
 
+struct GNUNET_MESSENGER_Contact*
+get_room_recipient (const struct GNUNET_MESSENGER_Room *room,
+                    const struct GNUNET_HashCode *hash)
+{
+  GNUNET_assert ((room) && (hash));
+
+  struct GNUNET_MESSENGER_RoomMessageEntry *entry =
+    GNUNET_CONTAINER_multihashmap_get (
+      room->messages, hash
+      );
+
+  return (entry? entry->recipient : NULL);
+}
+
+
 static struct GNUNET_MESSENGER_Contact*
 handle_join_message (struct GNUNET_MESSENGER_Room *room,
                      struct GNUNET_MESSENGER_Contact *sender,
@@ -354,6 +369,7 @@ handle_delete_message (struct GNUNET_MESSENGER_Room *room,
 struct GNUNET_MESSENGER_Contact*
 handle_room_message (struct GNUNET_MESSENGER_Room *room,
                      struct GNUNET_MESSENGER_Contact *sender,
+                     struct GNUNET_MESSENGER_Contact *recipient,
                      const struct GNUNET_MESSENGER_Message *message,
                      const struct GNUNET_HashCode *hash,
                      enum GNUNET_MESSENGER_MessageFlags flags)
@@ -396,6 +412,7 @@ handle_room_message (struct GNUNET_MESSENGER_Room *room,
     return sender;
 
   entry->sender = sender;
+  entry->recipient = recipient;
   entry->message = copy_message (message);
 
   if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (room->messages, hash,

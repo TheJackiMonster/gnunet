@@ -892,6 +892,20 @@ GNUNET_MESSENGER_get_sender (const struct GNUNET_MESSENGER_Room *room,
                              const struct GNUNET_HashCode *hash);
 
 /**
+ * Get the contact of a member in a <i>room</i> which has been targeted as recipient of a specific message identified 
+ * with a given <i>hash</i>.
+ *
+ * Notice that contacts are independent of rooms but will be removed if all rooms containing these contacts get closed.
+ *
+ * @param[in] room Room handle
+ * @param[in] hash Hash identifying a message
+ * @return Contact handle, NULL otherwise
+ */
+const struct GNUNET_MESSENGER_Contact*
+GNUNET_MESSENGER_get_recipient (const struct GNUNET_MESSENGER_Room *room,
+                                const struct GNUNET_HashCode *hash);
+
+/**
  * Get the name used by the <i>contact</i>.
  *
  * @param[in] contact Contact handle
