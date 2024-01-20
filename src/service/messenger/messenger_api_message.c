@@ -1312,7 +1312,7 @@ filter_message_sending (const struct GNUNET_MESSENGER_Message *message)
   case GNUNET_MESSENGER_KIND_PRIVATE:
     return GNUNET_NO; // Use #GNUNET_MESSENGER_send_message(...) with a contact instead!
   case GNUNET_MESSENGER_KIND_DELETE:
-    return GNUNET_YES;
+    return GNUNET_NO; // Use #GNUNET_MESSENGER_delete_message(...) instead!
   case GNUNET_MESSENGER_KIND_CONNECTION:
     return GNUNET_SYSERR; // Reserved for connection handling only!
   case GNUNET_MESSENGER_KIND_TICKET:

@@ -30,6 +30,7 @@
 #include "gnunet-service-messenger.h"
 
 #include "gnunet_reclaim_service.h"
+#include "gnunet_time_lib.h"
 #include "messenger_api_contact.h"
 #include "messenger_api_contact_store.h"
 #include "messenger_api_handle.h"
@@ -1209,7 +1210,28 @@ GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room,
   else
     public_key = NULL;
 
-  send_message_to_room_with_key (room, copy_message(message), public_key);
+  send_message_to_room_with_key (room, copy_message(message), NULL);
+}
+
+
+void
+GNUNET_MESSENGER_delete_message (struct GNUNET_MESSENGER_Room *room,
+                                 const struct GNUNET_HashCode *hash,
+                                 const struct GNUNET_TIME_Relative delay)
+{
+  if ((! room) || (! hash))
+    return;
+
+  struct GNUNET_MESSENGER_Message *message = create_message_delete(hash, delay);
+
+  if (! message)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Sending deletion aborted: Message creation failed!\n");
+    return;
+  }
+
+  send_message_to_room_with_key (room, message, NULL);
 }
 
 

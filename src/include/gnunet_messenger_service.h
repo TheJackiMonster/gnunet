@@ -957,6 +957,22 @@ GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room,
                                const struct GNUNET_MESSENGER_Contact *contact);
 
 /**
+ * Delete a message identified by its <i>hash</i> from a <i>room</i>. A deletion will be propagated to all members 
+ * of the room as with any other sent message. Notice that a deletion will only request other members of the room 
+ * to delete the selected message. If you are not permitted to delete the message, the deletion will be ignored.
+ *
+ * Depending on the implementation other clients may also ignore your deletion request in other circumstances.
+ *
+ * @param[in,out] room Room handle
+ * @param[in] message Message to delete
+ * @param[in] delay Delay to delete the message
+ */
+void
+GNUNET_MESSENGER_delete_message (struct GNUNET_MESSENGER_Room *room,
+                                 const struct GNUNET_HashCode *hash,
+                                 const struct GNUNET_TIME_Relative delay);
+
+/**
  * Get the message in a <i>room</i> identified by its <i>hash</i>.
  *
  * @param[in] room Room handle
