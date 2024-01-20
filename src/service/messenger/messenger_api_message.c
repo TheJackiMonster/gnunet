@@ -1065,7 +1065,7 @@ decrypt_message (struct GNUNET_MESSENGER_Message *message,
                                           message->body.privacy.data,
                                           encoded_length))
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Decrypting message failed!\n");
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO, "Decrypting message failed!\n");
 
     return GNUNET_NO;
   }
