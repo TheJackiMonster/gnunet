@@ -23,6 +23,7 @@
  * @brief GNUnet MESSENGER service
  */
 
+#include "gnunet_messenger_service.h"
 #include "platform.h"
 #include "gnunet-service-messenger_handle.h"
 
@@ -453,8 +454,8 @@ notify_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
     context = get_next_member_session_context (session->member);
   }
 
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO, "Notifying client about message: %s\n",
-              GNUNET_h2s (hash));
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO, "Notifying client about message: %s (%s)\n",
+              GNUNET_h2s (hash), GNUNET_MESSENGER_name_of_kind (message->header.kind));
 
   struct GNUNET_MESSENGER_RecvMessage *msg;
   struct GNUNET_MQ_Envelope *env;

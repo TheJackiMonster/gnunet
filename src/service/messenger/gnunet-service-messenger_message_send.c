@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2023 GNUnet e.V.
+   Copyright (C) 2020--2024 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -62,7 +62,11 @@ notify_about_members (struct GNUNET_MESSENGER_MemberNotify *notify,
         (GNUNET_YES != check_member_session_history (notify->session,
                                                      &(element->hash),
                                                      GNUNET_NO)))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING, 
+                  "Permission for notification of session message denied!\n");
       continue;
+    }
 
     if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (map, &(element->hash),
                                                         NULL,
@@ -74,7 +78,11 @@ notify_about_members (struct GNUNET_MESSENGER_MemberNotify *notify,
       message_store, &(element->hash));
 
     if ((! message) || (GNUNET_YES == is_peer_message (message)))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING, 
+                  "Session message for notification is invalid!\n");
       continue;
+    }
 
     struct GNUNET_MESSENGER_SenderSession sender;
     sender.member = session;
