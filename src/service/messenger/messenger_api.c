@@ -1210,7 +1210,7 @@ GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room,
   else
     public_key = NULL;
 
-  send_message_to_room_with_key (room, copy_message(message), NULL);
+  send_message_to_room_with_key (room, copy_message(message), public_key);
 }
 
 
