@@ -23,11 +23,11 @@
  * @brief GNUnet MESSENGER service
  */
 
-#include "gnunet_messenger_service.h"
 #include "platform.h"
-#include "gnunet-service-messenger_handle.h"
+#include "gnunet_messenger_service.h"
 
 #include "gnunet-service-messenger.h"
+#include "gnunet-service-messenger_handle.h"
 #include "gnunet-service-messenger_room.h"
 
 #include "messenger_api_util.h"
@@ -66,7 +66,7 @@ iterate_close_rooms (void *cls,
                      void *value)
 {
   struct GNUNET_MESSENGER_SrvHandle *handle = cls;
-  close_service_room (handle->service, handle, key);
+  close_service_room (handle->service, handle, key, GNUNET_NO);
   return GNUNET_YES;
 }
 
@@ -286,7 +286,7 @@ close_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
     return GNUNET_NO;
 
   enum GNUNET_GenericReturnValue result;
-  result = close_service_room (handle->service, handle, key);
+  result = close_service_room (handle->service, handle, key, GNUNET_YES);
 
   if (GNUNET_YES != result)
     return result;

@@ -28,6 +28,7 @@
 
 #include "gnunet-service-messenger_basement.h"
 #include "gnunet-service-messenger_member.h"
+#include "gnunet-service-messenger_member_session.h"
 #include "gnunet-service-messenger_sender_session.h"
 #include "gnunet-service-messenger_message_kind.h"
 #include "gnunet-service-messenger_message_handle.h"
@@ -1383,6 +1384,9 @@ load_srv_room (struct GNUNET_MESSENGER_SrvRoom *room)
   char *room_dir;
   get_room_data_subdir (room, &room_dir);
 
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Load room from directory: %s\n",
+             room_dir);
+
   if (GNUNET_YES == GNUNET_DISK_directory_test (room_dir, GNUNET_YES))
   {
     load_member_store (get_srv_room_member_store (room), room_dir);
@@ -1409,6 +1413,9 @@ save_srv_room (struct GNUNET_MESSENGER_SrvRoom *room)
 
   char *room_dir;
   get_room_data_subdir (room, &room_dir);
+
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Save room to directory: %s\n",
+             room_dir);
 
   if ((GNUNET_YES == GNUNET_DISK_directory_test (room_dir, GNUNET_NO)) ||
       (GNUNET_OK == GNUNET_DISK_directory_create (room_dir)))
@@ -1438,6 +1445,9 @@ remove_srv_room (struct GNUNET_MESSENGER_SrvRoom *room)
   char *room_dir;
   get_room_data_subdir (room, &room_dir);
 
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Remove room from directory: %s\n",
+             room_dir);
+
   if (GNUNET_YES == GNUNET_DISK_directory_test (room_dir, GNUNET_YES))
     GNUNET_DISK_directory_remove (room_dir);
 
@@ -1450,6 +1460,10 @@ remove_room_member_session (struct GNUNET_MESSENGER_SrvRoom *room,
                             struct GNUNET_MESSENGER_MemberSession *session)
 {
   GNUNET_assert ((room) && (session));
+
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Remove member session from room: %s (%s)\n",
+             GNUNET_sh2s (get_member_session_id (session)),
+             GNUNET_h2s (get_srv_room_key (room)));
 
   remove_member_session (session->member, session);
 

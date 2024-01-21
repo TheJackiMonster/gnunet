@@ -31,6 +31,7 @@
 #include "gnunet-service-messenger_message_kind.h"
 #include "gnunet-service-messenger_operation.h"
 #include "gnunet-service-messenger_room.h"
+#include "gnunet_common.h"
 
 struct GNUNET_MESSENGER_MemberNotify
 {
@@ -51,6 +52,9 @@ notify_about_members (struct GNUNET_MESSENGER_MemberNotify *notify,
   struct GNUNET_MESSENGER_MessageStore *message_store =
     get_srv_room_message_store (notify->room);
   struct GNUNET_MESSENGER_ListMessage *element;
+
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Notify through all of member session: %s\n",
+             GNUNET_sh2s(get_member_session_id(session)));
 
   for (element = session->messages.head; element; element = element->next)
   {
@@ -101,6 +105,9 @@ iterate_notify_about_members (void *cls,
 {
   struct GNUNET_MESSENGER_MemberNotify *notify = cls;
 
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Notify about member session: %s\n",
+             GNUNET_sh2s(get_member_session_id(session)));
+
   if ((notify->session == session) || (GNUNET_YES ==
                                        is_member_session_completed (session)))
     return GNUNET_YES;
@@ -144,6 +151,9 @@ send_message_join (struct GNUNET_MESSENGER_SrvRoom *room,
   notify.room = room;
   notify.handle = handle;
   notify.session = session;
+
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Notify about all member sessions except: %s\n",
+             GNUNET_sh2s (get_member_session_id (session)));
 
   iterate_store_members (get_srv_room_member_store (room),
                          iterate_notify_about_members, &notify);

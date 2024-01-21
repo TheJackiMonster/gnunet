@@ -25,6 +25,7 @@
 
 #include "messenger_api_contact_store.h"
 
+#include "gnunet_common.h"
 #include "messenger_api_contact.h"
 #include "messenger_api_util.h"
 
@@ -55,6 +56,8 @@ void
 clear_contact_store (struct GNUNET_MESSENGER_ContactStore *store)
 {
   GNUNET_assert ((store) && (store->contacts));
+
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Clear contact store\n");
 
   GNUNET_CONTAINER_multihashmap_iterate (store->anonymous,
                                          iterate_destroy_contacts, NULL);
@@ -162,6 +165,9 @@ update_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
   struct GNUNET_HashCode hash;
   GNUNET_CRYPTO_hash (oldkey, sizeof(*oldkey), &hash);
 
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Update contact store entry: %s\n",
+             GNUNET_h2s (&hash));
+
   struct GNUNET_CONTAINER_MultiHashMap *map = select_store_contact_map (
     store, context, &hash
     );
@@ -195,6 +201,9 @@ remove_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
 
   struct GNUNET_HashCode hash;
   GNUNET_CRYPTO_hash (pubkey, sizeof(*pubkey), &hash);
+
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Remove contact store entry: %s\n",
+             GNUNET_h2s (&hash));
 
   struct GNUNET_CONTAINER_MultiHashMap *map = select_store_contact_map (
     store, context, &hash

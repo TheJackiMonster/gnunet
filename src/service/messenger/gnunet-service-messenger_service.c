@@ -28,6 +28,7 @@
 #include "gnunet-service-messenger_message_kind.h"
 #include "gnunet-service-messenger_room.h"
 
+#include "gnunet_common.h"
 #include "messenger_api_util.h"
 
 static void
@@ -382,7 +383,8 @@ entry_service_room (struct GNUNET_MESSENGER_Service *service,
 enum GNUNET_GenericReturnValue
 close_service_room (struct GNUNET_MESSENGER_Service *service,
                     struct GNUNET_MESSENGER_SrvHandle *handle,
-                    const struct GNUNET_HashCode *key)
+                    const struct GNUNET_HashCode *key,
+                    enum GNUNET_GenericReturnValue deletion)
 {
   GNUNET_assert ((service) && (handle) && (key));
 
@@ -413,7 +415,7 @@ close_service_room (struct GNUNET_MESSENGER_Service *service,
     if (GNUNET_OK == GNUNET_CONTAINER_multihashmap_remove (service->rooms, key,
                                                            room))
     {
-      destroy_srv_room (room, GNUNET_YES);
+      destroy_srv_room (room, deletion);
       return GNUNET_YES;
     }
     else

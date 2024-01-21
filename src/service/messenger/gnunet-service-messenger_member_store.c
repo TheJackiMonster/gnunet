@@ -59,6 +59,9 @@ clear_member_store (struct GNUNET_MESSENGER_MemberStore *store)
 {
   GNUNET_assert ((store) && (store->members));
 
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Clear member store of room: %s\n",
+             GNUNET_h2s (get_srv_room_key (store->room)));
+
   GNUNET_CONTAINER_multishortmap_iterate (store->members,
                                           iterate_destroy_members, NULL);
   GNUNET_CONTAINER_multishortmap_destroy (store->members);
@@ -155,6 +158,9 @@ load_member_store (struct GNUNET_MESSENGER_MemberStore *store,
   char *scan_dir;
   GNUNET_asprintf (&scan_dir, "%s%s%c", directory, "members", DIR_SEPARATOR);
 
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Load member store from directory: %s\n",
+             scan_dir);
+
   if (GNUNET_OK == GNUNET_DISK_directory_test (scan_dir, GNUNET_YES))
     GNUNET_DISK_directory_scan (scan_dir, callback_scan_for_members, store);
 
@@ -201,6 +207,9 @@ save_member_store (struct GNUNET_MESSENGER_MemberStore *store,
 
   char *save_dir;
   GNUNET_asprintf (&save_dir, "%s%s%c", directory, "members", DIR_SEPARATOR);
+
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Save member store to directory: %s\n",
+             save_dir);
 
   if ((GNUNET_YES == GNUNET_DISK_directory_test (save_dir, GNUNET_NO)) ||
       (GNUNET_OK == GNUNET_DISK_directory_create (save_dir)))
@@ -262,6 +271,9 @@ add_store_member (struct GNUNET_MESSENGER_MemberStore *store,
     destroy_member (member);
     return NULL;
   }
+
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Added store member with id: %s\n",
+             GNUNET_sh2s (get_member_id (member)));
 
   return member;
 }

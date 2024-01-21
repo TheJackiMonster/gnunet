@@ -26,6 +26,7 @@
 #ifndef GNUNET_SERVICE_MESSENGER_SERVICE_H
 #define GNUNET_SERVICE_MESSENGER_SERVICE_H
 
+#include "gnunet_common.h"
 #include "gnunet_configuration_lib.h"
 #include "gnunet_util_lib.h"
 
@@ -175,12 +176,14 @@ entry_service_room (struct GNUNET_MESSENGER_Service *service,
  * @param[in,out] service Service
  * @param[in,out] handle Handle
  * @param[in] key Key of room
+ * @param[in] deletion Flag to indicate context of closing
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
 enum GNUNET_GenericReturnValue
 close_service_room (struct GNUNET_MESSENGER_Service *service,
                     struct GNUNET_MESSENGER_SrvHandle *handle,
-                    const struct GNUNET_HashCode *key);
+                    const struct GNUNET_HashCode *key,
+                    enum GNUNET_GenericReturnValue deletion);
 
 /**
  * Sends a received or sent <i>message</i> with a given <i>hash</i> to each handle of a <i>service</i> which
