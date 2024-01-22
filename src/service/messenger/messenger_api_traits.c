@@ -1,6 +1,6 @@
 /*
       This file is part of GNUnet
-      Copyright (C) 2023 GNUnet e.V.
+      Copyright (C) 2023--2024 GNUnet e.V.
 
       GNUnet is free software: you can redistribute it and/or modify it
       under the terms of the GNU Affero General Public License as published
@@ -24,9 +24,6 @@
  * @author Tobias Frisch
  */
 
-#include "gnunet_testing_ng_lib.h"
-#include "gnunet_testing_netjail_lib.h"
 #include "messenger-testing-cmds.h"
-#include "gnunet_util_lib.h"
 
 GNUNET_MESSENGER_SIMPLE_TRAITS (GNUNET_MESSENGER_MAKE_IMPL_SIMPLE_TRAIT)
