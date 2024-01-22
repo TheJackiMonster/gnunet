@@ -1400,6 +1400,12 @@ load_srv_room (struct GNUNET_MESSENGER_SrvRoom *room)
 
   if (GNUNET_YES == GNUNET_DISK_directory_test (room_dir, GNUNET_YES))
   {
+    char *peers_file;
+    GNUNET_asprintf (&peers_file, "%s%s", room_dir, "peers.list");
+
+    load_peer_store (get_srv_room_peer_store (room), peers_file);
+    GNUNET_free (peers_file);
+
     load_member_store (get_srv_room_member_store (room), room_dir);
     load_message_store (get_srv_room_message_store (room), room_dir);
     load_operation_store (get_srv_room_operation_store (room), room_dir);
@@ -1431,6 +1437,12 @@ save_srv_room (struct GNUNET_MESSENGER_SrvRoom *room)
   if ((GNUNET_YES == GNUNET_DISK_directory_test (room_dir, GNUNET_NO)) ||
       (GNUNET_OK == GNUNET_DISK_directory_create (room_dir)))
   {
+    char *peers_file;
+    GNUNET_asprintf (&peers_file, "%s%s", room_dir, "peers.list");
+
+    save_peer_store (get_srv_room_peer_store (room), peers_file);
+    GNUNET_free (peers_file);
+
     save_member_store (get_srv_room_member_store (room), room_dir);
     save_message_store (get_srv_room_message_store (room), room_dir);
     save_operation_store (get_srv_room_operation_store (room), room_dir);

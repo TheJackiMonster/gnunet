@@ -36,7 +36,6 @@ libgnunetmessenger_la_SOURCES = \
   messenger_api.c \
   messenger_api_contact.c messenger_api_contact.h \
   messenger_api_contact_store.c messenger_api_contact_store.h \
-  messenger_api_peer_store.c messenger_api_peer_store.h \
   messenger_api_message.c messenger_api_message.h \
   messenger_api_message_kind.c messenger_api_message_kind.h \
   messenger_api_list_tunnels.c messenger_api_list_tunnels.h \
@@ -118,6 +117,7 @@ gnunet_service_messenger_SOURCES = \
   gnunet-service-messenger_message_store.c gnunet-service-messenger_message_store.h \
   gnunet-service-messenger_operation_store.c gnunet-service-messenger_operation_store.h \
   gnunet-service-messenger_operation.c gnunet-service-messenger_operation.h \
+  gnunet-service-messenger_peer_store.c gnunet-service-messenger_peer_store.h \
   gnunet-service-messenger_basement.c gnunet-service-messenger_basement.h \
   gnunet-service-messenger_handle.c gnunet-service-messenger_handle.h \
   gnunet-service-messenger_room.c gnunet-service-messenger_room.h \

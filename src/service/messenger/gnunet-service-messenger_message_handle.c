@@ -96,7 +96,7 @@ handle_message_peer (struct GNUNET_MESSENGER_SrvRoom *room,
   struct GNUNET_MESSENGER_PeerStore *store = get_srv_room_peer_store (room);
 
   if (0 == GNUNET_memcmp (session->peer, &(message->body.peer.peer)))
-    update_store_peer (store, &(message->body.peer.peer));
+    update_store_peer (store, &(message->body.peer.peer), GNUNET_NO);
 
   if (GNUNET_NO == contains_list_tunnels (&(room->basement),
                                           &(message->body.peer.peer)))

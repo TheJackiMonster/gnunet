@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2023 GNUnet e.V.
+   Copyright (C) 2023--2024 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -19,12 +19,12 @@
  */
 /**
  * @author Tobias Frisch
- * @file src/messenger/messenger_api_peer_store.h
- * @brief messenger api: client implementation of GNUnet MESSENGER service
+ * @file src/messenger/gnunet-service-messenger_peer_store.h
+ * @brief GNUnet MESSENGER service
  */
 
-#ifndef GNUNET_MESSENGER_API_PEER_STORE_H
-#define GNUNET_MESSENGER_API_PEER_STORE_H
+#ifndef GNUNET_SERVICE_MESSENGER_PEER_STORE_H
+#define GNUNET_SERVICE_MESSENGER_PEER_STORE_H
 
 #include "gnunet_util_lib.h"
 
@@ -52,6 +52,26 @@ void
 clear_peer_store (struct GNUNET_MESSENGER_PeerStore *store);
 
 /**
+ * Loads peer identities from a <i>file</i> into a peer <i>store</i>.
+ *
+ * @param[out] store Peer store
+ * @param[in] path Path to a file
+ */
+void
+load_peer_store (struct GNUNET_MESSENGER_PeerStore *store,
+                 const char *path);
+
+/**
+ * Saves peer identities from a peer <i>store</i> into a <i>file</i>.
+ *
+ * @param[in] store Peer store
+ * @param[in] path Path to a file
+ */
+void
+save_peer_store (const struct GNUNET_MESSENGER_PeerStore *store,
+                 const char *path);
+
+/**
  * Returns the peer identity inside the <i>store</i> which verifies the
  * signature of a given <i>message</i> as valid. The specific peer identity
  * has to be added to the <i>store</i> previously. Otherwise the function
@@ -74,10 +94,12 @@ get_store_peer_of (struct GNUNET_MESSENGER_PeerStore *store,
  *
  * @param[in,out] store Peer store
  * @param[in] peer Peer identity
+ * @param[in] loading Loading flag
  */
 void
 update_store_peer (struct GNUNET_MESSENGER_PeerStore *store,
-                   const struct GNUNET_PeerIdentity *peer);
+                   const struct GNUNET_PeerIdentity *peer,
+                   enum GNUNET_GenericReturnValue loading);
 
 /**
  * Removes a <i>peer</i> identity from the <i>store</i> entirely.
@@ -89,4 +111,4 @@ void
 remove_store_peer (struct GNUNET_MESSENGER_PeerStore *store,
                    const struct GNUNET_PeerIdentity *peer);
 
-#endif //GNUNET_MESSENGER_API_PEER_STORE_H
+#endif //GNUNET_SERVICE_MESSENGER_PEER_STORE_H

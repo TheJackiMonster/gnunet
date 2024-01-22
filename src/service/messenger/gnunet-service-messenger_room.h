@@ -36,10 +36,10 @@
 #include "gnunet-service-messenger_member_store.h"
 #include "gnunet-service-messenger_message_store.h"
 #include "gnunet-service-messenger_operation_store.h"
+#include "gnunet-service-messenger_peer_store.h"
 
 #include "messenger_api_list_tunnels.h"
 #include "messenger_api_message.h"
-#include "messenger_api_peer_store.h"
 
 #define GNUNET_MESSENGER_IDLE_DELAY GNUNET_TIME_relative_multiply \
           (GNUNET_TIME_relative_get_second_ (), 5)

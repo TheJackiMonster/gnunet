@@ -19,12 +19,13 @@
  */
 /**
  * @author Tobias Frisch
- * @file src/messenger/messenger_api_peer_store.c
- * @brief messenger api: client implementation of GNUnet MESSENGER service
+ * @file src/messenger/gnunet-service-messenger_peer_store.c
+ * @brief GNUnet MESSENGER service
  */
 
-#include "messenger_api_peer_store.h"
+#include "gnunet-service-messenger_peer_store.h"
 
+#include "gnunet_common.h"
 #include "messenger_api_message.h"
 #include "messenger_api_util.h"
 
@@ -59,6 +60,92 @@ clear_peer_store (struct GNUNET_MESSENGER_PeerStore *store)
   GNUNET_CONTAINER_multishortmap_destroy (store->peers);
 
   store->peers = NULL;
+}
+
+
+void
+load_peer_store (struct GNUNET_MESSENGER_PeerStore *store,
+                 const char *path)
+{
+  GNUNET_assert ((store) && (path));
+
+  if (GNUNET_YES != GNUNET_DISK_file_test (path))
+    return;
+
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Load peer store from path: %s\n",
+             path);
+
+  enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ
+                                                   | GNUNET_DISK_PERM_USER_WRITE);
+
+  struct GNUNET_DISK_FileHandle *handle = GNUNET_DISK_file_open (
+    path, GNUNET_DISK_OPEN_READ, permission
+    );
+
+  if (! handle)
+    return;
+
+  GNUNET_DISK_file_seek (handle, 0, GNUNET_DISK_SEEK_SET);
+
+  struct GNUNET_PeerIdentity peer;
+  ssize_t len;
+
+  do {
+    len = GNUNET_DISK_file_read (handle, &peer, sizeof(peer));
+
+    if (len != sizeof(peer))
+      break;
+
+    update_store_peer (store, &peer, GNUNET_YES);
+  } while (len == sizeof(peer));
+
+  GNUNET_DISK_file_close (handle);
+}
+
+
+static enum GNUNET_GenericReturnValue
+iterate_save_peers (void *cls, const struct GNUNET_ShortHashCode *id,
+                    void *value)
+{
+  struct GNUNET_DISK_FileHandle *handle = cls;
+  struct GNUNET_PeerIdentity *peer = value;
+
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Save peer store entry: %s\n",
+             GNUNET_sh2s(id));
+
+  if (! peer)
+    return GNUNET_YES;
+
+  GNUNET_DISK_file_write (handle, peer, sizeof(*peer));
+  return GNUNET_YES;
+}
+
+
+void
+save_peer_store (const struct GNUNET_MESSENGER_PeerStore *store,
+                 const char *path)
+{
+  GNUNET_assert ((store) && (path));
+
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Save peer store to path: %s\n",
+             path);
+
+  enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ
+                                                   | GNUNET_DISK_PERM_USER_WRITE);
+
+  struct GNUNET_DISK_FileHandle *handle = GNUNET_DISK_file_open (
+    path, GNUNET_DISK_OPEN_CREATE | GNUNET_DISK_OPEN_WRITE, permission
+    );
+
+  if (! handle)
+    return;
+
+  GNUNET_DISK_file_seek (handle, 0, GNUNET_DISK_SEEK_SET);
+  GNUNET_CONTAINER_multishortmap_iterate (store->peers, iterate_save_peers,
+                                          handle);
+
+  GNUNET_DISK_file_sync (handle);
+  GNUNET_DISK_file_close (handle);
 }
 
 
@@ -105,7 +192,7 @@ get_store_peer_of (struct GNUNET_MESSENGER_PeerStore *store,
     convert_peer_identity_to_id (&(message->body.peer.peer), &peer_id);
 
     if (0 == GNUNET_memcmp (&peer_id, &(message->header.sender_id)))
-      update_store_peer (store, &(message->body.peer.peer));
+      update_store_peer (store, &(message->body.peer.peer), GNUNET_NO);
     else
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                   "Sender id does not match peer identity\n");
@@ -148,15 +235,20 @@ find_store_peer (void *cls, const struct GNUNET_ShortHashCode *id, void *value)
 
 void
 update_store_peer (struct GNUNET_MESSENGER_PeerStore *store,
-                   const struct GNUNET_PeerIdentity *peer)
+                   const struct GNUNET_PeerIdentity *peer,
+                   enum GNUNET_GenericReturnValue loading)
 {
   GNUNET_assert ((store) && (store->peers) && (peer));
 
   struct GNUNET_ShortHashCode peer_id;
   convert_peer_identity_to_id (peer, &peer_id);
 
-  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Update peer store entry: %s\n",
-             GNUNET_sh2s (&peer_id));
+  if (GNUNET_YES == loading)
+    GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Load peer store entry: %s\n",
+               GNUNET_sh2s (&peer_id));
+  else
+    GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Update peer store entry: %s\n",
+               GNUNET_sh2s (&peer_id));
 
   struct GNUNET_MESSENGER_ClosureFindPeer find;
   find.requested = peer;

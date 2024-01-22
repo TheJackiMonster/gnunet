@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2023 GNUnet e.V.
+   Copyright (C) 2020--2024 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -228,6 +228,9 @@ load_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
   if (GNUNET_YES != GNUNET_DISK_file_test (path))
     return;
 
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Load list of tunnels from path: %s\n",
+             path);
+
   enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ
                                                    | GNUNET_DISK_PERM_USER_WRITE);
 
@@ -261,6 +264,9 @@ save_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
                    const char *path)
 {
   GNUNET_assert ((tunnels) && (path));
+
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Save list of tunnels to path: %s\n",
+             path);
 
   enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ
                                                    | GNUNET_DISK_PERM_USER_WRITE);
