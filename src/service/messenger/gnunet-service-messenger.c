@@ -361,7 +361,12 @@ callback_found_message (void *cls,
     session.peer = get_store_peer_of (store, message, hash);
 
     if (! session.peer)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR, 
+                  "Peer session from sender of message (%s) unknown!\n",
+                  GNUNET_h2s (hash));
       return;
+    }
   }
   else
   {
@@ -380,7 +385,12 @@ callback_found_message (void *cls,
     session.member = get_member_session_of (member, message, hash);
 
     if (! session.member)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR, 
+                  "Member session from sender of message (%s) unknown!\n",
+                  GNUNET_h2s (hash));
       return;
+    }
   }
 
   notify_srv_handle_message (msg_client->handle, room, &session, message,
@@ -396,6 +406,8 @@ handle_get_message (void *cls,
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Requesting message from room: %s\n",
               GNUNET_h2s (&(msg->key)));
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Requested message: %s\n",
+              GNUNET_h2s (&(msg->hash)));
 
   struct GNUNET_MESSENGER_SrvRoom *room = get_service_room (messenger,
                                                             &(msg->key));

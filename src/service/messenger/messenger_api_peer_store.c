@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2023 GNUnet e.V.
+   Copyright (C) 2023--2024 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -51,6 +51,8 @@ void
 clear_peer_store (struct GNUNET_MESSENGER_PeerStore *store)
 {
   GNUNET_assert ((store) && (store->peers));
+
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Clear peer store\n");
 
   GNUNET_CONTAINER_multishortmap_iterate (store->peers, iterate_destroy_peers,
                                           NULL);
@@ -153,6 +155,9 @@ update_store_peer (struct GNUNET_MESSENGER_PeerStore *store,
   struct GNUNET_ShortHashCode peer_id;
   convert_peer_identity_to_id (peer, &peer_id);
 
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Update peer store entry: %s\n",
+             GNUNET_sh2s (&peer_id));
+
   struct GNUNET_MESSENGER_ClosureFindPeer find;
   find.requested = peer;
   find.match = NULL;
@@ -178,6 +183,9 @@ remove_store_peer (struct GNUNET_MESSENGER_PeerStore *store,
 
   struct GNUNET_ShortHashCode peer_id;
   convert_peer_identity_to_id (peer, &peer_id);
+
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Remove peer store entry: %s\n",
+             GNUNET_sh2s (&peer_id));
 
   struct GNUNET_MESSENGER_ClosureFindPeer find;
   find.requested = peer;

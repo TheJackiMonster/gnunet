@@ -791,6 +791,8 @@ request_room_message_step (struct GNUNET_MESSENGER_SrvRoom *room,
                            GNUNET_MESSENGER_MessageRequestCallback callback,
                            void *cls)
 {
+  const struct GNUNET_MESSENGER_Message *message;
+
   struct GNUNET_MESSENGER_MessageStore *message_store =
     get_srv_room_message_store (room);
 
@@ -800,6 +802,10 @@ request_room_message_step (struct GNUNET_MESSENGER_SrvRoom *room,
 
   if (! link)
     goto forward;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Requesting link of message with hash: %s\n",
+              GNUNET_h2s (hash));
 
   enum GNUNET_GenericReturnValue result;
   result = request_room_message_step (room, &(link->first), session,
@@ -813,16 +819,21 @@ request_room_message_step (struct GNUNET_MESSENGER_SrvRoom *room,
     return result;
 
 forward:
-  if (GNUNET_YES != check_member_session_history (session, hash, GNUNET_NO))
-    return GNUNET_YES;
-
-  const struct GNUNET_MESSENGER_Message *message = get_store_message (
-    message_store, hash);
+  message = get_store_message (message_store, hash);
 
   if (! message)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                "Requested message is missing in local storage: %s\n",
+                GNUNET_h2s (hash));
     return GNUNET_NO;
+  }
 
-  if (callback)
+  if (GNUNET_YES != check_member_session_history (session, hash, GNUNET_NO))
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Member is not permitted to request access to message! (%s)\n",
+                GNUNET_sh2s (get_member_session_id (session)));
+  else if (callback)
     callback (cls, room, message, hash);
 
   return GNUNET_YES;
