@@ -28,6 +28,7 @@
 #include "gnunet-service-messenger_handle.h"
 #include "gnunet-service-messenger_room.h"
 #include "gnunet-service-messenger_service.h"
+#include "gnunet_common.h"
 #include "messenger_api_message.h"
 
 struct GNUNET_MESSENGER_Client
@@ -408,18 +409,19 @@ handle_get_message (void *cls,
 
   struct GNUNET_MESSENGER_MemberStore *member_store =
     get_srv_room_member_store (room);
+  
+  const struct GNUNET_ShortHashCode *member_id;
+  member_id = get_srv_handle_member_id (msg_client->handle,
+                                        &(msg->key));
 
   struct GNUNET_MESSENGER_Member *member = get_store_member (member_store,
-                                                             get_srv_handle_member_id (
-                                                               msg_client->
-                                                               handle,
-                                                               &(msg->key)
-                                                               ));
+                                                             member_id);
 
   if (! member)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Member not valid to request a message!\n");
+                "Member not valid to request a message! (%s)\n",
+                GNUNET_sh2s (member_id));
     goto end_handling;
   }
 
@@ -429,7 +431,8 @@ handle_get_message (void *cls,
   if (! pubkey)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Handle needs to have a public key to request a message!\n");
+                "Handle needs to have a public key to request a message! (%s)\n",
+                GNUNET_sh2s (member_id));
     goto end_handling;
   }
 
@@ -439,7 +442,8 @@ handle_get_message (void *cls,
   if (! session)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Session not valid to request a message!\n");
+                "Session not valid to request a message! (%s)\n",
+                GNUNET_sh2s (member_id));
     goto end_handling;
   }
 

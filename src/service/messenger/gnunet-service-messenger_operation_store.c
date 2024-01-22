@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2021, 2023 GNUnet e.V.
+   Copyright (C) 2021--2024 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -58,6 +58,9 @@ clear_operation_store (struct GNUNET_MESSENGER_OperationStore *store)
 {
   GNUNET_assert (store);
 
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Clear operation store of room: %s\n",
+             GNUNET_h2s (get_srv_room_key (store->room)));
+
   GNUNET_CONTAINER_multihashmap_iterate (store->operations,
                                          iterate_destroy_operations, NULL);
   GNUNET_CONTAINER_multihashmap_destroy (store->operations);
@@ -100,6 +103,9 @@ load_operation_store (struct GNUNET_MESSENGER_OperationStore *store,
   char *load_dir;
   GNUNET_asprintf (&load_dir, "%s%s%c", directory, "operations", DIR_SEPARATOR);
 
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Load operation store from directory: %s\n",
+             load_dir);
+
   if (GNUNET_OK == GNUNET_DISK_directory_test (load_dir, GNUNET_YES))
     GNUNET_DISK_directory_scan (load_dir, callback_scan_for_operations, store);
 
@@ -136,6 +142,9 @@ save_operation_store (const struct GNUNET_MESSENGER_OperationStore *store,
 
   char *save_dir;
   GNUNET_asprintf (&save_dir, "%s%s%c", directory, "operations", DIR_SEPARATOR);
+
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Save operation store to directory: %s\n",
+             save_dir);
 
   if ((GNUNET_YES == GNUNET_DISK_directory_test (save_dir, GNUNET_NO)) ||
       (GNUNET_OK == GNUNET_DISK_directory_create (save_dir)))
