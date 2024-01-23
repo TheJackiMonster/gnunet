@@ -23,6 +23,7 @@
  * @brief GNUnet MESSENGER service
  */
 
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet-service-messenger_room.h"
 
@@ -830,9 +831,9 @@ forward:
   }
 
   if (GNUNET_YES != check_member_session_history (session, hash, GNUNET_NO))
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Member is not permitted to request access to message! (%s)\n",
-                GNUNET_sh2s (get_member_session_id (session)));
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Unpermitted request for access by member (%s) of message (%s)!\n",
+                GNUNET_sh2s (get_member_session_id (session)), GNUNET_h2s (hash));
   else if (callback)
     callback (cls, room, message, hash);
 
