@@ -29,6 +29,12 @@
 #include "messenger_api_message.h"
 #include "messenger_api_util.h"
 
+struct GNUNET_MESSENGER_PeerStoreEntry
+{
+  struct GNUNET_PeerIdentity peer;
+  enum GNUNET_GenericReturnValue active;
+};
+
 void
 init_peer_store (struct GNUNET_MESSENGER_PeerStore *store)
 {
@@ -42,8 +48,8 @@ static enum GNUNET_GenericReturnValue
 iterate_destroy_peers (void *cls, const struct GNUNET_ShortHashCode *id,
                        void *value)
 {
-  struct GNUNET_PeerIdentity *peer = value;
-  GNUNET_free (peer);
+  struct GNUNET_MESSENGER_PeerStoreEntry *entry = value;
+  GNUNET_free (entry);
   return GNUNET_YES;
 }
 
@@ -87,6 +93,8 @@ load_peer_store (struct GNUNET_MESSENGER_PeerStore *store,
 
   GNUNET_DISK_file_seek (handle, 0, GNUNET_DISK_SEEK_SET);
 
+  struct GNUNET_MESSENGER_PeerStoreEntry *entry;
+  struct GNUNET_ShortHashCode peer_id;
   struct GNUNET_PeerIdentity peer;
   ssize_t len;
 
@@ -96,7 +104,23 @@ load_peer_store (struct GNUNET_MESSENGER_PeerStore *store,
     if (len != sizeof(peer))
       break;
 
-    update_store_peer (store, &peer, GNUNET_YES);
+   
+    entry = GNUNET_new(struct GNUNET_MESSENGER_PeerStoreEntry);
+
+    if (! entry)
+      continue;
+
+    GNUNET_memcpy(&(entry->peer), &peer, sizeof(entry->peer));
+    entry->active = GNUNET_YES;
+
+    convert_peer_identity_to_id (&peer, &peer_id);
+
+    if (GNUNET_OK == GNUNET_CONTAINER_multishortmap_put (
+      store->peers, &peer_id, entry, 
+      GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE))
+      continue;
+
+    GNUNET_free(entry);
   } while (len == sizeof(peer));
 
   GNUNET_DISK_file_close (handle);
@@ -108,15 +132,15 @@ iterate_save_peers (void *cls, const struct GNUNET_ShortHashCode *id,
                     void *value)
 {
   struct GNUNET_DISK_FileHandle *handle = cls;
-  struct GNUNET_PeerIdentity *peer = value;
+  struct GNUNET_MESSENGER_PeerStoreEntry *entry = value;
 
   GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Save peer store entry: %s\n",
              GNUNET_sh2s(id));
 
-  if (! peer)
+  if ((! entry) || (GNUNET_YES != entry->active))
     return GNUNET_YES;
 
-  GNUNET_DISK_file_write (handle, peer, sizeof(*peer));
+  GNUNET_DISK_file_write (handle, &(entry->peer), sizeof(entry->peer));
   return GNUNET_YES;
 }
 
@@ -161,16 +185,48 @@ verify_store_peer (void *cls, const struct GNUNET_ShortHashCode *id,
                    void *value)
 {
   struct GNUNET_MESSENGER_ClosureVerifyPeer *verify = cls;
-  struct GNUNET_PeerIdentity *peer = value;
+  struct GNUNET_MESSENGER_PeerStoreEntry *entry = value;
 
-  if ((peer) && (GNUNET_OK == verify_message_by_peer (verify->message,
-                                                      verify->hash, peer)))
+  if (! entry)
+    return GNUNET_YES;
+
+  if (GNUNET_OK == verify_message_by_peer (verify->message,
+                                           verify->hash, &(entry->peer)))
   {
-    verify->sender = peer;
+    verify->sender = &(entry->peer);
     return GNUNET_NO;
   }
 
   return GNUNET_YES;
+}
+
+
+static struct GNUNET_MESSENGER_PeerStoreEntry*
+add_peer_store_entry (struct GNUNET_MESSENGER_PeerStore *store,
+                      const struct GNUNET_PeerIdentity *peer,
+                      const struct GNUNET_ShortHashCode *id,
+                      enum GNUNET_GenericReturnValue active)
+{
+  GNUNET_assert ((store) && (peer));
+
+  struct GNUNET_MESSENGER_PeerStoreEntry *entry;
+  entry = GNUNET_new(struct GNUNET_MESSENGER_PeerStoreEntry);
+
+  if (! entry)
+    return NULL;
+
+  GNUNET_memcpy(&(entry->peer), peer, sizeof(entry->peer));
+  entry->active = active;
+
+  if (GNUNET_OK != GNUNET_CONTAINER_multishortmap_put (
+      store->peers, id, entry, 
+      GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE))
+  {
+    GNUNET_free (entry);
+    return NULL;
+  }
+
+  return entry;
 }
 
 
@@ -184,20 +240,6 @@ get_store_peer_of (struct GNUNET_MESSENGER_PeerStore *store,
   if (GNUNET_YES != is_peer_message (message))
     return NULL;
 
-  if ((GNUNET_MESSENGER_KIND_PEER == message->header.kind) &&
-      (GNUNET_OK == verify_message_by_peer (message, hash,
-                                            &(message->body.peer.peer))))
-  {
-    struct GNUNET_ShortHashCode peer_id;
-    convert_peer_identity_to_id (&(message->body.peer.peer), &peer_id);
-
-    if (0 == GNUNET_memcmp (&peer_id, &(message->header.sender_id)))
-      update_store_peer (store, &(message->body.peer.peer), GNUNET_NO);
-    else
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                  "Sender id does not match peer identity\n");
-  }
-
   struct GNUNET_MESSENGER_ClosureVerifyPeer verify;
   verify.message = message;
   verify.hash = hash;
@@ -206,26 +248,80 @@ get_store_peer_of (struct GNUNET_MESSENGER_PeerStore *store,
   GNUNET_CONTAINER_multishortmap_get_multiple (store->peers,
                                                &(message->header.sender_id),
                                                verify_store_peer, &verify);
+  
+  if (verify.sender)
+    return verify.sender;
 
-  return verify.sender;
+  const struct GNUNET_PeerIdentity *peer;
+  enum GNUNET_GenericReturnValue active;
+
+  if (GNUNET_MESSENGER_KIND_PEER == message->header.kind)
+  {
+    peer = &(message->body.peer.peer);
+    active = GNUNET_YES;
+  }
+  else if (GNUNET_MESSENGER_KIND_MISS == message->header.kind)
+  {
+    peer = &(message->body.miss.peer);
+    active = GNUNET_NO;
+  }
+  else
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Peer message does not contain a peer identity\n");
+    return NULL;
+  }
+
+  struct GNUNET_ShortHashCode peer_id;
+  convert_peer_identity_to_id (peer, &peer_id);
+
+  if (0 != GNUNET_memcmp (&peer_id, &(message->header.sender_id)))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Sender id does not match peer identity\n");
+    return NULL;
+  }
+
+  if (GNUNET_OK != verify_message_by_peer (message, hash, peer))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Verification of message with peer identity failed!\n");
+  }
+
+  struct GNUNET_MESSENGER_PeerStoreEntry *entry;
+  entry = add_peer_store_entry(store, peer, &peer_id, active);
+
+  if (! entry)
+  {
+    GNUNET_log(GNUNET_ERROR_TYPE_ERROR, 
+               "Initialization of entry in peer store failed: %s\n",
+               GNUNET_sh2s (&peer_id));
+
+    return NULL;
+  }
+
+  return &(entry->peer);
 }
 
 
 struct GNUNET_MESSENGER_ClosureFindPeer
 {
   const struct GNUNET_PeerIdentity *requested;
-  struct GNUNET_PeerIdentity *match;
+  struct GNUNET_MESSENGER_PeerStoreEntry *match;
 };
 
 static enum GNUNET_GenericReturnValue
 find_store_peer (void *cls, const struct GNUNET_ShortHashCode *id, void *value)
 {
   struct GNUNET_MESSENGER_ClosureFindPeer *find = cls;
-  struct GNUNET_PeerIdentity *peer = value;
+  struct GNUNET_MESSENGER_PeerStoreEntry *entry = value;
 
-  if ((peer) && (0 == GNUNET_memcmp (find->requested, peer)))
+  if (! entry)
+    return GNUNET_YES;
+
+  if (0 == GNUNET_memcmp (find->requested, &(entry->peer)))
   {
-    find->match = peer;
+    find->match = entry;
     return GNUNET_NO;
   }
 
@@ -236,47 +332,14 @@ find_store_peer (void *cls, const struct GNUNET_ShortHashCode *id, void *value)
 void
 update_store_peer (struct GNUNET_MESSENGER_PeerStore *store,
                    const struct GNUNET_PeerIdentity *peer,
-                   enum GNUNET_GenericReturnValue loading)
+                   enum GNUNET_GenericReturnValue active)
 {
   GNUNET_assert ((store) && (store->peers) && (peer));
 
   struct GNUNET_ShortHashCode peer_id;
   convert_peer_identity_to_id (peer, &peer_id);
 
-  if (GNUNET_YES == loading)
-    GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Load peer store entry: %s\n",
-               GNUNET_sh2s (&peer_id));
-  else
-    GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Update peer store entry: %s\n",
-               GNUNET_sh2s (&peer_id));
-
-  struct GNUNET_MESSENGER_ClosureFindPeer find;
-  find.requested = peer;
-  find.match = NULL;
-
-  GNUNET_CONTAINER_multishortmap_get_multiple (store->peers, &peer_id,
-                                               find_store_peer, &find);
-
-  if (find.match)
-    return;
-
-  struct GNUNET_PeerIdentity *copy = GNUNET_memdup (peer, sizeof (struct
-                                                                  GNUNET_PeerIdentity));
-  GNUNET_CONTAINER_multishortmap_put (store->peers, &peer_id, copy,
-                                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
-}
-
-
-void
-remove_store_peer (struct GNUNET_MESSENGER_PeerStore *store,
-                   const struct GNUNET_PeerIdentity *peer)
-{
-  GNUNET_assert ((store) && (store->peers) && (peer));
-
-  struct GNUNET_ShortHashCode peer_id;
-  convert_peer_identity_to_id (peer, &peer_id);
-
-  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Remove peer store entry: %s\n",
+  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Update peer store entry: %s\n",
              GNUNET_sh2s (&peer_id));
 
   struct GNUNET_MESSENGER_ClosureFindPeer find;
@@ -286,11 +349,14 @@ remove_store_peer (struct GNUNET_MESSENGER_PeerStore *store,
   GNUNET_CONTAINER_multishortmap_get_multiple (store->peers, &peer_id,
                                                find_store_peer, &find);
 
-  if (! find.match)
+  if (find.match)
+  {
+    find.match->active = active;
     return;
+  }
 
-  if (GNUNET_YES == GNUNET_CONTAINER_multishortmap_remove (store->peers,
-                                                           &peer_id,
-                                                           find.match))
-    GNUNET_free (find.match);
+  if (! add_peer_store_entry(store, peer, &peer_id, active))
+    GNUNET_log(GNUNET_ERROR_TYPE_ERROR, 
+               "Initial update of entry in peer store failed: %s\n",
+               GNUNET_sh2s (&peer_id));
 }

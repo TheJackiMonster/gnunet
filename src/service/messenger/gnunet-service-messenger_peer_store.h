@@ -94,21 +94,11 @@ get_store_peer_of (struct GNUNET_MESSENGER_PeerStore *store,
  *
  * @param[in,out] store Peer store
  * @param[in] peer Peer identity
- * @param[in] loading Loading flag
+ * @param[in] active Whether the peer is active or not
  */
 void
 update_store_peer (struct GNUNET_MESSENGER_PeerStore *store,
                    const struct GNUNET_PeerIdentity *peer,
-                   enum GNUNET_GenericReturnValue loading);
-
-/**
- * Removes a <i>peer</i> identity from the <i>store</i> entirely.
- *
- * @param[in,out] store Peer store
- * @param[in] peer Peer identity
- */
-void
-remove_store_peer (struct GNUNET_MESSENGER_PeerStore *store,
-                   const struct GNUNET_PeerIdentity *peer);
+                   enum GNUNET_GenericReturnValue active);
 
 #endif //GNUNET_SERVICE_MESSENGER_PEER_STORE_H
