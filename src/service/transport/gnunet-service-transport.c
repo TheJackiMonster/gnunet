@@ -1200,7 +1200,7 @@ struct CommunicatorMessageContext
   uint16_t total_hops;
 
   /**
-   * Did we already call GNUNET_SERVICE_client_continue?
+   * Did we already call GNUNET_SERVICE_client_continue and send ACK to communicator?
    */
   unsigned int continue_send;
 };
@@ -4144,7 +4144,7 @@ notify_client_connect_info (void *cls,
 static void
 finish_cmc_handling_with_continue (struct CommunicatorMessageContext *cmc,
                                    unsigned
-                                   int continue_client);
+                                   int free_cmc);
 
 static enum GNUNET_GenericReturnValue
 resume_communicators(void *cls,
@@ -4158,7 +4158,8 @@ resume_communicators(void *cls,
   while (NULL != (cmc = vl->cmc_tail))
   {
     GNUNET_CONTAINER_DLL_remove (vl->cmc_head, vl->cmc_tail, cmc);
-    finish_cmc_handling_with_continue (cmc, GNUNET_YES == cmc->continue_send ? GNUNET_NO : GNUNET_YES);
+    if (GNUNET_NO == cmc->continue_send)
+      finish_cmc_handling_with_continue (cmc, GNUNET_YES);
   }
   return GNUNET_OK;
 }
@@ -4388,7 +4389,7 @@ check_communicator_available (
 static void
 finish_cmc_handling_with_continue (struct CommunicatorMessageContext *cmc,
                                    unsigned
-                                   int continue_client)
+                                   int free_cmc)
 {
   if (0 != ntohl (cmc->im.fc_on))
   {
@@ -4406,11 +4407,12 @@ finish_cmc_handling_with_continue (struct CommunicatorMessageContext *cmc,
     GNUNET_MQ_send (cmc->tc->mq, env);
   }
 
-  if (GNUNET_YES == continue_client)
+  GNUNET_SERVICE_client_continue (cmc->tc->client);
+
+  if (GNUNET_YES == free_cmc)
   {
-    GNUNET_SERVICE_client_continue (cmc->tc->client);
+    GNUNET_free (cmc);
   }
-  GNUNET_free (cmc);
 }
 
 
@@ -4466,7 +4468,8 @@ handle_client_recv_ok (void *cls, const struct RecvOkMessage *rom)
   while (NULL != (cmc = vl->cmc_tail))
   {
     GNUNET_CONTAINER_DLL_remove (vl->cmc_head, vl->cmc_tail, cmc);
-    finish_cmc_handling_with_continue (cmc, GNUNET_YES == cmc->continue_send ? GNUNET_NO : GNUNET_YES);
+    if (GNUNET_NO == cmc->continue_send)
+      finish_cmc_handling_with_continue (cmc, GNUNET_YES);
   }
 }
 
@@ -5682,6 +5685,7 @@ shc_cont (void *cls, int success)
 {
   struct AddressListEntry *ale = cls;
   struct GNUNET_TIME_Absolute expiration;
+
   expiration = GNUNET_TIME_relative_to_absolute (ale->expiration);
   ale->sc = GNUNET_PEERSTORE_store (peerstore,
                                     "transport",
@@ -5885,7 +5889,7 @@ static void
 finish_handling_raw_message (struct VirtualLink *vl,
                              const struct GNUNET_MessageHeader *mh,
                              struct CommunicatorMessageContext *cmc,
-                             unsigned int continue_client)
+                             unsigned int free_cmc)
 {
   uint16_t size = ntohs (mh->size);
   int have_core;
@@ -5900,7 +5904,8 @@ finish_handling_raw_message (struct VirtualLink *vl,
                 "CORE messages of type %u with %u bytes dropped (FC arithmetic overflow)\n",
                 (unsigned int) ntohs (mh->type),
                 (unsigned int) ntohs (mh->size));
-    finish_cmc_handling_with_continue (cmc, continue_client);
+    if (GNUNET_YES == free_cmc)
+      finish_cmc_handling_with_continue (cmc, GNUNET_YES);
     return;
   }
   if (vl->incoming_fc_window_size_ram + size > vl->available_fc_window_size)
@@ -5913,7 +5918,8 @@ finish_handling_raw_message (struct VirtualLink *vl,
                 "CORE messages of type %u with %u bytes dropped (FC window overflow)\n",
                 (unsigned int) ntohs (mh->type),
                 (unsigned int) ntohs (mh->size));
-    finish_cmc_handling_with_continue (cmc, continue_client);
+    if (GNUNET_YES == free_cmc)
+      finish_cmc_handling_with_continue (cmc, GNUNET_YES);
     return;
   }
 
@@ -5953,7 +5959,8 @@ finish_handling_raw_message (struct VirtualLink *vl,
                 "Dropped message of type %u with %u bytes to CORE: no CORE client connected!\n",
                 (unsigned int) ntohs (mh->type),
                 (unsigned int) ntohs (mh->size));
-    finish_cmc_handling_with_continue (cmc, continue_client);
+    if (GNUNET_YES == free_cmc)
+      finish_cmc_handling_with_continue (cmc, GNUNET_YES);
     return;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -5963,12 +5970,14 @@ finish_handling_raw_message (struct VirtualLink *vl,
               vl->core_recv_window);
   if (vl->core_recv_window > 0)
   {
-    finish_cmc_handling_with_continue (cmc, continue_client);
+    if (GNUNET_YES == free_cmc)
+      finish_cmc_handling_with_continue (cmc, GNUNET_YES);
     return;
   }
   /* Wait with calling #finish_cmc_handling(cmc) until the message
      was processed by CORE MQs (for CORE flow control)! */
-  GNUNET_CONTAINER_DLL_insert (vl->cmc_head, vl->cmc_tail, cmc);
+  if (GNUNET_YES == free_cmc)
+    GNUNET_CONTAINER_DLL_insert (vl->cmc_head, vl->cmc_tail, cmc);
 }
 
 
@@ -6029,6 +6038,7 @@ handle_raw_message (void *cls, const struct GNUNET_MessageHeader *mh)
     if (GNUNET_YES == is_ring_buffer_full)
     {
       struct RingBufferEntry *rbe_old = ring_buffer[ring_buffer_head];
+      GNUNET_free (rbe_old->cmc);
       GNUNET_free (rbe_old->mh);
       GNUNET_free (rbe_old);
     }
@@ -6066,7 +6076,7 @@ handle_raw_message (void *cls, const struct GNUNET_MessageHeader *mh)
                 (unsigned int) ntohs (mh->type),
                 (unsigned int) ntohs (mh->size));
     finish_cmc_handling (cmc);*/
-    GNUNET_SERVICE_client_continue (cmc->tc->client);
+    finish_cmc_handling_with_continue (cmc, GNUNET_NO);
     cmc->continue_send = GNUNET_YES;
     // GNUNET_free (cmc);
     return;
@@ -6975,6 +6985,7 @@ send_msg_from_cache (struct VirtualLink *vl)
                     (unsigned int) ntohs (mh->size));
         finish_handling_raw_message (vl, mh, cmc, GNUNET_NO);
         GNUNET_free (mh);
+        GNUNET_free (rbe->cmc);
         GNUNET_free (rbe);
       }
       else
