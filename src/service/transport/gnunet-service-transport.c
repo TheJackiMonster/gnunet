@@ -9910,17 +9910,20 @@ static unsigned int
 check_next_attempt_tree (struct PendingMessage *pm)
 {
   struct PendingMessage *pos;
+  enum GNUNET_GenericReturnValue frags_in_flight_round;
 
   pos = pm->head_frag;
   while (NULL != pos)
   {
-    if (pos->frags_in_flight_round != pm->frags_in_flight_round ||
+    if (pos->frags_in_flight_round == pm->frags_in_flight_round ||
         GNUNET_YES == check_next_attempt_tree (pos))
-      return GNUNET_YES;
+      frags_in_flight_round = GNUNET_NO;
+    else
+      frags_in_flight_round = GNUNET_YES;
     pos = pos->next_frag;
   }
 
-  return GNUNET_NO;
+  return frags_in_flight_round;
 }
 
 
@@ -9965,9 +9968,14 @@ update_pm_next_attempt (struct PendingMessage *pm,
     while (NULL != root->frag_parent && PMT_DV_BOX != root->pmt)
       root = root->frag_parent;
 
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "frag_count %u\n",
+                root->frag_count);
+
     if (GNUNET_NO == root->frags_in_flight)
     {
       root->next_attempt = next_attempt;
+      root->frags_in_flight_round++;
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Next attempt for fragmented message <%" PRIu64 "> (<%" PRIu64
                   ">)set to %" PRIu64 "\n",
@@ -9991,6 +9999,8 @@ update_pm_next_attempt (struct PendingMessage *pm,
                   ", reorder root! Next attempt is %" PRIu64 "\n",
                   root->logging_uuid,
                   root->next_attempt.abs_value_us);
+      if (PMT_DV_BOX == root->pmt)
+        root = root->frag_parent;
       reorder_root_pm (root, root->next_attempt);
       root->frag_count = 0;
       root->next_attempt = GNUNET_TIME_UNIT_ZERO_ABS;
@@ -10005,6 +10015,10 @@ update_pm_next_attempt (struct PendingMessage *pm,
         GNUNET_TIME_absolute_get_remaining (root->next_attempt);
       struct GNUNET_TIME_Relative plus = GNUNET_TIME_absolute_get_remaining (
         next_attempt);
+
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "frag_count %u after factor\n",
+                root->frag_count);
       s1 = GNUNET_TIME_relative_multiply_double (plus_mean,
                                           factor);
       s2 = GNUNET_TIME_relative_divide (plus,
