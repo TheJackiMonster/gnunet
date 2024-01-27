@@ -47,9 +47,8 @@ GNUNET_CRYPTO_blinding_input_values_decref (
 
 
 void
-GNUNET_CRYPTO_blind_sign_priv_decref (struct
-                                      GNUNET_CRYPTO_BlindSignPrivateKey *
-                                      bsign_priv)
+GNUNET_CRYPTO_blind_sign_priv_decref (
+  struct GNUNET_CRYPTO_BlindSignPrivateKey *bsign_priv)
 {
   GNUNET_assert (bsign_priv->rc > 0);
   bsign_priv->rc--;

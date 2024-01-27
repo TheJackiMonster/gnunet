@@ -410,6 +410,10 @@ GNUNET_STRINGS_base64_encode (const void *in,
 /**
  * url/percent encode (RFC3986).
  *
+ * FIXME: awkward API, @a len is not actually used
+ * @a out is 0-terminated, should probably be changed
+ * to only input @a data and directly return @out or NULL.
+ *
  * @param data the data to decode
  * @param len the length of the input
  * @param out where to write the output (*out should be NULL,
