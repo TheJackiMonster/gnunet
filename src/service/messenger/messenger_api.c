@@ -362,7 +362,8 @@ skip_recipient:
   if (private_message)
     handle_msg = private_message;
 
-  if (GNUNET_MESSENGER_KIND_DELETE == handle_msg->header.kind)
+  if ((GNUNET_MESSENGER_KIND_DELETE == handle_msg->header.kind) &&
+      (GNUNET_MESSENGER_FLAG_SENT & flags))
   {
     struct GNUNET_TIME_Relative delay;
     struct GNUNET_TIME_Absolute action;
