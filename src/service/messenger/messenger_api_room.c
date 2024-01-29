@@ -25,7 +25,6 @@
 
 #include "messenger_api_room.h"
 
-#include "gnunet_time_lib.h"
 #include "messenger_api_handle.h"
 #include "messenger_api_message.h"
 

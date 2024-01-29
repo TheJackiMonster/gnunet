@@ -27,7 +27,6 @@
 #define GNUNET_SERVICE_MESSENGER_H
 
 #include "gnunet_util_lib.h"
-#include <stdint.h>
 
 /**
  * Message to create a handle for a client
@@ -102,18 +101,6 @@ struct GNUNET_MESSENGER_RecvMessage
   struct GNUNET_HashCode context;
   struct GNUNET_HashCode hash;
   uint32_t flags;
-};
-
-/**
- * Message to link something in a room
- */
-struct GNUNET_MESSENGER_LinkMessage
-{
-  struct GNUNET_MessageHeader header;
-
-  struct GNUNET_HashCode key;
-  struct GNUNET_HashCode hashes [2];
-  uint32_t bidirectional;
 };
 
 #endif //GNUNET_SERVICE_MESSENGER_H
