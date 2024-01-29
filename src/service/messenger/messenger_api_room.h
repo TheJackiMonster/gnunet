@@ -26,6 +26,8 @@
 #ifndef GNUNET_MESSENGER_API_ROOM_H
 #define GNUNET_MESSENGER_API_ROOM_H
 
+#include "gnunet_common.h"
+#include "gnunet_time_lib.h"
 #include "gnunet_util_lib.h"
 
 #include "gnunet_messenger_service.h"
@@ -58,9 +60,14 @@ struct GNUNET_MESSENGER_Room
 
   struct GNUNET_CONTAINER_MultiHashMap *messages;
   struct GNUNET_CONTAINER_MultiShortmap *members;
+  struct GNUNET_CONTAINER_MultiHashMap *links;
 
   struct GNUNET_MESSENGER_QueueMessages queue;
 };
+
+typedef void (*GNUNET_MESSENGER_RoomLinkDeletion) (struct GNUNET_MESSENGER_Room *room,
+                                                   const struct GNUNET_HashCode *hash,
+                                                   const struct GNUNET_TIME_Relative delay);
 
 /**
  * Creates and allocates a new room for a <i>handle</i> with a given <i>key</i> for the client API.
@@ -193,5 +200,34 @@ iterate_room_members (struct GNUNET_MESSENGER_Room *room,
 enum GNUNET_GenericReturnValue
 find_room_member (const struct GNUNET_MESSENGER_Room *room,
                   const struct GNUNET_MESSENGER_Contact *contact);
+
+/**
+ * Links a message identified by its <i>hash</i> inside a given <i>room</i> with another
+ * message identified by its <i>other</i> hash. Linked messages will be deleted automatically,
+ * if any linked message to it gets deleted.
+ *
+ * @param[in,out] room Room
+ * @param[in] hash Hash of message
+ * @param[in] other Hash of other message
+ */
+void
+link_room_message (struct GNUNET_MESSENGER_Room *room,
+                   const struct GNUNET_HashCode *hash,
+                   const struct GNUNET_HashCode *other);
+
+/**
+ * Delete all remaining links to a certain message identified by its <i>hash</i> inside a given
+ * <i>room</i> and cause a <i>deletion</i> process to all of the linked messages.
+ *
+ * @param[in,out] room Room
+ * @param[in] hash Hash of message
+ * @param[in] delay Delay for linked deletion
+ * @param[in] deletion Function called for each linked deletion 
+ */
+void
+link_room_deletion (struct GNUNET_MESSENGER_Room *room,
+                    const struct GNUNET_HashCode *hash,
+                    const struct GNUNET_TIME_Relative delay,
+                    GNUNET_MESSENGER_RoomLinkDeletion deletion);
 
 #endif //GNUNET_MESSENGER_API_ROOM_H

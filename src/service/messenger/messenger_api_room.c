@@ -25,6 +25,7 @@
 
 #include "messenger_api_room.h"
 
+#include "gnunet_time_lib.h"
 #include "messenger_api_handle.h"
 #include "messenger_api_message.h"
 
@@ -52,6 +53,7 @@ create_room (struct GNUNET_MESSENGER_Handle *handle,
 
   room->messages = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
   room->members = GNUNET_CONTAINER_multishortmap_create (8, GNUNET_NO);
+  room->links = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
 
   init_queue_messages (&(room->queue));
 
@@ -69,6 +71,17 @@ iterate_destroy_message (void *cls,
   destroy_message (entry->message);
   GNUNET_free (entry);
 
+  return GNUNET_YES;
+}
+
+
+static enum GNUNET_GenericReturnValue
+iterate_destroy_link (void *cls,
+                      const struct GNUNET_HashCode *key,
+                      void *value)
+{
+  struct GNUNET_HashCode *hash = value;
+  GNUNET_free (hash);
   return GNUNET_YES;
 }
 
@@ -91,6 +104,14 @@ destroy_room (struct GNUNET_MESSENGER_Room *room)
 
   if (room->members)
     GNUNET_CONTAINER_multishortmap_destroy (room->members);
+
+  if (room->links)
+  {
+    GNUNET_CONTAINER_multihashmap_iterate (room->links,
+                                           iterate_destroy_link, NULL);
+
+    GNUNET_CONTAINER_multihashmap_destroy (room->links);
+  }
 
   if (room->sender_id)
     GNUNET_free (room->sender_id);
@@ -512,4 +533,89 @@ find_room_member (const struct GNUNET_MESSENGER_Room *room,
                                           &find);
 
   return find.result;
+}
+
+
+static enum GNUNET_GenericReturnValue
+find_linked_hash (void *cls,
+                  const struct GNUNET_HashCode *key,
+                  void *value)
+{
+  const struct GNUNET_HashCode **result = cls;
+  struct GNUNET_HashCode *hash = value;
+
+  if (0 == GNUNET_CRYPTO_hash_cmp (hash, *result))
+  {
+    *result = NULL;
+    return GNUNET_NO;
+  }
+
+  return GNUNET_YES;
+}
+
+
+void
+link_room_message (struct GNUNET_MESSENGER_Room *room,
+                   const struct GNUNET_HashCode *hash,
+                   const struct GNUNET_HashCode *other)
+{
+  GNUNET_assert ((room) && (hash) && (other));
+
+  const struct GNUNET_HashCode **result = &other;
+  GNUNET_CONTAINER_multihashmap_get_multiple (room->links, hash, 
+                                              find_linked_hash, result);
+
+  if (! *result)
+    return;
+
+  struct GNUNET_HashCode *value = GNUNET_memdup(other, sizeof(struct GNUNET_HashCode));
+  if (! value)
+    return;
+
+  if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (room->links, hash, value, 
+                                                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE))
+    GNUNET_free (value);
+}
+
+
+struct GNUNET_MESSENGER_RoomLinkDeletionInfo
+{
+  struct GNUNET_MESSENGER_Room *room;
+  struct GNUNET_TIME_Relative delay;
+  GNUNET_MESSENGER_RoomLinkDeletion deletion;
+};
+
+
+static enum GNUNET_GenericReturnValue
+delete_linked_hash (void *cls,
+                    const struct GNUNET_HashCode *key,
+                    void *value)
+{
+  struct GNUNET_MESSENGER_RoomLinkDeletionInfo *info = cls;
+  struct GNUNET_HashCode *hash = value;
+
+  if (info->deletion)
+    info->deletion (info->room, hash, info->delay);
+
+  GNUNET_free (hash);
+  return GNUNET_YES;
+}
+
+
+void
+link_room_deletion (struct GNUNET_MESSENGER_Room *room,
+                    const struct GNUNET_HashCode *hash,
+                    const struct GNUNET_TIME_Relative delay,
+                    GNUNET_MESSENGER_RoomLinkDeletion deletion)
+{
+  GNUNET_assert ((room) && (hash));
+
+  struct GNUNET_MESSENGER_RoomLinkDeletionInfo info;
+  info.room = room;
+  info.delay = delay;
+  info.deletion = deletion;
+
+  GNUNET_CONTAINER_multihashmap_get_multiple (room->links, hash, 
+                                              delete_linked_hash, &info);
+  GNUNET_CONTAINER_multihashmap_remove_all (room->links, hash);
 }

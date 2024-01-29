@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2001--2020 GNUnet e.V.
+     Copyright (C) 2001--2024 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -3560,17 +3560,9 @@ extern "C" {
 
 #define GNUNET_MESSAGE_TYPE_MESSENGER_CONNECTION_CREATE 1600
 
-#define GNUNET_MESSAGE_TYPE_MESSENGER_CONNECTION_UPDATE 1601
+#define GNUNET_MESSAGE_TYPE_MESSENGER_CONNECTION_DESTROY 1601
 
-#define GNUNET_MESSAGE_TYPE_MESSENGER_CONNECTION_DESTROY 1602
-
-#define GNUNET_MESSAGE_TYPE_MESSENGER_CONNECTION_GET_NAME 1603
-
-#define GNUNET_MESSAGE_TYPE_MESSENGER_CONNECTION_SET_NAME 1604
-
-#define GNUNET_MESSAGE_TYPE_MESSENGER_CONNECTION_GET_KEY 1605
-
-#define GNUNET_MESSAGE_TYPE_MESSENGER_CONNECTION_MEMBER_ID 1606
+#define GNUNET_MESSAGE_TYPE_MESSENGER_CONNECTION_MEMBER_ID 1602
 
 /************************************  Room  *************************************/
 
@@ -3587,6 +3579,8 @@ extern "C" {
 #define GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_GET_MESSAGE 1616
 
 #define GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_SYNC 1617
+
+#define GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_LINK 1618
 
 /*********************************************************************************/
 
