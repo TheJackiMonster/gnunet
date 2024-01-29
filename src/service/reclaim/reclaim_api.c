@@ -25,7 +25,6 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_constants.h"
 #include "gnunet_protocols.h"
 #include "gnunet_reclaim_lib.h"
 #include "gnunet_reclaim_service.h"
@@ -964,12 +963,15 @@ handle_ticket_result (void *cls, const struct TicketResultMessage *msg)
   if ((NULL == op) && (NULL == it))
     return;
   buf = (char*) &msg[1];
-  GNUNET_assert (GNUNET_SYSERR !=
-                 GNUNET_RECLAIM_read_ticket_from_buffer (buf,
-                                                         tkt_len,
-                                                         &ticket,
-                                                         &tb_read));
-  buf += tb_read;
+  if (0 < tkt_len)
+  {
+    GNUNET_assert (GNUNET_SYSERR !=
+                  GNUNET_RECLAIM_read_ticket_from_buffer (buf,
+                                                          tkt_len,
+                                                          &ticket,
+                                                          &tb_read));
+    buf += tb_read;
+  }
   if (NULL != op)
   {
     if (0 < pres_len)

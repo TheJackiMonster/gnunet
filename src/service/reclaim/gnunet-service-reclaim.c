@@ -671,13 +671,13 @@ send_ticket_result (const struct IdpClient *client,
   buf = (char*) &irm[1];
   if (NULL != ticket)
   {
-    irm->tkt_len = htons (tkt_len);
     written = GNUNET_RECLAIM_write_ticket_to_buffer (ticket, buf, tkt_len);
     GNUNET_assert (0 <= written);
     buf += written;
   }
   // TODO add success member
   irm->id = htonl (r_id);
+  irm->tkt_len = htons (tkt_len);
   irm->presentations_len = htons (pres_len);
   if (NULL != presentations)
   {
@@ -2515,9 +2515,10 @@ ticket_iter_cb (void *cls, struct GNUNET_RECLAIM_Ticket *ticket)
                                            &trm[1],
                                            tkt_len);
   }
-  trm->tkt_len = htons (tkt_len);
   trm->id = htonl (ti->r_id);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sending TICKET_RESULT message\n");
+  trm->tkt_len = htons (tkt_len);
+  trm->presentations_len = htons(0);
   GNUNET_MQ_send (ti->client->mq, env);
   if (NULL == ticket)
     GNUNET_free (ti);

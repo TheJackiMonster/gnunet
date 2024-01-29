@@ -23,7 +23,6 @@
  * @brief helper library to manage identity attribute credentials
  * @author Martin Schanzenbach
  */
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_reclaim_plugin.h"
 #include "reclaim_credential.h"
