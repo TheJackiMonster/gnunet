@@ -29,6 +29,7 @@
 #include "gnunet_messenger_service.h"
 #include "gnunet_signatures.h"
 #include <stdint.h>
+#include <string.h>
 
 struct GNUNET_MESSENGER_MessageSignature
 {
@@ -1123,34 +1124,29 @@ transcribe_message (const struct GNUNET_MESSENGER_Message *message,
 }
 
 
-struct GNUNET_MESSENGER_Message*
-read_transcript_message (const struct GNUNET_MESSENGER_Message *transcript)
+enum GNUNET_GenericReturnValue
+read_transcript_message (struct GNUNET_MESSENGER_Message *message)
 {
-  GNUNET_assert (transcript);
+  GNUNET_assert (message);
 
-  if (GNUNET_MESSENGER_KIND_TRANSCRIPT != transcript->header.kind)
-    return NULL;
+  if (GNUNET_MESSENGER_KIND_TRANSCRIPT != message->header.kind)
+    return GNUNET_NO;
 
-  const uint16_t data_length = transcript->body.transcript.length;
+  const uint16_t data_length = message->body.transcript.length;
 
   struct GNUNET_MESSENGER_ShortMessage shortened;
   if (GNUNET_YES != decode_short_message (&shortened,
                                           data_length,
-                                          transcript->body.transcript.data))
+                                          message->body.transcript.data))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Decoding decrypted message failed!\n");
 
-    return NULL;
+    return GNUNET_NO;
   }
 
-  struct GNUNET_MESSENGER_Message *message = create_message(shortened.kind);
-
-  if (!message)
-    return NULL;
-
   unfold_short_message(&shortened, message);
-  return message;
+  return GNUNET_YES;
 }
 
 

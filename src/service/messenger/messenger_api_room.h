@@ -40,7 +40,9 @@ struct GNUNET_MESSENGER_RoomMessageEntry
 {
   struct GNUNET_MESSENGER_Contact *sender;
   struct GNUNET_MESSENGER_Contact *recipient;
+
   struct GNUNET_MESSENGER_Message *message;
+  enum GNUNET_MESSENGER_MessageFlags flags;
 };
 
 struct GNUNET_MESSENGER_Room
@@ -153,6 +155,16 @@ get_room_recipient (const struct GNUNET_MESSENGER_Room *room,
                     const struct GNUNET_HashCode *hash);
 
 /**
+ * Executes the message callback for a given <i>hash</i> in a <i>room</i>.
+ *
+ * @param[in,out] room Room
+ * @param[in] hash Hash of message
+ */
+void
+callback_room_message (struct GNUNET_MESSENGER_Room *room,
+                       const struct GNUNET_HashCode *hash);
+
+/**
  * Handles a <i>message</i> with a given <i>hash</i> in a <i>room</i> for the client API to update
  * members and its information. The function also stores the message in map locally for access afterwards.
  *
@@ -161,19 +173,27 @@ get_room_recipient (const struct GNUNET_MESSENGER_Room *room,
  *
  * @param[in,out] room Room
  * @param[in,out] sender Contact of sender
- * @param[in,out] recipient Contact of recipient
  * @param[in] message Message
  * @param[in] hash Hash of message
  * @param[in] flags Flags of message
- * @return Contact of sender
  */
-struct GNUNET_MESSENGER_Contact*
+void
 handle_room_message (struct GNUNET_MESSENGER_Room *room,
                      struct GNUNET_MESSENGER_Contact *sender,
-                     struct GNUNET_MESSENGER_Contact *recipient,
                      const struct GNUNET_MESSENGER_Message *message,
                      const struct GNUNET_HashCode *hash,
                      enum GNUNET_MESSENGER_MessageFlags flags);
+
+/**
+ * Updates the last message <i>hash</i> of a <i>room</i> for the client API so that new messages can
+ * point to the latest message hash while sending.
+ *
+ * @param[in,out] room Room
+ * @param[in] hash Hash of message
+ */
+void
+update_room_last_message (struct GNUNET_MESSENGER_Room *room,
+                          const struct GNUNET_HashCode *hash);
 
 /**
  * Iterates through all members of a given <i>room</i> to forward each of them to a selected

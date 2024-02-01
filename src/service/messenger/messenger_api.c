@@ -24,7 +24,6 @@
  */
 
 #include "gnunet_common.h"
-#include "gnunet_core_service.h"
 #include "gnunet_messenger_service.h"
 
 #include "gnunet-service-messenger.h"
@@ -109,7 +108,7 @@ handle_room_open (void *cls,
   if (! room)
     return;
 
-  GNUNET_memcpy (&(room->last_message), prev, sizeof(room->last_message));
+  update_room_last_message (room, prev);
 
   dequeue_messages_from_room (room);
 }
@@ -134,7 +133,7 @@ handle_room_entry (void *cls,
   if (! room)
     return;
 
-  GNUNET_memcpy (&(room->last_message), prev, sizeof(room->last_message));
+  update_room_last_message (room, prev);
 
   dequeue_messages_from_room (room);
 }
@@ -152,7 +151,7 @@ handle_room_close (void *cls,
   struct GNUNET_MESSENGER_Room *room = get_handle_room (handle, key);
 
   if (room)
-    GNUNET_memcpy (&(room->last_message), prev, sizeof(room->last_message));
+    update_room_last_message (room, prev);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Closed room: %s\n", GNUNET_h2s (key));
 
@@ -174,7 +173,7 @@ handle_room_sync (void *cls,
   if (! room)
     return;
 
-  GNUNET_memcpy (&(room->last_message), prev, sizeof(room->last_message));
+  update_room_last_message (room, prev);
 
   room->wait_for_sync = GNUNET_NO;
 
@@ -223,12 +222,6 @@ handle_member_id (void *cls,
 
   enqueue_message_to_room (room, message, NULL);
 }
-
-
-static void
-delete_message_in_room (struct GNUNET_MESSENGER_Room *room,
-                        const struct GNUNET_HashCode *hash,
-                        const struct GNUNET_TIME_Relative delay);
 
 
 static enum GNUNET_GenericReturnValue
@@ -281,8 +274,7 @@ handle_recv_message (void *cls,
   const struct GNUNET_HashCode *hash = &(msg->hash);
 
   enum GNUNET_MESSENGER_MessageFlags flags = (
-    (enum GNUNET_MESSENGER_MessageFlags) (msg->flags)
-    );
+    (enum GNUNET_MESSENGER_MessageFlags) (msg->flags));
 
   const uint16_t length = ntohs (msg->header.size) - sizeof(*msg);
   const char *buffer = ((const char*) msg) + sizeof(*msg);
@@ -290,28 +282,8 @@ handle_recv_message (void *cls,
   struct GNUNET_MESSENGER_Message message;
   decode_message (&message, length, buffer, GNUNET_YES, NULL);
 
-  struct GNUNET_MESSENGER_Message *private_message = NULL;
-  const struct GNUNET_MESSENGER_Message *handle_msg = &message;
-
-  if (GNUNET_MESSENGER_KIND_PRIVATE == message.header.kind)
-  {
-    private_message = copy_message (&message);
-
-    if (GNUNET_YES != decrypt_message (private_message, get_handle_key (
-                                         handle)))
-    {
-      destroy_message (private_message);
-      private_message = NULL;
-    }
-  }
-
-  if (private_message)
-    flags |= GNUNET_MESSENGER_FLAG_PRIVATE;
-
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Receiving message: %s\n",
-              GNUNET_MESSENGER_name_of_kind (private_message ?
-                                             private_message->header.kind :
-                                             message.header.kind));
+              GNUNET_MESSENGER_name_of_kind (message.header.kind));
 
   struct GNUNET_MESSENGER_Room *room = get_handle_room (handle, key);
 
@@ -332,66 +304,16 @@ handle_recv_message (void *cls,
 
   struct GNUNET_MESSENGER_Contact *contact = get_store_contact_raw (
     store, context, sender);
-  
-  struct GNUNET_MESSENGER_Contact *recipient = NULL;
 
-  if (!private_message)
-    goto skip_recipient;
+  handle_room_message (room, contact, &message, hash, flags);
 
-  const struct GNUNET_CRYPTO_PublicKey *recipient_key;
+  if (flags & GNUNET_MESSENGER_FLAG_RECENT)
+    update_room_last_message (room, hash);
 
-  if (GNUNET_MESSENGER_KIND_TRANSCRIPT == private_message->header.kind)
-  {
-    struct GNUNET_MESSENGER_Message *transcript;
-
-    recipient_key = &(private_message->body.transcript.key);
-    transcript = read_transcript_message(private_message);
-
-    if (transcript)
-    {
-      destroy_message(private_message);
-      private_message = transcript;
-    }
-  }
-  else
-    recipient_key = get_handle_pubkey(handle);
-
-  recipient = get_store_contact(store, context, recipient_key);
-
-skip_recipient:
-  if (private_message)
-    handle_msg = private_message;
-
-  if ((GNUNET_MESSENGER_KIND_DELETE == handle_msg->header.kind) &&
-      (GNUNET_MESSENGER_FLAG_SENT & flags))
-  {
-    struct GNUNET_TIME_Relative delay;
-    struct GNUNET_TIME_Absolute action;
-
-    delay = GNUNET_TIME_relative_ntoh (handle_msg->body.deletion.delay);
-    
-    action = GNUNET_TIME_absolute_ntoh (handle_msg->header.timestamp);
-    action = GNUNET_TIME_absolute_add (action, delay);
-    
-    delay = GNUNET_TIME_absolute_get_difference (GNUNET_TIME_absolute_get (), action);
-
-    link_room_deletion (room, &(handle_msg->body.deletion.hash), delay, delete_message_in_room);
-  }
-
-  contact = handle_room_message (room, contact, recipient, handle_msg, hash, flags);
-
-  const struct GNUNET_MESSENGER_Message *stored_message = get_room_message (
-    room, hash);
-
-  if (handle->msg_callback)
-    handle->msg_callback (handle->msg_cls, room, contact, recipient,
-                          stored_message, hash, flags);
+  callback_room_message (room, hash);
 
 skip_message:
   cleanup_message (&message);
-
-  if (private_message)
-    destroy_message (private_message);
 }
 
 
@@ -752,7 +674,7 @@ send_message_to_room (struct GNUNET_MESSENGER_Room *room,
   hash_message (message, msg_length, msg_buffer, hash);
   sign_message (message, msg_length, msg_buffer, hash, key);
 
-  GNUNET_memcpy (&(room->last_message), hash, sizeof(room->last_message));
+  update_room_last_message (room, hash);
 
   GNUNET_MQ_send (room->handle->mq, env);
 
@@ -1243,7 +1165,7 @@ GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room,
 }
 
 
-static void
+void
 delete_message_in_room (struct GNUNET_MESSENGER_Room *room,
                         const struct GNUNET_HashCode *hash,
                         const struct GNUNET_TIME_Relative delay)

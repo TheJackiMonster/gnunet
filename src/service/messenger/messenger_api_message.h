@@ -257,13 +257,15 @@ transcribe_message (const struct GNUNET_MESSENGER_Message *message,
                     const struct GNUNET_CRYPTO_PublicKey *key);
 
 /**
- * Read the original message from a message <i>transcript</i>.
+ * Read the original message from a transcript <i>message</i> and replaces its body
+ * and kind with the inner encrypted message. The function returns #GNUNET_YES if the
+ * operation succeeded, otherwise #GNUNET_NO.
  *
- * @param[in] transcript Message transcript
- * @return Original message
+ * @param[in,out] transcript Message transcript
+ * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
-struct GNUNET_MESSENGER_Message*
-read_transcript_message (const struct GNUNET_MESSENGER_Message *transcript);
+enum GNUNET_GenericReturnValue
+read_transcript_message (struct GNUNET_MESSENGER_Message *message);
 
 typedef void (*GNUNET_MESSENGER_SignFunction)(
   const void *cls,

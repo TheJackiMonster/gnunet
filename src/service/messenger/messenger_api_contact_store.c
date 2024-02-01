@@ -113,14 +113,13 @@ get_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
                    const struct GNUNET_HashCode *context,
                    const struct GNUNET_CRYPTO_PublicKey *pubkey)
 {
-  GNUNET_assert ((store) && (store->contacts) && (context) && (pubkey));
+  GNUNET_assert ((store) && (store->contacts) && (pubkey));
 
   struct GNUNET_HashCode hash;
   GNUNET_CRYPTO_hash (pubkey, sizeof(*pubkey), &hash);
 
   struct GNUNET_CONTAINER_MultiHashMap *map = select_store_contact_map (
-    store, context, &hash
-    );
+    store, context, &hash);
 
   struct GNUNET_MESSENGER_Contact *contact = GNUNET_CONTAINER_multihashmap_get (
     map, &hash);

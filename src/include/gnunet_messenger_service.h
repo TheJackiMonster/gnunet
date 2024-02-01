@@ -669,6 +669,16 @@ enum GNUNET_MESSENGER_MessageFlags
    * The recent flag. The flag indicates that the message was recently handled by the service.
    */
   GNUNET_MESSENGER_FLAG_RECENT = 8,
+
+  /**
+   * The update flag. The flag indicates that the message was updated by the client.
+   */
+  GNUNET_MESSENGER_FLAG_UPDATE = 16,
+
+  /**
+   * The delete flag. The flag indicates that the message was deleted by the service.
+   */
+  GNUNET_MESSENGER_FLAG_DELETE = 32,
 };
 
 /**
