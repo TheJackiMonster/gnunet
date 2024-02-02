@@ -43,6 +43,7 @@ struct GNUNET_MESSENGER_RoomMessageEntry
 
   struct GNUNET_MESSENGER_Message *message;
   enum GNUNET_MESSENGER_MessageFlags flags;
+  enum GNUNET_GenericReturnValue completed;
 };
 
 struct GNUNET_MESSENGER_Room

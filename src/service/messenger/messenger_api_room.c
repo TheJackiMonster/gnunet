@@ -180,10 +180,9 @@ get_room_message (const struct GNUNET_MESSENGER_Room *room,
 
   struct GNUNET_MESSENGER_RoomMessageEntry *entry =
     GNUNET_CONTAINER_multihashmap_get (
-      room->messages, hash
-      );
+      room->messages, hash);
   
-  if (! entry)
+  if ((! entry) || (GNUNET_YES != entry->completed))
     return NULL;
 
   return entry->message;
@@ -198,10 +197,12 @@ get_room_sender (const struct GNUNET_MESSENGER_Room *room,
 
   struct GNUNET_MESSENGER_RoomMessageEntry *entry =
     GNUNET_CONTAINER_multihashmap_get (
-      room->messages, hash
-      );
+      room->messages, hash);
+  
+  if ((! entry) || (GNUNET_YES != entry->completed))
+    return NULL;
 
-  return (entry? entry->sender : NULL);
+  return entry->sender;
 }
 
 
@@ -213,10 +214,12 @@ get_room_recipient (const struct GNUNET_MESSENGER_Room *room,
 
   struct GNUNET_MESSENGER_RoomMessageEntry *entry =
     GNUNET_CONTAINER_multihashmap_get (
-      room->messages, hash
-      );
+      room->messages, hash);
+  
+  if ((! entry) || (GNUNET_YES != entry->completed))
+    return NULL;
 
-  return (entry? entry->recipient : NULL);
+  return entry->recipient;
 }
 
 
@@ -522,6 +525,7 @@ handle_transcript_message (struct GNUNET_MESSENGER_Room *room,
 
   original->message = NULL;
   original->flags = GNUNET_MESSENGER_FLAG_NONE;
+  original->completed = GNUNET_NO;
 
   if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (room->messages, 
                                                       original_hash,
@@ -550,12 +554,14 @@ read_transcript:
   
   if (original->message)
   {
+    if (GNUNET_MESSENGER_KIND_PRIVATE == original->message->header.kind)
+      original->flags |= GNUNET_MESSENGER_FLAG_PRIVATE;
+
     copy_message_header (original_message, &(original->message->header));
     destroy_message (original->message);
   }
 
   original->message = original_message;
-  original->flags |= GNUNET_MESSENGER_FLAG_PRIVATE;
 
   link_room_message(room, hash, original_hash);
   link_room_message(room, original_hash, hash);
@@ -638,6 +644,7 @@ handle_room_message (struct GNUNET_MESSENGER_Room *room,
 
   entry->message = NULL;
   entry->flags = GNUNET_MESSENGER_FLAG_NONE;
+  entry->completed = GNUNET_NO;
 
   if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (room->messages, hash,
                                                       entry,
@@ -652,9 +659,16 @@ update_entry:
   entry->flags = flags;
 
   if (entry->message)
+  {
+    if (GNUNET_MESSENGER_KIND_PRIVATE == message->header.kind)
+      entry->flags |= GNUNET_MESSENGER_FLAG_PRIVATE;
+
     copy_message_header (entry->message, &(message->header));
+  }
   else
     entry->message = copy_message (message);
+
+  entry->completed = GNUNET_YES;
 
   handle_message (room, hash, entry);
 }
