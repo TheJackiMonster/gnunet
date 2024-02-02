@@ -94,13 +94,16 @@ copy_message (const struct GNUNET_MESSENGER_Message *message)
   switch (message->header.kind)
   {
   case GNUNET_MESSENGER_KIND_NAME:
-    copy->body.name.name = GNUNET_strdup (message->body.name.name);
+    copy->body.name.name = message->body.name.name? GNUNET_strdup (
+      message->body.name.name) : NULL;
     break;
   case GNUNET_MESSENGER_KIND_TEXT:
-    copy->body.text.text = GNUNET_strdup (message->body.text.text);
+    copy->body.text.text = message->body.text.text? GNUNET_strdup (
+      message->body.text.text) : NULL;
     break;
   case GNUNET_MESSENGER_KIND_FILE:
-    copy->body.file.uri = GNUNET_strdup (message->body.file.uri);
+    copy->body.file.uri = message->body.file.uri? GNUNET_strdup (
+      message->body.file.uri) : NULL;
     break;
   case GNUNET_MESSENGER_KIND_PRIVATE:
     copy->body.privacy.data = copy->body.privacy.length ? GNUNET_malloc (
@@ -121,7 +124,8 @@ copy_message (const struct GNUNET_MESSENGER_Message *message)
     
     break;
   case GNUNET_MESSENGER_KIND_TAG:
-    copy->body.tag.tag = GNUNET_strdup (message->body.tag.tag);
+    copy->body.tag.tag = message->body.tag.tag? GNUNET_strdup (
+      message->body.tag.tag) : NULL;
     break;
   default:
     break;
@@ -146,7 +150,8 @@ destroy_message_body (enum GNUNET_MESSENGER_MessageKind kind,
       GNUNET_free (body->text.text);
     break;
   case GNUNET_MESSENGER_KIND_FILE:
-    GNUNET_free (body->file.uri);
+    if (body->file.uri)
+      GNUNET_free (body->file.uri);
     break;
   case GNUNET_MESSENGER_KIND_PRIVATE:
     GNUNET_free (body->privacy.data);
@@ -219,8 +224,8 @@ unfold_short_message (struct GNUNET_MESSENGER_ShortMessage *shortened,
 
   message->header.kind = shortened->kind;
 
-  GNUNET_memcpy (&(message->body), &(shortened->body), sizeof(struct
-                                                              GNUNET_MESSENGER_MessageBody));
+  GNUNET_memcpy (&(message->body), &(shortened->body),
+                 sizeof(struct GNUNET_MESSENGER_MessageBody));
 }
 
 
@@ -333,7 +338,7 @@ get_message_body_size (enum GNUNET_MESSENGER_MessageKind kind,
     length += (body->text.text ? strlen (body->text.text) : 0);
     break;
   case GNUNET_MESSENGER_KIND_FILE:
-    length += strlen (body->file.uri);
+    length += (body->file.uri ? strlen (body->file.uri) : 0);
     break;
   case GNUNET_MESSENGER_KIND_PRIVATE:
     length += body->privacy.length;
@@ -380,9 +385,8 @@ get_short_message_size (const struct GNUNET_MESSENGER_ShortMessage *message,
 
   if (message)
     return minimum_size + get_message_body_kind_size (message->kind)
-           + (include_body == GNUNET_YES? get_message_body_size (message->kind,
-                                                                 &(message->body))
-    : 0);
+           + (include_body == GNUNET_YES? 
+              get_message_body_size (message->kind, &(message->body)) : 0);
   else
     return minimum_size;
 }
@@ -523,9 +527,10 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
     encode_step (buffer, offset, &(body->file.key));
     encode_step (buffer, offset, &(body->file.hash));
     encode_step_ext (buffer, offset, body->file.name, sizeof(body->file.name));
-    encode_step_ext (buffer, offset, body->file.uri, min (length - offset,
-                                                          strlen (
-                                                            body->file.uri)));
+    if (body->file.uri)
+      encode_step_ext (buffer, offset, body->file.uri, min (length - offset,
+                                                            strlen (
+                                                              body->file.uri)));
     break;
   case GNUNET_MESSENGER_KIND_PRIVATE:
     encode_step (buffer, offset, &(body->privacy.key));
@@ -608,8 +613,8 @@ encode_message (const struct GNUNET_MESSENGER_Message *message,
 
   encode_step (buffer, offset, &kind);
 
-  encode_message_body (message->header.kind, &(message->body), length, buffer,
-                       offset);
+  encode_message_body (message->header.kind, &(message->body), 
+                       length, buffer, offset);
 }
 
 
@@ -630,8 +635,7 @@ encode_short_message (const struct GNUNET_MESSENGER_ShortMessage *message,
   GNUNET_CRYPTO_hash (
     buffer + sizeof(hash),
     length - sizeof(hash),
-    &hash
-    );
+    &hash);
 
   GNUNET_memcpy (buffer, &hash, sizeof(hash));
 }
@@ -697,7 +701,7 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
       decode_step_key (buffer, offset, &(body->join.key), length);
       break;
     } case GNUNET_MESSENGER_KIND_NAME:
-    if (length - offset > 0)
+    if (length > offset)
       decode_step_malloc (buffer, offset, body->name.name, length - offset, 1);
     else
       body->name.name = NULL;
@@ -725,13 +729,19 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
     decode_step (buffer, offset, &(body->invite.key));
     break;
   case GNUNET_MESSENGER_KIND_TEXT:
-    decode_step_malloc (buffer, offset, body->text.text, length - offset, 1);
+    if (length > offset)
+      decode_step_malloc (buffer, offset, body->text.text, length - offset, 1);
+    else
+      body->text.text = NULL;
     break;
   case GNUNET_MESSENGER_KIND_FILE:
     decode_step (buffer, offset, &(body->file.key));
     decode_step (buffer, offset, &(body->file.hash));
     decode_step_ext (buffer, offset, body->file.name, sizeof(body->file.name));
-    decode_step_malloc (buffer, offset, body->file.uri, length - offset, 1);
+    if (length > offset)
+      decode_step_malloc (buffer, offset, body->file.uri, length - offset, 1);
+    else
+      body->file.uri = NULL;
     break;
   case GNUNET_MESSENGER_KIND_PRIVATE:
     decode_step (buffer, offset, &(body->privacy.key));
@@ -762,7 +772,10 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
     break;
   case GNUNET_MESSENGER_KIND_TAG:
     decode_step (buffer, offset, &(body->tag.hash));
-    decode_step_malloc (buffer, offset, body->tag.tag, length - offset, 1);
+    if (length > offset)
+      decode_step_malloc (buffer, offset, body->tag.tag, length - offset, 1);
+    else
+      body->tag.tag = NULL;
     break;
   default:
     *kind = GNUNET_MESSENGER_KIND_UNKNOWN;
