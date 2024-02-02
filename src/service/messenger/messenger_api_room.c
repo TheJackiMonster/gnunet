@@ -550,11 +550,7 @@ read_transcript:
   
   if (original->message)
   {
-    enum GNUNET_MESSENGER_MessageKind kind = original_message->header.kind;
-    memcpy (&(original_message->header), &(original->message->header),
-            sizeof(struct GNUNET_MESSENGER_MessageHeader));
-    original_message->header.kind = kind;
-
+    copy_message_header (original_message, &(original->message->header));
     destroy_message (original->message);
   }
 
@@ -656,12 +652,7 @@ update_entry:
   entry->flags = flags;
 
   if (entry->message)
-  {
-    enum GNUNET_MESSENGER_MessageKind kind = message->header.kind;
-    memcpy (&(entry->message->header), &(message->header),
-            sizeof(struct GNUNET_MESSENGER_MessageHeader));
-    entry->message->header.kind = kind;
-  }
+    copy_message_header (entry->message, &(message->header));
   else
     entry->message = copy_message (message);
 

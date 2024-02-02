@@ -57,6 +57,17 @@ struct GNUNET_MESSENGER_Message*
 copy_message (const struct GNUNET_MESSENGER_Message *message);
 
 /**
+ * Copy message <i>header</i> details from another message to
+ * a given <i>message</i>.
+ *
+ * @param[in,out] message Message
+ * @param[in] header Message header
+ */
+void
+copy_message_header (struct GNUNET_MESSENGER_Message *message,
+                     const struct GNUNET_MESSENGER_MessageHeader *header);
+
+/**
  * Frees the messages body memory.
  *
  * @param[in,out] message Message

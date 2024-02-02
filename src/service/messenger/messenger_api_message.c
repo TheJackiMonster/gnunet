@@ -28,8 +28,6 @@
 #include "gnunet_common.h"
 #include "gnunet_messenger_service.h"
 #include "gnunet_signatures.h"
-#include <stdint.h>
-#include <string.h>
 
 struct GNUNET_MESSENGER_MessageSignature
 {
@@ -132,6 +130,21 @@ copy_message (const struct GNUNET_MESSENGER_Message *message)
   }
 
   return copy;
+}
+
+
+void
+copy_message_header (struct GNUNET_MESSENGER_Message *message,
+                     const struct GNUNET_MESSENGER_MessageHeader *header)
+{
+  GNUNET_assert ((message) && (header));
+
+  enum GNUNET_MESSENGER_MessageKind kind = message->header.kind;
+
+  GNUNET_memcpy (&(message->header), header,
+                 sizeof(struct GNUNET_MESSENGER_MessageHeader));
+  
+  message->header.kind = kind;
 }
 
 
