@@ -1830,7 +1830,7 @@ maint_child_death (void *cls)
           if (minutes > 31)
             pos->backoff = GNUNET_TIME_UNIT_ZERO;
           else
-            pos->backoff.rel_value_us <<= minutes;
+            pos->backoff.rel_value_us >>= minutes;
         }
         /* schedule restart */
         pos->restart_at = GNUNET_TIME_relative_to_absolute (pos->backoff);
