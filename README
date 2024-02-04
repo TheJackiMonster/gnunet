@@ -91,11 +91,7 @@ Direct dependencies of GNUnet:
 - gettext
 - gnutls             >= 3.2.12      (highly recommended a gnutls
                                      linked against libunbound)
-- curl (ideally built against gnutls) or gnurl:
-  * libgnurl         >= 7.35.0      (recommended, available from
-                                     https://gnunet.org/en/gnurl.html)
-  or
-  * libcurl          >= 7.35.0      (alternative to libgnurl)
+- libcurl            >= 7.85.0      (ideally built against gnutls)
 - libgcrypt          >= 1.6
 - libunistring       >= 0.9.2
 - libidn:
