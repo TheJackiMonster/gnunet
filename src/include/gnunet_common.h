@@ -675,7 +675,7 @@ GNUNET_log_skip (int n, int check_reset);
  * @param logfile change logging to logfile (use NULL to keep stderr)
  * @return #GNUNET_OK on success, #GNUNET_SYSERR if logfile could not be opened
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_log_setup (const char *comp, const char *loglevel, const char *logfile);
 
 

@@ -43,7 +43,7 @@
 #define URLENCODE_TEST_VECTOR_PLAIN "Asbjlaw=ljsdlasjd?人aslkdsa"
 
 #define URLENCODE_TEST_VECTOR_ENCODED \
-  "Asbjlaw\%3Dljsdlasjd\%3F\%E4\%BA\%BAaslkdsa"
+        "Asbjlaw\%3Dljsdlasjd\%3F\%E4\%BA\%BAaslkdsa"
 
 int
 main (int argc, char *argv[])
@@ -156,10 +156,10 @@ main (int argc, char *argv[])
   WANT (URLENCODE_TEST_VECTOR_ENCODED, b);
   GNUNET_free (b);
   GNUNET_assert (0 !=
-                 GNUNET_STRINGS_urldecode (strlen (
-                                             URLENCODE_TEST_VECTOR_ENCODED),
-                                           URLENCODE_TEST_VECTOR_ENCODED,
-                                           &b));
+                 GNUNET_STRINGS_urldecode (
+                   URLENCODE_TEST_VECTOR_ENCODED,
+                   strlen (URLENCODE_TEST_VECTOR_ENCODED),
+                   &b));
   WANT (URLENCODE_TEST_VECTOR_PLAIN, b);
   GNUNET_free (b);
   return 0;

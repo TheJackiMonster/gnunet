@@ -394,7 +394,7 @@ process_statistics (void *cls,
     ret = 2;
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Not enough BOX messages! (want: %u, have %llu)\n",
-                9000, value);
+                9000, (unsigned long long) value);
     GNUNET_SCHEDULER_shutdown ();
   }
   if ((0 == strcmp ("rekey", test_name)) &&
@@ -406,7 +406,7 @@ process_statistics (void *cls,
     ret = 2;
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Not enough BOX messages! (want: %u, have %llu)\n",
-                6000, value);
+                6000, (unsigned long long) value);
     GNUNET_SCHEDULER_shutdown ();
   }
   return GNUNET_OK;

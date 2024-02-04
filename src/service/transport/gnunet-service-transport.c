@@ -3135,8 +3135,6 @@ free_pending_message (struct PendingMessage *pm)
   free_fragment_tree (pm);
   if (NULL != pm->qe)
   {
-    struct QueueEntry *qe = pm->qe;
-
     GNUNET_assert (pm == pm->qe->pm);
     pm->qe->pm = NULL;
   }
@@ -3291,9 +3289,6 @@ free_virtual_link (struct VirtualLink *vl)
 static void
 free_validation_state (struct ValidationState *vs)
 {
-  struct GNUNET_HashCode hkey;
-  struct GNUNET_HashCode hc;
-
   if (NULL != vs->revalidation_task)
   {
     GNUNET_SCHEDULER_cancel (vs->revalidation_task);
@@ -10927,8 +10922,6 @@ static void
 validation_transmit_on_queue (struct Queue *q, struct ValidationState *vs)
 {
   struct TransportValidationChallengeMessage tvc;
-  struct GNUNET_HashCode hkey;
-  struct GNUNET_HashCode hc;
   struct GNUNET_TIME_Absolute monotonic_time;
 
   if (NULL != vs->revalidation_task)
