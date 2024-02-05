@@ -3105,7 +3105,7 @@ free_pending_message (struct PendingMessage *pm)
                                   vl->pending_msg_tail,
                                   pm);
   }
-  else if (NULL != pm->frag_parent)
+  else if (NULL != pm->frag_parent && PMT_DV_BOX != pm->pmt)
   {
     struct PendingMessage *root = pm->frag_parent;
 
@@ -9902,23 +9902,41 @@ reorder_root_pm (struct PendingMessage *pm,
 
 
 static unsigned int
-check_next_attempt_tree (struct PendingMessage *pm)
+check_next_attempt_tree (struct PendingMessage *pm, struct PendingMessage *root)
 {
   struct PendingMessage *pos;
-  enum GNUNET_GenericReturnValue frags_in_flight_round;
+  enum GNUNET_GenericReturnValue frags_in_flight;
 
   pos = pm->head_frag;
   while (NULL != pos)
   {
     if (pos->frags_in_flight_round == pm->frags_in_flight_round ||
-        GNUNET_YES == check_next_attempt_tree (pos))
-      frags_in_flight_round = GNUNET_NO;
+        GNUNET_NO == check_next_attempt_tree (pos, root))
+      frags_in_flight = GNUNET_NO;
     else
-      frags_in_flight_round = GNUNET_YES;
+    {
+      frags_in_flight = GNUNET_YES;
+      break;
+    }
     pos = pos->next_frag;
   }
 
-  return frags_in_flight_round;
+  return frags_in_flight;
+}
+
+
+static void
+harmonize_flight_round (struct PendingMessage *pm)
+{
+  struct PendingMessage *pos;
+
+  pos = pm->head_frag;
+  while (NULL != pos)
+  {
+    pos->frags_in_flight_round = pm->frags_in_flight_round;
+    harmonize_flight_round (pos);
+    pos = pos->next_frag;
+  }
 }
 
 
@@ -9964,12 +9982,13 @@ update_pm_next_attempt (struct PendingMessage *pm,
       root = root->frag_parent;
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "frag_count %u\n",
+                "frag_count next atempt %u\n",
                 root->frag_count);
 
     if (GNUNET_NO == root->frags_in_flight)
     {
       root->next_attempt = next_attempt;
+      harmonize_flight_round (root);
       root->frags_in_flight_round++;
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Next attempt for fragmented message <%" PRIu64 "> (<%" PRIu64
@@ -9981,9 +10000,10 @@ update_pm_next_attempt (struct PendingMessage *pm,
 
     pm->next_attempt = root->next_attempt;
     pm->frags_in_flight_round = root->frags_in_flight_round;
+    harmonize_flight_round (pm);
 
     if (root->bytes_msg == root->frag_off)
-      root->frags_in_flight = check_next_attempt_tree (root);
+      root->frags_in_flight = check_next_attempt_tree (root, root);
     else
       root->frags_in_flight = GNUNET_YES;
 
@@ -9997,8 +10017,7 @@ update_pm_next_attempt (struct PendingMessage *pm,
       if (PMT_DV_BOX == root->pmt)
         root = root->frag_parent;
       reorder_root_pm (root, root->next_attempt);
-      root->frag_count = 0;
-      root->next_attempt = GNUNET_TIME_UNIT_ZERO_ABS;
+      //root->next_attempt = GNUNET_TIME_UNIT_ZERO_ABS;
     }
     else
     {
