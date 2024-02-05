@@ -693,14 +693,6 @@ deliver_message (void *cls, const struct GNUNET_MessageHeader *m)
 }
 
 
-static void
-do_rekey (void *cls);
-
-
-static void
-sign_ephemeral_key ();
-
-
 /**
  * Function called by transport to notify us that
  * a peer connected to us (on the network level).
@@ -726,66 +718,34 @@ handle_transport_notify_connect (void *cls,
                             gettext_noop ("# key exchanges initiated"),
                             1,
                             GNUNET_NO);
-  for (kx = kx_head; NULL != kx; kx = kx->next)
+  
+  kx = GNUNET_new (struct GSC_KeyExchangeInfo);
+  kx->mst = GNUNET_MST_create (&deliver_message, kx);
+  kx->mq = mq;
+  kx->peer = pid;
+  kx->set_key_retry_frequency = INITIAL_SET_KEY_RETRY_FREQUENCY;
+  GNUNET_CONTAINER_DLL_insert (kx_head, kx_tail, kx);
+  kx->status = GNUNET_CORE_KX_STATE_KEY_SENT;
+  monitor_notify_all (kx);
+  GNUNET_CRYPTO_hash (pid, sizeof(struct GNUNET_PeerIdentity), &h1);
+  GNUNET_CRYPTO_hash (&GSC_my_identity,
+                      sizeof(struct GNUNET_PeerIdentity),
+                      &h2);
+  if (0 < GNUNET_CRYPTO_hash_cmp (&h1, &h2))
   {
-    if (0 == memcmp (pid, kx->peer, sizeof(struct GNUNET_PeerIdentity)))
-      break;
-  }
-  if (NULL == kx)
-  {
-    GNUNET_CRYPTO_ecdhe_key_create (&my_ephemeral_key);
-    sign_ephemeral_key ();
-    {
-      struct GNUNET_HashCode eh;
-
-      GNUNET_CRYPTO_hash (&current_ekm.ephemeral_key,
-                          sizeof(current_ekm.ephemeral_key),
-                          &eh);
-      GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                  "Starting with ephemeral key %s\n",
-                  GNUNET_h2s (&eh));
-    }
-    kx = GNUNET_new (struct GSC_KeyExchangeInfo);
-    kx->mst = GNUNET_MST_create (&deliver_message, kx);
-    kx->mq = mq;
-    kx->peer = pid;
-    kx->set_key_retry_frequency = INITIAL_SET_KEY_RETRY_FREQUENCY;
-    GNUNET_CONTAINER_DLL_insert (kx_head, kx_tail, kx);
-    kx->status = GNUNET_CORE_KX_STATE_KEY_SENT;
-    monitor_notify_all (kx);
-    GNUNET_CRYPTO_hash (pid, sizeof(struct GNUNET_PeerIdentity), &h1);
-    GNUNET_CRYPTO_hash (&GSC_my_identity,
-                        sizeof(struct GNUNET_PeerIdentity),
-                        &h2);
-    if (0 < GNUNET_CRYPTO_hash_cmp (&h1, &h2))
-      {
-        /* peer with "lower" identity starts KX, otherwise we typically end up
-           with both peers starting the exchange and transmit the 'set key'
-           message twice */
-        send_key (kx);
-      }
-    else
-      {
-        /* peer with "higher" identity starts a delayed KX, if the "lower" peer
-         * does not start a KX since it sees no reasons to do so  */
-        kx->retry_set_key_task =
-          GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
-                                        &set_key_retry_task,
-                                        kx);
-      }
+    /* peer with "lower" identity starts KX, otherwise we typically end up
+       with both peers starting the exchange and transmit the 'set key'
+       message twice */
+    send_key (kx);
   }
   else
   {
-    struct GNUNET_TIME_Relative left;
-
-    left = GNUNET_TIME_absolute_get_remaining (kx->timeout);
-    if (0 == left.rel_value_us)
-    {
-      kx->status = GNUNET_CORE_KX_STATE_DOWN;
-    }
-    else
-      kx->status = GNUNET_CORE_KX_STATE_REKEY_SENT;
-    do_rekey (NULL);
+    /* peer with "higher" identity starts a delayed KX, if the "lower" peer
+     * does not start a KX since it sees no reasons to do so  */
+    kx->retry_set_key_task =
+      GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
+                                    &set_key_retry_task,
+                                    kx);
   }
   return kx;
 }
@@ -1090,6 +1050,10 @@ handle_ephemeral_key (void *cls, const struct EphemeralKeyMessage *m)
   }
   GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
 }
+
+
+static void
+send_keep_alive (void *cls);
 
 
 /**
@@ -1798,11 +1762,6 @@ do_rekey (void *cls)
   struct GSC_KeyExchangeInfo *pos;
 
   (void) cls;
-  if (NULL != rekey_task)
-  {
-    GNUNET_SCHEDULER_cancel (rekey_task);
-    rekey_task = NULL;
-  }
   rekey_task = GNUNET_SCHEDULER_add_delayed (REKEY_FREQUENCY, &do_rekey, NULL);
   GNUNET_CRYPTO_ecdhe_key_create (&my_ephemeral_key);
   sign_ephemeral_key ();
@@ -1865,7 +1824,18 @@ GSC_KX_init (struct GNUNET_CRYPTO_EddsaPrivateKey *pk)
   my_private_key = *pk;
   GNUNET_CRYPTO_eddsa_key_get_public (&my_private_key,
                                       &GSC_my_identity.public_key);
-  
+  GNUNET_CRYPTO_ecdhe_key_create (&my_ephemeral_key);
+  sign_ephemeral_key ();
+  {
+    struct GNUNET_HashCode eh;
+
+    GNUNET_CRYPTO_hash (&current_ekm.ephemeral_key,
+                        sizeof(current_ekm.ephemeral_key),
+                        &eh);
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                "Starting with ephemeral key %s\n",
+                GNUNET_h2s (&eh));
+  }
 
   nc = GNUNET_notification_context_create (1);
   rekey_task = GNUNET_SCHEDULER_add_delayed (REKEY_FREQUENCY, &do_rekey, NULL);
