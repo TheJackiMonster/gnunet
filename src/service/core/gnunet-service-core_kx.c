@@ -855,6 +855,7 @@ handle_ephemeral_key (void *cls, const struct EphemeralKeyMessage *m)
   struct GNUNET_TIME_Absolute end_t;
   struct GNUNET_TIME_Absolute now;
   enum GNUNET_CORE_KxState sender_status;
+  enum GNUNET_GenericReturnValue do_verify = GNUNET_YES;
 
   end_t = GNUNET_TIME_absolute_ntoh (m->expiration_time);
   if (((GNUNET_CORE_KX_STATE_KEY_RECEIVED == kx->status) ||
@@ -878,14 +879,14 @@ handle_ephemeral_key (void *cls, const struct EphemeralKeyMessage *m)
   {
     GNUNET_STATISTICS_update (GSC_stats,
                               gettext_noop (
-                                "# duplicate ephemeral keys ignored"),
+                                "# duplicate ephemeral keys. Not verifying."),
                               1,
                               GNUNET_NO);
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Ignoring duplicate EPHEMERAL_KEY from %s\n",
+                "Duplicate EPHEMERAL_KEY from %s, do not verify\n",
                 GNUNET_i2s (&m->origin_identity));
     GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
-    return;
+    do_verify = GNUNET_NO;
   }
   if (0 != memcmp (&m->origin_identity,
                    kx->peer,
@@ -899,7 +900,7 @@ handle_ephemeral_key (void *cls, const struct EphemeralKeyMessage *m)
     GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
   }
-  if ((ntohl (m->purpose.size) !=
+  if (do_verify && ((ntohl (m->purpose.size) !=
        sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
        + sizeof(struct GNUNET_TIME_AbsoluteNBO)
        + sizeof(struct GNUNET_TIME_AbsoluteNBO)
@@ -909,7 +910,7 @@ handle_ephemeral_key (void *cls, const struct EphemeralKeyMessage *m)
        GNUNET_CRYPTO_eddsa_verify_ (GNUNET_SIGNATURE_PURPOSE_SET_ECC_KEY,
                                     &m->purpose,
                                     &m->signature,
-                                    &m->origin_identity.public_key)))
+                                    &m->origin_identity.public_key))))
   {
     /* invalid signature */
     GNUNET_break_op (0);
@@ -1140,6 +1141,11 @@ handle_ping (void *cls, const struct PingMessage *m)
                             1,
                             GNUNET_NO);
   GNUNET_MQ_send (kx->mq, env);
+  if (NULL != kx->keep_alive_task)
+  {
+    GNUNET_SCHEDULER_cancel (kx->keep_alive_task);
+    kx->keep_alive_task = GNUNET_SCHEDULER_add_delayed (MIN_PING_FREQUENCY, &send_keep_alive, kx);
+  }
   GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
 }
 
