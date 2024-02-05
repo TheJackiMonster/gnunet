@@ -1784,13 +1784,11 @@ do_rekey (void *cls)
     if (GNUNET_CORE_KX_STATE_UP == pos->status)
     {
       pos->status = GNUNET_CORE_KX_STATE_REKEY_SENT;
-      monitor_notify_all (pos);
       derive_session_keys (pos);
     }
-    if (GNUNET_CORE_KX_STATE_DOWN == pos->status)
+    else if (GNUNET_CORE_KX_STATE_DOWN == pos->status)
     {
       pos->status = GNUNET_CORE_KX_STATE_KEY_SENT;
-      monitor_notify_all (pos);
     }
     monitor_notify_all (pos);
     send_key (pos);
