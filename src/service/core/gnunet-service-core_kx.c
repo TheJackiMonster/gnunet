@@ -885,7 +885,6 @@ handle_ephemeral_key (void *cls, const struct EphemeralKeyMessage *m)
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Duplicate EPHEMERAL_KEY from %s, do not verify\n",
                 GNUNET_i2s (&m->origin_identity));
-    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     do_verify = GNUNET_NO;
   }
   if (0 != memcmp (&m->origin_identity,
