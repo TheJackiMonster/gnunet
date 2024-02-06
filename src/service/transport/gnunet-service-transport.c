@@ -6643,6 +6643,12 @@ completed_pending_message (struct PendingMessage *pm)
     pos = pm->frag_parent;
     GNUNET_CONTAINER_MDLL_remove (frag, pos->head_frag, pos->tail_frag, pm);
     free_pending_message (pm);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "pos frag_off %lu pos bytes_msg %lu pmt %u parent %u\n",
+                pos->frag_off,
+                pos->bytes_msg,
+                pos->pmt,
+                NULL == pos->frag_parent ? 1 : 0);
     /* check if subtree is done */
     while ((NULL == pos->head_frag) && (pos->frag_off == (pos->bytes_msg
                                                           - sizeof(struct
