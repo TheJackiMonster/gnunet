@@ -6667,7 +6667,7 @@ completed_pending_message (struct PendingMessage *pm)
     }
 
     /* Was this the last applicable fragment? */
-    if ((NULL == pos->head_frag) && (NULL == pos->frag_parent) &&
+    if ((NULL == pos->head_frag) && (NULL == pos->frag_parent || PMT_DV_BOX == pos->pmt) &&
         (pos->frag_off == pos->bytes_msg))
       client_send_response (pos);
     return;
