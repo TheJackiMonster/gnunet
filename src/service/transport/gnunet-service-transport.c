@@ -4117,8 +4117,7 @@ notify_client_connect_info (void *cls,
                             void *value)
 {
   struct TransportClient *tc = cls;
-  struct Neighbour *n = value;
-  struct VirtualLink *vl = n->vl;
+  struct VirtualLink *vl = value;
 
   if ((NULL == vl) || (GNUNET_NO == vl->confirmed))
     return GNUNET_OK;
@@ -4193,7 +4192,7 @@ handle_client_start (void *cls, const struct StartMessage *start)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "New CORE client with PID %s registered\n",
               GNUNET_i2s (&start->self));
-  GNUNET_CONTAINER_multipeermap_iterate (neighbours,
+  GNUNET_CONTAINER_multipeermap_iterate (links,
                                          &notify_client_connect_info,
                                          tc);
   GNUNET_CONTAINER_multipeermap_iterate (links,
