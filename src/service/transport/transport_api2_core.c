@@ -160,6 +160,11 @@ struct GNUNET_TRANSPORT_CoreHandle
   struct GNUNET_TIME_Relative reconnect_delay;
 
   /**
+   * Transport connection started at.
+   */
+  struct GNUNET_TIME_Absolute restarted_at;
+
+  /**
    * Should we check that @e self matches what the service thinks?
    * (if #GNUNET_NO, then @e self is all zeros!).
    */
@@ -628,6 +633,7 @@ reconnect (void *cls)
   GNUNET_assert (NULL == h->mq);
   h->mq =
     GNUNET_CLIENT_connect (h->cfg, "transport", handlers, &mq_error_handler, h);
+  h->restarted_at = GNUNET_TIME_absolute_get ();
   if (NULL == h->mq)
     return;
   env = GNUNET_MQ_msg (s, GNUNET_MESSAGE_TYPE_TRANSPORT_START);
@@ -670,6 +676,20 @@ disconnect_and_schedule_reconnect (struct GNUNET_TRANSPORT_CoreHandle *h)
 {
   GNUNET_assert (NULL == h->reconnect_task);
   disconnect (h);
+  {
+    /* Reduce delay based on runtime of the connection,
+       so that there is a cool-down if a connection is up
+       for a while. */
+    struct GNUNET_TIME_Relative runtime;
+    unsigned int minutes;
+
+    runtime = GNUNET_TIME_absolute_get_duration (h->restarted_at);
+    minutes = runtime.rel_value_us / GNUNET_TIME_UNIT_MINUTES.rel_value_us;
+    if (minutes > 31)
+      h->reconnect_delay = GNUNET_TIME_UNIT_ZERO;
+    else
+      h->reconnect_delay.rel_value_us >>= minutes;
+  }
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Scheduling task to reconnect to transport service in %s.\n",
        GNUNET_STRINGS_relative_time_to_string (h->reconnect_delay, GNUNET_YES));
