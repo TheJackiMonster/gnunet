@@ -1,3 +1,9 @@
+gnunet (0.21.0-3) unstable; urgency=low
+
+  * Package for GNU Taler v0.9.4.
+
+ -- Christian Grothoff <grothoff@gnu.org>  Sat, 10 Feb 2024 03:50:12 +0200
+
 gnunet (0.21.0-2) unstable; urgency=low
 
   * meson build fix for libgnuneutil.
