@@ -688,6 +688,8 @@ enqueue_message_to_room (struct GNUNET_MESSENGER_Room *room,
                          struct GNUNET_MESSENGER_Message *message,
                          struct GNUNET_MESSENGER_Message *transcript)
 {
+  GNUNET_assert((room) && (message));
+
   const struct GNUNET_CRYPTO_PrivateKey *key = get_handle_key (room->handle);
   enum GNUNET_GenericReturnValue priority;
 

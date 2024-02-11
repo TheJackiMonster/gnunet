@@ -70,7 +70,7 @@ enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
                      struct GNUNET_MESSENGER_Message *transcript,
                      enum GNUNET_GenericReturnValue priority)
 {
-  GNUNET_assert ((messages) && (message));
+  GNUNET_assert ((messages) && (sender) && (message));
 
   struct GNUNET_MESSENGER_QueueMessage *element = GNUNET_new (struct
                                                               GNUNET_MESSENGER_QueueMessage);
@@ -81,8 +81,7 @@ enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
   element->message = message;
   element->transcript = transcript;
 
-  if (sender)
-    GNUNET_memcpy (&(element->sender), sender, sizeof (element->sender));
+  GNUNET_memcpy (&(element->sender), sender, sizeof (element->sender));
 
   if (! element->message)
   {
