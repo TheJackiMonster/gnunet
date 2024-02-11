@@ -530,13 +530,15 @@ regex_result_iterator (void *cls,
     return GNUNET_YES;   // We found an accept state!
   }
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "* %lu, %lu, [%u]\n",
-       (unsigned long) ctx->position,
-       strlen (ctx->info->description),
-       GNUNET_BLOCK_is_accepting (block, result->size));
+       "* %llu, %llu, [%u]\n",
+       (unsigned long long) ctx->position,
+       (unsigned long long) strlen (ctx->info->description),
+       GNUNET_BLOCK_is_accepting (block,
+                                  result->size));
   regex_next_edge (block, result->size, ctx);
 
-  GNUNET_STATISTICS_update (ctx->info->stats, "# regex cadet blocks iterated",
+  GNUNET_STATISTICS_update (ctx->info->stats,
+                            "# regex cadet blocks iterated",
                             1, GNUNET_NO);
 
   return GNUNET_YES;

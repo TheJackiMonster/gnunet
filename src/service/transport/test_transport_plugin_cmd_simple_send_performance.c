@@ -115,7 +115,7 @@ handle_test (void *cls,
 
 
   GNUNET_TRANSPORT_TESTING_get_trait_state (&start_peer,
-                                  &sps);
+                                            &sps);
   ch = sps->th;
   num = ntohl (message->num);
   GNUNET_TESTING_get_trait_async_context (&block_receive,
@@ -165,12 +165,12 @@ handle_test (void *cls,
   sender->num_received++;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "time traveled: %lu\n",
-              time_traveled.rel_value_us);
+              "time traveled: %llu\n",
+              (unsigned long long) time_traveled.rel_value_us);
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "mean time traveled: %s %llu messages received with message number %u\n",
               GNUNET_STRINGS_relative_time_to_string (sender->mean_time,
-                                                      GNUNET_NO),
+                                                      false),
               sender->num_received,
               num);
   if (floor (MAX_RECEIVED * (1 - 1.0 / 200)) < sender->num_received && NULL ==
@@ -255,7 +255,7 @@ notify_connect (struct GNUNET_TESTING_Interpreter *is,
   cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                    "connect-peers");
   GNUNET_TRANSPORT_TESTING_get_trait_connect_peer_state (cmd,
-                                               &cps);
+                                                         &cps);
   void *ret = NULL;
 
   cps->notify_connect (is,

@@ -67,7 +67,7 @@
  * How often do we scan for changes to our network interfaces?
  */
 #define INTERFACE_SCAN_FREQUENCY \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
 
 /**
  * How long do we believe our addresses to remain up (before
@@ -76,7 +76,7 @@
 #define ADDRESS_VALIDITY_PERIOD GNUNET_TIME_UNIT_HOURS
 
 #define WORKING_QUEUE_INTERVALL \
-        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,1)
+  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,1)
 
 /**
  * AES key size.
@@ -1611,8 +1611,8 @@ try_handle_plaintext (struct SenderAddress *sender,
     return; /* no data left */
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "try_handle_plaintext of size %lu (%u %lu) and type %u\n",
-              bytes_remaining,
+              "try_handle_plaintext of size %llu (%u %lu) and type %u\n",
+              (unsigned long long) bytes_remaining,
               ntohs (hdr->size),
               sizeof(*hdr),
               ntohs (hdr->type));
@@ -1947,16 +1947,17 @@ sock_read (void *cls)
       if (EAGAIN == errno)
         break; // We are done reading data
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "Failed to recv from %s family %d failed sock %p\n",
-              GNUNET_a2s ((struct sockaddr*) &sa,
-                          sizeof (addr)),
-              addr->sa_family,
-              udp_sock);
+                  "Failed to recv from %s family %d failed sock %p\n",
+                  GNUNET_a2s ((struct sockaddr*) &sa,
+                              sizeof (addr)),
+                  addr->sa_family,
+                  udp_sock);
       GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "recv");
       return;
     }
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Read %lu bytes\n", rcvd);
+                "Read %llu bytes\n",
+                (unsigned long long) rcvd);
     if (0 == rcvd)
     {
       GNUNET_break_op (0);
@@ -2383,12 +2384,12 @@ send_msg_with_kx (const struct GNUNET_MessageHeader *msg, struct
   {
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "send");
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "Sending KX with payload size %u to %s family %d failed sock %p\n",
-              msize,
-              GNUNET_a2s (receiver->address,
-                          receiver->address_len),
+                "Sending KX with payload size %u to %s family %d failed sock %p\n",
+                msize,
+                GNUNET_a2s (receiver->address,
+                            receiver->address_len),
                 receiver->address->sa_family,
-              udp_sock);
+                udp_sock);
     GNUNET_MQ_impl_send_continue (mq);
     receiver_destroy (receiver);
     return;
@@ -2470,9 +2471,9 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
       (0 == receiver->acks_available))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "msize: %u, mtu: %lu, acks: %u\n",
-                msize,
-                receiver->d_mtu,
+                "msize: %u, mtu: %llu, acks: %u\n",
+                (unsigned int) msize,
+                (unsigned long long) receiver->d_mtu,
                 receiver->acks_available);
 
     GNUNET_break (0);
@@ -2562,11 +2563,11 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
     {
       GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "send");
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Sending UDPBox to %s family %d failed sock %p failed\n",
-                GNUNET_a2s (receiver->address,
-                          receiver->address_len),
-                receiver->address->sa_family,
-                udp_sock);
+                  "Sending UDPBox to %s family %d failed sock %p failed\n",
+                  GNUNET_a2s (receiver->address,
+                              receiver->address_len),
+                  receiver->address->sa_family,
+                  udp_sock);
       receiver_destroy (receiver);
       return;
     }

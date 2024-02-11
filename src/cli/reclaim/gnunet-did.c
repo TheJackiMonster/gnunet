@@ -31,8 +31,8 @@
  * @author Tristan Schwieren
  * @file src/did/gnunet-did.c
  * @brief DID Method Wrapper
- *
  */
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_identity_service.h"
@@ -145,6 +145,7 @@ cleanup (void *cls)
   GNUNET_SCHEDULER_shutdown ();
 }
 
+
 /**
  * @brief GNS lookup callback. Prints the DID Document to standard out.
  * Fails if there is more than one DID record.
@@ -169,6 +170,7 @@ print_did_document (
   ret = 0;
   return;
 }
+
 
 /**
  * @brief Resolve a DID given by the user.
@@ -233,14 +235,16 @@ remove_did_document_namestore_cb (void *cls, enum GNUNET_ErrorCode ec)
       event->cont (event->cls);
       free (event);
     }
-    else {
+    else
+    {
       free (event);
       GNUNET_SCHEDULER_add_now (cleanup, NULL);
       ret = 0;
       return;
     }
   }
-  else {
+  else
+  {
     printf ("Something went wrong when deleting the DID Document\n");
 
     printf ("%s\n", GNUNET_ErrorCode_get_hint (ec));
@@ -250,6 +254,7 @@ remove_did_document_namestore_cb (void *cls, enum GNUNET_ErrorCode ec)
     return;
   }
 }
+
 
 /**
  * @brief Callback called after the ego has been locked up
@@ -264,13 +269,14 @@ remove_did_document_ego_lookup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
     GNUNET_IDENTITY_ego_get_private_key (ego);
 
   GNUNET_NAMESTORE_record_set_store (namestore_handle,
-                                  skey,
-                                  GNUNET_GNS_EMPTY_LABEL_AT,
-                                  0,
-                                  NULL,
-                                  &remove_did_document_namestore_cb,
-                                  cls);
+                                     skey,
+                                     GNUNET_GNS_EMPTY_LABEL_AT,
+                                     0,
+                                     NULL,
+                                     &remove_did_document_namestore_cb,
+                                     cls);
 }
+
 
 /**
  * @brief Remove a DID Document
@@ -287,7 +293,8 @@ remove_did_document (remove_did_document_callback cont, void *cls)
     ret = 1;
     return;
   }
-  else {
+  else
+  {
     event = malloc (sizeof(*event));
     event->cont = cont;
     event->cls = cls;
@@ -298,6 +305,7 @@ remove_did_document (remove_did_document_callback cont, void *cls)
                                 (void *) event);
   }
 }
+
 
 // Needed because create_did_ego_lookup_cb() and
 // create_did_ego_create_cb() can call each other
@@ -327,6 +335,7 @@ create_did_cb (enum GNUNET_GenericReturnValue status, void *cls)
   return;
 }
 
+
 /**
  * @brief Create a DID(-Document) - Called after a new Identity has been created.
  */
@@ -348,6 +357,7 @@ create_did_ego_create_cb (void *cls,
                               &create_did_ego_lockup_cb,
                               NULL);
 }
+
 
 /**
  * @brief Create a DID(-Document). Called after ego lookup
@@ -405,6 +415,7 @@ create_did_ego_lockup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   }
 }
 
+
 /**
  * @brief Create a DID(-Document).
  *
@@ -440,6 +451,7 @@ replace_did_document_ego_lookup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   // create_did_store (didd, ego);
 }
 
+
 /**
  * @brief Replace a DID Document. Callback functiona after remove
  *
@@ -454,6 +466,7 @@ replace_did_document_remove_cb (void *cls)
                               NULL);
 }
 
+
 /**
  * @brief Replace a DID Docuemnt
  *
@@ -465,7 +478,8 @@ replace_did_document ()
   {
     remove_did_document (&replace_did_document_remove_cb, NULL);
   }
-  else {
+  else
+  {
     printf (
       "Set the DID Document and expiration time argument to replace the DID Document\n");
     GNUNET_SCHEDULER_add_now (&cleanup, NULL);
@@ -473,6 +487,7 @@ replace_did_document ()
     return;
   }
 }
+
 
 static void
 post_ego_iteration (void *cls)
@@ -495,12 +510,14 @@ post_ego_iteration (void *cls)
   {
     create_did ();
   }
-  else {
+  else
+  {
     // No Argument found
     GNUNET_SCHEDULER_add_now (&cleanup, NULL);
     return;
   }
 }
+
 
 static void
 process_dids (void *cls, struct GNUNET_IDENTITY_Ego *ego,
@@ -539,7 +556,6 @@ process_dids (void *cls, struct GNUNET_IDENTITY_Ego *ego,
 }
 
 
-
 static void
 run (void *cls,
      char *const *args,
@@ -573,6 +589,7 @@ run (void *cls,
     return;
   }
 }
+
 
 int
 main (int argc, char *const argv[])

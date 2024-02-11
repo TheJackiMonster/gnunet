@@ -122,9 +122,9 @@ GNUNET_GNSRECORD_records_cmp (const struct GNUNET_GNSRECORD_Data *a,
   if (a->data_size != b->data_size)
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "Data size %lu != %lu\n",
-         a->data_size,
-         b->data_size);
+         "Data size %llu != %llu\n",
+         (unsigned long long) a->data_size,
+         (unsigned long long) b->data_size);
     return GNUNET_NO;
   }
   if (0 != memcmp (a->data, b->data, a->data_size))

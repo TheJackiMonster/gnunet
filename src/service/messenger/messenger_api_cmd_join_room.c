@@ -46,9 +46,9 @@ join_room_run (void *cls,
   struct GNUNET_HashCode key;
 
   if (jrs->room_key)
-    GNUNET_CRYPTO_hash(jrs->room_key, strlen(jrs->room_key), &key);
+    GNUNET_CRYPTO_hash (jrs->room_key, strlen (jrs->room_key), &key);
   else
-    memset(&key, 0, sizeof(key));
+    memset (&key, 0, sizeof(key));
 
   const struct GNUNET_TESTING_Command *service_cmd;
   service_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
@@ -59,17 +59,17 @@ join_room_run (void *cls,
 
   unsigned int peer_index;
   unsigned int stage_index;
-
   struct GNUNET_MESSENGER_RoomState *rs;
-  rs = rs = GNUNET_CONTAINER_multihashmap_get (sss->rooms, &key);
+
+  rs = GNUNET_CONTAINER_multihashmap_get (sss->rooms, &key);
   if (rs)
     goto skip_room_state;
 
-  rs = GNUNET_MESSENGER_create_room_state(sss->topology);
-  if ((!rs) && (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (sss->rooms,
-                                                                &key,
-                                                                rs,
-                                                                GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST)))
+  rs = GNUNET_MESSENGER_create_room_state (sss->topology);
+  if ((! rs) && (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (sss->rooms,
+                                                                 &key,
+                                                                 rs,
+                                                                 GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST)))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Testing library failed to create a room state with key '%s'\n",
@@ -82,22 +82,24 @@ skip_room_state:
   peer_index = sss->peer_index;
   stage_index = sss->stage_index;
 
-  const unsigned int index = stage_index * sss->topology->peer_amount + peer_index;
-  const struct GNUNET_MESSENGER_TestStage *stage = &(sss->topology->peer_stages[index]);
+  const unsigned int index = stage_index * sss->topology->peer_amount
+                             + peer_index;
+  const struct GNUNET_MESSENGER_TestStage *stage =
+    &(sss->topology->peer_stages[index]);
 
   unsigned int door_index = stage->door_id;
 
   if (door_index == 0)
     door_index = (peer_index + GNUNET_CRYPTO_random_u32 (
-        GNUNET_CRYPTO_QUALITY_WEAK,
-        sss->topology->peer_amount - 1
-    ) + 1) % sss->topology->peer_amount;
+                    GNUNET_CRYPTO_QUALITY_WEAK,
+                    sss->topology->peer_amount - 1
+                    ) + 1) % sss->topology->peer_amount;
   else
     door_index = (door_index - 1) % sss->topology->peer_amount;
 
   struct GNUNET_PeerIdentity *door;
-  door = GNUNET_TESTING_get_peer(door_index, sss->tl_system);
-  if (!door)
+  door = GNUNET_TESTING_get_peer (door_index, sss->tl_system);
+  if (! door)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Testing library failed to get peer identity of index '%u'\n",
@@ -112,7 +114,7 @@ skip_room_state:
   case GNUNET_MESSENGER_STAGE_JOIN_OPEN_ROOM:
     room = GNUNET_MESSENGER_open_room (sss->msg, &key);
 
-    if (!room)
+    if (! room)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Testing library failed to open room with key '%s'\n",
@@ -124,9 +126,9 @@ skip_room_state:
 
     break;
   case GNUNET_MESSENGER_STAGE_JOIN_ENTER_ROOM:
-    room = GNUNET_MESSENGER_enter_room(sss->msg, door, &key);
+    room = GNUNET_MESSENGER_enter_room (sss->msg, door, &key);
 
-    if (!room)
+    if (! room)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Testing library failed to enter room with key '%s'\n",
@@ -143,10 +145,11 @@ skip_room_state:
   }
 
   jrs->room = room;
-  TODO: sss->stage_index++;
+TODO: sss->stage_index++;
 
   GNUNET_free (door);
 }
+
 
 static void
 join_room_cleanup (void *cls)
@@ -157,6 +160,7 @@ join_room_cleanup (void *cls)
   GNUNET_free (jrs->service_label);
   GNUNET_free (jrs);
 }
+
 
 struct GNUNET_TESTING_Command
 GNUNET_MESSENGER_cmd_join_room (const char *label,

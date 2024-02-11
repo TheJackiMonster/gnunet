@@ -1041,13 +1041,12 @@ process_result_with_request (void *cls,
   {
     GNUNET_asprintf (
       &dc->emsg,
-      _ (
-        "Internal error or bogus download URI (expected %lu bytes at depth %u and offset %llu/%llu, got %lu bytes)"),
-      bs,
+      "Internal error or bogus download URI (expected %llu bytes at depth %u and offset %llu/%llu, got %llu bytes)",
+      (unsigned long long) bs,
       dr->depth,
       (unsigned long long) dr->offset,
       (unsigned long long) GNUNET_ntohll (dc->uri->data.chk.file_length),
-      prc->size);
+      (unsigned long long) prc->size);
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "%s\n", dc->emsg);
     while (NULL != dr->parent)
     {

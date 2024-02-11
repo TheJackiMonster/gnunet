@@ -39,7 +39,6 @@
                                         __VA_ARGS__)
 
 
-
 /**
  * Meta data item.
  */
@@ -1039,6 +1038,7 @@ GNUNET_FS_meta_data_deserialize (const char *input, size_t size)
   return md;
 }
 
+
 /**
  * Read a metadata container.
  *
@@ -1097,6 +1097,7 @@ GNUNET_FS_read_meta_data (struct GNUNET_BIO_ReadHandle *h,
   return GNUNET_OK;
 }
 
+
 /**
  * Write a metadata container.
  *
@@ -1120,22 +1121,27 @@ GNUNET_FS_write_meta_data (struct GNUNET_BIO_WriteHandle *h,
                                         &buf,
                                         MAX_META_DATA,
                                         GNUNET_FS_META_DATA_SERIALIZE_PART);
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              _ ("Serialized %ld bytes of metadata"),
-              size);
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Serialized %lld bytes of metadata",
+              (long long) size);
 
   if (-1 == size)
   {
     GNUNET_free (buf);
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                _ ("Failed to serialize metadata `%s'"),
+                "Failed to serialize metadata `%s'",
                 what);
     return GNUNET_SYSERR;
   }
-  if ((GNUNET_OK != GNUNET_BIO_write_int32 (h,
-                                            _ ("metadata length"),
-                                            (uint32_t) size))
-      || (GNUNET_OK != GNUNET_BIO_write (h, what, buf, size)))
+  if ( (GNUNET_OK !=
+        GNUNET_BIO_write_int32 (h,
+                                "metadata length",
+                                (uint32_t) size)) ||
+       (GNUNET_OK !=
+        GNUNET_BIO_write (h,
+                          what,
+                          buf,
+                          size)) )
   {
     GNUNET_free (buf);
     return GNUNET_SYSERR;
@@ -1143,6 +1149,7 @@ GNUNET_FS_write_meta_data (struct GNUNET_BIO_WriteHandle *h,
   GNUNET_free (buf);
   return GNUNET_OK;
 }
+
 
 /**
  * Function used internally to read a metadata container from within a read
@@ -1166,6 +1173,7 @@ read_spec_handler_meta_data (void *cls,
   return GNUNET_FS_read_meta_data (h, what, result);
 }
 
+
 /**
  * Create the specification to read a metadata container.
  *
@@ -1186,6 +1194,7 @@ GNUNET_FS_read_spec_meta_data (const char *what,
 
   return rs;
 }
+
 
 /**
  * Function used internally to write a metadata container from within a write

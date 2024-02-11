@@ -540,8 +540,8 @@ GNUNET_PEERSTORE_store (struct GNUNET_PEERSTORE_Handle *h,
   struct GNUNET_PEERSTORE_StoreContext *sc;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Storing value (size: %lu) for subsystem `%s', peer `%s', key `%s'\n",
-       size,
+       "Storing value (size: %llu) for subsystem `%s', peer `%s', key `%s'\n",
+       (unsigned long long) size,
        sub_system,
        GNUNET_i2s (peer),
        key);
@@ -596,7 +596,7 @@ handle_store_result (void *cls, const struct PeerstoreResultMessage *msg)
   if (NULL == sc)
   {
     LOG (GNUNET_ERROR_TYPE_WARNING,
-         _("Unexpected store response.\n"));
+         _ ("Unexpected store response.\n"));
     return;
   }
   if (NULL != sc->cont)
@@ -673,7 +673,8 @@ handle_iterate_result (void *cls, const struct StoreRecordMessage *msg)
   if (NULL == ic)
   {
     LOG (GNUNET_ERROR_TYPE_WARNING,
-         _ ("Unexpected iteration response, no iterating client found, discarding message.\n"));
+         _ (
+           "Unexpected iteration response, no iterating client found, discarding message.\n"));
     return;
   }
   if (NULL == ic->callback)
@@ -857,7 +858,7 @@ reconnect (void *cls)
   for (struct GNUNET_PEERSTORE_IterateContext *ic = h->iterate_head; NULL != ic;
        ic = ic->next)
   {
-    ic->rid = get_op_id(h);
+    ic->rid = get_op_id (h);
     ev =
       PEERSTORE_create_record_mq_envelope (ic->rid,
                                            ic->sub_system,
@@ -873,7 +874,7 @@ reconnect (void *cls)
   for (struct GNUNET_PEERSTORE_StoreContext *sc = h->store_head; NULL != sc;
        sc = sc->next)
   {
-    sc->rid = get_op_id(h);
+    sc->rid = get_op_id (h);
     ev =
       PEERSTORE_create_record_mq_envelope (sc->rid,
                                            sc->sub_system,

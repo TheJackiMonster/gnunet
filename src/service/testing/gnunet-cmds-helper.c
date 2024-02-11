@@ -658,8 +658,8 @@ main (int argc, char **argv)
     for (i = 6; i<argc; i++)
       topology_data_length += strlen (argv[i]) + 1;
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "topo data length %lu\n",
-         topology_data_length);
+         "topo data length %llu\n",
+         (unsigned long long) topology_data_length);
     ni->topology_data = GNUNET_malloc (topology_data_length);
     memset (ni->topology_data, '\0', topology_data_length);
     for (i = 6; i<argc; i++)

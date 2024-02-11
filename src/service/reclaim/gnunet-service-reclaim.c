@@ -21,8 +21,8 @@
  * @author Martin Schanzenbach
  * @file src/reclaim/gnunet-service-reclaim.c
  * @brief reclaim Service
- *
  */
+#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet-service-reclaim_tickets.h"
 #include "gnunet_gnsrecord_lib.h"
@@ -2518,7 +2518,7 @@ ticket_iter_cb (void *cls, struct GNUNET_RECLAIM_Ticket *ticket)
   trm->id = htonl (ti->r_id);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sending TICKET_RESULT message\n");
   trm->tkt_len = htons (tkt_len);
-  trm->presentations_len = htons(0);
+  trm->presentations_len = htons (0);
   GNUNET_MQ_send (ti->client->mq, env);
   if (NULL == ticket)
     GNUNET_free (ti);

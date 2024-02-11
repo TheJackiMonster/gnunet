@@ -2592,8 +2592,8 @@ handle_dht_response (void *cls,
     return;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Decrypting DHT block of size %lu for `%s', expires %s\n",
-              GNUNET_GNSRECORD_block_get_size (block),
+              "Decrypting DHT block of size %llu for `%s', expires %s\n",
+              (unsigned long long) GNUNET_GNSRECORD_block_get_size (block),
               rh->name,
               GNUNET_STRINGS_absolute_time_to_string (exp));
   if (GNUNET_OK !=
