@@ -1040,10 +1040,32 @@ download_hostlist ()
     return;
   }
   CURL_EASY_SETOPT (curl, CURLOPT_FOLLOWLOCATION, 1);
-  CURL_EASY_SETOPT (curl,
-                    CURLOPT_REDIR_PROTOCOLS_STR,
-                    CURLPROTO_HTTP | CURLPROTO_HTTPS);
-  CURL_EASY_SETOPT (curl, CURLOPT_PROTOCOLS_STR, CURLPROTO_HTTP | CURLPROTO_HTTPS);
+#ifdef CURLOPT_REDIR_PROTOCOLS_STR
+  if (0 == strncasecmp (current_url, "https://", strlen ("https://")))
+    GNUNET_assert (CURLE_OK == curl_easy_setopt (curl, CURLOPT_REDIR_PROTOCOLS_STR, "https"));
+  else
+    GNUNET_assert (CURLE_OK == curl_easy_setopt (curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https"));
+#else
+#ifdef CURLOPT_REDIR_PROTOCOLS
+  if (0 == strncasecmp (current_url, "https://", strlen ("https://")))
+    GNUNET_assert (CURLE_OK == curl_easy_setopt (curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTPS));
+  else
+    GNUNET_assert (CURLE_OK == curl_easy_setopt (curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS));
+#endif
+#endif
+#ifdef CURLOPT_PROTOCOLS_STR
+  if (0 == strncasecmp (current_url, "https://", strlen ("https://")))
+    GNUNET_assert (CURLE_OK == curl_easy_setopt (curl, CURLOPT_PROTOCOLS_STR, "https"));
+  else
+    GNUNET_assert (CURLE_OK == curl_easy_setopt (curl, CURLOPT_PROTOCOLS_STR, "http,https"));
+#else
+#ifdef CURLOPT_PROTOCOLS
+  if (0 == strncasecmp (current_url, "https://", strlen ("https://")))
+    GNUNET_assert (CURLE_OK == curl_easy_setopt (curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTPS));
+  else
+    GNUNET_assert (CURLE_OK == curl_easy_setopt (curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS));
+#endif
+#endif
   CURL_EASY_SETOPT (curl, CURLOPT_MAXREDIRS, 4);
   /* no need to abort if the above failed */
   CURL_EASY_SETOPT (curl, CURLOPT_URL, current_url);
