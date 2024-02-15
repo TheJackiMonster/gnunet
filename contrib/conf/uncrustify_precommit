@@ -31,7 +31,7 @@ then
   echo "================================================================"
   echo " Your changes are ugly!                                         "
   echo " Uncrustify your code in your next commit.                      "
-  echo " See https://docs.gnunet.org/developers/style.html#coding-style "
+  echo " See https://docs.gnunet.org/latest/developers/style.html#coding-style "
   echo "================================================================"
 fi
 # Do not fail
