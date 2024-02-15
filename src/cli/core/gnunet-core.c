@@ -150,6 +150,9 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
+  struct GNUNET_CRYPTO_EddsaPrivateKey pk;
+  struct GNUNET_CRYPTO_EddsaPublicKey pub;
+  char *keyfile;
   (void) cls;
   (void) cfgfile;
   if (NULL != args[0])
@@ -157,6 +160,33 @@ run (void *cls,
     fprintf (stderr, _ ("Invalid command line argument `%s'\n"), args[0]);
     return;
   }
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_get_value_filename (cfg,
+                                               "PEER",
+                                               "PRIVATE_KEY",
+                                               &keyfile))
+  {
+    GNUNET_log (
+      GNUNET_ERROR_TYPE_ERROR,
+      _ ("Core service is lacking HOSTKEY configuration setting.  Exiting.\n"));
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
+  if (GNUNET_SYSERR ==
+      GNUNET_CRYPTO_eddsa_key_from_file (keyfile,
+                                         GNUNET_YES,
+                                         &pk))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to read peer's private key!\n");
+    GNUNET_SCHEDULER_shutdown ();
+    GNUNET_free (keyfile);
+    return;
+  }
+  GNUNET_CRYPTO_eddsa_key_get_public(&pk, &pub);
+  fprintf (stdout,
+           _ ("Local peer: %s\n\n"),
+           GNUNET_i2s ((struct GNUNET_PeerIdentity*) &pub));
   mh = GNUNET_CORE_monitor_start (cfg, &monitor_cb, NULL);
   if (NULL == mh)
   {
