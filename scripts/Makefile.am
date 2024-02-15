@@ -2,6 +2,8 @@
 AM_CPPFLAGS = -I$(top_srcdir)/src/include -I$(top_builddir)/src/include
 
 dist_pkgdata_DATA = \
+  netjail/nat_node_test.sh \
+  netjail/getmsg.sh \
   netjail/netjail_core.sh \
   netjail/netjail_exec.sh \
   netjail/netjail_start.sh \
@@ -20,6 +22,8 @@ EXTRA_DIST = \
 	sphinx_update.sh
 
 install-data-hook:
+	chmod o+x '$(DESTDIR)$(pkgdatadir)/nat_node_test.sh'
+	chmod o+x '$(DESTDIR)$(pkgdatadir)/getmsg.sh'
 	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_core.sh'
 	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_start.sh'
 	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_stop.sh'

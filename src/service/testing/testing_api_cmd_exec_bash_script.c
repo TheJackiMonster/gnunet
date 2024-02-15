@@ -59,7 +59,7 @@ struct BashScriptState
   /**
    * Arguments for the script
    */
-  char *const*script_argv;
+  char **script_argv;
 
   /**
    * Size of script_argv.
@@ -139,28 +139,21 @@ exec_bash_script_run (void *cls,
 {
   struct BashScriptState *bss = cls;
   enum GNUNET_GenericReturnValue helper_check;
-  char *argv[bss->argc + 2];
-
-  char *data_dir;
-  char *script_name;
-
-  data_dir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_DATADIR);
-  GNUNET_asprintf (&script_name, "%s%s", data_dir, bss->script);
 
   helper_check = GNUNET_OS_check_helper_binary (
-    script_name,
+    bss->script_argv[0],
     GNUNET_YES,
     NULL);
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "script_name %s\n",
-       script_name);
+       bss->script_argv[0]);
 
   if (GNUNET_NO == helper_check)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,        
                 "No SUID for %s!\n",
-                script_name);
+                bss->script_argv[0]);
     GNUNET_TESTING_interpreter_fail (is);
     return;
   }
@@ -168,24 +161,17 @@ exec_bash_script_run (void *cls,
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "%s not found!\n",
-                script_name);
+                bss->script_argv[0]);
     GNUNET_TESTING_interpreter_fail (is);
     return;
   }
-  argv[0] = script_name;
-  if (NULL != bss->script_argv)
-  {
-    for (int i = 0; i < bss->argc;i++)
-      argv[i + 1] = bss->script_argv[i];
-  }
-  argv[bss->argc] = NULL;
 
   bss->start_proc = GNUNET_OS_start_process_vap (GNUNET_OS_INHERIT_STD_ERR,
                                      NULL,
                                      NULL,
                                      NULL,
-                                     script_name,
-                                     argv);
+                                     bss->script_argv[0],
+                                     bss->script_argv);
   bss->cwh = GNUNET_wait_child (bss->start_proc,
                                &child_completed_callback,
                                bss);
@@ -200,13 +186,27 @@ GNUNET_TESTING_cmd_exec_bash_script (const char *label,
                                      GNUNET_ChildCompletedCallback cb)
 {
   struct BashScriptState *bss;
+  char *data_dir;
+  char *script_name;
+  unsigned int c;
+
+  data_dir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_DATADIR);
+  GNUNET_asprintf (&script_name, "%s%s", data_dir, script);
 
   bss = GNUNET_new (struct BashScriptState);
-  bss->script = script;
-  bss->script_argv = script_argv; // FIXME this is not just a cast to fix
-  bss->argc = argc;
   bss->cb = cb;
+  bss->script_argv = GNUNET_malloc (sizeof(char *) * (argc + 2));
 
+  bss->script_argv[0] = GNUNET_strdup (script_name);
+  for (c = 0; c < argc; c++)
+  {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "script_argv %u: %s\n",
+         c,
+         script_argv[c]);
+    bss->script_argv[c + 1] = GNUNET_strdup (script_argv[c]);
+  }
+  bss->script_argv[c + 1] = NULL;
   return GNUNET_TESTING_command_new (bss,
                                      label,
                                      &exec_bash_script_run,

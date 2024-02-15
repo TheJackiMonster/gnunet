@@ -190,12 +190,29 @@ gnunet_service_transport_LDADD = \
   $(GN_LIBINTL)
 
 plugin_LTLIBRARIES = \
+  libgnunet_test_transport_plugin_cmd_nat_mapping.la \
   libgnunet_test_transport_plugin_cmd_simple_send_performance.la \
   libgnunet_test_transport_plugin_cmd_nat_upnp.la \
   libgnunet_test_transport_plugin_cmd_simple_send.la \
   libgnunet_test_transport_plugin_cmd_simple_send_broadcast.la \
   libgnunet_test_transport_plugin_cmd_simple_send_dv.la \
   libgnunet_test_transport_plugin_cmd_udp_backchannel.la
+
+libgnunet_test_transport_plugin_cmd_nat_mapping_la_SOURCES = \
+ test_transport_plugin_cmd_nat_mapping.c
+libgnunet_test_transport_plugin_cmd_nat_mapping_la_LIBADD = \
+  libgnunettransporttesting2.la \
+  libgnunettransportapplication.la \
+  libgnunettransportcore.la \
+  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/lib/hello/libgnunethello.la \
+  $(top_builddir)/src/service/arm/libgnunetarm.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
+  $(LTLIBINTL)
+libgnunet_test_transport_plugin_cmd_nat_mapping_la_LDFLAGS = \
+  $(GN_PLUGIN_LDFLAGS)
 
 libgnunet_test_transport_plugin_cmd_nat_upnp_la_SOURCES = \
  test_transport_plugin_cmd_nat_upnp.c

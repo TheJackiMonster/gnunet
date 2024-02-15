@@ -47,7 +47,7 @@ for N in $(seq $GLOBAL_N); do
     then
         if [ "" != "${R_SCRIPT[$N]}" ]
         then
-            ip netns exec ${ROUTERS[$N]} ./${R_SCRIPT[$N]} ${ROUTERS[$N]} 0 $PREFIX
+            ip netns exec ${ROUTERS[$N]} ./${R_SCRIPT[$N]} ${ROUTERS[$N]} 0 $N
         fi    
         rm -rf /tmp/netjail_scripts
     fi

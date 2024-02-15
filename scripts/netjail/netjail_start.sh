@@ -99,18 +99,18 @@ for N in $(seq $GLOBAL_N); do
     ip netns exec ${ROUTERS[$N]} ip route add "$KNOWN_GROUP.$X" dev ${ROUTER_EXT_IF[$N]}
     ip netns exec ${ROUTERS[$N]} ip route add default via "$KNOWN_GROUP.$X"
 
-    
+
 	netjail_node_link_bridge ${ROUTERS[$N]} ${ROUTER_NETS[$N]} $ROUTER_ADDR 24
 	ROUTER_LINKS[$N]=$RESULT
-	
+
 	netjail_node_add_nat ${ROUTERS[$N]} $ROUTER_ADDR 24
-	
+
 	for M in $(seq $LOCAL_M); do
 		netjail_node_add_default ${NODES[$N,$M]} $ROUTER_ADDR
 	done
 
     # TODO Topology configuration must be enhanced to configure forwarding to more than one subnet node via different ports.
-    
+
     if [ "1" == "${R_TCP[$N]}" ]
     then
         #ip netns exec ${ROUTERS[$N]} nft add rule ip nat prerouting ip daddr $GLOBAL_GROUP.$N tcp dport 60002 counter dnat to $LOCAL_GROUP.1
@@ -159,7 +159,7 @@ for N in $(seq $GLOBAL_N); do
     fi
     if [ "" != "${R_SCRIPT[$N]}" ]
     then
-        ip netns exec ${ROUTERS[$N]} ./${R_SCRIPT[$N]} ${ROUTER_NETS[$N]} 1
+        ip netns exec ${ROUTERS[$N]} ./${R_SCRIPT[$N]} ${ROUTER_NETS[$N]} 1 $N &
     fi
 done
 
