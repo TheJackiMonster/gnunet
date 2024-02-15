@@ -183,7 +183,7 @@ run (void *cls,
     GNUNET_free (keyfile);
     return;
   }
-  GNUNET_CRYPTO_eddsa_key_get_public(&pk, &pub);
+  GNUNET_CRYPTO_eddsa_key_get_public (&pk, &pub);
   fprintf (stdout,
            _ ("Local peer: %s\n\n"),
            GNUNET_i2s ((struct GNUNET_PeerIdentity*) &pub));
