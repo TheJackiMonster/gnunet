@@ -12,7 +12,7 @@ else
       output: 'html',
       command: [sphinx,
               '-M', 'html',
-              meson.project_source_root()/'contrib'/'sphinx', meson.current_build_dir()],
+              meson.project_source_root()/'contrib'/'handbook', meson.current_build_dir()],
       install: true,
       install_dir: docdir)
   endif
@@ -27,7 +27,7 @@ else
       output: ['texinfo'],
       command: [sphinx,
               '-M', 'texinfo',
-              meson.project_source_root()/'contrib'/'sphinx', meson.current_build_dir()],
+              meson.project_source_root()/'contrib'/'handbook', meson.current_build_dir()],
       install: false,
       install_dir: get_option('infodir'))
     custom_target('gnunet.info',
