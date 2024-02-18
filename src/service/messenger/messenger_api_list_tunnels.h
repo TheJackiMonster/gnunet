@@ -119,7 +119,8 @@ find_list_tunnels_alternate (struct GNUNET_MESSENGER_ListTunnels *tunnels,
  * @return #GNUNET_OK on success, otherwise #GNUNET_SYSERR
  */
 enum GNUNET_GenericReturnValue
-verify_list_tunnels_flag_token (const struct GNUNET_MESSENGER_ListTunnels *tunnels,
+verify_list_tunnels_flag_token (const struct
+                                GNUNET_MESSENGER_ListTunnels *tunnels,
                                 const struct GNUNET_PeerIdentity *peer,
                                 enum GNUNET_MESSENGER_ConnectionFlags flag);
 

@@ -287,11 +287,11 @@ handle_recv_message (void *cls,
 
   struct GNUNET_MESSENGER_Room *room = get_handle_room (handle, key);
 
-  if (!room)
+  if (! room)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Unknown room for this client: %s\n",
                 GNUNET_h2s (key));
-    
+
     goto skip_message;
   }
 
@@ -688,7 +688,7 @@ enqueue_message_to_room (struct GNUNET_MESSENGER_Room *room,
                          struct GNUNET_MESSENGER_Message *message,
                          struct GNUNET_MESSENGER_Message *transcript)
 {
-  GNUNET_assert((room) && (message));
+  GNUNET_assert ((room) && (message));
 
   const struct GNUNET_CRYPTO_PrivateKey *key = get_handle_key (room->handle);
   enum GNUNET_GenericReturnValue priority;
@@ -733,26 +733,26 @@ dequeue_messages_from_room (struct GNUNET_MESSENGER_Room *room)
 
     message = dequeue_from_messages (&(room->queue), &key, &transcript);
 
-    if (!message)
+    if (! message)
     {
       message = transcript;
       continue;
     }
-    
+
     send_message_to_room (room, message, &key, &hash);
 
-    if (!transcript)
+    if (! transcript)
       continue;
 
     GNUNET_memcpy (&(transcript->body.transcript.hash), &hash, sizeof(hash));
     GNUNET_CRYPTO_key_get_public (&key, &pubkey);
-    
-    if (GNUNET_YES == encrypt_message(transcript, &pubkey))
+
+    if (GNUNET_YES == encrypt_message (transcript, &pubkey))
     {
       send_message_to_room (room, transcript, &key, &other);
-      
-      link_room_message(room, &hash, &other);
-      link_room_message(room, &other, &hash);
+
+      link_room_message (room, &hash, &other);
+      link_room_message (room, &other, &hash);
     }
     else
     {
@@ -1098,21 +1098,21 @@ send_message_to_room_with_key (struct GNUNET_MESSENGER_Room *room,
   }
 
 skip_naming:
-  if (!public_key)
+  if (! public_key)
     goto skip_encryption;
 
   pubkey = get_handle_pubkey (room->handle);
 
-  if (0 != GNUNET_memcmp(pubkey, public_key))
+  if (0 != GNUNET_memcmp (pubkey, public_key))
     transcript = transcribe_message (message, public_key);
 
   if (GNUNET_YES != encrypt_message (message, public_key))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Sending message aborted: Encryption failed!\n");
-    
+
     if (transcript)
-      destroy_message(transcript);
+      destroy_message (transcript);
 
     destroy_message (message);
     return;
@@ -1172,7 +1172,8 @@ delete_message_in_room (struct GNUNET_MESSENGER_Room *room,
                         const struct GNUNET_HashCode *hash,
                         const struct GNUNET_TIME_Relative delay)
 {
-  struct GNUNET_MESSENGER_Message *message = create_message_delete (hash, delay);
+  struct GNUNET_MESSENGER_Message *message = create_message_delete (hash,
+                                                                    delay);
 
   if (! message)
   {
@@ -1251,7 +1252,7 @@ check_ticket_audience (void *cls,
   const struct GNUNET_CRYPTO_PublicKey *key;
   key = get_non_anonymous_key (get_contact_key (contact));
 
-  if ((key) && (0 == GNUNET_memcmp(key, check->audience)))
+  if ((key) && (0 == GNUNET_memcmp (key, check->audience)))
   {
     check->result = GNUNET_YES;
     return GNUNET_NO;
@@ -1271,7 +1272,7 @@ GNUNET_MESSENGER_send_ticket (struct GNUNET_MESSENGER_Room *room,
   const struct GNUNET_CRYPTO_PublicKey *pubkey;
   pubkey = get_handle_pubkey (room->handle);
 
-  if (0 != GNUNET_memcmp(pubkey, &(ticket->identity)))
+  if (0 != GNUNET_memcmp (pubkey, &(ticket->identity)))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Sending ticket aborted: Invalid identity!\n");
@@ -1283,10 +1284,10 @@ GNUNET_MESSENGER_send_ticket (struct GNUNET_MESSENGER_Room *room,
   check.result = GNUNET_NO;
 
   const int members = iterate_room_members (
-    room, 
-    check_ticket_audience, 
+    room,
+    check_ticket_audience,
     &check);
-  
+
   if ((! members) || (GNUNET_YES != check.result))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -1296,7 +1297,7 @@ GNUNET_MESSENGER_send_ticket (struct GNUNET_MESSENGER_Room *room,
 
   struct GNUNET_MESSENGER_Message *message = create_message_ticket (
     &(ticket->rnd)
-  );
+    );
 
   if (! message)
   {

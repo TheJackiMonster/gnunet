@@ -362,7 +362,7 @@ callback_found_message (void *cls,
 
     if (! session.peer)
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR, 
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Peer session from sender of message (%s) unknown!\n",
                   GNUNET_h2s (hash));
       return;
@@ -386,7 +386,7 @@ callback_found_message (void *cls,
 
     if (! session.member)
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR, 
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Member session from sender of message (%s) unknown!\n",
                   GNUNET_h2s (hash));
       return;
@@ -421,7 +421,7 @@ handle_get_message (void *cls,
 
   struct GNUNET_MESSENGER_MemberStore *member_store =
     get_srv_room_member_store (room);
-  
+
   const struct GNUNET_ShortHashCode *member_id;
   member_id = get_srv_handle_member_id (msg_client->handle,
                                         &(msg->key));

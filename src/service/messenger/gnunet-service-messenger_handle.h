@@ -176,7 +176,6 @@ is_srv_handle_routing (const struct GNUNET_MESSENGER_SrvHandle *handle,
                        const struct GNUNET_HashCode *key);
 
 
-
 /**
  * Returns the latest merged hash from a room of a given <i>handle</i> using a specific <i>key</i>
  * and the handles own latest known <i>hash</i> of a message. If the room does not contain other

@@ -44,15 +44,17 @@ cleanup_rooms_cb (void *cls,
   return GNUNET_YES;
 }
 
+
 static void
 stop_service_run (void *cls,
-                   struct GNUNET_TESTING_Interpreter *is)
+                  struct GNUNET_TESTING_Interpreter *is)
 {
   struct GNUNET_MESSENGER_StopServiceState *stop_ss = cls;
 
   const struct GNUNET_TESTING_Command *service_cmd;
   service_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
-                                                           stop_ss->service_label);
+                                                           stop_ss->
+                                                           service_label);
 
   struct GNUNET_MESSENGER_StartServiceState *sss;
   GNUNET_MESSENGER_get_trait_state (service_cmd, &sss);
@@ -65,6 +67,7 @@ stop_service_run (void *cls,
   sss->rooms = NULL;
 }
 
+
 static void
 stop_service_cleanup (void *cls)
 {
@@ -73,6 +76,7 @@ stop_service_cleanup (void *cls)
   GNUNET_free (sss->service_label);
   GNUNET_free (sss);
 }
+
 
 struct GNUNET_TESTING_Command
 GNUNET_MESSENGER_cmd_stop_service (const char *label,

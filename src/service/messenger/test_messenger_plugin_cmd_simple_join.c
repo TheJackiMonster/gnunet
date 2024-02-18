@@ -156,7 +156,7 @@ handle_result (void *cls,
   ts->finished_cb (rv);
   GNUNET_free (ts->testdir);
   GNUNET_free (ts->cfgname);
-  GNUNET_MESSENGER_destroy_topo(ts->chat_topology);
+  GNUNET_MESSENGER_destroy_topo (ts->chat_topology);
   GNUNET_TESTING_free_topology (ts->topology);
   GNUNET_free (ts);
 }
@@ -258,11 +258,11 @@ start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
   block_script = GNUNET_TESTING_cmd_block_until_external_trigger (
     "block-script");
   connect_peers = GNUNET_CORE_cmd_connect_peers ("connect-peers",
-                                                      "start-peer",
-                                                      "system-create",
-                                                      num,
-                                                      topology,
-                                                      0,
+                                                 "start-peer",
+                                                 "system-create",
+                                                 num,
+                                                 topology,
+                                                 0,
                                                  GNUNET_NO,
                                                  NULL);
   local_prepared = GNUNET_TESTING_cmd_local_test_prepared (
@@ -294,9 +294,11 @@ start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
                                               ts->cfgname,
                                               GNUNET_NO);
 
-  const struct GNUNET_MESSENGER_TestStage stages [4] = {
-    GNUNET_MESSENGER_create_stage_open_room(), GNUNET_MESSENGER_create_stage_open_room(),
-    GNUNET_MESSENGER_create_stage_enter_room(2), GNUNET_MESSENGER_create_stage_enter_room(1)
+  const struct GNUNET_MESSENGER_TestStage stages[4] = {
+    GNUNET_MESSENGER_create_stage_open_room (),
+    GNUNET_MESSENGER_create_stage_open_room (),
+    GNUNET_MESSENGER_create_stage_enter_room (2),
+    GNUNET_MESSENGER_create_stage_enter_room (1)
   };
 
   chat_topology = GNUNET_MESSENGER_create_topo (2, 2, stages);
@@ -332,8 +334,8 @@ start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
     GNUNET_MESSENGER_cmd_join_room ("join-room-2",
                                     "start-messenger",
                                     "test-room"),
-    GNUNET_MESSENGER_cmd_stop_service("stop-messenger",
-                                      "start-messenger"),
+    GNUNET_MESSENGER_cmd_stop_service ("stop-messenger",
+                                       "start-messenger"),
     GNUNET_TESTING_cmd_barrier_reached ("test-case-finished-reached",
                                         "test-case-finished",
                                         GNUNET_NO,
@@ -341,7 +343,7 @@ start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
                                         GNUNET_NO,
                                         write_message),
     GNUNET_TESTING_cmd_stop_peer ("stop-peer",
-                                    "start-peer"),
+                                  "start-peer"),
     GNUNET_TESTING_cmd_system_destroy ("system-destroy",
                                        "system-create"),
     GNUNET_TESTING_cmd_end ()

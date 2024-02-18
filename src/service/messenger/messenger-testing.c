@@ -37,6 +37,7 @@ GNUNET_MESSENGER_create_stage_skip ()
   return stage;
 }
 
+
 struct GNUNET_MESSENGER_TestStage
 GNUNET_MESSENGER_create_stage_open_room ()
 {
@@ -45,6 +46,7 @@ GNUNET_MESSENGER_create_stage_open_room ()
   stage.join = GNUNET_MESSENGER_STAGE_JOIN_OPEN_ROOM;
   return stage;
 }
+
 
 struct GNUNET_MESSENGER_TestStage
 GNUNET_MESSENGER_create_stage_enter_room (uint32_t door_id)
@@ -55,12 +57,14 @@ GNUNET_MESSENGER_create_stage_enter_room (uint32_t door_id)
   return stage;
 }
 
+
 struct GNUNET_MESSENGER_TestStageTopology *
 GNUNET_MESSENGER_create_topo (unsigned int peer_amount,
                               unsigned int stage_amount,
-                              const struct GNUNET_MESSENGER_TestStage peer_stages [static peer_amount * stage_amount])
+                              const struct GNUNET_MESSENGER_TestStage
+                              peer_stages[static peer_amount * stage_amount])
 {
-  GNUNET_assert((peer_amount) && (stage_amount) && (peer_stages));
+  GNUNET_assert ((peer_amount) && (stage_amount) && (peer_stages));
 
   struct GNUNET_MESSENGER_TestStageTopology *tp;
   tp = GNUNET_new (struct GNUNET_MESSENGER_TestStageTopology);
@@ -76,26 +80,33 @@ GNUNET_MESSENGER_create_topo (unsigned int peer_amount,
   return tp;
 }
 
+
 void
-GNUNET_MESSENGER_destroy_topo (struct GNUNET_MESSENGER_TestStageTopology *topology)
+GNUNET_MESSENGER_destroy_topo (struct
+                               GNUNET_MESSENGER_TestStageTopology *topology)
 {
   GNUNET_assert ((topology) && (topology->peer_stages));
   GNUNET_free (topology->peer_stages);
   GNUNET_free (topology);
 }
 
+
 struct GNUNET_MESSENGER_RoomState *
-GNUNET_MESSENGER_create_room_state (struct GNUNET_MESSENGER_TestStageTopology *topology)
+GNUNET_MESSENGER_create_room_state (struct
+                                    GNUNET_MESSENGER_TestStageTopology *topology)
 {
   struct GNUNET_MESSENGER_RoomState *rs;
   rs = GNUNET_new (struct GNUNET_MESSENGER_RoomState);
-  rs->doors = GNUNET_CONTAINER_multipeermap_create (topology->peer_amount, GNUNET_NO);
+  rs->doors = GNUNET_CONTAINER_multipeermap_create (topology->peer_amount,
+                                                    GNUNET_NO);
   rs->required_doors = 0;
   return rs;
 }
 
+
 void
-GNUNET_MESSENGER_destroy_room_state (struct GNUNET_MESSENGER_RoomState *room_state)
+GNUNET_MESSENGER_destroy_room_state (struct
+                                     GNUNET_MESSENGER_RoomState *room_state)
 {
   GNUNET_assert ((room_state) && (room_state->doors));
   GNUNET_CONTAINER_multipeermap_destroy (room_state->doors);

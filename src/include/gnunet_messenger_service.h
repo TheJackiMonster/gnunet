@@ -902,7 +902,7 @@ GNUNET_MESSENGER_get_sender (const struct GNUNET_MESSENGER_Room *room,
                              const struct GNUNET_HashCode *hash);
 
 /**
- * Get the contact of a member in a <i>room</i> which has been targeted as recipient of a specific message identified 
+ * Get the contact of a member in a <i>room</i> which has been targeted as recipient of a specific message identified
  * with a given <i>hash</i>.
  *
  * Notice that contacts are independent of rooms but will be removed if all rooms containing these contacts get closed.
@@ -932,7 +932,8 @@ GNUNET_MESSENGER_contact_get_name (const struct
  * @return Public key used by <i>contact</i> or NULL
  */
 const struct GNUNET_CRYPTO_PublicKey*
-GNUNET_MESSENGER_contact_get_key (const struct GNUNET_MESSENGER_Contact *contact);
+GNUNET_MESSENGER_contact_get_key (const struct
+                                  GNUNET_MESSENGER_Contact *contact);
 
 /**
  * Get the locally unique id of the <i>contact</i>.
@@ -941,7 +942,8 @@ GNUNET_MESSENGER_contact_get_key (const struct GNUNET_MESSENGER_Contact *contact
  * @return Locally unique contact id or zero
  */
 size_t
-GNUNET_MESSENGER_contact_get_id (const struct GNUNET_MESSENGER_Contact *contact);
+GNUNET_MESSENGER_contact_get_id (const struct
+                                 GNUNET_MESSENGER_Contact *contact);
 
 /**
  * Send a <i>message</i> into a <i>room</i>. If you opened the <i>room</i> all entered members will receive the
@@ -967,8 +969,8 @@ GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room,
                                const struct GNUNET_MESSENGER_Contact *contact);
 
 /**
- * Delete a message identified by its <i>hash</i> from a <i>room</i>. A deletion will be propagated to all members 
- * of the room as with any other sent message. Notice that a deletion will only request other members of the room 
+ * Delete a message identified by its <i>hash</i> from a <i>room</i>. A deletion will be propagated to all members
+ * of the room as with any other sent message. Notice that a deletion will only request other members of the room
  * to delete the selected message. If you are not permitted to delete the message, the deletion will be ignored.
  *
  * Depending on the implementation other clients may also ignore your deletion request in other circumstances.

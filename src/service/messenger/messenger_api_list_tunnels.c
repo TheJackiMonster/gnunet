@@ -42,9 +42,9 @@ clear_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels)
 
   struct GNUNET_MESSENGER_ListTunnel *element;
   for (element = tunnels->head; element;
-      element = remove_from_list_tunnels (tunnels, element))
+       element = remove_from_list_tunnels (tunnels, element))
 
-  tunnels->head = NULL;
+    tunnels->head = NULL;
   tunnels->tail = NULL;
 }
 
@@ -135,7 +135,8 @@ find_list_tunnels_alternate (struct GNUNET_MESSENGER_ListTunnels *tunnels,
 
 
 enum GNUNET_GenericReturnValue
-verify_list_tunnels_flag_token (const struct GNUNET_MESSENGER_ListTunnels *tunnels,
+verify_list_tunnels_flag_token (const struct
+                                GNUNET_MESSENGER_ListTunnels *tunnels,
                                 const struct GNUNET_PeerIdentity *peer,
                                 enum GNUNET_MESSENGER_ConnectionFlags flag)
 {
@@ -228,8 +229,8 @@ load_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
   if (GNUNET_YES != GNUNET_DISK_file_test (path))
     return;
 
-  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Load list of tunnels from path: %s\n",
-             path);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Load list of tunnels from path: %s\n",
+              path);
 
   enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ
                                                    | GNUNET_DISK_PERM_USER_WRITE);
@@ -265,8 +266,8 @@ save_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
 {
   GNUNET_assert ((tunnels) && (path));
 
-  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Save list of tunnels to path: %s\n",
-             path);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Save list of tunnels to path: %s\n",
+              path);
 
   enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ
                                                    | GNUNET_DISK_PERM_USER_WRITE);

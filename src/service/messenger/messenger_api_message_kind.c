@@ -188,6 +188,7 @@ create_message_delete (const struct GNUNET_HashCode *hash,
   return message;
 }
 
+
 struct GNUNET_MESSENGER_Message*
 create_message_ticket (const struct GNUNET_RECLAIM_Identifier *identifier)
 {
@@ -196,12 +197,12 @@ create_message_ticket (const struct GNUNET_RECLAIM_Identifier *identifier)
 
   struct GNUNET_MESSENGER_Message *message = create_message (
     GNUNET_MESSENGER_KIND_TICKET);
-  
+
   if (! message)
     return NULL;
 
-  GNUNET_memcpy (&(message->body.ticket.identifier), identifier, 
-    sizeof(struct GNUNET_RECLAIM_Identifier));
-  
+  GNUNET_memcpy (&(message->body.ticket.identifier), identifier,
+                 sizeof(struct GNUNET_RECLAIM_Identifier));
+
   return message;
 }

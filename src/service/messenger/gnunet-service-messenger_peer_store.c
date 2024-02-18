@@ -62,7 +62,7 @@ clear_peer_store (struct GNUNET_MESSENGER_PeerStore *store)
 {
   GNUNET_assert ((store) && (store->peers));
 
-  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Clear peer store\n");
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Clear peer store\n");
 
   GNUNET_CONTAINER_multishortmap_iterate (store->peers, iterate_destroy_peers,
                                           NULL);
@@ -81,8 +81,8 @@ load_peer_store (struct GNUNET_MESSENGER_PeerStore *store,
   if (GNUNET_YES != GNUNET_DISK_file_test (path))
     return;
 
-  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Load peer store from path: %s\n",
-             path);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Load peer store from path: %s\n",
+              path);
 
   enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ
                                                    | GNUNET_DISK_PERM_USER_WRITE);
@@ -107,23 +107,23 @@ load_peer_store (struct GNUNET_MESSENGER_PeerStore *store,
     if (len != sizeof(peer))
       break;
 
-   
-    entry = GNUNET_new(struct GNUNET_MESSENGER_PeerStoreEntry);
+
+    entry = GNUNET_new (struct GNUNET_MESSENGER_PeerStoreEntry);
 
     if (! entry)
       continue;
 
-    GNUNET_memcpy(&(entry->peer), &peer, sizeof(entry->peer));
+    GNUNET_memcpy (&(entry->peer), &peer, sizeof(entry->peer));
     entry->active = GNUNET_YES;
 
     convert_peer_identity_to_id (&peer, &peer_id);
 
     if (GNUNET_OK == GNUNET_CONTAINER_multishortmap_put (
-      store->peers, &peer_id, entry, 
-      GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE))
+          store->peers, &peer_id, entry,
+          GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE))
       continue;
 
-    GNUNET_free(entry);
+    GNUNET_free (entry);
   } while (len == sizeof(peer));
 
   GNUNET_DISK_file_close (handle);
@@ -137,8 +137,8 @@ iterate_save_peers (void *cls, const struct GNUNET_ShortHashCode *id,
   struct GNUNET_DISK_FileHandle *handle = cls;
   struct GNUNET_MESSENGER_PeerStoreEntry *entry = value;
 
-  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Save peer store entry: %s\n",
-             GNUNET_sh2s(id));
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Save peer store entry: %s\n",
+              GNUNET_sh2s (id));
 
   if ((! entry) || (GNUNET_YES != entry->active))
     return GNUNET_YES;
@@ -154,8 +154,8 @@ save_peer_store (const struct GNUNET_MESSENGER_PeerStore *store,
 {
   GNUNET_assert ((store) && (path));
 
-  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Save peer store to path: %s\n",
-             path);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Save peer store to path: %s\n",
+              path);
 
   enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ
                                                    | GNUNET_DISK_PERM_USER_WRITE);
@@ -213,17 +213,17 @@ add_peer_store_entry (struct GNUNET_MESSENGER_PeerStore *store,
   GNUNET_assert ((store) && (peer));
 
   struct GNUNET_MESSENGER_PeerStoreEntry *entry;
-  entry = GNUNET_new(struct GNUNET_MESSENGER_PeerStoreEntry);
+  entry = GNUNET_new (struct GNUNET_MESSENGER_PeerStoreEntry);
 
   if (! entry)
     return NULL;
 
-  GNUNET_memcpy(&(entry->peer), peer, sizeof(entry->peer));
+  GNUNET_memcpy (&(entry->peer), peer, sizeof(entry->peer));
   entry->active = active;
 
   if (GNUNET_OK != GNUNET_CONTAINER_multishortmap_put (
-      store->peers, id, entry, 
-      GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE))
+        store->peers, id, entry,
+        GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE))
   {
     GNUNET_free (entry);
     return NULL;
@@ -237,10 +237,10 @@ static const struct GNUNET_PeerIdentity*
 get_store_service_peer_identity (struct GNUNET_MESSENGER_PeerStore *store)
 {
   static struct GNUNET_PeerIdentity peer;
-  
-  if (GNUNET_OK != get_service_peer_identity(store->service, &peer))
+
+  if (GNUNET_OK != get_service_peer_identity (store->service, &peer))
     return NULL;
-  
+
   return &peer;
 }
 
@@ -263,7 +263,7 @@ get_store_peer_of (struct GNUNET_MESSENGER_PeerStore *store,
   GNUNET_CONTAINER_multishortmap_get_multiple (store->peers,
                                                &(message->header.sender_id),
                                                verify_store_peer, &verify);
-  
+
   if (verify.sender)
     return verify.sender;
 
@@ -285,10 +285,10 @@ get_store_peer_of (struct GNUNET_MESSENGER_PeerStore *store,
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Peer message does not contain a peer identity\n");
 
-    peer = get_store_service_peer_identity(store);
+    peer = get_store_service_peer_identity (store);
     active = GNUNET_NO;
-    
-    if (!peer)
+
+    if (! peer)
       return NULL;
   }
 
@@ -309,13 +309,13 @@ get_store_peer_of (struct GNUNET_MESSENGER_PeerStore *store,
   }
 
   struct GNUNET_MESSENGER_PeerStoreEntry *entry;
-  entry = add_peer_store_entry(store, peer, &peer_id, active);
+  entry = add_peer_store_entry (store, peer, &peer_id, active);
 
   if (! entry)
   {
-    GNUNET_log(GNUNET_ERROR_TYPE_ERROR, 
-               "Initialization of entry in peer store failed: %s\n",
-               GNUNET_sh2s (&peer_id));
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Initialization of entry in peer store failed: %s\n",
+                GNUNET_sh2s (&peer_id));
 
     return NULL;
   }
@@ -359,8 +359,8 @@ update_store_peer (struct GNUNET_MESSENGER_PeerStore *store,
   struct GNUNET_ShortHashCode peer_id;
   convert_peer_identity_to_id (peer, &peer_id);
 
-  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Update peer store entry: %s\n",
-             GNUNET_sh2s (&peer_id));
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Update peer store entry: %s\n",
+              GNUNET_sh2s (&peer_id));
 
   struct GNUNET_MESSENGER_ClosureFindPeer find;
   find.requested = peer;
@@ -375,8 +375,8 @@ update_store_peer (struct GNUNET_MESSENGER_PeerStore *store,
     return;
   }
 
-  if (! add_peer_store_entry(store, peer, &peer_id, active))
-    GNUNET_log(GNUNET_ERROR_TYPE_ERROR, 
-               "Initial update of entry in peer store failed: %s\n",
-               GNUNET_sh2s (&peer_id));
+  if (! add_peer_store_entry (store, peer, &peer_id, active))
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Initial update of entry in peer store failed: %s\n",
+                GNUNET_sh2s (&peer_id));
 }

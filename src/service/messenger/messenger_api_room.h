@@ -68,9 +68,12 @@ struct GNUNET_MESSENGER_Room
   struct GNUNET_MESSENGER_QueueMessages queue;
 };
 
-typedef void (*GNUNET_MESSENGER_RoomLinkDeletion) (struct GNUNET_MESSENGER_Room *room,
-                                                   const struct GNUNET_HashCode *hash,
-                                                   const struct GNUNET_TIME_Relative delay);
+typedef void (*GNUNET_MESSENGER_RoomLinkDeletion) (struct
+                                                   GNUNET_MESSENGER_Room *room,
+                                                   const struct
+                                                   GNUNET_HashCode *hash,
+                                                   const struct
+                                                   GNUNET_TIME_Relative delay);
 
 /**
  * Creates and allocates a new room for a <i>handle</i> with a given <i>key</i> for the client API.
@@ -243,7 +246,7 @@ link_room_message (struct GNUNET_MESSENGER_Room *room,
  * @param[in,out] room Room
  * @param[in] hash Hash of message
  * @param[in] delay Delay for linked deletion
- * @param[in] deletion Function called for each linked deletion 
+ * @param[in] deletion Function called for each linked deletion
  */
 void
 link_room_deletion (struct GNUNET_MESSENGER_Room *room,

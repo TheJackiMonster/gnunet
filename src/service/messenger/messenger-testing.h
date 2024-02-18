@@ -60,10 +60,12 @@ struct GNUNET_MESSENGER_TestStageTopology
 struct GNUNET_MESSENGER_TestStageTopology *
 GNUNET_MESSENGER_create_topo (unsigned int peer_amount,
                               unsigned int stage_amount,
-                              const struct GNUNET_MESSENGER_TestStage peer_stages [static peer_amount * stage_amount]);
+                              const struct GNUNET_MESSENGER_TestStage
+                              peer_stages[static peer_amount * stage_amount]);
 
 void
-GNUNET_MESSENGER_destroy_topo (struct GNUNET_MESSENGER_TestStageTopology *topology);
+GNUNET_MESSENGER_destroy_topo (struct
+                               GNUNET_MESSENGER_TestStageTopology *topology);
 
 struct GNUNET_MESSENGER_RoomState
 {
@@ -73,10 +75,12 @@ struct GNUNET_MESSENGER_RoomState
 };
 
 struct GNUNET_MESSENGER_RoomState *
-GNUNET_MESSENGER_create_room_state (struct GNUNET_MESSENGER_TestStageTopology *topology);
+GNUNET_MESSENGER_create_room_state (struct
+                                    GNUNET_MESSENGER_TestStageTopology *topology);
 
 void
-GNUNET_MESSENGER_destroy_room_state (struct GNUNET_MESSENGER_RoomState *room_state);
+GNUNET_MESSENGER_destroy_room_state (struct
+                                     GNUNET_MESSENGER_RoomState *room_state);
 
 struct GNUNET_MESSENGER_StartServiceState
 {

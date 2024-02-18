@@ -86,9 +86,10 @@ create_service (const struct GNUNET_CONFIGURATION_Handle *config,
     }
   }
 
-  service->auto_connecting = GNUNET_CONFIGURATION_get_value_yesno (service->config,
-                                                                   GNUNET_MESSENGER_SERVICE_NAME,
-                                                                   "MESSENGER_AUTO_CONNECTING");
+  service->auto_connecting = GNUNET_CONFIGURATION_get_value_yesno (
+    service->config,
+    GNUNET_MESSENGER_SERVICE_NAME,
+    "MESSENGER_AUTO_CONNECTING");
 
   service->auto_routing = GNUNET_CONFIGURATION_get_value_yesno (service->config,
                                                                 GNUNET_MESSENGER_SERVICE_NAME,
@@ -394,7 +395,7 @@ close_service_room (struct GNUNET_MESSENGER_Service *service,
     return GNUNET_NO;
 
   struct GNUNET_ShortHashCode *id = (struct GNUNET_ShortHashCode*) (
-      GNUNET_CONTAINER_multihashmap_get (handle->member_ids, key));
+    GNUNET_CONTAINER_multihashmap_get (handle->member_ids, key));
 
   GNUNET_assert (id);
 
@@ -427,7 +428,8 @@ close_service_room (struct GNUNET_MESSENGER_Service *service,
     room->host = member_handle;
 
     if (room->peer_message)
-      send_srv_room_message (room, room->host, create_message_connection (room));
+      send_srv_room_message (room, room->host, create_message_connection (
+                               room));
   }
 
   return GNUNET_YES;

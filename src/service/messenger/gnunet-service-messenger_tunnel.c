@@ -171,8 +171,8 @@ update_tunnel_last_message (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
 
   enum GNUNET_GenericReturnValue requested;
   requested = (GNUNET_MESSENGER_OP_REQUEST ==
-      get_store_operation_type (operation_store, hash)?
-          GNUNET_YES : GNUNET_NO);
+               get_store_operation_type (operation_store, hash)?
+               GNUNET_YES : GNUNET_NO);
 
   struct GNUNET_MESSENGER_MessageStore *message_store =
     get_srv_room_message_store (tunnel->room);

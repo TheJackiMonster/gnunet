@@ -34,7 +34,7 @@ struct GNUNET_MESSENGER_QueueMessage
   struct GNUNET_MESSENGER_QueueMessage *next;
 
   struct GNUNET_CRYPTO_PrivateKey sender;
-  
+
   struct GNUNET_MESSENGER_Message *message;
   struct GNUNET_MESSENGER_Message *transcript;
 };

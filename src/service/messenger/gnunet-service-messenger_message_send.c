@@ -53,8 +53,9 @@ notify_about_members (struct GNUNET_MESSENGER_MemberNotify *notify,
     get_srv_room_message_store (notify->room);
   struct GNUNET_MESSENGER_ListMessage *element;
 
-  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Notify through all of member session: %s\n",
-             GNUNET_sh2s(get_member_session_id(session)));
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Notify through all of member session: %s\n",
+              GNUNET_sh2s (get_member_session_id (session)));
 
   for (element = session->messages.head; element; element = element->next)
   {
@@ -67,7 +68,7 @@ notify_about_members (struct GNUNET_MESSENGER_MemberNotify *notify,
                                                      &(element->hash),
                                                      GNUNET_NO)))
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING, 
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                   "Permission for notification of session message denied!\n");
       continue;
     }
@@ -83,7 +84,7 @@ notify_about_members (struct GNUNET_MESSENGER_MemberNotify *notify,
 
     if ((! message) || (GNUNET_YES == is_peer_message (message)))
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING, 
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                   "Session message for notification is invalid!\n");
       continue;
     }
@@ -105,8 +106,8 @@ iterate_notify_about_members (void *cls,
 {
   struct GNUNET_MESSENGER_MemberNotify *notify = cls;
 
-  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Notify about member session: %s\n",
-             GNUNET_sh2s(get_member_session_id(session)));
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Notify about member session: %s\n",
+              GNUNET_sh2s (get_member_session_id (session)));
 
   if ((notify->session == session) || (GNUNET_YES ==
                                        is_member_session_completed (session)))
@@ -152,8 +153,9 @@ send_message_join (struct GNUNET_MESSENGER_SrvRoom *room,
   notify.handle = handle;
   notify.session = session;
 
-  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Notify about all member sessions except: %s\n",
-             GNUNET_sh2s (get_member_session_id (session)));
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Notify about all member sessions except: %s\n",
+              GNUNET_sh2s (get_member_session_id (session)));
 
   iterate_store_members (get_srv_room_member_store (room),
                          iterate_notify_about_members, &notify);

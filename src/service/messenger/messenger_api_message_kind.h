@@ -113,7 +113,7 @@ struct GNUNET_MESSENGER_Message*
 create_message_text (const char *text);
 
 /**
- * Creates and allocates a new delete message containing the <i>hash</i> of a message to delete 
+ * Creates and allocates a new delete message containing the <i>hash</i> of a message to delete
  * after a specific <i>delay</i>.
  * (all values are stored as copy)
  *
@@ -126,7 +126,7 @@ create_message_delete (const struct GNUNET_HashCode *hash,
                        const struct GNUNET_TIME_Relative delay);
 
 /**
- * Creates and allocates a new ticket message containing the <i>identifier</i> of a ticket to 
+ * Creates and allocates a new ticket message containing the <i>identifier</i> of a ticket to
  * exchange it with a given audience.
  * (all values are stored as copy)
  *

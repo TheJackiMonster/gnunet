@@ -46,7 +46,7 @@ on_message_cb (void *cls,
   struct GNUNET_MESSENGER_RoomState *rs;
 
   rs = GNUNET_CONTAINER_multihashmap_get (sss->rooms, key);
-  if (!rs)
+  if (! rs)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Testing library failed to find room state\n");
@@ -69,6 +69,7 @@ on_message_cb (void *cls,
   }
 }
 
+
 static void
 start_service_run (void *cls,
                    struct GNUNET_TESTING_Interpreter *is)
@@ -82,7 +83,7 @@ start_service_run (void *cls,
                                                         sss->peer_label);
 
   const struct GNUNET_TESTING_StartPeerState *sps;
-  GNUNET_TRANSPORT_TESTING_get_trait_state(peer_cmd, &sps);
+  GNUNET_TRANSPORT_TESTING_get_trait_state (peer_cmd, &sps);
 
   const struct GNUNET_TESTING_Command *system_cmd;
   system_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
@@ -94,8 +95,9 @@ start_service_run (void *cls,
 
   sss->tl_system = tl_system;
 
-  sss->msg = GNUNET_MESSENGER_connect (sps->cfg, NULL, NULL, on_message_cb, sss);
-  if (!sss->msg)
+  sss->msg = GNUNET_MESSENGER_connect (sps->cfg, NULL, NULL, on_message_cb,
+                                       sss);
+  if (! sss->msg)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Testing library failed to connect to messenger service\n");
@@ -103,8 +105,10 @@ start_service_run (void *cls,
     return;
   }
 
-  sss->rooms = GNUNET_CONTAINER_multihashmap_create (sss->topology->stage_amount, GNUNET_NO);
+  sss->rooms = GNUNET_CONTAINER_multihashmap_create (
+    sss->topology->stage_amount, GNUNET_NO);
 }
+
 
 static void
 start_service_cleanup (void *cls)
@@ -115,6 +119,7 @@ start_service_cleanup (void *cls)
   GNUNET_free (sss->peer_label);
   GNUNET_free (sss);
 }
+
 
 static enum GNUNET_GenericReturnValue
 start_service_traits (void *cls,
@@ -135,11 +140,13 @@ start_service_traits (void *cls,
                                    index);
 }
 
+
 struct GNUNET_TESTING_Command
 GNUNET_MESSENGER_cmd_start_service (const char *label,
                                     const char *peer_label,
                                     const char *system_label,
-                                    struct GNUNET_MESSENGER_TestStageTopology *topology,
+                                    struct GNUNET_MESSENGER_TestStageTopology *
+                                    topology,
                                     unsigned int peer_index)
 {
   struct GNUNET_MESSENGER_StartServiceState *sss;

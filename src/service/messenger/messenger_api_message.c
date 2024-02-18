@@ -115,11 +115,11 @@ copy_message (const struct GNUNET_MESSENGER_Message *message)
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
     copy->body.transcript.data = copy->body.transcript.length ? GNUNET_malloc (
       copy->body.transcript.length) : NULL;
-    
+
     if (copy->body.transcript.data)
       GNUNET_memcpy (copy->body.transcript.data, message->body.transcript.data,
                      copy->body.transcript.length);
-    
+
     break;
   case GNUNET_MESSENGER_KIND_TAG:
     copy->body.tag.tag = message->body.tag.tag? GNUNET_strdup (
@@ -143,7 +143,7 @@ copy_message_header (struct GNUNET_MESSENGER_Message *message,
 
   GNUNET_memcpy (&(message->header), header,
                  sizeof(struct GNUNET_MESSENGER_MessageHeader));
-  
+
   message->header.kind = kind;
 }
 
@@ -289,14 +289,18 @@ get_message_body_kind_size (enum GNUNET_MESSENGER_MessageKind kind)
                            body.deletion.delay);
     break;
   case GNUNET_MESSENGER_KIND_CONNECTION:
-    length += member_size (struct GNUNET_MESSENGER_Message, body.connection.amount);
-    length += member_size (struct GNUNET_MESSENGER_Message, body.connection.flags);
+    length += member_size (struct GNUNET_MESSENGER_Message,
+                           body.connection.amount);
+    length += member_size (struct GNUNET_MESSENGER_Message,
+                           body.connection.flags);
     break;
   case GNUNET_MESSENGER_KIND_TICKET:
-    length += member_size (struct GNUNET_MESSENGER_Message, body.ticket.identifier);
+    length += member_size (struct GNUNET_MESSENGER_Message,
+                           body.ticket.identifier);
     break;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
-    length += member_size (struct GNUNET_MESSENGER_Message, body.transcript.hash);
+    length += member_size (struct GNUNET_MESSENGER_Message,
+                           body.transcript.hash);
     break;
   case GNUNET_MESSENGER_KIND_TAG:
     length += member_size (struct GNUNET_MESSENGER_Message, body.tag.hash);
@@ -398,7 +402,7 @@ get_short_message_size (const struct GNUNET_MESSENGER_ShortMessage *message,
 
   if (message)
     return minimum_size + get_message_body_kind_size (message->kind)
-           + (include_body == GNUNET_YES? 
+           + (include_body == GNUNET_YES?
               get_message_body_size (message->kind, &(message->body)) : 0);
   else
     return minimum_size;
@@ -506,7 +510,7 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
     if (body->name.name)
       encode_step_ext (buffer, offset, body->name.name, min (length - offset,
                                                              strlen (
-                                                              body->name.name)));
+                                                               body->name.name)));
     break;
   case GNUNET_MESSENGER_KIND_KEY:
     encode_step_key (buffer, offset, &(body->key.key), length);
@@ -534,7 +538,7 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
     if (body->text.text)
       encode_step_ext (buffer, offset, body->text.text, min (length - offset,
                                                              strlen (
-                                                              body->text.text)));
+                                                               body->text.text)));
     break;
   case GNUNET_MESSENGER_KIND_FILE:
     encode_step (buffer, offset, &(body->file.key));
@@ -568,8 +572,10 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
     encode_step (buffer, offset, &(body->transcript.hash));
     encode_step_key (buffer, offset, &(body->transcript.key), length);
-    encode_step_ext (buffer, offset, body->transcript.data, min (length - offset,
-                                                                 body->transcript.
+    encode_step_ext (buffer, offset, body->transcript.data, min (length
+                                                                 - offset,
+                                                                 body->
+                                                                 transcript.
                                                                  length));
     break;
   case GNUNET_MESSENGER_KIND_TAG:
@@ -577,7 +583,7 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
     if (body->tag.tag)
       encode_step_ext (buffer, offset, body->tag.tag, min (length - offset,
                                                            strlen (
-                                                            body->tag.tag)));
+                                                             body->tag.tag)));
     break;
   default:
     break;
@@ -626,7 +632,7 @@ encode_message (const struct GNUNET_MESSENGER_Message *message,
 
   encode_step (buffer, offset, &kind);
 
-  encode_message_body (message->header.kind, &(message->body), 
+  encode_message_body (message->header.kind, &(message->body),
                        length, buffer, offset);
 }
 
@@ -781,7 +787,8 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
     decode_step_key (buffer, offset, &(body->transcript.key), length);
 
     body->transcript.length = (length - offset);
-    decode_step_malloc (buffer, offset, body->transcript.data, length - offset, 0);
+    decode_step_malloc (buffer, offset, body->transcript.data, length - offset,
+                        0);
     break;
   case GNUNET_MESSENGER_KIND_TAG:
     decode_step (buffer, offset, &(body->tag.hash));
@@ -1123,16 +1130,17 @@ transcribe_message (const struct GNUNET_MESSENGER_Message *message,
   if (GNUNET_YES == is_service_message (message))
     return NULL;
 
-  struct GNUNET_MESSENGER_Message *transcript = create_message(
+  struct GNUNET_MESSENGER_Message *transcript = create_message (
     GNUNET_MESSENGER_KIND_TRANSCRIPT);
 
-  if (!transcript)
+  if (! transcript)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Transcribing message failed!\n");
     return NULL;
   }
-  
-  GNUNET_memcpy(&(transcript->body.transcript.key), key, sizeof(transcript->body.transcript.key));
+
+  GNUNET_memcpy (&(transcript->body.transcript.key), key,
+                 sizeof(transcript->body.transcript.key));
 
   struct GNUNET_MESSENGER_ShortMessage shortened;
 
@@ -1144,7 +1152,8 @@ transcribe_message (const struct GNUNET_MESSENGER_Message *message,
   transcript->body.transcript.data = GNUNET_malloc (data_length);
   transcript->body.transcript.length = data_length;
 
-  encode_short_message (&shortened, data_length, transcript->body.transcript.data);
+  encode_short_message (&shortened, data_length,
+                        transcript->body.transcript.data);
 
   return transcript;
 }
@@ -1171,7 +1180,7 @@ read_transcript_message (struct GNUNET_MESSENGER_Message *message)
     return GNUNET_NO;
   }
 
-  unfold_short_message(&shortened, message);
+  unfold_short_message (&shortened, message);
   return GNUNET_YES;
 }
 

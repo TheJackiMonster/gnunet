@@ -35,7 +35,8 @@ struct GNUNET_TESTING_Command
 GNUNET_MESSENGER_cmd_start_service (const char *label,
                                     const char *peer_label,
                                     const char *system_label,
-                                    struct GNUNET_MESSENGER_TestStageTopology *topology,
+                                    struct GNUNET_MESSENGER_TestStageTopology *
+                                    topology,
                                     unsigned int peer_index);
 
 
@@ -53,13 +54,13 @@ GNUNET_MESSENGER_cmd_join_room (const char *label,
  * statically allocated data of type @a type.
  */
 #define GNUNET_MESSENGER_MAKE_DECL_SIMPLE_TRAIT(name,type)   \
-  enum GNUNET_GenericReturnValue                          \
-    GNUNET_MESSENGER_get_trait_ ## name (                    \
-    const struct GNUNET_TESTING_Command *cmd,              \
-    type **ret);                                          \
-  struct GNUNET_TESTING_Trait                              \
-    GNUNET_MESSENGER_make_trait_ ## name (                   \
-    type * value);
+        enum GNUNET_GenericReturnValue                          \
+        GNUNET_MESSENGER_get_trait_ ## name (                    \
+          const struct GNUNET_TESTING_Command *cmd,              \
+          type **ret);                                          \
+        struct GNUNET_TESTING_Trait                              \
+        GNUNET_MESSENGER_make_trait_ ## name (                   \
+          type * value);
 
 
 /**
@@ -67,34 +68,34 @@ GNUNET_MESSENGER_cmd_join_room (const char *label,
  * allocated data of type @a type.
  */
 #define GNUNET_MESSENGER_MAKE_IMPL_SIMPLE_TRAIT(name,type)  \
-  enum GNUNET_GenericReturnValue                         \
-    GNUNET_MESSENGER_get_trait_ ## name (                   \
-    const struct GNUNET_TESTING_Command *cmd,             \
-    type **ret)                                          \
-  {                                                      \
-    if (NULL == cmd->traits) return GNUNET_SYSERR;       \
-    return cmd->traits (cmd->cls,                        \
-                        (const void **) ret,             \
-                        GNUNET_S (name),                  \
-                        0);                              \
-  }                                                      \
-  struct GNUNET_TESTING_Trait                             \
-    GNUNET_MESSENGER_make_trait_ ## name (                  \
-    type * value)                                        \
-  {                                                      \
-    struct GNUNET_TESTING_Trait ret = {                   \
-      .trait_name = GNUNET_S (name),                      \
-      .ptr = (const void *) value                        \
-    };                                                   \
-    return ret;                                          \
-  }
+        enum GNUNET_GenericReturnValue                         \
+        GNUNET_MESSENGER_get_trait_ ## name (                   \
+          const struct GNUNET_TESTING_Command *cmd,             \
+          type * *ret)                                          \
+        {                                                      \
+          if (NULL == cmd->traits) return GNUNET_SYSERR;       \
+          return cmd->traits (cmd->cls,                        \
+                              (const void **) ret,             \
+                              GNUNET_S (name),                  \
+                              0);                              \
+        }                                                      \
+        struct GNUNET_TESTING_Trait                             \
+        GNUNET_MESSENGER_make_trait_ ## name (                  \
+          type * value)                                        \
+        {                                                      \
+          struct GNUNET_TESTING_Trait ret = {                   \
+            .trait_name = GNUNET_S (name),                      \
+            .ptr = (const void *) value                        \
+          };                                                   \
+          return ret;                                          \
+        }
 
 
 /**
  * Call #op on all simple traits.
  */
 #define GNUNET_MESSENGER_SIMPLE_TRAITS(op) \
-  op (state, struct GNUNET_MESSENGER_StartServiceState)
+        op (state, struct GNUNET_MESSENGER_StartServiceState)
 
 GNUNET_MESSENGER_SIMPLE_TRAITS (GNUNET_MESSENGER_MAKE_DECL_SIMPLE_TRAIT)
 

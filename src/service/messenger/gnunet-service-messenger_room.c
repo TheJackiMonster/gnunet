@@ -832,7 +832,8 @@ forward:
   if (GNUNET_YES != check_member_session_history (session, hash, GNUNET_NO))
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Unpermitted request for access by member (%s) of message (%s)!\n",
-                GNUNET_sh2s (get_member_session_id (session)), GNUNET_h2s (hash));
+                GNUNET_sh2s (get_member_session_id (session)), GNUNET_h2s (
+                  hash));
   else if (callback)
     callback (cls, room, message, hash);
 
@@ -888,7 +889,7 @@ callback_room_disconnect (struct GNUNET_MESSENGER_SrvRoom *room,
   struct GNUNET_MESSENGER_ListTunnel *element;
   element = find_list_tunnels_alternate (&(room->basement), &identity);
 
-  if (!element)
+  if (! element)
     return;
 
   GNUNET_PEER_resolve (element->peer, &identity);
@@ -1173,8 +1174,8 @@ update_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
 
   enum GNUNET_GenericReturnValue requested;
   requested = (GNUNET_MESSENGER_OP_REQUEST ==
-      get_store_operation_type (operation_store, hash)?
-          GNUNET_YES : GNUNET_NO);
+               get_store_operation_type (operation_store, hash)?
+               GNUNET_YES : GNUNET_NO);
 
   if (GNUNET_YES == requested)
     cancel_store_operation (operation_store, hash);
@@ -1395,8 +1396,8 @@ load_srv_room (struct GNUNET_MESSENGER_SrvRoom *room)
   char *room_dir;
   get_room_data_subdir (room, &room_dir);
 
-  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Load room from directory: %s\n",
-             room_dir);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Load room from directory: %s\n",
+              room_dir);
 
   if (GNUNET_YES == GNUNET_DISK_directory_test (room_dir, GNUNET_YES))
   {
@@ -1431,8 +1432,8 @@ save_srv_room (struct GNUNET_MESSENGER_SrvRoom *room)
   char *room_dir;
   get_room_data_subdir (room, &room_dir);
 
-  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Save room to directory: %s\n",
-             room_dir);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Save room to directory: %s\n",
+              room_dir);
 
   if ((GNUNET_YES == GNUNET_DISK_directory_test (room_dir, GNUNET_NO)) ||
       (GNUNET_OK == GNUNET_DISK_directory_create (room_dir)))
@@ -1468,8 +1469,8 @@ remove_srv_room (struct GNUNET_MESSENGER_SrvRoom *room)
   char *room_dir;
   get_room_data_subdir (room, &room_dir);
 
-  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Remove room from directory: %s\n",
-             room_dir);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Remove room from directory: %s\n",
+              room_dir);
 
   if (GNUNET_YES == GNUNET_DISK_directory_test (room_dir, GNUNET_YES))
     GNUNET_DISK_directory_remove (room_dir);
@@ -1484,9 +1485,10 @@ remove_room_member_session (struct GNUNET_MESSENGER_SrvRoom *room,
 {
   GNUNET_assert ((room) && (session));
 
-  GNUNET_log(GNUNET_ERROR_TYPE_DEBUG, "Remove member session from room: %s (%s)\n",
-             GNUNET_sh2s (get_member_session_id (session)),
-             GNUNET_h2s (get_srv_room_key (room)));
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Remove member session from room: %s (%s)\n",
+              GNUNET_sh2s (get_member_session_id (session)),
+              GNUNET_h2s (get_srv_room_key (room)));
 
   remove_member_session (session->member, session);
 
