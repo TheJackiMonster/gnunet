@@ -59,7 +59,7 @@ create_srv_room (struct GNUNET_MESSENGER_SrvHandle *handle,
 
   room->tunnels = GNUNET_CONTAINER_multipeermap_create (8, GNUNET_NO);
 
-  init_peer_store (get_srv_room_peer_store (room));
+  init_peer_store (get_srv_room_peer_store (room), room->service);
   init_member_store (get_srv_room_member_store (room), room);
   init_message_store (get_srv_room_message_store (room));
   init_operation_store (get_srv_room_operation_store (room), room);

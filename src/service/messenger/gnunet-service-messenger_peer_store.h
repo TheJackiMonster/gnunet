@@ -29,9 +29,11 @@
 #include "gnunet_util_lib.h"
 
 struct GNUNET_MESSENGER_Message;
+struct GNUNET_MESSENGER_Service;
 
 struct GNUNET_MESSENGER_PeerStore
 {
+  struct GNUNET_MESSENGER_Service *service;
   struct GNUNET_CONTAINER_MultiShortmap *peers;
 };
 
@@ -39,9 +41,11 @@ struct GNUNET_MESSENGER_PeerStore
  * Initializes a peer store as fully empty.
  *
  * @param[out] store Peer store
+ * @param[in,out] service Messenger service
  */
 void
-init_peer_store (struct GNUNET_MESSENGER_PeerStore *store);
+init_peer_store (struct GNUNET_MESSENGER_PeerStore *store,
+                 struct GNUNET_MESSENGER_Service *service);
 
 /**
  * Clears a peer store, wipes its content and deallocates its memory.

@@ -25,6 +25,7 @@
 
 #include "gnunet-service-messenger_peer_store.h"
 
+#include "gnunet-service-messenger_service.h"
 #include "gnunet_common.h"
 #include "messenger_api_message.h"
 #include "messenger_api_util.h"
@@ -36,10 +37,12 @@ struct GNUNET_MESSENGER_PeerStoreEntry
 };
 
 void
-init_peer_store (struct GNUNET_MESSENGER_PeerStore *store)
+init_peer_store (struct GNUNET_MESSENGER_PeerStore *store,
+                 struct GNUNET_MESSENGER_Service *service)
 {
-  GNUNET_assert (store);
+  GNUNET_assert ((store) && (service));
 
+  store->service = service;
   store->peers = GNUNET_CONTAINER_multishortmap_create (4, GNUNET_NO);
 }
 
@@ -230,6 +233,18 @@ add_peer_store_entry (struct GNUNET_MESSENGER_PeerStore *store,
 }
 
 
+static const struct GNUNET_PeerIdentity*
+get_store_service_peer_identity (struct GNUNET_MESSENGER_PeerStore *store)
+{
+  static struct GNUNET_PeerIdentity peer;
+  
+  if (GNUNET_OK != get_service_peer_identity(store->service, &peer))
+    return NULL;
+  
+  return &peer;
+}
+
+
 struct GNUNET_PeerIdentity*
 get_store_peer_of (struct GNUNET_MESSENGER_PeerStore *store,
                    const struct GNUNET_MESSENGER_Message *message,
@@ -269,7 +284,12 @@ get_store_peer_of (struct GNUNET_MESSENGER_PeerStore *store,
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Peer message does not contain a peer identity\n");
-    return NULL;
+
+    peer = get_store_service_peer_identity(store);
+    active = GNUNET_NO;
+    
+    if (!peer)
+      return NULL;
   }
 
   struct GNUNET_ShortHashCode peer_id;
