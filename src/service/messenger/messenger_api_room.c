@@ -831,12 +831,41 @@ struct GNUNET_MESSENGER_RoomLinkDeletionInfo
 
 
 static enum GNUNET_GenericReturnValue
+clear_linked_hash (void *cls,
+                   const struct GNUNET_HashCode *key,
+                   void *value)
+{
+  struct GNUNET_HashCode **linked = cls;
+  struct GNUNET_HashCode *hash = value;
+
+  if (0 != GNUNET_CRYPTO_hash_cmp (*linked, hash))
+    return GNUNET_YES;
+
+  *linked = hash;
+  return GNUNET_NO;
+}
+
+
+static enum GNUNET_GenericReturnValue
 delete_linked_hash (void *cls,
                     const struct GNUNET_HashCode *key,
                     void *value)
 {
   struct GNUNET_MESSENGER_RoomLinkDeletionInfo *info = cls;
   struct GNUNET_HashCode *hash = value;
+
+  struct GNUNET_HashCode key_value;
+  GNUNET_memcpy (&key_value, key, sizeof (key_value));
+
+  struct GNUNET_HashCode *linked = &key_value;
+
+  GNUNET_CONTAINER_multihashmap_get_multiple (info->room->links, hash,
+                                              clear_linked_hash, &linked);
+
+  if ((linked != &key_value) &&
+      (GNUNET_YES == GNUNET_CONTAINER_multihashmap_remove (info->room->links,
+                                                           hash, linked)))
+    GNUNET_free (linked);
 
   if (info->deletion)
     info->deletion (info->room, hash, info->delay);
