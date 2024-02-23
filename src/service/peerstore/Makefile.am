@@ -32,6 +32,7 @@ gnunet_service_peerstore_LDADD = \
 
 libgnunetpeerstore_la_SOURCES = \
   peerstore_api.c \
+  peerstore_api_monitor.c \
   peerstore_common.c
 libgnunetpeerstore_la_LIBADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
