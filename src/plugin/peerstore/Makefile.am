@@ -11,18 +11,6 @@ if USE_COVERAGE
   AM_CFLAGS = -fprofile-arcs -ftest-coverage
 endif
 
-if HAVE_EXPERIMENTAL
-FLAT_PLUGIN = libgnunet_plugin_peerstore_flat.la
-FLAT_TESTS = test_plugin_peerstore_flat
-libgnunet_plugin_peerstore_flat_la_SOURCES = \
-  plugin_peerstore_flat.c
-libgnunet_plugin_peerstore_flat_la_LIBADD = \
-  $(top_builddir)/src/lib/util/libgnunetutil.la $(XLIBS) \
-  $(LTLIBINTL)
-libgnunet_plugin_peerstore_flat_la_LDFLAGS = \
- $(GN_PLUGIN_LDFLAGS)
-endif
-
 if HAVE_SQLITE
 SQLITE_PLUGIN = libgnunet_plugin_peerstore_sqlite.la
 SQLITE_TESTS = test_plugin_peerstore_sqlite
@@ -38,8 +26,7 @@ libgnunet_plugin_peerstore_sqlite_la_LDFLAGS = \
 endif
 
 plugin_LTLIBRARIES = \
-  $(SQLITE_PLUGIN) \
-	$(FLAT_PLUGIN)
+  $(SQLITE_PLUGIN)
 
 test_plugin_peerstore_sqlite_SOURCES = \
   test_plugin_peerstore.c
@@ -47,18 +34,10 @@ test_plugin_peerstore_sqlite_LDADD = \
 	$(top_builddir)/src/service/testing/libgnunettesting.la \
 	$(top_builddir)/src/lib/util/libgnunetutil.la
 
-test_plugin_peerstore_flat_SOURCES = \
-  test_plugin_peerstore.c
-test_plugin_peerstore_flat_LDADD = \
-	$(top_builddir)/src/service/testing/libgnunettesting.la \
-	$(top_builddir)/src/lib/util/libgnunetutil.la
-
 check_PROGRAMS = \
- $(SQLITE_TESTS) \
- $(FLAT_TESTS)
+ $(SQLITE_TESTS)
 
 EXTRA_DIST = \
- test_plugin_peerstore_flat.conf \
  test_plugin_peerstore_sqlite.conf
 
 if ENABLE_TEST_RUN
