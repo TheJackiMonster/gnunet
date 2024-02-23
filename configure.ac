@@ -1265,7 +1265,6 @@ src/service/datastore/Makefile
 src/service/datastore/datastore.conf
 src/service/dht/Makefile
 src/service/dht/dht.conf
-src/service/dhtu/Makefile
 src/service/dns/Makefile
 src/service/dns/dns.conf
 src/service/exit/Makefile
