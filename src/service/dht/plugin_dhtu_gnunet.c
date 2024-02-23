@@ -429,6 +429,7 @@ peerinfo_cb (void *cls,
   GNUNET_PEERSTORE_monitor_next (plugin->peerstore_notify, 1);
 }
 
+
 static void
 error_cb (void *cls)
 {
@@ -547,9 +548,8 @@ nse_cb (void *cls,
  * @return NULL
  */
 void *
-DHTU_gnunet_done (void *cls)
+DHTU_gnunet_done (struct GNUNET_DHTU_PluginFunctions *api)
 {
-  struct GNUNET_DHTU_PluginFunctions *api = cls;
   struct Plugin *plugin = api->cls;
 
   if (NULL != plugin->nse)
@@ -580,10 +580,9 @@ DHTU_gnunet_done (void *cls)
  * @param cls closure (the `struct GNUNET_DHTU_PluginEnvironment`)
  * @return the plugin's API
  */
-void *
-DHTU_gnunet_init (void *cls)
+struct GNUNET_DHTU_PluginFunctions *
+DHTU_gnunet_init (struct GNUNET_DHTU_PluginEnvironment *env)
 {
-  struct GNUNET_DHTU_PluginEnvironment *env = cls;
   struct GNUNET_DHTU_PluginFunctions *api;
   struct Plugin *plugin;
   struct GNUNET_MQ_MessageHandler handlers[] = {
@@ -620,8 +619,7 @@ DHTU_gnunet_init (void *cls)
        (NULL == plugin->nse) )
   {
     GNUNET_break (0);
-    GNUNET_free (api);
-    DHTU_gnunet_done (plugin);
+    DHTU_gnunet_done (api);
     return NULL;
   }
   // GPI_plugins_load (env->cfg);

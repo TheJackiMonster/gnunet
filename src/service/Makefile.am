@@ -15,7 +15,6 @@ SUBDIRS = \
 	identity \
 	datacache \
 	datastore \
-	dhtu \
 	dht \
   namecache \
   namestore \

@@ -34,6 +34,7 @@ libexec_PROGRAMS = \
 
 gnunet_service_dht_SOURCES = \
  gnunet-service-dht.c gnunet-service-dht.h \
+ plugin_dhtu_gnunet.c plugin_dhtu_ip.c \
  gnunet-service-dht_datacache.c gnunet-service-dht_datacache.h \
  gnunet-service-dht_neighbours.c gnunet-service-dht_neighbours.h \
  gnunet-service-dht_routing.c gnunet-service-dht_routing.h

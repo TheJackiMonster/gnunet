@@ -29,12 +29,13 @@
 #include "gnunet_block_lib.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_hello_uri_lib.h"
-#include "gnunet_dht_service.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet-service-dht.h"
 #include "gnunet-service-dht_datacache.h"
 #include "gnunet-service-dht_neighbours.h"
 #include "gnunet-service-dht_routing.h"
+#include "plugin_dhtu_ip.h"
+#include "plugin_dhtu_gnunet.h"
 
 /**
  * How often do we broadcast our HELLO to neighbours if
@@ -387,8 +388,19 @@ shutdown_task (void *cls)
     GNUNET_CONTAINER_DLL_remove (u_head,
                                  u_tail,
                                  u);
+    if (0 == strcmp (u->name, "gnunet"))
+    {
+      DHTU_gnunet_done (u->dhtu);
+    }
+    else if (0 == strcmp (u->name, "ip"))
+    {
+      DHTU_ip_done (u->dhtu);
+    }
+    else
+    {
+      GNUNET_assert (0);
+    }
     GNUNET_free (u->name);
-    GNUNET_free (u->libname);
     GNUNET_free (u);
   }
   GDS_NEIGHBOURS_done ();
@@ -431,7 +443,6 @@ load_underlay (void *cls,
                const char *section)
 {
   struct GDS_Underlay *u;
-  char *libname;
 
   (void) cls;
   if (0 != strncasecmp (section,
@@ -458,19 +469,17 @@ load_underlay (void *cls,
       dynamically loading plugins **/
   if (0 == strcmp (section, "gnunet"))
   {
-    u->dhtu = DHTU_gnunet_init (cfg);
+    u->dhtu = DHTU_gnunet_init (&u->env);
   }
   else if (0 == strcmp (section, "ip"))
   {
-    u->dhtu = DHTU_ip_init (cfg);
+    u->dhtu = DHTU_ip_init (&u->env);
   }
   if (NULL == u->dhtu)
   {
-    GNUNET_free (libname);
     GNUNET_free (u);
     return;
   }
-  u->libname = libname;
   u->name = GNUNET_strdup (section);
   GNUNET_CONTAINER_DLL_insert (u_head,
                                u_tail,

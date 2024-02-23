@@ -26,6 +26,7 @@
  */
 #include "platform.h"
 #include "gnunet_dhtu_plugin.h"
+#include "plugin_dhtu_ip.h"
 
 /**
  * How frequently should we re-scan our local interfaces for IPs?
@@ -946,10 +947,9 @@ read_cb (void *cls)
  * @param cls closure (the `struct GNUNET_DHTU_PluginEnvironment`)
  * @return the plugin's API
  */
-void *
-libgnunet_plugin_dhtu_ip_init (void *cls)
+struct GNUNET_DHTU_PluginFunctions *
+DHTU_ip_init (struct GNUNET_DHTU_PluginEnvironment *env)
 {
-  struct GNUNET_DHTU_PluginEnvironment *env = cls;
   struct GNUNET_DHTU_PluginFunctions *api;
   struct Plugin *plugin;
   char *port;
@@ -1126,9 +1126,8 @@ libgnunet_plugin_dhtu_ip_init (void *cls)
  * @return NULL
  */
 void *
-libgnunet_plugin_dhtu_ip_done (void *cls)
+DHTU_ip_done (struct GNUNET_DHTU_PluginFunctions *api)
 {
-  struct GNUNET_DHTU_PluginFunctions *api = cls;
   struct Plugin *plugin = api->cls;
   struct GNUNET_DHTU_Source *src;
   struct GNUNET_DHTU_Target *dst;
