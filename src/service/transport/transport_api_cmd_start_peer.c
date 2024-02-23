@@ -67,9 +67,10 @@ hello_iter_cb (void *cb_cls,
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Our hello %s\n",
        sps->hello);
-  GNUNET_PEERSTORE_iterate_cancel (sps->pic);
+  GNUNET_PEERSTORE_iteration_stop (sps->pic);
   sps->pic = NULL;
   GNUNET_TESTING_async_finish (&sps->ac);
+  GNUNET_PEERSTORE_iteration_next (sps->pic, 1);
 }
 
 
@@ -83,12 +84,12 @@ retrieve_hello (void *cls)
 {
   struct GNUNET_TESTING_StartPeerState *sps = cls;
   sps->rh_task = NULL;
-  sps->pic = GNUNET_PEERSTORE_iterate (sps->ph,
-                                       "transport",
-                                       &sps->id,
-                                       GNUNET_PEERSTORE_TRANSPORT_HELLO_KEY,
-                                       hello_iter_cb,
-                                       sps);
+  sps->pic = GNUNET_PEERSTORE_iteration_start (sps->ph,
+                                             "transport",
+                                             &sps->id,
+                                             GNUNET_PEERSTORE_TRANSPORT_HELLO_KEY,
+                                             hello_iter_cb,
+                                             sps);
 
 }
 
@@ -423,12 +424,13 @@ start_peer_traits (void *cls,
     GNUNET_TRANSPORT_TESTING_make_trait_application_handle ((const void *) ah),
     GNUNET_TRANSPORT_TESTING_make_trait_peer_id ((const void *) id),
     GNUNET_TRANSPORT_TESTING_make_trait_connected_peers_map ((const
-                                                      void *)
-                                                     connected_peers_map),
+                                                              void *)
+                                                             connected_peers_map),
     GNUNET_TRANSPORT_TESTING_make_trait_hello ((const void *) hello),
     GNUNET_TRANSPORT_TESTING_make_trait_hello_size ((const void *) hello_size),
     GNUNET_TRANSPORT_TESTING_make_trait_state ((const void *) sps),
-    GNUNET_TRANSPORT_TESTING_make_trait_broadcast ((const void *) &sps->broadcast),
+    GNUNET_TRANSPORT_TESTING_make_trait_broadcast ((const
+                                                    void *) &sps->broadcast),
     GNUNET_TESTING_trait_end ()
   };
 

@@ -56,12 +56,13 @@ iter3_cb (void *cls,
 {
   if (NULL != emsg)
   {
-    GNUNET_PEERSTORE_iterate_cancel (ic);
+    GNUNET_PEERSTORE_iteration_stop (ic);
     return;
   }
   if (NULL != record)
   {
     count++;
+    GNUNET_PEERSTORE_iteration_next (ic, 1);
     return;
   }
   GNUNET_assert (count == 3);
@@ -77,22 +78,23 @@ iter2_cb (void *cls,
 {
   if (NULL != emsg)
   {
-    GNUNET_PEERSTORE_iterate_cancel (ic);
+    GNUNET_PEERSTORE_iteration_stop (ic);
     return;
   }
   if (NULL != record)
   {
     count++;
+    GNUNET_PEERSTORE_iteration_next (ic, 1);
     return;
   }
   GNUNET_assert (count == 2);
   count = 0;
-  ic = GNUNET_PEERSTORE_iterate (h,
-                                 ss,
-                                 NULL,
-                                 NULL,
-                                 &iter3_cb,
-                                 NULL);
+  ic = GNUNET_PEERSTORE_iteration_start (h,
+                                       ss,
+                                       NULL,
+                                       NULL,
+                                       &iter3_cb,
+                                       NULL);
 }
 
 
@@ -103,23 +105,24 @@ iter1_cb (void *cls,
 {
   if (NULL != emsg)
   {
-    GNUNET_PEERSTORE_iterate_cancel (ic);
+    GNUNET_PEERSTORE_iteration_stop (ic);
     return;
   }
   if (NULL != record)
   {
     count++;
+    GNUNET_PEERSTORE_iteration_next (ic, 1);
     return;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "%u is count\n", count);
   GNUNET_assert (count == 1);
   count = 0;
-  ic = GNUNET_PEERSTORE_iterate (h,
-                                 ss,
-                                 &p1,
-                                 NULL,
-                                 &iter2_cb,
-                                 NULL);
+  ic = GNUNET_PEERSTORE_iteration_start (h,
+                                       ss,
+                                       &p1,
+                                       NULL,
+                                       &iter2_cb,
+                                       NULL);
 }
 
 
@@ -156,11 +159,11 @@ store_cont (void *cls, int success)
   else
   {
     count = 0;
-    ic = GNUNET_PEERSTORE_iterate (h,
-                                   ss,
-                                   &p1,
-                                   k1,
-                                   &iter1_cb, NULL);
+    ic = GNUNET_PEERSTORE_iteration_start (h,
+                                         ss,
+                                         &p1,
+                                         k1,
+                                         &iter1_cb, NULL);
     return;
   }
   count++;

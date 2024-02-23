@@ -25,6 +25,7 @@
  * @author David Barksdale
  * @brief application to provide an integrated hostlist HTTP server
  */
+#include "gnunet_common.h"
 #include "platform.h"
 #include <microhttpd.h>
 #include "gnunet-daemon-hostlist_server.h"
@@ -40,7 +41,7 @@
  * time out?
  */
 #define GNUNET_ADV_TIMEOUT \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
 
 /**
  * Map with hellos we build the hostlist with.
@@ -82,7 +83,7 @@ struct GNUNET_SCHEDULER_Task *peerstore_notify_task;
  * Our peerstore notification context.  We use notification
  * to instantly learn about new peers as they are discovered.
  */
-static struct GNUNET_PEERSTORE_NotifyContext *peerstore_notify;
+static struct GNUNET_PEERSTORE_Monitor *peerstore_notify;
 
 /**
  * Our primary task for IPv4.
@@ -464,13 +465,13 @@ connect_handler (void *cls,
  */
 static void
 process_notify (void *cls,
-                const struct GNUNET_PeerIdentity *peer,
-                const struct GNUNET_MessageHeader *hello,
+                const struct GNUNET_PEERSTORE_Record *record,
                 const char *err_msg)
 {
   unsigned int map_size;
   struct GNUNET_MessageHeader *hello_cpy;
   struct GNUNET_PeerIdentity *peer_cpy;
+  struct GNUNET_MessageHeader *hello;
 
   map_size = GNUNET_CONTAINER_multipeermap_size (hellos);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -483,6 +484,7 @@ process_notify (void *cls,
                 err_msg);
     return;
   }
+  hello = record->value;
   if (NULL != builder)
   {
     GNUNET_free (builder->data);
@@ -495,7 +497,7 @@ process_notify (void *cls,
   }
 
   peer_cpy = GNUNET_malloc (sizeof (struct GNUNET_PeerIdentity));
-  GNUNET_memcpy (peer_cpy, peer, sizeof (struct GNUNET_PeerIdentity));
+  GNUNET_memcpy (peer_cpy, &record->peer, sizeof (struct GNUNET_PeerIdentity));
   hello_cpy = GNUNET_malloc (ntohs (hello->size));
   GNUNET_memcpy (hello_cpy, hello, ntohs (hello->size));
   GNUNET_assert (GNUNET_YES ==
@@ -513,7 +515,8 @@ process_notify (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "1 Peerstore is notifying us to rebuild our hostlist map size %u peer %s\n",
               map_size,
-              GNUNET_i2s (peer));
+              GNUNET_i2s (&record->peer));
+  GNUNET_PEERSTORE_monitor_next (peerstore_notify, 1);
 }
 
 
@@ -595,15 +598,38 @@ prepare_daemon (struct MHD_Daemon *daemon_handle)
 
 
 static void
+error_cb (void *cls)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+              "Error in PEERSTORE monitoring\n");
+}
+
+
+static void
+sync_cb (void *cls)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+              "Done with initial PEERSTORE iteration during monitoring\n");
+}
+
+
+static void
 start_notify (void *cls)
 {
   (void) cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Starting to process new hellos to add to hostlist.\n");
-  peerstore_notify =
-    GNUNET_PEERSTORE_hello_changed_notify (peerstore, GNUNET_NO,
-                                           &process_notify, NULL);
+  peerstore_notify = GNUNET_PEERSTORE_monitor_start (cfg,
+                                                     GNUNET_YES,
+                                                     "peerstore",
+                                                     NULL,
+                                                     GNUNET_PEERSTORE_HELLO_KEY,
+                                                     &error_cb,
+                                                     NULL,
+                                                     &sync_cb,
+                                                     NULL,
+                                                     &process_notify, NULL);
 }
 
 
@@ -820,9 +846,10 @@ GNUNET_HOSTLIST_server_start (const struct GNUNET_CONFIGURATION_Handle *c,
     hostlist_task_v4 = prepare_daemon (daemon_handle_v4);
   if (NULL != daemon_handle_v6)
     hostlist_task_v6 = prepare_daemon (daemon_handle_v6);
-  peerstore_notify_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_MINUTES,
-                                                        start_notify,
-                                                        NULL);
+  peerstore_notify_task = GNUNET_SCHEDULER_add_delayed (
+    GNUNET_TIME_UNIT_MINUTES,
+    start_notify,
+    NULL);
   return GNUNET_OK;
 }
 
@@ -861,7 +888,7 @@ GNUNET_HOSTLIST_server_stop ()
   }
   if (NULL != peerstore_notify)
   {
-    GNUNET_PEERSTORE_hello_changed_notify_cancel (peerstore_notify);
+    GNUNET_PEERSTORE_monitor_stop (peerstore_notify);
     peerstore_notify = NULL;
   }
   else if (NULL != peerstore_notify_task)

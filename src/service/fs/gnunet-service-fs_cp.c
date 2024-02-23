@@ -44,7 +44,7 @@
  * How often do we flush respect values to disk?
  */
 #define RESPECT_FLUSH_FREQ GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_MINUTES, 5)
+          GNUNET_TIME_UNIT_MINUTES, 5)
 
 /**
  * After how long do we discard a reply?
@@ -394,6 +394,11 @@ peer_respect_cb (void *cls,
   struct GSF_ConnectedPeer *cp = cls;
 
   GNUNET_assert (NULL != cp->respect_iterate_req);
+  if ((NULL == record) && (NULL == emsg))
+  {
+    cp->respect_iterate_req = NULL;
+    return;
+  }
   if ((NULL != record) &&
       (sizeof(cp->disk_respect) == record->value_size))
   {
@@ -402,8 +407,12 @@ peer_respect_cb (void *cls,
   }
   GSF_push_start_ (cp);
   if (NULL != record)
-    GNUNET_PEERSTORE_iterate_cancel (cp->respect_iterate_req);
+  {
+    GNUNET_PEERSTORE_iteration_stop (cp->respect_iterate_req);
+    return;
+  }
   cp->respect_iterate_req = NULL;
+  GNUNET_PEERSTORE_iteration_next (cp->respect_iterate_req, 1);
 }
 
 
@@ -476,12 +485,12 @@ GSF_peer_connect_handler (void *cls,
                          GNUNET_CONTAINER_multipeermap_size (cp_map),
                          GNUNET_NO);
   cp->respect_iterate_req
-    = GNUNET_PEERSTORE_iterate (peerstore,
-                                "fs",
-                                peer,
-                                "respect",
-                                &peer_respect_cb,
-                                cp);
+    = GNUNET_PEERSTORE_iteration_start (peerstore,
+                                      "fs",
+                                      peer,
+                                      "respect",
+                                      &peer_respect_cb,
+                                      cp);
   GSF_iterate_pending_requests_ (&consider_peer_for_forwarding,
                                  cp);
   return cp;
@@ -1370,7 +1379,7 @@ GSF_peer_disconnect_handler (void *cls,
                          GNUNET_NO);
   if (NULL != cp->respect_iterate_req)
   {
-    GNUNET_PEERSTORE_iterate_cancel (cp->respect_iterate_req);
+    GNUNET_PEERSTORE_iteration_stop (cp->respect_iterate_req);
     cp->respect_iterate_req = NULL;
   }
   GNUNET_CONTAINER_multihashmap_iterate (cp->request_map,

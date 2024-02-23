@@ -972,17 +972,17 @@ queue_destroy (struct Queue *queue)
   }
   if (NULL != queue->rekey_monotime_get)
   {
-    GNUNET_PEERSTORE_iterate_cancel (queue->rekey_monotime_get);
+    GNUNET_PEERSTORE_iteration_stop (queue->rekey_monotime_get);
     queue->rekey_monotime_get = NULL;
   }
   if (NULL != queue->handshake_monotime_get)
   {
-    GNUNET_PEERSTORE_iterate_cancel (queue->handshake_monotime_get);
+    GNUNET_PEERSTORE_iteration_stop (queue->handshake_monotime_get);
     queue->handshake_monotime_get = NULL;
   }
   if (NULL != queue->handshake_ack_monotime_get)
   {
-    GNUNET_PEERSTORE_iterate_cancel (queue->handshake_ack_monotime_get);
+    GNUNET_PEERSTORE_iteration_stop (queue->handshake_ack_monotime_get);
     queue->handshake_ack_monotime_get = NULL;
   }
   if (NULL != queue->qh)
@@ -1305,6 +1305,7 @@ rekey_monotime_cb (void *cls,
   }
   if (sizeof(*mtbe) != record->value_size)
   {
+    GNUNET_PEERSTORE_iteration_next (queue->rekey_monotime_get, 1);
     GNUNET_break (0);
     return;
   }
@@ -1331,6 +1332,7 @@ rekey_monotime_cb (void *cls,
                                                      GNUNET_PEERSTORE_STOREOPTION_REPLACE,
                                                      &rekey_monotime_store_cb,
                                                      queue);
+  GNUNET_PEERSTORE_iteration_next (queue->rekey_monotime_get, 1);
 }
 
 
@@ -1402,12 +1404,12 @@ do_rekey (struct Queue *queue, const struct TCPRekey *rekey)
     return;
   }
   queue->rekey_monotonic_time = rekey->monotonic_time;
-  queue->rekey_monotime_get = GNUNET_PEERSTORE_iterate (peerstore,
-                                                        "transport_tcp_communicator",
-                                                        &queue->target,
-                                                        GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_REKEY,
-                                                        &rekey_monotime_cb,
-                                                        queue);
+  queue->rekey_monotime_get = GNUNET_PEERSTORE_iteration_start (peerstore,
+                                                              "transport_tcp_communicator",
+                                                              &queue->target,
+                                                              GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_REKEY,
+                                                              &rekey_monotime_cb,
+                                                              queue);
   gcry_cipher_close (queue->in_cipher);
   queue->rekeyed = GNUNET_YES;
   setup_in_cipher (&rekey->ephemeral, queue);
@@ -1462,6 +1464,7 @@ handshake_ack_monotime_cb (void *cls,
   }
   if (sizeof(*mtbe) != record->value_size)
   {
+    GNUNET_PEERSTORE_iteration_next (queue->handshake_ack_monotime_get, 1);
     GNUNET_break (0);
     return;
   }
@@ -1489,6 +1492,7 @@ handshake_ack_monotime_cb (void *cls,
                             &
                             handshake_ack_monotime_store_cb,
                             queue);
+  GNUNET_PEERSTORE_iteration_next (queue->handshake_ack_monotime_get, 1);
 }
 
 
@@ -1942,14 +1946,16 @@ try_handle_plaintext (struct Queue *queue)
       return 0;
     }
 
-    queue->handshake_ack_monotime_get = GNUNET_PEERSTORE_iterate (peerstore,
-                                                                  "transport_tcp_communicator",
-                                                                  &queue->target
-                                                                  ,
-                                                                  GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE_ACK,
-                                                                  &
-                                                                  handshake_ack_monotime_cb,
-                                                                  queue);
+    queue->handshake_ack_monotime_get = GNUNET_PEERSTORE_iteration_start (
+      peerstore,
+      "transport_tcp_communicator",
+      &queue->
+      target
+      ,
+      GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE_ACK,
+      &
+      handshake_ack_monotime_cb,
+      queue);
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Handling plaintext, ack processed!\n");
@@ -2777,6 +2783,7 @@ handshake_monotime_cb (void *cls,
               GNUNET_i2s (pid));
   if (sizeof(*mtbe) != record->value_size)
   {
+    GNUNET_PEERSTORE_iteration_next (queue->handshake_ack_monotime_get, 1);
     GNUNET_break (0);
     return;
   }
@@ -2804,6 +2811,7 @@ handshake_monotime_cb (void *cls,
                                                          &
                                                          handshake_monotime_store_cb,
                                                          queue);
+  GNUNET_PEERSTORE_iteration_next (queue->handshake_ack_monotime_get, 1);
 }
 
 
@@ -2848,12 +2856,12 @@ decrypt_and_check_tc (struct Queue *queue,
     &tc->sender.public_key);
   if (GNUNET_YES == ret)
     queue->handshake_monotime_get =
-      GNUNET_PEERSTORE_iterate (peerstore,
-                                "transport_tcp_communicator",
-                                &queue->target,
-                                GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE,
-                                &handshake_monotime_cb,
-                                queue);
+      GNUNET_PEERSTORE_iteration_start (peerstore,
+                                      "transport_tcp_communicator",
+                                      &queue->target,
+                                      GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE,
+                                      &handshake_monotime_cb,
+                                      queue);
   return ret;
 }
 

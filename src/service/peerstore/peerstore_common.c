@@ -70,7 +70,7 @@ PEERSTORE_create_record_mq_envelope (uint32_t rid,
                                      enum GNUNET_PEERSTORE_StoreOption options,
                                      uint16_t msg_type)
 {
-  struct StoreRecordMessage *srm;
+  struct PeerstoreRecordMessage *srm;
   struct GNUNET_MQ_Envelope *ev;
   size_t ss_size;
   size_t key_size;
@@ -87,14 +87,9 @@ PEERSTORE_create_record_mq_envelope (uint32_t rid,
   ev = GNUNET_MQ_msg_extra (srm, msg_size, msg_type);
   srm->key_size = htons (key_size);
   srm->expiry = GNUNET_TIME_absolute_hton (expiry);
-  if (NULL == peer)
-    srm->peer_set = htons (GNUNET_NO);
-  else
-  {
-    srm->peer_set = htons (GNUNET_YES);
-    srm->peer = *peer;
-  }
-  srm->rid = rid;
+  GNUNET_assert (NULL != peer);
+  srm->peer = *peer;
+  srm->rid = htons (rid);
   srm->sub_system_size = htons (ss_size);
   srm->value_size = htons (value_size);
   srm->options = htonl (options);
@@ -109,7 +104,7 @@ PEERSTORE_create_record_mq_envelope (uint32_t rid,
 
 
 struct GNUNET_PEERSTORE_Record *
-PEERSTORE_parse_record_message (const struct StoreRecordMessage *srm)
+PEERSTORE_parse_record_message (const struct PeerstoreRecordMessage *srm)
 {
   struct GNUNET_PEERSTORE_Record *record;
   uint16_t req_size;
@@ -128,10 +123,7 @@ PEERSTORE_parse_record_message (const struct StoreRecordMessage *srm)
     return NULL;
   }
   record = GNUNET_new (struct GNUNET_PEERSTORE_Record);
-  if (GNUNET_YES == ntohs (srm->peer_set))
-  {
-    record->peer = srm->peer;
-  }
+  record->peer = srm->peer;
   record->expiry = GNUNET_TIME_absolute_ntoh (srm->expiry);
   dummy = (char *) &srm[1];
   if (ss_size > 0)

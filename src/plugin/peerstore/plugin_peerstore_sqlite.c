@@ -106,6 +106,11 @@ struct Plugin
   sqlite3_stmt *select_peerstoredata_by_all;
 
   /**
+   * Precompiled SQL for selecting from peerstoredata
+   */
+  sqlite3_stmt *upsert_peerstoredata_later_expiry;
+
+  /**
    * Precompiled SQL for deleting expired
    * records from peerstoredata
    */
@@ -243,13 +248,17 @@ peerstore_sqlite_iterate_records (void *cls,
                                   const char *sub_system,
                                   const struct GNUNET_PeerIdentity *peer,
                                   const char *key,
-                                  GNUNET_PEERSTORE_Processor iter,
+                                  uint64_t serial,
+                                  uint64_t limit,
+                                  GNUNET_PEERSTORE_PluginProcessor iter,
                                   void *iter_cls)
 {
   struct Plugin *plugin = cls;
   sqlite3_stmt *stmt;
   int err = 0;
   int sret;
+  int ret;
+  uint64_t seq;
   struct GNUNET_PEERSTORE_Record rec;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -260,6 +269,8 @@ peerstore_sqlite_iterate_records (void *cls,
     {
       struct GNUNET_SQ_QueryParam params[] = {
         GNUNET_SQ_query_param_string (sub_system),
+        GNUNET_SQ_query_param_uint64 (&serial),
+        GNUNET_SQ_query_param_uint64 (&limit),
         GNUNET_SQ_query_param_end
       };
 
@@ -272,6 +283,8 @@ peerstore_sqlite_iterate_records (void *cls,
       struct GNUNET_SQ_QueryParam params[] = {
         GNUNET_SQ_query_param_string (sub_system),
         GNUNET_SQ_query_param_string (key),
+        GNUNET_SQ_query_param_uint64 (&serial),
+        GNUNET_SQ_query_param_uint64 (&limit),
         GNUNET_SQ_query_param_end
       };
 
@@ -287,6 +300,8 @@ peerstore_sqlite_iterate_records (void *cls,
       struct GNUNET_SQ_QueryParam params[] = {
         GNUNET_SQ_query_param_string (sub_system),
         GNUNET_SQ_query_param_auto_from_type (peer),
+        GNUNET_SQ_query_param_uint64 (&serial),
+        GNUNET_SQ_query_param_uint64 (&limit),
         GNUNET_SQ_query_param_end
       };
 
@@ -300,6 +315,8 @@ peerstore_sqlite_iterate_records (void *cls,
         GNUNET_SQ_query_param_string (sub_system),
         GNUNET_SQ_query_param_auto_from_type (peer),
         GNUNET_SQ_query_param_string (key),
+        GNUNET_SQ_query_param_uint64 (&serial),
+        GNUNET_SQ_query_param_uint64 (&limit),
         GNUNET_SQ_query_param_end
       };
 
@@ -320,46 +337,56 @@ peerstore_sqlite_iterate_records (void *cls,
   }
 
   err = 0;
-  while (SQLITE_ROW == (sret = sqlite3_step (stmt)))
+  ret = GNUNET_OK;
+  for (uint64_t i = 0; i < limit; i++)
   {
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "Returning a matched record.\n");
-    struct GNUNET_SQ_ResultSpec rs[] = {
-      GNUNET_SQ_result_spec_string (&rec.sub_system),
-      GNUNET_SQ_result_spec_auto_from_type (&rec.peer),
-      GNUNET_SQ_result_spec_string (&rec.key),
-      GNUNET_SQ_result_spec_variable_size (&rec.value, &rec.value_size),
-      GNUNET_SQ_result_spec_absolute_time (&rec.expiry),
-      GNUNET_SQ_result_spec_end
-    };
-
-    if (GNUNET_OK !=
-        GNUNET_SQ_extract_result (stmt,
-                                  rs))
+    sret = sqlite3_step (stmt);
+    if (SQLITE_DONE == sret)
     {
-      GNUNET_break (0);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Iteration done (no results)\n");
+      ret = GNUNET_NO;
       break;
     }
-    if (NULL != iter)
-      iter (iter_cls,
-            &rec,
-            NULL);
-    GNUNET_SQ_cleanup_result (rs);
-  }
-  if (SQLITE_DONE != sret)
-  {
-    LOG_SQLITE (plugin,
-                GNUNET_ERROR_TYPE_ERROR,
-                "sqlite_step");
-    err = 1;
+    if (SQLITE_ROW != sret)
+    {
+      LOG_SQLITE (plugin,
+                  GNUNET_ERROR_TYPE_ERROR,
+                  "sqlite_step");
+      ret = GNUNET_SYSERR;
+      break;
+    }
+    {
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
+           "Returning a matched record.\n");
+      struct GNUNET_SQ_ResultSpec rs[] = {
+        GNUNET_SQ_result_spec_uint64 (&seq),
+        GNUNET_SQ_result_spec_string (&rec.sub_system),
+        GNUNET_SQ_result_spec_auto_from_type (&rec.peer),
+        GNUNET_SQ_result_spec_string (&rec.key),
+        GNUNET_SQ_result_spec_variable_size (&rec.value, &rec.value_size),
+        GNUNET_SQ_result_spec_absolute_time (&rec.expiry),
+        GNUNET_SQ_result_spec_end
+      };
+
+      if (GNUNET_OK !=
+          GNUNET_SQ_extract_result (stmt,
+                                    rs))
+      {
+        GNUNET_break (0);
+        break;
+      }
+      if (NULL != iter)
+        iter (iter_cls,
+              seq,
+              &rec,
+              NULL);
+      GNUNET_SQ_cleanup_result (rs);
+    }
   }
   GNUNET_SQ_reset (plugin->dbh,
                    stmt);
-  if (NULL != iter)
-    iter (iter_cls,
-          NULL,
-          err ? "sqlite error" : NULL);
-  return GNUNET_OK;
+  return ret;
 }
 
 
@@ -393,7 +420,7 @@ peerstore_sqlite_store_record (void *cls,
                                void *cont_cls)
 {
   struct Plugin *plugin = cls;
-  sqlite3_stmt *stmt = plugin->insert_peerstoredata;
+  sqlite3_stmt *stmt;
   struct GNUNET_SQ_QueryParam params[] = {
     GNUNET_SQ_query_param_string (sub_system),
     GNUNET_SQ_query_param_auto_from_type (peer),
@@ -410,13 +437,43 @@ peerstore_sqlite_store_record (void *cls,
                                      peer,
                                      key);
   }
-  if (GNUNET_OK !=
-      GNUNET_SQ_bind (stmt,
-                      params))
-    LOG_SQLITE (plugin,
-                GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
-                "sqlite3_bind");
-  else if (SQLITE_DONE != sqlite3_step (stmt))
+
+  if (GNUNET_PEERSTORE_STOREOPTION_UPSERT_LATER_EXPIRY == options)
+  {
+    struct GNUNET_SQ_QueryParam params_upsert[] = {
+      GNUNET_SQ_query_param_fixed_size (value, size),
+      GNUNET_SQ_query_param_absolute_time (&expiry),
+      GNUNET_SQ_query_param_string (sub_system),
+      GNUNET_SQ_query_param_auto_from_type (peer),
+      GNUNET_SQ_query_param_string (key),
+      GNUNET_SQ_query_param_absolute_time (&expiry),
+      GNUNET_SQ_query_param_end
+    };
+    stmt = plugin->upsert_peerstoredata_later_expiry;
+    if (GNUNET_OK !=
+        GNUNET_SQ_bind (stmt,
+                        params_upsert))
+    {
+      LOG_SQLITE (plugin,
+                  GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
+                  "sqlite3_bind");
+      GNUNET_assert (0);
+    }
+  }
+  else
+  {
+    stmt = plugin->insert_peerstoredata;
+    if (GNUNET_OK !=
+        GNUNET_SQ_bind (stmt,
+                        params))
+    {
+      LOG_SQLITE (plugin,
+                  GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
+                  "sqlite3_bind");
+      GNUNET_assert (0);
+    }
+  }
+  if (SQLITE_DONE != sqlite3_step (stmt))
   {
     LOG_SQLITE (plugin,
                 GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
@@ -558,6 +615,7 @@ database_setup (struct Plugin *plugin)
   /* Create tables */
   sql_exec (plugin->dbh,
             "CREATE TABLE IF NOT EXISTS peerstoredata (\n"
+            "  uid INTEGER PRIMARY KEY,"
             "  sub_system TEXT NOT NULL,\n"
             "  peer_id BLOB NOT NULL,\n"
             "  key TEXT NOT NULL,\n"
@@ -566,7 +624,7 @@ database_setup (struct Plugin *plugin)
   /* Create Indices */
   if (SQLITE_OK !=
       sqlite3_exec (plugin->dbh,
-                    "CREATE INDEX IF NOT EXISTS peerstoredata_key_index ON peerstoredata (sub_system, peer_id, key)",
+                    "CREATE INDEX IF NOT EXISTS peerstoredata_key_index ON peerstoredata (sub_system, peer_id, key, uid)",
                     NULL,
                     NULL,
                     NULL))
@@ -583,23 +641,46 @@ database_setup (struct Plugin *plugin)
                " VALUES (?,?,?,?,?);",
                &plugin->insert_peerstoredata);
   sql_prepare (plugin->dbh,
-               "SELECT sub_system,peer_id,key,value,expiry FROM peerstoredata"
-               " WHERE sub_system = ?",
+               "UPDATE peerstoredata"
+               " SET"
+               " value = ?,"
+               " expiry = ?"
+               " WHERE sub_system = ?"
+               " AND peer_id = ?"
+               " AND key = ?"
+               " AND expiry < ?",
+               &plugin->upsert_peerstoredata_later_expiry);
+  sql_prepare (plugin->dbh,
+               "SELECT uid,sub_system,peer_id,key,value,expiry FROM peerstoredata"
+               " WHERE sub_system = ?"
+               " AND uid > ?"
+               " ORDER BY uid ASC"
+               " LIMIT ?",
                &plugin->select_peerstoredata);
   sql_prepare (plugin->dbh,
-               "SELECT sub_system,peer_id,key,value,expiry FROM peerstoredata"
+               "SELECT uid,sub_system,peer_id,key,value,expiry FROM peerstoredata"
                " WHERE sub_system = ?"
-               " AND peer_id = ?",
+               " AND peer_id = ?"
+               " AND uid > ?"
+               " ORDER BY uid ASC"
+               " LIMIT ?",
                &plugin->select_peerstoredata_by_pid);
   sql_prepare (plugin->dbh,
-               "SELECT sub_system,peer_id,key,value,expiry FROM peerstoredata"
+               "SELECT uid,sub_system,peer_id,key,value,expiry FROM peerstoredata"
                " WHERE sub_system = ?"
-               " AND key = ?",
+               " AND key = ?"
+               " AND uid > ?"
+               " ORDER BY uid ASC"
+               " LIMIT ?",
                &plugin->select_peerstoredata_by_key);
   sql_prepare (plugin->dbh,
-               "SELECT sub_system,peer_id,key,value,expiry FROM peerstoredata"
+               "SELECT uid,sub_system,peer_id,key,value,expiry FROM peerstoredata"
                " WHERE sub_system = ?"
-               " AND peer_id = ?" " AND key = ?",
+               " AND peer_id = ?"
+               " AND key = ?"
+               " AND uid > ?"
+               " ORDER BY uid ASC"
+               " LIMIT ?",
                &plugin->select_peerstoredata_by_all);
   sql_prepare (plugin->dbh,
                "DELETE FROM peerstoredata"

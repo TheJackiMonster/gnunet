@@ -30,6 +30,7 @@
 static int ok = 1;
 
 static struct GNUNET_PEERSTORE_Handle *h;
+static struct GNUNET_PEERSTORE_IterateContext *ic;
 
 static char *subsystem = "test_peerstore_api_store";
 static struct GNUNET_PeerIdentity pid;
@@ -48,6 +49,7 @@ finish (void *cls)
   GNUNET_SCHEDULER_shutdown ();
 }
 
+
 static void
 test3_cont2 (void *cls,
              const struct GNUNET_PEERSTORE_Record *record,
@@ -61,6 +63,7 @@ test3_cont2 (void *cls,
     GNUNET_assert (0 == strcmp ((char *) val3,
                                 (char *) record->value));
     count++;
+    GNUNET_PEERSTORE_iteration_next (ic, 1);
     return;
   }
   GNUNET_assert (count == 1);
@@ -76,12 +79,12 @@ test3_cont (void *cls,
   if (GNUNET_YES != success)
     return;
   count = 0;
-  GNUNET_PEERSTORE_iterate (h,
-                            subsystem,
-                            &pid,
-                            key,
-                            &test3_cont2,
-                            NULL);
+  ic = GNUNET_PEERSTORE_iteration_start (h,
+                                       subsystem,
+                                       &pid,
+                                       key,
+                                       &test3_cont2,
+                                       NULL);
 }
 
 
@@ -118,6 +121,7 @@ test2_cont2 (void *cls,
     GNUNET_assert ((0 == strcmp ((char *) val1, (char *) record->value)) ||
                    (0 == strcmp ((char *) val2, (char *) record->value)));
     count++;
+    GNUNET_PEERSTORE_iteration_next (ic, 1);
     return;
   }
   GNUNET_assert (count == 2);
@@ -132,11 +136,11 @@ test2_cont (void *cls, int success)
   if (GNUNET_YES != success)
     return;
   count = 0;
-  GNUNET_PEERSTORE_iterate (h,
-                            subsystem,
-                            &pid, key,
-                            &test2_cont2,
-                            NULL);
+  ic = GNUNET_PEERSTORE_iteration_start (h,
+                                       subsystem,
+                                       &pid, key,
+                                       &test2_cont2,
+                                       NULL);
 }
 
 
@@ -174,6 +178,7 @@ test1_cont2 (void *cls,
     GNUNET_assert ((strlen (val1) + 1) == record->value_size);
     GNUNET_assert (0 == strcmp ((char *) val1, (char *) record->value));
     count++;
+    GNUNET_PEERSTORE_iteration_next (ic, 1);
     return;
   }
   GNUNET_assert (count == 1);
@@ -189,12 +194,12 @@ test1_cont (void *cls, int success)
   if (GNUNET_YES != success)
     return;
   count = 0;
-  GNUNET_PEERSTORE_iterate (h,
-                            subsystem,
-                            &pid,
-                            key,
-                            &test1_cont2,
-                            NULL);
+  ic = GNUNET_PEERSTORE_iteration_start (h,
+                                       subsystem,
+                                       &pid,
+                                       key,
+                                       &test1_cont2,
+                                       NULL);
 }
 
 

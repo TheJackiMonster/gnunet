@@ -2062,7 +2062,7 @@ struct IncomingRequest
   /**
    * Notify context for new HELLOs.
    */
-  struct GNUNET_PEERSTORE_NotifyContext *nc;
+  struct GNUNET_PEERSTORE_Monitor *nc;
 
   /**
    * Which peer is this about?
@@ -2089,7 +2089,7 @@ struct PeerRequest
   /**
    * Notify context for new HELLOs.
    */
-  struct GNUNET_PEERSTORE_NotifyContext *nc;
+  struct GNUNET_PEERSTORE_Monitor *nc;
 
   /**
    * What kind of performance preference does this @e tc have?
@@ -2980,7 +2980,8 @@ free_incoming_request (struct IncomingRequest *ir)
   GNUNET_CONTAINER_DLL_remove (ir_head, ir_tail, ir);
   GNUNET_assert (ir_total > 0);
   ir_total--;
-  GNUNET_PEERSTORE_hello_changed_notify_cancel (ir->nc);
+  if (NULL != ir->nc)
+    GNUNET_PEERSTORE_monitor_stop (ir->nc);
   ir->nc = NULL;
   GNUNET_free (ir);
 }
@@ -3618,7 +3619,7 @@ free_neighbour (struct Neighbour *neighbour)
   }
   if (NULL != neighbour->get)
   {
-    GNUNET_PEERSTORE_iterate_cancel (neighbour->get);
+    GNUNET_PEERSTORE_iteration_stop (neighbour->get);
     neighbour->get = NULL;
   }
   if (NULL != neighbour->sc)
@@ -3996,7 +3997,8 @@ stop_peer_request (void *cls,
   struct TransportClient *tc = cls;
   struct PeerRequest *pr = value;
 
-  GNUNET_PEERSTORE_hello_changed_notify_cancel (pr->nc);
+  if (NULL != pr->nc)
+    GNUNET_PEERSTORE_monitor_stop (pr->nc);
   pr->nc = NULL;
   GNUNET_assert (
     GNUNET_YES ==
@@ -4072,7 +4074,8 @@ client_disconnect_cb (void *cls,
       struct AddressListEntry *ale;
 
       if (NULL != tc->details.communicator.free_queue_entry_task)
-        GNUNET_SCHEDULER_cancel (tc->details.communicator.free_queue_entry_task);
+        GNUNET_SCHEDULER_cancel (
+          tc->details.communicator.free_queue_entry_task);
       while (NULL != (q = tc->details.communicator.queue_head))
         free_queue (q);
       while (NULL != (ale = tc->details.communicator.addr_head))
@@ -4141,9 +4144,9 @@ finish_cmc_handling_with_continue (struct CommunicatorMessageContext *cmc,
                                    int free_cmc);
 
 static enum GNUNET_GenericReturnValue
-resume_communicators(void *cls,
-                     const struct GNUNET_PeerIdentity *pid,
-                     void *value)
+resume_communicators (void *cls,
+                      const struct GNUNET_PeerIdentity *pid,
+                      void *value)
 {
   struct VirtualLink *vl = value;
   struct CommunicatorMessageContext *cmc;
@@ -4589,21 +4592,22 @@ free_timedout_queue_entry (void *cls)
     while (NULL != qep)
     {
       struct QueueEntry *pos = qep;
-      
+
       qep = qep->next;
-      struct GNUNET_TIME_Relative diff = GNUNET_TIME_absolute_get_difference (pos->creation_timestamp, now);
+      struct GNUNET_TIME_Relative diff = GNUNET_TIME_absolute_get_difference (
+        pos->creation_timestamp, now);
 
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "diff to now %s \n",
                   GNUNET_TIME_relative2s (diff, GNUNET_NO));
-      if (GNUNET_TIME_relative_cmp (QUEUE_ENTRY_TIMEOUT, < , diff))
+      if (GNUNET_TIME_relative_cmp (QUEUE_ENTRY_TIMEOUT, <, diff))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Freeing timed out QueueEntry with MID %" PRIu64
-                " and QID %u\n",
-                pos->mid,
-                queue->qid);
-        free_queue_entry(pos, tc);
+                    "Freeing timed out QueueEntry with MID %" PRIu64
+                    " and QID %u\n",
+                    pos->mid,
+                    queue->qid);
+        free_queue_entry (pos, tc);
       }
     }
   }
@@ -4716,9 +4720,11 @@ queue_send_msg (struct Queue *queue,
       struct TransportClient *tc = queue->tc;
 
       if (NULL == tc->details.communicator.free_queue_entry_task)
-        tc->details.communicator.free_queue_entry_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
-                                                                                       &free_timedout_queue_entry,
-                                                                                       tc);
+        tc->details.communicator.free_queue_entry_task =
+          GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
+                                        &
+                                        free_timedout_queue_entry,
+                                        tc);
     }
     if (NULL != pm && NULL != (pa = pm->pa_head))
     {
@@ -4729,7 +4735,8 @@ queue_send_msg (struct Queue *queue,
     // GNUNET_CONTAINER_multiuuidmap_get (pending_acks, &ack[i].ack_uuid.value);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Sending message MID %" PRIu64
-                " of type %u (%u) and size %lu with MQ %p queue %s (QID %u) pending %" PRIu64 "\n",
+                " of type %u (%u) and size %lu with MQ %p queue %s (QID %u) pending %"
+                PRIu64 "\n",
                 GNUNET_ntohll (smt->mid),
                 ntohs (((const struct GNUNET_MessageHeader *) payload)->type),
                 ntohs (smt->header.size),
@@ -5699,7 +5706,7 @@ shc_cont (void *cls, int success)
     ale->st = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
                                             &store_pi,
                                             ale);
-   }
+  }
 }
 
 
@@ -6057,7 +6064,7 @@ handle_raw_message (void *cls, const struct GNUNET_MessageHeader *mh)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "%u items stored in ring buffer\n",
                 GNUNET_YES == is_ring_buffer_full ? RING_BUFFER_SIZE :
-                        ring_buffer_head);
+                ring_buffer_head);
 
     /*GNUNET_break_op (0);
     GNUNET_STATISTICS_update (GST_stats,
@@ -6369,7 +6376,8 @@ handle_fragment_box (void *cls, const struct TransportFragmentBoxMessage *fb)
     else
       rc->msg_missing = 0;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Received fragment with size %u at offset %u/%u %u bytes missing from %s for NEW message %" PRIu64 "\n",
+                "Received fragment with size %u at offset %u/%u %u bytes missing from %s for NEW message %"
+                PRIu64 "\n",
                 fsize,
                 ntohs (fb->frag_off),
                 msize,
@@ -6644,8 +6652,8 @@ completed_pending_message (struct PendingMessage *pm)
     free_pending_message (pm);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "pos frag_off %lu pos bytes_msg %lu pmt %u parent %u\n",
-                pos->frag_off,
-                pos->bytes_msg,
+                (unsigned long) pos->frag_off,
+                (unsigned long) pos->bytes_msg,
                 pos->pmt,
                 NULL == pos->frag_parent ? 1 : 0);
     /* check if subtree is done */
@@ -6672,7 +6680,8 @@ completed_pending_message (struct PendingMessage *pm)
     }
 
     /* Was this the last applicable fragment? */
-    if ((NULL == pos->head_frag) && (NULL == pos->frag_parent || PMT_DV_BOX == pos->pmt) &&
+    if ((NULL == pos->head_frag) && (NULL == pos->frag_parent || PMT_DV_BOX ==
+                                     pos->pmt) &&
         (pos->frag_off == pos->bytes_msg))
       client_send_response (pos);
     return;
@@ -8186,7 +8195,7 @@ forward_dv_box (struct Neighbour *next_hop,
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "%u items stored in DV ring buffer\n",
                   GNUNET_YES == is_ring_buffer_dv_full ? RING_BUFFER_SIZE :
-                        ring_buffer_dv_head);
+                  ring_buffer_dv_head);
     }
   }
 }
@@ -8202,7 +8211,7 @@ free_backtalker (struct Backtalker *b)
 {
   if (NULL != b->get)
   {
-    GNUNET_PEERSTORE_iterate_cancel (b->get);
+    GNUNET_PEERSTORE_iteration_stop (b->get);
     b->get = NULL;
     GNUNET_assert (NULL != b->cmc);
     finish_cmc_handling (b->cmc);
@@ -8309,6 +8318,7 @@ backtalker_monotime_cb (void *cls,
   }
   if (sizeof(*mtbe) != record->value_size)
   {
+    GNUNET_PEERSTORE_iteration_next (b->get, 1);
     GNUNET_break (0);
     return;
   }
@@ -8328,8 +8338,8 @@ backtalker_monotime_cb (void *cls,
     /* Setting body_size to 0 prevents call to #forward_backchannel_payload()
      */
     b->body_size = 0;
-    return;
   }
+  GNUNET_PEERSTORE_iteration_next (b->get, 1);
 }
 
 
@@ -8652,12 +8662,12 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
       GNUNET_TIME_relative_to_absolute (BACKCHANNEL_INACTIVITY_TIMEOUT);
     b->task = GNUNET_SCHEDULER_add_at (b->timeout, &backtalker_timeout_cb, b);
     b->get =
-      GNUNET_PEERSTORE_iterate (peerstore,
-                                "transport",
-                                &b->pid,
-                                GNUNET_PEERSTORE_TRANSPORT_BACKCHANNEL_MONOTIME,
-                                &backtalker_monotime_cb,
-                                b);
+      GNUNET_PEERSTORE_iteration_start (peerstore,
+                                        "transport",
+                                        &b->pid,
+                                        GNUNET_PEERSTORE_TRANSPORT_BACKCHANNEL_MONOTIME,
+                                        &backtalker_monotime_cb,
+                                        b);
   } /* end actual decryption */
 }
 
@@ -8819,7 +8829,7 @@ start_address_validation (const struct GNUNET_PeerIdentity *pid,
                               &vs->challenge,
                               sizeof(vs->challenge));
   vs->address = GNUNET_strdup (address);
-  GNUNET_CRYPTO_hash (vs->address, strlen(vs->address), &vs->hc);
+  GNUNET_CRYPTO_hash (vs->address, strlen (vs->address), &vs->hc);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Starting address validation `%s' of peer %s using challenge %s\n",
               address,
@@ -8887,11 +8897,12 @@ hello_for_incoming_cb (void *cls,
  */
 static void
 handle_hello_for_incoming (void *cls,
-                           const struct GNUNET_PeerIdentity *peer,
-                           const struct GNUNET_MessageHeader *hello,
+                           const struct GNUNET_PEERSTORE_Record *record,
                            const char *emsg)
 {
+  struct IncomingRequest *ir = cls;
   struct GNUNET_HELLO_Builder *builder;
+  struct GNUNET_MessageHeader *hello;
 
   if (NULL != emsg)
   {
@@ -8900,13 +8911,33 @@ handle_hello_for_incoming (void *cls,
                 emsg);
     return;
   }
-  if (0 == GNUNET_memcmp (peer, &GST_my_identity))
+  hello = record->value;
+  if (0 == GNUNET_memcmp (&record->peer, &GST_my_identity))
+  {
+    GNUNET_PEERSTORE_monitor_next (ir->nc, 1);
     return;
+  }
   builder = GNUNET_HELLO_builder_from_msg (hello);
   GNUNET_HELLO_builder_iterate (builder,
                                 hello_for_incoming_cb,
                                 NULL);
   GNUNET_HELLO_builder_free (builder);
+}
+
+
+static void
+hello_for_incoming_error_cb (void *cls)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+              "Error in PEERSTORE monitoring\n");
+}
+
+
+static void
+hello_for_incoming_sync_cb (void *cls)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+              "Done with initial PEERSTORE iteration during monitoring\n");
 }
 
 
@@ -9008,10 +9039,17 @@ handle_validation_challenge (
   ir->pid = sender;
   GNUNET_CONTAINER_DLL_insert (ir_head, ir_tail, ir);
 
-  ir->nc = GNUNET_PEERSTORE_hello_changed_notify (peerstore,
-                                                  GNUNET_NO,
-                                                  &handle_hello_for_incoming,
-                                                  NULL);
+  ir->nc = GNUNET_PEERSTORE_monitor_start (GST_cfg,
+                                           GNUNET_YES,
+                                           "peerstore",
+                                           NULL,
+                                           GNUNET_PEERSTORE_HELLO_KEY,
+                                           &hello_for_incoming_error_cb,
+                                           NULL,
+                                           &hello_for_incoming_sync_cb,
+                                           NULL,
+                                           &handle_hello_for_incoming,
+                                           ir);
   ir_total++;
   /* Bound attempts we do in parallel here, might otherwise get excessive */
   while (ir_total > MAX_INCOMING_REQUEST)
@@ -9107,6 +9145,7 @@ find_queue (const struct GNUNET_PeerIdentity *pid, const char *address)
   return NULL;
 }
 
+
 static void
 validation_transmit_on_queue (struct Queue *q, struct ValidationState *vs);
 
@@ -9139,8 +9178,8 @@ revalidate_map_it (
 {
   (void) cls;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Key in revalidate map  %s \n",
-                GNUNET_h2s (key));
+              "Key in revalidate map  %s \n",
+              GNUNET_h2s (key));
   return GNUNET_YES;
 }
 
@@ -9287,7 +9326,7 @@ handle_validation_response (
   vs->revalidation_task =
     GNUNET_SCHEDULER_add_at (GNUNET_TIME_absolute_subtract (vs->next_challenge,
                                                             GNUNET_TIME_UNIT_MINUTES),
-                                                            &revalidation_start_cb, vs);
+                             &revalidation_start_cb, vs);
   vs->sc = GNUNET_PEERSTORE_store (peerstore,
                                    "transport",
                                    &cmc->im.sender,
@@ -10022,7 +10061,7 @@ update_pm_next_attempt (struct PendingMessage *pm,
       if (PMT_DV_BOX == root->pmt)
         root = root->frag_parent;
       reorder_root_pm (root, root->next_attempt);
-      //root->next_attempt = GNUNET_TIME_UNIT_ZERO_ABS;
+      // root->next_attempt = GNUNET_TIME_UNIT_ZERO_ABS;
     }
     else
     {
@@ -10036,10 +10075,10 @@ update_pm_next_attempt (struct PendingMessage *pm,
         next_attempt);
 
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "frag_count %u after factor\n",
-                root->frag_count);
+                  "frag_count %u after factor\n",
+                  root->frag_count);
       s1 = GNUNET_TIME_relative_multiply_double (plus_mean,
-                                          factor);
+                                                 factor);
       s2 = GNUNET_TIME_relative_divide (plus,
                                         root->frag_count);
       plus_mean = GNUNET_TIME_relative_add (s1, s2);
@@ -10966,7 +11005,8 @@ validation_transmit_on_queue (struct Queue *q, struct ValidationState *vs)
   GNUNET_CONTAINER_multihashmap_remove (revalidation_map, &vs->hc, vs);
 
   monotonic_time  = GNUNET_TIME_absolute_get_monotonic (GST_cfg);
-  if (GNUNET_TIME_UNIT_ZERO_ABS.abs_value_us == vs->last_challenge_use.abs_value_us)
+  if (GNUNET_TIME_UNIT_ZERO_ABS.abs_value_us ==
+      vs->last_challenge_use.abs_value_us)
   {
     vs->first_challenge_use = monotonic_time;
   }
@@ -11325,6 +11365,7 @@ neighbour_dv_monotime_cb (void *cls,
   }
   if (0 == record->value_size)
   {
+    GNUNET_PEERSTORE_iteration_next (n->get, 1);
     GNUNET_break (0);
     return;
   }
@@ -11332,6 +11373,7 @@ neighbour_dv_monotime_cb (void *cls,
   n->last_dv_learn_monotime =
     GNUNET_TIME_absolute_max (n->last_dv_learn_monotime,
                               GNUNET_TIME_absolute_ntoh (*mtbe));
+  GNUNET_PEERSTORE_iteration_next (n->get, 1);
 }
 
 
@@ -11389,12 +11431,12 @@ handle_add_queue_message (void *cls,
                        neighbour,
                        GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
       neighbour->get =
-        GNUNET_PEERSTORE_iterate (peerstore,
-                                  "transport",
-                                  &neighbour->pid,
-                                  GNUNET_PEERSTORE_TRANSPORT_DVLEARN_MONOTIME,
-                                  &neighbour_dv_monotime_cb,
-                                  neighbour);
+        GNUNET_PEERSTORE_iteration_start (peerstore,
+                                          "transport",
+                                          &neighbour->pid,
+                                          GNUNET_PEERSTORE_TRANSPORT_DVLEARN_MONOTIME,
+                                          &neighbour_dv_monotime_cb,
+                                          neighbour);
     }
     addr_len = ntohs (aqm->header.size) - sizeof(*aqm);
     addr = (const char *) &aqm[1];
@@ -11445,18 +11487,21 @@ handle_add_queue_message (void *cls,
   queue->idle = GNUNET_YES;
   /* check if valdiations are waiting for the queue */
   if (GNUNET_YES == GNUNET_CONTAINER_multipeermap_contains (validation_map,
-                                          &aqm->receiver))
+                                                            &aqm->receiver))
   {
-    if (GNUNET_SYSERR != GNUNET_CONTAINER_multipeermap_get_multiple (validation_map,
-                                                  &aqm->receiver,
-                                                  &check_validation_request_pending,
-                                                                     queue))
+    if (GNUNET_SYSERR != GNUNET_CONTAINER_multipeermap_get_multiple (
+          validation_map,
+          &aqm->
+          receiver,
+          &
+          check_validation_request_pending,
+          queue))
       start_address_validation (&aqm->receiver, queue->address);
   }
   else
     start_address_validation (&aqm->receiver, queue->address);
   /* look for traffic for this queue */
-  //TODO Check whether this makes any sense at all.
+  // TODO Check whether this makes any sense at all.
   /*schedule_transmit_on_queue (GNUNET_TIME_UNIT_ZERO,
     queue, GNUNET_SCHEDULER_PRIORITY_DEFAULT);*/
   /* might be our first queue, try launching DV learning */
@@ -11658,12 +11703,12 @@ hello_for_client_cb (void *cls,
  */
 static void
 handle_hello_for_client (void *cls,
-                         const struct GNUNET_PeerIdentity *peer,
-                         const struct GNUNET_MessageHeader *hello,
+                         const struct GNUNET_PEERSTORE_Record *record,
                          const char *emsg)
 {
-  (void) cls;
+  struct PeerRequest *pr = cls;
   struct GNUNET_HELLO_Builder *builder;
+  struct GNUNET_MessageHeader *hello;
 
   if (NULL != emsg)
   {
@@ -11672,13 +11717,33 @@ handle_hello_for_client (void *cls,
                 emsg);
     return;
   }
-  if (0 == GNUNET_memcmp (peer, &GST_my_identity))
+  hello = record->value;
+  if (0 == GNUNET_memcmp (&record->peer, &GST_my_identity))
+  {
+    GNUNET_PEERSTORE_monitor_next (pr->nc, 1);
     return;
+  }
   builder = GNUNET_HELLO_builder_from_msg (hello);
   GNUNET_HELLO_builder_iterate (builder,
                                 hello_for_client_cb,
                                 NULL);
   GNUNET_HELLO_builder_free (builder);
+}
+
+
+static void
+hello_for_client_error_cb (void *cls)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+              "Error in PEERSTORE monitoring\n");
+}
+
+
+static void
+hello_for_client_sync_cb (void *cls)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+              "Done with initial PEERSTORE iteration during monitoring\n");
 }
 
 
@@ -11728,10 +11793,18 @@ handle_suggest (void *cls, const struct ExpressPreferenceMessage *msg)
     GNUNET_SERVICE_client_drop (tc->client);
     return;
   }
-  pr->nc = GNUNET_PEERSTORE_hello_changed_notify (peerstore,
-                                                  GNUNET_NO,
-                                                  &handle_hello_for_client,
-                                                  NULL);
+  pr->nc =
+    GNUNET_PEERSTORE_monitor_start (GST_cfg,
+                                    GNUNET_YES,
+                                    "peerstore",
+                                    NULL,
+                                    GNUNET_PEERSTORE_HELLO_KEY,
+                                    &hello_for_client_error_cb,
+                                    NULL,
+                                    &hello_for_client_sync_cb,
+                                    NULL,
+                                    &handle_hello_for_client,
+                                    pr);
   GNUNET_SERVICE_client_continue (tc->client);
 }
 

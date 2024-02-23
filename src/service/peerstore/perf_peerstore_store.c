@@ -32,7 +32,7 @@ static int ok = 1;
 
 static struct GNUNET_PEERSTORE_Handle *h;
 
-static struct GNUNET_PEERSTORE_WatchContext *wc;
+static struct GNUNET_PEERSTORE_Monitor *wc;
 
 static char *ss = "test_peerstore_stress";
 static struct GNUNET_PeerIdentity p;
@@ -45,7 +45,7 @@ static int count_fin = 0;
 static void
 disconnect (void *cls)
 {
-  GNUNET_PEERSTORE_watch_cancel (wc);
+  GNUNET_PEERSTORE_monitor_stop (wc);
   if (NULL != h)
     GNUNET_PEERSTORE_disconnect (h);
   GNUNET_SCHEDULER_shutdown ();
@@ -56,7 +56,7 @@ static void
 store_cont (void *cls, int ret)
 {
   count_fin++;
-  if (count_fin == count)
+  if ((STORES == count) && (count_fin == count))
   {
     ok = 0;
     GNUNET_SCHEDULER_add_now (&disconnect, NULL);
@@ -86,6 +86,22 @@ watch_cb (void *cls, const struct GNUNET_PEERSTORE_Record *record,
     store ();
 }
 
+static void
+error_cb (void *cls)
+{
+  // Never reach this
+}
+
+static void
+sync_cb (void *cls)
+{
+  static int initial_sync = 0;
+  if (1 == initial_sync)
+    return;
+  store ();
+  initial_sync = 1;
+  return;
+}
 
 static void
 run (void *cls, const struct GNUNET_CONFIGURATION_Handle *cfg,
@@ -94,7 +110,11 @@ run (void *cls, const struct GNUNET_CONFIGURATION_Handle *cfg,
   memset (&p, 5, sizeof(p));
   h = GNUNET_PEERSTORE_connect (cfg);
   GNUNET_assert (NULL != h);
-  wc = GNUNET_PEERSTORE_watch (h, ss, &p, k, &watch_cb, NULL);
+  wc = GNUNET_PEERSTORE_monitor_start (cfg, GNUNET_YES,
+                                       ss, &p, k,
+                                       error_cb, NULL,
+                                       sync_cb, NULL,
+                                       &watch_cb, NULL);
   store ();
 }
 

@@ -46,6 +46,19 @@ extern "C"
 #endif
 #endif
 
+/**
+ * Function called by PEERSTORE for each matching record.
+ *
+ * @param cls closure
+ * @param seq sequence in interation
+ * @param record peerstore record information
+ * @param emsg error message, or NULL if no errors
+ */
+typedef void (*GNUNET_PEERSTORE_PluginProcessor) (
+  void *cls,
+  uint64_t seq,
+  const struct GNUNET_PEERSTORE_Record *record,
+  const char *emsg);
 
 /**
  * @brief struct returned by the initialization function of the plugin
@@ -93,6 +106,7 @@ struct GNUNET_PEERSTORE_PluginFunctions
    * @param sub_system name of sub system
    * @param peer Peer identity (can be NULL)
    * @param key entry key string (can be NULL)
+   * @param limit max number of results to give
    * @param iter function to call asynchronously with the results, terminated
    * by a NULL result
    * @param iter_cls closure for @a iter
@@ -104,7 +118,9 @@ struct GNUNET_PEERSTORE_PluginFunctions
                       const char *sub_system,
                       const struct GNUNET_PeerIdentity *peer,
                       const char *key,
-                      GNUNET_PEERSTORE_Processor iter,
+                      uint64_t serial,
+                      uint64_t limit,
+                      GNUNET_PEERSTORE_PluginProcessor iter,
                       void *iter_cls);
 
   /**

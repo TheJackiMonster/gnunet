@@ -110,15 +110,9 @@ struct ZoneIteration
   uint32_t offset;
 
   /**
-   * Number of pending cache operations triggered by this zone iteration which we
-   * need to wait for before allowing the client to continue.
-   */
-  unsigned int cache_ops;
-
-  /**
    * Set to #GNUNET_YES if the last iteration exhausted the limit set by the
    * client and we should send the #GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_RESULT_END
-   * message and free the data structure once @e cache_ops is zero.
+   * message and free the data structure.
    */
   int send_end;
 };
@@ -1360,7 +1354,8 @@ handle_edit_record_set (void *cls, const struct EditRecordSetMessage *er_msg)
   env =
     GNUNET_MQ_msg_extra (rer_msg,
                          rlc.rd_ser_len + old_editor_hint_len,
-                         GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_SET_EDIT_RESPONSE);
+                         GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_SET_EDIT_RESPONSE)
+  ;
   rer_msg->editor_hint_len = htons (old_editor_hint_len);
   rer_msg->gns_header.r_id = er_msg->gns_header.r_id;
   rer_msg->rd_count = htons (rlc.res_rd_count);
@@ -1859,7 +1854,8 @@ store_record_set (struct NamestoreClient *nc,
           lctx.exp.abs_value_us;
         rd_nf[rd_nf_count].data = NULL;
         rd_nf[rd_nf_count].data_size = 0;
-        rd_nf[rd_nf_count].flags = GNUNET_GNSRECORD_RF_PRIVATE | GNUNET_GNSRECORD_RF_MAINTENANCE;
+        rd_nf[rd_nf_count].flags = GNUNET_GNSRECORD_RF_PRIVATE
+                                   | GNUNET_GNSRECORD_RF_MAINTENANCE;
         rd_nf_count++;
       }
       if ((0 == strcmp (GNUNET_GNS_EMPTY_LABEL_AT, conv_name)) &&
@@ -2285,8 +2281,7 @@ run_zone_iteration_round (struct ZoneIteration *zi, uint64_t limit)
                 "Returned %llu results, more results available\n",
                 (unsigned long long) limit);
   zi->send_end = (0 != proc.limit);
-  if (0 == zi->cache_ops)
-    zone_iteration_done_client_continue (zi);
+  zone_iteration_done_client_continue (zi);
 }
 
 

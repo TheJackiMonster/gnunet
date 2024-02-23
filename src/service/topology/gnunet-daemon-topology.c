@@ -36,6 +36,7 @@
 #include "gnunet_peerstore_service.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_transport_application_service.h"
+#include <assert.h>
 
 
 /**
@@ -118,7 +119,7 @@ struct GNUNET_SCHEDULER_Task *peerstore_notify_task;
  * Our peerstore notification context.  We use notification
  * to instantly learn about new peers as they are discovered.
  */
-static struct GNUNET_PEERSTORE_NotifyContext *peerstore_notify;
+static struct GNUNET_PEERSTORE_Monitor *peerstore_notify;
 
 /**
  * Our configuration.
@@ -725,6 +726,22 @@ consider_for_advertising (const struct GNUNET_MessageHeader *hello)
 }
 
 
+static void
+error_cb (void *cls)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              _ ("Error in communication with PEERSTORE service to monitor.\n"));
+  return;
+}
+
+static void
+sync_cb (void *cls)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              _ ("Finished initial PEERSTORE iteration in monitor.\n"));
+  return;
+}
+
 /**
  * PEERSTORE calls this function to let us know about a possible peer
  * that we might want to connect to.
@@ -736,28 +753,38 @@ consider_for_advertising (const struct GNUNET_MessageHeader *hello)
  */
 static void
 process_peer (void *cls,
-              const struct GNUNET_PeerIdentity *peer,
-              const struct GNUNET_MessageHeader *hello,
+              const struct GNUNET_PEERSTORE_Record *record,
               const char *err_msg)
 {
   struct Peer *pos;
+  struct GNUNET_MessageHeader *hello;
 
   if (NULL != err_msg)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 _ ("Error in communication with PEERSTORE service: %s\n"),
                 err_msg);
-    GNUNET_PEERSTORE_hello_changed_notify_cancel (peerstore_notify);
+    GNUNET_PEERSTORE_monitor_stop (peerstore_notify);
     peerstore_notify =
-      GNUNET_PEERSTORE_hello_changed_notify (ps, GNUNET_NO, &process_peer,
-                                             NULL);
+      GNUNET_PEERSTORE_monitor_start (cfg,
+                                      GNUNET_YES,
+                                      "peerstore",
+                                      NULL,
+                                      GNUNET_PEERSTORE_HELLO_KEY,
+                                      error_cb,
+                                      NULL,
+                                      sync_cb,
+                                      NULL,
+                                      &process_peer,
+                                      NULL);
     return;
   }
-  GNUNET_assert (NULL != peer);
+  GNUNET_assert (NULL != record);
+  hello = record->value;
   if (NULL == hello)
   {
     /* free existing HELLO, if any */
-    pos = GNUNET_CONTAINER_multipeermap_get (peers, peer);
+    pos = GNUNET_CONTAINER_multipeermap_get (peers, &record->peer);
     if (NULL != pos)
     {
       GNUNET_free (pos->hello);
@@ -770,13 +797,15 @@ process_peer (void *cls,
       if (NULL == pos->mq)
         free_peer (NULL, &pos->pid, pos);
     }
+    GNUNET_PEERSTORE_monitor_next (peerstore_notify, 1);
     return;
   }
   consider_for_advertising (hello);
-  pos = GNUNET_CONTAINER_multipeermap_get (peers, peer);
+  pos = GNUNET_CONTAINER_multipeermap_get (peers, &record->peer);
   if (NULL == pos)
-    pos = make_peer (peer, hello);
+    pos = make_peer (&record->peer, hello);
   attempt_connect (pos);
+  GNUNET_PEERSTORE_monitor_next (peerstore_notify, 1);
 }
 
 
@@ -788,7 +817,17 @@ start_notify (void *cls)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Starting to process new hellos for gossiping.\n");
   peerstore_notify =
-    GNUNET_PEERSTORE_hello_changed_notify (ps, GNUNET_NO, &process_peer, NULL);
+    GNUNET_PEERSTORE_monitor_start (cfg,
+                                    GNUNET_YES,
+                                    "peerstore",
+                                    NULL,
+                                    GNUNET_PEERSTORE_HELLO_KEY,
+                                    &error_cb,
+                                    NULL,
+                                    &sync_cb,
+                                    NULL,
+                                    &process_peer,
+                                    NULL);
 }
 
 
@@ -916,7 +955,7 @@ cleaning_task (void *cls)
   }
   if (NULL != peerstore_notify)
   {
-    GNUNET_PEERSTORE_hello_changed_notify_cancel (peerstore_notify);
+    GNUNET_PEERSTORE_monitor_stop (peerstore_notify);
     peerstore_notify = NULL;
   }
   else if (NULL != peerstore_notify_task)

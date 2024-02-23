@@ -2599,14 +2599,14 @@ extern "C" {
 #define GNUNET_MESSAGE_TYPE_PEERSTORE_STORE 820
 
 /**
- * Iteration request
+ * Iteration request (see also 828, 829)
  */
-#define GNUNET_MESSAGE_TYPE_PEERSTORE_ITERATE 821
+#define GNUNET_MESSAGE_TYPE_PEERSTORE_ITERATE_START 821
 
 /**
- * Iteration record message
+ * Record result message
  */
-#define GNUNET_MESSAGE_TYPE_PEERSTORE_ITERATE_RECORD 822
+#define GNUNET_MESSAGE_TYPE_PEERSTORE_RECORD 822
 
 /**
  * Iteration end message
@@ -2614,25 +2614,34 @@ extern "C" {
 #define GNUNET_MESSAGE_TYPE_PEERSTORE_ITERATE_END 823
 
 /**
- * Watch request
+ * Monitor request
  */
-#define GNUNET_MESSAGE_TYPE_PEERSTORE_WATCH 824
+#define GNUNET_MESSAGE_TYPE_PEERSTORE_MONITOR_START 824
 
 /**
- * Watch response
+ * Monitor sync
  */
-#define GNUNET_MESSAGE_TYPE_PEERSTORE_WATCH_RECORD 825
+#define GNUNET_MESSAGE_TYPE_PEERSTORE_MONITOR_SYNC 825
 
 /**
- * Watch cancel request
+ * Monitor next request
  */
-#define GNUNET_MESSAGE_TYPE_PEERSTORE_WATCH_CANCEL 826
+#define GNUNET_MESSAGE_TYPE_PEERSTORE_MONITOR_NEXT 826
 
 /**
  * Store result message
  */
 #define GNUNET_MESSAGE_TYPE_PEERSTORE_STORE_RESULT 827
 
+/**
+ * Iteration request (see also 821, 829)
+ */
+#define GNUNET_MESSAGE_TYPE_PEERSTORE_ITERATE_NEXT 828
+
+/**
+ * Iteration request (see also 821, 828)
+ */
+#define GNUNET_MESSAGE_TYPE_PEERSTORE_ITERATE_STOP 829
 
 /*******************************************************************************
  * SOCIAL message types

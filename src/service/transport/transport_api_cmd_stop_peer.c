@@ -68,7 +68,7 @@ stop_peer_run (void *cls,
 
   if (NULL != sps->pic)
   {
-    GNUNET_PEERSTORE_iterate_cancel (sps->pic);
+    GNUNET_PEERSTORE_iteration_stop (sps->pic);
   }
   if (NULL != sps->th)
   {

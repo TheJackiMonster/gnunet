@@ -341,7 +341,7 @@ hello_iter_cb (void *cb_cls,
   memcpy (p->hello, record->value, p->hello_size);
   p->hello[p->hello_size - 1] = '\0';
 
-  GNUNET_PEERSTORE_iterate_cancel (p->pic);
+  GNUNET_PEERSTORE_iteration_stop (p->pic);
   p->pic = NULL;
   if (NULL != p->start_cb)
   {
@@ -352,6 +352,7 @@ hello_iter_cb (void *cb_cls,
     p->start_cb (p->start_cb_cls);
     p->start_cb = NULL;
   }
+  GNUNET_PEERSTORE_iteration_next (p->pic, 1);
 }
 
 
@@ -360,12 +361,12 @@ retrieve_hello (void *cls)
 {
   struct GNUNET_TRANSPORT_TESTING_PeerContext *p = cls;
   p->rh_task = NULL;
-  p->pic = GNUNET_PEERSTORE_iterate (p->ph,
-                                     "transport",
-                                     &p->id,
-                                     GNUNET_PEERSTORE_TRANSPORT_HELLO_KEY,
-                                     hello_iter_cb,
-                                     p);
+  p->pic = GNUNET_PEERSTORE_iteration_start (p->ph,
+                                           "transport",
+                                           &p->id,
+                                           GNUNET_PEERSTORE_TRANSPORT_HELLO_KEY,
+                                           hello_iter_cb,
+                                           p);
 
 }
 
@@ -536,7 +537,7 @@ GNUNET_TRANSPORT_TESTING_restart_peer (struct
        GNUNET_i2s (&p->id));
   if (NULL != p->pic)
   {
-    GNUNET_PEERSTORE_iterate_cancel (p->pic);
+    GNUNET_PEERSTORE_iteration_stop (p->pic);
     p->pic = NULL;
   }
   if (NULL != p->th)
@@ -594,12 +595,12 @@ GNUNET_TRANSPORT_TESTING_restart_peer (struct
                                          &notify_disconnect);
   GNUNET_assert (NULL != p->th);
   p->ah = GNUNET_TRANSPORT_application_init (p->cfg);
-  p->pic = GNUNET_PEERSTORE_iterate (p->ph,
-                                     "transport",
-                                     &p->id,
-                                     GNUNET_PEERSTORE_TRANSPORT_HELLO_KEY,
-                                     hello_iter_cb,
-                                     p);
+  p->pic = GNUNET_PEERSTORE_iteration_start (p->ph,
+                                           "transport",
+                                           &p->id,
+                                           GNUNET_PEERSTORE_TRANSPORT_HELLO_KEY,
+                                           hello_iter_cb,
+                                           p);
   GNUNET_assert (NULL != p->pic);
   return GNUNET_OK;
 }
@@ -632,7 +633,7 @@ GNUNET_TRANSPORT_TESTING_stop_peer (struct
   }
   if (NULL != p->pic)
   {
-    GNUNET_PEERSTORE_iterate_cancel (p->pic);
+    GNUNET_PEERSTORE_iteration_stop (p->pic);
     p->pic = NULL;
   }
   if (NULL != p->th)

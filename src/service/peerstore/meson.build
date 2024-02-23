@@ -1,4 +1,5 @@
 libgnunetpeerstore_src = ['peerstore_api.c',
+                          'peerstore_api_monitor.c',
                           'peerstore_common.c']
 
 gnunetservicepeerstore_src = ['gnunet-service-peerstore.c']
@@ -86,7 +87,7 @@ test('test_peerstore_api_watch', testpeerstore_api_watch,
   suite: 'peerstore', workdir: meson.current_build_dir())
 test('test_peerstore_api_iterate', testpeerstore_api_iterate,
   suite: 'peerstore', workdir: meson.current_build_dir())
-test('perf_peerstore_store', testpeerstore_api_perf,
+test('perf_peerstore_api_store', testpeerstore_api_perf,
   suite: 'peerstore', workdir: meson.current_build_dir())
 
 

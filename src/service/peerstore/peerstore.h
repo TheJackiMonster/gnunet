@@ -34,23 +34,12 @@ GNUNET_NETWORK_STRUCT_BEGIN
 /**
  * Message carrying a PEERSTORE record message
  */
-struct StoreRecordMessage
+struct PeerstoreRecordMessage
 {
   /**
    * GNUnet message header
    */
   struct GNUNET_MessageHeader header;
-
-  /**
-   * #GNUNET_YES if peer id value set, #GNUNET_NO otherwise
-   */
-  uint16_t peer_set GNUNET_PACKED;
-
-  /**
-   * Size of the sub_system string
-   * Allocated at position 0 after this struct
-   */
-  uint16_t sub_system_size GNUNET_PACKED;
 
   /**
    * Peer Identity
@@ -61,6 +50,17 @@ struct StoreRecordMessage
    * Expiry time of entry
    */
   struct GNUNET_TIME_AbsoluteNBO expiry;
+
+/**
+   * Request id.
+   */
+  uint32_t rid GNUNET_PACKED;
+
+  /**
+   * Options, needed only in case of a
+   * store operation
+   */
+  uint32_t /* enum GNUNET_PEERSTORE_StoreOption */ options GNUNET_PACKED;
 
   /**
    * Size of the key string
@@ -74,16 +74,17 @@ struct StoreRecordMessage
    */
   uint16_t value_size GNUNET_PACKED;
 
-  /**
-   * Request id.
-   */
-  uint32_t rid GNUNET_PACKED;
 
   /**
-   * Options, needed only in case of a
-   * store operation
+   * Size of the sub_system string
+   * Allocated at position 0 after this struct
    */
-  uint32_t /* enum GNUNET_PEERSTORE_StoreOption */ options GNUNET_PACKED;
+  uint16_t sub_system_size GNUNET_PACKED;
+
+  /**
+   * reserved
+   */
+  uint16_t reserved GNUNET_PACKED;
 
   /* Followed by key and value */
 };
@@ -130,7 +131,148 @@ struct StoreKeyHashMessage
    * Hash of a record key
    */
   struct GNUNET_HashCode keyhash;
+};
 
+/**
+ * Iteration start message
+ */
+struct PeerstoreMonitorStartMessage
+{
+  /**
+   * GNUnet message header
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * Peer Identity
+   */
+  struct GNUNET_PeerIdentity peer;
+
+  /**
+   * Request id.
+   */
+  uint32_t rid GNUNET_PACKED;
+
+  /**
+   * Size of the key string
+   * Allocated at position 1 after this struct
+   */
+  uint16_t key_size GNUNET_PACKED;
+
+  /**
+   * #GNUNET_YES if peer id value set, #GNUNET_NO otherwise
+   */
+  uint16_t peer_set GNUNET_PACKED;
+
+  /**
+   * Size of the sub_system string
+   * Allocated at position 0 after this struct
+   */
+  uint16_t sub_system_size GNUNET_PACKED;
+
+  /**
+   * #GNUNET_YES if iterate first, #GNUNET_NO otherwise
+   */
+  uint16_t iterate_first GNUNET_PACKED;
+
+  /* Followed by key */
+};
+
+/**
+ * Iteration next message
+ */
+struct PeerstoreMonitorNextMessage
+{
+  /**
+   * GNUnet message header
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * Number of records to return.
+   */
+  uint64_t limit GNUNET_PACKED;
+
+};
+
+/**
+ * Iteration start message
+ */
+struct PeerstoreIterationStartMessage
+{
+  /**
+   * GNUnet message header
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * Peer Identity
+   */
+  struct GNUNET_PeerIdentity peer;
+
+  /**
+   * Request id.
+   */
+  uint32_t rid GNUNET_PACKED;
+
+  /**
+   * #GNUNET_YES if peer id value set, #GNUNET_NO otherwise
+   */
+  uint16_t peer_set GNUNET_PACKED;
+
+  /**
+   * Size of the sub_system string
+   * Allocated at position 0 after this struct
+   */
+  uint16_t sub_system_size GNUNET_PACKED;
+
+  /**
+   * reserved
+   */
+  uint16_t reserved GNUNET_PACKED;
+
+  /**
+   * Size of the key string
+   * Allocated at position 1 after this struct
+   */
+  uint16_t key_size GNUNET_PACKED;
+
+  /* Followed by subsystem and key */
+};
+
+
+/**
+ * Iteration next message
+ */
+struct PeerstoreIterationNextMessage
+{
+  /**
+   * GNUnet message header
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * Number of records to return.
+   */
+  uint64_t limit GNUNET_PACKED;
+
+  /**
+   * Request id.
+   */
+  uint32_t rid GNUNET_PACKED;
+};
+
+struct PeerstoreIterationStopMessage
+{
+  /**
+   * GNUnet message header
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * Request id.
+   */
+  uint32_t rid GNUNET_PACKED;
 };
 
 GNUNET_NETWORK_STRUCT_END

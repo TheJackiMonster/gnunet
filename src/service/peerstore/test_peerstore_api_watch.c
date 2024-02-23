@@ -33,7 +33,7 @@ static int ok = 1;
 
 static struct GNUNET_PEERSTORE_Handle *h;
 
-static struct GNUNET_PEERSTORE_WatchContext *wc;
+static struct GNUNET_PEERSTORE_Monitor *wc;
 
 static char *ss = "test_peerstore_api_watch";
 
@@ -46,8 +46,8 @@ static struct GNUNET_PeerIdentity p;
 static void
 finish (void *cls)
 {
-  GNUNET_PEERSTORE_watch_cancel (wc);
   GNUNET_PEERSTORE_disconnect (h);
+  GNUNET_PEERSTORE_monitor_stop(wc);
   GNUNET_SCHEDULER_shutdown ();
 }
 
@@ -76,17 +76,7 @@ watch_cb (void *cls,
           const char *emsg)
 {
   GNUNET_assert (NULL == emsg);
-  if (GNUNET_YES == initial_iteration)
-  {
-    if (NULL != record)
-    {
-      GNUNET_break (0);
-      return; // Ignore this record, FIXME: Test unclean
-    }
-    GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS, &cont, NULL);
-    initial_iteration = GNUNET_NO;
-    return;
-  }
+  GNUNET_assert (GNUNET_YES != initial_iteration);
   if (NULL == record)
   {
     GNUNET_break (0);
@@ -102,6 +92,20 @@ watch_cb (void *cls,
 
 
 static void
+sync_cb (void *cls)
+{
+  GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS, &cont, NULL);
+  initial_iteration = GNUNET_NO;
+}
+
+static void
+error_cb (void *cls)
+{
+  // Never reach this
+  GNUNET_assert (0);
+}
+
+static void
 run (void *cls,
      const struct GNUNET_CONFIGURATION_Handle *cfg,
      struct GNUNET_TESTING_Peer *peer)
@@ -112,12 +116,17 @@ run (void *cls,
   memset (&p,
           4,
           sizeof(p));
-  wc = GNUNET_PEERSTORE_watch (h,
-                               ss,
-                               &p,
-                               k,
-                               &watch_cb,
-                               NULL);
+  wc = GNUNET_PEERSTORE_monitor_start (cfg,
+                                       GNUNET_YES,
+                                       ss,
+                                       &p,
+                                       k,
+                                       &error_cb,
+                                       NULL,
+                                       &sync_cb,
+                                       NULL,
+                                       &watch_cb,
+                                       NULL);
 }
 
 

@@ -70,7 +70,7 @@ PEERSTORE_create_record_mq_envelope (uint32_t rid,
  * @return Pointer to record or NULL on error
  */
 struct GNUNET_PEERSTORE_Record *
-PEERSTORE_parse_record_message (const struct StoreRecordMessage *srm);
+PEERSTORE_parse_record_message (const struct PeerstoreRecordMessage *srm);
 
 
 /**

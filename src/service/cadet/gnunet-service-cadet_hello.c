@@ -24,6 +24,7 @@
  * @author Bartlomiej Polot
  * @author Christian Grothoff
  */
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_statistics_service.h"
@@ -50,7 +51,7 @@ static struct GNUNET_PEERSTORE_Handle *peerstore;
  * Our peerstore notification context.  We use notification
  * to instantly learn about new peers as they are discovered.
  */
-static struct GNUNET_PEERSTORE_NotifyContext *peerstore_notify;
+static struct GNUNET_PEERSTORE_Monitor *peerstore_notify;
 
 
 /**
@@ -63,17 +64,20 @@ static struct GNUNET_PEERSTORE_NotifyContext *peerstore_notify;
  */
 static void
 got_hello (void *cls,
-           const struct GNUNET_PeerIdentity *id,
-           const struct GNUNET_MessageHeader *hello,
+           const struct GNUNET_PEERSTORE_Record *record,
            const char *err_msg)
 {
   struct CadetPeer *peer;
   struct GNUNET_HELLO_Builder *builder;
+  struct GNUNET_MessageHeader *hello;
 
-  if ((NULL == id) ||
-      (NULL == hello))
+  if (NULL == record->value)
+  {
+    GNUNET_PEERSTORE_monitor_next (peerstore_notify, 1);
     return;
-  if (0 == GNUNET_memcmp (id,
+  }
+  hello = record->value;
+  if (0 == GNUNET_memcmp (&record->peer,
                           &my_full_id))
   {
     GNUNET_free (mine);
@@ -83,19 +87,37 @@ got_hello (void *cls,
                                                   GNUNET_TIME_UNIT_ZERO);
     GNUNET_HELLO_builder_free (builder);
     GCD_hello_update ();
+    GNUNET_PEERSTORE_monitor_next (peerstore_notify, 1);
     return;
   }
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Hello for %s (%d bytes), expires on %s\n",
-       GNUNET_i2s (id),
+       GNUNET_i2s (&record->peer),
        ntohs (hello->size),
        GNUNET_STRINGS_absolute_time_to_string (
          GNUNET_HELLO_builder_get_expiration_time (hello)));
-  peer = GCP_get (id,
+  peer = GCP_get (&record->peer,
                   GNUNET_YES);
   GCP_set_hello (peer,
                  hello);
+  GNUNET_PEERSTORE_monitor_next (peerstore_notify, 1);
+}
+
+
+static void
+error_cb (void *cls)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+              "Error in PEERSTORE monitoring\n");
+}
+
+
+static void
+sync_cb (void *cls)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+              "Done with initial PEERSTORE iteration during monitoring\n");
 }
 
 
@@ -110,8 +132,17 @@ GCH_init (const struct GNUNET_CONFIGURATION_Handle *c)
   GNUNET_assert (NULL == peerstore_notify);
   peerstore = GNUNET_PEERSTORE_connect (c);
   peerstore_notify =
-    GNUNET_PEERSTORE_hello_changed_notify (peerstore, GNUNET_NO, &got_hello,
-                                           NULL);
+    GNUNET_PEERSTORE_monitor_start (c,
+                                    GNUNET_YES,
+                                    "peerstore",
+                                    NULL,
+                                    GNUNET_PEERSTORE_HELLO_KEY,
+                                    &error_cb,
+                                    NULL,
+                                    &sync_cb,
+                                    NULL,
+                                    &got_hello,
+                                    NULL);
 }
 
 
@@ -123,7 +154,7 @@ GCH_shutdown ()
 {
   if (NULL != peerstore_notify)
   {
-    GNUNET_PEERSTORE_hello_changed_notify_cancel (peerstore_notify);
+    GNUNET_PEERSTORE_monitor_stop (peerstore_notify);
     peerstore_notify = NULL;
   }
   if (NULL != peerstore)
@@ -153,8 +184,8 @@ GCH_get_mine (void)
   {
     builder = GNUNET_HELLO_builder_new (&my_full_id);
     mine = GNUNET_HELLO_builder_to_dht_hello_msg (builder,
-                                       my_private_key,
-                                       GNUNET_TIME_UNIT_ZERO);
+                                                  my_private_key,
+                                                  GNUNET_TIME_UNIT_ZERO);
     GNUNET_HELLO_builder_free (builder);
   }
   return mine;

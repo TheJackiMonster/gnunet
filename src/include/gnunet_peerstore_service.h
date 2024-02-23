@@ -66,32 +66,32 @@ extern "C" {
  * messages.
  */
 #define GNUNET_PEERSTORE_TRANSPORT_BACKCHANNEL_MONOTIME \
-  "transport-backchannel-monotonic-time"
+        "transport-backchannel-monotonic-time"
 
 /**
  * Key used to store sender's monotonic time from DV learn
  * messages.
  */
 #define GNUNET_PEERSTORE_TRANSPORT_DVLEARN_MONOTIME \
-  "transport-dv-learn-monotonic-time"
+        "transport-dv-learn-monotonic-time"
 
 /**
  * Key used to store sender's monotonic time from handshake message.
  */
 #define GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE \
-  "transport-tcp-communicator-handshake"
+        "transport-tcp-communicator-handshake"
 
 /**
  * Key used to store sender's monotonic time from handshake ack message.
  */
 #define GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE_ACK \
-  "transport-tcp-communicator-handshake-ack"
+        "transport-tcp-communicator-handshake-ack"
 
 /**
  * Key used to store sender's monotonic time from rekey message.
  */
 #define GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_REKEY \
-  "transport-tcp-communicator-rekey"
+        "transport-tcp-communicator-rekey"
 
 
 /**
@@ -108,7 +108,12 @@ enum GNUNET_PEERSTORE_StoreOption
    * Delete any previous values for the given key before
    * storing the given value.
    */
-  GNUNET_PEERSTORE_STOREOPTION_REPLACE = 1
+  GNUNET_PEERSTORE_STOREOPTION_REPLACE = 1,
+
+  /**
+   * Upserts values. Replaces if expiry is later than existing.
+   */
+  GNUNET_PEERSTORE_STOREOPTION_UPSERT_LATER_EXPIRY = 2
 };
 
 /**
@@ -161,11 +166,6 @@ struct GNUNET_PEERSTORE_Record
    */
   struct GNUNET_TIME_Absolute expiry;
 
-  /**
-   * Client from which this record originated.
-   * NOTE: This is internal to the service.
-   */
-  struct GNUNET_SERVICE_Client *client;
 };
 
 
@@ -209,16 +209,6 @@ struct GNUNET_PEERSTORE_StoreHelloContext
   void *cont_cls;
 
   /**
-   * Map with all store contexts started during adding hello.
-   */
-  struct GNUNET_CONTAINER_MultiPeerMap *store_context_map;
-
-  /**
-   * Active watch to be notified about conflicting hello uri add requests.
-   */
-  struct GNUNET_PEERSTORE_WatchContext *wc;
-
-  /**
    * Hello uri which was request for storing.
    */
   struct GNUNET_MessageHeader *hello;
@@ -229,9 +219,10 @@ struct GNUNET_PEERSTORE_StoreHelloContext
   struct GNUNET_PeerIdentity *pid;
 
   /**
-   * Was this request successful.
+   * The iteration for the merge
    */
-  int success;
+  struct GNUNET_PEERSTORE_StoreContext *sc;
+
 };
 
 /**
@@ -249,6 +240,7 @@ struct GNUNET_PEERSTORE_StoreHelloContextClosure
  * Function called by PEERSTORE for each matching record.
  *
  * @param cls closure
+ * @param seq sequence in interation
  * @param record peerstore record information
  * @param emsg error message, or NULL if no errors
  */
@@ -268,38 +260,6 @@ typedef void (*GNUNET_PEERSTORE_hello_notify_cb) (
   const struct GNUNET_PeerIdentity *peer,
   const struct GNUNET_MessageHeader *hello,
   const char *err_msg);
-
-/**
- * Call a method whenever our known information about peers
- * changes.  Initially calls the given function for all known
- * peers and then only signals changes.
- *
- * If @a include_friend_only is set to #GNUNET_YES peerinfo will include HELLO
- * messages which are intended for friend to friend mode and which do not
- * have to be gossiped. Otherwise these messages are skipped. //FIXME Not implemented atm!
- *
- * @param h Handle to the PEERSTORE service
- * @param include_friend_only include HELLO messages for friends only (not used at the moment)
- * @param callback the method to call for getting the hello.
- * @param callback_cls closure for @a callback
- * @return NULL on error
- */
-struct GNUNET_PEERSTORE_NotifyContext *
-GNUNET_PEERSTORE_hello_changed_notify (struct GNUNET_PEERSTORE_Handle *h,
-                                       int include_friend_only,
-                                       GNUNET_PEERSTORE_hello_notify_cb callback,
-                                       void *callback_cls);
-
-
-/**
- * Stop notifying about changes.
- *
- * @param nc context to stop notifying
- */
-void
-GNUNET_PEERSTORE_hello_changed_notify_cancel (struct
-                                              GNUNET_PEERSTORE_NotifyContext *nc);
-
 
 /**
  * Add hello to peerstore.
@@ -385,65 +345,130 @@ GNUNET_PEERSTORE_store_cancel (struct GNUNET_PEERSTORE_StoreContext *sc);
 
 
 /**
- * Iterate over records matching supplied key information
+ * Iterate over peerstore entries.
+ * The iteration can be filtered to contain only records
+ * matching @a peer and/or @a key.
+ * The @a sub_system to match must be provided.
+ * @a callback will be called with (each) matching record.
+ * #GNUNET_PEERSTORE_iteration_next() must be invoked
+ * to continue processing until the end of the iteration is
+ * reached.
  *
  * @param h handle to the PEERSTORE service
  * @param sub_system name of sub system
  * @param peer Peer identity (can be NULL)
  * @param key entry key string (can be NULL)
- * @param callback function called with each matching record, all NULL's on end
+ * @param callback function called with each matching record. The record will be NULL to indicate end.
  * @param callback_cls closure for @a callback
  * @return Handle to iteration request
  */
 struct GNUNET_PEERSTORE_IterateContext *
-GNUNET_PEERSTORE_iterate (struct GNUNET_PEERSTORE_Handle *h,
-                          const char *sub_system,
-                          const struct GNUNET_PeerIdentity *peer,
-                          const char *key,
-                          GNUNET_PEERSTORE_Processor callback,
-                          void *callback_cls);
+GNUNET_PEERSTORE_iteration_start (struct GNUNET_PEERSTORE_Handle *h,
+                                  const char *sub_system,
+                                  const struct GNUNET_PeerIdentity *peer,
+                                  const char *key,
+                                  GNUNET_PEERSTORE_Processor callback,
+                                  void *callback_cls);
 
 
 /**
- * Cancel an iterate request
- * Please do not call after the iterate request is done
+ * Continue an iteration.
+ * Do NOT call after the iterate request is done.
  *
- * @param ic Iterate request context as returned by GNUNET_PEERSTORE_iterate()
+ * @param ic Iterate request context as returned by #GNUNET_PEERSTORE_iteration_start()
+ * @param limit how many records to return max until #GNUNET_PEERSTORE_iterate_next() needs to be called again.
  */
 void
-GNUNET_PEERSTORE_iterate_cancel (struct GNUNET_PEERSTORE_IterateContext *ic);
+GNUNET_PEERSTORE_iteration_next (struct GNUNET_PEERSTORE_IterateContext *ic,
+                                 uint64_t limit);
 
+
+/**
+ * Cancel an iteration.
+ * Do NOT call after the iterate request is done
+ *
+ * @param ic Iterate request context as returned by #GNUNET_PEERSTORE_iteration_start()
+ */
+void
+GNUNET_PEERSTORE_iteration_stop (struct GNUNET_PEERSTORE_IterateContext *ic);
 
 /**
  * Request watching a given key
- * User will be notified with any new values added to key,
- * all existing entries are supplied beforehand.
+ * The monitoring can be filtered to contain only records
+ * matching @a peer and/or @a key.
+ * The @a sub_system to match must be provided.
+ * @a callback will be called with (each) matching new record.
+ * #GNUNET_PEERSTORE_monitor_next() must be invoked
+ * to continue processing until @a sync_cb is
+ * called, indicating that the caller should be up-to-date.
+ * The caller will be notified with any new values added to key
+ * through @a callback.
+ * If @a iterate_first is set to GNUNET_YES, the monitor will first
+ * iterate over all existing, matching records. In any case,
+ * after @a sync_cb is called the first time monitoring starts.
  *
  * @param h handle to the PEERSTORE service
+ * @param iterate_first first iterated of all results if GNUNET_YES
  * @param sub_system name of sub system
  * @param peer Peer identity
  * @param key entry key string
+ * @param error_cb function to call on error (i.e. disconnect); note that
+ *         unlike the other error callbacks in this API, a call to this
+ *         function does NOT destroy the monitor handle, it merely signals
+ *         that monitoring is down. You need to still explicitly call
+ *         #GNUNET_PEERSTORE_monitor_stop().
+ * @param error_cb_cls closure for @a error_cb
+ * @param sync_cb function called when we're in sync with the peerstore
+ * @param sync_cb_cls closure for @a sync_cb
  * @param callback function called with each new value
  * @param callback_cls closure for @a callback
  * @return Handle to watch request
  */
-struct GNUNET_PEERSTORE_WatchContext *
-GNUNET_PEERSTORE_watch (struct GNUNET_PEERSTORE_Handle *h,
-                        const char *sub_system,
-                        const struct GNUNET_PeerIdentity *peer,
-                        const char *key,
-                        GNUNET_PEERSTORE_Processor callback,
-                        void *callback_cls);
-
+struct GNUNET_PEERSTORE_Monitor *
+GNUNET_PEERSTORE_monitor_start (const struct GNUNET_CONFIGURATION_Handle *cfg,
+                                int iterate_first,
+                                const char *sub_system,
+                                const struct GNUNET_PeerIdentity *peer,
+                                const char *key,
+                                GNUNET_SCHEDULER_TaskCallback error_cb,
+                                void *error_cb_cls,
+                                GNUNET_SCHEDULER_TaskCallback sync_cb,
+                                void *sync_cb_cls,
+                                GNUNET_PEERSTORE_Processor callback,
+                                void *callback_cls);
 
 /**
- * Cancel a watch request
+ * Calls the monitor processor specified in #GNUNET_PEERSTORE_monitor_start
+ * for the next record(s).  This function is used to allow clients that merely
+ * monitor the NAMESTORE to still throttle namestore operations, so we can be
+ * sure that the monitors can keep up.
  *
- * @param wc handle to the watch request
+ * Note that #GNUNET_PEERSTORE_store() only waits for this
+ * call if the previous limit set by the client was already reached.
+ * Thus, by using a @a limit greater than 1, monitors basically enable
+ * a queue of notifications to be processed asynchronously with some
+ * delay.  Note that even with a limit of 1 the
+ * #GNUNET_PEERSTORE_store() function will run asynchronously
+ * and the continuation may be invoked before the monitors completed
+ * (or even started) processing the notification.  Thus, monitors will
+ * only closely track the current state of the peerstore, but not
+ * be involved in the transactions.
+ *
+ * @param zm the monitor
+ * @param limit number of records to return to the iterator in one shot
+ *        (before #GNUNET_PEERSTORE_monitor_next is to be called again)
  */
 void
-GNUNET_PEERSTORE_watch_cancel (struct GNUNET_PEERSTORE_WatchContext *wc);
+GNUNET_PEERSTORE_monitor_next (struct GNUNET_PEERSTORE_Monitor *zm,
+                               uint64_t limit);
 
+/**
+ * Stop monitoring.
+ *
+ * @param zm handle to the monitor activity to stop
+ */
+void
+GNUNET_PEERSTORE_monitor_stop (struct GNUNET_PEERSTORE_Monitor *zm);
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {

@@ -161,7 +161,7 @@ struct Plugin
    * Our peerstore notification context.  We use notification
    * to instantly learn about new peers as they are discovered.
    */
-  struct GNUNET_PEERSTORE_NotifyContext *peerstore_notify;
+  struct GNUNET_PEERSTORE_Monitor *peerstore_notify;
 
   /**
    * Identity of this peer.
@@ -176,7 +176,7 @@ struct Plugin
 };
 
 
-//#include "../peerinfo-tool/gnunet-peerinfo_plugins.c"
+// #include "../peerinfo-tool/gnunet-peerinfo_plugins.c"
 
 
 /**
@@ -198,7 +198,7 @@ gnunet_try_connect (void *cls,
   int pfx_len;
 
   eou = strstr (address,
-                  "://");
+                "://");
   if (NULL == eou)
   {
     GNUNET_break (0);
@@ -379,7 +379,7 @@ add_addr (void *cls,
 {
   struct Plugin *plugin = cls;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG ,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "peerinfo_cb addr %s\n",
               addr);
   plugin->env->address_add_cb (plugin->env->cls,
@@ -403,26 +403,44 @@ add_addr (void *cls,
  */
 static void
 peerinfo_cb (void *cls,
-             const struct GNUNET_PeerIdentity *peer,
-             const struct GNUNET_MessageHeader *hello,
+             const struct GNUNET_PEERSTORE_Record *record,
              const char *emsg)
 {
   struct Plugin *plugin = cls;
   struct GNUNET_HELLO_Builder *builder;
+  struct GNUNET_MessageHeader *hello;
 
+  hello = record->value;
   if (NULL == hello)
     return;
-  if (NULL == peer)
-    return;
   if (0 !=
-      GNUNET_memcmp (peer,
+      GNUNET_memcmp (&record->peer,
                      &plugin->my_identity))
+  {
+    GNUNET_PEERSTORE_monitor_next (plugin->peerstore_notify, 1);
     return;
+  }
   builder = GNUNET_HELLO_builder_from_msg (hello);
   GNUNET_HELLO_builder_iterate (builder,
                                 add_addr,
                                 plugin);
   GNUNET_HELLO_builder_free (builder);
+  GNUNET_PEERSTORE_monitor_next (plugin->peerstore_notify, 1);
+}
+
+static void
+error_cb (void *cls)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+              "Error in PEERSTORE monitoring\n");
+}
+
+
+static void
+sync_cb (void *cls)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+              "Done with initial PEERSTORE iteration during monitoring\n");
 }
 
 
@@ -439,17 +457,23 @@ peerinfo_cb (void *cls,
  * @param my_identity ID of this peer, NULL if we failed
  */
 static void
- core_init_cb (void *cls,
+core_init_cb (void *cls,
               const struct GNUNET_PeerIdentity *my_identity)
 {
   struct Plugin *plugin = cls;
 
   plugin->my_identity = *my_identity;
-  plugin->peerstore_notify =
-      GNUNET_PEERSTORE_hello_changed_notify (plugin->peerstore,
-                                             GNUNET_NO,
-                                             &peerinfo_cb,
-                                             plugin);
+  plugin->peerstore_notify = GNUNET_PEERSTORE_monitor_start (plugin->env->cfg,
+                                                             GNUNET_YES,
+                                                             "peerstore",
+                                                             NULL,
+                                                             GNUNET_PEERSTORE_HELLO_KEY,
+                                                             &error_cb,
+                                                             NULL,
+                                                             &sync_cb,
+                                                             NULL,
+                                                             &peerinfo_cb,
+                                                             plugin);
 }
 
 
@@ -538,10 +562,10 @@ libgnunet_plugin_dhtu_gnunet_done (void *cls)
   if (NULL != plugin->transport)
     GNUNET_TRANSPORT_application_done (plugin->transport);
   if (NULL != plugin->peerstore_notify)
-    GNUNET_PEERSTORE_hello_changed_notify_cancel (plugin->peerstore_notify);
+    GNUNET_PEERSTORE_monitor_stop (plugin->peerstore_notify);
   if (NULL != plugin->peerstore)
     GNUNET_PEERSTORE_disconnect (plugin->peerstore);
-  //GPI_plugins_unload ();
+  // GPI_plugins_unload ();
   GNUNET_free (plugin->my_priv);
   GNUNET_free (plugin);
   GNUNET_free (api);
@@ -570,7 +594,8 @@ libgnunet_plugin_dhtu_gnunet_init (void *cls)
   };
 
   plugin = GNUNET_new (struct Plugin);
-  plugin->my_priv = GNUNET_CRYPTO_eddsa_key_create_from_configuration (env->cfg);
+  plugin->my_priv = GNUNET_CRYPTO_eddsa_key_create_from_configuration (
+    env->cfg);
   plugin->env = env;
   api = GNUNET_new (struct GNUNET_DHTU_PluginFunctions);
   api->cls = plugin;
@@ -598,6 +623,6 @@ libgnunet_plugin_dhtu_gnunet_init (void *cls)
     libgnunet_plugin_dhtu_gnunet_done (plugin);
     return NULL;
   }
-  //GPI_plugins_load (env->cfg);
+  // GPI_plugins_load (env->cfg);
   return api;
 }
