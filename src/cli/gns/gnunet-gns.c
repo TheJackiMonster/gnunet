@@ -168,7 +168,6 @@ process_lookup_result (void *cls,
                        const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct GNUNET_TIME_Relative block_exp;
-  const char *name = cls;
   const char *typename;
   char *string_val;
 
