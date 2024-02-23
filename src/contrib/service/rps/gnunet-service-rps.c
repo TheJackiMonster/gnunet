@@ -67,7 +67,7 @@
  * Get peer flag of given peer context.
  */
 #define check_peer_flag_set(peer_ctx, mask) \
-  ((peer_ctx->peer_flags) & (mask) ? GNUNET_YES : GNUNET_NO)
+        ((peer_ctx->peer_flags) & (mask) ? GNUNET_YES : GNUNET_NO)
 
 /**
  * Unset flag of given peer context.
@@ -78,7 +78,7 @@
  * Get channel flag of given channel context.
  */
 #define check_channel_flag_set(channel_flags, mask) \
-  ((*channel_flags) & (mask) ? GNUNET_YES : GNUNET_NO)
+        ((*channel_flags) & (mask) ? GNUNET_YES : GNUNET_NO)
 
 /**
  * Unset flag of given channel context.
@@ -507,7 +507,7 @@ static struct GNUNET_PEERSTORE_Handle *peerstore;
  * Our peerstore notification context.  We use notification
  * to instantly learn about new peers as they are discovered.
  */
-static struct GNUNET_PEERSTORE_NotifyContext *peerstore_notify;
+static struct GNUNET_PEERSTORE_Monitor *peerstore_notify;
 
 
 #if ENABLE_MALICIOUS
@@ -4431,7 +4431,7 @@ do_round (void *cls)
                "+%s\t(push list)",
                GNUNET_i2s_full (&view_array[i]));
 #endif /* TO_FILE_FULL */
-       // TODO change the peer_flags accordingly
+      // TODO change the peer_flags accordingly
     }
     GNUNET_free (permut);
     permut = NULL;
@@ -4462,7 +4462,7 @@ do_round (void *cls)
                "+%s\t(pull list)",
                GNUNET_i2s_full (&view_array[i]));
 #endif /* TO_FILE_FULL */
-       // TODO change the peer_flags accordingly
+      // TODO change the peer_flags accordingly
     }
     GNUNET_free (permut);
     permut = NULL;
@@ -4697,22 +4697,17 @@ valid_peers_iterator (void *cls,
  */
 void
 process_peerinfo_peers (void *cls,
-                        const struct GNUNET_PeerIdentity *peer,
-                        const struct GNUNET_MessageHeader *hello,
+                        const struct GNUNET_PEERSTORE_Record *record,
                         const char *emsg)
 {
   struct Sub *sub = cls;
-
-  (void) hello;
   (void) emsg;
 
-  if (NULL != peer)
-  {
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "Got peer_id %s from peerinfo\n",
-         GNUNET_i2s (peer));
-    got_peer (sub, peer);
-  }
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Got peer_id %s from peerinfo\n",
+       GNUNET_i2s (&record->peer));
+  got_peer (sub, &record->peer);
+  GNUNET_PEERSTORE_monitor_next(peerstore_notify, 1);
 }
 
 
@@ -4744,7 +4739,7 @@ shutdown_task (void *cls)
   }
 
   /* Disconnect from other services */
-  GNUNET_PEERSTORE_hello_changed_notify_cancel (peerstore_notify);
+  GNUNET_PEERSTORE_monitor_stop (peerstore_notify);
   GNUNET_PEERSTORE_disconnect (peerstore);
   peerstore = NULL;
   GNUNET_NSE_disconnect (nse);
@@ -4851,6 +4846,22 @@ client_disconnect_cb (void *cls,
 }
 
 
+static void
+error_cb (void *cls)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+              "Error in PEERSTORE monitoring\n");
+}
+
+
+static void
+sync_cb (void *cls)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+              "Done with initial PEERSTORE iteration during monitoring\n");
+}
+
+
 /**
  * Handle random peer sampling clients.
  *
@@ -4948,10 +4959,18 @@ run (void *cls,
   restore_valid_peers (msub);
   get_valid_peers (msub->valid_peers, valid_peers_iterator, msub);
 
-  peerstore_notify = GNUNET_PEERSTORE_hello_changed_notify (peerstore,
-                                                            GNUNET_NO,
-                                                            process_peerinfo_peers,
-                                                            msub);
+  peerstore_notify =
+    GNUNET_PEERSTORE_monitor_start (c,
+                                    GNUNET_YES,
+                                    "peerstore",
+                                    NULL,
+                                    GNUNET_PEERSTORE_HELLO_KEY,
+                                    &error_cb,
+                                    NULL,
+                                    &sync_cb,
+                                    NULL,
+                                    &process_peerinfo_peers,
+                                    msub);
 
   LOG (GNUNET_ERROR_TYPE_INFO, "Ready to receive requests from clients\n");
 

@@ -23,9 +23,9 @@
  * @author Omar Tarabai
  * @author Christian Grothoff
  */
+#include "platform.h"
 #include "gnunet_common.h"
 #include "gnunet_protocols.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_hello_uri_lib.h"
 #include "peerstore.h"
