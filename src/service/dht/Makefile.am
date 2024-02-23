@@ -47,6 +47,7 @@ gnunet_service_dht_LDADD = \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
   $(top_builddir)/src/lib/block/libgnunetblock.la \
   $(top_builddir)/src/lib/block/libgnunetblockgroup.la \
+  $(top_builddir)/src/service/transport/libgnunettransportapplication.la \
   $(top_builddir)/src/service/datacache/libgnunetdatacache.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   -lm
