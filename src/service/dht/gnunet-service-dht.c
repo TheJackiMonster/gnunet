@@ -453,11 +453,17 @@ load_underlay (void *cls,
   u->env.connect_cb = &GDS_u_connect;
   u->env.disconnect_cb = &GDS_u_disconnect;
   u->env.receive_cb = &GDS_u_receive;
-  GNUNET_asprintf (&libname,
-                   "libgnunet_plugin_dhtu_%s",
-                   section);
-  u->dhtu = GNUNET_PLUGIN_load (libname,
-                                &u->env);
+
+  /** NOTE: This is not pretty, but it allows us to avoid
+      dynamically loading plugins **/
+  if (0 == strcmp (section, "gnunet"))
+  {
+    u->dhtu = DHTU_gnunet_init (cfg);
+  }
+  else if (0 == strcmp (section, "ip"))
+  {
+    u->dhtu = DHTU_ip_init (cfg);
+  }
   if (NULL == u->dhtu)
   {
     GNUNET_free (libname);

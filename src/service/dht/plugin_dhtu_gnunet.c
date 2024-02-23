@@ -31,6 +31,7 @@
 #include "gnunet_hello_uri_lib.h"
 #include "gnunet_peerstore_service.h"
 #include "gnunet_nse_service.h"
+#include "plugin_dhtu_gnunet.h"
 
 /**
  * Opaque handle that the underlay offers for our address to be used when
@@ -546,7 +547,7 @@ nse_cb (void *cls,
  * @return NULL
  */
 void *
-libgnunet_plugin_dhtu_gnunet_done (void *cls)
+DHTU_gnunet_done (void *cls)
 {
   struct GNUNET_DHTU_PluginFunctions *api = cls;
   struct Plugin *plugin = api->cls;
@@ -580,7 +581,7 @@ libgnunet_plugin_dhtu_gnunet_done (void *cls)
  * @return the plugin's API
  */
 void *
-libgnunet_plugin_dhtu_gnunet_init (void *cls)
+DHTU_gnunet_init (void *cls)
 {
   struct GNUNET_DHTU_PluginEnvironment *env = cls;
   struct GNUNET_DHTU_PluginFunctions *api;
@@ -620,7 +621,7 @@ libgnunet_plugin_dhtu_gnunet_init (void *cls)
   {
     GNUNET_break (0);
     GNUNET_free (api);
-    libgnunet_plugin_dhtu_gnunet_done (plugin);
+    DHTU_gnunet_done (plugin);
     return NULL;
   }
   // GPI_plugins_load (env->cfg);
