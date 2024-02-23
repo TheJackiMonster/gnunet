@@ -610,6 +610,8 @@ add_link (struct GNUNET_MESSENGER_MessageStore *store,
   if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (store->links, hash, link,
                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
     GNUNET_free (link);
+  else
+    store->write_links = GNUNET_YES;
 }
 
 
